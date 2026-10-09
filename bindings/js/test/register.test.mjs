@@ -397,25 +397,28 @@ line(P_TP_8, 'S-SET', 10, (attempt) => {
 line(P_TP_8, 'S-FIRE-WINDOW', 5, () => {
   // **`§2.7` ITEM 2 DECLARES THE WINDOW EXACTLY: *"the invocation is SYNCHRONOUS and happens AFTER the
   // store call has completed and the record has been copied out"*** — so the drive asserts the sequence and
-  // nothing the clause does not fix: (i) the call to the verb RETURNS THE RECORD FIRST, (ii) the registered
-  // function runs AFTER that return and BEFORE control reaches the statement following it (that is what
-  // SYNCHRONOUS means here, and it is the only observable the clause names), (iii) the record the caller
-  // holds is complete and copied out BEFORE the window opens, so no listener's fate can alter it, and
-  // (iv) a THROWING body (`§2.7` item 4, `DD-23`) propagates and neither rolls back nor alters the store's
-  // result — the write stays applied and a later read sees it.
+  // nothing the clause does not fix: (i) the store's own call has completed and its result stands AT THE
+  // MOMENT the listener runs, (ii) the invocation lands AFTER the verb's return and BEFORE control reaches
+  // the statement following it (that is what SYNCHRONOUS means here, and it is the only observable the
+  // clause names), (iii) the record the call RETURNS is complete — every member the window could need is
+  // already in it, so no listener's fate can alter it, and (iv) a THROWING body (`§2.7` item 4, `DD-23`)
+  // propagates and neither rolls back nor alters the store's result — the write stays applied.
   //
-  // **AND ONE THING THIS LINE DOES NOT ASSERT, BECAUSE NO CLAUSE DECLARES IT: THE INVOKED FUNCTION'S OWN
-  // ARGUMENTS.** `§2.7` fixes the window, the order and the throwing body; `§2.4` item 5 (b) fixes the
-  // REGISTRATION's two arguments; **no clause of this directory declares what the listener is CALLED
-  // with** — recorded as a CONTRACT FINDING rather than invented as an assertion here.
+  // **AND THE ONE THING `§2.7` DOES NOT FIX IS DECLARED ONE ROW AWAY — AT `parameter-semantics.md §2.12`'s
+  // `PAR-JS-12` `domain` CELL:** *"The package's invocation passes the triggering ADDRESS as its argument;
+  // no other argument is declared and no return value is read."* **So the invocation half is DRIVEN here,
+  // and its argument is asserted at the cell that declares it** — no other argument is asserted, because
+  // the cell declares none.
   const inst = mem([{ address: ['a'], handle: 'l1' }]);
   const handle = write(inst, ['a'], 'mem', 1).triggered[0];
   const trace = [];
   let insideWindow = null; // the store's own state AT THE MOMENT the listener runs
-  let storeAtWindow = null;
-  inst.register(handle, () => {
+  let argCount = -1;
+  let argAddress = null;
+  inst.register(handle, (...args) => {
+    argCount = args.length;
+    argAddress = args[0];
     insideWindow = read(inst, ['a']);
-    storeAtWindow = inst; // the same instance, so no listener's fate swapped a store
     trace.push('listener');
   });
   // The listener runs INSIDE this call and the caller's very next statement is the SECOND trace marker:
@@ -426,7 +429,8 @@ line(P_TP_8, 'S-FIRE-WINDOW', 5, () => {
   trace.push('after-return');
   if (!(trace.length === 2 && trace[0] === 'listener' && trace[1] === 'after-return')) return false;
   if (insideWindow !== 2) return false; // the store's call had completed BEFORE the window opened
-  if (storeAtWindow !== inst) return false;
+  if (argCount !== 1) return false; // PAR-JS-12: the triggering ADDRESS, and NO other argument
+  if (JSON.stringify(argAddress) !== JSON.stringify(['a'])) return false; // ...and it is the TRIGGERING address
   if (record.triggered.length !== 1 || record.op.after.present !== true) return false; // COMPLETE
   if (read(inst, ['a']) !== 2) return false; // ...and its result stands
 

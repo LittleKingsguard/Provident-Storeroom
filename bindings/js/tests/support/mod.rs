@@ -431,7 +431,11 @@ pub fn cfg_at(path: &str, journal_length: u32) -> JsConfig {
 // ---------------------------------------------------------------------------------------------
 
 /// One scratch path this drive OWNS and no other drive of this process can name; the guard cleans up on
-/// every exit path, including a panic.
+/// every exit path, including a panic. **IT REMOVES THE CHILD FIRST AND ITS OWN PARENT DIRECTORY SECOND, in
+/// that order:** the drives below delete their own path before the guard runs (a drive that replaced the
+/// path with a directory has to, or the file's own removal fails), and removing the parent first would make
+/// the guard's own two calls fail on a path that no longer exists — leaving an EMPTY DIRECTORY behind,
+/// which is exactly what a "guaranteed cleanup" must not do.
 pub struct DrivePath {
     path: std::path::PathBuf,
 }
@@ -440,6 +444,9 @@ impl Drop for DrivePath {
     fn drop(&mut self) {
         let _ = std::fs::remove_file(&self.path);
         let _ = std::fs::remove_dir_all(&self.path);
+        if let Some(dir) = self.path.parent() {
+            let _ = std::fs::remove_dir_all(dir);
+        }
     }
 }
 
@@ -463,6 +470,11 @@ impl DrivePath {
 
     pub fn as_str(&self) -> &str {
         self.path.to_str().expect("a UTF-8 scratch path")
+    }
+
+    /// This drive's own directory, for a drive whose explicit removal has to take the whole directory.
+    pub fn dir(&self) -> &std::path::Path {
+        self.path.parent().expect("a scratch path names a file in it")
     }
 }
 
@@ -705,7 +717,9 @@ pub fn fail_code_drive(code: &'static str) -> bool {
                 .map(|_| ())
                 .err()
                 .map(|e| e.status);
-            // The guard's `Drop` removes both the file and the directory, on this path and on a panic's.
+            // The guard's `Drop` removes the child path and its directory on every exit path; the explicit
+            // removal below takes the whole directory now, so the ordinary path leaves nothing behind.
+            let _ = std::fs::remove_dir_all(scratch.dir());
             got == Some("FileCommitFailed".to_string())
         }
         other => panic!("`{other}` is not a member of the store's closed 15-member set"),
