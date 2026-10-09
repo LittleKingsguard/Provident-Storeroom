@@ -40,7 +40,7 @@ later gate.**
    filing performs, with the park's own record left standing (lifted, not deleted, at `P-1`).**
 3. **THE RULED CARRIER IS NODE-API AND THE INTEGRATION WAS DEFERRED, NOT REFUSED.** `A1` (*"Node-API"*) is the
    ruled carrier; `A8` ruled *"This is to build the store. Defer the integration until the store passes
-   testing"*; `A57` ruled the firing model **return-by-handle** (the store returns handles and **invokes
+   testing"*; `A57` ruled the firing model **return-by-handle** (the store returns handles and **invokes  **⟶ CORRECTED 2026-10-11 (STEP 2'S FINDING `K15`, THE FILING'S OWN DEFECT — `RCA-8(d)` ANNOTATE-BESIDE): `A1`/`A2`/`A8`/`A9` stand in `docs/specs/storeroom-native-proposal.md`, while **`A57` AND `A58` OCCUR ZERO TIMES THERE** — they are filed at `docs/specs/storeroom-listeners-proposal.md §18` and `§20`. Every `A40`–`A61` citation in this file therefore carries its `P:` tag with the LISTENER proposal's path and section, and every `A1`–`A9` citation the store proposal's path (the form condition `C11` makes checkable).**
    nothing**), which means **the JS side receives a list of handles and owns the invocation** — a fact this
    unit's design must honour rather than re-litigate.
 4. **THE DIRECTIVE'S OWN QUALIFIER — *"generic, not Provident-Electron install"* — IS THE SCOPE RULING.** This
@@ -107,7 +107,7 @@ later gate.**
 
 **The STEP-0 determination is `role_change_analysis`'s (folded into step 4).** **The premise this filing records: the identifiers this unit will name — `binding` · `addon` · `napi`/`Node-API` · the JS spellings of the store's own types — are NOT contract terms of this project's shipped contract (its `§0.4` declares RUST spellings only), while the JS side's own vocabulary (a callback, a promise, a plain object) belongs to the JS language and not to any artifact of this project.** **Whether the trigger fires, and whether a dossier or the zero-row exemption with a written rationale applies, is the gate's determination — not this filing's.**
 
-**THE LEDGER MOVE THIS FILING OWES, WITH ITS TERMS:** the ledger stood at **`1 DONE / 1 open` UNITS = `2`**; **this filing opens a third unit's gate-1 row, so it reads `1 DONE / 2 open` UNITS = `3` (`1 + 2 = 3` ✓)** — landed in `docs/next-steps.md` in the same pass.
+**THE LEDGER MOVE THIS FILING OWES, WITH ITS TERMS:** the ledger stood at **`1 DONE / 1 open` UNITS = `2`**; **this filing opens a third unit's gate-1 row, so it reads `1 DONE / 2 open` UNITS = `3` (`1 + 2 = 3` ✓)** — landed in `docs/next-steps.md` in the same pass.  **⟶ CORRECTED 2026-10-11 (STEP 2'S FINDING `K14`, THE FILING'S OWN DEFECT — `RCA-8(d)` ANNOTATE-BESIDE): the tracker's `## DONE` section carries TWO closed unit rows and `## OPEN`'s own closing clause still read `1 + 0 = 1`, so the move was landed while three of the file's arithmetic statements contradicted it. THE TRACKER GATE OWED THE RECONCILIATION AND THIS PASS PAID IT: `## OPEN`'s closing clause now reads `2 + 0 = 2` and names the live ledger `1 DONE / 2 open` UNITS = `3`, with the LAST dated clause of the head line as its operative statement (condition `C12` makes three-way agreement over the tracker's sections a gate-1 condition).**
 
 ---
 
