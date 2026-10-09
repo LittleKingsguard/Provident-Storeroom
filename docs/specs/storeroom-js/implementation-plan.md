@@ -67,6 +67,26 @@ AND NO ACCEPTANCE ITEM: it states the phase state the tree now carries, so the t
 | `bindings/js/**` — the sibling crate's own `Cargo.toml`, `src/**` and its own tests | `Q2` (its tests), `Q3` (its manifest and sources) |
 | the JS package inside `bindings/js/**` — `package.json`, its entry points, its generated `.d.ts`, its JS sources and its JS tests | `Q1` (the declared shape), `Q2` (its tests), `Q3` (its code) |
 | the build configuration for the sibling and the package (`build.rs`, any `scripts/**`) | `Q1`, `Q3` |
+
+**⟶ AND THE SCOPE ROW ABOVE IS READ THROUGH THIS DATED CLAUSE, LANDED 2026-10-11 BY THE BOUNDED CLOSE-OUT
+PASS (`role_spec_writer`), BECAUSE THE TREE'S BUILD SURFACE IS WIDER THAN THE ROW NAMES.** `RCA-8(d)`
+ANNOTATE-BESIDE: **the row above stands byte-for-byte and the phase cells (`Q1`, `Q3`) do not move; THIS
+clause is a PURE INSERTION, it adds no phase, no owner and no output, and it is the NAMED GAP the sweep
+recorded at `§2`'s reconciliation, item 4, now carried as the scope's own terms.** **THE TREE'S BUILD-SURFACE
+FILES, NAMED WITH THE PHASE THAT MAY WRITE EACH:**
+
+| The build-surface file or wiring the row above does not name | The phase that may write it |
+| --- | --- |
+| `bindings/js/.gitignore` — the ignore file that keeps `/target/`, `/build/` and the crate's `Cargo.lock` out of the tracked tree | **`Q1` (the declared shape), `Q3` (its content)** |
+| `bindings/js/build/Release/storeroom_js_binding.node` — the addon's own PLACEMENT, the IGNORED path the package's internal step loads, and the artefact an acceptance leg's BUILD STEP produces | **`Q3` (the path is the package's), and the artefact itself by the build step `bindings/js/README.md` declares** |
+| `bindings/js/package.json`'s `optionalDependencies` wiring — the per-target artefact names the prebuild matrix publishes under | **`Q1` (the declared shape), `Q3` (the wiring)** |
+| **THE ONE THING THE ROW ABOVE NAMES THAT THE TREE DOES NOT CARRY, STATED SO THE ROW IS NOT READ AS WRONG:** **there is NO `build.rs` and NO `scripts/**` in the tree.** **The row's declared edit scope is therefore NOT CONTRADICTED but INCOMPLETE, because a non-`build.rs` FFI facade lives inside `src/**`** — **so the row's parenthesised examples are read as EXAMPLES the phase may write where they exist, and the three rows above as the build surface the tree actually carries.** | — |
+
+**A file of the four above written by any phase but the one named, or a FIFTH build-surface file written
+without a bounded amendment of this row, is a finding** (`[A1
+docs/specs/storeroom-js/contract.md · the sweep clause, item 2 row 29 — the NAMED GAP this clause carries as
+the scope's own terms; A3 docs/specs/storeroom-js/contract.md · the index region's declared edit scope |
+requirement]`).
 | the four trackers `docs/{next-steps,decisions,pending,defects}.md` | **by the GATES, never by the build** — `Q0`, `Q4`, `Q7`, `Q9` |
 | `archive/**` | `Q2`, `Q4`, `Q5`, `Q6`, `Q7`, `Q9` — each gate's own report lands under it in the pass that authors it; `archive/` is gitignored and no tracked byte moves |
 

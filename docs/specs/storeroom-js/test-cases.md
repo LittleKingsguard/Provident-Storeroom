@@ -130,3 +130,25 @@ number and the four rows below the note carry no number at all** (`[A3
 docs/specs/spec-scope-and-structure/contract.md §C.11.7 — the entry-counted unit, and the rule that a
 grouping is never a second arithmetic | numeric or census claim]`). **No row of the `71` names a case the
 contract does not pin, and no row of the four declares one.**
+
+**⟶ AND THE CLOSE-OUT PASS'S OWN POINTERS, ADDED 2026-10-11 BESIDE — NEVER INSIDE — THE NUMBERED INVENTORY
+ABOVE, SO THE `71` STANDS AS THE FIRST CENSUS SENTENCE PRINTS IT.** `RCA-8(d)` ANNOTATE-BESIDE: **no row of
+the `71` and no row of the four above is added, removed or renumbered by this clause; THIS table is a second
+pointer set, and its rows carry no number at all.** **The four cases the bounded close-out pass declares, each
+citing the `§n` that pins it:**
+
+| The case, as the close-out pass's clauses now pin it | Its source, in the `path §n` form | The pinning citation it carries |
+| --- | --- | --- |
+| **A repeat `listen` at an address that is ALREADY REGISTERED mints nothing and returns the entry's OWN handle, so two `listen` calls at one held address answer the SAME opaque value and a trigger fires that one handle ONCE; a later `listen` mints a DIFFERENT handle only where the withdrawal removed the address; and the second-registration routes are the construction's `listeners[]` duplicate and the withdraw-then-re-register pair** | `docs/specs/storeroom-js/contract.md` §2.3 item 6 · `docs/specs/storeroom-js/surface.md` §2.3's dated clause · `docs/specs/storeroom-js/parameter-semantics.md` §2.8's dated clause | §2.3's item 6; `docs/specs/storeroom-native/write-and-read.md` §6.5 item 12 (c); `DD-15`; `P-SM-5`'s `S-WITHDRAW` |
+| **The ABSENT-or-FAILED-ADDON state: `storeCreate` throws the single form with the status `FilePathUnreachable` and returns NO instance, the message's home is the store's own generator (reached through the addon where it loaded far enough to carry it, and carried at ONE documented package-side site where the generator IS the thing that failed), and NO FALLBACK to a JS store, a partial instance or a package-authored message exists** | `docs/specs/storeroom-js/contract.md` §2.5 item 5 · `docs/specs/storeroom-js/package.md` §1.2 item 4 | §2.5's item 5; package's §1.2 item 4; `P-TP-7`'s `S-LOAD`; `A75` |
+| **The internal addon's export set is EXACTLY FIVE NAMES — `version` · `errorMessage` · `storeCreate` · `call` · `register` — and none of the five is a named export of the claimed ESM entry, whose named exports are the `8` verbs and `NOTHING ELSE`** | `docs/specs/storeroom-js/contract.md` §3.1's dated clause · `docs/specs/storeroom-js/package.md` §1.3 item 4 | contract's §3.1 dated clause; package's §1.3 item 4; `P-TP-7`'s `S-LOAD` and `S-ONE-ADDON` |
+| **The declared Rust type set reconciled to the build: `JsValue`'s `14` states (RE-DERIVED, unmoved), `JsProto`'s `4` (`ForeignPlain` included — the ONE figure that moves), `JsHandleArg`'s `4` and `JsHandle`'s private token, the eight carriers' counts beside `crossing.md §1.6`'s row counts, `JsJournalLengthArg::TooLarge(u64)` beside row 12, `from_store_value`'s `-> JsValue`, and `JsJournalOp`'s `kind: String` with its two tokens** | `docs/specs/storeroom-js/package.md` §4.5 items 2–4, each with its own dated clause · `docs/specs/storeroom-js/crossing.md` §1.6's dated clause and §1.3's row-12 clause | package's §4.5 items 2–4; crossing's §1.6 and §1.3 dated clauses; `DD-7`; `DD-39` |
+
+**AND THE ONE COUNT THIS CLAUSE PRINTS, SO THE THREE POINTER SETS' ARITHMETICS AGREE: the numbered inventory
+carries `71` rows, the four-row corrected-pointer table carries `4`, and THIS table carries `4` — so this
+part holds `71 + 4 + 4 = 79` pointers, while the `71` remains the figure the census sentence at this part's
+head prints, because it is read off the last row's own number and the eight rows below it carry no number at
+all** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.7 — the entry-counted unit, and the rule
+that a grouping is never a second arithmetic; §C.11.6 — a `view` part declares nothing the contract does not
+already carry | numeric or census claim]`). **No row of this table names a case the contract does not pin,
+and no row of it declares a requirement of its own.**

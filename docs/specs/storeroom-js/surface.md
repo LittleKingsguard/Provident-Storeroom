@@ -110,6 +110,23 @@ requirement]`)
    appears in a trigger's list EXACTLY where its listener's address is a PREFIX of the triggering address**
    (`[A3 docs/specs/storeroom-native/contract.md §6.5 item 3 | requirement]`).
 
+**⟶ AND ONE CONSEQUENCE OF THE INHERITED MINT RULE FALLS ON THIS SECTION, STATED HERE SO THE TWO HOMES OF
+`§2.3` AGREE: A REPEAT `listen` AT AN ALREADY-REGISTERED ADDRESS MINTS NOTHING AND RETURNS THE ENTRY'S OWN
+HANDLE.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1–5 above stand byte-for-byte; THIS clause is a PURE INSERTION
+and it is this part's own pointer to the rule the contract document declares at its `§2.3` item 6.** **THE
+CONSEQUENCE FOR THIS SECTION'S OWN SUBJECT, IN ONE LINE: `§2.3` item 2's OUTPUT spelling and `§2.10`'s
+`listen(instance, address)` signature are UNCHANGED — `listen` still returns the package's opaque wrapper —
+and WHERE THE ADDRESS IS ALREADY REGISTERED the WRAPPER THE CALLER RECEIVES WRAPS THE EXISTING ENTRY'S TOKEN,
+so TWO `listen` CALLS AT ONE HELD ADDRESS RETURN THE SAME OPAQUE VALUE, and `unlisten` over it removes THAT
+ONE entry.** **AND `§2.3` item 4 is untouched: the no-op set is `unlisten`'s and its members are unchanged.**
+**The rule's own declaration, its operative terms (`A45`'s one home entry per address and the store's
+address-level idempotence, `write-and-read.md §6.5` items 2 and 12 (c)), the one case in which a later
+`listen` DOES mint a different handle — the withdrawal removed the address — and the `alt` it prices, all
+stand at `contract.md §2.3` item 6 and are NOT restated here beyond this line**
+(`[A3 docs/specs/storeroom-js/contract.md §2.3 item 6 — the inherited mint rule, of which this clause is the
+`surface` part's pointer; A3 docs/specs/storeroom-native/write-and-read.md §6.5 item 12 (c) |
+requirement]`).
+
 ### §2.4 The registry — the package's own state, and its four rules
 
 **THE STORE RETURNS HANDLES AND INVOKES NOTHING** (`A57`); **so a JS listener is a FUNCTION the PACKAGE must

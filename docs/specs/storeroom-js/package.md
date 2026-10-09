@@ -50,6 +50,39 @@ cross-reference]`).
    addon being a CJS artefact, that is its own internal `createRequire`/interop step, not a second claimed
    realm)"* | requirement]`).
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`), CLOSING THE ABSENT/FAILED-ADDON
+STATE `P-TP-7`'s `S-LOAD` ROW IS THE HOME FOR.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1–3 above stand
+byte-for-byte; THIS clause is a PURE INSERTION and it is this part's own statement of the load step's ONE
+failure state, whose single failure FORM is declared at `contract.md §2.5` item 5 and whose terms are these.**
+
+**4. THE LOAD STEP HAS EXACTLY TWO OUTCOMES, AND THE SECOND IS A DECLARED FAILURE — never a fallback and
+   never a silent JS store.** **WHERE THE INTERNAL ADDON IS ABSENT, UNREADABLE, OR REFUSES TO LOAD, THE
+   PACKAGE ANSWERS `contract.md §2.5`'s SINGLE FORM AND RETURNS NO INSTANCE:**
+   `{ status: 'FilePathUnreachable', message: <the store's generator's string for that code at the ADDON
+   ARTEFACT'S OWN PATH> }` — **the subject being the ignored path this part's item 1 declares the package's
+   internal step loads and the very file whose absence or unloadability produced the state — and NOT
+   `cfg.filePath`, which is the SEPARATE state `crossing.md §1.3`'s `FilePathArg` rows 4–6 declare at the
+   store's own construction-time reachability probe.**
+   **THE STATUS IS THE STORE'S OWN MEMBER TOKEN, CARRIED VERBATIM AND NOT MINTED HERE; THE MESSAGE'S HOME IS
+   THE STORE'S OWN GENERATOR, REACHED THROUGH THE ADDON WHERE THE ADDON LOADED FAR ENOUGH TO CARRY IT; AND
+   THE ONE CASE WHERE THE GENERATOR IS UNREACHABLE — the addon IS the artefact that failed to load, or it
+   loaded and exposes no generator — IS CARRIED AT ONE DOCUMENTED SITE, a package-side constant in the
+   package's own entry module holding that SAME STRING, so there is one string for the state on both arms
+   and no second message authority.** **NO FALLBACK EXISTS: the package never falls back to a JavaScript
+   store, never absorbs the state silently, never degrades to a partial instance or a no-op verb, and never
+   substitutes a package-authored message, status or instance for it.** **AND BECAUSE THE ADDON IS REACHED
+   BEFORE ANY VERB, EVERY VERB AND EVERY CONSTRUCTION IN THAT STATE ANSWERS THE SAME THROWN FORM.**
+   **THE ROW THAT PINS THE STATE IS `P-TP-7`'s `S-LOAD`, whose drive is one `import` of the entry from
+   outside the unit directory, resolving and loading exactly one Node-API addon — and this state is that
+   row's FAILURE arm.** **`contract.md §2.5` item 5 is the declaration of record for the state, its status,
+   its message's home and the no-fallback rule; this item is the LOAD PATH's own statement of where the
+   state is reached, and `bindings/js/README.md` prints the same two outcomes for a consumer.**
+   (`[A1 docs/specs/storeroom-js-proposal.md §17 · `A75` — *"an addon that is absent or fails to load is a
+   DECLARED FAILURE and never a silent JS store (`V-3` was refused by this choice)"*; A3
+   docs/specs/storeroom-native/contract.md §8.1 — `FilePathUnreachable` among the closed `15`; A3
+   docs/specs/storeroom-native/contract.md §8.2 — the generator's row for it | state or fail-state
+   declaration]`).
+
 ### §1.3 The one entry, and the `exports` map
 
 1. **THE `exports` MAP PUBLISHES EXACTLY ONE ARMS-BEARING ENTRY — the ESM one** — **and every other subpath
@@ -61,6 +94,25 @@ cross-reference]`).
    handle factory — and NOTHING ELSE.**
    (`[A1 docs/specs/storeroom-js-proposal.md §15 · A70; A1 docs/specs/storeroom-js-proposal-review.md §5.4 —
    `AR-17`'s narrowed matrix, one claimed entry | requirement]`)
+
+**⟶ ADDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`): THE INTERNAL ADDON'S OWN FIVE
+NAMES, DECLARED SO `NOTHING ELSE` ABOVE HAS A NAMED SET TO BE TRUE OF.** `RCA-8(d)` ANNOTATE-BESIDE: **items
+1–3 above stand byte-for-byte; THIS item is a PURE INSERTION, it adds no entry to the `exports` map and it
+moves no named export of the entry.**
+
+**4. THE INTERNAL ADDON'S EXPORT SET IS EXACTLY FIVE NAMES AND NO SIXTH: `version` · `errorMessage` ·
+   `storeCreate` · `call` · `register`.** **Every one of the five is INTERNAL** — **none is a named export
+   of the claimed ESM entry, and the internal artefact is reachable ONLY through the object the entry's own
+   module-private key holds, so a consumer of the claimed entry cannot reach `version`, `call`,
+   `errorMessage` or the addon's own `storeCreate`.** **Their duties, so the set is not read as an
+   undeclared surface: `storeCreate` and `call` are the package's own boot and verb dispatch;
+   `register` is the registry site's own judge (`surface.md §2.4` item 5); `errorMessage` reaches the
+   store's GENERATOR from the JS side, whose one declared caller is the load state this part's `§1.2` item 4
+   declares; and `version` exists so the artefact can be audited from itself.** **A SIXTH NAME IS A FINDING
+   (`§4.5` item 7), and so is a name of the five reached from a consumer's own module graph.**
+   (`[A1 docs/specs/storeroom-js-proposal.md §15 · A70 — the claimed entry is the ESM one; A1
+   docs/specs/storeroom-js-proposal.md §17 · `A75`; A3 docs/specs/storeroom-js/package.md §1.2 item 1 — the
+   reach is internal and its path is not exposed | requirement]`).
 
 ### §1.4 The engine floor, and what it is not
 
@@ -139,6 +191,24 @@ TREE.** **The artefacts are BUILT AND PUBLISHED, never stored in the tree** — 
 (`[A1 docs/specs/storeroom-js-proposal.md §15 · A71 — *"nothing in the repository commits a binary"* |
 prohibition]`).
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`): THE LABEL-TO-ARTEFACT MAP, SO THE
+MATRIX'S `5` AND THE REGISTRY'S `5` ARE READ AS ONE SET.** `RCA-8(d)` ANNOTATE-BESIDE: **the paragraph above
+stands byte-for-byte and its `5`-TARGET figure does not move; THIS clause is a PURE INSERTION and it states
+the ARTEFACT NAME each label publishes under.**
+
+**THE MAP, LABEL BESIDE ARTEFACT — because THREE of the five published artefacts carry a TOOLCHAIN SUFFIX
+the declared label does not print:** `linux-x64` → `<scope>-js-linux-x64-gnu` · `linux-arm64` →
+`<scope>-js-linux-arm64-gnu` · `darwin-x64` → `<scope>-js-darwin-x64` · `darwin-arm64` →
+`<scope>-js-darwin-arm64` · `win32-x64` → `<scope>-js-win32-x64-msvc`, **where `<scope>` is the package's
+own registry scope and the suffix names the TARGET'S TOOLCHAIN and never a sixth target.** **THE ARITHMETIC,
+PRINTED WITH ITS TERMS: `5` labels = `5` artefacts, and `3` of the `5` carry a suffix (`-gnu` twice, `-msvc`
+once) while `2` carry none (the Apple rows, whose platform has one toolchain) — so `3 + 2 = 5` ✓ and NO
+TARGET IS ADDED BY A SUFFIX** (`DD-25`). **A consumer that installs on a covered target reads the
+`optionalDependencies` NAMES; a CI script that builds the matrix reads the LABELS; and this map is the one
+place the two spellings are related.** **`contract.md §3.3` item 5 and `package.md §3.2` carry the same map,
+and a sixth artefact name is a FINDING** (`[A1 docs/specs/storeroom-js-proposal.md §15 · A71; A1
+docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-16` | numeric or census claim]`).
+
 ### §3.3 The trigger, the version and the CI
 
 1. **THE MATRIX IS PRODUCED ON A RELEASE TAG OF THE FORM `v<major>.<minor>.<patch>`; the package's
@@ -163,6 +233,26 @@ prohibition]`).
    prevent.**
    (`[A1 docs/specs/storeroom-js-proposal.md §9.3 · `D9` — *"note the licence (AGPL-3.0 per `LICENSE`) as a
    distribution fact"*; A1 docs/specs/storeroom-js-proposal.md §15 · A71 | declared parameter semantics]`)
+
+**⟶ ADDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`): THE FOURTH DECLARED SITE AND THE
+`-or-later` SPELLING, RECONCILED RATHER THAN SMOOTHED.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1–2 above stand
+byte-for-byte; THIS item is a PURE INSERTION and it declares the site `DD-43`'s three-site list does not
+carry.**
+
+**3. THE LICENCE IS DECLARED AT FOUR SITES, AND THE FOURTH'S SPELLING CARRIES THE `-or-later` CLAUSE.**
+   **(i) the package's `package.json` `license` field, `AGPL-3.0`; (ii) `bindings/js/README.md`,
+   `AGPL-3.0`; (iii) `package.md §3.4` (this section), `AGPL-3.0`; and (iv) the sibling crate's own
+   `bindings/js/Cargo.toml` `license` field, `AGPL-3.0-or-later`.** **THE OPERATIVE READING, STATED WITH ITS
+   TERMS: the DISTRIBUTION'S DECLARED FACT is `AGPL-3.0` at sites (i)–(iii), and the CRATE MANIFEST'S SPDX
+   EXPRESSION at site (iv) is `AGPL-3.0-or-later`, whose grammar admits the `-or-later` clause and whose
+   value the crate's own consumers read; BOTH NAME THE REPOSITORY'S OWN `LICENSE` FILE, and no clause of
+   this unit changes it.** **The divergence is DECLARED and not repaired here, because the two sites answer
+   two different readers — a registry metadata field and an SPDX-carrying manifest — and a re-spelling of
+   either would have to move a byte of a file this pass may not write.** **A FIFTH site, or a third
+   spelling, is a FINDING** (`DD-43`).
+   (`[A1 docs/specs/storeroom-js-proposal.md §9.3 · `D9`; A1 docs/specs/storeroom-js-proposal.md §15 · A71;
+   A3 docs/specs/storeroom-js/contract.md §3.3 item 6 — the home's own statement of the same two spellings;
+   `DD-43` | declared parameter semantics]`).
 
 ---
 
@@ -320,11 +410,76 @@ state the store can hold. The DECLARED minimum:**
 | **`JsListenerEntry`** | **`Entry { address: JsAddressArg, handle: String }`** (`ListenersArg` rows 1 and 4) · **`Other`** (row 2) |
 | **`JsConfig`** | **`file_path: Option<JsFilePathArg>`** · **`journal_length: Option<JsJournalLengthArg>`** · **`listeners: Option<JsListenersArg>`** · **`fourth_key: Option<String>`** (read at `§0.2`'s `DD-36`'s fourth-key cell and refused) — **`Option` here is the ABSENT-versus-present carrier of `crossing.md §1.3`'s absent-versus-`undefined` rule, where `None` IS the key's absence** |
 
+**⟶ RECONCILED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`): EVERY TYPE-SET AND CENSUS
+FIGURE OF THIS ITEM, RECONCILED TO THE SHIPPED MODEL AND TO `crossing.md §1.6`, WITH EACH AS-FILED FIGURE
+PRINTED BESIDE ITS REPLACEMENT.** `RCA-8(d)` ANNOTATE-BESIDE: **the table above stands byte-for-byte and its
+rows are read THROUGH this clause; NO ROW IS DROPPED, NO VARIANT IS ADDED TO THE DECLARATION AND NO
+BEHAVIOUR MOVES — the shipped model was declared a REQUIREMENT by item 7, so this clause states the counts
+the requirement yields instead of printing counts it does not.** **THE FOUR FIGURES THAT MOVE, EACH
+AS-FILED → NOW, WITH ITS TERMS:**
+
+| # | The declared figure, as filed | Its replacement, as this pass measured it at the shipped `bindings/js/src/crossing.rs` | The arithmetic that yields the replacement |
+| --- | --- | --- | --- |
+| **1** | the `JsValue` row's *"`13 + 1 = 14` variants"* | **`14` variants — THE FIGURE DOES NOT MOVE, AND THIS PASS RE-DERIVED IT RATHER THAN REPLACING IT** | **the model's arms, counted at the shipped enum: `Str` · `Bool` · `Num` · `Object` · `Array` = `5` admitted; `Null` · `Undefined` · `Function` · `Symbol` · `BigInt` · `NonFinite` · `Cyclic` · `NonPlainCollection` = `8` outside; `SparseArray` = the hole's carrier — so `5 + 8 + 1 = 14` ✓ and the `+1` is NOT a fourteenth outside class — THE ROW IS RE-DERIVED SO ITS FIGURE IS A COUNT AND NOT A COINCIDENCE, and the model carries NO state beside these `14`** |
+| **2** | the `JsProto` row's *"`Plain` · `Null` · `Class`, `3` variants"* | **`4` variants: `Plain` · `Null` · `ForeignPlain` · `Class`** | **`DD-7`'s realm-agnostic plain-object test NEEDS a fourth prototype class — a plain object from ANOTHER realm, ACCEPTED — and the shipped model carries it as `ForeignPlain`; `3 + 1 = 4` ✓** |
+| **3** | the `JsHandle` / `JsHandleArg` row's *"the opaque handle OUT; the bare-string and outside forms IN"* | **`JsHandle` is a STRUCT with a PRIVATE token field and ONE public constructor (`wrap`) plus two `pub(crate)` constructors; `JsHandleArg` is an ENUM of `4` variants: `Opaque(JsHandle)` · `Bare(String)` · `NonOpaque` · `Absent`** | **`1 + 3 = 4` ✓ — the `Opaque` arm is the OUTPUT spelling of `crossing.md §1.3`'s `ListenerHandle` row 2, and `Bare` · `NonOpaque` · `Absent` are the three INPUT arms `unlisten` answers as no-op successes (`§2.3` item 4); the token's PRIVACY is `§2.3` item 2's and it HOLDS (no public accessor)** |
+| **4** | the `8`-carrier-types row's *"each carrier's variant count being EXACTLY the variant-row count `crossing.md §1.6` prints for it"* | **the per-type counts below, of which `2` of the `8` carriers MATCH `§1.6`'s row count EXACTLY, `4` stand OVER it and `2` stand UNDER it while still covering every row** | **the four over-counts are `JsSegment` (`10` states against its `2` admitted rows, beside the `10` refused segment classes `§1.6` itself prints), `JsTierArg` (`8` against `7`), `JsTierSetItem` (`7` against `4`) and `JsJournalLengthArg` (`15` against `12`); the two under-counts are `JsAddressArg` (`14` rows against `9` variants, the five-row gap closed by `NonArray`'s `JsNonArray` sub-arms) and `JsOpIdArg` (`6` against `5`, total because `Absent`/`Null`/`Undefined` are three states for its two `null`/`undefined` rows); the two that match are `JsFilePathArg` (`6`) and `JsListenersArg` (`5`)** |
+
+**AND THE `8` CARRIERS' OWN COUNT TABLE, SO THE BLANKET RULE IS READ WITH ITS FIGURES RATHER THAN AGAINST
+THEM — the carrier, `crossing.md §1.6`'s ROW count, and the shipped MODEL's state count:**
+
+| The carrier type | `§1.6`'s row count | The model's state count | Where the difference comes from |
+| --- | --- | --- | --- |
+| `JsSegment` | `2` admitted (rows 2–3) | `10` states: `2` admitted (`Key` · `Index`) + `8` outside arms (`Negative` · `Fractional` · `Null` · `Undefined` · `Bool` · `Object` · `Array` · `Function`) | **beside the `2` admitted rows, the `10` outside segment classes `§1.6` itself prints are the arms of `Segment`'s own outside set, and the model carries them as `8` of its own arms (`Object` · `Array` are the two `AddressArg`'s non-array reading folds into one shape, exactly as `§1.6`'s `AddressArg` row 6 names four classes in one refusal) — so `2 + 8 = 10` states cover `2` admitted rows and the `10` refused classes with NO ROW AND NO CLASS UNANSWERED** |
+| `JsAddressArg` | `14` | `9` **— UNDER by `5`, and STILL TOTAL** | **`9` variants COVER the `14` rows: one variant per outside arm (`Absent` · `Null` · `Undefined` · `NonArray` · `ClassArrayLike` · `Proxy` · `Sparse` = `7`) plus the two LIST arms (`List` · `CrossRealmList` = `2`), so `7 + 2 = 9` ✓ — and the five-row gap is closed by `NonArray`, which carries ROW 6's five named classes as ONE variant through `JsNonArray`'s own `5` arms (`Str` · `Number` · `Bool` · `Object` · `Function`), so NO ROW IS UNANSWERED** |
+| `JsTierArg` | `7` | `8` **— OVER by `1`** | **the extra state is the `Set(Vec<JsTierSetItem>)` carrier, which is `TierArg` row 2's ARRAY spelling carried as a variant rather than as a token class** |
+| `JsTierSetItem` | `4` | `7` **— OVER by `3`** | **`4` states would cover rows 1–4 one for one; the model SPLITS the scalar and object classes into `Number` · `Bool` · `Object` · `Function` beside `Token` · `Null` · `Undefined`, so seven states cover four rows with no row unanswered** |
+| `JsOpIdArg` | `6` | `5` **— UNDER by `1`, and STILL TOTAL** | **the model's `5` states (`Str` · `Absent` · `Null` · `Undefined` · `Number`) COVER the `6` rows because rows 4 and 5 (ABSENT against `null`/`undefined`) are the three distinct states `Absent` · `Null` · `Undefined`, and rows 3 and 6 (the empty string and the number) are the `Str` and `Number` arms — so the `6`-row table is total under `5` states and NO ROW IS UNANSWERED** |
+| `JsFilePathArg` | `6` | `6` **— EXACT** | **`Str` · `Absent` · `Null` · `Undefined` · `Empty` · `NonString`: one state per row ✓** |
+| `JsJournalLengthArg` | `12` | `15` **— OVER by `3`** | **the three extra states are `Null` and `Undefined` (rows 9's two halves carried as two states, per `crossing.md §1.3`'s absent-versus-`undefined` rule) and `TooLarge(u64)`, the state this pass DECLARES below and `crossing.md §1.3`'s row 12 is read through** |
+| `JsListenersArg` | `5` | `5` **— EXACT** | **`List` · `Absent` · `Null` · `Undefined` · `NonArray`: one state per row ✓** |
+
+**AND THE RULE THE TABLE REPLACES, STATED SO THE REPLACEMENT IS EXPLICIT: *"each carrier's variant count being
+EXACTLY the variant-row count `crossing.md §1.6` prints for it"* IS WITHDRAWN AS A BLANKET CLAIM and replaced
+by the two-part rule it should have been — (i) `§1.6`'s row counts are the CARRIER TABLES' own figures and
+they do not move, and (ii) the MODEL'S state counts are reconciled to `§1.6` by the table above, so a state
+that answers no row is a FINDING and a row no state answers is a FINDING, while a state count that EXCEEDS a
+row count is lawful where this table names where the difference comes from.** **A `Js*` type the core exposes
+and this section does not declare is a FINDING by item 7's own rule, and it was one:** **`JsKey` ·
+`JsObject` · `JsNonArray` · `JsListenerEntry` · `JsConfig` · `JsHandle` · `JsHandleArg` · `JsBaseState` ·
+`JsJournalOp` · `JsWriteResult` · `JsDeleteReceipt` · `JsRollbackResult` · `JsListener` · `Refusal` · and the
+core's own `Instance` ARE the remaining declared types, and every one of them is reached from the table above
+or from items 4–6.** **`crossing.md §1.6`'s `56`-row census is UNMOVED by this clause: it is the CARRIER
+TABLES' own arithmetic, re-derived row by row (`14 + 7 + 4 + 6 + 6 + 12 + 5 + 2 = 56` ✓), and no row of any
+of the eight tables is added, removed or renumbered here** (`[A1
+docs/specs/storeroom-js-proposal-review.md §5.3 — `V1`'s drivability; A3
+docs/specs/storeroom-js/crossing.md §1.6 · §1.3; `DD-7`; `DD-35` | numeric or census claim]`).
+
+**⟶ AND ONE STATE OF `JsJournalLengthArg` IS DECLARED HERE BECAUSE `crossing.md §1.3`'s ROW 12 ARRIVES
+THROUGH IT: `TooLarge(u64)`.** `RCA-8(d)` ANNOTATE-BESIDE: **the table above and the count table above it
+stand byte-for-byte; THIS clause is a PURE INSERTION and it declares the ONE state of the carrier table that
+the tables of `crossing.md §1.3` do not name.** **THE STATE: a positive integer `number` BEYOND `u32` that
+reaches the construction as a `journalLength`.** **AND THE ROW IT ANSWERS, WITH ITS DECLARED ANSWER UNMOVED:
+`crossing.md §1.3`'s `JournalLengthArg` row 12 declares `AddressMalformed` for *"a positive integer beyond
+`u32`"*, and the answer is CARRIED AS DECLARED — the row is read THROUGH this state rather than
+re-derived.** **THE CARRIER BESIDE THE ROW, STATED SO THE ANSWER'S PATH IS DECLARED:**
+`JsJournalLengthArg::TooLarge(u64)` carries the `u64` and is converted through the STORE'S OWN
+`JournalLengthArg::Fractional` arm, whose answer for a non-integral value is `AddressMalformed` — **so the
+`u64` reaches the store's own closed set and NO CODE IS MINTED, CONVERTED OR RE-MAPPED on the way**
+(`DD-1`; `DD-40`). **A value beyond `u32` that answers anything but `AddressMalformed`, and a state beside
+this one that carries the same class, are FINDINGS.** **`crossing.md §1.3`'s row-12 neighbourhood carries the
+same declaration at its own home, and the row's own printed text does not move.**
+(`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12`; A3
+docs/specs/storeroom-js/crossing.md §1.3 — the `JournalLengthArg` table and its row 12; A3
+docs/specs/storeroom-native/parameter-semantics.md §2.7 · `PAR-7` — the same value at the store's own
+parameter set; `DD-1`; `DD-40` | declared parameter semantics]`).
+
 **3. THE CONVERSION FUNCTIONS — ONE ENTRY PER CARRIER AND ONE PER DIRECTION.** **The core exposes EXACTLY
 these public functions, and each returns the SAME refusal type:**
+
 ```
 fn to_store_value(v: &JsValue)        -> Result<StoreValue, Refusal>
-fn from_store_value(v: &StoreValue)   -> Result<JsValue, Refusal>
+fn from_store_value(v: &StoreValue)   -> JsValue
 fn create(cfg: &JsConfig)             -> Result<Instance, Refusal>
 fn to_segment(s: &JsSegment)          -> Segment
 fn to_address_arg(a: &JsAddressArg)   -> AddressArg
@@ -350,15 +505,49 @@ fn to_config(c: &JsConfig)            -> StoreConfig
   ADMITTED diamond, and the declared depth-`64` / node-`1,000,000` ceiling** (`DD-7`–`DD-11`, `DD-34`,
   `DD-35`).
 
+**⟶ RECONCILED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`): `from_store_value`'S DECLARED
+RETURN, RE-SPELLED TO THE SIGNATURE THE CORE CAN HONESTLY HAVE.** `RCA-8(d)` ANNOTATE-BESIDE: **the signature
+block above is re-emitted with ONE LINE RE-SPELLED — `fn from_store_value(v: &StoreValue) -> JsValue`, where
+the block read `-> Result<JsValue, Refusal>` — and every other line, and item 3 (a)–(c) whole, stand
+byte-for-byte.** **THE DEFECT, NAMED WITH ITS TERMS: the declaration and the shipped function disagreed on
+the ERROR ARM** — the declaration printed a `Result` whose `Err` is `Refusal`, while the shipped function
+returns the value directly — **and item 7 names an interface the core does not carry a FINDING, so the
+declaration had to move or the code had to.**
+
+**THE DECLARED RETURN IS NOW `JsValue`, AND THE REFUSAL-CARRYING FORM IS **NOT** REQUIRED — THE REASON
+STATED, SO THE RE-SPELLING IS NOT READ AS A WEAKENING.** **`from_store_value` traverses the STORE'S OWN
+`StoreValue` and nothing else, and every one of that enum's arms has exactly one declared answer: the copy
+out is TOTAL over `StoreValue`, so there is NO input on that path for which a `Refusal` could be produced.**
+**A `Result` there therefore had exactly TWO possible readings, and both are refused: either its `Err` arm
+was UNREACHABLE — a signature promising a failure the function can never answer, which makes every caller's
+error branch dead code — or it was REACHABLE, which would mean the copy out can fail where `crossing.md §1.1`
+clause 2 declares it CONVERTS the store's value into fresh JS-owned data with no failure arm and where
+`§1.5`'s relation presupposes a value to compare.** **AND THE STORE'S ANSWERS ARE THE ONLY SOURCE ON THIS
+PATH: `StoreValue` is the store's own closed taxonomy and the store's own closed `15`-member set is produced
+at its VERBS, not at its value type — so the refusal is no longer the store's answer here and it is NOT this
+unit's to mint (`DD-1`; `DD-40`).**
+**THE CONSEQUENCE, PRICED BECAUSE A SIGNATURE CHANGE OWES ONE: THE COPY OUT HAS NO FAILURE CHANNEL OF ITS
+OWN.** **Where a future crossing needed one — an arm of `StoreValue` the model could not carry, or a
+normalization that must report itself — `from_store_value` would have to return a `Result` again, and THAT
+would be a CONTRACT AMENDMENT this section's own item 7 requires, never a silent widening of the core; and
+the shape the refusal would carry is `Refusal`'s, exactly `{status, message}` and not one member beside them
+(item 4).** **Available only as a bounded amendment of `docs/specs/storeroom-js/`, whose instrument is the
+amendment itself and NOT a park.** **AND ONE CONSEQUENCE IS NAMED SO IT IS NOT READ AS A GAP: the OUT-path
+totality is what makes `Instance`'s own `read`/`readLiteral`'s `Result<JsValue, Refusal>` a `Result` of the
+VERB and never of the conversion — the `Err` arm there is the STORE's answer to the read, and the copy out
+adds none of its own.**
+(`[A1 docs/specs/storeroom-js-proposal-review.md §5.3 — `V1`'s drivability; A3
+docs/specs/storeroom-js/crossing.md §1.1 clause 2 — the copy out; A3 docs/specs/storeroom-native/contract.md
+§0.4 — the `StoreValue` taxonomy; `DD-1`; `DD-40` | state or fail-state declaration]`).
+
 **4. THE RECORD TYPES — THE DEEP COPY OUT, MEMBER FOR MEMBER.** **The core returns fresh records whose
 members are the store's own spellings of `§0.2`'s `DD-39`:**
 ```
 struct Refusal                 { status: String, message: String }               // EXACTLY two members, no third
 struct JsBaseState             { present: bool, value: JsValue }
-struct JsJournalOp             { opId: String, kind: JournalOpKind, address: Vec<JsSegment>,
+struct JsJournalOp             { opId: String, kind: String, address: Vec<JsSegment>,
                                  tier: Option<String>, before: JsBaseState, after: JsBaseState,
                                  seq: u64, compacted: bool }
-enum   JsJournalOpKind         { Write, Delete }
 struct JsWriteResult           { op: JsJournalOp, watched: Vec<Vec<JsSegment>>, triggered: Vec<JsHandle> }
 struct JsDeleteReceipt         { address: Vec<JsSegment>, tiers: Vec<String>, triggered: Vec<JsHandle> }
 struct JsRollbackResult        { opId: String, undoneOps: Vec<String>, restoredTo: JsBaseState }
@@ -366,6 +555,23 @@ struct JsRollbackResult        { opId: String, undoneOps: Vec<String>, restoredT
   **`Refusal` IS `§2.5`'s SINGLE FAILURE FORM AT THE CORE LAYER — a record with EXACTLY `{status, message}`
   and not one member beside them — and it is the ONLY error type the core exposes.** **A `status` outside
   the store's closed `15`-member set is carried VERBATIM and re-mapped to nothing** (`DD-40`).
+  **⟶ AND `JsJournalOp`'S `kind` MEMBER IS RE-SPELLED BY THE BOUNDED CLOSE-OUT PASS OF 2026-10-11: the struct
+  carries `kind: String`, and the `enum JsJournalOpKind { Write, Delete }` the block above printed DOES NOT
+  EXIST IN THE BUILD.** **The declared Rust type set is reconciled to the shipped one, and NOTHING
+  BEHAVIOURAL MOVES: the JS side OBSERVES the same two tokens either way, because the member crosses as the
+  store's own kind token — `"write"` for a write and `"delete"` for a delete — as a JS `string`, which is
+  `DD-39`'s own spelling for `kind`.** **The token is the STORE'S (`storeroom-native`'s own
+  `JournalOpKind`, which is a STORE type and not this unit's) and the core spells it at its own translation;
+  a third token, a `null`/absent `kind` on a successful write, or a kind that is not a `string` is a
+  FINDING.** **AND ONE
+  CONSEQUENCE IS NAMED SO THE RE-SPELLING IS NOT READ AS AN OPENING: a `JsJournalOpKind` enum is NOT declared
+  here and is NOT required — a caller that wants a closed kind set reads the two tokens `DD-39` declares, and
+  a Rust consumer that wants one may match on the store's own enum rather than on a second one this unit
+  would have to keep in step.** **The reversal instrument, where the closed enum is wanted after all, is a
+  bounded amendment of `docs/specs/storeroom-js/` (`A1`; `DD-39`).**
+  (`[A1 docs/specs/storeroom-js-proposal-review.md §5.3 — `V1`; A3 docs/specs/storeroom-js/crossing.md §1.3 —
+  the returned-record rows this struct serves; A1 docs/specs/storeroom-js/contract.md §0.2 · `DD-39` — the JS
+  side's own spellings, read with `DD-40` | requirement]`).
 
 **5. THE INSTANCE, ITS VERBS AND THE PACKAGE-OWNED REGISTRY'S HOME.** **`Instance` is the core's own type,
 holding ONE store instance and the PACKAGE-OWNED registry of `§2.4`; the core never invokes a listener of
@@ -413,6 +619,33 @@ READ AS PERMISSIVE: a crossing the contract names that this interface cannot car
 docs/specs/storeroom-js-proposal-review.md §5.3 — `V1`'s architectural ground; A1
 docs/specs/storeroom-js-proposal-review.md §5.2 item 4 — the store's surface cited and never amended; `DD-2`;
 `DD-19` | requirement]`).
+
+**⟶ AND THE FINDING RULE'S OWN TWO CONSEQUENCES, LANDED 2026-10-11 BY THE BOUNDED CLOSE-OUT PASS
+(`role_spec_writer`), SO THIS ITEM IS READ WITH THE DECLARATION IT GUARDS.** `RCA-8(d)` ANNOTATE-BESIDE:
+**item 7 above stands byte-for-byte; THIS clause adds no rule and moves no row, and it states the two things
+the SAME pass reconciled UNDER that rule.**
+
+**(1) THE `Js*` TYPE SET IS NOW DECLARED IN FULL, SO THE RULE HAS NOTHING LEFT TO CATCH ON THE MODEL:** **the
+table of item 2 declares every `Js*` type the core exposes — `JsSegment` · `JsKey` · `JsProto` · `JsObject` ·
+`JsValue` · the `8` carrier types · `JsListenerEntry` · `JsConfig` · `JsHandle` / `JsHandleArg` — and item 2's
+dated clause prints each declared count beside the shipped one, names the three over-counts and the one
+under-count, and states the two-part rule that replaces the withdrawn blanket claim.** **The remaining types —
+`JsBaseState` · `JsJournalOp` · `JsWriteResult` · `JsDeleteReceipt` · `JsRollbackResult` · `Refusal` ·
+`JsListener` · and `Instance` — are declared at items 4–5, and the EDGE between them and the JS-facing types
+is item 6's.** **SO THE `JsValue` MODEL'S `14` STATES, `JsProto`'s `4`, `JsHandleArg`'s `4`, and
+`JsJournalLengthArg`'s `15` ARE DECLARED RATHER THAN FINDINGS** — **and the FINDING this item declares now
+fires only on a NINTH carrier, a variant of an already-declared type that this section does not print, or a
+public function outside item 3's list.**
+
+**(2) THE FACADE'S OWN METHODS AND THE ADDON'S OWN EXPORT NAMES ARE DECLARED, SO THE RULE ALSO HAS A NAMED
+SET ON THE `cdylib` HALF:** **the internal artefact's export set is EXACTLY FIVE NAMES — `version` ·
+`errorMessage` · `storeCreate` · `call` · `register` — declared at `package.md §1.3` item 4 and at
+`contract.md §3.1`'s dated clause, and NONE of the five is a named export of the claimed entry.** **A sixth
+name is a FINDING** — **and the facade's methods are thin, as item 1 declares: each validates nothing,
+converts through the core and returns the core's result translated to a Node-API value.**
+(`[A1 docs/specs/storeroom-js-proposal-review.md §5.3 — `V1`; A1
+docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-17` — the one claimed entry and `NOTHING ELSE`; A3
+docs/specs/storeroom-js/package.md §1.3 item 4 and item 2's dated clause | requirement]`).
 
 ---
 

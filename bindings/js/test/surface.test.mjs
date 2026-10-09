@@ -12,6 +12,12 @@
 // records: each member of `{op, watched, triggered}` and of `{address, tiers, triggered}` and of
 // `{opId, undoneOps, restoredTo}`.
 // file readings: a `delete` with no file I/O · a `rollback` with no file I/O · a failed `file` commit.
+//
+// **AND THE TWO STATES THE 2026-10-11 `V-1` RE-DERIVATION ADDED TO THIS LIST, BECAUSE THE CELL THAT NAMES
+// THE ADDRESS SHAPES HAD REACHED NEITHER:** **a `VEC` container and an integer segment resolving against it**
+// (the container a JSON ARRAY write decides, `store-model.md §1.3`) and **the key-domain refusal**
+// (`ContainerKindConflict` — an integer segment aimed at a `MAP`, or a string segment aimed at a `VEC`,
+// `store-model.md §1.3`'s key-domain clause read with `write-and-read.md §3.4`'s `F-4`).
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -347,11 +353,30 @@ test('crossing_a_lone_surrogate_is_refused_at_the_packages_own_walk', () => {
 
 test('address_the_declared_shapes_and_every_outside_shape', () => {
   const inst = mem();
-  // The containers the write runs through are created first: a write's parent is resolved BY ADDRESS.
+  // THE MAP SIDE. A string segment resolves against a `MAP` and against the register, and a `MAP` is what a
+  // JSON **object** write decides (`store-model.md §1.3`). The containers the write runs through are created
+  // first: a write's parent is resolved BY ADDRESS (`write-and-read.md §3.2`).
   write(inst, ['a'], 'mem', {});
-  write(inst, ['a', 0], 'mem', {});
-  write(inst, ['a', 0, 'b'], 'mem', 1);
-  assert.equal(read(inst, ['a', 0, 'b']), 1, 'a string or a non-negative integer segment');
+  write(inst, ['a', 'b'], 'mem', 1);
+  assert.equal(read(inst, ['a', 'b']), 1, 'a string segment addresses a map');
+  // **THE VEC SIDE — THE INTEGER SEGMENT'S OWN DECLARED ROUTE, FOUND BEFORE ANY DRIVE WAS WRITTEN**
+  // (`crossing.md §1.3`'s `AddressArg` rows admit a non-negative integer segment; `store-model.md §1.3`
+  // declares the container that segment resolves against): **`MAP` xor `VEC`, *"write-decided and
+  // read-inferred"* — *"a write of a JSON object decides/uses `MAP`; a write of a JSON ARRAY decides/uses
+  // `VEC`"*, and a `VEC`'s key domain is *"index keys — non-negative integers, CONTIGUOUS FROM `0`"*.**
+  // **So the declared JS spelling that MINTS a `VEC` is an ARRAY write, and there is no second spelling**:
+  // the index then lands at the container's own contiguous end (`write-and-read.md §3.4`'s `VEC`
+  // index-range clause: `i = n` APPENDS; an index outside `0 ≤ i ≤ n` is `F-4`'s `ContainerKindConflict`).
+  write(inst, ['v'], 'mem', []);
+  assert.deepEqual(read(inst, ['v']), [], 'the array write MINTS the `VEC`, and its read is the dense array');
+  write(inst, ['v', 0], 'mem', {});
+  write(inst, ['v', 0, 'b'], 'mem', 1);
+  assert.equal(read(inst, ['v', 0, 'b']), 1, 'a non-negative integer segment addresses a `VEC` index');
+  assert.deepEqual(
+    read(inst, ['v']),
+    [{ b: 1 }],
+    '`R-3`: the `VEC` answers a DENSE array, and `crossing.md §1.5` item 2 makes its index order significant',
+  );
   write(inst, [''], 'mem', 2);
   assert.equal(read(inst, ['']), 2, 'the empty string IS a legal key and a legal register key');
   write(inst, ['a.b'], 'mem', 3);
@@ -374,6 +399,45 @@ test('address_the_declared_shapes_and_every_outside_shape', () => {
     (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
     'DD-34: the binding owns proxy detection at the argument boundary',
   );
+});
+
+// **THE REFUSAL THE `VEC` ROUTE ABOVE EXPOSED, GIVEN ITS OWN HONEST DRIVE** (the 2026-10-11 `V-1` pass):
+// **the cell's first form wrote an INTEGER segment into a container a JSON OBJECT write had made a `MAP`,
+// and it was green only while the pre-`V-1` JS tree was KIND-PERMISSIVE — the very divergence the rewire
+// removed.** **The declared behaviour is a REFUSAL and it has its own member:** `store-model.md §1.3`'s
+// KEY-DOMAIN clause — *"the container's key domain is part of the container's kind (`MAP` = string keys;
+// `VEC` = index keys, contiguous from `0`), so a write whose LAST segment's CLASS contradicts the resolved
+// parent container's key domain — a string segment aimed at a `VEC`, or an integer segment aimed at a `MAP`
+// — is a KIND CONTRADICTION, and its answer is the SAME member the value's kind contradiction answers:
+// `ContainerKindConflict`, with NOTHING INSTALLED (no anchor, no coercion, no container-kind change, and no
+// journal entry)"* (`write-and-read.md §3.4` arm `F-4`; `§8.1` #7) — **and the message is the GENERATED one,
+// whose form `seams-and-lifecycle.md`'s (and `contract.md`'s) message table prints as
+// `"<value> does not match the container kind of '<address>', it holds a <map|vector>"`, plus
+// `", keys are <KEYLIST>"` where the container is a map that HOLDS keys.**
+test('address_an_integer_segment_aimed_at_a_map_is_refused_with_its_own_code_and_generated_message', () => {
+  const inst = mem();
+  write(inst, ['a'], 'mem', {});
+  assert.throws(
+    () => write(inst, ['a', 0], 'mem', 1),
+    (err) =>
+      isTheFailureForm(err) &&
+      err.status === 'ContainerKindConflict' &&
+      /^0 does not match the container kind of 'a', it holds a map(, keys are .*)?$/.test(err.message),
+    '`store-model.md §1.3`\'s key-domain arm; `write-and-read.md §3.4` `F-4`',
+  );
+  // NOTHING WAS INSTALLED: no anchor, no coercion, no container-kind change — the empty `MAP` is what it was.
+  assert.deepEqual(read(inst, ['a']), {}, 'the map stands untouched');
+  // AND THE SYMMETRIC DIRECTION OF THE SAME ARM — a STRING segment aimed at a `VEC` — IS THE SAME MEMBER.
+  write(inst, ['v'], 'mem', [1]);
+  assert.throws(
+    () => write(inst, ['v', 'b'], 'mem', 1),
+    (err) =>
+      isTheFailureForm(err) &&
+      err.status === 'ContainerKindConflict' &&
+      /^'b' does not match the container kind of 'v', it holds a vector(, keys are .*)?$/.test(err.message),
+    'no coercion: `"0"` is never `0` and `0` is never `"0"` (`store-model.md §1.5` items 2–3)',
+  );
+  assert.deepEqual(read(inst, ['v']), [1], 'the vector stands untouched');
 });
 
 test('address_the_package_performs_no_arity_check_of_its_own', () => {

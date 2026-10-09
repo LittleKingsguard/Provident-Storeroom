@@ -114,6 +114,19 @@ insertions `6`–`9` where this part places them — with a dated disclosure bes
 diff` still recovers every pre-pass byte.** **UNTIL THAT PASS LANDS, a reader of either home reads the two
 lists through this clause** (`[A1 | ordering claim]`).
 
+**⟶ AND THE HOME'S OWN TWIN DISCLOSURE IS LANDED, 2026-10-11, BY THE BOUNDED CLOSE-OUT PASS
+(`role_spec_writer`), SO THIS CLAUSE'S *"UNTIL THAT PASS LANDS"* NOW NAMES A SITE RATHER THAN AN OWED ONE.**
+`RCA-8(d)` ANNOTATE-BESIDE: **every byte above stands; THIS clause adds no item and moves no number.** **The
+contract document's `§4.1` now carries a dated item `6` that states the same two facts from the home's side:
+the home prints `1` · `4` · `5`, THIS part prints `1`–`5` with `6`–`9` beside them, the home is the faulty
+site, and the exact repair — RESTORE the home's items `2` and `3` from this part's own bytes (this part's
+item `2`, *"THE RUST LAYER RUNS `cargo test` IN `bindings/js/`"*, and its item `3`, the suite's own pattern),
+then print the list contiguously as `1`–`9` with the as-filed `4` and `5` at their own places and the
+insertions `6`–`9` where this part places them, WITH A DATED DISCLOSURE BESIDE THE RENUMBERED LIST — is named
+there as a later bounded pass's work and NOT taken in either home.** **SO A READER OF EITHER HOME NOW READS
+THE TWO LISTS THROUGH TWO DATED CLAUSES THAT STATE THE SAME TWO FACTS, and neither home's numbering moves**
+(`[A3 docs/specs/storeroom-js/contract.md §4.1 item 6 — this clause's home-side twin; A1 | ordering claim]`).
+
 ### §4.2 The LAYER label — and the rule no pass may break
 
 1. **THIS UNIT'S JS-SIDE GREEN IS `ENVELOPE/PURE`, AND THE LABEL TRAVELS WITH EVERY FIGURE.**

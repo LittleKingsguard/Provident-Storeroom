@@ -120,6 +120,33 @@
   two figures are read with their terms** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.7 —
   the entry-counted unit and the recorded-omissions row | numeric or census claim]`).
 
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`): THE CLOSURE CLAUSE'S PARENTHESIS,
+SPELLED SO THE RAW-FILE READING CANNOT BE MISTAKEN FOR THE OPERATIVE ONE.** `RCA-8(d)` ANNOTATE-BESIDE: **the
+closure bullet above stands byte-for-byte, including its six-name parenthesis, and it is read THROUGH this
+clause; nothing above is reworded, no file is created and no arithmetic moves.** **THE PARENTHESIS IT PRINTS
+LISTS SIX NAMES BECAUSE IT ENUMERATES THE MAP'S CARRIER PARTS AND `implementation-plan` — and the SEVENTH
+part entry, the `view` part `test-cases.md`, is named in the SAME bullet's own closing sentence, which is
+exactly why the parenthesis was written and why a reader must read it with that sentence.**
+
+**AND THE TWO FIGURES, PRINTED UNDER BOTH READINGS SO NEITHER IS ASSUMED:**
+- **THE LEFT SIDE IS `{part-map PART entries}` = `{rows of the part map} − {the contract-document row}` =
+  `7 − 1 = 6`** — **an ENTRY-COUNTED figure, read off the map's own rows.**
+- **THE RIGHT SIDE, UNDER THE OPERATIVE READING — THE MAP'S OWN PART ENTRIES — IS `6`: the `5` `carrier`
+  parts (`crossing` · `surface` · `package` · `acceptance` · `parameter-semantics`) plus
+  `implementation-plan`, with the `view` part `test-cases` counted in the map's entries and NOT in this
+  parenthesis — so the predicate reads `6 = 6` ✓ AND IT HOLDS.**
+- **THE RIGHT SIDE, UNDER THE RAW-FILE READING THE CLAUSE'S OWN WORDS NAME — *"{files present in
+  docs/specs/storeroom-js/} − {contract.md}"* — IS `7`, because `test-cases.md` is present as well — so THE
+  SAME PREDICATE READS `6 = 7` ON THAT COUNTING AND WOULD NOT HOLD.**
+
+**THE OPERATIVE READING IS THE PART-ENTRY COUNTING, `6 = 6`, AND THE RAW-FILE COUNTING'S `7` IS NOT A CLAIM
+OF THIS UNIT:** **the state is `CLOSED` on the part-entry terms, the state is NOT claimed on the raw file
+count, and the right-hand terms' re-statement is the named repair of a later bounded amendment** — **to be
+taken TOGETHER WITH `§4.1` item 6's named repair, so the two re-statements land in one pass and one dated
+disclosure covers both** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.3 — the closure predicate's
+single arithmetic — and §C.11.7's entry-counted unit, read with this bullet's own closing sentence |
+numeric or census claim]`).
+
 ---
 
 ## §0. The index region's own rules — the claim ledger, the design-defaults table, and the id families
@@ -808,6 +835,76 @@ requirement]`)
    appears in a trigger's list EXACTLY where its listener's address is a PREFIX of the triggering address**
    (`[A3 docs/specs/storeroom-native/contract.md §6.5 item 3 | requirement]`).
 
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`), CLOSING THE FIRST OF THE TWO
+REMAINING RED-SET FAILURES: THE INHERITED MINT RULE AT AN ALREADY-REGISTERED ADDRESS.** `RCA-8(d)`
+ANNOTATE-BESIDE: **items 1–5 above stand byte-for-byte and are read THROUGH this clause; nothing is
+withdrawn and nothing is reworded — THIS clause is a PURE INSERTION, and it is the rule `§2.4` rule 4 and
+`DD-15` are henceforth read with.**
+
+**6. A REPEAT `listen` AT AN ALREADY-REGISTERED ADDRESS MINTS NOTHING AND RETURNS THE ENTRY'S OWN HANDLE.**
+   **The rule is the STORE'S and it is INHERITED here, not declared:** **`listen(address)` where the address
+   is NOT in the home mints a fresh store-unique token; `listen(address)` where the address IS ALREADY
+   REGISTERED returns the EXISTING entry's handle and adds NO second entry** — **so a repeated `listen` at
+   one address leaves the home UNCHANGED and a later trigger fires that ONE handle, ONCE.**
+   **THE ONE HOME ENTRY PER ADDRESS (`A45`) AND THE ADDRESS-LEVEL IDEMPOTENCE (`write-and-read.md §6.5`
+   item 2, carried to the listener surface by item 12 (c)) ARE THE OPERATIVE TERMS, and this unit's own
+   `A69`-derived reading is narrowed accordingly: `A69`'s PER-PROCESS UNIQUENESS IS A RULE ABOUT THE TOKENS
+   THE STORE **MINTS** — **no OTHER token the store mints, in this instance, in any other instance of this
+   process, or at any later moment of this process, is equal to a minted one — and it is NEVER a promise
+   that a CALL mints a fresh token.** **A repeat `listen` at a registered address mints no token at all, so
+   there is no second token for `A69`'s uniqueness to speak about.**
+   (`[A3 docs/specs/storeroom-native/write-and-read.md §6.5 item 12 (c) — *"a `listen(address)` whose address
+   IS already registered returns the EXISTING entry's handle rather than minting a second one"*;
+   docs/specs/storeroom-native/write-and-read.md §6.5 item 2 — the address-level idempotence;
+   docs/specs/storeroom-native/contract.md §0.4 clause 2 — one home entry per address (`A45`);
+   A1 docs/specs/storeroom-js-proposal.md §13 · A69 — the uniqueness domain as a MINT rule |
+   state or fail-state declaration]`).
+
+   **AND THE ONE CONSEQUENCE THIS RULE HAS ON `§2.4` RULE 4 AND ON `DD-15`, STATED SO THE TWO ARE READ
+   THROUGH IT RATHER THAN RE-DECIDED:** **`§2.4` rule 4's closing sentence *"a later re-`listen` at the same
+   address mints a DIFFERENT handle, whose registration is a NEW registry entry"* and `DD-15`'s own *"a later
+   re-`listen` at the same address mints a DIFFERENT handle"* are TRUE OF EXACTLY ONE CASE, AND THIS CLAUSE
+   NAMES IT: a re-`listen` whose address the WITHDRAWAL HAS REMOVED**, because `unlisten` drops ONE
+   store-side home entry, so the address is no longer in the home and the next `listen` at it mints a FRESH
+   token. **Where the address IS STILL REGISTERED — including where the `unlisten` ahead of it was one of
+   `§2.3` item 4's no-op successes, which removes nothing — the re-`listen` returns the existing entry's
+   handle and NO new registry entry arises.** **`§2.4` rule 4's asymmetry (`unlisten` withdraws the
+   STORE-side home entry and NEVER the package's function) is UNTOUCHED by this clause: it is about what a
+   withdrawal does to the PACKAGE's registry, and this rule is about what a registration does to the STORE's
+   home.**
+
+   **AND THE ONE THING THIS UNIT DOES NOT DECLARE — the caller who wants a SECOND registration at ONE
+   address.** **The store's contract declares no such route, so this unit declares none and closes the
+   silence as a `DECLARED-DEFAULT` rather than leaving it to discovery.** **THE OPERATIVE ANSWER IS `A45`'S
+   ONE-ENTRY-PER-ADDRESS, AND IT LEAVES THE CALLER EXACTLY TWO LAWFUL ROUTES, BOTH ALREADY DECLARED:**
+   **(i) SUPPLY THE SECOND ENTRY AT THE CONSTRUCTION**, through `cfg.listeners[]`, where a DUPLICATE address
+   IS IN DOMAIN and **both entries are KEPT, each with its OWN caller-spelled handle** (`§1.3`'s
+   `ListenersArg` row 1; `DD-44`; `§1.3`'s `ListenerHandle` row 1's ADOPTION) — **because the construction is
+   a POPULATION step and not a registration verb, so the address-level idempotence is not carried into it**;
+   and **(ii) WITHDRAW AND RE-REGISTER**, i.e. `unlisten` the entry's handle and then `listen` the address
+   afresh, which mints a SECOND, different handle. **A THIRD REGISTRATION AT ONE ADDRESS WITH THE `listen`
+   VERB, WHILE THE ADDRESS IS HELD, IS NOT REACHABLE AND IS A FINDING IF CLAIMED.**
+   **AND NAMING WHAT ROUTE (i) DOES NOT BUY, SO THE READING IS NOT READ WIDER THAN IT IS: two entries at one
+   address carry TWO handles and a trigger returns BOTH (`§2.4` rule 3; the store's `DD-39`), while route
+   (ii) at an address the WITHDRAWAL removed yields a handle that is NEW and whose registration is a NEW
+   registry entry — and neither route is a "second mint" of one entry's token.**
+   (`[A3 docs/specs/storeroom-native/parameter-semantics.md §2.12 · `PAR-12` — the duplicate case ADMITTED at
+   the construction; A3 docs/specs/storeroom-native/contract.md §0.2 · `DD-39` — both entries KEPT; A1
+   docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12` — a pinned default carries a priced alternative
+   | declared parameter semantics]`).
+   **AND THE `alt` THIS DECLARATION CARRIES, PRICED BECAUSE A PINNED DEFAULT OWES ONE: A SECOND, INDEPENDENT
+   HOME ENTRY PER ADDRESS, WITH `listen` MINTING A FRESH TOKEN ON EVERY CALL** — priced: it would make the
+   store hold TWO entries at one address for one `listen` call, so `unlisten` over EITHER handle would have
+   to choose which entry to drop (the store's own `unlisten` drops exactly ONE entry, `§2.10`), and a trigger
+   at that address would return a set that depends on how many times the caller called `listen` rather than
+   on the address — **and it would put a second, binding-side reading of the home in this unit, which `DD-1`
+   refuses for the refusal surface and this clause refuses for the registration surface.** **Available only
+   with a fresh ruling of the architect recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded
+   amendment of `docs/specs/storeroom-js/`; the reversal instrument is that bounded amendment, and NO PARK IS
+   NAMED AS IT** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12`; A1
+   docs/specs/storeroom-js-proposal.md §11 · A66 — a park is not an instrument a row may name |
+   declared parameter semantics]`).
+
 ### §2.4 The registry — the package's own state, and its four rules
 
 **THE STORE RETURNS HANDLES AND INVOKES NOTHING** (`A57`); **so a JS listener is a FUNCTION the PACKAGE must
@@ -924,6 +1021,68 @@ FORM:**
    (`[A1 docs/specs/storeroom-js-proposal.md §8 · A64; A3 docs/specs/storeroom-native/contract.md §8.3 — the
    error's closed two-member shape | state or fail-state declaration]`)
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`): THE ABSENT-OR-FAILED-ADDON STATE,
+DECLARED AS A FAILURE FORM.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1–4 above stand byte-for-byte; THIS clause
+is a PURE INSERTION and it declares the ONE failure state that is neither a verb's nor a construction key's
+— the state `P-TP-7`'s `S-LOAD` line is the row for, and the state the package's own load step can reach
+BEFORE any of the four items above can be consulted.**
+
+5. **THE ABSENT-OR-FAILED ADDON IS A DECLARED FAILURE FORM, AND THE PACKAGE HAS NO OTHER ANSWER.**
+   **WHERE THE INTERNAL ADDON IS ABSENT, UNREADABLE, OR REFUSES TO LOAD, `storeCreate` ANSWERS THE SINGLE
+   FORM OF ITEM 1 ABOVE — a THROWN plain object whose member set is EXACTLY `{status, message}` — AND
+   RETURNS NO INSTANCE.** **THE STATE, IN FOUR TERMS, EACH MANDATORY AND EACH DECLARED HERE:**
+   **(a) ITS STATUS IS `FilePathUnreachable`**, as a JS `string`, **carried VERBATIM**: one of the store's
+   closed `15` members, **never minted by the package, never lowercased, prefixed or re-mapped** — the
+   package owns no second code for this state and item 1 above forbids it one.
+   **(b) ITS MESSAGE'S HOME IS THE STORE'S OWN GENERATOR, REACHED THROUGH THE ADDON WHERE THE ADDON LOADED
+   FAR ENOUGH TO CARRY IT:** **the message is the string the store's own generator produces for
+   `FilePathUnreachable` at the SUBJECT THE ADDON ARTEFACT'S OWN PATH — the ignored path the package's
+   internal step loads and the very file whose absence or unloadability produced the state — and NOT
+   `cfg.filePath`, because THIS state is a statement about the ADDON and not about the construction's own
+   argument; a `cfg.filePath` that fails the store's construction-time reachability probe is the SEPARATE
+   state `crossing.md §1.3`'s `FilePathArg` rows 4–6 declare, reached at the store's own construction and
+   never here.** **The message is never empty, never a placeholder and never hand-authored by the package
+   (item 2 above), and the subject the generator renders is that path, because the generator's own spelling is
+   `'<the subject>' is not reachable at construction, the path must exist or the application must be able to
+   write it`.**
+   **(c) THE ONE CASE WHERE THE GENERATOR IS UNREACHABLE, AND HOW THE STRING IS THEN CARRIED:** **the addon
+   IS the artefact that failed to load — or it loaded and exposes no generator — so the generator CANNOT be
+   consulted at all, and the string is then carried at ONE DOCUMENTED SITE: a package-side constant in the
+   package's own entry module, holding the generator's own string for this code and this subject, rendered
+   by the same spelling clause (b) prints.** **The constant is the SAME BYTES the generator would answer, so
+   there is ONE string for the state on both arms; it is NOT a fallback implementation, NOT a second store
+   and NOT a second message authority — it is the one site where the string is carried when its author is
+   the thing that failed** — **and a second such site, or a site holding a different string, is a FINDING.**
+   **(d) NO FALLBACK EXISTS, AND THIS IS THE WHOLE OF THE CLAUSE.** **The package NEVER falls back to a
+   JavaScript store, NEVER absorbs the state silently, NEVER degrades to a partial instance or to a no-op
+   verb, and NEVER substitutes a package-authored message, status or instance for it.** **An addon that is
+   absent or fails to load is a DECLARED FAILURE AND NEVER A SILENT JS STORE — the outcome the refused `V3`
+   variant would have produced.** **CONSEQUENTLY EVERY VERB AND EVERY CONSTRUCTION IN THAT STATE ANSWERS THE
+   SAME THROWN FORM, and no verb of this unit is reachable while the addon is not.**
+   **AND THE ROW THAT PINS THE STATE IS `P-TP-7`'s `S-LOAD`** — **one `import` of the entry from outside the
+   unit directory, resolving and loading exactly one Node-API addon** — **and the state is the same row's
+   FAILURE arm.**
+   (`[A1 docs/specs/storeroom-js-proposal.md §17 · `A75` — *"an addon that is absent or fails to load is a
+   DECLARED FAILURE and never a silent JS store (`V-3` was refused by this choice)"*; A3
+   docs/specs/storeroom-native/contract.md §8.1 — `FilePathUnreachable`, rank `13` of the closed `15`;
+   A3 docs/specs/storeroom-native/contract.md §8.2 — the generator's own row for that code and its two
+   clauses | state or fail-state declaration]`).
+   **AND THE `alt` THIS DECLARATION CARRIES, PRICED BECAUSE A PINNED STATUS OWES ONE, AND WITH THE HONESTY
+   THE TASK OWES ITS READER — `FilePathUnreachable` IS THE HONEST STATUS HERE AND THE ALTERNATIVE IS PRINTED
+   BESIDE IT RATHER THAN HIDDEN:** **the alternative is A PACKAGE-OWNED CODE FOR THIS STATE** (a token the
+   store's closed set does not hold, such as a `AddonUnavailable`-shaped name) — **and the price is THREE
+   things, each already declared: it would MINT A CODE, which item 1 above and `DD-40` forbid; it would give
+   `§2.5` TWO producers of a `status`, which `DD-1` refuses for the refusal surface; and it would put a
+   *"second externally-sourced vocabulary token"* beside `A72`'s one-row dossier, which `DD-2`'s own `alt`
+   cell prices and the dossier's cap does not admit.** **`FilePathUnreachable` IS THEREFORE OPERATIVE
+   WITHOUT A RULING** — its own generator's clause reads *"is not reachable at construction, the path must
+   exist or the application must be able to write it"*, which is EXACTLY the state an absent or unloadable
+   addon is in — **and the reversal instrument is a fresh ruling of the architect recorded as an ACTIVE
+   `docs/decisions.md` row, followed by a bounded amendment of `docs/specs/storeroom-js/`, with the dossier
+   row that a second externally-sourced token would owe** (`[A1
+   docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12`; A1 docs/specs/storeroom-js-proposal.md §17 ·
+   `A75`; `DD-1`; `DD-40`; `DD-2` | declared parameter semantics]`).
+
 ### §2.6 The constraint/repair pattern — a usage pattern over declared verbs, never a seam
 
 **CONSTRAINT AND REPAIR EVALUATION IS CLIENT-SIDE.** **The JS side holds the constraint functions; the
@@ -1020,6 +1179,27 @@ the package's own `createRequire`-style step and **is NOT a second claimed realm
 with its clause supplied at `§0.3`** (`[A4 docs/specs/storeroom-js-adoption-dossier.md · Node-API / napi |
 cross-reference]`).
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`): THE INTERNAL ADDON'S OWN EXPORT
+LIST, DECLARED SO THE ENTRY'S `NOTHING ELSE` IS CHECKABLE AGAINST A NAMED SET.** `RCA-8(d)` ANNOTATE-BESIDE:
+**the paragraph above stands byte-for-byte; THIS clause is a PURE INSERTION and it declares the INTERNAL
+artefact's export surface — which is NOT the entry's named-export surface, and which no consumer of the
+claimed entry can reach.**
+
+**THE INTERNAL ADDON'S EXPORT SET IS EXACTLY FIVE NAMES: `version` · `errorMessage` · `storeCreate` ·
+`call` · `register` — and NOT ONE BESIDE THEM.** **Three of the five are the package's own internal step
+(`call`, `storeCreate`, `register`) and two exist SO THE ADDON CAN BE AUDITED FROM ITSELF (`version`, the
+crate's own version string) AND SO THE STORE'S GENERATOR IS REACHABLE WHERE THE PACKAGE NEEDS IT
+(`errorMessage`, the generator reached from the JS side for the one state `§2.5` item 5 declares).** **NO ONE
+OF THE FIVE IS A NAMED EXPORT OF THE CLAIMED ESM ENTRY** — **the entry's named exports are the `8` verbs of
+`§2.9` item 1 and NOTHING ELSE** — **and the internal artefact is reachable ONLY through the object the ESM
+entry's module-private key holds, so a consumer of the claimed entry CANNOT reach `version`, `call`,
+`errorMessage` or the addon's own `storeCreate`.** **A sixth name on the internal artefact, or a name of the
+five reached from a consumer's own module graph, is a FINDING** — **the second arm of it landing on
+`P-TP-7`'s `S-ONE-ADDON` and the first on the sibling crate's own surface.**
+(`[A1 docs/specs/storeroom-js-proposal.md §15 · A70 — the claimed realm is the ESM entry ALONE; A1
+docs/specs/storeroom-js-proposal.md §17 · `A75`; A3 docs/specs/storeroom-js/package.md §1.2 — the internal
+reach, which is not a second realm and not a second entry | requirement]`).
+
 ### §3.2 Every other realm is UNCLAIMED, and each owes its declared answer
 
 **THE REALM SET IS CLOSED AT ONE MEMBER, AND THE UNCLAIMED SET IS ENUMERATED RATHER THAN LEFT TO A READER'S
@@ -1057,6 +1237,43 @@ requirement]`)
    the sibling crate** (`DD-43`).
    (`[A1 docs/specs/storeroom-js-proposal.md §15 · A71; A1 docs/specs/storeroom-js-proposal-review.md §3 ·
    `U16`'s closure | requirement]`)
+
+**⟶ ADDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`): THE MATRIX'S LABEL-TO-ARTEFACT MAP
+AND THE LICENCE'S FOURTH SITE.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1–4 above stand byte-for-byte; THIS
+clause is a PURE INSERTION, it adds no target and moves no count, and it states the two spellings a consumer
+and a CI script read.**
+
+**5. THE MATRIX'S LABELS AND THE PUBLISHED ARTEFACTS' NAMES, AS ONE MAP — because three of the five
+   published artefacts carry a TOOLCHAIN SUFFIX the label does not print.** **The label is the platform and
+   architecture the matrix row is named for; the artefact name is the registry's own per-target package,
+   `SCOPED-PACKAGE-<label>-<toolchain>`.** **THE FIVE ROWS, LABEL BESIDE ARTEFACT:**
+
+   | # | The matrix label (item 2 above) | The published artefact's name |
+   | --- | --- | --- |
+   | 1 | `linux-x64` | `<the package's scope>-js-linux-x64-gnu` |
+   | 2 | `linux-arm64` | `<the package's scope>-js-linux-arm64-gnu` |
+   | 3 | `darwin-x64` | `<the package's scope>-js-darwin-x64` |
+   | 4 | `darwin-arm64` | `<the package's scope>-js-darwin-arm64` |
+   | 5 | `win32-x64` | `<the package's scope>-js-win32-x64-msvc` |
+
+   **THE SUFFIX'S MEANING, STATED SO THE MAP IS NOT READ AS A SIXTH TARGET: `-gnu` is the LINUX TOOLCHAIN
+   (the GNU C library and its ABI) and `-msvc` is the WINDOWS TOOLCHAIN (the MSVC ABI) — a target's TOOLCHAIN
+   is not a target, so the matrix stays `5` TARGETS and `5` ARTEFACTS, `5 = 5` ✓** (`DD-25`).
+   **The two `darwin` rows carry no suffix, because the Apple toolchain is the platform's only one.**
+   (`[A1 docs/specs/storeroom-js-proposal.md §15 · A71; A1
+   docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-16` | numeric or census claim]`).
+
+**6. `AGPL-3.0` HAS A FOURTH DECLARED SITE, AND ITS SPELLING THERE CARRIES THE `-or-later` CLAUSE.**
+   **The licence is declared (i) in the package's `package.json` `license` field, as `AGPL-3.0`; (ii) in
+   `bindings/js/README.md`, as `AGPL-3.0`; (iii) at `package.md §3.4`, as `AGPL-3.0`; and (iv) in the sibling
+   crate's own `bindings/js/Cargo.toml` `license` field, as `AGPL-3.0-or-later`.** **THE OPERATIVE SPELLING
+   IS `AGPL-3.0` FOR THE DISTRIBUTION'S DECLARED FACT AND `AGPL-3.0-or-later` FOR THE CRATE'S OWN SPDX
+   EXPRESSION, AND THE DIFFERENCE IS DECLARED RATHER THAN SMOOTHED:** **the fourth site is the crate
+   manifest's SPDX field, whose grammar admits `-or-later` and whose value the crate's own consumers read;
+   the repository's `LICENSE` is the file both spellings name, and no clause of this unit changes it.**
+   **A FIFTH site, or a spelling other than these two, is a FINDING** (`DD-43`).
+   (`[A1 docs/specs/storeroom-js-proposal.md §9.3 · `D9` — the licence is a DISTRIBUTION FACT; A1
+   docs/specs/storeroom-js-proposal.md §15 · A71; `DD-43` | declared parameter semantics]`).
 
 ### §3.4 The sibling crate's layout — an independent crate, never a workspace member
 
@@ -1141,6 +1358,34 @@ requirement]`).
    (the accepted form and each refused form), one test per verb's success shape, one test per code the
    surface can reach, one test per registry rule of `§2.4`, and one test per `HO-` row — the last asserting
    only that the package EXPOSES NO entry for that realm.**
+
+**⟶ ADDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`): THE NUMBERING DISCLOSURE THIS HOME
+OWES, AND THE EXACT REPAIR IT NAMES.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1, 4 and 5 above stand
+byte-for-byte and are read THROUGH this clause; no item's number, order or text is moved by it, and THIS
+clause is a PURE INSERTION.**
+
+**6. THE TWO HOMES' NUMBERS, STATED SO A READER NEEDS NO OTHER FILE, AND THE REPAIR NAMED RATHER THAN TAKEN
+   SILENTLY.** **THIS document's `§4.1` prints items `1` · `4` · `5` — the as-filed item `1`, and the
+   as-filed `4` and `5` — while its `carrier` part `acceptance.md`'s own `§4.1` prints `1` · `2` · `3` ·
+   `4` · `5` with the inserted clauses `6`–`9` BESIDE them, as that part's own disclosure clause states.**
+   **THE HOME IS THE FAULTY SITE AND THE PART IS NOT: `§4`'s authority note declares `acceptance.md` a
+   relocation of this document's `§4` WHOLE, so this item list must print the part's own numbers, and items
+   `2` and `3` are ABSENT from this home while `4` and `5` are printed as if contiguous.** **NO CLAIM MOVES
+   BY THIS DISCLOSURE and no number is re-cut here.**
+   **THE EXACT REPAIR, NAMED AS THE WORK OF A LATER BOUNDED PASS OF THIS DIRECTORY — AND IT IS NOT TAKEN
+   HERE, BECAUSE TAKING IT WITHOUT THE PART'S ITEMS `2` AND `3` IN HAND WOULD PRINT THE PART'S NUMBERS OVER
+   THE HOME'S OWN CONTENT AND INVERT THE DISCLOSURE RATHER THAN CLOSE IT:** **the pass RESTORES this home's
+   items `2` and `3` from `acceptance.md`'s own bytes — the part's item `2` (*"THE RUST LAYER RUNS `cargo
+   test` IN `bindings/js/`"*, **which is the passage this home prints as part of its item `4` and which the
+   part's own item `2` carries with its dated pointer to `package.md §4.2` item 4's clause, where this home's
+   item `4` already carries that same pointer**) and the part's item `3` (the suite's own pattern, **which is
+   the passage this home prints as its item `5`**) — and it then prints the list CONTIGUOUSLY as `1`–`9`,
+   with the as-filed `4` and `5` at their own places and the insertions `6`–`9` where the part places them,
+   and WITH A DATED DISCLOSURE BESIDE THE RENUMBERED LIST so `git diff` still recovers every pre-pass byte.**
+   **UNTIL THAT PASS LANDS, a reader of either home reads the two lists through this item and through
+   `acceptance.md §4.1`'s own disclosure clause, which state the same two facts.**
+   (`[A3 docs/specs/storeroom-js/acceptance.md §4.1 — the part's own item list and its disclosure clause,
+   which this item is the home-side twin of; A1 | ordering claim]`).
 
 ### §4.2 The LAYER label — and the rule no pass may break
 
@@ -1238,6 +1483,21 @@ sentence that says *"`§5.2`'s `P-IM-2`"* is naming a section and the row that l
 reading this contract uses.** **THE RULE IS THIS PROJECT'S OWN DIRECTORY-FORM DECISION and it takes no
 ruling** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.6's prohibitions — the per-unit cap and
 the no-second-register rule — read with this section's own `§5.0` | cross-reference]`).
+
+**⟶ AND ONE LINE OF THIS SPAN IS RE-SPELLED BY THE BOUNDED CLOSE-OUT PASS OF 2026-10-11, WITH THE ROW COUNT
+UNMOVED** (`RCA-8(d)` ANNOTATE-BESIDE: **the census above and the disclosure above stand byte-for-byte; THIS
+clause is the operative statement of the ONE strategy line the same pass re-spelled, and it is a PURE
+INSERTION**): **(1) THE ROW COUNT DOES NOT MOVE — it is `8`, the cap holds at `8 ≤ 8`, and NO NINTH ROW IS
+MINTED.** **(2) `P-SM-5`'s `S-WITHDRAW` LINE IS RE-SPELLED, AND THIS IS THE ONE CELL THIS PASS MOVES:** **its
+subject is read as *"after `unlisten`, the function never fires again; a LATER `listen` AT THE SAME ADDRESS
+MINTS A NEW HANDLE WHERE THE WITHDRAWAL REMOVED THAT ADDRESS'S HOME ENTRY, and returns the EXISTING entry's
+handle where the address is still registered"*** — **because `§2.3` item 6 now declares the inherited
+address-level mint rule and `§2.4` rule 4's *"a DIFFERENT handle"* is true of exactly the withdrawn case**
+(`§2.3` item 6). **(3) THE `alt` CELLS AND THE FAILURE LISTS OF EVERY ROW STAND UNMOVED, `P-SM-5`'s included:
+its failure list's *"a re-`listen` that re-uses a withdrawn handle"* stays FALSE-OF-THE-BUILD as printed,
+because a re-`listen` at a removed address mints a FRESH token and never re-uses the withdrawn one** (`[A1
+docs/specs/storeroom-js/contract.md §2.3 item 6 — the inherited mint rule; A3
+docs/specs/storeroom-native/write-and-read.md §6.5 item 12 (c); `DD-15` | requirement]`).
 
 ### §5.1 `P-IM-1` — the round trip, under the declared relation
 

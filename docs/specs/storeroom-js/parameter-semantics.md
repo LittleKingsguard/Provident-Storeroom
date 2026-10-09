@@ -262,6 +262,27 @@ docs/specs/storeroom-native/parameter-semantics.md §2.3 · PAR-3 | declared par
 `[A1 docs/specs/storeroom-js-proposal.md §13 · A69; A3
 docs/specs/storeroom-native/parameter-semantics.md §2.13 · PAR-13 | declared parameter semantics]`
 
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`), ON THE MINT RULE THE `domain` CELL
+IS READ THROUGH.** `RCA-8(d)` ANNOTATE-BESIDE: **the row's cells above stand byte-for-byte; THIS clause is the
+operative statement of ONE half of its `domain` cell, and it is a PURE INSERTION — no row is added, moved or
+renumbered, and `§1`'s `18`-row arithmetic is unchanged.** **WHAT MOVED, NAMED WITH ITS TERMS: the `domain`
+cell reads *"a store-minted handle being UNIQUE PER PROCESS (`A69`)"*, and `contract.md §2.3` item 6 now
+declares that a REPEAT `listen` at an ALREADY-REGISTERED address MINTS NOTHING and returns the EXISTING
+entry's handle** — **so the operative reading of the cell's uniqueness half is this, and NOT a promise of a
+fresh token per call:** ***"a store-minted handle is unique per PROCESS over the tokens the store MINTS — no
+OTHER token the store mints, in this instance, in any other instance of this process, or at any later moment
+of this process, is equal to a minted one — and `A69` is a rule about the MINTS and never a promise that each
+`listen` CALL mints one."*** **The cell's remaining halves stand: the construction's `listeners[]` takes a
+plain `string`; every handle a verb RETURNS is the package's opaque JS value; and `unlisten` accepts the
+OPAQUE form ONLY.** **AND NOTHING ELSE OF THIS ROW MOVES: its `the values OUTSIDE it` cell, its declared
+answers (the no-op success at `unlisten`, and `AddressMalformed` with no instance for a construction entry
+the construction cannot admit), its `supplier`, its `evaluator`, its `observable`, its `alt` and its `park`
+cell are the row's own and stand as printed** — **and the rule's declaration, its operative terms (`A45`'s one
+home entry per address and the store's address-level idempotence), the one case in which a later `listen`
+DOES mint a different handle, and its priced `alt`, stand at `docs/specs/storeroom-js/contract.md §2.3` item 6**
+(`[A3 docs/specs/storeroom-native/write-and-read.md §6.5 item 12 (c) — the mint rule at its store-side home;
+A1 docs/specs/storeroom-js/contract.md §2.3 item 6; `DD-15` | declared parameter semantics]`).
+
 ### §2.9 `PAR-JS-9` — `opId` on `rollback`
 
 | Cell | Its value |

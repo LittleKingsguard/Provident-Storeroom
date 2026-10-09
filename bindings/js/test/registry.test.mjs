@@ -20,6 +20,10 @@
 // construction · two different handles at one address · the SAME token twice at one address · a bare string
 // at `unlisten` · a foreign instance's handle · a blank token · a non-opaque value · an absent handle · a
 // prefix-qualified registration set · a registration outside the write's scope · a `delete`'s triggered set.
+// **AND THE TWO STATES THE 2026-10-11 `V-1` RE-DERIVATION ADDED TO THIS LIST:** **a REPEAT `listen` at an
+// address that IS ALREADY REGISTERED** (whose declared answer is the entry's OWN handle — `write-and-read.md
+// §6.5` item 12 (c)) and **two DIFFERENT addresses registered on ONE instance** (whose declared answer is two
+// DIFFERENT handles, each binding its own address — `§2.3` item 1 with `§6.5` item 10 (b)).
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -61,11 +65,84 @@ test('handle_the_returned_token_is_readable_by_no_js_code', () => {
   }
 });
 
-test('handle_a_mint_is_unique_per_process_and_two_registrations_at_one_address_differ', () => {
+// **THE CELL BELOW WAS RE-DERIVED BY THE 2026-10-11 `V-1` PASS, BECAUSE ITS FIRST FORM ASSERTED AN
+// EXPECTATION THE DECLARED BEHAVIOUR DOES NOT SUPPORT.** As first authored it called `listen(i, ['a'])` twice
+// and required **TWO DIFFERENT handles**. **THE DECLARED ANSWER IS THE OTHER ONE, AND THE STORE'S CONTRACT IS
+// ITS AUTHORITY:** **`docs/specs/storeroom-native/write-and-read.md §6.5` item 12 (c)** — *"a `listen(address)`
+// whose address IS already registered returns the EXISTING entry's handle rather than minting a second one"* —
+// **read with `§6.5` item 2's ADDRESS-LEVEL IDEMPOTENCE** (*"registering the same address twice is idempotent
+// at the address level: the returned list carries DISTINCT addresses"*) **and with `§6.5` item 8 (a)'s ONE
+// home** (*"the store instance owns exactly ONE home map … registrations keyed by the listener's `address`"*,
+// `A45`/`A48`). **So a repeat `listen` at a registered address MINTS NOTHING and returns the entry's own
+// handle, and `A69`'s per-process uniqueness is NOT weakened by that clause:** it quantifies over **the tokens
+// the store MINTS** (`§2.3` item 1 — *"no OTHER token the store mints … is equal to it"*, with the store's
+// `parameter-semantics.md §2.13`/`PAR-13` uniqueness domain), and the repeat mints no token at all.
+//
+// **CONTRACT FINDING, REPORTED AND NOT PAPERED OVER — NO CLAUSE OF `docs/specs/storeroom-js/**` DECLARES THE
+// REPEAT-`listen` ANSWER, AS OF THIS RUN.** `surface.md §2.10`/`contract.md §2.10` print *"mints a token,
+// populates the store's home"* (the NOT-registered case); `§2.3` item 1 declares the MINTED token's
+// per-process uniqueness; and `§2.4` rule 4's *"a later re-`listen` at the same address mints a DIFFERENT
+// handle"* is the AFTER-`unlisten` case, where the home entry is already gone. **The declared authority for
+// the registered-address state is therefore the store's `§6.5` item 12 (c), cited here rather than a
+// unit-side rule invented beside it** — and a unit-side clause stating it outright is a bounded amendment of
+// `docs/specs/storeroom-js/`, reported to the supervisor.
+test('handle_a_repeat_listen_at_a_registered_address_returns_the_entries_own_handle', () => {
   const inst = mem();
-  const a = listen(inst, ['a']);
-  const b = listen(inst, ['a']);
-  assert.ok(a !== b, 'no other token the store mints is equal to it');
+  const minted = listen(inst, ['a']);
+  const repeat = listen(inst, ['a']);
+  // **NO SECOND ENTRY EXISTS:** `A45`'s one home holds ONE entry per address, so ONE write at that address
+  // triggers EXACTLY ONE handle — never two, and never none.
+  const first = write(inst, ['a'], 'mem', 1);
+  assert.equal(first.triggered.length, 1, '`§6.5` item 8 (a): ONE home entry per address, so ONE handle');
+  // **AND THE REPEAT NAMES THAT ENTRY ITSELF:** `unlisten` removes exactly the entry whose handle it is
+  // handed (`§6.5` item 12's *"which is why `unlisten` over the returned handle removes exactly one entry"*),
+  // so withdrawing the REPEAT's value withdraws the address's registration — which IS NOT what a second,
+  // separately-minted entry would leave behind.
+  assert.equal(unlisten(inst, repeat), undefined);
+  const after = write(inst, ['a'], 'mem', 2);
+  assert.deepEqual(after.triggered, [], 'the repeat\'s value names the entry the first `listen` minted');
+  // ...and the FIRST call's value names that same, now-withdrawn entry: the two calls name ONE entry, and the
+  // withdrawal over an already-removed entry is the ordinary no-op success (`§2.3` item 4).
+  assert.equal(unlisten(inst, minted), undefined);
+  assert.ok(minted !== undefined && repeat !== undefined, 'both calls returned handles, never a unit');
+});
+
+// **THE PART THE CELL WAS REALLY REACHING FOR, DRIVEN BESIDE IT — BECAUSE THE CONTRACT DECLARES IT AND NO
+// CELL REACHED IT** (`§2.3` item 1's per-process mint; `§6.5` item 10 (b)'s binding BY ADDRESS; `§2.3` item 4
+// and `§2.4` item 5 (d)'s two declared answers for a value ANOTHER instance minted; the unit's `§2.3` item 2
+// wrapper identity and `PAR-JS-8`'s *"a value a FOREIGN instance minted"*).
+test('handle_a_mint_is_unique_per_process_and_two_addresses_on_one_instance_differ', () => {
+  const owner = mem();
+  const other = mem();
+  const atA = listen(owner, ['a']);
+  const atB = listen(owner, ['b']);
+  assert.ok(atA !== atB, '`§2.3` item 1: two mints are two tokens, and no mint repeats another');
+  // BINDING IS BY ADDRESS AND BY NOTHING ELSE (`§6.5` item 10 (b)): each registration fires for its own
+  // address alone — and a write at an address no registration is a prefix of fires nothing (`§6.5` item 3).
+  assert.equal(write(owner, ['a'], 'mem', 1).triggered.length, 1);
+  assert.equal(write(owner, ['b'], 'mem', 1).triggered.length, 1);
+  assert.deepEqual(write(owner, ['c'], 'mem', 1).triggered, []);
+  // THE SAME ADDRESS ON A SECOND INSTANCE IS A SECOND MINT, and the two are DISTINGUISHABLE — which is what
+  // `A69`'s per-process domain means across instances (`§2.3` item 1: *"in ANY other instance of THIS
+  // process"*): the foreign value names NO entry of this one.
+  const foreign = listen(other, ['a']);
+  assert.ok(foreign !== atA, 'the same address on another instance is another mint');
+  // `unlisten` over the foreign value is the declared NO-OP SUCCESS and removes NOTHING here (`§2.3` item 4;
+  // `PAR-JS-8`'s *"a value a FOREIGN instance minted"*), so the owner's own registration still fires.
+  assert.equal(unlisten(owner, foreign), undefined);
+  assert.equal(write(owner, ['a'], 'mem', 2).triggered.length, 1, 'NO OTHER REGISTRATION IS REMOVED');
+  // AND AT THE REGISTRATION SITE the SAME class answers the bare JS `TypeError` (`§2.4` item 5 (d): *"a value
+  // a FOREIGN instance minted … → the SAME JS `TypeError`"*, carrying NO `status` and NO `message`) —
+  // driven here as the IDENTITY half (a foreign handle names no registry key of this instance), while
+  // `register.test.mjs`'s `S-REG` drives the same class inside its whole outside-value list.
+  assert.throws(
+    () => owner.register(foreign, () => {}),
+    (err) =>
+      err instanceof TypeError &&
+      !('status' in err) &&
+      !Object.prototype.hasOwnProperty.call(err, 'message'),
+  );
+  assert.equal(write(owner, ['a'], 'mem', 3).triggered.length, 1, 'nothing reached the store on that case');
 });
 
 test('handle_a_caller_spelled_token_is_adopted_verbatim_and_is_lawful', () => {

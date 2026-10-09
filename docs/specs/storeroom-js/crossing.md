@@ -246,6 +246,22 @@ package passes it through verbatim (`DD-37`, `DD-46`).
 | **`JournalLengthArg` 11** | a **`bigint`** | — | **`AddressMalformed`** |
 | **`JournalLengthArg` 12** | a positive integer **beyond `u32`** | — | **`AddressMalformed`** |
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`): ROW 12'S CARRIER, DECLARED BESIDE
+THE ROW BECAUSE THE ROW'S OWN ANSWER ARRIVES THROUGH IT.** `RCA-8(d)` ANNOTATE-BESIDE: **the tables above and
+below stand byte-for-byte and row 12's printed answer DOES NOT MOVE; THIS clause is a PURE INSERTION and it
+names the state row 12 is reached through.**
+
+**THE ROW'S ANSWER IS CARRIED BY A STATE THE TABLE DOES NOT PRINT: `JsJournalLengthArg::TooLarge(u64)`,
+which carries the `u64` a positive integer beyond `u32` arrives as.** **The `u64` is converted onto the
+STORE'S OWN `JournalLengthArg::Fractional` arm, whose answer for a non-integral value is the `AddressMalformed`
+row 12 declares — so THE DECLARED ANSWER IS UNCHANGED, IT IS REACHED BY A DECLARED CARRIER RATHER THAN BY
+ROW 12'S OWN ARM, and NO CODE IS MINTED, CONVERTED OR RE-MAPPED on the way** (`DD-1`; `DD-40`). **The state
+is declared at its own home in `package.md §4.5` item 2's carrier clause, which names this row beside it.**
+**A value beyond `u32` that answers anything but `AddressMalformed`, and a second state carrying the same
+class, are FINDINGS** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12`; A3
+docs/specs/storeroom-js/package.md §4.5 item 2 — the carrier table and its `TooLarge(u64)` clause; A3
+docs/specs/storeroom-native/parameter-semantics.md §2.7 · `PAR-7` | declared parameter semantics]`).
+
 **`ListenersArg`** and **`ListenerHandle`** — the construction's array and the handle.
 
 | # | Its JS side | The accepted forms | The REFUSED forms, and the answer |
@@ -366,6 +382,34 @@ table `6`, the `JournalLengthArg` table `12`, the `ListenersArg` table `5` and t
 relocated WHOLE | numeric or census claim]`). **THE VALUE-ROW AND OUTSIDE-CLASS FIGURES MOVE BY THIS
 CLAUSE'S OWN COUNT: `13 = 5 + 8` ✓ and the refused-value-class figure is `8`; a `66` nowhere appears in
 the operative text.**
+
+**⟶ RECONCILED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`): THIS SECTION'S CARRIER FIGURES
+AGAINST THE MODEL THE CONTRACT REQUIRES, WITH NOTHING HERE MOVED.** `RCA-8(d)` ANNOTATE-BESIDE: **every
+figure above stands byte-for-byte — `13` · `8` · `56` · `8` · `10` · `8` · `0` — and THIS clause is a PURE
+INSERTION that states what those figures ARE, so the model's own state counts are read as a different
+quantity rather than as a defect in this census.**
+
+**THE `56` IS THE CARRIER TABLES' OWN ARITHMETIC — A COUNT OF THE ROWS THE EIGHT TABLES PRINT — AND IT IS
+NOT A COUNT OF THE MODEL'S STATES.** **The two quantities answer two questions: the `56` answers *"how many
+declared forms does each carrier's table print?"* and a state count answers *"how many Rust arms does
+`package.md §4.5` item 2's model carry?"* — and they DIFFER for six of the eight carriers, by the count
+`package.md §4.5` item 2's dated clause prints row by row, `4` of the six OVER the row count and `2` UNDER
+it and still total.** **STATED HERE SO THE TWO ARE READ TOGETHER:
+`AddressArg` prints `14` rows and the model covers them with `9` variants (both LIST arms plus one arm per
+outside class, with row 6's five named classes carried by `JsNonArray`'s own five); `TierArg` prints `7` and
+the model carries `8` (the set spelling is its own variant); `TierSetItem` prints `4` and the model carries
+`7` (the scalar and object classes split); `OpIdArg` prints `6` and the model carries `5` (total, because
+`Absent`/`Null`/`Undefined` are three states for two rows); `FilePathArg` prints `6` and the model carries
+`6`; `JournalLengthArg` prints `12` and the model carries `15` — the three extra states being `Null`,
+`Undefined` and the `TooLarge(u64)` this part's `§1.3` row-12 clause declares; `ListenersArg` prints `5` and
+the model carries `5`; and `ListenerHandle` prints `2` (its output twin being `JsHandleArg`, whose `4` states
+cover them).** **AND THE TWO THAT MATCH ARE NAMED SO THE COUNT IS CHECKED AND NOT TRUSTED: `FilePathArg`
+(`6` = `6`) and `ListenersArg` (`5` = `5`) — `2` of the `8`, beside `4` OVER and `2` UNDER.**
+**NO ROW IS ADDED, REMOVED OR RENUMBERED BY THIS CLAUSE, AND THE `56` STANDS AS PRINTED** —
+**the reconciliation of the MODEL'S counts is `package.md §4.5` item 2's dated clause, which also withdraws
+the blanket *"EXACTLY"* claim that would have made six of these eight carriers findings** (`[A3
+docs/specs/storeroom-js/package.md §4.5 item 2 — the type table and its dated count reconciliation; A1
+docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12` | numeric or census claim]`).
 
 ---
 
