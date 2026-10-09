@@ -30,7 +30,7 @@ table | numeric or census claim]`).
 
 | # | The case, as the contract pins it | Its source, in the `path §n` form | The pinning citation it carries |
 | --- | --- | --- | --- |
-| 1 | **A `string` crosses in and out, and `''` is a legal value** | `docs/specs/storeroom-js/contract.md` §1.2 row 1 | §1.2's row 1; `docs/specs/storeroom-js/crossing.md` §1.2 |
+| 1 | **A `string` crosses in and out, and `''` is a legal value** | `docs/specs/storeroom-js/contract.md` §1.2 row 1 | §1.2's row 1; `docs/specs/storeroom-js/crossing.md` §1.2 — **read with that row's LONE-SURROGATE clause, whose drive belongs to the JS layer (2026-10-11)** |
 | 2 | **A `boolean` crosses in and out** | §1.2 row 2 | §1.2's row 2 |
 | 3 | **A finite `number` crosses in and out, fractional and integral alike, and both `0` and `-0` are admitted IN MEMORY** | §1.2 row 3 | §1.2's row 3; `docs/specs/storeroom-js/crossing.md` §1.5 clause 3 |
 | 4 | **A plain object crosses in and out, INCLUDING a cross-realm plain object and `Object.create(null)`** | §1.2 row 4 and §1.4 item 4 | §1.4 item 4 (e); `docs/specs/storeroom-js/crossing.md` §1.4 |
@@ -71,7 +71,7 @@ table | numeric or census claim]`).
 | 39 | **The handle's construction spelling is a plain `string`; a returned handle is OPAQUE and its token is unreadable from JS; `unlisten` accepts the opaque form only** | §2.3 items 1–2 | §2.3's items 1–2; `DD-14` |
 | 40 | **`unlisten` over a foreign-instance, a prior-session, a fabricated, a blank or a non-opaque handle is a NO-OP SUCCESS that removes no other registration** | §2.3 item 4 | §2.3's item 4; `docs/specs/storeroom-native/parameter-semantics.md` §2.13 |
 | 41 | **The prior-session hazard is DECLARED, not defended, and the package's documentation must say a handle must not cross a reload** | §2.3 item 3 (i) | §2.3's item 3; `docs/specs/storeroom-js-proposal.md` §13 · `A69`; `DD-28` |
-| 42 | **The registry's four rules: an unregistered handle fires nothing silently; a second registration replaces the first; a lawful duplicate fires once per DISTINCT handle; `unlisten` withdraws the registration and never the function** | §2.4 items 1–4 | §2.4's four rules; `docs/specs/storeroom-js-proposal.md` §9.2 · `K9` |
+| 42 | **The registry's four rules: an unregistered handle fires nothing silently; a second registration replaces the first; a lawful duplicate fires once per DISTINCT handle; `unlisten` withdraws the registration and never the function** | §2.4 items 1–4 | §2.4's four rules; `docs/specs/storeroom-js-proposal.md` §9.2 · `K9` — **read with §2.4 item 5, the registration site's declared spelling (2026-10-11)** |
 | 43 | **A listener is invoked AFTER the verb has returned, synchronously, and NO ORDER is asserted — set membership only** | §2.7 items 1–3 | §2.7's items 1–3; `DD-22`; `docs/specs/storeroom-native/contract.md` §6.5 item 5 |
 | 44 | **A throwing listener body is neither caught, retried nor reported, and it alters nothing the store did** | §2.7 item 4 | §2.7's item 4; `DD-23` |
 | 45 | **A `delete` and a `rollback` perform NO file I/O, so a fresh boot over an equal path re-loads the last successful `file` WRITE's bytes** | §2.8 items 1–2 | §2.8's items 1–2; `DD-45`; `docs/specs/storeroom-native/contract.md` §7.2 item 5 |
@@ -84,14 +84,14 @@ table | numeric or census claim]`).
 | 52 | **The `rlib` half is what makes the crossing's per-class table drivable in Rust WITHOUT a Node runtime** | §3.4 item 3 | §3.4's item 3; `docs/specs/storeroom-js-proposal-review.md` §5.2 item 4 |
 | 53 | **One `Store` per instance, caller-owned: no `dispose()`, no `close()`, no finalizer, and nothing to flush** | §3.5 and §3.5's §5.1 items 1–3 | §3.5's whole clause; `docs/specs/storeroom-js-proposal.md` §15 · `A74` |
 | 54 | **Two instances over one `cfg.filePath` are the caller's own declared hazard: each boots and the second's `file` write clobbers the first's bytes** | §3.5's hazard clause | §3.5's closing hazard paragraph; `docs/specs/storeroom-native/contract.md` §7.2 item 5–6 |
-| 55 | **The JS layer runs under `node --test`, drives the CLAIMED ESM ENTRY and never the addon directly, and the Rust layer runs `cargo test` in `bindings/js/`** | §4.1 items 1–2 | §4.1's items 1–2; `DD-18`, `DD-19` |
+| 55 | **The JS layer runs under `node --test`, drives the CLAIMED ESM ENTRY and never the addon directly, and the Rust layer runs `cargo test` in `bindings/js/`** | §4.1 items 1–2 | §4.1's items 1–2; `DD-18`, `DD-19` — **read with `package.md` §4.2 item 4's dated clause, which names the manifest EXPLICITLY so the command cannot resolve the root (2026-10-11)** |
 | 56 | **The suite's pattern: one test per crossing row, per verb success shape, per reachable code, per registry rule and per `HO-` row** | §4.1 item 3 | §4.1's item 3 |
 | 57 | **The LAYER label: this unit's JS-side green is `ENVELOPE/PURE`, this unit's `APP` layer is `NONE`, and no node-green may be reported as an `APP`-green** | §4.2 items 1–4 | §4.2's items 1–4; `DD-20` |
 | 58 | **The round-trip property: `read` after `write` is EQUAL to the written value under the declared relation, with exactly TWO declared exclusions and no third** | §4.3 | §4.3's whole clause; `docs/specs/storeroom-js-proposal-review.md` §5.4 · `AR-14` |
 | 59 | **The canonical number spelling is OUTSIDE this unit's acceptance layer and is asserted by the STORE's own Rust battery** | §4.3's closing paragraph and `docs/specs/storeroom-js/crossing.md` §4 | §4.3's closing paragraph; `DD-5` |
 | 60 | **The red set is authored from this contract alone, run, and its failing set reported BEFORE implementation; the store's `tests/**` is never rewritten** | §4.4 | §4.4's whole clause; `DD-19` |
 | 61 | **The register's `8` rows are executed with every row printing its strategy id and verdict, `un-run` being a failure** | §4.4's closing paragraph and §5's census | §5's census paragraph; `docs/specs/storeroom-js/implementation-plan.md` §4 item 8 |
-| 62 | **The register's `8` rows, their properties, their strategy ids and their failure lists** | §5.1–§5.8 | §5.1's `P-IM-1` · §5.2's `P-IM-2` · §5.3's `P-IM-3` · §5.4's `P-SM-4` · §5.5's `P-SM-5` · §5.6's `P-SM-6` · §5.7's `P-TP-7` · §5.8's `P-TP-8` |
+| 62 | **The register's `8` rows, their properties, their strategy ids and their failure lists** | §5.1–§5.8 | §5.1's `P-IM-1` · §5.2's `P-IM-2` · §5.3's `P-IM-3` · §5.4's `P-SM-4` · §5.5's `P-SM-5` · §5.6's `P-SM-6` · §5.7's `P-TP-7` · §5.8's `P-TP-8` — **the `8` and no ninth: `§0.2`'s `19` `P-TP-9` citations were reconciled to rows that exist by the pass of 2026-10-11** |
 | 63 | **The parameter-semantics set is `18` rows, one per declared JS parameter, each with its domain, its outside values and a declared answer for each** | §6 and `docs/specs/storeroom-js/parameter-semantics.md` §2 | §6's index; `parameter-semantics.md` §2.1–§2.18 |
 | 64 | **The `PAR-JS-12` exception: a non-function registration throws a JS-side `TypeError` carrying no `status` and no `message`, and it never reaches the store** | `docs/specs/storeroom-js/parameter-semantics.md` §2.12's exception clause | `parameter-semantics.md` §2.12's exception clause |
 | 65 | **Every figure carries its site and its layer, and the store's green is quoted at the figure the artifact that carries it prints (`377`), with `374` and the other as-filed readings marked HISTORICAL** | §7.1 and §7.2 | §7.1's table; §7.2's `G-17` clause; `DD-33` |
@@ -108,3 +108,25 @@ would carry nothing is omitted rather than written empty** (`[A3
 docs/specs/spec-scope-and-structure/contract.md §C.11.6 and §C.3 — the kind rule and the omission rule |
 requirement]`). **The TestWriter's own gate derives its cases FROM the contract's `§n` and not from this
 table; this table's only promise is that every row's target exists.**
+
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), ON THE RED SET'S SIX CONTRACT
+FINDINGS (`archive/gate3/storeroom-js-red-set.md` §5).** `RCA-8(d)` ANNOTATE-BESIDE: **the table above stands
+byte-for-byte and its `71`-row census DOES NOT MOVE: no row is added to it, removed from it or renumbered by
+this clause.** **THE CORRECTED CLAUSES THIS PART'S ROWS NOW POINT AT, AND THE FOUR ROWS THIS PASS ADDS
+BESIDE — never inside — the numbered inventory above, so a numbering stays a numbering and a numbering is
+never re-cut:**
+
+| The case, as the corrected contract now pins it | Its source, in the `path §n` form | The pinning citation it carries |
+| --- | --- | --- |
+| **The registration site's spelling: `register(handle, listener)` on the OBJECT `storeCreate` returned; a non-function, an outside-domain handle, a handle this instance never minted and an absent member are EACH declared a JS-side `TypeError` carrying NO `status` and NO `message`, and re-registering a handle replaces its function** | `docs/specs/storeroom-js/contract.md` §2.4 item 5 · `docs/specs/storeroom-js/surface.md` §2.4 item 5 | §2.4's item 5; `PAR-JS-12`; `P-SM-5`'s `S-REG` |
+| **A JS `string` carrying a LONE SURROGATE is refused `ValueNotAdmitted` at the PACKAGE's own walk, before any verb is called — a BOUNDARY-ONLY class with no Rust constructible input, so its drive belongs to the JS layer** | `docs/specs/storeroom-js/crossing.md` §1.2 row 1's lone-surrogate clause · §1.4 item 9; `docs/specs/storeroom-js/acceptance.md` §4.1 item 6 | crossing's row 1 clause; §1.4's item 9; `acceptance.md` §4.1's item 6 |
+| **The ABSENT-versus-`undefined` reading: a verb's trailing `tier` distinguishes the two by ARITY, so `f(a)`, `f(a, undefined)` and `f(a, null)` stand as three states; a `cfg` key distinguishes them by `in`-membership, so an ABSENT key and a key present carrying `undefined` stand as two; and the construction's two required keys are told apart by the ANSWER, `ConstructionArgumentMissing` against `AddressMalformed`** | `docs/specs/storeroom-js/crossing.md` §1.3's absent-versus-`undefined` rule; `docs/specs/storeroom-js/contract.md` §1.3 | crossing's rule clause; `DD-46`; `PAR-JS-3`'s and `PAR-JS-4`'s rows |
+| **The declared Rust command's site, and the acceptance consequence: `cargo test --manifest-path bindings/js/Cargo.toml --offline --no-fail-fast` taken at the REPOSITORY ROOT, with the manifest named EXPLICITLY so the resolution cannot silently become the root package's — a leg that silently runs the wrong package is not a leg** | `docs/specs/storeroom-js/package.md` §4.2 item 4 · `docs/specs/storeroom-js/acceptance.md` §4.1 item 2 | package's §4.2 item 4; acceptance's §4.1 item 2; `DD-19` |
+
+**AND THE ONE COUNT THIS CLAUSE PRINTS, SO THE TWO ARITHMETICS AGREE: the numbered inventory above carries
+`71` rows and the corrected-pointer table beside it carries `4` — `71 + 4 = 75` pointers in this part, and
+the `71` remains the figure the census sentence above prints, because it is read off the last row's own
+number and the four rows below the note carry no number at all** (`[A3
+docs/specs/spec-scope-and-structure/contract.md §C.11.7 — the entry-counted unit, and the rule that a
+grouping is never a second arithmetic | numeric or census claim]`). **No row of the `71` names a case the
+contract does not pin, and no row of the four declares one.**

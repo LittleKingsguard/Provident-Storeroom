@@ -90,12 +90,91 @@ the STORE, and this unit's crossing does not pre-empt it (`[A3
 docs/specs/storeroom-native/contract.md §1.4's kind-contradiction paragraph | state or fail-state
 declaration]`).
 
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE RED SET'S CONTRACT
+FINDING 5 (`archive/gate3/storeroom-js-red-set.md` §5 item 5): THE LONE SURROGATE'S LAYER AND ITS ANSWER.**
+`RCA-8(d)` ANNOTATE-BESIDE: **row 1 above stands byte-for-byte, *"a lone surrogate"* included among its
+accepted forms; THIS clause is the operative statement of that class's LAYER, and it is a PURE INSERTION.**
+**THE DEFECT IT CLOSES, NAMED: row 1 lists *"a lone surrogate"* among `StoreValue::Str`'s accepted forms,
+and a Rust `String` is valid UTF-8 and CANNOT CARRY ONE — so the class had no Rust spelling at all, and the
+same table's claim that the per-class table is drivable in Rust without a Node runtime was FALSE OF THIS ONE
+ROW unless the class's layer is declared.**
+
+**AND THE LAYER IS THE JS LAYER ALONE, WITH THE SAME ANSWER THE TABLE'S OTHER OUTSIDE STRING STATE
+CARRIES:** **a JS `string` carrying a LONE SURROGATE (an unpaired surrogate code unit, e.g. a string holding
+`\uD800` alone) is REFUSED `ValueNotAdmitted` AT THE PACKAGE'S OWN WALK, BEFORE ANY VERB IS CALLED.** **The
+reason is the row's own: the class cannot be represented as the store's `StoreValue::Str`, and *"any other
+answer would DROP A MEMBER SILENTLY"* — so it is refused, and never silently replaced, never silently
+dropped and never normalized into a replacement character.** **It is a BOUNDARY-ONLY class in the same
+sense `a non-function registration` is: its refusal site is the package's own edge, it reaches no store and
+it mints no code.** **AND THE CONSEQUENCE FOR THE DRIVE IS THE WHOLE POINT OF THE DECLARATION: a LONE
+SURROGATE IS NOT CONSTRUCTIBLE IN RUST AT ALL, so its drive belongs to the JS LAYER and a Rust cell that
+reports the class as driven is a FINDING** (`acceptance.md §4.1` item 6, which states the same in the
+acceptance layer's own terms). **A Rust cell MAY drive the NEAREST REPRESENTABLE states — an astral
+(non-BMP) character, which is a valid surrogate PAIR, and the replacement character `\uFFFD` — and it must
+say in its own cell that the surrogate class itself is not among them** (`archive/gate3/storeroom-js-red-set.md`
+§5 item 5) (`[A3 docs/specs/storeroom-js/acceptance.md §4.1 item 6; A3
+docs/specs/storeroom-native/contract.md §1.4 — the admitted taxonomy and its outside list | state or
+fail-state declaration]`).
+
 ### §1.3 The argument carriers' crossing table — `8` carriers, and the refused forms with their answers
 
 **THE CARRIERS ARE THE STORE'S OWN ARGUMENT TYPES** (`docs/specs/storeroom-native/contract.md §0.4`), and
 **the JS side spells each ONE FOR ONE: no carrier is renamed, merged or omitted** (`[A3
 docs/specs/storeroom-native/contract.md §0.4 — the declared Rust spellings of every surface item |
 requirement]`).
+
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE RED SET'S CONTRACT
+FINDING 4 (`archive/gate3/storeroom-js-red-set.md` §5 item 4): THE ABSENT-VERSUS-`undefined` RULE, DECLARED
+ONCE AND CITED BY THE FOUR ROWS IT GOVERNS.** `RCA-8(d)` ANNOTATE-BESIDE: **every table below stands
+byte-for-byte; THIS clause is the ONE rule they are read through, and it is a PURE INSERTION.** **THE DEFECT
+IT CLOSES, NAMED WITH ITS ROWS: `JournalLengthArg` (rows 2 and 9), `ListenersArg` (row 5 and the
+`null`/`undefined` case), `FilePathArg` (rows 2 and 3) and `TierArg` (rows 3 and 4) each print TWO rows with
+TWO DIFFERENT answers for ABSENT against `null`/`undefined` — while NO clause said how a JS CALL
+distinguishes them, and JS `undefined` is not one state but TWO: an ABSENT key, and a key PRESENT carrying
+`undefined` (which the language distinguishes from both an absent key and `null`).**
+
+**THE RULE. THE READING IS BY THE CARRIER'S OWN KIND, AND THE TWO KINDS ARE THE TWO WAYS A JS VALUE REACHES
+THE PACKAGE:**
+
+1. **A VERB'S TRAILING ARGUMENT IS READ BY CALL ARITY.** **For `read` · `readLiteral` · `delete` (and
+   `write`, whose `tier` is required), an argument position the CALL SUPPLIED NO VALUE FOR IS ABSENT, and
+   an argument position the caller spelled `undefined` at folds to THE SAME STATE as an absent one — because
+   the language makes no distinction a callee can observe, and a JS call passes exactly the values it was
+   given, with no key membership to test.** **CONSEQUENTLY `read(i, a)`, `read(i, a, undefined)` and
+   `readLiteral(i, a, undefined)` are the ABSENT rows (`TierArg` row 3), while `read(i, a, null)` and
+   `read(i, a, 'mem')` are PRESENT and answer their own rows.** **`TierArg` rows 3 and 4 therefore do not
+   collapse: row 4's `undefined` half is reachable only where a VALUE carries `undefined` and not where a
+   position is unfilled** — **which is why row 3's reading is ARITY and row 4's is the value's own class.**
+   (`[A1 docs/specs/storeroom-js-proposal.md §9.1 · `K18`'s neighbourhood — the `TierArg` arity; A3
+   docs/specs/storeroom-native/contract.md §3.1.1 — the arity table's own `null`/`undefined` column, read
+   with `PAR-2`/`PAR-3` | declared parameter semantics]`)
+2. **A `cfg` KEY IS READ BY `in`-MEMBERSHIP, AND AN ABSENT KEY IS NOT THE SAME STATE AS A KEY PRESENT
+   CARRYING `undefined`.** **`storeCreate` takes ONE OBJECT, and object-key absence is a fact the carrier
+   CAN carry — so the test is `'filePath' in cfg`, `'journalLength' in cfg`, `'listeners' in cfg`, and never
+   an arity test.** **THE DECLARED ANSWERS, ONE PER STATE, AND THE TWO ANSWERS ARE THE WHOLE POINT OF THE
+   RULE:**
+   - **`filePath`: an ABSENT key IS IN DOMAIN and the register is created at `mem`; a key PRESENT carrying
+     `undefined` is `FilePathArg` row 3's `AddressMalformed` (`undefined` is not a `string`).**
+   - **`journalLength`: an ABSENT key is `JournalLengthArg` row 2's `ConstructionArgumentMissing`; a key
+     PRESENT carrying `undefined` is row 9's `AddressMalformed`.** **The two states are told apart by their
+     ANSWER and by nothing else, because at the object boundary both reach the carrier as the same JS value
+     — so a drive MUST therefore carry the distinction as an object-key membership fact.**
+   - **`listeners`: an ABSENT key is `ListenersArg` row 5's `AddressMalformed`; a key PRESENT carrying
+     `undefined` is the same `AddressMalformed` and no instance is returned — so this is the ONE key of the
+     three whose two states coincide in their ANSWER while still being TWO states of the carrier.**
+   (`[A3 docs/specs/storeroom-js/parameter-semantics.md §2.2 · §2.3 · §2.4 — the three rows, read with this
+   rule; A3 docs/specs/storeroom-native/parameter-semantics.md §2.6 · §2.7 · §2.12 | declared parameter
+   semantics]`)
+3. **WHAT THE RULE DOES NOT SAY.** **It declares no JS-side pre-check and no arity check by the package: the
+   package still passes every position and every key through as supplied (`DD-46`), and the DISTINCTION is
+   read by the CARRIER's own conversion and answers the store's own code.** **And no clause of this part
+   may read an `undefined` MEMBER OF A STORED VALUE as an absent one: inside a value the walk meets, an
+   `{a: undefined}` member is `§1.4` item 3's refusal and the key is never dropped, which is a DIFFERENT
+   rule over a different subject** (`§1.4` item 3; `§1.2` row 7)
+   (`[A1 docs/specs/storeroom-js-proposal.md §9.1 — the supervisor's priced `K3` rule, as adopted; `DD-8` |
+   requirement]`).
+
+**AND THE FOUR ROWS THIS RULE GOVERNS, NAMED SO EACH ROW IS READ THROUGH IT RATHER THAN RE-DERIVED:** **`JournalLengthArg` rows 2 and 9 · `ListenersArg` row 5 · `FilePathArg` rows 2 and 3 · `TierArg` rows 3 and 4 — the four carriers whose absent half and whose `undefined` half stand in TWO rows and would otherwise collapse into one.** **Every other carrier's row is unaffected: it is reached as a VALUE, and its own `null`/`undefined` row is the whole of what it has.**
 
 **`AddressArg`** — the address argument, on `read` · `readLiteral` · `write` · `delete` · `listen`.
 
@@ -226,6 +305,18 @@ every site that needs it** (`[A3 docs/specs/spec-scope-and-structure/contract.md
    re-orders integer-like keys regardless of insertion order**
    (`[A1 docs/specs/storeroom-js-proposal.md §9.1 — the supervisor's priced `K3` rule, as adopted | ordering
    claim]`).
+9. **THE LONE SURROGATE IS A BOUNDARY-ONLY CLASS, REFUSED AT THE PACKAGE'S OWN WALK.** **Added 2026-10-11 by
+   the bounded correction pass, closing the red set's CONTRACT FINDING 5.** **A JS `string` carrying a LONE
+   SURROGATE — an unpaired surrogate code unit — is REFUSED `ValueNotAdmitted` at the PACKAGE's own edge,
+   BEFORE any verb is called and BEFORE any `to_store_value` call could be reached, because a Rust `String`
+   is valid UTF-8 and cannot carry one.** **THE WALK MUTATES NOTHING AND SUBSTITUTES NOTHING: the value is
+   never dropped, never coerced into a replacement character and never truncated.** **CONSEQUENCE, STATED
+   SO THE ACCEPTANCE LAYER CAN ACT ON IT: the class is NOT CONSTRUCTIBLE in Rust, so its drive belongs to
+   the JS LAYER alone, and a Rust cell that represents this class as driven is a FINDING** — **a Rust cell
+   MAY drive an astral character and the replacement character and must declare in its own cell that the
+   surrogate class is not among them** (`§1.2` row 1's lone-surrogate clause; `acceptance.md §4.1` item 6)
+   (`[A3 docs/specs/storeroom-js/acceptance.md §4.1 item 6 — the drive belongs to the JS layer; A3
+   docs/specs/spec-scope-and-structure/contract.md §C.11.9 | requirement]`).
 
 ### §1.5 The JS-side equality relation — one declared relation, and its three clauses
 

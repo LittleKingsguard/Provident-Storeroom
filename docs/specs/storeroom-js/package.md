@@ -188,6 +188,21 @@ prohibition]`).
    (`[A1 docs/specs/storeroom-js-proposal.md §11 · A68; A1 docs/specs/storeroom-js-proposal-review.md §5.2
    item 4 | requirement]`)
 
+  **⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE RED SET'S CONTRACT
+  FINDING 2 (`archive/gate3/storeroom-js-red-set.md` §5 item 2) AT THIS ITEM.** `RCA-8(d)` ANNOTATE-BESIDE:
+  **items 1–4 above stand byte-for-byte; THIS clause is the operative statement of the `rlib` half's own
+  interface, and it is a PURE INSERTION.** **THE DEFECT IT CLOSES, NAMED: item 3 above says the `rlib` half
+  *"makes the crossing's per-class table drivable in Rust **without a Node runtime**"* — the reason `V1` was
+  chosen — while NO clause of this directory declared the core's own Rust interface: not its module path,
+  not its JS-value model, not its conversion functions and not its returned-record types.** **AND THE WALK'S
+  OWN RULES MAKE A JS-VALUE MODEL UNAVOIDABLE IN RUST:** `crossing.md §1.4` items 1–4 refuse on *"an own
+  property whose key is a `Symbol`"*, on *"an array with a hole"*, on *"an own accessor property"* and on
+  *"a `Proxy`"*, and the store's `StoreValue` cannot carry ANY of those four states.**
+  **`§4.5` THEREFORE DECLARES THE CORE'S INTERFACE as a REQUIREMENT — not as a hint — so that the crossing
+  is drivable in Rust with no Node runtime at all** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.3 —
+  `V1`, the only variant in which the per-class table is drivable in Rust BEFORE any addon exists; A1
+  docs/specs/storeroom-js-proposal-review.md §5.2 item 4 | requirement]`).
+
 ### §4.2 The crate's manifest facts
 
 1. **THE SIBLING CRATE DECLARES `edition = "2021"`** (`DD-27`).
@@ -200,6 +215,46 @@ prohibition]`).
    `cargo build` run **inside `bindings/js/`**, and **the store's root command is never used to build this
    crate** (`[A1 docs/specs/storeroom-js-proposal.md §11 · A68 — *"the binding's own build and test command
    is declared in its own directory's terms"* | requirement]`).
+
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE RED SET'S CONTRACT
+FINDING 3 (`archive/gate3/storeroom-js-red-set.md` §5 item 3): THE DECLARED COMMAND, SPELLED SO IT CANNOT
+RESOLVE THE ROOT.** `RCA-8(d)` ANNOTATE-BESIDE: **item 4 above stands byte-for-byte — the `cd bindings/js`
+form it declares is not withdrawn; THIS clause is the operative statement of the COMMAND, and it is a PURE
+INSERTION.** **THE DEFECT IT CLOSES, MEASURED RATHER THAN ARGUED:** **`cd bindings/js && cargo test` finds NO
+manifest in `bindings/js/` while the crate's `Cargo.toml` does not yet exist, so `cargo`'s UPWARD MANIFEST
+SEARCH resolves the ROOT manifest and the command builds and runs `storeroom-native`'s suite — `exit 0`, the
+store's own green, `0` of this unit's `219` Rust cells executed.** **The red-set record prints exactly that
+run at `§3` of `archive/gate3/storeroom-js-red-set.md`.**
+**THE DECLARED COMMAND, AND WHY THIS FORM RATHER THAN ANOTHER — ONE SITE, ONE FORM:**
+```
+cargo test  --manifest-path bindings/js/Cargo.toml --offline --no-fail-fast
+cargo build --manifest-path bindings/js/Cargo.toml --offline
+```
+  **(i) THE MANIFEST IS NAMED EXPLICITLY, AND THE PATH IS THE CRATE'S OWN (`bindings/js/Cargo.toml`), relative
+  to THE REPOSITORY ROOT — so the command's SITE is `the repository root` and its LAYER is
+  `ENVELOPE/PURE`.** **A `--manifest-path` invocation is not a `cd`-and-hope: `cargo` is told WHICH package
+  to build, and its upward search is never entered, so the command CANNOT run the store's package by
+  accident.** **(ii) WHY NOT `-p <name>`:** **`-p` selects a package INSIDE a workspace, and this crate is
+  NOT a workspace member (`§4.1` item 2), so a `-p` form would have no workspace to resolve within — and it
+  would re-open the membership question `A68` settled.** **(iii) WHY THE MANIFEST PATH RATHER THAN A `cd`
+  ALONE:** **the `cd` form is correct ONCE the manifest exists, and it is precisely the form that silently
+  ran the wrong package while the manifest did not — so the explicit manifest is what makes the command
+  SELF-DESCRIBING rather than dependent on a directory's current state.** **(iv) AND WHY NOT CREATE THE
+  MANIFEST HERE:** **the crate's `Cargo.toml` is the IMPLEMENTER's `Q3` deliverable
+  (`implementation-plan.md §2`); this pass writes no byte under `bindings/js/**`, and neither the manifest
+  nor the `cd` form is created, moved or exercised by it.**
+**AND THE ACCEPTANCE CONSEQUENCE, STATED BECAUSE A COMMAND IS ONLY A LEG IF IT MEASURES THE UNIT IT CLAIMS
+TO: A LEG THAT SILENTLY RUNS THE WRONG PACKAGE IS NOT A LEG.** **A run whose executed-cell count belongs to
+another package is not evidence about this unit, and the figure it prints may not be reported as this
+unit's** — **so the Rust leg's report MUST name its SITE as the repository root, name the manifest it
+resolved, and state the executed-cell count it actually executed, and a leg whose count belongs to the
+store's suite is VOID and must be re-taken** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-10` —
+every figure carries its site and its layer; A1 docs/specs/storeroom-js-proposal.md §11 · `A68`; `DD-19`;
+`DD-33` | requirement]`). **AND ONE READING RULE BESIDE IT, SO THE TWO LEGS' SITES ARE NOT CONFUSED:** **the
+JS leg's command is `node --test bindings/js/test/*.test.mjs`, taken at the same repository root, and its
+SITE is the repository root while its LAYER is `ENVELOPE/PURE`** — **neither leg is run, and neither figure
+is produced, by this pass** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-10` | numeric or
+census claim]`).
 
 ### §4.3 The builder path, named and evidenced
 
@@ -230,6 +285,134 @@ parameter semantics]`). **THE RUNNER-UP AND THE REFUSED VARIANTS, NAMED SO THE R
 (hand-written FFI) moves the conformance risk into hand-written unsafe code**; **`V4` (a child process) and
 `V5` (a WASM build) are REFUSED on standing rulings — the carrier is `A1`'s and the layout is `A68`'s — and
 not on preference.**
+
+### §4.5 THE CONVERSION CORE'S DECLARED RUST INTERFACE — the `rlib` half's own surface, and the reason `V1` was chosen
+
+**THIS SECTION IS ADDED BY THE BOUNDED CORRECTION PASS OF 2026-10-11, CLOSING THE RED SET'S CONTRACT FINDING
+2 (`archive/gate3/storeroom-js-red-set.md` §5 item 2), AND IT IS THE REQUIREMENT `§4.1` ITEM 3 AND `§4.4`
+OWED.** `RCA-8(d)` ANNOTATE-BESIDE: **`§4.1` item 3, `§4.4`, `contract.md §3.4` item 3 and `acceptance.md §4.1`
+item 2 all cite the *"PURE-RUST conversion core"* and its drivability *"without a Node runtime"*; THIS
+section is where that core's own interface is DECLARED, and every clause of it is a PURE INSERTION beside
+the as-filed text.** **AND THE NAMES BELOW ARE NOT A SECOND DESIGN:** **the red set PINS this interface in
+its own harness and shows it MAKEABLE GREEN by a scratch core
+(`bindings/js/tests/support/mod.rs`'s header), so the declaration below is the contract's own statement of
+the interface the red set was authored against — and it is a REQUIREMENT, never a hint.**
+
+**1. THE MODULE BOUNDARY, AND ITS PURITY.** **The conversion core is the SIBLING CRATE'S OWN MODULE
+`storeroom_js_binding::crossing`, reachable from the crate root `storeroom_js_binding` through the `rlib`
+target `§4.1` item 3 declares.** **IT IS PURE RUST: no `napi` type, no `napi-rs` macro, no `#[napi]`
+attribute and no Node-API symbol appears in it, at any depth** (`DD-2`). **The `#[napi]` export facade of
+`§4.4` and this module are the SAME crate's two halves, and the facade's methods are thin: each validates
+nothing, converts through the core and returns the core's result translated to a Node-API value.**
+
+**2. THE JS-VALUE MODEL — REQUIRED, BECAUSE THE WALK'S OWN RULES CANNOT BE CARRIED BY `StoreValue`.** **The
+model is a closed set of Rust types carrying EXACTLY the states `crossing.md §1.2`–`§1.4` names, and no
+state the store can hold. The DECLARED minimum:**
+
+| The declared type | Its variants / members, exactly as the crossing tables require |
+| --- | --- |
+| **`JsSegment`** | **`Key(String)`** (the string segment of `crossing.md §1.3`'s `AddressArg` row 2, **including `''`**) · **`Index(u64)`** (row 3) · **and the outside-segment classes the walk refuses:** **`Negative(i64)`** (row 7) · **`Fractional(f64)`** (row 8, carrying `1.5`, `NaN` and `±Infinity`) · **`Null`** · **`Undefined`** (row 9) · **`Bool(bool)`** · **`Object`** · **`Array`** · **`Function`** (row 10) — **`10` REFUSED classes beside the `2` admitted ones** (`crossing.md §1.6`: *"`10` outside segment classes"*) |
+| **`JsKey`** | **`Key(String)`** · **`Symbol`** — the own-key test of `crossing.md §1.4` item 1 and item 4 (d) |
+| **`JsProto`** | **`Plain`** (a plain-object prototype, realm-agnostic) · **`Null`** (**`Object.create(null)`, ACCEPTED** — item 4 (e)) · **`Class`** (a class instance, REFUSED — item 4 (f)) |
+| **`JsObject`** | **`members: Vec<(JsKey, JsValue)>`** · **`proto: JsProto`** · **`has_accessor: bool`** (item 4 (c) — *"no own accessor property"*) · **`proxied: bool`** (item 4 (g) and `DD-34`) |
+| **`JsValue`** | **`Str(String)`** · **`Bool(bool)`** · **`Num(f64)`** (keeping `-0`'s sign for `crossing.md §1.5` clause 3) · **`Object(JsObject)`** · **`Array(Vec<JsValue>)`** · **`Null`** · **`Undefined`** · **`Function`** · **`Symbol`** · **`BigInt(i64)`** · **`NonFinite(f64)`** · **`Cyclic`** · **`NonPlainCollection`** · **`SparseArray`** — **the `5` admitted classes of `crossing.md §1.2` rows 1–5 and the `8` outside classes of rows 6–13, plus the sparse-array carrier `crossing.md §1.4` item 2 refuses; `13 + 1 = 14` variants, and the `+1` is the hole's own carrier, not a fourteenth outside class** |
+| **the `8` carrier types** | **`JsAddressArg`** (row 1's `List(Vec<JsSegment>)`; rows 4–6's `Absent`, `Null`, `Undefined`, `NonArray(JsNonArray)` with `JsNonArray` = `Number(f64)` · `Str(String)` · `Bool(bool)` · `Object` · `Function`; row 11's `ClassArrayLike`; row 12's `Proxy`; row 13's `CrossRealmList(Vec<JsSegment>)`; row 14's `Sparse`) · **`JsTierArg`** (`Absent` · `Token(String)` · `Set(Vec<JsTierSetItem>)` · `Null` · `Undefined` · `Object` · `Function` · `Number(f64)` · `Bool(bool)`) · **`JsTierSetItem`** (`Token(String)` · `Null` · `Undefined` · `Number(f64)` · `Bool(bool)` · `Object` · `Function`) · **`JsOpIdArg`** (`Id(String)` · `Absent` · `Null` · `Undefined` · `NonString(i64)`) · **`JsFilePathArg`** (`Path(String)` · `Absent` · `Null` · `Undefined` · `Empty` · `NonString`) · **`JsJournalLengthArg`** (`Count(u32)` · `Absent` · `Zero` · `Negative(i64)` · `Fractional(f64)` · `NaN` · `Infinity` · `NonNumberString(String)` · `NonNumberBool(bool)` · `Null` · `Undefined` · `Object`) · **`JsListenersArg`** (`List(Vec<JsListenerEntry>)` · `Absent` · `Null` · `Undefined` · `NonArray`) · **`JsHandle`** / **`JsHandleArg`** (the opaque handle OUT; the bare-string and outside forms IN) — **each carrier's variant count being EXACTLY the variant-row count `crossing.md §1.6` prints for it**
+| **`JsListenerEntry`** | **`Entry { address: JsAddressArg, handle: String }`** (`ListenersArg` rows 1 and 4) · **`Other`** (row 2) |
+| **`JsConfig`** | **`file_path: Option<JsFilePathArg>`** · **`journal_length: Option<JsJournalLengthArg>`** · **`listeners: Option<JsListenersArg>`** · **`fourth_key: Option<String>`** (read at `§0.2`'s `DD-36`'s fourth-key cell and refused) — **`Option` here is the ABSENT-versus-present carrier of `crossing.md §1.3`'s absent-versus-`undefined` rule, where `None` IS the key's absence** |
+
+**3. THE CONVERSION FUNCTIONS — ONE ENTRY PER CARRIER AND ONE PER DIRECTION.** **The core exposes EXACTLY
+these public functions, and each returns the SAME refusal type:**
+```
+fn to_store_value(v: &JsValue)        -> Result<StoreValue, Refusal>
+fn from_store_value(v: &StoreValue)   -> Result<JsValue, Refusal>
+fn create(cfg: &JsConfig)             -> Result<Instance, Refusal>
+fn to_segment(s: &JsSegment)          -> Segment
+fn to_address_arg(a: &JsAddressArg)   -> AddressArg
+fn to_tier_arg(t: &JsTierArg)         -> TierArg
+fn to_tier_set_item(i: &JsTierSetItem) -> TierSetItem
+fn to_op_id_arg(o: &JsOpIdArg)        -> OpIdArg
+fn to_file_path_arg(p: &JsFilePathArg) -> FilePathArg
+fn to_journal_length_arg(l: &JsJournalLengthArg) -> JournalLengthArg
+fn to_listeners_arg(l: &JsListenersArg) -> ListenersArg
+fn to_config(c: &JsConfig)            -> StoreConfig
+```
+  **(a) THE SEGMENT AND CARRIER CONVERTERS ARE TOTAL AND INJECTIVE WHERE THE TABLE SAYS SO:** **`to_segment`
+  maps `Key`/`Index` onto the store's own `Segment` and carries EVERY outside class onto the store's own
+  `Segment` outside variants — it does NOT refuse and it mints no code — because `DD-1` binds each carrier's
+  outside variants AS VALUES and lets the STORE produce the refusal when a verb is called with them.**
+  **(b) THE WALK AND THE VERB ENTRY POINTS RETURN THE REFUSAL:** **`create` and `to_store_value` are the two
+  entries that can answer a code of the store's own closed `15`-member set, and `from_store_value` answers
+  only what the store's own translation out can answer.** **Every converter's answer is one of the DECLARED
+  answers of the row the value belongs to — no converter invents a code, and no converter returns a
+  carrier's outside value as a success where its row declares a refusal.**
+  **(c) `to_store_value` APPLIES `crossing.md §1.4` IN FULL:** **the plain-object test's items (a)–(g), the
+  `Symbol`-keyed own property, the hole, the accessor, the `Proxy`, the ancestor-stack cycle guard with the
+  ADMITTED diamond, and the declared depth-`64` / node-`1,000,000` ceiling** (`DD-7`–`DD-11`, `DD-34`,
+  `DD-35`).
+
+**4. THE RECORD TYPES — THE DEEP COPY OUT, MEMBER FOR MEMBER.** **The core returns fresh records whose
+members are the store's own spellings of `§0.2`'s `DD-39`:**
+```
+struct Refusal                 { status: String, message: String }               // EXACTLY two members, no third
+struct JsBaseState             { present: bool, value: JsValue }
+struct JsJournalOp             { opId: String, kind: JournalOpKind, address: Vec<JsSegment>,
+                                 tier: Option<String>, before: JsBaseState, after: JsBaseState,
+                                 seq: u64, compacted: bool }
+enum   JsJournalOpKind         { Write, Delete }
+struct JsWriteResult           { op: JsJournalOp, watched: Vec<Vec<JsSegment>>, triggered: Vec<JsHandle> }
+struct JsDeleteReceipt         { address: Vec<JsSegment>, tiers: Vec<String>, triggered: Vec<JsHandle> }
+struct JsRollbackResult        { opId: String, undoneOps: Vec<String>, restoredTo: JsBaseState }
+```
+  **`Refusal` IS `§2.5`'s SINGLE FAILURE FORM AT THE CORE LAYER — a record with EXACTLY `{status, message}`
+  and not one member beside them — and it is the ONLY error type the core exposes.** **A `status` outside
+  the store's closed `15`-member set is carried VERBATIM and re-mapped to nothing** (`DD-40`).
+
+**5. THE INSTANCE, ITS VERBS AND THE PACKAGE-OWNED REGISTRY'S HOME.** **`Instance` is the core's own type,
+holding ONE store instance and the PACKAGE-OWNED registry of `§2.4`; the core never invokes a listener of
+its own accord, and the facade reads the registry's answer and performs the invocation after the verb
+returns (`§2.7`).** **Its declared methods are the crossing's own verbs, and their signatures are:**
+```
+impl Instance {
+  fn read(&self, a: &JsAddressArg, t: &JsTierArg)        -> Result<JsValue, Refusal>
+  fn read_literal(&self, a: &JsAddressArg, t: &JsTierArg) -> Result<JsValue, Refusal>
+  fn write(&mut self, a: &JsAddressArg, t: &JsTierArg, v: &JsValue) -> Result<JsWriteResult, Refusal>
+  fn delete(&mut self, a: &JsAddressArg, t: &JsTierArg)  -> Result<JsDeleteReceipt, Refusal>
+  fn rollback(&mut self, o: &JsOpIdArg)                  -> Result<JsRollbackResult, Refusal>
+  fn listen(&mut self, a: &JsAddressArg)                 -> Result<JsHandle, Refusal>
+  fn unlisten(&mut self, h: &JsHandleArg)                -> Result<(), Refusal>
+  fn register(&mut self, h: &JsHandleArg, listener: JsListener) -> Result<(), Refusal>
+  fn triggered_set(&self, r: &JsWriteResult)             -> Vec<JsHandle>
+}
+```
+  **(a) `register` IS `contract.md §2.4` ITEM 5'S SITE AT THE CORE LAYER, and its answer is that item's
+  answer: an outside `handle` or a non-function `listener` is a REFUSAL whose `status` is NOT a store code**
+  — **so the facade translates it to the JS `TypeError` that item (d) declares, and the core carries no
+  `TypeError` of its own.** **(b) THE REGISTRY'S FOUR RULES HOLD HERE:** **`register` replaces, never fans
+  out (rule 2); an unregistered handle's `triggered_set` membership fires nothing silently (rule 1); a
+  duplicate token enters the set ONCE (rule 3); and `unlisten` removes the STORE-side home entry while the
+  registry entry STANDS (rule 4).** **(c) `triggered_set` IS THE SET, AS A SET:** **its ORDER IS NOT A
+  DECLARED ORDER and no drive may assert one** (`§2.7` item 3, `DD-22`).
+
+**6. HOW THE JS-FACING TYPES RELATE TO THE CORE — THE EDGE, STATED SO NO SECOND DEFINITION ARISES.** **The
+Node-API facade declares NO JS-shaped type of its own: every `Js*` type above is the core's, and the facade's
+`#[napi]` methods CONVERT a Node-API value INTO the core's model and, on the way back, convert the core's
+records into Node-API values.** **The one-for-one map is `crossing.md §1.3`'s own:** **each `Js*` carrier
+type is the core-side spelling of the JS argument form its table row prints, and each conversion function is
+the edge between that spelling and the STORE's own argument type.** **The record types' member names are the
+store's own (`DD-39`), so the JS side observes exactly `crossing.md §1.3`'s returned-record spellings.** **NO
+other edge exists between a JS value and a store value, in either direction.**
+
+**7. THE ACCEPTANCE CLAUSE THIS DECLARATION MAKES TRUE — A REQUIREMENT, CHECKED RATHER THAN ASSUMED.** **The
+conversion core MUST compile and its tests MUST run through the crate's own `rlib` at the declared module
+path, WITH NO ADDON AND NO NODE RUNTIME PRESENT, under the command `§4.2` item 4 declares — with the manifest
+named explicitly, as that item's dated clause requires.** **A type, a function or an entry point the core
+exposes and this section does not declare is a FINDING, because the red set was authored against the
+declaration and its drives reference nothing else.** **AND THE CONVERSE, STATED SO THE DECLARATION IS NOT
+READ AS PERMISSIVE: a crossing the contract names that this interface cannot carry is a CONTRACT FINDING at
+`contract.md §8` and never an inline widening of this section** (`[A1
+docs/specs/storeroom-js-proposal-review.md §5.3 — `V1`'s architectural ground; A1
+docs/specs/storeroom-js-proposal-review.md §5.2 item 4 — the store's surface cited and never amended; `DD-2`;
+`DD-19` | requirement]`).
 
 ---
 
@@ -272,6 +455,11 @@ document's own** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.6 
 claim of its own | requirement]`).
 
 **AND ONE NUMBERING NOTE, SO A CITATION TO THIS PART RESOLVES:** **`§1.2`–`§1.5` and `§3.1`–`§3.4` and
-`§4.1`–`§4.4` and `§5.1` are THIS PART's own sub-numbering of the contract's `§3.1`–`§3.5` span**, and **a
+`§4.1`–`§4.5` and `§5.1` are THIS PART's own sub-numbering of the contract's `§3.1`–`§3.5` span**, and **a
 citation to any of them names this part's path plus the `§`-number**, because *a bare `§n` across two
 documents is not an edge* (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.9 | requirement]`).
+**⟶ AND ONE ROW OF THAT SPAN IS NEW, NAMED HERE SO THE NUMBERING NOTE IS TRUE AFTER THIS PASS TOO: `§4.5` —
+THE CONVERSION CORE'S DECLARED RUST INTERFACE — WAS ADDED BY THE BOUNDED CORRECTION PASS OF 2026-10-11, and
+it is the ONE sub-number this part gains; `§4.4`'s own text and every other sub-number stand unmoved**
+(`RCA-8(d)` ANNOTATE-BESIDE: **the as-filed note above is re-emitted by reference and read THROUGH this
+sentence; `§4.1`–`§4.4` stand byte-for-byte**).

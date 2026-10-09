@@ -32,6 +32,21 @@ instance** (`§1.3`; `parameter-semantics.md` `PAR-JS-1`–`PAR-JS-4`)
 (`[A3 docs/specs/storeroom-native/contract.md §7.1 — the construction input set | state or fail-state
 declaration]`).
 
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE RED SET'S CONTRACT
+FINDING 1 (`archive/gate3/storeroom-js-red-set.md` §5 item 1) BY RECONCILING THIS SECTION'S NON-EXPOSURE
+SENTENCE.** `RCA-8(d)` ANNOTATE-BESIDE: **the sentence above stands byte-for-byte and is read THROUGH this
+clause; it is not reworded and not withdrawn.** **WHAT IT MEANS, STATED SO IT IS NOT READ WIDER THAN IT IS:
+the non-exposure it declares is THE STORE'S — the store's instance, its home, its anchors, its `NodeRef`,
+its resolver and its internal tooling are exposed through NO member of the package's handle — and it is
+NEVER a claim that the PACKAGE'S OWN instance handle is memberless.** **The PACKAGE's REGISTRY is the
+PACKAGE'S OWN SURFACE and is not the store's, so the one member that surface declares stands: the handle
+`storeCreate` returns has EXACTLY ONE member, `register(handle, listener)`, declared at `§2.4` item 5, and
+NOTHING ELSE.** **A reader must not read the sentence above as forbidding a member of the PACKAGE's own
+wrapper; and no reader may read this clause as exposing one byte of the store's internals, because it
+exposes none** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 — `AR-15`; A1
+docs/specs/storeroom-js-proposal.md §11 · `A63` · `A65` — no store internal crosses in either direction |
+prohibition]`).
+
 ```
 storeCreate(cfg) -> Instance          // throws {status, message} on failure; never returns a partial instance
 
@@ -117,6 +132,75 @@ AND NO FIFTH:**
    (`[A1 docs/specs/storeroom-js-proposal.md §9.2 — the supervisor's priced `K9` rule, as adopted; A1
    docs/specs/storeroom-js-proposal.md §18 · A57 — *"a handle that it returns to alert the client of the
    trigger"* | requirement]`)
+
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE RED SET'S CONTRACT
+FINDING 1 (`archive/gate3/storeroom-js-red-set.md` §5 item 1): THE REGISTRATION SITE'S DECLARED SPELLING.**
+`RCA-8(d)` ANNOTATE-BESIDE: **rules 1–4 above stand byte-for-byte and are not restated; THIS clause is the
+operative statement of the spelling the four rules' subject is reached through, and it is a PURE
+INSERTION.** **THE DEFECT IT CLOSES, NAMED: `§2.4` declared a per-instance registry holding *"the caller's
+FUNCTION"* and invoking it, and `parameter-semantics.md §2.12` (`PAR-JS-12`) declared the `TypeError` a
+non-function registration throws — while `§2.1`'s *"no clause of this directory exposes any member of it"*
+and `package.md §1.3` item 3's *"NOTHING ELSE"* left the member *"FUNCTION"* had to enter through
+UNDECLARED. `acceptance.md §4.1` item 3 nevertheless demands one drive per registry rule, so no lawful input
+existed for that drive and the red set's `S-REG` line was `un-run` — and `un-run` IS A FAILURE.**
+
+**5. THE REGISTRATION SITE, DECLARED — THE ONE MEMBER OF THE PACKAGE'S OWN INSTANCE HANDLE.** **A caller
+registers a listener function for a handle through the ONE member of the object `storeCreate` returned, and
+the spelling is FIXED:**
+```
+register(handle, listener) -> undefined    // the object storeCreate returned; throws TypeError on an outside argument
+```
+  **(a) THE SITE IS A MEMBER OF THE INSTANCE HANDLE, AND IT IS ITS ONLY MEMBER.** **`storeCreate(cfg)`
+  returns an OBJECT whose ENTIRE declared member set is `{ register }` — one own member, and NOTHING ELSE.**
+  **This is the ONLY member any clause of this directory exposes on that handle, and `§2.1`'s non-exposure
+  sentence is AMENDED to say exactly this** (see `§2.1`'s dated clause). **It is NOT a NINTH NAMED EXPORT of
+  the entry: `package.md §1.3` item 3's *"the verbs of `surface.md §2` and the package's own instance handle
+  factory — and NOTHING ELSE"* stands WHOLE, because `register` is reached through the FACTORY'S OWN
+  PRODUCT and not through the module namespace.** **Neither `register` nor any other name is added to the
+  entry's named exports, and `§2.9` item 1's *"`8` verbs"* count does not move.**
+  **(b) ITS SIGNATURE, IN THE SAME JS SPELLING THIS SECTION'S TABLES USE.** **`register(handle, listener)`
+  takes EXACTLY TWO arguments: `handle` is the OPAQUE value a verb RETURNED (the `ListenerHandle` OUTPUT
+  spelling of `§1.3`, `§2.3` item 2) or the opaque value the construction ADOPTED; `listener` is the
+  function of `PAR-JS-12`.** **The return is `undefined` on every success, including on a REPLACEMENT.**
+  **(c) ITS DOMAIN.** **A pair (`handle`, `listener`) where `handle` is a value THIS INSTANCE minted or
+  adopted — the construction's `listeners[]` entries and every handle a verb of THIS instance returned —
+  and `listener` is ANY JS function.** **The registry holds AT MOST ONE function per handle (`§2.4` rule
+  2), so the domain is a SET OF PAIRS keyed by the handle, never a fan-out.**
+  **(d) EVERY OUTSIDE VALUE'S DECLARED ANSWER, ONE PER CLASS — and the four of them are ONE form, because
+  the site is a REGISTRATION and not a CROSSING.** **A NON-FUNCTION `listener` → a JS `TypeError` at
+  REGISTRATION, carrying NO `status` and NO `message` member** (`PAR-JS-12`'s declared exception; the ONE
+  form this package throws that is not the store's `{status, message}`). **A `handle` THE STORE NEVER MINTED
+  — a fabricated value, a value a FOREIGN instance minted, a value a PRIOR SESSION minted, a bare `string`,
+  a blank token, `null`, `undefined`, a non-opaque value, or an ABSENT argument → the SAME JS `TypeError`,
+  for the SAME reason: the registration site admits the handle's OPAQUE spelling and by nothing else, and
+  `unlisten`'s NO-OP-SUCCESS reading of `§2.3` item 4 does NOT extend here** — **because `unlisten` names a
+  WITHDRAWAL, whose in-domain answer for an unknown handle is already declared, while `register` names a
+  REGISTRATION, whose argument is a member of the registry's own key set and has no such arm.** **A
+  RE-REGISTRATION OF THE SAME HANDLE → SUCCESS, `undefined`, with the PREVIOUS function REPLACED and dropped
+  without notice** (`§2.4` rule 2). **AND NOTHING REACHES THE STORE IN ANY OF THESE CASES: the site performs
+  no store call, mints no code, appends no journal entry and changes no node** — **the `TypeError` is
+  classified exactly as `PAR-JS-12`'s exception clause classifies it.**
+  **(e) THE DRIVE THE ACCEPTANCE LAYER OWES, NAMED SO THE RED SET CAN BE REPAIRED FROM THIS CLAUSE ALONE:**
+  **a drive reaches `register` through an instance the package returned, never through the module
+  namespace; a drive distinguishing the TWO throw sites is required — `surface.md §2.5`'s `{status, message}`
+  for a VERB and this item's `TypeError` for a REGISTRATION — and a `TypeError` thrown by a VERB remains a
+  finding.**
+  **(f) WHAT THIS ITEM DOES NOT DO.** **It adds no verb, no parameter and no store-side surface; it mints no
+  code; it does not widen `§2.9`'s non-exposure of `findAddress`; and it leaves `§2.4` rules 1–4, `§2.7`'s
+  firing window and `DD-15`'s *"`unlisten` withdraws the registration, never the function"* standing
+  unchanged.**
+  (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 — `AR-15`'s *"the construction's `listeners[]`
+  expressible from JS **with a drive**"* and *"the registry's owner/key/duplicate/absence rules"*;
+  docs/specs/storeroom-js/parameter-semantics.md §2.12 · `PAR-JS-12`; `DD-15`; `DD-46` | requirement]`)
+  **AND THE `alt` THIS DECLARATION CARRIES, PRICED BECAUSE A NEW SURFACE MEMBER OWES ONE:** **`register` as
+  a NINTH NAMED EXPORT of the entry** — priced: it would move `§2.9` item 1's `8`-verb count and `package.md
+  §1.3` item 3's *"NOTHING ELSE"*, and would make a registration reachable before any instance exists,
+  which no registry rule needs; **and** a REGISTRATION THROUGH A `listen` OPTION-BAG — priced: it would
+  change `listen`'s declared arity (`§2.10`'s *"`listen`'s `address` is `AddressArg`'s domain and NOTHING
+  MORE"*) and would give one verb two arities. **Both are available with a fresh ruling, and the reversal
+  instrument is a bounded amendment of `docs/specs/storeroom-js/`** (`[A1
+  docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12` — a pinned default carries a priced alternative
+  | declared parameter semantics]`).
 
 ### §2.5 The single failure form
 

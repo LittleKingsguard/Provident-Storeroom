@@ -40,7 +40,7 @@ below is a map and every row of it is one entry, not a restatement.**
 | **`PAR-JS-9`** | **`opId`** on `rollback` | `parameter` | `contract.md §1.3`, `contract.md §2.2` | `parameter-semantics.md` `§2.9` |
 | **`PAR-JS-10`** | **`value`** — the written value's taxonomy | `parameter` | `contract.md §1.2` | `parameter-semantics.md` `§2.10` |
 | **`PAR-JS-11`** | **`tier`** on `delete` — optional, exactly one when present | `parameter` | `contract.md §2.2`, `contract.md §1.3` | `parameter-semantics.md` `§2.11` |
-| **`PAR-JS-12`** | **`listener`** — the caller's function, held by the package's registry | `callback` | `contract.md §2.4`, `contract.md §2.7` | `parameter-semantics.md` `§2.12` |
+| **`PAR-JS-12`** | **`listener`** — the caller's function, held by the package's registry, **together with the `handle` its registration site takes as its FIRST argument (the domain of `PAR-JS-8`)** | `callback` | `contract.md §2.4`, **`contract.md §2.4` item 5 (the registration site's declared spelling, added 2026-10-11)**, `contract.md §2.7` | `parameter-semantics.md` `§2.12` |
 | **`PAR-JS-13`** | **the returned `op`** — the `JournalOp` the write returned, in its JS spelling | `return-field` | `contract.md §1.3`, `contract.md §2.6`, `contract.md §2.8` | `parameter-semantics.md` `§2.13` |
 | **`PAR-JS-14`** | **the returned `watched`** — the watched ADDRESSES | `return-field` | `contract.md §1.3`, `contract.md §2.2` | `parameter-semantics.md` `§2.14` |
 | **`PAR-JS-15`** | **the returned `triggered`** — the triggered handles | `return-field` | `contract.md §2.7`, `contract.md §1.3` | `parameter-semantics.md` `§2.15` |
@@ -52,9 +52,17 @@ below is a map and every row of it is one entry, not a restatement.**
 (`PAR-JS-1`…`PAR-JS-18`) — `15` are parameters or returned fields this unit declares the JS surface as
 carrying (`PAR-JS-1`…`PAR-JS-11` and `PAR-JS-13`…`PAR-JS-16`) + `1` callback (`PAR-JS-12`) + `1` error-code
 carrier (`PAR-JS-17`) + `1` declared NON-parameter, the constraint pattern (`PAR-JS-18`) — so `15 + 1 + 1 +
-1 = 18` ✓.** **Every parameter the JS surface declares has a row, and no parameter outside this list
-exists** (`[A3 docs/specs/storeroom-js/parameter-semantics.md §2 — the rows themselves, each printed with
-its own cells | numeric or census claim]`).
+1 = 18` ✓.** **AND ONE RE-DERIVATION OF THIS INDEX, LANDED 2026-10-11 BY THE BOUNDED CORRECTION PASS (`role_spec_writer`),
+CLOSING THE RED SET'S CONTRACT FINDING 1 (`archive/gate3/storeroom-js-red-set.md` §5 item 1) WITHOUT MOVING A
+COUNT.** `RCA-8(d)` ANNOTATE-BESIDE: **the table above stands byte-for-byte; THIS clause is the operative
+statement of what the same pass changed in it, and it is a PURE INSERTION — `18` rows before and `18` rows
+after, so the arithmetic above is UNCHANGED and `contract.md §6` prints the same figure.** **`PAR-JS-12` IS
+RE-DERIVED RATHER THAN JOINED BY A NINETEENTH ROW: `contract.md §2.4` item 5 declares the registration site
+`register(handle, listener)`, and that site's TWO argument positions are the function `PAR-JS-12` ALREADY
+names and the HANDLE `PAR-JS-8` ALREADY names — so the registration's own parameter pair is carried by the
+two rows that exist and NO new row is minted.** **`PAR-JS-13` … `PAR-JS-18` are NOT renumbered and no row's
+`§`-home moves** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-15`; A3
+docs/specs/storeroom-js/contract.md §2.4 item 5 | numeric or census claim]`).
 
 ---
 
@@ -334,8 +342,8 @@ docs/specs/storeroom-native/parameter-semantics.md §2.4 · PAR-4 | declared par
 | `supplier` | **the caller** |
 | `evaluator` | **the package (its registry's lookup at delivery time, and its own invocation)** |
 | `observable` | **a registered function invoked after a write whose address scope covers its listener's address; an unregistered handle that fires nothing silently; a second registration that replaces the first; and a throwing body that propagates and alters nothing** |
-| `the clause that declares it` | **`contract.md §2.4`** and **`contract.md §2.7`** |
-| `the ruling that pins it` | **`A1`** (`A57`: the store *"returns"* the handle and *"invokes nothing"*) · **`A1`** (`A74`: no background work, no queue) |
+| `the clause that declares it` | **`contract.md §2.4`** — **`§2.4` RULES 1–4 AND `§2.4` ITEM 5, the registration site's declared spelling (`register(handle, listener)` on the object `storeCreate` returned; the bounded correction pass of 2026-10-11)** — and **`contract.md §2.7`** |
+| `the ruling that pins it` | **`A1`** (`A57`: the store *"returns"* the handle and *"invokes nothing"*) · **`A1`** (`A74`: no background work, no queue) · **`A1`** (`docs/specs/storeroom-js-proposal-review.md §5.4` · `AR-15`: the registry's rules **drivable**) |
 | `alt` | **a FAN-OUT registry (many functions per handle)** — priced at `DD-15`: it would give one handle a broadcast the store's own set semantics do not carry, and *"`unlisten` withdraws the registration, never the function"* would stop being single-valued; **and a CATCHING invocation** — priced at `DD-23`: the report would need a failure channel the package does not own |
 | `park` | **the listener's ORDER, its attachment rule and a throwing body's disposition were the store's `P-3`, and `A57`/`A58` leave the invocation to the CLIENT — which is THIS unit; no subject of this row is parked** |
 
@@ -350,6 +358,39 @@ by it.** **A drive must therefore distinguish the TWO throw sites — `surface.m
 for a verb, and this row's `TypeError` for a registration — and a `TypeError` thrown by a VERB is a
 finding** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-14` — the failure channel names exactly
 one JS form, for a VERB | declared parameter semantics]`).
+
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE RED SET'S CONTRACT
+FINDING 1 (`archive/gate3/storeroom-js-red-set.md` §5 item 1) AT THIS ROW.** `RCA-8(d)` ANNOTATE-BESIDE: **the
+cells above stand byte-for-byte; THIS clause is the operative statement of the ONE cell the declaration of
+a registration site moves, and it adds no row — `§1`'s `18`-row arithmetic and `contract.md §6`'s index are
+UNCHANGED, and this reconciliation is a RE-DERIVATION of this row's own cells rather than a nineteenth
+row.** **WHAT MOVED, AND WHY IT MOVED RATHER THAN BEING WIDENED SILENTLY:** **the row's `the values OUTSIDE
+it` cell prints *"a function registered for a handle the package never returned or adopted"*, whose declared
+answer read *"is held but can NEVER fire — a declared no-op and NOT a failure."* THAT CELL STOOD WHILE NO
+REGISTRATION SITE WAS DECLARED; `contract.md §2.4` item 5 now declares one, and the site ADMITS THE HANDLE'S
+OPAQUE SPELLING AND BY NOTHING ELSE — **so the operative reading, stated with its terms, is the
+substitution below and NOT the as-filed sentence:** **the cell's `the declared answer for EACH outside value`
+reads, from this date: *"A non-function `listener` → a JS `TypeError` at REGISTRATION, carrying NO `status`
+and NO `message` member. A `handle` the package never returned or adopted — fabricated, a foreign
+instance's, a prior session's, a bare `string`, a blank token, `null`, `undefined`, a non-opaque value or an
+ABSENT argument — → the SAME JS `TypeError`, because `register`'s domain is the handles THIS INSTANCE minted
+or adopted and its only in-domain key spelling is the OPAQUE one, so every other value is a MEMBER OF NO
+REGISTRY and not a held-but-silent entry. A re-registration of a handle IN the domain → SUCCESS,
+`undefined`, the previous function REPLACED. Nothing reaches the store in any of these cases."*`** **The
+as-filed no-op reading stands ONLY where the as-filed text places it: at `unlisten`, whose no-op-success
+answer for an unknown handle is `contract.md §2.3` item 4's and is NOT moved by this clause.** **AND ONE
+CONSEQUENCE IS NAMED SO IT IS NOT READ AS A DEFECT: `PAR-JS-12`'s own invocation half is unaffected — a
+registered function still fires or does not fire by `§2.4` rules 1 and 3, and `§2.7`'s firing window, order
+rule and throwing-body rule are untouched** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-15`;
+docs/specs/storeroom-js/contract.md §2.4 item 5; `DD-15` | declared parameter semantics]`).
+**ITS `alt`, CARRIED FORWARD AND REPRICED BECAUSE THE SITE MOVED:** **holding an out-of-domain registration
+silently, as the as-filed cell read** — priced: it would give `register` a no-op arm beside `unlisten`'s,
+so a caller's typo and a caller's deliberate withdrawal would print the same observable, and `§2.4` rule 1's
+silent-fire would stop being the ONLY silent arm in the registry; **and** admitting a bare `string` at
+`register`'s first position — priced: it would make the registration site accept a spelling `unlisten`
+declares UNKNOWN, so the two registration-side verbs would disagree about one value; **both available with a
+fresh ruling, and the reversal instrument is a bounded amendment of `docs/specs/storeroom-js/`** (`[A1
+docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12` | declared parameter semantics]`).
 
 ### §2.13 `PAR-JS-13` — the returned `op`, the `JournalOp` a write returns
 

@@ -31,6 +31,7 @@ requirement]`).
    (the accepted form and each refused form), one test per verb's success shape, one test per code the
    surface can reach, one test per registry rule of `§2.4`, and one test per `HO-` row — the last asserting
    only that the package EXPOSES NO entry for that realm.**
+
 4. **THE SUITE'S OWN FILE SET, NAMED SO NO CLOSURE-ARITHMETIC OF THIS DIRECTORY MOVES:** **the JS suite and
    the sibling crate's Rust tests live under `bindings/js/`, NOT under this spec directory and NOT under the
    store's `tests/**`** (`DD-19`) — **so the `test-cases` part of this directory is a derived INVENTORY and
@@ -40,6 +41,61 @@ requirement]`).
    `v24.20.0`, which ships `node --test`; and Rust `1.98.0` with an offline-capable `cargo` for the sibling
    crate's own leg** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 — `AR-10`'s figure-with-its-site
    rule; docs/next-steps.md `L-4`'s probe as that record reads it | numeric or census claim]`).
+
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE RED SET'S CONTRACT
+FINDINGS 1, 2, 3 AND 5 (`archive/gate3/storeroom-js-red-set.md` §5 items 1, 2, 3 and 5) AT THIS SECTION.**
+`RCA-8(d)` ANNOTATE-BESIDE: **the items above stand byte-for-byte and the two numbered items BELOW this
+clause are the as-filed `4` and `5`, still numbered `4` and `5` and moved by no byte; the numbered clauses
+`6`–`9` are PURE INSERTIONS placed here, between item `3` and item `4`, so that NOTHING in the as-filed item
+list is renumbered, re-ordered or split.** **They are the acceptance consequences of the four declarations
+the same pass lands, and the numbering is deliberately NOT contiguous: the as-filed `1`–`5` keep their own
+numbers and the insertions carry the numbers `6`–`9` beside them.**
+
+**6. THE DRIVE FOR A LONE SURROGATE BELONGS TO THE JS LAYER, AND IT CANNOT BELONG TO THE RUST LAYER.** **A JS
+`string` carrying a LONE SURROGATE (e.g. a string holding the single code unit `\uD800`) is not valid UTF-8,
+so NO Rust `String` can carry it and NO Rust cell can even CONSTRUCT the input.** **The class is therefore
+driven at the JS boundary ALONE — through the package's own claimed ESM entry — and its declared answer is
+`crossing.md §1.2` row 1's: the whole value is refused `ValueNotAdmitted`, at the PACKAGE's own walk, BEFORE
+any verb is called.** **A Rust-side cell that reports this class as driven is a FINDING, and a Rust-side cell
+that silently drops the class from the table is a FINDING** (`crossing.md §1.2` row 1's lone-surrogate clause
+and `§1.4` item 9; `archive/gate3/storeroom-js-red-set.md` §5 item 5)
+(`[A3 docs/specs/storeroom-js/crossing.md §1.2 · §1.4 item 9 | requirement]`).
+
+**7. THE ABSENT-VERSUS-`undefined` READING IS DRIVEN AT BOTH ARITIES AND AT BOTH MEMBERSHIPS.** **The rule is
+declared ONCE at `docs/specs/storeroom-js/crossing.md §1.3`'s absent-versus-`undefined` clause, and this
+layer DRIVES it: a VERB's trailing `tier` by the call's own ARITY (`read(i, a)`, `read(i, a, undefined)` and
+`read(i, a, null)` are THREE states, and `read(i, a, undefined)` folds to the ABSENT row), and a `cfg` key by
+`in`-MEMBERSHIP (`{filePath: undefined}` and an ABSENT `filePath` are TWO states, and the first answers
+`AddressMalformed` while the second is IN DOMAIN).** **`ConstructionArgumentMissing` is told apart from
+`AddressMalformed` by the ANSWER and not by the surface, because at the JS boundary an ABSENT key and a key
+present carrying `undefined` are distinguishable ONLY by the `in`-test** (`archive/gate3/storeroom-js-red-set.md`
+§5 item 4) (`[A3 docs/specs/storeroom-js/contract.md §1.3 — the absent-versus-`undefined` rule; `DD-46`;
+`PAR-JS-3` | requirement]`).
+
+**8. THE RUST LEG NAMES ITS MANIFEST EXPLICITLY, AND A LEG THAT RUNS THE WRONG PACKAGE IS VOID.** **The leg's
+command is `cargo test --manifest-path bindings/js/Cargo.toml --offline --no-fail-fast`, taken at the
+REPOSITORY ROOT; the manifest is named explicitly so the resolution cannot become the root package's.** **A
+reported figure whose executed-cell count belongs to the store's suite is VOID and must be re-taken, and a
+figure reported without its site and its layer is VOID** (`package.md §4.2` item 4's dated clause;
+`archive/gate3/storeroom-js-red-set.md` §3)
+(`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 — `AR-10`; `DD-19` | requirement]`).
+
+**9. THE REGISTRATION SITE'S OWN DRIVE, AND THE TWO THROW SITES IT MUST SEPARATE.** **A drive reaches the
+registry through `register(handle, listener)` — the ONE member of the object `storeCreate` returned
+(`surface.md §2.4` item 5) — and NEVER through the module namespace, because `register` is not a named
+export.** **A drive MUST distinguish the TWO throw sites: `§2.5`'s `{status, message}` for a VERB, and
+`PAR-JS-12`'s JS `TypeError` (carrying no `status` and no `message`) for a REGISTRATION — and a `TypeError`
+thrown by a VERB remains a FINDING.** **A drive that reads the registry through any spelling other than
+that member is a FINDING** (`archive/gate3/storeroom-js-red-set.md` §5 item 1)
+(`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-15`; A3 docs/specs/storeroom-js/surface.md §2.4
+item 5; `PAR-JS-12` | requirement]`).
+
+**AND THE ITEM-3 PATTERN'S OWN CORRECTION, STATED SO THE TWO SITES ARE NOT CONFUSED:** **item 3 above's
+*"one test per registry rule of `§2.4`"* now has a DRIVE, and its site is `surface.md §2.4` item 5's
+`register(handle, listener)` — reached through an instance and never through the module namespace.** **No
+clause of item 3 moves: the pattern is met, not widened** (`[A1
+docs/specs/storeroom-js-proposal-review.md §5.4 — `AR-17`; A3 docs/specs/storeroom-js/surface.md §2.4 item 5 |
+requirement]`).
 
 ### §4.2 The LAYER label — and the rule no pass may break
 
