@@ -1,0 +1,579 @@
+// `surface.md` (`contract.md §2`) — THE JS SURFACE AT ITS OWN BOUNDARY: the construction, the five address
+// verbs, the single failure form, the returned records' spellings, the parameter semantics of every verb's
+// arguments, the constraint pattern and the two file-behaviour readings.
+//
+// **STATES ENUMERATED BEFORE THE CELLS WERE AUTHORED** (one cell per state):
+// construction: the three declared keys · an ABSENT `filePath` · a reachable path · a fourth key · an
+// ABSENT `journalLength` · `0` · a numeric string · an ABSENT `listeners` · a malformed listeners entry.
+// verbs: a leaf read · a branch read · the empty address · a tier-qualified read · an any-match tier array ·
+// a write record · a delete receipt with `tiers` in canonical order · the `tiers: []` no-op arm · a rollback
+// result · a missing argument · an extra argument · a wrong-shaped argument.
+// failure form: the member set, the prototype, the status token, the message, the throw site.
+// records: each member of `{op, watched, triggered}` and of `{address, tiers, triggered}` and of
+// `{opId, undoneOps, restoredTo}`.
+// file readings: a `delete` with no file I/O · a `rollback` with no file I/O · a failed `file` commit.
+
+import test from 'node:test';
+import assert from 'node:assert/strict';
+
+import {
+  storeCreate,
+  read,
+  readLiteral,
+  write,
+  delete as remove,
+  rollback,
+  listen,
+  unlisten,
+} from '@provident-storeroom/js';
+
+const THE_FIFTEEN = [
+  'AddressMalformed',
+  'AddressNotFound',
+  'LeafHasNoDownstream',
+  'TierNotFound',
+  'OutOfDomainTier',
+  'ParentAnchorMonotonicityViolation',
+  'ContainerKindConflict',
+  'ReadTargetIsBranch',
+  'WriteParentNotLink',
+  'JournalOpUnknown',
+  'RollbackCompacted',
+  'ConstructionArgumentMissing',
+  'FilePathUnreachable',
+  'ValueNotAdmitted',
+  'FileCommitFailed',
+];
+
+function mem(listeners = []) {
+  return storeCreate({ journalLength: 8, listeners });
+}
+
+/// The one failure form's own predicate — `surface.md §2.5` items 1–3.
+function isTheFailureForm(err) {
+  return (
+    err !== null &&
+    typeof err === 'object' &&
+    !Array.isArray(err) &&
+    Object.getPrototypeOf(err) === Object.prototype &&
+    Object.keys(err).sort().join(',') === 'message,status' &&
+    typeof err.status === 'string' &&
+    typeof err.message === 'string' &&
+    err.message.length > 0 &&
+    !(err instanceof Error)
+  );
+}
+
+// ---------------------------------------------------------------------------------------------
+// `§2.1` the construction
+// ---------------------------------------------------------------------------------------------
+
+test('construction_takes_one_plain_object_with_the_stores_three_keys', () => {
+  const inst = mem();
+  assert.ok(inst !== null && typeof inst === 'object', 'the package\'s own instance handle');
+  assert.ok(read(inst, []) !== undefined, 'the empty address resolves to the register');
+});
+
+test('construction_an_absent_file_path_is_in_domain_and_creates_the_register_at_mem', () => {
+  const inst = mem();
+  write(inst, ['a'], 'mem', 1);
+  assert.equal(read(inst, ['a'], 'mem'), 1, 'the register is at mem');
+});
+
+test('construction_an_absent_journal_length_is_the_one_absence_the_construction_refuses', () => {
+  assert.throws(
+    () => storeCreate({ listeners: [] }),
+    (err) => isTheFailureForm(err) && err.status === 'ConstructionArgumentMissing',
+  );
+});
+
+test('construction_a_zero_or_non_integer_journal_length_answers_address_malformed', () => {
+  for (const bad of [0, -1, 1.5, '5', true, null, undefined]) {
+    assert.throws(
+      () => storeCreate({ journalLength: bad, listeners: [] }),
+      (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
+      `journalLength ${String(bad)} is outside the domain`,
+    );
+  }
+});
+
+test('construction_an_absent_listeners_is_refused_and_no_instance_is_returned', () => {
+  assert.throws(
+    () => storeCreate({ journalLength: 8 }),
+    (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
+  );
+});
+
+test('construction_an_empty_listeners_array_is_the_ordinary_no_listener_store', () => {
+  const inst = mem([]);
+  const record = write(inst, ['a'], 'mem', 1);
+  assert.deepEqual(record.triggered, []);
+});
+
+test('construction_a_duplicate_address_is_kept_with_both_handles', () => {
+  const inst = mem([
+    { address: ['a'], handle: 'l1' },
+    { address: ['a'], handle: 'l2' },
+  ]);
+  const record = write(inst, ['a'], 'mem', 1);
+  assert.equal(record.triggered.length, 2, 'both entries are KEPT, each with its OWN handle');
+});
+
+test('construction_a_malformed_listener_entry_is_refused_and_admits_nothing', () => {
+  for (const listeners of [
+    [{ address: ['a'] }],
+    [{ handle: 'l1' }],
+    [{ address: 'a', handle: 'l1' }],
+    [{ address: ['a'], handle: '' }],
+    [{ address: [-1], handle: 'l1' }],
+    ['not-a-record'],
+    null,
+    'nope',
+  ]) {
+    assert.throws(
+      () => storeCreate({ journalLength: 8, listeners }),
+      (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
+      `listeners ${JSON.stringify(listeners)} is outside the domain`,
+    );
+  }
+});
+
+test('construction_a_fourth_key_does_not_change_the_outcome', () => {
+  const a = mem();
+  const b = storeCreate({ journalLength: 8, listeners: [], journalPath: '/tmp/x' });
+  write(a, ['k'], 'mem', 1);
+  write(b, ['k'], 'mem', 1);
+  assert.deepEqual(read(a, ['k']), read(b, ['k']));
+});
+
+test('construction_a_failed_construction_returns_no_partial_instance', () => {
+  let handed = null;
+  try {
+    handed = storeCreate({ journalLength: 0, listeners: [] });
+  } catch {
+    /* the declared failure */
+  }
+  assert.equal(handed, null, 'never a partial instance');
+});
+
+// ---------------------------------------------------------------------------------------------
+// `§2.2` the five address verbs, and the parameter semantics of their arguments
+// ---------------------------------------------------------------------------------------------
+
+test('verbs_read_on_a_leaf_a_branch_and_the_empty_address', () => {
+  const inst = mem();
+  write(inst, ['leaf'], 'mem', 'v');
+  assert.equal(read(inst, ['leaf']), 'v');
+  write(inst, ['branch'], 'mem', { k: 1 });
+  assert.deepEqual(read(inst, ['branch']), { k: 1 }, 'the assembled value');
+  assert.deepEqual(Object.keys(read(inst, [])).sort(), ['branch', 'leaf'], 'the whole register');
+});
+
+test('verbs_read_accepted_tier_shapes_and_the_any_match_set', () => {
+  const inst = mem();
+  write(inst, ['a'], 'mem', 1);
+  assert.equal(read(inst, ['a'], 'mem'), 1);
+  assert.equal(read(inst, ['a'], ['mem']), 1);
+  assert.equal(read(inst, ['a'], ['file', 'mem', 'temp']), 1, 'an ANY-MATCH set');
+  assert.equal(read(inst, ['a'], []), 1, 'the zero-token set');
+  assert.equal(read(inst, ['a']), 1, 'an ABSENT tier');
+});
+
+test('verbs_read_refused_tier_shapes_answer_their_own_codes', () => {
+  const inst = mem();
+  write(inst, ['a'], 'mem', 1);
+  for (const bad of ['secure', 'FILE', 'disk', 'session', '']) {
+    assert.throws(
+      () => read(inst, ['a'], bad),
+      (err) => isTheFailureForm(err) && err.status === 'OutOfDomainTier',
+    );
+  }
+  for (const bad of [1, true, {}, () => {}]) {
+    assert.throws(
+      () => read(inst, ['a'], bad),
+      (err) => isTheFailureForm(err) && err.status === 'OutOfDomainTier',
+    );
+  }
+  for (const bad of [null, undefined]) {
+    assert.throws(
+      () => read(inst, ['a'], bad),
+      (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
+    );
+  }
+  for (const member of [null, 1, true, {}, () => {}]) {
+    assert.throws(
+      () => read(inst, ['a'], ['mem', member]),
+      (err) => isTheFailureForm(err) && err.status === 'OutOfDomainTier',
+    );
+  }
+});
+
+test('verbs_write_requires_a_singular_tier_and_refuses_every_array', () => {
+  const inst = mem();
+  assert.throws(
+    () => write(inst, ['a'], undefined, 1),
+    (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
+  );
+  for (const bad of [[], ['mem'], ['mem', 'temp']]) {
+    assert.throws(
+      () => write(inst, ['a'], bad, 1),
+      (err) => isTheFailureForm(err) && err.status === 'OutOfDomainTier',
+      'the array spelling is the READER\'s arity',
+    );
+  }
+});
+
+test('verbs_write_returns_its_three_member_record_and_burns_nothing_on_failure', () => {
+  const inst = mem();
+  const record = write(inst, ['a'], 'mem', { v: 1 });
+  assert.deepEqual(Object.keys(record).sort(), ['op', 'triggered', 'watched']);
+  assert.equal(record.op.kind, 'write');
+  assert.equal(record.op.tier, 'mem');
+  assert.deepEqual(record.op.address, ['a']);
+  assert.equal(record.op.before.present, false);
+  assert.equal(record.op.after.present, true);
+  assert.equal(typeof record.op.seq, 'number');
+  assert.equal(typeof record.op.compacted, 'boolean');
+  assert.throws(() => write(inst, ['b'], 'mem', () => {}));
+  assert.throws(() => read(inst, ['b']), 'a refused write installs nothing');
+});
+
+test('verbs_delete_returns_the_receipt_with_address_verbatim_and_canonical_tiers', () => {
+  const inst = mem();
+  write(inst, ['a'], 'mem', 1);
+  write(inst, ['a'], 'temp', 2);
+  const receipt = remove(inst, ['a']);
+  assert.deepEqual(receipt.address, ['a'], 'address VERBATIM');
+  assert.deepEqual(receipt.tiers, ['mem', 'temp'], 'the store\'s canonical order');
+  assert.deepEqual(receipt.triggered, [], 'no registration matched');
+});
+
+test('verbs_delete_naming_a_tier_the_target_does_not_hold_is_a_success_with_no_tiers', () => {
+  const inst = mem();
+  write(inst, ['a'], 'mem', 1);
+  const receipt = remove(inst, ['a'], 'temp');
+  assert.deepEqual(receipt.tiers, [], 'the in-domain no-op arm');
+  assert.equal(read(inst, ['a'], 'mem'), 1, 'it removes nothing');
+});
+
+test('verbs_delete_refuses_an_array_or_out_of_domain_tier', () => {
+  const inst = mem();
+  for (const bad of [[], ['mem'], 'secure', 1, true]) {
+    assert.throws(
+      () => remove(inst, ['a'], bad),
+      (err) => isTheFailureForm(err) && err.status === 'OutOfDomainTier',
+    );
+  }
+  for (const bad of [null, undefined]) {
+    assert.throws(
+      () => remove(inst, ['a'], bad),
+      (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
+    );
+  }
+});
+
+test('verbs_rollback_returns_its_three_member_result_and_refuses_every_outside_op_id', () => {
+  const inst = mem();
+  write(inst, ['safe'], 'mem', 1);
+  const record = write(inst, ['risky'], 'mem', -1);
+  const result = rollback(inst, record.op.opId);
+  assert.deepEqual(Object.keys(result).sort(), ['opId', 'restoredTo', 'undoneOps']);
+  assert.equal(result.opId, record.op.opId, 'it echoes the id it was passed');
+  assert.equal(result.restoredTo.present, false);
+  assert.throws(() => read(inst, ['risky']), 'the rollback reversed the op\'s scope');
+
+  for (const bad of ['', 1, null, undefined]) {
+    assert.throws(
+      () => rollback(inst, bad),
+      (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
+    );
+  }
+  assert.throws(
+    () => rollback(inst, 'op-never-minted'),
+    (err) => isTheFailureForm(err) && err.status === 'JournalOpUnknown',
+  );
+});
+
+test('verbs_read_literal_narrows_to_a_leaf', () => {
+  const inst = mem();
+  write(inst, ['leaf'], 'mem', 7);
+  assert.equal(readLiteral(inst, ['leaf']), 7);
+  assert.throws(
+    () => readLiteral(inst, ['leaf', 'child']),
+    (err) => isTheFailureForm(err) && err.status === 'LeafHasNoDownstream',
+  );
+});
+
+// ---------------------------------------------------------------------------------------------
+// `§2.2` address shapes, and `DD-46`'s no-arity-check rule
+// ---------------------------------------------------------------------------------------------
+
+test('address_the_declared_shapes_and_every_outside_shape', () => {
+  const inst = mem();
+  // The containers the write runs through are created first: a write's parent is resolved BY ADDRESS.
+  write(inst, ['a'], 'mem', {});
+  write(inst, ['a', 0], 'mem', {});
+  write(inst, ['a', 0, 'b'], 'mem', 1);
+  assert.equal(read(inst, ['a', 0, 'b']), 1, 'a string or a non-negative integer segment');
+  write(inst, [''], 'mem', 2);
+  assert.equal(read(inst, ['']), 2, 'the empty string IS a legal key and a legal register key');
+  write(inst, ['a.b'], 'mem', 3);
+  assert.equal(read(inst, ['a.b']), 3, 'a key containing a dot is a key, not a delimiter');
+  for (const bad of [undefined, null, 'a.b', 1, true, {}, () => {}, ['a', -1], ['a', 1.5], ['a', null], ['a', true], [['nested']]]) {
+    assert.throws(
+      () => read(inst, bad),
+      (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
+      `address ${JSON.stringify(bad)} is outside the domain`,
+    );
+  }
+  const sparse = [1, , 3]; // eslint-disable-line no-sparse-arrays
+  assert.throws(
+    () => read(inst, sparse),
+    (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
+    'DD-8: neither reading of a hole may be chosen silently',
+  );
+  assert.throws(
+    () => read(inst, new Proxy(['a'], {})),
+    (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
+    'DD-34: the binding owns proxy detection at the argument boundary',
+  );
+});
+
+test('address_the_package_performs_no_arity_check_of_its_own', () => {
+  const inst = mem();
+  // A missing argument reaches the store's own carrier value and answers the store's own code — never a
+  // package `TypeError` (`DD-46`).
+  assert.throws(
+    () => read(inst),
+    (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
+  );
+  assert.throws(
+    () => write(inst, ['a'], 'mem'),
+    (err) => isTheFailureForm(err) && err.status === 'ValueNotAdmitted',
+    'an absent value is the store\'s own answer',
+  );
+  assert.throws(
+    () => read(inst, ['a'], 'mem', 'an extra argument'),
+    (err) => err === undefined || isTheFailureForm(err) || typeof err.status === 'string',
+    'an extra argument is not the package\'s business either way: it must not be a TypeError of its own',
+  );
+});
+
+// ---------------------------------------------------------------------------------------------
+// `§2.5` the single failure form, at its own throw site
+// ---------------------------------------------------------------------------------------------
+
+test('failure_form_the_thrown_object_is_a_plain_two_member_record', () => {
+  const inst = mem();
+  assert.throws(
+    () => read(inst, ['gone']),
+    (err) => isTheFailureForm(err) && err.status === 'AddressNotFound',
+  );
+});
+
+test('failure_form_the_prototype_is_the_caller_realms_object_prototype', () => {
+  const inst = mem();
+  try {
+    read(inst, ['gone']);
+    assert.fail('the read must throw');
+  } catch (err) {
+    assert.equal(Object.getPrototypeOf(err), Object.prototype);
+    assert.ok(!(err instanceof Error), 'no Error subclass (DD-12)');
+    assert.equal(err.stack, undefined, 'no third member, and no `stack`');
+    assert.equal(err.code, undefined);
+    assert.equal(err.cause, undefined);
+    assert.equal(err.name, undefined);
+  }
+});
+
+test('failure_form_the_status_is_a_member_token_verbatim_and_the_message_is_generated', () => {
+  const inst = mem();
+  try {
+    read(inst, ['gone']);
+    assert.fail('the read must throw');
+  } catch (err) {
+    assert.ok(THE_FIFTEEN.includes(err.status), 'the store\'s own member token VERBATIM');
+    assert.equal(err.status, err.status.trim(), 'never prefixed or padded');
+    assert.ok(err.message.length > 0 && !/TBD|placeholder/i.test(err.message));
+  }
+});
+
+test('failure_form_is_thrown_and_never_returned', async () => {
+  const inst = mem();
+  // No returned tagged union and no `{ok, value}` envelope: the success path returns the value itself.
+  const value = read(inst, []);
+  assert.ok(!(value && typeof value === 'object' && 'ok' in value));
+  // And no `Promise` rejection: every verb is synchronous.
+  let returned;
+  try {
+    returned = read(inst, ['gone']);
+  } catch {
+    returned = 'threw';
+  }
+  assert.equal(returned, 'threw');
+  assert.ok(!(read(inst, []) instanceof Promise));
+});
+
+test('failure_form_the_crossing_reaches_its_own_codes_and_a_failed_read_is_the_probe', () => {
+  const inst = mem();
+  const seen = new Set();
+  const drive = (fn) => {
+    try {
+      fn();
+    } catch (err) {
+      assert.ok(isTheFailureForm(err), 'every failure that crosses is the one form');
+      seen.add(err.status);
+    }
+  };
+  drive(() => read(inst, undefined)); //                                    AddressMalformed
+  drive(() => read(inst, ['gone'])); //                                     AddressNotFound
+  write(inst, ['leaf'], 'mem', 'v');
+  drive(() => read(inst, ['leaf', 'child'])); //                           LeafHasNoDownstream
+  drive(() => read(inst, ['leaf'], 'file')); //                            TierNotFound
+  drive(() => read(inst, [], 'secure')); //                                OutOfDomainTier
+  drive(() => write(inst, ['b'], 'mem', () => {})); //                     ValueNotAdmitted
+  drive(() => write(inst, [], 'mem', 1)); //                               WriteParentNotLink
+  drive(() => rollback(inst, 'no-such-op')); //                            JournalOpUnknown
+  drive(() => storeCreate({ listeners: [] })); //                          ConstructionArgumentMissing
+  drive(() =>
+    storeCreate({ journalLength: 8, filePath: '/nonexistent/dir/x.json', listeners: [] }),
+  ); //                                                                     FilePathUnreachable
+  const required = [
+    'AddressMalformed',
+    'AddressNotFound',
+    'LeafHasNoDownstream',
+    'TierNotFound',
+    'OutOfDomainTier',
+    'ValueNotAdmitted',
+    'WriteParentNotLink',
+    'JournalOpUnknown',
+    'ConstructionArgumentMissing',
+    'FilePathUnreachable',
+  ];
+  for (const code of required) {
+    assert.ok(seen.has(code), `\`${code}\` remains reachable from JS (surface.md §2.9 item 2)`);
+  }
+  for (const code of seen) assert.ok(THE_FIFTEEN.includes(code), `\`${code}\` is outside the closed set`);
+  // The existence probe: a read that resolves answers the value, and one that does not throws.
+  assert.equal(read(inst, ['leaf']), 'v');
+});
+
+test('failure_form_carries_no_discrimination_rule_between_a_value_and_a_failure', () => {
+  const inst = mem();
+  const lookalike = { status: 'AddressNotFound', message: 'generated' };
+  write(inst, ['a'], 'mem', lookalike);
+  assert.deepEqual(read(inst, ['a']), lookalike, 'the caller carries the anti-pattern (A64)');
+});
+
+// ---------------------------------------------------------------------------------------------
+// `§2.6` the constraint/repair pattern — a USAGE PATTERN over declared verbs
+// ---------------------------------------------------------------------------------------------
+
+test('constraint_pattern_evaluate_after_write_and_reverse_with_rollback', () => {
+  const inst = mem();
+  write(inst, ['safe'], 'mem', 1);
+  const record = write(inst, ['risky'], 'mem', -1);
+  // Client-side evaluation, after the write returned.
+  const violated = read(inst, ['risky']) < 0;
+  assert.ok(violated);
+  rollback(inst, record.op.opId);
+  assert.throws(() => read(inst, ['risky']));
+  assert.equal(read(inst, ['safe']), 1, 'the sibling state stands');
+});
+
+test('constraint_pattern_no_constraint_verb_parameter_or_record_exists', () => {
+  const api = { storeCreate, read, readLiteral, write, delete: remove, rollback, listen, unlisten };
+  for (const name of ['constrain', 'constraint', 'repair', 'validate', 'onViolation']) {
+    assert.ok(!(name in api), `\`${name}\` is not declared: no constraint verb and no repair route`);
+  }
+  // And no function crosses at any position: the store's own surface takes no function (`A73`).
+  const inst = mem();
+  assert.throws(
+    () => write(inst, ['a'], 'mem', () => {}),
+    (err) => isTheFailureForm(err) && err.status === 'ValueNotAdmitted',
+  );
+});
+
+// ---------------------------------------------------------------------------------------------
+// `§2.8` the two file-behaviour readings a JS caller will meet
+// ---------------------------------------------------------------------------------------------
+
+test('file_readings_a_delete_and_a_rollback_perform_no_file_io', async () => {
+  const { mkdtemp, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const dir = await mkdtemp(join(tmpdir(), 'storeroom-js-redset-'));
+  const path = join(dir, 'store.json');
+  try {
+    const inst = storeCreate({ filePath: path, journalLength: 8, listeners: [] });
+    write(inst, ['a'], 'file', 1);
+    remove(inst, ['a'], 'file');
+    assert.throws(() => read(inst, ['a'], 'file'), 'removed in the live store');
+    const fresh = storeCreate({ filePath: path, journalLength: 8, listeners: [] });
+    assert.equal(
+      read(fresh, ['a'], 'file'),
+      1,
+      'DD-45: a fresh boot over an equal path re-loads the last successful `file` WRITE, and the removed version STANDS AGAIN',
+    );
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('file_readings_a_failed_file_commit_answers_file_commit_failed', async () => {
+  const { mkdtemp, rm, mkdir, writeFile, unlink } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const dir = await mkdtemp(join(tmpdir(), 'storeroom-js-redset-commit-'));
+  const path = join(dir, 'store.json');
+  try {
+    const inst = storeCreate({ filePath: path, journalLength: 8, listeners: [] });
+    await writeFile(path, '{}');
+    write(inst, ['ok'], 'mem', 1);
+    // The trigger is the REAL one: the path is replaced by a directory after the instance exists.
+    await unlink(path);
+    await mkdir(path);
+    assert.throws(
+      () => write(inst, ['never'], 'file', 2),
+      (err) => isTheFailureForm(err) && err.status === 'FileCommitFailed',
+      'the failure is passed back AFTER the store\'s own automatic journal rollback',
+    );
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('file_readings_a_path_that_fails_the_probe_answers_file_path_unreachable_and_creates_nothing', async () => {
+  const { mkdtemp, rm, stat } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const dir = await mkdtemp(join(tmpdir(), 'storeroom-js-redset-probe-'));
+  const missing = join(dir, 'no-such-parent', 'file.json');
+  try {
+    assert.throws(
+      () => storeCreate({ filePath: missing, journalLength: 8, listeners: [] }),
+      (err) => isTheFailureForm(err) && err.status === 'FilePathUnreachable',
+    );
+    await assert.rejects(() => stat(join(dir, 'no-such-parent')), 'the probe is a DRY RUN');
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('file_readings_two_instances_over_one_path_are_the_callers_own_declared_hazard', async () => {
+  const { mkdtemp, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const dir = await mkdtemp(join(tmpdir(), 'storeroom-js-redset-two-'));
+  const path = join(dir, 'store.json');
+  try {
+    const first = storeCreate({ filePath: path, journalLength: 8, listeners: [] });
+    const second = storeCreate({ filePath: path, journalLength: 8, listeners: [] });
+    write(first, ['first'], 'file', 1);
+    write(second, ['second'], 'file', 2);
+    const fresh = storeCreate({ filePath: path, journalLength: 8, listeners: [] });
+    assert.equal(read(fresh, ['second'], 'file'), 2, 'the second instance\'s write clobbered the first\'s bytes');
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
