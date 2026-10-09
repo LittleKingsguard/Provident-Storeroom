@@ -69,6 +69,31 @@
 
 **WHAT THIS CHANGES IN §5:** the index's justification is **narrowed** — it is not needed to make the container WRITE linear (step (a) does that with no data structure), it is needed for **(b)** the genuine same-pair lookup at an existing container and **(c)** the assembly's per-key access. **The acceptance in §5 stands unchanged: per-datum `O(1)`, iteration `O(n)`, `200,000` linear, `1,000,000` admitted, the store's suite still `377` with the sibling crate's `223`.**
 
+## 5-ter. IS THE CHILD LIST ALREADY AN INDEX? — NO. IT IS POSITIONAL OVER ARENA IDS
+
+**⟶ APPENDED 2026-10-11, on the architect's question:** *"Aren't the link's children already indexed by virtue of being stored in a vec/hashmap?"* **THE ANSWER, FROM THE DECLARATION AND THE MODEL'S OWN VOCABULARY: there is no keyed index anywhere, and position is not a key.**
+
+**(1) THE FIELD'S OWN COMMENT SAYS WHAT THE VECTOR INDEXES.** `src/store.rs:59–62`:
+
+```rust
+struct Link {
+    container: Kind,
+    /// The child anchors the container holds, as indices into the instance's reference arena.
+    children: Vec<usize>,
+    …
+}
+```
+
+**`children` is a `Vec` of REFERENCE IDS into the instance's arena (`refs`); the KEY lives in the anchor (`refs[reference].anchor.key`) and NOT in the vector.** So the vector is indexable **by position**, and the only key lookup it offers is the scan the three functions perform. **No `HashMap` and no `BTreeMap` stands anywhere in the structure.**
+
+**(2) POSITION CANNOT STAND IN FOR THE KEY, IN EITHER CONTAINER KIND.**
+- **`MAP`:** the model declares **no order** over a `MAP`'s children (`store-model.md:242`: *"`MAP` … **unordered** — the store declares no order over a `MAP`'s children"*), so a member's position carries **no** information about its name.
+- **`VEC`:** indices are minted contiguously from `0` (`§1.3`/`R-3`), so position `n` **would** align with `Index(n)` while exactly ONE anchor stands at each key — **but the composite-key rule allows up to THREE (`DD-10`; `contract.md:2811`, `P: §15 · A34`: *"at most ONE child anchor stands at one pair"*, one pair per tier)**, and the moment two tiers stand at one index the alignment breaks and every later position is shifted. **And the code does not use position anyway — it always compares `anchor.key == *key`.**
+
+**(3) THE MODEL'S OWN WORD FOR A KEYED CONTAINER IS A HASHMAP.** `store-model.md:441` (`§1.6`): *"The register — **keyed by names, always a hashmap**, no parent anchor"*. **So the model names the keyed structure; the implementation stores a positional `Vec` of arena ids. The index does not exist — it was never built.**
+
+**(4) WHAT THE REPAIR ADDS, AND WHAT IT MUST KEEP.** **ADD** a key→reference index beside the `Vec` (a `BTreeMap` keyed by the segment's own ordering is least invasive — `keys_at` already sorts by `Segment::spelling()`, so no `Hash` derivation is needed; a `HashMap` is the alternative), **maintained at every site that pushes, removes or renumbers a child.** **KEEP** the `Vec`: it is load-bearing for deterministic iteration and for the VEC's renumbering pass, so the index is **additive** — the flat list stays as the arena's own ordering, and the map becomes the keyed accessor. **WITH §5-bis STEP (a), the write path does not depend on the new index at all; the index serves the genuine same-pair lookup (step (b)) and the assembly's per-key access (step (c)).**
+
 ## 6. WHAT THIS RCA DOES NOT CLAIM
 
 1. It does not claim the JS boundary or the conversion needs changing — **they are measured linear** and their design is `O(1)` per datum already.
