@@ -147,3 +147,9 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Rust build output
+/target
+
+# Archival (the process rule: archive/ is GITIGNORED)
+archive/
