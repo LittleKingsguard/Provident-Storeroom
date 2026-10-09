@@ -413,6 +413,90 @@ declares UNKNOWN, so the two registration-side verbs would disagree about one va
 fresh ruling, and the reversal instrument is a bounded amendment of `docs/specs/storeroom-js/`** (`[A1
 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12` | declared parameter semantics]`).
 
+**⟶ AND A SECOND DATED EXCEPTION CLAUSE, LANDED 2026-10-11 BY THE BOUNDED DECLARATION PASS
+(`role_spec_writer`) ON `A76`: THE REGISTRATION SITE'S FAILURE FORM, RECONCILED TO THE ONE FORM AND TO THE
+STORE'S CLOSED SET.** `RCA-8(d)` ANNOTATE-BESIDE: **the exception clause above stands byte-for-byte and is
+read THROUGH this clause; THIS clause is a PURE INSERTION — it adds no row, moves no cell of the table above
+and re-decides no ruling.** **WHAT MOVED, AND WHY IT HAD TO MOVE RATHER THAN BE READ BESIDE THE REST: `A76`
+declares that a non-conforming input is rejected with a VERBOSE ERROR TO THE CLIENT INSIDE THE SINGLE DECLARED
+FAILURE FORM, and `A76`'s reach clause states that it *"does NOT license a SECOND failure form"* — while the
+exception clause above reads the registration's refusal as a JS `TypeError` carrying NO `status` and NO
+`message` member.** **THE OPERATIVE READING, STATED WITH ITS TERMS: THE REGISTRATION SITE'S REFUSAL IS
+DELIVERED IN `docs/specs/storeroom-js/surface.md §2.5`'s SINGLE FORM — `{status, message}` — with its `status`
+drawn from the store's CLOSED `15`-member set (the store's own `AddressMalformed`, whose declared trigger
+already covers *"a present argument outside its domain"* and *"an absent required argument"*) and its
+`message` generated as that section's item 6 (d) declares.** **CONSEQUENTLY THE TWO THINGS THE AS-FILED CLAUSE
+NAMED AS THE SITE'S OWN ARE READ AS THE SITE'S HISTORY AND NOT AS ITS OPERATIVE FORM: the `TypeError` is the
+SHAPE the site was declared with at the bounded correction pass of 2026-10-11, and its *"NO `status` and NO
+`message`"* was never a permission to MINT a status** — **and a `status` of `TypeError`, reached at the
+addon's own boundary, is that finding and not a declared form, because the store's closed set holds no such
+member** (`archive/gate4/storeroom-js-adversarial.md` · the sweep's row `10`;
+`docs/specs/storeroom-js/contract.md §2.4` item 5 (d)).
+
+**AND WHAT THE RECONCILIATION DOES NOT MOVE, ONE LINE EACH.** **The SITE stays `register(handle, listener)` on
+the object `storeCreate` returned, and its two argument positions are unchanged** (`docs/specs/storeroom-js/contract.md
+§2.4` item 5 (b)). **The DOMAIN stays *"a value THIS INSTANCE minted or adopted"*, so an outside handle is
+still refused and the `unlisten`-style no-op reading still does not extend to it.** **The REPLACEMENT arm stays
+a SUCCESS returning `undefined`.** **And the two-SITES distinction of the clause above is read as the
+site-versus-verb distinction: a drive must still tell the two sites apart, while a `TypeError` escaping from a
+VERB, in any form, remains a FINDING** (`docs/specs/storeroom-js/surface.md §2.4` item 5 (e);
+`docs/specs/storeroom-js/surface.md §2.5` item 6 (g))
+(`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the verbose rejection travels inside the one form;
+A1 docs/specs/storeroom-js-proposal.md §18 · `A76`'s reach clause — no second failure form | state or
+fail-state declaration]`).
+
+**⟶ ADDED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), CLOSING GATE 4'S `JS-4`: THE
+INVOCATION ARGUMENT'S PRODUCER, AND ITS ARMS.** `RCA-8(d)` ANNOTATE-BESIDE: **this row's cells above stand
+byte-for-byte and are read THROUGH this clause; THIS clause is a PURE INSERTION and it adds no row to `§1`'s
+`18` — the invocation argument is carried INSIDE `PAR-JS-12`'s own scope, exactly as the handle the
+registration site takes is carried inside it.** **THE FINDING IT CLOSES, NAMED WITH ITS TERMS: the `domain`
+cell declares that the package's invocation *"passes the triggering ADDRESS as its argument"* while NO CLAUSE
+DECLARED WHO PRODUCES THAT ADDRESS — and gate 4 measured a wire member (the facade's `triggeringAddress`)
+carrying the CALLER'S OWN ENCODED ADDRESS rather than a value any `WriteResult`/`DeleteReceipt` clause
+declares, with the no-op `listen` and the absent-tier `delete` unstated** (`archive/gate4/
+storeroom-js-adversarial.md` §A · `JS-4`).
+
+**THE PRODUCER IS DECLARED HERE, AND ITS ARMS ARE ENUMERATED EXHAUSTIVELY — so the member has a producer at
+every arm and NO ARM IS LEFT TO DISCOVERY:**
+
+1. **THE PRODUCER IS THE VERB'S OWN ADDRESS ARGUMENT.** **The invocation argument is the address the TRIGGERING
+   VERB WAS CALLED WITH** — **the same JS array of segments the caller passed as that verb's `address`
+   argument, carried through the crossing as a value and never a store-side record member** — **and it is
+   therefore ALWAYS PRODUCED, because a verb that triggered cannot have been called without one: an address
+   outside `AddressArg`'s domain is refused and produces NO trigger at all**
+   (`docs/specs/storeroom-js/crossing.md §1.3`'s `AddressArg` rows; `PAR-JS-5`'s own row).
+2. **AND IT IS NOT A MEMBER OF THE RETURNED RECORD, STATED SO THE TWO ARE NOT CONFLATED.** **No member of
+   `WriteResult` or `DeleteReceipt` carries the invoking address**: **`watched` is a LIST of addresses the
+   write's scope matched and is NOT the triggering address (`PAR-JS-14`), and `triggered` carries IDS and not
+   addresses (`PAR-JS-15`).** **A reader looking for the argument in the record finds it in the CALLER'S OWN
+   CALL and in no member.**
+3. **THE ARMS, EVERY ONE OF THEM, WITH WHAT THE INVOCATION RECEIVES.** **The trigger-producing half of the
+   declared surface is EXACTLY the two records `§2.7` item 1 names, so the arms are these and no others:**
+
+   | The triggering verb | What the invocation receives as its ONE argument |
+   | --- | --- |
+   | **`write(instance, address, tier, value)`** — its `triggered` comes from the `WriteResult` | **the caller's own `address` argument, verbatim** — the same address the write was aimed at, whether it resolved to an existing node or minted one |
+   | **`delete(instance, address, tier)` with a tier PRESENT** — its `triggered` comes from the `DeleteReceipt` | **the caller's own `address` argument, verbatim** |
+   | **`delete(instance, address)` with the TIER ABSENT** — the same receipt and the same `triggered` | **the caller's own `address` argument, verbatim: the absent tier changes WHAT IS REMOVED and never the invoking address** |
+
+4. **THE TWO ARMS GATE 4 NAMED AS UNSTATED, ANSWERED ONE LINE EACH.** **(i) A `delete` WITH AN ABSENT TIER
+   contributes the SAME producer as the tier-present arm, per item 3's third row.** **(ii) A NO-OP `listen`
+   — the repeat `listen` at an already-registered address that MINTS NOTHING — PRODUCES NO TRIGGERING ADDRESS
+   AT ALL, BECAUSE IT PRODUCES NO TRIGGER: `listen` returns the entry's own handle
+   (`docs/specs/storeroom-js/crossing.md §1.3`'s `ListenerHandle` row 2's ADOPTION; `contract.md §2.3` item 6
+   at its own home) and `listen`'s own return carries no `triggered` member and invokes nothing** — **so the
+   arm contributes NOTHING to this producer's domain and its absence is DECLARED rather than a silence**
+   (`docs/specs/storeroom-js/contract.md §2.3` item 6; `§2.10`'s `listen` signature).
+5. **AND THE ONE THING THIS DECLARATION IS NOT — STATED WITH ITS PRICE BECAUSE A NAMED PRODUCER OWES ONE.**
+   **IT IS NOT A CONTRACT AMENDMENT OF THE RETURNED RECORDS:** **if a later pass wants the invoking address to
+   be a RECORD MEMBER — a `triggeringAddress`-shaped member on `WriteResult`/`DeleteReceipt` — that is a
+   SECOND CONTRACT AMENDMENT of this directory, priced here: it would add a member the store does not return,
+   so the package would MINT it, and a minted record member is a datum with no store-side authority beside
+   the two records `crossing.md §1.3` fixes member for member.** **The declaration above needs no such member,
+   and the reversal instrument is a bounded amendment of `docs/specs/storeroom-js/`** (`[A1
+   docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12` — a pinned default carries a priced alternative;
+   `docs/specs/storeroom-js/surface.md §2.7` item 5 | declared parameter semantics]`).
+
 ### §2.13 `PAR-JS-13` — the returned `op`, the `JournalOp` a write returns
 
 | Cell | Its value |
@@ -478,6 +562,23 @@ declared parameter semantics]`
 
 `[A1 docs/specs/storeroom-js-proposal.md §8 · A63; A3 docs/specs/storeroom-native/contract.md §3.6 · §4.4 ·
 §6.5 | declared parameter semantics]`
+
+**⟶ ADDED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), ON `A77`: THIS ROW'S MEMBERS ARE
+**IDS**, AND THE ADDRESS THIS UNIT INVOKES WITH IS A DIFFERENT DATUM.** `RCA-8(d)` ANNOTATE-BESIDE: **the row's
+cells above stand byte-for-byte and are read THROUGH this clause; THIS clause is a PURE INSERTION and it adds
+no row to `§1`'s `18`.** **THE RULING, VERBATIM:** ***"Listener passes an id back to client-side when
+triggered, JS then has to match id to the function it was set with."*** (`docs/specs/storeroom-js-proposal.md`
+`§18` · `A77`).
+
+**THE OPERATIVE READING OF THIS ROW'S `domain` CELL, STATED WITH ITS TERMS:** **each member of this array is
+the ID the trigger carries — the matched identity the registration site of `PAR-JS-12` was given, which is the
+handle's OUTPUT spelling (`PAR-JS-8`) — and the package matches that identity to the function the caller
+registered with it, so this row's members DECIDE WHICH functions are invoked and they are NEVER the argument
+those functions receive.** **The argument is the TRIGGERING ADDRESS, whose producer and arms are `PAR-JS-12`'s
+own dated clause; the two data travel in different places and a drive must not read either as the other**
+(`docs/specs/storeroom-js/surface.md §2.4` item 6 (d); `docs/specs/storeroom-js/surface.md §2.7` item 5)
+(`[A1 docs/specs/storeroom-js-proposal.md §18 · `A77`; A3 docs/specs/storeroom-js/parameter-semantics.md §2.12
+| declared parameter semantics]`).
 
 ### §2.16 `PAR-JS-16` — the returned `tiers` on the delete receipt
 

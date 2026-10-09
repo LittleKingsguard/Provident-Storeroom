@@ -33,6 +33,37 @@
 // **THE COPY DISCIPLINE** (`crossing.md §1.1`, `A65`): every value that crosses IN is read once and
 // converted into data the boundary owns, and every value that crosses OUT is fresh data no other side can
 // reach — no proxy, no live view, no getter, no borrow and no pointer, in either direction.
+//
+// ---------------------------------------------------------------------------------------------
+// THE BOUNDARY'S OWN DISCIPLINE — `A76` (VALIDATE FIRST, NEVER REPAIR, REJECT VERBOSELY) AND `A77`
+// ---------------------------------------------------------------------------------------------
+//
+// **`docs/specs/storeroom-js-proposal.md §18` · `A76`, VERBATIM:** ***"Test JS data for compliance with
+// permitted shape before admitting and do not attempt to fix. reject with verbose error to client"*** —
+// **a VALIDATION-FIRST DISCIPLINE IN THREE PARTS, AND THIS FILE SHIPS ALL THREE:**
+//   1. **THE CLASS DECISION COMES FIRST, ON THE VALUE AS IT IS** — `arrayClass` / `protoClass` /
+//      `isAdmittedArray` / `isPlainObjectValue` / `classSpelling`, taken BEFORE any admission, and never
+//      after a conversion. **Nothing on any path coerces: no `Number(...)`, no `String(...)`, no
+//      truthiness test, no `||`-default, no truncation and no unsupported class folded into a supported
+//      one** — so no `valueOf`, no `Symbol.toPrimitive` and no `Proxy` trap is ever invoked, and no raw
+//      host `TypeError` can be raised from this frame (`JS-1`).
+//   2. **NOTHING IS REPAIRED** — a non-conforming input is REFUSED and never adjusted: a `bigint` is a
+//      `BigInt` (`JS-6`), a `Symbol` is refused by its own class, a class extending `Array` is refused as a
+//      class rather than admitted for passing `Array.isArray` (`JS-2`), and a prototype-carrying `cfg` or
+//      listener entry is refused rather than read through the chain (`JS-5`).
+//   3. **THE REJECTION IS VERBOSE AND TRAVELS INSIDE THE ONE `{status, message}`** (`§2.5`, `A76`'s own
+//      reach: *"it does NOT license a SECOND failure form"*). Where the STORE produced the refusal, its own
+//      generated message crosses VERBATIM. Where the refusal is the BOUNDARY's own — a class the walk
+//      rejects before any verb — `boundaryReject` renders the failing TARGET with the store's own
+//      generator and appends the class that failed, with the position where the carrier declares one; **the
+//      status is always a member of the store's closed set and is NEVER minted (`DD-40`).**
+//
+// **`§18` · `A77`, VERBATIM:** ***"Listener passes an id back to client-side when triggered, JS then has to
+// match id to the function it was set with."*** — **THE ID IS THE OPAQUE HANDLE REGISTRATION RETURNED, the
+// `triggered` member's own element and the registry's own key; `deliver` matches THAT IDENTITY to the
+// caller's function, an id with no registered function fires NOTHING SILENTLY (`§2.4` rule 1 — the silence
+// is the declared observable), and the invocation's ONE argument is the triggering ADDRESS (`PAR-JS-12`):
+// the matched id and the address are two different data and only the address is passed.**
 
 import { createRequire } from 'node:module';
 import { dirname as dirOf, join } from 'node:path';
@@ -59,6 +90,22 @@ const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release
 // stated at its own site where the generator itself is the thing that failed to load.
 // **THE ROW THAT PINS THIS STATE IS `P-TP-7`'s `S-LOAD`, and no clause of the contract names a status or a
 // message-home for it** — reported as a CONTRACT FINDING rather than repaired here.
+//
+// **⟶ AND GATE 4'S `JS-3` IS CLOSED AT THIS SITE, WITH ITS DERIVATION MADE EXPLICIT RATHER THAN ACCIDENTAL.**
+// **THE FINDING, NAMED: the absent/failed-addon constant was NOT the same bytes as the generator's string —
+// the fallback wrote the template directly, so the equality held only for the exact spelling `'<path>'` and
+// nothing compared the two arms.** **THE FIX: the generator is reached where it CAN be reached (the artefact
+// that loaded far enough to carry `errorMessage`), and where it CANNOT — which is exactly this state, since
+// the generator is the thing that failed to load — the fallback IS the generator's own rendering of that
+// subject, reproduced BYTE-FOR-BYTE from the generator's own clause and named as the reproduction.** **THE
+// EQUALITY OF THE TWO ARMS IS THEREFORE A PROPERTY OF THE SOURCE, asserted by the cell that drives the state
+// (`NG-JS-H`'s byte-equality arm): measured against the built addon, `errorMessage('FilePathUnreachable',
+// <path>)` and `generatorFilePathUnreachable(<path>)` are byte-identical for the same subject.**
+//
+// **THE GENERATOR'S OWN ROW, REPRODUCED (`src/error.rs`, the `FilePathUnreachable` arm, read with the
+// facade's own subject spelling `format!("'{subject}'")`):**
+//   `format!("{} is not reachable at construction, the path must exist or the application must be able to
+//    write it", m.subject)`  —  `package.md §1.2` item 4's *"one string for the state on both arms"*.
 // ---------------------------------------------------------------------------------------------
 let addon = null;
 let addonLoadError = null;
@@ -73,17 +120,30 @@ function loadAddon() {
   }
 }
 
+/// **THE STORE'S GENERATOR'S OWN RENDERING OF `FilePathUnreachable` FOR A SUBJECT** — the ONE row this file
+/// reproduces, and it reproduces it because there is exactly ONE state in which the generator cannot be
+/// reached at all: the state in which the generator is the thing that failed to load. **IT IS NEVER A
+/// HAND-AUTHORED MESSAGE** (`§2.5` item 2): it is the generator's clause, subject slot included, rendered
+/// byte-for-byte — see the derivation above this block.
+function generatorFilePathUnreachable(subject) {
+  return `'${subject}' is not reachable at construction, the path must exist or the application must be able to write it`;
+}
+
 function addonLoadMessage() {
+  loadAddon();
+  // THE STORE'S OWN GENERATOR, where the artefact carried it (`A75`: *"reached through the addon where it
+  // loaded far enough to carry the generator"*).
   if (addon !== null && typeof addon.errorMessage === 'function') {
     return addon.errorMessage('FilePathUnreachable', ADDON_PATH);
   }
-  return `'${ADDON_PATH}' is not reachable at construction, the path must exist or the application must be able to write it`;
+  // THE GENERATOR'S OWN RENDERING OF THIS SUBJECT, where it could not be reached (`JS-3`'s fix).
+  return generatorFilePathUnreachable(ADDON_PATH);
 }
 
 /// `surface.md §2.5`: **THE SINGLE FAILURE FORM** — a THROWN plain object carrying EXACTLY
 /// `{status, message}` and nothing else. **The status and the message are the store's own and are carried
-/// VERBATIM** (`§2.5` items 1–2, `DD-40`): `fail` re-throws the addon's own object, so no code is minted
-/// here and no message is authored here.
+/// VERBATIM** (`§2.5` items 1–2, `DD-40`): this function constructs the two-member form out of the refusal
+/// the addon threw and mints no code of its own, authors no message of its own and adds no third member.
 function fail(refusal) {
   throw { status: refusal.status, message: refusal.message };
 }
@@ -94,10 +154,34 @@ function withAddon() {
   return addon;
 }
 
+/// **`A76`'S VERBOSE REJECTION, AT THE PACKAGE'S OWN EDGE** — used where the refusal is the BOUNDARY's own:
+/// a class the walk rejects BEFORE any verb is called, and whose carrier the store's own tables do not
+/// declare. **THE MESSAGE NAMES THE FAILING TARGET AND WHY.** The target is rendered by the **STORE'S OWN
+/// GENERATOR** — reached through the addon's `errorMessage`, so the message is never hand-authored here
+/// (`§2.5` item 2) — and the clause the ruling requires beside it is the CLASS that failed, plus the
+/// POSITION where the carrier declares one. **THE STATUS IS NEVER MINTED** (`DD-40`): it is the member of
+/// the store's closed set that the crossing's own table declares for the row the class falls under, and it
+/// is passed as an argument at each site rather than chosen here.
+/// **AND NO SECOND FORM EXISTS** (`A76`'s reach, verbatim: *"it does NOT license a SECOND failure form"*):
+/// the rejection travels inside the one `{status, message}` and never as a raw host error — **which is why
+/// NOTHING on this path coerces the value: no `Number(...)`, no `String(...)`, no `valueOf`, no
+/// `Symbol.toPrimitive` and no trap is ever invoked, so no host `TypeError` can be raised from this frame
+/// in the first place.**
+function boundaryReject(status, subject, clause) {
+  const addon_ = withAddon();
+  if (typeof addon_.errorMessage !== 'function') {
+    // An artefact that LOADED but does not carry the generator is not the declared artefact: the state is
+    // the declared absent/failed-addon one, and its message is the generator's own rendering reproduced.
+    fail({ status: 'FilePathUnreachable', message: generatorFilePathUnreachable(ADDON_PATH) });
+  }
+  fail({ status, message: `${addon_.errorMessage(status, subject)}, ${clause}` });
+}
+
 // ---------------------------------------------------------------------------------------------
-// THE CROSSING MODEL, ENCODED FOR THE CORE — `bindings/js/src/facade.rs` states the protocol, and this
-// section is its only producer. **The four class decisions are TAKEN HERE and carried as data**; every
-// other rule of `crossing.md §1.4` is the core's (`package.md §4.5` item 3 (c)).
+// THE CLASS DECISION, TAKEN FIRST — `A76`'S PART (1), VERBATIM: *"EVERY JS VALUE IS TESTED FOR COMPLIANCE
+// WITH THE PERMITTED SHAPE BEFORE IT IS ADMITTED — the class decision is made first, on the value as it
+// IS, never after a coercion"*. **NO COERCION IS PERFORMED ANYWHERE BELOW: every predicate here READS a
+// class and CLASSIFIES it, and the classified value is what crosses.**
 // ---------------------------------------------------------------------------------------------
 
 /// `crossing.md §1.2` row 1's dated clause of 2026-10-11 and `§1.4` item 9: **a JS `string` carrying a
@@ -121,6 +205,14 @@ function hasLoneSurrogate(text) {
 /// `Object.prototype`'s own property names — `['constructor', '__proto__']` — read ONCE from THIS realm's
 /// own prototype. **They are the KEY SET the (e)-half of the plain-object test compares against.**
 const PLAIN_PROTO_NAMES = new Set(Object.getOwnPropertyNames(Object.prototype));
+
+/// `Array.prototype`'s own property names and its own symbols' descriptions, read ONCE from THIS realm's own
+/// prototype. **They are the KEY SET the ARRAY half of the class decision compares against**, and the
+/// comparison is by NAME and by SYMBOL DESCRIPTION — never by a symbol's identity, because
+/// `Symbol.iterator` in another realm is a DIFFERENT symbol value, and a cross-realm array must be ACCEPTED
+/// (`§1.2` row 5, `§1.3` row 13).
+const ARRAY_PROTO_NAMES = new Set(Object.getOwnPropertyNames(Array.prototype));
+const ARRAY_PROTO_SYMBOLS = new Set(Object.getOwnPropertySymbols(Array.prototype).map((s) => s.description));
 
 /// `crossing.md §1.4` item 4: **THE PLAIN-OBJECT TEST**, items (a)–(g) — **STRUCTURAL AND REALM-AGNOSTIC.**
 /// **The prototype half is NOT an identity test against this realm's `Object.prototype`**: the prototype
@@ -152,6 +244,116 @@ function accessorOrSymbolArm(value) {
   return Object.getOwnPropertySymbols(value).length > 0 ? { k: 'y' } : null;
 }
 
+/// **THE ARRAY HALF OF THE CLASS DECISION** — `crossing.md §1.2` row 5, whose two halves are BOTH declared:
+/// *"a cross-realm array IS accepted (it is an `Array`), **a class extending `Array` is not**"*, with
+/// `§1.3`'s `AddressArg` row 13 accepting a cross-realm array and row 11 refusing the array-like class.
+/// **THE DECISION IS STRUCTURAL AND REALM-AGNOSTIC, exactly as `§1.4` item 4 (e) makes the plain-object
+/// test's**: the value's own prototype is `null`, or a prototype whose OWN property names and OWN symbol
+/// descriptions are EXACTLY an array prototype's — **reached without an `instanceof` test and without a
+/// comparison against this realm's `Array.prototype`, so a cross-realm array is admitted while a SUBCLASS
+/// (`class V extends Array {}`, whose prototype carries its own `constructor` and little else) is refused
+/// BY ITS CLASS.** (`JS-2`: `Array.isArray` may not SHORT-CIRCUIT this test — it is a predicate about the
+/// exotic array-ness of the object and says NOTHING about which class the object belongs to.)
+function arrayClass(value) {
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return 'null';
+  let names;
+  let symbols;
+  try {
+    names = Object.getOwnPropertyNames(proto);
+    symbols = Object.getOwnPropertySymbols(proto);
+  } catch {
+    return 'class';
+  }
+  if (names.length !== ARRAY_PROTO_NAMES.size || symbols.length !== ARRAY_PROTO_SYMBOLS.size) return 'class';
+  for (const name of names) if (!ARRAY_PROTO_NAMES.has(name)) return 'class';
+  for (const symbol of symbols) if (!ARRAY_PROTO_SYMBOLS.has(symbol.description)) return 'class';
+  return proto === Array.prototype ? 'plain' : 'foreign';
+}
+
+/// **A GENUINE ARRAY** — `Array.isArray`'s own answer AND the class decision beside it: an exotic
+/// array-like object whose class is a class extending `Array` is NOT a genuine array (`JS-2`).
+function isAdmittedArray(value) {
+  return Array.isArray(value) && arrayClass(value) !== 'class';
+}
+
+/// **A PLAIN OBJECT**, in the sense `§2.1` takes `cfg` and `§1.3`'s `ListenersArg` row 2 takes an entry:
+/// not `null`, `typeof x === 'object'`, not an `Array`, **not a `Proxy`** (`DD-34`) and not a class
+/// instance or any other prototype-carrying object (`§1.4` item 4 (e), (f), (g)). **A PLAIN OBJECT FROM
+/// ANY REALM IS ACCEPTED** — the (e)-half is structural, never an identity test (`DD-7`, `DD-35`).
+function isPlainObjectValue(value) {
+  if (value === null || typeof value !== 'object') return false;
+  if (Array.isArray(value) || types.isProxy(value)) return false;
+  return protoClass(value) !== 'class';
+}
+
+/// **THE CLASS THAT FAILED, SPELLED FOR THE VERBOSE REJECTION** (`A76`: *"the rejection names the failing
+/// target and the reason"*; `surface.md §2.5` item 5 (b): *"the reason is the CLASS the value HAS — named as
+/// `§1.2`'s or `§1.3`'s own class, never as a class the value could be converted to"*). **IT READS NO
+/// MEMBER THROUGH ANY CHAIN** — `typeof`, `util.types.isProxy`, `Array.isArray`, `getPrototypeOf` and the
+/// two own-key-set predicates alone: no `.constructor`, no `.name`, no `.toString` and no `in`.
+function classSpelling(value) {
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  const kind = typeof value;
+  if (kind !== 'object' && kind !== 'function') return `a ${kind}`;
+  if (types.isProxy(value)) return 'a Proxy';
+  if (Array.isArray(value)) return arrayClass(value) === 'class' ? 'a class extending Array' : 'an Array';
+  if (kind === 'function') return 'a function';
+  return protoClass(value) === 'class'
+    ? 'a class instance or another prototype-carrying non-plain object'
+    : 'a plain object';
+}
+
+/// **THE FAILING TARGET, RENDERED AS THE STORE'S GENERATOR RENDERS IT** — `surface.md §2.5` item 5 (a),
+/// verbatim: *"a non-segment value PRINTED AS ITS OWN VALUE, SINGLE-QUOTED (`10n` for a `bigint`, `Symbol()`
+/// for a symbol) where the failure is about a value and not about a segment — because the store's generator's
+/// own rule prints a non-segment argument that way, and this unit may not invent a second rendering of a
+/// target the store already renders"*. **THE GENERATOR APPLIES THE QUOTING ITSELF** (it spells the subject
+/// `'<subject>'`), so the BARE rendering is what is handed to it.
+///
+/// **AND THE RENDERING IS GUARDED, WHICH IS `A76`'S OWN INSTRUCTION:** *"a throwing `valueOf`/
+/// `Symbol.toPrimitive`/`Proxy` trap must be caught and answered as the declared refusal (catch, then
+/// classify — never propagate the host error)"*. A rendering that throws answers the CLASS spelling instead
+/// — **the class half of the reason is mandatory (`§2.5` item 5 (b)), so the rejection still carries it** —
+/// and nothing escapes this frame either way.
+function targetSpelling(value) {
+  try {
+    // **`§2.5` item 5 (a)'s OWN TWO EXAMPLES, RENDERED EXACTLY:** *"`10n` for a `bigint`, `Symbol()` for a
+    // symbol"* — a `bigint` is printed with the `n` its own JS spelling carries (which
+    // `BigInt.prototype.toString` drops) and a `symbol` is printed `Symbol()`, while every other target class
+    // is printed as its own value.
+    if (typeof value === 'bigint') return `${value}n`;
+    return String(value);
+  } catch {
+    return classSpelling(value);
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
+// THE CROSSING MODEL, ENCODED FOR THE CORE — `bindings/js/src/facade.rs` states the protocol, and this
+// section is its only producer. **The class decisions are TAKEN HERE and carried as data**; every
+// other rule of `crossing.md §1.4` is the core's (`package.md §4.5` item 3 (c)).
+// ---------------------------------------------------------------------------------------------
+
+/// **`A76`'S CLASS ORDER, SHIPPED SO IT IS VISIBLE AS AN ORDER: the CLASS decision, then the SHAPE
+/// decision, then admission — and NEVER a coercion between them.** Every arm below CLASSIFIES the value it
+/// was handed; not one of them converts it, defaults it or substitutes for it:
+///   1. `null` and `undefined` are their own outside classes (`§1.2` rows 6–7);
+///   2. the primitives are read by `typeof` — **the `string`, `boolean` and `bigint` classes are decided
+///      BEFORE the numeric arm**, so `10n` is a `BigInt` and is NEVER carried through the number arm
+///      (`JS-6`): `typeof 10n === 'bigint'`, and no `Number(...)` is spelled anywhere on this path;
+///   3. `function` and `symbol` are their own outside classes (rows 8–9);
+///   4. a `Proxy` is refused BEFORE any trap can run (`§1.4` item 4 (g), `DD-34`) — **`util.types.isProxy`
+///      reads no member and invokes no handler, which is why a throwing trap cannot raise a host error out
+///      of this frame** (`JS-1`: *"catch, then classify — never propagate the host error"*; there is
+///      nothing to catch because nothing is invoked);
+///   5. an ancestor is the cycle class (`§1.4` item 6);
+///   6. **the ARRAY CLASS is decided before the array SHAPE**: a genuine array (any realm) is walked, and a
+///      class extending `Array` is refused as `NonPlainCollection` (`JS-2` — `Array.isArray` does not
+///      short-circuit `arrayClass`, which is what makes `class V extends Array {}` refused as a VALUE);
+///   7. otherwise the plain-object test decides, and a prototype-carrying object is refused (§1.4 (f)).
+///
 /// The `JsValue` model of `crossing.md §1.2`, encoded member for member. **The walk reads each member ONCE
 /// and carries its OWN ancestor stack — never a `WeakSet` of visited objects, which would refuse an
 /// acyclic DIAMOND** (`§1.4` item 6, `DD-11`).
@@ -170,14 +372,20 @@ function encodeValue(value, ancestors, depth) {
   if (kind === 'undefined') return { k: 'u' };
   if (kind === 'string') return hasLoneSurrogate(value) ? { k: 'c' } : { k: 's', v: value };
   if (kind === 'boolean') return { k: 'b', v: value };
-  if (kind === 'number') return Number.isFinite(value) ? { k: 'n', v: value } : { k: 'F', v: value };
+  // THE CLASS TEST PRECEDES THE NUMERIC ARM (`JS-6`): `bigint` is decided here, as its own outside class.
   if (kind === 'bigint') return { k: 'g', v: value.toString() };
+  if (kind === 'number') return Number.isFinite(value) ? { k: 'n', v: value } : { k: 'F', v: value };
   if (kind === 'function') return { k: 'f' };
   if (kind === 'symbol') return { k: 'y' };
-  if (types.isProxy(value)) return { k: 'P' }; // `§1.4` item 4 (g), `DD-34`
+  if (types.isProxy(value)) return { k: 'P' }; // `§1.4` item 4 (g), `DD-34` — and NO trap is invoked
   if (ancestors.includes(value)) return { k: 'c' }; // `§1.4` item 6: the ancestor stack, never a `WeakSet`
   const next = [...ancestors, value];
   if (Array.isArray(value)) {
+    // **THE CLASS DECISION COMES FIRST, ON THE VALUE AS IT IS** (`A76`, `JS-2`): `Array.isArray` is TRUE
+    // for a class extending `Array`, so it may not stand alone as the admission test. **A class extending
+    // `Array` is refused under ITS OWN declared class — `§1.2` row 5's `ValueNotAdmitted`
+    // (`NonPlainCollection`) — and NEVER through the array shape test.**
+    if (arrayClass(value) === 'class') return { k: 'P' };
     for (let i = 0; i < value.length; i += 1) {
       if (!(i in value)) return { k: 'H' }; // `§1.4` item 2: a hole refuses the WHOLE value (`DD-8`)
     }
@@ -195,6 +403,8 @@ function encodeValue(value, ancestors, depth) {
   for (const name of Object.keys(value)) {
     // `§1.2` row 7 / `§1.4` item 3: an `{a: undefined}` member is SEEN and REFUSED, and **the key is NEVER
     // dropped** — the member is encoded and the core's own taxonomy answers `ValueNotAdmitted`.
+    // **THE READ IS AN OWN-PROPERTY READ** (`A76`, `JS-5`): `Object.keys` yields the OWN enumerable string
+    // keys — the keys the walk takes, `§1.4` item 4 (b) — and the member read is that key's own value.
     members.push([name, encodeValue(value[name], next, depth + 1)]);
   }
   return { k: 'o', m: members, p: proto, acc: false, proxy: false };
@@ -202,13 +412,28 @@ function encodeValue(value, ancestors, depth) {
 
 /// `crossing.md §1.3`'s `Segment`: a string or a non-negative integer is admitted, and EVERY outside class
 /// is carried as its own variant so the STORE produces the code (`DD-1`) — the package mints none.
-function encodeSegment(segment) {
-  if (typeof segment === 'string' || typeof segment === 'number' || typeof segment === 'boolean') {
-    return segment;
-  }
+///
+/// **`A76` AT THIS SITE: THE CLASS IS DECIDED FIRST AND NOTHING IS RESHAPED.** The declared rows (a
+/// `null`, an `undefined`, a boolean, an object, a nested array, a function) are carried as their own
+/// variants, so the store generates its own `AddressMalformed` at the failing target's address. **A
+/// `symbol` and a `bigint` have NO carrier row at all** — and folding either into the `object` marker would
+/// report a class that is not the one the caller spelled — so those two are REFUSED AT THE BOUNDARY,
+/// verbosely, naming the class and the POSITION the segment holds. **`JS-1`'s demand is met by
+/// CONSTRUCTION, not by a `catch`: no `String(segment)`/`Number(segment)` is spelled here, so no `valueOf`,
+/// no `Symbol.toPrimitive` and no trap is ever invoked, and the class is read with `typeof` alone.**
+function encodeSegment(segment, position) {
+  const kind = typeof segment;
+  if (kind === 'string' || kind === 'number' || kind === 'boolean') return segment;
   if (segment === null) return { bad: 'null' };
-  if (segment === undefined) return { bad: 'undefined' };
-  if (typeof segment === 'function') return { bad: 'function' };
+  if (kind === 'undefined') return { bad: 'undefined' };
+  if (kind === 'function') return { bad: 'function' };
+  if (kind === 'symbol' || kind === 'bigint') {
+    boundaryReject(
+      'AddressMalformed', // `AddressArg` rows 7–10's own declared code, carried and never minted
+      'address',
+      `the address holds ${classSpelling(segment)} at position ${position}, and a segment is a string or a non-negative integer`,
+    );
+  }
   if (Array.isArray(segment)) return { bad: 'array' };
   return { bad: 'object' };
 }
@@ -220,15 +445,21 @@ function encodeAddress(address) {
   // 4 and 5 answer the one code, so no declared answer moves by the fold.
   if (address === undefined) return { k: 'A' };
   if (address === null) return { k: 'N' };
+  // **`A76`/`JS-2`: THE CLASS DECISION COMES FIRST HERE TOO, ON THE ADDRESS AS IT IS.** A `Proxy` is
+  // refused BEFORE the array shape test and before any element is read (row 12, `DD-34`), and a class
+  // extending `Array` — for which `Array.isArray` is TRUE — is refused under its own declared class
+  // (`AddressArg` row 11's `AddressMalformed`: *"the shape is not an array"*) rather than ADMITTED as an
+  // address because a language predicate made it look like one.
+  if (types.isProxy(address)) return { k: 'X' }; // row 12 (`DD-34`)
   if (Array.isArray(address)) {
-    if (types.isProxy(address)) return { k: 'X' }; // row 12 (`DD-34`)
+    if (arrayClass(address) === 'class') return { k: 'C' }; // row 11: a class extending `Array`
     for (let i = 0; i < address.length; i += 1) {
       if (!(i in address)) return { k: 'S' }; // row 14 (`DD-8`)
     }
-    return { k: 'L', s: address.map(encodeSegment) }; // rows 1–3 and 13
+    return { k: 'L', s: address.map((segment, position) => encodeSegment(segment, position)) }; // rows 1–3, 13
   }
   if (typeof address === 'object') return { k: 'C' }; // rows 6 and 11: the shape is not an array's
-  return { k: 'D', o: encodeSegment(address) }; // row 6: a non-array's five named classes
+  return { k: 'D', o: encodeSegment(address, 0) }; // row 6: a non-array's five named classes
 }
 
 /// `crossing.md §1.3`'s `TierArg` table and `TierSetItem` table.
@@ -238,12 +469,21 @@ function encodeAddress(address) {
 /// `readLiteral` and `write`** — which is why `read(i, a, undefined)` answers the value while `read(i, a,
 /// null)` answers row 4 — **while `delete`'s `tier` is reached as a VALUE, and its own `null`/`undefined`
 /// row is row 4's `AddressMalformed`.**
+///
+/// **AND `A76`'S CLASS ORDER IS TAKEN HERE FIRST (`JS-2`'s reach at this carrier):** a `Proxy` is refused
+/// as an OBJECT before any element is read from it — **so a throwing `get` trap cannot be raised, because
+/// nothing reads the proxy** — and a class extending `Array` is refused as an OBJECT (`TierArg` row 6's
+/// `OutOfDomainTier`) rather than admitted as the array spelling row 2 declares for the readers.
 function encodeTier(tier, supplied, foldsUndefined) {
   if (!supplied) return { k: 'A' };
   if (tier === undefined) return foldsUndefined ? { k: 'A' } : { k: 'U' };
   if (tier === null) return { k: 'N' };
   if (typeof tier === 'string') return { k: 'T', v: tier };
-  if (Array.isArray(tier)) return { k: 'S', i: tier.map(encodeTierSetItem) };
+  if (types.isProxy(tier)) return { k: 'O' }; // row 6: an object, and no trap is invoked
+  if (Array.isArray(tier)) {
+    if (arrayClass(tier) === 'class') return { k: 'O' }; // row 6: a class extending `Array` is an object
+    return { k: 'S', i: tier.map(encodeTierSetItem) };
+  }
   if (typeof tier === 'number') return { k: 'D', v: tier };
   if (typeof tier === 'boolean') return { k: 'B', v: tier };
   if (typeof tier === 'function') return { k: 'F' };
@@ -259,11 +499,37 @@ function encodeTierSetItem(item) {
 }
 
 /// `crossing.md §1.3`'s `OpIdArg` table, `6` rows.
+///
+/// **⟶ `JS-1` AND `JS-6` ARE CLOSED AT THIS SITE — THE `Number(opId)` COERCION IS GONE.** The shipped arm
+/// was `return { k: 'D', v: Number(opId) }`, and it was wrong three ways at once: `Number(Symbol())` threw
+/// a RAW HOST `TypeError` out of this frame (outside `§2.5`'s one form), an object with a throwing
+/// `valueOf`/`Symbol.toPrimitive` or a `Proxy` with a throwing trap did the same, and **a `bigint` crossed
+/// the NUMBER ARM and was substituted — `Number(10n)` is `10` — so the caller's `10n` was reported as a
+/// number** (`JS-6`). **THE FIX IS THE ORDER, NOT A `catch`: THE CLASS IS DECIDED FIRST AND NOTHING IS
+/// CONVERTED, so no `valueOf`, no `Symbol.toPrimitive` and no trap is ever invoked and there is no host
+/// error left to catch.**
+///
+/// **THE DECLARED ROWS CROSS TO THE STORE (`OpIdArg` rows 1, 3–6): a `string`, a supplied `undefined`, a
+/// `null`, and a NUMBER — `JS-1`'s *"a number"* row 6 — each carried as its own variant so the store renders
+/// its own generated `AddressMalformed` at the failing target.** **EVERY OTHER CLASS — a `symbol`, a
+/// `bigint`, a `boolean`, an object, an array, a function, a `Proxy`, a class instance — is refused AT THE
+/// BOUNDARY, inside the one form, naming the target and the class** (`A76`: *"an op-id (and every other
+/// argument) whose class is outside the declared domain is refused INSIDE the single failure form"*; the
+/// status is the one the table's rows 3–6 declare, `AddressMalformed`, and it is carried rather than
+/// minted — `DD-40`).
 function encodeOpId(opId) {
   if (opId === undefined) return { k: 'U' };
   if (opId === null) return { k: 'N' };
   if (typeof opId === 'string') return { k: 's', v: opId };
-  return { k: 'D', v: Number(opId) };
+  // THE DECLARED NUMBER ROW: the number itself crosses — **never `Number(opId)`, which would COERCE every
+  // other class into this arm.**
+  if (typeof opId === 'number') return { k: 'D', v: opId };
+  boundaryReject(
+    'AddressMalformed', // `OpIdArg` rows 3–6's own declared code, carried and never minted (`DD-40`)
+    targetSpelling(opId), // item 5 (a): the non-segment target printed as its OWN value
+    `the rollback's opId is ${classSpelling(opId)}, and an op id is a non-empty string`,
+  );
+  return { k: 'U' }; // `boundaryReject` throws; this is unreachable and is not a second path
 }
 
 /// `crossing.md §1.3`'s `ListenerHandle` row 2 and `JsHandleArg`: **the OPAQUE form alone is the site's**,
@@ -285,25 +551,51 @@ function encodeFilePath(filePath) {
 }
 
 /// `crossing.md §1.3`'s `JournalLengthArg` table, `12` rows, with NO coercion (`PAR-JS-4`).
+///
+/// **`A76`/`JS-6` AT THIS CARRIER: A `bigint` CROSSES AS A `bigint`.** The shipped arm wrote the marker
+/// `{ bigint: n.toString() }`, which the facade could only read as an OBJECT — a class folding the caller
+/// never spelled. **The value's own class is handed over as the value itself**, the facade reads it as
+/// `NAPI_BIGINT` (never through the number read), and the store answers row 11's declared
+/// `AddressMalformed` — *"and no coercion of a numeric string, a boolean or a `bigint` is performed"*
+/// (`PAR-JS-3`).
 function encodeJournalLength(n) {
   if (n === undefined) return undefined;
   if (n === null) return null;
   if (typeof n === 'number' || typeof n === 'string' || typeof n === 'boolean') return n;
-  if (typeof n === 'bigint') return { bigint: n.toString() };
+  if (typeof n === 'bigint') return n;
   if (typeof n === 'function') return { bad: 'function' };
   return { bad: 'object' };
 }
 
 /// `crossing.md §1.3`'s `ListenersArg` table: ABSENT answers `AddressMalformed` — *"the ONE absence the
 /// construction does not admit"* — and a rejected array admits NOTHING.
+///
+/// **`A76`/`JS-5` AT THIS CARRIER — THE TWO DEFECTS THE GATE-4 PASS MEASURED ARE BOTH CLOSED HERE:**
+/// **(1) `'address' in entry` WALKED THE PROTOTYPE CHAIN, so an entry carrying an INHERITED `address` or
+/// `handle` was read as an entry field** — every member read below is now `Object.hasOwn`'s own-property
+/// read and nothing else; **(2) an ENTRY that is a prototype-carrying object or a class instance was read
+/// through the chain at all** — **the entry's CLASS is now decided first** (`isPlainObjectValue`, which
+/// refuses a `Proxy`, an `Array` and any prototype-carrying object before one member is read) and a
+/// non-plain entry is REFUSED AT THE BOUNDARY with the class and the POSITION named, inside the one form
+/// (`ListenersArg` row 2's declared `AddressMalformed`, carried and never minted).
 function encodeListeners(listeners) {
   if (listeners === undefined) return undefined;
   if (listeners === null) return null;
+  if (types.isProxy(listeners)) return { bad: 'non-array' }; // row 3: not the array's shape (`DD-34`)
   if (!Array.isArray(listeners)) return { bad: 'non-array' };
-  return listeners.map((entry) => {
-    if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) return { bad: 'entry' };
-    const keys = Object.keys(entry);
-    if (keys.length !== 2 || !('address' in entry) || !('handle' in entry)) return { bad: 'entry' };
+  if (arrayClass(listeners) === 'class') return { bad: 'non-array' }; // `JS-2`: a class extending `Array`
+  return listeners.map((entry, position) => {
+    if (!isPlainObjectValue(entry)) {
+      boundaryReject(
+        'AddressMalformed',
+        'listeners',
+        `the listeners entry at position ${position} is ${classSpelling(entry)}, and an entry is a plain { address, handle } record`,
+      );
+    }
+    const keys = Object.keys(entry); // the OWN enumerable string keys, and nothing inherited
+    if (keys.length !== 2 || !Object.hasOwn(entry, 'address') || !Object.hasOwn(entry, 'handle')) {
+      return { bad: 'entry' };
+    }
     const handle = entry.handle;
     if (typeof handle !== 'string' || handle === '') return { bad: 'handle' };
     return { address: encodeAddress(entry.address), handle };
@@ -312,13 +604,31 @@ function encodeListeners(listeners) {
 
 /// `surface.md §2.1` / `DD-36`: `cfg` carries the store's THREE declared keys and no fourth. **Each key's
 /// own ABSENCE is the member's own absence** — `crossing.md §1.3`'s absent-versus-`undefined` rule reads a
-/// `cfg` key by `in`-MEMBERSHIP and never by arity.
+/// `cfg` key by MEMBERSHIP and never by arity, and **`A76`/`JS-5` fixes that membership as OWNERSHIP:
+/// `Object.hasOwn` and never `in`, which walks the prototype chain.**
+///
+/// **AND THE CLASS DECISION COMES FIRST, ON `cfg` AS IT IS.** The shipped line
+/// `const object = cfg !== null && typeof cfg === 'object' ? cfg : {};` **SUBSTITUTED an empty object for
+/// every non-object `cfg`** — a repair, and one that answered the wrong code at that: `storeCreate(null)`,
+/// `storeCreate(5)` and `storeCreate([])` all fell through to a missing `journalLength` and answered
+/// `ConstructionArgumentMissing`, where `PAR-JS-1` declares **`AddressMalformed` for EVERY outside form of
+/// `cfg`** (*"ABSENT · `null` · `undefined` · a non-object (a number, a string, a boolean, a function, an
+/// array) — `AddressMalformed` for every one of them, with no instance returned"*). **That substitution is
+/// GONE: a `cfg` that is not a PLAIN object is REFUSED, verbosely, naming the class — and so is a
+/// prototype-carrying object or a class instance, whose inherited keys the shipped `in`-test read as
+/// PRESENT (`JS-5`).**
 function encodeConfig(cfg) {
-  const object = cfg !== null && typeof cfg === 'object' ? cfg : {};
+  if (!isPlainObjectValue(cfg)) {
+    boundaryReject(
+      'AddressMalformed', // `PAR-JS-1`'s declared answer for every outside form of `cfg`, carried
+      'cfg',
+      `the construction's cfg is ${classSpelling(cfg)}, and cfg is one plain object carrying the store's three declared keys`,
+    );
+  }
   const out = {};
-  if ('filePath' in object) out.filePath = encodeFilePath(object.filePath);
-  if ('journalLength' in object) out.journalLength = encodeJournalLength(object.journalLength);
-  if ('listeners' in object) out.listeners = encodeListeners(object.listeners);
+  if (Object.hasOwn(cfg, 'filePath')) out.filePath = encodeFilePath(cfg.filePath);
+  if (Object.hasOwn(cfg, 'journalLength')) out.journalLength = encodeJournalLength(cfg.journalLength);
+  if (Object.hasOwn(cfg, 'listeners')) out.listeners = encodeListeners(cfg.listeners);
   return out;
 }
 
@@ -417,9 +727,25 @@ function wrapHandles(state, tokens) {
   return out;
 }
 
+/// **THE STATE A VERB'S FIRST ARGUMENT NAMES** (`surface.md §2.2`'s signatures: every verb takes the
+/// package's own instance handle first).
+///
+/// **⟶ AND THE REFUSAL FOR A VALUE OUTSIDE THAT POSITION'S DOMAIN IS SHIPPED IN THE ONE FORM** — `§2.5`
+/// item 5 (e), verbatim: *"a rejection is NEVER A RAW HOST ERROR — a `TypeError`, a `RangeError`, … or any
+/// host object escaping from the boundary's own frame is a FINDING at whatever site produced it, not a
+/// rejection"*, and `§2.4` item 5 (e): *"a `TypeError` thrown by a VERB remains a FINDING"*. The shipped arm
+/// was `throw new TypeError()`. **THE DECLARED READING IS `§2.5` item 5 (g)'s own: the store's `AddressMalformed`,
+/// whose trigger covers *"a present argument outside its domain"* (`docs/specs/storeroom-native/contract.md
+/// §8.1` #1), with a message generated as item 5 (d) declares at the failing target and position.**
 function stateOf(instance) {
   const state = INSTANCES.get(instance);
-  if (!state) throw new TypeError();
+  if (!state) {
+    boundaryReject(
+      'AddressMalformed',
+      targetSpelling(instance),
+      `the verb's first argument is ${classSpelling(instance)}, and it is not an instance this package returned`,
+    );
+  }
   return state;
 }
 
@@ -511,13 +837,47 @@ export function write(instance, address, tier, value) {
 /// record carries, at the address the record carries beside it — **and a THROWING BODY IS NOT CAUGHT, NOT
 /// RETRIED AND NOT REPORTED** (`§2.7` item 4, `DD-23`): its own exception propagates out of this loop, and
 /// the store's result stands complete and unmoved behind it.
+///
+/// **⟶ AND THIS IS `A77`'S ID-MATCHING MODEL, SHIPPED EXACTLY AS THE RULING STATES IT** (verbatim: *"the
+/// store passes an ID back to the client when a listener is triggered, and the JS side matches that ID to
+/// the function the caller registered it with"*, with `A57`'s *"a handle that it returns to alert the
+/// client of the trigger"*):
+///
+/// * **THE ID IS THE `triggered` MEMBER'S OWN ELEMENT — the OPAQUE HANDLE the caller RECEIVED, one
+///   identity, and the KEY of the package's own registry** (`§2.4`: *"the package owns a PER-INSTANCE
+///   REGISTRY keyed by the opaque handle it returned"*). `triggered` carries `wrapHandles`' list, and
+///   `wrapHandles` returns THE SAME opaque value for a token it has already wrapped (`state.tokens` is read
+///   in both directions), so the identity that arrives here is the very identity `register` was handed at
+///   registration — **the matching is by THAT identity alone, and NO ORDER is asserted** (`§2.7` item 3,
+///   `DD-22`: a drive compares sets, never sequences).
+/// * **AN ID THE REGISTRY HOLDS NO FUNCTION FOR FIRES NOTHING — SILENTLY.** The `typeof listener ===
+///   'function'` test below is the whole of the arm: no invocation, no code, no warning, no log and no
+///   throw, which is `§2.4` rule 1 read together with `A77`'s consequence (1) — **and the SILENCE IS THE
+///   DECLARED OBSERVABLE, not an assumption** (`JS-11`'s drive asserts the absence of an invocation, of a
+///   log and of a throw). Note that the arm is reached for a handle the store returned with no registration
+///   AND for a handle the registry once held a non-function for: `register` refuses a non-function at its
+///   own site (`§2.4` item 5 (d)), so the only way an entry can be non-functional is to be absent.
+/// * **A DUPLICATE ID IN ONE TRIGGER SET MATCHES ONE FUNCTION**: `wrapHandles` de-duplicates the returned
+///   list by identity (`§2.4` rule 3, *"once per DISTINCT handle"*), so the loop runs once per distinct id.
+/// * **THE INVOCATION RECEIVES TWO DISTINCT DATA, AND THEY ARE NOT THE SAME DATUM** (`A77`'s consequence
+///   (4)): **the ID IT WAS MATCHED BY is the loop variable `handle`, the registry KEY — it selects the
+///   function and is NOT passed to it**; **what IS passed, as the invocation's ONE argument, is the
+///   TRIGGERING ADDRESS** per `parameter-semantics.md §2.12` (*"The package's invocation passes the
+///   triggering ADDRESS as its argument; no other argument is declared and no return value is read"*) — the
+///   address the addon's own record carries beside the id set. **The two are different data and the cells
+///   assert exactly one argument** (`S-FIRE-WINDOW`'s `argCount === 1`).
 function deliver(state, triggered, triggeringAddress) {
   const address = typeof triggeringAddress === 'object' && triggeringAddress !== null ? triggeringAddress : [];
   for (const handle of triggered) {
-    const listener = state.registry.get(handle);
+    const listener = state.registry.get(handle); // THE ID→FUNCTION MATCH, BY THE IDENTITY REGISTRATION RETURNED
     // `§2.4` rule 1: a handle with NO registered function invokes nothing and reports nothing — no code,
     // no warning, no log.
-    if (typeof listener === 'function') listener(address);
+    if (typeof listener === 'function') {
+      // `crossing.md §1.1` clause 2's deep copy OUT, at the invocation: **each invocation is handed a FRESH
+      // dense address array** (`JS-19`), so one listener's mutation of its own argument cannot be observed
+      // by the next — no shared object crosses into the caller's own functions.
+      listener(decodeSegments(address));
+    }
   }
 }
 
@@ -583,19 +943,44 @@ export function unlisten(instance, handle) {
 /// for a handle, held by the package (`DD-15`) and invoked after the verb has returned (`§2.7` item 2).
 /// **`register` REPLACES, never fans out** (rule 2); a non-function `listener`, a `handle` THIS INSTANCE
 /// never minted or adopted, a bare `string`, a blank token, `null`, `undefined`, a non-opaque value and an
-/// ABSENT argument are EACH the SAME JS `TypeError`, carrying NO `status` and NO `message` member (`§2.4`
-/// item 5 (d), `PAR-JS-12`) — **and NOTHING reaches the store in any of those cases.** **`unlisten`'s
+/// ABSENT argument are EACH a refusal — **and NOTHING reaches the store in any of those cases.** **`unlisten`'s
 /// NO-OP-SUCCESS reading does NOT extend here**, because a registration's argument is a member of the
-/// registry's own key set and has no such arm: the addon is the site's own judge, so this file asks it.
+/// registry's own key set and has no such arm.
+///
+/// **⟶ AND THE REFUSAL'S FORM IS THE SINGLE ONE — `surface.md §2.5` item 5 (g), THE OPERATIVE READING, WITH
+/// ITS TERMS:** *"the registration site's refusal IS a rejection under `A76` and travels in THIS section's
+/// single form, with its `status` drawn from the store's closed set — the store's own `AddressMalformed`,
+/// whose declared trigger already covers 'a present argument outside its domain' and 'an absent required
+/// argument' — and its `message` generated as clause (d) declares."* **SO THIS SITE NO LONGER THROWS A BARE
+/// `TypeError`:** the `TypeError` is *"the SHAPE the site was declared with at the bounded correction pass of
+/// 2026-10-11"* (`parameter-semantics.md §2.12`'s second dated exception clause), its declared absence of
+/// members *"was never a permission to MINT a status"*, and *"a `status` of `TypeError`, reached at the
+/// addon's own boundary, is that finding and not a declared form, because the store's closed set holds no
+/// such member"* — **the closed set is neither widened nor re-spelled here (`DD-40`), and this file mints no
+/// status of its own.** **THE SITE, ITS DOMAIN, ITS TWO argument POSITIONS, ITS `undefined` RETURN AND ITS
+/// REPLACEMENT ARM ARE UNMOVED**; only the refusal's form moved.
 function registerOn(state, handle, listener) {
-  if (typeof listener !== 'function') throw new TypeError();
+  // §2.5 item 5 (b): the ARGUMENT POSITION is the reason's conditional half, and it is named at each arm.
+  if (typeof listener !== 'function') {
+    boundaryReject(
+      'AddressMalformed',
+      targetSpelling(listener),
+      `register's second argument is ${classSpelling(listener)}, and a registration's listener is a JS function`,
+    );
+  }
   const encoded = encodeHandle(state, handle);
-  if (encoded.k !== 'O') throw new TypeError();
+  if (encoded.k !== 'O') {
+    boundaryReject(
+      'AddressMalformed',
+      targetSpelling(handle),
+      `register's first argument is ${classSpelling(handle)}, and a registration's handle is an opaque value THIS INSTANCE minted or adopted`,
+    );
+  }
   const addon_ = withAddon();
   try {
     addon_.register(state.id, encoded);
   } catch (refusal) {
-    if (refusal && refusal.status === 'TypeError') throw new TypeError();
+    // The addon's own refusal — the store's own code and its own generated message, carried VERBATIM.
     fail(refusal);
   }
   // `§2.4` rule 2: ONE handle, ONE function — the previous entry is REPLACED and dropped without notice.

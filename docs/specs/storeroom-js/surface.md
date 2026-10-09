@@ -219,6 +219,65 @@ register(handle, listener) -> undefined    // the object storeCreate returned; t
   docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12` — a pinned default carries a priced alternative
   | declared parameter semantics]`).
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING `A77`:
+THE ID-MATCHING MODEL, AND THE FOUR RULES ABOVE READ THROUGH IT.** `RCA-8(d)` ANNOTATE-BESIDE: **rules 1–4
+and item 5 above stand byte-for-byte and are not restated; THIS item is a PURE INSERTION, and it is the model
+the registry's own rules are read through — so `§2.4` rule 4's *"a later re-`listen` at the same address mints
+a DIFFERENT handle"* and `DD-15`'s same words remain read with `contract.md §2.3` item 6's narrowing, which
+this item does not widen.** **THE RULING, VERBATIM:** ***"Listener passes an id back to client-side when
+triggered, JS then has to match id to the function it was set with."*** (`docs/specs/storeroom-js-proposal.md`
+`§18` · `A77`).
+
+**6. THE ID-MATCHING MODEL — THE IDENTITY THE TRIGGER CARRIES, AND THE MATCH THE PACKAGE MAKES.** **SIX
+CLAUSES, AND THE FOUR RULES ABOVE ARE READ THROUGH THEM** (`[A1 docs/specs/storeroom-js-proposal.md §18 ·
+`A77`; A1 docs/specs/storeroom-js-proposal.md §9.2 · `A57` | requirement]`):
+
+   **(a) THE STORE PASSES AN ID BACK WHEN A LISTENER IS TRIGGERED.** **The store — the listener's owner —
+   passes an ID back to the client side when a listener's address is triggered, and the id it passes is the
+   id the store returned at REGISTRATION** — **the same value, ONE identity** — **and it is carried in the
+   `triggered` member of the record the verb returned (`§2.7` item 1).**
+
+   **(b) THE JS SIDE MATCHES THAT IDENTITY TO THE FUNCTION IT WAS REGISTERED WITH.** **The package's registry
+   IS the id→function map: the registration site of item 5 above takes the id as its FIRST argument and the
+   function as its SECOND, so the matching is the registry's own lookup BY THAT IDENTITY AND BY NOTHING
+   ELSE.** **NO ORDER IS ASSERTED** (`§2.7` item 3; `DD-22`), **and no clause of this part derives a match
+   from a position in the `triggered` array.**
+
+   **(c) AN ID THE PACKAGE HOLDS NO FUNCTION FOR FIRES NOTHING — AND THE SILENCE IS AN ASSERTABLE
+   OBSERVABLE.** **No invocation, NO LOG and NO THROW: the absence of a call, the absence of any output and
+   the absence of an exception are each DECLARED OBSERVABLES of that state and each may be asserted** —
+   **which is the observable `§2.4` rule 1 owes, and gate 4's `JS-11` is the finding that it was unobservable
+   while it went undriven** (`archive/gate4/storeroom-js-adversarial.md` §A · `JS-11`). **The rule's own
+   words are UNMOVED — *"no code, no warning, no log"* — and this clause ADDS ONLY the statement that they
+   are assertable.**
+
+   **(d) THE TWO DATA A TRIGGER CARRIES ARE SEPARATED HERE, AND EACH CELL SAYS WHICH IS WHICH.** **A trigger
+   hands the JS side TWO DIFFERENT DATA:**
+
+   | The datum | What it IS | Where it travels | What it decides |
+   | --- | --- | --- | --- |
+   | **THE ID** | **the matched identity — the value REGISTRATION returned**, which is the handle's OUTPUT spelling (`§2.3` item 2) | **a member of the `triggered` array** (`§2.7` item 1; `crossing.md §1.3`'s `ListenerHandle` row 2) | **WHICH function is invoked** — the registry's lookup, clause (b) |
+   | **THE TRIGGERING ADDRESS** | **the address whose triggering produced the event** — the verb's own `address` argument, `docs/specs/storeroom-js/parameter-semantics.md §2.12`'s declared invocation argument | **the invocation's ONE argument** (`§2.7` item 5) | **WHAT the invoked function is told about the trigger** — it never selects a function |
+
+   **A CELL THAT SPEAKS OF *"the handle a trigger carries"* MEANS THE ID AND NEVER THE ADDRESS; a cell that
+   speaks of *"the invocation's argument"* MEANS THE TRIGGERING ADDRESS AND NEVER THE ID.**
+
+   **(e) THE FOUR RULES OF `§2.4` ABOVE, READ THROUGH THE MODEL — ONE LINE EACH, AND NO RULE IS RE-DECIDED.**
+   **Rule 1 — an unregistered id fires nothing silently: the registry holds no function for that id, so the
+   match finds none and clause (c)'s three observables hold.** **Rule 2 — a second registration for the same
+   id replaces the first: the id→function map holds AT MOST ONE function per id, so a replacement CHANGES THE
+   MATCHED FUNCTION AND NOT THE IDENTITY.** **Rule 3 — a lawful duplicate fires once per DISTINCT id: one
+   trigger set carrying an id once matches ONE function ONCE.** **Rule 4 — `unlisten` withdraws the
+   registration and never the function: the STORE-side id stops being reached, so the id the trigger carries
+   is no longer the registered one, and the registry's entry — which is keyed by the OLD id — simply never
+   matches again.**
+
+   **(f) WHAT THIS ITEM DOES NOT DO.** **It adds no member, no verb and no parameter; it mints no code; it
+   changes neither the shape of `triggered` nor the two member names `crossing.md §1.3`'s returned-record
+   rows print; it does not widen item 5 (d)'s `TypeError` arm; and it leaves `§2.3`'s handle clause, `§2.7`'s
+   firing window, `DD-22`'s no-order rule and `DD-15`'s *"`unlisten` withdraws the registration, never the
+   function"* standing unchanged.**
+
 ### §2.5 The single failure form
 
 **A FAILURE CROSSES AS A THROWN PLAIN OBJECT WITH EXACTLY TWO MEMBERS, AND THERE IS EXACTLY ONE SUCH
@@ -242,6 +301,94 @@ FORM:**
    branded record and no third member** (`DD-13`).
    (`[A1 docs/specs/storeroom-js-proposal.md §8 · A64; A3 docs/specs/storeroom-native/contract.md §8.3 — the
    error's closed two-member shape | state or fail-state declaration]`)
+
+**⟶ ADDED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING `A76`'S
+THIRD PART: WHAT *"VERBOSE"* MEANS, AT ITS OWN CELL, AND THE ONE CLAUSE THIS SECTION OWES `A64`.** `RCA-8(d)`
+ANNOTATE-BESIDE: **items 1–4 above stand byte-for-byte and are read THROUGH this item; THIS item is a PURE
+INSERTION, it adds no member to the form, and it changes no status, no code and no count of the store's closed
+set.** **THE RULING, VERBATIM:** ***"reject with verbose error to client"*** (`docs/specs/storeroom-js-proposal.md`
+`§18` · `A76`).
+
+**5. WHAT *"VERBOSE"* MEANS — THE REJECTION'S CONTENT, DECLARED AT THIS CELL AND INSIDE THE ONE FORM.**
+**A REJECTION IS VERBOSE WHERE IT CARRIES TWO THINGS: THE FAILING TARGET, AND THE REASON** — **and BOTH
+TRAVEL INSIDE THE SINGLE DECLARED FORM OF THIS SECTION, whose member set stays EXACTLY `{status, message}`
+and gains no third member** (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` | requirement]`):
+
+   **(a) THE FAILING TARGET, RENDERED AS THE STORE'S GENERATOR RENDERS IT.** **The target is rendered in the
+   SAME SPELLING THE STORE'S OWN MESSAGES USE** — **`<SEGMENT>`, the store's generator's own target slot: a
+   string segment SINGLE-QUOTED (`'a'`), an integer segment BARE (`0`), a whole address JOINED BY `/` where
+   the failure is about the address, and **a non-segment value PRINTED AS ITS OWN VALUE, SINGLE-QUOTED** (`10n`
+   for a `bigint`, `Symbol()` for a symbol) where the failure is about a value and not about a segment** —
+   **because the store's generator's own rule prints a non-segment argument that way, and this unit may not
+   invent a second rendering of a target the store already renders**
+   (`docs/specs/storeroom-native/contract.md §8.2`'s generator rule and its `MessageArgs` shape).
+
+   **(b) THE REASON — THE CLASS THAT FAILED, AND THE POSITION WHERE THE CONTRACT DECLARES ONE.** **The reason
+   is the CLASS the value HAS — named as `§1.2`'s or `§1.3`'s own class, never as a class the value could be
+   converted to** — **and where a POSITION is declared by the contract, the position is carried BESIDE the
+   class: the ARGUMENT POSITION for a verb's arguments, and the MEMBER POSITION for a member inside a value
+   the walk reached.** **THE POSITION IS THE ONE THING THIS SECTION DECLARES THAT THE STORE'S OWN PHRASES DO
+   NOT CARRY**, **so it is carried INSIDE the generated message's own text and NEVER as a third member** —
+   **and WHERE no position is declared the class alone is the reason, because the reason's class half is
+   mandatory and its position half is conditional.** **The reason's class half is carried by the store's own
+   `<mismatch clause>` for the code the refusal answers** (`crossing.md §1.2` row 10's `is not an admitted
+   value` being the value-arm's own).
+
+   **(c) THE STATUS IS THE STORE'S, DRAWN FROM THE STORE'S CLOSED SET, AND NO PACKAGE CODE IS MINTED.** **The
+   rejection's `status` is a member of the store's closed `15`-member set, CARRIED VERBATIM** — **minted by no
+   clause of this unit, lowercased by none, prefixed by none and re-mapped by none** (`DD-40`) — **and the
+   store's closed set is neither widened nor re-spelled here.** **`§1.6`'s count of *"`0` package-minted
+   codes"* therefore stands, and a rejection is NOT a licence for a package-minted code.**
+
+   **(d) THE MESSAGE'S AUTHORITY IS THE STORE'S GENERATOR, AND A REJECTION REACHED BEFORE THE STORE IS
+   ANSWERED ON THE SAME PATH THE CONTRACT ALREADY DECLARES FOR A STATE THAT PRECEDES ANY VERB.** **For a
+   failure the store itself produces, `message` is the store's generated string verbatim (item 2 above).** **For
+   a refusal the PACKAGE'S OWN WALK produces — the walk of `§1.7` — the message is the string the store's own
+   generator yields for the answering code at the failing target this item names, and the generator is reached
+   through the addon exactly as `contract.md §2.5` item 5's lettered clauses establish for the absent-addon
+   state, whose ONE documented package-side constant is the single site where the string is carried when the
+   generator's own author is the thing that failed** (`docs/specs/storeroom-js/package.md §1.2` item 4;
+   `docs/specs/storeroom-js/contract.md §2.5` item 5 (b)–(c)). **AND THE HONEST CONSEQUENCE OF THAT ONE-SITE
+   RULE IS STATED RATHER THAN SMOOTHED: a package-side constant can hold the generator's bytes only for a
+   FIXED subject, so a rejection whose target VARIES is a rejection whose message is NOT byte-identical to a
+   constant's — and this section declares the AUTHORITY (the store's generator) and does not claim a
+   byte-equality it cannot reach.** **Gate 4's `JS-3` measures exactly that byte-equality gap, and it is a
+   finding for the implementer's own pass, not a licence to hand-author a message here**
+   (`archive/gate4/storeroom-js-adversarial.md` §A · `JS-3`).
+
+   **(e) THE TWO THINGS A REJECTION IS NEVER.** **A rejection is NEVER A SECOND FORM — there is no additional
+   thrown shape beside `{status, message}`, no `Error` subclass, no wrapper carrying the class or the position
+   as a member and no returned union.** **And a rejection is NEVER A RAW HOST ERROR — a `TypeError`, a
+   `RangeError`, a `RangeError` from a deep recursion, a string thrown, or any host object escaping from the
+   boundary's own frame is a FINDING at whatever site produced it, not a rejection.** **`A76`'s reach clause
+   is the authority for both sentences: it does NOT license a second failure form.**
+   (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76`'s reach clause | prohibition]`)
+
+   **(f) AND THE INTERACTION WITH `A64`'S NO-DISCRIMINATION RULE, STATED SO THE FOUR ITEMS ABOVE ARE NOT READ
+   AS AMENDED.** **`A76` DOES NOT OWE A DISCRIMINATION RULE: the caller still cannot tell its own stored data
+   from a failure record, and item 4 above stands unmoved.** **THE CHANGE IS THAT THE RECORD SAYS MORE** —
+   **the caller reads the failing target and the reason OUT OF the record it already has, and a caller that
+   stored a value indistinguishable from `{status, message}` gains no new way to tell the two apart, because
+   nothing is added to the record's SHAPE.** **So no discrimination helper, no branded record and no third
+   member becomes lawful or necessary by this item** (`DD-13`; `A64`).
+
+   **(g) AND THE ONE EXISTING CLAUSE THAT MUST BE RECONCILED RATHER THAN READ BESIDE THIS ITEM, NAMED WITH ITS
+   `§` BECAUSE A REJECTION'S FORM IS THE WHOLE OF WHAT THIS ITEM DECLARES.** **`contract.md §2.4` item 5 (d)
+   and `docs/specs/storeroom-js/parameter-semantics.md §2.12` declare the REGISTRATION site's refusal as a JS
+   `TypeError` — a form this section does not declare. THE OPERATIVE READING, STATED WITH ITS TERMS AND TAKEN
+   HERE: the registration site's refusal IS a rejection under `A76` and travels in THIS section's single form,
+   with its `status` drawn from the store's closed set — the store's own `AddressMalformed`, whose declared
+   trigger already covers *"a present argument outside its domain"* and *"an absent required argument"*
+   (`docs/specs/storeroom-native/contract.md §8.1` #1) — and its `message` generated as clause (d) declares.**
+   **THE `TypeError` IS NOT WITHDRAWN AS A WORD: it is the SHAPE of the failure at the registration site and
+   it is what `§2.4` item 5 (d)'s own text names, and a later bounded amendment of this directory re-spells
+   those two cells to this section's form.** **AND ONE CONSEQUENCE IS NAMED SO THE RECONCILIATION IS NOT READ
+   AS A WIDENING: the `TypeError`'s declared ABSENCE OF MEMBERS was never a permission to mint a status, and a
+   `status` of `TypeError` reached at the addon's own boundary is a FINDING against the store's closed set,
+   because the set holds no such member** (`docs/specs/storeroom-js/contract.md §2.4` item 5 (d);
+   `docs/specs/storeroom-js/parameter-semantics.md §2.12`; `DD-40`; `archive/gate4/storeroom-js-adversarial.md`
+   §A · `JS-1`) (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the verbose rejection travels inside
+   the one form; `A1` | state or fail-state declaration]`).
 
 ### §2.6 The constraint/repair pattern — a usage pattern over declared verbs, never a seam
 
@@ -271,6 +418,26 @@ own boundary | requirement]`)
    (`[A3 docs/specs/storeroom-native/contract.md §6.5 item 5 — *"NO ORDER IS DECLARED FOR THE LIST"*; A1
    docs/specs/storeroom-js-proposal.md §15 · A73's neighbourhood — the firing window is this unit's own
    carriage | ordering claim]`)
+
+**⟶ ADDED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), ON `A77`: THE INVOCATION'S ONE
+ARGUMENT, DECLARED BESIDE THE INVOCATION'S OWN WINDOW.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1–4 above stand
+byte-for-byte and are read THROUGH this item; THIS item is a PURE INSERTION and it adds no argument, no member
+and no order.** **THE RULING, VERBATIM:** ***"Listener passes an id back to client-side when triggered, JS
+then has to match id to the function it was set with."*** (`docs/specs/storeroom-js-proposal.md` `§18` ·
+`A77`).
+
+**5. THE INVOCATION'S ONE ARGUMENT, AND WHICH DATUM IT IS.** **When the package invokes a registered function
+for a triggered id, IT PASSES THE TRIGGERING ADDRESS AS ITS SINGLE ARGUMENT** — **the function's `length`-and-
+`arguments` view is ONE argument, the address, and it is NOT the id that selected the function** — **and the
+argument is the datum `docs/specs/storeroom-js/parameter-semantics.md §2.12` declares, whose PRODUCER and
+whose arms are declared in that row's own dated clause.** **THE TWO DATA ARE NOT THE SAME DATUM AND THIS ITEM
+SEPARATES THEM AT THIS CELL: the ID is the matched identity carried in the record's `triggered` member and it
+decides WHICH function is invoked (`§2.4` item 6 (b)–(d)); the TRIGGERING ADDRESS is the invocation's own
+argument and it tells the invoked function what triggered it.** **NO OTHER ARGUMENT IS DECLARED AND NO RETURN
+VALUE IS READ** (`docs/specs/storeroom-js/parameter-semantics.md §2.12`). **A drive that asserts
+`arguments.length !== 1`, or an invocation whose argument is the id rather than the address, is asserting a
+behaviour this unit does not declare** (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A77`;
+docs/specs/storeroom-js/parameter-semantics.md §2.12 | declared parameter semantics]`).
 
 ### §2.8 The two file-behaviour readings a JS caller will meet
 

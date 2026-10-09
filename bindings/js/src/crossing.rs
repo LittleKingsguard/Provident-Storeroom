@@ -27,10 +27,42 @@ pub struct Refusal {
     pub message: String,
 }
 
-/// The status `§4.5` item 5 (a) declares for the registry's non-function registration: **NOT a store
-/// code**, because `parameter-semantics.md §2.12` (`PAR-JS-12`) declares a JS `TypeError` at that one site
-/// and the facade translates it.
-pub const TYPE_ERROR_STATUS: &str = "TypeError";
+/// The status the registry's own site answers an outside registration with — **A MEMBER OF THE STORE'S
+/// CLOSED `15`-MEMBER SET, CARRIED AND NEVER MINTED** (`DD-40`; `crossing.md §1.3`'s closing clause).
+///
+/// **⟶ THE SHIPPED CONSTANT WAS `TYPE_ERROR_STATUS = "TypeError"`, AND `A76`'S PASS REPLACED IT.** **The
+/// finding, in the contract's own words** (`surface.md §2.5` item 5 (g), `parameter-semantics.md §2.12`'s
+/// second dated exception clause): *"a `status` of `TypeError`, reached at the addon's own boundary, is that
+/// finding and not a declared form, because the store's closed set holds no such member"* — **the store's set
+/// holds no `TypeError`, so the shipped constant minted a status outside it.** **THE OPERATIVE READING IS
+/// THE ONE FORM WITH THE STORE'S OWN `AddressMalformed`**, whose declared trigger already covers *"a present
+/// argument outside its domain"* and *"an absent required argument"* (`docs/specs/storeroom-native/contract.md
+/// §8.1` #1), and whose message is the store's generator's own string at the failing target (`§2.5` item 5
+/// (d)) — never hand-authored here.
+pub const REGISTRATION_REFUSAL_STATUS: &str = "AddressMalformed";
+
+/// **`surface.md §2.5` item 5 (a)–(b) AND (d): A REGISTRATION REFUSAL, IN THE ONE FORM.** The target is
+/// rendered the way the store's generator renders a non-segment target (its own value, single-quoted), the
+/// class and the argument position are carried BESIDE it inside the same message text, and **the status is
+/// the store's own member, so no code is minted at this layer** — the generator is the same one the facade
+/// reaches, and it authors the string's first half.
+pub fn registration_refusal(target: &str, position: &str, class: &str) -> Refusal {
+    Refusal {
+        status: REGISTRATION_REFUSAL_STATUS.to_string(),
+        message: format!(
+            "{}, {} is {}, and a registration's handle is an opaque value THIS INSTANCE minted or adopted",
+            storeroom_native::storeErrorMessage(
+                REGISTRATION_REFUSAL_STATUS,
+                &storeroom_native::MessageArgs {
+                    segment: Some(format!("'{target}'")),
+                    ..Default::default()
+                },
+            ),
+            position,
+            class,
+        ),
+    }
+}
 
 fn refusal(err: StoreError) -> Refusal {
     Refusal {
@@ -899,8 +931,9 @@ impl Instance {
 
     /// `contract.md §2.4` item 5 / `package.md §4.5` item 5 (a), (b): **the registry's own site.** An
     /// outside `handle` — **a value THIS INSTANCE never minted or adopted, which is what item 5 (c)'s
-    /// per-instance domain means** — or a non-function `listener` is a REFUSAL whose `status` is NOT a
-    /// store code; and otherwise the registration REPLACES the handle's entry and never fans out.
+    /// per-instance domain means** — or a non-function `listener` is a REFUSAL whose `status` **is the
+    /// store's own `AddressMalformed`, drawn from the closed set and never minted** (`surface.md §2.5`
+    /// item 5 (g), `DD-40`); and otherwise the registration REPLACES the handle's entry and never fans out.
     pub fn register(&mut self, handle: &JsHandleArg, listener: JsListener) -> Result<(), Refusal> {
         let token = match handle {
             JsHandleArg::Opaque(opaque) if self.owned.contains(&opaque.token) => opaque.token.clone(),
@@ -908,16 +941,29 @@ impl Instance {
             | JsHandleArg::Bare(_)
             | JsHandleArg::NonOpaque
             | JsHandleArg::Absent => {
-                return Err(Refusal {
-                    status: TYPE_ERROR_STATUS.to_string(),
-                    message: "the registration's handle is not one this package minted".to_string(),
-                })
+                // The target is rendered as its own value where the handle carries one, and as the class
+                // otherwise (`surface.md §2.5` item 5 (a)), with the argument position beside it (item 5 (b)).
+                let (target, class) = match handle {
+                    JsHandleArg::Opaque(opaque) => (opaque.token.clone(), "an opaque handle a FOREIGN instance minted"),
+                    JsHandleArg::Bare(bare) => (bare.clone(), "a bare string"),
+                    _ => (String::from(""), "an absent argument"),
+                };
+                return Err(registration_refusal(&target, "register's first argument", class));
             }
         };
         if let JsListener::NonFunction = listener {
             return Err(Refusal {
-                status: TYPE_ERROR_STATUS.to_string(),
-                message: "the registration's listener is not a function".to_string(),
+                status: REGISTRATION_REFUSAL_STATUS.to_string(),
+                message: format!(
+                    "{}, register's second argument is a non-function, and a registration's listener is a JS function",
+                    storeroom_native::storeErrorMessage(
+                        REGISTRATION_REFUSAL_STATUS,
+                        &storeroom_native::MessageArgs {
+                            segment: Some(String::from("a non-function")),
+                            ..Default::default()
+                        },
+                    ),
+                ),
             });
         }
         match self.registry.iter_mut().find(|(t, _)| *t == token) {

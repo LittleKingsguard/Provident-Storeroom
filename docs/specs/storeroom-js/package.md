@@ -209,6 +209,37 @@ place the two spellings are related.** **`contract.md §3.3` item 5 and `package
 and a sixth artefact name is a FINDING** (`[A1 docs/specs/storeroom-js-proposal.md §15 · A71; A1
 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-16` | numeric or census claim]`).
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), CLOSING GATE 4'S `JS-20` HALF AND
+`SW-1` ROW 27 AT ITS OWN TERMS: THE MAP'S `<scope>` IS THE PACKAGE'S DECLARED IDENTITY, SPELLED.** `RCA-8(d)`
+ANNOTATE-BESIDE: **the paragraph and the map above stand byte-for-byte and the `5`-TARGET and `5`-ARTEFACT
+figures do not move; THIS clause is a PURE INSERTION and it states the CONCRETE spelling of the placeholder
+the map above prints.** **THE FINDING IT CLOSES, NAMED WITH ITS TERMS: the map printed
+`<the package's scope>-js-<label>` while `bindings/js/package.json`'s `optionalDependencies` names spell the
+scope CONCRETELY, so a consumer reading one and a CI script reading the other saw TWO spellings of five
+artefacts** (`archive/gate4/storeroom-js-adversarial.md` · FIGURES THE PASS COULD NOT REPRODUCE · item `6`;
+`contract.md`'s sweep clause, row `27`).
+
+**THE CONCRETE SPELLING IS `@provident-storeroom/js` — the identity `§3.1` item 2 declares — AND THE FIVE
+ARTEFACT NAMES ARE THESE, LABEL BESIDE NAME:**
+
+| # | The matrix label (`§3.2`'s own list) | The published artefact's CONCRETE name |
+| --- | --- | --- |
+| 1 | `linux-x64` | `@provident-storeroom/js-linux-x64-gnu` |
+| 2 | `linux-arm64` | `@provident-storeroom/js-linux-arm64-gnu` |
+| 3 | `darwin-x64` | `@provident-storeroom/js-darwin-x64` |
+| 4 | `darwin-arm64` | `@provident-storeroom/js-darwin-arm64` |
+| 5 | `win32-x64` | `@provident-storeroom/js-win32-x64-msvc` |
+
+**AND THE ARITHMETIC IS THE MAP'S OWN AND UNMOVED: `5` labels = `5` names, `3` of the `5` carrying a toolchain
+suffix (`-gnu` twice, `-msvc` once) and `2` carrying none — so `3 + 2 = 5` ✓, and the suffix names a TARGET'S
+TOOLCHAIN and never a sixth target.** **A SIXTH ARTEFACT NAME, A NAME THAT DROPS A SUFFIX THE PUBLISHED
+ARTEFACT CARRIES, OR A NAME WHOSE SCOPE IS NOT `@provident-storeroom/js`, IS A FINDING** (`DD-25`, `DD-26`;
+`§3.1` item 2). **AND ONE CONSEQUENCE IS NAMED SO IT IS NOT READ AS A WIRING DUTY: this clause states the
+SPELLINGS and it resolves, loads or publishes NOTHING — the `optionalDependencies` wiring is `implementation-plan.md`'s
+own build-surface row, and no artefact in this unit's tree is resolved or loaded by any clause here**
+(`[A1 docs/specs/storeroom-js-proposal.md §15 · A71; A1 docs/specs/storeroom-js-proposal-review.md §5.4 ·
+`AR-16`; `DD-26` | numeric or census claim]`).
+
 ### §3.3 The trigger, the version and the CI
 
 1. **THE MATRIX IS PRODUCED ON A RELEASE TAG OF THE FORM `v<major>.<minor>.<patch>`; the package's
@@ -253,6 +284,20 @@ carry.**
    (`[A1 docs/specs/storeroom-js-proposal.md §9.3 · `D9`; A1 docs/specs/storeroom-js-proposal.md §15 · A71;
    A3 docs/specs/storeroom-js/contract.md §3.3 item 6 — the home's own statement of the same two spellings;
    `DD-43` | declared parameter semantics]`).
+
+   **⟶ AND THE FOURTH SITE'S OWN READING, RESTATED 2026-10-11 BY THE BOUNDED DECLARATION PASS
+   (`role_spec_writer`) BESIDE ITEM 3 ABOVE, SO GATE 4'S `JS-20` HALF IS CLOSED AT THIS PART AND NOT ONLY AT
+   THE CONTRACT DOCUMENT'S OWN CLAUSE.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1–3 above stand byte-for-byte;
+   THIS clause is a PURE INSERTION and it adds no site and no spelling.** **THE FOUR SITES, AND THE TWO
+   SPELLINGS: `package.json`'s `license` field `AGPL-3.0` · `bindings/js/README.md` `AGPL-3.0` ·
+   `package.md §3.4` (item 3 above) `AGPL-3.0` · and `bindings/js/Cargo.toml`'s `license` field
+   `AGPL-3.0-or-later`.** **THE OPERATIVE SPELLING IS `AGPL-3.0` FOR THE DISTRIBUTION'S DECLARED FACT AT THE
+   THREE REGISTRY- AND DOCUMENTATION-FACING SITES AND `AGPL-3.0-or-later` FOR THE CRATE MANIFEST'S SPDX
+   EXPRESSION — a manifest field whose grammar admits that clause and whose value the crate's own consumers
+   read — and the divergence is DECLARED rather than smoothed.** **A FIFTH SITE, OR A THIRD SPELLING, IS A
+   FINDING** (`DD-43`; `docs/specs/storeroom-js/contract.md §3.3` item 6, which carries the same two
+   spellings at the contract document's own home) (`[A1 docs/specs/storeroom-js-proposal.md §9.3 · `D9`; A1
+   docs/specs/storeroom-js-proposal.md §15 · A71; `DD-43` | declared parameter semantics]`).
 
 ---
 

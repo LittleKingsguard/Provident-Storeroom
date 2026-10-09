@@ -98,8 +98,13 @@ node --test bindings/js/test/*.test.mjs
 **THERE IS NO FALLBACK AND NO JS-SIDE STORE** (`A75`): an addon that is ABSENT or FAILS TO LOAD is a
 **DECLARED FAILURE** — `storeCreate` answers the single failure form
 `{status: 'FilePathUnreachable', message: <the store's own generated string at the addon's path>}` and NO
-instance is returned. **A consumer that runs the JS cells without step 1 sees that failure and not a
-silently degraded run.** **The Rust leg needs no addon at all**: the conversion core is the crate's `rlib`
-half, so `cargo test --manifest-path bindings/js/Cargo.toml` is drivable with no Node runtime present
-(`package.md §4.1` item 3, `§4.5` item 7).
+instance is returned. **AND THE MESSAGE'S OWN STRING IS NOT A PLACEHOLDER** (`JS-3`, closed): it is the
+store's generator's rendering of THAT subject — `'/abs/path/to/build/Release/storeroom_js_binding.node' is
+not reachable at construction, the path must exist or the application must be able to write it` — reached
+through the addon's `errorMessage` where the artefact loaded far enough to carry the generator, and
+reproduced BYTE-FOR-BYTE from the generator's own clause (`src/error.rs`'s `FilePathUnreachable` arm) where
+the generator is the thing that failed to load. **A consumer that runs the JS cells without step 1 sees that
+failure and not a silently degraded run.** **The Rust leg needs no addon at all**: the conversion core is the
+crate's `rlib` half, so `cargo test --manifest-path bindings/js/Cargo.toml` is drivable with no Node runtime
+present (`package.md §4.1` item 3, `§4.5` item 7).
 

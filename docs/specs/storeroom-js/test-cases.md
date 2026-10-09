@@ -152,3 +152,46 @@ all** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.7 — the ent
 that a grouping is never a second arithmetic; §C.11.6 — a `view` part declares nothing the contract does not
 already carry | numeric or census claim]`). **No row of this table names a case the contract does not pin,
 and no row of it declares a requirement of its own.**
+
+**⟶ AND THE BOUNDED DECLARATION PASS'S OWN POINTERS, ADDED 2026-10-11 BESIDE — NEVER INSIDE — THE NUMBERED
+INVENTORY ABOVE, SO THE `71` STANDS AS THE FIRST CENSUS SENTENCE PRINTS IT.** `RCA-8(d)` ANNOTATE-BESIDE: **no
+row of the `71`, of the four above or of the four beside them is added, removed or renumbered by this clause;
+THIS table is a THIRD pointer set, its rows carry no number at all, and it declares no case the contract does
+not already pin.** **The FIVE cases the bounded declaration pass's clauses pin, each citing the `§n` that pins
+it — the pass that lands the validation order, the no-repair prohibition, the verbose rejection's content and
+the id-matching model on the architect's rulings `A76`/`A77`:**
+
+| The case, as the declaration pass's clauses now pin it | Its source, in the `path §n` form | The pinning citation it carries |
+| --- | --- | --- |
+| **The validation order: for EVERY JS value and EVERY argument, the CLASS is decided FIRST on the value as it is — before any conversion and before any `Array.isArray`-style shortcut — the SHAPE is tested against the permitted set SECOND, and ADMIT or REFUSE is THIRD; a class decision is NEVER deferred and never revisited after a coercion, and the four shipped defects it forbids are named as its own negative examples (a `bigint` through the numeric arm; a `Number()` call throwing a host `TypeError`; `Array.isArray` short-circuiting the prototype test so a class extending `Array` is admitted; a member read through the prototype chain so a prototype-carrying object is admitted), the `cfg`/wire-member reading included** | `docs/specs/storeroom-js/crossing.md` §1.7 | crossing's §1.7, items (a)–(d) and its four named defects; `docs/specs/storeroom-js-proposal.md` §18 · `A76`; `§1.2` row 5 and `§1.3`'s `AddressArg` row 11 |
+| **The no-repair prohibition: NOTHING at the boundary converts, substitutes, defaults, truncates or "fixes up" a non-conforming input — a non-conforming value is REFUSED, and the refusal's class is the class the value HAS; a caller who expected a coercion gets a refusal, and that is the declared intent** | `docs/specs/storeroom-js/crossing.md` §1.8 | crossing's §1.8 and its one clause; `docs/specs/storeroom-js-proposal.md` §18 · `A76`; `DD-1`'s carrier pass-through, read beside it |
+| **What *"verbose"* means: the rejection carries the FAILING TARGET rendered as the store's generator renders it, PLUS THE REASON — the class that failed and, where the contract declares one, the position — ALL INSIDE the single declared failure form, with a `status` drawn from the store's closed set and NO package-minted code; never a second form and never a raw host error; and the registration site's refusal is read through that form and that set** | `docs/specs/storeroom-js/surface.md` §2.5 item 6 | surface's §2.5 item 6, items (a)–(g); `docs/specs/storeroom-native/contract.md` §8.2's generator rule and §8.1 #1; `A76`'s reach clause; `DD-40`; `A64` |
+| **The id-matching model: the store passes an ID back when a listener is triggered, the ID is the value REGISTRATION returned, the JS side matches that identity to the function it was registered with, and an ID the package holds NO function for fires NOTHING — an ASSERTABLE OBSERVABLE (no invocation, no log, no throw); the four registry rules are read through it (an unregistered id fires nothing · re-registration replaces the function and not the identity · one invocation per DISTINCT id · `unlisten` withdraws the registration and never the function)** | `docs/specs/storeroom-js/surface.md` §2.4 item 6 · `docs/specs/storeroom-js/surface.md` §2.7 item 5 | surface's §2.4 item 6, items (a)–(f), and its §2.7 item 5; `docs/specs/storeroom-js-proposal.md` §18 · `A77`; `P-SM-5`; `P-TP-8` |
+| **The id and the triggering ADDRESS are TWO DIFFERENT DATA: the id is the matched identity carried in `triggered` and it decides WHICH function is invoked, while the invocation's ONE argument is the TRIGGERING ADDRESS — the verb's own `address` argument, whose producer and arms are declared (the `write` arm, the tier-present `delete` arm and the tier-absent `delete` arm each carrying the caller's address verbatim, and a no-op `listen` producing no trigger and therefore no address)** | `docs/specs/storeroom-js/parameter-semantics.md` §2.12's dated clause · `docs/specs/storeroom-js/parameter-semantics.md` §2.15's dated clause | `PAR-JS-12`'s dated clause and `PAR-JS-15`'s dated clause; `docs/specs/storeroom-js/surface.md` §2.7 item 5; `A77` |
+
+**AND TWO ROWS OF THE POINTER SETS ABOVE ARE READ THROUGH THE RECONCILIATION BELOW, SO A TESTWRITER DOES NOT
+DERIVE THE FORM THEY PRINT AS THE OPERATIVE ONE.** **THE ROWS: the corrected-pointer table's FIRST row (the
+registration site) and the numbered inventory's row `64` (the `PAR-JS-12` exception) — each of which prints
+the registration site's refusal as a JS `TypeError` carrying NO `status` and NO `message`.**
+
+**⟶ RECONCILED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), ON `A76`: THE REGISTRATION
+SITE'S REFUSAL FORM.** `RCA-8(d)` ANNOTATE-BESIDE: **the `71` rows and the two pointer sets above stand
+byte-for-byte and this clause adds no row to any of them; it states the operative form the two rows are read
+THROUGH, and the rows' own printed words are named as the form declared at the bounded correction pass of
+2026-10-11.** **THE OPERATIVE FORM IS THE SINGLE ONE, AND IT IS DECLARED AT
+`docs/specs/storeroom-js/surface.md §2.5` item 6 (g): the registration site's refusal travels in
+`{status, message}`, with its `status` drawn from the store's closed `15`-member set — the store's own
+`AddressMalformed` — and its `message` generated on the path that item declares.** **THE SITE, ITS DOMAIN, ITS
+TWO ARGUMENT POSITIONS, ITS REPLACEMENT ARM AND ITS UNLISTEN-CONTRAST ARE UNMOVED** (**`§2.4` item 5 (b)–(d);
+`docs/specs/storeroom-js/parameter-semantics.md §2.12`'s second dated exception clause**)
+(`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the verbose rejection travels inside the one form, and
+`A76`'s reach clause licenses no second form | requirement]`).
+
+**AND THE ONE COUNT THIS CLAUSE PRINTS, SO THE FOUR POINTER SETS' ARITHMETICS AGREE: the numbered inventory
+carries `71` rows, the corrected-pointer table carries `4`, the close-out pass's table carries `4`, and THIS
+table carries `5` — so this part holds `71 + 4 + 4 + 5 = 84` pointers, while the `71` remains the figure the
+census sentence at this part's head prints, because it is read off the last row's own number and the `13` rows
+below it carry no number at all** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.7 — the
+entry-counted unit, and the rule that a grouping is never a second arithmetic; §C.11.6 — a `view` part declares
+nothing the contract does not already carry | numeric or census claim]`). **No row of this table names a case
+the contract does not pin, and no row of it declares a requirement of its own.**

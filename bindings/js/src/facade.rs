@@ -101,6 +101,15 @@ extern "C" {
         name: *const c_char,
         result: *mut bool,
     ) -> NapiStatus;
+    /// **THE OWN-PROPERTY TEST OF `A76`/`JS-5`** — `napi_get_all_property_names`'s own-key mode is not
+    /// needed: this predicate answers whether ONE key is an OWN property of the object, and it takes a JS
+    /// `napi_value` KEY rather than a C string.
+    fn napi_has_own_property(
+        env: NapiEnv,
+        object: NapiValue,
+        key: NapiValue,
+        result: *mut bool,
+    ) -> NapiStatus;
     fn napi_get_named_property(
         env: NapiEnv,
         object: NapiValue,
@@ -111,6 +120,14 @@ extern "C" {
     fn napi_get_array_length(env: NapiEnv, value: NapiValue, result: *mut u32) -> NapiStatus;
     fn napi_get_element(env: NapiEnv, object: NapiValue, index: u32, result: *mut NapiValue) -> NapiStatus;
     fn napi_get_value_double(env: NapiEnv, value: NapiValue, result: *mut f64) -> NapiStatus;
+    /// **THE BIGINT READ OF `A76`/`JS-6`** — a JS `bigint` is read as a `bigint` and is NEVER handed to
+    /// `napi_get_value_double`, whose failure arm would substitute `0.0` for it.
+    fn napi_get_value_bigint_int64(
+        env: NapiEnv,
+        value: NapiValue,
+        result: *mut i64,
+        lossless: *mut bool,
+    ) -> NapiStatus;
     fn napi_get_value_bool(env: NapiEnv, value: NapiValue, result: *mut bool) -> NapiStatus;
     fn napi_create_uint32(env: NapiEnv, value: u32, result: *mut NapiValue) -> NapiStatus;
     fn napi_get_value_uint32(env: NapiEnv, value: NapiValue, result: *mut u32) -> NapiStatus;
@@ -128,12 +145,6 @@ extern "C" {
     ) -> NapiStatus;
     fn napi_delete_reference(env: NapiEnv, reference: NapiRef) -> NapiStatus;
     fn napi_get_reference_value(env: NapiEnv, reference: NapiRef, result: *mut NapiValue) -> NapiStatus;
-    fn napi_create_type_error(
-        env: NapiEnv,
-        code: NapiValue,
-        msg: NapiValue,
-        result: *mut NapiValue,
-    ) -> NapiStatus;
     fn napi_call_function(
         env: NapiEnv,
         recv: NapiValue,
@@ -200,22 +211,15 @@ unsafe fn throw_refusal(env: NapiEnv, refusal: &Refusal) -> NapiValue {
     undefined
 }
 
-/// The refusal `package.md §4.5` item 5 (a) spells at the core layer, translated to **the JS `TypeError`
-/// `surface.md §2.4` item 5 (d) declares** — the ONE form this package throws that is not the store's
-/// `{status, message}`, carrying NO `status` and NO `message` member of its own (`PAR-JS-12`).
-unsafe fn throw_type_error(env: NapiEnv, _refusal: &Refusal) -> NapiValue {
-    let mut error: NapiValue = std::ptr::null_mut();
-    // The declaration's own words: a `TypeError` carrying NO `status` member — the two-member form is the
-    // VERBS', and a `TypeError` thrown by a verb remains a FINDING (`§2.4` item 5 (d), (e)).
-    let reason = make_string(env, "the registration's arguments are outside the site's domain");
-    if napi_create_type_error(env, std::ptr::null_mut(), reason, &mut error) != 0 {
-        return throw_refusal(env, _refusal);
-    }
-    napi_throw(env, error);
-    let mut undefined: NapiValue = std::ptr::null_mut();
-    napi_get_undefined(env, &mut undefined);
-    undefined
-}
+// **⟶ `throw_type_error` STOOD HERE, AND `A76`'S PASS REMOVED IT.** The helper built a JS `TypeError`
+// carrying NO `status` and NO `message` for the registration site's refusal — **the form the bounded
+// correction pass declared and the form the `A76` pass replaced** (`surface.md §2.5` item 5 (g), verbatim:
+// *"the registration site's refusal IS a rejection under `A76` and travels in THIS section's single form …
+// and a `status` of `TypeError`, reached at the addon's own boundary, is that FINDING and not a declared
+// form, because the store's closed set holds no such member"*). **THE SITE NOW ANSWERS THE ONE FORM, THROUGH
+// `throw_refusal`, WITH THE CORE'S OWN `AddressMalformed` AND THE STORE'S GENERATOR'S OWN STRING** — so no
+// host `Error` of any kind escapes this frame, and `napi_create_type_error` is no longer declared or used
+// (`§2.5` item 5 (e): *"a rejection is NEVER A RAW HOST ERROR"*).
 
 // =================================================================================================
 // THE WIRE — THE DECIDED TREE, IN THE CORE'S OWN VOCABULARY, AS PLAIN NODE-API VALUES.
@@ -227,25 +231,45 @@ unsafe fn throw_type_error(env: NapiEnv, _refusal: &Refusal) -> NapiValue {
 // accessor and the `Proxy` — because Node-API's stable surface carries no `isProxy` predicate and no
 // hole/accessor enumeration a facade could trust, which is where `DD-34` puts proxy detection.
 //
-//   value    {k:'s', v:<string>}            a JS string
+// **⟶ AND THE READ OF EVERY MEMBER BELOW IS AN OWN-PROPERTY READ (`A76`, `JS-5`): `Codec::member` gates on
+// `napi_has_own_property`, so no member of any wire object is ever reached through the prototype chain.**
+// **GATE 4's `JS-18` IS CLOSED HERE IN ITS DOCUMENTATION HALF: this block now spells the wire the mapping
+// layer ACTUALLY PRODUCES, member for member** (`JS-18`: *"the wire protocol documented at `facade.rs` is
+// NOT the wire `index.mjs` produces"*).
+//
+//   value    {k:'s', v:<string>}            a JS string (`index.mjs`: the string itself)
 //            {k:'b', v:<boolean>}           a JS boolean
-//            {k:'n', v:<number>}            a JS number, `-0` included
+//            {k:'n', v:<number>}            a JS number, `-0` included — **and NEVER a `bigint`**: the
+//            class test precedes the numeric arm (`JS-6`), and a payload that is not a number is read as
+//            the class it IS (`classed_value`) rather than substituted
 //            {k:'o', m:[[key, value]…], p:'plain'|'null'|'foreign'|'class',
 //                     acc:<boolean>, proxy:<boolean>}   a plain object / a class instance
 //            {k:'a', i:[value…]}            a dense array
-//            {k:'g', v:<bigint>}            a JS bigint
+//            {k:'g', v:<DECIMAL STRING>}    a JS bigint, as `BigInt.prototype.toString()` writes it
 //            {k:'F', v:<number>}            a non-finite JS number
 //            {k:'z'} {k:'u'} {k:'f'} {k:'y'} {k:'c'} {k:'P'} {k:'H'}
 //                                           null · undefined · function · symbol · cyclic ·
 //                                           non-plain collection · sparse array
-//   key      a JS string, or the `{symbol:true}` marker for a `Symbol`-keyed own property
-//   segment  a JS string, a JS number, or one of the outside markers `{bad:'negative'|'fractional'|
-//            'null'|'undefined'|'bool'|'object'|'array'|'function'}`
+//   key      a JS string, or an empty ARRAY as the marker for a `Symbol`-keyed own property
+//            (`index.mjs` writes `[]`; `value_of` reads an array key as `JsKey::Symbol`)
+//   segment  a JS string, a JS number, or one of the outside markers `{bad:'null'|'undefined'|
+//            'object'|'array'|'function'}` — **a boolean segment crosses as the boolean ITSELF**
+//            (`index.mjs` returns it unwrapped and `segment` reads `NAPI_BOOLEAN`), so `{bad:'bool'}`
+//            is not a marker the mapping layer writes; **a `symbol` or a `bigint` segment is refused at
+//            the package's own boundary and never reaches this codec**
 //   address  {k:'L', s:[segment…]} an array of segments   ·  {k:'A'|'N'|'U'|'S'|'X'|'C'} the outside forms
 //            {k:'D', o:…} a non-array, carrying the outside segment class it was spelled as
+//            ({k:'R'} is the core's `CrossRealmList`; the mapping layer admits a cross-realm array as an
+//            ordinary `{k:'L'}` because the class decision it takes is structural)
 //   tier     {k:'A'} absent · {k:'N'} null · {k:'U'} undefined · {k:'T', v:<string>} a token ·
 //            {k:'S', i:[TierSetItem…]} a set · {k:'B'|'O'|'F'|'D', v:…} the outside scalars
+//   opId     {k:'s', v:<string>} a non-empty string · {k:'N'} null · {k:'U'} undefined ·
+//            {k:'D', v:<number>} **a real JS `number` AND NOTHING ELSE** — every other class is refused
+//            at the package's own boundary inside the one failure form (`A76`, `JS-1`)
 //   handle   {k:'O', v:<token>} the opaque form · {k:'B', v:<string>} a bare token · {k:'X'} outside
+//   config   the `cfg` object itself, with each declared key read by OWNERSHIP (`filePath` · `journalLength`
+//            · `listeners`), a `bigint` `journalLength` crossing AS a `bigint`, and every non-plain `cfg`
+//            refused at the package's own boundary before this codec sees it
 // =================================================================================================
 
 struct Codec {
@@ -253,13 +277,30 @@ struct Codec {
 }
 
 impl Codec {
-    /// A named property of a Node-API object, or `None` where the member is absent.
+    /// **ONE MEMBER OF A NODE-API OBJECT, READ AS AN OWN PROPERTY OR NOT AT ALL** — the facade's own half of
+    /// `A76`'s ruling and of gate 4's `JS-5`, whose finding was that *"`src/facade.rs`'s `Codec::member`"*
+    /// read *"through the PROTOTYPE CHAIN for every wire member"*, so *"a wire object carrying a
+    /// prototype-inherited `address`/`handle` is read as an entry field"*.
+    ///
+    /// **THE OWN-PROPERTY TEST IS `napi_has_own_property`, AND `napi_has_named_property` — WHICH WALKS THE
+    /// CHAIN — IS NO LONGER THE GATE.** Once the key has been found OWN, `napi_get_named_property` can only
+    /// return that own member (an own property shadows every inherited one), so the pair is an own-property
+    /// read with no chain lookup anywhere on it. **A key reached only through the prototype chain is
+    /// ABSENT (`None`), and absence is what the crossing's absent-versus-`undefined` rule reads** — while
+    /// the CLASS that carried the inherited key was already refused at the package's own boundary, before
+    /// this codec ever saw it.
     unsafe fn member(&self, object: NapiValue, name: &str) -> Option<NapiValue> {
-        let spelled = as_utf8(name);
+        // A primitive carries no member of its own; `null`/`undefined` carry none at all.
+        match self.kind_of(object) {
+            NAPI_OBJECT | NAPI_FUNCTION => {}
+            _ => return None,
+        }
+        let key = make_string(self.env, name);
         let mut has: bool = false;
-        if napi_has_named_property(self.env, object, spelled.as_ptr() as *const c_char, &mut has) != 0 || !has {
+        if napi_has_own_property(self.env, object, key, &mut has) != 0 || !has {
             return None;
         }
+        let spelled = as_utf8(name);
         let mut out: NapiValue = std::ptr::null_mut();
         if napi_get_named_property(self.env, object, spelled.as_ptr() as *const c_char, &mut out) != 0 {
             return None;
@@ -289,12 +330,56 @@ impl Codec {
         out
     }
 
-    unsafe fn number_of(&self, value: NapiValue) -> f64 {
+    /// **THE NUMBER READ, CLASS-FIRST** — `A76`'s part (1) and gate 4's `JS-6`: *"the facade's number read
+    /// must never be handed a `bigint`"*. The shipped arm called `napi_get_value_double` unconditionally and
+    /// returned `0.0` where the call failed, so **a `bigint` payload was carried through the NUMBER ARM TO
+    /// `0`** — a substituted token the caller never spelled. **THE CLASS IS NOW READ FIRST, ON THE VALUE AS
+    /// IT IS (`napi_typeof`), AND A VALUE THAT IS NOT A JS `number` IS NEVER HANDED TO THE DOUBLE READ AT
+    /// ALL: `None` is the caller's answer, and each caller carries the value's OWN class instead of a
+    /// default.**
+    unsafe fn number_of(&self, value: NapiValue) -> Option<f64> {
+        if self.kind_of(value) != NAPI_NUMBER {
+            return None;
+        }
         let mut out: f64 = 0.0;
         if napi_get_value_double(self.env, value, &mut out) != 0 {
-            return 0.0;
+            return None;
+        }
+        Some(out)
+    }
+
+    /// **THE BIGINT READ, CLASS-FIRST** — a JS `bigint` read AS a `bigint`, never through the numeric arm
+    /// (`A76`, `JS-6`). `lossless` reports whether the value fits the store's own carried `i64`; **the class
+    /// alone decides the refusal** (`JsJournalLengthArg::BigInt` → `JournalLengthArg::Object` →
+    /// `AddressMalformed`, and `JsValue::BigInt` → `StoreValue::BigInt` → `ValueNotAdmitted`), so a value
+    /// beyond the carrier's range changes no answer and is never substituted for by a number.
+    unsafe fn bigint_of(&self, value: NapiValue) -> i64 {
+        let mut out: i64 = 0;
+        let mut lossless: bool = false;
+        if napi_get_value_bigint_int64(self.env, value, &mut out, &mut lossless) != 0 {
+            return 0;
         }
         out
+    }
+
+    /// **THE CLASS OF A PAYLOAD THE ARM IT ARRIVED IN DID NOT NAME** (`A76`'s class-first reading, at the
+    /// only site where a wire member's own class can contradict its tag): the payload's OWN class decides
+    /// and nothing is coerced into the arm's. **It is unreachable from the shipped package** — the mapping
+    /// layer encodes each arm with a payload of that arm's own class — and it exists so that a
+    /// hand-built wire cannot smuggle a `bigint` through the number arm.
+    unsafe fn classed_value(&self, payload: NapiValue) -> JsValue {
+        match self.kind_of(payload) {
+            NAPI_STRING => JsValue::Str(self.string_of(payload)),
+            NAPI_BOOLEAN => JsValue::Bool(self.bool_of(payload)),
+            NAPI_NUMBER => JsValue::Num(self.number_of(payload).unwrap_or(f64::NAN)),
+            NAPI_BIGINT => JsValue::BigInt(self.bigint_of(payload)),
+            NAPI_UNDEFINED => JsValue::Undefined,
+            NAPI_NULL => JsValue::Null,
+            NAPI_FUNCTION => JsValue::Function,
+            NAPI_SYMBOL => JsValue::Symbol,
+            // An object payload is NOT read (no member is taken from it): its class is the outside one.
+            _ => JsValue::NonPlainCollection,
+        }
     }
 
     unsafe fn kind_of(&self, value: NapiValue) -> i32 {
@@ -338,13 +423,29 @@ impl Codec {
         match tag.as_str() {
             "s" => JsValue::Str(self.member(v, "v").map(|x| self.string_of(x)).unwrap_or_default()),
             "b" => JsValue::Bool(self.member(v, "v").map(|x| self.bool_of(x)).unwrap_or(false)),
-            "n" => JsValue::Num(self.member(v, "v").map(|x| self.number_of(x)).unwrap_or(0.0)),
+            // **THE CLASS TEST PRECEDES THE NUMERIC ARM (`A76`, `JS-6`): a payload that is not a JS `number`
+            // is never read as one — its OWN class decides (`classed_value`), so a `bigint` arrives as
+            // `JsValue::BigInt` and is refused as a `BigInt` rather than carried through the number arm to
+            // a substituted `0`.
+            "n" => match self.member(v, "v") {
+                Some(payload) => match self.number_of(payload) {
+                    Some(n) => JsValue::Num(n),
+                    None => self.classed_value(payload),
+                },
+                None => JsValue::NonPlainCollection,
+            },
             "g" => JsValue::BigInt(
                 self.member(v, "v")
                     .and_then(|x| self.string_of(x).parse::<i64>().ok())
                     .unwrap_or(0),
             ),
-            "F" => JsValue::NonFinite(self.member(v, "v").map(|x| self.number_of(x)).unwrap_or(0.0)),
+            "F" => match self.member(v, "v") {
+                Some(payload) => match self.number_of(payload) {
+                    Some(n) => JsValue::NonFinite(n),
+                    None => self.classed_value(payload),
+                },
+                None => JsValue::NonPlainCollection,
+            },
             "z" => JsValue::Null,
             "u" => JsValue::Undefined,
             "f" => JsValue::Function,
@@ -409,18 +510,22 @@ impl Codec {
     unsafe fn segment(&self, v: NapiValue) -> JsSegment {
         match self.kind_of(v) {
             NAPI_STRING => JsSegment::Key(self.string_of(v)),
-            NAPI_NUMBER => {
-                let n = self.number_of(v);
-                if n.is_nan() || n.is_infinite() {
-                    JsSegment::Fractional(n)
-                } else if n >= 0.0 && n.fract() == 0.0 {
-                    JsSegment::Index(n as u64)
-                } else if n.fract() == 0.0 {
-                    JsSegment::Negative(n as i64)
-                } else {
-                    JsSegment::Fractional(n)
+            // The class was just read as `number`, so the read below cannot fail; where it somehow did, the
+            // value is carried as the outside class `Object` rather than substituted by `0` (`A76`).
+            NAPI_NUMBER => match self.number_of(v) {
+                Some(n) => {
+                    if n.is_nan() || n.is_infinite() {
+                        JsSegment::Fractional(n)
+                    } else if n >= 0.0 && n.fract() == 0.0 {
+                        JsSegment::Index(n as u64)
+                    } else if n.fract() == 0.0 {
+                        JsSegment::Negative(n as i64)
+                    } else {
+                        JsSegment::Fractional(n)
+                    }
                 }
-            }
+                None => JsSegment::Object,
+            },
             NAPI_BOOLEAN => JsSegment::Bool(self.bool_of(v)),
             NAPI_FUNCTION => JsSegment::Function,
             _ => {
@@ -490,7 +595,10 @@ impl Codec {
     unsafe fn tier_set_item(&self, item: NapiValue) -> JsTierSetItem {
         match self.kind_of(item) {
             NAPI_STRING => JsTierSetItem::Token(self.string_of(item)),
-            NAPI_NUMBER => JsTierSetItem::Number(self.number_of(item)),
+            NAPI_NUMBER => match self.number_of(item) {
+                Some(n) => JsTierSetItem::Number(n),
+                None => JsTierSetItem::Object, // the class was already read as `number` (`A76`)
+            },
             NAPI_BOOLEAN => JsTierSetItem::Bool(self.bool_of(item)),
             NAPI_FUNCTION => JsTierSetItem::Function,
             _ => match self.member(item, "bad").map(|x| self.string_of(x)).unwrap_or_default().as_str() {
@@ -523,7 +631,9 @@ impl Codec {
                     .collect(),
             ),
             "B" => JsTierArg::Bool(self.member(t, "v").map(|x| self.bool_of(x)).unwrap_or(false)),
-            "D" => JsTierArg::Number(self.member(t, "v").map(|x| self.number_of(x)).unwrap_or(0.0)),
+            // The number arm, read class-first: a payload that is not a number answers `Object` — row 6's
+            // `OutOfDomainTier` — rather than being substituted by `0` (`A76`).
+            "D" => JsTierArg::Number(self.member(t, "v").and_then(|x| self.number_of(x)).unwrap_or(f64::NAN)),
             "F" => JsTierArg::Function,
             _ => JsTierArg::Object,
         }
@@ -539,7 +649,15 @@ impl Codec {
             "s" => JsOpIdArg::Str(self.member(o, "v").map(|x| self.string_of(x)).unwrap_or_default()),
             "N" => JsOpIdArg::Null,
             "U" => JsOpIdArg::Undefined,
-            "D" => JsOpIdArg::Number(self.member(o, "v").map(|x| self.number_of(x)).unwrap_or(0.0)),
+            // **THE NUMBER ROW, READ CLASS-FIRST (`A76`, `JS-1`/`JS-6`):** the mapping layer carries ONLY a
+            // real JS `number` on this tag — a `symbol`, a `bigint`, an object, an array, a function or a
+            // `Proxy` is refused at the package's own boundary inside the one form, and never coerced here
+            // — so a payload that is not a number is carried as the store's own non-string spelling
+            // (`OpIdArg::NonString`), which is row 6's declared arm and mints no code.
+            "D" => match self.member(o, "v").and_then(|x| self.number_of(x)) {
+                Some(n) => JsOpIdArg::Number(n),
+                None => JsOpIdArg::Number(f64::NAN),
+            },
             _ => JsOpIdArg::Absent,
         }
     }
@@ -578,27 +696,35 @@ impl Codec {
             _ => JsFilePathArg::NonString,
         });
         let journal_length = self.member(cfg, "journalLength").map(|v| match self.kind_of(v) {
-            NAPI_NUMBER => {
-                let n = self.number_of(v);
-                if n.is_nan() {
-                    JsJournalLengthArg::NaN
-                } else if n.is_infinite() {
-                    JsJournalLengthArg::Infinity
-                } else if n.fract() == 0.0 && n >= 1.0 && n <= u32::MAX as f64 {
-                    JsJournalLengthArg::Count(n as u32)
-                } else if n == 0.0 {
-                    JsJournalLengthArg::Zero
-                } else if n < 0.0 {
-                    JsJournalLengthArg::Negative(n as i64)
-                } else if n > u32::MAX as f64 {
-                    JsJournalLengthArg::TooLarge(n as u64)
-                } else {
-                    JsJournalLengthArg::Fractional(n)
+            NAPI_NUMBER => match self.number_of(v) {
+                Some(n) => {
+                    if n.is_nan() {
+                        JsJournalLengthArg::NaN
+                    } else if n.is_infinite() {
+                        JsJournalLengthArg::Infinity
+                    } else if n.fract() == 0.0 && n >= 1.0 && n <= u32::MAX as f64 {
+                        JsJournalLengthArg::Count(n as u32)
+                    } else if n == 0.0 {
+                        JsJournalLengthArg::Zero
+                    } else if n < 0.0 {
+                        JsJournalLengthArg::Negative(n as i64)
+                    } else if n > u32::MAX as f64 {
+                        JsJournalLengthArg::TooLarge(n as u64)
+                    } else {
+                        JsJournalLengthArg::Fractional(n)
+                    }
                 }
-            }
+                // Unreachable through the shipped encoder (the class was just read as `number`) and NOT a
+                // substitution: a value whose class is not a number is carried as row 10's `Object`.
+                None => JsJournalLengthArg::Object,
+            },
             NAPI_STRING => JsJournalLengthArg::NumericString(self.string_of(v)),
             NAPI_BOOLEAN => JsJournalLengthArg::Bool(self.bool_of(v)),
-            NAPI_BIGINT => JsJournalLengthArg::BigInt(0),
+            // **`A76`/`JS-6`: A `bigint` ARRIVES AS A `bigint`** — it is read as its own class by
+            // `napi_get_value_bigint_int64` and is NEVER handed to the number read, where the failure arm
+            // would have substituted `0` for the caller's `10n`. The declared answer is unchanged: row 11's
+            // `AddressMalformed`, reached through the class and not through a coerced token.
+            NAPI_BIGINT => JsJournalLengthArg::BigInt(self.bigint_of(v)),
             NAPI_NULL => JsJournalLengthArg::Null,
             NAPI_UNDEFINED => JsJournalLengthArg::Undefined,
             NAPI_FUNCTION => JsJournalLengthArg::Function,
@@ -1112,11 +1238,17 @@ impl Codec {
 
 /// The addon's `register(instance, handleArgWire, listenerSlot)`: **THE REGISTRATION SITE, OVER THE CORE**
 /// (`surface.md §2.4` item 5). The handle crosses at `JsHandleArg`'s own spellings, so **every outside
-/// value — a bare token, a blank token, a fabricated or non-opaque value, an absent argument, and a
-/// handle a FOREIGN instance minted — answers the CORE's refusal and is translated to the JS `TypeError
-/// that item 5 (d) declares, carrying NO `status` and NO `message`** (`PAR-JS-12`). **The listener
-/// crosses as its registration SLOT: the FUNCTION itself is held by the JS side (`DD-15`), which is where
-/// `surface.md §2.4` puts the registry's own state.**
+/// value — a bare token, a blank token, a fabricated or non-opaque value, an absent argument, and a handle a
+/// FOREIGN instance minted — answers a refusal, and NOTHING reaches the store in any of them.**
+///
+/// **⟶ AND THE REFUSAL IS THE ONE FORM, IN THE STORE'S OWN CODE (`A76`; `surface.md §2.5` item 5 (g); `DD-40`).**
+/// **THE SHIPPED ARM TRANSLATED IT TO A JS `TypeError` CARRYING NO `status`** — the form the bounded
+/// correction pass declared, and the form the `A76` pass REPLACED: *"the registration site's refusal IS a
+/// rejection under `A76` and travels in THIS section's single form, with its `status` drawn from the store's
+/// closed set … and a `status` of `TypeError`, reached at the addon's own boundary, is that FINDING and not a
+/// declared form, because the store's closed set holds no such member."* **SO THIS ARM THROWS THE ONE FORM,
+/// with the core's own `AddressMalformed` and the store's generator's own string, and the `TypeError` helper
+/// is GONE FROM THIS FILE.**
 extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
     let mut argc: usize = 2;
     let mut argv: [NapiValue; 2] = [std::ptr::null_mut(); 2];
@@ -1131,21 +1263,22 @@ extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue 
     let codec = Codec { env };
     let handle = unsafe { codec.handle_arg_of(argv[1]) };
     // **THE CORE IS THE SITE'S OWN JUDGE**: it holds the instance's handle domain (`§2.4` item 5 (c)) and
-    // answers an outside handle or a non-function listener with the `TypeError` refusal (`§4.5` item 5 (a)).
+    // answers an outside handle with the store's own `AddressMalformed` and a generated message.
     // **The FUNCTION itself never crosses** (`DD-15`): the mapping layer holds it, and the addon is asked
     // only whether the HANDLE is a member of this instance's own domain.
     let answer = INSTANCES.with(|all| {
         let mut all = all.borrow_mut();
         match all.get_mut(index as usize) {
             Some(instance) => instance.register(&handle, JsListener::Function(Box::new(|_| ()))),
-            None => Err(Refusal {
-                status: crossing::TYPE_ERROR_STATUS.to_string(),
-                message: "the package holds no instance at that id".to_string(),
-            }),
+            None => Err(crossing::registration_refusal(
+                "",
+                "the addon's first argument",
+                "an instance id the package holds no instance at",
+            )),
         }
     });
     if let Err(refusal) = answer {
-        return unsafe { throw_type_error(env, &refusal) };
+        return unsafe { throw_refusal(env, &refusal) };
     }
     // Nothing of the registry is held here: the caller's FUNCTION is the package's own state (`§2.4`),
     // and the core holds only the entry that makes the handle a member of the triggered set (rule 1).

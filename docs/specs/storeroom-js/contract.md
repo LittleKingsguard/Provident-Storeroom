@@ -675,6 +675,22 @@ every site that needs it** (`[A3 docs/specs/spec-scope-and-structure/contract.md
    no configuration knob for either bound** (`DD-10`). **The two figures are this unit's own declaration and
    are not measurements** (`[A1 docs/specs/storeroom-js-proposal.md §10 · A65 — the copy's cost bound is
    one of the four things the ruling does not name | declared parameter semantics]`).
+
+   **⟶ AND THE ARM THIS CEILING ROW'S PROPERTY IS ABOUT, DECLARED 2026-10-11 BY THE BOUNDED DECLARATION PASS
+   (`role_spec_writer`), CLOSING GATE 4'S `JS-8`.** `RCA-8(d)` ANNOTATE-BESIDE: **the item above stands
+   byte-for-byte and its two figures and its answer do not move; THIS clause is a PURE INSERTION, it adds no
+   row, and it declares WHICH SIDE'S WALK answers — because gate 4 found the ceiling measured at the ADDON and
+   the clause placed at the package's own walk, one class later**
+   (`archive/gate4/storeroom-js-adversarial.md` §A · `JS-8`). **THE ARM IS THE PACKAGE'S OWN WALK'S: the
+   depth-`64` / node-`1,000,000` refusal is PRODUCED at the package's boundary — before any verb is called and
+   before any addon call is reached — so an ADDON-SIDE refusal of the same value one class later does NOT
+   satisfy the property, and a STORE-SIDE bound is not an arm of this row at all.** **THE BOUNDARY IT
+   ASSERTS: the package's own walk admits depth `64` and refuses `65`, and admits `1,000,000` visited nodes
+   and refuses `1,000,001`** — **and the crossing part's own dated clause at
+   `docs/specs/storeroom-js/crossing.md §1.4` item 5 carries the same declaration with gate 4's `NG-JS-D`
+   corpus beside it** (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the refusal belongs where the
+   walk is, which is the package's own edge | state or fail-state declaration]`).
+
 6. **THE CYCLE GUARD IS AN ANCESTOR STACK.** **A value that contains itself is refused `ValueNotAdmitted`,
    detected by testing each value against the walk's OWN ANCESTOR STACK — never by a `WeakSet` of visited
    objects, which would refuse an acyclic DIAMOND (a value reachable by two paths)** (`DD-11`).
@@ -1499,6 +1515,17 @@ because a re-`listen` at a removed address mints a FRESH token and never re-uses
 docs/specs/storeroom-js/contract.md §2.3 item 6 — the inherited mint rule; A3
 docs/specs/storeroom-native/write-and-read.md §6.5 item 12 (c); `DD-15` | requirement]`).
 
+**⟶ AND THE SAME ROW'S `S-WITHDRAW` LINE IS RE-DERIVED AT ITS OWN `§`, LANDED 2026-10-11 BY THE BOUNDED
+DECLARATION PASS (`role_spec_writer`), CLOSING GATE 4'S OVER-STRONG FINDING.** `RCA-8(d)` ANNOTATE-BESIDE:
+**both clauses above stand byte-for-byte and are read THROUGH this one; THIS clause is a PURE INSERTION, it
+moves no row and re-decides no rule, and it does what the clause above named but did not print at the row's
+own `§`: it prints the operative subject at `§5.5`.** **THE ROW COUNT DOES NOT MOVE — it is `8`, the cap holds
+at `8 ≤ 8`, NO NINTH ROW IS MINTED, and the `alt` cells and the failure lists of every row stand unmoved.**
+**The re-derivation itself, with its two arms and their own observables, stands at `§5.5`'s dated clause,
+which is its home; gate 4's audit is the finding it closes** (`archive/gate4/storeroom-js-adversarial.md` §B ·
+`P-SM-5`; `§5.5`) (`[A1 docs/specs/storeroom-js/contract.md §2.3` item 6 — the inherited mint rule; A3
+docs/specs/storeroom-native/write-and-read.md §6.5 item 12 (c) | requirement]`).
+
 ### §5.1 `P-IM-1` — the round trip, under the declared relation
 
 **Property.** **For every admitted JS value `v` and every address `a` a write of `v` at `a` succeeds on,
@@ -1593,6 +1620,38 @@ re-uses a withdrawn handle.
 the bounded correction pass of 2026-10-11)** · `§2.10` · `surface.md §3`–`§4`.
 (`[A1 docs/specs/storeroom-js-proposal.md §9.2 · A57 · A58; A3 docs/specs/storeroom-native/contract.md §6.5
 · §0.4's `ListenerHandle` clause | requirement]`)
+
+**⟶ RE-DERIVED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), CLOSING GATE 4'S OVER-STRONG
+FINDING AT THIS ROW: THE `S-WITHDRAW` STRATEGY CELL'S PRINTED SUBJECT.** `RCA-8(d)` ANNOTATE-BESIDE: **every
+cell above stands byte-for-byte — including the `S-WITHDRAW` line's own printed words and the failure list's
+own line — and it is read THROUGH this clause; THIS clause is a PURE INSERTION, it adds no row, moves no
+count and re-decides no rule.** **THE FINDING, NAMED WITH ITS TERMS: gate 4's PBT audit graded this row's
+`S-WITHDRAW` cell as the ONE OVER-STRONG cell in the register — *"its printed subject still reads 'a re-`listen`
+mints a DIFFERENT handle' while `§2.3` item 6 narrows it to the WITHDRAWN case"* — so the strategy line
+asserted MORE THAN `§2.3` item 6 PINS** (`archive/gate4/storeroom-js-adversarial.md` §B · `P-SM-5`'s row;
+`§5.0`'s close-out clause, which named the re-spelling but did not print the operative subject at the row's
+own `§`).
+
+**THE OPERATIVE SUBJECT OF THE `S-WITHDRAW` LINE, PRINTED AT ITS OWN `§` AND DERIVED FROM `§2.3` ITEM 6
+ALONE:** ***"after `unlisten`, the function never fires again because the store-side home entry is gone and
+the id the trigger would carry is no longer the registered one; a LATER `listen` AT THE SAME ADDRESS MINTS A
+NEW HANDLE **WHERE THE WITHDRAWAL REMOVED THAT ADDRESS'S HOME ENTRY**, and returns the EXISTING entry's handle
+where the address is STILL REGISTERED — so the withdrawn case and the still-registered case are TWO arms and
+the cell asserts BOTH."*** **THE TWO ARMS, EACH WITH ITS OWN OBSERVABLE, SO A DRIVE CANNOT SATISFY ONE BY
+ASSERTING THE OTHER:**
+
+| The arm | Its pre-condition | Its observable |
+| --- | --- | --- |
+| **the WITHDRAWN arm** | the `unlisten` REMOVED the address's one store-side home entry | **a later `listen` at that address MINTS A FRESH token, so the handle it returns is a NEW opaque value whose registration is a NEW registry entry — and the old function, whose id is no longer reachable, never fires again** |
+| **the STILL-REGISTERED arm** | the `unlisten` ahead of it was one of `§2.3` item 4's NO-OP SUCCESSES, which removes NOTHING | **a later `listen` at that address MINTS NOTHING and RETURNS THE EXISTING ENTRY'S HANDLE — the SAME opaque value — so no new registry entry arises** |
+
+**AND THE FAILURE LIST'S OWN LINE IS UNMOVED AND STAYS FALSE-OF-THE-ARM: *"a re-`listen` that re-uses a
+withdrawn handle"* remains a FAILURE, because the WITHDRAWN arm mints a FRESH token and never re-uses the
+withdrawn one, while the STILL-REGISTERED arm returns the existing entry's handle by design and is not a
+re-use of a withdrawn one at all** (`§2.3` item 6; `surface.md §2.3`'s dated clause;
+`docs/specs/storeroom-js/parameter-semantics.md §2.8`'s dated clause)
+(`[A1 docs/specs/storeroom-js/contract.md §2.3 item 6 — the inherited mint rule; A3
+docs/specs/storeroom-native/write-and-read.md §6.5 item 12 (c); `DD-15` | requirement]`).
 
 ### §5.6 `P-SM-6` — the construction's sequence and the two instances hazard
 
@@ -1772,6 +1831,43 @@ every row remains FAILABLE because every failure list above stands unmoved** —
 obeys is STATED HERE RATHER THAN CITED, because the spec that carries it is not at a path this repository
 carries: a sweep RECORDS and never widens the `≤ 8` register, and a row is added to it by no pass's own
 measurement** (`[A1 | requirement]`).
+
+**⟶ AND THE PASS AFTER THE SWEEP — THE BOUNDED DECLARATION PASS OF 2026-10-11 (`role_spec_writer`), ON THE
+ARCHITECT'S RULINGS `A76`/`A77` — RECORDS ITS OWN EFFECT HERE, IN THE SWEEP'S OWN FORM.** `RCA-8(d)`
+ANNOTATE-BESIDE: **every clause of the sweep above stands byte-for-byte; THIS clause is a PURE INSERTION, it
+is a RECORD and not a ruling, and it re-decides nothing.**
+
+1. **WHAT IT DECLARES, AND WHERE EACH DECLARATION STANDS.** **The validation order — the class decision
+   first, on the value as it is, the shape test second, and ADMIT or REFUSE third, with the class decision
+   never deferred and never revisited after a coercion — is `docs/specs/storeroom-js/crossing.md §1.7`,
+   whose four negative examples are gate 4's `JS-6` · `JS-1` · `JS-2` · `JS-5`.** **The no-repair prohibition
+   is `docs/specs/storeroom-js/crossing.md §1.8`.** **What *"verbose"* means — the failing target rendered as
+   the store's generator renders it, plus the reason (the class that failed, and the position where the
+   contract declares one), ALL INSIDE the single declared failure form, with a status drawn from the store's
+   closed set and no package-minted code — is `docs/specs/storeroom-js/surface.md §2.5` item 6, whose clause
+   (g) reconciles the registration site's `TypeError` to that form and to that set.** **The id-matching model
+   — the store passes an ID back when a listener is triggered, the ID is the value REGISTRATION returned, the
+   JS side matches that identity to the function it was registered with, and an ID the package holds no
+   function for fires NOTHING as an ASSERTABLE OBSERVABLE — is `docs/specs/storeroom-js/surface.md §2.4` item
+   6, with the invocation's one argument at `docs/specs/storeroom-js/surface.md §2.7` item 5, the producer and
+   the arms at `docs/specs/storeroom-js/parameter-semantics.md §2.12`'s dated clause, and the id/address
+   separation at `docs/specs/storeroom-js/parameter-semantics.md §2.15`'s dated clause.** **The ceiling row's
+   ARM is `docs/specs/storeroom-js/crossing.md §1.4` item 5's dated clause (gate 4's `JS-8`).** **The
+   `S-WITHDRAW` cell's re-derivation is `§5.5`'s dated clause.** **The licence's fourth site and the matrix's
+   concrete artefact names are `docs/specs/storeroom-js/package.md §3.4`'s and `§3.2`'s dated clauses (gate
+   4's `JS-20`).**
+2. **WHAT IT DOES NOT MOVE, IN THE SWEEP'S OWN TERMS.** **It writes only inside `docs/specs/storeroom-js/**`;
+   it writes NO byte under `bindings/js/**` (the code is `role_implementer`'s and the tests are
+   `role_test_writer`'s), none under `archive/**`, none in any tracker and none under
+   `../Provident-Electron/**`.** **It puts no question to the architect: every silence it closes is a priced,
+   reversible `DECLARED-DEFAULT` whose reversal point is a bounded amendment of this directory, and NO ruling
+   and NO `DD` row is re-decided by it.** **The register is `8` rows with cap `≤ 8` (`§5.0`), NO row is
+   added, dropped or renamed by this pass, and every row remains FAILABLE because every failure list above
+   stands unmoved — while ONE strategy cell's printed subject is RE-DERIVED at `§5.5`, which is the
+   re-derivation gate 4's audit required and NOT a re-spelling of the row.** **The `derivation:` clause stays
+   SINGLE (this document's opening clause), the closure predicate reads `6 = 6` with the file set unmoved,
+   and `§0.2`'s `47` rows, `§5.0`'s `8`, `§6`'s `18` and `§1.6`'s `56` all stand as printed.**
+   (`[A1 | requirement]`).
 
 ---
 

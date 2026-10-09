@@ -57,6 +57,37 @@ AND NO ACCEPTANCE ITEM: it states the phase state the tree now carries, so the t
    claims no `APP`-green.** **The unit's divergence table — every row's contract cell against this tree, with
    the side that must move — is the contract document's `SW-1` clause** (`[A1 | prohibition]`).
 
+**⟶ RECONCILED AGAIN 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), CLOSING GATE 4'S
+`JS-9` PLAN HALF: THE OPERATIVE JS TEST FIGURE IS `92`, AND THE `89` IS NAMED AS THE AS-FILED FIGURE.**
+`RCA-8(d)` ANNOTATE-BESIDE: **every byte of the plan above and below this clause stands exactly as filed —
+the gate-2 reconciliation and the sweep's reconciliation are re-emitted by reference and read THROUGH this
+clause, and nothing is deleted, reworded, re-ordered or renumbered, so `git diff` recovers the pre-pass text
+as a pure insertion.** **THIS CLAUSE ADDS NO PHASE, NO OWNER, NO OUTPUT AND NO ACCEPTANCE ITEM: it states the
+figure the tree's own record prints, with the figure the plan's own bytes carry named beside it**
+(`[A1 | numeric or census claim]`).
+
+1. **WHAT THE PLAN PRINTS, AND WHAT THE TREE MEASURES.** **The reconciliation clause's item 2 above prints
+   `node --test bindings/js/test/*.test.mjs` as *"`89` tests"*.** **THE OPERATIVE FIGURE IS `92`, AND IT IS THE
+   FIGURE THE TREE'S OWN RECORD PRINTS AT TWO SEPARATE RUNS: `92` tests · `92` pass · `0` fail · `0` skipped
+   · `0` todo · `0` cancelled, exit `0`** (`archive/gate3/storeroom-js-red-set.md` §9.3's two-run table;
+   `archive/gate4/storeroom-js-adversarial.md` · FIGURES THE PASS COULD NOT REPRODUCE · item `1`, which
+   names `92` as *"the operative one"*). **THE `89` IS NOT WITHDRAWN AS A READING: it is the figure the plan's
+   own clause carries as filed, and it is HISTORICAL — the cells the `V-1` re-derivation added post-date it**
+   (`§3`'s reconciliation item 2 and `archive/gate3/storeroom-js-red-set.md` §9's own header, each of which
+   prints the earlier figure at its own site).
+2. **THE FIVE PER-FILE FIGURES, PRINTED SO THE SUM IS CHECKED RATHER THAN TRUSTED — and because a total
+   without its terms is the defect `JS-9` is about:** **`round-trip` `21` · `surface` `36` · `registry` `17` ·
+   `package-entry` `17` · `register` `1` (the register runner) — so `21 + 36 + 17 + 17 + 1 = 92` ✓, and the
+   `5` files are the `5` the JS leg's own command globs** (`archive/gate3/storeroom-js-red-set.md` §9.3's
+   table). **A figure for this suite that is not `92`, or a per-file set that does not sum to it, is a
+   FINDING at whatever record prints it** (`DD-33`).
+3. **AND THE ONE THING THIS CLAUSE DOES NOT DO.** **It re-measures nothing — this pass runs no command — and
+   it does not move `§2`'s or `§3`'s phase cells, the register's figures (`395` Rust attempts · `107` JS
+   attempts) or the store's `377`, which is QUOTED and not re-labelled** (`DD-31`; `DD-33`; `§4.2`).
+   **The plan's as-filed bytes and both reconciliation clauses stand whole, and `§1`'s declared edit scope is
+   untouched by it** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-10` — every figure carries
+   its site and its layer | numeric or census claim]`).
+
 ## §1. THE DECLARED EDIT SCOPE, BY PATH, WITH THE PHASE THAT MAY WRITE EACH
 
 | Path | The phase that may write it |

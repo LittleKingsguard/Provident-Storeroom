@@ -310,6 +310,38 @@ every site that needs it** (`[A3 docs/specs/spec-scope-and-structure/contract.md
    no configuration knob for either bound** (`DD-10`). **The two figures are this unit's own declaration and
    are not measurements** (`[A1 docs/specs/storeroom-js-proposal.md §10 · A65 — the copy's cost bound is
    one of the four things the ruling does not name | declared parameter semantics]`).
+
+   **⟶ AND THE ARM THIS CEILING ROW'S PROPERTY IS ABOUT, DECLARED 2026-10-11 BY THE BOUNDED DECLARATION PASS
+   (`role_spec_writer`), CLOSING GATE 4'S `JS-8`.** `RCA-8(d)` ANNOTATE-BESIDE: **the item above stands
+   byte-for-byte and its two figures and its answer do not move; THIS clause is a PURE INSERTION, it adds no
+   row, and it declares WHICH SIDE'S WALK answers — because gate 4 found the ceiling measured at the ADDON
+   and the clause placed at the package's own walk, one class later**
+   (`archive/gate4/storeroom-js-adversarial.md` §A · `JS-8`).
+
+   **THE ARM IS THE PACKAGE'S OWN WALK'S, AND THE PROPERTY IS ABOUT THAT ARM:** **the depth-`64` /
+   node-`1,000,000` refusal this item declares is the PACKAGE'S OWN WALK'S — the refusal is PRODUCED at the
+   package's boundary (`§1.7`'s step three), BEFORE any verb is called and BEFORE any addon call is
+   reached — and the walk that produces it is the SAME walk `§1.7` declares the class decision for.**
+   **THE TWO ARMS THE PROPERTY MUST NOT BE CONFUSED WITH, NAMED SO A DRIVE CANNOT SATISFY ONE BY MEASURING
+   THE OTHER:** **(i) AN ADDON-SIDE CEILING THAT REFUSES THE SAME VALUE ONE CLASS LATER IS A DIFFERENT ARM
+   AND DOES NOT SATISFY THIS PROPERTY** — **it is a refusal produced after the package's walk has already
+   admitted the value, so the walk's own bound was not measured; and its class is whatever the arm that
+   produced it answers, which is exactly the divergence gate 4 measured** (`JS-8`: the value is refused at
+   the addon *"one class later than the clause places it"*); **(ii) A STORE-SIDE CEILING IS NOT AN ARM OF
+   THIS ROW AT ALL** — the store's own declared bound is the store's clause and not this unit's, and a
+   refusal it produced is not evidence about this walk.
+
+   **AND THE EXACT BOUNDARY THE PROPERTY'S ARM ASSERTS, SO THE TWO ARMS' FIGURES CANNOT BE READ AS ONE:**
+   **the PACKAGE'S OWN WALK admits a value of depth `64` and REFUSES a value of depth `65`, and admits a
+   value whose visited-node count is `1,000,000` and REFUSES one of `1,000,001`** — **and gate 4's `NG-JS-D`
+   corpus (`63`/`64`/`65`/`66` and `999,999`/`1,000,000`/`1,000,001`) is driven THROUGH THE PACKAGE'S ENTRY
+   for exactly this reason.** **A drive that reaches any of those values through anything but the claimed
+   entry measures the other arm** (`archive/gate4/storeroom-js-adversarial.md` §B · `NG-JS-D`;
+   `§1.4` item 5's figures; `DD-10`) (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the refusal
+   belongs where the walk is, which is the package's own edge; A3
+   docs/specs/storeroom-js/crossing.md §1.7 — the validation order, whose step three is this refusal's site
+   | state or fail-state declaration]`).
+
 6. **THE CYCLE GUARD IS AN ANCESTOR STACK.** **A value that contains itself is refused `ValueNotAdmitted`,
    detected by testing each value against the walk's OWN ANCESTOR STACK — never by a `WeakSet` of visited
    objects, which would refuse an acyclic DIAMOND (a value reachable by two paths)** (`DD-11`).
@@ -410,6 +442,142 @@ cover them).** **AND THE TWO THAT MATCH ARE NAMED SO THE COUNT IS CHECKED AND NO
 the blanket *"EXACTLY"* claim that would have made six of these eight carriers findings** (`[A3
 docs/specs/storeroom-js/package.md §4.5 item 2 — the type table and its dated count reconciliation; A1
 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12` | numeric or census claim]`).
+
+---
+
+### §1.7 The validation order — the class decision FIRST, the shape test SECOND, and ADMIT or REFUSE — declared for EVERY JS value and EVERY argument
+
+**⟶ ADDED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING `A76`.**
+`RCA-8(d)` ANNOTATE-BESIDE: **every clause of `§1.1`–`§1.6` above stands byte-for-byte and is read THROUGH
+this subsection; THIS subsection is a PURE INSERTION and it adds no row to `§1.2`'s table and no row to
+`§1.3`'s tables.** **THE RULING, VERBATIM:** ***"Test JS data for compliance with permitted shape before
+admitting and do not attempt to fix. reject with verbose error to client"*** (`docs/specs/storeroom-js-proposal.md`
+`§18` · `A76`). **WHAT THIS SUBSECTION DECLARES, IN ONE LINE: the ORDER the boundary's decisions are taken
+in — because a validation that happens AFTER a coercion, or that is skipped for a value the language makes
+look conforming, is the defect class `A76` rules against, and its four shipped instances are named as this
+rule's own negative examples at (b) below.**
+
+**THE VALIDATION ORDER IS THREE STEPS, AND IT IS APPLIED TO EVERY JS VALUE AND EVERY ARGUMENT POSITION — the
+`cfg` object and each of its three keys, every verb's `address`, `tier` and `opId`, the construction's
+`listeners[]` and every entry and member in it, `register`'s two arguments, and every member of every value
+the walk reaches at any depth** (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the validation-first
+discipline, in three parts | requirement]`):
+
+**(a) STEP ONE — THE CLASS DECISION IS FIRST, AND IT IS TAKEN ON THE VALUE AS IT IS.** **The class of the
+value is decided BEFORE any conversion is attempted and BEFORE any shape test that could pass on a value of
+the wrong class — and in particular BEFORE any `Array.isArray`-style shortcut, because `Array.isArray` returns
+`true` for a class that EXTENDS `Array`.** **The decision is taken on the value ITSELF: the class the value
+HAS, as a member of the crossing's own class set, and NEVER a class the value could be made to have by a
+conversion.** **A CLASS DECISION IS NEVER DEFERRED AND NEVER REVISITED AFTER A COERCION** — **so no clause of
+this part and no drive may read a value's class from anything but the value, and a value whose class was
+decided after a conversion has had its class decided TWICE, which is the defect and not the rule.**
+
+**(b) THE FOUR SHIPPED DEFECTS THIS RULE FORBIDS, EACH NAMED AS THE RULE'S OWN NEGATIVE EXAMPLE — because a
+rule that does not name the defect class it rules against is read as a preference** (`archive/gate4/
+storeroom-js-adversarial.md` §A · `JS-6` · `JS-1` · `JS-2` · `JS-5`):
+
+1. **A `bigint` CARRIED THROUGH THE NUMERIC ARM.** **(i) OF STEP ONE.** **The shipped walk tested
+   `Number.isFinite(x)` on a `bigint` — which is `false`, so the value fell into the NUMBER arm — and the
+   facade's numeric read then answered `0.0` for a `bigint`, so `10n` was refused with the store's message
+   rendering `0` where the caller's target was `10n`.** **THE RULE'S ANSWER: a `bigint` IS a `bigint`** —
+   `§1.2` row 10's outside class — **and it is REFUSED as that class, BEFORE any numeric arm is entered**
+   (`archive/gate4/storeroom-js-adversarial.md` §A · `JS-6`).
+2. **A `Number()` CALL THROWING A HOST `TypeError` FROM THE BOUNDARY'S OWN FRAME.** **(ii) OF STEP ONE, AND
+   THE REASON STEP ONE MUST PRECEDE ANY CONVERSION.** **`rollback(instance, Symbol())` reached
+   `Number(opId)`, which throws a RAW JS `TypeError` from the package's own frame — a form outside `§2.5`'s
+   single failure form, and one no clause of this unit permits.** **THE RULE'S ANSWER: a `Symbol` IS a
+   `Symbol`** — `§1.2` row 9's outside class — **and `OpIdArg`'s own rows answer `AddressMalformed` for an
+   argument whose shape is not the op id's shape at all (`§1.3`'s `OpIdArg` row 6's neighbourhood), so the
+   conversion is NEVER REACHED** (`archive/gate4/storeroom-js-adversarial.md` §A · `JS-1`; `§2.5`).
+3. **AN `Array.isArray` SHORT-CIRCUITING THE PROTOTYPE TEST, SO A CLASS EXTENDING `Array` IS ADMITTED.** **(i)
+   OF STEP ONE, AND THE CASE THAT PROVES THE RULE: `§1.2` row 5 REFUSES *"a class extending `Array`"* BY NAME,
+   and `§1.3`'s `AddressArg` row 11 refuses the array-like class for the address position.** **A prototype
+   test may not be skipped because a SHAPE test answered `true` on a subclass, and `Array.isArray` is a SHAPE
+   test: it distinguishes an array from a non-array and it does NOT distinguish a plain array from a class
+   whose prototype chain carries `Array.prototype`.** **THE RULE'S ANSWER: `class V extends Array {}` is a
+   CLASS INSTANCE and is REFUSED, at the value position and at the address position alike** — **and the ONE
+   EXCEPTION THE CONTRACT KEEPS IS NAMED HERE SO IT IS NOT READ AS A LOOPHOLE: THE ARRAY ARM CARRIES THE
+   PROTOTYPE DECISION **BESIDE** THE CLASS DECISION, so a value is an array under step one only where the
+   class decision says `Array` AND the value's prototype class is `Plain` or `Null`.** **That conjunction is
+   not a shape test replacing the class decision — it is the class decision, taken without a shortcut, for
+   the ONE class whose shape test a subclass passes** (`archive/gate4/storeroom-js-adversarial.md` §A ·
+   `JS-2`; `§1.2` row 5; `§1.3`'s `AddressArg` row 11; `§1.4` item 4 (e)'s realm-agnostic prototype rule,
+   which is the same rule over the object arm).
+4. **A MEMBER READ THROUGH THE PROTOTYPE CHAIN, SO A PROTOTYPE-CARRYING OBJECT IS ADMITTED.** **(i) OF STEP
+   ONE AND STEP TWO TOGETHER, AND IT COVERS THE `cfg`/WIRE-MEMBER READING: `§2.1` declares that `storeCreate`
+   TAKES *"ONE plain object"*, and `§1.4` item 4's plain-object test (a)–(g) refuses a prototype-carrying
+   object, while the shipped facade read every `cfg` member and every wire member through the PROTOTYPE
+   CHAIN — so `class Cfg { get journalLength() { return 8 } }` was admitted AS `cfg`.** **THE RULE'S ANSWER:
+   a key is read by OWN membership and never through the prototype chain** — **the declared reading
+   `§1.3`'s absent-versus-`undefined` rule already fixes for `cfg`'s keys is `in`-membership, and
+   `in`-membership is a MEMBERSHIP test over the value, taken at step two, and never a chain read**
+   (`archive/gate4/storeroom-js-adversarial.md` §A · `JS-5`; `§2.1`; `§1.3`'s dated absent-versus-undefined
+   rule; `§1.4` item 4).
+
+**(c) STEP TWO — THE SHAPE TEST AGAINST THE PERMITTED SET, TAKEN AFTER THE CLASS DECISION AND ON THE SAME
+VALUE.** **The shape test is the value's membership in the permitted set its class declares: `§1.2`'s rows
+1–5 for a value, `§1.3`'s rows for each carrier, and `§1.4` item 4's structural plain-object test (a)–(g) for
+the object arm.** **NO SHAPE TEST MAY STAND IN PLACE OF THE CLASS DECISION**, and **no shape test may be
+taken on a value the class decision has not yet classified** (`§1.4` item 4; `§1.2`; `§1.3`).
+
+**(d) STEP THREE — ADMIT OR REFUSE, AND NOTHING ELSE.** **A value that CONFORMS with its class's permitted
+shape is ADMITTED; a value that does NOT is REFUSED.** **A refusal answers the ONE declared form and never a
+second: for a value the store's own taxonomy governs, the store's own outside class is the answer
+(`§1.2`'s rows 6–13, each answering the store's `ValueNotAdmitted`); for a carrier, the row's own declared
+code; and the rejection's CONTENT — what *"verbose"* means at its own cell — is declared at
+`docs/specs/storeroom-js/surface.md §2.5` item 6** (`§1.2`'s closing clause; `§1.3`'s rows).
+
+**AND THE FOUR THINGS THIS SUBSECTION DOES NOT DO, STATED SO IT IS NOT READ WIDER THAN IT IS.** 1. **IT
+ADDS NO OUTSIDE CLASS, NO CODE AND NO ROW**: `§1.2`'s `13 = 5 + 8` rows, `§1.3`'s `56` carrier-variant rows
+and `§1.6`'s census stand unmoved, and the refused-class figures (`8` outside value classes, `10` outside
+segment classes) are unchanged. 2. **IT DOES NOT NARROW WHAT THE STORE ADMITS**: the classes the store's own
+taxonomy admits are the SAME `5`, and this rule moves only the SITE at which the class decision is taken —
+the package's own boundary — for a value the store's taxonomy would refuse anyway. 3. **IT DOES NOT REACH A
+ROW THE TABLES DO NOT PRINT**: `§1.2` row 5's `Array` subclass and `§1.2` row 4's prototype-carrying object
+are PRINTED REFUSALS, and this rule is the order in which the boundary arrives at them. 4. **IT DOES NOT
+FORBID THE CARRIER PASS-THROUGH**: `DD-1`'s rule that each carrier's outside variants are admitted AS VALUES
+and converted to the store's own refusal is untouched, because a carrier's conversion is itself a class
+decision and never a coercion (see `§1.8`'s third clause)
+(`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76`; `DD-1` | declared parameter semantics]`).
+
+### §1.8 The no-repair prohibition — nothing at the boundary converts, substitutes, defaults, truncates or "fixes up" a non-conforming input
+
+**⟶ ADDED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), ON `A76`'S SECOND PART.** `RCA-8(d)`
+ANNOTATE-BESIDE: **every clause above stands byte-for-byte; THIS subsection is a PURE INSERTION and no table
+of this part gains or loses a row.** **THE RULING, VERBATIM:** ***"do not attempt to fix"***
+(`docs/specs/storeroom-js-proposal.md` `§18` · `A76`).
+
+**THE PROHIBITION, IN ONE CLAUSE: NOTHING AT THIS BOUNDARY CONVERTS, SUBSTITUTES, DEFAULTS, TRUNCATES OR
+"FIXES UP" A NON-CONFORMING INPUT.** **A NON-CONFORMING VALUE IS REFUSED, AND THE REFUSAL'S CLASS IS THE
+CLASS THE VALUE HAS** — **the class the value is, never the class it would have after a conversion and never
+the class of a substituted value** (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` | requirement]`).
+**THE CONSEQUENCE FOR CALLER-FACING BEHAVIOUR IS THE DECLARED INTENT AND IS STATED SO IT IS NOT READ AS A
+REGRESSION:** **a caller who expected a coercion — a numeric string where a number is required, a `bigint`
+read as a number, a defaulted `journalLength`, a `listeners` array defaulted to `[]`, a `Symbol` stringified
+into an `opId`, a hole read as `undefined` or as `null` — GETS A REFUSAL INSTEAD, AND THAT IS THE DECLARED
+AND INTENDED BEHAVIOUR.** **No clause of this part may be read as promising a coerced value on any path, and
+a drive that expects one asserts a behaviour the contract does not declare.**
+
+**AND THE ONE READING THIS PROHIBITION DOES NOT TAKE, STATED SO `DD-1` IS NOT CONTRADICTED BY IT:** **`DD-1`
+declares that the binding ADMITS each carrier's outside variants AS VALUES and converts them to the store's
+own refusal BY CALLING the store's verb with them, so the store's own closed fail set stays the only producer
+of a code.** **That is NOT a repair and it is not forbidden here: a carrier's conversion is the class
+decision — the value's class is decided, its carrier spelling is CONSTRUCTED from the value as it is, and the
+store's own carrier answers its own code.** **THE TWO CLAUSES ARE READ TOGETHER LIKE THIS: a carrier's
+outside variant travels to the store UNCHANGED and is refused THERE; a value the WALK meets is refused AT
+THE WALK, and never admitted by a substitution. NO ROW IS REPAIRED IN EITHER READING** (`§1.3`'s
+absent-versus-`undefined` rule; `DD-1`; `DD-46`).
+
+**AND THE THREE CLASSES THE PROHIBITION'S NEGATIVE EXAMPLES COME FROM, NAMED SO THE REFUSAL'S CLASS IS NEVER
+THE SUBSTITUTE'S CLASS:** **a `bigint` is refused as a `BigInt` and never as the `Num(0.0)` a failed numeric
+read produced; a class extending `Array` is refused as a class and never admitted by `Array.isArray`; and a
+prototype-carrying object is refused as a `NonPlainCollection` and never read through its chain**
+(`§1.7` (b) items 1, 3 and 4).
+
+**AND ONE THING THIS SUBSECTION DOES NOT DECLARE: IT ADDS NO FAILURE FORM AND NO CODE.** **The refusal
+answers the rows' own declared answers, inside the single form of `docs/specs/storeroom-js/surface.md §2.5`**,
+**and what *"verbose"* means at its cell is `docs/specs/storeroom-js/surface.md §2.5` item 6's declaration,
+not this subsection's** (`§1.7` (d); `docs/specs/storeroom-js/surface.md §2.5` item 6).
 
 ---
 
