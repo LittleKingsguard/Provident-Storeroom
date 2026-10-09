@@ -295,6 +295,62 @@ later gate.**
 
 ---
 
+## §14. THE BUBBLE ELABORATED — `Q1`–`Q5`, each with its options priced and a recommendation
+
+**<⟶ APPENDED, DATED. This section ELABORATES `§G.3`'s five questions; it takes NO ruling. Every recommendation is the supervisor's, priced beside its alternatives, and the architect may rule in one line, refuse, or let the spec carry any of them as a priced `DECLARED-DEFAULT`.**
+
+### 14.1 `Q1` — THE REALM CLAIM: what the package promises to load in
+
+**WHAT THE QUESTION IS.** `A1` ruled the carrier as *"Node-API"*. A Node-API addon is a **native binary bound to the Node ABI**, so the realms it can actually load in are a property of the loader, not of the API. The question is **which realms the package CLAIMS** — because "generic" is a promise, and every unclaimed realm owes its own declared answer (a handoff row) rather than silence.
+
+**THE FACTS, REALM BY REALM.** **Node CJS** — `require(path/to/addon.node)` loads it; **works**. · **Node ESM** — an addon is a CJS module, so ESM reaches it through `createRequire` or Node's CJS interop; **works, and the package's `exports` map must publish both entry points** (a real, small obligation). · **Electron main / preload** — Electron carries **its own Node ABI**, so an addon must be built against **that** ABI; **works WITH a rebuild-on-install note** (the note is a declared requirement, not a caveat to be discovered by a consumer). · **Electron renderer with `nodeIntegration` off** — **cannot load a `.node` at all**; the only route is preload + IPC. · **Browser ESM (a renderer bundle)** — a bundler **cannot even resolve** a platform binary; tree-shaking cannot help. · **Workers** — `worker_threads` can load it if the ABI matches; a browser worker cannot. · **Any IPC route** — see the cost below.
+
+**THE OPTIONS, PRICED.** **(i) Node CJS + Node ESM only.** Cost: the adjacent project's browser-ESM renderer is out of scope and owes a handoff row; a renderer consumer must go through the main process. Gain: the claim is exactly what the carrier delivers, and the test matrix is two entry points. **(ii) (i) + Electron main/preload with the rebuild note — RECOMMENDED.** Cost: one declared host-configuration requirement (the ABI must match, and the build follows the host's Electron version) and one extra build target. Gain: the ordinary Electron consumer's main process is served, which is the realistic first consumer of a store like this. **(iii) (ii) + a declared IPC bridge for renderers.** Cost: **it is a SECOND CROSSING** — every value would be serialized by the channel, so `A65`'s deep-copy discipline would be re-stated in a second dialect; **functions cannot cross**, so the registry would have to live in the main process behind a channel-id dispatch, with its own failure channel for a vanished channel and its own ordering rules — **another unit's work, not a variant of this one**. **(iv) All realms.** Cost: the widest promise against the narrowest carrier; the widest test matrix; and a claim that is false in a browser by construction.
+
+**RECOMMENDATION: (ii).** It claims precisely what a Node-API addon can deliver, hands off the renderer and the browser with a named row each, and leaves the IPC route to a unit that can own a second serialization contract.
+
+### 14.2 `Q2` — THE DISTRIBUTION CUT: how the package reaches a consumer
+
+**WHAT THE QUESTION IS.** Whether this unit's deliverable is a **buildable source tree**, a **published artefact**, or an **open policy** — and with it, whether a registry identity, a prebuild matrix and a licence decision are in scope.
+
+**THE OPTIONS, PRICED.** **(i) Source + build-on-install, unpublished, no prebuilds — RECOMMENDED.** Cost: **the consumer needs a Rust toolchain** and a one-time dependency fetch (the store's own `--offline` posture is the STORE's; the binding has dependencies by `A68`), and that requirement must be **declared** rather than discovered. Gain: **nothing in this repository authorises committed binaries** (`archive/` is gitignored, `/target` is ignored, and no clause in either unit's contract admits a binary artefact), the tree stays reviewable, and the build is reproducible per platform. **(ii) Published to a registry with prebuilds.** Cost: a registry identity, a per-platform/arch/libc prebuild matrix, CI to produce it, a hosting decision for the binaries, and **a licence decision — the project is `AGPL-3.0` (per `LICENSE`), which is lawful to publish but is a fact every consumer must be told**; the architect may want to weigh that before a public name is chosen. **(iii) A cargo-distributed crate only, the consumer builds the addon.** Cost: this is not a JS package — there is no `npm install` story — so the unit would not deliver the thing the directive asks for. **(iv) Publish nothing and leave the policy open.** Cost: the unit has no deliverable, and the question returns unchanged next pass.
+
+**RECOMMENDATION: (i) for the first cut**, with (ii) explicitly available later behind its own decision (it is a distribution decision, not a design one) — **and the honest note that (i) costs the consumer a toolchain**, which is the price of shipping no binaries.
+
+### 14.3 `Q3` — THE CARRIER TOKEN'S SOURCE: the one line step 4's STEP-0 route needs
+
+**WHAT THE QUESTION IS.** The adoption trigger fires on a unit whose **contract names, parameters or vocabulary originate outside this project**. `A63` narrowed the surface to `storeCreate` · `read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` plus the returned records — **and every one of those names is the STORE's own**, declared in Rust at the store contract's `§0.4`. The JS-side spellings are this unit's own to declare. **So the question is: which tokens in this unit's declared surface come from OUTSIDE?**
+
+**THE CANDIDATES, SORTED HONESTLY.** **`Node-API` / `napi` — YES, AND IT IS THE ONE THAT MATTERS:** the name is a **standard's**, cited by the architect's own `A1`, and a contract element of this unit (the carrier) carries it. · **The JS language's ambient names** (`Object`, `Array`, `BigInt`, `Symbol`, `Proxy`, `undefined`) — these are the **language's** vocabulary, not an artefact's; a contract may use them the way it uses `string` or `number`. · **ecosystem/tooling names** (`npm`, `package.json`, `exports`, `.node`) — the **format's**, not a source of a contract element. · **`napi-rs` / `napi-sys`** — a **library's** name, and only if the contract NAMES the binding library (a `DECLARED-DEFAULT` can instead say *"a Node-API binding library"* without naming one).
+
+**THE OPTIONS, PRICED.** **(i) `Node-API`/`napi` is the ONLY externally-sourced token — RECOMMENDED.** Then the dossier carries **one identifier row** (keyed `Node-API`/`napi`, the carrier), well inside the `≤ 8` cap, and its `defined` instrument is the landing pass filing `A1` within an ACTIVE `docs/decisions.md` row (the same instrument the listener unit's rows used). **(ii) The architect names further tokens** — e.g. if he wants the contract to name `napi-rs` outright, that is a second row; if he wants the JS language's type names treated as externally sourced, several more. **The cap is `8`, so there is room — but each row is a row the unit must carry and, if any lands `undefined-until-answered`, the row bars the delegable word.**
+
+**RECOMMENDATION: (i)** — and **the honest consequence stated so it is not a surprise: the trigger DOES fire on that one limb, so this unit carries a dossier with one row rather than a zero-row exemption**, and **that row must be `defined` (not `undefined-until-answered`) or the word is barred**. `A1`'s own filing as an ACTIVE `docs/decisions.md` row is the instrument, and it is the supervisor's landing duty.
+
+### 14.4 `Q4` — `U-24` / `J-13`: the module-supplied-functions crossing
+
+**WHAT THE QUESTION IS.** Whether the store's **module-supplied functions** — constraints and repairs, whose evaluation the architect ruled NODE-SIDE (`A6`) — and the `J-13` subject cross in THIS unit.
+
+**THE FACTS.** **The store's contract declares NO constraint or repair surface:** the amendment's own reconciliation left the constraint seam out of the declared surface, `PAR-9`'s row was re-pointed to the listener surface, and no verb in the `A63` surface takes a function. **And `P-1`'s own enumeration carries `U-24` while it does NOT carry `J-13` at all** — so `J-13` is a subject that was never cleanly assigned, and `U-24` is one the park carried.
+
+**THE OPTIONS, PRICED.** **(i) OUT of scope, with the owner named — RECOMMENDED.** Cost: **a `docs/pending.md` row must be authored** for the crossing (owner named, a positive revisit condition), `U-24`'s disposition recorded, and `J-13`'s absence from `P-1` recorded as the fact it is; this is cheap and it is what `P-1`'s row-by-row map (`AR-8`) needs anyway. **(ii) IN scope.** Cost: the unit declares a surface **no artifact has enumerated** — the store has no constraint verb, so the unit would first have to define one, which is a **store-surface change** (stop condition `B`).
+
+**RECOMMENDATION: (i).** `A63`'s surface does not include a function-carrying parameter, and inventing one would move the store — which `A68`'s whole layout exists to avoid.
+
+### 14.5 `Q5` — THE LIFETIME VERB: does the package expose a way to release an instance
+
+**WHAT THE QUESTION IS.** The store declares **no `dispose()` and no `close()`**; the addon boxes the instance and the JS wrapper holds it; **no finalizer is declared**. So a wrapper that becomes unreachable before process exit keeps its Rust memory to exit.
+
+**IS THAT A PROBLEM, HONESTLY?** **Mostly not, and the reason matters:** the store runs **no background work**, holds **no OS handle beyond the path it was given** (touched only by a `file`-tier write), and **commits synchronously** — so there is **no in-flight state to flush and no async resource whose abandonment could lose data**. What is lost by dropping the reference is **memory at process exit**, not a pending write. That is why no finalizer is a defensible choice rather than an omission.
+
+**THE OPTIONS, PRICED.** **(i) No verb — RECOMMENDED for the first cut.** Cost: memory held to exit for a dropped wrapper, and no deterministic release — **acceptable because the amount is bounded by the store's own state and the process is ending anyway**. **(ii) A PACKAGE-level `dispose()`** that drops the registry and the wrapper's reference. Cost: a small surface addition with one clause — *"dispose releases the package's own references; the store's state needs no tear-down because it commits synchronously"* — and the question of what a second call does (**a declared no-op**). Gain: deterministic release, and a place to state that nothing needs flushing. **This is NOT a store-surface change** — it is the package's own verb. **(iii) A STORE-level `dispose()`/`close()`.** **REFUSED** — it is a store-surface change for a need the store does not have (stop condition `B`).
+
+**RECOMMENDATION: (i)** — with (ii) available in one line if the architect wants deterministic release; (iii) is not available without a store amendment.
+
+**AND ONE THING THIS ELABORATION DOES NOT DO: it does not rule. Every recommendation above is the supervisor's, priced beside its alternatives; the architect may adopt any in one line, refuse any, or let the spec carry them as priced, reversible `DECLARED-DEFAULT` rows. ONLY `Q3` CAN CHANGE THE VERDICT — the other four bind the contract's form, not the word.**
+
+---
+
 **END OF THE PROPOSAL.** **§1 is the architect's directive, byte-for-byte. §2 is the measured context. §3 is
 the filing's bounds. §4 is a quotation table with no reading taken. §5 is a map of adjacencies with no
 ruling. §6 records the adoption trigger's premise and the ledger move. §7 is the provenance. No behaviour
