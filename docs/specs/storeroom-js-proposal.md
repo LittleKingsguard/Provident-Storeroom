@@ -236,6 +236,47 @@ later gate.**
 
 ---
 
+## §11. THE ARCHITECT'S UNPARK, MINT AND LAYOUT RULINGS OF 2026-10-11
+
+**<⟶ APPENDED, DATED, FILED IN THE PASS IT ARRIVED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES.**
+
+**THE ARCHITECT'S WORDS, VERBATIM (numbered as the findings they answer).**
+
+> K12 - this is the unpark of the integration
+> K7 - use recommended
+> K11 - Confirm
+
+**THE THREE RULINGS, TRANSCRIBED AS `A66`–`A68`.**
+
+| # | The finding | The ruling (verbatim) | What it settles |
+| --- | --- | --- | --- |
+| **`A66`** | **`K12`** — the live conflict: the store contract's `§10.2` item 2 prohibits *"any question about the JS integration put to the architect"* (`A8`), while the adoption contract's `§3.1.2` FORCES escalation on any open row | ***"this is the unpark of the integration"*** | **ANSWERED, TWICE OVER: (1) `P-1` — THE JS INTEGRATION PARK — IS LIFTED BY THIS RULING, recorded as its own dated lift clause at `docs/pending.md` (`lifted, not deleted`, the convention `P-3` already carries under `A44`); and (2) the store contract's PROHIBITION on integration questions is SUPERSEDED FOR THIS UNIT — the architect's own directive to prepare the integration necessarily re-opens exactly those questions, so `§10.2` item 2's cell gains a dated reconciliation in the same pass and `A8`'s ban is read as SCOPED TO THE STORE'S OWN BUILD (the deferral it was) rather than as a standing gag.** **Consequence: this unit's gate may put listener/integration questions to the architect, and `G-2`'s no-deferral rule survives intact.** |
+| **`A67`** | **`K7`** — the handle mint is `listener-{PROCESS-GLOBAL counter}` while the contract declares handles unique *"per instance and per session"*, so a stale token from a prior session can remove a DIFFERENT registration and `PAR-13`'s *"prior session ⇒ no-op success"* is unreachable | ***"use recommended"*** | **ANSWERED, ADOPTING THE SUPERVISOR'S RECOMMENDED FIX: the mint becomes a PER-INSTANCE COUNTER ON THE STORE, so the declared per-instance/per-session scoping is TRUE, a foreign instance's or a prior session's handle is genuinely OUTSIDE the domain, and `unlisten` over it is the declared no-op success.** **The store's PUBLIC surface does not move (the mint is internal); the change is `src/**` plus a red-set cell asserting the prior-instance/foreign-instance no-op.** |
+| **`A68`** | **`K11`** — a napi binding's dependencies and `cdylib` would land on the DONE unit's declared manifest and its measured offline green | ***"Confirm"*** | **ANSWERED, CONFIRMING THE RECOMMENDED LAYOUT: an INDEPENDENT SIBLING CRATE with a PATH DEPENDENCY on the store (`bindings/js/`, its own `Cargo.toml` with `crate-type = ["cdylib"]`, its own dependencies, and `storeroom-native = { path = "../.." }`) — the shape the out-of-repo blind harness already proved.** **Consequences: THE STORE'S MANIFEST, ITS `src/**`, ITS `tests/**` AND ITS OFFLINE `374/374` GREEN ARE NOT TOUCHED; the store keeps its no-dependency property and its plan's *"NOT DONE IF a second crate, a workspace member or a red set outside `tests/**` appeared"* cell is not contradicted (the binding is NOT a workspace member, so a root `cargo test` keeps its single-package meaning); and the binding's own build and test command is declared in its own directory's terms.** |
+
+**AND THREE CONSEQUENCES THIS FILING STATES PLAINLY.** **(1) GATE 2 IS NOW UNBLOCKED ON THE THREE DECISIONS THAT WERE OUTSTANDING — `K12`/`P-1`, `K7` and `K11` are all ruled, and the remaining `§9` items (the walk's per-class table, the JS-side equality clause, the registry's four rules, the realm handoffs, `napi-rs`, source-and-build-on-install) are carried as priced, reversible `DECLARED-DEFAULT` rows in this unit's contract.** **(2) TWO LANDING DUTIES ARE OWED WITH THIS PASS AND ARE BEING PAID IN IT: `docs/pending.md`'s dated lift clause at `P-1`, and a `docs/decisions.md` ACTIVE row recording `A62`–`A68` (including the `§10.2` supersession) — with the store contract's `§10.2` item 2 cell reconciled by a dated clause.** **(3) `P-1`'S LIFT DOES NOT DISCHARGE `P-2`: the lift report's duty to surface `P-1` for the architect is met BY this ruling, and `P-2`'s row is annotated to say so — while `P-1`'s `28` rows still owe their row-by-row map (`C14`) in this unit's contract.** **NO UNIT ROW IS ADMITTED BY THIS FILING; THE LEDGER'S MOVE BELONGS TO THE JS UNIT'S OWN GATE-1 ROW.**
+
+---
+
+## §12. THE SUPERVISOR'S CORRECTION OF `A67` — THE RECOMMENDED FIX WAS MEASURED WRONG, AND THREE REMEDIES ARE PRICED
+
+**<⟶ APPENDED, DATED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES. THIS SECTION REPORTS A MEASUREMENT AND PRICES REMEDIES; IT RULES NOTHING AND ASKS THE ARCHITECT TO CHOOSE.**
+
+**THE ARCHITECT RULED `A67` AS *"use recommended"* — i.e. he adopted THE SUPERVISOR'S RECOMMENDATION: a PER-INSTANCE COUNTER on the store. THAT RECOMMENDATION WAS WRONG, AND TWO INDEPENDENT PASSES MEASURED IT.**
+
+**THE MEASUREMENT, IN THE IMPLEMENTER'S OWN TERMS (the fix was implemented, run, and reverted cleanly — the tree is byte-identical to its pre-pass state).** **A per-instance counter restarts at `1` for every fresh instance, so two instances created in one process MINT THE SAME TOKEN (`listener-1`).** **And handle identity is TOKEN EQUALITY ALONE (`contract.md §0.4` clause 1), so `unlisten` over a FOREIGN instance's handle FINDS THIS INSTANCE'S OWN ENTRY AND REMOVES IT — contradicting `§0.4` clause 3 and `write-and-read.md §6.5` item 12 (a) and `PAR-13`, each of which requires that an outside-domain handle remove NO other registration.** **Measured: with the fix, `cargo test` is `373 PASS / 1 FAIL` — the failing cell is `tests/e2e_listener_firing.rs`'s `lf_e12_a_fabricated_and_a_foreign_handle_unlisten_remove_nothing` (repeatable), reporting *"the DECLARED `triggered` set is `{listener-1}` (1 member) and the store returned `{}` (0 members)"*.** **AND THE RELOAD HALF OF `K7` IS NOT DELIVERED EITHER: a fresh PROCESS restarts at `1` in both designs, so a prior-session handle remains indistinct from a fresh instance's — the *"prior session ⇒ no-op"* clause stays unreachable by a counter alone.** **The test writer's parallel pass reached the same projection independently (its `CF-4`: *"a bare per-instance counter turns cells 1–2 RED"*), and its three new cells — authored from the declared clauses — are GREEN on the current tree and are exactly the guard the chosen rule must keep green.**
+
+**THE THREE REMEDIES, EACH PRICED**
+| # | The remedy | Its cost |
+| --- | --- | --- |
+| **(a) A DISCRIMINATOR-BEARING MINT — RECOMMENDED** — a per-instance counter **plus a per-instance (or per-session) discriminator inside the token**, e.g. `listener-<instance-or-session-token>-<n>` | satisfies `§0.4` clause 2 AND clause 3 AND `DD-42`, keeps the failing cell green, and **actually delivers `K7`'s reload gain** (a prior-session token carries a different discriminator and is genuinely outside the domain). **Cost: the token's spelling becomes non-deterministic**, so one red-set cell that seeds a `listener-1..N` range (`NG-C`'s seed) becomes vacuous for the minted range and must be re-derived by its author role; and the token's text stops being observable-stable — which no declared clause promises anyway (`§0.4` clause 1 forbids reading it OUT). |
+| **(b) DECLARE THE TOKEN *"UNIQUE PER PROCESS"*** — amend `§0.4` clause 2 and reconcile `PAR-13` | **no `src/**` change** (the shipped behaviour is already process-global and green), and `PAR-13`'s foreign no-op then holds exactly for tokens this instance never minted — which is what the standing cells drive. **Cost:** `§0.4` clause 2's *"per instance and per session"* becomes false as declared and must be re-derived, `K7`'s containment hole (a guessable namespace) stays, and a prior-session token is still indistinguishable. |
+| **(c) A PER-INSTANCE COUNTER SEEDED FROM A SESSION-SCOPED BASE** | green, and **delivers NONE of `K7`'s gain** — the token is per-instance-unique but not session-distinct, so the reload half stays unreachable. **Cost:** a cosmetic change with a real spec claim behind it. |
+
+**AND THREE THINGS THIS FILING STATES PLAINLY.** **(1) THE SUPERVISOR OWNS THE ERROR: the recommendation at `§9.2` asserted that *"a per-instance counter"* would make `PAR-13`'s no-op REACHABLE without checking the token-equality premise — the implementer's measurement and the test writer's projection both refute it, and this correction is filed rather than the defect carried.** **(2) THE STORE'S `374/374` GREEN STANDS UNTOUCHED IN THE HANDED-BACK TREE — the fix was reverted cleanly (`cmp` byte-identical), and the three new cells added by the test writer are green on the current tree at `377/377`.** **(3) THE CHOICE IS THE ARCHITECT'S, IN ONE LINE: `(a)`, `(b)` or `(c)`.** **`(a)` is the supervisor's recommendation — now with the cost named — and it is the only one of the three that makes both halves of `K7` true.**
+
+---
+
 **END OF THE PROPOSAL.** **§1 is the architect's directive, byte-for-byte. §2 is the measured context. §3 is
 the filing's bounds. §4 is a quotation table with no reading taken. §5 is a map of adjacencies with no
 ruling. §6 records the adoption trigger's premise and the ledger move. §7 is the provenance. No behaviour

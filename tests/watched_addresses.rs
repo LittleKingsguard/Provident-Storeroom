@@ -32,6 +32,18 @@
 //! `delete` that removes a version; a `delete` that removes nothing; the three change arms that destroy and
 //! replace the node carrying a borrow; a read at the empty address and at the listener's own address; a
 //! fresh instance over an equal `cfg.filePath`.
+//!
+//! **⟶ ADDED 2026-10-11 (`A67`, `K7`) — `THREE` CELLS ADDED AT THE FOOT OF THIS FILE, AND THE STATES THEY
+//! ADD TO THE LIST ABOVE, EACH NAMED: `a foreign instance's handle` is now driven at its FULL declared
+//! answer (a NO-OP SUCCESS that leaves the OTHER instance's home untouched, observed through that instance's
+//! own trigger set and watched-address set) · `a second instance over the SAME cfg.filePath` (the same rule
+//! across the same path, with the boot's zero registrations, `DD-38`) · `a handle a third instance minted
+//! and withdrew` · `TWO instances minting for their OWN addresses, with no cross-naming and no
+//! cross-firing` · and `a caller-adopted token the same instance's own mint would otherwise take`
+//! (`DD-42`'s mint rule in its per-instance form).** **THE PRIOR-SESSION STATE ITSELF REMAINS A REPORTED
+//! SKIP (`session` is the process, `§6.1` item 3; no reload verb exists), and the cells' own comment block
+//! names it.** **NO DRIVE ABOVE IS TOUCHED, WEAKENED OR RE-DERIVED BY THIS CLAUSE** (`§0.4` clauses 2 and 3;
+//! `parameter-semantics.md §2.13` `PAR-13`; `write-and-read.md §6.5` item 12; `DD-42`; `DD-38`).
 
 mod support;
 use support::*;
@@ -726,5 +738,397 @@ fn s5_8_s_watch_v_the_home_is_not_a_graph_structure() {
         wf.triggered.is_empty() && wf.watched.is_empty(),
         "DD-38/§5.8 (c): a fresh instance over an equal `cfg.filePath` loads NO registration — the home is \
          out of the `file` bytes and out of the journal, and this instance's own home is empty"
+    );
+}
+
+// ===================================================================================================
+// **⟶ ADDED 2026-10-11 — THE `K7`/`A67` SET: THE HANDLE'S PER-INSTANCE UNIQUENESS DOMAIN, DRIVEN AT ITS
+// REACHABLE HALF.** **THE AUTHORITY, NAMED: `contract.md §0.4`'s `ListenerHandle` construction-rule clause 2
+// (**a store-minted handle is unique per instance and per session**) and clause 3 (EVERY outside value — *"a
+// value a FOREIGN instance minted · a value THIS instance minted in a PRIOR SESSION · a value the store never
+// minted at all (fabricated)"* — is *"answered EXACTLY as `PAR-13` declares: at `unlisten`, a NO-OP SUCCESS,
+// producing NO code and removing NO other registration"*); `parameter-semantics.md`'s `PAR-13` (§2.13, the
+// same three outside values with the same answer); `write-and-read.md §6.5` item 12; and `DD-42` (a mint must
+// not collide with a token the home already holds).** **`K7` IS THE MEASURED DEFECT THESE CELLS DRIVE, and
+// `A67` (*"use recommended"*) is the ruling that makes the declared scoping the mint's own duty.**
+//
+// **THE STATES, ENUMERATED BEFORE THEY ARE DRIVEN, EACH WITH THE ANSWER A CLAUSE DECLARES:**
+// **(1a)** instance A's handle at instance B's `unlisten`, where B holds its own registration — NO-OP SUCCESS,
+// no code, and B's home UNCHANGED (its trigger set and its watched-address set exactly as before);
+// **(1b)** the same over a SECOND INSTANCE built on the SAME `cfg.filePath` (`DD-38`/`§7.2` item 6: the boot
+// loads NO registration, so the second instance's home begins empty);
+// **(1c)** a FABRICATED handle (spelled by the caller, `§0.4` clause 1) — the same answer;
+// **(1d)** a handle a THIRD instance minted and then withdrew in its own home — a value the fourth instance
+// never minted at all — the same answer;
+// **(2)** two instances each minting for their OWN address: each instance's `triggered` carries only its own
+// handle and no cross-firing occurs, and NEITHER instance's `unlisten` removes the OTHER's registration;
+// **(3)** `DD-42`'s mint rule in its PER-INSTANCE form: a caller-adopted token that the instance's own mint
+// would otherwise produce is NOT re-produced by a later mint in the SAME instance.
+// **THE ONE SKIP, REPORTED AND NOT HIDDEN: the PRIOR-SESSION state ITSELF (a value minted by a process that
+// no longer exists) has NO in-process drive** — `session` IS the process (`§6.1` item 3) and this crate
+// declares NO reload verb — **so (1a)/(1b) drive the reachable half of the same declared rule: two instances
+// in one process share exactly the namespace a reload shares, which is how `K7` measured the defect.**
+// ===================================================================================================
+
+// `PAR-13` + `§0.4` clause 3 + `§6.5` item 12 — **a FOREIGN instance's handle, a FABRICATED handle and a
+// handle no home of the instance holds are each a NO-OP SUCCESS at `unlisten`, producing NO code and removing
+// NO other registration.** **THE DRIVES BELOW REACH THE RULE `K7` MEASURED AS UNREACHABLE**: the declared
+// per-instance/per-session scoping is TRUE exactly when a value one instance minted is not a value another
+// instance minted, so the foreign value lies OUTSIDE the other instance's domain and `unlisten` over it
+// cannot name that instance's entry.
+// Drives: PAR-13 (§2.13), §0.4 clause 2, §0.4 clause 3, §6.5 items 8 (d)/12, §5.8 (a), §6.1 item 3, DD-38,
+// §7.2 item 6, §3.4 W-3, A67/K7
+#[test]
+fn par_13_a_foreign_instance_s_handle_is_a_no_op_success_and_the_other_instance_is_untouched() {
+    // (1a) TWO INDEPENDENT INSTANCES IN ONE PROCESS, EACH HOLDING ITS OWN REGISTRATION.
+    let mut a = new_store();
+    let mut b = new_store();
+    let ha = ok(
+        a.listen(AddressArg::List(key(&["ax"]))),
+        "§6.5 item 12: instance A mints its own handle",
+    );
+    let hb = ok(
+        b.listen(AddressArg::List(key(&["by"]))),
+        "§6.5 item 12: instance B mints its own handle",
+    );
+    let b_before = ok(
+        b.write(AddressArg::List(key(&["by"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3: B's own registration fires before the foreign withdrawal",
+    );
+    assert!(
+        same_handle_set(&b_before.triggered, &one_handle(&hb)),
+        "§5.8 (a): B's home holds exactly B's own registration before the foreign withdrawal"
+    );
+    ok(
+        b.unlisten(&ha),
+        "PAR-13: *\"the foreign, the prior-session and the fabricated alike — is a NO-OP SUCCESS, and NOT a \
+         failure: no code is produced\"* — §0.4 clause 3's answer for *\"a value a FOREIGN instance \
+         minted\"*",
+    );
+    let b_after = ok(
+        b.write(AddressArg::List(key(&["by"])), w_mem(), v_num(2.0)),
+        "§3.4 W-3: B's own registration after the foreign withdrawal",
+    );
+    assert!(
+        same_handle_set(&b_after.triggered, &b_before.triggered),
+        "PAR-13: *\"removing NO other registration\"* — B's trigger set is EXACTLY what it was. A mint whose \
+         tokens COINCIDE across two instances makes A's handle name B's OWN entry, so §0.4 clause 2's *\"a \
+         store-minted handle is unique per instance and per session\"* would be FALSE of the mint (K7, A67) \
+         and this declared answer unreachable; the assertion is not weakened for that state."
+    );
+    assert!(
+        same_address_set(&b_after.watched, &b_before.watched),
+        "PAR-13/§6.5 item 8 (d): B's HOME is unchanged — the watched-address set it carries is the same set"
+    );
+    // A's own registration is not in B's home at all: a write at A's address in B fires nothing...
+    let crossed = ok(
+        b.write(AddressArg::List(key(&["ax"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3 at the other instance's own address",
+    );
+    assert!(
+        crossed.triggered.is_empty(),
+        "§6.5 item 8 (d)/§5.8 (a): A's registration is A's home's — B holds no listener there, so no handle \
+         is returned (*\"a handle returned where no listener's address is a prefix\"* is the row's failure)"
+    );
+    // ...and A's own registration is untouched by B's withdrawal.
+    let a_after = ok(
+        a.write(AddressArg::List(key(&["ax"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3: A's own registration",
+    );
+    assert!(
+        same_handle_set(&a_after.triggered, &one_handle(&ha)),
+        "§6.5 item 12: A's registration stands — B's call removed nothing of A's"
+    );
+
+    // (1b) THE SAME RULE ACROSS A SECOND INSTANCE BUILT ON THE SAME `cfg.filePath`. **`DD-38`/`§7.2` item 6
+    // make the boot load NO registration**, so the second instance's home begins EMPTY while the first
+    // instance's own registration stands — and the second instance's `unlisten` over the FIRST's handle is
+    // still the declared NO-OP SUCCESS.
+    let path = fresh_path("par-13-same-path");
+    let mut p = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.1: the first instance over the path",
+    );
+    let hp = ok(
+        p.listen(AddressArg::List(key(&["p1"]))),
+        "§6.5 item 12: the first instance's registration",
+    );
+    let mut q = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.1: a SECOND instance over the SAME `cfg.filePath`",
+    );
+    let q_seed = ok(
+        q.write(AddressArg::List(key(&["q1"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3: the second instance's first write",
+    );
+    assert!(
+        q_seed.triggered.is_empty(),
+        "DD-38/§7.2 item 6: *\"a fresh instance over an equal `cfg.filePath` loads NO registration\"* — the \
+         home is instance- and session-scoped and out of the `file` bytes"
+    );
+    let hq = ok(
+        q.listen(AddressArg::List(key(&["q1"]))),
+        "§6.5 item 12: the second instance's OWN registration",
+    );
+    ok(
+        q.unlisten(&hp),
+        "PAR-13: the OTHER instance's handle — the same `cfg.filePath`, a different instance — is still a \
+         NO-OP SUCCESS",
+    );
+    let q_after = ok(
+        q.write(AddressArg::List(key(&["q1"])), w_mem(), v_num(2.0)),
+        "§3.4 W-3: the second instance's own registration",
+    );
+    assert!(
+        same_handle_set(&q_after.triggered, &one_handle(&hq)),
+        "PAR-13: the second instance's own registration survives the other instance's handle — *\"removing NO \
+         other registration\"*"
+    );
+    let p_after = ok(
+        p.write(AddressArg::List(key(&["p1"])), w_mem(), v_num(2.0)),
+        "§3.4 W-3: the first instance's own registration",
+    );
+    assert!(
+        same_handle_set(&p_after.triggered, &one_handle(&hp)),
+        "§6.5 item 12: and the first instance's registration is untouched — the two homes are separate"
+    );
+
+    // (1c) A FABRICATED HANDLE — *\"a value the store never minted at all\"*, spelled by the caller through
+    // §0.4 clause 1's ONE public constructor.
+    let fabricated = handle("par-13-fabricated-never-minted");
+    ok(
+        b.unlisten(&fabricated),
+        "PAR-13: *\"a value the store never minted at all (fabricated)\"* → a NO-OP SUCCESS, no code",
+    );
+    let b_fab = ok(
+        b.write(AddressArg::List(key(&["by"])), w_mem(), v_num(3.0)),
+        "§3.4 W-3: B's own registration after the fabricated withdrawal",
+    );
+    assert!(
+        same_handle_set(&b_fab.triggered, &b_before.triggered),
+        "PAR-13: and NO other registration is removed by the fabricated value"
+    );
+
+    // (1d) A HANDLE A THIRD INSTANCE MINTED AND WITHDREW IN ITS OWN HOME — a value a fourth instance never
+    // minted and never held, which is the same outside case reached from the other side.
+    let mut c = new_store();
+    let hc = ok(
+        c.listen(AddressArg::List(key(&["cx"]))),
+        "§6.5 item 12 in a third instance",
+    );
+    ok(
+        c.unlisten(&hc),
+        "§6.5 item 12: withdrawn in its OWN instance — its home now holds no such value",
+    );
+    let mut d = new_store();
+    let hd = ok(
+        d.listen(AddressArg::List(key(&["dy"]))),
+        "§6.5 item 12 in a fourth instance",
+    );
+    ok(
+        d.unlisten(&hc),
+        "PAR-13: a value no home of this instance holds → a NO-OP SUCCESS, no code",
+    );
+    let d_after = ok(
+        d.write(AddressArg::List(key(&["dy"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3: the fourth instance's own registration",
+    );
+    assert!(
+        same_handle_set(&d_after.triggered, &one_handle(&hd)),
+        "PAR-13: no other registration is removed — the fourth instance's own entry stands"
+    );
+}
+
+// `PAR-13` + `§0.4` clauses 2 and 3 — **THE PER-INSTANCE UNIQUENESS CELL: A's handle never names B's entry
+// and B's handle never names A's entry.** **WHAT THE TWO TOKENS' TEXT IS, IS NOT THIS CELL'S SUBJECT AND IS
+// NOT ASSERTED:** **whether the two instances' minted tokens COINCIDE is exactly the state the mint must
+// make irrelevant — *\"unique per instance and per session\"* is a claim about the BEHAVIOUR the declared
+// domain produces, not about how the token reads** — so the cell asserts the four behaviours the clauses
+// declare and nothing about the tokens' spelling: **(a)** each instance's `triggered` returns only its OWN
+// handle for its OWN address; **(b)** no CROSS-FIRING occurs at either instance's address; **(c)** neither
+// instance's `unlisten` removes the OTHER's registration (`§0.4` clause 3's *"removing NO other
+// registration"*); **(d)** each instance's OWN withdrawal still removes its own entry (`§6.5` item 12:
+// *\"it drops ONE home-map entry\"*), so the no-op half costs the withdrawal nothing.
+// Drives: PAR-13 (§2.13), §0.4 clause 2, §0.4 clause 3, §6.5 items 8 (d)/10 (d)/12, §5.8 (a), §3.4 W-3, A67
+#[test]
+fn par_13_two_instances_never_cross_name_each_other_s_registrations() {
+    let mut a = new_store();
+    let mut b = new_store();
+    let x = key(&["ax"]);
+    let y = key(&["by"]);
+    let ha = ok(
+        a.listen(AddressArg::List(x.clone())),
+        "§6.5 item 12: A mints for its OWN address X",
+    );
+    let hb = ok(
+        b.listen(AddressArg::List(y.clone())),
+        "§6.5 item 12: B mints for its OWN address Y",
+    );
+
+    // (a) EACH INSTANCE'S `triggered` CARRIES ONLY ITS OWN HANDLE, FOR ITS OWN ADDRESS.
+    let a_at_x = ok(
+        a.write(AddressArg::List(x.clone()), w_mem(), v_num(1.0)),
+        "§3.4 W-3 at A's own address",
+    );
+    assert!(
+        same_handle_set(&a_at_x.triggered, &one_handle(&ha)),
+        "§5.8 (a)/§6.5 item 10 (d): A's write at its own address returns exactly A's own handle — B's \
+         registration is not in A's home"
+    );
+    let b_at_y = ok(
+        b.write(AddressArg::List(y.clone()), w_mem(), v_num(1.0)),
+        "§3.4 W-3 at B's own address",
+    );
+    assert!(
+        same_handle_set(&b_at_y.triggered, &one_handle(&hb)),
+        "§5.8 (a): B's write at its own address returns exactly B's own handle"
+    );
+
+    // (b) NO CROSS-FIRING: each instance's write at the OTHER's address fires nothing of the other's home.
+    let a_at_y = ok(
+        a.write(AddressArg::List(y.clone()), w_mem(), v_num(2.0)),
+        "§3.4 W-3 at B's address, in A",
+    );
+    assert!(
+        a_at_y.triggered.is_empty(),
+        "§6.5 item 8 (d)/§5.8 (a): A holds no listener at B's address — B's registration does not live in \
+         A's home"
+    );
+    let b_at_x = ok(
+        b.write(AddressArg::List(x.clone()), w_mem(), v_num(2.0)),
+        "§3.4 W-3 at A's address, in B",
+    );
+    assert!(
+        b_at_x.triggered.is_empty(),
+        "§6.5 item 8 (d)/§5.8 (a): and B holds no listener at A's address"
+    );
+
+    // (c) NEITHER INSTANCE'S `unlisten` REMOVES THE OTHER'S REGISTRATION.
+    ok(
+        b.unlisten(&ha),
+        "PAR-13: A's handle at B's `unlisten` → a NO-OP SUCCESS, no code",
+    );
+    let b_after = ok(
+        b.write(AddressArg::List(y.clone()), w_mem(), v_num(3.0)),
+        "§3.4 W-3 at B's own address after A's handle",
+    );
+    assert!(
+        same_handle_set(&b_after.triggered, &one_handle(&hb)),
+        "§0.4 clause 2/clause 3 + PAR-13: B's OWN registration survives A's handle. Where the two instances' \
+         minted tokens coincide, `unlisten` over the foreign value names B's OWN entry — the per-instance \
+         uniqueness domain §0.4 clause 2 declares is then not realized by the mint (K7, A67), and the cell \
+         reports that state rather than accommodating it."
+    );
+    ok(
+        a.unlisten(&hb),
+        "PAR-13: B's handle at A's `unlisten` → a NO-OP SUCCESS, no code",
+    );
+    let a_after = ok(
+        a.write(AddressArg::List(x.clone()), w_mem(), v_num(3.0)),
+        "§3.4 W-3 at A's own address after B's handle",
+    );
+    assert!(
+        same_handle_set(&a_after.triggered, &one_handle(&ha)),
+        "§0.4 clause 2/clause 3 + PAR-13: and A's OWN registration survives B's handle"
+    );
+
+    // (d) THE NO-OP HALF COSTS THE WITHDRAWAL NOTHING: A's OWN `unlisten` still removes A's OWN entry.
+    ok(
+        a.unlisten(&ha),
+        "§6.5 item 12: A withdraws its OWN registration",
+    );
+    let a_gone = ok(
+        a.write(AddressArg::List(x.clone()), w_mem(), v_num(4.0)),
+        "§3.4 W-3 at A's own address after A's own withdrawal",
+    );
+    assert!(
+        a_gone.triggered.is_empty(),
+        "§6.5 item 12: *\"it drops ONE home-map entry\"* — A's own withdrawal removed A's own registration"
+    );
+}
+
+// `DD-42` + `§0.4` clause 2 — **THE MINT'S NON-COLLISION RULE IN ITS PER-INSTANCE FORM: a token the home
+// ALREADY HOLDS is never minted, so the home never holds two entries under ONE store-minted token,
+// `unlisten` removes exactly the entry it names, and `triggered` carries no duplicated member.** **THE
+// COLLIDING CANDIDATE IS DERIVED WITHOUT ASSUMING THE MINT'S SPELLING, and this is how:** the token a FRESH
+// instance's first mint yields is observed from a sibling fresh instance; **where the mint is PER INSTANCE
+// the counter starts afresh in every instance, so that observed token is EXACTLY the candidate this
+// instance's OWN mint would produce** — the caller adopts it at construction (`§0.4` clause 2 (b): adopted
+// VERBATIM, `DD-39`), and the instance's own later mint must therefore SKIP it. **WHERE THE MINT IS
+// PROCESS-WIDE THE COUNTER NEVER REPEATS A VALUE**, so no candidate can collide and the non-collision
+// assertion holds trivially; **THE CELL BITES AT THE PER-INSTANCE MINT — which is exactly the change `A67`
+// directs** — and it is authored at the clause (`DD-42`) rather than at either counter's spelling. **The
+// cell asserts the behaviour `DD-42` declares and no spelling:** the minted token differs from the adopted
+// one, each entry fires its OWN token once, and the minted entry's withdrawal leaves the adopted entry
+// standing.
+// Drives: DD-42, §0.4 clause 2 (a)/(b), PAR-13, §6.5 items 8 (d)/10 (d)/12, §5.8 (a), §3.4 W-3
+#[test]
+fn dd_42_the_mint_never_takes_a_token_the_instance_s_home_already_holds() {
+    // THE CANDIDATE: the token a fresh instance's FIRST mint yields.
+    let mut probe = new_store();
+    let candidate = ok(
+        probe.listen(AddressArg::List(key(&["probe"]))),
+        "§6.5 item 12: the mint's own token, observed from a sibling fresh instance",
+    );
+    // THE ADOPTION: a caller-supplied token that the instance's OWN mint would otherwise produce.
+    let mut store = ok(
+        storeCreate(&cfg_at_with_listeners(
+            &fresh_path("dd-42-per-instance"),
+            8,
+            listeners(vec![entry(key(&["adopted"]), candidate.clone())]),
+        )),
+        "§0.4 clause 2 (b)/DD-39: the construction ADOPTS the caller's token VERBATIM",
+    );
+    let minted = ok(
+        store.listen(AddressArg::List(key(&["fresh"]))),
+        "§6.5 item 12: a NEW address mints a token in this instance",
+    );
+    assert!(
+        minted != candidate,
+        "DD-42: *\"`listen` MUST NOT MINT A TOKEN EQUAL TO ANY TOKEN THE HOME ALREADY HOLDS\"* — the mint that \
+         would collide SKIPS the colliding token and mints the next one; `PAR-13`'s uniqueness domain is \
+         *\"unique PER STORE INSTANCE and PER SESSION\"*, and a collision puts two home entries under ONE \
+         token."
+    );
+    // EACH ENTRY FIRES ITS OWN TOKEN — ONE HOME ENTRY PER TOKEN, ONE MEMBER PER ENTRY.
+    let at_adopted = ok(
+        store.write(AddressArg::List(key(&["adopted"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3 at the construction's own address",
+    );
+    assert!(
+        same_handle_set(&at_adopted.triggered, &one_handle(&candidate)),
+        "§6.5 item 8 (d)/§0.4 clause 2 (b): the ADOPTED entry fires the CALLER'S token — the mint's own rule \
+         leaves the construction's adopted tokens untouched"
+    );
+    let at_fresh = ok(
+        store.write(AddressArg::List(key(&["fresh"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3 at the minted entry's own address",
+    );
+    assert!(
+        same_handle_set(&at_fresh.triggered, &one_handle(&minted)),
+        "DD-42/§5.8 (a): the minted entry fires its OWN token — *\"`triggered` carries NO DUPLICATED MEMBER\"* \
+         where the store minted the token"
+    );
+    // `unlisten` REMOVES EXACTLY THE ENTRY IT NAMES — the minted one — AND THE ADOPTED ONE STANDS.
+    ok(
+        store.unlisten(&minted),
+        "DD-42/§6.5 item 12: `unlisten` removes exactly the entry it names",
+    );
+    let fresh_gone = ok(
+        store.write(AddressArg::List(key(&["fresh"])), w_mem(), v_num(2.0)),
+        "§3.4 W-3 at the withdrawn minted entry's address",
+    );
+    assert!(
+        fresh_gone.triggered.is_empty(),
+        "DD-42: the minted handle removed the MINTED entry and nothing else"
+    );
+    let adopted_survives = ok(
+        store.write(AddressArg::List(key(&["adopted"])), w_mem(), v_num(2.0)),
+        "§3.4 W-3 at the adopted entry's address",
+    );
+    assert!(
+        same_handle_set(&adopted_survives.triggered, &one_handle(&candidate)),
+        "DD-42: *\"the construction's adopted tokens are untouched by the mint's own rule\"* — the adopted \
+         registration stands after the minted token's withdrawal"
     );
 }
