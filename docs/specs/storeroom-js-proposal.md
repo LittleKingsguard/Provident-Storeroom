@@ -401,6 +401,24 @@ later gate.**
 
 ---
 
+## §17. THE ARCHITECT'S SHAPE RULING OF 2026-10-11 — `V-1`: the entry delegates every verb to the addon
+
+**<⟶ APPENDED, DATED, FILED IN THE PASS IT ARRIVED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES.**
+
+**THE ARCHITECT'S WORDS, VERBATIM.**
+
+> Proceed V-1
+
+**THE RULING, TRANSCRIBED AS `A75`.**
+
+| # | What it answers | The ruling (verbatim) | What it settles |
+| --- | --- | --- | --- |
+| **`A75`** | **the sweep's row 1 fork: (V-1) the entry delegates every verb to the addon over the pure-Rust conversion core — the shape the contract already declares · (V-2) the shipped shape declared intentional, the JS entry owning the verbs · (V-3) a declared dual path with a fallback** | ***"Proceed V-1"*** | **`V-1` ADOPTED, AND IT IS THE DECLARED SHAPE AFFIRMED: THE JS ENTRY DELEGATES EVERY VERB TO THE ADDON, WHICH CALLS THE PURE-RUST CONVERSION CORE — the route is `JS → facade → core → store`. THE `Boundary` BECOMES A MAPPING LAYER ONLY (JS values → the wire codec → the core, and the core's answers → JS values); THE REGISTRY, THE OPAQUE HANDLE AND THE SINGLE FAILURE FORM STAY IN JS (they are the PACKAGE's surface, `§2.4`); AND THE MESSAGE CROSSES FROM THE STORE VERBATIM — which settles the sweep's hand-authored-message row as a by-product.** **CONSEQUENCES: (1) the JS-side store logic is DELETED, so the crossing is what is under test and the semantics are single-sourced in Rust; (2) the JS leg of the acceptance layer acquires A BUILD STEP (a `.node` must exist for those cells), which is what `A71`'s prebuild decision already accepted; (3) every "the addon is absent or fails to load" state must be DECLARED as a failure form rather than silently absorbed — `P-TP-7`'s `S-LOAD`/`S-ONE-ADDON` subject; (4) the sweep's remaining code rows fall as consequences of ONE wiring change rather than as independent repairs — the wrong ceiling class, the realm-identity plain-object test, the ten-of-fifteen code reachability, the package-minted statuses, the hand-authored messages, the registry asymmetry, the cross-instance handle identity and the unpassed invocation argument are all symptoms of the shape this ruling removes.** | **it does not license a FALLBACK: there is no second implementation, so an addon that fails to load is a DECLARED FAILURE and never a silent JS store (`V-3` was refused by this choice).** |
+
+**AND TWO CONSEQUENCES THIS FILING STATES PLAINLY.** **(1) THE IMPLEMENTER'S NEXT PASS IS THE REWIRE: `index.mjs` delegates to the addon, the JS-side store logic goes, the mapping layer stays, and the code rows the sweep measured against the declared shape are corrected — with the red set's three findings (the unpassed invocation argument, the arity-decided absent-vs-undefined fold, the registry asymmetry's unobservable) landing with them.** **(2) NO CONTRACT CLAUSE MOVES: the contract already declared `V-1` (`package.md §4.4`/`§4.5`), so this ruling affirms the contract and indicts the build — its only new demand is the DECLARED absent/failed-addon failure form and the JS leg's build step.** **NO UNIT ROW IS ADMITTED; THE LEDGER STANDS `1 DONE / 2 open` UNITS = `3`.**
+
+---
+
 **END OF THE PROPOSAL.** **§1 is the architect's directive, byte-for-byte. §2 is the measured context. §3 is
 the filing's bounds. §4 is a quotation table with no reading taken. §5 is a map of adjacencies with no
 ruling. §6 records the adoption trigger's premise and the ledger move. §7 is the provenance. No behaviour
