@@ -54,6 +54,21 @@
 
 **ACCEPTANCE FOR THE REPAIR:** the same value at `200,000` members completes in **linear** time (the measured curve flat at 2× per doubling, not 8×), `1,000,000` members is **admitted** (the declared node bound is the core's, and it is satisfied), and **the store's own suite stays green at `377` pass · `0` fail** with the sibling crate's `223` and the JS leg's cells unmoved.
 
+## 5-bis. THE ARCHITECT'S CORRECTION OF §5 — the write need not look up its SIBLINGS at all
+
+**⟶ APPENDED 2026-10-11, on the architect's observation:** *"This is a write operation, correct? The write doesn't have to look up the written siblings, it only has to check the index/tier the write occurs at, which is O(1)."* **HE IS RIGHT, AND THE READING CONFIRMS IT IN TWO STEPS — the §5 index is still owed, but it is NOT what the hot path needs:**
+
+**(1) IN THE CONTAINER-MINT RECURSION THE LOOKUP IS VACUOUS — PROVABLY.** `mint`'s object branch (`src/store.rs:671–677`) creates a **brand-new** child link (`new_link(Kind::Map)` / `Kind::Vec`, `:268` — `children: Vec::new()`) and then calls `self.mint(child_link, key_i, tier, member_i)` **once per member**. Each of those calls runs `refs_at(child_link, &key_i)` (`:657–660`) and `remove_refs` (`:661`). **BUT THE LINK WAS CREATED BY THIS SAME CALL AND EVERY KEY IT IS ASKED ABOUT IS A MEMBER OF THE VALUE BEING WRITTEN — distinct map names, contiguous VEC indices — so the pair `(key_i, tier)` CANNOT exist when the lookup runs.** The scan therefore walks only the `k − 1` members this same write has already minted, all of them at OTHER keys, and **its result is empty by construction**: the `refs_at` scan, the `Vec` it allocates per member, and the `remove_refs` call are **pure waste** — `Σ k ≈ n²/2` spent proving nothing. **This is the architect's point exactly: the write knows the index/tier it writes at, and it does not have to consult the siblings to do so.**
+
+**(2) WHERE A LOOKUP IS OWED, THE CONTRACT BOUNDS IT TO `O(1)`.** Writing at an address whose container **already exists** does owe the same-pair check — but **(key, tier) is the composite key and AT MOST ONE child anchor stands at one pair** (`contract.md:2811`, `P: §15 · A34`; `DD-10`). So the answer is **at most one reference, determined by the address's own key and the write's tier** — bounded by the **tier count (`3`)**, never by the sibling count (`n`). A per-link keyed index resolves it in `O(1)`; **a scan resolves it in `O(children)` for an answer that can only be `0` or `1`.**
+
+**THE CORRECTED FIX DIRECTION — the hot path needs NO data-structure change at all:**
+- **(a) THE VACUOUS LOOKUP IS REMOVED BY CONSTRUCTION** — when `mint` recurses into a link **it has just created**, the same-pair lookup and the removal are skipped (nothing can stand there). **This alone deletes the `n²/2` from the container path**, and it is a bounded, local change at `:655–663` plus the two recursion sites at `:673`/`:676`.
+- **(b) THE GENUINE LOOKUP IS RESOLVED BY THE ADDRESS'S KEY + TIER** — an `O(1)`-amortized per-link keyed index returns the pair's own reference (one, or none), so `refs_at` stops scanning **and stops allocating a `Vec` per call**.
+- **(c) THE READ PATH'S `keys_at` IS THE SAME FIX** — with the pair unique, the index's own key set replaces the `keys.contains` dedup scan (cost 2 in §4), and `assemble_at_tier` iterates the index's keys directly instead of scanning per key (cost 1). **That is the read's `894 → 3,824 ms` resolved by the same index — and it is a read, so (a) does not help it; (c) is what it needs.**
+
+**WHAT THIS CHANGES IN §5:** the index's justification is **narrowed** — it is not needed to make the container WRITE linear (step (a) does that with no data structure), it is needed for **(b)** the genuine same-pair lookup at an existing container and **(c)** the assembly's per-key access. **The acceptance in §5 stands unchanged: per-datum `O(1)`, iteration `O(n)`, `200,000` linear, `1,000,000` admitted, the store's suite still `377` with the sibling crate's `223`.**
+
 ## 6. WHAT THIS RCA DOES NOT CLAIM
 
 1. It does not claim the JS boundary or the conversion needs changing — **they are measured linear** and their design is `O(1)` per datum already.
