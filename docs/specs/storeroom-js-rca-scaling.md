@@ -94,6 +94,27 @@ struct Link {
 
 **(4) WHAT THE REPAIR ADDS, AND WHAT IT MUST KEEP.** **ADD** a key→reference index beside the `Vec` (a `BTreeMap` keyed by the segment's own ordering is least invasive — `keys_at` already sorts by `Segment::spelling()`, so no `Hash` derivation is needed; a `HashMap` is the alternative), **maintained at every site that pushes, removes or renumbers a child.** **KEEP** the `Vec`: it is load-bearing for deterministic iteration and for the VEC's renumbering pass, so the index is **additive** — the flat list stays as the arena's own ordering, and the map becomes the keyed accessor. **WITH §5-bis STEP (a), the write path does not depend on the new index at all; the index serves the genuine same-pair lookup (step (b)) and the assembly's per-key access (step (c)).**
 
+## 5-quater. THE ARCHITECT'S CLARIFICATION — THE LINK WAS *EXPLICITLY* RULED A HASHMAP, AND THE SHIPPED STRUCTURE IS NOT IT
+
+**⟶ APPENDED 2026-10-11, on the architect's statement:** *"Link was **explicitly** defined by architect decision to use a hashmap for storing keyed data."* **CONFIRMED AT ITS OWN BYTES — AND IT MAKES THE ROOT CAUSE A CONTRACT-VS-BUILD DIVERGENCE RATHER THAN A SUBOPTIMAL CHOICE.**
+
+**(1) THE DECISION IS IN THE DIRECTIVE, VERBATIM (`docs/specs/storeroom-native-proposal.md`):**
+- **`§1` line 42:** *"**Links have exactly one parent anchor and a hashmap xor vec of child anchors.** A link cannot have more than one child anchor with the same index/key."*
+- **`§1` line 81:** *"…branch's descendant link in its **hashmap**. If array, populate **vec**. This repeats recursively."*
+- **`§1` line 96 (the read's own assembly):** *"**hashmap, convert to an object**, using the same keys."*
+- **`A22`:** *"Decided at write, inferred from contents on read. Write attempting to add to vec when hashmap is used, or vice versa, **fails**."*
+- **`A23`:** *"Registry is **always** hashmap."* — carried into the contract's model as `store-model.md:441`: *"The register — **keyed by names, always a hashmap**."*
+
+**(2) WHAT THE BUILD HOLDS.** `src/store.rs:59–62`: **one** structural shape for BOTH kinds — `Link { container: Kind, children: Vec<usize>, is_register }` — **a positional list of arena reference ids**, with every keyed access performed by the scans of `refs_at`/`keys_at`/`remove_refs` (§4). **The `Kind` marker is stored; the keyed container the decision ruled is NOT.** So:
+- **the "hashmap xor vec" is, in the build, "vec either way"** — the declared structure is not what runs;
+- **and the O(1) keyed access the decision implies by construction is absent**, which is the whole of the cost §4 measures.
+
+**(3) THIS SUPERSEDES §5-TER's ADDITIVE RECOMMENDATION.** An index bolted beside the positional `Vec` would produce the right asymptotics **without** restoring the declared structure — **and the decision rules the structure.** **THE REPAIR IS THEREFORE: for a keyed link, the children ARE the hashmap (the key to its child anchor(s)); for an array link, they ARE the vec (positional, contiguous).** The declared model's own words settle every design question §5 and §5-ter left open — the mapping's key domain, whether one anchor per key or a list (the directive's *"cannot have more than one child anchor with the same index/key"* bounds it by the TIER: one pair per tier, `DD-10`/`A34`), and how the read assembles (*"hashmap, convert to an object, using the same keys"*).
+
+**(4) WHY NO TEST COULD HAVE CAUGHT IT — AND WHAT THAT SAYS ABOUT THE REGISTER.** **The divergence is INVISIBLE THROUGH THE DECLARED SURFACE: every verb returns the same answers either way, so all `377` store cells and all `223`+`101` JS cells pass under both structures** (`A22`'s *"write attempting to add to vec when hashmap is used … fails"* is about the WRITE ARM, which IS tested — the link's INTERNAL storage is not). **It is the same unobservability class `DD-41` names for the optional per-node index, and it took the architect's own question about scaling to surface it.** **A structural claim needs a declared observable to be failable — otherwise a register row can assert it and never fail** (the class gate 4's PBT audit flagged twice).
+
+**(5) WHAT THIS CHANGES IN THE WORKLIST, IN ORDER:** **(a)** remove the vacuous recursion lookup (§5-bis) — **independent of the structure, and it alone deletes the `n²/2` from the container write**; **(b)** **restore the declared structure** — a keyed link's children become the hashmap the decision ruled, which makes every keyed access O(1) **by construction** and removes the per-call `Vec` allocation with it; **(c)** the read's assembly then follows the directive's own sentence (*"hashmap, convert to an object, using the same keys"*) instead of scanning. **Acceptance unchanged: per-datum O(1), iteration O(n), `200,000` linear, `1,000,000` admitted, the store's suite still `377` with the sibling crate's `223`.**
+
 ## 6. WHAT THIS RCA DOES NOT CLAIM
 
 1. It does not claim the JS boundary or the conversion needs changing — **they are measured linear** and their design is `O(1)` per datum already.
