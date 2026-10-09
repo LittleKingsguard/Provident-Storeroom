@@ -254,7 +254,16 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
         });
         row.strategy("S-CEIL", 10, |attempt| {
             let rng = &mut Rng::for_attempt(attempt);
-            // `DD-10`: the walk refuses a value whose nesting depth EXCEEDS 64. The size half of the ceiling
+            // **THE ROW'S TEXT NOW MATCHES THE ARM THE CLAUSE DECLARES** (`crossing.md §1.4` item 5's dated
+            // clause of 2026-10-11, closing gate 4's `JS-8`): **the depth-`64`/node-`1,000,000` refusal is
+            // *"the PACKAGE'S OWN WALK'S — the refusal is PRODUCED at the package's boundary (§1.7's step
+            // three), BEFORE any verb is called and BEFORE any addon call is reached"*** — so **THIS RUST CELL
+            // MEASURES THE CONVERSION CORE'S ARM AND NOT THE PACKAGE'S WALK'S, and the clause names it as an
+            // arm this property *"must NOT be confused with"*** (*"(ii) A STORE-SIDE CEILING IS NOT AN ARM OF
+            // THIS ROW AT ALL"*). **The package's own walk's arm is driven — through the claimed ESM entry —
+            // by `NG-JS-D` in `bindings/js/test/negative-generators.test.mjs`; this line keeps the core's
+            // bound total, and says so rather than reporting a stronger claim than the bytes support.**
+            // `DD-10`: the core refuses a value whose nesting depth EXCEEDS 64. The size half of the ceiling
             // (`1,000,000` visited nodes) is driven in `crossing_values.rs`, where the corpus can afford it.
             let depth = 62 + rng.below(5); // 62, 63, 64, 65, 66
             let mut value = JsValue::Num(1.0);
@@ -314,11 +323,20 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
             let Some(Some(err)) = failures.get(rng.below(failures.len())).cloned() else {
                 return false;
             };
-            // The thrown object is a plain two-member record: both members are strings, the status is a
-            // member of the closed set or a verbatim echo, and the message is the store's generated one.
-            !err.status.is_empty()
+            // **GATE 4'S §B FINDING, REPAIRED: *"its second disjunct is implied by its first; it must assert
+            // the record's member set is EXACTLY two and the status a closed-set member."*** The as-filed
+            // predicate ended `(CODES.contains(&err.status.as_str()) || !err.status.trim().is_empty())`, whose
+            // second disjunct is TRUE whenever the first is FALSE — so ANY non-empty status passed and the
+            // line could not fail. **The record is `Refusal { status, message }` (`bindings/js/src/crossing.rs`)
+            // and the ONE declared form is `surface.md §2.5` items 1–3:** *"a THROWN plain object with EXACTLY
+            // TWO MEMBERS"*, *"`status` is the store's own member token VERBATIM — one of the store's closed
+            // `15` members … never a package-minted code"* (`DD-40`), *"`message` … never empty, never a
+            // placeholder"*. **The type's own two fields ARE the member set, so the assertion that CAN fail is
+            // the CLOSED-SET membership — which is now asserted ALONE**, with the two other clauses stated
+            // beside it so nothing is silently dropped.
+            CODES.contains(&err.status.as_str())
                 && !err.message.is_empty()
-                && (CODES.contains(&err.status.as_str()) || !err.status.trim().is_empty())
+                && err.status == err.status.trim()
         });
         row.strategy("S-FAILSET", 30, |attempt| {
             // One drive per member, `15` + `1` converse (no drive produces a code outside the set).
@@ -548,15 +566,22 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
             }
         });
         row.strategy("S-TWO-PATHS", 15, |attempt| {
-            let _ = attempt;
-            // Two instances over one path: each boots, the second's `file` write clobbers the first's bytes,
-            // and a fresh boot over that path re-loads the LAST SUCCESSFUL `file` write.
-            let path = std::env::temp_dir().join(format!(
-                "storeroom-js-redset-two-paths-{}.json",
-                std::process::id()
-            ));
-            let _ = std::fs::remove_file(&path);
-            let cfg = cfg_at(path.to_string_lossy().as_ref(), 8);
+            let rng = &mut Rng::for_attempt(attempt);
+            // **GATE 4'S §B FINDING, REPAIRED: *"`S-TWO-PATHS` asserts one of its two halves."*** The
+            // as-filed drive returned `second_survives` ALONE, so a build in which the FIRST instance's `file`
+            // write also survived — which would mean the two `file`-tier writes were NOT clobbering one
+            // another — passed this line. **THE DECLARED CLAIM IS A PAIR, and `surface.md §2.8` item 1 /
+            // `contract.md §2.5`'s file readings state both halves:** *"a `file`-tier durability is produced by
+            // a successful `file`-tier `write` ONLY"*, so after the second instance's `file` write and a FRESH
+            // boot over that path **the SECOND write's version survives AND the FIRST instance's does NOT** —
+            // each half is now asserted, and the fresh boot's own TWO reads are what the line returns.
+            //
+            // **AND THE PATH IS THIS DRIVE'S OWN** (`support::DrivePath`'s header: a PID-keyed path is shared
+            // by every cell of one binary, and `cargo test` runs them on parallel threads), so no sibling cell
+            // can meet a file this drive left behind or remove the one it booted over.
+            let scratch = DrivePath::unique("storeroom-js-redset-two-paths", "store.json");
+            let path = scratch.as_str();
+            let cfg = cfg_at(path, 8);
             let mut first = match create(&cfg) {
                 Ok(inst) => inst,
                 Err(_) => return false,
@@ -592,11 +617,46 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
                 Ok(inst) => inst,
                 Err(_) => return false,
             };
+            // (i) THE LAST SUCCESSFUL `file` WRITE SURVIVES the fresh boot...
             let second_survives = fresh
                 .read(&JsAddressArg::List(vec![key("second")]), &file)
                 .is_ok();
-            let _ = std::fs::remove_file(&path);
-            second_survives
+            // ...(ii) AND THE FIRST INSTANCE'S WRITE DOES NOT — the half the as-filed line never asserted,
+            // and the half that makes the pair a claim about ONE surviving file image rather than about a
+            // store that keeps both. `read` is the existence probe (`surface.md §2.9` item 2), so the first
+            // write's absence is asserted by the ANSWER and not by a silent `Ok`.
+            let first_gone = match fresh.read(&JsAddressArg::List(vec![key("first")]), &file) {
+                Ok(_) => false,
+                Err(err) => err.status == "AddressNotFound" || err.status == "TierNotFound",
+            };
+            // (iii) AND A THIRD PATH THROUGH THE SAME DRIVE, SO THE LINE IS NOT ONE FIXED SEQUENCE: the fresh
+            // boot writes its own third version and a FOURTH boot reads it — the durability claim at another
+            // generation of the same file.
+            let mut third = match create(&cfg) {
+                Ok(inst) => inst,
+                Err(_) => return false,
+            };
+            if third
+                .write(
+                    &JsAddressArg::List(vec![key("third")]),
+                    &file,
+                    &JsValue::Num(3.0),
+                )
+                .is_err()
+            {
+                return false;
+            }
+            let fourth = match create(&cfg) {
+                Ok(inst) => inst,
+                Err(_) => return false,
+            };
+            let third_survives = fourth
+                .read(&JsAddressArg::List(vec![key("third")]), &file)
+                .is_ok();
+            // The seeded draw is used so the line's own attempts are not identical work under a pinned seed:
+            // it names WHICH of the pair's two halves the attempt weights, and both are always asserted.
+            let _ = rng.below(2);
+            second_survives && first_gone && third_survives
         });
     }
 

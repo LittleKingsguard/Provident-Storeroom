@@ -3,18 +3,23 @@
 //
 // **THE CONTRACT FINDING THIS FILE'S AUTHORING EXPOSED IS CLOSED, AND THE CELLS BELOW KEEP THE READING THE
 // REMAND MOVED.** `contract.md §2.4` declares a PER-INSTANCE REGISTRY that holds **the caller's FUNCTION**
-// for a handle and invokes it (`DD-15`, `DD-22`), and `parameter-semantics.md §2.12` (`PAR-JS-12`) declares
-// a REGISTRATION whose non-function form throws a JS `TypeError`. **As this red set was authored, NO clause
-// of `docs/specs/storeroom-js/**` declared the SPELLING of that registration site** — `§2.1`'s *"no clause of
-// this directory exposes any member of it"* and `package.md §1.3` item 3's *"NOTHING ELSE"* appeared to close
-// it off — **so the function halves of the registry's rules were reported `un-run`, and `un-run` IS A
-// FAILURE** (`acceptance.md §4.4`). **THE BOUNDED CORRECTION PASS OF 2026-10-11 DECLARED THE SITE**
-// (`§2.4` item 5 / `surface.md §2.4` item 5: `register(handle, listener) -> undefined`, the ONE member of
-// the object `storeCreate` returned — a member of the PACKAGE's own wrapper and not of the store's
-// instance), **and the function halves are now DRIVEN at `register.test.mjs`'s `S-REG` and
-// `S-FIRE-WINDOW` lines.** **NOTHING IS DUPLICATED HERE:** the cells below are the ones the DECLARED verbs
-// reach — the handle's two spellings, `unlisten`'s no-op set, the prefix test and the withdrawal — and the
-// cell at rule 4 that names the function half points at `register.test.mjs` rather than restating it.
+// for a handle and invokes it (`DD-15`, `DD-22`). **THE REGISTRATION SITE'S REFUSAL'S FORM MOVED AGAIN ON
+// 2026-10-11 AND THIS FILE'S ONE CELL THAT ASSERTED IT WAS RE-DERIVED:** as filed, `parameter-semantics.md
+// §2.12` (`PAR-JS-12`) and `surface.md §2.4` item 5 (d) declared a JS `TypeError` carrying no `status` and no
+// `message`; **`A76`'s bounded declaration pass reconciled both to `surface.md §2.5`'s SINGLE form with the
+// store's closed-set `AddressMalformed`** (`surface.md §2.5` item 5 (g); `parameter-semantics.md §2.12`'s
+// second dated exception clause), so **a `TypeError` escaping ANY site of this package is a FINDING**. **As
+// this red set was authored, NO clause of `docs/specs/storeroom-js/**` declared the SPELLING of that
+// registration site** — `§2.1`'s *"no clause of this directory exposes any member of it"* and `package.md
+// §1.3` item 3's *"NOTHING ELSE"* appeared to close it off — **so the function halves of the registry's rules
+// were reported `un-run`, and `un-run` IS A FAILURE** (`acceptance.md §4.4`). **THE BOUNDED CORRECTION PASS
+// OF 2026-10-11 DECLARED THE SITE** (`§2.4` item 5 / `surface.md §2.4` item 5: `register(handle, listener)
+// -> undefined`, the ONE member of the object `storeCreate` returned — a member of the PACKAGE's own wrapper
+// and not of the store's instance), **and the function halves are now DRIVEN at `register.test.mjs`'s
+// `S-REG` and `S-FIRE-WINDOW` lines.** **NOTHING IS DUPLICATED HERE:** the cells below are the ones the
+// DECLARED verbs reach — the handle's two spellings, `unlisten`'s no-op set, the prefix test and the
+// withdrawal — and the cell at rule 4 that names the function half points at `register.test.mjs` rather than
+// restating it.
 //
 // **STATES ENUMERATED BEFORE THE CELLS WERE AUTHORED:** a minted handle · a caller-spelled token at the
 // construction · two different handles at one address · the SAME token twice at one address · a bare string
@@ -131,16 +136,42 @@ test('handle_a_mint_is_unique_per_process_and_two_addresses_on_one_instance_diff
   // `PAR-JS-8`'s *"a value a FOREIGN instance minted"*), so the owner's own registration still fires.
   assert.equal(unlisten(owner, foreign), undefined);
   assert.equal(write(owner, ['a'], 'mem', 2).triggered.length, 1, 'NO OTHER REGISTRATION IS REMOVED');
-  // AND AT THE REGISTRATION SITE the SAME class answers the bare JS `TypeError` (`§2.4` item 5 (d): *"a value
-  // a FOREIGN instance minted … → the SAME JS `TypeError`"*, carrying NO `status` and NO `message`) —
-  // driven here as the IDENTITY half (a foreign handle names no registry key of this instance), while
-  // `register.test.mjs`'s `S-REG` drives the same class inside its whole outside-value list.
+  // **⟶ AND AT THE REGISTRATION SITE THE SAME CLASS ANSWERS THE OPERATIVE DECLARED FORM — RE-DERIVED
+  // 2026-10-11, BECAUSE THE AS-FILED CELL ASSERTED A FORM THE CLAUSE HAS SINCE RE-SPELLED.**
+  //
+  // **THE CLAUSE THIS CELL RESTS ON, CITED HERE AS THE RE-DERIVATION'S AUTHORITY: `docs/specs/storeroom-js/
+  // surface.md §2.5` item 5 (g)** — *"the registration site's refusal IS a rejection under `A76` and travels
+  // in THIS section's single form, with its `status` drawn from the store's closed set — the store's own
+  // `AddressMalformed`, whose declared trigger already covers 'a present argument outside its domain' and 'an
+  // absent required argument' — and its `message` generated as clause (d) declares. … THE `TypeError` IS NOT
+  // WITHDRAWN AS A WORD: it is the SHAPE of the failure at the registration site … and a later bounded
+  // amendment of this directory re-spells those two cells to this section's form"* — **read with
+  // `parameter-semantics.md §2.12`'s SECOND dated exception clause**, the other home of the same
+  // reconciliation (*"THE REGISTRATION SITE'S REFUSAL IS DELIVERED IN … `surface.md §2.5`'s SINGLE FORM —
+  // `{status, message}` — with its `status` drawn from the store's CLOSED `15`-member set … the store's own
+  // `AddressMalformed`"*).
+  //
+  // **WHAT THE CELL ASSERTED BEFORE AND WHAT IT ASSERTS NOW.** As filed it required
+  // `err instanceof TypeError && !('status' in err) && !hasOwnProperty(err, 'message')` — the WITHDRAWN
+  // form (`§2.4` item 5 (d) as filed). **It now asserts the DECLARED form and its DECLARED CONTENT, and it
+  // is STRONGER rather than weaker:** the record's member set is EXACTLY `{status, message}`; its status is
+  // the closed-set member `AddressMalformed`; **the message carries the FAILING TARGET** — the foreign
+  // handle, rendered as the store's own generator renders a non-segment value, *"PRINTED AS ITS OWN VALUE,
+  // SINGLE-QUOTED"* (`§2.5` item 5 (a)) — **the CLASS that failed** (item 5 (b), whose class half is
+  // MANDATORY: *"the reason is the CLASS the value HAS … never as a class the value could be converted to"*)
+  // **and the POSITION** (item 5 (b): *"the ARGUMENT POSITION for a verb's arguments"* — here `register`'s
+  // FIRST argument); and **nothing reached the store**, which the write below the assertion measures.
   assert.throws(
     () => owner.register(foreign, () => {}),
     (err) =>
-      err instanceof TypeError &&
-      !('status' in err) &&
-      !Object.prototype.hasOwnProperty.call(err, 'message'),
+      !(err instanceof TypeError) &&
+      Object.getPrototypeOf(err) === Object.prototype &&
+      Object.keys(err).sort().join(',') === 'message,status' &&
+      err.status === 'AddressMalformed' &&
+      err.message.includes('[object Object]') && // the failing TARGET (item 5 (a))
+      err.message.includes('first argument') && // ...the POSITION (item 5 (b))
+      err.message.includes('plain object') && // ...and the CLASS that failed (item 5 (b), mandatory)
+      err.message.includes('THIS INSTANCE'), // ...and WHY: the site admits this instance's opaque spelling alone
   );
   assert.equal(write(owner, ['a'], 'mem', 3).triggered.length, 1, 'nothing reached the store on that case');
 });

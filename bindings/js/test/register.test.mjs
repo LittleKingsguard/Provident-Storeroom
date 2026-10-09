@@ -14,6 +14,16 @@
 // the bounded correction pass of 2026-10-11 declared the registration site they needed** (`surface.md §2.4`
 // item 5: `register(handle, listener) -> undefined`, the ONE extra member of the object `storeCreate`
 // returned; the red set's CONTRACT FINDING 1, now closed).
+//
+// **⟶ AND THE SITE'S REFUSAL'S FORM WAS RE-DERIVED 2026-10-11, BECAUSE THE CLAUSE MOVED UNDER THIS FILE.**
+// The as-filed site answered a bare JS `TypeError` (`§2.4` item 5 (d) as filed; `PAR-JS-12`'s as-filed
+// exception clause) and **`A76`'s bounded declaration pass re-spells it: the registration site's refusal
+// travels in `surface.md §2.5`'s SINGLE FORM with the store's closed-set `AddressMalformed`** (`§2.5` item 5
+// (g); `parameter-semantics.md §2.12`'s second dated exception clause). **`S-REG`'s outside-value half and
+// the predicate it rests on (`isRegistrationRefusal`) are re-derived to that clause**, and the two throw
+// sites' separation is read as the SITE-versus-VERB distinction the second dated clause declares: *"a drive
+// must still tell the two sites apart, while a `TypeError` escaping from a VERB, in any form, remains a
+// FINDING."
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -50,6 +60,19 @@ function * draw(attempt) {
   }
 }
 
+/// **THE ARTIFACT THIS FILE'S OWN FIGURES NAME, MINTED BY THE RUNNER AND READ BACK BY `S-LAYER`** —
+/// `acceptance.md §4.2` item 1: *"THIS UNIT'S JS-SIDE GREEN IS `ENVELOPE/PURE`, AND THE LABEL TRAVELS WITH
+/// EVERY FIGURE … Every reported figure names its SITE (the command and the directory it ran in) and its
+/// LAYER"*, with item 2 (*"the ASSEMBLED/`APP` LAYER for this unit is `NONE`"*) and item 3 (*"NO `APP`-GREEN
+/// MAY BE CLAIMED FROM A NODE TEST"*). **THE AS-FILED `S-LAYER` LINE ASSERTED OVER LITERALS TYPED INSIDE ITS
+/// OWN CELL — `sites = [...]`, `layers = ['ENVELOPE/PURE', …]` — so it could not fail (gate 4's §B finding);
+/// THIS RECORD IS THE RUNNER'S OWN OUTPUT and the line asserts over IT.**
+const FIGURE = {
+  site: `node --test, ${PACKAGE_DIR}`,
+  layer: 'ENVELOPE/PURE',
+  appGreenClaimed: false,
+};
+
 const LEDGER = [];
 function row(id) {
   const r = { id, lines: [] };
@@ -79,15 +102,61 @@ function mem(listeners = []) {
   return storeCreate({ journalLength: 8, listeners });
 }
 
+/// `surface.md §2.5` item 5 (b): **the reason is the CLASS the value HAS, named as `§1.2`'s or `§1.3`'s own
+/// class** — *"never as a class the value could be converted to"*. The spelling is the package's own
+/// (`bindings/js/index.mjs`'s `classSpelling`), read here as the REASON the message must carry, and the
+/// position is read beside it (item 5 (b): *"THE POSITION IS THE ONE THING THIS SECTION DECLARES THAT THE
+/// STORE'S OWN PHRASES DO NOT CARRY"*).
+function classSpelling(value) {
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  const kind = typeof value;
+  if (kind !== 'object' && kind !== 'function') return `a ${kind}`;
+  if (Array.isArray(value)) return 'an Array';
+  if (kind === 'function') return 'a function';
+  return 'a plain object';
+}
+
+/// The failing TARGET rendered as the store's own generator renders it (`§2.5` item 5 (a)), with the
+/// fallback the rendering itself must have: a target whose own rendering throws still yields a rejection
+/// whose CLASS half is carried.
+function targetSpelling(value) {
+  try {
+    if (typeof value === 'bigint') return `${value}n`;
+    return String(value);
+  } catch {
+    return null; // a `Symbol`: the class half is the declared fallback and `classSpelling` asserts it
+  }
+}
+
 /**
- * `surface.md §2.4` item 5 (d) / `PAR-JS-12`: **an outside value at the REGISTRATION site answers a JS
- * `TypeError` carrying NO `status` and NO `message`** — the ONE form this package throws that is not
- * `§2.5`'s `{status, message}`, and the distinction `acceptance.md §4.1` item 9 requires a drive to make.
- * The predicate asserts BOTH halves: the class of the thrown value, and the absence of the store's two
- * members (the `message` half is checked with an own-property test, because `TypeError.message` is a REAL
- * inherited property and `'message' in err` would be true for every error).
+ * **⟶ THE REGISTRATION SITE'S REFUSAL, RE-DERIVED 2026-10-11 TO THE OPERATIVE DECLARED FORM.**
+ *
+ * **THE CLAUSE, CITED AT THIS CELL BECAUSE IT IS THE ONE THIS PREDICATE RESTS ON: `docs/specs/storeroom-js/
+ * surface.md §2.5` item 5 (g)** — *"the registration site's refusal IS a rejection under `A76` and travels in
+ * THIS section's single form, with its `status` drawn from the store's closed set — the store's own
+ * `AddressMalformed`, whose declared trigger already covers 'a present argument outside its domain' and 'an
+ * absent required argument' — and its `message` generated as clause (d) declares"* — **read with
+ * `parameter-semantics.md §2.12`'s SECOND dated exception clause**, which states the same reconciliation at
+ * that row (*"THE REGISTRATION SITE'S REFUSAL IS DELIVERED IN `… surface.md §2.5`'s SINGLE FORM —
+ * `{status, message}` — with its `status` drawn from the store's CLOSED `15`-member set … the store's own
+ * `AddressMalformed`"*, and *"the `TypeError` is the SHAPE the site was declared with at the bounded
+ * correction pass of 2026-10-11"*).
+ *
+ * **WHAT THE PREDICATE ASSERTED BEFORE THIS RE-DERIVATION, AND WHY IT WAS WITHDRAWN:** the as-filed cell
+ * required `err instanceof TypeError && !('status' in err)` — `surface.md §2.4` item 5 (d)'s and
+ * `PAR-JS-12`'s as-filed `TypeError` — and **the operative clause re-spells exactly that form**: a `TypeError`
+ * escaping a site of this package is a FINDING, and *"a `status` of `TypeError`, reached at the addon's own
+ * boundary, is that finding and not a declared form, because the store's closed set holds no such member"*
+ * (`surface.md §2.5` item 5 (e) and (g)). **SO THIS PREDICATE NOW ASSERTS THE DECLARED FORM AND ITS DECLARED
+ * CONTENT — and it is STRONGER than the form it replaces rather than weaker:** the record's member set must be
+ * EXACTLY `{status, message}`, the status must be the closed-set member `AddressMalformed`, and the message
+ * must carry the failing TARGET (item 5 (a)), the CLASS that failed (item 5 (b), whose class half is
+ * mandatory) and the POSITION (item 5 (b): a verb's ARGUMENT POSITION), because *"the rejection is verbose
+ * where it carries two things: the failing target, and the reason"*. **A bare "an error occurred" is what
+ * this predicate REFUSES.**
  */
-function isRegistrationTypeError(site) {
+function isRegistrationRefusal(site, target, position, why) {
   let thrown = null;
   try {
     site();
@@ -95,9 +164,20 @@ function isRegistrationTypeError(site) {
     thrown = err;
   }
   if (thrown === null) return false;
-  if (!(thrown instanceof TypeError)) return false;
-  if ('status' in thrown) return false;
-  if (Object.prototype.hasOwnProperty.call(thrown, 'message')) return false;
+  // The WITHDRAWN form is a FAILURE here, not a pass: a `TypeError` at any site of this package is a finding.
+  if (thrown instanceof TypeError) return false;
+  if (!(thrown !== null && typeof thrown === 'object' && !Array.isArray(thrown))) return false;
+  if (Object.getPrototypeOf(thrown) !== Object.prototype) return false;
+  if (Object.keys(thrown).sort().join(',') !== 'message,status') return false; // EXACTLY two members
+  if (thrown.status !== 'AddressMalformed') return false; // the store's closed-set member, carried
+  const message = String(thrown.message);
+  if (message.length === 0) return false;
+  // **THE REASON, IN ITS TWO DECLARED HALVES** (`§2.5` item 5 (b)): the CLASS that failed, and the POSITION.
+  if (typeof why === 'string' && !message.includes(why)) return false;
+  if (!message.includes(position)) return false;
+  // **THE FAILING TARGET** (item 5 (a)): its own value, single-quoted by the generator's own rule — and the
+  // generator's own two examples are asserted at the sites that spell them (`10n`, `Symbol()`).
+  if (target !== null && !message.includes(target)) return false;
   return true;
 }
 
@@ -116,10 +196,10 @@ const P_SM_5 = row('P-SM-5');
 // | `§2.4` rule 2 / item 5 (d) | a SECOND registration for the SAME handle (the first function is REPLACED and dropped without notice) |
 // | `§2.4` rule 3 | the same handle registered TWICE — one invocation per DISTINCT handle, never a fan-out; and two construction entries carrying ONE token |
 // | `§2.4` rule 4 / `DD-15` | a withdrawn registration (after `unlisten` the function never fires again) and the re-`listen` that mints a DIFFERENT handle |
-// | item 5 (d) — the OUTSIDE classes, EACH a JS `TypeError` carrying NO `status` and NO `message` | a NON-FUNCTION `listener` · a handle this instance NEVER MINTED (fabricated, a bare `string`, a blank token, `null`, `undefined`, an ABSENT argument, a non-opaque object) · a handle a FOREIGN instance minted |
+// | item 5 (d) AS READ THROUGH `§2.5` ITEM 5 (g) — the OUTSIDE classes, EACH the ONE form with the store's closed-set `AddressMalformed`, its message carrying the target, the class and the position | a NON-FUNCTION `listener` · a handle this instance NEVER MINTED (fabricated, a bare `string`, a blank token, `null`, `undefined`, an ABSENT argument, a non-opaque object) · a handle a FOREIGN instance minted |
 // | item 5 (b) | the return value of a success AND of a REPLACEMENT (`undefined` on both) |
 // | `§2.7` item 2 | the invocation happens AFTER the verb returned |
-// | **`§2.4` item 5 (e)** | the TWO throw sites are separated: `§2.5`'s `{status, message}` for a VERB and this site's bare `TypeError` for a REGISTRATION |
+// | **`§2.4` item 5 (e)** | the TWO throw sites are separated: a **VERB** answers `§2.5`'s `{status, message}`, and **a `TypeError` thrown by EITHER site is a FINDING** — the REGISTRATION's refusal travels in the SAME one form, drawn from the store's closed set (`§2.5` item 5 (g), the operative reading; `parameter-semantics.md §2.12`'s second dated clause) |
 //
 // `register` is reached through the INSTANCE and never through the module namespace (`acceptance.md §4.1`
 // item 9; `surface.md §2.4` item 5 (a): it is not a ninth named export).
@@ -236,33 +316,44 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
   write(dup, ['d'], 'mem', value(rng.next().value));
   if (dupFired !== 1) return false; // once per DISTINCT handle
 
-  // --- item 5 (d): EVERY OUTSIDE CLASS IS THE SAME JS `TypeError`, carrying NO `status` and NO `message`
-  //     — and the IN-DOMAIN form is still a SUCCESS, so the predicate cannot be satisfied by a site that
-  //     throws on everything.
+  // --- `§2.4` item 5 (d) AS IT IS READ TODAY (`§2.5` item 5 (g), the operative reading): EVERY OUTSIDE
+  //     CLASS ANSWERS THE ONE FORM WITH THE STORE'S CLOSED-SET `AddressMalformed`, AND THE MESSAGE CARRIES
+  //     THE TARGET, THE CLASS AND THE POSITION — and the IN-DOMAIN form is still a SUCCESS, so the predicate
+  //     cannot be satisfied by a site that throws on everything.
   const mine = mem([{ address: ['a'], handle: 'l1' }]);
   const held = write(mine, ['a'], 'mem', 1).triggered[0];
   let heldFired = 0;
   if (mine.register(held, () => { heldFired += 1; }) !== undefined) return false;
   const stranger = mem();
   const fabricated = listen(stranger, ['x']);
+  // One row per outside class: the site, the failing TARGET's own rendering (item 5 (a)), the CLASS the
+  // reason must name (item 5 (b)) and the POSITION (item 5 (b)).
   const outside = [
-    () => mine.register(held, 42), //                        a NON-FUNCTION listener
-    () => mine.register(held, 'not-a-function'),
-    () => mine.register(held, null),
-    () => mine.register(held, undefined),
-    () => mine.register(held, {}),
-    () => mine.register(held), //                            an ABSENT `listener`
-    () => mine.register(undefined, () => {}), //             a handle `undefined`
-    () => mine.register(null, () => {}),
-    () => mine.register('l1', () => {}), //                  a bare string naming a token
-    () => mine.register('', () => {}), //                    a blank token
-    () => mine.register(`listener-${rng.next().value}`, () => {}), // a GUESSED token
-    () => mine.register({}, () => {}), //                    a fabricated non-opaque value
-    () => mine.register(fabricated, () => {}), //            a value a FOREIGN instance minted
-    () => mine.register(() => {}, () => {}), //              a function as the handle
+    { call: () => mine.register(held, 42), target: targetSpelling(42), why: 'a number', pos: 'second argument' },
+    { call: () => mine.register(held, 'not-a-function'), target: 'not-a-function', why: 'a string', pos: 'second argument' },
+    { call: () => mine.register(held, null), target: 'null', why: 'null', pos: 'second argument' },
+    { call: () => mine.register(held, undefined), target: 'undefined', why: 'undefined', pos: 'second argument' },
+    { call: () => mine.register(held, {}), target: '[object Object]', why: 'a plain object', pos: 'second argument' },
+    { call: () => mine.register(held), target: 'undefined', why: 'undefined', pos: 'second argument' }, // an ABSENT listener
+    { call: () => mine.register(undefined, () => {}), target: 'undefined', why: 'undefined', pos: 'first argument' },
+    { call: () => mine.register(null, () => {}), target: 'null', why: 'null', pos: 'first argument' },
+    { call: () => mine.register('l1', () => {}), target: 'l1', why: 'a string', pos: 'first argument' }, // a bare token
+    { call: () => mine.register('', () => {}), target: null, why: 'a string', pos: 'first argument' }, // the blank token's own target is the empty string
+    { call: () => mine.register(`listener-${rng.next().value}`, () => {}), target: null, why: 'a string', pos: 'first argument' }, // a GUESSED token
+    { call: () => mine.register({}, () => {}), target: '[object Object]', why: 'a plain object', pos: 'first argument' },
+    { call: () => mine.register(fabricated, () => {}), target: '[object Object]', why: 'a plain object', pos: 'first argument' }, // a FOREIGN instance's value
+    { call: () => mine.register(() => {}, () => {}), target: null, why: 'a function', pos: 'first argument' }, // a function as the handle
   ];
-  for (const site of outside) {
-    if (!isRegistrationTypeError(site)) return false;
+  for (const one of outside) {
+    if (!isRegistrationRefusal(one.call, one.target, one.pos, one.why)) {
+      console.log(
+        `S-REG OUTSIDE MISMATCH: target=${one.target} pos=${one.pos} why=${one.why} ::`,
+        (() => {
+          try { one.call(); return 'NO THROW'; } catch (err) { return JSON.stringify(err); }
+        })(),
+      );
+      return false;
+    }
   }
   // NOTHING REACHES THE STORE IN ANY OF THOSE CASES (`item 5 (d)`), and no other registration is disturbed:
   const untouched = write(mine, ['a'], 'mem', 2);
@@ -282,13 +373,63 @@ line(P_SM_5, 'S-REG-DUP', 10, (attempt) => {
 });
 
 line(P_SM_5, 'S-OPAQUE', 10, (attempt) => {
+  // **`§2.3` item 2, STRENGTHENED (gate 4's `JS-16`-class finding: *"`S-OPAQUE`'s probe is weak"* — it was a
+  // substring scan of three spellings, so a wrapper that leaked its token to `Symbol.toStringTag`, or that
+  // was not the DECLARED frozen memberless object at all, passed).** The clause declares the OUTPUT spelling
+  // exactly: *"every handle a verb RETURNS is the package's **opaque JS value** wrapping the token, whose
+  // token is PRIVATE and readable by no JS code; the package compares handle identity **internally**, by the
+  // token it holds."* **SO THE PROBE ASSERTS THE DECLARED OBJECT'S OWN SHAPE — every own key (string and
+  // symbol, enumerable or not), every own descriptor, its prototype, its extensibility, its frozen state and
+  // every coercive spelling — and it does so over a MINTED handle AND an ADOPTED one, because the two
+  // spellings are the two the section declares (`§2.3` item 2: IN is a plain string, OUT is the opaque).**
   const rng = draw(attempt);
+  const token = `l${1 + rng.next().value}`; // a caller-spelled token the construction ADOPTS verbatim
+  const minted = listen(mem(), ['x', rng.next().value]);
+  const adopted = write(mem([{ address: ['a'], handle: token }]), ['a'], 'mem', 1).triggered[0];
+  for (const [label, handle] of [['a MINTED handle', minted], ['an ADOPTED handle', adopted]]) {
+    if (handle === null || typeof handle !== 'object') return false; // never the bare token
+    if (Object.getPrototypeOf(handle) !== Object.prototype) return false;
+    // EVERY OWN KEY, string and symbol, enumerable and not: a memberless value has none at all.
+    if (Object.getOwnPropertyNames(handle).length !== 0) return false;
+    if (Object.getOwnPropertySymbols(handle).length !== 0) return false;
+    if (Object.getOwnPropertyDescriptors(handle) && Object.keys(Object.getOwnPropertyDescriptors(handle)).length !== 0) {
+      return false;
+    }
+    // THE DECLARED FREEZE (`bindings/js/index.mjs`: *"**THE OPAQUE HANDLE**: frozen, memberless, and its
+    // token is PRIVATE"*): a caller may not brand it, and a second freeze is a no-op.
+    if (!Object.isFrozen(handle)) return false;
+    // EVERY COERCIVE SPELLING THE TOKEN COULD LEAK THROUGH — and the two that a token-bearing wrapper
+    // classically leaks through, `Symbol.toStringTag` and `Symbol.toPrimitive`.
+    const spellings = [
+      String(handle),
+      `${handle}`,
+      JSON.stringify(handle),
+      Object.prototype.toString.call(handle),
+      handle.toString(),
+      handle.valueOf(),
+      handle[Symbol.toPrimitive] ? handle[Symbol.toPrimitive]('string') : '',
+      String(handle[Symbol.toStringTag] ?? ''),
+      Object.keys(handle).join(','),
+      Object.getOwnPropertyNames(handle).join(','),
+      Object.getOwnPropertySymbols(handle).map(String).join(','),
+      JSON.stringify(Object.getOwnPropertyDescriptors(handle)),
+    ];
+    for (const spelling of spellings) {
+      const text = String(spelling);
+      if (text.includes('listener-') || text.includes(token)) return false; // the token is readable
+    }
+    if (label === 'an ADOPTED handle' && String(handle) === token) return false;
+  }
+  // AND THE HANDLE IS NOT THE TOKEN'S OWN STRING EITHER — the IN spelling and the OUT spelling are two
+  // (`§2.3` item 2: *"NEITHER DIRECTION IS THE OTHER'S"*).
+  if (typeof adopted === 'string' || typeof minted === 'string') return false;
+  // ...and `unlisten` over a bare string is the declared unknown-handle no-op, which is the OTHER half of
+  // item 2 the probe keeps.
   const inst = mem();
-  const handle = listen(inst, ['x', rng.next().value]);
-  const spellings = [String(handle), JSON.stringify(handle), Object.getOwnPropertyNames(handle).join(',')];
-  const opaque = !spellings.some((s) => String(s).includes('listener-'));
-  const bare = unlisten(inst, 'l1') === undefined;
-  return opaque && bare;
+  listen(inst, ['y']);
+  const bare = unlisten(inst, 'l1') === undefined && unlisten(inst, token) === undefined;
+  if (write(inst, ['y'], 'mem', 1).triggered.length !== 1) return false; // no other registration removed
+  return bare;
 });
 
 line(P_SM_5, 'S-WITHDRAW', 10, () => {
@@ -335,12 +476,19 @@ line(P_TP_7, 'S-HO', 7, (attempt) => {
 });
 
 line(P_TP_7, 'S-LAYER', 5, () => {
-  const sites = [`${HERE} (node --test)`, 'bindings/js/tests (cargo test)'];
-  const layers = ['ENVELOPE/PURE', 'ENVELOPE/PURE'];
+  // **THE LINE ASSERTS OVER THE RUNNER'S OWN RECORD (`FIGURE`), NOT OVER LITERALS IN ITS OWN CELL** — the
+  // artifact-read shape `acceptance.md §4.2` item 1 requires, and the repair of the as-filed line whose two
+  // arrays made every conjunct true by construction.
+  if (typeof FIGURE.site !== 'string' || !FIGURE.site.includes('node --test')) return false;
+  if (!FIGURE.site.includes(PACKAGE_DIR)) return false; // the site names the directory it ran in
+  if (FIGURE.layer !== 'ENVELOPE/PURE') return false; // §4.2 item 1's label for this unit's JS green
+  if (FIGURE.appGreenClaimed !== false) return false; // §4.2 items 2–3: `APP` is `NONE`, and no node test claims one
+  // AND THE RECORD IS CHECKED AGAINST THE PACKAGE'S OWN BYTES, so the artifact cannot drift from what it
+  // reports: no `APP`-green claim appears anywhere in the package's documentation.
   const appGreenClaimed = /APP[- ]?(layer|green)\s*[:=]\s*(green|GREEN)/.test(
     readFileSync(join(PACKAGE_DIR, 'README.md'), 'utf8'),
   );
-  return sites.every((s) => s.length > 0) && layers.every((l) => l === 'ENVELOPE/PURE') && !appGreenClaimed;
+  return !appGreenClaimed;
 });
 
 // =============================================================================================
@@ -382,16 +530,42 @@ line(P_TP_8, 'S-NOOP', 10, (attempt) => {
 });
 
 line(P_TP_8, 'S-SET', 10, (attempt) => {
+  // **GATE 4'S FINDING, REPAIRED: *"`S-SET` is satisfied by two sizes (`new Set(a).size === new Set(b).size`
+  // passes for two DIFFERENT sets; the duplicate-member arm is unasserted)."*** The clause the row drives is
+  // `§2.7` item 3 — *"this unit asserts MEMBERSHIP ONLY: a drive compares SETS, never sequences"* — so the
+  // comparison is now MEMBER-BY-MEMBER, over a set whose membership is KNOWN from the construction, **and the
+  // duplicate case the row's own text names is driven beside it** (`§2.4` rule 3: one invocation per DISTINCT
+  // handle, not one per entry).
   const rng = draw(attempt);
+  const distinct = `l${1 + rng.next().value}`;
+  // THREE entries, TWO distinct tokens: the declared set has EXACTLY TWO members — the caller's token ONCE
+  // (`DD-42`'s lawful caller-spelled collision) plus the one minted beside it.
   const inst = mem([
     { address: ['a'], handle: 'l1' },
-    { address: ['a'], handle: 'l2' },
-    { address: ['a'], handle: `l${3 + rng.next().value}` },
+    { address: ['a'], handle: 'l1' },
+    { address: ['a'], handle: distinct },
   ]);
   const first = write(inst, ['a'], 'mem', 1);
   const second = write(inst, ['a'], 'mem', 2);
-  // SET equality, never a sequence: the two enumerations are compared as sets and their order is not asserted.
-  return new Set(first.triggered).size === new Set(second.triggered).size;
+  if (first.triggered.length !== 2) return false; // the duplicate is carried ONCE, not twice
+  if (second.triggered.length !== 2) return false;
+  // MEMBER BY MEMBER: every id of the first enumeration is in the second, and every id of the second is in
+  // the first — a comparison two DIFFERENT sets of the same size cannot pass.
+  for (const id of first.triggered) if (!second.triggered.includes(id)) return false;
+  for (const id of second.triggered) if (!first.triggered.includes(id)) return false;
+  if (new Set(first.triggered).size !== 2) return false; // and the identities are DISTINCT, not one repeated
+  // THE DUPLICATE ARM ITSELF: two entries carrying ONE token fire ONCE for the distinct handle.
+  let invocations = 0;
+  for (const id of first.triggered) inst.register(id, () => { invocations += 1; });
+  write(inst, ['a'], 'mem', 3);
+  if (invocations !== 2) return false; // one per DISTINCT handle, never one per entry
+  // AND THE DUPLICATE CASE ON ITS OWN, with NOTHING but the duplicate: ONE member.
+  const dup = mem([
+    { address: ['b'], handle: 'l-dup' },
+    { address: ['b'], handle: 'l-dup' },
+  ]);
+  if (write(dup, ['b'], 'mem', 1).triggered.length !== 1) return false;
+  return true;
 });
 
 line(P_TP_8, 'S-FIRE-WINDOW', 5, () => {
@@ -492,4 +666,60 @@ test('register_js_side_three_rows_are_executed_with_strategy_ids_and_verdicts', 
   assert.equal(unrun.length, 0, 'no line of this runner is `un-run`: `un-run` IS A FAILURE (§2.4 item 5)');
   assert.equal(typeof storeCreate({ journalLength: 8, listeners: [] }).register, 'function');
   assert.ok(!('register' in api), '§2.4 item 5 (a): the site is not a ninth named export');
+
+  // **`S-FAILFORM` IS ASSERTED HERE, AND THIS IS ITS OWN ARM — GATE 4'S `JS-15`-CLASS FINDING REPAIRED.**
+  // The as-filed predicate was *"a `TypeError`-class check with a status half"* whose second disjunct was
+  // implied by its first, so no input could fail it. **The record's member set is asserted to be EXACTLY
+  // two, and its status asserted to be a member of the store's CLOSED `15`-member set** (`surface.md §2.5`
+  // items 1–3: *"a THROWN plain object with EXACTLY TWO MEMBERS"*, *"`status` is the store's own member token
+  // VERBATIM — one of the store's closed `15` members … never a package-minted code"*, `DD-40`).
+  const THE_FIFTEEN = [
+    'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
+    'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
+    'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
+    'ValueNotAdmitted', 'FileCommitFailed',
+  ];
+  const formSites = [
+    ['a VERB', () => read(mem(), ['gone'])],
+    ['a VERB', () => rollback(mem(), 'no-such-op')],
+    ['a VERB', () => storeCreate({ listeners: [] })],
+    ['a REGISTRATION', () => storeCreate({ journalLength: 8, listeners: [] }).register(null, () => {})],
+  ];
+  for (const [site, drive] of formSites) {
+    let thrown = null;
+    try {
+      drive();
+    } catch (err) {
+      thrown = err;
+    }
+    assert.ok(thrown !== null, `S-FAILFORM: ${site} must answer the one failure form`);
+    assert.equal(
+      Object.keys(thrown).sort().join(','),
+      'message,status',
+      `S-FAILFORM: ${site}'s record must carry EXACTLY the two declared members`,
+    );
+    assert.ok(
+      THE_FIFTEEN.includes(thrown.status),
+      `S-FAILFORM: ${site}'s status \`${thrown.status}\` is outside the store's closed set (DD-40: no code is minted)`,
+    );
+    assert.ok(typeof thrown.message === 'string' && thrown.message.length > 0, 'S-FAILFORM: the message is generated and never empty');
+    assert.equal(Object.getPrototypeOf(thrown), Object.prototype, 'S-FAILFORM: the failure is a plain object of the caller realm');
+    assert.ok(!(thrown instanceof Error), 'S-FAILFORM: no `Error` subclass (DD-12)');
+  }
+});
+
+// =============================================================================================
+// THE FIGURE'S OWN SITE AND LAYER, PRINTED FROM THE RECORD `S-LAYER` READS
+// =============================================================================================
+
+test('register_the_figure_names_its_site_and_its_layer_from_the_records_own_artifact', () => {
+  // `acceptance.md §4.2` item 1: *"Every reported figure names its SITE (the command and the directory it
+  // ran in) and its LAYER."* The record below is the one `S-LAYER` asserts over, printed so a reader of this
+  // run's output has the site and the layer beside the figure (`DD-31`: the store's suite is NOT re-labelled
+  // as this unit's, and no `APP`-green is claimed).
+  console.log(`SITE ${FIGURE.site}`);
+  console.log(`LAYER ${FIGURE.layer} (APP = NONE, app-green claimed: ${FIGURE.appGreenClaimed})`);
+  assert.match(FIGURE.site, /^node --test, /, 'the site names the command');
+  assert.equal(FIGURE.layer, 'ENVELOPE/PURE', 'the layer label travels WITH the figure');
+  assert.equal(FIGURE.appGreenClaimed, false, '§4.2 items 2–3: `APP` is `NONE` for this unit');
 });
