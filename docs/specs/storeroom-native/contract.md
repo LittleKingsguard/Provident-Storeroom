@@ -124,6 +124,25 @@
   | `seams-and-lifecycle` | **`carrier`** | `docs/specs/storeroom-native/seams-and-lifecycle.md` | **relocated:** the construction inputs (`§7`), the boot and lifetime clauses, the constraint-evaluation seam, the fail-code set with its generated-message rule (`§8`), and the boundary clauses of the two parks — **⟶ AMENDED 2026-10-11: `§7.2` now carries an added item `7` as well, the `file` tier's JSON text's canonical number spelling with its own rule, its side and its observable (`P: §21 · A59`), and the narrowed numeric domain's reach together with the boot's answer for an out-of-range spelling (`P: §21 · A60`; `DD-46`); the item is authored in that part AND at this document's own `§7.2`, byte-for-byte, in the same pass, because the span has two copies and neither is left stale** |
   | `parameter-semantics` | **`carrier`** (its own authored rows are this part's admissible content; the `§9` index relocates here) | `docs/specs/storeroom-native/parameter-semantics.md` | **relocated:** the `§9` index; **and authored:** one row per declared parameter — **`PAR-1`…`PAR-11`** — carrying the parameter's unit, its domain **and the values outside it**, the declared answer for **each** outside value, its supplier, its evaluator and its observable |
   | `implementation-plan` | **`carrier`** | `docs/specs/storeroom-native/implementation-plan.md` | the unit's ordered landing/verification plan **and its acceptance criterion**, **reconciled to this contract and dated** — carrying **no pinnable claim this contract does not already carry**; the pre-contract plan's own body stands at `docs/specs/storeroom-native-implementation-plan.md`, reconciled, never overwritten |
+  **AND ONE POINTER THIS REGION RECONCILES RATHER THAN LEAVES AT AN AS-FILED RANGE** (`RCA-8(d)`
+  ANNOTATE-BESIDE: **the table above stands byte-for-byte, this region's closure bullet standing below
+  unmoved**; `P: §13 · A69`; `§0.1` item 10(a), the relocation rule; `§3.6`, the cross-document citation
+  form; `[T: the pointer's own reconciliation, so a reader of the map is not sent to a superseded range and
+  the process-scope reconciliation is findable from the map | CROSS-REF]`): **THE `parameter-semantics` ROW'S
+  *"one row per declared parameter — `PAR-1`…`PAR-11`"* RANGE IS THE AS-FILED ONE, and the operative range is
+  `PAR-1`…`PAR-14` (`12 + 1 + 1 = 14` ✓), the index region's own dated clause above carrying the same
+  figure with its terms; `parameter-semantics.md`'s `§1` (the relocation) and its closing arithmetic carry
+  it too.** **AND THE PROCESS-SCOPE RECONCILIATION THE ARCHITECT'S RULING `A69` LANDS IS POINTED FROM HERE:
+  the directory holds `5` cells that read the *"per instance and per session"* claim — `§0.4` clause 2 (the
+  operative re-statement, `contract.md`), `§6.2`'s `JournalOp.opId` comment (the same claim at the record it
+  describes, `contract.md`), the RELOCATED twin of that comment (`write-and-read.md §6.2`, reconciled by
+  pointer from `contract.md §6.2`'s dated clause, because `write-and-read.md` is a `carrier` part and its
+  span is this document's own `§6.2`), `parameter-semantics.md §2.10` (`PAR-10`'s `domain` cell) and
+  `parameter-semantics.md §2.13` (`PAR-13`'s `domain` cell) — and each of the `5` is reconciled in place
+  beside its own cell, the as-filed text re-emitted and nothing deleted.** **NO PART ENTRY IS ADDED, DROPPED
+  OR RENUMBERED BY THIS CLAUSE: the part map still carries its `6` rows (`5` PART entries + the
+  contract-document row), the predicate still reads `5 = 5`, and the three recorded omissions still
+  contribute to NEITHER side.**
 - **Closure state — `CLOSED`, on the single arithmetic.** `{part-map PART entries}` = `{rows of the part
   map} − {the contract-document row}` = **`5`** · `{files present in docs/specs/storeroom-native/} −
   {contract.md}` = **`5`** (`store-model.md`, `write-and-read.md`, `seams-and-lifecycle.md`,
@@ -872,6 +891,86 @@ POINT — `DD-42`'s:** **the alternatives are a REFUSAL at `listen` (which would
 `write-and-read.md §6.5` item 12 (b)'s *"ADOPTED VERBATIM"*); each is priced at `DD-42` and neither is
 taken.** **REVERSAL POINT: a bounded amendment of `docs/specs/storeroom-native/`, owned by
 `role_spec_writer`, with the amendment row recorded.**
+
+**⟶ RECONCILED 2026-10-11 — CLAUSE 2'S UNIQUENESS DOMAIN MOVES: A STORE-MINTED HANDLE IS UNIQUE PER
+PROCESS, AND THE AS-FILED CLAUSE'S *"PER INSTANCE AND PER SESSION"* CLAIM IS RE-STATED RATHER THAN LEFT
+STANDING FALSE** (`RCA-8(d)` ANNOTATE-BESIDE: **every byte of clause 1, of clause 2's *"TWO WAYS INTO THE
+DOMAIN"* sentence, of clause 3, of clause 4, of clause 5, of ITS `alt` and of ITS reversal point above
+STANDS, and THIS clause is the operative statement of the uniqueness domain clause 2 declares. The
+as-filed clause 2 sentence IS RE-EMITTED HERE, so nothing it read is lost and `git diff` recovers it as an
+insertion's own quotation:** *"**A store-minted handle is unique per instance and per session**
+(`PAR-13`'s uniqueness domain, `§6.1` item 3), **and the construction ADOPTS the caller's tokens rather
+than re-minting them, so the store does not police their distinctness against its own minted set.**"*).
+**THE RULING THIS CLAUSE LANDS, AND ITS TRANSCRIPTION:** **`P: §13 · A69`** — the architect's own words,
+verbatim, ***"Proceed on b"*** — **filed at the in-project ruled artifact
+`docs/specs/storeroom-js-proposal.md` `§13`, whose `§12` priced the three `K7` remedies and whose row
+prints remedy `(b)` as *"DECLARE THE TOKEN *UNIQUE PER PROCESS*"*. `A69` thereby SUPERSEDES `A67` (*"use
+recommended"*, the per-instance-counter remedy the measurement at the proposal's `§12` refuted); `A67`
+stands as its own dated history and is not re-read here** (`[P: §13 · A69 | CROSS-REF]`).
+
+**THE OPERATIVE CLAUSE 2 — RE-STATED IN FULL, SO THE DOMAIN, THE ADOPTION AND THE MINT ARE READ FROM ONE
+PLACE:** **the domain of `handle` is the set of values that are EITHER (a) MINTED BY THE STORE — by
+`listen(address)` or by the construction's `listeners[]` population — OR (b) ADOPTED AT CONSTRUCTION, i.e.
+a token the caller spelled and passed in a `listeners[]` entry, which the construction adopts VERBATIM as
+that entry's handle (`DD-39`). A store-minted handle is UNIQUE PER PROCESS: the store mints one token, and
+no OTHER token the store mints — in THIS instance, in ANY other instance of THIS process, or at ANY LATER
+moment of THIS process — is equal to it.** **AND THE MINT'S OWN NON-COLLISION RULE IS UNMOVED by the
+domain's restatement: `listen` still mints a token UNEQUAL to EVERY token the home ALREADY holds
+(`DD-42`), the construction still ADOPTS the caller's tokens rather than re-minting them, and the store
+still does not police the ADOPTED tokens' distinctness against its own minted set.**
+
+**THE TWO CONSEQUENCES THIS CLAUSE STATES HONESTLY, EACH PRINTED AS ITS OWN:** **(i) THE DOMAIN A HANDLE'S
+VALIDITY IS MEASURED IN IS *THIS PROCESS'S* STORE INSTANCES.** **A token THE PROCESS NEVER MINTED names NO
+entry in ANY of this process's store instances** — the process's minted set and its adopted tokens lie in
+one namespace, `listen` never re-mints a token that namespace holds, and a caller-spelled token is
+instance-local because only the instance the caller handed it to holds it. **So an unknown, a fabricated,
+and a FOREIGN-INSTANCE handle are each OUTSIDE the domain UNCONDITIONALLY, and `unlisten` over each is the
+declared NO-OP SUCCESS of clause 3, removing NO OTHER REGISTRATION.** **(ii) A PRIOR SESSION'S HANDLE IS
+OUTSIDE THE DOMAIN, AND WHERE THE CURRENT PROCESS HAS SINCE MINTED THE SAME TOKEN IT NAMES *THAT*
+REGISTRATION — A DECLARED CROSS-PROCESS HAZARD, NOT A DEFENDED PROPERTY.** **The counter RESTARTS at each
+process, so a token a PRIOR SESSION minted can be EQUAL to a token THIS process has since minted for a
+DIFFERENT registration** — and, handle identity being TOKEN EQUALITY ALONE (clause 1), `unlisten` over
+that value names THAT registration. **THIS IS ACCEPTED, NOT CURED: a caller that must be safe ACROSS A
+RELOAD MUST NOT CARRY HANDLES ACROSS IT** (`K7`'s containment note stands open and is not defended here,
+`P: §13 · A69`'s own accepted-consequence cell).
+
+**WHAT IS REFUSED, AND WHAT IS NOT MOVED:** **the BARE PER-INSTANCE COUNTER IS REFUSED** — *measured*, not
+preferred: a per-instance counter restarts at `1` in every fresh instance, so two instances created in ONE
+process mint THE SAME token, and `unlisten` over a foreign instance's handle then removes THE INSTANCE'S
+OWN entry, contradicting clause 3 (`373 PASS / 1 FAIL`, the failing cell being
+`tests/e2e_listener_firing.rs`'s `lf_e12_a_fabricated_and_a_foreign_handle_unlisten_remove_nothing`,
+`P: §12`). **NO `src/**` BYTE MOVES, NO `tests/**` BYTE MOVES, and the store's measured green stands
+untouched: the shipped process-global mint IS the declared behaviour.** **NO `DD` ROW IS AUTHORED BY THIS
+CLAUSE** (the table's census stands at `46`, `24 + 3 + 2 + 1 + 1 + 9 + 5 + 1 = 46` ✓), **NO `PAR` ROW MOVES**
+(the set stands at `14`, `12 + 1 + 1 = 14` ✓), **the typed register stands at its `8` rows with the cap
+holding (`8 ≤ 8` ✓), the closed fail set stands at its `15` members (`11 + 2 + 1 + 1 = 15` ✓), the
+prohibited set stands at its `7` rows, and the `derivation:` clause stands single.**
+**AND WHICH STANDING CELLS THIS DECLARATION MAKES REACHABLE, NAMED SO NOTHING IS CLAIMED GREEN:** **the
+cells that drive the foreign-INSTANCE and fabricated no-ops — `tests/watched_addresses.rs`'s
+`par_13_a_foreign_instance_s_handle_is_a_no_op_success_and_the_other_instance_is_untouched`,
+`par_13_two_instances_never_cross_name_each_other_s_registrations`,
+`par_13_a_foreign_handle_is_a_no_op_success`, `par_13_a_fabricated_handle_is_a_no_op_success` and
+`dd_42_the_mint_never_takes_a_token_the_instance_s_home_already_holds`, with
+`tests/e2e_listener_firing.rs`'s `lf_e12_a_fabricated_and_a_foreign_handle_unlisten_remove_nothing` and
+`lf_f6_the_mint_never_collides_and_the_caller_spelled_collision_is_lawful` — hold under THIS declaration
+exactly as they hold now, each asserting the behaviour their own clause already declares; the
+per-instance/per-session spelling those cells QUOTE in their assertion messages is the AS-FILED form this
+clause re-states, and NO ASSERTION OF ANY CELL IS WEAKENED, EDITED OR OTHERWISE MOVED BY THIS PASS.**
+(`[P: §13 · A69; T: clause 2's domain, re-stated with its as-filed sentence re-emitted | CONTRACT]`)
+
+**⟶ AND THE HANDLE'S UNIQUENESS, CARRIED TO `§5.8`'s AND `DD-42`'s OWN CELLS SO NO CITATION OF THEM GOES
+STALE** (`RCA-8(d)` ANNOTATE-BESIDE; `P: §13 · A69`; **both the `P-TP-8` row's `(a)`/`(b)` half and `DD-42`'s
+mint rule stand byte-for-byte and are READ THROUGH this clause**; `[T: `§5.8`'s and `DD-42`'s reading of the
+uniqueness domain, stated here because both cells speak of the MINT and of the SET without naming a
+domain | CROSS-REF]`): **`§5.8` (a)'s *"the handle set is exactly the triggered set, with no duplicated
+member"* and `DD-42`'s *"a home never holds two entries with ONE store-minted token"* are claims about ONE
+store instance's home and are UNMOVED — the domain's move from per-instance to per-process makes each
+STRONGER, never weaker, because every instance's minted set is a subset of the process's minted set.**
+**AND `DD-42`'s mint rule's own scope is UNMOVED: it is a PER-HOME rule — `listen` skips a candidate the
+CALLING instance's home holds — and it is not widened by this clause into a cross-instance police; that
+cross-instance distinctness comes from the MINT'S SINGLE PROCESS-GLOBAL COUNTER and not from a new duty
+upon any instance.** **NO CELL OF `§5.8`, NO `DD` ROW'S CELL, NO `DD` ROW'S COUNT AND NO CELL OF `§6.5` IS
+EDITED, ADDED OR DROPPED BY THIS CLAUSE.**
 
  **every item in the table above is re-exported from the crate root**, and **the red set reaches
 them through `tests/support/mod.rs`'s single `pub use`** — so **the test module holds the SPELLINGS the
@@ -2888,6 +2987,28 @@ BaseState {
    scope overlapping `op.address`'s subtree supersedes it;
 3. **`op.opId` is a non-empty string, unique within the instance, and is the handle `rollback` accepts**;
 4. **`op.kind` is exactly one of `'write'` and `'delete'`, and no other value appears.**
+
+**⟶ RECONCILED 2026-10-11 — THE OP'S `opId` UNIQUENESS DOMAIN, RE-STATED BESIDE THE SHAPE IT IS DECLARED IN
+SO THE DIRECTORY HOLDS ONE DOMAIN AND NOT TWO** (`RCA-8(d)` ANNOTATE-BESIDE: **the record block above —
+its `opId` line's comment *"the IDENTITY: a non-empty, store-unique string token. Uniqueness is per store
+instance and per session."* — and every property of the list above STAND BYTE-FOR-BYTE and are READ
+THROUGH this clause**; `P: §13 · A69`; `§0.4`'s dated clause; `[T: the `opId` domain's restatement, so
+`§0.4` clause 2's process-scoped domain and this record's own comment are not read as two domains |
+CROSS-REF]`): **THE AS-FILED COMMENT READ** *"Uniqueness is per store instance and per session."* **THE
+OPERATIVE READING, IN THREE CLAUSES, AND NOT ONE OF THEM A NEW DUTY:** **(1)** **`opId`'s uniqueness is
+SATISFIED BY THE SAME PROCESS-GLOBAL MINT THAT MINTS `handle`s, so the id is unique PER INSTANCE AND PER
+SESSION *and* UNIQUE PER PROCESS — no counter, no member and no verb is added by this clause, and the
+stronger reading is the one a caller may rely on** (`§0.4`'s dated clause: *"unique PER PROCESS"*).
+**(2)** **THE REACH A CALLER MAY RELY ON IS UNMOVED, AND THAT IS WHAT THE PROPERTIES ABOVE ASSERT: an id
+names an entry in THE JOURNAL OF THE INSTANCE THAT RETURNED IT, and a JOURNAL IS PER-INSTANCE
+(`§6.1` item 2) — so a foreign instance's id fails `JournalOpUnknown` on THIS instance exactly as
+`parameter-semantics.md §2.10` (`PAR-10`) declares, and `rollback`'s reach is the returning instance's own
+journal and never a process-wide one.** **(3)** **NO CODE, NO MEMBER, NO `DD` ROW AND NO COUNT MOVES: the
+record's closed eight-member set stands, `parameter-semantics.md §2.10`'s domain and outside values stand
+with this clause as their companion, and `§2.10`'s cell carries the same dated reconciliation.** **THIS
+CLAUSE ADDS NOTHING TO `parameter-semantics.md §2.10` AND TAKES NOTHING FROM IT** — **it states, in this
+record's own home, that the *"per instance and per session"* spelling above is the AS-FILED form and that
+its operative domain is the one `§0.4`'s dated clause declares.**
 
 `[P: §9 · A7, §15 · A37; R: §17.3 | CONTRACT]`
 

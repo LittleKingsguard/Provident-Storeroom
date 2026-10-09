@@ -336,6 +336,27 @@ row, with the as-filed row named and nothing deleted | CONTRACT + 1 PARK]`
 
 `[P: §9 · A7, §15 · A37; R: §17.3; T | CONTRACT]`
 
+**⟶ RECONCILED 2026-10-11 — THIS ROW'S `domain` CELL'S *"uniqueness is per instance and per session"*
+SPELLING IS READ THROUGH `§0.4`'s PROCESS SCOPE, AND THE ROW'S OWN OUTSIDE VALUE IS CONFIRMED UNMOVED**
+(`RCA-8(d)` ANNOTATE-BESIDE: **every cell above stands byte-for-byte, the *"uniqueness is per instance and
+per session"* clause included, and THIS clause is the operative statement of what that spelling resolves
+to**; `contract.md §0.4` clause 2's dated clause and `contract.md §6.2`'s dated clause; `P: §13 · A69`;
+`[T: the row's domain spelling, reconciled beside the cell that prints it | CROSS-REF]`): **THE AS-FILED
+`domain` CELL READS** *"**a non-empty `string` that the INSTANCE'S OWN journal holds** — **uniqueness is per
+instance and per session**; the id is produced by the store, never minted by the caller"*. **THE OPERATIVE
+READING, IN TWO CLAUSES:** **(1)** **the id's uniqueness is satisfied by the SAME PROCESS-GLOBAL MINT that
+mints `handle`s, so the id is unique PER INSTANCE, PER SESSION *and* PER PROCESS — and what THIS row's
+`domain` cell asserts is the REACH a caller may rely on, which the *"INSTANCE'S OWN journal"* half of the
+same cell already fixes: an id names an entry in the journal OF THE INSTANCE THAT RETURNED IT, and the
+journal is per-instance (`write-and-read.md §6.1` item 2)**; **(2)** **the outside value
+*"a well-formed string the instance's journal does NOT hold (a foreign instance's id, a replayed id from a
+prior session, a fabricated id)"* and its declared answer `JournalOpUnknown` are UNMOVED BY THIS CLAUSE —
+the row needs no conditional, because a foreign instance's id and a prior session's id name an entry in
+ANOTHER journal and this instance's lookup reaches only its OWN** (`write-and-read.md §6.4` `M-11`; the
+standing cell `tests/journal_and_rollback.rs`'s `par_10_a_foreign_instance_s_op_id_fails_journal_op_unknown`
+asserts exactly this and is untouched). **NO CELL OF THIS ROW IS DELETED, NO CODE IS ADDED TO OR REMOVED
+FROM `seams-and-lifecycle.md §8.1`'s closed `15`-member set, AND NOTHING THE CALLER MAY RELY ON NARROWS.**
+
 ### §2.11 `PAR-11` — the `secure` instance's `file` floor: DECLARED CLIENT-SIDE
 
 | Cell | Its value |
@@ -413,6 +434,72 @@ ANNOTATE-BESIDE).
 
 `[P: §18 · A57, §20 · A58, §12 · A46; R: §17.4; T: the row's authoring | CONTRACT + 1 PARK]`
 
+**⟶ RECONCILED 2026-10-11 — `PAR-13`'s DOMAIN CELL AND OUTSIDE VALUES RE-STATED ON CLAUSE 2'S NEW
+SPELLING, AND THE PRIOR-SESSION ANSWER PRINTED AS ITS OWN CONDITIONAL** (`RCA-8(d)` ANNOTATE-BESIDE:
+**EVERY CELL OF THIS ROW, ITS `alt`, ITS `park` AND THE DATED REVERSAL CLAUSE ABOVE STAND BYTE-FOR-BYTE,
+and THIS clause is the operative statement of the row's uniqueness domain and of its four outside-value
+classes — the as-filed cells are quoted below so nothing either read is lost and `git diff` recovers the
+pre-pass bytes**; `contract.md §0.4`'s dated clause; `P: §13 · A69`; `write-and-read.md §6.5` item 12;
+`DD-42`; `DD-39`; `tests/e2e_listener_firing.rs`'s `lf_e12`; `[T: the row's domain and outside values,
+restated with the as-filed cell re-emitted, so the clause and the cells agree item for item | CONTRACT]`).
+
+**THE AS-FILED CELLS THIS CLAUSE RECONCILES, RE-EMITTED IN THEIR OWN WORDS:** **the `domain` cell read**
+*"**a value THE STORE MINTED — a store-unique opaque token, minted by `listen` and by the construction's
+`listeners[]` population, unique PER STORE INSTANCE and PER SESSION** (the uniqueness domain's spelling is
+`JournalOp.opId`'s own, `§6.2`, and is declared by THIS row as contract carriage)"*; **and the `the
+declared answer for EACH outside value` cell read** *"**`unlisten` over ANY of them — the foreign, the
+prior-session and the fabricated alike — is a NO-OP SUCCESS, and NOT a failure**: **no code is produced,
+and no other registration is removed**"*.
+
+**THE OPERATIVE `domain` CELL, RE-STATED ON CLAUSE 2'S PROCESS SCOPE:** **a value THE STORE MINTED — a
+store-unique opaque token, minted by `listen` and by the construction's `listeners[]` population, UNIQUE
+PER PROCESS: no OTHER token the store mints, in this instance, in ANY other instance of THIS process, or
+at ANY LATER moment of THIS process, is equal to it (`contract.md §0.4` clause 2, its dated clause).**
+**The uniqueness domain's spelling is `JournalOp.opId`'s own (`§6.2`), which carries the same dated
+reconciliation; it is declared by THIS row as contract carriage.** **It is the successor of the superseded
+`WatchHandle` and the ONE handle of this surface** (`A58`; `DD-35`'s neighbourhood).
+
+**THE FOUR OUTSIDE-VALUE CLASSES, EACH WITH ITS DECLARED ANSWER, READ ON THE PROCESS SCOPE (the row's
+outside-value list is UNMOVED and every member of it keeps its declared answer; what this clause prints is
+which of them answers UNCONDITIONALLY and which one carries a condition):**
+- **(A) UNKNOWN · FABRICATED** — **a value the store never minted at all: a NO-OP SUCCESS, UNCONDITIONALLY.
+  No code is produced and NO other registration is removed.**
+- **(B) FOREIGN-INSTANCE (same process)** — **a value ANOTHER instance of THIS process minted: a NO-OP
+  SUCCESS, UNCONDITIONALLY, and it cannot name THIS instance's entry, because a minted token is unique
+  across this process's instances (`§0.4` clause 2's dated clause). No code is produced and NO other
+  registration is removed.**
+- **(C) PRIOR-SESSION (different process)** — **a value a PRIOR SESSION minted: a NO-OP SUCCESS EXACTLY
+  WHEN THE CURRENT PROCESS HAS NOT MINTED THAT TOKEN — a NO-OP SUCCESS while this process (and therefore
+  the instance the caller is speaking to) has minted NO equal token, and where the current process HAS
+  since minted that same token, it names THAT registration for a DIFFERENT listener, because a prior
+  session's handle lies OUTSIDE the domain while its TOKEN may lie INSIDE this process's minted set (handle
+  identity is TOKEN EQUALITY ALONE, `contract.md §0.4` clause 1). THE DECLARED CROSS-PROCESS HAZARD, NOT A
+  DEFENDED PROPERTY: a caller that must be safe across a reload must not carry handles across it**
+  (`P: §13 · A69`'s accepted-consequence cell).
+- **(D) THE SHAPE VIOLATIONS** — **ABSENT from a `listeners[]` entry · `null` · `undefined` · a blank
+  (empty-string) value · a non-string, non-opaque value: an ANSWER THAT DEPENDS ON WHERE THE VALUE IS
+  PRESENTED.** **At `unlisten` each is the NO-OP SUCCESS of (A); at the CONSTRUCTION a `listeners[]` entry
+  whose `handle` the construction cannot admit is `AddressMalformed` and NO instance is returned**
+  (`PAR-12`'s own answer).
+**AND THE ONE NOTE THIS CELL OWES ON CLAUSE 3, PRINTED SO THE STANDING CELLS' SUBJECT IS NAMED:**
+**`contract.md §0.4` clause 3's *"removing NO other registration"* is what the standing cells drive
+(`tests/e2e_listener_firing.rs`'s `lf_e12_a_fabricated_and_a_foreign_handle_unlisten_remove_nothing`;
+`tests/watched_addresses.rs`'s `par_13_a_foreign_instance_s_handle_is_a_no_op_success_and_the_other_instance_is_untouched`
+and `par_13_two_instances_never_cross_name_each_other_s_registrations`), and IT HOLDS UNCONDITIONALLY FOR
+CLASSES (A), (B) AND (D) — a token outside this process's minted set and an instance-local adopted token
+each name no entry, so nothing else can be removed, and a foreign-instance or fabricated value can never
+name THIS instance's registration because a minted token is unique across this process's instances. FOR
+CLASS (C) IT HOLDS UNDER THE CONDITION PRINTED ABOVE, and under it ALONE: the prior-session value is
+OUTSIDE the domain while its token may lie INSIDE this process's minted set.**
+
+**AND THE TWO ANSWERS THIS ROW DOES NOT MOVE, NAMED SO THE RECONCILIATION IS NOT READ AS A WIDENING:**
+**(1)** **the trigger half is UNMOVED: a handle appears in `triggered` ONLY where its listener's address is
+a prefix of the triggering address, and a handle is never returned for a listener that did not trigger**
+(`P-TP-8`); **and (2)** **the lifetime half is UNMOVED: a handle LOST or DUPLICATED by a change action that
+replaced the node carrying its borrow FAILS that row** (`A46`). **NO ROW IS ADDED, DROPPED OR RENUMBERED BY
+THIS CLAUSE, `0` CELLS READ `TBD`, AND NOT ONE OF THE `14` `PAR` ROWS MOVES: this part's set stands at `14`
+(`12 + 1 + 1 = 14` ✓) and the typed `P-*` register stands at `8` rows with its cap holding (`8 ≤ 8` ✓).**
+
 ### §2.14 `PAR-14` — the two lists' entries, and the reference they carry into the home
 
 **⟶ ADDED 2026-10-11, AT THIS CONTRACT'S SIXTH BOUNDED AMENDMENT, ON `A45`, `A46`, `A47` AND `A48`**
@@ -482,3 +569,20 @@ that declares the parameter it names and invents no behaviour.** **A citation to
 written with this part's path** (`docs/specs/storeroom-native/parameter-semantics.md §1`, etc.) — *a bare
 `§n` across documents is not an edge* (`docs/specs/storeroom-native/contract.md` §3.6 and §0.1 item 10(a);
 `[T: contract.md §3.6 and §0.1 item 10(a) | CROSS-REF]`).
+
+**⟶ AND ONE CLOSING RECORD, ADDED 2026-10-11 SO THIS PART'S OWN RECONCILIATION IS COUNTABLE RATHER THAN
+ASSUMED** (`RCA-8(d)` ANNOTATE-BESIDE: **every sentence above stands byte-for-byte**; `contract.md §0.4`
+clause 2's dated clause; `P: §13 · A69`; `[T: this part's own count of the cells the process-scope
+reconciliation touched | CENSUS]`): **THIS PART CARRIES `2` OF THE DIRECTORY'S `5` CELLS THAT READ THE
+*"per instance and per session"* CLAIM — `§2.10` (`PAR-10`'s `domain` cell) and `§2.13` (`PAR-13`'s `domain`
+cell, with its four outside-value classes) — and each is reconciled IN PLACE BESIDE ITS OWN CELL, the
+as-filed text re-emitted and nothing deleted.** **THE OTHER `3` CELLS ARE THE CONTRACT DOCUMENT'S: `§0.4`
+clause 2 (the operative re-statement, from which the other cells read), `§6.2`'s `JournalOp.opId` comment
+(the same claim in the record's own comment), and the RELOCATED twin of that comment at
+`write-and-read.md §6.2` — whose home this part does not carry and which the contract document's `§6.2`
+dated clause names as the superseded mirror** (`docs/specs/storeroom-native/write-and-read.md §6.2`, a
+**`carrier`** part's relocation of `contract.md §6.2`, readable through that clause). **NO ROW COUNT, NO
+CAP, NO FAIL-SET MEMBER AND NO `DD` ROW MOVES: this part's set stands at `14` rows
+(`12 + 1 + 1 = 14` ✓), the typed register at `8` (`8 ≤ 8` ✓), the fail set at `15`
+(`11 + 2 + 1 + 1 = 15` ✓) and the table at `46` (`24 + 3 + 2 + 1 + 1 + 9 + 5 + 1 = 46` ✓).**
+

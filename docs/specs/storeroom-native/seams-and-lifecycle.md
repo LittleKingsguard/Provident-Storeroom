@@ -600,6 +600,43 @@ unit's later gates, each a prohibition with its citation** (`R: §17.4` conditio
 | 6 | **any `secure` tier, `secure` family, `secureAccess` gate, tombstone, purge-as-a-verb, `_value`, `listen`/`constrain`/`load` verb or a second register** — none of these names is a member of this unit's declared surface | `P: §9 · A4` (no fourth inbuilt tier); `L: §1` (a name the declaration does not carry is not a row); **`contract.md` §0**'s omitted-part row for `property-register` and `contract.md` §0.1 item 10(a) (no second register is authored for this unit) |
 | 7 | **a red set authored against an unruled carrier, realm or boundary** — and this unit's REALM is still `P-1`'s | `R: §17.4` condition 4 with `AR-17`/`AR-30` |
 
+**⟶ RECONCILED 2026-10-11 — ITEM `2` OF THE TABLE ABOVE IS THE RELOCATED TWIN OF THE CONTRACT DOCUMENT'S
+`§10.2` ITEM `2`, AND THIS RELOCATED COPY NOW CARRIES THE SAME DATED CLAUSE ITS ORIGINAL CARRIES — IT WAS
+THE SECOND COPY** (`RCA-8(d)` ANNOTATE-BESIDE: **every row of the prohibited-set table above, item `2`
+included, stands byte-for-byte, and THIS clause is the operative statement of what THIS copy of item `2`
+resolves to; the as-filed item's own words are re-emitted inside it, so nothing it read is lost and
+`git diff` recovers the pre-pass bytes**; `P: §11 · A66`; `docs/specs/storeroom-js-proposal.md` `§11`, the
+ruling's row; `docs/specs/storeroom-native/contract.md §10.2`'s own dated reconciliation clause;
+`contract.md §0.1` item 10(a)'s relocation rule and `§3.6`'s cross-document citation form;
+`[T: the relocated twin's reconciliation, so the two copies of item `2` agree and neither is left stale |
+CROSS-REF]`).
+
+**THE TWO COPIES, NAMED SO THE READING IS NOT TAKEN TWICE OVER:** **this part's `§10.2` IS the contract
+document's `§10.2` RELOCATED WHOLE** (this part's scope-boundary table above, its `§10` row: *"`contract.md
+§10` (its §10.1–§10.3), WHOLE, each keeping its `§`-numbers, its tables and its authority citations
+unchanged"*), **so the prohibition table above and the contract document's table are ONE section's text at
+two addresses, and `contract.md §10.2` is the ORIGINAL.** **THE CONTRACT DOCUMENT'S COPY CARRIES A DATED
+`⟶ RECONCILED 2026-10-11` CLAUSE THAT SCOPES ITEM `2` TO THIS UNIT'S OWN BUILD AND SUPERSEDES IT FOR THE
+SUCCESSOR JS UNIT (`P: §11 · A66` — the architect's own unpark, *"this is the unpark of the
+integration"*).** **THE AS-FILED ITEM THIS CLAUSE RECONCILES READS** *"**any question about the JS
+integration put to the architect**"*, cited to `P: §10 · A8`: *"Stop asking questions about the JS
+integration"*. **THE OPERATIVE READING, CARRIED HERE ITEM FOR ITEM: THAT PROHIBITION IS SCOPED TO THIS
+UNIT'S OWN BUILD — the deferral `A8` made (*"This is to build the store. Defer the integration until the
+store passes testing"*) — AND IS SUPERSEDED FOR THE SUCCESSOR JS UNIT BY THE ARCHITECT'S OWN UNPARK
+(`A66`), so `U-STOREROOM-JS`'s gate MAY PUT INTEGRATION QUESTIONS TO HIM.** **FOR NO OTHER PASS DOES THE
+PROHIBITION MOVE: it stands for this unit and for every pass that is not the JS unit's own, the as-filed
+cell standing as the store unit's own boundary.** **A READER WHO ARRIVES AT EITHER COPY THEREFORE READS
+THE SAME RULE — which is what `contract.md §0.1` item 10(a)'s relocation rule requires: *a relocation is
+not a re-derivation*, so a relocated span may not be left stale while its original moves, and a citation
+to this copy is written with this part's path.** **NO ROW OF THIS SECTION IS DELETED, ADDED OR RENUMBERED
+BY THIS CLAUSE; THE PROHIBITED SET STANDS AT THE `7` ROWS THE TABLE ABOVE PRINTS (`7 = 7` ✓); NO PARK IS
+LIFTED BY IT (the `P-1` lift is the architect's act, `A66`, and `P-3`'s stands under `A44`); NO UNIT ROW IS
+ADMITTED; AND NO COUNT OF ANY OTHER SURFACE MOVES — the typed register at `8` rows (`8 ≤ 8` ✓), the closed
+fail set at `15` members (`11 + 2 + 1 + 1 = 15` ✓), the `DD` table at `46` rows
+(`24 + 3 + 2 + 1 + 1 + 9 + 5 + 1 = 46` ✓) and the `PAR` set at `14` rows (`12 + 1 + 1 = 14` ✓).**
+`[P: §11 · A66; docs/specs/storeroom-js-proposal.md §11; contract.md §10.2's dated clause; T: the
+relocated copy's reconciliation, with the as-filed item re-emitted | CROSS-REF]`
+
 ### §10.3 The candidate-property dispositions (`AR-9`, `F12`) — stated so none vanishes silently
 
 **The gate's candidate-property sets (`IM-1`…`IM-10` · `SM-1`…`SM-10` · `TP-1`…`TP-7`, raised by gate-1
