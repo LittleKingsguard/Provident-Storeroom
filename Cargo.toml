@@ -1,0 +1,17 @@
+[package]
+name = "storeroom-native"
+version = "0.1.0"
+edition = "2021"
+description = "The native Rust store for Provident-Storeroom (U-STOREROOM-NATIVE): the record shapes, the walk, the three verbs, the tiers and purge, the journal and rollback, and the store's own persistence"
+license = "GPL-3.0-or-later"
+
+# The Rust import path is `storeroom_native` (contract §0.4): the package id may be hyphenated and the
+# library target's name is the package name with `-` mapped to `_`, so `use storeroom_native::...`
+# reaches every surface item re-exported from the crate root.
+#
+# No dependencies: `cargo test --offline` and `cargo build --offline` must work with no registry.
+[dependencies]
+
+[lib]
+name = "storeroom_native"
+path = "src/lib.rs"
