@@ -351,6 +351,30 @@ later gate.**
 
 ---
 
+## §15. THE ARCHITECT'S BUBBLE ANSWER SET OF 2026-10-11 — Q1–Q5 ruled
+
+**<⟶ APPENDED, DATED, FILED IN THE PASS IT ARRIVED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES. THE BUBBLE IS ANSWERED IN FULL.**
+
+**THE ARCHITECT'S WORDS, VERBATIM (numbered as the questions they answer).**
+
+> Q1 - Node ESM
+> Q2 - Publish with prebuilds
+> Q3 - Use recommended
+> Q4 - Constraint/Repair is client-side, using rollback to reverse constraint violations.
+> Q5 - Not needed
+
+| # | The question | The ruling (verbatim) | What it settles |
+| --- | --- | --- | --- |
+| **`A70`** | **`Q1`** the realm claim | ***"Node ESM"*** | **ANSWERED: THE PACKAGE'S CLAIMED REALM IS NODE ESM — a consumer `import`s the package as a module, and the package reaches the addon internally (an addon being a CJS artefact, that is its own internal `createRequire`/interop step, not a second claimed realm).** **Consequences: the package's `exports` publishes an ESM entry as the CLAIMED one; CJS, every Electron realm, the browser, workers and any IPC route are UNCLAIMED and each owes its declared answer (`HO-` handoff rows) — conditions `AR-7`'s realm set is thereby closed at `{ ESM }`.** |
+| **`A71`** | **`Q2`** the distribution cut | ***"Publish with prebuilds"*** | **ANSWERED: A PUBLISHED ARTEFACT WITH PREBUILDS IS IN SCOPE — a registry identity, a per-platform/arch prebuild matrix, the CI that produces it and a hosting decision for the binaries are THIS UNIT'S, and the `AGPL-3.0` licence (`LICENSE`) is the distribution's declared fact.** **Consequences: `U16` closes; the plan's `Q2` row gains the prebuild phases; nothing in the repository commits a binary — the artefacts are BUILT AND PUBLISHED, never stored in the tree (`archive/` is gitignored, `/target` ignored), so the store's and this unit's tracked trees stay reviewable.** |
+| **`A72`** | **`Q3`** the carrier token's source (STEP 0) | ***"Use recommended"*** | **ANSWERED, ADOPTING THE SUPERVISOR'S RECOMMENDATION: `Node-API` / `napi` IS THE ONLY EXTERNALLY-SOURCED TOKEN in this unit's declared surface.** **Consequences: THE TRIGGER FIRES ON THAT ONE LIMB, so this unit carries a DOSSIER WITH ONE IDENTIFIER ROW (keyed `Node-API` / `napi`), and that row MUST BE `defined` — its instrument being `A1` filed within an ACTIVE `docs/decisions.md` row (the same instrument the listener unit's rows used).** **`U32` closes, and with it the last row that could bar the delegable word.** |
+| **`A73`** | **`Q4`** `U-24` / `J-13`, the module-supplied-functions crossing | ***"Constraint/Repair is client-side, using rollback to reverse constraint violations."*** | **ANSWERED, AND IT CLOSES `U-24` WITHOUT ADDING A STORE SURFACE: CONSTRAINT AND REPAIR EVALUATION IS CLIENT-SIDE — the JS side holds the constraint functions — and A VIOLATION IS REVERSED BY THE STORE'S OWN `rollback`, called with the OP THE WRITE RETURNED.** **This is exactly the mechanism the store already declares: `write` returns its `JournalOp` (with its `opId`), and `rollback(opId)` is the journal's only consumer (`§6.3`/`§6.4`).** **So the crossing this subject needs is ALREADY IN `A63`'s SURFACE (`write` out, `rollback` in) — no constraint verb, no function parameter, no store change — and `U-24`'s disposition is *"client-side, carried by the existing `write`→`rollback` pair"*, with `J-13`'s absence from `P-1` recorded as the fact it is.** **`U28` closes.** |
+| **`A74`** | **`Q5`** the lifetime verb | ***"Not needed"*** | **ANSWERED: NO `dispose()` AND NO `close()` — not at the package level and not at the store level.** **Consequence: the ownership clause states one `Store` per instance, caller-owned, NO FINALIZER AND NO RELEASE VERB, with the reason declared (the store runs no background work, holds no OS handle beyond its path and commits synchronously, so the only thing a dropped wrapper holds to process exit is memory).** **`U13` closes.** |
+
+**AND THREE CONSEQUENCES THIS FILING STATES PLAINLY.** **(1) THE BUBBLE IS ANSWERED IN FULL — ALL FIVE QUESTIONS, and every row the step-3 record named as pending on them is now closed: `U1` (the realm claim, `A70`), `U13` (the lifetime verb, `A74`), `U16` (the distribution cut, `A71`), `U28` (`U-24`/`J-13`, `A73`) and `U32` (the STEP-0 route, `A72`).** **(2) THE VERDICT'S ONE CONDITIONAL IS RESOLVED FAVOURABLY: step 3 returned `APPROVE-WITH-CONDITIONS` / `DELEGABLE` on the condition that step 4's STEP-0 route lands no open row — `A72` determines the route and names the instrument, so the route is a ONE-ROW DOSSIER whose row is `defined` on an ACTIVE decisions row, and the delegable word is not barred.** **STEP 4 MUST STILL ISSUE IT on its own determination (the trigger is step 4's to find, and the dossier's row and snapshot are its own to author).** **(3) `A73` MAKES THE CONSTRAINT MECHANISM A *CLIENT-SIDE PATTERN* AND NOT A SURFACE: the package's documentation may state *"evaluate constraints after a write; on a violation, call `rollback` with the op the write returned"* — that is a usage pattern over declared verbs, NOT a new seam, and the store's own `§10.2`-class prohibition on a constraint surface is untouched.** **NO UNIT ROW IS ADMITTED; THE LEDGER STANDS `1 DONE / 2 open` UNITS = `3`.**
+
+---
+
 **END OF THE PROPOSAL.** **§1 is the architect's directive, byte-for-byte. §2 is the measured context. §3 is
 the filing's bounds. §4 is a quotation table with no reading taken. §5 is a map of adjacencies with no
 ruling. §6 records the adoption trigger's premise and the ledger move. §7 is the provenance. No behaviour
