@@ -277,6 +277,24 @@ later gate.**
 
 ---
 
+## §13. THE ARCHITECT'S MINT RULING OF 2026-10-11 — remedy (b): the token is unique PER PROCESS
+
+**<⟶ APPENDED, DATED, FILED IN THE PASS IT ARRIVED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES.**
+
+**THE ARCHITECT'S WORDS, VERBATIM.**
+
+> Proceed on b
+
+**THE RULING, TRANSCRIBED AS `A69` — the `K7` remedy chosen, and the one whose cost lands on the CONTRACT rather than on the code.**
+
+| # | What it answers | The ruling (verbatim) | What it settles | What it does NOT say |
+| --- | --- | --- | --- | --- |
+| **`A69`** | **the `K7` fork the supervisor corrected at `§12`: (a) a discriminator-bearing mint, (b) declare the token *"unique per process"*, or (c) a session-scoped base** | ***"Proceed on b"*** | **REMEDY (b) ADOPTED: THE HANDLE TOKEN IS DECLARED UNIQUE PER PROCESS, the per-instance/per-session claim MOVES, and `parameter-semantics.md`'s `PAR-13` is reconciled to the process-scoped domain with its outside values answered. NO `src/**` CHANGE: the shipped process-global mint IS the declared behaviour, and the store's `377/377` green stands untouched.** **AND IT ACCEPTS, RATHER THAN DEFENDS, THE ONE HAZARD THE MEASUREMENT NAMED: `K7`'s CONTAINMENT NOTE (a guessable `listener-<n>` namespace) stays open, and A PRIOR SESSION'S HANDLE IS DECLARED OUTSIDE THE DOMAIN WHILE ITS TOKEN MAY COINCIDE WITH ONE THE CURRENT PROCESS HAS SINCE MINTED — a declared cross-process hazard the caller carries, not a defended property.** | it does not make the reload half of `K7` reachable (no remedy but (a) would), and it does not withdraw `K7`'s containment note — **both are recorded as ACCEPTED CONSEQUENCES of this ruling, each with its own cell in the contract's reconciliation** |
+
+**AND THREE CONSEQUENCES THIS FILING STATES PLAINLY.** **(1) THE SPEC PASS IS AUTHORED IN THIS PASS: `§0.4`'s construction-rule clause 2 is re-stated as UNIQUE PER PROCESS with its as-filed wording preserved beside it, `PAR-13`'s domain and outside values are reconciled to the process scope (with the prior-session answer's own conditional printed), every other *"per instance and per session"* cell is reconciled, and the relocated twin of the integration-question prohibition at `seams-and-lifecycle.md §10.2` receives the same dated clause the contract's own copy carries.** **(2) NO TEST MOVES: the standing cells drive exactly what (b) declares — a token the process never minted names no entry and `unlisten` over it is a no-op success — and the test writer's `CF-4` projection (a bare per-instance counter would turn them red) DOES NOT FIRE under this ruling.** **(3) THE `K7` DECISION IS CLOSED, AND THE JS UNIT'S THREE UNBLOCKING DECISIONS ARE ALL ANSWERED (`A66` the unpark, `A67`→`A69` the mint, `A68` the layout) — SO STEPS 3 AND 4 OF THIS GATE MAY RUN: the architecture review's nine-column `D-GP-SAD-5` row and the FORM determination, then the verdict, the gate-1 record with its Semantics block, and the plan.** **NO UNIT ROW IS ADMITTED; THE LEDGER STANDS `1 DONE / 2 open` UNITS = `3`.**
+
+---
+
 **END OF THE PROPOSAL.** **§1 is the architect's directive, byte-for-byte. §2 is the measured context. §3 is
 the filing's bounds. §4 is a quotation table with no reading taken. §5 is a map of adjacencies with no
 ruling. §6 records the adoption trigger's premise and the ledger move. §7 is the provenance. No behaviour
