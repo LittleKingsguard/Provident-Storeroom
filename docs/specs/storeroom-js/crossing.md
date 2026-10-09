@@ -1,0 +1,284 @@
+# `crossing` — the value crossing: the deep copy in, the deep copy out, the per-class walk, and the JS-side equality relation
+
+**KIND: `carrier`.** **This part holds RELOCATED SECTIONS of `docs/specs/storeroom-js/contract.md`'s own
+text — its `§1` (`§1.1`–`§1.6`) — WHOLE**: **the relocated span keeps its `§`-number, its tables, its prose
+and its authority citations unchanged**, and *a relocation is not a re-derivation — no claim gains or loses
+an authority by moving* (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.6 — the kind rule, and
+§C.11.9 — the ordinary cross-reference clause | requirement]`). **The relocation is SPAN-BY-SPAN and
+BYTE-EXACT against the baseline, and the pass's own record enumerates the citation re-spellings it required
+as a REQUIREMENT list, one line per re-spelled citation, old form → new form** (`[A3
+docs/specs/spec-scope-and-structure/contract.md §C.11.8 (ii)–(v), and its class (v-2) | requirement]`).
+
+**AND THE ONE THING THIS PART ADDS BESIDE THE RELOCATION, STATED SO IT IS NOT READ AS A SECOND HOME:** **a
+citation to a relocated section names THIS part's path plus the `§`-number** — `docs/specs/storeroom-js/crossing.md
+§1.2`, and so on — **because a bare `§n` across two documents is not an edge**
+(`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.9 | requirement]`).
+
+---
+
+## §1. The value crossing — deep copy in, deep copy out, and no shared ownership either way
+
+**AUTHORITY NOTE FOR THIS SECTION, AND ITS RELOCATION.** **This section's whole text is carried, rule for
+rule, at `docs/specs/storeroom-js/crossing.md` (`§1`–`§5` of this document, relocated WHOLE), which is the
+`carrier` part this directory's map declares for it.** **A citation to it names that part's path plus the
+`§`-number**, because *a bare `§n` across two documents is not an edge* (`[A3
+docs/specs/spec-scope-and-structure/contract.md §C.11.9 — the ordinary cross-reference clause | requirement]`).
+**The relocation is not a re-derivation: no claim below gains or loses an authority by moving, and every
+authority citation stands unchanged in both homes** (`[A3 docs/specs/spec-scope-and-structure/contract.md
+§C.11.6 — the kind rule | requirement]`).
+
+### §1.1 The copy discipline, ruled — both directions, and nothing else
+
+**THE ARCHITECT'S RULING, VERBATIM:** ***"Input must deep-copy the external data into the store, and the
+output must deep-copy from the store into the JS output. Neither the store nor the JS should be able to get
+a reference/pointer to data owned by the other."*** (`docs/specs/storeroom-js-proposal.md` `§10` · `A65`).
+**THE DISCIPLINE, IN FOUR CLAUSES AND NOTHING ELSE:**
+1. **INPUT IS A DEEP COPY.** A JS value the caller passes is **read once and CONVERTED into a value the
+   STORE owns**; the store retains **no reference into JS memory**.
+2. **OUTPUT IS A DEEP COPY.** A value the store returns is **CONVERTED into fresh JS-owned data**; the JS
+   side holds **no reference into store-owned data**.
+3. **NO SHARED OWNERSHIP EITHER WAY.** **No proxy, no live view, no getter into either side, no borrow and
+   no pointer crosses in either direction, at any verb, at any argument position and at any return
+   position.**
+4. **CONSEQUENTLY THE BOUNDARY IS A VALUE BOUNDARY IN BOTH DIRECTIONS.** A mutation on one side after a
+   call is **invisible** to the other, and **neither side's lifetime constrains the other's**.
+   (`[A1 docs/specs/storeroom-js-proposal.md §10 · A65 | requirement]`)
+
+**AND THE THREE THINGS THE RULING DOES NOT SAY, EACH DISPOSED OF HERE AS A DECLARED DEFAULT RATHER THAN
+LEFT TO DISCOVERY:** **how either copy is performed** — the input copy **is** a structural walk
+(`crossing.md §3`), and **no JSON-text carrier exists on the store's declared surface**, so a
+`JSON.stringify`-then-parse route is impossible without a store-side change (`DD-6`); **whether the
+store's own read already returns a copy the binding may adopt** — **the binding treats the store's returned
+value as the thing to translate, and performs no second copy of its own** (`crossing.md §1.4`); and **what a
+caller observes if it MUTATES its argument during a call** — **the walk reads each member ONCE, at the
+moment it visits it, and the read-once rule is the whole of the answer: a mutation that lands after a member
+has been visited is not observed, and a mutation that lands on a member the walk has not yet reached IS
+observed — a single call is therefore a sequence of read-once observations and never a snapshot**
+(`crossing.md §1.4`, `DD-34`).
+
+### §1.2 The crossing table's own closure — what a JS value can become
+
+**THE TAXONOMY IS THE STORE'S AND IT IS UNMOVED.** **A JS value crosses into `StoreValue`, whose admitted
+variants are `Str` · `Bool` · `Num` · `Object` · `Array`, and whose outside variants are `Null` ·
+`Undefined` · `Function` · `Symbol` · `BigInt` · `NonFinite` · `Cyclic` · `NonPlainCollection`**
+(`docs/specs/storeroom-native/contract.md §0.4`'s `StoreValue` rows; `src/value.rs`).
+**THIS UNIT ADDS NO VARIANT, REMOVES NONE AND RE-NAMES NONE** (`[A3
+docs/specs/storeroom-native/contract.md §1.4 — the admitted taxonomy and its outside list | requirement]`).
+
+| # | The crossing row | Its JS side | The accepted forms | The REFUSED forms, and the answer |
+| --- | --- | --- | --- | --- |
+| **1** | `StoreValue::Str` | **a JS `string`**, primitive and `String` object alike? **— no: the OBJECT wrapper is refused** | `'a'`, `''`, a multi-byte string, a lone surrogate | a `new String('a')` **object wrapper** → `ValueNotAdmitted` (it is a `NonPlainCollection`, not a primitive) |
+| **2** | `StoreValue::Bool` | **a JS `boolean`** | `true`, `false` | a `Boolean` object wrapper → `ValueNotAdmitted` |
+| **3** | `StoreValue::Num` | **a JS `number`** | every finite `number`, integral or fractional, **positive and negative**, and both `0` and `-0` **in memory** | `NaN`, `Infinity`, `-Infinity` → `ValueNotAdmitted` (`NonFinite`); a `Number` object wrapper → `ValueNotAdmitted` |
+| **4** | `StoreValue::Object` | **a plain JS object** | `{}`, `{a: 1}`, `Object.create(null)`, **a plain object from ANY realm**, an object with **non-integer-like** keys in any order | an object with a **`Symbol`-keyed own property** → `ValueNotAdmitted`; an object holding an **accessor** (`get`/`set`) own property → `ValueNotAdmitted`; a **class instance** (`new Foo()`) → `ValueNotAdmitted`; a `Map`/`Set`/typed array/`Date`/`RegExp` → `ValueNotAdmitted`; **a `Proxy` whose target is a plain object** → `ValueNotAdmitted` (`NonPlainCollection`, `DD-34`) |
+| **5** | `StoreValue::Array` | **a plain JS array** | `[]`, `[1, 2, 3]`, a **dense** array of any admitted members, a cross-realm array? **— no: a cross-realm array IS accepted (it is an `Array`), a class extending `Array` is not** | a **sparse** array (`[1, , 3]`) → `ValueNotAdmitted` (`DD-8`); an array with an own **`Symbol`-keyed** property → `ValueNotAdmitted`; a class extending `Array` → `ValueNotAdmitted` |
+| **6** | `StoreValue::Null` | **a JS `null`** | — | **ALWAYS REFUSED**: `ValueNotAdmitted`, at any depth |
+| **7** | `StoreValue::Undefined` | **a JS `undefined`** — including an object member `{a: undefined}` | — | **ALWAYS REFUSED**: `ValueNotAdmitted`, at any depth. **The member is NOT dropped and its key is NOT skipped** |
+| **8** | `StoreValue::Function` | **a JS function** (arrow, method, generator, async) | — | **ALWAYS REFUSED**: `ValueNotAdmitted` |
+| **9** | `StoreValue::Symbol` | **a JS `symbol`** | — | **ALWAYS REFUSED**: `ValueNotAdmitted` — **and a symbol used as an OWN KEY is refused by row 4's rule, which is the same answer by a different route** |
+| **10** | `StoreValue::BigInt` | **a JS `bigint`** | — | **ALWAYS REFUSED**: `ValueNotAdmitted`. **Stated because the store's numeric bound is JS-unreachable without it: a `BigInt` is the only JS spelling of `2^53 + 1`, and it is an outside class, so the out-of-bounds refusal has no JS-reachable instance and is a DEFENSE-IN-DEPTH rule** (`docs/specs/storeroom-js-proposal.md §8` · `A62`) |
+| **11** | `StoreValue::NonFinite` | **a non-finite JS `number`** | — | **ALWAYS REFUSED**: `ValueNotAdmitted` |
+| **12** | `StoreValue::Cyclic` | **a JS value that contains itself** | — | **ALWAYS REFUSED**: `ValueNotAdmitted`, detected on the walk's own ancestor stack (`DD-11`) |
+| **13** | `StoreValue::NonPlainCollection` | **any other non-plain collection** | — | **ALWAYS REFUSED**: `ValueNotAdmitted` — a `Map`, a `Set`, a `WeakMap`, a `WeakSet`, a typed array, an `ArrayBuffer`, a `DataView`, a `Date`, a `RegExp`, a `Promise`, an `Error`, a `Proxy`, a class instance |
+**AND THE REFUSAL'S ONE FORM, STATED SO NO ROW ABOVE NEEDS TO REPEAT IT:** **every refused row answers the
+SAME code, `ValueNotAdmitted`, with its message generated by the store's own generator from the failing
+target's address; no node is minted, no anchor is installed, no container changes and no journal entry is
+appended** (`[A3 docs/specs/storeroom-native/contract.md §1.4 · §8.1 #14 | state or fail-state declaration]`).
+**AND THE ONE CODE THIS TABLE NEVER PRODUCES: the KIND-CONTRADICTING case is a DIFFERENT failure.** A value
+that IS admitted but whose container kind contradicts the target's answers **`ContainerKindConflict`** at
+the STORE, and this unit's crossing does not pre-empt it (`[A3
+docs/specs/storeroom-native/contract.md §1.4's kind-contradiction paragraph | state or fail-state
+declaration]`).
+
+### §1.3 The argument carriers' crossing table — `8` carriers, and the refused forms with their answers
+
+**THE CARRIERS ARE THE STORE'S OWN ARGUMENT TYPES** (`docs/specs/storeroom-native/contract.md §0.4`), and
+**the JS side spells each ONE FOR ONE: no carrier is renamed, merged or omitted** (`[A3
+docs/specs/storeroom-native/contract.md §0.4 — the declared Rust spellings of every surface item |
+requirement]`).
+
+**`AddressArg`** — the address argument, on `read` · `readLiteral` · `write` · `delete` · `listen`.
+
+| # | Its JS side | The accepted forms | The REFUSED forms, and the answer |
+| --- | --- | --- | --- |
+| **`AddressArg` 1** | a JS **array** of segments | `[]`; `['a']`; `['a', 0, 'b']`; any array of in-domain segments | — |
+| **`AddressArg` 2** | **`Segment` = a JS `string`** | `'a'`; `''` (**the empty string IS a legal key and a legal register key**); any string including one containing a `.` or a `/` | — |
+| **`AddressArg` 3** | **`Segment` = a JS non-negative integer `number`** | `0`; `1`; `2**32`; a `number` that is integral, `>= 0` and exact as an `f64` | — |
+| **`AddressArg` 4** | an **ABSENT** `address` | — | **`AddressMalformed`** (a required argument is missing) |
+| **`AddressArg` 5** | **`null`** / **`undefined`** | — | **`AddressMalformed`** (the shape is not the address's shape at all) |
+| **`AddressArg` 6** | a **non-array** — a number, a string, a boolean, an object, a function | — | **`AddressMalformed`** — **`'a.b'` is NOT a delimited address and is refused as a shape, verbatim** |
+| **`AddressArg` 7** | an array holding a **negative integer** | — | **`AddressMalformed`** |
+| **`AddressArg` 8** | an array holding a **non-integer `number`** (`1.5`, `NaN`, `Infinity`) | — | **`AddressMalformed`** |
+| **`AddressArg` 9** | an array holding **`null`** / **`undefined`** | — | **`AddressMalformed`** |
+| **`AddressArg` 10** | an array holding a **boolean**, an **object**, a nested **array** or a **function** | — | **`AddressMalformed`** |
+| **`AddressArg` 11** | a **class instance** that is array-like but not an `Array` | — | **`AddressMalformed`** (the shape is not an array) |
+| **`AddressArg` 12** | a **`Proxy` over an array** | — | **`AddressMalformed`** — **the binding owns proxy detection at the argument boundary exactly as it does inside the walk** (`DD-34`) |
+| **`AddressArg` 13** | a **cross-realm array** (a `vm` array, an `Array` from a worker) | **ACCEPTED** — it is an `Array` | — |
+| **`AddressArg` 14** | a **sparse array** as the address itself | — | **`AddressMalformed`** — **a hole is not an in-domain segment, and neither reading of a hole may be chosen silently** (`DD-8`) |
+
+**`TierArg` and `TierSetItem`** — the tier argument, per verb; its arity is the STORE's own table and the
+package passes it through verbatim (`DD-37`, `DD-46`).
+
+| # | Its JS side | The accepted forms | The REFUSED forms, and the answer |
+| --- | --- | --- | --- |
+| **`TierArg` 1** | a tier **token string** | `'file'` · `'mem'` · `'temp'` | any other token (`'secure'`, `'FILE'`, `'disk'`, `'session'`, `''`) → **`OutOfDomainTier`** |
+| **`TierArg` 2** | an **array** of tier tokens | on `read`/`readLiteral`: `[]`, `['mem']`, `['file','mem','temp']`, duplicates included | on `write`/`delete`: **any array of any length → `OutOfDomainTier`** (the array spelling is the READER's arity) |
+| **`TierArg` 3** | **ABSENT** | on `read`/`readLiteral`/`delete`: in domain | on `write`: **`AddressMalformed`** (a required argument is missing) |
+| **`TierArg` 4** | **`null`** / **`undefined`** | — | **`AddressMalformed`** on every verb |
+| **`TierArg` 5** | a **non-string scalar** (number, boolean) | — | **`OutOfDomainTier`** |
+| **`TierArg` 6** | an **object** | — | **`OutOfDomainTier`** |
+| **`TierArg` 7** | a **function** | — | **`OutOfDomainTier`** |
+| **`TierSetItem` 1** | a member of the tier array: a **token string** | `'file'` · `'mem'` · `'temp'` | any other token → **`OutOfDomainTier`** |
+| **`TierSetItem` 2** | a member that is **`null`** / **`undefined`** | — | **`OutOfDomainTier`** |
+| **`TierSetItem` 3** | a member that is a **non-string scalar** | — | **`OutOfDomainTier`** |
+| **`TierSetItem` 4** | a member that is an **object** or a **function** | — | **`OutOfDomainTier`** |
+
+**`OpIdArg`** — the rollback's op id.
+
+| # | Its JS side | The accepted forms | The REFUSED forms, and the answer |
+| --- | --- | --- | --- |
+| **`OpIdArg` 1** | a **non-empty `string`** | only a value the `WriteResult.op.opId` the store returned, or a value the store's journal otherwise holds | — |
+| **`OpIdArg` 2** | a **string the store's journal does not hold** | — | **`JournalOpUnknown`** (a well-shaped but unknown op id) |
+| **`OpIdArg` 3** | the **empty string** | — | **`AddressMalformed`** (a blank `opId`) |
+| **`OpIdArg` 4** | **ABSENT** | — | **`AddressMalformed`** |
+| **`OpIdArg` 5** | **`null`** / **`undefined`** | — | **`AddressMalformed`** |
+| **`OpIdArg` 6** | a **number** | — | **`AddressMalformed`** |
+
+**`FilePathArg`** and **`JournalLengthArg`** — the two construction arguments.
+
+| # | Its JS side | The accepted forms | The REFUSED forms, and the answer |
+| --- | --- | --- | --- |
+| **`FilePathArg` 1** | a **non-empty `string`** naming a path that PASSES the store's construction-time reachability probe | any such path | — |
+| **`FilePathArg` 2** | **ABSENT** | **IN DOMAIN** — the register is created at `mem` and the store IS returned | — |
+| **`FilePathArg` 3** | **`null`** / **`undefined`** / **`''`** / a **non-string** | — | **`AddressMalformed`**, no instance returned |
+| **`FilePathArg` 4** | a string whose **parent directory does not exist** | — | **`FilePathUnreachable`**, no instance returned |
+| **`FilePathArg` 5** | a string that **is a directory** | — | **`FilePathUnreachable`**, no instance returned |
+| **`FilePathArg` 6** | a string naming an **existing but not writable** path | — | **`FilePathUnreachable`**, no instance returned |
+| **`JournalLengthArg` 1** | a **positive integer `number`** (`>= 1`) | `1`, `2`, `100` | — |
+| **`JournalLengthArg` 2** | **ABSENT** | — | **`ConstructionArgumentMissing`** — **the ONE absence the amended construction still refuses** |
+| **`JournalLengthArg` 3** | **`0`** | — | **`AddressMalformed`** |
+| **`JournalLengthArg` 4** | a **negative integer** | — | **`AddressMalformed`** |
+| **`JournalLengthArg` 5** | a **fractional number** | — | **`AddressMalformed`** |
+| **`JournalLengthArg` 6** | **`NaN`** / **`Infinity`** | — | **`AddressMalformed`** |
+| **`JournalLengthArg` 7** | a **numeric string** (`'5'`) | — | **`AddressMalformed`** — **no coercion** |
+| **`JournalLengthArg` 8** | a **boolean** | — | **`AddressMalformed`** |
+| **`JournalLengthArg` 9** | **`null`** / **`undefined`** | — | **`AddressMalformed`** |
+| **`JournalLengthArg` 10** | an **object** / a **function** | — | **`AddressMalformed`** |
+| **`JournalLengthArg` 11** | a **`bigint`** | — | **`AddressMalformed`** |
+| **`JournalLengthArg` 12** | a positive integer **beyond `u32`** | — | **`AddressMalformed`** |
+
+**`ListenersArg`** and **`ListenerHandle`** — the construction's array and the handle.
+
+| # | Its JS side | The accepted forms | The REFUSED forms, and the answer |
+| --- | --- | --- | --- |
+| **`ListenersArg` 1** | a JS **array** of `{ address, handle }` records | `[]` (**the ordinary no-listener store**); `[{address:['a'], handle:'l1'}]`; **a duplicate address with two DIFFERENT handles — both entries are KEPT** | — |
+| **`ListenersArg` 2** | an array entry that is **not** a plain `{ address, handle }` record | — | **`AddressMalformed`**, no instance returned |
+| **`ListenersArg` 3** | an array entry whose **`address`** lies outside `AddressArg`'s domain (rows 4–14) | — | **`AddressMalformed`** (`AddressArg`'s own answer carried) |
+| **`ListenersArg` 4** | an array entry whose **`handle`** the construction cannot admit (a non-string, `null`, `undefined`, an object) | — | **`AddressMalformed`**, no instance returned |
+| **`ListenersArg` 5** | **ABSENT** | — | **`AddressMalformed`** — **the ONE absence the construction does not admit** |
+| **`ListenerHandle` 1** | **INPUT**: a **plain `string`** in a construction entry | any non-empty string; **a string equal to one the store would itself mint is ADOPTED VERBATIM and is lawful** | an empty string → **`AddressMalformed`** |
+| **`ListenerHandle` 2** | **OUTPUT**: the package's **opaque JS value** wrapping a token the store returned | an identity the package itself minted a wrapper for, or adopted | **a bare `string` passed to `unlisten`** → the package answers as an unknown handle → **a no-op success** (see `§2.3.3`) |
+
+### §1.4 The walk's own rules — the per-class decisions, the plain-object test, the ceiling and the guard
+
+**The whole of this subsection is carried at `docs/specs/storeroom-js/crossing.md §3`, cited by path from
+every site that needs it** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.9 | requirement]`).
+
+1. **A `Symbol`-KEYED OWN PROPERTY REFUSES THE WHOLE VALUE.** If the walk meets an object or an array
+   carrying an own property whose key is a `Symbol`, **the whole value is refused `ValueNotAdmitted`** —
+   **because a symbol key is invisible to `Object.keys`/`Object.entries`/`JSON.stringify`, so any other
+   answer would DROP A MEMBER SILENTLY, which the store's own taxonomy forbids** (`DD-8`).
+2. **A SPARSE ARRAY REFUSES THE WHOLE VALUE.** If the walk meets an array with a hole, **the whole value is
+   refused `ValueNotAdmitted`** — **because `Array.from` reads the hole as `undefined` and
+   `JSON.stringify` reads it as `null`, so the two readings disagree and neither may be chosen silently**
+   (`DD-8`).
+3. **AN `{a: undefined}` MEMBER REFUSES THE WHOLE VALUE.** The walk **sees** the member and **must decide**;
+   `undefined` is an outside class, so **the member's value is refused `ValueNotAdmitted` and the key is
+   NEVER dropped** (`DD-8`; row 7 of `§1.2`).
+4. **THE PLAIN-OBJECT TEST IS STRUCTURAL AND REALM-AGNOSTIC, STATED IN WORDS SO IT IS NOT A ONE-LINER:**
+   **a value is a plain object iff ALL of the following hold:** **(a)** it is not `null` and
+   `typeof x === 'object'`; **(b)** its own property keys that are **enumerable string** keys are the
+   members the walk takes; **(c)** it carries **no own accessor** (`get`/`set`) property — one refuses the
+   whole value; **(d)** it carries **no own `Symbol`-keyed property**; **(e)** its prototype is **either
+   `null`** (**and `Object.create(null)` is ACCEPTED — it is the plainest case there is**) **or a prototype
+   whose OWN properties are exactly the plain-object prototype's, reached without an `instanceof` test and
+   without a comparison against this realm's `Object.prototype`** — so **a plain object from ANOTHER REALM
+   (`vm`, a worker, `structuredClone`) is ACCEPTED**; **(f)** it is **not** a class instance — **a
+   prototype-carrying object whose prototype is not a plain-object prototype is REFUSED
+   `ValueNotAdmitted` (`NonPlainCollection`)**, **and this is the ONE place where a rule resembling an
+   identity test is right**; and **(g)** it is **not a `Proxy`** — **the BINDING owns proxy detection, and a
+   `Proxy` is REFUSED** (`DD-34`).
+   (`[A1 docs/specs/storeroom-js-proposal.md §9.1 — the supervisor's priced `K2` rule, as adopted |
+   declared parameter semantics]`)
+5. **THE DEPTH AND SIZE CEILING IS DECLARED AND PRICED.** **The walk refuses a value whose nesting depth
+   exceeds `64` or whose visited-node count exceeds `1,000,000`, with `ValueNotAdmitted`; the package ships
+   no configuration knob for either bound** (`DD-10`). **The two figures are this unit's own declaration and
+   are not measurements** (`[A1 docs/specs/storeroom-js-proposal.md §10 · A65 — the copy's cost bound is
+   one of the four things the ruling does not name | declared parameter semantics]`).
+6. **THE CYCLE GUARD IS AN ANCESTOR STACK.** **A value that contains itself is refused `ValueNotAdmitted`,
+   detected by testing each value against the walk's OWN ANCESTOR STACK — never by a `WeakSet` of visited
+   objects, which would refuse an acyclic DIAMOND (a value reachable by two paths)** (`DD-11`).
+7. **THE WALK READS EACH MEMBER ONCE, AND THAT IS THE WHOLE OF THE MUTATION ANSWER.** **No snapshot is
+   taken and no argument is deep-copied twice** (`DD-6`; `§1.1`'s third unnamed item).
+8. **THE WALK'S ORDER IS THE ENGINE'S OWN ENUMERATION ORDER AND NO CLAUSE DEPENDS ON IT.** **`Object.keys`
+   order is not a declared order, it is not observable through the store, and no drive may assert it** —
+   **and the round trip is asserted under the member-SET relation of `§1.5` precisely because the engine
+   re-orders integer-like keys regardless of insertion order**
+   (`[A1 docs/specs/storeroom-js-proposal.md §9.1 — the supervisor's priced `K3` rule, as adopted | ordering
+   claim]`).
+
+### §1.5 The JS-side equality relation — one declared relation, and its three clauses
+
+**THE RELATION, STATED ONCE, AND IT IS THE ONLY RELATION THIS UNIT'S ACCEPTANCE LAYER MAY ASSERT:** **two
+JS values are EQUAL under this unit's relation iff all three of the following hold:**
+1. **MEMBER-SET EQUALITY FOR OBJECTS.** Two objects are equal iff their **member key sets are equal as
+   SETS** — **compared as a sorted set, never by insertion order and never by the engine's enumeration
+   order** — and each member's value is equal under this relation. **A JS engine re-orders keys that look
+   like array indices numerically, whatever order they were inserted in, so the store's own
+   `BTreeMap`-based lexicographic order (`"10" < "2"`) is NEVER what a JS consumer sees, and no drive may
+   assert it** (`DD-9`).
+2. **ARRAY INDEX ORDER IS SIGNIFICANT.** Two arrays are equal iff they are **dense**, of **equal length**,
+   and **equal member-by-member by index** under this relation. **A `VEC`'s index order is a store-level
+   fact and it is preserved across the boundary** (`DD-9`).
+3. **`Object.is` WHERE SIGN OR `NaN` MATTERS.** Two numbers are equal iff **`Object.is(a, b)`** is true.
+   **`-0` and `0` are therefore NOT equal under this relation, while JS `===` says they are** — and the
+   store's own `mem`/`temp` behaviour keeps the sign, so a `mem`-tier `-0` round trip is
+   **`Object.is`-equal** (`DD-9`).
+**AND THE TWO THINGS THIS RELATION DOES NOT DO, STATED SO IT IS NOT OVER-READ:** **a caller comparing two
+objects with `===` is comparing REFERENCES and not values** — the relation above is the only value
+comparison this unit declares; and **the relation is a property of the PACKAGE's own helper and of this
+unit's acceptance layer, NEVER of the store**, whose own equality already ignores member order
+(`[A3 docs/specs/storeroom-native/contract.md §5.2 · P-IM-1 — *"an object's key order counted as significant"*
+FAILS the row | cross-reference]`).
+
+### §1.6 The crossing's own census, printed with its terms
+
+**THE CROSSING TABLE'S OWN ARITHMETIC, AND EVERY FIGURE IS RE-DERIVABLE FROM THE TABLES ABOVE:**
+- **the value variants: `13` rows = `5` ADMITTED (`Str` · `Bool` · `Num` · `Object` · `Array`) + `8` OUTSIDE
+  (`Null` · `Undefined` · `Function` · `Symbol` · `BigInt` · `NonFinite` · `Cyclic` ·
+  `NonPlainCollection`) — `5 + 8 = 13` ✓**;
+- **the argument carriers: `8` — `AddressArg` · `TierArg` · `TierSetItem` · `OpIdArg` · `FilePathArg` ·
+  `JournalLengthArg` · `ListenersArg` · `ListenerHandle`**;
+- **the carriers' own variant rows: `56` = `AddressArg` `14` + `TierArg` `7` + `TierSetItem` `4` + `OpIdArg`
+  `6` + `FilePathArg` `6` + `JournalLengthArg` `12` + `ListenersArg` `5` + `ListenerHandle` `2` — `14 + 7 +
+  4 + 6 + 6 + 12 + 5 + 2 = 56` ✓**;
+- **the REFUSED classes the crossing declares: `8` outside value classes, `10` outside segment classes, `8`
+  carrier-refusal classes (`AddressMalformed` · `OutOfDomainTier` · `JournalOpUnknown` ·
+  `ConstructionArgumentMissing` · `FilePathUnreachable` · `ValueNotAdmitted` · `ContainerKindConflict` ·
+  the package's unknown-handle no-op), and `0` package-minted codes.**
+**⟶ CORRECTED 2026-10-11, IN THE SAME PASS THAT AUTHORED IT (`RCA-8(d)` ANNOTATE-BESIDE — the figure this
+clause corrects was first written as `66`, and `66` is REFUTED BY ITS OWN TERMS):** **the operative figure is
+`56`, and it is re-derived ROW BY ROW rather than by the arithmetic alone: the `AddressArg` table prints
+`14` rows, the `TierArg` table `7`, the `TierSetItem` table `4`, the `OpIdArg` table `6`, the `FilePathArg`
+table `6`, the `JournalLengthArg` table `12`, the `ListenersArg` table `5` and the `ListenerHandle` table
+`2`, each numbered in its own first column** (`[A3 docs/specs/storeroom-js/crossing.md §2 — the same tables,
+relocated WHOLE | numeric or census claim]`). **THE VALUE-ROW AND OUTSIDE-CLASS FIGURES MOVE BY THIS
+CLAUSE'S OWN COUNT: `13 = 5 + 8` ✓ and the refused-value-class figure is `8`; a `66` nowhere appears in
+the operative text.**
+
+---
+
+**END OF THIS PART.** **It carries the contract's `§1` whole and declares nothing the contract does not
+already carry: the `§`-numbers, the rules, the tables and every authority citation are the contract
+document's own** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.6 — a carrier introduces no
+claim of its own | requirement]`).
