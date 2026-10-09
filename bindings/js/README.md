@@ -78,3 +78,28 @@ not a JS-side floor of this package's own (`package.md §1.4`).
 cargo test  --manifest-path bindings/js/Cargo.toml --offline --no-fail-fast   # the sibling crate's Rust tests
 node --test bindings/js/test/*.test.mjs                                       # this package's JS tests
 ```
+
+**AND THE ORDER IS A DECLARED STEP, NOT A CONVENIENCE: THE JS LEG RUNS ONLY AFTER THE ADDON IS BUILT**
+(`docs/specs/storeroom-js-proposal.md §17` · `A75`: *"the JS leg of the acceptance layer acquires A BUILD
+STEP (a `.node` must exist for those cells)"*). **The JS cells drive the package through its CLAIMED ESM
+ENTRY and never the `.node` addon directly** (`acceptance.md §4.1` item 1, `DD-18`), so the entry's own
+route — `JS -> facade -> core -> store` — is what they exercise, and that route needs the artefact the
+`Building the addon` section above produces:
+
+```sh
+# 1. THE BUILD STEP, AT THE REPOSITORY ROOT, BEFORE ANY JS CELL RUNS:
+cargo build --release --manifest-path bindings/js/Cargo.toml --offline
+mkdir -p bindings/js/build/Release
+cp bindings/js/target/release/libstoreroom_js_binding.so bindings/js/build/Release/storeroom_js_binding.node
+# 2. THE JS LEG, AFTER IT:
+node --test bindings/js/test/*.test.mjs
+```
+
+**THERE IS NO FALLBACK AND NO JS-SIDE STORE** (`A75`): an addon that is ABSENT or FAILS TO LOAD is a
+**DECLARED FAILURE** — `storeCreate` answers the single failure form
+`{status: 'FilePathUnreachable', message: <the store's own generated string at the addon's path>}` and NO
+instance is returned. **A consumer that runs the JS cells without step 1 sees that failure and not a
+silently degraded run.** **The Rust leg needs no addon at all**: the conversion core is the crate's `rlib`
+half, so `cargo test --manifest-path bindings/js/Cargo.toml` is drivable with no Node runtime present
+(`package.md §4.1` item 3, `§4.5` item 7).
+

@@ -30,10 +30,20 @@ use std::cell::RefCell;
 use std::os::raw::{c_char, c_void};
 
 use crate::crossing::{
-    self, JsAddressArg, JsConfig, JsDeleteReceipt, JsFilePathArg, JsHandle, JsHandleArg, JsJournalLengthArg,
-    JsJournalOp, JsKey, JsListener, JsListenerEntry, JsListenersArg, JsNonArray, JsObject, JsOpIdArg, JsProto,
-    JsRollbackResult, JsSegment, JsTierArg, JsTierSetItem, JsValue, JsWriteResult, Refusal,
+    self, JsAddressArg, JsBaseState, JsConfig, JsDeleteReceipt, JsFilePathArg, JsHandle, JsHandleArg,
+    JsJournalLengthArg,
+    JsJournalOp, JsKey, JsListener, JsListenerEntry, JsListenersArg, JsNonArray, JsObject, JsOpIdArg,
+    JsProto, JsRollbackResult, JsSegment, JsTierArg, JsTierSetItem, JsValue, JsWriteResult, Refusal,
 };
+
+/// The address's own segments, where the argument IS the declared list shape — the triggering address a
+/// listener is handed (`PAR-JS-12`). Any outside shape carries no triggering address and invokes nothing.
+fn segments_of(address: &JsAddressArg) -> Vec<JsSegment> {
+    match address {
+        JsAddressArg::List(segments) | JsAddressArg::CrossRealmList(segments) => segments.clone(),
+        _ => Vec::new(),
+    }
+}
 
 
 // =================================================================================================
@@ -83,10 +93,32 @@ extern "C" {
         value: NapiValue,
     ) -> NapiStatus;
     fn napi_get_undefined(env: NapiEnv, result: *mut NapiValue) -> NapiStatus;
+    fn napi_is_exception_pending(env: NapiEnv, result: *mut bool) -> NapiStatus;
+    fn napi_get_boolean(env: NapiEnv, value: bool, result: *mut NapiValue) -> NapiStatus;
+    fn napi_has_named_property(
+        env: NapiEnv,
+        object: NapiValue,
+        name: *const c_char,
+        result: *mut bool,
+    ) -> NapiStatus;
+    fn napi_get_named_property(
+        env: NapiEnv,
+        object: NapiValue,
+        name: *const c_char,
+        result: *mut NapiValue,
+    ) -> NapiStatus;
+    fn napi_is_array(env: NapiEnv, value: NapiValue, result: *mut bool) -> NapiStatus;
+    fn napi_get_array_length(env: NapiEnv, value: NapiValue, result: *mut u32) -> NapiStatus;
+    fn napi_get_element(env: NapiEnv, object: NapiValue, index: u32, result: *mut NapiValue) -> NapiStatus;
+    fn napi_get_value_double(env: NapiEnv, value: NapiValue, result: *mut f64) -> NapiStatus;
+    fn napi_get_value_bool(env: NapiEnv, value: NapiValue, result: *mut bool) -> NapiStatus;
     fn napi_create_uint32(env: NapiEnv, value: u32, result: *mut NapiValue) -> NapiStatus;
     fn napi_get_value_uint32(env: NapiEnv, value: NapiValue, result: *mut u32) -> NapiStatus;
     fn napi_typeof(env: NapiEnv, value: NapiValue, result: *mut i32) -> NapiStatus;
     fn napi_create_object(env: NapiEnv, result: *mut NapiValue) -> NapiStatus;
+    fn napi_create_array_with_length(env: NapiEnv, length: usize, result: *mut NapiValue) -> NapiStatus;
+    fn napi_set_element(env: NapiEnv, object: NapiValue, index: u32, value: NapiValue) -> NapiStatus;
+    fn napi_create_double(env: NapiEnv, value: f64, result: *mut NapiValue) -> NapiStatus;
     fn napi_throw(env: NapiEnv, error: NapiValue) -> NapiStatus;
     fn napi_create_reference(
         env: NapiEnv,
@@ -94,6 +126,7 @@ extern "C" {
         refcount: u32,
         result: *mut NapiRef,
     ) -> NapiStatus;
+    fn napi_delete_reference(env: NapiEnv, reference: NapiRef) -> NapiStatus;
     fn napi_get_reference_value(env: NapiEnv, reference: NapiRef, result: *mut NapiValue) -> NapiStatus;
     fn napi_create_type_error(
         env: NapiEnv,
@@ -111,8 +144,17 @@ extern "C" {
     ) -> NapiStatus;
 }
 
+/// `napi_valuetype`'s arms, as the runtime numbers them.
+const NAPI_UNDEFINED: i32 = 0;
+const NAPI_NULL: i32 = 1;
+const NAPI_BOOLEAN: i32 = 2;
+const NAPI_NUMBER: i32 = 3;
+const NAPI_STRING: i32 = 4;
+const NAPI_SYMBOL: i32 = 5;
+const NAPI_OBJECT: i32 = 6;
 /// `napi_valuetype`'s function arm — the one type the registry admits (`PAR-JS-12`).
 const NAPI_FUNCTION: i32 = 7;
+const NAPI_BIGINT: i32 = 9;
 
 fn as_utf8(name: &str) -> Vec<u8> {
     let mut bytes = name.as_bytes().to_vec();
@@ -176,115 +218,173 @@ unsafe fn throw_type_error(env: NapiEnv, _refusal: &Refusal) -> NapiValue {
 }
 
 // =================================================================================================
-// THE WIRE — the DECIDED tree, self-delimiting, in the core's own vocabulary.
+// THE WIRE — THE DECIDED TREE, IN THE CORE'S OWN VOCABULARY, AS PLAIN NODE-API VALUES.
 //
-//   value    s<len>:<bytes> | b0 | b1 | n<16 hex> | o<proto><flags><count>,<key><value>… | a<count>,…
-//            z (null) | u (undefined) | f (function) | y (symbol) | g<decimal>, (bigint)
-//            F<16 hex> (non-finite) | c (cyclic) | P (non-plain collection) | H (sparse array)
-//   key      k<len>:<bytes> | y (a Symbol key)
-//   proto    p (plain) | n (null) | f (foreign plain) | c (class)
-//   flags    two characters: accessor? proxied?
-//   segment  k<len>:<bytes> | i<decimal>, | -<decimal>, | ~<16 hex> | Z (null) | U (undefined)
-//            B0 | B1 | O (object) | Y (array) | F (function)
-//   address  A (absent) | N (null) | U (undefined) | L<count>,<segment>… | R<count>,<segment>…
-//            S (sparse) | X (proxy) | C (class array-like) | D<class><payload>
+// **THE PROTOCOL IS STRUCTURED AND NOT TEXTUAL, STATED SO NO SECOND DESIGN ARISES FROM THE CHOICE:**
+// every crossing argument is a plain JS value whose SHAPE the core's own model already declares, and the
+// facade reads it member for member. **The four class decisions of `crossing.md §1.4` items 1–4 are taken
+// at the JS boundary and are CARRIED HERE AS DATA** — the own `Symbol`-keyed property, the hole, the own
+// accessor and the `Proxy` — because Node-API's stable surface carries no `isProxy` predicate and no
+// hole/accessor enumeration a facade could trust, which is where `DD-34` puts proxy detection.
+//
+//   value    {k:'s', v:<string>}            a JS string
+//            {k:'b', v:<boolean>}           a JS boolean
+//            {k:'n', v:<number>}            a JS number, `-0` included
+//            {k:'o', m:[[key, value]…], p:'plain'|'null'|'foreign'|'class',
+//                     acc:<boolean>, proxy:<boolean>}   a plain object / a class instance
+//            {k:'a', i:[value…]}            a dense array
+//            {k:'g', v:<bigint>}            a JS bigint
+//            {k:'F', v:<number>}            a non-finite JS number
+//            {k:'z'} {k:'u'} {k:'f'} {k:'y'} {k:'c'} {k:'P'} {k:'H'}
+//                                           null · undefined · function · symbol · cyclic ·
+//                                           non-plain collection · sparse array
+//   key      a JS string, or the `{symbol:true}` marker for a `Symbol`-keyed own property
+//   segment  a JS string, a JS number, or one of the outside markers `{bad:'negative'|'fractional'|
+//            'null'|'undefined'|'bool'|'object'|'array'|'function'}`
+//   address  {k:'L', s:[segment…]} an array of segments   ·  {k:'A'|'N'|'U'|'S'|'X'|'C'} the outside forms
+//            {k:'D', o:…} a non-array, carrying the outside segment class it was spelled as
+//   tier     {k:'A'} absent · {k:'N'} null · {k:'U'} undefined · {k:'T', v:<string>} a token ·
+//            {k:'S', i:[TierSetItem…]} a set · {k:'B'|'O'|'F'|'D', v:…} the outside scalars
+//   handle   {k:'O', v:<token>} the opaque form · {k:'B', v:<string>} a bare token · {k:'X'} outside
 // =================================================================================================
 
-struct Cursor<'a> {
-    bytes: &'a [u8],
-    at: usize,
+struct Codec {
+    env: NapiEnv,
 }
 
-impl<'a> Cursor<'a> {
-    fn new(text: &'a str) -> Cursor<'a> {
-        Cursor {
-            bytes: text.as_bytes(),
-            at: 0,
+impl Codec {
+    /// A named property of a Node-API object, or `None` where the member is absent.
+    unsafe fn member(&self, object: NapiValue, name: &str) -> Option<NapiValue> {
+        let spelled = as_utf8(name);
+        let mut has: bool = false;
+        if napi_has_named_property(self.env, object, spelled.as_ptr() as *const c_char, &mut has) != 0 || !has {
+            return None;
         }
-    }
-
-    fn peek(&self) -> Option<u8> {
-        self.bytes.get(self.at).copied()
-    }
-
-    fn tag(&mut self) -> u8 {
-        let tag = self.bytes.get(self.at).copied().unwrap_or(0);
-        self.at += 1;
-        tag
-    }
-
-    /// A decimal run, and the `,` that closes it where the wire spells one — so every numeric atom is
-    /// self-delimiting and a value carrying a `,` inside a string can never be mis-read.
-    fn digits(&mut self) -> u64 {
-        let start = self.at;
-        while matches!(self.peek(), Some(b'0'..=b'9')) {
-            self.at += 1;
+        let mut out: NapiValue = std::ptr::null_mut();
+        if napi_get_named_property(self.env, object, spelled.as_ptr() as *const c_char, &mut out) != 0 {
+            return None;
         }
-        let value = std::str::from_utf8(&self.bytes[start..self.at])
-            .ok()
-            .and_then(|s| s.parse::<u64>().ok())
-            .unwrap_or(0);
-        if self.peek() == Some(b',') {
-            self.at += 1;
-        }
-        value
+        Some(out)
     }
 
-    fn hex16(&mut self) -> f64 {
-        let start = self.at;
-        self.at += 16;
-        let text = std::str::from_utf8(&self.bytes[start..self.at]).unwrap_or("0");
-        u64::from_str_radix(text, 16)
-            .map(f64::from_bits)
-            .unwrap_or(0.0)
+    unsafe fn string_of(&self, value: NapiValue) -> String {
+        let mut len: usize = 0;
+        if napi_get_value_string_utf8(self.env, value, std::ptr::null_mut(), 0, &mut len) != 0 {
+            return String::new();
+        }
+        let mut buf = vec![0u8; len + 1];
+        let mut written: usize = 0;
+        if napi_get_value_string_utf8(self.env, value, buf.as_mut_ptr() as *mut c_char, len + 1, &mut written) != 0 {
+            return String::new();
+        }
+        buf.truncate(written);
+        String::from_utf8_lossy(&buf).into_owned()
     }
 
-    /// `s<len>:<bytes>` — the length-prefixed string, so a value carrying a `:` or a `,` is unambiguous.
-    /// A reader that has already consumed a one-byte tag (a tier token's `t`, a listener entry's `h`, the
-    /// construction's fourth key) reaches the atom at this same spelling, so its own `s` tag is read here.
-    fn string(&mut self) -> String {
-        if self.peek() == Some(b's') {
-            self.at += 1;
+    unsafe fn bool_of(&self, value: NapiValue) -> bool {
+        let mut out: bool = false;
+        if napi_get_value_bool(self.env, value, &mut out) != 0 {
+            return false;
         }
-        let len = self.digits() as usize;
-        if self.peek() == Some(b':') {
-            self.at += 1;
-        }
-        let start = self.at;
-        self.at = (start + len).min(self.bytes.len());
-        String::from_utf8_lossy(&self.bytes[start..self.at]).into_owned()
+        out
     }
 
-    fn expect(&mut self, tag: u8) {
-        if self.peek() == Some(tag) {
-            self.at += 1;
+    unsafe fn number_of(&self, value: NapiValue) -> f64 {
+        let mut out: f64 = 0.0;
+        if napi_get_value_double(self.env, value, &mut out) != 0 {
+            return 0.0;
         }
+        out
     }
 
-    fn value(&mut self) -> JsValue {
-        match self.tag() {
-            b's' => JsValue::Str(self.string()),
-            b'b' => JsValue::Bool(self.digits() == 1),
-            b'n' => JsValue::Num(self.hex16()),
-            b'o' => {
-                let proto = match self.tag() {
-                    b'n' => JsProto::Null,
-                    b'f' => JsProto::ForeignPlain,
-                    b'c' => JsProto::Class,
+    unsafe fn kind_of(&self, value: NapiValue) -> i32 {
+        let mut kind: i32 = 0;
+        napi_typeof(self.env, value, &mut kind);
+        kind
+    }
+
+    unsafe fn is_array(&self, value: NapiValue) -> bool {
+        let mut out: bool = false;
+        if napi_is_array(self.env, value, &mut out) != 0 {
+            return false;
+        }
+        out
+    }
+
+    /// The elements of a JS array, in index order — **a DENSE walk, because a hole is a decision the JS
+    /// boundary has already taken and carried as `{k:'H'}` (`crossing.md §1.4` item 2, `DD-8`).**
+    unsafe fn elements(&self, array: NapiValue) -> Vec<NapiValue> {
+        let mut len: u32 = 0;
+        if napi_get_array_length(self.env, array, &mut len) != 0 {
+            return Vec::new();
+        }
+        let mut out = Vec::with_capacity(len as usize);
+        for index in 0..len {
+            let mut element: NapiValue = std::ptr::null_mut();
+            if napi_get_element(self.env, array, index, &mut element) == 0 {
+                out.push(element);
+            }
+        }
+        out
+    }
+
+    /// **THE COPY IN** (`crossing.md §1.1` clause 1): the JS side's own encoded value, translated into the
+    /// core's model — read ONCE, member by member, and never retained.
+    unsafe fn value_of(&self, v: NapiValue) -> JsValue {
+        let tag = match self.member(v, "k") {
+            Some(tag) => self.string_of(tag),
+            None => return JsValue::NonPlainCollection,
+        };
+        match tag.as_str() {
+            "s" => JsValue::Str(self.member(v, "v").map(|x| self.string_of(x)).unwrap_or_default()),
+            "b" => JsValue::Bool(self.member(v, "v").map(|x| self.bool_of(x)).unwrap_or(false)),
+            "n" => JsValue::Num(self.member(v, "v").map(|x| self.number_of(x)).unwrap_or(0.0)),
+            "g" => JsValue::BigInt(
+                self.member(v, "v")
+                    .and_then(|x| self.string_of(x).parse::<i64>().ok())
+                    .unwrap_or(0),
+            ),
+            "F" => JsValue::NonFinite(self.member(v, "v").map(|x| self.number_of(x)).unwrap_or(0.0)),
+            "z" => JsValue::Null,
+            "u" => JsValue::Undefined,
+            "f" => JsValue::Function,
+            "y" => JsValue::Symbol,
+            "c" => JsValue::Cyclic,
+            "P" => JsValue::NonPlainCollection,
+            "H" => JsValue::SparseArray,
+            "o" => {
+                let members = self
+                    .member(v, "m")
+                    .map(|list| self.elements(list))
+                    .unwrap_or_default()
+                    .iter()
+                    .map(|pair| {
+                        let pair = self.elements(*pair);
+                        let key = match pair.first() {
+                            Some(key) => {
+                                if self.is_array(*key) {
+                                    JsKey::Symbol
+                                } else {
+                                    JsKey::Key(self.string_of(*key))
+                                }
+                            }
+                            None => JsKey::Symbol,
+                        };
+                        let held = match pair.get(1) {
+                            Some(held) => self.value_of(*held),
+                            None => JsValue::Undefined,
+                        };
+                        (key, held)
+                    })
+                    .collect();
+                let proto = match self.member(v, "p").map(|x| self.string_of(x)).unwrap_or_default().as_str() {
+                    "null" => JsProto::Null,
+                    "foreign" => JsProto::ForeignPlain,
+                    "class" => JsProto::Class,
                     _ => JsProto::Plain,
                 };
-                let has_accessor = self.tag() == b'1';
-                let proxied = self.tag() == b'1';
-                let count = self.digits() as usize;
-                self.expect(b',');
-                let mut members = Vec::with_capacity(count.min(4096));
-                for _ in 0..count {
-                    let key = match self.tag() {
-                        b'y' => JsKey::Symbol,
-                        _ => JsKey::Key(self.string()),
-                    };
-                    members.push((key, self.value()));
-                }
+                let has_accessor = self.member(v, "acc").map(|x| self.bool_of(x)).unwrap_or(false);
+                let proxied = self.member(v, "proxy").map(|x| self.bool_of(x)).unwrap_or(false);
                 JsValue::Object(JsObject {
                     members,
                     proto,
@@ -292,79 +392,93 @@ impl<'a> Cursor<'a> {
                     proxied,
                 })
             }
-            b'a' => {
-                let count = self.digits() as usize;
-                self.expect(b',');
-                let mut items = Vec::with_capacity(count.min(4096));
-                for _ in 0..count {
-                    items.push(self.value());
-                }
-                JsValue::Array(items)
-            }
-            b'g' => JsValue::BigInt(self.digits() as i64),
-            b'F' => JsValue::NonFinite(self.hex16()),
-            b'z' => JsValue::Null,
-            b'u' => JsValue::Undefined,
-            b'f' => JsValue::Function,
-            b'y' => JsValue::Symbol,
-            b'H' => JsValue::SparseArray,
-            b'c' => JsValue::Cyclic,
+            "a" => JsValue::Array(
+                self.member(v, "i")
+                    .map(|list| self.elements(list))
+                    .unwrap_or_default()
+                    .iter()
+                    .map(|item| self.value_of(*item))
+                    .collect(),
+            ),
             _ => JsValue::NonPlainCollection,
         }
     }
 
-    fn segment(&mut self) -> JsSegment {
-        match self.tag() {
-            b'k' => JsSegment::Key(self.string()),
-            b'i' => {
-                let n = self.digits();
-                JsSegment::Index(n)
+    /// `crossing.md §1.3`'s `Segment`: a JS `string` or a non-negative integer `number` is admitted, and
+    /// every outside class is carried as its own variant — the package mints no code (`DD-1`).
+    unsafe fn segment(&self, v: NapiValue) -> JsSegment {
+        match self.kind_of(v) {
+            NAPI_STRING => JsSegment::Key(self.string_of(v)),
+            NAPI_NUMBER => {
+                let n = self.number_of(v);
+                if n.is_nan() || n.is_infinite() {
+                    JsSegment::Fractional(n)
+                } else if n >= 0.0 && n.fract() == 0.0 {
+                    JsSegment::Index(n as u64)
+                } else if n.fract() == 0.0 {
+                    JsSegment::Negative(n as i64)
+                } else {
+                    JsSegment::Fractional(n)
+                }
             }
-            b'-' => {
-                let n = self.digits();
-                JsSegment::Negative(-(n as i64))
+            NAPI_BOOLEAN => JsSegment::Bool(self.bool_of(v)),
+            NAPI_FUNCTION => JsSegment::Function,
+            _ => {
+                match self.member(v, "bad").map(|x| self.string_of(x)).unwrap_or_default().as_str() {
+                    "null" => JsSegment::Null,
+                    "undefined" => JsSegment::Undefined,
+                    "bool" => JsSegment::Bool(false),
+                    "array" => JsSegment::Array,
+                    "function" => JsSegment::Function,
+                    "object" => JsSegment::Object,
+                    _ => JsSegment::Object,
+                }
             }
-            b'~' => JsSegment::Fractional(self.hex16()),
-            b'Z' => JsSegment::Null,
-            b'U' => JsSegment::Undefined,
-            b'B' => JsSegment::Bool(self.digits() == 1),
-            b'Y' => JsSegment::Array,
-            b'F' => JsSegment::Function,
-            _ => JsSegment::Object,
         }
     }
 
-    fn address(&mut self) -> JsAddressArg {
-        match self.tag() {
-            b'L' | b'R' => {
-                let cross_realm = self.bytes[self.at - 1] == b'R';
-                let count = self.digits() as usize;
-                self.expect(b',');
-                let mut segments = Vec::with_capacity(count.min(4096));
-                for _ in 0..count {
-                    segments.push(self.segment());
-                }
-                if cross_realm {
-                    JsAddressArg::CrossRealmList(segments)
-                } else {
-                    JsAddressArg::List(segments)
-                }
+    /// `crossing.md §1.3`'s `AddressArg` table, rows 1–14.
+    unsafe fn address_of(&self, a: NapiValue) -> JsAddressArg {
+        let tag = match self.member(a, "k") {
+            Some(tag) => self.string_of(tag),
+            None => return JsAddressArg::Absent,
+        };
+        match tag.as_str() {
+            "L" => {
+                let segments = self
+                    .member(a, "s")
+                    .map(|list| self.elements(list))
+                    .unwrap_or_default()
+                    .iter()
+                    .map(|segment| self.segment(*segment))
+                    .collect();
+                JsAddressArg::List(segments)
             }
-            b'A' => JsAddressArg::Absent,
-            b'N' => JsAddressArg::Null,
-            b'U' => JsAddressArg::Undefined,
-            b'S' => JsAddressArg::Sparse,
-            b'X' => JsAddressArg::Proxy,
-            b'C' => JsAddressArg::ClassArrayLike,
-            other => {
-                let inner = self.segment();
-                let non_array = match (other, inner) {
-                    (b'k', JsSegment::Key(s)) => JsNonArray::Str(s),
-                    (_, JsSegment::Negative(n)) => JsNonArray::Number(n as f64),
-                    (_, JsSegment::Index(n)) => JsNonArray::Number(n as f64),
-                    (_, JsSegment::Fractional(f)) => JsNonArray::Number(f),
-                    (_, JsSegment::Bool(b)) => JsNonArray::Bool(b),
-                    (_, JsSegment::Function) => JsNonArray::Function,
+            "R" => {
+                let segments = self
+                    .member(a, "s")
+                    .map(|list| self.elements(list))
+                    .unwrap_or_default()
+                    .iter()
+                    .map(|segment| self.segment(*segment))
+                    .collect();
+                JsAddressArg::CrossRealmList(segments)
+            }
+            "N" => JsAddressArg::Null,
+            "U" => JsAddressArg::Undefined,
+            "S" => JsAddressArg::Sparse,
+            "X" => JsAddressArg::Proxy,
+            "C" => JsAddressArg::ClassArrayLike,
+            "A" => JsAddressArg::Absent,
+            _ => {
+                let inner = self.member(a, "o").map(|o| self.segment(o)).unwrap_or(JsSegment::Object);
+                let non_array = match inner {
+                    JsSegment::Key(s) => JsNonArray::Str(s),
+                    JsSegment::Index(n) => JsNonArray::Number(n as f64),
+                    JsSegment::Negative(n) => JsNonArray::Number(n as f64),
+                    JsSegment::Fractional(f) => JsNonArray::Number(f),
+                    JsSegment::Bool(b) => JsNonArray::Bool(b),
+                    JsSegment::Function => JsNonArray::Function,
                     _ => JsNonArray::Object,
                 };
                 JsAddressArg::NonArray(non_array)
@@ -372,312 +486,361 @@ impl<'a> Cursor<'a> {
         }
     }
 
-    fn tier(&mut self) -> JsTierArg {
-        match self.tag() {
-            b'A' => JsTierArg::Absent,
-            b'N' => JsTierArg::Null,
-            b'U' => JsTierArg::Undefined,
-            b't' => JsTierArg::Token(self.string()),
-            b'L' => {
-                let count = self.digits() as usize;
-                self.expect(b',');
-                let mut items = Vec::with_capacity(count.min(4096));
-                for _ in 0..count {
-                    items.push(self.tier_set_item());
-                }
-                JsTierArg::Set(items)
-            }
-            b'B' => JsTierArg::Bool(self.digits() == 1),
-            b'n' => JsTierArg::Number(self.hex16()),
-            b'F' => JsTierArg::Function,
+    /// `crossing.md §1.3`'s `TierSetItem` table, `4` rows.
+    unsafe fn tier_set_item(&self, item: NapiValue) -> JsTierSetItem {
+        match self.kind_of(item) {
+            NAPI_STRING => JsTierSetItem::Token(self.string_of(item)),
+            NAPI_NUMBER => JsTierSetItem::Number(self.number_of(item)),
+            NAPI_BOOLEAN => JsTierSetItem::Bool(self.bool_of(item)),
+            NAPI_FUNCTION => JsTierSetItem::Function,
+            _ => match self.member(item, "bad").map(|x| self.string_of(x)).unwrap_or_default().as_str() {
+                "null" => JsTierSetItem::Null,
+                "undefined" => JsTierSetItem::Undefined,
+                "function" => JsTierSetItem::Function,
+                _ => JsTierSetItem::Object,
+            },
+        }
+    }
+
+    /// `crossing.md §1.3`'s `TierArg` table, `7` rows. **The JS boundary reads the call's own ARITY and
+    /// folds a supplied `undefined` to the ABSENT row** (`§1.3`'s absent-versus-`undefined` rule, rule 1).
+    unsafe fn tier_of(&self, t: NapiValue) -> JsTierArg {
+        let tag = match self.member(t, "k") {
+            Some(tag) => self.string_of(tag),
+            None => return JsTierArg::Absent,
+        };
+        match tag.as_str() {
+            "A" => JsTierArg::Absent,
+            "N" => JsTierArg::Null,
+            "U" => JsTierArg::Undefined,
+            "T" => JsTierArg::Token(self.member(t, "v").map(|x| self.string_of(x)).unwrap_or_default()),
+            "S" => JsTierArg::Set(
+                self.member(t, "i")
+                    .map(|list| self.elements(list))
+                    .unwrap_or_default()
+                    .iter()
+                    .map(|item| self.tier_set_item(*item))
+                    .collect(),
+            ),
+            "B" => JsTierArg::Bool(self.member(t, "v").map(|x| self.bool_of(x)).unwrap_or(false)),
+            "D" => JsTierArg::Number(self.member(t, "v").map(|x| self.number_of(x)).unwrap_or(0.0)),
+            "F" => JsTierArg::Function,
             _ => JsTierArg::Object,
         }
     }
 
-    fn tier_set_item(&mut self) -> JsTierSetItem {
-        match self.tag() {
-            b't' => JsTierSetItem::Token(self.string()),
-            b'N' => JsTierSetItem::Null,
-            b'U' => JsTierSetItem::Undefined,
-            b'n' => JsTierSetItem::Number(self.hex16()),
-            b'B' => JsTierSetItem::Bool(self.digits() == 1),
-            b'F' => JsTierSetItem::Function,
-            _ => JsTierSetItem::Object,
+    /// `crossing.md §1.3`'s `OpIdArg` table, `6` rows.
+    unsafe fn op_id_of(&self, o: NapiValue) -> JsOpIdArg {
+        let tag = match self.member(o, "k") {
+            Some(tag) => self.string_of(tag),
+            None => return JsOpIdArg::Absent,
+        };
+        match tag.as_str() {
+            "s" => JsOpIdArg::Str(self.member(o, "v").map(|x| self.string_of(x)).unwrap_or_default()),
+            "N" => JsOpIdArg::Null,
+            "U" => JsOpIdArg::Undefined,
+            "D" => JsOpIdArg::Number(self.member(o, "v").map(|x| self.number_of(x)).unwrap_or(0.0)),
+            _ => JsOpIdArg::Absent,
         }
     }
 
-    fn op_id(&mut self) -> JsOpIdArg {
-        match self.tag() {
-            b's' => JsOpIdArg::Str(self.string()),
-            b'A' => JsOpIdArg::Absent,
-            b'N' => JsOpIdArg::Null,
-            b'U' => JsOpIdArg::Undefined,
-            _ => JsOpIdArg::Number(self.hex16()),
+    /// `crossing.md §1.3`'s `ListenerHandle` row 2 and `JsHandleArg`.
+    unsafe fn handle_arg_of(&self, h: NapiValue) -> JsHandleArg {
+        let tag = match self.member(h, "k") {
+            Some(tag) => self.string_of(tag),
+            None => return JsHandleArg::NonOpaque,
+        };
+        match tag.as_str() {
+            "O" => JsHandleArg::Opaque(JsHandle::from_token(
+                &self.member(h, "v").map(|x| self.string_of(x)).unwrap_or_default(),
+            )),
+            "B" => JsHandleArg::Bare(self.member(h, "v").map(|x| self.string_of(x)).unwrap_or_default()),
+            "A" => JsHandleArg::Absent,
+            _ => JsHandleArg::NonOpaque,
         }
     }
 
-    fn listeners(&mut self) -> JsListenersArg {
-        match self.tag() {
-            b'L' => {
-                let count = self.digits() as usize;
-                self.expect(b',');
-                let mut entries = Vec::with_capacity(count.min(4096));
-                for _ in 0..count {
-                    entries.push(self.listener_entry());
+    /// `surface.md §2.1` / `DD-36`: `cfg` carries the store's THREE declared keys and no fourth. **Each
+    /// key's ABSENCE is the member's own absence** — `crossing.md §1.3`'s absent-versus-`undefined` rule
+    /// reads a `cfg` key by `in`-MEMBERSHIP, and `None` IS that absence (`§4.5` item 2's `Option` row).
+    unsafe fn config(&self, cfg: NapiValue) -> JsConfig {
+        let file_path = self.member(cfg, "filePath").map(|v| match self.kind_of(v) {
+            NAPI_STRING => {
+                let text = self.string_of(v);
+                if text.is_empty() {
+                    JsFilePathArg::Empty
+                } else {
+                    JsFilePathArg::Str(text)
                 }
-                JsListenersArg::List(entries)
             }
-            b'A' => JsListenersArg::Absent,
-            b'N' => JsListenersArg::Null,
-            b'U' => JsListenersArg::Undefined,
-            _ => JsListenersArg::NonArray,
-        }
-    }
-
-    fn listener_entry(&mut self) -> JsListenerEntry {
-        if self.peek() == Some(b'O') {
-            self.at += 1;
-            return JsListenerEntry::Other;
-        }
-        let address = self.address();
-        self.expect(b'h');
-        JsListenerEntry::Entry {
-            address,
-            handle: self.string(),
-        }
-    }
-
-    /// `cfg`'s four slots, each of which may be the ABSENT marker `-` — `crossing.md §1.3`'s
-    /// absent-versus-`undefined` rule, read at the construction.
-    fn config(&mut self) -> JsConfig {
-        let file_path = if self.tag() == b'-' {
-            None
-        } else {
-            Some(match self.bytes[self.at - 1] {
-                b's' => JsFilePathArg::Str(self.string()),
-                b'A' => JsFilePathArg::Absent,
-                b'N' => JsFilePathArg::Null,
-                b'U' => JsFilePathArg::Undefined,
-                b'E' => JsFilePathArg::Empty,
-                _ => JsFilePathArg::NonString,
-            })
-        };
-        let journal_length = if self.tag() == b'-' {
-            None
-        } else {
-            Some(match self.bytes[self.at - 1] {
-                b'c' => JsJournalLengthArg::Count(self.digits() as u32),
-                b'A' => JsJournalLengthArg::Absent,
-                b'Z' => JsJournalLengthArg::Zero,
-                b'-' => JsJournalLengthArg::Negative(-(self.digits() as i64)),
-                b'~' => JsJournalLengthArg::Fractional(self.hex16()),
-                b'a' => JsJournalLengthArg::NaN,
-                b'I' => JsJournalLengthArg::Infinity,
-                b'q' => JsJournalLengthArg::NumericString(self.string()),
-                b'B' => JsJournalLengthArg::Bool(self.digits() == 1),
-                b'i' => JsJournalLengthArg::BigInt(self.digits() as i64),
-                b'T' => JsJournalLengthArg::TooLarge(self.digits()),
-                b'N' => JsJournalLengthArg::Null,
-                b'U' => JsJournalLengthArg::Undefined,
-                b'F' => JsJournalLengthArg::Function,
-                _ => JsJournalLengthArg::Object,
-            })
-        };
-        let listeners = if self.tag() == b'-' {
-            None
-        } else {
-            self.at -= 1;
-            Some(self.listeners())
-        };
-        let fourth_key = if self.tag() == b'-' {
-            None
-        } else {
-            Some(self.string())
-        };
+            NAPI_NULL => JsFilePathArg::Null,
+            NAPI_UNDEFINED => JsFilePathArg::Undefined,
+            _ => JsFilePathArg::NonString,
+        });
+        let journal_length = self.member(cfg, "journalLength").map(|v| match self.kind_of(v) {
+            NAPI_NUMBER => {
+                let n = self.number_of(v);
+                if n.is_nan() {
+                    JsJournalLengthArg::NaN
+                } else if n.is_infinite() {
+                    JsJournalLengthArg::Infinity
+                } else if n.fract() == 0.0 && n >= 1.0 && n <= u32::MAX as f64 {
+                    JsJournalLengthArg::Count(n as u32)
+                } else if n == 0.0 {
+                    JsJournalLengthArg::Zero
+                } else if n < 0.0 {
+                    JsJournalLengthArg::Negative(n as i64)
+                } else if n > u32::MAX as f64 {
+                    JsJournalLengthArg::TooLarge(n as u64)
+                } else {
+                    JsJournalLengthArg::Fractional(n)
+                }
+            }
+            NAPI_STRING => JsJournalLengthArg::NumericString(self.string_of(v)),
+            NAPI_BOOLEAN => JsJournalLengthArg::Bool(self.bool_of(v)),
+            NAPI_BIGINT => JsJournalLengthArg::BigInt(0),
+            NAPI_NULL => JsJournalLengthArg::Null,
+            NAPI_UNDEFINED => JsJournalLengthArg::Undefined,
+            NAPI_FUNCTION => JsJournalLengthArg::Function,
+            _ => JsJournalLengthArg::Object,
+        });
+        let listeners = self.member(cfg, "listeners").map(|v| {
+            if !self.is_array(v) {
+                return match self.kind_of(v) {
+                    NAPI_NULL => JsListenersArg::Null,
+                    NAPI_UNDEFINED => JsListenersArg::Undefined,
+                    _ => JsListenersArg::NonArray,
+                };
+            }
+            let entries = self
+                .elements(v)
+                .iter()
+                .map(|entry| {
+                    if self.is_array(*entry) || self.kind_of(*entry) != NAPI_OBJECT {
+                        return JsListenerEntry::Other;
+                    }
+                    let (Some(address), Some(handle)) =
+                        (self.member(*entry, "address"), self.member(*entry, "handle"))
+                    else {
+                        return JsListenerEntry::Other;
+                    };
+                    if self.kind_of(handle) != NAPI_STRING {
+                        return JsListenerEntry::Other;
+                    }
+                    let handle = self.string_of(handle);
+                    if handle.is_empty() {
+                        return JsListenerEntry::Other;
+                    }
+                    JsListenerEntry::Entry {
+                        address: self.address_of(address),
+                        handle,
+                    }
+                })
+                .collect();
+            JsListenersArg::List(entries)
+        });
         JsConfig {
             file_path,
             journal_length,
             listeners,
-            fourth_key,
+            fourth_key: None,
         }
     }
 }
 
 // -------------------------------------------------------------------------------------------------
-// The writer — the copy OUT, at the wire's own spellings.
+// The copy OUT — the core's own records and values, written as fresh Node-API values.
 // -------------------------------------------------------------------------------------------------
 
-struct Writer(String);
-
-impl Writer {
-    fn new() -> Writer {
-        Writer(String::new())
+impl Codec {
+    unsafe fn object(&self, members: Vec<(&str, NapiValue)>) -> NapiValue {
+        let mut out: NapiValue = std::ptr::null_mut();
+        napi_create_object(self.env, &mut out);
+        for (name, value) in members {
+            let spelled = as_utf8(name);
+            napi_set_named_property(self.env, out, spelled.as_ptr() as *const c_char, value);
+        }
+        out
     }
 
-    fn raw(&mut self, text: &str) {
-        self.0.push_str(text);
+    unsafe fn array(&self, items: Vec<NapiValue>) -> NapiValue {
+        let mut out: NapiValue = std::ptr::null_mut();
+        napi_create_array_with_length(self.env, items.len(), &mut out);
+        for (index, item) in items.into_iter().enumerate() {
+            napi_set_element(self.env, out, index as u32, item);
+        }
+        out
     }
 
-    fn number(&mut self, n: u64) {
-        self.0.push_str(&n.to_string());
-        self.0.push(',');
+    /// A value's own tag member beside the payload the JS side reads it by.
+    unsafe fn tagged(&self, tag: &str, payload: NapiValue) -> NapiValue {
+        self.object(vec![("k", self.string_value(tag)), ("v", payload)])
     }
 
-    fn string(&mut self, text: &str) {
-        self.0.push('s');
-        self.0.push_str(&text.len().to_string());
-        self.0.push(':');
-        self.0.push_str(text);
+    /// One member set on an object this codec built — the record's own triggering address (`§2.7` item 2).
+    unsafe fn set_member(&self, object: NapiValue, name: &str, value: NapiValue) {
+        let spelled = as_utf8(name);
+        napi_set_named_property(self.env, object, spelled.as_ptr() as *const c_char, value);
     }
 
-    fn bits(&mut self, x: f64) {
-        self.0.push_str(&format!("{:016x}", x.to_bits()));
+    unsafe fn string_value(&self, text: &str) -> NapiValue {
+        let mut out: NapiValue = std::ptr::null_mut();
+        napi_create_string_utf8(self.env, text.as_ptr() as *const c_char, text.len(), &mut out);
+        out
     }
 
-    fn value(&mut self, v: &JsValue) {
+    unsafe fn number_value(&self, n: f64) -> NapiValue {
+        let mut out: NapiValue = std::ptr::null_mut();
+        napi_create_double(self.env, n, &mut out);
+        out
+    }
+
+    unsafe fn bool_value(&self, b: bool) -> NapiValue {
+        let mut out: NapiValue = std::ptr::null_mut();
+        napi_get_boolean(self.env, b, &mut out);
+        out
+    }
+
+    unsafe fn undefined_value(&self) -> NapiValue {
+        let mut out: NapiValue = std::ptr::null_mut();
+        napi_get_undefined(self.env, &mut out);
+        out
+    }
+
+    /// **THE COPY OUT** (`crossing.md §1.1` clause 2): a store value converted into FRESH JS-owned data,
+    /// at `crossing.md §1.2`'s own classes — so the JS side holds no reference into store-owned data.
+    unsafe fn to_js_value(&self, v: &JsValue) -> NapiValue {
         match v {
-            JsValue::Str(s) => self.string(s.clone().as_str()),
-            JsValue::Bool(b) => self.raw(if *b { "b1" } else { "b0" }),
-            JsValue::Num(n) => {
-                self.raw("n");
-                self.bits(*n);
-            }
+            JsValue::Str(s) => self.tagged("s", self.string_value(s)),
+            JsValue::Bool(b) => self.tagged("b", self.bool_value(*b)),
+            JsValue::Num(n) => self.tagged("n", self.number_value(*n)),
             JsValue::Object(o) => {
-                self.raw("o");
-                self.raw(match o.proto {
-                    JsProto::Plain => "p",
-                    JsProto::Null => "n",
-                    JsProto::ForeignPlain => "f",
-                    JsProto::Class => "c",
-                });
-                self.raw(if o.has_accessor { "1" } else { "0" });
-                self.raw(if o.proxied { "1" } else { "0" });
-                self.number(o.members.len() as u64);
-                for (key, member) in &o.members {
-                    match key {
-                        JsKey::Key(name) => {
-                            self.raw("k");
-                            self.0.push_str(&name.len().to_string());
-                            self.0.push(':');
-                            self.0.push_str(name);
-                        }
-                        JsKey::Symbol => self.raw("y"),
-                    }
-                    self.value(member);
-                }
+                let members = o
+                    .members
+                    .iter()
+                    .map(|(key, member)| {
+                        let key = match key {
+                            JsKey::Key(name) => self.string_value(name),
+                            // A `Symbol`-keyed member refused the whole value, so it never crosses OUT as
+                            // a member; it is carried as the marker the reader recognises.
+                            JsKey::Symbol => self.array(vec![]),
+                        };
+                        self.array(vec![key, self.to_js_value(member)])
+                    })
+                    .collect();
+                let proto = match o.proto {
+                    JsProto::Plain => "plain",
+                    JsProto::Null => "null",
+                    JsProto::ForeignPlain => "foreign",
+                    JsProto::Class => "class",
+                };
+                self.object(vec![
+                    ("k", self.string_value("o")),
+                    ("m", self.array(members)),
+                    ("p", self.string_value(proto)),
+                    ("acc", self.bool_value(o.has_accessor)),
+                    ("proxy", self.bool_value(o.proxied)),
+                ])
             }
             JsValue::Array(items) => {
-                self.raw("a");
-                self.number(items.len() as u64);
-                for item in items {
-                    self.value(item);
-                }
+                let items = items.iter().map(|item| self.to_js_value(item)).collect();
+                self.object(vec![
+                    ("k", self.string_value("a")),
+                    ("i", self.array(items)),
+                ])
             }
-            JsValue::SparseArray => self.raw("H"),
-            JsValue::Null => self.raw("z"),
-            JsValue::Undefined => self.raw("u"),
-            JsValue::Function => self.raw("f"),
-            JsValue::Symbol => self.raw("y"),
-            JsValue::BigInt(n) => {
-                self.raw("g");
-                self.number(*n as u64);
-            }
-            JsValue::NonFinite(f) => {
-                self.raw("F");
-                self.bits(*f);
-            }
-            JsValue::Cyclic => self.raw("c"),
-            JsValue::NonPlainCollection => self.raw("P"),
+            JsValue::Null => self.object(vec![("k", self.string_value("z"))]),
+            JsValue::Undefined => self.object(vec![("k", self.string_value("u"))]),
+            JsValue::Function => self.object(vec![("k", self.string_value("f"))]),
+            JsValue::Symbol => self.object(vec![("k", self.string_value("y"))]),
+            JsValue::BigInt(n) => self.tagged("g", self.string_value(&n.to_string())),
+            JsValue::NonFinite(f) => self.tagged("F", self.number_value(*f)),
+            JsValue::Cyclic => self.object(vec![("k", self.string_value("c"))]),
+            JsValue::NonPlainCollection => self.object(vec![("k", self.string_value("P"))]),
+            JsValue::SparseArray => self.object(vec![("k", self.string_value("H"))]),
         }
     }
 
-    fn segments(&mut self, segments: &[JsSegment]) {
-        self.number(segments.len() as u64);
-        for segment in segments {
-            match segment {
-                JsSegment::Key(k) => {
-                    self.raw("k");
-                    self.0.push_str(&k.len().to_string());
-                    self.0.push(':');
-                    self.0.push_str(k);
-                }
-                JsSegment::Index(i) => {
-                    self.raw("i");
-                    self.number(*i);
-                }
-                JsSegment::Negative(i) => {
-                    self.raw("-");
-                    self.number((*i).unsigned_abs());
-                }
-                JsSegment::Fractional(f) => {
-                    self.raw("~");
-                    self.bits(*f);
-                }
-                JsSegment::Null => self.raw("Z"),
-                JsSegment::Undefined => self.raw("U"),
-                JsSegment::Bool(b) => self.raw(if *b { "B1" } else { "B0" }),
-                JsSegment::Object => self.raw("O"),
-                JsSegment::Array => self.raw("Y"),
-                JsSegment::Function => self.raw("F"),
-            }
-        }
+    unsafe fn to_js_segments(&self, segments: &[JsSegment]) -> NapiValue {
+        self.array(
+            segments
+                .iter()
+                .map(|segment| match segment {
+                    JsSegment::Key(k) => self.string_value(k),
+                    JsSegment::Index(i) => self.number_value(*i as f64),
+                    JsSegment::Negative(i) => self.number_value(*i as f64),
+                    JsSegment::Fractional(f) => self.number_value(*f),
+                    JsSegment::Null => self.object(vec![("bad", self.string_value("null"))]),
+                    JsSegment::Undefined => self.object(vec![("bad", self.string_value("undefined"))]),
+                    JsSegment::Bool(b) => self.bool_value(*b),
+                    JsSegment::Object => self.object(vec![("bad", self.string_value("object"))]),
+                    JsSegment::Array => self.object(vec![("bad", self.string_value("array"))]),
+                    JsSegment::Function => self.object(vec![("bad", self.string_value("function"))]),
+                })
+                .collect(),
+        )
     }
 
-    fn base_state(&mut self, present: bool, value: &JsValue) {
-        self.raw(if present { "1" } else { "0" });
-        self.value(value);
+    unsafe fn to_js_base_state(&self, state: &JsBaseState) -> NapiValue {
+        self.object(vec![
+            ("present", self.bool_value(state.present)),
+            ("value", self.to_js_value(&state.value)),
+        ])
     }
 
-    fn journal_op(&mut self, op: &JsJournalOp) {
-        self.raw("o");
-        self.string(&op.opId);
-        self.string(&op.kind);
-        self.segments(&op.address);
-        match &op.tier {
-            Some(token) => {
-                self.raw("t");
-                self.string(token);
-            }
-            None => self.raw("-"),
-        }
-        self.base_state(op.before.present, &op.before.value);
-        self.base_state(op.after.present, &op.after.value);
-        self.number(op.seq);
-        self.raw(if op.compacted { "b1" } else { "b0" });
+    unsafe fn to_js_journal_op(&self, op: &JsJournalOp) -> NapiValue {
+        let tier = match &op.tier {
+            Some(token) => self.string_value(token),
+            None => self.undefined_value(),
+        };
+        self.object(vec![
+            ("opId", self.string_value(&op.opId)),
+            ("kind", self.string_value(&op.kind)),
+            ("address", self.to_js_segments(&op.address)),
+            ("tier", tier),
+            ("before", self.to_js_base_state(&op.before)),
+            ("after", self.to_js_base_state(&op.after)),
+            ("seq", self.number_value(op.seq as f64)),
+            ("compacted", self.bool_value(op.compacted)),
+        ])
     }
 
-    fn handles(&mut self, handles: &[JsHandle]) {
-        self.number(handles.len() as u64);
-        for handle in handles {
-            self.string(handle.token());
-        }
+    unsafe fn to_js_handles(&self, handles: &[JsHandle]) -> NapiValue {
+        self.array(
+            handles
+                .iter()
+                .map(|handle| self.string_value(handle.token()))
+                .collect(),
+        )
     }
 
-    fn write_result(&mut self, r: &JsWriteResult) {
-        self.journal_op(&r.op);
-        self.number(r.watched.len() as u64);
-        for address in &r.watched {
-            self.segments(address);
-        }
-        self.handles(&r.triggered);
+    unsafe fn to_js_write_result(&self, r: &JsWriteResult) -> NapiValue {
+        let watched = r
+            .watched
+            .iter()
+            .map(|address| self.to_js_segments(address))
+            .collect();
+        self.object(vec![
+            ("op", self.to_js_journal_op(&r.op)),
+            ("watched", self.array(watched)),
+            ("triggered", self.to_js_handles(&r.triggered)),
+        ])
     }
 
-    fn delete_receipt(&mut self, r: &JsDeleteReceipt) {
-        self.segments(&r.address);
-        self.number(r.tiers.len() as u64);
-        for tier in &r.tiers {
-            self.string(tier);
-        }
-        self.handles(&r.triggered);
+    unsafe fn to_js_delete_receipt(&self, r: &JsDeleteReceipt) -> NapiValue {
+        self.object(vec![
+            ("address", self.to_js_segments(&r.address)),
+            ("tiers", self.array(r.tiers.iter().map(|t| self.string_value(t)).collect())),
+            ("triggered", self.to_js_handles(&r.triggered)),
+        ])
     }
 
-    fn rollback_result(&mut self, r: &JsRollbackResult) {
-        self.string(&r.opId);
-        self.number(r.undoneOps.len() as u64);
-        for op in &r.undoneOps {
-            self.string(op);
-        }
-        self.base_state(r.restoredTo.present, &r.restoredTo.value);
+    unsafe fn to_js_rollback_result(&self, r: &JsRollbackResult) -> NapiValue {
+        self.object(vec![
+            ("opId", self.string_value(&r.opId)),
+            ("undoneOps", self.array(r.undoneOps.iter().map(|id| self.string_value(id)).collect())),
+            ("restoredTo", self.to_js_base_state(&r.restoredTo)),
+        ])
     }
 }
 
@@ -692,7 +855,41 @@ thread_local! {
     static LISTENERS: RefCell<Vec<(usize, String, NapiRef)>> = const { RefCell::new(Vec::new()) };
 }
 
-fn invoke_listeners(env: NapiEnv, index: usize, triggered: &[JsHandle]) {
+/// **THE TRIGGERING ADDRESS, AS A JS VALUE** (`PAR-JS-12`'s `domain` cell: *"The package's invocation
+/// passes the triggering ADDRESS as its argument; no other argument is declared"*). A segment is a JS
+/// `string` or a non-negative integer `number` — `crossing.md §1.3`'s `AddressArg` rows 2 and 3 — and the
+/// address crosses as a FRESH dense array (`§1.1` clause 2).
+unsafe fn address_value(env: NapiEnv, address: &[JsSegment]) -> NapiValue {
+    let mut array: NapiValue = std::ptr::null_mut();
+    napi_create_array_with_length(env, address.len(), &mut array);
+    for (index, segment) in address.iter().enumerate() {
+        let element = match segment {
+            JsSegment::Key(k) => make_string(env, k),
+            JsSegment::Index(i) => {
+                let mut number: NapiValue = std::ptr::null_mut();
+                napi_create_double(env, *i as f64, &mut number);
+                number
+            }
+            _ => {
+                let mut undefined: NapiValue = std::ptr::null_mut();
+                napi_get_undefined(env, &mut undefined);
+                undefined
+            }
+        };
+        napi_set_element(env, array, index as u32, element);
+    }
+    array
+}
+
+/// `§2.7` item 2 / `DD-22`: the invocation happens AFTER the verb's own call has returned and its record
+/// is copied out, it is SYNCHRONOUS, and **its ONE argument is the TRIGGERING ADDRESS** (`PAR-JS-12`).
+unsafe fn invoke_listeners(
+    env: NapiEnv,
+    index: usize,
+    triggered: &[JsHandle],
+    address: &[JsSegment],
+) -> bool {
+    let mut threw = false;
     for handle in triggered {
         let reference = LISTENERS.with(|slots| {
             slots
@@ -707,14 +904,20 @@ fn invoke_listeners(env: NapiEnv, index: usize, triggered: &[JsHandle]) {
                 if napi_get_reference_value(env, reference, &mut function) == 0 {
                     let mut undefined: NapiValue = std::ptr::null_mut();
                     napi_get_undefined(env, &mut undefined);
+                    let mut argv: [NapiValue; 1] = [address_value(env, address)];
                     let mut result: NapiValue = std::ptr::null_mut();
-                    // A throwing body is NOT caught (`DD-23`): the pending exception stands and the
-                    // runtime raises it after this native frame returns.
-                    napi_call_function(env, undefined, function, 0, std::ptr::null(), &mut result);
+                    // A throwing body is NOT caught (`DD-23`): `napi_call_function` reports the pending
+                    // exception as its own status, the flag is recorded here and the runtime raises the
+                    // body's exception after this native frame returns.
+                    if napi_call_function(env, undefined, function, 1, argv.as_mut_ptr(), &mut result) != 0 {
+                        threw = true;
+                        break;
+                    }
                 }
             }
         }
     }
+    threw
 }
 
 /// The addon's `create(cfgWire) -> uint32`: the store's construction, through the core.
@@ -725,9 +928,8 @@ extern "C" fn addon_create(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
     unsafe {
         napi_get_cb_info(env, info, &mut argc, argv.as_mut_ptr(), &mut this, std::ptr::null_mut());
     }
-    let text = unsafe { arg_string(env, argv[0]) };
-    let mut cursor = Cursor::new(&text);
-    let config = cursor.config();
+    let codec = Codec { env };
+    let config = unsafe { codec.config(argv[0]) };
     match crossing::create(&config) {
         Err(refusal) => unsafe { throw_refusal(env, &refusal) },
         Ok(instance) => {
@@ -745,7 +947,14 @@ extern "C" fn addon_create(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
     }
 }
 
-/// The addon's `call(instance, verb, argsWire) -> string`: every crossing verb, thin.
+/// The addon's `call(instance, verb, args) -> any`: every crossing verb, THIN (`§4.5` item 6) — each
+/// converts the JS side's own argument into the core's model, calls the core and translates the core's
+/// answer back. **The core is what does the work** (`A75`: the route is `JS -> facade -> core -> store`).
+///
+/// **THE INVOCATION WINDOW IS HERE AND NOWHERE ELSE** (`§2.7` item 2, `DD-22`): the record is complete and
+/// copied out BEFORE the listeners run, the invocation is synchronous, **its ONE argument is the
+/// TRIGGERING ADDRESS** (`PAR-JS-12`), and a throwing body is NOT caught, NOT retried and NOT reported
+/// (`DD-23`).
 extern "C" fn addon_call(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
     let mut argc: usize = 3;
     let mut argv: [NapiValue; 3] = [std::ptr::null_mut(); 3];
@@ -758,10 +967,14 @@ extern "C" fn addon_call(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         napi_get_value_uint32(env, argv[0], &mut index);
     }
     let verb = unsafe { arg_string(env, argv[1]) };
-    let args = unsafe { arg_string(env, argv[2]) };
-    let mut cursor = Cursor::new(&args);
+    let args = unsafe { codec_argv(env, argv[2]) };
+    let codec = Codec { env };
     let index = index as usize;
-    let answer: Result<String, Refusal> = INSTANCES.with(|all| {
+    // **THE INSTANCE BORROW IS RELEASED BEFORE ANY LISTENER RUNS** (`§2.7` item 4 / `DD-22`): the record is
+    // complete and copied out, the borrow ends with the `with` block, and only THEN does the package's
+    // invocation loop open — so a listener body that calls a verb of the same instance re-enters freely and
+    // a throwing body leaves the store's own result standing and unmoved (`DD-23`).
+    let answer: Result<NapiValue, Refusal> = INSTANCES.with(|all| {
         let mut all = all.borrow_mut();
         let Some(instance) = all.get_mut(index) else {
             return Err(Refusal {
@@ -769,55 +982,55 @@ extern "C" fn addon_call(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
                 message: "the package holds no instance at that id".to_string(),
             });
         };
-        let mut writer = Writer::new();
         match verb.as_str() {
             "read" => {
-                let address = cursor.address();
-                let tier = cursor.tier();
+                let address = unsafe { codec.address(args.first()) };
+                let tier = unsafe { codec.tier(args.get(1)) };
                 let value = instance.read(&address, &tier)?;
-                writer.value(&value);
-                Ok(writer.0)
+                Ok(unsafe { codec.to_js_value(&value) })
             }
             "readLiteral" => {
-                let address = cursor.address();
-                let tier = cursor.tier();
+                let address = unsafe { codec.address(args.first()) };
+                let tier = unsafe { codec.tier(args.get(1)) };
                 let value = instance.read_literal(&address, &tier)?;
-                writer.value(&value);
-                Ok(writer.0)
+                Ok(unsafe { codec.to_js_value(&value) })
             }
             "write" => {
-                let address = cursor.address();
-                let tier = cursor.tier();
-                let value = cursor.value();
+                let address = unsafe { codec.address(args.first()) };
+                let tier = unsafe { codec.tier(args.get(1)) };
+                let value = unsafe { codec.value(args.get(2)) };
                 let result = instance.write(&address, &tier, &value)?;
-                writer.write_result(&result);
-                invoke_listeners(env, index, &instance.triggered_set(&result));
-                Ok(writer.0)
+                let answer = unsafe { codec.to_js_write_result(&result) };
+                // **THE RECORD CROSSES COMPLETE, AND THE TRIGGERING ADDRESS CROSSES BESIDE IT** (`§2.7`
+                // item 2, `PAR-JS-12`): the invocation window opens AFTER this frame returns, in the
+                // mapping layer that holds the caller's functions (`DD-15`, `A57`).
+                let triggering = unsafe { codec.to_js_segments(&segments_of(&address)) };
+                unsafe { codec.set_member(answer, "triggeringAddress", triggering) };
+                Ok(answer)
             }
             "delete" => {
-                let address = cursor.address();
-                let tier = cursor.tier();
+                let address = unsafe { codec.address(args.first()) };
+                let tier = unsafe { codec.tier(args.get(1)) };
                 let receipt = instance.delete(&address, &tier)?;
-                writer.delete_receipt(&receipt);
-                invoke_listeners(env, index, &receipt.triggered);
-                Ok(writer.0)
+                let answer = unsafe { codec.to_js_delete_receipt(&receipt) };
+                let triggering = unsafe { codec.to_js_segments(&segments_of(&address)) };
+                unsafe { codec.set_member(answer, "triggeringAddress", triggering) };
+                Ok(answer)
             }
             "rollback" => {
-                let op_id = cursor.op_id();
+                let op_id = unsafe { codec.op_id(args.first()) };
                 let result = instance.rollback(&op_id)?;
-                writer.rollback_result(&result);
-                Ok(writer.0)
+                Ok(unsafe { codec.to_js_rollback_result(&result) })
             }
             "listen" => {
-                let address = cursor.address();
+                let address = unsafe { codec.address(args.first()) };
                 let handle = instance.listen(&address)?;
-                writer.string(handle.token());
-                Ok(writer.0)
+                Ok(unsafe { codec.string_value(handle.token()) })
             }
             "unlisten" => {
-                let token = cursor.string();
-                instance.unlisten(&JsHandleArg::Bare(token))?;
-                Ok(writer.0)
+                let handle = unsafe { codec.handle_arg(args.first()) };
+                instance.unlisten(&handle)?;
+                Ok(unsafe { codec.undefined_value() })
             }
             _ => Err(Refusal {
                 status: "AddressMalformed".to_string(),
@@ -827,14 +1040,86 @@ extern "C" fn addon_call(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
     });
     match answer {
         Err(refusal) => unsafe { throw_refusal(env, &refusal) },
-        Ok(text) => unsafe { make_string(env, &text) },
+        Ok(value) => value,
     }
 }
 
-/// The addon's `register(instance, handleToken, listener)`: the registry's own site, over the core.
+/// The verb's own arguments, as the JS side hands them: `[]` where the call supplied none. **A position
+/// the JS side handed as `undefined` is NOT a Node-API null — it is the runtime's own `undefined` value —
+/// so `js_value` is what keeps the two apart** and [`Codec::address`] is what reads a SUPPLIED `undefined`
+/// as `AddressArg` row 5.
+unsafe fn codec_argv(env: NapiEnv, args: NapiValue) -> Vec<NapiValue> {
+    if args.is_null() {
+        return Vec::new();
+    }
+    let codec = Codec { env };
+    if codec.is_array(args) {
+        codec.elements(args)
+    } else {
+        Vec::new()
+    }
+}
+
+/// The runtime's own `undefined`, where a position is SUPPLIED but carries no value — never a null pointer,
+/// which is what an ABSENT position is.
+unsafe fn js_undefined(env: NapiEnv) -> NapiValue {
+    let mut out: NapiValue = std::ptr::null_mut();
+    napi_get_undefined(env, &mut out);
+    out
+}
+
+impl Codec {
+    /// A position the call did not supply is ABSENT — the arity reading of `crossing.md §1.3`'s
+    /// absent-versus-`undefined` rule, rule 1, taken at the JS boundary because the callee is the only
+    /// place the call's own arity is observable.
+    unsafe fn address(&self, value: Option<&NapiValue>) -> JsAddressArg {
+        match value {
+            Some(v) => self.address_of(*v),
+            None => JsAddressArg::Absent,
+        }
+    }
+
+    unsafe fn tier(&self, value: Option<&NapiValue>) -> JsTierArg {
+        match value {
+            Some(v) => self.tier_of(*v),
+            None => JsTierArg::Absent,
+        }
+    }
+
+    unsafe fn op_id(&self, value: Option<&NapiValue>) -> JsOpIdArg {
+        match value {
+            Some(v) => self.op_id_of(*v),
+            None => JsOpIdArg::Absent,
+        }
+    }
+
+    unsafe fn handle_arg(&self, value: Option<&NapiValue>) -> JsHandleArg {
+        match value {
+            Some(v) => self.handle_arg_of(*v),
+            None => JsHandleArg::Absent,
+        }
+    }
+
+    unsafe fn value(&self, value: Option<&NapiValue>) -> JsValue {
+        match value {
+            Some(v) => self.value_of(*v),
+            // An ABSENT value reaches the store's own taxonomy as a shapeless value: the JS side spells it
+            // as the outside class, and the store answers its own `ValueNotAdmitted` (`DD-46`).
+            None => JsValue::Undefined,
+        }
+    }
+}
+
+/// The addon's `register(instance, handleArgWire, listenerSlot)`: **THE REGISTRATION SITE, OVER THE CORE**
+/// (`surface.md §2.4` item 5). The handle crosses at `JsHandleArg`'s own spellings, so **every outside
+/// value — a bare token, a blank token, a fabricated or non-opaque value, an absent argument, and a
+/// handle a FOREIGN instance minted — answers the CORE's refusal and is translated to the JS `TypeError
+/// that item 5 (d) declares, carrying NO `status` and NO `message`** (`PAR-JS-12`). **The listener
+/// crosses as its registration SLOT: the FUNCTION itself is held by the JS side (`DD-15`), which is where
+/// `surface.md §2.4` puts the registry's own state.**
 extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
-    let mut argc: usize = 3;
-    let mut argv: [NapiValue; 3] = [std::ptr::null_mut(); 3];
+    let mut argc: usize = 2;
+    let mut argv: [NapiValue; 2] = [std::ptr::null_mut(); 2];
     let mut this: NapiValue = std::ptr::null_mut();
     unsafe {
         napi_get_cb_info(env, info, &mut argc, argv.as_mut_ptr(), &mut this, std::ptr::null_mut());
@@ -843,46 +1128,27 @@ extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue 
     unsafe {
         napi_get_value_uint32(env, argv[0], &mut index);
     }
-    let token = unsafe { arg_string(env, argv[1]) };
-    let mut kind: i32 = 0;
-    unsafe {
-        napi_typeof(env, argv[2], &mut kind);
-    }
-    if kind != NAPI_FUNCTION {
-        // `PAR-JS-12`: a non-function registration is the ONE site the contract declares a `TypeError` at.
-        return unsafe {
-            throw_type_error(
-                env,
-                &Refusal {
-                    status: crossing::TYPE_ERROR_STATUS.to_string(),
-                    message: "the registration's listener is not a function".to_string(),
-                },
-            )
-        };
-    }
-    let mut reference: NapiRef = std::ptr::null_mut();
-    unsafe {
-        napi_create_reference(env, argv[2], 1, &mut reference);
-    }
-    // The CORE's registry is the one `triggered_set` consults (`§4.5` item 5): the facade's own slot holds
-    // the FUNCTION (`DD-15`) and the core's entry is what makes the handle a member of the set.
-    INSTANCES.with(|all| {
-        if let Some(instance) = all.borrow_mut().get_mut(index as usize) {
-            let handle = JsHandleArg::Opaque(JsHandle::from_token(&token));
-            let _ = instance.register(&handle, JsListener::Function(Box::new(|_| ())));
+    let codec = Codec { env };
+    let handle = unsafe { codec.handle_arg_of(argv[1]) };
+    // **THE CORE IS THE SITE'S OWN JUDGE**: it holds the instance's handle domain (`§2.4` item 5 (c)) and
+    // answers an outside handle or a non-function listener with the `TypeError` refusal (`§4.5` item 5 (a)).
+    // **The FUNCTION itself never crosses** (`DD-15`): the mapping layer holds it, and the addon is asked
+    // only whether the HANDLE is a member of this instance's own domain.
+    let answer = INSTANCES.with(|all| {
+        let mut all = all.borrow_mut();
+        match all.get_mut(index as usize) {
+            Some(instance) => instance.register(&handle, JsListener::Function(Box::new(|_| ()))),
+            None => Err(Refusal {
+                status: crossing::TYPE_ERROR_STATUS.to_string(),
+                message: "the package holds no instance at that id".to_string(),
+            }),
         }
     });
-    LISTENERS.with(|slots| {
-        let mut slots = slots.borrow_mut();
-        match slots
-            .iter_mut()
-            .find(|(i, t, _)| *i == index as usize && *t == token)
-        {
-            // `§2.4` rule 2: `register` REPLACES, never fans out.
-            Some(slot) => slot.2 = reference,
-            None => slots.push((index as usize, token, reference)),
-        }
-    });
+    if let Err(refusal) = answer {
+        return unsafe { throw_type_error(env, &refusal) };
+    }
+    // Nothing of the registry is held here: the caller's FUNCTION is the package's own state (`§2.4`),
+    // and the core holds only the entry that makes the handle a member of the triggered set (rule 1).
     let mut undefined: NapiValue = std::ptr::null_mut();
     unsafe {
         napi_get_undefined(env, &mut undefined);
@@ -890,10 +1156,44 @@ extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue 
     undefined
 }
 
+/// The token a `JsHandleArg` names, where it names one — the outside forms name none.
+fn handle_token(handle: &JsHandleArg) -> String {
+    match handle {
+        JsHandleArg::Opaque(opaque) => opaque.token().to_string(),
+        JsHandleArg::Bare(bare) => bare.clone(),
+        JsHandleArg::NonOpaque | JsHandleArg::Absent => String::new(),
+    }
+}
+
 /// The addon's `version() -> string` — the crate's own version, so a consumer that reached the addon
 /// directly sees what it loaded.
 extern "C" fn addon_version(env: NapiEnv, _info: NapiCallbackInfo) -> NapiValue {
     unsafe { make_string(env, env!("CARGO_PKG_VERSION")) }
+}
+
+/// The addon's `addonErrorMessage(code, subject) -> string` — **THE STORE'S OWN GENERATOR, REACHED FROM
+/// THE JS SIDE** (`§2.5` item 2: *"`message` is the store's own GENERATED message VERBATIM — never
+/// hand-authored by the package"*). It is reached by the package's own internal step and by nothing else,
+/// and its one caller is the entry's DECLARED absent/failed-addon state (`A75`), where the generator is the
+/// only lawful author of the string and the addon is the only thing that carries it.
+extern "C" fn addon_error_message(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
+    let mut argc: usize = 2;
+    let mut argv: [NapiValue; 2] = [std::ptr::null_mut(); 2];
+    let mut this: NapiValue = std::ptr::null_mut();
+    unsafe {
+        napi_get_cb_info(env, info, &mut argc, argv.as_mut_ptr(), &mut this, std::ptr::null_mut());
+    }
+    let code = unsafe { arg_string(env, argv[0]) };
+    let subject = unsafe { arg_string(env, argv[1]) };
+    let message = storeroom_native::storeErrorMessage(
+        &code,
+        &storeroom_native::MessageArgs {
+            segment: Some(format!("'{subject}'")),
+            path: Some(subject),
+            ..Default::default()
+        },
+    );
+    unsafe { make_string(env, &message) }
 }
 
 fn export(env: NapiEnv, exports: NapiValue, name: &str, cb: extern "C" fn(NapiEnv, NapiCallbackInfo) -> NapiValue) {
@@ -921,6 +1221,7 @@ fn export(env: NapiEnv, exports: NapiValue, name: &str, cb: extern "C" fn(NapiEn
 #[no_mangle]
 pub unsafe extern "C" fn napi_register_module_v1(env: NapiEnv, exports: NapiValue) -> NapiValue {
     export(env, exports, "version", addon_version);
+    export(env, exports, "errorMessage", addon_error_message);
     export(env, exports, "storeCreate", addon_create);
     export(env, exports, "call", addon_call);
     export(env, exports, "register", addon_register);

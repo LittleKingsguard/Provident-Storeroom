@@ -3,113 +3,112 @@
 // **THE ONE ARMS-BEARING ENTRY** (`package.md §1.3` item 1, `DD-24`) — the `exports` map publishes it and
 // publishes nothing else: no wildcard, no deep import to the addon and no CJS arm (`§1.2`, `HO-1`).
 //
-// **THE INTERNAL REACH, AND WHAT IT IS NOT** (`package.md §1.2`, `DD-4`): there is exactly ONE `.node` load
-// per instance construction, at exactly ONE path, through the package's own `createRequire`-style step —
-// and **that step is NOT an entry point and is not documented as one**. An addon being a CJS artefact, that
-// reach is the package's own internal step and **is not a second claimed realm**.
-//
 // ---------------------------------------------------------------------------------------------
-// THE BOUNDARY, AND ITS TWO HALVES
+// THE ROUTE, AND THE SHAPE THE ARCHITECT'S RULING `A75` FIXED: `JS -> facade -> core -> store`
 // ---------------------------------------------------------------------------------------------
 //
-// * **THE CROSSING WALK IS THIS FILE'S** (`crossing.md §1.4`): the plain-object test's items (a)–(g), the
-//   `Symbol`-keyed own property, the hole, the own accessor, the `Proxy`, the lone surrogate, the
-//   ancestor-stack cycle guard with the ADMITTED diamond, and the declared depth-`64` / node-`1,000,000`
-//   ceiling. **The four class decisions are taken HERE and not in the addon**, because Node-API's stable
-//   surface carries no `isProxy` predicate and no hole/accessor enumeration a facade could trust — which
-//   is exactly where `DD-34` puts proxy detection (*"the binding owns proxy detection at the argument
-//   boundary exactly as it does inside the walk"*).
-// * **THE STORE'S OWN RULES ARE THE BOUNDARY MODEL'S**, read at their declared answers: the three tiers
-//   and their canonical order (`docs/specs/storeroom-native/contract.md §5.1`), the register's boot and the
-//   `file`-tier commit (`§7.1`, `§7.2`), the journal and its compaction (`§4`), the listener home and the
-//   prefix test (`§6`), and the closed `15`-member fail set with its generated messages (`§8`).
+// **THIS FILE IS A MAPPING LAYER AND NOTHING ELSE** (`docs/specs/storeroom-js-proposal.md §17` · `A75`,
+// verbatim: *"Proceed V-1"*; `package.md §4.4`'s `V1`, `§4.5` item 1). **EVERY VERB OF `surface.md §2`
+// CONSTRUCTS THE CROSSING MODEL, HANDS IT TO THE ADDON'S `storeCreate`/`call` DISPATCH, AND MAPS THE
+// ADDON'S ANSWER BACK INTO JS VALUES.** **THE STORE'S OWN LOGIC IS THE RUST CORE'S**
+// (`bindings/js/src/crossing.rs`): the register tree, the anchors, the journal and its compaction, the
+// listener home and the prefix test, the file image and its boot, the fifteen-member fail set and its
+// generated messages are ALL reached through the facade, and NOTHING of them is re-implemented here.
 //
-// **THE COPY DISCIPLINE IS THE POINT OF BOTH HALVES** (`crossing.md §1.1`, `A65`): every value that crosses
-// IN is read once and converted into data the boundary owns, and every value that crosses OUT is fresh
-// data no other side can reach — **no proxy, no live view, no getter into either side, no borrow and no
-// pointer crosses in either direction, at any verb, at any argument position and at any return position.**
+// **WHAT STAYS IN JS, AND WHY IT IS NOT STORE LOGIC** (`A75`: *"THE REGISTRY, THE OPAQUE HANDLE AND THE
+// SINGLE FAILURE FORM STAY IN JS (they are the PACKAGE's surface, `§2.4`)"*):
+//   * **THE PACKAGE'S OWN OPAQUE HANDLE** (`surface.md §2.3` item 2, `DD-14`): a frozen, memberless JS
+//     object whose token is private — the store's token crosses OUT of the addon and is wrapped here.
+//   * **THE PACKAGE'S OWN REGISTRY** (`surface.md §2.4`): the caller's FUNCTION, held per instance and
+//     reached through the ONE member `storeCreate` returns (`register(handle, listener)`). **The store
+//     returns handles and invokes nothing** (`A57`), so the invocation is the package's — performed after
+//     the addon's call has returned, with the triggering ADDRESS as its ONE argument (`PAR-JS-12`).
+//   * **THE SINGLE FAILURE FORM** (`surface.md §2.5`, `DD-12`): the addon THROWS the store's own
+//     `{status, message}` and this file re-throws THAT OBJECT UNCHANGED — **no status is minted here, no
+//     message is authored here, and no code outside the store's closed set can be produced by this file.**
+//   * **THE FOUR CLASS DECISIONS THE WALK OWES** (`crossing.md §1.4` items 1–4; `DD-8`, `DD-34`): an own
+//     `Symbol`-keyed property, a hole, an own accessor and a `Proxy` are decided at the JS boundary — where
+//     `DD-34` puts proxy detection — and carried to the core as DATA, beside the DECIDED tree.
+//
+// **THE COPY DISCIPLINE** (`crossing.md §1.1`, `A65`): every value that crosses IN is read once and
+// converted into data the boundary owns, and every value that crosses OUT is fresh data no other side can
+// reach — no proxy, no live view, no getter, no borrow and no pointer, in either direction.
 
 import { createRequire } from 'node:module';
-import { readFileSync, writeFileSync, existsSync, statSync, accessSync, constants } from 'node:fs';
 import { dirname as dirOf, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { types } from 'node:util';
 
-// ---------------------------------------------------------------------------------------------
-// `package.md §1.2` item 1 — THE INTERNAL REACH: ONE `.node` load, ONE path, cached.
-// ---------------------------------------------------------------------------------------------
 const require_ = createRequire(import.meta.url);
 const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node');
 
-/** The addon's own slot on the instance, so the reach is observable and never a documented entry. */
-const ADDON = Symbol('addon');
-
+// ---------------------------------------------------------------------------------------------
+// THE DECLARED ABSENT/FAILED-ADDON STATE (`A75`: *"an addon that is absent or fails to load is a DECLARED
+// FAILURE and never a silent JS store (`V-3` was refused by this choice)"*).
+//
+// **THERE IS NO FALLBACK, BECAUSE THERE IS NO SECOND IMPLEMENTATION.** `require_(ADDON_PATH)` is called
+// ONCE; if the artefact is absent, unreadable or refuses to load, the construction answers `§2.5`'s
+// SINGLE FAILURE FORM and NO instance is returned — the package never falls back to a JS store and never
+// absorbs the state silently.
+//
+// **THE DECLARED STATE:** an addon that is absent or fails to load answers
+// `{status: 'FilePathUnreachable', message: <the store's own generated string for that code at the
+// addon's own path>}`. The status is a member of the store's closed `15`-member set carried VERBATIM
+// (`§2.5` item 1, `DD-40`) and is not minted here; the message is the STORE'S generator's string, reached
+// through the addon where it loaded far enough to carry the generator (`errorMessage`), and the ONE string
+// stated at its own site where the generator itself is the thing that failed to load.
+// **THE ROW THAT PINS THIS STATE IS `P-TP-7`'s `S-LOAD`, and no clause of the contract names a status or a
+// message-home for it** — reported as a CONTRACT FINDING rather than repaired here.
+// ---------------------------------------------------------------------------------------------
 let addon = null;
+let addonLoadError = null;
+
 function loadAddon() {
-  if (addon === null) addon = require_(ADDON_PATH);
+  if (addon !== null || addonLoadError !== null) return;
+  try {
+    addon = require_(ADDON_PATH);
+  } catch (err) {
+    addon = null;
+    addonLoadError = err;
+  }
+}
+
+function addonLoadMessage() {
+  if (addon !== null && typeof addon.errorMessage === 'function') {
+    return addon.errorMessage('FilePathUnreachable', ADDON_PATH);
+  }
+  return `'${ADDON_PATH}' is not reachable at construction, the path must exist or the application must be able to write it`;
+}
+
+/// `surface.md §2.5`: **THE SINGLE FAILURE FORM** — a THROWN plain object carrying EXACTLY
+/// `{status, message}` and nothing else. **The status and the message are the store's own and are carried
+/// VERBATIM** (`§2.5` items 1–2, `DD-40`): `fail` re-throws the addon's own object, so no code is minted
+/// here and no message is authored here.
+function fail(refusal) {
+  throw { status: refusal.status, message: refusal.message };
+}
+
+function withAddon() {
+  loadAddon();
+  if (addon === null) fail({ status: 'FilePathUnreachable', message: addonLoadMessage() });
   return addon;
 }
 
 // ---------------------------------------------------------------------------------------------
-// THE STORE'S OWN CLOSED SETS — `docs/specs/storeroom-native/contract.md §5.1` (the three tiers) and
-// `§8.1`/`§8.2` (the closed `15`-member fail set). **THE PACKAGE MINTS NO CODE** (`surface.md §2.5` item 1,
-// `DD-40`): every status below is the store's own member token, carried VERBATIM.
+// THE CROSSING MODEL, ENCODED FOR THE CORE — `bindings/js/src/facade.rs` states the protocol, and this
+// section is its only producer. **The four class decisions are TAKEN HERE and carried as data**; every
+// other rule of `crossing.md §1.4` is the core's (`package.md §4.5` item 3 (c)).
 // ---------------------------------------------------------------------------------------------
-const CODES = [
-  'AddressMalformed',
-  'AddressNotFound',
-  'LeafHasNoDownstream',
-  'TierNotFound',
-  'OutOfDomainTier',
-  'ParentAnchorMonotonicityViolation',
-  'ContainerKindConflict',
-  'ReadTargetIsBranch',
-  'WriteParentNotLink',
-  'JournalOpUnknown',
-  'RollbackCompacted',
-  'ConstructionArgumentMissing',
-  'FilePathUnreachable',
-  'ValueNotAdmitted',
-  'FileCommitFailed',
-];
 
-/// The store's canonical tier order, and the whole of it (`§5.1`).
-const TIERS = ['file', 'mem', 'temp'];
-
-/// `surface.md §2.5` / `DD-12`: **THE SINGLE FAILURE FORM — a THROWN plain object carrying EXACTLY
-/// `{status, message}`** and nothing else: no `code`, no `cause`, no `stack`, no `data` and no `Error`
-/// subclass. The message is the store's own generated string (`§2.5` item 2), never package prose.
-function fail(status, message) {
-  if (!CODES.includes(status)) throw new Error(`${status} is not a member of the store's closed set`);
-  throw { status, message };
-}
-
-/// The message the store's own generator produces for a refused class at `address` (`§8.2`).
-function refusedMessage(address) {
-  const where = address.length === 0 ? 'the register' : `'${address.join('/')}'`;
-  return `ValueNotAdmitted: the value at ${where} is outside the admitted taxonomy`;
-}
-
-const keyOf = (address) => JSON.stringify(address);
-
-/// `crossing.md §1.4` item 4 (a), (e), (f), (g): **the plain-object test**, realm-agnostic and without an
-/// `instanceof` test or a comparison against this realm's `Object.prototype` (`DD-7`, `DD-35`, `DD-34`).
-function isPlainObject(v) {
-  if (v === null || typeof v !== 'object' || Array.isArray(v)) return false;
-  if (types.isProxy(v)) return false;
-  const proto = Object.getPrototypeOf(v);
-  return proto === null || proto === Object.prototype;
-}
-
-/// `crossing.md §1.2` row 1's amendment of `2026-10-11`: **a JS `string` carrying a LONE SURROGATE is
-/// REFUSED `ValueNotAdmitted` at the package's own walk, before any verb is called** — the class cannot be
-/// represented as the store's `StoreValue::Str`, so it is refused and never silently replaced, dropped or
-/// normalized into a replacement character.
-function hasLoneSurrogate(s) {
-  for (let i = 0; i < s.length; i += 1) {
-    const code = s.charCodeAt(i);
+/// `crossing.md §1.2` row 1's dated clause of 2026-10-11 and `§1.4` item 9: **a JS `string` carrying a
+/// LONE SURROGATE is REFUSED `ValueNotAdmitted` AT THE PACKAGE'S OWN WALK, BEFORE ANY VERB IS CALLED** —
+/// no Rust `String` can carry one, and the value is never silently replaced, dropped or normalized into a
+/// replacement character. **The class is BOUNDARY-ONLY and this is its one site.**
+function hasLoneSurrogate(text) {
+  for (let i = 0; i < text.length; i += 1) {
+    const code = text.charCodeAt(i);
     if (code >= 0xd800 && code <= 0xdbff) {
-      const next = s.charCodeAt(i + 1);
+      const next = text.charCodeAt(i + 1);
       if (!(next >= 0xdc00 && next <= 0xdfff)) return true;
       i += 1;
     } else if (code >= 0xdc00 && code <= 0xdfff) {
@@ -119,376 +118,317 @@ function hasLoneSurrogate(s) {
   return false;
 }
 
-/// **THE WALK** (`crossing.md §1.4`, items 1–7): whether a JS value is admitted at all, and — when it is
-/// not — that NOTHING was minted, no anchor installed, no container changed and no journal entry appended.
-/// The seven rules: (1) a `Symbol`-keyed own property refuses the WHOLE value; (2) a sparse array refuses
-/// the whole value; (3) an `{a: undefined}` member refuses the whole value and the key is NEVER dropped;
-/// (4) the plain-object test's items (a)–(g); (5) the depth-`64`/size-`1,000,000` ceiling; (6) the
-/// ancestor-stack cycle guard, with the acyclic DIAMOND admitted; (7) the read-once rule.
-function admitted(value, ancestors = [], depth = 0, counter = { nodes: 0 }) {
-  counter.nodes += 1;
-  if (counter.nodes > 1_000_000 || depth > 64) return false;
-  if (value === null || value === undefined) return false;
-  const kind = typeof value;
-  if (kind === 'string') return !hasLoneSurrogate(value);
-  if (kind === 'boolean') return true;
-  if (kind === 'number') return Number.isFinite(value);
-  if (kind === 'function' || kind === 'symbol' || kind === 'bigint') return false;
-  if (types.isProxy(value)) return false; // `DD-34`
-  if (ancestors.includes(value)) return false; // rule 6, the ancestor stack — never a `WeakSet` (`DD-11`)
-  if (Array.isArray(value)) {
-    for (let i = 0; i < value.length; i += 1) {
-      if (!(i in value)) return false; // rule 2, `DD-8`
-      if (!admitted(value[i], [...ancestors, value], depth + 1, counter)) return false;
-    }
-    return true;
+/// `Object.prototype`'s own property names — `['constructor', '__proto__']` — read ONCE from THIS realm's
+/// own prototype. **They are the KEY SET the (e)-half of the plain-object test compares against.**
+const PLAIN_PROTO_NAMES = new Set(Object.getOwnPropertyNames(Object.prototype));
+
+/// `crossing.md §1.4` item 4: **THE PLAIN-OBJECT TEST**, items (a)–(g) — **STRUCTURAL AND REALM-AGNOSTIC.**
+/// **The prototype half is NOT an identity test against this realm's `Object.prototype`**: the prototype
+/// is `null`, or a prototype whose OWN properties are exactly the plain-object prototype's. **A plain
+/// object from ANY realm (`vm`, a worker, `structuredClone`) is therefore ACCEPTED** — its prototype is
+/// that realm's own `Object.prototype`, whose own names are this realm's own two — **while a CLASS INSTANCE
+/// is refused, because a class's prototype carries its own `constructor`** (`DD-7`, `DD-35`).
+function protoClass(value) {
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null) return 'null';
+  let names;
+  try {
+    names = Object.getOwnPropertyNames(proto);
+  } catch {
+    return 'class';
   }
-  if (value instanceof Map || value instanceof Set || value instanceof Date || value instanceof RegExp) {
-    return false;
-  }
-  if (ArrayBuffer.isView(value) || value instanceof ArrayBuffer || value instanceof DataView) return false;
-  if (value instanceof Promise || value instanceof Error) return false;
-  if (!isPlainObject(value)) return false; // items (a), (e), (f), (g)
-  if (Object.getOwnPropertySymbols(value).length > 0) return false; // rule 1 / item (d)
+  if (names.length !== PLAIN_PROTO_NAMES.size) return 'class';
+  for (const name of names) if (!PLAIN_PROTO_NAMES.has(name)) return 'class';
+  return proto === Object.prototype ? 'plain' : 'foreign';
+}
+
+/// `crossing.md §1.4` item 4 (c), (d) and item 1: an own ACCESSOR, or an own `Symbol`-keyed property,
+/// REFUSES THE WHOLE VALUE — *"any other answer would DROP A MEMBER SILENTLY"* (`DD-8`).
+function accessorOrSymbolArm(value) {
   for (const name of Object.getOwnPropertyNames(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, name);
-    if (descriptor.get || descriptor.set) return false; // rule 4(c)
+    if (descriptor.get || descriptor.set) return { k: 'P' };
   }
+  return Object.getOwnPropertySymbols(value).length > 0 ? { k: 'y' } : null;
+}
+
+/// The `JsValue` model of `crossing.md §1.2`, encoded member for member. **The walk reads each member ONCE
+/// and carries its OWN ancestor stack — never a `WeakSet` of visited objects, which would refuse an
+/// acyclic DIAMOND** (`§1.4` item 6, `DD-11`).
+///
+/// **THE DEPTH CEILING IS THE CORE'S DECLARATION AND THE ENCODER IS BOUNDED BESIDE IT** (`§1.4` item 5,
+/// `DD-10`): the encoder's own nesting bound is `65` — one PAST the declared `64` — so the value the
+/// declared ceiling refuses is still encoded, handed to the core, and refused THERE with the store's own
+/// `ValueNotAdmitted` and the store's own generated message. A deeper value is carried as the outside class
+/// the ceiling names, so the same declared answer reaches the caller without a second rule.
+const ENCODER_CEILING = 65;
+
+function encodeValue(value, ancestors, depth) {
+  if (depth > ENCODER_CEILING) return { k: 'c' };
+  if (value === null) return { k: 'z' };
+  const kind = typeof value;
+  if (kind === 'undefined') return { k: 'u' };
+  if (kind === 'string') return hasLoneSurrogate(value) ? { k: 'c' } : { k: 's', v: value };
+  if (kind === 'boolean') return { k: 'b', v: value };
+  if (kind === 'number') return Number.isFinite(value) ? { k: 'n', v: value } : { k: 'F', v: value };
+  if (kind === 'bigint') return { k: 'g', v: value.toString() };
+  if (kind === 'function') return { k: 'f' };
+  if (kind === 'symbol') return { k: 'y' };
+  if (types.isProxy(value)) return { k: 'P' }; // `§1.4` item 4 (g), `DD-34`
+  if (ancestors.includes(value)) return { k: 'c' }; // `§1.4` item 6: the ancestor stack, never a `WeakSet`
+  const next = [...ancestors, value];
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i += 1) {
+      if (!(i in value)) return { k: 'H' }; // `§1.4` item 2: a hole refuses the WHOLE value (`DD-8`)
+    }
+    const refusal = accessorOrSymbolArm(value);
+    if (refusal !== null) return refusal;
+    const members = [];
+    for (const item of value) members.push(encodeValue(item, next, depth + 1));
+    return { k: 'a', i: members };
+  }
+  const proto = protoClass(value);
+  if (proto === 'class') return { k: 'P' }; // `§1.4` item 4 (f): a class instance is REFUSED
+  const refusal = accessorOrSymbolArm(value);
+  if (refusal !== null) return refusal;
+  const members = [];
   for (const name of Object.keys(value)) {
-    if (!admitted(value[name], [...ancestors, value], depth + 1, counter)) return false; // rules 3 and 7
+    // `§1.2` row 7 / `§1.4` item 3: an `{a: undefined}` member is SEEN and REFUSED, and **the key is NEVER
+    // dropped** — the member is encoded and the core's own taxonomy answers `ValueNotAdmitted`.
+    members.push([name, encodeValue(value[name], next, depth + 1)]);
   }
-  return true;
+  return { k: 'o', m: members, p: proto, acc: false, proxy: false };
 }
 
-/// **THE COPY IN** (`crossing.md §1.1` clause 1): a value read ONCE and converted into data the boundary
-/// owns. The caller's own value is never retained and a mutation of it after the call is invisible.
-function copyIn(value) {
-  if (Array.isArray(value)) return value.map(copyIn);
-  if (isPlainObject(value)) {
-    const out = {};
-    for (const name of Object.keys(value)) out[name] = copyIn(value[name]);
-    return out;
+/// `crossing.md §1.3`'s `Segment`: a string or a non-negative integer is admitted, and EVERY outside class
+/// is carried as its own variant so the STORE produces the code (`DD-1`) — the package mints none.
+function encodeSegment(segment) {
+  if (typeof segment === 'string' || typeof segment === 'number' || typeof segment === 'boolean') {
+    return segment;
   }
-  return value;
+  if (segment === null) return { bad: 'null' };
+  if (segment === undefined) return { bad: 'undefined' };
+  if (typeof segment === 'function') return { bad: 'function' };
+  if (Array.isArray(segment)) return { bad: 'array' };
+  return { bad: 'object' };
+}
+
+/// `crossing.md §1.3`'s `AddressArg` table, rows 1–14.
+function encodeAddress(address) {
+  // `crossing.md §1.3`'s absent-versus-`undefined` rule, rule 1: an argument position the call supplied no
+  // value for is ABSENT, and `undefined` at a supplied position folds to that SAME state. `AddressArg` rows
+  // 4 and 5 answer the one code, so no declared answer moves by the fold.
+  if (address === undefined) return { k: 'A' };
+  if (address === null) return { k: 'N' };
+  if (Array.isArray(address)) {
+    if (types.isProxy(address)) return { k: 'X' }; // row 12 (`DD-34`)
+    for (let i = 0; i < address.length; i += 1) {
+      if (!(i in address)) return { k: 'S' }; // row 14 (`DD-8`)
+    }
+    return { k: 'L', s: address.map(encodeSegment) }; // rows 1–3 and 13
+  }
+  if (typeof address === 'object') return { k: 'C' }; // rows 6 and 11: the shape is not an array's
+  return { k: 'D', o: encodeSegment(address) }; // row 6: a non-array's five named classes
+}
+
+/// `crossing.md §1.3`'s `TierArg` table and `TierSetItem` table.
+///
+/// **THE TWO READERS AND THE TWO WRITERS ARE READ DIFFERENTLY, AND `§1.3` SAYS SO:** rule 1 reads a VERB's
+/// trailing argument BY CALL ARITY and folds a supplied `undefined` to the ABSENT row **for `read` ·
+/// `readLiteral` and `write`** — which is why `read(i, a, undefined)` answers the value while `read(i, a,
+/// null)` answers row 4 — **while `delete`'s `tier` is reached as a VALUE, and its own `null`/`undefined`
+/// row is row 4's `AddressMalformed`.**
+function encodeTier(tier, supplied, foldsUndefined) {
+  if (!supplied) return { k: 'A' };
+  if (tier === undefined) return foldsUndefined ? { k: 'A' } : { k: 'U' };
+  if (tier === null) return { k: 'N' };
+  if (typeof tier === 'string') return { k: 'T', v: tier };
+  if (Array.isArray(tier)) return { k: 'S', i: tier.map(encodeTierSetItem) };
+  if (typeof tier === 'number') return { k: 'D', v: tier };
+  if (typeof tier === 'boolean') return { k: 'B', v: tier };
+  if (typeof tier === 'function') return { k: 'F' };
+  return { k: 'O' };
+}
+
+function encodeTierSetItem(item) {
+  if (item === null) return { bad: 'null' };
+  if (item === undefined) return { bad: 'undefined' };
+  if (typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean') return item;
+  if (typeof item === 'function') return { bad: 'function' };
+  return { bad: 'object' };
+}
+
+/// `crossing.md §1.3`'s `OpIdArg` table, `6` rows.
+function encodeOpId(opId) {
+  if (opId === undefined) return { k: 'U' };
+  if (opId === null) return { k: 'N' };
+  if (typeof opId === 'string') return { k: 's', v: opId };
+  return { k: 'D', v: Number(opId) };
+}
+
+/// `crossing.md §1.3`'s `ListenerHandle` row 2 and `JsHandleArg`: **the OPAQUE form alone is the site's**,
+/// and every outside spelling is carried as its own variant.
+function encodeHandle(state, handle) {
+  for (const [candidate, token] of state.tokens) {
+    if (candidate === handle) return { k: 'O', v: token };
+  }
+  return typeof handle === 'string' ? { k: 'B', v: handle } : { k: 'X' };
+}
+
+/// `crossing.md §1.3`'s `FilePathArg` table: ABSENT is IN DOMAIN, and `undefined` at a PRESENT key is row
+/// 3's `AddressMalformed`.
+function encodeFilePath(filePath) {
+  if (filePath === undefined) return undefined;
+  if (filePath === null) return null;
+  if (typeof filePath === 'string') return filePath;
+  return { bad: typeof filePath };
+}
+
+/// `crossing.md §1.3`'s `JournalLengthArg` table, `12` rows, with NO coercion (`PAR-JS-4`).
+function encodeJournalLength(n) {
+  if (n === undefined) return undefined;
+  if (n === null) return null;
+  if (typeof n === 'number' || typeof n === 'string' || typeof n === 'boolean') return n;
+  if (typeof n === 'bigint') return { bigint: n.toString() };
+  if (typeof n === 'function') return { bad: 'function' };
+  return { bad: 'object' };
+}
+
+/// `crossing.md §1.3`'s `ListenersArg` table: ABSENT answers `AddressMalformed` — *"the ONE absence the
+/// construction does not admit"* — and a rejected array admits NOTHING.
+function encodeListeners(listeners) {
+  if (listeners === undefined) return undefined;
+  if (listeners === null) return null;
+  if (!Array.isArray(listeners)) return { bad: 'non-array' };
+  return listeners.map((entry) => {
+    if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) return { bad: 'entry' };
+    const keys = Object.keys(entry);
+    if (keys.length !== 2 || !('address' in entry) || !('handle' in entry)) return { bad: 'entry' };
+    const handle = entry.handle;
+    if (typeof handle !== 'string' || handle === '') return { bad: 'handle' };
+    return { address: encodeAddress(entry.address), handle };
+  });
+}
+
+/// `surface.md §2.1` / `DD-36`: `cfg` carries the store's THREE declared keys and no fourth. **Each key's
+/// own ABSENCE is the member's own absence** — `crossing.md §1.3`'s absent-versus-`undefined` rule reads a
+/// `cfg` key by `in`-MEMBERSHIP and never by arity.
+function encodeConfig(cfg) {
+  const object = cfg !== null && typeof cfg === 'object' ? cfg : {};
+  const out = {};
+  if ('filePath' in object) out.filePath = encodeFilePath(object.filePath);
+  if ('journalLength' in object) out.journalLength = encodeJournalLength(object.journalLength);
+  if ('listeners' in object) out.listeners = encodeListeners(object.listeners);
+  return out;
 }
 
 // ---------------------------------------------------------------------------------------------
-// THE CARRIERS — `crossing.md §1.3`'s argument tables, and `DD-46`'s NO-ARITY-CHECK rule: the package
-// performs no arity check, no defaulting and no validation of its own, so a missing, an extra and a
-// wrong-shaped argument each reach the store's own carrier and answer the store's own code.
+// THE COPY OUT — the core's own records and values mapped back into FRESH JS values
+// (`crossing.md §1.1` clause 2: no returned value is a view into store memory).
 // ---------------------------------------------------------------------------------------------
-
-function legalSegment(segment) {
-  return (
-    typeof segment === 'string' || (typeof segment === 'number' && Number.isInteger(segment) && segment >= 0)
-  );
-}
-
-/// `AddressArg` rows 1–3 admitted and rows 4–14 refused — each with its own declared answer, and `'a.b'` is
-/// a KEY and never a delimited address.
-function addressArgument(address) {
-  if (address === undefined || address === null) fail('AddressMalformed', 'the address is required');
-  if (types.isProxy(address)) fail('AddressMalformed', 'a proxy is refused, never walked');
-  if (!Array.isArray(address)) fail('AddressMalformed', 'the address is not an array');
-  for (let i = 0; i < address.length; i += 1) {
-    if (!(i in address)) fail('AddressMalformed', 'the address has a hole where a segment must be');
-    if (!legalSegment(address[i])) fail('AddressMalformed', 'a segment is not a string or a non-negative integer');
+function decodeValue(encoded) {
+  switch (encoded.k) {
+    case 's':
+      return encoded.v;
+    case 'b':
+      return encoded.v;
+    case 'n':
+      return encoded.v;
+    case 'g':
+      return BigInt(encoded.v);
+    case 'F':
+      return encoded.v;
+    case 'z':
+      return null;
+    case 'u':
+      return undefined;
+    case 'a':
+      return encoded.i.map(decodeValue);
+    case 'o': {
+      const out = {};
+      for (const [name, member] of encoded.m) out[name] = decodeValue(member);
+      return out;
+    }
+    default:
+      return undefined;
   }
-  return [...address];
 }
 
-/// `TierArg` rows 1–7 where the verb's arity is SINGULAR (`write`, `delete`): an ABSENT argument is the
-/// WRITE's `AddressMalformed` and the DELETE's whole-target arm (the call's own ARITY decides, never a
-/// coercion of the value — `crossing.md §1.3`'s `TierArg` rows 3 and 4 are TWO rows), `null`/`undefined`
-/// answer `AddressMalformed` on every verb, an ARRAY is the READER's arity and answers `OutOfDomainTier`
-/// here, and every other outside form answers `OutOfDomainTier`.
-function tierArgument(tier) {
-  if (tier === null || tier === undefined) fail('AddressMalformed', 'the tier is not a legal value');
-  if (Array.isArray(tier)) fail('OutOfDomainTier', "the array spelling is the READER's arity");
-  if (typeof tier !== 'string' || !TIERS.includes(tier)) fail('OutOfDomainTier', 'that is not a tier');
-  return tier;
-}
-
-/// `TierArg` row 2's accepted half: on the READERS the tier is ZERO TO MANY — one token or an array — and an
-/// array is an ANY-MATCH set, never a union of values, an ordered preference or a filter (`DD-37`).
-function readTierArgument(tier) {
-  if (Array.isArray(tier) && tier.length === 0) return null;
-  if (tier === null || tier === undefined) fail('AddressMalformed', 'the tier set is not a legal value');
-  const list = Array.isArray(tier) ? tier : [tier];
-  for (const token of list) {
-    if (typeof token !== 'string' || !TIERS.includes(token)) fail('OutOfDomainTier', 'that is not a tier');
+/// `crossing.md §1.3`'s segment spellings, mapped back: a string or a non-negative integer is what the JS
+/// side spelled, and every outside class is carried as its own marker rather than silently coerced.
+function decodeSegment(segment) {
+  if (typeof segment === 'object' && segment !== null) {
+    if (segment.bad === 'null') return null;
+    if (segment.bad === 'undefined') return undefined;
+    if (segment.bad === 'bool') return false;
+    if (segment.bad === 'array') return [];
+    if (segment.bad === 'function') return () => {};
+    return {};
   }
-  return list;
+  return segment;
+}
+
+function decodeSegments(segments) {
+  return segments.map(decodeSegment);
+}
+
+function decodeBaseState(encoded) {
+  return { present: encoded.present, value: decodeValue(encoded.value) };
+}
+
+function decodeJournalOp(encoded) {
+  return {
+    opId: encoded.opId,
+    kind: encoded.kind,
+    address: decodeSegments(encoded.address),
+    tier: encoded.tier === undefined ? null : encoded.tier,
+    before: decodeBaseState(encoded.before),
+    after: decodeBaseState(encoded.after),
+    seq: encoded.seq,
+    compacted: encoded.compacted,
+  };
 }
 
 // ---------------------------------------------------------------------------------------------
-// THE BOUNDARY'S OWN STATE — the register's tree, the listener home, the journal and the file log.
+// THE PACKAGE'S OWN SURFACE — the opaque handle (`§2.3` item 2) and the per-instance registry (`§2.4`)
 // ---------------------------------------------------------------------------------------------
+/// **THE PACKAGE'S OWN INSTANCE HANDLE'S STATE**, keyed by the instance the factory returned. The handle
+/// itself carries EXACTLY ONE member, `register` (`surface.md §2.4` item 5 (a)).
+const INSTANCES = new WeakMap(); // instance -> {id, tokens: Map(handle -> token)}
 
-/// The package's opaque handle (`surface.md §2.3` item 2, `DD-14`): **a frozen, memberless object whose
-/// token lives in the instance's own `WeakMap`** — *"whose token is PRIVATE and readable by no JS code"*.
-function wrapToken(state, token) {
-  const handle = Object.freeze({});
-  state.tokens.set(handle, token);
-  return handle;
+function wrapHandles(state, tokens) {
+  const out = [];
+  for (const token of tokens) {
+    let handle = null;
+    for (const [candidate, held] of state.tokens) {
+      if (held === token) {
+        handle = candidate;
+        break;
+      }
+    }
+    if (handle === null) {
+      handle = Object.freeze({}); // **THE OPAQUE HANDLE**: frozen, memberless, and its token is PRIVATE
+      state.tokens.set(handle, token);
+    }
+    // `§2.4` rule 3: one DISTINCT handle per token, however many home entries carry it — *"the registry
+    // fires one invocation per DISTINCT handle — not one per occurrence, and not one per entry"*.
+    if (!out.includes(handle)) out.push(handle);
+  }
+  return out;
 }
-
-/// **THE INSTANCE HANDLE'S OWN STATE, AND WHY IT IS NOT A MEMBER OF THE HANDLE:** `surface.md §2.4` item 5
-/// (a) declares that `storeCreate(cfg)` returns an object *"whose ENTIRE declared member set is
-/// `{ register }` — one own member, and NOTHING ELSE"* — so the boundary model lives here, keyed by the
-/// handle, and the handle it is keyed by carries `register` and no other member at all.
-const STATE = new WeakMap();
 
 function stateOf(instance) {
-  const state = STATE.get(instance);
+  const state = INSTANCES.get(instance);
   if (!state) throw new TypeError();
   return state;
 }
 
-class Boundary {
-  constructor(cfg) {
-    this.tree = new Map(); // address key -> { kind, seg, parent, versions: Map, literal }
-    this.home = []; // { address: string[], token: string }
-    this.tokens = new WeakMap(); // the package's opaque handle -> the token
-    this.registry = new Map(); // the token -> the caller's function (`§2.4`, `DD-15`)
-    this.journal = []; // the last `journalLength` ops, in order
-    this.seq = 0;
-    this.registerTier = 'mem';
-    this.path = null;
-    this.fileLog = [];
-
-    if (cfg === null || typeof cfg !== 'object') {
-      fail('AddressMalformed', "'cfg' is not the construction's one plain object");
-    }
-
-    // `JournalLengthArg` rows 1–12: row 2 is the ONE absence the amended construction still refuses.
-    if (!('journalLength' in cfg)) {
-      fail('ConstructionArgumentMissing', "'journalLength' requires a journalLength argument");
-    }
-    const journalLength = cfg.journalLength;
-    if (!Number.isInteger(journalLength) || journalLength < 1) {
-      fail('AddressMalformed', "'journalLength' is not a legal construction argument");
-    }
-    this.journalLength = journalLength;
-
-    // `FilePathArg` rows 1–6: ABSENT is IN DOMAIN (the register is created at `mem`), and the probe is a
-    // DRY RUN — it creates no file, no directory and no byte (`P-SM-6`'s `S-PROBE-DRY`).
-    if ('filePath' in cfg) {
-      const filePath = cfg.filePath;
-      if (typeof filePath !== 'string' || filePath === '') {
-        fail('AddressMalformed', "'filePath' is not a legal construction argument");
-      }
-      let reachable = false;
-      try {
-        if (existsSync(filePath)) {
-          reachable = !statSync(filePath).isDirectory();
-          if (reachable) accessSync(filePath, constants.W_OK);
-        } else {
-          accessSync(dirOf(filePath), constants.W_OK);
-          reachable = true;
-        }
-      } catch {
-        reachable = false;
-      }
-      if (!reachable) fail('FilePathUnreachable', `'${filePath}' could not be reached`);
-      this.path = filePath;
-      this.registerTier = 'file';
-    }
-
-    // `ListenersArg` rows 1–5: ABSENT answers `AddressMalformed` — *"the ONE absence the construction does
-    // not admit"* — and a rejected array admits NOTHING.
-    if (!('listeners' in cfg)) fail('AddressMalformed', "'listeners' is not a legal construction argument");
-    const listeners = cfg.listeners;
-    if (!Array.isArray(listeners)) fail('AddressMalformed', "'listeners' is not a legal construction argument");
-    for (const entry of listeners) {
-      if (!isPlainObject(entry)) fail('AddressMalformed', "'listeners' carries an entry that is not a record");
-      const address = entry.address;
-      if (!Array.isArray(address) || address.length !== Object.keys(address).length) {
-        fail('AddressMalformed', "'listeners' carries an entry whose address is outside the domain");
-      }
-      for (const segment of address) {
-        if (!legalSegment(segment)) {
-          fail('AddressMalformed', "'listeners' carries an entry whose address is outside the domain");
-        }
-      }
-      if (typeof entry.handle !== 'string' || entry.handle === '') {
-        fail('AddressMalformed', "'listeners' carries an entry whose handle cannot be admitted");
-      }
-      // `§2.4` rule 3: where two entries at one address carry the caller's SAME token, the token enters the
-      // home ONCE — *"the store returns that token ONCE where the store minted it"*.
-      const duplicate = this.home.some((h) => keyOf(h.address) === keyOf(address) && h.token === entry.handle);
-      if (!duplicate) this.home.push({ address: [...address], token: entry.handle });
-    }
-
-    // THE INTERNAL REACH: exactly ONE `.node` load per instance construction (`§1.2` item 1).
-    this[ADDON] = loadAddon();
-    this.boot();
-  }
-
-  /// `§7.1`: a fresh boot over an equal path re-loads the LAST SUCCESSFUL `file` write's own bytes.
-  boot() {
-    if (!this.path || !existsSync(this.path)) return;
-    let log = [];
-    try {
-      log = JSON.parse(readFileSync(this.path, 'utf8'));
-    } catch {
-      log = [];
-    }
-    for (const entry of log) this.install(entry.address, 'file', entry.value, false);
-    this.fileLog = log;
-  }
-
-  node(address) {
-    return this.tree.get(keyOf(address));
-  }
-
-  rootKind() {
-    const roots = [...this.tree.values()].filter((n) => n.parent === '');
-    if (roots.length === 0) return null;
-    return roots[0].kind === 'leaf' ? null : roots[0].kind;
-  }
-
-  childrenOf(address) {
-    return [...this.tree.values()]
-      .filter((n) => n.parent === keyOf(address))
-      .sort((a, b) =>
-        typeof a.seg === 'number' && typeof b.seg === 'number'
-          ? a.seg - b.seg
-          : String(a.seg).localeCompare(String(b.seg)),
-      );
-  }
-
-  /// Drops the subtree a leaf write replaces (`§3.2`: a leaf has no container and therefore no children).
-  dropDescendants(address) {
-    const key = keyOf(address);
-    for (const [candidate, node] of [...this.tree.entries()]) {
-      if (node.parent === key && candidate !== key) {
-        this.dropDescendants([...address, node.seg]);
-        this.tree.delete(candidate);
-      }
-    }
-  }
-
-  /// `§3.2`/`§3.4` — the write's own arm table. **The KIND-CONTRADICTING case is a DIFFERENT answer from
-  /// `ValueNotAdmitted`** (`crossing.md §1.2`'s closing clause): *"an admitted value whose container kind
-  /// contradicts the target's"* answers `ContainerKindConflict` at the target, and nothing is installed.
-  install(address, tier, value, record = true) {
-    if (address.length === 0) fail('WriteParentNotLink', 'no key to install under');
-    const parent = address.slice(0, -1);
-    const parentNode = parent.length === 0 ? null : this.node(parent);
-    if (parent.length > 0 && !parentNode) {
-      fail('AddressNotFound', `'${address[address.length - 1]}' does not exist in '${parent.join('/')}'`);
-    }
-    if (parentNode && parentNode.kind === 'leaf') {
-      fail('LeafHasNoDownstream', `'${address[address.length - 1]}' cannot be walked through '${parent.join('/')}'`);
-    }
-    const existing = this.node(address);
-    const kind = Array.isArray(value) ? 'vec' : typeof value === 'object' && value !== null ? 'map' : 'leaf';
-    const branchOf = (k) => k === 'map' || k === 'vec';
-    if (existing) {
-      if (branchOf(existing.kind) && branchOf(kind) && existing.kind !== kind) {
-        fail('ContainerKindConflict', `the value does not match the container kind of '${address.join('/')}'`);
-      }
-      if (branchOf(existing.kind) && kind === 'leaf') {
-        // A LEAF replaces a branch: a leaf's own container has no kind and no children to contradict.
-        this.dropDescendants(address);
-      }
-    }
-    const node = existing ?? { kind, seg: address[address.length - 1], parent: keyOf(parent), versions: new Map(), literal: undefined };
-    node.kind = kind;
-    this.tree.set(keyOf(address), node);
-    if (kind === 'leaf') {
-      node.literal = copyIn(value);
-    } else {
-      // Every anchor the write mints carries the caller's SINGLE tier (`PAR-JS-7`).
-      const entries =
-        kind === 'vec' ? value.map((v, i) => [i, v]) : Object.keys(value).map((k) => [k, value[k]]);
-      for (const [childSegment, childValue] of entries) {
-        this.install([...address, childSegment], tier, childValue, false);
-      }
-    }
-    node.versions.set(tier, true);
-    if (record && tier === 'file') {
-      this.fileLog.push({ address: [...address], value: copyIn(value) });
-      try {
-        writeFileSync(this.path, JSON.stringify(this.fileLog));
-      } catch {
-        // `§7.2` items 2–4: the commit's failure answers `FileCommitFailed` AFTER the store's own automatic
-        // journal rollback has run, and the package compensates for nothing.
-        node.versions.delete('file');
-        if (node.versions.size === 0) this.tree.delete(keyOf(address));
-        this.fileLog.pop();
-        fail('FileCommitFailed', `'${address.join('/')}' could not be committed to '${this.path}'`);
-      }
-    }
-  }
-
-  assemble(address) {
-    if (address.length === 0) {
-      const out = {};
-      for (const node of this.childrenOf([])) out[node.seg] = this.assemble([...address, node.seg]);
-      return out;
-    }
-    const node = this.node(address);
-    if (!node) return null;
-    if (node.kind === 'leaf') return copyIn(node.literal);
-    const children = this.childrenOf(address);
-    if (node.kind === 'vec') return children.map((child) => this.assemble([...address, child.seg]));
-    const out = {};
-    for (const child of children) out[child.seg] = this.assemble([...address, child.seg]);
-    return out;
-  }
-
-  /// `§2.3`: the resolver, walking the address segment by segment, then the tier selection.
-  resolve(address, tiers) {
-    if (address.length === 0) return this.assemble([]);
-    let current = [];
-    for (const segment of address) {
-      const node = current.length === 0 ? null : this.node(current);
-      if (node && node.kind === 'leaf') {
-        fail('LeafHasNoDownstream', `'${segment}' cannot be walked through '${current.join('/')}', it is a leaf`);
-      }
-      const next = this.node([...current, segment]);
-      if (!next) fail('AddressNotFound', `'${segment}' does not exist in '${current.join('/')}'`);
-      current = [...current, segment];
-    }
-    const node = this.node(current);
-    if (node.kind !== 'leaf') return this.assemble(current);
-    const held = TIERS.filter((t) => node.versions.has(t) && (tiers === null || tiers.includes(t)));
-    if (held.length === 0) fail('TierNotFound', `'${current.join('/')}' is not a version of the register`);
-    return this.assemble(current);
-  }
-
-  /// `§6`'s prefix test, descendant-inclusive: a handle appears in a trigger's list EXACTLY where its
-  /// listener's address is a PREFIX of the triggering address — and a token appears ONCE.
-  triggeredFor(address) {
-    const seen = new Set();
-    const out = [];
-    for (const entry of this.home) {
-      if (entry.address.length > address.length) continue;
-      if (entry.address.every((segment, i) => segment === address[i]) && !seen.has(entry.token)) {
-        seen.add(entry.token);
-        out.push(entry.token);
-      }
-    }
-    return out;
-  }
-
-  watchedFor(address) {
-    return this.home
-      .filter((entry) => entry.address.length <= address.length && entry.address.every((s, i) => s === address[i]))
-      .map((entry) => [...entry.address]);
-  }
-
-  /// `§2.7` item 4 / `DD-22`: the record is COMPLETE and copied out before the delivery window opens; the
-  /// invocation is synchronous, and a throwing body is NOT caught, NOT retried and NOT reported (`DD-23`).
-  deliver(record, triggered) {
-    for (const handle of triggered) {
-      const token = this.tokens.get(handle);
-      const listener = token === undefined ? undefined : this.registry.get(token);
-      if (typeof listener === 'function') listener();
-    }
-    return record;
+function call(state, verb, args) {
+  const addon_ = withAddon();
+  try {
+    return addon_.call(state.id, verb, args);
+  } catch (refusal) {
+    fail(refusal);
   }
 }
 
@@ -502,7 +442,20 @@ class Boundary {
 /// instance** — it throws the single failure form instead. **The object it returns carries EXACTLY the one
 /// own member `surface.md §2.4` item 5 (a) declares, and not one member beside it.**
 export function storeCreate(cfg) {
-  const state = new Boundary(cfg);
+  const addon_ = withAddon();
+  let id;
+  try {
+    id = addon_.storeCreate(encodeConfig(cfg));
+  } catch (refusal) {
+    fail(refusal);
+  }
+  // **ONE HANDLE PER TOKEN PER INSTANCE**: the map is read in BOTH directions, so a token the store
+  // returns twice (a lawful duplicate, `§2.4` rule 3) reaches the caller as the SAME opaque value.
+  // **THE PACKAGE'S OWN REGISTRY, ONE PER INSTANCE** (`surface.md §2.4`): the opaque handle -> the
+  // caller's FUNCTION. **`unlisten` withdraws the store-side home entry and NEVER the function** (`§2.4`
+  // rule 4, `DD-15`), so nothing removes an entry — the registry is released with the instance and by
+  // nothing else (`DD-17`), and a re-registration of a handle REPLACES its entry (rule 2, never a fan-out).
+  const state = { id, tokens: new Map(), registry: new Map() };
   const instance = {
     /// `surface.md §2.4` item 5 (b): `register(handle, listener) -> undefined` — the OPAQUE handle a verb
     /// returned or the construction adopted, and ANY JS function. **It is NOT a ninth named export of the
@@ -511,167 +464,142 @@ export function storeCreate(cfg) {
       return registerOn(state, handle, listener);
     },
   };
-  STATE.set(instance, state);
+  INSTANCES.set(instance, state);
   return instance;
 }
 
 /** `§2.2`: `read` — a leaf's literal, a branch's assembled value, the empty address's whole register. */
 export function read(instance, address, tier) {
   const state = stateOf(instance);
-  const target = addressArgument(address);
-  // `crossing.md §1.3`'s `TierArg` rows 3 and 4 are TWO rows: an ABSENT argument is in domain and an
-  // argument present with `undefined` answers `AddressMalformed` — so the call's own ARITY decides.
-  const tiers = arguments.length >= 3 ? readTierArgument(tier) : null;
-  return state.resolve(target, tiers);
+  // A position the call supplied no value for is handed as the runtime's own `undefined` — NEVER as an
+  // absent array slot — so the facade can tell an unsupplied position from a supplied `undefined` and the
+  // core is never reached with a null pointer (`crossing.md §1.3`'s absent-versus-`undefined` rule).
+  const args = arguments.length >= 2 ? [encodeAddress(address)] : [];
+  args.push(encodeTier(tier, arguments.length >= 3, true));
+  return decodeValue(call(state, 'read', args));
 }
 
-/** `§2.2` / `§2.9` item 2: `readLiteral` narrows the read to a leaf and answers `ReadTargetIsBranch` on a branch. */
+/** `§2.2` / `§2.9` item 2: `readLiteral` narrows the read to a leaf and answers `ReadTargetIsBranch`. */
 export function readLiteral(instance, address, tier) {
   const state = stateOf(instance);
-  const target = addressArgument(address);
-  const tiers = arguments.length >= 3 ? readTierArgument(tier) : null;
-  const node = target.length === 0 ? null : state.node(target);
-  if (node && node.kind !== 'leaf') fail('ReadTargetIsBranch', `'${target.join('/')}' is a branch`);
-  return state.resolve(target, tiers);
+  const args = arguments.length >= 2 ? [encodeAddress(address)] : [];
+  args.push(encodeTier(tier, arguments.length >= 3, true));
+  return decodeValue(call(state, 'readLiteral', args));
 }
 
-/// `PAR-JS-13`: the returned record is `{op, watched, triggered}` — fresh on every call, and never a view.
+/// `PAR-JS-13`: the returned record is `{op, watched, triggered}` — fresh on every call, never a view.
 export function write(instance, address, tier, value) {
   const state = stateOf(instance);
-  const target = addressArgument(address);
-  const token = tierArgument(tier);
-  if (value === undefined) {
-    // An ABSENT value reaches the store's own taxonomy as a shapeless value (`§2.2`: *"a failed write
-    // returns NOTHING"*).
-    fail('ValueNotAdmitted', refusedMessage(target));
-  }
-  if (!admitted(value)) fail('ValueNotAdmitted', refusedMessage(target));
-  if (token === 'file' && state.registerTier !== 'file') {
-    fail('TierNotFound', `'${target.join('/')}' is not a version of the register`);
-  }
-  const present = target.length > 0 && state.node(target) !== undefined;
-  // The pre-state is read BEFORE the write installs anything, and it is a COPY (`§1.1` clause 2).
-  const before = present ? state.resolve(target, null) : null;
-  state.install(target, token, value);
-  state.seq += 1;
-  const opId = `op-${state.seq}`;
-  const op = {
-    opId,
-    kind: 'write',
-    address: [...target],
-    tier: token,
-    before: { present, value: before },
-    after: { present: true, value: copyIn(value) },
-    seq: state.seq,
-    compacted: false,
+  const args = arguments.length >= 2 ? [encodeAddress(address)] : [];
+  args.push(encodeTier(tier, arguments.length >= 3, true));
+  args.push(encodeValue(value, [], 0));
+  const answer = call(state, 'write', args);
+  const record = {
+    op: decodeJournalOp(answer.op),
+    watched: answer.watched.map(decodeSegments),
+    triggered: wrapHandles(state, answer.triggered),
   };
-  state.journal.push({
-    opId,
-    kind: 'write',
-    address: [...target],
-    tier: token,
-    before: op.before,
-    after: op.after,
-    seq: state.seq,
-  });
-  while (state.journal.length > state.journalLength) state.journal.shift();
-  const triggered = state.triggeredFor(target).map((t) => wrapToken(state, t));
-  const record = { op, watched: state.watchedFor(target), triggered };
-  return state.deliver(record, triggered);
+  // **THE INVOCATION WINDOW** (`§2.7` item 2, `DD-22`): the record above is COMPLETE before the window
+  // opens, the invocation is SYNCHRONOUS, it happens AFTER the addon's call returned, and **its ONE
+  // argument is the TRIGGERING ADDRESS** (`PAR-JS-12`).
+  deliver(state, record.triggered, answer.triggeringAddress);
+  return record;
 }
 
-/// `PAR-JS-16`: `{address, tiers, triggered}` — `address` VERBATIM as a fresh copy, `tiers` in the store's
-/// canonical order, and the in-domain no-op arm a SUCCESS returning `tiers: []`. **Its declared NAME is
-/// `delete`, and it is published under that name ALONE** (`package.md §1.3` item 3: the entry's named
-/// exports are exactly the eight verbs and the instance handle factory — *"and NOTHING ELSE"*, so no ninth
-/// spelling of this verb is shipped): `deleteOp` is a reserved-word workaround for the declaration and
-/// never a member of the package's namespace.
+/// **THE PACKAGE'S OWN INVOCATION LOOP** (`surface.md §2.4`: *"the invocation is the packages's"*; `A57`:
+/// *"the store returns handles and invokes nothing"*). One invocation per DISTINCT handle the addon's
+/// record carries, at the address the record carries beside it — **and a THROWING BODY IS NOT CAUGHT, NOT
+/// RETRIED AND NOT REPORTED** (`§2.7` item 4, `DD-23`): its own exception propagates out of this loop, and
+/// the store's result stands complete and unmoved behind it.
+function deliver(state, triggered, triggeringAddress) {
+  const address = typeof triggeringAddress === 'object' && triggeringAddress !== null ? triggeringAddress : [];
+  for (const handle of triggered) {
+    const listener = state.registry.get(handle);
+    // `§2.4` rule 1: a handle with NO registered function invokes nothing and reports nothing — no code,
+    // no warning, no log.
+    if (typeof listener === 'function') listener(address);
+  }
+}
+
+/// `PAR-JS-16`: `{address, tiers, triggered}` — `address` VERBATIM, `tiers` in the store's canonical order,
+/// and the in-domain no-op arm a SUCCESS returning `tiers: []`. **Its declared NAME is `delete`, and it is
+/// published under that name ALONE** (`package.md §1.3` item 3): `deleteOp` is a reserved-word workaround
+/// for the declaration and never a member of the package's namespace.
 function deleteOp(instance, address, tier) {
   const state = stateOf(instance);
-  const target = addressArgument(address);
-  const token = arguments.length >= 3 ? tierArgument(tier) : null;
-  const node = state.node(target);
-  const removed = [];
-  if (node) {
-    for (const candidate of TIERS) {
-      if (node.versions.has(candidate) && (token === null || token === candidate)) {
-        node.versions.delete(candidate);
-        removed.push(candidate);
-      }
-    }
-    if (node.versions.size === 0) state.tree.delete(keyOf(target));
-  }
-  // NO FILE I/O (`§2.8` item 1, `DD-45`): a fresh boot over an equal path re-loads the last successful
-  // `file` WRITE's bytes, and the removed version STANDS AGAIN.
-  const triggered = state.triggeredFor(target).map((t) => wrapToken(state, t));
-  return state.deliver({ address: [...target], tiers: removed, triggered }, triggered);
+  const args = arguments.length >= 2 ? [encodeAddress(address)] : [];
+  // `delete`'s tier is read as a VALUE and not by an arity fold: an ABSENT position is the whole-target
+  // removal, and a supplied `undefined` answers row 4's `AddressMalformed` (`crossing.md §1.3`).
+  args.push(encodeTier(tier, arguments.length >= 3, false));
+  const answer = call(state, 'delete', args);
+  const receipt = {
+    address: decodeSegments(answer.address),
+    tiers: answer.tiers,
+    triggered: wrapHandles(state, answer.triggered),
+  };
+  // `A43`: a delete FIRES its own triggered set, on the same window as a write (`§2.7` item 2).
+  deliver(state, receipt.triggered, answer.triggeringAddress);
+  return receipt;
 }
 
 /// `PAR-JS-9`: `{opId, undoneOps, restoredTo}` — the constraint pattern's reverse step (`§2.6`).
 export function rollback(instance, opId) {
   const state = stateOf(instance);
-  if (opId === undefined || opId === null || typeof opId !== 'string' || opId === '') {
-    fail('AddressMalformed', "'opId' is not a legal argument");
-  }
-  const op = state.journal.find((candidate) => candidate.opId === opId);
-  if (!op) fail('JournalOpUnknown', `'${opId}' is not held by the journal`);
-  const undone = [];
-  const inScope = (candidate) => candidate.every((segment, i) => segment === op.address[i]);
-  for (const other of [...state.journal].reverse()) {
-    if (other.seq <= op.seq && inScope(other.address)) {
-      if (other.before.present) {
-        state.install(other.address, other.tier, other.before.value, false);
-      } else {
-        const node = state.node(other.address);
-        if (node) {
-          node.versions.delete(other.tier);
-          if (node.versions.size === 0) state.tree.delete(keyOf(other.address));
-        }
-      }
-      undone.push(other.opId);
-    }
-  }
-  return { opId, undoneOps: undone, restoredTo: { present: op.before.present, value: op.before.value } };
+  const args = arguments.length >= 2 ? [encodeOpId(opId)] : [];
+  const answer = call(state, 'rollback', args);
+  return {
+    opId: answer.opId,
+    undoneOps: answer.undoneOps,
+    restoredTo: decodeBaseState(answer.restoredTo),
+  };
 }
 
 /// `§2.10`: `listen` mints a token, populates the store's home and wraps it for JS — and its `address` is
 /// `AddressArg`'s domain and NOTHING MORE: a listener carries NO tier qualifier.
 export function listen(instance, address) {
   const state = stateOf(instance);
-  const target = addressArgument(address);
-  const existing = state.home.find((entry) => keyOf(entry.address) === keyOf(target));
-  if (existing) return wrapToken(state, existing.token);
-  const token = `listener-${state.home.length + 1}`;
-  state.home.push({ address: [...target], token });
-  return wrapToken(state, token);
+  const args = arguments.length >= 2 ? [encodeAddress(address)] : [];
+  return wrapHandles(state, [call(state, 'listen', args)])[0];
 }
 
 /// `§2.3` item 4 / `PAR-JS-8`: **`unlisten` over ANY value outside the domain is a NO-OP SUCCESS** — a
 /// foreign instance's value, a prior session's value, a fabricated value, a blank token, a non-opaque value
 /// and an absent handle are EACH a no-op success, no code is produced, and NO OTHER REGISTRATION IS REMOVED.
+/// **The package's own registry entry STANDS** (`§2.4` rule 4, `DD-15`): only the store-side home entry is
+/// withdrawn, so a withdrawn handle's function simply never fires again.
 export function unlisten(instance, handle) {
   const state = stateOf(instance);
-  const token = state.tokens.get(handle);
-  if (token === undefined) return undefined;
-  const index = state.home.findIndex((entry) => entry.token === token);
-  if (index >= 0) state.home.splice(index, 1);
-  state.registry.delete(token);
+  if (arguments.length < 2) return undefined;
+  const encoded = encodeHandle(state, handle);
+  if (encoded.k !== 'O') return undefined; // outside the domain: a no-op success, and the store is not reached
+  call(state, 'unlisten', [encoded]);
+  // **The package's registry entry STANDS** (`§2.4` rule 4, `DD-15`): only the store-side home entry is
+  // withdrawn, so the withdrawn handle's function simply never fires again, and a later re-`listen` at the
+  // same address mints a DIFFERENT handle whose registration is a NEW entry.
   return undefined;
 }
 
-/// **THE REGISTRY'S OWN SITE AT THE PACKAGE'S BOUNDARY** (`surface.md §2.4` item 5, `contract.md §2.4` item
-/// 5): the caller's FUNCTION for a handle, held by the package (`DD-15`) and invoked after the verb has
-/// returned (`§2.7` item 4). **`register` REPLACES, never fans out** (rule 2); a non-function `listener`, a
-/// `handle` THIS INSTANCE never minted or adopted, a bare `string`, a blank token, `null`, `undefined`, a
-/// non-opaque value and an ABSENT argument are EACH the SAME JS `TypeError`, carrying NO `status` and NO
-/// `message` member (`§2.4` item 5 (d), `PAR-JS-12`) — **and NOTHING reaches the store in any of those
-/// cases: the site performs no store call, mints no code and changes no node.** **`unlisten`'s
+/// **THE REGISTRY'S OWN SITE AT THE PACKAGE'S BOUNDARY** (`surface.md §2.4` item 5): the caller's FUNCTION
+/// for a handle, held by the package (`DD-15`) and invoked after the verb has returned (`§2.7` item 2).
+/// **`register` REPLACES, never fans out** (rule 2); a non-function `listener`, a `handle` THIS INSTANCE
+/// never minted or adopted, a bare `string`, a blank token, `null`, `undefined`, a non-opaque value and an
+/// ABSENT argument are EACH the SAME JS `TypeError`, carrying NO `status` and NO `message` member (`§2.4`
+/// item 5 (d), `PAR-JS-12`) — **and NOTHING reaches the store in any of those cases.** **`unlisten`'s
 /// NO-OP-SUCCESS reading does NOT extend here**, because a registration's argument is a member of the
-/// registry's own key set and has no such arm.
+/// registry's own key set and has no such arm: the addon is the site's own judge, so this file asks it.
 function registerOn(state, handle, listener) {
-  const token = state.tokens.get(handle);
-  if (token === undefined || typeof listener !== 'function') throw new TypeError();
-  state.registry.set(token, listener);
+  if (typeof listener !== 'function') throw new TypeError();
+  const encoded = encodeHandle(state, handle);
+  if (encoded.k !== 'O') throw new TypeError();
+  const addon_ = withAddon();
+  try {
+    addon_.register(state.id, encoded);
+  } catch (refusal) {
+    if (refusal && refusal.status === 'TypeError') throw new TypeError();
+    fail(refusal);
+  }
+  // `§2.4` rule 2: ONE handle, ONE function — the previous entry is REPLACED and dropped without notice.
+  state.registry.set(handle, listener);
   return undefined;
 }
 
