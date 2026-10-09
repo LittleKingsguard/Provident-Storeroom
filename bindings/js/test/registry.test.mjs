@@ -1,18 +1,20 @@
 // `surface.md §2.3`–`§2.4`, `§2.7`, `§2.10` — THE HANDLE, THE PACKAGE'S OWN REGISTRY, THE DELIVERY, AND THE
 // TWO REGISTRATION VERBS, driven at the package's own boundary.
 //
-// **A CONTRACT FINDING THIS FILE'S AUTHORING EXPOSED, STATED FIRST BECAUSE IT BOUNDS THESE CELLS.**
-// `contract.md §2.4` declares a PER-INSTANCE REGISTRY that holds **the caller's FUNCTION** for a handle and
-// invokes it (`DD-15`, `DD-22`), and `parameter-semantics.md §2.12` (`PAR-JS-12`) declares a REGISTRATION
-// whose non-function form throws a JS `TypeError`. **No clause of `docs/specs/storeroom-js/**` declares the
-// SPELLING of that registration site** — and the two clauses that would frame one close it off:
-// `§2.1` says of the instance handle that *"no clause of this directory exposes any member of it"*, and
-// `package.md §1.3` item 3 says the named exports are *"exactly the verbs of `surface.md §2` and the
-// package's own instance handle factory — and NOTHING ELSE"*. Consequently the cells below drive every half
-// of the registry's rules that the DECLARED surface can express, and the halves that need a function to be
-// registered are **UN-RUN, and `un-run` IS A FAILURE** (`acceptance.md §4.4`); they are named in the
-// `register.test.mjs` runner's own output and reported to the supervisor as CONTRACT FINDING #1. No spelling
-// is invented here.
+// **THE CONTRACT FINDING THIS FILE'S AUTHORING EXPOSED IS CLOSED, AND THE CELLS BELOW KEEP THE READING THE
+// REMAND MOVED.** `contract.md §2.4` declares a PER-INSTANCE REGISTRY that holds **the caller's FUNCTION**
+// for a handle and invokes it (`DD-15`, `DD-22`), and `parameter-semantics.md §2.12` (`PAR-JS-12`) declares
+// a REGISTRATION whose non-function form throws a JS `TypeError`. **As this red set was authored, NO clause
+// of `docs/specs/storeroom-js/**` declared the SPELLING of that registration site** — `§2.1`'s *"no clause of
+// this directory exposes any member of it"* and `package.md §1.3` item 3's *"NOTHING ELSE"* appeared to close
+// it off — **so the function halves of the registry's rules were reported `un-run`, and `un-run` IS A
+// FAILURE** (`acceptance.md §4.4`). **THE BOUNDED CORRECTION PASS OF 2026-10-11 DECLARED THE SITE**
+// (`§2.4` item 5 / `surface.md §2.4` item 5: `register(handle, listener) -> undefined`, the ONE member of
+// the object `storeCreate` returned — a member of the PACKAGE's own wrapper and not of the store's
+// instance), **and the function halves are now DRIVEN at `register.test.mjs`'s `S-REG` and
+// `S-FIRE-WINDOW` lines.** **NOTHING IS DUPLICATED HERE:** the cells below are the ones the DECLARED verbs
+// reach — the handle's two spellings, `unlisten`'s no-op set, the prefix test and the withdrawal — and the
+// cell at rule 4 that names the function half points at `register.test.mjs` rather than restating it.
 //
 // **STATES ENUMERATED BEFORE THE CELLS WERE AUTHORED:** a minted handle · a caller-spelled token at the
 // construction · two different handles at one address · the SAME token twice at one address · a bare string
@@ -119,7 +121,9 @@ test('registry_the_withdrawal_removes_the_store_side_home_entry_and_never_the_fu
     '§2.4 rule 4: `unlisten` withdraws the store-side home entry, so the handle does not appear again',
   );
   // `DD-15`: the package's own registry entry stands — a later re-`listen` mints a DIFFERENT handle whose
-  // registration is a NEW registry entry. (The function half of the rule is UN-RUN: see FINDING #1.)
+  // registration is a NEW registry entry. (The function half of the rule — that a WITHDRAWN handle's
+  // function "simply never fires again" — is driven at `register.test.mjs`'s `S-REG` line, which reaches the
+  // registration site `§2.4` item 5 declared; this cell keeps the STORE-side half it can reach.)
   const again = listen(inst, ['a']);
   assert.ok(again !== handle, 'a re-`listen` at the same address mints a DIFFERENT handle');
   const second = write(inst, ['a'], 'mem', 2);

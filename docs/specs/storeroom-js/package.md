@@ -463,3 +463,16 @@ THE CONVERSION CORE'S DECLARED RUST INTERFACE — WAS ADDED BY THE BOUNDED CORRE
 it is the ONE sub-number this part gains; `§4.4`'s own text and every other sub-number stand unmoved**
 (`RCA-8(d)` ANNOTATE-BESIDE: **the as-filed note above is re-emitted by reference and read THROUGH this
 sentence; `§4.1`–`§4.4` stand byte-for-byte**).
+
+**⟶ AND THE SWEEP RECORD THIS PART POINTS AT, ADDED 2026-10-11 BY THE BOUNDED DIVERGENCE SWEEP
+(`role_spec_writer`).** `RCA-8(d)` ANNOTATE-BESIDE: **no clause above moves, and `§4.5`'s declaration is not
+widened by a byte.** **The unit's divergence table is the contract document's own `SW-1` clause, and the rows
+that touch THIS part are: `§4.5` item 3's `from_store_value` signature, item 2's `JsValue` · `JsProto` ·
+`JsHandleArg`/`JsHandle` and carrier variant sets, item 4's `JsJournalOpKind` and `JsListener` type set, and
+item 7's FINDING rule — each against the shipped `bindings/js/src/crossing.rs`'s own declarations; the
+registration site's still-`un-run` drive; the licence's FOURTH site and its `-or-later` spelling in the
+sibling crate's `Cargo.toml`; the prebuild matrix's label-to-artefact spellings; and the `V1` layout's own
+authority question, whose declared repair is on the code side and NOT here.** **The realm claim, the `HO-`
+ledger, the publish story, the sibling crate's layout and the ownership clause stand exactly as printed, and
+this part's `§4.5` remains the declaration the red set was authored against** (`[A1
+docs/specs/storeroom-js/contract.md · the sweep clause | cross-reference]`).

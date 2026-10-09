@@ -373,3 +373,14 @@ the operative text.**
 already carry: the `§`-numbers, the rules, the tables and every authority citation are the contract
 document's own** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.6 — a carrier introduces no
 claim of its own | requirement]`).
+
+**⟶ AND THE SWEEP RECORD THIS PART POINTS AT, ADDED 2026-10-11 BY THE BOUNDED DIVERGENCE SWEEP
+(`role_spec_writer`).** `RCA-8(d)` ANNOTATE-BESIDE: **no clause above moves.** **The unit's divergence table
+is the contract document's own `SW-1` clause, and the rows that touch THIS part are: the walk's per-class
+rules and the carrier variant counts against the shipped model's own variant sets; `§1.6`'s `56`-row census
+against the `12` variant rows it prints for `JournalLengthArg` while the required model carries `15` states;
+`§1.4` item 4 (e)'s realm-agnostic plain-object test against a build whose proto test is a realm-identity
+comparison; and `§1.2` row 4's cross-realm acceptance, whose drive this part's own row names and which no cell
+of the shipped JS suite drives.** **The value taxonomy, the walk's own rules and the equality relation stand
+exactly as printed, and the clause that records each divergence names its owner** (`[A1
+docs/specs/storeroom-js/contract.md · the sweep clause | cross-reference]`).

@@ -15,6 +15,48 @@
 
 **THE POINTER THIS RECONCILIATION ADDS TO `§6`'s INDEX, PRINTED HERE BECAUSE `§6` STANDS AS FILED:** | this unit's contract directory, authored this pass | `docs/specs/storeroom-js/contract.md` + `crossing.md` · `surface.md` · `package.md` · `acceptance.md` · `parameter-semantics.md` · `implementation-plan.md` | — **and it is the row `§6`'s table would carry had it been drafted after the contract, named here rather than written into that table's bytes.** `[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.7 | cross-reference]`
 
+**⟶ RECONCILED AGAIN 2026-10-11 — THE BOUNDED DIVERGENCE SWEEP (`role_spec_writer`), BECAUSE TWO PHASES HAVE
+LANDED SINCE THE GATE-2 CLAUSE ABOVE AND `§3`'s OWN CELLS STILL READ AS BLOCKED.** `RCA-8(d)`
+ANNOTATE-BESIDE: **every byte of the plan above and below this clause stands exactly as filed — the gate-2
+reconciliation is re-emitted by reference and read THROUGH this clause, and nothing is deleted, reworded,
+re-ordered or renumbered, so `git diff` recovers the pre-pass text as a pure insertion; and `§6` STANDS AS
+FILED with its added row named at the gate-2 clause above.** **THIS CLAUSE ADDS NO PHASE, NO OWNER, NO OUTPUT
+AND NO ACCEPTANCE ITEM: it states the phase state the tree now carries, so the table is read with its terms**
+(`[A1 | ordering claim]`).
+
+1. **`Q2` — GATE 3, THE RED SET: LANDED.** Its cells live at `bindings/js/tests/*.rs` and
+   `bindings/js/test/*.test.mjs`, authored from this directory alone and RUN BEFORE any implementation, and
+   its record is `archive/gate3/storeroom-js-red-set.md`, whose `§5` carries the SIX CONTRACT FINDINGS that
+   authoring exposed.
+2. **`Q3` — GATE 3, THE GREEN: LANDED, and the figures are the ones the runs that carry them print.**
+   `bindings/js/Cargo.toml` · `src/lib.rs` · `src/crossing.rs` (the pure-Rust conversion core) ·
+   `src/facade.rs` (the Node-API export facade) · `index.mjs` · `package.json` · `README.md` ·
+   `.gitignore` are present; the register layer's Rust half executes `395` attempts, ALL `HELD`; and the two
+   legs the plan's `§4` item 14 names are the ones declared at `package.md §4.2` item 4's dated clause —
+   `cargo test --manifest-path bindings/js/Cargo.toml --offline --no-fail-fast` (`223` executed cells) and
+   `node --test bindings/js/test/*.test.mjs` (`89` tests), each at the REPOSITORY ROOT and each at the
+   `ENVELOPE/PURE` layer, with the store's root suite quoted at `377` and NOT re-measured as this unit's.
+   **A leg's figure belongs to the tree that produced it, and this clause reports the figures this pass
+   MEASURED at that tree.** **`Q4` — the read-only adversarial pass — is the NEXT phase, and it precedes
+   `Q5`–`Q9`, which inherit it.**
+3. **`§3`'s TWO OPEN CELLS ARE READ CLOSED rather than as blocking: `U16` is CLOSED by `A71` and `U32` by
+   `A72`, exactly as the gate-2 clause above records, and the tree above is the evidence that neither blocked
+   `Q2` or `Q3`.** **No cell of `§3`'s table is re-written by this clause: its `Q2`/`Q3` row is read THROUGH
+   this item, and a later pass that re-spells it must land the re-spelling as a dated amendment with the
+   as-filed sentence re-emitted beside it.**
+4. **THE DECLARED EDIT SCOPE IS NOT CONTRADICTED BY THE TREE, AND ONE NAMED GAP IS RECORDED.** `§1`'s rows
+   match what the tree holds, including the JS package's files under `bindings/js/**` and the crate's own
+   manifest and sources. **THE GAP: `bindings/js/.gitignore`, the addon's own placement at
+   `build/Release/storeroom_js_binding.node` and the package's `optionalDependencies` wiring are BUILD-SURFACE
+   files that no row of `§1`'s scope names** — **the gap is named here and DISPOSED OF as the contract's own
+   bounded-amendment work in the contract document's `SW-1` clause, never as a licence to write outside the
+   declared scope** (`[A1 docs/specs/storeroom-js/contract.md · the sweep clause | cross-reference]`).
+5. **WHAT THIS ITEM DOES NOT DO.** **It puts no question to the architect, re-decides no ruling, moves no
+   ledger count (`docs/next-steps.md` still reads `1 DONE / 2 open` UNITS = `3`), admits no unit row,
+   dispatches no implementer into any consumer, writes no byte outside `docs/specs/storeroom-js/**` and
+   claims no `APP`-green.** **The unit's divergence table — every row's contract cell against this tree, with
+   the side that must move — is the contract document's `SW-1` clause** (`[A1 | prohibition]`).
+
 ## §1. THE DECLARED EDIT SCOPE, BY PATH, WITH THE PHASE THAT MAY WRITE EACH
 
 | Path | The phase that may write it |

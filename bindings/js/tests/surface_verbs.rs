@@ -657,13 +657,12 @@ fn delivery_the_record_is_complete_before_the_window_opens() {
 /// version **STAND AGAIN** — *"that re-boot is the store's own declared boot … NOT a defect"*.
 #[test]
 fn file_readings_a_delete_performs_no_file_io_and_the_version_stands_again() {
-    let path = std::env::temp_dir().join(format!(
-        "storeroom-js-redset-delete-no-io-{}.json",
-        std::process::id()
-    ));
-    let _ = std::fs::remove_file(&path);
+    // The path is THIS cell's own (`support::DrivePath`): the cells of one binary run on parallel threads,
+    // so a PID-keyed path would be shared with the `FileCommitFailed` drive, which replaces its own path
+    // with a directory — and this cell boots over its path before and after that.
+    let scratch = DrivePath::unique("storeroom-js-redset-delete-no-io", "store.json");
     {
-        let mut inst = create(&cfg_at(path.to_str().unwrap(), 8)).expect("a reachable path");
+        let mut inst = create(&cfg_at(scratch.as_str(), 8)).expect("a reachable path");
         inst.write(
             &JsAddressArg::List(vec![key("a")]),
             &JsTierArg::Token("file".to_string()),
@@ -685,7 +684,7 @@ fn file_readings_a_delete_performs_no_file_io_and_the_version_stands_again() {
         );
     }
     // A FRESH boot over an equal path re-loads the LAST SUCCESSFUL `file` WRITE's bytes.
-    let fresh = create(&cfg_at(path.to_str().unwrap(), 8)).expect("a fresh boot");
+    let fresh = create(&cfg_at(scratch.as_str(), 8)).expect("a fresh boot");
     assert!(
         js_equal(
             &fresh
@@ -698,28 +697,25 @@ fn file_readings_a_delete_performs_no_file_io_and_the_version_stands_again() {
         ),
         "DD-45: the re-boot is the store's own declared boot"
     );
-    let _ = std::fs::remove_file(&path);
 }
 
 /// `§2.8` item 1: **`file`-tier durability is produced by a successful `file`-tier `write` ONLY** — so a
 /// `mem`-tier write is NOT re-loaded by a fresh boot.
 #[test]
 fn file_readings_only_a_file_tier_write_is_durable() {
-    let path = std::env::temp_dir().join(format!(
-        "storeroom-js-redset-durability-{}.json",
-        std::process::id()
-    ));
-    let _ = std::fs::remove_file(&path);
+    // **THE PATH MUST BE UNIQUE PER CELL**: this cell's verdict is about the ABSENCE of bytes at its own
+    // path, so a path another parallel cell also writes, replaces or removes decides this cell's answer.
+    // `support::DrivePath` keys it by this test's own name, so no sibling cell can name it.
+    let scratch = DrivePath::unique("storeroom-js-redset-durability", "store.json");
     {
-        let mut inst = create(&cfg_at(path.to_str().unwrap(), 8)).expect("a reachable path");
+        let mut inst = create(&cfg_at(scratch.as_str(), 8)).expect("a reachable path");
         write_at(&mut inst, &[key("m")], &JsValue::Num(1.0)).expect("a mem-tier write");
     }
-    let fresh = create(&cfg_at(path.to_str().unwrap(), 8)).expect("a fresh boot");
+    let fresh = create(&cfg_at(scratch.as_str(), 8)).expect("a fresh boot");
     assert!(
         fresh.read(&JsAddressArg::List(vec![key("m")]), &JsTierArg::Absent).is_err(),
         "a mem-tier write is not on the file"
     );
-    let _ = std::fs::remove_file(&path);
 }
 
 /// `§2.8` item 2: **a `file`-tier write that fails answers `FileCommitFailed` AFTER the store's own

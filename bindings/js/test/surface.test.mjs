@@ -194,12 +194,18 @@ test('verbs_read_refused_tier_shapes_answer_their_own_codes', () => {
       (err) => isTheFailureForm(err) && err.status === 'OutOfDomainTier',
     );
   }
-  for (const bad of [null, undefined]) {
-    assert.throws(
-      () => read(inst, ['a'], bad),
-      (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
-    );
-  }
+  // **THE THREE STATES, SEPARATED BY THE REMANDED RULE** (`crossing.md §1.3`'s absent-versus-`undefined`
+  // clause, rule 1; `acceptance.md` §4.1 item 7): `read(i, a)` and `read(i, a, undefined)` are the SAME
+  // state — `TierArg` row 3's ABSENT, IN DOMAIN on a reader — while `read(i, a, null)` is PRESENT and
+  // answers row 4's `AddressMalformed`. **THE PRE-REMAND READING** — that a caller could distinguish the
+  // two by the call's own arity — **is superseded**, so `undefined` no longer joins `null` here.
+  assert.equal(read(inst, ['a']), 1, 'an ABSENT tier');
+  assert.equal(read(inst, ['a'], undefined), 1, 'a tier position spelled `undefined` folds to the ABSENT row');
+  assert.throws(
+    () => read(inst, ['a'], null),
+    (err) => isTheFailureForm(err) && err.status === 'AddressMalformed',
+    'row 4: `null` is PRESENT and is not a tier',
+  );
   for (const member of [null, 1, true, {}, () => {}]) {
     assert.throws(
       () => read(inst, ['a'], ['mem', member]),
@@ -302,6 +308,37 @@ test('verbs_read_literal_narrows_to_a_leaf', () => {
     () => readLiteral(inst, ['leaf', 'child']),
     (err) => isTheFailureForm(err) && err.status === 'LeafHasNoDownstream',
   );
+});
+
+// ---------------------------------------------------------------------------------------------
+// `§1.2` row 1's lone surrogate — THE ONE CLASS THAT BELONGS TO THIS LAYER AND TO NO OTHER
+// ---------------------------------------------------------------------------------------------
+
+test('crossing_a_lone_surrogate_is_refused_at_the_packages_own_walk', () => {
+  // `crossing.md §1.2` row 1's dated clause of 2026-10-11 and `acceptance.md §4.1` item 6: **a JS `string`
+  // carrying a LONE SURROGATE (an unpaired surrogate code unit) is REFUSED `ValueNotAdmitted` AT THE
+  // PACKAGE'S OWN WALK, BEFORE ANY VERB IS CALLED** — the class cannot be represented as the store's
+  // `StoreValue::Str`, and it is never silently replaced, dropped or normalized. **THE DRIVE BELONGS TO
+  // THIS LAYER ALONE:** no Rust `String` can carry the input, so the Rust cells drive only the nearest
+  // representable neighbours (`bindings/js/tests/crossing_values.rs`).
+  const lone = ['\uD800', 'a\uD800b', '\uDC00', 'x\uDC00'];
+  const inst = mem();
+  for (const bad of lone) {
+    assert.throws(
+      () => write(inst, ['s'], 'mem', bad),
+      (err) => isTheFailureForm(err) && err.status === 'ValueNotAdmitted',
+      `a lone surrogate as a VALUE is refused: ${JSON.stringify(bad)}`,
+    );
+  }
+  // NOTHING WAS MINTED AND NOTHING WAS DROPPED (`§1.2`'s refusal clause; `§1.4` item 3's "the key is NEVER
+  // dropped" is the same answer at another site).
+  assert.throws(() => read(inst, ['s']), 'a refused write installs nothing');
+  // And the nearest representable neighbours stand as ACCEPTED: a valid surrogate PAIR (an astral
+  // character) and the replacement character.
+  for (const good of ['\uD83D\uDE00', 'a\uD83D\uDE00b', '\uFFFD']) {
+    write(inst, ['ok'], 'mem', good);
+    assert.equal(read(inst, ['ok']), good, `an astral character is an ordinary string: ${good}`);
+  }
 });
 
 // ---------------------------------------------------------------------------------------------

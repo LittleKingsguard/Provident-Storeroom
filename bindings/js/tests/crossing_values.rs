@@ -6,7 +6,7 @@
 //!
 //! | Row | Class | The states driven |
 //! | --- | --- | --- |
-//! | 1 | `Str` | `''` · `'a'` · a multi-byte string · a lone surrogate (all four accepted; no `String` wrapper) |
+//! | 1 | `Str` | `''` · `'a'` · a multi-byte string (all three accepted; no `String` wrapper) · **a lone surrogate: REFUSED `ValueNotAdmitted`, a BOUNDARY-ONLY class whose drive belongs to the JS layer** (`crossing.md §1.2` row 1's dated clause; `acceptance.md §4.1` item 6) |
 //! | 2 | `Bool` | `true` · `false` (accepted) · a `Boolean` object wrapper (refused) |
 //! | 3 | `Num` | a positive integral · a negative fractional · `0` · `-0` in memory (accepted) · `NaN` · `Infinity` · `-Infinity` (refused) · a `Number` wrapper (refused) |
 //! | 4 | `Object` | `{}` · `{a: 1}` · `Object.create(null)` · a cross-realm plain object · non-integer-like keys in any order (accepted) · a `Symbol`-keyed own property · an own accessor · a class instance · a `Map`/`Set`/typed array/`Date`/`RegExp` · a `Proxy` over a plain object (refused) |
@@ -33,8 +33,9 @@ use support::*;
 // ROW 1 — `StoreValue::Str`
 // =============================================================================================
 
-/// `crossing.md §1.2` row 1: *"`'a'`, `''`, a multi-byte string, a lone surrogate"* are the accepted forms,
-/// and `''` IS a legal value.
+/// `crossing.md §1.2` row 1: *"`'a'`, `''`, a multi-byte string, a lone surrogate"* — **and row 1's dated
+/// clause of 2026-10-11 declares the FOURTH class's own layer and answer**, so this cell drives the three
+/// accepted forms and the nearest representable neighbours of the fourth.
 #[test]
 fn row_1_str_empty_crosses_to_the_store_string() {
     assert_eq!(
@@ -63,10 +64,15 @@ fn row_1_str_multibyte_crosses_to_the_store_string() {
 
 #[test]
 fn row_1_str_astral_and_replacement_characters_cross_to_the_store_string() {
-    // `crossing.md §1.2` row 1's *"a lone surrogate"* is a JS-only state: **a Rust `String` is valid UTF-8 and
-    // has no spelling for a lone surrogate**, so this cell drives the nearest representable states — an
-    // astral (non-BMP) character and the replacement character — and the surrogate class is declared as
-    // drivable only at the JS layer (`bindings/js/test/**`), never silently dropped from the table.
+    // `crossing.md §1.2` row 1's *"a lone surrogate"*: **a Rust `String` is valid UTF-8 and has no spelling
+    // for a lone surrogate, so this cell CANNOT construct the class — and the class's own answer is not
+    // "accepted": row 1's dated clause of 2026-10-11 declares it REFUSED `ValueNotAdmitted` at the
+    // PACKAGE's own walk, before any verb is called, because it cannot be represented as
+    // `StoreValue::Str`.** So this cell drives the nearest representable states in Rust — an astral
+    // (non-BMP) character, which is a valid surrogate PAIR, and the replacement character — **and the
+    // surrogate class ITSELF is NOT among them: its drive lives at the JS layer alone**
+    // (`bindings/js/test/surface.test.mjs`; `acceptance.md` §4.1 item 6). A Rust cell that reported this
+    // class as driven would be a FINDING.
     let text = format!("a\u{1F600}b\u{FFFD}c");
     assert_eq!(
         to_store_value(&JsValue::Str(text.clone())),

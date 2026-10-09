@@ -410,6 +410,62 @@ pub fn cfg_at(path: &str, journal_length: u32) -> JsConfig {
     }
 }
 
+// ---------------------------------------------------------------------------------------------
+// THE SCRATCH PATH A DRIVE OWNS, AND WHY IT MUST BE UNIQUE PER DRIVE.
+//
+// **BECAUSE THE TEST HARNESS RUNS THE CELLS OF ONE BINARY CONCURRENTLY, AND A PATH KEYED BY THE PROCESS
+// ID IS SHARED BY EVERY CELL OF THAT BINARY.** A `std::process::id()` suffix does NOT distinguish two
+// cells of the SAME process — `cargo test` runs them on parallel threads with no `--test-threads=1` — so
+// two cells that key a scratch path by the PID alone build, create, replace and REMOVE the SAME file.
+// The `FileCommitFailed` drive is the class in the small: it replaces its path with a DIRECTORY and then
+// removes it, while a sibling cell that booted over the same path is still holding it, so the sibling's
+// next `std::fs::write` meets a directory (or no path at all) and panics. **The cell is green serially and
+// green only in a minority of parallel runs** — a drive whose verdict depends on the other drives running
+// beside it proves nothing about the contract.
+//
+// **THE CONSTRUCTION HERE:** the TEST'S OWN NAME (`std::thread::current().name()`, which the Rust test
+// harness sets to the `#[test]` function's name) PLUS a process-wide monotonic COUNTER, so two cells of one
+// binary can never name the same path even when one cell mints several paths. **AND THE CLEANUP IS
+// GUARANTEED BY A GUARD, NOT BY A TRAILING STATEMENT:** the guard's `Drop` removes the file and the
+// directory on EVERY exit, so a panicking drive leaves no bytes behind for the next run to meet.
+// ---------------------------------------------------------------------------------------------
+
+/// One scratch path this drive OWNS and no other drive of this process can name; the guard cleans up on
+/// every exit path, including a panic.
+pub struct DrivePath {
+    path: std::path::PathBuf,
+}
+
+impl Drop for DrivePath {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_file(&self.path);
+        let _ = std::fs::remove_dir_all(&self.path);
+    }
+}
+
+impl DrivePath {
+    /// A unique path for `suffix`, named under `dir_name`, itself unique to THIS drive.
+    pub fn unique(dir_name: &str, suffix: &str) -> DrivePath {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        static SEQ: AtomicUsize = AtomicUsize::new(0);
+        let test = std::thread::current()
+            .name()
+            .unwrap_or("unnamed-cell")
+            .to_string();
+        let n = SEQ.fetch_add(1, Ordering::SeqCst);
+        let dir = std::env::temp_dir().join(format!("{dir_name}-{test}-{n}"));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).expect("a scratch directory outside the repository");
+        DrivePath {
+            path: dir.join(suffix),
+        }
+    }
+
+    pub fn as_str(&self) -> &str {
+        self.path.to_str().expect("a UTF-8 scratch path")
+    }
+}
+
 /// A `mem`-tier instance: the declared state an ABSENT `filePath` produces (`crossing.md §1.3`'s
 /// `FilePathArg` row 2).
 pub fn mem_instance() -> Instance {
@@ -622,14 +678,15 @@ pub fn fail_code_drive(code: &'static str) -> bool {
                 == Some("ValueNotAdmitted".to_string())
         }
         "FileCommitFailed" => {
-            let path = std::env::temp_dir().join(format!(
-                "storeroom-js-redset-commit-fails-{}.json",
-                std::process::id()
-            ));
-            let _ = std::fs::remove_file(&path);
-            let _ = std::fs::remove_dir_all(&path);
+            // **THE PATH IS THIS DRIVE'S OWN** (`DrivePath`'s header: the cells of one binary run on
+            // parallel threads, so a PID-keyed path is shared by every one of them and the drive's verdict
+            // would depend on them). **AND THIS DRIVE IS THE ONE THAT MUTILATES THE PATH ON PURPOSE** — it
+            // replaces the file with a DIRECTORY to make the `file` commit unable to land — so a shared
+            // path is exactly the state that makes it flake.
+            let scratch = DrivePath::unique("storeroom-js-redset-commit-fails", "store.json");
+            let path = std::path::PathBuf::from(scratch.as_str());
             std::fs::write(&path, b"{}").expect("a scratch file whose parent exists and is writable");
-            let cfg = cfg_at(path.to_str().unwrap(), 8);
+            let cfg = cfg_at(scratch.as_str(), 8);
             let mut inst = match create(&cfg) {
                 Ok(inst) => inst,
                 Err(_) => return false,
@@ -648,7 +705,7 @@ pub fn fail_code_drive(code: &'static str) -> bool {
                 .map(|_| ())
                 .err()
                 .map(|e| e.status);
-            let _ = std::fs::remove_dir_all(&path);
+            // The guard's `Drop` removes both the file and the directory, on this path and on a panic's.
             got == Some("FileCommitFailed".to_string())
         }
         other => panic!("`{other}` is not a member of the store's closed 15-member set"),

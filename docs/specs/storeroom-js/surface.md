@@ -307,3 +307,15 @@ except for a malformed argument's shape.** (`[A3 docs/specs/storeroom-native/con
 already carry: the `§`-numbers, the rules, the signatures and every authority citation are the contract
 document's own** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.6 — a carrier introduces no
 claim of its own | requirement]`).
+
+**⟶ AND THE SWEEP RECORD THIS PART POINTS AT, ADDED 2026-10-11 BY THE BOUNDED DIVERGENCE SWEEP
+(`role_spec_writer`).** `RCA-8(d)` ANNOTATE-BESIDE: **no clause above moves.** **The unit's divergence table
+is the contract document's own `SW-1` clause, and the rows that touch THIS part are: the failure channel's ONE
+form and the message's authority against a build whose JS path hand-authors messages and whose addon mints a
+`TypeError` status and an unknown-verb status; `§2.4` rule 4's *"`unlisten` withdraws the registration, never
+the function"* against a build that deletes the registry entry; `§2.4` item 5 (c)'s per-INSTANCE domain
+against a build whose handle identity is token equality; `PAR-JS-12`'s declared invocation argument against a
+zero-argument invocation; the registration site's still-`un-run` drive in the red set; and `§2.9` item 2's
+`15`-code reachability against the `10` the shipped JS arms reach.** **The verbs, the handle's two spellings,
+the registry's four rules and the single failure form stand exactly as printed** (`[A1
+docs/specs/storeroom-js/contract.md · the sweep clause | cross-reference]`).

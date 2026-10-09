@@ -123,6 +123,12 @@ test('package_the_named_exports_are_the_eight_verbs_and_nothing_that_reaches_the
   ]) {
     assert.equal(typeof api[verb], 'function', `\`${verb}\` is a named export of the claimed entry`);
   }
+  // **`§2.4` item 5 (a)'s DATED CLAUSE OF 2026-10-11, ASSERTED AT THE NAMESPACE IT NAMES:** *"`register`
+  // … is NOT a NINTH NAMED EXPORT of the entry … because `register` is reached through the FACTORY'S OWN
+  // PRODUCT and not through the module namespace"* — so `package.md §1.3` item 3's *"NOTHING ELSE"* stands
+  // WHOLE **and this cell records the reading the remand moved: the registration site exists, and it is
+  // NOT here.** `§2.9` item 1's `8`-verb count therefore does not move.
+  assert.ok(!('register' in api), '§2.4 item 5 (a): `register` is reached through the INSTANCE, not the namespace');
   assert.ok(!('findAddress' in api), 'A63: no resolver is exposed');
   assert.ok(!('dispose' in api) && !('close' in api), 'A74: no release verb at either layer');
   assert.ok(!('exists' in api), '§2.9 item 3: no `exists()` verb and no binding-side resolver');

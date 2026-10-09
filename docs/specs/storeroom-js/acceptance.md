@@ -97,6 +97,23 @@ clause of item 3 moves: the pattern is met, not widened** (`[A1
 docs/specs/storeroom-js-proposal-review.md §5.4 — `AR-17`; A3 docs/specs/storeroom-js/surface.md §2.4 item 5 |
 requirement]`).
 
+**⟶ AND THE `§4.1` NUMBERING DISCLOSURE, LANDED 2026-10-11 BY THE BOUNDED DIVERGENCE SWEEP (`role_spec_writer`)
+BECAUSE THE TWO HOMES OF THIS RELOCATED SPAN DISAGREE ABOUT THEIR OWN NUMBERING.** `RCA-8(d)`
+ANNOTATE-BESIDE: **the clause above and every item above stand byte-for-byte; THIS clause ADDS NO ITEM, and
+no item's number, order or text moves.** **THE DEFECT IT DISPOSES OF, NAMED AT BOTH HOMES: THIS part's `§4.1`
+prints its items `1` · `2` · `3` · `4` · `5` — **with the inserted clauses `6`–`9` standing BESIDE them as the
+clause above states** — while the contract document's own `§4.1` — the HOME of this text, which its `§4`
+authority note declares a relocation of `acceptance.md`'s `§4` WHOLE — prints `1` · `4` · `5` and NOTHING
+ELSE, so items `2` and `3` are ABSENT there and `4`–`5` are printed as if contiguous.** **THE DISPOSITION:
+this part is NOT at fault, NO byte of its numbering moves, and the fault is the home's `§4.1` item list,
+which dropped two as-filed items and renumbered the rest without a disclosure while the disclosure was
+written here.** **THE NAMED REPAIR OF A LATER BOUNDED PASS: renumber the contract document's `§4.1` item list
+to its own declared `1`–`9` — item `1`, the as-filed `2` and `3` RESTORED (because a contiguous `1`–`9`
+cannot be printed while two of them are absent), the as-filed `4` and `5` at their own places and the
+insertions `6`–`9` where this part places them — with a dated disclosure beside the renumbered list so `git
+diff` still recovers every pre-pass byte.** **UNTIL THAT PASS LANDS, a reader of either home reads the two
+lists through this clause** (`[A1 | ordering claim]`).
+
 ### §4.2 The LAYER label — and the rule no pass may break
 
 1. **THIS UNIT'S JS-SIDE GREEN IS `ENVELOPE/PURE`, AND THE LABEL TRAVELS WITH EVERY FIGURE.**
@@ -170,3 +187,14 @@ A2 — *"integration into Provident-Electron will be delegated to that project's
 already carry: the `§`-numbers, the rules, the property and every authority citation are the contract
 document's own** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.6 — a carrier introduces no
 claim of its own | requirement]`).
+
+**⟶ AND THE SWEEP RECORD THIS PART POINTS AT, ADDED 2026-10-11 BY THE BOUNDED DIVERGENCE SWEEP
+(`role_spec_writer`).** `RCA-8(d)` ANNOTATE-BESIDE: **no clause above moves.** **The unit's divergence table —
+every row's contract cell against the shipped build, with the side that must move and its reason — is the
+contract document's own `SW-1` clause, printed in `docs/specs/storeroom-js/contract.md`'s register span**;
+**the rows that touch THIS part are the RUST LEG's declaration against the command the tree prints, the
+`ENVELOPE/PURE` label and the `APP`-layer `NONE` reading, and the RED SET's own two rows — the registration
+site's still-`un-run` `S-REG` line after `§2.4` item 5 declared that site, and the declared forms that no JS
+cell drives.** **Nothing in this part is widened by that clause: the acceptance layer's runner, its pattern,
+its layer label and its round-trip property stand exactly as printed** (`[A1
+docs/specs/storeroom-js/contract.md · the sweep clause | cross-reference]`).
