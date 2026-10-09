@@ -190,6 +190,16 @@
 
 ---
 
+## 3-quinquies. THE AMENDMENTS ROW THE HANDLE-DOMAIN MOVE OWES (landed 2026-10-11 by the landing pass)
+
+| # | Date | The change | Its authority | Its effect on the counts |
+| --- | --- | --- | --- | --- |
+| `AM-10` | 2026-10-11 | **the handle token's uniqueness domain moves from *"per instance and per session"* to *"per process"*** — `contract.md §0.4` clause 2 was re-stated, `parameter-semantics.md`'s `PAR-13` reconciled, and five cells carrying the old spelling reconciled | `A69` (the architect's *"Proceed on b"*; the JS proposal's `§13`) | **none: the adopted-identifier count stays `8`, the open rows stay `8`, the collision rows stay `8`, the `defined` count stays `0`; no row's STATUS moves, because the move is a CONTRACT cell's and not a dossier identifier's** |
+
+**AND ONE CAVEAT THIS LANDING RECORDS: the dossier's own identifiers are the STORE's vocabulary and are untouched by the JS unit's rulings (`A62`–`A74`), which live in `docs/specs/storeroom-js-adoption-dossier.md` (one row, `Node-API`/`napi`, `defined`).** **The two dossiers are DIFFERENT UNITS' and neither subsumes the other.**
+
+---
+
 ## 4. WHAT THIS DOSSIER IS NOT, AND WHAT IT OWES
 
 ### 4.1 The snapshot — the hash this pass could not take
