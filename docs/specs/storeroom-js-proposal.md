@@ -209,6 +209,33 @@ later gate.**
 
 ---
 
+## §10. THE ARCHITECT'S CROSSING RULING OF 2026-10-11 — deep copy in, deep copy out, no shared ownership either way
+
+**<⟶ APPENDED, DATED, FILED IN THE PASS IT ARRIVED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES.**
+
+**THE ARCHITECT'S WORDS, VERBATIM.**
+
+> Clarification to value crossing: Input must deep-copy the external data into the store, and the output must deep-copy from the store into the JS output. Neither the store nor the JS should be able to get a reference/pointer to data owned by the other.
+
+**THE RULING, TRANSCRIBED AS `A65` AND MAPPED — and it is the crossing's WHOLE copy discipline in one sentence.**
+
+| # | What it settles | The ruling (verbatim) | What the fragment does NOT say |
+| --- | --- | --- | --- |
+| **`A65`** | **the value crossing's copy discipline, BOTH DIRECTIONS**, and — with `A63` — the boundary's ownership model | ***"Input must deep-copy the external data into the store, and the output must deep-copy from the store into the JS output. Neither the store nor the JS should be able to get a reference/pointer to data owned by the other."*** | **FOUR THINGS, AND EACH HAS A NAMED CONSEQUENCE IN THE ELABORATION BELOW (`§9.1`, `§9.2`): (1) INPUT IS A DEEP COPY — the JS value the caller passes is read once and CONVERTED into a value the STORE OWNS; the store retains NO reference into JS memory; (2) OUTPUT IS A DEEP COPY — a value the store returns is CONVERTED into fresh JS-owned data; **the JS side holds NO reference into store-owned data**; (3) NO SHARED OWNERSHIP EITHER WAY — no proxy, no live view, no getter into either side, no borrow, no pointer; (4) CONSEQUENTLY THE BOUNDARY IS A VALUE BOUNDARY IN BOTH DIRECTIONS: a mutation on one side after the call is INVISIBLE to the other, and neither side's lifetime constrains the other's.** | **it does not name HOW either copy is performed** — the input copy is a structural WALK through the store's taxonomy (there is no JSON-text carrier, `CF-1`/`K18`) or some other conversion, and the output copy is a translation into fresh JS values (there is no zero-copy route either way) · **nor whether the store's OWN read already returns a copy that the binding may adopt** (the store's `§4.2 R-5` copy discipline says it returns a deep copy; whether the binding treats THAT copy as the thing to translate, or re-copies, is a `DECLARED-DEFAULT`) · **nor what a caller observes if it MUTATES its argument during a call** (a single-call window, unstated) · **nor the copy's COST bound** (nothing declares a depth or size ceiling) |
+
+**AND ITS EFFECT ON THE ELABORATED ITEMS — THE FIVE IT TOUCHES AND THE TWO IT DOES NOT:**
+- **`K18` (no JSON-text carrier) — CONFIRMED AND MADE LOAD-BEARING:** with a deep copy required in both directions, the input walk is **the only** legal route; a `JSON.stringify`-then-parse route remains impossible on the declared surface.
+- **`K5`/`A63` — CONFIRMED:** no reference crosses, so `findAddress`'s non-exposure is not merely a surface choice but entailed by the copy discipline.
+- **`K2` (the classes a walk can meet) — UNCHANGED IN SUBSTANCE AND NOW UNAVOIDABLE:** the walk's per-class decisions (`Symbol` key · sparse array · `undefined` member · cross-realm plain object · class instance) are the crossing's own rules, because the copy IS the walk.
+- **`K3` (the JS engine's own key order and `-0` equality) — UNCHANGED:** the copy does not remove the engine's integer-like key ordering or the `-0 === 0` fact, so the JS-side equality relation is still owed as one clause.
+- **`K4` (the file-image normalization observable) — UNCHANGED:** the copy discipline does not make the canonical spelling visible through the surface, so it remains outside the JS acceptance layer.
+- **`K7` (the process-global mint) — NOT TOUCHED by this ruling:** the handle's declared per-instance/per-session scoping is a store-side defect independent of the copy discipline, and its fix (a per-instance counter, recommended at `§9.2`) stands as its own decision.
+- **`K11` (the sibling-crate layout) and `K12` (`P-1`'s lift, the prohibition's supersession) — NOT TOUCHED.**
+
+**AND ONE CONSEQUENCE THIS FILING STATES PLAINLY: `A65` MAKES THE JS SIDE'S `"EXACT MATCH"` EXPECTATION HONEST.** **With a deep copy in and a deep copy out, the JS caller's value and the JS caller's read-back are TWO INDEPENDENT JS VALUES THAT MUST COMPARE EQUAL UNDER THE DECLARED RELATION (`§9.1`'s member-set equality, array index order, `Object.is` where sign matters) — and the architect's own battery directive (**"passing in various JSON … Expect exact match in all cases"**) is satisfied at the JS layer on exactly the terms the store's own Rust battery already asserts, with the two DECLARED normalizations and nothing else excluded.** **NO PARK IS TOUCHED, NO UNIT ROW IS ADMITTED, AND THE LEDGER STANDS AT `1 DONE / 2 open` UNITS = `3`.**
+
+---
+
 **END OF THE PROPOSAL.** **§1 is the architect's directive, byte-for-byte. §2 is the measured context. §3 is
 the filing's bounds. §4 is a quotation table with no reading taken. §5 is a map of adjacencies with no
 ruling. §6 records the adoption trigger's premise and the ledger move. §7 is the provenance. No behaviour
