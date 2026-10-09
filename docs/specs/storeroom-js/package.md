@@ -519,6 +519,54 @@ docs/specs/storeroom-js/crossing.md §1.3 — the `JournalLengthArg` table and i
 docs/specs/storeroom-native/parameter-semantics.md §2.7 · `PAR-7` — the same value at the store's own
 parameter set; `DD-1`; `DD-40` | declared parameter semantics]`).
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE IMPLEMENTER'S CONTRACT
+FINDING `CF-7`: THE `BigInt` ARM'S VALUE SLOT, ITS BOUND, AND THE ONE ANSWER FOR A `bigint` BEYOND IT.**
+`RCA-8(d)` ANNOTATE-BESIDE: **item 2's table and its dated clauses above stand byte-for-byte — the `JsValue`
+row's `BigInt(i64)` included — and they are read THROUGH this clause; THIS clause is a PURE INSERTION, it adds
+no state to the model and moves no count (the `JsValue` row stays at its `14` states).** **THE DEFECT IT
+CLOSES, NAMED WITH ITS TERMS: the row declares `BigInt(i64)`, so the model's value slot CANNOT EXPRESS a
+`bigint` beyond `i64`, while the crossing carries that class across the boundary as a DECIMAL STRING whose read
+into the slot is `.parse::<i64>().ok().unwrap_or(0)` — a SUBSTITUTION OF THE VALUE that no clause covered, and
+one that is INVISIBLE because THE CLASS ALONE DECIDES THE REFUSAL.**
+
+**THE BOUND, DECLARED: THE MODEL'S `BigInt` VALUE SLOT IS `i64`, AND THE PAYLOAD'S DECLARED SPELLING IS THE
+DECIMAL STRING `BigInt.prototype.toString()` writes** (`bindings/js/index.mjs`'s `{k:'g', v:<decimal string>}`
+arm, read at `bindings/js/src/facade.rs`'s `"g"` arm) **— and the construction's `journalLength` twin is read
+by its OWN class into the same `i64` slot** (`JsJournalLengthArg::BigInt(i64)`, from
+`napi_get_value_bigint_int64`, whose lossless-or-not answer changes no arm of the carrier's conversion).
+**AND THE CONVERSION'S ANSWER FOR AN OUT-OF-`i64` `bigint`, DECLARED RATHER THAN LEFT TO DISCOVERY: THE SHIPPED
+CONVERSION ANSWERS `0` FOR THAT VALUE SLOT — a substituted VALUE INSIDE THE ARM, AND NEVER A SUBSTITUTED
+CLASS.** **AND ITS OPERATIVE CONSEQUENCE, WHICH IS THE WHOLE OF THIS FINDING'S CLOSURE: THE CLASS ALONE
+DECIDES AND THE VALUE IS UNOBSERVABLE.** **NO CLAUSE of this directory reads, echoes, compares or re-renders a
+`BigInt` arm's carried value:** **at a VALUE position the refusal is generated from the failing target's
+ADDRESS and the class answers `ValueNotAdmitted`** (`crossing.md §1.2`'s closing clause; its row 10);
+**at the construction key the class answers `AddressMalformed` and the value is read by no clause**
+(`crossing.md §1.3`'s `JournalLengthArg` row 11); **and the boundary's own rendering of a `bigint` target is
+computed IN JS at FULL PRECISION, before the addon is reached** (`index.mjs`'s `targetSpelling`, which prints
+a `bigint` with its own `n`). **SO THE SUBSTITUTION CHANGES NO ANSWER, NO OBSERVABLE AND NO MESSAGE, and it is
+NOT a repair of a class** — **the class is decided first and is never converted** (`A76`; `crossing.md §1.7`
+(a)).
+**AND THE DRIVE THIS DECLARATION DISPOSES OF, STATED SO IT IS NOT AUTHORED AGAINST AN UNOBSERVABLE: a drive
+asserts THE CLASS AND ITS DECLARED CODE — `10n` at a value position answers `ValueNotAdmitted`, and a `bigint`
+`journalLength` answers `AddressMalformed`** (`crossing.md §1.2` row 10; `crossing.md §1.3`'s
+`JournalLengthArg` row 11; `parameter-semantics.md §2.10` and `§2.3`) — **while a drive that asserts the VALUE
+the boundary carried, or that a `bigint` beyond `i64` and one inside it answer DIFFERENTLY, asserts a
+behaviour this contract does not declare and would be FALSE of the build.** **A clause that reads the arm's
+carried value, and a SECOND STATE beside `BigInt(i64)` carrying the same class, are FINDINGS.**
+**AND THE `alt` THIS DECLARATION CARRIES, PRICED, NAMED FOR THE READING THAT STOOD OPEN: CARRY THE VALUE
+WITHOUT A SUBSTITUTION — a wider value slot (`i128`, a sign-and-digits pair, or a string) so that no `bigint`
+is ever substituted.** **Priced: it moves the `JsValue` row the model is counted by and it buys a distinction
+NO OBSERVABLE CARRIES, because the class answers the same code for `0n`, `10n` and `2**70 + 1` alike — while
+`§1.2`'s own clause fixes the MODEL as the carrier of the taxonomy's STATES and not of the values it refuses;
+and a BOUNDARY refusal of an out-of-`i64` `bigint` is a second reading of the same alternative, priced the
+same way, because the store already answers that class and `DD-1` puts the refusal at the store.** **Available
+only as a bounded amendment of `docs/specs/storeroom-js/`, whose instrument is the amendment itself and NOT a
+park** (`A66`)
+(`[A3 docs/specs/storeroom-js/package.md §4.5 item 2 — the `JsValue` row this clause reads; A3
+docs/specs/storeroom-js/crossing.md §1.2's closing clause and row 10 · §1.3's `JournalLengthArg` row 11 — the
+two classes' declared answers; A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the class decided first
+and never converted; `DD-1`; `DD-40` | declared parameter semantics]`).
+
 **3. THE CONVERSION FUNCTIONS — ONE ENTRY PER CARRIER AND ONE PER DIRECTION.** **The core exposes EXACTLY
 these public functions, and each returns the SAME refusal type:**
 

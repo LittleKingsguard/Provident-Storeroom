@@ -108,6 +108,77 @@ the row's own terms** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · 
 `[A1 docs/specs/storeroom-js-proposal.md §9.3 · `D1`; A3 docs/specs/storeroom-native/contract.md §7.1 |
 declared parameter semantics]`
 
+**⟶ AND ONE READING RULE FOR THIS ROW, ADDED 2026-10-11 BY THE BOUNDED CORRECTION PASS (`role_spec_writer`),
+CLOSING THE IMPLEMENTER'S CONTRACT FINDING `CF-1` AT THIS ROW'S OWN HOME.** `RCA-8(d)` ANNOTATE-BESIDE: **every
+cell above stands byte-for-byte; THIS clause is a PURE INSERTION, it adds no row to `§1`'s arithmetic and it
+re-decides nothing.** **THE ROW'S ONE ANSWER IS UNMOVED: `AddressMalformed` for EVERY outside form of `cfg`,
+the prototype-carrying object and the class instance included, with no instance returned.** **The class name
+that state carries, and the rule that keeps the class name apart from this row's CODE, are declared at
+`docs/specs/storeroom-js/crossing.md §1.8`'s dated clause of 2026-10-11 — which is that rule's ONE home, and
+this row is read through it** (`[A3 docs/specs/storeroom-js/crossing.md §1.8 — the code-by-position rule;
+A3 docs/specs/storeroom-js/parameter-semantics.md §2.1 · `PAR-JS-1` | cross-reference]`).
+
+**⟶ AND ONE PARAMETER THIS ROW'S SCOPE DECLARES, LANDED 2026-10-11 BY THE BOUNDED CORRECTION PASS
+(`role_spec_writer`), CLOSING THE IMPLEMENTER'S CONTRACT FINDING `CF-4`: THE VERBS' `instance` ARGUMENT.**
+`RCA-8(d)` ANNOTATE-BESIDE: **every cell above stands byte-for-byte and the row's declared answer for every
+outside form of `cfg` is unmoved; THIS clause is a PURE INSERTION, IT ADDS NO ROW — `§1`'s `18` and its
+`16 + 1 + 1 + 1` arithmetic stand, and no printed range or count of this directory moves — and it declares ONE
+parameter the set had left to discovery.** **THE DEFECT IT CLOSES, NAMED WITH ITS TERMS: EVERY verb's FIRST
+argument is the package's own instance handle — `read` · `readLiteral` · `write` · `delete` · `rollback` as
+`(instance, …)`, and `listen`/`unlisten` likewise (`contract.md §2.2`, `§2.10`) — while NO `PAR-JS` row
+declared that position's domain, its outside values or its code.**
+
+- **WHY A CLAUSE ON THIS ROW AND NOT A NINETEENTH ROW, SAID BECAUSE THE CHOICE MUST BE STATED: minting
+  `PAR-JS-19` would falsify NINE printed ranges and counts at once** — `contract.md`'s index-region
+  unit/prefix bullet, its part-map row for `parameter-semantics`, its `§6` header sentence, its `§6`
+  arithmetic, its `§7.1` figure 10 and its `§7.3` row 29; THIS part's `§1` scope statement and its `§1`
+  arithmetic; and `docs/specs/storeroom-js/test-cases.md` row 63 — **while the PRECEDENT for carrying a
+  declared position inside a row that already exists is the `A76`/`A77` pass's own re-derivation of
+  `PAR-JS-12`** (*"the registration's own parameter pair is carried by the two rows that exist and NO new row
+  is minted"*), **and THIS row — the CONSTRUCTION's own row, whose PRODUCT the instance handle IS — is the
+  row that scope belongs to.** **SO THE COUNT STAYS `18`, ITS ARITHMETIC STAYS TRUE, AND THE ONE SENTENCE THAT
+  IS READ THROUGH THIS CLAUSE IS THE COVERAGE CLAIM *"every parameter the JS surface declares has a row"*,
+  which now reads *"… has a row, or is carried inside a row's own scope by a dated clause"***
+  (`contract.md §6`'s dated clause).
+- **ITS DOMAIN, ITS UNIT AND ITS KIND: `parameter` · unitless · ONE opaque instance handle — THE OBJECT THE
+  PACKAGE'S OWN FACTORY RETURNED, the handle `storeCreate(cfg)` answered, for ANY instance of THIS package
+  module instance in this process.** **It is an identity the package owns, carrying exactly ONE own member —
+  `register(handle, listener)`** (`contract.md §2.1`; `contract.md §2.4` item 5 (a)).
+- **THE VALUES OUTSIDE IT: ABSENT** (a call supplying no value for the position) **· `null` · `undefined` · a
+  non-object scalar (a `number`, a `string`, a `boolean`, a `bigint`, a `symbol`) · a plain object · an array ·
+  a function · THE PACKAGE'S OTHER OPAQUE KIND — a `ListenerHandle` a verb returned or the construction
+  adopted (`contract.md §2.3` item 2; `§2.8`) · a `Proxy` · and an object an instance of ANOTHER COPY of the
+  package module returned.**
+- **THE DECLARED ANSWER FOR EACH OF THEM: `AddressMalformed` — ONE answer for every class above, thrown in
+  the single form of `docs/specs/storeroom-js/surface.md §2.5` and returning NO value** — **its `status` drawn
+  from the store's closed `15`-member set, whose own declared trigger already covers *"a present argument
+  outside its domain"* and *"an absent required argument"*, and its `message` generated as that section's
+  item 5 declares at the failing target and the argument's position** (`surface.md §2.5` item 5 (g); `DD-40`)
+  — **and NOTHING REACHES THE STORE in any of these cases: no verb call, no node minted, no anchor installed,
+  no container changed and no journal entry appended.**
+- **AND THE ONE ORDERING FACT THE POSITION OWES, SO A TWO-FAULT CALL IS NOT READ AS AMBIGUOUS: the `instance`
+  position is decided FIRST, before the verb's other argument positions** — **so a call whose `instance` AND
+  whose `address` are both outside their domains answers the INSTANCE's refusal; and a `TypeError` — or any
+  other host error — escaping this position is a FINDING** (`surface.md §2.5` item 5 (e)).
+- **ITS OBSERVABLE: a verb whose first argument is a handle the factory returned proceeds to that verb's own
+  arguments and its own arm; EACH outside form above throws `{status: 'AddressMalformed', message}`, with the
+  failing target and the class carried inside the one form; and no code of the closed set gains or loses a
+  trigger by this clause** (`contract.md §2.9` item 2; `P-IM-3`'s `S-FAILSET`).
+- **ITS `alt`, PRICED: A CALLER-SPELLED INSTANCE TOKEN — a plain `string` id — AS THE VERBS' FIRST
+  ARGUMENT** — priced: it would make an instance addressable by a guessable name beside the handle `DD-14`
+  makes opaque, and it would give the position a second spelling that `unlisten`-style reasoning would then
+  have to answer; **available only with a fresh ruling of the architect recorded as an ACTIVE
+  `docs/decisions.md` row, followed by a bounded amendment of `docs/specs/storeroom-js/`; the reversal
+  instrument is that amendment and NO PARK IS NAMED AS IT** (`A66`).
+- **ITS `park`: — (nothing of this position is parked; the instance handle's own boundary crossing is
+  `contract.md §2.3`'s and is settled there).**
+
+`[A3 docs/specs/storeroom-js/surface.md §2.2 — the verbs' signatures, whose FIRST position this clause
+declares; A3 docs/specs/storeroom-js/contract.md §2.1 and §2.4 item 5 (a) — the factory's own product and its
+one declared member; A3 docs/specs/storeroom-js/surface.md §2.5 item 5 (g) — the status's own declared
+trigger; A1 docs/specs/storeroom-js-proposal.md §17 · `A75` — the package's own instance handle factory |
+declared parameter semantics]`
+
 ### §2.2 `PAR-JS-2` — `cfg.filePath`, the `file` tier's external location
 
 | Cell | Its value |

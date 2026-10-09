@@ -278,6 +278,43 @@ CLAUSES, AND THE FOUR RULES ABOVE ARE READ THROUGH THEM** (`[A1 docs/specs/store
    firing window, `DD-22`'s no-order rule and `DD-15`'s *"`unlisten` withdraws the registration, never the
    function"* standing unchanged.**
 
+**⟶ RECONCILED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE IMPLEMENTER'S
+CONTRACT FINDING `CF-5`: ITEM 6 (f)'s `TypeError` SENTENCE, READ THROUGH THE OPERATIVE READING ITS OWN PASS
+DECLARED.** `RCA-8(d)` ANNOTATE-BESIDE: **item 6's clauses (a)–(f) above stand byte-for-byte — *"it does not
+widen item 5 (d)'s `TypeError` arm"* included — and (f) is read THROUGH this clause; THIS clause is a PURE
+INSERTION and it re-decides no rule of the model.** **THE DEFECT IT CLOSES, NAMED WITH ITS CELLS: (f) reads
+*"it does not widen item 5 (d)'s `TypeError` arm"*, while `§2.5` item 5's clause (g), `docs/specs/storeroom-js/parameter-semantics.md
+§2.12`'s second dated exception clause and `docs/specs/storeroom-js/test-cases.md`'s own `RECONCILED` clause
+each REPLACE that arm's FORM with the single `{status, message}` — so two cells written by the SAME pass could
+be read as contradicting each other.**
+
+**THE TWO ARE READ AS ONE, AND THE READING IS THIS: (f) SPEAKS OF THE ARM'S DOMAIN, AND (g) SPEAKS OF THE
+ARM'S FORM.** **(i) (f)'s *"does not widen"* is the DOMAIN half and it HOLDS: `A77`'s model adds no member, no
+verb and no parameter, so item 5 (d)'s INPUT CLASSES — a non-function `listener`, and a `handle` this instance
+never minted or adopted — are UNCHANGED, and no fifth arm is opened by it.** **(ii) THE FORM of the refusal at
+that same site is `§2.5` item 5 (g)'s operative reading, and it REPLACES the as-filed `TypeError`: the
+rejection travels in the single form `{status, message}`, with `status` the store's own `AddressMalformed` and
+its message generated as that item declares.** **SO (f) READS, FROM THIS DATE: *"the model adds no arm to item
+5 (d) and changes no input class of it"* — and NEVER *"the `TypeError` form stands at that site"*.**
+
+**AND THE SITES THAT STILL PRINT THE AS-FILED FORM, NAMED WITH THEIR `§` BECAUSE A READER MEETS THEM BEFORE
+THIS CLAUSE: `docs/specs/storeroom-js/contract.md` `§2.4` item 5 (d), `docs/specs/storeroom-js/parameter-semantics.md
+§2.12`'s exception clauses, and `docs/specs/storeroom-js/acceptance.md` `§4.1` item 9 — EACH is read through
+`§2.5` item 5 (g) from this date, and the re-spelling of those cells to this section's form is the NAMED
+REPAIR of a later bounded amendment of this directory and never a second form declared here.**
+**AND ONE NUMBERING FACT A READER NEEDS, SO THE CELL (f) IS READ WITH CANNOT BE READ AS RESOLVING TO
+NOTHING:
+THIS part's verbose cell IS `§2.5` item 5, and every citation in this directory that spells the verbose cell
+*"`§2.5` item 6"* resolves to it — there is ONE verbose cell and ONE item 5 (g).** **AND THE TWO HOMES OF
+`§2.5` CARRY DIFFERENT FIFTH ITEMS — `contract.md §2.5` item 5 is the absent-or-failed-addon state and THIS
+part's `§2.5` item 5 is the verbose cell — so a BARE *"`§2.5` item 5"* is ambiguous across the two homes and
+every citation of it in this directory is PATH-QUALIFIED; the renumbering of either list is the NAMED REPAIR
+of a later bounded pass and no byte of either item's text moves here**
+(`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the verbose rejection travels inside the one form and
+`A76`'s reach clause licenses no second form; A1 docs/specs/storeroom-js-proposal.md §18 · `A77` — the model's
+own reach; A3 docs/specs/storeroom-js/surface.md §2.5 item 5 (g) — the operative reading this clause reads
+(f) through | state or fail-state declaration]`).
+
 ### §2.5 The single failure form
 
 **A FAILURE CROSSES AS A THROWN PLAIN OBJECT WITH EXACTLY TWO MEMBERS, AND THERE IS EXACTLY ONE SUCH
@@ -389,6 +426,65 @@ and gains no third member** (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A
    `docs/specs/storeroom-js/parameter-semantics.md §2.12`; `DD-40`; `archive/gate4/storeroom-js-adversarial.md`
    §A · `JS-1`) (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the verbose rejection travels inside
    the one form; `A1` | state or fail-state declaration]`).
+
+**⟶ ADDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE IMPLEMENTER'S CONTRACT
+FINDING `CF-3`: THE COMPOSITE MESSAGE'S AUTHORITY SPLIT, AND WHAT AN ABSENT ARGUMENT'S MESSAGE IS.** `RCA-8(d)`
+ANNOTATE-BESIDE: **items 1–5 above stand byte-for-byte, clauses (a)–(g) included, and they are read THROUGH
+this clause; THIS clause is a PURE INSERTION, it adds no member to the form, and it moves no status and no
+count of the store's closed set.** **THE DEFECT IT CLOSES, NAMED WITH ITS TERMS: clause (b) declares that the
+reason — the class and, where the contract declares one, the position — *"is carried INSIDE the generated
+message's own text"*, and clause (d) declares that `message` *"is the string the store's own generator yields
+for the answering code at the failing target"*. THE GENERATOR REACHABLE FROM JS FILLS TWO SLOTS AND TWO ONLY —
+the segment slot and the path slot** (`bindings/js/src/facade.rs`'s `errorMessage(code, subject)`, whose
+`MessageArgs` is built with `segment: Some("'<subject>'")` and `path: Some(subject)` and EVERY OTHER MEMBER
+DEFAULTED) — **so the class-and-position text is APPENDED BY THE BOUNDARY and is NOT carried by the
+generator, and an ABSENT argument cannot reach the generator's own name-clause through that route at all.**
+
+**THE SPLIT, DECLARED PART BY PART, SO *"THE STORE'S OWN MESSAGE"* STAYS TRUE OF THE PART THAT IS THE
+STORE'S:**
+1. **PART ONE IS THE STORE'S GENERATOR'S OWN, VERBATIM: the generator's rendering of the ANSWERING CODE at the
+   failing TARGET'S SPELLING, the target occupying the generator's own `<SEGMENT>` slot (and its `<path>` slot
+   where the code's template is the `file`-tier commit's), every other slot at its default.** **It is reached
+   through the addon's `errorMessage` where the artefact carries the generator, and it is reproduced at the
+   ONE documented package-side site where the generator is the thing that failed** (`contract.md §2.5` item 5
+   (b)–(c); `package.md §1.2` item 4). **THIS PART — THE TARGET HALF — IS THE PART THE PHRASE *"THE STORE'S
+   OWN MESSAGE"* IS TRUE OF.**
+2. **PART TWO IS THE BOUNDARY'S OWN, AND IT IS APPENDED: the reason's CLASS half — clause (b)'s *"the class
+   that failed"* — and, where the carrier declares one, the reason's POSITION half.** **The boundary appends
+   it to Part One's bytes, after a separator, and THE COMPOSITE IS THE `message`.**
+3. **THE STATUS IS PART OF NEITHER PART'S TEXT AND IS UNMOVED: a member of the store's closed `15`-member
+   set, carried verbatim, minted by nothing** (clause (c); `DD-40`).
+4. **AND NO BYTE-EQUALITY OF THE COMPOSITE WITH THE GENERATOR'S WHOLE MESSAGE IS DECLARED** — the gap is
+   exactly what gate 4's `JS-3` measured (`archive/gate4/storeroom-js-adversarial.md` §A · `JS-3`) — **while
+   the APPENDED clause is this item's own and is LAWFUL, and a package-authored string that STANDS IN FOR
+   PART ONE is a FINDING** (item 2 above).
+5. **WHAT AN ABSENT ARGUMENT'S MESSAGE IS, DECLARED BECAUSE THE GENERATOR'S OWN NAME-CLAUSE IS UNREACHABLE
+   FROM JS: THE GENERATOR'S `AddressMalformed` ROW HAS TWO ARMS — a segment's arm (*"`<subject>` is not a
+   legal address segment …"*) and an ABSENT-ARGUMENT arm (*"'`<name>`' requires a `<name>` argument, a
+   `<name>` is required"*) — and the arm that carries a NAME is selected by a slot the JS-side route does not
+   fill** (`src/error.rs`'s `Msg::argument`, set by the store's own absent-argument constructors and left
+   `None` by `storeErrorMessage(code, args)`; `docs/specs/storeroom-native/contract.md §8.2`'s
+   `AddressMalformed` row, whose `<mismatch clause>` alternates on exactly that slot). **SO AN ABSENT ARGUMENT
+   IS ANSWERED ON THE CALL PATH AND NOT BY A BOUNDARY RENDERING: an absent CARRIER argument — an `address`, a
+   `tier`, an `opId`, a `handle`, an absent construction key — crosses to the store as its own carrier value
+   and the STORE's own name-clause is produced there** (`crossing.md §1.3`'s carrier tables; `DD-1`'s
+   pass-through) — **while a BOUNDARY refusal whose own subject is an absent value renders PART ONE at that
+   subject's own spelling (or at its class spelling where no value is printable) and APPENDS PART TWO, and it
+   NEVER claims the name-clause.** **A boundary message that spells a *"requires a …"* clause of its own is a
+   FINDING, because that clause is the generator's and its NAME SLOT is not filled on this route.**
+**AND THE `alt` THIS DECLARATION CARRIES, PRICED BECAUSE A MESSAGE'S AUTHORITY OWES ONE: A GENERATOR THAT
+CARRIES THE CLASS AND THE POSITION ITSELF — a store-side widening of `MessageArgs` with a class slot and a
+position slot, so one string is the whole message.** **Priced: it is a STORE-SURFACE CHANGE on the message
+channel — the store's directory closes that generator's `args` record and its clause table, and amending
+either is this unit's plan's stop condition `B`; and it would put a boundary-side vocabulary (`§1.2`'s and
+`§1.3`'s class names) inside the store's own generator, which the store's taxonomy does not carry.**
+**Available only with a fresh ruling of the architect recorded as an ACTIVE `docs/decisions.md` row, followed
+by a bounded amendment of the STORE's directory, which is NOT this unit's to take; the reversal instrument is
+that amendment and NO PARK IS NAMED AS IT** (`A66`)
+(`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the verbose rejection's content, travelling inside the
+ONE form; A3 docs/specs/storeroom-js/surface.md §2.5 item 5 (b)–(d) — the clauses this one reads;
+A3 docs/specs/storeroom-native/contract.md §8.2 — the generator's rule and its `AddressMalformed` row;
+`DD-1`; `DD-40` | state or fail-state declaration]`).
 
 ### §2.6 The constraint/repair pattern — a usage pattern over declared verbs, never a seam
 

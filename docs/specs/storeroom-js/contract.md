@@ -691,6 +691,29 @@ every site that needs it** (`[A3 docs/specs/spec-scope-and-structure/contract.md
    corpus beside it** (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the refusal belongs where the
    walk is, which is the package's own edge | state or fail-state declaration]`).
 
+   **⟶ AND THE ARM AND THE CLASS AT THE BOUND, LANDED 2026-10-11 BY THE BOUNDED CORRECTION PASS
+   (`role_spec_writer`), CLOSING THE IMPLEMENTER'S CONTRACT FINDING `CF-6` AT THIS HOME, SO THE TWO HOMES OF
+   THIS ITEM AGREE.** `RCA-8(d)` ANNOTATE-BESIDE: **the arm clause above stands byte-for-byte — its *"before
+   any addon call is reached"* and its *"an ADDON-SIDE refusal of the same value one class later does NOT
+   satisfy the property"* included — and it is read THROUGH this clause; THIS clause is a PURE INSERTION and
+   it re-decides no rule.** **THE OPERATIVE ASSIGNMENT, STATED SHORT AT THIS HOME AND CARRIED IN FULL AT
+   `docs/specs/storeroom-js/crossing.md §1.4` item 5's dated clause, which is the same declaration's own
+   home with gate 4's `NG-JS-D` corpus beside it: THE ARM THAT ASSERTS THE PROPERTY IS THE CONVERSION CORE'S
+   OWN BOUND, which is *"the package's own walk's"* in the operative sense** — it is the sibling crate's own
+   PURE-RUST module (`package.md §4.5` item 1) — **so the ENCODER admits depth `65` and the CORE refuses it,
+   the ENCODER refuses depth `66` and beyond by carrying the value as the store's own outside class
+   `Cyclic`, and BOTH arms answer `ValueNotAdmitted`; while *"before any addon call is reached"* is read as
+   *"before any VERB is called"*, which holds at BOTH arms because neither reaches a store verb.** **THE
+   OBSERVABLE IS THEREFORE `63`/`64` ADMITTED AND `65`/`66` REFUSED `ValueNotAdmitted`; a drive that measures
+   the BOUNDARY's own frame for the `65` case, or any depth against a STORE-SIDE bound, measures an arm this
+   build does not have — and the `alt` this assignment prices (a *"depth"* class of the encoder's own, and
+   the encoder's bound withdrawn) stands at that fuller home and is NOT restated here.** **AND NO FIGURE OF
+   THIS ITEM MOVES: `64` and `1,000,000` stand as the declared bounds, and `65` and `1,000,001` as the first
+   refused figures** (`[A3 docs/specs/storeroom-js/crossing.md §1.4` item 5's dated clause — the same
+   declaration's fuller home; A3 docs/specs/storeroom-js/package.md §4.5 item 1 — the core's own module and
+   its purity; A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the class decided first and the code from
+   the class; `DD-10` | state or fail-state declaration]`).
+
 6. **THE CYCLE GUARD IS AN ANCESTOR STACK.** **A value that contains itself is refused `ValueNotAdmitted`,
    detected by testing each value against the walk's OWN ANCESTOR STACK — never by a `WeakSet` of visited
    objects, which would refuse an acyclic DIAMOND (a value reachable by two paths)** (`DD-11`).
@@ -1869,6 +1892,37 @@ is a RECORD and not a ruling, and it re-decides nothing.**
    and `§0.2`'s `47` rows, `§5.0`'s `8`, `§6`'s `18` and `§1.6`'s `56` all stand as printed.**
    (`[A1 | requirement]`).
 
+**⟶ AND THE PASS THAT CLOSED SEVEN OF THE IMPLEMENTER'S CONTRACT FINDINGS RECORDS ITS OWN EFFECT HERE, IN THIS
+RECORD'S OWN FORM, SO NO ROW ABOVE IS READ AS A STANDING CONTRADICTION.** `RCA-8(d)` ANNOTATE-BESIDE: **every
+row of the sweep above stands byte-for-byte; THIS clause is a PURE INSERTION and it is a RECORD, not a
+ruling — it re-decides no rule and widens no register.**
+
+1. **ITEM 1'S ROW *"the registration site's declared answers — `register` throws a real JS `TypeError` …"* IS
+   FALSE FROM THIS DATE, AND IT IS THE ONE CELL OF THAT ITEM THIS PASS'S OWN READING MOVES:** the operative
+   reading is `docs/specs/storeroom-js/surface.md §2.5` item 5's clause (g) — the single `{status, message}`
+   with the store's own `AddressMalformed` — which is also what this pass's dated clause at item 6 (f) reads
+   that model's *"does not widen"* sentence through.
+2. **ITEM 2'S ROW `7` — *"which measures its ceiling and then returns `StoreValue::NonPlainCollection`"* — IS
+   FALSE OF THE BUILD AS IT NOW STANDS AND OF THE CONTRACT'S OWNER READING:** **the ceiling's arm and the class
+   it carries at the bound are declared at `docs/specs/storeroom-js/crossing.md §1.4` item 5's dated clause of
+   2026-10-11, where the class is the store's own outside class `Cyclic` and the property's two arms are split
+   at depth `65` and `66`** (`docs/specs/storeroom-js/crossing.md §1.4` item 5's dated clause; `DD-10`).
+3. **AND THE ROWS OF ITEM 2 WHOSE BUILD-SIDE MEASUREMENT THE SAME LANDED REWRITE HAS MOVED ARE RECORDED HERE
+   SO THEY ARE NOT READ AS STANDING FINDINGS, THOUGH NO FINDING OF THIS PASS TOUCHES THEM: ROW `8`** (the
+   boundary's prototype test is now the STRUCTURAL, REALM-AGNOSTIC one, whose ARRAY-arm spelling is
+   `docs/specs/storeroom-js/crossing.md §1.7` (b) 3's dated clause; the `isPlainObject` name the row prints no
+   longer exists), **ROW `10`** (the `fail()` `Error` branch and the registration site's minted `TypeError` are
+   both GONE: `fail()` throws the declared two-member form for every refusal, the registration site answers the
+   core's own `AddressMalformed`, and the only minted status left is the addon's unknown-verb arm, which no
+   verb name the package spells can reach), **ROW `12`** (the shipped `unlisten` no longer removes the registry
+   entry, so the declared asymmetry of rule 4 holds in the build), **and ROW `14`** (the shipped `deliver`
+   passes the triggering address as the invocation's ONE argument, per `PAR-JS-12`'s dated clause).
+4. **NO ROW IS WITHDRAWN, NO ROW IS ADDED, NO ROW IS RENUMBERED AND NO OTHER ROW'S MEASUREMENT IS RE-DECIDED
+   BY THIS CLAUSE** — **and the register stays at its `8` rows with every row failable** (`§5.0`).
+   (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` · `A77` — the rulings the landed rewrite implements;
+   A3 docs/specs/storeroom-js/surface.md §2.5 item 5 (g) and §2.4 item 6 (f)'s dated clause; A3
+   docs/specs/storeroom-js/crossing.md §1.4 item 5's and §1.7 (b) 3's dated clauses; `DD-10` | cross-reference]`).
+
 ---
 
 ## §6. The parameter-semantics index — every declared JS parameter and where its row lives
@@ -1927,6 +1981,31 @@ its FIRST argument (the domain of `PAR-JS-8`)"*, and its `Where it is declared` 
 **`PAR-JS-13` … `PAR-JS-18` are NOT renumbered and no row's `§`-home moves**
 (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-15` — the registry's rules drivable; A3
 docs/specs/storeroom-js/parameter-semantics.md §2.12 | numeric or census claim]`).
+
+**⟶ AND ONE COVERAGE SENTENCE IS RE-SPELLED AND ONE PARAMETER IS DECLARED, LANDED 2026-10-11 BY THE BOUNDED
+CORRECTION PASS (`role_spec_writer`), CLOSING THE IMPLEMENTER'S CONTRACT FINDING `CF-4`.** `RCA-8(d)`
+ANNOTATE-BESIDE: **the table above and its arithmetic stand byte-for-byte — `18` rows and `15 + 1 + 1 + 1 =
+18` included — and the COVERAGE sentence above them is read THROUGH this clause; THIS clause is a PURE
+INSERTION, and NO ROW IS MINTED BY IT.** **THE SENTENCE THAT IS RE-SPELLED: *"Every parameter the JS surface
+declares has a row, and no parameter outside this list exists"* reads, from this date, *"EVERY PARAMETER THE
+JS SURFACE DECLARES HAS A ROW, OR IS CARRIED INSIDE A ROW'S OWN SCOPE BY A DATED CLAUSE — and no parameter
+outside this list exists"*.** **WHAT IT DECLARES, AND WHY NOTHING ELSE COULD MOVE WITH IT: the VERBS' `instance`
+argument — the package's own instance handle, the FIRST position of `§2.2`'s five verbs and of `§2.10`'s two —
+had NO row, so `docs/specs/storeroom-js/parameter-semantics.md §2.1` (`PAR-JS-1`, the CONSTRUCTION's own row,
+whose product the handle is) now carries its domain, its outside values and its code, `AddressMalformed`, in a
+dated clause of its own** (`parameter-semantics.md §2.1`'s second dated clause). **AND WHY THAT ROUTE AND NOT A
+NINETEENTH ROW, SAID BECAUSE THE CHOICE MUST BE STATED: minting `PAR-JS-19` would falsify NINE printed ranges
+and counts at once — this file's index-region bullet, its part-map row for `parameter-semantics`, this `§6`
+header sentence, this `§6` arithmetic, `§7.1`'s figure 10 and `§7.3`'s row 29; `parameter-semantics.md §1`'s
+scope statement and its arithmetic; and `docs/specs/storeroom-js/test-cases.md` row 63 — while the precedent
+for a declared position carried inside a row that already exists is this directory's own re-derivation of
+`PAR-JS-12`.** **SO THE SET STAYS `18` ROWS, ITS ARITHMETIC STAYS `15 + 1 + 1 + 1 = 18` ✓, EVERY PRINTED RANGE
+ABOVE STAYS TRUE, AND THE COVERAGE IS COMPLETE** — **and NO FIGURE OF THIS DIRECTORY MOVES BY THIS CLAUSE: the
+ONE sentence it moves is a COVERAGE sentence, and it moves by RE-SPELLING and not by counting.**
+(`[A3 docs/specs/storeroom-js/parameter-semantics.md §2.1 — the row that now carries the `instance` position;
+A3 docs/specs/storeroom-js/surface.md §2.2 — the signatures that declare that position; A1
+docs/specs/storeroom-js-proposal.md §17 · `A75` — the package's own instance handle factory |
+cross-reference]`).
 
 **AND THE SAME PASS'S OWN ROW-BY-ROW EFFECT ON THE INDEX, SO A READER NEEDS NO OTHER FILE:** **`PAR-JS-1` ·
 `PAR-JS-2` · `PAR-JS-3` · `PAR-JS-4` — UNCHANGED, each still declared at `§2.1` and `§1.3` (`§1.3`'s dated

@@ -342,6 +342,69 @@ every site that needs it** (`[A3 docs/specs/spec-scope-and-structure/contract.md
    docs/specs/storeroom-js/crossing.md §1.7 — the validation order, whose step three is this refusal's site
    | state or fail-state declaration]`).
 
+   **⟶ AND THE ARM AND THE CLASS AT THE BOUND, LANDED 2026-10-11 BY THE BOUNDED CORRECTION PASS
+   (`role_spec_writer`), CLOSING THE IMPLEMENTER'S CONTRACT FINDING `CF-6` (THE RESIDUAL `JS-8`).**
+   `RCA-8(d)` ANNOTATE-BESIDE: **item 5 and its dated clause above stand byte-for-byte and their figures and
+   their answer do not move; THIS clause is a PURE INSERTION, it adds no row, and it assigns the two arms the
+   clause above distinguished but did not assign.** **THE DEFECT IT CLOSES, NAMED WITH ITS TERMS: the shipped
+   build produces the depth refusal on the OTHER side of the boundary from the site the clause above's wording
+   places it — the boundary's own encoder carries its bound ONE PAST the declared one
+   (`bindings/js/index.mjs`'s `ENCODER_CEILING = 65`, whose own comment says exactly that) — so a value of
+   depth `65` IS ENCODED AND HANDED OVER and refused by the CONVERSION CORE's own bound, while a value of
+   depth `66` is refused AT THE BOUNDARY, and NO CLAUSE SAID WHICH ARM ASSERTS THE PROPERTY OR WHAT CLASS THE
+   ENCODER USES AT ITS BOUND.**
+
+   **THE ARM THAT ASSERTS THE PROPERTY, DECLARED: IT IS THE CONVERSION CORE'S OWN BOUND — the same package's
+   own walk, whose model `package.md §4.5` item 2 declares and whose bound is measured over that model's own
+   visited nodes and nesting depth.** **The core's arm returns the value as an OUTSIDE CLASS of the store's
+   own taxonomy, and the store's own taxonomy check then answers `ValueNotAdmitted` with the store's own
+   generated message at the failing target's address** — **so the refusal is reached the STORE's way and NO
+   CODE IS MINTED AT EITHER ARM.**
+   **AND THE CLASS THE ENCODER USES AT ITS BOUND, DECLARED WITH IT: `Cyclic` — the store's own outside class
+   of `§1.2` row 12, carried by the boundary's own marker and never a class of the package's coinage.**
+   **`Cyclic` IS THE CLASS THE ENCODER CHOOSES FOR A VALUE BEYOND ITS OWN BOUND, and the code
+   `ValueNotAdmitted` then follows from the CLASS rather than from the depth rule** — **which is lawful and is
+   stated so it is not read as a repair or as a substitution: THE CLASS IS DECIDED FIRST AND THE CODE FOLLOWS
+   FROM THE CLASS, which is `A76`'s own order** (`§1.7` (a); `§1.8`).
+   **AND HOW THE CLAUSE ABOVE IS READ THROUGH THIS ONE, STATED SO THE TWO DO NOT CONTRADICT: the conversion
+   core IS this unit's own walk** — it is the sibling crate's own module, PURE RUST, declared at
+   `package.md §4.5` item 1 — **so its bound is *"the package's own walk's"* in the operative sense, and the
+   clause above's two exclusions are read as excluding (i) a bound that refuses a value the package's walk has
+   ALREADY ADMITTED AND CONVERTED, and (ii) the STORE's own declared bound, which is the store's clause and
+   not this unit's.** **AND *"BEFORE ANY ADDON CALL IS REACHED"* IS READ AS *"BEFORE ANY VERB IS CALLED"*,
+   which HOLDS at both arms: neither arm reaches a store verb, and no node, anchor, container or journal entry
+   is touched by either** (`§1.2`'s closing clause).
+
+   **THE TWO-ARM SPLIT, AT ITS EXACT FIGURES, SO A DRIVE POINTS AT THE ARM IT MEASURES:**
+
+   | The value's depth | Which arm decides | The observable |
+   | --- | --- | --- |
+   | **`63` and `64`** | **neither — the value is INSIDE the declared bound** | **ADMITTED: the write succeeds and the value round-trips** |
+   | **`65`** | **the CONVERSION CORE's bound — the ENCODER admitted the value, one past the declared bound, by its own declared design** | **REFUSED `ValueNotAdmitted`, with the store's own generated message** |
+   | **`66` and beyond** | **the BOUNDARY's own encoder's bound, which carries the value as the outside class `Cyclic`** | **REFUSED `ValueNotAdmitted` — the same code and the same form, by the other arm** |
+
+   **A DRIVE THAT ASSERTS THE REFUSAL AT DEPTH `65` HAPPENS AT THE BOUNDARY'S OWN FRAME, OR THAT ASSERTS ANY
+   DEPTH'S REFUSAL COMES FROM A STORE-SIDE BOUND, ASSERTS AN ARM THIS BUILD DOES NOT HAVE** — **and the
+   declared boundary *"the walk admits `64` and refuses `65`"* HOLDS ACROSS THE TWO ARMS rather than at one
+   site**, which is why gate 4's `NG-JS-D` corpus (`63`/`64`/`65`/`66`) is driven THROUGH THE CLAIMED ENTRY
+   (`archive/gate4/storeroom-js-adversarial.md` §B · `NG-JS-D`).
+   **AND THE `alt` THIS DECLARATION CARRIES, PRICED, NAMED FOR THE TWO READINGS THAT STOOD OPEN:**
+   **(i) THE ENCODER CARRIES A TOO-DEEP VALUE AS A CLASS OF ITS OWN — a *"depth"* class beside the cycle
+   class** — priced: `§1.2`'s opening clause says **this unit ADDS NO VARIANT** to the store's taxonomy, the
+   model's `14` states would move to `15` and `package.md §4.5` item 2's census with them, and the ANSWER
+   would be unchanged (`ValueNotAdmitted`), so the census would pay for a distinction no observable carries;
+   and **(ii) THE ENCODER'S OWN BOUND IS WITHDRAWN, so the core's bound is the only arm at every depth** —
+   priced: the boundary would then encode an arbitrarily deep value before the core measured it, and the
+   ENGINE'S OWN STACK LIMIT would become a reachable host `RangeError`, a failure OUTSIDE the store's closed
+   `15`-member set, which `DD-10`'s own `alt` already prices and refuses. **BOTH are available only with a
+   fresh ruling of the architect recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded
+   amendment of `docs/specs/storeroom-js/`; the reversal instrument is that amendment and NO PARK IS NAMED AS
+   IT** (`A66`)
+   (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the class decided first and the code from the
+   class; A3 docs/specs/storeroom-js/package.md §4.5 item 2 — the model the core's bound is measured over;
+   A3 docs/specs/storeroom-js/crossing.md §1.2 row 12 — `Cyclic`; `DD-10` | state or fail-state
+   declaration]`).
+
 6. **THE CYCLE GUARD IS AN ANCESTOR STACK.** **A value that contains itself is refused `ValueNotAdmitted`,
    detected by testing each value against the walk's OWN ANCESTOR STACK — never by a `WeakSet` of visited
    objects, which would refuse an acyclic DIAMOND (a value reachable by two paths)** (`DD-11`).
@@ -514,6 +577,43 @@ storeroom-js-adversarial.md` §A · `JS-6` · `JS-1` · `JS-2` · `JS-5`):
    (`archive/gate4/storeroom-js-adversarial.md` §A · `JS-5`; `§2.1`; `§1.3`'s dated absent-versus-undefined
    rule; `§1.4` item 4).
 
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE IMPLEMENTER'S CONTRACT
+FINDING `CF-2`: THE ARRAY ARM'S PROTOTYPE CLASS, RE-SPELLED SO THE EXCEPTION CANNOT REFUSE A CROSS-REALM
+ARRAY.** `RCA-8(d)` ANNOTATE-BESIDE: **item 3 of (b) above — and `§1.4` item 4 (e) as cited there — stands
+byte-for-byte, its *"the value's prototype class is `Plain` or `Null`"* included, and it is read THROUGH this
+clause; THIS clause is a PURE INSERTION and it re-decides no ruling.** **THE AS-FILED WORDING, NAMED BESIDE ITS
+OPERATIVE REPLACEMENT: (b) item 3 reads *"a value is an array under step one only where the class decision
+says `Array` AND the value's prototype class is `Plain` or `Null`"* — and read literally that conjunction
+REFUSES A CROSS-REALM PLAIN ARRAY, which `§1.2` row 5 (*"a cross-realm array IS accepted (it is an
+`Array`)"*), `§1.3`'s `AddressArg` row 13 and `§1.4` item 4 (e)'s realm-agnostic prototype rule each DECLARE
+ACCEPTED.**
+
+**THE OPERATIVE SPELLING, TAKEN FROM THOSE THREE CLAUSES AND FROM THE SHIPPED BUILD: THE ARRAY ARM ADMITS THE
+PROTOTYPE CLASSES `Plain` · `ForeignPlain` · `Null` AND REFUSES `Class`, AND NOTHING ELSE.** **`ForeignPlain`
+is a plain-array prototype of ANOTHER REALM, reached by the OWN-KEY-SET comparison `§1.4` item 4 (e) declares
+and NEVER by an identity comparison against this realm's `Array.prototype`** — **because the realm-agnostic
+test `DD-7` declares for the OBJECT arm is the SAME test over the ARRAY arm, and the two arms' prototype
+decisions cannot disagree about what *"plain"* means.** **A `Class` prototype — `class V extends Array {}` —
+IS REFUSED, and its code is the code its POSITION declares: `§1.2` row 5's `ValueNotAdmitted` at a value
+position and `§1.3`'s `AddressArg` row 11's `AddressMalformed` at an address position** (`§1.8`'s dated
+clause, which declares the code-by-position rule this sentence obeys).
+**AND THE CONDUIT OF THE DECISION, STATED SO ITS PLACE IS NOT LOOKED FOR IN THE MODEL: the admitted array
+crosses as the model's own ARRAY, so the prototype decision is taken AT THE BOUNDARY and no prototype member
+travels with an array** — **the model's `JsProto` carries `4` variants for the OBJECT arm's twin of the same
+decision** (`package.md §4.5` item 2's `JsValue` and `JsProto` rows, each with its own dated clause).
+**AND THE DRIVE THIS CLAUSE MAKES LAWFUL, NAMED SO ITS OBSERVABLE IS NOT READ OFF THE OBJECT ARM: A
+CROSS-REALM PLAIN ARRAY — a `vm` array, an `Array` constructed in a worker and passed in, an array surviving
+`structuredClone` across a realm boundary — is ACCEPTED as an address and as a value member, while a class
+extending `Array` is REFUSED at both positions.** **The boundary decides this STRUCTURALLY, by the
+prototype's own property-name set and its own symbols' descriptions, without `instanceof` and without an
+identity comparison — and the drive that reaches it through the claimed entry is the acceptance layer's own
+cross-realm cell** (`bindings/js/index.mjs`'s `arrayClass`, whose answer `foreign` is the admitted class;
+`archive/gate4/storeroom-js-adversarial.md` §B · `NG-JS-E`)
+(`[A3 docs/specs/storeroom-js/crossing.md §1.2 row 5 · §1.3's `AddressArg` row 13 · §1.4 item 4 (e) — the
+three clauses this exception is re-spelled to; A1 docs/specs/storeroom-js-proposal.md §9.1 · `K2` — the priced
+realm-agnostic test `DD-7` adopts; A3 docs/specs/storeroom-js/package.md §4.5 item 2 — the model's own
+prototype states | requirement]`).
+
 **(c) STEP TWO — THE SHAPE TEST AGAINST THE PERMITTED SET, TAKEN AFTER THE CLASS DECISION AND ON THE SAME
 VALUE.** **The shape test is the value's membership in the permitted set its class declares: `§1.2`'s rows
 1–5 for a value, `§1.3`'s rows for each carrier, and `§1.4` item 4's structural plain-object test (a)–(g) for
@@ -573,6 +673,54 @@ THE SUBSTITUTE'S CLASS:** **a `bigint` is refused as a `BigInt` and never as the
 read produced; a class extending `Array` is refused as a class and never admitted by `Array.isArray`; and a
 prototype-carrying object is refused as a `NonPlainCollection` and never read through its chain**
 (`§1.7` (b) items 1, 3 and 4).
+
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE IMPLEMENTER'S CONTRACT
+FINDING `CF-1`: THE CARRIER-POSITION STATE'S ONE CODE, DECLARED SO ONE STATE CANNOT BE READ WITH TWO.**
+`RCA-8(d)` ANNOTATE-BESIDE: **the paragraph above stands byte-for-byte — *"a prototype-carrying object is
+refused as a `NonPlainCollection` and never read through its chain"* included — and it is read THROUGH this
+clause; THIS clause is a PURE INSERTION, it adds no row to `§1.2`'s table and no row to `§1.3`'s tables, and
+it re-decides no ruling.** **THE DEFECT IT CLOSES, NAMED WITH ITS THREE CELLS AND ITS TWO ANSWERS: `§1.8`'s
+closing paragraph names the CLASS `NonPlainCollection` for a prototype-carrying object, whose VALUE code is
+`ValueNotAdmitted`; `parameter-semantics.md §2.1` (`PAR-JS-1`) declares `AddressMalformed` for EVERY outside
+form of `cfg`; and `§1.7` (d) says *"for a carrier, the row's own declared code"* — so ONE state could be read
+with TWO answers where the state stands at a CARRIER position.**
+
+**THE STATE, SPLIT BY POSITION, WITH THE ONE CODE EACH POSITION DECLARES:**
+1. **AT A VALUE POSITION — a member of a value the WALK meets, or the written value itself — the class is
+   `NonPlainCollection` and the code is that class's own `ValueNotAdmitted`** (`§1.2` row 13; `§1.4` item 4
+   (f)), **produced AT THE WALK.**
+2. **AT A CARRIER POSITION — `cfg` and each of its three keys, every verb's `address` · `tier` · `opId` ·
+   `instance`, and the construction's `listeners[]` and every entry in it — the class is decided the same way,
+   and THE CODE IS THAT CARRIER'S OWN ROW'S DECLARED CODE: `AddressMalformed` for `cfg`** (`PAR-JS-1`), **the
+   same for an array-like class at an address position** (`§1.3`'s `AddressArg` row 11), **and so on row by
+   row** (`§1.7` (d)).
+3. **THE RELATIONSHIP, STATED SO NO READER NEEDS TO DERIVE EITHER HALF FROM THE OTHER: `NonPlainCollection`
+   IS A CLASS NAME OF THE STORE'S OWN TAXONOMY AND IT IS NEVER A CODE AT A CARRIER POSITION.** **The class
+   name travels in the REFUSAL'S REASON HALF, rendered class-first and verbosely; the code travels in the
+   refusal's `status`; the two are DIFFERENT SLOTS of the ONE declared form and neither is read off the
+   other** (`surface.md §2.5` item 5 (b)–(c)).
+4. **CONSEQUENTLY, FOR THE `cfg` STATE THIS FINDING NAMES, THERE IS ONE ANSWER: `AddressMalformed` — the
+   CARRIER-ROW READING, and the one the shipped boundary takes** — **and the class is named verbosely in the
+   message's reason half, as the shipped boundary's own class spelling does** (`bindings/js/index.mjs`'s
+   `classSpelling`, whose prototype-carrying spelling reads *"a class instance or another prototype-carrying
+   non-plain object"*, reached from `encodeConfig`, which carries `PAR-JS-1`'s declared status).
+   **A `cfg` ANSWERING `ValueNotAdmitted`, AND A `cfg` WHOSE MESSAGE DOES NOT CARRY ITS CLASS, ARE EACH A
+   FINDING.**
+**AND THE `alt` THIS DECLARATION CARRIES, PRICED BECAUSE ONE OF THE TWO READINGS HAD TO BE TAKEN: THE CLASS'S
+OWN VALUE CODE `ValueNotAdmitted` FOR EVERY CARRIER-POSITION PROTOTYPE-CARRYING FORM.** **Priced: it would give
+ONE JS shape TWO codes by position while `§1.3`'s carrier tables declare ONE answer per row; it would make
+`PAR-JS-1`'s own row print two answers for one state; and it would move a refusal the STORE's own construction
+answers at its own carrier set (`docs/specs/storeroom-native/contract.md §7.1`) into the WALK's taxonomy, which
+`DD-1` refuses for the refusal surface.** **Available only with a fresh ruling of the architect recorded as an
+ACTIVE `docs/decisions.md` row, followed by a bounded amendment of `docs/specs/storeroom-js/` — and, the store's
+own construction row being the one that answers `AddressMalformed` for that form, a store-side amendment would
+be the amendment the alternative needs; the reversal instrument is that amendment and NO PARK IS NAMED AS IT**
+(`A66`)
+(`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the rejection's class half and its status half are two
+slots of ONE form; A3 docs/specs/storeroom-js/parameter-semantics.md §2.1 · `PAR-JS-1` — the carrier row's own
+declared answer; A3 docs/specs/storeroom-js/surface.md §2.5 item 5 (b)–(c) — the two slots; A3
+docs/specs/storeroom-native/contract.md §7.1 — the store's own construction row | state or fail-state
+declaration]`).
 
 **AND ONE THING THIS SUBSECTION DOES NOT DECLARE: IT ADDS NO FAILURE FORM AND NO CODE.** **The refusal
 answers the rows' own declared answers, inside the single form of `docs/specs/storeroom-js/surface.md §2.5`**,
