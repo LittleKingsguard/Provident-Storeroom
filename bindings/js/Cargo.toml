@@ -1,0 +1,24 @@
+[package]
+name = "storeroom-js-binding"
+version = "0.1.0"
+edition = "2021"
+description = "U-STOREROOM-JS: the pure-Rust conversion core (storeroom_js_binding::crossing) and its Node-API export facade, over the native store"
+license = "AGPL-3.0-or-later"
+
+# `package.md §4.1` item 1 (`A68`): an INDEPENDENT SIBLING CRATE at `bindings/js/`, its own manifest,
+# `crate-type = ["cdylib", "rlib"]` and ONE path dependency on the store. It is NOT a workspace member
+# (`§4.1` item 2): the root `Cargo.toml` carries no `[workspace]` and this manifest declares none, so
+# `cargo test` at the repository root keeps the store's single-package meaning.
+#
+# `rlib` is LOAD-BEARING (`§4.1` item 3): it is what lets this crate's own integration tests link
+# `storeroom_js_binding::crossing` and drive the crossing's per-class table with NO Node runtime present.
+#
+# `§4.2` item 1: `edition = "2021"` (`DD-27`). `§4.2` item 3: the only dependency is the single path
+# dependency on the store — no second path dependency, no vendored copy, no registry fetch at all.
+[lib]
+name = "storeroom_js_binding"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+storeroom-native = { path = "../.." }

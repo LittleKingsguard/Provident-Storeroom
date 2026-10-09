@@ -1,0 +1,27 @@
+{
+  "name": "@provident-storeroom/js",
+  "version": "0.1.0",
+  "description": "U-STOREROOM-JS: the Node ESM binding for the native Rust store of Provident-Storeroom",
+  "type": "module",
+  "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./index.mjs"
+    }
+  },
+  "files": [
+    "index.mjs",
+    "README.md",
+    "build/Release"
+  ],
+  "optionalDependencies": {
+    "@provident-storeroom/js-linux-x64-gnu": "0.1.0",
+    "@provident-storeroom/js-linux-arm64-gnu": "0.1.0",
+    "@provident-storeroom/js-darwin-x64": "0.1.0",
+    "@provident-storeroom/js-darwin-arm64": "0.1.0",
+    "@provident-storeroom/js-win32-x64-msvc": "0.1.0"
+  }
+}

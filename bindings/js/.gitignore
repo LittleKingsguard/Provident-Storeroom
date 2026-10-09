@@ -1,0 +1,6 @@
+# `package.md §3.2`: **NO BINARY IS EVER COMMITTED TO THE TRACKED TREE** — the artefacts are BUILT AND
+# PUBLISHED, never stored in the tree. The sibling crate's own build outputs are ignored here, and so is
+# its `Cargo.lock` (`§4.2` item 2: it is a library, and its lock is not committed).
+/target/
+/build/
+/Cargo.lock
