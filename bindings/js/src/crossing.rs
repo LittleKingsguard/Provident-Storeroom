@@ -516,20 +516,40 @@ pub fn to_config(cfg: &JsConfig) -> StoreConfig {
 
 /// `crossing.md §1.4` item 5 / `DD-10`: the depth-`64` / node-`1,000,000` ceiling, measured over the walk's
 /// own VISITED NODES and nesting depth.
+///
+/// **⟶ THE VISITED COUNT AND THE ROOT, RECONCILED 2026-10-11 (`DEF-18`'s second defect; the RCA
+/// `docs/specs/storeroom-js-rca-scaling.md §1`/`§6` item 2 measured it):** the clause's own words — *"whose
+/// **visited-node count** exceeds `1,000,000`"*, and its dated clause's own arm, *"admits a value whose
+/// visited-node count is **`1,000,000`** and REFUSES one of **`1,000,001`**"* (`crossing.md §1.4` item 5,
+/// the 2026-10-11 boundary clause that declares **THE CONVERSION CORE'S OWN BOUND** the arm that asserts
+/// the property — `bindings/js/src/crossing.rs`'s `to_store_value`, which `NG-JS-D` drives through
+/// `bindings/js/index.mjs`'s entry) — **count the value's OWN NODES: its members, each once.** **The ROOT is
+/// the value being walked and is not one of its visited nodes** — a walk of an `n`-member array visits
+/// exactly `n` nodes, and `visited` was incremented for the root as well, so an `n`-member array measured
+/// `n + 1` and **the declared ADMIT figure `1,000,000` was REFUSED at `n = 1,000,000`.** The count now
+/// starts at the root's own members, so **an `n`-member array is admitted at `n ≤ 1,000,000` and refused at
+/// `n = 1,000,001`** — the clause's figures, at the arm the clause names.
+///
+/// **THE DEPTH HALF IS UNTOUCHED AND IS NOT THE OFF-BY-ONE:** `depth` is the number of levels the walk
+/// DESCENDED, so the root is depth `0` and an `n`-deep chain `{a:{a:…}}` is depth `n` — which is the
+/// figure the clause's *"admits a value of depth `64` and REFUSES a value of depth `65`"* is measured
+/// against, and which the sibling crate's own `ceiling_depth_64_is_admitted` /
+/// `ceiling_depth_65_is_refused_value_not_admitted` cells pin.
 fn measure(v: &JsValue) -> (usize, usize) {
     fn walk(v: &JsValue, depth: usize, visited: &mut usize, max_depth: &mut usize) {
-        *visited += 1;
         if depth > *max_depth {
             *max_depth = depth;
         }
         match v {
             JsValue::Object(o) => {
                 for (_, member) in &o.members {
+                    *visited += 1;
                     walk(member, depth + 1, visited, max_depth);
                 }
             }
             JsValue::Array(items) => {
                 for item in items {
+                    *visited += 1;
                     walk(item, depth + 1, visited, max_depth);
                 }
             }

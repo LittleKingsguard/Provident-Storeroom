@@ -22,8 +22,13 @@ use crate::records::{
     RollbackResult, Tier, WriteResult,
 };
 use crate::value::{Segment, StoreValue};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::atomic::{AtomicU64, Ordering};
+
+/// The one query the declared child container asks about an anchor that the container itself does not
+/// hold: **its TIER** — the anchor's tier is the composite key's second half (`A34`, `DD-10`) and it lives
+/// in the reference arena, so the container is answered by the store's own `refs` table.
+type RefTier<'a> = &'a dyn Fn(usize) -> Tier;
 
 /// `§6.2` property 3: an op's id is non-empty and unique — per instance and per session, so the counter is
 /// process-wide and two instances never mint the same token (`§5.7`'s independence clause).
@@ -56,16 +61,219 @@ fn next_op_id() -> String {
 }
 
 /// `§1.3`: a link — exactly one parent anchor and a container of child anchors.
+///
+/// **⟶ THE DECLARED STRUCTURE, RESTORED 2026-10-11 (`DEF-18`; the architect's decision VERBATIM at
+/// `docs/specs/storeroom-native-proposal.md §1` line 42 — *"Links have exactly one parent anchor and a
+/// hashmap xor vec of child anchors"* — and line 81 — *"…branch's descendant link in its **hashmap**. If
+/// array, populate **vec**"*), which supersedes §5-ter's additive-index recommendation.** **The two kinds
+/// carry the two declared structures rather than one positional list each:**
+///
+/// * **a KEYED link (`Kind::Map`, and the register — `A23`: *"Registry is always hashmap"*) holds its
+///   child anchors in the `HashMap` the decision rules, keyed by the child anchor's own KEY, and each
+///   key's own entry is keyed by the TIER** — so a key maps to *at most the tiers standing at it*, one
+///   anchor per `(key, tier)` pair and never an unbounded list (the directive's *"cannot have more than one
+///   child anchor with the same index/key"* bounds anchors per key BY THE TIER: `P: §15 · A34`, `DD-10`);
+/// * **an ARRAY link (`Kind::Vec`) holds them in the `Vec`, POSITIONAL and contiguous from `0`**
+///   (`store-model.md §1.3`, `§4.2` `R-3`) — the container's index is the position, and each position
+///   holds that index's anchors, one per tier, in rank DESCENDING order.
 struct Link {
     container: Kind,
-    /// The child anchors the container holds, as indices into the instance's reference arena.
-    children: Vec<usize>,
+    /// The child anchors the container holds, in the structure its own kind declares.
+    children: Children,
     /// `§1.6`: the register acts as a link and always is a hashmap. **It HAS a parent anchor** — `§1.6`
     /// item 3's *"NO parent anchor"* is WITHDRAWN for the register-as-a-link by `A41` and is read through
     /// item 4, which is the operative clause: the register's parent anchor's address IS the empty set `[]`
     /// and its `node` is the DISTINCT CARRIER NODE (`§1.6` item 4 (a)/(b)). What carries no parent is that
     /// CARRIER NODE, not the register (`§1.6` item 4 (b), (c)).
     is_register: bool,
+}
+
+/// **THE DECLARED CHILD CONTAINER — `hashmap` XOR `vec`** (`P: §1` line 42; `A22`: *"Decided at write,
+/// inferred from contents on read"*). **The variant IS the kind**: a link holds one of the two and never
+/// both, every entry of the hashmap is a live child anchor reference, and every entry of the vec is a
+/// contiguous position. **Both hold REFERENCES INTO THE INSTANCE'S REFERENCE ARENA, and the key a
+/// reference stands under is the one the arena's anchor carries** (`§1.2`: the key is a property of the
+/// anchor).
+///
+/// The hashmap's own iteration order is UNSPECIFIED — as a `MAP`'s is (`store-model.md §1.3`:
+/// *"`MAP` … **unordered** — the store declares no order over a `MAP`'s children"*), and this store still
+/// declares none. Every deterministic consumer sorts the key set by `Segment::spelling()` at the point of
+/// iteration (`keys_at`), which is `§8.2` property (a)'s determinism requirement and NOT an order the
+/// store declares over the container.
+enum Children {
+    /// A KEYED container: key → (tier → the one child anchor standing at that pair).
+    Map(HashMap<Segment, HashMap<Tier, usize>>),
+    /// An ARRAY container: position `i` IS index `i`, and its slots are that index's anchors, one per
+    /// tier — the same inner tier key the hashmap's own key holds, so **the pair is the composite key in
+    /// both kinds**.
+    Vec(Vec<HashMap<Tier, usize>>),
+}
+
+impl Children {
+    fn map() -> Children {
+        Children::Map(HashMap::default())
+    }
+
+    fn vec() -> Children {
+        Children::Vec(Vec::new())
+    }
+
+    fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// The kind this structure IS — `§1.3`'s `MAP` xor `VEC`. It is asserted against the link's own
+    /// `container` marker at the write's own install, so the two can never drift.
+    fn kind(&self) -> Kind {
+        match self {
+            Children::Map(_) => Kind::Map,
+            Children::Vec(_) => Kind::Vec,
+        }
+    }
+
+    /// The container's own key count — **a keyed container's key set's size, an array container's index
+    /// count (`§1.3`: *"contiguous from `0`"*, so the count IS the domain's upper bound).**
+    fn len(&self) -> usize {
+        match self {
+            Children::Map(keys) => keys.len(),
+            Children::Vec(positions) => positions.len(),
+        }
+    }
+
+    /// **THE INSTALL** — the one site a child anchor is added, **and the composite key does the work in
+    /// BOTH kinds: one anchor per `(key, tier)` pair** (`A34`, `DD-10`). A keyed container files the
+    /// anchor under its own key and the pair's tier. An array container files it at its index's POSITION —
+    /// the position IS the index (`§1.3`) — where `i = len` is the append the container's own contiguous
+    /// domain allows and `i < len` is a pair of an index the container already holds, whose own position
+    /// receives the new anchor **beside** the tiers already standing there.
+    fn install(&mut self, key: Segment, tier: Tier, reference: usize) {
+        match self {
+            Children::Map(keys) => {
+                keys.entry(key).or_default().insert(tier, reference);
+            }
+            Children::Vec(positions) => {
+                let Segment::Index(index) = key else {
+                    unreachable!("a VEC's key domain is index keys (§1.3)")
+                };
+                let position = index as usize;
+                debug_assert!(
+                    position <= positions.len(),
+                    "§1.3: a VEC's index keys are contiguous from 0"
+                );
+                if position == positions.len() {
+                    positions.push(HashMap::new());
+                }
+                positions[position].insert(tier, reference);
+            }
+        }
+    }
+
+    /// **THE ONE PER-PAIR ACCESS the declared structure exists for** — the reference standing at
+    /// `(key, tier)`, or none. **`O(1)` amortized for a keyed container and `O(1)` for an array one**
+    /// (`A34`: at most ONE child anchor per pair), never a scan of the siblings.
+    fn pair(&self, key: &Segment, tier: Tier) -> Option<usize> {
+        let slots = match self {
+            Children::Map(keys) => keys.get(key),
+            Children::Vec(positions) => match key {
+                Segment::Index(index) => positions.get(*index as usize),
+                _ => None,
+            },
+        };
+        slots.and_then(|slots| slots.get(&tier)).copied()
+    }
+
+    /// Every anchor standing at one key, in the store's canonical rank DESCENDING order — the same key at
+    /// up to the three tiers, one anchor per pair.
+    fn at(&self, key: &Segment, rank: impl Fn(usize) -> u8) -> Vec<usize> {
+        let slots = match self {
+            Children::Map(keys) => keys.get(key),
+            Children::Vec(positions) => match key {
+                Segment::Index(index) => positions.get(*index as usize),
+                _ => None,
+            },
+        };
+        rank_ordered(slots, &rank)
+    }
+
+    /// The container's distinct keys — **the hashmap's own key set** for a keyed container (the keys are
+    /// distinct BY CONSTRUCTION, so no `contains` dedup scan runs) and index `0..len` for an array one.
+    fn key_set(&self) -> Vec<Segment> {
+        match self {
+            Children::Map(keys) => keys.keys().cloned().collect(),
+            Children::Vec(positions) => (0..positions.len() as u64).map(Segment::Index).collect(),
+        }
+    }
+
+    /// **THE ONE REMOVAL** — the one site a child anchor is dropped, **by the pair it stands at**. A keyed
+    /// container drops the reference from its own key's tier slot and drops the key itself when its last
+    /// anchor goes; an array container drops the reference from its index's position's tier slot, and then
+    /// applies `close_up` to the position itself: **a DELETE closes the gap and renumbers (`§1.3`/`R-3`),
+    /// while a REPLACEMENT keeps the position, because the index is still occupied by the anchor the write
+    /// is about to install there.**
+    fn remove(&mut self, reference: usize, tier_of: RefTier<'_>, close_up: bool) {
+        let tier = tier_of(reference);
+        match self {
+            Children::Map(keys) => {
+                let mut emptied: Option<Segment> = None;
+                for (key, slots) in keys.iter_mut() {
+                    if slots.get(&tier) == Some(&reference) {
+                        slots.remove(&tier);
+                        if slots.is_empty() {
+                            emptied = Some(key.clone());
+                        }
+                        break;
+                    }
+                }
+                if let Some(key) = emptied {
+                    keys.remove(&key);
+                }
+            }
+            Children::Vec(positions) => {
+                if let Some(position) = positions
+                    .iter()
+                    .position(|slots| slots.get(&tier) == Some(&reference))
+                {
+                    if close_up {
+                        positions.remove(position);
+                    } else {
+                        positions[position].remove(&tier);
+                    }
+                }
+            }
+        }
+    }
+
+    /// `§1.3`/`§4.2` `R-3`: **a `VEC`'s index keys are *"non-negative integers, contiguous from `0`"`** —
+    /// **the positions ARE the indices**, so the structure is renumbered by re-keying each surviving
+    /// anchor to the position it now stands at. Each anchor keeps its own tier and points to the same
+    /// node; only the index it stands at moves, so no node is minted, none is dropped and every surviving
+    /// node stays reachable from the container's own (dense, from `0`) read (`§5.5`).
+    fn renumber(&self) -> Vec<(usize, u64)> {
+        match self {
+            Children::Map(_) => Vec::new(),
+            Children::Vec(positions) => positions
+                .iter()
+                .enumerate()
+                .flat_map(|(position, slots)| {
+                    slots
+                        .values()
+                        .copied()
+                        .map(move |reference| (reference, position as u64))
+                })
+                .collect(),
+        }
+    }
+}
+
+/// One key's own anchors, rank DESCENDING — so the store's canonical order (`§5.1`: `file`, `mem`, `temp`)
+/// is a property of the structure rather than of the order a hash table happened to walk in.
+fn rank_ordered(slots: Option<&HashMap<Tier, usize>>, rank: &impl Fn(usize) -> u8) -> Vec<usize> {
+    let Some(slots) = slots else {
+        return Vec::new();
+    };
+    let mut ordered: Vec<usize> = slots.values().copied().collect();
+    ordered.sort_by_key(|reference| std::cmp::Reverse(rank(*reference)));
+    ordered
 }
 
 /// `§1.1`: the two node kinds.
@@ -227,7 +435,7 @@ impl Store {
             nodes: vec![Node::Branch(0)],
             links: vec![Link {
                 container: Kind::Map,
-                children: Vec::new(),
+                children: Children::map(),
                 is_register: true,
             }],
             refs: vec![NodeRef {
@@ -266,9 +474,13 @@ impl Store {
     }
 
     fn new_link(&mut self, container: Kind) -> usize {
+        let children = match container {
+            Kind::Map => Children::map(),
+            Kind::Vec => Children::vec(),
+        };
         self.links.push(Link {
             container,
-            children: Vec::new(),
+            children,
             is_register: false,
         });
         self.links.len() - 1
@@ -290,28 +502,42 @@ impl Store {
         }
     }
 
-    /// The container's keys, distinct, in the container's own iteration (a `MAP`'s is unordered and this
-    /// store declares no order over it; the spelling sort only makes the GENERATED MESSAGES deterministic,
-    /// which `§8.2` property (a) requires).
+    /// The tier an anchor stands at. **It is the composite key's second half and it lives in the anchor**
+    /// (`§1.2`, `A34`), so the declared child container asks the arena for it rather than holding a copy.
+    fn tier_of(&self, reference: usize) -> Tier {
+        self.refs[reference].anchor.tier
+    }
+
+    /// The rank `Children`'s own queries sort by, bound to this instance's arena.
+    fn rank_of(&self) -> impl Fn(usize) -> u8 + '_ {
+        move |reference| self.refs[reference].anchor.tier.rank()
+    }
+
+    /// **`§4.2` `R-1`/`R-2` — THE CONTAINER'S KEYS.** **A keyed container answers with the HASHMAP'S OWN
+    /// KEY SET** (`P: §1` line 96: *"hashmap, convert to an object, using the same keys"*), which is
+    /// distinct by construction — **the `contains` dedup scan is gone with the scan**. **The keys are then
+    /// put in spelling order, and that sort is the ONLY thing that orders them:** a `MAP`'s own iteration
+    /// is *"unordered — the store declares no order over a `MAP`'s children"* (`store-model.md §1.3`), and
+    /// the spelling sort exists so the GENERATED MESSAGES and a `MAP`'s assembled member list are
+    /// DETERMINISTIC, which `§8.2` property (a) requires. An ARRAY container answers its index keys
+    /// `0..len`, which ARE both its order and its contiguity (`§1.3`, `R-3`).
     fn keys_at(&self, link: usize) -> Vec<Segment> {
-        let mut keys: Vec<Segment> = Vec::new();
-        for reference in &self.links[link].children {
-            let key = self.refs[*reference].anchor.key.clone();
-            if !keys.contains(&key) {
-                keys.push(key);
-            }
-        }
-        keys.sort_by_key(|k| k.spelling());
+        let mut keys = self.links[link].children.key_set();
+        keys.sort_by_key(|key| key.spelling());
         keys
     }
 
+    /// **THE KEYED ACCESS — `O(1)`, BY CONSTRUCTION.** It is a lookup in the declared structure, not a
+    /// scan of the siblings, and it allocates only when a key holds more than one anchor (at most the
+    /// three tiers, `A34`).
     fn refs_at(&self, link: usize, key: &Segment) -> Vec<usize> {
-        self.links[link]
-            .children
-            .iter()
-            .copied()
-            .filter(|reference| self.refs[*reference].anchor.key == *key)
-            .collect()
+        let rank = self.rank_of();
+        self.links[link].children.at(key, rank)
+    }
+
+    /// The one reference standing at `(key, tier)`, or none — **the answer `A34` bounds to `0` or `1`**.
+    fn pair_at(&self, link: usize, key: &Segment, tier: Tier) -> Option<usize> {
+        self.links[link].children.pair(key, tier)
     }
 
     fn canonical(&self, mut references: Vec<usize>) -> Vec<usize> {
@@ -319,31 +545,37 @@ impl Store {
         references
     }
 
-    fn remove_refs(&mut self, link: usize, doomed: &[usize]) {
+    /// Drop every anchor in `doomed` from the container, **by the pair each one stands at** — so the
+    /// removal costs what the doomed set costs and never a scan of the surviving siblings.
+    ///
+    /// `close_up` is the CALLER'S own distinction between the two states a removal serves, and it is the
+    /// store's, not this helper's: **the WRITE arms (`W-1`'s replacement, `W-6`'s purge, the re-mint) and
+    /// every rebuild clear a pair whose INDEX stays occupied, so no gap is opened and no renumbering is
+    /// owed; a DELETE removes the index itself, so its position closes up and `renumber_vec` re-keys the
+    /// survivors (`§1.3`/`R-3`).**
+    fn remove_refs(&mut self, link: usize, doomed: &[usize], close_up: bool) {
         if doomed.is_empty() {
             return;
         }
-        self.links[link]
-            .children
-            .retain(|reference| !doomed.contains(reference));
+        for reference in doomed {
+            let tier = self.tier_of(*reference);
+            self.links[link]
+                .children
+                .remove(*reference, &|_held| tier, close_up);
+        }
     }
 
     /// `§1.3`/`§4.2` `R-3`: **a `VEC`'s index keys are *"non-negative integers, contiguous from `0`"`** —
-    /// so after a removal that would leave a gap, the surviving anchors are renumbered in the container's
-    /// index order, from `0` and one step each. Each anchor keeps its own tier and points to the same node;
-    /// only the index it stands at moves, so no node is minted, none is dropped and every surviving node
-    /// stays reachable from the container's own (dense, from `0`) read (`§5.5`).
+    /// **the positions ARE the indices, so a removal closes the gap by construction and this pass only
+    /// re-keys each surviving anchor to the position it now stands at.** Each anchor keeps its own tier and
+    /// points to the same node; only the index it stands at moves, so no node is minted, none is dropped
+    /// and every surviving node stays reachable from the container's own (dense, from `0`) read (`§5.5`).
     fn renumber_vec(&mut self, link: usize) {
         if self.links[link].container != Kind::Vec {
             return;
         }
-        let mut order: Vec<usize> = self.links[link].children.clone();
-        order.sort_by_key(|reference| match self.refs[*reference].anchor.key {
-            Segment::Index(index) => index,
-            _ => u64::MAX,
-        });
-        for (position, reference) in order.into_iter().enumerate() {
-            self.refs[reference].anchor.key = Segment::Index(position as u64);
+        for (reference, index) in self.links[link].children.renumber() {
+            self.refs[reference].anchor.key = Segment::Index(index);
         }
     }
 
@@ -490,7 +722,12 @@ impl Store {
                 match self.links[link].container {
                     Kind::Map => {
                         let mut members = BTreeMap::new();
-                        for key in self.keys_at(link) {
+                        // **`P: §1` line 96 — *"hashmap, convert to an object, using the same keys"*: the
+                        // walk iterates THE KEYED STRUCTURE'S OWN KEYS**, so the `contains` dedup scan and
+                        // the per-key `refs_at` scan are gone and each member costs its own pair lookup.
+                        let mut keys = self.links[link].children.key_set();
+                        keys.sort_by_key(|key| key.spelling());
+                        for key in keys {
                             let child = match self.select_member(link, &key, sel) {
                                 Some(child) => child,
                                 // `§4.2` (b): the key's anchors lie at no passed tier, so the member is
@@ -510,27 +747,22 @@ impl Store {
                     }
                     Kind::Vec => {
                         let mut items = Vec::new();
-                        let mut index = 0u64;
-                        loop {
-                            let key = Segment::Index(index);
-                            if self.refs_at(link, &key).is_empty() {
-                                break;
-                            }
+                        // **`P: §1` line 95 — *"If the downstream link is a vec, convert to array"*: the
+                        // container's positions ARE its contiguous indices (`§1.3`, `R-3`), so the walk
+                        // takes each position in index order and needs no key test to know it holds one.**
+                        for index in 0..self.links[link].children.len() {
+                            let key = Segment::Index(index as u64);
                             // `§4.2` (b) + `R-3`: an omitted element contributes no entry, so the
                             // assembled array stays DENSE FROM `0` — its length is the count of the
                             // container's index keys the passed set selects.
                             let child = match self.select_member(link, &key, sel) {
                                 Some(child) => child,
-                                None => {
-                                    index += 1;
-                                    continue;
-                                }
+                                None => continue,
                             };
                             address.push(key);
                             let value = self.assemble(child, sel, address)?;
                             address.pop();
                             items.push(value);
-                            index += 1;
                         }
                         Ok(StoreValue::Array(items))
                     }
@@ -558,17 +790,16 @@ impl Store {
                 match self.links[link].container {
                     Kind::Map => {
                         let mut members = BTreeMap::new();
-                        for key in self.keys_at(link) {
+                        // The keyed structure's OWN keys, and the pair's OWN entry (`A34`'s `0`-or-`1`),
+                        // rather than a per-key scan of the key's anchors.
+                        let mut keys = self.links[link].children.key_set();
+                        keys.sort_by_key(|key| key.spelling());
+                        for key in keys {
                             let name = match &key {
                                 Segment::Key(name) => name.clone(),
                                 other => other.spelling(),
                             };
-                            let matching: Vec<usize> = self.refs_at(link, &key);
-                            let found = matching
-                                .iter()
-                                .copied()
-                                .find(|r| self.refs[*r].anchor.tier == tier);
-                            if let Some(child) = found {
+                            if let Some(child) = self.pair_at(link, &key, tier) {
                                 members.insert(name, self.assemble_at_tier(child, tier));
                             }
                         }
@@ -576,19 +807,12 @@ impl Store {
                     }
                     Kind::Vec => {
                         let mut items = Vec::new();
-                        let mut index = 0u64;
-                        loop {
-                            let key = Segment::Index(index);
-                            let matching: Vec<usize> = self.refs_at(link, &key);
-                            let found = matching
-                                .iter()
-                                .copied()
-                                .find(|r| self.refs[*r].anchor.tier == tier);
-                            match found {
+                        for index in 0..self.links[link].children.len() {
+                            let key = Segment::Index(index as u64);
+                            match self.pair_at(link, &key, tier) {
                                 Some(child) => items.push(self.assemble_at_tier(child, tier)),
                                 None => break,
                             }
-                            index += 1;
                         }
                         StoreValue::Array(items)
                     }
@@ -602,10 +826,7 @@ impl Store {
         let mut members = BTreeMap::new();
         for key in self.keys_at(self.register) {
             let Segment::Key(name) = &key else { continue };
-            let file_anchor = self
-                .refs_at(self.register, &key)
-                .into_iter()
-                .find(|r| self.refs[*r].anchor.tier == Tier::File);
+            let file_anchor = self.pair_at(self.register, &key, Tier::File);
             if let Some(reference) = file_anchor {
                 members.insert(name.clone(), self.assemble_at_tier(reference, Tier::File));
             }
@@ -656,24 +877,60 @@ impl Store {
     /// anchor the write mints carries the write's tier (`DD-10`), and `(key, tier)` is the composite key —
     /// at most one child anchor per pair (`P: §15 · A34`).
     fn mint(&mut self, link: usize, key: Segment, tier: Tier, value: &StoreValue) -> usize {
-        let same_pair: Vec<usize> = self
-            .refs_at(link, &key)
-            .into_iter()
-            .filter(|reference| self.refs[*reference].anchor.tier == tier)
-            .collect();
-        self.remove_refs(link, &same_pair);
+        self.install(link, key, tier, value, false)
+    }
+
+    /// **⟶ STEP (a) OF THE REPAIR, 2026-10-11 (`DEF-18`; the architect's own observation at
+    /// `docs/specs/storeroom-js-rca-scaling.md §5-bis` — *"The write doesn't have to look up the written
+    /// siblings, it only has to check the index/tier the write occurs at, which is O(1)"*) — THE VACUOUS
+    /// SAME-PAIR LOOKUP IS REMOVED, and the GENUINE one is kept exactly where it is owed:**
+    ///
+    /// * **`fresh` is TRUE at the two recursion sites below and nowhere else** — each of them calls
+    ///   `new_link` first, whose `Children` begins EMPTY, and then installs into it **once per member of
+    ///   the value being written (its object's distinct names, its array's contiguous indices)**. **No
+    ///   `(key, tier)` pair can stand there**, so the same-pair access is provably empty and the lookup
+    ///   and its removal are skipped: **the `Σ k ≈ n²/2` the RCA measured is gone from a container write,
+    ///   and this holds whatever structure the container uses.**
+    /// * **`fresh` is FALSE at every write site — `mint` from `write` (`W-1`'s replacement, `W-6`'s purge
+    ///   and the re-mint arm), from `rebuild`'s two levels, and from the boot's `boot_load`** — so **the
+    ///   GENUINE same-pair lookup still runs there and still removes the anchor standing at the pair**,
+    ///   which is `A34`'s one-anchor-per-pair rule and the write arms' own replacement semantics. The
+    ///   removal at those sites is bounded by the tier count, exactly as `§5-bis` (2) states.
+    ///
+    /// The pair is resolved through the declared structure's own `O(1)` access, so the lookup that IS owed
+    /// costs one pair's own answer rather than a scan of the siblings.
+    fn install(
+        &mut self,
+        link: usize,
+        key: Segment,
+        tier: Tier,
+        value: &StoreValue,
+        fresh: bool,
+    ) -> usize {
+        if !fresh {
+            if let Some(doomed) = self.pair_at(link, &key, tier) {
+                debug_assert_eq!(
+                    self.links[link].container,
+                    self.links[link].children.kind(),
+                    "the kind marker and the declared structure agree"
+                );
+                // A REPLACEMENT: the index the pair stands at stays occupied by the anchor installed
+                // below, so no position closes up and no renumbering runs.
+                self.remove_refs(link, &[doomed], false);
+            }
+        }
         let node = match value {
             StoreValue::Object(members) => {
                 let child_link = self.new_link(Kind::Map);
                 for (name, member) in members {
-                    self.mint(child_link, Segment::Key(name.clone()), tier, member);
+                    self.install(child_link, Segment::Key(name.clone()), tier, member, true);
                 }
                 self.new_node(Node::Branch(child_link))
             }
             StoreValue::Array(items) => {
                 let child_link = self.new_link(Kind::Vec);
                 for (index, item) in items.iter().enumerate() {
-                    self.mint(child_link, Segment::Index(index as u64), tier, item);
+                    self.install(child_link, Segment::Index(index as u64), tier, item, true);
                 }
                 self.new_node(Node::Branch(child_link))
             }
@@ -684,13 +941,15 @@ impl Store {
         // reference in the store passes through.
         let reference = self.new_ref(
             ChildAnchor {
-                key,
+                key: key.clone(),
                 tier,
                 register_marker: false,
             },
             node,
         );
-        self.links[link].children.push(reference);
+        // The one install: a keyed container files the anchor under its own key and tier, an array
+        // container places it at its own contiguous index (`§1.3`).
+        self.links[link].children.install(key, tier, reference);
         reference
     }
 
@@ -803,7 +1062,7 @@ impl Store {
         // Clear the pair before writing it: every version's node is minted fresh, so no version from the
         // operation's own attempt may stand beside them.
         let doomed = self.refs_at(base, &key);
-        self.remove_refs(base, &doomed);
+        self.remove_refs(base, &doomed, false);
         for entry in ordered_one_anchor(own) {
             self.mint(base, key.clone(), entry.tier, &entry.value);
         }
@@ -825,7 +1084,7 @@ impl Store {
                 // (`§3.3` item 1: the new node is added UNLESS the resolved node was a leaf).
                 let tier = self.refs[anchor].anchor.tier;
                 let doomed = vec![anchor];
-                self.remove_refs(base, &doomed);
+                self.remove_refs(base, &doomed, false);
                 let replacement = self.mint(
                     base,
                     last.clone(),
@@ -848,7 +1107,7 @@ impl Store {
                 continue;
             };
             let doomed = self.refs_at(link, &last);
-            self.remove_refs(link, &doomed);
+            self.remove_refs(link, &doomed, false);
             for entry in ordered_one_anchor(&own) {
                 self.mint(link, last.clone(), entry.tier, &entry.value);
             }
@@ -1246,7 +1505,7 @@ impl Store {
                 }
             }
         }
-        self.remove_refs(parent_link, &doomed);
+        self.remove_refs(parent_link, &doomed, false);
         self.mint(parent_link, key, write_tier, &value);
         let before = self.state_from_captured(&segments, &captured);
         let op = JournalOp {
@@ -1370,9 +1629,11 @@ impl Store {
                 tiers.push(tier);
             }
         }
+        // **A DELETE removes the index itself**: an array container's position closes up and the
+        // survivors are renumbered (`§1.3`/`R-3`, `renumber_vec` below).
         match &key {
-            Some(_) => self.remove_refs(link, &removed),
-            None => self.remove_refs(self.register, &removed),
+            Some(_) => self.remove_refs(link, &removed, true),
+            None => self.remove_refs(self.register, &removed, true),
         }
         if matches!(key, Some(Segment::Index(_))) {
             // `§1.3`: a `VEC`'s key domain is *"index keys — non-negative integers, contiguous from

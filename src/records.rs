@@ -9,7 +9,12 @@ use crate::value::Segment;
 use std::cmp::Ordering;
 
 /// `§5.1`: exactly three tokens, ranked `file > mem > temp` — `M-1`'s total and strict order.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+///
+/// **`Hash` IS THE KEYED CONTAINER'S INNER KEY** (`P: §13 · A22` · `A34` · `DD-10`): a keyed link's children
+/// ARE the hashmap the architect's decision rules (`P: §1` line 42), keyed by the SEGMENT, and **each key's
+/// own inner entry is keyed by the TIER** — because *"at most ONE child anchor per key/index and tier"* is
+/// the composite key, so two versions of one key are two anchors and each stands under its own tier.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Tier {
     File,
     Mem,
