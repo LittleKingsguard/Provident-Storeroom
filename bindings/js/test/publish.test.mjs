@@ -174,6 +174,7 @@ process.on('exit', () => { try { rmSync(SCRATCH_ROOT, { recursive: true, force: 
 
 const DRIVER = `
 import { createRequire } from 'node:module';
+import { existsSync } from 'node:fs';
 const MARK = '__PUBRED__';
 const STUB = process.env.PUBRED_STUB;
 const req = createRequire(import.meta.url);
@@ -194,12 +195,13 @@ function recordArm(err) {
     if (own.length === 2 && own.includes('status') && own.includes('message') && !(err instanceof Error)
         && CLOSED_SET.includes(err.status)) {
       report.arm = { status: err.status, message: err.message };
-    } else {
-      report.arm = { notTheArm: true, name: err.constructor ? err.constructor.name : 'unknown', code: err.code ?? null, message: String(err.message ?? err).slice(0, 200) };
+      return true; // THE DECLARED ARM — the answer, and NOT an absorbed state
     }
-  } else {
-    report.arm = { notTheArm: true, thrownClass: typeof err, message: String(err).slice(0, 200) };
+    report.arm = { notTheArm: true, name: err.constructor ? err.constructor.name : 'unknown', code: err.code ?? null, message: String(err.message ?? err).slice(0, 200) };
+    return false;
   }
+  report.arm = { notTheArm: true, thrownClass: typeof err, message: String(err).slice(0, 200) };
+  return false;
 }
 const report = {
   platform: process.platform, arch: process.arch,
@@ -228,7 +230,20 @@ try {
   report.verbs = Object.keys(mod).sort();
 } catch (err) {
   report.ok = false;
-  recordArm(err);
+  // **⟶ ASSIGNED BY THE RED-SET REPAIR PASS (\`PUB-RED-2\`, \`PUB-R-6\`): \`report.error\` WAS READ BY FOUR CELLS
+  // AND ASSIGNED NOWHERE, SO THE THREE *"no state is absorbed silently"* ASSERTIONS COULD NOT FAIL FOR ANY
+  // STATE OF THE TREE.** The reading is now what the field's own name and \`§1.4\` item 3 declare: **EVERY
+  // THROW THAT IS NOT THE DECLARED ARM IS AN ABSORBED STATE** — a host \`Error\`, an unhandled failure inside
+  // the entry — and it is recorded HERE, with its class and its message, while the declared arm is recorded
+  // as the arm and leaves this field \`null\`, because a state ANSWERED by the declared form was never
+  // absorbed. \`recordArm\` therefore reports WHICH of the two it saw, and its verdict is what decides.
+  const wasTheArm = recordArm(err);
+  if (!wasTheArm) {
+    report.error = {
+      name: err && err.constructor ? err.constructor.name : 'unknown',
+      message: String(err && err.message ? err.message : err).slice(0, 200),
+    };
+  }
 }
 if (STUB) {
   // \`report.stub\` IS THE FAKE CANDIDATE'S OWN REPORT, **AND IT IS READ ONLY WHERE THE ATTEMPT SET SHOWS THE
@@ -239,8 +254,33 @@ if (STUB) {
   // \`NOT COVERED\` row attempts NO name, so the attempt set carries none and the report is \`null\`.
   const FIVE = ${JSON.stringify(FIVE_NAMES)};
   const reachedRungOne = report.attempts.some((a) => FIVE.includes(String(a)));
-  if (reachedRungOne) {
-    try { report.stub = req(STUB).report; } catch (e) { report.stub = { reportError: String(e) }; }
+  // **AND THE CANDIDATE'S OWN FILE IS CHECKED FOR BEFORE THE READ IS ATTEMPTED, WHICH IS WHAT MAKES THE
+  // SURFACING BELOW A FACT AND NOT AN ALARM.** \`PUBRED_STUB\` names the file the DRIVE installed; the cells
+  // that REMOVE a fake to drive a rung-one miss (\`publish.test.mjs\`'s rung-three and covered-absent cells)
+  // remove the file with it, and the name is still in the attempt set because rung one WAS tried. A read of a
+  // file a cell deliberately removed is not a state to report: the entry's own arm is. **SO A MISSING FILE
+  // MEANS "there was nothing to read" and the report is \`null\`, exactly as it is where rung one was never
+  // tried at all** — while ANY OTHER failure of the read is genuinely unreadable and is surfaced in
+  // \`report.error\` rather than swallowed (see the block below).
+  const readAttempted = reachedRungOne && STUB && existsSync(STUB);
+  if (readAttempted) {
+    // **⟶ REPAIRED BY THE RED-SET REPAIR PASS (\`PUB-RED-2\`, \`PUB-R-12\`): THE OBSERVER'S OWN RE-REQUIRE
+    // FAILURE IS NOW SURFACED WHERE A CELL READS IT.** The shipped form wrote it to \`report.stub.reportError\`
+    // — a member NO CELL OF THIS SET INSPECTS — so the load path reached the rung-one name, the observer's own
+    // \`req(STUB)\` failed, and the only record of it was a field nothing read: a cell doing \`r.stub.calls.version\`
+    // then read \`undefined\` against \`1\` and reported **a version failure at the wrong site**. **\`report.error\`
+    // IS THE FIELD THIS SET READS AS "an absorbed state", AND AN OBSERVER THAT COULD NOT READ THE ARTEFACT IT
+    // WAS ASKED TO REPORT IS EXACTLY THAT**: the failure is recorded there with its own name, so it surfaces at
+    // \`assertRefusedOutcome\` and at the \`S-ONEARM\` loop instead of being mis-attributed to the read.
+    try {
+      report.stub = req(STUB).report;
+    } catch (e) {
+      report.stub = null;
+      report.error = {
+        name: 'StubReportUnreadable',
+        message: String(e && e.message ? e.message : e).slice(0, 200),
+      };
+    }
   } else {
     report.stub = null;
   }
@@ -280,8 +320,8 @@ if (arch) Object.defineProperty(process, 'arch', { value: arch, configurable: tr
  * UNSATISFIABLE BY ANY IMPLEMENTATION. **SO THE FAKE CONSTRUCTS FOR THE STATES THAT DECLARE SUCCESS
  * (PUB-CF-9) AND KEEPS ITS THROW FOR `call` AND `register`, which no cell of this set reaches.**
  */
-function stubSource(variant) {
-  const VALUE = {
+function stubSource(variant, opts = {}) {
+  const VARIANT_VERSION = {
     right: "'0.1.0'",
     wrong: "'9.9.9'", // `PUB-DD-19`: a different string is the mismatch arm
     empty: "''", // and an empty string alike
@@ -289,12 +329,23 @@ function stubSource(variant) {
     notcallable: '42', // and an `addon.version` that is not callable alike
   };
   const callable = variant !== 'notcallable';
+  // **`fromOwnManifest` (`PUB-R-8` / `NG-PUB-D`'s sibling): THE FAKE ANSWERS THE `version` ITS OWN
+  // `package.json` DECLARES, READ AT CALL TIME** — so a scratch manifest whose `version` DIFFERS from the
+  // literal this file would otherwise hardcode forces the ENTRY'S READ SOURCE apart from the artefact's
+  // answer. Without it the scratch manifest and the fake carried the SAME literal `0.1.0` in every drive, so
+  // a load that read the version from the platform package's own manifest, from a constant, or from the
+  // environment passed all six `P-PUB-4` cells: the clause's own *"never passed in, configured or defaulted"*
+  // half had no drive at all. **THE ARTEFACT'S OWN MANIFEST IS THE ONE HOME A CANDIDATE MAY LAWFULLY READ ITS
+  // OWN VERSION FROM**, so this is a faithful artefact and not a doctored one.
+  const versionValue = opts.fromOwnManifest
+    ? "JSON.parse(require('node:fs').readFileSync(require('node:path').join(__dirname, 'package.json'), 'utf8')).version"
+    : VARIANT_VERSION[variant];
   return `'use strict';
 // THE FAKE CANDIDATE: this stands where a platform package's resolution would land. Variant: ${variant}.
 const calls = { version: 0, storeCreate: 0 };
 const GEN_TAIL = ${JSON.stringify(GEN_TAIL)};
 const report = { variant: ${JSON.stringify(variant)}, calls, loadError: null };
-function versionValue() { return ${VALUE[variant]}; }
+function versionValue() { return ${versionValue}; }
 const versionMember = ${callable}
   ? function () { calls.version += 1; return versionValue(); }
   : versionValue(); // PUB-DD-19's non-callable arm: 42 is not a function
@@ -348,22 +399,29 @@ module.exports = api;
 `;
 }
 
-function writeStub(dir, variant) {
+function writeStub(dir, variant, opts = {}) {
   mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, 'index.js'), stubSource(variant));
-  writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'stub', version: '0.1.0', main: 'index.js' }, null, 2));
+  writeFileSync(join(dir, 'index.js'), stubSource(variant, opts));
+  // **THE FAKE'S OWN `version` IS THE ONE ITS OWN MANIFEST DECLARES, AND `PUB-R-8`'s DRIVE MAKES IT DIFFER
+  // FROM THE SCRATCH PACKAGE'S**: where `opts.manifestVersion` is given, the artefact's manifest carries it
+  // and the fake answers THAT string at call time, so the entry's read source is forced apart from it.
+  writeFileSync(join(dir, 'package.json'), JSON.stringify({
+    name: 'stub', version: opts.manifestVersion ?? '0.1.0', main: 'index.js',
+  }, null, 2));
   return join(dir, 'index.js');
 }
 
 /**
  * ASSEMBLE ONE SCRATCH TREE for a drive. `rungOne` installs a fake platform artefact (by name), `rungTwo`
- * writes the candidate rung two, `rungTwoDecoy` marks the `PAR-PUB-30` outside-value drive.
+ * writes the candidate rung two, `rungTwoDecoy` marks the `PAR-PUB-30` outside-value drive, and
+ * `manifestVersion` fixes the version the SCRATCH PACKAGE'S OWN MANIFEST declares — which `§1.5` item 1
+ * makes the ONE source the read may take it from.
  */
-function makeScratch({ label, rungOne, rungTwo = 'absent', rungTwoDecoy = null, parentDecoy = false, env = {} }) {
+function makeScratch({ label, rungOne, rungTwo = 'absent', rungTwoDecoy = null, parentDecoy = false, env = {}, manifestVersion = '0.1.0' }) {
   const dir = mkdtempSync(join(SCRATCH_ROOT, `${label.replace(/[^a-zA-Z0-9-]/g, '_')}-`));
   writeFileSync(join(dir, 'index.mjs'), readFileSync(join(PKG_DIR, 'index.mjs')));
   writeFileSync(join(dir, 'package.json'), JSON.stringify({
-    name: 'provident-storeroom', version: '0.1.0', type: 'module',
+    name: 'provident-storeroom', version: manifestVersion, type: 'module',
     exports: { '.': { import: './index.mjs' } },
   }, null, 2));
   writeFileSync(join(dir, 'preload.cjs'), PRELOAD);
@@ -371,7 +429,7 @@ function makeScratch({ label, rungOne, rungTwo = 'absent', rungTwoDecoy = null, 
   let stubFile = null;
   if (rungOne) {
     const parts = rungOne.name.split('/');
-    stubFile = writeStub(join(dir, 'node_modules', ...parts), rungOne.variant);
+    stubFile = writeStub(join(dir, 'node_modules', ...parts), rungOne.variant, rungOne);
   }
   if (rungTwo === 'valid') {
     mkdirSync(join(dir, 'build', 'Release'), { recursive: true });
@@ -420,8 +478,9 @@ function drive(env, { platform, arch, cwd = env.dir, extraEnv = {} }) {
 function coveredEnv(key, variant, opts = {}) {
   return makeScratch({
     label: `cov-${key.label}-${variant}`,
-    rungOne: { name: key.name, variant },
+    rungOne: { name: key.name, variant, ...(opts.rungOne ?? {}) },
     rungTwo: opts.rungTwo ?? 'broken',
+    manifestVersion: opts.manifestVersion ?? '0.1.0',
   });
 }
 
@@ -477,6 +536,27 @@ function assertNoFallback(report) {
     'no drive may both return an instance and answer the arm');
   assert.ok(report.returned === true || report.arm !== null,
     'the outcome is `success` or the one arm — never a fourth outcome (`§1.4` item 3)');
+}
+
+/**
+ * **`PAR-PUB-29` (`S-TAG`) — THE TAG, RESOLVED IN THE REPOSITORY RATHER THAN COMPUTED IN THE TEST.**
+ * `contract.md §3.2` item 1: *"The tag's form is `v<major>.<minor>.<patch>`, the MAIN package's `version` is
+ * that tag's version, and NO publication happens from an untagged commit"*; `parameter-semantics.md §4.5`
+ * (`PAR-PUB-29`): the tag's domain is *"`v<major>.<minor>.<patch>`, whose version is the MAIN package's
+ * `version`"*, and its first outside value is *"an untagged commit's head → REFUSED"*.
+ *
+ * **THE INSTRUMENT IS `git`'s OWN RESOLUTION AND IT IS NOT A STRING THIS FILE BUILT** (`PUB-R-9`): the
+ * shipped cell asserted `tagRule.test('v' + manifest.version)`, a regex applied to a string the test
+ * composed from the version itself — a predicate that holds for every three-component version there could
+ * ever be, and therefore asserts nothing about the tree. `git tag --list` is asked for the ONE name the
+ * coupling fixes, and its answer is the fact. **ITS RESOLUTION IS NOT VACUOUS, AND THE GENERATOR
+ * `NG-PUB-J` PROVES THAT WITH A CONTROL**: the same call finds a tag in a scratch repository that has one.
+ */
+function resolveTagVersion(repo, version) {
+  const listed = execFileSync('git', ['-C', repo, 'tag', '--list', `v${version}`], {
+    encoding: 'utf8', timeout: 30000,
+  }).trim();
+  return { listed, present: listed === `v${version}` };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -929,6 +1009,42 @@ cell('P-PUB-4', 'S-VERSION the mismatch predicate is exact equality, not a range
   const ok = drive(matchEnv, { platform: COVERED[0].platform, arch: COVERED[0].arch });
   assert.equal(ok.ok, true, 'the converse: the SAME character sequence loads');
   assert.equal(ok.stub.calls.version, 1, 'and it was read');
+});
+
+cell('P-PUB-4', 'S-VERSION the version is read from the PACKAGE\'S OWN MANIFEST, not passed in', async () => {
+  // **⟶ ADDED BY THE RED-SET REPAIR PASS (`PUB-RED-2`, `PUB-R-8`): THE READ'S SOURCE HAD NO DRIVE.**
+  // `§1.5` item 1: *"The package's own version is READ FROM THE PACKAGE'S OWN MANIFEST — the same artefact
+  // whose `version` the release's tag fixes — and NEVER PASSED IN, CONFIGURED OR DEFAULTED."* Before this
+  // cell, `makeScratch` wrote its scratch manifest with the literal `0.1.0` and the fake artefact answered
+  // the SAME literal in every drive, so a load that read the version from the PLATFORM PACKAGE'S OWN MANIFEST,
+  // from a constant, or from the environment passed ALL SIX `P-PUB-4` cells: the clause's second half had no
+  // observable at all. **THE TWO HOMES ARE FORCED APART HERE**: the scratch PACKAGE's manifest declares
+  // `0.9.0` while the SUBSTITUTED ARTEFACT answers the version ITS OWN manifest declares — `0.1.0` — so
+  // nothing but a read of the package's own manifest can produce the match asserted below.
+  const key = COVERED[0];
+  const differ = coveredEnv(key, 'right', {
+    rungTwo: 'broken', manifestVersion: '0.9.0', rungOne: { fromOwnManifest: true, manifestVersion: '0.1.0' },
+  });
+  const r = drive(differ, { platform: key.platform, arch: key.arch });
+  assert.equal(r.stub?.calls?.version, 1, 'the read is still PERFORMED — the instrument is wired');
+  assert.ok(r.arm !== null && r.arm.notTheArm !== true,
+    'the artefact answers `0.1.0` while the package\'s own manifest declares `0.9.0`, so the EXACT-INEQUALITY '
+    + 'predicate of `PUB-DD-19` refuses it: a load that read the PLATFORM package\'s manifest, or a constant, '
+    + `or the environment, would have matched and returned an instance; got ${JSON.stringify(r).slice(0, 400)}`);
+  assert.equal(assertArm(r, { subject: key.name }).status, ARM_STATUS, 'and the refusal is the one declared arm');
+  assert.equal(r.returned, false, 'the mismatch state returns NO instance');
+  // AND THE CONVERSE, ON THE SAME LEVER: when the package's own manifest declares the SAME version the
+  // artefact answers, the same two homes AGREE and the load succeeds — so the cell above fails for the
+  // difference and not for the mechanism.
+  const agree = coveredEnv(key, 'right', {
+    rungTwo: 'broken', manifestVersion: '0.9.0', rungOne: { fromOwnManifest: true, manifestVersion: '0.9.0' },
+  });
+  const a = drive(agree, { platform: key.platform, arch: key.arch });
+  assert.equal(a.stub?.calls?.version, 1, 'the artefact answered its own manifest\'s version');
+  assert.equal(a.returned, true,
+    'the SAME lever with the two homes in agreement loads: the read\'s source is what the drive above moved');
+  assert.equal(a.arm, null, 'and no arm answers the match');
+  assert.equal(a.error, null, 'and nothing was absorbed');
 });
 
 cell('P-PUB-4', 'S-INPLACE a rung-two load performs NO version comparison', async () => {
@@ -1393,6 +1509,14 @@ cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` 
       'a battery\'s ASSERTION about the field (`A(\'JSG-12.9\', …)`) is not an authored declaration about the licence'],
     [join(PKG_DIR, 'test', 'package-entry.test.mjs'),
       'a test\'s ASSERTION about the field is not an authored declaration about the licence'],
+    // **⟶ ADDED BY THE RED-SET REPAIR PASS (`PUB-RED-2`): THE NEGATIVE GENERATORS' OWN FILE IS A THIRD
+    // ASSERTION HOME, AND IT IS EXCLUDED FOR THE SAME REASON AS THE TWO ABOVE.** `NG-PUB-I`'s declaration
+    // matcher is written out in that file as the regex literal `/["']license["']\s*[:=]/i` — the SHAPE of a
+    // declaration, quoted as an instrument and asserted AGAINST the shipped bytes rather than made about
+    // them. The cell below asserts the file carries no `"license":` KEY, so the exclusion is a named,
+    // contract-sourced home and not a silent hole.
+    [join(PKG_DIR, 'test', 'publish-generators.test.mjs'),
+      'the negative generators\' declaration MATCHER (`/["\']license["\']\\s*[:=]/i`) is an assertion instrument, not an authored declaration about the licence'],
   ]);
   const candidates = new Set([
     ...walk(PKG_DIR),
@@ -1448,10 +1572,14 @@ cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` 
 });
 
 cell('P-PUB-7', 'S-MANIFEST the licence notice travels with all six artefacts', async () => {
-  // `§2.3` item 2 / `PUB-DD-11` / `distribution.md §4.2`: EACH OF THE SIX ARTEFACTS carries a copy of the
-  // repository's own `LICENSE` — and the main package's own allowlist carries it, while each platform
-  // artefact's notice travels in ITS tarball, which `Q3-5` assembles. The per-artefact copy is NOT a fifth
-  // declaration site, and the count of artefacts carrying a notice is SIX.
+  // `§2.3` item 2 / `PUB-DD-11` / `distribution.md §4.2` item 1: EACH OF THE SIX ARTEFACTS carries a copy of
+  // the repository's own `LICENSE`. **AND THE MECHANISM IS THE RELEASE'S OWN ASSEMBLY STEP, NOT A `files`
+  // ENTRY** (`§4.3` item 2: *"the licence's TEXT reaches an artefact through the release's own assembly step,
+  // which copies the repository's `LICENSE` byte-for-byte into each artefact's tarball"*; `Q3-5`) — because
+  // `§2.1` item 1 fixes the MAIN package's allowlist as `index.mjs` · `README.md` · `index.d.ts` and NOTHING
+  // ELSE, so a `LICENSE` entry there would contradict the clause rather than satisfy this one. The five
+  // platform artefacts' allowlists DO carry the copy, because `§3.2` field 5 requires it of them (`PUB-R-1`).
+  // The per-artefact copy is NOT a fifth declaration site, and the count of artefacts carrying a notice is SIX.
   const mainManifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
   const repositoryLicence = readFileSync(join(REPO_ROOT, 'LICENSE'), 'utf8');
   assert.ok(repositoryLicence.includes('Provident-Storeroom'), 'the repository\'s own `LICENSE` names the programme');
@@ -1459,9 +1587,37 @@ cell('P-PUB-7', 'S-MANIFEST the licence notice travels with all six artefacts', 
     'and carries the architect\'s own copyright line (`PUB-DD-12`)');
   const noticeBearing = ['provident-storeroom', ...FIVE_NAMES];
   assert.equal(noticeBearing.length, 6, '`distribution.md §6.3`: SIX artefacts carry a notice');
-  const declaredFiles = mainManifest.files ?? [];
-  assert.ok(declaredFiles.includes('LICENSE') || true,
-    'the main package\'s own copy is assembled by the release\'s own step (`Q3`); its declared field is read here');
+  // **(1) THE MAIN PACKAGE'S OWN HALF, ASSERTED AS THE CONTRADICTION-FREE PAIR IT IS.** `§2.1` item 1 forbids
+  // a fourth allowlist entry, so the copy is an ARTEFACT-LEVEL fact and no `files` entry may carry it.
+  assert.deepEqual([...(mainManifest.files ?? [])].sort(), ['README.md', 'index.d.ts', 'index.mjs'],
+    '`§2.1` item 1: the main package\'s allowlist is `index.mjs` · `README.md` · `index.d.ts` and NOTHING ELSE');
+  assert.equal((mainManifest.files ?? []).includes('LICENSE'), false,
+    'and therefore no `LICENSE` `files` entry exists — the copy is the assembly step\'s, not the allowlist\'s');
+  assert.equal(mainManifest.license, 'AGPL-3.0', '`§2.3` item 1 site (i): the manifest\'s own field reads the declared spelling');
+  // **(2) THE DECLARED MECHANISM, READ AT THE HOME THAT CARRIES IT** — the shipped `README.md`, which `§2.1`
+  // item 3 makes the consumer-facing home of the distribution's answers, asserts the six-artefact claim AND
+  // names the assembly step that lands the copy. **THE SHIPPED FORM OF THIS CELL READ
+  // `declaredFiles.includes('LICENSE') || true`, WHICH IS UNFALSIFIABLE FOR EVERY VALUE OF THE TREE**
+  // (`PUB-R-5`): it is replaced here by the two claims the clause actually declares, each of them falsifiable.
+  const readme = readFileSync(join(PKG_DIR, 'README.md'), 'utf8').replace(/\n\s*/g, ' ');
+  assert.ok(/SIX artefacts/.test(readme) && /carries a copy of the repository's own `LICENSE`/.test(readme),
+    '`§2.3` item 2 / `distribution.md §4.2` item 1: the shipped `README.md` declares that EACH OF THE SIX '
+    + 'artefacts carries a copy — and a README that stated the opposite would fail HERE');
+  assert.ok(/assembly step/.test(readme),
+    '`§4.3` item 2 / `Q3-5`: and it names the release\'s own assembly step as the mechanism that lands the copy');
+  // **(3) THE FIVE PLATFORM ARTEFACTS' OWN HALF IS NOT ASSUMED HERE EITHER** — `§3.2` field 5 requires each
+  // allowlist to carry its `LICENSE` copy, and that is read at each manifest rather than inferred from the
+  // README or from a count.
+  const platformCopies = readdirSync(join(PKG_DIR, 'platforms')).sort().map((label) => {
+    const m = JSON.parse(readFileSync(join(PKG_DIR, 'platforms', label, 'package.json'), 'utf8'));
+    return { label, carries: (m.files ?? []).includes('LICENSE') };
+  });
+  assert.equal(platformCopies.length, 5, 'the five platform artefacts are the five homes the contract enumerates');
+  for (const { label, carries } of platformCopies) {
+    assert.equal(carries, true,
+      `\`§3.2\` field 5 / \`distribution.md §4.2\` item 1: ${label}'s allowlist carries the licence copy, because an `
+      + 'artefact that ships no copy ships no notice');
+  }
 });
 
 cell('P-PUB-7', 'S-MANIFEST the main package\'s identity, realm and one ESM entry', async () => {
@@ -1541,11 +1697,34 @@ cell('P-PUB-8', 'S-TAG no publish verb is declared by any tracked byte of the pa
       `the script \`${name}\` carries no publish, pack, tag or install verb`);
   }
   assert.equal(scripts.publish, undefined, 'no `publish` script exists');
-  assert.equal(manifest.publishConfig?.registry, undefined, '`PAR-PUB-9`: no registry override is declared');
-  // a publish from a BRANCH fails: the tag rule is `v<major>.<minor>.<patch>` and only the tag publishes.
+  // **THE `publishConfig` FIELD'S OWN CLAIM, STATED NO WIDER THAN THE FIELD CARRIES** (`PUB-R-9`): the field
+  // declares the release's ACCESS — a scoped platform name defaults to private, so `{ "access": "public" }`
+  // is what makes the five resolvable by the main package's install (`distribution.md §3.2` item 9;
+  // `PAR-PUB-9`). **IT DOES NOT DECLARE A REGISTRY AND IT DOES NOT CARRY THE TAG COUPLING**: the coupling's
+  // drive is `resolveTagVersion` below, and the field's absence here is read as *"no registry override"* and
+  // as nothing more. The earlier comment claimed this field asserted the release's publicness *and* the
+  // coupling; the field carries the first and cannot carry the second.
+  assert.equal(manifest.publishConfig?.registry, undefined,
+    '`PAR-PUB-9`: no registry override is declared — the field carries the access, not a registry');
+  assert.equal(manifest.publishConfig?.access, 'public',
+    '`PAR-PUB-9` / `A82`: what the field DOES declare is the release\'s public access');
+  // **⟶ REPAIRED BY THE RED-SET REPAIR PASS (`PUB-RED-2`, `PUB-R-9`): THE TAG IS NOW RESOLVED, NOT COMPUTED.**
+  // The shipped form asserted `tagRule.test(\`v${manifest.version}\`)` — a string BUILT IN THE TEST from the
+  // manifest's own version — which holds for `0.1.0` because `0.1.0` is three dot-separated numbers and
+  // therefore holds for EVERY version the manifest could carry. `§3.2` item 1 / `PAR-PUB-29` (*"version
+  // EQUALS tag; no publication happens from an untagged commit"*) was asserted by nothing. The resolution
+  // below reads `refs/tags/v<version>` IN THE REPOSITORY, so the coupling is a fact about this tree rather
+  // than a fact about the regex, and the tag's own FORM is still asserted beside it.
+  const resolution = resolveTagVersion(REPO_ROOT, manifest.version);
   const tagRule = /^v\d+\.\d+\.\d+$/;
   assert.ok(tagRule.test(`v${manifest.version}`), '`§3.2` item 1 / `PAR-PUB-29`: the tag\'s form is the version\'s');
   assert.ok(!tagRule.test('main') && !tagRule.test('HEAD'), '`§3.2` item 1: no publication from an untagged commit');
+  assert.equal(resolution.present, false,
+    `\`PAR-PUB-29\` / \`release.md §2.1\`: this tree is PRE-RELEASE, so \`v${manifest.version}\` resolves to NO tag — `
+    + 'and that absence is the declared state which makes "no publication from an untagged commit" true of this '
+    + `CHECKOUT. A tag here would be a release act, and no pass of this unit may perform one. (\`git tag --list\`: ${JSON.stringify(resolution.listed)})`);
+  assert.equal(resolution.listed, '',
+    'and no tag of that name exists at all — the resolution\'s own return value is read rather than a boolean');
 });
 
 cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests are absent today', async () => {
@@ -1571,14 +1750,69 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests are abs
         `${label}: the nine declared fields and no field not declared`);
       assert.equal(m.license, 'AGPL-3.0', '`PAR-PUB-22`: the platform manifest\'s own field reads `AGPL-3.0`');
       assert.deepEqual(m.publishConfig, { access: 'public' }, '`PAR-PUB-24`: a scoped name is private by default');
-      assert.ok(!(m.files ?? []).some((f) => f.endsWith('.node')), 'no binary is committed inside a platform directory');
+      // **⟶ REPAIRED BY THE RED-SET REPAIR PASS (`PUB-RED-2`, `PUB-R-1`): THIS CELL REQUIRED THE OMISSION
+      // THE CONTRACT REFUSES, AND THEREBY ASSERTED THE OPPOSITE OF THE CLAUSE IT SERVES.** The shipped form
+      // read `assert.ok(!(m.files ?? []).some((f) => f.endsWith('.node')), 'no binary is committed inside a
+      // platform directory')` — it took the `.node`'s ABSENCE FROM THE MANIFEST'S `files` as the observable
+      // of *"no binary is committed"*, while `PAR-PUB-21` and `distribution.md §3.2` item 5 carry the exact
+      // opposite requirement (*"the artefact's own allowlist carries ITS `.node` … an allowlist omitting the
+      // `.node` → REFUSED: rung one could not load it"*). **THE TWO CLAIMS ARE DIFFERENT AND BOTH ARE TRUE,
+      // AND THEY LIVE AT DIFFERENT HOMES**: what `files` must CARRY is the artefact's own published content
+      // (`§3.2` field 5 — the manifest that travels in the tarball), while what must NOT be committed is a
+      // BINARY IN THE TRACKED TREE (`§3.1`'s prohibition; `PAR-PUB-26`). The cell therefore asserts each at
+      // its own home: the allowlist CARRIES the `.node` at the one path its own `main` names, the licence
+      // copy travels beside it, and no tracked byte under `platforms/` is a `.node` at all.
+      assert.deepEqual(m.files, ['storeroom_js_binding.node', 'LICENSE', 'README.md'],
+        '`PAR-PUB-21` / `distribution.md §3.2` item 5: the artefact\'s allowlist CARRIES its own `.node` and '
+        + 'its licence copy — an allowlist omitting the `.node` cannot be loaded by rung one');
+      assert.equal(m.main, 'storeroom_js_binding.node',
+        '`§3.2` item 6: the `.node`\'s exposed path is the artefact\'s own package root, and `main` names it');
+      assert.ok(m.files.some((f) => f.endsWith('.node')), 'the allowlist carries a `.node`');
+      assert.equal(m.files.includes('LICENSE'), true,
+        '`§3.2` item 5 / `§4.2` item 1: the artefact ships no notice without its licence copy');
       assert.equal(m.optionalDependencies, undefined,
         '`distribution.md §3.3`: NO `optionalDependencies` field is declared on any platform artefact');
       assert.ok(!/musl/.test(JSON.stringify(m)), '`PAR-PUB-19`/`20`: no `libc` token in `os` or `cpu`');
+      // **⟶ ADDED BY THE RED-SET REPAIR PASS (`PUB-RED-2`, `PUB-R-10`, `NG-PUB-H`): THE FIVE MANIFESTS'
+      // `os`/`cpu` ARE READ AGAINST THE PAIR EACH ONE'S OWN `name` SPELLS.** No drive in the `61` or in the
+      // `241` compared the two halves of one artefact before this cell existed, so a copy-paste of
+      // `linux-x64`'s `os` into `darwin-arm64` — or a `cpu` that names the architecture the artefact was NOT
+      // built for — was invisible to every cell of the unit. **THE PROPERTY IS THE `§3.2` FIELD PAIR AGAINST
+      // THE NAME, AND IT IS NOT THE LOADER'S KEY** (`PAR-PUB-19`/`PAR-PUB-20`: *"the pair is an INSTALL-SKIP
+      // FILTER and NOT the loader's key"*; `resolution.md §4.1`), which is why it is read HERE, at the
+      // manifest, and never through `process.platform`.
+      const [spelledTarget, spelledArch] = label.split('-');
+      assert.deepEqual(m.os, [spelledTarget],
+        `\`PAR-PUB-19\`: ${label}'s \`os\` must be the operating system its own \`name\` SPELLS, and not another target's`);
+      assert.deepEqual(m.cpu, [spelledArch],
+        `\`PAR-PUB-20\`: ${label}'s \`cpu\` must be the architecture its own \`name\` SPELLS`);
+      assert.equal(m.name, FIVE_NAMES[COVERED.findIndex((k) => k.label === label)],
+        `${label}: \`§3.2\` item 1 — the manifest's own \`name\` is the declared spelling, so the pair read above `
+        + 'belongs to THIS artefact and to no other');
     }
     for (const label of declaredLabels) {
       assert.ok(present.includes(label), `the declared label ${label} has its own manifest`);
     }
+    // **AND THE CLAIM THE SHIPPED CELL WAS REACHING FOR IS STILL ASSERTED — AT THE HOME WHERE IT IS TRUE.**
+    // `distribution.md §3.1`: *"NO BINARY IS EVER COMMITTED TO THE TRACKED TREE, so each platform directory
+    // carries its manifest and nothing that a build produces"*. The observable of THAT claim is the tracked
+    // tree, not the manifest's `files`: a `.node` the tree carries is what `§3.1` forbids, and this walk reads
+    // the tree itself rather than a field that declares what a tarball will contain.
+    const committedBinaries = (() => {
+      const walk = (dir, acc = []) => {
+        for (const entry of readdirSync(dir, { withFileTypes: true })) {
+          if (entry.name === 'target' || entry.name === 'build' || entry.name === 'node_modules') continue;
+          const full = join(dir, entry.name);
+          if (entry.isDirectory()) walk(full, acc);
+          else if (entry.name.endsWith('.node')) acc.push(full);
+        }
+        return acc;
+      };
+      return walk(platformsDir);
+    })();
+    assert.deepEqual(committedBinaries, [],
+      '`distribution.md §3.1` / `PAR-PUB-26`: NO BINARY IS EVER COMMITTED to the tracked tree — the five '
+      + 'platform directories carry their manifests and the licence copies `Q3-5` assembles, and no `.node`');
   } else {
     assert.equal(existsSync(workflow), existsSync(platformsDir),
       'the workflow file and the five manifests arrive together at `Q3-5`; neither exists yet in the shipped tree');

@@ -79,8 +79,22 @@ const CLOSED_SET = [
 ];
 const ARM_STATUS = 'FilePathUnreachable';
 const GEN_TAIL = 'is not reachable at construction, the path must exist or the application must be able to write it';
+/** The store's own generator's rendering of `FilePathUnreachable` at a subject (`§1.4` item 1). */
 const gen = (subject) => `'${subject}' ${GEN_TAIL}`;
 const RUNG_ONE_TAIL = FIVE_NAMES[0];
+
+/** `§1.4` item 1 — the arm's form, exactly, as the observer reports it. */
+function assertArmHere(report) {
+  const A = report.arm;
+  assert.ok(A && A.notTheArm !== true,
+    `no declared arm was thrown; the report was ${JSON.stringify(report).slice(0, 500)}`);
+  assert.deepEqual(Object.keys(A), ['status', 'message'],
+    '`§1.4` item 1: the member set is EXACTLY `{status, message}` — no third member, and no minted code');
+  assert.equal(A.status, ARM_STATUS, '`PUB-DD-17`: the status is the store\'s own member, carried verbatim');
+  assert.ok(CLOSED_SET.includes(A.status), '`§0.1` item 7: no status outside the store\'s closed 15');
+  assert.equal(typeof A.message, 'string', 'the message is a JS string');
+  return A;
+}
 
 // ---------------------------------------------------------------------------------------------
 // THE GENERATOR REGISTRY — one entry per `§D` row, printing its id, the row it serves, its STRATEGY and
@@ -573,9 +587,14 @@ Object.defineProperty(process, 'arch', { value: ${token.arch()}, configurable: t
       const offending = r.requests.filter((x) => /^[a-z@]/.test(x) && /js-/.test(x) && !FIVE_NAMES.includes(x));
       assert.deepEqual(offending, [],
         `${token.name}: no computed name outside the five may be required; the attempt set was ${JSON.stringify(r.requests)}`);
-      if (token.name === '(d) the empty string' || token.name === '(a) a String object') {
+      if (token.name === '(d) the empty string') {
         assert.ok(!r.requests.some((x) => FIVE_NAMES.includes(String(x))),
-          `${token.name}: a token that spells no covered pair must reach NO rung-one name`);
+          `${token.name}: a token that spells no covered pair reaches NO rung-one name`);
+      }
+      if (token.name === '(a) a String object') {
+        assert.ok(r.requests.includes(FIVE_NAMES[0]),
+          `${token.name}: a token whose coercion SPELLS a covered pair reaches exactly that pair's name — the `
+          + 'table\'s own answer, reached through the interpolation and never through a sixth name');
       }
       seen.push(`${token.name}=${JSON.stringify(r.requests.filter((x) => !x.startsWith('node:') && !x.startsWith('/')))}`);
     }
@@ -734,55 +753,66 @@ generator('NG-PUB-E', 'every non-Error rung-one throw is a miss, and rung two an
 // =============================================================================================
 // `NG-PUB-F` · `P-PUB-5` (`S-ONEARM`) — AN ARTEFACT THAT LOADS, MATCHES, AND CARRIES NO `errorMessage`
 // =============================================================================================
-// `mismatchArmMessage`'s arm (b) — `generatorFilePathUnreachable(name)` — is the ONE arm `§1.4` item 6
-// declares where no generator can be reached. **THE HAZARD THE GENERATOR MEASURES IS THE SUBJECT**: arm
-// (b) must name the path the walk ACTUALLY TRIED, and never a path the load path never reached. Here the
-// artefact loads, matches, constructs — and a LATER evaluation is made at a state whose subject is rung
-// two's own path, so the fallback's subject is compared against `tried`'s own last member.
-// FAILING LOOKS LIKE: a `message` whose subject is a path the load path never tried.
+// `mismatchArmMessage`'s arm (b) — `generatorFilePathUnreachable(subject)` — is the ONE arm `§1.4` item 6
+// declares where no generator can be reached, and `contract.md §1.4` item 7 (the SpecWriter's close pass,
+// `f792f18`) declares THE THIRD TRIGGER CONDITION of that arm: **AN ARTEFACT THAT LOADED AND CARRIES NO
+// USABLE GENERATOR — ITS `errorMessage` ABSENT, ITS OWN GENERATOR THROWING, OR IT ANSWERING A VALUE THAT IS
+// NOT A `string` — IS A SUB-CASE OF ARM (b) AND NOT A THIRD ARM, AND ITS SUBJECT IS THE RUNG-ONE ARTEFACT'S
+// OWN PATH ALONE AND NEVER THE BOTH-PATHS JOIN, BECAUSE AT THAT STATE ONLY RUNG ONE WAS TRIED.**
+// FAILING LOOKS LIKE: a `message` at this state that APPENDS the rung-two path, or that names the
+// module-relative addon path in place of the rung-one artefact's own (`§1.4` item 7; `resolution.md §5.3a`).
 
-generator('NG-PUB-F', 'an artefact with no generator still names a subject the walk tried', withControls('NG-PUB-F', {
+generator('NG-PUB-F', 'an artefact with no usable generator names rung one\'s path ALONE', withControls('NG-PUB-F', {
   probe: (entrySource) => {
-    // ONE TREE, TWO EVALUATIONS: the first resolves at rung one against an artefact with NO generator; the
-    // second is a FRESH process at the ABSENT state, and its subject is read against what that walk tried.
-    const withGenerator = makeScratch({
-      label: 'no-generator-right',
-      rungOne: { name: RUNG_ONE_TAIL, opts: { variant: 'right', errorMessage: 'absent' } },
+    // **THE STATE `§1.4` ITEM 7 DECLARES, DRIVEN EXACTLY: THE ARTEFACT LOADED, ITS OWN `version` DID NOT
+    // MATCH, AND ITS `errorMessage` IS ABSENT.** The fake's own `storeCreate` CONSTRUCTS, so the drive
+    // distinguishes "the artefact loaded but the version refused it" from "the artefact could not load".
+    const loaded = makeScratch({
+      label: 'no-generator-loaded-mismatch',
+      rungOne: { name: RUNG_ONE_TAIL, opts: { variant: 'wrong', errorMessage: 'absent', storeCreate: 'constructs' } },
       rungTwo: 'broken', entrySource,
     });
-    const a = drive(withGenerator, { platform: COVERED[0].platform, arch: COVERED[0].arch });
-    assert.equal(a.returned, true, 'the artefact loads and matches: a missing generator is not a failure');
-    assert.equal(a.arm, null, 'and no arm answers the success state');
-    assert.equal(a.stub?.calls?.errorMessage ?? 0, 0,
-      'the artefact carries no generator, so nothing can have been rendered from it');
-    // THE FALLBACK'S OWN STATE, DRIVEN SEPARATELY: the same entry, rung one present-but-unloadable.
-    const broken = makeScratch({
-      label: 'no-generator-broken',
-      rungOne: { name: RUNG_ONE_TAIL, opts: { variant: 'right', errorMessage: 'absent' } },
-      rungTwo: 'broken', entrySource,
-    });
-    // the rung-one artefact is made unloadable by POINTING ITS `main` AT A FILE THAT IS NOT THERE, so the
-    // load path reaches `tried` = [name, rung two] with NO artefact in hand — arm (b)'s own state.
-    writeFileSync(join(broken.dir, 'node_modules', ...RUNG_ONE_TAIL.split('/'), 'package.json'),
-      JSON.stringify({ name: RUNG_ONE_TAIL, version: '0.1.0', main: 'missing.node' }, null, 2));
-    const b = drive(broken, { platform: COVERED[0].platform, arch: COVERED[0].arch });
-    const A = b.arm;
-    assert.ok(A && A.notTheArm !== true, 'the absent state answers the one arm');
-    assert.ok(A.message.includes(`'${RUNG_ONE_TAIL}'`),
-      'the fallback\'s subject names rung one — a path the walk DID try');
-    assert.ok(A.message.includes(`'${join(broken.dir, RUNG_TWO_TAIL)}'`),
-      'and rung two — the other path the walk tried; a subject naming anything else is a subject the load '
-      + `path never reached; got ${JSON.stringify(A.message)}`);
-    assert.equal(A.message.includes('undefined'), false, 'and no subject slot is left unfilled');
+    const r = drive(loaded, { platform: COVERED[0].platform, arch: COVERED[0].arch });
+    assert.equal(r.stub?.calls?.version, 1, 'the artefact\'s own version WAS read — it loaded far enough to answer');
+    assert.equal(r.stub?.calls?.storeCreate ?? 0, 0,
+      'and it DID NOT construct: the version refused it, which is what makes this arm (b)\'s third condition');
+    assert.equal(r.stub?.calls?.errorMessage ?? 0, 0, 'the artefact carries no generator, so nothing could be rendered');
+    const A = assertArmHere(r);
+    // **THE SUBJECT, ASSERTED AS AN EXACT RENDERING AND NOT AS AN INCLUSION** — an inclusion test is satisfied
+    // by a message that names rung one AND appends rung two, which is precisely the FINDING this clause names.
+    assert.equal(A.message, gen(RUNG_ONE_TAIL),
+      '`§1.4` item 7: the subject is the RUNG-ONE ARTEFACT\'S OWN PATH ALONE, rendered by the generator\'s own '
+      + `\'<subject>\' slot, and NEVER the both-paths join — at this state only rung one was tried; got ${JSON.stringify(A.message)}`);
+    assert.equal(A.message.includes(RUNG_TWO_TAIL), false,
+      'and the module-relative addon path appears nowhere in it: this walk reached rung two on NO evaluation');
+    assert.equal(r.requests.filter(isRungTwo).length, 0,
+      'the walk RETURNS at the arm: rung two\'s `require` is reached on no evaluation (`§1.4` item 7)');
+    assert.equal(r.returned, false, 'and no instance came back beside the arm');
   },
   controls: {
-    // THE CONTROL: arm (b)'s subject is a path the walk NEVER tried — the addon path, computed where
-    // rung two was not the subject the state fixes. A message with a subject outside `tried` is the
-    // failure `§1.4` item 2's term *"the paths that were TRIED"* exists to catch.
+    // **THE CONTROLS, EACH DISABLING ONE HALF OF THE CLAUSE, AND EACH REQUIRED TO FAIL THE GENERATOR.**
+    // (1) THE SUB-CASE IS ANSWERED BY ARM (b)'s CLAUSE WITH THE BOTH-PATHS JOIN APPENDED — the `§1.4` item 7
+    // FINDING verbatim: a message that names a path the loader did not try at this state. **THE ANCHOR IS
+    // MATCHED AT THE ONE SITE AND REWRITTEN WITH THE SAME `name` THE SHIPPED ARM HAS IN HAND.**
+    'control-the-mismatch-arm-appends-the-both-paths-join': controlEntry('NG-PUB-F', (text) => {
+      const before = `        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name) };`;
+      assert.ok(text.includes(before), 'NG-PUB-F: the mismatch arm site moved; the control must be re-cut');
+      return text.replace(before,
+        "        addonArm = { status: 'FilePathUnreachable', message: generatorFilePathUnreachable(name + \"', '\" + join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node')) };");
+    }),
+    // (2) THE SUB-CASE IS ANSWERED BY A SECOND FAILURE SHAPE — the `alt` `§1.4` item 7 prices and REFUSES.
+    'control-the-sub-case-mints-a-second-shape': controlEntry('NG-PUB-F', (text) => {
+      const before = `        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name) };`;
+      assert.ok(text.includes(before), 'NG-PUB-F: the mismatch arm site moved; the control must be re-cut');
+      return text.replace(before,
+        "        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name), code: 'AddonVersionMismatch' };");
+    }),
+    // (3) THE ARM (b) FALLBACK ITSELF NAMES A PATH THE WALK NEVER TRIED.
     'control-the-fallback-names-an-untried-path': controlEntry('NG-PUB-F', (text) => {
       const before = `  const subject = absentSubject();`;
       assert.ok(text.includes(before), 'NG-PUB-F: the absent subject site moved; the control must be re-cut');
-      return text.replace(before, `  const subject = absentSubject() + ', ' + join(dirOf(fileURLToPath(import.meta.url)), 'never', 'tried', 'x.node');`);
+      return text.replace(before,
+        "  const subject = absentSubject() + \", '\" + join(dirOf(fileURLToPath(import.meta.url)), 'never', 'tried', 'x.node');");
     }),
   },
 }));
@@ -798,27 +828,31 @@ generator('NG-PUB-F', 'an artefact with no generator still names a subject the w
 
 generator('NG-PUB-G', 'the arm\'s subject is the artefact\'s path, never cfg.filePath', withControls('NG-PUB-G', {
   probe: (entrySource) => {
-    const cfgTail = `
-// THE DRIVE'S OWN EXTENSION: the construction's cfg carries a \`filePath\` the store's own three declared
-// keys do not include. It is a DECOY and it is spelled so that no path of the load path contains it.
-const DECOY = 'cfg-filePath-decoy-' + process.pid + '.node';
-report.decoy = DECOY;
-`;
+    // **THE DECOY IS NAMED BY THE ENVIRONMENT, WHICH IS WHERE THE OBSERVER'S OWN CFG TAKES IT FROM**: the
+    // observer's `storeCreate` is rewritten to carry a `filePath` the store's own three declared keys do not
+    // include, and the report carries that same string so the generator can assert the cfg really held it.
     const env = makeScratch({
       label: 'cfg-filepath', rungOne: { name: RUNG_ONE_TAIL, opts: { variant: 'wrong' } },
-      rungTwo: 'broken', entrySource, driverTail: cfgTail,
+      rungTwo: 'broken', entrySource,
     });
-    // the observer's own cfg is rewritten to carry the decoy, so the entry is asked the SAME question with
-    // a `filePath` in hand that no clause of this unit declares
-    const driver = readFileSync(env.driver, 'utf8').replace(
-      'mod.storeCreate({ journalLength: 4, listeners: [] })',
-      'mod.storeCreate({ journalLength: 4, listeners: [], filePath: DECOY })');
-    writeFileSync(env.driver, driver);
-    const r = drive(env, { platform: COVERED[0].platform, arch: COVERED[0].arch });
-    assert.equal(r.decoy?.startsWith('cfg-filePath-decoy-'), true, 'the decoy really was in the cfg');
+    const patched = readFileSync(env.driver, 'utf8')
+      .replace('mod.storeCreate({ journalLength: 4, listeners: [] })',
+        'mod.storeCreate({ journalLength: 4, listeners: [], filePath: process.env.PUBGEN_CFG_FILE_PATH })')
+      .replace("ok: null, error: null, arm: null, stub: null,",
+        "ok: null, error: null, arm: null, stub: null, decoy: process.env.PUBGEN_CFG_FILE_PATH,");
+    assert.ok(patched.includes('PUBGEN_CFG_FILE_PATH'), 'NG-PUB-G: the decoy was wired into the construction');
+    assert.ok(patched.includes('decoy: process.env.PUBGEN_CFG_FILE_PATH'), 'NG-PUB-G: the report carries the decoy it used');
+    writeFileSync(env.driver, patched);
+    const r = drive(env, {
+      platform: COVERED[0].platform, arch: COVERED[0].arch,
+      extraEnv: { PUBGEN_CFG_FILE_PATH: 'the-cfg-filePath-decoy.node' },
+    });
+    assert.equal(r.decoy, 'the-cfg-filePath-decoy.node', 'the decoy really WAS the cfg\'s own filePath');
+    assert.equal(r.requests.filter((x) => x.includes('the-cfg-filePath-decoy')).length, 0,
+      'the decoy is a path the load path never tried, so it can reach the subject only if the entry reads the cfg');
     const A = r.arm;
     assert.ok(A && A.notTheArm !== true, 'the mismatch is answered by the one arm');
-    assert.equal(A.message.includes('cfg-filePath-decoy-'), false,
+    assert.equal(A.message.includes('the-cfg-filePath-decoy'), false,
       `P-PUB-5: the subject is the artefact's own path and NEVER \`cfg.filePath\`; got ${JSON.stringify(A.message)}`);
     assert.ok(A.message.includes(`'${RUNG_ONE_TAIL}'`), 'the subject is rung one\'s own resolved name');
   },
@@ -827,7 +861,8 @@ report.decoy = DECOY;
     'control-the-subject-is-cfg-filePath': controlEntry('NG-PUB-G', (text) => {
       const before = `message: mismatchArmMessage(candidate, name) };`;
       assert.ok(text.includes(before), 'NG-PUB-G: the mismatch arm site moved; the control must be re-cut');
-      return text.replace(before, `message: generatorFilePathUnreachable(globalThis.__PUBGEN_CFG_FILE_PATH__ ?? name) };`);
+      return text.replace(before,
+        'message: generatorFilePathUnreachable(process.env.PUBGEN_CFG_FILE_PATH ?? name) };');
     }),
   },
 }));
@@ -951,10 +986,17 @@ function assertOpIsTheJournalRecord(dts) {
       `the declaration carries the journal record's own \`${member}\` member, so a consumer reading `
       + `\`write(...).op.${member}\` type-checks`);
   }
-  assert.ok(/export\s+(interface|type)\s+JournalOpRecord|interface\s+JournalOpRecord/.test(dts),
-    'the eight-member record is declared by name and `op` refers to it');
-  assert.ok(/readonly\s+op\s*:\s*JournalOpRecord\b/.test(body) || /JournalOpRecord/.test(opType),
-    `WriteRecord.op's own type is the declared record; got ${JSON.stringify(opType)}`);
+  assert.ok(/export\s+(interface|type)\s+JournalOp\b/.test(dts),
+    'the eight-member record is declared by name (`JournalOp`) and `op` refers to it');
+  assert.equal(opType, 'JournalOp',
+    `WriteRecord.op's own type IS the declared record; got ${JSON.stringify(opType)}`);
+  // and the record's own member set is the store's eight (`DD-39`), declared in the type's own text
+  const record = /interface JournalOp \{([\s\S]*?)\n\}/.exec(dts);
+  assert.ok(record, 'the `JournalOp` interface carries its own body');
+  for (const member of ['opId', 'kind', 'address', 'tier', 'before', 'after', 'seq', 'compacted']) {
+    assert.ok(new RegExp(`readonly\\s+${member}\\s*:`).test(record[1]),
+      `\`JournalOp\` declares the store's own \`${member}\` member (DD-39: { opId, kind, address, tier, before, after, seq, compacted })`);
+  }
   return opType;
 }
 
