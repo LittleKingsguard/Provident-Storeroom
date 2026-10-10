@@ -696,7 +696,18 @@ const g10 = { all: [] };
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// JSG-12 — THE PACKAGE AND THE LAYER                                     17 assertions
+// JSG-12 — THE PACKAGE AND THE LAYER                                     18 assertions
+// ⟶ RE-DERIVED 2026-10-11 (U-STOREROOM-PUBLISH, `A82` + `A84`'s `A-1`): ONE identity cell moves to the
+// value THIS unit declares — `JSG-12.10`, the main package's `name`, fixed by `PAR-PUB-1` as exactly
+// `provident-storeroom` (UNSCOPED); the OLD value `'@provident-storeroom/js'` was `package.md §3.3`
+// item 1's and `DD-26`'s PRE-RENAME declaration. ONE row is CHECKED AND STANDS UNMOVED — `JSG-12.12`,
+// the five scoped platform names, which `PUB-DD-15`/`PUB-DD-6` fix character for character as the
+// spellings already asserted. ONE row is ADDED — `JSG-12.18`, the `files` allowlist (`PUB-DD-1`;
+// `PAR-PUB-3`), a value this unit declares for the first time, with NO pre-rename counterpart. The
+// rename reaches NOTHING ELSE here: the eight module names (`JSG-12.1`, `.2`), the instance's
+// `{ register, on, off }` (`JSG-01.9`), the realm claim (Node ESM alone — `JSG-12.4`, `.5`) and the
+// `HO-` handoff row (`JSG-12.5`'s `§3.2 HO-1`) are all UNCHANGED, checked and unmoved. NO ASSERTION IN
+// THIS FILE IS WEAKENED BY THIS PASS, AND NO `APP`-GREEN IS CLAIMED.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const names = Object.keys(ns).sort();
@@ -718,7 +729,14 @@ const g10 = { all: [] };
   A('JSG-12.7', 'package.md §1.3 items 1-2; DD-24', 'the manifest declares no main field (no second, arms-bearing CJS entry)', pkg != null && !Object.prototype.hasOwnProperty.call(pkg, 'main'), pkg ? fmt(pkg.main) : 'no manifest');
   A('JSG-12.8', 'package.md §1.4 item 1; DD-38', "engines.node is '>=18.0.0'", pkg?.engines?.node === '>=18.0.0', fmt(pkg?.engines));
   A('JSG-12.9', 'package.md §3.4 item 6; DD-43', "license is 'AGPL-3.0'", pkg?.license === 'AGPL-3.0', fmt(pkg?.license));
-  A('JSG-12.10', '§3.3 item 1; DD-26', "the registry identity is '@provident-storeroom/js'", pkg?.name === '@provident-storeroom/js', fmt(pkg?.name));
+  // ⟶ RE-DERIVED 2026-10-11 (U-STOREROOM-PUBLISH, `A82`; the blind role's `Q3-6`/`Q5` duty): `PAR-PUB-1`
+  // (`docs/specs/storeroom-publish/parameter-semantics.md §2.1`) FIXES the main package's `name` as EXACTLY
+  // `provident-storeroom` — UNSCOPED — carried at `docs/specs/storeroom-publish/distribution.md §6.1`
+  // item 1 and at `docs/specs/storeroom-publish/contract.md §2.1` (the `A82`/`A83` decision row's
+  // *"public at provident-storeroom:0.1.0"*). The OLD value this cell asserted — `'@provident-storeroom/js'`,
+  // `package.md §3.3` item 1's and `DD-26`'s PRE-RENAME declaration — is the identity the amendment moves,
+  // and `PAR-PUB-1`'s outside-values cell REFUSES it. The assertion is EXACT and NO LOOSER FORM.
+  A('JSG-12.10', 'PAR-PUB-1; A82; distribution.md §6.1 item 1 (pre-rename: package.md §3.3 item 1; DD-26)', "the registry identity is 'provident-storeroom', UNSCOPED (the pre-rename declaration was '@provident-storeroom/js')", pkg?.name === 'provident-storeroom', fmt(pkg?.name));
   const opts = Object.keys(pkg?.optionalDependencies || {});
   A('JSG-12.11', 'package.md §3.2 item 2; DD-25', 'the prebuild matrix declares 5 targets', opts.length === 5, `${opts.length}: ${opts.join(',')}`);
   const wantOpts = [
@@ -726,7 +744,14 @@ const g10 = { all: [] };
     '@provident-storeroom/js-darwin-x64', '@provident-storeroom/js-darwin-arm64',
     '@provident-storeroom/js-win32-x64-msvc',
   ];
-  A('JSG-12.12', 'package.md §3.2 items 2 & 5; §3.3 item 5; DD-26', 'the five artefact names are the label-to-artefact map with its toolchain suffixes',
+  // CHECKED AND UNMOVED 2026-10-11 (U-STOREROOM-PUBLISH): the rename does NOT reach these five names.
+  // `PUB-DD-15` and `PUB-DD-6` (their home: `docs/specs/storeroom-publish/resolution.md §3.1`'s table;
+  // `PAR-PUB-17`) fix each name as the scope `@provident-storeroom`, a `/`, and the label
+  // `js-<target>-<arch>[-<toolchain>]` — character for character the five the cell below already
+  // asserts. The main package's move to an UNSCOPED identity does not move them (`A84`'s `A-1` decides
+  // the spelling once; `A82` leaves the platform scope alone), so NO expected value here moves and no
+  // assertion of this cell is loosened.
+  A('JSG-12.12', 'package.md §3.2 items 2 & 5; §3.3 item 5; DD-26; PUB-DD-15; PUB-DD-6; resolution.md §3.1', 'the five artefact names are the label-to-artefact map with its toolchain suffixes',
     wantOpts.every((n) => opts.includes(n)), opts.join(','));
   A('JSG-12.13', 'package.md §1.3 items 3-4; §1.2 items 1-2; A70', "the four internal-only names (version, errorMessage, call, the ADDON's register) are absent from the module graph, and storeCreate is the ENTRY's own factory",
     ['version', 'errorMessage', 'call', 'register'].every((n) => !Object.prototype.hasOwnProperty.call(ns, n)) && typeof ns.storeCreate === 'function',
@@ -739,6 +764,22 @@ const g10 = { all: [] };
   const deps = Object.keys(pkg?.dependencies || {});
   A('JSG-12.17', 'package.md §3.2 item 2; §3.3 item 2; DD-25', 'the five prebuild artefacts are OPTIONAL per-target dependencies and not required dependencies (no fallback build-on-install as the primary route)',
     wantOpts.every((n) => !deps.includes(n)), `dependencies=[${deps.join(',')}]`);
+  // ⟶ ADDED 2026-10-11 (U-STOREROOM-PUBLISH, `PUB-DD-1`; `A85`(1)): the manifest's `files` allowlist is
+  // declared by THIS unit for the FIRST time — the sibling unit's `package.md` and `contract.md` declare
+  // no `files` cell — so this row has NO pre-rename counterpart and is an ADDITION rather than a
+  // re-derivation. `PAR-PUB-3` fixes the domain as exactly `index.mjs` · `README.md` · `index.d.ts`, and
+  // `contract.md §2.1` item 1 / `distribution.md §6.1` item 8 carry it: "NO binary ships, at any key, on
+  // any target". Asserted EXACTLY — set equality with the three declared paths, no `build/Release` path
+  // and no `.node` entry anywhere in the allowlist — and NO LOOSER FORM.
+  const FILES = ['index.mjs', 'README.md', 'index.d.ts'];
+  const filesList = Array.isArray(pkg?.files) ? pkg.files : null;
+  const filesSorted = filesList ? [...filesList].sort() : null;
+  const filesBinaryFree = filesList
+    ? filesList.every((f) => typeof f !== 'string' || (!f.includes('build/Release') && !f.endsWith('.node')))
+    : false;
+  A('JSG-12.18', 'PUB-DD-1; A85(1); PAR-PUB-3; contract.md §2.1 item 1; distribution.md §6.1 item 8', "the manifest's files allowlist is EXACTLY ['README.md','index.d.ts','index.mjs'] — and no build/Release path and no .node entry ships",
+    filesSorted !== null && filesSorted.join(',') === [...FILES].sort().join(',') && filesBinaryFree,
+    filesList ? `${filesList.join(',')} (binary-free: ${filesBinaryFree})` : 'no files array');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

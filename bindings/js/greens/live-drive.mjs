@@ -368,6 +368,11 @@ console.log(JSON.stringify({ pid: process.pid, value: read(i, ${JSON.stringify([
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 // LIVE-8 — THE LAYER THE GATE-5 SET CANNOT DRIVE: THE ADDON ABSENT, IN A SCRATCH COPY OF THE PACKAGE
+//
+// `.7` RE-DERIVED 2026-10-11: the subject is THE PATHS THAT WERE TRIED (`contract.md §1.5` item 6 ·
+// `PUB-DD-26`, read with `resolution.md §5.3b`), so a COVERED key's drive — which THIS one is — names BOTH
+// paths, rung one first, in the generator's own slots, joined by `', '`; the single-path expectation stands
+// only for the UNCOVERED cell (`resolution.md §2.2`), where rung one is never attempted. `.1`–`.6` UNMOVED.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const sc = 'LIVE-8';
@@ -398,8 +403,62 @@ console.log(JSON.stringify({ pid: process.pid, value: read(i, ${JSON.stringify([
   const ctrl = thrown(() => { const i = ns.storeCreate({ filePath: fsPath('live8/state.json'), journalLength: 1, listeners: [] }); ns.write(i, ['ctrl'], 'temp', 1); return ns.read(i, ['ctrl']); });
   A(`${sc}.6`, 'the positive control', 'at the same moment the REAL package (real addon) still constructs and round-trips — the arm measures ABSENCE and not a broken run',
     !ctrl.threw && ctrl.value === 1, ctrl.threw ? `threw ${statusOf(ctrl)}` : String(ctrl.value));
-  A(`${sc}.7`, "the README's ABSENT-ADDON clause; JS-3 (closed); the store's §8.2 generator", 'the refusal reproduces the generator\'s own rendering BYTE-FOR-BYTE at the absent artefact\'s own path',
-    a1.threw && a1.err.message === `'${absentAddon}' is not reachable at construction, the path must exist or the application must be able to write it`, a1.threw ? a1.err.message : 'n/a');
+  // ── `LIVE-8.7`, RE-DERIVED 2026-10-11 BY THIS ROW'S OWN OWNER, ON THE CLAUSE THE SPEC PASS DECLARED
+  // (`docs/specs/storeroom-publish/contract.md §1.5` item 6 clause (c) and its closing paragraph — the
+  // supersession named with this cell and this role — read with `resolution.md §5.3` item 6 and `§5.3b`, and
+  // with `contract.md §1.4` item 2; `PUB-DD-26`).
+  //
+  // **THE CLAUSE THAT GOVERNS IS THE BOTH-PATHS JOIN: the subject names EVERY SUBJECT THE LOAD PATH TRIED —
+  // the separator is `', '`, the order is RUNG ONE FIRST and RUNG TWO SECOND, and EACH PATH IS KEPT INSIDE
+  // THE GENERATOR'S OWN `'<subject>'` SLOT, so the clause's own pair stands around the join.**
+  //
+  // **THE STATE THIS DRIVE IS IN, STATED SO THE EXPECTATION IS ITS OWN STATE'S:** the copy's key is the
+  // HOST's pair — `linux`·`x64` — which is one of `§1.1` item 6's FIVE COVERED PAIRS, so RUNG ONE IS
+  // ATTEMPTED (its one declared name is `require`d from the copy, and the `require` MISSES because nothing of
+  // that name is installed) and then RUNG TWO IS ATTEMPTED and misses. **BOTH RUNGS WERE TRIED, SO THE
+  // SUBJECT IS BOTH PATHS.** The expectation this cell carried before — the rung-two path ALONE as an exact
+  // string — is `resolution.md §2.2`'s UNCOVERED-key cell, where rung one is NEVER attempted and has no path
+  // to report, and it is SUPERSEDED as that reading for a COVERED drive; `LIVE-8.1`–`.6` are NOT touched.
+  //
+  // **THE FIVE DECLARED SPELLINGS ARE READ FROM THEIR OWN HOME** (`contract.md §1.3` item 6 · `PUB-DD-15`,
+  // the `A82`/`A84` decision: scope `@provident-storeroom`, label `js-<target>-<arch>[-<toolchain>]`), so the
+  // entry's own table is compared at this cell against the DECLARED five — a sixth name, a dropped scope or a
+  // dropped toolchain suffix is a FINDING here — **and rung two's own path is the copy's module-relative
+  // artefact, which this caller knows independently of the message.**
+  //
+  // **AND THE BYTE-EQUALITY IS TAKEN AGAINST THE GENERATOR ITSELF** (`§1.4` item 6: arm (b) reproduces arm
+  // (a)'s clause byte-for-byte, `PUB-DD-25`; the equality the red set's `NG-JS-H` now holds): the REAL built
+  // artefact — which loaded far enough to carry `errorMessage`, and which `acceptance.md §4.1` item 1 permits
+  // a cell to READ BESIDE the entry the other cells drive, never INSTEAD of it — is asked for ITS OWN
+  // rendering of the SAME subject-set, and the absent copy's message must equal it CHARACTER FOR CHARACTER.
+  // **THAT IS STRICTLY STRONGER THAN THE OLD LITERAL:** two subjects instead of one, their order, their own
+  // slots and the join between them, all measured against the store's own arm rather than a string this
+  // driver authored.
+  const DECLARED_RUNG_ONE = {
+    'linux·x64': '@provident-storeroom/js-linux-x64-gnu',
+    'linux·arm64': '@provident-storeroom/js-linux-arm64-gnu',
+    'darwin·x64': '@provident-storeroom/js-darwin-x64',
+    'darwin·arm64': '@provident-storeroom/js-darwin-arm64',
+    'win32·x64': '@provident-storeroom/js-win32-x64-msvc',
+  };
+  const rungOneName = DECLARED_RUNG_ONE[`${process.platform}·${process.arch}`];
+  // the TRIED set, in the order the load path tried it: rung one's resolved name where the pair is covered
+  // (`§1.3` item 3: a `NOT COVERED` pair computes no name and attempts nothing), rung two's path last.
+  const triedSubjects = rungOneName === undefined ? [absentAddon] : [rungOneName, absentAddon];
+  const subjectRendering = triedSubjects.map((p) => `'${p}'`).join(', ');
+  const declaredMessage = `'${subjectRendering}' is not reachable at construction, the path must exist or the application must be able to write it`;
+  const generatorArm = createRequire(import.meta.url)(ADDON);
+  const generatorMessage = typeof generatorArm.errorMessage === 'function'
+    ? generatorArm.errorMessage('FilePathUnreachable', subjectRendering) : null;
+  const m87 = a1.threw && typeof a1.err.message === 'string' ? a1.err.message : '';
+  A(`${sc}.7`,
+    'contract.md §1.4 item 2 and §1.5 item 6 (PUB-DD-26); resolution.md §5.3 item 2 and §5.3b; the README\'s ABSENT-ADDON clause; JS-3 (closed); the store\'s §8.2 generator',
+    `the refusal names THE PATHS THE LOAD PATH TRIED — on THIS drive's own COVERED key (${process.platform}·${process.arch}) BOTH rungs: rung one's resolved name '${rungOneName}' FIRST, rung two's own path SECOND, EACH inside the generator's own '<subject>' slot, joined by ', ', the clause standing after — and its bytes are EQUAL to the store's own generator's rendering of that same subject-set (arm (a) ≡ arm (b), PUB-DD-25)`,
+    triedSubjects.length === 2 && m87 === declaredMessage && generatorMessage !== null
+      && m87 === generatorMessage && (m87.match(/'/g) || []).length === 6
+      && m87.indexOf(`'${rungOneName}'`) === 1
+      && m87.endsWith(' is not reachable at construction, the path must exist or the application must be able to write it'),
+    `key ${process.platform}·${process.arch}${rungOneName === undefined ? ' (NOT COVERED — rung one NOT attempted)' : ` → rung one ${rungOneName} attempted, then rung two's own path`}; tried set ${JSON.stringify(triedSubjects)}; message ${JSON.stringify(m87)}; expected ${JSON.stringify(declaredMessage)}; the generator's own arm for the same subject-set ${generatorMessage === null ? 'UNREADABLE (no errorMessage)' : (generatorMessage === m87 ? 'BYTE-EQUAL' : JSON.stringify(generatorMessage))}; slots (apostrophes) ${(m87.match(/'/g) || []).length} of 6`);
   end(sc, `with the addon absent at ${absentAddon} the package answers ${a1.threw ? a1.err.status : 'n/a'} — "${a1.threw ? a1.err.message : ''}" — returns no instance, falls back to nothing, and writes nothing; the real package beside it is unaffected`);
 }
 

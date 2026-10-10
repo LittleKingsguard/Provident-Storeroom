@@ -71,7 +71,7 @@ the layer → **JSG-12**; (9) the scaling claim → **JSG-13**.
 
 **The assertion census, printed with its terms.** Every table row below is ONE assertion cell; **a refusal
 cell whose row prints an extra assertion carries `4 + 1` assertions and the table says so**, and a scenario's
-own count is printed at its head. **⟶ RE-DERIVED 2026-10-11 (`Q5`): THE SET IS NOW AUTHORED AS `240`
+own count is printed at its head. **⟶ RE-DERIVED 2026-10-11 (`Q5`): THE SET IS NOW AUTHORED AS `240`  **⟶ AND THE BATTERY'S FIGURE IS RE-READ 2026-10-11 (`LIVE-F5`, the supervisor's landing): the live battery is `91` authored · `91` PASS · `0` FAIL over `13` scenarios (the earlier `72`/`72` this set printed was the pre-`Q6` reading, the `+19` being the `on`/`off` flow `LIVE-13`); and the blind set itself is `240` authored · `240` PASS · `0` FAIL with `JSG-12` at `17`.**
 ASSERTIONS OVER THE SAME `13` SCENARIOS — the as-filed sentence read *"The set was authored as `236`
 assertions over `13` scenarios"*, and the `4` cells this pass adds to `JSG-01` (`.14`–`.17`, the two new
 instance members' surface coverage) move the assertion census `236 → 240` while the scenario census stays
@@ -658,7 +658,7 @@ that echoes nothing, reports an unperformed reversal, or restores a state the st
 rollback that appends a journal entry; or an unknown id that does not answer its declared code — each
 breaks `A37`'s content duty or `A35`'s reach, and the journal ceases to be the observable `J-5` names.
 
-### JSG-12 — THE PACKAGE AND THE LAYER (17 assertions)
+### JSG-12 — THE PACKAGE AND THE LAYER (18 assertions)
 
 **The clause(s).** `package.md §1.1`–`§1.4` (the claimed realm, the internal reach and its five internal
 names, the one entry and the `exports` map, the engine floor), `§3.1`–`§3.5` (the identity, the matrix, the
@@ -684,19 +684,98 @@ the clause that prints it.
 | **JSG-12.7** | the manifest's `main` field | **absent** — no second, arms-bearing CJS entry | `package.md §1.3` items 1–2 · `DD-24` |
 | **JSG-12.8** | the manifest's `engines.node` | **`'>=18.0.0'`** | `package.md §1.4` item 1 · `DD-38` |
 | **JSG-12.9** | the manifest's `license` | **`'AGPL-3.0'`** | `package.md §3.4` item 6 · `DD-43` |
-| **JSG-12.10** | the manifest's registry identity `name` | **`'@provident-storeroom/js'`** | `§3.3` item 1 · `DD-26` |
+| **JSG-12.10** | the manifest's registry identity `name` | **`'provident-storeroom'`** — **UNSCOPED, the identity the architect's ruling names; asserted EXACTLY and in no looser form.** **The value this cell asserted before the `U-STOREROOM-PUBLISH` re-derivation was `'@provident-storeroom/js'`; the OLD value was `package.md §3.3` item 1's and `DD-26`'s PRE-RENAME declaration, and `PAR-PUB-1` FIXES the new value** | **`PAR-PUB-1`** · **`A82`** · `docs/specs/storeroom-publish/distribution.md §6.1` item 1 (as filed: `§3.3` item 1 · `DD-26`) |
 | **JSG-12.11** | the manifest's `optionalDependencies` count | **`5`** — the matrix is five targets | `package.md §3.2` item 2 · `DD-25` |
-| **JSG-12.12** | their names, label for label | `@provident-storeroom/js-linux-x64-gnu` · `…-linux-arm64-gnu` · `…-darwin-x64` · `…-darwin-arm64` · `…-win32-x64-msvc` — the label-to-artefact map, toolchain suffixes included | `package.md §3.2` item 5 · `§3.3` item 5 · `DD-26` |
+| **JSG-12.12** | their names, label for label | `@provident-storeroom/js-linux-x64-gnu` · `…-linux-arm64-gnu` · `…-darwin-x64` · `…-darwin-arm64` · `…-win32-x64-msvc` — the label-to-artefact map, toolchain suffixes included. **CHECKED AND UNMOVED by the rename: `PUB-DD-15` and `PUB-DD-6` fix these five spellings character for character — scope `@provident-storeroom`, separator `/`, label `js-<target>-<arch>[-<toolchain>]` — so no expected value of this cell moves and none is loosened; the main package's move to an UNSCOPED identity does not move the platform scope (`A84`'s `A-1`; `A82`)** | `package.md §3.2` item 5 · `§3.3` item 5 · `DD-26`; **`PUB-DD-15`** · **`PUB-DD-6`** · `docs/specs/storeroom-publish/resolution.md §3.1` · `PAR-PUB-17` |
 | **JSG-12.13** | the internal addon's own names, taken from the namespace | **the FOUR internal-only names are absent from the module graph** — `version`, `errorMessage`, `call`, and the ADDON's own `register` — **and the fifth, `storeCreate`, is the ENTRY'S OWN FACTORY and not the addon's internal step** (an as-filed reading of `package.md §1.3` item 4 that would forbid that name is REFUTED by item 3's own list, and the tension is a DOC-side finding) | `package.md §1.3` items 3–4; `§1.2` items 1–2 · **`A70`** |
 | **JSG-12.14** | the addon artefact's path as a subpath of the package | it is **not** published by the `exports` map — the reach is INTERNAL and is not a second realm | `package.md §1.2` items 1–3 · `DD-4` |
 | **JSG-12.15** | this set's own declared layer constant | **`ENVELOPE/PURE`** — the label travels with every figure of this run, and its site is the command recorded at `archive/gate5/storeroom-js-greens-run.md` | `§4.2` items 1–2 · `DD-18` · `DD-20` |
 | **JSG-12.16** | this set's own declared APP layer | **`NONE`** — the unit delivers a LIBRARY, there is no assembled application to be green, and **no `APP`-green is claimed in this file, in its driver or in the run's record** | `§4.2` items 2–3 · `DD-20` |
 | **JSG-12.17** | the manifest's third-key rule and the runner's own pattern | the manifest declares no second entry and no post-install fallback build as its primary route — the published artefact is what the one claimed entry loads | `package.md §3.2` item 2 · `§3.3` item 2 · `DD-25` |
+| **JSG-12.18** | the manifest's `files` allowlist | **EXACTLY `index.mjs` · `README.md` · `index.d.ts`** — set equality, and **NO `build/Release` path and no `.node` entry anywhere in the allowlist**: *"NO binary ships, at any key, on any target"*. **This cell is ADDED by the `U-STOREROOM-PUBLISH` re-derivation and it prints a value that unit declares for the FIRST time — the sibling unit's `package.md` and `contract.md` declare no `files` cell — so it has NO pre-rename counterpart and NO assertion of this set is loosened by its addition** | **`PUB-DD-1`** · **`A85`(1)** · **`PAR-PUB-3`** · `docs/specs/storeroom-publish/contract.md §2.1` item 1 · `distribution.md §6.1` item 8 |
 
 **What its failure would mean.** A second arms-bearing entry, a wildcard export, a CJS arm, a `main`, an
 engine floor the docs do not declare, a licence site that disagrees, a matrix that is not the `5` the docs
 name, or an `APP`-green anywhere in this pass's figures means **the package's claimed realm is not the one
 the contract claims**, or the LAYER discipline (`AR-10`) has been broken — which no pass may do.
+
+**⟶ RE-DERIVED 2026-10-11 — THE `U-STOREROOM-PUBLISH` RE-DERIVATION (`role_blind_test_writer`, the blind
+role's `Q3-6`/`Q5` duty, on `A82` and `A84`'s `A-1`): ONE IDENTITY CELL MOVES TO THE VALUE THIS UNIT
+DECLARES, ONE ROW IS CHECKED AND STANDS UNMOVED, ONE ROW IS ADDED, AND THE WHOLE SET IS RE-EXECUTED.**
+`RCA-8(d)` ANNOTATE-BESIDE: **every byte this clause does not name STANDS AS FILED and is read THROUGH it —
+`JSG-12.1`–`.9`, `.11`, `.13`–`.17` are NOT MOVED, no expectation of theirs is touched, and NO ASSERTION OF
+THIS SET IS WEAKENED BY THIS PASS.** **WHAT MOVED, WHAT WAS CHECKED, AND WHAT WAS ADDED, EACH WITH ITS
+CLAUSE:**
+1. **THE ONE CELL THAT MOVES — `JSG-12.10`, AND ONLY IT, CARRIED THE SUPERSEDED IDENTITY.** **The as-filed
+   cell read** *"**`'@provident-storeroom/js'`**"*, **cited to** *"`§3.3` item 1 · `DD-26`"*; **`PAR-PUB-1`
+   (`docs/specs/storeroom-publish/parameter-semantics.md §2.1`) FIXES the new value as exactly
+   `provident-storeroom` — UNSCOPED — and its own outside-values cell REFUSES the old spelling as *"the
+   identity the amendment moves"*; the clause is carried at `docs/specs/storeroom-publish/distribution.md
+   `§6.1` item 1 and at the `A82`/`A83` decision row's *"public at provident-storeroom:0.1.0"*.** **THE OLD
+   VALUE WAS `package.md §3.3` item 1's and `DD-26`'s PRE-RENAME DECLARATION, which stands byte-for-byte at
+   its own `§` and is superseded here AS AN IDENTITY FIGURE.** **THE RE-DERIVED CELL ASSERTS THE NEW VALUE
+   EXACTLY — the manifest's `name` equal to `'provident-storeroom'`, character for character, with the
+   pre-rename spelling named in the cell itself — and NO LOOSER FORM: no substring test, no case-fold, no
+   prefix and no scope tolerated.**
+2. **THE ROW THAT WAS CHECKED AND STANDS UNMOVED — `JSG-12.12`, THE FIVE SCOPED PLATFORM NAMES.** **The rename
+   does NOT reach them: `PUB-DD-15` and `PUB-DD-6` fix each name as the scope `@provident-storeroom`, a
+   separator `/`, and the label `js-<target>-<arch>[-<toolchain>]` (`resolution.md §3.1`'s table;
+   `PAR-PUB-17`; `A84`'s `A-1`), which is character for character the five spellings the cell already
+   asserts — so NO expected value of the row moves and none is loosened, and the main package's move to an
+   UNSCOPED identity leaves the platform scope alone (`A82`).** **AND `JSG-12.11` (the count `5`) AND
+   `JSG-12.17` (the five are `optionalDependencies` and never `dependencies`) ARE CHECKED AND STAND
+   UNMOVED for the same reason.** **THE NAMING THIS ROW ANSWERS, AND ITS ONE IMPRECISION, STATED SO THE
+   CHECK IS READ RATHER THAN ASSUMED: `PUB-CF-6` and `implementation-plan.md`'s pointer row name
+   `JSG-12.10`/`JSG-12.12` as the two blind rows that print the OLD identity; `JSG-12.12` does print it —
+   but as a SUBSTRING of five names whose own declared values are the new scope's, not as the cell's
+   value — so the row is re-derived by CHECKING it, and its citation cell alone gains this unit's two
+   clauses.**
+3. **THE ROW THAT WAS ADDED — `JSG-12.18`, THE `files` ALLOWLIST — AND IT IS AN ADDITION RATHER THAN A
+   RE-DERIVATION, SAID PLAINLY.** **It asserts `PAR-PUB-3`'s domain exactly — the allowlist equal as a SET
+   to `index.mjs` · `README.md` · `index.d.ts`, with NO `build/Release` path and no `.node` entry anywhere in
+   it (`PUB-DD-1`; `A85`(1); `docs/specs/storeroom-publish/contract.md §2.1` item 1; `distribution.md §6.1`
+   item 8) — and it has NO PRE-RENAME COUNTERPART, because the sibling unit's `package.md` and `contract.md`
+   declare no `files` cell at all: this set, whose stated method is to read the published manifest and
+   compare each declared fact with the clause that prints it, carried the allowlist in NO cell before this
+   pass.**
+4. **WHAT THE RENAME DOES NOT REACH, EACH CHECKED AND EACH STANDING, SAID SO NONE IS DRAGGED ALONG BY THE
+   MOVE OF ITEM 1.** **THE EIGHT MODULE NAMES — `JSG-12.1`, `.2`, and `JSG-01.2`, `.15` — STAND UNMOVED: the
+   identity of the package is not the namespace's name set.** **THE INSTANCE'S `{ register, on, off }` —
+   `JSG-01.9` — STANDS UNMOVED.** **THE REALM CLAIM, NODE ESM ALONE — `JSG-12.4`'s ESM arm and `JSG-12.5`'s
+   refused `require` arm, with `JSG-12.14`'s internal-only addon reach (`package.md §1.3` items 1–2;
+   `distribution.md §6.1` item 12's `type`) — STANDS UNMOVED, and no clause of this unit touches the
+   package's realm.** **AND THE `HO-` HANDOFF ROWS — `JSG-12.5`'s `§3.2 HO-1`, with `HO-1`…`HO-7` remaining
+   handoffs and no consumer wired by any pass (`docs/specs/storeroom-publish/acceptance.md §3.2` item 3) —
+   STAND UNMOVED.**
+5. **THE CENSUS, WITH BOTH TERMS PRINTED BECAUSE ONE OF THEM MOVES.** **`JSG-12` is `18` assertions where the
+   as-filed head read `17` — the added cell of item `3` above — and THE SET'S ASSERTION CENSUS IS `241`
+   where the `Q5` re-derivation's own clause read `240`, WHILE THE SCENARIO CENSUS STAYS `13`, every other
+   scenario's own count stands unmoved, and the `§2` heads now sum `17 + 16 + 5 + 67 + 14 + 7 + 15 + 22 + 12
+   + 24 + 18 + 18 + 6 = 241` ✓.** **THE MOVEMENT IS `+1`, IT IS AN ADDITION FOR A VALUE THIS UNIT DECLARES
+   FOR THE FIRST TIME, AND NOT ONE BYTE WAS LOOSENED TO REACH IT** (the `240` reading stays in the file's
+   earlier clauses and is read from this date as the pre-pass count, as this file's own convention reads
+   every superseded figure).
+6. **THE CELLS THIS PASS'S ADDITION MAKES STALE, NAMED AND NOT EDITED — NOT ONE OF THEM LIES INSIDE THIS
+   ROLE'S EDIT SCOPE, AND EACH IS READ FROM THIS DATE AS THE SIBLING SET'S PRE-PASS COUNT:** **`docs/specs/
+   storeroom-publish/acceptance.md §3.2` item 2** (*"its `113` JS cells, its `240` blind assertions and its
+   `91` live assertions"*); **`docs/specs/storeroom-publish/contract.md §0.3` · `PUB-DD-18`'s `alt` cell**
+   (the same three figures); **`contract.md §4.3` item 2**; **`contract.md`'s six-artefact figure table's
+   row 14** (*"the JS unit's `113`/`240`/`91`"*); **`docs/specs/storeroom-js/implementation-plan.md`**'s
+   close-out clause (*"THE BLIND SET IS `240/240`, NOT `236/236`"*); **`docs/specs/storeroom-js/contract.md`**
+   `§7`'s digest clause; **`docs/specs/storeroom-js/test-cases.md`**, **`surface.md`**, **`docs/specs/
+   storeroom-js-convenience-proposal.md`**, **`docs/specs/storeroom-js-publish-proposal.md`**, **`docs/
+   next-steps.md`** and **`docs/decisions.md`**, each where it quotes the figure. **The figure the `113` and
+   the `91` and the `379` name are UNMOVED by this pass** (`174` tests · `174` pass · `0` fail on the JS leg;
+   `91`/`91`/`0` on the live battery; `379` PASS · `0` FAIL at the store's root), **so only the `240` half of
+   each of those citations is stale.**
+7. **THE RECORD.** **The re-derivation and this run are filed, with every cell and every figure, at
+   `archive/gate5/storeroom-js-greens-run.md` `§8`** (`Q5`; `Q3-6`; `contract.md §9` · `Q3-1`'s and `Q3-6`'s
+   two-row duty, read with `PUB-CF-6`).
+   (`[A1 docs/specs/storeroom-publish/contract.md §0.3` · `PUB-DD-1` · `PUB-DD-6` · `PUB-DD-15` · `§2.1`
+   item 1 and `§2.5`; A1 `parameter-semantics.md §2.1` · `§2.3` · `§2.8` · `§3.1` (`PAR-PUB-1` · `PAR-PUB-3` ·
+   `PAR-PUB-8` · `PAR-PUB-17`); A1 `distribution.md §6.1` items 1, 8 and 12; A1 `archive/gate5/
+   storeroom-js-greens-run.md §8` — this pass's dated `§`; A3 `docs/specs/storeroom-js/package.md §3.1`
+   item 2 and `§3.3` item 1, the pre-rename home this cell moved off | numeric or census claim]`).**
 
 ### JSG-13 — THE SCALING CLAIM THE DOCS NOW MAKE (6 assertions)
 
