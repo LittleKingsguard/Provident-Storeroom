@@ -10,6 +10,12 @@
 // the SAME PACKAGE in a scratch copy with the addon artifact ABSENT (the declared `FilePathUnreachable`
 // arm, with no fallback).
 //
+// AND (added 2026-10-11 by the `Q1` contract amendment, this driver's own `Q6` cell) it drives the package's
+// TWO NEW INSTANCE MEMBERS END TO END: `on(address, listener) -> handle` and `off(handle) -> undefined`
+// (`docs/specs/storeroom-js/surface.md` `§2.1`'s dated clause (a) and `§2.4` item 7) — the fresh arm, the
+// held-address arm, the atomicity arm, `off`'s two removals against `unlisten`'s one, and the
+// instance-scoped registry across a fresh boot (`LIVE-13`).
+//
 // LAYER: this run is a LIVE run of the ASSEMBLED PACKAGE — the real artifact, a real process, real file
 // I/O, a real caller. It is ADDITIVE to the gate-5 `ENVELOPE/PURE` set: it retires no envelope row and no
 // node row, and NO `APP`-GREEN IS CLAIMED (the unit delivers a LIBRARY; `APP` layer = NONE, `DD-20`).
@@ -108,13 +114,25 @@ console.log(`layer          LIVE / ASSEMBLED PACKAGE (real artifact, real proces
   const c = thrown(() => ns.storeCreate(cfg));
   A(`${sc}.2`, '§2.1', 'storeCreate returns a non-null object and does not throw', !c.threw && c.value !== null && typeof c.value === 'object', c.threw ? `threw ${JSON.stringify(c.err)}` : String(c.value));
   const inst = c.threw ? null : c.value;
-  A(`${sc}.3`, '§2.4 item 5 (a)', "the instance's own member set is exactly ['register']",
-    inst !== null && Object.getOwnPropertyNames(inst).sort().join(',') === 'register', inst ? Object.getOwnPropertyNames(inst).sort().join(',') : 'no instance');
+  // ⟶ RE-DERIVED 2026-10-11 BY THE `Q1` CONTRACT AMENDMENT (`A79`), THE `role_live_scenario_runner`'s OWN
+  // `Q6` CELL: **THE DECLARED SET IS NOW `{ register, on, off }`** — `docs/specs/storeroom-js/surface.md`
+  // `§2.1`'s dated clause (a), *"THE MEMBER SET IS `{ register, on, off }` — THREE OWN MEMBERS AND NOTHING
+  // ELSE"*, whose `on`/`off` clauses stand at that document's `§2.4` item 7. **THE OLD VALUE THIS CELL
+  // ASSERTED — the exact set `['register']`, `§2.4` item 5 (a)'s as-filed *"`{ register }` — one own member,
+  // and NOTHING ELSE"* — is named here as the PRE-AMENDMENT declaration and is superseded AS A MEMBER-SET
+  // FIGURE by that clause.** **`contract.md §5.5`'s dated clause of 2026-10-11 (clause 5, the live-battery
+  // bullet) names THIS cell as the one the re-run must move; the same re-derivation is taken at the blind
+  // set's `JSG-01.9`.** **THE MODULE NAMESPACE IS UNMOVED at the eight declared verbs (clause (b)), so
+  // `LIVE-1.1` above stands as filed and no cell here moves it.**
+  A(`${sc}.3`, '§2.1 dated clause (a); A79; §2.4 item 7; contract.md §5.5 dated clause (clause 5)',
+    "the instance's own member set is exactly ['off','on','register'] — the three declared members, and NOTHING ELSE (the pre-amendment declaration was ['register'])",
+    inst !== null && Object.getOwnPropertyNames(inst).sort().join(',') === 'off,on,register',
+    inst ? Object.getOwnPropertyNames(inst).sort().join(',') : 'no instance');
   A(`${sc}.4`, '§1.3 FilePathArg row 1', "the caller's filePath is a REAL path: its parent directory exists on disk",
     fs.existsSync(path.dirname(filePath)) && fs.statSync(path.dirname(filePath)).isDirectory(), path.dirname(filePath));
   A(`${sc}.5`, 'the declared build step (bindings/js/README.md)', 'the addon artifact is present at the declared path with non-zero size',
     fs.existsSync(ADDON) && addonStat.size > 0, fs.existsSync(ADDON) ? `${addonStat.size} bytes` : 'ABSENT');
-  end(sc, `an instance stands over the file register '${path.basename(path.dirname(filePath))}/state.json'; own members ['register']; the artifact ${addonStat.size} bytes sha256 ${addonSha.slice(0, 12)}…`);
+  end(sc, `an instance stands over the file register '${path.basename(path.dirname(filePath))}/state.json'; own members ['off','on','register']; the artifact ${addonStat.size} bytes sha256 ${addonSha.slice(0, 12)}…`);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -488,6 +506,186 @@ console.log(JSON.stringify({ pid: process.pid, value: read(i, ${JSON.stringify([
   end(sc, `the file-tier delete answered tiers ${JSON.stringify(del.tiers)} and ['dd'] answered ${statusOf(gone)} in that instance, while the booted instance read the removed version back as ${back.threw ? statusOf(back) : JSON.stringify(back.value)} — the declared non-durability of the delete`);
 }
 
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// LIVE-13 — THE END-TO-END `on`/`off` FLOW: FROM REAL CALLER INPUT TO THE FINAL RESOLVED STATE
+//
+// ADDED 2026-10-11 BY THE `Q1` CONTRACT AMENDMENT, THE `role_live_scenario_runner`'s OWN `Q6` CELL
+// (`docs/specs/storeroom-js-convenience-proposal.md` `§5`'s `Q6` row: *"re-run the live battery against the
+// rebuilt artifact, with a live scenario using `on`/`off` end to end"*; `contract.md §5.5`'s dated clause of
+// 2026-10-11, clause 5, whose live-battery bullet names `LIVE-1.3`'s move and its re-run as *"a new
+// scenario's work"*). **THE TWO NEW INSTANCE MEMBERS ARE `surface.md §2.1`'s dated clause (a)'s and
+// `§2.4` item 7's: `on(address, listener) -> handle` and `off(handle) -> undefined`.** **THE MODULE
+// NAMESPACE IS UNMOVED** (`§2.1` dated clause (b)) — **and `LIVE-1.1` above still asserts the eight verbs,
+// so no cell here re-asserts it.**
+//
+// THIS SCENARIO DRIVES THE WHOLE FLOW A REAL CALLER PERFORMS, AND EVERY ARM IS DRIVEN FROM REAL CALLER
+// INPUT IN THIS REAL NODE PROCESS, AT A REAL SCRATCH `cfg.filePath` UNDER `/tmp`, TO ITS OWN FINAL RESOLVED
+// STATE:
+//   * the FRESH arm — `on` at a caller-spelled address returns the handle, a real write beneath it runs the
+//     function exactly once with the TRIGGERING ADDRESS as its single argument, and the returned
+//     `triggered` carries THAT SAME handle's identity (`§2.4` item 7 (a); `§2.7` item 5; `PAR-JS-12`);
+//   * the HELD-ADDRESS arm — `on` again at the SAME address with a NEW function returns the SAME handle,
+//     the first function never fires again and the second does (`§2.4` item 7 (a); `DD-52`; rule 2);
+//   * the ATOMICITY arm — a NON-FUNCTION listener and a MALFORMED ADDRESS are each refused VERBOSELY with
+//     NOTHING LEFT BEHIND, driven as an ABSENCE: the trigger set is UNCHANGED, the refused address answers
+//     what it answered before (and a `listen` there reaches the store with nothing standing), and the
+//     standing sibling registration is undisturbed (`§2.4` item 7 (a) step 1; `A81`; `DD-51`; `§2.17`'s
+//     dated clause 1–2; `§2.5` item 5 (g));
+//   * `off(h)` — `undefined`, and a later write at that address DOES NOT FIRE; and the CONTRAST `unlisten`
+//     — the store-side withdrawal ONLY, with a `listen` at that address afterwards NOT firing the old
+//     function (`§2.4` item 7 (b); `DD-53`/`DD-54`; `A80`; rule 4; `§2.3` dated clause 3);
+//   * a REAL `file`-tier write plus a FRESH instance booted on the SAME path — the durable value reads back
+//     and THE HOME IS EMPTY IN THE NEW INSTANCE (registrations are instance-scoped) (`store §7.2` item 6;
+//     `DD-15`/`DD-17`; `§2.4` rule 4's last sentence).
+//
+// **WHAT IS ASSERTED, AND WHAT IS DELIBERATELY NOT** (`A78`): `on` and `off` are DELIVERY-SIDE members and
+// state NO firing rule — WHICH listener fires and WHEN are the store's (`write-and-read.md §6.5` item 14).
+// Every cell below therefore asserts a PARAMETER answer, a RETURN, a refusal, or the ABSENCE OBSERVABLE
+// the contract's own `§2.17` dated clause prints — **never a derived firing rule**; the firing cells
+// (`LIVE-13.3`, `.5`, `.6`, `.12`, `.14`, `.15`, `.16`) assert only the invocation COUNT and the ONE
+// invocation argument, which are `§2.4` rules 2–3 and item 6 and are UNMOVED. **WHERE THE RETURNED LIST IS
+// CONCERNED, MEMBERSHIP IS ASSERTED AS A SET AND NEVER AS A SEQUENCE** (`§2.7` item 3; `DD-22`; `PAR-JS-15`), **so `includes` is the
+// only list predicate used below and `.length` is read only where the contract's own count is the
+// observable.** **THE ABSENT-ADDON ARM IS NOT DRIVEN HERE**: it is `LIVE-8` above and is a DIFFERENT
+// scenario, whose subject is the artefact's absence and not the registry.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+let onHandleForm = 'not driven';
+
+// THE WHOLE-REGISTER PROBE the atomicity arm owes: `store §4.1 R-5` / `A25`, the empty address answers the
+// WHOLE register — a FRESH JS-owned value, so a snapshot is a real comparison and never the same object.
+function registerSnapshot(inst) { return Object.assign({}, ns.read(inst, [])); }
+
+{
+  const sc = 'LIVE-13';
+  const dir = fsPath('live13');
+  fs.mkdirSync(dir, { recursive: true });
+  const filePath = path.join(dir, 'state.json');
+  const cfg = { filePath, journalLength: 4, listeners: [] };
+  const inst = ns.storeCreate(cfg);
+  // THE BRANCH IS MINTED FIRST, by a real write, because `store §4.1 #2` refuses a write whose parent the
+  // register does not hold (`AddressNotFound`) — a caller's own order, not a defect of this scenario.
+  ns.write(inst, ['ev'], 'temp', {});
+  start(sc, `a real caller stands in Node ${process.version}, constructs at '${filePath}', mints ['ev'] with a real write, calls on(inst, ['ev'], fn), writes under ['ev','child'], calls on again at the held ['ev'] with a NEW function, offers a NON-FUNCTION listener and a MALFORMED address, then off(h) — and finally writes at the file tier and boots a FRESH instance on the same path`);
+
+  // ── (1) THE FRESH ARM: `on` → a handle ─────────────────────────────────────────────────────────────────
+  const first = [];
+  const firstFn = function (...args) { first.push(args); };
+  const h = inst.on(['ev'], firstFn);
+  onHandleForm = `${typeof h} ${JSON.stringify(h)}`;
+  A(`${sc}.1`, '§2.4 item 7 (a); §2.3 item 2; A79',
+    "on(address, listener) answers the package's OPAQUE handle — a non-null value, not a string, spelling no token — and does NOT throw",
+    h !== null && typeof h === 'object' && typeof h !== 'string' && !JSON.stringify(h).includes('listener-'), onHandleForm);
+  const w = ns.write(inst, ['ev', 'child'], 'temp', { n: 1 });
+  A(`${sc}.2`, "§2.4 item 6 (b) (the registry's lookup BY THAT IDENTITY); §2.7 item 1; DD-22",
+    "the returned record's triggered carries THE SAME handle's identity — membership asserted, and NO ORDER (§2.7 item 3)",
+    Array.isArray(w.triggered) && w.triggered.includes(h), JSON.stringify(w.triggered?.length));
+  A(`${sc}.3`, '§2.4 item 7 (a) step 3; §2.4 rule 2; §2.7 item 5; parameter-semantics.md §2.12',
+    "the function `on` was given runs EXACTLY ONCE, and its single argument is the TRIGGERING ADDRESS ['ev','child'] — never the handle",
+    first.length === 1 && first[0].length === 1 && rel(first[0][0], ['ev', 'child']) && first[0][0] !== h,
+    `${first.length} invocation(s); arg ${first[0] ? JSON.stringify(first[0][0]) : 'n/a'}`);
+  A(`${sc}.4`, '§2.2; store §3.6',
+    "the write's own record carries a real opId the caller sees",
+    typeof w.op === 'object' && typeof w.op.opId === 'string' && w.op.opId.length > 0, String(w.op?.opId));
+
+  // ── (2) THE HELD-ADDRESS ARM: `on` again at the same address replaces ────────────────────────────────
+  const second = [];
+  const secondFn = function (...args) { second.push(args); };
+  const h2 = inst.on(['ev'], secondFn);
+  A(`${sc}.5`, '§2.4 item 7 (a) (the held arm); DD-52; §2.3 item 6',
+    'a second on at the HELD address answers THE SAME handle and REPLACES the registry\'s function — the replaced function is not invoked',
+    h2 === h && first.length === 1, h2 === h ? `same handle; first fn fired ${first.length}×` : 'a DIFFERENT handle');
+  const w2 = ns.write(inst, ['ev', 'child2'], 'temp', { n: 2 });
+  A(`${sc}.6`, '§2.4 rule 2; §2.4 item 6 (e); §2.7 item 5',
+    'a later write under that address invokes the SECOND function exactly once — with the triggering address — and the first function never fires again',
+    second.length === 1 && second[0].length === 1 && rel(second[0][0], ['ev', 'child2']) && first.length === 1,
+    `first ${first.length}×, second ${second.length}×; arg ${second[0] ? JSON.stringify(second[0][0]) : 'n/a'}`);
+
+  // ── (3) THE ATOMICITY ARM: two refusals, driven as ABSENCE ─────────────────────────────────────────────
+  const before = registerSnapshot(inst);
+  const notFn = thrown(() => inst.on(['ev', 'ghost'], 'not a function'));
+  A(`${sc}.7`, '§2.17 dated clause 1; parameter-semantics.md §2.12; surface.md §2.5 item 5 (g); A81',
+    'a NON-FUNCTION listener is refused in §2.5\'s SINGLE thrown form {status, message} with the store\'s own AddressMalformed — and NOT as a raw host TypeError',
+    notFn.threw && isSingleForm(notFn.err) && notFn.err.status === 'AddressMalformed', statusOf(notFn));
+  A(`${sc}.8`, 'surface.md §2.5 item 5 (a)–(b); §2.17 dated clause (the class half and the position half)',
+    "the refusal is VERBOSE: its message names the failing target's own value, the class the value HAS, and the ARGUMENT POSITION 2 of 2",
+    notFn.threw && typeof notFn.err.message === 'string' && notFn.err.message.includes('not a function')
+      && /string/.test(notFn.err.message) && /second argument/.test(notFn.err.message),
+    notFn.threw ? notFn.err.message : 'no throw');
+  A(`${sc}.9`, '§2.4 item 7 (a) step 1 ("NOTHING IS LEFT BEHIND"); A81; DD-51; contract.md §5.5 dated clause (clause 2)',
+    'NOTHING IS LEFT BEHIND by that refusal: the whole register is UNCHANGED and the refused address answers what it answered before — AddressNotFound',
+    rel(registerSnapshot(inst), before)
+      && (() => { const r = thrown(() => ns.read(inst, ['ev', 'ghost'])); return r.threw && statusOf(r) === 'AddressNotFound'; })(),
+    Object.keys(registerSnapshot(inst)).join(','));
+  const bad = thrown(() => inst.on('ev.bad', () => {}));
+  A(`${sc}.10`, '§2.17 dated clause 2; surface.md §2.5 item 5 (g); parameter-semantics.md §2.5; A81',
+    "a MALFORMED ADDRESS is refused the same way — AddressMalformed in the single form, verbosely, naming the address's class and the ARGUMENT POSITION 1 of 2",
+    bad.threw && isSingleForm(bad.err) && bad.err.status === 'AddressMalformed'
+      && typeof bad.err.message === 'string' && /first argument/.test(bad.err.message),
+    bad.threw ? `${bad.err.status} :: ${bad.err.message}` : 'no throw');
+  A(`${sc}.11`, '§2.4 item 7 (a) step 1; A81; DD-51; parameter-semantics.md §2.17 dated clause 2',
+    'NOTHING IS LEFT BEHIND by that refusal either: the whole register is UNCHANGED, and a listen at the refused address REACHES THE STORE (so the home held nothing there — the store answered a fresh mint, not an existing entry)',
+    rel(registerSnapshot(inst), before) && !thrown(() => ns.listen(inst, ['ev', 'ghost'])).threw,
+    Object.keys(registerSnapshot(inst)).join(','));
+  const w3 = ns.write(inst, ['ev', 'child3'], 'temp', { n: 3 });
+  A(`${sc}.12`, '§2.4 item 7 (a) step 1 (the standing sibling, undisturbed); contract.md §5.5 dated clause (clause 2)',
+    'the STANDING registration at the held address is undisturbed by both refusals: the write still fires the second function exactly once, and the trigger set is not left short by either refusal',
+    second.length === 2 && w3.triggered.length === 1,
+    `second fn fired ${second.length}×; triggered ${JSON.stringify(w3.triggered?.length)}`);
+
+  // ── (4) `off(h)`: `undefined`, and the address does not fire afterwards ───────────────────────────────
+  const offAnswer = thrown(() => inst.off(h));
+  A(`${sc}.13`, '§2.4 item 7 (b) (the OWN arm); DD-54',
+    'off(handle) over an in-domain registered identity answers undefined and does NOT throw',
+    !offAnswer.threw && offAnswer.value === undefined, offAnswer.threw ? statusOf(offAnswer) : String(offAnswer.value));
+  const w4 = ns.write(inst, ['ev', 'child4'], 'temp', { n: 4 });
+  A(`${sc}.14`, '§2.4 item 7 (b) step 3; DD-54; contract.md §5.5 dated clause (clause 2, "off FAILING TO REMOVE THE REGISTRY ENTRY")',
+    'a later write at that address DOES NOT FIRE — the function neither runs nor appears in the trigger set, while the store-side withdrawal stands visible in the EMPTY set',
+    second.length === 2 && w4.triggered.length === 0, `${w4.triggered.length} triggered member(s); second fn fired ${second.length}×`);
+
+  // ── (5) THE CONTRAST `unlisten`: the store-side withdrawal ONLY ───────────────────────────────────────
+  // THE BRANCH IS MINTED FIRST, exactly as ['ev'] was at the top of this scenario (`store §4.1 #2`).
+  ns.write(inst, ['uu'], 'temp', {});
+  const uu = [];
+  const hU = inst.on(['uu'], (...args) => uu.push(args));
+  const unAnswer = thrown(() => ns.unlisten(inst, hU));
+  const w5 = thrown(() => ns.write(inst, ['uu', 'c'], 'temp', { n: 5 }));
+  A(`${sc}.15`, '§2.4 rule 4 (UNMOVED); §2.3 item 4; A80; surface.md §2.3 dated clause 3',
+    'unlisten answers undefined, withdraws the store-side home entry ONLY, and the withdrawn function NEVER FIRES — and the store-side withdrawal is visible in the EMPTY trigger set of a write whose address the withdrawn listener held',
+    !unAnswer.threw && unAnswer.value === undefined && uu.length === 0 && !w5.threw && w5.value.triggered.length === 0,
+    `unlisten ${unAnswer.threw ? statusOf(unAnswer) : 'undefined'}; uu fired ${uu.length}×; write ${w5.threw ? statusOf(w5) : `triggered ${w5.value.triggered.length} member(s)`}`);
+  const hU2 = ns.listen(inst, ['uu']);
+  const w6 = ns.write(inst, ['uu', 'c2'], 'temp', { n: 6 });
+  A(`${sc}.16`, '§2.4 rule 4; §2.3 item 2; contract.md §5.5 dated clause (clause 3, `S-WITHDRAW`)',
+    'a later re-listen at that address mints a DIFFERENT handle, that write carries the NEW identity, and the OLD function still does not fire',
+    hU2 !== hU && w6.triggered.includes(hU2) && uu.length === 0,
+    `new handle differs: ${hU2 !== hU}; triggered carries it: ${w6.triggered.includes(hU2)}; old fn fired ${uu.length}×`);
+  A(`${sc}.17`, '§2.4 rule 4; §2.4 item 6 (b); §2.7 item 3; DD-22',
+    'the SAME handle comes back for the SAME token — the identity is stable — and the trigger set is asserted by MEMBERSHIP, never by order or position',
+    ns.listen(inst, ['uu']) === hU2 && w6.triggered.includes(hU2), 'identity stable');
+
+  // ── (6) A REAL `file`-TIER WRITE, AND A FRESH INSTANCE BOOTED ON THE SAME PATH ────────────────────────
+  const dir2 = fsPath('live13/boot');
+  fs.mkdirSync(dir2, { recursive: true });
+  const filePath2 = path.join(dir2, 'state.json');
+  const cfg2 = { filePath: filePath2, journalLength: 4, listeners: [] };
+  const A_ = ns.storeCreate(cfg2);
+  const wD = ns.write(A_, ['durable'], 'file', 'DURABLE-13');
+  const B = ns.storeCreate(cfg2);
+  const rb = thrown(() => ns.read(B, ['durable']));
+  A(`${sc}.18`, "the README's file-behaviour reading; store §7.2 item 5; DD-5 (existence and size ONLY — no JS-side byte read is taken)",
+    'the file-tier write produced a REAL file at the caller-spelled path, and the FRESH instance booted over the SAME cfg re-loaded the durable value',
+    fs.existsSync(filePath2) && fs.statSync(filePath2).size > 0 && !rb.threw && rb.value === 'DURABLE-13',
+    rb.threw ? statusOf(rb) : `${String(rb.value)} · ${fs.existsSync(filePath2) ? fs.statSync(filePath2).size : 0} bytes on disk · opId ${String(wD.op?.opId)}`);
+  const w7 = ns.write(B, ['durable'], 'temp', 7);
+  A(`${sc}.19`, '§2.4 rule 4 ("the registry is released with the instance and by nothing else"); DD-15; DD-17; store §7.2 item 6',
+    'THE HOME IS EMPTY IN THE NEW INSTANCE — the registrations are INSTANCE-SCOPED: the new instance\'s own member set is the declared three, its write under the address the OLD instance registered carries NO triggered member and fires nothing there',
+    Object.getOwnPropertyNames(B).sort().join(',') === 'off,on,register' && w7.triggered.length === 0,
+    `members ${Object.getOwnPropertyNames(B).sort().join(',')}; triggered ${w7.triggered.length} member(s)`);
+
+  end(sc, `on returned ${onHandleForm} at ['ev'] and the write ran the function 1× with the address ["ev","child"]; a second on at the held address answered the SAME handle and replaced the function (first 1×, second 2×); a non-function listener and the malformed address 'ev.bad' each answered AddressMalformed in the single verbose form and left the register unchanged; off(${JSON.stringify(h)}) answered undefined and the address fired ${w4.triggered.length} member(s) afterwards; unlisten withdrew the store-side entry only, with the re-listen minting a DIFFERENT handle and the old function never firing; the file-tier write at ${filePath2} stands and the FRESH instance read 'DURABLE-13' back with an EMPTY home`);
+}
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 // THE LIVE RUN'S OWN REPORT
