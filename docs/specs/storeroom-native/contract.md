@@ -3251,6 +3251,51 @@ closure is a finding and a pass that lifts a park fails** (`R: §17.1`, `R: §17
 `[R: §17.1 · §17.4 | NEGATIVE]`).
 `[P: §9 · A7, §14 · A33, §15 · A37, §16 · A38 | CONTRACT]`
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED `A78` RE-HOMING PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+***"Listener behavior is part of store."***: THE FIRING'S AUTHORITY, AT THIS SECTION'S OWN FOOT.**
+`RCA-8(d)` ANNOTATE-BESIDE: **every byte above — items 1–7 as filed and the supersession clause and its four
+clauses beside them, the listener amendment's own clauses' pointer, and the parks' operative state — stands
+byte-for-byte and is read THROUGH this clause; THIS clause is a PURE INSERTION, it re-decides no rule, adds no
+`§`-number, mints no code, moves no register row and names no park.** **THE RULING, VERBATIM:**
+***"Listener behavior is part of store."*** (`P: docs/specs/storeroom-js-proposal.md §19 · A78`).
+**FOUR CLAUSES, AND NOTHING ELSE:**
+1. **THE FIRING'S SEMANTICS ARE THE STORE'S, AND THE AUTHORITY IS THIS DIRECTORY'S LISTENER CLAUSES.**
+   **WHICH listener fires, WHEN it fires, WHAT it is bound to, WHICH ids a trigger returns, the home's
+   registration semantics (`listen`/`unlisten`), the address-prefix rule and the process-scoped handle are
+   STORE BEHAVIOUR** — **declared at `write-and-read.md §6.5` items 8–13 and completed there by `item 14`,
+   which states the authority itself** — **and no other artifact is their home; what another artifact may
+   declare is DELIVERY (the id→function registry, the invocation, its argument and the failure form) and never
+   a firing rule of its own.**
+2. **THE ONE RULE THIS SECTION'S PRE-AMENDMENT CELLS DID NOT CARRY, STATED HERE SO A READER WHO STOPS AT THIS
+   SECTION FINDS IT: WHAT A TRIGGER'S RETURNED SET CONTAINS IS WHAT THE HOME HELD WHEN THE TRIGGER WAS
+   COMPUTED, AND A `listen` OR AN `unlisten` THAT LANDS AFTER THAT COMPUTATION TAKES EFFECT AT THE NEXT
+   TRIGGER.** **A `triggered` member is therefore a statement about the home AS IT STOOD, and never about the
+   home as it stands after a later registration or withdrawal** (`write-and-read.md §6.5` item 14 (d), where
+   the rule and its argument stand; items 11 and 12; `DD-39`; `DD-42`). **AND THE RULE'S NON-ARBITRARINESS IS
+   THAT SECTION'S OWN ARGUMENT, CARRIED WITH IT AND NOT RESTATED HERE: this section declares NO ORDER for the
+   returned list (item 5 above; `DD-37`), so a reading that tied an outcome to an occurrence's POSITION in the
+   array would make an observable depend on an unobservable, and the position-independent reading is the only
+   one consistent with item 5 itself.**
+3. **AND IT IS A RULE OF THE STORE'S LISTENER SURFACE AND NOT OF ANY CONSUMER'S DELIVERY.** **A delivery
+   window, a package-side registry, an invocation and its argument are the CONSUMER'S; a consumer that holds a
+   `triggered` list and invokes its own functions does so AFTER this store's verb has returned, and reads its
+   recipient set from the list IT HOLDS as that list stands — which is the DELIVERY-side half of one rule,
+   stated at the consumer's own clause and pointed back to `write-and-read.md §6.5` item 14 for the firing's
+   own terms.**
+4. **WHAT THIS CLAUSE DOES NOT MOVE, NAMED SO ITS SCOPE IS NOT OVER-READ.** **The superseded `watch`-surface
+   clauses and their citations, the selection rule of item 3 and its tier clause of item 7, the `WatchHandle`
+   and `ListenerHandle` reconciliation, the `ListenerHandle`'s mint rule, `PAR-13`'s uniqueness domain and the
+   parks' operative state each stand exactly as printed above** — **no row of the typed register moves (the
+   register stands at its `8` rows with the cap holding, `8 ≤ 8` ✓), the closed fail set stands at `15`
+   members, and no `DD` row, no `PAR` row and no part entry is authored, renumbered or dropped by this
+   clause.**
+(`[P: docs/specs/storeroom-js-proposal.md §19 · A78 — *"Listener behavior is part of store."*; A3
+docs/specs/storeroom-native/write-and-read.md §6.5 items 8–14 — the listener clauses this clause points at,
+each at its own line; A3 docs/specs/storeroom-js/surface.md §2.4 · `docs/specs/storeroom-js/contract.md` §2.4 ·
+§2.7 — the three consumer-side cells reduced to inheritance and pointer in this pass; A3
+docs/specs/storeroom-native/write-and-read.md §6.5 item 5 (*"NO ORDER IS DECLARED FOR THE LIST"*) with `DD-37`
+| CONTRACT]`).
+
 ---
 
 ## §7. The store's own persistence, and its construction inputs

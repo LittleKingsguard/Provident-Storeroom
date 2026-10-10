@@ -998,7 +998,31 @@ withdrawn and nothing is reworded — THIS clause is a PURE INSERTION, and it is
    amendment of `docs/specs/storeroom-js/`; the reversal instrument is that bounded amendment, and NO PARK IS
    NAMED AS IT** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12`; A1
    docs/specs/storeroom-js-proposal.md §11 · A66 — a park is not an instrument a row may name |
-   declared parameter semantics]`).
+      declared parameter semantics]`).
+
+**⟶ RE-HOMED 2026-10-11 — THE BOUNDED `A78` RE-HOMING PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+***"Listener behavior is part of store."***: THIS SECTION'S ONE FIRING ITEM INHERITS AND POINTS.** `RCA-8(d)`
+ANNOTATE-BESIDE: **items 1–6 above stand byte-for-byte — item 5's prefix rule and item 6's inherited mint rule
+included — and they are read THROUGH this clause; THIS clause is a PURE INSERTION, it adds no item, no member,
+no `DD` row and no register row, and it re-decides no rule.** **THE RULING, VERBATIM:** ***"Listener behavior is
+part of store."*** (`docs/specs/storeroom-js-proposal.md` `§19` · `A78`). **AND WHAT IT DOES AT THIS SECTION,
+IN THREE LINES:**
+1. **ITEM 5 IS THE STORE'S RULE AND THIS SECTION IS ITS POINTER.** **The handle's presence in a triggered set
+   is decided by the address-prefix test — a property of the STORE's listener surface, declared at
+   `docs/specs/storeroom-native/write-and-read.md §6.5` item 10 (d) (iii)**, with the store's own selection
+   rule of that part's `§6.5` item 3. **This section keeps the item's words as its own inheritance of the
+   rule; a reader taking the rule's home takes that section's.**
+2. **ITEM 6'S MINT RULE IS INHERITED TOO, AND ITS HOME IS UNCHANGED: `write-and-read.md §6.5` item 12 (c)** —
+   **this section's item 6 remains the crossing's own reading of what a repeat `listen` returns to JS (the
+   package's OPAQUE wrapper), and it declares no behaviour of the home.**
+3. **AND NOTHING ELSE MOVES.** **Items 1–4 (the process-scoped domain, the two spellings, the two accepted
+   consequences and the `unlisten` no-op set) each keep their own subjects as printed; the register keeps its
+   `8` rows with every failure list unmoved (`§5.5`'s `S-WITHDRAW` both arms included); and no `DD` row, no
+   `PAR-JS` row and no part entry is authored, renumbered or dropped here.**
+(`[A1 docs/specs/storeroom-js-proposal.md §19 · `A78`; A3 docs/specs/storeroom-native/write-and-read.md §6.5
+items 3, 10 (d) (iii) and 12 (c) — the firing rules this section inherits; A3
+docs/specs/storeroom-js/contract.md §2.3 item 6 and `§2.4`'s own dated clause — the delivery rules left
+standing | requirement]`).
 
 ### §2.4 The registry — the package's own state, and its four rules
 
@@ -1125,6 +1149,42 @@ register(handle, listener) -> undefined    // the object storeCreate returned; t
   docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12` — a pinned default carries a priced alternative
   | declared parameter semantics]`).
 
+**⟶ RE-HOMED 2026-10-11 — THE BOUNDED `A78` RE-HOMING PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+***"Listener behavior is part of store."***: THE FIRING/DELIVERY LINE, DRAWN AT THIS SECTION'S OWN HOME OF THE
+REGISTRY.** `RCA-8(d)` ANNOTATE-BESIDE: **rules 1–4 above, item 5's lettered clauses, item 6's model clauses
+(a)–(f) and this document's earlier dated clauses at this section stand byte-for-byte — the rule-3
+reconciliation and the caller-spelled-duplicate clause included — and they are read THROUGH this clause; THIS
+clause is a PURE INSERTION, it re-decides no rule, adds no member, no verb and no parameter, mints no code,
+moves no register row and names no park.** **THE RULING, VERBATIM:** ***"Listener behavior is part of
+store."*** (`docs/specs/storeroom-js-proposal.md` `§19` · `A78`).
+**THE LINE, IN THREE LINES, SO THE BOUNDARY IS WHERE A READER CAN FIND IT:**
+1. **THE FIRING IS THE STORE'S AND THIS SECTION IS NEVER ITS HOME:** **which listener fires · when it fires ·
+   what it is bound to · which ids a trigger returns · the home's registration semantics (`listen` and
+   `unlisten`) · the address-prefix rule · the process-scoped handle are STORE BEHAVIOUR**, **declared at
+   `docs/specs/storeroom-native/write-and-read.md §6.5` items 8–13 and completed there by item 14, which states
+   the authority itself and the registration's effect timing relative to a trigger (`docs/pending.md`'s
+   `CF-DUP-3` corner is re-homed there).**
+2. **THE DELIVERY IS THIS UNIT'S AND IS THE WHOLE OF WHAT THIS SECTION OWNS:** **the id→function registry
+   (rules 1–4, item 5's registration site and its domain, item 6's id-matching model) · the invocation, its
+   timing, its count per distinct identity and its one argument (`§2.7`) · and the single failure form
+   (`§2.5`) — EACH STAYS.** **This section may add a delivery rule and may never be the home of a firing
+   rule.**
+3. **AND THE ONE PHRASE THIS SECTION'S EARLIER DATED CLAUSE USED THAT NAMES A FIRING TERM IS READ AT ITS OWN
+   TWO HALVES, SO NO SECOND HOME ARISES: *"a delivery window's recipient set"*.** **(i) The STORE's half — what
+   a `triggered` member contains — is the store's: the member carries what the ONE HOME held when the trigger
+   was computed, so a `listen` or an `unlisten` landing afterwards takes effect at the NEXT trigger
+   (`write-and-read.md §6.5` item 14 (d)/(e), where the two symmetric cases are stated).** **(ii) This UNIT's
+   half — what the package does with the list it holds — is this section's and `§2.7`'s: the invocation happens
+   after the verb has returned, and the package reads the list IT HOLDS once per distinct identity, so an
+   identity whose function was absent when the list was read is not invoked at a later occurrence of it in
+   that list.** **AND NOTHING ELSE MOVES: rules 1–4's own observables, item 5's `TypeError`/form reconciliation,
+   item 6's six clauses, the register's `8` rows and every failure list stand exactly as printed; no `DD` row,
+   no `PAR-JS` row and no part entry is authored, renumbered or dropped here.**
+(`[A1 docs/specs/storeroom-js-proposal.md §19 · `A78`; A3 docs/specs/storeroom-native/write-and-read.md §6.5
+items 8–14 — the store's listener clauses, at their own lines; A3 docs/specs/storeroom-js/surface.md §2.4's
+re-homing clause of 2026-10-11 — this part's twin of this clause; A3 docs/specs/storeroom-js/contract.md §2.7 |
+requirement]`).
+
 ### §2.5 The single failure form
 
 **A FAILURE CROSSES AS A THROWN PLAIN OBJECT WITH EXACTLY TWO MEMBERS, AND THERE IS EXACTLY ONE SUCH
@@ -1239,6 +1299,44 @@ own boundary | requirement]`)
    (`[A3 docs/specs/storeroom-native/contract.md §6.5 item 5 — *"NO ORDER IS DECLARED FOR THE LIST"*; A1
    docs/specs/storeroom-js-proposal.md §15 · A73's neighbourhood — the firing window is this unit's own
    carriage | ordering claim]`)
+
+**⟶ RE-HOMED 2026-10-11 — THE BOUNDED `A78` RE-HOMING PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+***"Listener behavior is part of store."***: THIS SECTION IS THE DELIVERY'S WHOLE HOME, AND ITS FIRING
+NEIGHBOURS ARE POINTED AT.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1–4 above and item 5's argument clause beside
+them stand byte-for-byte — the `A77` clause included — and they are read THROUGH this clause; THIS clause is a
+PURE INSERTION, it adds no item, no member, no argument and no order.** **THE RULING, VERBATIM:**
+***"Listener behavior is part of store."*** (`docs/specs/storeroom-js-proposal.md` `§19` · `A78`).
+**THE FOUR ITEMS, SPLIT ONE LINE EACH, SO THE DELIVERY'S HOME IS THIS SECTION AND THE FIRING'S IS NOT:**
+1. **ITEM 1 — the shape, freshness and wrapping of the `triggered` ARRAY — IS A DELIVERY RULE AND STAYS.**
+   **What its MEMBERS ARE is the STORE's, and it is declared at
+   `docs/specs/storeroom-native/write-and-read.md §6.5` item 11, with the two records at that store's
+   `§3.6`/`§4.4`.** **The package carries what those return and edits nothing** — **including the ARRAY's
+   element multiplicity, which is the store's own list carried element for element** (`§2.4`'s
+   caller-spelled-duplicate clause).
+2. **ITEM 2 — the invocation's timing, its synchronicity and the fact that it is the CALLER'S — IS THE
+   DELIVERY'S AND STAYS WHOLE; THAT THE STORE INVOKES NOTHING IS INHERITED** from
+   `docs/specs/storeroom-native/write-and-read.md §6.5` item 10 (d) (`A57`) **and is not declared here.**
+3. **ITEM 3 — *"NO ORDER IS ASSERTED … MEMBERSHIP ONLY"* — IS THIS UNIT'S DRIVE RULE AND RESTS ON A STORE
+   PROPERTY IT INHERITS:** **the order-unobservability itself is the store's** —
+   **`docs/specs/storeroom-native/contract.md §6.5` item 5's *"NO ORDER IS DECLARED FOR THE LIST"*, with
+   `DD-22`/`DD-37`, and `write-and-read.md §6.5` item 10 (e)** — **while the set-comparison a drive performs is
+   this unit's.** **A drive derives the two from the two homes and never reads either as the other.**
+4. **ITEM 4 — the throwing body's disposition — IS THE DELIVERY'S AND STAYS:** **it is a statement about the
+   PACKAGE's own invocation loop, while the store's own half (*"a throwing body is not a store state"*, because
+   the store invokes no body) is inherited from `write-and-read.md §6.5` item 10 (d) (i).**
+**AND ONE CONSEQUENCE OF THE RE-HOMING THAT LANDS EXACTLY HERE, NAMED SO IT IS NOT SOUGHT ELSEWHERE: the
+`CF-DUP-3` clause of `§2.4` declared a recipient set's reading and carried its argument; THIS section supplies
+the WINDOW that reading is read at (item 2) and the invocation count that makes it observable (item 3's
+membership-only rule plus `§2.4`'s distinct-identity rule).** **The RULE and its ARGUMENT now stand at
+`docs/specs/storeroom-native/write-and-read.md §6.5` item 14, and the `§2.4` clause is this unit's POINTER to
+it.** **AND NOTHING ELSE MOVES: the register keeps its `8` rows with every failure list unmoved; `§2.4`'s four
+rules, `§2.3`'s handle clause, `§2.5`'s single form, `§2.8`'s two file-behaviour readings and `§2.6`'s
+constraint pattern stand exactly as printed; and no `DD` row, no `PAR-JS` row and no part entry is authored,
+renumbered or dropped here.**
+(`[A1 docs/specs/storeroom-js-proposal.md §19 · `A78`; A3 docs/specs/storeroom-native/write-and-read.md §6.5
+items 10 (d)–(e) and 11 — the store-side clauses this section reads through; A3
+docs/specs/storeroom-native/contract.md §6.5 item 5 with `DD-22`; A3 docs/specs/storeroom-js/surface.md §2.7's
+re-homing clause of 2026-10-11 — this document's twin of this clause | requirement]`).
 
 ### §2.8 The two file-behaviour readings a JS caller will meet
 
@@ -2539,6 +2637,46 @@ NO ROW IS ADDED, DROPPED OR RE-OPENED, NO `APP`-GREEN IS CLAIMED, AND NO FIGURE 
 RE-LABELLED**
 (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-10` — every figure carries its site and its layer;
 A3 docs/specs/storeroom-js/acceptance.md §4.2 · `DD-20`; `DD-31`; `DD-33` | numeric or census claim]`).
+
+**⟶ RE-HOMED 2026-10-11 — THE BOUNDED `A78` RE-HOMING PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+***"Listener behavior is part of store."***: THE TWO REGISTRATION VERBS AND THE NON-EXPOSURE CLAUSE, WHERE THE
+FIRING IS INHERITED AND THE DELIVERY REMAINS THE UNIT'S.** `RCA-8(d)` ANNOTATE-BESIDE: **`§2.9`'s three items,
+`§2.10`'s signature block and its paragraph, and the register's rows stand byte-for-byte — this document's
+earlier dated clauses included — and they are read THROUGH this clause; THIS clause is a PURE INSERTION, it
+adds no verb, no member, no `§`-number, no `DD` row and no register row, and it re-decides no rule.**
+**THE RULING, VERBATIM:** ***"Listener behavior is part of store."*** (`docs/specs/storeroom-js-proposal.md`
+`§19` · `A78`).
+1. **`§2.10`'s `listen` AND `unlisten` ARE THIS UNIT'S *CROSSING* AND THE STORE'S *SEMANTICS*.** **The TWO
+   SIGNATURES, their argument domains and their return spellings stay this section's** — `listen`'s `address`
+   as `AddressArg`'s domain and nothing more, `listen` returning the package's OPAQUE wrapper for the handle
+   the store returned, `unlisten` accepting that form ONLY and answering `undefined` on every success
+   including its no-op success, and each throwing exactly where the store throws (`§2.5`'s single form). **The
+   HOME'S SEMANTICS are the store's, declared at `docs/specs/storeroom-native/write-and-read.md §6.5` items 8
+   (a)/(d), 12 and 14** — **which address a registration binds to, what `listen` does at an address already
+   held, what `unlisten` removes, and which values it declines as a no-op success** — **with the store's own
+   `parameter-semantics.md §2.13` (`PAR-13`) answering each outside value.**
+2. **AND ONE ITEM OF `§2.9` IS READ THROUGH THE SAME LINE, NAMED SO NO READER READS IT AS A FIRING RULE: item
+   2's *"A FAILED READ IS THE EXISTENCE PROBE"* is this unit's own consequence of `A63`'s non-exposure and is
+   unaffected by the re-homing** — **`findAddress` remains internal, no resolver shim is declared, and the
+   `15`-code reachability claim stands exactly as printed.** **Item 1's `8`-verb set is unmoved** — `listen`
+   and `unlisten` remain two of the eight, and the re-homing changes neither their count, their spelling nor
+   their presence.
+3. **AND WHAT THE RE-HOMING LEAVES THIS DOCUMENT OWNING, SAID PLAINLY SO THE BOUNDARY IS FINDABLE FROM THE
+   INDEX REGION AND FROM HERE BOTH:** **this unit owns THE DELIVERY — the id→function registry and its four
+   rules, the registration site and its domain, the invocation, its timing and its one argument, and the
+   single failure form (`§2.4`·`§2.7`·`§2.5`) — and THE CROSSING (`§1`) and THE PACKAGE (`§3`);** **it owns NO
+   firing rule, and every clause of this directory that once carried one now INHERITS it from
+   `write-and-read.md §6.5` items 8–14 and POINTS there.** **The store's half of the same directory line is
+   `docs/specs/storeroom-native/contract.md §6.5`'s dated clause, which states the authority at the store's
+   own foot.**
+4. **NOTHING ELSE MOVES: the register keeps its `8` rows with every failure list unmoved (each row's own
+   subject unchanged), the design-defaults table keeps every row and its priced `alt`, the closure predicate
+   reads `6 = 6` on its own part-entry terms, and no `DD` row, no `PAR-JS` row and no part entry is authored,
+   renumbered or dropped here.**
+(`[A1 docs/specs/storeroom-js-proposal.md §19 · `A78`; A3 docs/specs/storeroom-native/write-and-read.md §6.5
+items 8, 12 and 14 — the home's registration semantics, inherited and pointed at; A3
+docs/specs/storeroom-native/contract.md §6.5's dated clause of 2026-10-11 — the same authority stated at the
+store's own foot; A3 docs/specs/storeroom-native/parameter-semantics.md §2.13 · `PAR-13` | requirement]`).
 
 ---
 

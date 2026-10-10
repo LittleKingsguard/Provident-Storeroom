@@ -1262,6 +1262,119 @@ obey.** **NO PARK IS READ AS A CLOSURE AND NO PARK IS NAMED AS A `DD` ROW'S REVE
 (`[T: the operative park state, with the as-filed form named and nothing deleted | CONTRACT]`;
 `[P: §10 · A8, §10 · A44, §16 · A38 · A39, §20 · A58 | CONTRACT]`)
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED `A78` RE-HOMING PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+***"Listener behavior is part of store."***: THE FIRING'S AUTHORITY, ITS OWNER, AND THE `CF-DUP-3` READING
+STATED AS A STORE-SIDE RULE.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte above stands byte-for-byte — items
+1–7, the supersession clause and its four clauses, item 8 (a) and the `F-9` affirmation beside it, item 9 and
+its clause (a-bis), item 10 (a)–(f), item 11, item 12 (a)–(c), item 13 and its `AM-2` amendment, and the parks'
+operative state — and they are read THROUGH this item; THIS ITEM IS A PURE INSERTION, it re-decides no rule,
+adds no `§`-number, mints no code, moves no register row and names no park.** **THE RULING, VERBATIM:**
+***"Listener behavior is part of store."*** (`P: docs/specs/storeroom-js-proposal.md §19 · A78`).
+
+**ITEM 14 — THE FIRING'S SEMANTICS ARE THIS SECTION'S, AND THE STORE'S CONTRACT IS THEIR AUTHORITY.** **SEVEN
+PARTS, AND NO PART OF THEM IS A NEW BEHAVIOUR: (a) is the authority, (d) is the one rule no clause of this
+directory had carried, and (b)–(c), (e)–(g) state, at this home, what the clauses above already declare.**
+
+**(a) THE AUTHORITY, AND WHY IT IS STATED HERE RATHER THAN INFERRED.** **THE ARCHITECT'S WORDS, VERBATIM:**
+***"Listener behavior is part of store."*** (`P: docs/specs/storeroom-js-proposal.md §19 · A78`). **THE CLAUSE:
+THE FIRING'S SEMANTICS ARE THE STORE'S AND THIS SECTION IS THEIR AUTHORITY** — **the rules that answer WHICH
+listener fires, WHEN it fires, WHAT it is bound to, WHICH ids a trigger returns, the home's registration
+semantics (`listen` and `unlisten`), the address-prefix rule and the process-scoped handle are THIS store's
+behaviour, declared at items 8–13 above; and NO OTHER ARTIFACT — no consumer's contract, no binding's, no
+package's — is their home.** **What another artifact may declare is DELIVERY: the id→function registry, the
+invocation, its argument and the failure form; what it may NEVER declare is a firing rule of its own.**
+**AND THE RE-HOMING IS DECLARED WITH ITS REACH, SO A LATER READER DOES NOT TAKE IT FOR A BEHAVIOUR CHANGE: the
+shipped `listen` / `unlisten` and the one authoritative home DO implement the firing, and the consumer side
+DOES implement only the delivery — SO THIS ITEM IS A RE-HOMING OF AUTHORITY AND NEVER A CHANGE OF BEHAVIOUR.**
+
+**(b) WHAT THE HOME OWNS.** **THE HOME IS THE ONE AUTHORITATIVE REGISTRATION STATE (item 8 (a), `A45`/`A48`,
+`store-model.md §2.1`'s dated clause) AND IT OWNS THE REGISTRATION SEMANTICS AND NOTHING ELSE:** **a
+registration is keyed by the listener's `address` and carries its `handle`** (item 8 (a)) · **`listen` adds an
+entry at an address the home does not hold, and a `listen` at an address the home ALREADY holds adds NO second
+entry and returns the EXISTING entry's handle** (item 12 (c), the address-level idempotence of `§6.5` item 2
+carried to this surface) · **`unlisten` removes exactly ONE home entry and, over an unknown or foreign handle,
+is a no-op SUCCESS that removes no other registration** (item 12; `parameter-semantics.md §2.13`, `PAR-13`,
+which states the row with every outside value answered) · **the
+construction populates the home from `listeners[]` BEFORE the registry is generated, ADOPTING each entry's
+handle VERBATIM and KEEPING a duplicate address's both entries** (item 8 (d), item 12 (b), `DD-39`). **NO
+CONSUMER HOLDS A SECOND COPY OF ANY OF IT:** **a node's lists are REFERENCES INTO the home and never a copy**
+(item 9 (e)), **and the home is outside the graph, outside every read and outside the `file` bytes and the
+journal** (items 8 (b)/(c)/(e)).
+
+**(c) WHAT THE TRIGGERS ARE, WHAT IS BOUND, AND WHAT A TRIGGER RETURNS.** **THE TRIGGER EVENTS ARE EXACTLY
+TWO — `write` and `delete` — AND A READ NEVER FIRES** (item 10 (c), `A43`: *"listeners don't fire on read, they
+fire on write/delete"*). **THE BINDING IS BY ADDRESS AND NOT BY A NODE'S IDENTITY:** a re-mint, a purge, a
+shadow, a `VEC` renumbering or a rollback that changes the node at an address **does not move, drop or
+redirect the listener** (item 10 (b)). **AND THE PREFIX RULE DECIDES MEMBERSHIP AND NOTHING ELSE:** a listener
+bound at `W` is triggered by a successful `write` or `delete` at `X` **iff `W` is a PREFIX of `X`**,
+descendant-inclusive from `W` downward (item 10 (d) (iii), `A33`, `A37`, `DD-18`). **A SUCCESSFUL `write`
+returns `triggered` and a successful `delete` returns `triggered`; a FAILED one returns NOTHING, because each
+throws** (item 11). **AND NO ORDER IS DECLARED FOR THE RETURNED LIST** — the list is a SET over membership and
+**no clause of this directory promises a registration order, an address order or a tier order** (item 10 (e),
+`DD-37`). **THE HANDLE A TRIGGER CARRIES IS THE ONE HANDLE OF THIS SURFACE: the registration handle and the
+alert handle are ONE handle** (item 12), **minted by `listen` and by the construction's adoption, accepted by
+`unlisten`, and carried by `triggered`.**
+
+**(d) THE `CF-DUP-3` READING, AS A RULE OF THE STORE'S LISTENER SURFACE — WHAT A TRIGGER'S RETURNED SET
+CONTAINS.** **WHAT A TRIGGER'S RETURNED SET CONTAINS IS WHAT THE HOME HELD WHEN THE TRIGGER WAS COMPUTED.**
+**A `listen` OR AN `unlisten` THAT LANDS AFTER A TRIGGER HAS BEEN COMPUTED CANNOT ALTER THAT TRIGGER'S
+RETURNED SET: IT TAKES EFFECT AT THE NEXT ONE.** **So the set a computed trigger carries is FIXED AT THE
+MOMENT OF ITS COMPUTATION and is not re-read, re-derived or amended afterwards; and a return-by-handle answer —
+the `triggered` list of a successful `write` or `delete` (item 11) — is therefore a statement about the home AS
+IT STOOD, and never about the home as it stands after a later `listen` or `unlisten`.** **AND THIS IS A
+PROPERTY OF THE STORE'S LISTENER SURFACE AND NOT OF ANY CONSUMER'S DELIVERY:** **a delivery window, a
+registration held in a package's own registry, an invocation and its argument are the CONSUMER'S, and NO
+clause of theirs may be read as a rule about what THIS surface returned** — **the firing's authority is
+(a)'s and the delivery's is not.**
+
+**(e) THE TWO SYMMETRIC CASES, STATED SO NO READER TAKES ONE ARM FOR THE WHOLE RULE.** **(i) A `listen` THAT
+LANDS AFTER A TRIGGER HAS BEEN COMPUTED.** **WHERE ITS ADDRESS WAS NOT IN THE HOME AT THE TRIGGER'S OWN
+COMPUTATION, THE TRIGGER'S RETURNED SET DOES NOT CARRY IT** — **the new registration's handle is returned by
+THE NEXT trigger whose prefix test it satisfies, and by nothing earlier** (**item 10 (d) (iii)'s prefix test;
+item 14 (d)'s own rule**). **AND WHERE ITS ADDRESS WAS ALREADY REGISTERED AT THAT COMPUTATION, THE HOME GAINS
+NOTHING AND THE RETURNED SET IS UNCHANGED** — **because a `listen` at an address the home already holds returns
+the EXISTING entry's handle and adds NO second entry** (item 12 (c)) — **so the one identity that address
+already carried is the one the set carries, once, and there is no second identity for the set to gain.**
+**(ii) AN `unlisten` THAT LANDS AFTER A TRIGGER HAS BEEN COMPUTED.** **IT REMOVES ONE HOME ENTRY AND IT DOES
+NOT REWRITE THE SET THE EARLIER TRIGGER RETURNED:** **that set still carries the handle, because it is what the
+home held when the trigger was computed; the withdrawal's effect is that a LATER trigger at an address the
+withdrawn listener's own address is a prefix of NO LONGER CARRIES THAT HANDLE** (**item 12's no-op-success
+clause; item 14 (d)'s own rule**). **AND WHERE THE `unlisten` WAS ONE OF THE ITEM-4-CLASS NO-OP SUCCESSES — an
+unknown, a foreign, a prior-session, a fabricated or a non-handle value — IT REMOVED NOTHING AT ALL, so the
+home it leaves is the home the next trigger reads, unchanged** (item 12). **NEITHER ARM HAS AN ORDER IN IT: no
+part of this item derives an outcome from a position in any list** (item 10 (e), `DD-37`).
+
+**(f) THE ARGUMENT THAT MAKES (d) NON-ARBITRARY, CARRIED BECAUSE A RULE THAT IS MERELY THE SHIPPED ONE IS NOT
+A RULE.** **THIS SECTION DECLARES THE ORDER IN WHICH A TRIGGER RETURNS ITS MEMBERS UNOBSERVABLE** — **no clause
+of this directory asserts it, item 10 (e) declares ORDER-INSIGNIFICANCE, and `DD-37` declares that a drive
+compares SETS and never sequences, so no drive of any set may assert it** (item 10 (e); `DD-37`). **A RULE THAT
+TIED AN OUTCOME TO WHERE IN THE RETURNED LIST A REGISTRATION'S OCCURRENCE HAPPENED TO STAND — so that a
+registration landing before the second occurrence of an identity took effect in the trigger in flight while
+one landing after it did not — WOULD THEREFORE MAKE AN OBSERVABLE DEPEND ON AN UNOBSERVABLE:** **whether a
+listener is returned would depend on a POSITION in the array whose ORDER THIS CONTRACT DECLARES NOT
+OBSERVABLE.** **That is a direct contradiction of the order-unobservability rule the same clause declares, so
+the position-dependent reading cannot hold, AND THE ONLY READING CONSISTENT WITH THE REST OF THIS SECTION IS
+(d)'s: a trigger's returned set is the home as it stood when that trigger was computed, and a `listen` or an
+`unlisten` that lands afterwards takes effect at the NEXT trigger.** **AND IT IS DRIVABLE WITHOUT REACHING FOR
+AN ORDER: a drive asserts WHICH handles a trigger returned and at WHICH trigger, never where in a list they
+stood** (item 10 (e); `§3.6`/`§4.4`'s `triggered` member; `DD-37`).
+
+**(g) WHAT THIS ITEM DOES NOT DO, AND WHERE THE DELIVERY'S CONSEQUENCE STAYS.** **IT ADDS NO VERB, NO
+PARAMETER, NO MEMBER, NO RECORD SHAPE AND NO FAIL CODE; it changes no derive set, no mint and no uniqueness
+domain (item 12 is `A69`'s and stands whole); it re-decides no clause of items 8–13; it moves no row of the
+typed register and no row of the defaults table; and it names no park.** **AND ONE CONSEQUENCE OF (d) LANDS ON
+THE CONSUMER'S SIDE, WHERE IT IS STATED AND NOT HERE: a CONSUMER that receives a `triggered` list and invokes
+its own functions performs that invocation AFTER this store's verb has returned, and the recipient set it
+actually invokes is read from the list IT HOLDS as that list stands** — **which is the DELIVERY-side half of
+the same rule and belongs to the consumer's own contract, at ITS own clause, as its pointer to this item; no
+delivery rule is authored, restated or widened here.**
+(`[P: docs/specs/storeroom-js-proposal.md §19 · A78 — *"Listener behavior is part of store."*, the ruling that
+makes this section the firing's authority; A3 `write-and-read.md §6.5` items 8–13 above — the clauses the
+authority is read over, each at its own line; A3 `contract.md §6.5` item 5 (*"NO ORDER IS DECLARED FOR THE
+LIST"*) with `DD-37` — the order-unobservability on which (f)'s argument rests; A1
+`docs/pending.md`'s `CF-DUP-3` clause and A3 `docs/specs/storeroom-js/surface.md §2.4`, the two as-filed homes
+of the corner this item now owns | CONTRACT]`).
+
 ---
 
 **END OF THE `write-and-read` PART.** **Its relocated spans are `contract.md §3`, `contract.md §4` and

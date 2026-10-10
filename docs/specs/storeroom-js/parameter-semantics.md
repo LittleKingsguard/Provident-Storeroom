@@ -354,6 +354,38 @@ DOES mint a different handle, and its priced `alt`, stand at `docs/specs/storero
 (`[A3 docs/specs/storeroom-native/write-and-read.md §6.5 item 12 (c) — the mint rule at its store-side home;
 A1 docs/specs/storeroom-js/contract.md §2.3 item 6; `DD-15` | declared parameter semantics]`).
 
+**⟶ RE-HOMED 2026-10-11 — THE BOUNDED `A78` RE-HOMING PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+***"Listener behavior is part of store."***: THIS ROW'S FIRING HALF, INHERITED FROM THE STORE'S LISTENER
+CLAUSES.** `RCA-8(d)` ANNOTATE-BESIDE: **the table above and this row's own dated clause stand byte-for-byte
+and are read THROUGH this clause; THIS clause is a PURE INSERTION, it adds no row to `§1`'s `18`, moves no cell
+of the table and declares no rule of its own.** **THE RULING, VERBATIM:** ***"Listener behavior is part of
+store."*** (`docs/specs/storeroom-js-proposal.md` `§19` · `A78`).
+**THE SPLIT, SO THE ROW'S OWN OUTSIDE-VALUE ANSWERS ARE NOT READ AS FIRING RULES:**
+1. **WHAT STAYS THIS ROW'S AND THIS UNIT'S:** **the TWO JS SPELLINGS — a plain `string` IN at the construction
+   and the package's OPAQUE value OUT — the opaque wrapper's internal identity comparison, the `unlisten`
+   OPAQUE-only acceptance, and the wrapper's token being unreadable from JS** are the DELIVERY'S SPELLINGS of
+   one handle and remain this row's own declaration (`DD-14`; `docs/specs/storeroom-js/contract.md §2.3` item 2).
+2. **WHAT THE ROW INHERITS AND POINTS AT:** **the token's UNIQUENESS DOMAIN and its scope, the MINT's
+   collision rule, the address-level idempotence that makes a repeat `listen` return the existing entry's
+   handle, and every answer the row gives over a value OUTSIDE the domain are THE STORE'S** — **the domain and
+   the mint at `docs/specs/storeroom-native/write-and-read.md §6.5` item 12 and at
+   `docs/specs/storeroom-native/contract.md §0.4`'s `ListenerHandle` construction rule; the outside-value
+   answers as that store's own `§6.5` item 6 carried forward into its item 12, and as that store's own
+   `parameter-semantics.md §2.13` (`PAR-13`) states them row by row.**
+3. **AND ONE SENTENCE OF THIS ROW'S `observable` CELL — *"a handle appears in `triggered` ONLY where its
+   listener's address is a prefix of the triggering address"* — IS A FIRING RULE AND IS NOW A POINTER:**
+   **its home is `write-and-read.md §6.5` item 10 (d) (iii), the prefix test as a property of the store's
+   listener surface, with that part's item 14 stating what a trigger's returned set contains and when a
+   registration takes effect.** **The cell's remaining observables (the no-op success that removes nothing, a
+   returned handle's unreadable token, and the destruction drive) are the row's own and stand as printed.**
+**AND NOTHING ELSE OF THIS ROW MOVES: its `unit`, its `domain` cell's JS half, its `supplier`, its `evaluator`,
+its `the clause that declares it` cell, its ruling cell, its `alt`, its `park` cell and every answer of its
+outside-value list stand exactly as printed; this part's `§1` arithmetic stays `18` rows; and no row is added,
+moved or renumbered** (`[A1 docs/specs/storeroom-js-proposal.md §19 · `A78`; A3
+docs/specs/storeroom-native/write-and-read.md §6.5 items 10 (d) (iii), 12 and 14 — the store-side clauses this
+row reads through; A3 docs/specs/storeroom-native/parameter-semantics.md §2.13 · `PAR-13` | declared parameter
+semantics]`).
+
 ### §2.9 `PAR-JS-9` — `opId` on `rollback`
 
 | Cell | Its value |
@@ -588,6 +620,35 @@ this pointer satisfies; `docs/open-items-review.md` `§2-bis`).
 alternative; A3 docs/specs/storeroom-js/parameter-semantics.md `§2.12` · `PAR-JS-12` — the row this pointer
 stands at | declared parameter semantics]`).
 
+**⟶ RE-HOMED 2026-10-11 — THE BOUNDED `A78` RE-HOMING PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+***"Listener behavior is part of store."***: THIS POINTER'S TARGET, CORRECTED TO THE STORE'S OWN CLAUSE.**
+`RCA-8(d)` ANNOTATE-BESIDE: **the row's table above, its three dated clauses and the `CF-DUP-3` pointer clause
+directly above stand byte-for-byte — *"`docs/specs/storeroom-js/surface.md` `§2.4`'s `CF-DUP-3` clause, which is
+the ONE home that owns the delivery's rules"* and its *"WHEN a registration so made is reached by a delivery
+is NOT this row's to state"* included — and they are read THROUGH this clause; THIS clause is a PURE
+INSERTION, it adds no row to `§1`'s `18`, moves no cell of the table and declares no rule of its own.**
+**THE RULING, VERBATIM:** ***"Listener behavior is part of store."*** (`docs/specs/storeroom-js-proposal.md`
+`§19` · `A78`). **AND THE RULING'S OWN SENTENCE ABOUT EXACTLY THIS POINTER:** ***"when a REGISTRATION takes
+effect is a property of the STORE's listener surface … so its home is the STORE's listener clause, with the
+package's delivery carrying only the consequence — that the window's recipient set is read from the array as
+it stands, which is the delivery-side half and stays at `§2.4` as a POINTER."***
+1. **THE OPERATIVE TARGET OF THE POINTER ABOVE IS NOW THE STORE'S OWN CLAUSE:** **the registration's effect
+   timing relative to a trigger — what a trigger's returned set contains, that a `listen` or an `unlisten`
+   landing after that computation takes effect at the NEXT trigger, and the two symmetric cases — stands at
+   `docs/specs/storeroom-native/write-and-read.md §6.5` item 14, with its argument (the returned list's order
+   being unobservable, so no outcome may depend on an occurrence's position).**
+2. **AND WHAT STAYS AT `docs/specs/storeroom-js/surface.md §2.4` IS THE DELIVERY-SIDE CONSEQUENCE ONLY:** **the
+   package receives the list, performs its invocation after the verb has returned, and reads its recipient
+   set from the list IT HOLDS once per distinct identity** — **which is this unit's own rule and is pointed
+   back to the store's clause for the firing's terms.**
+3. **AND THIS ROW ITSELF IS UNMOVED IN EVERY OTHER RESPECT:** **its `domain` cell declares the registration's
+   ARGUMENTS, and WHEN a registration so made is reached by a delivery remains NOT this row's to state — it is
+   the store's clause's to answer, as the pointer above already said.**
+(`[A1 docs/specs/storeroom-js-proposal.md §19 · `A78` — including its own `CF-DUP-3` re-homing sentence,
+re-emitted above; A3 docs/specs/storeroom-native/write-and-read.md §6.5 item 14 — the pointer's operative
+target; A3 docs/specs/storeroom-js/surface.md §2.4's re-homing clause of 2026-10-11 — the delivery-side
+consequence, at its own home | declared parameter semantics]`).
+
 ### §2.13 `PAR-JS-13` — the returned `op`, the `JournalOp` a write returns
 
 | Cell | Its value |
@@ -760,6 +821,31 @@ takes)
 (`[A1 docs/specs/storeroom-js/contract.md §2.4 rule 3's CASE B — the array's multiplicity is the store's and
 the invocation count is the package's; A3 docs/specs/storeroom-js/surface.md §2.4's dated clause of 2026-10-11
 — the operative statement this row is read through | declared parameter semantics]`).
+
+**⟶ RE-HOMED 2026-10-11 — THE BOUNDED `A78` RE-HOMING PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+***"Listener behavior is part of store."***: THIS ROW IS THE STORE'S RETURNED MEMBER, AND ITS FIRING HALF IS
+INHERITED.** `RCA-8(d)` ANNOTATE-BESIDE: **the row's cells above and its two dated clauses stand byte-for-byte
+and are read THROUGH this clause; THIS clause is a PURE INSERTION, it adds no row to `§1`'s `18`, moves no cell
+of the table and declares no rule of its own.** **THE RULING, VERBATIM:** ***"Listener behavior is part of
+store."*** (`docs/specs/storeroom-js-proposal.md` `§19` · `A78`).
+**THE SPLIT, ONE LINE PER HALF, BECAUSE THIS ROW SITS EXACTLY ON THE BOUNDARY:**
+1. **WHAT THE STORE'S LIST CARRIES — ITS MEMBERSHIP, ITS ELEMENT MULTIPLICITY AND WHAT IT HOLD WHEN THE
+   TRIGGER WAS COMPUTED — IS THE STORE'S, AND THIS ROW CARRIES IT AND EDITS NOTHING.** **The membership rule is
+   the address-prefix test at `docs/specs/storeroom-native/write-and-read.md §6.5` item 10 (d) (iii); the
+   member itself is that part's item 11 with the store's `§3.6`/`§4.4`; and WHAT the set contains relative to a
+   registration or a withdrawal that lands after the trigger was computed is that part's item 14 (d)–(e), with
+   its argument: the list's order is unobservable, so no reading may tie an outcome to a position in it.**
+2. **WHAT IS THIS UNIT'S IS THE ARRAY'S JS SPELLING AND THE PACKAGE'S USE OF IT:** **the fresh JS array of the
+   package's OPAQUE handles, its `[]` empty case, the no-order drive rule, and the registry's once-per-distinct
+   -identity invocation are this unit's** — **and the row's own dated clause above already separates the
+   STORE's multiplicity from the PACKAGE's invocation count, a separation this clause leaves exactly as
+   printed.**
+3. **AND NOTHING ELSE OF THIS ROW MOVES: its `unit` cell's INVOCATION-COUNT reading, its outside-value list,
+   its declared answers, its `supplier`, its `evaluator`, its `observable`, its `the clause that declares it`
+   cell, its ruling cell, its `alt` and its `park` cell stand exactly as printed; this part's `§1` arithmetic
+   stays `18` rows; and no row is added, moved or renumbered** (`[A1 docs/specs/storeroom-js-proposal.md §19 ·
+   `A78`; A3 docs/specs/storeroom-native/write-and-read.md §6.5 items 10 (d) (iii), 11 and 14 — the store-side
+   clauses this row reads through | declared parameter semantics]`).
 
 ### §2.16 `PAR-JS-16` — the returned `tiers` on the delete receipt
 

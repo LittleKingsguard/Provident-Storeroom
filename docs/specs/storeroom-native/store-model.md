@@ -157,6 +157,39 @@ re-read and a host pass that materializes the index.** **REVERSAL POINT: `DD-41`
 `[P: §11 · A45, §12 · A46 · A47, §13 · A48; T: the optionality of the per-node index, so no clause carries a
 list a node shape cannot exhibit | DECLARED-DEFAULT]`
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED `A78` RE-HOMING PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+***"Listener behavior is part of store."***: THIS PART'S HOME CLAUSES, READ UNDER THE FIRING'S OWN
+AUTHORITY.** `RCA-8(d)` ANNOTATE-BESIDE: **every sentence above — the two member tables and their amendment,
+the optionality clause and its four parts, and the leaf's empty-`carried` clause — stands byte-for-byte and is
+read THROUGH this clause; THIS clause is a PURE INSERTION, it adds no member to any node kind, no `§`-number,
+no `DD` row and no register row, and it re-decides no rule.** **THE RULING, VERBATIM:** ***"Listener behavior is
+part of store."*** (`P: docs/specs/storeroom-js-proposal.md §19 · A78`). **WHAT IT SETTLES AT THIS PART'S OWN
+CELLS, IN FOUR PARTS:**
+1. **THE HOME THIS PART READS IS THE ONE AUTHORITATIVE REGISTRATION STATE, AND ITS RULE IS `A45`'s AND
+   `A48`'s.** **THE STORE'S `address`-KEYED HOME MAP IS THE ONE HOME, SEPARATE FROM THE REGISTER AND THE
+   GRAPH** (`A45`; `A48`) — **so this part's `active`/`carried` members are an INDEX FOR LOOKUP COST, they hold
+   REFERENCES INTO the home and never a copy, and a node never owns registration state** (the `⟶ AMENDED`
+   clauses above, each byte-for-byte).
+2. **THE FIRING'S SEMANTICS ARE THE STORE'S AND THE STORE'S CONTRACT IS THEIR AUTHORITY.** **WHICH listener
+   fires, WHEN it fires, WHAT it is bound to, WHICH ids a trigger returns, the home's registration semantics
+   (`listen`/`unlisten`), the address-prefix rule and the process-scoped handle are STORE BEHAVIOUR** — **and
+   no consumer's artifact is their home** (**`write-and-read.md §6.5` items 8–13** are the clauses; **item 14**
+   there is the authority's own statement and the store-side reading of the registration's effect timing).
+3. **WHAT THIS PART'S TWO LISTS MAY AND MAY NOT CARRY, SO THE AUTHORITY IS NOT READ AS A SECOND HOME.**
+   **They carry REFERENCES a node's own address-scoped sets are produced from, and they carry NO listener
+   record, NO callable, NO address stored as a list entry and NO copy of any home entry** (this part's member
+   tables; `A45`; `A48`; `A47`). **A node's two lists DISAGREEING with the home is a defect wherever the index
+   is materialized** (part 3 of the optionality clause above).
+4. **AND ONE CONSEQUENCE FOR THIS PART'S OWN RELOCATED CLAUSES, NAMED SO NO SECOND HOME ARISES:** **the
+   `active`/`carried` pair is a LOOKUP SPELLING and this part declares nothing about WHICH listener a trigger
+   returns or WHEN a registration takes effect** — **those are `write-and-read.md §6.5`'s, where the one home is
+   declared and where `A78`'s authority is stated** — **so a reader seeking the firing's rules is pointed to
+   that section and is served no second copy here** (`docs/specs/storeroom-native/contract.md` §0.1 item 10(a),
+   the relocation rule; `A45`; `A47`; `A48`).
+`[P: docs/specs/storeroom-js-proposal.md §19 · A78 — *"Listener behavior is part of store."*; P: §11 · A45,
+§12 · A46 · A47, §13 · A48; T: the home clauses read under the firing's own authority, so this part's two
+members are a lookup spelling and never a second home | CONTRACT]`
+
 **A `branch`'s container may hold `0` child anchors and is still a `branch`** — the empty case is `DD-1`'s.
 **THE RE-MINT ARM, RULED — AND IT CARRIES NO TIER CARVE-OUT:** a write whose target resolves to a **leaf**
 and whose value is an object or an array destroys that leaf's **pointing anchor** and places a **new anchor

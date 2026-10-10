@@ -233,3 +233,36 @@ prints, because it is read off the last row's own number and every row below it 
 grouping is never a second arithmetic; §C.11.6 — a `view` part declares nothing the contract does not already
 carry | numeric or census claim]`). **No row of this table names a case the contract does not pin, and no row
 of it declares a requirement of its own.**
+
+**⟶ AND THE BOUNDED `A78` RE-HOMING PASS'S OWN POINTERS, ADDED 2026-10-11 BESIDE — NEVER INSIDE — EVERY SET
+ABOVE, SO THE `71` STANDS AS THE FIRST CENSUS SENTENCE PRINTS IT.** `RCA-8(d)` ANNOTATE-BESIDE: **no row of the
+`71`, of the three four-row sets, of the five-row set, of the three-row set or of the `13` unnumbered rows
+below them is added, removed or renumbered by this clause; THIS table is a SIXTH pointer set, its rows carry
+no number at all, and it declares no case the contract does not already pin.**
+**AND ONE FACT THIS TABLE OWES ITS READER BEFORE ITS ROWS ARE READ, BECAUSE THE ROWS BELOW MOVE CLAUSES AND
+NOT BEHAVIOUR: THE `A78` RE-HOMING IS A RE-HOMING OF AUTHORITY AND NOT A BEHAVIOUR CHANGE — the shipped
+`listen`/`unlisten` and the one authoritative home DO implement the firing, and the package's registry and
+invocation DO implement only the delivery — so every pointer above stands as it stood, and the four rows
+below state WHICH CLAUSE NOW OWNS WHICH RULE AND WHICH ONE MERELY POINTS AT THE OWNER.** **The FOUR cases the
+re-homing pass's clauses now pin, each citing the `§n` that pins it:**
+
+| The case, as the re-homing pass's clauses now pin it | Its source, in the `path §n` form | The pinning citation it carries |
+| --- | --- | --- |
+| **The firing's authority: WHICH listener fires · WHEN it fires · WHAT it is bound to · WHICH ids a trigger returns · the home's registration semantics (`listen`/`unlisten`) · the address-prefix rule · the process-scoped handle are ALL STORE BEHAVIOUR, and the STORE's contract is their authority; no consumer's, binding's or package's artifact is their home — the package side owns the DELIVERY only (the id→function registry, the invocation, its argument and the failure form)** | `docs/specs/storeroom-native/write-and-read.md` §6.5 item 14 · `docs/specs/storeroom-native/contract.md` §6.5's dated clause of 2026-10-11 | `write-and-read.md` §6.5 item 14, clause (a), on the architect's ruling `docs/specs/storeroom-js-proposal.md` §19 · `A78` (*"Listener behavior is part of store."*); the store contract's `§6.5` dated clause, which states the same authority at the store's own foot |
+| **The registration's effect timing relative to a trigger: WHAT A TRIGGER'S RETURNED SET CONTAINS IS WHAT THE ONE HOME HELD WHEN THE TRIGGER WAS COMPUTED, and a `listen` or an `unlisten` that lands AFTER that computation takes effect at the NEXT trigger — the returned set being FIXED at the moment of its computation; and the registration's effect on a trigger's set contents is the STORE's rule while the invocation is the PACKAGE's** | `docs/specs/storeroom-native/write-and-read.md` §6.5 item 14 (d) and its (e) · `docs/specs/storeroom-js/surface.md` §2.4's re-homing clause of 2026-10-11 | `write-and-read.md` §6.5 item 14 (d)–(e), with its (f) argument — the returned list's order being UNOBSERVABLE, a rule tying an outcome to an occurrence's POSITION would make an observable depend on an unobservable; `docs/specs/storeroom-native/contract.md` §6.5 item 5 (*"NO ORDER IS DECLARED FOR THE LIST"*) with `DD-22`/`DD-37`; `docs/pending.md`'s `CF-DUP-3` clause, whose corner this rule now owns at its store-side home; `surface.md` §2.4's `CF-DUP-3` clause, read as that home's POINTER |
+| **The package's own delivery half of the same rule, and the ONE thing the package does with the list it holds: the invocation happens AFTER the store's verb has returned, the package reads the list IT HOLDS once per DISTINCT identity, so an identity whose function was absent when the list was read is not invoked at a later occurrence of it in that list, an identity registered between two occurrences is not invoked in that list, and a replacement made during it takes effect at the NEXT trigger — none of the three reaching back into a list already in flight** | `docs/specs/storeroom-js/surface.md` §2.4's re-homing clause of the 2026-10-11 pass · `docs/specs/storeroom-js/contract.md` §2.4's re-homing clause of the same date · `docs/specs/storeroom-js/surface.md` §2.7 item 2 | `surface.md` §2.4's re-homing clause, clauses (3)–(4); `contract.md` §2.4's re-homing clause, clause 3; `surface.md` §2.7 item 2 (the window) and item 3 (membership only); `§2.4` rules 1–3 and item 6 (b)–(e) |
+| **The `listen`/`unlisten` crossing signatures inherit the home's semantics and declare no second reading of it: what the JS side keeps is the two SPELLINGS (a plain `string` in at the construction, the package's OPAQUE value out, accepted by `unlisten` alone, its token unreadable) and the `AddressArg`-domain pass-through with no tier qualifier, while WHICH address a registration binds to, WHAT `listen` does at an address already held, WHAT `unlisten` removes, WHICH values it declines as a no-op success and WHAT the home holds afterwards are the store's** | `docs/specs/storeroom-js/surface.md` §2.10's re-homing clause of 2026-10-11 · `docs/specs/storeroom-js/parameter-semantics.md` §2.8's re-homing clause of the same date | `surface.md` §2.10's re-homing clause, clauses 1–3; `parameter-semantics.md` `PAR-JS-8`'s re-homing clause, clauses 1–3; `write-and-read.md` §6.5 items 8 (a)/(d), 12 and 14; `docs/specs/storeroom-native/parameter-semantics.md` §2.13 (`PAR-13`) |
+
+**AND THE ONE COUNT THIS CLAUSE PRINTS, SO THE SIX POINTER SETS' ARITHMETICS AGREE: the numbered inventory
+carries `71` rows, the corrected-pointer table carries `4`, the close-out pass's table carries `4`, the
+bounded declaration pass's table carries `5`, the blind greens pass's table carries `3`, and THIS table
+carries `4` — so this part holds `71 + 4 + 4 + 5 + 3 + 4 = 91` pointers, while the `71` remains the figure the
+census sentence at this part's head prints, because it is read off the last row's own number and every row
+below it carries no number at all** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.7 — the
+entry-counted unit, and the rule that a grouping is never a second arithmetic; §C.11.6 — a `view` part declares
+nothing the contract does not already carry | numeric or census claim]`). **No row of this table names a case
+the contract does not pin, and no row of it declares a requirement of its own; and NO ROW ABOVE IS A TEST — the
+TestWriter derives its cases from the `§n` each row names and never from this table**
+(`[A1 docs/specs/storeroom-js-proposal.md §19 · `A78` — the ruling this pointer set is derived from; A3
+docs/specs/storeroom-native/write-and-read.md §6.5 items 8 (a)/(d), 10 (d)–(e), 11, 12 and 14 — the store's
+listener clauses, each row's own target | requirement]`).
