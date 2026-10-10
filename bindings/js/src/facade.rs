@@ -98,14 +98,7 @@ extern "C" {
         value: NapiValue,
     ) -> NapiStatus;
     fn napi_get_undefined(env: NapiEnv, result: *mut NapiValue) -> NapiStatus;
-    fn napi_is_exception_pending(env: NapiEnv, result: *mut bool) -> NapiStatus;
     fn napi_get_boolean(env: NapiEnv, value: bool, result: *mut NapiValue) -> NapiStatus;
-    fn napi_has_named_property(
-        env: NapiEnv,
-        object: NapiValue,
-        name: *const c_char,
-        result: *mut bool,
-    ) -> NapiStatus;
     /// **THE OWN-PROPERTY TEST OF `A76`/`JS-5`** — `napi_get_all_property_names`'s own-key mode is not
     /// needed: this predicate answers whether ONE key is an OWN property of the object, and it takes a JS
     /// `napi_value` KEY rather than a C string.
@@ -148,6 +141,15 @@ extern "C" {
     // a listener from the facade — and that caller was this file's own dead structure, not a route
     // `A75`/`A77` declares. **The package's invocation is `index.mjs`'s `deliver`, whose call is the
     // runtime's own and needs no Node-API symbol here; nothing else in this facade ever named them.**
+    //
+    // **⟶ AND TWO MORE DECLARATIONS LEFT THIS LIST AT THE DEAD-SURFACE SWEEP (`docs/open-items-review.md`
+    // `§2` row 4, whose named subject is the first of them): `napi_is_exception_pending`, declared here and
+    // named by NO live path at any depth — no caller, no reader, no re-export — and `napi_has_named_property`,
+    // whose ONE remaining mention was the sentence in `Codec::member`'s own documentation recording that it
+    // had CEASED TO BE THE GATE. Both are DELETED, so no declaration in this block stands without a caller:
+    // `napi_has_own_property` is the own-property test the codec actually takes (`A76`, `JS-5`), and the
+    // exception-pending predicate belongs to no route this facade declares — a refusal travels as the ONE
+    // thrown form (`surface.md §2.5`, `DD-12`), thrown by `throw_refusal` and never interrogated here.**
 }
 
 /// `napi_valuetype`'s arms, as the runtime numbers them.
@@ -278,7 +280,8 @@ impl Codec {
     /// prototype-inherited `address`/`handle` is read as an entry field"*.
     ///
     /// **THE OWN-PROPERTY TEST IS `napi_has_own_property`, AND `napi_has_named_property` — WHICH WALKS THE
-    /// CHAIN — IS NO LONGER THE GATE.** Once the key has been found OWN, `napi_get_named_property` can only
+    /// CHAIN — IS NO LONGER THE GATE, AND IS NO LONGER DECLARED.** Once the key has been found OWN,
+    /// `napi_get_named_property` can only
     /// return that own member (an own property shadows every inherited one), so the pair is an own-property
     /// read with no chain lookup anywhere on it. **A key reached only through the prototype chain is
     /// ABSENT (`None`), and absence is what the crossing's absent-versus-`undefined` rule reads** — while
@@ -1128,13 +1131,14 @@ unsafe fn codec_argv(env: NapiEnv, args: NapiValue) -> Vec<NapiValue> {
     }
 }
 
-/// The runtime's own `undefined`, where a position is SUPPLIED but carries no value — never a null pointer,
-/// which is what an ABSENT position is.
-unsafe fn js_undefined(env: NapiEnv) -> NapiValue {
-    let mut out: NapiValue = std::ptr::null_mut();
-    napi_get_undefined(env, &mut out);
-    out
-}
+// **⟶ `js_undefined` STOOD HERE AND IS DELETED AT THE DEAD-SURFACE SWEEP** (`docs/open-items-review.md`
+// `§2` row 4's class). **Its own documentation, re-emitted rather than lost:** *"The runtime's own
+// `undefined`, where a position is SUPPLIED but carries no value — never a null pointer, which is what an
+// ABSENT position is."* **It had NO caller.** The supplied-`undefined` position travels through
+// `Codec::address`/`Codec::tier`/`Codec::op_id`/`Codec::handle_arg`/`Codec::value`, each of which reads the
+// VALUE the runtime handed rather than manufacturing one; the one place this file needs the runtime's
+// `undefined` on the copy OUT is `Codec::undefined_value`, which is live (`§2.7` item 2's record member).
+// **No byte of a live path is touched by the deletion: the helper had no caller.**
 
 impl Codec {
     /// A position the call did not supply is ABSENT — the arity reading of `crossing.md §1.3`'s
@@ -1234,14 +1238,13 @@ extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue 
     undefined
 }
 
-/// The token a `JsHandleArg` names, where it names one — the outside forms name none.
-fn handle_token(handle: &JsHandleArg) -> String {
-    match handle {
-        JsHandleArg::Opaque(opaque) => opaque.token().to_string(),
-        JsHandleArg::Bare(bare) => bare.clone(),
-        JsHandleArg::NonOpaque | JsHandleArg::Absent => String::new(),
-    }
-}
+// **⟶ `handle_token` STOOD HERE AND IS DELETED AT THE DEAD-SURFACE SWEEP** (`docs/open-items-review.md`
+// `§2` row 4's class). **Its own documentation, re-emitted rather than lost:** *"The token a `JsHandleArg`
+// names, where it names one — the outside forms name none."* **NO path in this file ever called it** — the
+// token a registration site reads is the CORE's own read of the handle (`Instance::register` takes the
+// `JsHandleArg` itself and answers the store's own refusal), so the spelling never crosses back into this
+// layer. **The deletion removes a second route to a token, which is the point: the core is the site's own
+// judge (`surface.md §2.4` item 5 (c)).**
 
 /// The addon's `version() -> string` — the crate's own version, so a consumer that reached the addon
 /// directly sees what it loaded.

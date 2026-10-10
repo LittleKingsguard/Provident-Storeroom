@@ -310,7 +310,9 @@ fn tier_arg_1_an_out_of_domain_token_is_refused_out_of_domain_tier() {
         let inst = mem_instance();
         let err = inst
             .read(&JsAddressArg::List(vec![]), &JsTierArg::Token(token.to_string()))
-            .expect_err("`{token}` is not a tier");
+            // **THE TOKEN IS INTERPOLATED, NOT CARRIED AS A LITERAL** (the `DEF-17` class): the loop's own
+            // `token` names the refused spelling, so the failure message must be the interpolated one.
+            .expect_err(&format!("`{token}` is not a tier"));
         assert_refusal_is_the_single_form(&err, "OutOfDomainTier");
     }
 }

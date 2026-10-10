@@ -298,3 +298,26 @@ no verdict, answers no semantic and moves no ledger count.**
 - **`§1.3`'s HEADING AND ITS CLOSING SENTENCE ARE THE RECORD'S EARLIER STATE, SUPERSEDED BY ITS OWN FIRST CLAUSE.** **THE HEADING READS** *"### 1.3 The go-ahead is WITHHELD pending the architect's own act"*, **its paragraph reads** *"**`docs/pending.md` `G-1`'s second conjunct — *"the architect gives the go-ahead"* — is DISCHARGED for the store unit and is OPEN for this one: gate 2 may not be entered until his word is recorded"*, **and the `END` marker's last sentence reads** *"THE GO-AHEAD IS WITHHELD PENDING THE ARCHITECT'S OWN ACT."* **THE OPERATIVE STATE IS THE CLAUSE AT THIS RECORD'S HEAD: *"⟶ THE ARCHITECT'S GO-AHEAD, GIVEN 2026-10-11 … His word: *"Proceed"* … GATE 1 IS THEREFORE CLOSED WITH THE GO-AHEAD TAKEN, AND GATE 2 IS OPEN."*** **So `G-1`'s second conjunct is DISCHARGED FOR THIS UNIT TOO, gate 2 was lawfully entered, and `§1.3`'s heading, its paragraph and the `END` marker's withheld sentence are the record's own PRE-GO-AHEAD filings — each dated, each standing as filed, and none of them the operative reading** (`docs/specs/storeroom-js/contract.md`'s status line, which cites this record's go-ahead clause and `A1`; `docs/pending.md` `G-1`).
 - **AND THE LEDGER FIGURES THIS RECORD'S `§6` PRINTS.** **ITS CLAUSES READ** *"the ledger stands `1 DONE / 2 open` UNITS = `3` (`1 + 2 = 3` ✓)"* and *"the OPEN set is `2` UNITS and `0` open non-unit rows (`2 + 0 = 2` ✓)"*. **THE OPERATIVE ARITHMETIC AT THE TRACKERS' OWN BYTES IS `2 DONE / 1 open` UNITS = `3` (`2 + 1 = 3` ✓), with the OPEN set holding `1` UNIT (`N3`, `U-STOREROOM-JS`) and `0` open non-unit rows (`1 + 0 = 1` ✓)** — the listener unit `U-STOREROOM-LISTENERS` (`N2`) closed after this record was filed, which is what moved the two figures; **`U-STOREROOM-JS` was and remains the ONE open unit this record's `AR-20` landing duty names, and its gates 7–8, trio and `DONE` row are PENDING** (`docs/next-steps.md` `## OPEN`'s dated clause and `## DONE`; `AR-20`).
 - **AND THE FIGURE `§5.1` CARRIES IS THE OPERATIVE ONE AT THE STORE'S OWN TREE.** **`§5.1`'s `L-6` cell prints the store's green at `377/377` and names `374` as the filing-time reading (`G-17`), and its `AR-10` row adds *"the operative store green is `377/377`, not the filing's `374/374`"*.** **BOTH READINGS STAND AND `377` PASS · `0` FAIL remains the operative store figure; the FIGURES OF THIS UNIT'S OWN TREE — `101` JS tests · `223` sibling-crate PASS · `395`/`107` register attempts · `236/236` blind · `72/72` live — are reconciled at `docs/specs/storeroom-js/implementation-plan.md` `§4.2`'s dated clause and at `docs/specs/storeroom-js/contract.md` `§7.2`'s.** **NO FIGURE IS RE-MEASURED BY THIS CLAUSE: this pass holds no execution verb** (`[T: this record's superseded heading, its ledger clauses and its operative figures, each with its own reading | CENSUS]`).
+
+---
+
+**⟶ CORRECTED 2026-10-11 — THE BOUNDED COMBINED REPAIR (`role_spec_writer`): THIS RECORD'S `§5.1` AND `§6`
+LEDGER CELLS, READ THROUGH THIS DATED CLAUSE.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte above stands
+byte-for-byte — `§5.1`'s `L-8` cell, `§6` item `2`'s *"NO LEDGER COUNT MOVES"* clause, `§5.2` item `5`'s ledger
+sentence, the reconciliation clause above it and the `END` marker's sentence included — and each is read
+THROUGH this clause; THIS CLAUSE IS A PURE INSERTION, it re-issues no verdict, answers no semantic and moves no
+ledger count.**
+**AS-FILED, THESE CELLS READ** *"the ledger stands `1 DONE / 2 open` UNITS = `3` (`1 + 2 = 3` ✓)"* and *"the
+OPEN set is `2` UNITS and `0` open non-unit rows (`2 + 0 = 2` ✓)"* — **the filing-time reading, and the record's
+own clause above already names it as superseded by the listener unit's close-out.** **THE OPERATIVE FIGURE IS
+`2 DONE / 1 open` UNITS = `3` (`2 + 1 = 3` ✓), with the OPEN set holding exactly `1` UNIT (`N3`,
+`U-STOREROOM-JS`) and `0` open non-unit rows (`1 + 0 = 1` ✓) — and THE CLOSE-OUT THAT MOVES IT IS THE
+`U-STOREROOM-JS` CLOSE-OUT OF 2026-10-11 AT COMMIT `86b3a02`, WHICH CARRIES THE LEDGER TO `3 DONE / 0 open`
+UNITS = `3` (`3 + 0 = 3` ✓).** **AND THE TWO READINGS THE ARCHITECT MUST CHOOSE BETWEEN — whether the listener
+AMENDMENT counts as a unit — STAND TOGETHER IN `docs/next-steps.md`'s OWN HEAD LINE, which is the cell that
+carries them; that head line, `## OPEN`'s closing line and the `N3` row are the SUPERVISOR'S TRACKER LANDING, and
+no tracker byte is written from this record.** **The record's own subject is UNMOVED: its verdict, its `20`
+conditions, its union's `36` rows, its figures and its one `derivation:`-bearing FORM determination all stand as
+printed; `U-STOREROOM-JS` was and remains the ONE unit this record's `AR-20` landing duty names**
+(`docs/next-steps.md`'s head line; `docs/open-items-review.md` `§2` item `6`; `AR-20`; `AR-9`) (`[T: this
+record's `§5.1` and `§6` ledger cells, each with its own reading | CENSUS]`).

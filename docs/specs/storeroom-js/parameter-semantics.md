@@ -568,6 +568,26 @@ every arm and NO ARM IS LEFT TO DISCOVERY:**
    docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12` — a pinned default carries a priced alternative;
    `docs/specs/storeroom-js/surface.md §2.7` item 5 | declared parameter semantics]`).
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED COMBINED REPAIR (`role_spec_writer`), CLOSING `CF-DUP-3` AT THIS ROW'S
+REGISTRATION HALF: THE POINTER, AND THE RULE THIS ROW DOES NOT DECLARE.** `RCA-8(d)` ANNOTATE-BESIDE: **this
+row's table above and its three dated clauses stand byte-for-byte and are read THROUGH this clause; THIS
+clause is a PURE INSERTION, it adds no row to `§1`'s `18`, moves no cell of the table, and declares no rule of
+its own.**
+**THE CORNER THE `CF-DUP-3` FINDING NAMED AT THIS ROW — a registration, a replacement or a withdrawal made
+DURING a delivery window — IS DECLARED, WITH ITS ARGUMENT, AT `docs/specs/storeroom-js/surface.md` `§2.4`'s
+`CF-DUP-3` clause, which is the ONE home that owns the delivery's rules: a delivery window's recipient set is
+read from the array as it stands when the window opens, and a registration, a replacement or a withdrawal made
+during it takes effect at the NEXT trigger.** **THIS ROW'S `the declared answer for EACH outside value` CELL AND
+ITS `domain` CELL ARE UNMOVED AND DECLARE NOTHING ABOUT A WINDOW: `register`'s in-domain answer stays
+`undefined` with the previous function REPLACED, its refusal form stays `surface.md §2.5`'s single form, and
+WHEN a registration so made is reached by a delivery is NOT this row's to state** — **because the registry is
+this row's subject and the DELIVERY WINDOW is `surface.md §2.4`'s and `§2.7`'s** (`docs/specs/storeroom-js/surface.md`
+`§2.4`'s `CF-DUP-3` clause, at its own home; `docs/pending.md`'s `CF-DUP-3` clause, whose revisit condition (b)
+this pointer satisfies; `docs/open-items-review.md` `§2-bis`).
+(`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-12` — a pinned default carries a priced
+alternative; A3 docs/specs/storeroom-js/parameter-semantics.md `§2.12` · `PAR-JS-12` — the row this pointer
+stands at | declared parameter semantics]`).
+
 ### §2.13 `PAR-JS-13` — the returned `op`, the `JournalOp` a write returns
 
 | Cell | Its value |

@@ -389,6 +389,88 @@ clauses 1–2 with its mint clause; A3 docs/specs/storeroom-js/crossing.md §1.3
 docs/specs/storeroom-js/parameter-semantics.md §2.15; A3 archive/gate5/storeroom-js-greens-run.md §4 |
 declared parameter semantics]`).
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED COMBINED REPAIR (`role_spec_writer`), CLOSING `CF-DUP-3`: THE DELIVERY
+WINDOW'S RECIPIENT SET, AND THE ARGUMENT THAT MAKES THE READING NON-ARBITRARY.** `RCA-8(d)` ANNOTATE-BESIDE:
+**every byte above stands byte-for-byte — `§2.4` rules 1–4, item 5, item 6 and this section's own dated clause
+included — and they are read THROUGH this clause; THIS clause is a PURE INSERTION, it re-decides no rule, adds
+no member, no verb and no parameter, mints no code, moves no register row and names no park.**
+
+**THE FINDING IT CLOSES, NAMED WITH ITS CORNER AND ITS TWO HOMES ON FILE.** **`CF-DUP-3` — THE IN-DELIVERY
+REGISTRATION CORNER — STANDS `OPEN` AS AN UNPINNED CORNER at `docs/pending.md`'s own `CF-DUP-3` clause and at
+the red set's `§13.6` (`archive/gate3/storeroom-js-red-set.md` `§13` row `1` and `§13.6`); the corner and the
+argument are written out at `docs/open-items-review.md` `§2-bis`, and the cell that opened it is this
+section's own dated clause (i), which fixes the invocation count as ONE PER DISTINCT IDENTITY and does NOT
+SAY whether an identity REGISTERED DURING THE SAME DELIVERY WINDOW — by an earlier listener's own body, which
+holds the instance — is invoked at its second occurrence in the array the delivery is walking.** **ITS
+DISPOSITION CELL IS THE TRACKER'S AND NOT THIS PASS'S: `docs/pending.md` is OUTSIDE this pass's edit scope and
+its row owes a dated closing clause naming this one; THAT LANDING IS NAMED FOR THE SUPERVISOR AND IS NOT
+WRITTEN HERE.** **The red set's own revisit conditions (a) and (b) — a clause at `§2.4`'s dated clause (i), or a
+clause at `parameter-semantics.md §2.12`'s registration cell — are the two this pass satisfies: (a) HERE, and
+(b) by the pointer clause that row now carries.**
+
+**THE RULE, DECLARED — A DELIVERY WINDOW'S RECIPIENT SET IS READ WHEN THE WINDOW OPENS.** **THE RECIPIENT SET
+OF A DELIVERY IS READ FROM THE ARRAY AS IT STANDS WHEN THE WINDOW OPENS, AND A REGISTRATION, A REPLACEMENT OR
+A WITHDRAWAL MADE *DURING* THE WINDOW TAKES EFFECT AT THE NEXT TRIGGER.** **So an identity whose function was
+absent when the delivery began is NOT invoked at this delivery's later occurrence of it, however many
+occurrences the array carries and wherever in it they stand; and an identity whose function is registered
+between the delivery's first and second elements does not enter the delivery in flight.** **THE WINDOW IS
+THIS SECTION'S `§2.7` ITEM 2'S — THE INVOCATION IS THE CALLER'S AND THE PACKAGE PERFORMS IT AFTER THE VERB HAS
+RETURNED — and the set is read at that moment and at no later one.**
+
+**THE ARGUMENT, CARRIED BECAUSE IT IS WHAT MAKES THE READING NON-ARBITRARY AND NOT MERELY THE SHIPPED ONE.**
+**THE STORE DECLARES THE ORDER IN WHICH `triggered` RETURNS ITS MEMBERS UNOBSERVABLE** — **no clause of this
+unit asserts it, `§2.7` item 3 asserts MEMBERSHIP ONLY, and `DD-22` declares that a drive compares SETS and
+never sequences, so the blind and live sets are forbidden from asserting it** (`docs/specs/storeroom-native/contract.md`
+`§6.5` item 5's *"NO ORDER IS DECLARED FOR THE LIST"*; `DD-22`). **A RULE THAT MADE THE INVOCATION DEPEND ON
+WHETHER A REGISTRATION LANDED BEFORE OR AFTER THE ARRAY'S SECOND ELEMENT WOULD THEREFORE MAKE AN OBSERVABLE —
+WHETHER THE LISTENER FIRES — DEPEND ON AN UNOBSERVABLE: WHERE IN THE ARRAY THAT SECOND ELEMENT HAPPENS TO
+STAND.** **That is a direct contradiction of the order-unobservability rule the same contract declares, so the
+alternative reading cannot hold, and THE ONLY READING CONSISTENT WITH THE REST OF THE CONTRACT IS THIS ONE: a
+delivery's recipient set is determined from the array as it stands when the delivery begins, and a
+registration made during it takes effect at the NEXT trigger.** **A drive may therefore assert the reading at
+the observable pair it fixes: an identity registered only from inside one listener's body, standing in the
+SAME delivery's array a second time, is NOT invoked in that delivery, and IS invoked at the next trigger whose
+array carries it.** **AND IT IS ASSERTABLE WITHOUT REACHING FOR AN ORDER: the drive asserts which identities
+were INVOKED and at WHICH trigger, never where in an array they stood.**
+
+**AND THE SYMMETRIC CASES, STATED SO NO READER TAKES *"a registration"* AS THE ONLY ARM: a `replace` made during
+the window — a second registration for a handle the registry already holds a function for (`§2.4` rule 2) —
+DOES NOT REACH BACK INTO THE DELIVERY IN FLIGHT: THE FUNCTION INVOKED AT THIS DELIVERY'S OCCURRENCE IS THE ONE
+THE REGISTRY HELD FOR THAT IDENTITY WHEN THE WINDOW OPENED, and the replacement's function is what a LATER
+trigger invokes. A `unlisten` made during the window — a withdrawal of the store-side home entry (`§2.3` item
+4) — DOES NOT CANCEL AN INVOCATION THE CURRENT DELIVERY HAS NOT YET MADE and does not withdraw the package's
+registry entry, which `§2.4` rule 4 holds; the withdrawal's effect is that a LATER trigger no longer carries
+that id, so the function whose handle was withdrawn simply never fires again.** **SO ALL THREE ARMS — a
+registration, a replacement and a withdrawal — take effect at the NEXT trigger, and NONE of them rewrites the
+delivery in flight.**
+
+**AND THE TWO THINGS THIS CLAUSE IS NOT, EACH PRINTED BECAUSE A NEW READING OWES BOTH.** **(1) IT IS NOT A
+`deliver` CHANGE, AND NONE IS OWED OR RECOMMENDED: the shipped `deliver` reads the array's DISTINCT IDENTITIES
+into a `Set` as it walks and consults the registry per distinct identity, so the recipient set it uses is the
+one read when the window opened — the reading declared here is the reading the build holds, and this clause
+CONVERTS an implementation reading into a CONTRACT one and changes no byte of `bindings/js/**`**
+(`bindings/js/index.mjs`'s `deliver`; `archive/gate3/storeroom-js-red-set.md` `§13.6`'s *"the reading is the
+implementation's and not the contract's"*, which this clause answers). **(2) IT ADDS NO OBSERVABLE, NO MEMBER
+AND NO ORDER: the array's element multiplicity and the invocation count stay the TWO independent observables
+this section's dated clause already carries, `§2.7` item 3's *"no order is asserted"* is UNMOVED, `§2.4` rule 1
+(the unregistered id's silence), rule 2 (the replacement), rule 3 (one invocation per distinct identity) and
+rule 4 (`unlisten` withdraws the registration, never the function) each stand exactly as printed, and the
+register keeps its `8` rows with every failure list unmoved.** **AND THE `alt` THIS DECLARATION CARRIES, PRICED
+BECAUSE A PINNED DEFAULT OWES ONE: THE OCCURRENCE-ORDERED READING** — an occurrence is skipped only if that
+identity has ALREADY been invoked in this delivery, so an identity whose registration arrives mid-window IS
+invoked at its later occurrence. **Priced: it makes the invocation depend on the array's order — an
+UNOBSERVABLE the store declares and no set may assert — so it cannot be stated as a property, it cannot be
+driven without asserting an order, and it would silently change what a caller observes at a moment no clause
+fixes. Available only with a fresh ruling of the architect recorded as an ACTIVE `docs/decisions.md` row,
+followed by a bounded amendment of `docs/specs/storeroom-js/`; the reversal instrument is that amendment and
+NEVER A PARK** (`A66`).
+(`[A3 docs/specs/storeroom-js/surface.md §2.7` item 3 — the membership-only rule this clause's argument rests
+on; A3 docs/specs/storeroom-js/surface.md `§2.4` rules 1–3 and item 6 (b) — the registry arms the three
+symmetric cases are read at; A3 docs/specs/storeroom-native/contract.md `§6.5` item 5 — *"NO ORDER IS DECLARED
+FOR THE LIST"* — with `DD-22`; A1 docs/specs/storeroom-js-proposal.md `§18` · `A77` — the id-matching model the
+recipient set is a set OF; A3 docs/specs/storeroom-js-proposal-review.md `§5.4` · `AR-12` — a pinned default
+carries a priced alternative | state or fail-state declaration]`).
+
 ### §2.5 The single failure form
 
 **A FAILURE CROSSES AS A THROWN PLAIN OBJECT WITH EXACTLY TWO MEMBERS, AND THERE IS EXACTLY ONE SUCH

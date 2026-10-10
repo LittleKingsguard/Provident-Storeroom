@@ -109,6 +109,25 @@ later gate.**
 
 **THE LEDGER MOVE THIS FILING OWES, WITH ITS TERMS:** the ledger stood at **`1 DONE / 1 open` UNITS = `2`**; **this filing opens a third unit's gate-1 row, so it reads `1 DONE / 2 open` UNITS = `3` (`1 + 2 = 3` ✓)** — landed in `docs/next-steps.md` in the same pass.  **⟶ CORRECTED 2026-10-11 (STEP 2'S FINDING `K14`, THE FILING'S OWN DEFECT — `RCA-8(d)` ANNOTATE-BESIDE): the tracker's `## DONE` section carries TWO closed unit rows and `## OPEN`'s own closing clause still read `1 + 0 = 1`, so the move was landed while three of the file's arithmetic statements contradicted it. THE TRACKER GATE OWED THE RECONCILIATION AND THIS PASS PAID IT: `## OPEN`'s closing clause now reads `2 + 0 = 2` and names the live ledger `1 DONE / 2 open` UNITS = `3`, with the LAST dated clause of the head line as its operative statement (condition `C12` makes three-way agreement over the tracker's sections a gate-1 condition).**
 
+**⟶ CORRECTED 2026-10-11 — THE BOUNDED COMBINED REPAIR (`role_spec_writer`): THIS SECTION'S LEDGER FIGURE,
+READ THROUGH THIS DATED CLAUSE.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte above stands byte-for-byte, the
+as-filed `1 DONE / 2 open` clause included, and it is read THROUGH this clause; THIS clause is a PURE
+INSERTION, it moves no count, admits no unit row and re-answers no semantic.**
+**AS-FILED, THIS SECTION AND EVERY OTHER SENTENCE OF THIS FILING THAT PRINTS IT READ** *"THE LEDGER STANDS
+`1 DONE / 2 open` UNITS = `3` (`1 + 2 = 3` ✓)"* **— the FILING-TIME figure, correct on the day the third unit's
+gate-1 row was opened while the listener unit stood open.** **THE OPERATIVE FIGURE IS `2 DONE / 1 open`
+UNITS = `3` (`2 + 1 = 3` ✓), and the close-out that moves it is the `U-STOREROOM-JS` CLOSE-OUT OF 2026-10-11 AT
+COMMIT `86b3a02`, which carries the ledger to `3 DONE / 0 open` UNITS = `3` (`3 + 0 = 3` ✓).** **SO EVERY
+SENTENCE THIS FILING PRINTS THAT STATES IT — the five at its pre-pass lines `235`, `294`, `374`, `418` and
+`439`, each inside a *"THE LEDGER STANDS `1 DONE / 2 open` UNITS = `3`"* or *"THE LEDGER STANDS AT `1 DONE /
+2 open` UNITS = `3`"* clause — IS READ THROUGH THIS CLAUSE and none of them is re-written; the filing's own
+tail clause already reads those sentences the same way and names the same operative figure.** **AND THE
+TWO READINGS THE ARCHITECT MUST CHOOSE BETWEEN — whether the listener AMENDMENT counts as a unit — STAND TOGETHER
+IN `docs/next-steps.md`'s OWN HEAD LINE, which is the cell that carries them; that head line and its closing
+row are the SUPERVISOR'S TRACKER LANDING, and no tracker byte is written from this filing**
+(`docs/next-steps.md`'s head line; `docs/open-items-review.md` `§2` item `6` and `§2-bis`) (`[T: this filing's
+ledger clauses, each with its own reading | CENSUS]`).
+
 ---
 
 ## §7. PROVENANCE

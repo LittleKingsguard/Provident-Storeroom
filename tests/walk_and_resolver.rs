@@ -113,10 +113,13 @@ fn s2_2_l1_every_outside_segment_class_fails_address_malformed() {
             store.read(AddressArg::List(vec![segment]), TierArg::Absent),
             "§1.5 item 1 / PAR-1",
         );
+        // **THE LABEL IS INTERPOLATED, NOT CARRIED AS A LITERAL** (`DEF-17`'s repair): the drive's own
+        // `what` names the class under test, so the clause a reader sees must be the message the
+        // interpolation produces — a plain literal would print `{what}` and leave the binding unread.
         assert_code(
             &e,
             "AddressMalformed",
-            "§2.2 L-1: {what} is outside the segment domain",
+            &format!("§2.2 L-1: {what} is outside the segment domain"),
         );
     }
 }

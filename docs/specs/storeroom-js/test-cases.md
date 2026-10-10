@@ -109,6 +109,22 @@ docs/specs/spec-scope-and-structure/contract.md §C.11.6 and §C.3 — the kind 
 requirement]`). **The TestWriter's own gate derives its cases FROM the contract's `§n` and not from this
 table; this table's only promise is that every row's target exists.**
 
+**⟶ CORRECTED 2026-10-11 — THE BOUNDED COMBINED REPAIR (`role_spec_writer`): ROW `71`'S LEDGER FIGURE, READ
+THROUGH THIS DATED CLAUSE.** `RCA-8(d)` ANNOTATE-BESIDE: **no row of the `71` is added, removed or renumbered
+and no pointer count moves — this clause is a PURE INSERTION beside the inventory, and row `71`'s own printed
+words stand byte-for-byte as filed.** **THE AS-FILED CELL READS** *"No unit row is admitted, no `DONE` row is
+re-opened and no ledger count moves: `docs/next-steps.md` stands `1 DONE / 2 open` UNITS = `3`"* **— AND
+`1 DONE / 2 open` IS THE TRACKER'S PRE-`N2`-CLOSE-OUT READING, not an error of this part.** **THE OPERATIVE
+FIGURE IS `2 DONE / 1 open` UNITS = `3` (`2 + 1 = 3` ✓), and the close-out that moves it is the
+`U-STOREROOM-JS` CLOSE-OUT OF 2026-10-11 AT COMMIT `86b3a02`, which carries the ledger to `3 DONE / 0 open`
+UNITS = `3` (`3 + 0 = 3` ✓).** **AND THE TWO READINGS THE ARCHITECT MUST CHOOSE BETWEEN — whether the listener
+AMENDMENT counts as a unit — STAND IN THE TRACKER'S OWN HEAD LINE, which is the cell that carries them; the
+tracker's head line, its closing clause and its row are the SUPERVISOR'S LANDING, and no tracker byte is written
+from this part.** **The row's own subject is UNMOVED: no unit row is admitted, no `DONE` row is re-opened and no
+ledger count is moved by any gate of this unit** (`docs/next-steps.md`'s head line; `docs/open-items-review.md`
+`§2` item `6` and `§2-bis`; the contract document's closing clause, read through its own `§10` ledger clause)
+(`[T: this part's row `71` and its ledger figure, each with its own reading | numeric or census claim]`).
+
 **⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), ON THE RED SET'S SIX CONTRACT
 FINDINGS (`archive/gate3/storeroom-js-red-set.md` §5).** `RCA-8(d)` ANNOTATE-BESIDE: **the table above stands
 byte-for-byte and its `71`-row census DOES NOT MOVE: no row is added to it, removed from it or renumbered by

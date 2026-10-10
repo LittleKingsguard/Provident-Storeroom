@@ -530,13 +530,22 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
         });
         row.strategy("S-PROBE-DRY", 10, |attempt| {
             let rng = &mut Rng::for_attempt(attempt);
-            let dir = std::env::temp_dir().join(format!(
-                "storeroom-js-redset-pdry-{}-{}",
-                std::process::id(),
-                attempt
-            ));
+            // **THE PATH IS THIS DRIVE'S OWN** (`support::DrivePath`'s header: a PID-keyed path is shared by
+            // every cell of one binary, and `cargo test` runs them on parallel threads), so no sibling cell
+            // can meet a directory this drive left behind or remove the one it probed — the same
+            // construction `S-TWO-PATHS` above and the `surface_verbs.rs` cells were moved onto.
+            //
+            // **AND THE PROBE IS STILL A DRY RUN:** the helper mints this drive's own directory and this
+            // drive removes it BEFORE the call, so the parent directory does not exist when the probe runs —
+            // which is the clause's own condition — and the two assertions below hold the clause as filed:
+            // the refused construction creates NEITHER a directory NOR a file.
+            let scratch = DrivePath::unique(
+                "storeroom-js-redset-pdry",
+                &format!("f{}.json", rng.below(4)),
+            );
+            let dir = scratch.dir().to_path_buf();
+            let path = std::path::PathBuf::from(scratch.as_str());
             let _ = std::fs::remove_dir_all(&dir);
-            let path = dir.join(format!("f{}.json", rng.below(4)));
             let err = create(&JsConfig {
                 file_path: Some(JsFilePathArg::Str(path.to_string_lossy().to_string())),
                 journal_length: Some(JsJournalLengthArg::Count(2)),
