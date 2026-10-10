@@ -103,7 +103,7 @@ import {
   write,
   listen,
   unlisten,
-} from '@provident-storeroom/js';
+} from 'provident-storeroom';
 
 /// The refusal's own predicate above is *this file's* reading of a site it CALLS. **WHILE THE TWO MEMBERS ARE
 /// ABSENT THE CALL ITSELF THROWS OUTSIDE THAT PREDICATE'S `try`, SO THE "METHOD DOES NOT EXIST" RED WOULD BE
@@ -873,7 +873,7 @@ test('the_instance_member_set_is_register_on_off_and_the_module_namespace_is_unc
   // ADDED TO THE ENTRY'S NAMED EXPORTS** — `§2.1`'s dated clause (b), *"because both are reached through the
   // FACTORY'S OWN PRODUCT and through nothing else"* — so a drive asserts the count AND the absence of the
   // two names, and asserts that the FACTORY is still reachable so the cell cannot pass on an empty module.
-  const namespace = await import('@provident-storeroom/js');
+  const namespace = await import('provident-storeroom');
   const names = Object.keys(namespace).sort();
   assert.deepEqual(
     names,

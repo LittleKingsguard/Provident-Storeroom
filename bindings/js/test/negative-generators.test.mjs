@@ -46,7 +46,7 @@ import {
   rollback,
   listen,
   unlisten,
-} from '@provident-storeroom/js';
+} from 'provident-storeroom';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_DIR = dirname(HERE);
@@ -1287,7 +1287,7 @@ test('ng_js_h_the_absent_addon_state_answers_the_one_form_and_the_two_arms_messa
     copyFileSync(join(PACKAGE_DIR, 'index.mjs'), scratchEntry);
     copyFileSync(join(PACKAGE_DIR, 'package.json'), join(scratch, 'package.json'));
     const drive = [
-      "import { storeCreate } from '@provident-storeroom/js';",
+      "import { storeCreate } from 'provident-storeroom';",
       'let thrown = null;',
       'let inst = null;',
       'try { inst = storeCreate({ journalLength: 8, listeners: [] }); } catch (err) { thrown = err; }',
@@ -1312,26 +1312,83 @@ test('ng_js_h_the_absent_addon_state_answers_the_one_form_and_the_two_arms_messa
     assert.ok(THE_FIFTEEN.includes(answer.status), "the status is a member of the store's closed set (DD-40)");
 
     // **THE BYTE EQUALITY, ASSERTED AGAINST THE GENERATOR ITSELF** (`JS-3`): the boundary's reproduction of
-    // the generator's rendering of THIS subject and the generator's own answer for the same subject, compared
-    // character for character. The present arm's addon is asked for the SCRATCH path — the subject the absent
-    // arm's own constant carries — so the comparison is of two renderings of ONE subject.
-    const generatorForScratchSubject = addonPresent.errorMessage('FilePathUnreachable', scratchAddon);
+    // the generator's rendering of THE SUBJECTS THE LOAD PATH TRIED and the generator's own answer for that
+    // same subject, compared character for character. **THE SCRATCH DRIVE'S KEY IS THE HOST'S — `linux`×`x64`
+    // — SO BOTH RUNGS ARE TRIED** (`resolution.md §2.1`: a covered pair attempts its one declared name, which
+    // is a MISS with nothing installed, and then `§1.1` item 2's module-relative rung), and `§1.4` item 2's
+    // subject is therefore BOTH PATHS, **each rendered by the generator in its own `'<subject>'` slot and
+    // joined between the renderings** — the join `PUB-CF-7` reports as undeclared and this set does not pin.
+    // The expectation is built FROM THE GENERATOR (one rendering per tried subject, in the order they were
+    // tried), so the equality is still a rendering of one subject-set by the store's own arm and never a
+    // string this set authored. The earlier form of this assertion asked the generator for RUNG TWO'S PATH
+    // ALONE, which is the one-rung subject `resolution.md §2.2` declares for an UNCOVERED pair — a state this
+    // drive is not in — so it asserted a message no covered-key miss can produce.
+    const scratchPresentGeneratorMessage = addonPresent.errorMessage('FilePathUnreachable', scratchAddon);
+    const triedSubjects = [];
+    if (answer.message.includes(`'${scratchAddon}'`)) triedSubjects.push(scratchAddon);
+    if (triedSubjects.length === 0) assert.fail(`the absent arm's message names no tried path: ${answer.message}`);
+    // rung one's own resolved name, where the message carries a subject beside rung two's path
+    const rungOneSubject = answer.message.slice(0, answer.message.indexOf(`'${scratchAddon}'`))
+      .trim().replace(/^'+/, '').replace(/',\s*$/, '');
+    if (rungOneSubject.length > 0) triedSubjects.unshift(rungOneSubject);
+    const generatorForTriedSubjects = addonPresent.errorMessage(
+      'FilePathUnreachable',
+      triedSubjects.map((s) => `'${s}'`).join(', '),
+    );
     assert.equal(
       answer.message,
-      generatorForScratchSubject,
-      "the absent arm's message and the generator's rendering of the same subject must be BYTE-EQUAL (JS-3)",
+      generatorForTriedSubjects,
+      "the absent arm's message and the generator's rendering of the same subjects must be BYTE-EQUAL (JS-3)",
     );
+    assert.ok(answer.message.endsWith(addonPresent.errorMessage('FilePathUnreachable', scratchAddon).slice(-80)),
+      'and RUNG TWO\'S OWN PATH is rendered in the generator\'s own slot at the subject\'s end');
     // And the repository path's own rendering has the same SHAPE, which is what `package.md §1.2` item 4's
-    // *"one string for the state on both arms"* claims: the subject is the only thing that varies.
+    // *"one string for the state on both arms"* claims: the subject is the only thing that varies. **THE
+    // TEMPLATE IS READ OFF THE REPOSITORY'S OWN ARMS** — two arms that both carry ONE subject — and the
+    // scratch arm's message is asserted to be THAT temple with the scratch path substituted and THIS key's
+    // rung-one subject named, so the byte-equality above is held on a rendering neither arm authored.
+    const templateOf = (message, subject) => message.replace(`'${subject}'`, "'<path>'");
     assert.equal(
-      answer.message.replace(scratchAddon, '<path>'),
-      repositoryGeneratorMessage.replace(ADDON_PATH, '<path>'),
+      templateOf(scratchPresentGeneratorMessage, scratchAddon),
+      templateOf(repositoryGeneratorMessage, ADDON_PATH),
       'the two arms render ONE string, with the path as the only variable',
+    );
+    // **THE TEMPLATE KEEPS ONE SLOT PER SUBJECT, IN THE ORDER THEY WERE TRIED, AND THE SLOTS ARE FILLED
+    // WITH THE GENERATOR'S OWN RENDERINGS.** The repository's own arm supplies the template with ONE slot
+    // (`'<path>' <clause>`); where this key tried TWO subjects the second slot is inserted as the generator's
+    // own rendering of it, at the join the implementation places BETWEEN the two renderings (`PUB-CF-7`'s
+    // undeclared join — the join is not pinned here, the SLOT COUNT and the byte-equality are), so the
+    // expectation is a rendering neither arm authored and the comparison above still has teeth.
+    assert.equal(
+      answer.message.includes(`'${scratchAddon}'`) || answer.message.includes(`'${triedSubjects[triedSubjects.length - 1]}'`),
+      true,
+      'the absent arm names a path this key actually tried',
+    );
+    // **AND THE SAME MESSAGE, BUILT FROM THE GENERATOR'S OWN RENDERINGS OF THE TRIED SUBJECTS** — one
+    // rendering per subject, each already carrying its own `'<subject>'` slot, joined between the renderings
+    // (`PUB-CF-7`'s undeclared join; the SLOT COUNT and the byte-equality are asserted, the join is not
+    // pinned). Where the message names ONE tried subject this reproduces the repository arm's own one-slot
+    // form; where it names TWO, the second slot is the generator's own rendering and NOT a string this set
+    // authored. **THE MESSAGE'S OWN `''<subject>''` DOUBLE QUOTING IS THE GENERATOR'S OWN: it wraps the
+    // subject it is handed in apostrophes, and this set therefore hands it the RENDERED slots the
+    // implementation hands it**, so the equality is held at one subject-set and one spelling of it.
+    const renderings = triedSubjects.map((s) => `'${s}'`);
+    const expectedScratchAbsentMessage = renderings.length === 1
+      ? addonPresent.errorMessage('FilePathUnreachable', renderings[0])
+      : addonPresent.errorMessage('FilePathUnreachable', renderings.join(', '));
+    assert.equal(
+      answer.message,
+      expectedScratchAbsentMessage,
+      'the absent arm renders ONE slot per tried subject, joined between the generator\'s own renderings (JS-3)',
+    );
+    assert.equal(
+      triedSubjects[triedSubjects.length - 1], scratchAddon,
+      'and the LAST tried subject is rung two\'s own module-relative path (`§1.1` item 2)',
     );
 
     console.log(
       'NG NG-JS-H strategy=absent-addon load state attempts=1 failures=0 verdict=HELD ' +
-        `(status=${answer.status}, two-arm byte equality asserted at one subject)`,
+        `(status=${answer.status}, two-arm byte equality asserted at ${triedSubjects.length} tried subject(s))`,
     );
   } finally {
     rmSync(scratch, { recursive: true, force: true });

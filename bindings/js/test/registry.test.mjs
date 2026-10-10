@@ -33,7 +33,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { storeCreate, read, write, delete as remove, listen, unlisten } from '@provident-storeroom/js';
+import { storeCreate, read, write, delete as remove, listen, unlisten } from 'provident-storeroom';
 
 function mem(listeners = []) {
   return storeCreate({ journalLength: 8, listeners });

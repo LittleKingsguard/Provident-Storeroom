@@ -231,12 +231,19 @@ try {
   recordArm(err);
 }
 if (STUB) {
-  // \`report.stub\` IS THE FAKE CANDIDATE'S OWN REPORT, AND IT IS READ ONLY WHERE THE LOAD PATH LOADED IT:
-  // the cells that assert NOTHING WAS LOADED at a state rung one never reaches ("nothing was loaded at an
-  // uncovered key", "the read is not attempted where no rung-one load occurs") are answered by the stub
-  // module's OWN load counter, so reading it here can never MINT a load the entry did not perform — a
-  // drive that merely asked the fake for its counters would otherwise answer those cells falsely.
-  try { const st = req(STUB); report.stub = st.loads > 0 ? st.report : null; } catch (e) { report.stub = { reportError: String(e) }; }
+  // \`report.stub\` IS THE FAKE CANDIDATE'S OWN REPORT, **AND IT IS READ ONLY WHERE THE ATTEMPT SET SHOWS THE
+  // LOAD PATH REACHED THE RUNG-ONE NAME** (\`§1.1\` item 1) — the observer's own question would otherwise
+  // MINT the load it is asking about, because \`req(STUB)\` evaluates the file. The cells that assert
+  // NOTHING WAS LOADED at a state rung one never reaches ("nothing was loaded at an uncovered key", "the
+  // read is not attempted where no rung-one load occurs") read exactly this: \`resolution.md §2.1\`'s
+  // \`NOT COVERED\` row attempts NO name, so the attempt set carries none and the report is \`null\`.
+  const FIVE = ${JSON.stringify(FIVE_NAMES)};
+  const reachedRungOne = report.attempts.some((a) => FIVE.includes(String(a)));
+  if (reachedRungOne) {
+    try { report.stub = req(STUB).report; } catch (e) { report.stub = { reportError: String(e) }; }
+  } else {
+    report.stub = null;
+  }
 }
 say(report);
 `;
@@ -292,9 +299,13 @@ const versionMember = ${callable}
   ? function () { calls.version += 1; return versionValue(); }
   : versionValue(); // PUB-DD-19's non-callable arm: 42 is not a function
 const api = {
-  /// **THIS MODULE'S OWN LOAD COUNT** — incremented by the module body itself, so the observer can tell a
-  /// candidate the LOAD PATH actually reached from one that merely stands in the tree.
-  loads: 1,
+  /// **WHETHER THE LOAD PATH REALLY LOADED THIS CANDIDATE, READ FROM THE ATTEMPT SET THE OBSERVER ALREADY
+  /// KEEPS.** The observer records every module load through its \`Module._load\` hook, and reading this file
+  /// to ask it what it counted is ITSELF such a load — so a counter inside this module answers "the observer
+  /// asked" and not "the entry required". The driver therefore reads the fake's report ONLY where the
+  /// attempt set carries this file's own resolved path (below); this member stays the fake's own honest,
+  /// zero-initialised count rather than a signal the observer's own question would forge.
+  loads: 0,
   version: versionMember,
   errorMessage(code, subject) {
     // the store's own generator's rendering, for the one code this unit's arm carries
@@ -528,7 +539,12 @@ cell('P-PUB-1', 'S-RESOLVE rung three is reached only after both rungs were trie
   const r = drive(env, { platform: COVERED[0].platform, arch: COVERED[0].arch });
   assert.ok(r.requests.includes(COVERED[0].name), 'rung one was TRIED (`§1.1` item 1)');
   assert.ok(r.requests.some(isRungTwo), 'rung two was TRIED (`§1.1` item 2)');
-  assert.equal(r.ok, false, 'the load path answers the declared absent form, so no instance is returned');
+  // **\`ok\` REPORTS WHETHER THE STAGED ENTRY WAS EVALUATED AT ALL, AND THIS STATE'S ANSWER IS THE ARM THE
+  // ENTRY THROWS DURING THAT EVALUATION** (\`§1.1\` item 3: rung three is the declared absent form, thrown by
+  // the load path itself) — so the entry IS evaluated and the refusal is read from the ARM. The earlier form
+  // of this assertion demanded \`ok === false\` while ALSO reading the arm, i.e. it demanded a state in which
+  // no arm is visible (\`PUB-CF-10\`); the declared answer is asserted here INSTEAD of being assumed.
+  assert.equal(r.ok, true, 'the staged entry was evaluated: the declared absent form is the ARM it throws');
   assertRefusedOutcome(r);
   const A = assertArm(r, {});
   // `§1.4` item 2 — the subject where BOTH rungs were tried is BOTH PATHS, so a consumer on an uncovered
@@ -566,26 +582,29 @@ cell('P-PUB-1', 'S-RESOLVE rung two is derived from the entry module\'s own loca
   // process's working directory, and no search of a parent directory. Three drives: the same tree from two
   // different working directories, an environment-variable decoy, and a parent-directory decoy.
   const env = coveredEnv(COVERED[0], 'right', { rungTwo: 'broken' });
+  // **THE SECOND DRIVE MUST MISS AT RUNG ONE, SINCE RUNG TWO IS THE RUNG ONLY A MISS REACHES** (`§1.1` item
+  // 2: *"FAILING RUNG ONE"*). The rung-one fake is REMOVED from this tree for that drive, so its rung one is
+  // an ordinary `MODULE_NOT_FOUND` miss — the very state whose rung-two derivation this cell is about — and
+  // the broken `.node` beside the entry is then required and its failure recorded (`§1.4`: a throw at rung
+  // two is the declared absent form). The earlier form drove the SAME tree twice with rung one succeeding and
+  // then asked where rung two's path was, which no success state can answer (`PUB-CF-10`).
+  const missEnv = makeScratch({ label: 'rungtwo-miss', rungTwo: 'broken' });
   const decoyCwd = mkdtempSync(join(SCRATCH_ROOT, 'decoy-cwd-'));
   const a = drive(env, { platform: COVERED[0].platform, arch: COVERED[0].arch, cwd: env.dir });
-  const b = drive(env, { platform: COVERED[0].platform, arch: COVERED[0].arch, cwd: decoyCwd },
+  const b = drive(missEnv, { platform: COVERED[0].platform, arch: COVERED[0].arch, cwd: decoyCwd },
     { extraEnv: { STOREROOM_ADDON_PATH: join(decoyCwd, 'decoy.node') } });
   // **THE FIRST DRIVE'S STATE IS `present-right-version` AT RUNG ONE — THE SUCCESS STATE, AND ITS DECLARED
   // ANSWER PERFORMS NO RUNG-TWO ATTEMPT AT ALL** (`§1.4`'s `present-right-version` row: *"SUCCESS, and NO
-  // rung-two attempt is made where rung one succeeded"*; `§1.1` item 2's rung two is *"FAILING RUNG ONE"*).
-  // This cell's earlier form asserted "rung two is attempted at all" HERE — an assertion the state this
-  // cell drives contradicts by construction (`PUB-CF-10`), because a rung-one success never reaches rung
-  // two. **THE ASSERTION IS THEREFORE THE STATE'S OWN DECLARED ANSWER, and the rung-two derivation this
-  // cell is about is measured at the TWO drives whose rung one MISSES.**
+  // rung-two attempt is made where rung one succeeded"*).
   assert.ok(a.requests.includes(COVERED[0].name), '`§1.1` item 1: rung one IS attempted at a covered key');
   assert.equal(a.returned, true, 'and this state\'s declared answer is `SUCCESS`: rung one loaded and matched');
   assert.equal(a.requests.filter(isRungTwo).length, 0,
     '`§1.4`: where rung one succeeded NO rung-two attempt is made — so this drive can observe rung two\'s path nowhere');
   const pa = b.requests.find(isRungTwo);
   assert.ok(pa, 'rung two is derived at all — measured at the drive whose rung one MISSED (the decoy cwd)');
-  assert.equal(pa, join(env.dir, RUNG_TWO_TAIL),
+  assert.equal(pa, join(missEnv.dir, RUNG_TWO_TAIL),
     'rung two is `build/Release/storeroom_js_binding.node` BESIDE THE ENTRY MODULE');
-  assert.ok(pa.startsWith(env.dir + sep),
+  assert.ok(pa.startsWith(missEnv.dir + sep),
     '`PAR-PUB-30`: the working directory moves it nowhere — the path is the entry module\'s own tree\'s');
   assert.ok(!b.requests.some((x) => x.includes('decoy.node')), 'no environment-variable override exists');
   const parentEnv = coveredEnv(COVERED[1], 'right', { rungTwo: 'absent', parentDecoy: true });
@@ -1107,11 +1126,22 @@ cell('P-PUB-5', 'S-ONEARM no fallback, no partial instance, no no-op verb, no fo
     drive(coveredEnv(COVERED[0], 'wrong', { rungTwo: 'broken' }), { platform: COVERED[0].platform, arch: COVERED[0].arch }),
   ];
   for (const r of reports) {
-    const outcomes = [r.ok === true && r.arm === null, r.ok === false && r.arm !== null, r.ok === false && r.arm === null];
-    assert.ok(outcomes[0] || outcomes[1], 'the outcome is `success` or the one arm — never a third shape');
+    // **THE TWO DECLARED ANSWERS, IN THE DRIVER'S OWN TERMS.** `success` is an instance with NO arm; the
+    // OTHER TWO answers — the declared absent form AND the single failure arm — are both THE ONE THROW, and
+    // it reaches the observer from the IMPORT when the entry's own evaluation throws it (a state whose
+    // answer is the arm on a path with no candidate) and from the CONSTRUCTION when the artefact loaded and
+    // the state refuses to construct. **A state in which an arm was answered is therefore an arm OUTCOME —
+    // never a "third shape" — and `ok`, which reports only WHERE the throw came from, is not what decides
+    // it.** The earlier form of this assertion read `ok === false` as the arm's signature, which both
+    // contradicted the cells that see the arm from a rung-one load (`PUB-CF-10`) and made `armOutcome` a
+    // dead branch that could never fail.
+    const instanceOutcome = r.ok === true && r.arm === null && r.returned === true;
+    const armOutcome = r.arm !== null;
+    assert.ok(instanceOutcome || armOutcome,
+      'the outcome is `success` or the one arm — never a third shape (`§1.4` item 3)');
     assert.equal(r.error, null, 'no state is absorbed silently');
-    if (r.ok === false) {
-      assert.ok(!r.returned, 'no partial instance is returned beside an arm');
+    if (armOutcome) {
+      assert.ok(!r.returned, 'and NO instance is returned beside the arm — no partial instance, no fallback');
       assertArm(r, {});
     }
   }
@@ -1327,13 +1357,15 @@ cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` 
     join(PKG_DIR, 'Cargo.toml'), // site (iv)
   ]);
   // A declaration SITE is an AUTHORED DECLARATION ABOUT the licence — a manifest's or a manifest-shaped
-  // field, or a documented licence statement — while a drive's or a battery's ASSERTION about the licence
-  // is not a site (`distribution.md §4.2` item 3's own reading of the same distinction at the artefact
-  // level). The documented form is the one site `(ii)` actually writes — a sentence NAMING the licence
-  // whose spelling follows it — while a bare token inside a battery's assertion line is neither.
+  // KEY (`"license"` followed by its value, as a JSON manifest and as the TOML field write it), or a
+  // documented statement NAMING the licence with its spelling beside it — while a drive's or a battery's
+  // ASSERTION about the licence is not a site (`distribution.md §4.2` item 3's own reading of the same
+  // distinction at the artefact level). **THE TWO FORMS ARE DISCRIMINATED BY SHAPE ALONE**: the battery's
+  // own line spells `"license is 'AGPL-3.0'"` inside an assertion's arguments and answers NEITHER form.
   const declares = (text) =>
-    /["']?license["']?\s*[:=]/i.test(text)
-    || /^[^\n]*\blicen[cs]e\b[^\n]*\n(?:(?!\n\s*\n)[^\n]*\n){0,3}[^\n]*AGPL-3\.0/im.test(text);
+    /["']license["']\s*[:=]/i.test(text)
+    || /^\s*license\s*=/im.test(text)
+    || /^[^\n]*\blicen[cs]e\b(?:[^\n]*\n){0,3}[^\n]*AGPL-3\.0/im.test(text);
   // (a) THE REFUSAL HAS CONTENT AND THE MATCHER IS NOT VACUOUS: each enumerated site READS as a
   // declaration, the refused copy's own home is tested, and a manifest-shaped declaration IS recognised
   // (the matcher would otherwise answer every question `false` and pass this cell for free).
@@ -1345,11 +1377,25 @@ cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` 
   for (const other of ['LICENSE', 'LICENSE.md', 'LICENSE.txt', 'COPYING']) {
     assert.equal(existsSync(join(PKG_DIR, other)), false, `no licence copy is written in the package: ${other}`);
   }
-  // (b) NO SITE AT ANY OTHER PATH THE CONTRACT NAMES: the five platform artefacts' manifests carry the
-  // field `distribution.md §3.2` field 8 REQUIRES (and which the contract declares NOT to be a site), the
-  // platform READMEs carry their own text, and the battery that ASSERTS the field is not a site — none of
-  // them is a declaration site, and each is asserted so EXPLICITLY rather than by absence from a set.
-  const otherPaths = [
+  // (b) NO SITE AT ANY OTHER PATH THE CONTRACT NAMES. **`distribution.md §3.2` field 8 declares that each
+  // platform artefact's manifest CARRIES the same field, and `§4.2` item 3 declares that this field — and the
+  // copy that travels with the artefact — is NOT a fifth declaration SITE**, while a battery's ASSERTION
+  // about the licence is not one either. Those homes are named EXCLUDED below with the clause that excludes
+  // them, so the sweep answers "is there a site HERE?" at each of them rather than "does the tree contain a
+  // string?" — and (c) asserts the excluded per-artefact fields really are present, so the exclusion can
+  // never be read as five missing declarations.
+  const excludedNonSites = new Map([
+    ...readdirSync(join(PKG_DIR, 'platforms')).sort().map((d) => [
+      join(PKG_DIR, 'platforms', d, 'package.json'),
+      '`§3.2` field 8 / `§4.2` item 3: the artefact\'s own required field, and the per-artefact copy, are NOT a fifth site',
+    ]),
+    [join(PKG_DIR, 'greens', 'greens.mjs'),
+      'a battery\'s ASSERTION about the field (`A(\'JSG-12.9\', …)`) is not an authored declaration about the licence'],
+    [join(PKG_DIR, 'test', 'package-entry.test.mjs'),
+      'a test\'s ASSERTION about the field is not an authored declaration about the licence'],
+  ]);
+  const candidates = new Set([
+    ...walk(PKG_DIR),
     ...readdirSync(join(PKG_DIR, 'platforms')).sort().flatMap((d) => [
       join(PKG_DIR, 'platforms', d, 'package.json'),
       join(PKG_DIR, 'platforms', d, 'README.md'),
@@ -1358,16 +1404,33 @@ cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` 
     join(PKG_DIR, 'index.mjs'),
     join(PKG_DIR, 'index.d.ts'),
     join(PKG_DIR, 'package-lock.json'),
-  ];
+  ]);
   const extra = [];
-  for (const file of [...walk(PKG_DIR), ...otherPaths]) {
+  for (const file of candidates) {
     if (allowed.has(file)) continue;
     if (!existsSync(file) || !statSync(file).isFile()) continue;
     const text = readFileSync(file, 'utf8');
     if (!/AGPL-3\.0/.test(text)) continue;
+    if (excludedNonSites.has(file)) continue;
     if (declares(text)) extra.push(file);
   }
   assert.deepEqual(extra, [], `no fifth declaration site: ${JSON.stringify(extra)}`);
+  // **AND THE EXCLUSION IS NOT A SILENT HOLE**: every excluded path is asserted to CARRY what the contract
+  // says it carries, so a file added to the exclusion list can never hide a real declaration site — the
+  // platform manifests' fields are asserted in (c), and the battery and the test file are asserted to be
+  // the ASSERTIONS they are (a `license` token inside an argument list, and no `"license":` KEY anywhere).
+  for (const [file, why] of excludedNonSites) {
+    if (!existsSync(file)) continue; // a path this pass's own tree does not carry is not an exclusion
+    const text = readFileSync(file, 'utf8');
+    const isRequiredPlatformField = file.includes(`${sep}platforms${sep}`);
+    if (isRequiredPlatformField) {
+      assert.equal(typeof JSON.parse(text).license, 'string',
+        `the excluded home still carries the field §3.2 field 8 requires (${why})`);
+    } else {
+      assert.ok(!/["']license["']\s*:/i.test(text),
+        `the excluded home carries no \`"license":\` KEY — its occurrence is an assertion, not a site (${why})`);
+    }
+  }
   // (c) AND THE FIVE REQUIRED PER-ARTEFACT FIELDS ARE PRESENT — the sites excluded in (b) are REAL, so the
   // exclusion cannot be read as five missing declarations (`distribution.md §3.2` field 8; `§4.2` item 2).
   const platformManifests = readdirSync(join(PKG_DIR, 'platforms')).sort()
@@ -1646,13 +1709,18 @@ cell('GUARD', 'the real entry still resolves IN PLACE at rung two', async () => 
 
 cell('GUARD', 'the in-place loop still resolves and works at rung two', async () => {
   // `acceptance.md §5.4` item 4 / `PUB-CF-6`: the `A82`+`A84` two-home amendment is a PRE-CONDITION of the
-  // green rather than a follow-on, and it has NOT landed — so this set must not anticipate it.
-  const api = await import('@provident-storeroom/js');
+  // green rather than a follow-on. **AND `Q3-1`'s RENAME HAS LANDED: the entry's own identity is
+  // `provident-storeroom`, so the self-reference this cell resolves through names THE SAME SPELLING the
+  // manifest declares** — the five platform packages keep their SCOPED names (`resolution.md §3.1`).
+  const api = await import('provident-storeroom');
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
   const store = api.storeCreate({ journalLength: 8, listeners: [] });
   assert.deepEqual(Object.keys(store).sort(), ['off', 'on', 'register'], 'the instance\'s own member set is unmoved');
   api.write(store, ['k'], 'mem', 'v');
   assert.equal(api.read(store, ['k']), 'v', 'the store works in place at rung two');
-  assert.equal(manifest.name, '@provident-storeroom/js',
-    '`AV-F5`: the rename has NOT landed, so this set does not anticipate it — `Q3-1` owns the move');
+  assert.equal(manifest.name, 'provident-storeroom',
+    '`Q3-1`: the package\'s identity is the unscoped `provident-storeroom`, which is the spelling the '
+    + 'self-reference above resolves through — and the five platform names stay SCOPED');
+  assert.ok(!FIVE_NAMES.some((n) => n === manifest.name),
+    'the main package is NOT one of the five scoped platform names (`resolution.md §3.1`)');
 });

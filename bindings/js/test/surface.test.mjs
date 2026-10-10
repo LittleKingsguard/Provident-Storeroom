@@ -31,7 +31,7 @@ import {
   rollback,
   listen,
   unlisten,
-} from '@provident-storeroom/js';
+} from 'provident-storeroom';
 
 const THE_FIFTEEN = [
   'AddressMalformed',

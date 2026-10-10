@@ -34,7 +34,7 @@ import {
   rollback,
   listen,
   unlisten,
-} from '@provident-storeroom/js';
+} from 'provident-storeroom';
 
 /// `crossing.md §1.5`'s relation, implemented by THIS LAYER (the clause: *"the relation is a property of the
 /// PACKAGE's own helper and of this unit's acceptance layer, NEVER of the store"*).

@@ -57,7 +57,7 @@ process.dlopen = function countingDlopen(...args) {
   return realDlopen.apply(this, args);
 };
 
-const api = await import('@provident-storeroom/js');
+const api = await import('provident-storeroom');
 const { storeCreate, read, write, delete: remove, rollback, listen, unlisten } = api;
 // A pinned seed and a SplitMix64 step — pure arithmetic, so every printed verdict is reproducible.
 const SEED = 0x5eed20261011n;

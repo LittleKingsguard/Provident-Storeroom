@@ -32,8 +32,10 @@ const require_ = createRequire(import.meta.url);
 
 // The package's own registry identity (`package.md §3.1` item 2, `DD-26`), reached as a SELF-REFERENCE
 // through its `exports` map — which is also `DD-24`'s drive: the map publishes exactly one arms-bearing
-// entry, the ESM one.
-const api = await import('@provident-storeroom/js');
+// entry, the ESM one. **THE IDENTITY IS `provident-storeroom` (`Q3-1`'s rename, landed): a self-reference
+// resolves ONLY through the name the package's own manifest declares**, and the five platform packages are
+// the SCOPED names (`resolution.md §3.1`).
+const api = await import('provident-storeroom');
 
 // ---------------------------------------------------------------------------------------------
 // `P-TP-7` `S-LOAD` / `S-ONE-ADDON` — the boot
