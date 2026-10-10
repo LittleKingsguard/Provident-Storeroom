@@ -1773,6 +1773,75 @@ the bounded correction pass of 2026-10-11)** · `§2.10` · `surface.md §3`–`
 (`[A1 docs/specs/storeroom-js-proposal.md §9.2 · A57 · A58; A3 docs/specs/storeroom-native/contract.md §6.5
 · §0.4's `ListenerHandle` clause | requirement]`)
 
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CALLER-SPELLED-DUPLICATE PASS (`role_spec_writer`), CLOSING THE
+IMPLEMENTER'S `CF-DUP-1` AT THIS ROW'S OWN `§` AND AT THE TWO OTHER CELLS THE SAME FIGURE REACHES: THE
+COLLAPSED ARRAY FIGURE THIS ROW PRINTS AGAINST THE RECONCILED RULE.** `RCA-8(d)` ANNOTATE-BESIDE: **every cell
+above stands byte-for-byte — both strategy lines' own printed words and the failure list's own line
+included — and is read THROUGH this clause; THIS clause is a PURE INSERTION, it adds NO ROW, moves NO COUNT and
+re-decides NO rule.** **THE FINDING, NAMED WITH ITS TERMS: the register's own rows still print the COLLAPSED
+array multiplicity for the very state `docs/specs/storeroom-js/surface.md §2.4`'s dated clause of 2026-10-11,
+rule 3's clause (i)–(ii), and this document's own `§2.4` dated clause declare CARRIED ELEMENT-FOR-ELEMENT** —
+**a lawful caller-spelled duplicate yields the SAME identity TWICE (`triggered.length === 2`) while the
+INVOCATION stays ONCE PER DISTINCT IDENTITY — so these rows read `BROKEN` against a build that is correct on
+this point** (`archive/gate3/storeroom-js-red-set.md §12.5` finding 3, which assigns exactly this amendment to
+this role).
+
+**THE TWO AS-FILED SENTENCES, NAMED AS FILED, RE-EMITTED VERBATIM SO `git diff` RECOVERS THEM WHERE THEY
+STAND:** the `S-REG` line reads ***"`S-REG` (the four rules, one drive each, reached through the declared
+registration site of `§2.4` item 5 — `register(handle, listener)` on the object `storeCreate` returned — and
+now drivable, because that site's spelling is declared)"***; the `S-REG-DUP` line reads ***"`S-REG-DUP` (two
+construction entries at one address with one caller-spelled token: `triggered` carries it once where the store
+minted it, and the registry fires once)"***. **THE SECOND SENTENCE IS THE REFUTED FIGURE: *"`triggered` carries
+it once"* is TRUE of CASE A ALONE — the store-MINTED case — and the line's OWN qualifier *"where the store
+minted it"* names that case, while the state the strategy id NAMES is the CALLER-SPELLED token of `§2.4` rule
+3's CASE B, where the store's own declaration governs the ARRAY and it carries that token TWICE.** **And the
+`S-REG` line's four rules include rule 3, so the SAME refuted figure reaches it: its duplicate drive is CASE B
+and its one figure is not the array's.**
+
+**THE OPERATIVE READING, AT THIS ROW, IN TWO INDEPENDENT OBSERVABLES — ONE CARRIER EACH:** **(i) THE ARRAY'S
+ELEMENT MULTIPLICITY IS THE STORE'S — `triggered` crosses as a fresh JS array of the handles the store's own
+list carries, ELEMENT FOR ELEMENT and NOT DEDUPLICATED AT THE BOUNDARY, so CASE B's duplicate token is carried
+TWICE (`triggered.length === 2`), each member the ONE identity that token names** (`§2.7` item 1;
+`crossing.md §1.3`'s returned-record rows; `docs/specs/storeroom-native/contract.md §0.2` · `DD-42` clause 3 and
+`DD-39`, with that contract's `§0.4` clause 2 (b); `write-and-read.md §6.5` item 12 (b)). **(ii) THE INVOCATION
+COUNT IS THE PACKAGE'S — ONE PER DISTINCT IDENTITY, so CASE B's duplicate token's one function runs ONCE, never
+one per element and never one per entry** (`§2.4` rules 1–3 and item 6 (b)–(e); `surface.md §2.4`'s dated clause
+(i)). **AND THE `S-REG-DUP` LINE'S OWN TWO FIGURES ARE THE TWO OBSERVABLES: *"the registry fires once"* is the
+INVOCATION half and it STANDS; the array half is (i) and it is `TWICE`.** **NO ORDER IS ASSERTED BY EITHER
+FIGURE** (`§2.7` item 3; `DD-22`).
+
+**THE TWO FAILURE LISTS, AS THEY NOW READ AT THIS ROW — THE AS-FILED ENTRIES RE-EMITTED WHOLE FROM THE LINES
+ABOVE AND THE ENTRIES THIS AMENDMENT ADDS PRINTED BESIDE THEM, because a register row is FAILABLE only where
+its own failure list names the observable that fails it:** the as-filed list STANDS UNMOVED AND UNCUT — *"an
+unregistered handle that throws, logs or warns; a fan-out registration; a duplicate token that fires twice per
+distinct handle; an `unlisten` that unregisters the function; a returned handle whose token JS can read; an
+`unlisten` that accepts a bare `string` as a known handle; a re-`listen` that re-uses a withdrawn handle"* —
+**and the COLLAPSED-ARRAY half of this state now fails by these FIVE ADDED entries: A COLLAPSED ARRAY —
+`triggered` carrying a caller-spelled duplicate's token ONCE where the store's own list carries it TWICE; A
+SIZE-ONLY COMPARISON — a drive that reads the array's length, or its distinct-member count, AS the invocation
+count, or that satisfies one observable by asserting the other; AN INVOCATION PER ELEMENT — the duplicate
+token's one function running TWICE for two occurrences of one identity; a drive that asserts the array's
+ORDER; and a drive that asserts the `S-REG` duplicate arm's multiplicity from the ARRAY's own length instead
+of asserting BOTH figures beside each other.** **SO THE ROW REMAINS FAILABLE FROM EITHER SIDE: change the
+ARRAY's multiplicity and the collapsed-array entry fails; change the INVOCATION's multiplicity and *"a
+duplicate token that fires twice per distinct handle"* fails.**
+
+**AND WHAT DOES NOT MOVE HERE:** **the register stands at its `8` rows with the cap holding at `8 ≤ 8`, NO
+NINTH ROW IS MINTED, NO strategy id is added, dropped, renamed or re-spelled, and `§5.0`'s census and its
+dual-mapping disclosure stand as printed** — **`S-REG`'s drivability (it IS drivable, `§2.4` item 5 having
+declared the site's spelling) is UNMOVED, and only its duplicate drive's ARRAY figure is read through this
+clause.** **The state this row declares is the build's to reach: `bindings/js/index.mjs`'s `wrapHandles`
+collapses the duplicate at the boundary today, which is the priced alternative named at `surface.md §2.4`'s
+dated clause and NOT this row's; the register's figure is the DECLARED one and is not adjusted to a build.**
+**AND THE `derivation:` CLAUSE STAYS SINGLE: this clause carries an authority tag and no `derivation:`
+clause** (`§0.1` item 2; `surface.md §2.4`'s dated clause of 2026-10-11 — the operative statement; this
+document's own `§2.4` dated clause; `docs/specs/storeroom-js/parameter-semantics.md §2.15`'s dated clause;
+`docs/specs/storeroom-js/test-cases.md`'s multiplicity row; `archive/gate3/storeroom-js-red-set.md §12.1`–`§12.2`
+and its `§12.5` finding 3)
+(`[A1 docs/specs/storeroom-js/contract.md §2.4 rule 3 and its dated clause — this row's own governing reading;
+A3 docs/specs/storeroom-native/contract.md §0.2 · `DD-42` and `DD-39`; A3
+docs/specs/storeroom-js/surface.md §2.4's dated clause of 2026-10-11 | requirement]`).
+
 **⟶ RE-DERIVED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), CLOSING GATE 4'S OVER-STRONG
 FINDING AT THIS ROW: THE `S-WITHDRAW` STRATEGY CELL'S PRINTED SUBJECT.** `RCA-8(d)` ANNOTATE-BESIDE: **every
 cell above stands byte-for-byte — including the `S-WITHDRAW` line's own printed words and the failure list's
@@ -1868,6 +1937,61 @@ qualifier suppresses (or extends) its own trigger.
 **The clauses it cites.** `§2.3` · `§2.7` · `surface.md §3` · `surface.md §7` · `surface.md §10`.
 (`[A3 docs/specs/storeroom-native/contract.md §6.5 · §5.8 · P-TP-8 — the store's own member-set rule |
 requirement]`)
+
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CALLER-SPELLED-DUPLICATE PASS (`role_spec_writer`), CLOSING THE
+IMPLEMENTER'S `CF-DUP-1` AT THIS ROW'S `S-SET` CELL: THE SIZE-ONLY PHRASING THAT READ ONE FIGURE WHERE THE
+RECONCILED RULE SPLITS TWO.** `RCA-8(d)` ANNOTATE-BESIDE: **every cell above stands byte-for-byte — the
+failure list's own line included — and is read THROUGH this clause; THIS clause is a PURE INSERTION, it adds
+NO ROW, moves NO COUNT and re-decides NO rule.** **THE FINDING, NAMED WITH ITS TERMS: the `S-SET` cell reads
+*"set equality, never a sequence; a registration's order is unobservable"*, and that phrasing is read by a
+drive as a SIZE-ONLY comparison of the `triggered` set — while `docs/specs/storeroom-js/surface.md §2.4`'s dated
+clause of 2026-10-11 splits the very state this row's subject carries into TWO figure classes: THE ARRAY'S
+ELEMENT MULTIPLICITY (THE STORE'S, carried ELEMENT FOR ELEMENT, so a lawful caller-spelled duplicate's token
+crosses TWICE and `triggered.length === 2`) and THE INVOCATION COUNT (THE PACKAGE'S, ONE PER DISTINCT
+IDENTITY).**
+
+**THE `S-SET` CELL, AS FILED, NAMED AS FILED AND RE-EMITTED VERBATIM SO `git diff` RECOVERS IT WHERE IT
+STANDS:** ***"`S-SET` (set equality, never a sequence; a registration's order is unobservable)"***. **THE
+OPERATIVE READING OF ITS TWO HALVES: (1) THE MEMBERSHIP COMPARISON IS MEMBER BY MEMBER, IN BOTH DIRECTIONS,
+AND NEVER BY SIZE — two enumerations of equal length with different members MUST fail, and a drive may NOT
+conclude equality from a length, from a distinct-member count or from a `Set`'s size alone; AND (2) THE TWO
+FIGURE CLASSES ARE CARRIED BESIDE EACH OTHER AND NOT COLLAPSED INTO ONE — the array's OWN LENGTH (the store's
+multiplicity: `2` for a lawful caller-spelled duplicate) and the DISTINCT-IDENTITY COUNT (the package's
+invocation count: `1` for that same state) are asserted TOGETHER, each as its own observable, and neither is
+read as the other.** **AND THIS ROW'S PROPERTY'S OWN SENTENCE IS UNMOVED: *"the triggered set is a SET whose
+ORDER IS UNOBSERVABLE AND NEVER ASSERTED"* — no order is asserted by either figure** (`§2.7` item 3;
+`DD-22`; `surface.md §2.4`'s dated clause, clauses (i)–(ii); `parameter-semantics.md §2.15`'s dated clause).
+
+**THE FAILURE LIST, AS IT NOW READS AT THIS ROW — the as-filed entries re-emitted whole from the line above,
+with the entries this amendment adds printed beside them:** the as-filed list STANDS UNMOVED AND UNCUT —
+*"a handle returned for a listener that did not trigger; a handle omitted for one that did; a duplicate member
+where the store minted the token; a foreign or fabricated handle that removes an existing registration; a
+drive that asserts a sequence; an invocation before the verb returns; a `try`/`catch` around a listener body;
+a rollback triggered by a listener's throw; a listener whose tier qualifier suppresses (or extends) its own
+trigger"* — **and the size-only comparison now fails by these FOUR ADDED entries: A SIZE-ONLY COMPARISON —
+a membership equality concluded from a LENGTH, a distinct-member count or a `Set`'s size alone, where two
+different sets of equal size then pass; A COLLAPSED ARRAY — a drive that accepts `triggered.length === 1` for
+a lawful caller-spelled duplicate whose store-side list carries the token TWICE, or that reads the boundary's
+COLLAPSE as this row's declared reading; AN INVOCATION PER ELEMENT — an invocation count derived from the
+array's length rather than from the DISTINCT identities, so the duplicate token's one function runs TWICE; and
+a drive that collapses the TWO figure classes into ONE asserted number.** **NOTHING ELSE OF THE ROW MOVES:
+the as-filed entry *"a duplicate member where the store minted the token"* STAYS FALSE of every lawful state,
+because the mint's own non-collision rule runs before the token is handed out, so a MINTED token is never held
+by two minted entries** (`§2.4` rule 3's CASE A; `DD-42` clause 1).
+
+**AND WHAT DOES NOT MOVE HERE:** **the register stands at its `8` rows with the cap holding at `8 ≤ 8`, NO
+NINTH ROW IS MINTED, no strategy id is added, dropped or renamed, and `S-TRIGGER` · `S-NOOP` ·
+`S-FIRE-WINDOW` stand exactly as printed** — **the `S-FIRE-WINDOW` line's INVOCATION sub-half stays the
+PACKAGE's rule and is UNMOVED by this clause, and its window, order and throwing-body halves are unchanged.**
+**The state this row declares is the build's to reach: `bindings/js/index.mjs`'s `wrapHandles` collapses the
+duplicate at the boundary today — the priced alternative named at `surface.md §2.4`'s dated clause — and the
+register's figures are the DECLARED ones and are not adjusted to a build.** **AND THE `derivation:` CLAUSE STAYS
+SINGLE: this clause is an insertion and carries no `derivation:` clause**
+(`archive/gate3/storeroom-js-red-set.md §12.5` finding 3; `surface.md §2.4`'s dated clause of 2026-10-11)
+(`[A1 docs/specs/storeroom-js/contract.md §2.4 rule 3's CASE B — the array's multiplicity is the store's; A3
+docs/specs/storeroom-js/parameter-semantics.md §2.15's dated clause; A3
+docs/specs/storeroom-native/contract.md §5.8 — the store's own member-set rule, read with `DD-42` and `DD-39` |
+state or fail-state declaration]`).
 
 ---
 

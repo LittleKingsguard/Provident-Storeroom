@@ -962,19 +962,55 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     }
     if (argument === probeId) return "the invocation's argument IS the id, and the model separates the two data";
 
-    // (2) TWO CONSTRUCTION ENTRIES CARRYING ONE TOKEN: one id, one invocation — never a fan-out.
+    // (2) TWO CONSTRUCTION ENTRIES CARRYING ONE TOKEN: ONE identity, ONE invocation — never a fan-out —
+    // **AND THE ARRAY CARRYING THAT IDENTITY TWICE, BECAUSE ITS MULTIPLICITY IS THE STORE'S.** `§2.4` rule
+    // 3's dated clause of 2026-10-11 (its twin at `contract.md §2.4`) splits the rule's one sentence into
+    // (i) the INVOCATION COUNT, the PACKAGE's, ONE per DISTINCT identity — *"so in CASE B the duplicate
+    // token's ONE function runs ONCE"* — and (ii) the ARRAY'S ELEMENT MULTIPLICITY, the STORE's —
+    // *"`triggered` crosses as a fresh JS array of the handles the store's own list carries … so in CASE B
+    // THE JS-OBSERVABLE `triggered` CARRIES THE TOKEN TWICE"* (`DD-42`'s clause 3 · `DD-39` ·
+    // `write-and-read.md §6.5` item 12 (b) · `PAR-JS-15` · `crossing.md §1.3`).
+    // **AND THE AS-FILED FORM OF THIS BLOCK IS RE-EMITTED HERE, BESIDE THE READING THAT REPLACES IT —
+    // VERBATIM:** *"(2) TWO CONSTRUCTION ENTRIES CARRYING ONE TOKEN: one id, one invocation — never a
+    // fan-out."* — with the assertion `if (dupRecord.triggered.length !== 1) { return \`a lawful duplicate
+    // token: triggered carried ${dupRecord.triggered.length}, not 1\`; }`. **THE INVOCATION HALF OF THAT
+    // COMMENT IS RIGHT AND IS KEPT LIVE BELOW, UNMOVED; THE ARRAY FIGURE `1` IS THE ONE THE RECONCILED
+    // CLAUSE REFUTES.**
     const duplicate = mem([
       { address: ['d'], handle: 't' },
       { address: ['d'], handle: 't' },
     ]);
     const dupRecord = write(duplicate, ['d'], 'mem', 1);
-    if (dupRecord.triggered.length !== 1) {
-      return `a lawful duplicate token: triggered carried ${dupRecord.triggered.length}, not 1`;
+    if (dupRecord.triggered.length !== 2) {
+      return `a lawful duplicate token: triggered carried ${dupRecord.triggered.length}, not 2`;
     }
+    // **MEMBER BY MEMBER, NEVER BY SIZE** (`A77`): the two members are the SAME identity, each carrying the
+    // caller's own token — so a boundary that collapsed the duplicate breaks HERE, and one that minted a
+    // second identity breaks on the identity count.
+    if (dupRecord.triggered[0] !== dupRecord.triggered[1]) {
+      return 'the lawful duplicate did not cross as ONE identity carried twice, member by member';
+    }
+    if (new Set(dupRecord.triggered).size !== 1) {
+      return 'the two members of the lawful duplicate are not ONE distinct identity';
+    }
+    // ...AND THE INVOCATION HALF, UNMOVED — a call counter on the function, one per DISTINCT id, with the
+    // invocation's OWN view read at the call: `argc === 1` and the ONE argument the TRIGGERING ADDRESS.
+    // **AND THE AS-FILED REGISTRATION LINE IS RE-EMITTED HERE, BYTE FOR BYTE, BESIDE THE FORM THAT CARRIES
+    // IT NOW:** `duplicate.register(dupRecord.triggered[0], () => { dupFired += 1; });` — now
+    // `duplicate.register(dupRecord.triggered[0], (...args) => { dupFired += 1; dupArgs = args; });`, the
+    // SAME registration with the invocation's own view read at the call. **THE AS-FILED COUNTER ASSERTION
+    // BELOW STANDS VERBATIM AND UNMOVED.**
     let dupFired = 0;
-    duplicate.register(dupRecord.triggered[0], () => { dupFired += 1; });
+    let dupArgs = null;
+    duplicate.register(dupRecord.triggered[0], (...args) => { dupFired += 1; dupArgs = args; });
     write(duplicate, ['d'], 'mem', 2);
     if (dupFired !== 1) return `once per DISTINCT id: the function fired ${dupFired} times, not 1`;
+    if (dupArgs === null || dupArgs.length !== 1) {
+      return "the invocation's view is not EXACTLY ONE argument";
+    }
+    if (JSON.stringify(dupArgs[0]) !== JSON.stringify(['d'])) {
+      return `the invocation's ONE argument is not the TRIGGERING address: ${JSON.stringify(dupArgs[0])}`;
+    }
 
     // (3) **THE DELETE'S FIRING SET IS THE PREFIX SET — AND THE TEST IS DIRECTIONAL.** `§6.5` item 10 (d)
     // (iii): a listener bound at address `W` is triggered by a successful `write` or `delete` at address `X`
@@ -1131,11 +1167,30 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
       return 'the control trigger did not fire the registration, so the silence was not the arm being measured';
     }
 
-    // (6) THE MEMBER-BY-MEMBER SET COMPARISON A SIZE-ONLY ONE COULD NOT MAKE, at a set whose SIZE is known:
+    // (6) THE MEMBER-BY-MEMBER SET COMPARISON A SIZE-ONLY ONE COULD NOT MAKE, at a set whose MEMBERSHIP is
+    // known: two construction entries at ONE address carrying ONE caller-spelled token plus a THIRD entry
+    // carrying a different one — so the declared SET has EXACTLY TWO distinct ids (`§2.4` rule 3), and two
+    // enumerations of it are compared as SETS, member by member. A size-only comparison passes for two
+    // DIFFERENT sets, and a census-only one passes for a package that lost the duplicate rule as long as the
+    // count matches.
+    //
+    // **⟶ AND THE ARRAY'S FIGURE IS RE-DERIVED 2026-10-11 TO THE RECONCILED READING OF `§2.4` RULE 3 (its
+    // dated clause, the twin at `contract.md §2.4`): THE ARRAY'S ELEMENT MULTIPLICITY IS THE STORE'S AND IS
+    // CARRIED OUT ELEMENT FOR ELEMENT — THREE entries here, THREE members — WHILE THE INVOCATION COUNT IS
+    // THE PACKAGE'S, ONE PER DISTINCT IDENTITY, so those three members (two identities) yield TWO
+    // invocations** (`DD-42`'s clause 3 · `DD-39` · `write-and-read.md §6.5` item 12 (b) · `PAR-JS-15` ·
+    // `crossing.md §1.3`).
+    // **THE AS-FILED FORM IS RE-EMITTED HERE, BESIDE THE READING THAT REPLACES IT — VERBATIM:** *"(6) THE
+    // MEMBER-BY-MEMBER SET COMPARISON A SIZE-ONLY ONE COULD NOT MAKE, at a set whose SIZE is known:
     // two construction entries at ONE address carrying ONE caller-spelled token plus a THIRD entry carrying a
     // different one — so the declared set has EXACTLY TWO distinct ids (`§2.4` rule 3), and two enumerations
     // of it are compared as SETS, member by member. A size-only comparison passes for two DIFFERENT sets, and
-    // a census-only one passes for a package that lost the duplicate rule as long as the count matches.
+    // a census-only one passes for a package that lost the duplicate rule as long as the count matches."* — **with the assertion `if
+    // (one.triggered.length !== 2 || two.triggered.length !== 2) { return \`the declared set has EXACTLY two
+    // distinct ids (one token carried by two entries, one by a third), got ${one.triggered.length} and
+    // ${two.triggered.length}\`; }`. THE SET'S MEMBERSHIP IS UNMOVED AND IS STILL WHAT THE COMPARISON BELOW
+    // ASSERTS; THE ARRAY'S MULTIPLICITY MOVED FROM `2` TO `3`, AND IT IS NOW READ OFF THE ARRAY MEMBER BY
+    // MEMBER RATHER THAN COMPARED TO A COUNT.**
     const sets = mem([
       { address: ['set'], handle: 'p' },
       { address: ['set'], handle: 'p' },
@@ -1143,16 +1198,37 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     ]);
     const one = write(sets, ['set'], 'mem', 1);
     const two = write(sets, ['set'], 'mem', 2);
-    if (one.triggered.length !== 2 || two.triggered.length !== 2) {
+    if (one.triggered.length !== 3 || two.triggered.length !== 3) {
       return (
-        `the declared set has EXACTLY two distinct ids (one token carried by two entries, one by a third), got ` +
-        `${one.triggered.length} and ${two.triggered.length}`
+        `the declared set has TWO distinct ids and its array carries THREE members ` +
+        `(one token carried by two entries, one by a third), got ${one.triggered.length} and ${two.triggered.length}`
       );
     }
     const onlyInOne = one.triggered.filter((id) => !two.triggered.includes(id));
     const onlyInTwo = two.triggered.filter((id) => !one.triggered.includes(id));
     if (onlyInOne.length !== 0 || onlyInTwo.length !== 0) {
       return `the two enumerations are not the same SET: only in one ${onlyInOne.length}, only in two ${onlyInTwo.length}`;
+    }
+    // **AND THE MULTIPLICITY IS READ OFF THE ARRAY ITSELF, ONE MEMBER AT A TIME, WITH NO ORDER ASSERTED**
+    // (`§2.7` item 3; `A77`): the occurrence count is kept per identity (`===`) and the multiset the array
+    // yields must be `{2, 1}` — ONE identity carrying TWO of the three members and ONE carrying a single one.
+    // A boundary that collapsed the duplicate yields `{1, 1}` and breaks on the third member; one that
+    // invented a third identity breaks on the count of identities. **THIS IS THE MEMBER LOOP, AND IT IS NOT
+    // A `new Set(...).size` COMPARISON.**
+    const occurrences = []; // one `[identity, occurrences]` pair per DISTINCT identity, in first-seen order
+    for (const id of one.triggered) {
+      const seen = occurrences.find((pair) => pair[0] === id);
+      if (seen) seen[1] += 1;
+      else occurrences.push([id, 1]);
+    }
+    if (occurrences.length !== 2) {
+      return `the members carry ${occurrences.length} distinct identities, not the declared two`;
+    }
+    if (occurrences.filter(([, n]) => n === 2).length !== 1) {
+      return 'not exactly ONE identity is carried TWICE, so the lawful duplicate did not cross';
+    }
+    if (occurrences.filter(([, n]) => n === 1).length !== 1) {
+      return 'not exactly ONE identity is carried ONCE beside the duplicated one';
     }
     let distinctFired = 0;
     for (const id of one.triggered) sets.register(id, () => { distinctFired += 1; });

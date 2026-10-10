@@ -590,6 +590,43 @@ every arm and NO ARM IS LEFT TO DISCOVERY:**
 `[A1 docs/specs/storeroom-js-proposal.md §8 · A63; A3 docs/specs/storeroom-native/contract.md §6.2 · §0.4 |
 declared parameter semantics]`
 
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CALLER-SPELLED-DUPLICATE PASS (`role_spec_writer`), CLOSING THE SECOND
+PRICED RESIDUAL THE PREVIOUS PASS NAMED: THE STALE *"PER INSTANCE AND PER SESSION"* UNIQUENESS SPELLING THIS
+ROW'S OWN AUTHORITY TAG REACHES.** `RCA-8(d)` ANNOTATE-BESIDE: **every cell above stands byte-for-byte — its
+`park` cell's `DD-22` pointer included — and is read THROUGH this clause; THIS clause is a PURE INSERTION, it
+adds NO ROW to `§1`'s `18`, moves no `§`-number, and NO byte of the store's directory
+`docs/specs/storeroom-native/**` is written by it — the correction lands HERE, in the citing row, and never
+there** (`docs/specs/storeroom-js/contract.md §8`; `A1` `A68`).
+
+**THE STALE SPELLING, NAMED WITH ITS SITE AND ITS TERMS AS THE PREVIOUS PASS FILED IT:** ***"`PAR-13`'s
+`domain` cell still prints 'unique PER STORE INSTANCE and PER SESSION'"*** — that cell is
+`docs/specs/storeroom-native/parameter-semantics.md` `§2.13` · **`PAR-13`**, the store's own row for the
+`handle`, and it is the row THIS row's authority tag cites; **the store's own `docs/specs/storeroom-native/contract.md §0.4`
+clause 2's dated reconciliation carries the OPERATIVE reading — a store-minted handle is UNIQUE PER PROCESS —
+and that contract's `§2.13` cell stands as filed in its directory, which is NOT this unit's to amend**
+(`docs/specs/storeroom-js/backup/GATE5-DOC-2026-10-11-manifest.md` `§6`, its residual clause; `A1`
+`docs/specs/storeroom-js-proposal.md §13` · `A69` — *"Proceed on b"*; `A3`
+`docs/specs/storeroom-native/contract.md §0.4` clause 2's dated clause).
+
+**THE OPERATIVE READING, AND IT IS THIS UNIT'S OWN ROW'S READING BECAUSE THE TOKEN'S SCOPE IS THE WHOLE OF
+WHAT `PAR-JS-13`'s `opId` AND EVERY HANDLE-SHAPED VALUE IN THIS DIRECTORY IS SCOPED BY:** **an `opId` is a
+`string` the instance's own journal holds, and its uniqueness is satisfied by the SAME PROCESS-GLOBAL MINT
+that mints handles — so the spelling this directory RELIES ON is *"UNIQUE PER PROCESS"*, which the store's
+dated clause carries, and NEVER *"per instance and per session"*, which is the store's as-filed cell read
+ALONE.** **This row's own cells move NOTHING by it: its `domain` cell's reach half — *"a non-empty `string` the
+store's journal holds — in practice the `WriteResult.op.opId` the store returned"* — and its outside value *"a
+well-shaped string the journal does not hold"* with its declared answer `JournalOpUnknown` STAY EVERY
+`JournalOpUnknown` reachable only through THIS instance's own lookup** (`docs/specs/storeroom-js/contract.md
+§2.3` items 1 and 4; `surface.md §2.3` item 1, whose token domain is the PROCESS).
+
+**AND THE TWO HOMES' TERMS, STATED SO THE CITATION RESOLVES FROM EITHER SIDE:** **the store-side cell's own
+as-filed bytes stand in the store's directory and are re-spelled by NO pass of this unit; the OPERATIVE
+statement of that cell is the store's own dated clause at its `§0.4` clause 2, and THIS directory's rows cite
+the operative statement and the as-filed cell TOGETHER, naming which is which — which is what this clause
+does** (`[A3 docs/specs/storeroom-native/contract.md §0.4` clause 2's dated clause — the operative scope; A1
+docs/specs/storeroom-js/contract.md §2.3 item 1 — this unit's own process-scoped token domain |
+cross-reference]`).
+
 ### §2.14 `PAR-JS-14` — the returned `watched`, the watched addresses
 
 | Cell | Its value |
@@ -650,6 +687,59 @@ own dated clause; the two data travel in different places and a drive must not r
 (`docs/specs/storeroom-js/surface.md §2.4` item 6 (d); `docs/specs/storeroom-js/surface.md §2.7` item 5)
 (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A77`; A3 docs/specs/storeroom-js/parameter-semantics.md §2.12
 | declared parameter semantics]`).
+
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CALLER-SPELLED-DUPLICATE PASS (`role_spec_writer`), CLOSING THE
+IMPLEMENTER'S `CF-DUP-1` AND THE PRICED RESIDUAL THE PREVIOUS PASS NAMED AT THIS ROW: THIS ROW'S `unit`, ITS
+`domain` AND ITS OUTSIDE-VALUE LIST READ AS A COUNT, NEVER AS AN ARRAY DEDUPLICATION.** `RCA-8(d)`
+ANNOTATE-BESIDE: **every cell above stands byte-for-byte and is read THROUGH this clause — the earlier dated
+clause beneath this row included; THIS clause is a PURE INSERTION, it adds NO ROW to `§1`'s `18`, moves no
+`§`-number and re-decides no rule of this directory.**
+
+**THE THREE AS-FILED CELLS, NAMED AS FILED AND RE-EMITTED VERBATIM SO `git diff` RECOVERS THEM WHERE THEY
+STAND:** the `unit` cell reads ***"`count` — a count of DISTINCT handles"***; the `domain` cell reads ***"a
+fresh JS ARRAY of the package's OPAQUE handles, one per distinct handle the store returned. The empty array is
+IN the domain and means no listener triggered"***; and the outside-value list carries ***"a duplicated
+member"***.
+
+**THE RECONCILIATION, ONE LINE PER CELL, BECAUSE TWO COUNTS TRAVEL IN ONE MEMBER AND THE TWO ARE NOT THE SAME
+COUNTER** (`docs/specs/storeroom-js/surface.md §2.4`'s dated clause of 2026-10-11, clauses (i)–(ii), and its
+twin at `docs/specs/storeroom-js/contract.md §2.4`; `docs/specs/storeroom-js/contract.md §5.5`'s and `§5.8`'s
+dated clauses of the same date):
+
+- **THE `unit` CELL.** **The figure is the INVOCATION COUNT — ONE PER DISTINCT IDENTITY — and it is the
+  PACKAGE's own rule; it is TRUE of that count and FALSE read as a size the ARRAY must have.** **The ARRAY's
+  own length is the STORE's multiplicity, carried ELEMENT FOR ELEMENT and not deduplicated at the boundary, so
+  a lawful caller-spelled duplicate's one identity crosses TWICE while the invocation count stays `1`.** **The
+  operative reading of the cell is therefore: *"`count` — a count of DISTINCT handles, AND IT IS THE INVOCATION
+  COUNT; the array's own length is NOT this count."***
+- **THE `domain` CELL.** ***"One per distinct handle the store returned"* is the DISTINCT-IDENTITY count and
+  NEVER a promise that the array carries each identity ONCE.*** **The operative reading is: *"a fresh JS ARRAY
+  of the package's OPAQUE handles whose MULTIPLICITY IS THE STORE'S — the handle the store's own list carries
+  appears as many times as that list carries it, ELEMENT FOR ELEMENT — while the DISTINCT identities it holds
+  number one per distinct handle the store returned; `[]` is IN the domain and means no listener
+  triggered."*** **A caller may compare the array MEMBER BY MEMBER and count its DISTINCT identities; neither
+  figure is read as the other and NO ORDER IS ASSERTED.**
+- **THE OUTSIDE-VALUE LIST'S *"a duplicated member"*.** **IT STAYS AN OUTSIDE VALUE, AND THE REASON IS STATED SO
+  THE ENTRY IS NOT READ AS A DEDUPLICATION RULE: a duplicated member is nothing this row's DECLARED READING
+  produces, because the row declares no deduplication at all; it is precisely the member the PRICED ALTERNATIVE
+  of collapsing the boundary — the alternative the same dated clause prices — would introduce.** **The entry
+  is therefore READ AS: *"a duplicated member ARISING FROM A BOUNDARY-SIDE COLLAPSE, which this row does not
+  declare"*, never as *"duplicated members are refused."*** **And the store's own contract declares that same
+  member for the caller-spelled duplicate, so a reader who meets this entry after those clauses reads it
+  through this one** (`docs/specs/storeroom-native/contract.md §0.2` · `DD-42` clause 3 and `DD-39`).
+
+**AND WHAT DOES NOT MOVE HERE:** **the `parameter` · `kind` · `supplier` · `evaluator` · `observable` · the
+clause-that-declares-it · the ruling-that-pins-it · the `alt` and the `park` cells stand exactly as printed;
+NO row is re-spelled, added or renumbered, and this part's `§1` arithmetic stays `15 + 1 + 1 + 1 = 18` ✓.**
+**This clause writes no byte of `docs/specs/storeroom-js/test-cases.md`, of the red set, of any runner or of
+any build: the RED-SET AUTHOR re-derives `NG-JS-G`'s figures in parallel and the register's rows are the
+CONTRACT's, named and not edited here.** **AND THE `derivation:` CLAUSE STAYS SINGLE: this clause carries an
+authority tag and no `derivation:` clause** (`archive/gate3/storeroom-js-red-set.md` `§12.5` finding 3;
+`docs/specs/storeroom-js/backup/GATE5-DOC-2026-10-11-manifest.md` `§5` item 3, whose named repair this clause
+takes)
+(`[A1 docs/specs/storeroom-js/contract.md §2.4 rule 3's CASE B — the array's multiplicity is the store's and
+the invocation count is the package's; A3 docs/specs/storeroom-js/surface.md §2.4's dated clause of 2026-10-11
+— the operative statement this row is read through | declared parameter semantics]`).
 
 ### §2.16 `PAR-JS-16` — the returned `tiers` on the delete receipt
 

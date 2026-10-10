@@ -303,18 +303,49 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
   const silent = mem([{ address: ['s'], handle: 'l-silent' }]);
   write(silent, ['s'], 'mem', 1); // no registration: no code, no warning, no log, and no throw
 
-  // --- rule 3: one invocation per DISTINCT handle, never a fan-out — and two CONSTRUCTION entries at one
-  //     address carrying ONE token are the store's own lawful duplicate (`triggered` carries it once).
+  // --- rule 3, READ THROUGH `§2.4`'s DATED CLAUSE OF 2026-10-11 (its twin at `contract.md §2.4`), WHICH
+  //     SPLITS THE ONE SENTENCE INTO TWO INDEPENDENT OBSERVABLES: **(i) THE INVOCATION COUNT IS THE
+  //     PACKAGE'S — ONE per DISTINCT identity** (*"so in CASE B the duplicate token's ONE function runs
+  //     ONCE"*), **and (ii) THE ARRAY'S ELEMENT MULTIPLICITY IS THE STORE'S** — *"`triggered` crosses as a
+  //     fresh JS array of the handles the store's own list carries … so in CASE B THE JS-OBSERVABLE
+  //     `triggered` CARRIES THE TOKEN TWICE"*. Two CONSTRUCTION entries at one address carrying ONE token
+  //     are therefore the store's own lawful duplicate AND ARE BOTH CARRIED (`DD-42`'s clause 3 ·
+  //     `DD-39` · `write-and-read.md §6.5` item 12 (b) · `PAR-JS-15` · `crossing.md §1.3`) — while the
+  //     registry still fires that ONE identity ONCE, never once per occurrence and never once per entry.
+  //
+  //     **AND THE AS-FILED FORM IS RE-EMITTED HERE, BESIDE THE READING THAT REPLACES IT, BECAUSE THE
+  //     AS-FILED COMMENT JUSTIFIED ITS FIGURE FROM THE INVOCATION RULE — VERBATIM:** *"rule 3: one
+  //     invocation per DISTINCT handle, never a fan-out — and two CONSTRUCTION entries at one address
+  //     carrying ONE token are the store's own lawful duplicate (`triggered` carries it once)."* — **with
+  //     the assertion `if (dupRecord.triggered.length !== 1) return false;`. THE SECOND HALF OF THAT
+  //     SENTENCE IS THE INVOCATION RULE AND IT IS RIGHT AND IT STANDS BELOW, LIVE; THE ARRAY FIGURE THE
+  //     FIRST HALF WAS READ INTO IS THE ONE THE RECONCILED CLAUSE REFUTES.**
+  //     **AND THE TWO AS-FILED CODE LINES THAT STOOD UNDER IT ARE RE-EMITTED HERE, BYTE FOR BYTE, BESIDE
+  //     THE FORM THAT CARRIES THEM NOW:** `dup.register(dupRecord.triggered[0], () => { dupFired += 1; });`
+  //     — now `dup.register(dupRecord.triggered[0], (...args) => { dupFired += 1; dupArgs = args; });`, the
+  //     SAME registration with the invocation's own view read at the call — and
+  //     `if (dupFired !== 1) return false; // once per DISTINCT handle`, whose bytes stand below with the
+  //     rule's second sentence appended and no byte of the as-filed line moved.**
   const dup = mem([
     { address: ['d'], handle: 'l-dup' },
     { address: ['d'], handle: 'l-dup' },
   ]);
   const dupRecord = write(dup, ['d'], 'mem', value(rng.next().value));
-  if (dupRecord.triggered.length !== 1) return false;
+  if (dupRecord.triggered.length !== 2) return false; // (ii) THE ARRAY'S MULTIPLICITY IS THE STORE'S: TWICE
+  // **MEMBER BY MEMBER, NEVER BY SIZE** (`A77`): each of the two members is the SAME opaque identity, each
+  // carrying the caller's own token — so a boundary that collapsed the duplicate to one member breaks HERE,
+  // and `triggered[0] !== triggered[1]` breaks a boundary that invented a SECOND identity.
+  if (dupRecord.triggered[0] !== dupRecord.triggered[1]) return false;
+  if (new Set(dupRecord.triggered).size !== 1) return false; // ...and the DISTINCT-identity count is ONE
+  // (i) THE INVOCATION IS THE PACKAGE'S — a call counter on the function, and the invocation's OWN view
+  // read at the call: `argc === 1`, and that ONE argument the TRIGGERING ADDRESS (`PAR-JS-12`; `§2.7` item 5).
   let dupFired = 0;
-  dup.register(dupRecord.triggered[0], () => { dupFired += 1; });
+  let dupArgs = null;
+  dup.register(dupRecord.triggered[0], (...args) => { dupFired += 1; dupArgs = args; });
   write(dup, ['d'], 'mem', value(rng.next().value));
-  if (dupFired !== 1) return false; // once per DISTINCT handle
+  if (dupFired !== 1) return false; // once per DISTINCT handle — not one per occurrence, not one per entry
+  if (dupArgs === null || dupArgs.length !== 1) return false; // the invocation's view is EXACTLY ONE argument
+  if (JSON.stringify(dupArgs[0]) !== JSON.stringify(['d'])) return false; // ...and it is the TRIGGERING address
 
   // --- `§2.4` item 5 (d) AS IT IS READ TODAY (`§2.5` item 5 (g), the operative reading): EVERY OUTSIDE
   //     CLASS ANSWERS THE ONE FORM WITH THE STORE'S CLOSED-SET `AddressMalformed`, AND THE MESSAGE CARRIES
@@ -362,14 +393,36 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
 });
 
 line(P_SM_5, 'S-REG-DUP', 10, (attempt) => {
-  // Two construction entries at ONE address carrying the caller's SAME token: `triggered` carries it ONCE
-  // where the store minted it, and the registry fires once per DISTINCT handle.
+  // **`S-REG-DUP`: THE LAWFUL DUPLICATE'S TWO HALVES, DRIVEN ONE BY ONE** (`§2.4` rule 3, read through its
+  // dated clause of 2026-10-11 — the twin at `contract.md §2.4` — with `DD-42`'s clause 3, `DD-39`,
+  // `write-and-read.md §6.5` item 12 (b), `PAR-JS-15` and `crossing.md §1.3`'s returned-record rows).
+  // Two construction entries at ONE address carrying the caller's SAME token: **the STORE's own declaration
+  // governs the ARRAY, so `triggered` carries that token TWICE, element for element** — while **the
+  // INVOCATION COUNT stays the PACKAGE's: ONE per DISTINCT identity, never one per occurrence and never one
+  // per entry.**
+  //
+  // **AND THE AS-FILED CELL IS RE-EMITTED HERE, BESIDE THE READING THAT REPLACES IT — VERBATIM:** *"Two
+  // construction entries at ONE address carrying the caller's SAME token: `triggered` carries it ONCE where
+  // the store minted it, and the registry fires once per DISTINCT handle."* — **with the assertion
+  // `return record.triggered.length === 1;`. THE INVOCATION CLAUSE OF THAT SENTENCE IS RIGHT AND IS DRIVEN
+  // LIVE BELOW; THE ARRAY FIGURE IS THE ONE THE RECONCILED CLAUSE REFUTES.**
   const inst = mem([
     { address: ['a'], handle: 'l1' },
     { address: ['a'], handle: 'l1' },
   ]);
   const record = write(inst, ['a'], 'mem', 1);
-  return record.triggered.length === 1;
+  if (record.triggered.length !== 2) return false; // THE STORE'S OWN LIST, CARRIED OUT ELEMENT FOR ELEMENT
+  // MEMBER BY MEMBER, NEVER BY SIZE (`A77`): the two members are ONE identity — so a collapse breaks here.
+  if (record.triggered[0] !== record.triggered[1]) return false;
+  if (new Set(record.triggered).size !== 1) return false; // ONE distinct identity, not two
+  // THE INVOCATION HALF: a call counter, `argc === 1`, and that ONE argument the TRIGGERING ADDRESS.
+  let fired = 0;
+  let seen = null;
+  if (inst.register(record.triggered[0], (...args) => { fired += 1; seen = args; }) !== undefined) return false;
+  write(inst, ['a'], 'mem', 2);
+  if (fired !== 1) return false; // ONE per DISTINCT handle — never once per occurrence, never once per entry
+  if (seen === null || seen.length !== 1) return false; // the invocation's view is EXACTLY ONE argument
+  return JSON.stringify(seen[0]) === JSON.stringify(['a']); // ...and it is the TRIGGERING address
 });
 
 line(P_SM_5, 'S-OPAQUE', 10, (attempt) => {
@@ -536,10 +589,27 @@ line(P_TP_8, 'S-SET', 10, (attempt) => {
   // comparison is now MEMBER-BY-MEMBER, over a set whose membership is KNOWN from the construction, **and the
   // duplicate case the row's own text names is driven beside it** (`§2.4` rule 3: one invocation per DISTINCT
   // handle, not one per entry).
+  //
+  // **⟶ AND THE ROW'S ARRAY FIGURES ARE RE-DERIVED 2026-10-11 TO THE RECONCILED READING OF `§2.4` RULE 3
+  // (its dated clause, the twin at `contract.md §2.4`): THE ARRAY'S MULTIPLICITY IS THE STORE'S — CARRIED
+  // OUT ELEMENT FOR ELEMENT AND NEVER DEDUPLICATED AT THE BOUNDARY — WHILE THE INVOCATION COUNT IS THE
+  // PACKAGE'S, ONE PER DISTINCT IDENTITY** (`DD-42`'s clause 3 · `DD-39` · `write-and-read.md §6.5` item 12
+  // (b) · `PAR-JS-15` · `crossing.md §1.3`).
+  // **THE AS-FILED COMMENT AND FIGURES ARE RE-EMITTED HERE, BESIDE THE READING THAT REPLACES THEM —
+  // VERBATIM:** *"THREE entries, TWO distinct tokens: the declared set has EXACTLY TWO members — the
+  // caller's token ONCE (`DD-42`'s lawful caller-spelled collision) plus the one minted beside it."* — with
+  // `if (first.triggered.length !== 2) return false; // the duplicate is carried ONCE, not twice` and, for
+  // the last arm, *"AND THE DUPLICATE CASE ON ITS OWN, with NOTHING but the duplicate: ONE member."* with
+  // `if (write(dup, ['b'], 'mem', 1).triggered.length !== 1) return false;`. **THE SET'S MEMBERSHIP — TWO
+  // DISTINCT IDENTITIES — IS UNMOVED AND IS STILL WHAT THE SET COMPARISON ASSERTS; THE ARRAY'S ELEMENT
+  // MULTIPLICITY IS THE FIGURE THAT MOVED, from `2`/`1` to `3`/`2`, AND IT IS NOW READ OFF THE ARRAY
+  // MEMBER BY MEMBER.**
   const rng = draw(attempt);
   const distinct = `l${1 + rng.next().value}`;
-  // THREE entries, TWO distinct tokens: the declared set has EXACTLY TWO members — the caller's token ONCE
-  // (`DD-42`'s lawful caller-spelled collision) plus the one minted beside it.
+  // THREE entries, TWO distinct tokens: the declared SET has EXACTLY TWO members — the caller's token ONCE
+  // (`DD-42`'s lawful caller-spelled collision) plus the one beside it — **while the ARRAY the store hands
+  // across carries THREE members, because the duplicate is the STORE's and is not collapsed at the
+  // boundary.**
   const inst = mem([
     { address: ['a'], handle: 'l1' },
     { address: ['a'], handle: 'l1' },
@@ -547,25 +617,57 @@ line(P_TP_8, 'S-SET', 10, (attempt) => {
   ]);
   const first = write(inst, ['a'], 'mem', 1);
   const second = write(inst, ['a'], 'mem', 2);
-  if (first.triggered.length !== 2) return false; // the duplicate is carried ONCE, not twice
-  if (second.triggered.length !== 2) return false;
+  if (first.triggered.length !== 3) return false; // the duplicate is carried TWICE — three entries, three members
+  if (second.triggered.length !== 3) return false;
   // MEMBER BY MEMBER: every id of the first enumeration is in the second, and every id of the second is in
   // the first — a comparison two DIFFERENT sets of the same size cannot pass.
+  // **THE THREE AS-FILED LINES THIS BLOCK REPLACES ARE RE-EMITTED HERE, BYTE FOR BYTE, SO THE READER MEETS
+  // BOTH READINGS AND NO BYTE IS DELETED:** `if (second.triggered.length !== 2) return false;` ·
+  // `if (new Set(first.triggered).size !== 2) return false; // and the identities are DISTINCT, not one
+  // repeated` · `// THE DUPLICATE ARM ITSELF: two entries carrying ONE token fire ONCE for the distinct
+  // handle.` — **and the as-filed arm's closing `return true;`, which the duplicate-ONLY invocation half
+  // below now carries instead.** **THE SET'S MEMBERSHIP FIGURE (`2` distinct identities) IS UNMOVED: the
+  // member loop below counts exactly TWO identities, one of them TWICE.**
   for (const id of first.triggered) if (!second.triggered.includes(id)) return false;
   for (const id of second.triggered) if (!first.triggered.includes(id)) return false;
-  if (new Set(first.triggered).size !== 2) return false; // and the identities are DISTINCT, not one repeated
-  // THE DUPLICATE ARM ITSELF: two entries carrying ONE token fire ONCE for the distinct handle.
+  // **AND THE MULTIPLICITY IS READ OFF THE ARRAY ITSELF, ONE MEMBER AT A TIME, WITH NO ORDER ASSERTED**
+  // (`§2.7` item 3; `A77`): each member is matched to the identity it IS (`===`), the occurrence count is
+  // kept per identity, and the multiset the array yields must be `{2, 1}` — ONE identity carrying TWO of the
+  // three members (the store's lawful duplicate) and ONE carrying a single member. A boundary that collapsed
+  // the duplicate yields `{1, 1}` and breaks on the third member; one that invented a third identity breaks
+  // on the count of identities. **THIS IS THE MEMBER LOOP, AND NOT A `new Set(...).size` COMPARISON.**
+  const occurrences = []; // one `[identity, occurrences]` pair per DISTINCT identity, in first-seen order
+  for (const id of first.triggered) {
+    const seen = occurrences.find((one) => one[0] === id);
+    if (seen) seen[1] += 1;
+    else occurrences.push([id, 1]);
+  }
+  if (occurrences.length !== 2) return false; // TWO distinct identities, counted member by member
+  if (occurrences.filter(([, n]) => n === 2).length !== 1) return false; // exactly one carries the duplicate
+  if (occurrences.filter(([, n]) => n === 1).length !== 1) return false; // ...and the other is carried ONCE
+  // THE INVOCATION HALF, UNMOVED: the duplicate's ONE identity invokes ONCE per distinct handle, so the
+  // three members (two identities) yield exactly TWO invocations — never one per entry.
   let invocations = 0;
   for (const id of first.triggered) inst.register(id, () => { invocations += 1; });
   write(inst, ['a'], 'mem', 3);
   if (invocations !== 2) return false; // one per DISTINCT handle, never one per entry
-  // AND THE DUPLICATE CASE ON ITS OWN, with NOTHING but the duplicate: ONE member.
+  // AND THE DUPLICATE CASE ON ITS OWN, with NOTHING but the duplicate: its array carries TWO members of ONE
+  // identity, and its ONE function runs ONCE.
   const dup = mem([
     { address: ['b'], handle: 'l-dup' },
     { address: ['b'], handle: 'l-dup' },
   ]);
-  if (write(dup, ['b'], 'mem', 1).triggered.length !== 1) return false;
-  return true;
+  const dupRecord = write(dup, ['b'], 'mem', 1);
+  if (dupRecord.triggered.length !== 2) return false; // the store's own list, carried element for element
+  if (dupRecord.triggered[0] !== dupRecord.triggered[1]) return false; // MEMBER BY MEMBER: ONE identity
+  if (new Set(dupRecord.triggered).size !== 1) return false; // ...whose distinct-identity count is ONE
+  let dupFired = 0;
+  let dupArgs = null;
+  dup.register(dupRecord.triggered[0], (...args) => { dupFired += 1; dupArgs = args; });
+  write(dup, ['b'], 'mem', 2);
+  if (dupFired !== 1) return false; // one invocation for the ONE distinct identity
+  if (dupArgs === null || dupArgs.length !== 1) return false; // the invocation's view: EXACTLY ONE argument
+  return JSON.stringify(dupArgs[0]) === JSON.stringify(['b']); // ...and it is the TRIGGERING address
 });
 
 line(P_TP_8, 'S-FIRE-WINDOW', 5, () => {

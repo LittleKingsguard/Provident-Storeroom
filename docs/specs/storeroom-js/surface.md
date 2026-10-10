@@ -611,6 +611,36 @@ and its `AddressMalformed` row, which the store-side reading (i) would have to w
 archive/gate4/storeroom-js-adversarial.md §A · `JS-3` — the byte-equality gap this split explains; `DD-1`;
 `DD-40` | state or fail-state declaration]`).
 
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CALLER-SPELLED-DUPLICATE PASS (`role_spec_writer`), CORRECTING THE ONE
+STALE FIGURE THIS PART PRINTS: THE `CF-3` CLAUSE'S CITATION OF THE BLIND SET'S PASS COUNT.** `RCA-8(d)`
+ANNOTATE-BESIDE: **the `CF-3` clause's own bytes stand byte-for-byte — its `233`-of-`236` figure included — and
+are read THROUGH this clause; THIS clause is a PURE INSERTION, it re-spells no clause and adds no row, and its
+one subject is the `JSG-10.24` sentence in the `CF-3` clause above it.**
+
+**THE AS-FILED SENTENCE, NAMED AS FILED AND RE-EMITTED VERBATIM SO `git diff` RECOVERS IT WHERE IT STANDS:**
+***"`JSG-10.24`, which drives exactly that composite and passes at `233` PASS of `236` with the store-produced
+messages byte-for-byte"***. **THE OPERATIVE FIGURE IS `236` PASS OF `236`.** **The `233` is a gate-5-time
+reading of a tree that run's own record files: at gate 5 the blind set read `236` authored · `236` executed ·
+`233` PASS · `3` FAIL, the `3` FAILs being ONE finding of ONE scenario — `JSG-04.1.v` · `JSG-04.2.v` ·
+`JSG-04.4.v` — whose defect was the implementation's.** **That state was repaired at commit `9707ee9`
+(*"js: the value-arm refusal is verbose and the two doc cells reconciled — the blind set is `236/236`"*,
+`2026-10-09 23:39:01`), and the gate-6 live determination RE-MEASURED the same `236` assertions against the
+rebuilt artefact: `13` scenarios · `236` authored · `236` executed · `236` PASS · `0` FAIL, identical in seven
+consecutive runs at the pinned artefact hash, with `JSG-04` reading `67 PASS · 0 FAIL` where the gate-5 record
+printed `64 PASS · 3 FAIL`** (`archive/gate6/storeroom-js-live-determination.md` `§2.3` and its `§3` ·
+`LIVE-F1`; `LIVE-OBS-2` is the observation whose owner is this role and whose subject is exactly this line).
+
+**AND WHAT THIS CORRECTION IS NOT, SAID SO NO FIGURE IS OVER-READ: it is a CITATION's figure and not a
+re-measurement — this pass runs nothing and claims no green.** **The blind set's authored `236` is UNMOVED, no
+assertion of it is touched or weakened, its `JSG-10.24` cell is unmoved, and the gate-5 record's `233`/`3`
+filings stand byte-for-byte as that tree's own record, read as HISTORICAL rather than withdrawn.** **The
+sentence's own subject — the composite `message`'s Segment One / Segment Two split — is UNMOVED by this figure,
+and no cell of any set asserts a document's own citation figure** (`archive/gate6/storeroom-js-live-determination.md`
+`§3` · `LIVE-OBS-2`, with its `§8` item 2)
+(`[A3 archive/gate6/storeroom-js-live-determination.md §2.3 · §3 · `LIVE-F1` and `LIVE-OBS-2` — the
+re-measurement at the pinned artefact, pinned by hash; A1 docs/specs/storeroom-js-greens.md §4 — the gate-5
+figure, read as historical | numeric or census claim]`).
+
 ### §2.6 The constraint/repair pattern — a usage pattern over declared verbs, never a seam
 
 **CONSTRAINT AND REPAIR EVALUATION IS CLIENT-SIDE.** **The JS side holds the constraint functions; the
