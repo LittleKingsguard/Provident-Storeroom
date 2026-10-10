@@ -272,20 +272,133 @@ test('registry_a_delete_fires_its_own_triggered_set_on_the_same_prefix_test', ()
 // `§5.5`'s `S-REG-DUP` and `§5.8`'s `S-SET` — a set, never a sequence
 // ---------------------------------------------------------------------------------------------
 
+// **⟶ RE-DERIVED 2026-10-11 — THE RECONCILED READING OF `§2.4` RULE 3, WHOSE TWO INDEPENDENT OBSERVABLES
+// THIS ONE CELL NOW DRIVES ONE BY ONE.** `RCA-8(d)` ANNOTATE-BESIDE: **this is the ONE re-derivation the
+// bounded doc pass of 2026-10-11 named as owing (`docs/specs/storeroom-js/backup/
+// GATE5-DOC-2026-10-11-manifest.md` item 1), and no clause of the cell's subject moves with it.**
+//
+// **THE CLAUSE, CITED AT ITS OWN BYTES — `docs/specs/storeroom-js/surface.md` §2.4's dated clause of
+// 2026-10-11, whose twin stands at `docs/specs/storeroom-js/contract.md` §2.4:** *"(i) THE INVOCATION COUNT
+// — ONE PER DISTINCT IDENTITY, AND IT IS THE PACKAGE'S OWN RULE. One identity invoked ONCE, however many
+// occurrences carry it … so in CASE B the duplicate token's ONE function runs ONCE"*; *"(ii) THE ARRAY'S
+// ELEMENT MULTIPLICITY — THE STORE'S OWN DECLARED LIST, CARRIED OUT FAITHFULLY AND NOT DEDUPLICATED AT THE
+// BOUNDARY. `triggered` crosses as a fresh JS array of the handles the store's own list carries … so in
+// CASE B THE JS-OBSERVABLE `triggered` CARRIES THE TOKEN TWICE, and a drive may assert the array's LENGTH
+// (`2`) and its DISTINCT-identity count (`1`) TOGETHER; `§2.7` item 3's *"no order is asserted"* is UNMOVED
+// by either figure"*.** **THE STORE-SIDE CLAUSES THE TWO HALVES REST ON, AT THEIR OWN HOMES:
+// `docs/specs/storeroom-native/contract.md §0.2`'s `DD-42`** — *"`listen` MUST NOT MINT A TOKEN EQUAL TO ANY
+// TOKEN THE HOME ALREADY HOLDS … and `triggered` carries NO DUPLICATED MEMBER … and the construction's
+// adopted tokens are untouched by the mint's own rule … in THAT case — and only that case — `triggered`
+// carries the token twice"* — **and `DD-39`**, whose duplicate case declares *"`listeners[]` may be EMPTY …
+// and a DUPLICATE is ADMITTED AND BOTH ENTRIES ARE KEPT — the construction is a POPULATION step and not a
+// registration verb … the home then holds two entries at one address with two DIFFERENT handles, and a
+// trigger returns **both**"*; **read with `write-and-read.md §6.5` item 12 (b)'s ADOPTION VERBATIM and that
+// contract's `§0.4` clause 2 (b), and with `docs/specs/storeroom-js/test-cases.md`'s own row, which prints
+// this drive's licence verbatim** (*"a drive may assert the array's LENGTH (`2`) and its DISTINCT-identity
+// count (`1`) TOGETHER"*).
+//
+// **THE CELL AS FILED, RE-EMITTED BESIDE THE READING THAT REPLACES IT, BECAUSE ITS WORDING AND ITS FIGURE
+// POINTED TWO WAYS.** As filed, this cell's comment read — verbatim — *"`§2.4` rule 3: where two construction
+// entries at one address carry the caller's SAME token, the store returns that token ONCE where the store
+// minted it, and the registry fires ONE invocation per DISTINCT handle — not one per occurrence and not one
+// per entry."* — and its ONE assertion read, verbatim —
+// `assert.equal(record.triggered.length, 1, 'one DISTINCT handle, not one per occurrence and not one per entry');`.
+// **THE WORDING IS THE INVOCATION RULE AND IT IS RIGHT** (`§2.4` rule 3; its dated clause (i)) — **so it is
+// carried LIVE, at the assertion it belongs to, in group (2) below.** **THE LENGTH FIGURE IS WHAT THE
+// CLAUSE REFUTES:** the cell stated the PACKAGE's invocation count AS IF IT WERE the STORE's array, and in
+// this state — the caller-spelled duplicate — the two figures differ (`1` invocation, `2` members).
+//
+// **ORDER, AND WHY IT IS NOT AN ADJUSTMENT TO DODGE THE FAILING FIGURE.** The two INVOCATION halves —
+// groups (2) and (3) — are driven BEFORE the array-multiplicity half, group (1), **so that the one figure
+// the clause moved cannot mask their verdicts**: an assertion that aborts its cell leaves the halves after
+// it `un-run`, and `un-run` IS A FAILURE (`acceptance.md §4.4`). **NOTHING IS WEAKENED BY THE ORDER: all
+// three groups are asserted, every group is drivable on its own, and group (1) still fails against any
+// boundary that collapses.**
+//
+// **AND THE CAUSE OF THAT FAILURE IS NAMED HERE RATHER THAN DODGED, BECAUSE THE CLAUSE ITSELF NAMES IT: THE
+// SHIPPED BUILD DEDUPLICATES AT THE BOUNDARY.** `bindings/js/index.mjs`'s `wrapHandles` pushes each token's
+// handle into its output *"AT MOST ONCE"*, so the shipped observable answers `1` where clause (ii) declares
+// `2` — **and the clause takes no finding against either side, leaving *"WHICH SIDE THE DIVERGENCE SITS ON
+// … FOR THE PASS THAT RECONCILES THE BUILD TO THIS CLAUSE"*.** **THE DRIVE BELOW ASSERTS THE DECLARED
+// READING, so it is RED against the shipped build and its cause is the IMPLEMENTATION.** **AND THE
+// RECONCILING PASS OWES ONE THING BESIDE IT, STATED HERE SO IT IS NOT DISCOVERED: `deliver` iterates the
+// array ELEMENT BY ELEMENT, so carrying this state's token TWICE while `deliver`'s loop stays as shipped
+// would invoke the one registered function TWICE — the per-identity dedup must stand at DELIVERY, where
+// clause (i) puts it, and it must be the BOUNDARY's dedup that moves.**
 test('registry_a_lawful_duplicate_token_fires_once_for_the_distinct_handle', () => {
-  // `§2.4` rule 3: where two construction entries at one address carry the caller's SAME token, the store
-  // returns that token ONCE where the store minted it, and the registry fires ONE invocation per DISTINCT
-  // handle — not one per occurrence and not one per entry.
+  // (0) THE STATE: TWO CONSTRUCTION `listeners[]` ENTRIES AT ONE ADDRESS CARRYING THE CALLER'S SAME TOKEN
+  // (`DD-39`'s duplicate case). `held` is the handle the caller holds for that ONE token: a `listen` at an
+  // already-registered address returns the EXISTING entry's handle and mints nothing (`surface.md §2.3`'s
+  // dated clause; `write-and-read.md §6.5` item 12 (c)), and BOTH entries carry the one token, so both
+  // occurrences wrap to it — **so the handle group (2) registers IS that token's handle, never a second
+  // identity, and group (1) pins the two array members to this very value.**
   const inst = mem([
     { address: ['a'], handle: 'l1' },
     { address: ['a'], handle: 'l1' },
   ]);
+  const held = listen(inst, ['a']);
   const record = write(inst, ['a'], 'mem', 1);
+
+  // (2) THE INVOCATION IS THE PACKAGE'S — ONE PER DISTINCT IDENTITY, however many occurrences carry it:
+  // **"not one per occurrence, and not one per entry"**, the as-filed wording, asserted where it belongs.
+  // **THIS IS THE HALF THE CELL'S NAME WAS REACHING FOR, AND IT IS NOW ITS OWN ASSERTION RATHER THAN AN
+  // INFERENCE FROM THE ARRAY'S LENGTH** (`§2.4` rule 3; its dated clause (i); `§2.4` item 6 (b)–(e)).
+  // AND THE INVOCATION'S OWN VIEW IS FIXED BESIDE IT: exactly ONE argument (`A77`; `surface.md §2.7`
+  // item 5) and that argument is the TRIGGERING ADDRESS — the verb's own `address` argument verbatim, and
+  // never the id that selected the function (`parameter-semantics.md §2.12`'s dated clause, its three arms;
+  // `PAR-JS-15`'s dated clause; `A77`'s consequence (4)).
+  let invocations = 0;
+  const seen = [];
+  inst.register(held, function (...args) {
+    invocations += 1;
+    seen.push({ argc: arguments.length, address: args[0] });
+  });
+  write(inst, ['a'], 'mem', 2);
+  assert.equal(
+    invocations,
+    1,
+    'ONE invocation per DISTINCT identity — not one per occurrence, and not one per entry',
+  );
+  assert.equal(seen.length, 1, 'exactly one invocation was recorded');
+  assert.equal(seen[0].argc, 1, 'A77 / §2.7 item 5: the invocation\'s view is ONE argument');
+  assert.deepEqual(seen[0].address, ['a'], '...and it is the TRIGGERING ADDRESS, never the matched id');
+
+  // (3) THE DISTINCT CASE, DRIVEN BESIDE IT SO THE TWO RULES CAN BE TOLD APART: TWO DIFFERENT tokens at ONE
+  // address are TWO distinct identities (`DD-39`: both entries KEPT, each with its OWN handle), so the
+  // array carries TWO members AND TWO invocations follow — one per identity, never one per array. **THIS IS
+  // THE DRIVE THAT MAKES THE PAIR OF RULES FAIL-ABLE: change either multiplicity and one of the two drives
+  // breaks.** The registration is PER MEMBER and the counters are keyed BY MEMBER, so NO ORDER IS ASSERTED
+  // (`§2.7` item 3; `DD-22`; `§5.8`'s *"a drive that asserts a sequence"* is on the failure list).
+  const distinct = mem([
+    { address: ['a'], handle: 'x1' },
+    { address: ['a'], handle: 'x2' },
+  ]);
+  const first = write(distinct, ['a'], 'mem', 1);
+  assert.equal(first.triggered.length, 2, 'two entries, two tokens: the store returns BOTH');
+  assert.equal(new Set(first.triggered).size, 2, '...and they are TWO distinct identities, never one twice');
+  const fired = new Map();
+  for (const id of first.triggered) fired.set(id, 0);
+  for (const id of first.triggered) distinct.register(id, () => { fired.set(id, fired.get(id) + 1); });
+  const second = write(distinct, ['a'], 'mem', 2);
+  assert.equal(second.triggered.length, 2, 'the distinct identities stand on the second write too');
+  assert.equal(fired.size, 2, 'two registrations, two DISTINCT identities');
+  for (const count of fired.values()) {
+    assert.equal(count, 1, `the function registered for one DISTINCT identity ran once; it ran ${count} time(s)`);
+  }
+
+  // (1) THE ARRAY'S MULTIPLICITY IS THE STORE'S — CARRIED ELEMENT FOR ELEMENT AND NEVER DEDUPLICATED AT THE
+  // BOUNDARY: this state's TWO occurrences cross, **and the two members are ONE IDENTITY, asserted MEMBER BY
+  // MEMBER and never by size — each is the handle the caller holds for that one token, and the set's
+  // distinct-identity count is `1`** (`§2.4`'s dated clause (ii); `crossing.md §1.3`'s returned-record rows;
+  // `PAR-JS-15`; `§2.7` item 1).
   assert.equal(
     record.triggered.length,
-    1,
-    'one DISTINCT handle, not one per occurrence and not one per entry',
+    2,
+    'the ARRAY\'s multiplicity is the STORE\'s: the caller-spelled duplicate\'s token is carried TWICE',
   );
+  assert.equal(record.triggered[0], held, '...and the first occurrence IS the handle the caller holds for that token');
+  assert.equal(record.triggered[1], held, '...element for element: the second occurrence carries the SAME identity');
+  assert.equal(new Set(record.triggered).size, 1, '...while the DISTINCT-identity count is ONE');
 });
 
 test('registry_the_triggered_set_is_compared_as_a_set_and_no_order_is_asserted', () => {
