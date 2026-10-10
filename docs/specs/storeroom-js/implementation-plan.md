@@ -167,6 +167,24 @@ reads *"THE OPERATIVE FIGURE IS `92`"* and prints `21 + 36 + 17 + 17 + 1 = 92` �
    `[A3 docs/specs/storeroom-js/contract.md §10 — this pass's own reconciliation region, which prints the
    same figure with its derivation | numeric or census claim]`).
 
+**⟶ AND ONE LEDGER FIGURE THIS PART PRINTS IS SUPERSEDED, RECONCILED HERE BECAUSE IT IS `§1`'s AND `§3`'s
+CELLS AND THIS PASS'S OWN SCOPE, AND LEFT UNTOUCHED WHERE IT IS.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte
+above and below stands byte-for-byte, and this clause adds no phase, no owner, no output and no acceptance
+item.**
+
+| The cell, and what it read before (quoted) | What it reads now, at the trackers' own bytes |
+| --- | --- |
+| **`§2`'s reconciliation item `5`:** *"moves no ledger count (`docs/next-steps.md` still reads `1 DONE / 2 open` UNITS = `3`)"* | **SUPERSEDED: the ledger reads `2 DONE / 1 open` UNITS = `3` (`2 + 1 = 3` ✓)** — `U-STOREROOM-NATIVE` (`N1`) and `U-STOREROOM-LISTENERS` (`N2`) are the two `DONE` rows and `U-STOREROOM-JS` (`N3`) is the ONE open unit (`1 + 0 = 1` ✓). The `1 DONE / 2 open` figure was correct at its own filing date — the listener unit was still open — and was superseded when it closed; **NO COUNT IS MOVED BY THIS PASS.** |
+| **`§3`'s `Q9` row:** *"the moved ledger (`1 DONE / 2 open` → `2 DONE / 1 open` UNITS = `3`)"* | **HALF-CONSUMED AND HALF OWED: the `1 DONE / 2 open` → `2 DONE / 1 open` move was taken by the SUPERVISOR'S LANDINGS for the two closed units, NOT by this unit's close-out. THIS UNIT's close-out owes `2 DONE / 1 open` → `3 DONE / 0 open` UNITS = `3` (`3 + 0 = 3` ✓), and the row remains the supervisor's landing pass.** The row's other cells — the `DONE` row's full content, the decisions/queue updates and the archival loop — **are `§3`'s and stand as filed; the unit's `DONE`-row inventory is carried at `docs/next-steps.md`'s `## DONE` reconciliation clause.** |
+| **`§1`'s row `docs/specs/storeroom-js/contract.md` + its declared parts:** | **UNMOVED — and the closure arithmetic it feeds is unmoved: the map's own PART entries are `6` and `test-cases.md` is the map's SEVENTH entry but sits outside the index region's six-name parenthesis, so the operative predicate reads `6 = 6` ✓ on the part-entry reading and the predicate HOLDS. This pass created no file in the directory.** |
+
+**AND THE ONE FIGURE THIS PART STILL PRINTS THAT IS NOT ITS OWN TO MOVE: `docs/specs/storeroom-js/test-cases.md`
+row `71` carries the same `1 DONE / 2 open` sentence, and it is a `view` part whose rows must declare nothing
+the contract does not already carry** (`§C.6 binding rule 1`) — **so its row is read THROUGH this clause and
+through `contract.md`'s closing ledger clause, and it is NOT rewritten here** (`[A1
+docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-10`; A3 docs/specs/storeroom-js/contract.md §10 and its
+closing ledger clause | numeric or census claim]`).
+
 ## §1. THE DECLARED EDIT SCOPE, BY PATH, WITH THE PHASE THAT MAY WRITE EACH
 
 | Path | The phase that may write it |

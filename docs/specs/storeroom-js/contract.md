@@ -2489,7 +2489,7 @@ does not reach.** **Each row quotes what its cell read BEFORE, so `git diff` rec
 | **5** | **`ITEM 2` ROW `30`** — the closure clause's RAW-FILE reading, `6 = 7` | **UNMOVED AND ALREADY DISPOSED OF: the operative reading is the PART-ENTRY counting, `6 = 6`, and the predicate HOLDS.** This pass creates no root-level file of this directory (its own record lands under `archive/reviews/`), so the file set's figure is unmoved; the right-hand terms' re-statement remains the named repair of a later bounded amendment |
 | **6** | **`§7.1`'s and `§7.3`'s figures, and `§4.1`'s numbering** | **UNMOVED.** `§4.1`'s `1` · `4` · `5` numbering stands as filed, read through `acceptance.md §4.1`'s disclosure clause and its home-side twin; `§7.1`'s figures and `§7.3`'s `28`-row map are unmoved by this pass and by the sweep |
 
-**AND THE FOUR FIGURES THIS PASS VERIFIED AT THEIR OWN BYTES RATHER THAN TAKING THEM FROM ITS BRIEF, EACH
+**AND THE FIVE FIGURES THIS PASS VERIFIED AT THEIR OWN BYTES RATHER THAN TAKING THEM FROM ITS BRIEF, EACH
 WITH ITS SITE AND ITS LAYER.** **This pass holds NO execution verb** (its tool wall is read/search plus doc
 writes, so no `node` and no `cargo` command was run by it); **the figures below are therefore READ OFF THE
 ARTIFACTS THAT CARRY THEM AND OFF THE TREE'S OWN STATIC DECLARATIONS, and the tree's own records are named as
