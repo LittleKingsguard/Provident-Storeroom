@@ -185,4 +185,34 @@
 | **`A85`(7)** | **`Q-7` the musl answer and the uncovered pairs** | **NOT A DEFAULT — FORCED BY `C-1` + `K3`:** one declared answer each, **rung two then the single declared absence**, and **NO SIXTH NAME**. `libc`'s absence from `os`/`cpu` follows, with the `dlopen` failure answered by the one declared arm. | none available — a sixth name is a bounded amendment, and the clause says so |
 
 **AND FOUR CONSEQUENCES THIS FILING STATES PLAINLY.** **(1) EVERY DEFAULT IS PRICED AND REVERSIBLE, AND EACH NAMES ITS INSTRUMENT — NO DEFAULT IS A SILENT CHOICE, AND NONE IS A PARK.** **(2) THE TWO WHOSE PRECONDITIONS ARE FACTS ONLY THE ARCHITECT KNOWS (`A85`(5)'s scope and `A85`(6)'s host/visibility) ARE CARRIED AS DEFAULTS WITH THEIR PRECONDITIONS WRITTEN INTO THE CLAUSE, so the contract can be authored now and the release act is not blocked by them.** **(3) THE SEMANTIC INPUT FOR GATE 1 IS NOW CLOSED: `A82` names the identity, `A83` fixes the order, `A84` settles the three mitigations, `A85` carries the seven defaults, and the licence lines are signed — so STEP 4 MAY RUN ON ITS OWN DETERMINATION.** **(4) NOTHING HERE ADMITS A UNIT ROW: `A85`(3)'s ledger move is HIS admission, and a pass may not take it.**
+## §12. THE ARCHITECT'S SCOPE RULING OF 2026-10-11 — the five platform packages move to `@auspicion`
+
+**<⟶ APPENDED, DATED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES.**
+
+**THE ARCHITECT'S WORDS, VERBATIM.**
+
+> Change org to @auspicion
+
+**THE RULING, TRANSCRIBED AS `A86` — it changes the SCOPE the five platform packages live in, and it answers `A85`(5)'s precondition with an org rather than with a name.**
+
+| # | What it answers | The ruling (verbatim) | What it settles |
+| --- | --- | --- | --- |
+| **`A86`** | **`A85`(5) — *"which scope owns the five platform packages?"*, carried as a priced default whose precondition was that the scope be owned** | ***"Change org to @auspicion"*** | **THE FIVE PLATFORM PACKAGES MOVE FROM `@provident-storeroom/…` TO `@auspicion/…`, so the precondition is an org the architect controls rather than one named after the project.** **`A-1`'s structural guarantee is unchanged: a scoped name is claimable only by the scope's owner, so `W-1`'s denial and `W-2`'s substitution stay closed.** **AND THE MAIN PACKAGE IS UNTOUCHED: `A82` ruled it UNSCOPED (`provident-storeroom`), and this ruling changes an ORG, not that identity.** |
+
+**ITS DERIVATION — AND THE ONE PLACE THE RULING ADMITS TWO READINGS, EACH STATED SO THE CHOICE IS VISIBLE.** **The five declared names are `@provident-storeroom/js-<label>`; the ruling names the ORG and is silent on the `js-` part after it. Two readings follow:**
+- **`A86`(a) — THE LITERAL READING (the operative default, because it is the minimal change the words order): the scope alone is replaced, so the five become `@auspicion/js-linux-x64-gnu` · `…/js-linux-arm64-gnu` · `…/js-darwin-x64` · `…/js-darwin-arm64` · `…/js-win32-x64-msvc`.**
+- **`A86`(b) — THE IDENTITY-PRESERVING READING (priced as the alternative): `@auspicion/storeroom-js-<label>`, which keeps the project's own name in every artefact's identity — at the cost of a longer name and of reading differently from the main package's `provident-storeroom`.** **ITS REVERSAL IS THE SAME ONE LINE, and it must be taken BEFORE the first platform publish: after it, a scoped name is spent.**
+**THE SUPERVISOR CARRIES `(a)`, and says so, because a scope change is what was ordered and `(b)` is a naming preference the architect may take in one line at no cost — today.**
+
+**ITS BLAST RADIUS, NAMED SO IT IS NOT DISCOVERED LATER — and it is the SAME CLASS the project has now walked twice, so the count is knowable:**
+1. **`bindings/js/platforms/<label>/package.json` × 5** — each `name`, the scope segment only.
+2. **`bindings/js/index.mjs`** — `PLATFORM_NAMES`' five literals.
+3. **`bindings/js/package.json`** — the five `optionalDependencies` KEYS (values stay `0.1.0`).
+4. **The unit's contract** — `distribution.md §3.1`/`§3.2`'s five-name table, `resolution.md §3.1`, `contract.md`'s `PUB-DD-15`/`PUB-DD-6` and `§5.6`'s `S-SCOPE` failure list, `parameter-semantics.md`'s `PAR-PUB-17` and `§2.1`.
+5. **The JS unit's contract** — `package.md §3.2`'s five-name table **and** `contract.md`'s `DD-25`/`DD-26` cells (**both homes**), which `A84`'s `A-1` already owed a bounded amendment.
+6. **The BLIND set** — `JSG-12.12` (the five names, character-for-character) is the row that moves; **`JSG-12.10` (the main package's identity) does NOT**.
+7. **The RED set** — `S-SCOPE`'s four cells and `NG-PUB-H`'s manifests; the counter-cell family reads the contract's table.
+8. **The LIVE battery** — `LIVE-8.7`'s rung-one subject, which names the platform package it `require`d.
+9. **The records** — the gate records that print the five, and the artefact digest is **unaffected** (a name is not bytes).
+**NO BINARY MOVES, NO BEHAVIOUR MOVES, AND THE STORE IS UNTOUCHED.**
 **END OF THE PROPOSAL. §1 is the ruling. §2 states the form and what it buys. §3 enumerates the deliverable. §4 corrects the four refuted cells. §5 adopts the findings by reference. §6 bounds the filing. §7 is the provenance.**
