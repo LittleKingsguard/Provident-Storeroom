@@ -115,7 +115,7 @@ jobs:
       # SPECWRITER RATHER THAN EDITED HERE** (a contract edit is not the build's act; `§0.3`'s reversal
       # instrument is the supervisor's).
       - name: 'precondition: the publishing client — Node 24, whose npm performs the OIDC exchange'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
@@ -261,7 +261,7 @@ jobs:
       # the symptom.** **The position is IMMEDIATELY BEFORE the publish it exists for, in a job that needs
       # Node for nothing else.**
       - name: 'precondition: the publishing client — Node 24, whose npm performs the OIDC exchange'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
