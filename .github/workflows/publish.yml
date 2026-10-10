@@ -84,6 +84,42 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      # **⟶ THE PUBLISHING CLIENT, INSTALLED WITH THE TOOLCHAIN AND BEFORE THE BUILD — CAUSE 2 OF THE
+      # RELEASE'S FAILURE, AND ITS FIX.**
+      # **THE DIAGNOSIS, FROM THE RUN'S OWN LOG, VERBATIM:**
+      #   `npm error code ENEEDAUTH`
+      #   `npm error need auth This command requires you to be logged in to https://registry.npmjs.org/`
+      # **— WHILE THE TARBALL WAS ASSEMBLED CORRECTLY, `4` FILES, MATCHING THE LOCAL DRY RUN TO THE TENTH OF
+      # A KILOBYTE.** **The registry's trusted-publisher configuration is not the fault: the CLIENT is too
+      # old. Trusted publishing needs `npm >= 11.5.1`, and this workflow had NO `setup-node` step at all, so
+      # `npm` was the runner image's own — Node 20's `npm 10.x`, which PREDATES THE FEATURE and therefore
+      # reports exactly what a machine with no credentials reports.**
+      # **WHAT THIS STEP DOES NOT DO, STATED SO THE DECLARED DESIGN IS NOT READ AS WIDENED: IT SETS NO AUTH
+      # TOKEN VARIABLE AND IT REFERENCES NO REPOSITORY SECRET — not one byte of that vocabulary is written
+      # below, so this file's own head claim stands to a `grep`.** Trusted publishing authenticates by the
+      # host's OIDC federation, which the `id-token: write` permission below already grants; a token would
+      # contradict this file's own declared design. **`registry-url` is the registry's ADDRESS and not a
+      # credential, and `npm` loads it with the placeholder the step writes left unset — measured on this
+      # machine at `npm 12.2.0`: a project `.npmrc` carrying setup-node's own auth line, its token
+      # environment variable UNSET, loads at exit `0` (`npm config list`); and the documented npm example for
+      # trusted publishing carries the same `registry-url` beside *"Publish uses OIDC - no token needed"*.**
+      # **POSITION: the platform job's toolchain pair — Rust for the target, then the Node whose npm performs
+      # the exchange — placed BEFORE the build because the Windows leg's own test binary links the Node
+      # import library `bindings/js/build.rs` fetches and runs under a `node.exe` on `PATH`.**
+      # **AND ONE THING THIS FILE CANNOT SEE, LEFT TO THE ARCHITECT RATHER THAN GUESSED: if the registry's
+      # per-package trusted-publisher configuration NAMES AN ENVIRONMENT, the job must declare
+      # `environment: <name>` or the exchange is refused with this same `ENEEDAUTH`. No name is invented
+      # here.** **AND THE COST, DECLARED RATHER THAN HIDDEN: `docs/specs/storeroom-publish/release.md §5.2`
+      # item `1` and `docs/specs/storeroom-publish/contract.md §5.2` item `1` print that this file carries
+      # NO `setup-node` and NO `registry-url`; BOTH CELLS MOVE BY THIS STEP AND ARE REPORTED TO THE
+      # SPECWRITER RATHER THAN EDITED HERE** (a contract edit is not the build's act; `§0.3`'s reversal
+      # instrument is the supervisor's).
+      - name: 'precondition: the publishing client — Node 24, whose npm performs the OIDC exchange'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
       # `release.md §1.4` step 1's second half — **THE SIBLING CRATE'S OWN `cargo test`, ON AT LEAST THE
       # HOST TARGET** — run from the repository root, at the crate's own manifest, offline as every leg of
       # this project is (`contract.md §4.5` item 2).
@@ -214,6 +250,21 @@ jobs:
         run: |
           set -euo pipefail
           test -e bindings/js/LICENSE || { echo "A89(4): the pack-time licence copy 'bindings/js/LICENSE' is absent at the packaging root — the publish's fourth path would be omitted SILENTLY"; exit 1; }
+
+      # **⟶ THE SAME PUBLISHING CLIENT, AT THE SECOND PUBLISH SITE — for the same diagnosed cause and with the
+      # same two omissions.** The main site publishes with `npm publish` like the platform site, so it needs
+      # the same floor (`npm >= 11.5.1`) to perform the OIDC exchange at all: the run's `ENEEDAUTH` was
+      # reported by a client below that floor, in the job whose tarball had been assembled correctly. **NO
+      # AUTH TOKEN VARIABLE AND NO REPOSITORY SECRET IS SET BESIDE IT, and the same one thing the architect
+      # must confirm is owed here: whether the per-package trusted-publisher configuration names an
+      # ENVIRONMENT, in which case `environment: <name>` is owed in this job too and this same `ENEEDAUTH` is
+      # the symptom.** **The position is IMMEDIATELY BEFORE the publish it exists for, in a job that needs
+      # Node for nothing else.**
+      - name: 'precondition: the publishing client — Node 24, whose npm performs the OIDC exchange'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
 
       # `release.md §1.4` step 5 — **PUBLISH THE MAIN PACKAGE**, after all five platform artefacts.
       - name: '5. publish the main package'
