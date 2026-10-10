@@ -178,6 +178,34 @@ delegated to that project's agents"* | prohibition]`).
    `storeroom_native`, and this unit reaches it **only** through the path dependency of `§4.2`.
    (`[A1 docs/specs/storeroom-js-proposal.md §15 · A71 | requirement]`)
 
+**⟶ RECONCILED 2026-10-11 — THE `A86` SCOPE PASS (`role_spec_writer`): THE FIVE PLATFORM PACKAGES' ORG,
+AND THE ONE THING THIS RULING CHANGES ABOUT THE SCOPE'S OWN FOOTING.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1–3
+above stand BYTE-FOR-BYTE — including item 2's identity `@provident-storeroom/js` and item 3's crate-collision
+refusal — and they are read THROUGH this clause; THIS clause is a PURE INSERTION, it adds no `HO-` row, mints no
+`DD` row, moves no `PAR-JS` row and writes no byte outside this directory and this unit's sibling contract
+directory.** **THE RULING, VERBATIM: *"Change org to @auspicion"*** (`docs/specs/storeroom-publish-proposal.md`
+`§12` · **`A86`**).
+
+**THE FIVE PLATFORM PACKAGES' NAMES MOVE FROM THE SCOPE `@provident-storeroom` TO THE SCOPE `@auspicion`, and
+THE SCOPE SEGMENT ALONE IS REPLACED** — the operative default `A86`(a) — **so the five become
+`@auspicion/js-linux-x64-gnu` · `@auspicion/js-linux-arm64-gnu` · `@auspicion/js-darwin-x64` ·
+`@auspicion/js-darwin-arm64` · `@auspicion/js-win32-x64-msvc`.** **`A86`(b) — `@auspicion/storeroom-js-<label>` —
+IS CARRIED AS THE PRICED ALTERNATIVE AND IS NOT APPLIED; its reversal is one line and must be taken BEFORE the
+first platform publish.**
+
+**AND THE ONE THING THIS RULING CHANGES ABOUT THE SCOPE'S OWN FOOTING — WHICH IS WHY `A86` IS NOT MERELY `A84`'s
+`A-1` RE-SPELLED: `A84`'s `A-1` INTRODUCED THE SCOPE AS THE SUPERVISOR'S PRICED DERIVATION** — its own words at
+that filing's `§9` are that the five names *"were always the supervisor's priced derivation"*, so correcting a
+derivation was *"inside the ruling rather than beside it"* — **WHILE `A86` CHANGES THE ORG. SO THE SCOPE IS NOW
+THE ARCHITECT'S OWN — AN ORG HE CONTROLS — AND NOT A DERIVATION AT ALL.** **AND `A85`(5)'s own precondition is
+thereby answered: the org is one the architect owns, rather than one named after the project.** **AND `DD-26` IS
+AN ACTIVE ROW AND THIS HOME IS AMENDED AND NEVER SUPERSEDED: the row stands, its subject stands, and this clause
+re-reads its fact rather than replacing it.**
+
+(`[A1 docs/specs/storeroom-publish-proposal.md §12 · `A86`(a)(b) — the org change, the operative reading and the
+priced alternative; A1 docs/specs/storeroom-publish/contract.md §1.3 — the same ruling's clause at this pass's
+sibling home; A3 docs/specs/storeroom-publish/contract.md §0.3 · `PUB-DD-6`, `PUB-DD-15` | requirement]`)
+
 ### §3.2 The prebuild matrix
 
 **THE MATRIX IS `5` TARGETS, AND EVERY TARGET IS A DELIVERABLE RATHER THAN AN OPTION:**
@@ -239,6 +267,34 @@ SPELLINGS and it resolves, loads or publishes NOTHING — the `optionalDependenc
 own build-surface row, and no artefact in this unit's tree is resolved or loaded by any clause here**
 (`[A1 docs/specs/storeroom-js-proposal.md §15 · A71; A1 docs/specs/storeroom-js-proposal-review.md §5.4 ·
 `AR-16`; `DD-26` | numeric or census claim]`).
+
+**⟶ RECONCILED 2026-10-11 — THE `A86` SCOPE PASS (`role_spec_writer`): THE TABLE ABOVE IS RE-EMITTED ROW BY ROW
+WITH ITS AS-FILED SPELLING, BESIDE THE OPERATIVE FIVE NAMES.** `RCA-8(d)` ANNOTATE-BESIDE: **the concrete-spelling
+clause, its five-row table and its arithmetic and finding-rule paragraph stand BYTE-FOR-BYTE and are read THROUGH
+this clause; THIS clause is a PURE INSERTION — it moves no row, adds no artefact and mints no `DD` row.** **THE
+RULING IS `A86` — *"Change org to @auspicion"* — at its operative default `A86`(a): THE SCOPE SEGMENT ALONE IS
+REPLACED.**
+
+| # | The matrix label (`§3.2`'s own list) | The AS-FILED concrete name (RE-EMITTED VERBATIM) | The OPERATIVE concrete name |
+| --- | --- | --- | --- |
+| 1 | `linux-x64` | `@provident-storeroom/js-linux-x64-gnu` | **`@auspicion/js-linux-x64-gnu`** |
+| 2 | `linux-arm64` | `@provident-storeroom/js-linux-arm64-gnu` | **`@auspicion/js-linux-arm64-gnu`** |
+| 3 | `darwin-x64` | `@provident-storeroom/js-darwin-x64` | **`@auspicion/js-darwin-x64`** |
+| 4 | `darwin-arm64` | `@provident-storeroom/js-darwin-arm64` | **`@auspicion/js-darwin-arm64`** |
+| 5 | `win32-x64` | `@provident-storeroom/js-win32-x64-msvc` | **`@auspicion/js-win32-x64-msvc`** |
+
+**AND THE ARITHMETIC IS STILL THE MAP'S OWN AND STILL UNMOVED: `5` labels = `5` names, `3` of the `5` carrying a
+toolchain suffix (`-gnu` twice, `-msvc` once) and `2` carrying none — so `3 + 2 = 5` ✓, the SUFFIX and the
+SECOND SEGMENT are UNMOVED in every row, and the REPLACED SEGMENT IS THE FIRST ONE ALONE.** **AND THE FINDING RULE
+IS RE-SPELLED AT THE NEW SCOPE AND WIDENED BY NAME: A SIXTH ARTEFACT NAME, A NAME THAT DROPS A SUFFIX THE
+PUBLISHED ARTEFACT CARRIES, A NAME WHOSE SCOPE IS NOT `@auspicion`, OR A NAME WHOSE SCOPE IS STILL
+`@provident-storeroom`, IS A FINDING** (`DD-25`; `DD-26`; `§3.1` item 2). **AND THE PRICED ALTERNATIVE `A86`(b) —
+`@auspicion/storeroom-js-<label>` — IS CARRIED AND UNAPPLIED.** **AND ONE THING THIS CLAUSE DOES NOT MOVE, STATED
+BECAUSE IT IS THE MAP'S OWN PLACEHOLDER: the earlier map's `<scope>` spelling stands UNMOVED as a PLACEHOLDER
+whose filling is `§3.1` item 2's identity, and this clause fills nothing in it**
+(`[A1 docs/specs/storeroom-publish-proposal.md §12 · `A86`(a)(b); A1 docs/specs/storeroom-publish/contract.md §1.3 —
+the same ruling's clause at this pass's sibling home; A3 docs/specs/storeroom-publish/contract.md §0.3 ·
+`PUB-DD-15` | numeric or census claim]`).
 
 ### §3.3 The trigger, the version and the CI
 

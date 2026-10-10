@@ -247,6 +247,46 @@ docs/specs/storeroom-js-convenience-proposal.md §6 — the blast radius this st
 docs/specs/spec-scope-and-structure/contract.md §C.3 — the closure predicate's single arithmetic, and §C.11.7's
 entry-counted unit | numeric or census claim]`).
 
+**⟶ RECONCILED 2026-10-11 — THE `A86` SCOPE PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING *"Change org to
+`@auspicion`"* (`docs/specs/storeroom-publish-proposal.md` `§12`): THE FIVE PLATFORM PACKAGES' NAMES MOVE TO THE
+ORG `@auspicion`, AND THE TWO HOMES OF THIS DIRECTORY ARE AMENDED RATHER THAN SUPERSEDED.** `RCA-8(d)`
+ANNOTATE-BESIDE: **every bullet and every figure above stands BYTE-FOR-BYTE — the status block, the unit/prefix
+line, the `RECONCILED` clause, the scope boundary, the part map, the omissions table and both closure-arithmetic
+clauses included — and each is read THROUGH this clause; THIS clause is a PURE INSERTION, it creates no file,
+renumbers no `§`, moves no row of the part map, mints no `DD` row, inserts no `PAR-JS` row and re-decides no
+ruling.** **THE RULING, VERBATIM: *"Change org to @auspicion"*** (`A86`; that filing's `§12`).
+
+| The figure or cell | What it was before this pass | What it reads now |
+| --- | --- | --- |
+| **the five PLATFORM names' SCOPE** (`package.md §3.2`'s two maps and their table; `contract.md §0.2`'s `DD-25`) | `@provident-storeroom/js-<label>`, `5` names | **`@auspicion/js-<label>`, `5` names** — the scope segment ALONE replaced at `A86`(a), the operative default; **`A86`(b) — `@auspicion/storeroom-js-<label>` — is CARRIED AS THE PRICED ALTERNATIVE and is NOT applied, its reversal being ONE LINE that must be taken BEFORE the first platform publish** |
+| **the SCOPE'S OWN FOOTING** | **the supervisor's PRICED DERIVATION** — `A84`'s `A-1`, whose five names that filing's `§9` calls *"always the supervisor's priced derivation"*, so correcting it was *"inside the ruling rather than beside it"* | **THE ARCHITECT'S OWN — AN ORG HE CONTROLS, AND NOT A DERIVATION AT ALL.** `A86` changes the ORG, so the scope is now his act rather than a supervisor's derivation, and `A85`(5)'s precondition — that the scope be OWNED — is thereby answered |
+| **`DD-25`** (the prebuild matrix's membership and hosting) | `5` targets, produced by CI on each release tag, hosted as the registry's own per-target optional-dependency artefacts | **UNMOVED: `5` targets, the same hosting, the same `DD-25` row, the same property `P-TP-7`'s `S-LOAD`.** **The SCOPE of the names those five artefacts carry moves UNDER it and THE ROW DOES NOT** |
+| **`DD-26`** (the package IDENTITY) | **the package's registry identity is `@provident-storeroom/js`**, with the sibling crate's `[package] name` `storeroom-js-binding` and the crate id `storeroom_js_binding` | **UNMOVED, AND THE RULING DOES NOT REACH IT: `DD-26`'s subject — THIS package's registry identity — is NOT one of the five platform names, and its own crate spellings are the crate's.** **THE ROW IS AN `ACTIVE` ROW AND IT IS AMENDED, NEVER SUPERSEDED** |
+| **the register** | `8` rows, cap `≤ 8` | **`8` rows, cap holding at `8 ≤ 8` ✓, and NO ROW ADDED** |
+| **the `PAR-JS` set** | `18` rows | **`18` rows, UNMOVED, and NO ROW ADDED** |
+| **the `DD` family** | `54` rows (`DD-1`…`DD-54`) | **`54` rows (`DD-1`…`DD-54`), UNMOVED: `29 + 18 + 3 + 4 = 54` ✓, NO ROW ADDED, DROPPED OR RENUMBERED** |
+| **the `HO-` family** | `HO-1`…`HO-7` | **UNMOVED, NO ROW ADDED** |
+| **the MAIN package's own identity** (`A82`) | `provident-storeroom`, UNSCOPED | **UNMOVED — `A86` changes an ORG and not that identity.** **Its cells are `docs/specs/storeroom-publish/distribution.md §6.1` item 1, `§6.3` row 6, `parameter-semantics.md §2.1`, `release.md §1.4` step 5 and `release.md §4.2` act 1; each was read this pass, each stands, and NONE is edited from this directory** |
+
+**AND THE CLOSURE PREDICATE, PRINTED WITH BOTH FIGURES SO IT IS CHECKED AND NOT ASSUMED — IT HOLDS.** **THE LEFT
+SIDE: `{part-map PART entries}` = `{rows of the part map}` − `{the contract-document row}` = `7 − 1` = `6`.** **THE
+RIGHT SIDE, ON THE OPERATIVE PART-ENTRY COUNTING: the `5` `carrier` parts (`crossing` · `surface` · `package` ·
+`acceptance` · `parameter-semantics`) + `implementation-plan` (a `carrier` part) + the `view` part `test-cases` =
+`6`** — **so the predicate reads `6 = 6` ✓ AND IT HOLDS.** **AND THE RAW FILE SET, PRINTED BESIDE IT BECAUSE A
+READER MAY COUNT FILES: `crossing.md` · `surface.md` · `package.md` · `acceptance.md` · `parameter-semantics.md` ·
+`implementation-plan.md` · `test-cases.md` = `7` files beside `contract.md`, each one an entry of the map — so the
+two countings agree at `7` entries and `7` files, and the `3` recorded omissions contribute to NEITHER side.**
+**THIS PASS CREATES NO PART FILE: the ONLY file it adds is
+`docs/specs/storeroom-js/backup/A86-SCOPE-2026-10-11-manifest.md`, which is a `DEF-14`/`DEF-15` manifest under
+`backup/` and is NOT an entry of the part map and NOT a part file** — **so the file set's own figure and the map's
+own entry count are BOTH UNMOVED, and the state stays `CLOSED`.** **AND ONE MORE FIGURE, PRINTED BECAUSE THIS
+PASS'S OWN RULES REQUIRE IT: the `derivation:` clause stays SINGLE — this document still carries exactly ONE, at
+its opening clause, and THIS clause carries an authority tag and no second one.**
+(`[A1 docs/specs/storeroom-publish-proposal.md §12 · `A86`(a)(b); A1 docs/specs/storeroom-publish/contract.md §1.3
+and `docs/specs/storeroom-js/package.md §3.1`/`§3.2` — the same ruling's clauses at this pass's two homes; A3
+docs/specs/spec-scope-and-structure/contract.md §C.3 — the closure predicate's single arithmetic, and §C.11.7's
+entry-counted unit | numeric or census claim]`).
+
 ## §0. The index region's own rules — the claim ledger, the design-defaults table, and the id families
 
 ### §0.1 The document's own form rules
@@ -514,6 +554,15 @@ unit mints no status code** (`[A3 docs/specs/spec-authoring-discipline/contract.
 `alt` obligation; A3 docs/specs/storeroom-js/contract.md §0.1 item 5 — the `≤ 8` cap; A1
 docs/specs/storeroom-js-proposal.md §8 · `A79`–`A81` — the silences the four rows carry | numeric or census
 claim]`).
+
+**⟶ RECONCILED 2026-10-11 — THE `A86` SCOPE PASS (`role_spec_writer`): THE TWO CELLS OF THIS TABLE THE RULING REACHES, RE-EMITTED WITH THEIR AS-FILED SPELLINGS AND RE-READ — AND BOTH ROWS KEPT, AMENDED AND NEVER SUPERSEDED.** `RCA-8(d)` ANNOTATE-BESIDE: **every row above, every census clause above and every closing arithmetic above stand BYTE-FOR-BYTE and are read THROUGH this clause; THIS clause is a PURE INSERTION — it ADDS NO ROW, DROPS NO ROW, RENUMBERS NO ROW and re-decides no rule.** **THE RULING IS `A86` — *"Change org to @auspicion"* — and the reading applied is `A86`(a), the scope segment alone replaced** (`docs/specs/storeroom-publish-proposal.md` `§12`).
+
+| The row | Its AS-FILED pin (RE-EMITTED VERBATIM) | The operative reading |
+| --- | --- | --- |
+| **`DD-25`** | **the prebuild matrix is the three platforms × two architectures the package's first cut supports — `linux-x64` · `linux-arm64` · `darwin-x64` · `darwin-arm64` · `win32-x64` — `5` targets, produced by CI on each release tag and hosted as the registry's own per-target optional-dependency artefacts** | **UNMOVED: the membership (`5` labels), the hosting, the trigger and the row's own property (`P-TP-7`'s `S-LOAD`) are the same. THE SCOPE OF THE NAMES THOSE FIVE ARTEFACTS CARRY MOVES UNDER THIS ROW AND THE ROW DOES NOT: they are `@auspicion/js-<label>`, and the row's own citation `package.md §3.2` now prints the operative five names beside the as-filed ones** |
+| **`DD-26`** | **the package's registry identity is `@provident-storeroom/js` and the sibling crate's `[package] name` is `storeroom-js-binding`, with the crate id `storeroom_js_binding`** | **UNMOVED, AND `A86` DOES NOT REACH IT: this row's subject — THIS package's own registry identity — is NOT one of the five platform names the ruling re-scopes. The identity `@provident-storeroom/js`, the crate's `storeroom-js-binding` and the crate id `storeroom_js_binding` each STAND. THE ROW IS AN `ACTIVE` ROW AND IT IS AMENDED, NEVER SUPERSEDED: this clause re-reads its fact and replaces no cell of it** |
+
+**AND ONE READING THE TWO ROWS' DIFFERENCE OWES, STATED SO A READER DOES NOT COLLAPSE THEM: THE FIVE PLATFORM ARTEFACTS' NAMES AND THIS PACKAGE'S OWN REGISTRY IDENTITY ARE TWO DIFFERENT IDENTITIES, and after this pass they may spell different scopes. A pass that moved `DD-26`'s subject to `@auspicion/js` as well would be taking a SECOND identity change, which `§12` does not order and this pass does not take.** **AND THE SCOPE'S OWN FOOTING IS RE-STATED WITH THE `DD-25` HALF: `A84`'s `A-1` introduced the five names' scope as THE SUPERVISOR'S PRICED DERIVATION, while `A86` CHANGES THE ORG — so the scope is now THE ARCHITECT'S OWN, an org he controls, AND NOT A DERIVATION AT ALL; and `A86`(b) — `@auspicion/storeroom-js-<label>` — is CARRIED AND UNAPPLIED, its reversal being one line to be taken before the first platform publish.** **AND THE TABLE'S OWN CENSUS IS UNMOVED BY THIS CLAUSE: `54` AUTHORED rows, `29 + 18 + 3 + 4 = 54` ✓, NO ROW ADDED, DROPPED OR RENUMBERED, the register still `8` rows with the cap holding (`8 ≤ 8` ✓), the `PAR-JS` range still `PAR-JS-1`…`PAR-JS-18`, the `HO-` range still `HO-1`…`HO-7`, and no status code minted** (`[A1 docs/specs/storeroom-publish-proposal.md §12 · `A86`(a)(b); A1 docs/specs/storeroom-publish/contract.md §1.3 · A1 docs/specs/storeroom-js/package.md §3.1` and `§3.2` — the same ruling's clauses at this pass's homes; A3 docs/specs/storeroom-js/contract.md §0.1 item 5 — the `≤ 8` cap | numeric or census claim]`).
 
 **AND THE FOURTH STRUCTURE OF THE SAME SWEEP THAT NEEDS NO CELL, STATED BECAUSE IT IS THE ONE OF THAT
 DIRECTORY'S NAMED STRUCTURES THAT IS THIS UNIT'S OWN SURFACE'S NEIGHBOUR:** **`U-9` — the `LISTENERS`
