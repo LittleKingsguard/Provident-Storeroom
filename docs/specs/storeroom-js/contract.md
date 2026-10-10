@@ -1023,6 +1023,39 @@ AND NO FIFTH:**
    docs/specs/storeroom-js-proposal.md §18 · A57 — *"a handle that it returns to alert the client of the
    trigger"* | requirement]`)
 
+**⟶ RECONCILED 2026-10-11 — THE BLIND GREENS PASS (`role_spec_writer`), CLOSING THE RECORDED TENSION
+(`archive/gate5/storeroom-js-greens-run.md` §4) AT THIS DOCUMENT'S OWN HOME OF RULE 3, SO THE TWO HOMES OF THE
+ONE RULE AGREE: *"the store returns that token ONCE"* READ AGAINST THE STORE'S `DD-42` DUPLICATE CASE.**
+`RCA-8(d)` ANNOTATE-BESIDE: **rules 1–4 above stand byte-for-byte — rule 3's own sentence included and NOT
+re-worded — and they are read THROUGH this clause; THIS clause is a PURE INSERTION, it re-decides no rule,
+adds no member and mints no code.**
+**THE AS-FILED SENTENCE, NAMED AS FILED:** ***"Where two construction entries at one address carry the
+caller's SAME token, the store returns **that token ONCE** in the triggered set where the store minted it, and
+the registry fires **one** invocation per DISTINCT handle — not one per occurrence, and not one per entry"***
+(this document's `§2.4` rule 3, second sentence) — **against the store's `DD-42` clause, which declares for that
+same caller-spelled duplicate that `triggered` carries that token TWICE** (`docs/specs/storeroom-native/contract.md`
+§0.2 · `DD-42`; its clauses (1) and (2) at that contract's `§0.4`'s mint clause). **THE RECONCILED READING SPLITS
+THE SENTENCE INTO TWO OBSERVABLES AND ASSIGNS EACH ITS CARRIER AND ITS GOVERNING CLAUSE:** **where the STORE
+MINTED the token, rule 3's *"once"* governs and holds in both halves — ONE identity reachable once is returned
+once and invokes once, because the mint's own non-collision rule runs before the token is handed out, so one
+mint can never make two entries share a token; and where TWO ENTRIES AT ONE ADDRESS CARRY ONE TOKEN BY THE
+CALLER'S OWN ACT, the ARRAY's multiplicity is the STORE's declaration — TWICE, the construction having ADOPTED
+both entries verbatim (`DD-39`; `write-and-read.md §6.5` item 12 (b)) — while the INVOCATION COUNT stays the
+PACKAGE's own rule, ONE per DISTINCT identity, so that duplicate token's one function runs ONCE.** **NO ORDER IS
+ASSERTED BY EITHER FIGURE** (`§2.7` item 3; `DD-22`), **and the register's two relevant failure-list lines stay
+FALSE of every lawful state: `P-SM-5`'s *"a duplicate token that fires twice per distinct handle"* and
+`P-TP-8`'s *"a duplicate member where the store minted the token"*.**
+**THE FULL STATEMENT — WITH THE SHIPPED ARTEFACT'S OWN BOUNDARY COLLAPSE NAMED AND ITS `alt` PRICED, AND WITH
+THE TWO INDEPENDENT OBSERVABLES THE ARRAY'S LENGTH AND THE INVOCATION COUNT ARE — STANDS AT
+`docs/specs/storeroom-js/surface.md §2.4`'s dated clause of this date, which is the operative statement of rule
+3's multiplicity and of the array's faithful carry; THIS clause carries the same split at this document's own
+home of the rule and declares nothing the part does not already carry.**
+(`[A1 docs/specs/storeroom-js-proposal.md §9.2 — the registry's four rules as adopted; A1
+docs/specs/storeroom-js-proposal.md §18 · `A57` · `A77`; A3 docs/specs/storeroom-native/contract.md §0.2 ·
+`DD-42` and `DD-39` with that contract's `§0.4` clauses 1–2; A3 docs/specs/storeroom-js/surface.md §2.4's dated
+clause of this date (the operative statement); A3 archive/gate5/storeroom-js-greens-run.md §4 |
+declared parameter semantics]`).
+
 **⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), CLOSING THE RED SET'S CONTRACT
 FINDING 1 (`archive/gate3/storeroom-js-red-set.md` §5 item 1): THE REGISTRATION SITE'S DECLARED SPELLING.**
 `RCA-8(d)` ANNOTATE-BESIDE: **rules 1–4 above stand byte-for-byte and are not restated; THIS clause is the
@@ -1294,6 +1327,46 @@ five reached from a consumer's own module graph, is a FINDING** — **the second
 (`[A1 docs/specs/storeroom-js-proposal.md §15 · A70 — the claimed realm is the ESM entry ALONE; A1
 docs/specs/storeroom-js-proposal.md §17 · `A75`; A3 docs/specs/storeroom-js/package.md §1.2 — the internal
 reach, which is not a second realm and not a second entry | requirement]`).
+
+**⟶ RECONCILED 2026-10-11 — THE BLIND GREENS PASS (`role_spec_writer`), CLOSING THE DOC FINDING `F-DOC-1`
+RECORDED AT `archive/gate5/storeroom-js-greens-run.md` §4, AT THIS DOCUMENT'S OWN HOME OF THE SPAN, SO THE TWO
+HOMES OF ONE DECLARATION AGREE.** `RCA-8(d)` ANNOTATE-BESIDE: **the paragraph and the clause above stand
+byte-for-byte — *"NO ONE OF THE FIVE IS A NAMED EXPORT … the entry's named exports are the `8` verbs of
+`§2.9` item 1 and NOTHING ELSE"* included and NOT re-worded — and they are read THROUGH this clause; THIS
+clause is a PURE INSERTION, it adds no name, mints no id and moves no count of this section.**
+**THE AS-FILED CLAUSE, NAMED AS FILED, BECAUSE ITS SENTENCE IS FALSE OF ONE OF ITS OWN FIVE NAMES READ AGAINST
+`package.md §1.3` ITEM 3's OWN LIST:** ***"NO ONE OF THE FIVE IS A NAMED EXPORT OF THE CLAIMED ESM ENTRY"***
+(this document's §3.1 dated clause above, whose five are `version` · `errorMessage` · `storeCreate` · `call` ·
+`register`). **THE CLAUSE THAT GOVERNS IS ITEM 3's LIST** — *"the NAMED EXPORTS are exactly the verbs of
+`surface.md §2` and the package's own instance handle factory — and NOTHING ELSE"*
+(`docs/specs/storeroom-js/package.md §1.3` item 3) — **and that list CONTAINS the construction verb
+`storeCreate`.**
+**THE SPLIT, IN THE FORM THIS DOCUMENT'S OWN FIVE-FORM CITATION ENUM CAN CARRY — IT IS A READING RULE AND
+MINTS NO CONTRACT ID:** **the entry's namespace named exports are the `8` of `§2.9` item 1 — `delete` ·
+`listen` · `read` · `readLiteral` · `rollback` · `storeCreate` · `unlisten` · `write` — and OF THE FIVE NAMES
+THE CLAUSE ABOVE LISTS, FOUR ARE INTERNAL-ONLY (`version` · `errorMessage` · `call` · and the ADDON's own
+`register`) WHILE THE FIFTH, `storeCreate`, IS ALSO THE ENTRY'S OWN CONSTRUCTION VERB AND IS THEREFORE A NAMED
+EXPORT OF THIS UNIT'S SURFACE — *"NO ONE OF THE FIVE IS A NAMED EXPORT OF THE CLAIMED ESM ENTRY"* IS READ,
+FROM THIS DATE, AS *"NO ONE OF THE FOUR INTERNAL-ONLY NAMES IS A NAMED EXPORT OF THE CLAIMED ESM ENTRY, AND THE
+ENTRY'S NAMED EXPORTS ARE THE `8` OF `§2.9` ITEM 1 AND NOTHING ELSE"*.** **THE PACKAGE'S INSTANCE HANDLE'S ONE
+MEMBER `register` IS NOT A NAMED EXPORT EITHER, being reached through the factory's own PRODUCT
+(`surface.md §2.4` item 5 (a)); and WHAT THE AS-FILED SENTENCE FORBIDS IS AN NAME BEYOND THE DECLARED SET —
+a NINTH entry name, or a SIXTH name on the internal artefact, which stays a FINDING.**
+**AND THE TWO FIGURES THAT SETTLE IT, CITED AT THEIR SITE AND NOT RE-DERIVED HERE: the gate-5 blind run's
+SURFACE scenario `JSG-01` holds at `13/13` — its `JSG-01.2` enumerating exactly the `8` names above, with
+`storeCreate` among them — and the same run's `JSG-12.13` cell, re-derived as a DERIVATION after its first form
+obeyed the as-filed sentence, PASSES with the FOUR internal-only names absent and `storeCreate` read as the
+entry's own declared factory** (`archive/gate5/storeroom-js-greens-run.md` §2's named derivation correction and
+§4 · `F-DOC-1`; the same finding's own home is `package.md §1.3` item 4's dated clause).
+**THE FULL STATEMENT, AT THE PART THAT CARRIES THE ITEM: `docs/specs/storeroom-js/package.md §1.3`'s dated
+clause of this date, which prints the as-filed sentence beside this one and is the operative statement of the
+item; THIS clause carries the same split at the contract document's own home of the span and declares nothing
+the part does not already carry.**
+(`[A1 docs/specs/storeroom-js-proposal.md §15 · A70 — the claimed entry's own namespace; A1
+docs/specs/storeroom-js-proposal.md §17 · `A75`; A3 docs/specs/storeroom-js/package.md §1.3 item 3 (the clause
+that governs), item 4 and that item's dated clause (the operative statement); A3
+docs/specs/storeroom-js/surface.md §2.4 item 5 (a); A3 archive/gate5/storeroom-js-greens-run.md §4 · `F-DOC-1` |
+cross-reference]`).
 
 ### §3.2 Every other realm is UNCLAIMED, and each owes its declared answer
 

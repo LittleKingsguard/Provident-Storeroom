@@ -666,6 +666,59 @@ struct JsRollbackResult        { opId: String, undoneOps: Vec<String>, restoredT
   the returned-record rows this struct serves; A1 docs/specs/storeroom-js/contract.md §0.2 · `DD-39` — the JS
   side's own spellings, read with `DD-40` | requirement]`).
 
+**⟶ RECONCILED 2026-10-11 — THE BLIND GREENS PASS (`role_spec_writer`), CLOSING THE DOC FINDING `F-DOC-1`
+RECORDED AT `archive/gate5/storeroom-js-greens-run.md` §4: `§1.3` ITEM 4's *"none of the five is a named
+export of the claimed ESM entry"*, READ THROUGH ITEM 3's OWN LIST.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1–4
+above stand byte-for-byte — item 4's own duties list and its *"A SIXTH NAME IS A FINDING"* clause included —
+and item 4 is read THROUGH this clause; THIS clause is a PURE INSERTION, it adds no name to the addon's five,
+moves no entry of the `exports` map and moves no figure of this section.**
+**THE AS-FILED SENTENCE, NAMED AS FILED, BECAUSE IT IS FALSE OF ONE OF ITS OWN FIVE NAMES ON ITEM 3's
+READING:** ***"Every one of the five is INTERNAL — none is a named export of the claimed ESM entry …"***
+(`package.md §1.3` item 4, its second sentence). **ITEM 3's OWN LIST IS THE CLAUSE THAT GOVERNS** — *"the
+NAMED EXPORTS are exactly the verbs of `surface.md §2` and the package's own instance handle factory — and
+NOTHING ELSE"* — **and that list CONTAINS the construction verb `storeCreate`, which item 4's own first
+sentence counts among the addon's five.** **SO THE ONE SPELLING CARRIES TWO CARRIERS' DUTIES, and the split is
+stated here ONCE:**
+- **WHICH NAMES *ARE* NAMED EXPORTS OF THE CLAIMED ESM ENTRY — THE NAMESPACE ITEMS, AND THEY ARE THE `8` OF
+  ITEM 3'S OWN LIST: `delete` · `listen` · `read` · `readLiteral` · `rollback` · `storeCreate` · `unlisten` ·
+  `write`. `storeCreate` IS one of the eight, as the entry's construction verb and instance-handle factory;
+  the enumeration remains *"AND NOTHING ELSE"* — a NINTH name is still a FINDING, and `register` is not one.**
+- **WHICH NAMES ARE *NOT* — and they are read in TWO families, because they are two carriers: (i) THE
+  INSTANCE'S OWN MEMBERS — `register(handle, listener)` alone, the ONE member of the object `storeCreate`
+  RETURNS (`surface.md §2.4` item 5 (a): reached through the factory's own PRODUCT and never through the
+  module namespace); and (ii) THE ADDON'S INTERNALS — its five export names are `version` ·
+  `errorMessage` · `storeCreate` · `call` · `register`, of which the FOUR INTERNAL-ONLY ones are `version` ·
+  `errorMessage` · `call` and the addon's OWN `register`, while the fifth is the SHARED SPELLING — so the FOUR
+  are absent from the module graph and the FIFTH is present BECAUSE ITEM 3 DECLARES THAT NAME.**
+- **AND THE SPLIT OF THE ONE SHARED SPELLING, STATED WITH ITS TERM: the entry's `storeCreate` and the addon's
+  `storeCreate` are TWO EXPORTS OF TWO CARRIERS — one is a NAMED EXPORT of the ESM namespace, the other is a
+  member of the internal artefact's own export set reached ONLY through the object the entry's module-private
+  key holds (`§1.2` items 1–2) — and `register` exists twice in the same way, once as the INSTANCE's only
+  member and once as the ADDON's internal step, and NEITHER is a named export of the module namespace
+  (`surface.md §2.4` item 5 (a); `§2.9` item 1's `8`-verb count).**
+**WHAT THE AS-FILED SENTENCE WAS TRYING TO FORBID, NAMED SO THE RE-SPELLING IS NOT READ AS A WIDENING: A NAME
+BEYOND THE DECLARED SET — `package.md §1.3` item 3's *"AND NOTHING ELSE"* — whether it be a NINTH named export
+of the entry (`findAddress` · `exists` · `dispose`/`close` · a verb of the store's own surface · an internal
+name reached from a consumer's own module graph) or a SIXTH name on the addon itself (`§4.5` item 7's finding
+rule).** **A READER WHO TAKES ITEM 4's SENTENCE AS A BAN ON THE NAME `storeCreate` WOULD READ A FINDING
+AGAINST A BUILD THAT ITEM 3 DECLARES AND AGAINST THE PACKAGE ITSELF; and a reader who takes it as a licence
+for a ninth name would read item 3's *"NOTHING ELSE"* out of existence — NEITHER READING IS THIS CLAUSE's.**
+**AND THE MEASUREMENT THAT SETTLES IT, CITED RATHER THAN RE-DERIVED HERE: the gate-5 blind run's SURFACE
+scenario `JSG-01` holds at `13/13`, whose `JSG-01.2` enumerates the namespace AS EXACTLY THE `8` NAMES ABOVE
+(`storeCreate` among them), whose `JSG-01.9` enumerates the returned object's own member set AS EXACTLY
+`{ register }`, and whose `JSG-01.7` and `JSG-01.12` read `register` and the four internal-only names as NOT
+own exports of the module — so ITEM 4's SENTENCE IS FALSE OF `storeCreate` AND THE BUILD FOLLOWS ITEM 3**
+(`archive/gate5/storeroom-js-greens-run.md` §4 · `F-DOC-1`; its §2's `JSG-12.13` derivation; §5 item 1).
+**AND NO FIGURE OF THIS SECTION MOVES: `§1.3` item 3's *"NOTHING ELSE"* stands, the addon's `5` names stand,
+`§4.5` item 7's finding rule stands, and the entry's named-export count stays `8`** — **a NINTH name, a sixth
+addon name, a name of the four internal-only ones reached from a consumer's own module graph, and a claim
+that `storeCreate` is NOT a named export of the entry, are EACH a FINDING**
+(`[A1 docs/specs/storeroom-js-proposal.md §15 · A70 — the claimed entry is the ESM one and its namespace is the
+declared set; A1 docs/specs/storeroom-js-proposal.md §17 · `A75` — the internal reach; A3
+docs/specs/storeroom-js/package.md §1.3 item 3 — the clause that governs; A3 docs/specs/storeroom-js/surface.md
+§2.4 item 5 (a) — the instance's one member; A3 archive/gate5/storeroom-js-greens-run.md §4 · `F-DOC-1`, with
+its `JSG-01`/`JSG-12.13` figures | cross-reference]`).
+
 **5. THE INSTANCE, ITS VERBS AND THE PACKAGE-OWNED REGISTRY'S HOME.** **`Instance` is the core's own type,
 holding ONE store instance and the PACKAGE-OWNED registry of `§2.4`; the core never invokes a listener of
 its own accord, and the facade reads the registry's answer and performs the invocation after the verb

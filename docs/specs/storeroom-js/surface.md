@@ -315,6 +315,80 @@ of a later bounded pass and no byte of either item's text moves here**
 own reach; A3 docs/specs/storeroom-js/surface.md §2.5 item 5 (g) — the operative reading this clause reads
 (f) through | state or fail-state declaration]`).
 
+**⟶ RECONCILED 2026-10-11 — THE BLIND GREENS PASS (`role_spec_writer`), CLOSING THE RECORDED TENSION AT
+`archive/gate5/storeroom-js-greens-run.md` §4 (*"THE TENSION THE SET DID NOT ASSERT"*): `§2.4` RULE 3's *"the
+store returns that token ONCE"* AGAINST THE STORE'S `DD-42` CLAUSE.** `RCA-8(d)` ANNOTATE-BESIDE: **rules 1–4,
+item 5 and item 6 whole — clauses (a)–(f) included, and this part's own earlier dated clauses — stand
+byte-for-byte and are read THROUGH this clause; THIS clause is a PURE INSERTION, it re-spells no rule, adds no
+member and mints no code.**
+**THE AS-FILED SENTENCE, NAMED AS FILED, BECAUSE TWO DOCUMENTS PRINT TWO COUNTS FOR ONE STATE:** ***"Where two
+construction entries at one address carry the caller's SAME token, the store returns **that token ONCE** in the
+triggered set where the store minted it, and the registry fires **one** invocation per DISTINCT handle — not
+one per occurrence, and not one per entry"*** (`§2.4` rule 3, second sentence) — **while the store's own
+`DD-42` clause declares, for the same caller-spelled duplicate, that `triggered` carries that token TWICE**
+(`docs/specs/storeroom-native/contract.md` §0.2 · `DD-42`; its clause (2) at that contract's `§0.4`, the
+mint's-own-rule clause; `write-and-read.md` §6.5 item 12 (b)'s *"ADOPTED VERBATIM"*). **BOTH COUNT WHAT THEY
+COUNT, AND WHICH CLAUSE GOVERNS WHICH CASE IS STATED HERE ONCE:**
+- **CASE A — ONE IDENTITY IS REACHABLE ONCE (ONE HOME ENTRY, ONE ANCHOR, ONE RETURNED ID), which is EVERY case
+  in which THE STORE MINTED THE TOKEN: rule 3's *"once"* governs, and it holds in BOTH of its halves — the
+  returned set carries the one identity ONCE and ONE invocation follows.** **AND REACHABILITY, NOT LUCK, IS
+  WHY: the mint runs its non-collision rule BEFORE it hands the token out, so one mint can never produce two
+  identities and one identity can never be held by two minted entries** (`DD-42` clause (1); the store's
+  `§0.4`'s mint clause; `write-and-read.md` §6.5 item 12 (c)'s address-level idempotence).
+- **CASE B — TWO ENTRIES CARRY ONE TOKEN BY THE CALLER'S OWN ACT (two `listeners[]` entries at one address,
+  the caller's SAME token in both): THE STORE'S DECLARATION GOVERNS THAT ARRAY, and in that state the store
+  `triggered` list carries the token TWICE** — **the construction is a POPULATION step that ADOPTS the
+  caller's tokens verbatim and keeps BOTH entries, so one token has two occurrences to return** (`DD-39`;
+  the store's `§0.4` clause 2 (b); `write-and-read.md` §6.5 item 12 (b)).
+**AND RULE 3's *"one invocation per DISTINCT handle"* IS RECONCILED WITH IT, NOT AGAINST IT — THAT IS THE
+READING, AND IT SPLITS THE SENTENCE INTO ITS TWO INDEPENDENT OBSERVABLES:**
+- **(i) THE INVOCATION COUNT — ONE PER DISTINCT IDENTITY, AND IT IS THE PACKAGE'S OWN RULE.** One identity
+  invoked ONCE, however many occurrences carry it: **an array carrying ONE DISTINCT identity yields ONE
+  invocation, never one per element and never one per entry** — **so in CASE B the duplicate token's ONE
+  function runs ONCE** (`§2.4` rule 3; `§2.4` item 6 (b)–(e)).
+- **(ii) THE ARRAY'S ELEMENT MULTIPLICITY — THE STORE'S OWN DECLARED LIST, CARRIED OUT FAITHFULLY AND NOT
+  DEDUPLICATED AT THE BOUNDARY.** **`triggered` crosses as a fresh JS array of the handles the store's own
+  list carries (`§2.7` item 1), and `crossing.md §1.3`'s returned-record rows carry the members ELEMENT FOR
+  ELEMENT** — **so in CASE B THE JS-OBSERVABLE `triggered` CARRIES THE TOKEN TWICE, and a drive may assert the
+  array's LENGTH (`2`) and its DISTINCT-identity count (`1`) TOGETHER; `§2.7` item 3's *"no order is asserted"*
+  is UNMOVED by either figure** (`PAR-JS-15`; `§2.7` item 3; `docs/specs/storeroom-js/crossing.md` §1.3's
+  returned-record rows).
+**AND ONE DIVERGENCE IS NAMED RATHER THAN SMOOTHED, BECAUSE THIS PASS MEASURES A BUILD AND NOT A READING: THE
+SHIPPED ARTEFACT DEDUPLICATES AT THE BOUNDARY.** **`bindings/js/index.mjs`'s `wrapHandles` pushes each token's
+handle into its output AT MOST ONCE and reads rule 3's *"one DISTINCT handle per token, however many home
+entries carry it"* as the list's OWN distinctness rule — so the shipped JS-observable `triggered` carries
+CASE B's token ONCE where (ii) above reads the store's list as carried faithfully TWICE.** **THE DECLARED
+READING OF THIS CLAUSE IS (ii); THE SHIPPED COLLAPSE IS THE PRICED ALTERNATIVE BELOW, and WHICH SIDE THE
+DIVERGENCE SITS ON IS FOR THE PASS THAT RECONCILES THE BUILD TO THIS CLAUSE TO SAY — this clause declares the
+reading and takes no finding against either side.** **AND THE INVOCATION IS UNAFFECTED EITHER WAY: the shipped
+`deliver` iterates whatever the array carries and the registry holds AT MOST ONE function per identity, so ONE
+identity invokes ONE function ONCE under BOTH readings** (`§2.4` rules 2–3; `bindings/js/index.mjs`'s
+`wrapHandles`/`deliver`; `P-SM-5`).
+**AND THE ALTERNATIVE, PRICED BECAUSE A DEFAULT THIS PASS TAKES OWES ONE: THE BOUNDARY COLLAPSES DUPLICATE
+TOKENS AT HANDOFF — `triggered` carrying ONE member per DISTINCT identity, and *"a count of DISTINCT handles"*
+read as a rule about the ARRAY rather than about the COUNT.** **Priced: it needs a DEDUPLICATION CLAUSE with
+its own observable, and `parameter-semantics.md §2.15`'s OUTSIDE-value list already names *"a duplicated
+member"* while the store's own contract declares that same member for the caller-spelled duplicate — so the
+alternative is available only as a bounded amendment that says WHICH list it collapses and cites the store's
+row it narrows, AND WHOSE REVERSAL INSTRUMENT IS THAT AMENDMENT ITSELF AND NEVER A PARK; the declared reading
+(ii) reverses against the store-side amendment `DD-42`/`DD-39` already name.** `A66` — no park is named as
+either instrument.
+**AND NO RULE IS RE-DECIDED HERE: rule 1 (an unregistered id fires nothing silently), rule 2 (a second
+registration replaces the function and not the identity), rule 4 (`unlisten` withdraws the registration and
+never the function) and `§2.7`'s window, order and throwing-body clauses stand exactly as printed; the
+register keeps its `8` rows, every failure list unmoved — `P-SM-5`'s *"a duplicate token that fires twice per
+distinct handle"* and `P-TP-8`'s *"a duplicate member where the store minted the token"* stay FALSE of every
+lawful state — and the cells this clause reads through are named: `JSG-08.19` (the one-identity case) and
+`JSG-08.21`/`JSG-08.22` (the distinct-identity count), with the array's own length the one figure neither
+scenario asserts** (`archive/gate5/storeroom-js-greens-run.md` §4's tension; `docs/specs/storeroom-js-greens.md`
+§2 · `JSG-08`'s named tension).
+(`[A1 docs/specs/storeroom-js-proposal.md §9.2 — the registry's four rules as adopted; A1
+docs/specs/storeroom-js-proposal.md §18 · `A57` · `A77`; A3 docs/specs/storeroom-native/contract.md §0.2 ·
+`DD-42` and `DD-39` — the store's own two declarations; A3 docs/specs/storeroom-native/contract.md §0.4
+clauses 1–2 with its mint clause; A3 docs/specs/storeroom-js/crossing.md §1.3's returned-record rows; A3
+docs/specs/storeroom-js/parameter-semantics.md §2.15; A3 archive/gate5/storeroom-js-greens-run.md §4 |
+declared parameter semantics]`).
+
 ### §2.5 The single failure form
 
 **A FAILURE CROSSES AS A THROWN PLAIN OBJECT WITH EXACTLY TWO MEMBERS, AND THERE IS EXACTLY ONE SUCH
@@ -485,6 +559,57 @@ that amendment and NO PARK IS NAMED AS IT** (`A66`)
 ONE form; A3 docs/specs/storeroom-js/surface.md §2.5 item 5 (b)–(d) — the clauses this one reads;
 A3 docs/specs/storeroom-native/contract.md §8.2 — the generator's rule and its `AddressMalformed` row;
 `DD-1`; `DD-40` | state or fail-state declaration]`).
+
+**⟶ RECONCILED 2026-10-11 — THE BLIND GREENS PASS (`role_spec_writer`), ON THE IMPLEMENTER'S PARALLEL PASS'S
+CONTRACT FINDING ON `§2.5` ITEM 5 (b): *"carried INSIDE the generated message's own text"* READ AGAINST THE
+`CF-3` CLAUSE ABOVE — THE COMPOSITE'S AUTHORITY SPLIT, STATED ONCE SO TWO READINGS CANNOT BE DERIVED FROM IT.**
+`RCA-8(d)` ANNOTATE-BESIDE: **items 1–5 above, clause (b) and clause (d) included, the `CF-3` clause above and
+its five parts and its `alt` included, all stand byte-for-byte and are read THROUGH this clause; THIS clause is
+a PURE INSERTION, it adds no member to the form — the member set stays EXACTLY `{status, message}` — moves no
+status, no count and no code of the store's closed set, and re-decides no part of the split.**
+**THE AS-FILED WORDING OF CLAUSE (b), NAMED AS FILED:** ***"THE POSITION IS THE ONE THING THIS SECTION DECLARES
+THAT THE STORE'S OWN PHRASES DO NOT CARRY, so it is carried INSIDE the generated message's own text and NEVER
+as a third member."*** **READ ALONE IT ADMITS TWO READINGS, and the second one is false of the build: (i) the
+GENERATOR produces one string that already carries the target, the class and the position (the reading the
+`alt` below prices); or (ii) the `message` as a WHOLE carries it, and it COMPOSES two authored parts.** **THE
+OPERATIVE READING IS (ii), AND THE SPLIT IS THIS, WITH EACH PART'S AUTHOR, ORDER AND SLOT NAMED SO NO THIRD
+READING IS AVAILABLE:**
+- **SEGMENT ONE — PART ONE — IS THE STORE'S GENERATOR'S OWN, VERBATIM, AND IT CARRIES THE TARGET.**
+  **`message` BEGINS WITH the string the store's own generator yields for the ANSWERING CODE at the failing
+  TARGET's spelling — the target occupying the generator's own `<SEGMENT>` slot (and its `<path>` slot where the
+  code's template is the `file`-tier commit's), every other slot at its default — reached through the addon's
+  `errorMessage` where the artefact carries the generator, and reproduced at the ONE documented package-side
+  site where the generator is the thing that failed.** **THE STORE PRODUCES SEGMENT ONE AND THE STORE AUTHORS
+  IT** (`contract.md §2.5` item 5 (b)–(c); `package.md §1.2` item 4; the `CF-3` clause above, part 1).
+- **SEGMENT TWO — PART TWO — IS THE BOUNDARY'S OWN, IT IS APPENDED, AND IT CARRIES THE CLASS (MANDATORY) AND
+  THE POSITION (CONDITIONAL).** **THE BOUNDARY AUTHORS IT AND APPENDS IT TO SEGMENT ONE'S BYTES, AFTER A
+  SEPARATOR** — **the boundary's part is NEVER the failing target (that is the store's, in Segment One) and is
+  NEVER the store's generated string** (`§2.5` item 5 (b) and (d); the `CF-3` clause above, part 2).
+- **SO *"INSIDE THE message"* IS TRUE OF THE COMPOSITE AND *"INSIDE THE GENERATED STRING"* IS TRUE ONLY OF
+  SEGMENT ONE — WHICH IS THE WHOLE OF WHAT THE AS-FILED SENTENCE NEEDED TO SAY, stated once, here.** **THE
+  `status` IS SEGMENT NEITHER OF AND IS UNMOVED: a member of the store's closed `15`-member set, carried
+  verbatim, minted by nothing (clause (c); `DD-40`).**
+**AND THE TWO READINGS' CONSEQUENCES, PRINTED SO A READER CANNOT DERIVE THEM BY ACCIDENT: UNDER (i) the
+generator would be a STORE-SURFACE CHANGE and the store's own `MessageArgs` record and clause table would have
+to widen — the `CF-3` clause's `alt`, priced there and owned by the STORE's directory, NOT this unit's; UNDER
+(ii) NO STORE BYTE MOVES, and a boundary-authored string that STANDS IN FOR SEGMENT ONE is a FINDING (the
+`CF-3` clause's part 4).** **AND ONE DERIVATION IS NAMED BECAUSE IT IS THE ONE PLACE THE TWO READINGS COULD BE
+CONFUSED IN A DRIVE: a drive asserting the COMPOSITE's bytes asserts SEGMENT ONE's spelling of the target
+PLUS the appended reason — and NEVER a generator-produced class or position, which the JS-side route does not
+carry** (`§2.5` item 5 (d)'s honest consequence; gate 4's `JS-3`; `docs/specs/storeroom-js-greens.md` §2's
+`JSG-10.24`, which drives exactly that composite and passes at `233` PASS of `236` with the store-produced
+messages byte-for-byte).**
+**AND NOTHING ELSE OF THIS ITEM MOVES: the form stays EXACTLY `{status, message}` with no third member; the
+rejection is still NEVER a second form and NEVER a raw host error (clause (e)); `A64`'s no-discrimination rule
+still owes no helper (clause (f)); an ABSENT argument is still answered on the CALL PATH and never by a
+boundary rendering (the `CF-3` clause above, part 5); and the register keeps its `8` rows with every failure
+list unmoved** (`§2.5` item 5 (b)–(g); `DD-13`; `DD-40`).
+(`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the verbose rejection's content travelling INSIDE the
+ONE form; A3 docs/specs/storeroom-js/surface.md §2.5 item 5 clauses (b), (c) and (d) and the `CF-3` clause above
+— the split this clause states once; A3 docs/specs/storeroom-native/contract.md §8.2 — the generator's own rule
+and its `AddressMalformed` row, which the store-side reading (i) would have to widen; A3
+archive/gate4/storeroom-js-adversarial.md §A · `JS-3` — the byte-equality gap this split explains; `DD-1`;
+`DD-40` | state or fail-state declaration]`).
 
 ### §2.6 The constraint/repair pattern — a usage pattern over declared verbs, never a seam
 

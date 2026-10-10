@@ -54,8 +54,9 @@
 //   3. **THE REJECTION IS VERBOSE AND TRAVELS INSIDE THE ONE `{status, message}`** (`§2.5`, `A76`'s own
 //      reach: *"it does NOT license a SECOND failure form"*). Where the STORE produced the refusal, its own
 //      generated message crosses VERBATIM. Where the refusal is the BOUNDARY's own — a class the walk
-//      rejects before any verb — `boundaryReject` renders the failing TARGET with the store's own
-//      generator and appends the class that failed, with the position where the carrier declares one; **the
+//      rejects before any verb, **at a carrier position or at a VALUE position** — `boundaryReject` renders
+//      the failing TARGET with the store's own generator and appends the class that failed, with the
+//      POSITION the contract declares for that site (`§2.5` item 6 (a)–(b)); **the
 //      status is always a member of the store's closed set and is NEVER minted (`DD-40`).**
 //
 // **`§18` · `A77`, VERBATIM:** ***"Listener passes an id back to client-side when triggered, JS then has to
@@ -331,9 +332,98 @@ function targetSpelling(value) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// `A76`'S VERBOSE REJECTION AT A **VALUE** POSITION — `surface.md §2.5` item 6 (a)–(d), read with
+// the `CF-3` authority split that same section declares
+// ---------------------------------------------------------------------------------------------
+//
+// **THE FINDING THIS BLOCK CLOSES, NAMED AS THE SET MEASURED IT** (`archive/gate5/storeroom-js-greens-run.md`
+// §3, FINDING 1; `JSG-04.1.v` · `JSG-04.2.v` · `JSG-04.4.v`): every class the WALK refuses at a VALUE
+// position answered ONE byte-identical message — the store's generic `ValueNotAdmitted` clause at the
+// WRITE ADDRESS's own spelling — so **the reason's class half was absent at every value position**
+// (`§2.5` item 6 (b) makes it MANDATORY), **the position half was absent where the contract declares one**
+// (item 6 (b): *"the ARGUMENT POSITION for a verb's arguments, and the MEMBER POSITION for a member inside a
+// value the walk reached"*), **and PART ONE's target was the wrong datum**: the failure is about a VALUE,
+// and item 6 (a) declares that *"a non-segment value [is] PRINTED AS ITS OWN VALUE, SINGLE-QUOTED (`10n` for a
+// `bigint`, `Symbol()` for a symbol) where the failure is about a value and not about a segment"*.
+//
+// **THE TWO PARTS OF THE COMPOSITE, AND WHOSE BYTES EACH IS** (`CF-3`, the bounded correction pass that
+// closed this implementer's own contract finding, `surface.md §2.5` item 6's closing clause):
+//   1. **PART ONE IS THE STORE'S GENERATOR'S OWN, VERBATIM** — `boundaryReject` reaches the generator through
+//      the addon's `errorMessage` and hands it the failing target in the generator's own `<SEGMENT>` slot, so
+//      the target half is the store's bytes and never this file's (item 2; item 6 (d)).
+//   2. **PART TWO IS THE BOUNDARY'S OWN AND IS APPENDED** — the class that failed, and the position where the
+//      contract declares one. **IT IS APPENDED AND NOT EMBEDDED, because the generator reachable from JS
+//      fills two slots and two only** — `errorMessage(code, subject)`'s `segment` and `path`
+//      (`bindings/js/src/facade.rs`) — **which is exactly the `CF-3` split this item's own closing clause
+//      declares.** The status is a member of the store's closed set and is carried, never minted (`DD-40`).
+//
+// **AND NOTHING ON THIS PATH COERCES** (`A76`'s second part, verbatim: *"do not attempt to fix"*; `§1.8`): the
+// value's own class is READ, the class that failed is NAMED, and the value is REFUSED — never converted,
+// substituted, defaulted or truncated. The rendering of the target is the one guarded read `targetSpelling`
+// already declares (`JS-1`: catch, then classify — never propagate the host error).
+
+/// **THE POSITION A VALUE OCCUPIES** — `surface.md §2.5` item 6 (b): *"the ARGUMENT POSITION for a verb's
+/// arguments, and the MEMBER POSITION for a member inside a value the walk reached"*. `write` is the ONE
+/// verb whose argument is a VALUE (`surface.md §2.2`), so the argument position is `write`'s own `value`
+/// slot; a member the walk reached is named by its PATH from that argument, spelled with `§2.5` item 6 (a)'s
+/// own segment spellings — **a string key SINGLE-QUOTED (`'a'`) and an integer index BARE (`0`), JOINED BY
+/// `/`**, which is the spelling the item declares for a whole address.
+const VALUE_ARGUMENT_POSITION = "the write's value argument";
+
+function valuePosition(path) {
+  if (path.length === 0) return VALUE_ARGUMENT_POSITION;
+  const spelled = path
+    .map((segment) => (typeof segment === 'number' ? String(segment) : `'${segment}'`))
+    .join('/');
+  return `member ${spelled} of ${VALUE_ARGUMENT_POSITION}`;
+}
+
+/// **THE FAILING TARGET AT A VALUE POSITION, RENDERED AS THE STORE'S GENERATOR RENDERS IT** —
+/// `surface.md §2.5` item 6 (a). **ITS ONE EXAMPLE THAT DIFFERS FROM A CARRIER'S TARGET IS THE SYMBOL**: a
+/// symbol's own value carries the caller's DESCRIPTION, and the item's own example prints the CLASS's
+/// canonical token `Symbol()`, which is the spelling this arm carries. Every other target is printed as its
+/// own value, guarded exactly as `targetSpelling` guards its read.
+function valueTargetSpelling(value) {
+  try {
+    if (typeof value === 'bigint') return `${value}n`;
+    if (typeof value === 'symbol') return 'Symbol()';
+    return String(value);
+  } catch {
+    // The rendering THREW (a `valueOf`/`Symbol.toPrimitive`/`Proxy` trap): the CLASS spelling is the
+    // declared fallback, because the reason's class half is mandatory (item 6 (b)) and nothing escapes.
+    return classSpelling(value);
+  }
+}
+
+/// **A REFUSAL THE WALK PRODUCED AT A VALUE POSITION, ANSWERED IN THE ONE FORM — VERBOSELY.** `§1.8`'s dated
+/// clause 1: *"AT A VALUE POSITION — a member of a value the WALK meets, or the written value itself — the
+/// class is `NonPlainCollection` and the code is that class's own `ValueNotAdmitted` … PRODUCED AT THE
+/// WALK"*. The status is the store's own member token and is never minted here (`DD-40`); PART ONE is the
+/// store's generator's bytes at the failing target's own spelling; PART TWO — the class that failed and the
+/// position the contract declares for it — is appended (`CF-3`). `write` is this helper's ONE caller, and it
+/// calls it at the ONE site where the store answered `ValueNotAdmitted` for a value the walk had refused.
+function valueReject(fault) {
+  boundaryReject(
+    'ValueNotAdmitted', // `§1.2`'s outside rows 6–13's ONE code, carried and never minted (`DD-40`)
+    valueTargetSpelling(fault.value),
+    `the value at ${valuePosition(fault.path)} is ${fault.found}`,
+  );
+}
+
+/// **THE CLASS THE SHAPE ARMS REFUSE** — `§1.4` items 1 and 4 (c): an own `Symbol`-keyed member and an own
+/// accessor each refuse the WHOLE value (*"any other answer would DROP A MEMBER SILENTLY"*, `DD-8`), so the
+/// value's own class is the admitted one it holds and the reason names the arm's own class instead.
+function shapeArmClass(refusal) {
+  return refusal.k === 'y'
+    ? 'a value carrying a Symbol-keyed own member'
+    : 'a value carrying an own accessor member';
+}
+
+// ---------------------------------------------------------------------------------------------
 // THE CROSSING MODEL, ENCODED FOR THE CORE — `bindings/js/src/facade.rs` states the protocol, and this
-// section is its only producer. **The class decisions are TAKEN HERE and carried as data**; every
-// other rule of `crossing.md §1.4` is the core's (`package.md §4.5` item 3 (c)).
+// section is its only producer. **The class decisions are TAKEN HERE: an IN-DOMAIN value is carried as
+// data and every other rule of `crossing.md §1.4` over it is the core's (`package.md §4.5` item 3 (c)),
+// while a value the WALK refuses is ANSWERED HERE, in the one form, verbosely** (`§1.8`'s dated clause 1).
 // ---------------------------------------------------------------------------------------------
 
 /// **`A76`'S CLASS ORDER, SHIPPED SO IT IS VISIBLE AS AN ORDER: the CLASS decision, then the SHAPE
@@ -360,52 +450,115 @@ function targetSpelling(value) {
 ///
 /// **THE DEPTH CEILING IS THE CORE'S DECLARATION AND THE ENCODER IS BOUNDED BESIDE IT** (`§1.4` item 5,
 /// `DD-10`): the encoder's own nesting bound is `65` — one PAST the declared `64` — so the value the
-/// declared ceiling refuses is still encoded, handed to the core, and refused THERE with the store's own
-/// `ValueNotAdmitted` and the store's own generated message. A deeper value is carried as the outside class
-/// the ceiling names, so the same declared answer reaches the caller without a second rule.
+/// declared ceiling refuses (`65`) is still encoded, handed to the core, and refused THERE with the store's
+/// own `ValueNotAdmitted` and the store's own generated message (`§2.5` item 6 (d): *"for a failure the store
+/// itself produces, `message` is the store's generated string verbatim"*), **while the arm `§1.4` item 5's
+/// dated table assigns to THIS BOUNDARY — `66` and beyond, *"carrying the store's outside class
+/// `Cyclic`"* — is refused HERE, verbosely, with the same code and no second rule.** `ENCODER_CEILING` is
+/// therefore `65` and the arm's own site is the first `if` below.
 const ENCODER_CEILING = 65;
 
-function encodeValue(value, ancestors, depth) {
-  if (depth > ENCODER_CEILING) return { k: 'c' };
-  if (value === null) return { k: 'z' };
+/// **THE WALK'S FIRST VALUE FAULT, RECORDED — AND THE CORE'S OWN MARKER FOR THAT ARM RETURNED.**
+///
+/// **WHY THE FAULT IS RECORDED AND NOT ANSWERED HERE, AND IT IS A DECLARED REASON RATHER THAN A
+/// CONVENIENCE:** the crossing's own refusal ORDER is the STORE's (`DD-46`: *"the package passes every
+/// argument position through as supplied and performs NO arity check of its own"*; `write-and-read.md §3.4`
+/// `F-1`), so `write(instance, ['x'])` — the `tier` position ABSENT and the `value` position ABSENT with it —
+/// answers the carrier row's own `AddressMalformed` and NOT the value's `ValueNotAdmitted`. **An answer
+/// rendered at the walk before the carrier positions had been converted would REORDER two declared answers**,
+/// and `JSG-05.7`/`JSG-10.2` drive exactly that state. The walk therefore CLASSIFIES, RECORDS the first fault
+/// it meets and hands the core the marker the shipped encoder handed it; **`write` then renders the verbose
+/// message from the record at the ONE site where the store answered `ValueNotAdmitted` for a value the walk
+/// refused** (`§1.8`'s dated clause 1: the value-position refusal is *"PRODUCED AT THE WALK"*, and `CF-3`
+/// clause 1 is its message's route). Nothing here coerces, and nothing here repairs.
+function refusedValue(fault, value, failedClass, path, marker) {
+  if (fault.found === null) {
+    fault.found = failedClass;
+    fault.value = value;
+    fault.path = path;
+  }
+  return marker;
+}
+
+function encodeValue(value, ancestors, depth, path, fault) {
+  // **EVERY REFUSAL BELOW IS THE WALK'S OWN** (`§1.8`'s dated clause 1; `A76`: *"Test JS data for compliance
+  // with permitted shape before admitting and do not attempt to fix. reject with verbose error to client"*):
+  // the failing target's own spelling is PART ONE (the store's generator's bytes), the class that failed and
+  // the position it holds are PART TWO, appended — and the status is the store's own `ValueNotAdmitted`
+  // (`§1.2`'s outside rows 6–13). **NOTHING IS REPAIRED**: no member is dropped, no class is substituted, no
+  // value is converted (`A76`'s second part; `§1.8`).
+  // `§1.4` item 5's dated two-arm table: *"`66` and beyond REFUSED by the boundary's own encoder carrying the
+  // store's outside class `Cyclic`"* — the encoder's bound is one PAST the declared `64`, so `65` is still
+  // encoded and refused by the conversion core's own bound, whose message is the store's own (item 6 (d)).
+  if (depth > ENCODER_CEILING) {
+    return refusedValue(fault, value, 'a value nested deeper than the walk admits', path, { k: 'c' });
+  }
+  if (value === null) return refusedValue(fault, value, 'null', path, { k: 'z' }); // `§1.2` row 6, any depth
   const kind = typeof value;
-  if (kind === 'undefined') return { k: 'u' };
-  if (kind === 'string') return hasLoneSurrogate(value) ? { k: 'c' } : { k: 's', v: value };
+  if (kind === 'undefined') return refusedValue(fault, value, 'undefined', path, { k: 'u' }); // row 7
+  if (kind === 'string') {
+    // `§1.2` row 1's dated clause: a LONE SURROGATE is refused at the package's own walk — the class has no
+    // Rust spelling at all — and it is never silently replaced, dropped or normalized.
+    if (hasLoneSurrogate(value)) {
+      return refusedValue(fault, value, 'a string carrying a lone surrogate', path, { k: 'c' });
+    }
+    return { k: 's', v: value };
+  }
   if (kind === 'boolean') return { k: 'b', v: value };
-  // THE CLASS TEST PRECEDES THE NUMERIC ARM (`JS-6`): `bigint` is decided here, as its own outside class.
-  if (kind === 'bigint') return { k: 'g', v: value.toString() };
-  if (kind === 'number') return Number.isFinite(value) ? { k: 'n', v: value } : { k: 'F', v: value };
-  if (kind === 'function') return { k: 'f' };
-  if (kind === 'symbol') return { k: 'y' };
-  if (types.isProxy(value)) return { k: 'P' }; // `§1.4` item 4 (g), `DD-34` — and NO trap is invoked
-  if (ancestors.includes(value)) return { k: 'c' }; // `§1.4` item 6: the ancestor stack, never a `WeakSet`
+  // THE CLASS TEST PRECEDES THE NUMERIC ARM (`JS-6`): `bigint` is refused here, as its own outside class,
+  // and is NEVER converted through the numeric arm (`Number(10n)` is the shipped `JS-6` substitution).
+  if (kind === 'bigint') return refusedValue(fault, value, 'a bigint', path, { k: 'g', v: value.toString() });
+  if (kind === 'number') {
+    if (!Number.isFinite(value)) {
+      return refusedValue(fault, value, 'a non-finite number', path, { k: 'F', v: value }); // `§1.2` row 11
+    }
+    return { k: 'n', v: value };
+  }
+  if (kind === 'function') return refusedValue(fault, value, 'a function', path, { k: 'f' }); // row 8
+  if (kind === 'symbol') return refusedValue(fault, value, 'a symbol', path, { k: 'y' }); // row 9
+  // `§1.4` item 4 (g), `DD-34` — and NO trap is invoked: `util.types.isProxy` reads no member.
+  if (types.isProxy(value)) return refusedValue(fault, value, 'a Proxy', path, { k: 'P' });
+  // `§1.4` item 6: the ancestor stack, never a `WeakSet` — which is what ADMITS an acyclic diamond.
+  if (ancestors.includes(value)) {
+    return refusedValue(fault, value, 'a value that contains itself', path, { k: 'c' }); // `§1.2` row 12
+  }
   const next = [...ancestors, value];
   if (Array.isArray(value)) {
     // **THE CLASS DECISION COMES FIRST, ON THE VALUE AS IT IS** (`A76`, `JS-2`): `Array.isArray` is TRUE
     // for a class extending `Array`, so it may not stand alone as the admission test. **A class extending
     // `Array` is refused under ITS OWN declared class — `§1.2` row 5's `ValueNotAdmitted`
     // (`NonPlainCollection`) — and NEVER through the array shape test.**
-    if (arrayClass(value) === 'class') return { k: 'P' };
+    if (arrayClass(value) === 'class') {
+      return refusedValue(fault, value, 'a class extending Array', path, { k: 'P' });
+    }
     for (let i = 0; i < value.length; i += 1) {
-      if (!(i in value)) return { k: 'H' }; // `§1.4` item 2: a hole refuses the WHOLE value (`DD-8`)
+      // `§1.4` item 2: a hole refuses the WHOLE value (`DD-8`), and its class is the array's own hole arm.
+      if (!(i in value)) return refusedValue(fault, value, 'a sparse array', path, { k: 'H' });
     }
     const refusal = accessorOrSymbolArm(value);
-    if (refusal !== null) return refusal;
+    if (refusal !== null) return refusedValue(fault, value, shapeArmClass(refusal), path, refusal);
     const members = [];
-    for (const item of value) members.push(encodeValue(item, next, depth + 1));
+    for (let i = 0; i < value.length; i += 1) {
+      // **AN ARRAY MEMBER'S INDEX IS A DECLARED POSITION** (`§2.5` item 6 (b): *"the MEMBER POSITION for a
+      // member inside a value the walk reached"*), and it is carried BARE, as item 6 (a) spells an integer
+      // segment. Every index is present and is a data property by the two rules above, so the read below is
+      // the read `for … of` performed.
+      members.push(encodeValue(value[i], next, depth + 1, [...path, i], fault));
+    }
     return { k: 'a', i: members };
   }
   const proto = protoClass(value);
-  if (proto === 'class') return { k: 'P' }; // `§1.4` item 4 (f): a class instance is REFUSED
+  // `§1.4` item 4 (f): a prototype-carrying object is REFUSED — never read through its chain (`JS-5`).
+  if (proto === 'class') return refusedValue(fault, value, classSpelling(value), path, { k: 'P' });
   const refusal = accessorOrSymbolArm(value);
-  if (refusal !== null) return refusal;
+  if (refusal !== null) return refusedValue(fault, value, shapeArmClass(refusal), path, refusal);
   const members = [];
   for (const name of Object.keys(value)) {
     // `§1.2` row 7 / `§1.4` item 3: an `{a: undefined}` member is SEEN and REFUSED, and **the key is NEVER
-    // dropped** — the member is encoded and the core's own taxonomy answers `ValueNotAdmitted`.
+    // dropped** — the member is walked, its own position is carried, and the walk records the fault THERE.
     // **THE READ IS AN OWN-PROPERTY READ** (`A76`, `JS-5`): `Object.keys` yields the OWN enumerable string
     // keys — the keys the walk takes, `§1.4` item 4 (b) — and the member read is that key's own value.
-    members.push([name, encodeValue(value[name], next, depth + 1)]);
+    members.push([name, encodeValue(value[name], next, depth + 1, [...path, name], fault)]);
   }
   return { k: 'o', m: members, p: proto, acc: false, proxy: false };
 }
@@ -758,6 +911,28 @@ function call(state, verb, args) {
   }
 }
 
+/// **`write`'S OWN CALL, AND THE ONE PLACE A VALUE-POSITION REFUSAL IS RENDERED** (`§2.5` item 6 (d) and its
+/// `CF-3` clause 1). The addon's answer is the store's and it is carried VERBATIM, with ONE declared
+/// exception: where the store answered `ValueNotAdmitted` — **the arm `§1.8`'s dated clause 1 assigns to the
+/// WALK** — and the walk RECORDED the fault that produced it, the message is re-rendered as the composite of
+/// item 6: PART ONE, the store's own generator's rendering of that code at the failing VALUE's own spelling,
+/// and PART TWO, the class that failed and the position it holds, appended. **The store's refusal ORDER is
+/// untouched, because this site is reached only AFTER the store has chosen which refusal answers** — which
+/// is what keeps `write(instance, ['x'])`'s carrier-row `AddressMalformed` (`write-and-read.md §3.4` `F-1`)
+/// ahead of the value's own code. Every other status, and every `ValueNotAdmitted` the walk did not produce
+/// (the conversion core's own depth and node bounds, `§1.4` item 5), crosses VERBATIM (item 2).
+function writeCall(state, args, fault) {
+  const addon_ = withAddon();
+  try {
+    return addon_.call(state.id, 'write', args);
+  } catch (refusal) {
+    if (fault.found !== null && refusal !== null && typeof refusal === 'object' && refusal.status === 'ValueNotAdmitted') {
+      valueReject(fault);
+    }
+    fail(refusal);
+  }
+}
+
 // ---------------------------------------------------------------------------------------------
 // THE SURFACE — `surface.md §2.9` item 1: the EIGHT verbs, and NOTHING else. `findAddress` is NOT exposed
 // (`A63`), no `exists` verb exists (`§2.9` item 3) and no release verb is declared (`A74`).
@@ -818,8 +993,11 @@ export function write(instance, address, tier, value) {
   const state = stateOf(instance);
   const args = arguments.length >= 2 ? [encodeAddress(address)] : [];
   args.push(encodeTier(tier, arguments.length >= 3, true));
-  args.push(encodeValue(value, [], 0));
-  const answer = call(state, 'write', args);
+  // THE WALK'S OWN FAULT RECORD — see `refusedValue`: the walk CLASSIFIES and RECORDS, and the record is
+  // read at the one site where the store answered `ValueNotAdmitted` for a value the walk refused.
+  const fault = { found: null, value: undefined, path: [] };
+  args.push(encodeValue(value, [], 0, [], fault));
+  const answer = writeCall(state, args, fault);
   const record = {
     op: decodeJournalOp(answer.op),
     watched: answer.watched.map(decodeSegments),

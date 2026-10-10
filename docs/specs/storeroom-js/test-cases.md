@@ -195,3 +195,25 @@ below it carry no number at all** (`[A3 docs/specs/spec-scope-and-structure/cont
 entry-counted unit, and the rule that a grouping is never a second arithmetic; §C.11.6 — a `view` part declares
 nothing the contract does not already carry | numeric or census claim]`). **No row of this table names a case
 the contract does not pin, and no row of it declares a requirement of its own.**
+
+**⟶ AND THE BLIND GREENS PASS'S OWN POINTERS, ADDED 2026-10-11 BESIDE — NEVER INSIDE — EVERY SET ABOVE, SO THE
+`71` STANDS AS THE FIRST CENSUS SENTENCE PRINTS IT.** `RCA-8(d)` ANNOTATE-BESIDE: **no row of the `71`, of the
+three four-row sets, of the five-row set or of the `13` unnumbered rows below them is added, removed or
+renumbered by this clause; THIS table is a FIFTH pointer set, its rows carry no number at all, and it declares
+no case the contract does not already pin.** **The THREE cases the blind greens pass's reconciled cells now
+pin, each citing the `§n` that pins it:**
+| The case, as the blind greens pass's cells now pin it | Its source, in the `path §n` form | The pinning citation it carries |
+| --- | --- | --- |
+| **The entry's named exports are the `8` of the SURFACE — `delete` · `listen` · `read` · `readLiteral` · `rollback` · `storeCreate` · `unlisten` · `write` — and of the internal addon's FIVE names the FOUR internal-only ones (`version` · `errorMessage` · `call` · the addon's own `register`) are absent from the module graph while the FIFTH, `storeCreate`, is the entry's own construction verb and factory; the instance's own member set is exactly `{ register }`; a NINTH entry name and a SIXTH addon name are each a FINDING** | `docs/specs/storeroom-js/package.md` §1.3 item 4's dated clause · `docs/specs/storeroom-js/contract.md` §3.1's dated clause of the same date | package's §1.3 item 3 (the clause that governs) and item 4's dated clause; contract's §3.1 dated clause; surface's §2.4 item 5 (a); `archive/gate5/storeroom-js-greens-run.md` §4 · `F-DOC-1`, with `JSG-01` (`13/13`) and `JSG-12.13` |
+| **The lawful duplicate's multiplicity: where the STORE MINTED the token, ONE identity is reachable once — `triggered` carries it once and ONE invocation follows; where TWO CONSTRUCTION ENTRIES AT ONE ADDRESS CARRY ONE TOKEN BY THE CALLER'S OWN ACT, the STORE's own declaration governs the array — `triggered` carries that token TWICE — while the INVOCATION COUNT stays the PACKAGE's rule, ONE per DISTINCT identity, so that token's one function runs ONCE; and a drive may assert the array's LENGTH (`2`) and its DISTINCT-identity count (`1`) TOGETHER** | `docs/specs/storeroom-js/surface.md` §2.4's dated clause of 2026-10-11 · `docs/specs/storeroom-js/contract.md` §2.4's dated clause of the same date | surface's §2.4 rule 3 and its dated clause; contract's §2.4 rule 3 dated clause; `docs/specs/storeroom-native/contract.md` §0.2 · `DD-42` and `DD-39`, read with that contract's §0.4 clause 2 (b); `write-and-read.md §6.5` item 12 (b); `P-SM-5`; `P-TP-8` |
+| **The composite `message`'s authority split, stated ONCE: SEGMENT ONE is the store's own generator's string for the answering code at the failing TARGET's spelling, verbatim; SEGMENT TWO is the BOUNDARY's own and is APPENDED after a separator, carrying the CLASS (mandatory) and the POSITION (conditional); the `status` is neither segment's text and is carried verbatim from the store's closed set; a boundary-authored string that STANDS IN FOR Segment One is a FINDING** | `docs/specs/storeroom-js/surface.md` §2.5 item 5 (b)'s dated clause of 2026-10-11 | surface's §2.5 item 5 (b)–(d) and its `CF-3` clause, read through the dated clause that states the split; `docs/specs/storeroom-native/contract.md` §8.2's generator rule; `archive/gate4/storeroom-js-adversarial.md` §A · `JS-3`; `A76` |
+
+**AND THE ONE COUNT THIS CLAUSE PRINTS, SO THE FIVE POINTER SETS' ARITHMETICS AGREE: the numbered inventory
+carries `71` rows, the corrected-pointer table carries `4`, the close-out pass's table carries `4`, the
+bounded declaration pass's table carries `5`, and THIS table carries `3` — so this part holds
+`71 + 4 + 4 + 5 + 3 = 87` pointers, while the `71` remains the figure the census sentence at this part's head
+prints, because it is read off the last row's own number and every row below it carries no number at all**
+(`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.7 — the entry-counted unit, and the rule that a
+grouping is never a second arithmetic; §C.11.6 — a `view` part declares nothing the contract does not already
+carry | numeric or census claim]`). **No row of this table names a case the contract does not pin, and no row
+of it declares a requirement of its own.**
