@@ -18,8 +18,8 @@ use crate::error::{
 };
 use crate::json;
 use crate::records::{
-    BaseState, ChildAnchor, DeleteReceipt, JournalOp, JournalOpKind, Kind, ListenerHandle, NodeRef,
-    RollbackResult, Tier, WriteResult,
+    BaseState, ChildAnchor, DeleteReceipt, JournalOp, JournalOpKind, Kind, Listener,
+    ListenerHandle, NodeRef, RollbackResult, Tier, WriteResult,
 };
 use crate::value::{Segment, StoreValue};
 use std::collections::{BTreeMap, HashMap};
@@ -39,23 +39,14 @@ static NEXT_OP: AtomicU64 = AtomicU64::new(1);
 static NEXT_HANDLE: AtomicU64 = AtomicU64::new(1);
 
 /// **`§0.4`'s `ListenerHandle` construction-rule clause 2 (a), ADDED 2026-10-11 (`DD-42`) — THE MINT'S OWN
-/// NON-COLLISION RULE:** **`listen` MUST NOT MINT A TOKEN EQUAL TO ANY TOKEN THE HOME ALREADY HOLDS** — **a
-/// mint that would collide SKIPS the colliding token and mints the NEXT one**, so the home never holds two
-/// entries with ONE token where the store minted it, `unlisten` removes exactly the entry it names, and
-/// `triggered` carries no duplicated member (`PAR-13`'s *"unique PER STORE INSTANCE and PER SESSION"*). **The
-/// CONSTRUCTION's adopted tokens are untouched by this rule**: a caller-spelled duplicate is the ONE lawful
-/// collision, and its mis-targeting (`unlisten` over it removes the FIRST match) is `DD-42`'s DECLARED
-/// ANSWER, not a defect — so this function is handed the home and never re-mints an adopted token.
-fn next_handle_token(home: &[HomeEntry]) -> String {
-    loop {
-        let token = format!("listener-{}", NEXT_HANDLE.fetch_add(1, Ordering::SeqCst));
-        let held = ListenerHandle::from(token.as_str());
-        if !home.iter().any(|entry| entry.handle == held) {
-            return token;
-        }
-    }
-}
-
+/// NON-COLLISION RULE** (carried by `Home::mint`/`Home::holds_token`, `U-6`): **`listen` MUST NOT MINT A
+/// TOKEN EQUAL TO ANY TOKEN THE HOME ALREADY HOLDS** — **a mint that would collide SKIPS the colliding token
+/// and mints the NEXT one**, so the home never holds two entries with ONE token where the store minted it,
+/// `unlisten` removes exactly the entry it names, and `triggered` carries no duplicated member (`PAR-13`'s
+/// *"unique PER STORE INSTANCE and PER SESSION"*). **The CONSTRUCTION's adopted tokens are untouched by this
+/// rule**: a caller-spelled duplicate is the ONE lawful collision, and its mis-targeting (`unlisten` over it
+/// removes the FIRST match) is `DD-42`'s DECLARED ANSWER, not a defect — so the mint consults the home's own
+/// handle index and never re-mints an adopted token.
 fn next_op_id() -> String {
     format!("op-{}", NEXT_OP.fetch_add(1, Ordering::SeqCst))
 }
@@ -77,8 +68,10 @@ fn next_op_id() -> String {
 ///   (`store-model.md §1.3`, `§4.2` `R-3`) — the container's index is the position, and each position
 ///   holds that index's anchors, one per tier, in rank DESCENDING order.
 struct Link {
-    container: Kind,
-    /// The child anchors the container holds, in the structure its own kind declares.
+    /// The child anchors the container holds — **THE ONE DECLARATION OF THE KIND** (`F-7`: *"the kind IS the
+    /// variant"*), and `Link::kind()` derives the marker from it rather than storing a second copy beside it
+    /// (`U-13`/`U-14`: the redundant discriminator and the `debug_assert_eq!` that kept it honest are gone;
+    /// the variant cannot drift from itself, so nothing needs asserting).
     children: Children,
     /// `§1.6`: the register acts as a link and always is a hashmap. **It HAS a parent anchor** — `§1.6`
     /// item 3's *"NO parent anchor"* is WITHDRAWN for the register-as-a-link by `A41` and is read through
@@ -86,6 +79,16 @@ struct Link {
     /// and its `node` is the DISTINCT CARRIER NODE (`§1.6` item 4 (a)/(b)). What carries no parent is that
     /// CARRIER NODE, not the register (`§1.6` item 4 (b), (c)).
     is_register: bool,
+}
+
+impl Link {
+    /// **`U-13`/`U-14` — THE MARKER, DERIVED FROM THE VARIANT THAT IS THE KIND.** The link's container kind
+    /// is a pure function of the structure it holds, so it is read from the structure and stored nowhere: no
+    /// `Kind` field stands beside `Children`, and no `debug_assert_eq!` (which compiles out — `V-2`) is owed
+    /// to keep a second copy honest.
+    fn kind(&self) -> Kind {
+        self.children.kind()
+    }
 }
 
 /// **THE DECLARED CHILD CONTAINER — `hashmap` XOR `vec`** (`P: §1` line 42; `A22`: *"Decided at write,
@@ -122,8 +125,8 @@ impl Children {
         self.len() == 0
     }
 
-    /// The kind this structure IS — `§1.3`'s `MAP` xor `VEC`. It is asserted against the link's own
-    /// `container` marker at the write's own install, so the two can never drift.
+    /// The kind this structure IS — `§1.3`'s `MAP` xor `VEC`. **The variant is the single source of truth
+    /// (`F-7`, `U-14`): this is the derived marker, and no copy of it is stored beside the structure.**
     fn kind(&self) -> Kind {
         match self {
             Children::Map(_) => Kind::Map,
@@ -283,16 +286,152 @@ enum Node {
     Branch(usize),
 }
 
-/// **⟶ ADDED 2026-10-11 — `§6.5` ITEM 8's HOME MAP'S OWN ENTRY** (`A45`, `A48`; `PAR-12`, `PAR-13`; the
-/// superseded stopgap's `Registration` — keyed by the watched address with its tier qualifier — is
-/// replaced in ONE pass, `A58`, with no deprecation window). **ONE authoritative home map, owning the
-/// listener data and nothing else: an accepted `listeners[]` entry's `handle` (adopted VERBATIM, `DD-39`)
-/// or a handle `listen` minted, keyed by the listener's `address`.** **The node-side lists of `§6.5`
-/// item 9 are REFERENCES INTO IT and never a second copy**, and the home is NOT addressable, NOT a graph
-/// record and NOT inside a read at `[]` (`A48`).
-struct HomeEntry {
-    address: Vec<Segment>,
-    handle: ListenerHandle,
+/// **⟶ RE-DECLARED 2026-10-11 (`F-9`; the sweep's `§3`, `SUBSTANTIVE`) — THE HOME IS THE MAP `A45`
+/// RULES.** *"the top-level listener map is the home"*, and the ruling's stated purpose is the LOOKUP
+/// COUNT: **the shipped home was a `Vec` reached by two linear keyed scans.** **THE DECLARED STRUCTURE,
+/// ADDRESS-KEYED, WITH THE ADDRESS'S OWN BUCKET:**
+///
+/// * **`members: HashMap<Vec<Segment>, Vec<Listener>>`** — the address is the KEY, so a registration's
+///   lookup is the structure's own `O(1)` access and no scan of the home runs. **The bucket is a `Vec`
+///   because the contract allows ONE address to carry MORE THAN ONE entry: the CONSTRUCTION's
+///   `listeners[]` ADOPTS caller-spelled duplicates VERBATIM (`DD-39`, `§0.4` clause 2 (b)) — *"both
+///   entries are KEPT, each with its OWN handle"* — while `listen` itself never adds a second entry at an
+///   address the home already holds (`§6.5` item 12 (c)). The bucket holds the DECLARED record
+///   (`Listener{address,handle}`, `§6.5` item 10 (a)) and NEVER an anonymous shape beside it (`U-5`).**
+/// * **`handles: HashMap<String, (Vec<Segment>, usize)>`** — **THE HANDLE→ADDRESS INDEX**: the handle's
+///   own token maps to its address and its position in that bucket, so `unlisten` is an index lookup plus
+///   an in-bucket removal and **`DD-42`'s MINT-COLLISION rule is answered by the index itself** (`U-6`:
+///   the linear skip-loop is gone — a candidate token is colliding iff THIS map holds it). **The index is
+///   keyed by the token and not by `ListenerHandle`: `ListenerHandle` keeps the contract's own derives
+///   (`Clone + PartialEq + Eq + Debug`, `§0.4` clause 1) and gains no `Hash` it is not declared with.**
+/// * **The token is the index's key rather than the handle's, and that is the WHOLE of the change to
+///   `DD-42`'s rule: "the home already holds the token" is now a key the index answers, so a mint whose
+///   candidate is held SKIPS it and mints the NEXT one — O(1) per candidate instead of a walk of the
+///   entries. The CALLER-SPELLED duplicates the construction adopts are UNTOUCHED by the rule (they never
+///   pass through the mint), and `unlisten` over a duplicated token still removes the FIRST match — the
+///   entry with the SMALLEST bucket position — which is `DD-42` clause (2)'s DECLARED answer.**
+///
+/// **The node-side lists of `§6.5` item 9 are REFERENCES INTO IT and never a second copy**, and the home is
+/// NOT addressable, NOT a graph record and NOT inside a read at `[]` (`A48`).
+struct Home {
+    /// The address-keyed map `A45` declares — the home's own primary structure.
+    members: HashMap<Vec<Segment>, Vec<Listener>>,
+    /// The handle→address index: token → (its address, its position in that address's bucket).
+    handles: HashMap<String, (Vec<Segment>, usize)>,
+}
+
+impl Home {
+    fn new() -> Home {
+        Home {
+            members: HashMap::default(),
+            handles: HashMap::default(),
+        }
+    }
+
+    /// `§6.5` item 8: the home's own key set walks as the map's members — **this is the iterator the two
+    /// returned lists read** (`F-9`: *"with `triggered_for`/`watched_for` iterating the map's own keys
+    /// instead of scanning"*). Each member is the DECLARED record, so a reader of the home destructures
+    /// `Listener` and no other shape.
+    fn members(&self) -> impl Iterator<Item = &Listener> {
+        self.members.values().flatten()
+    }
+
+    /// **THE CONSTRUCTION'S ADOPTION** (`§7.1` step 5; `DD-39`; `§0.4` clause 2 (b)): an accepted
+    /// `listeners[]` entry's handle is adopted VERBATIM under its address, a duplicate address keeps BOTH
+    /// entries, and NO TOKEN IS RE-MINTED (`DD-42` clause (3)).
+    fn adopt(&mut self, address: Vec<Segment>, handle: ListenerHandle) {
+        let token = handle.to_string();
+        let bucket = self.members.entry(address.clone()).or_default();
+        let position = bucket.len();
+        bucket.push(Listener {
+            address: address.clone(),
+            handle,
+        });
+        self.handles.insert(token, (address, position));
+    }
+
+    /// `§6.5` item 12 (c): the address's OWN first entry, where the home holds one — the handle `listen`
+    /// returns instead of minting a second one.
+    fn first_at(&self, address: &[Segment]) -> Option<ListenerHandle> {
+        self.members
+            .get(address)
+            .and_then(|bucket| bucket.first())
+            .map(|listener| listener.handle.clone())
+    }
+
+    /// `DD-42` clause (1) (`U-6`): is this candidate token a token the home already holds? **The handle
+    /// index answers it — the home's own structure, not a walk of the entries.**
+    fn holds_token(&self, token: &str) -> bool {
+        self.handles.contains_key(token)
+    }
+
+    /// **THE MINT** (`§6.5` item 12; `§0.4`'s construction-rule clause 2 (a); `DD-42` clause (1)): a
+    /// store-unique token UNEQUAL to every token the home holds — **a colliding candidate is SKIPPED and
+    /// the NEXT one is minted**, the index answering the collision in `O(1)`.
+    fn mint(&mut self, address: &[Segment]) -> ListenerHandle {
+        loop {
+            let token = format!("listener-{}", NEXT_HANDLE.fetch_add(1, Ordering::SeqCst));
+            if self.holds_token(&token) {
+                continue;
+            }
+            let handle = ListenerHandle::from(token.as_str());
+            let bucket = self.members.entry(address.to_vec()).or_default();
+            let position = bucket.len();
+            bucket.push(Listener {
+                address: address.to_vec(),
+                handle: handle.clone(),
+            });
+            self.handles.insert(token, (address.to_vec(), position));
+            return handle;
+        }
+    }
+
+    /// `§6.5` item 12: **`unlisten` drops ONE home-map entry** — the one the handle names, through the
+    /// handle index, with no walk of the map. **An unknown, foreign, prior-session or fabricated handle
+    /// matches nothing at all** (the no-op success), and a token the CALLER spelled twice removes the
+    /// FIRST match — the entry with the smallest bucket position (`DD-42` clause (2)).
+    fn withdraw(&mut self, handle: &ListenerHandle) -> bool {
+        let token = handle.to_string();
+        let Some((address, position)) = self.handles.get(&token).cloned() else {
+            return false;
+        };
+        let mut emptied = false;
+        if let Some(bucket) = self.members.get_mut(&address) {
+            if position < bucket.len() {
+                bucket.remove(position);
+            }
+            if bucket.is_empty() {
+                emptied = true;
+            }
+        }
+        if emptied {
+            self.members.remove(&address);
+        }
+        // The tokens the caller spelled twice at ONE address are ONE index key over two bucket slots: the
+        // withdrawal above took the FIRST slot, so the index now names the slot that STANDS at that
+        // position — the entry the same token still names, or none where the bucket held one entry.
+        self.reindex_token(&address, &token);
+        true
+    }
+
+    /// Re-point the handle index at the slot the token's own entry stands in after a removal shifted the
+    /// bucket — the position is the index's second member and it must name the ENTRY (`DD-42` clause (2)).
+    fn reindex_token(&mut self, address: &[Segment], token: &str) {
+        let position = self.members.get(address).and_then(|bucket| {
+            bucket
+                .iter()
+                .position(|listener| listener.handle.to_string() == token)
+        });
+        match position {
+            Some(position) => {
+                self.handles
+                    .insert(token.to_string(), (address.to_vec(), position));
+            }
+            None => {
+                self.handles.remove(token);
+            }
+        }
+    }
 }
 
 /// The pre-state an operation must be able to restore: every version that stood at one address path,
@@ -335,8 +474,10 @@ pub struct Store {
     journal: Vec<Entry>,
     last_seq: u64,
     /// **§6.5 item 8 (a): THE ONE HOME MAP** — the instance's authoritative registration state, separate
-    /// from the register and from the graph, holding listeners and nothing else.
-    home: Vec<HomeEntry>,
+    /// from the register and from the graph, holding listeners and nothing else. **`F-9`: it IS the MAP the
+    /// ruling names (`A45`) — an address-keyed map with a handle→address index — and no longer a `Vec`
+    /// reached by two linear keyed scans.**
+    home: Home,
     file_path: String,
     journal_length: usize,
     /// `§6.1` item 5: **the compression's BASE STATE — a SNAPSHOT of the store's own observable state at
@@ -378,12 +519,13 @@ pub fn storeCreate(cfg: &StoreConfig) -> Result<Store, StoreError> {
         }
         _ => return Err(malformed_named("filePath")),
     };
-    // Step 5 — the home is POPULATED FROM `listeners[]`, and a rejected array admits NOTHING.
+    // Step 5 — the home is POPULATED FROM `listeners[]`, and a rejected array admits NOTHING. **The adopted
+    // entry is the DECLARED `Listener` record, filed in the address-keyed map (`A45`; `DD-39`).**
     let admitted = construction_listeners(&cfg.listeners)?;
-    let home: Vec<HomeEntry> = admitted
-        .into_iter()
-        .map(|(address, handle)| HomeEntry { address, handle })
-        .collect();
+    let mut home = Home::new();
+    for (address, handle) in admitted {
+        home.adopt(address, handle);
+    }
     // Step 6 — the registry is generated over the ALREADY-POPULATED home (`A56`: *"populate home map before
     // generating registry"*; the order of these two steps is the ruling's whole point).
     let mut store = Store::empty(file_path, journal_length, register_tier, home);
@@ -425,16 +567,10 @@ fn path_is_reachable(path: &str) -> bool {
 }
 
 impl Store {
-    fn empty(
-        file_path: String,
-        journal_length: usize,
-        register_tier: Tier,
-        home: Vec<HomeEntry>,
-    ) -> Store {
+    fn empty(file_path: String, journal_length: usize, register_tier: Tier, home: Home) -> Store {
         Store {
             nodes: vec![Node::Branch(0)],
             links: vec![Link {
-                container: Kind::Map,
                 children: Children::map(),
                 is_register: true,
             }],
@@ -474,12 +610,13 @@ impl Store {
     }
 
     fn new_link(&mut self, container: Kind) -> usize {
+        // The decision the write made (`A22`) builds the structure once, and the structure IS the kind from
+        // here on: `Kind` is the transient decision token and `Children` is what the link declares (`U-14`).
         let children = match container {
             Kind::Map => Children::map(),
             Kind::Vec => Children::vec(),
         };
         self.links.push(Link {
-            container,
             children,
             is_register: false,
         });
@@ -571,7 +708,7 @@ impl Store {
     /// points to the same node; only the index it stands at moves, so no node is minted, none is dropped
     /// and every surviving node stays reachable from the container's own (dense, from `0`) read (`§5.5`).
     fn renumber_vec(&mut self, link: usize) {
-        if self.links[link].container != Kind::Vec {
+        if self.links[link].kind() != Kind::Vec {
             return;
         }
         for (reference, index) in self.links[link].children.renumber() {
@@ -598,7 +735,7 @@ impl Store {
         container_address: &[Segment],
     ) -> Result<usize, StoreError> {
         let anchors = self.refs_at(link, key);
-        if anchors.is_empty() || !key_fits(self.links[link].container, key) {
+        if anchors.is_empty() || !key_fits(self.links[link].kind(), key) {
             return Err(address_not_found(
                 key,
                 container_address,
@@ -719,7 +856,7 @@ impl Store {
             Node::Leaf(value) => Ok(value.clone()),
             Node::Branch(link) => {
                 let link = *link;
-                match self.links[link].container {
+                match self.links[link].kind() {
                     Kind::Map => {
                         let mut members = BTreeMap::new();
                         // **`P: §1` line 96 — *"hashmap, convert to an object, using the same keys"*: the
@@ -787,7 +924,7 @@ impl Store {
             Node::Leaf(value) => value.clone(),
             Node::Branch(link) => {
                 let link = *link;
-                match self.links[link].container {
+                match self.links[link].kind() {
                     Kind::Map => {
                         let mut members = BTreeMap::new();
                         // The keyed structure's OWN keys, and the pair's OWN entry (`A34`'s `0`-or-`1`),
@@ -807,11 +944,24 @@ impl Store {
                     }
                     Kind::Vec => {
                         let mut items = Vec::new();
+                        // **⟶ REPAIRED 2026-10-11 (`F-4b`; the sweep's own first fix, `§7`).** **THE SHIPPED
+                        // ARM `break`s AT THE FIRST POSITION HOLDING NO ANCHOR AT THE PASSED TIER, WHILE
+                        // `assemble` OMITS AND CONTINUES — so the two assemblies of ONE container disagreed
+                        // on the array's length, and for the `file` snapshot that length IS WRITTEN INTO THE
+                        // COMMITTED BYTES (`commit_file`) and reloaded by `boot_load`.** **The declared
+                        // rule is `§4.2` `R-3`'s *"dense from `0` and its length is the container's
+                        // contiguous index count"* read with `§4.2` (b)'s OMISSION: a position whose anchors
+                        // lie at no passed tier contributes NO ELEMENT and the walk CONTINUES to the
+                        // positions beside it — exactly as the keyed arm above omits a member and continues
+                        // (`continue` in `assemble`'s `Kind::Map` arm).** **One token: `break` → `continue` —
+                        // and the two assemblies of one container now answer the SAME length.**
                         for index in 0..self.links[link].children.len() {
                             let key = Segment::Index(index as u64);
                             match self.pair_at(link, &key, tier) {
                                 Some(child) => items.push(self.assemble_at_tier(child, tier)),
-                                None => break,
+                                // `§4.2` (b) + `R-3`: no passed version at this position ⇒ no element, and
+                                // the positions beside it are still assembled.
+                                None => continue,
                             }
                         }
                         StoreValue::Array(items)
@@ -909,11 +1059,11 @@ impl Store {
     ) -> usize {
         if !fresh {
             if let Some(doomed) = self.pair_at(link, &key, tier) {
-                debug_assert_eq!(
-                    self.links[link].container,
-                    self.links[link].children.kind(),
-                    "the kind marker and the declared structure agree"
-                );
+                // **`U-13`/`U-14`: THE `debug_assert_eq!` THAT KEPT THE TWO DECLARATIONS HONEST IS GONE WITH
+                // THE SECOND DECLARATION.** It compared the link's `container` marker against the structure's
+                // own `kind()` — a release-absent check (`V-2`) over a copy that had no reason to exist,
+                // because `F-7`'s *"the kind IS the variant"* makes the structure the ONE source of the kind
+                // (`Link::kind()`). There is nothing left to drift, so there is nothing left to assert.
                 // A REPLACEMENT: the index the pair stands at stays occupied by the anchor installed
                 // below, so no position closes up and no renumbering runs.
                 self.remove_refs(link, &[doomed], false);
@@ -1260,10 +1410,12 @@ impl Store {
     /// index is consulted or the home is scanned"* — so the selection below reads the home directly and no
     /// membership depends on a node's lifetime (`A46`) or on the `active`/`carried` split (`A47`).
     fn triggered_for(&self, address: &[Segment]) -> Vec<ListenerHandle> {
+        // **`F-9`: THE MAP'S OWN MEMBERS ARE ITERATED — each address's own bucket, in the map's own
+        // iteration — and no keyed scan of a linear home runs.**
         self.home
-            .iter()
-            .filter(|entry| is_prefix(&entry.address, address))
-            .map(|entry| entry.handle.clone())
+            .members()
+            .filter(|listener| is_prefix(&listener.address, address))
+            .map(|listener| listener.handle.clone())
             .collect()
     }
 
@@ -1276,9 +1428,11 @@ impl Store {
     /// address the home already holds** (`§6.5` item 12 (c)).
     fn watched_for(&self, address: &[Segment]) -> Vec<Vec<Segment>> {
         let mut watched: Vec<Vec<Segment>> = Vec::new();
-        for entry in &self.home {
-            if is_prefix(&entry.address, address) && !watched.contains(&entry.address) {
-                watched.push(entry.address.clone());
+        // **`F-9`: the home's own members, one member per distinct address** — the set is the addresses the
+        // map's entries carry, and the DISTINCT rule (`§6.5` item 2's kept half) is applied as they walk.
+        for listener in self.home.members() {
+            if is_prefix(&listener.address, address) && !watched.contains(&listener.address) {
+                watched.push(listener.address.clone());
             }
         }
         watched
@@ -1405,13 +1559,13 @@ impl Store {
                 true,
             ));
         }
-        if !key_fits(self.links[parent_link].container, &key) {
+        if !key_fits(self.links[parent_link].kind(), &key) {
             // `§1.3`'s KEY-DOMAIN ARM (`§1.5` items 2–3): the write is the ONE verb whose answer at a segment
             // whose class the parent container's key domain cannot hold differs from the walk's answer — it
             // would MINT at the key, so the state is a KIND CONTRADICTION and it answers the same member the
             // value's own kind contradiction answers: `ContainerKindConflict`, with NOTHING INSTALLED (no
             // anchor, no coercion, no container-kind change, and no journal entry) (`§3.4` arm `F-4`).
-            let kind = self.links[parent_link].container;
+            let kind = self.links[parent_link].kind();
             return Err(container_kind_conflict_for_key(
                 &key,
                 &parents,
@@ -1432,7 +1586,7 @@ impl Store {
         // fails `AddressNotFound` (`L-3`), because the hole has NO INSTANCE (`§8.1` #7, UNCHANGED and no new
         // member minted).
         if let Segment::Index(index) = key {
-            let container = self.links[parent_link].container;
+            let container = self.links[parent_link].kind();
             if container == Kind::Vec {
                 // The container's contiguous index count: its DISTINCT index keys (`§1.3`'s *"contiguous
                 // from `0`"*, read with `§4.2` `R-3`'s *"the container's contiguous index count"*). No
@@ -1474,12 +1628,12 @@ impl Store {
             if let (Some(value_kind), Some(target_link)) =
                 (value.container_kind(), self.link_of(reference))
             {
-                if self.links[target_link].container != value_kind {
+                if self.links[target_link].kind() != value_kind {
                     let keys = self.keys_at(target_link);
                     return Err(container_kind_conflict(
                         &value,
                         &segments,
-                        self.links[target_link].container,
+                        self.links[target_link].kind(),
                         &keys,
                     ));
                 }
@@ -1578,7 +1732,7 @@ impl Store {
         if let Some(key) = &key {
             // `§1.5` item 3: a segment whose class the container's key domain cannot hold is a key the
             // container does not hold — `L-3`'s `AddressNotFound`, never a coerced lookup.
-            if self.refs_at(link, key).is_empty() || !key_fits(self.links[link].container, key) {
+            if self.refs_at(link, key).is_empty() || !key_fits(self.links[link].kind(), key) {
                 return Err(address_not_found(
                     key,
                     &segments[..segments.len() - 1],
@@ -1696,16 +1850,13 @@ impl Store {
         let segments = address_segments(&address)?;
         // `§6.5` item 12 (c) / `§0.4` clause 2: the home is CONSULTED FIRST — an already-registered address
         // hands back the entry's own handle and pushes NOTHING, so a repeated `listen` leaves the home
-        // unchanged and the trigger fires that ONE handle.
-        if let Some(entry) = self.home.iter().find(|entry| entry.address == segments) {
-            return Ok(entry.handle.clone());
+        // unchanged and the trigger fires that ONE handle. **`F-9`: the consultation is the ADDRESS-KEYED
+        // MAP's own `O(1)` access, and where the construction left TWO entries at the address, its FIRST
+        // entry's handle is the one returned (`DD-39`'s bucket, in adoption order).**
+        if let Some(held) = self.home.first_at(&segments) {
+            return Ok(held);
         }
-        let handle = ListenerHandle::from(next_handle_token(&self.home).as_str());
-        self.home.push(HomeEntry {
-            address: segments,
-            handle: handle.clone(),
-        });
-        Ok(handle)
+        Ok(self.home.mint(&segments))
     }
 
     /// **`§6.5` item 12 — `unlisten(handle) → void`**: it drops ONE home-map entry, and **a handle the
@@ -1714,10 +1865,10 @@ impl Store {
     /// `unwatch`'s own clause, item 6, carried forward; `PAR-13`).
     pub fn unlisten(&mut self, handle: &ListenerHandle) -> Result<(), StoreError> {
         // ONE entry and no more (`§6.5` item 12: *"it drops ONE home-map entry"*); an unknown, foreign,
-        // prior-session or fabricated handle matches nothing at all — the same no-op success.
-        if let Some(index) = self.home.iter().position(|entry| entry.handle == *handle) {
-            self.home.remove(index);
-        }
+        // prior-session or fabricated handle matches nothing at all — the same no-op success. **`F-9`: the
+        // entry is named through the HANDLE INDEX, which is the second half of the declared home — no scan
+        // of the map runs and no entry is removed by a walk over addresses.**
+        self.home.withdraw(handle);
         Ok(())
     }
 

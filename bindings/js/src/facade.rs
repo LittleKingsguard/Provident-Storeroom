@@ -20,11 +20,17 @@
 //! DECIDED tree. **The wire below is that decided tree, spelled in the core's own vocabulary and nothing
 //! else**; the conversion it performs is the core's, member for member.
 //!
-//! **AND THE FACADE INVOKES THE LISTENERS THE CORE'S REGISTRY DECLARES** (`§4.5` item 5): the core invokes
-//! nothing of its own accord, the facade reads `Instance::listener_for` and performs the invocation after
-//! the verb has returned — *"the package invokes a registered listener function SYNCHRONOUSLY AFTER the
-//! verb's own call has returned"* (`§2.7` item 4, `DD-22`). **A throwing body is NOT caught, NOT retried and
-//! NOT reported** (`DD-23`): the pending exception is left standing and the runtime raises it.
+//! **⟶ AND THE FACADE INVOKES NO LISTENER — THE MAPPING LAYER IS THE INVOKER (`F-13`; `A75`, `A77`).**
+//! **THE SHIPPED SENTENCE HERE NAMED THIS LAYER AS THE INVOKER OVER A CORE REGISTRY, AND THE SHIPPED CODE
+//! NEVER CARRIED IT**: `Instance::listener_for` had no caller anywhere (`V-5`), the core's registry slots
+//! held placeholder closures nothing could invoke, and the live invocation is `index.mjs`'s `deliver`.
+//! `A75` already puts the route `JS → facade → core → store`, and `A77` states the model in full — *"the
+//! store passes an ID back to the client when a listener is triggered, and the JS side matches that ID to
+//! the function the caller registered it with"* — so **this layer converts values and verbs and NOTHING
+//! else** (its methods are thin, `§4.5` item 6): the record it returns carries the triggered handles and the
+//! triggering address, and the package invokes SYNCHRONOUSLY AFTER the verb's own call has returned (`§2.7`
+//! item 2, `DD-22`). **A throwing body is NOT caught, NOT retried and NOT reported** (`DD-23`): its
+//! exception propagates out of the package's own loop, which is where the call is made.
 
 use std::cell::RefCell;
 use std::os::raw::{c_char, c_void};
@@ -32,7 +38,7 @@ use std::os::raw::{c_char, c_void};
 use crate::crossing::{
     self, JsAddressArg, JsBaseState, JsConfig, JsDeleteReceipt, JsFilePathArg, JsHandle, JsHandleArg,
     JsJournalLengthArg,
-    JsJournalOp, JsKey, JsListener, JsListenerEntry, JsListenersArg, JsNonArray, JsObject, JsOpIdArg,
+    JsJournalOp, JsKey, JsListenerEntry, JsListenersArg, JsNonArray, JsObject, JsOpIdArg,
     JsProto, JsRollbackResult, JsSegment, JsTierArg, JsTierSetItem, JsValue, JsWriteResult, Refusal,
 };
 
@@ -54,7 +60,6 @@ type NapiEnv = *mut c_void;
 type NapiValue = *mut c_void;
 type NapiCallbackInfo = *mut c_void;
 type NapiStatus = i32;
-type NapiRef = *mut c_void;
 
 extern "C" {
     fn napi_get_cb_info(
@@ -137,22 +142,12 @@ extern "C" {
     fn napi_set_element(env: NapiEnv, object: NapiValue, index: u32, value: NapiValue) -> NapiStatus;
     fn napi_create_double(env: NapiEnv, value: f64, result: *mut NapiValue) -> NapiStatus;
     fn napi_throw(env: NapiEnv, error: NapiValue) -> NapiStatus;
-    fn napi_create_reference(
-        env: NapiEnv,
-        value: NapiValue,
-        refcount: u32,
-        result: *mut NapiRef,
-    ) -> NapiStatus;
-    fn napi_delete_reference(env: NapiEnv, reference: NapiRef) -> NapiStatus;
-    fn napi_get_reference_value(env: NapiEnv, reference: NapiRef, result: *mut NapiValue) -> NapiStatus;
-    fn napi_call_function(
-        env: NapiEnv,
-        recv: NapiValue,
-        func: NapiValue,
-        argc: usize,
-        argv: *const NapiValue,
-        result: *mut NapiValue,
-    ) -> NapiStatus;
+    // **`napi_create_reference`, `napi_delete_reference`, `napi_get_reference_value` AND
+    // `napi_call_function` ARE DELETED FROM THIS DECLARATION LIST WITH `F-13`'s DEAD `invoke_listeners`
+    // (`U-9`), TOGETHER WITH THE `NapiRef` ALIAS ABOVE.** They stood here for ONE caller — the invocation of
+    // a listener from the facade — and that caller was this file's own dead structure, not a route
+    // `A75`/`A77` declares. **The package's invocation is `index.mjs`'s `deliver`, whose call is the
+    // runtime's own and needs no Node-API symbol here; nothing else in this facade ever named them.**
 }
 
 /// `napi_valuetype`'s arms, as the runtime numbers them.
@@ -977,74 +972,21 @@ impl Codec {
 
 thread_local! {
     static INSTANCES: RefCell<Vec<crossing::Instance>> = const { RefCell::new(Vec::new()) };
-    /// One slot per (instance, handle token): the registry's FUNCTION, held by a Node-API reference.
-    static LISTENERS: RefCell<Vec<(usize, String, NapiRef)>> = const { RefCell::new(Vec::new()) };
 }
 
-/// **THE TRIGGERING ADDRESS, AS A JS VALUE** (`PAR-JS-12`'s `domain` cell: *"The package's invocation
-/// passes the triggering ADDRESS as its argument; no other argument is declared"*). A segment is a JS
-/// `string` or a non-negative integer `number` — `crossing.md §1.3`'s `AddressArg` rows 2 and 3 — and the
-/// address crosses as a FRESH dense array (`§1.1` clause 2).
-unsafe fn address_value(env: NapiEnv, address: &[JsSegment]) -> NapiValue {
-    let mut array: NapiValue = std::ptr::null_mut();
-    napi_create_array_with_length(env, address.len(), &mut array);
-    for (index, segment) in address.iter().enumerate() {
-        let element = match segment {
-            JsSegment::Key(k) => make_string(env, k),
-            JsSegment::Index(i) => {
-                let mut number: NapiValue = std::ptr::null_mut();
-                napi_create_double(env, *i as f64, &mut number);
-                number
-            }
-            _ => {
-                let mut undefined: NapiValue = std::ptr::null_mut();
-                napi_get_undefined(env, &mut undefined);
-                undefined
-            }
-        };
-        napi_set_element(env, array, index as u32, element);
-    }
-    array
-}
-
-/// `§2.7` item 2 / `DD-22`: the invocation happens AFTER the verb's own call has returned and its record
-/// is copied out, it is SYNCHRONOUS, and **its ONE argument is the TRIGGERING ADDRESS** (`PAR-JS-12`).
-unsafe fn invoke_listeners(
-    env: NapiEnv,
-    index: usize,
-    triggered: &[JsHandle],
-    address: &[JsSegment],
-) -> bool {
-    let mut threw = false;
-    for handle in triggered {
-        let reference = LISTENERS.with(|slots| {
-            slots
-                .borrow()
-                .iter()
-                .find(|(i, token, _)| *i == index && token == handle.token())
-                .map(|(_, _, reference)| *reference)
-        });
-        if let Some(reference) = reference {
-            unsafe {
-                let mut function: NapiValue = std::ptr::null_mut();
-                if napi_get_reference_value(env, reference, &mut function) == 0 {
-                    let mut undefined: NapiValue = std::ptr::null_mut();
-                    napi_get_undefined(env, &mut undefined);
-                    let mut argv: [NapiValue; 1] = [address_value(env, address)];
-                    let mut result: NapiValue = std::ptr::null_mut();
-                    // A throwing body is NOT caught (`DD-23`): `napi_call_function` reports the pending
-                    // exception as its own status, the flag is recorded here and the runtime raises the
-                    // body's exception after this native frame returns.
-                    if napi_call_function(env, undefined, function, 1, argv.as_mut_ptr(), &mut result) != 0 {
-                        threw = true;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    threw
-}
+// **⟶ THE CORE-SIDE INVOCATION STRUCTURE IS GONE FROM THIS FILE (`F-13`; `U-9`): THE `LISTENERS`
+// THREAD_LOCAL AND `invoke_listeners` ARE DELETED.** The contract declares the FACADE as the invoker over a
+// core registry (`package.md §4.5` item 5), but **the shipped facade never wrote a `LISTENERS` slot and
+// nothing ever called `invoke_listeners`** (`V-5`: no caller behind any re-export either, and no writer of
+// that slot existed at any depth on this file) — *"the live invocation is `index.mjs`'s `deliver`"*, which
+// `A77` states as the model: *"the store passes an ID back to the client when a listener is triggered, and
+// the JS side matches that ID to the function the caller registered it with."* **THE DEAD STRUCTURE CARRIED
+// THE NODE-API REFERENCE SURFACE WITH IT, AND IT FALLS TOGETHER**: `napi_create_reference`,
+// `napi_delete_reference` and `napi_get_reference_value`, beside `napi_call_function` (whose ONE call was
+// here) and the `NapiRef` alias those three named. **NOTHING IS LOST**: this layer holds no listener and
+// raises no body (`DD-23` is carried by `deliver`'s own uncaught call), the addon's record is complete and
+// copied out before the package's invocation loop opens (`§2.7` item 2), and the triggering address crosses
+// as the record's own `triggeringAddress` member rather than through a builder here.
 
 /// The addon's `create(cfgWire) -> uint32`: the store's construction, through the core.
 extern "C" fn addon_create(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
@@ -1264,12 +1206,15 @@ extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue 
     let handle = unsafe { codec.handle_arg_of(argv[1]) };
     // **THE CORE IS THE SITE'S OWN JUDGE**: it holds the instance's handle domain (`§2.4` item 5 (c)) and
     // answers an outside handle with the store's own `AddressMalformed` and a generated message.
-    // **The FUNCTION itself never crosses** (`DD-15`): the mapping layer holds it, and the addon is asked
-    // only whether the HANDLE is a member of this instance's own domain.
+    // **⟶ THE PLACEHOLDER CLOSURE IS GONE (`F-13`; `U-11`): `JsListener::Function(Box::new(|_| ()))` WAS A
+    // SLOT NOTHING COULD INVOKE.** **The FUNCTION itself never crosses** (`DD-15`): the mapping layer holds
+    // it in its own per-instance registry (`index.mjs`'s `state.registry`, `U-12`), and the addon is asked
+    // only whether the HANDLE is a member of this instance's own domain — so it hands the core the HANDLE
+    // and no listener at all, and the core keeps no list of functions.
     let answer = INSTANCES.with(|all| {
         let mut all = all.borrow_mut();
         match all.get_mut(index as usize) {
-            Some(instance) => instance.register(&handle, JsListener::Function(Box::new(|_| ()))),
+            Some(instance) => instance.register(&handle),
             None => Err(crossing::registration_refusal(
                 "",
                 "the addon's first argument",
@@ -1280,8 +1225,8 @@ extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue 
     if let Err(refusal) = answer {
         return unsafe { throw_refusal(env, &refusal) };
     }
-    // Nothing of the registry is held here: the caller's FUNCTION is the package's own state (`§2.4`),
-    // and the core holds only the entry that makes the handle a member of the triggered set (rule 1).
+    // Nothing of the registry is held here or in the core: the caller's FUNCTION is the package's own state
+    // (`§2.4`), and this layer's whole answer is the domain's (`§2.4` item 5 (c)).
     let mut undefined: NapiValue = std::ptr::null_mut();
     unsafe {
         napi_get_undefined(env, &mut undefined);

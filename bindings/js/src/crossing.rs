@@ -27,8 +27,10 @@ pub struct Refusal {
     pub message: String,
 }
 
-/// The status the registry's own site answers an outside registration with — **A MEMBER OF THE STORE'S
+/// The status the REGISTRATION SITE answers an outside registration with — **A MEMBER OF THE STORE'S
 /// CLOSED `15`-MEMBER SET, CARRIED AND NEVER MINTED** (`DD-40`; `crossing.md §1.3`'s closing clause).
+/// **⟶ `F-13`: the site is the registration's DOMAIN half (`Instance::register`) — the core holds no
+/// listener and the package's registry is the one that holds the function — and the status is unchanged.**
 ///
 /// **⟶ THE SHIPPED CONSTANT WAS `TYPE_ERROR_STATUS = "TypeError"`, AND `A76`'S PASS REPLACED IT.** **The
 /// finding, in the contract's own words** (`surface.md §2.5` item 5 (g), `parameter-semantics.md §2.12`'s
@@ -691,8 +693,10 @@ impl JsHandle {
         &self.token
     }
 
-    /// A handle spelled by a token, for the facade's own registry lookups (`§2.4` rule 2's "one entry per
-    /// handle" needs an identity, and the identity is the token).
+    /// A handle spelled by a token — the addon's own read of an opaque argument into the core's model
+    /// (`§2.4` item 5's domain test needs an identity, and the identity is the token). **⟶ AMENDED
+    /// 2026-10-11 (`F-13`): the registry lookup it was also spelled for is GONE — the core holds no
+    /// function and the package's own registry is keyed by the opaque value, not by this spelling.**
     pub(crate) fn from_token(token: &str) -> JsHandle {
         JsHandle {
             token: token.to_string(),
@@ -790,27 +794,26 @@ fn handles(list: &[ListenerHandle]) -> Vec<JsHandle> {
 }
 
 // =================================================================================================
-// THE INSTANCE — `package.md §4.5` item 5: ONE store instance and the PACKAGE-OWNED registry of §2.4.
+// THE INSTANCE — `package.md §4.5` item 5: ONE store instance and the handle DOMAIN of §2.4.
 // =================================================================================================
 
-/// `contract.md §2.4` / `package.md §4.5` item 5 (a): the registry's entry. **The listener is a JS
-/// FUNCTION**, which has no Rust spelling; the core carries the slot the facade fills.
-pub enum JsListener {
-    /// The caller's function, as the facade holds it.
-    Function(Box<dyn FnMut(&JsWriteResult)>),
-    /// A registration that is not a function (`PAR-JS-12`): a REFUSAL whose status is NOT a store code.
-    NonFunction,
-}
-
-/// `package.md §4.5` item 5: **the core's own instance type**, holding ONE store instance and the
-/// package-owned registry of `§2.4`; **the core never invokes a listener of its own accord**, and the
-/// facade reads the registry's answer and performs the invocation after the verb returns (`§2.7`).
+/// **⟶ THE CORE-SIDE LISTENER CARRIER IS DELETED (`F-13`; `U-11`): `JsListener` AND ITS IN-CRATE REGISTRY
+/// (`Instance::registry`), `Instance::listener_for` AND `Instance::triggered_set` ARE GONE.** **THE ROUTE IS
+/// `A75`'s AND THE INVOCATION IS THE MAPPING LAYER'S** (`JS → facade → core → store`; `A77`: *"the store
+/// passes an ID back to the client when a listener is triggered, and the JS side matches that ID to the
+/// function the caller registered it with"*), so the FUNCTION never crosses this boundary (`DD-15`): the
+/// package holds it in its own per-instance registry, keyed by the opaque handle it returned (`§2.4`;
+/// `index.mjs`'s `state.registry`), and this core keeps the handle DOMAIN that decides whether a
+/// registration is in domain (`§2.4` item 5 (c)) and nothing else. **The deleted registry was WRITE-ONLY in
+/// every reachable state: `triggered_set` had no caller on either side of the boundary, `listener_for` had
+/// none anywhere (`V-5`), and the slot the facade filled held `Box::new(|_| ())` — a closure nothing could
+/// invoke.**
+///
+/// `package.md §4.5` item 5: **the core's own instance type**, holding ONE store instance and **the handle
+/// domain this instance minted or adopted**; **the core invokes no listener of its own accord and holds no
+/// listener at all.**
 pub struct Instance {
     store: Store,
-    /// The registry: ONE entry per handle (`§2.4` rule 2 — `register` REPLACES, never fans out).
-    /// **An entry is NEVER removed** (`§2.4` rule 4, `DD-15`): `unlisten` withdraws the store-side home
-    /// entry and the registry entry STANDS, so a withdrawn handle's function *"simply never fires again"*.
-    registry: Vec<(String, JsListener)>,
     /// **THE HANDLE'S PER-INSTANCE DOMAIN** (`§2.4` item 5 (c)): every token THIS instance minted
     /// (`listen`) or ADOPTED at its own construction. **The domain is this instance's and never a token
     /// equality across instances**, so a value a FOREIGN instance minted answers the same `TypeError`
@@ -833,7 +836,6 @@ pub fn create(cfg: &JsConfig) -> Result<Instance, Refusal> {
     match storeCreate(&to_config(cfg)) {
         Ok(store) => Ok(Instance {
             store,
-            registry: Vec::new(),
             owned: adopted_tokens(cfg),
         }),
         Err(err) => Err(refusal(err)),
@@ -949,14 +951,22 @@ impl Instance {
         }
     }
 
-    /// `contract.md §2.4` item 5 / `package.md §4.5` item 5 (a), (b): **the registry's own site.** An
-    /// outside `handle` — **a value THIS INSTANCE never minted or adopted, which is what item 5 (c)'s
-    /// per-instance domain means** — or a non-function `listener` is a REFUSAL whose `status` **is the
-    /// store's own `AddressMalformed`, drawn from the closed set and never minted** (`surface.md §2.5`
-    /// item 5 (g), `DD-40`); and otherwise the registration REPLACES the handle's entry and never fans out.
-    pub fn register(&mut self, handle: &JsHandleArg, listener: JsListener) -> Result<(), Refusal> {
-        let token = match handle {
-            JsHandleArg::Opaque(opaque) if self.owned.contains(&opaque.token) => opaque.token.clone(),
+    /// `contract.md §2.4` item 5 / `package.md §4.5` item 5 (a), (b): **the registration site's DOMAIN
+    /// HALF.** An outside `handle` — **a value THIS INSTANCE never minted or adopted, which is what item 5
+    /// (c)'s per-instance domain means** — is a REFUSAL whose `status` **is the store's own
+    /// `AddressMalformed`, drawn from the closed set and never minted** (`surface.md §2.5` item 5 (g),
+    /// `DD-40`); an in-domain handle is the success with the domain's own answer.
+    ///
+    /// **⟶ AND THIS IS THE WHOLE OF WHAT THE CORE ANSWERS AT THAT SITE (`F-13`): THE LISTENER ARGUMENT AND
+    /// THE CORE-SIDE REGISTRY ARE GONE.** **The FUNCTION never crosses (`DD-15`) and the core holds no
+    /// slot for one**: the package's own `register` judges the second argument (a non-function is
+    /// `index.mjs`'s refusal, before the addon is reached at all — `§2.4` item 5 (d)), the package's own
+    /// per-instance registry keeps the function keyed by the handle, and this boundary is asked only whether
+    /// the handle belongs to THIS instance's domain (`§2.4` item 5 (c)). **`register` REPLACES rather than
+    /// fans out (rule 2) at the registry that holds the function, which is the package's.**
+    pub fn register(&mut self, handle: &JsHandleArg) -> Result<(), Refusal> {
+        match handle {
+            JsHandleArg::Opaque(opaque) if self.owned.contains(&opaque.token) => Ok(()),
             JsHandleArg::Opaque(_)
             | JsHandleArg::Bare(_)
             | JsHandleArg::NonOpaque
@@ -964,61 +974,14 @@ impl Instance {
                 // The target is rendered as its own value where the handle carries one, and as the class
                 // otherwise (`surface.md §2.5` item 5 (a)), with the argument position beside it (item 5 (b)).
                 let (target, class) = match handle {
-                    JsHandleArg::Opaque(opaque) => (opaque.token.clone(), "an opaque handle a FOREIGN instance minted"),
+                    JsHandleArg::Opaque(opaque) => {
+                        (opaque.token.clone(), "an opaque handle a FOREIGN instance minted")
+                    }
                     JsHandleArg::Bare(bare) => (bare.clone(), "a bare string"),
                     _ => (String::from(""), "an absent argument"),
                 };
-                return Err(registration_refusal(&target, "register's first argument", class));
-            }
-        };
-        if let JsListener::NonFunction = listener {
-            return Err(Refusal {
-                status: REGISTRATION_REFUSAL_STATUS.to_string(),
-                message: format!(
-                    "{}, register's second argument is a non-function, and a registration's listener is a JS function",
-                    storeroom_native::storeErrorMessage(
-                        REGISTRATION_REFUSAL_STATUS,
-                        &storeroom_native::MessageArgs {
-                            segment: Some(String::from("a non-function")),
-                            ..Default::default()
-                        },
-                    ),
-                ),
-            });
-        }
-        match self.registry.iter_mut().find(|(t, _)| *t == token) {
-            Some(entry) => entry.1 = listener,
-            None => self.registry.push((token, listener)),
-        }
-        Ok(())
-    }
-
-    /// `§4.5` item 5 (c): **THE SET, AS A SET** — the triggered handles whose registration STANDS, each
-    /// ONCE, and *"an unregistered handle's `triggered_set` membership fires nothing silently"* (rule 1).
-    /// **Its order is NOT a declared order** (`§2.7` item 3, `DD-22`). **A withdrawn registration STANDS
-    /// in the registry** (`§2.4` rule 4, `DD-15`), so withdrawal is not what removes a handle from this
-    /// set: it is the store-side home entry that `listen`/`unlisten` move, and the store's own trigger set
-    /// is what the set is read from.
-    pub fn triggered_set(&self, r: &JsWriteResult) -> Vec<JsHandle> {
-        let mut out: Vec<JsHandle> = Vec::new();
-        for handle in &r.triggered {
-            let registered = self
-                .registry
-                .iter()
-                .any(|(token, _)| token == handle.token());
-            if registered && !out.iter().any(|h| h == handle) {
-                out.push(handle.clone());
+                Err(registration_refusal(&target, "register's first argument", class))
             }
         }
-        out
-    }
-
-    /// The facade's read of the registry's answer (`§4.5` item 5: *"the facade reads the registry's answer
-    /// and performs the invocation after the verb returns"*) — the core itself invokes nothing.
-    pub fn listener_for(&mut self, handle: &JsHandle) -> Option<&mut JsListener> {
-        self.registry
-            .iter_mut()
-            .find(|(token, _)| token == handle.token())
-            .map(|(_, listener)| listener)
     }
 }
