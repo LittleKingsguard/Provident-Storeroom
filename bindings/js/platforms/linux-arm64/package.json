@@ -9,6 +9,7 @@
   ],
   "main": "storeroom_js_binding.node",
   "files": [
+    "storeroom_js_binding.node",
     "LICENSE",
     "README.md"
   ],

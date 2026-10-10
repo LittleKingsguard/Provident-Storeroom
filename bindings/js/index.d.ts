@@ -11,24 +11,62 @@
 // instance's own member set, `{ register, on, off }` — three own members and nothing else; and (3) the
 // failure surface, a thrown plain object with exactly `{status, message}`.
 //
+// **AND THE RECORDS THOSE VERBS ANSWER WITH ARE DECLARED BESIDE THEM, WHICH IS STILL PART (1) AND NOT A
+// FOURTH THING**: `Address` · `Tier` · `TierSet` · `StoreConfig` · `BaseState` · `JournalOp` ·
+// `WriteRecord` · `DeleteRecord` · `RollbackRecord` · `Handle` · `Listener` are the SHAPES OF THE
+// ARGUMENTS AND OF THE ANSWERS, in `DD-39`'s own member spellings (the sibling directory's `contract.md
+// §0.2`), and a declaration that did not carry them would declare eight names and no surface. **None of
+// them is a STORE type**: no register, no anchor, no tier tree, no journal and no store verb is declared
+// here (`§5.2` item 4).
+//
 // **AND THE ONE THING THIS DECLARATION MUST NOT CARRY, STATED SO THE FINDING RULE IS CHECKABLE**
 // (`distribution.md §5.2` item 4): **it declares NO store type, NO store verb, NO `findAddress`, NO
 // release verb and NO constraint or repair seam** — each of those is a declaration the sibling directory
 // refuses, and a declaration file carrying one would declare a surface the package does not publish.
 
-/** A position in the register: the address a verb is called at, as a sequence of path segments. */
-export type Address = readonly string[];
+/**
+ * A position in the register: the address a verb is called at, as a sequence of path segments.
+ *
+ * **A SEGMENT IS A `string` (a key) OR A NON-NEGATIVE INTEGER (an index)** — `PAR-JS-5`'s own domain, and the
+ * domain the shipped walk admits and the store's own records return. **`readonly string[]` WAS THE SHIPPED
+ * DECLARATION AND IS FALSE OF EVERY ADDRESS CARRYING AN INDEX**, so a consumer compiling the lawful
+ * `read(instance, ['key', 0])` met a type error on a correct call.
+ */
+export type Address = readonly (string | number)[];
 
-/** The tier a verb is called at: the store's memory tier or its file tier. */
-export type Tier = 'mem' | 'file';
+/**
+ * The tier a verb is called at: the store's own persistence tokens.
+ *
+ * **THE DOMAIN IS THE STORE'S THREE TOKENS — `'mem'` · `'file'` · `'temp'`** (`PAR-JS-6` · `PAR-JS-7` ·
+ * `PAR-JS-11`; the store's own tier row). **`'mem' | 'file'` WAS THE SHIPPED DECLARATION AND DROPPED
+ * `'temp'`**, mis-typing a lawful third token as a value outside the domain.
+ */
+export type Tier = 'mem' | 'file' | 'temp';
+
+/**
+ * **THE READER'S ARITY, DECLARED BECAUSE IT IS NOT THE WRITER'S** (`PAR-JS-6`; `crossing.md §1.3`'s
+ * `TierArg` row 2): on `read` and `readLiteral` a tier is ABSENT, ONE token, or an ARRAY of tokens read as an
+ * ANY-MATCH set. **On `write` and `delete` an array is outside the domain — the array spelling is the
+ * reader's arity — so those two verbs take the single token `Tier` alone** (`PAR-JS-7` · `PAR-JS-11`).
+ */
+export type TierSet = Tier | readonly Tier[];
 
 /** The configuration a store is constructed from — the store's three declared keys and no fourth. */
 export interface StoreConfig {
-  /** The journal's declared length. */
+  /** The journal's declared length: a positive integer (`PAR-JS-3`). */
   readonly journalLength: number;
-  /** The listeners a construction adopts, if any. */
-  readonly listeners?: readonly unknown[];
-  /** The file the file tier is backed by, where one is declared. */
+  /**
+   * The listeners a construction adopts (`PAR-JS-4`): an array of `{ address, handle }` records, the EMPTY
+   * array included.
+   *
+   * **AND THE KEY IS REQUIRED, NOT OPTIONAL**: an ABSENT `listeners` is the ONE absence the construction
+   * does not admit and answers `AddressMalformed` for, so `listeners?` — the shipped spelling — invited a
+   * call that can never construct. **The ELEMENT SHAPE IS THE STORE'S TO REFUSE**: a member that is not an
+   * `{ address, handle }` record, or whose `handle` is not a plain non-empty `string`, is admitted here and
+   * refused by the store's own construction, because the package mints no second refusal for that position.
+   */
+  readonly listeners: readonly unknown[];
+  /** The file the file tier is backed by, where one is declared (`PAR-JS-2`; ABSENT is in domain). */
   readonly filePath?: string;
 }
 
@@ -81,9 +119,49 @@ export type Handle = object;
 /** The caller's listener: any JS function, invoked with the triggering address as its ONE argument. */
 export type Listener = (address: Address) => void;
 
-/** The record a `write` answers: fresh data on every call, never a view of the store's own state. */
+/**
+ * **A BASE STATE — THE PRE- AND POST-STATE A JOURNAL OP CARRIES** (`DD-39`: *"`BaseState` → `{ present,
+ * value }`"*). **`present` is whether a version stood at the address, and `value` is that version's value
+ * where one did — `undefined` where none did**, because the record is the store's own and the package adds
+ * no member to it.
+ */
+export interface BaseState {
+  readonly present: boolean;
+  readonly value: unknown;
+}
+
+/**
+ * **THE STORE'S OWN JOURNAL OP, CROSSED MEMBER FOR MEMBER AND IN THE STORE'S OWN SPELLINGS** — `DD-39`'s
+ * eight declared names (`distribution.md §5.2` item 1; `P-PUB-7`): `{ opId, kind, address, tier, before,
+ * after, seq, compacted }`.
+ *
+ * **`opId` IS A `string`** — the store's own op-id domain is a non-empty string (`PAR-JS-9`), and the id a
+ * `write` returns is the id a `rollback` takes. **`kind` is the store's own token** (`'write'` and
+ * `'delete'` today) **and its membership is the STORE'S to close, so it is typed as `string` and this
+ * package mints no union over it.** **`tier` is one of the store's own three tokens, or `null` where the op
+ * carries none**; **`seq` is the journal's own sequence number and `compacted` the store's own flag**, each
+ * carried verbatim.
+ */
+export interface JournalOp {
+  readonly opId: string;
+  readonly kind: string;
+  readonly address: Address;
+  readonly tier: Tier | null;
+  readonly before: BaseState;
+  readonly after: BaseState;
+  readonly seq: number;
+  readonly compacted: boolean;
+}
+
+/**
+ * The record a `write` answers: fresh data on every call, never a view of the store's own state.
+ *
+ * **`op` IS THE STORE'S OWN JOURNAL RECORD AND NOT A NUMBER** (`DD-39`; `P-PUB-7`'s `S-TYPES`): **the shipped
+ * declaration read `op: number`, which is false of EVERY value the line returns**, and a consumer compiling
+ * `write(i, a, 'mem', v).op.opId` met a type error on a correct call.
+ */
 export interface WriteRecord {
-  readonly op: number;
+  readonly op: JournalOp;
   readonly watched: readonly Address[];
   readonly triggered: readonly Handle[];
 }
@@ -95,11 +173,19 @@ export interface DeleteRecord {
   readonly triggered: readonly Handle[];
 }
 
-/** The record a `rollback` answers. */
+/**
+ * The record a `rollback` answers (`DD-39`: *"`RollbackResult` → `{ opId, undoneOps, restoredTo }`"*).
+ *
+ * **ALL THREE MEMBERS WERE MISTYPED BY THE SHIPPED DECLARATION** (`opId: number`, `undoneOps: number`,
+ * `restoredTo: number`): **`opId` echoes the id the caller passed, and that id is a `string`** (`PAR-JS-9`'s
+ * own unit: *"the `JournalOp.opId` string"*); **`undoneOps` is the LIST of the ids the reversal undid — an
+ * ARRAY of those ids, not a count**; and **`restoredTo` is the base state the addressed subtree now stands
+ * at**, `{ present, value }`.
+ */
 export interface RollbackRecord {
-  readonly opId: number;
-  readonly undoneOps: number;
-  readonly restoredTo: number;
+  readonly opId: string;
+  readonly undoneOps: readonly string[];
+  readonly restoredTo: BaseState;
 }
 
 /**
@@ -128,20 +214,41 @@ export interface StoreInstance {
  */
 export function storeCreate(cfg: StoreConfig): StoreInstance;
 
-/** Read a leaf's literal, a branch's assembled value, or the empty address's whole register. */
-export function read(instance: StoreInstance, address: Address, tier?: Tier): unknown;
+/**
+ * Read a leaf's literal, a branch's assembled value, or the empty address's whole register.
+ *
+ * **`tier` IS THE READER'S ARITY** (`PAR-JS-6`): absent, ONE token, or an ARRAY of tokens read as an
+ * ANY-MATCH set — **so the shipped `tier?: Tier` refused, as a type error, a lawful call spelling a set**.
+ */
+export function read(instance: StoreInstance, address: Address, tier?: TierSet): unknown;
 
-/** The same read, narrowed to a leaf — a branch answers `ReadTargetIsBranch`. */
-export function readLiteral(instance: StoreInstance, address: Address, tier?: Tier): unknown;
+/** The same read, narrowed to a leaf — a branch answers `ReadTargetIsBranch`; `tier` is `TierSet`. */
+export function readLiteral(instance: StoreInstance, address: Address, tier?: TierSet): unknown;
 
-/** Write `value` at `address` on `tier`, and answer the operation's record. */
+/** Write `value` at `address` on `tier` — EXACTLY ONE token, never an array (`PAR-JS-7`). */
 export function write(instance: StoreInstance, address: Address, tier: Tier, value: unknown): WriteRecord;
 
-/** Remove the versions the address names, and answer the operation's record. */
-export function delete(instance: StoreInstance, address: Address, tier?: Tier): DeleteRecord;
+/**
+ * Remove the versions the address names, and answer the operation's record.
+ *
+ * **AND THE NAME IS `delete`, WHICH THIS DECLARATION CANNOT BIND AS AN IDENTIFIER**: `delete` is a RESERVED
+ * WORD, so the function is declared as `deleteOp` and EXPORTED under the name the entry publishes —
+ * `export { deleteOp as delete }` — exactly as `bindings/js/index.mjs` does on its own side.
+ * **`export function delete(…)`, WHICH THE SHIPPED FILE CARRIED, IS NOT A PARSEABLE DECLARATION AT ALL**, so
+ * a consumer's compiler read no surface from this file rather than a mis-typed one (`P-PUB-7`; `Q3-4`).
+ */
+declare function deleteOp(instance: StoreInstance, address: Address, tier?: Tier): DeleteRecord;
+export { deleteOp as delete };
 
-/** Roll the journal back to `opId`, and answer what the rollback restored. */
-export function rollback(instance: StoreInstance, opId: number): RollbackRecord;
+/**
+ * Roll the journal back to `opId`, and answer what the rollback restored.
+ *
+ * **`opId` IS A NON-EMPTY `string` AND NOT A NUMBER** (`PAR-JS-9`'s own unit: *"the `JournalOp.opId`
+ * string"*): the shipped `opId: number` both mis-declared the domain — a number is an OUTSIDE value the
+ * store answers `AddressMalformed` for — and made the ordinary call `rollback(i, w.op.opId)`, whose id is
+ * the string `write` returned, a type error.
+ */
+export function rollback(instance: StoreInstance, opId: string): RollbackRecord;
 
 /** Begin watching an address, and answer the fresh opaque handle it is keyed by. */
 export function listen(instance: StoreInstance, address: Address): Handle;

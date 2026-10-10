@@ -7,8 +7,17 @@ UNCLAIMED and each owes its declared answer** (`package.md §2`: Node CJS, Elect
 described here as supported.**
 
 **THE LICENCE OF RECORD IS `AGPL-3.0`** (`DD-43`). It is the repository's own `LICENSE` and no clause of
-this unit changes it; **the licence file itself is NOT copied into this package**, so a second, drifting
-copy cannot exist beside the repository's own.
+this unit changes it. **AND THE LICENCE COPY TRAVELS WITH EVERY ARTEFACT, THIS PACKAGE'S OWN INCLUDED**:
+each of the SIX artefacts — this package and the five platform packages — carries a copy of the
+repository's own `LICENSE` as the licence TEXT travelling with it, copied BYTE-FOR-BYTE at the release's
+own assembly step (`docs/specs/storeroom-publish/contract.md §2.3` item 2; `distribution.md §4.2` item 1 and
+`§4.3` item 2; `PUB-DD-11`; `Q3-5`). **WHAT IS REFUSED IS A SECOND, DRIFTING COPY INSIDE THE TREE**: no
+`LICENSE` byte is written under `bindings/js/` (`§2.3` item 4; `distribution.md §4.3` item 1), so the copy
+is an ARTEFACT-LEVEL fact and not a crate-level file, and this package's `files` allowlist names it
+nowhere — the allowlist is the three entries `§2.1` item 1 fixes and NOTHING ELSE (`Q3-2`). **AND THE COPY
+IS NOT A FIFTH DECLARATION SITE** (`distribution.md §4.2` item 3): the four sites are AUTHORED
+DECLARATIONS ABOUT the licence, while a tarball's own copy is the licence's text travelling with an
+artefact — so the count of SITES stays four and the count of artefacts CARRYING A NOTICE is six.
 
 ## The one entry
 
@@ -81,9 +90,12 @@ compensates for nothing.
    failure form, and no instance is returned.
 
 **IN A PUBLISHED INSTALL, RUNG ONE IS THE RUNG THAT FIRES**, because rung two's path is the checkout's
-own and a `files`-restricted tarball does not carry it — **no binary ships, at any key, on any target**.
-**RUNG TWO IS THE CHECKOUT-ONLY RUNG**: it is the in-place developer loop and every battery that exists
-today, and building it is a step of a checkout rather than of an install:
+own and a `files`-restricted tarball does not carry it — **no binary ships IN THIS PACKAGE'S OWN TARBALL,
+at any key, on any target** (`§2.1` item 1; `Q3-2`). **AND THE FIVE PLATFORM ARTEFACTS EACH CARRY THEIR OWN
+TARGET'S BINARY**: each one's allowlist names the `.node` beside its manifest, which is what gives rung one
+a declared source to load at that key at all (`PAR-PUB-21`; `distribution.md §3.2` item 5). **RUNG TWO IS
+THE CHECKOUT-ONLY RUNG**: it is the in-place developer loop and every battery that exists today, and
+building it is a step of a checkout rather than of an install:
 
 ```sh
 cargo build --release --manifest-path bindings/js/Cargo.toml --offline

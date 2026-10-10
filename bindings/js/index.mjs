@@ -175,6 +175,13 @@ function packageVersion() {
 // ---------------------------------------------------------------------------------------------
 let addon = null;
 let addonLoadError = null;
+// **THE ARM THE LOAD PATH ANSWERED WITH, WHERE THE STATE IS THE VERSION MISMATCH** (`§1.5` item 2): the
+// load path's OWN declared answer, remembered so that the mismatch is TERMINAL — rung two's `require` is
+// not reached on the evaluation that meets the mismatch and not on any LATER one either, because the walk
+// reads this state before it walks anything. **THE STATE IS THE DECLARED FORM ITSELF AND NEVER A HOST
+// `Error`**: `§1.4` item 1 admits ONE failure shape — `{status, message}`, thrown, no third member — so a
+// second failure INSTANCE held in the module's own state is not a shape this unit admits (`PUB-R-3`).
+let addonArm = null;
 // **THE RUNGS THE LOAD PATH ACTUALLY WALKED** (`§1.4` item 2; `resolution.md §5.3`): `tried` collects the
 // subjects a candidate was sought at, IN THE ORDER THEY WERE TRIED — rung one's RESOLVED NAME where rung
 // one was attempted at all, and rung two's module-relative path. **THE SUBJECT IS ONE PATH WHERE ONE RUNG
@@ -202,7 +209,7 @@ function rungOneCandidate() {
 // at rung two, and NO second failure shape is produced anywhere on this path.
 // ---------------------------------------------------------------------------------------------
 function loadAddon() {
-  if (addon !== null || addonLoadError !== null) return;
+  if (addon !== null || addonArm !== null || addonLoadError !== null) return;
   const name = rungOneCandidate();
   if (name !== 'NOT COVERED') {
     tried.push(name);
@@ -230,9 +237,26 @@ function loadAddon() {
         // **THE MISMATCH ARM — THE SINGLE DECLARED FAILURE ARM** (`§1.5` item 2; `PUB-DD-17`): the subject
         // is RUNG ONE'S OWN PATH, and **NO FALLBACK TO RUNG TWO exists** — the load path stops here, loads
         // nothing from the substituted artefact and returns no instance.
+        //
+        // **⟶ AND `PUB-R-3`: THE ARM IS MADE TERMINAL BY CONSTRUCTION RATHER THAN BY THE `if`'S SHAPE.**
+        // The walk RETURNS at the arm, so rung two's `require` below is not reached on the evaluation that
+        // meets the mismatch; **and what keeps a LATER evaluation at the arm is the ARM ITSELF, held in
+        // `addonArm` and read by this walk's own entry test** — never a second failure instance beside it.
+        // **THE SHIPPED STATE WAS `addonLoadError = new Error('addon-version-mismatch')`, and it was a shape
+        // `§1.4` item 1 does not admit: an `Error` minted here for a state whose declared answer is the one
+        // form. THAT ASSIGNMENT IS REMOVED** (the `addonLoadError` slot is left to the load path's own
+        // cause, rung two's throw) **and its whole duty — halting the walk before rung two — is taken by
+        // the declared arm.** **A state in which a caught mismatch could then fall through to
+        // `require_(ADDON_PATH)` and load the checkout's own artefact no longer exists at any call.**
+        //
+        // **AND THE `message` IS THE LOADED ARTEFACT'S OWN GENERATOR'S, NOT THIS FILE'S** (`§1.4` item 6,
+        // arm (a); `PUB-DD-25`; `P-PUB-4`'s failure list's last member): the artefact that loaded and
+        // answered `version` is the artefact that carries the store's generator, so the string is reached
+        // through ITS `errorMessage` at the subject `§1.5` item 2 fixes. **`mismatchArmMessage` below names
+        // the fallback where that artefact cannot supply it.**
         addon = null;
-        addonLoadError = new Error('addon-version-mismatch');
-        throw { status: 'FilePathUnreachable', message: generatorFilePathUnreachable(name) };
+        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name) };
+        return;
       }
       addon = candidate;
       loadedFrom = 'one';
@@ -277,6 +301,27 @@ function generatorFilePathUnreachable(subject) {
   return `'${subject}' is not reachable at construction, the path must exist or the application must be able to write it`;
 }
 
+/// **THE MISMATCH ARM'S `message`, AND ITS ONE DECLARED FALLBACK** (`§1.4` item 6; `PUB-DD-25`).
+/// **ARM (a) FIRST: THE LOADED ARTEFACT'S OWN GENERATOR AUTHORS THE STRING**, reached through the artefact's
+/// `errorMessage` — the artefact that loaded and answered `version` is the artefact that carries the
+/// generator — at the subject `§1.5` item 2 fixes, RUNG ONE'S OWN PATH. **WHERE THAT ARTEFACT CARRIES NO
+/// `errorMessage`, OR ITS OWN GENERATOR THROWS, OR IT ANSWERS A VALUE THAT IS NOT A `string`, THE GENERATOR
+/// IS UNREACHABLE AND ARM (b) ANSWERS: THE STORE'S OWN CLAUSE, REPRODUCED BYTE-FOR-BYTE AT THAT SAME
+/// SUBJECT.** Arm (b) is the ONE arm `§1.4` item 6 declares for a state in which no generator can be
+/// reached, so the fallback is named rather than taken silently, and a failure inside the loaded
+/// artefact's generator cannot become a second failure shape.
+function mismatchArmMessage(candidate, name) {
+  if (candidate !== null && candidate !== undefined && typeof candidate.errorMessage === 'function') {
+    try {
+      const rendered = candidate.errorMessage('FilePathUnreachable', name);
+      if (typeof rendered === 'string') return rendered;
+    } catch {
+      // the loaded artefact's own generator failed in turn: arm (b) below is the declared answer
+    }
+  }
+  return generatorFilePathUnreachable(name);
+}
+
 /// **THE DECLARED ABSENT FORM'S MESSAGE** — the store's own generator's string for `FilePathUnreachable`
 /// at the subject `absentSubject()` fixes (`§1.4` items 1–2). **WHERE AN ARTEFACT LOADED FAR ENOUGH TO
 /// CARRY THE GENERATOR, THE GENERATOR AUTHORS THE STRING** (`A75`: *"reached through the addon where it
@@ -304,6 +349,11 @@ function fail(refusal) {
 
 function withAddon() {
   loadAddon();
+  // **THE MISMATCH ARM STANDS FIRST, AND IT IS THE ARM THE LOAD PATH ITSELF ANSWERED WITH** (`§1.5` item 2;
+  // `PUB-R-3`): where the version read refused, THE WALK IS OVER — no rung-two attempt is made here and none
+  // is made at any later call, and the value re-thrown is the arm's own `{status, message}` and not a state
+  // re-derived from a path list.
+  if (addonArm !== null) fail(addonArm);
   if (addon === null) fail({ status: 'FilePathUnreachable', message: addonLoadMessage() });
   return addon;
 }
