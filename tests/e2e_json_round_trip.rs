@@ -284,7 +284,19 @@ fn drive(case: &Case) {
 }
 
 macro_rules! rt_case {
-    ($name:ident, $label:expr, $addr:expr, $tier:expr, $value:expr, $rel:expr, $clause:expr) => {
+    ($(#[$attr:meta])* $name:ident, $label:expr, $addr:expr, $tier:expr, $value:expr, $rel:expr, $clause:expr) => {
+        // **THE CELL'S OWN ATTRIBUTES, FORWARDED ONTO THE CELL IT GENERATES — `$(#[$attr])*`.** A cell whose
+        // LITERAL is the subject of its own assertion can carry a TARGETED `#[allow(...)]` at its invocation
+        // (see `e2e_num_pi` below); a cell that forwards none expands to byte-for-byte what it expanded to
+        // before this arm's attribute slot existed, and NO cell forwards more than the one lint it does not
+        // obey. **THE RUSTC FACT THIS SLOT EXISTS FOR, MEASURED RATHER THAN ASSUMED:** an attribute written
+        // directly ON an item-position `macro_rules!` INVOCATION is IGNORED — rustc prints
+        // *"the built-in attribute `allow` will be ignored, since it's applied to the macro invocation"*
+        // (`unused_attributes`) and the lint fires anyway, because the lint level governing an expanded
+        // literal is the level of the generated item's scope. **So the attribute must TRAVEL THROUGH the macro
+        // to land on the cell; there is no crate-level, module-level or macro-level allow here, and the
+        // matcher's `*` admits zero attributes so every existing cell is untouched.**
+        $(#[$attr])*
         #[test]
         fn $name() {
             drive(&Case {
@@ -488,7 +500,28 @@ rt_case!(e2e_num_one_tenth, "num.0.1", key(&["v"]), Tier::Mem, v_num(0.1), Rel::
     "§1.4 class 3 — a repeating binary expansion");
 rt_case!(e2e_num_one_third, "num.1/3", key(&["v"]), Tier::Mem, v_num(1.0 / 3.0), Rel::Exact,
     "§1.4 class 3 — a repeating binary expansion");
-rt_case!(e2e_num_pi, "num.pi", key(&["v"]), Tier::Mem, v_num(3.141592653589793), Rel::Exact, "§1.4 class 3");
+// **WHY THIS CELL CARRIES A TARGETED `#[allow(clippy::approx_constant)]`, AND WHY THE LINT IS DELIBERATELY NOT
+// OBEYED.** **THE LITERAL IS THE SUBJECT OF THE ASSERTION.** This cell's input IS `3.141592653589793` — `§1.4`
+// class 3's finite fractional number, the same shape as `num.1/3` beside it — and what the cell drives is that
+// the `f64` carrying π's EXACT binary value is written, read back at the write's own tier, read unqualified and
+// read again through the register route, all STRUCTURALLY EQUAL to the value written (`§5.2 P-IM-1`, strategy
+// `S-RT`; `§4.1`'s leaf row; `§4.2` `R-1`/`R-5`). **The literal's SPELLING is what the value is entered by, and
+// `A59`'s declared normalization is a statement about a spelling — so the literal must be SPELLED HERE.**
+// **`clippy::approx_constant` asks for `std::f64::consts::PI`, and obeying it would replace the subject of the
+// assertion with a reference to a constant: the cell would stop asserting anything about a float the battery
+// itself spells.** The value, the assertion, the label and the cell's NAME are all UNCHANGED; the lint is
+// silenced ON THIS CELL ALONE, through `rt_case!`'s attribute slot (rustc ignores an attribute written on the
+// invocation itself — see that macro's definition above), with NO crate-level or module-level allow anywhere.
+rt_case!(
+    #[allow(clippy::approx_constant)]
+    e2e_num_pi,
+    "num.pi",
+    key(&["v"]),
+    Tier::Mem,
+    v_num(3.141592653589793),
+    Rel::Exact,
+    "§1.4 class 3"
+);
 rt_case!(e2e_num_three_halves, "num.1.5", key(&["v"]), Tier::Mem, v_num(1.5), Rel::Exact, "§1.4 class 3");
 rt_case!(e2e_num_exponent_1e2, "num.1e2", key(&["v"]), Tier::Mem, v_num(1e2), Rel::Exact,
     "§1.4 class 3 — the exponent FORM is a spelling, not a value: 1e2 IS 100.0 in the declared carrier");
@@ -1871,6 +1904,19 @@ fn e2e_num_spelling_1e_plus_2_is_canonical_in_the_file_image() {
 //     cell). **The value half of the on-disk reading is therefore asserted exactly at the carrier while the
 //     SPELLING half pins the reading the ruling's own parenthetical names FIRST (`0.1`) — and if the
 //     amendment names another rule, this cell is the one cell that must be re-derived to it.**
+// **WHY THIS CELL CARRIES A TARGETED `#[allow(clippy::approx_constant)]`, AND WHY THE LINT IS DELIBERATELY NOT
+// OBEYED.** **THE π LITERAL IN THE LOOP BELOW IS THE SUBJECT OF THE ASSERTION.** The loop writes each value,
+// reads it back in the instance's own memory, reads the COMMITTED BYTES at `cfg.filePath`, and reads again
+// through a FRESH BOOT of the same path, asserting at every step that the value is the caller's own `f64`
+// (`A59` (a)/(b); `§7.2` item 1 `M-12` / item 6; `§1.4` class 3). **The array spells its floats on purpose: the
+// cell's whole subject is that a float SPELLED as a literal — a repeating expansion (`1/3`), π's exact binary
+// value, the smallest positive subnormal (`5e-324`) and a long-but-finite exponent (`1e-300`) — crosses the
+// `file` tier and a boot unchanged, and `A59`'s declared normalization is a statement about exactly that
+// spelling.** **`clippy::approx_constant` asks for `std::f64::consts::PI`, and obeying it would replace the
+// subject of the assertion with a constant reference and defeat the cell.** The literal STAYS SPELLED, its
+// value is UNCHANGED, every assertion stands, and the lint is silenced ON THIS CELL ALONE — not at crate or
+// module scope, and for this cell's other float (`0.1`, above) nothing is silenced that was not already quiet.
+#[allow(clippy::approx_constant)]
 #[test]
 fn e2e_num_spelling_zero_point_1_in_the_file_image() {
     spelling_drive(
