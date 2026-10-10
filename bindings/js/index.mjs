@@ -1,4 +1,4 @@
-// `@provident-storeroom/js` — **THE CLAIMED REALM: Node ESM, ALONE** (`package.md §1.1`, `A70`).
+// `provident-storeroom` — **THE CLAIMED REALM: Node ESM, ALONE** (`package.md §1.1`, `A70`).
 //
 // **THE ONE ARMS-BEARING ENTRY** (`package.md §1.3` item 1, `DD-24`) — the `exports` map publishes it and
 // publishes nothing else: no wildcard, no deep import to the addon and no CJS arm (`§1.2`, `HO-1`).

@@ -344,9 +344,32 @@ function stubSource(variant, opts = {}) {
   const versionValue = opts.fromOwnManifest
     ? "JSON.parse(require('node:fs').readFileSync(require('node:path').join(__dirname, 'package.json'), 'utf8')).version"
     : VARIANT_VERSION[variant];
+  // **⟶ ADDED BY THE PRE-TAG PASS (`PUB-R-13`): THE FAKE'S `errorMessage` IS NOW A LEVER, BECAUSE
+  // `contract.md §1.4` ITEM 7 DECLARES A STATE IN WHICH THE ARTEFACT LOADED AND CARRIES NO USABLE
+  // GENERATOR.** `opts.errorMessage` names the THREE TRIGGER CONDITIONS that clause enumerates —
+  // `'absent'` (the member is not there at all), `'throws'` (its own generator throws), and `'notstring'`
+  // (it answers a value that is not a `string`) — and the DEFAULT IS UNCHANGED: a callable generator
+  // rendering the store's own clause, which is the artefact every other drive in this set loads. **NO
+  // DRIVE THAT DOES NOT ASK FOR A BROKEN GENERATOR SEES ONE, and the counter `calls.errorMessage` makes
+  // the difference measurable from outside.**
+  const generatorMember = {
+    absent: '',
+    throws: `  errorMessage() {
+    calls.errorMessage += 1;
+    throw new Error("the loaded artefact's own generator failed in turn");
+  },`,
+    notstring: `  errorMessage() {
+    calls.errorMessage += 1;
+    return 42; // not a \`string\`: arm (a) has nothing to reach
+  },`,
+  }[opts.errorMessage] ?? `  errorMessage(code, subject) {
+    // the store's own generator's rendering, for the one code this unit's arm carries
+    calls.errorMessage += 1;
+    return "'" + subject + "' " + GEN_TAIL;
+  },`;
   return `'use strict';
 // THE FAKE CANDIDATE: this stands where a platform package's resolution would land. Variant: ${variant}.
-const calls = { version: 0, storeCreate: 0 };
+const calls = { version: 0, storeCreate: 0, errorMessage: 0 };
 const GEN_TAIL = ${JSON.stringify(GEN_TAIL)};
 const report = { variant: ${JSON.stringify(variant)}, calls, loadError: null };
 function versionValue() { return ${versionValue}; }
@@ -362,10 +385,7 @@ const api = {
   /// zero-initialised count rather than a signal the observer's own question would forge.
   loads: 0,
   version: versionMember,
-  errorMessage(code, subject) {
-    // the store's own generator's rendering, for the one code this unit's arm carries
-    return "'" + subject + "' " + GEN_TAIL;
-  },
+${generatorMember}
   /// **THE CONSTRUCTION THE ENTRY PERFORMS ON THE ARTEFACT IT RESOLVED** — the ONE source of an instance
   /// (the contract's own §1.4 item 3 refutes every JS-side fallback, a partial instance and a no-op verb).
   /// It records its OWN invocation (the cells that assert the loaded candidate is what constructs the store
@@ -421,9 +441,14 @@ function writeStub(dir, variant, opts = {}) {
  * `manifestVersion` fixes the version the SCRATCH PACKAGE'S OWN MANIFEST declares — which `§1.5` item 1
  * makes the ONE source the read may take it from.
  */
-function makeScratch({ label, rungOne, rungTwo = 'absent', rungTwoDecoy = null, parentDecoy = false, env = {}, manifestVersion = '0.1.0' }) {
+function makeScratch({ label, rungOne, rungTwo = 'absent', rungTwoDecoy = null, parentDecoy = false, env = {}, manifestVersion = '0.1.0', entrySource = null }) {
   const dir = mkdtempSync(join(SCRATCH_ROOT, `${label.replace(/[^a-zA-Z0-9-]/g, '_')}-`));
-  writeFileSync(join(dir, 'index.mjs'), readFileSync(join(PKG_DIR, 'index.mjs')));
+  // **`entrySource` IS THE CONTROL'S ONE LEVER** and it is `null` for every drive that observes the SHIPPED
+  // entry: a scratch copy of `bindings/js/index.mjs` carrying a deliberate fault — the `§1.4` item 7
+  // finding, or the second failure shape — is staged in its place, so a cell's own assertion is MEASURED
+  // against bytes that must fail it. **NOTHING OF THE REPOSITORY IS WRITTEN BY A CONTROL**: the mutant
+  // stands under the operating system's temporary area, beside the scratch manifest and the fake artefact.
+  writeFileSync(join(dir, 'index.mjs'), entrySource ?? readFileSync(join(PKG_DIR, 'index.mjs')));
   writeFileSync(join(dir, 'package.json'), JSON.stringify({
     name: 'provident-storeroom', version: manifestVersion, type: 'module',
     exports: { '.': { import: './index.mjs' } },
@@ -485,6 +510,7 @@ function coveredEnv(key, variant, opts = {}) {
     rungOne: { name: key.name, variant, ...(opts.rungOne ?? {}) },
     rungTwo: opts.rungTwo ?? 'broken',
     manifestVersion: opts.manifestVersion ?? '0.1.0',
+    entrySource: opts.entrySource,
   });
 }
 
@@ -1246,6 +1272,163 @@ cell('P-PUB-5', 'S-ONEARM the message is the store\'s generated string at the su
   assert.ok(A.message.startsWith(`'`), 'and its subject slot is filled with the artefact\'s path');
 });
 
+// **⟶ ADDED BY THE PRE-TAG PASS (`PUB-R-13`): `contract.md §1.4` ITEM 7'S STATE — THE LOADED ARTEFACT THAT
+// CARRIES NO USABLE GENERATOR — HAD NO CELL OF THIS RED SET.** The state was driven by the generator
+// `NG-PUB-F` with `3` measured controls (`bindings/js/test/publish-generators.test.mjs`) and by no cell of
+// the red set, so `P-PUB-5`'s stated coverage was wider than the red set that stands
+// (`archive/gate3/storeroom-publish-red-set.md` `§8.12`; `docs/next-steps.md` `§126`'s item `(iv)`).
+// **THE ROW AND THE STRATEGY ARE THE CONTRACT'S OWN MAP, NOT THIS PASS'S CHOICE**: `§1.4` item 7 cites
+// `P-PUB-5` and files the state as the `present-wrong-version` column's sub-case, and `§5.5`'s FAILURE LIST
+// carries *"a `message` … not the generator's own clause reproduced byte-for-byte in the arm where it
+// was not"* (`§1.4` item 6; `PUB-DD-25`) — `P-PUB-4`'s list carries the mismatch-arm half
+// (*"a mismatch arm whose `message` the ENTRY authored rather than the artefact's own generator"*), which
+// is why arm (a) is read beside it below. **THE STATE IS DRIVEN AT ALL THREE TRIGGER CONDITIONS THE CLAUSE
+// ENUMERATES**, and the cell's own count of subprocess drives is `6`.
+// STATES: a covered key whose rung one LOADED and its own `version` DID NOT MATCH, and the same artefact's
+//   `errorMessage` is ABSENT · ITS OWN GENERATOR THROWS · IT ANSWERS A VALUE THAT IS NOT A `string` (the
+//   three trigger conditions `§1.4` item 7 names) · and, beside them, the SAME state with a usable
+//   generator, which is arm (a) at the same subject (`§1.4` item 6's closing paragraph)
+// FAIL-STATES: a `message` at this state that APPENDS the rung-two path · a `message` that names the
+//   module-relative addon path in place of the rung-one artefact's own (`§1.4` item 7's FINDING) · the
+//   both-paths JOIN at a state where ONLY RUNG ONE WAS TRIED (`§1.5` item 6; `PUB-DD-26`) · a rung-two
+//   `require` reached on some evaluation · an instance returned beside the arm · a second failure shape, a
+//   third member or a package-minted status (`§1.4` item 1; `PUB-DD-25`) · a message that is the entry's own
+//   template rather than the generator's clause byte-for-byte (`§5.5`; `P-PUB-5`)
+cell('P-PUB-5', 'S-ONEARM the artefact that LOADED and carries no usable generator is arm (b) at rung one\'s path ALONE', async () => {
+  const key = COVERED[0];
+  // **THE ONE SITE THE TWO CONTROLS ARE CUT AT, ANCHORED ONCE** — the mismatch arm of the entry's own walk.
+  const MUTATION_SITE = `        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name) };`;
+  /** `§1.4` item 7's state, assembled once: a covered key, rung one LOADED at the declared name, its own
+   *  `version` answering a string that is NOT the package's, and a generator in the shape the clause names. */
+  const thirdConditionEnv = (label, generatorShape, entrySource = null) => coveredEnv(key, 'wrong', {
+    rungTwo: 'broken',
+    rungOne: { errorMessage: generatorShape },
+    entrySource,
+  });
+  /** **THE INSTRUMENT — ONE SET OF ASSERTIONS, RUN ON THE SHIPPED ENTRY AND ON EVERY CONTROL ALIKE**, so a
+   *  control measures the assertion that actually guards the tree and never a copy of it: the shape, the
+   *  status, the EXACT rendering at the rung-one subject ALONE, the absence of the both-paths join, the
+   *  absence of any rung-two attempt, and the absence of a returned instance all stand inside it. */
+  const driveThirdCondition = ({ env, generatorShape }) => {
+    const r = drive(env, { platform: key.platform, arch: key.arch });
+    // **THE LEVER, MEASURED WHERE IT LIVES AND NOT WHERE THE CELL HOPES**: the artefact the walk LOADED is
+    // read in THIS process, and its own generator is asked what it answers — so "this artefact carries no
+    // usable generator" is a fact about the staged artefact and not about the drive's intention.
+    const loadedApi = require_(env.stubFile);
+    const shape = (() => {
+      if (typeof loadedApi.errorMessage !== 'function') return 'absent';
+      try { return typeof loadedApi.errorMessage(ARM_STATUS, 'probe') === 'string' ? 'usable' : 'notstring'; }
+      catch { return 'throws'; }
+    })();
+    assert.equal(shape, generatorShape,
+      `the artefact the walk LOADED carries no USABLE generator: its own \`errorMessage\` is ${generatorShape}`
+      + ` (\`§1.4\` item 7's three trigger conditions), and this drive really staged that shape`);
+    assert.equal(r.stub?.calls?.version, 1,
+      '`§1.5` item 1: the read REACHED it — the artefact loaded far enough to answer `version`, which is what '
+      + 'makes this state arm (b)\'s third condition rather than `present-unloadable`');
+    assert.equal(r.stub?.calls?.storeCreate ?? 0, 0, 'and it did NOT construct: the version refused it');
+    const A = assertArm(r, {});
+    assert.deepEqual(Object.keys(A), ['status', 'message'],
+      '`§1.4` item 1: the arm\'s member set is EXACTLY `{status, message}` — a third member is a second shape');
+    // **THE SUBJECT, AS AN EXACT RENDERING AND NEVER AS AN INCLUSION**: an inclusion test is satisfied by a
+    // message that names rung one AND appends rung two — which is precisely the FINDING `§1.4` item 7 names.
+    assert.equal(A.message, gen(key.name),
+      `\`§1.4\` item 7 / \`resolution.md §5.3a\`: at ${generatorShape} the arm reproduces the store's own clause `
+      + `BYTE-FOR-BYTE at THE RUNG-ONE ARTEFACT'S OWN PATH ALONE (${key.name}) — the path the walk reached and the `
+      + `path this arm's state is defined at — and never the both-paths join; got ${JSON.stringify(A.message)}`);
+    const thisRungTwo = join(env.dir, RUNG_TWO_TAIL);
+    assert.equal(A.message.includes(thisRungTwo), false,
+      `${thisRungTwo} appears NOWHERE in the message: at this state rung two's \`require\` is reached on NO evaluation`);
+    assert.equal(A.message.includes(`'${thisRungTwo}'`), false,
+      'and it is not reported inside the generator\'s own subject slot either — a message naming the '
+      + 'module-relative addon path in place of the rung-one artefact\'s own is a FINDING (`§1.4` item 7)');
+    assert.equal(A.message.includes("', '"), false,
+      'and the BOTH-PATHS JOIN is ABSENT: the separator `\', \'` between two quoted subjects would report a walk '
+      + 'the loader did not take (`§1.5` item 6; `PUB-DD-26`) — at this state ONLY RUNG ONE WAS TRIED');
+    assert.equal(r.requests.filter(isRungTwo).length, 0,
+      'NO rung-two attempt: the walk RETURNS at the arm (`§1.4` item 7)');
+    assert.equal(r.returned, false, 'and NO instance came back beside the arm — no fallback, no partial store');
+    assert.equal(r.error, null, 'and nothing was absorbed silently');
+    return { r, A };
+  };
+  // ---- (1) THE SHIPPED ENTRY, AT EACH OF THE CLAUSE'S THREE TRIGGER CONDITIONS ----
+  assert.ok(!join(thirdConditionEnv('third-condition-rungtwo-path', 'absent').dir, RUNG_TWO_TAIL).includes(key.name),
+    'the join this cell refuses to see is a path the rung-one subject does not contain, so the two are separable');
+  const shippedMessages = new Map();
+  for (const generatorShape of ['absent', 'throws', 'notstring']) {
+    shippedMessages.set(generatorShape,
+      driveThirdCondition({ env: thirdConditionEnv(`third-condition-${generatorShape}`, generatorShape), generatorShape }).A.message);
+  }
+  assert.equal(new Set(shippedMessages.values()).size, 1,
+    'the three trigger conditions reach ONE string: the sub-case is a sub-case of arm (b) and not a third arm');
+  // ---- (2) THE BYTE-FOR-BYTE CLAIM, MEASURED AGAINST THE STORE'S OWN GENERATOR AND NOT AGAINST A CONSTANT ----
+  const realAddon = join(PKG_DIR, RUNG_TWO_TAIL);
+  assert.ok(existsSync(realAddon), 'the repository\'s own built artefact exists (the README\'s declared build step)');
+  const storeAddon = require_(realAddon);
+  assert.equal(typeof storeAddon.errorMessage, 'function',
+    'the generator is reachable through the artefact that CARRIES it, which is arm (a)\'s home');
+  const authored = storeAddon.errorMessage(ARM_STATUS, key.name);
+  assert.equal(authored, gen(key.name), 'and the expected rendering IS that generator\'s own string at that subject');
+  // arm (a) BESIDE arm (b), at the SAME subject and the SAME state: ONE AUTHOR SPEAKS IN BOTH ARMS.
+  const armedGenerator = drive(coveredEnv(key, 'wrong', { rungTwo: 'broken' }), { platform: key.platform, arch: key.arch });
+  const Aa = assertArm(armedGenerator, {});
+  assert.equal(armedGenerator.stub.calls.errorMessage, 1,
+    'arm (a): the artefact that loaded and answered `version` is the artefact whose own generator authored the string');
+  assert.equal(Aa.message, authored,
+    'THE TWO ARMS AGREE BYTE-FOR-BYTE AT THE SAME SUBJECT: the reproduction this cell drives (arm (b), where the '
+    + 'generator is unreachable through a function) is the generator\'s own rendering, so a third spelling, an '
+    + `added word or a second sentence beside it fails here (\`§1.4\` item 6 (ii); \`PUB-DD-25\`); got ${JSON.stringify(Aa.message)}`);
+  assert.equal(driveThirdCondition({ env: thirdConditionEnv('third-condition-agreement', 'absent'), generatorShape: 'absent' }).A.message, authored,
+    'and the state this cell was added for reaches that same string: arm (b)\'s message IS arm (a)\'s, byte for byte');
+  // ---- (3) THE TWO CONTROLS, EACH DISABLING ONE HALF OF THE CLAUSE AND EACH REQUIRED TO FAIL THE INSTRUMENT ----
+  const shippedEntry = readFileSync(join(PKG_DIR, 'index.mjs'), 'utf8');
+  assert.ok(shippedEntry.includes(MUTATION_SITE),
+    'the entry\'s mismatch-arm site is present, so both controls are cut at the shipped bytes and not at a guess');
+  const controlVerdict = (entrySource) => {
+    const env = thirdConditionEnv('third-condition-control', 'absent', entrySource);
+    try { driveThirdCondition({ env, generatorShape: 'absent' }); return null; } catch (err) { return err; }
+  };
+  const joinedEntry = shippedEntry.replace(MUTATION_SITE,
+    `        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name) + "', '" + join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node') + "'" };`);
+  assert.ok(joinedEntry !== shippedEntry && joinedEntry.includes("', '\""),
+    'THE FIRST CONTROL really appends the BOTH-PATHS JOIN at this state — the `§1.4` item 7 finding verbatim');
+  assert.equal(shippedEntry.includes("', '\" + join(dirOf"), false, 'and the shipped entry carries no such append');
+  const joinVerdict = controlVerdict(joinedEntry);
+  assert.ok(joinVerdict !== null,
+    'THE FIRST CONTROL MUST FAIL: a message that appends the rung-two path at a state where only rung one was tried is caught');
+  assert.ok(joinVerdict.message.includes(RUNG_TWO_TAIL),
+    `and the verdict names the joined path it caught: ${String(joinVerdict.message).slice(0, 240)}`);
+  // **AND THE SECOND CONTROL IS CUT WHERE THE ARM IS REALLY BUILT.** The shipped `fail()` **reconstructs
+  // the two members out of the refusal it is handed** (`throw { status: refusal.status, message:
+  // refusal.message }` — *"mints no code of its own … and adds no third member"*), so a third member added
+  // at the `addonArm` assignment alone would be DROPPED before it reached a consumer and the control would
+  // measure nothing. **The `fail()` SITE IS THEREFORE THE ONE THE CONTROL IS CUT AT**: it is the single place
+  // this unit's arm acquires its member set, and a third member minted there is the `§1.4` item 7 `alt`
+  // verbatim — an `Error`-shaped or package-tokened second shape for a state whose declared answer is the
+  // one form.
+  const FAIL_SITE = `  throw { status: refusal.status, message: refusal.message };`;
+  assert.ok(shippedEntry.includes(FAIL_SITE), 'the entry\'s one arm-building site is present');
+  const secondShapeEntry = shippedEntry.replace(FAIL_SITE,
+    `  throw { status: refusal.status, message: refusal.message, code: 'AddonVersionMismatch' };`);
+  assert.ok(secondShapeEntry !== shippedEntry && secondShapeEntry.includes('AddonVersionMismatch'),
+    'THE SECOND CONTROL really MINTS A SECOND FAILURE SHAPE — the `alt` `§1.4` item 7 prices and REFUSES');
+  assert.equal(shippedEntry.includes('AddonVersionMismatch'), false,
+    'and the shipped entry mints no code of its own: the status stays the store\'s closed member, carried verbatim');
+  const shapeVerdict = controlVerdict(secondShapeEntry);
+  assert.ok(shapeVerdict !== null,
+    'THE SECOND CONTROL MUST FAIL: a third member — or any shape but `{status, message}` — is caught at this state too');
+  assert.ok(shapeVerdict.message.includes('no arm was thrown') && shapeVerdict.message.includes('notTheArm'),
+    'and the verdict names what it refused: the thrown value is NOT the one arm, and the state surfaces as an '
+    + `absorbed state rather than being read as the arm (${String(shapeVerdict.message).slice(0, 240)})`);
+  // **THE CONTROLS' MEASURED RESULTS, PRINTED SO THE RECORD CAN CITE THEM RATHER THAN THIS CELL'S INTENTION**
+  // — `PUB-R-13` was routed as *"driven by no cell of the red set"*, and a cell whose controls are not
+  // measured is the same defect one pass later.
+  console.log(`\n[P-PUB-5/S-ONEARM · \`PUB-R-13\` · \`contract.md §1.4\` item 7] the third-condition controls, MEASURED `
+    + `AGAINST THE SHIPPED INSTRUMENT:\n  `
+    + `${'the both-paths join appended at this state'.padEnd(52)} → ${String(joinVerdict.message).split('\n')[0].slice(0, 140)}\n  `
+    + `${'a second failure shape minted at the arm'.padEnd(52)} → ${String(shapeVerdict.message).split('\n')[0].slice(0, 140)}`);
+});
+
 cell('P-PUB-5', 'S-ONEARM no fallback, no partial instance, no no-op verb, no fourth outcome', async () => {
   // `§1.4` item 3: the package NEVER falls back to a JavaScript store, NEVER absorbs a state silently,
   // NEVER degrades to a partial instance or a no-op verb, and NEVER substitutes a package-authored
@@ -1483,11 +1666,19 @@ cell('P-PUB-6', 'S-SCOPE the five spellings agree across every home the contract
   // DECLARED SET (`PUB-DD-15`) and asserted as that set, so this drive never asserts a byte `Q3` has not
   // written and never anticipates the amendment.
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
+  // **⟶ ADDED BY THE PRE-TAG PASS (`role_test_writer`): THE WORKFLOW IS NOW A HOME AND IT WAS NOT SWEPT.**
+  // `release.md §1.2`'s own table carries the five names, and the file that carries them EXISTS
+  // (`§1.1` item `1`'s reconciliation), so it is a sixth shipped home beside the manifest, the entry and the
+  // README — and the one whose bytes are read by the host that publishes. **ITS FIVE MATRIX NAMES ARE READ
+  // AGAINST THE DECLARED SET, NAME FOR NAME, and the retired scope is driven absent from it in the `S-TAG`
+  // cell's own instrument; a home that carries four of the five, or a stale scope, now fails HERE.**
+  const workflowBytes = readFileSync(join(REPO_ROOT, '.github', 'workflows', 'publish.yml'), 'utf8');
   const homes = {
     'the manifest\'s five keys': Object.keys(manifest.optionalDependencies ?? {}),
     'the contract\'s own table (`resolution.md §3.1`)': FIVE_NAMES.filter((n) =>
       readFileSync(join(REPO_ROOT, 'docs', 'specs', 'storeroom-publish', 'resolution.md'), 'utf8').includes(n)),
     'the declared set (`PUB-DD-15`)': [...FIVE_NAMES],
+    'the release workflow\'s own matrix (`release.md §1.2`)': FIVE_NAMES.filter((n) => workflowBytes.includes(n)),
   };
   for (const [home, names] of Object.entries(homes)) {
     assert.deepEqual([...names].sort(), [...FIVE_NAMES].sort(), `${home} reads the same five spellings`);
@@ -1828,6 +2019,20 @@ cell('P-PUB-8', 'S-TAG no publish verb is declared by any tracked byte of the pa
   // `§3.4` item 1 / `§3.3` / `PAR-PUB-27`: NO PASS PUBLISHES, PACKS, TAGS, INSTALLS OR ATTESTS, and a
   // publish step driven by a script no tracked file declares is refused. The observable is the ABSENCE of
   // a publish verb today, which the `Q3` workflow file must also satisfy.
+  //
+  // **⟶ RECONCILED BY THE PRE-TAG PASS (`role_test_writer`): THE AS-FILED CLAUSE OF THAT SENTENCE IS
+  // RE-EMITTED HERE VERBATIM SO `git diff` HAS NOTHING TO RECOVER — *"The observable is the ABSENCE of a
+  // publish verb today, which the `Q3` workflow file must also satisfy"*.** **IT IS STALE, AND THE DIRECTION
+  // IT IS STALE IN MATTERS: the workflow file now EXISTS (`release.md §1.1` item `1`'s own reconciliation)
+  // and it CARRIES the release's publish steps — `npm publish` at step `4` for each platform artefact and
+  // at step `5` for the main package — because publishing is what a release workflow is for.** **WHAT
+  // `§4.1` ITEM `1` FORBIDS IS A PASS EXECUTING ONE, NOT THE FILE'S DECLARATION OF IT** (*"NO PASS OF THIS
+  // UNIT PUBLISHES, PACKS, TAGS, INSTALLS OR ATTESTS"* — the workflow's own header prints the same reading),
+  // **and what `§3.3` forbids is a PUBLISH VERB THE PACKAGE ITSELF AUTHORS**, which is what this cell drives
+  // and what its own subject — *"any tracked byte of the package"* — means: the package is `bindings/js`,
+  // the workflow is not one of its bytes, and `files` does not carry it. **THE VERB'S HOME IS THE DRIVE
+  // BELOW AND NOT THE FILE'S EXISTENCE**, and the same prohibition is driven with a measured control in the
+  // `S-TAG` cell that reads the workflow's own bytes (`drivePackagePublishVerbs`).
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
   const scripts = manifest.scripts ?? {};
   for (const [name, body] of Object.entries(scripts)) {
@@ -1865,19 +2070,49 @@ cell('P-PUB-8', 'S-TAG no publish verb is declared by any tracked byte of the pa
     'and no tag of that name exists at all — the resolution\'s own return value is read rather than a boolean');
 });
 
-cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests are absent today', async () => {
+cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the declared shapes, and the forbidden ones are absent', async () => {
   // `§3.1` item 1 / `PUB-DD-23` / `PAR-PUB-26`/`PAR-PUB-27`: the workflow file is
   // `/.github/workflows/publish.yml` and the five platform manifests' source paths are
   // `bindings/js/platforms/<label>/`, each carrying its own tracked `package.json` and NO binary. **THE
   // FILES ARE `Q3` DUTIES** (`§9` · `Q3-5`), so this drive asserts the DECLARED SHAPES and the ABSENCE of
   // the forbidden ones rather than a file that does not exist yet.
+  //
+  // **⟶ RECONCILED BY THE PRE-TAG PASS (`role_test_writer`): THIS CELL'S SUBJECT HAD MOVED, AND ITS
+  // AS-FILED TITLE IS RE-EMITTED HERE VERBATIM SO `git diff` HAS NOTHING TO RECOVER — *"`S-TAG` the workflow
+  // file and the five platform manifests are absent today"*.** **WHAT THE FORCE OF THAT TITLE WAS: the
+  // workflow file and the five manifests were `Q3`'s DUTIES at this set's authorship, so the cell drove
+  // their DECLARED SHAPES behind an `existsSync` guard and asserted, in its `else` arm, *"the workflow file
+  // and the five manifests arrive together at `Q3-5`; neither exists yet in the shipped tree"*.** **WHAT THE
+  // TREE NOW IS, AT ITS OWN BYTES: THE FILE EXISTS AND `.github/` EXISTS WITH IT — `.github/workflows/
+  // publish.yml`, `208` lines** (`docs/specs/storeroom-publish/release.md` `§1.1` item `1`'s own
+  // reconciliation at the foot of that part: *"THE OPERATIVE STATE … THE FILE EXISTS"*), **so that `else`
+  // arm could no longer be reached and would have asserted the opposite of the tree had it been.** **THE
+  // EXISTENCE OF THE FILE MAKES NO STEP OF IT A PASS'S ACT — no pass and no runner of this repository
+  // executes it, which is `§4.1` item `1`'s own property, and the tag that would trigger it is the
+  // ARCHITECT'S (`release.md §1.3` item `1`) — and this cell therefore RUNS NOTHING of it**: it reads the
+  // file's own bytes and drives the clauses `release.md §1.1`–`§1.4` declares, together with the ABSENCE of
+  // the four shapes `§1.4`'s closing prohibition, `§2.1` item `3` and `§2.2` item `4` FORBID. **THE DRIVE IS
+  // AN INSTRUMENT AND IT IS MEASURED AGAINST CONTROLS**: `4` scratch copies of the file, each breaking one
+  // declared clause, together with one scratch copy of the package manifest carrying a publish script.
   const workflow = join(REPO_ROOT, '.github', 'workflows', 'publish.yml');
   const platformsDir = join(PKG_DIR, 'platforms');
   const declaredLabels = COVERED.map((k) => k.label);
   assert.equal(declaredLabels.length, 5, '`distribution.md §3.1`: five platform manifests, one per label');
   assert.deepEqual(declaredLabels, ['linux-x64', 'linux-arm64', 'darwin-x64', 'darwin-arm64', 'win32-x64'],
     'the declared labels, name for name');
-  if (existsSync(platformsDir)) {
+  // **THE DECLARED SHAPES ARE LANDED TEXT, AND THEIR ABSENCE IS NOW THE FINDING** (`release.md §1.1`
+  // item `1`'s reconciliation; `§9`'s `Q3-5`, whose `DONE` row records the landing). **THE TWO GUARDS THIS
+  // CELL CARRIED ARE RE-EMITTED HERE VERBATIM SO `git diff` HAS NOTHING TO RECOVER — `if
+  // (existsSync(platformsDir)) {` around the manifest walk, and `if (existsSync(workflow)) {` around the
+  // read of the file's own bytes — AND BOTH ARE REMOVED, BECAUSE A GUARD THAT SILENTLY SKIPS IS A CELL THAT
+  // CANNOT FAIL**: deleting the workflow file or a platform directory must go red here rather than make
+  // this drive vacuous. **THE ASSERTIONS EACH GUARD WRAPPED STAND INSIDE THEM, UNCHANGED AND UNGUARDED.**
+  assert.equal(existsSync(workflow), true,
+    '`release.md §1.1` item 1: the workflow file is landed text at `/.github/workflows/publish.yml` — its '
+    + 'ABSENCE was `Q3`\'s state and is no longer the tree\'s');
+  assert.equal(existsSync(platformsDir), true,
+    '`release.md §1.4` step 2 / `distribution.md §3.1`: the five platform manifests\' source directory exists');
+  {
     const present = readdirSync(platformsDir).filter((n) => statSync(join(platformsDir, n)).isDirectory());
     for (const label of present) {
       assert.ok(declaredLabels.includes(label), `a sixth platform directory is a FINDING: ${label}`);
@@ -1951,21 +2186,185 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests are abs
     assert.deepEqual(committedBinaries, [],
       '`distribution.md §3.1` / `PAR-PUB-26`: NO BINARY IS EVER COMMITTED to the tracked tree — the five '
       + 'platform directories carry their manifests and the licence copies `Q3-5` assembles, and no `.node`');
-  } else {
-    assert.equal(existsSync(workflow), existsSync(platformsDir),
-      'the workflow file and the five manifests arrive together at `Q3-5`; neither exists yet in the shipped tree');
   }
-  // the forbidden shapes, whatever `Q3` lands
+  // **THE AS-FILED `else` ARM IS RE-EMITTED HERE VERBATIM AND DISPOSED OF — *"the workflow file and the five
+  // manifests arrive together at `Q3-5`; neither exists yet in the shipped tree"*.** **IT IS DELETED AS AN
+  // ASSERTION AND KEPT AS A READING**, because its operands now exist and an `existsSync`-conjunction would
+  // hold for two absences and for two presences alike: it asserted nothing about the file, and today it
+  // would assert the opposite of the tree. **THE CLAIM IT REACHED FOR — that the CI's duty is landed and
+  // coupled to the five manifests — IS DRIVEN BELOW AT THE FILE'S OWN BYTES.**
+  // the forbidden shapes, in the package's own bytes whatever `Q3` lands
   assert.ok(!existsSync(join(PKG_DIR, 'platforms', '.node')), 'no binary in the platforms directory');
-  if (existsSync(workflow)) {
-    const text = readFileSync(workflow, 'utf8');
-    for (const token of ['ubuntu-24.04', 'macos-13', 'macos-14', 'windows-2022']) {
-      assert.ok(text.includes(token), `\`release.md §1.2\` / \`PAR-PUB-28\`: the runner ${token} is declared`);
+
+  // ---------------------------------------------------------------------------------------------
+  // THE WORKFLOW'S OWN DRIVE — `release.md §1.1`–`§1.4` DECLARED, AND THE FORBIDDEN SHAPES ABSENT
+  // ---------------------------------------------------------------------------------------------
+  const wfBytes = readFileSync(workflow, 'utf8');
+  /** **THE NON-COMMENT BYTES OF ONE TOP-LEVEL YAML KEY, TO THE NEXT TOP-LEVEL KEY.** A commented-out
+   *  trigger is not a trigger: the file's own prose prints `branches:`, `pull_request:` and
+   *  `workflow_dispatch:` as the forms it REFUSES, so every drive below reads the code and never the
+   *  commentary — otherwise the prohibition would fire on the file's own declaration of it. */
+  const blockOf = (text, key) => {
+    const lines = text.split('\n');
+    const at = lines.findIndex((l) => l === `${key}:`);
+    assert.ok(at !== -1, `\`release.md §1\`: the workflow declares \`${key}:\` at its own top level`);
+    let end = lines.length;
+    for (let i = at + 1; i < lines.length; i += 1) {
+      if (/^[A-Za-z_][A-Za-z0-9_-]*:/.test(lines[i])) { end = i; break; }
     }
+    return lines.slice(at + 1, end);
+  };
+  /** **ONE INSTRUMENT, DRIVING THE SHIPPED FILE AND EVERY CONTROL ALIKE**, so a control measures the
+   *  assertion that actually guards the tree and never a copy of it: it throws at the first clause broken. */
+  const driveWorkflow = (text, { label }) => {
+    const code = text.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
+    // --- `§1.1` · `§2.1` items 1–3: THE TAG IS THE ONLY ROUTE, AND ITS FORM IS THE DECLARED ONE ---
+    const onCode = blockOf(code, 'on').join('\n');
+    // **THE TRIGGER'S OWN KEYS, READ AT THE TRIGGER BLOCK'S FIRST INDENT AND NOT AT EVERY DEPTH**: the tag
+    // filter nests inside `push:` and is not itself a second trigger, so the census below is the set of
+    // ROUTES to the registry and nothing else.
+    const onKeys = onCode.match(/^\s+[A-Za-z_]+:/gm) ?? [];
+    const onIndent = Math.min(...onKeys.map((k) => k.search(/\S/)));
+    assert.deepEqual(onKeys.filter((k) => k.search(/\S/) === onIndent).map((k) => k.trim()),
+      ['push:'],
+      `${label}: \`release.md §2.1\` item 3 — the tag's own push is THE ONLY TRIGGER: a branch head, a pull `
+      + 'request and a manual dispatch publish nothing because no such trigger is declared');
+    assert.equal(/^\s+tags:\s*$/m.test(onCode), true, `${label}: the filter is the TAG's, not a branch's`);
+    const tagPattern = (onCode.match(/-\s*'([^']*)'/) ?? [])[1];
+    assert.equal(tagPattern, 'v[0-9]+.[0-9]+.[0-9]+',
+      `${label}: \`§2.1\` item 1 — the tag's declared form is \`v<major>.<minor>.<patch>\``);
+    const tagDomain = new RegExp(`^${tagPattern.replace(/\./g, '\\.')}$`);
+    for (const lawful of ['v0.1.0', 'v1.22.333']) assert.ok(tagDomain.test(lawful), `${label}: ${lawful} triggers`);
+    for (const untagged of ['main', 'HEAD', '0.1.0', 'v0.1', 'release/0.1.0']) {
+      assert.ok(!tagDomain.test(untagged),
+        `${label}: \`§2.1\` item 3 / \`PAR-PUB-29\` — \`${untagged}\` is NOT the tag's form, and NO PUBLICATION `
+        + 'HAPPENS FROM AN UNTAGGED COMMIT');
+    }
+    for (const forbidden of ['branches', 'pull_request', 'workflow_dispatch', 'schedule']) {
+      assert.equal(new RegExp(`^\\s*${forbidden}:`, 'm').test(onCode), false,
+        `${label}: \`release.md §2.1\` item 3 — no \`${forbidden}\` trigger exists: publishing from the branch `
+        + 'head on every merge is `§2.1` item 4\'s PRICED `alt` and is NOT taken');
+    }
+    // --- `§1.2`: ONE RUNNER PER TARGET, AND NO RUNNER SERVES TWO ---
+    const jobs = blockOf(code, 'jobs').join('\n');
+    const rows = [...jobs.matchAll(/-\s*label:\s*(\S+)\s*\n\s*name:\s*'([^']+)'\s*\n\s*runner:\s*(\S+)\s*\n\s*target:\s*(\S+)/g)]
+      .map((m) => ({ label: m[1], name: m[2], runner: m[3], target: m[4] }));
+    assert.deepEqual(rows.map((r) => [r.label, r.runner]), [
+      ['linux-x64', 'ubuntu-24.04'], ['linux-arm64', 'ubuntu-24.04-arm'],
+      ['darwin-x64', 'macos-13'], ['darwin-arm64', 'macos-14'], ['win32-x64', 'windows-2022'],
+    ], `${label}: \`§1.2\`'s five-runner table, row for row — each runner builds ITS OWN target and no other, `
+    + 'and `PAR-PUB-28`\'s runner names are the declared ones and not a token that merely contains one');
+    assert.equal(new Set(rows.map((r) => r.runner)).size, 5,
+      `${label}: \`§1.2\`: each runner builds its own target AND NO RUNNER SERVES TWO`);
+    assert.deepEqual(rows.map((r) => r.name), FIVE_NAMES,
+      `${label}: the five declared names, name for name — and the AS-FILED spelling \`@provident-storeroom\` is not among them`);
+    // --- `§1.3` items 2–3 · `§1.4` step 6: THE HOST'S OIDC FEDERATION AND THE PROVENANCE SUBJECT ---
+    const permissions = blockOf(code, 'permissions').join('\n');
+    assert.equal(/^\s+contents:\s*read\s*$/m.test(permissions), true,
+      `${label}: \`contents: read\` is the whole of the rest of the access`);
+    assert.equal(/^\s+id-token:\s*write\s*$/m.test(permissions), true,
+      `${label}: the host's OIDC federation — and NOT a credential written into this file`);
+    // --- `§1.4`: THE SIX STEPS IN THE DECLARED ORDER, WITH STEP 5 LAST, ALWAYS ---
+    const platformAt = jobs.search(/^\s+platform:\s*$/m);
+    const mainAt = jobs.search(/^\s+main:\s*$/m);
+    assert.ok(platformAt !== -1 && mainAt !== -1 && platformAt < mainAt,
+      `${label}: the platform job and the main job are both declared, in the order the six steps declare`);
+    const platformJob = jobs.slice(platformAt, mainAt);
+    const mainJob = jobs.slice(mainAt);
+    assert.equal(/needs:/.test(platformJob), false,
+      `${label}: \`§1.4\` steps 1–2 — the platform job waits on NOTHING: it IS the matrix every other step `
+      + 'depends on');
+    assert.equal(/^\s+needs:\s*platform\s*$/m.test(mainJob), true,
+      `${label}: \`§1.4\` step 5 — the main package carries \`needs: platform\`, so THE MAIN PACKAGE IS `
+      + 'PUBLISHED LAST, ALWAYS, and its five exact pins are resolved before it lands');
+    assert.equal(/^\s+needs:\s*main\s*$/m.test(jobs), false,
+      `${label}: \`§2.2\` item 4 — A PLATFORM ARTEFACT PUBLISHED AFTER THE MAIN PACKAGE IS A FINDING: no job `
+      + 'waits on the main package');
+    const step4 = code.indexOf(`'4. publish the platform artefact'`);
+    const step5 = code.indexOf(`'5. publish the main package'`);
+    assert.ok(step4 !== -1 && step5 !== -1 && step4 < step5,
+      `${label}: the declared order, step 4 before step 5 — the five platform artefacts land BEFORE the main package`);
+    assert.equal(platformJob.includes('npm publish'), true,
+      `${label}: step 4 PUBLISHES THE FIVE PLATFORM ARTEFACTS, at the tag's own version`);
+    assert.equal(mainJob.includes('npm publish'), true,
+      `${label}: step 5 publishes the main package, AFTER them and never before`);
+    assert.equal(/uses:\s*actions\/attest-build-provenance@/.test(mainJob), true,
+      `${label}: \`§1.4\` step 6 — ATTEST the provenance of the tagged commit's bytes`);
+    assert.equal(/subject-path:\s*'bindings\/js\/index\.mjs'/.test(mainJob), true,
+      `${label}: \`§1.3\` item 2 — the provenance subject is the TAGGED COMMIT OF THIS REPOSITORY, at the entry `
+      + 'this package actually ships');
+    // --- THE FORBIDDEN BYTES: NO SECRET, NO CREDENTIAL, AND THE SCOPE `A86` MOVED THE FIVE AWAY FROM ---
     for (const pattern of [/npm_[A-Za-z0-9]{20,}/, /secrets\.[A-Z_]+/, /BEGIN [A-Z ]*PRIVATE KEY/]) {
-      assert.ok(!pattern.test(text), '`§3.1` item 5: no secret, token or credential in the workflow');
+      assert.equal(pattern.test(code), false,
+        `${label}: \`§3.1\` item 5 / \`release.md §1.4\`'s closing prohibition — no secret, token, credential `
+        + `or OIDC subject claim is written into a tracked byte (${pattern})`);
     }
+    assert.equal(code.includes('@provident-storeroom'), false,
+      `${label}: the retired scope is written NOWHERE in the workflow, and the five matrix names carry \`@auspicion\``);
+    return rows.length;
+  };
+  /** **THE PACKAGE'S OWN FORBIDDEN VERBS** (`§4.1` item 1; `§3.3`): a `publish` script, or any script whose
+   *  body runs an `npm`/`pnpm`/`yarn` verb or `git tag`, would make the package — rather than the
+   *  ARCHITECT'S tag — the release's trigger. */
+  const drivePackagePublishVerbs = (bytes, { label }) => {
+    const manifest = JSON.parse(bytes);
+    const scripts = manifest.scripts ?? {};
+    assert.equal(scripts.publish, undefined, `${label}: no \`publish\` script exists`);
+    for (const [name, body] of Object.entries(scripts)) {
+      assert.ok(!/npm publish|pnpm publish|yarn publish|npm pack|git tag|npm install -g/.test(String(body)),
+        `${label}: the script \`${name}\` carries no publish, pack, tag or install verb`);
+    }
+    return Object.keys(scripts).length;
+  };
+  // ---- (1) THE SHIPPED BYTES, WHICH THE DRIVES ABOVE MUST PASS ----
+  assert.equal(driveWorkflow(wfBytes, { label: 'the shipped workflow' }), 5,
+    'the five-runner matrix really was read, so the trigger, order, permissions and attestation drives above '
+    + 'are not vacuous');
+  drivePackagePublishVerbs(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'), { label: 'the package manifest' });
+  // ---- (2) THE CONTROLS, EACH BREAKING ONE DECLARED CLAUSE AND EACH REQUIRED TO FAIL THE SAME INSTRUMENT ----
+  const controlVerdict = (fn) => { try { fn(); return null; } catch (err) { return err; } };
+  const wfControls = [
+    // `§2.1` items 3–4: A PUBLISH FROM A NON-TAG TRIGGER — the branch head on every merge, priced and refused.
+    ['a publish from a non-tag trigger', '    branches: [main]\n', (t) => t.replace(`    tags:\n`, `    tags:\n    branches: [main]\n`), 'branches'],
+    // `§2.2` item 4: A PLATFORM ARTEFACT PUBLISHED AFTER THE MAIN PACKAGE.
+    ['a platform artefact published after the main', '    needs: main\n', (t) => t.replace(`    name: \${{ matrix.label }}\n`, `    name: \${{ matrix.label }}\n    needs: main\n`), 'needs'],
+    // `§1.4` step 5: THE MAIN PACKAGE PUBLISHED LAST — its `needs` is what makes the order the arm's precondition.
+    // The control REMOVES the declaration; the marker is the adjacency the removal leaves behind, so it is a
+    // byte sequence the shipped file does not carry.
+    ['the main package published NOT last', '    name: provident-storeroom (last, always)\n    runs-on: ubuntu-24.04\n', (t) => t.replace(`    needs: platform\n`, ``), 'needs'],
+    // `§1.4`'s closing prohibition: A CREDENTIAL WRITTEN INTO A TRACKED BYTE.
+    ['a credential in a tracked byte', 'NPM_TOKEN', (t) => t.replace(`          ref: \${{ github.ref }}\n`, `          ref: \${{ github.ref }}\n          token: \${{ secrets.NPM_TOKEN }}\n`), 'secrets'],
+  ];
+  const wfVerdicts = [];
+  for (const [what, injected, mutate, named] of wfControls) {
+    const control = mutate(wfBytes);
+    assert.ok(control !== wfBytes && control.includes(injected),
+      `THE CONTROL REALLY BREAKS THE CLAUSE IT NAMES (${what}): \`${injected.trim()}\` is injected at the file's own bytes`);
+    assert.equal(wfBytes.includes(injected), false,
+      `and the shipped workflow carries no such byte, so the verdict below comes from the control and not from the tree`);
+    const verdict = controlVerdict(() => driveWorkflow(control, { label: `the control for ${what}` }));
+    assert.ok(verdict !== null, `THE CONTROL MUST FAIL (${what}): the instrument catches it`);
+    assert.ok(verdict.message.includes(named) || verdict.message.includes(what),
+      `and its verdict names what it caught: ${String(verdict.message).slice(0, 200)}`);
+    wfVerdicts.push(`${what.padEnd(44)} → ${String(verdict.message).split('\n')[0].slice(0, 130)}`);
   }
+  // the fifth control: A PUBLISH SCRIPT IN THE PACKAGE, which no control of this set had ever driven.
+  const manifestBytes = readFileSync(join(PKG_DIR, 'package.json'), 'utf8');
+  const publishScript = manifestBytes.replace(`  "optionalDependencies": {`, `  "scripts": { "publish": "npm publish --access public" },\n  "optionalDependencies": {`);
+  assert.ok(publishScript !== manifestBytes && publishScript.includes('npm publish'),
+    'THE FIFTH CONTROL really declares a publish script in the package\'s own manifest');
+  assert.equal(manifestBytes.includes('npm publish'), false,
+    'and the shipped manifest carries no publish verb — the release\'s trigger is the ARCHITECT\'S tag and never a script');
+  const scriptVerdict = controlVerdict(() => drivePackagePublishVerbs(publishScript, { label: 'the control publish script' }));
+  assert.ok(scriptVerdict !== null,
+    'THE FIFTH CONTROL MUST FAIL: a publish script in the package is caught, so `§4.1` item 1 is driven here and not merely cited');
+  assert.ok(scriptVerdict.message.includes('publish'),
+    `and its verdict names the clause it broke: ${String(scriptVerdict.message).slice(0, 200)}`);
+  // **THE CONTROLS' MEASURED RESULTS, PRINTED SO THE RECORD CAN CITE THEM RATHER THAN THIS CELL'S INTENTION.**
+  console.log(`\n[P-PUB-8/S-TAG] the workflow's declared shapes and the forbidden ones, MEASURED AGAINST THE `
+    + `SHIPPED INSTRUMENT (\`release.md §1.1\`–\`§1.4\`; the file is EXECUTED BY NOTHING here — \`§4.1\` item 1):\n  `
+    + wfVerdicts.join('\n  ')
+    + `\n  ${'a publish script in the package'.padEnd(44)} → ${String(scriptVerdict.message).split('\n')[0].slice(0, 130)}`);
 });
 
 cell('P-PUB-8', 'S-TAG the six artefacts\' order and the one version they share', async () => {
@@ -2045,6 +2444,16 @@ cell('P-PUB-8', 'S-LAYER no released-bytes digest is claimed by this pass', asyn
 // THE GUARD BLOCK — the JS unit's `113`-cell leg must STILL resolve in place (rung two) and stay green,
 // because the rename (`Q3-1`) has not landed and the move is the implementer's; this set must not
 // anticipate it (`acceptance.md §5.4` item 4; `PUB-CF-6`).
+//
+// **⟶ RECONCILED BY THE PRE-TAG PASS (`role_test_writer`): THAT CLAUSE'S PREMISE HAS MOVED, AND IT IS
+// RE-EMITTED HERE VERBATIM SO `git diff` HAS NOTHING TO RECOVER — *"because the rename (`Q3-1`) has not
+// landed and the move is the implementer's; this set must not anticipate it"*.** **THE RENAME HAS LANDED:
+// `bindings/js/package.json`'s `name` is the unscoped `provident-storeroom` (`A82`), the entry's own
+// self-reference resolves through that same spelling, and the five platform names stay SCOPED — which is
+// what the second cell of this very block asserts at its own bytes.** **SO THE GUARD IS NO LONGER A GUARD
+// AGAINST ANTICIPATION BUT THE IN-PLACE LEG'S STANDING GREEN** (`§1.1` item `2`; `PUB-DD-18`): rung two is the
+// checkout's own artefact and every battery that exists today resolves through it. **NO ASSERTION MOVES BY
+// THIS ANNOTATION** — the two cells below are unedited, and the sentence above is kept as the reading it was.
 // ---------------------------------------------------------------------------------------------
 cell('GUARD', 'the real entry still resolves IN PLACE at rung two', async () => {
   // `§1.1` item 2 / `P-PUB-1`'s `S-INPLACE` / `PUB-DD-18`: the in-place developer loop and every battery
