@@ -439,6 +439,48 @@ tree, starting from the register"* (`P: §1`) — and **not a delimited string**
    spelling and of the collision's declaration). **No segment-class is added, the domain stays closed at
    exactly two classes, and the alternative priced above (*"refusing `""`"*, `DD-24(c)`) stays priced and
    UNADOPTED.**
+   **⟶ ADDED 2026-10-11 — THE SEGMENT DOMAIN'S OWN UPPER BOUND, DECLARED AS A CLAUSE OF THE DOMAIN AND READ
+   BESIDE THE AS-FILED SENTENCE IT COMPLETES.** `RCA-8(d)` ANNOTATE-BESIDE: **the as-filed sentence above —
+   *"The segment domain is closed at exactly two classes: a `string` (a key) and a non-negative integer (an
+   index)"* — stands BYTE-FOR-BYTE and is RE-EMITTED here because this clause completes it and never replaces
+   it; THIS clause is a PURE INSERTION: it adds no class, drops none, mints no code, opens no `§`-number, no
+   `DD` row, no `PAR` row and no `P-*` row, and it re-decides no ruling.** **THE BOUND, AS THE DOMAIN'S OWN
+   DECLARATION — ONE LINE, AND IT IS THE WHOLE OF THIS CLAUSE'S NEW TEXT:** **an index `n` is IN DOMAIN iff
+   `0 ≤ n ≤ Number.MAX_SAFE_INTEGER` (`9_007_199_254_740_991`, `2^53 − 1`, INCLUSIVE); THE INDEX CLASS'S DOMAIN
+   IS BOUNDED ABOVE, and an INTEGRAL SEGMENT ABOVE THAT BOUND IS **OUTSIDE** THE SEGMENT DOMAIN.** **The
+   as-filed `string` half, the as-filed non-negative-integer half's lower bound (`0`) and every other outside
+   class (`negative integer` · `non-integer number` · `null` · `undefined` · `boolean` · `object` · `array` ·
+   `function`) stand exactly as the sentence above prints them** — **so ONE clause is added to item 1 and the
+   item's two classes stay TWO.** **AND THE ANSWER, NAMED SO THE DOMAIN'S HOME AND THE ANSWER'S HOME ARE
+   DISTINCT AND BOTH RESOLVE:** **an out-of-range integral segment is answered by the WALK's own `L-1` arm —
+   `store-model.md §2.2`'s arm table, whose code is `AddressMalformed`** — **and by every verb route that
+   reaches its target through that walk.** **THE ENFORCING SITE, NAMED AS EVIDENCE AND NEVER AS THE RULE'S
+   HOME:** **the code asks this ONE shared question at `src/value.rs`'s `Segment::is_in_domain`, whose `Index`
+   arm is `n <= 9_007_199_254_740_991`** — **the predicate the walk's `L-1` step, `write`'s target-segment arm,
+   `delete`'s target-segment arm, `listen`'s per-segment loop and the construction's `listeners[]`
+   classification each ask, so ONE bound is the bound every route agrees on.** **The site is where the rule is
+   ENFORCED; this item is where it is DECLARED** — **a code comment is not a claim's authority, and this
+   directory's clauses are.** **AND WHAT THE BOUND'S CARRIER IS, STATED SO THE TWO ARE NOT READ AS ONE: the
+   bound is the JS consumer's EXACT integral range (`Number.MAX_SAFE_INTEGER`, the largest integral `number` a
+   JS consumer can hold, compare and transmit exactly), and it is DELIBERATELY NARROWER than the `u64` the
+   `Segment::Index` carrier could hold** — **so the clause is about the DOMAIN and not about the carrier's
+   width.** **AND ONE CELL THIS CLAUSE LEAVES WHERE IT STANDS, NAMED SO THE BOUND IS NOT READ AS ITS HOME: the
+   admitted VALUE taxonomy's own numeric bound — class 3's `f64`-exact range, `store-model.md §1.4`'s narrowed
+   class 3 — is a rule about a VALUE and is `§1.4`'s; this clause is a rule about a SEGMENT and is item 1's.
+   Two subjects, two clauses, no second home.**
+   `[P: §1 (the address clause: *"a JS/JSON array containing the path to walk through the tree"*); T: the index
+   class's upper bound, declared as the domain's own clause at the bounded declaration pass of 2026-10-11, which
+   authors no `DD` row and moves no id family
+   | DECLARED-DEFAULT]` **ITS `alt`, PRICED, AND ITS REVERSAL POINT** (`contract.md §0.1` item 3 — *"always with
+   its alternative priced"* — and item 11's closed class set): **the alternative — leaving the index class
+   UNBOUNDED BELOW `u64::MAX`, so the domain is exactly `0 ≤ n ≤ u64::MAX` and an integral segment above
+   `2^53 − 1` is IN DOMAIN — is priced at `crossing.md §1.3`'s `AddressArg` row 3 range clause, where it was the
+   filed reading: it admits a `number` no JS consumer can spell exactly, and it is the state in which two
+   distinct spellings of one address share ONE store address through the carrier's saturating cast, which
+   `A76`'s second part and `§1.8`'s no-repair prohibition forbid. The alternative is available only with a
+   fresh ruling of the architect recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment
+   of `docs/specs/storeroom-native/`.** **REVERSAL POINT of the operative clause: a bounded amendment of
+   `docs/specs/storeroom-native/`, owned by `role_spec_writer`, with the amendment row recorded.**
 2. **NO COERCION OCCURS.** `"0"` is a **string key**; `0` is **an index**. They are never the same
    segment, and **the store never coerces one into the other** — that separation is what keeps `MAP` and
    `VEC` distinguishable on read (`DD-24(c)`).
@@ -800,6 +842,35 @@ form named and nothing deleted | CONTRACT]`).
 that precedes it** (`[T: the walk's fail-closure, every member with a trigger | CONTRACT]`). **The walk
 never mutates the store**, and **it never installs anything on its way down**.
 `[P: §1, §13 · A23 · A25 | CONTRACT]`
+
+**⟶ ADDED 2026-10-11 — THE ARM THAT ANSWERS THE OUT-OF-RANGE INTEGRAL SEGMENT: `L-1`, AT THIS ARM TABLE,
+WITH THE DOMAIN'S HOME NAMED BESIDE THE ANSWER'S.** `RCA-8(d)` ANNOTATE-BESIDE: **the arm table above, its
+scope clause, its reconciliation clause, its fail-closure sentence and its two closing sentences stand
+BYTE-FOR-BYTE — this clause RE-EMITS the table's `L-1` row and the fail-closure sentence and never replaces
+either; THIS clause is a PURE INSERTION: it adds no arm to the table, mints no code, opens no `§`-number, no
+`DD` row and no `PAR` row, and re-decides no rule.** **THE ROW, RE-EMITTED AS IT STANDS ABOVE: `L-1` fires
+where *"`a[i]` is outside the segment domain (`§1.5` item 1)"* and it *"fails `AddressMalformed`"*, consuming
+no further segment.** **AND THE STATE THIS CLAUSE NAMES BECAUSE IT IS THE ONE THE DOMAIN'S BOUND CREATES: an
+INTEGRAL SEGMENT ABOVE `Number.MAX_SAFE_INTEGER` (`2^53 − 1`) IS OUTSIDE THE SEGMENT DOMAIN, so `L-1` IS
+ITS ARM AND `AddressMalformed` IS ITS ANSWER** — **on every route that reaches its target through this walk:
+`read`, `readLiteral` and `findAddress` behind it, `write`'s target-segment arm and its parents' walk,
+`delete`'s target-segment arm and its parents' walk, `listen`'s own per-segment loop, and the construction's
+`listeners[]` classification.** **TWO HOMES, NAMED SO A READER OF EITHER RESOLVES FROM THIS ONE LINE: THE
+DOMAIN'S HOME IS `store-model.md §1.5` ITEM 1** — where the bound `0 ≤ n ≤ Number.MAX_SAFE_INTEGER` is
+DECLARED, with its carrier, its priced alternative and its reversal point — **and THE ANSWER'S HOME IS THIS
+SECTION, whose `L-1` row and whose fail-closure sentence are the clauses that carry the code.** **THE
+ENFORCING SITE, NAMED AS EVIDENCE AND NEVER AS EITHER HOME:** **the code asks the domain question at
+`src/value.rs`'s `Segment::is_in_domain`, whose `Index` arm is `n <= 9_007_199_254_740_991`, and every route
+above asks THAT ONE predicate** — **so one bound is the bound every route agrees on, and no verb carries a
+second copy of the rule.** **AND WHAT DOES NOT MOVE, NAMED SO THE ARM ORDER IS NOT READ AS EDITED: `L-1`
+still fires BEFORE `L-INT-REG`, `L-2`, `L-3`, `L-TIER`, `L-4` and `L-5` at the same step, an out-of-range
+integral segment therefore never reaches `L-INT-REG`'s `AddressNotFound` and never reaches the register, and
+the walk's fail-closure sentence above is UNMOVED — it is `AddressMalformed` that is `L-1`'s, and `L-1`'s alone,
+among the walk's four codes.** **NO COERCION, NO SATURATION AND NO SILENT FOLD IS DECLARED OR PERMITTED BY THIS
+CLAUSE: the carrier's own `u64` read of an out-of-range `number` is a state no admitted address reaches,
+because the segment never enters the domain.**
+`[P: §1 (the address clause); T: `L-1`'s carriage of the domain's bound, at the bounded declaration pass of
+2026-10-11 | CONTRACT]`
 
 ### §2.3 The tier argument at a step — the selection rule the walk runs on
 

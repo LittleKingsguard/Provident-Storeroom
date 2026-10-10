@@ -1288,6 +1288,31 @@ tree, starting from the register"* (`P: §1`) — and **not a delimited string**
    object, an array or a function as a segment is OUTSIDE the domain and fails `AddressMalformed`.**
    **The empty string `""` is a legal `string` segment and is a legal key** (`[T | DECLARED-DEFAULT]`;
    its alternative — refusing `""` — is priced at `DD-24(c)`).
+   **⟶ RECONCILED 2026-10-11 — THE SEGMENT DOMAIN'S UPPER BOUND, AT THIS DOCUMENT'S COPY OF ITEM 1: THE SAME
+   ONE BOUND AS `store-model.md §1.5` ITEM 1, POINTED AT THAT ITEM AS THE DOMAIN'S HOME.** `RCA-8(d)`
+   ANNOTATE-BESIDE: **the as-filed item above stands BYTE-FOR-BYTE — its two classes, its outside list, its
+   `""` clause and its `[T | DECLARED-DEFAULT]` tag included — and it is read THROUGH this clause; THIS clause
+   is a PURE INSERTION: it adds no class, mints no code, opens no `§`-number, no `DD` row and no `PAR` row, and
+   it re-decides no rule of this document.** **THE ONE RULE, STATED HERE AS A POINTER AND NOT AS A SECOND
+   COPY: an index `n` is IN DOMAIN iff `0 ≤ n ≤ Number.MAX_SAFE_INTEGER` (`2^53 − 1`, INCLUSIVE), and an
+   INTEGRAL SEGMENT ABOVE THAT BOUND IS OUTSIDE THE SEGMENT DOMAIN** — **the domain's own declaration, with
+   its bound's carrier, its priced alternative and its reversal point, stands at `store-model.md §1.5`
+   item 1's dated clause, and a reader of `§1.5` here is POINTED there and served no second home**
+   (`docs/specs/storeroom-native/contract.md` §0.1 item 10(a), the relocation rule — *a relocation is not a
+   re-derivation*, and a second copy of a `§`-numbered rule is the shadow-home defect that rule and item
+   10(c) forbid). **AND THE ANSWER THIS DOCUMENT'S `§2.2` ALREADY CARRIES, NAMED SO THE TWO HOMES RESOLVE
+   FROM HERE:** **an out-of-range integral segment is answered by the walk's `L-1` arm (`§2.2`), whose code is
+   `AddressMalformed`** (`§8.1` #1) — **and `store-model.md §2.2` prints the arm table this document's `§2.2`
+   also prints.** **THE ENFORCING SITE, NAMED AS EVIDENCE AND NEVER AS THE RULE'S HOME:** **the code asks this
+   ONE shared question at `src/value.rs`'s `Segment::is_in_domain`** — **the site where the rule is enforced;
+   `store-model.md §1.5` item 1 is where it is DECLARED.** **NOTHING ELSE IN THIS ITEM MOVES: the two-class
+   closure, `NO COERCION OCCURS`, the `string`/integer resolution rules, the empty address's legality, the
+   one-address-one-node rule and every citation of this item stand as filed.**
+   `[P: §1 (the address clause); T: item 1's domain bound, reconciled to the domain's own home at this
+   contract's bounded declaration pass of 2026-10-11, which authors no `DD` row and moves no id family
+   | DECLARED-DEFAULT]` **Its `alt` is the domain's own, priced and
+   reversible at `store-model.md §1.5` item 1's dated clause, whose reversal point is a bounded amendment of
+   `docs/specs/storeroom-native/` owned by `role_spec_writer` — and NOT a second price authored here.**
 2. **NO COERCION OCCURS.** `"0"` is a **string key**; `0` is **an index**. They are never the same
    segment, and **the store never coerces one into the other** — that separation is what keeps `MAP` and
    `VEC` distinguishable on read (`DD-24(c)`).

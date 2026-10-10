@@ -247,6 +247,93 @@ A3 docs/specs/storeroom-js/crossing.md §1.8 — the no-repair prohibition the s
 docs/specs/storeroom-js/package.md §4.5 item 2 — the `JsSegment::Index(u64)` carrier this row's spelling
 reaches; `DD-40` | state or fail-state declaration]`).
 
+**⟶ RE-DERIVED 2026-10-11 — THE STORE-SIDE RE-DERIVATION THIS ROW'S CLAUSE *"REPORTED HERE RATHER THAN TAKEN"*
+IS **TAKEN**, AND THE TWO SENTENCES THAT READ AS IF IT WERE NOT ARE RE-DERIVED WITH THE AS-FILED FORMS NAMED.**
+`RCA-8(d)` ANNOTATE-BESIDE: **every word above stands BYTE-FOR-BYTE — the range clause's two items, its
+*"row 8's own code"* naming, its `Number.MAX_SAFE_INTEGER` boundary, its *"one act, two spellings owe one
+answer"* report, its `RECONCILED` clause's three items and its foot tag included — and each is read THROUGH
+this clause; THIS clause is a PURE INSERTION, it adds no row to the `AddressArg` table, mints no code, moves no
+census figure and writes no `src/**` byte.**
+
+**THE STATE THAT MOVED, NAMED WITH ITS TERMS: the store-side re-derivation the clause above owns to
+`docs/specs/storeroom-native/`'s author has LANDED, and the store's own shared segment predicate now carries
+THE SAME BOUND this row declares.** **`src/value.rs`'s `Segment::is_in_domain` admits `Index(n)` iff
+`n <= 9_007_199_254_740_991` (`2^53 − 1`, INCLUSIVE) — the ONE predicate FIVE routes ask: the walk's `L-1`
+arm (behind `read`, `readLiteral` and `findAddress`), `write`'s target arm and its parents' walk, `delete`'s
+target arm and its parents' walk, `listen`'s per-segment loop, and the construction's `listeners[]`
+adoption.** **THE DOMAIN'S HOME IS THE STORE'S OWN and is `docs/specs/storeroom-native/store-model.md §1.5`
+item 1's dated clause; THE ANSWER'S HOME IS `docs/specs/storeroom-native/store-model.md §2.2`'s `L-1` arm,
+whose code is `AddressMalformed` (`docs/specs/storeroom-native/seams-and-lifecycle.md §8.1` #1)** — **so an
+integral segment above the bound answers `AddressMalformed` ON EVERY ONE OF THE FIVE ROUTES and not at the
+package's boundary alone.**
+
+**1. THE FIRST SENTENCE RE-DERIVED — `RECONCILED` CLAUSE ITEM 1'S CLOSING.** **THE AS-FILED SENTENCE, RE-EMITTED
+VERBATIM BECAUSE THIS CLAUSE RE-DERIVES IT AND NEVER REPLACES IT:** *"WHAT THE STORE'S OWN Rust SURFACE DOES IS
+UNMOVED AND REMAINS THE STORE'S: `src/store.rs`'s `Segment::is_in_domain` admits every `u64`, so the CARRIER is
+wider than the boundary's declared bound — which is exactly the narrowing this clause declares
+(`package.md §4.5` item 2's `JsSegment` row is the carrier the bound sits in front of)."* **IT IS STALE IN TWO
+OF ITS TERMS AND TRUE IN ONE, EACH STATED:** **(i) the clause it quotes has MOVED** — the predicate no longer
+admits every `u64`, so the store's admissible segment domain and THIS boundary's declared bound are now ONE
+bound and not two (`docs/specs/storeroom-native/store-model.md §1.5` item 1's dated clause); **(ii) the
+sentence's *"the CARRIER is wider than the boundary's declared bound"* no longer describes the tree and ITS
+READING IS HEREBY RETIRED — the retirement is stated below, with what it retires and what stands in its place;
+and **(iii) its closing parenthesis STANDS WHOLE AND UNMOVED** — `package.md §4.5` item 2's `JsSegment` row IS
+the carrier this boundary's spelling reaches, and this clause adds no word to it. **AND ONE PATH IN THE
+AS-FILED SENTENCE IS RE-SPELLED HERE BECAUSE NO CITATION OF THIS DIRECTORY MAY POINT AT A PATH THAT DOES NOT
+RESOLVE: the sentence above names the predicate's home as `src/store.rs`, and the predicate stands at
+`src/value.rs`'s `Segment::is_in_domain`** (`RCA-8(d)` ANNOTATE-BESIDE: the as-filed path is RE-EMITTED verbatim
+in the sentence quoted above and stands byte-for-byte; this clause is a PURE INSERTION and corrects no byte of
+it) — **so the two clauses' spellings of ONE home now agree, and a reader who opens either path finds the
+predicate at the second.**
+
+**THE READING RETIRED, NAMED SO NO READER TAKES TWO STATES FOR ONE:** **the reading that *"THE STORE'S OWN
+CARRIER IS WIDER THAN THE BOUNDARY'S DECLARED BOUND"* — i.e. that `Segment::Index`'s `u64` carrier's own range
+is the store's segment domain, so a `number` in `(2^53 − 1, u64::MAX]` is IN DOMAIN at the store's Rust surface
+and the store is therefore MORE PERMISSIVE than this boundary — IS RETIRED AS A READING OF THE TREE.** **WHAT
+STANDS IN ITS PLACE, IN ONE LINE: THE STORE'S SEGMENT DOMAIN AND THIS BOUNDARY'S DECLARED BOUND COINCIDE at
+`[0, 2^53 − 1]`, and `Segment::Index`'s `u64` is the CARRIER's TYPE WIDTH and is no longer the admitted domain**
+— **declared as the domain's own bound at the home this clause names above, and enforced at the one shared
+predicate the five routes ask.** **AND WHAT THIS RETIREMENT DOES NOT WITHDRAW, NAMED SO NO LIVE CLAIM FALLS
+WITH IT: the `RECONCILED` clause's ITEM 1's own operative halves stand** — *"`validateOnAddress` … and
+`encodeSegment` … each take the SAME class-then-RANGE decision on the value as it is and each refuse it BEFORE
+the carrier's cast is reached"*, *"the module namespace's own `listen` passes its `address` through
+`encodeAddress`"*, and *"NO JS `number` REACHES THE STORE'S OWN `u64`-ONLY ARM, AND THE TWO SPELLINGS OF ONE ACT
+NOW OWE ONE ANSWER AT THE BOUNDARY"* — **and each of them is now true TWICE OVER: the boundary refuses BEFORE
+the cast, AND the store refuses the value at its own walk.** **NOTHING OF `§1.3`'s ROW 3 RANGE CLAUSE, OF ROW 8,
+OR OF THE `AddressArg` TABLE MOVES.**
+
+**2. THE SECOND SENTENCE RE-DERIVED — `RECONCILED` CLAUSE ITEM 2'S LAST SENTENCE.** **THE AS-FILED SENTENCE,
+RE-EMITTED VERBATIM BECAUSE THIS CLAUSE RE-DERIVES IT AND NEVER REPLACES IT:** *"— the boundary itself, its
+answer and the code's behaviour are the same under both readings, so no drive and no green depends on the
+choice."* **WHAT THIS CLAUSE RE-DERIVES, KEEPING EVERY HALF THAT STILL HOLDS AND NAMING THE ONE THAT MOVED:**
+**(a) THE BOUNDARY, ITS ANSWER AND THE CODE'S BEHAVIOUR ARE THE SAME UNDER BOTH READINGS — UNMOVED.** **Row 8
+is read either way as *"a number outside the segment domain"* (this part's reading) or as exactly the
+non-integer class (the other), and BOTH readings print `AddressMalformed` for the out-of-range integral
+segment** — **and the store now answers the SAME code at the SAME bound through the SAME member
+(`docs/specs/storeroom-native/store-model.md §1.5` item 1 and its `§2.2` `L-1`), so the choice of reading is
+even LESS observable at the tree than when the sentence was written.** **(b) THE OWNER STANDS: *"OWNER OF A
+DECISION: the architect or the JS contract's author role"*** — **the row-subject question (`AddressArg` row
+8's subject: the general class against its three example spellings) is NOT SETTLED here and NO ROW IS ADDED,
+exactly as item 2 declares; it remains the later bounded amendment's subject.** **(c) AND THE ONE TERM THAT
+MOVED, NAMED WITH ITS OBSERVABLE: *"so no drive and no green depends on the choice"* IS NOW TRUE OF THE DRIVES
+AND FALSE OF ONE RED-SET CONTROL'S OWN EXPECTED READING.** **The store's `L-1` bound gives
+`archive/gate3/storeroom-js-red-set.md`'s `NG-JS-L` cell a THIRD backstop: its saturation arm records that
+*"THE SATURATION ARM IS BACKSTOPPED TWICE AT `on` (the walk's own guard AND `encodeSegment`'s) and once more at
+the store's carrier, so NO SINGLE-BYTE control reaches it"*, while the store's `L-1` now refuses the value at
+its own walk too** — **so a control that removes the two JS guards no longer reaches the carrier's saturation,
+and the arm's recorded `BROKEN` reading and the cell's own `BROKEN` sentence owe ONE re-derivation at their
+owner's hand.** **THE CELL IS `NG-JS-L`'s saturation arm at that record, and the re-derivation belongs to
+`role_test_writer` and to that record's author — NOT to this pass: no test byte and no red-set byte is written
+here** (`A68`'s layout: the store's directory and the test tree are not this pass's to write). **The arm's
+SUBJECT is unmoved — an integral segment above the bound is refused, not folded — and only the SITE of the
+first refusal and the recorded failure signature move.**
+(`[A1 docs/specs/storeroom-js-proposal.md §11 · `A9`; A3 docs/specs/storeroom-native/store-model.md §1.5 item 1
+— the domain's bound and its home; A3 docs/specs/storeroom-native/store-model.md §2.2 — the `L-1` arm that
+answers it; A3 docs/specs/storeroom-native/seams-and-lifecycle.md §8.1 #1 — the code; A3
+archive/gate3/storeroom-js-red-set.md — the `NG-JS-L` saturation arm's recorded reading; `A76`;
+`docs/specs/storeroom-js/crossing.md §1.7` (a) and `§1.8` — the class decided first and the no-repair
+prohibition; `DD-40` | state or fail-state declaration]`).
+
 **`TierArg` and `TierSetItem`** — the tier argument, per verb; its arity is the STORE's own table and the
 package passes it through verbatim (`DD-37`, `DD-46`).
 

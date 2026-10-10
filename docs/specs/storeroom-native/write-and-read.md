@@ -55,6 +55,20 @@ carrier of every arm below is the closed code set of the contract's `§8.1`** �
 restated: `docs/specs/storeroom-native/seams-and-lifecycle.md §8.1` (its home after relocation).
 `[T: the pointer's form | CROSS-REF]`
 
+**⟶ ADDED 2026-10-11 — THE ARM THAT ANSWERS AN OUT-OF-RANGE INTEGRAL SEGMENT, POINTED AT FROM THIS PART BECAUSE
+A READER OF THE VERBS ARRIVES HERE FIRST.** `RCA-8(d)` ANNOTATE-BESIDE: **the pointer clause above and every
+span of this part stand BYTE-FOR-BYTE; THIS clause is a PURE INSERTION: it adds no claim, no arm, no code, no
+`§`-number, no `DD` row, no `PAR` row and no `P-*` row, and it re-decides no rule.** **THE TWO HOMES, NAMED SO
+EITHER RESOLVES AND NEITHER IS COPIED HERE:** **the segment domain's upper bound — an index `n` is in domain
+iff `0 ≤ n ≤ Number.MAX_SAFE_INTEGER` (`2^53 − 1`, INCLUSIVE), so an integral segment above it is OUTSIDE the
+domain — is DECLARED at `store-model.md §1.5` item 1's dated clause, and THE ARM THAT ANSWERS IT IS
+`store-model.md §2.2`'s `L-1`, whose code is `AddressMalformed`** (`seams-and-lifecycle.md §8.1` #1) — **and
+this part carries the pointer because every verb it relocates reaches its target through that walk** (`§3.2`'s
+parent resolution, `§3.2` item 2's `L-1`/`L-3`/`L-4`; `§4.2`'s read; `§4.3`'s delete). **A SECOND COPY OF EITHER
+RULE IS THE SHADOW-HOME DEFECT THIS PART'S OWN SCOPE BOUNDARY FORBIDS** (`docs/specs/storeroom-native/contract.md`
+§0.1 item 10(a) and item 10(c)).
+`[T: the two homes of the bound and of its answer, pointed at from this part | CROSS-REF]`
+
 ---
 
 ## §3. The write verb

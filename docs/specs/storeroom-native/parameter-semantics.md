@@ -134,6 +134,32 @@ outside it** (`[T: the rule's restatement, with the as-filed figure named | CENS
 
 `[P: §1, §13 · A23 · A25; L: §1-bis · address; T | CONTRACT]`
 
+**⟶ RECONCILED 2026-10-11 — THIS ROW'S `domain` CELL GAINS THE SEGMENT DOMAIN'S UPPER BOUND, RECONCILED TO
+`store-model.md §1.5` ITEM 1 AS THE DOMAIN'S HOME.** `RCA-8(d)` ANNOTATE-BESIDE: **the row above stands
+BYTE-FOR-BYTE — its `domain` cell's *"a `string` (a key) or a non-negative integer (an index)"* included — and
+it is read THROUGH this clause; THIS clause is a PURE INSERTION: it mints no `PAR` row, moves no row count
+(`PAR-1`…`PAR-14`, `12 + 1 + 1 = 14` ✓), adds no outside value and re-decides no rule.** **THE CELL'S ONE
+ADDED TERM, STATED HERE AS THE ROW'S OWN AND POINTED AT ITS HOME RATHER THAN COPIED FROM IT:** **the
+`domain` cell's *"a non-negative integer (an index)"* is read as `0 ≤ n ≤ Number.MAX_SAFE_INTEGER`
+(`2^53 − 1`, INCLUSIVE), so AN INTEGRAL SEGMENT ABOVE THAT BOUND LIES OUTSIDE this row's domain** — **the
+bound's own declaration, its carrier, its priced alternative and its reversal point stand at
+`store-model.md §1.5` item 1's dated clause, which is the domain's home, and this row carries the pointer
+rather than a second copy** (`docs/specs/storeroom-native/contract.md` §0.1 item 10(a), the relocation rule).
+**AND THE ROW'S OWN TWO CELLS THAT THIS TERM REACHES, NAMED SO NO CELL IS LEFT READING ITS OLD SET:**
+**(i) the `the values OUTSIDE it` cell** — *"`null` · `undefined` · a non-array … · an array containing a
+negative integer · an array containing a non-integer `number` …"* — **GAINS ONE CLASS, the out-of-range
+integral segment, stated so the class is not read as covered by *"an array containing a non-integer
+`number`"*: an integral segment above the bound IS integral and is outside the domain by the bound and not by
+its integrality**; **and (ii) the `the declared answer for EACH outside value` cell is UNMOVED AND COVERS IT:
+`AddressMalformed`** — **the SAME member the cell already prints for every other outside value, now answered
+by the walk's `L-1` arm (`store-model.md §2.2`), whose code it is** (`seams-and-lifecycle.md §8.1` #1).
+**NO NEW CODE IS MINTED, NO ROW IS ADDED AND NO FIGURE OF THIS PART MOVES: `14` rows stand, `PAR-1` stays the
+`address` row, and its `alt` cell's two priced alternatives stand exactly as filed.**
+`[T: `PAR-1`'s domain bound, reconciled to the domain's own home at the bounded declaration pass of
+2026-10-11, which authors no `PAR` row and moves no row count | DECLARED-DEFAULT]` **Its `alt` is the domain's own, priced and reversible at `store-model.md §1.5`
+item 1's dated clause, whose reversal point is a bounded amendment of `docs/specs/storeroom-native/` owned by
+`role_spec_writer` — and NOT a second price authored here.**
+
 ### §2.2 `PAR-2` — `tier` on `read` / `findAddress` / `watch`: optional, zero-to-many
 
 | Cell | Its value |

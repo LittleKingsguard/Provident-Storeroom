@@ -567,6 +567,56 @@ docs/specs/storeroom-js/crossing.md §1.2's closing clause and row 10 · §1.3's
 two classes' declared answers; A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the class decided first
 and never converted; `DD-1`; `DD-40` | declared parameter semantics]`).
 
+**⟶ ADDED 2026-10-11 — WHERE THE BOUND NOW STANDS RELATIVE TO THIS ITEM'S `JsSegment` ROW, DECLARED AT THAT
+ROW BECAUSE THE ROW IS THE CARRIER THE BOUND SITS IN FRONT OF.** `RCA-8(d)` ANNOTATE-BESIDE: **the `JsSegment`
+row above, item 2's dated clause, its two count tables and item 2's `BigInt` declaration stand BYTE-FOR-BYTE —
+the row's `Index(u64)`, its `10` states, its *"`10` REFUSED classes beside the `2` admitted ones"* and its
+`crossing.md §1.6` citation included — and each is read THROUGH this clause; THIS clause is a PURE
+INSERTION: it adds no variant to the model, moves no count, mints no code and re-decides no rule.**
+
+**THE STATE, AND IT IS THE ONE `crossing.md §1.3`'s `RECONCILED` clause item 1 NAMED AS *"the carrier the bound
+sits in front of"*: THE BOUND NOW STANDS IN FRONT OF THIS CARRIER AT BOTH ENDS OF THE CROSSING, AND THIS
+CARRIER'S OWN `Index(u64)` IS THEREFORE REACHED ONLY BY VALUES THE BOUND HAS ALREADY ADMITTED.**
+
+1. **AT THE PACKAGE'S OWN BOUNDARY THE BOUND REFUSES BEFORE THE CAST IS REACHED.** **`index.mjs`'s
+   `encodeSegment` takes the class decision first and the RANGE second on the value as it is, and
+   `validateOnAddress` takes the same two decisions at `on`'s position — so an integral segment above
+   `Number.MAX_SAFE_INTEGER` is refused `AddressMalformed` BEFORE any carrier is built and BEFORE the
+   carrier's own conversion runs** (`crossing.md §1.3`'s `AddressArg` row 3 range clause; `§1.7` (a); `§1.8`).
+   **NO `JsSegment::Index` IS EVER CONSTRUCTED FOR SUCH A VALUE, so the `u64` slot is populated from no
+   out-of-range `number` at all.**
+2. **AT THE STORE'S OWN SURFACE THE BOUND REFUSES AT THE ONE SHARED PREDICATE.** **`src/value.rs`'s
+   `Segment::is_in_domain` — the ONE predicate the walk's `L-1` arm, `write`'s target arm, `delete`'s target
+   arm, `listen`'s per-segment loop and the construction's `listeners[]` adoption each ask — admits
+   `Index(n)` iff `n <= 9_007_199_254_740_991` (`2^53 − 1`)**, **so a segment the boundary's own RANGE decision
+   did not stop is still refused at the store, and the refusal is `AddressMalformed`, the store's own member**
+   (`docs/specs/storeroom-native/store-model.md §1.5` item 1 — the domain's home; `docs/specs/storeroom-native/store-model.md
+   §2.2` — `L-1`, the arm that answers it; `docs/specs/storeroom-native/seams-and-lifecycle.md §8.1` #1 —
+   the code).
+3. **AND THE HONEST STATEMENT OF WHAT THAT MAKES OF THIS ROW'S CONVERSION — SAID EXACTLY, BECAUSE THE TWO
+   HALVES DIFFER:** **THE STORE'S SHARED PREDICATE MAKES THE CARRIER'S CAST TOTAL IN THE CONTRACT SENSE —
+   every value that can reach the cast stands in domain, so the cast has NO out-of-domain input to answer
+   for and `to_segment`'s mapping of an in-domain `Index` admits no unrepresented value — WHILE THE CAST
+   ITSELF STILL SATURATES ARITHMETICALLY, that being what a Rust `n as u64` on the full `f64` value space
+   does.** **So the cast is NOT re-spelled, NOT narrowed and NOT accompanied by a new guard here: ITS
+   SATURATION IS RENDERED UNOBSERVABLE BY THE TWO REFUSALS ABOVE AND NOT BY ANY CHANGE TO IT** — **and a
+   drive that asserts an out-of-range integral segment reaching this carrier, or that reads this carrier's
+   `Index` slot as carrying a saturated value, asserts a state the tree cannot reach and a state this
+   clause does not declare.** **The class is what answers; the saturation has no observable.** **A clause or
+   a code path that reaches this carrier's `Index` slot with a value outside `[0, 2^53 − 1]`, and a guard
+   added AT this carrier for that value, are each a FINDING** (`DD-40`'s own *"carried and never minted"*
+   discipline; `A76`'s no-repair prohibition; `crossing.md §1.8`).
+4. **WHAT DOES NOT MOVE, NAMED SO NEITHER ROW IS READ AS AMENDED: this item's `JsSegment` row keeps its `10`
+   states and its `2` admitted classes; the `8`-carrier-types count table keeps its figures and its
+   *"`10` states against its `2` admitted rows"* cell; `crossing.md §1.3`'s `AddressArg` row 3 keeps its
+   accepted forms and row 8 its declared code; and NO `Js*` TYPE, NO VARIANT AND NO COUNT IS ADDED, DROPPED
+   OR RENUMBERED.** **`crossing.md §1.6`'s `56`-row carrier census is unmoved.**
+(`[A3 docs/specs/storeroom-js/crossing.md §1.3 — the `AddressArg` row 3 range clause and its `RECONCILED`
+item 1, which names this item's `JsSegment` row as the carrier the bound sits in front of; A3
+docs/specs/storeroom-native/store-model.md §1.5 item 1 and §2.2 — the bound's home and the arm that answers
+it; A3 docs/specs/storeroom-native/seams-and-lifecycle.md §8.1 #1 — the code; `A76`;
+`docs/specs/storeroom-js/crossing.md §1.7` (a) and `§1.8`; `DD-40` | state or fail-state declaration]`).
+
 **3. THE CONVERSION FUNCTIONS — ONE ENTRY PER CARRIER AND ONE PER DIRECTION.** **The core exposes EXACTLY
 these public functions, and each returns the SAME refusal type:**
 
