@@ -459,6 +459,24 @@ ledger clauses, each with its own reading | CENSUS]`).
 
 ---
 
+## §19. THE ARCHITECT'S OWNERSHIP RULING OF 2026-10-11 — listener behaviour is the STORE's
+
+**<⟶ APPENDED, DATED, FILED IN THE PASS IT ARRIVED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES.**
+
+**THE ARCHITECT'S WORDS, VERBATIM.**
+
+> Listener behavior is part of store.
+
+**THE RULING, TRANSCRIBED AS `A78` — and it re-homes a whole class of clauses.**
+
+| # | What it answers | The ruling (verbatim) | What it settles |
+| --- | --- | --- | --- |
+| **`A78`** | **where listener behaviour's AUTHORITY lives** — the JS unit's `surface.md §2.4` had been carrying the firing's rules (the registry's four rules, the id-matching model's firing half, and the `CF-DUP-3` delivery-window rule the last pass filed THERE), while the STORE's contract already owns the home, the binding by address, the prefix firing rule and the returned ids (`write-and-read.md §6.5`, `store-model.md`'s home clauses, `A45`–`A48`, `A57`, `A69`) | ***"Listener behavior is part of store."*** | **THE FIRING'S SEMANTICS ARE THE STORE'S AND THE STORE'S CONTRACT IS THEIR AUTHORITY: WHICH listener fires, WHEN it fires, WHAT it is bound to, WHICH ids a trigger returns, the home's registration semantics (`listen`/`unlisten`), the address-prefix rule and the process-scoped handle are ALL STORE BEHAVIOUR, declared at the store's listener clauses — and the JS unit's contract may DECLARE ONLY THE DELIVERY: the id→function registry, the invocation, its argument, and the failure form.** **CONSEQUENCE: every JS cell that states a FIRING rule must INHERIT it from the store's clause and POINT at it rather than own it** — a JS cell may add a delivery rule and may never be the home of a firing rule. **AND THE `CF-DUP-3` RULE THE LAST PASS FILED AT `surface.md §2.4` IS RE-HOMED BY THIS RULING: when a REGISTRATION takes effect is a property of the STORE's listener surface (the home's own state at the moment a trigger is computed), so its home is the STORE's listener clause, with the package's delivery carrying only the consequence — that the window's recipient set is read from the array as it stands, which is the delivery-side half and stays at `§2.4` as a POINTER.** |
+
+**AND THREE CONSEQUENCES THIS FILING STATES PLAINLY.** **(1) WHAT THE CODE ALREADY DOES IS RIGHT AND IS NOW CORRECTLY ATTRIBUTED: the store's `listen`/`unlisten`/`triggered_for` and the one authoritative home DO implement the firing, and the package's `deliver` + registry DO implement only the delivery — so this ruling is a RE-HOMING OF AUTHORITY, not a behaviour change.** **(2) THE STORE'S CONTRACT GAINS THE CLAUSES THE JS UNIT HAD BEEN CARRYING: the registration's effect timing relative to a trigger, the store-side reading of the `CF-DUP-3` corner, and a statement that the firing's rules are the store's — each as a dated clause beside the listener cells, with the JS unit's cells reduced to inheritance + pointer + its own delivery rules.** **(3) A LATER PASS MUST SWEEP FOR THE CLASS AND NOT ONLY FOR `CF-DUP-3`: any JS clause that states what FIRES, what is BOUND, what an ID MEANS, or when a registration takes effect is a candidate for inheritance — the sweep is the spec pass's, it is bounded, and it reports every cell it moves.** **NO UNIT ROW IS ADMITTED; THE LEDGER STANDS AS THE SUPERVIOR'S CLOSE-OUT LEFT IT; AND NO `APP`-GREEN IS CLAIMED.**
+
+---
+
 **END OF THE PROPOSAL.** **§1 is the architect's directive, byte-for-byte. §2 is the measured context. §3 is
 the filing's bounds. §4 is a quotation table with no reading taken. §5 is a map of adjacencies with no
 ruling. §6 records the adoption trigger's premise and the ledger move. §7 is the provenance. No behaviour
