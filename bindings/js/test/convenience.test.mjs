@@ -7,6 +7,16 @@
 // the red the `Q3` implementation is measured against** (`docs/specs/storeroom-js-convenience-proposal.md`
 // `§5`'s phase table: `Q2` THE RED SET → `Q3` THE GREEN).
 //
+// **⟶ REMANDED 2026-10-11 — THE `Q3` STATE OF THIS FILE, NAMED BESIDE THE `Q2` PARAGRAPH ABOVE, WHICH IS
+// NOT REWRITTEN AND NOT WITHDRAWN.** `Q3` implemented `on`/`off`; the implementation answers every clause
+// this file cites, and **the seven cells measured `2` PASS · `5` FAIL — EVERY ONE OF THE FIVE A DEFECT OF
+// THE DRIVE AND NOT OF THE IMPLEMENTATION.** This pass corrected the five AT THEIR OWN DEFECTS and found
+// two more of the same two classes by its own sweep; **the seven cells now measure `7` PASS · `0` FAIL, and
+// no assertion was weakened, no drive was adjusted to dodge a failure and no cell was made vacuous.** The
+// remanded cells' own bytes, the six corrections, the two sweep findings, the one remand attribution the
+// measurement did not bear out and the exact figures are recorded at
+// `archive/gate3/storeroom-js-red-set.md` `§18`.
+//
 // **THE AUTHORITY THIS FILE IS AUTHORED FROM, NAMED AT ITS OWN BYTES — THE AMENDED CONTRACT ALONE:**
 //   · `docs/specs/storeroom-js/surface.md` **`§2.1`** — the instance's member set, enumerated: **the three
 //     members `{ register, on, off }`, and the MODULE NAMESPACE UNCHANGED AT THE EIGHT DECLARED VERBS**
@@ -205,6 +215,11 @@ test('combined_call_on_returns_a_handle_a_write_fires_the_function_once_with_the
   // `triggered` list carries, which is the handle `on` returned. **AND THE FIRING TERMS ARE THE STORE'S,
   // NOT THIS MEMBER'S** (`§2.4` item 7 (c); `A78`): what is driven below is the STORE's own registration
   // landing at `on`'s step 2, and the PACKAGE's own invocation count and argument.
+  //
+  // **AND ONE STATE THE DRIVE MUST BUILD BEFORE IT CAN BE DRIVEN AT ALL:** the address is `['a', 0, 'b']`,
+  // whose PARENT `['a', 0]` must resolve before any install (`write-and-read.md §3.2` item 2; `DD-5`) — and
+  // THE PACKAGE MINTS NO PARENT. So the drive writes the path first, at the store's own declared route,
+  // and leaves the TARGET's entry fresh, which is the FRESH arm's pre-condition (`§2.4` item 7 (a)).
   const inst = mem();
   // **THE PRECONDITION THIS FILE ASSERTS FIRST, SO THE RED IT REPORTS IS THE CONTRACT'S OWN CLAIM AND
   // NOT AN OPAQUE STACK TRACE:** `surface.md §2.4` item 7 declares `on(address, listener) -> handle` a
@@ -216,17 +231,48 @@ test('combined_call_on_returns_a_handle_a_write_fires_the_function_once_with_the
   assert.equal(typeof inst.on, 'function', '`surface.md §2.4` item 7: `on(address, listener)` is a member of the instance');
   assert.equal(typeof inst.off, 'function', '`surface.md §2.4` item 7: `off(handle)` is a member of the instance');
   const address = ['a', 0, 'b'];
+  // **THE CHAIN THIS DRIVE NEEDS IS BUILT BEFORE THE CALL UNDER TEST, BECAUSE THE STORE MINTS NO PARENT.**
+  // `docs/specs/storeroom-native/write-and-read.md §3.2` item 2 (the PARENT RULE) resolves the target's
+  // parent BEFORE any install, and its failure is the write's failure with the walk's own code — so a write
+  // at `['a', 0, 'b']` on a home that holds nothing at `['a']` fails `AddressNotFound` and INSTALLS NOTHING
+  // (**`DD-5`**: *"a write whose intermediate segment does not resolve fails `AddressNotFound` and installs
+  // nothing"*). **NO CLAUSE OF `surface.md §2.4` ITEM 7 LETS THE PACKAGE MINT A PARENT**, so the branch the
+  // drive needs is written BY THE DRIVE, at the store's own declared route: a write of a JSON ARRAY at
+  // `['a']` mints the `VEC` (`store-model.md §1.3`: *"a write of a JSON array decides/uses `VEC`"*) whose
+  // index `0` holds the MAP-branch a JSON object at that element mints (`§1.3`, `write-and-read.md §3.4`
+  // arm `W-4`, the recursive branch-tree) — and that branch is the parent `['a', 0]` the call under test
+  // then resolves. **THE ADDRESS UNDER TEST IS STILL FRESH**: what is built below is the PATH, never the
+  // target — the home holds NO entry at `['a', 0, 'b']`, which is the FRESH arm's own pre-condition and is
+  // asserted at its own line before any listener exists.
+  const chain = write(inst, ['a'], 'mem', [{}]);
+  assert.equal(chain.triggered.length, 0, 'the branch write registers nothing: the chain is built before any listener stands');
+  assert.throws(
+    () => read(inst, address),
+    (err) => err.status === 'AddressNotFound',
+    'the FRESH arm\'s pre-condition: the PATH is built and the address\'s own store-side home entry does not exist',
+  );
+
   let calls = 0;
   let seenArgs = null;
-  let seenWhileCalling = null;
-  let recordWhenCalled = null;
+  // **THE TWO OBSERVABLES `§2.7` ITEM 2 CAN BE DRIVEN AT, BOTH READ FROM INSIDE THE LISTENER'S OWN BODY**
+  // (the sibling cell's own two, `register.test.mjs`'s `§2.7` item 2 cell): the STORE'S OWN STATE as the
+  // window found it, and THE RECORD THE CALLER ALREADY HOLDS — because the invocation is SYNCHRONOUS AND
+  // RUNS INSIDE THE VERB'S OWN CALL, so the record of the call in flight cannot yet be held by the caller.
+  // **THE CLAIM IS UNWEAKENED AND IS MEASURED WHERE IT IS OBSERVABLE: *"the record is COMPLETE and copied
+  // out before the windows opens"*.** A body reading a variable the caller assigns only AFTER the verb
+  // returns would read `null` by construction and would assert a state no drive can establish.
+  let inWindowValue = null;
+  let heldRecordComplete = null;
+  let trace = [];
+  let held = null;
 
   const handle = inst.on(address, (...args) => {
     calls += 1;
     seenArgs = args;
-    // THE INVOCATION HAPPENS AFTER THE VERB HAS RETURNED (`§2.7` item 2): the record the caller holds is
-    // already COMPLETE and copied out when the listener's body runs.
-    seenWhileCalling = recordWhenCalled;
+    trace.push('listener');
+    inWindowValue = read(inst, address);
+    // THE RECORD THE CALLER HOLDS (`held`) IS COMPLETE AND COPIED OUT WHEN THIS BODY RUNS (`§2.7` item 2).
+    heldRecordComplete = held !== null && held.op.after.present === true && held.triggered.length === 1;
   });
 
   // `§2.4` item 7 (a): *"ITS RETURN IS THE HANDLE"* — and the OUTPUT spelling is `§2.3` item 2's ONE:
@@ -235,7 +281,7 @@ test('combined_call_on_returns_a_handle_a_write_fires_the_function_once_with_the
   assert.notEqual(typeof handle, 'string', 'the output spelling is opaque and NEVER the token string (`DD-14`)');
 
   const record = write(inst, address, 'mem', 1);
-  recordWhenCalled = record;
+  trace.push('after-return');
 
   assert.equal(calls, 1, 'the function fires EXACTLY ONCE for one write under its address');
   assert.equal(record.triggered.length, 1, 'ONE home entry per address, so ONE identity in the list');
@@ -246,12 +292,28 @@ test('combined_call_on_returns_a_handle_a_write_fires_the_function_once_with_the
   // (d)'s two-data table: THE TRIGGERING ADDRESS travels as *"the invocation's ONE argument"*).
   assert.equal(seenArgs.length, 1, 'the invocation view is EXACTLY ONE argument — no id, no record, no second member');
   assert.deepEqual(seenArgs[0], address, 'and that ONE argument is the triggering address itself');
-  assert.ok(seenWhileCalling !== null && seenWhileCalling.triggered.length === 1, '`§2.7` item 2: the record was complete before the window opened');
+  // **AND `§2.7` ITEM 2'S WINDOW, DRIVEN AT THE TWO OBSERVABLES THAT EXIST: the store's own call had
+  // COMPLETED before the window opened (the body read the value the write had just installed), and the
+  // invocation is SYNCHRONOUS AND INSIDE the verb's call — `['listener', 'after-return']` is that trace and
+  // a trace of `['after-return', 'listener']` would fail it.
+  assert.equal(inWindowValue, 1, '`§2.7` item 2: the store\'s call had completed and its value landed BEFORE the window opened');
+  assert.deepEqual(trace, ['listener', 'after-return'], 'the invocation is synchronous and runs INSIDE the verb\'s call, before the caller\'s next statement');
 
-  // **AND A SECOND WRITE FIRES IT AGAIN — ONCE — SO THE CELL IS NOT SATISFIED BY A SINGLE LUCKY CALL.**
+  // **AND A SECOND WRITE FIRES IT AGAIN — ONCE — SO THE CELL IS NOT SATISFIED BY A SINGLE LUCKY CALL.** The
+  // record the caller now HOLDS is the first write's, so the window's own completeness claim is measured at
+  // it (`§2.7` item 2) while the count is reset and taken from here.
   calls = 0;
-  recordWhenCalled = write(inst, address, 'mem', 2);
+  held = record;
+  trace = [];
+  inWindowValue = null;
+  heldRecordComplete = null;
+  const second = write(inst, address, 'mem', 2);
+  trace.push('after-return');
   assert.equal(calls, 1, 'one invocation per trigger, never two and never none');
+  assert.equal(heldRecordComplete, true, 'the record the caller holds is already COMPLETE (`op.after.present`) and copied out when the body runs');
+  assert.equal(inWindowValue, 2, 'and the store\'s own call had completed before THIS window opened too');
+  assert.deepEqual(trace, ['listener', 'after-return'], 'and the invocation is inside this verb\'s call as well');
+  assert.equal(second.triggered[0], handle, 'the same identity, trigger after trigger');
 });
 
 // =============================================================================================
@@ -272,6 +334,17 @@ test('validation_first_and_atomicity_a_non_function_listener_and_a_malformed_add
   // to protect AND the "a fresh entry was NOT created" half has an empty address to watch.
   const heldBefore = triggerSet(inst, ['held'], 'mem', 1);
   assert.equal(heldBefore.length, 1, 'the pre-state: ONE home entry at `held`');
+  // **THE STANDING HOME, READ AS ITS OWN BYTES — the node's literal at the held address** (`§4.1`'s read,
+  // `§4.2` arm `R-2`), so *"nothing left behind"* is measurable as an UNCHANGED VALUE and not only as a
+  // count. **AND THE REFUSED ADDRESS'S PRE-STATE IS ESTABLISHED HERE, BEFORE THIS CELL WRITES ANYWHERE:**
+  // `fresh` holds NO node, so the assertion after the refusals re-asserts a state this cell MADE standing.
+  const heldHomeBefore = read(inst, ['held']);
+  assert.equal(heldHomeBefore, 1, 'the pre-state: the held address\'s node holds the literal the pre-state write installed');
+  assert.throws(
+    () => read(inst, ['fresh']),
+    (err) => err.status === 'AddressNotFound',
+    'the pre-state: the refused address holds NO node — its read answers `AddressNotFound` (`store-model.md §2.2` `L-3`)',
+  );
 
   const nonFunctions = [
     { value: 42, why: 'a number', position: 'second argument' },
@@ -330,11 +403,28 @@ test('validation_first_and_atomicity_a_non_function_listener_and_a_malformed_add
 
   // **AND NOTHING IS LEFT BEHIND — DRIVEN AS AN ABSENCE AND NOT AS THE ERROR ALONE** (`§2.4` item 7 (a):
   // *"A REFUSED `address` OR A REFUSED `listener` LEAVES NO STORE-SIDE HOME ENTRY, NO REGISTRY ENTRY, NO
-  // NODE MINTED AND NO JOURNAL ENTRY APPENDED"*). **THE TWO HALVES, ONE PER ADMISSION:**
+  // NODE MINTED AND NO JOURNAL ENTRY APPENDED"*). **THREE HALVES, ONE PER ADMISSION:**
   //   (i) THE STORE-SIDE ENTRY: `fresh` was refused fifteen times and the store's home must STILL not hold
   //       it — a `listen` there MUST therefore mint (a refused `on` that had reached the store would have
   //       left an entry, and the `listen` would have answered THAT entry's handle instead);
-  //   (ii) NOTHING WAS DISTURBED AT THE HELD ADDRESS: `held`'s ONE entry is still exactly what it was.
+  //   (ii) NOTHING WAS DISTURBED AT THE HELD ADDRESS: `held`'s ONE entry is still exactly what it was, and
+  //       the home is BYTE-IDENTICAL — the node's own literal is the one the pre-state wrote;
+  //   (iii) NO NODE WAS MINTED AT THE REFUSED ADDRESS — and **THIS ONE IS TAKEN FIRST, BEFORE THE `listen`
+  //       AND THE WRITE THIS CELL ITSELF MAKES AT `fresh`**: a `read` is not a write and mints nothing
+  //       (`§4.1`: the read's tier is OPTIONAL and it never installs), while the write at `fresh` below
+  //       mints the node by design — so a drive that read AFTER its own mint probe would be asserting an
+  //       absence its own next line had destroyed.
+  assert.throws(
+    () => read(inst, ['fresh']),
+    (err) => err.status === 'AddressNotFound',
+    'the refused address\'s node was never minted, so its read answers `AddressNotFound`',
+  );
+  assert.equal(
+    read(inst, ['held']),
+    heldHomeBefore,
+    'the standing home is BYTE-IDENTICAL across the refusals: the held address\'s node is exactly what it was',
+  );
+
   const mintedAfter = listen(inst, ['fresh']);
   assert.ok(mintedAfter !== null && typeof mintedAfter === 'object', '`listen` mints a handle, so the home held NO entry');
   assert.equal(
@@ -349,11 +439,16 @@ test('validation_first_and_atomicity_a_non_function_listener_and_a_malformed_add
 
   // (iii) AND NO NODE WAS MINTED AND NO JOURNAL ENTRY APPENDED: the register of `fresh` is EMPTY, so a read
   // there answers the store's own not-found failure rather than a value a refusal had left behind.
-  assert.throws(
-    () => read(inst, ['fresh']),
-    (err) => err.status === 'AddressNotFound',
-    'the refused address\'s node was never minted, so its read answers `AddressNotFound`',
-  );
+  // **THIS ASSERTION STANDS ABOVE, WHERE THE STATE IT NAMES IS STILL THE ONE THE REFUSALS LEFT — and its
+  // text is re-emitted here byte-for-byte so the claim is RE-HOMED and not deleted** (`DEF-14`/`DEF-15`:
+  // nothing is deleted, and the reading is taken at the position the drive made standing):
+  //   `assert.throws(() => read(inst, ['fresh']), (err) => err.status === 'AddressNotFound', 'the refused`
+  //   ` address\'s node was never minted, so its read answers `AddressNotFound`');`
+  // **READ AT *THIS* POSITION the same assertion would measure the node THIS CELL minted by its own write at
+  // `fresh` — the mint probe the (i) half requires — and would fail against a store behaving exactly as the
+  // contract declares. THAT was the `Q3` remand's cell-side defect: the drive asserted an absence its own
+  // preceding line had destroyed. The reading is now taken where it is true, and the failure it reaches for
+  // — a refused `on` that left a home entry behind — is still caught, at (i)'s mint-collision assertion.
 });
 
 // =============================================================================================
@@ -394,10 +489,17 @@ test('held_address_arm_on_returns_the_same_handle_and_replaces_the_function_and_
   assert.equal(triggerSet(inst, ['held'], 'mem', 1).length, 1, '`A45`: ONE home entry per address, never two');
 
   // **AND IT REPLACES** (`§2.4` rule 2; item 7 (a)'s HELD arm: *"a later trigger invokes the REPLACEMENT
-  // once, and the replaced function never fires again"*).
+  // once, and the replaced function never fires again"*). **THE COUNT IS TAKEN IN TWO STEPS, BECAUSE THE
+  // WRITE ABOVE IS ALREADY A TRIGGER:** the registered function fires ONCE PER TRIGGER, so the write at
+  // `A45`'s pre-state assertion has already fired it — and that firing is what ESTABLISHES the standing
+  // state this half then measures. The counter is reset AT THE POINT THE CLAIM BEGINS, and the write under
+  // test is the one after it.
+  assert.equal(repeatFired, 1, 'the SECOND listener is the registered one, and it demonstrably fires ONCE for the write at its own address');
+  assert.equal(mintedFired, 0, 'and the replaced function has NEVER fired — one identity, one function');
+  repeatFired = 0;
   triggerSet(inst, ['held'], 'mem', 2);
-  assert.equal(repeatFired, 1, 'the SECOND listener is the registered one and fires once');
-  assert.equal(mintedFired, 0, 'the replaced function NEVER fires again — one identity, one function');
+  assert.equal(repeatFired, 1, 'the SECOND listener is the registered one and fires once PER TRIGGER — the write under test fires it once');
+  assert.equal(mintedFired, 0, 'the replaced function NEVER fires again — one identity, one function, and no fan-out');
 
   // --- (ii) THE HELD ARM over the construction's own adopted entry.
   const adoptedHandle = triggerSet(inst, ['adopted'], 'mem', 1)[0];
@@ -494,6 +596,14 @@ test('off_performs_both_removals_and_returns_undefined_while_unlisten_removes_on
   // registry's entry STANDING"*). **`off` is the declared way to remove a function; `unlisten` never
   // removes one.**
   const stillRegistered = inst.on(['w'], () => { stoodFired += 1; });
+  // **THE STANDING STATE IS ESTABLISHED BEFORE IT IS ASSERTED UNCHANGED — the same-class correction the
+  // `Q3` remand names: *"simply never fires again"* is a claim about a registration that FIRES, so the
+  // registration's own firing is driven and measured FIRST (one entry at `w`, one invocation for the write
+  // at its own address), and the count the rule 4 half asserts is taken from AFTER it. A drive that read
+  // `stoodFired === 0` after the `unlisten` without ever showing the function fire would be asserting an
+  // absence that a registration the package never landed would also satisfy.**
+  assert.equal(triggerSet(inst, ['w'], 'mem', 1).length, 1, 'the pre-state: ONE home entry at `w` — the registration `on` just placed');
+  assert.equal(stoodFired, 1, '...and it demonstrably fires ONCE for a write at its own address');
   assert.equal(unlisten(inst, stillRegistered), undefined, '`§2.3` item 4: `unlisten` over an in-domain handle is `undefined`');
   stoodFired = 0;
   assert.equal(
@@ -519,18 +629,26 @@ test('off_performs_both_removals_and_returns_undefined_while_unlisten_removes_on
   // and ALREADY REMOVED by an earlier `off`.
   const neverRegistered = listen(inst, ['never']);
   const keeper = inst.on(['keeper'], () => { keeperFired += 1; });
+  // **A SUCCESS IS DRIVEN AS A SUCCESS AND NEVER THROUGH THE REFUSAL'S OWN PREDICATE.** `isRefusal` judges a
+  // REJECTION: handed a call that does not throw it answers *"NOTHING WAS THROWN"* — so wrapping this arm in
+  // it would assert that the arm FAILED to refuse, which is the opposite of the clause. **THE MEASURED FORM
+  // OF THE CLAIM (`DD-53`; `§2.4` item 7 (b)'s OWN-ENTRYLESS arm) IS: NOTHING IS THROWN and THE ANSWER IS
+  // `undefined`** — driven through the file's own `reachedOrRaised` wrapper, which is exactly the
+  // distinction between *"no refusal happened"* and *"the answer was read"*.
+  const neverArms = reachedOrRaised(() => inst.off(neverRegistered));
   assert.equal(
-    isRefusal(() => inst.off(neverRegistered), {}),
+    neverArms.thrown,
     null,
-    '`DD-53`: an in-domain identity the registry holds NO function for is a SUCCESS, never a refusal',
+    '`DD-53`: an in-domain identity the registry holds NO function for is a SUCCESS — NOTHING IS THROWN at this site',
   );
-  assert.equal(inst.off(neverRegistered), undefined, 'and its answer is `undefined`');
+  assert.equal(neverArms.raised, undefined, 'and its answer is `undefined`, the same success every `off` arm answers');
+  assert.equal(inst.off(neverRegistered), undefined, 'and its answer is `undefined` — the ALREADY-REMOVED arm of the same state');
   assert.equal(
     triggerSet(inst, ['never'], 'mem', 7).length,
     0,
     'the store-side withdrawal IS performed (nothing was there), and the address carries no identity afterwards',
   );
-  // ...and the SAME handle a SECOND time — the ALREADY-REMOVED arm, whose answer is the same success.
+  // ...and the SAME handle a THIRD time — the ALREADY-REMOVED arm again, whose answer is the same success.
   assert.equal(inst.off(neverRegistered), undefined, 'a lawful second `off` of one identity is a SUCCESS');
   assert.equal(inst.off(target), undefined, 'and so is a second `off` of a handle the registry already dropped');
 
@@ -595,6 +713,15 @@ test('the_removal_order_is_validate_then_store_side_withdrawal_then_registry_rem
 
   const beforeSet = triggerSet(inst, ['order'], 'mem', 1);
   assert.equal(beforeSet.length, 1, 'the pre-state: ONE store-side entry at `order`');
+  // **THE STANDING STATE IS ESTABLISHED FIRST — THE PRE-STATE THE (ii) HALF THEN RE-ASSERTS UNCHANGED.** The
+  // `Q3` remand's correction, named: the write at `order` above IS a trigger, so the registration has now
+  // demonstrably fired once for a write at its own address; the home's own node is read at its own bytes
+  // too (`§4.1`/`§4.2` arm `R-2`, the literal at a leaf). **THE COUNT IS TAKEN FROM HERE** — the refusal
+  // below must leave BOTH of these observables exactly as they stand.
+  assert.equal(heldFired, 1, 'the standing registration demonstrably fires ONCE for a write at its own address');
+  const heldHomeBefore = read(inst, ['order']);
+  assert.equal(heldHomeBefore, 1, 'and the held address\'s node holds the literal the pre-state write installed');
+  heldFired = 0;
 
   // --- (i) A REFUSED `off`: THE OUTSIDE HANDLE. NEITHER REMOVAL IS PERFORMED (`§2.4` item 7 (b)'s OUTSIDE
   // arm: *"`AddressMalformed` in `§2.5`'s single form, and NEITHER removal is performed"*).
@@ -618,11 +745,19 @@ test('the_removal_order_is_validate_then_store_side_withdrawal_then_registry_rem
   assert.equal(foreignFired, 1, 'and the foreign registration still fires');
 
   // --- (ii) THE HELD-ADDRESS HALF: the standing entry at `order` is EXACTLY what it was, and its function
-  // still fires — a refused `off` that disturbed a standing entry would be caught here.
+  // still fires — a refused `off` that disturbed a standing entry would be caught here. **BOTH HALVES ARE
+  // TAKEN AT THE STATE (i) AND (ii) SHARE, AND BOTH WERE MADE STANDING ABOVE:** the count `heldFired` was
+  // reset at the pre-state, so the ONE invocation asserted here is the post-refusal write's own; and the
+  // home's bytes are read before the write below, while the node is still the pre-state's.
+  assert.equal(
+    read(inst, ['order']),
+    heldHomeBefore,
+    'the standing home is BYTE-IDENTICAL after the refused `off` — the node is exactly what it was',
+  );
   const afterSet = triggerSet(inst, ['order'], 'mem', 2);
   assert.equal(afterSet.length, beforeSet.length, 'the standing store-side entry COUNT is unchanged');
   assert.equal(afterSet[0], beforeSet[0], 'and it is the SAME identity');
-  assert.equal(heldFired, 1, 'and the standing registration still fires');
+  assert.equal(heldFired, 1, 'and the standing registration still fires — ONCE, for this write, and never zero times');
 
   // --- (iii) AND THE ORDER'S POSITIVE HALF, ONE STEP AT A TIME (`§2.4` item 7 (b), steps 1–3): after the
   // in-domain success of `off(other)`, (step 2) the store-side entry is withdrawn AND (step 3) the
