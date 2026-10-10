@@ -232,4 +232,36 @@
 4. **`0.1.0`'s SIX ARTEFACTS ARE `DECLARED-NOT-ATTESTED`** (`release.md §5.3`): `--provenance` is an OIDC capability, the bootstrap is token-authenticated outside the workflow, and **no attesting route exists within the declared design** — so the acceptance layer runs over those bytes and **no figure from it may imply an attestation for them**.
 5. **AND `0.1.0` IS IMMUTABLE: THE BOOTSTRAP IS THE RELEASE, NOT A REHEARSAL.** The dry run and the two-stage assembly are therefore **preconditions**; and **`v0.1.1` is the first tag the workflow itself publishes** — from there the steady state is exactly as written (tag-triggered, OIDC, provenance, no secret).
 **REVERSAL: a fresh ruling plus a bounded amendment of `docs/specs/storeroom-publish/`, TAKEN BEFORE THE FIRST NAME IS CLAIMED — after it, there is no reversal, only a rename and a fresh version.** **AND `release.md §5.2`'s route (b) — a temporary token path in the workflow — is thereby DECLINED, and stands priced in the record.**
+## §14. THE ARCHITECT'S PROJECT-TOKEN RULING OF 2026-10-11 — `A88`: the org is multi-project, so every platform name must name its project
+
+**<⟶ APPENDED, DATED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES.**
+
+**THE ARCHITECT'S WORDS, VERBATIM.**
+
+> Change the platform package names to specify the project they are for, this organization will be used for multiple
+
+**THE RULING, TRANSCRIBED AS `A88` — it SUPERSEDES `A86`(a)'s scope-only reading and ADOPTS `A86`(b)'s identity-preserving form, with a REASON the earlier pricing did not have: `@auspicion` is a MULTI-PROJECT org, so a platform name that carries only a language marker is ambiguous inside it.** **`A86`'s own priced alternative was `@auspicion/storeroom-js-<label>`; this ruling's requirement is stronger and simpler — the name must NAME THE PROJECT.**
+
+| # | What it answers | The ruling (verbatim) | What it settles |
+| --- | --- | --- | --- |
+| **`A88`** | **`A86`(b) — the identity-preserving reading, which `A86`(a)'s operative default displaced** | ***"Change the platform package names to specify the project they are for, this organization will be used for multiple"*** | **THE FIVE NAMES GAIN THE PROJECT TOKEN. The scope stays `@auspicion`; what changes is that the name after it identifies the PROJECT and not merely the carrier's language — so six artefacts of several projects can live in one org without collision.** |
+
+**ITS DERIVATION — TWO READINGS, BOTH STATED, ONE OPERATIVE, AND THE MOMENT OF NO RETURN NAMED.** **The names today are `@auspicion/js-<label>`; the requirement is that they specify the project. Two readings follow:**
+- **`A88`(a) — THE ADDITIVE READING (the operative default, because it is the least destructive edit that satisfies the requirement and loses no existing token): the project token is INSERTED before the language marker, so the five become `@auspicion/provident-storeroom-js-linux-x64-gnu` · `…-js-linux-arm64-gnu` · `…-js-darwin-x64` · `…-js-darwin-arm64` · `…-js-win32-x64-msvc`.** **Every token that was there is still there; the project is named; the language marker survives for a reader who meets the name without the main package beside it.**
+- **`A88`(b) — THE SHORTER READING (priced as the alternative): the project token REPLACES the language marker, so the five become `@auspicion/provident-storeroom-linux-x64-gnu` and its four siblings — the `js` being redundant once the project is named, because this project's only published carrier IS its JS binding.** **Its reversal is the same one-line re-spelling, and it must be taken BEFORE THE FIRST PLATFORM PUBLISH: after it, a scoped name is spent and the alternative becomes a deprecate-and-re-publish.**
+**THE MAIN PACKAGE'S IDENTITY DOES NOT MOVE: `A82`'s unscoped `provident-storeroom` stands** — this ruling orders a change to the PLATFORM names, and the main package's own name already specifies the project.
+
+**ITS BLAST RADIUS — the same class the project has now walked THREE times, so the count is knowable and the list is finite:**
+1. **`bindings/js/platforms/<label>/package.json` × 5** — each `name`.
+2. **`bindings/js/index.mjs`** — `PLATFORM_NAMES`' five literals.
+3. **`bindings/js/package.json`** — the five `optionalDependencies` KEYS (values stay the exact pin `0.1.0`).
+4. **The unit's contract** — `distribution.md §3.1`/`§3.2`, `resolution.md §3.1`/`§4.1`, `contract.md §1.3` and `§5.6`'s `S-SCOPE` failure list, **`PUB-DD-6`/`PUB-DD-15`**, `parameter-semantics.md §2.1`/`§3.1` (`PAR-PUB-1`/`PAR-PUB-17`).
+5. **The JS unit's contract** — `package.md §3.1`/`§3.2` **and** `contract.md`'s `DD-25`/`DD-26` (**both homes, AMENDED and never superseded**).
+6. **The BLIND set** — `JSG-12.12` (the five names, character-for-character). **`JSG-12.10` (the main package's identity) does NOT move.**
+7. **The RED set** — `S-SCOPE`'s cells, `FIVE_NAMES`, `FORBIDDEN_NAME_SHAPES`, the scratch tree's package names, `NG-PUB-B`'s concatenation fixture, `NG-PUB-H`'s manifests.
+8. **The LIVE battery** — `LIVE-8.7`'s rung-one declaration.
+9. **The workflow** — the five `matrix.include[].name` fields and the comment naming the scope.
+10. **Six READMEs** — the main package's rung-one table and the five platform READMEs' titles.
+11. **The records** — every gate record that prints the five. **The artefact digest is UNAFFECTED: a name is not bytes.**
+**NO BINARY MOVES, NO BEHAVIOUR MOVES, AND THE STORE IS UNTOUCHED.**
 **END OF THE PROPOSAL. §1 is the ruling. §2 states the form and what it buys. §3 enumerates the deliverable. §4 corrects the four refuted cells. §5 adopts the findings by reference. §6 bounds the filing. §7 is the provenance.**
