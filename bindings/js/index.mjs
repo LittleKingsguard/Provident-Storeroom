@@ -107,11 +107,11 @@ const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release
 // artefact, and any other throw alike — so the loader moves to rung two and never answers a second shape.
 // ---------------------------------------------------------------------------------------------
 const PLATFORM_NAMES = {
-  'linux·x64': '@auspicion/js-linux-x64-gnu',
-  'linux·arm64': '@auspicion/js-linux-arm64-gnu',
-  'darwin·x64': '@auspicion/js-darwin-x64',
-  'darwin·arm64': '@auspicion/js-darwin-arm64',
-  'win32·x64': '@auspicion/js-win32-x64-msvc',
+  'linux·x64': '@auspicion/provident-storeroom-js-linux-x64-gnu',
+  'linux·arm64': '@auspicion/provident-storeroom-js-linux-arm64-gnu',
+  'darwin·x64': '@auspicion/provident-storeroom-js-darwin-x64',
+  'darwin·arm64': '@auspicion/provident-storeroom-js-darwin-arm64',
+  'win32·x64': '@auspicion/provident-storeroom-js-win32-x64-msvc',
 };
 
 /// **THE TOTAL PLATFORM TABLE** (`resolution.md §4.1`): the value is one of the five declared names or the

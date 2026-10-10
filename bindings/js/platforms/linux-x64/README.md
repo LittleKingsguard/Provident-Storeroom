@@ -1,4 +1,4 @@
-# `@auspicion/js-linux-x64-gnu`
+# `@auspicion/provident-storeroom-js-linux-x64-gnu`
 
 **THE PREBUILT PLATFORM ARTEFACT FOR `linux` · `x64`, ONE OF THE FIVE THE RESOLUTION RULE DECLARES**
 (`docs/specs/storeroom-publish/resolution.md §3.1`; `§4.1`).

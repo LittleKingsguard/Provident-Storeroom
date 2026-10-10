@@ -41,7 +41,9 @@ jobs:
   # `release.md §1.2` — **ONE RUNNER PER TARGET, AND NO RUNNER SERVES TWO.** Each runner builds ITS OWN
   # target and no other, because a cross-compiled artefact would make *"a consumer on a covered target
   # needs no Rust toolchain"* a claim about a build this matrix did not perform. The five names are the
-  # five declared scoped names of `resolution.md §3.1`, name for name.
+  # five declared scoped names of `resolution.md §3.1`, name for name — **each carrying the PROJECT token
+  # `provident-storeroom` beside the language marker `js-`, because the scope `@auspicion` serves more than
+  # one project (`A88`(a))**.
   platform:
     name: ${{ matrix.label }}
     runs-on: ${{ matrix.runner }}
@@ -50,23 +52,23 @@ jobs:
       matrix:
         include:
           - label: linux-x64
-            name: '@auspicion/js-linux-x64-gnu'
+            name: '@auspicion/provident-storeroom-js-linux-x64-gnu'
             runner: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
           - label: linux-arm64
-            name: '@auspicion/js-linux-arm64-gnu'
+            name: '@auspicion/provident-storeroom-js-linux-arm64-gnu'
             runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
           - label: darwin-x64
-            name: '@auspicion/js-darwin-x64'
+            name: '@auspicion/provident-storeroom-js-darwin-x64'
             runner: macos-13
             target: x86_64-apple-darwin
           - label: darwin-arm64
-            name: '@auspicion/js-darwin-arm64'
+            name: '@auspicion/provident-storeroom-js-darwin-arm64'
             runner: macos-14
             target: aarch64-apple-darwin
           - label: win32-x64
-            name: '@auspicion/js-win32-x64-msvc'
+            name: '@auspicion/provident-storeroom-js-win32-x64-msvc'
             runner: windows-2022
             target: x86_64-pc-windows-msvc
     steps:
