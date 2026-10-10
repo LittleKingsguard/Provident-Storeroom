@@ -113,6 +113,25 @@ jobs:
           cp LICENSE "$dir/LICENSE"
           node -e "const m=require('./$dir/package.json');const main=require('./bindings/js/package.json');if(m.version!==main.version){throw new Error('release.md §2.2: '+m.name+' version '+m.version+' differs from the main package version '+main.version)}"
 
+      # **`A89`(4) / `docs/specs/storeroom-publish-proposal.md §15` — THE PLATFORM SITE'S PRE-PUBLISH
+      # EXISTENCE GUARD, AND WHY IT IS HERE: `npm` OMITS A MISSING `files` ENTRY **SILENTLY**, which is the
+      # property that let `0.1.0`'s five platform tarballs publish GREEN while holding `README.md` and
+      # `package.json` alone — their own `files` arrays named a `.node` and a `LICENSE` and NEITHER EXISTED,
+      # and the emptiness was invisible until it was queried at the registry.** **SO THE GUARD ASSERTS THE
+      # PATHS THIS MANIFEST ITSELF NAMES — its `main` and every one of its `files` entries — read FROM the
+      # manifest rather than re-spelled here, so a manifest edit cannot outrun its own check; `test -e` on
+      # each, and the step FAILS LOUDLY before the name and the version are spent** (`PUB-DD-27`'s price: a
+      # bootstrap that skipped the assembly shipped a `package.json` and a `README.md` alone).
+      - name: '4. guard: the manifest''s own paths exist before the publish'
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir="bindings/js/platforms/${{ matrix.label }}"
+          paths=$(node -e "const m=require('./$dir/package.json');const p=[m.main,(m.files||[])].flat().filter((x)=>typeof x==='string');if(p.length===0){throw new Error('A89(4): the manifest names no path to check')}process.stdout.write([...new Set(p)].join('\n'))")
+          while IFS= read -r path; do
+            test -e "$dir/$path" || { echo "A89(4): the manifest $dir/package.json names '$path' and it does not exist — npm omits a missing files entry SILENTLY, which is how 0.1.0's empty platform tarballs published green"; exit 1; }
+          done <<< "$paths"
+
       # `release.md §1.4` step 4 — **PUBLISH THE FIVE PLATFORM ARTEFACTS**, before the main package, at the
       # tag's own version. The step is a registry publication and is the ARCHITECT'S act's arm: it is
       # reached only from a tag, and the scope `@auspicion` is owned before the first platform
@@ -183,6 +202,18 @@ jobs:
           test ! -e bindings/js/LICENSE
           cp LICENSE bindings/js/LICENSE
           node -e "const fs=require('fs');if(fs.readFileSync('LICENSE','utf8')!==fs.readFileSync('bindings/js/LICENSE','utf8')){throw new Error('contract.md §2.3 item 2: the licence copy is byte-for-byte')}"
+
+      # **`A89`(4) / `docs/specs/storeroom-publish-proposal.md §15` — THE MAIN SITE'S PRE-PUBLISH EXISTENCE
+      # GUARD, and the same property as the platform site's: the tarball's FOURTH published path is the
+      # pack-time licence copy above, and `npm` would carry the copy's ABSENCE into a green publish just as
+      # silently — the step above asserts the copy's bytes against the repository's `LICENSE`, and THIS one
+      # asserts that the path it landed at is still there AT THE PACKAGING ROOT, IMMEDIATELY BEFORE the
+      # publish reads it.**
+      - name: '5. guard: the pack-time licence copy exists at the packaging root before the publish'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -e bindings/js/LICENSE || { echo "A89(4): the pack-time licence copy 'bindings/js/LICENSE' is absent at the packaging root — the publish's fourth path would be omitted SILENTLY"; exit 1; }
 
       # `release.md §1.4` step 5 — **PUBLISH THE MAIN PACKAGE**, after all five platform artefacts.
       - name: '5. publish the main package'
