@@ -47,7 +47,7 @@ an equal `cfg.filePath` reads the committed `-0` back as `0` (`§7.2` item 7 (c)
 
 | id | The clause(s) it drives (and the ruling where one governs) |
 | --- | --- |
-| **JSG-01** | **THE SURFACE.** The eight verbs and nothing else; the instance's own member set is exactly `{ register }` — `§2.9` item 1, `§2.4` item 5 (a), `package.md §1.3` item 3, `package.md §1.3` item 4, `§3.5` — **`A63`** · **`A74`** |
+| **JSG-01** | **THE SURFACE.** The eight verbs and nothing else; the instance's own member set is exactly `{ register, on, off }` — `§2.9` item 1, **`§2.1`'s dated clause 1 (a)** (the member set, RE-DERIVED at `Q5`), **`§2.4` item 7** (the two new members' own clauses: their signatures and their return types), `package.md §1.3` item 3, `package.md §1.3` item 4, `§3.5` — **`A63`** · **`A74`** · **`A79`** · **`A80`** · **`A81`** |
 | **JSG-02** | **THE ROUND TRIP, END TO END**, under the declared relation, plus the boot and the two declared normalizations: construct at a real `filePath`, write, read, **boot a FRESH instance on the same path**, read again — `§4.3`, `§1.5`, `§1.1`, `§2.2` (`R-5`'s whole-register read), `§5.1` (`P-IM-1`), `crossing.md §1.3`'s returned-record rows, the store's `§7.2` items 6–7, `DD-5` · `DD-9` · `DD-39` — **`A39`** |
 | **JSG-03** | **THE DEEP-COPY DISCIPLINE, BOTH DIRECTIONS** — mutate the argument after the call and the store is unchanged; mutate the read-back and the store is unchanged — `§1.1` items 1–4, `§5.2` (`P-IM-2`, `S-COPY-IN`/`S-COPY-OUT`) — **`A65`** |
 | **JSG-04** | **THE VALIDATION ORDER AND THE VERBOSE REJECTION** — a `bigint`, a `Symbol`, a symbol-keyed own property, a class instance, an `Array` subclass, a sparse array, `{a: undefined}`, a `Proxy`, an own accessor, a `Map`, a `Date`, a function and a cycle, **each refused in the ONE declared form** with the target and the class carried, **no raw host error** and **nothing installed** — `§1.2` rows 4–13, `§1.4` items 1–4, `§1.7` (a)–(d), `§1.8`, `§2.5` items 1–3, `surface.md §2.5` items 5–6, `crossing.md §1.4`, `crossing.md §1.7` (b) 3's dated clause, `crossing.md §1.8`'s dated clause — **`A76`** |
@@ -71,49 +71,128 @@ the layer → **JSG-12**; (9) the scaling claim → **JSG-13**.
 
 **The assertion census, printed with its terms.** Every table row below is ONE assertion cell; **a refusal
 cell whose row prints an extra assertion carries `4 + 1` assertions and the table says so**, and a scenario's
-own count is printed at its head. **The set was authored as `236` assertions over `13` scenarios** (the run's record
-at `archive/gate5/storeroom-js-greens-run.md` prints the executed/PASS/FAIL totals and any cell the run
+own count is printed at its head. **⟶ RE-DERIVED 2026-10-11 (`Q5`): THE SET IS NOW AUTHORED AS `240`
+ASSERTIONS OVER THE SAME `13` SCENARIOS — the as-filed sentence read *"The set was authored as `236`
+assertions over `13` scenarios"*, and the `4` cells this pass adds to `JSG-01` (`.14`–`.17`, the two new
+instance members' surface coverage) move the assertion census `236 → 240` while the scenario census stays
+`13`; `JSG-01`'s own head moves `13 → 17` and every other head stands unmoved** (the run's record at
+`archive/gate5/storeroom-js-greens-run.md` prints the executed/PASS/FAIL totals and any cell the run
 could not reach).
 
 ---
 
 ## §2. THE SCENARIOS
 
-### JSG-01 — THE SURFACE (13 assertions)
+### JSG-01 — THE SURFACE (17 assertions)
 
 **The clause(s).** `§2.9` item 1 (`8` verbs, no `findAddress`, no `NodeRef`); `§2.9` item 3
-(no `exists()`, no shim); `§3.5` (`A74`: no `dispose()`, no `close()`); `§2.4` item 5 (a) (the instance's
-entire declared member set is `{ register }`); `§2.1` (the store's internals are exposed through no member
-of the package's handle); `§2.4` item 5 (a)'s own pointer that `register` is NOT a ninth named export;
-`package.md §1.3` items 3–4 (the entry's named exports are the verbs and the factory, and NOTHING ELSE; the
-internal addon's five names are internal); `§2.6` (no constraint/repair verb).
+(no `exists()`, no shim); `§3.5` (`A74`: no `dispose()`, no `close()`); **`§2.1`'s dated clause 1 (a) (the
+instance's entire declared member set is `{ register, on, off }` — RE-DERIVED at `Q5`, where the as-filed
+entry named `§2.4` item 5 (a) and the set `{ register }`)**; **`§2.1`'s dated clause 1 (b) (the module
+namespace is UNCHANGED at the eight declared verbs, and NEITHER `on` NOR `off` is a named export)**;
+**`§2.4` item 7 (the two new members' own clauses: `(a)` `on`'s signature, its atomic validation and its
+return; `(b)` `off`'s signature and its return; `(c)` that neither states a firing rule)**; **`§2.3`'s dated
+clause 1 (the handle `on` produces is the one `§2.3` item 2 declares — the two spellings gain NO third)**;
+**`parameter-semantics.md §2.12`'s dated clause (`on`'s listener slot) and `§2.8`'s dated clause (`off`'s
+handle slot)**; `§2.1` (the store's internals are exposed through no member of the package's handle);
+`§2.4` item 5 (a)'s own pointer that `register` is NOT a ninth named export; `package.md §1.3` items 3–4
+(the entry's named exports are the verbs and the factory, and NOTHING ELSE; the internal addon's five names
+are internal); `§2.6` (no constraint/repair verb).
 
 **The steps a caller takes.** (1) `import` the package's **claimed ESM entry** and take its namespace.
 (2) Enumerate the namespace's own export names. (3) Call `storeCreate` with a legal `cfg` (a real path, a
 positive `journalLength`, an empty `listeners`). (4) Enumerate the returned object's own member names.
+(5) **At the re-derivation `Q5`, and for the two members `A79` adds: name their class, name their absence
+from the namespace, and reach the two DECLARED RETURN types at the positions `§2.4` item 7 declares — the
+`on` call's `address` at argument position `1` and its `listener` at position `2`, the `off` call's `handle`
+at its first and only position. Each of the two addresses is MINTED FIRST with a `temp` write, a DRIVING
+step and not an expectation, exactly as `JSG-08`/`JSG-09` mint theirs — so the positions are reachable and
+NOT because any firing is asserted: NO FIRE RULE IS ASSERTED ANYWHERE IN THIS SCENARIO** (`§2.4` item 7 (c);
+**`A78`**).
 
 **The expected observable, from the docs.**
 
 | cell | the drive | the expected observable | the clause |
 | --- | --- | --- | --- |
 | **JSG-01.1** | `import` the entry | the module resolves to a non-null namespace object | `package.md §1.1`; `§3.1` |
-| **JSG-01.2** | `Object.keys(ns).sort()` | **exactly `['delete','listen','read','readLiteral','rollback','storeCreate','unlisten','write']`** — `8` names, no ninth and none missing | `§2.9` item 1; `package.md §1.3` item 3 |
+| **JSG-01.2** | `Object.keys(ns).sort()` | **exactly `['delete','listen','read','readLiteral','rollback','storeCreate','unlisten','write']`** — `8` names, no ninth and none missing | `§2.9` item 1; `package.md §1.3` item 3; **`§2.1`'s dated clause 1 (b), UNMOVED** |
 | **JSG-01.3** | `typeof ns[v]` for each of the `8` | `'function'` for every one of the eight | `§2.9` item 1 |
 | **JSG-01.4** | `'findAddress' in ns` | **not an own export** | `§2.9` item 1 · **`A63`** |
 | **JSG-01.5** | `'exists' in ns` | **not an own export** | `§2.9` item 3 |
-| **JSG-01.6** | `'dispose'`/`'close'` in `ns` | **neither is an own export, at the package level or the store level** | `§3.5` · **`A74`** |
+| **JSG-01.6** | `'dispose'`/`'close'` in `ns` | **neither is an own export, at the package level or the store level** | `§3.5` · **`A74`**; `§2.4` item 7 (c) (neither new member is a release verb) |
 | **JSG-01.7** | `'register' in ns` | **NOT an own export of the module namespace** | `§2.4` item 5 (a); `package.md §1.3` item 3 |
 | **JSG-01.8** | `storeCreate(cfg)` | a non-null object, neither a function nor an array | `§2.1` |
-| **JSG-01.9** | `Object.getOwnPropertyNames(inst).sort()` | **exactly `['register']`** — one own member and NOTHING ELSE | `§2.4` item 5 (a) |
+| **JSG-01.9** | `Object.getOwnPropertyNames(inst).sort()` | **exactly `['off','on','register']`** — **the THREE declared members, and NOTHING ELSE.** **The value this cell asserted before the `Q1` amendment was `['register']`; the OLD `{ register }` was `§2.4` item 5 (a)'s PRE-AMENDMENT declaration, and `§2.1`'s dated clause 1 (a) FIXES the new value** | **`§2.1`'s dated clause 1 (a)** · **`A79`** · `§2.4` item 7 |
 | **JSG-01.10** | `typeof inst.register` | `'function'` | `§2.4` item 5 |
 | **JSG-01.11** | the eight verbs and `findAddress` as properties OF the instance | each is `undefined` — the store's own surface is exposed through no member of the handle | `§2.1`'s dated clause; `§2.4` item 5 (a) |
 | **JSG-01.12** | `'version'`/`'errorMessage'`/`'call'` in `ns` | **none is an own export** — the internal addon's five names are internal | `package.md §1.3` item 4; `§3.1`'s dated clause |
 | **JSG-01.13** | `'addConstraint'`/`'repair'` in `ns` | **neither is an own export** — no constraint or repair verb, parameter or seam is declared | `§2.6` · **`A73`** |
+| **JSG-01.14** | `typeof inst.on` and `typeof inst.off` | **`'function'` for BOTH** — the two members the amendment adds are functions on the object `storeCreate` returned, beside `register` | **`§2.1`'s dated clause 1 (a)** · **`§2.4` item 7** |
+| **JSG-01.15** | `Object.prototype.hasOwnProperty.call(ns,'on')` and `…(ns,'off')` | **FALSE for both** — neither `on` nor `off` is an own named export of the entry: **the module namespace stays at the EIGHT declared verbs, and no name is added or removed** | **`§2.1`'s dated clause 1 (b)** · `§2.4` item 7; `package.md §1.3` item 3 |
+| **JSG-01.16** | mint `['surf-on']` and `['surf-ls']`, then `inst.on(['surf-on'], fn)` and `listen(inst, ['surf-ls'])` | **`on` returns the package's OPAQUE handle — a non-null object, neither a function nor an array — and it is the SAME output spelling `listen` returns: the output direction gains NO third spelling** | **`§2.4` item 7 (a)** (*"ITS RETURN IS THE HANDLE"*); **`§2.3`'s dated clause 1**; `§2.3` item 2; `parameter-semantics.md §2.12`'s dated clause (the listener at position `2` of `2`) |
+| **JSG-01.17** | `inst.off(<the handle JSG-01.16 returned>)` | **`undefined`** — `off`'s declared return on EVERY success, driven over the in-domain handle `on` produced, with the handle at `off`'s first and only argument position | **`§2.4` item 7 (b)** (*"ITS RETURN IS `undefined` ON EVERY SUCCESS"*); **`parameter-semantics.md §2.8`'s dated clause** |
 
-**What its failure would mean.** A ninth export, a missing verb, a `findAddress`/`exists`/`dispose` reach, a
-second instance member or an exposed internal addon name means **the declared surface is not the shipped
-one**: the crossing's whole closure argument (`§2.9`'s non-exposure, `§2.4` item 5's one-member handle) reads
-false of the package.
+**What its failure would mean.** A ninth export, a missing verb, a `findAddress`/`exists`/`dispose` reach, an
+instance member **outside the declared three** (where the as-filed sentence read *"a second instance member"*,
+SUPERSEDED by `§2.1`'s dated clause 1 (a), which declares the second and third members `on` and `off`) or an
+exposed internal addon name means **the declared surface is not the shipped one**: the crossing's whole
+closure argument (`§2.9`'s non-exposure, `§2.1`'s dated clause 1 (a) and `§2.4` item 7's three-member handle)
+reads false of the package.
+
+**⟶ RE-DERIVED 2026-10-11 — THE `Q5` RE-DERIVATION PASS (`role_blind_test_writer`), ON THE `Q1` CONTRACT
+AMENDMENT'S `A79`–`A81`: THIS SCENARIO'S MEMBER-SET FIGURE MOVES AND THE SET IS RE-RUN.** `RCA-8(d)`
+ANNOTATE-BESIDE: **every byte this clause does not name STANDS AS FILED and is read THROUGH it — `JSG-01.1`,
+`.3`–`.8`, `.10`–`.13` are NOT MOVED, no expectation of theirs is touched, and no assertion of this set is
+weakened by this pass.** **THE CELLS THAT MOVE, AND THE CLAUSE THAT FIXES EACH:**
+1. **THE HEADER AND `JSG-01.9`, AND ONLY THEY, CARRIED THE SUPERSEDED FIGURE.** **The as-filed head read**
+   *"(13 assertions)"* **and its clause list's own entry read** *"`§2.4` item 5 (a) (the instance's entire
+   declared member set is `{ register }`)"*; **the as-filed cell read** *"**exactly `['register']`** — one own
+   member and NOTHING ELSE"*, cited to `§2.4` item 5 (a). **BOTH ARE RE-DERIVED HERE: `§2.1`'s dated clause 1
+   (a) — the `Q1` amendment's own operative member-set statement — FIXES the value as `{ register, on, off }`
+   (`A79`), and that clause names the `{ register }` figure it supersedes as `§2.4` item 5 (a)'s
+   PRE-AMENDMENT declaration, standing byte-for-byte at its own `§` and read from that date as the three
+   members.** **THE RE-DERIVED CELL ASSERTS THE NEW SET EXACTLY — `Object.getOwnPropertyNames(inst).sort()`
+   equal to `['off','on','register']`, sorted membership — and NO LOOSER FORM: nothing weaker than the exact
+   three-member set is asserted, and no member outside the three is tolerated.** **`contract.md §5.5`'s dated
+   clause, clause 5, NAMED THESE TWO CELLS as the ones this amendment makes false and required their authors
+   to re-derive them and re-run the set; this is that re-derivation and the record of its run.**
+2. **THE NAMESPACE CLAIM IS UNMOVED, AND IT IS SAID HERE SO IT IS NOT DRAGGED ALONG BY THE MEMBER-SET MOVE.**
+   **`JSG-01.2` — the namespace's EIGHT names, sorted, with no ninth and none missing — stands as filed and
+   STANDS TRUE, and so do `JSG-01.7`, `.11`, `.12` and `.13`; and the amendment's own clause says so at
+   `§2.1`'s dated clause 1 (b), where *"THE MODULE NAMESPACE IS UNCHANGED AT THE EIGHT DECLARED VERBS"* is
+   printed with the reason (`on` and `off` are reached through the FACTORY'S OWN PRODUCT and through nothing
+   else).** **`JSG-01.15` is NEW COVERAGE OF THAT SAME UNMOVED CLAIM at the two names this amendment adds —
+   it asserts an absence, and it cannot make `.2`'s eight-name count looser than it is.**
+3. **AND `JSG-01.10` KEEPS ITS BYTES.** **Its expectation — *"the one member is a function"* — is read
+   THROUGH clause `1` above as *"the `register` member is a function"*; the CLAIM IT ASSERTS
+   (`typeof inst.register === 'function'`) IS TRUE of the three-member set and is UNMOVED, and no byte of the
+   row is rewritten here.**
+4. **THE FOUR CELLS THIS PASS ADDS, EACH AT ITS OWN CLAUSE — THE TWO NEW MEMBERS' SURFACE, AND NOTHING OF
+   WHAT THEY DO AT A TRIGGER.** **`JSG-01.14`** (their function class — `§2.1`'s dated clause 1 (a); `§2.4`
+   item 7). **`JSG-01.15`** (neither is a named export — `§2.1`'s dated clause 1 (b)). **`JSG-01.16`** (`on`'s
+   DECLARED RETURN is the opaque handle, and the output direction gains no third spelling — `§2.4` item 7
+   (a); `§2.3`'s dated clause 1). **`JSG-01.17`** (`off`'s DECLARED RETURN is `undefined` on every success —
+   `§2.4` item 7 (b); `parameter-semantics.md §2.8`'s dated clause). **SO THIS SCENARIO SURVEYS THE TWO NEW
+   MEMBERS' SIGNATURES AND THEIR RETURN TYPES, WHICH IS WHAT `§2.4` ITEM 7 DECLARES, AND IT ASSERTS NO MORE:
+   no arm of `on`'s validation, no replacement observable, no removal observable and no refusal class is
+   asserted HERE — those are the parameter-semantics slots' and the behaviour scenarios' subjects, and the
+   drives the amendment makes derivable are owed where they belong.**
+5. **AND NO FIRING RULE IS STATED, DERIVED OR ASSERTED BY THIS SCENARIO.** **`on`/`off` are DELIVERY-SIDE
+   members: which listener fires, when it fires, what it is bound to and which ids a trigger returns are ALL
+   the store's, and their authority stands at `docs/specs/storeroom-native/write-and-read.md §6.5` item 14**
+   (**`A78`**; `§2.4` item 7 (c)). **The addresses this scenario mints are a DRIVING step so the declared
+   positions are reachable, and not a firing expectation.**
+6. **THE CENSUS, WITH BOTH TERMS PRINTED BECAUSE ONE OF THEM MOVES.** **`JSG-01` is `17` assertions where the
+   as-filed head read `13` — the `4` cells of clause `4` above — and the SET'S ASSERTION CENSUS is `240`
+   where the as-filed head read `236`, while THE SCENARIO CENSUS STAYS `13`, every other scenario's own count
+   stands unmoved, and the `§2` heads now sum `17 + 16 + 5 + 67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 + 17 + 6 =
+   240` ✓.** **THE RUN THAT MEASURED IT, ITS BUILD STEP, ITS FOUR LEGS AND ITS LAYER ARE FILED AT
+   `archive/gate5/storeroom-js-greens-run.md` as this pass's dated `§`** (`docs/specs/storeroom-js-proposal.md
+   §5` · `Q5`; `contract.md §5.5`'s dated clause, clause 5 — the cells that move and the re-run they owe).**
+   (`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79` · `A80` · `A81`; A3 docs/specs/storeroom-js/surface.md
+   §2.1's dated clause 1 (a)–(b) and §2.4 item 7 (a)–(c); §2.3's dated clause 1; A3
+   docs/specs/storeroom-js/parameter-semantics.md §2.8's and §2.12's dated clauses; A3
+   docs/specs/storeroom-js/contract.md §5.5's dated clause | requirement]`).
 
 ### JSG-02 — THE ROUND TRIP, END TO END, THE BOOT AND THE TWO NORMALIZATIONS (16 assertions)
 
@@ -846,3 +925,64 @@ RE-DERIVES NO EXPECTATION.**
    writes no assertion, edits no scenario and moves no figure of the set, and it names the two readings here so
    a later pass re-derives the sentence's subject instead of guessing** (`[T: this file's figures, its owed
    record and the one undispositioned count | CENSUS]`).
+
+---
+
+**⟶ RE-DERIVED AND RE-RUN 2026-10-11 — THE `Q5` RE-DERIVATION PASS (`role_blind_test_writer`), ON THE `Q1`
+CONTRACT AMENDMENT'S `A79`–`A81`: THE MEMBER-SET FIGURE MOVED, THE TWO NEW MEMBERS' SURFACE WAS ADDED, AND
+THE WHOLE SET WAS RE-EXECUTED.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte above — the head's census
+sentence, the `§1` scenario table, the `§2` per-scenario heads and their cells, the `§3` un-derived list, the
+`§4` table's `233`/`3` figure, its `3`-FAILS paragraph and every dated clause of this file — STANDS
+BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause is a PURE INSERTION, it CORRECTS NO OTHER
+SCENARIO, WEAKENS NO ASSERTION, RE-DERIVES NO EXPECTATION OUTSIDE `JSG-01`'S TWO NAMED CELLS and EDITS NO
+CELL of `§2` outside the `4` it adds.** **This pass DID run — it holds the set's execution verb, and it is
+the pass `contract.md §5.5`'s dated clause (clause 5) tasked.**
+
+1. **WHAT MOVED, AND THE CLAUSE THAT FIXED IT.** **`JSG-01`'s member-set claim moved `{ register }` →
+   `{ register, on, off }`.** **THE CLAUSE THAT FIXES THE NEW VALUE IS `docs/specs/storeroom-js/surface.md`
+   `§2.1`'s dated clause, item 1 (a), the `Q1` amendment's operative member-set statement on the ruling
+   `A79` (*"Use S-1"*), carried by `§2.4` item 7's two clauses; the OLD value was `§2.4` item 5 (a)'s
+   PRE-AMENDMENT declaration, which that clause supersedes as a MEMBER-SET FIGURE while its bytes stand at
+   their own `§`.** **THE TWO CELLS THAT MOVED ARE THE SCENARIO'S HEADER (its `§1` row and its `§2` clause
+   list, whose entries now name `§2.1`'s dated clause 1 (a)–(b) and `§2.4` item 7) AND THE CELL `JSG-01.9`,
+   which now asserts the sorted three-member set `['off','on','register']` EXACTLY — no looser form, and no
+   fourth member tolerated.** **THE NAMESPACE CLAIM DID NOT MOVE: `JSG-01.2`'s EIGHT names, `JSG-01.7`,
+   `.11`, `.12` and `.13` stand as filed and stand TRUE** (`§2.1`'s dated clause 1 (b) — *"THE MODULE
+   NAMESPACE IS UNCHANGED AT THE EIGHT DECLARED VERBS"*; `contract.md §5.5`'s dated clause, clause 5, which
+   says so in its own words).
+2. **WHAT WAS ADDED, AND WHY THE COUNT MOVED.** **`JSG-01` gained `4` cells — `.14`, `.15`, `.16`, `.17` —
+   the two new members' surface, each at its own clause and none of them asserting what `§2.4` item 7 does
+   not declare:** **their function class** (`.14`); **their ABSENCE from the module namespace, the
+   amendment's own UNMOVED claim at its two new names** (`.15`); **`on`'s DECLARED RETURN — the opaque
+   handle, the same output spelling `listen` returns, so the two spellings gain no third** (`.16`); **and
+   `off`'s DECLARED RETURN — `undefined` on every success** (`.17`). **NO FIRING RULE IS STATED, DERIVED OR
+   ASSERTED by any cell of this scenario, new or old: the firing is the store's per `A78`, and its authority
+   is `docs/specs/storeroom-native/write-and-read.md §6.5` item 14.**
+3. **THE TOTALS OF THIS PASS'S RUN, WITH THEIR SITE, THEIR LAYER AND THE TERMS OF EACH FIGURE.**
+   **THE BLIND SET, `node bindings/js/greens/greens.mjs` AT THE REPOSITORY ROOT against the artefact the
+   README's declared build step produces — `240` AUTHORED · `240` EXECUTED · `240` PASS · `0` FAIL, over the
+   SAME `13` scenarios, with `JSG-01` reading `17 PASS · 0 FAIL` — LAYER `ENVELOPE/PURE`, `APP` LAYER `NONE`,
+   and NO `APP`-GREEN CLAIMED.** **THE AUTHORED COUNT MOVED `236 → 240` BY THE `4` CELLS OF ITEM 2, AND THE
+   SCENARIO COUNT DID NOT MOVE: the `§2` heads now sum `17 + 16 + 5 + 67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 +
+   17 + 6 = 240` ✓, with every head but `JSG-01`'s unmoved.** **THE PRE-RUN STATE IS RECORDED WITH IT: the
+   as-filed set read `236` AUTHORED · `235` PASS · `1` FAIL at the same site, the ONE red cell being
+   `JSG-01.9`'s superseded member set — the red cell this re-derivation was tasked to correct.**
+4. **AND THE OTHER THREE LEGS, EACH WITH ITS OWN SITE AND ITS OWN LAYER.** **The JS leg,
+   `node --test bindings/js/test/*.test.mjs` — `108` tests · `108` PASS · `0` FAIL** (this pass's re-derivation
+   FALSIFIES NO RED-SET CELL; `contract.md §5.5`'s dated clause, clause 5, measured the two own-property
+   enumerations of `bindings/js/test/**` as enumerating the HANDLE, which stays memberless, and this pass
+   re-measured that as the `108/108` above). **The store's root suite, `cargo test --offline --no-fail-fast`
+   at the repository root — `379` PASS · `0` FAIL** (the store's figure, quoted and re-measured; no store
+   byte moves). **And the live battery, `node bindings/js/greens/live-drive.mjs` — `72` authored · `72`
+   executed · `71` PASS · `1` FAIL, its one red cell being `LIVE-1.3`, the LIVE RUNNER's own superseded
+   member-set cell, which is `Q6`'s and is NOT touched, re-derived or weakened by this pass** (LAYER:
+   `LIVE / ASSEMBLED PACKAGE`; it retires no row of this `ENVELOPE/PURE` set).
+5. **THE RECORD.** **The re-derivation and this run are filed, with every cell and every figure, at
+   `archive/gate5/storeroom-js-greens-run.md` `§7`** (`docs/specs/storeroom-js-proposal.md §5` · `Q5`;
+   `contract.md §5.5`'s dated clause, clause 5; `archive/gate5/storeroom-js-greens-run.md` — this pass's
+   dated `§`).
+   (`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79` · `A80` · `A81`; A3 docs/specs/storeroom-js/surface.md
+   §2.1's dated clause 1 (a)–(b), §2.3's dated clause 1 and §2.4 item 7 (a)–(c); A3
+   docs/specs/storeroom-js/parameter-semantics.md §2.8's and §2.12's dated clauses; A3
+   docs/specs/storeroom-js/contract.md §5.5's dated clause; bindings/js/README.md — the build step the JS
+   leg runs after | numeric or census claim]`).

@@ -115,7 +115,17 @@ if (ns === null) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// JSG-01 — THE SURFACE                                                      13 assertions
+// JSG-01 — THE SURFACE                                                      17 assertions
+// ⟶ RE-DERIVED 2026-10-11 (THE `Q1` CONTRACT AMENDMENT, `A79`): the instance's own member set is now the
+// THREE members `{ register, on, off }`, fixed by `docs/specs/storeroom-js/surface.md` §2.1's dated clause
+// 1 (a) and carried at that document's §2.4 item 7; the OLD value — the set `{ register }` — was §2.4
+// item 5 (a)'s PRE-AMENDMENT declaration, superseded AS A MEMBER-SET FIGURE by §2.1's dated clause 1 (a)
+// (contract.md §5.5's dated clause, clause 5, names this header and `JSG-01.9` as the two cells that move).
+// The MODULE NAMESPACE is UNMOVED at the eight declared verbs (§2.1's dated clause 1 (b)): `JSG-01.2`,
+// `.7`, `.11` and `.12` stand as filed. The four cells `.14`–`.17` are this scenario's own coverage of the
+// two new members: their function class, their absence from the module namespace, and their two DECLARED
+// RETURN types (`on` -> the opaque handle; `off` -> `undefined`). NO FIRING RULE IS STATED OR ASSERTED BY
+// ANY CELL HERE (`A78`): what fires, when, and what a trigger returns is the store's, not this set's.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const i1 = ns.storeCreate(mk('g01'));
@@ -129,11 +139,34 @@ if (ns === null) {
   A('JSG-01.6', '§3.5; A74', 'neither dispose nor close is an own export', !('dispose' in ns) && !('close' in ns), `dispose=${'dispose' in ns} close=${'close' in ns}`);
   A('JSG-01.7', '§2.4 item 5 (a)', 'register is NOT an own export of the module namespace', !Object.prototype.hasOwnProperty.call(ns, 'register'), `own=${Object.prototype.hasOwnProperty.call(ns, 'register')}`);
   A('JSG-01.8', '§2.1', 'storeCreate(cfg) returns a non-null object that is neither a function nor an array', i1 !== null && typeof i1 === 'object' && typeof i1 !== 'function' && !Array.isArray(i1), fmt(i1));
-  A('JSG-01.9', '§2.4 item 5 (a)', "the instance's own member set is exactly ['register']", membersAre(formOf(i1), 'register'), formOf(i1).members.join(','));
+  // §2.1's dated clause 1 (a) FIXES THE NEW VALUE: the instance's member set is `{ register, on, off }`.
+  // The OLD value this cell asserted — the exact set `['register']`, "one own member and NOTHING ELSE" —
+  // was §2.4 item 5 (a)'s PRE-AMENDMENT declaration, superseded as a member-set figure by that clause;
+  // `contract.md §5.5`'s dated clause (clause 5) names THIS cell as one of the two that must move.
+  A('JSG-01.9', '§2.1 dated clause 1 (a); A79; §2.4 item 7', "the instance's own member set is exactly ['off','on','register'] — the three declared members, and NOTHING ELSE (the pre-amendment declaration was ['register'])", membersAre(formOf(i1), 'off,on,register'), formOf(i1).members.join(','));
   A('JSG-01.10', '§2.4 item 5', 'the one member is a function', typeof i1.register === 'function', typeof i1.register);
   A('JSG-01.11', '§2.1 dated clause; §2.4 item 5 (a)', "the store's own verbs and findAddress are exposed through NO member of the handle", [...VERBS, 'findAddress'].every((v) => i1[v] === undefined), [...VERBS, 'findAddress'].filter((v) => i1[v] !== undefined).join(',') || 'none');
   A('JSG-01.12', 'package.md §1.3 item 4; §3.1 dated clause', 'none of the internal addon\'s five names is an own export of the entry', ['version', 'errorMessage', 'call'].every((v) => !Object.prototype.hasOwnProperty.call(ns, v)), ['version', 'errorMessage', 'call'].filter((v) => v in ns).join(',') || 'none');
   A('JSG-01.13', '§2.6; A73', 'no constraint verb and no repair verb is an own export', !('addConstraint' in ns) && !('repair' in ns) && !('constraint' in ns), ['addConstraint', 'repair', 'constraint'].filter((v) => v in ns).join(',') || 'none');
+
+  // ── THE TWO NEW MEMBERS `A79` ADDS BESIDE `register`: THEIR FUNCTION CLASS, THE NAMESPACE THEY DO NOT
+  // ENTER, AND THE TWO RETURN TYPES `§2.4` ITEM 7 DECLARES. Each cell cites its own clause; nothing of any
+  // firing rule is stated (`A78`), and the address is MINTED FIRST only so the declared positions are
+  // reachable (a DRIVING step, as at JSG-08 and JSG-09).
+  A('JSG-01.14', '§2.1 dated clause 1 (a); §2.4 item 7', 'the two members the amendment adds are functions on the instance, beside register', typeof i1.on === 'function' && typeof i1.off === 'function', `on:${typeof i1.on} off:${typeof i1.off}`);
+  A('JSG-01.15', '§2.1 dated clause 1 (b); §2.4 item 7; package.md §1.3 item 3', 'neither on nor off is an own named export of the entry: the module namespace stays at the EIGHT declared verbs', !Object.prototype.hasOwnProperty.call(ns, 'on') && !Object.prototype.hasOwnProperty.call(ns, 'off'), `own on=${Object.prototype.hasOwnProperty.call(ns, 'on')} own off=${Object.prototype.hasOwnProperty.call(ns, 'off')}`);
+  const fnOn = () => {};
+  const wOn = thrown(() => ns.write(i1, ['surf-on'], 'temp', {}));
+  const wLs = thrown(() => ns.write(i1, ['surf-ls'], 'temp', {}));
+  const rOn = wOn.threw ? { threw: true, err: wOn.err } : thrown(() => i1.on(['surf-on'], fnOn));
+  const rLs = wLs.threw ? { threw: true, err: wLs.err } : thrown(() => ns.listen(i1, ['surf-ls']));
+  const onH = rOn.threw ? undefined : rOn.value;
+  const lsH = rLs.threw ? undefined : rLs.value;
+  A('JSG-01.16', '§2.4 item 7 (a); §2.3 dated clause 1; §2.3 item 2', "on(address, listener) returns the package's OPAQUE handle — a non-null object, neither a function nor an array — and it is the SAME output spelling listen returns: the two-spelling rule gains NO third", !rOn.threw && onH !== null && typeof onH === 'object' && !Array.isArray(onH) && !rLs.threw && lsH !== null && typeof lsH === 'object' && !Array.isArray(lsH), rOn.threw ? `on threw ${fmt(rOn.err)}` : `on:${fmt(onH)} listen:${rLs.threw ? `listen threw ${fmt(rLs.err)}` : fmt(lsH)}`);
+  const rOff = rOn.threw
+    ? { threw: true, err: `off's handle position was never reachable: on refused (${fmt(rOn.err)})` }
+    : thrown(() => i1.off(onH));
+  A('JSG-01.17', '§2.4 item 7 (b); parameter-semantics.md §2.8 dated clause', 'off(handle) returns undefined on every success, driven over the in-domain handle on returned', !rOff.threw && rOff.value === undefined, rOff.threw ? `threw ${fmt(rOff.err)}` : fmt(rOff.value));
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
