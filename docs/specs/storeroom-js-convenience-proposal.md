@@ -67,4 +67,22 @@
 
 **READ AT ITS OWN BYTES (this pass):** `bindings/js/index.mjs`'s export list, `storeCreate`'s `register`, `deliver` and `state.registry` · `docs/specs/storeroom-js/surface.md` (`§2.1`, `§2.3`, `§2.4`'s rules 1–4 and item 5) · `parameter-semantics.md` (`PAR-JS-8`/`12`/`15`) · `package.md` (`§4.5`) · `acceptance.md` (`§4.1`, the legs) · `docs/specs/storeroom-js-greens.md`'s `JSG-01` · the rulings `A63`, `A68`, `A74`, `A76`, `A77`, `A78` verbatim · `docs/next-steps.md`'s ledger and `N3` row. **NOTHING WAS RUN AND NO BYTE WAS WRITTEN BEYOND THIS FILE.**
 
+## §8. THE ARCHITECT'S ANSWER SET OF 2026-10-11 — the shape, the deregistration, and the validation
+
+**<⟶ APPENDED, DATED, FILED IN THE PASS IT ARRIVED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES.**
+
+**THE ARCHITECT'S WORDS, VERBATIM.**
+
+> Use S-1, `off` can deregister, and always validate
+
+| # | The question it answers | The ruling (verbatim) | What it settles |
+| --- | --- | --- | --- |
+| **`A79`** | **`§2`'s four shapes** | ***"Use S-1"*** | **`S-1` ADOPTED: a SECOND INSTANCE MEMBER — `on(address, listener) -> handle` and `off(handle)` — beside `register`. THE MODULE NAMESPACE STAYS AT THE EIGHT DECLARED VERBS, and the store's own `listen`/`unlisten` stay un-overloaded.** **The instance's member set moves from `EXACTLY { register }` to `{ register, on, off }`, so the blind set's `JSG-01` SURFACE scenario is re-derived and the set re-run.** |
+| **`A80`** | **`§4` item 3 — may `off` ALSO deregister? (`§3` rule 4 preserved: withdrawal is the store's, invocation the package's)** | ***"`off` can deregister"*** | **ANSWERED, AND THE RECONCILIATION IS NAMED SO NO CONTRADICTION IS READ: `unlisten(handle)` KEEPS RULE 4 VERBATIM — the store-side withdrawal only, with the registry's entry STANDING — and `off(handle)` is a DIFFERENT, PACKAGE-OWNED VERB that performs the store-side withdrawal AND removes the PACKAGE'S OWN registry entry.** **Rule 4 is therefore SUPPLEMENTED, NOT EXCEPTED: it constrains the store-facing `unlisten`, while `off` acts on the package's own state, which no store rule governs. The asymmetry the contract declares survives exactly as written — `unlisten` never removes a function — and `off` is the declared way to remove one.** |
+| **`A81`** | **`§4` item 4 — does the convenience validate? and `§3` item 1's atomicity** | ***"always validate"*** | **ANSWERED, AND IT EXTENDS `A76`'s DISCIPLINE TO EVERY ARGUMENT OF THE NEW VERBS: BOTH the ADDRESS and the LISTENER are tested for compliance with the permitted shape BEFORE ANY ADMISSION — class first, on the value as it is, NEVER repaired — and a non-conforming argument is rejected in the SINGLE declared form carrying the target, the class and the POSITION. `off`'s HANDLE is validated the same way.** **AND THE ORDER IS FIXED BY THIS RULING: VALIDATE FIRST, THEN ADMIT — so a bad listener or a bad address leaves NO STORE-SIDE ENTRY and NO REGISTRY ENTRY BEHIND, which is `A76`'s atomicity FOR FREE rather than by rollback.** |
+
+**AND THREE CONSEQUENCES THIS FILING STATES PLAINLY.** **(1) THE NAMING IS SETTLED BY THE RULING'S OWN WORDS — the architect names `off`, so the pair is `on`/`off` (the filing's recommendation) and no further line is owed.** **(2) THE BLAST-RADIUS TABLE (`§6`) IS NOW OPERATIVE WITH `S-1`'s two rows and the member-set move: the register stays `8` rows (RE-DERIVED), the `PAR-JS` set stays `18` (RE-DERIVED), the module namespace stays at `8`, the store and its `379` do not move, and the ledger is unchanged because an amendment adds no unit.** **(3) `Q1` — THE CONTRACT AMENDMENT — MAY RUN: its cells are this section's three rulings (`A79`–`A81`) plus the filing's `§3` items 1, 2, 5 and 6 (the `A77` delivery unchanged · rule 2's replacement · `A74`'s no-release-verb · `A78`'s firing stays the store's, with a pointer to `write-and-read.md §6.5` item 14).**
+
+---
+
 **END OF THE PROPOSAL. §1 states the add-on. §2 prices four shapes and recommends one. §3 lists the rulings it must respect. §4 names the four points needing a line. §5 is the phase plan. §6 is the blast radius. §7 is the provenance. No behaviour clause, no signature and no ruling is asserted.**
