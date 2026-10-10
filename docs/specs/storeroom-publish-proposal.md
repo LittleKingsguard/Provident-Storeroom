@@ -264,4 +264,24 @@
 10. **Six READMEs** — the main package's rung-one table and the five platform READMEs' titles.
 11. **The records** — every gate record that prints the five. **The artefact digest is UNAFFECTED: a name is not bytes.**
 **NO BINARY MOVES, NO BEHAVIOUR MOVES, AND THE STORE IS UNTOUCHED.**
+## §15. THE RELEASE'S OUTCOME AND THE BOOTSTRAP'S DECLARED STATUS — `A89`: `0.1.0` IS THE BOOTSTRAP VERSION, AND `0.1.1` IS THE FIRST WORKFLOW RELEASE
+
+**<⟶ APPENDED, DATED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES.**
+
+**THE ARCHITECT'S WORDS, VERBATIM, ON THE PUBLISHED STATE.**
+
+> Published and configured trusted publishing
+
+> I know they're empty, the publish had to happen before the workflow could build because the packages need to exist before the workflow can be given trusted access to them
+
+**`A89` TRANSCRIBES HIS CORRECTION AND FIXES THE RECORD'S VOCABULARY — not the bytes: THE BOOTSTRAP IS `A87`'s DECLARED ROUTE WORKING AS WRITTEN, AND ITS ARTEFACTS ARE PLACEHOLDERS BY CONSTRUCTION.**
+
+| # | The finding | The registry's own evidence | What it means |
+| --- | --- | --- | --- |
+| **1** | **THE SIX NAMES EXIST AT `0.1.0`** | `provident-storeroom` and the five `@auspicion/provident-storeroom-js-<label>` all answer at `0.1.0`; **the five `A86` spellings do NOT exist** | **THE BOOTSTRAP'S ONE PURPOSE WAS DISCHARGED: the names are claimed and ownable, which is the precondition trusted publishing required.** |
+| **2** | **THE FIVE PLATFORM TARBALLS ARE DELIBERATELY EMPTY** | each holds `README.md` + `package.json` only, while its `files` names `storeroom_js_binding.node` and `LICENSE` — **`NAMED BUT ABSENT`, both** | **THE STAGING REQUIRES THE PER-TARGET BUILD, WHICH ONLY CI PERFORMS**; a bootstrap outside the workflow can carry at most the host's binary, and carried none. **EMPTINESS IS THE BOOTSTRAP'S PROPERTY, NOT A DEFECT IN IT.** |
+| **3** | **THE MAIN PACKAGE'S BOOTSTRAP MANIFEST PREDATES `A88`** | its `optionalDependencies` are the five `A86` spellings, its `index.mjs` computes them, and it carries no `LICENSE` | **also a bootstrap artefact; the workflow's `0.1.1` supersedes it in every respect.** |
+| **4** | **AND THEREFORE `0.1.0` CARRIES NO ACCEPTANCE FIGURE** | `LIVE/INSTALL` has not run against it and cannot pass against it | **`0.1.0` IS THE BOOTSTRAP VERSION: DECLARED, not a release; its deprecation is a STATUS DECLARATION, not a repair.** |
+
+**THE SEQUENCE THAT FOLLOWS, EACH STEP NAMED WITH ITS ACTOR.** **(1)** the six manifests move to **`0.1.1` TOGETHER — the five platform `version`s AND the main's five `optionalDependencies` PINS, which are EXACT: `"@auspicion/provident-storeroom-js-<label>": "0.1.1"` five times** — because a mismatch on either side resolves nothing at a consumer's install (`release.md §1.4` step 4's precondition). **(2)** **A PRE-PUBLISH EXISTENCE GUARD** in the workflow's two publish sites: `test -e` for each platform directory's `.node` and `LICENSE` before `npm publish`, and for the main package's staged licence copy — **because npm omits a missing `files` entry SILENTLY, which is the property that let the bootstrap's emptiness be invisible until it was queried.** **(3)** **the `v0.1.1` tag, pushed — the FIRST release the workflow performs**: it builds the five targets, stages each artefact, publishes the five, stages the main's copy, and publishes the MAIN LAST, with OIDC provenance and no secret. **(4)** **`LIVE/INSTALL` against `0.1.1`** — the first honest test of the resolution table, and the first time the five names are checked by something that is not a copy of themselves. **(5)** **`0.1.0` DEPRECATED, its message naming `0.1.1`** — the partial-publish arm's own remedy, applied to a version that was never a release.
 **END OF THE PROPOSAL. §1 is the ruling. §2 states the form and what it buys. §3 enumerates the deliverable. §4 corrects the four refuted cells. §5 adopts the findings by reference. §6 bounds the filing. §7 is the provenance.**
