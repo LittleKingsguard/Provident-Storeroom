@@ -1,5 +1,5 @@
 {
-  "name": "@provident-storeroom/js-win32-x64-msvc",
+  "name": "@auspicion/js-win32-x64-msvc",
   "version": "0.1.0",
   "os": [
     "win32"

@@ -48,6 +48,18 @@
 
 **AND THE ONE PROHIBITION THAT GOVERNS THE WHOLE TABLE: NO BINARY IS EVER COMMITTED TO THE TRACKED TREE**, so each platform directory carries its manifest and nothing that a build produces (`[A3 docs/specs/storeroom-js/package.md §3.2 — the no-committed-binary prohibition | prohibition]`). **AND A SIXTH PLATFORM DIRECTORY, A SIXTH MANIFEST AND A SIXTH NAME ARE EACH A FINDING**, because a further target is a BOUNDED AMENDMENT and not a build flag (`[A3 docs/specs/storeroom-js/contract.md §0.2 · `DD-25` | prohibition]`). `[A1 docs/specs/storeroom-publish/contract.md §0.3 · `PUB-DD-23` | declared parameter semantics]`
 
+**⟶ RECONCILED 2026-10-11 — THE `A86` SCOPE PASS (`role_spec_writer`): THE TABLE ABOVE IS RE-EMITTED ROW BY ROW WITH ITS AS-FILED SPELLING, BESIDE THE OPERATIVE ONE.** `RCA-8(d)` ANNOTATE-BESIDE: **the artefact table above and the prohibition under it stand BYTE-FOR-BYTE and are read THROUGH this clause; THIS clause is a PURE INSERTION — it moves no row, adds no directory and writes no byte outside this directory and the two JS-unit cells `docs/specs/storeroom-publish-proposal.md §12` names.** **THE RULING IS `A86` — *"Change org to `@auspicion`"* — at its operative default `A86`(a): THE SCOPE SEGMENT ALONE IS REPLACED, and the LABEL after the separator is UNMOVED.**
+
+| # | The as-filed artefact (RE-EMITTED VERBATIM) | The OPERATIVE artefact | Its manifest's source path | Its tracked content | Its published content |
+| --- | --- | --- | --- | --- | --- |
+| 1 | `@provident-storeroom/js-linux-x64-gnu` | **`@auspicion/js-linux-x64-gnu`** | `bindings/js/platforms/linux-x64/package.json` | the manifest, and NO binary | the manifest, the `.node` built for the target by CI, and the licence copy |
+| 2 | `@provident-storeroom/js-linux-arm64-gnu` | **`@auspicion/js-linux-arm64-gnu`** | `bindings/js/platforms/linux-arm64/package.json` | the manifest, and NO binary | the manifest, the `.node` built for the target by CI, and the licence copy |
+| 3 | `@provident-storeroom/js-darwin-x64` | **`@auspicion/js-darwin-x64`** | `bindings/js/platforms/darwin-x64/package.json` | the manifest, and NO binary | the manifest, the `.node` built for the target by CI, and the licence copy |
+| 4 | `@provident-storeroom/js-darwin-arm64` | **`@auspicion/js-darwin-arm64`** | `bindings/js/platforms/darwin-arm64/package.json` | the manifest, and NO binary | the manifest, the `.node` built for the target by CI, and the licence copy |
+| 5 | `@provident-storeroom/js-win32-x64-msvc` | **`@auspicion/js-win32-x64-msvc`** | `bindings/js/platforms/win32-x64/package.json` | the manifest, and NO binary | the manifest, the `.node` built for the target by CI, and the licence copy |
+
+**AND THE ARITHMETIC IS UNMOVED, PRINTED WITH ITS TERMS: `5` artefact rows = `5` source paths = `5` operative names, `3` of the `5` carrying a toolchain suffix (`-gnu` twice, `-msvc` once) and `2` carrying none — `3 + 2 = 5` ✓** — **and the SOURCE PATH, the TRACKED CONTENT and the PUBLISHED CONTENT columns are UNMOVED IN EVERY ROW.** **AND THE PRICED ALTERNATIVE `A86`(b) — `@auspicion/storeroom-js-<label>` — IS CARRIED AND UNAPPLIED: its one-line reversal must be taken BEFORE the first platform publish** (`docs/specs/storeroom-publish/contract.md §0.3` · `PUB-DD-15`'s `alt` cell; `docs/specs/storeroom-publish-proposal.md §12`). `[A1 docs/specs/storeroom-publish-proposal.md §12 · `A86`(a) — the five artefacts' scope segment replaced | declared parameter semantics]`
+
 ### §3.2 The fields — one row per field, one value per artefact
 
 **EVERY FIELD BELOW IS DECLARED ONCE, AND A FIELD NOT LISTED IS NOT DECLARED BY ANY CLAUSE OF THIS UNIT.**
@@ -65,6 +77,8 @@
 | 9 | **`publishConfig`** | **`{ "access": "public" }`** | **a scoped name is private by default, so the field is what makes each artefact PUBLIC; its absence would publish five private artefacts and the main package's install would not resolve them** (`PAR-PUB-20`) |
 
 **ARITHMETIC, PRINTED WITH ITS TERMS: `9` declared fields × `5` artefacts = `45` field cells, of which `3` fields (`os` · `cpu` · the exposed path) carry a PER-ARTEFACT value and `6` carry the SAME value across all five — `3 + 6 = 9` ✓, and no field is left undeclared.** `[A1 | numeric or census claim]`
+
+**⟶ RECONCILED 2026-10-11 — THE `A86` SCOPE PASS (`role_spec_writer`): FIELD `1`'s RULE CELL, RE-EMITTED WITH ITS AS-FILED SPELLING AND RE-READ AT THE NEW SCOPE.** `RCA-8(d)` ANNOTATE-BESIDE: **field `1`'s row and the `45`-cell arithmetic above stand BYTE-FOR-BYTE and are read THROUGH this clause; THIS clause is a PURE INSERTION — it edits no field row, adds no field and moves no figure.** **THE AS-FILED RULE IS RE-EMITTED VERBATIM: *"one of the five, and no sixth; its scope is `@provident-storeroom`"* (`P-PUB-6`).** **THE OPERATIVE RULE IS THE SAME RULE AT THE NEW SCOPE: one of the five, and no sixth; ITS SCOPE IS `@auspicion`.** **SO FIELD `1`'s WHAT-IT-CARRIES CELL — *"the artefact's own declared name, spelled EXACTLY as `resolution.md §3.1`'s table prints it"* — IS UNMOVED AND ITS OBSERVABLE GAINS NO FIFTH READING: the table it points at now prints the five operative names, and the five homes' comparison is made at `@auspicion`** (`docs/specs/storeroom-publish/resolution.md §3.1`; `docs/specs/storeroom-publish/contract.md §1.3`; `P-PUB-6`). **AND FIELD `9`'s RULE IS UNMOVED AND RE-READ: *"a scoped name is private by default, so the field is what makes each artefact PUBLIC"* is TRUE of `@auspicion` exactly as it was of the old scope, so `publishConfig: { "access": "public" }` keeps its five artefacts' force and NO cell of field `9` moves** — **so the `45`-cell arithmetic and its `3 + 6 = 9` ✓ are BOTH UNMOVED** (`docs/specs/storeroom-publish/contract.md §0.3` · `PUB-DD-15`; `docs/specs/storeroom-publish-proposal.md §12`). `[A1 docs/specs/storeroom-publish-proposal.md §12 · `A86`(a) — the scope segment of the five names alone | declared parameter semantics]`
 
 ### §3.3 And the one field this part REFUSES, stated so its absence is a decision
 
@@ -164,6 +178,19 @@
 | 6 | `provident-storeroom` | the MAIN package | the tag's own | **LAST, ALWAYS** |
 
 **ARITHMETIC, PRINTED WITH ITS TERMS: `6` artefacts = `5` platform + `1` main — `5 + 1 = 6` ✓ — and the ORDER is the partial-publish arm's precondition rather than a convenience: the main package is LAST so that a failure before it leaves nothing a consumer can install incomplete** (`docs/specs/storeroom-publish/release.md §3`; `P-PUB-8`). `[A1 docs/specs/storeroom-publish-proposal.md §11 · `A85`(4) | numeric or census claim]`
+
+**⟶ RECONCILED 2026-10-11 — THE `A86` SCOPE PASS (`role_spec_writer`): THE CENSUS'S FIVE PLATFORM ROWS, RE-EMITTED WITH THEIR AS-FILED SPELLINGS BESIDE THEIR OPERATIVE NAMES — AND ROW `6`, THE MAIN PACKAGE, NAMED AS UNMOVED.** `RCA-8(d)` ANNOTATE-BESIDE: **the census table above and its `5 + 1 = 6` ✓ arithmetic stand BYTE-FOR-BYTE and are read THROUGH this clause; THIS clause is a PURE INSERTION — it moves no row, changes no kind, changes no version and moves no order.** **THE RULING IS `A86`, and it changes an ORG and not the main package's identity** (`docs/specs/storeroom-publish-proposal.md` `§12`).
+
+| # | The as-filed artefact (RE-EMITTED VERBATIM) | The OPERATIVE artefact | Its kind | Its version | When it publishes |
+| --- | --- | --- | --- | --- | --- |
+| 1 | `@provident-storeroom/js-linux-x64-gnu` | **`@auspicion/js-linux-x64-gnu`** | platform | the main package's own | **first of the five** |
+| 2 | `@provident-storeroom/js-linux-arm64-gnu` | **`@auspicion/js-linux-arm64-gnu`** | platform | the main package's own | before the main package |
+| 3 | `@provident-storeroom/js-darwin-x64` | **`@auspicion/js-darwin-x64`** | platform | the main package's own | before the main package |
+| 4 | `@provident-storeroom/js-darwin-arm64` | **`@auspicion/js-darwin-arm64`** | platform | the main package's own | before the main package |
+| 5 | `@provident-storeroom/js-win32-x64-msvc` | **`@auspicion/js-win32-x64-msvc`** | platform | the main package's own | **last of the five** |
+| 6 | **`provident-storeroom`** | **`provident-storeroom` — UNMOVED** | the MAIN package | the tag's own | **LAST, ALWAYS** |
+
+**AND THE ONE ROW THAT MUST NOT MOVE IS NAMED IN THE TABLE ABOVE AND IN THIS CLAUSE, STATEMENT FOR STATEMENT: ROW `6`, THE MAIN PACKAGE, PRINTS `provident-storeroom` BEFORE AND AFTER THIS PASS — UNSCOPED, AS `A82` RULED IT — and this pass's own check of that row is one of the six named under `parameter-semantics.md §2.1`'s confirmation clause.** **SO THE ARITHMETIC `5 + 1 = 6` ✓ IS UNMOVED, the `5` platform rows' KIND, VERSION and ORDER are unmoved, and the ORDER's own load-bearing property — the main package LAST — is untouched** (`docs/specs/storeroom-publish/contract.md §0.3` · `PUB-DD-6`, `PUB-DD-15`; `distribution.md §6.1` item 1). `[A1 docs/specs/storeroom-publish-proposal.md §12 · `A86` — the org change and the identity that does not move | numeric or census claim]`
 
 ### §6.4 The binding-library class — spelled, never named
 

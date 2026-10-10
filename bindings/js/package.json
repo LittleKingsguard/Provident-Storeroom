@@ -28,11 +28,11 @@
     "index.d.ts"
   ],
   "optionalDependencies": {
-    "@provident-storeroom/js-linux-x64-gnu": "0.1.0",
-    "@provident-storeroom/js-linux-arm64-gnu": "0.1.0",
-    "@provident-storeroom/js-darwin-x64": "0.1.0",
-    "@provident-storeroom/js-darwin-arm64": "0.1.0",
-    "@provident-storeroom/js-win32-x64-msvc": "0.1.0"
+    "@auspicion/js-linux-x64-gnu": "0.1.0",
+    "@auspicion/js-linux-arm64-gnu": "0.1.0",
+    "@auspicion/js-darwin-x64": "0.1.0",
+    "@auspicion/js-darwin-arm64": "0.1.0",
+    "@auspicion/js-win32-x64-msvc": "0.1.0"
   },
   "publishConfig": {
     "access": "public"
