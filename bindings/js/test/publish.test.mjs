@@ -595,6 +595,101 @@ function resolveTagVersion(repo, version) {
   return { listed, present: listed === `v${version}` };
 }
 
+/** **`§2.1` item 1 — THE TAG'S DECLARED FORM AT ONE HOME**, so the instrument below and every cell that
+ *  prints it read the SAME rule: *"THE TAG'S FORM IS `v<major>.<minor>.<patch>`"* (`PAR-PUB-29`). */
+const TAG_FORM = /^v\d+\.\d+\.\d+$/;
+
+/** **THE REPOSITORY'S OWN TAG LIST, READ MECHANICALLY AND WITHOUT A FILTER** (`git tag --list`, EVERY tag):
+ *  the coupling is a statement about the tags the repository CARRIES, so the drive reads the whole list
+ *  rather than the one name it hopes to find — a name filter would hide exactly the tag `PAR-PUB-29`'s
+ *  second outside value refuses (*"a tag whose version differs from the six manifests' → REFUSED"*). */
+function repoTagList(repo) {
+  return execFileSync('git', ['-C', repo, 'tag', '--list'], { encoding: 'utf8', timeout: 30000 })
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line !== '');
+}
+
+/** **THE MAIN MANIFEST'S OWN PATH, RELATIVE TO THE REPOSITORY ROOT** — derived from `PKG_DIR` and
+ *  `REPO_ROOT` rather than written a third time, because `git show <tag>:<path>` reads a path relative to
+ *  the repository root and a literal here would be a second home for a fact the two constants already fix. */
+const MAIN_MANIFEST_REL = join(PKG_DIR, 'package.json').slice(REPO_ROOT.length + 1).split(sep).join('/');
+
+/** **THE TAG'S COMMIT, NAMED AND PLACED**: which commit `refs/tags/v<version>` points at, and whether that
+ *  commit lies on `HEAD`'s own history. **A TAG WHOSE COMMIT IS OUTSIDE THIS BRANCH'S HISTORY IS NOT THIS
+ *  TREE'S RELEASE** — `release.md §1.3` item `2` makes the provenance subject *"the TAGGED COMMIT OF THIS
+ *  REPOSITORY"*, so a tag naming a commit this branch does not carry names bytes no reader of this tree can
+ *  reach, and the coupling would be a coincidence of two strings rather than a statement about this tree. */
+function tagCommit(repo, version) {
+  const named = execFileSync('git', ['-C', repo, 'rev-parse', '--verify', `refs/tags/v${version}^{commit}`], {
+    encoding: 'utf8', timeout: 30000,
+  }).trim();
+  let onHeadHistory = false;
+  try {
+    execFileSync('git', ['-C', repo, 'merge-base', '--is-ancestor', named, 'HEAD'], {
+      encoding: 'utf8', timeout: 30000,
+    });
+    onHeadHistory = true;
+  } catch {
+    onHeadHistory = false;
+  }
+  return { named, onHeadHistory };
+}
+
+/**
+ * **`PAR-PUB-29` (`S-TAG`) — THE COUPLING RULE, DRIVEN AS AN EQUALITY RATHER THAN AS AN ABSENCE, AND DRIVEN
+ * AGAINST ANY REPOSITORY SO THAT ONE CLAUSE OF IT MAY BE BROKEN AT A TIME.**
+ *
+ * `release.md §2.1` item `2` pins the equality — *"THE MAIN PACKAGE'S `version` IS THAT TAG'S VERSION"* —
+ * beside item `1`'s form and item `3`'s *"NO PUBLICATION HAPPENS FROM AN UNTAGGED COMMIT"*; and
+ * `parameter-semantics.md §4.5` (`PAR-PUB-29`) states the same rule as a DOMAIN with an outside value:
+ * *"a tag whose version differs from the six manifests' → REFUSED"*. **THE PROPERTY IS THEREFORE COUPLING,
+ * AND IT IS READ AT FOUR SITES, EACH MECHANICAL AND NONE OF THEM A STRING THIS FILE COMPOSED:**
+ *   **(a)** the repository's OWN tag list (`git tag --list`, unfiltered) — EVERY tag the repository carries
+ *     has the declared form, and its version EQUALS the main manifest's `version`;
+ *   **(b)** the coupling's own tag `v<version>` RESOLVES in that list (`resolveTagVersion`, git's answer);
+ *   **(c)** the manifest AT that tag (`git show <tag>:<path>`, the file's own home) declares the same version;
+ *   **(d)** the tag's commit EXISTS as a commit object and lies on `HEAD`'s own history.
+ * **A CONTROL DRIVES THIS SAME FUNCTION** against a scratch repository outside this one, so a clause that
+ * cannot fail is a clause this cell reports as a finding rather than as a reading.
+ */
+function assertTagCoupling(repo, { version, label }) {
+  assert.ok(TAG_FORM.test(`v${version}`),
+    `\`§2.1\` item 1 / \`PAR-PUB-29\`: the tag's form is the version's (${label})`);
+  assert.ok(!TAG_FORM.test('main') && !TAG_FORM.test('HEAD'),
+    `\`§2.1\` item 3 (${label}): NO PUBLICATION HAPPENS FROM AN UNTAGGED COMMIT`);
+  const listed = repoTagList(repo);
+  const resolution = resolveTagVersion(repo, version);
+  assert.equal(resolution.present, true,
+    `\`PAR-PUB-29\` / \`release.md §2.1\` item 2 (${label}): the manifest declares \`${version}\`, so `
+    + `\`v${version}\` IS the tag the coupling fixes, and it must EXIST in this repository. Its own `
+    + `\`git tag --list\` answers ${JSON.stringify(listed)}`);
+  assert.equal(resolution.listed, `v${version}`,
+    `(${label}) the resolution's own return value is read rather than a boolean`);
+  for (const tag of listed) {
+    assert.ok(TAG_FORM.test(tag),
+      `(${label}) \`§2.1\` item 1: every tag this repository carries has the declared form; got \`${tag}\``);
+    assert.equal(tag.slice(1), version,
+      `(${label}) \`§2.1\` item 2 / \`PAR-PUB-29\`: THE TAG'S VERSION AND THE MAIN MANIFEST'S \`version\` DIVERGE `
+      + `— \`${tag}\` carries \`${tag.slice(1)}\` where the manifest declares \`${version}\`. A tag whose version `
+      + 'differs from the six manifests\' is REFUSED, so this is a FINDING and not a relaxation');
+  }
+  const atTag = JSON.parse(execFileSync('git', ['-C', repo, 'show', `${resolution.listed}:${MAIN_MANIFEST_REL}`], {
+    encoding: 'utf8', timeout: 30000,
+  })).version;
+  assert.equal(atTag, version,
+    `(${label}) \`PAR-PUB-18\`: THE MANIFEST AT THE TAG (\`${resolution.listed}:${MAIN_MANIFEST_REL}\`) declares `
+    + `\`${atTag}\` WHERE THE COUPLING FIXES \`${version}\` — the tag and the manifest DIVERGE, which the `
+    + 'coupling rule REFUSES and which no other drive of this unit compares');
+  const { named, onHeadHistory } = tagCommit(repo, version);
+  assert.match(named, /^[0-9a-f]{40}$/,
+    `(${label}) the tag names a commit object in this repository: ${JSON.stringify(named)}`);
+  assert.equal(onHeadHistory, true,
+    `(${label}) \`release.md §1.3\` item 2: the tag's commit \`${named}\` must be REACHABLE — it must lie on `
+    + 'THIS branch\'s own history — so the bytes the tag names are the bytes this tree carries');
+  return { version, tags: listed, tag: resolution.listed, commit: named };
+}
+
 /**
  * **`A89` (`docs/specs/storeroom-publish-proposal.md §15`) — THE DECLARED RELEASE VERSION, READ FROM THE
  * RULING THAT DECLARES IT RATHER THAN FROZEN AT A SITE THAT DOES NOT.**
@@ -2224,12 +2319,99 @@ cell('P-PUB-8', 'S-TAG no publish verb is declared by any tracked byte of the pa
   const tagRule = /^v\d+\.\d+\.\d+$/;
   assert.ok(tagRule.test(`v${manifest.version}`), '`§3.2` item 1 / `PAR-PUB-29`: the tag\'s form is the version\'s');
   assert.ok(!tagRule.test('main') && !tagRule.test('HEAD'), '`§3.2` item 1: no publication from an untagged commit');
-  assert.equal(resolution.present, false,
-    `\`PAR-PUB-29\` / \`release.md §2.1\`: this tree is PRE-RELEASE, so \`v${manifest.version}\` resolves to NO tag — `
-    + 'and that absence is the declared state which makes "no publication from an untagged commit" true of this '
-    + `CHECKOUT. A tag here would be a release act, and no pass of this unit may perform one. (\`git tag --list\`: ${JSON.stringify(resolution.listed)})`);
-  assert.equal(resolution.listed, '',
-    'and no tag of that name exists at all — the resolution\'s own return value is read rather than a boolean');
+  // **⟶ RE-CUT 2026-10-11 BY THE TAG-STATE PASS (`role_test_writer`): THE TWO ASSERTIONS THAT STOOD BELOW
+  // THIS LINE ARE RE-EMITTED HERE VERBATIM, SO `git diff` HAS NOTHING TO RECOVER, AND THEN REPLACED.** **AS
+  // FILED THEY READ** *"`assert.equal(resolution.present, false, ...)` — `PAR-PUB-29` / `release.md §2.1`: this
+  // tree is PRE-RELEASE, so `v${manifest.version}` resolves to NO tag — and that absence is the declared state
+  // which makes 'no publication from an untagged commit' true of this CHECKOUT. A tag here would be a release
+  // act, and no pass of this unit may perform one"*, **and** *"`assert.equal(resolution.listed, '', 'and no tag
+  // of that name exists at all — the resolution's own return value is read rather than a boolean')`"*. **THE
+  // STATE THEY DENIED IS THE STATE THE RELEASE ACT CREATED**: the tag exists, cut at the run's own trigger, and
+  // the reading that denied it was a reading of the TREE'S DATE rather than of the CLAUSE the cell serves.
+  // **THE PROPERTY IS COUPLING, NOT ABSENCE** — `release.md §2.1` item `2` reads *"THE MAIN PACKAGE'S `version`
+  // IS THAT TAG'S VERSION"*, an EQUALITY between a tag and a manifest, and `parameter-semantics.md §4.5`
+  // (`PAR-PUB-29`) states its second outside value as *"a tag whose version differs from the six manifests' →
+  // REFUSED"*. **WHAT THIS CELL ASSERTS NOW, AT FOUR SITES AND ALL OF THEM MECHANICAL** (the drive is
+  // `assertTagCoupling`, above): the repository's OWN `git tag --list` carries the tag `v${manifest.version}`;
+  // every tag it carries has the declared form and a version EQUAL to the manifest's; the manifest AT that tag
+  // declares the same version, character for character; and the tag's commit is a commit object lying on THIS
+  // branch's own history. **AND THE MOVEMENT IS STRICTLY STRONGER THAN WHAT IT REPLACES, STATED SO IT IS NOT
+  // READ AS A RELAXATION:** the as-filed reading holds for EVERY tree that carries no tag — a manifest naming
+  // a version no tag could ever carry satisfied it — while this reading FAILS on that tree AND on a tree whose
+  // tag and manifest DIVERGE. **AND THE PRE-RELEASE STATE IS NOT LOST: it is driven BY NAME as a fail-state in
+  // the first control below**, where a scratch repository carrying no tag fails this same instrument.
+  assert.equal(resolution.present, true,
+    `\`PAR-PUB-29\` / \`release.md §2.1\` item 2: the manifest declares \`${manifest.version}\`, so `
+    + `\`v${manifest.version}\` IS the tag the coupling fixes and it EXISTS in this repository — read from `
+    + `\`git tag --list\` rather than composed in this file. (\`git tag --list\`: ${JSON.stringify(resolution.listed)})`);
+  assert.equal(resolution.listed, `v${manifest.version}`,
+    'and the resolution\'s own return value is read rather than a boolean');
+  const coupling = assertTagCoupling(REPO_ROOT, { version: manifest.version, label: 'the shipped tree' });
+  // ---------------------------------------------------------------------------------------------
+  // THE MEASURED CONTROLS — ONE SCRATCH REPOSITORY PER CONTROL, OUTSIDE THIS ONE (`SCRATCH_ROOT`, the
+  // harness's own temporary area; `PUB-R-5`: a drive that cannot fail is worse than none)
+  // ---------------------------------------------------------------------------------------------
+  /** **ONE SCRATCH GIT REPOSITORY, CARRYING THE MAIN MANIFEST AT `MAIN_MANIFEST_REL`'S OWN PATH**, one commit
+   *  and the tag the caller names — so the SAME instrument above is driven against it, clause by clause. */
+  const scratchRepo = (name, { manifestVersion, tagName }) => {
+    const dir = mkdtempSync(join(SCRATCH_ROOT, `tagcoupling-${name}-`));
+    mkdirSync(dirname(join(dir, MAIN_MANIFEST_REL)), { recursive: true });
+    execFileSync('git', ['init', '--quiet', dir], { timeout: 30000 });
+    execFileSync('git', ['-C', dir, 'config', 'user.email', 'redset@pubred.invalid'], { timeout: 30000 });
+    execFileSync('git', ['-C', dir, 'config', 'user.name', 'pubred red set'], { timeout: 30000 });
+    writeFileSync(join(dir, MAIN_MANIFEST_REL),
+      JSON.stringify({ name: manifest.name, version: manifestVersion }, null, 2));
+    execFileSync('git', ['-C', dir, 'add', MAIN_MANIFEST_REL], { timeout: 30000 });
+    execFileSync('git', ['-C', dir, 'commit', '--quiet', '-m', 'the control\'s own manifest'], { timeout: 30000 });
+    if (tagName !== null) execFileSync('git', ['-C', dir, 'tag', tagName], { timeout: 30000 });
+    return dir;
+  };
+  const controlVerdict = (fn) => { try { fn(); return null; } catch (err) { return err; } };
+  const controls = [
+    // **THE STATE THE AS-FILED READING ASSERTED — AND IT IS A FAIL-STATE OF THE COUPLING, NOT A PASS.** A
+    // repository carrying NO tag names no version at all, so nothing could be published from it (`§2.1` item 3).
+    ['no tag at all (the as-filed pre-release state)',
+      scratchRepo('untagged', { manifestVersion: manifest.version, tagName: null })],
+    // **THE REQUIRED NON-VACUITY CONTROL: A TAG WHOSE VERSION DIFFERS FROM THE MANIFEST'S.** The tag's own name
+    // IS the coupling's (`v${manifest.version}`), and the manifest AT that tag declares `9.9.9` — so the equality
+    // the clause pins is broken by DIVERGENCE and by nothing else.
+    ['a tag whose version differs from the manifest\'s',
+      scratchRepo('divergent', { manifestVersion: '9.9.9', tagName: `v${manifest.version}` })],
+    // **AND THE SAME DIVERGENCE READ AT THE OTHER SITE**: a tag whose NAME carries another version, beside a
+    // manifest at the coupling's own version — the tag list is where `PAR-PUB-29` reads it.
+    ['a tag naming another version',
+      scratchRepo('othername', { manifestVersion: manifest.version, tagName: 'v9.9.9' })],
+  ];
+  // **AND ONE CONTROL FOR THE REACHABILITY CLAUSE: THE TAG'S COMMIT IS NOT ON THIS BRANCH'S OWN HISTORY.** The
+  // tag is cut at the control's own commit and the scratch repository's `HEAD` then moves to an ORPHAN root, so
+  // the tag still resolves — and names a commit this branch does not carry.
+  const orphan = scratchRepo('orphan', { manifestVersion: manifest.version, tagName: `v${manifest.version}` });
+  execFileSync('git', ['-C', orphan, 'checkout', '--quiet', '--orphan', 'elsewhere'], { timeout: 30000 });
+  execFileSync('git', ['-C', orphan, 'commit', '--quiet', '--allow-empty', '-m',
+    'a history the tag is not part of'], { timeout: 30000 });
+  controls.push(['a tag outside this branch\'s history', orphan]);
+  const measured = [];
+  for (const [what, repo] of controls) {
+    const verdict = controlVerdict(() => assertTagCoupling(repo, { version: manifest.version, label: `the control for ${what}` }));
+    assert.ok(verdict !== null,
+      `THE CONTROL MUST FAIL (${what}): the coupling instrument catches it, because a control that PASSES a `
+      + 'property it disabled is a cell that cannot fail (`PUB-R-5`)');
+    measured.push(`${what.padEnd(46)} → ${String(verdict.message).split('\n')[0].slice(0, 132)}`);
+  }
+  // **AND THE INSTRUMENT IS NOT A BLANKET THROWER: A SCRATCH REPOSITORY WHOSE TAG AND MANIFEST AGREE PASSES IT**,
+  // so every failure above is attributable to the clause that control broke and not to the scratch tree itself.
+  const agreeing = scratchRepo('agreeing', { manifestVersion: manifest.version, tagName: `v${manifest.version}` });
+  const agreed = controlVerdict(() => assertTagCoupling(agreeing, { version: manifest.version, label: 'the agreeing control' }));
+  assert.equal(agreed, null,
+    'the same instrument PASSES a repository whose tag and manifest AGREE — so the four failures above name '
+    + `the clauses they broke rather than the instrument's own strictness (${agreed === null ? '' : String(agreed.message).split('\n')[0]})`);
+  assert.notEqual(assertTagCoupling(agreeing, { version: manifest.version, label: 'the agreeing control' }).commit, coupling.commit,
+    'and the agreeing repository is a DIFFERENT repository: the tag the shipped tree carries is this tree\'s own');
+  // **THE CONTROLS' MEASURED RESULTS, PRINTED SO THE RECORD CAN CITE THEM RATHER THAN THIS CELL'S INTENTION.**
+  console.log(`\n[P-PUB-8/S-TAG] THE TAG COUPLING (\`release.md §2.1\` items 1–3; \`PAR-PUB-29\`), MEASURED AGAINST `
+    + 'THE SHIPPED INSTRUMENT:\n  '
+    + `${'the real tree'.padEnd(46)} → PASS (required): ${coupling.tag} at ${coupling.commit}, on this branch's `
+    + `own history, the manifest at the tag declaring ${coupling.version}\n  ` + measured.join('\n  '));
 });
 
 cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the declared shapes, and the forbidden ones are absent', async () => {
