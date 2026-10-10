@@ -42,7 +42,11 @@
 // module load attempt through `Module._load` — so the attempt SET is observable rather than the outcome
 // alone (`P-PUB-1`'s `S-RESOLVE`, `P-PUB-2`'s `S-KEYSET`); **(3)** it dynamically imports the staged entry
 // and REPORTS what happened: whether an instance was returned, or the thrown value's own members, whether
-// the fake artefact's `version` was called, and the attempts in order.
+// the fake artefact's `version` was called, and the attempts in order. **AND IT REPORTS THE TWO DECLARED
+// THROW SITES THE LOAD PATH HAS — the IMPORT's own throw and the arm thrown by the CONSTRUCTION the
+// artefact's own `storeCreate` performs — BOTH AS `arm`, keeping `error` for every throw that is not the
+// declared form** (`§1.4` item 3: a state whose answer is the arm returns NO instance, so a
+// construction-time arm is a DECLARED ANSWER and never an absorbed failure).
 //
 // The parent process then asserts the CONTRACT's answer for that state. **A drive is therefore capable of
 // FAILING even while nothing of the new load path exists: the loader's own attempts, its own outcome and
@@ -174,6 +178,29 @@ const MARK = '__PUBRED__';
 const STUB = process.env.PUBRED_STUB;
 const req = createRequire(import.meta.url);
 const say = (o) => { process.stdout.write(MARK + JSON.stringify(o) + '\\n'); };
+// \`§0.1\` item 7 — the store's CLOSED 15, carried into the observer so "a declared arm" is a decidable
+// question rather than a shape guess, and re-listed here because the observer is a separate process.
+const CLOSED_SET = ${JSON.stringify(CLOSED_SET)};
+// ONE SOURCE IS DECLARED BY A THROW AND ONE IS DECLARED BY A RETURN, AND THE DRIVER MUST NOT CONFLATE THEM:
+// the load path's DECLARED answers are (a) the arm thrown by the IMPORT itself (\`§1.1\`/\`§1.4\`) and (b) the
+// arm thrown by the CONSTRUCTION the entry performs on the artefact's own \`storeCreate\` (\`§1.4\` item 3:
+// where the state's answer is that arm, the package "NEVER returns an instance"), while an instance RETURNED
+// by that construction is the \`success\` outcome. \`ok\` records the IMPORT's own outcome (\`true\` where the
+// module was evaluated); \`returned\` records whether an INSTANCE came back; and BOTH throws are recorded as
+// \`arm\` where they are the declared form.
+function recordArm(err) {
+  if (err !== null && typeof err === 'object') {
+    const own = Object.keys(err);
+    if (own.length === 2 && own.includes('status') && own.includes('message') && !(err instanceof Error)
+        && CLOSED_SET.includes(err.status)) {
+      report.arm = { status: err.status, message: err.message };
+    } else {
+      report.arm = { notTheArm: true, name: err.constructor ? err.constructor.name : 'unknown', code: err.code ?? null, message: String(err.message ?? err).slice(0, 200) };
+    }
+  } else {
+    report.arm = { notTheArm: true, thrownClass: typeof err, message: String(err).slice(0, 200) };
+  }
+}
 const report = {
   platform: process.platform, arch: process.arch,
   attempts: globalThis.__PUBRED_ATTEMPTS__,
@@ -183,25 +210,34 @@ try {
   const mod = await import(process.argv[2]);
   let instance = null;
   if (typeof mod.storeCreate === 'function') {
-    try { instance = mod.storeCreate({ journalLength: 4 }); } catch (e) { report.error = String(e && e.message ? e.message : e).slice(0, 160); }
+    // THE CONSTRUCTION: a THROWN DECLARED ARM is the entry's own declared answer for a state that
+    // constructs nothing, so it must be RECORDED AS THE ARM and NOT absorbed into \`error\` — the cells that
+    // assert the arm, its form and its taxonomy answer for exactly these states. Every OTHER throw (a host
+    // Error, an unhandled failure inside the entry) stays in \`error\`, which is where an absorbed state
+    // shows up. **THE OBSERVER REPORTS; IT DOES NOT DECIDE**: the shape is tested here so that \`arm\` carries
+    // the declared form and \`error\` carries everything else, and the cells decide what that means.
+    // **AND THE \`cfg\` IS ONE THE STORE'S OWN \`storeCreate\` ACCEPTS**: the drive observes the LOAD PATH, so
+    // its construction must reach the DECLARED SUCCESS state rather than an artefact-specific refusal of its
+    // own cfg — the three declared keys, with \`listeners\` written as the empty list the cells that
+    // construct the REAL artefact in place use — so \`returned\` is the LOAD PATH's outcome and not the
+    // driver's cfg speaking.
+    try { instance = mod.storeCreate({ journalLength: 4, listeners: [] }); } catch (e) { recordArm(e); }
   }
   report.ok = true;
   report.returned = instance !== null;
   report.verbs = Object.keys(mod).sort();
 } catch (err) {
   report.ok = false;
-  if (err !== null && typeof err === 'object') {
-    const own = Object.keys(err);
-    if (own.length === 2 && own.includes('status') && own.includes('message') && !(err instanceof Error)) {
-      report.arm = { status: err.status, message: err.message };
-    } else {
-      report.arm = { notTheArm: true, name: err.constructor ? err.constructor.name : 'unknown', code: err.code ?? null, message: String(err.message ?? err).slice(0, 200) };
-    }
-  } else {
-    report.arm = { notTheArm: true, thrownClass: typeof err, message: String(err).slice(0, 200) };
-  }
+  recordArm(err);
 }
-if (STUB) { try { report.stub = req(STUB).report; } catch (e) { report.stub = { reportError: String(e) }; } }
+if (STUB) {
+  // \`report.stub\` IS THE FAKE CANDIDATE'S OWN REPORT, AND IT IS READ ONLY WHERE THE LOAD PATH LOADED IT:
+  // the cells that assert NOTHING WAS LOADED at a state rung one never reaches ("nothing was loaded at an
+  // uncovered key", "the read is not attempted where no rung-one load occurs") are answered by the stub
+  // module's OWN load counter, so reading it here can never MINT a load the entry did not perform — a
+  // drive that merely asked the fake for its counters would otherwise answer those cells falsely.
+  try { const st = req(STUB); report.stub = st.loads > 0 ? st.report : null; } catch (e) { report.stub = { reportError: String(e) }; }
+}
 say(report);
 `;
 
@@ -228,6 +264,14 @@ if (arch) Object.defineProperty(process, 'arch', { value: arch, configurable: tr
  * GENERATOR'S RENDERING of `FilePathUnreachable` at a subject (`contract.md §1.4` item 1 reads *"the
  * store's own GENERATOR'S STRING for that code at the SUBJECT the clause fixes"*), reproduced so a drive
  * can reach the arm's message without the implementation existing.**
+ *
+ * **AND ITS OWN `storeCreate` CONSTRUCTS A FAITHFUL MINIMAL INSTANCE** (`§1.4` item 3: the
+ * `present-right-version` state is `SUCCESS`, and `success` means AN INSTANCE IS RETURNED). The artefact
+ * under a fake platform package IS the store for these drives — the contract's own `§1.4` item 3 forbids a
+ * JS-side store, so the construction the entry performs has NO other source of an instance — and a fake
+ * whose `storeCreate` could only throw made every `returned === true` / `error === null` cell
+ * UNSATISFIABLE BY ANY IMPLEMENTATION. **SO THE FAKE CONSTRUCTS FOR THE STATES THAT DECLARE SUCCESS
+ * (PUB-CF-9) AND KEEPS ITS THROW FOR `call` AND `register`, which no cell of this set reaches.**
  */
 function stubSource(variant) {
   const VALUE = {
@@ -248,19 +292,47 @@ const versionMember = ${callable}
   ? function () { calls.version += 1; return versionValue(); }
   : versionValue(); // PUB-DD-19's non-callable arm: 42 is not a function
 const api = {
+  /// **THIS MODULE'S OWN LOAD COUNT** — incremented by the module body itself, so the observer can tell a
+  /// candidate the LOAD PATH actually reached from one that merely stands in the tree.
+  loads: 1,
   version: versionMember,
   errorMessage(code, subject) {
     // the store's own generator's rendering, for the one code this unit's arm carries
     return "'" + subject + "' " + GEN_TAIL;
   },
-  storeCreate() {
+  /// **THE CONSTRUCTION THE ENTRY PERFORMS ON THE ARTEFACT IT RESOLVED** — the ONE source of an instance
+  /// (the contract's own §1.4 item 3 refutes every JS-side fallback, a partial instance and a no-op verb).
+  /// It records its OWN invocation (the cells that assert the loaded candidate is what constructs the store
+  /// count it) and answers an instance of the DECLARED SHAPE: the THREE own members 'surface.md §2.4' item
+  /// 5 declares — 'on(address, listener)' the combined registration, 'off(handle)' the store-side
+  /// withdrawal together with this instance's own registry removal, and 'register(handle, listener)' the
+  /// opaque-handle registration — in the order the real factory builds them, and NOTHING else. It performs
+  /// NO core work, because this drive observes the LOAD PATH's outcome and never the store's behaviour: the
+  /// store's own arms belong to the sibling unit's battery and to the live drive, each of which runs
+  /// against the REAL artefact.
+  storeCreate(encodedCfg) {
     calls.storeCreate += 1;
-    throw { status: 'AddressMalformed', message: 'the fake candidate does not construct a store' };
+    const instance = {
+      on(address, listener) { return registerOn(instance, listener); },
+      off(handle) { return undefined; },
+      register(handle, listener) { return registerOn(instance, listener, handle); },
+    };
+    return instance;
   },
   call() { throw { status: 'AddressMalformed', message: 'the fake candidate does not call a store' }; },
   register() { throw { status: 'AddressMalformed', message: 'the fake candidate does not register' }; },
   report,
 };
+/// \`surface.md §2.4\` item 5 (b): \`register\` takes the OPAQUE handle a verb returned or the construction
+/// adopted, and ANY JS function. A non-function listener is refused with the store's own \`AddressMalformed\`
+/// member and its generator's rendering — the form the real artefact answers with — so the fake's refusal
+/// and the real one agree in SHAPE.
+function registerOn(instance, listener, handle) {
+  if (typeof listener !== 'function') {
+    throw { status: 'AddressMalformed', message: "'" + String(listener) + "' is not a listener" };
+  }
+  return handle === undefined ? {} : handle;
+}
 module.exports = api;
 `;
 }
@@ -363,10 +435,22 @@ function assertArm(report, { subject }) {
   return A;
 }
 
-/** `§1.4` item 3: an instance is returned, or the arm is thrown — and the two never both happen. */
-function assertInstanceOutcome(report) {
-  assert.equal(report.returned, true,
-    '`§1.4` item 3: the declared answers that refuse a state return NO instance — never a fallback to a JS store, a partial instance or a no-op verb');
+/**
+ * `§1.4` item 3 — **THE OUTCOME OF A STATE WHOSE DECLARED ANSWER IS THE ARM**: *"the package NEVER falls
+ * back to a JavaScript store, NEVER absorbs a state silently, NEVER degrades to a partial instance or a
+ * no-op verb"*, so the drive `returned` NO instance — the arm IS the answer — and `error` carries nothing,
+ * because a state that was answered by the declared arm was not absorbed. **THIS IS THE ARM'S OWN OUTCOME
+ * AND NOT THE SUCCESS ONE**: asserting `returned === true` beside an assertion that the arm was thrown
+ * would assert a contradiction in the driver's own terms (`success` and the arm are the two DIFFERENT
+ * answers of the taxonomy, `resolution.md §5.2`), and the earlier form of this helper did exactly that —
+ * see `PUB-CF-10` at `archive/gate3/storeroom-publish-red-set.md`.
+ */
+function assertRefusedOutcome(report) {
+  assert.equal(report.returned, false,
+    '`§1.4` item 3: the state\'s declared answer is the ARM, so the package returns NO instance — never a '
+    + 'fallback to a JS store, a partial instance or a no-op verb');
+  assert.equal(report.error, null,
+    'no state is absorbed silently: a non-declared throw would be reported in `error`, not as the arm');
 }
 
 /**
@@ -445,7 +529,7 @@ cell('P-PUB-1', 'S-RESOLVE rung three is reached only after both rungs were trie
   assert.ok(r.requests.includes(COVERED[0].name), 'rung one was TRIED (`§1.1` item 1)');
   assert.ok(r.requests.some(isRungTwo), 'rung two was TRIED (`§1.1` item 2)');
   assert.equal(r.ok, false, 'the load path answers the declared absent form, so no instance is returned');
-  assertInstanceOutcome(r);
+  assertRefusedOutcome(r);
   const A = assertArm(r, {});
   // `§1.4` item 2 — the subject where BOTH rungs were tried is BOTH PATHS, so a consumer on an uncovered
   // key reads exactly which two things were tried. **THE JOIN BETWEEN THEM IS NOT DECLARED BY ANY CLAUSE,
@@ -486,14 +570,23 @@ cell('P-PUB-1', 'S-RESOLVE rung two is derived from the entry module\'s own loca
   const a = drive(env, { platform: COVERED[0].platform, arch: COVERED[0].arch, cwd: env.dir });
   const b = drive(env, { platform: COVERED[0].platform, arch: COVERED[0].arch, cwd: decoyCwd },
     { extraEnv: { STOREROOM_ADDON_PATH: join(decoyCwd, 'decoy.node') } });
-  const pa = a.requests.find(isRungTwo);
-  const pb = b.requests.find(isRungTwo);
-  assert.ok(pa, 'rung two is attempted at all (the candidate is present and unloadable)');
-  assert.ok(pb, 'and the same attempt is made whatever the working directory is');
+  // **THE FIRST DRIVE'S STATE IS `present-right-version` AT RUNG ONE — THE SUCCESS STATE, AND ITS DECLARED
+  // ANSWER PERFORMS NO RUNG-TWO ATTEMPT AT ALL** (`§1.4`'s `present-right-version` row: *"SUCCESS, and NO
+  // rung-two attempt is made where rung one succeeded"*; `§1.1` item 2's rung two is *"FAILING RUNG ONE"*).
+  // This cell's earlier form asserted "rung two is attempted at all" HERE — an assertion the state this
+  // cell drives contradicts by construction (`PUB-CF-10`), because a rung-one success never reaches rung
+  // two. **THE ASSERTION IS THEREFORE THE STATE'S OWN DECLARED ANSWER, and the rung-two derivation this
+  // cell is about is measured at the TWO drives whose rung one MISSES.**
+  assert.ok(a.requests.includes(COVERED[0].name), '`§1.1` item 1: rung one IS attempted at a covered key');
+  assert.equal(a.returned, true, 'and this state\'s declared answer is `SUCCESS`: rung one loaded and matched');
+  assert.equal(a.requests.filter(isRungTwo).length, 0,
+    '`§1.4`: where rung one succeeded NO rung-two attempt is made — so this drive can observe rung two\'s path nowhere');
+  const pa = b.requests.find(isRungTwo);
+  assert.ok(pa, 'rung two is derived at all — measured at the drive whose rung one MISSED (the decoy cwd)');
   assert.equal(pa, join(env.dir, RUNG_TWO_TAIL),
     'rung two is `build/Release/storeroom_js_binding.node` BESIDE THE ENTRY MODULE');
-  assert.equal(pb, pa,
-    '`PAR-PUB-30`: the working directory and an environment-variable decoy move nothing');
+  assert.ok(pa.startsWith(env.dir + sep),
+    '`PAR-PUB-30`: the working directory moves it nowhere — the path is the entry module\'s own tree\'s');
   assert.ok(!b.requests.some((x) => x.includes('decoy.node')), 'no environment-variable override exists');
   const parentEnv = coveredEnv(COVERED[1], 'right', { rungTwo: 'absent', parentDecoy: true });
   const c = drive(parentEnv, { platform: COVERED[1].platform, arch: COVERED[1].arch });
@@ -684,7 +777,15 @@ cell('P-PUB-3', 'S-MUSL a `-gnu` artefact that LOADS is answered by the read, no
   assert.equal(m.arm, null, 'and no arm answers the load');
   const wrongEnv = coveredEnv(key, 'wrong', { rungTwo: 'broken' });
   const w = drive(wrongEnv, { platform: key.platform, arch: key.arch });
-  assert.equal(w.ok, false, 'a `-gnu` artefact whose version DIFFERS is refused');
+  // **THE MISMATCH STATE IS THE ARM, AND THE ARM IS THROWN BY THE ENTRY'S OWN EVALUATION OF THE IMPORTED
+  // MODULE** (`§1.5` item 2: the load path STOPS at the mismatch and loads nothing from the substituted
+  // artefact) — so `ok`, which reports whether the staged entry was evaluated at all, is `true` here and
+  // the refusal is read from the ARM. The earlier form of this assertion demanded `ok === false` BESIDE
+  // `assertArm`, i.e. it demanded a state in which no arm could have been thrown (`PUB-CF-10`); the read
+  // is still asserted to have HAPPENED, which is what this cell is about.
+  assert.equal(w.ok, true, 'the staged entry was evaluated: the refusal is the ARM and not an absent entry');
+  assert.equal(w.stub.calls.version, 1, 'the read was performed before the refusal');
+  assert.equal(w.returned, false, 'and the mismatch state returns NO instance');
   assert.equal(assertArm(w, { subject: key.name }).status, ARM_STATUS,
     'the declared answer is the read\'s, not a libc test\'s');
 });
@@ -854,7 +955,7 @@ cell('P-PUB-5', 'S-TAXONOMY covered × absent — the declared absent form, both
   const A = assertArm(r, {});
   assert.ok(A.message.includes(`'${COVERED[0].name}'`) && A.message.includes(`'${join(env.dir, RUNG_TWO_TAIL)}'`),
     '`§1.4` COVERED/absent: the subject is BOTH paths, each in the generator\'s own subject slot');
-  assertInstanceOutcome(r);
+  assertRefusedOutcome(r);
   assertNoFallback(r);
 });
 
@@ -898,7 +999,7 @@ cell('P-PUB-5', 'S-TAXONOMY uncovered × absent — the declared absent form, ru
   const r = drive(env, { platform: 'android', arch: 'x64' });
   const A = assertArm(r, { subject: join(env.dir, RUNG_TWO_TAIL) });
   assert.ok(A.message.includes(`'${join(env.dir, RUNG_TWO_TAIL)}'`), 'rung two\'s path is the subject');
-  assertInstanceOutcome(r);
+  assertRefusedOutcome(r);
   assertNoFallback(r);
 });
 
@@ -907,7 +1008,7 @@ cell('P-PUB-5', 'S-TAXONOMY uncovered × present-unloadable — the declared abs
   const r = drive(env, { platform: 'linux', arch: 's390x' });
   assert.equal(assertArm(r, { subject: join(env.dir, RUNG_TWO_TAIL) }).status, ARM_STATUS,
     'the same form answers: rung one is not attempted at all');
-  assertInstanceOutcome(r);
+  assertRefusedOutcome(r);
 });
 
 cell('P-PUB-5', 'S-TAXONOMY uncovered × present-wrong-version is DECLARED UNREACHABLE', async () => {
@@ -1198,6 +1299,18 @@ cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` 
   // `§2.3` item 4 / `PUB-DD-12`: `bindings/js/LICENSE` IS REFUSED — no such file exists in the tree and
   // none is written by any pass. A FIFTH DECLARATION SITE (an authored statement about the licence at a new
   // home) is a finding, and so is a third spelling.
+  //
+  // **A SITE IS A PATH, AND THIS SWEEP TESTS SITES.** `distribution.md §4.1` ENUMERATES the declaration
+  // sites by name — `(i)` the MAIN package's manifest `license` field · `(ii)` `bindings/js/README.md` ·
+  // `(iii)` `docs/specs/storeroom-js/package.md §3.4` · `(iv)` `bindings/js/Cargo.toml`'s `license` field —
+  // and the contract answers for a FIFTH one. **WHAT IS *NOT* A SITE IS THEREFORE DECIDED BY A CLAUSE AND
+  // NOT BY A STRING'S PRESENCE**: `distribution.md §3.2` field 8 declares that each platform artefact's
+  // manifest carries the SAME field and that *"the per-artefact copy is NOT a fifth declaration SITE"*
+  // (`§4.2` item 3), and a test's or a battery's ASSERTION about the licence is not a site either. **THE
+  // EARLIER FORM OF THIS SWEEP MATCHED BY PATTERN INSTEAD — any `license`-shaped token — and so flagged the
+  // FIVE REQUIRED PLATFORM MANIFESTS and a pre-existing assertion line in `greens/greens.mjs`: cells that
+  // cannot pass while the contract is satisfied (`PUB-CF-11`). The refusal's own content is asserted
+  // FIRST below, so that a bare path set can never be satisfied vacuously.**
   assert.equal(existsSync(join(PKG_DIR, 'LICENSE')), false, '`bindings/js/LICENSE` is refused');
   const walk = (dir, acc = []) => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -1213,19 +1326,62 @@ cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` 
     join(PKG_DIR, 'README.md'), // site (ii)
     join(PKG_DIR, 'Cargo.toml'), // site (iv)
   ]);
+  // A declaration SITE is an AUTHORED DECLARATION ABOUT the licence — a manifest's or a manifest-shaped
+  // field, or a documented licence statement — while a drive's or a battery's ASSERTION about the licence
+  // is not a site (`distribution.md §4.2` item 3's own reading of the same distinction at the artefact
+  // level). The documented form is the one site `(ii)` actually writes — a sentence NAMING the licence
+  // whose spelling follows it — while a bare token inside a battery's assertion line is neither.
+  const declares = (text) =>
+    /["']?license["']?\s*[:=]/i.test(text)
+    || /^[^\n]*\blicen[cs]e\b[^\n]*\n(?:(?!\n\s*\n)[^\n]*\n){0,3}[^\n]*AGPL-3\.0/im.test(text);
+  // (a) THE REFUSAL HAS CONTENT AND THE MATCHER IS NOT VACUOUS: each enumerated site READS as a
+  // declaration, the refused copy's own home is tested, and a manifest-shaped declaration IS recognised
+  // (the matcher would otherwise answer every question `false` and pass this cell for free).
+  for (const site of allowed) {
+    assert.equal(existsSync(site), true, `the enumerated site ${site} exists`);
+    assert.equal(declares(readFileSync(site, 'utf8')), true,
+      `the enumerated site ${site} carries its declaration (so the matcher discriminates rather than passes blindly)`);
+  }
+  for (const other of ['LICENSE', 'LICENSE.md', 'LICENSE.txt', 'COPYING']) {
+    assert.equal(existsSync(join(PKG_DIR, other)), false, `no licence copy is written in the package: ${other}`);
+  }
+  // (b) NO SITE AT ANY OTHER PATH THE CONTRACT NAMES: the five platform artefacts' manifests carry the
+  // field `distribution.md §3.2` field 8 REQUIRES (and which the contract declares NOT to be a site), the
+  // platform READMEs carry their own text, and the battery that ASSERTS the field is not a site — none of
+  // them is a declaration site, and each is asserted so EXPLICITLY rather than by absence from a set.
+  const otherPaths = [
+    ...readdirSync(join(PKG_DIR, 'platforms')).sort().flatMap((d) => [
+      join(PKG_DIR, 'platforms', d, 'package.json'),
+      join(PKG_DIR, 'platforms', d, 'README.md'),
+    ]),
+    join(PKG_DIR, 'greens', 'greens.mjs'),
+    join(PKG_DIR, 'index.mjs'),
+    join(PKG_DIR, 'index.d.ts'),
+    join(PKG_DIR, 'package-lock.json'),
+  ];
   const extra = [];
-  for (const file of walk(PKG_DIR)) {
+  for (const file of [...walk(PKG_DIR), ...otherPaths]) {
+    if (allowed.has(file)) continue;
+    if (!existsSync(file) || !statSync(file).isFile()) continue;
     const text = readFileSync(file, 'utf8');
     if (!/AGPL-3\.0/.test(text)) continue;
-    if (allowed.has(file)) continue;
-    // A declaration SITE is an AUTHORED DECLARATION ABOUT the licence — a manifest's or a manifest-shaped
-    // field, or a documented licence statement — while a drive's or a battery's ASSERTION about the licence
-    // is not a site (`distribution.md §4.2` item 3's own reading of the same distinction at the artefact
-    // level). So the fifth-site sweep looks for the DECLARATION form and not for the bare token.
-    const declares = /["']?license["']?\s*[:=]/i.test(text) || /##+[^\n]*licen[cs]e[^\n]*\n(?:(?!##).)*AGPL-3\.0/is.test(text);
-    if (declares) extra.push(file);
+    if (declares(text)) extra.push(file);
   }
   assert.deepEqual(extra, [], `no fifth declaration site: ${JSON.stringify(extra)}`);
+  // (c) AND THE FIVE REQUIRED PER-ARTEFACT FIELDS ARE PRESENT — the sites excluded in (b) are REAL, so the
+  // exclusion cannot be read as five missing declarations (`distribution.md §3.2` field 8; `§4.2` item 2).
+  const platformManifests = readdirSync(join(PKG_DIR, 'platforms')).sort()
+    .map((d) => join(PKG_DIR, 'platforms', d, 'package.json'));
+  assert.equal(platformManifests.length, FIVE_NAMES.length,
+    'the five platform artefacts\' manifests are the five homes the contract enumerates');
+  for (const manifestPath of platformManifests) {
+    assert.equal(existsSync(manifestPath), true, `the platform manifest ${manifestPath} exists`);
+    const platformManifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    assert.equal(platformManifest.license, 'AGPL-3.0',
+      '`§3.2` field 8: the artefact\'s own `license` field reads the declared spelling — and it is not a SITE');
+    assert.ok(FIVE_NAMES.includes(platformManifest.name),
+      'and that manifest is one of the five declared names, so the exclusion in (b) is the contract\'s own');
+  }
 });
 
 cell('P-PUB-7', 'S-MANIFEST the licence notice travels with all six artefacts', async () => {

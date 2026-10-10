@@ -1,8 +1,8 @@
 # `parameter-semantics` — every declared parameter of the resolution and of the manifests, its domain, its outside values, and the declared answer for each
 
-**KIND: `carrier`** — **and this part ALSO CARRIES ITS OWN AUTHORED ROWS, which are its admissible content under this unit's own part map row: the relocated `§6`-shaped INDEX below, plus the authored `PAR-PUB-1`…`PAR-PUB-32` rows.** **A citation to this part names its PATH plus the `§`-number**, because *a bare `§n` across two documents is not an edge*.
+**KIND: `carrier`** — **and this part ALSO CARRIES ITS OWN AUTHORED ROWS, which are its admissible content under this unit's own part map row: the relocated `§6`-shaped INDEX below, plus the authored `PAR-PUB-1`…`PAR-PUB-34` rows.** **A citation to this part names its PATH plus the `§`-number**, because *a bare `§n` across two documents is not an edge*.
 
-**AND ONE SCOPE STATEMENT, SO THIS PART IS NOT MISTAKEN FOR ANOTHER UNIT'S:** **the store's parameter rows are `PAR-1`…`PAR-14` and live at `docs/specs/storeroom-native/parameter-semantics.md`; the JS unit's are `PAR-JS-1`…`PAR-JS-18` and live at `docs/specs/storeroom-js/parameter-semantics.md`. THEY ARE CITED HERE AND NEVER RESTATED.** **This part's rows are `PAR-PUB-1`…`PAR-PUB-32` — the RESOLUTION's and the MANIFESTS' own declared parameters — and they are a SEPARATE, UNCAPPED surface that is NOT the typed register's** (`[A3 docs/specs/storeroom-js/parameter-semantics.md — the sibling set's own scope statement and its uncapped surface, cited as the form's precedent | requirement]`). **THE `≤ 8` CAP DOES NOT REACH THIS SURFACE: `32` rows are lawful because the cap is the REGISTER's, and a parameter row is not a register row.**
+**AND ONE SCOPE STATEMENT, SO THIS PART IS NOT MISTAKEN FOR ANOTHER UNIT'S:** **the store's parameter rows are `PAR-1`…`PAR-14` and live at `docs/specs/storeroom-native/parameter-semantics.md`; the JS unit's are `PAR-JS-1`…`PAR-JS-18` and live at `docs/specs/storeroom-js/parameter-semantics.md`. THEY ARE CITED HERE AND NEVER RESTATED.** **This part's rows are `PAR-PUB-1`…`PAR-PUB-34` — the RESOLUTION's and the MANIFESTS' own declared parameters — and they are a SEPARATE, UNCAPPED surface that is NOT the typed register's** (`[A3 docs/specs/storeroom-js/parameter-semantics.md — the sibling set's own scope statement and its uncapped surface, cited as the form's precedent | requirement]`). **THE `≤ 8` CAP DOES NOT REACH THIS SURFACE: `34` rows are lawful because the cap is the REGISTER's, and a parameter row is not a register row.**
 
 **AND ONE DECLARATION THIS PART OWES AT ITS OWN HEAD: EVERY ROW BELOW IS A RESIDUAL OF A CLAUSE OF THIS UNIT'S CONTRACT OR OF THE SIBLING DIRECTORY'S, AND EACH OUTSIDE VALUE'S DECLARED ANSWER IS THE ANSWER THE CLAUSE IT CITES ALREADY FIXES.** **A row that DECLARES a parameter the contract does not carry is a FINDING.** `[A1 | declared parameter semantics]`
 
@@ -44,8 +44,10 @@
 | **`PAR-PUB-30`** | the module-relative addon path at rung two | `parameter` | `contract.md §1.1`; `resolution.md §2.1` item 2 | `§4.6` |
 | **`PAR-PUB-31`** | the runtime platform key — `process.platform` × `process.arch` | `parameter` | `contract.md §1.2`; `resolution.md §4.1` | `§4.7` |
 | **`PAR-PUB-32`** | the version READ — the addon's own self-report against the package's version | `return-field` (it consumes the addon's report and the manifest's field) | `contract.md §1.5`; `resolution.md §5.1` | `§4.8` |
+| **`PAR-PUB-33`** | the arm's `message` — WHO AUTHORS it, by the reachability of the store's generator | `return-field` (it is what the arm's `message` member carries) | `contract.md §1.4` item 6; `resolution.md §5.3` item 6 | `§4.9` |
+| **`PAR-PUB-34`** | the both-paths subject's JOIN — its separator, its order, and the generator's one subject slot | `vocabulary-token` (the join is a rendering of two subjects) | `contract.md §1.4` item 2; `contract.md §1.5` item 6; `resolution.md §5.3b` | `§4.10` |
 
-**ARITHMETIC, PRINTED WITH ITS TERMS: `32` rows = `12` MAIN-package fields (`PAR-PUB-1`…`PAR-PUB-12`) + `3` DECLARED-ABSENT fields (`PAR-PUB-13`…`PAR-PUB-15`) + `1` realm field (`PAR-PUB-16`) + `8` PLATFORM-artefact fields (`PAR-PUB-17`…`PAR-PUB-24`) + `8` resolution/manifest-location parameters (`PAR-PUB-25`…`PAR-PUB-32`) — **`12 + 3 + 1 + 8 + 8 = 32` ✓** — **and the set is UNCAPPED, because the `≤ 8` cap is the REGISTER's and no parameter row is a register row.** `[A1 | numeric or census claim]`
+**ARITHMETIC, PRINTED WITH ITS TERMS: `34` rows = `12` MAIN-package fields (`PAR-PUB-1`…`PAR-PUB-12`) + `3` DECLARED-ABSENT fields (`PAR-PUB-13`…`PAR-PUB-15`) + `1` realm field (`PAR-PUB-16`) + `8` PLATFORM-artefact fields (`PAR-PUB-17`…`PAR-PUB-24`) + `10` resolution/manifest-location parameters (`PAR-PUB-25`…`PAR-PUB-34`) — **`12 + 3 + 1 + 8 + 10 = 34` ✓** — **and the set is UNCAPPED, because the `≤ 8` cap is the REGISTER's and no parameter row is a register row.** **AND THE PRE-PASS COUNT THIS MOVES, PRINTED SO THE MOVEMENT IS NOT READ AS A SILENT RESTATEMENT: the set stood at `32` rows = `12 + 3 + 1 + 8 + 8` before the bounded two-clause pass of `PUB-CF-7`/`PUB-CF-12` and stands at `34` after it — `PAR-PUB-33` (the arm's `message`'s author, `PUB-DD-25`) and `PAR-PUB-34` (the both-paths subject's join, `PUB-DD-26`) — and NO PRE-PASS ROW IS MOVED, DROPPED OR RENUMBERED: `PAR-PUB-1`…`PAR-PUB-32` keep their numbers, their clauses and their homes byte-for-byte.** `[A1 | numeric or census claim]`
 
 ---
 
@@ -229,7 +231,7 @@
 
 ---
 
-## §4. The resolution's and the manifests' declared parameters — `PAR-PUB-25` … `PAR-PUB-32`
+## §4. The resolution's and the manifests' declared parameters — `PAR-PUB-25` … `PAR-PUB-34`
 
 ### §4.1 `PAR-PUB-25` — the five declared platform names, and the closed key set
 
@@ -295,13 +297,29 @@
 - **Supplier:** the addon (its self-report), the manifest (the package's own `version`). **Evaluator:** `S-VERSION`; `S-ONEARM`. **Observable:** the load's own outcome for a substituted artefact, one drive per direction.
 - **Home:** `§4.8`. **Cited:** `contract.md §1.5`; `resolution.md §5.1`. `[A1 docs/specs/storeroom-publish-proposal.md §9 · `A84`(b); A1 docs/specs/storeroom-publish/contract.md §0.3 · `PUB-DD-17`–`PUB-DD-19` | declared parameter semantics]`
 
+### §4.9 `PAR-PUB-33` — the arm's `message`, and WHO AUTHORS it
+
+- **Kind:** `return-field` (it is what the arm's `message` member carries). **Unit:** a string, authored by the store's generator or reproduced from its clause.
+- **Domain:** **THE TWO-ARM SPLIT, ON THE REACHABILITY OF THE STORE'S GENERATOR — which is reached ONLY through the addon: (a) WHERE AN ARTEFACT LOADED FAR ENOUGH TO EXPOSE `errorMessage`, THE STORE'S OWN GENERATOR AUTHORS THE STRING; (b) WHERE NO ARTEFACT DID — the `absent` and `present-unloadable` states — THE ENTRY REPRODUCES THE GENERATOR'S OWN CLAUSE BYTE-FOR-BYTE AT THE DECLARED SUBJECT.**
+- **Outside values, and their declared answers:** **a package-authored message** → **REFUSED: the string becomes the package's own text, so the single-author rule falls and the two arms can drift with nothing comparing them**; **a hand-authored template bearing the generator's words** → **REFUSED: the reproduction is the generator's clause, and a re-spelled clause is a FINDING**; **a message string not derivable from the store's own generator's clause** → **REFUSED**; **a package-minted status** → **REFUSED: the status is the store's `FilePathUnreachable` member carried VERBATIM**; **a second failure shape for the string's home** → **REFUSED**; **no message at all where the generator is unreachable** → **REFUSED: a two-member form cannot carry its absence, and the absent consumer would read less than a substituted one**; **the rendering WITHOUT the subject's apostrophes** → **REFUSED: the declared rendering is the artefact's own, `'<subject>' is not reachable at construction, …`**.
+- **Supplier:** the addon (the generator, where reachable) and the entry (its reproduction of the generator's clause where it is not). **Evaluator:** `S-ONEARM`; `S-TAXONOMY`. **Observable:** the arm's own `message` in each state, asserted against the generator's own rendering and against the artefact's own `errorMessage` where the artefact loaded.
+- **Home:** `§4.9`. **Cited:** `contract.md §1.4` item 6; `resolution.md §5.3` item 6. `[A1 docs/specs/storeroom-publish/contract.md §0.3 · `PUB-DD-25`; A1 docs/specs/storeroom-publish-proposal-review.md §1.1 · the implementer's `CF-1` | declared parameter semantics]`
+
+### §4.10 `PAR-PUB-34` — the both-paths subject's JOIN
+
+- **Kind:** `vocabulary-token` (the join is a rendering of two subjects, not a value the package computes). **Unit:** a separator, an order, and the generator's one subject slot.
+- **Domain:** **THREE DECLARED PARTS, WHERE BOTH RUNGS WERE TRIED AND NEITHER YIELDED A LOADABLE ARTEFACT: (a) the separator is `', '`; (b) the order is RUNG ONE FIRST and RUNG TWO SECOND, the order the load path tried them; and (c) each path is kept inside the generator's own `'<subject>'` slot, the declared rendering being `''<rung one's resolved name>', '<rung two's module-relative path>'' is not reachable at construction, the path must exist or the application must be able to write it`.**
+- **Outside values, and their declared answers:** **a separator other than `', '`** → **REFUSED**; **an order other than rung one then rung two** → **REFUSED: it would state a walk the loader did not take**; **a rendering that quoted the joined pair once** → **REFUSED**; **a joined spelling that is not the generator's own subject slot mapped across the two paths** → **REFUSED**; **a second failure shape minted for the two-subject case** → **REFUSED**; **a third subject, a second `.node` path or a computed name inside the join** → **REFUSED**; **WHERE ONLY ONE RUNG WAS TRIED (an uncovered key, whose rung one is never attempted)** → **NOT a join at all: the subject is rung two's path alone, and the join does not apply**.
+- **Supplier:** the entry (the join's rendering), the store's generator (the slot the join is rendered into). **Evaluator:** `S-ONEARM`. **Observable:** the arm's `message` at a covered key with both rungs missed, read for both subjects, for their order and for their separator.
+- **Home:** `§4.10`. **Cited:** `contract.md §1.4` item 2; `contract.md §1.5` item 6; `resolution.md §5.3b`. `[A1 docs/specs/storeroom-publish/contract.md §0.3 · `PUB-DD-26`; A1 docs/specs/storeroom-publish-proposal-review.md §1.1 · the implementer's `CF-2` | declared parameter semantics]`
+
 ---
 
 ## §5. What this part does not declare
 
 1. **IT DECLARES NO STORE PARAMETER** — the store's rows are `PAR-1`…`PAR-14` at their own home, cited and never restated.
 2. **IT DECLARES NO JS-SURFACE PARAMETER** — the JS unit's rows are `PAR-JS-1`…`PAR-JS-18` at their own home, cited and never restated; **this part's rows are the RESOLUTION's and the MANIFESTS' own.**
-3. **IT DECLARES NO REGISTER ROW** — a parameter row is NOT a register row, the register's cap is `≤ 8` and holds at `8 ≤ 8`, and this set's `32` rows are uncapped.
+3. **IT DECLARES NO REGISTER ROW** — a parameter row is NOT a register row, the register's cap is `≤ 8` and holds at `8 ≤ 8`, and this set's `34` rows are uncapped.
 4. **IT PUTS NO QUESTION TO THE ARCHITECT** — every outside value's answer above is the answer a clause of this unit or of a sibling directory already fixes.
 5. **AND IT ADOPTS NO IDENTIFIER FROM OUTSIDE THIS PROJECT**: `napi-rs` and `napi-sys` are unnamed here as everywhere else in this directory, so no second dossier row is owed (`docs/specs/storeroom-publish/contract.md §0.3` · `PUB-DD-16`).
 
