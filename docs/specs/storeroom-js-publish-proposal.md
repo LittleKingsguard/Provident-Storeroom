@@ -81,4 +81,19 @@
 3. **`--access public` IS MOOT FOR AN UNSCOPED NAME** (publicity is the default for an unscoped package), so the publish command needs no access flag — worth stating so a later pass does not add one as if it were required.
 4. **THE SEMVER POLICY REMAINS OPEN** by the ruling's silence: `0.1.0` is fixed as the FIRST release, and what a **breaking change** means for a surface governed by rulings (a major bump per ruling that changes an admitted class? a minor per added member?) is **a priced `DECLARED-DEFAULT`**: **minor for an added member or a new clause that does not change an admitted value's answer; major for a change to the admitted taxonomy, the closed fail set, or any clause that makes a previously valid call refuse.** Reversal: one line, and it is the distribution's own policy rather than the store's semantics.
 5. **AND ONE THING THIS RULING DOES NOT ANSWER — `§4` GAP 1, THE ONE SEMANTIC DECISION: how the entry finds the right binary in a published install.** The filing's recommendation stands unchallenged (**platform-package-first, local-path fallback, ONE failure arm**), and **it is carried as the gate's input**; a different choice in one line replaces it.
+## §9. THE ARCHITECT'S RESOLUTION RULING OF 2026-10-11 — platform package first, local path as the developer fallback
+
+**<⟶ APPENDED, DATED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES.**
+
+**THE ARCHITECT'S WORDS, VERBATIM.**
+
+> Proceed with recommendation
+
+**THE RULING, TRANSCRIBED AS `A83` — it closes `§4` gap 1, the filing's ONE semantic decision.**
+
+| # | The question | The ruling (verbatim) | What it settles |
+| --- | --- | --- | --- |
+| **`A83`** | **`§4` gap 1 — HOW THE ENTRY FINDS THE RIGHT BINARY IN A PUBLISHED INSTALL** (candidates: platform-package-first with a local-path fallback · platform-package-strict · per-platform tarballs) | ***"Proceed with recommendation"*** | **PLATFORM-PACKAGE-FIRST, LOCAL-PATH FALLBACK, ONE FAILURE ARM.** The entry resolves **the platform package for this runtime first** (`provident-storeroom-<platform>-<arch>[-<libc>]`, per `A82`'s derived naming); **failing that, the module-relative `build/Release/storeroom_js_binding.node`** (so the in-place developer loop is unchanged); **failing both, the DECLARED ABSENT-ADDON FORM** (`FilePathUnreachable`, no instance, no fallback) — **exactly one arm, so the failure surface does not widen.** **AND THE MAPPING IS FIXED BY THE SAME RULING: `process.platform` × `process.arch` selects the key, and the MUSL case's answer is DECLARED rather than guessed** — a runtime whose libc is musl and for which no package exists falls to the local path and then to the same declared absence, **never to a guessed binary**. |
+
+**AND THREE CONSEQUENCES THIS FILING STATES PLAINLY.** **(1) THE RESOLUTION RULE IS A CONTRACT CLAUSE, NOT A CODE DETAIL:** the order (platform package → local path → declared absence), the key's composition, the musl answer, and the statement that **the absence arm is the ONLY failure arm** — all owed at gate 2, with the drives that make each rung fail-able at `Q5`. **(2) THE IN-PLACE LOOP IS PRESERVED BY CONSTRUCTION:** the local path stays the second rung, so every existing battery (the `113` JS cells, the `240` blind assertions, the `91` live assertions) keeps loading the artefact it loads today, **and the tarball smoke test is what exercises rung one**. **(3) THE `HO-1`…`HO-7` HANDOFFS ARE UNTOUCHED: this ruling resolves HOW A BINARY IS FOUND, not WHICH REALMS ARE CLAIMED** — the realm claim stays `A70`'s Node ESM alone.
 **END OF THE PROPOSAL. §1 is the instruction. §2 is what exists. §3 bounds the filing. §4 enumerates the gaps with the one semantic decision priced. §5 is the phase plan. §6 is the blast radius. §7 is the provenance.**
