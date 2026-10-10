@@ -1,0 +1,70 @@
+# PROPOSAL — the JS convenience add-on for `U-STOREROOM-JS` (a bounded amendment)
+
+**Filed 2026-10-11 by the supervisor, on the architect's request: *"Plan the convenience add-on."*** **A FILING, NOT A CONTRACT:** it asserts no behaviour clause, licenses no code task, admits no unit row. **Gate state: GATE 1 OPENED, NOT PASSED** — the four steps run on THIS FILE, then the architect's go-ahead.
+
+## §1. WHAT THE ADD-ON IS, IN ONE LINE
+
+**Today the client makes TWO calls per listener — `const h = listen(inst, addr)` then `inst.register(h, fn)` — and asks for one.** The add-on is a **combined call** that registers the function and returns the handle, plus its counterpart. **Nothing in the STORE changes:** this is package-side ergonomics over the declared verbs (`A68`'s layout is untouched, the store's `379` is untouched).
+
+## §2. THE SHAPES, PRICED — the architect picks one
+
+| # | The shape | Its blast radius on already-green artifacts | Verdict |
+| --- | --- | --- | --- |
+| **S-1** | **a SECOND INSTANCE MEMBER** — `inst.on(address, listener) -> handle` (and `inst.off(handle)`), beside `register` | **the instance's own member set is asserted to be EXACTLY `{ register }`** by the blind set's SURFACE scenario (`JSG-01`) and by the unit's `§2.1`/`§2.4` cells ⇒ **that assertion must move to `{ register, on, off }`**; the module namespace stays at `8` | **minimal surface change; the assertion that moves is one cell's, and it is a MEMBERSHIP claim the contract owns** |
+| **S-2** | **TWO NEW TOP-LEVEL EXPORTS** — `listenWith(inst, address, listener)` / `unlistenWith(inst, handle)` | **the namespace is asserted to be EXACTLY the eight verbs** ⇒ `8 → 10`; and the naming puts new JS-side verbs beside the store's own (`listen`/`unlisten`), where a reader may mistake them for store verbs | workable, **but it widens the namespace — the thing `A63` narrowed** |
+| **S-3** | **AN OVERLOAD OF `listen`** — `listen(inst, address, listener?)` | **changes `listen`'s ARITY**, which is a `PAR-JS` parameter row and is asserted by the arity drives (`PAR-JS`/`S-ARM-ARITY` class) ⇒ **the read/edit/tier arity rules elsewhere are unaffected, but `listen`'s own row and its drives move**; and an optional third argument makes `listen`'s failure surface (a non-function in the third position) a new arm of an EXISTING verb | **the smallest READER-visible change and the largest BEHAVIOURAL one** — it gives one verb two jobs |
+| **S-4** | **NO NEW SURFACE — a documented two-line recipe** in the README (`const h = listen(...); inst.register(h, fn);`) | **zero artifacts move**; the ergonomics complaint is answered by documentation rather than by API | **the zero-risk option**, and the honest one if the two-call shape is judged a virtue |
+
+**SUPERVISOR'S RECOMMENDATION: `S-1`** — a second instance member, because **(a)** it keeps the **module namespace** at the eight declared verbs (the shape `A63` narrowed and the blind set pins), **(b)** it keeps the *store's* verbs ( `listen`/`unlisten` ) un-overloaded, so **a reader cannot mistake a package convenience for a store verb** — which is exactly the firing/delivery boundary `A78` just re-homed, and **(c)** the one assertion it moves is a **membership claim** the contract owns, whose move is mechanical and visible.
+
+**NAMING, within `S-1`:** the pair is **`on` / `off`** if the architect wants JS idiom, or **`listenWith` / `unlistenWith`** if he wants the store's vocabulary carried into every name. **`on`/`off` is recommended** precisely because it is *not* the store's vocabulary: it marks the member as the package's own ergonomic layer, sitting beside `register` — the member that already carries the package's half.
+
+## §3. WHAT `S-1` MUST RESPECT — the rulings in force, and the semantics it inherits
+
+1. **`A76` — VALIDATE FIRST, NEVER REPAIR, REJECT VERBOSELY.** **The function is validated BEFORE any store-side registration lands**: the class test first (`typeof listener === 'function'`, and a `Proxy`-wrapped callable is a class question the walk already answers), and a non-function is refused **in the single declared form** with the target, the class and the position — **so a bad listener leaves NO store-side entry behind.** **This is the ONE place where the combined call is more than sugar: it makes atomicity a consequence of the validation order rather than a rollback.** *(The alternative — listen, then register, and `unlisten` on refusal — is REJECTED: it would make the store's home briefly hold an entry the caller never completed, and `A76` already forbids admitting before validating.)*
+2. **`A77` — the id-matched delivery is unchanged.** `on` returns the handle; the module's registry maps it to the function; `off`/`unlisten` behave as declared.
+3. **`§2.4` rule 4 — WITHDRAWAL IS THE STORE'S, INVOCATION THE PACKAGE'S.** **So `off(handle)` MUST NOT remove the function**: it performs the store-side withdrawal only, and the registry entry simply stops being reachable — **the asymmetry the contract declares, preserved.** *(A convenience that ALSO deregistered would be a NEW rule and would contradict rule 4; it is refused here and priced at `§4`.)*
+4. **`§2.4` rule 2 — RE-REGISTRATION REPLACES.** `on(address, fn2)` at a held address returns that address's existing handle (the store's idempotence, item 12 (c)) **and replaces** the registry's function — one identity, one function.
+5. **`A74` — NO RELEASE VERB.** The add-on adds no `dispose`/`close`; `off` is not one.
+6. **`A78` — THE FIRING IS THE STORE'S.** `on`/`off` are **delivery-side**; they may not state or alter any firing rule, and their clauses must point at `write-and-read.md §6.5` item 14 for what fires.
+
+## §4. THE DESIGN POINTS THAT NEED A LINE (or become priced defaults)
+
+1. **THE SHAPE** — `S-1`/`S-2`/`S-3`/`S-4` (`§2`), with `S-1` recommended.
+2. **THE NAMING** — `on`/`off` (recommended) vs `listenWith`/`unlistenWith`.
+3. **WHETHER `off` MAY ALSO DEREGISTER** — refused under rule 4 as filed; **if the architect wants it, it is a NEW rule** (a second, convenience-only withdrawal that removes the registry entry), whose cost is that rule 4's asymmetry acquires an exception. **Priced, not assumed.**
+4. **WHETHER THE CONVENIENCE VALIDATES THE ADDRESS TOO** — it must (`A76`), and the address's answers are the store's; **the convenience's own failure surface therefore carries the address's refusal in the single form, with the argument position named.**
+
+## §5. THE PLAN — what the amendment runs, in order (the project's own gate topology)
+
+| # | Phase | What it does | Owner | The rule it obeys |
+| --- | --- | --- | --- | --- |
+| **Q0** | **THIS FILING** | the proposal; gate 1's four steps; the architect's go-ahead | the supervisor, then the roles | gates 1 |
+| **Q1** | **THE CONTRACT AMENDMENT** | `surface.md §2.1` (the surface enumeration), `§2.3`/`§2.4` (the new members' clauses: signature, domain, outside values, the atomicity order, the rule-4 preservation), the `§5.x` register (**re-derive a row, do not mint a ninth — the cap is `8`**), `parameter-semantics.md` (a `PAR-JS` row for the listener slot, **re-derived, not minted**), `contract.md`'s index/status region, and the **`DD-` default rows** for whatever the architect leaves to a default | `role_spec_writer` | the amendment discipline (annotate-beside, dated) |
+| **Q2** | **THE RED SET** | cells for `on`/`off`: the combined call's return; the replacement rule; atomicity (a non-function leaves no entry); `off`'s rule-4 preservation; the namespace/member-set assertions **at their NEW values** | `role_test_writer` | gate 3's red-before-green |
+| **Q3** | **THE GREEN** | the two members in `index.mjs`, over the existing verbs — **no core change, no store change** | `role_implementer` | least code |
+| **Q4** | **THE ADVERSARIAL PASS + PBT AUDIT** | attack the atomicity order, the replacement rule, `off`'s asymmetry; audit the re-derived register row and task the negative generators | `role_adversarial_reviewer` | gate 4 |
+| **Q5** | **THE BLIND GREENS — AND THIS IS THE AMENDMENT'S REAL COST** | **`JSG-01`'s SURFACE scenario asserts the export set and the instance's member set TODAY; the amendment moves the member set, so the scenario must be re-derived and the set RE-RUN** | `role_blind_test_writer`, then re-measured by the supervisor | gate 5 |
+| **Q6** | **THE LIVE DETERMINATION** | re-run the live battery against the rebuilt artifact, with a live scenario using `on`/`off` end to end | `role_live_scenario_runner` | gate 6 |
+| **Q7** | **THE DOCUMENTATION GATES** | proofread + doc review; the trackers' `N3` row and the ledger (the amendment adds **no unit** — the census stands `2 DONE / 0 open` per the architect's ruling) | the doc roles | gates 7–8 |
+| **Q8** | **THE TRIO** | the four legs + the narrowed correctness gate, both crates | the supervisor | gate 9 |
+| **Q9** | **THE CLOSE-OUT** | the amendment's row, the archival loop, the figures with their trees | the supervisor | gate 10 |
+
+## §6. THE BLAST RADIUS, IN ONE TABLE — what an `S-1` adoption moves
+
+| Artifact | Today | After | Who moves it |
+| --- | --- | --- | --- |
+| the instance's own member set | `EXACTLY { register }` | `{ register, on, off }` | the contract (`§2.1`/`§2.4`), then `JSG-01` (re-derived + re-run) |
+| the module namespace | the `8` verbs | **unchanged** | nobody |
+| the store, its crate, its `379` | — | **unchanged** | nobody |
+| the register | `8` rows | `8` rows (**re-derived, not minted**) | the spec writer |
+| `PAR-JS` rows | `18` | `18` (**re-derived, not minted**) | the spec writer |
+| the blind set | `13` scenarios · `236` assertions | **`JSG-01` re-derived; the set re-run** | the blind writer + the supervisor |
+| the live battery | `12` · `72` | **`+1` scenario** (the end-to-end `on`/`off` flow) | the live runner |
+| the ledger | `2 DONE / 0 open` | **unchanged** (an amendment adds no unit) | nobody |
+
+## §7. PROVENANCE
+
+**READ AT ITS OWN BYTES (this pass):** `bindings/js/index.mjs`'s export list, `storeCreate`'s `register`, `deliver` and `state.registry` · `docs/specs/storeroom-js/surface.md` (`§2.1`, `§2.3`, `§2.4`'s rules 1–4 and item 5) · `parameter-semantics.md` (`PAR-JS-8`/`12`/`15`) · `package.md` (`§4.5`) · `acceptance.md` (`§4.1`, the legs) · `docs/specs/storeroom-js-greens.md`'s `JSG-01` · the rulings `A63`, `A68`, `A74`, `A76`, `A77`, `A78` verbatim · `docs/next-steps.md`'s ledger and `N3` row. **NOTHING WAS RUN AND NO BYTE WAS WRITTEN BEYOND THIS FILE.**
+
+**END OF THE PROPOSAL. §1 states the add-on. §2 prices four shapes and recommends one. §3 lists the rulings it must respect. §4 names the four points needing a line. §5 is the phase plan. §6 is the blast radius. §7 is the provenance. No behaviour clause, no signature and no ruling is asserted.**
