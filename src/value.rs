@@ -61,6 +61,14 @@ impl StoreValue {
     }
 }
 
+/// **`crossing.md §1.3`'s `AddressArg` row 3 range clause's boundary, spelled ONCE for this crate:**
+/// `Number.MAX_SAFE_INTEGER`, `2^53 - 1` — the largest integral `number` a JS consumer can hold, compare
+/// and transmit EXACTLY, and the inclusive upper bound of the INDEX class's declared range. **It is a
+/// DECLARED bound, deliberately narrower than the carrier's own `u64` range, and it is the one bound
+/// `Segment::is_in_domain` tests** (the store cell that owes this clause its own dated home is filed as a
+/// contract finding; the bound is taken here because every route reads THIS predicate).
+const MAX_SAFE_INTEGER: u64 = 9_007_199_254_740_991;
+
 /// `§1.5`'s segment domain, closed at exactly two classes, plus its OUTSIDE classes (each `AddressMalformed`).
 #[derive(Clone, Debug, PartialEq)]
 pub enum Segment {
@@ -84,8 +92,47 @@ impl Eq for Segment {}
 
 impl Segment {
     /// `§1.5` item 1: inside the domain iff a string or a non-negative integer.
+    ///
+    /// **⟶ AMENDED 2026-10-11 — THE INTEGRAL SEGMENT'S RANGE CLAUSE, TAKEN ONCE HERE BECAUSE THIS IS THE
+    /// ONE PREDICATE EVERY ROUTE ASKS** (`crossing.md §1.3`'s `AddressArg` row 3 dated range clause — *"an
+    /// integral segment `n` is IN DOMAIN iff `0 <= n <= Number.MAX_SAFE_INTEGER`"*; `A76`'s second part and
+    /// `§1.8`'s no-repair prohibition; the bounded one-rule pass on `listen`'s route).
+    /// **THE DOMAIN, WITH ITS RANGE:** an integral segment `n` is IN DOMAIN iff `0 <= n <=
+    /// Number.MAX_SAFE_INTEGER` (`2^53 - 1`) — **`2^53 - 1` and below are ADMITTED, `2^53` and above are
+    /// REFUSED** — and **the out-of-range integral segment answers `AddressMalformed`, row 8's own code,
+    /// carried and never minted** (`DD-40`). **`Number.MAX_SAFE_INTEGER` is a DECLARED bound and NOT the
+    /// carrier's full range:** it is the largest integral `number` a JS consumer can hold, compare and
+    /// transmit EXACTLY, and every `number` at or below it is exact in the carrier's `u64` as well, while
+    /// no JS `number` above it can spell its value exactly at all.
+    ///
+    /// **WHY THE BOUND STANDS HERE AND NOT AT `listen` ALONE:** this predicate is the ONE place the shared
+    /// question is asked, and EVERY route asks it here — `write`'s target-segment arm and `delete`'s (each
+    /// testing the address's last segment), the walk's `L-1` arm (`§2.2`, which every read, every parent
+    /// resolution and `listen` reach), **`listen`'s own per-segment loop**, and the construction's
+    /// `listeners[]` classification (`PAR-12`/`§7.1` step 5) — so ONE bound stated here is the bound every
+    /// route agrees on, and a second copy at any one verb would give one rule two homes that drift the
+    /// moment either moves.
+    ///
+    /// **AND WHAT IT CLOSES, NAMED WITH ITS TERMS:** a JS `number` above the bound reached this store
+    /// through the carrier's `n as u64` — a SATURATING cast in Rust — so `2**64` and `1e30` both arrived as
+    /// `u64::MAX` and **two distinct spellings became ONE store address and shared ONE handle**: a silent
+    /// fold, and therefore a repair, which `A76` and `§1.8` forbid (`C-12`'s class). **No segment above the
+    /// bound is admitted on any route now, so the two spellings answer the SAME refusal instead of one
+    /// shared address, and the cast's saturation is no longer observable as an admitted address.**
+    /// **EVERY CLASS RULE OF `§1.5` ITEM 1 IS UNMOVED:** a string key — the empty key included — is
+    /// admitted as it was, a non-negative integer AT OR BELOW the bound is admitted as it was, the outside
+    /// classes (`Negative`, `Fractional`, `Null`, `Undefined`, `Bool`, `Object`, `Array`, `Function`)
+    /// answer exactly as they did, and the `VEC`'s contiguous-from-`0` key domain (`§1.3`) is untouched:
+    /// this is ONE range clause about the INDEX class and not a second walk.
     pub fn is_in_domain(&self) -> bool {
-        matches!(self, Segment::Key(_) | Segment::Index(_))
+        match self {
+            Segment::Key(_) => true,
+            // The declared bound, INCLUSIVE at `2^53 - 1` (`Number.MAX_SAFE_INTEGER`). `Segment::Index`
+            // carries a `u64`, so the clause's lower half (`0 <= n`) holds by construction and only the
+            // upper half is a test.
+            Segment::Index(n) => *n <= MAX_SAFE_INTEGER,
+            _ => false,
+        }
     }
 
     /// The variant's own declared rank — the order the two in-domain classes stand in, and the order
