@@ -111,12 +111,34 @@ test('package_a_wildcard_export_and_a_deep_import_are_both_refused', (t) => {
   //       SPECIFIC ERROR A NON-SHIPPED ARTEFACT YIELDS**, `MODULE_NOT_FOUND`, **AND ITS MESSAGE NAMES THE
   //       SPECIFIER ASKED FOR** — that naming is what makes the cell falsifiable, because a stale or
   //       misspelled probe reports ITSELF rather than passing silently.
-  const PLATFORM_NAMES = { // `resolution.md §3.1` — the five declared names, at the scope `A86`(a) sets
-    'linux·x64': '@auspicion/js-linux-x64-gnu',
-    'linux·arm64': '@auspicion/js-linux-arm64-gnu',
-    'darwin·x64': '@auspicion/js-darwin-x64',
-    'darwin·arm64': '@auspicion/js-darwin-arm64',
-    'win32·x64': '@auspicion/js-win32-x64-msvc',
+  // **⟶ REPAIRED (`F-16`, `§13`): THE PROBE'S OWN FIVE-NAME FIXTURE IS MOVED TO THE DECLARED FIVE, CHARACTER
+  // FOR CHARACTER.** THE AS-FILED LIST WAS SPELLED AT `A86`(a) — `@auspicion/js-<label>` — WHICH `A88`(a)
+  // SUPERSEDES BY NAME (`docs/specs/storeroom-publish-proposal.md §14`; `docs/specs/storeroom-js-greens.md`
+  // `JSG-12.12`, whose own clause REFUSES that spelling explicitly), so the probe's subject was a name the
+  // shipped manifest does not pin and the guard below — *"the probe's subject is one of the five declared
+  // names the manifest pins"* — was RED at ITS OWN GUARD: the probe reported ITSELF and not the deep import.
+  // **THE TEXT MATCHED, RE-EMITTED VERBATIM:**
+  //     const PLATFORM_NAMES = { // `resolution.md §3.1` — the five declared names, at the scope `A86`(a) sets
+  //       'linux·x64': '@auspicion/js-linux-x64-gnu',
+  //       'linux·arm64': '@auspicion/js-linux-arm64-gnu',
+  //       'darwin·x64': '@auspicion/js-darwin-x64',
+  //       'darwin·arm64': '@auspicion/js-darwin-arm64',
+  //       'win32·x64': '@auspicion/js-win32-x64-msvc',
+  //     };
+  // **THE FIVE ARE READ FROM THE CONTRACT'S OWN FIVE-NAME CLAUSE AND NOT FROM THE IMPLEMENTATION**: the
+  // `A88`(a) reading of `JSG-12.12`, carried into `docs/specs/storeroom-publish-proposal.md §14` — the scope
+  // `@auspicion` UNMOVED, the project token `provident-storeroom-` INSERTED before the language marker, and
+  // the five labels, their second segments and their toolchain suffixes UNMOVED (`3` with a suffix + `2`
+  // without). **EVERY ASSERTION IN THIS CELL STANDS EXACTLY AS STRONG AS IT WAS**: the outcome of whichever
+  // of the two states the tree is in is still PINNED (state (1): the loader's bare require and the deep
+  // import reach ONE file, asserted equal; state (2): `MODULE_NOT_FOUND` AND the message NAMES the specifier
+  // asked for), so a stale or misspelled fixture still reports itself at `:152` and not silently.
+  const PLATFORM_NAMES = { // `JSG-12.12` (`A88`(a); `docs/specs/storeroom-publish-proposal.md §14`) — the five declared names
+    'linux·x64': '@auspicion/provident-storeroom-js-linux-x64-gnu',
+    'linux·arm64': '@auspicion/provident-storeroom-js-linux-arm64-gnu',
+    'darwin·x64': '@auspicion/provident-storeroom-js-darwin-x64',
+    'darwin·arm64': '@auspicion/provident-storeroom-js-darwin-arm64',
+    'win32·x64': '@auspicion/provident-storeroom-js-win32-x64-msvc',
   };
   const host = PLATFORM_NAMES[`${process.platform}·${process.arch}`];
   if (host === undefined) {

@@ -287,6 +287,26 @@ and `docs/specs/storeroom-js/package.md §3.1`/`§3.2` — the same ruling's cla
 docs/specs/spec-scope-and-structure/contract.md §C.3 — the closure predicate's single arithmetic, and §C.11.7's
 entry-counted unit | numeric or census claim]`).
 
+**⟶ AND ONE CELL OF THAT TABLE IS READ FORWARD ONE RULING, DATED, SO THE TWO PASSES' READINGS ARE NOT TAKEN FOR A
+DISAGREEMENT** (`RCA-8(d)` ANNOTATE-BESIDE: **the row above stands byte-for-byte; this is a PURE INSERTION that
+states the same cells at the later ruling and adds no row to it**): **the `DD-25`/`DD-26` row's own OPERATIVE cell
+above reads *"they are `@auspicion/js-<label>`"* — THE SPELLING THAT WAS OPERATIVE FROM THE `A86` PASS TO THIS
+ONE — and the `A88` PROJECT-TOKEN PASS of 2026-10-11 reads it at the PROJECT TOKEN: the five artefacts' names are
+`@auspicion/provident-storeroom-js-<label>`, so `DD-25`'s row still carries NO scope spelling of its own and ITS
+SUBJECT — the membership and hosting of the `5` targets — is UNMOVED, while the scope AND the project token of the
+names those five artefacts carry move UNDER it.** **AND `DD-26`'s line is UNMOVED AT BOTH READINGS:
+`@provident-storeroom/js`, `storeroom-js-binding` and `storeroom_js_binding` each STAND, because this unit's own
+registry identity is not one of the five platform names.** **THE RULING IS `A88` — the architect's words verbatim,
+*"Change the platform package names to specify the project they are for, this organization will be used for
+multiple"* (`docs/specs/storeroom-publish-proposal.md §14`; `docs/decisions.md` · the ACTIVE `A88` row of
+2026-10-11), whose own `NOT PINS` cell records that *"the main package's identity does not move: `A82`'s unscoped
+`provident-storeroom` stands"*.** **AND THE CELLS THAT DO NOT MOVE ARE RE-PRINTED WITH THEIR TERMS, so the two
+readings are read at one set: the five PLATFORM names' `5` count, the `5` targets, the `5` labels, the hosting,
+the trigger and `DD-25`'s own property `P-TP-7`'s `S-LOAD` are UNMOVED, and this pass adds NO row to either `DD`
+cell** (`docs/specs/storeroom-js/package.md §3.1` and `§3.2`; `contract.md §0.2` · `DD-25`, `DD-26`). `[A1
+docs/specs/storeroom-publish-proposal.md §14 · `A88`(a) — the project token INSERTED before the language marker;
+A1 docs/decisions.md · the ACTIVE `A88` row of 2026-10-11 | requirement]`
+
 ## §0. The index region's own rules — the claim ledger, the design-defaults table, and the id families
 
 ### §0.1 The document's own form rules
@@ -563,6 +583,45 @@ claim]`).
 | **`DD-26`** | **the package's registry identity is `@provident-storeroom/js` and the sibling crate's `[package] name` is `storeroom-js-binding`, with the crate id `storeroom_js_binding`** | **UNMOVED, AND `A86` DOES NOT REACH IT: this row's subject — THIS package's own registry identity — is NOT one of the five platform names the ruling re-scopes. The identity `@provident-storeroom/js`, the crate's `storeroom-js-binding` and the crate id `storeroom_js_binding` each STAND. THE ROW IS AN `ACTIVE` ROW AND IT IS AMENDED, NEVER SUPERSEDED: this clause re-reads its fact and replaces no cell of it** |
 
 **AND ONE READING THE TWO ROWS' DIFFERENCE OWES, STATED SO A READER DOES NOT COLLAPSE THEM: THE FIVE PLATFORM ARTEFACTS' NAMES AND THIS PACKAGE'S OWN REGISTRY IDENTITY ARE TWO DIFFERENT IDENTITIES, and after this pass they may spell different scopes. A pass that moved `DD-26`'s subject to `@auspicion/js` as well would be taking a SECOND identity change, which `§12` does not order and this pass does not take.** **AND THE SCOPE'S OWN FOOTING IS RE-STATED WITH THE `DD-25` HALF: `A84`'s `A-1` introduced the five names' scope as THE SUPERVISOR'S PRICED DERIVATION, while `A86` CHANGES THE ORG — so the scope is now THE ARCHITECT'S OWN, an org he controls, AND NOT A DERIVATION AT ALL; and `A86`(b) — `@auspicion/storeroom-js-<label>` — is CARRIED AND UNAPPLIED, its reversal being one line to be taken before the first platform publish.** **AND THE TABLE'S OWN CENSUS IS UNMOVED BY THIS CLAUSE: `54` AUTHORED rows, `29 + 18 + 3 + 4 = 54` ✓, NO ROW ADDED, DROPPED OR RENUMBERED, the register still `8` rows with the cap holding (`8 ≤ 8` ✓), the `PAR-JS` range still `PAR-JS-1`…`PAR-JS-18`, the `HO-` range still `HO-1`…`HO-7`, and no status code minted** (`[A1 docs/specs/storeroom-publish-proposal.md §12 · `A86`(a)(b); A1 docs/specs/storeroom-publish/contract.md §1.3 · A1 docs/specs/storeroom-js/package.md §3.1` and `§3.2` — the same ruling's clauses at this pass's homes; A3 docs/specs/storeroom-js/contract.md §0.1 item 5 — the `≤ 8` cap | numeric or census claim]`).
+
+**⟶ RECONCILED 2026-10-11 AGAIN — THE `A88` PROJECT-TOKEN PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+*"Change the platform package names to specify the project they are for, this organization will be used for
+multiple"* (`docs/specs/storeroom-publish-proposal.md` §14; `docs/decisions.md` · the ACTIVE `A88` row of
+2026-10-11): THE FIVE PLATFORM NAMES GAIN THE PROJECT TOKEN, AND `DD-25` AND `DD-26` ARE RE-READ — BOTH ROWS KEPT,
+BOTH `ACTIVE`, BOTH AMENDED AND NEITHER SUPERSEDED.** `RCA-8(d)` ANNOTATE-BESIDE: **every row above, every census
+clause above and every closing arithmetic above stand BYTE-FOR-BYTE and are read THROUGH this clause; THIS clause
+is a PURE INSERTION — it ADDS NO ROW, DROPS NO ROW, RENUMBERS NO ROW and re-decides no rule.** **THE RULING,
+VERBATIM: *"Change the platform package names to specify the project they are for, this organization will be used
+for multiple"*** (`A88`; that filing's `§14`).
+
+| The row | Its AS-FILED pin (RE-EMITTED VERBATIM) | The operative reading at `A88` |
+| --- | --- | --- |
+| **`DD-25`** | **the prebuild matrix is the three platforms × two architectures the package's first cut supports — `linux-x64` · `linux-arm64` · `darwin-x64` · `darwin-arm64` · `win32-x64` — `5` targets, produced by CI on each release tag and hosted as the registry's own per-target optional-dependency artefacts** | **UNMOVED: the membership (`5` labels), the hosting, the trigger and the row's own property (`P-TP-7`'s `S-LOAD`) are the same. THE SCOPE AND THE PROJECT TOKEN OF THE NAMES THOSE FIVE ARTEFACTS CARRY MOVE UNDER THIS ROW AND THE ROW DOES NOT: they are `@auspicion/provident-storeroom-js-<label>` — the project token INSERTED between the scope (`A86`, unmoved) and the language marker (`A88`(a)) — and the row's own citation `package.md §3.2` now prints the operative five names beside the `A86` ones and the as-filed ones** |
+| **`DD-26`** | **the package's registry identity is `@provident-storeroom/js` and the sibling crate's `[package] name` is `storeroom-js-binding`, with the crate id `storeroom_js_binding`** | **UNMOVED, AND NEITHER `A86` NOR `A88` REACHES IT: this row's subject — THIS package's own registry identity — is NOT one of the five platform names a ruling re-scopes or re-names. The identity `@provident-storeroom/js`, the crate's `storeroom-js-binding` and the crate id `storeroom_js_binding` each STAND. THE ROW IS AN `ACTIVE` ROW AND IT IS AMENDED, NEVER SUPERSEDED: this clause re-reads its fact and replaces no cell of it** |
+
+**AND THE SCOPE'S OWN FOOTING IS RE-STATED WITH BOTH HALVES, BECAUSE THIS IS THE SECOND RULING IN A ROW TO REACH
+`DD-25`: `A84`'s `A-1` introduced the five names' scope as THE SUPERVISOR'S PRICED DERIVATION; `A86` CHANGED THE
+ORG, SO THE SCOPE IS THE ARCHITECT'S OWN; AND `A88` NOW NAMES THE PROJECT INSIDE THAT ORG, BY HIS OWN ACT — SO
+BOTH THE SCOPE AND THE PROJECT TOKEN ARE HIS, AN ORG HE CONTROLS AND A PROJECT HIS ORG CARRIES, and NEITHER is a
+derivation at all.** **AND THE SPELLING THAT WAS OPERATIVE FROM THE `A86` PASS TO THIS ONE — `@auspicion/js-<label>`
+— IS SUPERSEDED AND IS REFUSED BY NAME at this pass's sibling directory, so a home, a manifest, an entry, a
+workflow matrix or an attempt set still carrying it is a FINDING** (`docs/specs/storeroom-publish/contract.md
+§5.6`; `docs/specs/storeroom-publish/contract.md §0.3` · `PUB-DD-29`). **AND THE PRICED ALTERNATIVE `A88`(b) —
+`@auspicion/provident-storeroom-<label>`, the project token REPLACING the language marker — IS CARRIED AND
+UNAPPLIED, its reversal being ONE LINE to be taken BEFORE the first platform publish, because after it a scoped
+name is spent.** **AND ONE READING THE TWO ROWS' DIFFERENCE OWES, STATED SO A READER DOES NOT COLLAPSE THEM: THE
+FIVE PLATFORM ARTEFACTS' NAMES AND THIS PACKAGE'S OWN REGISTRY IDENTITY ARE TWO DIFFERENT IDENTITIES, now spelled
+at two different projects' worth of tokens — the five carry the token `provident-storeroom` INSIDE a scoped name,
+and this unit's own identity carries the word `js` INSIDE a scope that has not moved. NOTHING HERE MIGRATES
+`DD-26`'s subject to the five names' spelling, and a pass that took that edit would be taking a SECOND identity
+change no ruling orders.** **AND THE TABLE'S OWN CENSUS IS UNMOVED BY THIS CLAUSE TOO: `54` AUTHORED rows,
+`29 + 18 + 3 + 4 = 54` ✓, NO ROW ADDED, DROPPED OR RENUMBERED — this pass mints NO `DD` row in this directory and
+the ruling's own priced default lives at `docs/specs/storeroom-publish/contract.md §0.3` · `PUB-DD-29` — the
+register still `8` rows with the cap holding (`8 ≤ 8` ✓), the `PAR-JS` range still `PAR-JS-1`…`PAR-JS-18`, the
+`HO-` range still `HO-1`…`HO-7`, and no status code minted** (`[A1 docs/decisions.md · the ACTIVE `A88` row of
+2026-10-11; A1 docs/specs/storeroom-publish-proposal.md §14 · `A88`(a)(b); A1 docs/specs/storeroom-js/package.md
+§3.1` and `§3.2` — the same ruling's clauses at this home's two parts; A3 docs/specs/storeroom-js/contract.md §0.1
+item 5 — the `≤ 8` cap | numeric or census claim]`).
 
 **AND THE FOURTH STRUCTURE OF THE SAME SWEEP THAT NEEDS NO CELL, STATED BECAUSE IT IS THE ONE OF THAT
 DIRECTORY'S NAMED STRUCTURES THAT IS THIS UNIT'S OWN SURFACE'S NEIGHBOUR:** **`U-9` — the `LISTENERS`

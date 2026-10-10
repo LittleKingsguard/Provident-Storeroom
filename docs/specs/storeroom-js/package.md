@@ -206,6 +206,50 @@ re-reads its fact rather than replacing it.**
 priced alternative; A1 docs/specs/storeroom-publish/contract.md §1.3 — the same ruling's clause at this pass's
 sibling home; A3 docs/specs/storeroom-publish/contract.md §0.3 · `PUB-DD-6`, `PUB-DD-15` | requirement]`)
 
+**⟶ RECONCILED 2026-10-11 AGAIN — THE `A88` PROJECT-TOKEN PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+*"Change the platform package names to specify the project they are for, this organization will be used for
+multiple"* (`docs/specs/storeroom-publish-proposal.md` §14; `docs/decisions.md` · the ACTIVE `A88` row of
+2026-10-11): THE PROJECT TOKEN IS INSERTED BEFORE THE LANGUAGE MARKER, AND THE SCOPE'S OWN FOOTING IS RE-STATED
+BECAUSE THE SCOPE (`A86`) AND NOW THE PROJECT TOKEN (`A88`) ARE THE ARCHITECT'S ACTS RATHER THAN THE SUPERVISOR'S
+DERIVATION `A-1` INTRODUCED.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1–3 above, the `A86` clause beside them and
+every cell they reconcile stand BYTE-FOR-BYTE and are read THROUGH this clause; THIS clause is a PURE
+INSERTION — it adds no `HO-` row, mints no `DD` row, moves no `PAR-JS` row and writes no byte outside this
+directory and this unit's sibling contract directory.**
+
+**THE FIVE PLATFORM PACKAGES' NAMES NOW CARRY THE PROJECT TOKEN, so they are
+`@auspicion/provident-storeroom-js-linux-x64-gnu` · `@auspicion/provident-storeroom-js-linux-arm64-gnu` ·
+`@auspicion/provident-storeroom-js-darwin-x64` · `@auspicion/provident-storeroom-js-darwin-arm64` ·
+`@auspicion/provident-storeroom-js-win32-x64-msvc` — the SCOPE `@auspicion` (`A86`, UNMOVED), the PROJECT TOKEN
+`provident-storeroom`, and the LANGUAGE MARKER, the TARGET, the ARCH and the TOOLCHAIN SUFFIX UNMOVED.**
+**`A88`(a) IS THE OPERATIVE READING — the ADDITIVE one, *"the project token is INSERTED before the language
+marker"* — and `A88`(b) — `@auspicion/provident-storeroom-<label>`, the project token REPLACING the language
+marker — IS CARRIED AND PRICED AND NOT APPLIED: its reversal is ONE LINE and MUST BE TAKEN BEFORE the first
+platform publish, because after it a scoped name is spent and the alternative becomes a deprecate-and-re-publish.
+AND `A86`(b) — `@auspicion/storeroom-js-<label>` — IS THEREBY SUPERSEDED, as the clause above already declared it
+carried and unapplied.** **AND THE SPELLING THAT WAS OPERATIVE FROM THE `A86` PASS TO THIS ONE —
+`@auspicion/js-<label>` — IS NOW REFUSED BY NAME, so a home, a manifest, an entry or an attempt set still
+carrying it is a FINDING rather than a stale spelling** (`docs/specs/storeroom-publish/contract.md §5.6`;
+`docs/specs/storeroom-publish/contract.md §0.3` · `PUB-DD-29`).
+
+**AND THE ONE THING THIS RULING CHANGES ABOUT THE FOOTING — WHICH IS WHY `A88` IS NOT MERELY `A86`'s CLAUSE
+RE-SPELLED, AND WHY THE `A86` CLAUSE ABOVE IS NOW ONE-HALF OF THE ANSWER RATHER THAN THE WHOLE OF IT: `A84`'s
+`A-1` INTRODUCED THE FIVE NAMES' SCOPE AS THE SUPERVISOR'S PRICED DERIVATION, AND `A86` CHANGED THE ORG — SO THE
+SCOPE IS THE ARCHITECT'S OWN. `A88` NOW NAMES THE PROJECT INSIDE THAT ORG, BY HIS OWN ACT.** **SO BOTH THE SCOPE
+AND THE PROJECT TOKEN ARE HIS — an org he controls and a project his org carries — and NEITHER IS A DERIVATION
+AT ALL; `A85`(5)'s precondition, that the scope be OWNED, is answered at `@auspicion` and `A88` adds no new
+precondition, because a project token is part of a name the org's owner claims.** **AND `DD-25`'s AND `DD-26`'s
+OWN STANDING IS RE-STATED BECAUSE THIS IS THE SECOND RULING IN A ROW TO REACH ONE OF THEM: BOTH ARE `ACTIVE` ROWS
+AND BOTH ARE AMENDED AND NEVER SUPERSEDED — `DD-25`'s membership, hosting and trigger are unmoved while the
+SCOPE AND THE PROJECT TOKEN of the names its five artefacts carry move UNDER it, and `DD-26`'s subject — this
+unit's own registry identity — is NOT one of the five platform names and does not move at all**
+(`contract.md §0.2` · `DD-25`, `DD-26`; `§3.2`).
+
+(`[A1 docs/decisions.md · the ACTIVE `A88` row of 2026-10-11 (the architect's words verbatim, *"Change the
+platform package names to specify the project they are for, this organization will be used for multiple"*); A1
+docs/specs/storeroom-publish-proposal.md §14 · `A88`(a)(b) — the operative reading and its priced alternative; A1
+docs/specs/storeroom-publish/contract.md §1.3 — the same ruling's clause at this pass's sibling home; A3
+docs/specs/storeroom-publish/contract.md §0.3 · `PUB-DD-29` | requirement]`)
+
 ### §3.2 The prebuild matrix
 
 **THE MATRIX IS `5` TARGETS, AND EVERY TARGET IS A DELIVERABLE RATHER THAN AN OPTION:**
@@ -275,13 +319,13 @@ this clause; THIS clause is a PURE INSERTION — it moves no row, adds no artefa
 RULING IS `A86` — *"Change org to @auspicion"* — at its operative default `A86`(a): THE SCOPE SEGMENT ALONE IS
 REPLACED.**
 
-| # | The matrix label (`§3.2`'s own list) | The AS-FILED concrete name (RE-EMITTED VERBATIM) | The OPERATIVE concrete name |
-| --- | --- | --- | --- |
-| 1 | `linux-x64` | `@provident-storeroom/js-linux-x64-gnu` | **`@auspicion/js-linux-x64-gnu`** |
-| 2 | `linux-arm64` | `@provident-storeroom/js-linux-arm64-gnu` | **`@auspicion/js-linux-arm64-gnu`** |
-| 3 | `darwin-x64` | `@provident-storeroom/js-darwin-x64` | **`@auspicion/js-darwin-x64`** |
-| 4 | `darwin-arm64` | `@provident-storeroom/js-darwin-arm64` | **`@auspicion/js-darwin-arm64`** |
-| 5 | `win32-x64` | `@provident-storeroom/js-win32-x64-msvc` | **`@auspicion/js-win32-x64-msvc`** |
+| # | The matrix label (`§3.2`'s own list) | The AS-FILED concrete name (RE-EMITTED VERBATIM) | The `A86` concrete name (the PRIOR OPERATIVE reading, SUPERSEDED by `A88`(a)) | The OPERATIVE concrete name (`A88`(a)) |
+| --- | --- | --- | --- | --- |
+| 1 | `linux-x64` | `@provident-storeroom/js-linux-x64-gnu` | `@auspicion/js-linux-x64-gnu` | **`@auspicion/provident-storeroom-js-linux-x64-gnu`** |
+| 2 | `linux-arm64` | `@provident-storeroom/js-linux-arm64-gnu` | `@auspicion/js-linux-arm64-gnu` | **`@auspicion/provident-storeroom-js-linux-arm64-gnu`** |
+| 3 | `darwin-x64` | `@provident-storeroom/js-darwin-x64` | `@auspicion/js-darwin-x64` | **`@auspicion/provident-storeroom-js-darwin-x64`** |
+| 4 | `darwin-arm64` | `@provident-storeroom/js-darwin-arm64` | `@auspicion/js-darwin-arm64` | **`@auspicion/provident-storeroom-js-darwin-arm64`** |
+| 5 | `win32-x64` | `@provident-storeroom/js-win32-x64-msvc` | `@auspicion/js-win32-x64-msvc` | **`@auspicion/provident-storeroom-js-win32-x64-msvc`** |
 
 **AND THE ARITHMETIC IS STILL THE MAP'S OWN AND STILL UNMOVED: `5` labels = `5` names, `3` of the `5` carrying a
 toolchain suffix (`-gnu` twice, `-msvc` once) and `2` carrying none — so `3 + 2 = 5` ✓, the SUFFIX and the
@@ -295,6 +339,42 @@ whose filling is `§3.1` item 2's identity, and this clause fills nothing in it*
 (`[A1 docs/specs/storeroom-publish-proposal.md §12 · `A86`(a)(b); A1 docs/specs/storeroom-publish/contract.md §1.3 —
 the same ruling's clause at this pass's sibling home; A3 docs/specs/storeroom-publish/contract.md §0.3 ·
 `PUB-DD-15` | numeric or census claim]`).
+
+**⟶ RECONCILED 2026-10-11 — THE `A88` PROJECT-TOKEN PASS (`role_spec_writer`): THIS TABLE GAINS ITS OPERATIVE
+COLUMN AT THE PROJECT TOKEN, AND THE CLAUSE ABOVE IS READ THROUGH THIS ONE.** `RCA-8(d)` ANNOTATE-BESIDE: **the
+concrete-spelling clause, its five-row table, the `A86` reconciliation table beside them and that clause's own
+arithmetic and finding-rule paragraph stand BYTE-FOR-BYTE and are read THROUGH this clause; THIS clause is a PURE
+INSERTION — it moves no row, adds no artefact, adds no label and mints no `DD` row.** **THE RULING IS `A88` —
+*"Change the platform package names to specify the project they are for, this organization will be used for
+multiple"* — at its operative default `A88`(a): THE PROJECT TOKEN `provident-storeroom` IS INSERTED BETWEEN THE
+SCOPE AND THE LANGUAGE MARKER.** **THE FIVE OPERATIVE NAMES, CHARACTER FOR CHARACTER, ARE
+`@auspicion/provident-storeroom-js-linux-x64-gnu` · `@auspicion/provident-storeroom-js-linux-arm64-gnu` ·
+`@auspicion/provident-storeroom-js-darwin-x64` · `@auspicion/provident-storeroom-js-darwin-arm64` ·
+`@auspicion/provident-storeroom-js-win32-x64-msvc`** (`docs/specs/storeroom-publish/resolution.md §3.1` —
+that part's table's own OPERATIVE column).
+
+**AND THE FIGURES, RE-PRINTED WITH THEIR TERMS BECAUSE THE CLAUSE ABOVE PRINTS THREE READINGS OF ONE SET AND A
+READER MAY MISTAKE THEM FOR THREE SETS: `5` labels = `5` concrete names = `5` matrix targets; the three readings
+in this table's columns are THE AS-FILED SPELLING, THE `A86` SPELLING AND THIS PASS'S SPELLING, all at the SAME
+five labels; and the `3 + 2 = 5` ✓ suffix arithmetic is UNMOVED in every column.** **AND THE ONE FIGURE THIS PASS
+MOVES, NAMED WITH ITS OLD AND ITS NEW READING: the `A86` column's `@auspicion/js-<label>` was THE OPERATIVE
+SPELLING from the `A86` pass to this one and is now the SUPERSEDED reading, and this table's OPERATIVE column
+reads `@auspicion/provident-storeroom-js-<label>`.** **AND THE FINDING RULE IS RE-SPELLED WITH THE SUPERSEDED FORM
+AMONG THE FINDINGS, ON THE SAME FOOTING THIS UNIT'S OTHER HOME PRINTS IT: A SIXTH ARTEFACT NAME; A NAME THAT DROPS
+A SUFFIX THE PUBLISHED ARTEFACT CARRIES; **A NAME WHOSE SPELLING IS `@auspicion/js-<label>` — THE SUPERSEDED
+FORM**; **A NAME WHOSE SCOPE IS `@provident-storeroom` — THE RETIRED SCOPE**; a third org's scope; **and the priced
+alternative `A88`(b), `@auspicion/provident-storeroom-<label>`, which drops the language marker** — EACH A FINDING**
+(`DD-25`; `DD-26`; `§3.1` item 2; `docs/specs/storeroom-publish/contract.md §5.6`).
+**AND THE EARLIER MAP'S `<scope>` PLACEHOLDER STANDS UNMOVED AS A PLACEHOLDER, and so does `§3.2`'s own finding
+rule beside this table's: this clause fills nothing in either and replaces no cell of the concrete-spelling
+clause.** **AND ONE THING THIS CLAUSE DOES NOT DO, STATED SO THE TWO DIRECTORIES' ROWS ARE NOT DUPLICATED: it
+mints NO `DD` row in this contract — the five names' operative spelling is `DD-25`'s subject read at this
+ruling, and the ruling's own priced default lives at the sibling directory's `PUB-DD-29`** (`contract.md §0.2` ·
+`DD-25`; `docs/specs/storeroom-publish/contract.md §0.3` · `PUB-DD-29`).
+(`[A1 docs/decisions.md · the ACTIVE `A88` row of 2026-10-11; A1 docs/specs/storeroom-publish-proposal.md §14 ·
+`A88`(a)(b) — the project token INSERTED before the language marker, and the priced shorter reading; A3
+docs/specs/storeroom-publish/resolution.md §3.1 — the operative five names at their own table | numeric or census
+claim]`).
 
 ### §3.3 The trigger, the version and the CI
 

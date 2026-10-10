@@ -327,16 +327,68 @@ function writeArtefact(dir, opts = {}) {
   return join(dir, 'index.js');
 }
 
+/** **THE CONTROL LEVER'S OWN CONTRACT (`F-14`)**: a control record is the STAGED CONTROL'S PATH beside the
+ *  BYTES that were staged there, and nothing else is ever read as one. */
+function isControlLever(entrySource) {
+  return entrySource !== null && typeof entrySource === 'object'
+    && typeof entrySource.controlPath === 'string' && typeof entrySource.controlSource === 'string';
+}
+
+/**
+ * **THE LEVER'S READER — THE `F-14` REPAIR.** `null` is the SHIPPED entry's bytes (what a drive measures);
+ * a CONTROL RECORD is read at the staged file's own bytes, and the file is asserted to BE those bytes, so a
+ * control can never be measured against a copy, a path or a stale image of itself; a bare string is a drive's
+ * own source text. **THE READ IS ASSERTED AND NOT ASSUMED**: before the repair the path string was written
+ * into the scratch entry as if it were source, and the failure that produced was attributed to the control's
+ * mutation for a whole pass.
+ */
+function entryText(entrySource) {
+  if (entrySource === null || entrySource === undefined) return readFileSync(ENTRY);
+  if (isControlLever(entrySource)) {
+    assert.equal(readFileSync(entrySource.controlPath, 'utf8'), entrySource.controlSource,
+      'F-14: the control\'s staged entry IS the bytes the lever hands on, so no control is measured against a '
+      + `copy of itself (\`${entrySource.controlPath}\`)`);
+    return entrySource.controlSource;
+  }
+  assert.equal(typeof entrySource, 'string',
+    'F-14: the lever carries the shipped bytes (`null`), a control record, or a source string — and nothing else');
+  return entrySource;
+}
+
+/** **THE STAGED TREES OF THE CONTROLS** (`F-14`), so a drive can be attributed to the control that staged it. */
+const CONTROL_DIRS = new Set();
+/** **EVERY DRIVE THAT RAN AGAINST A CONTROL'S OWN TREE**, with the report it produced — the evidence the
+ *  audit in `withControls` reads: the control's bytes REACHED a drive and the entry WALKED there. */
+const CONTROL_STAGE_LEDGER = [];
+function noteControlDrive(env, report) {
+  if (CONTROL_DIRS.has(env.dir)) CONTROL_STAGE_LEDGER.push({ dir: env.dir, report });
+}
+
 /**
  * ASSEMBLE ONE SCRATCH TREE for a drive. **`entrySource` IS THE CONTROL LEVER**: where it is `null` the
  * SHIPPED entry is copied byte-for-byte; where it is a string, that is the CONTROL's mutated entry.
+ *
+ * **⟶ REPAIRED (`F-14`, `§13`): THE LEVER NOW ANSWERS ITS OWN SUBJECT, AND THE TWO SHAPES IT CARRIES ARE
+ * TOLD APART BY CONSTRUCTION AND NOT BY A GUESS.** The as-filed lever was written for ONE shape (a drive's
+ * own source TEXT) while `controlEntry` handed it the OTHER (the STAGED CONTROL FILE'S PATH), and the two
+ * were never reconciled: **THE TEXT MATCHED, RE-EMITTED VERBATIM** —
+ * `writeFileSync(join(dir, 'index.mjs'), entrySource ?? readFileSync(ENTRY));` — **WROTE THE PATH STRING
+ * ITSELF into the scratch entry, so the drive imported a module whose whole content was a
+ * path, the import died at the parse, the report came back with an EMPTY attempt set, and the control failed
+ * at its own probe's FIRST "the state was reached" assertion rather than at the clause it had mutated. **THE
+ * READER `entryText` BELOW IS THE REPAIR: a `null` lever is the shipped bytes, a CONTROL RECORD is read at
+ * its own bytes, and a bare string is a drive's source text — so `entrySource` can no longer be misread, and
+ * `withControls` additionally requires every entry control's bytes to have REACHED a drive AND WALKED.**
  */
 function makeScratch({
   label, rungOne = null, rungTwo = 'absent', entrySource = null, manifestVersion = '0.1.0',
   preloadBody = null, driverTail = '',
 }) {
   const dir = mkdtempSync(join(SCRATCH_ROOT, `${label.replace(/[^a-zA-Z0-9-]/g, '_')}-`));
-  writeFileSync(join(dir, 'index.mjs'), entrySource ?? readFileSync(ENTRY));
+  writeFileSync(join(dir, 'index.mjs'), entryText(entrySource));
+  // **THE STAGED TREE OF A CONTROL IS RECORDED WHERE THE AUDIT CAN SEE IT** (`F-14`): only a tree built from
+  // a control record is a control's tree, so a drive that ran elsewhere can never be counted as evidence.
+  if (isControlLever(entrySource)) CONTROL_DIRS.add(dir);
   writeFileSync(join(dir, 'package.json'), JSON.stringify({
     name: 'provident-storeroom', version: manifestVersion, type: 'module',
     exports: { '.': { import: './index.mjs' } },
@@ -380,6 +432,7 @@ function drive(env, { platform, arch, cwd = env.dir, extraEnv = {} } = {}) {
   assert.ok(line, `the drive produced no report (stdout was: ${out.slice(0, 400)})`);
   const report = JSON.parse(line.slice('__PUBGEN__'.length));
   report.requests = report.attempts.map((a) => String(a).split('\\').join('/'));
+  noteControlDrive(env, report);
   return report;
 }
 
@@ -408,9 +461,10 @@ function driveRaw(env, { platform, arch, cwd = env.dir, extraEnv = {} } = {}) {
   try {
     const out = execFileSync(file, args, options);
     const line = out.split('\n').find((l) => l.startsWith('__PUBGEN__'));
-    if (!line) return { exited: true, code: 0, report: null, stdout: out, stderr: '' };
+    if (!line) { noteControlDrive(env, null); return { exited: true, code: 0, report: null, stdout: out, stderr: '' }; }
     const report = JSON.parse(line.slice('__PUBGEN__'.length));
     report.requests = report.attempts.map((a) => String(a).split('\\').join('/'));
+    noteControlDrive(env, report);
     return { exited: true, code: 0, report, stdout: out, stderr: '' };
   } catch (err) {
     const stdout = String(err.stdout ?? '');
@@ -420,6 +474,7 @@ function driveRaw(env, { platform, arch, cwd = env.dir, extraEnv = {} } = {}) {
       report = JSON.parse(line.slice('__PUBGEN__'.length));
       report.requests = report.attempts.map((a) => String(a).split('\\').join('/'));
     }
+    noteControlDrive(env, report);
     return {
       exited: false, code: err.status ?? null, signal: err.signal ?? null, report,
       stdout, stderr: String(err.stderr ?? ''),
@@ -444,6 +499,15 @@ const isRungTwo = (r) => String(r).includes('storeroom_js_binding.node');
  * `mutate` is a function from the entry's text to the mutated text and it MUST change the text — a
  * control that mutates nothing is a second copy of the shipped bytes and would "pass" the generator for
  * the wrong reason, so the no-op is refused here rather than measured later.
+ *
+ * **⟶ REPAIRED (`F-14`, `§13`): THE CONTROL NOW HANDS ON BOTH HALVES OF ITSELF — THE STAGED PATH **AND**
+ * THE BYTES STAGED THERE.** The as-filed form returned the PATH ALONE while `makeScratch` wrote whatever it
+ * was handed as the scratch entry's CONTENT, so the scratch entry was a FILE CONTAINING A PATH STRING: the
+ * drive's `import` died at the parse, the report carried `attempts: []`, and the control was scored as
+ * failing at its own probe's "the state was reached" guard — a verdict attributable to the LEVER and not to
+ * the mutation. **NOTHING IS WEAKENED**: the control is still the shipped entry's bytes mutated at one site,
+ * the mutation is still required to have changed a byte, the tree is still staged OUTSIDE the repository,
+ * and the audit in `withControls` now REQUIRES the staged bytes to have reached a drive and walked there.
  */
 function controlEntry(id, mutate) {
   const shipped = readFileSync(ENTRY, 'utf8');
@@ -453,7 +517,7 @@ function controlEntry(id, mutate) {
   const dir = mkdtempSync(join(CONTROL_ROOT, `${id}-`));
   const file = join(dir, 'index.mjs');
   writeFileSync(file, mutated);
-  return file;
+  return { controlPath: file, controlSource: mutated };
 }
 
 /**
@@ -476,6 +540,14 @@ function measureAgainst(id, entrySource, probe) {
  * **(1) THE DRIVE FIRST** — the property is asserted against the SHIPPED bytes and a failure there is a
  * FINDING rather than a control result; **(2) THE CONTROLS SECOND** — each is required to FAIL the same
  * property, and a control that passes it FAILS this generator by name.
+ *
+ * **⟶ AND A THIRD REQUIREMENT, ADDED BY THE `F-14` REPAIR (`§13`): A CONTROL'S FAILURE MUST BE ATTRIBUTABLE
+ * TO ITS OWN MUTATION.** An entry control is required to have (a) staged its own bytes into a scratch tree
+ * that a drive really ran against, (b) had those bytes LOAD — the report's attempt set non-empty, which is
+ * the measurement that separates a mutated entry that WALKED from the path-string corpse the mis-wired lever
+ * produced — and only then (c) failed the property. **(c) is the ledger's own `why`; (a) and (b) are asserted
+ * here**, so a control that fails at its probe's "the state was reached" guard — the `F-14` signature — makes
+ * its generator RED by name instead of reading as a control with teeth.
  */
 function withControls(id, { controls, probe }) {
   return (recordControl) => {
@@ -484,10 +556,29 @@ function withControls(id, { controls, probe }) {
       `${id}: THE PROPERTY DOES NOT HOLD AT THE SHIPPED BYTES — ${shipped.why}`);
     recordControl('SHIPPED-BYTES', 'PASS (required)');
     for (const [name, entrySource] of Object.entries(controls)) {
+      const drivesBefore = CONTROL_STAGE_LEDGER.length;
       const result = measureAgainst(id, entrySource, probe);
+      const drives = isControlLever(entrySource) ? CONTROL_STAGE_LEDGER.slice(drivesBefore) : [];
+      // **THE AUDIT LINE (`F-14`, `§13`) IS PRINTED BEFORE THE VERDICT IS JUDGED, SO THE CENSUS SURVIVES A
+      // GENERATOR THAT FAILS**: (a) whether the control's own bytes REACHED a drive and WALKED there — the
+      // attempt sets, whose emptiness was the mis-wired lever's signature — and (b) the assertion it failed at.
+      console.log(`[F-14 audit] ${id} :: ${name} → verdict ${result.verdict} · state reached: `
+        + (isControlLever(entrySource)
+          ? `${drives.length} drive(s) against the staged bytes · attempt sets ${JSON.stringify(drives.map((d) => (d.report?.attempts ?? []).length))}`
+          : 'n/a (a manifest/declaration/text control carries no entry drive)')
+        + ` · failed at: ${result.why === null ? 'NOTHING — it PASSED the property' : result.why}`);
       assert.equal(result.verdict, 'FAIL',
         `${id}: THE CONTROL \`${name}\` DOES NOT FAIL THIS GENERATOR — it disabled the property and the `
         + 'generator answered PASS, so the cell cannot fail and is a FINDING (PUB-R-5)');
+      if (isControlLever(entrySource)) {
+        assert.ok(drives.length > 0,
+          `${id}: \`${name}\` STAGED ITS BYTES AND NO DRIVE EVER RAN AGAINST THEM — a control whose mutation `
+          + 'reaches no drive fails for a reason that is not its mutation (F-14)');
+        assert.ok(drives.some((d) => (d.report?.attempts ?? []).length > 0),
+          `${id}: \`${name}\`'s scratch entry NEVER LOADED — every drive it reached reported an EMPTY attempt `
+          + 'set, which is the F-14 signature: the control failed at its probe\'s "the state was reached" '
+          + `guard and not at the clause it mutated (attempt sets: ${JSON.stringify(drives.map((d) => (d.report?.attempts ?? []).length))})`);
+      }
       recordControl(name, `FAIL (required) → ${result.why}`);
     }
   };
@@ -818,18 +909,53 @@ generator('NG-PUB-F', 'an artefact with no usable generator names rung one\'s pa
         "        addonArm = { status: 'FilePathUnreachable', message: generatorFilePathUnreachable(name + \"', '\" + join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node')) };");
     }),
     // (2) THE SUB-CASE IS ANSWERED BY A SECOND FAILURE SHAPE — the `alt` `§1.4` item 7 prices and REFUSES.
+    // **⟶ RE-CUT BY THE `F-14` PASS (`§13`): THE AS-FILED FORM MUTATED THE `addonArm` ASSIGNMENT ALONE, AND
+    // THE SHIPPED `fail()` RECONSTRUCTS THE TWO MEMBERS OUT OF THE REFUSAL IT IS HANDED**
+    // (`throw { status: refusal.status, message: refusal.message }`, `index.mjs:347` — *"mints no code of its
+    // own … and adds no third member"*), **so a `code` minted at that site was DROPPED before it reached any
+    // consumer and the control was INERT — it PASSED the generator, which is the `F-14` class exactly: a check
+    // that appeared to fail for the right reason and did not.** **THE AS-FILED SUBSTITUTION, RE-EMITTED
+    // VERBATIM** — `return text.replace(before, "        addonArm = { status: 'FilePathUnreachable', message:
+    // mismatchArmMessage(candidate, name), code: 'AddonVersionMismatch' };");` — **IS KEPT, AND THE MUTANT IS
+    // ALSO MINTED at the ONE place this unit's arm acquires its member set, so the second shape really REACHES
+    // the consumer. THE PROPERTY AND THE ASSERTIONS ARE UNTOUCHED: only the control's site set moved, and it
+    // now fails the generator at the shape clause it is cut for.**
     'control-the-sub-case-mints-a-second-shape': controlEntry('NG-PUB-F', (text) => {
       const before = `        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name) };`;
       assert.ok(text.includes(before), 'NG-PUB-F: the mismatch arm site moved; the control must be re-cut');
-      return text.replace(before,
-        "        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name), code: 'AddonVersionMismatch' };");
+      const memberSite = `  throw { status: refusal.status, message: refusal.message };`;
+      assert.ok(text.includes(memberSite),
+        'NG-PUB-F: the entry\'s one arm-building site moved; the control must be re-cut where the member set is built');
+      return text
+        .replace(before,
+          "        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name), code: 'AddonVersionMismatch' };")
+        .replace(memberSite,
+          "  throw { status: refusal.status, message: refusal.message, code: 'AddonVersionMismatch' };");
     }),
     // (3) THE ARM (b) FALLBACK ITSELF NAMES A PATH THE WALK NEVER TRIED.
+    // **⟶ RE-CUT BY THE `F-14` PASS (`§13`), AND THE AS-FILED SITE IS KEPT BESIDE THE NEW ONE.** `absentSubject()`
+    // is reached through `addonLoadMessage()`, which is the `addon === null && addonArm === null` state — the
+    // walk that reached NO artefact at all (`index.mjs:332`–`:340`). **THE STATE THIS GENERATOR DRIVES IS THE
+    // MISMATCH STATE, WHERE ARM (b) IS `mismatchArmMessage`'s OWN FALLBACK (`index.mjs:322`) AND
+    // `absentSubject()` IS NEVER CALLED** — so the as-filed mutation reached no evaluation of the probe's state,
+    // the property still held, and the control PASSED this generator: the `F-14` class again, measured rather
+    // than assumed. **THE AS-FILED SUBSTITUTION, RE-EMITTED VERBATIM** — `return text.replace(before, "  const
+    // subject = absentSubject() + \", '\" + join(dirOf(fileURLToPath(import.meta.url)), 'never', 'tried',
+    // 'x.node');");` — **STANDS UNMOVED BESIDE THE NEW ONE, AND THE FALLBACK SITE IS THEREFORE MUTATED TOO, at
+    // the SAME clause the control names** — an
+    // arm (b) subject that names a path the walk never tried — **and the as-filed substitution stands unmoved
+    // beside it**, so the control measures the clause it was written for at the state it is written about.
     'control-the-fallback-names-an-untried-path': controlEntry('NG-PUB-F', (text) => {
       const before = `  const subject = absentSubject();`;
       assert.ok(text.includes(before), 'NG-PUB-F: the absent subject site moved; the control must be re-cut');
-      return text.replace(before,
-        "  const subject = absentSubject() + \", '\" + join(dirOf(fileURLToPath(import.meta.url)), 'never', 'tried', 'x.node');");
+      const fallbackSite = `  return generatorFilePathUnreachable(name);`;
+      assert.ok(text.includes(fallbackSite),
+        'NG-PUB-F: arm (b)\'s own fallback site moved; the control must be re-cut where the state it drives reaches it');
+      return text
+        .replace(before,
+          "  const subject = absentSubject() + \", '\" + join(dirOf(fileURLToPath(import.meta.url)), 'never', 'tried', 'x.node');")
+        .replace(fallbackSite,
+          "  return generatorFilePathUnreachable(name + \"', '\" + join(dirOf(fileURLToPath(import.meta.url)), 'never', 'tried', 'x.node'));");
     }),
   },
 }));
