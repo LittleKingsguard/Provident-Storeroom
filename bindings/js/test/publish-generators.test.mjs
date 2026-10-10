@@ -58,12 +58,19 @@ const PLATFORMS = join(PKG_DIR, 'platforms');
 // `docs/specs/storeroom-publish/contract.md §0.3` · `PUB-DD-15`; `docs/specs/storeroom-publish/resolution.md
 // §3.1`; `docs/specs/storeroom-js/package.md §3.2`). The five names below are the operative five, taken at
 // the contract cells' own bytes.
+// **⟶ SUPERSEDED BY `A88` — THE ARCHITECT'S PROJECT-TOKEN RULING OF 2026-10-11 — WHOSE OPERATIVE READING IS
+// `A88`(a), THE ADDITIVE ONE** (`docs/specs/storeroom-publish-proposal.md` `§14`, where the ruling is
+// transcribed verbatim): **`@auspicion` is a MULTI-PROJECT org, so the PROJECT TOKEN IS INSERTED BEFORE THE
+// LANGUAGE MARKER and the five become `@auspicion/provident-storeroom-js-<label>` — every token that was
+// there is still there, the project is named, and the language marker survives for a reader who meets the
+// name without the main package beside it.** **THE MAIN PACKAGE'S IDENTITY IS UNMOVED: `provident-storeroom`,
+// unscoped (`A82`).**
 const FIVE_NAMES = [
-  '@auspicion/js-linux-x64-gnu',
-  '@auspicion/js-linux-arm64-gnu',
-  '@auspicion/js-darwin-x64',
-  '@auspicion/js-darwin-arm64',
-  '@auspicion/js-win32-x64-msvc',
+  '@auspicion/provident-storeroom-js-linux-x64-gnu',
+  '@auspicion/provident-storeroom-js-linux-arm64-gnu',
+  '@auspicion/provident-storeroom-js-darwin-x64',
+  '@auspicion/provident-storeroom-js-darwin-arm64',
+  '@auspicion/provident-storeroom-js-win32-x64-msvc',
 ];
 const COVERED = [
   { platform: 'linux', arch: 'x64', label: 'linux-x64', name: FIVE_NAMES[0] },
@@ -607,7 +614,12 @@ Object.defineProperty(process, 'arch', { value: ${token.arch()}, configurable: t
   },
   controls: {
     // THE CONTROL: the closed table is left and a name is ASSEMBLED from the runtime's own tokens — the
-    // clause `§1.3` item 1 refuses by name. `NG-PUB-B` must see the sixth name.
+    // clause `§1.3` item 1 refuses by name. `NG-PUB-B` must see the sixth name. **⟶ AND THE FIXTURE'S OWN
+    // CONCATENATION IS BUILT FROM THE OPERATIVE SHAPE** (`A88`(a); `docs/specs/storeroom-publish-proposal.md`
+    // `§14` item `7`): the tokens it concatenates are the RUNTIME's, and the stem it prefixes them with is the
+    // DECLARED stem `@auspicion/provident-storeroom-js-`, **so the assembled name stands INSIDE the declared
+    // project and scope and outside the declared five — which is the sixth name `P-PUB-2` refuses and the
+    // state a stale fixture, keyed to the superseded `@auspicion/js-` stem, could no longer reach.**
     'control-a-name-assembled-from-the-runtime-tokens': controlEntry('NG-PUB-B', (text) => {
       // THE ANCHOR IS REGEX-BUILT BECAUSE THE SITE ITSELF CONTAINS A TEMPLATE LITERAL, so a literal anchor
       // would have to re-escape it and a wrong escape would silently mutate nothing.
@@ -615,7 +627,7 @@ Object.defineProperty(process, 'arch', { value: ${token.arch()}, configurable: t
       assert.equal(anchor.test(text), true, 'NG-PUB-B: the table site moved; the control must be re-cut');
       return text.replace(anchor,
         "function platformNameFor(platform, arch) {\n"
-        + "  if (arch !== 'arm64' || platform !== 'darwin') return '@auspicion/js-' + platform + '-' + arch + '-gnu';\n");
+        + "  if (arch !== 'arm64' || platform !== 'darwin') return '@auspicion/provident-storeroom-js-' + platform + '-' + arch + '-gnu';\n");
     }),
   },
 }));

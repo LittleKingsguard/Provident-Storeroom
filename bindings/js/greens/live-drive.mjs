@@ -380,6 +380,20 @@ console.log(JSON.stringify({ pid: process.pid, value: read(i, ${JSON.stringify([
 // STATE AND ITS STRUCTURE ARE UNMOVED: only the NAME it prints has moved, and the as-filed spelling is
 // re-emitted at the row itself.** `.1`–`.6`, rung two's path, the tried set, the join, the slot count and the
 // byte-equality against the store's own generator are each UNMOVED.
+//
+// ── AND `.7`'s ONE NAME MOVED AGAIN 2026-10-11 ON THE `A88` PROJECT-TOKEN RULING — *"Change the platform
+// package names to specify the project they are for, this organization will be used for multiple"* — so the
+// platform package this row names as rung one is `@auspicion/provident-storeroom-js-linux-x64-gnu` for the
+// host's covered pair (`docs/specs/storeroom-publish-proposal.md §14`'s `A88`(a), the ADDITIVE reading, read
+// with `docs/decisions.md`'s dated `ACTIVE` pin). **THE CLAUSE ABOVE STANDS BYTE-FOR-BYTE, INCLUDING ITS
+// `@auspicion/js-linux-x64-gnu` AND ITS `A86`(a) CITATION, AND IS READ THROUGH THIS ONE** (`RCA-8(d)`,
+// ANNOTATE-BESIDE): **`A88` SUPERSEDES `A86`(a)'s SCOPE-ONLY READING AND ADOPTS `A86`(b)'s
+// IDENTITY-PRESERVING FORM, with a reason the earlier pricing did not have — `@auspicion` is a
+// MULTI-PROJECT ORG, so a platform name that carries only a language marker is AMBIGUOUS inside it, and THE
+// NAME MUST NAME THE PROJECT.** **THE ROW'S STATE AND ITS STRUCTURE ARE STILL UNMOVED: the scope
+// `@auspicion` stands, the project token is INSERTED BEFORE the language marker and no existing token is
+// lost, and `.1`–`.6`, rung two's path, the tried set, the join, the slot count and the byte-equality
+// against the store's own generator are each UNMOVED.**
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const sc = 'LIVE-8';
@@ -451,6 +465,37 @@ console.log(JSON.stringify({ pid: process.pid, value: read(i, ${JSON.stringify([
   // bytes, the slot count, the byte-equality against the store's own generator, rung two's path, and the
   // clause standing after.**
   //
+  // ── AND THE SCOPE-ONLY READING IS ITSELF SUPERSEDED, 2026-10-11, BY THE PROJECT-TOKEN RULING — `A88`
+  // (`docs/specs/storeroom-publish-proposal.md §14`'s `A88`(a), the ADDITIVE reading, read with
+  // `docs/decisions.md`'s dated `ACTIVE` pin). **THE WHOLE CLAUSE ABOVE — ITS `A82`/`A84` PARENTHETICAL, ITS
+  // `@auspicion/js-…` FIVE AND ITS `A86`(a) CITATION — STANDS BYTE-FOR-BYTE AND IS READ THROUGH THIS ONE**
+  // (`RCA-8(d)`, ANNOTATE-BESIDE). **`A88` SUPERSEDES `A86`(a)'s SCOPE-ONLY READING AND ADOPTS `A86`(b)'s
+  // IDENTITY-PRESERVING FORM, with a reason the earlier pricing did not have: `@auspicion` is a
+  // MULTI-PROJECT ORG, so a platform name carrying only a language marker is AMBIGUOUS inside it — THE NAME
+  // MUST NAME THE PROJECT.** **THE OPERATIVE READING IS `A88`(a), THE ADDITIVE ONE, because it is the least
+  // destructive edit that satisfies the requirement and loses no existing token: THE PROJECT TOKEN IS
+  // INSERTED BEFORE THE LANGUAGE MARKER, so THE OPERATIVE FIVE BECOME, CHARACTER FOR CHARACTER —
+  // `@auspicion/provident-storeroom-js-linux-x64-gnu` · `@auspicion/provident-storeroom-js-linux-arm64-gnu` ·
+  // `@auspicion/provident-storeroom-js-darwin-x64` · `@auspicion/provident-storeroom-js-darwin-arm64` ·
+  // `@auspicion/provident-storeroom-js-win32-x64-msvc` — so the host's covered pair `linux`·`x64` names
+  // `@auspicion/provident-storeroom-js-linux-x64-gnu`, WHICH IS THE PLATFORM PACKAGE THE ENTRY `require`s
+  // TODAY** (read BESIDE `bindings/js/index.mjs`'s `PLATFORM_NAMES`, `bindings/js/package.json`'s five
+  // `optionalDependencies` keys and the five `bindings/js/platforms/<label>/package.json` `name` fields, never
+  // instead of this driver's own table — `acceptance.md §4.1` item 1).
+  //
+  // **THE SPELLING THIS CELL CARRIED BETWEEN THE TWO RULINGS IS RE-EMITTED VERBATIM IN THE TABLE BELOW SO NO
+  // BYTE IS DELETED AND A DIFF HAS NOTHING TO RECOVER: `@auspicion/js-linux-x64-gnu` ·
+  // `@auspicion/js-linux-arm64-gnu` · `@auspicion/js-darwin-x64` · `@auspicion/js-darwin-arm64` ·
+  // `@auspicion/js-win32-x64-msvc` — the five of `A86`(a), SUPERSEDED HERE as that reading, because a
+  // language-only marker is ambiguous inside a multi-project org.**
+  // **AND `A88`(b) — the SHORTER reading, the project token REPLACING the language marker, whose five would
+  // read `@auspicion/provident-storeroom-linux-x64-gnu` and its four siblings — IS CARRIED AND PRICED AND
+  // UNAPPLIED: its reversal is the same one-line re-spelling and must be taken BEFORE THE FIRST PLATFORM
+  // PUBLISH, and it is asserted by no cell here.**
+  // **EVERY OTHER CONJUNCT OF THIS ROW IS STILL UNMOVED: the TRIED set built from the declaration, the
+  // rendering's bytes, the slot count, the byte-equality against the store's own generator, rung two's path,
+  // and the clause standing after.**
+  //
   // **AND THE BYTE-EQUALITY IS TAKEN AGAINST THE GENERATOR ITSELF** (`§1.4` item 6: arm (b) reproduces arm
   // (a)'s clause byte-for-byte, `PUB-DD-25`; the equality the red set's `NG-JS-H` now holds): the REAL built
   // artefact — which loaded far enough to carry `errorMessage`, and which `acceptance.md §4.1` item 1 permits
@@ -464,11 +509,17 @@ console.log(JSON.stringify({ pid: process.pid, value: read(i, ${JSON.stringify([
     // `@provident-storeroom/js-linux-x64-gnu` · `@provident-storeroom/js-linux-arm64-gnu` ·
     // `@provident-storeroom/js-darwin-x64` · `@provident-storeroom/js-darwin-arm64` ·
     // `@provident-storeroom/js-win32-x64-msvc` — each read through the operative `@auspicion` (`A86`(a)).
-    'linux·x64': '@auspicion/js-linux-x64-gnu',
-    'linux·arm64': '@auspicion/js-linux-arm64-gnu',
-    'darwin·x64': '@auspicion/js-darwin-x64',
-    'darwin·arm64': '@auspicion/js-darwin-arm64',
-    'win32·x64': '@auspicion/js-win32-x64-msvc',
+    // AND THE SECOND AS-FILED FIVE, RE-EMITTED THE SAME WAY, because IT is the spelling the operative `A88`
+    // SUPERSEDES (`docs/specs/storeroom-publish-proposal.md §14`'s `A88`(a), the additive reading;
+    // `docs/decisions.md`'s dated `ACTIVE` pin): `@auspicion/js-linux-x64-gnu` ·
+    // `@auspicion/js-linux-arm64-gnu` · `@auspicion/js-darwin-x64` · `@auspicion/js-darwin-arm64` ·
+    // `@auspicion/js-win32-x64-msvc` — the five of `A86`(a), read TODAY through the project token, because
+    // THIS cell's five must NAME THE PROJECT and not merely the carrier's language in a multi-project org.
+    'linux·x64': '@auspicion/provident-storeroom-js-linux-x64-gnu',
+    'linux·arm64': '@auspicion/provident-storeroom-js-linux-arm64-gnu',
+    'darwin·x64': '@auspicion/provident-storeroom-js-darwin-x64',
+    'darwin·arm64': '@auspicion/provident-storeroom-js-darwin-arm64',
+    'win32·x64': '@auspicion/provident-storeroom-js-win32-x64-msvc',
   };
   const rungOneName = DECLARED_RUNG_ONE[`${process.platform}·${process.arch}`];
   // the TRIED set, in the order the load path tried it: rung one's resolved name where the pair is covered
@@ -481,7 +532,7 @@ console.log(JSON.stringify({ pid: process.pid, value: read(i, ${JSON.stringify([
     ? generatorArm.errorMessage('FilePathUnreachable', subjectRendering) : null;
   const m87 = a1.threw && typeof a1.err.message === 'string' ? a1.err.message : '';
   A(`${sc}.7`,
-    'contract.md §1.4 item 2 and §1.5 item 6 (PUB-DD-26); resolution.md §5.3 item 2 and §5.3b; the README\'s ABSENT-ADDON clause; JS-3 (closed); the store\'s §8.2 generator',
+    'contract.md §1.4 item 2 and §1.5 item 6 (PUB-DD-26); resolution.md §5.3 item 2 and §5.3b; the README\'s ABSENT-ADDON clause; JS-3 (closed); the store\'s §8.2 generator; A88(a) (docs/specs/storeroom-publish-proposal.md §14 · docs/decisions.md) — the five names carry the PROJECT token',
     `the refusal names THE PATHS THE LOAD PATH TRIED — on THIS drive's own COVERED key (${process.platform}·${process.arch}) BOTH rungs: rung one's resolved name '${rungOneName}' FIRST, rung two's own path SECOND, EACH inside the generator's own '<subject>' slot, joined by ', ', the clause standing after — and its bytes are EQUAL to the store's own generator's rendering of that same subject-set (arm (a) ≡ arm (b), PUB-DD-25)`,
     triedSubjects.length === 2 && m87 === declaredMessage && generatorMessage !== null
       && m87 === generatorMessage && (m87.match(/'/g) || []).length === 6

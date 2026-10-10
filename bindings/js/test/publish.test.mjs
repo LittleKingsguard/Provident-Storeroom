@@ -73,14 +73,20 @@ const REPO_ROOT = dirname(dirname(PKG_DIR));
 // `resolution.md §3.1` — the five declared names, decided once, in the table's own order. **AND `A86` MOVES
 // THEIR SCOPE SEGMENT ALONE** — the five are `@auspicion/js-<label>`, the label, the second segment and the
 // suffix UNMOVED (`docs/specs/storeroom-publish-proposal.md` `§12`; `contract.md §0.3` · `PUB-DD-6`,
-// `PUB-DD-15`; `resolution.md §3.1`). **THE MAIN PACKAGE'S OWN IDENTITY IS UNTOUCHED**: `provident-storeroom`,
+// `PUB-DD-15`; `resolution.md §3.1`). **⟶ SUPERSEDED BY `A88`, WHOSE OPERATIVE READING IS `A88`(a), THE
+// ADDITIVE ONE** (`docs/specs/storeroom-publish-proposal.md` `§14`, the architect's ruling of 2026-10-11
+// transcribed verbatim there): **THE PROJECT TOKEN IS INSERTED BEFORE THE LANGUAGE MARKER, so the five are
+// `@auspicion/provident-storeroom-js-linux-x64-gnu` · `…-js-linux-arm64-gnu` · `…-js-darwin-x64` ·
+// `…-js-darwin-arm64` · `…-js-win32-x64-msvc` — the scope `@auspicion` and the language marker BOTH KEPT and
+// the project NAMED, because `@auspicion` is a MULTI-PROJECT org and a name carrying only a language marker
+// is ambiguous inside it.** **THE MAIN PACKAGE'S OWN IDENTITY IS UNTOUCHED**: `provident-storeroom`,
 // UNSCOPED (`A82`), and every cell that reads it stands.
 const FIVE_NAMES = [
-  '@auspicion/js-linux-x64-gnu',
-  '@auspicion/js-linux-arm64-gnu',
-  '@auspicion/js-darwin-x64',
-  '@auspicion/js-darwin-arm64',
-  '@auspicion/js-win32-x64-msvc',
+  '@auspicion/provident-storeroom-js-linux-x64-gnu',
+  '@auspicion/provident-storeroom-js-linux-arm64-gnu',
+  '@auspicion/provident-storeroom-js-darwin-x64',
+  '@auspicion/provident-storeroom-js-darwin-arm64',
+  '@auspicion/provident-storeroom-js-win32-x64-msvc',
 ];
 // `resolution.md §4.1` — the five covered keys, and the label each carries.
 const COVERED = [
@@ -738,11 +744,23 @@ cell('P-PUB-1', 'S-RESOLVE rung two is derived from the entry module\'s own loca
 //   is a name outside the five (`contract.md §5.2`; `resolution.md §3.1`; `parameter-semantics.md`
 //   `PAR-PUB-17`'s outside values, re-read at `@auspicion`)
 const FORBIDDEN_NAME_SHAPES = [
-  '@auspicion/js-linux-x64-musl', // a SIXTH NAME (`resolution.md §4.3`)
-  '@auspicion/js-linux-ia32', '@auspicion/js-linux-ppc64le',
-  '@auspicion/js-freebsd-x64', '@auspicion/js-win32-x64-gnu',
+  '@auspicion/provident-storeroom-js-linux-x64-musl', // a SIXTH NAME (`resolution.md §4.3`)
+  '@auspicion/provident-storeroom-js-linux-ia32', '@auspicion/provident-storeroom-js-linux-ppc64le',
+  '@auspicion/provident-storeroom-js-freebsd-x64', '@auspicion/provident-storeroom-js-win32-x64-gnu',
   '@auspicion/linux-x64-gnu', // the alternative literal reading (`PUB-DD-15`)
-  '@auspicion/js-linux-x64', // a dropped `-gnu` suffix (`PUB-DD-15`)
+  // **⟶ ADDED BESIDE IT BY THE `A88` PROJECT-TOKEN PASS (`docs/specs/storeroom-publish-proposal.md` `§14`):
+  // `A88`(b)'s PRICED READING — THE PROJECT TOKEN WITH THE LANGUAGE MARKER DROPPED — is refused WHERE IT
+  // STANDS, so the priced alternative of the operative ruling is refused at its own spelling and not only
+  // through the `A86`-era form the `PUB-DD-15` row already carried.**
+  '@auspicion/provident-storeroom-linux-x64-gnu',
+  '@auspicion/provident-storeroom-js-linux-x64', // a dropped `-gnu` suffix (`PUB-DD-15`)
+  // **⟶ ADDED BY THE `A88` PROJECT-TOKEN PASS: THE SUPERSEDED `A86` SPELLING OF ALL FIVE JOINS THE RETIRED
+  // `A82` SCOPE AND THE THIRD ORG IN THIS LIST** (`P-PUB-6`'s failure list, read with `§14`'s blast-radius
+  // item `7`): a manifest, an entry or an attempt set that still spells `@auspicion/js-<label>` carries the
+  // SUPERSEDED identity rather than a lawful one, and each of the three spellings is a FINDING.
+  '@auspicion/js-linux-x64-gnu', '@auspicion/js-linux-arm64-gnu',
+  '@auspicion/js-darwin-x64', '@auspicion/js-darwin-arm64',
+  '@auspicion/js-win32-x64-msvc',
   // **THE OLD SCOPE IS KEPT IN THE FAILURE LIST AND THE NEW SCOPE IS ADDED BESIDE IT** (`A86`(a);
   // `resolution.md §3.1`: *"OR ONE OF THE FIVE AT THE OLD SCOPE, is a FINDING"*): a manifest that still
   // spells `@provident-storeroom/…` carries the STALE identity rather than a lawful one, and a third org
@@ -750,6 +768,8 @@ const FORBIDDEN_NAME_SHAPES = [
   '@provident-storeroom/js-linux-x64-gnu', '@provident-storeroom/js-linux-arm64-gnu',
   '@provident-storeroom/js-darwin-x64', '@provident-storeroom/js-darwin-arm64',
   '@provident-storeroom/js-win32-x64-msvc',
+  // and the third org at BOTH the operative shape and the `A86`-era one, so neither is read as one of the five
+  '@provident/provident-storeroom-js-linux-x64-gnu', '@provident/provident-storeroom-js-linux-arm64-gnu',
   '@provident/js-linux-x64-gnu', '@provident/js-linux-arm64-gnu', // a THIRD org
   'js-linux-x64-gnu', 'provident-storeroom-js-linux-x64-gnu', // unscoped / concatenated shapes
 ];
@@ -1204,10 +1224,10 @@ cell('P-PUB-5', 'S-TAXONOMY musl × absent and musl × present-unloadable', asyn
   assert.ok(absent.requests.includes(FIVE_NAMES[1]), 'the musl state attempts the `-gnu` name');
   assert.equal(assertArm(absent, {}).status, ARM_STATUS, 'and the one arm answers');
   const unloadable = makeScratch({ label: 'musl-tax-unload', rungTwo: 'broken' });
-  mkdirSync(join(unloadable.dir, 'node_modules', '@auspicion', 'js-linux-arm64-gnu'), { recursive: true });
-  writeFileSync(join(unloadable.dir, 'node_modules', '@auspicion', 'js-linux-arm64-gnu', 'package.json'),
+  mkdirSync(join(unloadable.dir, 'node_modules', '@auspicion', 'provident-storeroom-js-linux-arm64-gnu'), { recursive: true });
+  writeFileSync(join(unloadable.dir, 'node_modules', '@auspicion', 'provident-storeroom-js-linux-arm64-gnu', 'package.json'),
     JSON.stringify({ name: FIVE_NAMES[1], version: '0.1.0', main: 'storeroom_js_binding.node' }, null, 2));
-  writeFileSync(join(unloadable.dir, 'node_modules', '@auspicion', 'js-linux-arm64-gnu', 'storeroom_js_binding.node'),
+  writeFileSync(join(unloadable.dir, 'node_modules', '@auspicion', 'provident-storeroom-js-linux-arm64-gnu', 'storeroom_js_binding.node'),
     'a `-gnu` artefact a musl host cannot `dlopen`\n');
   const r = drive(unloadable, { platform: 'linux', arch: 'arm64' });
   assert.equal(assertArm(r, {}).status, ARM_STATUS, 'the `dlopen` failure lands on the one arm');
@@ -1474,7 +1494,18 @@ cell('P-PUB-5', 'S-ONEARM no fallback, no partial instance, no no-op verb, no fo
 //   alternative `@auspicion/storeroom-js-<label>[-<toolchain>]` (`F-2`, `§10`)** — · the five spellings
 //   disagreeing across the homes (`contract.md §5.6`;
 //   `resolution.md §3.1`; `parameter-semantics.md` `PAR-PUB-17`'s outside values)
-const SUFFIXED = { '@auspicion/js-linux-x64-gnu': '-gnu', '@auspicion/js-linux-arm64-gnu': '-gnu', '@auspicion/js-win32-x64-msvc': '-msvc' };
+// **⟶ AND `A88`(a) MOVES THE SECOND SEGMENT AND NOT THE SCOPE, SO TWO MORE MEMBERS JOIN THE FAILURE LIST
+// BESIDE THE ONES ABOVE, RE-EMITTED: *"the SUPERSEDED spelling `@auspicion/js-<label>` written anywhere"*
+// — the five as `A86`(a) spelled them, which `A88` retires — **AND `A88`(b)'s PRICED READING
+// `@auspicion/provident-storeroom-<label>[-<toolchain>]`, THE PROJECT TOKEN WITH THE LANGUAGE MARKER
+// DROPPED, WHICH `§14` PRICES AND `A88`(a) DISPLACES** (`docs/specs/storeroom-publish-proposal.md` `§14`
+// item `7`). **THE SCOPE ITSELF IS UNMOVED AT `@auspicion`, so every clause above that reads the scope
+// stands byte-for-byte; what moved is the PROJECT TOKEN the name now carries.**
+const SUFFIXED = {
+  '@auspicion/provident-storeroom-js-linux-x64-gnu': '-gnu',
+  '@auspicion/provident-storeroom-js-linux-arm64-gnu': '-gnu',
+  '@auspicion/provident-storeroom-js-win32-x64-msvc': '-msvc',
+};
 
 cell('P-PUB-6', 'S-SCOPE the five names, name for name, in the manifest and the entry', async () => {
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
@@ -1501,7 +1532,7 @@ cell('P-PUB-6', 'S-SCOPE every name is scoped, and the scope is `@auspicion`', a
     const [scope, ...rest] = name.split('/');
     assert.equal(scope, '@auspicion', 'the scope is `@auspicion` and no other');
     assert.equal(rest.length, 1, 'one separator `/` and one second segment');
-    assert.ok(rest[0].startsWith('js-'), 'the second segment is `js-<target>-<arch>[-<toolchain>]`');
+    assert.ok(rest[0].startsWith('provident-storeroom-js-'), 'the second segment NAMES THE PROJECT and the language, `provident-storeroom-js-<target>-<arch>[-<toolchain>]` (`A88`(a))');
     for (const [suffixed, suffix] of Object.entries(SUFFIXED)) {
       if (suffixed === name) assert.ok(name.endsWith(suffix), `a name does not drop a suffix its artefact carries: ${name}`);
     }
@@ -1519,14 +1550,23 @@ cell('P-PUB-6', 'S-SCOPE every name is scoped, and the scope is `@auspicion`', a
   // `resolution.md §3.1`: the old scope is a FINDING; `parameter-semantics.md` `PAR-PUB-17`'s outside
   // values, re-read at the new org).
   // STATES: a covered key whose rung one resolves · the five spelled at the SCOPE `A86` MOVES THEM AWAY
-  //   FROM · the same five spelled at a THIRD org · the main package's own unscoped identity.
+  //   FROM · **⟶ AND, ADDED BY THE `A88` PASS: THE FIVE SPELLED IN `A86`(a)'s SUPERSEDED FORM, WHICH `A88`
+  //   RETIRES EVEN THOUGH ITS SCOPE IS THE OPERATIVE ONE** · the same five spelled at a THIRD org · the main
+  //   package's own unscoped identity.
   // FAIL-STATES: a name whose scope is NOT `@auspicion` required anywhere · a name whose scope IS
   //   `@provident-storeroom` required anywhere (the converse the ruling ADDS BESIDE the refusal it keeps)
-  //   · a third org's spelling read as one of the five · the main package's own identity `provident-storeroom`
+  //   · **a name in the SUPERSEDED `@auspicion/js-…` form required anywhere** · a third org's spelling read
+  //   as one of the five · the main package's own identity `provident-storeroom`
   //   read as a sixth PLATFORM name.
-  const OLD_SCOPE_NAMES = FIVE_NAMES.map((n) => n.replace('@auspicion/', '@provident-storeroom/'));
+  // **THE THREE SETS ARE DERIVED FROM THE DECLARED FIVE, NOT TYPED, so each set moves WITH the declared
+  // values and none of the three can drift behind them** (`A88`(a); `docs/specs/storeroom-publish-proposal.md`
+  // `§14` item `7`). **AND EACH SET IS DRIVEN AT ALL THREE HOMES `P-PUB-6` NAMES: the manifest's keys, the
+  // entry's own bytes, and the ATTEMPT SET of a drive that DOES reach the new scope.**
+  const SUPERSEDED_ORG_NAMES = FIVE_NAMES.map((n) => n.replace('@auspicion/provident-storeroom-js-', '@auspicion/js-'));
+  const OLD_SCOPE_NAMES = FIVE_NAMES.map((n) => n.replace('@auspicion/provident-storeroom-js-', '@provident-storeroom/js-'));
   const THIRD_ORG_NAMES = FIVE_NAMES.map((n) => n.replace('@auspicion/', '@provident/'));
-  for (const wrong of [...OLD_SCOPE_NAMES, ...THIRD_ORG_NAMES]) {
+  const WRONG_IDENTITY_NAMES = [...SUPERSEDED_ORG_NAMES, ...OLD_SCOPE_NAMES, ...THIRD_ORG_NAMES];
+  for (const wrong of WRONG_IDENTITY_NAMES) {
     assert.equal(manifest.optionalDependencies[wrong], undefined,
       `${wrong} is REFUSED: the manifest's five keys ARE the declared five (${manifest.optionalDependencies[wrong] === undefined ? 'and this spelling is not one of them' : 'so this spelling must not be'})`);
     assert.ok(!entry.includes(wrong),
@@ -1538,9 +1578,9 @@ cell('P-PUB-6', 'S-SCOPE every name is scoped, and the scope is `@auspicion`', a
   const r = drive(coveredEnv(key, 'right'), { platform: key.platform, arch: key.arch });
   assert.ok(r.requests.includes(key.name),
     `the drive reached rung one's own DECLARED name, so the refusal above is measured and not vacuous (${key.name}); the attempt set was ${JSON.stringify(r.requests)}`);
-  for (const wrong of [...OLD_SCOPE_NAMES, ...THIRD_ORG_NAMES]) {
+  for (const wrong of WRONG_IDENTITY_NAMES) {
     assert.ok(!r.requests.includes(wrong),
-      `${wrong} is REFUSED at the load path: neither the old scope nor a third org is ever required`);
+      `${wrong} is REFUSED at the load path: neither the superseded form, nor the old scope, nor a third org is ever required`);
   }
   assert.ok(!r.requests.includes('provident-storeroom'),
     'the main package\'s own unscoped identity is NOT a sixth PLATFORM name: it is a different identity (`PAR-PUB-1`)');
@@ -1560,25 +1600,38 @@ cell('P-PUB-6', 'S-SCOPE the alternative literal reading is written nowhere', as
   // and the entry DECLARE `@auspicion/js-linux-x64-gnu` and the shipped README PRINTS it — so the clause was
   // satisfied by every byte of the tree, an injected alternative included, at every home; and its `["']`
   // boundary missed a backtick-delimited spelling (the shipped README spells the name inside backticks).
+  // **⟶ (`F-2`'s MEASUREMENT STANDS AND ITS SPELLING IS READ AT THE `A86` ERA IT WAS TAKEN IN: under `A88`
+  // the three homes DECLARE and PRINT `@auspicion/provident-storeroom-js-linux-x64-gnu`, AND ALL THREE STILL
+  // CARRY THE DECLARED FIRST NAME, so the unfalsifiability `F-2` measured is UNCHANGED BY THE PROJECT-TOKEN
+  // MOVE.** **NO BYTE OF THE ANNOTATION ABOVE IS DELETED AND NO CLAIM OF IT IS WITHDRAWN.**)
   // **THE PROPERTY THE CELL MEANS IS NOW ASSERTED DIRECTLY, IN A FORM THAT CAN FAIL, AND THE INSTRUMENT
   // ITSELF IS MEASURED AGAINST SCRATCH COPIES CARRYING THE LITERALS:**
   //   (a) NO SPELLING OF EITHER ALTERNATIVE READING APPEARS IN THE SHIPPED BYTES — the `PUB-DD-15` reading
   //       `@auspicion/<label>[-<toolchain>]` (second segment `linux-…`) **AND** the `A86`(b) PRICED
   //       alternative `@auspicion/storeroom-js-<label>[-<toolchain>]` — each at the bare label AND at the
   //       artefact's own toolchain suffix, in EVERY shipped home;
-  //   (b) NO TRUNCATED SIBLING OF A DECLARED SPELLING: `@auspicion/js-linux-x64` is never written without
-  //       its own `-gnu`.
+  //   (b) NO TRUNCATED SIBLING OF A DECLARED SPELLING: `@auspicion/provident-storeroom-js-linux-x64` is
+  //       never written without its own `-gnu`.
+  // **⟶ AND THE `A88` PROJECT-TOKEN PASS ADDS THE PRICED READING OF THE OPERATIVE RULING BESIDE THE TWO
+  // ABOVE, RE-EMITTED HERE SO THE THREE FAMILIES ARE NAMED IN ONE PLACE:** under `A88` the operative name
+  // carries the project token AND the language marker, so **(iii)** `A88`(b)'s PRICED alternative
+  // `@auspicion/provident-storeroom-<label>[-<toolchain>]` — the project token with the `js-` marker
+  // DROPPED — joins the `PUB-DD-15` row and `A86`(b)'s retired form, **each at the bare label AND at the
+  // artefact's own toolchain suffix, in EVERY shipped home** (`docs/specs/storeroom-publish-proposal.md`
+  // `§14` item `7`; `A88`(b)). **NOTHING IS REMOVED FROM THE SWEPT SET: the `A86`-era and `PUB-DD-15`-era
+  // spellings stay swept, so the instrument is strictly wider than before and no assertion is weakened.**
   // **THE CONTROLS ARE SCRATCH COPIES UNDER THE OPERATING SYSTEM'S TEMPORARY AREA AND NOT ONE BYTE OF THE
   // REPOSITORY IS WRITTEN.**
   const reEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // the artefact's own toolchain suffix for a covered label, read off the DECLARED name — `''` for the two
   // Apple rows, `-gnu` twice and `-msvc` once (`package.md §3.2`'s map, whose `3 + 2 = 5` does not move).
-  const suffixOf = (label) => FIVE_NAMES.find((n) => n.startsWith(`@auspicion/js-${label}`)).slice(`@auspicion/js-${label}`.length);
-  // **THE TWO ALTERNATIVE READINGS, EACH AT EVERY TOOLCHAIN STATE THE DECLARED TABLE CARRIES.**
+  const suffixOf = (label) => FIVE_NAMES.find((n) => n.startsWith(`@auspicion/provident-storeroom-js-${label}`)).slice(`@auspicion/provident-storeroom-js-${label}`.length);
+  // **THE THREE ALTERNATIVE-READING FAMILIES, EACH AT EVERY TOOLCHAIN STATE THE DECLARED TABLE CARRIES.**
   const alternativeReadings = [...new Set(COVERED.flatMap((k) => {
     const suffix = suffixOf(k.label);
     return [`@auspicion/${k.label}`, `@auspicion/${k.label}${suffix}`,
-      `@auspicion/storeroom-js-${k.label}`, `@auspicion/storeroom-js-${k.label}${suffix}`];
+      `@auspicion/storeroom-js-${k.label}`, `@auspicion/storeroom-js-${k.label}${suffix}`,
+      `@auspicion/provident-storeroom-${k.label}`, `@auspicion/provident-storeroom-${k.label}${suffix}`];
   }))];
   /** **THE SWEEP — ONE INSTRUMENT, DRIVING THE SHIPPED BYTES AND THE CONTROLS BOTH**, so that a control
    *  measures the assertion that actually guards the tree and never a copy of it. It throws at the first
@@ -1588,7 +1641,7 @@ cell('P-PUB-6', 'S-SCOPE the alternative literal reading is written nowhere', as
     for (const [label, text] of homes) {
       for (const alternative of alternativeReadings) {
         assert.ok(!text.includes(alternative),
-          `${label} must not spell the alternative reading ${alternative} (\`PUB-DD-15\`; \`A86\`(b))`);
+          `${label} must not spell the alternative reading ${alternative} (\`PUB-DD-15\`; \`A86\`(b); \`A88\`(b))`);
         checks += 1;
       }
       for (const [spelled, suffix] of Object.entries(SUFFIXED)) {
@@ -1619,12 +1672,12 @@ cell('P-PUB-6', 'S-SCOPE the alternative literal reading is written nowhere', as
     try { sweepAlternativeReadings([['the main manifest', readFileSync(copy, 'utf8')]]); return null; }
     catch (err) { return err; }
   };
-  const pricedLiteral = `@auspicion/storeroom-js-${COVERED[0].label}${suffixOf(COVERED[0].label)}`;
-  const pricedStem = `@auspicion/storeroom-js-${COVERED[0].label}`;
+  const pricedLiteral = `@auspicion/provident-storeroom-${COVERED[0].label}${suffixOf(COVERED[0].label)}`;
+  const pricedStem = `@auspicion/provident-storeroom-${COVERED[0].label}`;
   const pricedControl = readFileSync(join(PKG_DIR, 'package.json'), 'utf8')
     .replace(`"${FIVE_NAMES[0]}"`, `"${pricedLiteral}"`);
   assert.ok(pricedControl.includes(pricedLiteral) && !pricedControl.includes(`"${FIVE_NAMES[0]}"`),
-    `the first control really carries \`A86\`(b)'s priced literal in place of the declared key (${pricedLiteral})`);
+    `the first control really carries \`A88\`(b)'s priced literal — \`A86\`(b)'s form, re-read at the project token — in place of the declared key (${pricedLiteral})`);
   const pricedVerdict = sweepCaught(1, pricedControl);
   assert.ok(pricedVerdict !== null,
     `THE FIRST CONTROL MUST FAIL: the sweep catches the priced alternative reading ${pricedLiteral} where it stands`);
@@ -1914,6 +1967,10 @@ cell('P-PUB-7', 'S-MANIFEST the licence notice travels with all six artefacts', 
   assert.ok(repositoryLicence.includes('Provident-Storeroom'), 'the repository\'s own `LICENSE` names the programme');
   assert.ok(repositoryLicence.includes('Copyright (C) 2026 Auspicion Innovations LLC'),
     'and carries the architect\'s own copyright line (`PUB-DD-12`)');
+  // **THE SIX HOMES ARE DERIVED FROM THE DECLARED SET AND ARE NOT TYPED, so the `A88` project-token move
+  // lands in this sweep with no byte of it changed** (`A88`(a); `docs/specs/storeroom-publish-proposal.md`
+  // `§14` item `7`): the main package's own unscoped identity stands (`A82`) and the five platform homes are
+  // the five declared names, whatever they are spelled — which is why this line is re-emitted UNMOVED.
   const noticeBearing = ['provident-storeroom', ...FIVE_NAMES];
   assert.equal(noticeBearing.length, 6, '`distribution.md §6.3`: SIX artefacts carry a notice');
   // **(1) THE MAIN PACKAGE'S OWN HALF, ASSERTED AS THE CONTRADICTION-FREE PAIR IT IS.** `§2.1` item 1 forbids
@@ -2257,7 +2314,7 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     assert.equal(new Set(rows.map((r) => r.runner)).size, 5,
       `${label}: \`§1.2\`: each runner builds its own target AND NO RUNNER SERVES TWO`);
     assert.deepEqual(rows.map((r) => r.name), FIVE_NAMES,
-      `${label}: the five declared names, name for name — and the AS-FILED spelling \`@provident-storeroom\` is not among them`);
+      `${label}: the five declared names, name for name — and neither the AS-FILED spelling \`@provident-storeroom\` nor the SUPERSEDED \`@auspicion/js-…\` form is among them`);
     // --- `§1.3` items 2–3 · `§1.4` step 6: THE HOST'S OIDC FEDERATION AND THE PROVENANCE SUBJECT ---
     const permissions = blockOf(code, 'permissions').join('\n');
     assert.equal(/^\s+contents:\s*read\s*$/m.test(permissions), true,
@@ -2301,6 +2358,15 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     }
     assert.equal(code.includes('@provident-storeroom'), false,
       `${label}: the retired scope is written NOWHERE in the workflow, and the five matrix names carry \`@auspicion\``);
+    // **⟶ ADDED BY THE `A88` PROJECT-TOKEN PASS: THE SUPERSEDED `@auspicion/js-…` SHAPE IS DRIVEN ABSENT
+    // BESIDE THE RETIRED SCOPE.** `§14` item `9` moves the workflow's five `matrix.include[].name` fields
+    // AND the comment naming the scope, so a stale matrix row or a stale comment fails at this home too and
+    // not only at the name-for-name comparison above — **the substring is absent from the new spelling, whose
+    // project token stands between the scope and the language marker** (`docs/specs/storeroom-publish-proposal.md`
+    // `§14`; `A88`(a)).
+    assert.equal(code.includes('@auspicion/js-'), false,
+      `${label}: the SUPERSEDED \`@auspicion/js-…\` spelling is written NOWHERE in the workflow's own code, and `
+      + 'the five matrix names carry the project token the ruling requires');
     return rows.length;
   };
   /** **THE PACKAGE'S OWN FORBIDDEN VERBS** (`§4.1` item 1; `§3.3`): a `publish` script, or any script whose
@@ -2334,6 +2400,12 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     ['the main package published NOT last', '    name: provident-storeroom (last, always)\n    runs-on: ubuntu-24.04\n', (t) => t.replace(`    needs: platform\n`, ``), 'needs'],
     // `§1.4`'s closing prohibition: A CREDENTIAL WRITTEN INTO A TRACKED BYTE.
     ['a credential in a tracked byte', 'NPM_TOKEN', (t) => t.replace(`          ref: \${{ github.ref }}\n`, `          ref: \${{ github.ref }}\n          token: \${{ secrets.NPM_TOKEN }}\n`), 'secrets'],
+    // **⟶ ADDED BY THE `A88` PROJECT-TOKEN PASS: A MATRIX ROW LEFT IN THE SUPERSEDED `@auspicion/js-…`
+    // FORM** — the shape `§14` item `9` moves, and the clause this pass added above refuses. The control
+    // rewrites ONE matrix `name:` back to the superseded spelling, so that clause is **MEASURED rather than
+    // asserted**: the same instrument catches it, at the same home, and its verdict names the shape.
+    ['a platform name left in the superseded form', "@auspicion/js-linux-x64-gnu",
+      (t) => t.replace(`'@auspicion/provident-storeroom-js-linux-x64-gnu'`, `'@auspicion/js-linux-x64-gnu'`), '@auspicion/js-'],
   ];
   const wfVerdicts = [];
   for (const [what, injected, mutate, named] of wfControls) {
