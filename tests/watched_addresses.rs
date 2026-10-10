@@ -44,6 +44,21 @@
 //! SKIP (`session` is the process, `§6.1` item 3; no reload verb exists), and the cells' own comment block
 //! names it.** **NO DRIVE ABOVE IS TOUCHED, WEAKENED OR RE-DERIVED BY THIS CLAUSE** (`§0.4` clauses 2 and 3;
 //! `parameter-semantics.md §2.13` `PAR-13`; `write-and-read.md §6.5` item 12; `DD-42`; `DD-38`).
+//!
+//! **⟶ ADDED 2026-10-11 (`role_test_writer`) — `TWO` CELLS AT THE FOOT OF THIS FILE FOR `write-and-read.md
+//! §6.5` ITEM 14 (d)–(e), THE `A78`/`CF-DUP-3` CLAUSE, AND THE STATES THEY ADD TO THE LIST ABOVE, EACH
+//! NAMED:** **a `listen` that LANDS AFTER a trigger has been computed** (a NEW address, so the home gains an
+//! entry) — **whose declared answer is that the EARLIER trigger's returned set stands AS RETURNED and the
+//! newcomer is carried by the NEXT trigger** (item 14 (e) (i)); **and its SYMMETRIC `unlisten`** (one home
+//! entry removed after the computation) — **whose declared answer is that the earlier set STILL CARRIES the
+//! withdrawn handle while a LATER trigger NO LONGER CARRIES it, with the item-4-class NO-OP SUCCESSES beside
+//! them leaving the home the next trigger reads UNCHANGED** (item 14 (e) (ii)) — plus **the kept registration
+//! the withdrawal does not name** in both cells. **NO ROW OF THE TYPED REGISTER IS MOVED, RE-DERIVED OR
+//! RE-NUMBERED BY THIS CLAUSE** (`contract.md §5.8`; `§5.4` (f); item 14 (g): *"it re-decides no clause of
+//! items 8–13; it moves no row of the typed register and no row of the defaults table"*). **NO DRIVE ABOVE IS
+//! TOUCHED, WEAKENED OR RE-DERIVED, AND NO ASSERTION OF THESE TWO IS AN INFERENCE FROM THE OTHER'S:** the
+//! `listen` cell and the `unlisten` cell each assert BOTH of their halves (`§6.5` item 14 (d); item 14 (e)
+//! (i)–(ii); `A78`; `DD-37`).
 
 mod support;
 use support::*;
@@ -1130,5 +1145,230 @@ fn dd_42_the_mint_never_takes_a_token_the_instance_s_home_already_holds() {
         same_handle_set(&adopted_survives.triggered, &one_handle(&candidate)),
         "DD-42: *\"the construction's adopted tokens are untouched by the mint's own rule\"* — the adopted \
          registration stands after the minted token's withdrawal"
+    );
+}
+
+// **⟶ ADDED 2026-10-11 (`role_test_writer`) — THE DRIVE FOR `write-and-read.md §6.5` ITEM 14 (d)–(e), THE
+// `A78`/`CF-DUP-3` CLAUSE: WHAT A TRIGGER'S RETURNED SET CONTAINS, AND WHEN A LATER `listen` TAKES EFFECT.**
+// **NO CELL OF ANY RED SET DROVE THIS RULE — it is authored here, in the STORE's own red set, at the surface
+// the clause declares it a property of** (`§6.5` item 14 (d): *"AND THIS IS A PROPERTY OF THE STORE'S LISTENER
+// SURFACE AND NOT OF ANY CONSUMER'S DELIVERY"*).
+//
+// **THE CLAUSE, AT ITS OWN BYTES — `docs/specs/storeroom-native/write-and-read.md §6.5` item 14 (d):** **"WHAT
+// A TRIGGER'S RETURNED SET CONTAINS IS WHAT THE HOME HELD WHEN THE TRIGGER WAS COMPUTED. A `listen` OR AN
+// `unlisten` THAT LANDS AFTER A TRIGGER HAS BEEN COMPUTED CANNOT ALTER THAT TRIGGER'S RETURNED SET: IT TAKES
+// EFFECT AT THE NEXT ONE."** **AND ITEM 14 (e) (i), the arm this cell drives:** *"WHERE ITS ADDRESS WAS NOT IN
+// THE HOME AT THE TRIGGER'S OWN COMPUTATION, THE TRIGGER'S RETURNED SET DOES NOT CARRY IT — the new
+// registration's handle is returned by THE NEXT trigger whose prefix test it satisfies, and by nothing
+// earlier"*, **with the clause's own licence for the drive's form** (`§6.5` item 14 (f)): *"a drive asserts
+// WHICH handles a trigger returned and at WHICH trigger, never where in a list they stood"* (`§6.5` item 10
+// (e); `DD-37`).
+//
+// **BOTH HALVES ARE ASSERTED, AND NEITHER IS AN INFERENCE FROM THE OTHER:** **(1) THE EARLIER SET STANDS AS
+// RETURNED** — the caller's own `WriteResult` keeps exactly the handle the home held at its computation, and
+// the newcomer's handle is NOT in it; **(2) THE NEXT TRIGGER REFLECTS THE CHANGE** — the second write at an
+// address the newcomer's own address is a prefix of carries BOTH handles, and the newcomer's registration is
+// therefore not lost, deferred past its own trigger, or folded into a set the earlier computation returned.
+// **The two observables are read off the RETURNED RECORDS themselves, never off the home, which no declared
+// verb exposes** (`§6.5` item 8 (b)/(c)/(e); the home is outside the graph and outside every read).
+// Drives: §6.5 item 14 (d); §6.5 item 14 (e) (i), its first arm; §6.5 item 10 (d) (iii); §6.5 items 8 (a)/10
+// (e)/11/12; §5.8 (a); §3.4 W-3/W-4; A78; DD-37
+#[test]
+fn s6_5_item_14_d_a_listen_landing_after_a_trigger_takes_effect_at_the_next_trigger_only() {
+    let mut store = new_store();
+    let early = ok(
+        store.listen(AddressArg::List(key(&["a"]))),
+        "§6.5 item 12: the ONE entry the home holds at the FIRST trigger's computation",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_obj(&[])),
+        "§3.4 W-4: the branch at `a`",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a", "b"])), w_mem(), v_obj(&[])),
+        "§3.4 W-4: the branch at `a.b`, so the SECOND write's address resolves through it — the container \
+         chain is created BEFORE the newcomer's address is registered, so nothing but the newcomer's \
+         `listen` moves the home between the two triggers",
+    );
+    // (0) THE FIRST TRIGGER, RETURNED AND HELD BY THE CALLER.
+    let first = ok(
+        store.write(AddressArg::List(key(&["a", "b", "c"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    assert!(
+        same_handle_set(&first.triggered, &one_handle(&early)),
+        "§6.5 item 14 (d) pre-condition: the home held EXACTLY this one entry when the FIRST trigger was \
+         computed"
+    );
+    let first_triggered = first.triggered.clone();
+    // (1) THE `listen` THAT LANDS AFTER THAT COMPUTATION — a NEW address, so the home GAINS an entry.
+    let newcomer = ok(
+        store.listen(AddressArg::List(key(&["a", "b", "c"]))),
+        "§6.5 item 12: the newcomer's address was NOT in the home at the first trigger's computation",
+    );
+    assert!(
+        newcomer != early,
+        "§6.5 item 12: a NEW address is a MINT — the newcomer is not the entry the first trigger returned"
+    );
+    // (2) THE EARLIER SET STANDS AS RETURNED AND IS NOT RE-DERIVED, RE-READ OR AMENDED.
+    assert!(
+        !first_triggered.contains(&newcomer),
+        "§6.5 item 14 (d): *\"a `listen` … that lands after a trigger has been computed CANNOT ALTER THAT \
+         TRIGGER'S RETURNED SET\"* — the newcomer's handle is not in the set the first trigger returned"
+    );
+    assert!(
+        same_handle_set(&first_triggered, &one_handle(&early)),
+        "§6.5 item 14 (d): *\"the set a computed trigger carries is FIXED AT THE MOMENT OF ITS COMPUTATION and \
+         is not re-read, re-derived or amended afterwards\"* — the returned set still answers the ONE entry \
+         the home held then, and its membership has not moved"
+    );
+    // (3) THE NEXT TRIGGER CARRIES THE NEWCOMER — the change took effect at the NEXT one, and by nothing
+    //     earlier.
+    let second = ok(
+        store.write(AddressArg::List(key(&["a", "b", "c"])), w_mem(), v_num(2.0)),
+        "§3.4 W-3: the SECOND trigger, computed over the home as it now stands",
+    );
+    assert_eq!(
+        second.triggered.len(),
+        2,
+        "§6.5 item 14 (e) (i): the newcomer's handle *\"is returned by THE NEXT trigger whose prefix test it \
+         satisfies\"* — the home now holds two entries whose addresses are prefixes of this write's"
+    );
+    assert!(
+        second.triggered.contains(&newcomer),
+        "§6.5 item 14 (e) (i): the newcomer's handle IS returned by the next trigger"
+    );
+    assert!(
+        same_handle_set(&second.triggered, &[early.clone(), newcomer.clone()]),
+        "§6.5 item 10 (d) (iii)/§5.8 (a): the SECOND trigger's set is EXACTLY the two home entries — the early \
+         one is not lost by the newcomer's landing, and the newcomer is not carried twice"
+    );
+    // AND THE EARLIER RECORD IS STILL THE EARLIER ANSWER — read again AFTER the second trigger computed, so a
+    // store that re-derived it would be caught here as well as at (2).
+    assert!(
+        same_handle_set(&first.triggered, &one_handle(&early)),
+        "§6.5 item 14 (d): the FIRST record's returned set is unchanged after every later trigger too"
+    );
+}
+
+// **⟶ ADDED 2026-10-11 (`role_test_writer`) — THE SYMMETRIC ARM: AN `unlisten` THAT LANDS AFTER A TRIGGER HAS
+// BEEN COMPUTED** (`write-and-read.md §6.5` item 14 (e) (ii), the `A78`/`CF-DUP-3` clause's second case).
+//
+// **THE CLAUSE, AT ITS OWN BYTES — item 14 (e) (ii):** **"IT REMOVES ONE HOME ENTRY AND IT DOES NOT REWRITE
+// THE SET THE EARLIER TRIGGER RETURNED: that set still carries the handle, because it is what the home held
+// when the trigger was computed; the withdrawal's effect is that A LATER TRIGGER at an address the withdrawn
+// listener's own address is a prefix of NO LONGER CARRIES THAT HANDLE."** **BOTH HALVES ARE ASSERTED HERE TOO:
+// (1) THE EARLIER SET STILL CARRIES THE WITHDRAWN HANDLE — the withdrawal cannot reach back into a computed
+// trigger — and (2) THE NEXT TRIGGER NO LONGER CARRIES IT, while a registration the withdrawal did NOT name
+// still does.** **AND THE CLAUSE'S OWN NO-OP CLAUSE IS DRIVEN BESIDE THEM:** *"WHERE THE `unlisten` WAS ONE OF
+// THE ITEM-4-CLASS NO-OP SUCCESSES — an unknown, a foreign, a prior-session, a fabricated or a non-handle
+// value — IT REMOVED NOTHING AT ALL, so the home it leaves is the home the next trigger reads, unchanged"*
+// (item 14 (e) (ii); `§6.5` item 12; `PAR-13`). **The order of the returned members is read by no assertion
+// of this cell: every comparison is a SET comparison** (item 14 (e) (ii)'s closing sentence; item 10 (e);
+// `DD-37`).
+// Drives: §6.5 item 14 (d); §6.5 item 14 (e) (ii), both halves and its no-op clause; §6.5 item 10 (d) (iii);
+// §6.5 items 8 (a)/10 (e)/11/12; §5.8 (a); §0.4 clause 3; PAR-13; §3.4 W-3/W-4; A78; DD-37
+#[test]
+fn s6_5_item_14_d_an_unlisten_landing_after_a_trigger_never_rewrites_the_set_it_returned() {
+    let mut store = new_store();
+    let doomed = ok(
+        store.listen(AddressArg::List(key(&["a"]))),
+        "§6.5 item 12: the entry this drive WITHDRAWS after the first trigger",
+    );
+    let standing = ok(
+        store.listen(AddressArg::List(key(&["a", "b"]))),
+        "§6.5 item 12: the entry the withdrawal does NOT name — the kept half's control",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_obj(&[])),
+        "§3.4 W-4: the branch at `a`",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a", "b"])), w_mem(), v_obj(&[])),
+        "§3.4 W-4: the branch at `a.b`, so the SECOND and THIRD writes' address resolves through it — the \
+         container chain is created BEFORE the withdrawal lands, so nothing but the withdrawal itself moves \
+         the home between the first trigger and the next one",
+    );
+    // (0) THE FIRST TRIGGER, RETURNED AND HELD BY THE CALLER — BOTH entries are prefixes of this write.
+    let first = ok(
+        store.write(AddressArg::List(key(&["a", "b", "c"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(
+        first.triggered.len(),
+        2,
+        "§6.5 item 10 (d) (iii) pre-condition: both registrations' addresses are prefixes of this write"
+    );
+    assert!(
+        same_handle_set(&first.triggered, &[doomed.clone(), standing.clone()]),
+        "§6.5 item 14 (d) pre-condition: the home held EXACTLY these two entries when the FIRST trigger was \
+         computed"
+    );
+    let first_triggered = first.triggered.clone();
+    // (1) THE `unlisten` THAT LANDS AFTER THAT COMPUTATION — one home entry removed, and one entry only.
+    ok(
+        store.unlisten(&doomed),
+        "§6.5 item 12: *\"it drops ONE home-map entry\"* — the entry this handle names",
+    );
+    // (2) THE EARLIER SET STILL CARRIES THE WITHDRAWN HANDLE: the withdrawal did not rewrite it.
+    assert!(
+        first_triggered.contains(&doomed),
+        "§6.5 item 14 (e) (ii): *\"that set STILL CARRIES THE HANDLE, because it is what the home held when the \
+         trigger was computed\"* — the withdrawal cannot reach back into a computed trigger"
+    );
+    assert!(
+        same_handle_set(&first_triggered, &[doomed.clone(), standing.clone()]),
+        "§6.5 item 14 (d): the returned set is not re-read, re-derived or amended afterwards — it still \
+         answers the TWO home entries the home held then"
+    );
+    // (3) THE NEXT TRIGGER NO LONGER CARRIES IT, AND THE UNNAMED REGISTRATION STILL DOES.
+    let second = ok(
+        store.write(AddressArg::List(key(&["a", "b", "c"])), w_mem(), v_num(2.0)),
+        "§3.4 W-3: the SECOND trigger, computed over the home as it now stands",
+    );
+    assert!(
+        !second.triggered.contains(&doomed),
+        "§6.5 item 14 (e) (ii): *\"a LATER trigger at an address the withdrawn listener's own address is a \
+         prefix of NO LONGER CARRIES THAT HANDLE\"*"
+    );
+    assert!(
+        same_handle_set(&second.triggered, &one_handle(&standing)),
+        "§6.5 item 12: *\"it drops ONE home-map entry\"* — the OTHER registration is untouched, and the next \
+         trigger's set is exactly it"
+    );
+    // (4) THE NO-OP CLAUSE BESIDE THE TWO HALVES: an `unlisten` over the item-4-class values removes NOTHING,
+    //     so the home the next trigger reads is UNCHANGED (`§6.5` item 12; PAR-13; `§0.4` clause 3). **THE
+    //     OUTSIDE VALUES ARE SPELLED SO THE DRIVE CANNOT BE SATISFIED BY A COLLISION:** a FABRICATED token
+    //     (a value this store never minted, spelled so no generator of this surface produces it) and a
+    //     `string` that no verb returned — both are `§0.4` clause 3's own class, answered *"at `unlisten`, a
+    //     NO-OP SUCCESS, producing NO code and removing NO other registration"*.
+    ok(
+        store.unlisten(&ListenerHandle::from("a-token-this-store-never-minted")),
+        "PAR-13/§0.4 clause 3: a FABRICATED value → the same no-op success",
+    );
+    ok(
+        store.unlisten(&ListenerHandle::from("")),
+        "PAR-13: a BLANK token → the same no-op success",
+    );
+    let third = ok(
+        store.write(AddressArg::List(key(&["a", "b", "c"])), w_mem(), v_num(3.0)),
+        "§3.4 W-3 after the two no-op successes",
+    );
+    assert_eq!(
+        third.triggered.len(),
+        1,
+        "§6.5 item 14 (e) (ii): the no-op successes *\"removed NOTHING AT ALL, so the home it leaves is the \
+         home the next trigger reads, unchanged\"* — ONE entry still stands"
+    );
+    assert!(
+        same_handle_set(&third.triggered, &one_handle(&standing)),
+        "§6.5 item 12/PAR-13: and the entry that stands is the registration the withdrawal did not name — the \
+         WITHDRAWN handle is STILL absent (that is what the earlier withdrawal did), while nothing else moved"
+    );
+    // AND THE FIRST RECORD IS STILL THE FIRST ANSWER, read after the later triggers too.
+    assert!(
+        same_handle_set(&first.triggered, &[doomed.clone(), standing.clone()]),
+        "§6.5 item 14 (d): the FIRST record's returned set is unchanged by the withdrawal and by every later \
+         trigger"
     );
 }

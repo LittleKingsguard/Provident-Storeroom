@@ -99,6 +99,20 @@ test('handle_a_repeat_listen_at_a_registered_address_returns_the_entries_own_han
   // triggers EXACTLY ONE handle — never two, and never none.
   const first = write(inst, ['a'], 'mem', 1);
   assert.equal(first.triggered.length, 1, '`§6.5` item 8 (a): ONE home entry per address, so ONE handle');
+  // **AND THE REPEAT HANDS BACK THE VERY VALUE THE FIRST CALL RETURNED — `===`, WHICH IS WHAT `§2.3` ITEM 2
+  // MAKES ASSERTABLE AND `§5.5`'s STILL-REGISTERED ARM REQUIRES** (*"MINTS NOTHING and RETURNS THE EXISTING
+  // ENTRY'S HANDLE — the SAME opaque value — so no new registry entry arises"*): the package's registry is
+  // keyed by handle identity (`§2.4` item 6 (b): *"the matching is the registry's own lookup BY THAT IDENTITY
+  // AND BY NOTHING ELSE"*), so a second, equal-but-distinct opaque value keyed by the same token would be
+  // exactly the NEW registry entry this arm declares does NOT arise — and it would break here.
+  assert.equal(
+    repeat,
+    minted,
+    '`§2.3` item 6 / `§5.5`\'s STILL-REGISTERED arm: the two calls answer ONE opaque value, never two',
+  );
+  // ...AND THE SAME VALUE CARRIES THE TRIGGER, ONCE (`§6.5` item 10 (d) (iii)'s prefix test at the
+  // registration's own address).
+  assert.equal(first.triggered[0], minted, 'the ONE home entry\'s handle IS this value');
   // **AND THE REPEAT NAMES THAT ENTRY ITSELF:** `unlisten` removes exactly the entry whose handle it is
   // handed (`§6.5` item 12's *"which is why `unlisten` over the returned handle removes exactly one entry"*),
   // so withdrawing the REPEAT's value withdraws the address's registration — which IS NOT what a second,
@@ -228,12 +242,41 @@ test('registry_the_withdrawal_removes_the_store_side_home_entry_and_never_the_fu
     [],
     '§2.4 rule 4: `unlisten` withdraws the store-side home entry, so the handle does not appear again',
   );
-  // `DD-15`: the package's own registry entry stands — a later re-`listen` mints a DIFFERENT handle whose
-  // registration is a NEW registry entry. (The function half of the rule — that a WITHDRAWN handle's
-  // function "simply never fires again" — is driven at `register.test.mjs`'s `S-REG` line, which reaches the
-  // registration site `§2.4` item 5 declared; this cell keeps the STORE-side half it can reach.)
+  // **⟶ RE-DERIVED 2026-10-11 (`role_test_writer`), BECAUSE THE AS-FILED LINE ASSERTED THE REFUTED SENTENCE
+  // IN THE ONE CASE THE OPERATIVE RULE EXCLUDES.** As filed this cell read, verbatim —
+  // `assert.ok(again !== handle, 'a re-\`listen\` at the same address mints a DIFFERENT handle');` — under a
+  // comment saying *"`DD-15`: the package's own registry entry stands — a later re-`listen` mints a DIFFERENT
+  // handle whose registration is a NEW registry entry."* **THE DRIVE ITSELF IS RIGHT — this `unlisten` DID
+  // remove the address's home entry, so the re-`listen` here DOES mint a fresh handle. THE COMMENT'S SUBJECT
+  // IS WHAT MOVED: it stated the mint as the rule about "the same address", where the operative rule makes it
+  // the WITHDRAWN case's ALONE.**
+  //
+  // **THE OPERATIVE RULE, AT ITS OWN BYTES, `docs/specs/storeroom-js/contract.md §2.3` item 6** — *"`listen(address)`
+  // where the address is NOT in the home mints a fresh store-unique token; `listen(address)` where the address
+  // IS ALREADY REGISTERED returns the EXISTING entry's handle and adds NO second entry"* — **which the same
+  // item states as an INHERITANCE from `docs/specs/storeroom-native/write-and-read.md §6.5` item 12 (c)**
+  // (*"a `listen(address)` whose address IS already registered returns the EXISTING entry's handle rather than
+  // minting a second one"*), **read with item 2's address-level idempotence and `A45`'s ONE home entry per
+  // address, and with `§5.5`'s dated re-derivation of `S-WITHDRAW`'s own printed subject**, whose two arms are
+  // printed there as a table: **the WITHDRAWN arm** (the `unlisten` REMOVED the address's one store-side home
+  // entry ⇒ *"a later `listen` at that address MINTS A FRESH token"*) **and the STILL-REGISTERED arm** (the
+  // `unlisten` ahead of it was one of `§2.3` item 4's NO-OP SUCCESSES, which remove NOTHING ⇒ *"a later
+  // `listen` at that address MINTS NOTHING and RETURNS THE EXISTING ENTRY'S HANDLE — the SAME opaque value"*).
+  // **THE CELL ITSELF IS UNTOUCHED, ASSERTION BY ASSERTION, AND IT NOW DRIVES THE WITHDRAWN ARM WITH ITS OWN
+  // NAME SAID OUT LOUD, so the ONE case the sentence is true of is not read as the whole rule.** **THE SAME
+  // RE-DERIVATION IS DRIVEN AT ITS OTHER HALF — the STILL-REGISTERED arm — IN THE CELL ABOVE**
+  // (`handle_a_repeat_listen_at_a_registered_address_returns_the_entries_own_handle`) **and in this file's
+  // sibling `register.test.mjs` at `P-SM-5`'s `S-WITHDRAW` line.** (The function half of the rule — that a
+  // WITHDRAWN handle's function "simply never fires again" — is driven at `register.test.mjs`'s `S-REG` line,
+  // which reaches the registration site `§2.4` item 5 declared; this cell keeps the STORE-side half it can
+  // reach.)
   const again = listen(inst, ['a']);
-  assert.ok(again !== handle, 'a re-`listen` at the same address mints a DIFFERENT handle');
+  assert.ok(
+    again !== handle,
+    '§5.5\'s WITHDRAWN arm: the `unlisten` ABOVE removed the address\'s home entry, so this re-`listen` ' +
+      'mints a FRESH handle — *"a later `listen` at that address MINTS A FRESH token"* — and it is NOT the ' +
+      'still-registered arm, where the SAME opaque value would come back',
+  );
   const second = write(inst, ['a'], 'mem', 2);
   assert.equal(second.triggered.length, 1);
 });

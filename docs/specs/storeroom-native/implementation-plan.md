@@ -355,6 +355,24 @@ new pinnable claim.** **The proposal-stage plan's own body stands at
 | **`A8` — the trio and the crate's own leg** | the project's three checks plus the additive fourth leg, each with the LAYER it covers stated, and the crate's own test run as a declared additional leg | the supervisor's validation trio | the frozen green tree | the commands' measured exit codes and figures, each with its layer | a node-suite green is ENVELOPE-green, never `APP`-green |
 | **`A9` — the amortised row, the ledger and the archival loop** | amends the shipped `DONE` row's cells **in place** with dated re-measures and their layers; reconciles the tracker cells; lands the archival loop — **and moves no ledger count** | the supervisor's landing pass (the row's admission is the ARCHITECT'S) | every gate's landed artifact | the amended `DONE` row · the reconciled trackers · the archival record | the architect admits ROWS, not a pass; and the row must cite this amendment's adversarial pass and its findings |
 
+**⟶ AMENDED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+*"Apply narrowed c"*: THE `A8` ROW'S OWN CELL, READ AT THIS CELL SO NO READER OF THE PHASE TABLE STOPS
+WITHOUT THE LEG.** `RCA-8(d)` ANNOTATE-BESIDE: **the `A8` row above stands BYTE-FOR-BYTE and is read
+THROUGH this clause; THIS clause is a PURE INSERTION, it adds no phase, moves no `BLOCKED-BY` cell and
+takes no ruling.** **THE TRIO THE `A8` ROW NAMES NOW CARRIES ONE ADDED, NARROWED LEG — TWO COMMANDS, ONE
+PER CRATE, EACH GATING THE `clippy::correctness` GROUP ON THAT CRATE'S TEST TARGETS:**
+**`cargo clippy --offline --tests -- -D clippy::correctness` addresses THE STORE CRATE at the repository
+root, and `cargo clippy --manifest-path bindings/js/Cargo.toml --offline --tests -- -D clippy::correctness`
+addresses THE SIBLING CRATE, its manifest named explicitly so the resolution cannot become the root
+package's.** **A NON-ZERO EXIT FROM EITHER COMMAND FAILS THE TRIO — so `A8` is green only when BOTH exit
+`0` — and both legs' subject is their own crate's TEST TARGETS, so both are `ENVELOPE/PURE`-green and
+neither claims an `APP`-green.** **THE LEG'S FULL DECLARATION — the narrowing's reason and its measurement,
+the `allow` admissibility rules and the NOTE FOR A FUTURE AUTHOR — stands at `§8.5`'s dated clause of this
+date, which is the ONE HOME of the trio's definition; the sibling crate's own half, with its layer label and
+its pointer back to that home, stands at `docs/specs/storeroom-js/acceptance.md` `§4.1`'s dated clause of this
+date** (`[A1: the architect's ruling *"Apply narrowed c"*, as `docs/next-steps.md`'s `## NON-UNIT ROWS` row
+of this date records it | requirement]`).
+
 ### §8.4 THE BLOCKED-BY CELLS — every phase the open rows block, marked
 
 | Phase | What blocks it now | What does NOT block it |
@@ -372,6 +390,85 @@ new pinnable claim.** **The proposal-stage plan's own body stands at
 
 **DONE REQUIRES ALL OF THE FOLLOWING, each bound where this directory can bind it.**
 
+**⟶ THE TRIO'S DEFINITION LIVES IN THIS SECTION, AND IT IS ONE HOME: `§8.3`'s `A8` row's *"the trio"* means
+the THREE CHECKS THIS SECTION'S OWN DATED CLAUSE NAMES PLUS THE ADDED LEG IT DECLARES, and every other cell
+of this directory — and every cell of any other directory — that says *"the trio"* points at that clause
+for its members rather than restating them** (`[T: the trio's members, declared once in this directory so
+no cell enumerates a trio of its own | CONTRACT]`). **The three checks it inherits are `cargo build`,
+`cargo clippy` and `cargo fmt --check`, each taken on both crates; the added leg and its two commands stand
+in the dated clause at this section's foot.**
+
+**THE LEG, MEASURED AND GREEN — TWO COMMANDS, ONE PER CRATE, EACH NAMING THE PACKAGE IT ADDRESSES:**
+
+```
+cargo clippy --offline --tests -- -D clippy::correctness                                   # the STORE crate
+cargo clippy --manifest-path bindings/js/Cargo.toml --offline --tests -- -D clippy::correctness  # the SIBLING crate
+```
+
+**THE FIRST COMMAND ADDRESSES THE STORE CRATE** — **this unit's own package at the repository root, whose id
+is `storeroom_native` (`§1.1` item 2), taken at the repository root with NO manifest flag, so what it
+resolves is the root package and nothing else.** **THE SECOND COMMAND ADDRESSES THE SIBLING CRATE** — **the
+independent JS-boundary crate under `bindings/js/`, whose manifest is named explicitly so the resolution
+cannot become the root package's.** **BOTH ARE TAKEN AT THE REPOSITORY ROOT.** **A NON-ZERO EXIT FROM EITHER
+COMMAND FAILS THE TRIO** — **both are legs of a gate and neither is a report** — **and `§8.5` item `11` is
+read with this: the trio is green only when BOTH commands exit `0`.** **AND THE LAYER EACH COVERS IS STATED
+SO NO READING RUNS THEM TOGETHER: each command's subject is ITS OWN CRATE'S TEST TARGETS — a `cargo clippy
+--tests` invocation covers that crate's test targets and the library they test — so both legs are
+`ENVELOPE/PURE`-green and NEITHER claims an `APP`-green, exactly as the `A8` row's own rule requires.**
+
+**WHY THE LEG IS NARROWED RATHER THAN `-D warnings`, STATED WITH THE MEASUREMENT THAT DECIDED IT, BECAUSE A
+NARROWING OWES ITS REASON AT ITS OWN CELL.** **Measured at the leg's adoption, the `--tests` clippy surface
+carried `36` diagnostics — and `34` of them are style or performance PREFERENCE, or rustc built-ins
+`cargo test` ALREADY PRINTS from `tests/**`: `7` blocks of `unused_imports`, `3` `unused_mut`, and
+`2` `non_snake_case`.** **Gating those would cost a cleanup pass AND an `allow` for every wire-spelled
+member — friction with NO defect-finding gain, and an `allow` per member would write exactly the kind of
+blanket silence this clause refuses below.** **WHEREAS THE `clippy::correctness` GROUP IS THE CLASS THAT
+WOULD MATTER — the group whose members flag code that is wrong rather than merely unfashionable — and it
+costs nothing today: so the narrow gate buys the class that matters AT ZERO PRESENT COST.**
+
+**AND THE LEG FIRED ON ADOPTION, WHICH IS THE EVIDENCE THAT IT IS A TRIPWIRE AND NOT A FORMALITY:** **the
+root crate's `clippy::correctness` population measured `2` — both `clippy::approx_constant`, on π literals
+in the JSON round-trip battery (`tests/e2e_json_round_trip.rs`), both FALSE POSITIVES because the literal IS
+the assertion's subject — while the sibling crate's population measured `0`.** **Both root sites are
+silenced by a TARGETED `#[allow]` that carries its reason at its own cell, and the gate now exits `0` on
+both crates.** **TWO RULES ARE ADMISSIBLE AND BIND THE LEG'S OWN MAINTENANCE: NO CRATE-LEVEL AND NO
+MODULE-LEVEL `allow` IS ADMISSIBLE under this ruling; and NO LINT IS OBEYED WHERE OBEYING IT WOULD DEFEAT A
+CELL** — an `allow` at crate or module scope would silence the group the leg exists to gate, and a cell
+whose literal (or whose spelling, or whose order) IS its own subject may not be rewritten to satisfy a
+lint.** **A THIRD SITE OF EITHER KIND IS A FINDING AT THE TRIO'S OWN GATE AND NOT A CLEANUP.** **AND ONE
+CORRECTION THE ADOPTION PRODUCED, NAMED SO A LATER READER DOES NOT RE-DERIVE IT: the count of
+correctness-class hits was first read as `0` — a GREP ARTIFACT, because the group's name never appears in
+the diagnostic text — and the true count is `2`; the isolation instrument is
+`-A clippy::all -W clippy::correctness`** (`docs/next-steps.md`, its `## NON-UNIT ROWS` section's dated
+clause of this date — THE TRACKER, WHICH CARRIES THE RULING AND ITS MEASUREMENTS AND IS NOT A CONTRACT
+DIRECTORY; it is cited as the record of the ruling, and the declaration above is what MAKES the leg a cell
+of this directory's validation) (**[A1: the architect's ruling *"Apply narrowed c"*, as `docs/next-steps.md`'s
+non-unit row of this date records it | CONTRACT]**; the measurement itself is not re-derived here and no
+`M`-tag is claimed for it).
+**THE SIBLING CRATE'S HALF OF THE SAME DECLARATION STANDS AT
+`docs/specs/storeroom-js/acceptance.md` `§4.1`'s dated clause of this date, which declares that crate's
+command, its `ENVELOPE/PURE` layer label and its pointer back to this clause as the ONE HOME of the trio's
+definition; and `docs/specs/storeroom-js/implementation-plan.md` `§4`'s `Q8` row is read with it.**
+
+**A NOTE FOR A FUTURE AUTHOR — A NOTE, AND NOT A RULE OF THIS CONTRACT: rustc IGNORES AN `#[allow]` WRITTEN
+ON AN ITEM-POSITION `macro_rules!` INVOCATION.** **Probe-measured, rustc answers `unused_attributes` —
+*"the built-in attribute `allow` will be ignored, since it's applied to the macro invocation"* — and the
+lint fires anyway, because the lint level governing an expanded literal is the level of the generated
+item's scope.** **THEREFORE A TARGETED ALLOW MUST TRAVEL THROUGH THE MACRO: the JSON round-trip battery's
+`rt_case!` gained an ASTERISK-QUANTIFIED ATTRIBUTE SLOT that forwards the attribute to the cell it
+generates — and because `*` admits ZERO attributes, EVERY OTHER CELL OF THAT BATTERY EXPANDS
+BYTE-IDENTICALLY to what it expanded to before the slot existed.** **This is recorded because a later author
+would otherwise re-derive it; it obliges no leg, adds no `allow`, moves no figure, and is not contract
+text** (`[T: the rustc behaviour, recorded as a NOTE for a future author and never as a rule of the contract
+| OBSERVATION]`).
+
+**AND THE FAILURE CLASS, NAMED SO THE ITEM THAT OWES THIS LEG IS CHECKABLE:** **a non-zero exit from EITHER
+command, a leg reported without its crate, a leg reported without its layer, a crate-level or module-level
+`allow` added to silence the group, a lint obeyed where obeying it defeats a cell, or a green claimed for a
+crate the command did not address — EACH is the `§8.5` `IT IS NOT DONE IF` clause's *"a figure moved without a
+dated re-measure or a layer"* or its *"an `APP`-green was claimed from a node-green"* read at this leg, and
+each FAILS the trio** (`[T: the failure class | NEGATIVE]`).
+
 | # | The item | What makes it checkable |
 | --- | --- | --- |
 | **1** | the architect's go-ahead is recorded, and the gate-1 record exists with its Semantics block, the union and the `decomposition` row | the listener gate-1 record's own status block |
@@ -388,7 +485,17 @@ new pinnable claim.** **The proposal-stage plan's own body stands at
 | **12** | the shipped `DONE` row's cells are amended in place with dated re-measures, its own adversarial pass cited, and the row is **not re-opened** | `docs/next-steps.md`'s `## DONE` row |
 | **13** | the stale tracker cells are reconciled and the new row stands **inside** `## OPEN`'s table | the trackers |
 
-**IT IS NOT DONE IF:** a listener-surface row was authored or driven, an order or an attachment rule was ruled, or a throwing body was specified; a park was read as a closure, lifted, or named as a reversal instrument; a listener or integration question was put to the architect while a park stands; a per-node member was added without this directory's member and spelling tables moving in the same pass; a ninth register row was authored or a second register opened; a second `derivation:` clause was written; a second crate, a workspace member or a red set outside `tests/**` appeared; the red set was authored or run after the implementation; an existing red-set file was rewritten or an assertion weakened; a figure moved without a dated re-measure or a layer; an `APP`-green was claimed from a node-green; a citation points at a file, a row or an id that does not resolve in this repository (`DEF-16` included); a unit row was admitted or a ledger count moved by a pass.
+**IT IS NOT DONE IF:** a listener-surface row was authored or driven, an order or an attachment rule was ruled, or a throwing body was specified; a park was read as a closure, lifted, or named as a reversal instrument; a listener or integration question was put to the architect while a park stands; a per-node member was added without this directory's member and spelling tables moving in the same pass; a ninth register row was authored or a second register opened; a second `derivation:` clause was written; a second crate, a workspace member or a red set outside `tests/**` appeared; the red set was authored or run after the implementation; an existing red-set file was rewritten or an assertion weakened; a figure moved without a dated re-measure or a layer; an `APP`-green was claimed from a node-green; a citation points at a file, a row or an id that does not resolve in this repository (`DEF-16` included); a unit row was admitted or a ledger count moved by a pass. **AND THE LEG DECLARED AT THIS SECTION'S FOOT IS READ WITH THAT SENTENCE: a NON-ZERO EXIT from EITHER of its two commands fails the trio, and so does a leg reported without its crate or without its layer.**
+
+**⟶ ADDED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+*"Apply narrowed c"*: THE TRIO GAINS ONE NARROWED LEG, DECLARED AT THIS SECTION'S VALIDATION AND ACCEPTANCE
+CELL (`§8.3`'s `A8` row and the two statements above — the cells that OWE the trio's green) AND AT NO OTHER
+CELL.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte of `§8.5` above and of the `§8.3` `A8` row stands
+byte-for-byte and is read THROUGH this clause; THIS clause is a PURE INSERTION at the foot of `§8.5`, it
+admits no unit row, moves no ledger count, executes no register row, lifts no park, writes no `src/**` or
+`tests/**` byte, and re-measures no green of its own.**
+
+**AND THE LEG'S OWN DECLARATION STANDS IN THIS SECTION — the `⟶ ADDED 2026-10-11 — THE BOUNDED DECLARATION PASS …` clause and the `THE LEG, MEASURED AND GREEN …` statement beside it, both between this section's own definition paragraph and its `DONE` table — whose two commands, crate attributions, narrowing's reason and measurement, `allow` admissibility and NOTE FOR A FUTURE AUTHOR are read WITH `DONE` item `11` and with the `IT IS NOT DONE IF` sentence above.** **THIS FOOT CLAUSE DECLARES NOTHING NEW AND MOVES NO BYTE: it names, at the section's end, where the leg's declaration sits, so a reader who enters `§8.5` at `DONE` item `11` or at the `NOT DONE` sentence finds the leg without having to read the section backwards** (`[T: the leg's declaration's own place, named at this section's foot | CROSS-REF]`).
 
 ### §8.6 THE STOP CONDITIONS
 

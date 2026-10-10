@@ -90,6 +90,59 @@ that member is a FINDING** (`archive/gate3/storeroom-js-red-set.md` §5 item 1)
 (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-15`; A3 docs/specs/storeroom-js/surface.md §2.4
 item 5; `PAR-JS-12` | requirement]`).
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), ON THE ARCHITECT'S RULING
+*"Apply narrowed c"*: THE TRIO'S NARROWED LEG, DECLARED AT THIS SECTION'S RUNNER AND LAYER CELL, SO THE
+DIRECTORY THAT OWNS THIS CRATE'S VALIDATION CARRIES IT AND NOT ONLY THE TRACKER.** `RCA-8(d)`
+ANNOTATE-BESIDE: **every item above stands byte-for-byte and is not restated; THIS clause is a PURE
+INSERTION, it adds no item, no `§`-number, no register row and no `DD` row, and it moves no figure.**
+
+**THE LEG.** **THE TRIO NOW CARRIES ONE ADDED, NARROWED LEG, AND ITS COMMAND FOR THIS UNIT'S SIBLING
+CRATE** — **the independent crate under `bindings/js/`, reached by naming its own manifest, and NEVER the
+store's root package — IS:**
+
+```
+cargo clippy --manifest-path bindings/js/Cargo.toml --offline --tests -- -D clippy::correctness
+```
+
+**taken at the REPOSITORY ROOT**, exactly as `§4.1` item 8 requires the sibling crate's own test leg to be
+taken. **The manifest is named explicitly for the SAME reason that item states: so the resolution cannot
+become the root package's, and so a reading of this leg's green is a reading of THIS crate and not of the
+store's.** **A NON-ZERO EXIT FROM THIS COMMAND FAILS THE TRIO** — the leg is a gate and not a report. **THE
+LEG'S DEFINITION AND ITS FIRST HOME ARE THE STORE'S: the trio, its two commands, the crate each addresses,
+the failure rule and the narrowing's reason and measurement stand at
+`docs/specs/storeroom-native/implementation-plan.md` `§8.5`'s dated clause of this date, which is the ONE
+HOME of the trio's definition; this clause declares the sibling crate's half and points there rather than
+restating it** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 — `AR-10`'s figure-with-its-site rule
+read onto the leg's own command | requirement]`).
+
+**AND THE LAYER THIS LEG IS GREEN AT, RESTATED BECAUSE THIS SECTION OWNS THE LABEL.** **The leg's subject is
+the TEST TARGETS of the sibling crate — a `cargo clippy --tests` invocation covers that crate's test targets
+and the library they test, and nothing else** — **so its green is `ENVELOPE/PURE`-green and it claims no
+`APP`-green**, exactly as `§4.2` items 1–3 declare of every figure of this unit. **`§4.2` item 3's rule is
+UNMOVED by this clause and is read with it: NO `APP`-green may be claimed from a node test, and none from a
+`cargo clippy` leg either.** **NO FIGURE IS PRINTED BY THIS CLAUSE, and the leg's own measured figures remain
+the gate's to print with their site and their layer** (`§4.2`; `[A1
+docs/specs/storeroom-js-proposal-review.md §5.4 — `AR-10`; A3 docs/specs/storeroom-js/acceptance.md §4.2 |
+numeric or census claim]`).
+
+**AND ONE THING THIS CLAUSE EXPLICITLY DOES NOT DO, SO NOTHING OF THIS DIRECTORY MOVES WITH IT.** **It
+re-labels no figure, re-measures no green, re-runs no leg, weakens no assertion of the red set, and leaves
+`§4.1`'s pattern, `§4.3`'s round-trip property and `§4.4`'s red-set ownership exactly as printed.** **And it
+adds NO leg of its own beyond the one command above: the store's half of the leg is the store directory's,
+and its declaration stands at the home this clause names** (`[A1 | requirement]`).
+
+**A NOTE FOR A FUTURE AUTHOR, RECORDED AS A NOTE AND NOT AS A RULE OF THIS CONTRACT: rustc IGNORES AN
+`#[allow]` WRITTEN ON AN ITEM-POSITION `macro_rules!` INVOCATION.** **Probe-measured, rustc prints
+`unused_attributes` — *"the built-in attribute `allow` will be ignored, since it's applied to the macro
+invocation"* — and the lint fires anyway, because the lint level governing an expanded literal is the level
+of the generated item's scope.** **So a TARGETED allow must travel THROUGH the macro: the store's own JSON
+round-trip battery's `rt_case!` gained an asterisk-quantified attribute slot that forwards an allow onto the
+cell it generates, and because `*` admits ZERO attributes every other cell expands byte-identically.** **This
+is recorded because a later reader would otherwise re-derive it, and it obliges nothing of this directory: it
+is not a leg, not a claim and not a rule of the contract.** **AND THE ALLOW'S OWN ADMISSIBILITY IS THE STORE'S
+CLAUSE'S TO STATE, not this part's** (`[T: the rustc behaviour, recorded as a NOTE for a future author and
+not as a rule of the contract | OBSERVATION]`).
+
 **AND THE ITEM-3 PATTERN'S OWN CORRECTION, STATED SO THE TWO SITES ARE NOT CONFUSED:** **item 3 above's
 *"one test per registry rule of `§2.4`"* now has a DRIVE, and its site is `surface.md §2.4` item 5's
 `register(handle, listener)` — reached through an instance and never through the module namespace.** **No

@@ -24,6 +24,18 @@
 // sites' separation is read as the SITE-versus-VERB distinction the second dated clause declares: *"a drive
 // must still tell the two sites apart, while a `TypeError` escaping from a VERB, in any form, remains a
 // FINDING."
+//
+// **⟶ ADDED 2026-10-11 (`role_test_writer`), DISCHARGING `§5.5`'s DATED RE-DERIVATION OF THE `S-WITHDRAW`
+// LINE: BOTH OF THAT LINE'S ARMS ARE NOW DRIVEN, AND THE AS-FILED FORM DROVE ONE.** **THE ROW'S OWN OPERATIVE
+// SUBJECT PRINTS TWO ARMS AND SAYS SO** (`docs/specs/storeroom-js/contract.md §5.5`, the bounded declaration
+// pass's dated clause: *"a LATER `listen` AT THE SAME ADDRESS MINTS A NEW HANDLE **WHERE THE WITHDRAWAL
+// REMOVED THAT ADDRESS'S HOME ENTRY**, and returns the EXISTING entry's handle where the address is STILL
+// REGISTERED — so the withdrawn case and the still-registered case are TWO arms and the cell asserts BOTH"*;
+// `§2.3` item 6; `docs/specs/storeroom-native/write-and-read.md §6.5` item 12 (c)). **As filed this file
+// drove the WITHDRAWN arm and named the mint in a comment whose subject read as the rule for *"the same
+// address"*; the arm it lacked — a `listen` at a STILL-REGISTERED address, whose declared answer is the
+// EXISTING entry's handle and NO second registry entry — is driven at `S-WITHDRAW` below, with every
+// as-filed assertion of the withdrawn arm KEPT VERBATIM and no line's attempts moved (`10`).**
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -195,7 +207,7 @@ const P_SM_5 = row('P-SM-5');
 // | `§2.4` rule 1 / item 5 (c) | a registered listener for an ADOPTED handle · a registered listener for a MINTED handle (`listen`) · a handle with NO registration · an unrelated address's write |
 // | `§2.4` rule 2 / item 5 (d) | a SECOND registration for the SAME handle (the first function is REPLACED and dropped without notice) |
 // | `§2.4` rule 3 | the same handle registered TWICE — one invocation per DISTINCT handle, never a fan-out; and two construction entries carrying ONE token |
-// | `§2.4` rule 4 / `DD-15` | a withdrawn registration (after `unlisten` the function never fires again) and the re-`listen` that mints a DIFFERENT handle |
+// | `§2.4` rule 4 / `DD-15` | a withdrawn registration (after `unlisten` the function never fires again) and BOTH arms of the later `listen` at that address — THE WITHDRAWN CASE (the withdrawal removed the entry ⇒ a FRESH handle and a NEW registry entry) and THE STILL-REGISTERED CASE (the `unlisten` ahead of it was one of `§2.3` item 4's no-op successes, which removes NOTHING ⇒ the EXISTING entry's handle, the SAME opaque value, and NO new registry entry) — `§5.5`'s dated re-derivation of this strategy line prints the two arms as a table |
 // | item 5 (d) AS READ THROUGH `§2.5` ITEM 5 (g) — the OUTSIDE classes, EACH the ONE form with the store's closed-set `AddressMalformed`, its message carrying the target, the class and the position | a NON-FUNCTION `listener` · a handle this instance NEVER MINTED (fabricated, a bare `string`, a blank token, `null`, `undefined`, an ABSENT argument, a non-opaque object) · a handle a FOREIGN instance minted |
 // | item 5 (b) | the return value of a success AND of a REPLACEMENT (`undefined` on both) |
 // | `§2.7` item 2 | the invocation happens AFTER the verb returned |
@@ -486,22 +498,70 @@ line(P_SM_5, 'S-OPAQUE', 10, (attempt) => {
 });
 
 line(P_SM_5, 'S-WITHDRAW', 10, () => {
-  // `unlisten` withdraws the STORE-side home entry; a re-`listen` at the same address mints a DIFFERENT
-  // handle whose registration is a NEW entry. **THE FUNCTION HALF — that a registry entry STANDS after the
-  // withdrawal and its function therefore "simply never fires again", rather than the ENTRY being removed —
-  // is DRIVEN at `S-REG` above** (`§2.4` rule 4 / `DD-15`), where the registration site of `§2.4` item 5 is
-  // reachable; this line keeps the store-side half it can see from the declared verbs alone.
+  // **⟶ RE-DERIVED 2026-10-11 (`role_test_writer`), BECAUSE THE ROW OWED TWO ARMS AND THIS LINE DRIVED ONE.**
+  // As filed this line's comment read, verbatim — *"`unlisten` withdraws the STORE-side home entry; a
+  // re-`listen` at the same address mints a DIFFERENT handle whose registration is a NEW entry."* — and it
+  // drove exactly that ONE case. **THE OPERATIVE SUBJECT OF THIS LINE IS PRINTED AT ITS OWN `§`, AND IT NAMES
+  // TWO ARMS:** **`docs/specs/storeroom-js/contract.md §5.5`'s dated re-derivation of `S-WITHDRAW`** — *"after
+  // `unlisten`, the function never fires again because the store-side home entry is gone and the id the
+  // trigger would carry is no longer the registered one; a LATER `listen` AT THE SAME ADDRESS MINTS A NEW
+  // HANDLE **WHERE THE WITHDRAWAL REMOVED THAT ADDRESS'S HOME ENTRY**, and returns the EXISTING entry's handle
+  // where the address is STILL REGISTERED — so the withdrawn case and the still-registered case are TWO arms
+  // and the cell asserts BOTH"* — **read with `§2.3` item 6** (the inherited mint rule: *"`listen(address)`
+  // where the address IS ALREADY REGISTERED returns the EXISTING entry's handle and adds NO second entry"*,
+  // inherited from `docs/specs/storeroom-native/write-and-read.md §6.5` item 12 (c) with `A45`'s ONE home
+  // entry per address) **and with `§2.3` item 4's no-op-success set** (`unlisten` over an unknown, a foreign,
+  // a prior-session, a fabricated or a non-opaque value **removes NOTHING**). **AND THE AS-FILED FORM'S OTHER
+  // HALF IS RIGHT AND STAYS FAIL-ABLE: the WITHDRAWN arm DOES mint a fresh handle and never re-uses the
+  // withdrawn one, which is why the row's failure list's *"a re-`listen` that re-uses a withdrawn handle"*
+  // stays FALSE OF THE BUILD** (`§5.5`).
   const inst = mem();
   const first = listen(inst, ['a']);
   unlisten(inst, first);
   const afterWithdrawal = write(inst, ['a'], 'mem', 1);
   const again = listen(inst, ['a']);
   const afterAgain = write(inst, ['a'], 'mem', 2);
-  return (
-    afterWithdrawal.triggered.length === 0 &&
-    again !== first &&
-    afterAgain.triggered.length === 1
-  );
+  if (!(afterWithdrawal.triggered.length === 0)) return false; // the home entry is gone
+  if (!(again !== first)) return false; // THE WITHDRAWN ARM: a FRESH token, never a re-use of the withdrawn one
+  if (!(afterAgain.triggered.length === 1)) return false; // ...whose registration is a NEW entry that fires
+
+  // **THE STILL-REGISTERED ARM — THE ARM THE ROW NAMED AND NO LINE DROVE** (`§2.3` item 4's no-op successes
+  // remove NOTHING, so the address is STILL in the home when the later `listen` lands): **its observable is
+  // that the later `listen` MINTS NOTHING and returns the EXISTING entry's handle — the SAME opaque value —
+  // so NO new registry entry arises.** **EACH HALF IS ASSERTED APART, because the row's own clause says a
+  // drive *"cannot satisfy one by asserting the other"*:** the SAME-VALUE half is the handle identity
+  // (`===`, which `§2.3` item 2's opaque value makes assertable and which `§2.4` item 6 (b)'s registry lookup
+  // *"by that identity and by nothing else"* makes consequential), and the NO-NEW-ENTRY half is driven at the
+  // STORE's own surface — the home holds ONE entry, so a trigger at that address carries that ONE handle, and
+  // the value the repeat returned WITHDRAWS that ONE entry, which a second, separately-registered entry could
+  // not leave behind.
+  const held = mem();
+  const standing = listen(held, ['a']);
+  let fires = 0;
+  held.register(standing, () => { fires += 1; });
+  if (write(held, ['a'], 'mem', 1).triggered.length !== 1) return false; // ONE home entry, ONE handle
+  if (fires !== 1) return false; // and its function fires for it
+  // (a) A NO-OP SUCCESS AHEAD OF THE LATER `listen`: an unknown handle and a FOREIGN instance's value both
+  //     remove NOTHING (§2.3 item 4; PAR-JS-8), so the address is still registered when the repeat lands.
+  const elsewhere = mem();
+  const foreign = listen(elsewhere, ['a']);
+  if (unlisten(held, 'listener-not-minted-here') !== undefined) return false; // the no-op success, still a success
+  if (unlisten(held, foreign) !== undefined) return false; // a foreign value: the same no-op success
+  if (write(held, ['a'], 'mem', 2).triggered.length !== 1) return false; // ...and it removed NOTHING
+  // (b) THE REPEAT AT THE STILL-REGISTERED ADDRESS: MINTS NOTHING, returns the EXISTING entry's handle.
+  const repeat = listen(held, ['a']);
+  if (repeat !== standing) return false; // THE SAME opaque value — no second mint, no new registry entry
+  // (c) AND THE NO-NEW-ENTRY HALF, OBSERVED AT THE STORE: ONE home entry still stands, so the trigger carries
+  //     that ONE handle ONCE — and the value the REPEAT answered withdraws EXACTLY that entry, which is not
+  //     what a second separately-registered value would leave behind.
+  const standingRecord = write(held, ['a'], 'mem', 3);
+  if (standingRecord.triggered.length !== 1) return false;
+  if (standingRecord.triggered[0] !== standing) return false;
+  if (fires !== 3) return false; // the SAME identity invoked once per trigger, never a fan-out
+  if (unlisten(held, repeat) !== undefined) return false;
+  if (write(held, ['a'], 'mem', 4).triggered.length !== 0) return false; // NO SECOND ENTRY EXISTS
+  if (fires !== 3) return false; // and the withdrawn identity's function never fires again (rule 4's own half)
+  return true;
 });
 
 // =============================================================================================

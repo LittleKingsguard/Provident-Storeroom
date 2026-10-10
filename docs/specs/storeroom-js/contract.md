@@ -1024,6 +1024,52 @@ items 3, 10 (d) (iii) and 12 (c) — the firing rules this section inherits; A3
 docs/specs/storeroom-js/contract.md §2.3 item 6 and `§2.4`'s own dated clause — the delivery rules left
 standing | requirement]`).
 
+**⟶ RECONCILED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`): THE AS-FILED *"DIFFERENT
+HANDLE"* SENTENCES AT THIS SECTION'S OWN ITEMS `4`–`6`, READ AS ONE DECLARATION WITH ITEM `6`.** `RCA-8(d)`
+ANNOTATE-BESIDE: **items 1–5, item 6 and the re-homing clause above stand BYTE-FOR-BYTE — the quoted
+sentences included, quoted here rather than deleted — and are read THROUGH this clause; THIS clause is a
+PURE INSERTION, it adds no item, no member, no `DD` row and no register row, and it re-decides no rule.**
+
+**THE THREE SENTENCES, NAMED AS FILED, RE-EMITTED VERBATIM SO `git diff` RECOVERS EACH WHERE IT STANDS, AND
+EACH WITH ITS OWN `§`:** **(i) this section's own item `4`, whose closing sentence reads** ***"a later
+re-`listen` at the same address mints a DIFFERENT handle, whose registration is a NEW registry entry"***
+**(`docs/specs/storeroom-js/contract.md` `§2.3` item 4's closing sentence)**; **(ii) this section's item
+`6`'s own consequence block,
+whose sentence reads** ***"`§2.4` rule 4's closing sentence *"a later re-`listen` at the same address mints a
+DIFFERENT handle, whose registration is a NEW registry entry"* and `DD-15`'s own *"a later re-`listen` at the
+same address mints a DIFFERENT handle"* are TRUE OF EXACTLY ONE CASE"*** **(the same section, the paragraph
+below item `6`)**; **and (iii) `surface.md §2.3`'s own clause, which NAMES that case and is the
+reconciliation this document now agrees with:** ***"the `listen` clause of `contract.md §2.3` item 6, whose
+`write-and-read.md §6.5` item 12 (c) terms this section inherits and points to, prints *"a later `listen` at
+the same address mints a DIFFERENT handle"* for the still-registered case, while the STORE's own rule —
+which `§2.3` item 6 declares to be the operative one and which is its home — returns THE EXISTING ENTRY'S
+HANDLE in that case** — **the two stand together and are READ AS ONE DECLARATION, the JS sentence's
+*"different handle"* being the WITHDRAWN case's alone"*** **(that part's `§2.3`'s dated clause).**
+
+**THE OPERATIVE RULE, AT ONE HOME AND NOW NAMED AT ALL THREE CELLS: A REPEAT `listen` AT AN
+ALREADY-REGISTERED ADDRESS MINTS NOTHING AND RETURNS THE EXISTING ENTRY'S HANDLE**
+(`docs/specs/storeroom-native/write-and-read.md §6.5` item 12 (c), carried to the listener surface by that
+section's items 11 and 12 together; the one home entry per address is `A45`, at
+`docs/specs/storeroom-native/contract.md §0.4` clause 2). **THE `DIFFERENT HANDLE` READING IS THEREFORE TRUE OF
+EXACTLY ONE CASE — THE WITHDRAWN CASE: the address's ONE store-side home entry has been removed by an
+`unlisten` that actually removed it, so the address is no longer in the home and the next `listen` at it
+mints a FRESH token — and it is FALSE of the STILL-REGISTERED case, where the `unlisten` ahead of it was one
+of item `4`'s NO-OP SUCCESSES and removed NOTHING.** **THE THREE CELLS ARE THEREFORE RECONCILED AND NO
+SENTENCE IS WITHDRAWN: item `4`'s sentence, item `6`'s consequence block and `surface.md §2.3`'s clause are
+READ AS ONE DECLARATION — `surface.md §2.3`'s clause is the reconciliation, item `6` is the rule's own
+statement at this document's home of it, and item `4`'s sentence is read through both** (`[A3 docs/specs/storeroom-native/write-and-read.md §6.5` item 12 (c) — *"a `listen(address)` whose address IS
+already registered returns the EXISTING entry's handle rather than minting a second one"*; A3
+docs/specs/storeroom-js/surface.md §2.3's dated clause — the still-registered case named as the
+reconciliation; A3 docs/specs/storeroom-native/contract.md §0.4 clause 2 · `A45` | state or fail-state
+declaration]`).
+
+**WHOSE TEXT MOVES, AND WHOSE DOES NOT — STATED SO THE TWO HOMES ARE NOT RUN TOGETHER.** **THIS PASS MOVES NO
+BYTE OF THIS DOCUMENT AND NO BYTE OF `surface.md`.** **The drives that the three cells' own sentences are
+measured by are the RED SET's, and the TEST WRITER re-issues them against `write-and-read.md §6.5` item 12
+(c): `tests/watched_addresses.rs`'s `13` drives are re-derived BY ITS AUTHOR ROLE, and this pass writes no
+`tests/**` byte** (`write-and-read.md §6.5`'s supersession clause item 4, which names that file's
+re-derivation; this directory's own acceptance part's `§4.4`).
+
 ### §2.4 The registry — the package's own state, and its four rules
 
 **THE STORE RETURNS HANDLES AND INVOKES NOTHING** (`A57`); **so a JS listener is a FUNCTION the PACKAGE must
@@ -1989,6 +2035,48 @@ re-use of a withdrawn one at all** (`§2.3` item 6; `surface.md §2.3`'s dated c
 `docs/specs/storeroom-js/parameter-semantics.md §2.8`'s dated clause)
 (`[A1 docs/specs/storeroom-js/contract.md §2.3 item 6 — the inherited mint rule; A3
 docs/specs/storeroom-native/write-and-read.md §6.5 item 12 (c); `DD-15` | requirement]`).
+
+**⟶ RECONCILED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`): THIS ROW'S TWO MINT CELLS,
+THEIR STALENESS AND THE ONE CELL THE RECONCILIATION MAKES FALSE.** `RCA-8(d)` ANNOTATE-BESIDE: **every cell
+above stands BYTE-FOR-BYTE — the `S-REG-DUP` line's own printed words, the `S-WITHDRAW` line's own printed
+words and the failure list's own entries included — and each is read THROUGH this clause; THIS clause is a
+PURE INSERTION, it adds no row, moves no count, re-decides no rule and re-spells no strategy id.**
+
+**THE TWO CELLS AND WHAT IS OPERATIVE IN EACH, EACH WITH ITS `§` AND EACH AGAINST THE SAME RULE:**
+1. **THE `S-REG-DUP` LINE** (this row's list, quoted at that line) **is read with the ARRAY half and the
+   INVOCATION half as the dated clause above splits them** — *"`triggered` carries it once"* is TRUE of the
+   store-MINTED case alone, the caller-spelled duplicate is carried TWICE and the invocation stays ONCE per
+   distinct identity. **THIS ROW'S FIGURE NEEDS NO CHANGE FROM THIS PASS AND THIS CLAUSE MOVES NONE OF
+   IT**; what it adds is that the *"different handle"* reading does not reach this cell either, because a
+   duplicate at ONE construction is TWO CALLER-SPELLED entries and not a second `listen` at one address.
+2. **THE `S-WITHDRAW` LINE** (this row's list, the line reading *"after `unlisten`, the function never fires
+   again; a re-`listen` at the same address mints a DIFFERENT handle and a NEW entry"*) **is the cell the
+   finding below is about: its as-filed words stand UNMOVED at this row's own `§`, and the OPERATIVE SUBJECT
+   of the line is the one the dated clause above prints at its own `§` and derives from `contract.md §2.3`
+   item 6 alone — the TWO ARMS, the WITHDRAWN arm (a fresh token) and the STILL-REGISTERED arm (the existing
+   entry's handle).**
+3. **AND `docs/specs/storeroom-js/surface.md §2.3`'s clause is the reconciliation the other two cells are
+   read with** — **it ALREADY NAMES the still-registered case as the case in which the store returns the
+   EXISTING entry's handle, and it already declares the two sentences ONE declaration** — **so this pass
+   adds no reconciliation rule of its own: it names `§2.3`'s clause as the operative reconciliation and
+   carries that document's own words, at that clause, for the two cells above** (`surface.md §2.3`'s dated
+   clause; `write-and-read.md §6.5` item 12 (c)).
+
+**AND THE RED-SET CELLS AND THE ONE BLIND-GREEN ASSERTION THIS RECONCILIATION DOES NOT MOVE — NAMED, EACH
+WITH ITS `§`, SO NOTHING IS INHERITED FROM A BYTE DIFF.** **NO BYTE OF ANY RED-SET CELL MOVES BY THIS PASS
+AND NO CELL ABOVE BECOMES FALSE BY IT.** **The drives the three cells are measured by are the TestWriter's;
+the cells that NAME them are these three and each is read as stated: `§5.5`'s `S-WITHDRAW` strategy line (this
+row, item 2 above); `§5.5`'s `S-REG-DUP` strategy line (this row, item 1 above); and `surface.md §2.3`'s
+clause, which is the reconciliation.** **AND THE ONE BLIND-GREEN ASSERTION THAT IS FALSE-OF-THE-ROW-BEFORE-THIS-PASS
+STANDS NAMED RATHER THAN SILENTLY REPAIRED:** **this document's `§5.5` dated clause of 2026-10-11 asserts
+that *"`P-SM-5`'s `S-WITHDRAW` LINE IS RE-SPELLED, AND THIS IS THE ONE CELL THIS PASS MOVES"* — and THE
+STRATEGY LINE AT THIS ROW STILL PRINTS ITS AS-FILED WORDS, so the assertion is FALSE of the row's text and
+TRUE only of the cell's own re-derived subject printed above it.** **THIS PASS MOVES NO BYTE OF EITHER, and
+a reader takes the operative subject from the dated clause above and the as-filed line from the row's own
+list** (`docs/specs/storeroom-js/contract.md §5.5`'s dated clause of 2026-10-11 — the assertion this clause
+reconciles rather than rewrites; `acceptance.md §4.4` — the red set's ownership; `[A1
+docs/specs/storeroom-js/contract.md §2.3 item 6; A1 docs/specs/storeroom-js/contract.md §5.5's dated clause |
+CROSS-REF]`).
 
 ### §5.6 `P-SM-6` — the construction's sequence and the two instances hazard
 

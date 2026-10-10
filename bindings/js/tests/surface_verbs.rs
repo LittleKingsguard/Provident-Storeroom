@@ -74,9 +74,20 @@ fn construction_never_returns_a_partial_instance() {
 /// `P-SM-6`'s `S-PROBE-DRY`: **the probe creates no file, no directory and no byte.**
 #[test]
 fn construction_the_reachability_probe_creates_nothing() {
-    let dir = std::env::temp_dir().join("storeroom-js-redset-probe-dry-parent");
+    // **⟶ MOVED ONTO `support::DrivePath` 2026-10-11 (`role_test_writer`), BECAUSE A FIXED GLOBAL NAME IS THE
+    // SAME LATENT-FLAKE CLASS THE HELPER WAS BUILT FOR.** As filed this cell probed
+    // `std::env::temp_dir().join("storeroom-js-redset-probe-dry-parent")` — **a FIXED name, so every
+    // concurrent invocation of this binary names the SAME directory, and this cell REMOVES it before it
+    // probes and asserts its absence afterwards** (the helper's own header: *"a drive whose verdict depends
+    // on the other drives running beside it proves nothing about the contract"*). Two `cargo test` runs, or
+    // one run beside a `--nocapture` loop, could hand this cell another invocation's directory. **THE HELPER
+    // NAMES THE DIRECTORY BY THIS TEST'S OWN NAME PLUS A PROCESS-WIDE COUNTER AND OWNS ITS CLEANUP ON EVERY
+    // EXIT PATH, PANICS INCLUDED, and the two as-filed assertions are KEPT VERBATIM** — the refused
+    // construction still creates NEITHER a directory NOR a file, which is the clause's own claim.
+    let scratch = DrivePath::unique("storeroom-js-redset-probe-dry-parent", "file.json");
+    let dir = scratch.dir().to_path_buf();
+    let path = std::path::PathBuf::from(scratch.as_str());
     let _ = std::fs::remove_dir_all(&dir);
-    let path = dir.join("file.json");
     let err = create(&cfg_at(path.to_str().unwrap(), 2)).expect_err("the parent does not exist");
     assert_refusal_is_the_single_form(&err, "FilePathUnreachable");
     assert!(!dir.exists(), "the probe created no directory");
@@ -87,12 +98,22 @@ fn construction_the_reachability_probe_creates_nothing() {
 /// unchanged by a failed construction.
 #[test]
 fn construction_the_probe_does_not_truncate_an_existing_file() {
-    let path = std::env::temp_dir().join(format!(
-        "storeroom-js-redset-probe-{}.json",
-        std::process::id()
-    ));
+    // **⟶ MOVED ONTO `support::DrivePath` 2026-10-11 (`role_test_writer`), THE SAME CLASS AND THE SAME
+    // REPAIR AS THE CELL ABOVE.** As filed this cell wrote `storeroom-js-redset-probe-{pid}.json` and probed
+    // a FIXED `storeroom-js-redset-no-such-parent-2/x.json` — **a PID does not distinguish two concurrent
+    // invocations of this binary, and the probed name is global**: a sibling invocation's cell could remove
+    // the file this cell wrote or create the directory this cell asserts is absent. **EACH OF THE TWO PATHS
+    // NOW COMES FROM THE CELL'S OWN GUARD, whose `Drop` removes the file first and this drive's own directory
+    // second on every exit path — and the as-filed assertions stand unmoved:** the refusal is the single
+    // form with `FilePathUnreachable`, and the file's bytes are UNCHANGED by the failed construction.
+    let scratch = DrivePath::unique("storeroom-js-redset-probe-truncate", "probe.json");
+    let path = std::path::PathBuf::from(scratch.as_str());
     std::fs::write(&path, b"{\"a\":1}").expect("a scratch file with bytes");
-    let bad_dir = std::env::temp_dir().join("storeroom-js-redset-no-such-parent-2").join("x.json");
+    // The probed path is this cell's OWN, and its parent directory is removed before the call, so the parent
+    // does not exist when the probe runs — the clause's own condition, as filed.
+    let unreachable = DrivePath::unique("storeroom-js-redset-no-such-parent-2", "x.json");
+    let bad_dir = std::path::PathBuf::from(unreachable.as_str());
+    let _ = std::fs::remove_dir_all(unreachable.dir());
     let err = create(&cfg_at(bad_dir.to_str().unwrap(), 2)).expect_err("unreachable");
     assert_refusal_is_the_single_form(&err, "FilePathUnreachable");
     assert_eq!(
@@ -100,7 +121,6 @@ fn construction_the_probe_does_not_truncate_an_existing_file() {
         b"{\"a\":1}",
         "a failed construction truncates nothing"
     );
-    let _ = std::fs::remove_file(&path);
 }
 
 /// `§2.1` / `PAR-JS-2`: **an ABSENT `filePath` returns an instance whose register is `mem`** — the one

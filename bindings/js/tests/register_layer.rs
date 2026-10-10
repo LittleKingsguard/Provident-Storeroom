@@ -204,6 +204,34 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
             }
         });
         row.strategy("S-WALK-CLASS", 15, |attempt| {
+            // **⟶ RE-DERIVED 2026-10-11 (`role_test_writer`) — THE EIGHTH WALK RULE IS NOW DRIVEN, AND THIS
+            // IS THE ROW-SEMANTICS RULING THE CONSTRUCTION OWED.** As filed this line built `accessor`
+            // (`has_accessor: true`) and then drew from `rng.below(7)` over SEVEN values — `symbol_keyed`,
+            // `SparseArray`, `undefined_member`, `null_proto`, `foreign_plain`, `classy`, `proxied` — so the
+            // compiler printed `warning: unused variable: \`accessor\`` and the class it was built for was
+            // never driven.
+            //
+            // **THE ROW'S OWN TEXT DECIDES IT, AND THE ANSWER IS YES: THE ACCESSOR-CARRYING CLASS IS DRIVEN
+            // FROM HERE.** **`docs/specs/storeroom-js/contract.md §5.2`'s `P-IM-2` row declares `S-WALK-CLASS`
+            // as *"one drive per walk rule of `§1.4`"* and then ENUMERATES the rules it means** — *"symbol
+            // key, sparse array, `{a: undefined}`, cross-realm plain object, `Object.create(null)`, class
+            // instance, `Proxy`"* — **and `crossing.md §1.4` item 4's plain-object test carries EIGHT lettered
+            // parts, (c) among them:** **"(c) it carries NO OWN ACCESSOR (`get`/`set`) PROPERTY — ONE REFUSES
+            // THE WHOLE VALUE."** **The row's own FAILURE LIST names the class as a REFUSED class it must
+            // catch** (*"an `Object.create(null)` refused; a class instance admitted; a `Proxy` walked as its
+            // traps report"* — the list is per-class and the accessor class is one of `§1.4` item 4's parts),
+            // **and a row whose failure list names a class its drive never draws cannot fail on that class'
+            // arm.** **So the construction is NOT dead and it is NOT a latent item: it is wired to the arm it
+            // was built for, and the modulus moves with the arm set** — `7` → `8`, which is the change the
+            // row's own distribution follows because the row's own rule set is what the distribution
+            // enumerates (`§5.2`; `crossing.md §1.4` item 4 (c); `crossing.md §1.2` row 4's *"an object holding
+            // an accessor (`get`/`set`) own property → `ValueNotAdmitted`"*). **THE ROW'S ATTEMPTS ARE
+            // UNMOVED AT `15` and the `395`/`400` budget is unchanged; every one of the seven values above
+            // keeps its own arm and its own declared answer, and the eighth is drawn beside them.** **THE
+            // CLASS IS ALSO DRIVEN AS ITS OWN CELL BESIDE THIS ROW — `crossing_values.rs`'s
+            // `row_4_accessor_own_property_refuses_the_whole_value` and `item_c_an_own_accessor_refuses_the_whole_value`
+            // — so this line's arm is a drive of the SAME class inside the register's own per-class row and
+            // never a substitute for those cells.**
             let rng = &mut Rng::for_attempt(attempt);
             let symbol_keyed = object_of(vec![(JsKey::Symbol, JsValue::Num(1.0))]);
             let accessor = JsValue::Object(JsObject {
@@ -237,14 +265,18 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
                 proxied: true,
             });
             let undefined_member = object_of(vec![(JsKey::Key("a".into()), JsValue::Undefined)]);
-            let (value, accepted) = match rng.below(7) {
+            let (value, accepted) = match rng.below(8) {
                 0 => (symbol_keyed, false),
                 1 => (JsValue::SparseArray, false),
                 2 => (undefined_member, false),
                 3 => (null_proto, true),
                 4 => (foreign_plain, true),
                 5 => (classy, false),
-                _ => (proxied, false),
+                6 => (proxied, false),
+                // **THE EIGHTH ARM: THE ACCESSOR-CARRYING CLASS** — `crossing.md §1.4` item 4 (c)'s
+                // *"no own accessor (`get`/`set`) property — one refuses the whole value"*, at
+                // `crossing.md §1.2` row 4's own answer (`ValueNotAdmitted`).
+                _ => (accessor, false),
             };
             let mut inst = mem_instance();
             match write_at(&mut inst, &[key("w")], &value) {

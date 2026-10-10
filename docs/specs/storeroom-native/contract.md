@@ -3296,6 +3296,57 @@ each at its own line; A3 docs/specs/storeroom-js/surface.md §2.4 · `docs/specs
 docs/specs/storeroom-native/write-and-read.md §6.5 item 5 (*"NO ORDER IS DECLARED FOR THE LIST"*) with `DD-37`
 | CONTRACT]`).
 
+**⟶ SATISFIED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`): THIS SECTION'S PARKED-`watch`
+TEXT IS THE PRE-AMENDMENT STATE, THE FOOT CLAUSE ABOVE RESOLVES A READER TO `write-and-read.md §6.5` ITEMS
+8–14, AND THE QUESTION THIS CLAUSE ANSWERS IS WHETHER ANYTHING **MORE** IS OWED HERE.** `RCA-8(d)`
+ANNOTATE-BESIDE: **every byte above — items 1–7 as filed, the park's boundary in one line each way, and the
+`⟶ ADDED 2026-10-11` clause the `A78` re-homing pass landed at this section's foot — STANDS BYTE-FOR-BYTE,
+and every one of them is read THROUGH this clause; THIS clause is a PURE INSERTION, it re-decides no rule,
+adds no `§`-number, mints no code, moves no register row and names no park.**
+
+**THE AS-FILED STATE OF THIS SECTION, NAMED SO NOTHING IS INHERITED FROM A BYTE DIFF: THIS SECTION'S OWN
+TEXT IS THE **PRE-AMENDMENT** PARKED-`watch` TEXT.** **Its opening line still spells the stopgap's verbs —
+`watch(address, tier?) → WatchHandle` and `unwatch(handle) → void` — and items `1`–`7` are the as-filed
+`watch` surface, the selection rule, the tier qualifier and the superseded parks boundary.** **The span was
+SUPERSEDED, not deleted, and the supersession is recorded in the PART: `write-and-read.md §6.5`'s own
+`⟶ SUPERSEDED 2026-10-11` clause and its four clauses beside it, with the six items this document's foot
+clause now names beside them.** **NO BYTE OF THIS SECTION IS WITHDRAWN OR RESPELLED, because a supersession
+that deleted the superseded text would leave `A58`'s historical record — *"Watch is a stopgap for the
+listener implementation"* — with nothing to be historical about.**
+
+**AND THE ANSWER TO WHAT IS OWED BEYOND THE FOOT CLAUSE'S POINTER: NOTHING MORE — and the reason is stated
+here in its own terms, so a later pass does not re-open the question.**
+1. **EVERY SUBJECT THE LISTENER MANDATE CREATED IS ALREADY CARRIED, AND EACH AT ITS OWN `§`.** **The
+   listener's home map and its one-home rule (`write-and-read.md §6.5` item 8, with `A45`/`A48`) · the
+   borrows, their spelling, their lifetime and the two lists (item 9) · the listener record `{address,
+   handle}`, the binding by address, the exactly-two trigger events, the return-by-handle firing model and
+   the selection rule as the listener's own (item 10, (a)–(f)) · what a `write` and a `delete` return and
+   the list's fate (item 11) · the handle's type, its minting and the superseded `WatchHandle` (item 12) ·
+   the `watch`-to-listener delta (item 13) · and the firing's authoritative home with what a trigger's
+   returned set contains (item 14, (a)–(g)).** **THE SECTION'S OWN REMAINING SUBJECTS ARE DISPOSED OF
+   ELSEWHERE IN THIS DOCUMENT AND NOT HERE, each named with its clause: the listener surface's verbs and
+   the records are `§0.4`'s spelling table and `§3.6`/`§4.4`'s returned members; the registration's
+   uniqueness domain and the mint's collision rule are `§0.4`'s `ListenerHandle` construction rule with
+   `DD-42`; the outside-value answers are `parameter-semantics.md §2.13` (`PAR-13`), stated row by row;
+   the order-insignificance is `DD-37`.** **So a clause owed HERE would have to be one of those moved here
+   — and moving one would give ONE rule TWO addressable homes, which is the shadow-home defect this
+   directory forbids (`§0.1` item 10).**
+2. **AND THE ONE THING THE SECTION'S OWN HEADING DOES NOT SAY, NAMED SO IT IS NOT MISTAKEN FOR A GAP.**
+   **The heading reads *"the registration, the selection rule, and the park's boundary"* — THE AS-FILED
+   SUBJECTS — while the section's OPERATIVE content after the amendment is the listener surface's own,
+   carried at `write-and-read.md §6.5` items 8–14.** **This clause does NOT renumber the heading**: a
+   heading is not a claim of this document's seven classes, the section's own `§6.5`-numbering is what every
+   citation in this directory resolves against (this document's clauses, the part's items, the JS
+   directory's `§2.3`/`§2.4`/`§5.5` and `parameter-semantics.md §2.13`), and a renamed heading would move
+   the only handle a reader has on the span while adding no rule. **A reader takes the heading as the
+   AS-FILED DESCRIPTION and the foot clause above as the OPERATIVE POINTER; both stand.**
+
+`[A3 docs/specs/storeroom-native/write-and-read.md §6.5 items 8–14 — the section's operative content, each
+item at its own line; A3 docs/specs/storeroom-native/contract.md §0.4 · §3.6 · §4.4 and
+parameter-semantics.md §2.13 — the four cells that dispose of the remainder; `DD-37`; `DD-42`; §0.1 item 10
+— the shadow-home rule that forbids a second addressable home for one rule | OBSERVATION]`
+
+
 ---
 
 ## §7. The store's own persistence, and its construction inputs
