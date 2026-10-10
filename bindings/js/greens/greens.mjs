@@ -708,6 +708,22 @@ const g10 = { all: [] };
 // `{ register, on, off }` (`JSG-01.9`), the realm claim (Node ESM alone — `JSG-12.4`, `.5`) and the
 // `HO-` handoff row (`JSG-12.5`'s `§3.2 HO-1`) are all UNCHANGED, checked and unmoved. NO ASSERTION IN
 // THIS FILE IS WEAKENED BY THIS PASS, AND NO `APP`-GREEN IS CLAIMED.
+// ⟶ RE-DERIVED AGAIN 2026-10-11 (BOUNDED RE-DERIVATION, `A86`(a) — THE OPERATIVE READING of the architect's
+// ruling; `docs/specs/storeroom-publish-proposal.md §12`): the clause above is SUPERSEDED IN ONE PLACE AND
+// IN ONE PLACE ONLY. ONE cell moves — `JSG-12.12`, the five platform names, whose SCOPE SEGMENT the ruling
+// moved from `@provident-storeroom` to `@auspicion`; the five ARTEFACTS, their LABELS (`js-<target>-<arch>`),
+// their second segments and their toolchain suffixes (`-gnu` twice, `-msvc` once, none twice) are UNMOVED,
+// and the arithmetic is unmoved at `5` = `3 + 2`. `JSG-12.10` — the main package's UNSCOPED `name`, fixed by
+// `PAR-PUB-1` as exactly `provident-storeroom` — IS CHECKED AND DOES NOT MOVE: the platform names' re-scope
+// is not the main package's identity and leaves it alone. THE OLD SCOPE `@provident-storeroom` IS NAMED IN
+// THE MOVED CELL ITSELF as the spelling the ruling moved, and it is REFUSED by that cell's own assertion.
+// `A86`(b) — `@auspicion/storeroom-js-<label>` — is CARRIED AND UNAPPLIED and is asserted by NO cell here.
+// NOTHING ELSE IN THIS SCENARIO OR THIS FILE MOVES: the eight module names (`JSG-12.1`, `.2`), the
+// instance's `{ register, on, off }` (`JSG-01.9`), the realm claim (Node ESM alone — `JSG-12.4`, `.5`), the
+// `HO-` handoff row (`JSG-12.5`'s `§3.2 HO-1`), the count `5` (`JSG-12.11`) and the `files` allowlist
+// (`JSG-12.18`) are all CHECKED AND STAND UNMOVED. THE ASSERTION CENSUS OF THIS SET IS UNMOVED BY THIS PASS
+// (no cell is added and none is removed), AND NO ASSERTION IN THIS FILE IS WEAKENED BY IT — the moved cell
+// is asserted EXACTLY and in a form STRICTLY TIGHTER than the one it replaces.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const names = Object.keys(ns).sort();
@@ -740,19 +756,34 @@ const g10 = { all: [] };
   const opts = Object.keys(pkg?.optionalDependencies || {});
   A('JSG-12.11', 'package.md §3.2 item 2; DD-25', 'the prebuild matrix declares 5 targets', opts.length === 5, `${opts.length}: ${opts.join(',')}`);
   const wantOpts = [
-    '@provident-storeroom/js-linux-x64-gnu', '@provident-storeroom/js-linux-arm64-gnu',
-    '@provident-storeroom/js-darwin-x64', '@provident-storeroom/js-darwin-arm64',
-    '@provident-storeroom/js-win32-x64-msvc',
+    '@auspicion/js-linux-x64-gnu', '@auspicion/js-linux-arm64-gnu',
+    '@auspicion/js-darwin-x64', '@auspicion/js-darwin-arm64',
+    '@auspicion/js-win32-x64-msvc',
   ];
-  // CHECKED AND UNMOVED 2026-10-11 (U-STOREROOM-PUBLISH): the rename does NOT reach these five names.
-  // `PUB-DD-15` and `PUB-DD-6` (their home: `docs/specs/storeroom-publish/resolution.md §3.1`'s table;
-  // `PAR-PUB-17`) fix each name as the scope `@provident-storeroom`, a `/`, and the label
-  // `js-<target>-<arch>[-<toolchain>]` — character for character the five the cell below already
-  // asserts. The main package's move to an UNSCOPED identity does not move them (`A84`'s `A-1` decides
-  // the spelling once; `A82` leaves the platform scope alone), so NO expected value here moves and no
-  // assertion of this cell is loosened.
-  A('JSG-12.12', 'package.md §3.2 items 2 & 5; §3.3 item 5; DD-26; PUB-DD-15; PUB-DD-6; resolution.md §3.1', 'the five artefact names are the label-to-artefact map with its toolchain suffixes',
-    wantOpts.every((n) => opts.includes(n)), opts.join(','));
+  // ⟶ RE-DERIVED 2026-10-11 (BOUNDED, `A86`(a) — THE OPERATIVE READING): THE FIVE PLATFORM NAMES' SCOPE
+  // SEGMENT MOVES. The clause is `docs/specs/storeroom-publish/resolution.md §3.1`'s table, which carries
+  // each name as the scope `@auspicion`, a separator `/`, and the label `js-<target>-<arch>[-<toolchain>]`;
+  // the SAME five operative spellings are printed at `docs/specs/storeroom-publish/contract.md §1.3`'s
+  // five-name clause (`1. **`@auspicion/js-linux-x64-gnu`** · 2. … 5. **`@auspicion/js-win32-x64-msvc`.**`)
+  // and as the OPERATIVE domain of `docs/specs/storeroom-publish/parameter-semantics.md §3.1`
+  // (`PAR-PUB-17`, a platform artefact's `name`: "The five operative values are
+  // `@auspicion/js-linux-x64-gnu` · … · `@auspicion/js-win32-x64-msvc`"). `PUB-DD-15`'s AS-FILED PIN —
+  // the scope `@provident-storeroom` — is RE-EMITTED
+  // VERBATIM at `docs/specs/storeroom-publish/contract.md §0.3`'s row for that decision and is superseded
+  // here AS A SCOPE; `PUB-DD-6`'s own sentence ("the scope the five names already spell") is superseded by
+  // the ruling in the same place. THE FIVE ARTEFACTS, THEIR LABELS, THEIR SECOND SEGMENTS AND THEIR
+  // TOOLCHAIN SUFFIXES ARE UNMOVED, and the arithmetic is unmoved: `5` names = `3` with a suffix (`-gnu`
+  // twice, `-msvc` once) + `2` without. `A86`(b) — `@auspicion/storeroom-js-<label>` — is CARRIED AND
+  // UNAPPLIED. THE ASSERTION IS EXACT: set equality with the five declared spellings, the OLD scope
+  // `@provident-storeroom` named in the cell as the spelling the ruling moved and REFUSED by name, with no
+  // substring test, no prefix test and no looser form of any kind. (The exact-equality form is `JSG-12.11`'s
+  // count `5` conjoined with this row's as-filed containment test, so it adds no claim the set did not
+  // already carry and it cannot pass on an old-scope name or on a sixth one.)
+  A('JSG-12.12', 'A86(a); resolution.md §3.1; contract.md §1.3 (the five operative names); parameter-semantics.md §3.1 / PAR-PUB-17 (the OPERATIVE artefact-name domain); PUB-DD-15 as filed = the scope the ruling moved (package.md §3.2 items 2 & 5; §3.3 item 5; DD-26)', 'the five artefact names are EXACTLY @auspicion/js-linux-x64-gnu, @auspicion/js-linux-arm64-gnu, @auspicion/js-darwin-x64, @auspicion/js-darwin-arm64 and @auspicion/js-win32-x64-msvc — the label-to-artefact map with its toolchain suffixes, at the scope the ruling moves them to (the as-filed spelling the ruling moved was @provident-storeroom/js-linux-x64-gnu and its four siblings, which this cell REFUSES)',
+    wantOpts.length === opts.length
+      && [...wantOpts].sort().join(',') === [...opts].sort().join(',')
+      && opts.every((n) => !n.startsWith('@provident-storeroom/')),
+    opts.join(','));
   A('JSG-12.13', 'package.md §1.3 items 3-4; §1.2 items 1-2; A70', "the four internal-only names (version, errorMessage, call, the ADDON's register) are absent from the module graph, and storeCreate is the ENTRY's own factory",
     ['version', 'errorMessage', 'call', 'register'].every((n) => !Object.prototype.hasOwnProperty.call(ns, n)) && typeof ns.storeCreate === 'function',
     ['version', 'errorMessage', 'call', 'register'].filter((n) => n in ns).join(',') || 'none');
@@ -762,6 +793,14 @@ const g10 = { all: [] };
   A('JSG-12.15', '§4.2 items 1-2; DD-18; DD-20', "this set's own layer is ENVELOPE/PURE and the label travels with every figure of this run", LAYER === 'ENVELOPE/PURE', LAYER);
   A('JSG-12.16', '§4.2 items 2-3; DD-20', "this set's APP layer is NONE: the unit delivers a LIBRARY and no APP-green is claimed here, in the driver or in the run's record", APP_LAYER === 'NONE', APP_LAYER);
   const deps = Object.keys(pkg?.dependencies || {});
+  // CHECKED AND UNMOVED 2026-10-11 (BOUNDED, `A86`(a)), AND THE COUPLING IS NAMED RATHER THAN LEFT TO BE
+  // DISCOVERED: this row's own expected observable prints NO scoped-name byte — its subject is the
+  // `optionalDependencies`-versus-`dependencies` split, and its clause is `package.md §3.2` item 2 ·
+  // `§3.3` item 2 · `DD-25` — so the row does NOT move. Its check does, however, consume the SAME
+  // five-name constant the moved row above asserts, because its subject IS those five ARTEFACTS; the
+  // artefacts are the same five before and after the ruling, so the set the negative ranges over follows
+  // `JSG-12.12` automatically and the row's declared value is unmoved either way. This is a COUPLING and
+  // not a move: no expectation of this cell changes, and nothing here is loosened.
   A('JSG-12.17', 'package.md §3.2 item 2; §3.3 item 2; DD-25', 'the five prebuild artefacts are OPTIONAL per-target dependencies and not required dependencies (no fallback build-on-install as the primary route)',
     wantOpts.every((n) => !deps.includes(n)), `dependencies=[${deps.join(',')}]`);
   // ⟶ ADDED 2026-10-11 (U-STOREROOM-PUBLISH, `PUB-DD-1`; `A85`(1)): the manifest's `files` allowlist is

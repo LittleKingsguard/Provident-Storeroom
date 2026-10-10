@@ -686,7 +686,7 @@ the clause that prints it.
 | **JSG-12.9** | the manifest's `license` | **`'AGPL-3.0'`** | `package.md §3.4` item 6 · `DD-43` |
 | **JSG-12.10** | the manifest's registry identity `name` | **`'provident-storeroom'`** — **UNSCOPED, the identity the architect's ruling names; asserted EXACTLY and in no looser form.** **The value this cell asserted before the `U-STOREROOM-PUBLISH` re-derivation was `'@provident-storeroom/js'`; the OLD value was `package.md §3.3` item 1's and `DD-26`'s PRE-RENAME declaration, and `PAR-PUB-1` FIXES the new value** | **`PAR-PUB-1`** · **`A82`** · `docs/specs/storeroom-publish/distribution.md §6.1` item 1 (as filed: `§3.3` item 1 · `DD-26`) |
 | **JSG-12.11** | the manifest's `optionalDependencies` count | **`5`** — the matrix is five targets | `package.md §3.2` item 2 · `DD-25` |
-| **JSG-12.12** | their names, label for label | `@provident-storeroom/js-linux-x64-gnu` · `…-linux-arm64-gnu` · `…-darwin-x64` · `…-darwin-arm64` · `…-win32-x64-msvc` — the label-to-artefact map, toolchain suffixes included. **CHECKED AND UNMOVED by the rename: `PUB-DD-15` and `PUB-DD-6` fix these five spellings character for character — scope `@provident-storeroom`, separator `/`, label `js-<target>-<arch>[-<toolchain>]` — so no expected value of this cell moves and none is loosened; the main package's move to an UNSCOPED identity does not move the platform scope (`A84`'s `A-1`; `A82`)** | `package.md §3.2` item 5 · `§3.3` item 5 · `DD-26`; **`PUB-DD-15`** · **`PUB-DD-6`** · `docs/specs/storeroom-publish/resolution.md §3.1` · `PAR-PUB-17` |
+| **JSG-12.12** | their names, label for label | **`@auspicion/js-linux-x64-gnu`** · **`@auspicion/js-linux-arm64-gnu`** · **`@auspicion/js-darwin-x64`** · **`@auspicion/js-darwin-arm64`** · **`@auspicion/js-win32-x64-msvc`** — the label-to-artefact map, toolchain suffixes included, **at the scope the architect's ruling `A86`(a) moves them to; asserted EXACTLY, as set equality with these five spellings, and in no looser form — no substring test, no prefix test and no old-scope spelling tolerated.** **THE AS-FILED SPELLING THIS RULING MOVES, NAMED HERE SO A READER SEES WHAT MOVED WITHOUT A DIFF: `@provident-storeroom/js-linux-x64-gnu` · `…-linux-arm64-gnu` · `…-darwin-x64` · `…-darwin-arm64` · `…-win32-x64-msvc` — the OLD scope `@provident-storeroom`, which `PUB-DD-15`'s pin fixed and which `docs/specs/storeroom-publish/contract.md §0.3` RE-EMITS VERBATIM as that decision's as-filed text; `A86`(a) REPLACES THE SCOPE SEGMENT ALONE and the five ARTEFACTS, their labels, their second segments and their toolchain suffixes ARE UNMOVED (`5` = `3` with a suffix + `2` without).** **`A86`(b) — `@auspicion/storeroom-js-<label>` — is CARRIED AND UNAPPLIED and is asserted by no cell of this set.** **This cell was CHECKED AND STOOD UNMOVED at the `U-STOREROOM-PUBLISH` pass, whose reading of `PUB-DD-15`/`PUB-DD-6` printed the old scope as the operative one; that reading is SUPERSEDED here AS A SCOPE and its bytes stand at item `8` below.** | **`A86`(a)** · `docs/specs/storeroom-publish/resolution.md §3.1` · `docs/specs/storeroom-publish/contract.md §1.3` · `parameter-semantics.md §3.1` (**`PAR-PUB-17`**) · **`PUB-DD-15` as filed** (as filed: `package.md §3.2` item 5 · `§3.3` item 5 · `DD-26`; `PUB-DD-6`) |
 | **JSG-12.13** | the internal addon's own names, taken from the namespace | **the FOUR internal-only names are absent from the module graph** — `version`, `errorMessage`, `call`, and the ADDON's own `register` — **and the fifth, `storeCreate`, is the ENTRY'S OWN FACTORY and not the addon's internal step** (an as-filed reading of `package.md §1.3` item 4 that would forbid that name is REFUTED by item 3's own list, and the tension is a DOC-side finding) | `package.md §1.3` items 3–4; `§1.2` items 1–2 · **`A70`** |
 | **JSG-12.14** | the addon artefact's path as a subpath of the package | it is **not** published by the `exports` map — the reach is INTERNAL and is not a second realm | `package.md §1.2` items 1–3 · `DD-4` |
 | **JSG-12.15** | this set's own declared layer constant | **`ENVELOPE/PURE`** — the label travels with every figure of this run, and its site is the command recorded at `archive/gate5/storeroom-js-greens-run.md` | `§4.2` items 1–2 · `DD-18` · `DD-20` |
@@ -717,7 +717,7 @@ CLAUSE:**
    EXACTLY — the manifest's `name` equal to `'provident-storeroom'`, character for character, with the
    pre-rename spelling named in the cell itself — and NO LOOSER FORM: no substring test, no case-fold, no
    prefix and no scope tolerated.**
-2. **THE ROW THAT WAS CHECKED AND STANDS UNMOVED — `JSG-12.12`, THE FIVE SCOPED PLATFORM NAMES.** **The rename
+2. **⟶ SUPERSEDED 2026-10-11 BY ITEM `8` BELOW, AND RE-EMITTED HERE BYTE-FOR-BYTE SO ITS SITE IS NOT LOST: THIS ITEM'S READING OF `JSG-12.12` — *"CHECKED AND STANDS UNMOVED"* — IS THE PRE-`A86` READING, TAKEN WHEN `PUB-DD-15`'s OLD SCOPE `@provident-storeroom` WAS THE OPERATIVE ONE, AND IT IS READ FROM THIS DATE ONLY AS THE STATE THE RULING MOVED.** `RCA-8(d)` ANNOTATE-BESIDE. **THE ROW THAT WAS CHECKED AND STANDS UNMOVED — `JSG-12.12`, THE FIVE SCOPED PLATFORM NAMES.** **The rename
    does NOT reach them: `PUB-DD-15` and `PUB-DD-6` fix each name as the scope `@provident-storeroom`, a
    separator `/`, and the label `js-<target>-<arch>[-<toolchain>]` (`resolution.md §3.1`'s table;
    `PAR-PUB-17`; `A84`'s `A-1`), which is character for character the five spellings the cell already
@@ -780,6 +780,97 @@ CLAUSE:**
    `PAR-PUB-8` · `PAR-PUB-17`); A1 `distribution.md §6.1` items 1, 8 and 12; A1 `archive/gate5/
    storeroom-js-greens-run.md §8` — this pass's dated `§`; A3 `docs/specs/storeroom-js/package.md §3.1`
    item 2 and `§3.3` item 1, the pre-rename home this cell moved off | numeric or census claim]`).**
+8. **⟶ RE-DERIVED AGAIN 2026-10-11 — THE BOUNDED RE-DERIVATION OF `JSG-12.12` ON THE ARCHITECT'S RULING
+   `A86`(a), WHICH IS THE OPERATIVE READING (`docs/specs/storeroom-publish-proposal.md §12`): ONE CELL MOVES
+   — `JSG-12.12`, THE FIVE PLATFORM NAMES — AND IT MOVES BY ITS SCOPE SEGMENT ALONE, WHILE `JSG-12.10`, THE
+   MAIN PACKAGE'S IDENTITY, IS CHECKED AND DOES NOT MOVE.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte of items
+   `1`–`7` above stands and is read THROUGH this item; THIS item supersedes item `2`'s reading of `JSG-12.12`
+   and NOTHING ELSE, and it is the only clause of this file that reads `A86`.**
+   1. **WHAT MOVED, OLD → NEW, WITH THE CLAUSE.** **The as-filed cell read** *"`@provident-storeroom/js-linux-x64-gnu`
+      · `…-linux-arm64-gnu` · `…-darwin-x64` · `…-darwin-arm64` · `…-win32-x64-msvc`"*, **cited to** *"`package.md
+      §3.2` item 5 · `§3.3` item 5 · `DD-26`; `PUB-DD-15` · `PUB-DD-6` · `docs/specs/storeroom-publish/
+      resolution.md §3.1` · `PAR-PUB-17`"*. **THE RE-DERIVED CELL ASSERTS** *"`@auspicion/js-linux-x64-gnu` ·
+      `@auspicion/js-linux-arm64-gnu` · `@auspicion/js-darwin-x64` · `@auspicion/js-darwin-arm64` ·
+      `@auspicion/js-win32-x64-msvc`"* **— the five names at the scope `A86`(a) moves them to, character for
+      character, EXACTLY and in no looser form.** **THE CLAUSE: `A86`(a) — "the five artefacts' scope segment
+      replaced" — read at its operative home `docs/specs/storeroom-publish/resolution.md §3.1`'s five-name
+      table (`@auspicion` as the scope column, `js-<target>-<arch>[-<toolchain>]` as the second segment, all
+      five rows rewritten), at `docs/specs/storeroom-publish/contract.md §1.3`'s five-name clause, and at
+      `parameter-semantics.md §3.1`'s OPERATIVE domain (`PAR-PUB-17`).** **THE AS-FILED SPELLING THE RULING
+      MOVED IS NAMED IN THE CELL ITSELF — the OLD scope `@provident-storeroom` — and `PUB-DD-15`'s pin is
+      RE-EMITTED VERBATIM at `docs/specs/storeroom-publish/contract.md §0.3`'s row for that decision, where
+      it stands as that row's own as-filed text and is superseded AS A SCOPE.** **THE FIVE ARTEFACTS, THEIR
+      LABELS, THEIR SECOND SEGMENTS AND THEIR TOOLCHAIN SUFFIXES ARE UNMOVED, and the arithmetic is unmoved:
+      `5` names = `3` carrying a suffix (`-gnu` twice, `-msvc` once) + `2` carrying none (`3 + 2 = 5` ✓).**
+      **`A86`(b) — `@auspicion/storeroom-js-<label>` — is CARRIED AND UNAPPLIED and is asserted by NO cell of
+      this set; the cell asserts `(a)` and says so.**
+   2. **`JSG-12.10` — THE MAIN PACKAGE'S IDENTITY — IS CHECKED AND DOES NOT MOVE, AND THIS IS SAID BECAUSE THE
+      TWO ROWS ARE THE SET'S ONLY TWO IDENTITY CELLS AND A READER COULD WRONGLY READ THE PLATFORM RE-SCOPE AS
+      DRAGGING IT.** **The manifest's `name` is asserted as** `'provident-storeroom'` **— UNSCOPED — fixed by
+      `PAR-PUB-1` (`docs/specs/storeroom-publish/parameter-semantics.md §2.1`) and carried at `distribution.md
+      §6.1` item 1 (`A82`); its cell names the pre-rename spelling `'@provident-storeroom/js'` as the value
+      the EARLIER pass moved, and that reading STANDS.** **`A86`(a) is a clause about the FIVE ARTEFACTS'
+      scope and contains no term about the main package's identity: the two scopes are two decisions, and
+      `distribution.md §6.1` item 1 says so in its own words — *"the main package does NOT move with the
+      platform names' scope"*.** **NO BYTE OF `JSG-12.10` MOVED IN THIS PASS, IN EITHER HOME.**
+   3. **EVERY OTHER ROW WAS SWEPT FOR A SCOPED-NAME BYTE, AND THE SWEEP IS REPORTED IN FULL SO IT IS READ
+      RATHER THAN ASSUMED.** **THE BYTES SEARCHED FOR, ACROSS BOTH HOMES AND OVER EVERY ROW OF ALL `13`
+      SCENARIOS: `@provident-storeroom/`, `@provident-storeroom/js`, `@auspicion/`, and the label stems
+      `js-linux-`, `js-darwin-`, `js-win32-`.** **THE ROWS CARRYING A SCOPED-NAME BYTE WERE EXACTLY THREE, AND
+      THEY ARE NAMED ONE BY ONE:**
+      - **`JSG-12.12` — AN ASSERTED VALUE. MOVED (item 1 above).** **This is the ONLY row of the set whose
+        EXPECTED VALUE moved.**
+      - **`JSG-12.10` — A NAMED, NON-ASSERTED SPELLING. CHECKED AND UNMOVED (item 2 above).** **Its occurrence
+        of `@provident-storeroom/js` is the cell's own label for the value SUPERSEDED at the earlier pass, and
+        it is not the value asserted; no byte of it moved, and it must not.**
+      - **`JSG-12.17` — NO SCOPED-NAME BYTE IN ITS CELL; ITS CHECK CONSUMES THE SAME FIVE-NAME SET. CHECKED AND
+        UNMOVED, WITH THE COUPLING NAMED.** **Its drive is the manifest's `optionalDependencies`-versus-
+        `dependencies` split and its observable prints no scoped name; its subject, however, IS the five
+        prebuild ARTEFACTS, so its check ranges over the same five names `JSG-12.12` asserts and therefore
+        follows the re-scope automatically — the artefact set being the same five before and after the
+        ruling.** **This is a COUPLING and not a move: no expectation of the row changes and nothing is
+        loosened, and the driver's own row says so in its own comment.**
+      **AND THE ROWS THAT WERE CHECKED AND STAND UNMOVED, EACH NAMED: `JSG-12.1`–`.9`, `.11`, `.13`–`.16`,
+      `.18` — `15` rows of this scenario's `18` — carry NO scoped-name byte and NO byte of any of them is
+      touched (the other `3` being `.10`, `.12` and `.17`, named one by one just above);
+      `JSG-12.11` (the count `5`), `JSG-12.17` (the split, above) and `JSG-12.18` (the `files` allowlist) are
+      read again here and STAND; and `JSG-12.15`'s and `JSG-12.16`'s LAYER constants stand, this pass claiming
+      NO `APP`-green exactly as they require.** **THE `217` CELLS OF `JSG-01`–`JSG-11` AND THE `6` OF `JSG-13`
+      WERE SWEPT WITH THE SAME PATTERNS AND CARRIED NO HIT: THE RE-SCOPE REACHES NO CELL OUTSIDE `JSG-12`
+      (`217 + 18 + 6 = 241` ✓ — the sweep is exhaustive over this set, and the balance of the sum is `JSG-12`
+      itself, whose `18` cells are enumerated one by one above and in item `2`).**
+   4. **THE CENSUS, WITH BOTH TERMS PRINTED BECAUSE NEITHER MOVES.** **THE `§2` HEADS STILL SUM `17 + 16 + 5 +
+      67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 + 18 + 6 = 241` ✓, `JSG-12` is still `18` assertions, and THE
+      SCENARIO CENSUS IS STILL `13`.** **NOTHING WAS ADDED AND NOTHING WAS REMOVED BY THIS PASS, so the
+      AUTHORED FIGURE STAYS `241` — a re-scope moves a VALUE and not a CENSUS, and a re-derivation that moves
+      a value while leaving the count where it was is exactly what this pass is.** **THE PRE-RUN STATE IS
+      RECORDED WITH IT: the set entered this pass at `241` AUTHORED · `241` EXECUTED · `240` PASS · `1` FAIL,
+      the ONE red cell being `JSG-12.12` itself on the OLD scope — the red cell this bounded pass was tasked
+      to correct and the set's only failure.**
+   5. **THE RUN, AND ITS FOUR LEGS, EACH WITH ITS SITE, ITS LAYER AND ITS TERMS.** **THE SITE: the repository
+      root, `node bindings/js/greens/greens.mjs`.** **THE BLIND SET — `241` AUTHORED · `241` EXECUTED · `241`
+      PASS · `0` FAIL over the same `13` scenarios, `JSG-12` reading `18 PASS · 0 FAIL (18 assertions)`, LAYER
+      `ENVELOPE/PURE`, `APP` LAYER `NONE` and no `APP`-green claimed.** **THE JS LEG —
+      `node --test bindings/js/test/*.test.mjs` — `185` tests · `185` PASS · `0` FAIL** (this pass's
+      re-derivation FALSIFIES NO RED-SET CELL: no cell of the test tree is edited, and the moved row reads
+      the manifest, not the test tree). **THE LIVE BATTERY — `node bindings/js/greens/live-drive.mjs` — the
+      LIVE RUNNER's own artefact, in hand in parallel: its rows are that role's and NO byte of
+      `live-drive.mjs` was touched, re-derived or weakened by this pass, the figure being a READING of that
+      artefact in flight and never a re-derivation of its rows.** **THE STORE'S ROOT SUITE —
+      `cargo test --offline --no-fail-fast` at the repository root — `379` PASS · `0` FAIL.** **ALL FOUR LEGS,
+      THEIR EXACT FIGURES AND THEIR COMMANDS ARE FILED AT `archive/gate5/storeroom-js-greens-run.md §9`.**
+   6. **THE `174` FIGURE THIS FILE'S ITEM `6` PRINTS FOR THE JS LEG IS FALSIFIED BY THIS PASS'S SECOND LEG AND
+      IS NAMED RATHER THAN EDITED.** **Item `6` above reads *"`174` tests · `174` pass · `0` fail on the JS
+      leg"*; the operative reading is `185` tests · `185` PASS · `0` fail.** **THE `+11` IS NOT THIS PASS'S
+      DOING — this pass edits NO test byte and adds no cell — and the figure is named here so that no reader
+      takes the `174` as today's, while its bytes stand at its own item as a pre-pass reading.** **The `113`
+      and the `91` and the `379` halves of that same item are read again and are UNMOVED.**
+   7. **THE RECORD.** **The bounded re-derivation, the sweep of item `3` and this run are filed, with every
+      cell, every sweep hit and every figure, at `archive/gate5/storeroom-js-greens-run.md §9`** (`A86`(a);
+      `docs/specs/storeroom-publish-proposal.md §12`; `docs/specs/storeroom-publish/contract.md §0.3` ·
+      `PUB-DD-15` · `§1.3`; `resolution.md §3.1`; `parameter-semantics.md §3.1` (`PAR-PUB-17`)).
+      (`[A1 docs/specs/storeroom-publish-proposal.md §12 · `A86`(a) — the five artefacts' scope segment
+      replaced, `(b)` carried and unapplied | declared parameter semantics]`).**
 
 ### JSG-13 — THE SCALING CLAIM THE DOCS NOW MAKE (6 assertions)
 

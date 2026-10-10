@@ -373,6 +373,13 @@ console.log(JSON.stringify({ pid: process.pid, value: read(i, ${JSON.stringify([
 // `PUB-DD-26`, read with `resolution.md §5.3b`), so a COVERED key's drive — which THIS one is — names BOTH
 // paths, rung one first, in the generator's own slots, joined by `', '`; the single-path expectation stands
 // only for the UNCOVERED cell (`resolution.md §2.2`), where rung one is never attempted. `.1`–`.6` UNMOVED.
+//
+// AND `.7`'s ONE NAME MOVED 2026-10-11 ON THE `A86` SCOPE RULING — *"Change org to `@auspicion`"* — so the
+// platform package this row names as rung one is `@auspicion/js-linux-x64-gnu` for the host's covered pair
+// (`contract.md §1.3`'s reconciliation clause of 2026-10-11, `A86`(a); `PUB-DD-6`/`PUB-DD-15`). **THE ROW'S
+// STATE AND ITS STRUCTURE ARE UNMOVED: only the NAME it prints has moved, and the as-filed spelling is
+// re-emitted at the row itself.** `.1`–`.6`, rung two's path, the tried set, the join, the slot count and the
+// byte-equality against the store's own generator are each UNMOVED.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const sc = 'LIVE-8';
@@ -426,6 +433,24 @@ console.log(JSON.stringify({ pid: process.pid, value: read(i, ${JSON.stringify([
   // dropped toolchain suffix is a FINDING here — **and rung two's own path is the copy's module-relative
   // artefact, which this caller knows independently of the message.**
   //
+  // ── THE SCOPE MOVED, AND THE FIVE LINES ABOVE ARE RE-EMITTED VERBATIM AND READ THROUGH THIS CLAUSE
+  // (`RCA-8(d)`, ANNOTATE-BESIDE; 2026-10-11). **THE ARCHITECT RULED *"Change org to `@auspicion`"* — `A86`(a),
+  // the literal reading, declared at `docs/specs/storeroom-publish/contract.md §1.3`'s reconciliation clause
+  // (*"THE FIVE NAMES BECOME, CHARACTER FOR CHARACTER"* the five of `resolution.md §3.1`) — so THE SCOPE
+  // SEGMENT ALONE IS REPLACED and the second segment `js-<target>-<arch>[-<toolchain>]` is UNMOVED**
+  // (`PUB-DD-6`; `PUB-DD-15`). **THE OPERATIVE FIVE ARE READ FROM THE CONTRACT'S OWN FIVE-NAME CLAUSE AND NOT
+  // FROM THE IMPLEMENTATION: `@auspicion/js-linux-x64-gnu` · `@auspicion/js-linux-arm64-gnu` ·
+  // `@auspicion/js-darwin-x64` · `@auspicion/js-darwin-arm64` · `@auspicion/js-win32-x64-msvc` — so the host's
+  // covered pair `linux`·`x64` names `@auspicion/js-linux-x64-gnu`, WHICH IS THE PLATFORM PACKAGE THE ENTRY
+  // `require`s TODAY** (read BESIDE `bindings/js/index.mjs`'s `PLATFORM_NAMES` and `bindings/js/package.json`'s
+  // five `optionalDependencies` keys, never instead of this driver's own table — `acceptance.md §4.1` item 1).
+  // **AND THE OLD SCOPE IS NOW THE FINDING RATHER THAN THE ACCEPTED SPELLING: the clause's `S-SCOPE` failure
+  // list gains the member *"a name whose scope IS `@provident-storeroom`"* BESIDE the as-filed *"a name whose
+  // scope is not `@provident-storeroom`"*, which is KEPT AND RE-READ as a refusal of the OLD scope.**
+  // **EVERY OTHER CONJUNCT OF THIS ROW IS UNMOVED: the TRIED set built from the declaration, the rendering's
+  // bytes, the slot count, the byte-equality against the store's own generator, rung two's path, and the
+  // clause standing after.**
+  //
   // **AND THE BYTE-EQUALITY IS TAKEN AGAINST THE GENERATOR ITSELF** (`§1.4` item 6: arm (b) reproduces arm
   // (a)'s clause byte-for-byte, `PUB-DD-25`; the equality the red set's `NG-JS-H` now holds): the REAL built
   // artefact — which loaded far enough to carry `errorMessage`, and which `acceptance.md §4.1` item 1 permits
@@ -435,11 +460,15 @@ console.log(JSON.stringify({ pid: process.pid, value: read(i, ${JSON.stringify([
   // slots and the join between them, all measured against the store's own arm rather than a string this
   // driver authored.
   const DECLARED_RUNG_ONE = {
-    'linux·x64': '@provident-storeroom/js-linux-x64-gnu',
-    'linux·arm64': '@provident-storeroom/js-linux-arm64-gnu',
-    'darwin·x64': '@provident-storeroom/js-darwin-x64',
-    'darwin·arm64': '@provident-storeroom/js-darwin-arm64',
-    'win32·x64': '@provident-storeroom/js-win32-x64-msvc',
+    // THE AS-FILED FIVE, RE-EMITTED VERBATIM SO NO BYTE IS DELETED AND A DIFF HAS NOTHING TO RECOVER:
+    // `@provident-storeroom/js-linux-x64-gnu` · `@provident-storeroom/js-linux-arm64-gnu` ·
+    // `@provident-storeroom/js-darwin-x64` · `@provident-storeroom/js-darwin-arm64` ·
+    // `@provident-storeroom/js-win32-x64-msvc` — each read through the operative `@auspicion` (`A86`(a)).
+    'linux·x64': '@auspicion/js-linux-x64-gnu',
+    'linux·arm64': '@auspicion/js-linux-arm64-gnu',
+    'darwin·x64': '@auspicion/js-darwin-x64',
+    'darwin·arm64': '@auspicion/js-darwin-arm64',
+    'win32·x64': '@auspicion/js-win32-x64-msvc',
   };
   const rungOneName = DECLARED_RUNG_ONE[`${process.platform}·${process.arch}`];
   // the TRIED set, in the order the load path tried it: rung one's resolved name where the pair is covered
