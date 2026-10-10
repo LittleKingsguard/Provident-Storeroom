@@ -574,17 +574,23 @@ function encodeValue(value, ancestors, depth, path, fault) {
 /// verbosely, naming the class and the POSITION the segment holds. **`JS-1`'s demand is met by
 /// CONSTRUCTION, not by a `catch`: no `String(segment)`/`Number(segment)` is spelled here, so no `valueOf`,
 /// no `Symbol.toPrimitive` and no trap is ever invoked, and the class is read with `typeof` alone.**
-function encodeSegment(segment, position) {
+function encodeSegment(segment, position, argumentPosition) {
   const kind = typeof segment;
   if (kind === 'string' || kind === 'number' || kind === 'boolean') return segment;
   if (segment === null) return { bad: 'null' };
   if (kind === 'undefined') return { bad: 'undefined' };
   if (kind === 'function') return { bad: 'function' };
   if (kind === 'symbol' || kind === 'bigint') {
+    // **THE ARGUMENT POSITION IS APPENDED WHERE THE CALLING SITE DECLARES ONE** (`surface.md §2.5` item 5
+    // (b): *"the ARGUMENT POSITION for a verb's arguments"* — `parameter-semantics.md §2.17`'s dated clause,
+    // position `1` of `2` at `on`). **WHERE NO SITE IS PASSED, NOTHING MOVES**: the clause this arm already
+    // stood on, byte-for-byte, is its default, and no verb but `on` declares a position here.
     boundaryReject(
       'AddressMalformed', // `AddressArg` rows 7–10's own declared code, carried and never minted
       'address',
-      `the address holds ${classSpelling(segment)} at position ${position}, and a segment is a string or a non-negative integer`,
+      argumentPosition === undefined
+        ? `the address holds ${classSpelling(segment)} at position ${position}, and a segment is a string or a non-negative integer`
+        : `the address holds ${classSpelling(segment)} at position ${position} of the ${argumentPosition}, and a segment is a string or a non-negative integer`,
     );
   }
   if (Array.isArray(segment)) return { bad: 'array' };
@@ -592,7 +598,15 @@ function encodeSegment(segment, position) {
 }
 
 /// `crossing.md §1.3`'s `AddressArg` table, rows 1–14.
-function encodeAddress(address) {
+///
+/// **⟶ AND ONE OPTIONAL PARAMETER, ADDED 2026-10-11 BY THE `Q3` PASS, SO `on` CAN OBEY `A81` WITHOUT A
+/// SECOND REFUSAL FORM AND WITHOUT A SECOND ENCODER.** `addressArgumentPosition` is the ARGUMENT POSITION
+/// `parameter-semantics.md §2.17`'s dated clause declares at a site that declares one — `on`'s `address` is
+/// `1` of `2` — and it is threaded into the SEGMENT arm alone, which is the one arm of this table that
+/// refuses at the BOUNDARY rather than carrying its class to the store. **EVERY OTHER CALLER PASSES
+/// NOTHING AND EVERY BYTE OF EVERY OTHER ARM IS UNMOVED**, so no verb's answer and no other site's message
+/// changes: the parameter is additive and its absence is the as-filed reading.
+function encodeAddress(address, addressArgumentPosition) {
   // `crossing.md §1.3`'s absent-versus-`undefined` rule, rule 1: an argument position the call supplied no
   // value for is ABSENT, and `undefined` at a supplied position folds to that SAME state. `AddressArg` rows
   // 4 and 5 answer the one code, so no declared answer moves by the fold.
@@ -609,7 +623,10 @@ function encodeAddress(address) {
     for (let i = 0; i < address.length; i += 1) {
       if (!(i in address)) return { k: 'S' }; // row 14 (`DD-8`)
     }
-    return { k: 'L', s: address.map((segment, position) => encodeSegment(segment, position)) }; // rows 1–3, 13
+    return {
+      k: 'L',
+      s: address.map((segment, position) => encodeSegment(segment, position, addressArgumentPosition)),
+    }; // rows 1–3, 13
   }
   if (typeof address === 'object') return { k: 'C' }; // rows 6 and 11: the shape is not an array's
   return { k: 'D', o: encodeSegment(address, 0) }; // row 6: a non-array's five named classes
@@ -955,8 +972,15 @@ function writeCall(state, args, fault) {
 
 /// `§2.1`: `storeCreate(cfg)` takes ONE plain object carrying the store's THREE declared keys, passes them
 /// through WITHOUT adding a default, a rename or a fourth key (`DD-36`), and **never returns a partial
-/// instance** — it throws the single failure form instead. **The object it returns carries EXACTLY the one
-/// own member `surface.md §2.4` item 5 (a) declares, and not one member beside it.**
+/// instance** — it throws the single failure form instead. **⟶ `§2.1`'s dated clause (a), LANDED 2026-10-11
+/// BY THE `Q1` CONTRACT AMENDMENT, RE-DERIVES THE MEMBER FIGURE THIS SENTENCE CARRIED: *"the object it
+/// returns carries EXACTLY the one own member `surface.md §2.4` item 5 (a) declares, and not one member
+/// beside it"* STANDS BYTE-FOR-BYTE ABOVE AND IS READ THROUGH THIS CLAUSE — from this date the member set
+/// is `{ register, on, off }`, THREE OWN MEMBERS AND NOTHING ELSE, and `§2.4` item 5 (a)'s *"one own
+/// member"* is superseded AS A MEMBER-SET FIGURE at its own `§` by the same amendment.** **THE MODULE
+/// NAMESPACE IS UNMOVED at the eight declared verbs: neither new member is a named export, because both
+/// are reached through THIS factory's own product and through nothing else** (`surface.md §2.1`'s dated
+/// clauses (a)–(b); `A79`).
 export function storeCreate(cfg) {
   const addon_ = withAddon();
   let id;
@@ -969,10 +993,25 @@ export function storeCreate(cfg) {
   // returns twice (a lawful duplicate, `§2.4` rule 3) reaches the caller as the SAME opaque value.
   // **THE PACKAGE'S OWN REGISTRY, ONE PER INSTANCE** (`surface.md §2.4`): the opaque handle -> the
   // caller's FUNCTION. **`unlisten` withdraws the store-side home entry and NEVER the function** (`§2.4`
-  // rule 4, `DD-15`), so nothing removes an entry — the registry is released with the instance and by
-  // nothing else (`DD-17`), and a re-registration of a handle REPLACES its entry (rule 2, never a fan-out).
+  // rule 4, `DD-15`), so `unlisten` removes no entry, and a re-registration of a handle REPLACES its entry
+  // (rule 2, never a fan-out). **⟶ AND `off` — the ONE declared member that DOES remove an entry —
+  // removes THE ONE THE HANDLE NAMES** (`§2.4` item 7 (b); `DD-53`), while the instance's own state is
+  // still released with the instance and by nothing else (`DD-17`; `A74`: `off` is not a release verb).
   const state = { id, tokens: new Map(), registry: new Map() };
   const instance = {
+    /// `surface.md §2.4` item 7 (a) / `§2.1`'s dated clause (a): **`on(address, listener) -> handle`** — the
+    /// combined call `A79` adopts, whose clauses are `§2.4` item 7 (a) and whose order is FIXED there.
+    /// **IT IS NOT A NINTH NAMED EXPORT OF THE ENTRY** (`package.md §1.3` item 3): it is reached through the
+    /// factory's own product alone.
+    on(address, listener) {
+      return onAt(state, instance, address, listener);
+    },
+    /// `surface.md §2.4` item 7 (b) / `§2.1`'s dated clause (a): **`off(handle) -> undefined`** — the
+    /// store-side withdrawal AND the PACKAGE'S OWN registry removal, on the one order `DD-54` declares.
+    /// **It is NOT a ninth named export of the entry** (`package.md §1.3` item 3).
+    off(handle) {
+      return offAt(state, instance, handle);
+    },
     /// `surface.md §2.4` item 5 (b): `register(handle, listener) -> undefined` — the OPAQUE handle a verb
     /// returned or the construction adopted, and ANY JS function. **It is NOT a ninth named export of the
     /// entry** (`package.md §1.3` item 3): it is reached through the factory's own product alone.
@@ -1200,6 +1239,216 @@ function registerOn(state, handle, listener) {
   // `§2.4` rule 2: ONE handle, ONE function — the previous entry is REPLACED and dropped without notice.
   state.registry.set(handle, listener);
   return undefined;
+}
+
+// ---------------------------------------------------------------------------------------------
+// THE TWO NEW INSTANCE MEMBERS — `surface.md §2.4` ITEM 7, READ AT ITS OWN BYTES, AND `§2.1`'s DATED
+// CLAUSE (a): `on(address, listener) -> handle` AND `off(handle) -> undefined`, BESIDE `register`.
+//
+// **BOTH ARE DELIVERY-SIDE ONLY AND NEITHER IS A RELEASE VERB** (`§2.4` item 7 (c); `A78`; `A74`): neither
+// STATES, ALTERS OR PROMISES ANY FIRING RULE — which listener fires, when it fires, what it is bound to,
+// which ids a trigger returns, the home's registration semantics, the address-prefix rule and the
+// process-scoped handle are ALL STORE BEHAVIOUR, **and the authority for each of them stands at
+// `docs/specs/storeroom-native/write-and-read.md §6.5` item 14**, where a drive derives them. `on`
+// PERFORMING the store's `listen` and `off` PERFORMING the store's `unlisten` is a DELIVERY-SIDE ACTION
+// upon the store's own verbs and never a statement about what the store's home does when it lands.
+// **NO FIRING RULE IS STATED BY THIS PACKAGE** — the invocation COUNT and the ONE invocation argument are,
+// and they are `§2.4` rule 3 and item 6, unmoved.
+//
+// **AND NOTHING OF THE STORE MOVES:** the two members are built over `listen` and `unlisten` EXACTLY as
+// `§2.10` declares them — same names, same positions, same arity, same returns, and the store's own crate
+// and contract directory untouched (`§2.1`'s dated clause (c); `A68`).
+// ---------------------------------------------------------------------------------------------
+
+/// **THE ARGUMENT POSITION, AT THESE TWO SITES** — `parameter-semantics.md §2.17`'s dated clause: *"the
+/// POSITION IS CARRIED BESIDE IT AS THE ARGUMENT POSITION: `1` OF `2` for an `address` or a `handle`, `2` OF
+/// `2` for a `listener`"*, inside `docs/specs/storeroom-js/surface.md §2.5` item 5 (b)'s generated message
+/// and NEVER as a third member. **The spelling is the two positions' own, named as the `register` site
+/// already names its pair** (`§2.12`'s re-derived row carries the same two positions).
+const ARGUMENT_POSITION_FIRST = 'first argument';
+const ARGUMENT_POSITION_SECOND = 'second argument';
+
+/// **`crossing.md §1.3`'s `AddressArg` domain AT ITS OWN ROWS 7–10 AND 14, DECIDED AT THE BOUNDARY FOR `on`
+/// ALONE — `A81`'s *"always validate"*, VERBATIM** (`parameter-semantics.md §2.17`'s dated clause: *"An
+/// `address` outside `AddressArg`'s domain at `on`'s position `1` of `2` → `AddressMalformed`"*).
+///
+/// **WHY THIS WALK EXISTS, AND WHY IT IS NOT `DD-46`'s PRE-CHECK:** **`DD-46` is a declaration about the
+/// DECLARED VERBS of `§2.2` and `§2.10`, whose arguments are passed through to the store's own carrier
+/// so the STORE chooses which refusal answers** — and this walk is not taken on any of their paths.
+/// **The listener home is the ONE store surface where that division fails: `listen` keeps the address's
+/// segments as the caller spelled them, so an out-of-domain segment reaches the home's key without the
+/// `L-1` walk ever running over it — measured, not assumed** (`bindings/js/test/convenience.test.mjs`'s
+/// second cell drives the rows below through `on`). **`§2.4` item 7 (a) step 1 makes `on` the site that owns
+/// this validation, so `on` decides the four rows the carrier cannot.**
+///
+/// **THE ROWS DECIDED, EACH NAMED AT ITS OWN `AddressArg` ROW** — row 7: an array holding a NEGATIVE
+/// integer · row 8: an array holding a NON-INTEGER number (`1.5`, `NaN`, `Infinity`) · row 9: an array
+/// holding `null`/`undefined` · row 10: an array holding an object (and, by the same clause's own reading of
+/// `§1.2`'s classes, an array, a `function`, a `symbol` or a `bigint`) · row 14: a sparse array. **AND ROW
+/// 6's SHAPE HALF IS DECIDED FIRST AND BESIDE THEM: a non-array IS `AddressMalformed`, and `'a.b'` is not a
+/// delimited address** — `classSpelling` names each class the value HAS (`§1.8`'s no-repair prohibition: no
+/// value here is converted, defaulted or substituted). **EACH REFUSAL IS THE ONE FORM, with the failing
+/// TARGET printed as its own value, the CLASS that failed and the ARGUMENT POSITION** (`§2.5` items 5 (a)
+/// and (b); `§2.17`'s dated clause) — **and NOTHING HERE IS A SECOND STATUS, A THIRD MEMBER OR A RAW HOST
+/// ERROR.**
+///
+/// **AND NOTHING IS LEFT BEHIND:** this walk performs NO store call and NO registry write, so it runs at
+/// step 1 and leaves no home entry, no registry entry, no node and no journal entry.
+function validateOnAddress(address) {
+  if (!isAdmittedArray(address)) {
+    // `AddressArg` row 6 (a non-array, its five named classes), row 11 (a class extending `Array`), row 12
+    // (a `Proxy`) and rows 4–5 (`undefined`/`null`, whose own class spelling is the target's).
+    boundaryReject(
+      'AddressMalformed', // `AddressArg` rows 4–6's own declared code, carried and never minted (`DD-40`)
+      targetSpelling(address),
+      `the address at the ${ARGUMENT_POSITION_FIRST} of \`on\` is ${classSpelling(address)}, and an address is an array of segments`,
+    );
+  }
+  for (let i = 0; i < address.length; i += 1) {
+    // Row 14 (`DD-8`): a HOLE refuses the WHOLE value — and `isAdmittedArray` has already decided the
+    // CLASS, so `in` below reads an element of a genuine array and no chain.
+    if (!(i in address)) {
+      boundaryReject(
+        'AddressMalformed',
+        'an array with a hole',
+        `the address at the ${ARGUMENT_POSITION_FIRST} of \`on\` is a sparse array, and an address is a dense array of segments`,
+      );
+    }
+    const segment = address[i];
+    // Rows 2–3: the two IN-DOMAIN classes — a string (the empty string included) and a non-negative
+    // integer. **The integer test is taken on the value as it is and nothing is repaired**: `1.5`, `-1`,
+    // `NaN` and `Infinity` are each refused as `a number`, which is the class the value HAS.
+    if (typeof segment === 'string') continue;
+    if (typeof segment === 'number' && Number.isInteger(segment) && segment >= 0) continue;
+    // Rows 7–10 + `§1.2`'s class set: every other class is refused AT THE BOUNDARY, inside the one form,
+    // naming the failing SEGMENT — the target the item's own clause names — its class and the position.
+    boundaryReject(
+      'AddressMalformed',
+      targetSpelling(segment),
+      `the segment at index ${i} of the address at the ${ARGUMENT_POSITION_FIRST} of \`on\` is ${classSpelling(segment)}, and a segment is a string or a non-negative integer`,
+    );
+  }
+  return undefined;
+}
+
+/// **`on`'s STEP 1, WHOLE: VALIDATE THE `address` THEN THE `listener`, CLASS FIRST AND NOTHING REPAIRED**
+/// (`surface.md §2.4` item 7 (a); `A81` *"always validate"*, verbatim; `crossing.md §1.7`'s order — class,
+/// then shape, then admit-or-refuse). **EACH REFUSAL IS `AddressMalformed` IN `§2.5`'s SINGLE FORM, carrying
+/// the failing TARGET, the CLASS the value HAS and the ARGUMENT POSITION** (`§2.17`'s dated clause, whose
+/// class set is EXHAUSTIVE AND CLOSED and whose two new arms are a non-function at `2` of `2` and an
+/// `address` outside `AddressArg` at `1` of `2`).
+///
+/// **AND NOTHING IS LEFT BEHIND** (`§2.4` item 7 (a)): this function performs NO store call and no registry
+/// write, so a refusal here leaves NO STORE-SIDE HOME ENTRY, NO REGISTRY ENTRY, NO NODE MINTED AND NO
+/// JOURNAL ENTRY APPENDED — **atomicity by the validation's POSITION and not by a rollback.**
+function validateOnArguments(address, listener) {
+  validateOnAddress(address);
+  if (typeof listener !== 'function') {
+    boundaryReject(
+      'AddressMalformed',
+      targetSpelling(listener),
+      `the listener at the ${ARGUMENT_POSITION_SECOND} of \`on\` is ${classSpelling(listener)}, and a listener is a JS function`,
+    );
+  }
+}
+
+/// **`on(address, listener) -> handle`** — `surface.md §2.4` item 7 (a), ITS THREE STEPS IN THEIR ONE FIXED
+/// ORDER, AND NO FOURTH:
+/// ```
+///   1. VALIDATE   this file's own step, above: the address, then the listener, class first, never repaired
+///   2. LISTEN     the store's own listen(instance, address)   — the SAME declared verb, unchanged
+///   3. REGISTER   the package's registry takes the returned handle with this listener (rule 2 = replacement)
+/// ```
+/// **THE RETURN IS THE HANDLE** in `§2.3` item 2's ONE output spelling — the package's opaque value and
+/// never the token string. **AND AT AN ADDRESS THE STORE'S HOME ALREADY HOLDS IT RETURNS THAT ADDRESS'S
+/// EXISTING HANDLE**, because the store's own address-level idempotence makes a repeat `listen` mint
+/// nothing and answer the entry's own handle (`write-and-read.md §6.5` item 12 (c); `§2.3`'s dated clause).
+/// **THE TWO ARMS ARE THEREFORE THESE AND NO OTHERS:** the FRESH arm, where the store minted a token and
+/// the package wrapped it, and the HELD arm, where the SAME opaque value is answered again and the
+/// registry's function for it becomes THIS listener — **a REPLACEMENT, never a second entry and never a
+/// fan-out** (`§2.4` rule 2), and **including over an entry `register` placed, which `DD-52` settles: the
+/// registry does not record which member wrote an entry.** **SO A LATER WRITE UNDER THAT ADDRESS INVOKES
+/// THIS FUNCTION ONCE AND THE REPLACED ONE NEVER FIRES AGAIN** — and *which* listener fires and *when* is
+/// the STORE's rule, derived from `write-and-read.md §6.5` item 14 and never stated here.
+function onAt(state, instance, address, listener) {
+  // STEP 1 — VALIDATE. Nothing below runs unless BOTH arguments have passed (`A81`; `A76`).
+  validateOnArguments(address, listener);
+  // STEP 2 — LISTEN. The store's own verb, reached with the address the caller supplied and through this
+  // package's ONE declared `listen` spelling (`§2.10`): same name, same position, same arity, same return.
+  const handle = listen(instance, address);
+  // STEP 3 — REGISTER. `§2.4` rule 2 at the registry that holds the function: ONE identity, ONE function.
+  state.registry.set(handle, listener);
+  return handle;
+}
+
+/// **`off(handle) -> undefined`** — `surface.md §2.4` item 7 (b), ITS THREE STEPS IN THEIR ONE FIXED ORDER,
+/// AND `DD-54`'s ONE OBSERVABLE: **after any `off` that throws, BOTH the store-side entry and the registry
+/// entry are exactly as they were.**
+/// ```
+///   1. VALIDATE    the handle against THIS INSTANCE's own handle domain, class first, never repaired
+///   2. UNLISTEN    the store's own unlisten(instance, handle)   — the same declared verb, unchanged
+///   3. DEREGISTER  the package's own registry entry for that identity, and NOTHING ELSE
+/// ```
+/// **AND ITS THREE ARMS, EACH WITH ITS OBSERVABLE** (item 7 (b)'s own table):
+///   * **THE OWN ARM** — an in-domain identity the registry holds a function for: the store-side home entry
+///     is withdrawn, the registry's entry for that identity is REMOVED, and `undefined` is returned.
+///   * **THE OWN-ENTRYLESS ARM** — an in-domain identity the registry holds NO function for (registered
+///     never, or already withdrawn): `undefined`, the store-side withdrawal IS performed, nothing is
+///     removed that was not there and NO OTHER REGISTRATION IS DISTURBED (`DD-53`: `off`'s refusal arm is
+///     the OUTSIDE-DOMAIN handle ALONE).
+///   * **THE OUTSIDE ARM** — a foreign instance's value, a prior session's value, a fabricated value, a bare
+///     `string`, a blank token, a non-opaque value, `null`, `undefined` or an ABSENT argument: **a REFUSAL**
+///     — `AddressMalformed` in `§2.5`'s single form, with the failing target, the class and the position —
+///     **and NEITHER removal is performed.** **THIS is the arm that makes `off` differ from `unlisten` over
+///     one value, and the difference is DECLARED and not incidental** (`§2.3`'s dated clause 3; `§2.8`).
+///
+/// **`unlisten` ITSELF IS UNTOUCHED AND KEEPS RULE 4 VERBATIM**: it withdraws the registration and NEVER the
+/// function, with the registry's entry STANDING. `off` is the PACKAGE-OWNED verb that removes one, and a
+/// reader who takes it as an exception to rule 4 has read a second withdrawal into the store's surface —
+/// there is none. **AND `off` REMOVES NO MORE THAN THE HANDLE NAMES**: a lawful sibling registration —
+/// another address's entry, another identity in the same instance — STANDS. **AND NEITHER IT NOR `on` IS A
+/// RELEASE VERB** (`A74`): no `dispose()`, no `close()`, no finalizer and no teardown is declared here, and
+/// the instance's state is still released with the instance and by nothing else.
+///
+/// **AND `off` DOES NOT CANCEL A DELIVERY IN FLIGHT**, because the delivery's recipient set is read when the
+/// window opens (item 7 (b); `§2.4`'s `CF-DUP-3` re-homing clause; `write-and-read.md §6.5` item 14).
+function offAt(state, instance, handle) {
+  // STEP 1 — VALIDATE. An outside value is refused HERE, and steps 2 and 3 never run (`DD-54`).
+  const encoded = encodeHandle(state, handle);
+  if (encoded.k !== 'O') {
+    // The ONE form, with the failing TARGET printed as its own value (item 5 (a)), the CLASS the value HAS
+    // (item 5 (b), mandatory) and the ARGUMENT POSITION (`§2.17`'s dated clause, `1` of `2`) — **and NOT
+    // `unlisten`'s no-op `undefined`, which is that verb's own declared answer and not this one's.**
+    boundaryReject(
+      'AddressMalformed', // `§2.8`'s own declared code at this site, carried and never minted (`DD-40`)
+      targetSpelling(handle),
+      `the handle at the ${ARGUMENT_POSITION_FIRST} of \`off\` is ${classSpelling(handle)}, and it is not an opaque value THIS INSTANCE minted or adopted`,
+    );
+  }
+  // STEP 2 — UNLISTEN. The store's own verb through the ONE declared `unlisten` spelling (`§2.10`), reached
+  // with the handle this instance already owns. **A THROWING PATH LEAVES THE REGISTRY ENTRY STANDING**
+  // (`DD-54`): there is no `finally` here and none may be added.
+  unlisten(instance, handle);
+  // STEP 3 — DEREGISTER, the PACKAGE'S OWN state and nothing of the store's.
+  deregister(state, handle);
+  return undefined;
+}
+
+/// **THE DEREGISTRATION OF ONE IDENTITY — `§2.4` item 7 (b)'s THIRD STEP.** The registry's entry for THIS
+/// identity is removed, and NOTHING ELSE OF THE PACKAGE'S STATE: **the identity's own token-to-handle
+/// binding STANDS**, because it is not the withdrawal's to move and three declared answers rest on it —
+/// `register(h, …)` over a handle this instance adopted or minted is judged by the INSTANCE's own domain
+/// (`§2.4` item 5 (c)) and not by which verbs have run since, `unlisten`'s OPAQUE-only acceptance is the
+/// same domain (`§2.3` item 2), and `off`'s own ENTRY-LESS arm is declared over an identity that has
+/// ALREADY been removed by an earlier `off` (`DD-53`). **AND NO LATER `listen` CAN BE HANDED THIS BINDING
+/// BY ACCIDENT**, because the store MINTS A FRESH TOKEN after its home entry is withdrawn
+/// (`write-and-read.md §6.5` item 12; `A69`'s uniqueness is over the tokens the store MINTS), so a re-`listen`
+/// at the same address reaches `wrapHandles` with a token no map entry holds and is wrapped as a NEW
+/// identity — which is exactly `§2.4` rule 4's *"a later re-`listen` … mints a DIFFERENT handle"*. **A drive
+/// that finds the withdrawn identity's function reachable after one `off` has found a failure of this step
+/// and not of this sentence.**
+function deregister(state, handle) {
+  state.registry.delete(handle);
 }
 
 // `delete` is a reserved word and the declared spelling is preserved on the way out.
