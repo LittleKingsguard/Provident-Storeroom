@@ -87,16 +87,90 @@ test('package_the_claim_is_node_esm_alone_through_exactly_one_arms_bearing_entry
   assert.equal(arms[0].require, undefined, 'HO-1: the package publishes NO CJS arm');
 });
 
-test('package_a_wildcard_export_and_a_deep_import_are_both_refused', () => {
+test('package_a_wildcard_export_and_a_deep_import_are_both_refused', (t) => {
   // `DD-24`: a wildcard `"./*"` export would expose the `.node` path; a deep import is refused for the same
   // reason. **A `require()` of the bare specifier is NOT asserted to throw**: on the declared toolchain
   // (Node `v24.20.0`) the RUNTIME supplies `require(esm)` interop of its own, which is the consumer's own
   // side of the boundary (`HO-1`) and not a published arm of this package.
   assert.equal(PKG.exports['./*'], undefined, 'no wildcard export');
-  assert.throws(
-    () => require_.resolve('@provident-storeroom/js/index.node'),
-    'a deep import to the addon is not exported',
-  );
+
+  // **⟶ REPAIRED (`F-1`, `§10`): THE DEEP-IMPORT PROBE IS RE-CUT AT THE CURRENT DECLARED PLATFORM SPECIFIER
+  // AND ITS OUTCOME IS NOW ASSERTED SPECIFICALLY.** THE AS-FILED CELL PROBED
+  // `require_.resolve('@provident-storeroom/js/index.node')` — the scope `A86` RETIRED — and
+  // `require_.resolve` **THROWS FOR ANY SPECIFIER**, so that assertion was satisfied by a typo, by a stale
+  // scope and by an empty string alike: it asserted nothing about the deep import at all. **THE SUBJECT IS
+  // NOW THE CONTRACT'S OWN FIVE-NAME TABLE'S HOST-APPROPRIATE NAME (`resolution.md §3.1`, the `OPERATIVE`
+  // column of `A86`(a)) AND THE DEEP PATH IS THE ONE THE LOADER'S OWN `require` LANDS ON — the platform
+  // package's own `main` (`<name>/storeroom_js_binding.node`)** — and the outcome is asserted in whichever
+  // of the TWO states the tree is in, each outcome PINNED so the cell distinguishes them:
+  //   (1) the artefact IS installed where this file resolves from: the loader's own rung-one specifier
+  //       resolves, and the deep import reaches **THE SAME FILE** — asserted equal, so the two spellings
+  //       cannot diverge;
+  //   (2) it is NOT installed in this checkout (`bindings/js/node_modules` does not exist — the platform
+  //       packages are PUBLISHED and never vendored, `package.md §3.2`): the deep import fails with **THE
+  //       SPECIFIC ERROR A NON-SHIPPED ARTEFACT YIELDS**, `MODULE_NOT_FOUND`, **AND ITS MESSAGE NAMES THE
+  //       SPECIFIER ASKED FOR** — that naming is what makes the cell falsifiable, because a stale or
+  //       misspelled probe reports ITSELF rather than passing silently.
+  const PLATFORM_NAMES = { // `resolution.md §3.1` — the five declared names, at the scope `A86`(a) sets
+    'linux·x64': '@auspicion/js-linux-x64-gnu',
+    'linux·arm64': '@auspicion/js-linux-arm64-gnu',
+    'darwin·x64': '@auspicion/js-darwin-x64',
+    'darwin·arm64': '@auspicion/js-darwin-arm64',
+    'win32·x64': '@auspicion/js-win32-x64-msvc',
+  };
+  const host = PLATFORM_NAMES[`${process.platform}·${process.arch}`];
+  if (host === undefined) {
+    // the contract's table answers `NOT COVERED` for this pair (`resolution.md §4.1`), so rung one has no
+    // name and this probe has no subject: PARKED with its structural reason rather than asserted vacuously.
+    t.skip(`the host pair ${process.platform}·${process.arch} is NOT COVERED by the five-name table, so the deep import of the declared platform specifier has no subject here`);
+    return;
+  }
+  // the probe's subject is DECLARED, not invented: it is one of the five keys the shipped manifest pins.
+  assert.ok(Object.keys(PKG.optionalDependencies ?? {}).includes(host),
+    `the probe's subject is one of the five declared names the manifest pins: ${host}`);
+  const ARTIFACT = 'storeroom_js_binding.node'; // `PAR-PUB-30` / the platform packages' own `main`
+  const hostLabel = `${process.platform}-${process.arch}`;
+  const platformManifest = join(PACKAGE_DIR, 'platforms', hostLabel, 'package.json');
+  if (existsSync(platformManifest)) {
+    assert.equal(JSON.parse(readFileSync(platformManifest, 'utf8')).main, ARTIFACT,
+      `the platform package publishes the artefact as its own \`main\`, so the deep import below is the path a bare require lands on (${hostLabel})`);
+  }
+  const probe = (specifier) => {
+    try { return { ok: true, path: require_.resolve(specifier), code: null, message: null }; }
+    catch (err) { return { ok: false, path: null, code: err.code ?? null, message: String(err.message ?? err) }; }
+  };
+  const bare = probe(host);
+  const deep = probe(`${host}/${ARTIFACT}`);
+  if (bare.ok) {
+    assert.ok(deep.ok,
+      `state (1): the artefact IS installed, so its own subpath resolves: ${host}/${ARTIFACT}`);
+    assert.equal(deep.path, bare.path,
+      'state (1): the deep import and the loader\'s bare require reach ONE file');
+  } else {
+    assert.equal(deep.code, 'MODULE_NOT_FOUND',
+      `state (2): a NON-SHIPPED artefact yields its own specific error, and not the export map's refusal: ${host}/${ARTIFACT}`);
+    assert.ok(deep.message.includes(`${host}/${ARTIFACT}`),
+      `state (2): the error NAMES the specifier it was asked for, so a stale or misspelled probe reports itself: ${host}/${ARTIFACT}`);
+    assert.ok(!deep.message.includes('@provident-storeroom'),
+      'state (2): and the scope `A86` retired is not the subject of this probe');
+  }
+  // **AND THE DEEP IMPORT AT THE PACKAGE'S OWN SHIPPED IDENTITY IS REFUSED BY ITS OWN `exports` MAP** — the
+  // clause's own named failure (*"a deep-import path to the `.node`"*, `DD-24`), measured at bytes that exist
+  // and not inferred from an absence: this package IS that identity, it carries NO wildcard and NO
+  // `./index.node` subpath, so the map itself refuses the deep path.
+  const ownDeep = probe(`${PKG.name}/index.node`);
+  assert.equal(ownDeep.code, 'ERR_PACKAGE_PATH_NOT_EXPORTED',
+    `\`${PKG.name}\` is present and its own \`exports\` map refuses the deep import to the \`.node\``);
+  assert.ok(ownDeep.message.includes('./index.node'),
+    `and the refusal names the subpath the map does not define: ${String(ownDeep.message).split('\n')[0]}`);
+  // **AND THE AS-FILED SPELLING IS KEPT BESIDE IT AS A MEASURED REFUSAL RATHER THAN AS DECORATION**: the
+  // retired identity resolves nowhere, its error names it, and this — and not the vacuous `assert.throws`
+  // — is what the as-filed probe was actually reading.
+  const retired = probe('@provident-storeroom/js/index.node');
+  assert.equal(retired.code, 'MODULE_NOT_FOUND',
+    'the retired identity resolves nowhere (`A86` retires the spelling and the main package is `provident-storeroom`)');
+  assert.ok(retired.message.includes('@provident-storeroom/js/index.node'),
+    'and that error names the retired spelling too, so the two spellings are told apart by the instrument');
 });
 
 test('package_no_cjs_arm_and_no_require_entry_is_published', () => {

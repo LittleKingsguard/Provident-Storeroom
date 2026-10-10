@@ -1286,7 +1286,10 @@ cell('P-PUB-5', 'S-ONEARM no fallback, no partial instance, no no-op verb, no fo
 // FAIL-STATES: an unscoped platform name anywhere · a sixth scoped name · a name whose scope is not
 //   `@auspicion` — **AND ITS CONVERSE, KEPT BESIDE IT: a name whose scope IS the old `@provident-storeroom`,
 //   the scope `A86` moves the five away from** · a name that drops a suffix · the alternative literal
-//   reading written anywhere · the five spellings disagreeing across the homes (`contract.md §5.6`;
+//   reading written anywhere — **AND THAT READING IS NOW SWEPT IN BOTH OF ITS DECLARED FORMS: `PUB-DD-15`'s
+//   as-filed alternative `@auspicion/<label>[-<toolchain>]` (no `js-` second segment) AND `A86`(b)'s PRICED
+//   alternative `@auspicion/storeroom-js-<label>[-<toolchain>]` (`F-2`, `§10`)** — · the five spellings
+//   disagreeing across the homes (`contract.md §5.6`;
 //   `resolution.md §3.1`; `parameter-semantics.md` `PAR-PUB-17`'s outside values)
 const SUFFIXED = { '@auspicion/js-linux-x64-gnu': '-gnu', '@auspicion/js-linux-arm64-gnu': '-gnu', '@auspicion/js-win32-x64-msvc': '-msvc' };
 
@@ -1367,23 +1370,110 @@ cell('P-PUB-6', 'S-SCOPE the alternative literal reading is written nowhere', as
   // `PUB-DD-15` cell PRINTS it as the refusal it is, so the contract documents are the one home the token is
   // lawful in, and they are not swept here: the sweep is over the SHIPPED bytes, where a second spelling
   // would be a finding.)
-  const alternatives = COVERED.map((k) => `@auspicion/${k.label}`);
+  //
+  // **⟶ REPAIRED (`F-2`, `§10`): THE SIBLING-SPELLING CLAUSE OF THIS CELL COULD NOT FAIL, AND A MEASURED
+  // CONTROL NOW PROVES IT CAN.** The as-filed form's second assertion was `!A || B` with `B` =
+  // `text.includes(FIVE_NAMES[0])`, **and `B` IS TRUE BY CONSTRUCTION AT ALL THREE HOMES** — the manifest
+  // and the entry DECLARE `@auspicion/js-linux-x64-gnu` and the shipped README PRINTS it — so the clause was
+  // satisfied by every byte of the tree, an injected alternative included, at every home; and its `["']`
+  // boundary missed a backtick-delimited spelling (the shipped README spells the name inside backticks).
+  // **THE PROPERTY THE CELL MEANS IS NOW ASSERTED DIRECTLY, IN A FORM THAT CAN FAIL, AND THE INSTRUMENT
+  // ITSELF IS MEASURED AGAINST SCRATCH COPIES CARRYING THE LITERALS:**
+  //   (a) NO SPELLING OF EITHER ALTERNATIVE READING APPEARS IN THE SHIPPED BYTES — the `PUB-DD-15` reading
+  //       `@auspicion/<label>[-<toolchain>]` (second segment `linux-…`) **AND** the `A86`(b) PRICED
+  //       alternative `@auspicion/storeroom-js-<label>[-<toolchain>]` — each at the bare label AND at the
+  //       artefact's own toolchain suffix, in EVERY shipped home;
+  //   (b) NO TRUNCATED SIBLING OF A DECLARED SPELLING: `@auspicion/js-linux-x64` is never written without
+  //       its own `-gnu`.
+  // **THE CONTROLS ARE SCRATCH COPIES UNDER THE OPERATING SYSTEM'S TEMPORARY AREA AND NOT ONE BYTE OF THE
+  // REPOSITORY IS WRITTEN.**
+  const reEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // the artefact's own toolchain suffix for a covered label, read off the DECLARED name — `''` for the two
+  // Apple rows, `-gnu` twice and `-msvc` once (`package.md §3.2`'s map, whose `3 + 2 = 5` does not move).
+  const suffixOf = (label) => FIVE_NAMES.find((n) => n.startsWith(`@auspicion/js-${label}`)).slice(`@auspicion/js-${label}`.length);
+  // **THE TWO ALTERNATIVE READINGS, EACH AT EVERY TOOLCHAIN STATE THE DECLARED TABLE CARRIES.**
+  const alternativeReadings = [...new Set(COVERED.flatMap((k) => {
+    const suffix = suffixOf(k.label);
+    return [`@auspicion/${k.label}`, `@auspicion/${k.label}${suffix}`,
+      `@auspicion/storeroom-js-${k.label}`, `@auspicion/storeroom-js-${k.label}${suffix}`];
+  }))];
+  /** **THE SWEEP — ONE INSTRUMENT, DRIVING THE SHIPPED BYTES AND THE CONTROLS BOTH**, so that a control
+   *  measures the assertion that actually guards the tree and never a copy of it. It throws at the first
+   *  home whose bytes carry a refused spelling, naming the home and the literal. */
+  const sweepAlternativeReadings = (homes) => {
+    let checks = 0;
+    for (const [label, text] of homes) {
+      for (const alternative of alternativeReadings) {
+        assert.ok(!text.includes(alternative),
+          `${label} must not spell the alternative reading ${alternative} (\`PUB-DD-15\`; \`A86\`(b))`);
+        checks += 1;
+      }
+      for (const [spelled, suffix] of Object.entries(SUFFIXED)) {
+        const stem = spelled.slice(0, spelled.length - suffix.length);
+        assert.deepEqual(text.match(new RegExp(`${reEscape(stem)}(?!${reEscape(suffix)})`, 'g')) ?? [], [],
+          `${label} spells ${stem} with its own suffix ${suffix} and no truncated sibling of it`);
+        checks += 1;
+      }
+    }
+    return checks;
+  };
   const shipped = [
     ['the main manifest', readFileSync(join(PKG_DIR, 'package.json'), 'utf8')],
     ['the entry', readFileSync(join(PKG_DIR, 'index.mjs'), 'utf8')],
     ['the shipped README', readFileSync(join(PKG_DIR, 'README.md'), 'utf8')],
   ];
-  for (const [label, text] of shipped) {
-    for (const alternative of alternatives) {
-      assert.ok(!text.includes(alternative),
-        `${label} must not spell the alternative reading ${alternative} (\`PUB-DD-15\`)`);
-    }
-    assert.ok(!/@auspicion\/js-linux-x64(-gnu)?["']/.test(text) || text.includes(FIVE_NAMES[0]),
-      'the shipped bytes spell the DECLARED five and no sibling of them');
-  }
+  const checks = sweepAlternativeReadings(shipped);
+  assert.equal(checks, shipped.length * (alternativeReadings.length + Object.keys(SUFFIXED).length),
+    `the sweep really ran over every home, every alternative reading and every declared suffix (${checks} checks)`);
+  // **THE TWO CONTROLS, MEASURED AND REQUIRED TO FAIL.** Each is a SCRATCH COPY of the shipped manifest
+  // carrying ONE refused literal in place of a declared key. If the sweep above were decoration rather than
+  // an instrument, **the `sweepCaught` assertions below are what goes red** — which is the falsifier the
+  // as-filed clause had none of.
+  const controlDir = mkdtempSync(join(SCRATCH_ROOT, 'altsweep-'));
+  const sweepCaught = (index, bytes) => {
+    const copy = join(controlDir, `manifest-${index}.json`);
+    writeFileSync(copy, bytes);
+    try { sweepAlternativeReadings([['the main manifest', readFileSync(copy, 'utf8')]]); return null; }
+    catch (err) { return err; }
+  };
+  const pricedLiteral = `@auspicion/storeroom-js-${COVERED[0].label}${suffixOf(COVERED[0].label)}`;
+  const pricedStem = `@auspicion/storeroom-js-${COVERED[0].label}`;
+  const pricedControl = readFileSync(join(PKG_DIR, 'package.json'), 'utf8')
+    .replace(`"${FIVE_NAMES[0]}"`, `"${pricedLiteral}"`);
+  assert.ok(pricedControl.includes(pricedLiteral) && !pricedControl.includes(`"${FIVE_NAMES[0]}"`),
+    `the first control really carries \`A86\`(b)'s priced literal in place of the declared key (${pricedLiteral})`);
+  const pricedVerdict = sweepCaught(1, pricedControl);
+  assert.ok(pricedVerdict !== null,
+    `THE FIRST CONTROL MUST FAIL: the sweep catches the priced alternative reading ${pricedLiteral} where it stands`);
+  // the sweep reports the FIRST refused spelling it meets in the injected key — the bare label form, which
+  // the toolchain-suffixed one contains — so the clause checked is the injected literal's own STEM.
+  assert.ok(pricedVerdict.message.includes(pricedStem) && pricedVerdict.message.includes('the main manifest'),
+    `and it names the injected literal and the home it caught: ${String(pricedVerdict.message).slice(0, 200)}`);
+  // and the literal the sweep actually READ is one the CONTROL carries and the SHIPPED manifest carries
+  // nowhere — so the failure came from the control's own bytes and not from the tree under test.
+  const caughtLiteral = (pricedVerdict.message.match(/@auspicion\/[A-Za-z0-9/._-]+/) ?? [null])[0];
+  assert.ok(caughtLiteral !== null && pricedControl.includes(caughtLiteral)
+    && !readFileSync(join(PKG_DIR, 'package.json'), 'utf8').includes(caughtLiteral),
+    `the literal the sweep caught is CARRIED BY THE CONTROL AND BY THE SHIPPED MANIFEST NOWHERE: ${caughtLiteral}`);
+  const truncatedLiteral = FIVE_NAMES[0].slice(0, FIVE_NAMES[0].length - suffixOf(COVERED[0].label).length);
+  const truncatedControl = readFileSync(join(PKG_DIR, 'package.json'), 'utf8')
+    .replace(`"${FIVE_NAMES[0]}"`, `"${truncatedLiteral}"`);
+  assert.ok(truncatedControl.includes(`"${truncatedLiteral}"`) && !truncatedControl.includes(`"${FIVE_NAMES[0]}"`),
+    `the second control really drops the declared suffix (${truncatedLiteral})`);
+  const truncatedVerdict = sweepCaught(2, truncatedControl);
+  assert.ok(truncatedVerdict !== null,
+    `THE SECOND CONTROL MUST FAIL: the sweep catches the truncated sibling ${truncatedLiteral}`);
+  assert.ok(truncatedVerdict.message.includes(truncatedLiteral) && truncatedVerdict.message.includes('with its own suffix'),
+    `and it names the truncated spelling and the clause it broke: ${String(truncatedVerdict.message).slice(0, 200)}`);
   // and the five spellings agree ACROSS THE HOMES the contract names: the sibling directory's two cells are
   // `Q3`'s (`§9` · `Q3-1`), so they are asserted as the DECLARED SET rather than as the shipped tree.
-  assert.deepEqual([...FIVE_NAMES], [...FIVE_NAMES], 'the declared set is the five, name for name');
+  // **AND THE SET PROPERTY THE AS-FILED CLOSING LINE ONLY APPEARED TO ASSERT IS NOW ASSERTED**: that line
+  // compared the declared set WITH ITSELF (`deepEqual([...FIVE_NAMES], [...FIVE_NAMES])`), so it held for
+  // every state of the tree; the declared set's own census and its DISJOINTNESS from every alternative
+  // reading are what the clause means, and either can fail.
+  assert.equal(FIVE_NAMES.length, 5, 'the declared set is the five, name for name');
+  assert.deepEqual(FIVE_NAMES.filter((n) => alternativeReadings.includes(n)), [],
+    'and NOT ONE of the five declared names IS an alternative reading of itself');
 });
 
 cell('P-PUB-6', 'S-SCOPE the five spellings agree across every home the contract names', async () => {
