@@ -873,9 +873,24 @@ function wrapHandles(state, tokens) {
       handle = Object.freeze({}); // **THE OPAQUE HANDLE**: frozen, memberless, and its token is PRIVATE
       state.tokens.set(handle, token);
     }
-    // `§2.4` rule 3: one DISTINCT handle per token, however many home entries carry it — *"the registry
-    // fires one invocation per DISTINCT handle — not one per occurrence, and not one per entry"*.
-    if (!out.includes(handle)) out.push(handle);
+    // **THE STORE'S OWN LIST IS CARRIED OUT ELEMENT FOR ELEMENT, AND THE BOUNDARY EDITS NOTHING**
+    // (`surface.md` §2.4's dated clause of 2026-10-11, whose twin stands at `contract.md` §2.4: *"`triggered`
+    // crosses as a fresh JS array of the handles the store's own list carries … so in CASE B THE
+    // JS-OBSERVABLE `triggered` CARRIES THE TOKEN TWICE"*). **ONE element is pushed per entry the store
+    // returned, in the store's own order — an order NO clause asserts and none is claimed here** — so a
+    // lawful caller-spelled duplicate yields THE SAME identity TWICE (`DD-42`'s clause 3; `DD-39`; `PAR-JS-15`;
+    // `crossing.md §1.3`'s returned-record rows; `§2.7` items 1 and 3).
+    //
+    // **⟶ AND THE COLLAPSE THIS SITE SHIPPED UNTIL 2026-10-11, RE-EMITTED SO THE `git diff` READER MEETS BOTH
+    // READINGS INSTEAD OF A DELETED BYTE** — rule 3 read as a rule about the ARRAY rather than about the
+    // COUNT: *"`§2.4` rule 3: one DISTINCT handle per token, however many home entries carry it — "the
+    // registry fires one invocation per DISTINCT handle — not one per occurrence, and not one per entry""* —
+    // `if (!out.includes(handle)) out.push(handle);`. **THE SENTENCE QUOTED THERE IS THE INVOCATION RULE AND
+    // IT IS RIGHT; IT IS NOT MOVED, IT IS RELOCATED TO THE ONE SITE THAT OWNS IT.** The invocation count is
+    // the PACKAGE's and it is one per DISTINCT identity; the array's multiplicity is the STORE's, and the
+    // per-identity deduplication now stands at DELIVERY, in `deliver` below, where §2.4's dated clause (i)
+    // puts it (*"so in CASE B the duplicate token's ONE function runs ONCE"*).
+    out.push(handle);
   }
   return out;
 }
@@ -1035,8 +1050,20 @@ export function write(instance, address, tier, value) {
 ///   log and of a throw). Note that the arm is reached for a handle the store returned with no registration
 ///   AND for a handle the registry once held a non-function for: `register` refuses a non-function at its
 ///   own site (`§2.4` item 5 (d)), so the only way an entry can be non-functional is to be absent.
-/// * **A DUPLICATE ID IN ONE TRIGGER SET MATCHES ONE FUNCTION**: `wrapHandles` de-duplicates the returned
-///   list by identity (`§2.4` rule 3, *"once per DISTINCT handle"*), so the loop runs once per distinct id.
+/// * **A DUPLICATE ID IN ONE TRIGGER SET MATCHES ONE FUNCTION — AND THAT DEDUPLICATION STANDS HERE, AT
+///   DELIVERY, BECAUSE THE ARRAY IS THE STORE'S.** `wrapHandles` now carries the store's list ELEMENT FOR
+///   ELEMENT, so a lawful caller-spelled duplicate arrives in this loop TWICE and the loop below invokes ONE
+///   registered function per DISTINCT identity of that array — **never one per element and never one per
+///   entry** (`§2.4` rule 3; `surface.md §2.4`'s dated clause (i): *"so in CASE B the duplicate token's ONE
+///   function runs ONCE"*). **THE CLAUSE'S OWN SENTENCE *"the shipped `deliver` iterates whatever the array
+///   carries and the registry holds AT MOST ONE function per identity, so ONE identity invokes ONE function
+///   ONCE under BOTH readings"* HOLDS OF THIS LOOP, AND OF THIS LOOP ALONE** — it holds because the loop
+///   iterates the array's DISTINCT IDENTITIES and not its elements.
+///   **AND THE AS-FILED READING, RE-EMITTED BECAUSE THE `git diff` READER MEETS IT FIRST** — *"A DUPLICATE ID
+///   IN ONE TRIGGER SET MATCHES ONE FUNCTION: `wrapHandles` de-duplicates the returned list by identity
+///   (`§2.4` rule 3, "once per DISTINCT handle"), so the loop runs once per distinct id."* — **placed that
+///   deduplication at the BOUNDARY, where it EDITED a list the store owns; the 2026-10-11 reconciliation moved
+///   it here and left the array's multiplicity the store's own** (`DD-42` clause 3; `DD-39`).
 /// * **THE INVOCATION RECEIVES TWO DISTINCT DATA, AND THEY ARE NOT THE SAME DATUM** (`A77`'s consequence
 ///   (4)): **the ID IT WAS MATCHED BY is the loop variable `handle`, the registry KEY — it selects the
 ///   function and is NOT passed to it**; **what IS passed, as the invocation's ONE argument, is the
@@ -1046,7 +1073,16 @@ export function write(instance, address, tier, value) {
 ///   assert exactly one argument** (`S-FIRE-WINDOW`'s `argCount === 1`).
 function deliver(state, triggered, triggeringAddress) {
   const address = typeof triggeringAddress === 'object' && triggeringAddress !== null ? triggeringAddress : [];
+  // **ONE INVOCATION PER DISTINCT IDENTITY** (`§2.4` rule 3 and its dated clause (i); `§2.4` item 6 (b)–(e)):
+  // the array is the STORE's and a lawful caller-spelled duplicate makes ONE identity stand in it TWICE, so
+  // what is matched is the array's identity SET — each DISTINCT identity ONCE, at its first occurrence and
+  // never a second time. **NO ORDER IS ASSERTED BY THIS LOOP OR BY ANY CLAUSE IT ANSWERS TO** (`§2.7` item 3;
+  // `DD-22`: a drive compares sets, never sequences), and an identity the registry holds no function for
+  // still fires nothing at every one of its occurrences.
+  const matched = new Set();
   for (const handle of triggered) {
+    if (matched.has(handle)) continue; // ONE invocation per DISTINCT identity — never one per element
+    matched.add(handle);
     const listener = state.registry.get(handle); // THE ID→FUNCTION MATCH, BY THE IDENTITY REGISTRATION RETURNED
     // `§2.4` rule 1: a handle with NO registered function invokes nothing and reports nothing — no code,
     // no warning, no log.
