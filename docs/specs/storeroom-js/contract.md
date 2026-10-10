@@ -203,7 +203,49 @@ ANNOTATE-BESIDE: this clause adds no figure, moves no side and re-decides no rul
 docs/specs/spec-scope-and-structure/contract.md §C.3 — the closure predicate's single arithmetic | numeric or
 census claim]`).
 
----
+**⟶ AND THE `Q1` CONTRACT AMENDMENT'S OWN INDEX STATEMENT, LANDED 2026-10-11 BY `role_spec_writer` ON THE
+ARCHITECT'S RULINGS `A79`–`A81` — THE FIGURES ABOVE STAND, AND THIS CLAUSE IS THE OPERATIVE STATEMENT OF THE ONE
+MEMBER SET AND THE THREE COUNTS THE AMENDMENT MOVES OR HOLD.** `RCA-8(d)` ANNOTATE-BESIDE: **every bullet and every
+figure above stands byte-for-byte — the status block, the unit/prefix line, the scope boundary, the part map, the
+omissions table and both closure-arithmetic clauses included — and each is read THROUGH this clause; THIS clause
+is a PURE INSERTION, it creates no file, renumbers no `§`, moves no row of the part map and re-decides no rule.**
+**THE RULINGS, VERBATIM:** ***"Use S-1, `off` can deregister, and always validate"***
+(`docs/specs/storeroom-js-proposal.md` `§8` · **`A79`** · **`A80`** · **`A81`**).
+
+| The figure | What it was before this pass | What it reads now |
+| --- | --- | --- |
+| **the instance's own member set** (`§2.1`'s surface enumeration, `§2.4` item 5 (a)) | `{ register }` — one own member | **`{ register, on, off }` — THREE own members**; the as-filed `{ register }` cells stand byte-for-byte at their own `§` in this document and in `docs/specs/storeroom-js/surface.md`, and `surface.md §2.1`'s dated clause and `§2.4` item 7 are the operative statements. **The re-spelling of the two as-filed cells is the NAMED REPAIR of a later bounded amendment** |
+| **the module namespace** | the `8` verbs | **UNMOVED: `8` verbs, no ninth, and NEITHER `on` NOR `off` is a named export** (`§2.9` item 1) |
+| **the store, its crate and its `379`** | — | **UNMOVED** — no store byte, no store contract cell and no store measurement moves (`A68`; the filing's `§6`) |
+| **the register** | `8` rows, cap `≤ 8` | **`8` rows, cap holding at `8 ≤ 8` ✓, and ONE row RE-DERIVED — `P-SM-5`, whose re-derivation stands at `§5.5`'s dated clause. NO NINTH ROW IS MINTED** |
+| **the `PAR-JS` set** | `18` rows | **`18` rows, arithmetic `15 + 1 + 1 + 1 = 18` ✓, and TWO rows RE-DERIVED — `PAR-JS-8` (the `off` handle slot) and `PAR-JS-12` (the `on` listener slot), each at its own dated clause. NO NINETEENTH ROW IS MINTED** |
+| **the `DD` family** | `50` rows (`DD-1`…`DD-50`) | **`54` rows (`DD-1`…`DD-54`): `DD-51` · `DD-52` · `DD-53` · `DD-54` are the four priced `DECLARED-DEFAULT` rows this amendment authors for the silences the three rulings leave, each with its `alt` and a reversal point that is an instrument and NEVER a park** |
+
+**AND THE CLOSURE PREDICATE, PRINTED WITH ITS FIGURES SO IT IS CHECKED AND NOT ASSUMED — IT HOLDS.** **THE LEFT
+SIDE: `{part-map PART entries}` = `{rows of the part map}` − `{the contract-document row}` = `7 − 1` = `6`.** **THE
+RIGHT SIDE, ON THE OPERATIVE PART-ENTRY COUNTING: the `5` `carrier` parts (`crossing` · `surface` · `package` ·
+`acceptance` · `parameter-semantics`) + `implementation-plan` (a `carrier` part) + the `view` part `test-cases` =
+`6`** — **so the predicate reads `6 = 6` ✓ AND IT HOLDS.** **AND THE RAW FILE SET, PRINTED BESIDE IT BECAUSE A
+READER MAY COUNT FILES: `crossing.md` · `surface.md` · `package.md` · `acceptance.md` · `parameter-semantics.md` ·
+`implementation-plan.md` · `test-cases.md` = `7` files beside `contract.md`, each one an entry of the map — so the
+two countings agree at `7` entries and `7` files, and the `3` recorded omissions contribute to NEITHER side.**
+**THIS PASS CREATES NO PART FILE: the ONLY file it adds is `docs/specs/storeroom-js/backup/Q1-CONTRACT-AMENDMENT-2026-10-11-manifest.md`,
+which is a `DEF-14`/`DEF-15` manifest under `backup/` and is NOT an entry of the part map and NOT a part file** —
+**so the file set's own figure and the map's own entry count are BOTH UNMOVED, and the state stays `CLOSED`.**
+**AND TWO MORE FIGURES, PRINTED BECAUSE THIS PASS'S OWN RULES REQUIRE THEM: the `derivation:` clause stays
+SINGLE — this document still carries exactly ONE, at its opening clause, and THIS clause carries an authority tag
+and no second one; and the `HO-` family stands at `HO-1`…`HO-7` with no row added, dropped or renamed.**
+**AND WHAT THIS PASS DOES NOT DO: it writes ONLY inside `docs/specs/storeroom-js/**` — NO byte under
+`bindings/js/**`, `src/**`, `tests/**`, any tracker, or `../Provident-Electron/**` — it puts NO question to the
+architect (every silence it closes is a priced, reversible `DECLARED-DEFAULT` whose reversal point is an
+instrument), it re-decides NO ruling and NO `DD` row, and the store's directory
+`docs/specs/storeroom-native/**` needs NO change, because the store's own two listener verbs keep their
+signatures, their arity and their semantics and the registry `off` removes is the PACKAGE'S OWN** (`A68`;
+`A79`; `surface.md §2.4` item 7 (b)).
+(`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79` · `A80` · `A81` — the rulings; A1
+docs/specs/storeroom-js-convenience-proposal.md §6 — the blast radius this statement takes; A3
+docs/specs/spec-scope-and-structure/contract.md §C.3 — the closure predicate's single arithmetic, and §C.11.7's
+entry-counted unit | numeric or census claim]`).
 
 ## §0. The index region's own rules — the claim ledger, the design-defaults table, and the id families
 
@@ -441,6 +483,37 @@ and the three added rows are the only figure this amendment moves.** **AND NO RE
 docs/specs/spec-authoring-discipline/contract.md §3.2 — the class set and the `alt` obligation; A3
 docs/specs/storeroom-js/contract.md §0.1 item 5 — the `≤ 8` cap, and none of the three rows cites a row that
 does not exist | numeric or census claim]`).
+
+**AND FOUR `DD` ROWS MORE, ADDED AT THE `Q1` CONTRACT AMENDMENT — THE FOUR SILENCES THE ARCHITECT'S RULINGS
+`A79`–`A81` LEAVE, EACH CARRIED REVERSIBLE, EACH WITH ITS ALTERNATIVE PRICED, AND NOT ONE OF THEM A QUESTION PUT
+TO THE ARCHITECT** (`RCA-8(d)` ANNOTATE-BESIDE: **every row above, the two census clauses above and the `P-TP-9`
+reconciliation block below stand byte-for-byte, and this block and the dated census clause under it are the
+operative statement of the table's size**; the rulings' silences are at
+`docs/specs/storeroom-js-convenience-proposal.md §8` · `A79` · `A80` · `A81` — **a silence a ruling leaves is a
+`DECLARED-DEFAULT` here and never a question put to him**; `[A3 docs/specs/spec-authoring-discipline/contract.md
+§3.2 — the class set and the `alt` obligation | declared parameter semantics]`):
+
+| DD | The residual it carries (the ruling's own silence) | What it pins | The clause it cites | What it REFUSES | The property that checks it | Its alternative, priced | Its reversal point |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| **`DD-51`** | **`A81`'s *"always validate"* names the VALIDATION and leaves the MEMBERS' OWN MESSAGES unnamed** — who authors the bytes of `on`'s and `off`'s refusals' Segment Two, and where those bytes live | **THE TWO NEW SITES' MESSAGES ARE BUILT ON `surface.md §2.5` item 5's OWN PATH: SEGMENT ONE IS THE STORE'S GENERATOR'S STRING through `errorMessage` for the answering code at the failing target's spelling, and SEGMENT TWO — the class half and the ARGUMENT POSITION — IS AUTHORED BY THE BOUNDARY and appended after `CF-3`'s separator, so NEITHER NEW SITE MINTS A SECOND MESSAGE FORM, A SECOND STATUS OR A THIRD MEMBER** | `surface.md §2.5` item 5 (b)–(d) and its `CF-3` split clause; `parameter-semantics.md §2.17`'s dated clause | a package-authored string STANDING IN FOR Segment One; a per-member constant table for these two sites; a member's own status token; a `TypeError` returned as the site's form | `P-IM-3` (the failure channel's single form, and the closed set's reachability) · **`P-SM-5`** (the two new sites' answers, one row per outside class) | **A NAMED MESSAGE HELPER PER MEMBER** — priced: it gives the two sites a package-owned rendering of the store's own target and puts a boundary-side vocabulary outside `§1.2`'s and `§1.3`'s class names, and it would have to be re-spelled in BOTH of `§2.5`'s carrier homes (`contract.md §2.5` and `surface.md §2.5`); available with a fresh ruling | a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment |
+| **`DD-52`** | **`A80`'s *"`off` can deregister"* settles THAT `off` removes the registry's entry and leaves unnamed WHAT `on` does with a NEW function at a HELD address whose entry was placed by `register` DIRECTLY** — replacement or refusal | **`on` AT A HELD ADDRESS REPLACES: it returns that address's existing handle — `§2.3` item 6's inherited address-level idempotence — and the registry's function for that identity becomes the NEW listener, whatever member placed the previous one. THE REGISTRY DOES NOT RECORD WHICH MEMBER WROTE AN ENTRY, and `register` and `on` share ONE map with ONE replacement arm (`§2.4` rule 2)** | `surface.md §2.4` item 7 (a) and rule 2; `contract.md §2.3` item 6; `parameter-semantics.md §2.12`'s dated clause | a per-entry PROVENANCE record; a refusal where the previous function arrived through `register`; a second map for `on`'s entries; a replacement that changes the IDENTITY rather than the FUNCTION | `P-SM-5` (the four rules at every transition, and the two new sites' own arms) | **A REFUSAL WHERE THE HELD ENTRY WAS `register`ed DIRECTLY** — priced: a caller's own two-call spelling would then make the one-call spelling unreachable at that address, and `A79`'s whole point — that the combined call is the same act performed once — would hold only of addresses `on` itself created; and it would need a provenance record no clause of this directory declares and `DD-50`'s state record does not carry; available with a fresh ruling | a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment |
+| **`DD-53`** | **`A80`'s *"`off` can deregister"* and `A81`'s *"always validate"* leave `off`'s answer over a handle IT NEVER SAW but THIS INSTANCE DID MINT OR ADOPT unnamed** — an entryless in-domain identity | **`off(h)` WHERE `h` IS AN IN-DOMAIN IDENTITY THE REGISTRY HOLDS NO FUNCTION FOR — never registered, or already removed by an earlier `off` — IS A SUCCESS: the store-side withdrawal is performed and `undefined` is returned, removing nothing that was not there and disturbing NO OTHER REGISTRATION. `off`'s REFUSAL ARM IS THE OUTSIDE-DOMAIN HANDLE ALONE** | `surface.md §2.4` item 7 (b), the OWN and OWN-ENTRYLESS arms; `parameter-semantics.md §2.8`'s dated clause; `DD-15` | a throw for an entryless in-domain handle; a silent no-op that SKIPS the store-side withdrawal; a removal of any OTHER registration; a fabricated handle read as entryless rather than outside | `P-SM-5` (the four rules and the two new sites' arms) · **`P-TP-8`** (the outside-value set at the boundary) | **AN `unlisten`-STYLE NO-OP FOR AN UNKNOWN HANDLE AT `off` TOO** — priced: it erases the ONE declared difference between the two verbs over one value, so a caller's typo at `off` and a caller's deliberate `off` would print the same observable, and the store's own `AddressMalformed` trigger for *"a present argument outside its domain"* would be left with no reachable arm at this site; **and a THROW for the entryless in-domain handle** — priced: it makes a lawful second `off` a failure and turns `off`'s own idempotence into an error path; both available with a fresh ruling | a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment |
+| **`DD-54`** | **`A80` fixes `off`'s TWO REMOVALS and does not order them against each other in the ONE case the store refuses** — a malformed argument's shape reaching the store-side `unlisten` | **THE ORDER IS: VALIDATE, THEN THE STORE-SIDE WITHDRAWAL, THEN THE REGISTRY'S REMOVAL — `surface.md §2.4` item 7 (b)'s three steps. So on a refusal NEITHER removal is performed and the registry entry STANDS; and where the store's own `unlisten` answers a malformed argument's shape the package's registry removal is NOT performed, so the entry is left STANDING rather than removed twice-over. ONE ORDER, ONE OBSERVABLE: after any `off` that throws, BOTH the store-side entry and the registry entry are exactly as they were.** | `surface.md §2.4` item 7 (b), steps 1–3; `parameter-semantics.md §2.8`'s dated clause | a deregistration FIRST and a withdrawal second; a partial `off` that removed one half and refused the other; a `try`/`finally` that forces the registry removal on a throwing withdrawal; a second, undocumented order | **`P-SM-5`** (the four rules at every transition, and the two new sites' own answers) | **REMOVE THE REGISTRY ENTRY FIRST, THEN WITHDRAW STORE-SIDE** — priced: an order whose failing half leaves an entry the store still holds and the package no longer knows, so a trigger under that address would carry an identity the registry cannot match and the caller would see a registration it thought it had removed behave as if it still stood; **and a `finally`-forced registry removal** — priced: it makes `off` destroy package state on a path the store refused, and the two halves of one verb would then disagree about whether the call succeeded; both available with a fresh ruling | a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment |
+
+**⟶ AND THE TABLE'S OWN CENSUS, RESTATED WITH ITS TERMS BY THE `Q1` CONTRACT AMENDMENT — THE OPERATIVE FIGURE**
+(`RCA-8(d)` ANNOTATE-BESIDE: **every census clause above — the `47`-row clause, its numbering disclosure, the
+`P-TP-9` reconciliation block and the `50`-row block — stands byte-for-byte, and THIS clause is the operative
+statement of the table's size**): **the table carries `54` AUTHORED rows** — `DD-1`…`DD-29` (**`29` rows**) +
+`DD-30`…`DD-47` (**`18` rows**) + `DD-48`…`DD-50` (**`3` rows**) + **`DD-51`…`DD-54`** (**`4` rows**, added at THIS
+amendment, each carrying ONE silence the rulings `A79`–`A81` leave and each disposed of here as a priced,
+reversible `DECLARED-DEFAULT`) — **so `29 + 18 + 3 + 4 = 54` ✓, the numbers run `1`…`54` with no gap, and NO row's
+citation depends on its printed position.** **AND NO REGISTER ROW, NO `PAR-JS` ROW, NO `HO-` ROW AND NO
+FAILURE-CODE MEMBER MOVES WITH IT: the register still carries `8` rows with the cap holding (`8 ≤ 8` ✓) and ONE
+row RE-DERIVED at `§5.5`, the `PAR-JS` range stands at `PAR-JS-1`…`PAR-JS-18` with TWO rows RE-DERIVED, and this
+unit mints no status code** (`[A3 docs/specs/spec-authoring-discipline/contract.md §3.2 — the class set and the
+`alt` obligation; A3 docs/specs/storeroom-js/contract.md §0.1 item 5 — the `≤ 8` cap; A1
+docs/specs/storeroom-js-proposal.md §8 · `A79`–`A81` — the silences the four rows carry | numeric or census
+claim]`).
 
 **AND THE FOURTH STRUCTURE OF THE SAME SWEEP THAT NEEDS NO CELL, STATED BECAUSE IT IS THE ONE OF THAT
 DIRECTORY'S NAMED STRUCTURES THAT IS THIS UNIT'S OWN SURFACE'S NEIGHBOUR:** **`U-9` — the `LISTENERS`
@@ -1884,6 +1957,29 @@ THE `alt` CELLS AND THE FAILURE LISTS OF EVERY ROW STAND UNMOVED** (`[A1 docs/sp
 2026-10-11 — the re-spelled subject's home; A3 docs/specs/storeroom-js/surface.md §2.3's dated clause — the
 reconciliation | state or fail-state declaration]`).
 
+**⟶ AND THE `Q1` CONTRACT AMENDMENT'S OWN STATEMENT AT THIS CENSUS, LANDED 2026-10-11 BY `role_spec_writer` ON
+THE ARCHITECT'S RULINGS `A79`–`A81`: THE ROW COUNT HOLDS AT `8`, AND THE ROW THIS AMENDMENT'S TWO NEW MEMBERS
+EXTEND IS NAMED.** `RCA-8(d)` ANNOTATE-BESIDE: **every clause above stands byte-for-byte and is read THROUGH
+this clause; THIS clause is a PURE INSERTION — it mints NO ninth row, moves NO count, adds, drops and renames NO
+row, and re-decides no rule of the register.** **AND THE THREE CELLS OF THIS SPAN, EACH AT ITS OWN TERM:**
+1. **THE ROW COUNT DOES NOT MOVE: `8` rows, the cap holds at `8 ≤ 8` ✓, and NO NINTH ROW IS MINTED** — **the two
+   new instance members have a FAILABLE home without one, and it is `§5.5`'s, whose re-derivation stands at that
+   row's own dated clause: `P-SM-5`'s SUBJECT ALREADY NAMES THE REGISTRY'S TRANSITIONS AND THE HANDLE'S TWO
+   SPELLINGS, and `on` and `off` are actions UPON that registry AT that handle** (`§2.4` item 7; `A79`; `A80`).
+2. **`P-SM-5` IS RE-DERIVED, NOT SUPPLEMENTED, AND ITS RE-DERIVATION IS AT ITS OWN `§`** (`§5.5`'s dated
+   clause of this pass), **where its subject is printed beside the as-filed line and its failure list gains the
+   `6` entries the two new members make real.** **NO STRATEGY ID IS ADDED: `S-REG` carries the two new sites'
+   arms, `S-OPAQUE` carries the two-spellings half unchanged, and `S-WITHDRAW` carries the `off`/`unlisten`
+   contrast as a SECOND arm** — **because a row is FAILABLE only where its own failure list names the observable
+   that fails it, and all three of those lines are already that row's.**
+3. **AND NOTHING ELSE OF THIS SECTION MOVES: the `alt` cells and the failure lists of `§5.1`–`§5.4` and
+   `§5.6`–`§5.8` stand exactly as printed; the dual-mapping disclosure above stands; and the `derivation:`
+   clause stays SINGLE** — **this clause carries an authority tag and no `derivation:` clause**
+   (`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79` · `A80` · `A81`; A1
+   docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-6` — the register exists, `≤ 8` rows, one failable row
+   per named interaction; A3 docs/specs/storeroom-js/contract.md §5.5's dated re-derivation clause of
+   2026-10-11 — the row this statement names | numeric or census claim]`).
+
 ### §5.1 `P-IM-1` — the round trip, under the declared relation
 
 **Property.** **For every admitted JS value `v` and every address `a` a write of `v` at `a` succeeds on,
@@ -2167,6 +2263,138 @@ list** (`docs/specs/storeroom-js/contract.md §5.5`'s dated clause of 2026-10-11
 reconciles rather than rewrites; `acceptance.md §4.4` — the red set's ownership; `[A1
 docs/specs/storeroom-js/contract.md §2.3 item 6; A1 docs/specs/storeroom-js/contract.md §5.5's dated clause |
 CROSS-REF]`).
+
+**⟶ RE-DERIVED 2026-10-11 — THE `Q1` CONTRACT AMENDMENT (`role_spec_writer`), ON THE ARCHITECT'S RULINGS
+`A79`–`A81`: THIS ROW'S SUBJECT WIDENED TO CARRY THE TWO NEW INSTANCE MEMBERS, AND ITS FAILURE LIST EXTENDED WITH
+THE `6` ENTRIES THEY MAKE REAL.** `RCA-8(d)` ANNOTATE-BESIDE: **every cell above stands byte-for-byte — the
+property sentence, the four strategy lines' own printed words, the failure list's own line, this row's four dated
+clauses and the assertion-naming clause directly above included — and each is read THROUGH this clause; THIS
+clause is a PURE INSERTION, it adds NO ROW, moves NO COUNT, mints NO strategy id, and re-decides NO rule of the
+registry; it RE-DERIVES this row's SUBJECT and extends this row's FAILURE LIST, which is what a row whose subject
+gains two verbs owes.** **THE RULINGS, VERBATIM:** ***"Use S-1"*** · ***"`off` can deregister"*** · ***"always
+validate"*** (`docs/specs/storeroom-js-proposal.md` `§8` · **`A79`** · **`A80`** · **`A81`**).
+
+**1. THE OPERATIVE SUBJECT OF THIS ROW, PRINTED AT ITS OWN `§` — THE REGISTRY'S TRANSITIONS READ OVER FOUR
+MEMBERS: THE REGISTRATION SITE, `unlisten`'s CONTRAST, `on` AND `off`.** **The subject is THE REGISTRY'S
+TRANSITION RULES AND THE HANDLE'S TWO SPELLINGS, and the four members that reach that registry are `register`
+(this row's item 5), `unlisten` (whose contrast the row's item 4 declares), `on(address, listener) -> handle` and
+`off(handle) -> undefined` (`§2.4` item 7; `surface.md §2.4` item 7).** **THE THREE THINGS THE TWO NEW MEMBERS
+ADD TO THIS ROW'S SUBJECT, ONE LINE EACH, EACH AT ITS OWN CELL:**
+- **`on` WRITES TO THE MAP.** **It performs the store's `listen` and then the registry's registration, IN THAT
+  ORDER (VALIDATE → LISTEN → REGISTER); it returns the handle; at a HELD address it returns that address's
+  EXISTING handle — the store's address-level idempotence (`§2.3` item 6; `write-and-read.md §6.5` item 12 (c)) —
+  and REPLACES the registry's function for that identity, so ONE IDENTITY CARRIES ONE FUNCTION** (`§2.4` rule 2;
+  `surface.md §2.4` item 7 (a)).
+- **`off` REMOVES FROM THE MAP — AND THE REMOVAL IS THE PACKAGE'S OWN.** **It validates first, then performs the
+  STORE-SIDE `unlisten` AND removes the PACKAGE'S OWN registry entry for that identity; `unlisten` KEEPS RULE 4
+  VERBATIM — the store-facing withdrawal only, the registry's entry STANDING — so RULE 4 IS SUPPLEMENTED, NOT
+  EXCEPTED, and the asymmetry this row's item 4 declares survives EXACTLY AS WRITTEN** (`§2.4` rule 4;
+  `surface.md §2.4` item 7 (b); **`A80`**).
+- **AND BOTH ARE DELIVERY-SIDE ACTIONS UPON THE STORE'S OWN TWO VERBS, SO THIS ROW GAINS NO FIRING RULE.** **What
+  the store's home does when a `listen` or an `unlisten` lands — and WHAT a trigger's returned set contains
+  relative to one that lands after it was computed — remains the STORE's, and the authority is
+  `docs/specs/storeroom-native/write-and-read.md §6.5` item 14** (**`A78`**; `surface.md §2.4` item 7 (c)).
+
+**2. THE FAILURE LIST, AS IT NOW READS AT THIS ROW — THE AS-FILED ENTRIES RE-EMITTED WHOLE FROM THE LINE ABOVE,
+WITH THE `6` ENTRIES THIS AMENDMENT ADDS PRINTED BESIDE THEM.** **The as-filed list STANDS UNMOVED AND UNCUT** —
+*"an unregistered handle that throws, logs or warns; a fan-out registration; a duplicate token that fires twice
+per distinct handle; an `unlisten` that unregisters the function; a returned handle whose token JS can read; an
+`unlisten` that accepts a bare `string` as a known handle; a re-`listen` that re-uses a withdrawn handle"* — **and
+the two new members now fail by these SIX ADDED entries, each naming its own observable:**
+- **A NON-FUNCTION ADMITTED at `on`'s listener position** — **or at `register`'s, whose `TypeError` and whose
+  replacement arm `surface.md §2.5` item 5 (g) already reads through the single form.** **The refusal must be
+  `AddressMalformed` in `§2.5`'s one form, and NO second form arises.**
+- **AN ADDRESS ADMITTED UNVALIDATED at `on`'s address position** — **an address outside `AddressArg`'s domain
+  reaching the store, so that the store's own home or the registry is touched before the class decision.**
+- **A STORE-SIDE ENTRY LEFT BEHIND AFTER A REFUSAL** — **a refused `on` whose address the home did not hold, with
+  the home holding a new entry afterwards; and, at a held address, a refused `on` that disturbed the standing
+  entry.**
+- **`off` FAILING TO REMOVE THE REGISTRY ENTRY** — **a successful `off` whose identity the registry still holds a
+  function for, so a later trigger invokes a function the caller deregistered.**
+- **`off` REMOVING MORE THAN THE HANDLE NAMES** — **a sibling registration, or an entry at another address, gone
+  after one `off`; and an `off` that also removed the store-side entry of an address its own handle does not
+  name.**
+- **A FIRING RULE STATED BY THE PACKAGE** — **`on` or `off` asserting, promising or altering WHICH listener fires
+  or WHEN; and any drive that derives its firing terms from these two members instead of from
+  `write-and-read.md §6.5` item 14.**
+**SO THE ROW IS FAILABLE FROM BOTH SIDES OF THE TWO NEW MEMBERS: change what `on` or `off` DOES and one of the six
+fails; change the registry's four rules or the handle's spellings and an as-filed entry fails, exactly as
+before.**
+
+**3. THE STRATEGY IDS, ONE LINE EACH, BECAUSE A DRIVE MUST REACH THE TWO NEW SITES FROM A LINE THIS ROW ALREADY
+CARRIES.** **`S-REG`** (the four rules, one drive each, reached through the declared registration site — **and now,
+by THIS clause, ALSO through `on` and `off`, whose arms are the same map's; the line's own words stand and are
+extended here**). **`S-REG-DUP`** (UNMOVED, this row's item 1 above). **`S-OPAQUE`** (UNMOVED — and it now covers
+`on`'s RETURN and `off`'s ARGUMENT as well, both of them the package's opaque value and nothing else).
+**`S-WITHDRAW`** (UNMOVED in its two arms — and `off`'s contrast with `unlisten` over ONE value is asserted BESIDE
+them: `unlisten` no-op-succeeds where `off` refuses `AddressMalformed`). **NO STRATEGY ID IS ADDED, DROPPED,
+RENAMED OR RE-SPELLED BY THIS CLAUSE** (`§5.0`'s dual-mapping disclosure).
+
+**4. AND WHAT DOES NOT MOVE HERE: the register stands at its `8` rows with the cap holding at `8 ≤ 8` ✓ and NO
+NINTH ROW IS MINTED — the two new members owe no row of their own, because a row is FAILABLE only where its
+failure list names the observable that fails it and this row's list now does; the `alt` cells of every row stand
+unmoved; `§5.1`–`§5.4` and `§5.6`–`§5.8` stand exactly as printed; and `§5.0`'s census and its dual-mapping
+disclosure stand as printed.**
+
+**5. AND EVERY RED-SET CELL AND EVERY BLIND-GREEN ASSERTION THIS RE-DERIVATION MAKES FALSE IS NAMED HERE, EACH
+WITH ITS `§`, BECAUSE A MEMBER-SET CLAIM IS THE ONE THING THE TWO NEW MEMBERS MOVE AND NO SUCH CLAIM MAY BE LEFT
+TO A BYTE DIFF.** **The amendment's own subject is the INSTANCE's member set, so the cells below — which assert
+`{ register }` EXACTLY — read FALSE against the declared `{ register, on, off }` and MUST BE RE-DERIVED BY THEIR
+OWN AUTHORS. This clause NAMES them; it edits NONE of them, and NONE of their bytes moves here.**
+- **THE BLIND GREEN SET — `role_blind_test_writer`, per the filing's `Q5`:** **`docs/specs/storeroom-js-greens.md`
+  `§2`'s `JSG-01` scenario's HEADER** (its *"the instance's own member set is exactly `{ register }`"* clause, and
+  its own clause list's `§2.4` item 5 (a) entry) — **and `JSG-01`'s cell `JSG-01.9`**, whose drive is
+  `Object.getOwnPropertyNames(inst).sort()` and whose expected observable is *"exactly `['register']` — one own
+  member and NOTHING ELSE"*, cited to `§2.4` item 5 (a). **Both are FALSE from this date and the RE-RUN is
+  required, because the scenario's `13` assertions are re-derived as a set and its verdict must be re-measured
+  against the rebuilt artefact** (`docs/specs/storeroom-js-greens.md` `§2` · `JSG-01` and `JSG-01.9`;
+  `docs/specs/storeroom-js-convenience-proposal.md §5` · `Q5`). **`JSG-01.2` — the module namespace's EIGHT names —
+  is NOT moved and stands TRUE, and so do `JSG-01.7`, `JSG-01.11` and `JSG-01.12`.**
+- **THE RED SET — `role_test_writer`, per the filing's `Q2` — CARRIES NO FALSE CELL FOR THIS CLAIM, AND THAT IS
+  MEASURED RATHER THAN ASSUMED.** **This pass read `bindings/js/test/**` at its own bytes for the member-set
+  claim and found the two cells that enumerate own properties are `registry.test.mjs`'s
+  `handle_the_returned_token_is_readable_by_no_js_code` and `register.test.mjs`'s `S-OPAQUE` arm, AND BOTH
+  ENUMERATE THE **HANDLE**, which stays FROZEN AND MEMBERLESS — `Object.getOwnPropertyNames(handle).length !== 0`
+  and `Object.getOwnPropertyNames(returned).join(',')` — so **NOT ONE OF THEM IS MADE FALSE: the two new members
+  are properties of the INSTANCE and not of the handle, and `§2.3` item 2's memberless-handle clause is
+  UNMOVED.** **AND THE CELLS THAT ASSERT `register`'S ABSENCE FROM THE MODULE NAMESPACE ARE NOT MOVED EITHER —
+  `on` and `off` are absent from it too, and `§2.9` item 1's `8`-verb count stands** (`bindings/js/test/**`'s own
+  bytes; `archive/gate3/storeroom-js-red-set.md` `§3` and `§11.4`; `acceptance.md §4.4` — the red set's
+  ownership). **AND THE DRIVES THE AMENDMENT MAKES DERIVABLE, STATED SO THEY ARE TASKED AND NOT INHERITED — a
+  drive for `on`'s atomicity (a refused argument leaving NO store-side entry and NO registry entry), a drive for
+  the held-address arm (the existing handle returned AND the function replaced), a drive for `off`'s two removals
+  and its contrast with `unlisten`'s no-op set, and a drive for the outside-handle refusal at `off` — NONE of
+  them exists in either set today and ALL of them are owed** (`archive/gate3/storeroom-js-red-set.md` `§5`
+  finding 1's subject, whose `S-REG` line is the row's own drivable line; `contract.md §5.5` this clause's
+  clauses 1–2).
+- **THE LIVE BATTERY — `role_live_scenario_runner`, per the filing's `Q6`:** **`bindings/js/greens/live-drive.mjs`'s
+  `LIVE-1.3`**, whose assertion is `Object.getOwnPropertyNames(inst).sort().join(',') === 'register'` —
+  **FALSE from this date, and its RE-RUN is a new scenario's work.** **Its own record names the same clause:
+  `archive/gate6/storeroom-js-live-determination.md`'s `D-L1` row cites `LIVE-1.3`'s *"the instance's member set is
+  exactly `['register']`"*, so a re-run that leaves that assertion standing fails on the declared state**
+  (`archive/gate6/storeroom-js-live-determination.md` · `D-L1`, and that record's `§4`; the filing's `§6` — *"the
+  live battery `12` · `72` → `+1` scenario"*).
+- **AND THE CONTRACT DOCUMENT'S OWN TWO CELLS ARE NAMED WITH THEIR `§`, BECAUSE A READER MEETS THEM BEFORE THIS
+  CLAUSE: `contract.md`'s `§2.4` item 5 (a)'s *"`{ register }` — one own member, and NOTHING ELSE"* and
+  `surface.md`'s `§2.4` item 5 (a) in the same words** — the two homes of one relocated span, each read through
+  `surface.md §2.4` item 7 and this document's `Q1` index clause from this date; **the re-spelling of both is the
+  NAMED REPAIR of a later bounded amendment, which must land in BOTH homes in ONE pass** (`§0.1` item 2's
+  relocation rule; `surface.md`'s own KIND statement). **And `docs/specs/storeroom-js/package.md §1.4`'s *"the
+  INSTANCE'S OWN MEMBERS — `register(handle, listener)` alone, the ONE member"* and its citation of
+  `JSG-01.9`'s `{ register }` are the SAME claim at a third and fourth site, named here for the same pass**
+  (`package.md §1.4`; `archive/gate5/storeroom-js-greens-run.md` §4 · `F-DOC-1`).
+**AND THE CONVERSE, STATED SO NO AUTHOR MOVES A CELL THAT IS STILL TRUE: no cell anywhere asserts the count of
+`on`/`off` in the MODULE namespace — because they are not there — and `§2.9` item 1's `8`-name count, `package.md
+§1.3` item 3's *"AND NOTHING ELSE"*, `§2.4` item 5 (a)'s *"`register` is not a ninth named export"* and the
+`HO-1` non-exposure arm each stand TRUE of the amended surface and are NOT to be moved.**
+(`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79` · `A80` · `A81` — the rulings
+this re-derivation implements; A1 docs/specs/storeroom-js-convenience-proposal.md §6 — the blast-radius table
+whose *"the instance's own member set"* row names exactly these cells; A3 docs/specs/storeroom-js-greens.md §2 ·
+`JSG-01.9`; A3 archive/gate6/storeroom-js-live-determination.md · `D-L1` | requirement]`). (`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79` · `A80` · `A81` — the rulings
+this re-derivation implements; A1 docs/specs/storeroom-js-proposal.md §18 · `A76` · `A77` — the constraints it
+obeys; A3 docs/specs/storeroom-js/surface.md §2.4 item 7 — the two new members' own clause home; A3
+docs/specs/storeroom-js/parameter-semantics.md §2.8's and §2.12's dated clauses — the two re-derived parameter
+rows | requirement]`).
 
 ### §5.6 `P-SM-6` — the construction's sequence and the two instances hazard
 
@@ -2589,6 +2817,48 @@ cross-reference]`).
 `PAR-JS-2` · `PAR-JS-3` · `PAR-JS-4` — UNCHANGED, each still declared at `§2.1` and `§1.3` (`§1.3`'s dated
 absent-versus-`undefined` rule is what their two-key distinction is read through).** **`PAR-JS-5` …
 `PAR-JS-11` — UNCHANGED.** **`PAR-JS-12` — re-derived as above.** **`PAR-JS-13` … `PAR-JS-18` — UNCHANGED.**
+
+**⟶ AND THE `Q1` CONTRACT AMENDMENT'S OWN EFFECT ON THIS INDEX, LANDED 2026-10-11 BY `role_spec_writer` ON THE
+ARCHITECT'S RULINGS `A79`–`A81` — TWO ROWS RE-DERIVED, `18` ROWS BEFORE AND `18` AFTER.** `RCA-8(d)`
+ANNOTATE-BESIDE: **the table above, its arithmetic and the two coverage/effect clauses under it stand
+byte-for-byte and are read THROUGH this clause; THIS clause is a PURE INSERTION — it adds NO row, moves NO
+count, renumbers NO row and re-decides NO ruling — and `15 + 1 + 1 + 1 = 18` ✓ is UNMOVED in this index and in
+`docs/specs/storeroom-js/parameter-semantics.md §1`.** **THE RULINGS, VERBATIM:** ***"Use S-1"*** · ***"`off` can
+deregister"*** · ***"always validate"*** (`docs/specs/storeroom-js-convenience-proposal.md §8` · **`A79`** ·
+**`A80`** · **`A81`**).
+
+**THE TWO ROWS THE TWO NEW MEMBERS REACH, NAMED WITH THE SLOT EACH NOW CARRIES AND WITH THE ROW EACH WOULD HAVE
+FALSIFIED IF A NINETEENTH HAD BEEN MINTED INSTEAD:**
+1. **`PAR-JS-12` — `on`'s LISTENER SLOT.** **`on(address, listener) -> handle` puts a LISTENER at ARGUMENT
+   POSITION `2` OF `2`, and this row ALREADY names the caller's function held by the package's registry; the
+   slot's domain, its outside classes and the position its refusal is reported at stand at that row's own dated
+   clause** (`parameter-semantics.md §2.12`). **AND THE INDEX CELL THAT MOVES IS THIS ROW'S OWN `Where it is
+   declared` CELL, READ WITH `§2.4` item 7: the registration site's spelling is no longer the only place the
+   function enters — `on`'s position `2` is the second, and it is the same datum.**
+2. **`PAR-JS-8` — `off`'s HANDLE SLOT.** **`off(handle) -> undefined` takes the handle at ARGUMENT POSITION `1`
+   OF `2`, and this row ALREADY names the handle at the construction, at `unlisten` and at `register`; the slot's
+   domain, its outside classes, its two contrast arms against `unlisten`'s no-op set and the position its refusal
+   is reported at stand at that row's own dated clause** (`parameter-semantics.md §2.8`).
+
+**AND WHY THE RE-DERIVATION ROUTE AND NOT A NINETEENTH ROW, RESTATED FOR THIS INDEX BECAUSE THE CHOICE OWES ITS
+REASON A SECOND TIME:** **minting `PAR-JS-19` would falsify NINE printed ranges and counts at once, exactly as
+the `instance` position's carriage did — this file's index-region bullet, its part-map row for
+`parameter-semantics`, this `§6` header sentence, this `§6` arithmetic, `§7.1`'s figure `10` and `§7.3`'s row
+`29`; `parameter-semantics.md §1`'s scope statement and its arithmetic; and `docs/specs/storeroom-js/test-cases.md`'s
+own numbered inventory — while the precedent for a declared position carried inside a row that already exists
+is this directory's own re-derivations of `PAR-JS-12` and, at the construction, of `PAR-JS-1`.** **SO THE SET
+STAYS `18` ROWS, EVERY PRINTED RANGE ABOVE STAYS TRUE, AND THE COVERAGE IS COMPLETE.**
+**AND THE SAME PASS'S ROW-BY-ROW EFFECT ON THIS INDEX, SO A READER NEEDS NO OTHER FILE: `PAR-JS-1` ·
+`PAR-JS-2` · `PAR-JS-3` · `PAR-JS-4` — UNCHANGED. `PAR-JS-5` … `PAR-JS-7`, `PAR-JS-9` … `PAR-JS-11`, `PAR-JS-13` …
+`PAR-JS-16` — UNCHANGED. `PAR-JS-8` — RE-DERIVED for `off`'s handle slot. `PAR-JS-12` — RE-DERIVED for `on`'s
+listener slot. `PAR-JS-17` — the refusal at the two new sites declared at its own `§`; its cells UNCHANGED.
+`PAR-JS-18` — UNCHANGED.**
+**AND NOTHING ELSE OF THIS SECTION MOVES: the index's own rows, their kinds and their homes stand exactly as
+printed, no `§`-number of `parameter-semantics.md` moves, and no parameter the JS surface declares is left without
+a row or without its carriage inside a row's own scope** (`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79` ·
+`A80` · `A81`; A3 docs/specs/storeroom-js/parameter-semantics.md §2.8's and §2.12's dated clauses of
+2026-10-11 — the two rows this clause names; A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-15` |
+numeric or census claim]`).
 
 ---
 

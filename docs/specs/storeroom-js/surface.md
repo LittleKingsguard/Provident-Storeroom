@@ -47,6 +47,48 @@ exposes none** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 — `AR-15
 docs/specs/storeroom-js-proposal.md §11 · `A63` · `A65` — no store internal crosses in either direction |
 prohibition]`).
 
+**⟶ AMENDED 2026-10-11 — THE `Q1` CONTRACT AMENDMENT (`role_spec_writer`): THE SURFACE ENUMERATION, WHICH NOW
+CARRIES THE INSTANCE'S THREE MEMBERS AND A MODULE NAMESPACE THAT DOES NOT MOVE.** `RCA-8(d)` ANNOTATE-BESIDE:
+**every byte above stands byte-for-byte — the construction clause, its signature block and the `AR-15`
+correction clause included — and each is read THROUGH this clause; THIS clause is a PURE INSERTION, it adds no
+verb to any namespace, overloads nothing, and re-decides no rule of this section.** **THE RULING, VERBATIM:**
+***"Use S-1, `off` can deregister, and always validate"*** (`docs/specs/storeroom-js-proposal.md` `§8` ·
+**`A79`**).
+
+**1. THE INSTANCE'S OWN MEMBER SET, ENUMERATED — THREE MEMBERS, AND THEY ARE THESE:**
+```
+storeCreate(cfg) -> instance-object          // §2.1's construction; its product's member set is the three below
+
+register(handle, listener)  -> undefined     // §2.4 item 5 — the registration site, UNMOVED
+on(address, listener)        -> handle       // ADDED by `A79` — the combined call: the store's `listen` + the registry's registration
+off(handle)                  -> undefined    // ADDED by `A79`/`A80` — the store-side withdrawal + the PACKAGE'S OWN registry removal
+```
+  **(a) THE MEMBER SET IS `{ register, on, off }` — THREE OWN MEMBERS AND NOTHING ELSE.** **`register` is
+  `§2.4` item 5's site and is UNMOVED in signature, domain, return and every outside-value answer.** **`on` and
+  `off` are the S-1 shape `A79` adopts, and each member's clauses stand at `§2.4` item 7.** **SO `§2.4` item 5
+  (a)'s *"`{ register }` — one own member, and NOTHING ELSE"* IS SUPERSEDED AS A MEMBER-SET FIGURE and read, from
+  this date, as `{ register, on, off }`: the as-filed sentence stands byte-for-byte at its own `§` (this
+  document's and the contract document's, in the same words), the re-spelling of those two cells is the NAMED
+  REPAIR of a later bounded amendment, and THIS clause is the operative member-set statement until it lands.**
+  **(b) THE MODULE NAMESPACE IS UNCHANGED AT THE EIGHT DECLARED VERBS.** **`storeCreate` · `read` ·
+  `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` — `8` NAMES, NO NINTH, AND NO NAME
+  REMOVED: `§2.9` item 1's count is UNMOVED, and NEITHER `on` NOR `off` is added to the entry's named exports,
+  because both are reached through the FACTORY'S OWN PRODUCT and through nothing else** (`§2.4` item 5 (a)'s own
+  pointer; `package.md §1.3` item 3's *"AND NOTHING ELSE"*).
+  **(c) AND THE STORE'S OWN TWO VERBS ARE UN-OVERLOADED.** **`listen(instance, address)` and
+  `unlisten(instance, handle)` keep their names, their positions, their arity and their returns; the store's own
+  listener surface is reached by `on`/`off` through those SAME two declared verbs and through no new store-side
+  form, and the store's `379`, its crate and its contract directory do not move** (`§2.10`; **`A68`**;
+  `docs/specs/storeroom-js-convenience-proposal.md §6`).
+  **(d) AND NOTHING ELSE OF THIS SECTION MOVES: `§2.1`'s construction clause is unchanged — `cfg` still carries
+  the store's THREE declared keys and the package still adds no default, no rename and no fourth key (`DD-36`) —
+  and `§2.1`'s non-exposure sentence is unchanged in its own scope: it speaks of the STORE's internals, which no
+  member of the package's handle exposes, and it was NEVER a claim that the package's own handle is
+  memberless.**
+  (`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79` — *"Use S-1"*; A1
+  docs/specs/storeroom-js-proposal-review.md §5.4 — a pinned default carries a priced alternative; this
+  document's `§2.4` item 7 — the two new members' own clauses | requirement]`).
+
 ```
 storeCreate(cfg) -> Instance          // throws {status, message} on failure; never returns a partial instance
 
@@ -167,6 +209,41 @@ row and no part entry is authored, renumbered or dropped by this clause**
 (`[A1 docs/specs/storeroom-js-proposal.md §19 · `A78`; A3 docs/specs/storeroom-native/write-and-read.md §6.5
 item 10 (d) (iii) — the prefix test's store-side home; A3 docs/specs/storeroom-native/parameter-semantics.md
 §2.13 · `PAR-13` | requirement]`).
+
+**⟶ AMENDED 2026-10-11 — THE `Q1` CONTRACT AMENDMENT (`role_spec_writer`): THIS SECTION'S OWN SUBJECT READ
+AGAINST THE TWO NEW INSTANCE MEMBERS — ONE PRODUCES A HANDLE, ONE CONSUMES IT, AND NOTHING OF THE HANDLE MOVES.**
+`RCA-8(d)` ANNOTATE-BESIDE: **items 1–5 above, this part's item-6 pointer clause and this section's `A78`
+re-homing clause stand byte-for-byte and are read THROUGH this clause; THIS clause is a PURE INSERTION, it adds
+no member, no verb, no `§`-number and no row, and it re-decides no rule of this section.** **THE RULING,
+VERBATIM:** ***"Use S-1, `off` can deregister, and always validate"*** (`docs/specs/storeroom-js-proposal.md`
+`§8` · **`A79`** · **`A80`**).
+
+1. **`on(address, listener)` PRODUCES A HANDLE, AND ITS OUTPUT SPELLING IS THE ONE `§2.3` ITEM 2 ALREADY
+   DECLARES.** **It returns the package's OPAQUE wrapper for the handle the store's own `listen` returned — the
+   SAME form `listen` returns, with the SAME unreadable private token — and AT A HELD ADDRESS it returns the
+   EXISTING entry's handle, because the store's address-level idempotence makes a repeat `listen` mint nothing
+   and answer the entry's own handle** (`§2.3` item 2; `§2.4` item 7 (a); `contract.md §2.3` item 6;
+   `write-and-read.md §6.5` item 12 (c)). **SO THE OUTPUT DIRECTION GAINS NO THIRD SPELLING: there are still
+   exactly TWO — a plain `string` IN at the construction, the package's opaque value OUT — and `on`'s return is
+   the second of them and nothing else.**
+2. **`off(handle)` CONSUMES A HANDLE, AND IT ACCEPTS THE OPAQUE FORM ONLY.** **Its argument's form rules are
+   `§2.3` item 2's, at their own words, and NO `string` is admitted at that position: a bare `string`, a
+   blank token, a value a foreign instance minted, a value a prior session minted, a fabricated value, `null`,
+   an `undefined` and an ABSENT argument are EACH refused by `off` — and the refusal's form, status and content
+   are `§2.4` item 7 (b)'s** (`§2.3` item 2; `§2.4` item 7 (b); `parameter-semantics.md §2.8`).
+3. **AND ONE CONTRAST THIS SECTION OWES ITS READER, BECAUSE THE TWO VERBS ANSWER ONE VALUE DIFFERENTLY BY
+   DECLARATION AND NOT BY OVERSIGHT: `unlisten` OVER ANY VALUE OUTSIDE THE DOMAIN IS A NO-OP SUCCESS
+   (`§2.3` item 4, UNMOVED), WHILE `off` OVER A HANDLE THIS INSTANCE NEVER MINTED OR ADOPTED IS A REFUSAL —
+   `AddressMalformed` in `§2.5`'s single form — BECAUSE `off` REMOVES A PACKAGE-OWNED ENTRY AND AN UNKNOWN
+   IDENTITY NAMES NO SUCH ENTRY, WHILE `unlisten` NAMES A WITHDRAWAL WHOSE IN-DOMAIN ANSWER FOR AN UNKNOWN
+   HANDLE IS ALREADY DECLARED** (`§2.4` item 7 (b); `§2.3` item 4, whose no-op set is `unlisten`'s alone and is
+   UNMOVED). **NEITHER VERB'S ANSWER IS READ AS THE OTHER'S, AND NO CELL OF ITEM 4 MOVES.**
+4. **AND NOTHING ELSE OF THIS SECTION MOVES: item 1's uniqueness domain and its scope, item 3's two ACCEPTED
+   consequences (the prior-session hazard and the guessable namespace), item 4's `unlisten` NO-OP SET, item 5's
+   prefix-test pointer and this part's item-6 pointer to `contract.md §2.3` item 6 all stand exactly as printed**
+   — **and `A79` adopts a SHAPE: it moves no mint rule, no collision rule, no uniqueness domain and no
+   address-level idempotence, all of which remain the STORE's and remain where they stood**
+   (`§2.3` items 1–5; `contract.md §2.3` item 6; `write-and-read.md §6.5` item 12 (c) | requirement]`).
 
 ### §2.4 The registry — the package's own state, and its four rules
 
@@ -583,7 +660,120 @@ red set's `§13.6`).
 item 6 — the delivery rules left standing; A3 docs/specs/storeroom-js/surface.md §2.7 items 1–5 — the delivery's
 own window and argument | requirement]`).
 
-### §2.5 The single failure form
+**⟶ ADDED 2026-10-11 — THE `Q1` CONTRACT AMENDMENT (`role_spec_writer`), ON THE ARCHITECT'S RULINGS
+***"Use S-1, `off` can deregister, and always validate"***: `§2.4`'s SEVENTH ITEM — THE TWO NEW INSTANCE MEMBERS'
+OWN CLAUSES.** `RCA-8(d)` ANNOTATE-BESIDE: **rules 1–4 above, item 5, item 6 and every dated clause of this
+section stand byte-for-byte and are read THROUGH this item; THIS item is a PURE INSERTION — it adds no `§`-number,
+no strategy id and no register row, it moves no rule of the four, and it re-decides nothing this section already
+declares.** **THE RULINGS, VERBATIM:** ***"Use S-1"*** · ***"`off` can deregister"*** · ***"always validate"***
+(`docs/specs/storeroom-js-proposal.md` `§8` · **`A79`** · **`A80`** · **`A81`**). **THE CONSTRAINTS THESE CLAUSES
+OBEY, EACH AT ITS OWN RULING:** **`A76`** (validate first, never repair, reject verbosely, inside the ONE form) ·
+**`A77`** (id-matched delivery) · **`A78`** (the firing is the store's) · **`A74`** (no release verb).
+
+**7. THE TWO NEW MEMBERS — `on(address, listener)` AND `off(handle)` — THEIR SIGNATURES, THEIR DOMAINS, THEIR
+ANSWERS, AND THE ONE BOUNDARY THEY MAY NOT CROSS.** **They are members of the object `storeCreate` returned,
+beside `register`; the module namespace stays at the eight declared verbs and the store's own `listen`/`unlisten`
+stay un-overloaded** (`§2.1`'s dated clause).
+```
+on(address, listener) -> handle      // the store's own `listen`, then the registry's registration; throws {status, message} on refusal
+off(handle)           -> undefined   // the store-side withdrawal, then the PACKAGE'S OWN registry removal; throws {status, message} on refusal
+```
+
+   **(a) `on` — VALIDATE FIRST, THEN ADMIT, IN ONE FIXED ORDER, SO ATOMICITY IS A CONSEQUENCE AND NOT A
+   ROLLBACK.** **IT VALIDATES THE `address` AND THE `listener` FIRST AND ADMITS NOTHING UNTIL BOTH HAVE PASSED,
+   and the validation's own order is `crossing.md §1.7`'s: THE CLASS IS DECIDED FIRST, ON THE VALUE AS IT IS —
+   before any conversion, before any `Array.isArray`-style shortcut, never deferred and never revisited after a
+   coercion — THE SHAPE IS TESTED SECOND against the permitted set, and ADMIT OR REFUSE IS THIRD.** **NOTHING IS
+   REPAIRED** (`crossing.md §1.8`). **AND ONLY THEN, IN THIS ORDER AND NO OTHER, THE TWO ADMISSIONS LAND:**
+```
+on(address, listener):
+  1. VALIDATE   address against AddressArg's domain, listener against the function class   // class first, never repaired
+  2. LISTEN     the store's own listen(instance, address)                                   // the store's home gains the entry, or returns the entry already held
+  3. REGISTER   the package's registry takes the returned handle with this listener          // §2.4 rule 2 governs a replacement
+```
+   **SO A REFUSED `address` OR A REFUSED `listener` LEAVES NO STORE-SIDE HOME ENTRY, NO REGISTRY ENTRY, NO NODE
+   MINTED AND NO JOURNAL ENTRY APPENDED** — **the refusal happens at step 1, and steps 2 and 3 never run: the
+   call is refused BEFORE any admission, which is `A76`'s atomicity obtained by the validation's POSITION rather
+   than by an `unlisten` rollback** (`A76`; `A81`). **AND THIS IS THE ONE PLACE THE COMBINED CALL IS MORE THAN
+   SUGAR: it makes the two admissions atomic as a property of the order, and an implementation that reached the
+   store first and withdrew on refusal is a FINDING of this item.**
+   **ITS RETURN IS THE HANDLE.** **`on` returns the package's OPAQUE handle — the OUTPUT spelling of `§2.3`
+   item 2 — and at an address the store's home ALREADY HOLDS it returns THAT ADDRESS'S EXISTING HANDLE, because
+   the store's own address-level idempotence makes a repeat `listen` mint nothing and answer the entry's own
+   handle** (`write-and-read.md §6.5` item 12 (c); `contract.md §2.3` item 6; `§2.3`'s dated clause).
+   **AND IT REPLACES.** **Where the identity `on` returns is one the registry already holds a function for, THE
+   REGISTRY'S FUNCTION IS REPLACED and the previous function is dropped without notice — ONE IDENTITY, ONE
+   FUNCTION** (`§2.4` rule 2). **SO THE TWO ARMS OF `on` ARE THESE AND NO OTHERS, EACH WITH ITS OWN OBSERVABLE:**
+
+   | The arm | Its pre-condition | Its observable |
+   | --- | --- | --- |
+   | **the FRESH arm** | the address's store-side home entry did not exist | **the store minted a token, the package wrapped it, and the registry holds the listener under it — a later trigger under that address invokes THAT function once** |
+   | **the HELD arm** | the address is ALREADY registered, so the store's `listen` mints nothing and returns the existing entry's handle | **the SAME opaque value two `on` calls at one address return, and the registry's function for it is the SECOND listener — a later trigger invokes the REPLACEMENT once, and the replaced function never fires again** |
+
+   **(b) `off` — VALIDATE FIRST, THEN WITHDRAW AND DEREGISTER; AND THE RECONCILIATION WITH RULE 4, STATED SO NO
+   CONTRADICTION IS READ.** **IT VALIDATES THE `handle` FIRST, the same way — class first, on the value as it is,
+   never repaired — and only then performs the two removals, in this order:**
+```
+off(handle):
+  1. VALIDATE    handle against this instance's own handle domain          // class first, never repaired
+  2. UNLISTEN    the store's own unlisten(instance, handle)                // the STORE-facing withdrawal (§2.3 item 4)
+  3. DEREGISTER  the package's own registry entry for that identity         // the PACKAGE'S OWN state (§2.4 rule 2's map)
+```
+   **AND THE RECONCILIATION, IN THE TERMS `A80` USES, BECAUSE IT IS THE WHOLE OF WHAT THIS ITEM MUST NOT LEAVE
+   AMBIGUOUS: `unlisten(handle)` KEEPS RULE 4 VERBATIM — the STORE-SIDE WITHDRAWAL ONLY, with the registry's
+   entry STANDING — and `off(handle)` is A DIFFERENT, PACKAGE-OWNED VERB that performs the store-side
+   withdrawal AND removes the PACKAGE'S OWN registry entry. RULE 4 IS THEREFORE SUPPLEMENTED, NOT EXCEPTED: it
+   constrains the store-facing `unlisten`, while `off` acts on the package's own state, WHICH NO STORE RULE
+   GOVERNS.** **The asymmetry the contract declares survives EXACTLY AS WRITTEN — `unlisten` never removes a
+   function — and `off` is the declared way to remove one.** **A reader who takes `off` as an exception to rule
+   4 has read a second withdrawal into the store's surface; there is none, and `rule 4`'s four words *"withdraws
+   the registration, never the function"* stand unmoved at `§2.4` rule 4 and at `contract.md §2.4` rule 4.**
+   **ITS RETURN IS `undefined` ON EVERY SUCCESS, including on every arm below.** **AND ITS ARMS, EACH WITH ITS
+   OBSERVABLE:**
+
+   | The arm | Its pre-condition | Its observable |
+   | --- | --- | --- |
+   | **the OWN arm** | the handle is one THIS INSTANCE minted or adopted, and the registry holds a function for it | **the store-side home entry is withdrawn, the registry's entry for that identity is REMOVED, and `undefined` is returned — a later trigger no longer carries that identity, and there is no registry entry left to match it** |
+   | **the OWN-ENTRYLESS arm** | the handle is one THIS INSTANCE minted or adopted, and the registry holds NO function for it (it was registered never, or it was already withdrawn) | **`undefined`: nothing is removed that was not there, the store-side withdrawal is performed, and NO OTHER REGISTRATION IS DISTURBED** (`§2.4` rule 4's *"the registry is released with the instance and by nothing else"* is a statement about the INSTANCE and not about one entry, and it stands) |
+   | **the OUTSIDE arm** | the handle is NOT one this instance minted or adopted | **`AddressMalformed` in `§2.5`'s single form, and NEITHER removal is performed** — **this is the arm that makes `off` differ from `unlisten` over one value, and the difference is DECLARED and not incidental** (`§2.3`'s dated clause, clause 3; `parameter-semantics.md §2.8`'s dated clause) |
+
+   **AND `off` REMOVES NO MORE THAN THE HANDLE NAMES: a lawful sibling registration — another address's entry,
+   another identity in the same instance — STANDS, and a drive that finds a sibling registration removed by one
+   `off` has found a failure of this item.**
+   **AND `off` DOES NOT CANCEL A DELIVERY IN FLIGHT, BECAUSE THE DELIVERY'S RECIPIENT SET IS READ WHEN THE
+   WINDOW OPENS: a `off` made during a window takes effect at the NEXT trigger and removes neither an entry nor
+   an identity the current delivery has already read** (`§2.4`'s `CF-DUP-3` clause and its re-homing clause,
+   clause 4; `write-and-read.md §6.5` item 14). **AND THE ORDER OF THE TWO REMOVALS WHEN THE STORE REFUSES —
+   whether the registry's entry is removed before or after the store-side withdrawal is attempted, in the one
+   case where the store's own `unlisten` answers a malformed argument's shape — IS A DECLARED DEFAULT AND NOT A
+   SILENCE: it is `DD-54`.**
+   **AND ONE ARM THIS ITEM NAMES SO IT IS NOT DISCOVERED: a function whose identity was registered through
+   `register` DIRECTLY and then withdrawn by `off` is removed by `off` — the registry holds AT MOST ONE function
+   per handle and does not record which member put it there (`§2.4` rule 2). THE ONE RESIDUAL `A80` LEAVES — a
+   NEW function offered by `on` at a HELD address whose entry was placed by `register` — IS `DD-52`.**
+
+   **(c) BOTH ARE DELIVERY-SIDE ONLY, AND NEITHER IS A RELEASE VERB.** **NEITHER `on` NOR `off` STATES, ALTERS OR
+   PROMISES ANY FIRING RULE: WHICH listener fires · WHEN it fires · WHAT it is bound to · WHICH ids a trigger
+   returns · the home's registration semantics (`listen` and `unlisten`) · the address-prefix rule · the
+   process-scoped handle are ALL STORE BEHAVIOUR, and A DRIVE DERIVES EACH OF THEM FROM
+   `docs/specs/storeroom-native/write-and-read.md §6.5` ITEM 14, where the authority stands** (**`A78`**;
+   this section's re-homing clause, clause 1). **`on` PERFORMING the store's `listen` and `off` PERFORMING the
+   store's `unlisten` IS A DELIVERY-SIDE ACTION UPON THE STORE'S OWN VERBS and never a statement about what the
+   store's home does when it lands.** **AND NEITHER MEMBER IS A RELEASE VERB: no `dispose()`, no `close()`, no
+   finalizer and no teardown is declared at either layer, `off` removes ONE registry entry and releases the
+   instance's state at NOTHING, and the state is still released with the instance and by nothing else**
+   (**`A74`**; `§3.5`; `DD-17`).
+   **AND NOTHING ELSE OF THIS SECTION MOVES: `§2.5`'s single form, `§2.6`'s pattern, `§2.7`'s window, order and
+   throwing-body clauses, `§2.8`'s two file-behaviour readings, `§2.9`'s non-exposure and its `8`-verb count,
+   `§2.10`'s two signatures, `§2.4`'s four rules and item 5's registration site and domain, and item 6's
+   id-matching model all stand exactly as printed — the register keeps its `8` rows with the one row this
+   amendment RE-DERIVES named at `contract.md §5.5`'s dated re-derivation clause and NO NINTH ROW MINTED, the
+   `PAR-JS` set stays `18` with `PAR-JS-8` and `PAR-JS-12` RE-DERIVED and no nineteenth row minted, and no part
+   entry is authored, renumbered or dropped here.**
+   (`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79` · `A80` · `A81` — the three rulings this item implements;
+   A1 docs/specs/storeroom-js-proposal.md §18 · `A74` · `A76` · `A77` and §19 · `A78` — the constraints it obeys;
+   A3 docs/specs/storeroom-js/crossing.md §1.7–§1.8 — the validation order and the no-repair prohibition;
+   A3 docs/specs/storeroom-native/write-and-read.md §6.5 items 12 (c) and 14 | requirement]`).
 
 **A FAILURE CROSSES AS A THROWN PLAIN OBJECT WITH EXACTLY TWO MEMBERS, AND THERE IS EXACTLY ONE SUCH
 FORM:**

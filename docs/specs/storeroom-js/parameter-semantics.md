@@ -649,6 +649,133 @@ re-emitted above; A3 docs/specs/storeroom-native/write-and-read.md §6.5 item 14
 target; A3 docs/specs/storeroom-js/surface.md §2.4's re-homing clause of 2026-10-11 — the delivery-side
 consequence, at its own home | declared parameter semantics]`).
 
+**⟶ RE-DERIVED 2026-10-11 — THE `Q1` CONTRACT AMENDMENT (`role_spec_writer`), `A80`/`A81`: THE HANDLE SLOT OF
+THE NEW `off` MEMBER, CARRIED INSIDE THIS ROW AND NOT JOINED BY A NINETEENTH.** `RCA-8(d)` ANNOTATE-BESIDE: **every
+cell of the table above — its `domain`, its outside-value list, its declared answers, its `alt` and its `park` cell
+— and this row's re-homing clause stand byte-for-byte and are read THROUGH this clause; THIS clause is a PURE
+INSERTION, it adds NO ROW to `§1`'s `18`, moves no `§`-number, and re-derives THIS ROW'S SUBJECT rather than
+minting a row beside it.** **THE RULINGS, VERBATIM:** ***"`off` can deregister"*** · ***"always validate"***
+(`docs/specs/storeroom-js-proposal.md` `§8` · **`A80`** · **`A81`**). **AND WHY THE RE-DERIVATION RATHER THAN A
+NINETEENTH ROW, SAID BECAUSE THE CHOICE OWES ITS REASON: `off`'s argument is THE SAME DATUM THIS ROW ALREADY
+DECLARES — the package's opaque handle — reached at ONE MORE POSITION, exactly as the `instance` position of the
+verbs was carried inside `PAR-JS-1` and the registration's handle inside `PAR-JS-12`; a new row would have
+falsified nine printed ranges at once for a datum whose domain, spells and outside values are already these.**
+
+**THE SLOT, NAMED WITH ITS SIGNATURE AND ITS POSITION: `off(handle) -> undefined`, the handle at `off`'s FIRST
+AND ONLY ARGUMENT POSITION — and the position is ARGUMENT POSITION `1` OF `2`, reported as such.** **THE SLOT IS
+A DIFFERENT VERB REACHING THE SAME DOMAIN, AND ITS DIFFERENCE FROM `unlisten` IS DECLARED AND NOT INCIDENTAL:
+`unlisten(instance, handle)` performs the STORE-FACING WITHDRAWAL ONLY — the package's registry entry STANDING
+(`§2.4` rule 4, UNMOVED) — while `off` performs the store-side withdrawal AND removes the PACKAGE'S OWN registry
+entry for that identity, so RULE 4 IS SUPPLEMENTED AND NOT EXCEPTED** (`docs/specs/storeroom-js/surface.md §2.4`
+item 7 (b), at its own home; `A80`'s own reconciliation).
+
+**AND THE FOUR CELLS THE SLOT ADDS TO THIS ROW, EACH PRINTED BECAUSE THIS PART'S SCHEMA REQUIRES ALL THIRTEEN
+AND A RE-DERIVATION OWES THE ONES IT MOVES:**
+- **`parameter` (the slot).** **`handle`, at `off(handle)`'s first and only argument position** — **the same
+  datum the `parameter` cell above names, at one more position; that cell's own words stand and this line names
+  the position.**
+- **`domain` (the slot's).** **THE OPAQUE HANDLE VALUE OF THIS INSTANCE — a value THIS INSTANCE minted (through
+  `listen`, or through `on`, whose return is the same spelling) or ADOPTED at its own construction's
+  `listeners[]`. `off` accepts the OPAQUE form ONLY and accepts NO `string`: a bare `string` is OUTSIDE this
+  slot's domain, as it is outside `unlisten`'s (`§2.3` item 2).**
+- **`the declared answer for EACH outside value` (the slot's), CLASS BY CLASS.**
+  **A handle IN the domain whose identity the registry HOLDS a function for → `undefined`, with the store-side
+  home entry WITHDRAWN and the registry's own entry for that identity REMOVED.**
+  **A handle IN the domain whose identity the registry holds NO function for (never registered, or already
+  removed by an earlier `off`) → `undefined`, removing nothing that was not there and disturbing NO OTHER
+  REGISTRATION.**
+  **A handle a FOREIGN instance minted · a value a PRIOR SESSION minted · a value the store never minted at all
+  (fabricated) · a blank (empty-string) token · a non-opaque value · `null` · `undefined` · an ABSENT argument →
+  `AddressMalformed` in `§2.5`'s single form, with NEITHER removal performed.** — **THE CONTRAST IS DECLARED,
+  NOT OVERSIGHT: `unlisten` over each of those same values is a NO-OP SUCCESS and removes nothing (`§2.3` item 4,
+  UNMOVED), while `off` REFUSES — because `off` removes a PACKAGE-OWNED entry and an unknown identity names no
+  such entry.** **AND THE REFUSAL'S FORM IS THE SINGLE ONE and NEVER a `TypeError`** (`docs/specs/storeroom-js/surface.md
+  §2.5` item 5, clause (g); `docs/specs/storeroom-js/parameter-semantics.md §2.12`'s second dated exception
+  clause).
+- **`evaluator` (the slot's) and the POSITION THE REFUSAL IS REPORTED AT.** **THE PACKAGE evaluates the slot —
+  the class decision and the domain test are the package's own and are taken BEFORE any store call, so the store
+  is never reached by an outside handle — and the STORE evaluates the withdrawal that a passing handle then
+  performs.** **AND THE POSITION: a refusal at this slot is reported with THE ARGUMENT POSITION `1` OF `2` beside
+  the failing class and the failing value, inside `§2.5`'s generated message and NEVER as a third member — which
+  is exactly the class half plus the position half `A81`'s *"always validate"* requires and `A76`'s verbose
+  rejection carries.**
+**AND THE VALIDATION ORDER IS THIS SLOT'S OWN TERM OF THE CLAUSE: class first, on the value as it is, NEVER
+repaired; the two removals happen only after the slot has passed, so a refused handle leaves the STORE-SIDE home
+entry AND the registry entry BOTH UNTOUCHED** (`docs/specs/storeroom-js/crossing.md §1.7`–`§1.8`;
+`docs/specs/storeroom-js/surface.md §2.4` item 7 (b), steps 1–3).
+**AND THE ONE THING THIS SLOT IS NOT: `off` is a DELIVERY-SIDE member, so this slot's cells declare a PARAMETER
+and NEVER a firing rule — what the store's home does when a `listen` or an `unlisten` lands is the store's, and
+the authority for it is `docs/specs/storeroom-native/write-and-read.md §6.5` item 14** (`A78`).
+**AND NOTHING ELSE OF THIS ROW MOVES: the cells above stand exactly as printed, no other row of `§2` is touched,
+`§1`'s arithmetic stays `15 + 1 + 1 + 1 = 18` ✓, and NO NINETEENTH ROW EXISTS**
+(`[A1 docs/specs/storeroom-js-proposal.md §8 · `A80` · `A81` — the rulings this slot implements;
+docs/specs/storeroom-js/contract.md §2.3 item 4 and §2.4 rules 2–4 — the store-facing no-op set and the registry
+rules the contrast is read against; A3 docs/specs/storeroom-js/surface.md §2.4 item 7 (b) — the slot's own clause
+home | declared parameter semantics]`).
+
+**⟶ RE-DERIVED 2026-10-11 — THE `Q1` CONTRACT AMENDMENT (`role_spec_writer`), `A79`/`A81`: `on`'s LISTENER SLOT,
+CARRIED INSIDE THIS ROW AND NOT JOINED BY A NINETEENTH.** `RCA-8(d)` ANNOTATE-BESIDE: **every cell of the table
+above — its `domain`, its outside-value list, its declared answers, its `alt` and its `park` cell — and this
+row's four dated clauses stand byte-for-byte and are read THROUGH this clause; THIS clause is a PURE INSERTION, it
+adds NO ROW to `§1`'s `18`, moves no `§`-number, and re-derives THIS ROW'S SUBJECT rather than minting a row
+beside it.** **THE RULINGS, VERBATIM:** ***"Use S-1"*** · ***"always validate"***
+(`docs/specs/storeroom-js-proposal.md` `§8` · **`A79`** · **`A81`**). **AND WHY THE RE-DERIVATION RATHER THAN A
+NINETEENTH ROW, SAID BECAUSE THE CHOICE OWES ITS REASON: the slot below is THE SAME DATUM THIS ROW ALREADY
+DECLARES — the caller's function, held by the package's registry — reached at ONE MORE POSITION, exactly as this
+row already carries the `register` site's handle beside it.**
+
+**THE SLOT, NAMED WITH ITS SIGNATURE AND ITS POSITION: `on(address, listener) -> handle`, the listener at `on`'s
+SECOND ARGUMENT POSITION — and the position is ARGUMENT POSITION `2` OF `2`, reported as such.**
+**ITS `domain` (the slot's): ANY JS FUNCTION the caller offers at that position; the package's registry admits
+functions and NOTHING ELSE.** **Two clauses travel with it, each because the slot's own verb moves it:**
+- **ITS HANDLE POSITION IS NOT THE REGISTRATION'S, AND THE DOMAIN IS THEREFORE NOT THE SAME.** **`on`'s FIRST
+  argument is an `address`, NOT a handle: the handle `on` produces is its RETURN** (`docs/specs/storeroom-js/surface.md
+  §2.4` item 7 (a); `docs/specs/storeroom-js/parameter-semantics.md §2.5`'s `PAR-JS-5`). **So an OUTSIDE HANDLE is
+  no arm of this slot at all: at `on` the handle is not an argument, and `PAR-JS-8`'s domain governs it at `off`
+  and at `register` and at no other position.**
+- **AND WHERE `on` RETURNS A HELD ADDRESS'S EXISTING HANDLE, THE REGISTRY'S FUNCTION IS REPLACED** — **the same
+  replacement arm `register` has, over the same map (`§2.4` rule 2), and the one difference between the two sites
+  is the RETURN: `on` returns THE HANDLE, while the registration site returns `undefined`.**
+**AND ITS `the declared answer for EACH outside value` CELL, RE-DERIVED FOR THIS SLOT — THE WHOLE CLASS SET IS
+ENUMERATED SO NO CLASS FALLS BETWEEN THE TWO POSITIONS:**
+- **A NON-FUNCTION `listener` (a number, a string, an object, `null`, `undefined`, an ABSENT second argument) →
+  A REFUSAL: `§2.5`'s SINGLE FORM, a thrown `{status, message}` whose `status` is the store's own
+  `AddressMalformed` — a member of the store's closed `15`-member set, minted by nothing — and whose `message`
+  carries the failing target, the failing CLASS and THE ARGUMENT POSITION `2` OF `2`.** **IT IS NOT A JS
+  `TypeError` AND NO SECOND FAILURE FORM ARISES** (`docs/specs/storeroom-js/surface.md §2.5` item 5, clause (g);
+  this row's second dated exception clause; `DD-40`).
+- **AN `address` OUTSIDE `AddressArg`'s DOMAIN → a REFUSAL at ARGUMENT POSITION `1` OF `2` in the same single
+  form and with the same `status`, and it is `PAR-JS-5`'s `domain` and `PAR-JS-5`'s outside-value list that
+  enumerate it — this row carries NO address class of its own** (`docs/specs/storeroom-js/parameter-semantics.md
+  §2.5`; `docs/specs/storeroom-js/crossing.md §1.3`'s `AddressArg` rows).
+- **THE TWO-AT-ONCE ARM, WHICH IS THE ONE THIS SLOT OWES BECAUSE `on` IS THE COMBINED CALL.** **Where BOTH
+  arguments are outside their domains, the refusal reported is the FIRST FAILING POSITION's — the `address`, at
+  position `1` — because `on` validates the `address` and then the `listener` and admits nothing until both have
+  passed; AND IN EITHER ORDER THE OUTCOME THE CALLER OBSERVES IS THE SAME: NOTHING IS ADMITTED, so after the
+  refusal no store-side home entry and no registry entry exists**
+  (`docs/specs/storeroom-js/surface.md §2.4` item 7 (a), steps 1–3).
+- **ITS `observable` (the slot's).** **A function invoked once after a write whose address scope covers its
+  listener's address; a second `on` at one held address leaving ONE function registered for that identity with
+  the replaced function never firing again; and — THE ATOMICITY OBSERVABLE — a refused `on` whose address the
+  home did NOT hold leaving the home holding NOTHING, while a refused `on` at an address the home ALREADY held
+  leaves that address's entry STANDING AND UNCHANGED.**
+- **AND `supplier` / `evaluator` (the slot's).** **THE CALLER supplies the function; THE PACKAGE evaluates it —
+  the class decision is the package's own and is taken BEFORE any store call — and the package's registry is the
+  map that holds it; the store is reached only after both arguments have passed.**
+**AND THE VALIDATION ORDER IS THIS SLOT'S OWN TERM OF THE CLAUSE: class first, on the value as it is, NEVER
+repaired — a `Proxy`-wrapped callable being a CLASS question the same decision answers — and never a coercion of
+a non-function into a callable** (`docs/specs/storeroom-js/crossing.md §1.7`–`§1.8`; `A81`).
+**AND THE ONE THING THIS SLOT IS NOT: `on` is a DELIVERY-SIDE member, so this slot declares a PARAMETER and NEVER
+a firing rule — WHICH listener fires and WHEN remain the store's, and their authority is
+`docs/specs/storeroom-native/write-and-read.md §6.5` item 14** (`A78`).
+**AND NOTHING ELSE OF THIS ROW MOVES: the cells above stand exactly as printed — this row's `domain` cell's
+invocation half, its producer clause and its arms table, its `CF-DUP-3` pointer clause and its re-homing clause
+included — no other row of `§2` is touched, `§1`'s arithmetic stays `15 + 1 + 1 + 1 = 18` ✓, and NO NINETEENTH ROW
+EXISTS** (`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79` · `A81` — the rulings this slot implements; A3
+docs/specs/storeroom-js/surface.md §2.4 item 7 (a) — the slot's own clause home; A3
+docs/specs/storeroom-js/parameter-semantics.md §2.5 and §2.8 — the neighbouring rows this slot's classes are told
+apart from | declared parameter semantics]`).
+
 ### §2.13 `PAR-JS-13` — the returned `op`, the `JournalOp` a write returns
 
 | Cell | Its value |
@@ -890,6 +1017,48 @@ declared parameter semantics]`
 
 `[A1 docs/specs/storeroom-js-proposal.md §8 · A64; A3 docs/specs/storeroom-native/contract.md §8.1–§8.3 |
 declared parameter semantics]`
+
+**⟶ ADDED 2026-10-11 — THE `Q1` CONTRACT AMENDMENT (`role_spec_writer`), `A81`: THE REFUSAL AT THE TWO NEW
+MEMBERS' SITES — ITS FORM, ITS `status`, ITS CLASS HALF AND ITS POSITION HALF — DECLARED AT THIS ROW'S OWN `§`.**
+`RCA-8(d)` ANNOTATE-BESIDE: **every cell above stands byte-for-byte and is read THROUGH this clause; THIS clause
+is a PURE INSERTION, it adds NO ROW to `§1`'s `18`, moves no cell of the table above, adds no member to the form
+and mints no code.** **THE RULING, VERBATIM:** ***"always validate"*** (`docs/specs/storeroom-js-proposal.md` `§8`
+· **`A81`**).
+
+**THE TWO NEW SITES PRODUCE NO NEW FAILURE FORM, NO NEW STATUS AND NO NEW MEMBER — AND THE CLASS SET IS
+EXHAUSTIVE AND CLOSED, STATED HERE SO NO CLASS IS LEFT TO DISCOVERY:**
+1. **A NON-FUNCTION `listener` at `on`'s position `2` of `2`** — including an ABSENT second argument —
+   **→ `AddressMalformed`.**
+2. **An `address` outside `AddressArg`'s domain at `on`'s position `1` of `2`** **→ `AddressMalformed`.**
+3. **A handle this instance never minted or adopted at `off`'s position `1` of `2`** — a foreign instance's
+   value, a prior session's value, a fabricated value, a bare `string`, a blank token, `null`, `undefined` or an
+   ABSENT argument — **→ `AddressMalformed`.**
+**AND `AddressMalformed` IS THE STORE'S OWN MEMBER of its closed `15`-member set, CARRIED VERBATIM: this unit
+mints no code, widens no set and renames no member** (`DD-40`; `docs/specs/storeroom-js/surface.md §2.5` item 5
+(c)).
+**AND THE CLASS HALF AND THE POSITION HALF, AT THESE TWO SITES, AS `A81` REQUIRES: the reason is THE CLASS THE
+VALUE HAS — named as `crossing.md §1.2`'s or `§1.3`'s own class, never as a class the value could be converted
+to — and the POSITION IS CARRIED BESIDE IT AS THE ARGUMENT POSITION: `1` OF `2` for an `address` or a `handle`,
+`2` OF `2` for a `listener`. The class half is MANDATORY and the position half is CONDITIONAL where no position
+is declared** (`docs/specs/storeroom-js/surface.md §2.5` item 5 (b)). **AND BOTH HALVES TRAVEL INSIDE THE
+GENERATED MESSAGE'S OWN TEXT AND NEVER AS A THIRD MEMBER — the member set stays EXACTLY `{status, message}`**
+(`docs/specs/storeroom-js/surface.md §2.5` item 5 (b) and its Segment One / Segment Two split clause, which fixes
+Segment One as the store's own and Segment Two as the boundary's appended class-and-position half).
+**AND THREE THINGS THIS CLAUSE DECLARES SO THEY ARE NOT MET AS SURPRISES.** **FIRST, THE MESSAGE'S AUTHORITY IS
+THE STORE'S GENERATOR AND NOT A PACKAGE CONSTANT: a package-authored string that STANDS IN FOR Segment One is a
+FINDING, and the honest consequence that a target-VARYING refusal is not byte-identical to any constant stands as
+`§2.5`'s `CF-3` clause prints it.** **SECOND, A RAW HOST `TypeError` escaping FROM EITHER NEW SITE IS A FINDING
+AND NOT A FORM — the `TypeError` is the SHAPE the registration site was declared with at the bounded correction
+pass of 2026-10-11, and it is not the operative form at `register`, at `on` or at `off`.** **THIRD, `off`'s
+outside-arm refusal is NOT `unlisten`'s no-op `undefined`: the two verbs answer one value differently BY
+DECLARATION, and the contrast is `docs/specs/storeroom-js/surface.md §2.4` item 7 (b)'s and `§2.3`'s dated
+clause's.**
+**AND NOTHING ELSE OF THIS ROW MOVES: its `status` cell, its `message` cell, its outside-value list, its
+`supplier`, its `evaluator`, its `observable`, its `alt` and its `park` cell stand exactly as printed, `§1`'s
+arithmetic stays `15 + 1 + 1 + 1 = 18` ✓, and NO ROW IS MINTED HERE**
+(`[A1 docs/specs/storeroom-js-proposal.md §8 · `A81` — *"always validate"*; A3
+docs/specs/storeroom-js/surface.md §2.5 item 5, clauses (b), (c), (d) and (g) — the form, the status, the class and
+the position this clause applies at the two sites; `DD-40` | declared parameter semantics]`).
 
 ### §2.18 `PAR-JS-18` — the constraint/repair pattern: a declared NON-parameter
 

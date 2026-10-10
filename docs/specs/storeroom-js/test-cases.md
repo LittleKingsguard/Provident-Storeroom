@@ -284,3 +284,41 @@ TestWriter derives its cases from the `§n` each row names and never from this t
 (`[A1 docs/specs/storeroom-js-proposal.md §19 · `A78` — the ruling this pointer set is derived from; A3
 docs/specs/storeroom-native/write-and-read.md §6.5 items 8 (a)/(d), 10 (d)–(e), 11, 12 and 14 — the store's
 listener clauses, each row's own target | requirement]`).
+
+**⟶ AND THE `Q1` CONTRACT AMENDMENT'S OWN POINTERS — THE TWO NEW INSTANCE MEMBERS — ADDED 2026-10-11 BESIDE,
+NEVER INSIDE, THE NUMBERED INVENTORY ABOVE, SO THE `71` STANDS AS THE FIRST CENSUS SENTENCE PRINTS IT.**
+`RCA-8(d)` ANNOTATE-BESIDE: **no row of the `71`, of the five four-or-five-row pointer sets or of the `13`
+unnumbered rows below them is added, removed or renumbered by this clause; THIS table is a SEVENTH pointer set,
+its rows carry no number at all, and it declares no case the contract does not already pin.**
+**AND ONE FACT THIS TABLE OWES ITS READER BEFORE ITS ROWS ARE READ:** **the two members below are the amendment's
+own — `A79`'s shape, `A80`'s deregistration and `A81`'s validation — and every row's target is a clause of THIS
+directory: `docs/specs/storeroom-js/surface.md §2.1`'s and `§2.4` item 7's, `contract.md §5.5`'s dated
+re-derivation, and `docs/specs/storeroom-js/parameter-semantics.md §2.8`'s and `§2.12`'s dated clauses.** **The
+FOUR `DD` rows the amendment authors are `contract.md §0.2`'s `DD-51`…`DD-54` and each is a priced, reversible
+default; NO ROW BELOW DECLARES ONE AND NO ROW BELOW IS A TEST.**
+
+| The case, as the `Q1` amendment's clauses now pin it | Its source, in the `path §n` form | The pinning citation it carries |
+| --- | --- | --- |
+| **`on`'s signature and its return: `on(address, listener) -> handle` is a member of the object `storeCreate` returned, its `address` is `AddressArg`'s domain and NOTHING MORE, and it returns the package's OPAQUE handle; `off(handle) -> undefined` takes that form ONLY and returns `undefined` on every success; the module namespace stays at the EIGHT declared verbs and `listen`/`unlisten` stay un-overloaded** | `docs/specs/storeroom-js/surface.md` §2.1's dated clause · `docs/specs/storeroom-js/surface.md` §2.4 item 7 · `docs/specs/storeroom-js/contract.md` §5.5's dated re-derivation clause | surface's §2.1 and §2.4 item 7; contract's §5.5 dated clause; `docs/specs/storeroom-js-proposal.md` §8 · `A79`; `§2.9` item 1's `8`-name count, UNMOVED |
+| **`on`'s ATOMICITY ORDER: validation runs FIRST — the CLASS on the value as it is, never repaired — and only then the store's `listen`, then the registry's registration: VALIDATE → LISTEN → REGISTER; so a refused `address` or `listener` leaves NO store-side home entry, NO registry entry, NO node minted and NO journal entry appended** | `docs/specs/storeroom-js/surface.md` §2.4 item 7 (a) · `docs/specs/storeroom-js/parameter-semantics.md` §2.12's dated clause · `docs/specs/storeroom-js/crossing.md` §1.7 | surface's §2.4 item 7 (a); `parameter-semantics.md` `PAR-JS-12`'s dated clause; crossing's §1.7–§1.8; `docs/specs/storeroom-js-proposal.md` §18 · `A76` and §8 · `A81` |
+| **`on` AT A HELD ADDRESS: it returns that address's EXISTING handle — the store's address-level idempotence — and REPLACES the registry's function, so ONE identity carries ONE function and the replaced function is dropped without notice** | `docs/specs/storeroom-js/surface.md` §2.4 item 7 (a) · `docs/specs/storeroom-js/contract.md` §5.5's dated re-derivation clause | surface's §2.4 item 7 (a) and rules 2–3; `docs/specs/storeroom-native/write-and-read.md` §6.5 item 12 (c); `docs/specs/storeroom-js-proposal.md` §8 · `A79` |
+| **`off`'s TWO REMOVALS, AND THE RECONCILIATION: it validates its handle FIRST, then performs the store-side `unlisten` AND removes the PACKAGE'S OWN registry entry — while `unlisten` KEEPS rule 4 VERBATIM (the store-facing withdrawal only, the registry entry STANDING): rule 4 is SUPPLEMENTED, NOT EXCEPTED, and the declared asymmetry survives exactly as written** | `docs/specs/storeroom-js/surface.md` §2.4 item 7 (b) · `docs/specs/storeroom-js/parameter-semantics.md` §2.8's dated clause | surface's §2.4 item 7 (b) and rules 1–4; `parameter-semantics.md` `PAR-JS-8`'s dated clause; `docs/specs/storeroom-js-proposal.md` §8 · `A80`; `§2.9` item 1 |
+| **BOTH MEMBERS ARE DELIVERY-SIDE ONLY: neither states, alters nor promises any firing rule — WHICH listener fires, WHEN it fires and WHICH ids a trigger returns are the STORE's — and neither is a release verb; a drive derives its firing terms from `docs/specs/storeroom-native/write-and-read.md §6.5` item 14 and finds no `dispose()`/`close()` at either layer** | `docs/specs/storeroom-js/surface.md` §2.4 item 7 (c) | surface's §2.4 item 7 (c); `docs/specs/storeroom-native/write-and-read.md` §6.5 item 14; `docs/specs/storeroom-js-proposal.md` §19 · `A78`; `§3.5` · `docs/specs/storeroom-js-proposal.md` §15 · `A74` |
+| **THE REFUSAL AT BOTH NEW SITES IS THE SINGLE FORM: a non-function `listener`, an `address` outside `AddressArg`'s domain, and an `off` handle this instance never minted or adopted are EACH answered `AddressMalformed` — a member of the store's closed `15`-member set, minted by nothing — in a thrown `{status, message}` whose message carries the failing target and the reason (the class, and the ARGUMENT POSITION `on`'s or `off`'s), and NEVER a second failure form and NEVER a raw host `TypeError`** | `docs/specs/storeroom-js/parameter-semantics.md` §2.17's dated clause · `docs/specs/storeroom-js/parameter-semantics.md` §2.8's and §2.12's dated clauses · `docs/specs/storeroom-js/surface.md` §2.4 item 7 (a)–(b) · `docs/specs/storeroom-js/surface.md` §2.5 item 5 | `parameter-semantics.md` `PAR-JS-17`'s, `PAR-JS-8`'s and `PAR-JS-12`'s dated clauses; surface's §2.5 items 1–5; `A76`'s reach clause; `docs/specs/storeroom-js-proposal.md` §8 · `A81`; `DD-40` |
+| **`off` REMOVES NO MORE THAN THE HANDLE NAMES, AND A REGISTRY ENTRY DOES NOT OUTLIVE ITS INSTANCE: `off(h)` withdraws the store-side home entry that handle names and removes the package's registry entry for THAT identity, leaving every OTHER registration standing; `off` over a handle outside the domain is `AddressMalformed` where `unlisten` over the same value is a NO-OP SUCCESS — the two verbs answer one value differently BY DECLARATION; and the registry is released with the instance and by nothing else** | `docs/specs/storeroom-js/surface.md` §2.4 item 7 (b)–(c) · `docs/specs/storeroom-js/contract.md` §5.5's dated re-derivation clause | surface's §2.3 item 4, §2.4 rules 1–4 and item 7 (b); contract's §5.5 dated clause; `docs/specs/storeroom-js/parameter-semantics.md` §2.8's dated clause; `DD-15` · `DD-17`; `docs/specs/storeroom-js-proposal.md` §8 · `A80` |
+
+**AND THE ONE COUNT THIS CLAUSE PRINTS, SO THE SEVEN POINTER SETS' ARITHMETICS AGREE: the numbered inventory
+carries `71` rows, the corrected-pointer table carries `4`, the close-out pass's table carries `4`, the bounded
+declaration pass's table carries `5`, the blind greens pass's table carries `3`, the `A78` re-homing pass's table
+carries `4`, and THIS table carries `7` — so this part holds `71 + 4 + 4 + 5 + 3 + 4 + 7 = 98` pointers, while the
+`71` remains the figure the census sentence at this part's head prints, because it is read off the last row's own
+number and every row below it carries no number at all** (`[A3
+docs/specs/spec-scope-and-structure/contract.md §C.11.7 — the entry-counted unit, and the rule that a grouping is
+never a second arithmetic; §C.11.6 — a `view` part declares nothing the contract does not already carry |
+numeric or census claim]`). **No row of this table names a case the contract does not pin, and no row of it
+declares a requirement of its own; and NO ROW ABOVE IS A TEST — the TestWriter derives its cases from the `§n`
+each row names and never from this table**
+(`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79` · `A80` · `A81` — the rulings this pointer set is derived
+from; A3 docs/specs/storeroom-js/surface.md §2.4 item 7 — the clause the six member-rows' targets resolve to;
+A3 docs/specs/storeroom-js/parameter-semantics.md §2.8's and §2.12's dated clauses — the two re-derived
+parameter rows | requirement]`).
