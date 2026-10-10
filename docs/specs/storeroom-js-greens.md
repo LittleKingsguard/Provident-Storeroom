@@ -764,7 +764,11 @@ CLAUSE:**
    close-out clause (*"THE BLIND SET IS `240/240`, NOT `236/236`"*); **`docs/specs/storeroom-js/contract.md`**
    `§7`'s digest clause; **`docs/specs/storeroom-js/test-cases.md`**, **`surface.md`**, **`docs/specs/
    storeroom-js-convenience-proposal.md`**, **`docs/specs/storeroom-js-publish-proposal.md`**, **`docs/
-   next-steps.md`** and **`docs/decisions.md`**, each where it quotes the figure. **The figure the `113` and
+   next-steps.md`** and **`docs/decisions.md`**, each where it quotes the figure; **and the archived records
+   that print it — `archive/gate6/storeroom-js-live-determination.md`'s `§4` table, `archive/gate3/
+   storeroom-js-red-set.md`'s per-scenario line, and `archive/gate3/storeroom-publish-red-set.md`'s
+   `240`/`239`/`1` reading of the ENTRY state of this very row — each enumerated at the record's `§8.5` and
+   each read from this date as its own tree's.** **The figure the `113` and
    the `91` and the `379` name are UNMOVED by this pass** (`174` tests · `174` pass · `0` fail on the JS leg;
    `91`/`91`/`0` on the live battery; `379` PASS · `0` FAIL at the store's root), **so only the `240` half of
    each of those citations is stale.**
