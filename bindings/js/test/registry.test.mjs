@@ -368,6 +368,32 @@ test('registry_a_delete_fires_its_own_triggered_set_on_the_same_prefix_test', ()
 // array ELEMENT BY ELEMENT, so carrying this state's token TWICE while `deliver`'s loop stays as shipped
 // would invoke the one registered function TWICE — the per-identity dedup must stand at DELIVERY, where
 // clause (i) puts it, and it must be the BOUNDARY's dedup that moves.**
+//
+// **⟶ ADDED 2026-10-11 (`role_test_writer`) — THE IDENTITY THIS CELL RESTS ON IS NOW DRIVEN RATHER THAN
+// ASSUMED, AND THE ONE HALF OF IT THAT NO ASSERTION HERE NAMED IS NAMED.** The cell's premise is that the
+// handle the caller HOLDS for ONE store-side entry survives every call that answers about that entry: the
+// caller-spelled duplicate's two array members are ONE opaque value, and that value is the one `listen`
+// handed back for the entry. **THAT IS A PROPERTY OF THE WRAPPER'S IDENTITY ACROSS CALLS, AND ITS AUTHORITY IS
+// THE STORE'S OWN, RECONCILED AT `docs/specs/storeroom-js/surface.md §2.3`'s dated clause of 2026-10-11** — the
+// clause that declares the as-filed *"different handle"* sentence and the store's rule *"READ AS ONE
+// DECLARATION"*, the still-registered case being the case in which the STORE returns the EXISTING entry's
+// handle — **and DECLARED AT `docs/specs/storeroom-native/write-and-read.md §6.5` item 12 (c):** *"a
+// `listen(address)` whose address IS already registered returns the EXISTING entry's handle rather than
+// minting a second one"* — **read with `§6.5` item 2's ADDRESS-LEVEL IDEMPOTENCE, `§6.5` item 8 (a)'s ONE home
+// (`A45`), `contract.md §2.3` item 6's inherited mint rule and `§2.4` item 6 (b)**: *"the matching is the
+// registry's own lookup BY THAT IDENTITY AND BY NOTHING ELSE."*
+//
+// **TWO OF THE THREE HALVES WERE ALREADY THIS CELL'S OWN ASSERTIONS AND THEY STAND UNMOVED — SAID HERE SO
+// NOTHING REDUNDANT IS ADDED BESIDE THEM:** **THE SAME VALUE CARRIED TWICE IN ONE TRIGGER'S SET** is group
+// (1)'s `record.triggered[0] === held` / `record.triggered[1] === held` / `new Set(...).size === 1`;
+// **TWO DIFFERENT ENTRIES NEVER SHARING IT** is group (3)'s `new Set(first.triggered).size === 2`, with two
+// registrations keyed BY MEMBER firing once each. **THE THIRD HALF — THE SAME OPAQUE VALUE RETURNED BY A
+// REPEAT `listen` AT A HELD ADDRESS — WAS STATED AS THIS CELL'S PREMISE AND NOT DRIVEN HERE, because this
+// cell called `listen` once** (the sibling cell below,
+// `handle_a_repeat_listen_at_a_registered_address_returns_the_entries_own_handle`, drives it for the plain
+// registered state); **so it is driven in group (4) at the END of this cell, for the reason the ordering
+// paragraph above gives: an assertion that aborts its cell leaves the halves after it `un-run`, and `un-run`
+// IS A FAILURE (`acceptance.md §4.4`).**
 test('registry_a_lawful_duplicate_token_fires_once_for_the_distinct_handle', () => {
   // (0) THE STATE: TWO CONSTRUCTION `listeners[]` ENTRIES AT ONE ADDRESS CARRYING THE CALLER'S SAME TOKEN
   // (`DD-39`'s duplicate case). `held` is the handle the caller holds for that ONE token: a `listen` at an
@@ -442,6 +468,39 @@ test('registry_a_lawful_duplicate_token_fires_once_for_the_distinct_handle', () 
   assert.equal(record.triggered[0], held, '...and the first occurrence IS the handle the caller holds for that token');
   assert.equal(record.triggered[1], held, '...element for element: the second occurrence carries the SAME identity');
   assert.equal(new Set(record.triggered).size, 1, '...while the DISTINCT-identity count is ONE');
+
+  // (4) THE DEPENDENCY OF EVERY OTHER GROUP, DRIVEN EXPLICITLY RATHER THAN RELIED ON: THE IDENTITY THE CALLER
+  // HOLDS IS STABLE ACROSS CALLS FOR ONE STORE-SIDE ENTRY. Three calls now answer about this one entry — the
+  // `listen` at (0), the repeat `listen` here, and the trigger below — and they answer ONE opaque value.
+  // **THE REPEAT `listen` AT THE HELD ADDRESS MINTS NOTHING AND RETURNS THE EXISTING ENTRY'S HANDLE**
+  // (`write-and-read.md §6.5` item 12 (c); `§6.5` item 2's address-level idempotence; `§6.5` item 8 (a)'s ONE
+  // home; `surface.md §2.3`'s dated clause — the reconciliation; `contract.md §2.3` item 6; `§2.4` item 6 (b)).
+  // **AND IT IS ASSERTED BY `===` (`node:assert/strict`), WHICH IS THE ONLY RELATION THAT CAN TELL AN ENTRY'S
+  // OWN HANDLE FROM A SECOND, EQUAL-BUT-DISTINCT ONE — and a second one would be exactly the NEW registry
+  // entry the clause declares does NOT arise.** In THIS state the assertion is robust to WHICH of the two
+  // entries the lookup names, because both construction entries carry the one caller-spelled token and both
+  // therefore wrap to the one value (`DD-39`'s duplicate case; `§2.4` rule 3).
+  const repeat = listen(inst, ['a']);
+  assert.equal(
+    repeat,
+    held,
+    '`§2.3` item 6 / `write-and-read.md §6.5` item 12 (c): a repeat `listen` at a HELD address returns the ' +
+      'entry\'s own handle — the identity the caller holds is STABLE across calls, never a second value',
+  );
+  // ...AND THE ONE IDENTITY IS STILL THE ONLY ONE THE TRIGGER CARRIES, AT THE NEXT TRIGGER TOO: a `listen`
+  // that minted a second entry would leave THREE occurrences at this address (`DD-39`: both construction
+  // entries are KEPT) and this figure would move off `2`; a wrapper that lost the identity would put a
+  // different value in the members and the two `===` assertions below would move. **NO ORDER IS ASSERTED**
+  // (`§2.7` item 3; `DD-37`), and the members are read one by one, never by size alone.
+  const afterRepeat = write(inst, ['a'], 'mem', 3).triggered;
+  assert.equal(
+    afterRepeat.length,
+    2,
+    'the repeat `listen` added NO third entry: the duplicate\'s two occurrences are still the whole set',
+  );
+  assert.equal(afterRepeat[0], held, '...and the first member is STILL the identity the caller holds');
+  assert.equal(afterRepeat[1], held, '...and so is the second, after a repeat `listen` and a further trigger');
+  assert.equal(new Set(afterRepeat).size, 1, '...with the DISTINCT-identity count still ONE');
 });
 
 test('registry_the_triggered_set_is_compared_as_a_set_and_no_order_is_asserted', () => {

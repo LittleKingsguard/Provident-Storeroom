@@ -125,6 +125,24 @@ ledger count is moved by any gate of this unit** (`docs/next-steps.md`'s head li
 `§2` item `6` and `§2-bis`; the contract document's closing clause, read through its own `§10` ledger clause)
 (`[T: this part's row `71` and its ledger figure, each with its own reading | numeric or census claim]`).
 
+**⟶ AND ROW `65`'S FIGURE IS RE-STATED, LANDED 2026-10-11 BY THE BOUNDED CLOSE-OUT PASS
+(`role_spec_writer`): THE STORE'S GREEN IS `379` PASS · `0` FAIL.** `RCA-8(d)` ANNOTATE-BESIDE: **no row of
+the `71` is added, removed or renumbered and no pointer count moves — this clause is a PURE INSERTION beside
+the inventory, and row `65`'s own printed words stand byte-for-byte as filed.** **THE AS-FILED CELL, QUOTED
+SO `git diff` RECOVERS IT WHERE IT STANDS:** *"Every figure carries its site and its layer, and the store's
+green is quoted at the figure the artifact that carries it prints (`377`), with `374` and the other as-filed
+readings marked HISTORICAL"*. **THE OPERATIVE FIGURE IS `379` PASS · `0` FAIL — the store's root suite,
+`cargo test --offline --no-fail-fast`, at the REPOSITORY ROOT, its root `Cargo.toml` byte-identical — because
+the `+2` are the two LISTENER CELLS `docs/specs/storeroom-native/write-and-read.md §6.5` item 14 (d)–(e)
+required, whose home is `tests/watched_addresses.rs` (its own count moves `19` → `21`), so `379 = 377 + 2`.**
+**`377` JOINS `374` AND `373 PASS / 1 FAIL` AS AN AS-FILED READING MARKED HISTORICAL, each with its own tree,
+and NOTHING IS WITHDRAWN.** **THE ROW'S OWN SUBJECT IS UNMOVED: every figure still carries its site and its
+layer, and the store's green is still QUOTED at the figure the artifact that carries it prints.** **This
+clause re-measures nothing — this pass holds no execution verb — and it edits no other row of the inventory**
+(`docs/specs/storeroom-js/contract.md` `§7.1`–`§7.2`'s dated clauses of 2026-10-11 — the same figure's other
+homes; `DD-33`; `[A3 docs/specs/storeroom-native/write-and-read.md §6.5 item 14 (d)–(e) — the two cells the
+`+2` are | numeric or census claim]`).
+
 **⟶ AMENDED 2026-10-11 — THE BOUNDED CORRECTION PASS (`role_spec_writer`), ON THE RED SET'S SIX CONTRACT
 FINDINGS (`archive/gate3/storeroom-js-red-set.md` §5).** `RCA-8(d)` ANNOTATE-BESIDE: **the table above stands
 byte-for-byte and its `71`-row census DOES NOT MOVE: no row is added to it, removed from it or renumbered by

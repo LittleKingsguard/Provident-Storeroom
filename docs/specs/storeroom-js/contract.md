@@ -160,6 +160,49 @@ disclosure covers both** (`[A3 docs/specs/spec-scope-and-structure/contract.md �
 single arithmetic — and §C.11.7's entry-counted unit, read with this bullet's own closing sentence |
 numeric or census claim]`).
 
+**⟶ AND THE RIGHT-HAND TERMS ARE RE-STATED HERE, LANDED 2026-10-11 BY THE BOUNDED CLOSE-OUT PASS
+(`role_spec_writer`), SO THE RAW-FILE READING AND THE OPERATIVE READING NOW AGREE.** `RCA-8(d)`
+ANNOTATE-BESIDE: **the closure bullet above and the amended clause above it stand byte-for-byte, including
+the six-name parenthesis and the as-filed words of the predicate's right side, and both are read THROUGH this
+clause; THIS clause is a PURE INSERTION — it creates no file, renumbers no `§`, moves no row of the map and
+re-decides no rule.** **THE DEFECT IT CLOSES, NAMED WITH ITS TERMS: the bullet's right-hand terms were written
+*"{files present in docs/specs/storeroom-js/} − {contract.md}"* while its own parenthesis enumerated SIX
+names — the `5` `carrier` parts plus `implementation-plan` — so a reader taking the TERMS AS WRITTEN counted
+`7` files beside `contract.md` (`test-cases.md` is present as well) and met the predicate as `6 = 7`, which
+does not hold; and the clause that followed it NAMED that mis-reading as a later bounded amendment's repair
+and did not take it.** **THE REPAIR IS TAKEN NOW, IN THE TERMS THE PREDICATE'S OWN LEFT SIDE USES — the
+predicate is ENTRY-COUNTED, so its right side is stated as the MAP'S OWN PART ENTRIES and not as the raw file
+set:**
+
+| The side | Its terms | Its figure |
+| --- | --- | --- |
+| **the LEFT side** | `{part-map PART entries}` = `{rows of the part map}` − `{the contract-document row}` = `7 − 1` — **an ENTRY-COUNTED figure, read off the map's own rows** | **`6`** |
+| **the RIGHT side, RE-STATED** | **`{the part-map's OWN PART ENTRIES}` = the `5` `carrier` parts (`crossing` · `surface` · `package` · `acceptance` · `parameter-semantics`) + `implementation-plan` (a `carrier` part) + the `view` part `test-cases` — i.e. EVERY entry of the part map but the contract-document row** | **`6`** |
+| **the file set itself, printed because a reader may check it** | `crossing.md` · `surface.md` · `package.md` · `acceptance.md` · `parameter-semantics.md` · `implementation-plan.md` · `test-cases.md` — **`7` files beside `contract.md`, each one an entry of the map** | **`7` FILES, `7` ENTRIES** |
+
+**SO THE PREDICATE READS `6 = 6` ✓ AND IT HOLDS, AND THE RAW-FILE READING NO LONGER MIS-STATES IT: the `7`
+files ARE the `7` map entries, so a reader who counts files and a reader who counts part entries now arrive
+at the same predicate.** **THE AS-FILED READING IS NOT WITHDRAWN: it is named above as the mis-reading the
+re-stated terms repair, and the `6 = 7` figure is hereby RETIRED AS A READING OF THIS PREDICATE rather than
+carried as a divergence.** **NOTHING ELSE IN THIS ARITHMETIC MOVES: the `3` recorded omissions contribute to
+NEITHER side, no part is added, omitted or renamed, no file is created and no `§`-number moves** — **and the
+SEPARATE named repair the clause above pairs with this one, `§4.1` item 6's renumbering in the contract
+document, is NOT this clause's subject and stands as that clause prints it** (`[A3
+docs/specs/spec-scope-and-structure/contract.md §C.3 — the closure predicate's single arithmetic, and
+§C.11.7's entry-counted unit; A3 docs/specs/storeroom-js/contract.md §0.1 item 10 — this unit's own omission
+rule and closure table | numeric or census claim]`).
+
+**AND ONE SENTENCE OF THE CLAUSE ABOVE THIS ONE IS NAMED AS SUPERSEDED BY THE REPAIR, SO NO READER TAKES TWO
+STATES FOR ONE.** **IT READS, VERBATIM:** *"the state is `CLOSED` on the part-entry terms, the state is NOT
+claimed on the raw file count, and the right-hand terms' re-statement is the named repair of a later bounded
+amendment"*. **THE OPERATIVE READING, FROM THIS PASS: the state is `CLOSED` on the part-entry terms AND the
+raw-file reading is re-stated in the terms of the table above, so the predicate holds on BOTH countings and no
+re-statement remains owed** — **the sentence's own filing-time state is preserved above, and the `§4.1` item 6
+half of the pairing it names is UNMOVED and remains the later bounded pass's work** (`RCA-8(d)`
+ANNOTATE-BESIDE: this clause adds no figure, moves no side and re-decides no rule) (`[A3
+docs/specs/spec-scope-and-structure/contract.md §C.3 — the closure predicate's single arithmetic | numeric or
+census claim]`).
+
 ---
 
 ## §0. The index region's own rules — the claim ledger, the design-defaults table, and the id families
@@ -1822,6 +1865,25 @@ which is its home; gate 4's audit is the finding it closes** (`archive/gate4/sto
 `P-SM-5`; `§5.5`) (`[A1 docs/specs/storeroom-js/contract.md §2.3` item 6 — the inherited mint rule; A3
 docs/specs/storeroom-native/write-and-read.md §6.5 item 12 (c) | requirement]`).
 
+**⟶ AND THE ONE ASSERTION THIS SPAN CARRIED THAT WAS FALSE OF THE ROW'S OWN TEXT IS NAMED RESOLVED HERE,
+LANDED 2026-10-11 BY THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`).** `RCA-8(d)` ANNOTATE-BESIDE: **the
+census above, the dual-mapping disclosure and the re-spelling clause above it stand byte-for-byte, and each
+is read THROUGH this clause; THIS clause is a PURE INSERTION — it adds no row, moves no count, mints no id
+and re-decides no rule.** **THE ASSERTION, RE-EMITTED VERBATIM SO `git diff` RECOVERS IT WHERE IT STANDS:**
+*"**`P-SM-5`'s `S-WITHDRAW` LINE IS RE-SPELLED, AND THIS IS THE ONE CELL THIS PASS MOVES**"* — **which was
+FALSE of the row's text, because the strategy line at `§5.5` still printed its as-filed words, and TRUE only
+of the cell's re-derived subject printed above it** (**the false-of-the-row reading is the one the pass that
+followed this clause filed at `§5.5`, and NOTHING OF IT IS WITHDRAWN**). **THE REPAIR IS TAKEN NOW AND ITS
+HOME IS THE ROW'S OWN `§`: the line's OPERATIVE SUBJECT is re-spelled and printed at `§5.5`'s own dated clause
+of this pass, with the as-filed sentence re-emitted verbatim beside it and the two arms — the WITHDRAWN arm's
+fresh handle and the STILL-REGISTERED arm's existing entry's handle — each carrying its own observable.**
+**SO THIS ASSERTION IS RESOLVED AND NOT CARRIED FURTHER: the cell it names HAS moved, at its own `§`, in this
+pass.** **THE REGISTER STANDS AT ITS `8` ROWS WITH THE CAP HOLDING (`8 ≤ 8` ✓), NO NINTH ROW IS MINTED, AND
+THE `alt` CELLS AND THE FAILURE LISTS OF EVERY ROW STAND UNMOVED** (`[A1 docs/specs/storeroom-js/contract.md
+§2.3 item 6 — the inherited mint rule; A3 docs/specs/storeroom-js/contract.md §5.5's dated clause of
+2026-10-11 — the re-spelled subject's home; A3 docs/specs/storeroom-js/surface.md §2.3's dated clause — the
+reconciliation | state or fail-state declaration]`).
+
 ### §5.1 `P-IM-1` — the round trip, under the declared relation
 
 **Property.** **For every admitted JS value `v` and every address `a` a write of `v` at `a` succeeds on,
@@ -1916,6 +1978,34 @@ re-uses a withdrawn handle.
 the bounded correction pass of 2026-10-11)** · `§2.10` · `surface.md §3`–`§4`.
 (`[A1 docs/specs/storeroom-js-proposal.md §9.2 · A57 · A58; A3 docs/specs/storeroom-native/contract.md §6.5
 · §0.4's `ListenerHandle` clause | requirement]`)
+
+**⟶ RE-SPELLED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`): THE `S-WITHDRAW` LINE'S
+OPERATIVE SUBJECT, THE AS-FILED SENTENCE NAMED BESIDE IT, AND THE TWO ARMS THE ROW NOW ASSERTS.** `RCA-8(d)`
+ANNOTATE-BESIDE: **the strategy line above stands BYTE-FOR-BYTE — its own printed words are RE-EMITTED below
+so `git diff` recovers them where they stand — and it is read THROUGH this clause; THIS clause adds no row,
+moves no count, re-decides no rule and re-spells no strategy id.** **THE AS-FILED SENTENCE, RE-EMITTED
+VERBATIM:** ***"`S-WITHDRAW` (after `unlisten`, the function never fires again; a re-`listen` at the same
+address mints a DIFFERENT handle and a NEW entry)."*** **AND THE OPERATIVE SUBJECT OF THE LINE, PRINTED HERE
+WITH THE TWO ARMS THE ROW'S OWN DATED CLAUSE ALREADY CARRIES:**
+
+| The arm | Its pre-condition at the store's own home | Its observable, and it is the one the line asserts |
+| --- | --- | --- |
+| **the WITHDRAWN arm** | the `unlisten` REMOVED that address's one store-side home entry | **a later `listen` AT THE SAME ADDRESS MINTS A FRESH HANDLE — a NEW opaque value whose registration is a NEW registry entry — and the withdrawn token's function, whose id is no longer reachable, never fires again** |
+| **the STILL-REGISTERED arm** | the `unlisten` ahead of it was one of `§2.3` item 4's NO-OP SUCCESSES, which removes NOTHING | **a later `listen` AT THE SAME ADDRESS MINTS NOTHING AND RETURNS THE EXISTING ENTRY'S HANDLE — the SAME opaque value — so no new registry entry arises** |
+
+**SO THE ROW'S OWN OPERATIVE SUBJECT IS THE TWO ARMS, AND THE LINE ASSERTS BOTH: the withdrawn case mints a
+fresh handle and the still-registered case returns the existing entry's handle.** **THE RECONCILIATION IS
+`docs/specs/storeroom-js/surface.md §2.3`'s dated clause, which ALREADY NAMES the still-registered case as the
+case in which the store returns the EXISTING entry's handle and declares the two sentences ONE declaration**;
+**the governing rule is `§2.3` item 6's inherited address-level mint rule, and the store-side home entry's
+fate is `docs/specs/storeroom-native/write-and-read.md §6.5` item 12 (c)'s.** **NO FAILURE LIST ENTRY MOVES:
+*"a re-`listen` that re-uses a withdrawn handle"* remains a FAILURE, because the WITHDRAWN arm mints a FRESH
+token and never re-uses the withdrawn one, while the STILL-REGISTERED arm returns the existing entry's handle
+BY DESIGN and is not a re-use of a withdrawn one at all.** **THE REGISTER STANDS AT ITS `8` ROWS WITH THE CAP
+HOLDING (`8 ≤ 8` ✓) AND EVERY ROW REMAINS FAILABLE** (`[A1 docs/specs/storeroom-js-proposal.md §9.2 · A57 ·
+A58; A1 docs/specs/storeroom-js/contract.md §2.3` item 6 — the inherited mint rule; A3
+docs/specs/storeroom-js/surface.md §2.3's dated clause — the reconciliation; A3
+docs/specs/storeroom-native/write-and-read.md §6.5 item 12 (c) | state or fail-state declaration]`).
 
 **⟶ AMENDED 2026-10-11 — THE BOUNDED CALLER-SPELLED-DUPLICATE PASS (`role_spec_writer`), CLOSING THE
 IMPLEMENTER'S `CF-DUP-1` AT THIS ROW'S OWN `§` AND AT THE TWO OTHER CELLS THE SAME FIGURE REACHES: THE
@@ -2364,6 +2454,22 @@ is a RECORD and not a ruling, and it re-decides nothing.**
    and `§0.2`'s `47` rows, `§5.0`'s `8`, `§6`'s `18` and `§1.6`'s `56` all stand as printed.**
    (`[A1 | requirement]`).
 
+   **⟶ AND ONE SENTENCE OF THIS ITEM IS RE-READ, LANDED 2026-10-11 BY THE BOUNDED CLOSE-OUT PASS
+   (`role_spec_writer`), SO THE CELL IT NAMES IS NOT READ AS UNMOVED.** `RCA-8(d)` ANNOTATE-BESIDE: **every
+   sentence above stands byte-for-byte and is read THROUGH this clause; THIS clause is a PURE INSERTION — it
+   adds no row, moves no count and re-decides no rule.** **THE SENTENCE, RE-EMITTED VERBATIM SO `git diff`
+   RECOVERS IT:** *"while ONE strategy cell's printed subject is RE-DERIVED at `§5.5`, which is the
+   re-derivation gate 4's audit required and NOT a re-spelling of the row."* **THE RE-DERIVATION STOOD AND
+   STANDS; WHAT HAS NOW ALSO HAPPENED IS THAT THE ROW'S OWN LINE IS RE-SPELLED AT ITS OWN `§`: `§5.5`'s dated
+   clause of this pass prints the `S-WITHDRAW` line's OPERATIVE SUBJECT — the two arms — beside the as-filed
+   sentence re-emitted verbatim, so a reader of the row's own list and a reader of its dated clause now read
+   the SAME subject.** **`§5.5`'s own `S-WITHDRAW` cell, named at item 1 above as *"the `S-WITHDRAW` cell's
+   re-derivation is `§5.5`'s dated clause"*, is therefore read THROUGH that clause and not through this
+   sentence.** **THE `derivation:` CLAUSE STAYS SINGLE: this clause carries an authority tag and no
+   `derivation:` clause** (`[A1 docs/specs/storeroom-js-proposal.md §9.2 · A57 · A58; A3
+   docs/specs/storeroom-js/contract.md §5.5's dated clause of 2026-10-11 — the re-spelled subject's home |
+   state or fail-state declaration]`).
+
 **⟶ AND THE PASS THAT CLOSED SEVEN OF THE IMPLEMENTER'S CONTRACT FINDINGS RECORDS ITS OWN EFFECT HERE, IN THIS
 RECORD'S OWN FORM, SO NO ROW ABOVE IS READ AS A STANDING CONTRADICTION.** `RCA-8(d)` ANNOTATE-BESIDE: **every
 row of the sweep above stands byte-for-byte; THIS clause is a PURE INSERTION and it is a RECORD, not a
@@ -2492,10 +2598,10 @@ absent-versus-`undefined` rule is what their two-key distinction is read through
 
 | # | The figure | Its SITE | Its LAYER | Its status here |
 | --- | --- | --- | --- | --- |
-| **1** | **the store's own suite green: `377` test functions · `377` PASS · `0` FAIL · `0` un-run, exit `0`; the typed register layer executing `11/11` strategy lines, ALL `HELD`; `cargo build` · `cargo clippy --lib` · `cargo fmt --check src/*.rs` clean** | **the store unit's own tree, as the gate-1 record reads it** (`docs/specs/storeroom-js-proposal-review.md` `§5.1` · `L-6`) | **`ENVELOPE/PURE`** | **QUOTED, NOT RE-MEASURED HERE — this pass holds no execution verb. `374` is the gate-1 FILING's own reading and is marked HISTORICAL; `377` is the figure the record's own measurement prints and is the OPERATIVE one** (`DD-33`) |
+| **1** | **the store's own suite green: `379` test functions · `379` PASS · `0` FAIL · `0` un-run, exit `0`; the typed register layer executing `11/11` strategy lines, ALL `HELD`; `cargo build` · `cargo clippy --lib` · `cargo fmt --check src/*.rs` clean** | **the store unit's own tree, as the gate-1 record reads it** (`docs/specs/storeroom-js-proposal-review.md` `§5.1` · `L-6`) | **`ENVELOPE/PURE`** | **THE OPERATIVE FIGURE, RE-STATED BY THE BOUNDED CLOSE-OUT PASS OF 2026-10-11 (`377` → `379`); QUOTED, NOT RE-MEASURED HERE — this pass holds no execution verb. `377` is the figure the gate-1 RECORD'S OWN MEASUREMENT prints and `374` the gate-1 FILING's reading: BOTH are marked HISTORICAL below, each with its tree, and `379` is the figure the store's tree prints now** (`DD-33`) |
 | **2** | **the store's e2e JSON round-trip battery: `110/110`, exact match in every case but the two DECLARED normalizations** | **the store unit's own tree, per the gate-1 filing** (`docs/specs/storeroom-js-proposal.md` `§2` item 1) | **`ENVELOPE/PURE`** | **QUOTED. `103` is the FILING's earlier reading and is HISTORICAL; `110` is operative (`G-17`'s sibling, the proposal's `§9.4`)** |
 | **3** | **the store's e2e listener-firing battery: `46/46`** | **the store unit's own tree, per the gate-1 filing** | **`ENVELOPE/PURE`** | **QUOTED** |
-| **4** | **the store's suite at the `A69` correction pass: `373 PASS / 1 FAIL` for the refuted per-instance remedy, and `377/377` on the handed-back tree** | **the proposal's `§12` measurement** | **`ENVELOPE/PURE`** | **QUOTED, and it is the evidence the refusal at `§2.3` rests on** |
+| **4** | **the store's suite at the `A69` correction pass: `373 PASS / 1 FAIL` for the refuted per-instance remedy, and `379/379` on the handed-back tree** | **the proposal's `§12` measurement, with the handed-back tree's figure re-stated by the bounded close-out pass of 2026-10-11** | **`ENVELOPE/PURE`** | **QUOTED, and it is the evidence the refusal at `§2.3` rests on. `373 PASS / 1 FAIL` is the CORRECTION PASS'S OWN reading and is HISTORICAL; the handed-back tree's reading the proposal's `§12` prints as `377/377` is HISTORICAL TOO, and the tree's own operative figure is `379/379`** (`DD-33`) |
 | **5** | **the toolchain probe: Rust `1.98.0` · `cargo` offline-capable · Node `v24.20.0` · npm `12.0.2` · `pnpm` present · NO `napi` CLI on `PATH`** | **`docs/next-steps.md` `L-4`'s probe, at the gate-1 record's reading** | **`ENVELOPE/PURE` (a record reading, not this pass's measurement)** | **QUOTED. AND THE ABSENT CLI IS RESOLVED RATHER THAN BLOCKING: it is the PACKAGING front end and not the COMPILER front end, and the recommended builder path does not require it** (`DD-2`, `AR-16`) |
 | **6** | **the out-of-repo blind harness at `/tmp/storeroom-blind/` — a scratch crate with a path dependency** | **out of this repository; named by the gate-1 filing** (`docs/specs/storeroom-js-proposal.md` `§2` item 5) | **out-of-repo EVIDENCE** | **PRECEDENT FOR THE SHAPE of the sibling crate's path dependency, NEVER AUTHORITY; it has no in-repo site and none is claimed** (`AR-10`, `AR-27`) |
 | **7** | **this directory's closure: `6 = 6`** | **`docs/specs/storeroom-js/`'s own file set, read this pass** | **a file-set `CENSUS`** | **A claim about the FILE SET and not about the package's behaviour** (`§0.1` item 10) |
@@ -2509,6 +2615,30 @@ absent-versus-`undefined` rule is what their two-key distinction is read through
 the ASSEMBLED/`APP` layer for this unit is `NONE`, and no figure here may be reported as an `APP`-green**
 (`§4.2`; `DD-20`).
 
+**⟶ AND THIS TABLE'S STORE-GREEN CELLS ARE RE-STATED, LANDED 2026-10-11 BY THE BOUNDED CLOSE-OUT PASS
+(`role_spec_writer`): THE STORE'S ROOT SUITE IS `379` PASS · `0` FAIL.** `RCA-8(d)` ANNOTATE-BESIDE: **every
+other cell of the table above stands byte-for-byte and every figure of it is unmoved; the two cells this pass
+re-states carry the as-filed reading BESIDE the operative one, so `git diff` recovers `377` where it stood and
+NOTHING IS DELETED.** **THE FIGURE MOVED, AND WHY, WITH ITS TERMS:** **the store's root suite is now `379`
+PASS · `0` FAIL — the `+2` are the two LISTENER CELLS that
+`docs/specs/storeroom-native/write-and-read.md §6.5` item 14 (d)–(e) required, and their home is
+`tests/watched_addresses.rs`, whose own count moves `19` → `21`.** **SO `377` IS HISTORICAL FROM THIS DATE —
+it is the figure the store's tree printed before those two cells landed — and `374` (the gate-1 FILING's
+reading) and `373 PASS / 1 FAIL` (the `A69` correction pass's) both stand as they were, each with its own tree
+and neither withdrawn.**
+
+| The cell, as it stood | What it reads now, and its terms |
+| --- | --- |
+| **row `1`** — *"the store's own suite green: `377` test functions · `377` PASS · `0` FAIL · `0` un-run, exit `0`"*, with *"`377` is the figure the record's own measurement prints and is the OPERATIVE one"* | **`379` test functions · `379` PASS · `0` FAIL · `0` un-run, exit `0`** — the store's root suite, `cargo test --offline --no-fail-fast`, its root `Cargo.toml` byte-identical; **`377` is HISTORICAL and `374`, the filing-time reading, is HISTORICAL** |
+| **row `4`** — *"`373 PASS / 1 FAIL` for the refuted per-instance remedy, and `377/377` on the handed-back tree"* | **`373 PASS / 1 FAIL` unmoved as that pass's own reading, and the handed-back tree's figure re-stated at `379/379`** — **the row's SUBJECT (the refusal the handed-back tree evidences) is unmoved, and only its trailing count is re-stated** |
+
+**AND THE RESTATEMENT DOES NOT RE-MEASURE ANYTHING: this pass holds no execution verb, the figure is the one
+the tree that carries it prints, and every other reading of this table — `110/110`, `46/46`, the toolchain
+probe, the out-of-repo harness, this directory's own closure and the three table censuses — stands exactly as
+printed** (`DD-31`; `DD-33`; `[A1 docs/specs/storeroom-js-proposal-review.md §1.2 · `G-17`; A3
+docs/specs/storeroom-native/write-and-read.md §6.5 item 14 (d)–(e) — the two cells the `+2` are | numeric or
+census claim]`).
+
 ### §7.2 The two figures the gate-1 record names as needing their terms printed
 
 **`G-17`'s own finding, restated with its terms and nothing added: the operative store green is `377/377`,
@@ -2520,6 +2650,28 @@ quotes the store's green names which of the two it means** (`DD-33`)
 **AND THE SECOND FIGURE, RESTATED THE SAME WAY:** **the JSON battery's `103`-versus-`110` pair is settled the
 same way — the numeric cells were added after the first authoring, so `110` is OPERATIVE and `103` is
 HISTORICAL** (`[A1 docs/specs/storeroom-js-proposal-review.md §3 · `U26` | numeric or census claim]`).
+
+**⟶ AND THE STORE-GREEN FIGURE THIS SECTION SETTLES IS RE-STATED, LANDED 2026-10-11 BY THE BOUNDED CLOSE-OUT
+PASS (`role_spec_writer`): THE OPERATIVE FIGURE IS `379` PASS · `0` FAIL.** `RCA-8(d)` ANNOTATE-BESIDE: **both
+clauses above — the `G-17` clause and the `U26` clause — stand byte-for-byte and are read THROUGH this clause;
+the `110`-versus-`103` settlement is NOT this clause's subject and is UNMOVED by it; THIS clause is a PURE
+INSERTION and it re-measures nothing.** **WHAT THE `G-17` CLAUSE ABOVE SETTLES, AND WHAT MOVES INSIDE THAT
+SETTLEMENT: it settled the `377` (the record's own measurement) against the `374` (the filing's reading) and
+declared `377` OPERATIVE; THE TREE HAS MOVED SINCE, so `379` is operative now while BOTH `377` and `374` become
+the two as-filed readings, each still named with its tree.** **THE THREE CELLS OF THIS SECTION THAT READ
+`377`, EACH WITH WHAT IT NOW READS:**
+
+| The cell | The reading it carried | What it reads now |
+| --- | --- | --- |
+| **this section's `G-17` clause** — *"the operative store green is `377/377` … `377` is OPERATIVE and `374` is the filing-time reading"*, with its own arithmetic *"the three cells the `A69` correction pass added (`377 − 374 = 3`)"* | **`377` OPERATIVE · `374` HISTORICAL** | **`379` OPERATIVE · `377` HISTORICAL (the pre-listener-cells tree) · `374` HISTORICAL (the filing's reading); the `377 − 374 = 3` arithmetic is that amendment's own and stands UNMOVED as history** |
+| **the `G-17` reading's twin in the gate-8 clause's table** — *"`UNMOVED AND ACCURATE: `377` PASS · `0` FAIL is the store's root suite as the build prints it now"* | **`377` as the current tree's figure** | **`379` PASS · `0` FAIL, and `377` is the figure of the tree that preceded the two listener cells** |
+| **the gate-8 clause's other `377`** — *"the store's root suite reads `377` PASS · `0` FAIL"* (in the row that settles the JSON battery) | **`377` as the current tree's figure** | **`379` PASS · `0` FAIL — and the row's OWN subject, the battery's `103`-versus-`110` pair, is UNMOVED** |
+
+**AND ONE FIGURE THIS CLAUSE ADDS, BECAUSE IT IS THE ARITHMETIC THE `+2` RESTS ON: `379 = 377 + 2`, where the
+two are the LISTENER CELLS `docs/specs/storeroom-native/write-and-read.md §6.5` item 14 (d)–(e) required at
+`tests/watched_addresses.rs`, whose own count moves `19` → `21`.** **NO OTHER FIGURE OF THIS SECTION MOVES,
+AND NO `APP`-GREEN IS CLAIMED** (`DD-31`; `DD-33`; `[A1 docs/specs/storeroom-js-proposal-review.md §1.2 ·
+`G-17`; A3 docs/specs/storeroom-native/write-and-read.md §6.5 item 14 (d)–(e) | numeric or census claim]`).
 
 **⟶ RECONCILED 2026-10-11 — THE `U-STOREROOM-JS` GATE-7 PROOFREADING PASS (`role_proofreader`), CORRECTING THE
 FIGURES THIS SECTION AND `§7.1`'s TABLE PRINT.** `RCA-8(d)` ANNOTATE-BESIDE: **every clause and every cell above
@@ -2615,7 +2767,7 @@ meantime.**
 | --- | --- | --- | --- | --- |
 | **1** | **`P-1`'s `28`-row census is NOT RE-DERIVABLE from any artifact this workspace holds.** `P-1`'s own text names `27` ids and says the `28` rows are *"the `28` INTEGRATION rows of the gate-1 record's `§10.1` partition"*, while **that partition table does not survive** and `G-1` records the citation as STALE. **AND THE ENUMERATION CARRIES A `secure` ROW WHOSE ID IS NOT CARRIED BY `P-1`'s TEXT, WHILE THE FILING'S OWN SUBJECT LIST OMITS THE `secure` SUBJECT ENTIRELY — so the count `28` closes and the omission is invisible in the arithmetic** | `docs/pending.md` `P-1`; `docs/specs/storeroom-js-proposal-review.md §1.2` · `G-1` and its `§3` · `K13` | a census this unit's contract could dispose of row by row, exactly once | **the disposal is printed at `§7.3`, the census is MARKED NON-RE-DERIVABLE, ONE census item is recorded as UNRESOLVED, and NO id is invented** (`DD-47`) |
 | **2** | **`J-13` occurs NOWHERE in `P-1`'s enumeration.** The park carries `U-24` (the module-supplied functions' crossing) and **does not carry `J-13` at all** | `docs/pending.md` `P-1`; `docs/specs/storeroom-js-proposal-review.md §1.2` · `G-11` | an assignment for the subject, or the statement that it was never assigned | **recorded as the fact it is at `§7.3` row 12, and the SUBJECT is disposed of at `§2.6` as a client-side pattern over the declared `write`→`rollback` pair** (`A73`; `DD-16`) |
-| **3** | **THE STORE'S GREEN FIGURE IS STALE IN THREE PLACES.** The filing, `docs/next-steps.md`'s `N3` row and both step reports print `374/374` or `374`, while the record's own measurement and the correction pass's hand-back print `377/377` (`377 − 374 = 3`, the three cells the `A69` correction pass added) | `docs/specs/storeroom-js-proposal-review.md §1.2` · `G-17`; `docs/next-steps.md` `N3`; `docs/specs/storeroom-js-proposal.md §2` item 1 | one operative figure, with the as-filed readings named as historical | **`377` is treated as OPERATIVE and `374` as HISTORICAL wherever this directory quotes the store's green; the tracker reconciliation belongs to the supervisor's tracker pass (`AR-20`) and is not taken here** (`DD-33`; `§7.2`) |
+| **3** | **THE STORE'S GREEN FIGURE IS STALE IN THREE PLACES.** The filing, `docs/next-steps.md`'s `N3` row and both step reports print `374/374` or `374`, while the record's own measurement and the correction pass's hand-back print `377/377` (`377 − 374 = 3`, the three cells the `A69` correction pass added) | `docs/specs/storeroom-js-proposal-review.md §1.2` · `G-17`; `docs/next-steps.md` `N3`; `docs/specs/storeroom-js-proposal.md §2` item 1 | one operative figure, with the as-filed readings named as historical | **UNMOVED AS A ROW AND RE-READ AS TO ITS FIGURE: `379` is treated as OPERATIVE BY THE BOUNDED CLOSE-OUT PASS OF 2026-10-11 and `377`, named here as operative, is HISTORICAL from that date — it is the figure the store's tree printed before the two LISTENER CELLS `docs/specs/storeroom-native/write-and-read.md §6.5` item 14 (d)–(e) required landed at `tests/watched_addresses.rs` (`19` → `21`, so `379 = 377 + 2`) — while `374` and `374/374` remain HISTORICAL wherever this directory quotes the store's green; the cell's own ARITHMETIC `377 − 374 = 3` stands as that amendment's history. **A reader takes the operative figure at `§7.1`'s and `§7.2`'s dated clauses of this pass.** the tracker reconciliation belongs to the supervisor's tracker pass (`AR-20`) and is not taken here** (`DD-33`; `§7.2`) |
 | **4** | **THE STORE'S CLOSED SET'S OWN RANK CITATIONS ARE STALE IN ITS `src/**` COMMENTS.** `src/error.rs`'s trigger constructors still carry the PRE-AMENDMENT ranks — e.g. the `value_not_admitted` constructor's doc comment reads *"`§8.1` #13 at `F-2`"* and the `file_commit_failed` constructor's reads *"`§8.1` #14"* — while the store's contract renumbers those two members to `14` and `15` and the crate's own `CODES` array prints them at indices `13` and `14` | `src/error.rs`, the two constructors' doc comments; `docs/specs/storeroom-native/contract.md §8.1` #14/#15 | a comment that agrees with the set the crate itself closes | **reported only: no `src/**` byte is written by this pass, the code and the behaviour are UNCHANGED (the constructors pass the code as a literal, not as a rank) and the correction is a comment edit for the store's author or its proofreader** (`DD-32`) |
 | **5** | **THE `secure` INSTANCE'S ROW IS UNREACHABLE FROM THIS DIRECTION, AND ITS FLOOR IS A CLIENT-SIDE DUTY THE STORE DECLINES.** The store declares no `secure` tier, no floor parameter and no floor check, and the `secure` instance's own construction is `A4`'s | `docs/specs/storeroom-native/contract.md §8.1` #2 and its `§10.2` item 6; `parameter-semantics.md §2.11` | the statement of whether a JS consumer can construct a `secure` instance at all, and what this unit owes for the floor | **this unit declares NO `secure` parameter, NO `secure` tier and NO floor check; a caller that needs the floor enforces it client-side, and `unlisten`-style no-op reasoning does not apply to it** (`DD-13`'s store-side row; `parameter-semantics.md`'s NOT-a-parameter statement) |
 
@@ -2689,7 +2841,7 @@ THIS PACKAGE ANYWHERE IN THIS REPOSITORY** (`§4.2` items 2–3; `DD-20`).
 | **`236/236`** (`node bindings/js/greens/greens.mjs`, at the repository root) | **`ENVELOPE/PURE`** — the blind set, a consumer driving the claimed entry | **`bindings/js/greens/greens.mjs`'s own per-scenario header counts**: `13 + 16 + 5 + 67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 + 17 + 6 = 236` ✓, over `13` scenarios. **The gate-5 record's `233`/`3` is HISTORICAL and is superseded by commit `9707ee9`; the operative run is `236/236`** (`archive/gate6/storeroom-js-live-determination.md` `§2.3`, `§3` · `LIVE-F1`) |
 | **`72/72`** (`node bindings/js/greens/live-drive.mjs`, at the repository root) | **LIVE / ASSEMBLED PACKAGE** — the real artefact, a real process, real file I/O, a real caller. **`APP` LAYER: `NONE`** | **`live-drive.mjs`'s own `12` `LIVE-n` scenario blocks** (`archive/gate6/storeroom-js-live-determination.md` `§4`). **This is NOT an `APP`-green and no cell of it may be read as one** |
 | **`223` PASS · `0` FAIL** (`cargo test --manifest-path bindings/js/Cargo.toml --offline --no-fail-fast`, at the repository root) | **`ENVELOPE/PURE`** — the sibling crate's own suite, the `rlib` half driven with no Node runtime | `archive/gate3/storeroom-js-red-set.md` §11.4/§13.4: `76` (`crossing_carriers`) + `17` (`crossing_copy`) + `66` (`crossing_values`) + `2` (`register_layer`) + `62` (`surface_verbs`) = `223` ✓ |
-| **`377` PASS · `0` FAIL** (`cargo test --offline --no-fail-fast`, at the ROOT) | **`ENVELOPE/PURE`** — the STORE's own suite, **QUOTED and NOT re-labelled as this unit's** | `archive/gate3/storeroom-js-red-set.md` §11.4/§13.4, with its own term-by-term arithmetic `0 + 22 + 110 + 46 + 28 + 11 + 22 + 12 + 26 + 20 + 12 + 20 + 19 + 29 + 0 = 377` ✓ (`DD-31`; `DD-33`) |
+| **`379` PASS · `0` FAIL** (`cargo test --offline --no-fail-fast`, at the ROOT) | **`ENVELOPE/PURE`** — the STORE's own suite, **QUOTED and NOT re-labelled as this unit's** | `archive/gate3/storeroom-js-red-set.md` §11.4/§13.4, with its own term-by-term arithmetic `0 + 22 + 110 + 46 + 28 + 11 + 22 + 12 + 26 + 20 + 12 + 20 + 19 + 29 + 0 = 377` ✓ **AS THAT RECORD FILED IT — the tree has since grown by `2` CELLS, so the operative arithmetic is `377 + 2 = 379`, the two being the LISTENER CELLS `docs/specs/storeroom-native/write-and-read.md §6.5` item 14 (d)–(e) required at `tests/watched_addresses.rs`, whose own count moves `19` → `21`** (`DD-31`; `DD-33`) |
 
 **AND THE CITATION RESOLUTION THIS PASS OWES, STATED BECAUSE A CITATION THAT POINTS AT A MOVED FILE IS A
 FINDING** (`A3`'s own cross-reference clause, restated as this document's own declaration): **every

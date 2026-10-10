@@ -115,6 +115,10 @@ struct Link {
 
 **(5) WHAT THIS CHANGES IN THE WORKLIST, IN ORDER:** **(a)** remove the vacuous recursion lookup (§5-bis) — **independent of the structure, and it alone deletes the `n²/2` from the container write**; **(b)** **restore the declared structure** — a keyed link's children become the hashmap the decision ruled, which makes every keyed access O(1) **by construction** and removes the per-call `Vec` allocation with it; **(c)** the read's assembly then follows the directive's own sentence (*"hashmap, convert to an object, using the same keys"*) instead of scanning. **Acceptance unchanged: per-datum O(1), iteration O(n), `200,000` linear, `1,000,000` admitted, the store's suite still `377` with the sibling crate's `223`.**
 
+## 7. A FIGURE NOTE (2026-10-11)
+
+**THIS RCA'S MEASUREMENTS ARE OF THE TREE IT MEASURED AND DO NOT MOVE; the STORE'S ROOT SUITE FIGURE it quotes as the acceptance, however, is now `379` PASS (was `377`), the `+2` being the listener cells `write-and-read.md §6.5` item 14 (d)–(e) required — `watched_addresses.rs` `19` → `21`.** **The scaling curves this file reports are unaffected: the repair it drove took the write from ~`8×` per doubling to ~`2×`, and the two added cells touch the listener surface, not the crossing.**
+
 ## 6. WHAT THIS RCA DOES NOT CLAIM
 
 1. It does not claim the JS boundary or the conversion needs changing — **they are measured linear** and their design is `O(1)` per datum already.

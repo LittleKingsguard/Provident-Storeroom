@@ -232,22 +232,79 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
             // `row_4_accessor_own_property_refuses_the_whole_value` and `item_c_an_own_accessor_refuses_the_whole_value`
             // — so this line's arm is a drive of the SAME class inside the register's own per-class row and
             // never a substitute for those cells.**
+            //
+            // **⟶ THE DRAW IS NOW STRATIFIED, RE-DERIVED 2026-10-11 (`role_test_writer`), BECAUSE THE ROW'S OWN
+            // TEXT REQUIRES EVERY DECLARED WALK RULE TO BE **DRAWN AT THIS LINE'S OWN BUDGET** — AND AT `15`
+            // ATTEMPTS OVER `8` ARMS A DRAW BY MODULUS CAN MISS AN ARM, AND THE AS-FILED ONE DID.** **THE READING
+            // TAKEN, FROM THE ROW'S OWN TEXT AND NOT FROM A COUNT BESIDE IT:** `docs/specs/storeroom-js/contract.md
+            // §5.2`'s `P-IM-2` row declares `S-WALK-CLASS` as *"one drive per walk rule of `§1.4`"* — **a
+            // PER-RULE claim about THIS strategy line's own drives** — **and the row's FAILURE LIST is PER-ARM**
+            // (*"a cross-realm plain object refused; an `Object.create(null)` refused; a class instance admitted;
+            // a `Proxy` walked as its traps report"*), **so a rule this line never draws is a class this line
+            // cannot fail on: the arm is `un-run`, and the register's own rule is that a row is answered BY ITS
+            // OWN DRIVES ONLY, with `un-run` a FAILURE (`acceptance.md §4.4`) — one level down.**
+            //
+            // **AND THE ARM THE AS-FILED DRAW MISSED IS THE CLASS INSTANCE — MEASURED, NOT PROJECTED.** `Rng`
+            // carries no clock and no entropy, so the as-filed arm set is a pure function of `REGISTER_SEED`
+            // (`support/mod.rs:171`) and of the attempt index; recomputing it in Rust over attempts `0`–`14`
+            // gives **`{symbol_keyed 5, sparse 1, undefined_member 1, null_proto 2, foreign_plain 1, classy 0,
+            // proxied 3, ACCESSOR 2}` — so `classy`, *"a class instance"* and one of the seven rules the row's
+            // own enumeration NAMES, drew NO ATTEMPT AT ALL**, while the other seven arms each drew at least one.
+            // **THE FIGURE A PREVIOUS PASS PRINTED BESIDE THIS LINE (`classy 2`, `null_proto 0`, `foreign_plain
+            // 0`) CAME FROM A SCRATCH PROJECTION SEEDED `0x5EED_5EED_5EED_5EED` AND NOT FROM THIS CRATE'S
+            // `REGISTER_SEED = 0x5EED_2026_1011`**, so the two arms it named as undrawn were in fact drawn
+            // (`null_proto` twice, `foreign_plain` once) and the arm that was not drawn went unnamed. **THE CITED
+            // FIGURE IS CORRECTED AT THE CELL THAT OWNS IT** (`archive/gate3/storeroom-js-red-set.md §16`).
+            //
+            // **THE OTHER READING — *"every rule is DRIVEN somewhere in the register's set"* — IS REFUSED
+            // HERE, AND AT ITS TERMS:** the strategies beside this one belong to `§1.2`'s outside classes
+            // (`S-WALK`) and to the ceiling and the guard (`S-CEIL`, `S-CYCLE`); **the cells that drive the
+            // plain-object classes are `crossing_values.rs`'s, which is ANOTHER FILE and ANOTHER ROW** — and a
+            // strategy id is answered by its own drives and by no other cell's (`§5.2`; `implementation-plan.md`
+            // §4 item 8). **Those cells are INDEPENDENT DRIVES OF THE SAME CLASSES and not substitutes for this
+            // line's arm: `row_4_object_create_null_is_accepted`, `row_4_cross_realm_plain_object_is_accepted`
+            // and `item_e_null_prototype_and_foreign_plain_prototype_are_both_accepted`.**
+            //
+            // **THE CONSTRUCTION: A DETERMINISTIC STRATIFIED SWEEP OVER THE EIGHT ARMS, AT `15` ATTEMPTS
+            // UNMOVED.** **Attempt `i` drives arm `(rotation + i) % 8`**, so the first eight attempts sweep the
+            // eight strata ONCE EACH and the remaining seven sweep the first seven again — **measured here:
+            // `{symbol_keyed 2, sparse 2, undefined_member 2, null_proto 2, foreign_plain 2, classy 2, proxied 2,
+            // ACCESSOR 1}`, `15` in all. EVERY ARM IS DRAWN AT LEAST ONCE AND NO ARM IS DRAWN MORE THAN TWICE —
+            // a property of ARITHMETIC and not of the seed**, which is what a PER-ARM failure list needs.
+            // **`rotation` is the PINNED SEED's own draw (`Rng::new().below(8)`, taken once at this site), so the
+            // sweep's ORDER is still a function of `REGISTER_SEED` and of nothing else, while its COVERAGE is not
+            // a function of chance**; at this seed the draw is `0`, so the sweep runs in the arm table's own
+            // order — **and no figure of this line depends on that value.** **THE PER-ATTEMPT GENERATOR IS KEPT
+            // AND IS LOAD-BEARING FOR THE VALUES** (`rng.below(9)` varies each class' own payload:
+            // `8, 8, 5, 7, 7, 6, 2, 4, 8, 6, 8, 4, 6, 4, 9` across the fifteen attempts), **so the line's content
+            // still moves with the attempt while its class set is swept whole.** **THE `15` ATTEMPTS, THE ROW'S
+            // TOTAL `100` AND THE CRATE'S `395`/`400` ARE ALL UNMOVED, every predicate below is UNCHANGED, and
+            // the line is STRONGER where it was thin — the arm set is now REACHED WHOLE where it was reached in
+            // part** (`contract.md §5.2`; `crossing.md §1.4` items 1–4 (c)/(e)/(f)/(g); `crossing.md §1.2` rows 4
+            // and 6–13; `DD-7`; `DD-8`; `DD-34`; `DD-35`; `archive/gate3/storeroom-js-red-set.md §16`).
             let rng = &mut Rng::for_attempt(attempt);
-            let symbol_keyed = object_of(vec![(JsKey::Symbol, JsValue::Num(1.0))]);
+            // The sweep's own rotation: `Rng::new()` is `REGISTER_SEED` WITHOUT the per-attempt offset, so the
+            // arm attempt `i` drives is `(rotation + i) % 8` for every attempt of this line.
+            let mut arm_seed = Rng::new();
+            let rotation = arm_seed.below(8);
+            // The per-attempt payload: the VALUES move with the attempt while the ARMS are swept whole — every
+            // class below keeps its own declared answer whatever the payload.
+            let payload = 1.0 + rng.below(9) as f64;
+            let symbol_keyed = object_of(vec![(JsKey::Symbol, JsValue::Num(payload))]);
             let accessor = JsValue::Object(JsObject {
-                members: vec![(JsKey::Key("a".into()), JsValue::Num(1.0))],
+                members: vec![(JsKey::Key("a".into()), JsValue::Num(payload))],
                 proto: JsProto::Plain,
                 has_accessor: true,
                 proxied: false,
             });
             let null_proto = JsValue::Object(JsObject {
-                members: vec![(JsKey::Key("a".into()), JsValue::Num(1.0))],
+                members: vec![(JsKey::Key("a".into()), JsValue::Num(payload))],
                 proto: JsProto::Null,
                 has_accessor: false,
                 proxied: false,
             });
             let foreign_plain = JsValue::Object(JsObject {
-                members: vec![(JsKey::Key("a".into()), JsValue::Num(1.0))],
+                members: vec![(JsKey::Key("a".into()), JsValue::Num(payload))],
                 proto: JsProto::ForeignPlain,
                 has_accessor: false,
                 proxied: false,
@@ -259,13 +316,16 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
                 proxied: false,
             });
             let proxied = JsValue::Object(JsObject {
-                members: vec![(JsKey::Key("a".into()), JsValue::Num(1.0))],
+                members: vec![(JsKey::Key("a".into()), JsValue::Num(payload))],
                 proto: JsProto::Plain,
                 has_accessor: false,
                 proxied: true,
             });
             let undefined_member = object_of(vec![(JsKey::Key("a".into()), JsValue::Undefined)]);
-            let (value, accepted) = match rng.below(8) {
+            // **THE STRATIFIED SWEEP, NOT A DRAW THAT CAN MISS AN ARM:** the eight strata are the eight arms
+            // below in their own order, attempt `i` drives `(rotation + i) % 8`, and `rotation` is the pinned
+            // seed's own draw — so every arm is reached at this row's `15` attempts whatever the seed is.
+            let (value, accepted) = match (rotation + attempt) % 8 {
                 0 => (symbol_keyed, false),
                 1 => (JsValue::SparseArray, false),
                 2 => (undefined_member, false),

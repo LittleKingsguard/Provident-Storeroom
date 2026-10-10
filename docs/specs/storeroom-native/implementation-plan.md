@@ -604,3 +604,25 @@ PURE INSERTION, it re-measures nothing and lifts no park.**
 - **THE PARKS CLAUSE ABOVE READS** *"`P-1` stands `OPEN`"*. **THE OPERATIVE STATE, AT `docs/pending.md`'s OWN BYTES: `P-1` — the JS integration set — IS `lifted` (lifted, not deleted), BY THE ARCHITECT'S OWN ACT `A66` (*"this is the unpark of the integration"*), its `28` rows now `U-STOREROOM-JS`'s own material; and `P-3` — the listener implementation — IS `lifted` by `A44`.** **The row's own disposition cell still reads `OPEN` — a lift rewrites no row's cell by this project's annotate-beside convention — so the operative state is the dated lift clause and not the cell alone.** **WHAT THE SENTENCE IS RIGHT ABOUT AND THIS CLAUSE PRESERVES: the park's lifting is NOT a closure of anything, `A6` and the red set's `crate/**` crossing work still need the JS unit's own gate to dispose of them, and NOTHING PARKED IS REPORTED GREEN.** **THE `P-1` STATE IS NAMED HERE AS `lifted`, NOT AS `OPEN`, SO THE TWO UNITS' ROWS ARE NOT RUN TOGETHER** (`docs/pending.md` `§2` and its dated reconciliation bullets; `docs/next-steps.md` `## OPEN`'s dated clause).
 - **AND THE TEST-COUNT FIGURE THE RECONCILIATION ABOVE PRINTS IS THE AMENDED AND CORRECTED TREE'S, NOT THE TREE THIS REPOSITORY NOW CARRIES.** **THAT CLAUSE PRINTS** *"`218` test functions · `218` executed · `218` PASS · `0` FAIL · `0` ignored, over the `12` test targets beside `tests/support/mod.rs` … the register layer executes `11/11` STRATEGY LINES, ALL `HELD` … `318` attempts against the `400` total cap"*. **THE OPERATIVE FIGURE AT THE STORE'S ROOT SUITE, AS THE BUILD PRINTS IT NOW: `cargo test --offline --no-fail-fast` — `377` PASS · `0` FAIL, with the root `Cargo.toml` byte-identical and the typed register layer executing `8/8` rows — `5` Rust strategy lines beside `3` JS ones, the JS half living in the sibling crate — every row `HELD` and `0` un-run.** **THE GROWTH IS NAMED, SO THE `377` IS NOT READ AS A THIRD RE-MEASURE OF ONE THING: `218` (the amended and corrected tree's `12` targets) + `103` (the `A59`/`A60` JSON round-trip battery at `tests/e2e_json_round_trip.rs`) + `46` (the listener-firing battery at `tests/e2e_listener_firing.rs`) + the cells the `A69` correction pass and the later bounded repairs added = `377`.** **`196` (pre-amendment), `207` (the gate-4 adversarial pass's reading) and `218` each stand above BYTE-FOR-BYTE with their own trees, and `318`/`8-8` remain those trees' register figures** (`docs/specs/storeroom-js/contract.md` `§7.1`–`§7.3`; `docs/specs/storeroom-js/implementation-plan.md` `§4.2`'s dated clause; `[T: the parks clause and the store's test-count figure, each with its tree | CENSUS]`).
 
+**⟶ AND THE STORE'S ROOT-SUITE FIGURE THIS REGION PRINTS IS RE-STATED, LANDED 2026-10-11 BY THE BOUNDED
+CLOSE-OUT PASS (`role_spec_writer`): THE OPERATIVE FIGURE IS `379` PASS · `0` FAIL.** `RCA-8(d)`
+ANNOTATE-BESIDE: **every byte above stands BYTE-FOR-BYTE — the parks reconciliation, the `218` clause and the
+`377` clause with its own growth arithmetic included — and each is read THROUGH this clause; THIS clause is a
+PURE INSERTION, it re-measures nothing, lifts no park, moves no phase cell and adds no acceptance item.**
+**THE CELL, QUOTED IN ITS OWN WORDS SO `git diff` RECOVERS IT WHERE IT STANDS:** *"THE OPERATIVE FIGURE AT
+THE STORE'S ROOT SUITE, AS THE BUILD PRINTS IT NOW: `cargo test --offline --no-fail-fast` — `377` PASS · `0`
+FAIL, with the root `Cargo.toml` byte-identical and the typed register layer executing `8/8` rows — `5` Rust
+strategy lines beside `3` JS ones, the JS half living in the sibling crate — every row `HELD` and `0`
+un-run."* **THE TREE HAS GROWN BY TWO CELLS, AND THE TWO ARE NAMED WITH THEIR CLAUSE AND THEIR HOME: `379`
+PASS · `0` FAIL, because the `+2` are the two LISTENER CELLS `docs/specs/storeroom-native/write-and-read.md
+`§6.5` item 14 (d)–(e) required, whose home is `tests/watched_addresses.rs` — its own count moves `19` → `21`
+— so the growth arithmetic this clause's predecessor printed is extended by exactly one line: `377` (as that
+clause named it) `+ 2 = 379`.** **EVERY OTHER READING STANDS UNMOVED AND IS NOT WITHDRAWN: `196`
+(pre-amendment), `207` (the gate-4 adversarial pass's reading), `218` (the amended and corrected tree) and
+`377` itself — now HISTORICAL, as the figure the tree printed before those two cells landed — each with its
+own tree, and `318`/`8-8` remain those trees' register figures.** **NO `tests/**` BYTE IS WRITTEN BY THIS
+CLAUSE, THE ROOT `Cargo.toml` STAYS BYTE-IDENTICAL, AND THIS PASS CLAIMS NO GREEN OF ANOTHER UNIT** (`[A3
+docs/specs/storeroom-js/contract.md` `§7.1`–`§7.2`'s dated clauses of 2026-10-11 — the same figure's other
+homes; A3 docs/specs/storeroom-native/write-and-read.md §6.5 item 14 (d)–(e) — the two cells the `+2` are |
+numeric or census claim]`).
+

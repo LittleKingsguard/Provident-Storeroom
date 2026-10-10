@@ -298,7 +298,7 @@ requirement]`).
 | **C** | a value or a handle is passed by reference in either direction, or a borrow outlives one call (`A65`) |
 | **D** | a `HO-` duty is proposed as a patch, or a consumer's wiring is proposed as a step of this unit (`A2`, `A9`) |
 | **E** | a red set is authored against an unruled builder, realm or boundary; or the addon is made a prerequisite of the Rust core's own tests |
-| **F** | an `APP`-green is claimed from a node-suite green, or the store's `377/377` is re-labelled as this unit's green |
+| **F** | an `APP`-green is claimed from a node-suite green, or the store's `379/379` is re-labelled as this unit's green (**the figure as filed in this row is `377/377`; the bounded close-out pass of 2026-10-11 re-states it, and the re-statement is this part's dated clause under this table**) |
 | **G** | a step takes its input from a later phase of this table |
 
 ## §6. THE POINTER INDEX
@@ -314,3 +314,35 @@ requirement]`).
 | the parks and the standing conditions | `docs/pending.md` (`P-1` LIFTED, not deleted) |
 | the decisions and the trackers | `docs/decisions.md` · `docs/next-steps.md` (`N3`) · `docs/defects.md` |
 | this unit's records, as they land | `archive/gate{3,4,6}/…` · `archive/reviews/…` |
+
+**⟶ AND THE STORE'S GREEN FIGURE THIS PART QUOTES AT FOUR CELLS IS RE-STATED, LANDED 2026-10-11 BY THE
+BOUNDED CLOSE-OUT PASS (`role_spec_writer`): THE OPERATIVE FIGURE IS `379` PASS · `0` FAIL.** `RCA-8(d)`
+ANNOTATE-BESIDE: **every byte of this part — the plan's own clauses, both reconciliation clauses, the `§3`
+figure clause and the `§5` stop table — stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause is a
+PURE INSERTION — it adds no phase, no owner, no output and no acceptance item, it lifts no park, it
+re-measures nothing and it moves no cell of `§1`'s scope or `§2`'s phase table.** **THE FIGURE MOVED, AND WHY,
+WITH ITS TERMS: the store's root suite — `cargo test --offline --no-fail-fast`, at the REPOSITORY ROOT, its
+root `Cargo.toml` byte-identical — is now `379` PASS · `0` FAIL, because the `+2` are the two LISTENER CELLS
+`docs/specs/storeroom-native/write-and-read.md §6.5` item 14 (d)–(e) required, whose home is
+`tests/watched_addresses.rs` (its own count moves `19` → `21`), so `379 = 377 + 2`.**
+**THE FOUR CELLS OF THIS PART THAT READ `377`, EACH WITH WHAT IT NOW READS:**
+
+| The cell | The reading it carried | What it reads now |
+| --- | --- | --- |
+| **`§0`'s reconciliation item `2`** — *"with the store's root suite quoted at `377` and NOT re-measured as this unit's"* | **`377`** | **`379`, QUOTED and NOT re-measured as this unit's — the clause's own subject, that the figure is QUOTED and never re-labelled, is UNMOVED** |
+| **`§0`'s reconciliation item `3`** — *"or the store's `377`, which is QUOTED and not re-labelled"* | **`377`** | **`379`** — **the same clause's `395` Rust attempts and `107` JS attempts are UNMOVED** |
+| **`§1`'s item `3`** — *"`107` JS attempts, both unmoved and both still the register's own), or the store's `377`, which is QUOTED and not re-labelled"* | **`377`** | **`379`** — **the register's own two figures are UNMOVED** |
+| **`§5`'s stop row `F`** — *"the store's `377/377` is re-labelled as this unit's green"* | **`377/377`** | **`379/379`** — **and the stop itself is UNMOVED: an `APP`-green claimed from a node-suite green remains a stop, whatever the store's own figure is** |
+
+**AND THE ONE CELL THIS CLAUSE NAMES BUT DOES NOT MOVE, SO A READER IS NOT SENT TO A FIGURE THAT STILL READS
+`377`: `§3`'s item `4`** — *"THAT IS THE FIGURE THE STORE'S TREE PRINTS: `cargo test --offline --no-fail-fast` —
+`377` PASS · `0` FAIL, its root `Cargo.toml` byte-identical"* — **is the PROOFREADING PASS'S OWN CLAUSE,
+re-emitted as that pass filed it, and it is read as that pass's reading of the tree that stood at its date; the
+operative figure is the `379` this clause states, and `374` (the filing-time reading) and `373 PASS / 1 FAIL`
+(the `A69` correction-pass reading) both remain HISTORICAL, each with its own tree.** **NO `APP`-GREEN IS
+CLAIMED, THE LAYER OF EVERY FIGURE ABOVE IS `ENVELOPE/PURE`, AND THE `APP` LAYER FOR THIS UNIT IS `NONE`**
+(`DD-20`; `DD-31`; `DD-33`; `[A1 docs/specs/storeroom-js/contract.md §7.1`–`§7.3` — this unit's census region,
+whose dated clauses are the same figure's other homes; A3
+docs/specs/storeroom-native/write-and-read.md §6.5 item 14 (d)–(e) — the two cells the `+2` are | numeric or
+census claim]`).
+

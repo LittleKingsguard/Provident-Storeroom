@@ -166,6 +166,29 @@
   observation about the file set and is not a claim about the store's behaviour**
   (`[T: §0.1 item 10's single arithmetic | CENSUS]`).
 
+**⟶ AND THE TWO FIGURES ABOVE ARE PRINTED UNDER BOTH READINGS, LANDED 2026-10-11 BY THE BOUNDED CLOSE-OUT PASS
+(`role_spec_writer`) SO NEITHER SIDE HAS TO BE ASSUMED AND NO RE-TERMING IS OWED.** `RCA-8(d)`
+ANNOTATE-BESIDE: **the closure bullet above and the pointer-reconciliation clause above it stand
+byte-for-byte — the as-filed `PAR-1`…`PAR-11` range, the `T`-tagged citations and the parenthetical file list
+included — and each is read THROUGH this clause; THIS clause is a PURE INSERTION — it creates no file, adds,
+drops or renames no part entry, moves no `§`-number and re-decides no rule.**
+
+| The side | Its terms | Its figure |
+| --- | --- | --- |
+| **the LEFT side** | `{part-map PART entries}` = `{rows of the part map}` − `{the contract-document row}` = `6 − 1` — **an ENTRY-COUNTED figure, read off the map's own rows** | **`5`** |
+| **the RIGHT side, under the OPERATIVE reading — the map's own PART entries** | **the `4` `carrier` parts (`store-model` · `write-and-read` · `seams-and-lifecycle` · `parameter-semantics`) plus `implementation-plan` (a `carrier` part)** | **`5`** |
+| **the RIGHT side, under the RAW-FILE reading the bullet's own words name** — *"{files present in docs/specs/storeroom-native/} − {contract.md}"* | **`store-model.md` · `write-and-read.md` · `seams-and-lifecycle.md` · `parameter-semantics.md` · `implementation-plan.md` — EVERY file the bullet's own parenthesis enumerates is a file present, and NO sixth part file exists in this directory** | **`5`** |
+
+**SO THE PREDICATE READS `5 = 5` ON BOTH COUNTINGS ✓ AND IT HOLDS, AND THE TWO READINGS AGREE HERE — this
+directory carries NO `view` part and no eighth file beside `contract.md`, so the file set and the map's PART
+entries are the same set and the raw-file reading is not a second, unclaimed count.** **THE AS-FILED
+ARITHMETIC IS UNMOVED, THE `3` RECORDED OMISSIONS STILL CONTRIBUTE TO NEITHER SIDE, AND NO RE-TERMING IS OWED
+AT THIS DIRECTORY: the re-statement taken by the same bounded pass in the SIBLING directory is that
+directory's own, because its file set carries one part file more than its parenthesis enumerated**
+(`docs/specs/storeroom-js/contract.md` `§0`'s closure clause and its dated clause of 2026-10-11 — the sibling
+directory's own re-statement, cited and never carried here) (`[T: this contract's own closure arithmetic, its
+terms and the two countings, so neither side is assumed | CENSUS]`).
+
 ---
 
 ## §0. The index region's own rules — the claim ledger, the defaults table, and the id families

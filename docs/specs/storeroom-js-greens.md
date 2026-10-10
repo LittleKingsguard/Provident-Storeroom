@@ -754,6 +754,51 @@ numeric or census claim]`).
 
 **END OF THE GREENS SET.**
 
+**⟶ AND THE CENSUS THIS FILE STATES IS SETTLED HERE, IN ONE READING WITH ITS TERMS, LANDED 2026-10-11 BY THE
+BOUNDED CLOSE-OUT PASS (`role_spec_writer`): THE PROOFREADING PASS NAMED THE HEAD'S SENTENCE AN UNDECIDABLE,
+AND THIS CLAUSE IS ITS DISPOSITION.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte above — the head's sentence, the
+`§1` scenario table, the `§2` per-scenario heads and their cells, the `§3` un-derived list and the `§4` region
+with both dated clauses — stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause is a PURE
+INSERTION, it CORRECTS NO SCENARIO, WEAKENS NO ASSERTION, RE-DERIVES NO EXPECTATION and EDITS NO CELL of
+`§2`.**
+
+1. **THE ONE CENSUS, STATED WITH ITS TERMS SO ITS TWO FIGURES ARE READ AS TWO COUNTED THINGS AND NOT AS ONE
+   PHRASE.** **THE SET IS `236` ASSERTION CELLS OVER `13` SCENARIOS — two figures of two different things,
+   each counted at its own site.** **THE ASSERTION CENSUS IS `236`: it is the count of ASSERTION CELLS, each
+   cell being one table row of `§2` (with a refusal cell whose row prints an extra assertion counting
+   `4 + 1`), and it is the count the `§2` per-scenario heads carry — `13 · 16 · 5 · 67 · 14 · 7 · 15 · 22 · 12
+   · 24 · 18 · 17 · 6` — whose sum is `13 + 16 + 5 + 67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 + 17 + 6 = 236` ✓.**
+   **THE SCENARIO CENSUS IS `13`: it is the count of `JSG-nn` scenarios, one per `§2` head and one per row of
+   `§1`'s table, and it is NOT a figure any driver counter prints.** **NEITHER FIGURE IS A SUBSET OF THE
+   OTHER: `236` is not "`236` per scenario" and `13` is not an assertion count.**
+2. **THE TOTALS, WITH THEIR TREE, THEIR COMMIT AND THEIR LAYER.** **`236` authored · `236` executed · `236`
+   PASS · `0` FAIL, over the same `13` scenarios — the operative reading of this set, at the artefact built
+   at commit `9707ee9` (*"js: the value-arm refusal verbose and the two doc cells reconciled — the blind set
+   is `236/236`"*), which is the re-measurement the gate-6 record carries at its own `§2.3` and which the
+   gate-8 clause above quotes.** **`236` authored · `236` executed · `233` PASS · `3` FAIL is the GATE-5
+   TREE'S OWN RECORD, quoted at the `§4` table above and HISTORICAL from commit `9707ee9`.** **THE LAYER IS
+   `ENVELOPE/PURE` AND THE `APP` LAYER FOR THIS UNIT IS `NONE`: no `APP`-green exists in this file, in its
+   driver or in any record of this pass.**
+3. **AND THE UNDECIDABLE THIS CLAUSE DISPOSES OF IS NAMED WITH ITS OWN WORDS.** **The gate-7 proofreading
+   pass's item `4` records the head's sentence *"The set was authored as `236` assertions over `13`
+   scenarios"* as a count it REPORTS RATHER THAN DECIDES, and names TWO READINGS** — **reading (i): `236` is
+   the assertion census and `13` the scenario census, two figures of two different things; reading (ii): the
+   sentence is read as a SINGLE authored-suite census in which the `13` is a SUBSET figure, because the
+   driver's counters advance once per assertion and no counter in it counts scenarios.** **THE DISPOSITION
+   IS READING (i), AND IT IS TAKEN HERE: item `1` above states the two counts as two counted things, each at
+   its own site, with the `§2` heads' sum printed as the assertion census's own evidence — so the `13` is a
+   SCENARIO count and NOT a subset of the `236`, and no figure of the set moves by this clause.**
+4. **WHAT THIS CLAUSE DOES NOT DO.** **It runs nothing — this pass holds no execution verb — so not one
+   assertion of `§2` was re-executed by it; the `236`/`236` is QUOTED from the gates that carry it.** **It
+   edits no cell of `§2`, moves no strategy id, adds no scenario and re-words no head; the citation defect the
+   proofreading clause above records as RESOLVED BY THE SUPERVISOR is untouched by it, and the file's own
+   closing statement that *"THE `13` SCENARIOS ARE UNMOVED"* stands.** **AND THE FILE'S OWN CLOSING LEDGER IS
+   UNMOVED: `236` authored remains this set's own figure, the `72`-assertion live battery remains a `LIVE /
+   ASSEMBLED PACKAGE` figure that retires no row of this set, and no `APP`-green is claimed anywhere here**
+   (`DD-20`; `DD-33`; `[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-10` — every figure carries its
+   site and its layer; A3 archive/gate6/storeroom-js-live-determination.md §2.3 · §3 — the re-measurement |
+   numeric or census claim]`).
+
 ---
 
 **⟶ RECONCILED 2026-10-11 — THE `U-STOREROOM-JS` GATE-7 PROOFREADING PASS (`role_proofreader`): THE FIGURES
