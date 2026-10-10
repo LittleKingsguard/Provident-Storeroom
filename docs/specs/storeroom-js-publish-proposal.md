@@ -61,4 +61,24 @@
 
 **READ AT ITS OWN BYTES (this pass):** `bindings/js/package.json` · `bindings/js/index.mjs`'s loader (`:69–75`, `:117`) and its export list · `bindings/js/README.md`'s declared build step · `docs/specs/storeroom-js/package.md` (`§1`–`§4`, the realm claim, the handoffs, the prebuild/publish clauses) · `docs/specs/storeroom-js/acceptance.md` · the JS unit's `DONE` row and the trackers · `docs/pending.md`'s new `P-4` (the WASM/browser park) · and the runs' recorded figures and artefact digest. **NOTHING WAS PUBLISHED, PACKED, BUILT OR RUN BEYOND READ-ONLY INSPECTION.**
 
+## §8. THE ARCHITECT'S RELEASE RULING OF 2026-10-11 — public, `provident-storeroom`, `0.1.0`
+
+**<⟶ APPENDED, DATED, FILED IN THE PASS IT ARRIVED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES.**
+
+**THE ARCHITECT'S WORDS, VERBATIM.**
+
+> public at provident-storeroom:0.1.0
+
+**THE RULING, TRANSCRIBED AS `A82` — and it answers `§4`'s gaps 8 and 9, with a RENAME the filing did not propose.**
+
+| # | The question | The ruling (verbatim) | What it settles |
+| --- | --- | --- | --- |
+| **`A82`** | **`§4` gap 8 (the npm scope/name) and gap 9 (the first release's version and visibility)** | ***"public at provident-storeroom:0.1.0"*** | **(1) VISIBILITY: PUBLIC** — a public registry release, not a restricted one. **(2) THE NAME: `provident-storeroom` — UNSCOPED.** That is **NOT** the `package.json`'s filed `@provident-storeroom/js`, so **the ruling carries a RENAME**, and it **removes the scope-ownership problem** the filing listed as a decision: an unscoped name needs only to be unclaimed on the registry. **(3) THE VERSION: `0.1.0`** — the filed version stands as the first release. |
+
+**ITS DERIVED CONSEQUENCES, EACH NAMED SO IT IS NOT DISCOVERED LATER:**
+1. **THE RENAME'S BLAST RADIUS.** `bindings/js/package.json`'s **`name`** and **the five `optionalDependencies` KEYS** · every cell and record that prints the old scoped name (`docs/specs/storeroom-js/**`'s package cells, the proposal's `§2`/`§4` tables, the run records) · **and nothing else**: the artefact and its digest are name-independent, and the store is untouched.
+2. **THE PLATFORM PACKAGES' NAMES ARE DERIVED, NOT RULED** — under an unscoped main name the convention gives **`provident-storeroom-linux-x64-gnu` · `-linux-arm64-gnu` · `-darwin-x64` · `-darwin-arm64` · `-win32-x64-msvc`** (the same five targets, the scope simply dropped). **THIS IS THE SUPERVISOR'S READING, CARRIED AS A PRICED `DECLARED-DEFAULT`** whose reversal is one line; the ruling names the main package's identity and does not name theirs.
+3. **`--access public` IS MOOT FOR AN UNSCOPED NAME** (publicity is the default for an unscoped package), so the publish command needs no access flag — worth stating so a later pass does not add one as if it were required.
+4. **THE SEMVER POLICY REMAINS OPEN** by the ruling's silence: `0.1.0` is fixed as the FIRST release, and what a **breaking change** means for a surface governed by rulings (a major bump per ruling that changes an admitted class? a minor per added member?) is **a priced `DECLARED-DEFAULT`**: **minor for an added member or a new clause that does not change an admitted value's answer; major for a change to the admitted taxonomy, the closed fail set, or any clause that makes a previously valid call refuse.** Reversal: one line, and it is the distribution's own policy rather than the store's semantics.
+5. **AND ONE THING THIS RULING DOES NOT ANSWER — `§4` GAP 1, THE ONE SEMANTIC DECISION: how the entry finds the right binary in a published install.** The filing's recommendation stands unchallenged (**platform-package-first, local-path fallback, ONE failure arm**), and **it is carried as the gate's input**; a different choice in one line replaces it.
 **END OF THE PROPOSAL. §1 is the instruction. §2 is what exists. §3 bounds the filing. §4 enumerates the gaps with the one semantic decision priced. §5 is the phase plan. §6 is the blast radius. §7 is the provenance.**
