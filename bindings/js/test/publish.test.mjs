@@ -595,6 +595,54 @@ function resolveTagVersion(repo, version) {
   return { listed, present: listed === `v${version}` };
 }
 
+/**
+ * **`A89` (`docs/specs/storeroom-publish-proposal.md §15`) — THE DECLARED RELEASE VERSION, READ FROM THE
+ * RULING THAT DECLARES IT RATHER THAN FROZEN AT A SITE THAT DOES NOT.**
+ *
+ * `§15`'s sequence, item 1: *"the six manifests move to **`0.1.1` TOGETHER — the five platform
+ * `version`s AND the main's five `optionalDependencies` PINS, which are EXACT"* — and `§15`'s own row 4
+ * declares the state this replaces: *"`0.1.0` IS THE BOOTSTRAP VERSION: DECLARED, not a release"*.
+ * `parameter-semantics.md §2.2` (`PAR-PUB-2`) states the domain the same way (*"the tag's own version …
+ * and thereafter exactly the tag's `v<major>.<minor>.<patch>` value"*), and its first outside value is
+ * *"a version differing from the five platform artefacts' → REFUSED by the coupling rule"*.
+ *
+ * **WHY THE READER AND NOT A LITERAL.** The operative value is a fact about the CONTRACT — which version
+ * is released — so the cells assert it against the ruling's own bytes: a literal here would be a THIRD
+ * home for a value the contract already carries once, and the next declared release would rot it. The
+ * reader is deliberately NARROW: it anchors on the ONE phrase the ruling uses for the release act, so a
+ * clause naming some other version of some other thing cannot be mistaken for it.
+ */
+function declaredReleaseVersion(repo) {
+  const proposal = readFileSync(join(repo, 'docs', 'specs', 'storeroom-publish-proposal.md'), 'utf8');
+  const clause = /the six manifests move to \*\*`(\d+\.\d+\.\d+)` TOGETHER/.exec(proposal);
+  assert.ok(clause !== null,
+    '`A89` / `docs/specs/storeroom-publish-proposal.md §15` item 1 must declare the release version at its '
+    + 'own phrase ("the six manifests move to `X.Y.Z` TOGETHER"); an absent clause is a finding, not a skip');
+  return clause[1];
+}
+
+/**
+ * **THE COUPLING RULE, ENUMERATED BY NAME AND NOT BY POSITION** (`contract.md §3.2` item 2, `PUB-DD-10`;
+ * `distribution.md §6.3`; `release.md §2.2`; `parameter-semantics.md §2.2` `PAR-PUB-2` and `§2.8`
+ * `PAR-PUB-8`): **every platform artefact's `version` EQUALS its exact pin in the main package, and the
+ * main's `version` is the released version.** The five names are read from the five platform manifests
+ * THEMSELVES, which is why a substitution — a pin pointing at a name whose manifest says another version —
+ * is caught here rather than by five comparisons of one string.
+ */
+function mainVersionCoupling() {
+  const main = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
+  const pins = main.optionalDependencies ?? {};
+  const platformsDir = join(PKG_DIR, 'platforms');
+  const platformVersions = new Map();
+  for (const label of readdirSync(platformsDir).sort()) {
+    const path = join(platformsDir, label, 'package.json');
+    if (!existsSync(path)) continue;
+    const m = JSON.parse(readFileSync(path, 'utf8'));
+    platformVersions.set(m.name, { version: m.version, path });
+  }
+  return { main, pins, platformVersions, platformsDir };
+}
+
 // ---------------------------------------------------------------------------------------------
 // §5.1 P-PUB-1 — THE RESOLUTION ORDER IS THE DECLARED ORDER (`§1.1`, `resolution.md §2`)
 // ---------------------------------------------------------------------------------------------
@@ -838,15 +886,39 @@ cell('P-PUB-2', 'S-KEYSET the converse: each declared key IS answered by the tab
 cell('P-PUB-2', 'S-KEYSET the five pins are exact and no sixth pin exists', async () => {
   // `§1.3` item 4 / `PUB-DD-10` / `PAR-PUB-8`: the five `optionalDependencies` pins are EXACT, five times,
   // and NO range, caret, tilde or wildcard is lawful; a sixth name is refused (`distribution.md §3.3`).
-  const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
-  const pins = manifest.optionalDependencies ?? {};
+  //
+  // **⟶ RE-CUT BY THE `0.1.1` PASS: THE PIN IS ASSERTED AS THE COUPLING RATHER THAN AS A FROZEN STRING,
+  // AND THE EXACT VALUE IS ASSERTED BESIDE IT AS THE DECLARED RELEASE.** The shipped form compared all five
+  // pins to the single literal `'0.1.0'`, which was true of the bootstrap and rots at every bump; the
+  // property the clause states is `parameter-semantics.md §2.2`'s coupling rule — *"a version differing
+  // from the five platform artefacts' → REFUSED by the coupling rule"* — so each pin is read against **its
+  // OWN platform manifest's `version`**, enumerated by NAME from the five manifests, and the five are read
+  // together against the main package's own `version`, which is read against `A89` (`§15` item 1), the
+  // clause that declares which version is the release (`0.1.1`; `0.1.0` is the bootstrap, *"DECLARED, not a
+  // release"*, `§15` row 4). **NO ASSERTION WAS WEAKENED: the exact-equality comparison survives, its
+  // right-hand side is the contract's own declared release instead of a literal at this site.**
+  const { main, pins, platformVersions } = mainVersionCoupling();
   assert.deepEqual(Object.keys(pins).sort(), [...FIVE_NAMES].sort(),
     '`PAR-PUB-8`: exactly the five declared names, name for name');
+  const release = declaredReleaseVersion(REPO_ROOT);
+  assert.equal(main.version, release,
+    '`PAR-PUB-2` / `A89` (`§15` item 1): the main package\'s `version` IS the declared release version');
   for (const [name, pin] of Object.entries(pins)) {
-    assert.equal(pin, '0.1.0', `the pin for ${name} is EXACT (\`W-2\`'s hoisting window)`);
+    const platform = platformVersions.get(name);
+    assert.ok(platform !== undefined,
+      `\`PAR-PUB-26\` / \`distribution.md §3.1\`: the pin for ${name} must have a platform manifest at `
+      + `\`platforms/<label>/package.json\`; the five read were ${JSON.stringify([...platformVersions.keys()])}`);
+    assert.equal(pin, platform.version,
+      `the pin for ${name} is EXACT and EQUALS its own platform manifest's \`version\` — the coupling rule `
+      + '(`PAR-PUB-2` · `PAR-PUB-8` · `W-2`\'s hoisting window), read against '
+      + `\`${platform.path}\``);
+    assert.equal(pin, main.version,
+      `${name}'s pin equals the MAIN package's own \`version\`, so the five resolve together or none does`);
+    assert.equal(pin, release,
+      `the pin for ${name} is the CONTRACT'S DECLARED RELEASE VERSION (\`A89\` · \`§15\` item 1: \`${release}\`)`);
     assert.ok(!/[~^*><]|\bx\b|\|\|/.test(pin), `no range, caret, tilde or wildcard in ${name}'s pin`);
   }
-  assert.equal(manifest.dependencies?.[FIVE_NAMES[0]], undefined,
+  assert.equal(main.dependencies?.[FIVE_NAMES[0]], undefined,
     '`PAR-PUB-8`: the five are OPTIONAL by design, never `dependencies`');
 });
 
@@ -1508,13 +1580,27 @@ const SUFFIXED = {
 };
 
 cell('P-PUB-6', 'S-SCOPE the five names, name for name, in the manifest and the entry', async () => {
-  const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
+  // **⟶ RE-CUT BY THE `0.1.1` PASS, THE SAME WAY AS `P-PUB-2`'s PIN CELL AND FOR THE SAME REASON:** the
+  // shipped form compared each pin to the literal `'0.1.0'`, which read the SHIPPED version through a
+  // frozen string. The property this cell drives is the five names being the five names — the pins' VALUES
+  // are `PAR-PUB-8`'s coupling, so each is read against its OWN platform manifest's `version` and against
+  // the main's, which is read against the declared release (`A89` · `§15` item 1). **NO CONJUNCT OF THE
+  // SHIPPED CELL WAS DROPPED:** the pin is still asserted present, still asserted exact (never a range),
+  // and the entry's five spellings are still read name for name.
+  const { main, pins, platformVersions } = mainVersionCoupling();
   const entry = readFileSync(join(PKG_DIR, 'index.mjs'), 'utf8');
-  assert.deepEqual(Object.keys(manifest.optionalDependencies ?? {}).sort(), [...FIVE_NAMES].sort(),
+  assert.deepEqual(Object.keys(pins).sort(), [...FIVE_NAMES].sort(),
     '`§1.3` item 4 / `PAR-PUB-8`: the manifest\'s five keys ARE the five declared names');
+  const release = declaredReleaseVersion(REPO_ROOT);
+  assert.equal(main.version, release,
+    '`PAR-PUB-2` / `A89` (`§15` item 1): the main package\'s `version` IS the declared release version');
   for (const name of FIVE_NAMES) {
-    assert.ok(manifest.optionalDependencies[name] !== undefined, `${name} is a declared key`);
-    assert.equal(manifest.optionalDependencies[name], '0.1.0', `${name}'s pin is exact`);
+    assert.ok(pins[name] !== undefined, `${name} is a declared key`);
+    assert.equal(pins[name], platformVersions.get(name)?.version,
+      `${name}'s pin is exact — it equals the version at its OWN platform manifest, so the name and the `
+      + 'version cannot disagree (`PAR-PUB-8` · the coupling rule)');
+    assert.equal(pins[name], main.version, `${name}'s pin is the main package's own version`);
+    assert.equal(pins[name], release, `${name}'s pin is the declared release version \`${release}\` (\`§15\`)`);
   }
   // the entry's own construction is `Q3`'s (`§9` · `Q3-1`), so the drive asserts the DECLARED SET: the
   // five names are what the entry must select from, and no sixth spelling may appear in it.
@@ -2010,10 +2096,29 @@ cell('P-PUB-7', 'S-MANIFEST the main package\'s identity, realm and one ESM entr
   // `§2.1` / `distribution.md §6.1` / `PAR-PUB-1`, `PAR-PUB-2`, `PAR-PUB-5`, `PAR-PUB-16`: `name` is
   // exactly `provident-storeroom`, `version` is the tag's own, `type` is `"module"`, and the `exports` map
   // publishes exactly ONE arms-bearing entry — the ESM one.
+  // **⟶ RE-CUT BY THE `0.1.1` PASS: THE IDENTITY IS ASSERTED AS THE COUPLING *AND* AS THE EXACT DECLARED
+  // RELEASE, AND THE EXACT HALF IS KEPT DELIBERATELY.** This cell is the main package's IDENTITY, so
+  // "which version is this package" is what it means — and the coupling alone would be satisfied by six
+  // manifests agreeing on the WRONG version. The value is therefore read from `A89`
+  // (`docs/specs/storeroom-publish-proposal.md §15` item 1, *"the six manifests move to `0.1.1`
+  // TOGETHER"*, with `0.1.0` declared *"the BOOTSTRAP … not a release"* at `§15` row 4) rather than written
+  // as a literal here; the coupling is asserted beside it, so this cell states BOTH that the version is the
+  // released one and that the six artefacts carry ONE version. **NO ASSERTION WAS WEAKENED OR DROPPED.**
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
+  const { pins, platformVersions } = mainVersionCoupling();
   assert.equal(manifest.name, 'provident-storeroom',
     '`PAR-PUB-1` / `§9` `Q3-1`: the main package\'s identity is the unscoped `provident-storeroom`');
-  assert.equal(manifest.version, '0.1.0', '`PAR-PUB-2`: the tag\'s own version for the first release');
+  const release = declaredReleaseVersion(REPO_ROOT);
+  assert.equal(manifest.version, release,
+    '`PAR-PUB-2`: the tag\'s own version for this release — the version `A89` (`§15` item 1) declares the '
+    + 'six manifests moved to TOGETHER');
+  for (const name of FIVE_NAMES) {
+    assert.equal(pins[name], manifest.version,
+      `the coupling rule (\`PAR-PUB-2\` · \`§15\` item 1): ${name}'s pin equals the main package's \`version\``);
+    assert.equal(platformVersions.get(name)?.version, manifest.version,
+      `the coupling rule: ${name}'s OWN platform manifest carries the main package's \`version\`, so the `
+      + 'six artefacts are one release rather than six versions of it');
+  }
   assert.equal(manifest.type, 'module', '`PAR-PUB-16`: the claimed realm is Node ESM alone');
   const exports_ = manifest.exports ?? {};
   assert.deepEqual(Object.keys(exports_), ['.'], '`PAR-PUB-5`: exactly ONE arms-bearing entry, the ESM one');
