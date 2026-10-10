@@ -1438,6 +1438,19 @@ test('ng_js_i_the_proxy_over_array_corpus_at_the_address_position_is_refused_wit
       let thrown = null;
       let admitted = null;
       try { admitted = reentrant.on(one.make(), () => {}); } catch (err) { thrown = err; }
+      // **⟶ AND THE TRAP COUNTER IS READ FIRST, BEFORE THE REFUSAL'S OWN FORM — THE ONE ORDERING CORRECTION
+      // THIS GENERATOR'S OWN CONTROL RUN FORCED, RECORDED HERE RATHER THAN HIDDEN.** As first authored, this
+      // arm asserted the message's CLASS half before the counter, and a control build that RESTORES `C-1`
+      // (the walk's proxy decision removed, so `Array.isArray` and its `getPrototypeOf` run before any
+      // decision) reported only *"the message carries no CLASS half `a Proxy`* — **the right verdict for the
+      // wrong observable, and NOT the reading `C-1`'s failure is named by (*"the counter showing ANY trap
+      // ran"*).** **THE COUNTER IS THE MECHANISM AND IT IS READ FIRST; the form's own two halves follow.**
+      if (traps.count !== before) {
+        return `${one.what}: ${traps.count - before} TRAP(S) RAN inside \`on\`'s address walk — the declaration is that NO trap runs (C-1: the class decision is taken before any read, on \`util.types.isProxy\` alone)`;
+      }
+      if (traps.reentries !== 0) {
+        return `${one.what}: a RE-ENTRANT verb was invoked from inside the walk (${traps.reentries} re-entr)`;
+      }
       if (admitted !== null) {
         return `${one.what}: ADMITTED at \`on\`'s address position — \`AddressArg\` row 12 refuses the class (DD-34)`;
       }
@@ -1453,18 +1466,11 @@ test('ng_js_i_the_proxy_over_array_corpus_at_the_address_position_is_refused_wit
       // HAS (`a Proxy`) and the argument POSITION (`first argument`).
       if (!thrown.message.includes('a Proxy')) return `${one.what}: the message carries no CLASS half \`a Proxy\` (item 5 (b))`;
       if (!thrown.message.includes('first argument')) return `${one.what}: the message carries no POSITION \`first argument\` (\u00a72.17's dated clause)`;
-      // **AND THE COUNTER — THE WHOLE POINT OF THE CORPUS. ANY increment here is a trap that RAN.**
-      if (traps.count !== before) {
-        return `${one.what}: ${traps.count - before} TRAP(S) RAN inside \`on\`'s address walk — the declaration is that NO trap runs (C-1; the ONE form)`;
-      }
       // **AND THE RE-ENTRANT ARM'S OWN SECOND HALF: a trap that ran would have MINTED at the address it
       // spelled, because \`on\` performs a \`listen\`. The home must hold nothing there.**
       const after = write(reentrant, [key], 'mem', 1);
       if (after.triggered.length !== 0) {
         return `${one.what}: a re-entrant trap MINTED a home entry at [${key}] — the walk ran a handler before it decided`;
-      }
-      if (traps.reentries !== 0) {
-        return `${one.what}: a RE-ENTRANT verb was invoked from inside the walk (${traps.reentries} re-entr)`;
       }
       // **AND NOTHING IS READ FROM THE VALUE AGAIN AFTER THE REFUSAL — THE DEFECT THIS GENERATOR'S OWN
       // AUTHOR HIT WHILE AUTHORING IT, RECORDED HERE RATHER THAN HIDDEN:** a *"was it constructible"* probe
