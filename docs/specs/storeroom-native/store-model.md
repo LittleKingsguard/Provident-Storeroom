@@ -642,6 +642,44 @@ through a second resolver.** **The HOME MAP is not addressed and is reached by n
 from the register and the graph"*) — a registration's address is the WALKED address the listener binds to,
 and the home's own entries are reached by their handle and never by an address.
 
+**⟶ RE-SPELLED 2026-10-11 — THE HOME IS ADDRESS-KEYED AND ITS ENTRIES ARE REACHED BY THEIR ADDRESS; IT IS NOT A
+RESOLVER CONSUMER AND NO WALK TRAVERSES IT — SO BOTH HALVES OF THE SENTENCE ABOVE SURVIVE, THE SECOND OF THEM
+KEEPING A NAMED `§2.1` CLAUSE WHOLE** (`RCA-8(d)` ANNOTATE-BESIDE: **the sentence above stands byte-for-byte
+and is read THROUGH this clause; nothing above is re-worded, moved or withdrawn**; the finding's home
+`archive/reviews/2026-10-11-structural-compliance.md` `§3` · `F-9` — whose smallest repair names THIS sentence
+and `write-and-read.md §6.5` item 8 (a) together — and its `§6`; `P: §11 · A45` · `P: §13 · A48`; the home's own
+re-declaration at `src/store.rs`; `[T: the home's two structural halves, stated together so the ruling's own
+words and this subsection's consumer-set clause are read as ONE declaration | CONTRACT]`).
+**THE AS-FILED WORDING, RE-EMITTED BECAUSE THIS CLAUSE RE-SPELLS IT AND NEVER REPLACES IT:** *"**The HOME MAP is
+not addressed and is reached by no walk** (`A48`: *"separate from the register and the graph"*) — a
+registration's address is the WALKED address the listener binds to, and **the home's own entries are reached by
+their handle and never by an address**."* **IT CARRIED ONE HALF THAT IS FALSE OF THE STRUCTURE THE RULING NAMES
+AND ONE THAT IS TRUE AND IS THE HALF THIS SUBSECTION'S CONSUMER SET NEEDS; BOTH ARE STATED HERE:**
+1. **THE HOME IS ADDRESS-KEYED, AND ITS OWN ENTRIES ARE REACHED BY THEIR ADDRESS.** **The home's PRIMARY
+   structure is a MAP WHOSE KEY IS THE REGISTRATION'S `address`** — the same address `write-and-read.md §6.5`
+   item 10 (b) declares as what a listener *"binds by"* — **so a registration is reached BY ITS ADDRESS, and
+   that key is exactly what `A45`'s *"the top-level listener map is the home"* makes of it, the ruling's own
+   stated purpose being the LOOKUP COUNT.** **A registration's entry carries `A57`'s record and no anonymous
+   shape standing beside it.** **A SECOND, LOOKUP-ONLY INDEX INSIDE THE HOME carries the handle→address
+   direction (a token to its address and its position in that address's bucket), so a withdrawal reaches the
+   entry the caller named without scanning the home** — **its declaration is the defaults table's
+   (`contract.md §0.2` · `DD-51`, the row carrying the handle-mint's collision rule's new form), and `DD-42`'s rule is
+   unmoved by it: the mint SKIPS a token the home already holds either way.**
+2. **THE HOME IS NOT A RESOLVER CONSUMER, AND NO WALK TRAVERSES IT.** **The home is reached by no walk, by no
+   segment path, by no `findAddress`, by no read (`[]`'s read included), and no verb resolves THROUGH it**
+   (`write-and-read.md §6.5` item 8 (b); `A48`) — **so the WALKED address a registration binds to is the
+   CONSUMER's own key and is never the home's own address on any walk, and the as-filed half that read
+   *"reached by no walk"* is TRUE and stands.** **THE `§2.1` CLAUSE THIS HALF KEEPS INTACT, NAMED: this very
+   subsection's consumer-set clause — *"the consumer set is **`read` · `write` · `delete` · `listen` ·
+   `unlisten`**, and NO VERB of this contract reaches an address through a second resolver."* **Unmoved by
+   this clause: the home is no SECOND RESOLVER, and no member of the consumer set reaches an address THROUGH
+   it** — the `listen`/`unlisten` pair carries a registration's own address TO the home, whose structure is
+   the map above, and neither verb resolves a node through it. **AND THE DRIVE THAT ALREADY CARRIES THIS HALF
+   IS `contract.md §5.8`'s `(v)` cell of the `P-TP-8` row (`S-WATCH`'s HOME-IS-NOT-A-GRAPH-STRUCTURE drive:
+   `read([])` carries no listener entry, `findAddress` reaches no home entry at any address, and a fresh
+   instance over an equal `cfg.filePath` begins with `triggered: []`) — that cell asserts exactly this half
+   and is UNMOVED by this clause.**
+
 **Its failure is a THROWN `StoreError`** (`§8.3`), carrying a **closed status code** and a **generated
 message naming the mismatch that blocked resolution** (`P: §11 · A14`; `DD-24(b)`).
 **The walk's failure codes are exactly three: `AddressMalformed`, `AddressNotFound` and

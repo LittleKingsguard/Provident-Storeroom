@@ -1062,6 +1062,29 @@ separate from the register and the graph"*** (`A48`). **THE CLAUSE, IN FIVE PART
   **The node-side lists of item 11 are REFERENCES INTO IT and never a second copy** — **so the shipped
   `§6.5` item 2's *"keyed by the ADDRESS it watches"* survives as the home's key, and the gate's
   *"second home for one registration state"* objection is closed by the ruling's own words.**
+
+**⟶ AFFIRMED 2026-10-11 — ITEM 8 (a)'s CELL STANDS AS WRITTEN, AND IT NOW MATCHES THE STRUCTURE THE STORE
+SHIPS, SO A LATER PASS DOES NOT "RECONCILE" A CORRECT CELL** (`RCA-8(d)` ANNOTATE-BESIDE: **the cell above
+stands byte-for-byte; not one byte of it is re-spelled, narrowed, excepted or withdrawn, and THIS dated clause
+is the affirmation the cell owes rather than a change to it**; `archive/reviews/2026-10-11-structural-compliance.md`
+`§3` · `F-9`, whose smallest repair names this cell's *"registrations keyed by the listener's `address`"*
+TOGETHER WITH `store-model.md`'s sentence, and its `§6`; `P: §11 · A45`; `store-model.md §2.1`'s dated
+re-spelling; `[T: the cell's affirmation, dated, so the two cells read as one declaration | CONTRACT]`).
+**THE CELL, RE-EMITTED BECAUSE THIS CLAUSE READS IT AND DOES NOT MOVE IT:** *"(a) THE HOME IS THE ONE HOME. The
+store instance owns exactly ONE home map, and it owns the LISTENER DATA — **registrations keyed by the
+listener's `address`**, each carrying its `handle`. **The node-side lists of item 11 are REFERENCES INTO IT and
+never a second copy** …"*. **AND THAT IS WHAT THE STRUCTURE NOW DOES: the home's primary structure IS an
+address-keyed map whose key IS the registration's own `address`, each entry carrying its `handle` — so the cell
+is TRUE of the shipped structure and owes no exception, and the sweep's `F-9` and this cell are ONE declaration
+rather than a divergence and its repair.**
+**AND THE TWO CELLS ARE READ TOGETHER, NAMED SO NEITHER IS READ WITHOUT THE OTHER:** **this item's
+*"registrations keyed by the listener's `address`"* and `store-model.md §2.1`'s dated clause**, whose FIRST half
+declares the home ADDRESS-KEYED with its own entries reached by their address, and whose SECOND half declares it
+NOT a resolver consumer — traversed by NO walk, reached by no segment path and by no `findAddress` (`A48`).
+**THE DISTINCTION IS THE WHOLE POINT OF THE PAIR: the KEY is the address a registration binds to, and the
+RESOLUTION is no verb's and no walk's, so `store-model.md §2.1`'s consumer set stands unmoved by it** — **and
+the drive that carries that second half is `contract.md §5.8`'s `(v)` cell of the `P-TP-8` row, which this
+affirmation leaves untouched.**
 - **(b) IT CONTAINS LISTENERS AND NOTHING ELSE.** **No graph records, no register keys, no values, no
   node references and no journal entries live in it.** **It is NOT addressable: no segment path reaches
   it, `findAddress` never returns it, and a read at the empty address DOES NOT INCLUDE IT** (`A43`'s

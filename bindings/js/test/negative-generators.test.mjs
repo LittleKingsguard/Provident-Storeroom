@@ -888,6 +888,9 @@ test('ng_js_f_the_handle_inputs_answer_the_declared_form_and_no_other_registrati
 // | `3` DISTINCT ids registered at ONE address | `triggered` carries `3`, and each id fires ITS OWN function |
 // | two construction entries at one address carrying ONE caller-spelled token | `triggered` carries it ONCE, and ONE invocation happens |
 // | a `delete`'s receipt | its own `triggered` set, on the same prefix test, and its own invocation |
+// | a `delete` **AT** an entry's own address, with an entry bound at a STRICT DESCENDANT standing | `triggered` carries the NAMED address's own handle — and every STRICT ANCESTOR's, and the register-bound entry's — **and the DESCENDANT-bound handle is NOT carried, even though the delete destroys that entry's node** |
+// | a `delete` **BELOW** a listener's address | `triggered` carries the ANCESTOR-bound handle AND the handle at the deleted address itself (and the register-bound one) |
+// | the register-bound entry (`address: []`) at any edit | it fires, because the empty address IS a prefix of every address |
 // | a write whose trigger set is EMPTY | no invocation, no throw |
 // | an id the registry holds NO function for | **NOTHING FIRES — no invocation, NO LOG, NO THROW** (`§2.4` rule 1; item 6 (c): *"the silence is an ASSERTABLE observable"*) |
 // | an invocation's argument count | **EXACTLY `1`**, and the argument is the TRIGGERING ADDRESS and NOT the id (item 6 (d); `§2.7` item 5) |
@@ -895,6 +898,28 @@ test('ng_js_f_the_handle_inputs_answer_the_declared_form_and_no_other_registrati
 // **WHAT FAILING LOOKS LIKE, ONE LINE:** a size-only set comparison, an invocation with `args.length !== 1`,
 // an invocation whose argument is the id rather than the address, or ANY observable at all — a call, a
 // console write, a throw — from an unregistered id.
+//
+// **⟶ CORRECTED 2026-10-11 (`role_test_writer`), `RCA-8(d)` ANNOTATE-BESIDE: THE AS-FILED DELETE ARM PRINTED
+// A PREMISE THE CONTRACT DOES NOT SUPPORT, AND THAT ARM IS RE-DERIVED BELOW.** **THE AS-FILED TEXT READ:**
+// *"a delete's receipt carried `${receipt.triggered.length}` ids, not 2 — the entry AT the deleted address
+// and the entry BESIDE it are BOTH prefixes of the triggering address (§2.3 item 5), and both are
+// registered"*. **THE FALSE PREMISE IS ITS SECOND HALF: `['del','deep']` IS NOT A PREFIX OF `['del']`.**
+// **THE DECLARED RULE:** `write-and-read.md §6.5` item 10 (d) (iii) — *"a listener bound at address `W` is
+// triggered by a successful `write` or `delete` at address `X` iff `W` is a PREFIX of `X`"* — with
+// `surface.md §2.3` item 5 (*"a handle appears in a trigger's list EXACTLY where its listener's address is a
+// PREFIX of the triggering address"*) and the delete's own clause, **VERBATIM:** *"a listener bound at a
+// STRICT DESCENDANT of it does NOT [fire] (the delete resolves to the named node and removes its subtree;
+// it passes through the named address's ancestors and not through its descendants)"* (`write-and-read.md`
+// `§4.4`'s dated firing clause). **THE DECLARED RULE IS PINNED, IN THE STORE'S OWN TREE, BY**
+// `tests/e2e_listener_firing.rs`'s `lf_d3_a_delete_at_an_ancestor_does_not_fire_the_descendant_bound_listener`
+// **— whose drive is this arm's, byte for byte — and by its mirror**
+// `lf_d2_a_delete_at_a_descendant_fires_the_ancestor_bound_listener` **for the other direction, which the
+// re-derived arm below now drives as its own `(3b)`.** **THE MEASURED ANSWER, BASELINE-IDENTICAL: the
+// delete at `['del']` carries the NAMED address's own handle and NOT the descendant's** (instrumented at
+// the store's own prefix test: `triggered_for(addr=["del"], listener_addr=["del","deep"])` ⇒
+// `prefix=false`). **THE STORE IS RIGHT AND ONLY THE DRIVE'S EXPECTATION WAS NOT DERIVABLE, so the
+// expectation is re-derived to the declared rule — both directions, with the negative half asserted as its
+// own negative — and no other arm, assertion or byte of this cell is relaxed.**
 test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_nothing', () => {
   runGenerator('NG-JS-G', 'listener sets and trigger shapes', 8, (attempt, rng) => {
     const key = `g${rng.next().value}`;
@@ -951,27 +976,118 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     write(duplicate, ['d'], 'mem', 2);
     if (dupFired !== 1) return `once per DISTINCT id: the function fired ${dupFired} times, not 1`;
 
-    // (3) A `delete`'s RECEIPT FIRES ITS OWN SET, on the SAME prefix test (`A43`: a delete fires; `§2.3`
-    // item 5: an entry's membership is *"EXACTLY where its listener's address is a PREFIX of the triggering
-    // address"*, and `['del']` is a prefix of the address the delete names just as `['del','deep']` is).
+    // (3) **THE DELETE'S FIRING SET IS THE PREFIX SET — AND THE TEST IS DIRECTIONAL.** `§6.5` item 10 (d)
+    // (iii): a listener bound at address `W` is triggered by a successful `write` or `delete` at address `X`
+    // iff `W` is a PREFIX of `X`; `§2.3` item 5 puts the handle in the list EXACTLY on that test; and the
+    // delete's own clause is explicit that the window runs through the named address's ANCESTORS and NOT
+    // through its DESCENDANTS (`write-and-read.md §4.4`'s dated firing clause, verbatim: *"a listener bound at
+    // a STRICT DESCENDANT of it does NOT"*), pinned by the store's `lf_d3`/`lf_d2` cells. **SO A DELETE AT `X`
+    // FIRES THE ENTRY AT `X`, EVERY ENTRY AT A STRICT ANCESTOR OF `X`, AND THE REGISTER-BOUND ENTRY AT THE
+    // EMPTY ADDRESS (a prefix of every address — `§6.5` item 3; the store's `lf_a6`), AND IT DOES NOT FIRE AN
+    // ENTRY BOUND AT A STRICT DESCENDANT OF `X`, even though the delete DESTROYS that entry's node.**
     // The containers are created in ADDRESS order, because a write's parent is resolved by address.
+    // **AND THE IDENTITY IS READ, NEVER THE SIZE** (`A77`): each entry's own handle is obtained by `listen`
+    // at its address — idempotent, `§6.5` item 12 (c) returns the EXISTING entry's handle — and the receipt's
+    // set is compared MEMBER BY MEMBER in BOTH directions.
+
+    // (3a) **THE DELETE AT THE NAMED ADDRESS, WITH A DESCENDANT-BOUND ENTRY STANDING.** The prefix set of
+    // `['del']` is the empty address and `['del']` itself; `['del','deep']` is NOT in it.
     const deleting = mem([
+      { address: [], handle: 'reg' },
       { address: ['del'], handle: 'x' },
       { address: ['del', 'deep'], handle: 'y' },
     ]);
+    const atRegister = listen(deleting, []);
+    const atNamed = listen(deleting, ['del']);
+    const atDescendant = listen(deleting, ['del', 'deep']);
+    if (new Set([atRegister, atNamed, atDescendant]).size !== 3) {
+      return 'the three entries of the delete arm are not three distinct identities';
+    }
     write(deleting, ['del'], 'mem', {});
-    write(deleting, ['del', 'deep'], 'mem', {});
+    write(deleting, ['del', 'deep'], 'mem', 1);
     const receipt = remove(deleting, ['del'], 'mem');
     if (!Array.isArray(receipt.triggered)) return "a delete's receipt carries no triggered array";
+    // THE PREFIX-BOUND HALF: the entry AT the deleted address IS a prefix of it and fires, and so does the
+    // register-bound entry, whose address is a prefix of every address.
+    if (!receipt.triggered.includes(atNamed)) {
+      return (
+        `a delete at ['del'] did not return the entry AT the deleted address: the receipt carried ` +
+        `${receipt.triggered.length} ids and the named address's own handle is not among them — the address ` +
+        'the delete NAMES is a prefix of itself (§6.5 item 10 (d) (iii); §2.3 item 5)'
+      );
+    }
+    if (!receipt.triggered.includes(atRegister)) {
+      return (
+        "a delete at ['del'] did not return the entry bound at the EMPTY address: the empty address IS a " +
+        'prefix of every address, so the register-bound entry fires (§6.5 item 3; the store\'s lf_a6)'
+      );
+    }
+    // **THE DESCENDANT-BOUND HALF — THE ONE THE AS-FILED CELL GOT WRONG, ASSERTED AS AN EXPLICIT NEGATIVE:**
+    // `['del','deep']` is NOT a prefix of `['del']`, so the entry bound there does NOT fire.
+    if (receipt.triggered.includes(atDescendant)) {
+      return (
+        "a delete at ['del'] returned the handle of the entry at ['del','deep'], a STRICT DESCENDANT of the " +
+        "deleted address and NOT a prefix of it: *\"a listener bound at a STRICT DESCENDANT of it does NOT\"* " +
+        '(§4.4; §6.5 item 10 (d) (iii))'
+      );
+    }
+    for (const id of receipt.triggered) {
+      if (id !== atRegister && id !== atNamed) {
+        return "a delete at ['del'] carried an id that is neither prefix-bound handle of this arm";
+      }
+    }
     if (receipt.triggered.length !== 2) {
       return (
-        `a delete's receipt carried ${receipt.triggered.length} ids, not 2 — the entry AT the deleted address and ` +
-        "the entry BESIDE it are BOTH prefixes of the triggering address (§2.3 item 5), and both are registered"
+        `a delete at ['del'] carried ${receipt.triggered.length} ids where the prefix set has exactly 2 — a ` +
+        'handle DUPLICATED in the list is caught here, where the two membership checks above cannot catch it'
       );
     }
 
-    // (4) A WRITE WHOSE TRIGGER SET IS EMPTY: no invocation, and nothing thrown.
-    const emptyRecord = write(deleting, ['nowhere'], 'mem', 1);
+    // (3b) **THE DELETE BELOW A LISTENER'S ADDRESS — THE RULE'S SECOND HALF, DRIVEN ON ITS OWN INSTANCE**
+    // (the delete of (3a) removed `['del']`'s whole subtree, so the container is created again in ADDRESS
+    // order). Listeners at `['del']` and `['del','deep']`, a delete at `['del','deep']`: the ANCESTOR-bound
+    // handle fires because `['del']` IS a prefix of `['del','deep']`, and so does the handle at the deleted
+    // address itself — the store's own `lf_d2` cell drives exactly this pair.
+    const below = mem([
+      { address: [], handle: 'reg2' },
+      { address: ['del'], handle: 'x2' },
+      { address: ['del', 'deep'], handle: 'y2' },
+    ]);
+    const belowRegister = listen(below, []);
+    const belowAncestor = listen(below, ['del']);
+    const belowOwn = listen(below, ['del', 'deep']);
+    write(below, ['del'], 'mem', {});
+    write(below, ['del', 'deep'], 'mem', 1);
+    const belowReceipt = remove(below, ['del', 'deep'], 'mem');
+    if (!Array.isArray(belowReceipt.triggered)) return "a descendant delete's receipt carries no triggered array";
+    if (!belowReceipt.triggered.includes(belowAncestor)) {
+      return (
+        "a delete at ['del','deep'] did not return the ANCESTOR-bound entry at ['del']: ['del'] IS a prefix of " +
+        "['del','deep'], so the delete passes THROUGH the ancestor's address (§6.5 item 10 (d) (iii); the " +
+        "store's lf_d2 cell)"
+      );
+    }
+    if (!belowReceipt.triggered.includes(belowOwn)) {
+      return "a delete at ['del','deep'] did not return the entry AT the deleted address";
+    }
+    if (!belowReceipt.triggered.includes(belowRegister)) {
+      return "a delete at ['del','deep'] did not return the entry bound at the empty address";
+    }
+    for (const id of belowReceipt.triggered) {
+      if (id !== belowRegister && id !== belowAncestor && id !== belowOwn) {
+        return "a delete at ['del','deep'] carried an id outside this arm's prefix set";
+      }
+    }
+    if (belowReceipt.triggered.length !== 3) {
+      return `a delete at ['del','deep'] carried ${belowReceipt.triggered.length} ids where the prefix set has 3`;
+    }
+
+    // (4) A WRITE WHOSE TRIGGER SET IS EMPTY: no invocation, and nothing thrown. **THE STATE IS REACHABLE
+    // ONLY WHERE NO REGISTER-BOUND ENTRY STANDS** — the empty address is a prefix of every address, so on
+    // the delete arms' instance every write fires at least that entry — and the arm is therefore driven on
+    // an instance whose home is empty, which is what makes `triggered` the EMPTY set the clause declares.
+    const bare = mem();
+    const emptyRecord = write(bare, ['nowhere'], 'mem', 1);
     if (emptyRecord.triggered.length !== 0) return 'a write at an unregistered address carried an id';
 
     // (5) **AN UNREGISTERED ID FIRES NOTHING — AND THE SILENCE IS THE OBSERVABLE** (`§2.4` rule 1, item 6

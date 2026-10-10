@@ -692,6 +692,76 @@ impl Instance {
   registry entry STANDS (rule 4).** **(c) `triggered_set` IS THE SET, AS A SET:** **its ORDER IS NOT A
   DECLARED ORDER and no drive may assert one** (`§2.7` item 3, `DD-22`).
 
+**⟶ RE-SPELLED 2026-10-11 — THE INVOKER IS THE MAPPING LAYER AND NOT THE FACADE, AND THIS ITEM'S SIGNATURE
+BLOCK IS RECONCILED MEMBER BY MEMBER TO WHAT THE CORE ACTUALLY CARRIES** (`RCA-8(d)` ANNOTATE-BESIDE: **item 5's
+opening sentence, its signature block, its clauses (a)–(c) and this section's own item list stand
+byte-for-byte above and are read THROUGH this clause; not one byte of them is re-worded, moved or deleted, and
+this clause NAMES the as-filed text it re-spells**; the finding's home
+`archive/reviews/2026-10-11-structural-compliance.md` `§3` · `F-13` (with its `§4` · `U-9` · `U-11`) and its
+`§6`; `A1 docs/specs/storeroom-js-proposal.md §17 · `A75`` — the route `JS → facade → core → store` — and its
+`§18` · `A77`; `A3 docs/specs/storeroom-js/surface.md §2.4` item 5 and `§2.7` item 5 · `A3
+docs/specs/storeroom-js/parameter-semantics.md §2.12`; `DD-15`; the boundary's own record
+`bindings/js/src/crossing.rs`; `[A1 docs/specs/storeroom-js-proposal-review.md §5.3 — `V1`'s drivability, so
+that the DECLARED interface and the build read as ONE declaration | requirement]`).
+**THE AS-FILED SENTENCE READ:** *"`Instance` is the core's own type, holding ONE store instance and the
+PACKAGE-OWNED registry of `§2.4`; the core never invokes a listener of its own accord, and **the facade** reads
+the registry's answer and performs the invocation after the verb returns (`§2.7`)."* **THE CLAUSE THIS
+RE-SPELLING MOVES, AND WHERE IT MOVES TO — ONE CLAUSE, AND NOTHING BESIDE IT:** **THE INVOKER IS THE MAPPING
+LAYER — the package, reached through the claimed ESM entry — and NEITHER the facade NOR the core invokes
+anything.** **`A75`'s route is `JS → facade → core → store`: the facade CROSSES (arguments in, the store's
+records out) and the invocation happens ONE LAYER ABOVE it, in the package, after the verb's own call has
+returned** — **`A77` puts the id→function matching on the CLIENT side** (*"the store passes an ID back to the
+client when a listener is triggered, and the JS side matches that ID to the function the caller registered it
+with"*), so the live invocation is the ESM entry's own `deliver`, which matches `triggered`'s member to the
+function its registry holds and calls it with the TRIGGERING ADDRESS (`surface.md §2.7` item 5;
+`parameter-semantics.md §2.12`'s dated clause declares that ONE argument; `DD-22` declares the window and
+asserts no order). **THE HALF THAT STANDS TRUE AND IS KEPT WHOLE: *"the core never invokes a listener of its own
+accord"* — and it is true for the strongest reason there is: the core holds NO listener, NO callable and NO slot
+for one, so it can invoke nothing.** **The `§2.7`/`DD-22` clauses the sentence cites are UNMOVED by this clause,
+and no clause of this directory is re-decided with it.**
+**AND THE SAME ITEM'S SIGNATURE BLOCK, RECONCILED — ONE MEMBER IS DELETED, ONE MOVES IN ITS PARAMETER LIST
+ONLY, AND THE REST STAND:** **as filed the block printed**
+
+```
+  fn register(&mut self, h: &JsHandleArg, listener: JsListener) -> Result<(), Refusal>
+  fn triggered_set(&self, r: &JsWriteResult)             -> Vec<JsHandle>
+```
+
+**and the OPERATIVE declaration is the block's own eight members — `read` · `read_literal` · `write` · `delete` ·
+`rollback` · `listen` · `unlisten` · `register` — with `register`'s sole surviving signature
+`fn register(&mut self, h: &JsHandleArg) -> Result<(), Refusal>`, and NO NINTH member.** **Named, one by one:**
+1. **`triggered_set(&self, r: &JsWriteResult) -> Vec<JsHandle>` IS DELETED, AND ITS SUBJECT IS ALREADY A MEMBER
+   OF WHAT THE VERBS RETURN.** **The triggered handles cross IN the write's and the delete's own records**
+   (`JsWriteResult.triggered` · `JsDeleteReceipt.triggered`; item 4; `§0.2`'s `DD-39`) — **so a second accessor
+   over an ALREADY-CROSSED member is a second spelling of one answer, it has no caller on either side of the
+   boundary, and no drive may need it.** **Clause (c) above survives as the ORDER rule it states** (`DD-22`),
+   **now read over the returned records' own `triggered` member.**
+2. **THE `listener: JsListener` PARAMETER DOES NOT SURVIVE: THE FUNCTION NEVER CROSSES** (`DD-15`). **The
+   package holds the caller's function in its own per-instance registry, keyed by the opaque handle
+   registration returned; the core is asked nothing about it** (`§2.4` items 4–5; `surface.md §2.4` item 6).
+   **A callable, or a carrier FOR one, appearing in the core's declared surface is a FINDING under item 7.**
+3. **`register` SURVIVES AS THE DOMAIN HALF, AND CLAUSE (a) ABOVE IS THAT DOMAIN's ANSWER.** **The surviving
+   member answers ONE question — does this handle belong to THIS instance's own domain, the tokens it MINTED
+   by `listen` or ADOPTED at its own construction? — with clause (a)'s declared refusal for every outside value
+   and the success for an in-domain handle** (`surface.md §2.5` item 5 (g)'s one form, carrying the store's own
+   closed-set `AddressMalformed` and never a minted code: `DD-40`). **It holds NO slot, stores NOTHING and
+   invokes NOTHING.** **AND THE TABLE'S OWN ROW IS ITS OTHER HALF: the per-instance domain's carrier is
+   declared at `§0.2` · `DD-49`, the row carrying the core-side carrier of the registration site's domain, so
+   this interface and that row read as ONE declaration.**
+4. **THE REGISTRY'S FOUR RULES STAND WHOLE, AND EACH RULE IS READ AT THE PLACE THAT HOLDS ITS STATE: clause
+   (b) is unmoved.** **Rule 2 (`register` replaces and never fans out), rule 1 (an unregistered handle's
+   `triggered` membership fires nothing silently), rule 3 (a duplicate token enters the set once) and rule 4
+   (`unlisten` removes the store-side home entry while the registry entry STANDS) are the PACKAGE's registry
+   rules, and they stand exactly as this item prints them** (`§2.4`; `surface.md §2.4`; `DD-15`) — **because the
+   registry that holds the functions is the package's, and the store-side half each rule names is the home's**
+   (`docs/specs/storeroom-native/write-and-read.md §6.5` item 8, cited and never re-declared here).
+**AND ONE CONSEQUENCE NAMED SO THE RE-SPELLING IS NOT READ AS A WIDENING OR A NARROWING ANYWHERE ELSE:** **this
+clause declares the interface the unit's Rust half is authored against, and it MINTS NO CODE, NO STATE, NO
+MEMBER AND NO BEHAVIOUR.** **The invocation's argument, its window, its order and a throwing body's
+disposition are the JS layer's own declared clauses and NOT this core's** (`surface.md §2.7` item 5;
+`parameter-semantics.md §2.12`; `DD-22`; `DD-23`) — **so a drive that asserts an invocation THROUGH the core, or
+a ninth accessor over the returned records, is authored against an interface this core does not carry.**
+
 **6. HOW THE JS-FACING TYPES RELATE TO THE CORE — THE EDGE, STATED SO NO SECOND DEFINITION ARISES.** **The
 Node-API facade declares NO JS-shaped type of its own: every `Js*` type above is the core's, and the facade's
 `#[napi]` methods CONVERT a Node-API value INTO the core's model and, on the way back, convert the core's
