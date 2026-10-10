@@ -744,3 +744,32 @@ comparison; and `§1.2` row 4's cross-realm acceptance, whose drive this part's 
 of the shipped JS suite drives.** **The value taxonomy, the walk's own rules and the equality relation stand
 exactly as printed, and the clause that records each divergence names its owner** (`[A1
 docs/specs/storeroom-js/contract.md · the sweep clause | cross-reference]`).
+
+**⟶ AND THE GATE-8 RECONCILIATION'S OWN EFFECT ON THIS PART, LANDED 2026-10-11 BY
+`role_documentation_reviewer`.** `RCA-8(d)` ANNOTATE-BESIDE: **no clause above moves, and this clause is a
+PURE INSERTION — it re-spells no rule, moves no variant, and adds no row to any table.** **THE DIVERGENCES THE
+SWEEP RECORD ABOVE NAMES, READ AT THE BUILD'S OWN BYTES BY THIS PASS:**
+1. **THIS PART'S `§1.6` `56`-ROW CARRIER CENSUS IS UNMOVED**, and its `14 + 7 + 4 + 6 + 6 + 12 + 5 + 2 = 56` ✓
+   arithmetic stands. **The reconciliation of the `12`-row `JournalLengthArg` table against the model's `15`
+   states is `package.md §4.5`'s dated clause, WITH ITS TERMS, and it names where each extra state comes
+   from** — `Null` and `Undefined` carried as two states, and `TooLarge(u64)` declared beside row 12 with the
+   row's declared answer `AddressMalformed` UNMOVED and NO CODE MINTED on the way. **A row no state answers,
+   and a state that answers no row, are each a FINDING at that clause — and neither fires.**
+2. **`§1.2` ROW 4'S CROSS-REALM PLAIN-OBJECT ACCEPTANCE AND `§1.4` ITEM 4 (e)'s REALM-AGNOSTIC TEST ARE
+   DRIVEN, AND THEY HOLD.** The build's own test of the class is structural and carries a FOURTH prototype
+   class for a plain object from another realm (`bindings/js/src/crossing.rs`'s `JsProto::{Plain, Null,
+   ForeignPlain, Class}`, and `index.mjs`'s `isPlainObjectValue`), and the drive that the gate-5 record booked
+   as *"STILL OPEN as a drive — recorded, not claimed"* is now the live battery's `LIVE-10`
+   (`archive/gate6/storeroom-js-live-determination.md` `§4`, `§6` (h)): **a cross-realm plain object,
+   `Object.create(null)` and a cross-realm array ACCEPTED and round-tripping; a cross-realm class instance
+   `ValueNotAdmitted`; and a cross-realm array at an ADDRESS position answered by the walk's own
+   `AddressNotFound`, never as a malformed shape.**
+3. **AND THE `§1.8`-NEIGHBOURING VERBOSE-REJECTION CELL THIS PART'S OWN SUBSECTION DECLARES IS THE GATE-5
+   FINDING'S SUBJECT AND IS NOW HELD:** the fourteen refused value classes answer FOURTEEN DISTINCT messages,
+   each carrying the failing target's own spelling, the class and the argument position, in the ONE form
+   (`archive/gate6/storeroom-js-live-determination.md` `§3` · `LIVE-F1`; `LIVE-OBS-1`'s open reading of the
+   `prototype-carrying` spelling's Part One stands as an OBSERVATION and is NOT decided here).
+**NO CONTRACT BYTE OF THIS PART IS RE-DECIDED, NO FAILURE CODE IS MINTED, NO `DD` ROW'S `alt` MOVES, AND THE
+REGISTER OF `contract.md §5` KEEPS ITS `8` ROWS** (`[A3 docs/specs/storeroom-js/contract.md §10 — this pass's
+own reconciliation region; A3 docs/specs/storeroom-js/package.md §4.5's dated clause — the carrier-count
+reconciliation; A3 archive/gate6/storeroom-js-live-determination.md §3 · §4 | cross-reference]`).

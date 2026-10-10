@@ -72,6 +72,18 @@ was verified and it moves no row, no count and no ledger figure.**
 **(c) AND ONE BOUNDARY THE GATE-8 CLAUSE 2 DOES NOT COVER, STATED SO NO READER LOOKS FOR A MISSING ROW: `A1`–`A8` ARE NOT ROWS OF THIS FILE AND `A40` AND `A46`–`A58` ARE NOT EITHER.** **Both sets are filed elsewhere and cited with the `P:` tag plus a path and a section: `A1`–`A8` at the proposal's `§9`/`§10` (as clause 2 already states) and `A40`, `A46`–`A58` at `docs/specs/storeroom-listeners-proposal.md` `§8`–`§20` (`A40` `§8`; `A46`/`A47` `§12`; `A48` `§13`; `A49`–`A51` `§15`; `A52`/`A53` `§16`; `A54`–`A56` `§17`; `A57` `§18`; `A58` `§20`).** **THE AMENDMENT'S OWN GATE-4 RECORD FILED THE ONE CITATION THAT READ ONE OF THEM AS A ROW OF THIS FILE (`AM-14`: `DD-38`'s reversal cell's `A: docs/decisions.md · A48`), and that cell now carries its `P:`-tagged repointing in place — no row is owed and none is owed by this clause** (`contract.md §0.1` item 2's tag enum and its resolving row-name form; `archive/gate4/storeroom-native-amendment-adversarial.md` `§5` item 1).
 **(d) NO ROW IS ADDED, SUPERSEDED, RE-NAMED OR RE-ORDERED BY THIS CLAUSE; THE LEDGER'S OWN ARITHMETIC IS `1 DONE / 1 open` UNITS = `2` (`1 + 1 = 2`) AND MOVES FOR NO ROW OF THIS FILE; AND EVERY FIGURE NAMED HERE IS ENVELOPE/PURE — THE ASSEMBLED/`APP` LAYER IS `NONE` FOR THIS UNIT AND NO `APP`-GREEN EXISTS OR IS CLAIMED** (`[T: this file's row set and its own clause-5 figures, reconciled with their terms and their trees at the listener-amendment proofreading gate | CENSUS]`).
 
+**⟶ RECONCILED 2026-10-11 — THE `U-STOREROOM-JS` GATE-7 PROOFREADING PASS (`role_proofreader`): THIS FILE'S ROW
+SET, ITS `A`-MARKER MAP AND ITS LEDGER FIGURES.** `RCA-8(d)` ANNOTATE-BESIDE: **every clause above — the
+gate-8 reconciliation's four numbered clauses and the layer-honesty paragraph beside them, and the (a)–(d)
+block — stands byte-for-byte and is read THROUGH this clause; THIS CLAUSE IS A PURE INSERTION and it ADDS,
+SUPERSEDES, RE-NAMES AND RE-ORDERS NO ROW. It states the row set the file's bytes carry and the ledger figures
+the trackers carry, each with its terms.**
+
+- **THE ROW SET, COUNTED AT THIS FILE'S OWN ROWS: `11` ACTIVE ROWS, `0` SUPERSEDED, `SUPERSEDED` EMPTY.** **CLAUSE 1's map and clause (b)'s corrected map read `8` ACTIVE rows and are the operative maps AS OF THE PASS THAT AUTHORED THEM; THE ROWS ADDED SINCE ARE THREE**, each carried in the table above with its own printed name: the row whose name carries **`A70`·`A71`·`A72`·`A73`·`A74`** (the JS package's realm, its published artefact with prebuilds, its one-row dossier, its client-side constraint/repair pattern and its declared absence of a release verb), the row whose name carries **`A62`·`A63`·`A64`·`A65`·`A66`·`A67`·`A68`** (the unpark, `findAddress` internal to JS, the deep-copy crossing, the handle mint, the sibling crate), and **the `A45` home row** — **so the operative marker set is `A9` · `A17`–`A20` · `A21`–`A26` · `A27`–`A33` · `A34`–`A37` · `A38`·`A39` · `A41`·`A42`·`A43`·`A44` · `A45` · `A62`–`A68` · `A70`–`A74`: `11` ACTIVE rows, `0` SUPERSEDED.**
+- **AND THE BOUNDARY CLAUSES 2 AND (c) DRAW STANDS AND IS EXTENDED BY NOTHING: `A1`–`A8` are the store proposal's answer set and scope ruling (`P: §9`/`§10`), and `A40` and `A46`–`A61` are filed at `docs/specs/storeroom-listeners-proposal.md` `§8`–`§21`, each cited with the `P:` tag, its path and its section.** **A lookup for any of them in THIS file still finds none and none is owed.**
+- **AND THE LEDGER FIGURES THIS FILE'S CLAUSES PRINT ARE THE LISTENER-AMENDMENT PROOFREADING GATE'S OWN STATE.** **CLAUSE 4 AND CLAUSE (d) READ `0 DONE / 1 open` and `1 DONE / 1 open` UNITS = `1`/`2`.** **THE OPERATIVE ARITHMETIC, AT THE TRACKERS' OWN BYTES: `2 DONE / 1 open` UNITS = `3` (`2 + 1 = 3` ✓) — `U-STOREROOM-NATIVE` (`N1`) and `U-STOREROOM-LISTENERS` (`N2`) are `DONE`, and `U-STOREROOM-JS` (`N3`) is the ONE OPEN UNIT, its gates 7–8, its trio and its `DONE` row PENDING.** **THE FIGURES THE LAYER-HONESTY PARAGRAPH PRINTS ARE ITS TREES': `196` tests · `196` PASS · register layer `8/8` rows · `314` attempts is the PRE-AMENDMENT tree's; `218` / `11-11` / `318` is the AMENDED AND CORRECTED tree's; the store's root suite now reads `377` PASS · `0` FAIL; and this unit's own figures are `101` JS tests · `223` sibling-crate PASS · `395`/`107` register attempts · `236/236` blind · `72/72` live** (`docs/next-steps.md` `## OPEN`'s dated clause; `docs/specs/storeroom-js/implementation-plan.md` `§4.2`).
+- **AND ONE PARK CLAUSE IN THIS FILE IS READ FORWARD, NOT REWRITTEN: the layer-honesty paragraph's *"the JS integration (`P-1`) and the listener (`P-3`) are PARKED `OPEN`"* and the gate-8 clause that corrected half of it both PRE-DATE `P-1`'S OWN LIFT.** **THE OPERATIVE STATE OF BOTH PARKS IS `lifted`, NOT DELETED, EACH WITH ITS OWNER THE ARCHITECT AND ITS REVISIT CONDITION MET — `P-1` by `A66` and `P-3` by `A44`; NO PARK IS READ AS A CLOSURE, NOTHING PARKED IS REPORTED GREEN, and the assembled/`APP` layer remains `NONE`** (`docs/pending.md` `§2` and its dated reconciliation bullets; `[T: this file's rows, markers, ledger figures and the two parks' states, each reconciled in place | CENSUS]`).
+
 **LAYER HONESTY, STATED ONCE FOR EVERY ROW ABOVE:** **every green and every figure in this file is
    ENVELOPE/PURE** — the crate's own suite (`196` tests · `196` PASS · `0` FAIL), its register layer
    (`8/8` rows · `9` verdict lines · `314` attempts of the `400` cap) and the blind in-isolation set
@@ -99,3 +111,28 @@ NOT THE LAYER: every green and every figure in this file remains ENVELOPE/PURE, 
 not expose any `APP` surface** (`archive/gate6/storeroom-native-live-determination.md` `§2.5` and the amendment's
 own record `archive/gate6/storeroom-native-amendment-live-determination.md` `§2.5`/`§4`, whose table labels every
 green ENVELOPE/PURE and answers *"Is it an `APP`-green?"* with **NO** at every row).
+
+**⟶ RECONCILED 2026-10-11 (THE `U-STOREROOM-JS` GATE-8 DOCUMENTATION REVIEW, `role_documentation_reviewer`;
+EVERY ROW AND EVERY CLAUSE ABOVE STANDS BYTE-FOR-BYTE, AND THIS CLAUSE IS THE OPERATIVE STATEMENT OF THE ONE
+CLAUSE THIS FILE STILL PRINTS AS A STANDING CONTRADICTION — NAMED BECAUSE THE NEXT PASS MUST NOT READ TWO
+LAWS FROM IT).** `RCA-8(d)` ANNOTATE-BESIDE: **no ROW of this file is added, superseded, re-named or
+re-ordered by this clause; the file's marker set and its `SUPERSEDED` section are UNMOVED.**
+
+**THE CLAUSE THAT MOVED, AND WHAT IT READ:** **the gate-8 clause above reads *"`P-1` — the JS integration — IS
+`OPEN` AND UNMOVED (owner the architect; revisit condition *the store passes its own test suite*, REPORTED MET;
+the lift the architect's act alone)"*.** **THAT READING IS SUPERSEDED BY THE ARCHITECT'S OWN LATER ACT: `P-1`
+IS LIFTED — `A66`, *"this is the unpark of the integration"* — and the lift is recorded at `docs/pending.md`
+`§2`'s head clause, whose own dated bullet prints `P-1`'s operative state as `lifted` with its `28` rows
+mapped row by row at `docs/specs/storeroom-js/contract.md` `§7.3`.** **So the two parks' operative state,
+read from their own lift clauses and NOT from the clause above, is: `P-1` LIFTED · `P-2` its surfacing duty
+MET · `P-3` LIFTED (`A44`) — LIFTED, NEVER DELETED in both cases, and A LIFTED PARK IS STILL NOT A GREEN.**
+
+**AND THE LAYER THIS FILE'S OWN CLAUSES OWE THE OPEN UNIT, STATED SO THE NEXT PASS CANNOT OVER-READ IT: THE
+`U-STOREROOM-JS` UNIT IS OPEN AND ITS `DONE` ROW IS THE SUPERVISOR'S CLOSE-OUT — NOT THIS PASS'S.** **Its
+gates 1–8 have RUN; its figures are, each with its layer: `101` JS tests · `236/236` blind assertions · `223`
+sibling-crate cells · `377` store cells, ALL `ENVELOPE/PURE`; and the `72`-assertion live battery on the
+`LIVE / ASSEMBLED PACKAGE` layer. THE ASSEMBLED/`APP` LAYER IS `NONE`, NO `APP`-GREEN EXISTS FOR ANY UNIT OF
+THIS PROJECT, AND NO CONSUMER APPLICATION LOADS THE JS PACKAGE ANYWHERE IN THIS REPOSITORY.** **EVERY GREEN
+AND EVERY FIGURE IN THIS FILE REMAINS `ENVELOPE/PURE`; NOTHING PARKED IS REPORTED GREEN AND NO PARK IS NAMED
+AS ANY INSTRUMENT OF THIS PASS** (`A66`; `docs/pending.md` `§2`'s dated bullets; `docs/next-steps.md`'s
+`## DONE` reconciliation clause; `docs/specs/storeroom-js/contract.md` `§10` | CENSUS]`).

@@ -1833,6 +1833,24 @@ declared the site's spelling) is UNMOVED, and only its duplicate drive's ARRAY f
 clause.** **The state this row declares is the build's to reach: `bindings/js/index.mjs`'s `wrapHandles`
 collapses the duplicate at the boundary today, which is the priced alternative named at `surface.md §2.4`'s
 dated clause and NOT this row's; the register's figure is the DECLARED one and is not adjusted to a build.**
+**⟶ RECONCILED 2026-10-11 — THE DOCUMENTATION-REVIEW GATE (`role_documentation_reviewer`, gate 8): THE
+SENTENCE ABOVE IS STALE AGAINST THE SHIPPED BUILD AND IS READ THROUGH THE CLAUSE BELOW IT.** `RCA-8(d)`
+ANNOTATE-BESIDE: **every byte above stands byte-for-byte — the as-filed sentence included, quoted here rather
+than deleted — and the clause below is the OPERATIVE STATEMENT of the build's own state at this row's
+subject.** **WHAT THE SENTENCE READ, VERBATIM:** *"`bindings/js/index.mjs`'s `wrapHandles` collapses the
+duplicate at the boundary today, which is the priced alternative named at `surface.md §2.4`'s dated clause and
+NOT this row's"*. **THE BUILD HAS MOVED, AND IT IS NAMED AT ITS OWN BYTES: `bindings/js/index.mjs`'s
+`wrapHandles` NOW CARRIES THE STORE'S OWN LIST ELEMENT FOR ELEMENT AND EDITS NOTHING** — the file's own line
+reads *"**THE STORE'S OWN LIST IS CARRIED OUT ELEMENT FOR ELEMENT, AND THE BOUNDARY EDITS NOTHING**"* and the
+collapsed form stands beside it RE-EMITTED AS THE AS-FILED READING
+(`if (!out.includes(handle)) out.push(handle);`), with the per-identity deduplication RELOCATED to `deliver`,
+where `surface.md §2.4`'s dated clause (i) puts it. **SO THE DIVERGENCE `surface.md §2.4`'s dated clause left
+open — *"WHICH SIDE THE DIVERGENCE SITS ON IS FOR THE PASS THAT RECONCILES THE BUILD TO THIS CLAUSE TO SAY"*
+— IS ANSWERED, AND IT SITS ON NEITHER SIDE: THE BUILD NOW HOLDS THIS ROW'S DECLARED FIGURE.** **THIS ROW'S
+OWN FIGURE IS UNMOVED, THE REGISTER STAYS AT ITS `8` ROWS, NO FAILURE LIST ENTRY MOVES, AND NO RULE IS
+RE-DECIDED HERE** (`archive/gate3/storeroom-js-red-set.md` §13; `bindings/js/index.mjs`'s `wrapHandles` and
+`deliver`; A1 docs/specs/storeroom-js-proposal.md §18 · `A77`; A3 docs/specs/storeroom-native/contract.md §0.2 ·
+`DD-42` · `DD-39` | state or fail-state declaration).
 **AND THE `derivation:` CLAUSE STAYS SINGLE: this clause carries an authority tag and no `derivation:`
 clause** (`§0.1` item 2; `surface.md §2.4`'s dated clause of 2026-10-11 — the operative statement; this
 document's own `§2.4` dated clause; `docs/specs/storeroom-js/parameter-semantics.md §2.15`'s dated clause;
@@ -1985,7 +2003,22 @@ NINTH ROW IS MINTED, no strategy id is added, dropped or renamed, and `S-TRIGGER
 PACKAGE's rule and is UNMOVED by this clause, and its window, order and throwing-body halves are unchanged.**
 **The state this row declares is the build's to reach: `bindings/js/index.mjs`'s `wrapHandles` collapses the
 duplicate at the boundary today — the priced alternative named at `surface.md §2.4`'s dated clause — and the
-register's figures are the DECLARED ones and are not adjusted to a build.** **AND THE `derivation:` CLAUSE STAYS
+register's figures are the DECLARED ones and are not adjusted to a build.**
+**⟶ RECONCILED 2026-10-11 — THE DOCUMENTATION-REVIEW GATE (`role_documentation_reviewer`, gate 8): THE
+SENTENCE ABOVE IS STALE AGAINST THE SHIPPED BUILD AND IS READ THROUGH THE CLAUSE BELOW IT.** `RCA-8(d)`
+ANNOTATE-BESIDE: **every byte above stands byte-for-byte — the as-filed sentence included, quoted here rather
+than deleted — and the clause below is the OPERATIVE STATEMENT of the build's own state at this row's
+subject, taken together with the twin clause at `§5.5`'s `S-REG-DUP` row.** **WHAT THE SENTENCE READ,
+VERBATIM:** *"`bindings/js/index.mjs`'s `wrapHandles` collapses the duplicate at the boundary today — the
+priced alternative named at `surface.md §2.4`'s dated clause"*. **THE OPERATIVE STATE, AT THE BUILD'S OWN
+BYTES: the boundary's collapse is GONE — `wrapHandles` carries the store's list ELEMENT FOR ELEMENT, with the
+per-identity deduplication at `deliver` — so `triggered` carries a lawful caller-spelled duplicate's token
+`TWICE` and this row's `S-TRIGGER` figures hold of the shipped package.** **NO FIGURE OF THIS ROW MOVES: the
+set's own property sentence, the four added failure-list entries and the `S-TRIGGER` · `S-NOOP` ·
+`S-FIRE-WINDOW` lines stand exactly as printed, and a drive that accepts a collapsed array remains a FAILURE
+of this row** (`archive/gate3/storeroom-js-red-set.md` §13; `bindings/js/index.mjs`'s `wrapHandles`/`deliver`;
+A1 docs/specs/storeroom-js-proposal.md §18 · `A77`; A3 docs/specs/storeroom-native/contract.md §0.2 · `DD-42` ·
+`DD-39` | state or fail-state declaration). **AND THE `derivation:` CLAUSE STAYS
 SINGLE: this clause is an insertion and carries no `derivation:` clause**
 (`archive/gate3/storeroom-js-red-set.md §12.5` finding 3; `surface.md §2.4`'s dated clause of 2026-10-11)
 (`[A1 docs/specs/storeroom-js/contract.md §2.4 rule 3's CASE B — the array's multiplicity is the store's; A3
@@ -2302,6 +2335,25 @@ quotes the store's green names which of the two it means** (`DD-33`)
 same way — the numeric cells were added after the first authoring, so `110` is OPERATIVE and `103` is
 HISTORICAL** (`[A1 docs/specs/storeroom-js-proposal-review.md §3 · `U26` | numeric or census claim]`).
 
+**⟶ RECONCILED 2026-10-11 — THE `U-STOREROOM-JS` GATE-7 PROOFREADING PASS (`role_proofreader`), CORRECTING THE
+FIGURES THIS SECTION AND `§7.1`'s TABLE PRINT.** `RCA-8(d)` ANNOTATE-BESIDE: **every clause and every cell above
+stands byte-for-byte — `§7.1`'s seven-row table and its `110/110`, `377`, `374` and `373/1` readings, and this
+section's two `G-17`/`U26` clauses — and each is read THROUGH this clause; THIS clause is a PURE INSERTION, it
+adds no table row, moves no id family and re-decides no ruling.** **THE FIGURES, EACH WITH THE TREE IT
+DESCRIBES:**
+
+| The reading that stands above | The tree it describes | The operative figure, and its source |
+| --- | --- | --- |
+| `§7.1` row `2`: *"the store's e2e JSON round-trip battery: `110/110`, exact match in every case but the two DECLARED normalizations"*, with *"`110` is operative and `103` is HISTORICAL"* in this section | the `A59`/`A60` re-derivation's projected battery (`104/104`, *"or `103/103` with the re-derived `-0` cell"*, `docs/specs/storeroom-listeners-proposal.md` `§21`) and the `U26` clause's two figures | **THE BATTERY AT `tests/e2e_json_round_trip.rs` IS `103` TEST FUNCTIONS**, authored from the amended contract, and the store's root suite reads **`377` PASS · `0` FAIL**: so `103` is the figure the artifact carries and `110` is the RE-DERIVATION's own projected/enlarged reading, quoted from the records that name it. **BOTH READINGS STAND, EACH WITH ITS TREE, AND NEITHER IS WITHDRAWN: `103` is the battery's cell count at its file, `110` the figure the re-derivation's clauses print.** |
+| `§7.1` row `1` and this section's `G-17` clause: the store's green at `377`, `374` marked HISTORICAL, and row `4`'s `373 PASS / 1 FAIL` | the store unit's own tree, at three dates | **UNMOVED AND ACCURATE: `377` PASS · `0` FAIL is the store's root suite as the build prints it now (root `Cargo.toml` byte-identical); `374` is the LISTENER-AMENDMENT tree's reading; `373 PASS / 1 FAIL` is its `A69` correction-pass reading.** |
+| — (no row prints it) | — | **AND THE FIGURES THIS DIRECTORY'S OWN TREE PRINTS, ADDED HERE BECAUSE `§7.1`'s TABLE CARRIES NONE OF THEM: `node --test bindings/js/test/*.test.mjs` — `101` tests · `101` pass · `0` fail; `cargo test --manifest-path bindings/js/Cargo.toml --offline --no-fail-fast` — `223` PASS · `0` FAIL; the typed register layer — `8` rows (`5` Rust strategy lines · `3` JS) ALL `HELD`, `395` attempts on the Rust half and `107` on the JS half, `0` un-run against the `≤ 100`-per-row / `≤ 400`-total budget; `node bindings/js/greens/greens.mjs` — `236` authored · `236` executed · `236` PASS · `0` FAIL; `node bindings/js/greens/live-drive.mjs` — `72` authored · `72` PASS · `0` FAIL.** **`89` and `92` stand in `implementation-plan.md`'s own clauses as that part's HISTORICAL readings of the same JS suite.** |
+
+**AND THE ONE THING THIS CLAUSE DOES NOT DO: it re-measures nothing, because this pass holds no execution verb.
+The figures above are read at the sites that carry them — the store's root suite, the two sibling-crate legs, the
+two register halves and the two greens drivers — and the layer of every one of them is `ENVELOPE/PURE` with the
+assembled/`APP` layer `NONE`** (`DD-20`, `DD-31`, `DD-33`; `[T: this section's figures, reconciled row by row with
+each superseded reading quoted | CENSUS]`).
+
 ### §7.3 THE ROW-BY-ROW MAP OF `P-1`'S `28` ROWS — every id disposed of EXACTLY ONCE
 
 **WHAT THIS TABLE IS, AND WHAT IT IS NOT.** **It disposes of every id `P-1`'s own enumeration carries, each
@@ -2417,15 +2469,92 @@ prohibition]`).
 
 ---
 
+## §10. THE GATE-8 RECONCILIATION — this directory's contract and its parts against the build they describe
+
+**⟶ RECONCILED 2026-10-11 — THE DOCUMENTATION-REVIEW GATE (`role_documentation_reviewer`, gate 8, the
+per-unit pass): EVERY CLAUSE ABOVE STANDS BYTE-FOR-BYTE, AND THIS SECTION IS THE OPERATIVE STATEMENT OF
+THE CELLS THE SHIPPED BUILD HAS OUTGROWN.** `RCA-8(d)` ANNOTATE-BESIDE: **no `§` above is renumbered, no rule
+is withdrawn, no `DD` row's `alt` moves, the register stays at its `8` rows, the `derivation:` clause stays
+SINGLE, and this pass ADMITS NO UNIT ROW AND WRITES NO `DONE` ROW.** **THE ROWS BELOW NAME THE DIVERGENCE
+SWEEP'S OWN CELLS THAT THE LANDED REWRITE HAS MOVED; the sweep's `§8`-neighbouring item 3 already records
+rows `8`, `10`, `12` and `14` of its `ITEM 2` table as moved, and the rows here are the ones THAT clause
+does not reach.** **Each row quotes what its cell read BEFORE, so `git diff` recovers every pre-pass byte.**
+
+| # | The sweep's cell, as filed | What it reads now, at the build's own bytes |
+| --- | --- | --- |
+| **1** | **`ITEM 2` ROW `1`** — *"`bindings/js/index.mjs`, whose `Boundary` class carries the register tree, the home, the journal, the file log and all `8` verbs IN JAVASCRIPT, and which never calls the addon's `storeCreate` or its `call` dispatch"* | **THE CLASS AND THE SECOND STORE ARE GONE.** `index.mjs` declares NO `class Boundary` and carries no register tree, home, journal or file log; every verb delegates through `call(state, verb, args)` → `addon_.call`, and `src/facade.rs`'s `#[napi]` facade is the ONE authority for store state, so `A65`'s single-store discipline and the `V1` layout (`package.md §4.5` item 1 / `§4.4`) HOLD OF THE SHIPPED PACKAGE. **The `ITEM 2` row's `WHO MUST MOVE` cell — `the CODE` — is answered by the landed rewrite and owes nothing** (its subject is the implementer's `V1` rewire; `archive/gate3/storeroom-js-red-set.md` §9's header records the rewire) |
+| **2** | **`§5.5`'s and `§5.8`'s dated clauses' build-side sentence** — *"`bindings/js/index.mjs`'s `wrapHandles` collapses the duplicate at the boundary today"* | **RECONCILED IN PLACE ABOVE** at both rows, each with its own dated clause: the boundary carries the store's list ELEMENT FOR ELEMENT and the per-identity dedup stands at `deliver`, so **the DIVERGENCE `surface.md §2.4`'s dated clause handed to the reconciling pass is answered — and it sits on NEITHER side, because the build now holds the DECLARED figure** |
+| **3** | **`ITEM 2` ROW `13`** — *"`registerOn`, which resolves the handle through a MODULE-LEVEL `WeakMap` and accepts any token equal to one of THIS instance's home tokens, and … `addon_register`, which accepts ANY token string at the addon's own boundary"* | **THE PER-INSTANCE KEY IS THE INSTANCE'S OWN PRIVATE HANDLE, AND THE BOUNDARY NO LONGER ACCEPTS A BARE TOKEN.** `registerOn` resolves the argument through `encodeHandle(state, handle)`, whose `Opaque` arm is the only one that reaches `addon_.register(state.id, encoded)`; a bare `string`, a fabricated object, a foreign instance's value and an ABSENT argument each answer the ONE form with the store's `AddressMalformed` at the registration site (`§2.4` item 5 (d) as read through `surface.md §2.5` item 5 (g)). **So `§5.8`'s `S-NOOP` and `§2.3` item 3 (i)** — which rest on the declared per-instance identity — **are reachable and are driven** (`archive/gate3/storeroom-js-red-set.md` §10.1; `bindings/js/index.mjs`'s `registerOn`/`encodeHandle`) |
+| **4** | **`ITEM 2` ROWS `2`, `3`, `4`, `5`, `6`, `16`, `17`** — the `package.md §4.5` item 2/3/4 declaration rows (`from_store_value`'s `Result` arm · the `JsValue` `14`-variant count · `JsProto`'s `3` variants · `JsHandleArg`'s pair · `JsJournalLengthArg`'s `12` rows · `JsJournalOpKind` · `TooLarge`) | **EACH IS RECONCILED AT ITS OWN HOME IN `package.md §4.5` AND IN `crossing.md §1.3` BY THE LATER BOUNDED PASSES**, whose dated clauses are the operative reads: the counts are re-derived WITH THEIR TERMS beside the as-filed figures, `§4.5` item 7's "undeclared state" FINDING is answered type by type, and `JsJournalOpKind`'s absence is declared with the string spelling the build prints. **Nothing in THIS clause re-spells one of them, and no row of the sweep is withdrawn** |
+| **5** | **`ITEM 2` ROW `30`** — the closure clause's RAW-FILE reading, `6 = 7` | **UNMOVED AND ALREADY DISPOSED OF: the operative reading is the PART-ENTRY counting, `6 = 6`, and the predicate HOLDS.** This pass creates no root-level file of this directory (its own record lands under `archive/reviews/`), so the file set's figure is unmoved; the right-hand terms' re-statement remains the named repair of a later bounded amendment |
+| **6** | **`§7.1`'s and `§7.3`'s figures, and `§4.1`'s numbering** | **UNMOVED.** `§4.1`'s `1` · `4` · `5` numbering stands as filed, read through `acceptance.md §4.1`'s disclosure clause and its home-side twin; `§7.1`'s figures and `§7.3`'s `28`-row map are unmoved by this pass and by the sweep |
+
+**AND THE FOUR FIGURES THIS PASS VERIFIED AT THEIR OWN BYTES RATHER THAN TAKING THEM FROM ITS BRIEF, EACH
+WITH ITS SITE AND ITS LAYER.** **This pass holds NO execution verb** (its tool wall is read/search plus doc
+writes, so no `node` and no `cargo` command was run by it); **the figures below are therefore READ OFF THE
+ARTIFACTS THAT CARRY THEM AND OFF THE TREE'S OWN STATIC DECLARATIONS, and the tree's own records are named as
+the measurements they are.** **And the layers are stated so no cell is over-read: every one of them is an
+`ENVELOPE/PURE` figure, the ASSEMBLED/`APP` LAYER FOR THIS UNIT IS `NONE`, and NO CONSUMER APPLICATION LOADS
+THIS PACKAGE ANYWHERE IN THIS REPOSITORY** (`§4.2` items 2–3; `DD-20`).
+
+| The figure | Which layer it covers | Where it is carried, and what this pass read |
+| --- | --- | --- |
+| **`101` tests · `101` PASS · `0` FAIL** (`node --test bindings/js/test/*.test.mjs`, at the repository root) | **`ENVELOPE/PURE`** — the JS leg, driven through the claimed ESM entry | **STATICALLY RE-DERIVED BY THIS PASS FROM THE FILES' OWN DECLARATIONS:** `6` files under `bindings/js/test/**`; `83` literal `test(...)` declarations **+** the `13`-member `CORPUS` loop in `round-trip.test.mjs` **+** the `7`-row `HO_ROWS` loop in `package-entry.test.mjs` = `83 + 13 + 7 = 101` ✓, with the per-file set `21` · `36` · `17` · `17` · `2` · `8` = `101` ✓. **The last two figures are the ones the plan's `92` does not carry** (see `implementation-plan.md`'s new `§3` clause). The tree's records (`archive/gate3/storeroom-js-red-set.md` §11.4, §13.4) print the same totals |
+| **`236/236`** (`node bindings/js/greens/greens.mjs`, at the repository root) | **`ENVELOPE/PURE`** — the blind set, a consumer driving the claimed entry | **`bindings/js/greens/greens.mjs`'s own per-scenario header counts**: `13 + 16 + 5 + 67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 + 17 + 6 = 236` ✓, over `13` scenarios. **The gate-5 record's `233`/`3` is HISTORICAL and is superseded by commit `9707ee9`; the operative run is `236/236`** (`archive/gate6/storeroom-js-live-determination.md` `§2.3`, `§3` · `LIVE-F1`) |
+| **`72/72`** (`node bindings/js/greens/live-drive.mjs`, at the repository root) | **LIVE / ASSEMBLED PACKAGE** — the real artefact, a real process, real file I/O, a real caller. **`APP` LAYER: `NONE`** | **`live-drive.mjs`'s own `12` `LIVE-n` scenario blocks** (`archive/gate6/storeroom-js-live-determination.md` `§4`). **This is NOT an `APP`-green and no cell of it may be read as one** |
+| **`223` PASS · `0` FAIL** (`cargo test --manifest-path bindings/js/Cargo.toml --offline --no-fail-fast`, at the repository root) | **`ENVELOPE/PURE`** — the sibling crate's own suite, the `rlib` half driven with no Node runtime | `archive/gate3/storeroom-js-red-set.md` §11.4/§13.4: `76` (`crossing_carriers`) + `17` (`crossing_copy`) + `66` (`crossing_values`) + `2` (`register_layer`) + `62` (`surface_verbs`) = `223` ✓ |
+| **`377` PASS · `0` FAIL** (`cargo test --offline --no-fail-fast`, at the ROOT) | **`ENVELOPE/PURE`** — the STORE's own suite, **QUOTED and NOT re-labelled as this unit's** | `archive/gate3/storeroom-js-red-set.md` §11.4/§13.4, with its own term-by-term arithmetic `0 + 22 + 110 + 46 + 28 + 11 + 22 + 12 + 26 + 20 + 12 + 20 + 19 + 29 + 0 = 377` ✓ (`DD-31`; `DD-33`) |
+
+**AND THE CITATION RESOLUTION THIS PASS OWES, STATED BECAUSE A CITATION THAT POINTS AT A MOVED FILE IS A
+FINDING** (`A3`'s own cross-reference clause, restated as this document's own declaration): **every
+`archive/**` path this section and the four trackers cite was RESOLVED BY THIS PASS AT ITS LIVE LOCATION, and
+NOTHING WAS ARCHIVED, MOVED OR REPOINTED BY IT.** **The resolved set: `archive/gate1/storeroom-js-review/`
+(the three gate-1 step reports) · `archive/gate3/storeroom-js-red-set.md` ·
+`archive/gate4/storeroom-js-adversarial.md` · `archive/gate5/storeroom-js-greens-run.md` ·
+`archive/gate6/storeroom-js-live-determination.md` · and the five `archive/reviews/**` records of the two
+other units' gates.** **NO FILE OF THIS UNIT WAS OBSOLETE AND NO FILE WAS ARCHIVED, so the count of citations
+this pass REPOINTED is `0` and the count of cells it re-spelled for a moved path is `0`.** **AND ONE FACT A
+READER NEEDS, SO A MISSING FILE IS NOT READ AS A MOVE: A GATE-7 PROOFREAD RECORD FOR THIS UNIT DOES NOT
+EXIST AT `archive/reviews/**` — that pass's reconciliation landed in the TRACKERS themselves (its dated
+clauses at `docs/next-steps.md`'s `## OPEN` and `## DONE` sections, at `docs/defects.md`, at
+`docs/pending.md` and at this document's own `§7`, where its figure table stands above), and the unit's
+landing row cites the proofread by its gate and its clauses rather than by a filed record.** **The archive's
+gitignored status and its consequence are the standing ACTIVE `docs/decisions.md` row's own, and this pass
+neither re-raises nor re-ignores it** (`[A1 docs/specs/storeroom-js-proposal.md §11 · A9 — the adjacent
+corpus is read-only; docs/decisions.md · the archival row, "Keep as is" | cross-reference]`).
+
+**AND THE LEDGER OF THIS FILE'S OWN LAST CLAUSE IS RECONFIRMED, NOT MOVED — AND ONE DIVERGENCE IS
+FLAGGED RATHER THAN SMOOTHED.** **THIS SECTION WAS FIRST WRITTEN AGAINST A BRIEF THAT STATED THE LEDGER AT
+`1 DONE / 2 open` UNITS = `3`; THE FILE'S OWN BYTES READ OTHERWISE, AND THIS PASS RE-READ THEM BEFORE
+CLOSING: `docs/next-steps.md`'s `## DONE` section carries the rows `N1` (`U-STOREROOM-NATIVE`, closed
+`2026-10-11`) AND `N2` (`U-STOREROOM-LISTENERS`, closed `2026-10-11`), so the operative arithmetic is
+`2 DONE / 1 open` UNITS = `3` (`2 + 1 = 3` ✓) and the OPEN SET holds exactly the ONE unit row `N3`
+(`U-STOREROOM-JS`) with `1 + 0 = 1` ✓.** **THE DIVERGENCE IS ATTRIBUTED TO THE PARALLEL GATE-7
+`role_proofreader` PASS'S LANDING, which closed `N2` into `## DONE` in the same window; a reader must take
+the FILE's bytes and not the brief's figure.** **AND `U-STOREROOM-JS`'s OWN CLOSURE IS THE SUPERVISOR'S
+CLOSE-OUT AND NOT THIS PASS'S: the close-out will move the ledger to `3 DONE / 0 open` UNITS = `3`
+(`3 + 0 = 3` ✓) with the open set's own arithmetic at `0 + 0 = 0`, and this pass takes NEITHER figure.** **NO
+PARK IS LIFTED BY THIS SECTION, `CF-DUP-3` STANDS `OPEN` AS AN UNPINNED CORNER WITH ITS REVISIT CONDITION,
+NO ROW IS ADDED, DROPPED OR RE-OPENED, NO `APP`-GREEN IS CLAIMED, AND NO FIGURE OF ANOTHER UNIT IS
+RE-LABELLED**
+(`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-10` — every figure carries its site and its layer;
+A3 docs/specs/storeroom-js/acceptance.md §4.2 · `DD-20`; `DD-31`; `DD-33` | numeric or census claim]`).
+
+---
+
 **END OF THE CONTRACT DOCUMENT.** **The index region states the status, the unit and prefix, the scope
 boundary and the part map; `§0` the claim-ledger rules, the `47`-row design-defaults table and the
 dossier's clause-cell resolution; `§1` the value crossing; `§2` the JS surface; `§3` the package; `§4` the
 acceptance layer; `§5` the typed register's `8` rows; `§6` the parameter-semantics index; `§7` the census
-region with `P-1`'s `28`-row disposal; `§8` the CONTRACT FINDINGS for the store's author; and `§9` the
-handoff ledger — and the order is the ADOPTED BUILD ORDER (the crossing → the surface → the package → the
+region with `P-1`'s `28`-row disposal; `§8` the CONTRACT FINDINGS for the store's author; `§9` the
+handoff ledger; **and `§10` — ADDED BY THE GATE-8 RECONCILIATION OF 2026-10-11 — this directory's contract
+and its parts against the build they describe, which is a RECORD and not a ruling** — and the order is the
+ADOPTED BUILD ORDER (the crossing → the surface → the package → the
 acceptance layer → the plan), with no step taking its input from a later stage** (`[A1
 docs/specs/storeroom-js-proposal-review.md §5.3 — the recommended variant `V1` and its ordering ground |
 ordering claim]`). **This directory's closure predicate reads `6 = 6` and its state is `CLOSED`.**
 **No unit row is admitted, no `DONE` row is re-opened, no artifact is frozen and no ledger count moves:
-`docs/next-steps.md` stands `1 DONE / 2 open` UNITS = `3`** (`[A1
+`docs/next-steps.md` stands `2 DONE / 1 open` UNITS = `3` (`2 + 1 = 3` ✓ — the file's own bytes, read by
+this pass; the `1 DONE / 2 open` this closing clause carried as filed is named and dispositioned at `§10`'s
+ledger clause above)** (`[A1
 docs/specs/storeroom-js-proposal-review.md §6 item 2 | numeric or census claim]`).

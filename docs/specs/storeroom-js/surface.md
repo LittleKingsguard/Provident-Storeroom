@@ -641,6 +641,41 @@ and no cell of any set asserts a document's own citation figure** (`archive/gate
 re-measurement at the pinned artefact, pinned by hash; A1 docs/specs/storeroom-js-greens.md §4 — the gate-5
 figure, read as historical | numeric or census claim]`).
 
+**⟶ RECONCILED 2026-10-11 — THE DOCUMENTATION-REVIEW GATE (`role_documentation_reviewer`, gate 8): THE
+DIVERGENCE THIS SECTION'S `§2.4` DATED CLAUSE HANDED TO THE RECONCILING PASS IS ANSWERED, AND IT SITS ON
+NEITHER SIDE.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte above stands byte-for-byte — this section's `§2.4`
+dated clause, its (i)–(ii) split, its *"THE SHIPPED ARTEFACT DEDUPLICATES AT THE BOUNDARY"* paragraph, its
+*"WHICH SIDE THE DIVERGENCE SITS ON IS FOR THE PASS THAT RECONCILES THE BUILD TO THIS CLAUSE TO SAY"*
+sentence and its `alt` included — and they are read THROUGH this clause; THIS clause is a PURE INSERTION, it
+re-spells no rule, adds no member to any record, mints no code and moves no register row.** **WHAT THE
+SECTION READ, VERBATIM, AT ITS `§2.4` DATED CLAUSE:** *"`bindings/js/index.mjs`'s `wrapHandles` pushes each
+token's handle into its output AT MOST ONCE and reads rule 3's *"one DISTINCT handle per token, however many
+home entries carry it"* as the list's OWN distinctness rule — so the shipped JS-observable `triggered`
+carries CASE B's token ONCE where (ii) above reads the store's list as carried faithfully TWICE … and WHICH
+SIDE THE DIVERGENCE SITS ON IS FOR THE PASS THAT RECONCILES THE BUILD TO THIS CLAUSE TO SAY"*.
+
+**THE BUILD HAS MOVED, AND THE MOVE IS THE IMPLEMENTER'S OWN FILING `CF-DUP-1`/`CF-DUP-2`, READ AT
+`bindings/js/index.mjs`'s OWN BYTES BY THIS PASS:** **`wrapHandles` NOW CARRIES THE STORE'S OWN LIST ELEMENT
+FOR ELEMENT AND EDITS NOTHING** — its own comment reads *"**THE STORE'S OWN LIST IS CARRIED OUT ELEMENT FOR
+ELEMENT, AND THE BOUNDARY EDITS NOTHING**"*, the collapsed form stands BESIDE it as the as-filed reading
+(`if (!out.includes(handle)) out.push(handle);`) rather than deleted, and the per-identity deduplication lives
+at `deliver` (`if (matched.has(handle)) continue;`), which is where clause (i) puts it. **SO:**
+- **(ii) IS THE READING THE BOUNDARY HOLDS** — `triggered` carries a lawful caller-spelled duplicate's token
+  `TWICE`, element for element, and a drive may assert the array's LENGTH (`2`) and its DISTINCT-identity
+  count (`1`) together, exactly as `docs/specs/storeroom-js/test-cases.md`'s multiplicity row licenses.
+- **(i) IS THE READING `deliver` HOLDS** — ONE invocation per DISTINCT identity, never one per element.
+- **AND THE PRICED ALTERNATIVE THIS SECTION'S CLAUSE CARRIED — *"THE BOUNDARY COLLAPSES DUPLICATE TOKENS AT
+  HANDOFF"* — IS NO LONGER THE SHIPPED STATE; it remains available only as the bounded amendment that clause
+  already names, and its reversal instrument is that amendment and NEVER A PARK** (`A66`).
+
+**WHAT THIS CLAUSE DOES NOT DO.** **It re-decides no rule: `§2.4` rules 1, 2 and 4, item 5's registration site,
+item 6's id-matching model, `§2.5`'s single form, `§2.3`'s handle clause and `§2.7`'s window, order and
+throwing-body clauses all stand exactly as printed.** **The register keeps its `8` rows and every failure list
+is unmoved — and every register entry the reconciled reading made FALSE of the shipped build is now TRUE of
+it, so no row of `§5` is RED against this state** (`archive/gate3/storeroom-js-red-set.md` §12/§13;
+`bindings/js/index.mjs`'s `wrapHandles`/`deliver`; A1 docs/specs/storeroom-js-proposal.md §18 · `A77`; A3
+docs/specs/storeroom-native/contract.md §0.2 · `DD-42` clause 3 · `DD-39` | state or fail-state declaration).
+
 ### §2.6 The constraint/repair pattern — a usage pattern over declared verbs, never a seam
 
 **CONSTRAINT AND REPAIR EVALUATION IS CLIENT-SIDE.** **The JS side holds the constraint functions; the

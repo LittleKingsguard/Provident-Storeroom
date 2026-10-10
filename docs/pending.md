@@ -47,3 +47,36 @@ waiting for, not by a later pass's choice.
 owe a `docs/pending.md` row carrying the revisit condition — is NOT taken, because the architect has been
 ASKED the four questions rather than deferring them. A park becomes lawful only if the architect answers
 "defer".**
+
+---
+
+**⟶ RECONCILED 2026-10-11 — THE `U-STOREROOM-JS` GATE-7 PROOFREADING PASS (`role_proofreader`): THE THREE
+PARKS' OPERATIVE STATES, EACH WITH ITS OWNER, ITS POSITIVE REVISIT CONDITION AND ITS FIGURES, SO NO ROW IS READ
+AS A CLOSURE AND NO FIGURE IS READ WITHOUT ITS TREE.** `RCA-8(d)` ANNOTATE-BESIDE: **every clause above — the
+creation-status paragraph, `§1`'s two standing conditions and their dated clauses, `§2`'s lift paragraph, the
+`P-1`/`P-3` rows and `P-2`'s restatement — stands byte-for-byte and is read THROUGH this clause; THIS CLAUSE IS
+A PURE INSERTION, it lifts no park, closes no row and adds no park.**
+
+- **`P-1` — THE JS INTEGRATION SET: `lifted`.** **Owner (the decider whose act it was): the architect.** **Its positive revisit condition — *the store passes its own test suite* — is MET and REPORTED: `cargo test --offline --no-fail-fast` exits `0` with `377` PASS · `0` FAIL at the store's root suite, which is the figure the store's tree prints now (`196` / `8-8` / `314` is the PRE-AMENDMENT tree's and `374` / `8-8`-on-`11` / `318` the LISTENER-AMENDMENT tree's).** **Its `28` rows LEFT THE PARK and are the JS unit's own open material, and their ROW-BY-ROW MAP is discharged at `docs/specs/storeroom-js/contract.md` `§7.3`.** **The row's own disposition cell still reads `OPEN` — a lift rewrites no row's own cell by this project's annotate-beside convention — so the operative state is read from the dated lift clause at `§2`'s head and from this bullet, NOT from the cell alone.** **A LIFTED PARK IS STILL NOT A GREEN.**
+- **`P-3` — THE LISTENER IMPLEMENTATION: `lifted`.** **Owner (the decider whose act it was): the architect.** **Its positive revisit condition — *the store passes its own test suite* — is MET and REPORTED, at the same `377` PASS · `0` FAIL.** **Its four subjects (the listener's ORDER · the ATTACHMENT RULE · the FIRING and the CALLBACK'S INVOCATION · a THROWING BODY's disposition) LEFT THE PARK and were SPECIFIED by the listener amendment** (`docs/specs/storeroom-native/write-and-read.md` `§6.5` items 8–13), **and the store's own listener battery is `46` scenarios at `tests/e2e_listener_firing.rs`, all firing on the declared trigger set.** **The same convention applies: the row's disposition cell is not rewritten, and the operative state is the dated lift clause `A44` and this bullet.** **A LIFTED PARK IS STILL NOT A GREEN.**
+- **`P-2` — THE PARK'S LIFT REPORT: `duty met`.** **Owner: the supervisor.** **Its positive revisit condition — *the store's own suite is green and reported* — is MET: the green is reported at `docs/next-steps.md`'s `DONE` inventory and at the store's own records, and both parks' surfacing duty is discharged by the lift clauses above.** **The row reports and surfaces only: it lifted nothing, answered no integration row and admitted no unit row, and it continues to hold that boundary.**
+- **AND ONE FIGURE THIS PASS ADDS SO THE PARKS' OWN GREENS ARE NOT READ AS `APP`-GREENS: every figure named above is `ENVELOPE/PURE`, the assembled/`APP` layer is `NONE` for every unit here, and `U-STOREROOM-JS` — the unit that inherited `P-1`'s `28` rows — remains OPEN with its gates 7–8, its trio and its `DONE` row PENDING** (`[T: the three parks' operative states, owners, revisit conditions and figures | CENSUS]`).
+
+**⟶ AND ONE CORNER THIS FILE DOES NOT HOLD, NAMED 2026-10-11 BY THE `U-STOREROOM-JS` GATE-8 DOCUMENTATION
+REVIEW (`role_documentation_reviewer`) SO IT IS NOT READ AS PARKED: `CF-DUP-3` — THE IN-DELIVERY
+REGISTRATION CORNER — STANDS `OPEN`, AND IT IS A REGISTER/RED-SET CORNER AND NOT A PARK.** `RCA-8(d)`
+ANNOTATE-BESIDE: **every clause above stands byte-for-byte; THIS clause adds no park, lifts none and moves
+no count.** **The declaration it points at is `docs/specs/storeroom-js/contract.md` `§2.4`'s dated clause (i),
+whose own words fix the invocation count as ONE PER DISTINCT IDENTITY and DO NOT SAY whether an identity
+REGISTERED DURING THE SAME DELIVERY WINDOW — by an earlier listener's body — is invoked at its second
+occurrence in the array that delivery is walking.** **The implemented reading is A (the dedup is over the
+array's identity set, so a mid-window registration takes effect at the NEXT delivery); NOTHING IS DRIVEN FOR
+IT HERE, because no drive is invented for a corner the contract does not pin, and no cell of the red set or
+of the blind set asserts either reading.** **ITS REVISIT CONDITION, THREE POSITIVE TRIGGERS: (a)
+`surface.md §2.4`'s dated clause (i) or its `contract.md` twin is amended to name one of the two readings;
+or (b) `parameter-semantics.md §2.12`'s registration cell gains a clause about a registration arriving
+inside a delivery window; or (c) a boundary change to `deliver` is filed that moves the reading — and a
+park is NAMED AS NONE OF THE THREE** (`A66`). **UNTIL THEN THE READING IS THE IMPLEMENTATION'S AND NOT THE
+CONTRACT'S, and no cell of this file reports it green**
+(`archive/gate3/storeroom-js-red-set.md` `§13.6`; `docs/specs/storeroom-js/contract.md` `§2.4`'s dated clause
+(i) | CENSUS]`).

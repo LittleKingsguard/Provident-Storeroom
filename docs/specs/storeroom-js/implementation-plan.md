@@ -88,6 +88,85 @@ figure the tree's own record prints, with the figure the plan's own bytes carry 
    untouched by it** (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-10` — every figure carries
    its site and its layer | numeric or census claim]`).
 
+**⟶ RECONCILED 2026-10-11 — THE `U-STOREROOM-JS` GATE-7 PROOFREADING PASS (`role_proofreader`), MEASURING THE
+FIGURES THE CLAUSES ABOVE PRINT AGAINST THE TREE THE BUILD NOW CARRIES.** `RCA-8(d)` ANNOTATE-BESIDE:
+**every byte of the plan above and below this clause stands exactly as filed — the gate-2 reconciliation, the
+sweep's reconciliation and the bounded declaration pass's `92`-figure clause are re-emitted by reference and read
+THROUGH this clause, and nothing is deleted, reworded, re-ordered or renumbered, so `git diff` recovers the
+pre-pass text as a pure insertion.** **THIS CLAUSE ADDS NO PHASE, NO OWNER, NO OUTPUT AND NO ACCEPTANCE ITEM: it
+states the figures the tree's own runs print, with the figures the clauses above carry named beside them**
+(`[A1 | numeric or census claim]`).
+
+1. **THE JS LEG'S FIGURE, AT ITS OWN BYTES.** **THE CLAUSES ABOVE PRINT `node --test bindings/js/test/*.test.mjs`
+   as *"`89` tests"* (the sweep's item 2) and as *"`92` tests"* (the bounded declaration pass's items 1–2, with
+   the five-file set `round-trip` `21` · `surface` `36` · `registry` `17` · `package-entry` `17` · `register`
+   `1`, `21 + 36 + 17 + 17 + 1 = 92` ✓).** **THE OPERATIVE FIGURE THE TREE PRINTS IS `101`: `101` tests ·
+   `101` pass · `0` fail, run twice with identical results once timings are stripped, over the SAME five
+   files, to which the gate-4 negative-generator cells and the crossing cells have since been added.** **`89`
+   AND `92` ARE NOT WITHDRAWN AS READINGS — each is the figure the clause that prints it carries and each is
+   HISTORICAL, the gate-3 landing and its `V-1` re-derivation post-dating the first and the negative
+   generators post-dating the second.** **A figure for this suite that is not `101`, or a per-file set that
+   does not sum to it, is a FINDING at whatever record prints it** (`DD-33`).
+2. **THE REGISTER LAYER'S TWO FIGURES, COUNTED ROW BY ROW.** **THE CLAUSES ABOVE PRINT the Rust half's `395`
+   attempts and the JS half's `107` attempts.** **THE OPERATIVE READING, AT THE TWO TREES' OWN BYTES: `8` ROWS
+   TOTAL — `5` Rust register rows at `bindings/js/tests/register_layer.rs` (`P-IM-1` · `P-IM-2` · `P-SM-4` ·
+   `P-SM-6` · `P-TP-8`, together `395` attempts, ALL `HELD`) beside `3` JS rows at
+   `bindings/js/test/register.test.mjs` (`P-SM-5` · `P-TP-7` · `P-TP-8`, together `107` attempts, ALL `HELD`,
+   `0` un-run), against the declared `≤ 100` per row and `≤ 400` total — so both figures stand as printed, the
+   layer's row count is `8` (`5 + 3 = 8` ✓, the register's own `8 ≤ 8` cap holding), and the `11`-strategy-line
+   or `8/8`-row readings belong to the store's tree and to the amendment's clauses, each as its own record
+   prints them** (`docs/specs/storeroom-js/contract.md` `§5.1`–`§5.8`; `archive/gate3/storeroom-js-red-set.md`
+   `§9`/`§10`; `DD-31`).
+3. **THE SIBLING CRATE'S RUST LEG.** **THE CLAUSE ABOVE PRINTS `cargo test --manifest-path
+   bindings/js/Cargo.toml --offline --no-fail-fast` as *"`223` executed cells"*.** **THAT IS THE FIGURE THE TREE
+   PRINTS — `223` PASS · `0` FAIL, the manifest named explicitly, taken at the REPOSITORY ROOT — and the
+   command site is the one `package.md §4.2` item 4's dated clause declares, so the leg cannot silently
+   resolve the root package.**
+4. **AND THE STORE'S OWN FIGURE, WHICH IS QUOTED AND NOT RE-MEASURED.** **The clause above quotes the store's
+   root suite at `377`.** **THAT IS THE FIGURE THE STORE'S TREE PRINTS: `cargo test --offline --no-fail-fast` —
+   `377` PASS · `0` FAIL, its root `Cargo.toml` byte-identical. `374` is the LISTENER-AMENDMENT tree's reading
+   and `373 PASS / 1 FAIL` its `A69` correction-pass reading; neither is this unit's green and neither is
+   re-labelled here** (`docs/specs/storeroom-js/contract.md` `§7.1`–`§7.3`; `DD-33`).
+5. **AND THE ONE THING THIS CLAUSE DOES NOT DO.** **It re-measures nothing: this pass holds no execution verb,
+   the figures above are read at the sites that carry them, it moves `§2`'s or `§3`'s phase cells by nothing, it
+   lifts no park and it claims no `APP`-green.** **`§1`'s declared edit scope is untouched by it, and the JS
+   leg's build step and the store's root suite remain two different trees' figures** (`[A1
+   docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-10`; `[T: this part's figures, each with the tree it
+   describes and its layer | CENSUS]`).**
+
+**⟶ RECONCILED 2026-10-11 — THE DOCUMENTATION-REVIEW GATE (`role_documentation_reviewer`, gate 8): THE
+OPERATIVE JS-SUITE FIGURE IS `101`, AND THE `92` IS NAMED AS THE FIGURE OF THE TREE THAT PRECEDES THE
+GATE-4/5 TEST-SIDE PASSES.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte above — the plan's as-filed `89`, the
+gate-2 reconciliation and the bounded declaration pass's `92` clause with its five per-file figures — stands
+exactly as filed and is read THROUGH this clause; THIS clause is a PURE INSERTION, it adds no phase, no owner,
+no output and no acceptance item, and it moves no cell of `§1`'s scope, `§2`'s phase table or `§4`'s
+acceptance criterion.** **THE FIGURE IT PRINTS, QUOTED IN ITS OWN WORDS SO NOTHING IS LOST: the clause above
+reads *"THE OPERATIVE FIGURE IS `92`"* and prints `21 + 36 + 17 + 17 + 1 = 92` ✓ over `5` files.**
+
+1. **THE OPERATIVE FIGURE IS `101`, AND IT IS THE TREE'S OWN.** **The tree now carries SIX files under
+   `bindings/js/test/**`, not five: the gate-4 adversarial pass's tasked negative generators were authored at
+   `bindings/js/test/negative-generators.test.mjs`, and the register runner gained a second cell — so the
+   per-file set is `round-trip` `21` · `surface` `36` · `registry` `17` · `package-entry` `17` · `register` `2`
+   · `negative-generators` `8`, and `21 + 36 + 17 + 17 + 2 + 8 = 101` ✓. **`83` of the `101` are literal
+   `test(...)` declarations, and the remaining `18` are the two table-driven loops' own expansions — the `13`
+   members of `round-trip.test.mjs`'s `CORPUS` (`assert.equal(CORPUS.length, 13)`) and the `7` rows of
+   `package-entry.test.mjs`'s `HO_ROWS` — so `83 + 13 + 7 = 101` ✓ and the two derivations agree**
+   (`archive/gate3/storeroom-js-red-set.md` §10.7, §11.4 and §13.4, whose own records print `101` tests · `101`
+   pass · `0` fail at two separate runs).
+2. **THE `92` IS NOT WITHDRAWN AS A READING: it is the figure the `V-1` re-derivation's tree measured, and it
+   is HISTORICAL.** The `89` the plan's own clause carries is the figure of the pre-`V-1` tree, and the `92`
+   the bounded declaration pass carried is the figure of the tree as it stood before the gate-4 close-out's
+   `10` added cells — **so three readings of one suite across three trees stand, each named with its tree,
+   and the operative one is `101`** (`archive/gate4/storeroom-js-adversarial.md` · FIGURES THE PASS COULD NOT
+   REPRODUCE · items `1` and `2`, whose own `92` and `107` figures are read as that tree's).
+3. **WHAT THIS CLAUSE DOES NOT DO.** **It re-measures nothing — this pass holds no execution verb and runs no
+   command — and it does not move `§2`'s or `§3`'s phase cells, the register's figures (`395` Rust attempts ·
+   `107` JS attempts, both unmoved and both still the register's own), or the store's `377`, which is QUOTED
+   and not re-labelled** (`DD-31`; `DD-33`; `§4.2`). **The layer of every figure above is `ENVELOPE/PURE`, the
+   ASSEMBLED/`APP` LAYER FOR THIS UNIT IS `NONE`, and NO `APP`-GREEN IS CLAIMED** (`§4.2` items 2–3; `DD-20`;
+   `[A3 docs/specs/storeroom-js/contract.md §10 — this pass's own reconciliation region, which prints the
+   same figure with its derivation | numeric or census claim]`).
+
 ## §1. THE DECLARED EDIT SCOPE, BY PATH, WITH THE PHASE THAT MAY WRITE EACH
 
 | Path | The phase that may write it |

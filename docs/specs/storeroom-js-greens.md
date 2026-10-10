@@ -702,4 +702,102 @@ clause on each side, is the record's `§3`–`§4`.**
 **AND FOUR DRIVING CORRECTIONS WERE TAKEN, NAMED WITH THEIR CLAUSES AND WITH THE RUN THAT EXPOSED EACH
 (`§2` of the record); NOT ONE EXPECTATION MOVED, AND NO ASSERTION WAS WEAKENED.**
 
+**⟶ RECONCILED 2026-10-11 — THE DOCUMENTATION-REVIEW GATE (`role_documentation_reviewer`, gate 8, the
+per-unit pass): THE FIGURE THIS SECTION PRINTS IS THE GATE-5 TREE'S OWN RECORD, AND THE OPERATIVE FIGURE IS
+`236` PASS OF `236`.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte above stands byte-for-byte — the `§4` table's
+`233` PASS · `3` FAIL figure, its `3`-FAILS paragraph, its `F-DOC-1` row and its tension row included — and
+the section is read THROUGH this clause; THIS clause is a PURE INSERTION, it CORRECTS NO SCENARIO, WEAKENS NO
+ASSERTION, RE-DERIVES NO EXPECTATION and EDITS NO CELL of `§2`.** **THE SET'S AUTHORED `236` IS UNMOVED AND
+THE SET'S OWN `13` SCENARIOS ARE UNMOVED** (its `§2`'s per-scenario heads sum `13 + 16 + 5 + 67 + 14 + 7 + 15
++ 22 + 12 + 24 + 18 + 17 + 6 = 236` ✓, which this pass re-derived at the file's own bytes and at the driver's
+own scenario comments).
+
+**THE CELL THAT MOVED, AND WHAT IT READ BEFORE, QUOTED IN ITS OWN WORDS:** **the `§4` table's figure cell read
+*"`236` authored · `236` executed · `233` PASS · `3` FAIL**, the same `3` cells in **three consecutive
+runs**"*.** **THE OPERATIVE READING IS `13` scenarios · `236` authored · `236` executed · `236` PASS · `0`
+FAIL** — the SAME `236` assertions, RE-MEASURED against a LATER artefact, with `JSG-04` reading `67 PASS · 0
+FAIL` where the gate-5 record printed `64 PASS · 3 FAIL` (`archive/gate6/storeroom-js-live-determination.md`
+`§2.3`; `§3` · `LIVE-F1`, whose own revisit condition names THIS pass as the site of the reconciliation and
+requires the `233`/`3` reading to be quoted here rather than withdrawn).
+
+**WHY IT MOVED, NAMED WITH ITS COMMIT AND ITS DATES SO NEITHER FIGURE IS READ AS THE OTHER:** the gate-5 run
+was taken at `23:28`–`23:29` over the artefact built `2026-10-09 19:19`; the artefact and the entry under it
+were REBUILT at `23:37:59` and `23:42:54`, AFTER that run and on commit **`9707ee9`** — *"js: the value-arm
+refusal verbose and the two doc cells reconciled — the blind set is `236/236`"* (`2026-10-09 23:39:01`) —
+whose body records the sweep of eleven value arms plus the member positions and the measured
+`233/236 → 236/236` with `JSG-04 64/67 → 67/67`. **SO THE `3` FAILs ARE HISTORY AND NOT A CURRENT STATE:**
+they were ONE finding of ONE scenario — `JSG-04.1.v` · `JSG-04.2.v` · `JSG-04.4.v`, the verbose rejection's
+target half and its class half at a VALUE position — and **their defect was the IMPLEMENTATION's, which has
+since repaired it** (`docs/specs/storeroom-js/surface.md §2.5` item 5 clauses (a)–(b) and `crossing.md §1.8`'s
+dated clause 3 are the clauses they drove; `archive/gate5/storeroom-js-greens-run.md` `§3`'s FINDING 1 is the
+filing of that state, and `§1`/`§3` of that record are read as HISTORICAL beside this clause).
+
+**AND `F-DOC-1` AND THE TENSION ROW ARE UNMOVED AND ARE NOT THIS CLAUSE'S SUBJECT.** **`F-DOC-1`**
+(`package.md §1.3` item 4's *"none of the five"* against item 3's own list) **was repaired in the document**
+(**`JSG-12.13`** on this page asserts the RE-DERIVED cell, and `package.md §1.3` item 4 now declares the
+addon's five names with the fourth item naming `storeCreate` as the entry's OWN factory), **and the tension
+row** — `§2.4` rule 3's *"ONCE"* against the store's `DD-42` for the caller-spelled duplicate — **was
+RECONCILED by the later dated clauses** (`surface.md §2.4`'s dated clause of 2026-10-11 and `contract.md
+§2.4`'s twin, whose (i)–(ii) split both this set's `JSG-08.21`/`JSG-08.22` figures and the shipped boundary now
+hold). **NEITHER ROW IS ASSERTED AWAY, NEITHER IS WITHDRAWN, AND NO CELL OF `§2` MOVES BY THIS CLAUSE.**
+
+**WHAT THIS CLAUSE DOES NOT DO, SAID PLAINLY BECAUSE IT IS A GREENS SET AND NOT A RUN.** **This pass RAN
+NOTHING — it holds no execution verb — so NOT ONE ASSERTION WAS RE-EXECUTED BY IT, and the `236/236` above is
+QUOTED FROM THE GATE-6 RE-MEASUREMENT AT A PINNED ARTEFACT HASH, named at its own `§2.3`.** **THE LAYER IS
+`ENVELOPE/PURE`, THE `APP` LAYER FOR THIS UNIT IS `NONE`, AND NO `APP`-GREEN IS CLAIMED HERE OR ANYWHERE IN
+THIS FILE** (`§4.2` items 2–3; `DD-20`). **NO `APP`-GREEN EXISTS, NO CONSUMER APPLICATION LOADS THIS PACKAGE
+ANYWHERE IN THIS REPOSITORY, AND THE `72`-ASSERTION LIVE BATTERY (`archive/gate6/storeroom-js-live-determination.md`
+`§4`) IS A `LIVE / ASSEMBLED PACKAGE` FIGURE THAT RETIRES NO `ENVELOPE/PURE` ROW**
+(`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-10` — every figure carries its site and its layer;
+A3 archive/gate6/storeroom-js-live-determination.md §2.3 · §3 · §4 — the re-measurement and the live battery |
+numeric or census claim]`).
+
 **END OF THE GREENS SET.**
+
+---
+
+**⟶ RECONCILED 2026-10-11 — THE `U-STOREROOM-JS` GATE-7 PROOFREADING PASS (`role_proofreader`): THE FIGURES
+THIS FILE PRINTS, EACH WITH THE TREE IT DESCRIBES, PLUS ONE CITATION DEFECT AND ONE COUNT THAT IS NAMED AS A
+FINDING RATHER THAN DECIDED.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte above — the head's `236` assertions over
+`13` scenarios, the `§1` scenario table, the `§2` per-scenario heads and their cells, the `§3` un-derived list,
+the `§4` table's `233`/`3` figure, its `3`-FAILS paragraph and both dated clauses — STANDS BYTE-FOR-BYTE and is
+read THROUGH this clause; THIS clause is a PURE INSERTION, it CORRECTS NO SCENARIO, WEAKENS NO ASSERTION and
+RE-DERIVES NO EXPECTATION.**
+
+1. **THE BLIND SET'S OPERATIVE FIGURE IS THE ONE ITS DRIVER PRINTS NOW.** **THE OPERATIVE READING OF THE BLIND
+   SET AT THIS PASS IS `node bindings/js/greens/greens.mjs` — `236` authored · `236` executed · `236` PASS ·
+   `0` FAIL.** **THE READINGS THIS FILE PRINTS, EACH WITH ITS TREE: `236` authored / `236` executed / `233`
+   PASS / `3` FAIL is the GATE-5 TREE'S OWN RECORD, quoted at the `§4` table and standing as that tree's
+   HISTORICAL figure; and `236` PASS of `236` at the pinned artefact is the GATE-6 RE-MEASUREMENT's, carried by
+   the gate-8 clause above.** **A later pass's own run — this gate's — prints `236/236` again, so no figure in
+   this file is currently failing and none is withdrawn** (`DD-33`; `AR-10`).
+2. **THE LIVE BATTERY'S FIGURE, NAMED BESIDE THE BLIND SET'S SO THE TWO ARE NOT RUN TOGETHER.** **The clause
+   above names the `72`-assertion live battery as a `LIVE / ASSEMBLED PACKAGE` figure that retires no
+   `ENVELOPE/PURE` row.** **THE OPERATIVE READING OF THAT BATTERY IS `node bindings/js/greens/live-drive.mjs` —
+   `72` authored · `72` PASS · `0` FAIL**, driven at a real caller-spelled `cfg.filePath` with real
+   file-tier I/O, real child processes and the addon-absent arm, and **it is ADDITIVE: it retires no row of
+   this set, and this set's `236` is unmoved by it.** **IT IS NOT A FIGURE OF THIS FILE AND THIS FILE CLAIMS
+   NO PART OF IT** (`DD-20`; `[A1 | numeric or census claim]`).
+3. **AND ONE CITATION DEFECT, RECORDED HERE BECAUSE THIS FILE IS WHERE THE CITATIONS ARE READ.** **The clauses
+   above cite `archive/gate6/storeroom-js-live-determination.md` `§2.3` / `§3` / `§4` as the home of the
+   re-measurement and of the `72`-assertion live battery.** **THAT PATH DOES NOT RESOLVE IN THIS REPOSITORY AT
+   THIS PASS** — the `archive/gate6/` directory carries the two STORE units' determinations only — **so the
+   `236/236` re-measurement and the `72`-assertion live battery are QUOTED THROUGH THIS CLAUSE AND THEIR
+   RECORD IS OWED AT THE PATH THE CITATIONS NAME.** **THE DEFECT IS THE CITATION'S, NOT THE FIGURES': the two
+   drivers exist at `bindings/js/greens/greens.mjs` and `bindings/js/greens/live-drive.mjs` and print the
+   figures quoted, while a record named by three clauses of this file and by `surface.md` `§2.5` has no bytes
+   at its own path.** **Owner: the `U-STOREROOM-JS` live-determination gate's landing pass — this pass writes **⟶ RESOLVED 2026-10-11 BY THE SUPERVISOR (inspection): THE RECORD EXISTS — `archive/gate6/storeroom-js-live-determination.md`, `35,923` bytes, written `2026-10-11 23:46` — so BOTH readings the finding offered (an owed unfiled record / a wrong path) ARE REFUTED: the path is correct and the file is present. The proofreading pass read the directory WHILE the live pass was still landing that file, so the finding was a MID-WRITE RACE, closed at this inspection. NO CITATION MOVE IS OWED, and the `236`/`72` figures quoted from that record stand as quoted.**
+   no `archive/**` byte and re-points no citation to a path it cannot verify.**
+4. **AND THE ONE COUNT THIS PASS REPORTS RATHER THAN DECIDES — NAMED HERE WITH BOTH READINGS.** **THE HEAD's
+   sentence reads** *"The set was authored as `236` assertions over `13` scenarios"*, **and it is the count of
+   ASSERTION CELLS, not of scenarios.** **READING (i): `236` is the assertion census and `13` the scenario
+   census, two figures of two different things, exactly as the `§1` table and the `§2` per-scenario heads
+   print them (the heads sum `13 + 16 + 5 + 67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 + 17 + 6 = 236` ✓), and the
+   driver's own totals line prints `AUTHORED 236 · EXECUTED 236` — so the sentence is accurate and nothing
+   moves.** **READING (ii): the sentence's *"`236` assertions over `13` scenarios"* is read as a single
+   authored-suite census in which the `13` is a SUBSET figure, because the driver's own counters advance once
+   per assertion and no counter in it counts scenarios — so the `13` would be a count this file derives from
+   the `§2` heads rather than one the run prints.** **THIS PASS DOES NOT SETTLE WHICH READING IS INTENDED: it
+   writes no assertion, edits no scenario and moves no figure of the set, and it names the two readings here so
+   a later pass re-derives the sentence's subject instead of guessing** (`[T: this file's figures, its owed
+   record and the one undispositioned count | CENSUS]`).
