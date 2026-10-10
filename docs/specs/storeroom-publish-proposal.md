@@ -217,4 +217,19 @@
 8. **The LIVE battery** — `LIVE-8.7`'s rung-one subject, which names the platform package it `require`d.
 9. **The records** — the gate records that print the five, and the artefact digest is **unaffected** (a name is not bytes).
 **NO BINARY MOVES, NO BEHAVIOUR MOVES, AND THE STORE IS UNTOUCHED.**
+## §13. THE ARCHITECT'S BOOTSTRAP RULING OF 2026-10-11 — `A87`: THE LOCAL ROUTE
+
+**<⟶ APPENDED, DATED (`RCA-8(d)` ANNOTATE-BESIDE). NOTHING ABOVE THIS SECTION MOVES.**
+
+**THE ARCHITECT'S WORDS, VERBATIM.**
+
+> Local bootstrap
+
+**`A87` ADOPTS `release.md §5.1`'s ROUTE (a) — and the constraint it answers is his own finding, not the supervisor's: *"The package needs to exist on npm in order to be configured for trusted publishing."*** **WHAT IT PINS:**
+1. **THE SIX FIRST PUBLISHES ARE PERFORMED LOCALLY, BY THE ARCHITECT, WITH A TOKEN-AUTHENTICATED PUBLISH — NOT BY THE WORKFLOW.** Trusted publishing is configured **per package and requires the package to exist**, while the workflow's two publish sites authenticate **by OIDC alone**; so the workflow **cannot** perform a first publish, and it is **not edited to do so**.
+2. **THE STAGING IS REPRODUCED BY HAND, and it is the step that matters:** the built target's `.node` **and** the licence copy into each of the five platform directories, and the licence copy at the packaging root for the main package, **with the staged bytes removed afterwards** — because a hand publish that skips the staging ships **a `1,178`-byte tarball of `package.json` and `README.md` alone**, which is the dry run's own measurement.
+3. **THE ORDER IS UNCHANGED AND LOAD-BEARING: the five platform artefacts first, the main package LAST** (its `optionalDependencies` pin the five at exactly `0.1.0`), with **the partial-publish arm** as the recovery clause.
+4. **`0.1.0`'s SIX ARTEFACTS ARE `DECLARED-NOT-ATTESTED`** (`release.md §5.3`): `--provenance` is an OIDC capability, the bootstrap is token-authenticated outside the workflow, and **no attesting route exists within the declared design** — so the acceptance layer runs over those bytes and **no figure from it may imply an attestation for them**.
+5. **AND `0.1.0` IS IMMUTABLE: THE BOOTSTRAP IS THE RELEASE, NOT A REHEARSAL.** The dry run and the two-stage assembly are therefore **preconditions**; and **`v0.1.1` is the first tag the workflow itself publishes** — from there the steady state is exactly as written (tag-triggered, OIDC, provenance, no secret).
+**REVERSAL: a fresh ruling plus a bounded amendment of `docs/specs/storeroom-publish/`, TAKEN BEFORE THE FIRST NAME IS CLAIMED — after it, there is no reversal, only a rename and a fresh version.** **AND `release.md §5.2`'s route (b) — a temporary token path in the workflow — is thereby DECLINED, and stands priced in the record.**
 **END OF THE PROPOSAL. §1 is the ruling. §2 states the form and what it buys. §3 enumerates the deliverable. §4 corrects the four refuted cells. §5 adopts the findings by reference. §6 bounds the filing. §7 is the provenance.**
