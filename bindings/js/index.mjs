@@ -66,6 +66,7 @@
 // is the declared observable), and the invocation's ONE argument is the triggering ADDRESS (`PAR-JS-12`):
 // the matched id and the address are two different data and only the address is passed.**
 
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname as dirOf, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -73,6 +74,70 @@ import { types } from 'node:util';
 
 const require_ = createRequire(import.meta.url);
 const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node');
+
+// ---------------------------------------------------------------------------------------------
+// THE RESOLUTION RULE — THREE RUNGS, IN ORDER, AND THE CLOSED KEY SET (`docs/specs/storeroom-publish/
+// resolution.md §2` · `§3`; `docs/specs/storeroom-publish/contract.md §1.1` · `§1.3` · `§1.5`).
+//
+// **RUNG ONE — THE SCOPED PLATFORM PACKAGE FOR THIS RUNTIME'S KEY.** The table below is the WHOLE of the
+// table the entry carries: it maps the runtime's `process.platform` × `process.arch` pair to ONE of the
+// FIVE DECLARED NAMES, and to NO other value. **A name is SELECTED from this table and is NEVER BUILT by
+// concatenating a platform token, an architecture token and a toolchain token** (`C-1`, `§1.3` item 1):
+// **an uncovered pair IS NOT A MISS BUT A DECLARED `NOT COVERED`**, so rung one is NOT ATTEMPTED at all
+// and no sixth name is computed (`resolution.md §2.2`; `§4.1`'s `NOT COVERED` row).
+//
+// **AND NO C-LIBRARY IS READ, DETECTED OR MEASURED BY ANY CLAUSE OF THIS UNIT** (`PUB-DD-8`; the two
+// names this prohibition is about are spelled at `resolution.md §4.2` and are DELIBERATELY ABSENT FROM
+// THIS FILE, so the entry declares no detection mechanism, no value set and no measured domain): the keys
+// are the PAIR alone, a host whose C library differs from its artefact's still selects its `-gnu` name
+// exactly as any other covered pair does, and that state is a STATE the load path reaches (`§4.2`) rather
+// than a sixth key. **THE CONSEQUENCE IS THE DECLARED ONE: the `os`/`cpu` fields cannot express a C
+// library, so such a host meets the `-gnu` artefact's own `dlopen` outcome and lands on the same state
+// that outcome produces at any other key.**
+//
+// **RUNG TWO — THE MODULE-RELATIVE ADDON.** `ADDON_PATH` above, constructed from the entry module's own
+// location and from no other source — `PUB-DD-20`: no environment variable, no configuration key, no path
+// relative to the process's working directory and no search of a parent directory.
+//
+// **RUNG THREE — THE DECLARED ABSENT-ADDON FORM.** The single failure arm of `§1.4`, its subject the
+// artefact paths that WERE TRIED.
+//
+// **THE CATCH'S DECLARED WIDTH** (`§1.1`; `resolution.md §2.3`): EVERY throw of rung one's `require` is a
+// MISS — a `MODULE_NOT_FOUND` for an absent package, an `ERR_DLOPEN_FAILED` for a present-but-unloadable
+// artefact, and any other throw alike — so the loader moves to rung two and never answers a second shape.
+// ---------------------------------------------------------------------------------------------
+const PLATFORM_NAMES = {
+  'linux·x64': '@provident-storeroom/js-linux-x64-gnu',
+  'linux·arm64': '@provident-storeroom/js-linux-arm64-gnu',
+  'darwin·x64': '@provident-storeroom/js-darwin-x64',
+  'darwin·arm64': '@provident-storeroom/js-darwin-arm64',
+  'win32·x64': '@provident-storeroom/js-win32-x64-msvc',
+};
+
+/// **THE TOTAL PLATFORM TABLE** (`resolution.md §4.1`): the value is one of the five declared names or the
+/// token `NOT COVERED`, and NO other value (`C-1`).
+function platformNameFor(platform, arch) {
+  const pair = `${platform}·${arch}`;
+  if (!Object.prototype.hasOwnProperty.call(PLATFORM_NAMES, pair)) return 'NOT COVERED';
+  return PLATFORM_NAMES[pair];
+}
+
+/// **THE RUNTIME'S KEY, READ ONCE AT THE LOAD PATH** (`resolution.md §4.1`: `process.platform` ×
+/// `process.arch`). **IT IS NOT READ AT MODULE EVALUATION, so the pair a drive fixes before the entry is
+/// imported is the pair this table answers** — and no clause here reads a C library.
+function platformNameForRuntime() {
+  return platformNameFor(process.platform, process.arch);
+}
+
+/// **THE PACKAGE'S OWN VERSION, READ FROM THE PACKAGE'S OWN MANIFEST** (`§1.5` item 1: *"never passed in,
+/// configured or defaulted"*). The manifest stands beside the entry module, as `ADDON_PATH`'s artefact does.
+function packageVersion() {
+  try {
+    return JSON.parse(readFileSync(join(dirOf(fileURLToPath(import.meta.url)), 'package.json'), 'utf8')).version;
+  } catch {
+    return undefined;
+  }
+}
 
 // ---------------------------------------------------------------------------------------------
 // THE DECLARED ABSENT/FAILED-ADDON STATE (`A75`: *"an addon that is absent or fails to load is a DECLARED
@@ -110,15 +175,97 @@ const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release
 // ---------------------------------------------------------------------------------------------
 let addon = null;
 let addonLoadError = null;
+// **THE RUNGS THE LOAD PATH ACTUALLY WALKED** (`§1.4` item 2; `resolution.md §5.3`): `tried` collects the
+// subjects a candidate was sought at, IN THE ORDER THEY WERE TRIED — rung one's RESOLVED NAME where rung
+// one was attempted at all, and rung two's module-relative path. **THE SUBJECT IS ONE PATH WHERE ONE RUNG
+// WAS TRIED AND BOTH PATHS WHERE BOTH WERE** (`resolution.md §2.2`), and an uncovered key's rung one is
+// never attempted, so its subject is rung two's path ALONE.
+let rungOneName = null;
+let tried = [];
+// **THE RUNG WHOSE LOAD STANDS, WHERE ONE DID** (`§1.5` item 3: the version read applies at rung one
+// alone, so the rung is remembered rather than inferred from a path's spelling).
+let loadedFrom = null;
 
+/// **THE RUNG-ONE CANDIDATE FOR THIS RUNTIME, COMPUTED ONCE FROM THE CLOSED TABLE** (`C-1`): the pair's
+/// own declared name, or `NOT COVERED` — and `NOT COVERED` means rung one is NOT ATTEMPTED, so no name is
+/// computed for it and no speculative fallback exists (`§1.3` item 3).
+function rungOneCandidate() {
+  if (rungOneName === null) rungOneName = platformNameForRuntime();
+  return rungOneName;
+}
+
+// ---------------------------------------------------------------------------------------------
+// **THE RUNG WALK** (`§1.1` items 1–2; `resolution.md §2.1`): RUNG ONE first — a covered key's one declared
+// name, `require`d at the package root — then, failing it, RUNG TWO — the module-relative `ADDON_PATH`.
+// **EVERY THROW AT RUNG ONE IS A MISS** (`resolution.md §2.3`): the catch neither classifies the throw nor
+// reports it, so a `MODULE_NOT_FOUND`, an `ERR_DLOPEN_FAILED` and any other throw alike leave the loader
+// at rung two, and NO second failure shape is produced anywhere on this path.
+// ---------------------------------------------------------------------------------------------
 function loadAddon() {
   if (addon !== null || addonLoadError !== null) return;
+  const name = rungOneCandidate();
+  if (name !== 'NOT COVERED') {
+    tried.push(name);
+    let candidate = null;
+    try {
+      candidate = require_(name);
+    } catch {
+      // **A MISS, AND NOTHING MORE** (`resolution.md §2.3`): the throw is not classified, not rethrown and
+      // not reported — rung two is where the walk continues.
+      candidate = null;
+    }
+    if (candidate !== null && candidate !== undefined) {
+      // **`§1.5` item 1 — THE VERSION READ, AT RUNG ONE AND NOWHERE ELSE** (`PUB-DD-18`): the addon's own
+      // exported `version`, called as a function, against the version the package's own manifest declares,
+      // compared for EXACT STRING EQUALITY (`PUB-DD-19`: a different string, an empty string, a value that
+      // is not a string and a `version` that is not callable are EACH the mismatch arm).
+      const declared = packageVersion();
+      let answered;
+      try {
+        answered = typeof candidate.version === 'function' ? candidate.version() : undefined;
+      } catch (err) {
+        answered = err;
+      }
+      if (typeof answered !== 'string' || answered !== declared) {
+        // **THE MISMATCH ARM — THE SINGLE DECLARED FAILURE ARM** (`§1.5` item 2; `PUB-DD-17`): the subject
+        // is RUNG ONE'S OWN PATH, and **NO FALLBACK TO RUNG TWO exists** — the load path stops here, loads
+        // nothing from the substituted artefact and returns no instance.
+        addon = null;
+        addonLoadError = new Error('addon-version-mismatch');
+        throw { status: 'FilePathUnreachable', message: generatorFilePathUnreachable(name) };
+      }
+      addon = candidate;
+      loadedFrom = 'one';
+      return;
+    }
+  }
+  tried.push(ADDON_PATH);
   try {
     addon = require_(ADDON_PATH);
+    loadedFrom = 'two';
   } catch (err) {
     addon = null;
     addonLoadError = err;
   }
+}
+
+/// **THE SUBJECT OF THE DECLARED ABSENT FORM** (`§1.4` item 2; `resolution.md §5.3` item 2): the artefact
+/// paths that were TRIED. **ONE PATH WHERE ONE RUNG WAS TRIED; BOTH PATHS WHERE BOTH WERE** — and where
+/// both were, they are ordered RUNG ONE FIRST and RUNG TWO SECOND, joined by `', '`.
+/// **EACH PATH IS RENDERED INTO THE GENERATOR'S OWN `'<subject>'` SLOT BY THE GENERATOR ITSELF, whose
+/// clause already supplies the surrounding apostrophes for a single subject** (`src/error.rs`'s
+/// `FilePathUnreachable` arm at the facade's own subject spelling): **so the single-path form is the RAW
+/// path, exactly as the store's own generator renders it, and the two-path form is a comma-separated list
+/// whose separator sits BETWEEN the generator's own renderings of its two subjects.**
+/// **⟶ CONTRACT FINDING (`PUB-CF-7`, reported and NOT patched here):** **no clause of
+/// `docs/specs/storeroom-publish/` declares this JOIN** — neither the separator nor the order — while
+/// `resolution.md §5.3` item 2 requires BOTH PATHS to be the subject. **This file therefore CHOOSES the
+/// separator `', '` and the order rung one then rung two, so a consumer reads both subjects in the order
+/// they were tried; the choice is reported to `role_spec_writer` as a contract finding rather than taken
+/// as a silent invention.**
+function absentSubject() {
+  if (tried.length === 1) return tried[0];
+  return tried.map((path) => `'${path}'`).join(', ');
 }
 
 /// **THE STORE'S GENERATOR'S OWN RENDERING OF `FilePathUnreachable` FOR A SUBJECT** — the ONE row this file
@@ -130,15 +277,21 @@ function generatorFilePathUnreachable(subject) {
   return `'${subject}' is not reachable at construction, the path must exist or the application must be able to write it`;
 }
 
+/// **THE DECLARED ABSENT FORM'S MESSAGE** — the store's own generator's string for `FilePathUnreachable`
+/// at the subject `absentSubject()` fixes (`§1.4` items 1–2). **WHERE AN ARTEFACT LOADED FAR ENOUGH TO
+/// CARRY THE GENERATOR, THE GENERATOR AUTHORS THE STRING** (`A75`: *"reached through the addon where it
+/// loaded far enough to carry the generator"*) — `addon.errorMessage` at each subject in turn.
+/// **WHERE THE GENERATOR IS UNREACHABLE — which is exactly this state, since the artefact that carries it
+/// is the thing that failed to load — THE STRING IS THE GENERATOR'S OWN RENDERING OF THAT SUBJECT,
+/// REPRODUCED BYTE-FOR-BYTE** (`JS-3`'s fix) and **NOT hand-authored** (`§2.5` item 2).
 function addonLoadMessage() {
   loadAddon();
-  // THE STORE'S OWN GENERATOR, where the artefact carried it (`A75`: *"reached through the addon where it
-  // loaded far enough to carry the generator"*).
+  const subject = absentSubject();
   if (addon !== null && typeof addon.errorMessage === 'function') {
-    return addon.errorMessage('FilePathUnreachable', ADDON_PATH);
+    return addon.errorMessage('FilePathUnreachable', subject);
   }
   // THE GENERATOR'S OWN RENDERING OF THIS SUBJECT, where it could not be reached (`JS-3`'s fix).
-  return generatorFilePathUnreachable(ADDON_PATH);
+  return generatorFilePathUnreachable(subject);
 }
 
 /// `surface.md §2.5`: **THE SINGLE FAILURE FORM** — a THROWN plain object carrying EXACTLY

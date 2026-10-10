@@ -1,0 +1,162 @@
+# `/.github/workflows/publish.yml` — **THE FIVE-ARTEFACT RELEASE MATRIX OF `U-STOREROOM-PUBLISH`**
+# (`docs/specs/storeroom-publish/release.md §1`; `docs/specs/storeroom-publish/contract.md §3.1`; `PUB-DD-7`;
+# `PUB-DD-23`; `Q3-5`).
+#
+# **WHAT THIS FILE IS: the CI INPUTS landed as a workflow — the five per-target runners, the tag/version
+# rule, the tag's actor, the provenance subject and the SIX STEPS IN THE DECLARED ORDER, of which the
+# LOAD-BEARING property is that the MAIN PACKAGE IS PUBLISHED LAST, ALWAYS** (`release.md §1.4` step 5;
+# `§3.1`). **The order is the partial-publish arm's own precondition: a failure before the main package is
+# recovered IN PLACE on the same version, because nothing a consumer can install is yet incomplete.**
+#
+# **NO PASS OF THIS UNIT PUBLISHES, PACKS, TAGS, INSTALLS OR ATTESTS** (`release.md §4.1` item 1): this
+# file DECLARES what the release must satisfy and is executed by NOTHING in this repository. **The release
+# acts are the ARCHITECT'S** (`release.md §1.3` item 1: the tag's actor is the architect) — the tag he
+# creates is this workflow's only trigger, and the publication is his act's consequence.
+#
+# **NO TRACKED BYTE HERE CARRIES A REGISTRY TOKEN, A SECRET OR A CREDENTIAL** (`release.md §1.4`'s closing
+# prohibition; `contract.md §2.5` item 4): the publish steps authenticate through the host's own OIDC
+# federation and through the repository's own trusted-publishing configuration, and NO `secrets.*`
+# reference and no auth token is written into this file. **NOTHING IS PUBLISHED FROM AN UNTAGGED COMMIT**
+# (`release.md §2.1` item 3): the only trigger below is the tag's own push, whose form is
+# `v<major>.<minor>.<patch>`.
+
+name: publish
+
+# `release.md §2.1` items 1–3 — **VERSION EQUALS TAG, AND ONLY THE TAG PUBLISHES.** A branch head, a pull
+# request and a manual dispatch publish nothing: there is no `branches:`, no `pull_request:` and no
+# `workflow_dispatch:` trigger, so an untagged commit has no route to the registry at all.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+# `release.md §1.3` items 2–3; `§1.4` step 6 — **THE PROVENANCE SUBJECT IS THE TAGGED COMMIT OF THIS
+# REPOSITORY**, recorded as the attestation's subject. `id-token: write` is the host's OIDC federation and
+# is not a credential written into this file; `contents: read` is the whole of the rest of the access.
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  # `release.md §1.2` — **ONE RUNNER PER TARGET, AND NO RUNNER SERVES TWO.** Each runner builds ITS OWN
+  # target and no other, because a cross-compiled artefact would make *"a consumer on a covered target
+  # needs no Rust toolchain"* a claim about a build this matrix did not perform. The five names are the
+  # five declared scoped names of `resolution.md §3.1`, name for name.
+  platform:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: linux-x64
+            name: '@provident-storeroom/js-linux-x64-gnu'
+            runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+          - label: linux-arm64
+            name: '@provident-storeroom/js-linux-arm64-gnu'
+            runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+          - label: darwin-x64
+            name: '@provident-storeroom/js-darwin-x64'
+            runner: macos-13
+            target: x86_64-apple-darwin
+          - label: darwin-arm64
+            name: '@provident-storeroom/js-darwin-arm64'
+            runner: macos-14
+            target: aarch64-apple-darwin
+          - label: win32-x64
+            name: '@provident-storeroom/js-win32-x64-msvc'
+            runner: windows-2022
+            target: x86_64-pc-windows-msvc
+    steps:
+      # `release.md §1.4` step 1 — **BUILD**, whose precondition is the tagged commit checked out. The
+      # ref is the tag itself and never a branch, so the bytes this matrix builds have the tag's identity.
+      - name: '1. checkout the tagged commit'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: '1. install the Rust toolchain for this target'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # `release.md §1.4` step 1's second half — **THE SIBLING CRATE'S OWN `cargo test`, ON AT LEAST THE
+      # HOST TARGET** — run from the repository root, at the crate's own manifest, offline as every leg of
+      # this project is (`contract.md §4.5` item 2).
+      - name: '1. cargo test the sibling crate (host target)'
+        run: cargo test --manifest-path bindings/js/Cargo.toml --offline --no-fail-fast
+
+      - name: '1. build the sibling crate for this target'
+        run: cargo build --release --manifest-path bindings/js/Cargo.toml --offline --target ${{ matrix.target }}
+
+      # `release.md §1.4` step 2 — **ASSEMBLE** each platform artefact's published content: its manifest
+      # (the tracked one below, whose `version` equals the main package's, character for character), its
+      # `.node` for the target, and the licence copy. **NO BINARY IS EVER COMMITTED** (`distribution.md
+      # §3.1`): the directories below are tracked carrying their manifest and nothing a build produces,
+      # and this step is what places the built artefact beside the manifest at CI time.
+      - name: '2. assemble the platform artefact (manifest, .node, licence copy)'
+        shell: bash
+        run: |
+          set -euo pipefail
+          label='${{ matrix.label }}'
+          dir="bindings/js/platforms/$label"
+          case '${{ runner.os }}' in
+            Windows) built="bindings/js/target/${{ matrix.target }}/release/storeroom_js_binding.dll" ;;
+            macOS)   built="bindings/js/target/${{ matrix.target }}/release/libstoreroom_js_binding.dylib" ;;
+            *)       built="bindings/js/target/${{ matrix.target }}/release/libstoreroom_js_binding.so" ;;
+          esac
+          cp "$built" "$dir/storeroom_js_binding.node"
+          cp LICENSE "$dir/LICENSE"
+          node -e "const m=require('./$dir/package.json');const main=require('./bindings/js/package.json');if(m.version!==main.version){throw new Error('release.md §2.2: '+m.name+' version '+m.version+' differs from the main package version '+main.version)}"
+
+      # `release.md §1.4` step 4 — **PUBLISH THE FIVE PLATFORM ARTEFACTS**, before the main package, at the
+      # tag's own version. The step is a registry publication and is the ARCHITECT'S act's arm: it is
+      # reached only from a tag, and the scope `@provident-storeroom` is owned before the first platform
+      # publish (`PUB-DD-6`'s precondition).
+      - name: '4. publish the platform artefact'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "bindings/js/platforms/${{ matrix.label }}"
+          npm publish --access public --provenance
+
+  # `release.md §1.4` steps 3 and 5 — **THE MAIN PACKAGE IS PUBLISHED LAST, ALWAYS.** It waits on the whole
+  # platform matrix, so its five exact pins are already resolved in the registry when it lands; and its
+  # content is the entry, the shipped `README.md` and the authored `index.d.ts`, **with NO binary**
+  # (`distribution.md §2.1`; `PUB-DD-1`).
+  main:
+    name: provident-storeroom (last, always)
+    needs: platform
+    runs-on: ubuntu-24.04
+    steps:
+      - name: '1. checkout the tagged commit'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      # `release.md §1.4` step 3 — **BUILD THE MAIN PACKAGE'S CONTENT**: the entry, the shipped README and
+      # the authored declaration file. **NO BINARY** enters the allowlist, so the tarball is byte-identical
+      # for every publisher (`distribution.md §2.1` item 2), and the version is the tag's own.
+      - name: '3. build the main package content (no binary)'
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          node -e "const m=require('./bindings/js/package.json');if(m.version!=='$version'){throw new Error('release.md §2.1: the tag is v'+'$version'+' and the manifest declares '+m.version)}"
+          node -e "const m=require('./bindings/js/package.json');const pins=Object.entries(m.optionalDependencies||{});if(pins.length!==5){throw new Error('PUB-DD-10: five exact pins are required, found '+pins.length)};for(const [n,p] of pins){if(p!==m.version){throw new Error('PUB-DD-10: '+n+' is pinned '+p+' and the package is '+m.version)}}"
+
+      # `release.md §1.4` step 5 — **PUBLISH THE MAIN PACKAGE**, after all five platform artefacts.
+      - name: '5. publish the main package'
+        working-directory: bindings/js
+        run: npm publish --access public --provenance
+
+      # `release.md §1.4` step 6 — **ATTEST**: the provenance attestation for the tagged commit's bytes,
+      # through the host's OIDC federation at the declared level of reach. **WHERE THE SOURCE REPOSITORY IS
+      # NOT PUBLICLY REACHABLE THE ATTESTATION IS DECLARED-NOT-ATTESTED IN THE RECORD** (`release.md §1.3`
+      # item 2): the attestation's reach is a fact the record states rather than one this file assumes.
+      - name: '6. attest the tagged commit''s provenance'
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: 'bindings/js/index.mjs'

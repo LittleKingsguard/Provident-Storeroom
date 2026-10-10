@@ -1,4 +1,4 @@
-# `@provident-storeroom/js` — the Node ESM binding for the native Rust store
+# `provident-storeroom` — the published Node ESM binding for the native Rust store
 
 **THE CLAIMED REALM IS `{ Node ESM }` AND NOTHING ELSE** (`A70`, `package.md §1.1`): a consumer `import`s
 this package as an ES module from a Node runtime whose ABI carries a Node-API addon. **Every other realm is
@@ -13,7 +13,7 @@ copy cannot exist beside the repository's own.
 ## The one entry
 
 ```js
-import { storeCreate, read, readLiteral, write, delete as remove, rollback, listen, unlisten } from '@provident-storeroom/js';
+import { storeCreate, read, readLiteral, write, delete as remove, rollback, listen, unlisten } from 'provident-storeroom';
 ```
 
 **The `exports` map publishes EXACTLY ONE arms-bearing entry — the ESM one** (`package.md §1.3`, `DD-24`):
@@ -54,9 +54,36 @@ STAND AGAIN — that re-boot is the store's own declared boot and not a defect. 
 fails answers `FileCommitFailed` after the store's own automatic journal rollback has run; the package
 compensates for nothing.
 
-## Building the addon
+## How the addon is resolved — three rungs, and the covered/uncovered answer
 
-The sibling crate lives at `bindings/js/` and is built from the repository root, at its own manifest:
+**THE ENTRY RESOLVES ITS ARTEFACT IN THE DECLARED ORDER** (`docs/specs/storeroom-publish/resolution.md
+§2`; `docs/specs/storeroom-publish/contract.md §1.1`):
+
+1. **RUNG ONE — THE SCOPED PLATFORM PACKAGE FOR THIS RUNTIME'S KEY.** The entry `require`s THE ONE NAME
+   the closed key set declares for the `process.platform` × `process.arch` pair, and no other name. The
+   five declared names are
+
+   **`@provident-storeroom/js-linux-x64-gnu`** · **`@provident-storeroom/js-linux-arm64-gnu`** ·
+   **`@provident-storeroom/js-darwin-x64`** · **`@provident-storeroom/js-darwin-arm64`** ·
+   **`@provident-storeroom/js-win32-x64-msvc`**
+
+   — five names, three of them carrying a toolchain suffix (`-gnu` twice, `-msvc` once) and two carrying
+   none. **The name is SELECTED from this table and is never built by concatenating tokens**, so no sixth
+   name is computed. These five are the registry's own per-target optional dependencies, and this
+   package's `optionalDependencies` pins each of them at this package's own version, exactly.
+
+2. **RUNG TWO — THE MODULE-RELATIVE ADDON.** Failing rung one, the entry `require`s
+   `build/Release/storeroom_js_binding.node` beside the entry module, constructed from the entry module's
+   own location and from no other source — no environment variable, no configuration key, no path
+   relative to the working directory and no search of a parent directory.
+
+3. **RUNG THREE — THE DECLARED ABSENT-ADDON FORM.** Failing rung two, the load path answers the single
+   failure form, and no instance is returned.
+
+**IN A PUBLISHED INSTALL, RUNG ONE IS THE RUNG THAT FIRES**, because rung two's path is the checkout's
+own and a `files`-restricted tarball does not carry it — **no binary ships, at any key, on any target**.
+**RUNG TWO IS THE CHECKOUT-ONLY RUNG**: it is the in-place developer loop and every battery that exists
+today, and building it is a step of a checkout rather than of an install:
 
 ```sh
 cargo build --release --manifest-path bindings/js/Cargo.toml --offline
@@ -66,11 +93,28 @@ cp bindings/js/target/release/libstoreroom_js_binding.so bindings/js/build/Relea
 
 **No binary is ever committed** (`package.md §3.2`): `build/` and `target/` are ignored, and the artefacts
 are built and published, never stored in the tree. **The prebuild matrix is five targets** (`linux-x64`,
-`linux-arm64`, `darwin-x64`, `darwin-arm64`, `win32-x64`) and its artefacts are hosted as the registry's own
-per-target optional dependencies, which this package's `optionalDependencies` declares. **A consumer on a
-target the matrix does not cover needs a Rust toolchain**, and that requirement is printed here rather than
-discovered. The Node-API version this addon is built against is the sibling crate's own build target and is
-not a JS-side floor of this package's own (`package.md §1.4`).
+`linux-arm64`, `darwin-x64`, `darwin-arm64`, `win32-x64`), built one runner per target by the release's own
+workflow, `/.github/workflows/publish.yml`. The Node-API version this addon is built against is the sibling
+crate's own build target and is not a JS-side floor of this package's own (`package.md §1.4`).
+
+**AND THE UNCOVERED-TARGET ANSWER IS A DECLARED LIMITATION, WITH ITS CONSEQUENCE STATED RATHER THAN
+DISCOVERED** (`docs/specs/storeroom-publish/contract.md §2.1` item 3; `docs/specs/storeroom-publish/
+distribution.md §2.2`; `PUB-DD-1`, `PUB-DD-2`):
+
+* **A CONSUMER WHOSE `process.platform` × `process.arch` PAIR IS NOT ONE OF THE FIVE COVERED KEYS GETS NO
+  BINARY.** Rung one is not attempted at all for that pair — no name exists for it — so the load path
+  falls to rung two, which a published install does not carry, and the uncovered consumer therefore meets
+  the declared absent-addon form.
+* **THEY GET NO BUILDABLE ROUTE FROM THE TARBALL EITHER: no `build.rs`, no `Cargo.toml`, no `src/**` and
+  no `postinstall` build-on-install step is shipped.** The store crate's source is deliberately outside
+  this package's allowlist, whose whole content is `index.mjs` · `README.md` · `index.d.ts`.
+* **THEIR ONLY ROUTE IS TO BUILD THE STORE CRATE FROM ITS SOURCE THEMSELVES.** This is a LIMITATION and
+  not a promise: no clause of this package claims that an uncovered consumer's route is supported, tested
+  or witnessed. **A covered consumer needs NO Rust toolchain; an uncovered consumer needs one.**
+* **AND THE DECLARED ANSWER TO A COVERED KEY WHOSE C LIBRARY DIFFERS FROM ITS ARTEFACT'S IS THE SAME
+  ONE**: the `os` and `cpu` fields carry an operating system and an architecture and cannot express a C
+  library, so no C library is read, detected or measured anywhere on this load path, and a state that
+  follows from that is a state the load path reaches rather than a key of its own.
 
 ## Tests
 

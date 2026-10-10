@@ -1,0 +1,22 @@
+{
+  "name": "@provident-storeroom/js-win32-x64-msvc",
+  "version": "0.1.0",
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "storeroom_js_binding.node",
+  "files": [
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "AGPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  }
+}
