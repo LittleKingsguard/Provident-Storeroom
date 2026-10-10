@@ -203,17 +203,33 @@ function hasLoneSurrogate(text) {
   return false;
 }
 
-/// `Object.prototype`'s own property names — `['constructor', '__proto__']` — read ONCE from THIS realm's
-/// own prototype. **They are the KEY SET the (e)-half of the plain-object test compares against.**
-const PLAIN_PROTO_NAMES = new Set(Object.getOwnPropertyNames(Object.prototype));
+/// `Object.prototype`'s own property names — `['constructor', '__proto__']` — **read PER CALL from THIS
+/// realm's own prototype. They are the KEY SET the (e)-half of the plain-object test compares against.**
+///
+/// **⟶ READ PER CALL, NOT ONCE AT LOAD: THE LOAD-TIME CACHE WAS A FAIL-CLOSED DoS.** `C-11` of the gate-4
+/// adversarial pass measured it: the sets stood as module-level `const`s taken at load, so a LATER own
+/// property change to `Array.prototype` (or to `Object.prototype`) left every array address and every plain
+/// `cfg` comparing against a key set the realm no longer has — `arrayClass` and `protoClass` then answered
+/// `'class'`, the walk refused `[]` and `{}` alike, and the refusal was reached at `on`'s own step 1. **THE
+/// SETS ARE FACTS ABOUT THE PROTOTYPES AS THEY ARE AT THIS CALL**, so they are read where they are used;
+/// the comparison is unchanged in every other respect (by NAME and by SYMBOL DESCRIPTION, never by a
+/// symbol's identity — `§1.2` row 5, `§1.3` row 13).
+function plainProtoNames() {
+  return new Set(Object.getOwnPropertyNames(Object.prototype));
+}
 
-/// `Array.prototype`'s own property names and its own symbols' descriptions, read ONCE from THIS realm's own
-/// prototype. **They are the KEY SET the ARRAY half of the class decision compares against**, and the
-/// comparison is by NAME and by SYMBOL DESCRIPTION — never by a symbol's identity, because
+/// `Array.prototype`'s own property names and its own symbols' descriptions, **read PER CALL from THIS
+/// realm's own prototype**. **They are the KEY SET the ARRAY half of the class decision compares against**,
+/// and the comparison is by NAME and by SYMBOL DESCRIPTION — never by a symbol's identity, because
 /// `Symbol.iterator` in another realm is a DIFFERENT symbol value, and a cross-realm array must be ACCEPTED
-/// (`§1.2` row 5, `§1.3` row 13).
-const ARRAY_PROTO_NAMES = new Set(Object.getOwnPropertyNames(Array.prototype));
-const ARRAY_PROTO_SYMBOLS = new Set(Object.getOwnPropertySymbols(Array.prototype).map((s) => s.description));
+/// (`§1.2` row 5, `§1.3` row 13). **See `plainProtoNames` above for why these are not cached (`C-11`).**
+function arrayProtoNames() {
+  return new Set(Object.getOwnPropertyNames(Array.prototype));
+}
+
+function arrayProtoSymbols() {
+  return new Set(Object.getOwnPropertySymbols(Array.prototype).map((s) => s.description));
+}
 
 /// `crossing.md §1.4` item 4: **THE PLAIN-OBJECT TEST**, items (a)–(g) — **STRUCTURAL AND REALM-AGNOSTIC.**
 /// **The prototype half is NOT an identity test against this realm's `Object.prototype`**: the prototype
@@ -230,8 +246,9 @@ function protoClass(value) {
   } catch {
     return 'class';
   }
-  if (names.length !== PLAIN_PROTO_NAMES.size) return 'class';
-  for (const name of names) if (!PLAIN_PROTO_NAMES.has(name)) return 'class';
+  const plain = plainProtoNames(); // `C-11`: the realm's own set, read at THIS call
+  if (names.length !== plain.size) return 'class';
+  for (const name of names) if (!plain.has(name)) return 'class';
   return proto === Object.prototype ? 'plain' : 'foreign';
 }
 
@@ -266,9 +283,11 @@ function arrayClass(value) {
   } catch {
     return 'class';
   }
-  if (names.length !== ARRAY_PROTO_NAMES.size || symbols.length !== ARRAY_PROTO_SYMBOLS.size) return 'class';
-  for (const name of names) if (!ARRAY_PROTO_NAMES.has(name)) return 'class';
-  for (const symbol of symbols) if (!ARRAY_PROTO_SYMBOLS.has(symbol.description)) return 'class';
+  const arrayNames = arrayProtoNames(); // `C-11`: the realm's own sets, read at THIS call
+  const arraySymbols = arrayProtoSymbols();
+  if (names.length !== arrayNames.size || symbols.length !== arraySymbols.size) return 'class';
+  for (const name of names) if (!arrayNames.has(name)) return 'class';
+  for (const symbol of symbols) if (!arraySymbols.has(symbol.description)) return 'class';
   return proto === Array.prototype ? 'plain' : 'foreign';
 }
 
@@ -325,6 +344,14 @@ function targetSpelling(value) {
     // `BigInt.prototype.toString` drops) and a `symbol` is printed `Symbol()`, while every other target class
     // is printed as its own value.
     if (typeof value === 'bigint') return `${value}n`;
+    // **⟶ AND A `Proxy` IS NEVER COERCED, BY THIS RENDERER EITHER (`C-1`'s third half, 2026-10-11).** The
+    // renderer is reached on the refusal path of a value the walk has ALREADY refused as `AddressArg` row 12
+    // — and `String(value)` on a `Proxy` invokes its `get` trap for `Symbol.toPrimitive` and for `toString`,
+    // **so the walk's own refusal message RAN THE TRAPS the walk exists to avoid running.** `classSpelling`
+    // reads the class with `util.types.isProxy` alone, invoking nothing, so the target half is still the
+    // class the value HAS — no trap runs on this path either, and the same refusal is reachable `on` and
+    // `read` alike.
+    if (typeof value === 'object' && value !== null && types.isProxy(value)) return classSpelling(value);
     return String(value);
   } catch {
     return classSpelling(value);
@@ -373,7 +400,17 @@ const VALUE_ARGUMENT_POSITION = "the write's value argument";
 function valuePosition(path) {
   if (path.length === 0) return VALUE_ARGUMENT_POSITION;
   const spelled = path
-    .map((segment) => (typeof segment === 'number' ? String(segment) : `'${segment}'`))
+    .map((segment) => {
+      if (typeof segment === 'number') return String(segment);
+      // **A KEY THE MESSAGE MAY NOT CARRY IS NAMED BY ITS CLASS.** A member KEY holding a lone surrogate is
+      // the one position this pass refuses whose own spelling cannot cross into the message at all: the
+      // code unit has no `String` form a Rust `String` can carry, so the alternatives are a REPAIR (`§1.8`
+      // forbids it, `A76`: *"do not attempt to fix"*) or a message that is not a string. **The position is
+      // therefore spelled `'<key: a string carrying a lone surrogate>'`, which names the class the key HAS
+      // and no byte of it** — the same reading `boundaryReject`'s target half takes at the segment position.
+      if (hasLoneSurrogate(segment)) return "'<key: a string carrying a lone surrogate>'";
+      return `'${segment}'`;
+    })
     .join('/');
   return `member ${spelled} of ${VALUE_ARGUMENT_POSITION}`;
 }
@@ -387,6 +424,11 @@ function valueTargetSpelling(value) {
   try {
     if (typeof value === 'bigint') return `${value}n`;
     if (typeof value === 'symbol') return 'Symbol()';
+    // **AND A TARGET THE MESSAGE MAY NOT CARRY IS NAMED AS ITS OWN CLASS RATHER THAN AS ITS BYTES**: a string
+    // carrying a LONE SURROGATE is the one value this pass refuses whose code unit has no `String` form at
+    // all, so printing it would REQUIRE the repair `§1.8` forbids (`A76`: *"do not attempt to fix"*). **The
+    // class half is mandatory (item 6 (b)); the byte half is the one datum no clause requires here.**
+    if (typeof value === 'string' && hasLoneSurrogate(value)) return 'a string carrying a lone surrogate';
     return String(value);
   } catch {
     // The rendering THREW (a `valueOf`/`Symbol.toPrimitive`/`Proxy` trap): the CLASS spelling is the
@@ -558,6 +600,22 @@ function encodeValue(value, ancestors, depth, path, fault) {
     // dropped** — the member is walked, its own position is carried, and the walk records the fault THERE.
     // **THE READ IS AN OWN-PROPERTY READ** (`A76`, `JS-5`): `Object.keys` yields the OWN enumerable string
     // keys — the keys the walk takes, `§1.4` item 4 (b) — and the member read is that key's own value.
+    //
+    // **⟶ AND THE LONE SURROGATE IS APPLIED AT THIS KEY POSITION TOO — `C-4`, THE MEMBER-KEY HALF
+    // (2026-10-11).** A KEY of a walked value is a JS `string` exactly as a value is, so `§1.2` row 1's
+    // dated clause reaches it: the class has no Rust spelling, **and the facade's string path ended in
+    // `String::from_utf8_lossy`, so a key holding `\uD800` was silently REPAIRED to U+FFFD on the way in —
+    // a member KEY silently renamed under a write the caller spelled at another name.** The class is
+    // refused here as the VALUE position refuses it, and the KEY IS STILL NEVER DROPPED: the whole value is
+    // refused, verbosely, at the member's own position (`§1.4` item 3's own answer to a dropped member).
+    if (hasLoneSurrogate(name)) {
+      // **THE TARGET IS THE MEMBER POSITION'S OWN NAME AND NOT THE KEY**, for the reason `encodeSegment`
+      // carries at the same class: the unpaired code unit has no `String` spelling and the only alternative
+      // is a REPAIR of it, which `§1.8` forbids — so the failing target is named by the VALUE argument the
+      // member was reached under, and the member's own POSITION (the key path, whose spelling
+      // `valuePosition` takes from the same key) carries the rest.
+      return refusedValue(fault, VALUE_ARGUMENT_POSITION, 'a string carrying a lone surrogate', [...path, name], { k: 'c' });
+    }
     members.push([name, encodeValue(value[name], next, depth + 1, [...path, name], fault)]);
   }
   return { k: 'o', m: members, p: proto, acc: false, proxy: false };
@@ -574,9 +632,65 @@ function encodeValue(value, ancestors, depth, path, fault) {
 /// verbosely, naming the class and the POSITION the segment holds. **`JS-1`'s demand is met by
 /// CONSTRUCTION, not by a `catch`: no `String(segment)`/`Number(segment)` is spelled here, so no `valueOf`,
 /// no `Symbol.toPrimitive` and no trap is ever invoked, and the class is read with `typeof` alone.**
+///
+/// **⟶ AND TWO MORE CLASSES ARE DECIDED AT THIS POSITION, ADDED 2026-10-11 BY THIS HOST-FIX PASS — `C-4`
+/// AND `C-12` OF THE GATE-4 ADVERSARIAL PASS:**
+/// * **THE LONE SURROGATE (`C-4`).** `crossing.md §1.2` row 1's dated clause and `§1.4` item 9 make the class
+///   BOUNDARY-ONLY and refuse it *"AT THE PACKAGE'S OWN WALK, BEFORE ANY VERB IS CALLED"*, *"never silently
+///   replaced, never silently dropped and never normalized into a replacement character"* — **and the class
+///   is a property of a JS `string`, which a SEGMENT is.** The as-built walk never called
+///   `hasLoneSurrogate` here, so `on(['\uD800'], f)` was admitted, `facade.rs`'s string path repaired the
+///   code unit to U+FFFD on the way in, and **a listener fired at an address the caller never spelled.**
+///   **THE CLASS IS NOW APPLIED HERE EXACTLY AS THE VALUE POSITION APPLIES IT**, with the answer the same
+///   dated clause declares.
+/// * **AN INTEGRAL SEGMENT ABOVE THE CARRIER'S OWN RANGE (`C-12`).** `AddressArg` row 3 admits *"a `number`
+///   that is integral, `>= 0` and exact as an `f64`"* — and the carrier that row's own spelling reaches is
+///   `JsSegment::Index(u64)` (`package.md §4.5` item 2's `JsSegment` row; `crossing.rs`'s
+///   `JsSegment::Index(i) => Segment::Index(*i)`), **so a JS `number` above `u64::MAX` has NO EXACT SPELLING
+///   IN THE CARRIER AT ALL.** The facade read it with `n as u64`, a SATURATING cast in Rust: `2**64` and
+///   `1e30` both arrived as `u64::MAX`, so **two distinct admissible addresses became ONE store address and
+///   shared one handle.** **THE RANGE IS CHECKED BEFORE THE CAST AND THE OUT-OF-RANGE INTEGRAL SEGMENT IS
+///   REFUSED `AddressMalformed` — `AddressArg` row 8's own code for a number outside the segment domain,
+///   carried and never minted (`DD-40`) — because a silent saturation is a repair (`A76`: *"do not attempt
+///   to fix"*; `§1.8`). `Number.MAX_SAFE_INTEGER` is the boundary carried here: it is the largest integral
+///   `number` a JS consumer can hold and compare EXACTLY, and every `number` at or below it is exact in the
+///   carrier's `u64` as well.**
 function encodeSegment(segment, position, argumentPosition) {
   const kind = typeof segment;
-  if (kind === 'string' || kind === 'number' || kind === 'boolean') return segment;
+  if (kind === 'string') {
+    // `§1.2` row 1's dated clause at the SEGMENT position (`C-4`): the class is refused at the package's
+    // own walk and never repaired on the way in.
+    if (hasLoneSurrogate(segment)) {
+      boundaryReject(
+        'ValueNotAdmitted', // row 1's dated clause's own answer, carried and never minted (`DD-40`)
+        // **THE TARGET IS THE POSITION'S OWN NAME, NOT THE STRING, FOR THE REASON THIS CLASS EXISTS**: the
+        // unpaired code unit cannot cross into the generator's own message either — it has no `String`
+        // spelling, and the only alternative is a REPAIR of it, which `§1.8` forbids — so the failing TARGET
+        // is named `'address'` (as this file already names it for the other class refused at this position)
+        // and the failing segment is named by its INDEX and the ARGUMENT POSITION beside it. **The class is
+        // what item 5 (b) makes mandatory; the value that failed is the one datum no clause requires here.**
+        'address',
+        argumentPosition === undefined
+          ? `the address holds a string carrying a lone surrogate at position ${position}, and a segment is a string or a non-negative integer`
+          : `the address holds a string carrying a lone surrogate at position ${position} of the ${argumentPosition}, and a segment is a string or a non-negative integer`,
+      );
+    }
+    return segment;
+  }
+  if (kind === 'number') {
+    // `C-12`: the class decision then the RANGE, both before the carrier's cast and never by it.
+    if (Number.isInteger(segment) && segment >= 0 && !Number.isSafeInteger(segment)) {
+      boundaryReject(
+        'AddressMalformed', // `AddressArg` row 8's own declared code, carried and never minted (`DD-40`)
+        'address',
+        argumentPosition === undefined
+          ? `the address holds an integral segment ${segment} at position ${position} above the carrier's own range, and a segment is a string or a non-negative integer a \`u64\` can carry exactly`
+          : `the address holds an integral segment ${segment} at position ${position} of the ${argumentPosition} above the carrier's own range, and a segment is a string or a non-negative integer a \`u64\` can carry exactly`,
+      );
+    }
+    return segment;
+  }
+  if (kind === 'boolean') return segment;
   if (segment === null) return { bad: 'null' };
   if (kind === 'undefined') return { bad: 'undefined' };
   if (kind === 'function') return { bad: 'function' };
@@ -1112,6 +1226,22 @@ export function write(instance, address, tier, value) {
 ///   assert exactly one argument** (`S-FIRE-WINDOW`'s `argCount === 1`).
 function deliver(state, triggered, triggeringAddress) {
   const address = typeof triggeringAddress === 'object' && triggeringAddress !== null ? triggeringAddress : [];
+  // **⟶ THE RECIPIENT SET IS SNAPSHOTTED WHEN THE WINDOW OPENS, BEFORE THE FIRST INVOCATION — `C-2` OF THE
+  // GATE-4 ADVERSARIAL PASS (2026-10-11; `CF-DUP-3`'s re-homing clause, `surface.md §2.4` item 7 (b),
+  // `write-and-read.md §6.5` item 14).** The as-built loop called `state.registry.get(handle)` INSIDE the
+  // loop, so **the recipient set was read PER ELEMENT, not when the window opened**: a registration made
+  // from one listener's body WAS invoked later in the SAME delivery and a withdrawal made from a body was
+  // NOT — **and which of the two happened depended on the HOME `HashMap`'s iteration order, which `§2.7`
+  // item 3 / `DD-22` declare UNOBSERVABLE** (the contradiction the `A78`/`CF-DUP-3` argument refused, and a
+  // per-process flake for any drive that took it). **THE FIX IS THE DECLARED RULE SHIPPED AS AN ORDER: the
+  // identity→function map is built for the DISTINCT identities of THIS trigger set BEFORE the first
+  // invocation, and the loop invokes from that snapshot alone** — so **a registration, a replacement or a
+  // withdrawal made during the window TAKES EFFECT AT THE NEXT TRIGGER, and at no element of this one**
+  // (`CF-DUP-3`; `off`'s own arm at `offAt` — *"`off` DOES NOT CANCEL A DELIVERY IN FLIGHT"* — is the same
+  // sentence read from the withdrawal's side). **THE SNAPSHOT HOLDS THE FUNCTION THE REGISTRY HELD AT THE
+  // OPENING**: an identity with no registered function snapshots `undefined` and fires NOTHING SILENTLY
+  // (`§2.4` rule 1), and a function REPLACED from inside a body does not stand in for the one snapshotted.
+  //
   // **ONE INVOCATION PER DISTINCT IDENTITY** (`§2.4` rule 3 and its dated clause (i); `§2.4` item 6 (b)–(e)):
   // the array is the STORE's and a lawful caller-spelled duplicate makes ONE identity stand in it TWICE, so
   // what is matched is the array's identity SET — each DISTINCT identity ONCE, at its first occurrence and
@@ -1119,10 +1249,13 @@ function deliver(state, triggered, triggeringAddress) {
   // `DD-22`: a drive compares sets, never sequences), and an identity the registry holds no function for
   // still fires nothing at every one of its occurrences.
   const matched = new Set();
+  const recipients = [];
   for (const handle of triggered) {
     if (matched.has(handle)) continue; // ONE invocation per DISTINCT identity — never one per element
     matched.add(handle);
-    const listener = state.registry.get(handle); // THE ID→FUNCTION MATCH, BY THE IDENTITY REGISTRATION RETURNED
+    recipients.push([handle, state.registry.get(handle)]); // THE ID→FUNCTION MATCH, BY THE IDENTITY REGISTRATION RETURNED
+  }
+  for (const [handle, listener] of recipients) {
     // `§2.4` rule 1: a handle with NO registered function invokes nothing and reports nothing — no code,
     // no warning, no log.
     if (typeof listener === 'function') {
@@ -1294,7 +1427,31 @@ const ARGUMENT_POSITION_SECOND = 'second argument';
 ///
 /// **AND NOTHING IS LEFT BEHIND:** this walk performs NO store call and NO registry write, so it runs at
 /// step 1 and leaves no home entry, no registry entry, no node and no journal entry.
+///
+/// **⟶ AND THE PROXY DECISION IS TAKEN FIRST, IN `encodeAddress`'S OWN ORDER — `C-1` OF THE GATE-4
+/// ADVERSARIAL PASS, THE STOP-GRADE FINDING, CLOSED AT THIS SITE (2026-10-11).** The walk's first statement
+/// was `isAdmittedArray(address)`, which reads `Array.isArray` and then `arrayClass`'s
+/// `Object.getPrototypeOf` — **so a trap-carrying `Proxy` over an array RAN ITS TRAPS BEFORE ANY DECISION
+/// WAS TAKEN**: a `getPrototypeOf` trap that throws raised a RAW HOST ERROR out of `on` (against
+/// `§2.5` item 5 (e): *"a rejection is NEVER A RAW HOST ERROR"*), a `get` trap's side effects ran, and a
+/// re-entrant verb could be invoked from inside the walk — for an argument the contract refuses as
+/// `AddressArg` row 12 (`DD-34`) without reading it at all. **`encodeAddress` at `:609` already took this
+/// decision first, in its own words** (*"A `Proxy` is refused BEFORE the array shape test and before any
+/// element is read"*), **and this function now does the same, in the same order, with the same refusal.**
+/// **NO TRAP RUNS ON ANY PATH: the shape test, the prototype read that follows it, the `.length` read, every
+/// element read and the listener-position check are each reached only for a value `types.isProxy` has
+/// already answered about — and `util.types.isProxy` reads no member and invokes no handler.** The refusal
+/// is `AddressArg` row 12's own `AddressMalformed`, carried and never minted (`DD-40`).
 function validateOnAddress(address) {
+  if (types.isProxy(address)) {
+    // `AddressArg` row 12 (`DD-34`): the CLASS decision first, before the shape test and before any read —
+    // the order `encodeAddress` takes at the same position.
+    boundaryReject(
+      'AddressMalformed',
+      targetSpelling(address),
+      `the address at the ${ARGUMENT_POSITION_FIRST} of \`on\` is ${classSpelling(address)}, and an address is an array of segments`,
+    );
+  }
   if (!isAdmittedArray(address)) {
     // `AddressArg` row 6 (a non-array, its five named classes), row 11 (a class extending `Array`), row 12
     // (a `Proxy`) and rows 4–5 (`undefined`/`null`, whose own class spelling is the target's).
@@ -1318,8 +1475,42 @@ function validateOnAddress(address) {
     // Rows 2–3: the two IN-DOMAIN classes — a string (the empty string included) and a non-negative
     // integer. **The integer test is taken on the value as it is and nothing is repaired**: `1.5`, `-1`,
     // `NaN` and `Infinity` are each refused as `a number`, which is the class the value HAS.
-    if (typeof segment === 'string') continue;
-    if (typeof segment === 'number' && Number.isInteger(segment) && segment >= 0) continue;
+    //
+    // **⟶ AND THE TWO CLASSES THIS PASS ADDED ARE DECIDED HERE TOO, BEFORE THE STORE IS REACHED — `C-4`'s
+    // segment half and `C-12` (`2026-10-11`).** They are the same two decisions `encodeSegment` takes for
+    // the other verbs' addresses, taken at this site's own position and with this site's own ARGUMENT
+    // POSITION spelling, **so `on` and `listen` answer one address the same way and neither reaches the
+    // carrier with a value it cannot spell**: a LONE SURROGATE in a string segment (row 1's dated clause —
+    // the class has no Rust spelling and is refused *"at the PACKAGE's own edge, BEFORE any verb is
+    // called"*, never repaired), and an INTEGRAL segment above the `u64` the carrier's `Index` variant
+    // carries (`package.md §4.5` item 2's `JsSegment` row) — **which the facade's `n as u64` used to
+    // SATURATE, folding `2**64` and `1e30` onto one store address and one handle (`C-12`).**
+    if (typeof segment === 'string') {
+      if (hasLoneSurrogate(segment)) {
+        boundaryReject(
+          'ValueNotAdmitted', // row 1's dated clause's own answer, carried and never minted (`DD-40`)
+          // **THE TARGET IS THE SEGMENT POSITION'S OWN NAME AND NOT THE STRING**: a lone surrogate cannot
+          // cross into the generator either — its bytes are not a `String` — so the failing TARGET is named
+          // as `encodeSegment` names it at the same class (`'address'`), and the failing segment is named by
+          // its INDEX beside it. **The class half is mandatory and it is carried; the failing VALUE is not
+          // printed, because the only spellings for it are the caller's own unrepresentable code unit or a
+          // REPAIR of it, and `§1.8` forbids the repair.**
+          'address',
+          `the segment at index ${i} of the address at the ${ARGUMENT_POSITION_FIRST} of \`on\` is a string carrying a lone surrogate, and a segment is a string or a non-negative integer`,
+        );
+      }
+      continue;
+    }
+    if (typeof segment === 'number' && Number.isInteger(segment) && segment >= 0) {
+      if (!Number.isSafeInteger(segment)) {
+        boundaryReject(
+          'AddressMalformed', // `AddressArg` row 8's own declared code, carried and never minted (`DD-40`)
+          targetSpelling(segment),
+          `the segment at index ${i} of the address at the ${ARGUMENT_POSITION_FIRST} of \`on\` is an integral segment above the carrier's own range, and a segment is a string or a non-negative integer a \`u64\` can carry exactly`,
+        );
+      }
+      continue;
+    }
     // Rows 7–10 + `§1.2`'s class set: every other class is refused AT THE BOUNDARY, inside the one form,
     // naming the failing SEGMENT — the target the item's own clause names — its class and the position.
     boundaryReject(

@@ -298,10 +298,11 @@ enum Node {
 ///   entries are KEPT, each with its OWN handle"* — while `listen` itself never adds a second entry at an
 ///   address the home already holds (`§6.5` item 12 (c)). The bucket holds the DECLARED record
 ///   (`Listener{address,handle}`, `§6.5` item 10 (a)) and NEVER an anonymous shape beside it (`U-5`).**
-/// * **`handles: HashMap<String, (Vec<Segment>, usize)>`** — **THE HANDLE→ADDRESS INDEX**: the handle's
-///   own token maps to its address and its position in that bucket, so `unlisten` is an index lookup plus
-///   an in-bucket removal and **`DD-42`'s MINT-COLLISION rule is answered by the index itself** (`U-6`:
-///   the linear skip-loop is gone — a candidate token is colliding iff THIS map holds it). **The index is
+/// * **`handles: HashMap<String, Vec<(Vec<Segment>, usize)>>`** — **THE HANDLE→ADDRESS INDEX**: the
+///   handle's own token maps to the ORDERED LIST of the entries that token names, each as its address and
+///   its position in that address's bucket, so `unlisten` is an index lookup plus an in-bucket removal and
+///   **`DD-42`'s MINT-COLLISION rule is answered by the index itself** (`U-6`: the linear skip-loop is
+///   gone — a candidate token is colliding iff THIS map holds a non-empty list for it). **The index is
 ///   keyed by the token and not by `ListenerHandle`: `ListenerHandle` keeps the contract's own derives
 ///   (`Clone + PartialEq + Eq + Debug`, `§0.4` clause 1) and gains no `Hash` it is not declared with.**
 /// * **The token is the index's key rather than the handle's, and that is the WHOLE of the change to
@@ -311,13 +312,35 @@ enum Node {
 ///   pass through the mint), and `unlisten` over a duplicated token still removes the FIRST match — the
 ///   entry with the SMALLEST bucket position — which is `DD-42` clause (2)'s DECLARED answer.**
 ///
+/// **⟶ ONE LIST PER TOKEN, ADDED 2026-10-11 BY THIS HOST-FIX PASS, CLOSING THE FIRST HALF OF `C-3`** (the
+/// gate-4 adversarial pass; `write-and-read.md §6.5` item 12; `DD-42` clause (2); `DD-39`; `DD-51`): **the
+/// as-built index was `token → ONE (address, position)`, and `Home::adopt` OVERWROTE that one mapping at
+/// every adoption.** **With the LAWFUL duplicate `[{['a'], 'dup'}, {['b'], 'dup'}]` — `DD-39`'s own
+/// duplicate case, `§0.4` clause 2 (b)'s ADOPTION VERBATIM — the map therefore named ONE of the two
+/// entries at any moment and DROPPED the other's mapping entirely: after ONE withdrawal the surviving
+/// entry answered the same token through `members` while the index held NO key for it, so that entry could
+/// NEVER be withdrawn by its own handle — the state `DD-51`'s own failure list names (*"an index whose
+/// membership and the home's entries can disagree"*).** **THE INDEX NOW CARRIES EVERY ENTRY A TOKEN NAMES,
+/// in adoption order, and THE WITHDRAWAL TAKES THE FIRST OF THEM — the entry with the smallest bucket
+/// position, which is `DD-42` clause (2)'s DECLARED FIRST match and the one `ng_c_a…`'s cell (2) drives;
+/// the survivors stay INDEXED, so a second `unlisten` over the same token names the next entry and the
+/// token's every entry is reachable by withdrawal.** **THE READER THAT WANTS THE OTHER READING — a single
+/// withdrawal clearing EVERY entry a token names — is NOT taken here, and the reason is a cell rather than
+/// a preference: the withdrawal of ONE entry with a survivor at a prefix-related address is DRIVEN as the
+/// declared answer (`tests/gate4_red_set_fix.rs` `ng_c_a_handle_token_colliding_with_a_minted_one`, its
+/// part (2): *"`unlisten` removes ONE entry … the SURVIVOR's address still fires it"*), so that reading
+/// would falsify a cell this pass may not touch.** **IT IS REPORTED AS A CONTRACT FINDING INSTEAD**
+/// (`DD-42`'s and `§6.5` item 12's *"drops ONE home-map entry"* read against `surface.md §2.4` item 7 (b)'s
+/// own arm, which asserts of `off` what only the caller-spelled ONE-ADDRESS duplicate can deliver).
+///
 /// **The node-side lists of `§6.5` item 9 are REFERENCES INTO IT and never a second copy**, and the home is
 /// NOT addressable, NOT a graph record and NOT inside a read at `[]` (`A48`).
 struct Home {
     /// The address-keyed map `A45` declares — the home's own primary structure.
     members: HashMap<Vec<Segment>, Vec<Listener>>,
-    /// The handle→address index: token → (its address, its position in that address's bucket).
-    handles: HashMap<String, (Vec<Segment>, usize)>,
+    /// The handle→address index: token → its entries, as (address, position in that address's bucket),
+    /// in adoption order.
+    handles: HashMap<String, Vec<(Vec<Segment>, usize)>>,
 }
 
 impl Home {
@@ -339,6 +362,12 @@ impl Home {
     /// **THE CONSTRUCTION'S ADOPTION** (`§7.1` step 5; `DD-39`; `§0.4` clause 2 (b)): an accepted
     /// `listeners[]` entry's handle is adopted VERBATIM under its address, a duplicate address keeps BOTH
     /// entries, and NO TOKEN IS RE-MINTED (`DD-42` clause (3)).
+    ///
+    /// **⟶ AND THE INDEX GAINS A LIST RATHER THAN REPLACING A MAPPING (2026-10-11; `C-3`'s first half).** The
+    /// token's own list is APPENDED TO, so a token the caller spelled at two addresses names BOTH entries
+    /// and the SECOND adoption no longer drops the FIRST's mapping. **The appended ORDER is the caller's
+    /// spelling order ACROSS addresses and the bucket's own order WITHIN one address**, which is the order
+    /// `DD-42` clause (2)'s *"FIRST match"* is defined by.
     fn adopt(&mut self, address: Vec<Segment>, handle: ListenerHandle) {
         let token = handle.to_string();
         let bucket = self.members.entry(address.clone()).or_default();
@@ -347,7 +376,10 @@ impl Home {
             address: address.clone(),
             handle,
         });
-        self.handles.insert(token, (address, position));
+        self.handles
+            .entry(token)
+            .or_default()
+            .push((address, position));
     }
 
     /// `§6.5` item 12 (c): the address's OWN first entry, where the home holds one — the handle `listen`
@@ -362,7 +394,9 @@ impl Home {
     /// `DD-42` clause (1) (`U-6`): is this candidate token a token the home already holds? **The handle
     /// index answers it — the home's own structure, not a walk of the entries.**
     fn holds_token(&self, token: &str) -> bool {
-        self.handles.contains_key(token)
+        self.handles
+            .get(token)
+            .is_some_and(|entry| !entry.is_empty())
     }
 
     /// **THE MINT** (`§6.5` item 12; `§0.4`'s construction-rule clause 2 (a); `DD-42` clause (1)): a
@@ -381,18 +415,41 @@ impl Home {
                 address: address.to_vec(),
                 handle: handle.clone(),
             });
-            self.handles.insert(token, (address.to_vec(), position));
+            self.handles
+                .entry(token)
+                .or_default()
+                .push((address.to_vec(), position));
             return handle;
         }
     }
 
     /// `§6.5` item 12: **`unlisten` drops ONE home-map entry** — the one the handle names, through the
     /// handle index, with no walk of the map. **An unknown, foreign, prior-session or fabricated handle
-    /// matches nothing at all** (the no-op success), and a token the CALLER spelled twice removes the
-    /// FIRST match — the entry with the smallest bucket position (`DD-42` clause (2)).
+    /// matches nothing at all** (the no-op success), and a token the CALLER spelled more than once removes
+    /// the FIRST match — the entry with the smallest bucket position, in the index's own adoption order
+    /// (`DD-42` clause (2)), **which is the entry `ng_c_a…`'s cell (2) drives and the one this function
+    /// removes.**
+    ///
+    /// **⟶ AND THE TOKEN IS UNBOUND FROM THAT ENTRY ALONE, NOT FROM THE HOME (2026-10-11; `C-3`'s second
+    /// half).** The withdrawal's own structural change is an in-bucket removal, so every position after it
+    /// has SHIFTED and the index's own positions for the token's remaining entries are stale — **and the
+    /// as-built code repaired exactly one of them, through the ONE address it had been handed, which is
+    /// why a token whose two entries stood at TWO addresses lost its index key at the first withdrawal.**
+    /// **The whole index is therefore rebuilt from the home** (`rebuild_index`): the home's `members` is the
+    /// primary structure and the index a LOOKUP STRUCTURE over it (`DD-51`: *"it holds NO listener state, is
+    /// reached by no verb and by no read"*), so the index is DERIVED and is never patched entry by entry.
     fn withdraw(&mut self, handle: &ListenerHandle) -> bool {
         let token = handle.to_string();
-        let Some((address, position)) = self.handles.get(&token).cloned() else {
+        let Some(entries) = self.handles.get(&token).cloned() else {
+            return false;
+        };
+        // `DD-42` clause (2): the FIRST match is the entry the token's own list names first — the one with
+        // the smallest bucket position over an address bucket, and the earliest adoption across addresses.
+        let Some((address, position)) = entries
+            .iter()
+            .min_by_key(|(address, position)| (*position, address.clone()))
+            .cloned()
+        else {
             return false;
         };
         let mut emptied = false;
@@ -407,30 +464,27 @@ impl Home {
         if emptied {
             self.members.remove(&address);
         }
-        // The tokens the caller spelled twice at ONE address are ONE index key over two bucket slots: the
-        // withdrawal above took the FIRST slot, so the index now names the slot that STANDS at that
-        // position — the entry the same token still names, or none where the bucket held one entry.
-        self.reindex_token(&address, &token);
+        // The survivors of ONE token may stand at several addresses and at shifted positions: the index is
+        // re-derived from the home rather than patched at the one address this call happened to name.
+        self.rebuild_index();
         true
     }
 
-    /// Re-point the handle index at the slot the token's own entry stands in after a removal shifted the
-    /// bucket — the position is the index's second member and it must name the ENTRY (`DD-42` clause (2)).
-    fn reindex_token(&mut self, address: &[Segment], token: &str) {
-        let position = self.members.get(address).and_then(|bucket| {
-            bucket
-                .iter()
-                .position(|listener| listener.handle.to_string() == token)
-        });
-        match position {
-            Some(position) => {
-                self.handles
-                    .insert(token.to_string(), (address.to_vec(), position));
-            }
-            None => {
-                self.handles.remove(token);
+    /// **THE INDEX RE-DERIVED FROM THE HOME** (`DD-51`; `C-3`'s second half): the token's own list of
+    /// `(address, position)` pairs, rebuilt over every address bucket in the home. **It carries no listener
+    /// state of its own and nothing but the home is read**, and after ONE withdrawal every token that
+    /// still names an entry is reachable by `withdraw` again.
+    fn rebuild_index(&mut self) {
+        let mut index: HashMap<String, Vec<(Vec<Segment>, usize)>> = HashMap::default();
+        for (address, bucket) in &self.members {
+            for (position, listener) in bucket.iter().enumerate() {
+                index
+                    .entry(listener.handle.to_string())
+                    .or_default()
+                    .push((address.clone(), position));
             }
         }
+        self.handles = index;
     }
 }
 
@@ -1848,6 +1902,23 @@ impl Store {
     /// home already holds.**
     pub fn listen(&mut self, address: AddressArg) -> Result<ListenerHandle, StoreError> {
         let segments = address_segments(&address)?;
+        // **⟶ `L-1` IS RUN ON THIS ROUTE TOO, ADDED 2026-10-11 BY THIS HOST-FIX PASS (`C-5`; `crossing.md
+        // §1.3`'s `AddressArg` rows 7–10, `§2.10`/`PAR-JS-5`; `write-and-read.md §6.5` item 12).** The
+        // address's SHAPE was the whole of what this verb tested, while `write` · `delete` and the walk
+        // each run `is_in_domain` per segment (`write`'s own arm above, this file's `walk`) — **so
+        // `listen(['a', 1.5])` minted a handle and gave the home an entry for an address no clause admits,
+        // and the two spellings of one act answered one address differently.** **THE RULE IS THE ONE THE
+        // OTHER VERBS ALREADY USE: EVERY segment of the address is tested, the FIRST outside the domain is
+        // the failing one, and its answer is the walk's own `L-1` `AddressMalformed` with the same generated
+        // message beside its container address.** It is taken BEFORE the home is consulted, so a malformed
+        // address answers the same way whether or not some entry stands under it.
+        let mut container: Vec<Segment> = Vec::new();
+        for segment in &segments {
+            if !segment.is_in_domain() {
+                return Err(malformed_segment(segment, &container));
+            }
+            container.push(segment.clone());
+        }
         // `§6.5` item 12 (c) / `§0.4` clause 2: the home is CONSULTED FIRST — an already-registered address
         // hands back the entry's own handle and pushes NOTHING, so a repeated `listen` leaves the home
         // unchanged and the trigger fires that ONE handle. **`F-9`: the consultation is the ADDRESS-KEYED

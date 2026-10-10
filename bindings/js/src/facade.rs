@@ -170,7 +170,32 @@ fn as_utf8(name: &str) -> Vec<u8> {
     bytes
 }
 
-/// The string a JS `string` value carries.
+/// **THE BYTES A JS `string` VALUE HANDED THIS FRAME, OR `None` WHERE THEY ARE NOT A RUST `String`.**
+///
+/// **⟶ `String::from_utf8_lossy` IS DELETED FROM THIS FILE (2026-10-11) — `C-4` OF THE GATE-4 ADVERSARIAL
+/// PASS, THE RUST HALF OF THE LONE-SURROGATE FINDING.** Both string reads (`arg_string` and
+/// `Codec::string_of`) ended in the lossy conversion, **which REPLACES every invalid sequence with U+FFFD
+/// and returns it as an ordinary string**: a member KEY or a stored string the caller never spelled would
+/// have been silently renamed under the write, which is exactly the repair `crossing.md §1.2` row 1's dated
+/// clause and `§1.8` forbid (*"never silently replaced, never silently dropped and never normalized into a
+/// replacement character"*; `A76`: *"do not attempt to fix"*).
+///
+/// **THE READING, STATED SO THE SENTINEL IS NOT MISTAKEN FOR A SECOND FAILURE FORM:** the lone-surrogate
+/// class is BOUNDARY-ONLY — `§1.4` item 9 makes it the PACKAGE's own walk's class, *"not constructible in
+/// Rust at all"* — and the walk now refuses it at the segment and member-KEY positions as well as at the
+/// value position (`index.mjs`), so **the class reaches no Rust frame on any declared route of this
+/// package.** What this function owes is therefore the NARROWER half of `C-4`'s instruction: where a byte
+/// sequence is not a `String`, this frame REFUSES it — it never repairs it. **The refusal is the EMPTY
+/// STRING, which is the `None` sentinel of the two reads that call this,** and each caller answers with a
+/// declared class: a value position reads it as `JsValue::NonPlainCollection` (the store's own
+/// `ValueNotAdmitted`) and a tag position reads it as the arm it is not. **No status is minted here and no
+/// host error escapes** (`surface.md §2.5` item 5 (e), `DD-40`).
+fn utf8_or_none(bytes: &[u8]) -> Option<String> {
+    std::str::from_utf8(bytes).ok().map(str::to_string)
+}
+
+/// The string a JS `string` value carries, **or the empty-string sentinel where the bytes are not one**
+/// (see [`utf8_or_none`]: the repair is gone and the refusal is the caller's declared class).
 unsafe fn arg_string(env: NapiEnv, value: NapiValue) -> String {
     let mut len: usize = 0;
     if napi_get_value_string_utf8(env, value, std::ptr::null_mut(), 0, &mut len) != 0 {
@@ -182,7 +207,7 @@ unsafe fn arg_string(env: NapiEnv, value: NapiValue) -> String {
         return String::new();
     }
     buf.truncate(written);
-    String::from_utf8_lossy(&buf).into_owned()
+    utf8_or_none(&buf).unwrap_or_default()
 }
 
 unsafe fn make_string(env: NapiEnv, text: &str) -> NapiValue {
@@ -306,6 +331,11 @@ impl Codec {
         Some(out)
     }
 
+    /// **THE STRING READ, STRICT — the repair is deleted here too** (see [`utf8_or_none`]: `C-4`'s Rust
+    /// half). A payload whose bytes are not a `String` answers the EMPTY-STRING SENTINEL, and the arm that
+    /// read it stands as the class it is: `value_of`'s `"s"` arm carries it as `JsValue::NonPlainCollection`
+    /// and the store answers its own `ValueNotAdmitted`, and an empty tag names no arm at all. **Nothing is
+    /// substituted, nothing is repaired and no status is minted at this frame.**
     unsafe fn string_of(&self, value: NapiValue) -> String {
         let mut len: usize = 0;
         if napi_get_value_string_utf8(self.env, value, std::ptr::null_mut(), 0, &mut len) != 0 {
@@ -317,7 +347,7 @@ impl Codec {
             return String::new();
         }
         buf.truncate(written);
-        String::from_utf8_lossy(&buf).into_owned()
+        utf8_or_none(&buf).unwrap_or_default()
     }
 
     unsafe fn bool_of(&self, value: NapiValue) -> bool {
