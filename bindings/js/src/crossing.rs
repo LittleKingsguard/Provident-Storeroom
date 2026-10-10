@@ -14,9 +14,9 @@
 use std::collections::BTreeMap;
 
 use storeroom_native::{
-    storeCreate, AddressArg, BaseState, DeleteReceipt, FilePathArg, JournalLengthArg, ListenerEntry,
-    ListenerHandle, ListenersArg, OpIdArg, RollbackResult, Segment, Store, StoreConfig, StoreError,
-    StoreValue, Tier, TierArg, TierSetItem, WriteResult,
+    storeCreate, AddressArg, BaseState, DeleteReceipt, FilePathArg, JournalLengthArg,
+    ListenerEntry, ListenerHandle, ListenersArg, OpIdArg, RollbackResult, Segment, Store,
+    StoreConfig, StoreError, StoreValue, Tier, TierArg, TierSetItem, WriteResult,
 };
 
 /// `surface.md §2.5` / `DD-12` / `package.md §4.5` item 4: **THE SINGLE FAILURE FORM AT THE CORE LAYER** —
@@ -347,7 +347,9 @@ pub fn to_address_arg(a: &JsAddressArg) -> AddressArg {
         // A sparse array, a `Proxy` over an array and a class array-like are all *"not the address's shape
         // at all"* — the store's own `Object` spelling of a shapeless value, which is what its `PAR-1`
         // outside list prints.
-        JsAddressArg::Sparse | JsAddressArg::Proxy | JsAddressArg::ClassArrayLike => AddressArg::Object,
+        JsAddressArg::Sparse | JsAddressArg::Proxy | JsAddressArg::ClassArrayLike => {
+            AddressArg::Object
+        }
         JsAddressArg::Absent => AddressArg::Absent,
         JsAddressArg::Null => AddressArg::Null,
         JsAddressArg::Undefined => AddressArg::Undefined,
@@ -440,9 +442,9 @@ pub fn to_journal_length_arg(l: &JsJournalLengthArg) -> JournalLengthArg {
         JsJournalLengthArg::Infinity => JournalLengthArg::Infinity,
         JsJournalLengthArg::NumericString(_) => JournalLengthArg::NonNumberString,
         JsJournalLengthArg::Bool(_) => JournalLengthArg::NonNumberBool,
-        JsJournalLengthArg::Object | JsJournalLengthArg::Function | JsJournalLengthArg::BigInt(_) => {
-            JournalLengthArg::Object
-        }
+        JsJournalLengthArg::Object
+        | JsJournalLengthArg::Function
+        | JsJournalLengthArg::BigInt(_) => JournalLengthArg::Object,
         // The too-large row is a NON-INTEGER as far as the store's own domain is concerned, and the store's
         // `Fractional` arm is where its `AddressMalformed` answer is generated.
         JsJournalLengthArg::TooLarge(n) => JournalLengthArg::Fractional(*n as f64),
@@ -870,7 +872,11 @@ impl Instance {
 
     /// `§2.2` / `§2.9` item 2: `readLiteral` narrows the read to a leaf and answers `ReadTargetIsBranch`
     /// on a branch — the store's own answer.
-    pub fn read_literal(&self, address: &JsAddressArg, tier: &JsTierArg) -> Result<JsValue, Refusal> {
+    pub fn read_literal(
+        &self,
+        address: &JsAddressArg,
+        tier: &JsTierArg,
+    ) -> Result<JsValue, Refusal> {
         self.store
             .readLiteral(to_address_arg(address), to_tier_arg(tier))
             .map(|v| from_store_value(&v))
@@ -931,7 +937,10 @@ impl Instance {
     /// `§2.10`: `listen` mints a token, populates the store's home and wraps it for JS — and the minted
     /// token enters THIS instance's own handle domain (`§2.4` item 5 (c)).
     pub fn listen(&mut self, address: &JsAddressArg) -> Result<JsHandle, Refusal> {
-        let handle = self.store.listen(to_address_arg(address)).map_err(refusal)?;
+        let handle = self
+            .store
+            .listen(to_address_arg(address))
+            .map_err(refusal)?;
         let token = handle.to_string();
         if !self.owned.contains(&token) {
             self.owned.push(token);
@@ -974,13 +983,18 @@ impl Instance {
                 // The target is rendered as its own value where the handle carries one, and as the class
                 // otherwise (`surface.md §2.5` item 5 (a)), with the argument position beside it (item 5 (b)).
                 let (target, class) = match handle {
-                    JsHandleArg::Opaque(opaque) => {
-                        (opaque.token.clone(), "an opaque handle a FOREIGN instance minted")
-                    }
+                    JsHandleArg::Opaque(opaque) => (
+                        opaque.token.clone(),
+                        "an opaque handle a FOREIGN instance minted",
+                    ),
                     JsHandleArg::Bare(bare) => (bare.clone(), "a bare string"),
                     _ => (String::from(""), "an absent argument"),
                 };
-                Err(registration_refusal(&target, "register's first argument", class))
+                Err(registration_refusal(
+                    &target,
+                    "register's first argument",
+                    class,
+                ))
             }
         }
     }

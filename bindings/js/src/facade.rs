@@ -36,10 +36,10 @@ use std::cell::RefCell;
 use std::os::raw::{c_char, c_void};
 
 use crate::crossing::{
-    self, JsAddressArg, JsBaseState, JsConfig, JsDeleteReceipt, JsFilePathArg, JsHandle, JsHandleArg,
-    JsJournalLengthArg,
-    JsJournalOp, JsKey, JsListenerEntry, JsListenersArg, JsNonArray, JsObject, JsOpIdArg,
-    JsProto, JsRollbackResult, JsSegment, JsTierArg, JsTierSetItem, JsValue, JsWriteResult, Refusal,
+    self, JsAddressArg, JsBaseState, JsConfig, JsDeleteReceipt, JsFilePathArg, JsHandle,
+    JsHandleArg, JsJournalLengthArg, JsJournalOp, JsKey, JsListenerEntry, JsListenersArg,
+    JsNonArray, JsObject, JsOpIdArg, JsProto, JsRollbackResult, JsSegment, JsTierArg,
+    JsTierSetItem, JsValue, JsWriteResult, Refusal,
 };
 
 /// The address's own segments, where the argument IS the declared list shape — the triggering address a
@@ -50,7 +50,6 @@ fn segments_of(address: &JsAddressArg) -> Vec<JsSegment> {
         _ => Vec::new(),
     }
 }
-
 
 // =================================================================================================
 // THE NODE-API ABI — the symbols the RUNTIME supplies, declared at their own C signatures.
@@ -116,7 +115,12 @@ extern "C" {
     ) -> NapiStatus;
     fn napi_is_array(env: NapiEnv, value: NapiValue, result: *mut bool) -> NapiStatus;
     fn napi_get_array_length(env: NapiEnv, value: NapiValue, result: *mut u32) -> NapiStatus;
-    fn napi_get_element(env: NapiEnv, object: NapiValue, index: u32, result: *mut NapiValue) -> NapiStatus;
+    fn napi_get_element(
+        env: NapiEnv,
+        object: NapiValue,
+        index: u32,
+        result: *mut NapiValue,
+    ) -> NapiStatus;
     fn napi_get_value_double(env: NapiEnv, value: NapiValue, result: *mut f64) -> NapiStatus;
     /// **THE BIGINT READ OF `A76`/`JS-6`** — a JS `bigint` is read as a `bigint` and is NEVER handed to
     /// `napi_get_value_double`, whose failure arm would substitute `0.0` for it.
@@ -131,8 +135,17 @@ extern "C" {
     fn napi_get_value_uint32(env: NapiEnv, value: NapiValue, result: *mut u32) -> NapiStatus;
     fn napi_typeof(env: NapiEnv, value: NapiValue, result: *mut i32) -> NapiStatus;
     fn napi_create_object(env: NapiEnv, result: *mut NapiValue) -> NapiStatus;
-    fn napi_create_array_with_length(env: NapiEnv, length: usize, result: *mut NapiValue) -> NapiStatus;
-    fn napi_set_element(env: NapiEnv, object: NapiValue, index: u32, value: NapiValue) -> NapiStatus;
+    fn napi_create_array_with_length(
+        env: NapiEnv,
+        length: usize,
+        result: *mut NapiValue,
+    ) -> NapiStatus;
+    fn napi_set_element(
+        env: NapiEnv,
+        object: NapiValue,
+        index: u32,
+        value: NapiValue,
+    ) -> NapiStatus;
     fn napi_create_double(env: NapiEnv, value: f64, result: *mut NapiValue) -> NapiStatus;
     fn napi_throw(env: NapiEnv, error: NapiValue) -> NapiStatus;
     // **`napi_create_reference`, `napi_delete_reference`, `napi_get_reference_value` AND
@@ -203,7 +216,14 @@ unsafe fn arg_string(env: NapiEnv, value: NapiValue) -> String {
     }
     let mut buf = vec![0u8; len + 1];
     let mut written: usize = 0;
-    if napi_get_value_string_utf8(env, value, buf.as_mut_ptr() as *mut c_char, len + 1, &mut written) != 0 {
+    if napi_get_value_string_utf8(
+        env,
+        value,
+        buf.as_mut_ptr() as *mut c_char,
+        len + 1,
+        &mut written,
+    ) != 0
+    {
         return String::new();
     }
     buf.truncate(written);
@@ -226,7 +246,12 @@ unsafe fn throw_refusal(env: NapiEnv, refusal: &Refusal) -> NapiValue {
     let status_value = make_string(env, &refusal.status);
     let message_value = make_string(env, &refusal.message);
     napi_set_named_property(env, object, status.as_ptr() as *const c_char, status_value);
-    napi_set_named_property(env, object, message.as_ptr() as *const c_char, message_value);
+    napi_set_named_property(
+        env,
+        object,
+        message.as_ptr() as *const c_char,
+        message_value,
+    );
     napi_throw(env, object);
     let mut undefined: NapiValue = std::ptr::null_mut();
     napi_get_undefined(env, &mut undefined);
@@ -325,7 +350,13 @@ impl Codec {
         }
         let spelled = as_utf8(name);
         let mut out: NapiValue = std::ptr::null_mut();
-        if napi_get_named_property(self.env, object, spelled.as_ptr() as *const c_char, &mut out) != 0 {
+        if napi_get_named_property(
+            self.env,
+            object,
+            spelled.as_ptr() as *const c_char,
+            &mut out,
+        ) != 0
+        {
             return None;
         }
         Some(out)
@@ -343,7 +374,14 @@ impl Codec {
         }
         let mut buf = vec![0u8; len + 1];
         let mut written: usize = 0;
-        if napi_get_value_string_utf8(self.env, value, buf.as_mut_ptr() as *mut c_char, len + 1, &mut written) != 0 {
+        if napi_get_value_string_utf8(
+            self.env,
+            value,
+            buf.as_mut_ptr() as *mut c_char,
+            len + 1,
+            &mut written,
+        ) != 0
+        {
             return String::new();
         }
         buf.truncate(written);
@@ -449,8 +487,16 @@ impl Codec {
             None => return JsValue::NonPlainCollection,
         };
         match tag.as_str() {
-            "s" => JsValue::Str(self.member(v, "v").map(|x| self.string_of(x)).unwrap_or_default()),
-            "b" => JsValue::Bool(self.member(v, "v").map(|x| self.bool_of(x)).unwrap_or(false)),
+            "s" => JsValue::Str(
+                self.member(v, "v")
+                    .map(|x| self.string_of(x))
+                    .unwrap_or_default(),
+            ),
+            "b" => JsValue::Bool(
+                self.member(v, "v")
+                    .map(|x| self.bool_of(x))
+                    .unwrap_or(false),
+            ),
             // **THE CLASS TEST PRECEDES THE NUMERIC ARM (`A76`, `JS-6`): a payload that is not a JS `number`
             // is never read as one — its OWN class decides (`classed_value`), so a `bigint` arrives as
             // `JsValue::BigInt` and is refused as a `BigInt` rather than carried through the number arm to
@@ -506,14 +552,25 @@ impl Codec {
                         (key, held)
                     })
                     .collect();
-                let proto = match self.member(v, "p").map(|x| self.string_of(x)).unwrap_or_default().as_str() {
+                let proto = match self
+                    .member(v, "p")
+                    .map(|x| self.string_of(x))
+                    .unwrap_or_default()
+                    .as_str()
+                {
                     "null" => JsProto::Null,
                     "foreign" => JsProto::ForeignPlain,
                     "class" => JsProto::Class,
                     _ => JsProto::Plain,
                 };
-                let has_accessor = self.member(v, "acc").map(|x| self.bool_of(x)).unwrap_or(false);
-                let proxied = self.member(v, "proxy").map(|x| self.bool_of(x)).unwrap_or(false);
+                let has_accessor = self
+                    .member(v, "acc")
+                    .map(|x| self.bool_of(x))
+                    .unwrap_or(false);
+                let proxied = self
+                    .member(v, "proxy")
+                    .map(|x| self.bool_of(x))
+                    .unwrap_or(false);
                 JsValue::Object(JsObject {
                     members,
                     proto,
@@ -557,7 +614,12 @@ impl Codec {
             NAPI_BOOLEAN => JsSegment::Bool(self.bool_of(v)),
             NAPI_FUNCTION => JsSegment::Function,
             _ => {
-                match self.member(v, "bad").map(|x| self.string_of(x)).unwrap_or_default().as_str() {
+                match self
+                    .member(v, "bad")
+                    .map(|x| self.string_of(x))
+                    .unwrap_or_default()
+                    .as_str()
+                {
                     "null" => JsSegment::Null,
                     "undefined" => JsSegment::Undefined,
                     "bool" => JsSegment::Bool(false),
@@ -604,7 +666,10 @@ impl Codec {
             "C" => JsAddressArg::ClassArrayLike,
             "A" => JsAddressArg::Absent,
             _ => {
-                let inner = self.member(a, "o").map(|o| self.segment(o)).unwrap_or(JsSegment::Object);
+                let inner = self
+                    .member(a, "o")
+                    .map(|o| self.segment(o))
+                    .unwrap_or(JsSegment::Object);
                 let non_array = match inner {
                     JsSegment::Key(s) => JsNonArray::Str(s),
                     JsSegment::Index(n) => JsNonArray::Number(n as f64),
@@ -629,7 +694,12 @@ impl Codec {
             },
             NAPI_BOOLEAN => JsTierSetItem::Bool(self.bool_of(item)),
             NAPI_FUNCTION => JsTierSetItem::Function,
-            _ => match self.member(item, "bad").map(|x| self.string_of(x)).unwrap_or_default().as_str() {
+            _ => match self
+                .member(item, "bad")
+                .map(|x| self.string_of(x))
+                .unwrap_or_default()
+                .as_str()
+            {
                 "null" => JsTierSetItem::Null,
                 "undefined" => JsTierSetItem::Undefined,
                 "function" => JsTierSetItem::Function,
@@ -649,7 +719,11 @@ impl Codec {
             "A" => JsTierArg::Absent,
             "N" => JsTierArg::Null,
             "U" => JsTierArg::Undefined,
-            "T" => JsTierArg::Token(self.member(t, "v").map(|x| self.string_of(x)).unwrap_or_default()),
+            "T" => JsTierArg::Token(
+                self.member(t, "v")
+                    .map(|x| self.string_of(x))
+                    .unwrap_or_default(),
+            ),
             "S" => JsTierArg::Set(
                 self.member(t, "i")
                     .map(|list| self.elements(list))
@@ -658,10 +732,18 @@ impl Codec {
                     .map(|item| self.tier_set_item(*item))
                     .collect(),
             ),
-            "B" => JsTierArg::Bool(self.member(t, "v").map(|x| self.bool_of(x)).unwrap_or(false)),
+            "B" => JsTierArg::Bool(
+                self.member(t, "v")
+                    .map(|x| self.bool_of(x))
+                    .unwrap_or(false),
+            ),
             // The number arm, read class-first: a payload that is not a number answers `Object` — row 6's
             // `OutOfDomainTier` — rather than being substituted by `0` (`A76`).
-            "D" => JsTierArg::Number(self.member(t, "v").and_then(|x| self.number_of(x)).unwrap_or(f64::NAN)),
+            "D" => JsTierArg::Number(
+                self.member(t, "v")
+                    .and_then(|x| self.number_of(x))
+                    .unwrap_or(f64::NAN),
+            ),
             "F" => JsTierArg::Function,
             _ => JsTierArg::Object,
         }
@@ -674,7 +756,11 @@ impl Codec {
             None => return JsOpIdArg::Absent,
         };
         match tag.as_str() {
-            "s" => JsOpIdArg::Str(self.member(o, "v").map(|x| self.string_of(x)).unwrap_or_default()),
+            "s" => JsOpIdArg::Str(
+                self.member(o, "v")
+                    .map(|x| self.string_of(x))
+                    .unwrap_or_default(),
+            ),
             "N" => JsOpIdArg::Null,
             "U" => JsOpIdArg::Undefined,
             // **THE NUMBER ROW, READ CLASS-FIRST (`A76`, `JS-1`/`JS-6`):** the mapping layer carries ONLY a
@@ -698,9 +784,16 @@ impl Codec {
         };
         match tag.as_str() {
             "O" => JsHandleArg::Opaque(JsHandle::from_token(
-                &self.member(h, "v").map(|x| self.string_of(x)).unwrap_or_default(),
+                &self
+                    .member(h, "v")
+                    .map(|x| self.string_of(x))
+                    .unwrap_or_default(),
             )),
-            "B" => JsHandleArg::Bare(self.member(h, "v").map(|x| self.string_of(x)).unwrap_or_default()),
+            "B" => JsHandleArg::Bare(
+                self.member(h, "v")
+                    .map(|x| self.string_of(x))
+                    .unwrap_or_default(),
+            ),
             "A" => JsHandleArg::Absent,
             _ => JsHandleArg::NonOpaque,
         }
@@ -723,41 +816,43 @@ impl Codec {
             NAPI_UNDEFINED => JsFilePathArg::Undefined,
             _ => JsFilePathArg::NonString,
         });
-        let journal_length = self.member(cfg, "journalLength").map(|v| match self.kind_of(v) {
-            NAPI_NUMBER => match self.number_of(v) {
-                Some(n) => {
-                    if n.is_nan() {
-                        JsJournalLengthArg::NaN
-                    } else if n.is_infinite() {
-                        JsJournalLengthArg::Infinity
-                    } else if n.fract() == 0.0 && n >= 1.0 && n <= u32::MAX as f64 {
-                        JsJournalLengthArg::Count(n as u32)
-                    } else if n == 0.0 {
-                        JsJournalLengthArg::Zero
-                    } else if n < 0.0 {
-                        JsJournalLengthArg::Negative(n as i64)
-                    } else if n > u32::MAX as f64 {
-                        JsJournalLengthArg::TooLarge(n as u64)
-                    } else {
-                        JsJournalLengthArg::Fractional(n)
+        let journal_length = self
+            .member(cfg, "journalLength")
+            .map(|v| match self.kind_of(v) {
+                NAPI_NUMBER => match self.number_of(v) {
+                    Some(n) => {
+                        if n.is_nan() {
+                            JsJournalLengthArg::NaN
+                        } else if n.is_infinite() {
+                            JsJournalLengthArg::Infinity
+                        } else if n.fract() == 0.0 && n >= 1.0 && n <= u32::MAX as f64 {
+                            JsJournalLengthArg::Count(n as u32)
+                        } else if n == 0.0 {
+                            JsJournalLengthArg::Zero
+                        } else if n < 0.0 {
+                            JsJournalLengthArg::Negative(n as i64)
+                        } else if n > u32::MAX as f64 {
+                            JsJournalLengthArg::TooLarge(n as u64)
+                        } else {
+                            JsJournalLengthArg::Fractional(n)
+                        }
                     }
-                }
-                // Unreachable through the shipped encoder (the class was just read as `number`) and NOT a
-                // substitution: a value whose class is not a number is carried as row 10's `Object`.
-                None => JsJournalLengthArg::Object,
-            },
-            NAPI_STRING => JsJournalLengthArg::NumericString(self.string_of(v)),
-            NAPI_BOOLEAN => JsJournalLengthArg::Bool(self.bool_of(v)),
-            // **`A76`/`JS-6`: A `bigint` ARRIVES AS A `bigint`** — it is read as its own class by
-            // `napi_get_value_bigint_int64` and is NEVER handed to the number read, where the failure arm
-            // would have substituted `0` for the caller's `10n`. The declared answer is unchanged: row 11's
-            // `AddressMalformed`, reached through the class and not through a coerced token.
-            NAPI_BIGINT => JsJournalLengthArg::BigInt(self.bigint_of(v)),
-            NAPI_NULL => JsJournalLengthArg::Null,
-            NAPI_UNDEFINED => JsJournalLengthArg::Undefined,
-            NAPI_FUNCTION => JsJournalLengthArg::Function,
-            _ => JsJournalLengthArg::Object,
-        });
+                    // Unreachable through the shipped encoder (the class was just read as `number`) and NOT a
+                    // substitution: a value whose class is not a number is carried as row 10's `Object`.
+                    None => JsJournalLengthArg::Object,
+                },
+                NAPI_STRING => JsJournalLengthArg::NumericString(self.string_of(v)),
+                NAPI_BOOLEAN => JsJournalLengthArg::Bool(self.bool_of(v)),
+                // **`A76`/`JS-6`: A `bigint` ARRIVES AS A `bigint`** — it is read as its own class by
+                // `napi_get_value_bigint_int64` and is NEVER handed to the number read, where the failure arm
+                // would have substituted `0` for the caller's `10n`. The declared answer is unchanged: row 11's
+                // `AddressMalformed`, reached through the class and not through a coerced token.
+                NAPI_BIGINT => JsJournalLengthArg::BigInt(self.bigint_of(v)),
+                NAPI_NULL => JsJournalLengthArg::Null,
+                NAPI_UNDEFINED => JsJournalLengthArg::Undefined,
+                NAPI_FUNCTION => JsJournalLengthArg::Function,
+                _ => JsJournalLengthArg::Object,
+            });
         let listeners = self.member(cfg, "listeners").map(|v| {
             if !self.is_array(v) {
                 return match self.kind_of(v) {
@@ -773,9 +868,10 @@ impl Codec {
                     if self.is_array(*entry) || self.kind_of(*entry) != NAPI_OBJECT {
                         return JsListenerEntry::Other;
                     }
-                    let (Some(address), Some(handle)) =
-                        (self.member(*entry, "address"), self.member(*entry, "handle"))
-                    else {
+                    let (Some(address), Some(handle)) = (
+                        self.member(*entry, "address"),
+                        self.member(*entry, "handle"),
+                    ) else {
                         return JsListenerEntry::Other;
                     };
                     if self.kind_of(handle) != NAPI_STRING {
@@ -839,7 +935,12 @@ impl Codec {
 
     unsafe fn string_value(&self, text: &str) -> NapiValue {
         let mut out: NapiValue = std::ptr::null_mut();
-        napi_create_string_utf8(self.env, text.as_ptr() as *const c_char, text.len(), &mut out);
+        napi_create_string_utf8(
+            self.env,
+            text.as_ptr() as *const c_char,
+            text.len(),
+            &mut out,
+        );
         out
     }
 
@@ -925,11 +1026,15 @@ impl Codec {
                     JsSegment::Negative(i) => self.number_value(*i as f64),
                     JsSegment::Fractional(f) => self.number_value(*f),
                     JsSegment::Null => self.object(vec![("bad", self.string_value("null"))]),
-                    JsSegment::Undefined => self.object(vec![("bad", self.string_value("undefined"))]),
+                    JsSegment::Undefined => {
+                        self.object(vec![("bad", self.string_value("undefined"))])
+                    }
                     JsSegment::Bool(b) => self.bool_value(*b),
                     JsSegment::Object => self.object(vec![("bad", self.string_value("object"))]),
                     JsSegment::Array => self.object(vec![("bad", self.string_value("array"))]),
-                    JsSegment::Function => self.object(vec![("bad", self.string_value("function"))]),
+                    JsSegment::Function => {
+                        self.object(vec![("bad", self.string_value("function"))])
+                    }
                 })
                 .collect(),
         )
@@ -984,7 +1089,10 @@ impl Codec {
     unsafe fn to_js_delete_receipt(&self, r: &JsDeleteReceipt) -> NapiValue {
         self.object(vec![
             ("address", self.to_js_segments(&r.address)),
-            ("tiers", self.array(r.tiers.iter().map(|t| self.string_value(t)).collect())),
+            (
+                "tiers",
+                self.array(r.tiers.iter().map(|t| self.string_value(t)).collect()),
+            ),
             ("triggered", self.to_js_handles(&r.triggered)),
         ])
     }
@@ -992,7 +1100,10 @@ impl Codec {
     unsafe fn to_js_rollback_result(&self, r: &JsRollbackResult) -> NapiValue {
         self.object(vec![
             ("opId", self.string_value(&r.opId)),
-            ("undoneOps", self.array(r.undoneOps.iter().map(|id| self.string_value(id)).collect())),
+            (
+                "undoneOps",
+                self.array(r.undoneOps.iter().map(|id| self.string_value(id)).collect()),
+            ),
             ("restoredTo", self.to_js_base_state(&r.restoredTo)),
         ])
     }
@@ -1027,7 +1138,14 @@ extern "C" fn addon_create(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
     let mut argv: [NapiValue; 2] = [std::ptr::null_mut(); 2];
     let mut this: NapiValue = std::ptr::null_mut();
     unsafe {
-        napi_get_cb_info(env, info, &mut argc, argv.as_mut_ptr(), &mut this, std::ptr::null_mut());
+        napi_get_cb_info(
+            env,
+            info,
+            &mut argc,
+            argv.as_mut_ptr(),
+            &mut this,
+            std::ptr::null_mut(),
+        );
     }
     let codec = Codec { env };
     let config = unsafe { codec.config(argv[0]) };
@@ -1061,7 +1179,14 @@ extern "C" fn addon_call(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
     let mut argv: [NapiValue; 3] = [std::ptr::null_mut(); 3];
     let mut this: NapiValue = std::ptr::null_mut();
     unsafe {
-        napi_get_cb_info(env, info, &mut argc, argv.as_mut_ptr(), &mut this, std::ptr::null_mut());
+        napi_get_cb_info(
+            env,
+            info,
+            &mut argc,
+            argv.as_mut_ptr(),
+            &mut this,
+            std::ptr::null_mut(),
+        );
     }
     let mut index: u32 = 0;
     unsafe {
@@ -1230,7 +1355,14 @@ extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue 
     let mut argv: [NapiValue; 2] = [std::ptr::null_mut(); 2];
     let mut this: NapiValue = std::ptr::null_mut();
     unsafe {
-        napi_get_cb_info(env, info, &mut argc, argv.as_mut_ptr(), &mut this, std::ptr::null_mut());
+        napi_get_cb_info(
+            env,
+            info,
+            &mut argc,
+            argv.as_mut_ptr(),
+            &mut this,
+            std::ptr::null_mut(),
+        );
     }
     let mut index: u32 = 0;
     unsafe {
@@ -1292,7 +1424,14 @@ extern "C" fn addon_error_message(env: NapiEnv, info: NapiCallbackInfo) -> NapiV
     let mut argv: [NapiValue; 2] = [std::ptr::null_mut(); 2];
     let mut this: NapiValue = std::ptr::null_mut();
     unsafe {
-        napi_get_cb_info(env, info, &mut argc, argv.as_mut_ptr(), &mut this, std::ptr::null_mut());
+        napi_get_cb_info(
+            env,
+            info,
+            &mut argc,
+            argv.as_mut_ptr(),
+            &mut this,
+            std::ptr::null_mut(),
+        );
     }
     let code = unsafe { arg_string(env, argv[0]) };
     let subject = unsafe { arg_string(env, argv[1]) };
@@ -1307,7 +1446,12 @@ extern "C" fn addon_error_message(env: NapiEnv, info: NapiCallbackInfo) -> NapiV
     unsafe { make_string(env, &message) }
 }
 
-fn export(env: NapiEnv, exports: NapiValue, name: &str, cb: extern "C" fn(NapiEnv, NapiCallbackInfo) -> NapiValue) {
+fn export(
+    env: NapiEnv,
+    exports: NapiValue,
+    name: &str,
+    cb: extern "C" fn(NapiEnv, NapiCallbackInfo) -> NapiValue,
+) {
     let spelled = as_utf8(name);
     let mut function: NapiValue = std::ptr::null_mut();
     unsafe {
