@@ -195,6 +195,53 @@ THE PACKAGE:**
 | **`AddressArg` 13** | a **cross-realm array** (a `vm` array, an `Array` from a worker) | **ACCEPTED** — it is an `Array` | — |
 | **`AddressArg` 14** | a **sparse array** as the address itself | — | **`AddressMalformed`** — **a hole is not an in-domain segment, and neither reading of a hole may be chosen silently** (`DD-8`) |
 
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`), CLOSING THE CONTRACT FINDING THE
+HOST-FIX PASS FILED AGAINST ROW 3: THE OUT-OF-RANGE INTEGRAL SEGMENT, ITS ANSWER AND ITS BOUNDARY.**
+`RCA-8(d)` ANNOTATE-BESIDE: **every row of the `AddressArg` table above stands byte-for-byte — row 3's
+*"a `number` that is integral, `>= 0` and exact as an `f64`"* included — and row 3 is read THROUGH this
+clause; THIS clause is a PURE INSERTION, it adds no row to the table, mints no code and moves no census
+figure.** **THE DEFECT IT CLOSES, NAMED WITH ITS TERMS: row 3's accepted forms are MATHEMATICALLY complete
+and CARRIER-INCOMPLETE.** **The carrier that row's own spelling reaches is `JsSegment::Index(u64)`
+(`package.md §4.5` item 2's `JsSegment` row, and `bindings/js/src/crossing.rs`'s
+`JsSegment::Index(i) => Segment::Index(*i)`), so a JS `number` ABOVE `u64::MAX` that is nevertheless integral,
+`>= 0` and exact as an `f64` — `2**64`, `1e30` — was ADMITTED by the row AS WRITTEN and had NO EXACT SPELLING
+IN THE CARRIER AT ALL; the facade read it with `n as u64`, a SATURATING cast in Rust, so **two distinct
+admitted addresses became ONE store address and shared ONE handle** — a silent fold, and therefore a repair,
+which `A76`'s second part and `§1.8` forbid.** **THE RANGE CLAUSE, DECLARED AT THIS ROW:**
+1. **ITS DOMAIN, COMPLETED — AND THE BOUND IS A DECLARED BOUND AND NOT THE CARRIER'S FULL RANGE.** **An
+   integral segment `n` is IN DOMAIN iff `0 <= n <= Number.MAX_SAFE_INTEGER` (`2^53 − 1`), which is the
+   largest integral `number` a JS consumer can hold, compare and transmit EXACTLY, and every `number` at or
+   below it is exact in the carrier's `u64` as well.** **`Number.MAX_SAFE_INTEGER` IS THE BOUNDARY CARRIED
+   HERE, and the declaration is deliberately narrower than the carrier's own `u64` range, which no JS
+   `number` above `2^53 − 1` can spell exactly anyway.**
+2. **THE OUT-OF-RANGE INTEGRAL SEGMENT'S ANSWER IS `AddressMalformed`** — **row 8's own code for a number
+   outside the segment domain, carried and never minted** (`DD-40`) — **and it is REFUSED AT THE PACKAGE'S
+   OWN WALK, BEFORE ANY VERB IS CALLED and BEFORE the carrier's cast is reached.** **`2**53` — the smallest
+   integral `number` above the bound — and every integral `number` above it, `2**64` and `1e30` among them,
+   are therefore REFUSED AND NOT FOLDED: no saturation, no truncation and no two addresses sharing one store
+   address is lawful.** **The failing TARGET is the value as the boundary spells it and the failing SEGMENT
+   is named by its INDEX in the message's reason half**, exactly as this table's other segment refusals name
+   theirs (`surface.md §2.5` item 5 (b)).
+3. **AND THE ROWS THIS CLAUSE DOES NOT MOVE, NAMED SO NO NEIGHBOUR IS READ AS AMENDED: row 3's acceptance of
+   `0`, of positive integers, of `2**32`, of the empty string and of any string remains; row 8's
+   non-integer, `NaN` and `Infinity` classes answer their own code unchanged; and rows 7, 9, 10 and 14 are
+   untouched** — **the boundary is a RANGE statement inside an existing row's own subject and opens no new
+   class.**
+**AND ONE CONSISTENCY THIS PASS REPORTS AND DOES NOT DECIDE, BECAUSE THE CELL IT NAMES IS THE STORE'S: `on`'s
+walk and the module namespace's `listen` read this boundary differently in the shipped tree, and the two
+spellings of one act owe one answer.** **`bindings/js/index.mjs`'s `validateOnAddress` refuses an integral
+segment above `Number.MAX_SAFE_INTEGER` with `AddressMalformed`, while the store's own `listen` route
+(`src/store.rs`) tests each segment with `Segment::is_in_domain`, whose `Index` arm admits every `u64` — so a
+JS `number` in `(2^53 − 1, u64::MAX]` is refused by the package at `on` and admitted by the store's own
+carrier at `listen`.** **THE DECLARED ANSWER AT THIS BOUNDARY IS THE ONE THIS CLAUSE PRINTS — `2**53` is
+refused — and making the module namespace's own `listen` route agree is a STORE-SIDE RE-DERIVATION owned by
+that directory's author and REPORTED here rather than taken: it is named as the cell that must be re-derived
+with this boundary, and no byte of `src/**` or of the store's directory is written by this pass** (`A68`).
+(`[A3 docs/specs/storeroom-js/crossing.md §1.3`'s `AddressArg` rows 3 and 8 — the two rows this clause reads;
+A3 docs/specs/storeroom-js/crossing.md §1.8 — the no-repair prohibition the saturation violated; A3
+docs/specs/storeroom-js/package.md §4.5 item 2 — the `JsSegment::Index(u64)` carrier this row's spelling
+reaches; `DD-40` | state or fail-state declaration]`).
+
 **`TierArg` and `TierSetItem`** — the tier argument, per verb; its arity is the STORE's own table and the
 package passes it through verbatim (`DD-37`, `DD-46`).
 
@@ -428,6 +475,51 @@ every site that needs it** (`[A3 docs/specs/spec-scope-and-structure/contract.md
    surrogate class is not among them** (`§1.2` row 1's lone-surrogate clause; `acceptance.md §4.1` item 6)
    (`[A3 docs/specs/storeroom-js/acceptance.md §4.1 item 6 — the drive belongs to the JS layer; A3
    docs/specs/spec-scope-and-structure/contract.md §C.11.9 | requirement]`).
+
+   **⟶ AND THE TWO POSITIONS THAT ARE NOT THE VALUE POSITION ARE DECLARED HERE, LANDED 2026-10-11 BY THE
+   BOUNDED CLOSE-OUT PASS (`role_spec_writer`), CLOSING THE CONTRACT FINDING THE HOST-FIX PASS FILED AGAINST
+   ITEM 9 AND `§1.2` ROW 1'S DATED CLAUSE.** `RCA-8(d)` ANNOTATE-BESIDE: **item 9 above and `§1.2` row 1's
+   dated clause stand byte-for-byte — *"AT THE PACKAGE'S OWN WALK, BEFORE ANY VERB IS CALLED"* and *"a
+   BOUNDARY-ONLY class"* included — and they are read THROUGH this clause; THIS clause is a PURE INSERTION, it
+   adds no row to either table, mints no code, moves no census figure, and it does not reword either clause
+   it extends.** **THE CHOICE THIS PASS TAKES, STATED FIRST BECAUSE THE FINDING NAMED BOTH: THE TWO POSITIONS
+   ARE GIVEN THEIR OWN DATED CLAUSE** — this one — **and not an in-place extension of the item or of the row,
+   because an extension inside either cell would re-word a byte of text this directory's own rule leaves
+   standing; the two clauses above are therefore EXTENDED BY REACH AT THIS CELL and not by amendment at
+   theirs.** **THE DEFECT IT CLOSES, NAMED WITH ITS POSITIONS: item 9 pins the class at the VALUE position
+   and names *"the package's own walk"* generally, and row 1's dated clause names *"a JS `string` carrying a
+   LONE SURROGATE"* without saying WHICH STRING POSITIONS the class reaches — while a JS `string` is a class
+   property of a SEGMENT (`§1.3`'s `AddressArg` row 2) and of a member KEY, not only of a value; and neither
+   clause says that the failing TARGET at those two positions is named BY CLASS AND POSITION rather than by
+   the code unit's own unrepresentable bytes.** **THE TWO POSITIONS, ONE CLAUSE EACH, AND THE ANSWER IS ROW
+   1'S OWN:**
+   1. **THE SEGMENT POSITION.** **A SEGMENT of an address that is a JS `string` carrying a LONE SURROGATE is
+   REFUSED `ValueNotAdmitted` AT THE PACKAGE'S OWN WALK, BEFORE ANY VERB IS CALLED — the answer `§1.2` row 1's
+   dated clause declares — and the failing SEGMENT is named by its INDEX with the ARGUMENT POSITION beside
+   it.** **THE FAILING TARGET IS NAMED BY THE POSITION AND NOT BY THE SEGMENT'S BYTES:** the unpaired code
+   unit has no `String` form a Rust `String` can carry, so the only spellings of it are the caller's own
+   unrepresentable code unit or a REPAIR of it — which `§1.8` forbids — and the target is therefore named
+   `'address'` (the spelling this position already uses for its other class) with the index carried in the
+   message's reason half (`§1.3`'s `AddressArg` row 2; `§1.8`).
+   2. **THE MEMBER-KEY POSITION.** **An OBJECT MEMBER whose KEY is a JS `string` carrying a LONE SURROGATE
+   refuses the WHOLE VALUE `ValueNotAdmitted` at the same walk, and the KEY IS NEVER DROPPED and never
+   renamed** — `§1.4` item 3's own rule over a member the walk reached — **because the class is a property of
+   the KEY as it is a property of a value.** **THE FAILING TARGET IS NAMED BY THE MEMBER'S POSITION AND NOT BY
+   THE KEY'S BYTES:** the member's position is carried as its own key path, the key's class half is carried,
+   and the key's bytes are not — for the same reason position 1 gives (`§1.4` item 3; `surface.md §2.5` item 5
+   (b)).
+   **AND WHAT THIS CLAUSE DOES NOT DO: it widens the class to NO third position, it does not weaken row 1's
+   acceptance of *"a lone surrogate"* among `StoreValue::Str`'s forms — which remains the class's LAYER
+   statement and is read through row 1's dated clause — and it mints no code, the answer at both positions
+   being `ValueNotAdmitted`, a member of the store's closed set, carried and never minted** (`DD-40`). **AND
+   THE DRIVE CONSEQUENCE IS ITEM 9'S OWN, CARRIED TO THE TWO POSITIONS: the class is NOT CONSTRUCTIBLE in
+   Rust at either position, so BOTH drives belong to the JS LAYER, and a Rust cell that represents either as
+   driven is a FINDING** (`acceptance.md §4.1` item 6).
+   (`[A3 docs/specs/storeroom-js/crossing.md §1.2` row 1's dated clause and `§1.4` item 9 — the two clauses
+   this one extends by reach; A3 docs/specs/storeroom-js/crossing.md §1.3's `AddressArg` row 2 and `§1.4` item
+   3 — the two positions' own clauses; A3 docs/specs/storeroom-js/surface.md §2.5 item 5 (b) — the class half
+   mandatory and the position half conditional; A3 docs/specs/storeroom-js/acceptance.md §4.1 item 6 — the
+   drive belongs to the JS layer | state or fail-state declaration]`).
 
 ### §1.5 The JS-side equality relation — one declared relation, and its three clauses
 

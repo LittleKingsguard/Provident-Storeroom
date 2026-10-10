@@ -1060,6 +1060,69 @@ arithmetic stays `15 + 1 + 1 + 1 = 18` ✓, and NO ROW IS MINTED HERE**
 docs/specs/storeroom-js/surface.md §2.5 item 5, clauses (b), (c), (d) and (g) — the form, the status, the class and
 the position this clause applies at the two sites; `DD-40` | declared parameter semantics]`).
 
+**6. AND THE ONE CLASS AT THE `listener` POSITION THAT THIS CLAUSE'S OWN EXHAUSTIVENESS DID NOT REACH —
+   DECIDED AND DECLARED HERE, LANDED 2026-10-11 BY THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`), CLOSING THE
+   CONTRACT FINDING THE HOST-FIX PASS FILED AGAINST THIS ROW.** `RCA-8(d)` ANNOTATE-BESIDE: **the five items
+   above stand byte-for-byte — the *"EXHAUSTIVE AND CLOSED"* sentence included — and they are read THROUGH
+   this item; THIS item is a PURE INSERTION, it adds NO class to item 1's refusal, moves no cell of the table
+   above, adds no member to the form and mints no code.** **THE CLASS IT DECIDES: A `Proxy`-WRAPPED CALLABLE AT
+   `on`'s LISTENER POSITION — `Proxy(function () {}, handler)`.** **`typeof` a `Proxy` OVER A FUNCTION IS
+   `'function'`, and the class decision this row's item 1 declares is `typeof listener !== 'function'` READ
+   ON THE VALUE AS IT IS — so the value IS ADMITTED as a listener and NOT refused as a non-function, and the
+   sentence *"THE CLASS SET IS EXHAUSTIVE AND CLOSED"* did not say which side of its own boundary this class
+   falls on.**
+   **THE TWO READINGS, PRICED, AND THE ONE THIS PASS TAKES — STATED PLAINLY BECAUSE A DECISION IS THE WHOLE
+   OF WHAT IS OWED HERE:**
+   1. **ADMISSION — THE READING TAKEN, AND THE OPERATIVE ONE.** **A `Proxy` over a callable at `on`'s
+   `listener` position is IN DOMAIN: it is a JS function by the language's own class test, the registry holds
+   it as it holds any function, and the invocation of `deliver` calls it — the caller's OWN handler running,
+   inside the caller's own function, at the moment the caller's own function would run.**
+      **(a) WHY IT IS THE READING THIS CONTRACT'S OWN ORDER REQUIRES.** **`DD-34`'s refusal of a `Proxy` is a
+   refusal at the ADDRESS position and is taken there because THE WALK READS the value: a trap-carrying
+   `Proxy` over an ARRAY would run `getPrototypeOf` and `get` traps during the class decision itself, and a
+   throwing trap would raise a raw host error out of a NEW member** (`§2.4` item 7 (a)'s order clause;
+   `crossing.md §1.4` item 4 (g); `crossing.md §1.3`'s `AddressArg` row 12). **A listener is NEVER WALKED,
+   NEVER COPIED AND NEVER READ BY ANY CLASS DECISION: nothing of the package touches it but `typeof` and the
+   registry's own map, so NO TRAP RUNS AT ADMISSION, and the `DD-34` ground does not reach this position.**
+      **(b) AND THE SHIPPED TREE ALREADY ANSWERS IT THIS WAY — EVIDENCE OF WHAT THE CODE DOES AND NOT ITS
+   AUTHORITY: `bindings/js/index.mjs`'s `validateOnArguments` tests the listener with `typeof` alone, and its
+   registry stores whatever passed that test** (`bindings/js/index.mjs`'s `validateOnArguments`/`deliver`).
+   **THE ADMISSION IS THEREFORE ALSO THE READING THAT FALSIFIES NO CELL, and a drive may assert it at its own
+   observable: a `Proxy` over a function is admitted by `on`, and the handler's trap (where the handler
+   carries one) runs at the INVOCATION and not at the registration.**
+      **(c) AND ITS ONE BOUNDARY IS `(e)` BELOW: the caller's own trap runs in the caller's own function,
+   which is the DELIVERY-side throwing body and not a store state, and no class of this store's closed set is
+   owed for it.**
+   2. **REFUSAL — PRICED, AND NOT TAKEN.** **The alternative reading refuses the class at `on`'s step 1 by
+   testing the candidate for proxiness before the function test, answering `AddressMalformed` in the one
+   form.** **PRICED, AND THE PRICE HAS FOUR PARTS:** **(i) it is a CODE FINDING AND NOT A SPECIFICATION
+   ALONE** — nothing in the shipped tree tests a listener for proxiness, so the reading cannot be declared
+   into truth without a change to `bindings/js/index.mjs`, WHICH IS OUTSIDE THIS PASS'S WRITE SCOPE; **(ii)
+   it makes the class-decision order ASYMMETRIC WITHIN ONE CALL** — `on` would test its `listener` argument
+   for proxiness while its `address` argument is refused for proxiness as a CLASS at the position that
+   decides classes, so the same predicate would stand at one position as a class decision and at the other
+   as a pre-test of a value no clause reads; **(iii) it refuses a value the LANGUAGE classes as a function**,
+   whose refusal therefore owes a class half the class taxonomy does not carry (`crossing.md §1.2`'s
+   `Function` row 8 is the FUNCTION class and row 13's `NonPlainCollection` is the non-plain-collection class,
+   and neither is a `Proxy`-over-a-function class); and **(iv) it falsifies NOTHING on its own** — no cell
+   asserts a `Proxy` at this position, which is exactly why the class was left unpinned.
+      **AVAILABILITY AND REVERSAL: BOTH READINGS REVERSE ONLY ON EVIDENCE A DRIVE PRODUCES, through the
+   instrument named at the end of this item — a bounded amendment of `docs/specs/storeroom-js/`** (`A66`; no
+   park is named as an instrument).
+   **AND WHAT THIS ITEM DOES NOT DO, SAID SO THE EXHAUSTIVENESS SENTENCE IS NOT READ AS WIDENED: items 1, 2
+   and 3 above keep their three refusal classes, `AddressMalformed` stays the only status at all three, the
+   form stays exactly `{status, message}`, no fourth class is added to any refusal arm, and no `Proxy` is
+   refused at the listener position — the class that was unpinned is now PINNED BY THIS CLAUSE and not by a
+   new arm.** **AND THE ONE THING THE ALTERNATIVE WOULD OWE IF IT WERE EVER TAKEN IS NAMED: THE `Proxy`
+   TEST'S OWN ORDER RELATIVE TO THE FUNCTION TEST AT THIS POSITION, so no reader re-derives a walk that
+   reads a callable's traps before it decides its class.**
+   (`[A1 docs/specs/storeroom-js-proposal.md §8 · `A81` — *"always validate"*, whose class half this item
+   states at this position; A3 docs/specs/storeroom-js/surface.md §2.4` item 7 (a) and §2.5 item 5 — the
+   refusal's form, its status, its class half and its position half; A3 docs/specs/storeroom-js/crossing.md
+   §1.2's rows 8 and 13 and §1.4 item 4 (g) with `DD-34` — the class taxonomy and the proxy ground this
+   admission is measured against; A3 docs/specs/storeroom-js/surface.md §2.7` — the delivery-side throwing
+   body | declared parameter semantics]`).
+
 ### §2.18 `PAR-JS-18` — the constraint/repair pattern: a declared NON-parameter
 
 | Cell | Its value |

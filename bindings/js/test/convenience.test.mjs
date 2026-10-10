@@ -61,7 +61,7 @@
 // | --- | --- |
 // | `§2.4` item 7 (a)'s FRESH arm | an address the store's home does NOT hold · a listener that fires ONCE per trigger, its ONE argument the triggering address · the handle `on` returns IS the identity the `triggered` list carries |
 // | `§2.4` item 7 (a)'s HELD arm + `DD-52` | a repeat `on` at an address ALREADY registered (the SAME opaque value twice) · the REPLACEMENT of the registry's function (the first never fires again, the second fires once) · `on` at an address whose entry came from `register` (a REPLACEMENT and NOT a refusal) |
-// | `§2.4` item 7 (a)'s VALIDATE-FIRST order + `A81` | a NON-FUNCTION `listener` at position `2` of `2` · a MALFORMED `address` at position `1` of `2` · **NOTHING LEFT BEHIND**: the store-side entry exactly as before AND the registry exactly as before |
+// | `§2.4` item 7 (a)'s VALIDATE-FIRST order + `A81` | a NON-FUNCTION `listener` at position `2` of `2` · a MALFORMED `address` at position `1` of `2` · **NOTHING LEFT BEHIND**: the store-side entry exactly as before AND the registry exactly as before — **AND THE STORE-SIDE HALF IS READ *BEFORE* THIS FILE'S OWN `listen` MINTS THERE (`C-6`, corrected below)** |
 // | `§2.4` item 7 (b)'s OWN arm + `A80` | `off(h)` over a registered in-domain identity: BOTH removals, `undefined` returned |
 // | `§2.4` item 7 (b)'s OWN-ENTRYLESS arm + `DD-53` | an in-domain identity the registry holds NO function for — never registered, and ALREADY REMOVED by an earlier `off` — a SUCCESS `undefined` that disturbs nothing |
 // | `§2.4` item 7 (b)'s OUTSIDE arm + `§2.3`'s dated clause 3 + `§2.8` | a FOREIGN value · a PRIOR-SESSION value · a FABRICATED value · a BARE string · a BLANK token · a NON-OPAQUE value · `null` · `undefined` · an ABSENT argument · a NON-FUNCTION — EACH refused `AddressMalformed`, and the CONTRAST beside it: `unlisten` over the SAME values is a NO-OP SUCCESS |
@@ -69,6 +69,20 @@
 // | `§2.4` rule 4 KEPT VERBATIM | `unlisten(h)` removes the store-side entry ALONE and the registry entry STANDS |
 // | `§2.4` item 7 (b)'s *"REMOVES NO MORE THAN THE HANDLE NAMES"* | a lawful SIBLING identity in the same instance untouched by one `off` |
 // | `§2.1` + its dated clause (a)–(b) | the instance's own member set `{ register, on, off }` · the MODULE NAMESPACE at its EIGHT declared verbs, `on`/`off` NOT named exports · `listen`/`unlisten` un-overloaded |
+//
+// **⟶ ADDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_test_writer`), DISCHARGING `C-6`, `C-7` AND
+// `C-13` OF THE GATE-4 ADVERSARIAL PASS (`archive/gate4/storeroom-js-convenience-adversarial.md` `§2` and its
+// `§4` triage, all three `RED-SET-FIX`). `RCA-8(d)` ANNOTATE-BESIDE: no cell of the seven above is withdrawn,
+// no assertion is weakened, and no drive is adjusted to dodge a failure.** **THE STATE THIS PASS ADDS IS THE
+// ONE `C-7` NAMED AS THE ONLY PLACE `off`'S THIRD STEP IS OBSERVABLE** — the caller-spelled duplicate token,
+// where the store's FIRST-match withdrawal and the package's deregistration are two different removals on
+// ONE identity:
+//
+// | Its own clauses | The state cell 8 drives, and the two existing cells this pass corrected |
+// | --- | --- |
+// | `§2.4` item 7 (b)'s THIRD step + `§5.5`'s FOURTH ADDED FAILURE ENTRY + `S-REG-DUP` | TWO construction `listeners[]` entries carrying ONE caller-spelled token at TWO addresses (`DD-39`; `DD-42` clause (2); `write-and-read.md §6.5` item 12) · `on` at one of them lands on the HELD arm · ONE trigger fires both entries — ONE distinct identity, ONE invocation, the token carried ONCE PER ENTRY · `off(handle)` withdraws ONE home entry AND removes the registry's function · the SURVIVOR still carries the identity in `triggered` while NOTHING is invoked · a SECOND `off` withdraws the survivor too · a later `listen` at either address mints a FRESH identity |
+// | `C-6` (cell 2, corrected) | the refused address's HOME, probed BEFORE this file's own `listen` mints there (`triggered.length === 0`), beside the register's state at the same point — so a `LISTEN → REGISTER → VALIDATE` build now FAILS this cell |
+// | `C-13` (cells 2, 5, 7, corrected) | cell 2's refusal count, told apart arm by arm (SIX at the listener position + NINE at the address position, the absent argument driven ONCE at each position) · cell 5's duplicated `inst.off(other)` statement, re-emitted in a comment and not re-called · cell 7's fourth arm, labelled by the class the value HAS (`a FUNCTION`) and not by its negation |
 //
 // **AND THREE THINGS THIS FILE DELIBERATELY DOES NOT DO, SO ITS RED IS READ CORRECTLY.**
 //   (1) **IT DOES NOT IMPLEMENT `on`/`off`** and touches no byte of `bindings/js/index.mjs` or of
@@ -345,6 +359,32 @@ test('validation_first_and_atomicity_a_non_function_listener_and_a_malformed_add
     (err) => err.status === 'AddressNotFound',
     'the pre-state: the refused address holds NO node — its read answers `AddressNotFound` (`store-model.md §2.2` `L-3`)',
   );
+  // **⟶ TWO PROBES, IN THE ONE ORDER THAT KEEPS BOTH TRUE, AND NEITHER CLAIM MOVES.** **THE NODE-PROBE IS
+  // TAKEN FIRST** — it reads the store's own register and mints nothing (`§4.1`: a read's tier is OPTIONAL
+  // and it never installs) — **and the (i) half's home-probe stands after it, because THE (i) WRITE MINTS THE
+  // NODE BY DESIGN**; `C-6`'s whole point is that the home-probe is taken **BEFORE this cell's own `listen`**,
+  // which is the mint the (i) half used to reach for and which made that half unable to fail.
+  assert.throws(
+    () => read(inst, ['fresh']),
+    (err) => err.status === 'AddressNotFound',
+    'the pre-state AND THE POST-REFUSAL STATE IN ONE READING: the refused address holds NO node — not before the refusals and not after them — so its read answers `AddressNotFound` (`store-model.md §2.2` `L-3`), and this reading is taken BEFORE the write the (i) half makes there',
+  );
+  // **⟶ AND THE REFUSED ADDRESS'S STORE-SIDE HOME IS ESTABLISHED AT THE SAME POINT AND AT ITS OWN OBSERVABLE
+  // — `C-6` OF THE GATE-4 ADVERSARIAL PASS (2026-10-11), CLOSED HERE, AND THE ONLY CHANGE IS THE POSITION OF
+  // ONE PROBE.** **THE DEFECT, NAMED: this cell's own `listen` probe came FIRST in the (i) half, and ITSELF
+  // MINTS the entry whose absence the half then asserts — so the assertion `triggered.length === 1` holds
+  // whether the refused `on` calls left an entry behind or not, because the store's own address-level
+  // idempotence makes ONE entry the answer in BOTH cases (`write-and-read.md §6.5` item 12 (c): *"a repeat
+  // `listen` mints nothing and answers the entry's own handle"*). **A `LISTEN → REGISTER → VALIDATE` BUILD
+  // PASSED THIS CELL.** **THE REPAIR IS THE PROBE'S OWN OBSERVABLE, TAKEN BEFORE ANY `listen` AT THIS ADDRESS
+  // AND IN THIS CELL: a `write` at `fresh` whose record carries a NON-EMPTY `triggered` list is an entry the
+  // refusals left standing; an EMPTY list is the `AddressNotFound`-clean state the contract declares.**
+  let refusedTriggered = null;
+  assert.equal(
+    (refusedTriggered = write(inst, ['fresh'], 'mem', 1).triggered).length,
+    0,
+    'C-6 / `contract.md` §5.5\'s added entry "a store-side entry left behind after a refusal": the store\'s home holds NO entry at the refused address BEFORE this cell\'s own `listen` mints one — a `LISTEN → REGISTER → VALIDATE` build leaves one here and fails AT THIS LINE',
+  );
 
   const nonFunctions = [
     { value: 42, why: 'a number', position: 'second argument' },
@@ -400,25 +440,40 @@ test('validation_first_and_atomicity_a_non_function_listener_and_a_malformed_add
     });
     assert.equal(trouble, null, `an absent address must be refused verbosely: ${trouble}`);
   }
+  // **⟶ AND THE TWO LOOPS' ABSENCES ARE TOLD APART HERE, BECAUSE `C-13` OF THE GATE-4 ADVERSARIAL PASS
+  // (2026-10-11) FOUND THIS CELL'S OWN COUNT READING THEM AS ONE ARM.** **THE ABSENT ARGUMENT IS ONE RUNTIME
+  // VALUE REACHED AT TWO POSITIONS AND IT IS TWO REFUSALS, NOT TWO COPIES OF ONE:**
+  //   * the loop above refuted the ABSENT LISTENER — `on(['fresh'])`, whose POSITION is the SECOND argument,
+  //     so the refusal is the LISTENER arm of the class set (`§2.17`'s dated clause: *"a non-function
+  //     `listener` at `on`'s position `2` of `2`, an ABSENT second argument INCLUDED"*);
+  //   * the loop just refuted the ABSENT ADDRESS — `on(undefined, () => {})`, whose POSITION is the FIRST
+  //     argument, so the refusal is the ADDRESS arm (`AddressArg` rows 4–5).
+  // **NEITHER ARM IS DUPLICATED AND NEITHER POSITION IS COUNTED TWICE: THE FIFTEEN REFUSALS BELOW ARE SIX
+  // AT THE LISTENER POSITION AND NINE AT THE ADDRESS POSITION**, each driven at its own position — and the
+  // count is the one the (i) half below reads. **THE TWO LOOPS SHARE ONE ADDRESS ON PURPOSE** (the store-side
+  // half must be measurable at ONE place), **and the ADDRESS-position loop is the one that proves the class
+  // decision happens at STEP 1 before the listener is examined at all**: a build that reached the store on a
+  // malformed address would fail THIS loop's refusals, while a build that validated everything and then
+  // listened before registering is caught by (i)'s home probe and by the register-state assertion below.
 
   // **AND NOTHING IS LEFT BEHIND — DRIVEN AS AN ABSENCE AND NOT AS THE ERROR ALONE** (`§2.4` item 7 (a):
   // *"A REFUSED `address` OR A REFUSED `listener` LEAVES NO STORE-SIDE HOME ENTRY, NO REGISTRY ENTRY, NO
   // NODE MINTED AND NO JOURNAL ENTRY APPENDED"*). **THREE HALVES, ONE PER ADMISSION:**
-  //   (i) THE STORE-SIDE ENTRY: `fresh` was refused fifteen times and the store's home must STILL not hold
-  //       it — a `listen` there MUST therefore mint (a refused `on` that had reached the store would have
-  //       left an entry, and the `listen` would have answered THAT entry's handle instead);
+  //   (i) THE STORE-SIDE ENTRY: the address was refused FIFTEEN TIMES and the store's home must hold NO
+  //       entry there AT THIS POINT — **before this cell's own `listen` mints one** — because a `listen`
+  //       that comes SECOND proves nothing about what the refusals left: the store's address-level
+  //       idempotence answers ONE entry either way (`C-6`; `write-and-read.md §6.5` item 12 (c));
   //   (ii) NOTHING WAS DISTURBED AT THE HELD ADDRESS: `held`'s ONE entry is still exactly what it was, and
   //       the home is BYTE-IDENTICAL — the node's own literal is the one the pre-state wrote;
-  //   (iii) NO NODE WAS MINTED AT THE REFUSED ADDRESS — and **THIS ONE IS TAKEN FIRST, BEFORE THE `listen`
-  //       AND THE WRITE THIS CELL ITSELF MAKES AT `fresh`**: a `read` is not a write and mints nothing
-  //       (`§4.1`: the read's tier is OPTIONAL and it never installs), while the write at `fresh` below
-  //       mints the node by design — so a drive that read AFTER its own mint probe would be asserting an
-  //       absence its own next line had destroyed.
-  assert.throws(
-    () => read(inst, ['fresh']),
-    (err) => err.status === 'AddressNotFound',
-    'the refused address\'s node was never minted, so its read answers `AddressNotFound`',
-  );
+  //   (iii) NO NODE WAS MINTED AT THE REFUSED ADDRESS — and **THAT READING STANDS ABOVE, TAKEN BEFORE THE
+  //       WRITE THE (i) HALF MAKES AT `fresh`, BECAUSE THAT WRITE MINTS THE NODE BY DESIGN**: a `read` is not
+  //       a write and mints nothing (`§4.1`: the read's tier is OPTIONAL and it never installs), while the
+  //       (i) half's write does — **an order the drive owes its own two probes, since a drive that read AFTER
+  //       its own mint would be asserting an absence its own preceding line had destroyed** (the `Q3`
+  //       remand's cell-side defect, named at this cell). **AND ITS TEXT IS RE-EMITTED AT THIS POSITION SO
+  //       THE CLAIM IS RE-HOMED AND NOT DELETED** (`DEF-14`/`DEF-15`): the assertion above reads
+  //       `assert.throws(() => read(inst, ['fresh']), (err) => err.status === 'AddressNotFound', …)` at the
+  //       state the refusals left and BEFORE the write, and no byte of it moves by this repair.
   assert.equal(
     read(inst, ['held']),
     heldHomeBefore,
@@ -427,10 +482,20 @@ test('validation_first_and_atomicity_a_non_function_listener_and_a_malformed_add
 
   const mintedAfter = listen(inst, ['fresh']);
   assert.ok(mintedAfter !== null && typeof mintedAfter === 'object', '`listen` mints a handle, so the home held NO entry');
+  assert.notEqual(
+    mintedAfter,
+    refusedTriggered[0],
+    'THE REGISTER\'S STATE AT THE SAME POINT: the `on` refused at `fresh` bound NO listener — the identity this `listen` mints is a FRESH opaque value and never the registry key such a build would have written at STEP 3 after its own `listen` at STEP 2',
+  );
   assert.equal(
     triggerSet(inst, ['fresh'], 'mem', 2).length,
     1,
     'ONE entry at `fresh` AFTER the mint and NEVER two — a refused `on` left no entry for the mint to collide with',
+  );
+  assert.equal(
+    triggerSet(inst, ['fresh'], 'mem', 5)[0],
+    mintedAfter,
+    'ONE home entry per address, and its identity is the one `listen` answered — the address now carries exactly the handle minted AFTER the refusals',
   );
 
   const heldAfter = triggerSet(inst, ['held'], 'mem', 3);
@@ -734,9 +799,21 @@ test('the_removal_order_is_validate_then_store_side_withdrawal_then_registry_rem
   // ...and the STORE-SIDE half of the refused handle was not touched: the foreign instance's own entry
   // still fires, so a package that withdrew store-side BEFORE the registry half is caught here.
   let foreignFired = 0;
+  // **⟶ AND THE SECOND, IDENTICAL STATEMENT IS NOT RE-EMITTED — `C-13` OF THE GATE-4 ADVERSARIAL PASS
+  // (2026-10-11) FOUND THIS CELL ASSERTING `inst.off(other)` TWICE, AND THE SECOND CALL WAS THE ONE THAT
+  // COULD NOT FAIL.** **THE AS-FILED LINE, RE-EMITTED HERE BECAUSE `git diff` MEETS IT FIRST** (`DEF-14`:
+  // nothing is deleted silently) — it stood at exactly this position, between the two sentences that
+  // surround this block:
+  //   `assert.equal(inst.off(other), undefined, 'an in-domain handle still succeeds'); // eslint-disable-line`
+  // **IT IS THE SAME CALL THE (i) HALF HAD ALREADY MADE ONE LINE ABOVE THE COMMENT** (`off(other)` at the
+  // assertion that reads *"so the refusal did not wedge the instance"*), **so by this position `other` is an
+  // ALREADY-REMOVED identity and its answer `undefined` is `DD-53`'s ENTRY-LESS success — a state cell 4
+  // drives directly and this cell asserts nothing new about.** **RE-READING THE SAME CALL A SECOND TIME ADDED
+  // NO OBSERVABLE AND WEAKENED NOTHING BY ITS REMOVAL: EVERY CLAIM THIS CELL MAKES — the refusal's one form,
+  // the store-side half's survival, the sibling's standing, the two removals — is still asserted below.**
+  //
   // The foreign instance's entry is reachable through ITS OWN instance, whose registry its own `on` wrote;
   // a second `on` there REPLACES (`§2.4` rule 2), so the count below proves the entry still exists at all.
-  assert.equal(inst.off(other), undefined, 'an in-domain handle still succeeds'); // eslint-disable-line
   const strangerAgain = stranger.on(['f'], () => { foreignFired += 1; });
   assert.equal(strangerAgain, foreign, '`on` at the foreign instance\'s held address answers the existing identity');
   const stillThere = triggerSet(stranger, ['f'], 'mem', 1);
@@ -866,7 +943,16 @@ test('off_over_every_outside_handle_class_is_refused_address_malformed_in_the_on
     { what: 'a NON-OPAQUE value', value: {}, why: 'a plain object' },
     { what: '`null`', value: null, why: 'null' },
     { what: '`undefined`', value: undefined, why: 'undefined' },
-    { what: 'a NON-FUNCTION', value: () => {}, why: 'a function' },
+    // **⟶ AND THE LAST ARM'S LABEL IS CORRECTED — `C-13` OF THE GATE-4 ADVERSARIAL PASS (2026-10-11): THE
+    // CLASS'S OWN NAME IS *"A FUNCTION"* AND THE AS-FILED WORD *"A NON-FUNCTION"* NAMED THE OPPOSITE CLASS,
+    // because every OTHER arm of this list IS a non-function and this one is not.** **THE AS-FILED LABEL,
+    // RE-EMITTED SO `git diff` MEETS IT: `{ what: 'a NON-FUNCTION', value: () => {}, why: 'a function' }`** —
+    // `why` was `'a function'` and the label beside it said the reverse. **THE ASSERTION IS BYTE-FOR-BYTE
+    // UNCHANGED**: the value IS outside the handle domain (`§2.17`'s dated clause item 3: the outside set is
+    // *"an opaque value THIS INSTANCE minted or adopted"*, and a function is none of those), it refuses
+    // `AddressMalformed` in the one form, its TARGET renders as its own value (`String(() => {})`) and its
+    // CLASS half is `a function` (`§2.5` item 5 (b), whose class half is MANDATORY).
+    { what: 'a FUNCTION (a non-opaque value at the handle position)', value: () => {}, why: 'a function' },
   ];
 
   for (const one of outside) {
@@ -911,4 +997,152 @@ test('off_over_every_outside_handle_class_is_refused_address_malformed_in_the_on
   assert.equal(afterContrast.length, 1, 'and no outside value at `unlisten` removed the standing registration');
   assert.equal(afterContrast[0], standing, 'the identity is unmoved');
   assert.equal(fired, 2, 'and the function fired once more');
+});
+
+// =============================================================================================
+// 8. **`off`'S REGISTRY-REMOVAL HALF, DRIVEN IN THE ONE STATE WHERE IT IS OBSERVABLE** —
+//    `surface.md §2.4` item 7 (b)'s third step (`DEREGISTER`); `contract.md §5.5`'s FOURTH ADDED FAILURE
+//    ENTRY (*"`off` FAILING TO REMOVE THE REGISTRY ENTRY — a successful `off` whose identity the registry
+//    still holds a function for, so a later trigger invokes a function the caller deregistered"*);
+//    `§5.5`'s `S-REG-DUP` line; `docs/specs/storeroom-native/contract.md §0.2` · `DD-42` CLAUSE (2) and
+//    `DD-39`; `write-and-read.md §6.5` ITEM 12; `§2.4` rule 4 KEPT VERBATIM; `C-7` OF THE GATE-4
+//    ADVERSARIAL PASS (2026-10-11).
+//
+// **WHY THIS CELL EXISTS AT ALL, NAMED AS THE FINDING NAMED IT.** `C-7`: *"delete the deregistration byte
+// and the whole `108`-cell leg stays green — the half is observable ONLY in the duplicate-token state,
+// which no cell drives. An un-run register entry."* **THE READINGS `C-7` TAKES ARE `tests/gate4_red_set_fix.rs`'s
+// `ng_c_a_handle_token_colliding_with_a_minted_one`, AND THEY ARE TAKEN HERE BEFORE ANY ASSERTION IS
+// WRITTEN, SO THE TWO CANNOT SILENTLY DISAGREE:** at its (2) the store's own cell drives *two entries, ONE
+// caller token, the two addresses prefix-related* — `unlisten` over that handle succeeds and drops ONE
+// entry, and **the SURVIVOR's address still carries the token**; at its (3) it drives *two entries at ONE
+// address carrying the SAME token*, where `triggered` carries the token TWICE. **THIS CELL DRIVES THE FIRST
+// OF THOSE TWO STATES — TWO ADDRESSES, ONE CALLER-SPELLED TOKEN, THE ADOPTION VERBATIM — AND ADDS THE ONE
+// THING THE STORE'S CELL CANNOT SEE: THE PACKAGE'S OWN REGISTRY.** **THE STATEMENT IT ASSERTS IS THE
+// CONJUNCTION `C-7` TASKS AND THE TWO HALVES ARE NOT IN CONFLICT, BECAUSE THEY STAND AT DIFFERENT LAYERS:**
+//   * **THE STORE'S HALF**: `off`'s step 2 is `unlisten`, which withdraws ONE home entry (`write-and-read.md
+//     §6.5` item 12), **so the surviving entry still FIRES for its own address — the later write's `triggered`
+//     list still CARRIES that token**;
+//   * **THE PACKAGE'S HALF**: `off`'s step 3 removes the registry's entry FOR THAT IDENTITY, **so the package
+//     no longer INVOKES the function it removed — the survivor's own trigger fires NOTHING, while the
+//     `triggered` list beside it still carries the handle.**
+// **THE TWO OBSERVABLES ARE THE TWO `§5.5` ITSELF SPLITS (`docs/specs/storeroom-js/contract.md §5.5`'s dated
+// clause: *"THE ARRAY'S ELEMENT MULTIPLICITY IS THE STORE'S"* and *"THE INVOCATION COUNT IS THE PACKAGE'S"*),
+// AND THIS CELL READS BOTH BESIDE EACH OTHER SO NEITHER SATISFIES THE OTHER.** **AND NO ORDER IS ASSERTED:
+// WHICH of the two entries the FIRST-match withdrawal removes is a home `HashMap`'s iteration order, which
+// `§2.7` item 3 / `DD-22` declare UNOBSERVABLE — so every assertion below holds for EITHER survivor, and the
+// first-match half is driven as an XOR (`removed`/`survivor`) and never as a named address.**
+// =============================================================================================
+
+test('off_deregisters_the_identity_in_the_duplicate_token_state_so_the_surviving_entry_still_fires_for_its_own_address_while_the_package_invokes_nothing_it_removed', () => {
+  // **THE STATES, ENUMERATED:** (i) TWO construction `listeners[]` entries carrying ONE caller-spelled token
+  // at TWO addresses — the state `DD-39` declares lawful and `DD-42` names for its exception; (ii) `on` at
+  // ONE of those addresses, which lands on the HELD arm and registers ONE function for that ONE identity; (iii)
+  // ONE trigger firing both entries — ONE distinct identity, so ONE invocation, while the ARRAY carries that
+  // token ONCE PER ENTRY; (iv) `off(handle)`: the store's FIRST-match withdrawal removes ONE entry and the
+  // package's deregistration removes the function for the identity; (v) the surviving entry's later trigger:
+  // the token STILL crosses in `triggered` and the function is NO LONGER invoked; (vi) a SECOND `off` over the
+  // same handle, which reaches the surviving entry because the first-match rule starts at the HOME's own
+  // first entry each time; (vii) the withdrawal of BOTH entries, observed by a later `listen`.
+  const shared = 'l-c7-dup'; // THE CALLER'S OWN TOKEN — `§0.4` clause 2 (b): the construction ADOPTS it VERBATIM
+  const inst = mem([
+    { address: ['a'], handle: shared },
+    { address: ['b'], handle: shared },
+  ]);
+  // **THE PRECONDITION THIS FILE ASSERTS FIRST, SO THE RED IT REPORTS IS THE CONTRACT'S OWN CLAIM AND NOT AN
+  // OPAQUE STACK TRACE** — and HERE it is also the precondition of the STATE, not only of the surface: the
+  // two construction entries must both stand before the deregistration half can be observed at all.
+  assert.equal(typeof inst.on, 'function', '`surface.md §2.4` item 7: `on(address, listener)` is a member of the instance');
+  assert.equal(typeof inst.off, 'function', '`surface.md §2.4` item 7: `off(handle)` is a member of the instance');
+  const adopted = triggerSet(inst, ['a'], 'mem', 1);
+  assert.equal(adopted.length, 1, '`DD-39`: the construction ADOPTED the caller\'s entry at `a` — ONE home entry carries the token there');
+  const twin = triggerSet(inst, ['b'], 'mem', 1);
+  assert.equal(twin[0], adopted[0], 'and the entry at `b` carries the SAME token, so the boundary hands out ONE identity for it (`§2.4` rule 3: one identity, however many entries carry it)');
+
+  // --- (ii) THE ONE FUNCTION FOR THAT ONE IDENTITY, through the package's own member (`S-REG`'s site).
+  let fired = 0;
+  const seen = [];
+  const handle = inst.on(['a'], (address) => { fired += 1; seen.push(address); });
+  assert.equal(handle, adopted[0], 'the HELD arm (`§2.3` item 6): the address is registered, so `on` answers the EXISTING entry\'s handle — the same opaque value');
+
+  // --- (iii) THE PRE-STATE: one trigger fires BOTH entries, ONE identity, ONE invocation.
+  const both = write(inst, ['b'], 'mem', 2);
+  assert.equal(
+    distinctMembers(both.triggered),
+    1,
+    'the trigger\'s set carries ONE distinct identity — the caller\'s token, standing in the home TWICE',
+  );
+  assert.ok(
+    both.triggered.every((one) => one === handle),
+    'and every member of it is that ONE identity — no minted token appears beside the caller\'s two entries',
+  );
+  assert.equal(fired, 1, 'and the ONE distinct identity invokes the ONE registered function ONCE — never one per entry and never one per element (`§2.4` rule 3)');
+
+  // --- (iv) `off` — AND THE TWO HALVES ARE READ APART: the STORE'S half is the withdrawal of ONE entry, and
+  // the PACKAGE'S half is the removal of the registry's function for that identity. **THE ORDER THE TWO ARE
+  // READ IN IS THE WHOLE CELL, AND THE `C-7` CONTROL RUN FIXED IT AND IS RECORDED RATHER THAN HIDDEN:**
+  // **the survivor's own address must be TRIGGERED *AFTER* the `off`, because that is the ONLY state in which
+  // the deregistration is observable — the withdrawal leaves the surviving entry standing, so its trigger
+  // still carries the identity and the package must NOT invoke the function it removed.** With the
+  // deregistration byte deleted, EVERY ARM THAT DID NOT TRIGGER THE SURVIVOR STAYED GREEN (a `write` at the
+  // WITHDRAWN address carries nothing and invokes nothing whatever the registry holds), **which is exactly
+  // the `C-7` finding this cell exists to answer.**
+  assert.equal(inst.off(handle), undefined, '`§2.4` item 7 (b): *"ITS RETURN IS `undefined` ON EVERY SUCCESS"*');
+  fired = 0;
+  // **THE INVOCATION LOG IS CLEARED AT THE SAME POINT THE COUNT IS, SO THE ABSENCE BELOW IS THE POST-`off`
+  // WINDOW'S OWN AND NOT A READING OF THE PRE-STATE'S ONE INVOCATION** (which the (iii) half established).
+  seen.length = 0;
+  const afterOffA = triggerSet(inst, ['a'], 'mem', 3);
+  const afterOffB = triggerSet(inst, ['b'], 'mem', 4);
+  // **THE FIRST-MATCH WITHDRAWAL, DRIVEN AS AN XOR SO NO ORDER IS ASSERTED** (`DD-42` clause 2: *"`unlisten`
+  // over it removes the FIRST match"*; `write-and-read.md §6.5` item 12) — **and WHICH address survives is a
+  // home `HashMap`'s iteration order, which `§2.7` item 3 / `DD-22` declare UNOBSERVABLE, so the cell names
+  // neither address in its claim.**
+  assert.equal(
+    (afterOffA.length === 0) !== (afterOffB.length === 0),
+    true,
+    `\`write-and-read.md §6.5\` item 12: \`off\`'s store-side step withdrew EXACTLY ONE of the two entries — \`a\` carried ${afterOffA.length} and \`b\` carried ${afterOffB.length}, so ONE stands and ONE is gone`,
+  );
+  assert.equal(
+    afterOffA.length + afterOffB.length,
+    1,
+    'and ONE entry survives the withdrawal — the store\'s half, read at the store\'s own trigger',
+  );
+  // WHICH of the two the FIRST match named is the home's own iteration order and is never named as a claim;
+  // the two readings below are indexed by it and by nothing else.
+  const survivor = afterOffA.length === 0 ? 'b' : 'a';
+  assert.equal(
+    survivor === 'a' ? afterOffA[0] : afterOffB[0],
+    handle,
+    'THE STORE\'S HALF: the SURVIVING entry still carries that identity (`DD-39`: both kept entries are returned where both addresses are prefixes)',
+  );
+  assert.equal(
+    fired,
+    0,
+    'THE PACKAGE\'S HALF — `contract.md` §5.5\'s fourth added entry: the SURVIVOR\'S own trigger invokes NOTHING, because `off` removed the registry\'s entry for that identity. A build whose deregistration byte is absent fires the function it was told to remove, and fails AT THIS LINE while the store\'s half is exactly as declared',
+  );
+  assert.deepEqual(
+    seen,
+    [],
+    'and no invocation was reached at all after the `off`: the registry holds no function for that identity',
+  );
+
+  // --- (v) **AND THE ENTRY THE FIRST CALL SKIPPED IS THE ONE THE SECOND CALL REACHES** — the home's own
+  // first match is taken at each call, so **no entry is UNWITHDRAWABLE** (`C-3`'s second half; `DD-42`
+  // clause (2)). **THE TWO LATER TRIGGERS ARE TAKEN TOGETHER, SO THE ARM IS AN XOR AND NOT A NAMED ADDRESS.**
+  assert.equal(inst.off(handle), undefined, 'a second `off` over the same identity is a SUCCESS (`DD-53`: the entry-less answer is still the success)');
+  assert.equal(triggerSet(inst, ['a'], 'mem', 5).length, 0, 'both entries are now withdrawn: `a` carries no identity');
+  assert.equal(triggerSet(inst, ['b'], 'mem', 6).length, 0, 'and neither does `b`');
+
+  assert.equal(inst.off(handle), undefined, 'a second `off` over the same identity is a SUCCESS (`DD-53`: the entry-less answer is still the success)');
+  assert.equal(triggerSet(inst, ['a'], 'mem', 5).length, 0, 'both entries are now withdrawn: `a` carries no identity');
+  assert.equal(triggerSet(inst, ['b'], 'mem', 6).length, 0, 'and neither does `b`');
+  assert.equal(fired, 0, 'and not one invocation was made across the two `off` calls');
+
+  // --- (vii) AND THE HOME CONFIRMS IT AT ITS OWN MINT RULE: a later `listen` at EITHER address mints a FRESH
+  // identity, because the entries that carried the caller's token are gone (`§2.3` item 6; `§2.4` rule 4).
+  const remintedA = listen(inst, ['a']);
+  const remintedB = listen(inst, ['b']);
+  assert.notEqual(remintedA, handle, 'a re-`listen` at `a` mints a DIFFERENT handle — the withdrawn arm of `S-WITHDRAW`');
+  assert.notEqual(remintedB, handle, 'and so does a re-`listen` at `b` — neither address re-uses the caller\'s token');
+  assert.notEqual(remintedA, remintedB, 'and the two fresh identities are distinct values of their own');
 });

@@ -719,6 +719,50 @@ docs/specs/storeroom-js/package.md §1.3 item 3 — the clause that governs; A3 
 §2.4 item 5 (a) — the instance's one member; A3 archive/gate5/storeroom-js-greens-run.md §4 · `F-DOC-1`, with
 its `JSG-01`/`JSG-12.13` figures | cross-reference]`).
 
+**⟶ AMENDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`), CLOSING THE CONTRACT FINDING THE
+HOST-FIX PASS FILED AGAINST THIS ITEM: THE INSTANCE'S MEMBER SET, RECONCILED TO THE THREE THE `Q1` AMENDMENT
+DECLARES.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte above — item 3's list, item 4's opening clause and its
+two families (i) and (ii), the `F-DOC-1` reconciliation clause and its `JSG-01` figures — stands byte-for-byte
+and is read THROUGH this clause; THIS clause is a PURE INSERTION, it adds no name to the addon's five, adds no
+member to the instance's set beyond the two the `Q1` amendment declares, moves no entry of the `exports` map
+and moves no figure of this section.** **THE AS-FILED SENTENCE, NAMED AS FILED AND RE-EMITTED VERBATIM SO
+`git diff` RECOVERS IT WHERE IT STANDS:** ***"THE INSTANCE'S OWN MEMBERS — `register(handle, listener)` alone,
+the ONE member of the object `storeCreate` RETURNS"*** (`§1.3` item 4, its family (i)). **READ ALONE IT IS FALSE
+OF THE OPERATIVE MEMBER SET: the object `storeCreate` returns carries THREE own members, and the two the
+`Q1` amendment's rulings added are `on(address, listener) -> handle` and `off(handle) -> undefined`**
+(`docs/specs/storeroom-js-proposal.md §8` · **`A79`** · **`A80`**; `docs/specs/storeroom-js/surface.md §2.1`'s
+dated clause 1 (a), which FIXES the value, and `§2.4` item 7, which declares the two members' signatures,
+their domains, their arms and their return values). **THE OPERATIVE READING, IN ONE LINE: THE INSTANCE'S OWN
+MEMBERS ARE `{ register, on, off }` — THREE OWN MEMBERS AND NOTHING ELSE — and the as-filed sentence's
+*"alone"* and *"the ONE member"* are read as the PRE-`Q1` state they were written at, and never as a
+prohibition of the two later members.**
+**AND THE TWO OTHER CELLS OF THIS SECTION THAT TOUCH THE SAME SUBJECT ARE NAMED HERE, SO THE RECONCILIATION
+IS READ AT EVERY SITE AND NOT ONLY AT THE ONE:** **the same item's bullet (ii) reads *"and `register` exists
+twice in the same way, once as the INSTANCE's only member and once as the ADDON's internal step"* — its
+*"only member"* is RE-SPELLED BY THIS CLAUSE to *"one of the instance's three members"*, while the ADDON-side
+half of the sentence stands unmoved** (the addon's own five names, item 4); **and the same item's closing
+figure-cell reading *"`register` is not one"* of the entry's named exports stands TRUE AND UNMOVED — NEITHER
+`on` NOR `off` IS A NAMED EXPORT OF THE MODULE NAMESPACE EITHER, and the entry's named-export count stays
+`8`** (`§1.3` item 3; `docs/specs/storeroom-js/surface.md §2.9` item 1's `8`-verb count). **THE ONE AS-FILED
+REPAIR THAT STANDING ORDER NAMES — *"the two as-filed `{ register }` cells"* — IS THEREBY PAID AT THIS CELL
+FOR THIS PART'S CELL, and the other of the two is `surface.md §2.4` item 5 (a)'s, whose own dated clause
+already carries it** (`docs/specs/storeroom-js/contract.md` `§0.1`'s closure region, its `Q1` index clause's
+figure table; `docs/specs/storeroom-js/backup/Q1-CONTRACT-AMENDMENT-2026-10-11-manifest.md` `§3`'s owed-repair
+list, item 1).
+**AND ONE CELL WITH THE SAME AS-FILED SUBJECT SITS OUTSIDE THIS DIRECTORY AND IS REPORTED RATHER THAN
+RECONCILED HERE, NAMED SO IT IS NOT DISCOVERED LATER: `bindings/js/README.md` prints the same one-member
+subject for a consumer (*"plus the one member of the object `storeCreate` returns"*), and a `README.md` under
+`bindings/js/**` is outside this pass's write scope — so it is REPORTED as an as-filed reading of the
+pre-`Q1` state and NOT rewritten by any clause of this directory** (the read this pass took; `surface.md
+§2.1`'s dated clause 1 (a) and `§2.4` item 7 are the operative statements a consumer's README would cite).
+**AND NO FIGURE OF THIS SECTION MOVES: the addon's `5` names stand, the addon's `4` internal-only names
+stand, the entry's named-export count stays `8`, `§1.3` item 3's *"AND NOTHING ELSE"* stands, and `§4.5` item
+7's finding rule stands** (`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79` · `A80`; A1
+docs/specs/storeroom-js-proposal.md §15 · A70 and §17 · `A75`; A3 docs/specs/storeroom-js/surface.md §2.1's
+dated clause 1 (a) and §2.4 item 7 — the operative member-set statement; A3
+docs/specs/storeroom-js/contract.md §0.1's closure region — the `Q1` figures this clause reconciles to |
+cross-reference]`).
+
 **5. THE INSTANCE, ITS VERBS AND THE PACKAGE-OWNED REGISTRY'S HOME.** **`Instance` is the core's own type,
 holding ONE store instance and the PACKAGE-OWNED registry of `§2.4`; the core never invokes a listener of
 its own accord, and the facade reads the registry's answer and performs the invocation after the verb

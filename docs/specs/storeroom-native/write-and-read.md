@@ -1226,6 +1226,58 @@ one entry.** **`ListenerHandle` is INSTANCE-SCOPED AND SESSION-SCOPED** (`parame
 `§6.1` item 3): **a handle a foreign instance minted, or this instance minted in a prior session, is OUTSIDE
 its domain and `unlisten` over it is a no-op success.**
 
+**⟶ ADDED 2026-10-11 — THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`), CLOSING THE CONTRACT FINDING THE
+HOST-FIX PASS FILED AGAINST THIS ITEM: THE TOKEN STAYS BOUND TO ITS REMAINING ENTRIES AFTER A FIRST-MATCH
+WITHDRAWAL.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte above stands byte-for-byte — item 12's opening clause,
+its `F-5` clause and its three lettered parts (a), (b) and (c) — *"which is why `unlisten` over the returned
+handle removes exactly one entry"* included — and the item is read THROUGH this clause; THIS clause is a
+PURE INSERTION, it adds no `§`-number, re-decides no clause, mints no code, moves no register row and names no
+park.** **THE DEFECT IT CLOSES, NAMED WITH THE SENTENCE IT ANSWERS AND THE TWO HOMES THAT CARRY THAT SENTENCE:**
+**`contract.md §0.2` · `DD-42`'s `what it pins` cell reads *"the home never holds two entries with ONE token,
+`unlisten` removes exactly the entry it names, and `triggered` carries NO DUPLICATED MEMBER"*, and this item
+carries the same claim as the shipped consequence of the address-level idempotence — WHILE THE SAME ROW'S OWN
+EXCEPTION SENTENCE LICENSES THE CALLER-SPELLED DUPLICATE AT TWO ADDRESSES: two `listeners[]` entries the
+caller spelled with ONE token, which the construction ADOPTS VERBATIM (`DD-39`; `contract.md §0.4`'s
+construction-rule clause 2 (b) of ADOPTION).** **In THAT state the unconditional reading of the sentence is
+FALSE at its first two clauses, and the state is a LAWFUL one this directory declares: after `unlisten` over
+that token, the token DOES still stand in the home, at the entries it named that were NOT the first match.**
+**THE CLAUSE, STATED HERE SO THE `"can never be withdrawn"` STATE IS FORBIDDEN BY CLAUSE AND NOT ONLY BY THE
+CODE:**
+1. **A FIRST-MATCH WITHDRAWAL UNBINDS THE TOKEN FROM THE ONE ENTRY IT NAMES AND FROM NOTHING ELSE.** **Where a
+   token names MORE THAN ONE home entry — the caller-spelled duplicate `DD-39` declares — a `unlisten` over
+   that token removes ONE entry: the FIRST match, which is `DD-42` clause (2)'s declared answer.** **THE TOKEN
+   STAYS BOUND TO ITS REMAINING ENTRIES: each of them still carries that handle, each is still returned by a
+   trigger whose prefix test it satisfies, and EACH IS STILL WITHDRAWABLE BY A LATER `unlisten` OVER THE SAME
+   TOKEN — which reaches the next of them by the first-match rule rather than failing.**
+2. **SO THE *"`triggered` CARRIES NO DUPLICATED MEMBER"* HALF IS READ THE WAY `DD-42` ITSELF QUALIFIES IT: it
+   is a claim about the tokens THE STORE MINTED, and the caller-spelled duplicate at two addresses is the
+   state in which one token is carried twice by declaration** (`DD-42`'s own exception sentence; `DD-39`;
+   `contract.md §0.4`'s construction-rule clause 2 (b); `§0.4`'s mint clause, whose dated clause leaves
+   `DD-42`'s first-match withdrawal answer UNMOVED).
+3. **AND THE STATE *"an entry that CAN NEVER BE WITHDRAWN"* IS FORBIDDEN, BY THIS CLAUSE:** **no home entry a
+   token name — call it the survivor — may be left un-indexed by a withdrawal of another entry the same token
+   names, and a later `unlisten` over that token MUST reach it.** **A drive that finds a surviving entry this
+   token can no longer name has found a failure of THIS clause, and the failure is a defect rather than a
+   declared answer** (`contract.md §5.8`'s handle-preservation half; `DD-42` clause (2)).
+**AND THE AUTHORITY THIS CLAUSE POINTS AT, BECAUSE THE RULE IS THE STORE'S OWN STRUCTURE AND NOT THIS PASS'S
+PREFERENCE: THE HOME'S HANDLE→ADDRESS INDEX IS A LOOKUP STRUCTURE ONLY — DERIVED FROM THE HOME AND NEVER
+PATCHED ENTRY BY ENTRY — so a withdrawal's in-bucket removal re-derives the index from the home and the
+token's SURVIVING entries remain INDEXED; the alternative spelling, an index patched at the one address a call
+happened to name, is exactly the form whose membership and the home's entries can DISAGREE, which that row's
+own `what it REFUSES` cell forbids** (`contract.md §0.2` · `DD-51` and its dated clause; `contract.md §0.4`'s
+mint clause and its dated clause; item 8 (a) above for the home's own two structures, and item 12's
+address-level idempotence for the one-entry case). **NO CODE IS MINTED FOR ANY OF THIS: a first-match
+withdrawal over an unknown or foreign handle is still the no-op SUCCESS this item's opening clause declares,
+and a known one still answers *"a one-entry removal for a known one"*** (`contract.md §0.4`'s
+construction-rule clause 2 (2)).
+**AND NOTHING ELSE OF THIS ITEM MOVES: the construction's VERBATIM adoption, the address-level idempotence,
+the instance-scoped and session-scoped handle, the no-op success over an unknown or foreign handle, item 11's
+returned members and item 14's `CF-DUP-3` reading all stand exactly as printed, and `contract.md`'s typed
+register keeps its `8` rows with every failure list unmoved** (`contract.md §5`; `contract.md §0.4` clause 2,
+whose uniqueness domain is `A69`'s and stands whole).
+(`[P: §20 · A58; P: §18 · A57; T: this item's own extension of the token's binding, taken from the row the
+clauses above cite and from no preference of this pass | CONTRACT]`).
+
 **ITEM 13 — WHAT THE SHIPPED `watch` PAYS ATTENTION TO, AND THE DELTA THIS AMENDMENT CLOSES.** **STATED AS
 ONE PARAGRAPH, SO THE RECONCILIATION IS NOT AN ARCHAEOLOGY** (the proposal's `§19`). **THE SHIPPED FORM
 holds a registration `{ registration: u64, address, qualifier }`, returns an opaque `WatchHandle` from

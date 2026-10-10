@@ -694,7 +694,44 @@ on(address, listener):
    **SO A REFUSED `address` OR A REFUSED `listener` LEAVES NO STORE-SIDE HOME ENTRY, NO REGISTRY ENTRY, NO NODE
    MINTED AND NO JOURNAL ENTRY APPENDED** — **the refusal happens at step 1, and steps 2 and 3 never run: the
    call is refused BEFORE any admission, which is `A76`'s atomicity obtained by the validation's POSITION rather
-   than by an `unlisten` rollback** (`A76`; `A81`). **AND THIS IS THE ONE PLACE THE COMBINED CALL IS MORE THAN
+   than by an `unlisten` rollback** (`A76`; `A81`).
+   **⟶ AND THE ORDER THAT WALK OWES IS DECLARED HERE, LANDED 2026-10-11 BY THE BOUNDED CLOSE-OUT PASS
+   (`role_spec_writer`), CLOSING THE CONTRACT FINDING THE HOST-FIX PASS FILED AGAINST THIS STEP.**
+   `RCA-8(d)` ANNOTATE-BESIDE: **the step list, the atomicity clause and every byte of item 7 (a) above stand
+   byte-for-byte and are read THROUGH this clause; THIS clause is a PURE INSERTION, it adds no step to the
+   three, adds no member, no verb and no parameter, mints no code and moves no register row.** **THE DEFECT IT
+   CLOSES, NAMED WITH ITS STEP: step 1 reads *"VALIDATE `address` against `AddressArg`'s domain, `listener`
+   against the function class — class first, never repaired"*, and the step below it names `crossing.md
+   §1.7`'s order (class, then shape, then admit-or-refuse) — BUT NEITHER STATES THAT THE CLASS DECISION COMES
+   FIRST *BEFORE THE SHAPE TEST AND BEFORE ANY ELEMENT OR LENGTH READ*, and `A81`'s *"always validate"* is
+   therefore read at this step only as far as the word *"first"* reaches.** **THE ORDER THE WALK OWES, IN ONE
+   CLAUSE, SO THE NEXT READER CANNOT RE-DERIVE A WALK THAT READS BEFORE IT DECIDES:**
+   1. **THE CLASS DECISION COMES FIRST, ON THE VALUE AS IT IS — AND THE `Proxy` REFUSAL IS PART OF THAT
+   DECISION, NOT BESIDE IT.** **For the `address` at position `1` of `2`: a value that is a `Proxy` is refused
+   `AddressMalformed` as `AddressArg` row 12's own class (`DD-34`), BEFORE the shape test, BEFORE
+   `Array.isArray`, BEFORE any `.length` read and BEFORE any element is read** — **because `util.types.isProxy`
+   or its equivalent reads no member and invokes no handler, while `Array.isArray` and `getPrototypeOf` on a
+   trap-carrying `Proxy` RUN ITS TRAPS: a `getPrototypeOf` trap that throws would raise a RAW HOST ERROR out
+   of `on`, which clause (e) below declares a FINDING and never a rejection, and a `get` trap's side effects
+   would run for an argument the contract refuses without reading it at all.**
+   2. **THE SHAPE TEST COMES SECOND, AND ONLY A VALUE WHOSE CLASS THE FIRST STEP HAS ALREADY ANSWERED ABOUT
+   IS TESTED: `Array.isArray` and the array-vs-class question follow the class decision and never precede
+   it** (`crossing.md §1.7`; `§1.3`'s `AddressArg` rows 1, 11 and 12).
+   3. **ADMIT-OR-REFUSE COMES THIRD, and every element read, every `.length` read and the `listener`
+   position's own test are reached ONLY for a value the first step has admitted.**
+   **THE SAME ORDER BINDS THE `listener` AT POSITION `2` OF `2` AND THE `handle` AT `off`'s POSITION `1` OF
+   `2`: each carries its own class decision first, and each is read from only after it.** **AND ONE THING THIS
+   ORDER IS NOT: it is not a second declaration of `crossing.md §1.7` — that subsection declares the order for
+   EVERY JS value and EVERY argument, and THIS clause states what `on`'s own step 1 OWES under it, so a walk
+   that reads before it decides is a FINDING at this item and not a reading of either clause.** **AND NOTHING
+   ELSE OF THIS ITEM MOVES: the two admissions' order is unmoved, the atomicity obtained by the validation's
+   position is unmoved, the two arms' table, item 5's site, item 6's model and `§2.4`'s four rules stand exactly
+   as printed, and the register keeps its `8` rows with every failure list unmoved.**
+   (`[A1 docs/specs/storeroom-js-proposal.md §8 · `A81` — *"always validate"*, at its own step; A1
+   docs/specs/storeroom-js-proposal.md §18 · `A76` — the class decided first and the code from the class;
+   A3 docs/specs/storeroom-js/crossing.md §1.7 — the order this step owes, and §1.8 — the no-repair
+   prohibition; A3 docs/specs/storeroom-js/crossing.md §1.3's `AddressArg` rows 1, 11 and 12 — the shape and
+   class rows at the address position | requirement]`). **AND THIS IS THE ONE PLACE THE COMBINED CALL IS MORE THAN
    SUGAR: it makes the two admissions atomic as a property of the order, and an implementation that reached the
    store first and withdrew on refusal is a FINDING of this item.**
    **ITS RETURN IS THE HANDLE.** **`on` returns the package's OPAQUE handle — the OUTPUT spelling of `§2.3`
@@ -751,6 +788,70 @@ off(handle):
    `register` DIRECTLY and then withdrawn by `off` is removed by `off` — the registry holds AT MOST ONE function
    per handle and does not record which member put it there (`§2.4` rule 2). THE ONE RESIDUAL `A80` LEAVES — a
    NEW function offered by `on` at a HELD address whose entry was placed by `register` — IS `DD-52`.**
+
+   **⟶ AND THIS ITEM'S OWN ARM IS NARROWED TO THE STATES THE STORE CAN DELIVER, LANDED 2026-10-11 BY THE
+   BOUNDED CLOSE-OUT PASS (`role_spec_writer`).** `RCA-8(d)` ANNOTATE-BESIDE: **the item's three steps, its
+   reconciliation with rule 4, its three-arm table — the OWN arm's row included — and every byte of item 7
+   (b) above stand byte-for-byte and are read THROUGH this clause; THIS clause is a PURE INSERTION, it adds no
+   arm to the table, no member, no verb and no parameter, mints no code and moves no register row.** **THE
+   AS-FILED SENTENCE, NAMED AS FILED AND RE-EMITTED VERBATIM SO `git diff` RECOVERS IT WHERE IT STANDS:** ***"the
+   store-side home entry is withdrawn, the registry's entry for that identity is REMOVED, and `undefined` is
+   returned — a later trigger no longer carries that identity, and there is no registry entry left to
+   match it"*** (`§2.4` item 7 (b), the OWN arm's observable cell). **READ ALONE IT CLAIMS MORE THAN THE
+   STORE'S OWN WITHDRAWAL CAN DELIVER, AND THE STATE IT OVERREACHES IS ONE THIS DIRECTORY DECLARES LAWFUL.**
+   **THE TWO STATES THAT DELIVER IT, AND NO MORE — STATED AS THE STATES, NOT AS COUNTS:**
+   1. **THE ONE-ENTRY STATE.** **The identity's token names EXACTLY ONE home entry — every case in which the
+   store MINTED the token** (`§2.4` rule 3's CASE A; `docs/specs/storeroom-native/contract.md §0.2` ·
+   `DD-42` clause (1), whose mint skips a colliding candidate, so one mint never produces two entries). **One
+   `off` withdraws that entry, the registry's entry is removed, and a later trigger carries the identity no
+   more: the as-filed sentence's whole observable holds, with NO qualification.**
+   2. **THE CALLER-SPELLED ONE-ADDRESS DUPLICATE.** **The identity's token names more than one home entry by
+   the CALLER'S OWN ACT — `DD-39`'s construction duplicate** (`docs/specs/storeroom-native/contract.md §0.2` ·
+   `DD-39` and clause 2 (b) of that contract's `§0.4` rule, whose adoption is VERBATIM). **ONE `off` withdraws
+   ONE entry — the token's FIRST match, the store's own declared answer (`DD-42` clause (2)) — and THE TOKEN
+   STAYS BOUND TO ITS REMAINING ENTRIES: a later write under ANY of those entries' addresses STILL RETURNS
+   THAT IDENTITY, and EVERY remaining entry is STILL WITHDRAWABLE by that same token.**
+   **SO THE TWO HALVES OF THE AS-FILED SENTENCE ARE READ SEPARATELY, AND EACH IS TRUE OF ITS OWN SUBJECT:**
+   **THE STORE-SIDE HALF — *"the store-side home entry is withdrawn"* — IS TRUE EXACTLY OF THE ONE ENTRY THIS
+   `off` NAMES and NEVER of the token's other entries; and THE PACKAGE-SIDE HALF — *"the registry's entry for
+   that identity is REMOVED ... there is no registry entry left to match it"* — IS TRUE OF THE IDENTITY and
+   holds in BOTH states, because the deregistration is keyed by the identity and not by a count of entries**
+   (`deregister`; `§2.4` rule 2's map). **The identity may therefore be RETURNED by a later trigger and
+   invoke NOTHING SILENTLY — rule 1's own declared observable — while it is withdrawn from the address this
+   `off` named: THE TWO ARE NOT IN CONFLICT, and the silence is the registry-entry removal rather than a
+   second firing.**
+   **AND THE AUTHORITY FOR *"THE TOKEN STAYS BOUND TO ITS REMAINING ENTRIES"* IS THE STORE'S, AND IT IS
+   DECLARED THERE — NOT AN IMPLEMENTATION DETAIL READ OUT OF THE CODE:** **the store's home carries a
+   handle→address INDEX beside its address-keyed map, and that index is a LOOKUP STRUCTURE ONLY, DERIVED FROM
+   THE HOME AND NEVER PATCHED ENTRY BY ENTRY — so a withdrawal's in-bucket removal leaves the token's
+   SURVIVING entries INDEXED, and a second withdrawal names the next of them** (`docs/specs/storeroom-native/contract.md
+   §0.2` · `DD-51`, whose own `what it REFUSES` cell names *"an index whose membership and the home's entries
+   can disagree"*; `docs/specs/storeroom-native/write-and-read.md §6.5` item 12, whose dated clause states the
+   rule as a clause of that part). **THE STATE IN WHICH A SURVIVING ENTRY *"CAN NEVER BE WITHDRAWN"* IS
+   THEREFORE FORBIDDEN BY CLAUSE AND NOT MERELY ABSENT FROM THE CODE, and a drive that finds such an entry
+   has found a failure of that store clause and not of this cell.**
+   **AND THE DELIVERY WINDOW IS UNMOVED BY THIS NARROWING: `off` still DOES NOT CANCEL A DELIVERY IN FLIGHT,
+   because the package's recipient set is read from the list it holds as that list stands when the window
+   opens, ONCE per DISTINCT identity** (`§2.4`'s `CF-DUP-3` clause and its re-homing clause, clause 4 (ii);
+   `docs/specs/storeroom-native/write-and-read.md §6.5` item 14).
+   **AND NOTHING ELSE OF THIS ITEM MOVES — THE READ THIS CLAUSE DOES NOT TAKE IS NAMED SO IT IS NOT INFERRED:
+   THE ALTERNATIVE READING IS THAT ONE `off` CLEARS EVERY ENTRY THE TOKEN NAMES.** **IT IS REFUSED AT THIS
+   CELL, AND THE REASON IS A DECLARED CELL RATHER THAN A PREFERENCE: the store's own withdrawal is a
+   ONE-ENTRY removal (`docs/specs/storeroom-native/write-and-read.md §6.5` item 12: *"it drops ONE home-map
+   entry"*) and its FIRST-match answer is `DD-42` clause (2)'s, so the all-entries reading would CONTRADICT
+   that row rather than narrow it — and the one-entry reading is the reading the store's own index clause
+   states with its terms** (`docs/specs/storeroom-native/contract.md §0.2` · `DD-51`; **and the store cell
+   that read the all-entries alternative is NAMED rather than left implicit: that contract's `§0.4` rule
+   clause (2), whose own dated clause states that `DD-42`'s *"FIRST-match withdrawal answer"* is UNMOVED — so
+   the all-entries reading would have to be taken THERE, at the store's own cell, and is not taken here.**
+   **The register keeps its `8` rows with every failure list unmoved, the `PAR-JS` set stays `18`, and no part
+   entry is authored, renumbered or dropped by this clause.**
+   (`[A3 docs/specs/storeroom-native/contract.md §0.2 · `DD-39` and `DD-42` and §0.4's adoption rule clause
+   (2) — the lawful duplicate and its FIRST-match withdrawal answer; A3 docs/specs/storeroom-native/contract.md
+   §0.2 · `DD-51` and `docs/specs/storeroom-native/write-and-read.md §6.5` item 12 — the store's own
+   index-rebuild rule that keeps the surviving entries withdrawable; A3
+   docs/specs/storeroom-native/write-and-read.md §6.5` item 14 — the delivery window, unmoved; `A68` | state
+   or fail-state declaration]`).
 
    **(c) BOTH ARE DELIVERY-SIDE ONLY, AND NEITHER IS A RELEASE VERB.** **NEITHER `on` NOR `off` STATES, ALTERS OR
    PROMISES ANY FIRING RULE: WHICH listener fires · WHEN it fires · WHAT it is bound to · WHICH ids a trigger
@@ -1241,3 +1342,40 @@ zero-argument invocation; the registration site's still-`un-run` drive in the re
 `15`-code reachability against the `10` the shipped JS arms reach.** **The verbs, the handle's two spellings,
 the registry's four rules and the single failure form stand exactly as printed** (`[A1
 docs/specs/storeroom-js/contract.md · the sweep clause | cross-reference]`).
+
+**⟶ AND THE MEMBER-SET CELL THAT STILL PRINTS THE PRE-`Q1` SPELLING IS PAID AT THIS CELL'S OWN HOME,
+LANDED 2026-10-11 BY THE BOUNDED CLOSE-OUT PASS (`role_spec_writer`).** `RCA-8(d)` ANNOTATE-BESIDE: **every
+byte above stands byte-for-byte — this part's `§2.1` dated clause 1 (a), its `(a)`–`(d)` sub-items, and its
+`§2.4` item 7 whole, this pass's two insertions included — and each is read THROUGH this clause; THIS clause
+is a PURE INSERTION, it re-spells no rule, adds no member, adds no `§`-number and moves no register row.**
+**THE CELL IT PAYS, NAMED BY ITS OWN WORDS AND ITS OWN `§`:** **`§2.1`'s own `(a)` sub-item reads** *"**SO
+`§2.4` item 5 (a)'s *"`{ register }` — one own member, and NOTHING ELSE"* IS SUPERSEDED AS A MEMBER-SET FIGURE
+and read, from this date, as `{ register, on, off }`: the as-filed sentence stands byte-for-byte at its own
+`§` (this document's and the contract document's, in the same words), the re-spelling of those two cells is
+the NAMED REPAIR of a later bounded amendment, and THIS clause is the operative member-set statement until it
+lands.**"* **THE REPAIR IS TAKEN FOR ONE OF THE TWO CELLS HERE, AND THE OTHER IS NAMED AS OWED BY A HOME THIS
+PASS DOES NOT OWN:**
+1. **HERE — IN THIS PART.** **`§2.4` item 5 (a)'s *"`{ register }` — one own member, and NOTHING ELSE"* IS
+   READ, FROM THIS DATE, AS `{ register, on, off }` — THREE OWN MEMBERS — the as-filed sentence standing
+   byte-for-byte at its own line and THIS clause being the operative member-set statement for this part;
+   `§2.4` item 7's two members, their signatures, their domains, their arms and their return values stand
+   unmoved beside it.** **AND THE TWO AS-FILED SITES BESIDE IT IN THIS DOCUMENT ARE NAMED SO NONE IS READ AS
+   UNTOUCHED: `§2.1`'s own non-exposure clause's *"the one member that surface declares stands: the handle
+   `storeCreate` returns has EXACTLY ONE member, `register(handle, listener)`"* and its construction clause's
+   closing sentence are READ THROUGH `§2.1`'s dated clause 1 (a), which FIXES the value at the three-member
+   set** (`docs/specs/storeroom-js/surface.md §2.1`'s dated clause 1 (a); `§2.4` item 7).
+2. **OWED — IN THE CONTRACT DOCUMENT, WHOSE CELLS ARE NOT THIS PART'S TO RE-SPELL.** **`docs/specs/storeroom-js/contract.md`
+   `§2.4` item 5 (a)'s own copy of the sentence, and its index region's `Q1` clause's figure table, stand as
+   that document prints them — its own dated clauses READING them through `surface.md §2.1`'s dated clause and
+   `§2.4` item 7 — and their re-spelling is the NAMED REPAIR of a later bounded amendment OF THAT DOCUMENT,
+   exactly as this part's `§2.1` dated clause already prints it** (`docs/specs/storeroom-js/contract.md` `§0.1`'s
+   closure region; `docs/specs/storeroom-js/backup/Q1-CONTRACT-AMENDMENT-2026-10-11-manifest.md` `§3`).
+   **AND ONE FURTHER AS-FILED SITE IS NAMED BECAUSE IT CARRIES THE SAME FIGURE TO A CONSUMER AND LIES
+   OUTSIDE BOTH DIRECTORIES: `bindings/js/README.md` — read at its own bytes by this pass — and its
+   re-spelling is REPORTED and NOT taken here, that path being outside this pass's write scope.**
+**AND NOTHING ELSE OF THIS PART MOVES: the module namespace stays at `8`, the `DD` family, the `PAR-JS` set,
+the register's `8` rows and every failure list stand exactly as printed, and no part entry is authored,
+renumbered or dropped** (`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79`; A3
+docs/specs/storeroom-js/surface.md §2.1`'s dated clause 1 (a) and §2.4` item 7 — the operative member-set
+statement; A3 docs/specs/storeroom-js/contract.md §0.1` — the cells this clause reads and does not re-spell |
+cross-reference]`).
