@@ -50,23 +50,23 @@ jobs:
       matrix:
         include:
           - label: linux-x64
-            name: '@provident-storeroom/js-linux-x64-gnu'
+            name: '@auspicion/js-linux-x64-gnu'
             runner: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
           - label: linux-arm64
-            name: '@provident-storeroom/js-linux-arm64-gnu'
+            name: '@auspicion/js-linux-arm64-gnu'
             runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
           - label: darwin-x64
-            name: '@provident-storeroom/js-darwin-x64'
+            name: '@auspicion/js-darwin-x64'
             runner: macos-13
             target: x86_64-apple-darwin
           - label: darwin-arm64
-            name: '@provident-storeroom/js-darwin-arm64'
+            name: '@auspicion/js-darwin-arm64'
             runner: macos-14
             target: aarch64-apple-darwin
           - label: win32-x64
-            name: '@provident-storeroom/js-win32-x64-msvc'
+            name: '@auspicion/js-win32-x64-msvc'
             runner: windows-2022
             target: x86_64-pc-windows-msvc
     steps:
@@ -113,14 +113,30 @@ jobs:
 
       # `release.md §1.4` step 4 — **PUBLISH THE FIVE PLATFORM ARTEFACTS**, before the main package, at the
       # tag's own version. The step is a registry publication and is the ARCHITECT'S act's arm: it is
-      # reached only from a tag, and the scope `@provident-storeroom` is owned before the first platform
-      # publish (`PUB-DD-6`'s precondition).
+      # reached only from a tag, and the scope `@auspicion` is owned before the first platform
+      # publish (`PUB-DD-6`'s precondition; `A86`(a)).
       - name: '4. publish the platform artefact'
         shell: bash
         run: |
           set -euo pipefail
           cd "bindings/js/platforms/${{ matrix.label }}"
           npm publish --access public --provenance
+
+      # `release.md §1.4` step 4's own closing half / `distribution.md §3.1` item 2 — **THE ASSEMBLED BYTES DO
+      # NOT OUTLIVE THE STEP THAT NEEDED THEM.** The licence copy `cp LICENSE "$dir/LICENSE"` placed at step
+      # 2 and the `.node` `cp "$built" "$dir/storeroom_js_binding.node"` placed beside it are REMOVED here,
+      # after the publish and whatever its outcome, so no byte a build produced and no licence byte persists
+      # under `bindings/js/platforms/`: the tracked platform directory carries its manifest and its own
+      # `README.md` and nothing else (`distribution.md §3.1`: *"NO BINARY IS EVER COMMITTED TO THE TRACKED
+      # TREE"*), and the copy is an ARTEFACT-LEVEL fact rather than a crate-level file (`§2.3` item 2;
+      # `distribution.md §4.3` item 2; `Q3-5`).
+      - name: '4. remove the assembled licence copy and binary after the publish'
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f "bindings/js/platforms/${{ matrix.label }}/LICENSE" \
+                "bindings/js/platforms/${{ matrix.label }}/storeroom_js_binding.node"
 
   # `release.md §1.4` steps 3 and 5 — **THE MAIN PACKAGE IS PUBLISHED LAST, ALWAYS.** It waits on the whole
   # platform matrix, so its five exact pins are already resolved in the registry when it lands; and its
@@ -147,10 +163,40 @@ jobs:
           node -e "const m=require('./bindings/js/package.json');if(m.version!=='$version'){throw new Error('release.md §2.1: the tag is v'+'$version'+' and the manifest declares '+m.version)}"
           node -e "const m=require('./bindings/js/package.json');const pins=Object.entries(m.optionalDependencies||{});if(pins.length!==5){throw new Error('PUB-DD-10: five exact pins are required, found '+pins.length)};for(const [n,p] of pins){if(p!==m.version){throw new Error('PUB-DD-10: '+n+' is pinned '+p+' and the package is '+m.version)}}"
 
+      # `release.md §1.4` step 3's own assembly half / `contract.md §2.3` item 2 / `distribution.md §4.3` item
+      # 2 — **THE MAIN PACKAGE'S LICENCE COPY IS LANDED AT PACK TIME AND REMOVED AFTER IT.** The main
+      # package's `files` allowlist is the three entries `§2.1` item 1 fixes and NOTHING ELSE, so the copy is
+      # never an entry; the mechanism is the release's own assembly step, and `npm` carries a ROOT `LICENSE`
+      # into the tarball REGARDLESS of `files`. The repository's own `LICENSE` is therefore copied
+      # BYTE-FOR-BYTE to this package's packaging root (`bindings/js/`) IMMEDIATELY BEFORE the publish below,
+      # where the tarball picks it up as the fourth published path `§2.1`'s closing clause names, and removed
+      # IMMEDIATELY AFTER it. **THE COPY IS TRANSIENT AND NEVER PERSISTS**: `bindings/js/LICENSE` is REFUSED
+      # as a tracked or drifting copy (`contract.md §2.3` item 4; `distribution.md §4.3` item 1; `PUB-DD-12`),
+      # so the step opens with the absence it must find and the removal below restores it — and NOTHING under
+      # `bindings/js/` is written by any other step of this file.
+      - name: '3. land the main package''s licence copy at the packaging root (pack-time only)'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e bindings/js/LICENSE
+          cp LICENSE bindings/js/LICENSE
+          node -e "const fs=require('fs');if(fs.readFileSync('LICENSE','utf8')!==fs.readFileSync('bindings/js/LICENSE','utf8')){throw new Error('contract.md §2.3 item 2: the licence copy is byte-for-byte')}"
+
       # `release.md §1.4` step 5 — **PUBLISH THE MAIN PACKAGE**, after all five platform artefacts.
       - name: '5. publish the main package'
         working-directory: bindings/js
         run: npm publish --access public --provenance
+
+      # `release.md §1.4` step 5's own closing half — **THE PACK-TIME COPY IS REMOVED, WHATEVER THE PUBLISH'S
+      # OUTCOME**, so no `LICENSE` byte persists under `bindings/js/` and the tracked tree is left exactly as
+      # the tagged commit has it (`contract.md §2.3` item 4; `distribution.md §4.3` item 1; `PUB-DD-12`).
+      - name: '5. remove the pack-time licence copy'
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f bindings/js/LICENSE
+          test ! -e bindings/js/LICENSE
 
       # `release.md §1.4` step 6 — **ATTEST**: the provenance attestation for the tagged commit's bytes,
       # through the host's OIDC federation at the declared level of reach. **WHERE THE SOURCE REPOSITORY IS

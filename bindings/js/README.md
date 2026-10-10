@@ -72,9 +72,9 @@ compensates for nothing.
    the closed key set declares for the `process.platform` × `process.arch` pair, and no other name. The
    five declared names are
 
-   **`@provident-storeroom/js-linux-x64-gnu`** · **`@provident-storeroom/js-linux-arm64-gnu`** ·
-   **`@provident-storeroom/js-darwin-x64`** · **`@provident-storeroom/js-darwin-arm64`** ·
-   **`@provident-storeroom/js-win32-x64-msvc`**
+   **`@auspicion/js-linux-x64-gnu`** · **`@auspicion/js-linux-arm64-gnu`** ·
+   **`@auspicion/js-darwin-x64`** · **`@auspicion/js-darwin-arm64`** ·
+   **`@auspicion/js-win32-x64-msvc`**
 
    — five names, three of them carrying a toolchain suffix (`-gnu` twice, `-msvc` once) and two carrying
    none. **The name is SELECTED from this table and is never built by concatenating tokens**, so no sixth

@@ -1,4 +1,4 @@
-# `@provident-storeroom/js-linux-arm64-gnu`
+# `@auspicion/js-linux-arm64-gnu`
 
 **THE PREBUILT PLATFORM ARTEFACT FOR `linux` · `arm64`, ONE OF THE FIVE THE RESOLUTION RULE DECLARES**
 (`docs/specs/storeroom-publish/resolution.md §3.1`; `§4.1`).

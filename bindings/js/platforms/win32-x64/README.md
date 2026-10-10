@@ -1,4 +1,4 @@
-# `@provident-storeroom/js-win32-x64-msvc`
+# `@auspicion/js-win32-x64-msvc`
 
 **THE PREBUILT PLATFORM ARTEFACT FOR `win32` · `x64`, ONE OF THE FIVE THE RESOLUTION RULE DECLARES**
 (`docs/specs/storeroom-publish/resolution.md §3.1`; `§4.1`).

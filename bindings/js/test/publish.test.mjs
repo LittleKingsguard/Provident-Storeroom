@@ -70,13 +70,17 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const PKG_DIR = dirname(HERE); // `bindings/js`
 const REPO_ROOT = dirname(dirname(PKG_DIR));
 
-// `resolution.md §3.1` — the five declared names, decided once, in the table's own order.
+// `resolution.md §3.1` — the five declared names, decided once, in the table's own order. **AND `A86` MOVES
+// THEIR SCOPE SEGMENT ALONE** — the five are `@auspicion/js-<label>`, the label, the second segment and the
+// suffix UNMOVED (`docs/specs/storeroom-publish-proposal.md` `§12`; `contract.md §0.3` · `PUB-DD-6`,
+// `PUB-DD-15`; `resolution.md §3.1`). **THE MAIN PACKAGE'S OWN IDENTITY IS UNTOUCHED**: `provident-storeroom`,
+// UNSCOPED (`A82`), and every cell that reads it stands.
 const FIVE_NAMES = [
-  '@provident-storeroom/js-linux-x64-gnu',
-  '@provident-storeroom/js-linux-arm64-gnu',
-  '@provident-storeroom/js-darwin-x64',
-  '@provident-storeroom/js-darwin-arm64',
-  '@provident-storeroom/js-win32-x64-msvc',
+  '@auspicion/js-linux-x64-gnu',
+  '@auspicion/js-linux-arm64-gnu',
+  '@auspicion/js-darwin-x64',
+  '@auspicion/js-darwin-arm64',
+  '@auspicion/js-win32-x64-msvc',
 ];
 // `resolution.md §4.1` — the five covered keys, and the label each carries.
 const COVERED = [
@@ -704,13 +708,23 @@ cell('P-PUB-1', 'S-RESOLVE rung two is derived from the entry module\'s own loca
 //   table must answer · the five pins' shape in the manifest
 // FAIL-STATES: any computed name outside the five · a name assembled from tokens · a guessed fallback on
 //   an uncovered pair · the converse, a declared key the table cannot answer · a fifth pin expressed as a
-//   range (`contract.md §5.2`)
+//   range · **AND A WRONG SCOPE IN EITHER DIRECTION**: one of the five AT THE OLD SCOPE, or at a third org,
+//   is a name outside the five (`contract.md §5.2`; `resolution.md §3.1`; `parameter-semantics.md`
+//   `PAR-PUB-17`'s outside values, re-read at `@auspicion`)
 const FORBIDDEN_NAME_SHAPES = [
-  '@provident-storeroom/js-linux-x64-musl', // a SIXTH NAME (`resolution.md §4.3`)
-  '@provident-storeroom/js-linux-ia32', '@provident-storeroom/js-linux-ppc64le',
-  '@provident-storeroom/js-freebsd-x64', '@provident-storeroom/js-win32-x64-gnu',
-  '@provident-storeroom/linux-x64-gnu', // the alternative literal reading (`PUB-DD-15`)
-  '@provident-storeroom/js-linux-x64', // a dropped `-gnu` suffix (`PUB-DD-15`)
+  '@auspicion/js-linux-x64-musl', // a SIXTH NAME (`resolution.md §4.3`)
+  '@auspicion/js-linux-ia32', '@auspicion/js-linux-ppc64le',
+  '@auspicion/js-freebsd-x64', '@auspicion/js-win32-x64-gnu',
+  '@auspicion/linux-x64-gnu', // the alternative literal reading (`PUB-DD-15`)
+  '@auspicion/js-linux-x64', // a dropped `-gnu` suffix (`PUB-DD-15`)
+  // **THE OLD SCOPE IS KEPT IN THE FAILURE LIST AND THE NEW SCOPE IS ADDED BESIDE IT** (`A86`(a);
+  // `resolution.md §3.1`: *"OR ONE OF THE FIVE AT THE OLD SCOPE, is a FINDING"*): a manifest that still
+  // spells `@provident-storeroom/…` carries the STALE identity rather than a lawful one, and a third org
+  // is lawful at no home at all — so the row refuses a wrong scope in BOTH directions.
+  '@provident-storeroom/js-linux-x64-gnu', '@provident-storeroom/js-linux-arm64-gnu',
+  '@provident-storeroom/js-darwin-x64', '@provident-storeroom/js-darwin-arm64',
+  '@provident-storeroom/js-win32-x64-msvc',
+  '@provident/js-linux-x64-gnu', '@provident/js-linux-arm64-gnu', // a THIRD org
   'js-linux-x64-gnu', 'provident-storeroom-js-linux-x64-gnu', // unscoped / concatenated shapes
 ];
 
@@ -1164,10 +1178,10 @@ cell('P-PUB-5', 'S-TAXONOMY musl × absent and musl × present-unloadable', asyn
   assert.ok(absent.requests.includes(FIVE_NAMES[1]), 'the musl state attempts the `-gnu` name');
   assert.equal(assertArm(absent, {}).status, ARM_STATUS, 'and the one arm answers');
   const unloadable = makeScratch({ label: 'musl-tax-unload', rungTwo: 'broken' });
-  mkdirSync(join(unloadable.dir, 'node_modules', '@provident-storeroom', 'js-linux-arm64-gnu'), { recursive: true });
-  writeFileSync(join(unloadable.dir, 'node_modules', '@provident-storeroom', 'js-linux-arm64-gnu', 'package.json'),
+  mkdirSync(join(unloadable.dir, 'node_modules', '@auspicion', 'js-linux-arm64-gnu'), { recursive: true });
+  writeFileSync(join(unloadable.dir, 'node_modules', '@auspicion', 'js-linux-arm64-gnu', 'package.json'),
     JSON.stringify({ name: FIVE_NAMES[1], version: '0.1.0', main: 'storeroom_js_binding.node' }, null, 2));
-  writeFileSync(join(unloadable.dir, 'node_modules', '@provident-storeroom', 'js-linux-arm64-gnu', 'storeroom_js_binding.node'),
+  writeFileSync(join(unloadable.dir, 'node_modules', '@auspicion', 'js-linux-arm64-gnu', 'storeroom_js_binding.node'),
     'a `-gnu` artefact a musl host cannot `dlopen`\n');
   const r = drive(unloadable, { platform: 'linux', arch: 'arm64' });
   assert.equal(assertArm(r, {}).status, ARM_STATUS, 'the `dlopen` failure lands on the one arm');
@@ -1270,9 +1284,11 @@ cell('P-PUB-5', 'S-ONEARM no fallback, no partial instance, no no-op verb, no fo
 //   literal reading · a sixth name · an unscoped name · the five spellings across every home the contract
 //   names, with the `Q3` homes asserted AS THE DECLARED SET
 // FAIL-STATES: an unscoped platform name anywhere · a sixth scoped name · a name whose scope is not
-//   `@provident-storeroom` · a name that drops a suffix · the alternative literal reading written anywhere
-//   · the five spellings disagreeing across the homes (`contract.md §5.6`)
-const SUFFIXED = { '@provident-storeroom/js-linux-x64-gnu': '-gnu', '@provident-storeroom/js-linux-arm64-gnu': '-gnu', '@provident-storeroom/js-win32-x64-msvc': '-msvc' };
+//   `@auspicion` — **AND ITS CONVERSE, KEPT BESIDE IT: a name whose scope IS the old `@provident-storeroom`,
+//   the scope `A86` moves the five away from** · a name that drops a suffix · the alternative literal
+//   reading written anywhere · the five spellings disagreeing across the homes (`contract.md §5.6`;
+//   `resolution.md §3.1`; `parameter-semantics.md` `PAR-PUB-17`'s outside values)
+const SUFFIXED = { '@auspicion/js-linux-x64-gnu': '-gnu', '@auspicion/js-linux-arm64-gnu': '-gnu', '@auspicion/js-win32-x64-msvc': '-msvc' };
 
 cell('P-PUB-6', 'S-SCOPE the five names, name for name, in the manifest and the entry', async () => {
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
@@ -1290,14 +1306,14 @@ cell('P-PUB-6', 'S-SCOPE the five names, name for name, in the manifest and the 
     'the entry\'s own construction must read the same five spellings (`AV-2`: the five homes read together)');
 });
 
-cell('P-PUB-6', 'S-SCOPE every name is scoped, and the scope is `@provident-storeroom`', async () => {
-  // `§1.3`'s closing clause / `PUB-DD-6`: each of the five is claimable only by the scope's owner, so the
-  // names cannot be filled by a third party. An UNSCOPED platform name anywhere fails.
+cell('P-PUB-6', 'S-SCOPE every name is scoped, and the scope is `@auspicion`', async () => {
+  // `§1.3`'s closing clause / `PUB-DD-6` / **`A86`**: each of the five is claimable only by the scope's
+  // owner, so the names cannot be filled by a third party. An UNSCOPED platform name anywhere fails.
   const names = [...FIVE_NAMES, ...(readdirSync(join(PKG_DIR, 'test'))).map(() => null)];
   for (const name of FIVE_NAMES) {
-    assert.ok(name.startsWith('@provident-storeroom/'), `${name} is scoped`);
+    assert.ok(name.startsWith('@auspicion/'), `${name} is scoped`);
     const [scope, ...rest] = name.split('/');
-    assert.equal(scope, '@provident-storeroom', 'the scope is `@provident-storeroom` and no other');
+    assert.equal(scope, '@auspicion', 'the scope is `@auspicion` and no other');
     assert.equal(rest.length, 1, 'one separator `/` and one second segment');
     assert.ok(rest[0].startsWith('js-'), 'the second segment is `js-<target>-<arch>[-<toolchain>]`');
     for (const [suffixed, suffix] of Object.entries(SUFFIXED)) {
@@ -1307,19 +1323,51 @@ cell('P-PUB-6', 'S-SCOPE every name is scoped, and the scope is `@provident-stor
   assert.equal(names.length > 0, true);
   // the sibling directory's own declaration of an unscoped set is NOT a home of the five (`PUB-DD-15`): the
   // entry and the manifest must carry no unscoped name, and the main package's own identity is unscoped
-  // because it is a DIFFERENT identity (`PAR-PUB-1`).
+  // because it is a DIFFERENT identity (`PAR-PUB-1`) — **`A86` CHANGES AN ORG AND NOT THAT IDENTITY**.
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
+  const entry = readFileSync(join(PKG_DIR, 'index.mjs'), 'utf8');
   for (const name of Object.keys(manifest.optionalDependencies ?? {})) {
     assert.ok(name.includes('/'), `${name} must be scoped`);
   }
+  // **AND THE REFUSAL RUNS IN BOTH DIRECTIONS, MEASURED AND NOT ASSERTED** (`P-PUB-6`'s failure list;
+  // `resolution.md §3.1`: the old scope is a FINDING; `parameter-semantics.md` `PAR-PUB-17`'s outside
+  // values, re-read at the new org).
+  // STATES: a covered key whose rung one resolves · the five spelled at the SCOPE `A86` MOVES THEM AWAY
+  //   FROM · the same five spelled at a THIRD org · the main package's own unscoped identity.
+  // FAIL-STATES: a name whose scope is NOT `@auspicion` required anywhere · a name whose scope IS
+  //   `@provident-storeroom` required anywhere (the converse the ruling ADDS BESIDE the refusal it keeps)
+  //   · a third org's spelling read as one of the five · the main package's own identity `provident-storeroom`
+  //   read as a sixth PLATFORM name.
+  const OLD_SCOPE_NAMES = FIVE_NAMES.map((n) => n.replace('@auspicion/', '@provident-storeroom/'));
+  const THIRD_ORG_NAMES = FIVE_NAMES.map((n) => n.replace('@auspicion/', '@provident/'));
+  for (const wrong of [...OLD_SCOPE_NAMES, ...THIRD_ORG_NAMES]) {
+    assert.equal(manifest.optionalDependencies[wrong], undefined,
+      `${wrong} is REFUSED: the manifest's five keys ARE the declared five (${manifest.optionalDependencies[wrong] === undefined ? 'and this spelling is not one of them' : 'so this spelling must not be'})`);
+    assert.ok(!entry.includes(wrong),
+      `${wrong} is written nowhere in the entry's own construction: a name whose scope is neither the new one nor the main package's identity is refused`);
+  }
+  // the refusal at the LOAD PATH rather than at the bytes: at a COVERED key the entry requires THE one
+  // declared name and never a wrong-scope sibling of it — which is exactly what a stale entry fails.
+  const key = COVERED[0];
+  const r = drive(coveredEnv(key, 'right'), { platform: key.platform, arch: key.arch });
+  assert.ok(r.requests.includes(key.name),
+    `the drive reached rung one's own DECLARED name, so the refusal above is measured and not vacuous (${key.name}); the attempt set was ${JSON.stringify(r.requests)}`);
+  for (const wrong of [...OLD_SCOPE_NAMES, ...THIRD_ORG_NAMES]) {
+    assert.ok(!r.requests.includes(wrong),
+      `${wrong} is REFUSED at the load path: neither the old scope nor a third org is ever required`);
+  }
+  assert.ok(!r.requests.includes('provident-storeroom'),
+    'the main package\'s own unscoped identity is NOT a sixth PLATFORM name: it is a different identity (`PAR-PUB-1`)');
 });
 
 cell('P-PUB-6', 'S-SCOPE the alternative literal reading is written nowhere', async () => {
-  // `PUB-DD-15`: the alternative literal reading `@provident-storeroom/<label>[-<toolchain>]` is REFUSED —
-  // it must be written ANYWHERE in the shipped homes. (The contract's own `PUB-DD-15` cell PRINTS it as the
-  // refusal it is, so the contract documents are the one home the token is lawful in, and they are not
-  // swept here: the sweep is over the SHIPPED bytes, where a second spelling would be a finding.)
-  const alternatives = COVERED.map((k) => `@provident-storeroom/${k.label}`);
+  // `PUB-DD-15`: the alternative literal reading `@auspicion/<label>[-<toolchain>]` is REFUSED — **`A86`(a)
+  // replaces the SCOPE SEGMENT ALONE, so the second segment `js-…` is UNMOVED and the alternative reading
+  // is the reading WITHOUT it** — and it must be written ANYWHERE in the shipped homes. (The contract's own
+  // `PUB-DD-15` cell PRINTS it as the refusal it is, so the contract documents are the one home the token is
+  // lawful in, and they are not swept here: the sweep is over the SHIPPED bytes, where a second spelling
+  // would be a finding.)
+  const alternatives = COVERED.map((k) => `@auspicion/${k.label}`);
   const shipped = [
     ['the main manifest', readFileSync(join(PKG_DIR, 'package.json'), 'utf8')],
     ['the entry', readFileSync(join(PKG_DIR, 'index.mjs'), 'utf8')],
@@ -1330,7 +1378,7 @@ cell('P-PUB-6', 'S-SCOPE the alternative literal reading is written nowhere', as
       assert.ok(!text.includes(alternative),
         `${label} must not spell the alternative reading ${alternative} (\`PUB-DD-15\`)`);
     }
-    assert.ok(!/@provident-storeroom\/js-linux-x64(-gnu)?["']/.test(text) || text.includes(FIVE_NAMES[0]),
+    assert.ok(!/@auspicion\/js-linux-x64(-gnu)?["']/.test(text) || text.includes(FIVE_NAMES[0]),
       'the shipped bytes spell the DECLARED five and no sibling of them');
   }
   // and the five spellings agree ACROSS THE HOMES the contract names: the sibling directory's two cells are

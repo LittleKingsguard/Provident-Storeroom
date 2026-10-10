@@ -53,12 +53,17 @@ const ENTRY = join(PKG_DIR, 'index.mjs');
 const MAIN_MANIFEST = join(PKG_DIR, 'package.json');
 const PLATFORMS = join(PKG_DIR, 'platforms');
 
+// **`A86` — THE FIVE PLATFORM PACKAGES MOVE TO THE ORG `@auspicion`, and the MAIN package's identity is
+// UNTOUCHED at the unscoped `provident-storeroom`** (`docs/specs/storeroom-publish-proposal.md` `§12`;
+// `docs/specs/storeroom-publish/contract.md §0.3` · `PUB-DD-15`; `docs/specs/storeroom-publish/resolution.md
+// §3.1`; `docs/specs/storeroom-js/package.md §3.2`). The five names below are the operative five, taken at
+// the contract cells' own bytes.
 const FIVE_NAMES = [
-  '@provident-storeroom/js-linux-x64-gnu',
-  '@provident-storeroom/js-linux-arm64-gnu',
-  '@provident-storeroom/js-darwin-x64',
-  '@provident-storeroom/js-darwin-arm64',
-  '@provident-storeroom/js-win32-x64-msvc',
+  '@auspicion/js-linux-x64-gnu',
+  '@auspicion/js-linux-arm64-gnu',
+  '@auspicion/js-darwin-x64',
+  '@auspicion/js-darwin-arm64',
+  '@auspicion/js-win32-x64-msvc',
 ];
 const COVERED = [
   { platform: 'linux', arch: 'x64', label: 'linux-x64', name: FIVE_NAMES[0] },
@@ -610,7 +615,7 @@ Object.defineProperty(process, 'arch', { value: ${token.arch()}, configurable: t
       assert.equal(anchor.test(text), true, 'NG-PUB-B: the table site moved; the control must be re-cut');
       return text.replace(anchor,
         "function platformNameFor(platform, arch) {\n"
-        + "  if (arch !== 'arm64' || platform !== 'darwin') return '@provident-storeroom/js-' + platform + '-' + arch + '-gnu';\n");
+        + "  if (arch !== 'arm64' || platform !== 'darwin') return '@auspicion/js-' + platform + '-' + arch + '-gnu';\n");
     }),
   },
 }));

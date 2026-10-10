@@ -1,4 +1,4 @@
-# `@provident-storeroom/js-darwin-arm64`
+# `@auspicion/js-darwin-arm64`
 
 **THE PREBUILT PLATFORM ARTEFACT FOR `darwin` · `arm64`, ONE OF THE FIVE THE RESOLUTION RULE DECLARES**
 (`docs/specs/storeroom-publish/resolution.md §3.1`; `§4.1`).
