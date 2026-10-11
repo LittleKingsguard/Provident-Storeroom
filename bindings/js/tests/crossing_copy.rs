@@ -42,10 +42,20 @@ fn copy_in_a_mutation_of_the_callers_value_is_invisible_to_a_later_read() {
     write_at(&mut inst, &[key("o")], &caller).expect("a plain object is admitted");
     // The caller now REPLACES its own value completely, and adds a member: nothing of this reaches the
     // store, because the input was converted into a value the store owns.
-    caller = JsValue::Object(JsObject::plain(vec![
-        (JsKey::Key("a".into()), JsValue::Str("changed".into())),
-        (JsKey::Key("c".into()), JsValue::Num(3.0)),
-    ]));
+    // **⟶ WARNING CLEANED 2026-10-11 (THE WINDOWS-LEG PASS); NO ASSERTION MOVES.** The binding read
+    // `caller = JsValue::Object(…)`, so `rustc` printed *"value assigned to `caller` is never read"*
+    // (`unused_assignments`) — the value that mattered had crossed at the line above, and the
+    // rebinding's ONLY purpose is to show that the caller now holds a DIFFERENT value while the store
+    // holds its own. **THE REPLACEMENT IS STILL A REPLACEMENT**, so the old value is taken rather than
+    // overwritten in place: the discard names what it is, the `mut` keeps its reason, and the assertion
+    // below is the one the as-filed drive made.
+    let _the_value_the_caller_wrote_is_dropped = std::mem::replace(
+        &mut caller,
+        JsValue::Object(JsObject::plain(vec![
+            (JsKey::Key("a".into()), JsValue::Str("changed".into())),
+            (JsKey::Key("c".into()), JsValue::Num(3.0)),
+        ])),
+    );
     let back = read_at(&inst, &[key("o")]).unwrap();
     assert!(js_equal(
         &back,
@@ -118,12 +128,29 @@ fn copy_out_a_mutation_of_the_returned_value_does_not_reach_the_store() {
         )])),
     )
     .expect("admitted");
-    let mut returned = read_at(&inst, &[key("o")]).unwrap();
+    let returned = read_at(&inst, &[key("o")]).unwrap();
     // The JS side mutates what it was handed; that value must not be a view into store memory.
-    returned = JsValue::Object(JsObject::plain(vec![
+    // **⟶ THE TWO WARNINGS AT `:121` AND `:123` ARE BOTH CLEANED 2026-10-11 (THE WINDOWS-LEG PASS).** They
+    // read `let mut returned = …` followed by `returned = JsValue::Object(…)`, so `rustc` printed
+    // *"variable `returned` is assigned to, but never used"* (`unused_variables`) and *"value assigned to
+    // `returned` is never read"* (`unused_assignments`): **the rebinding reached no observable, and the
+    // assertion that followed read the STORE and never the rebound value.** **SO THE REBINDING IS REMOVED
+    // RATHER THAN SILENCED — the `mut` and the dead store are the only bytes this pass deletes — AND THE
+    // VALUE THAT WAS READ IS NOW PUT TO ITS OWN OBSERVABLE USE**: it is compared, by SET equality, with the
+    // rewrite the JS side would perform on what it was handed, so the drive MEASURES that the returned
+    // value is the STORE's value and not the JS side's rewrite of it. **AND `:127`'s OWN DRIVE IS KEPT
+    // VERBATIM AS THE SECOND ASSERTION: the store is read a SECOND time and must still answer exactly what
+    // was written.** **NO ASSERTION IS WEAKENED; NOTHING IS COMPARED AGAINST A CLONE OF ITSELF.**
+    let as_the_js_side_would_rewrite_it = JsValue::Object(JsObject::plain(vec![
         (JsKey::Key("a".into()), JsValue::Str("hijacked".into())),
         (JsKey::Key("b".into()), JsValue::Num(99.0)),
     ]));
+    assert!(
+        !js_equal(&returned, &as_the_js_side_would_rewrite_it),
+        "{}",
+        "the value `read` returned is the STORE's own value and NOT the JS side's rewrite of what it was \
+         handed (`§1.1` clause 2: *\"a mutation of a value a `read` returned does not reach the store\"*)"
+    );
     assert!(js_equal(
         &read_at(&inst, &[key("o")]).unwrap(),
         &JsValue::Object(JsObject::plain(vec![(

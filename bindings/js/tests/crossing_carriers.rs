@@ -648,20 +648,55 @@ fn file_path_arg_5_a_directory_is_refused_file_path_unreachable() {
 
 /// `FilePathArg` row 6: **a string naming an existing but not writable path** answers
 /// `FilePathUnreachable`.
+///
+/// **⟶ MADE PLATFORM-PORTABLE 2026-10-11 (THE WINDOWS-LEG PASS): THE MODE BITS ARE NOW A `#[cfg]` PAIR
+/// AND THE PROPERTY IS DRIVEN ON BOTH SIDES.** **The as-filed drive used `std::os::unix::fs::PermissionsExt`
+/// and `Permissions::from_mode(0o444)` UNCONDITIONALLY, so the Windows leg could not COMPILE THE TEST SUITE
+/// at all** (the second run's `cargo test`: `E0433: no \`unix\` in \`os\`` at `:653`, `E0599` at `:656` and
+/// `:664`) — **a compile error in a test file reddens the whole target, so every cell beside this one went
+/// unmeasured on that leg.** **THE PROPERTY IS *"a store path that cannot be written yields the declared
+/// refusal"* AND IT IS EXPRESSIBLE ON BOTH SYSTEMS**: Unix with mode `0o444`, Windows with the READ-ONLY
+/// ATTRIBUTE (`set_readonly(true)`), each the platform's own spelling of an existing file that its owner may
+/// not write.
+/// **AND THE PRECEDENCE IS DRIVEN, NOT THE PERMISSION ALONE** (`A52`/`A55`): the store's construction-time
+/// probe WRITES, so the declared answer holds for a non-`root` process — **a `root`-owned process ignores
+/// mode `0o444`, and Windows's `FILE_ATTRIBUTE_READONLY` is not a security control either — so, exactly as
+/// the as-filed drive read it, the assertion is the DECLARED ANSWER *when the probe is refused*, and the run
+/// reports what the platform gives it.** **THE FALLBACK IS NOT A SKIP AND IT IS NOT `#[ignore]`: the drive
+/// still executes and still fails if a REFUSED instance answers anything but `FilePathUnreachable`.**
+/// **THE CLEANUP IS SCOPED OUT OF THE INSTANCE'S LIFETIME** because the store holds the path and a Windows
+/// `remove_file` cannot unlink a file the process holds open.
 #[test]
 fn file_path_arg_6_an_unwritable_path_is_refused_file_path_unreachable() {
-    use std::os::unix::fs::PermissionsExt;
     let path = scratch_path("read-only.json");
     std::fs::write(&path, b"{}").expect("a scratch file");
-    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o444))
-        .expect("mode 0444");
-    let result = create(&cfg_at(path.to_str().unwrap(), 2));
-    // The probe requires WRITE ACCESS (`A52`/`A55`); a root-owned process would pass it, so the drive
-    // asserts the declared answer and the run reports it as the platform gives it.
-    if let Err(err) = result {
-        assert_refusal_is_the_single_form(&err, "FilePathUnreachable");
+    // **THE ORIGINAL MODE IS CAPTURED SO THE RESTORATION IS THE PLATFORM'S OWN** rather than a literal this
+    // drive would have to guess (Windows has no mode at all).
+    let original = std::fs::metadata(&path)
+        .expect("the scratch file's own metadata")
+        .permissions();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o444))
+            .expect("mode 0444 — the Unix spelling of 'the owner may not write this path'");
     }
-    let _ = std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o644));
+    #[cfg(not(unix))]
+    {
+        let mut read_only = original.clone();
+        read_only.set_readonly(true);
+        std::fs::set_permissions(&path, read_only)
+            .expect("the READ-ONLY attribute — the Windows spelling of the same state");
+    }
+    {
+        let result = create(&cfg_at(path.to_str().unwrap(), 2));
+        // The probe requires WRITE ACCESS (`A52`/`A55`); a root-owned process would pass it, so the drive
+        // asserts the declared answer and the run reports it as the platform gives it.
+        if let Err(err) = result {
+            assert_refusal_is_the_single_form(&err, "FilePathUnreachable");
+        }
+    }
+    let _ = std::fs::set_permissions(&path, original);
     let _ = std::fs::remove_file(&path);
 }
 

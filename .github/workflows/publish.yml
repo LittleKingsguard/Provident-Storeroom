@@ -172,12 +172,34 @@ jobs:
       # tag's own version. The step is a registry publication and is the ARCHITECT'S act's arm: it is
       # reached only from a tag, and the scope `@auspicion` is owned before the first platform
       # publish (`PUB-DD-6`'s precondition; `A86`(a)).
+      #
+      # **⟶ MOVED BY THE STAGED-PUBLISH PASS, 2026-10-11: THE VERB IS NOW `npm stage publish` AND THE PASS
+      # ENDS AT A SUCCESSFUL STAGE — NO PASS OF THIS UNIT PROMOTES.**
+      # **THE CAUSE, FROM THE SECOND RUN'S OWN LOG, VERBATIM: `npm error 403 Forbidden — OIDC permission
+      # denied for this action`** — **WHILE THE TOKEN MINTED AND THE PROVENANCE STATEMENT WAS SIGNED AND
+      # LOGGED** (`search.sigstore.dev/?logIndex=3195991700`). **THE MINT WAS NOT THE FAULT: the registry's
+      # trusted-publisher grant for this package is scoped to the STAGE action, so DIRECT publish is the ONE
+      # action the grant refuses**, and no flag of `npm publish` can reach an action the grant does not carry.
+      # **AND THE MOVEMENT IS WHAT THE CONTRACT ALREADY DECLARES** (`release.md §1.3` item `1`): *"NO PASS
+      # PUBLISHES"* — and, `Q9`'s own rule, **THE PROMOTION IS THE ARCHITECT'S ACT, SO THE WORKFLOW'S JOB ENDS
+      # HERE AND THIS FILE CARRIES NO `npm stage approve`, NO `workflow_dispatch` APPROVAL JOB AND NO OTHER
+      # AUTOMATED PROMOTION.** **A STAGED VERSION IS NOT SPENT UNTIL HE PROMOTES IT**, so a bad stage is
+      # DISCARDED rather than deprecated.
+      # **EVERY FLAG BELOW IS NAMED BY THIS MACHINE'S OWN HELP TEXT** (`npm 12.2.0`; `npm stage publish
+      # --help`): `[--tag <tag>] [--access <restricted|public|private>] [--dry-run] [--otp <otp>]
+      # [--provenance|--provenance-file <file>]`. **`--tag latest` is written rather than defaulted because
+      # the help text's Tag Behavior clause makes the tag an IMMUTABLE PROPERTY OF THE STAGED PACKAGE** — and
+      # the default is `latest` for this release's semver, character for character. **NO FLAG OUTSIDE THAT
+      # SET IS USED, AND `npm stage publish` NEEDS NO 2FA OF ANY KIND** (the help text's own 2FA table:
+      # *"`npm stage publish` | No | Designed for automated workflows; defers 2FA to approval"*).
+      # **THE PRE-PUBLISH GUARD ABOVE AND THE CLEANUP BELOW ARE UNMOVED: what moved is the ACTION, not the
+      # assembly, the guards or the order.**
       - name: '4. publish the platform artefact'
         shell: bash
         run: |
           set -euo pipefail
           cd "bindings/js/platforms/${{ matrix.label }}"
-          npm publish --access public --provenance
+          npm stage publish --access public --provenance --tag latest
 
       # `release.md §1.4` step 4's own closing half / `distribution.md §3.1` item 2 — **THE ASSEMBLED BYTES DO
       # NOT OUTLIVE THE STEP THAT NEEDED THEM.** The licence copy `cp LICENSE "$dir/LICENSE"` placed at step
@@ -267,9 +289,20 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       # `release.md §1.4` step 5 — **PUBLISH THE MAIN PACKAGE**, after all five platform artefacts.
+      #
+      # **⟶ MOVED BY THE SAME STAGED-PUBLISH PASS: THE SAME VERB, THE SAME CAUSE, THE SAME END — THE MAIN
+      # SITE STAGES AND DOES NOT PUBLISH, AND THIS JOB CARRIES NO PROMOTION EITHER.** **The registry's
+      # trusted-publisher grant is one grant for the six names, and the `403 · OIDC permission denied for this
+      # action` the platform site met is the action-level refusal this verb answers** (`release.md §1.3`
+      # item `1`; `Q9`: the promotion is the architect's act). **THE ORDER IS THE PROPERTY THE ARMS DEPEND
+      # ON AND IT IS UNMOVED: `needs: platform`, the five exact pins, the main package LAST; and a stage
+      # resolves its pins only when the five staged platform versions are PROMOTED, which is why the
+      # architect promotes in the declared order — the five platform artefacts, then the main package.**
+      # **FLAGS:** `--access public` · `--provenance` · `--tag latest`, each named by `npm stage publish
+      # --help` on this machine (`npm 12.2.0`), and NOTHING ELSE.
       - name: '5. publish the main package'
         working-directory: bindings/js
-        run: npm publish --access public --provenance
+        run: npm stage publish --access public --provenance --tag latest
 
       # `release.md §1.4` step 5's own closing half — **THE PACK-TIME COPY IS REMOVED, WHATEVER THE PUBLISH'S
       # OUTCOME**, so no `LICENSE` byte persists under `bindings/js/` and the tracked tree is left exactly as
