@@ -320,12 +320,6 @@
 
 **⟶ AND ONE READER'S-FOOTNOTE ON THIS FILE'S OWN PRINT ORDER, STATED BECAUSE THE CONTRACT DOCUMENT'S `§7` DISCLOSURE IS THE PRECEDENT AND NOT BECAUSE ANY `§`-NUMBER IS RE-MEANED: `§6.7` IS THIS FILE'S SECOND WORKFLOW RUN AND STANDS BEFORE `§6.6`, WHICH IS THE FIRST RUN'S STALENESS CLAUSE, BECAUSE `§6.7` WAS INSERTED BESIDE THE SECTIONS IT ANSWERS RATHER THAN AFTER THEM; AND `§7` FOLLOWS THE FIRST `§6.6`.** **NO CITATION OF THIS DIRECTORY DEPENDS ON A SECTION'S PRINTED POSITION; every citation names its path and its `§`-number; and NO `§`-NUMBER IS RE-MEANED BY THIS FOOTNOTE** (`docs/specs/storeroom-publish/contract.md §7`). `[A1 | ordering claim]`
 
-**END OF THIS FILE.** **Every byte above `§6.7` STANDS BYTE-FOR-BYTE and is read THROUGH `§6.7` AND `§6.6`; THIS PASS WROTE NO BYTE OUTSIDE `docs/specs/storeroom-publish/`, RAN NO VERB, PUBLISHED NOTHING, STAGED NOTHING AND PROMOTED NOTHING.**
-
-### §6.6 The figure this section moves, and the cells it therefore makes stale
-
----
-
 ## §7. THE TEST SUITE'S PLATFORM GAP — a verification leg whose coverage claim outran the platform it was ever exercised on
 
 **⟶ INSERTED 2026-10-11 — THE STAGED-RELEASE PASS (`role_spec_writer`), ON THE SECOND WORKFLOW RUN'S OWN EVIDENCE: THE SIBLING CRATE'S OWN SUITE HAD ONLY EVER COMPILED ON `unix`, WHILE THE WORKFLOW RUNS IT ON ALL FIVE LEGS.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte above — `§1`'s CI inputs, `§2`'s tag/version, coupling and semver clauses with the crate-version clause, `§3`'s partial-publish arm and its `alt` table, `§4`'s acts and their actor, `§5`'s bootstrap, `§6`'s two runs with their result and cause clauses, and the two gate-8 reconciliation clauses — STANDS BYTE-FOR-BYTE and is read THROUGH this section; THIS section is a PURE INSERTION at the file's foot, it adds NO step to `§1.4`'s six-step table, moves NO step's order, mints NO register row and writes no byte outside `docs/specs/storeroom-publish/`.** **THIS PASS RAN NOTHING AND PUT NO QUESTION TO THE ARCHITECT: every line below is the RUN'S, quoted at the line the run printed it, and the one thing this section leaves undecided is left as a PARK WITH ITS REASON NAMED RATHER THAN AS A SILENCE.**
@@ -357,9 +351,7 @@
 
 ---
 
-**END OF THIS FILE.** **Every byte above `§6.7` STANDS BYTE-FOR-BYTE and is read THROUGH `§6.7`–`§7.3`; THIS PASS WROTE NO BYTE OUTSIDE `docs/specs/storeroom-publish/`, RAN NO VERB, PUBLISHED NOTHING, STAGED NOTHING AND PROMOTED NOTHING.**
-
-### §6.6 The figure this section moves, and the cells it therefore makes stale
+**AND THE FILE'S OWN `END OF THIS FILE` MARKER STANDS AT THE TRUE FOOT, AFTER THE GATE-8 RECONCILIATION CLAUSE — NOT HERE; THIS LINE IS A PURE INSERTION AND NEITHER ENDS THE FILE NOR CARRIES ANY CLAIM THE CLAUSES ABOVE DO NOT.** `[A1 | cross-reference]`
 
 **⟶ ONE RANGE CELL OF THIS SECTION IS READ FORWARD, DATED, AND NOTHING IT SAYS IS WITHDRAWN** (`RCA-8(d)` ANNOTATE-BESIDE: **this clause is a PURE INSERTION at this section's head; it moves no row, re-decides no rule and re-emits the section's own paragraph below byte-for-byte in its own terms**): **the `PUB-DD` family's OPERATIVE range is `PUB-DD-1`…`PUB-DD-31` and its OPERATIVE count is `31` (`30 + 1 = 31` ✓), because the STAGED-RELEASE PASS inserts `PUB-DD-31` — the promotion verb's exact spelling and who supplies it — at `§1.6`'s foot.** **THE `30` THIS SECTION PRINTS IS TRUE OF ITS OWN PASS'S AUTHORING and every range cell its own staleness list names is read that way.** `[A1 | numeric or census claim]`
 
@@ -368,8 +360,6 @@
 **AND THE ONE THING THIS SECTION'S OWN `NOTHING ELSE MOVES` LIST DOES NOT NAME, STATED SO IT IS NOT RECOVERED FROM A DIFF: `§1.4`'s SIX-STEP CLAUSE MOVES IN ITS TWO PUBLISH STEPS' VERB — `npm stage publish` RATHER THAN `npm publish`, WITH THE ARCHITECT'S PROMOTION BESIDE IT — AND THE STEP COUNT `6` AND THE ARITHMETIC `3 + 2 + 1 = 6` ✓ ARE UNMOVED BY IT** (`§1.4`; `§1.5`). **AND THE CLOSURE PREDICATE READS `6 = 6` ✓ (no part added, omitted or renamed), the register stays `8` FAILABLE rows with `8 ≤ 8` holding, the strategy set stays `14` ids, the `derivation:` clause stays SINGLE, and no byte outside `docs/specs/storeroom-publish/` is written.** `[A1 | cross-reference]`
 
 **⟶ AND ONE READER'S-FOOTNOTE ON THIS FILE'S OWN PRINT ORDER, STATED BECAUSE THE CONTRACT DOCUMENT'S `§7` DISCLOSURE IS THE PRECEDENT AND NOT BECAUSE ANY `§`-NUMBER IS RE-MEANED: `§6.7` IS THIS FILE'S SECOND WORKFLOW RUN AND STANDS BEFORE `§6.6`, WHICH IS THE FIRST RUN'S STALENESS CLAUSE, BECAUSE `§6.7` WAS INSERTED BESIDE THE SECTIONS IT ANSWERS RATHER THAN AFTER THEM; AND `§7` FOLLOWS THE FIRST `§6.6`.** **NO CITATION OF THIS DIRECTORY DEPENDS ON A SECTION'S PRINTED POSITION; every citation names its path and its `§`-number; and NO `§`-NUMBER IS RE-MEANED BY THIS FOOTNOTE** (`docs/specs/storeroom-publish/contract.md §7`). `[A1 | ordering claim]`
-
-**END OF THIS FILE.** **Every byte above `§6.7` STANDS BYTE-FOR-BYTE and is read THROUGH `§6.7` AND `§6.6`; THIS PASS WROTE NO BYTE OUTSIDE `docs/specs/storeroom-publish/`, RAN NO VERB, PUBLISHED NOTHING, STAGED NOTHING AND PROMOTED NOTHING.**
 
 ### §6.6 The figure this section moves, and the cells it therefore makes stale
 
