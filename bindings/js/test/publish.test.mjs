@@ -2290,6 +2290,20 @@ cell('P-PUB-8', 'S-TAG no publish verb is declared by any tracked byte of the pa
   // the workflow is not one of its bytes, and `files` does not carry it. **THE VERB'S HOME IS THE DRIVE
   // BELOW AND NOT THE FILE'S EXISTENCE**, and the same prohibition is driven with a measured control in the
   // `S-TAG` cell that reads the workflow's own bytes (`drivePackagePublishVerbs`).
+  //
+  // **⟶ RE-CUT 2026-10-11 BY THE STAGED-VERB RE-CUT PASS (`role_test_writer`): THE SENTENCE ABOVE THAT NAMES
+  // THE PUBLISH VERB IS RE-EMITTED HERE VERBATIM, SO `git diff` HAS NOTHING TO RECOVER, AND THEN RE-READ.**
+  // **AS FILED IT READ** *"and it CARRIES the release's publish steps — `npm publish` at step `4` for each
+  // platform artefact and at step `5` for the main package — because publishing is what a release workflow is
+  // for"*. **THE SAME VERB, AND THEREFORE THE SAME STALENESS: BOTH SITES NOW READ `npm stage publish`, at each
+  // of the two steps, and the reason is again the registry's rather than ours** — **the trusted-publisher grant
+  // configured for these names is scoped to STAGE PUBLISH, so a direct `npm publish` is refused at
+  // `403 · OIDC permission denied for this action` while the OIDC exchange and the provenance attestation both
+  // succeed** (`release.md §1.5` item `1`; `§6.7`). **AND NOTHING ELSE IN THAT SENTENCE MOVES, STATED SO THE
+  // RE-CUT IS NOT READ AS A WIDENING: the file still CARRIES the release's publish steps, at step `4` and at
+  // step `5`, in that order — and the prohibition THIS CELL drives is the one on a PASS EXECUTING ONE, which
+  // the staged verb does not touch** (`§4.1` item `1`; the `S-TAG` cell below drives both sites at their own
+  // bytes, and drives the ORDER of the two sites independently of either verb).
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
   const scripts = manifest.scripts ?? {};
   for (const [name, body] of Object.entries(scripts)) {
@@ -2628,10 +2642,73 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     const step5 = code.indexOf(`'5. publish the main package'`);
     assert.ok(step4 !== -1 && step5 !== -1 && step4 < step5,
       `${label}: the declared order, step 4 before step 5 — the five platform artefacts land BEFORE the main package`);
-    assert.equal(platformJob.includes('npm publish'), true,
-      `${label}: step 4 PUBLISHES THE FIVE PLATFORM ARTEFACTS, at the tag's own version`);
-    assert.equal(mainJob.includes('npm publish'), true,
-      `${label}: step 5 publishes the main package, AFTER them and never before`);
+    // **⟶ RE-CUT 2026-10-11 BY THE STAGED-VERB RE-CUT PASS (`role_test_writer`): THE TWO ASSERTIONS THAT STOOD
+    // HERE ARE RE-EMITTED VERBATIM, SO `git diff` HAS NOTHING TO RECOVER, AND THEN REPLACED.** **AS FILED THEY
+    // READ** *"`assert.equal(platformJob.includes('npm publish'), true, …)` — *"step 4 PUBLISHES THE FIVE
+    // PLATFORM ARTEFACTS, at the tag's own version"*"* **and** *"`assert.equal(mainJob.includes('npm publish'),
+    // true, …)` — *"step 5 publishes the main package, AFTER them and never before"*"*. **THEY AND THE STAGED
+    // SITE ARE MUTUALLY EXCLUSIVE, AND NO WORKFLOW BYTE CAN SATISFY BOTH: `'npm publish'` IS NOT A SUBSTRING OF
+    // `'npm stage publish'` — measured on THIS DRIVE'S OWN comment-stripped `code`, `indexOf` → `-1`,
+    // `includes` → `false`, `/npm publish/` → `null` — so the cell was the stale half and not the file.**
+    // **THE AUTHORITY IS `release.md §1.5` item `1`, landed in flight: *"`npm publish` IS REPLACED BY `npm stage
+    // publish` AT BOTH SITES — the platform site and the main site — with `--access public` and `--provenance`
+    // UNCHANGED beside it."*** **AND THE REPLACEMENT IS THE REGISTRY'S OWN SCOPE RATHER THAN A PREFERENCE: the
+    // trusted-publisher grant configured for these names is scoped to STAGE PUBLISH, so a direct `npm publish`
+    // is refused at `403 · OIDC permission denied for this action` WHILE the OIDC exchange and the provenance
+    // attestation both succeed** (`§1.5` item `1`; `§1.5` item `2`: the promotion is the ARCHITECT'S act).
+    //
+    // **THE TWO HALVES OF THIS CELL ARE SEPARATED HERE, SO THAT THE NEXT VERB CHANGE ROTS ONE OF THEM AND NOT
+    // THE PROPERTY:**
+    //   · **THE COUPLING — VERB-FREE, AND THE HALF THAT CARRIES THIS CELL'S OWN SUBJECT** (*"the five platform
+    //     artefacts are published before the main package, and the main package last"*). **Order is a fact about
+    //     POSITION, so it is read at the two SITES' OFFSETS, at the JOB boundaries and at `needs: platform`
+    //     above — never at a verb** (`release.md §1.5` item `4`; `§1.4` step `5`). **THIS HALF SURVIVES ANY VERB
+    //     — direct, staged or promoted — because it names no verb at all.**
+    //   · **THE LITERAL — the STAGED VERB ITSELF, at each site, with `--access public` and `--provenance` beside
+    //     it.** **IT IS ASSERTED TOO, because the staged form is a DECLARED CHOICE and not a detail**: the
+    //     registry's grant is scoped to it (`release.md §1.5` item `1`; `PUB-DD-31`). **IT IS THE HALF THAT
+    //     WOULD HAVE TO BE RE-CUT IF THE VERB MOVES AGAIN, and nothing else here would.**
+    const sites = [...code.matchAll(/npm stage publish/g)].map((m) => m.index);
+    assert.equal(sites.length, 2,
+      `${label}: \`release.md §1.5\` item 1 — EXACTLY TWO publish sites exist, the platform's and the main's, `
+      + 'and no third route to the registry is declared');
+    // (·) THE COUPLING, READ WITHOUT A VERB: the platform's site lies inside the platform job, the main's inside
+    // the main job, and the platform job opens before the main job does — so the five land first and the main
+    // package LAST, whatever the sites are told to run.
+    const platformJobAt = code.search(/^\s+platform:\s*$/m);
+    const mainJobAt = code.search(/^\s+main:\s*$/m);
+    assert.ok(platformJobAt !== -1 && platformJobAt < sites[0] && sites[0] < mainJobAt && mainJobAt < sites[1],
+      `${label}: \`release.md §1.5\` item 4 / \`§1.4\` step 5 — THE ORDER, READ WITHOUT A VERB: step 4's site is `
+      + 'inside the platform job and step 5\'s inside the main job, so THE FIVE PLATFORM ARTEFACTS ARE '
+      + 'PUBLISHED BEFORE THE MAIN PACKAGE AND THE MAIN PACKAGE IS PUBLISHED LAST, ALWAYS');
+    // (·) THE LITERAL: the staged verb at each site, with the two declared flags unchanged beside it.
+    const siteLine = (at) => code.slice(code.lastIndexOf('\n', at) + 1, code.indexOf('\n', at));
+    for (const [who, at] of [['step 4', sites[0]], ['step 5', sites[1]]]) {
+      const line = siteLine(at);
+      assert.equal(line.includes('npm stage publish'), true,
+        `${label}: ${who} carries the STAGED verb — \`release.md §1.5\` item 1's declared choice, and the one `
+        + 'action the registry\'s trusted-publisher grant carries for these names');
+      for (const flag of ['--access public', '--provenance']) {
+        assert.equal(line.includes(flag), true,
+          `${label}: ${who} carries \`${flag}\` UNCHANGED beside the staged verb (\`release.md §1.5\` item 1)`);
+      }
+    }
+    // **AND THE DIRECT VERB IS DRIVEN ABSENT FROM THIS DRIVE'S OWN `code`** — the one byte sequence that would
+    // mean a site had reverted to the action the grant refuses. **THE SUBJECT IS A DIFFERENT ONE FROM THE ORDER
+    // AND IT IS KEPT BESIDE IT RATHER THAN FOLDED INTO IT.** **AND IT READS THE COMMENT-STRIPPED `code` AND NOT
+    // THE RAW BYTES ON PURPOSE**: the file's own commentary NAMES the refused verb in order to refuse it, which
+    // is a legitimate use of the word and not a publish site.
+    assert.equal(code.includes('npm publish'), false,
+      `${label}: NEITHER site carries the DIRECT verb — \`npm publish\` is not a substring of \`npm stage `
+      + 'publish\', so a site reverted to the action the registry refuses is caught here');
+    // **AND THE TWO CLEANUPS' OWN `if: always()`, WHICH THIS PASS FOUND UNASSERTED AND GUARDS RATHER THAN MERELY
+    // NAMES** (`release.md §1.4` step 4's and step 5's closing halves; `distribution.md §3.1` item 2): the
+    // assembled licence copy and `.node` leave the tracked tree after the publish WHATEVER ITS OUTCOME, and the
+    // pack-time `LICENSE` copy leaves `bindings/js` likewise. **A CLEANUP THAT ONLY RAN ON SUCCESS WOULD LEAVE
+    // A BUILT BYTE IN THE TRACKED TREE ON EXACTLY THE RUNS THAT NEEDED IT MOST.**
+    assert.equal((code.match(/^\s+if:\s*always\(\)\s*$/gm) ?? []).length, 2,
+      `${label}: \`§1.4\` steps 4-5's closing halves — BOTH cleanups carry \`if: always()\`, so they run whatever `
+      + 'the publish\'s outcome, and a third would be a step this cell has not read');
     assert.equal(/uses:\s*actions\/attest-build-provenance@/.test(mainJob), true,
       `${label}: \`§1.4\` step 6 — ATTEST the provenance of the tagged commit's bytes`);
     assert.equal(/subject-path:\s*'bindings\/js\/index\.mjs'/.test(mainJob), true,
