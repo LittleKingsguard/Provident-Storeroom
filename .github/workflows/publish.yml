@@ -59,13 +59,29 @@ jobs:
             name: '@auspicion/provident-storeroom-js-linux-arm64-gnu'
             runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
+          # **⟶ THE TWO macOS LABELS AMENDED 2026-10-11 BY THE RUNNER-LABEL LANDING PASS, UNDER
+          # `release.md §1.2`'s OWN CLOSING RULE** (*"a runner renamed or retired by its host is a one-line
+          # change to this table and to the workflow file, and the change is a bounded amendment rather than
+          # a finding"*) — **THE LABELS ALONE MOVE; AND THEY ARE NOT "FIXED BACK" TO THEIR PREDECESSORS,
+          # WHICH IS WHY THE REASON IS WRITTEN HERE RATHER THAN LEFT TO THE HOST'S DOCUMENTATION.**
+          # `darwin-x64` — **`macos-13` → `macos-15-intel`**: `macos-13` was RETIRED by its host — its
+          # runner-images tracker closes it *"fully unsupported by December 8th, 2025"*
+          # (`actions/runner-images#13046`) — and the tagged run waited `8h 35m` on that queue for it.
+          # `macos-15-intel` is Intel x64, macOS 15, and a STANDARD hosted runner (no plan change).
+          # `darwin-arm64` — **`macos-14` → `macos-15`**: `macos-14` carries a DEPRECATION badge, with
+          # host brownouts live and retirement announced for `2026-11-02` (`actions/runner-images#13518`);
+          # `macos-15` is Apple Silicon arm64, current, and carries no deprecation badge.
+          # **THE PROPERTY IS UNMOVED: each of the five rows is a DISTINCT image and each builds its own
+          # target** — `macos-15-intel` and `macos-15` are different images for different architectures, so
+          # `PAR-PUB-28`'s refusal of a cross-compiled artefact *"a build this matrix did not perform"* is
+          # honoured exactly as before. `ubuntu-24.04`, `ubuntu-24.04-arm` and `windows-2022` DO NOT MOVE.
           - label: darwin-x64
             name: '@auspicion/provident-storeroom-js-darwin-x64'
-            runner: macos-13
+            runner: macos-15-intel
             target: x86_64-apple-darwin
           - label: darwin-arm64
             name: '@auspicion/provident-storeroom-js-darwin-arm64'
-            runner: macos-14
+            runner: macos-15
             target: aarch64-apple-darwin
           - label: win32-x64
             name: '@auspicion/provident-storeroom-js-win32-x64-msvc'

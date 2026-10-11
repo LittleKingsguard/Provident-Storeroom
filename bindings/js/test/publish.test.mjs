@@ -96,6 +96,43 @@ const COVERED = [
   { platform: 'darwin', arch: 'arm64', label: 'darwin-arm64', name: FIVE_NAMES[3] },
   { platform: 'win32', arch: 'x64', label: 'win32-x64', name: FIVE_NAMES[4] },
 ];
+// **`release.md §1.2` — THE FIVE-RUNNER TABLE, ROW FOR ROW: ONE RUNNER PER TARGET, AND NO RUNNER SERVING
+// TWO.** **⟶ RE-CUT 2026-10-11 BY THE RUNNER-LABEL PASS (`role_test_writer`), ON THE CLAUSE'S OWN CLOSING
+// RULE** — *"a runner renamed or retired by its host is a one-line change to this table and to the workflow
+// file, and the change is a bounded amendment rather than a finding"* — **BECAUSE THAT CLAUSE FIRED: the
+// `darwin-x64` leg requested `macos-13`, WHICH ITS HOST HAS RETIRED, and the tagged run stood `8h 35m`
+// waiting for a runner that will never be served, *"fully unsupported by December 8th, 2025"*
+// (`actions/runner-images#13046`), while every other leg went green; and the `darwin-arm64` leg's `macos-14`
+// carries a DEPRECATION badge, with host brownouts scheduled and retirement announced for `2026-11-02`
+// (`actions/runner-images#13518`).**
+//
+// **AS FILED, AND RE-EMITTED HERE VERBATIM SO `git diff` HAS NOTHING TO RECOVER, THE CELL'S OWN TABLE READ:**
+// *"`assert.deepEqual(rows.map((r) => [r.label, r.runner]), [['linux-x64', 'ubuntu-24.04'], ['linux-arm64',
+// 'ubuntu-24.04-arm'], ['darwin-x64', 'macos-13'], ['darwin-arm64', 'macos-14'], ['win32-x64',
+// 'windows-2022']], …)`"*.
+//
+// **THE TABLE BELOW IS THE SAME FIVE TARGETS WITH TWO LABELS MOVED AND THREE UNTOUCHED**: `linux-x64` ·
+// `linux-arm64` · `win32-x64` DO NOT MOVE, and only `darwin-x64` and `darwin-arm64` change image —
+// `macos-15-intel` (Intel x64, macOS 15, a STANDARD hosted runner, no plan change) and `macos-15` (Apple
+// Silicon arm64, current, no deprecation badge).
+// **AND THE RULE THE TABLE CARRIES IS SUBSTANTIVE RATHER THAN A FORMALITY: `parameter-semantics.md §4.4`'s
+// `PAR-PUB-28` REFUSES a cross-compiled artefact AS *"a build this matrix did not perform"*, SO THE FIVE
+// LABELS REMAIN FIVE DISTINCT IMAGES** — `macos-15-intel` and `macos-15` are DIFFERENT IMAGES SERVING
+// DIFFERENT ARCHITECTURES, and the cells below PROVE that rather than assume it: the five-runner
+// assertion and its message stand in the workflow cell, and the census guard beside them reads the
+// file's own label set in both directions.
+// **AND THE ONE TRAP THIS TABLE SETS IS STATED WHERE IT IS SET: `macos-15` IS A SUBSTRING OF
+// `macos-15-intel`, so NO assertion over these labels may be an `includes` or a bare `test`** — every
+// comparison of a label below is an EXACT-TOKEN comparison, in the cell and in the census guard alike.
+// **THE FIVE TARGET TRIPLES ARE `distribution.md §3`'s OWN TABLE, CARRIED HERE SO EACH ROW'S `target` IS
+// READ AGAINST THE LABEL THAT NAMES IT RATHER THAN AGAINST ANOTHER ROW'S.**
+const FIVE_RUNNERS = [
+  { label: 'linux-x64', runner: 'ubuntu-24.04', target: 'x86_64-unknown-linux-gnu' },
+  { label: 'linux-arm64', runner: 'ubuntu-24.04-arm', target: 'aarch64-unknown-linux-gnu' },
+  { label: 'darwin-x64', runner: 'macos-15-intel', target: 'x86_64-apple-darwin' }, // ⟶ MOVED: was `macos-13`
+  { label: 'darwin-arm64', runner: 'macos-15', target: 'aarch64-apple-darwin' }, // ⟶ MOVED: was `macos-14`
+  { label: 'win32-x64', runner: 'windows-2022', target: 'x86_64-pc-windows-msvc' },
+];
 // `resolution.md §4.1`'s `NOT COVERED` row — a sample of the pairs it enumerates by name.
 const UNCOVERED = [
   { platform: 'linux', arch: 'ia32' },
@@ -2839,6 +2876,75 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     }
     return lines.slice(at + 1, end);
   };
+  // ===============================================================================================
+  // **⟶ THE RUNNER-LABEL GUARD, ADDED 2026-10-11 BY THE RUNNER-LABEL PASS (`role_test_writer`), BECAUSE
+  // THIS CLASS HAS NOW BITTEN TWICE.** The first run's **build matrix declared links it never could
+  // build**; this run's **runner label named an image its host had retired**, and the `darwin-x64` leg
+  // stood `8h 35m` in a queue that will never be served while every other leg went green. **BOTH ARE *A
+  // CONFIGURATION CLAIMING A PLATFORM THE WORLD NO LONGER OFFERS*, AND NEITHER WAS A RED CELL — one
+  // printed nothing and the other printed a queue. THE NEXT DRIFT IS A RED CELL.**
+  // **THE SUBJECT IS THE FILE'S OWN LABEL SET AT EVERY `runs-on:` SITE** — the matrix job's
+  // `runs-on: ${{ matrix.runner }}`, which resolves to the row's own `runner:`, AND every literal
+  // `runs-on:` beside it, the main package's job among them — **READ AGAINST THE CONTRACT'S FIVE IN BOTH
+  // DIRECTIONS: NO LABEL THE TABLE DOES NOT NAME (no more), AND NO MEMBER OF THE FIVE LEFT UNNAMED (no
+  // fewer).** **AND THE ORDER OF THE CLAUSES IS DELIBERATE: the row-set's DISTINCTNESS is read before the
+  // row table, so a leg served by ANOTHER leg's image is credited to *"NO RUNNER SERVES TWO"* while a
+  // single drifted label is credited to the row-for-row table — two defences told apart rather than one
+  // credited with the other's catch** (`release.md §1.2`; `parameter-semantics.md §4.4` · `PAR-PUB-28`:
+  // a cross-compiled artefact is *"a build this matrix did not perform"*).
+  const driveRunnerCensus = (text, { label }) => {
+    const declaredImages = FIVE_RUNNERS.map((r) => r.runner);
+    const declaredRows = FIVE_RUNNERS.map((r) => [r.label, r.target]);
+    assert.equal(new Set(declaredImages).size, 5,
+      `${label}: \`§1.2\`'s table is FIVE DISTINCT RUNNERS, so the guard below has a five-member yardstick `
+      + `to read the file against: ${JSON.stringify(declaredImages)}`);
+    // (·) THE MATRIX JOB'S OWN `runs-on:`, WHICH IS THE ROW'S OWN `runner:` — one site, and the matrix is why.
+    const matrixSites = (text.match(/^[ \t]*runs-on:[ \t]*\$\{\{[ \t]*matrix\.runner[ \t]*\}\}[ \t]*$/gm) ?? []).length;
+    assert.equal(matrixSites, 1,
+      `${label}: exactly ONE \`runs-on: \${{ matrix.runner }}\` is declared, so the five \`runner:\` values `
+      + `read below are what the five legs ask their host for (${matrixSites} found)`);
+    // (·) THE FILE'S OWN FIVE MATRIX ROWS — label, runner and target, read from its own bytes.
+    const rowsRead = [...text.matchAll(/-\s*label:\s*(\S+)\s*\n\s*name:\s*'([^']+)'\s*\n\s*runner:\s*(\S+)\s*\n\s*target:\s*(\S+)/g)]
+      .map((m) => ({ label: m[1], name: m[2], runner: m[3], target: m[4] }));
+    assert.equal(rowsRead.length, 5,
+      `${label}: the file's own five matrix rows were really read (${rowsRead.length}), so no clause below `
+      + 'is vacuous');
+    // (·) **NO RUNNER SERVES TWO** — read FIRST, so the distinctness rule has its own verdict.
+    const rowImages = rowsRead.map((r) => r.runner);
+    const doubled = [...new Set(rowImages.filter((v, i) => rowImages.indexOf(v) !== i))];
+    assert.equal(doubled.length, 0,
+      `${label}: \`§1.2\` / \`PAR-PUB-28\` — NO RUNNER SERVES TWO: the five rows are FIVE DISTINCT IMAGES, and `
+      + `this file serves a target with another target's image: ${JSON.stringify(doubled)}. \`macos-15\` and `
+      + '`macos-15-intel` are DIFFERENT images serving DIFFERENT architectures, and a cross-compiled artefact '
+      + 'would be "a build this matrix did not perform"');
+    // (·) **AND THE FIVE ROWS' RUNNERS ARE THE CONTRACT'S FIVE, ROW FOR ROW** — exact tokens, never substrings.
+    assert.deepEqual(rowImages, declaredImages,
+      `${label}: \`§1.2\`'s five-runner table, row for row — the file's own rows being ${JSON.stringify(rowImages)} `
+      + `against the contract's ${JSON.stringify(declaredImages)}`);
+    // (·) **AND EACH ROW'S `target` IS THE TARGET ITS OWN LABEL NAMES**, so the image that builds a leg and
+    // the artefact that leg publishes are one target and not two (`distribution.md §3`'s own table).
+    const rowsTargets = rowsRead.map((r) => [r.label, r.target]);
+    assert.deepEqual(rowsTargets, declaredRows,
+      `${label}: each row's \`target\` is the target its own label names — read as ${JSON.stringify(rowsTargets)} `
+      + `against ${JSON.stringify(declaredRows)}, so no row carries one target's runner beside another target's build`);
+    // (·) **NO MORE** — every literal `runs-on:` site in the file, the main package's job among them.
+    const literalSites = [...text.matchAll(/^[ \t]*runs-on:[ \t]*(\S+)[ \t]*$/gm)]
+      .map((m) => m[1]).filter((v) => !v.startsWith('${{'));
+    assert.ok(literalSites.length >= 1,
+      `${label}: the literal \`runs-on:\` sites beside the matrix exist and are read (${literalSites.length})`);
+    const strangers = [...new Set(literalSites)].filter((v) => !declaredImages.includes(v));
+    assert.equal(strangers.length, 0,
+      `${label}: \`§1.2\` / \`PAR-PUB-28\` — NO \`runs-on:\` SITE NAMES AN IMAGE THE CONTRACT'S TABLE DOES NOT: `
+      + `no more than the five. Strangers found: ${JSON.stringify(strangers)}`);
+    // (·) **NO FEWER** — the file's own label set, matrix rows and literal sites together, is the five.
+    const namedImages = [...new Set([...rowImages, ...literalSites])];
+    const missing = declaredImages.filter((v) => !namedImages.includes(v));
+    assert.equal(missing.length, 0,
+      `${label}: AND NO MEMBER OF THE FIVE IS LEFT UNNAMED BY THE FILE — no fewer: ${JSON.stringify(missing)}`);
+    assert.equal(namedImages.length, 5,
+      `${label}: and the label set is EXACTLY FIVE IMAGES, not four and not six: ${JSON.stringify([...namedImages].sort())}`);
+    return { matrixSites, literalSites, namedImages: [...namedImages].sort() };
+  };
   /** **ONE INSTRUMENT, DRIVING THE SHIPPED FILE AND EVERY CONTROL ALIKE**, so a control measures the
    *  assertion that actually guards the tree and never a copy of it: it throws at the first clause broken. */
   const driveWorkflow = (text, { label }) => {
@@ -2874,10 +2980,26 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     const jobs = blockOf(code, 'jobs').join('\n');
     const rows = [...jobs.matchAll(/-\s*label:\s*(\S+)\s*\n\s*name:\s*'([^']+)'\s*\n\s*runner:\s*(\S+)\s*\n\s*target:\s*(\S+)/g)]
       .map((m) => ({ label: m[1], name: m[2], runner: m[3], target: m[4] }));
-    assert.deepEqual(rows.map((r) => [r.label, r.runner]), [
-      ['linux-x64', 'ubuntu-24.04'], ['linux-arm64', 'ubuntu-24.04-arm'],
-      ['darwin-x64', 'macos-13'], ['darwin-arm64', 'macos-14'], ['win32-x64', 'windows-2022'],
-    ], `${label}: \`§1.2\`'s five-runner table, row for row — each runner builds ITS OWN target and no other, `
+    // **⟶ THE RUNNER-LABEL GUARD, DRIVEN AT THE HEAD OF THIS SECTION ON PURPOSE: a label the contract's
+    // table does not name is caught FIRST by the census and only then by the row-for-row table below, so
+    // the two defences are told apart rather than one being credited with the other's catch** (`§1.2`;
+    // its own instrument is measured in both directions at the controls below).
+    driveRunnerCensus(code, { label });
+    // **⟶ RE-CUT 2026-10-11 BY THE RUNNER-LABEL PASS (`role_test_writer`): TWO RUNNER STRINGS MOVED AND
+    // NOTHING ELSE DID.** **AS FILED, AND RE-EMITTED HERE VERBATIM SO `git diff` HAS NOTHING TO RECOVER,
+    // THIS COMPARISON'S SECOND OPERAND WAS THE INLINE LITERAL** *"`[['linux-x64', 'ubuntu-24.04'],
+    // ['linux-arm64', 'ubuntu-24.04-arm'], ['darwin-x64', 'macos-13'], ['darwin-arm64', 'macos-14'],
+    // ['win32-x64', 'windows-2022']]`"* — **the whole of what moves is the two macOS entries, and the
+    // table now stands ONCE, at `FIVE_RUNNERS` above, so the next one-line amendment is one line and not
+    // three copies.** **THE ASSERTION IS THE SAME ASSERTION: same operator, same row order, same message,
+    // byte for byte** — **only `darwin-x64`'s image (`macos-13` → `macos-15-intel`, the retired one moved
+    // off) and `darwin-arm64`'s (`macos-14` → `macos-15`, the deprecated one moved off) are different;
+    // `linux-x64`, `linux-arm64` and `win32-x64` DO NOT MOVE.** **AND THE TWO NEW IMAGES ARE STILL TWO
+    // IMAGES: `macos-15-intel` is Intel x64 on macOS 15 and `macos-15` is Apple Silicon, so the five-leg
+    // rule `PAR-PUB-28` states is untouched — the assertion above this one proves it, and so does the
+    // census.** (`release.md §1.2` and its closing rule; `PUB-DD-7`.)
+    assert.deepEqual(rows.map((r) => [r.label, r.runner]), FIVE_RUNNERS.map((r) => [r.label, r.runner]),
+      `${label}: \`§1.2\`'s five-runner table, row for row — each runner builds ITS OWN target and no other, `
     + 'and `PAR-PUB-28`\'s runner names are the declared ones and not a token that merely contains one');
     assert.equal(new Set(rows.map((r) => r.runner)).size, 5,
       `${label}: \`§1.2\`: each runner builds its own target AND NO RUNNER SERVES TWO`);
@@ -3047,6 +3169,15 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     // asserted**: the same instrument catches it, at the same home, and its verdict names the shape.
     ['a platform name left in the superseded form', "@auspicion/js-linux-x64-gnu",
       (t) => t.replace(`'@auspicion/provident-storeroom-js-linux-x64-gnu'`, `'@auspicion/js-linux-x64-gnu'`), '@auspicion/js-'],
+    // **⟶ ADDED 2026-10-11 BY THE RUNNER-LABEL PASS: A RUNNER LABEL LEFT ON AN IMAGE THE CONTRACT'S TABLE
+    // NO LONGER NAMES** — the drift `release.md §1.2`'s closing rule pre-authorizes the AMENDMENT for, and
+    // the drift the census guard this pass added REFUSES. **THE CONTROL PUTS `darwin-x64` BACK ONTO
+    // `macos-14`** (the image the previous pass left to the arm64 leg): ONE label changed, the five rows
+    // still FIVE DISTINCT IMAGES, so nothing in the distinctness clause can catch it — **it is the census's
+    // row-for-row table that must, and its verdict must NAME the label, which is how the guard is measured
+    // rather than asserted.**
+    ['a runner label the contract\'s table does not name', 'runner: macos-14',
+      (t) => t.replace(`runner: macos-15-intel`, `runner: macos-14`), 'macos-14'],
   ];
   const wfVerdicts = [];
   for (const [what, injected, mutate, named] of wfControls) {
@@ -3061,6 +3192,79 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
       `and its verdict names what it caught: ${String(verdict.message).slice(0, 200)}`);
     wfVerdicts.push(`${what.padEnd(44)} → ${String(verdict.message).split('\n')[0].slice(0, 130)}`);
   }
+  // ===============================================================================================
+  // **⟶ THE RUNNER-LABEL GUARD'S OWN TWO DIRECTIONS, MEASURED — ADDED 2026-10-11 BY THE RUNNER-LABEL PASS**
+  // (`release.md §1.2` AND ITS CLOSING RULE; `parameter-semantics.md §4.4` · `PAR-PUB-28`; `PUB-DD-7`).
+  // **THE PROPERTY IS THE ONE THE TWO FAILED RUNS WERE MISSING: *A CONFIGURATION CLAIMING A PLATFORM THE
+  // WORLD NO LONGER OFFERS* MUST BE A RED CELL AND NOT A QUEUE.** The first run's build matrix declared
+  // links it never could build and printed nothing; this run's `darwin-x64` leg asked for `macos-13`, which
+  // its host had RETIRED, and stood `8h 35m` waiting while every other leg went green
+  // (`actions/runner-images#13046`); `macos-14` carries a deprecation badge with brownouts live and
+  // retirement announced for `2026-11-02` (`actions/runner-images#13518`). **A control that cannot fail is
+  // worse than none** (`PUB-R-5`), so the guard is driven in BOTH directions here and in the controls list
+  // above, and the direction that must PASS is measured as well as the directions that must FAIL.
+  const stripComments = (text) => text.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
+  // ---- (A) THE SHIPPED FIVE PASS, AND IT IS THE CENSUS ITSELF THAT SAYS SO ----
+  const shippedCensus = driveRunnerCensus(stripComments(wfBytes), { label: 'the shipped workflow, at the runner census' });
+  assert.deepEqual(shippedCensus.namedImages, [...FIVE_RUNNERS.map((r) => r.runner)].sort(),
+    `(A) THE SHIPPED WORKFLOW'S RUNNER LABELS ARE EXACTLY THE CONTRACT'S FIVE — no more and no fewer — and the `
+    + `census really read them: ${JSON.stringify(shippedCensus.namedImages)}`);
+  assert.equal(shippedCensus.matrixSites, 1,
+    '(A) and the one matrix site is where the five row runners are asked for, so the five legs carry the table above');
+  assert.deepEqual(shippedCensus.literalSites, ['ubuntu-24.04'],
+    '(A) AND THE ONE LITERAL SITE BESIDE THE MATRIX IS THE MAIN PACKAGE\'S OWN JOB, WHICH NAMES `linux-x64`\'s '
+    + 'image and therefore a member of the five: a sixth image there, or a label outside the table, is the drift below');
+  // ---- (B) A SCRATCH COPY WITH ONE LABEL CHANGED FAILS ----
+  const driftedBytes = wfBytes.replace('runner: macos-15-intel', 'runner: macos-14');
+  assert.ok(driftedBytes !== wfBytes && driftedBytes.includes('runner: macos-14') && !driftedBytes.includes('runner: macos-15-intel'),
+    '(B) THE CONTROL REALLY CHANGES ONE LABEL AND ONLY ONE: `darwin-x64` asks for `macos-14`, which the '
+    + 'contract\'s table does not name, and the five rows remain five DISTINCT images — so the distinctness '
+    + 'clause cannot be the one that catches it');
+  assert.equal(wfBytes.includes('runner: macos-14'), false,
+    'and the shipped file carries no such byte, so the verdict below comes from the control and not from the tree');
+  const driftedVerdict = controlVerdict(() => driveRunnerCensus(stripComments(driftedBytes),
+    { label: 'the control of one changed runner label' }));
+  assert.ok(driftedVerdict !== null,
+    '(B) THE ONE-CHANGED-LABEL CONTROL MUST FAIL: a cell that cannot fail is worse than none (`PUB-R-5`)');
+  assert.ok(driftedVerdict.message.includes('macos-14'),
+    `(B) AND ITS VERDICT NAMES THE DRIFTED LABEL, so the red cell says WHICH image drifted: ${String(driftedVerdict.message).split('\n')[0].slice(0, 200)}`);
+  assert.ok(driftedVerdict.message.includes('five-runner table'),
+    '(B) and it names the clause it read the file against, rather than the census having caught it by accident');
+  const driftedInstrument = controlVerdict(() => driveWorkflow(driftedBytes, { label: 'the control of one changed runner label, at the shipped instrument' }));
+  assert.ok(driftedInstrument !== null && driftedInstrument.message.includes('macos-14'),
+    `(B) AND THE SHIPPED INSTRUMENT FAILS ON THE SAME COPY, naming the same label — the guard stands inside `
+    + `\`driveWorkflow\` and not beside it: ${String(driftedInstrument?.message).split('\n')[0].slice(0, 200)}`);
+  // ---- (C) AND THE OTHER SIDE OF "NO MORE": A SIXTH IMAGE AT A LITERAL SITE FAILS ----
+  const sixthBytes = wfBytes.replace('    runs-on: ubuntu-24.04\n', '    runs-on: ubuntu-24.04\n    runs-on: ubuntu-22.04\n');
+  assert.ok(sixthBytes !== wfBytes && sixthBytes.includes('runs-on: ubuntu-22.04'),
+    '(C) THE SIXTH-IMAGE CONTROL really declares a second `runs-on:` at the main package\'s own job');
+  assert.equal(wfBytes.includes('ubuntu-22.04'), false,
+    '(C) and the shipped file names no such image anywhere, so a sixth image is a byte this tree does not carry');
+  const sixthVerdict = controlVerdict(() => driveRunnerCensus(stripComments(sixthBytes),
+    { label: 'the control of a sixth runner label' }));
+  assert.ok(sixthVerdict !== null && sixthVerdict.message.includes('ubuntu-22.04'),
+    `(C) AND A LABEL OUTSIDE THE TABLE IS REFUSED AT A LITERAL SITE TOO — no more than the five: ${String(sixthVerdict?.message).split('\n')[0].slice(0, 200)}`);
+  // ---- (D) AND "NO RUNNER SERVES TWO", DRIVEN NEGATIVE: ONE LEG ASKING FOR ANOTHER LEG'S IMAGE ----
+  const doubledBytes = wfBytes.replace('runner: macos-15\n', 'runner: macos-15-intel\n');
+  assert.ok(doubledBytes !== wfBytes && doubledBytes.includes('runner: macos-15-intel')
+    && !doubledBytes.includes('runner: macos-15\n'),
+    '(D) THE DOUBLED-IMAGE CONTROL really puts `darwin-arm64` on the Intel image, leaving FOUR distinct '
+    + 'images where the contract declares five');
+  const doubledVerdict = controlVerdict(() => driveRunnerCensus(stripComments(doubledBytes),
+    { label: 'the control of one leg served by another leg\'s image' }));
+  assert.ok(doubledVerdict !== null && doubledVerdict.message.includes('NO RUNNER SERVES TWO'),
+    `(D) AND IT IS THE DISTINCTNESS CLAUSE THAT CATCHES THIS ONE — \`§1.2\`'s own rule, in \`PAR-PUB-28\`'s `
+    + `terms: a cross-compiled artefact is "a build this matrix did not perform": ${String(doubledVerdict?.message).split('\n')[0].slice(0, 200)}`);
+  assert.ok(doubledVerdict.message.includes('macos-15-intel'),
+    '(D) and the verdict names the image that was doubled, so the red cell names the collision and not merely its kind');
+  // **THE MEASURED RESULTS, PRINTED SO THE RECORD CAN CITE THEM RATHER THAN THIS CELL'S INTENTION.**
+  console.log(`\n[P-PUB-8/S-TAG] THE RUNNER-LABEL GUARD, BOTH DIRECTIONS MEASURED (\`release.md §1.2\` and its `
+    + `closing rule; \`PAR-PUB-28\`):\n`
+    + `  the shipped five  → PASS  ${JSON.stringify(shippedCensus.namedImages)}\n`
+    + `                      matrix \`runs-on:\` sites ${shippedCensus.matrixSites} · literal sites ${JSON.stringify(shippedCensus.literalSites)}\n`
+    + `  (B) one label changed  (\`macos-15-intel\` → \`macos-14\`) → ${String(driftedVerdict.message).split('\n')[0].slice(0, 150)}\n`
+    + `  (C) a sixth image injected (\`ubuntu-22.04\`)         → ${String(sixthVerdict.message).split('\n')[0].slice(0, 150)}\n`
+    + `  (D) one leg on another leg's image (\`darwin-arm64\` → \`macos-15-intel\`) → ${String(doubledVerdict.message).split('\n')[0].slice(0, 150)}`);
   // the fifth control: A PUBLISH SCRIPT IN THE PACKAGE, which no control of this set had ever driven.
   const manifestBytes = readFileSync(join(PKG_DIR, 'package.json'), 'utf8');
   const publishScript = manifestBytes.replace(`  "optionalDependencies": {`, `  "scripts": { "publish": "npm publish --access public" },\n  "optionalDependencies": {`);
