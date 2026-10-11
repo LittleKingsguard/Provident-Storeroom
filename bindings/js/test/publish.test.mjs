@@ -126,6 +126,60 @@ const ARM_STATUS = 'FilePathUnreachable';
 const GEN_TAIL = 'is not reachable at construction, the path must exist or the application must be able to write it';
 const gen = (subject) => `'${subject}' ${GEN_TAIL}`;
 
+// ---------------------------------------------------------------------------------------------
+// **⟶ WIDENED 2026-10-11 BY THE PROHIBITION-GAP PASS (`role_test_writer`, BOUNDED ONE-INSTRUMENT PASS): THE
+// REFUSAL LIST WAS WRITTEN AGAINST THE VERB THE PACKAGE USED TO REACH FOR, THE RELEASE MOVED TO A STAGED
+// VERB, AND THE PROHIBITION DID NOT FOLLOW IT.** **AS FILED, AT ITS THREE SITES (`2310`, `2744`, `2792`), THE
+// LIST READ** *"`/npm publish|pnpm publish|yarn publish|npm pack|git tag|npm install -g/`"* — **A HAND-LIST OF
+// SPELLINGS, AND MEASURED NON-MATCHING AGAINST `npm stage publish`, BECAUSE `stage ` SITS BETWEEN `npm` AND
+// `publish`.** **SO A PACKAGE `scripts` ENTRY CARRYING `"npm stage publish --access public"` PASSED ALL
+// THREE REFUSAL DRIVES** — **the same reach for a registry that `release.md §1.5` item `1` moved the
+// WORKFLOW's own two sites away from, and therefore exactly the act `§4.1` item `1` / `§3.3` forbid a PACKAGE
+// to author: *"a package-authored verb makes a script the release's trigger, and the release's trigger is the
+// TAG"*** (`§2.1` item `1`; `§4.2` act `2`; the gap was REPORTED and left open by the staged-verb pass at
+// the red set's `§16.6` finding `6`).
+//
+// **THE SHAPE BELOW IS A VERB FAMILY AND NOT A HAND-LIST, SO THE NEXT VERB CHANGE CANNOT ESCAPE IT BY
+// INSERTING A WORD BETWEEN THE CLIENT AND THE VERB.** It refuses, in a package `scripts` body:
+//   (1) `(npm|pnpm|yarn)` + an OPTIONAL `stage` + `publish|approve|pack` — the DIRECT form (`npm publish`),
+//       the STAGED form (`npm stage publish`) and the PROMOTION form (`npm stage approve`, the verb
+//       `PUB-DD-31` names), each of which puts THIS package's own content in front of a registry. A bare
+//       client name is enough for `yarn npm publish` and `npx npm pack`, whose inner `npm …` is matched at
+//       its own position, so the client's own second-position spelling is covered too;
+//   (2) `(npm|pnpm|yarn)` + `dist-tag|tag` — the REGISTRY's own tagging surface, which `§4.1` item `1`'s
+//       *"TAGS"* reaches beside the git tag: `npm dist-tag add …` moves the tag a staged version publishes
+//       under;
+//   (3) `git tag`, in any whitespace — the TAG IS THE RELEASE'S TRIGGER (`§2.1` item `1`), so a script that
+//       mints one takes the trigger off the architect (`§4.2` act `2`);
+//   (4) a GLOBAL INSTALL in either verb order the three clients accept — `npm i -g` · `pnpm add --global` ·
+//       `yarn global add` — the as-filed entry widened to the two orders it did not spell.
+//
+// **WHAT IT DOES NOT MATCH, EACH WITH ITS REASON; THE FULL TABLE IS PRINTED BY THE CELL THAT DRIVES IT
+// (`P-PUB-8` · `S-TAG`), WHERE EVERY ROW IS AN ASSERTION AND NOT A CLAIM:** `npm run publish` (a
+// DELEGATION — the script that reaches a registry is refused at its OWN body and the `publish` SCRIPT NAME is
+// refused by the clause beside this one, so delegation is covered transitively and a `npm run <x>` chain
+// cannot be a route around this list) · `npm ci` and a bare `npm install` (no global flag, no registry write
+// of this package's content) · `npm view` (a READ of the registry, which puts nothing of ours up) · the word
+// `publish` in prose, a path or a filename (`bindings/js/test/publish.test.mjs` itself) · a `run:` step of any
+// workflow — **BECAUSE THE INSTRUMENT'S SUBJECT IS THE PACKAGE'S OWN `scripts` OBJECT AND NEVER A WORKFLOW'S
+// STEPS, ITS README OR ITS COMMENTARY** (`§4.1` item `1` forbids a PASS EXECUTING a publish, not the release
+// workflow DECLARING one; the boundary is measured at the cell, in both directions).
+// **AND TWO THINGS THE AS-FILED LIST MATCHED THAT THIS ONE DOES NOT, NAMED SO THE DIFFERENCE IS NOT
+// DISCOVERED LATER: the NOUN `npm package`, and a client name immediately preceded by a word character.** Both
+// are FALSE POSITIVES of the as-filed literal — neither is a verb any package used to reach a registry — and
+// **NO MEMBER OF THE AS-FILED LIST IS LOST: ALL SIX ARE REFUSED HERE TOO, MEASURED MEMBER BY MEMBER AT THE
+// CELL, WHICH KEEPS THE AS-FILED LIST VERBATIM AS THE YARDSTICK.** **`git tag --list`, the READ-ONLY listing
+// the tests themselves perform, IS STILL MATCHED — it was matched by the as-filed list as well (`git tag` is
+// a substring of it), this pass NARROWS NOTHING, and no cell applies this pattern to anything but a package
+// script body, where a tag listing has no business being.**
+const REFUSED_REGISTRY_VERB = new RegExp([
+  '\\b(?:npm|pnpm|yarn)\\s+(?:stage\\s+)?(?:publish|approve|pack)\\b',
+  '\\b(?:npm|pnpm|yarn)\\s+(?:dist-tag|tag)\\b',
+  '\\bgit\\s+tag\\b',
+  '\\b(?:npm|pnpm|yarn)\\s+(?:global\\s+)?(?:install|add|i)\\s+(?:-g|--global)\\b',
+  '\\b(?:npm|pnpm|yarn)\\s+global\\s+(?:install|add|i)\\b',
+].join('|'));
+
 const require_ = createRequire(import.meta.url);
 
 // ---------------------------------------------------------------------------------------------
@@ -2307,8 +2361,19 @@ cell('P-PUB-8', 'S-TAG no publish verb is declared by any tracked byte of the pa
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
   const scripts = manifest.scripts ?? {};
   for (const [name, body] of Object.entries(scripts)) {
-    assert.ok(!/npm publish|pnpm publish|yarn publish|npm pack|git tag|npm install -g/.test(String(body)),
-      `the script \`${name}\` carries no publish, pack, tag or install verb`);
+    // **⟶ WIDENED 2026-10-11 BY THE PROHIBITION-GAP PASS (`role_test_writer`): THE ASSERTION THAT STOOD HERE
+    // IS RE-EMITTED VERBATIM, SO `git diff` HAS NOTHING TO RECOVER, AND THEN WIDENED.** **AS FILED IT READ**
+    // *"`assert.ok(!/npm publish|pnpm publish|yarn publish|npm pack|git tag|npm install -g/.test(String(body)),`
+    // **`` `the script \`${name}\` carries no publish, pack, tag or install verb` `` `)`"* — **AND IT DID NOT
+    // MATCH `npm stage publish`, because `stage ` sits between `npm` and `publish`, so a package `scripts`
+    // entry carrying the STAGED verb passed this drive.** **THE SHAPE IS NOW THE MODULE-LEVEL
+    // `REFUSED_REGISTRY_VERB`, ONE SUBJECT WITH ONE HOME, SO NO OCCURRENCE OF THIS LIST CAN DRIFT FROM
+    // ANOTHER AND THE NEXT VERB CHANGE IS WIDENED ONCE AND NOT THREE TIMES.** **THE MESSAGE NAMES THE STAGED
+    // FORM BESIDE THE DIRECT ONE AND LOSES NO BYTE OF THE AS-FILED SENTENCE** (`release.md §4.1` item `1`;
+    // `§1.5` item `1`; `§2.1` item `1`).
+    assert.ok(!REFUSED_REGISTRY_VERB.test(String(body)),
+      `the script \`${name}\` carries no publish, pack, tag or install verb — DIRECT or STAGED, and any `
+      + 'spelling that reaches a registry with this package\'s own content');
   }
   assert.equal(scripts.publish, undefined, 'no `publish` script exists');
   // **THE `publishConfig` FIELD'S OWN CLAIM, STATED NO WIDER THAN THE FIELD CARRIES** (`PUB-R-9`): the field
@@ -2736,13 +2801,23 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
   /** **THE PACKAGE'S OWN FORBIDDEN VERBS** (`§4.1` item 1; `§3.3`): a `publish` script, or any script whose
    *  body runs an `npm`/`pnpm`/`yarn` verb or `git tag`, would make the package — rather than the
    *  ARCHITECT'S tag — the release's trigger. */
+  // **⟶ AND WIDENED 2026-10-11 BY THE PROHIBITION-GAP PASS (`role_test_writer`): THE VERB FAMILY THIS
+  // DOCSTRING NAMES IS NOW THE PATTERN'S OWN SUBJECT.** **THE ASSERTION THAT STOOD IN THE WALK BELOW IS
+  // RE-EMITTED VERBATIM IN ITS OWN COMMENT THERE AND THEN WIDENED; the docstring's own bytes stand unmoved
+  // and are READ THROUGH the widening, which is why the walk now refuses the staged form of the same family
+  // the docstring has always named** (`release.md §4.1` item `1`).
   const drivePackagePublishVerbs = (bytes, { label }) => {
     const manifest = JSON.parse(bytes);
     const scripts = manifest.scripts ?? {};
     assert.equal(scripts.publish, undefined, `${label}: no \`publish\` script exists`);
     for (const [name, body] of Object.entries(scripts)) {
-      assert.ok(!/npm publish|pnpm publish|yarn publish|npm pack|git tag|npm install -g/.test(String(body)),
-        `${label}: the script \`${name}\` carries no publish, pack, tag or install verb`);
+      // **AS FILED THIS LINE READ** *"`assert.ok(!/npm publish|pnpm publish|yarn publish|npm pack|git tag|npm
+      // install -g/.test(String(body)),` **`` `the script \`${name}\` carries no publish, pack, tag or
+      // install verb` `` `)`"* — **THE SECOND OF THE TWO HOMES OF THE SAME LIST, AND THE ONE EVERY CONTROL
+      // BELOW IS MEASURED AGAINST.** **IT IS THE SUBJECT MOVED ONCE MORE AND NOT A SECOND RULE.**
+      assert.ok(!REFUSED_REGISTRY_VERB.test(String(body)),
+        `${label}: the script \`${name}\` carries no publish, pack, tag or install verb — DIRECT or `
+        + 'STAGED, and any spelling that reaches a registry with this package\'s own content');
     }
     return Object.keys(scripts).length;
   };
@@ -2796,11 +2871,155 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     'THE FIFTH CONTROL MUST FAIL: a publish script in the package is caught, so `§4.1` item 1 is driven here and not merely cited');
   assert.ok(scriptVerdict.message.includes('publish'),
     `and its verdict names the clause it broke: ${String(scriptVerdict.message).slice(0, 200)}`);
+  // **⟶ AND THE THIRD SITE OF THE SAME LIST, WIDENED 2026-10-11 BY THE PROHIBITION-GAP PASS
+  // (`role_test_writer`): THE ASSERTION ON THE SHIPPED MANIFEST'S OWN BYTES.** **THE AS-FILED LITERAL STANDS
+  // ABOVE, BYTE-FOR-BYTE; WHAT IS ADDED BESIDE IT IS THE WIDENED SHAPE, BECAUSE THE AS-FILED ONE IS BLIND TO
+  // THE STAGED FORM.** **AS FILED IT READ** *"`assert.equal(manifestBytes.includes('npm publish'), false, 'and the
+  // shipped manifest carries no publish verb — the release\'s trigger is the ARCHITECT\'S tag and never a
+  // script')`"* — **and `includes('npm publish')` is `false` of a manifest whose `scripts` carried `npm stage
+  // publish` exactly as it is of one carrying nothing at all: the same drift, at the third home, and the one
+  // the previous pass's census classified `KEEP`** (red set `§16.4` row `9`). **THE WIDENED SHAPE IS A STRICT
+  // SUPERSET OF THE AS-FILED LITERAL** — every string `'npm publish'` occurs in is matched by it, and the six
+  // as-filed members are driven member by member below — **so no manifest byte that was refused before is
+  // admitted now** (`release.md §4.1` item `1`).
+  assert.equal(REFUSED_REGISTRY_VERB.test(manifestBytes), false,
+    'and the shipped manifest carries no publish verb — DIRECT or STAGED, and no spelling that reaches a registry '
+    + 'with this package\'s own content: the release\'s trigger is the ARCHITECT\'S tag and never a script');
+  // ===============================================================================================
+  // **THE PROHIBITION-GAP PASS'S OWN DRIVES — THE WIDENED SHAPE, BOTH DIRECTIONS, WITH CONTROLS THAT CAN FAIL**
+  // (`§4.1` item `1`; `§3.3`; `§1.5` item `1`; `§2.1` item `1`; `PUB-R-5`: a control that cannot fail is worse
+  // than none). **FOUR CONTROLS AND ONE CENSUS: (a) the STAGED verb in a package `scripts` entry FAILS — the
+  // hole, closed; (b) the DIRECT verb in the same position FAILS — the original case, still held; (c) a `test`
+  // verb, a `build` verb and an `npm run` delegation PASS, and so does the package's own absent-`scripts`
+  // state, so the widened shape is not vacuous; (d) the WORKFLOW'S OWN TEXT is refused by NEITHER drive, and
+  // HOW that boundary is kept is measured rather than asserted.** **THE CENSUS BELOW IS A TABLE OF ASSERTIONS
+  // AND NOT A COMMENT: every row of what the shape matches and what it does not is driven here.**
+  const AS_FILED_REFUSAL_LIST = /npm publish|pnpm publish|yarn publish|npm pack|git tag|npm install -g/;
+  const AS_FILED_MEMBERS = ['npm publish', 'pnpm publish', 'yarn publish', 'npm pack', 'git tag', 'npm install -g'];
+  for (const asFiled of AS_FILED_MEMBERS) {
+    assert.equal(AS_FILED_REFUSAL_LIST.test(asFiled), true,
+      `the as-filed list refused \`${asFiled}\`, so it is a member the widened shape must hold`);
+    assert.equal(REFUSED_REGISTRY_VERB.test(asFiled), true,
+      `AND THE WIDENED SHAPE REFUSES \`${asFiled}\` TOO — the widening adds coverage and drops no member of `
+      + 'the list it replaces, measured member by member rather than claimed');
+  }
+  /** one scratch copy of the shipped manifest carrying ONE `scripts` entry, so every control below is
+   *  measured against the SAME instrument that guards the tree and never against a copy of it. */
+  const withScript = (body, name = 'release') => manifestBytes.replace(`  "optionalDependencies": {`,
+    `  "scripts": { "${name}": "${body}" },\n  "optionalDependencies": {`);
+  // ---- (a) THE HOLE, CLOSED: A PACKAGE SCRIPT THAT REACHES A REGISTRY WITH ITS OWN CONTENT, STAGED ----
+  assert.equal(AS_FILED_REFUSAL_LIST.test('npm stage publish --access public'), false,
+    '(a) THE HOLE, MEASURED AT ITS OWN BYTES RATHER THAN REMEMBERED: `stage ` sits between `npm` and '
+    + '`publish`, so the as-filed list did not match the staged verb — this is the input that passed all three drives');
+  assert.equal(REFUSED_REGISTRY_VERB.test('npm stage publish --access public'), true,
+    '(a) and the widened shape refuses it, verb-order-robustly');
+  const stagedScriptBytes = withScript('npm stage publish --access public');
+  assert.ok(stagedScriptBytes !== manifestBytes
+    && stagedScriptBytes.includes('"release": "npm stage publish --access public"'),
+    '(a) THE CONTROL REALLY DECLARES THE STAGED VERB IN THE PACKAGE\'S OWN `scripts`, under a name that is NOT '
+    + '`publish` — so it is the VERB LIST that must catch it and not the `publish`-script clause beside it');
+  assert.equal(manifestBytes.includes('npm stage publish'), false,
+    '(a) and the shipped manifest carries no staged verb either, so the verdict below comes from the control');
+  const stagedVerdict = controlVerdict(() => drivePackagePublishVerbs(stagedScriptBytes, { label: 'the control staged publish script' }));
+  assert.ok(stagedVerdict !== null,
+    '(a) THE STAGED-VERB CONTROL MUST FAIL: a script that reaches a registry with this package\'s own content, '
+    + 'STAGED, is refused — the hole this pass closes');
+  assert.ok(stagedVerdict.message.includes('`release`') && stagedVerdict.message.includes('no publish, pack, tag or install verb'),
+    `(a) AND ITS VERDICT IS THE VERB LIST'S and not the \`publish\`-script clause's, so the closure is the `
+    + `PATTERN'S and not a neighbour's: ${String(stagedVerdict.message).split('\n')[0].slice(0, 160)}`);
+  const stagedNamedVerdict = controlVerdict(() => drivePackagePublishVerbs(
+    withScript('npm stage publish --access public', 'publish'),
+    { label: 'the control staged publish script, named `publish`' }));
+  assert.ok(stagedNamedVerdict !== null && stagedNamedVerdict.message.includes('no `publish` script exists'),
+    `(a′) AND THE SAME STAGED BODY UNDER THE NAME \`publish\` IS REFUSED BY THE CLAUSE BESIDE IT — measured, so `
+    + `the two defences are told apart and neither is credited with the other's catch: ${String(stagedNamedVerdict?.message).split('\n')[0].slice(0, 160)}`);
+  // ---- (b) THE ORIGINAL CASE, STILL HELD AT THE SAME HOME ----
+  assert.equal(AS_FILED_REFUSAL_LIST.test('npm publish --access public'), true,
+    '(b) the direct verb was never in doubt: the as-filed list refused it');
+  const directVerdict = controlVerdict(() => drivePackagePublishVerbs(withScript('npm publish --access public'),
+    { label: 'the control direct publish script' }));
+  assert.ok(directVerdict !== null && directVerdict.message.includes('`release`'),
+    `(b) AND THE DIRECT VERB IS STILL REFUSED AT THE SAME HOME after the widening, under a name that is not `
+    + `\`publish\`: ${String(directVerdict?.message).split('\n')[0].slice(0, 160)}`);
+  // ---- (c) THE NON-VACUITY CONTROL: LEGITIMATE SCRIPTS PASS, AND SO DOES THE TREE'S OWN STATE ----
+  const legitBytes = manifestBytes.replace(`  "optionalDependencies": {`,
+    `  "scripts": { "test": "node --test test/*.test.mjs", "build": "cargo build --release --offline", "prepare": "npm run build" },\n  "optionalDependencies": {`);
+  const legitVerdict = controlVerdict(() => drivePackagePublishVerbs(legitBytes, { label: 'the control of three legitimate scripts' }));
+  assert.equal(legitVerdict, null,
+    '(c) THE LEGITIMATE CONTROL MUST PASS — a `test` verb, a `build` verb and an `npm run` DELEGATION reach no '
+    + 'registry with this package\'s own content, so the widened shape is not vacuous: ' + String(legitVerdict?.message).slice(0, 160));
+  assert.equal(drivePackagePublishVerbs(legitBytes, { label: 'the legitimate control, counted' }), 3,
+    '(c) and the three scripts were really READ — the count is the instrument\'s own return value, so a pattern '
+    + 'that refused nothing by iterating nothing would be caught here');
+  assert.equal(drivePackagePublishVerbs(manifestBytes, { label: 'the shipped package manifest, counted' }), 0,
+    '(c) AND THE PACKAGE\'S OWN ABSENT-`scripts` STATE PASSES: the shipped manifest declares no script at all, '
+    + 'measured as the instrument\'s own count `0` — so the refusal list\'s non-vacuity rests on the controls above and not on the tree');
+  // ---- (d) THE BOUNDARY: THE WORKFLOW'S OWN TEXT, WHICH LEGITIMATELY CARRIES THE STAGED VERB ----
+  const wfCode = wfBytes.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
+  const wfVerbSites = [...wfCode.matchAll(new RegExp(REFUSED_REGISTRY_VERB.source, 'g'))].map((m) => m[0]);
+  assert.deepEqual(wfVerbSites, ['npm stage publish', 'npm stage publish'],
+    '(d) MEASURED IN BOTH DIRECTIONS, SO THE BOUNDARY IS NOT MISREAD: pointed at the WORKFLOW\'S OWN BYTES the '
+    + 'widened shape DOES match its two staged sites — THE BOUNDARY IS THE INSTRUMENT\'S SUBJECT AND NOT THE '
+    + 'PATTERN BEING NARROW, and no reader may take this cell as a claim that the pattern cannot see a workflow');
+  const wfAsManifest = controlVerdict(() => drivePackagePublishVerbs(wfBytes, { label: 'the workflow, misread as a package manifest' }));
+  assert.ok(wfAsManifest instanceof SyntaxError,
+    '(d) HOW THE BOUNDARY IS KEPT: the refusal instrument\'s FIRST operation parses a JSON manifest, so a '
+    + 'workflow\'s YAML is refused by the SUBJECT READER before any `scripts` body is read, and the workflow\'s '
+    + 'legitimate staged verb is never reached by the verb list');
+  assert.equal(driveWorkflow(wfBytes, { label: 'the shipped workflow, at the boundary' }), 5,
+    '(d) AND THE WORKFLOW\'S OWN INSTRUMENT PASSES IT, all five matrix rows read: the two staged sites are '
+    + '`release.md §1.5` item 1\'s own declaration, and what `§4.1` item 1 forbids is a PASS EXECUTING a publish '
+    + 'and not the release workflow DECLARING one — so the workflow\'s own text is refused by NEITHER drive of this cell');
+  // ---- THE CENSUS: WHAT THE WIDENED SHAPE MATCHES AND WHAT IT DOES NOT, EVERY ROW AN ASSERTION ----
+  const census = [
+    ['the STAGED verb in a package script', 'npm stage publish --access public', true],
+    ['the STAGED verb under another client', 'pnpm stage publish --access public', true],
+    ['the STAGED verb in the client\'s second position', 'yarn npm publish --access public', true],
+    ['the DIRECT verb, the case the list was written against', 'npm publish --access public', true],
+    ['the PROMOTION verb of a staged version (`PUB-DD-31`)', 'npm stage approve provident-storeroom@0.1.1', true],
+    ['the packer', 'npm pack --dry-run', true],
+    ['the registry\'s own tagging surface', 'npm dist-tag add provident-storeroom@0.1.1 latest', true],
+    ['the release\'s trigger, minted by a script', 'git tag v0.1.1', true],
+    ['a global install, the short flag', 'npm i -g provident-storeroom', true],
+    ['a global install, the long flag', 'pnpm add --global provident-storeroom', true],
+    ['a global install, the client\'s own order', 'yarn global add provident-storeroom', true],
+    ['the READ-ONLY tag listing the tests themselves perform — refused here too, as the as-filed list refused it',
+      'git tag --list', true],
+    ['a `test` script', 'node --test test/*.test.mjs', false],
+    ['a `build` script', 'cargo build --release --offline', false],
+    ['a delegation to a script of this package', 'npm run build', false],
+    ['the release\'s own red-set leg, whose FILENAME carries the word', 'node --test bindings/js/test/publish.test.mjs', false],
+    ['a clean install with no global flag', 'npm ci', false],
+    ['a bare dependency install', 'npm install', false],
+    ['a READ of the registry, which puts nothing of ours up', 'npm view provident-storeroom', false],
+    ['the word `publish` in a sentence', 'the published Node ESM binding', false],
+  ];
+  const censusRows = [];
+  for (const [what, subject, expected] of census) {
+    assert.equal(REFUSED_REGISTRY_VERB.test(subject), expected,
+      `\`${what}\`: the widened shape ${expected ? 'REFUSES' : 'DOES NOT MATCH'} \`${subject}\``);
+    censusRows.push(`${(expected ? 'REFUSED ' : 'no match')} ${what.padEnd(96)} ${subject}`);
+  }
   // **THE CONTROLS' MEASURED RESULTS, PRINTED SO THE RECORD CAN CITE THEM RATHER THAN THIS CELL'S INTENTION.**
   console.log(`\n[P-PUB-8/S-TAG] the workflow's declared shapes and the forbidden ones, MEASURED AGAINST THE `
     + `SHIPPED INSTRUMENT (\`release.md §1.1\`–\`§1.4\`; the file is EXECUTED BY NOTHING here — \`§4.1\` item 1):\n  `
     + wfVerdicts.join('\n  ')
-    + `\n  ${'a publish script in the package'.padEnd(44)} → ${String(scriptVerdict.message).split('\n')[0].slice(0, 130)}`);
+    + `\n  ${'a publish script in the package'.padEnd(44)} → ${String(scriptVerdict.message).split('\n')[0].slice(0, 130)}`
+    + `\n\n[P-PUB-8/S-TAG] THE REFUSAL LIST, WIDENED AND DRIVEN BOTH DIRECTIONS (\`release.md §4.1\` item 1; `
+    + `\`§1.5\` item 1), WITH THE AS-FILED LIST PRINTED BESIDE ITS REPLACEMENT:\n`
+    + `  as filed : ${AS_FILED_REFUSAL_LIST.source}\n`
+    + `  widened  : ${REFUSED_REGISTRY_VERB.source}\n`
+    + `  \`npm stage publish --access public\` → as filed ${AS_FILED_REFUSAL_LIST.test('npm stage publish --access public') ? 'REFUSED' : 'NOT REFUSED (THE HOLE, MEASURED)'} · widened ${REFUSED_REGISTRY_VERB.test('npm stage publish --access public') ? 'REFUSED (CLOSED)' : 'NOT REFUSED'}\n`
+    + `  the six as-filed members, each still refused: ${AS_FILED_MEMBERS.map((s) => `${s} → ${REFUSED_REGISTRY_VERB.test(s) ? 'REFUSED' : 'MISSED'}`).join(' · ')}\n`
+    + `  ---- what it matches and what it does not, EVERY ROW AN ASSERTION ----\n  `
+    + censusRows.join('\n  ')
+    + `\n  ---- the four controls, measured ----\n`
+    + `  (a) a package script \`"npm stage publish --access public"\` → ${String(stagedVerdict.message).split('\n')[0].slice(0, 130)}\n`
+    + `  (a′) the same body under the name \`publish\` → ${String(stagedNamedVerdict.message).split('\n')[0].slice(0, 130)}\n`
+    + `  (b) a package script \`"npm publish --access public"\` → ${String(directVerdict.message).split('\n')[0].slice(0, 130)}\n`
+    + `  (c) the legitimate control (\`test\` · \`build\` · \`npm run build\`) → ${legitVerdict === null ? 'PASSES (no verdict)' : String(legitVerdict.message).split('\n')[0].slice(0, 130)}\n`
+    + `  (c) the shipped manifest's absent-\`scripts\` state → PASSES (0 scripts read)\n`
+    + `  (d) the workflow's own bytes, at the widened shape → ${wfVerbSites.length} matches (${wfVerbSites.join(' · ')}) — legitimately, AND THE BOUNDARY IS THE SUBJECT: the instrument parses a JSON manifest FIRST, so the workflow's text is refused by that reader (${String(wfAsManifest.message).split('\n')[0].slice(0, 90)}) while \`driveWorkflow\` PASSES it with all five matrix rows read`);
 });
 
 cell('P-PUB-8', 'S-TAG the six artefacts\' order and the one version they share', async () => {
