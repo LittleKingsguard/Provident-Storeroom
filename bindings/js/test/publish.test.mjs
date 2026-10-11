@@ -3428,6 +3428,428 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     + `  (d) the workflow's own bytes, at the widened shape → ${wfVerbSites.length} matches (${wfVerbSites.join(' · ')}) — legitimately, AND THE BOUNDARY IS THE SUBJECT: the instrument parses a JSON manifest FIRST, so the workflow's text is refused by that reader (${String(wfAsManifest.message).split('\n')[0].slice(0, 90)}) while \`driveWorkflow\` PASSES it with all five matrix rows read`);
 });
 
+// ===============================================================================================
+// **⟶ ADDED 2026-10-11 BY THE GRANT-GUARD PASS (`role_test_writer`) — THE EIGHTH INSTANCE OF THIS
+// UNIT'S SIGNATURE CLASS: *AN ACTION WHOSE GRANT THE CONFIGURATION NEVER MAKES*.**
+//
+// **THE FINDING, MEASURED BY THE PASS THAT FIXED THE DEFECT:** the tagged run died at its final step
+// with `Error: Failed to persist attestation: Resource not accessible by integration`, because the
+// `main` job's token carried `contents: read` and `id-token: write` and NOT `attestations: write`,
+// which is the grant `POST /repos/{owner}/{repo}/attestations` is reached under (`release.md §1.4`
+// step `6`; `§1.3` item `2`). **AND THE TWO PERMISSION CELLS THAT STOOD ABOVE ASSERTED ONLY
+// `contents` AND `id-token`, SO THE EXACT OMISSION THAT KILLED THE RUN WAS UNFALSIFIABLE BY THE SUITE
+// THAT EXISTS TO PIN THIS WORKFLOW.** **THE CELL BELOW IS THAT FALSIFIER, AND IT ASSERTS THE
+// PROPERTY RATHER THAN THE SPELLING.**
+//
+// **THE PROPERTY IS NOT A KEY NAME, IT IS THE EFFECT:** *every action and every run site in this file
+// that its own documentation says needs a permission HAS THAT PERMISSION AT THE SCOPE THAT GOVERNS
+// IT.*
+//
+// **THE EFFECTIVE-PERMISSION RESOLUTION RULE, STATED ONCE AND OBEYED BY EVERY CLAUSE BELOW:**
+//   (1) the WORKFLOW-LEVEL `permissions:` block is the file's only top-level one;
+//   (2) **A JOB THAT DECLARES ITS OWN `permissions:` BLOCK REPLACES THAT BLOCK FOR THAT JOB RATHER
+//       THAN MERGING WITH IT** — the host's own semantics, printed in the file's own commentary at the
+//       `main` job — so a job's own block, where present, IS the effective set, WHOLE;
+//   (3) otherwise the workflow-level block IS the effective set;
+//   (4) every `uses:` and `run:` site is read against the effective set of THE JOB IT RUNS IN.
+// **THE THREE KEYS THE `main` JOB CARRIES ARE THEREFORE ALL LOAD-BEARING:** `attestations: write` is
+// the grant the run was missing, and `contents: read` · `id-token: write` are REDECLARATIONS THE
+// REPLACEMENT SEMANTICS FORCES — the same semantics that make dropping either of them a failure, so
+// this cell refuses a job block reduced to the one new key as surely as it refuses its absence.
+//
+// **THE CENSUS IS GENERALISED RATHER THAN THE INSTANCE PATCHED:** the table below enumerates every
+// `uses:` site in the file and carries each one's documented requirement, EACH ENTRY NAMING ITS
+// SOURCE, beside the `run:` sites that document a permission need (the OIDC federation is not an
+// action and would otherwise be uncovered). **A `uses:` SITE ABSENT FROM THE TABLE IS A FINDING, AND
+// A TABLE ROW NO SITE USES IS A FINDING TOO — so the NEXT action added to this file is covered by
+// THIS cell rather than by a new one.**
+//
+// **AND THE PLACEMENT RULING, MADE HERE BECAUSE NO SPEC CLAUSE MAKES IT: NO CLAUSE OF
+// `docs/specs/storeroom-publish/**` DECIDES JOB-LEVEL VERSUS WORKFLOW-LEVEL — that part's own
+// permission cell is STALE (it prints the workflow-level pair alone), it is the SpecWriter's, and
+// this pass touches no spec byte. SO THIS PASS SAYS SO PLAINLY AND RULES: LEAST PRIVILEGE IS HELD AS
+// A REQUIREMENT AND NOT AS A PREFERENCE.** **THE CLAUSE THAT DECIDES IT IS `release.md §1.4` STEP `6`
+// READ WITH THE FILE'S OWN PLACEMENT: THE ATTESTING ACTION IS A STEP OF `main`, NO SITE OF THE
+// FIVE-LEG `platform` MATRIX DOCUMENTS ANY NEED FOR `attestations: write`, AND A GRANT DECLARED AT
+// THE WORKFLOW LEVEL IS HELD BY EVERY JOB THE FILE DECLARES — so it would hand the matrix a
+// repository write it never uses. CONTROL (B) MEASURES THAT REFUSAL, AND (B′) MEASURES THE SAME MOVE
+// WITH THE JOB'S OWN BLOCK REMOVED, where sufficiency is satisfied and the least-privilege clause
+// ALONE is what fails it.**
+cell('P-PUB-8', 'S-TAG every documented grant is effective at the job that needs it — the `uses:` census, the resolution rule, and least privilege held as a requirement', async () => {
+  // `release.md §1.3` item 3 / `§1.4` step 6 / `§5.3` item 1; `PUB-R-5`: a control that cannot fail is
+  // worse than none. **THE FILE IS READ AND NEVER RUN** — no step of it is a pass's act (`§4.1` item 1).
+  const grantWorkflow = join(REPO_ROOT, '.github', 'workflows', 'publish.yml');
+  const grantBytes = readFileSync(grantWorkflow, 'utf8');
+  /** the file's own code, with the prose it prints beside it removed: a `uses:` or a `--provenance` in
+   *  a comment is a sentence about a site and not a site. */
+  const grantCodeOf = (text) => text.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
+
+  // ---------------------------------------------------------------------------------------------
+  // THE TABLE THIS CELL OWNS — DATA, NOT PROSE: EVERY `uses:` SITE'S DOCUMENTED REQUIREMENT, EACH
+  // ENTRY NAMING ITS SOURCE, TOGETHER WITH THE RUN SITES THAT DOCUMENT A PERMISSION NEED
+  // ---------------------------------------------------------------------------------------------
+  const ACTION_GRANTS = [
+    {
+      uses: 'actions/checkout@v4',
+      requires: { contents: 'read' },
+      declined: {},
+      source: 'the action\'s own README, whose recommended workflow declares `permissions: contents: read`; read '
+        + 'with the file\'s own commentary at the `main` job, which names `contents: read` for "its two '
+        + '`actions/checkout@v4` sites"',
+    },
+    {
+      uses: 'dtolnay/rust-toolchain@stable',
+      requires: {},
+      declined: {},
+      source: 'the action\'s own README declares no `permissions:` block and reads no repository scope: it fetches a '
+        + 'toolchain from `static.rust-lang.org` with the one input this file passes (`toolchain`)',
+    },
+    {
+      uses: 'actions/setup-node@v6',
+      requires: {},
+      declined: {},
+      source: 'the action\'s own README declares no `permissions:` requirement for the inputs this file passes '
+        + '(`node-version` only — no `cache:`, no `registry-url`): the client is downloaded from `nodejs.org` and no '
+        + 'repository scope is read (`release.md §1.4`\'s CI-inputs clause)',
+    },
+    {
+      uses: 'actions/attest-build-provenance@v4',
+      requires: { 'id-token': 'write', attestations: 'write' },
+      declined: { 'artifact-metadata': 'to create the artifact storage record' },
+      source: 'the action\'s own READMEs, quoted at this file\'s own attestation-grant commentary: `v1` reads '
+        + '`id-token: write` · `attestations: write` and `v4` reads the same two beside `artifact-metadata: write`, '
+        + 'required only "to create the artifact storage record" — a record this step does not take, '
+        + '`push-to-registry` standing at its default `false`',
+    },
+  ];
+  /** **THE RUN SITES THAT DOCUMENT A PERMISSION NEED** — the other half of the same property, because the
+   *  OIDC federation is not an action and an action-only census would leave it unpinned. */
+  const RUN_GRANTS = [
+    {
+      what: 'the `--provenance` publish site',
+      test: (line) => line.includes('--provenance'),
+      requires: { 'id-token': 'write' },
+      source: '`release.md §5.3` item 1 — "`--provenance` IS AN OIDC CAPABILITY … minted by the host\'s own OIDC '
+        + 'federation, through the workflow\'s `id-token: write`" (`acceptance.md`\'s bootstrap clause item 1 reads '
+        + 'it the same way)',
+    },
+  ];
+  /** **THE KEYS THE HOST'S `permissions` DOMAIN CARRIES.** A KEY OUTSIDE THIS SET IS A SPELLING THE PLATFORM DOES
+   *  NOT HAVE — the file is refused before any step of the job runs — so it is named as a spelling and not read as
+   *  a grant short of its value. */
+  const PERMISSION_DOMAIN = [
+    'actions', 'artifact-metadata', 'attestations', 'checks', 'contents', 'deployments', 'discussions', 'id-token',
+    'issues', 'metadata', 'models', 'packages', 'pages', 'pull-requests', 'repository-projects', 'security-events',
+    'statuses',
+  ];
+  // ---------------------------------------------------------------------------------------------
+  // THE RESOLUTION RULE, AS CODE: WORKFLOW BLOCK → EACH JOB'S OWN BLOCK IF IT DECLARES ONE (WHICH
+  // REPLACES IT) → EVERY SITE READ AGAINST THE EFFECTIVE SET OF ITS OWN JOB
+  // ---------------------------------------------------------------------------------------------
+  const resolveGrants = (text, { label }) => {
+    const lines = text.split('\n');
+    const mapAt = (at, indent) => {
+      const rest = lines[at].slice(indent + 'permissions:'.length).trim();
+      assert.equal(rest, '',
+        `${label}: the \`permissions:\` block at line ${at + 1} is a MAPPING of keys to values; the scalar form `
+        + `\`${rest}\` is outside this rule's resolution and is therefore a FINDING rather than a grant`);
+      const out = {};
+      for (let i = at + 1; i < lines.length; i += 1) {
+        if (lines[i].trim() === '') continue;
+        if (lines[i].search(/\S/) <= indent) break;
+        const m = /^\s*([A-Za-z0-9_-]+):\s*(\S+)\s*$/.exec(lines[i]);
+        assert.ok(m, `${label}: every entry of a \`permissions:\` block is a \`key: value\` pair (line ${i + 1}: `
+          + `\`${lines[i].trim()}\`)`);
+        out[m[1]] = m[2];
+      }
+      return out;
+    };
+    const wfAt = lines.findIndex((l) => l === 'permissions:');
+    assert.ok(wfAt !== -1,
+      `${label}: the file declares its WORKFLOW-LEVEL \`permissions:\` block (\`release.md §1.3\` item 3; \`§1.4\` step 6)`);
+    const workflowPermissions = mapAt(wfAt, 0);
+    const jobsAt = lines.findIndex((l) => l === 'jobs:');
+    assert.ok(jobsAt !== -1, `${label}: the file declares \`jobs:\``);
+    const starts = [];
+    for (let i = jobsAt + 1; i < lines.length; i += 1) {
+      if (/^[A-Za-z_][A-Za-z0-9_-]*:/.test(lines[i])) break;
+      if (/^  [A-Za-z0-9_-]+:\s*$/.test(lines[i])) starts.push(i);
+    }
+    assert.ok(starts.length >= 1, `${label}: the file's jobs are declared at the second indent (${starts.length} read)`);
+    const jobs = starts.map((start, k) => {
+      const end = k + 1 < starts.length ? starts[k + 1] : lines.length;
+      const ownAt = lines.findIndex((l, i) => i > start && i < end && /^    permissions:/.test(l));
+      const own = ownAt === -1 ? null : mapAt(ownAt, 4);
+      return {
+        name: /^  ([A-Za-z0-9_-]+):/.exec(lines[start])[1],
+        start, end, ownAt, own,
+        effective: own === null ? workflowPermissions : own,
+        from: own === null
+          ? 'the WORKFLOW-LEVEL block, which no job block replaces for this job'
+          : `its OWN job block at line ${ownAt + 1}, WHICH REPLACES the workflow-level block rather than merging with it`,
+        sites: [],
+      };
+    });
+    const sites = [];
+    lines.forEach((line, i) => {
+      const m = /^\s+uses:\s*(\S+)\s*$/.exec(line);
+      if (!m) return;
+      const job = jobs.find((j) => i > j.start && i < j.end);
+      assert.ok(job, `${label}: the \`uses:\` site \`${m[1]}\` at line ${i + 1} lies inside a declared job`);
+      const site = { at: i, kind: 'uses', subject: m[1], job: job.name };
+      job.sites.push(site);
+      sites.push(site);
+    });
+    const runs = [];
+    lines.forEach((line, i) => {
+      const rows = RUN_GRANTS.filter((r) => r.test(line));
+      if (rows.length === 0) return;
+      const job = jobs.find((j) => i > j.start && i < j.end);
+      assert.ok(job, `${label}: the \`run:\` site at line ${i + 1} lies inside a declared job`);
+      assert.equal(rows.length, 1,
+        `${label}: the \`run:\` site at line ${i + 1} is covered by EXACTLY ONE documented-requirement row, not two `
+        + 'and not none');
+      const site = { at: i, kind: 'run', subject: line.trim(), requirement: rows[0], job: job.name };
+      job.sites.push(site);
+      runs.push(site);
+    });
+    assert.ok(runs.length >= 1,
+      `${label}: the file's own \`--provenance\` sites are enumerated and covered (${runs.length} read), so the OIDC `
+      + 'grant is pinned by this census and not only by the action table');
+    const uncovered = lines.map((line, i) => ({ line, i }))
+      .filter(({ line, i }) => line.includes('--provenance') && !runs.some((s) => s.at === i));
+    assert.equal(uncovered.length, 0,
+      `${label}: EVERY SITE THAT DOCUMENTS A PERMISSION NEED IS COVERED BY THIS CELL'S TABLE — a \`--provenance\` site `
+      + `matching no documented-requirement row would leave its OIDC grant unpinned: ${JSON.stringify(uncovered.map((u) => u.line.trim()))}`);
+    return { wfAt, workflowPermissions, jobs, sites, runs };
+  };
+  /** **ONE INSTRUMENT, DRIVING THE SHIPPED FILE AND EVERY CONTROL ALIKE**, so a control measures the assertion
+   *  that actually guards the tree and never a copy of it: it throws at the first clause broken. */
+  const driveGrants = (text, { label }) => {
+    const r = resolveGrants(text, { label });
+    const rows = [];
+    const censusRows = [];
+    rows.push(`workflow-level \`permissions:\` at line ${r.wfAt + 1} → ${JSON.stringify(r.workflowPermissions)}`);
+    for (const job of r.jobs) {
+      // (·) THE DOMAIN CENSUS FIRST, so a misspelled key is credited to the SPELLING and not to a missing grant.
+      for (const key of Object.keys(job.effective)) {
+        assert.ok(PERMISSION_DOMAIN.includes(key),
+          `${label}: job \`${job.name}\`'s effective \`permissions:\` carries the key \`${key}\`, AND \`${key}\` IS NOT A `
+          + 'KEY THE HOST\'S `permissions` DOMAIN CARRIES: the file is refused before any step of that job runs, so a '
+          + 'misspelling is not a grant short of its value — it is not a grant at all. The declared key is '
+          + '`attestations`, and the value the attesting action documents is `write`');
+      }
+      rows.push(`job \`${job.name}\` → effective ${JSON.stringify(job.effective)} FROM ${job.from}`);
+      // (·) SUFFICIENCY: every documented requirement of every site of this job is present, IN FULL.
+      const missing = [];
+      for (const site of job.sites) {
+        const req = site.kind === 'uses' ? ACTION_GRANTS.find((a) => a.uses === site.subject) : site.requirement;
+        if (site.kind === 'uses') {
+          assert.ok(req,
+            `${label}: THE CENSUS COVERS EVERY \`uses:\` SITE — \`${site.subject}\` (line ${site.at + 1}, job `
+            + `\`${job.name}\`) IS ABSENT FROM THIS CELL'S DOCUMENTED-REQUIREMENT TABLE, each entry of which names its `
+            + 'own source. A NEWLY ADDED ACTION IS CARRIED INTO THAT TABLE AND NOT INTO A NEW CELL, so this is a '
+            + 'FINDING and not an unknown');
+        }
+        censusRows.push(`  ${(site.kind === 'uses' ? 'uses' : 'run ')}  ${site.subject.padEnd(40)} job \`${job.name}\``
+          + ` · documents ${JSON.stringify(req.requires)} · source: ${req.source}`);
+        for (const [key, value] of Object.entries(req.requires)) {
+          if (job.effective[key] === value) continue;
+          missing.push({ site, key, value, got: job.effective[key] });
+        }
+      }
+      assert.equal(missing.length, 0,
+        `${label}: THE EFFECTIVE \`permissions:\` FOR JOB \`${job.name}\` DO NOT SATISFY EVERY DOCUMENTED REQUIREMENT: `
+        + `${missing.map((m) => `\`${m.site.subject}\` (line ${m.site.at + 1}) documents \`${m.key}: ${m.value}\` and the `
+          + `effective set carries ${m.got === undefined ? 'NOTHING AT THAT KEY' : `\`${m.key}: ${m.got}\``}`).join('; ')}. `
+        + `THE EFFECTIVE SET IS ${JSON.stringify(job.effective)}, RESOLVED FROM ${job.from} — `
+        + '**A JOB-LEVEL `permissions:` BLOCK REPLACES THE WORKFLOW-LEVEL ONE RATHER THAN MERGING WITH IT, SO A KEY '
+        + 'THE WORKFLOW BLOCK GRANTS MUST BE REDECLARED AT THE JOB THAT NEEDS IT.** '
+        + (missing.some((m) => Object.prototype.hasOwnProperty.call(r.workflowPermissions, m.key))
+          ? `AND THE KEY IS NOT ABSENT FROM THE FILE: THE WORKFLOW-LEVEL BLOCK GRANTS `
+            + `${JSON.stringify(r.workflowPermissions)}, WHICH THIS JOB'S OWN BLOCK REPLACES — a grant declared there is `
+            + 'a grant this job\'s actions never receive. '
+          : 'AND THE KEY IS DECLARED NOWHERE IN THE FILE: '
+            + `${JSON.stringify(r.workflowPermissions)} is the whole of the workflow-level grant. `)
+        + 'THE RUN THAT DIED ON THIS SHAPE IS THE ONE THIS CELL EXISTS FOR: `Error: Failed to persist attestation: '
+        + 'Resource not accessible by integration` (`release.md §1.4` step 6; `§1.3` item 2)');
+      // (·) LEAST PRIVILEGE: every key the job DOES hold is documented by SOME site of that same job.
+      const documented = new Set();
+      const declined = new Map();
+      for (const site of job.sites) {
+        const req = site.kind === 'uses' ? ACTION_GRANTS.find((a) => a.uses === site.subject) : site.requirement;
+        if (!req) continue;
+        for (const key of Object.keys(req.requires)) documented.add(key);
+        for (const [key, why] of Object.entries(req.declined ?? {})) declined.set(key, why);
+      }
+      for (const key of Object.keys(job.effective)) {
+        assert.ok(documented.has(key),
+          declined.has(key)
+            ? `${label}: job \`${job.name}\` holds \`${key}: ${job.effective[key]}\`, WHICH THE ACTION IT RUNS `
+              + `EXPLICITLY DECLINES: that action's own documentation names \`${key}\` as required only `
+              + `${declined.get(key)}, and prints that the action CONTINUES WITHOUT IT — the narrowest grant is the `
+              + 'one the step needs'
+            : `${label}: LEAST PRIVILEGE IS HELD AS A REQUIREMENT AND NOT AS A PREFERENCE — job \`${job.name}\` holds `
+              + `\`${key}: ${job.effective[key]}\` AND NO SITE OF THAT JOB DOCUMENTS ANY NEED FOR IT (effective set `
+              + `${JSON.stringify(job.effective)}, resolved from ${job.from}). A grant declared at the WORKFLOW level `
+              + 'is held by EVERY job the file declares, so `attestations: write` declared there would hand a job '
+              + 'that attests nothing a repository write it never uses');
+      }
+    }
+    // (·) THE TABLE'S OWN TWO DIRECTIONS: no row is unused, so no row is a stale requirement left to drift.
+    for (const a of ACTION_GRANTS) {
+      assert.ok(r.sites.some((s) => s.kind === 'uses' && s.subject === a.uses),
+        `${label}: the requirement table's row for \`${a.uses}\` matches NO \`uses:\` site in the file — a row no site `
+        + 'uses is a stale requirement, and the table is AMENDED rather than left to drift');
+    }
+    for (const g of RUN_GRANTS) {
+      assert.ok(r.runs.some((s) => s.requirement === g),
+        `${label}: the requirement table's row \`${g.what}\` matches no site in the file`);
+    }
+    return { ...r, rows, censusRows };
+  };
+  // ---- (1) THE SHIPPED FILE, WHICH THE INSTRUMENT MUST PASS ----
+  const shipped = driveGrants(grantCodeOf(grantBytes), { label: 'the shipped workflow, at the grant guard' });
+  const usesSites = shipped.sites.filter((s) => s.kind === 'uses');
+  const rawUses = grantCodeOf(grantBytes).split('\n').filter((l) => /^\s+uses:\s*\S+\s*$/.test(l)).length;
+  assert.ok(rawUses >= 1, `the file's own \`uses:\` sites are really read (${rawUses})`);
+  assert.equal(usesSites.length, rawUses,
+    `THE CENSUS ENUMERATES EVERY \`uses:\` SITE IN THE FILE and invents none: ${usesSites.length} against the file's `
+    + `own ${rawUses}`);
+  const mainGrant = shipped.jobs.find((j) => j.name === 'main');
+  const platformGrant = shipped.jobs.find((j) => j.name === 'platform');
+  assert.ok(mainGrant && platformGrant,
+    '`release.md §1.4`: the `platform` job and the `main` job are both declared, and both were resolved');
+  assert.ok(mainGrant.own !== null,
+    'THE `main` JOB DECLARES ITS OWN `permissions:` BLOCK — WHICH REPLACES THE WORKFLOW-LEVEL ONE FOR THAT JOB '
+    + 'RATHER THAN MERGING WITH IT, so its effective set is its own block, WHOLE, and the workflow block above it '
+    + 'is not read beside it');
+  assert.deepEqual(mainGrant.effective, { contents: 'read', 'id-token': 'write', attestations: 'write' },
+    '`release.md §1.4` step 6 / `§1.3` item 2 — THE THREE KEYS THE `main` JOB CARRIES: `attestations: write` IS THE '
+    + 'GRANT THE TAGGED RUN WAS MISSING (`POST /repos/{owner}/{repo}/attestations`; `Error: Failed to persist '
+    + 'attestation: Resource not accessible by integration`), AND `contents: read` · `id-token: write` ARE '
+    + 'REDECLARED BESIDE IT because the job block replaces the workflow one rather than merging with it — drop '
+    + 'either and the job loses a permission the workflow block grants');
+  assert.deepEqual(platformGrant.effective, { contents: 'read', 'id-token': 'write' },
+    'AND THE FIVE-LEG `platform` MATRIX HOLDS NO `attestations: write`: it attests nothing, so no repository write '
+    + 'is granted to it — the placement ruling above, asserted at the shipped file');
+  assert.ok(mainGrant.sites.some((s) => s.kind === 'uses' && s.subject.startsWith('actions/attest-build-provenance@')),
+    'the attesting action really runs in `main` (and nowhere else), which is WHY the third grant belongs at that job');
+  // ---- (2) THE CONTROLS, EACH BROKEN IN ONE PLACE AND EACH REQUIRED TO FAIL THE SAME INSTRUMENT ----
+  const grantVerdict = (fn) => { try { fn(); return null; } catch (err) { return err; } };
+  /** the move (B) and (B′) share: the grant LEAVES the job and LANDS at the workflow level. */
+  const moveToWorkflow = (t) => t
+    .replace('\n      attestations: write\n', '\n')
+    .replace('\n  id-token: write\n', '\n  id-token: write\n  attestations: write\n');
+  const movedBytes = moveToWorkflow(grantBytes);
+  /** (B′) the charitable shape of the same move: the `main` job's own block is REMOVED, so the workflow-level
+   *  grant is the only one and it really does reach the attesting action. */
+  const movedWholeBytes = movedBytes.replace('\n    permissions:\n      contents: read\n      id-token: write\n', '\n');
+  const grantControls = [
+    // (A) THE RUN THAT HAPPENED, DRIVEN AS A RED CELL: the grant is absent from the job entirely.
+    ['(A) `attestations: write` removed from the `main` job — THE RUN THAT HAPPENED',
+      (t) => t.replace('\n      attestations: write\n', '\n'),
+      ['\n    permissions:\n      contents: read\n      id-token: write\n'], ['attestations: write'],
+      ['attestations: write', 'attest-build-provenance', 'main', 'REPLACES', 'DECLARED NOWHERE IN THE FILE'], []],
+    // (B) THE SAME GRANT, DECLARED ONE SCOPE TOO WIDE, THE JOB'S OWN BLOCK LEFT IN PLACE — and the job block
+    // REPLACES the workflow block, so the grant never reaches the action that needs it.
+    ['(B) `attestations: write` MOVED TO THE WORKFLOW LEVEL, the `main` job\'s own block left in place',
+      moveToWorkflow,
+      ['\n  attestations: write\n'], ['\n      attestations: write\n'],
+      ['attestations: write', 'main', 'REPLACES', 'WORKFLOW-LEVEL BLOCK GRANTS'], []],
+    // (B′) THE SAME MOVE MADE TO WORK: the job's own block removed, so sufficiency IS satisfied and the
+    // least-privilege clause ALONE is what fails it.
+    ['(B′) THE SAME MOVE WITH THE JOB\'S OWN BLOCK REMOVED, so the workflow grant is the only one',
+      () => movedWholeBytes,
+      ['\n  attestations: write\n'], ['\n    permissions:\n'],
+      ['LEAST PRIVILEGE', 'platform', 'attestations: write',
+        'the WORKFLOW-LEVEL block, which no job block replaces for this job'],
+      ['DO NOT SATISFY EVERY DOCUMENTED REQUIREMENT']],
+    // (C) THE REPLACEMENT SEMANTICS' OWN TRAP: the block kept, reduced to the one new key.
+    ['(C) the `main` job\'s block REDUCED TO `attestations: write` ALONE',
+      (t) => t.replace('\n    permissions:\n      contents: read\n      id-token: write\n      attestations: write\n',
+        '\n    permissions:\n      attestations: write\n'),
+      ['\n    permissions:\n      attestations: write\n'], ['\n      id-token: write\n'],
+      ['contents: read', 'id-token: write', 'REPLACES', 'main'], []],
+    // (D1) THE GRANT MISSPELLED — a key the host's domain does not carry, refused before any step runs.
+    ['(D1) `attestations: write` MISSPELLED as `attestation: write`',
+      (t) => t.replace('\n      attestations: write\n', '\n      attestation: write\n'),
+      ['\n      attestation: write\n'], ['\n      attestations: write\n'],
+      ['attestation', 'attestations', 'DOMAIN CARRIES'], []],
+    // (D2) THE GRANT PRESENT BY NAME AND SHORT OF ITS VALUE.
+    ['(D2) `attestations: write` declared as `attestations: read`',
+      (t) => t.replace('\n      attestations: write\n', '\n      attestations: read\n'),
+      ['\n      attestations: read\n'], ['\n      attestations: write\n'],
+      ['attestations: read', 'attestations: write', 'main'], []],
+    // (E) THE OTHER SIDE OF THE SAME PROPERTY, DRIVEN BECAUSE A `declined` ENTRY THAT IS NEVER MEASURED IS A CLAIM:
+    // the key the attesting action's own documentation declines.
+    ['(E) `artifact-metadata: write` ADDED beside the three — the key the attesting action declines',
+      (t) => t.replace('\n      attestations: write\n', '\n      attestations: write\n      artifact-metadata: write\n'),
+      ['\n      artifact-metadata: write\n'], [],
+      ['artifact-metadata', 'DECLINES', 'main'], []],
+  ];
+  const grantVerdicts = [];
+  for (const { what, mutate, injected = [], kept = [], gone, names, notNames = [] } of grantControls) {
+    const control = mutate(grantBytes);
+    assert.ok(control !== grantBytes,
+      `THE CONTROL REALLY BREAKS THE CLAUSE IT NAMES (${what}): the file's own bytes moved`);
+    for (const lit of injected) {
+      assert.ok(control.includes(lit), `(${what}) the control really carries \`${lit.trim()}\``);
+      assert.equal(grantBytes.includes(lit), false,
+        `(${what}) and the shipped file carries no such byte, so the verdict below comes from the control and not from `
+        + 'the tree');
+    }
+    for (const lit of kept) {
+      assert.ok(control.includes(lit), `(${what}) the control really KEEPS the fragment it breaks around: `
+        + `\`${lit.trim()}\``);
+    }
+    for (const lit of gone) {
+      assert.equal(control.includes(lit), false, `(${what}) the control no longer carries \`${lit.trim()}\``);
+      assert.equal(grantBytes.includes(lit), true,
+        `(${what}) which the shipped file DOES carry, so the removal is a real removal`);
+    }
+    const verdict = grantVerdict(() => driveGrants(grantCodeOf(control), { label: `the control for ${what}` }));
+    assert.ok(verdict !== null, `THE CONTROL MUST FAIL (${what}): the instrument catches it — a control that cannot `
+      + 'fail is worse than none (`PUB-R-5`)');
+    for (const named of names) {
+      assert.ok(verdict.message.includes(named),
+        `(${what}) AND ITS VERDICT NAMES WHAT IT CAUGHT — \`${named}\` must stand in: ${String(verdict.message).slice(0, 320)}`);
+    }
+    for (const notNamed of notNames) {
+      assert.equal(verdict.message.includes(notNamed), false,
+        `(${what}) AND IT FAILS ON THE CLAUSE THAT OWNS THIS SHAPE AND NOT ON ANOTHER: \`${notNamed}\` is absent from `
+        + `its verdict, so the failure is measured at its own home (${String(verdict.message).slice(0, 320)})`);
+    }
+    grantVerdicts.push(`${what.padEnd(104)} → FAIL: ${String(verdict.message).split('\n')[0].slice(0, 150)}`);
+  }
+  // **THE MEASURED RESULTS, PRINTED SO THE RECORD CAN CITE THEM RATHER THAN THIS CELL'S INTENTION.**
+  console.log(`\n[P-PUB-8/S-TAG] THE GRANT GUARD — THE EFFECTIVE-PERMISSION RESOLUTION RULE, THE \`uses:\` CENSUS AND THE `
+    + `PLACEMENT RULING (\`release.md §1.4\` step 6; \`§1.3\` item 2; \`§5.3\` item 1):\n`
+    + '  the rule  : (1) the workflow-level `permissions:` block is the only top-level one; (2) A JOB THAT\n'
+    + '               DECLARES ITS OWN BLOCK REPLACES IT FOR THAT JOB RATHER THAN MERGING WITH IT, so the\n'
+    + '               job block IS the effective set, whole; (3) otherwise the workflow block IS; (4) every\n'
+    + '               `uses:` and `run:` site is read against the effective set of THE JOB IT RUNS IN.\n  '
+    + shipped.rows.join('\n  ')
+    + `\n  the census: ${usesSites.length} \`uses:\` sites in the file, EVERY ONE carried in this cell's own `
+    + `documented-requirement table with its source; ${shipped.runs.length} \`run:\` site(s) that document a permission `
+    + 'need (the OIDC federation, which no action carries)\n'
+    + `  ---- the census, every site, its job, its documented requirement and that requirement's source ----\n`
+    + shipped.censusRows.join('\n')
+    + `\n  ---- the controls, each measured against the shipped instrument ----\n  `
+    + grantVerdicts.join('\n  ')
+    + '\n  ---- the ruling, stated because no spec clause makes it ----\n'
+    + '  NO CLAUSE OF `docs/specs/storeroom-publish/**` DECIDES JOB-LEVEL VERSUS WORKFLOW-LEVEL (that part\'s own\n'
+    + '  permission cell is stale and is the SpecWriter\'s, and no spec byte was touched here), SO THIS PASS RULES\n'
+    + '  PLAINLY: LEAST PRIVILEGE IS A REQUIREMENT AND NOT A PREFERENCE. The deciding reading is `release.md §1.4`\n'
+    + '  step 6 — THE ATTESTING ACTION IS A STEP OF `main` — read with the file\'s own placement: a workflow-level\n'
+    + '  grant is held by EVERY job the file declares, so (B) would hand the five-leg `platform` matrix a\n'
+    + '  repository write it never uses. (B) FAILS, (B′) FAILS ON LEAST PRIVILEGE ALONE.\n'
+    + '  ---- THE CLASS, NAMED AT ITS EIGHTH INSTANCE ----\n'
+    + '  A DECLARED STEP WHOSE GRANT THE CONFIGURATION NEVER MAKES IS A CLAIM ABOUT A CAPABILITY THE WORLD DOES\n'
+    + '  NOT OFFER IT, AND ITS ONLY FALSIFIER WAS A RUN — the same shape as the retired runner label whose only\n'
+    + '  falsifier was a dispatch, and the unbuilt link matrix whose only falsifier was a linker.');
+});
+
 cell('P-PUB-8', 'S-TAG the six artefacts\' order and the one version they share', async () => {
   // `§3.2` item 2 / `PUB-DD-10` / `distribution.md §6.3` / `release.md §2.2`: the five platform artefacts'
   // `version` equals the MAIN package's, the main package's `optionalDependencies` pins the five at EXACTLY
