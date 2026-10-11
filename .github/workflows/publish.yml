@@ -367,9 +367,9 @@ jobs:
       # PAID, AND NOT THE FIX.** **SOURCE: the action's own repository, `actions/attest-build-provenance` —
       # `GET /repos/actions/attest-build-provenance/releases`, whose first entry is `v4.2.2`
       # (`published_at` `2026-08-06T19:59:04Z`, `immutable: true`) — and its `@v4` moving tag, which is the
-      # major this file now names, as the marketplace's own listing declares it.** **`v1` was three majors
-      # behind: `v2.4.0` · `v3.2.0` · `v4.2.2` all precede nothing here, and no other byte of this step
-      # moves.**
+      # major this file now names, as the marketplace's own listing declares it.** **`v1` STOOD THREE MAJORS
+      # BEHIND — `v2.4.0` · `v3.2.0` · `v4.2.2` precede `v4` — and NO OTHER BYTE OF THIS STEP MOVES: the
+      # `name:`, the `with:`, the subject and its path are the step's own and are untouched.**
       # **AND THE ONE QUESTION THIS BUMP MUST ANSWER PLAINLY, BECAUSE A `v1` REFUSAL AND A `v4` REFUSAL WOULD
       # HAVE THE SAME SHAPE: THE `attestations: write` REQUIREMENT DOES **NOT** DIFFER BETWEEN THE OLD MAJOR
       # AND THE NEW ONE.** **The v1 README's own permissions block reads `id-token: write` ·
