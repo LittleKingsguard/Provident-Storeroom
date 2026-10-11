@@ -241,6 +241,34 @@ jobs:
     name: provident-storeroom (last, always)
     needs: platform
     runs-on: ubuntu-24.04
+    # **⟶ THE ATTESTATION'S OWN GRANT, DECLARED ON THE JOB THAT ATTESTS AND NOT ON THE WORKFLOW — CAUSE 3,
+    # AND ITS FIX.** **THE DIAGNOSIS, FROM THE FINAL STEP OF THE TAG-TRIGGERED RUN, VERBATIM:**
+    #   `Error: Failed to persist attestation: Resource not accessible by integration`
+    #   `- https://docs.github.com/rest/repos/attestations#create-an-attestation`
+    # **— WHILE THE STAGING ITSELF SUCCEEDED AND ALL SIX PACKAGES REACHED THE REGISTRY'S STAGE ROUTE, AT BOTH
+    # PUBLISH SITES, WITH THE OIDC EXCHANGE AND THE PROVENANCE STATEMENT BOTH SIGNED.** **THE ENDPOINT THE
+    # ERROR LINKS TO — `POST /repos/{owner}/{repo}/attestations` — is the one the attestation is persisted
+    # through, and `GITHUB_TOKEN` reaches it ONLY under `attestations: write`; the workflow-level block above
+    # grants `contents: read` and `id-token: write` and NEVER THIS ONE, so step 6's persistence was refused at
+    # exactly the step whose action's own documentation asks for it** (`release.md §1.4` step `6`; `§1.3`
+    # item `2`).
+    # **WHY THE JOB AND NOT THE WORKFLOW-LEVEL BLOCK — THE ONE PLACEMENT DECISION, STATED RATHER THAN LEFT TO
+    # THE DIFF: ONLY THE `main` JOB ATTESTS.** The `platform` job builds, assembles, guards and STAGES, and
+    # its five legs call NO attesting action at all, so a workflow-level `attestations: write` would hand the
+    # five-leg matrix a repository write it never asks for — and A REPOSITORY'S LEAST PRIVILEGE IS THE UNIT'S
+    # OWN STANDING PREFERENCE. **THE PLACEMENT IS THEREFORE THE NARROWEST CORRECT ONE, AND THE WORKFLOW-LEVEL
+    # ALTERNATIVE IS DECLINED FOR THAT REASON ALONE — not for an effect it would have: GitHub would apply
+    # either, so this is a width decision and not a functional one.** **AND ONE GITHUB SEMANTIC IS OWED BESIDE
+    # IT, BECAUSE IT IS WHY THE THREE KEYS AND NOT ONE: A `permissions:` BLOCK DECLARED AT A JOB REPLACES THE
+    # WORKFLOW-LEVEL BLOCK FOR THAT JOB RATHER THAN MERGING WITH IT — so the two keys the `main` job already
+    # depended on, `contents: read` (its two `actions/checkout@v4` sites) and `id-token: write` (the OIDC
+    # federation step 6's certificate is minted through), are REDECLARED HERE UNCHANGED. THE WORKFLOW-LEVEL
+    # BLOCK IS UNMOVED BY THIS EDIT — its `contents: read` · `id-token: write` pair stands byte-for-byte for
+    # the `platform` job, which is the job that needs that pair and not this third key.**
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     steps:
       - name: '1. checkout the tagged commit'
         uses: actions/checkout@v4
@@ -335,7 +363,35 @@ jobs:
       # through the host's OIDC federation at the declared level of reach. **WHERE THE SOURCE REPOSITORY IS
       # NOT PUBLICLY REACHABLE THE ATTESTATION IS DECLARED-NOT-ATTESTED IN THE RECORD** (`release.md §1.3`
       # item 2): the attestation's reach is a fact the record states rather than one this file assumes.
+      # **⟶ THE ACTION BUMPED TO THE CURRENT MAJOR, 2026-10-11 BY THE ATTESTATION-GRANT PASS — CARRIED DEBT
+      # PAID, AND NOT THE FIX.** **SOURCE: the action's own repository, `actions/attest-build-provenance` —
+      # `GET /repos/actions/attest-build-provenance/releases`, whose first entry is `v4.2.2`
+      # (`published_at` `2026-08-06T19:59:04Z`, `immutable: true`) — and its `@v4` moving tag, which is the
+      # major this file now names, as the marketplace's own listing declares it.** **`v1` was three majors
+      # behind: `v2.4.0` · `v3.2.0` · `v4.2.2` all precede nothing here, and no other byte of this step
+      # moves.**
+      # **AND THE ONE QUESTION THIS BUMP MUST ANSWER PLAINLY, BECAUSE A `v1` REFUSAL AND A `v4` REFUSAL WOULD
+      # HAVE THE SAME SHAPE: THE `attestations: write` REQUIREMENT DOES **NOT** DIFFER BETWEEN THE OLD MAJOR
+      # AND THE NEW ONE.** **The v1 README's own permissions block reads `id-token: write` ·
+      # `attestations: write`, and the v4 README's reads `id-token: write` · `attestations: write` ·
+      # `artifact-metadata: write` — the first two keys UNCHANGED, and the third required only *"to create
+      # the artifact storage record"*, which this step does not take: `push-to-registry` is left at its
+      # `false` default and no `create-storage-record` is asked for. THE THIRD KEY IS THEREFORE NOT DECLARED
+      # ABOVE, AND ITS OMISSION IS NOT AN OMISSION: v3's own documentation prints that *"if this permission
+      # is not included, the action will continue without creating the record"* — the narrowest grant is the
+      # one this step needs.** **SO THE BUMP IS NOT NECESSARY FOR THE FIX: `attestations: write` alone makes
+      # step 6 persist under `v1` exactly as under `v4`. The bump is CARRIED DEBT, paid here because the
+      # supervisor flagged it before the run and the run then made this the failing step.**
+      # **AND THE INPUT SHAPE, VERIFIED RATHER THAN ASSUMED, BECAUSE A WRONG INPUT IS WORSE THAN AN OLD
+      # MAJOR: `subject-path` is a v4.2.2 input, spelled identically and carrying the same semantics at
+      # `v1.2.0` — *"Path to the artifact serving as the subject of the attestation"* — and a single file
+      # path is inside both majors' documented use. THE ONE DOCUMENTED DELTA IS THE SUBJECT CEILING —
+      # `2500` subjects per call at `v1`, `1024` at `v4.2.2` — AND THIS STEP NAMES ONE SUBJECT, so the delta
+      # does not reach it.** **AND ONE DEFAULT MOVED BESIDE THE ACTION, STATED SO IT IS NOT LEFT TO THE
+      # READER: as of `v4` this action is a wrapper over `actions/attest`, whose `push-to-registry` defaults
+      # to `false` — the same default `v1` carried — so the step's declared behaviour at its own two inputs
+      # is unmoved.**
       - name: '6. attest the tagged commit''s provenance'
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: 'bindings/js/index.mjs'
