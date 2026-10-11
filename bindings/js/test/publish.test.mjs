@@ -3609,7 +3609,7 @@ cell('P-PUB-8', 'S-TAG every documented grant is effective at the job that needs
       assert.equal(rows.length, 1,
         `${label}: the \`run:\` site at line ${i + 1} is covered by EXACTLY ONE documented-requirement row, not two `
         + 'and not none');
-      const site = { at: i, kind: 'run', subject: line.trim(), requirement: rows[0], job: job.name };
+      const site = { at: i, kind: 'run', subject: line.trim().replace(/^run:[ \t]*/, ''), requirement: rows[0], job: job.name };
       job.sites.push(site);
       runs.push(site);
     });
@@ -3669,11 +3669,21 @@ cell('P-PUB-8', 'S-TAG every documented grant is effective at the job that needs
           ? `AND THE KEY IS NOT ABSENT FROM THE FILE: THE WORKFLOW-LEVEL BLOCK GRANTS `
             + `${JSON.stringify(r.workflowPermissions)}, WHICH THIS JOB'S OWN BLOCK REPLACES — a grant declared there is `
             + 'a grant this job\'s actions never receive. '
-          : 'AND THE KEY IS DECLARED NOWHERE IN THE FILE: '
-            + `${JSON.stringify(r.workflowPermissions)} is the whole of the workflow-level grant. `)
+          : missing.some((m) => m.got !== undefined)
+            ? 'AND THE KEY IS NOT MERELY ABSENT: this job\'s own block declares it AT A SHORTER VALUE THAN THE ACTION '
+              + 'DOCUMENTS, and the host refuses a grant short of its value exactly as it refuses one that is absent. '
+            : 'AND THE KEY IS DECLARED NOWHERE IN THE FILE: '
+              + `${JSON.stringify(r.workflowPermissions)} is the whole of the workflow-level grant. `)
         + 'THE RUN THAT DIED ON THIS SHAPE IS THE ONE THIS CELL EXISTS FOR: `Error: Failed to persist attestation: '
         + 'Resource not accessible by integration` (`release.md §1.4` step 6; `§1.3` item 2)');
-      // (·) LEAST PRIVILEGE: every key the job DOES hold is documented by SOME site of that same job.
+    }
+    // ---------------------------------------------------------------------------------------------
+    // **CLAUSE 2 — LEAST PRIVILEGE, DRIVEN ACROSS EVERY JOB *AFTER* CLAUSE 1 HAS BEEN DRIVEN ACROSS EVERY
+    // JOB**: a shape that breaks BOTH clauses is credited to the sufficiency clause that killed the run and
+    // only then to the width ruling — control (B) breaks both, and (B′) breaks this one alone, so the two
+    // are told apart rather than one being credited with the other's catch.
+    // ---------------------------------------------------------------------------------------------
+    for (const job of r.jobs) {
       const documented = new Set();
       const declined = new Map();
       for (const site of job.sites) {
@@ -3747,46 +3757,47 @@ cell('P-PUB-8', 'S-TAG every documented grant is effective at the job that needs
   const movedWholeBytes = movedBytes.replace('\n    permissions:\n      contents: read\n      id-token: write\n', '\n');
   const grantControls = [
     // (A) THE RUN THAT HAPPENED, DRIVEN AS A RED CELL: the grant is absent from the job entirely.
-    ['(A) `attestations: write` removed from the `main` job — THE RUN THAT HAPPENED',
-      (t) => t.replace('\n      attestations: write\n', '\n'),
-      ['\n    permissions:\n      contents: read\n      id-token: write\n'], ['attestations: write'],
-      ['attestations: write', 'attest-build-provenance', 'main', 'REPLACES', 'DECLARED NOWHERE IN THE FILE'], []],
+    { what: '(A) `attestations: write` removed from the `main` job — THE RUN THAT HAPPENED',
+      mutate: (t) => t.replace('\n      attestations: write\n', '\n'),
+      injected: [], kept: ['\n    permissions:\n      contents: read\n      id-token: write\n'],
+      gone: ['\n      attestations: write\n'],
+      names: ['attestations: write', 'attest-build-provenance', 'main', 'REPLACES', 'DECLARED NOWHERE IN THE FILE'] },
     // (B) THE SAME GRANT, DECLARED ONE SCOPE TOO WIDE, THE JOB'S OWN BLOCK LEFT IN PLACE — and the job block
     // REPLACES the workflow block, so the grant never reaches the action that needs it.
-    ['(B) `attestations: write` MOVED TO THE WORKFLOW LEVEL, the `main` job\'s own block left in place',
-      moveToWorkflow,
-      ['\n  attestations: write\n'], ['\n      attestations: write\n'],
-      ['attestations: write', 'main', 'REPLACES', 'WORKFLOW-LEVEL BLOCK GRANTS'], []],
+    { what: '(B) `attestations: write` MOVED TO THE WORKFLOW LEVEL, the `main` job\'s own block left in place',
+      mutate: moveToWorkflow,
+      injected: ['\n  attestations: write\n'], gone: ['\n      attestations: write\n'],
+      names: ['attestations: write', 'main', 'REPLACES', 'WORKFLOW-LEVEL BLOCK GRANTS'] },
     // (B′) THE SAME MOVE MADE TO WORK: the job's own block removed, so sufficiency IS satisfied and the
     // least-privilege clause ALONE is what fails it.
-    ['(B′) THE SAME MOVE WITH THE JOB\'S OWN BLOCK REMOVED, so the workflow grant is the only one',
-      () => movedWholeBytes,
-      ['\n  attestations: write\n'], ['\n    permissions:\n'],
-      ['LEAST PRIVILEGE', 'platform', 'attestations: write',
+    { what: '(B′) THE SAME MOVE WITH THE JOB\'S OWN BLOCK REMOVED, so the workflow grant is the only one',
+      mutate: () => movedWholeBytes,
+      injected: ['\n  attestations: write\n'], gone: ['\n    permissions:\n'],
+      names: ['LEAST PRIVILEGE', 'platform', 'attestations: write',
         'the WORKFLOW-LEVEL block, which no job block replaces for this job'],
-      ['DO NOT SATISFY EVERY DOCUMENTED REQUIREMENT']],
+      notNames: ['DO NOT SATISFY EVERY DOCUMENTED REQUIREMENT'] },
     // (C) THE REPLACEMENT SEMANTICS' OWN TRAP: the block kept, reduced to the one new key.
-    ['(C) the `main` job\'s block REDUCED TO `attestations: write` ALONE',
-      (t) => t.replace('\n    permissions:\n      contents: read\n      id-token: write\n      attestations: write\n',
+    { what: '(C) the `main` job\'s block REDUCED TO `attestations: write` ALONE',
+      mutate: (t) => t.replace('\n    permissions:\n      contents: read\n      id-token: write\n      attestations: write\n',
         '\n    permissions:\n      attestations: write\n'),
-      ['\n    permissions:\n      attestations: write\n'], ['\n      id-token: write\n'],
-      ['contents: read', 'id-token: write', 'REPLACES', 'main'], []],
+      injected: ['\n    permissions:\n      attestations: write\n'], gone: ['\n      id-token: write\n'],
+      names: ['contents: read', 'id-token: write', 'REPLACES', 'main'] },
     // (D1) THE GRANT MISSPELLED — a key the host's domain does not carry, refused before any step runs.
-    ['(D1) `attestations: write` MISSPELLED as `attestation: write`',
-      (t) => t.replace('\n      attestations: write\n', '\n      attestation: write\n'),
-      ['\n      attestation: write\n'], ['\n      attestations: write\n'],
-      ['attestation', 'attestations', 'DOMAIN CARRIES'], []],
+    { what: '(D1) `attestations: write` MISSPELLED as `attestation: write`',
+      mutate: (t) => t.replace('\n      attestations: write\n', '\n      attestation: write\n'),
+      injected: ['\n      attestation: write\n'], gone: ['\n      attestations: write\n'],
+      names: ['attestation', 'attestations', 'DOMAIN CARRIES'] },
     // (D2) THE GRANT PRESENT BY NAME AND SHORT OF ITS VALUE.
-    ['(D2) `attestations: write` declared as `attestations: read`',
-      (t) => t.replace('\n      attestations: write\n', '\n      attestations: read\n'),
-      ['\n      attestations: read\n'], ['\n      attestations: write\n'],
-      ['attestations: read', 'attestations: write', 'main'], []],
+    { what: '(D2) `attestations: write` declared as `attestations: read`',
+      mutate: (t) => t.replace('\n      attestations: write\n', '\n      attestations: read\n'),
+      injected: ['\n      attestations: read\n'], gone: ['\n      attestations: write\n'],
+      names: ['attestations: read', 'attestations: write', 'main'] },
     // (E) THE OTHER SIDE OF THE SAME PROPERTY, DRIVEN BECAUSE A `declined` ENTRY THAT IS NEVER MEASURED IS A CLAIM:
     // the key the attesting action's own documentation declines.
-    ['(E) `artifact-metadata: write` ADDED beside the three — the key the attesting action declines',
-      (t) => t.replace('\n      attestations: write\n', '\n      attestations: write\n      artifact-metadata: write\n'),
-      ['\n      artifact-metadata: write\n'], [],
-      ['artifact-metadata', 'DECLINES', 'main'], []],
+    { what: '(E) `artifact-metadata: write` ADDED beside the three — the key the attesting action declines',
+      mutate: (t) => t.replace('\n      attestations: write\n', '\n      attestations: write\n      artifact-metadata: write\n'),
+      injected: ['\n      artifact-metadata: write\n'], gone: [],
+      names: ['artifact-metadata', 'DECLINES', 'main'] },
   ];
   const grantVerdicts = [];
   for (const { what, mutate, injected = [], kept = [], gone, names, notNames = [] } of grantControls) {
@@ -3820,7 +3831,8 @@ cell('P-PUB-8', 'S-TAG every documented grant is effective at the job that needs
         `(${what}) AND IT FAILS ON THE CLAUSE THAT OWNS THIS SHAPE AND NOT ON ANOTHER: \`${notNamed}\` is absent from `
         + `its verdict, so the failure is measured at its own home (${String(verdict.message).slice(0, 320)})`);
     }
-    grantVerdicts.push(`${what.padEnd(104)} → FAIL: ${String(verdict.message).split('\n')[0].slice(0, 150)}`);
+    grantVerdicts.push(`${what.padEnd(104)} → FAIL: `
+      + `${String(verdict.message).replace(`the control for ${what}: `, '').split('\n')[0].slice(0, 190)}`);
   }
   // **THE MEASURED RESULTS, PRINTED SO THE RECORD CAN CITE THEM RATHER THAN THIS CELL'S INTENTION.**
   console.log(`\n[P-PUB-8/S-TAG] THE GRANT GUARD — THE EFFECTIVE-PERMISSION RESOLUTION RULE, THE \`uses:\` CENSUS AND THE `
@@ -3828,7 +3840,9 @@ cell('P-PUB-8', 'S-TAG every documented grant is effective at the job that needs
     + '  the rule  : (1) the workflow-level `permissions:` block is the only top-level one; (2) A JOB THAT\n'
     + '               DECLARES ITS OWN BLOCK REPLACES IT FOR THAT JOB RATHER THAN MERGING WITH IT, so the\n'
     + '               job block IS the effective set, whole; (3) otherwise the workflow block IS; (4) every\n'
-    + '               `uses:` and `run:` site is read against the effective set of THE JOB IT RUNS IN.\n  '
+    + '               `uses:` and `run:` site is read against the effective set of THE JOB IT RUNS IN.\n'
+    + '               (Every line number printed here is an offset in the COMMENT-STRIPPED code, not a line of\n'
+    + '               the raw file: the file\'s own prose names the refused forms in order to refuse them.)\n  '
     + shipped.rows.join('\n  ')
     + `\n  the census: ${usesSites.length} \`uses:\` sites in the file, EVERY ONE carried in this cell's own `
     + `documented-requirement table with its source; ${shipped.runs.length} \`run:\` site(s) that document a permission `
