@@ -1020,8 +1020,28 @@ generator('NG-PUB-G', 'the arm\'s subject is the artefact\'s path, never cfg.fil
 // (`PUB-R-10`). **(2)** Each platform manifest's `files` must CARRY its `.node`, because an allowlist that
 // omits it *"cannot be loaded by rung one"* — while `publish.test.mjs:1574` REQUIRED the omission.
 // **THE CONTROLS LIVE IN A SCRATCH PLATFORM DIRECTORY AND NOT IN AN ENTRY MUTATION.**
+//
+// **⟶ AND A THIRD PROPERTY THIS PASS WIDENED RATHER THAN ADDED: THE CENSUS.** The property already read
+// every scratch manifest's key set against a declared nine; **`PUB-DD-7`'s reversal column makes that set
+// twelve** (*"the three metadata fields are written the moment a remote exists"*), so the nine is re-cut to
+// twelve with ONE MEASURED CONTROL PER ADDED FIELD — a census that grew while its teeth did not would be a
+// list, not an assertion.
 
-const PLATFORM_FIELDS = ['cpu', 'engines', 'files', 'license', 'main', 'name', 'os', 'publishConfig', 'version'];
+// **⟶ WIDENED 2026-10-11 BY THE METADATA-CELL PASS (`role_test_writer`, BOUNDED THREE-CELL PASS): THE
+// DECLARED SET IS TWELVE, NOT NINE — `PUB-DD-7`'s REVERSAL COLUMN IS OPERATIVE.** **AS FILED, AND
+// RE-EMITTED HERE VERBATIM SO `git diff` HAS NOTHING TO RECOVER, THE CONSTANT READ**
+// *"`const PLATFORM_FIELDS = ['cpu', 'engines', 'files', 'license', 'main', 'name', 'os', 'publishConfig',
+// 'version'];`"*. **THE THREE ADDED ARE `homepage` · `repository` · `bugs`** — the fields `PUB-DD-7`'s own
+// reversal column writes *"the moment a remote exists"* (`docs/specs/storeroom-publish/contract.md §0.3`),
+// **and the remote is the registry's own `422`: *"`repository.url` is `""`, expected to match
+// `https://github.com/LittleKingsguard/Provident-Storeroom` from provenance"*.** **THE CENSUS GROWS RATHER
+// THAN THE ASSERTION LOOSENING** — the assertion below stays a TWO-DIRECTIONAL exact set equality — **AND THE
+// WIDENING IS NOT VACUOUS: three further controls, one per added field, each dropping ONE of them from ONE
+// scratch manifest, are measured and each MUST FAIL** (`§18` of the red set's record).
+const PLATFORM_FIELDS = [
+  'bugs', 'cpu', 'engines', 'files', 'homepage', 'license', 'main', 'name', 'os', 'publishConfig',
+  'repository', 'version',
+];
 
 /** Every tracked platform manifest, read at its own bytes. */
 function readPlatformManifests() {
@@ -1055,7 +1075,9 @@ function assertPlatformPairingAndNotice(manifests) {
     assert.ok(fields.includes('LICENSE') || fields.includes('LICENSE.txt'),
       `${label}: distribution.md §3.2 item 5 — the allowlist carries the licence copy, or the artefact ships no notice`);
     assert.deepEqual(Object.keys(manifest).sort(), [...PLATFORM_FIELDS].sort(),
-      `${label}: the nine declared fields and no field not declared`);
+      `${label}: the TWELVE declared fields and no field not declared — the nine the platform artefact `
+      + 'always carried, PLUS `homepage` · `repository` · `bugs`, the three `PUB-DD-7` writes "the moment a '
+      + 'remote exists"; a manifest MISSING ONE OF THE THREE still FAILS this assertion');
   }
 }
 
@@ -1085,15 +1107,28 @@ generator('NG-PUB-H', 'a platform manifest\'s os/cpu match its name, and its fil
   const omittedNode = base.map((m) => (m.label === 'linux-x64'
     ? { ...m, manifest: { ...m.manifest, files: (m.manifest.files ?? []).filter((f) => f !== 'storeroom_js_binding.node') } }
     : m));
+  // **⟶ THE WIDENED CENSUS'S OWN CONTROLS, ONE PER FIELD THE EXTENSION ADDED** (`§18`; `PUB-DD-7`'s
+  // reversal column). **EACH DROPS EXACTLY ONE OF THE THREE FROM EXACTLY ONE SCRATCH MANIFEST AND MUST
+  // FAIL THE SAME PROPERTY**: without them the widened census would be a list that grew while its teeth
+  // did not, because a `deepEqual` at twelve is only worth the twelve it can refuse.
+  const droppedMetadata = (label, field) => base.map((m) => {
+    if (m.label !== label) return m;
+    const { [field]: _dropped, ...rest } = m.manifest;
+    return { ...m, manifest: rest };
+  });
   const controls = {
     'control-os-cpu-contradict-the-name': () => assertPlatformPairingAndNotice(wrongPair),
     'control-files-omit-the-.node': () => assertPlatformPairingAndNotice(omittedNode),
+    'control-drops-repository': () => assertPlatformPairingAndNotice(droppedMetadata('linux-x64', 'repository')),
+    'control-drops-homepage': () => assertPlatformPairingAndNotice(droppedMetadata('darwin-x64', 'homepage')),
+    'control-drops-bugs': () => assertPlatformPairingAndNotice(droppedMetadata('win32-x64', 'bugs')),
   };
   for (const [name, control] of Object.entries(controls)) {
     const result = measureAgainst('NG-PUB-H', name, control);
     assert.equal(result.verdict, 'FAIL',
-      `${name} DOES NOT FAIL THIS GENERATOR — it contradicts the name or drops the \`.node\` and the `
-      + 'generator answered PASS, so the cell cannot fail (PUB-R-5)');
+      `${name} DOES NOT FAIL THIS GENERATOR — it contradicts the name, drops the \`.node\`, or drops one of `
+      + 'the three metadata fields the census declares, and the generator answered PASS, so the cell cannot '
+      + 'fail (PUB-R-5)');
     recordControl(name, `FAIL (required) → ${result.why}`);
   }
 });

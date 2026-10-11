@@ -127,6 +127,131 @@ const GEN_TAIL = 'is not reachable at construction, the path must exist or the a
 const gen = (subject) => `'${subject}' ${GEN_TAIL}`;
 
 // ---------------------------------------------------------------------------------------------
+// **⟶ RE-CUT 2026-10-11 BY THE METADATA-CELL PASS (`role_test_writer`, BOUNDED THREE-CELL PASS):
+// `PUB-DD-7`'s REVERSAL COLUMN IS NOW OPERATIVE, AND THE THREE METADATA FIELDS ARE ASSERTED WHERE THEY
+// STAND RATHER THAN WHERE THEY WERE DECLARED ABSENT.**
+//
+// THE CELL THAT CARRIED THE OLD READING IS RE-EMITTED HERE VERBATIM SO `git diff` HAS NOTHING TO RECOVER:
+// `contract.md §2.5` item 1 reads *"`repository` · `homepage` · `bugs` ARE DECLARED ABSENT. `[M]` this
+// repository carries no remote this project's own records name, so an immutable manifest field naming a path
+// that does not resolve is forbidden by the project's own citation rule; the three fields are therefore ABSENT
+// from the manifest and their absence is the declaration (`PUB-DD-7`)"*, and `PUB-DD-7`'s own `DECLARED
+// DEFAULT` cell reads *"`repository`/`homepage`/`bugs` are DECLARED ABSENT rather than guessed"*.
+//
+// **THE AUTHORITY IS THAT ROW'S OWN REVERSAL CELL, READ AT ITS BYTES: *"the three metadata fields are written
+// the moment a remote exists"*** (`docs/specs/storeroom-publish/contract.md §0.3` · `PUB-DD-7`, the reversal
+// column, whose `alt` price is *"any host, one line"*). **AND THE FACT THAT REVERSAL WAITED FOR ARRIVED AS A
+// REFUSAL RATHER THAN AS A REMOTE: THE STAGED RUN WAS REFUSED `422` — *"Failed to validate repository
+// information: package.json: `repository.url` is `""`, expected to match
+// `https://github.com/LittleKingsguard/Provident-Storeroom` from provenance"* — SO THE REGISTRY'S PROVENANCE
+// VERIFICATION **REQUIRES** `repository.url` TO MATCH THE PROVENANCE'S SOURCE REPOSITORY, and the remote the
+// reversal names is thereby a MEASURED fact rather than a guess** (`release.md §6.7`; `PUB-DD-30`). **THE
+// ABSENCE WAS NEVER THE RULE; IT WAS A PRICED DEFAULT WAITING FOR EXACTLY THIS FACT** — which is why the
+// cells below assert the three fields PRESENT and RESOLVING, and why `§5.7`'s refusal (*"a
+// `repository`/`homepage`/`bugs` field naming a path that does not resolve"*) is KEPT rather than deleted:
+// it is still true, and it is now MET by the shipped values rather than by their absence.
+// ---------------------------------------------------------------------------------------------
+
+/** The provenance's own source repository, pinned ONCE and as a LITERAL, not read from the tree. */
+const PROVENANCE_SOURCE = 'https://github.com/LittleKingsguard/Provident-Storeroom';
+
+/**
+ * Canonicalise a manifest repository URL to the provenance's own spelling, or answer `null` when the value
+ * names no repository at all. **A URL THAT DOES NOT RESOLVE — `undefined`, an empty string, a bare path, a
+ * placeholder — CANONICALISES TO A VALUE THAT IS NOT `PROVENANCE_SOURCE`, so the predicate below is what
+ * makes `§5.7`'s refusal and `PAR-PUB-13`'s placeholder refusal MEASURABLE rather than argued.**
+ */
+function canonicalRepositoryUrl(url) {
+  if (typeof url !== 'string') return null;
+  const trimmed = url.trim();
+  if (trimmed === '') return null;
+  const stripped = trimmed.replace(/^git\+/, '').replace(/\.git$/, '');
+  const scp = /^(?:git@|ssh:\/\/git@)[^/:]+[:/]([^/]+\/[^/]+)$/.exec(stripped);
+  if (scp) return `https://github.com/${scp[1]}`;
+  return stripped;
+}
+
+/**
+ * THE PROPERTY, APPLIED TO A SET OF MANIFESTS — the six shipped manifests and any scratch control alike, so
+ * the drive and its controls cannot drift apart. **BOTH HALVES ARE ASSERTED: THE CENSUS (the declared field
+ * set, exactly) IS DRIVEN BY THE CALLER `Object.keys`-by-`Object.keys`, AND THE VALUES (the three metadata
+ * fields resolving to the provenance's own source repository) ARE DRIVEN HERE.**
+ */
+function assertMetadataResolvesToProvenance(manifests, declaredFields) {
+  for (const { label, manifest } of manifests) {
+    // (1) THE CENSUS — the declared set, now TWELVE, EXACTLY, and no field not declared.
+    assert.deepEqual(Object.keys(manifest).sort(), [...declaredFields].sort(),
+      `${label}: the TWELVE declared fields (the nine the platform artefact always carried, PLUS \`homepage\` · `
+      + '`repository` · `bugs`, which `PUB-DD-7`\'s reversal column writes "the moment a remote exists" and '
+      + 'which the registry\'s own provenance verification at `422` requires to match the provenance source) '
+      + 'and no field not declared');
+    // (2) THE VALUES — `PUB-DD-7` / `distribution.md §5`: the three fields resolve to the provenance's own
+    // source repository. A placeholder, a bare path or an absent field does NOT (PAR-PUB-13/14/15).
+    assert.equal(canonicalRepositoryUrl(manifest.repository?.url), PROVENANCE_SOURCE,
+      `${label}: \`repository.url\` resolves to the provenance's own source repository — the registry's `
+      + '`422` reads `repository.url` against the provenance, and `PUB-DD-7` writes the field the moment a '
+      + 'remote exists');
+    assert.equal(manifest.repository?.type, 'git',
+      `${label}: \`repository.type\` reads \`git\`, the transport the URL above is spelled in`);
+    assert.equal(canonicalRepositoryUrl(manifest.homepage), `${PROVENANCE_SOURCE}#readme`,
+      `${label}: \`homepage\` resolves to the same repository's own entry point (PUB-DD-7)`);
+    assert.equal(canonicalRepositoryUrl(manifest.bugs?.url), `${PROVENANCE_SOURCE}/issues`,
+      `${label}: \`bugs.url\` resolves to the same repository's own issue tracker (PUB-DD-7)`);
+    assert.ok(!/example\.(com|org|net)|localhost|\bTODO\b|https?:\/\/\s*$/i.test(JSON.stringify([
+      manifest.repository?.url, manifest.homepage, manifest.bugs?.url,
+    ])), `${label}: PAR-PUB-13/14/15 — none of the three is a PLACEHOLDER: a placeholder URL is refused, and `
+      + 'these three are measured against the provenance source rather than trusted for being present');
+  }
+}
+
+/** The three fields' declaration, ONCE, so the cell and its controls read one spelling of it. */
+const SCRATCH_UNRESOLVING_METADATA = {
+  repository: { type: 'git', url: 'https://example.com/not-this-repository' },
+  homepage: 'https://example.com/not-this-repository#readme',
+  bugs: { url: 'https://example.com/not-this-repository/issues' },
+};
+
+/**
+ * **THE PLATFORM MANIFESTS' DECLARED SET, ONCE: NINE → TWELVE** (`§3.2`; `PUB-DD-7`; `PUB-DD-11`;
+ * `PUB-DD-24`). The nine are the fields a platform artefact has always declared — `cpu` · `engines` ·
+ * `files` · `license` · `main` · `name` · `os` · `publishConfig` · `version` — and the extension is
+ * `homepage` · `repository` · `bugs`: **the same three `PUB-DD-7` writes *"the moment a remote exists"*, at
+ * the five platform manifests and not only at the main package's**, because the registry reads
+ * `repository.url` against the provenance FOR EVERY ARTEFACT IT ACCEPTS. **THE CENSUS GROWS RATHER THAN THE
+ * ASSERTION LOOSENING: the assertion is still an EXACT SET EQUALITY (`deepEqual` over sorted keys, BOTH
+ * DIRECTIONS), so a manifest carrying a thirteenth field, or dropping one of the twelve, goes red here
+ * exactly as it did before the extension.**
+ */
+const PLATFORM_MANIFEST_FIELDS = [
+  'bugs', 'cpu', 'engines', 'files', 'homepage', 'license', 'main', 'name', 'os', 'publishConfig',
+  'repository', 'version',
+];
+
+/**
+ * **THE MAIN PACKAGE'S DECLARED SET — SIXTEEN FIELDS, and the three `PUB-DD-7` fields are among them**
+ * (`§2.1`–`§2.5`; `PUB-DD-1`, `PUB-DD-3`, `PUB-DD-7`, `PUB-DD-21`; `distribution.md §6`). **READ AT THE TREE
+ * AND PRINTED HERE SO THE CENSUS IS A DECLARED SET RATHER THAN A COUNT**: `author` · `bugs` · `description` ·
+ * `engines` · `exports` · `files` · `homepage` · `keywords` · `license` · `name` · `optionalDependencies` ·
+ * `publishConfig` · `repository` · `type` · `types` · `version`.
+ *
+ * **AND THE ARITHMETIC, AT `parameter-semantics.md`'s OWN CELLS AND AT THIS PASS'S OWN COUNT:
+ * `12` manifest fields (`PAR-PUB-1`…`PAR-PUB-12` — `name` · `version` · `files` · `types` · `exports` ·
+ * `engines` · `license` · `optionalDependencies` · `publishConfig` · `description` · `keywords` ·
+ * `author`) + `3` metadata fields (`PAR-PUB-13`…`PAR-PUB-15`) + `1` realm field (`PAR-PUB-16`, `type`) =
+ * `16`, and the manifest's own sixth key is `optionalDependencies` — the five exact pins, read at the
+ * coupling's own cell — so the manifest carries `12 + 3 + 1 = 16` ✓ and the census here is the sixteen the
+ * declaration names and no more.** **THE THREE ARE NO LONGER A DECLARED ABSENCE: that part's OWN table now
+ * reads `PAR-PUB-13` *"`repository` — DECLARED, WITH THE REMOTE THE REGISTRY NAMED (as-filed: `DECLARED
+ * ABSENT`)"*, and the same for `PAR-PUB-14` and `PAR-PUB-15` — the reversal is written in the parameter
+ * table as well as in `PUB-DD-7`'s reversal column, and `§2.5`'s own reconciliation clause writes it in the
+ * contract at `15` supplied + `0` absent (`15 + 0 = 15` ✓, where the as-filed terms were `12 + 3`).**
+ */
+const MAIN_MANIFEST_FIELDS = [
+  'author', 'bugs', 'description', 'engines', 'exports', 'files', 'homepage', 'keywords', 'license', 'name',
+  'optionalDependencies', 'publishConfig', 'repository', 'type', 'types', 'version',
+];
+
+// ---------------------------------------------------------------------------------------------
 // **⟶ WIDENED 2026-10-11 BY THE PROHIBITION-GAP PASS (`role_test_writer`, BOUNDED ONE-INSTRUMENT PASS): THE
 // REFUSAL LIST WAS WRITTEN AGAINST THE VERB THE PACKAGE USED TO REACH FOR, THE RELEASE MOVED TO A STAGED
 // VERB, AND THE PROHIBITION DID NOT FOLLOW IT.** **AS FILED, AT ITS THREE SITES (`2310`, `2744`, `2792`), THE
@@ -1978,12 +2103,20 @@ cell('P-PUB-6', 'S-SCOPE the five spellings agree across every home the contract
 // ---------------------------------------------------------------------------------------------
 // STATES: `files` with and without `build/Release` · a binary shipped or not · the `types` field and the
 //   `.d.ts`'s presence · the `status` union's carriage · the licence field and its four sites · the six
-//   artefacts' notices · the three declared-absent metadata fields · a secret in a tracked byte
+//   artefacts' notices · **the THREE metadata fields PRESENT and each resolving to the provenance's own
+//   source repository** · a secret in a tracked byte
 // FAIL-STATES: `build/Release` shipped · any binary in the tarball · a `.d.ts` enumerating the store's
 //   closed set immutably · a generated `.d.ts` · a `status` type admitting no unknown member · a licence
 //   field disagreeing with the four sites · a third spelling · a fifth declaration SITE · a `LICENSE` byte
-//   under `bindings/js/` · a platform artefact with no notice · an unresolving `repository`/`homepage`/
-//   `bugs` · a secret written into a tracked byte (`contract.md §5.7`)
+//   under `bindings/js/` · a platform artefact with no notice · **an unresolving `repository`/`homepage`/
+//   `bugs` — STILL TRUE, STILL UNMET, and now MET BY THE SHIPPED VALUES rather than by their absence** ·
+//   **a PLACEHOLDER URL (`PAR-PUB-13`–`15`, refused and driven below) — STILL UNMET** · a secret written
+//   into a tracked byte (`contract.md §5.7`)
+// **THE AS-FILED STATE LINE READ** *"the three declared-absent metadata fields"* **AND ITS FAIL-STATE READ**
+// *"an unresolving `repository`/`homepage`/`bugs`"* — **BOTH RE-EMITTED HERE VERBATIM SO `git diff` HAS
+// NOTHING TO RECOVER. THE FIRST IS DISPOSED OF: `PUB-DD-7`'s reversal column writes the three fields *"the
+// moment a remote exists"*, and the registry's own `422` supplies the remote. THE SECOND STANDS UNCHANGED
+// AND IS NOW THE CELL'S OWN BITE** — see the scratch control inside the `S-MANIFEST` cell below.
 
 cell('P-PUB-7', 'S-MANIFEST `build/Release` leaves `files`, and no binary ships', async () => {
   // `§2.1` item 1 / `PUB-DD-1` / `PAR-PUB-3`: the allowlist is `index.mjs` · `README.md` · `index.d.ts` and
@@ -2274,19 +2407,59 @@ cell('P-PUB-7', 'S-MANIFEST the main package\'s identity, realm and one ESM entr
   assert.deepEqual(Object.keys(exports_['.'] ?? {}), ['import'], 'no CJS arm, no wildcard, no deep import');
 });
 
-cell('P-PUB-7', 'S-MANIFEST the publish configuration, the declared absent metadata and the supplied fields', async () => {
+cell('P-PUB-7', 'S-MANIFEST the publish configuration, the supplied fields and the three metadata fields that RESOLVE to the provenance source', async () => {
   // `§2.5` / `distribution.md §6.1`–`§6.2` / `PAR-PUB-6`, `PAR-PUB-9`–`PAR-PUB-15`: `publishConfig` is
-  // `{ "access": "public" }`; `repository` · `homepage` · `bugs` are DECLARED ABSENT rather than guessed;
-  // `description` · `keywords` · `author` are SUPPLIED without a remote.
+  // `{ "access": "public" }`; **`repository` · `homepage` · `bugs` are PRESENT AND EACH RESOLVES TO THE
+  // PROVENANCE'S OWN SOURCE REPOSITORY** — the `PUB-DD-7` reversal column's own clause, *"the three metadata
+  // fields are written the moment a remote exists"*, read with the registry's `422` that supplies the
+  // remote; `description` · `keywords` · `author` are SUPPLIED beside them.
+  //
+  // **⟶ RE-CUT 2026-10-11 BY THE METADATA-CELL PASS (`role_test_writer`): THE AS-FILED TITLE IS RE-EMITTED
+  // HERE VERBATIM SO `git diff` HAS NOTHING TO RECOVER — *"`S-MANIFEST` the publish configuration, the
+  // declared absent metadata and the supplied fields"* — TOGETHER WITH THE PROSE THAT STOOD BESIDE IT,
+  // *"`repository` · `homepage` · `bugs` are DECLARED ABSENT rather than guessed"* AND THE THREE-LINE
+  // ABSENCE LOOP THAT DRIVES IT BELOW.** **WHAT REPLACES THEM IS NOT A WIDENING OF THE CELL BUT THE SAME
+  // PROPERTY READ AT THE TREE THE REGISTRY MADE NECESSARY: the census is the declared set and the values are
+  // the resolved URLs, and BOTH are driven at the MAIN package AND at all FIVE platform manifests** —
+  // because `PUB-DD-7`'s clause is a clause about the manifests rather than about one of them, and because
+  // the `S-TAG` cell's own census (now twelve) is read against the same five.
+  //
+  // **AND `§5.7`'s REFUSAL IS KEPT AND MADE MEASURABLE RATHER THAN DELETED**: *"a
+  // `repository`/`homepage`/`bugs` field naming a path that does not resolve"* is STILL a failure-list
+  // member, and `PAR-PUB-13`–`15`'s *"a placeholder URL"* is STILL unmet by these values. **THE SCRATCH
+  // CONTROL AT THE FOOT OF THIS CELL DRIVES THE SAME PREDICATE AGAINST A PLACEHOLDER SET AND REQUIRES IT TO
+  // THROW**, so the good values above are asserted as RESOLVING rather than merely as PRESENT.
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
   assert.deepEqual(manifest.publishConfig ?? null, { access: 'public' },
     '`PAR-PUB-9` / `A82`: the release is PUBLIC, and the field is what declares it');
   assert.equal(manifest.publishConfig?.registry, undefined, 'no registry override is declared');
   assert.equal(manifest.engines?.node, '>=18.0.0', '`PAR-PUB-6`: the declared floor, and no ABI floor');
-  for (const field of ['repository', 'homepage', 'bugs']) {
-    assert.equal(manifest[field], undefined,
-      `\`PAR-PUB-13\`–\`15\`: \`${field}\` is DECLARED ABSENT; a field naming a path that does not resolve is a finding`);
-  }
+  // **THE THREE FIELDS, PRESENT AND RESOLVING — the main package and the five platform artefacts, read
+  // through ONE predicate so the six cannot be right five times and wrong once.** The platform manifests'
+  // declared set is the twelve the `S-TAG` cell asserts; the main package's is its own and is read at its own
+  // keys below.
+  assertMetadataResolvesToProvenance(
+    [{ label: 'the main package (`bindings/js/package.json`)', manifest }],
+    MAIN_MANIFEST_FIELDS,
+  );
+  const platformManifests = readdirSync(join(PKG_DIR, 'platforms')).sort().map((label) => ({
+    label,
+    manifest: JSON.parse(readFileSync(join(PKG_DIR, 'platforms', label, 'package.json'), 'utf8')),
+  }));
+  assert.equal(platformManifests.length, 5, 'the five platform artefacts are the five manifests read here');
+  assertMetadataResolvesToProvenance(platformManifests, PLATFORM_MANIFEST_FIELDS);
+  // **THE REFUSAL, DRIVEN — `§5.7` / `PAR-PUB-13`–`15`: a field naming a path that does not resolve is a
+  // FINDING, and this is what makes the assertions above non-vacuous.** The control is a SCRATCH manifest
+  // object and never a byte under the repository.
+  assert.throws(
+    () => assertMetadataResolvesToProvenance(
+      [{ label: 'a scratch manifest whose three fields name a path that does not resolve', manifest: SCRATCH_UNRESOLVING_METADATA }],
+      Object.keys(SCRATCH_UNRESOLVING_METADATA).sort(),
+    ),
+    /repository\.url.*resolves to the provenance's own source repository/s,
+    '`§5.7` / `PAR-PUB-13`–`15`: an unresolving `repository.url` — and a PLACEHOLDER URL — IS REFUSED, so the '
+    + 'shipped values above are read as resolving rather than as present',
+  );
   assert.equal(typeof manifest.description, 'string', '`PAR-PUB-10`: a description is supplied');
   assert.ok((manifest.description ?? '').length > 40, 'a LONG description, naming the unit and the deliverable');
   assert.ok(Array.isArray(manifest.keywords) && manifest.keywords.length > 0, '`PAR-PUB-11`: keywords are supplied');
@@ -2542,8 +2715,37 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
       const manifestPath = join(platformsDir, label, 'package.json');
       assert.ok(existsSync(manifestPath), `${label} carries its own tracked package.json`);
       const m = JSON.parse(readFileSync(manifestPath, 'utf8'));
-      assert.deepEqual(Object.keys(m).sort(), ['cpu', 'engines', 'files', 'license', 'main', 'name', 'os', 'publishConfig', 'version'].sort(),
-        `${label}: the nine declared fields and no field not declared`);
+      // **⟶ RE-CUT 2026-10-11 BY THE METADATA-CELL PASS (`role_test_writer`): THE DECLARED SET IS TWELVE,
+      // NOT NINE, AND THE CENSUS GROWS RATHER THAN THE ASSERTION LOOSENING.**
+      //
+      // **AS FILED, AND RE-EMITTED HERE VERBATIM SO `git diff` HAS NOTHING TO RECOVER, THE ASSERTION READ:**
+      // *"`assert.deepEqual(Object.keys(m).sort(), ['cpu', 'engines', 'files', 'license', 'main', 'name',
+      // 'os', 'publishConfig', 'version'].sort(), \`${label}: the nine declared fields and no field not
+      // declared\`)`"*.
+      //
+      // **WHAT THE EXTENSION IS FOR, NAMED FIELD BY FIELD: `homepage`, `repository` and `bugs`** — the three
+      // `PUB-DD-7` writes, at that row's OWN REVERSAL COLUMN: *"the three metadata fields are written the
+      // moment a remote exists"*. **THE FIVE PLATFORM ARTEFACTS ARE ACCEPTED BY THE SAME REGISTRY AS THE MAIN
+      // PACKAGE, SO THE SAME VERIFICATION READS THEIR `repository.url` AGAINST THE PROVENANCE: the staged run
+      // was refused `422` — *"Failed to validate repository information: package.json: `repository.url` is
+      // `""`, expected to match `https://github.com/LittleKingsguard/Provident-Storeroom` from provenance"* —
+      // and that refusal is a fact about THE MANIFEST THE REGISTRY READS, whichever of the six it is** (`§0.3`
+      // · `PUB-DD-7`; `release.md §6.7`; `PUB-DD-30`).
+      //
+      // **AND WHY THE CENSUS MUST GROW RATHER THAN THE ASSERTION LOOSEN: THIS CELL'S PROPERTY IS *"the
+      // manifests carry EXACTLY the declared field set and NO MORE"*, which is a TWO-DIRECTIONAL equality.**
+      // A `deepEqual` against a set that OMITS the three would have to become a `subset`-shaped or
+      // `includes`-shaped check — and then a manifest could carry the three fields, carry a SEVENTH field no
+      // clause declares, or carry a field spelled to look declared, and this cell would answer PASS. **THE
+      // CENSUS IS THEREFORE RE-MEASURED AT THE DECLARED SET'S NEW SIZE, AND THE VALUES ARE ASSERTED BESIDE IT
+      // (`assertMetadataResolvesToProvenance`) SO THAT "declared" MEANS "DECLARED WITH THE REMOTE THE
+      // REGISTRY NAMED" AND NOT MERELY "PRESENT".**
+      assert.deepEqual(Object.keys(m).sort(), [...PLATFORM_MANIFEST_FIELDS].sort(),
+        `${label}: the TWELVE declared fields and no field not declared — the nine the platform artefact `
+        + 'always carried, PLUS `homepage` · `repository` · `bugs`, the three `PUB-DD-7` writes "the moment a '
+        + 'remote exists" (the registry\'s `422` is the remote), asserted as an EXACT set equality in both '
+        + 'directions so the census grows rather than the assertion loosening');
+      assertMetadataResolvesToProvenance([{ label, manifest: m }], PLATFORM_MANIFEST_FIELDS);
       assert.equal(m.license, 'AGPL-3.0', '`PAR-PUB-22`: the platform manifest\'s own field reads `AGPL-3.0`');
       assert.deepEqual(m.publishConfig, { access: 'public' }, '`PAR-PUB-24`: a scoped name is private by default');
       // **⟶ REPAIRED BY THE RED-SET REPAIR PASS (`PUB-RED-2`, `PUB-R-1`): THIS CELL REQUIRED THE OMISSION
