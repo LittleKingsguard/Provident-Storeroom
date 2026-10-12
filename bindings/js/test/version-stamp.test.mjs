@@ -134,6 +134,15 @@ const BUILD_SYSTEM_SET = ['CARGO_CFG_TARGET_OS', 'CARGO_CFG_TARGET_ENV', 'CARGO_
  *  item `1` — the manifest the carrier reads. */
 const DIRECTIVE_NAME = 'STOREROOM_JS_PACKAGE_VERSION';
 const MANIFEST_REL_TO_CRATE = 'package.json'; // the crate is `bindings/js/`, the manifest is `package.json` beside it
+// **AND THE MANIFEST'S NAME IS MATCHED AS A WHOLE PATH SEGMENT AND NOT AS A SUBSTRING — THIS PASS (`S1`)
+// TIGHTENED THE READER'S OWN TEST, ON THE SAME GROUND THE SIBLING TRIGGER CELL TIGHTENED ITS OWN (`S3`):**
+// `text.includes('package.json')` is TRUE of `package.json.bak`, so the reader classified a read of a
+// BACKUP as a read of THE MANIFEST — which is how a carrier that prints a value taken from a second read
+// was admitted by the corrected relation on its first measurement (the battery's `B7` row). The clause's
+// subject is the manifest ITSELF (`release.md §2.4` item `1`: *"READS `bindings/js/package.json`'s
+// `version` ITSELF"*), so the name must be terminated: not followed by a word character, a dot or a
+// hyphen. `package.json"` and `package.json)` are terminations; `package.json.bak` is not.
+const MANIFEST_SEGMENT = new RegExp(`${MANIFEST_REL_TO_CRATE.replace(/\./g, '\\.')}(?![\\w.-])`);
 
 const BUILD_RS = join(PKG_DIR, 'build.rs');
 const FACADE_RS = join(PKG_DIR, 'src', 'facade.rs');
@@ -209,29 +218,52 @@ const FACADE_RS_CODE = stripRustComments(FACADE_RS_TEXT);
  * **NO FACT IS INFERRED FROM A PHRASE SEARCH ALONE**: the two path/read facts are reported as the
  * expressions themselves, so a cell compares RELATIONS and a reader can see what was matched.
  */
-function declaredDirective() {
-  const print = /println!\(\s*"cargo:rustc-env=([A-Z_]+)=\{([A-Za-z_][A-Za-z0-9_]*)\}"/.exec(BUILD_RS_CODE);
-  if (print === null) return null;
-  const [, name, slot] = print;
-  const bound = new RegExp(`let\\s+${slot}\\s*=\\s*(.+?);`).exec(BUILD_RS_CODE);
-  if (bound === null) {
-    // The slot is printed but binds nothing this reader can resolve. Reported rather than invented: the
-    // directive is EMITTED (its name is a fact of its own bytes) and every relation below is ABSENT.
-    return { name, slot, valueExpression: null, manifestPathExpression: null, manifestReadExpression: null,
-      viaManifestDir: false, viaManifestFile: false };
+// **⟶ THE READER IS PARAMETRIZED OVER ITS SOURCE TEXT, AND THAT IS AN INSTRUMENT CHANGE AND NOT A
+// WIDENING — it exists so the relation below can be ASKED OF A CARRIER THAT IS NOT THIS TREE'S.** The
+// reader's first form read the module-level `BUILD_RS_CODE` alone, so the only carrier any cell could
+// put to it was the file standing in the tree: the relation's DISCRIMINating POWER was therefore
+// unfalsifiable in place, and a shape the relation cannot separate could not be exhibited at all. Every
+// call in this file now passes a source EXPLICITLY, and the one call that passes `BUILD_RS_CODE` is the
+// real carrier's (`D-GP-SVM-5`; this pass's own finding, S1).
+// **TWO FACTS ABOUT A CARRIER'S BYTES, EACH DECIDED BY ONE RULE AND SHARED BY EVERY CELL THAT ASKS FOR
+// IT** — so the directive's relation and the re-run trigger's relation cannot drift apart, and so a
+// carrier that declares its triggers and prints nothing is classified by the same instrument as one that
+// does both. **A READ IS CLASSIFIED BY THE FILE ITS ARGUMENT NAMES** (`isManifest`), and **AN IDENTIFIER IS
+// `CARGO_MANIFEST_DIR`-BUILT WHERE ITS OWN VALUE RESOLVES TO A `CARGO_MANIFEST_DIR` READ**, transitively.
+function readsOf(sourceText, expand, namesManifestDir) {
+  const reads = [];
+  for (const m of sourceText.matchAll(/let\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*fs::read(?:_to_string)?\(/g)) {
+    const at = m.index + m[0].length;
+    let depth = 1;
+    let end = at;
+    for (; end < sourceText.length && depth > 0; end += 1) {
+      if (sourceText[end] === '(') depth += 1;
+      else if (sourceText[end] === ')') depth -= 1;
+    }
+    const arg = sourceText.slice(at, end - 1).trim();
+    reads.push({ name: m[1], arg, isManifest: arg !== '' && namesManifestDir(expand(arg)) });
   }
-  const boundExpression = bound[1];
-  // **THE BINDING IS RESOLVED THROUGH THE PRINTED SLOT, SO AN INDIRECT BINDING IS NOT A FALSE ABSENCE**:
-  // `let version = &rest[2..7];` prints `{version}`, and the `&` prefix is the reference the printing does
-  // not consume. The reported expression is the one whose VALUE is printed.
-  const valueExpression = boundExpression.replace(/^&/, '').trim();
+  return reads;
+}
+
+function dirBuiltOf(bindings, expand) {
+  return [...bindings.keys()].filter((id) => /CARGO_MANIFEST_DIR/.test(expand(bindings.get(id))));
+}
+
+function declaredDirective(sourceText, { legacyName = false } = {}) {
+  // **THE NAMES, THE BINDINGS AND THE `CARGO_MANIFEST_DIR` CLASSIFICATION ARE DECIDED BEFORE THE DIRECTIVE
+  // IS EVEN LOOKED FOR, AND THAT ORDER IS THIS PASS'S (`S3`):** the re-run trigger's relation is a fact of
+  // the SAME file and is decidable WITHOUT a directive — a carrier that declares its two triggers and
+  // prints nothing is a carrier the trigger battery must be able to drive (its `T-real` member is exactly
+  // that), and a reader that returned `null` before classifying would have reported the trigger's own
+  // directory identifiers ABSENT on it, manufacturing the absence it was asked to measure.
   // Any `let <ident> = <expr>;` in the file, so a path variable can be resolved BY NAME rather than
   // matched by spelling — the declared carrier reaches its path through TWO hops (`let manifest =
   // env::var("CARGO_MANIFEST_DIR")`, then `format!("{manifest}/package.json")`), and a reader that did not
   // resolve names would report the path ABSENT on a carrier that builds it — an absence manufactured by
   // the instrument, which is the very fault this correction exists to remove.
   const bindings = new Map();
-  for (const m of BUILD_RS_CODE.matchAll(/let\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([^;]*);/g)) bindings.set(m[1], m[2].trim());
+  for (const m of sourceText.matchAll(/let\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([^;]*);/g)) bindings.set(m[1], m[2].trim());
   /** Every identifier the expression names, replaced by its own binding, repeatedly until nothing changes —
    *  i.e. THE EXPRESSION THE COMPILER SEES, as text. A name that binds nothing is left standing (it is
    *  then a parameter or an outer binding), and the walk stops as soon as a round changes nothing, so a
@@ -248,7 +280,36 @@ function declaredDirective() {
     }
     return text;
   }
-  const namesManifestDir = (text) => /CARGO_MANIFEST_DIR/.test(text) && text.includes(MANIFEST_REL_TO_CRATE);
+  // **`legacyName` REPRODUCES THIS READER'S PRE-PASS CLASSIFICATION SO THE BATTERY CAN SHOW WHAT THE PASS
+  // CHANGED**: with it, *"the manifest"* is `text.includes('package.json')` — which is TRUE of
+  // `package.json.bak` — and that is the test the reader itself stood on until `S1` corrected it.
+  const namesManifestDir = (text) => /CARGO_MANIFEST_DIR/.test(text)
+    && (legacyName ? text.includes(MANIFEST_REL_TO_CRATE) : MANIFEST_SEGMENT.test(text));
+  const print = /println!\(\s*"cargo:rustc-env=([A-Z_]+)=\{([A-Za-z_][A-Za-z0-9_]*)\}"/.exec(sourceText);
+  if (print === null) {
+    // **NO DIRECTIVE IS EMITTED, AND THE TWO FACTS THAT DO NOT DEPEND ON ONE ARE STILL REPORTED** — a
+    // carrier with no `cargo:rustc-env` line is exactly the shape of the trigger battery's `T-real`
+    // member, and a reader that answered a bare `null` there would leave the trigger's own relation
+    // unmeasurable. `name` is `null` and every directive-relation fact is ABSENT.
+    return { name: null, slot: null, valueExpression: null, manifestPathExpression: null,
+      manifestReadExpression: null, viaManifestDir: false, viaManifestFile: false,
+      reads: readsOf(sourceText, expand, namesManifestDir),
+      dirBuiltIdents: dirBuiltOf(bindings, expand), valueReachableIdents: [] };
+  }
+  const [, name, slot] = print;
+  const bound = new RegExp(`let\\s+${slot}\\s*=\\s*(.+?);`).exec(sourceText);
+  if (bound === null) {
+    // The slot is printed but binds nothing this reader can resolve. Reported rather than invented: the
+    // directive is EMITTED (its name is a fact of its own bytes) and every relation below is ABSENT.
+    return { name, slot, valueExpression: null, manifestPathExpression: null, manifestReadExpression: null,
+      viaManifestDir: false, viaManifestFile: false, reads: readsOf(sourceText, expand, namesManifestDir),
+      dirBuiltIdents: dirBuiltOf(bindings, expand), valueReachableIdents: [] };
+  }
+  const boundExpression = bound[1];
+  // **THE BINDING IS RESOLVED THROUGH THE PRINTED SLOT, SO AN INDIRECT BINDING IS NOT A FALSE ABSENCE**:
+  // `let version = &rest[2..7];` prints `{version}`, and the `&` prefix is the reference the printing does
+  // not consume. The reported expression is the one whose VALUE is printed.
+  const valueExpression = boundExpression.replace(/^&/, '').trim();
   // (ii) THE PATH: **THE CARRIER'S OWN EXPRESSION THAT BUILDS IT, REPORTED AS WRITTEN AND NOT AS EXPANDED.**
   // A DIRECT match is preferred over a resolved one, and the carriers' own order is searched before the
   // printed value's chain — otherwise a value that merely REACHES the path through its bindings would be
@@ -291,20 +352,55 @@ function declaredDirective() {
   // `format!("{manifest}/package.json")` — a nested call — and a reader that stopped at the first `)` would
   // PRINT a truncated expression and report the read as something other than what it is.
   let manifestReadExpression = null;
-  for (const m of BUILD_RS_CODE.matchAll(/\bfs::read(?:_to_string)?\(/g)) {
+  for (const m of sourceText.matchAll(/\bfs::read(?:_to_string)?\(/g)) {
     const at = m.index + m[0].length;
     let depth = 1;
     let end = at;
-    for (; end < BUILD_RS_CODE.length && depth > 0; end += 1) {
-      if (BUILD_RS_CODE[end] === '(') depth += 1;
-      else if (BUILD_RS_CODE[end] === ')') depth -= 1;
+    for (; end < sourceText.length && depth > 0; end += 1) {
+      if (sourceText[end] === '(') depth += 1;
+      else if (sourceText[end] === ')') depth -= 1;
     }
-    const arg = BUILD_RS_CODE.slice(at, end - 1).trim();
+    const arg = sourceText.slice(at, end - 1).trim();
     if (arg !== '' && namesManifestDir(expand(arg))) {
       manifestReadExpression = `fs::read_to_string(${arg})`;
       break;
     }
   }
+  // **EVERY READ THE CARRIER PERFORMS, EACH WITH THE FILE IT READS NAMED AS THE SUBJECT IT IS** — the
+  // fact the corrected relation (S1 below) is decided over, and the fact the pre-correction relation
+  // could not see: `release.md §2.4` item `1` makes the MANIFEST the stamp's source, so a cell that
+  // asks only *"was SOME read consumed?"* admits a carrier that reads the manifest and prints a value
+  // taken from a SECOND read. Each member carries `isManifest`, decided by the SAME
+  // `CARGO_MANIFEST_DIR`-built-path test the path and read facts above are decided by, so a read's
+  // subject is classified by one rule and not by two.
+  const reads = readsOf(sourceText, expand, namesManifestDir);
+  // **THE IDENTIFIERS THE PRINTED VALUE REACHES THROUGH `let` BINDINGS — A WALK OF THE REFERENCE GRAPH,
+  // WITH STRING LITERALS REMOVED SO THAT A WORD INSIDE A STRING IS NOT A REFERENCE.** The pre-correction
+  // relation was decided over `valueResolvedText`, a FOUR-ROUND TEXT SUBSTITUTION whose own fixed point can
+  // carry a name that a CYCLE merely re-introduced — which is the second half of `S1`: a name standing
+  // anywhere in that text is not a name the printed value is taken from. This walk is the fact the
+  // corrected relation is decided over: it starts from the printed expression's own references, follows
+  // each name to its `let`, and stops where a name binds nothing (a parameter, a function, a keyword).
+  const stripStringLiterals = (text) => String(text)
+    .replace(/r#+"[\s\S]*?"#+/g, '""')
+    .replace(/r"[\s\S]*?"/g, '""')
+    .replace(/"(?:[^"\\]|\\.)*"/g, '""')
+    .replace(/'(?:[^'\\]|\\.)*'/g, "''");
+  const referencedNames = (text) => new Set(
+    [...stripStringLiterals(text).matchAll(/\b([A-Za-z_][A-Za-z0-9_]*)\b/g)].map((m) => m[1]));
+  const reachableIdents = () => {
+    const seen = new Set();
+    const queue = [...referencedNames(valueExpression)];
+    while (queue.length > 0) {
+      const id = queue.pop();
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const own = bindings.get(id);
+      if (own === undefined) continue;
+      for (const next of referencedNames(own)) if (!seen.has(next)) queue.push(next);
+    }
+    return seen;
+  };
   return {
     name,
     slot,
@@ -320,6 +416,13 @@ function declaredDirective() {
     })(),
     manifestPathExpression,
     manifestReadExpression,
+    reads,
+    valueReachableIdents: [...reachableIdents()].sort(),
+    // **THE IDENTIFIERS WHOSE OWN VALUE IS BUILT FROM THE MANIFEST DIRECTORY, RESOLVED THROUGH THEIR
+    // BINDINGS** — the fact the re-run-trigger relation (S3 below) is decided over: `§6.1` item `7` asks
+    // for *"an ABSOLUTE path built from `CARGO_MANIFEST_DIR`"*, and *"built from"* is a fact about the
+    // identifier's own binding rather than about the spelling of the literal that interpolates it.
+    dirBuiltIdents: dirBuiltOf(bindings, expand),
     // **`viaManifestDir` / `viaManifestFile` KEEP THEIR SUBJECT AND LOSE THEIR ONE-HOP DEFECT**: they ask
     // whether the printed value is REACHED THROUGH the `CARGO_MANIFEST_DIR`-built manifest path, and that
     // question is answered over the RESOLVED text, because the declared carrier reaches the path through
@@ -327,11 +430,128 @@ function declaredDirective() {
     // kick-back named**, so the correction reaches this flag too — and it reports the same property, not a
     // weaker one: a value that does not stand on the manifest path still answers `false`.
     viaManifestDir: /CARGO_MANIFEST_DIR/.test(expand(valueExpression)),
-    viaManifestFile: expand(valueExpression).includes(MANIFEST_REL_TO_CRATE),
+    viaManifestFile: legacyName
+      ? expand(valueExpression).includes(MANIFEST_REL_TO_CRATE)
+      : MANIFEST_SEGMENT.test(expand(valueExpression)),
   };
 }
 
-const DIRECTIVE = declaredDirective();
+const DIRECTIVE = declaredDirective(BUILD_RS_CODE);
+
+// =============================================================================================
+// §2.4 THE CARRIER-SHAPE RELATION — DECIDED OVER A GIVEN SOURCE, SO IT CAN BE FAILED ON PURPOSE
+// =============================================================================================
+// **WHY THIS EXISTS, STATED AS THIS PASS'S OWN FINDING (`S1`):** the relation the `P-PUB-9::S-STAMP`
+// cell asserts was, before this pass, decidable over ONE carrier — the file standing in this tree —
+// because its reader read the module-level `BUILD_RS_CODE`. **A RELATION THAT CAN BE ASKED OF ONE
+// CARRIER CANNOT SHOW WHAT IT SEPARATES**, and the one shape it did not separate (a carrier that keeps
+// the manifest read standing and prints a value taken from a SECOND read) was invisible because of it:
+// the cell's part (4), `derived`, asked whether ANY identifier bound by a `let X = fs::read…` appeared
+// ANYWHERE in the resolved emission text — *"anywhere"* being the whole defect, since a name that
+// survives somewhere in a several-hop expansion is not a name the printed value is taken from.
+//
+// **THE RELATION, IN ITS PARTS, EACH NAMED FOR THE TERM OF THE CLAUSE IT DECIDES** (`release.md §2.4`
+// item `1`; `docs/specs/storeroom-js/package.md §6.1` item `2`):
+//   `emitted` — the `cargo:rustc-env`-class directive stands;
+//   `nameExact` — its NAME is `STOREROOM_JS_PACKAGE_VERSION` (`package.md §6.1` item `2`);
+//   `valueIsABinding` — the value is DERIVED (a binding printed into the directive), never a literal;
+//   `manifestPathBuilt` — the path is BUILT through `CARGO_MANIFEST_DIR` and carries `package.json`;
+//   `manifestReadStands` — the path IS READ (`§2.4` item `1`: *"READS … ITSELF"*);
+//   `derivedFromManifest` — **THE VALUE PRINTED IS DERIVED FROM THE MANIFEST THAT READ RETURNED** and
+//      not from any other read: the manifest read's own content binding must be consumed by the printed
+//      value's chain (`S1`'s correction);
+//   `extractedFromTheBytes` — the value performs an extraction over the manifest's own bytes
+//      (`§6.10` item `1`: the `version` FIELD is what the clause names);
+//   `viaManifestDir` · `viaManifestFile` — the value is REACHED through that path;
+//   `noForeignReadConsumed` · **NEW, AND THE CLAUSE'S OWN SUBJECT** — no read of a DIFFERENT file is
+//      consumed by the printed value: `§2.4` item `1` makes the MANIFEST the stamp's source, so a value
+//      taken from a second read is the refused form whatever the first read does.
+// **THE PRE-CORRECTION RELATION IS KEPT AND REPORTED BESIDE THE CORRECTED ONE** (`legacy`),
+// because the only way to show a correction closed a hole is to drive the SAME carrier through both and
+// print both answers. It is an instrument and not a claim: no cell decides anything by its answer.
+function carrierRelation(sourceText, { legacy = false } = {}) {
+  const d = declaredDirective(sourceText, { legacyName: legacy });
+  const reads = (d && d.reads) || [];
+  const manifestReads = reads.filter((r) => r.isManifest);
+  const foreignReads = reads.filter((r) => !r.isManifest);
+  const text = (d && d.valueResolvedText) || '';
+  const reachable = new Set((d && d.valueReachableIdents) || []);
+  /** A name appearing ANYWHERE in the resolved emission text — **THE PRE-CORRECTION TEST, KEPT VERBATIM
+   *  AS THE INSTRUMENT THAT STOOD HERE**: `contentNames.some((id) => \b id \b.test(valueResolvedText))`
+   *  over every read content binding in the file. Its answer is printed for every battery member and
+   *  decides nothing. */
+  const mentions = (id) => new RegExp(`\\b${id}\\b`).test(text);
+  const legacyDerived = reads.some((r) => mentions(r.name));
+  const fromManifestRead = manifestReads.some((r) => reachable.has(r.name));
+  const foreignConsumed = foreignReads.filter((r) => reachable.has(r.name)).map((r) => r.name);
+  const common = {
+    // **`emitted` MEANS THE DIRECTIVE IS PRINTED, AND THAT IS `name !== null` AND NOT `d !== null`.** This
+    // reader once answered a bare `null` when no `cargo:rustc-env` line stood in the source, so `d !== null`
+    // carried that meaning; this pass made it report the two facts that do NOT depend on a directive even
+    // when none is printed (`S3`: the trigger relation must be askable of such a carrier), so the OLD
+    // spelling of this part silently became TRUE for a carrier that prints nothing at all — **a part
+    // weakened by a change to the instrument's return shape, which is precisely the fault class this pass
+    // exists to remove and was caught by the battery row `B2`** (the hard-coded emitter, which stopped
+    // being refused on `emitted`). The part now asks the question it always asked.
+    emitted: d !== null && d.name !== null,
+    nameExact: d !== null && d.name === DIRECTIVE_NAME,
+    valueIsABinding: d !== null && d.valueExpression !== null && d.valueExpression !== '',
+    manifestPathBuilt: d !== null && d.manifestPathExpression !== null,
+    manifestReadStands: d !== null && d.manifestReadExpression !== null,
+    extractedFromTheBytes: d !== null && BuildRsExtraction.test(text),
+    viaManifestDir: d !== null && d.viaManifestDir === true,
+    viaManifestFile: d !== null && d.viaManifestFile === true,
+  };
+  const corrected = { ...common, derivedFromManifest: fromManifestRead,
+    noForeignReadConsumed: foreignConsumed.length === 0 };
+  const preCorrection = { ...common, derivedFromManifest: legacyDerived };
+  const parts = legacy ? preCorrection : corrected;
+  const failed = (set) => Object.entries(set).filter(([, ok]) => !ok).map(([part]) => part);
+  return {
+    directive: d, reads, manifestReads, foreignReads, foreignConsumed, legacyDerived,
+    parts, refusedBy: failed(parts), legacyRefusedBy: failed(preCorrection),
+    refused: failed(parts).length > 0,
+  };
+}
+
+// =============================================================================================
+// §2.4 item `5` / §6.1 item `7` — THE RE-RUN TRIGGER, DECIDED BY THE CLAUSE'S OWN REQUIREMENT
+// =============================================================================================
+// **THE CLAUSE'S OWN WORDS, APPLIED RATHER THAN SUBSTRING-CHECKED**: *"THE CARRIER MUST DECLARE A RE-RUN
+// TRIGGER ON THE MANIFEST IT READS — an ABSOLUTE path built from `CARGO_MANIFEST_DIR`, TOGETHER WITH
+// `cargo:rerun-if-env-changed` FOR THE DIRECTIVE'S NAME"* (`docs/specs/storeroom-js/package.md §6.1`
+// item `7`), *"`cargo:rerun-if-changed` ON THE `CARGO_MANIFEST_DIR`-BUILT MANIFEST PATH, PLUS
+// `cargo:rerun-if-env-changed` FOR THE DIRECTIVE'S NAME"* (`contract.md §5.0a`'s member and its
+// falsifier). **SO THREE FACTS ARE DECIDED, EACH A FACT OF THE FILE'S OWN BYTES:** (1) the changed
+// trigger's value is an ABSOLUTE path — it OPENS with the interpolation of an identifier whose own value
+// is built from `CARGO_MANIFEST_DIR` (`§6.1` item `7`'s *"ABSOLUTE"*); (2) that path NAMES THE MANIFEST,
+// i.e. it ENDS at `/package.json`, so `package.json.bak` — and every other file beside the manifest — is
+// REFUSED where a substring test admitted it; (3) the env trigger's value IS the directive's own name,
+// CHARACTER FOR CHARACTER — the printed SLOT is a binding's name and not the directive's, so a slot name
+// is refused with it.
+// **AND THE PRE-CORRECTION TEST IS KEPT BESIDE IT** (`legacySubstring`), because it is the test that stood
+// here: `changed.some((p) => p.includes(slot) || p.includes('package.json'))`, a SUBSTRING test that
+// `cargo:rerun-if-changed=package.json.bak` satisfies while the warm-`target/` hazard stands open.
+function reRunTriggers(sourceText, { legacySubstring = false } = {}) {
+  const code = stripRustComments(sourceText);
+  const changed = [...code.matchAll(/println!\(\s*"cargo:rerun-if-changed=([^"]*)"\s*\)/g)].map((m) => m[1]);
+  const envChanged = [...code.matchAll(/println!\(\s*"cargo:rerun-if-env-changed=([^"]*)"\s*\)/g)].map((m) => m[1]);
+  const d = declaredDirective(sourceText);
+  const dirBuilt = (d && d.dirBuiltIdents) || [];
+  const absolute = new RegExp(`^\\{([A-Za-z_][A-Za-z0-9_]*)\\}/${MANIFEST_REL_TO_CRATE.replace(/\./g, '\\.')}$`);
+  const manifestHits = changed.filter((value) => {
+    const m = absolute.exec(value);
+    return m !== null && dirBuilt.includes(m[1]);
+  });
+  const envHits = envChanged.filter((name) => name === DIRECTIVE_NAME);
+  const legacyManifest = changed.some((p) => p.includes(d ? d.slot : 'manifest') || p.includes(MANIFEST_REL_TO_CRATE));
+  const legacyEnv = envChanged.some((n) => n === DIRECTIVE_NAME || n === (d ? d.slot : ''));
+  return {
+    changed, envChanged, dirBuilt, manifestHits, envHits, legacyManifest, legacyEnv,
+    manifestOk: legacySubstring ? legacyManifest : manifestHits.length > 0,
+    envOk: legacySubstring ? legacyEnv : envHits.length > 0,
+  };
+}
 
 // ---------------------------------------------------------------------------------------------
 // the observer: a scratch tree, so NO byte of the repository is written, created or removed
@@ -575,7 +795,7 @@ test('P-PUB-9::S-STAMP a stamped carrier declares the directive, DERIVES its val
     + '`cargo:rustc-env`-class directive (no `println!("cargo:rustc-env=<NAME>={...}")` is declared at its bytes)');
   assert.equal(DIRECTIVE.name, DIRECTIVE_NAME,
     '`docs/specs/storeroom-js/package.md §6.1` item 2: the directive\'s NAME is `STOREROOM_JS_PACKAGE_VERSION`');
-  // **THE CORRECTED ASSERTION, IN FOUR PARTS, EACH NAMING ONE TERM OF THE RELATION — AND EACH PRINTING THE
+  // **THE CORRECTED ASSERTION, IN FIVE PARTS, EACH NAMING ONE TERM OF THE RELATION — AND EACH PRINTING THE
   // EXPRESSIONS IT READ**, so a reader of a failure sees the carrier's own bytes rather than an opinion:
   //   (1) the directive's value is a BINDING and not a literal — `§2.4` item `1` makes the manifest the
   //       SOURCE, so a value that is a token in the format string IS the hard-coded shape the clause refuses;
@@ -583,10 +803,13 @@ test('P-PUB-9::S-STAMP a stamped carrier declares the directive, DERIVES its val
   //       ABSOLUTE path built from `CARGO_MANIFEST_DIR`;
   //   (3) the path IS READ — `§2.4` item `1`'s "READS `bindings/js/package.json`'s `version` ITSELF", so a
   //       script that never reads the manifest cannot stand here whatever it prints;
-  //   (4) the value PRINTED is DERIVED FROM THAT READ — the printed binding CONSUMES the read's content
-  //       through an extraction operation, which is what "derives" means and what a second source is not.
-  // The `version` field is named by part (4)'s extraction; where it is not, the manifest's own key is not
-  // the thing read and the assertion says so rather than passing silently.
+  //   (4) the value PRINTED is DERIVED FROM THAT READ — **AND FROM THAT READ ALONE** (`S1`'s correction:
+  //       the manifest read's own content binding must be the one the printed value consumes, and NO
+  //       read of a different file may be consumed at all);
+  //   (5) that derivation passes through an extraction over the manifest's own bytes — the `version` FIELD
+  //       is the thing `§6.10` item `1` names, and the value is reached through the `CARGO_MANIFEST_DIR`
+  //       path itself.
+  // Where any of them is not satisfied the assertion says so rather than passing silently.
   assert.ok(DIRECTIVE.valueExpression !== null && DIRECTIVE.valueExpression !== '',
     '`release.md §2.4` item `1` / `docs/specs/storeroom-js/package.md §6.1` item `2`: the directive\'s value '
     + `must be DERIVED (a binding printed into the directive), not a literal token in the format string — a `
@@ -600,17 +823,33 @@ test('P-PUB-9::S-STAMP a stamped carrier declares the directive, DERIVES its val
     '`release.md §2.4` item `1` / `docs/specs/storeroom-js/package.md §6.1` item `2`: the build script must '
     + 'READ the manifest ITSELF — a script that reads nothing from the `CARGO_MANIFEST_DIR`-built path cannot '
     + `satisfy the clause whatever it prints; the read found was ${JSON.stringify(DIRECTIVE.manifestReadExpression)}`);
-  const contentNames = [...BUILD_RS_CODE.matchAll(/let\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*fs::read(?:_to_string)?\(/g)].map((m) => m[1]);
-  // **DECIDED OVER THE RESOLVED TEXT, BECAUSE THE READ's CONTENT IS USUALLY REACHED THROUGH MORE THAN ONE
-  // HOP** — the declared carrier prints `rest[...]`, `rest` binds `tail`, and `tail` alone consumes
-  // `declared`. A one-hop search would report the derivation ABSENT on a carrier that performs it.
-  const derived = contentNames.length > 0
-    && contentNames.some((id) => new RegExp(`\\b${id}\\b`).test(DIRECTIVE.valueResolvedText));
-  assert.equal(derived, true,
-    '`release.md §2.4` item `1`: the value the carrier PRINTS must be DERIVED FROM THE MANIFEST IT READ — the '
-    + `printed binding \`${DIRECTIVE.valueExpression}\` must consume the content the read returned `
-    + `(\`${contentNames.join('`, `') || '(no read content binding stands in the file)'}\`); a value taken from `
-    + 'any other source is the refused form');
+  // **⟶ PART (4) IS CORRECTED, DATED THIS PASS (`S1`), AND THE DEFECT IT CLOSED IS NAMED IN ITS OWN
+  // TERMS: what stood here was `contentNames.some((id) => \b id \b.test(valueResolvedText))` — ANY
+  // identifier bound by ANY `let X = fs::read…` in the file, appearing ANYWHERE in the resolved emission
+  // text.** *"Anywhere"* is the whole of it: a name that survives anywhere in a several-hop expansion is
+  // not the name the printed value is taken from, so **A CARRIER THAT READS `package.json` AND A SECOND
+  // FILE AND PRINTS A VALUE TAKEN FROM THE SECOND READ PASSED ALL FOUR PARTS** while `release.md §2.4`
+  // item `1` (`THE MANIFEST IS THE STAMP'S SOURCE`) was violated. **THE CORRECTION KEEPS THE SUBJECT AND
+  // MOVES THE TEST TO THE RELATION THE CLAUSE STATES:** the read content that must be consumed is THE
+  // MANIFEST READ'S OWN (`manifestReads`), and NO OTHER READ'S CONTENT MAY BE CONSUMED AT ALL
+  // (`noForeignReadConsumed`). Both are decided by `carrierRelation` above — the SAME relation the
+  // falsifier battery below drives seven carrier shapes through, so the correction is MEASURED rather
+  // than asserted.
+  const RELATION = carrierRelation(BUILD_RS_CODE);
+  assert.equal(RELATION.parts.derivedFromManifest, true,
+    '`release.md §2.4` item `1`: the value the carrier PRINTS must be DERIVED FROM THE MANIFEST IT READ — '
+    + `the printed binding \`${DIRECTIVE.valueExpression}\` must consume the content the MANIFEST read `
+    + `returned (\`${RELATION.manifestReads.map((r) => r.name).join('`, `') || '(no manifest read stands in the file)'}\`)`
+    + `, and not merely a name that stands somewhere in the expansion (the reads found were `
+    + `${JSON.stringify(RELATION.reads.map((r) => ({ name: r.name, manifest: r.isManifest })))}); a value taken `
+    + 'from any other source is the refused form');
+  assert.equal(RELATION.parts.noForeignReadConsumed, true,
+    '`release.md §2.4` item `1` — **THE CLAUSE THIS CELL COULD NOT DECIDE BEFORE THIS PASS**: the stamp\'s '
+    + 'source is THE MANIFEST, so a carrier that keeps the manifest read standing and prints a value taken '
+    + 'from a SECOND read is the refused form; the foreign read content this value consumes is '
+    + `${JSON.stringify(RELATION.foreignConsumed)} of the reads ${JSON.stringify(RELATION.foreignReads.map((r) => r.name))}`
+    + ' (the pre-correction discriminator, which asked only whether SOME read was named anywhere, answered '
+    + `\`derived=${RELATION.legacyDerived}\` for this very carrier)`);
   assert.ok(BuildRsExtraction.test(DIRECTIVE.valueResolvedText),
     '`docs/specs/storeroom-js/package.md §6.1` item `2` read with `release.md §6.10` item `1`: the value must be '
     + 'EXTRACTED FROM THE MANIFEST\'S OWN BYTES — the `version` FIELD is the thing the clause names as the '
@@ -625,6 +864,202 @@ test('P-PUB-9::S-STAMP a stamped carrier declares the directive, DERIVES its val
     + '`env!` on an unset variable is a COMPILE error and could never fall back');
   assert.ok(/env!\("CARGO_PKG_VERSION"\)/.test(FACADE_RS_CODE),
     '`§1.4a` item `3` / `A96`: `env!("CARGO_PKG_VERSION")` is the value taken on `option_env!`\'s `None` arm');
+});
+
+// =============================================================================================
+// P-PUB-9::S-STAMP — THE FALSIFIER BATTERY: EIGHT CARRIER SHAPES, EACH DRIVEN THROUGH THE SAME
+// RELATION, WITH THE PRE-CORRECTION DISCRIMINATOR'S OWN ANSWER PRINTED BESIDE IT
+// =============================================================================================
+// **WHY THIS CELL EXISTS, IN THE TERMS OF THE DEFECT IT CLOSES (`S1`):** the relation asserted above was,
+// before this pass, decidable over the ONE carrier standing in this tree, so **WHAT IT SEPARATED COULD
+// NOT BE EXHIBITED AT ALL** — a shape it failed to refuse was invisible by construction. This cell
+// carries eight shapes: the real carrier as a PRESENT CONTROL, six shapes a prior pass built (five
+// correct refusals and one lawful carrier, so the battery is not one that refuses everything), **AND THE
+// MEMBER THAT WAS MISSING — a carrier that KEEPS A MANIFEST READ STANDING AND PRINTS A VALUE TAKEN FROM
+// A DIFFERENT SOURCE** (`B7`). Every member is driven through BOTH discriminators: the corrected relation
+// (`carrierRelation`) and the test it replaced (`legacy: true`), which is the only way to show
+// a hole was closed rather than to assert that it was.
+//
+// **`B7`'S SHAPE IS NAMED SO IT IS NOT READ AS A CARRIER INVENTED TO BEAT AN INSTRUMENT**: the manifest is
+// read, the read STANDS and is USED (it gates an empty-manifest panic), and the version printed into the
+// directive is taken from a SECOND read — `package.json.bak`, the second source `S3` names — reached
+// through the same `CARGO_MANIFEST_DIR`-built path. **`B8` is the same shape with a second source that does
+// not carry the manifest's name, and it is carried BESIDE `B7` so that `B7`'s admission by the old
+// discriminator is not mistaken for the choice of a convenient file name**: the two members differ in ONE
+// free parameter, and their refusal reasons are printed side by side.
+//
+// **AND THE INSTRUMENT IS A SOURCE READ OF EIGHT SYNTHETIC CARRIERS THAT LIVE IN THIS FILE'S OWN TEXT**:
+// no byte of the repository is read for a member, no synthetic carrier is written anywhere, and the
+// carriers are spelled from `release.md §2.4` item `1`, `docs/specs/storeroom-js/package.md §6.1` item `2`
+// and this file's own declared state list (`(c1)`–`(c4)`) — never from the carrier standing in the tree.
+test('P-PUB-9::S-STAMP THE FALSIFIER BATTERY — eight carrier shapes; the shape that broke the LINK (a standing manifest read, a value from a SECOND read) is REFUSED by the correction and was ADMITTED by the test it replaced', () => {
+  const CARRIERS = [
+    {
+      id: 'B0', shape: 'THE REAL CARRIER — the present control, so a relation that refuses everything is not mistaken for a strong one',
+      expectLegacy: 'ADMITTED', expectCorrected: 'ADMITTED', source: BUILD_RS_CODE,
+    },
+    {
+      id: 'B1', shape: 'the lawful relation with ONE HOP REMOVED: the manifest is read through `CARGO_MANIFEST_DIR`, the value is extracted from THAT read',
+      expectLegacy: 'ADMITTED', expectCorrected: 'ADMITTED',
+      source: `use std::env; use std::fs;
+fn main() {
+    let manifest = env::var("CARGO_MANIFEST_DIR").expect("set");
+    println!("cargo:rerun-if-changed={manifest}/package.json");
+    println!("cargo:rerun-if-env-changed=STOREROOM_JS_PACKAGE_VERSION");
+    let declared = fs::read_to_string(format!("{manifest}/package.json")).expect("readable");
+    let tail = declared.rsplit(r#""version""#).next().expect("version");
+    let rest = tail.split_once(':').expect("key").1;
+    let start = rest.find('"').expect("json string");
+    let end = rest[start + 1..].find('"').expect("terminated");
+    let version = &rest[start + 1..start + 1 + end];
+    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
+}
+`,
+    },
+    {
+      id: 'B2', shape: 'A HARD-CODED EMITTER: no read at all, the version a literal in the format string',
+      expectLegacy: 'REFUSED', expectCorrected: 'REFUSED',
+      source: `fn main() {
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION=0.1.1");
+}
+`,
+    },
+    {
+      id: 'B3', shape: 'THE MANIFEST IS READ, THE VALUE IS A LITERAL — the read is present and the printed value is not from it',
+      expectLegacy: 'REFUSED', expectCorrected: 'REFUSED',
+      source: `use std::env; use std::fs;
+fn main() {
+    let manifest = env::var("CARGO_MANIFEST_DIR").expect("set");
+    let declared = fs::read_to_string(format!("{manifest}/package.json")).expect("readable");
+    let version = "0.1.1";
+    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
+}
+`,
+    },
+    {
+      id: 'B4', shape: 'A DIFFERENT FILE and NO `CARGO_MANIFEST_DIR`: a relative `Cargo.toml`, the crate\'s own manifest',
+      expectLegacy: 'REFUSED', expectCorrected: 'REFUSED',
+      source: `use std::env; use std::fs;
+fn main() {
+    let declared = fs::read_to_string("Cargo.toml").expect("readable");
+    let version = declared.lines().next().unwrap_or("0.1.1");
+    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
+}
+`,
+    },
+    {
+      id: 'B5', shape: 'NO `CARGO_MANIFEST_DIR`: the path is built from a directory variable the clause does not name',
+      expectLegacy: 'REFUSED', expectCorrected: 'REFUSED',
+      source: `use std::env; use std::fs;
+fn main() {
+    let manifest = env::var("SOME_OTHER_DIR").expect("set");
+    let declared = fs::read_to_string(format!("{manifest}/package.json")).expect("readable");
+    let version = declared.trim();
+    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
+}
+`,
+    },
+    {
+      id: 'B6', shape: 'AN AMBIENT VARIABLE AS THE VALUE: the manifest is read and the value comes from outside the build',
+      expectLegacy: 'REFUSED', expectCorrected: 'REFUSED',
+      source: `use std::env; use std::fs;
+fn main() {
+    let manifest = env::var("CARGO_MANIFEST_DIR").expect("set");
+    let declared = fs::read_to_string(format!("{manifest}/package.json")).expect("readable");
+    let version = env::var("RELEASE_VERSION").expect("set");
+    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
+}
+`,
+    },
+    {
+      id: 'B7', shape: '**THE MISSING MEMBER** — THE MANIFEST READ STANDS AND IS USED, AND THE VERSION PRINTED IS TAKEN FROM A SECOND READ of another file (`package.json.bak`) reached through the SAME `CARGO_MANIFEST_DIR`-built path',
+      expectLegacy: 'ADMITTED', expectCorrected: 'REFUSED',
+      source: `use std::env; use std::fs;
+fn main() {
+    let manifest = env::var("CARGO_MANIFEST_DIR").expect("set");
+    println!("cargo:rerun-if-changed={manifest}/package.json");
+    println!("cargo:rerun-if-env-changed=STOREROOM_JS_PACKAGE_VERSION");
+    let declared = fs::read_to_string(format!("{manifest}/package.json")).expect("readable");
+    let other = fs::read_to_string(format!("{manifest}/package.json.bak")).expect("readable");
+    if declared.is_empty() { panic!("the manifest read returned nothing"); }
+    let version = other.rsplit(r#""version""#).next().expect("version");
+    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
+}
+`,
+    },
+    {
+      id: 'B8', shape: 'the SAME shape as `B7` with ONE free parameter moved: the second source does not carry the manifest\'s name (`version.txt`) — carried so `B7` is not read as a file name chosen to fit an instrument',
+      expectLegacy: 'REFUSED', expectCorrected: 'REFUSED',
+      source: `use std::env; use std::fs;
+fn main() {
+    let manifest = env::var("CARGO_MANIFEST_DIR").expect("set");
+    let declared = fs::read_to_string(format!("{manifest}/package.json")).expect("readable");
+    let other = fs::read_to_string(format!("{manifest}/version.txt")).expect("readable");
+    if declared.is_empty() { panic!("the manifest read returned nothing"); }
+    let version = other.rsplit(r#""version""#).next().expect("version");
+    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
+}
+`,
+    },
+  ];
+  const rows = [];
+  const mismatched = [];
+  const verdict = (r) => (r.refused ? 'REFUSED' : 'ADMITTED');
+  for (const c of CARRIERS) {
+    const legacy = carrierRelation(c.source, { legacy: true });
+    const corrected = carrierRelation(c.source);
+    rows.push(`${c.id} legacy=${verdict(legacy)} corrected=${verdict(corrected)} `
+      + `legacyRefusedBy=[${legacy.refusedBy.join(', ')}] correctedRefusedBy=[${corrected.refusedBy.join(', ')}] `
+      + `reads=${JSON.stringify(corrected.reads.map((r) => ({ name: r.name, manifest: r.isManifest })))} `
+      + `legacyDerivation=${legacy.legacyDerived} valueReachable=[${(corrected.directive
+        && corrected.directive.valueReachableIdents || []).slice(0, 12).join(', ')}] :: ${c.shape}`);
+    if (verdict(legacy) !== c.expectLegacy) {
+      mismatched.push(`${c.id}: the PRE-CORRECTION discriminator answered ${verdict(legacy)} where the battery records ${c.expectLegacy}`);
+    }
+    if (verdict(corrected) !== c.expectCorrected) {
+      mismatched.push(`${c.id}: the CORRECTED relation answered ${verdict(corrected)} where the battery records ${c.expectCorrected} (refused by [${corrected.refusedBy.join(', ')}])`);
+    }
+  }
+  // eslint-disable-next-line no-console
+  for (const row of rows) console.log(`[version-stamp falsifier battery] ${row}`);
+  assert.deepEqual(mismatched, [],
+    '`release.md §2.4` item `1` — each shape the battery declares must be answered as the clause answers it, and '
+    + 'the answer must be PRINTED with the parts that carried it; the mismatches were: ' + JSON.stringify(mismatched));
+  // **THE DEMONSTRATION, ASSERTED IN ITS OWN TERMS RATHER THAN LEFT TO THE TABLE**: `B7` is the shape that
+  // broke the LINK between the read and the emission, it was ADMITTED by the test this pass replaced, and it
+  // is REFUSED by the corrected relation — refused on the clause's own subject (the value is not derived
+  // from the manifest read) and on the clause's own prohibition (a foreign read's content is consumed).
+  const missing = carrierRelation(CARRIERS.find((c) => c.id === 'B7').source);
+  const missingLegacy = carrierRelation(CARRIERS.find((c) => c.id === 'B7').source, { legacy: true });
+  assert.equal(missingLegacy.refused, false,
+    '`S1`: the pre-correction relation must be SHOWN to admit the member that breaks the link — a battery member '
+    + 'the old test already refused would prove nothing about the correction; it refused on '
+    + `[${missingLegacy.refusedBy.join(', ')}] instead`);
+  assert.equal(missing.refused, true,
+    '`S1`: the corrected relation must REFUSE the shape that keeps a manifest read standing and prints a value '
+    + 'taken from a SECOND read (`release.md §2.4` item `1`)');
+  assert.ok(missing.refusedBy.includes('derivedFromManifest'),
+    'and it must refuse it ON THE CLAUSE\'S OWN SUBJECT — the value is not derived from the manifest read; '
+    + `the failing parts were [${missing.refusedBy.join(', ')}]`);
+  assert.ok(missing.refusedBy.includes('noForeignReadConsumed'),
+    'and on the clause\'s own prohibition — the printed value consumes the content of a read of a DIFFERENT '
+    + `file; the foreign content consumed was ${JSON.stringify(missing.foreignConsumed)}`);
+  // **AND ONE PART IS PINNED BY NAME, BECAUSE A CHANGE TO THE INSTRUMENT'S OWN RETURN SHAPE WEAKENED IT IN
+  // THIS VERY PASS AND THE VERDICTS DID NOT NOTICE** (`B2`): `emitted` was decided as *"the reader did not
+  // answer `null`"*, and `S3` made the reader report the trigger facts of a carrier that prints NO
+  // directive — so the part silently became TRUE for the hard-coded emitter, which prints nothing the
+  // reader matches. **A VERDICT-ONLY BATTERY CANNOT SEE A PART WEAKENED WHILE OTHERS STILL FAIL**, so the
+  // battery also asserts the part.
+  const noEmit = carrierRelation(CARRIERS.find((c) => c.id === 'B2').source);
+  assert.ok(noEmit.refusedBy.includes('emitted'),
+    'part `emitted`: a carrier with no `cargo:rustc-env` line at all must be refused ON THAT PART, whatever '
+    + `else it does; the parts that failed were [${noEmit.refusedBy.join(', ')}]`);
+  // **AND THE REAL CARRIER IS RE-ASSERTED THROUGH THE SAME OBJECT THE BATTERY USES**, so the eight rows and
+  // the cell above cannot drift apart: the relation admits exactly the carriers `§2.4` item `1` admits.
+  assert.equal(carrierRelation(BUILD_RS_CODE).refused, false,
+    '`release.md §2.4` item `1`: the carrier standing in this tree must satisfy the SAME relation the eight '
+    + 'battery rows were decided by — the battery is not a second instrument');
 });
 
 test('P-PUB-9::S-VERSION GREEN CONTROL (and NOT a red-set member) — where an artefact answers the manifest, the load succeeds', () => {
@@ -645,6 +1080,38 @@ test('P-PUB-9::S-VERSION GREEN CONTROL (and NOT a red-set member) — where an a
   assert.equal(r.arm, null, 'no arm answers a match');
 });
 
+// =============================================================================================
+// THE BUILT ARTEFACT, DRIVEN THROUGH ITS OWN `version()` — ONE INSTRUMENT, USED BY BOTH CELLS
+// THAT ASK FOR IT (the invariant cell below, and the property layer's ARTEFACT row)
+// =============================================================================================
+// **WHY THIS IS ONE FUNCTION AND NOT TWO (`S5`, THIS PASS'S OWN FINDING, AND THE DEFECT IS NAMED IN WHAT
+// STOOD HERE):** the property layer reported the single row `P-PUB-9 strategy=S-VERSION attempts=24 …
+// verdict=HELD` while that row's artefact was a COMPOSED FAKE, and the one cell that drives the REAL
+// artefact returned early whenever the artefact was absent — so **the layer's only figure for the clause
+// this unit bears on was taken from a subject the clause does not name, and stood `HELD` on a tree where
+// the subject had been SKIPPED.** The composed fake keeps its own identity below (`P-PUB-4`'s `S-VERSION`,
+// whose subject it really is: the rung-one read's refusal — `PUB-DD-18` guards rung one alone). **THE ROW
+// ABOUT THE ARTEFACT IS NOW TAKEN FROM THIS FUNCTION AND FROM NOTHING ELSE**, so its figure and the
+// invariant cannot be about different things, and the artefact's absence is a NAMED STATE in the census
+// rather than a green row.
+const BUILT_ARTEFACT = join(PKG_DIR, 'build', 'Release', 'storeroom_js_binding.node');
+
+/** Drives the host target's own build as RUNG TWO — which is what a released install does and what the
+ *  local in-place loop already resolves through (`distribution.md §3.1`: *"NO BINARY IS EVER COMMITTED"*, so
+ *  the file is a gitignored build product) — and returns the artefact's own answer. **ABSENCE IS RETURNED AS
+ *  A STATE AND IS NEVER CONVERTED INTO A PASS**: the caller decides whether it skips (the invariant cell,
+ *  which cannot assert what it cannot load) or reports the row as `SKIPPED-ARTEFACT-ABSENT` (the property
+ *  layer, which must not report a figure for a subject that was not driven). */
+function driveBuiltArtefact() {
+  if (!existsSync(BUILT_ARTEFACT)) return { present: false, built: BUILT_ARTEFACT, report: null };
+  const env = makeEnv({ label: 'built-artefact', versionValue: 'null' });
+  const rungTwoDir = join(env.dir, 'build', 'Release');
+  mkdirSync(rungTwoDir, { recursive: true });
+  writeFileSync(join(rungTwoDir, 'storeroom_js_binding.node'), readFileSync(BUILT_ARTEFACT));
+  rmSync(join(env.dir, 'node_modules'), { recursive: true, force: true }); // rung one absent → rung two answers
+  return { present: true, built: BUILT_ARTEFACT, report: drive(env) };
+}
+
 test('P-PUB-9::S-VERSION THE CELL OF THE INVARIANT — the BUILT ARTEFACT\'s own `version()` answers the manifest\'s `version`, character for character', () => {
   // **THE INVARIANT DRIVEN AGAINST THE BUILD, NOT AGAINST A COMPOSED STAND-IN.** `contract.md §5.0a`:
   // *"every released native artefact's `version()` answers the main package manifest's `version`
@@ -659,23 +1126,23 @@ test('P-PUB-9::S-VERSION THE CELL OF THE INVARIANT — the BUILT ARTEFACT\'s own
   // then compares that to the manifest — so such a cell asserts nothing but its own fixture. It was green
   // on the unimplemented carrier, which is exactly how an accidentally-green member stops a red set being
   // red. The subject of the property is the ARTEFACT'S OWN ANSWER, so the artefact must be the real one.
-  const built = join(PKG_DIR, 'build', 'Release', 'storeroom_js_binding.node');
+  // **⟶ AND THE DRIVE ITSELF NOW SITS IN ONE PLACE (`driveBuiltArtefact`, above), WHICH IS THIS PASS'S `S5`
+  // CORRECTION**: the property layer's row for this clause is taken from the SAME call, so the skip here
+  // and the figure there can no longer be about different subjects.
   // **THE ABSENCE IS REPORTED AS A SKIP WITH ITS REASON AND NEVER AS A PASS.** A clean clone has no
   // artefact (`A68`'s build is `Q3`'s and this gate runs no `cargo`), and the released artefact's own
   // answer is the guard's observable at the leg (`§1.4a` items `2` and `8`) — so this cell is the red
   // set's artefact-side member where a build exists, and its absence is a named skip where none does.
-  if (!existsSync(built)) {
+  // **AND THE PROPERTY LAYER'S ROW FOR THIS CLAUSE IS TAKEN FROM THE SAME CALL** (`driveBuiltArtefact`,
+  // `S5`), so the skip here and the row there report the SAME state of the SAME file.
+  const DRIVEN = driveBuiltArtefact();
+  if (!DRIVEN.present) {
     console.log('[version-stamp] SKIP P-PUB-9::S-VERSION the built artefact cell — no artefact at '
-      + `${built}: the tracked tree carries no binary (distribution.md §3.1), and the released artefact's own `
+      + `${DRIVEN.built}: the tracked tree carries no binary (distribution.md §3.1), and the released artefact's own `
       + 'answer is the guard\'s observable at the RUN (§1.4a item 8). REBUILD TO MAKE THIS CELL ACTIVE.');
     return;
   }
-  const env = makeEnv({ label: 'built-artefact', versionValue: 'null' });
-  const rungTwoDir = join(env.dir, 'build', 'Release');
-  mkdirSync(rungTwoDir, { recursive: true });
-  writeFileSync(join(rungTwoDir, 'storeroom_js_binding.node'), readFileSync(built));
-  rmSync(join(env.dir, 'node_modules'), { recursive: true, force: true }); // rung one absent → rung two answers
-  const r = drive(env);
+  const r = DRIVEN.report;
   assert.equal(r.error, null, `the built artefact loaded at all (report: ${JSON.stringify(r).slice(0, 300)})`);
   // THE VERSION ASSERTION STANDS FIRST ON PURPOSE: the report carries the artefact's own answer, and an
   // assertion on the READ's wiring placed above it would fail first and HIDE the value the property is
@@ -777,24 +1244,163 @@ test('P-PUB-9::S-STAMP the carrier declares a RE-RUN TRIGGER on the manifest it 
   // **THE MEMBER NAMES ITS OWN FALSIFIER, AND THE FALSIFIER IS WHY THIS CELL IS SOURCE-LEVEL**: the
   // warm-`target/` state is reachable from NO cell of this suite, which drives neither `cargo` nor a warm
   // `target/`, and a cell whose observable is the RUN would be UNFALSIFIABLE BY CONSTRUCTION (`A95`).
-  const rerunIfChanged = /println!\(\s*"cargo:rerun-if-changed=([^"]*)"\s*\)/g;
-  const rerunIfEnv = /println!\(\s*"cargo:rerun-if-env-changed=([^"]*)"\s*\)/g;
-  const changed = [...BUILD_RS_CODE.matchAll(rerunIfChanged)].map((m) => m[1]);
-  const envChanged = [...BUILD_RS_CODE.matchAll(rerunIfEnv)].map((m) => m[1]);
+  // **⟶ AND THE TWO PREDICATES ARE TIGHTENED TO THE CLAUSE'S OWN REQUIREMENT, DATED THIS PASS (`S3`), AND
+  // THE DEFECT IS NAMED IN THE TERMS OF WHAT STOOD HERE:** the changed-trigger test was
+  // `p.includes(slot) || p.includes('package.json')` and the env-trigger test was
+  // `n === DIRECTIVE_NAME || n === slot`. **BOTH WERE SUBSTRING (OR SLOT-NAME) TESTS**, so
+  // `cargo:rerun-if-changed=package.json.bak`, a RELATIVE `cargo:rerun-if-changed=package.json`, a path
+  // built from a directory other than the manifest's, and a trigger naming the printed SLOT instead of the
+  // directive each SATISFIED the member that exists to close the warm-`target/` hazard WHILE THE HAZARD
+  // STOOD OPEN. **THE CLAUSE ASKS FOR THREE FACTS AND THIS CELL NOW DECIDES THOSE THREE**: an ABSOLUTE path
+  // BUILT FROM `CARGO_MANIFEST_DIR`, NAMING THE MANIFEST (`docs/specs/storeroom-js/package.md §6.1` item
+  // `7`), plus `cargo:rerun-if-env-changed` FOR THE DIRECTIVE'S OWN NAME (`§5.0a`'s falsifier). The
+  // corrected decision lives in `reRunTriggers` above, and the four red inputs are driven through it by
+  // the battery cell below.
+  const TRIGGERS = reRunTriggers(BUILD_RS_CODE);
   // **THE PRESENT CONTROL, SO A BROKEN INSTRUMENT IS CAUGHT BEFORE ITS FINDING IS BELIEVED**: the file
   // already declares `cargo:rerun-if-changed=build.rs`, so a search that found NOTHING would be shown to
   // be broken by this very assertion — and it is also the clause's own "plus" of a second member.
-  assert.ok(changed.includes('build.rs'),
+  assert.ok(TRIGGERS.changed.includes('build.rs'),
     `the re-run trigger instrument WORKS: \`build.rs\` already emits \`cargo:rerun-if-changed=build.rs\`, so this `
-    + `search cannot be silently broken; what it returned was ${JSON.stringify(changed)}`);
-  const manifestTrigger = changed.some((p) => p.includes(`${DIRECTIVE?.slot ?? 'manifest'}`) || p.includes(MANIFEST_REL_TO_CRATE));
-  assert.equal(manifestTrigger, true,
-    '`§5.0a`: the carrier must declare `cargo:rerun-if-changed` ON THE MANIFEST IT READS, or a warm '
-    + `\`target/\` re-emits a STALE stamp and the artefact ships the previous version; triggers found: ${JSON.stringify(changed)}`);
-  const envTrigger = envChanged.some((n) => n === DIRECTIVE_NAME || n === (DIRECTIVE?.slot ?? ''));
-  assert.equal(envTrigger, true,
-    `\`§5.0a\`: and \`cargo:rerun-if-env-changed\` FOR THE DIRECTIVE'S NAME (\`${DIRECTIVE_NAME}\`); `
-    + `triggers found: ${JSON.stringify(envChanged)}`);
+    + `search cannot be silently broken; what it returned was ${JSON.stringify(TRIGGERS.changed)}`);
+  assert.equal(TRIGGERS.manifestOk, true,
+    '`§5.0a` / `docs/specs/storeroom-js/package.md §6.1` item `7`: the carrier must declare '
+    + '`cargo:rerun-if-changed` ON THE MANIFEST IT READS — an ABSOLUTE path BUILT FROM `CARGO_MANIFEST_DIR` '
+    + 'and NAMING the manifest — or a warm `target/` re-emits a STALE stamp and the artefact ships the '
+    + 'previous version. **A SUBSTRING TEST IS NOT THIS TEST**: `package.json.bak`, a relative '
+    + '`package.json`, and a path built from another directory are each admitted by a substring test and '
+    + `each leaves the hazard open; the triggers found were ${JSON.stringify(TRIGGERS.changed)}, of them the `
+    + `manifest-dir-built ones were ${JSON.stringify(TRIGGERS.manifestHits)}, and the identifiers built from `
+    + `\`CARGO_MANIFEST_DIR\` were ${JSON.stringify(TRIGGERS.dirBuilt)}`);
+  assert.equal(TRIGGERS.envOk, true,
+    `\`§5.0a\`: and \`cargo:rerun-if-env-changed\` FOR THE DIRECTIVE'S NAME (\`${DIRECTIVE_NAME}\`), `
+    + 'CHARACTER FOR CHARACTER — the printed SLOT is a binding\'s name and is NOT the directive\'s name, so '
+    + `it does not satisfy this member; triggers found: ${JSON.stringify(TRIGGERS.envChanged)}`);
+});
+
+// =============================================================================================
+// P-PUB-9::S-STAMP — THE RE-RUN TRIGGER'S OWN FALSIFIER BATTERY: four red declarations the
+// SUBSTRING test admitted and the corrected test refuses, with the real declaration beside them
+// =============================================================================================
+// **THE FOUR RED INPUTS ARE THE DEFECT'S OWN EXAMPLES, NAMED BY THE CLAUSE THEY BREACH** (`S3`): a
+// `package.json.bak` (which CONTAINS the manifest's name), a RELATIVE `package.json` (which contains it
+// exactly and is not an absolute path built from `CARGO_MANIFEST_DIR`), a path BUILT FROM A DIRECTORY THE
+// CLAUSE DOES NOT NAME, and a trigger naming the printed SLOT rather than the directive. **EACH SATISFIED
+// THE TEST THAT STOOD HERE WHILE THE WARM-`target/` HAZARD IT EXISTS TO CLOSE STOOD OPEN** — which is the
+// whole reason `docs/specs/storeroom-js/package.md §6.1` item `7` asks for *"an ABSOLUTE path built from
+// `CARGO_MANIFEST_DIR`"* and `§5.0a`'s falsifier asks for `cargo:rerun-if-env-changed` *"FOR THE
+// DIRECTIVE'S NAME"* rather than for a name that contains it.
+test('P-PUB-9::S-STAMP THE RE-RUN TRIGGER BATTERY — the real declaration is admitted by both tests, and the four red declarations the substring test admitted are refused by the corrected one', () => {
+  const CARRIERS = [
+    {
+      id: 'T-real', expect: { legacy: { changed: true, env: true }, corrected: { changed: true, env: true } },
+      shape: 'THE DECLARATION THE CLAUSE ASKS FOR, spelled from `§6.1` item `7` itself and NOT from the file in the tree: ABSOLUTE, built from `CARGO_MANIFEST_DIR`, naming the manifest, with `cargo:rerun-if-env-changed` for the directive — and it prints NO directive, so the trigger relation is exercised on a carrier the directive reader returns nothing for',
+      source: `use std::env;
+fn main() {
+    let manifest = env::var("CARGO_MANIFEST_DIR").expect("set");
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed={manifest}/package.json");
+    println!("cargo:rerun-if-env-changed=STOREROOM_JS_PACKAGE_VERSION");
+}
+`,
+    },
+    {
+      id: 'T-bak', expect: { legacy: { changed: true, env: true }, corrected: { changed: false, env: true } },
+      shape: '`cargo:rerun-if-changed=package.json.bak` — the manifest\'s name is a SUBSTRING of it, and the file the build reads is NOT the file the trigger watches',
+      source: `use std::env; use std::fs;
+fn main() {
+    let manifest = env::var("CARGO_MANIFEST_DIR").expect("set");
+    println!("cargo:rerun-if-changed=package.json.bak");
+    println!("cargo:rerun-if-env-changed=STOREROOM_JS_PACKAGE_VERSION");
+    let declared = fs::read_to_string(format!("{manifest}/package.json")).expect("readable");
+    let version = declared.trim();
+    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
+}
+`,
+    },
+    {
+      id: 'T-relative', expect: { legacy: { changed: true, env: true }, corrected: { changed: false, env: true } },
+      shape: '`cargo:rerun-if-changed=package.json` — the manifest\'s name EXACTLY and a RELATIVE path, which cargo resolves against the build script\'s own working directory and not against the manifest directory the clause names',
+      source: `use std::env; use std::fs;
+fn main() {
+    let manifest = env::var("CARGO_MANIFEST_DIR").expect("set");
+    println!("cargo:rerun-if-changed=package.json");
+    println!("cargo:rerun-if-env-changed=STOREROOM_JS_PACKAGE_VERSION");
+    let declared = fs::read_to_string(format!("{manifest}/package.json")).expect("readable");
+    let version = declared.trim();
+    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
+}
+`,
+    },
+    {
+      id: 'T-otherdir', expect: { legacy: { changed: true, env: true }, corrected: { changed: false, env: true } },
+      shape: '`cargo:rerun-if-changed={other}/package.json` where `other` is built from a directory the clause does not name — the manifest\'s name stands in the path and the path is not the one the build reads',
+      source: `use std::env; use std::fs;
+fn main() {
+    let other = env::var("SOME_OTHER_DIR").expect("set");
+    println!("cargo:rerun-if-changed={other}/package.json");
+    println!("cargo:rerun-if-env-changed=STOREROOM_JS_PACKAGE_VERSION");
+    let declared = fs::read_to_string(format!("{other}/package.json")).expect("readable");
+    let version = declared.trim();
+    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
+}
+`,
+    },
+    {
+      id: 'T-slot', expect: { legacy: { changed: true, env: true }, corrected: { changed: true, env: false } },
+      shape: '`cargo:rerun-if-env-changed=version` — THE PRINTED SLOT\'S OWN NAME, which the pre-correction test admitted through its `n === DIRECTIVE.slot` branch, and which is NOT the directive\'s name',
+      source: `use std::env; use std::fs;
+fn main() {
+    let manifest = env::var("CARGO_MANIFEST_DIR").expect("set");
+    println!("cargo:rerun-if-changed={manifest}/package.json");
+    println!("cargo:rerun-if-env-changed=version");
+    let declared = fs::read_to_string(format!("{manifest}/package.json")).expect("readable");
+    let version = declared.trim();
+    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
+}
+`,
+    },
+  ];
+  const rows = [];
+  const mismatched = [];
+  for (const c of CARRIERS) {
+    const legacy = reRunTriggers(c.source, { legacySubstring: true });
+    const corrected = reRunTriggers(c.source);
+    rows.push(`${c.id} legacy{changed=${legacy.manifestOk},env=${legacy.envOk}} `
+      + `corrected{changed=${corrected.manifestOk},env=${corrected.envOk}} `
+      + `correctedManifestHits=${JSON.stringify(corrected.manifestHits)} `
+      + `correctedEnvHits=${JSON.stringify(corrected.envHits)} dirBuilt=${JSON.stringify(corrected.dirBuilt)} :: ${c.shape}`);
+    if (legacy.manifestOk !== c.expect.legacy.changed || legacy.envOk !== c.expect.legacy.env) {
+      mismatched.push(`${c.id}: the PRE-CORRECTION test answered {changed=${legacy.manifestOk}, env=${legacy.envOk}} `
+        + `where the battery records ${JSON.stringify(c.expect.legacy)}`);
+    }
+    if (corrected.manifestOk !== c.expect.corrected.changed || corrected.envOk !== c.expect.corrected.env) {
+      mismatched.push(`${c.id}: the CORRECTED test answered {changed=${corrected.manifestOk}, env=${corrected.envOk}} `
+        + `where the battery records ${JSON.stringify(c.expect.corrected)}`);
+    }
+  }
+  // eslint-disable-next-line no-console
+  for (const row of rows) console.log(`[version-stamp re-run trigger battery] ${row}`);
+  assert.deepEqual(mismatched, [],
+    '`docs/specs/storeroom-js/package.md §6.1` item `7` read with `§5.0a`\'s falsifier: each declaration must be '
+    + 'answered as the clause answers it; the mismatches were: ' + JSON.stringify(mismatched));
+  // **AND THE TWO FACTS THE CORRECTION TURNS ON, ASSERTED BY NAME RATHER THAN LEFT IN THE TABLE**: the
+  // substring test admitted every red declaration, and the corrected test refuses each one ON THE TERM IT
+  // BREACHES — while still admitting the declaration the clause asks for. So the correction is a
+  // TIGHTENING of one predicate and not a second spelling of the clause.
+  for (const c of CARRIERS.filter((x) => x.id !== 'T-real')) {
+    const legacy = reRunTriggers(c.source, { legacySubstring: true });
+    assert.ok(legacy.manifestOk && legacy.envOk,
+      `\`S3\`: \`${c.id}\` must be SHOWN to have satisfied the substring test that stood here — a red input the old `
+      + 'test already refused would prove nothing about the correction; it was refused on the old test by '
+      + `{changed=${legacy.manifestOk}, env=${legacy.envOk}}`);
+    const corrected = reRunTriggers(c.source);
+    assert.equal(corrected.manifestOk && corrected.envOk, false,
+      `\`S3\`: the corrected test must REFUSE \`${c.id}\``);
+  }
+  assert.equal(reRunTriggers(BUILD_RS_CODE).manifestOk && reRunTriggers(BUILD_RS_CODE).envOk, true,
+    '`S3`: and the declaration standing in this tree must pass the corrected test UNCHANGED — the correction '
+    + 'tightens the predicate and does not re-spell the lawful carrier');
 });
 
 // =============================================================================================
@@ -928,7 +1534,11 @@ function makeRandom(seed) {
   return () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 4294967296; };
 }
 
-function driveRow({ row, strategy, seedFor, attempts, attemptsPerRow, driveOne }) {
+// **`note` IS OPTIONAL AND IS PRINTED AT THE ROW'S OWN END** — the census reads this table and nothing
+// else, so a row whose subject needs naming in the terms of the clause (`S5`: *"the composed fake, whose
+// subject is the rung-one READ's refusal"*) must carry that naming IN THE ROW. A note that were not
+// printed here would be a claim the table cannot be read against.
+function driveRow({ row, strategy, seedFor, attempts, attemptsPerRow, driveOne, note = null }) {
   const rand = makeRandom(seedFor);
   let breaks = 0;
   let driven = 0;
@@ -941,26 +1551,80 @@ function driveRow({ row, strategy, seedFor, attempts, attemptsPerRow, driveOne }
     if (attempt !== null) { breaks += 1; failures.push({ attempt: i, why: attempt }); if (breaks >= MAX_FAILURES) break; }
   }
   attempts.push(`${row} strategy=${strategy} attempts=${driven} breaks=${breaks} `
-    + `verdict=${breaks === 0 ? 'HELD' : 'BROKEN'}${breaks >= MAX_FAILURES ? ' (stopped at the failure cap)' : ''}`);
+    + `verdict=${breaks === 0 ? 'HELD' : 'BROKEN'}${breaks >= MAX_FAILURES ? ' (stopped at the failure cap)' : ''}`
+    + `${note === null ? '' : ` (${note})`}`);
   return { driven, breaks, failures };
 }
 
 const PROPERTY_ATTEMPTS = [];
 
-test('P-PUB-9 property (S-VERSION) — the version read\'s equality is EXACT: over a pinned-seed sample, every one-character-perturbed answer is refused', () => {
-  // **THE ROW THAT BEARS ON THIS UNIT AND IS EXPRESSIBLE AS A PROPERTY.** `contract.md §5.0a` states the
-  // equality as CHARACTER FOR CHARACTER, and its failure list names *"an artefact whose stamped version
-  // differs from its own manifest's by ONE character"*. The equality's exactness is therefore a property
-  // over the equivalence class of near-miss strings, and the seed decides which member of that class each
-  // attempt drives — a `Math.random()` stream would make the row unreproducible, which is why the seed is
-  // pinned and printed.
+test('P-PUB-9 property (S-STAMP) — THE ARTEFACT ROW: the row this unit bears on reports the BUILT ARTEFACT\'s own answer, or reports the state of a SKIPPED subject, and NEVER a figure from the composed fake', () => {
+  // **THIS ROW IS THIS PASS'S `S5` CORRECTION AND IT IS STATED FIRST IN WHAT IT REPLACES.** The layer used
+  // to carry ONE `P-PUB-9` row — `strategy=S-VERSION attempts=24 … verdict=HELD` — whose subject was a
+  // COMPOSED FAKE: a `node_modules/`-shaped rung-one addon the cell writes itself, whose `version()`
+  // returns whatever the cell told it to. **SO ON A TREE WITH NO ARTEFACT THE LAYER PRINTED `HELD` FOR A
+  // CLAUSE WHOSE ONE REAL OBSERVABLE HAD BEEN SKIPPED**, and on a tree WITH the artefact the row still said
+  // nothing about it. The clause `contract.md §5.0a` states about a RELEASED ARTEFACT — *"every released
+  // native artefact's `version()` answers the main package manifest's `version` character for character"* —
+  // has exactly ONE subject in this suite: the host build at `bindings/js/build/Release/…node`, driven as
+  // rung two. **THAT SUBJECT IS DRIVEN HERE, THROUGH THE SAME `driveBuiltArtefact` CALL THE INVARIANT CELL
+  // USES**, and the row reports WHICH STATE IT IS IN:
+  //   PRESENT → `attempts=1 … verdict=HELD|BROKEN`, the artefact's own answer against the manifest's;
+  //   ABSENT  → `attempts=0 … verdict=SKIPPED-ARTEFACT-ABSENT`, with the path in the row and the rebuild
+  //             instruction beside it — **A SKIP IS NOT A PASS, WHICH IS THE WHOLE DEFECT BEING CLOSED.**
+  // **AND IT IS NOT DRESSED AS A SAMPLE**: one artefact stands in a tree, so this row is a SINGLE-STATE
+  // subject and says so, exactly as the `P-PUB-10` row says it is not expressible as a property. The
+  // `24`-attempt `S-VERSION` row below is the composition, and it now reports under `P-PUB-4`, whose
+  // subject — the rung-one version READ's refusal — it actually is (`PUB-DD-18`).
+  const DRIVEN = driveBuiltArtefact();
+  if (!DRIVEN.present) {
+    PROPERTY_ATTEMPTS.push('P-PUB-9 strategy=S-STAMP attempts=0 breaks=0 verdict=SKIPPED-ARTEFACT-ABSENT '
+      + `(subject: the host build \`${DRIVEN.built}\` — NO figure is reported for this clause, and the composed `
+      + 'fake\'s counts are NOT substituted for it: a clean clone carries no binary (`distribution.md §3.1`) and '
+      + 'this gate runs no `cargo`; REBUILD TO MAKE THIS ROW ACTIVE)');
+    assert.ok(true, 'the row is REPORTED with its subject\'s state — a row that cannot say its subject was '
+      + 'skipped is how a green figure gets read onto a clause nothing drove');
+    return;
+  }
+  const answered = DRIVEN.report.version;
+  const holds = answered === MANIFEST_VERSION;
+  PROPERTY_ATTEMPTS.push(`P-PUB-9 strategy=S-STAMP attempts=1 breaks=${holds ? 0 : 1} `
+    + `verdict=${holds ? 'HELD' : 'BROKEN'} (SINGLE-STATE SUBJECT and NOT a sample: the host build `
+    + `\`${DRIVEN.built}\` driven as rung two — one artefact stands in a tree, so this row drives it instead `
+    + `of many near-misses; the artefact answered \`${String(answered)}\`, the manifest declares `
+    + `\`${MANIFEST_VERSION}\`)`);
+  assert.equal(DRIVEN.report.error, null,
+    `the artefact loaded at all (report: ${JSON.stringify(DRIVEN.report).slice(0, 300)})`);
+  assert.equal(holds, true,
+    '`contract.md §5.0a`: the artefact\'s own answer must BE the manifest\'s value — this is the row the unit '
+    + `bears on, and the crate's own \`${CRATE_VERSION}\` here is \`DEF-19\` reproduced (\`§5.0a\`; \`A91\`)`);
+});
+
+test('P-PUB-4 property (S-VERSION) — THE COMPOSED FAKE, UNDER ITS OWN IDENTITY: the rung-one version READ\'s equality is EXACT, and every one-character-perturbed answer is refused', () => {
+  // **THIS ROW IS THE COMPOSITION, AND IT IS RE-IDENTIFIED BECAUSE ITS OLD IDENTITY WAS A MIS-COMPOSITION
+  // (`S5`, THIS PASS).** `contract.md §5.0a` states the equality as CHARACTER FOR CHARACTER, and its failure
+  // list names *"an artefact whose stamped version differs from its own manifest's by ONE character"*. The
+  // equality's exactness is therefore a property over the equivalence class of near-miss strings, and the
+  // seed decides which member of that class each attempt drives — a `Math.random()` stream would make the
+  // row unreproducible, which is why the seed is pinned and printed.
   //
-  // **WHAT THIS ROW DOES NOT CLAIM: it is not the red cell.** The read's exactness is already in the tree;
-  // the unit's red is the VALUE the artefact answers, which cell `P-PUB-9::S-VERSION …character for
-  // character` drives. This row's `breaks` are reported as the row's own result and it is expected HELD.
+  // **WHAT THIS ROW DOES NOT CLAIM, SAID IN THE TERMS OF WHAT IT REPORTS:** it previously reported as
+  // `P-PUB-9 … verdict=HELD` with 24 attempts, and **THOSE 24 ATTEMPTS WERE TAKEN FROM A COMPOSED FAKE — a
+  // rung-one addon written by the cell — so the figure stood for a subject the clause about the ARTEFACT
+  // does not name.** The subject here is exactly the rung-one version read's refusal of a value it does not
+  // match, which is `P-PUB-4`'s: `PUB-DD-18` fixes that *"THE VERSION READ GUARDS RUNG ONE ALONE"*, and
+  // `PUB-DD-19` fixes the predicate as *"EXACT STRING INEQUALITY"*. The row is therefore **reported under
+  // `P-PUB-4`**, the composed fake is not deleted (a cell removed to make a suite green is the failure this
+  // unit exists to prevent) and its counts are not carried onto `P-PUB-9`. Its refusals are already in the
+  // tree; it is expected `HELD` and is NOT the unit's red.
   const alpha = '0123456789.abc-+';
   const { breaks, driven, failures } = driveRow({
-    row: 'P-PUB-9', strategy: 'S-VERSION', seedFor: SEED, attempts: PROPERTY_ATTEMPTS, attemptsPerRow: 24,
+    row: 'P-PUB-4', strategy: 'S-VERSION', seedFor: SEED, attempts: PROPERTY_ATTEMPTS, attemptsPerRow: 24,
+    note: 'THE COMPOSED FAKE, and its subject is named so no figure of it can be read onto `P-PUB-9`: each '
+      + 'attempt writes a rung-one `node_modules/`-shaped addon whose `version()` is handed a perturbed string, '
+      + 'so what is driven is the version READ\'s refusal of a value it does not match (`PUB-DD-18`: the read '
+      + 'guards rung one alone; `PUB-DD-19`: the predicate is exact string inequality) — NOT the artefact\'s own '
+      + 'answer, which only `P-PUB-9 strategy=S-STAMP` reports',
     driveOne: (rand, i) => {
       const pos = Math.floor(rand() * MANIFEST_VERSION.length);
       const ch = alpha[Math.floor(rand() * alpha.length)];
@@ -1005,4 +1669,28 @@ test('THE PROPERTY LAYER\'S OWN CENSUS — the seed, the attempt counts and ever
   assert.ok(attemptsTotal <= MAX_ATTEMPTS_TOTAL, `the register's own limit: total attempts ${attemptsTotal} ≤ ${MAX_ATTEMPTS_TOTAL}`);
   assert.ok(PROPERTY_ATTEMPTS.some((l) => l.startsWith('P-PUB-9')), 'the row this unit bears on is present in the census');
   assert.ok(PROPERTY_ATTEMPTS.some((l) => l.startsWith('P-PUB-10')), 'and the row that is NOT expressible is named rather than omitted');
+  // **⟶ AND THE GUARDS THAT MAKE `S5`'S CORRECTION HOLD IN THE CENSUS ITSELF, NOT ONLY IN THE CELLS THAT
+  // FILL IT** (`S5`, this pass). A cell's own identity can be checked at the cell; **WHAT CANNOT BE CHECKED
+  // THERE IS THE SUBSTITUTION — a figure taken from a composed fake printed under the row about the
+  // artefact — because that fault is a fact about the TABLE.** So:
+  const rowNine = PROPERTY_ATTEMPTS.filter((l) => l.startsWith('P-PUB-9'));
+  assert.ok(rowNine.some((l) => /artefact/i.test(l)),
+    'the `P-PUB-9` row must NAME THE ARTEFACT AS ITS SUBJECT — the clause `contract.md §5.0a` is about a '
+    + `released artefact, so a row that does not name one is a row about something else; the rows were ${JSON.stringify(rowNine)}`);
+  assert.ok(rowNine.every((l) => /strategy=S-STAMP/.test(l)),
+    'every `P-PUB-9` row must be THE ARTEFACT ROW — the `S-STAMP` strategy, whose subject is the built '
+    + `artefact; the rows were ${JSON.stringify(rowNine)}`);
+  assert.ok(rowNine.every((l) => !/strategy=S-VERSION/.test(l)),
+    'and NO `P-PUB-9` row may BE the COMPOSED FAKE\'s row (`strategy=S-VERSION`): a fake\'s `HELD` printed '
+    + 'under the row about the artefact is precisely the mis-composition this pass removes. **THE GUARD IS '
+    + 'ON THE ROW\'S STRATEGY AND NOT ON A WORD**, because the artefact row must remain free to SAY that '
+    + `the fake\'s counts are not substituted for it; the rows were ${JSON.stringify(rowNine)}`);
+  assert.ok(rowNine.some((l) => /verdict=(HELD|BROKEN|SKIPPED-ARTEFACT-ABSENT)/.test(l)),
+    'and the row must report a verdict for a subject that was DRIVEN, or the named SKIPPED state of a subject '
+    + 'that was not — `un-run` and `silently-skipped` are both failures');
+  assert.ok(PROPERTY_ATTEMPTS.some((l) => /composed fake/i.test(l)),
+    'and the composed fake is REPORTED under its own identity rather than deleted — a cell removed to make a '
+    + 'suite green is the failure this unit exists to prevent');
+  assert.ok(PROPERTY_ATTEMPTS.some((l) => l.startsWith('P-PUB-4') && /composed fake/i.test(l)),
+    'and it reports under `P-PUB-4`, whose subject it is: the rung-one version READ\'s refusal (`PUB-DD-18`)');
 });
