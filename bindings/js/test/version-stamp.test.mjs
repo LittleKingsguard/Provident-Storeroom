@@ -35,6 +35,38 @@
 // and parsed for the DECLARED forms; no behaviour of theirs is inferred and no behaviour of any other
 // file is learned from them).
 //
+// ---------------------------------------------------------------------------------------------
+// THE KICK-BACK RESOLUTION — `D-GP-SVM-4`, disposition (a) MALFORMED, APPLIED TO THIS FILE
+// ---------------------------------------------------------------------------------------------
+// TEST IDENTIFIER: `P-PUB-9::S-STAMP` — the carrier's directive cell, `bindings/js/test/
+// version-stamp.test.mjs`, the assertion that stood at `:388`.
+// DISPOSITION: **(a) MALFORMED — NOT A RE-FREEZE.** The cell demanded a SHAPE the contract refuses: it
+// required `DIRECTIVE.value` to equal `0.1.1` while ALSO requiring the SAME expression to name
+// `CARGO_MANIFEST_DIR` and `package.json` — jointly satisfiable ONLY IF `build.rs` carried the manifest's
+// version as a RUST LITERAL, i.e. ONLY IF the build script STOPPED READING THE MANIFEST. **THE CONTRACT
+// REQUIRES THE OPPOSITE**: `release.md §2.4` item `1` and `docs/specs/storeroom-js/package.md §6.1` item
+// `2` both say the build script READS `bindings/js/package.json`'s `version` ITSELF, so the cell pinned a
+// SYNTACTIC SHAPE (a literal, inline) where the contract pins a SOURCE RELATION (the script reads the
+// manifest and derives the directive's value from that read).
+// REASON IN THE ARTEFACT'S OWN TERMS: the implementer's lawful carrier prints
+// `cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}` at `build.rs:89` with the manifest read at
+// `:70`, so the printed slot is an INTERPOLATED BINDING and the cell's own reader — which asked that same
+// binding for a QUOTED LITERAL — answered `null` on a carrier that satisfies the relation exactly.
+// ROLES THAT ACTED: `role_test_writer` (author of the over-strong cell, and the corrector here) ·
+// `role_implementer` (reached 14/15 and STOPPED, naming the cell and its line, and MEASURED the six
+// computed-value shapes rather than asserting them) · `role_supervisor` (adjudicated (a) MALFORMED).
+// **NO RE-FREEZE OCCURRED AND NO HASH CHANGED**: no spec byte was written, no contract clause was moved,
+// re-cut or withdrawn, and the correction below is a TEST-side instrument change against the clauses as
+// they already stand — the authority is read AT THE CLAUSES' OWN SPELLING and no hash of any document is
+// asserted, recorded or moved by this pass.
+// AND THE STANDING RULE THIS UNIT NOW CARRIES IS OBEYED HERE: **an amendment after a re-flow is AUTHORED
+// AS ITS OWN LINE and NEVER APPENDED, and MEASURED IN THE UNIT THE LIMIT IS IN.** The paragraph above is
+// its own line-bearing block and not an appendage to a clause's tail, and the `2000` limit is a
+// **BYTE** width — `awk 'length'` counts CHARACTERS on this tree's `UTF-8` files and a character count is
+// NOT a byte count (measured this pass: `awk 'length'` answers `7` where `wc -c` answers `9` on the same
+// line, `§` being two bytes and one character). **THIS FILE WRITES NO DOCUMENT, so the rule binds this
+// pass as MEASUREMENT DISCIPLINE and not as an edit.**
+//
 // `A96`: **a compile-time substitution is not a consultation** — so a cell asserting *"no environment
 // consultation outside the five"* is GREEN against the lawful carrier, which reads
 // `env!("CARGO_PKG_VERSION")` in the `None` arm. **THE CELL THAT DRIVES THAT RULE IS MARKED
@@ -105,6 +137,16 @@ const MANIFEST_REL_TO_CRATE = 'package.json'; // the crate is `bindings/js/`, th
 
 const BUILD_RS = join(PKG_DIR, 'build.rs');
 const FACADE_RS = join(PKG_DIR, 'src', 'facade.rs');
+
+/** `release.md §2.4` item `1` / `docs/specs/storeroom-js/package.md §6.1` item `2` read with `release.md
+ *  §6.10` item `1` — **THE EXTRACTION OPERATIONS BY WHICH A DERIVED VALUE IS TAKEN FROM THE MANIFEST'S OWN
+ *  BYTES: the `version` FIELD is the thing the clause names as the stamp's source, so a binding that
+ *  merely NAMES the read content without extracting from it is not a derivation.** The set is declared
+ *  rather than inferred, and each member is an operation a Rust build script reaches the field's text
+ *  through — the string searches and slicing the declared carrier uses, and the two JSON parses it does
+ *  not: **the reader accepts a FORM and does not prefer one, because `§2.4` item `1` pins the SOURCE and
+ *  `§6.10` item `1` pins the read, while neither clause pins a parser.** */
+const BuildRsExtraction = /\b(rsplit|split_once|split|find|strip_prefix|trim|from_str|parse|serde_json|json!)\b/;
 const WORKFLOW = join(REPO_ROOT, '.github', 'workflows', 'publish.yml');
 const MANIFEST_PATH = join(PKG_DIR, 'package.json');
 
@@ -141,28 +183,113 @@ const FACADE_RS_TEXT = readFileSync(FACADE_RS, 'utf8');
 const FACADE_RS_CODE = stripRustComments(FACADE_RS_TEXT);
 
 /**
- * **`release.md §2.4` item `1` / `contract.md §5.0a` — THE DIRECTIVE AS THE CARRIER'S OWN BYTES DECLARE
- * IT.** The build script declares it as a printed directive whose value is the manifest's own `version`
- * FIELD, reached through `CARGO_MANIFEST_DIR`; this reader takes the printed form and asks for the
- * DIRECTIVE'S VALUE AS A LITERAL, so that a later cell can compare it to the manifest character for
- * character — the property's own words. **The reader returns `null` rather than inventing anything where
- * the form is absent**, so the absence is an assertable state and not a crash.
+ * **`release.md §2.4` item `1` / `docs/specs/storeroom-js/package.md §6.1` item `2` — THE DIRECTIVE AS THE
+ * CARRIER'S OWN BYTES DECLARE IT, READ AS A SOURCE RELATION AND NOT AS A SPELLING.**
+ *
+ * **THIS READER WAS CORRECTED, AND WHY IT HAD TO BE** (`D-GP-SVM-4`, disposition `(a)`, whose record stands
+ * at this file's own head): its first form asked the printed slot's binding for a QUOTED LITERAL and
+ * answered `null` on a LAWFUL carrier whose printed slot is an INTERPOLATED BINDING — because the contract
+ * requires the build script to READ the manifest and DERIVE the value from that read, and a derived value
+ * is an expression, not a token. **A reader that demanded a token therefore pinned a shape the contract
+ * refuses and would have been satisfied only by a build script that HARD-CODED the version and stopped
+ * reading the manifest at all** — which is the opposite of what the clause orders.
+ *
+ * **SO THE READER NOW REPORTS THE FOUR FACTS THE RELATION IS MADE OF, AND `null` IS STILL AN ASSERTABLE
+ * ABSENCE RATHER THAN A CRASH:**
+ *   (i)   `name` — the directive's NAME, as the printed `cargo:rustc-env=<NAME>=…` spells it;
+ *   (ii)  `manifestPathExpression` — the expression that BUILDS the manifest's path, reported ONLY where
+ *         that expression names `CARGO_MANIFEST_DIR` AND the manifest file itself; the path-variable
+ *         binding is RESOLVED rather than pattern-matched, so `let manifest = env::var("CARGO_MANIFEST_DIR")`
+ *         followed by `format!("{manifest}/package.json")` is READ AS the path it is;
+ *   (iii) `manifestReadExpression` — the expression that READS THE MANIFEST, reported ONLY where it names
+ *         the path variable (i.e. where the read consumes the `CARGO_MANIFEST_DIR`-built path);
+ *   (iv)  `valueExpression` — the expression whose value is PRINTED into the directive, resolved through
+ *         its binding, and `null` where the printed slot carries a LITERAL — because a literal is exactly
+ *         the shape in which the manifest is NOT the source.
+ * **NO FACT IS INFERRED FROM A PHRASE SEARCH ALONE**: the two path/read facts are reported as the
+ * expressions themselves, so a cell compares RELATIONS and a reader can see what was matched.
  */
 function declaredDirective() {
-  const print = /println!\(\s*"cargo:rustc-env=([A-Z_]+)=\{([^}]*)\}"/.exec(BUILD_RS_CODE);
+  const print = /println!\(\s*"cargo:rustc-env=([A-Z_]+)=\{([A-Za-z_][A-Za-z0-9_]*)\}"/.exec(BUILD_RS_CODE);
   if (print === null) return null;
   const [, name, slot] = print;
   const bound = new RegExp(`let\\s+${slot}\\s*=\\s*(.+?);`).exec(BUILD_RS_CODE);
-  if (bound === null) return { name, slot, value: null, expression: null };
-  const expression = bound[1];
-  const literal = /"((?:[^"\\]|\\.)*)"/.exec(expression);
+  if (bound === null) {
+    // The slot is printed but binds nothing this reader can resolve. Reported rather than invented: the
+    // directive is EMITTED (its name is a fact of its own bytes) and every relation below is ABSENT.
+    return { name, slot, valueExpression: null, manifestPathExpression: null, manifestReadExpression: null,
+      viaManifestDir: false, viaManifestFile: false };
+  }
+  const boundExpression = bound[1];
+  // **THE BINDING IS RESOLVED THROUGH THE PRINTED SLOT, SO AN INDIRECT BINDING IS NOT A FALSE ABSENCE**:
+  // `let version = &rest[2..7];` prints `{version}`, and the `&` prefix is the reference the printing does
+  // not consume. The reported expression is the one whose VALUE is printed.
+  const valueExpression = boundExpression.replace(/^&/, '').trim();
+  // Any `let <ident> = <expr>;` in the file, so a path variable can be resolved BY NAME rather than
+  // matched by spelling — the declared carrier reaches its path through TWO hops (`let manifest =
+  // env::var("CARGO_MANIFEST_DIR")`, then `format!("{manifest}/package.json")`), and a reader that did not
+  // resolve names would report the path ABSENT on a carrier that builds it — an absence manufactured by
+  // the instrument, which is the very fault this correction exists to remove.
+  const bindings = new Map();
+  for (const m of BUILD_RS_CODE.matchAll(/let\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([^;]*);/g)) bindings.set(m[1], m[2].trim());
+  /** Every identifier the expression names, replaced by its own binding, repeatedly until nothing changes —
+   *  i.e. THE EXPRESSION THE COMPILER SEES, as text. A name that binds nothing is left standing (it is
+   *  then a parameter or an outer binding), and the walk stops as soon as a round changes nothing, so a
+   *  cyclic pair cannot loop and a long derivation does not grow without bound. */
+  function expand(expression) {
+    let text = String(expression);
+    for (let round = 0; round < 4; round += 1) {
+      const before = text;
+      for (const [id, bound] of bindings) {
+        if (!new RegExp(`\\b${id}\\b`).test(text)) continue;
+        text = text.replace(new RegExp(`\\b${id}\\b`, 'g'), `(${bound})`);
+      }
+      if (text === before) break;
+    }
+    return text;
+  }
+  const namesManifestDir = (text) => /CARGO_MANIFEST_DIR/.test(text) && text.includes(MANIFEST_REL_TO_CRATE);
+  // (ii) THE PATH: the expression that BUILDS it, searched over the read chain AT FULL RESOLUTION, so the
+  // path is read as the path it is and not as a spelling — and the EXPRESSION REPORTED is the carrier's own.
+  const manifestPathExpression = [valueExpression, ...bindings.values(), boundExpression]
+    .find((e) => namesManifestDir(expand(e))) ?? null;
+  // (iii) THE READ: `fs::read_to_string(<expr>)` or `fs::read(<expr>)`, reported only where the argument
+  // CONSUMES the `CARGO_MANIFEST_DIR`-built path AT FULL RESOLUTION. **THE ARGUMENT IS MATCHED WITH A
+  // BALANCED-PARENTHESIS READER AND NOT BY `[^)]*`**, because the declared carrier's own argument is
+  // `format!("{manifest}/package.json")` — a nested call — and a reader that stopped at the first `)` would
+  // PRINT a truncated expression and report the read as something other than what it is.
+  let manifestReadExpression = null;
+  for (const m of BUILD_RS_CODE.matchAll(/\bfs::read(?:_to_string)?\(/g)) {
+    const at = m.index + m[0].length;
+    let depth = 1;
+    let end = at;
+    for (; end < BUILD_RS_CODE.length && depth > 0; end += 1) {
+      if (BUILD_RS_CODE[end] === '(') depth += 1;
+      else if (BUILD_RS_CODE[end] === ')') depth -= 1;
+    }
+    const arg = BUILD_RS_CODE.slice(at, end - 1).trim();
+    if (arg !== '' && namesManifestDir(expand(arg))) {
+      manifestReadExpression = `fs::read_to_string(${arg})`;
+      break;
+    }
+  }
   return {
     name,
     slot,
-    expression,
-    value: literal === null ? null : literal[1].replace(/\\(.)/g, '$1'),
-    viaManifestDir: expression.includes('CARGO_MANIFEST_DIR'),
-    viaManifestFile: expression.includes(MANIFEST_REL_TO_CRATE),
+    valueExpression,
+    // **THE TWO FULLY-RESOLVED TEXTS ARE REPORTED BESIDE THE EXPRESSIONS**, so the relation can be READ at a
+    // failure instead of taken on trust, and the extraction below is decided over the resolved text.
+    valueResolvedText: expand(valueExpression),
+    manifestPathExpression,
+    manifestReadExpression,
+    // **`viaManifestDir` / `viaManifestFile` KEEP THEIR SUBJECT AND LOSE THEIR ONE-HOP DEFECT**: they ask
+    // whether the printed value is REACHED THROUGH the `CARGO_MANIFEST_DIR`-built manifest path, and that
+    // question is answered over the RESOLVED text, because the declared carrier reaches the path through
+    // two hops. **A textual one-hop test here would have failed the lawful carrier on the same fault the
+    // kick-back named**, so the correction reaches this flag too — and it reports the same property, not a
+    // weaker one: a value that does not stand on the manifest path still answers `false`.
+    viaManifestDir: /CARGO_MANIFEST_DIR/.test(expand(valueExpression)),
+    viaManifestFile: expand(valueExpression).includes(MANIFEST_REL_TO_CRATE),
   };
 }
 
@@ -371,8 +498,22 @@ const WORKFLOW_STEPS = readWorkflowSteps();
 //   this suite and no cell whose observable is the RUN may be authored against it (`A95`).
 //   `un-run` IS A FAILURE: every member below is either driven or explicitly reported as pinned
 //   elsewhere; none is silently omitted.
+// **AND THE CARRIER-SIDE STATE THIS BLOCK ADDS, ENUMERATED IN THE CORRECTION'S OWN TERMS (`D-GP-SVM-4`
+// (a), recorded at this file's head) — one row per shape a build script can take at its own bytes:**
+//   (c1) the directive is EMITTED with its declared NAME, and its VALUE IS DERIVED FROM THE MANIFEST THE
+//        CARRIER READS — the path built through `CARGO_MANIFEST_DIR` + `package.json`, READ, and the
+//        printed value taken from what was read — SUCCESS (`release.md §2.4` item `1`)
+//   (c2) the directive is emitted as a HARD-CODED LITERAL — no read stands behind the value → FAIL
+//   (c3) the directive is emitted from a value the script did NOT read from the manifest — a fallback, an
+//        ambient variable, a second source — → FAIL (`§2.4` item `1(iv)`; `A96`)
+//   (c4) the carrier reads a DIFFERENT file, or reaches the manifest through no `CARGO_MANIFEST_DIR` — → FAIL
+//   (c5) the carrier reads the manifest and declares NO RE-RUN TRIGGER on it → FAIL, and its falsifier is
+//        the source-level cell over `build.rs`'s bytes below (member `(8)`; `§6.10` item `5`)
+// Cells `(c1)(c2)(c3)(c4)` are driven by the ONE cell below, and its `(c2)` row is the answer to the
+// question this correction was judged by: **could a HARD-CODED emitter, or one that did not read the
+// manifest at all, still pass? — NO, and each is refused by a NAMED assertion rather than by a comment.**
 
-test('P-PUB-9::S-STAMP a stamped carrier declares the directive, its value IS the manifest\'s, and the facade reads it with the crate version on `None` as the only fallback', () => {
+test('P-PUB-9::S-STAMP a stamped carrier declares the directive, DERIVES its value from the manifest it READS, and the facade reads it with the crate version on `None` as the only fallback', () => {
   // `release.md §2.4` item `1` / `docs/specs/storeroom-js/package.md §6.1` item `2`: `bindings/js/build.rs`
   // READS THE MANIFEST ITSELF and emits the `cargo:rustc-env`-class directive `STOREROOM_JS_PACKAGE_VERSION`;
   // `release.md §1.4a` item `3`'s dated correction: the self-report's read is
@@ -380,17 +521,66 @@ test('P-PUB-9::S-STAMP a stamped carrier declares the directive, its value IS th
   // **THE INSTRUMENT IS A SOURCE-LEVEL READ OF TWO FILES, AT THE CLAUSES' OWN DIRECTION, AND IT IS NAMED
   // HERE**: no run can observe a build-time substitution, so this member is pinned at the source or not at
   // all (`A95`; `§1.4a` item `8`).
+  //
+  // **⟶ THE ASSERTION THAT STOOD HERE WAS OVER-STRONG AND IS CORRECTED, NOT WEAKENED — `D-GP-SVM-4`,
+  // disposition `(a)`, recorded at this file's head.** Its former form required `DIRECTIVE.value` to equal
+  // `0.1.1` while requiring the SAME expression to name `CARGO_MANIFEST_DIR` and `package.json`, which is
+  // jointly satisfiable ONLY by a build script that carries the manifest's version as a RUST LITERAL and
+  // therefore DOES NOT READ THE MANIFEST — the opposite of what `§2.4` item `1` orders. **THE CONTRACT PINS
+  // A SOURCE RELATION AND NOT A SPELLING**, so this cell now proves the RELATION: the path is BUILT, the
+  // path is READ, and the value PRINTED INTO THE DIRECTIVE IS THE ONE THAT READ RETURNED. **THE `value`
+  // ASSERTION IS NOT REPLACED BY A WEAKER ONE**: an emitter that hard-coded the version, or that did not
+  // read the manifest at all, is refused by a NAMED assertion below rather than by a comment, and the
+  // `DIRECTIVE.name` assertion is the FIRST of them so a reader sees WHAT the correction did not touch.
   assert.ok(DIRECTIVE !== null,
     '`release.md §2.4` item 1 / `parameter-semantics.md §5.1`: `bindings/js/build.rs` must EMIT the '
     + '`cargo:rustc-env`-class directive (no `println!("cargo:rustc-env=<NAME>={...}")` is declared at its bytes)');
   assert.equal(DIRECTIVE.name, DIRECTIVE_NAME,
     '`docs/specs/storeroom-js/package.md §6.1` item 2: the directive\'s NAME is `STOREROOM_JS_PACKAGE_VERSION`');
-  assert.equal(DIRECTIVE.value, MANIFEST_VERSION,
-    '`release.md §2.4` item 1: the directive\'s VALUE is the manifest\'s own `version` field, so it must be '
-    + `\`${MANIFEST_VERSION}\` and not \`${DIRECTIVE.value}\``);
+  // **THE CORRECTED ASSERTION, IN FOUR PARTS, EACH NAMING ONE TERM OF THE RELATION — AND EACH PRINTING THE
+  // EXPRESSIONS IT READ**, so a reader of a failure sees the carrier's own bytes rather than an opinion:
+  //   (1) the directive's value is a BINDING and not a literal — `§2.4` item `1` makes the manifest the
+  //       SOURCE, so a value that is a token in the format string IS the hard-coded shape the clause refuses;
+  //   (2) the path IS BUILT through `CARGO_MANIFEST_DIR` and carries `package.json` — `§6.1` item `7`'s
+  //       ABSOLUTE path built from `CARGO_MANIFEST_DIR`;
+  //   (3) the path IS READ — `§2.4` item `1`'s "READS `bindings/js/package.json`'s `version` ITSELF", so a
+  //       script that never reads the manifest cannot stand here whatever it prints;
+  //   (4) the value PRINTED is DERIVED FROM THAT READ — the printed binding CONSUMES the read's content
+  //       through an extraction operation, which is what "derives" means and what a second source is not.
+  // The `version` field is named by part (4)'s extraction; where it is not, the manifest's own key is not
+  // the thing read and the assertion says so rather than passing silently.
+  assert.ok(DIRECTIVE.valueExpression !== null && DIRECTIVE.valueExpression !== '',
+    '`release.md §2.4` item `1` / `docs/specs/storeroom-js/package.md §6.1` item `2`: the directive\'s value '
+    + `must be DERIVED (a binding printed into the directive), not a literal token in the format string — a `
+    + `literal is the HARD-CODED shape the clause refuses; what the reader found was `
+    + `${JSON.stringify(DIRECTIVE.valueExpression)}`);
+  assert.ok(DIRECTIVE.manifestPathExpression,
+    '`release.md §2.4` item `1`: the manifest\'s path must be BUILT from `CARGO_MANIFEST_DIR` AND carry the '
+    + `manifest file \`${MANIFEST_REL_TO_CRATE}\`; the path expressions read were `
+    + `${JSON.stringify([DIRECTIVE.valueExpression, DIRECTIVE.manifestPathExpression].filter((x) => x !== null))}`);
+  assert.ok(DIRECTIVE.manifestReadExpression,
+    '`release.md §2.4` item `1` / `docs/specs/storeroom-js/package.md §6.1` item `2`: the build script must '
+    + 'READ the manifest ITSELF — a script that reads nothing from the `CARGO_MANIFEST_DIR`-built path cannot '
+    + `satisfy the clause whatever it prints; the read found was ${JSON.stringify(DIRECTIVE.manifestReadExpression)}`);
+  const contentNames = [...BUILD_RS_CODE.matchAll(/let\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*fs::read(?:_to_string)?\(/g)].map((m) => m[1]);
+  // **DECIDED OVER THE RESOLVED TEXT, BECAUSE THE READ's CONTENT IS USUALLY REACHED THROUGH MORE THAN ONE
+  // HOP** — the declared carrier prints `rest[...]`, `rest` binds `tail`, and `tail` alone consumes
+  // `declared`. A one-hop search would report the derivation ABSENT on a carrier that performs it.
+  const derived = contentNames.length > 0
+    && contentNames.some((id) => new RegExp(`\\b${id}\\b`).test(DIRECTIVE.valueResolvedText));
+  assert.equal(derived, true,
+    '`release.md §2.4` item `1`: the value the carrier PRINTS must be DERIVED FROM THE MANIFEST IT READ — the '
+    + `printed binding \`${DIRECTIVE.valueExpression}\` must consume the content the read returned `
+    + `(\`${contentNames.join('`, `') || '(no read content binding stands in the file)'}\`); a value taken from `
+    + 'any other source is the refused form');
+  assert.ok(BuildRsExtraction.test(DIRECTIVE.valueResolvedText),
+    '`docs/specs/storeroom-js/package.md §6.1` item `2` read with `release.md §6.10` item `1`: the value must be '
+    + 'EXTRACTED FROM THE MANIFEST\'S OWN BYTES — the `version` FIELD is the thing the clause names as the '
+    + 'stamp\'s source — so the printed binding must perform an extraction over the read content rather than '
+    + `merely naming it; the binding read was \`${DIRECTIVE.valueExpression}\``);
   assert.equal(DIRECTIVE.viaManifestDir, true,
     '`§5.0a`: the manifest the carrier reads is the CARGO_MANIFEST_DIR-built path, and the value must be '
-    + `reached through it (the expression was \`${DIRECTIVE.expression ?? '(absent)'}\`)`);
+    + `reached through it (the expression was \`${DIRECTIVE.valueExpression ?? '(absent)'}\`)`);
   assert.ok(DIRECTIVE.viaManifestFile, 'and that path carries the manifest file itself (`package.json` beside the crate)');
   assert.ok(FACADE_RS_CODE.includes(`option_env!("${DIRECTIVE_NAME}")`),
     `\`§1.4a\` item \`3\`: the self-report must READ the directive through \`option_env!(\"${DIRECTIVE_NAME}\")\`; `
