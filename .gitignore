@@ -153,3 +153,8 @@ vite.config.ts.timestamp-*
 
 # Archival (the process rule: archive/ is GITIGNORED)
 archive/
+
+# A role's in-flight backup directory. Backup trees for a re-flow pass belong OUTSIDE the
+# repository or under the gitignored archive/ -- never in the tree, because a `git add -A`
+# in another pass's commit sweeps them in and a backup tree is not a project artifact.
+.reflow-backup/
