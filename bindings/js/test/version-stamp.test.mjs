@@ -249,10 +249,42 @@ function declaredDirective() {
     return text;
   }
   const namesManifestDir = (text) => /CARGO_MANIFEST_DIR/.test(text) && text.includes(MANIFEST_REL_TO_CRATE);
-  // (ii) THE PATH: the expression that BUILDS it, searched over the read chain AT FULL RESOLUTION, so the
-  // path is read as the path it is and not as a spelling — and the EXPRESSION REPORTED is the carrier's own.
-  const manifestPathExpression = [valueExpression, ...bindings.values(), boundExpression]
-    .find((e) => namesManifestDir(expand(e))) ?? null;
+  // (ii) THE PATH: **THE CARRIER'S OWN EXPRESSION THAT BUILDS IT, REPORTED AS WRITTEN AND NOT AS EXPANDED.**
+  // A DIRECT match is preferred over a resolved one, and the carriers' own order is searched before the
+  // printed value's chain — otherwise a value that merely REACHES the path through its bindings would be
+  // reported as the path's builder and the diagnostic would name the wrong site. **THE EXPRESSION IS CUT AT
+  // ITS OWN COMPOSITION and not at the whole statement**: for the declared carrier the binding is
+  // `fs::read_to_string(format!(…)).expect(…)`, and reporting the `expect` chain as "the path expression"
+  // would print a read under a path's name.
+  const pathCandidates = [...bindings.values(), valueExpression, boundExpression];
+  // **THE COMPOSITION IS READ THROUGH THE `format!` ARGUMENT, BECAUSE THE PATH'S LITERAL TEXT NAMES ONLY
+  // `package.json`** — `format!("{manifest}/package.json")` resolves to the `CARGO_MANIFEST_DIR`-built path
+  // through the variable THE ARGUMENT INTERPOLATES, so a reader that looked for the variable in the format
+  // string's own text would report the path ABSENT on the lawful carrier: the reader resolves the argument.
+  const formatArg = (text) => {
+    const at = text.indexOf('format!(');
+    if (at === -1) return null;
+    let depth = 0;
+    for (let i = at + 'format!'.length; i < text.length; i += 1) {
+      if (text[i] === '(') depth += 1;
+      else if (text[i] === ')') { depth -= 1; if (depth === 0) return text.slice(at, i + 1); }
+    }
+    return null;
+  };
+  const composed = (text) => {
+    const call = formatArg(text);
+    if (call !== null && (namesManifestDir(call) || namesManifestDir(expand(call)))) return call;
+    return namesManifestDir(text) ? text : null;
+  };
+  // **A DIRECT PASS FIRST, AND THE RESOLVED PASS ONLY WHERE NOTHING STANDS DIRECTLY** — the two tiers are
+  // evaluated ONE AFTER THE OTHER and not as one chain, so the direct tier never sees an expanded text.
+  let manifestPathExpression = pathCandidates.map(composed).find((e) => e !== null) ?? null;
+  if (manifestPathExpression === null) {
+    manifestPathExpression = pathCandidates.map((e) => composed(expand(e))).find((e) => e !== null) ?? null;
+  }
+  // **THE REPORTED PATH IS THE COMPOSITION WHERE ONE STANDS IN THE FILE**, so the `expect` chain around the
+  // read is never printed as "the path expression" — a read printed under a path's name would be a
+  // diagnostic that misnames its own site.
   // (iii) THE READ: `fs::read_to_string(<expr>)` or `fs::read(<expr>)`, reported only where the argument
   // CONSUMES the `CARGO_MANIFEST_DIR`-built path AT FULL RESOLUTION. **THE ARGUMENT IS MATCHED WITH A
   // BALANCED-PARENTHESIS READER AND NOT BY `[^)]*`**, because the declared carrier's own argument is
@@ -277,9 +309,15 @@ function declaredDirective() {
     name,
     slot,
     valueExpression,
-    // **THE TWO FULLY-RESOLVED TEXTS ARE REPORTED BESIDE THE EXPRESSIONS**, so the relation can be READ at a
-    // failure instead of taken on trust, and the extraction below is decided over the resolved text.
-    valueResolvedText: expand(valueExpression),
+    // **THE FULLY-RESOLVED TEXT IS REPORTED BESIDE THE EXPRESSION, BOUNDED IN LENGTH**, so the relation can
+    // be READ at a failure instead of taken on trust; the two tests below are decided over it. It is cut at
+    // a declared width because a derivation through several bindings resolves to a LARGE text (the carrier's
+    // own resolves to ~93 kB), and a diagnostic nothing can read is not a diagnostic — **and the cut is
+    // PRINTED where it happens, so a truncated text is never mistaken for a short one.**
+    valueResolvedText: (() => {
+      const full = expand(valueExpression);
+      return full.length <= 4000 ? full : `${full.slice(0, 4000)} …[TRUNCATED at 4000 of ${full.length} chars]`;
+    })(),
     manifestPathExpression,
     manifestReadExpression,
     // **`viaManifestDir` / `viaManifestFile` KEEP THEIR SUBJECT AND LOSE THEIR ONE-HOP DEFECT**: they ask
