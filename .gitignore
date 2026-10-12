@@ -162,3 +162,6 @@ archive/
 # Another role's in-flight backup directory. Same rule as above: a backup tree belongs
 # outside the repository or under the gitignored archive/, never in the tree.
 .impl-rc8-backup/
+
+# The supervisor's own in-flight tracker backup, same rule as the others.
+.tracker-reflow-backup/
