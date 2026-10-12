@@ -1408,10 +1408,32 @@ extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue 
 // layer. **The deletion removes a second route to a token, which is the point: the core is the site's own
 // judge (`surface.md §2.4` item 5 (c)).**
 
-/// The addon's `version() -> string` — the crate's own version, so a consumer that reached the addon
-/// directly sees what it loaded.
+/// The addon's `version() -> string` — **THE STAMPED SELF-REPORT** (`release.md §2.4` item 1;
+/// `docs/specs/storeroom-js/package.md §6.1` item 2 and its read-mechanism clause).
+///
+/// **THE READ IS `option_env!` AND NOT `env!`, AND THAT IS A COMPILER FACT RATHER THAN A PREFERENCE:**
+/// `env!` is evaluated at compile time and is a COMPILE ERROR where the variable is not set, so a read
+/// of `env!("STOREROOM_JS_PACKAGE_VERSION")` could never fall back — and the absent-manifest case is
+/// the very state the fallback prices (`§6.10` item 2). **The three states the two macros divide are
+/// distinct and none is collapsed here: (i) the directive was emitted — `Some(that value)`, and NO
+/// fallback runs, `""` included, because an empty string is a value that was READ; (ii) the directive
+/// was not emitted at all — `None`, the ONLY branch that takes the crate's version; (iii) the manifest
+/// answered a non-string — the build script emits whatever it read, and the outside value is answered
+/// at `parameter-semantics.md §5.1`.**
+///
+/// **`env!("CARGO_PKG_VERSION")` IS A COMPILE-TIME SUBSTITUTION AND IS NOT A CONSULTATION** (`A96`):
+/// it is neither a member of `§5.0a` item (1)'s five-member closed set nor a violation of it.
+/// **Its value — the crate's own `Cargo.toml` version — is DELIBERATELY INDEPENDENT of the package
+/// manifest's** (`release.md §2.2`), so a build that loses the directive answers the crate's version:
+/// legal in a development build, illegal in a release build, and enforced outside the crate by the
+/// release's own pre-publish guard (`§1.4a`; `DEF-19`).
 extern "C" fn addon_version(env: NapiEnv, _info: NapiCallbackInfo) -> NapiValue {
-    unsafe { make_string(env, env!("CARGO_PKG_VERSION")) }
+    unsafe {
+        make_string(
+            env,
+            option_env!("STOREROOM_JS_PACKAGE_VERSION").unwrap_or(env!("CARGO_PKG_VERSION")),
+        )
+    }
 }
 
 /// The addon's `addonErrorMessage(code, subject) -> string` — **THE STORE'S OWN GENERATOR, REACHED FROM

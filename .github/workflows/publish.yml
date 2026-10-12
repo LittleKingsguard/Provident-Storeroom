@@ -184,6 +184,31 @@ jobs:
             test -e "$dir/$path" || { echo "A89(4): the manifest $dir/package.json names '$path' and it does not exist — npm omits a missing files entry SILENTLY, which is how 0.1.0's empty platform tarballs published green"; exit 1; }
           done <<< "$paths"
 
+      # **`release.md §1.4a` — THE PRE-PUBLISH VERSION GUARD, THE SEVENTH STEP: THIS LEG'S ASSEMBLED
+      # ARTEFACT'S OWN `version()`, CALLED AS A FUNCTION, AGAINST THIS LEG'S OWN PLATFORM MANIFEST'S
+      # `version`, CHARACTER FOR CHARACTER.** **ITS SUBJECT IS THE STAMP'S OWN OBSERVABLE**: the value
+      # `bindings/js/src/facade.rs` answers is the value `bindings/js/build.rs` stamped at build time
+      # from `bindings/js/package.json`, with `env!("CARGO_PKG_VERSION")` taken on `option_env!`'s `None`
+      # arm alone — so a leg whose stamp is ABSENT, STALE or MISMATCHED answers the crate's `0.1.0` where
+      # the manifest declares `0.1.1`, and this step is the ONLY instrument that fails it (`§6.10` item 2:
+      # *"IF NOTHING ELSE RUNS, NOTHING ENFORCES IT"*).
+      # **POSITION IS THE CLAUSE'S WHOLE POINT** (`§1.4a` item 4): the step stands AFTER the assembly
+      # whose `run:` carries the manifest-to-manifest comparison and BEFORE the first publish site, so a
+      # mis-stamped leg FAILS ITS OWN STEP AND NO VERSION IS STAGED, PUBLISHED OR SPENT — the ordering
+      # that keeps the partial-publish arm of `§3` UNREACHED by a mis-stamped leg.
+      # **AND ITS FAILURE SHAPE IS THE RUN'S OWN AND NOT A NEW ONE** (item 5): the step fails by its own
+      # non-zero exit, MINTS NO STATUS CODE, NO MESSAGE FORM AND NO SECOND ARM, and the version read
+      # inside the artefact stays the SINGLE DECLARED FAILURE ARM's own read at the consumer's side.
+      # **THE SUBJECT IS PER LEG AND THIS IS WHY IT CANNOT BE ONE CELL** (item 6): each of the five legs
+      # compares ITS OWN `platforms/<label>/storeroom_js_binding.node` against ITS OWN
+      # `platforms/<label>/package.json`; **THE MAIN PACKAGE'S HALF IS NOT A SECOND GUARD STEP**, because
+      # it ships `index.mjs` and no `.node` at all, so the five leg-subjects are the whole guard set.
+      - name: 'pre-publish guard: the assembled artefact''s version() equals its platform manifest''s version'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "const dir='bindings/js/platforms/${{ matrix.label }}';const a=require('./'+dir+'/storeroom_js_binding.node');const m=require('./'+dir+'/package.json');const read=a.version();if(typeof read!=='string'||read!==m.version){throw new Error('release.md §1.4a: the assembled artefact '+dir+'/storeroom_js_binding.node answers version() '+String(read)+' and its own platform manifest '+String(m.version)+' declares '+m.version+', so this leg is mis-stamped and the version is NOT spent')}"
+
       # `release.md §1.4` step 4 — **PUBLISH THE FIVE PLATFORM ARTEFACTS**, before the main package, at the
       # tag's own version. The step is a registry publication and is the ARCHITECT'S act's arm: it is
       # reached only from a tag, and the scope `@auspicion` is owned before the first platform

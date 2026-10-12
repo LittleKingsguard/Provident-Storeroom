@@ -44,6 +44,50 @@ fn main() {
     // A build-script edit is a link-affecting edit: re-run when THIS file changes.
     println!("cargo:rerun-if-changed=build.rs");
 
+    // =============================================================================================
+    // THE STAMP — the self-report's own value, read from the manifest at BUILD TIME.
+    // `release.md §2.4` item 1 / `§6.10` item 1 / `docs/specs/storeroom-js/package.md §6.1` item 2:
+    // THIS script reads `package.json` itself and emits the `cargo:rustc-env`-class directive
+    // `STOREROOM_JS_PACKAGE_VERSION`, which `facade.rs`'s `addon_version` reads with
+    // `option_env!(...)` and falls back from to `env!("CARGO_PKG_VERSION")` on the `None` arm alone.
+    // **NO AMBIENT ENVIRONMENT VARIABLE IS CONSULTED** (`§2.4` item 1(iv)): the value comes from the
+    // same build's own manifest, so the directive is a TRANSPORT and not a source.
+    // **AND NO SEMVER VALIDATION IS ADDED** (`§6.10` item 4): the manifest's own reader is the
+    // validator, and a second one here would mint a failure shape no clause declares.
+    // =============================================================================================
+    let manifest = env::var("CARGO_MANIFEST_DIR")
+        .expect("CARGO_MANIFEST_DIR is set by cargo for every build-script invocation");
+    // **THE CACHE HAZARD, CLOSED HERE RATHER THAN LEFT TO A LATER RUN** (`§6.10` item 5): without
+    // these two triggers a warm `target/` re-emits the PREVIOUS stamp on a version bump that touches
+    // no source file, and the artefact ships the previous version. The first is the ABSOLUTE path the
+    // item requires, built from `CARGO_MANIFEST_DIR`; the second is the directive's own name.
+    println!("cargo:rerun-if-changed={manifest}/package.json");
+    println!("cargo:rerun-if-env-changed=STOREROOM_JS_PACKAGE_VERSION");
+    // The manifest's own `version` field, as text: the LAST `"version"` key and the JSON string after
+    // its colon. The last and not the first, because `optionalDependencies` pins the five platform
+    // packages to the same value and a pin's own name carries the word — so the field this reads is
+    // the field the main package declares, which is what the stamp's value must be.
+    let declared = fs::read_to_string(format!("{manifest}/package.json"))
+        .expect("bindings/js/package.json is the crate's sibling manifest and is readable");
+    let tail = declared
+        .rsplit("\"version\"")
+        .next()
+        .expect("bindings/js/package.json declares a `version` field");
+    let rest = tail
+        .split_once(':')
+        .expect("the `version` field is a key with a value")
+        .1;
+    let start = rest
+        .find('"')
+        .expect("the `version` field's value is a JSON string");
+    let end = rest[start + 1..]
+        .find('"')
+        .expect("the `version` field's JSON string is terminated");
+    // **AN EMPTY STRING IS A VALUE THAT WAS READ AND IS STAMPED AS ONE** (`§6.10` item 3): no fallback
+    // and no validation runs from it, so nothing here tests the value's shape.
+    let version = &rest[start + 1..start + 1 + end];
+    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
+
     let target_os = env::var("CARGO_CFG_TARGET_OS")
         .expect("CARGO_CFG_TARGET_OS is set by cargo for every build-script invocation");
 
