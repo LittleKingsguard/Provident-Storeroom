@@ -69,23 +69,40 @@ fn main() {
     // the field the main package declares, which is what the stamp's value must be.
     let declared = fs::read_to_string(format!("{manifest}/package.json"))
         .expect("bindings/js/package.json is the crate's sibling manifest and is readable");
-    let tail = declared
-        .rsplit("\"version\"")
-        .next()
-        .expect("bindings/js/package.json declares a `version` field");
-    let rest = tail
-        .split_once(':')
-        .expect("the `version` field is a key with a value")
-        .1;
-    let start = rest
-        .find('"')
-        .expect("the `version` field's value is a JSON string");
-    let end = rest[start + 1..]
-        .find('"')
-        .expect("the `version` field's JSON string is terminated");
+    // **AND THE SLOT IS IDENTIFIED BY ITS OWN KEY, WITH ITS ABSENCE HELD AS A STATE THIS SCRIPT CAN
+    // OBSERVE** (`parameter-semantics.md §5.1` outside value `(vii)`, clause `(E)` — *"it is a read that
+    // produced no value at all"* — read with `release.md §6.10` item 2's parser-domain clause):
+    // `rsplit_once` keeps the DOMAIN that clause declares — the RIGHTMOST literal occurrence of the
+    // byte-sequence `"version"` — and answers `None` where the key is absent, which the total
+    // `rsplit(..).next()` could not: a split iterator cannot answer absence, so with the key absent it
+    // yielded THE WHOLE FILE TEXT and the colon it then took was THE FIRST COLON IN THE FILE — another
+    // key's value. **THE ABSENT KEY IS THEREFORE A STATE THIS SCRIPT HOLDS AND NOT A PANIC.**
+    let slot = match declared.rsplit_once("\"version\"") {
+        // **AT A SLOT THAT HOLDS NO STRING THE CARRIER SUBSTITUTES FOR THAT SLOT AND DOES NOT ABORT**
+        // (`§5.1` `(vii)` steps `(1)` and `(3)`, its clause `(C)`: *"THE VALUE `(vii)` DECLARES IS NEVER
+        // THE NON-STRING"* and *"ONLY A DIRECTIVE-BEARING WRITE STANDS — an empty string or any other
+        // non-string-for-string substitution"*; `docs/specs/storeroom-js/package.md §6.1` item `4`:
+        // *"no error, no warning, no directive omitted, no build failure"*): the slot's own value is
+        // CONSULTED FOR ITS SHAPE, and only a JSON string is a value this read can carry. The
+        // substitution clause `(C)` names is `""`, so no neighbouring key's value is ever stamped.
+        Some((_, rest)) => match rest.split_once(':') {
+            Some((_, value)) => match value.trim_start().strip_prefix('"') {
+                Some(body) => match body.find('"') {
+                    Some(end) => &body[..end],
+                    None => "",
+                },
+                None => "",
+            },
+            None => "",
+        },
+        None => "",
+    };
     // **AN EMPTY STRING IS A VALUE THAT WAS READ AND IS STAMPED AS ONE** (`§6.10` item 3): no fallback
-    // and no validation runs from it, so nothing here tests the value's shape.
-    let version = &rest[start + 1..start + 1 + end];
+    // and no validation runs from it. **AND NO SEMVER VALIDATION IS ADDED HERE** (`§6.10` item 4): the
+    // shape consulted above is the slot's own string-or-not identity — what the read produced — and
+    // never a judgement of the value's form. **AND NO FALLBACK RUNS FROM ANY OF ITS THREE PATHS**
+    // (`§5.1` `(vii)` clause `(D)`: the list stays closed at *"absent, unparseable, or unreadable"*).
+    let version = slot.to_string();
     println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
 
     let target_os = env::var("CARGO_CFG_TARGET_OS")
