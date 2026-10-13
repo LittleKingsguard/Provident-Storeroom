@@ -910,9 +910,9 @@ function assertTagCoupling(repo, { version, label }) {
  * **`A89` (`docs/specs/storeroom-publish-proposal.md §15`) — THE DECLARED RELEASE VERSION, READ FROM THE
  * RULING THAT DECLARES IT RATHER THAN FROZEN AT A SITE THAT DOES NOT.**
  *
- * `§15`'s sequence, item 1: *"the six manifests move to **`0.1.1` TOGETHER — the five platform
- * `version`s AND the main's five `optionalDependencies` PINS, which are EXACT"* — and `§15`'s own row 4
- * declares the state this replaces: *"`0.1.0` IS THE BOOTSTRAP VERSION: DECLARED, not a release"*.
+ * `§15`'s sequence, item 1: *"the six manifests move to **`X.Y.Z` TOGETHER — the five platform
+ * `version`s AND the main's five `optionalDependencies` PINS, which are EXACT"* — quoted in the ruling's OWN
+ * schematic form, because the operative figure is read FROM THE RULING by `declaredReleaseVersion` below and is NOT FROZEN HERE (`DEF-2026-10-13-C`) — and `§15`'s own row 4 declares the state this replaces: *"`0.1.0` IS THE BOOTSTRAP VERSION: DECLARED, not a release"*.
  * `parameter-semantics.md §2.2` (`PAR-PUB-2`) states the domain the same way (*"the tag's own version …
  * and thereafter exactly the tag's `v<major>.<minor>.<patch>` value"*), and its first outside value is
  * *"a version differing from the five platform artefacts' → REFUSED by the coupling rule"*.
@@ -1437,7 +1437,7 @@ cell('P-PUB-4', 'S-VERSION a second failure shape fails; the arm\'s form is fixe
 cell('P-PUB-4', 'S-VERSION the mismatch predicate is exact equality, not a range', async () => {
   // `PUB-DD-19` / `PAR-PUB-32`: EXACT STRING INEQUALITY. Any other outcome is the mismatch arm — a
   // different string, an empty string, a value that is not a string, and an `addon.version` that is not
-  // callable. Four drives, and each must land on the ONE arm: `0.1.1` is not a match for `0.1.0`.
+  // callable. Four drives, and each must land on the ONE arm: `9.9.9` is not a match for `0.1.0`.
   const variants = ['wrong', 'empty', 'notstring', 'notcallable'];
   for (const variant of variants) {
     const env = coveredEnv(COVERED[0], variant, { rungTwo: 'broken' });

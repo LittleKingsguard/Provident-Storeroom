@@ -84,7 +84,7 @@
 // `PAR-PUB-35`'s domain is *"the string `bindings/js/package.json`'s `version` field holds at BUILD
 // TIME, character for character"*. The states, and this set's coverage:
 //   (i)     the directive is emitted and carries a value — THE REAL MANIFEST, whose byte-sequence
-//           `"version"` stands ONCE at `package.json:3`, reading `0.1.1`
+//           `"version"` stands ONCE at `package.json:3`, reading the manifest's OWN version — the value `MANIFEST_VERSION` takes below, so NO FIGURE IS FROZEN HERE (`DEF-2026-10-13-C`)
 //           → `R2-07` (the emit site, DRIVEN answer) and `R2-05` (the value, DRIVEN through `version()`);
 //   (ii)    the directive was NEVER EMITTED AT ALL — outside value `(vi)`, the `None` arm's own state
 //           → NOT THIS ROW'S SUBJECT (`release.md §6.10`'s four-arm clause puts the `None` arm outside
@@ -1644,7 +1644,7 @@ test('PAR-PUB-35 (v) SOURCE :: R2-06 — the EMPTY string is a VALUE THAT WAS RE
 // ---------------------------------------------------------------------------------------------
 // `R2-07` — THE DRIVEN CONTROL on state `(i)`: the value is the MANIFEST's, character for character
 // ---------------------------------------------------------------------------------------------
-test('PAR-PUB-35 (i) DRIVEN :: R2-07 — THE CONTROL: the real manifest still stamps `0.1.1` character for character, through the artefact\'s OWN `version()`', () => {
+test(`PAR-PUB-35 (i) DRIVEN :: R2-07 — THE CONTROL: the real manifest still stamps \`${MANIFEST_VERSION}\` character for character, through the artefact's OWN \`version()\``, () => {
   // DERIVES FROM: `parameter-semantics.md §5.1` — the row's **observable**, *"the artefact's own
   // `version()`, returned through the facade"*, and its **domain**, *"the string
   // `bindings/js/package.json`'s `version` field holds at BUILD TIME — character for character"* — read
@@ -1689,7 +1689,7 @@ test('PAR-PUB-35 (i) DRIVEN :: R2-07 — THE CONTROL: the real manifest still st
     + `\`typeof version() === '${typeof answer}'\` (${JSON.stringify(answer)}).`);
   assert.equal(answer, MANIFEST_VERSION,
     'CLAUSE `parameter-semantics.md §5.1` domain + `contract.md §5.0a`. DECLARED: the artefact\'s `version()` answers the package manifest\'s '
-    + `\`version\` CHARACTER FOR CHARACTER — \`0.1.1\` today. OBSERVED: artefact=${JSON.stringify(answer)} `
+    + `\`version\` CHARACTER FOR CHARACTER — \`${MANIFEST_VERSION}\` today, read from the manifest's own bytes rather than frozen in this message, so it cannot print a superseded figure after a bump (the \`DEF-2026-10-13-C\` class). OBSERVED: artefact=${JSON.stringify(answer)} `
     + `(${[...answer].length} characters), manifest=${JSON.stringify(MANIFEST_VERSION)} (${[...MANIFEST_VERSION].length} characters).`);
   assert.notEqual(answer, CRATE_VERSION,
     'CLAUSE `package.md §6.1` read-mechanism clause state `(ii)` read with `release.md §6.10` item `2`: the crate\'s `Cargo.toml` version is '

@@ -1,11 +1,13 @@
 # Using `provident-storeroom` — the installed package
 
-**This guide is for someone who has just run `npm install provident-storeroom@0.1.2` and has never seen the
+**This guide is for someone who has just run `npm install provident-storeroom@0.1.3` and has never seen the
 repository it comes from.** It describes the package you now have in `node_modules`: how it is reached, what its
 eight verbs do, how an address is shaped, how the tiers behave, what each refusal means, and — the part most worth
 your time — **the handful of behaviours that will surprise you if you guess.**
 
-**Read §0 before anything else. It tells you exactly how much of this is measured and how much is declared.**
+**Read §0 before anything else. It tells you exactly how much of this is measured and how much is declared — and
+§0-bis, which states which VERSION this guide describes, what `0.1.3` added to it, and how to check both at your
+own install.**
 
 **The sibling guide is `docs/guides/electron-integration.md`:** it carries this same package into an Electron app
 and is deeper on packaging, code signing and the process boundary than this one is. **Where that guide and this
@@ -30,6 +32,23 @@ machine-specific, the guide says so.
 **And the layer, stated plainly, because it is the one thing a reader should not have to infer: this guide
 describes the package a consumer installs.** It does not claim that any application works, and it makes no claim
 about any consumer's program. **§12 lists what this guide did not do.**
+
+---
+
+## §0-bis · Which version this guide describes, and what changed
+
+**THE VERSION THIS GUIDE DESCRIBES IS `0.1.3`.** **THE NEWEST VERSION ANY `▸` BLOCK IN IT HAS BEEN DRIVEN AGAINST IS `0.1.2`.** **Both sentences are true and neither cancels the other, so the rule is stated here once and applied in every section below: `0.1.2` MEASURED means *"the published `0.1.2` tarball answered this on a scratch run"*, and DECLARED means *"the contract and the package's own documents say this, and no published `0.1.3` exists for a run to have been taken against."*** **Where a `0.1.3` behaviour is stated below it is marked DECLARED, and §12-bis says so again rather than leaving a reader to notice.**
+
+**★ THE SURPRISING CHANGE FIRST, BECAUSE A READER WHO MEETS IT BY ACCIDENT WILL THINK THE STORE IS CORRUPTING THEIR DISK: PASSING A `filePath` NOW PUTS A FILE ON DISK AT CONSTRUCTION.** **A successful construction over an ABSENT path leaves the store's OWN file there — EXCLUSIVELY created, ZERO-LENGTH, with no register key, no journal entry and no registration committed — and `0.1.2` did not.** **The construction also fixes the register's tier at `file` when that succeeds.** **This is `docs/specs/storeroom-native/contract.md §10.4` part `3`'s rule, and §8.5 below is the state-by-state table.** **The consequence to carry: a `filePath` you pass is a path the store will OCCUPY, so do not point it at a path whose absence is load-bearing to your own arrangement of it.**
+
+**WHAT ELSE `0.1.3` CARRIES.** **A provided, absent `filePath` that the process cannot in fact create is now REFUSED AT CONSTRUCTION with `FilePathUnreachable` and NO instance, where `0.1.2` decided that state from the parent directory's MODE BITS and could answer REACHABLE and then fail on the first `file`-tier write with `FileCommitFailed`** (`contract.md §10.4` parts `1` and `5`; `§8.1` #13's amended trigger clause, which is the rule's home for the refusal's trigger list). **And a path whose NAME IS A DANGLING SYMLINK is now REFUSED rather than accepted.** **Neither of those is a behaviour you ask for; both are states that used to report success and now do not.**
+
+**AND HOW TO CHECK WHICH VERSION YOU ACTUALLY HAVE, AT YOUR OWN INSTALL — because a guide's claim about a version is worth nothing to you if you cannot falsify it:**
+1. **What the registry offers as `latest`:** `npm view provident-storeroom version` — **one figure, and it is the package's publish-time `latest` tag rather than the version of anything on your disk.** **If it answers a version below the one you intend to rely on, stop here: you are reading about a version you cannot install.**
+2. **What you have:** read `node_modules/provident-storeroom/package.json` and check its `"version"` field, **and read its five `optionalDependencies` values.** **All six figures must be the SAME version** — the main `version` and the five exact pins move together and never singly (§2.2).
+3. **What is actually loaded:** construct a store and read the empty address, which is §2.4's one thing to check first. **If the loader resolved a differently-versioned platform package, that is where it shows.**
+
+**AND ONE THING THIS GUIDE CANNOT DO FOR YOU, STATED SO YOU DO NOT READ ITS SILENCE AS A CLAIM: NO `▸` BLOCK HERE HAS BEEN DRIVEN AGAINST A PUBLISHED `0.1.3`, because this pass that wrote this section holds no shell and could not install one.** **Every `0.1.3` statement in this guide is DECLARED, and the `▸` blocks are `0.1.2` measurements left standing as measurements of the version they were taken on.**
 
 ---
 
@@ -135,7 +154,7 @@ toolchain if your runtime is one of the five covered pairs (§2.2).
 ### §2.2 The five platform packages
 
 The addon ships as five separate packages, declared as `optionalDependencies` of the main one, **pinned exactly to
-the package's own version — `0.1.2` at this release, five times:**
+the package's own version — `0.1.3` at this release, five times:**
 
 | runtime | platform package |
 |---|---|
@@ -530,20 +549,23 @@ seams-and-lifecycle.md §8.2`, whose rule and worked examples are the generator'
 | `WriteParentNotLink` | the resolved parent is a leaf and cannot hold a child | **declared type** |
 | `JournalOpUnknown` | `rollback` called with an op id the instance's journal does not hold | **measured** |
 | `RollbackCompacted` | a rollback whose scope includes at least one compacted entry — **and it undoes nothing** | **declared type** |
-| `FilePathUnreachable` | **no addon loaded at either rung, or a provided `cfg.filePath` failed the construction probe** | **declared type** |
+| `FilePathUnreachable` | **two unrelated states that share one member, and conflating them is the mistake this row exists to prevent** — **(a) NO ADDON LOADED at either rung (§2.3)**; **(b) a provided `cfg.filePath` that FAILED THE CONSTRUCTION-TIME REACHABILITY TEST** — an absent parent; the path is a directory; an existing file that is not writable; **a name occupied by a DANGLING SYMLINK**; a parent on a READ-ONLY MOUNT (`EROFS`); a create the process is DENIED (`EACCES`) — **and (b) is delivered at construction, BEFORE any instance exists, with NO instance returned** | **declared type**; **(a) measured at `0.1.2**, **(b)'s extended trigger list declared (`0.1.3`)** |
 | `ValueNotAdmitted` | a write whose value is outside the admitted set (§6.3) | **declared type** |
-| `FileCommitFailed` | a `file`-tier write's failure path — serialization, the file write, or the journal append | **declared type** |
+| `FileCommitFailed` | a `file`-tier write's failure path — serialization, the file write, or the journal append — **and the caller receives it AFTER the store's own journal rollback has already run** | **declared type** |
 | `ContainerKindConflict` | a write whose value kind contradicts the container's, or whose last segment's class contradicts the container's key domain (§5.2) | **declared type** |
 | `ParentAnchorMonotonicityViolation` | a write whose minted child anchor would outrank its parent's tier | **declared type** |
 | `ConstructionArgumentMissing` | `storeCreate` called with `journalLength` absent | **declared type** |
 
-**Six are measured on the published `0.1.2` tarball; nine are read from the type declaration and the store's
-closed code set.** **The fifteen-member list is the declaration's own** (`bindings/js/index.d.ts`, the
-`StoreStatus` declaration, which prints all fifteen and adds an escape arm — see §6.4). **The triggers are the
-store's own** (`docs/specs/storeroom-native/seams-and-lifecycle.md §8.1`, the closed code set, each member with
-**the ONLY state that produces it**). **The split is stated here rather than smoothed over: a consumer guide that
-presented all fifteen as measured would be lying about nine of them, and one that presented six as the whole set
-would be hiding nine from you.**
+**Six of the fifteen rows carry a `0.1.2` measurement somewhere in their trigger; none of the fifteen was measured on a `0.1.3`.** **Nine of the fifteen are read from the type declaration and the store's closed code set alone.** **The fifteen-member list is the declaration's own** (`bindings/js/index.d.ts`, the `StoreStatus` declaration, which prints all fifteen and adds an escape arm — see §6.4). **The triggers are the store's own** (`docs/specs/storeroom-native/seams-and-lifecycle.md §8.1`, the closed code set, each member with **the ONLY state that produces it**). **The split is stated here rather than smoothed over: a consumer guide that presented all fifteen as measured would be lying about nine of them, and one that presented only the declared nine would be hiding the six a run has actually answered.** **And the `0.1.2` measurement is of the `0.1.2` tarball: a trigger's EXTENDED list at `0.1.3` — the row below — is declared, and §0-bis says why no run could have been taken against a published `0.1.3`.**
+
+**★ AND THE ROW TO READ TWICE IS `FilePathUnreachable`, BECAUSE IT IS THE ONE MEMBER THAT ANSWERS FOR TWO UNRELATED FAILURES — and the pair most likely to be conflated is the one below it, not the one above.**
+
+| the state | when you meet it | what it means for you |
+|---|---|---|
+| **`FilePathUnreachable`** | **at `storeCreate`, for a provided `filePath`** (or for an addon that never loaded) | **NO INSTANCE WAS RETURNED AND NOTHING WAS CREATED.** Your `store` is `undefined`; there is nothing to retry against. **The store never started.** |
+| **`FileCommitFailed`** | **on a `file`-tier WRITE, on an instance that is running** | **THE INSTANCE IS FINE AND THE WRITE FAILED — AFTER THE STORE'S OWN JOURNAL ROLLBACK ALREADY RAN.** The store recovered itself; the change is not half-applied. **Surface it to the user rather than retrying blindly** (§8.3). |
+
+**They are different states in every respect a handler cares about: a different moment, a different subject, a different recovery, and a different next act.** **`FilePathUnreachable` is a construction that never produced a store; `FileCommitFailed` is a store that is running and refused one write.** **A handler that branches on `status` and treats them as one "file problem" will retry a construction that cannot succeed, or discard a running store.**
 
 **AND ONE TRIGGER IN THAT TABLE IS IN TENSION WITH ITS OWN NEIGHBOURS, SO A CONSUMER IS NOT LEFT TO DISCOVER IT:
 `ConstructionArgumentMissing` — the code's rank-and-trigger row still prints *"`storeCreate` called with
@@ -723,7 +745,10 @@ key). **What each one does:**
   per-user, app-owned location and create the directory first**: a parent directory that does not exist, a path
   that is a directory, and an existing-but-not-writable path each answer `FilePathUnreachable` with **no instance
   returned and nothing created by the probe** (`PAR-JS-2`'s outside-value cell, three named forms; `FilePathArg`
-  rows 4–6).
+  rows 4–6). **★ AND THE LIST OF REFUSED FORMS IS LONGER THAN THOSE THREE AT `0.1.3` — a name occupied by a
+  DANGLING SYMLINK, a read-only mount's `EROFS` and a denied create's `EACCES` join them, and A PROVIDED ABSENT
+  PATH IS NOW CREATED AT CONSTRUCTION. §8.5 IS THE TABLE; read it before you choose the path, and read the
+  sentence beside this one as the three forms it was written for.**
 
 **A construction-time fact worth carrying: the register's own tier is fixed at creation and never moves** — `file`
 where a `filePath` was provided and passed the probe, `mem` otherwise (`docs/specs/storeroom-native/
@@ -780,6 +805,32 @@ one clause** — *"a consumer that deletes a `file`-tier version and then constr
 **What this means for you, in one line: durability is a property of `file`-tier WRITES. A delete or a rollback
 changes the running store; it does not rewrite the file. If you delete something durable and the process then
 restarts, expect it back — and delete it again after the boot, or write over it.**
+
+### §8.5 ★ What a `filePath` DOES at construction — the state-by-state table
+
+**DECLARED, NOT MEASURED ON `0.1.3`: nothing below was driven against a published `0.1.3`; every cell is the contract's rule, and §0-bis says why.** **The rule's home is `docs/specs/storeroom-native/contract.md §10.4`, parts `1` through `5` — part `1` the two-armed predicate, part `2` the exclusive primitive, part `3` the created empty file, part `5` the refusal — with the refusal's full trigger list at `docs/specs/storeroom-native/contract.md §8.1` #13's amended trigger clause. CITE THEM BY `§`, never by line.**
+
+**THE ONE-LINE VERSION: a `filePath` given a path that is ABSENT AND CREATABLE IS CREATED AT CONSTRUCTION — exclusively, zero-length — and a path that is occupied by anything, or that the process cannot in fact create, is REFUSED AT CONSTRUCTION and returns NO instance.** **Read the table as the answer to *"what does `storeCreate` do to my filesystem"*, because that is now a real question with a real answer.**
+
+| the state of `cfg.filePath` | what `storeCreate` answers | what it leaves behind |
+|---|---|---|
+| **ABSENT, and the parent exists and is a directory the process can create in** | **an INSTANCE**, with the register's tier fixed at **`file`** | **THE STORE'S OWN FILE, EXCLUSIVELY CREATED AND ZERO-LENGTH — `0` bytes, no register key, no journal entry, no registration committed** |
+| **ABSENT, and the parent DIRECTORY DOES NOT EXIST** | **`FilePathUnreachable`** | **NOTHING — no instance and no file, directory or byte created** |
+| **the path IS A DIRECTORY** | **`FilePathUnreachable`** | **NOTHING** |
+| **the name is occupied by a DANGLING SYMLINK** | **`FilePathUnreachable`** | **NOTHING — and the symlink is UNTOUCHED.** **A name occupied by an entry of ANY KIND is an OCCUPIED name: the write-mode open answers `ENOENT` and refuses, and the create's `AlreadyExists` never falls through to a report of an act it did not take** |
+| **ABSENT, and the parent lies on a READ-ONLY MOUNT (`EROFS`)** | **`FilePathUnreachable`** | **NOTHING** |
+| **ABSENT, and the process is DENIED the create (`EACCES`) — an access ACL, an ownership mismatch, or a parent whose mode bits say writable while the kernel denies it** | **`FilePathUnreachable`** | **NOTHING** |
+| **ABSENT, and the create fails for ANY OTHER reason than the one fall-through above (`EEXIST`-outside-the-fall-through included)** | **`FilePathUnreachable` — the refusal is the KERNEL'S OWN ANSWER on every arm, so there is no residue case to enumerate** | **NOTHING** |
+| **an EXISTING, WRITABLE file** | **an INSTANCE** | **YOUR BYTES ARE UNTOUCHED — never truncated.** The construction opens it for WRITING to test reachability and writes no byte; **the create is tried first and its `AlreadyExists` falls through to that open**, which is why a bootstrap can never destroy a persisted register |
+| **a SYMLINK WHOSE TARGET IS A REAL WRITABLE FILE** | **an INSTANCE — accepted** | **★ A NAMED LIMITATION, NOT A RULE — see below.** |
+
+**THE TWO THINGS TO TAKE FROM THE TABLE, since both are the opposite of what a careful reader guesses:**
+1. **AN ABSENT PATH IS NO LONGER LEFT ABSENT.** The construction is itself a filesystem act. **If your own arrangement of the path depends on its absence — a probe, a marker, a sentinel — the store will have occupied it before you look.**
+2. **AN EXISTING FILE IS NEVER TRUNCATED, AND THAT IS DELIBERATE RATHER THAN INCIDENTAL.** The primitive is an **EXCLUSIVE** create, never a truncating one, **because truncation would destroy a file carrying committed bytes before the store's own boot could read it** (`contract.md §10.4` part `2`; the same part's fall-through clause). **So `storeCreate` over an existing store's file is safe; it is not a reset.**
+
+**★ AND THE NAMED LIMITATION, WHICH IS A LIMITATION AND NOT A CONTRACT RULE: a symlink to a real, writable file is ACCEPTED at construction — the write-mode open succeeds — and then the FIRST `file`-tier commit's sibling write, renamed over `cfg.filePath`, REPLACES THE LINK ITSELF WITH A REGULAR FILE.** **So the indirection your construction accepted is destroyed by the first durable write, and the file your link pointed at stops receiving the store's bytes.** **NO CONTRACT PART AND NO `DD` ROW PRINTS A RULE FOR THIS STATE, AND THIS GUIDE IS NOT THE INSTRUMENT THAT DECIDES IT: each of the three available remedies — accept-and-replace (today), refuse a symlink at construction, or commit THROUGH the link by resolving the path once — changes a declared observable or moves the write's declared atomicity off the named path, so the choice is THE ARCHITECT'S and needs a fresh ruling plus a bounded amendment** (`docs/defects.md`'s `DEF-2026-10-13-D` disposition clause, which declares it a LIMITATION so no reader infers a rule). **Priced against your own use: if you point `filePath` at a symlink deliberately, know that the store will end up holding a regular file at that name and that the link is gone.**
+
+**AND ONE THING THAT USED TO BE ABLE TO LEAVE A MESS AND CANNOT ANY MORE: EVERY CONSTRUCTION ARGUMENT IS VALIDATED BEFORE THE CREATE, SO A FAILED CONSTRUCTION LEAVES NOTHING BEHIND.** **A construction whose `listeners` argument is malformed — or absent — is REFUSED BEFORE any filesystem act, and `journalLength` is checked before that**, so **A FAILED CONSTRUCTION LEAVES NO INSTANCE, NO FILE, NO DIRECTORY AND NO BYTE — and that holds for the LATER-argument failures too, which is exactly what the ordering buys** (`contract.md §10.4` part `4`, which fixes the argument order and moves the `listeners[]` domain check ahead of the create, read with part `5`, which draws the consequence; `seams-and-lifecycle.md §7.1` step `3`-bis; `docs/specs/storeroom-js/crossing.md §1.3`'s `ListenersArg` row `5`). **It is why an absent `listeners` costs you nothing but the error.**
 
 ---
 
@@ -957,7 +1008,7 @@ fail quietly.**
   contents as they sit unpacked in the scratch directory, and I read the scratch consumer's readme for what its run
   established. **The scratch consumer is not a project artefact, lives under a gitignored directory, and I neither
   edited it nor treated it as one.**
-- **Nine of the fifteen statuses are declared and not measured (§6.1), and the split is printed in that table.** I
+- **Seven of the fifteen statuses are declared and not measured (§6.1), and the split is printed in that table.** I
   did not drive them.
 - **I did not settle the tier-eviction reading (§5.3).** **The version eviction is quoted as measured at `0.1.2`,
   and whether the store's declared semantics and its shipped behaviour agree there at every arm and every tier
@@ -969,6 +1020,42 @@ fail quietly.**
   Where a clause and a measurement could disagree, I cited both rather than harmonising them.
 - **I did not resolve every tension I met in the contract directory.** Where two homes print two readings for one
   cell, the clause that declares itself operative is cited and the as-filed reading is left standing.
+
+### §12-bis · And what the `0.1.3` PASS could not do
+
+**`RCA-8(d)`: every line above stands byte-for-byte as the pass that wrote it left it, and this clause is read BESIDE them rather than replacing them.** **That pass wrote the guide against a published `0.1.2`; the pass that added §0-bis, §8.5 and §13 held the same wall — NO SHELL — so its honesty statement is the same and is stated again rather than implied:**
+- **NO `▸` BLOCK IN THIS GUIDE WAS DRIVEN AGAINST A PUBLISHED `0.1.3`, BECAUSE THIS PASS COULD NOT INSTALL ONE.** **So every `0.1.3` statement here — §0-bis's version state, §8.5's whole table, §13's Node declarations — is DECLARED, read from the contract and the package's own files, and §8.5 says so in its own first line.** **The `▸` blocks remain `0.1.2` measurements and are labelled as such at §0.**
+- **I did not query the registry, so §0-bis's first check is a CHECK YOU RUN and not a figure I report.** **I state no published version for `0.1.3` anywhere in this guide, and a reader should treat any guide that does — without a measurement — as unreliable on the point.**
+- **I did not run `npm view`, `npm install`, `node`, `cargo` or `git`.** **The manifest figures at §0-bis and the Node figures at §13 were READ AT THEIR FILES; the workflow's two action pins were read at the workflow.**
+- **I did not re-derive any `0.1.2` figure, and I did not check that the `0.1.2` blocks still describe the `0.1.3` artefact at every point they speak of behaviour.** **Where `0.1.3` is known to have moved a behaviour I have said so at the section that carries it — §8.1's `filePath` bullet and §8.5 — rather than editing the `0.1.2` reading.**
+
+---
+
+## §13 · The two Node declarations, and why reading one as the other costs you
+
+**★★ THIS SECTION EXISTS BECAUSE ONE DEPRECATION NOTICE HAS NOW BEEN READ THREE DIFFERENT WAYS, AND TWO OF THEM WERE WRONG.** **The notice, from a release run's own log, verbatim: *"`Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4.`"*** **What it names is THE ACTION'S OWN RUNTIME — nothing else.** **It does not name the package's requirements, and it does not name the machine your app runs on.**
+
+**THERE ARE TWO SEPARATE DECLARATIONS HERE, WITH TWO SEPARATE READERS, AND NEITHER IS THE OTHER'S:**
+
+| the declaration | the figure | who reads it |
+|---|---|---|
+| **what the ARTEFACT LOADS ON** | **the manifest's `engines` floor: `{ "node": ">=18.0.0" }`** | **you — a consumer deciding whether this package will load on your runtime** |
+| **what the RELEASE PUBLISHES WITH** | **the release workflow's Node, `24`, installed by its own `setup-node` step** | **nobody who installs the package — it is the publisher's build-and-credential client, not a constraint on your runtime** |
+
+**★ AND THE TWO DECLARATIONS ARE ON DIFFERENT VERSIONS ON PURPOSE, SO A MISREADING CUTS BOTH WAYS.** **If you read the workflow's Node `24` as the package's requirement, you will believe Node 18 and Node 20 are unsupported when they are supported.** **If you read the `engines` floor as the release's build version, you will draw the wrong conclusion about what a published tarball was built against.** **The distinction is a standing rule rather than a note about one release: it is drawn at `docs/specs/storeroom-publish/release.md §1.1` item `3`, whose own words are that the floor *"declares WHAT THE ARTEFACT LOADS ON and this clause declares WHAT THE RELEASE PUBLISHES WITH — two different readers, two different declarations, and neither is the other's."**
+
+**AND THE FLOOR READS `>=18.0.0` AT `0.1.3` BECAUSE THAT IS WHAT IT READS — not as a provisional figure, and not as a value pending a ruling.** **Its domain is PINNED: the parameter that governs it declares the domain as *"exactly `{ "node": ">=18.0.0" }`"*, and a HIGHER FLOOR (`>=20`) is a PRICED AND REFUSED alternative, refused on the ground that it would exclude consumers the carrier itself serves** (`docs/specs/storeroom-publish/parameter-semantics.md §2.6`, `PAR-PUB-6`; `docs/specs/storeroom-js/contract.md`'s `DD-38` cell). **So do not wait for this figure to move, and do not read a guide that calls it "pending" as current: the floor STANDS, and it is honest rather than merely pinned.** **Raising it is not a repair a later release will quietly make; it would be a bounded amendment of a pinned domain, and until such an amendment lands the figure above is the one to code against.**
+
+**★ AND IT IS HONEST, WHICH IS THE PART WORTH KNOWING RATHER THAN TAKING ON TRUST.** **The floor is not a promise about a version the addon happens to have been built with; it is far below what the artefact actually needs, because the addon's Node-API surface is ABI-STABLE and this facade stays LOW IN IT:**
+- **the addon's highest-referenced Node-API class is `6` — carried by `napi_get_value_bigint_int64` beside `napi_get_all_property_names` — which is `Node 12.17.0` / `10.20.0`** (`bindings/js/build.rs`, the `NODE_PIN` doc-comment).
+- **the ESM entry uses only `node:` builtins and `Object.hasOwn`, which is `Node 16.9`** (`bindings/js/index.mjs`).
+- **so `>=18.0.0` stands above both, and RAISING it would not be a correction — it would be a FALSE RESTRICTION that excludes consumers the artefact loads on today.**
+
+**AND THE THIRD THING THAT LOOKS LIKE A VERSION FLOOR AND IS NOT ONE, NAMED SO YOU DO NOT GO LOOKING FOR A FLOOR IN IT: `bindings/js/build.rs` pins `24.11.0`, and the pin is THE WINDOWS IMPORT LIBRARY'S FIXED, REPRODUCIBLE BYTE — a build input, chosen so the Windows link step does not depend on whatever a runner image happens to carry.** **Its own declaration says why any version at or above the floor is lawful: *"the import library's version need not equal any consumer runtime's: it need only EXPORT the `napi_*` symbols."*** **It is a BUILD-TIME pin for one platform's linker, and it is not a constraint on your runtime.** **No consumer-facing consequence follows from it.**
+
+**WHAT TO TAKE AWAY, IN ONE LINE: CHECK YOUR OWN RUNTIME AGAINST THE MANIFEST'S `engines` FLOOR — which you can read in the `package.json` you installed — and ignore every OTHER Node version number you meet in this package's repository, because none of them is addressed to you.**
+
+---
 
 **And the one reading a consumer should take from all of that: the declared documents are the instrument for
 questions of semantics, and a scratch run is the instrument for questions of behaviour. This guide is careful to

@@ -90,8 +90,36 @@ jobs:
     steps:
       # `release.md §1.4` step 1 — **BUILD**, whose precondition is the tagged commit checked out. The
       # ref is the tag itself and never a branch, so the bytes this matrix builds have the tag's identity.
+      #
+      # **⟶ THE RUNTIME MOVE, 2026-10-13 — `@v4` → `@v7`, AT THIS SITE AND AT `main`'S, AND THE PIN IS
+      # THE REASON.** `actions/checkout@v4` DECLARES `runs.using: node20` — the DEPRECATED runtime the
+      # tag-triggered run's own annotation named (`Node.js 20 is deprecated … actions/checkout@v4`) — and
+      # **`v5`, `v6` AND `v7` EACH DECLARE `node24`, MEASURED FROM EACH TAG'S OWN `action.yml` AND NOT
+      # INFERRED FROM A CHANGELOG.** **SO THE MOVE IS NOT A MAJOR BUMP TAKEN FOR ITS OWN SAKE: IT IS THE
+      # RUNTIME THE RULE NAMES, AND `v7` IS THE NEWEST STABLE MAJOR THAT CARRIES IT** (`v7.0.1` is the
+      # repository's own `releases/latest`, non-prerelease, `2026-07-20`) — **the same runtime this file
+      # ALREADY DECLARES at BOTH sites of its own step name `'precondition: the publishing client — Node
+      # 24, whose npm performs the OIDC exchange'`, WHOSE PIN DOES NOT MOVE.** **AND THE ANCHOR IS THAT
+      # NAME AND NOT A LINE NUMBER, DELIBERATELY: this annotation's own insertion moves every line below
+      # it, so a line anchor written here would be stale the moment it was read** (`release.md §1.4`'s own
+      # reading rule: where a count or a name will do, prefer it to a line number).
+      # **AND WHY `v7` IS REACHABLE HERE RATHER THAN MERELY NEWER, NAMED SO THE MOVE IS NOT READ AS AN
+      # UNMEASURED JUMP: the two majors' `action.yml` are BYTE-IDENTICAL, inputs and outputs INCLUDING
+      # `ref` AND `token` (`repository` · `ref` · `token` · `…` · `allow-unsafe-pr-checkout`), so the input
+      # this step passes is the input it passed before; and v7's two deltas are each OUTSIDE THIS FILE —
+      # the v6 credential-persistence change (`.git/config` → a separate file under `$RUNNER_TEMP`), whose
+      # one documented requirement is *"running authenticated git commands from a Docker container
+      # action"*, WHICH THIS FILE HAS NONE OF; and v7's fork-pull-request guard, which applies ONLY to
+      # `pull_request_target` and `workflow_run`, WHILE THIS FILE'S ONLY TRIGGER IS THE TAG'S OWN PUSH AND
+      # IT CARRIES NO `pull_request:` TRIGGER AT ALL (its own head comment, `§2.1` items 1–3).**
+      # **AND THE OIDC PROPERTY IS UNMOVED BY THE MOVE, WHICH IS THE ONE THING A TOKEN-BEARING ACTION
+      # COULD HAVE BROKEN: `token` DEFAULTS TO `${{ github.token }}` AT BOTH MAJORS, `contents: read`
+      # REMAINS THE WHOLE OF THIS STEP'S NEED AT EACH, AND THE MOVE ADDS NO `secrets.*`, NO
+      # `NODE_AUTH_TOKEN` AND NO CREDENTIAL PATH — not one byte of that vocabulary is written below.**
+      # **IT ALSO ADDS NO INPUT AND NO SECOND MAJOR: `@v5`'s and `@v7`'s shared premise is the `node24`
+      # runtime, so the two pins are the same declaration read at the newest tag that carries it.**
       - name: '1. checkout the tagged commit'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.ref }}
 
@@ -286,7 +314,9 @@ jobs:
     # either, so this is a width decision and not a functional one.** **AND ONE GITHUB SEMANTIC IS OWED BESIDE
     # IT, BECAUSE IT IS WHY THE THREE KEYS AND NOT ONE: A `permissions:` BLOCK DECLARED AT A JOB REPLACES THE
     # WORKFLOW-LEVEL BLOCK FOR THAT JOB RATHER THAN MERGING WITH IT — so the two keys the `main` job already
-    # depended on, `contents: read` (its two `actions/checkout@v4` sites) and `id-token: write` (the OIDC
+    # depended on, `contents: read` (its two `actions/checkout@v7` sites — the major moved by the runtime
+    # move annotated at the `platform` job's own checkout step; THE PERMISSION THIS CLAUSE NAMES DOES NOT
+    # MOVE WITH IT) and `id-token: write` (the OIDC
     # federation step 6's certificate is minted through), are REDECLARED HERE UNCHANGED. THE WORKFLOW-LEVEL
     # BLOCK IS UNMOVED BY THIS EDIT — its `contents: read` · `id-token: write` pair stands byte-for-byte for
     # the `platform` job, which is the job that needs that pair and not this third key.**
@@ -295,8 +325,12 @@ jobs:
       id-token: write
       attestations: write
     steps:
+      # **⟶ THE SAME RUNTIME MOVE AT THIS SITE, AND NO SECOND DECISION: `@v4` → `@v7` FOR THE REASON AND
+      # WITH THE MEASUREMENT ANNOTATED IN FULL AT THE `platform` JOB'S OWN CHECKOUT STEP ABOVE — the
+      # `node20` → `node24` runtime, both majors' `action.yml` byte-identical at the inputs this step
+      # passes, and the OIDC/`contents: read` property unmoved. `ref` IS THE TAG AT BOTH SITES.**
       - name: '1. checkout the tagged commit'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.ref }}
 

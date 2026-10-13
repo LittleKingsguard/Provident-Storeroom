@@ -1238,7 +1238,7 @@ function assertAllowlistIsThree(files) {
 // RE-EMITTED HERE VERBATIM SO `git diff` HAS NOTHING TO RECOVER** — *"and asserts the ABSENCE of any tag in
 // the repository's own pre-release state — which is the declared state, not a missing instrument"* — **AND
 // IT IS REPLACED BY THE PROPERTY `P-PUB-8` ACTUALLY PINS.** **THE RELEASE ACT CREATED THE STATE THAT READING
-// DENIED**: `git tag --list` now answers `v0.1.1`, the run's own trigger, so the absence was a reading of the
+// DENIED**: at that date `git tag --list` answered `v0.1.1` — the run's own trigger — so the absence was a reading of the
 // TREE'S DATE rather than of the clause. **THE PROPERTY IS COUPLING, NOT ABSENCE** (`release.md §2.1` item
 // `2`; `PAR-PUB-29`'s second outside value, *"a tag whose version differs from the six manifests' →
 // REFUSED"*): the tag whose name is `v<version>` EXISTS; its version EQUALS the main manifest's, read from
@@ -1246,7 +1246,7 @@ function assertAllowlistIsThree(files) {
 // version; and the tag's commit is REACHABLE, lying on this branch's own history. **THE PRE-RELEASE STATE IS
 // KEPT AS A FAIL-STATE DRIVEN BY NAME** (`control-no-tag-at-all` below), and the reading is STRICTLY STRONGER
 // than the one it replaces: the as-filed absence held for every tree carrying no tag, including one whose
-// manifest named a version no tag could ever carry.
+// manifest named a version no tag could ever carry. **AND NO TAG FIGURE IN THIS BLOCK IS OPERATIVE** (`DEF-2026-10-13-C`): every tag figure the coupling asserts is read at RUN TIME by `assertTagCoupling` below — which names no version of its own — and the dated `v0.1.1` above is THAT pass's own reading, kept as its record rather than re-cut at a figure this tree no longer carries.
 
 const FIGURE_ROWS = [
   { value: 'the red set\'s reported failing set', site: 'bindings/js/test/publish.test.mjs', layer: 'ENVELOPE/PURE', app: 'NONE' },
