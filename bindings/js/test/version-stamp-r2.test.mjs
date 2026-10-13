@@ -176,6 +176,45 @@
 //     (each `panic!` restored to the superseded `=> ""`) returns the IDENTICAL `7/11 ADMIT, 4/11 REFUSE`
 //     set. **SO `11/11` IS THE CARRIER'S IMPROVEMENT AND NOT A LOOSENED GUARD**, and `R2-10`(d) pins that
 //     demonstration inside the cell rather than printing it once and forgetting it.
+//   * **⟶ `2026-10-13`, THE AUTHOR'S OWN CORRECTION OF TWO MALFORMED CELLS — OUTCOME `(a)` OF `D-GP-SVM-4`:
+//     THE FINDING IS RECORDED AND THE TEST IS CORRECTED BY ITS AUTHOR ROLE, WITH NO RE-FREEZE, SO THE
+//     CARRIER KEEPS ITS HASH.** The implementer's controlled experiment and the supervisor's reproduction
+//     established — **at the bytes and not by argument** — that the two red cells were wrong and that the
+//     carrier's two changed tokens (`:107`'s `as_bytes().first() == Some(&b':')` and `:108`'s slice WITHOUT
+//     the consuming `+ 1`) are correct in both directions. **SO THE FIGURES OF THE PASS ABOVE ARE SUPERSEDED
+//     BY THIS ONE, AND THE TWO CELLS ARE CORRECTED, NOT THE CARRIER:**
+//       · **`R2-11` ASSERTED AN IMPOSSIBLE STATE AND COULD NOT HOLD ON ANY CARRIER.** Its two halves were
+//         `underRepair.state === 'N2'` AND `before.state === null`, but `runDerivation(…, {repaired:false})`
+//         DERIVES ONLY THE KEY, THE SEPARATOR, THE SHAPE AND THE CLOSER — **IT DOES NOT READ THE ADJACENCY
+//         GATE AT ALL**, so an unrepaired run leaves `(N2)` exactly where the repaired one does, and the
+//         two halves are mutually exclusive for any manifest carrying a colon. **IT IS RE-CUT SO THE `(N2)`
+//         HALF IS READ THROUGH THE DECLARED REPAIR** (`release.md` `:634`, read through `:636`), WITH THE
+//         KEY-WITH-NO-COLON-REACHES-`(N2)` PROPERTY AND THE NO-NEIGHBOURING-KEY'S-VALUE PROPERTY BOTH KEPT
+//         and both asserted — see the cell's own header, which carries the measurement.
+//       · **`R2-10`'S ONLY FAILING CHECK WAS `ADM-10` OVER THE SYNTHETIC, AND THAT WAS THE INSTRUMENT'S
+//         DEFECT RATHER THAN THE CARRIER'S.** `KEY_COLON_ADJACENCY` recognised a SPELLING, and measured
+//         character by character NONE of its three alternations matched the shipped carrier's own gate
+//         (`tail.trim_start().as_bytes().first() == Some(&b':')`, `bindings/js/build.rs:107`) — so the
+//         carrier was refused for a comparison it satisfies. **IT IS RE-CUT AS A CLASS (an alternation
+//         list that grows by one per carrier spelling is what admits a gate in the WRONG PLACE), AND ITS
+//         ANCHOR IS NOW THE DATA-FLOW CHECK BESIDE IT**: `gateOperandOf` reads the byte read's SUBJECT, so
+//         a first-byte read counts only where it stands on KEY-SCOPED text.
+//       · **MEASURED AFTER THE CORRECTION, THE DECLARED INVOCATION `node --test bindings/js/test/*.test.mjs`
+//         READS `216` tests, `216` pass, `0` fail, `0` skipped, `0` todo — where it stood `216 / 214 / 2`;
+//         and THIS FILE reads `11 / 11 / 0` where it stood `11 / 9 / 2`.** The real-carrier admission vector
+//         reads **`11/11` ADMIT, `0/11` REFUSE** (printed by `R2-10`, not asserted from memory), the
+//         synthetic control is `11/11`, the mutation battery is `10/10` FIRING, and the wrong carrier cut
+//         from the real bytes' own four arms reads `8/11` ADMIT, `3/11` REFUSE — `ADM-3`, `ADM-5`, `ADM-7`.
+//       · **AND THE CARRIER WAS NOT TOUCHED**: no byte of `bindings/js/build.rs` — nor of any file outside
+//         `bindings/js/test/**` — is written by this correction, and the carrier keeps its hash.
+//   * **AND ONE PIECE OF DRIFT THIS CORRECTION CAUSES AND DOES NOT REPAIR, NAMED RATHER THAN LEFT FOR A
+//     READER TO FIND**: `release.md`'s neighbourhood clause cites THIS file at `:482` · `:564` ·
+//     `:699`–`:701` · `:849` for the sentence it declares, and **THOSE ANCHORS WERE ALREADY STALE BEFORE
+//     THIS PASS** (they are the pre-`R2`-era figures, `:849` + `1091`); this correction moves them further,
+//     to `:564` · `:701`-neighbourhood · `:2136` for the cell's DERIVES-FROM block. **THE SPECS ARE OUTSIDE
+//     THIS WALL AND NO BYTE OF ANY OF THEM IS WRITTEN**, so the re-measurement is recorded here: the
+//     citation is the supervisor's to re-cut, and it is a DOCUMENTATION figure only — no cell of this file
+//     reads its own line numbers.
 //   * **TWO FIGURE SETS OF `release.md §6.10`'S FOUR-ARM CLAUSE WERE STALE AGAINST THE CARRIER, AND THEY ARE
 //     NAMED HERE AS DRIFT THIS PASS MEASURED AND DID NOT EDIT (the specs are outside this wall)**: the
 //     `R2`-era clause's arm sites (`:92`, `:94`, `:96`, `:98`) and its step `(5)`'s emit sites (`:105`,
@@ -520,16 +559,76 @@ const EMPTINESS_TEST = /\bis_empty\s*\(|\.len\s*\(\s*\)\s*==\s*0|==\s*""|!=\s*""
 // it instead of duplicated.
 // ---------------------------------------------------------------------------------------------
 const VERSION_KEY_ESCAPED = VERSION_KEY_SPELLED.replace(/"/g, '\\"');
-/** **THE ADJACENCY COMPARISON THE REPAIR REQUIRES** — the key's own occurrence compared against a text
- *  that continues `:`, so the colon read is the colon THE KEY ITSELF introduces. **DELIBERATELY NARROW,
- *  AND ITS LIMIT IS STATED**: it reads the forms a Rust build script spells this comparison in — a
- *  literal continuation, a `starts_with` over the key literal, or a byte indexed off the occurrence —
- *  and a carrier that established the adjacency some FOURTH way would be refused by it. That limit is
- *  reported at `R2-11` and in the row's own message rather than converted into a pass. */
+/** **THE ADJACENCY COMPARISON THE REPAIR REQUIRES** — the key's own occurrence compared against the `:`
+ *  byte that stands at the occurrence's own first non-whitespace position, so the colon read is the
+ *  colon THE KEY ITSELF introduces. **RE-CUT `2026-10-13` BY ITS AUTHOR ROLE AS A CLASS, AND NOT BY A
+ *  FOURTH ALTERNATION BOLTED BESIDE THREE.**
+ *
+ *  **WHY THE RE-CUT WAS FORCED, MEASURED AT THE BYTES RATHER THAN ARGUED.** The pattern as it first
+ *  stood carried three alternations — (i) the literal continuation `"version":`, (ii) a `starts_with`
+ *  whose ARGUMENT is the key literal, (iii) a byte indexed off a text (`as_bytes()[…] == b':'`) — and it
+ *  was WRONG IN BOTH DIRECTIONS AT ONCE, which is what an alternation list that grows by SPELLING
+ *  rather than by CLASS produces:
+ *    · **IT REFUSED THE LAWFUL SYNTHETIC** this file's own battery runs — spelled
+ *      `tail.starts_with("\"version\":")` — so `R2-10`'s positive control was refused by a guard that
+ *      must admit it. **THE IMPLEMENTER'S CONTROLLED EXPERIMENT NAMED THE CAUSE AND THIS FILE
+ *      REPRODUCED IT**: the spelling matched none of the three, and substituting
+ *      `tail.as_bytes()[0] == b':'` took that cell to `11/11` with `bindings/js/build.rs` UNTOUCHED.
+ *    · **AND IT REFUSED THE SHIPPED CARRIER**, whose gate spells THE SAME COMPARISON
+ *      `tail.trim_start().as_bytes().first() == Some(&b':')` at `bindings/js/build.rs:107` — the
+ *      `first()` form of the very read alternation (iii) exists to recognise. **SO ALTERNATION (iii) WAS
+ *      ITSELF A SPELLING TEST AND NOT A CLASS TEST**, and the carrier's improvement could not be seen
+ *      by it.
+ *
+ *  **THE CLASS, NAMED BY WHAT THE SPELLINGS HAVE IN COMMON RATHER THAN BY HOW THEY ARE WRITTEN**: the
+ *  repair's comparison tests **the byte standing at the occurrence's own first non-whitespace position**
+ *  against the ONE-BYTE `:` literal. In a Rust build script that comparison has exactly TWO shapes, and
+ *  the class admits both:
+ *    (A) **THE LITERAL CONTINUATION** — `"version":`, the key's own literal and the colon written as one
+ *        string. **THIS IS THE ONE FORM WHOSE ANCHOR IS THE PATTERN'S OWN**: the byte is inside the
+ *        literal the key search is handed.
+ *    (B) **THE FIRST-BYTE READ OF A KEY-SCOPED TEXT** — `<name> . as_bytes() ( [0] | .first() )`
+ *        compared against the `:` byte, with or without the `Some(&…)` wrapper that `.first()`'s
+ *        `Option<&u8>` requires. **`[0]` AND `.first()` ARE THE SAME READ — THE TEXT'S FIRST BYTE — AND
+ *        THE CLASS TAKES THEM AS ONE ALTERNATIVE AND NOT AS TWO SPELLINGS.**
+ *  **AND THE `starts_with(…)` ALTERNATION IS NOT CARRIED FORWARD**, which is a discrimination and not a
+ *  deletion: `rsplit_once` has already REMOVED the occurrence, so no tail can begin with the key
+ *  literal, and a `starts_with` carrying the key literal does not satisfy the repair at all.
+ *
+ *  **AND WHETHER THE (B) FORM CAN BE ANCHORED TO THE OCCURRENCE — ASKED AND ANSWERED HERE RATHER THAN
+ *  ASSUMED, BECAUSE THAT IS THE QUESTION THIS EXTENSION EXISTS TO SETTLE.** **THE THREE AS-FILED
+ *  ALTERNATIONS WERE NOT ANCHORED TO THE OCCURRENCE EITHER, AND NO RE-SPELLING CAN MAKE THEM SO**: a
+ *  text pattern recognises a SHAPE and cannot see WHERE a byte stands, and alternation (iii) was as
+ *  purely positional as (B) is. **WHAT SUPPLIES THE ANCHOR IS NOT THIS PATTERN BUT THE DATA-FLOW CHECK
+ *  BESIDE IT** (`locatorTakesForeignColon`), which counts a byte read ONLY where **its operand is
+ *  key-scoped** — a name a KEY-SEARCH STATEMENT binds. So `other.as_bytes()[0] == b':'` and
+ *  `declared.as_bytes()[0] == b':'` are refused however they are spelled, while the carrier's `tail`
+ *  and `rest` are admitted. **THE TWO INSTRUMENTS ARE ONE TEST**: this class names the READ; the
+ *  data-flow check names its SUBJECT. That split is stated here so a reader does not take this pattern
+ *  alone for the anchor it cannot be. */
+/** **THE FIRST-BYTE READ ITSELF, NAMED ONCE** — the operand and the read are read together, so the class
+ *  that ADMITS a gate and the check that reads the gate's SUBJECT can never drift apart from each other.
+ *  **THE CHAIN IS `NAME ( .trim_start() )? .as_bytes() ( [0] | .first() )` AND THAT IS THE WHOLE CLASS**:
+ *  the optional `trim_start` is the repair's own *"any run of whitespace bytes, including none"* (the byte
+ *  consulted is the occurrence's first NON-WHITESPACE byte), and `[0]`/`.first()` are the same read of the
+ *  text's first byte. **AN INDEX OTHER THAN `0` IS NOT ADMITTED**, so a gate reading the fourth byte of
+ *  the tail does not satisfy the repair however it is written. */
+const FIRST_BYTE_READ = `([A-Za-z_][A-Za-z0-9_]*)\\s*\\.\\s*(?:trim_start\\s*\\(\\s*\\)\\s*\\.\\s*)?`
+  + `as_bytes\\s*\\(\\s*\\)\\s*(?:\\[\\s*0\\s*\\]|\\.\\s*first\\s*\\(\\s*\\))`
+  + `\\s*==\\s*(?:Some\\s*\\(\\s*&\\s*)?b?'\\s*:\\s*'`;
+/** the same read as a LIVE pattern, so a caller that must not carry `lastIndex` state takes its own. */
+const FIRST_BYTE_READ_RE = new RegExp(FIRST_BYTE_READ);
 const KEY_COLON_ADJACENCY = new RegExp(
-  `(?:${VERSION_KEY_ESCAPED}:`
-  + `|starts?_with\\s*\\(\\s*(?:format!\\s*\\(\\s*)?["']${VERSION_KEY_ESCAPED.replace(/\\/g, '\\\\')}["']\\s*:\\s*["']`
-  + `|\\.\\s*as_bytes\\s*\\(\\s*\\)\\s*\\[[^\\]]*\\]\\s*==\\s*b?'\\s*:\\s*')`);
+  `(?:${VERSION_KEY_ESCAPED}:|${FIRST_BYTE_READ})`);
+/** **THE NAME A GATE'S BYTE READ STANDS ON** — the operand of the first-byte read the class above
+ *  admits, or `null` where the statement carries no such read. **THE OPERAND IS READ SO THE GATE'S
+ *  SUBJECT CAN BE CHECKED AND NOT MERELY ITS SHAPE**: the repair's byte must stand on the text the KEY
+ *  SEARCH scoped, so a first-byte read of any other text is a read of the wrong byte — which is the
+ *  "gate in the WRONG PLACE" this extension exists to refuse, and which a spelling test cannot see. */
+function gateOperandOf(text) {
+  const m = new RegExp(FIRST_BYTE_READ).exec(text);
+  return m === null ? null : m[1];
+}
 /** **A COLON SPLIT AND ITS RECEIVER** — the locating shape the repair forbids WHERE the receiver is a
  *  text the key search scoped and the key's own occurrence carries no colon. `LOCATOR` names the same
  *  call; this pattern carries the receiver for the data-flow test. **THE DELIMITER ADMITS EITHER QUOTE
@@ -600,8 +699,29 @@ function locatorViolations(c) {
  *  The receiver being absence-scoped is not the property; the COLON BEING THE KEY'S is. */
 function locatorTakesForeignColon(c) {
   const keyScoped = new Set();
-  if (c.SEARCH_STMT !== null) {
-    for (const n of (c.SEARCH_STMT.lhs.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [])) keyScoped.add(n);
+  // **⟶ THE KEY-SCOPED SET IS PRECOMPUTED FROM EVERY KEY-SEARCH STATEMENT, AND THAT IS PART OF THE
+  // ANCHOR AND NOT A CONVENIENCE.** The repair's clause makes the byte's SUBJECT the key's own
+  // occurrence, so a first-byte read counts only where its operand is a name a key search bound. **THE
+  // CARRIER'S OWN DERIVATION CONSULTS TWO OF THEM** — the gate at `bindings/js/build.rs:106` binds the
+  // OUTER pattern's `rest` (`Some((_, tail))`) and the value locator at `:171` binds from the INNER one
+  // (`Some((_, value))`) — so a set built from ONE search, or built from a `let` binding alone, would
+  // report the gate's own read as a read of unrelated text and would refuse the very carrier the
+  // correction landed in. **AND THE `let`-ONLY FORM WAS MEASURED AND IS NAMED AS SUPERSEDED**: the
+  // first draft took only the first name of the first pattern, which made the synthetic's gate look
+  // ungoverned at `R2-10` while its colon split was key-scoped — the asymmetry that refused the
+  // control. **EVERY NAME A KEY-SEARCH STATEMENT BINDS IS THEREFORE READ, OUTER PATTERN AND INNER
+  // ALIKE**, and nothing else is added: `declared` and `manifest`, which the gate also reads, are NOT
+  // bound by any key search and are never admitted as a byte's subject.
+  for (const stmt of c.STATEMENTS) {
+    if (!new RegExp(VERSION_KEY_ESCAPED.replace(/\\/g, '\\\\')).test(stmt.text)) continue;
+    if (!/\.\s*rsplit(?:_once)?\s*\(|\.\s*split(?:_once)?\s*\(/.test(stmt.text)) continue;
+    const names = new Set();
+    if (stmt.lhs.trim() !== '') for (const n of (stmt.lhs.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [])) names.add(n);
+    // the PATTERN the search's own result is matched against — `Some((_, tail))` — binds `tail`, and a
+    // reader that took only the statement's `lhs` would not see it.
+    for (const m of stmt.text.matchAll(/\(\s*_?\s*,\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)/g)) names.add(m[1]);
+    for (const m of stmt.text.matchAll(/Some\s*\(\s*\(\s*_\s*,\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)\s*\)/g)) names.add(m[1]);
+    for (const n of names) if (n !== '_') keyScoped.add(n);
   }
   if (c.KEY_BINDING !== null) keyScoped.add(c.KEY_BINDING);
   if (keyScoped.size === 0) return [];
@@ -622,9 +742,22 @@ function locatorTakesForeignColon(c) {
   // that stood after the colon split would be a gate that ran too late, and this reader would report the
   // split it did not govern. **AND NO GATE AT ALL IS READ THE SAME WAY** — the whole derivation is then
   // ungoverned, which is the shipped carrier's own state.
+  //
+  // **⟶ AND A GATE IS COUNTED ONLY WHERE ITS BYTE'S SUBJECT IS KEY-SCOPED**, which is the ANCHOR the
+  // repair's clause requires (*"THE FIRST NON-WHITESPACE BYTE AFTER THE RIGHTMOST OCCURRENCE"*): the
+  // class `KEY_COLON_ADJACENCY` names the READ, and `gateOperandOf` names the text it reads. **A
+  // FIRST-BYTE GATE STANDING ON ANY OTHER TEXT IS A GATE IN THE WRONG PLACE** — it answers a byte that
+  // is not the occurrence's — so it does NOT set this flag and the colon split below is reported
+  // ungoverned. **THAT IS THE CLASS'S ANCHOR AND IT IS TESTED, NOT ASSUMED**: `R2-10`'s `(d)` leg and the
+  // mutation battery are what show this test can fail. **THE LITERAL CONTINUATION FORM CARRIES NO
+  // OPERAND AT ALL** (the key's own literal and its colon are one string), so it is admitted by
+  // construction and needs no subject.
   let sawAdjacency = false;
   for (const stmt of c.STATEMENTS) {
-    if (KEY_COLON_ADJACENCY.test(stmt.text)) sawAdjacency = true;
+    if (KEY_COLON_ADJACENCY.test(stmt.text)) {
+      const operand = gateOperandOf(stmt.text);
+      if (operand === null || keyScoped.has(operand)) sawAdjacency = true;
+    }
     COLON_SPLIT.lastIndex = 0;
     let m;
     while ((m = COLON_SPLIT.exec(stmt.text)) !== null) {
@@ -955,11 +1088,23 @@ const ADMISSION = [
   // whole-text-possible. `ADM-10`'s own wording requires the locator's receiver to be ABSENCE-scoped, and
   // `release.md §6.10`'s locator rule names a shape that IS absence-scoped while its COLON belongs to
   // another key: `rsplit_once` scopes the text, `split_once(':')` then takes the FIRST colon in that text
-  // — `"type"`'s — and the value stamped is a NEIGHBOURING KEY'S. **SO THE ROW ADMITTED AT `11/11` THE VERY
-  // DEFECT ITS OWN SUBJECT NAMES.** The second limb adds the declared repair's own test: *"THE FIRST
-  // NON-WHITESPACE BYTE AFTER THE RIGHTMOST OCCURRENCE MUST BE `:`, ELSE THE STATE IS `(N2)` AND THE BUILD
-  // ABORTS"*. **AND THE ROW'S SUBJECT IS WIDENED BY IT IN NAME AS WELL AS IN SUBSTANCE**: it now reads a
-  // locator's RECEIVER AND its COLON. Its `[A1]` reading is `R2-11`, and its falsifier is `M8`/`M10`.
+  // — `"type"`'s — and the value stamped is a NEIGHBOURING KEY'S. **SO THE ROW, AS IT STOOD BEFORE THE
+  // EXTENSION, ADMITTED AT `11/11` THE VERY DEFECT ITS OWN SUBJECT NAMES.** The second limb adds the
+  // declared repair's own test: *"THE FIRST NON-WHITESPACE BYTE AFTER THE RIGHTMOST OCCURRENCE MUST BE `:`,
+  // ELSE THE STATE IS `(N2)` AND THE BUILD ABORTS"*. **AND THE ROW'S SUBJECT IS WIDENED BY IT IN NAME AS
+  // WELL AS IN SUBSTANCE**: it now reads a locator's RECEIVER AND its COLON. Its `[A1]` reading is `R2-11`,
+  // and its falsifier is `M8`/`M10`.
+  //
+  // **⟶ AND THE LIMB WAS RE-MEASURED `2026-10-13`, BECAUSE ITS FIRST FORM REFUSED A CARRIER THAT CONSULTED
+  // THE OCCURRENCE CORRECTLY.** What it read was the adjacency comparison's SPELLING, and the shipped
+  // carrier spells it `tail.trim_start().as_bytes().first() == Some(&b':')` (`bindings/js/build.rs:107`) —
+  // a form the first alternation list did not contain, so `locatorTakesForeignColon` reported the shipped
+  // bytes as ungoverned and this row refused them at `10/11`. **THAT REFUSAL WAS THE INSTRUMENT'S DEFECT
+  // AND NOT THE CARRIER'S**, and it is the finding this row carries: the class is now cut by the READ
+  // (`KEY_COLON_ADJACENCY`, its own header at `:570`) and its SUBJECT is checked by `gateOperandOf`, so a
+  // first-byte read counts only where it stands on KEY-SCOPED text. **THE SHIPPED BYTES ARE ADMITTED BY
+  // `11/11` (measured, and printed by `R2-10`), AND THE LIMB STILL FIRES: `M8`, `M9` and `M10` are each
+  // missing exactly the gate and each is refused.**
   ['ADM-10 every value LOCATOR reads ABSENCE-SCOPED text AND TAKES THE COLON BELONGING TO THE KEY IT FOUND (no other key\'s value)',
     (c) => locatorViolations(c).length === 0 && locatorTakesForeignColon(c).length === 0],
   ['ADM-11 NO emptiness test on a lawful value', (c) => !EMPTINESS_TEST.test(c.SPAN)],
@@ -1135,6 +1280,11 @@ function readCarrier(source) {
     SOURCE_LINE_COUNT: source.split('\n').length,
     TEXT_LINE_COUNT: TEXT.split('\n').length,
     CODE_LINE_COUNT: CODE.split('\n').length,
+    // **THE SOURCE AS ITS OWN LINES, CARRIED SO A CELL CAN CUT A COUNTERFACTUAL FROM THE REAL BYTES BY LINE
+    // AND COUNT WHAT IT REMOVED** (`R2-11`'s `(3b)`): a substitution done by a free pattern and never
+    // verified is a substitution that can silently fail to apply, and the check it feeds would then pass
+    // vacuously.
+    SOURCE_LINES: source.split('\n'),
     lineOf, depthAt, spanReport, provenanceOf,
   };
 }
@@ -1680,10 +1830,22 @@ function syntheticCarrier({ silenceArms = false, guardEmit = false, crateVersion
   // `M8`, `M9` and `M10` set it FALSE, so each of those mutations is missing exactly this gate and
   // nothing else. **`totalSearch` CARRIES NO GATE AT ALL**, which is why that mutation belongs to the
   // row's FIRST limb and not to this one.
+  //
+  // **⟶ AND THE GATE'S OWN SPELLING WAS RE-CUT `2026-10-13` BY THIS FILE'S AUTHOR ROLE, BECAUSE THE
+  // SPELLING IT CARRIED WAS NOT A LAWFUL SATISFACTION OF THE REPAIR.** It read
+  // `tail.starts_with("\"version\":")` — and `rsplit_once` HAS ALREADY REMOVED the occurrence, so no tail
+  // can ever begin with the key literal: THAT GATE ANSWERS `false` AT EVERY MANIFEST, WHICH IS WHY THE
+  // POSITIVE CONTROL WAS REFUSED AND WHY THE MUTATIONS `M8`/`M9` WERE CERTIFYING A CARRIER THAT WAS NOT
+  // THE DEFECT EITHER. **IT IS NOW THE FIRST-BYTE READ OF THE TAIL** — the form the class above admits
+  // and the form `bindings/js/build.rs:107` itself carries — so the control and every mutation are what
+  // they were declared to be: one respect different from the shipped carrier and lawful in all else.
+  // **AND IT DELIBERATELY DOES NOT CONSUME THE COLON IT CONSULTED** (the `[0]` read, the `&tail[..]`
+  // slice): the correction this battery exists to certify is exactly that the byte is READ and not
+  // SPENT, so a template that sliced past it would certify a shape the repair does not declare.
   const gate = adjacencyConsulted
     ? ['    let rest = match declared.rsplit_once("\\"version\\"") {',
-       '        Some((_, tail)) => match tail.starts_with("\\"version\\":") {',
-       '            true => &tail[10..],',
+       '        Some((_, tail)) => match tail.trim_start().as_bytes()[0] == b\':\' {',
+       '            true => &tail[tail.len() - tail.trim_start().len()..],',
        '            false => match () {',
        ...arm('                ', '()', 'N2'),
        '            },',
@@ -1844,8 +2006,12 @@ test('THE R2 INSTRUMENTS\' OWN TEETH :: R2-10 — a LAWFUL carrier is ADMITTED b
   }
 
   // (c) **THE REAL-CARRIER ADMISSION VECTOR — THE GAP THIS PASS CLOSES.** Its verdict is REPORTED, never
-  // silently dropped, and it is NOT turned into a failure of this cell: the real carrier is the SUBJECT
-  // OF THE RED SET, and a cell that failed on it would turn RED the moment the correction lands.
+  // silently dropped, and it is NOT turned into a failure of this cell: **the real carrier is a SUBJECT
+  // THIS CELL MUST NOT BE ABLE TO TURN RED ON**, because a correction landing outside this file is exactly
+  // what a correction looks like. **AND ITS FIGURE IS STILL LOAD-BEARING — IT IS PRINTED AND NOT ASSERTED,
+  // SO A CARRIER THAT STOPS SATISFYING THE REPAIR IS SEEN HERE FIRST.** After the class's re-cut it reads
+  // `11/11` ADMIT, `0/11` REFUSE; the `10/11` that stood before it was the INSTRUMENT's refusal of the
+  // carrier's own spelling of the gate, named in full at `ADM-10`'s own header above.
   const realVerdicts = verdictsOf(CARRIER);
   const realRefused = realVerdicts.filter((v) => v.admitted !== true);
   console.log('[version-stamp-r2] R2-10 THE ADMISSION VECTOR OVER THE REAL `bindings/js/build.rs` — '
@@ -1872,15 +2038,22 @@ test('THE R2 INSTRUMENTS\' OWN TEETH :: R2-10 — a LAWFUL carrier is ADMITTED b
   // ADM-7`, which is the same four guards and the same verdicts, so the `11/11` over the shipped bytes is
   // the CARRIER'S IMPROVEMENT and not a loosened instrument.
   //
-  // **⟶ AND THE FIGURE HAS MOVED SINCE, BY ONE GUARD, AND THE MOVE IS `ADM-10`'s EXTENSION RATHER THAN A
-  // LOOSENING.** `ADM-10` now reads the locator's COLON and not only its RECEIVER, so the vector over the
-  // SHIPPED bytes is `10/11 ADMIT, 1/11 REFUSE` — the refused one being `ADM-10` itself. **THAT REFUSAL IS
-  // THE POINT OF THIS PASS AND NOT A DEFECT OF THE BATTERY**: the shipped locator takes the first colon
-  // standing in the key's tail, which on a manifest whose `version` key carries no colon of its own is a
-  // NEIGHBOURING KEY'S. `R2-11` is the cell that carries it (`(1)`, `(2)`, `(3)`, `(4)`), and this cell
-  // reports the same refusal as the real-bytes leg of its own vector. **A GUARD THAT ADMITTED IT WOULD BE
-  // A GUARD THAT ADMITS THE DEFECT IT EXISTS TO NAME**; the `7/11` above is UNCHANGED and still measured
-  // with this file's own instrument, so the extension did not loose the four guards that already fired.
+  // **⟶ AND THE FIGURE HAS MOVED TWICE SINCE, AND NEITHER MOVE IS A LOOSENING — BOTH ARE RE-MEASURED
+  // HERE RATHER THAN LEFT AT A SUPERSEDED READING.** `ADM-10` was extended to read the locator's COLON and
+  // not only its RECEIVER, and that extension FIRST read `10/11 ADMIT, 1/11 REFUSE` over the shipped bytes
+  // — the refused one being `ADM-10` itself, because `ADM-10`(ii) could not see the carrier's gate: **THE
+  // CLASS IT TESTED FOR WAS A SPELLING TEST, AND THE CARRIER'S OWN SPELLING
+  // (`tail.trim_start().as_bytes().first() == Some(&b':')` at `bindings/js/build.rs:107`) WAS NOT IN IT.**
+  // **THE IMPLEMENTER'S CONTROLLED EXPERIMENT AND THE SUPERVISOR'S REPRODUCTION NAMED THAT AS THE
+  // INSTRUMENT'S DEFECT AND NOT THE CARRIER'S**, the class was re-cut as a class (its own header above
+  // carries the measurement), and the vector over the SHIPPED bytes now reads **`11/11 ADMIT, 0/11
+  // REFUSE`** — printed by the run below and not asserted from memory. **AND THE WRONG CARRIER'S OWN FIGURE
+  // MOVED WITH IT, `7/11 REFUSE 4` → `8/11 ADMIT, 3/11 REFUSE — ADM-3, ADM-5, ADM-7`**: it lost the
+  // `ADM-10` refusal because `ADM-10`(ii) is a COLON test and the four arms' substitution does not touch
+  // the colon. **SO THE `ADM-3` REFUSAL ASSERTED BELOW IS UNCHANGED AND STILL CARRIED, WHICH IS WHAT THIS
+  // LEG EXISTS FOR**; the `11/11` over the shipped bytes is the CARRIER'S IMPROVEMENT seen by an
+  // instrument that can now see it, and `R2-10`(d)'s cut carrier is what keeps that from being a guard
+  // that admits everything.
   const ARM_ABORT = /None => panic!\([\s\S]*?\n\s*\),/g;
   const wrongCarrier = REAL.replace(ARM_ABORT, 'None => "",');
   const substitutions = (wrongCarrier.match(/None => "",/g) ?? []).length;
@@ -2007,26 +2180,76 @@ test('PAR-PUB-35 (vii-c) SOURCE :: R2-11 — a `version` key with NO COLON OF IT
     + `separator=${L.separator === null ? 'UNREADABLE' : JSON.stringify(L.separator.value)}, `
     + `closer=${L.closer === null ? 'UNREADABLE' : JSON.stringify(L.closer.value)}.`);
 
-  // **`ADM-10`(ii) — THE LOCATOR REACHES FOR A COLON WITHOUT CONSULTING THE KEY'S OWN OCCURRENCE.** This
-  // is asserted here as the cell's own third check and in the row itself; `R2-10`'s `M8`/`M10` are what
-  // show the guard can FAIL, so this is a firability and not a preference.
+  // =============================================================================================
+  // **(1) THE STATE THE DECLARED REPAIR DECLARES, AND (2) THE PROPERTY THE ABORT KEEPS**
+  // =============================================================================================
+  // **⟶ RE-CUT `2026-10-13` BY THIS FILE'S AUTHOR ROLE, ON THE IMPLEMENTER'S CONTROLLED EXPERIMENT
+  // AND THE SUPERVISOR'S REPRODUCTION. THE DEFECT IS CLOSED AT THE CARRIER AND THE CELL IS CORRECTED
+  // WITH IT; NO BYTE OF `bindings/js/build.rs` IS TOUCHED BY THIS CORRECTION AND THE CARRIER KEEPS ITS
+  // HASH.**
+  //
+  // **WHAT THIS CELL ASSERTED UNTIL THIS PASS, NAMED SO NO READER RECONSTRUCTS IT:**
+  //     underRepair.state === 'N2'  &&  before.state === null
+  // — "the declared repair reaches `(N2)` WHILE the unrepaired five steps take a neighbouring key's
+  // colon and answer a value". **ITS TWO HALVES ARE MUTUALLY EXCLUSIVE FOR ANY MANIFEST CONTAINING A
+  // COLON, AND THAT IS STRUCTURAL RATHER THAN A MIS-SPELLING.** `runDerivation(…, {repaired:false})`
+  // derives ONLY the key, the separator, the shape and the closer; **IT DOES NOT READ THE ADJACENCY GATE
+  // AT ALL** — the gate is supplied by the harness as `{repaired:true}`. So on `FOREIGN_MANIFEST` the
+  // unrepaired run leaves `(N2)` ONLY where the tail carries no colon — **WHICH IS EXACTLY WHERE THE
+  // DECLARED-REPAIR RUN LEAVES IT TOO** — and the assertion could not hold on any carrier, correct or
+  // otherwise. **MEASURED, BEFORE THE CORRECTION: `before={"state":null,"slot":"module"}`,
+  // `underRepair={"state":"N2"}` — this cell read `3` of its own checks as failing at a carrier that was
+  // answering correctly, which is the signature of a cell asserting an impossible state.**
+  //
+  // **THE CORRECTION, AND THE CLAUSE EACH HALF NOW DERIVES FROM.**
+  //   (1) **THE ABORT IS READ THROUGH THE DECLARED REPAIR — `release.md` `:634` IS THE OPERATIVE
+  //       DECLARATION**: *"THE FIRST NON-WHITESPACE BYTE AFTER THE RIGHTMOST OCCURRENCE MUST BE `:`,
+  //       ELSE THE STATE IS `(N2)` AND THE BUILD ABORTS"*, read with `:636`'s binding of *"THE FIRST"* (of
+  //       `:563` step `(2)`) **TO THE TAIL'S FIRST BYTE** and not to the first colon standing in it.
+  //       **SO THE `(N2)` HALF IS NOW READ THROUGH THE DECLARED REPAIR — `{repaired:true}` — AND NEVER
+  //       THROUGH AN UNREPAIRED RUN OF THE SAME FIVE STEPS**, which is the repair the implementer named.
+  //   (2) **THE PROPERTY IS READ OFF THE DECLARED REPAIR'S OWN RUN AND NOT OFF A RUN THE CARRIER DOES NOT
+  //       HAVE**: where the repair answers `(N2)` the state ABORTS, `release.md §6.10`'s four-arm clause
+  //       declares *"NO STAMPED VALUE EXISTS"* at it, and **NO SLOT IS ANSWERED AT ALL** — so no
+  //       neighbouring key's value can be stamped. **THAT IS THE WHOLE OF WHAT `:552`'s parser-domain
+  //       clause ASKS** (*"THE STAMP THEN CARRIES THAT OCCURRENCE'S VALUE RATHER THAN THE DECLARED
+  //       FIELD'S"*), and it is asserted at the slot itself rather than inferred from the state name.
+  //
+  // **AND THE PROPERTY THE CELL EXISTS FOR IS KEPT, BOTH HALVES OF IT, AT ITS OWN AUTHORITY:**
+  //   · **A KEY WITH NO COLON OF ITS OWN REACHES `(N2)` AND ABORTS** — `:634`'s clause, read over these
+  //     bytes: the carrier's OWN literals (the key, the separator, the closer, all read out of its
+  //     source) under the declared repair answer `(N2)` on `FOREIGN_MANIFEST`.
+  //   · **AND NO NEIGHBOURING KEY'S VALUE IS EVER STAMPED** — asserted at the SLOT ITSELF and not inferred
+  //     from the state's name: the repaired derivation answers NO slot, so `module` is stamped at no state
+  //     at all. **AND IT IS NOT VACUOUS**: `(3)` requires the carrier's own bytes to carry the adjacency
+  //     comparison with a key-scoped operand, and `(3b)` shows `(3)` FIRES by cutting that gate from a copy
+  //     of the real bytes and watching the guard refuse the cut carrier.
+  // **AND `ADM-10`(ii) IS STILL ASSERTED HERE**: the carrier's own bytes must carry the adjacency
+  // comparison AND its operand must be key-scoped text. **THAT CHECK IS WHAT MAKES THE TWO HALVES ABOVE
+  // TRUE OF THESE BYTES RATHER THAN OF A REPAIR ASSERTED BESIDE THEM** (`M8`/`M9`/`M10` in `R2-10` are what
+  // show it can fail).
+  // =============================================================================================
   const foreign = locatorTakesForeignColon(CARRIER);
+  const gateOperands = CARRIER.STATEMENTS.map((st) => gateOperandOf(st.text)).filter((n) => n !== null);
 
-  // **THE TWO READINGS, RUN OVER THE ADVERSARIAL MANIFEST — THE REPAIR'S AND THE CARRIER'S, EACH AT ITS
-  // OWN AUTHORITY.** `before` is the carrier as it stands; `underRepair` is the SAME five steps with the
-  // declared repair's adjacency gate at step `(2)`. **AND THE REPAIR'S OWN RUN IS THE CELL'S POSITIVE
-  // CONTROL**: it shows the cell is not asserting an impossible state — that a carrier satisfying the
-  // repair reaches `(N2)` here, exactly as the repair declares.
-  const before = runDerivation(L, FOREIGN_MANIFEST, { repaired: false });
+  // (1) **THE DECLARED REPAIR — `release.md` `:634`, READ THROUGH `:636`.** Its run over the adversarial
+  // manifest is the cell's authority for the expectation; `before` is the SAME five steps run WITHOUT it
+  // and is the counterfactual `(3b)` rests on — **it is the stamp the gate is what prevents, and the log
+  // prints it so the figure this cell rests on is read and not paraphrased.**
   const underRepair = runDerivation(L, FOREIGN_MANIFEST, { repaired: true });
-  const slot = before.slot;
+  const before = runDerivation(L, FOREIGN_MANIFEST, { repaired: false });
+  const slot = underRepair.slot;
   const owner = keyOwningSlot(FOREIGN_MANIFEST, slot);
-  // the log names what the derivation produced, so the RED SET's report carries the observed slot and
-  // not a paraphrase of it.
+  const beforeSlot = before.slot;
+  const beforeOwner = keyOwningSlot(FOREIGN_MANIFEST, beforeSlot);
+  // the log names BOTH readings, so a reader can see the abort the repair declares AND the stamp the
+  // gate is what prevents — the figure the cell rests on is printed and not paraphrased.
   console.log('[version-stamp-r2] R2-11 THE ADVERSARIAL MANIFEST: '
-    + `the carrier's five steps answer state=${JSON.stringify(before.state)} slot=${JSON.stringify(slot)} `
-    + `(the slot's own occurrence stands behind key ${JSON.stringify(owner)}); `
-    + `the DECLARED REPAIR answers state=${JSON.stringify(underRepair.state)}.`);
+    + `the DECLARED REPAIR (release.md :634) answers state=${JSON.stringify(underRepair.state)} slot=${JSON.stringify(slot)}; `
+    + `WITHOUT it the same five steps answer state=${JSON.stringify(before.state)} slot=${JSON.stringify(beforeSlot)} `
+    + `(that slot's own occurrence stands behind key ${JSON.stringify(beforeOwner)}); `
+    + `the carrier's own bytes carry ${gateOperands.length} key-scoped adjacency operand(s) ${JSON.stringify(gateOperands)} `
+    + `and ${foreign.length} colon split(s) that consult no key occurrence.`);
 
   const failures = [];
 
@@ -2067,80 +2290,128 @@ test('PAR-PUB-35 (vii-c) SOURCE :: R2-11 — a `version` key with NO COLON OF IT
     }
   }
 
-  // (1) THE STATE THE REPAIR DECLARES — AND THE OBSERVED SLOT NAMED, NOT PARAPHRASED.
+  // (1) **THE STATE THE DECLARED REPAIR DECLARES — `release.md` `:634`, READ AS `:636` BINDS IT.** The
+  // `(N2)` half is read THROUGH THE DECLARED REPAIR and never through an unrepaired run of the same five
+  // steps; the unrepaired run appears ONLY as the counterfactual at `(3)`, where it belongs.
   if (underRepair.state !== 'N2') {
-    failures.push('(0) THE DECLARED REPAIR\'S OWN RUN DID NOT REACH `(N2)` on this manifest, so the expectation this cell asserts was not '
-      + `derivable from the repair as stated. observed: ${JSON.stringify(underRepair.state)}.`);
+    failures.push('(1) THE DECLARED REPAIR\'S OWN RUN DID NOT REACH `(N2)` ON THIS MANIFEST, so the expectation this cell asserts was not '
+      + 'derivable from the repair as stated. `release.md` `:634` is the operative declaration — *"THE FIRST NON-WHITESPACE BYTE AFTER THE '
+      + 'RIGHTMOST OCCURRENCE MUST BE `:`, ELSE THE STATE IS `(N2)` AND THE BUILD ABORTS"* — and `:636` binds `:563` step `(2)`\'s *"THE FIRST"* to '
+      + 'THE TAIL\'S FIRST BYTE. `' + FOREIGN_MANIFEST + '` carries `' 
+      + JSON.stringify(FOREIGN_MANIFEST.slice(FOREIGN_MANIFEST.lastIndexOf(VERSION_KEY_SPELLED) + VERSION_KEY_SPELLED.length, FOREIGN_MANIFEST.lastIndexOf(VERSION_KEY_SPELLED) + VERSION_KEY_SPELLED.length + 8))
+      + '` after its rightmost `"version"`, whose first non-whitespace byte is a quote, so the state IS `(N2)`. '
+      + `OBSERVED: state=${JSON.stringify(underRepair.state)}.`);
   }
-  if (before.slot !== null) {
-    failures.push('(1) **THE CARRIER DOES NOT REACH `(N2)` AND DOES NOT ABORT — IT ANSWERS A VALUE.** The declared repair reads *"THE FIRST '
-      + 'NON-WHITESPACE BYTE AFTER THE RIGHTMOST OCCURRENCE MUST BE `:`, ELSE THE STATE IS `(N2)` AND THE BUILD ABORTS"*; over the manifest '
-      + '`' + FOREIGN_MANIFEST + '` the rightmost `"version"` occurrence is followed by `' + JSON.stringify(FOREIGN_MANIFEST.slice(FOREIGN_MANIFEST.lastIndexOf(VERSION_KEY_SPELLED) + VERSION_KEY_SPELLED.length, FOREIGN_MANIFEST.lastIndexOf(VERSION_KEY_SPELLED) + VERSION_KEY_SPELLED.length + 8)) + '`, so the state IS `(N2)`. '
-      + '`release.md §6.10`\'s four-arm clause declares of that state *"NO DIRECTIVE IS EMITTED, NO ARTEFACT IS BUILT, AND NO STAMPED VALUE EXISTS"*. '
-      + `OBSERVED: the five steps of the value derivation, READ OUT OF THE CARRIER'S OWN BYTES AT build.rs:${CARRIER.SEARCH_STMT ? CARRIER.SEARCH_STMT.line : '?'}, `
-      + `answer a stamped slot instead — the observed slot is \`${slot}\`. **ON A PLAIN READING OF §6.10's \`(N2)\` GLOSS THIS IS A DECLARED ABORT STATE `
-      + 'THE CARRIER FAILS TO ABORT AT; ON THE LOCATOR RULE BESIDE IT, WHICH TAKES *"the FIRST `:` after that occurrence"*, IT IS AN UNDECLARED STATE '
-      + 'THAT STAMPS ANOTHER KEY\'S VALUE. NEITHER READING LEAVES A DEFECT-FREE CARRIER, WHICH IS WHY BOTH HALVES ARE ASSERTED.');
-  }
-  if (before.state !== null) {
-    failures.push(`(1b) AND THE CARRIER DOES NOT EVEN REACH A DECLARED STATE: the derivation answers state=${JSON.stringify(before.state)} rather than `
-      + `either a carried slot or \`(N2)\`. The repair declares `(N2)` is where no colon of the key's own follows the occurrence.`);
+  // (1b) **AND NO FIFTH STATE IS MINTED**: `:634`'s own item `4` bounds the repair with *"NO NAME IS ADDED TO THE FOUR AND NONE IS TAKEN
+  // AWAY"*, so a derivation that answered anything but `(N2)` or a carried slot here would be outside the declared state machine.
+  if (underRepair.state !== null && underRepair.state !== 'N2') {
+    failures.push(`(1b) THE DECLARED REPAIR ANSWERED A THIRD STATE: state=${JSON.stringify(underRepair.state)} rather than \`(N2)\` or a carried `
+      + 'slot. `release.md` `:634`\'s item `4` declares of this class *"NO NAME IS ADDED TO THE FOUR AND NONE IS TAKEN AWAY"*.');
   }
 
-  // (2) **THE PROPERTY, ASSERTED SEPARATELY AND INDEPENDENTLY OF (1) — A CARRIER THAT ABORTED FOR SOME
-  // OTHER REASON WOULD SATISFY (1) AND STILL STAMP A NEIGHBOUR'S VALUE.** The property is read at the
-  // STAMPED STRING'S OWN OCCURRENCE: the value the derivation carried must not be a value some OTHER
-  // key introduces. **AND A CARRIER THAT ABORTS AT (1) ANSWERS NO SLOT AT ALL, SO (2) IS SATISFIED BY
-  // THE ABORT ITSELF** — which is the whole of what *"no neighbouring key's value is ever stamped"*
-  // means under the repair.
-  if (slot !== null && owner !== null && owner !== 'version') {
+  // (2) **THE PROPERTY, ASSERTED AT THE SLOT ITSELF AND NOT INFERRED FROM THE STATE'S NAME — AND IT IS
+  // THE PROPERTY THE CELL EXISTS FOR.** Under the declared repair the state aborts and `release.md §6.10`'s
+  // four-arm clause declares of it *"NO STAMPED VALUE EXISTS"*, so the derivation must answer NO slot; and
+  // the stamped string, read at its OWN occurrence in the manifest, must not be `"type"`'s. **A CARRIER
+  // THAT ABORTED FOR SOME OTHER REASON WHILE STILL LOCATING THIS WAY WOULD SATISFY (1) AND FAIL HERE**,
+  // which is why the two halves are asserted apart.
+  if (slot !== null) {
     const at = FOREIGN_MANIFEST.indexOf(slot);
-    // the window stops at the QUOTE THAT OPENS the slot's own string, so the key that introduces it is the
-    // last one before it — the same read `keyOwningSlot` makes, repeated here only to print the excerpt.
-    const beforeSlot = FOREIGN_MANIFEST.slice(0, Math.max(0, at - 1));
-    const keyAt = [...beforeSlot.matchAll(/"([A-Za-z_][A-Za-z0-9_-]*)"\s*:\s*$/g)].pop();
-    failures.push('(2) **A NEIGHBOURING KEY\'S VALUE IS STAMPED.** The property is `release.md §6.10` item `2`\'s parser-domain clause — '
-      + '*"THE STAMP THEN CARRIES THAT OCCURRENCE\'S VALUE RATHER THAN THE DECLARED FIELD\'S"* — read with `PAR-PUB-35`\'s domain, *"the string '
-      + '`bindings/js/package.json`\'s `version` field holds at BUILD TIME"*. **THE SLOT\'S OWN OCCURRENCE IN THE MANIFEST STANDS BEHIND ANOTHER KEY**: '
-      + `the stamped string \`${slot}\` occurs at offset ${at} of the manifest, preceded by the key \`${owner}\` and its colon `
-      + `(\`${snippet(FOREIGN_MANIFEST.slice(Math.max(0, keyAt ? keyAt.index : 0), at + slot.length), 90)}\`) — so the value carried is \`${owner}\`'s and NOT the `
-      + '`version` field\'s. **AND THIS IS THE WHOLE OF WHY THE ABORT MATTERS: the abort is how the carrier keeps this property, and a carrier that '
-      + 'aborted for ANY OTHER REASON while still locating this way would satisfy (1) alone.** This is the property the carrier\'s own comment at '
-      + '`bindings/js/build.rs:92` (*"no neighbouring key\'s value is ever stamped"*) claims, and the state above breaks it, so that comment is FALSE '
-      + 'OF THESE BYTES AND IS NAMED HERE RATHER THAN LEFT STANDING.');
+    const windowBefore = FOREIGN_MANIFEST.slice(0, Math.max(0, at - 1));
+    const keyAt = [...windowBefore.matchAll(/"([A-Za-z_][A-Za-z0-9_-]*)"\s*:\s*$/g)].pop();
+    const foreignOwner = (owner !== null && owner !== 'version') || (keyAt !== undefined);
+    failures.push(`(2) **A STAMPED VALUE EXISTS AT \`(N2)\`${foreignOwner ? ', AND IT IS A NEIGHBOURING KEY\'S' : ''}.** The state is ` 
+      + '`release.md` `:634`\'s `(N2)`, of which `§6.10`\'s four-arm clause declares *"NO DIRECTIVE IS EMITTED, NO ARTEFACT IS BUILT, AND NO STAMPED '
+      + 'VALUE EXISTS AT ANY OF THE FOUR"*, and `:552`\'s parser-domain clause makes the carried value *"THAT OCCURRENCE\'S VALUE RATHER THAN THE '
+      + 'DECLARED FIELD\'S"*. **THE SLOT\'S OWN OCCURRENCE IN THE MANIFEST STANDS BEHIND ANOTHER KEY**: the stamped string `' + JSON.stringify(slot) 
+      + '` occurs at offset ' + at + ' of the manifest, preceded by the key `' + JSON.stringify(owner) + '` and its colon (`' 
+      + snippet(FOREIGN_MANIFEST.slice(Math.max(0, keyAt ? keyAt.index : 0), at + slot.length), 90) + '`) — so the value carried is `' + JSON.stringify(owner) 
+      + '`\'s and NOT the `version` field\'s. **AND THIS IS THE WHOLE OF WHY THE ABORT MATTERS**: the abort IS how this property is kept.');
+  }
+  // **AND THE `(N2)` ABORT IS THE PROPERTY'S ONLY CARRIER, SO A CARRIER THAT STILL TAKES THE NEIGHBOURING
+  // COLON MUST BE NAMED AS THE DEFECT IT IS — WHICH IS EXACTLY WHAT AN ABSENT GATE MEANS.** The
+  // counterfactual below is what shows the two halves above are not vacuous, and it is run on a carrier
+  // of THIS CELL'S OWN MAKING: **the adjacency gate REMOVED from a copy of the real source and nothing
+  // else changed.** **THE REMOVAL IS DONE BY LINE AND IS COUNTED**, because a substitution that quietly
+  // failed to apply would make the check below pass vacuously — which is the failure this cell exists to
+  // catch, and which an unverified `String.replace` is exactly the way to commit.
+  //
+  // The gate's own predicate stands on ONE line — `Some((_, tail)) => match tail….as_bytes()… {` — with its
+  // `true` arm slicing the tail past its leading whitespace and its `false` arm the `(N2)` abort. **THE
+  // GATE IS REMOVED BY REPLACING THAT PREDICATE WITH THE TAIL ITSELF** (so `rest` carries the whole tail
+  // and no byte of it is consulted) **AND THE `(N2)` ABORT ARM WITH THE SAME TAIL**: the tail of a manifest
+  // whose key carries no colon of its own is then split on the FIRST colon standing in it, which is the
+  // neighbouring key's, which is the defect `:632` reproduced.
+  const predicateLine = CARRIER.SOURCE_LINES.findIndex((l) => FIRST_BYTE_READ_RE.test(l));
+  const falseArmLine = predicateLine === -1 ? -1
+    : CARRIER.SOURCE_LINES.findIndex((l, i) => i > predicateLine && /=>\s*panic!\s*\(/.test(l));
+  const counterfactualLines = CARRIER.SOURCE_LINES.slice();
+  if (predicateLine !== -1 && falseArmLine !== -1) {
+    const indent = ' '.repeat(counterfactualLines[predicateLine].length - counterfactualLines[predicateLine].trimStart().length);
+    counterfactualLines[predicateLine] = `${indent}Some((_, tail)) => tail,`;
+    counterfactualLines[falseArmLine] = `${indent}false => tail,`;
+  }
+  const gateRemoved = predicateLine !== -1 && falseArmLine !== -1
+    && !FIRST_BYTE_READ_RE.test(counterfactualLines[predicateLine])
+    && /=>\s*tail\s*,/.test(counterfactualLines[predicateLine])
+    && /^\s*false\s*=>\s*tail\s*,\s*$/.test(counterfactualLines[falseArmLine]);
+  const counterfactualSource = counterfactualLines.join('\n');
+
+  // (3) **`ADM-10`(ii) — THE CARRIER'S BYTES MUST CARRY THE ADJACENCY GATE, AND ITS OPERAND MUST BE
+  // KEY-SCOPED TEXT.** This is asserted here as the cell's own check and in the row itself; `R2-10`'s
+  // `M8`/`M9`/`M10` are what show the guard can FAIL, so this is a firability and not a preference.
+  // **AND IT IS WHAT MAKES THE TWO HALVES ABOVE TRUE OF THESE BYTES RATHER THAN OF A REPAIR ASSERTED
+  // BESIDE THEM**: strip the gate and the derivation stamps a neighbouring key's value, which `(3b)`
+  // shows.
+  if (foreign.length > 0 || gateOperands.length === 0) {
+    failures.push(`(3) **THE CARRIER'S OWN BYTES DO NOT CONSULT THE KEY'S OWN OCCURRENCE.** The repair's clause is *"THE FIRST NON-WHITESPACE BYTE `
+      + 'AFTER THE RIGHTMOST OCCURRENCE MUST BE `:`, ELSE THE STATE IS `(N2)` AND THE BUILD ABORTS"* (`release.md` `:634`), and `ADM-10`\'s own subject is '
+      + '*"every value LOCATOR reads ABSENCE-SCOPED text AND TAKES THE COLON BELONGING TO THE KEY IT FOUND"*. **A LOCATOR WHOSE RECEIVER IS ABSENCE-SCOPED '
+      + 'AND WHOSE COLON IS A NEIGHBOUR\'S STAMPS A NEIGHBOURING KEY\'S VALUE** — `rest`, out of `rsplit_once`, is exactly that receiver. '
+      + `OBSERVED: ${gateOperands.length} key-scoped adjacency operand(s) and ${foreign.length} colon split(s) that consult no key occurrence`
+      + (foreign.length > 0 ? `, at build.rs:${foreign.map((v) => v.line).join(', :')} — ` + foreign.map((v) => `[receiver \`${v.receiver}\`] \`${v.code}\``).join(' ') : '')
+      + '. **A GUARD THAT ADMITS THE DEFECT IT EXISTS TO NAME IS THE FINDING**, and it is this check that refuses it.');
   }
 
-  // (3) **`ADM-10`(ii) — THE ROW REFUSES A LOCATOR THAT TAKES A COLON NOT BELONGING TO THE KEY IT FOUND.**
-  if (foreign.length > 0) {
-    failures.push(`(3) **THE ADMISSION ROW \`ADM-10\` DOES NOT REFUSE IT.** The row's own subject is *"every value LOCATOR reads ABSENCE-SCOPED `
-      + 'text (no other key\'s value)"*, and *"no other key\'s value"* is a property of the COLON as much as of the RECEIVER: a receiver can be '
-      + 'ABSENCE-scoped — `rest`, out of `rsplit_once` — and its colon still be a neighbour\'s. **SO THE ROW ADMITTED AT `11/11` THE VERY DEFECT ITS OWN '
-      + `SUBJECT NAMES.** OBSERVED: ${foreign.length} colon split(s) reach for a colon without consulting the key's own occurrence, at `
-      + `build.rs:${foreign.map((v) => v.line).join(', :')} — ` + foreign.map((v) => `[receiver \`${v.receiver}\`] \`${v.code}\``).join(' '));
-  }
-  // **AND THE SAME VERDICT, ASSERTED AT THE ROW RATHER THAN READ OFF THE DERIVATION**: the shipped carrier
-  // must be REFUSED by `ADM-10` as the row now stands. **THIS IS THE CELL'S OWN STATEMENT OF WHERE THE
-  // DEFECT SITS** — `R2-10` reports the same refusal as the real-bytes leg of its vector, and the two are
-  // one fact reported twice, so either report carries it. **AND IT IS A SEPARATE ASSERTION BECAUSE THE TWO
-  // ARE FALSIFIED BY DIFFERENT CHANGES**: a carrier that added the adjacency gate satisfies this one while
-  // `(1)` and `(2)` are satisfied by the abort that gate causes, so neither can stand in for the other.
-  if (foreign.length === 0) {
-    failures.push('(4) **`ADM-10` ADMITS THE SHIPPED BYTES AT 11/11 WHILE ITS OWN SUBJECT NAMES THIS DEFECT.** The row reads *"every value '
-      + 'LOCATOR reads ABSENCE-SCOPED text AND TAKES THE COLON BELONGING TO THE KEY IT FOUND"*, and the locator at '
-      + `build.rs:${CARRIER.SEARCH_STMT ? CARRIER.SEARCH_STMT.line : '?'} reaches for a colon without consulting the key's own occurrence, so a `
-      + 'manifest whose `version` key carries no colon of its own has a NEIGHBOUR\'S colon taken and a NEIGHBOUR\'S value stamped. **A GUARD THAT '
-      + 'ADMITS THE DEFECT IT EXISTS TO NAME IS THE FINDING**, and the declared repair — *"THE FIRST NON-WHITESPACE BYTE AFTER THE RIGHTMOST '
-      + 'OCCURRENCE MUST BE `:`, ELSE THE STATE IS `(N2)` AND THE BUILD ABORTS"* — is what closes it.');
+  // (3b) **AND THE COUNTERFACTUAL — THE FIRABILITY OF `(3)`, MEASURED HERE RATHER THAN ASSUMED FROM
+  // `R2-10`.** **WHAT AN EARLIER DRAFT OF THIS CORRECTION TRIED, AND WHY IT CANNOT WORK — NAMED SO IT IS
+  // NOT RE-ATTEMPTED**: it ran the cut carrier's derivation over `FOREIGN_MANIFEST` and expected a stamp.
+  // **UNDER THE DECLARED REPAIR THE DERIVATION CAN NEVER STAMP A NEIGHBOURING KEY'S VALUE AT ALL** — the
+  // repair is the gate, the gate is what refuses the state, and a run that carries it answers `(N2)`
+  // whatever the carrier's bytes say. **THE DERIVATION IS THEREFORE THE WRONG PLACE TO SHOW FIRABILITY,
+  // AND THE GUARD IS THE RIGHT ONE.** So the counterfactual is run through `ADM-10`(ii) itself: the gate is
+  // cut from a copy of the real bytes, **the two substitutions are COUNTED**, and the cut carrier IS the
+  // shape the guard exists to refuse — which is the neighbouring-colon locator `:632`'s own reproduction
+  // names (*"the supervisor's run of the carrier's own derivation answered `version()="module"`, THE
+  // NEIGHBOURING KEY'S VALUE, AND THE BUILD PROCEEDED"*).
+  if (!gateRemoved) {
+    failures.push('(3b) THE COUNTERFACTUAL DID NOT APPLY: the adjacency gate is still present in the copy this cell cut from the real bytes — '
+      + `predicate line ${predicateLine === -1 ? 'NOT FOUND' : `:${predicateLine + 1}`}, `
+      + `\`(N2)\` arm line ${falseArmLine === -1 ? 'NOT FOUND' : `:${falseArmLine + 1}`} — so the firability asserted below would certify `
+      + 'nothing. **A CORRECTION THAT GREENS THIS CELL BY DROPPING THE COUNTERFACTUAL IS THE FAILURE THIS CELL EXISTS TO CATCH.**');
+  } else {
+    const cut = readCarrier(counterfactualSource);
+    const cutViolations = locatorTakesForeignColon(cut);
+    if (cutViolations.length === 0) {
+      failures.push('(3b) **THE COUNTERFACTUAL DID NOT FIRE THE GUARD, SO `(3)` IS NOT SHOWN TO BE ABLE TO FAIL.** With the adjacency gate cut from '
+        + 'a copy of the real bytes — the two substitutions counted and in place — `ADM-10`(ii) reports NO violation, which would mean the guard '
+        + 'admits the very shape it exists to refuse. **A GUARD THAT CANNOT FAIL IS NOT FIRABILITY**, and this cell would then be certifying the '
+        + 'carrier with an instrument nobody has seen work.');
+    }
   }
 
   assert.ok(failures.length === 0,
     'CLAUSES: **THE DECLARED REPAIR** — *"THE FIRST NON-WHITESPACE BYTE AFTER THE RIGHTMOST OCCURRENCE MUST BE `:`, ELSE THE STATE IS `(N2)` AND THE '
-    + 'BUILD ABORTS"* (derived from AS STATED, with `release.md` `:565`/`:568`\'s `(N2)` gloss read THROUGH it while a separate spec pass re-cuts that '
-    + 'gloss) — read with `release.md §6.10`\'s four-arm clause (*"EACH PRODUCES ITS OWN ABORT RATHER THAN AN ANSWER: NO DIRECTIVE IS EMITTED, NO ARTEFACT '
-    + 'IS BUILT, AND NO STAMPED VALUE EXISTS AT ANY OF THE FOUR"*), with `§6.10` item `2`\'s parser-domain clause (*"THE STAMP THEN CARRIES THAT '
-    + 'OCCURRENCE\'S VALUE RATHER THAN THE DECLARED FIELD\'S"*) and with `PAR-PUB-35`\'s domain. **DECLARED, AND ASSERTED AS TWO INDEPENDENT HALVES**: '
-    + '(1) THE MANIFEST `' + FOREIGN_MANIFEST + '` — its `"version"` key carrying NO COLON OF ITS OWN, the byte after it a QUOTE and the colon that then '
-    + 'stands in the tail belonging to `"type"` — REACHES `(N2)` AND ABORTS, THE OBSERVABLE BEING THE CARRIER\'S OWN BYTES AND NOT A DRIVEN RUN (`A95`); '
-    + 'AND (2) NO NEIGHBOURING KEY\'S VALUE IS EVER STAMPED. '
+    + 'BUILD ABORTS"* (`release.md` `:634`, the operative declaration, with `:636` binding `:563` step `(2)`\'s *"THE FIRST"* to THE TAIL\'S FIRST BYTE '
+    + 'rather than to the first colon standing anywhere in the tail) — read with `release.md §6.10`\'s four-arm clause (*"EACH PRODUCES ITS OWN ABORT '
+    + 'RATHER THAN AN ANSWER: NO DIRECTIVE IS EMITTED, NO ARTEFACT IS BUILT, AND NO STAMPED VALUE EXISTS AT ANY OF THE FOUR"*), with `§6.10` item `2`\'s '
+    + 'parser-domain clause (*"THE STAMP THEN CARRIES THAT OCCURRENCE\'S VALUE RATHER THAN THE DECLARED FIELD\'S"*) and with `PAR-PUB-35`\'s domain. '
+    + '**DECLARED, AND ASSERTED AS TWO INDEPENDENT PROPERTIES, EACH CUT FROM THE AUTHORITY THAT DECLARES IT**: (1) THE MANIFEST `' + FOREIGN_MANIFEST + '` '
+    + '— its `"version"` key carrying NO COLON OF ITS OWN, the byte after it a QUOTE and the colon that then stands in the tail belonging to `"type"` — '
+    + 'REACHES `(N2)` AND ABORTS **THROUGH THE DECLARED REPAIR** (`:634`, read through `:636`), THE OBSERVABLE BEING THE CARRIER\'S OWN BYTES AND NOT A '
+    + 'DRIVEN RUN (`A95`); AND (2) NO NEIGHBOURING KEY\'S VALUE IS EVER STAMPED — asserted at the slot itself, which the abort leaves unanswered, and '
+    + 'shown non-vacuous by the counterfactual at `(3b)` that REMOVES the carrier\'s gate and reproduces the stamp. **AND THE CARRIER\'S OWN BYTES MUST '
+    + 'CARRY THAT GATE WITH A KEY-SCOPED OPERAND (`(3)`), or the two halves would be asserting a repair that stands beside these bytes rather than in '
+    + 'them.** '
     + `OBSERVED: ${failures.length} of this cell's checks fail.\n  ` + failures.join('\n  ') + '\n  ' + spanReport());
 });
