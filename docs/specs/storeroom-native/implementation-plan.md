@@ -633,3 +633,222 @@ docs/specs/storeroom-js/contract.md` `§7.1`–`§7.2`'s dated clauses of 2026-1
 homes; A3 docs/specs/storeroom-native/write-and-read.md §6.5 item 14 (d)–(e) — the two cells the `+2` are |
 numeric or census claim]`).
 
+---
+
+**⟶ APPENDED 2026-10-13 (THE SUPERVISOR'S `§9` APPEND — `RCA-8(d)` ANNOTATE-BESIDE: the part's bytes above,
+`§1`–`§7` and the whole `§8` region with every dated clause inside it, stand BYTE-FOR-BYTE and are read
+THROUGH this region; `RCA-13` governs this pass — ONE DELTA, the region below, and no standing row
+restated).** **It is a PLAN REGION, never a contract claim: no behaviour clause, no signature, no return
+shape and no fail-state is asserted by it, it admits no unit row, moves no ledger count, executes no
+register row, writes no `src/**` or `tests/**` byte, lifts no park and takes no ruling.** **THIS REGION IS
+THE ARTIFACT `DEF-2026-10-13`'s RESIDUE OWED, AND IT IS THE ONLY THING THIS PASS WRITES** (`docs/defects.md`,
+`DEF-2026-10-13`; the contract's index region's `implementation-plan.md §9` promise).
+
+## §9. THE PATH-PROBE AND CONSTRUCTION AMENDMENT'S PLAN — the phase table, the declared edit scope, the acceptance criterion, the stop conditions and the pointer index (dated 2026-10-13; the amendment's plan region, for the row `U-STOREROOM-ACCESS-PROBE` inside the `DONE` unit `U-STOREROOM-NATIVE`)
+
+**WHAT THIS REGION IS.** **It is the proposal-stage plan region for the construction-time path probe
+amendment — the tenth bounded amendment of `docs/specs/storeroom-native/contract.md`, a ROW inside the
+existing `DONE` unit and NOT a successor unit** (the gate-1 record's `decomposition` row reads `NO-SPLIT`).
+**It states PROSPECTIVE PLAN STEPS: what will be built, in what order, and verified how.** **Every step
+below is a PLAN STEP and never a contract claim; the amendment's RULES — the predicate's two kernel-decided
+arms, the `create_new` primitive and its `AlreadyExists` fall-through, the zero-length file, the argument
+order, the failure member and the version class — are `contract.md §10.4`'s parts `1`–`7` and are CARRIED
+THERE, not here.** **Where a cell below names a behaviour it is naming the `§`-clause that DECLARES it and
+pointing at it** (`RCA-13`: **an enumerable is carried ONCE and cited, never carried twice**).
+
+**WHY IT SITS HERE AND NOT IN A NEW DIRECTORY.** **One unit id, one contract directory, one register (at its
+`≤ 8` cap), one red set at `tests/**`, one crate at the repository root, one `DONE` row** — the layout this
+part's `§1.1` fixes for ONE unit, read with `contract.md §0.1` item 10(a)'s relocation rule. **A second
+directory would need a second crate path and a second red-set path, and the amendment's declared surface
+carries NO new identifier that could found one** (the gate-1 record's zero-row delta rationale).
+
+**AND THE CITATION FORM THIS REGION USES, STATED ONCE SO EVERY CELL BELOW RESOLVES IN THIS REPOSITORY:**
+**a pinnable cell carries ONE authority and its class, in the form `[A1: <the ruling, the clause or the
+record it is read at> | <class>]`; a cell with no authority resolves to NO authority and is written
+`INFERRED — reason: …; evaluator: …` at status `unconfirmed`, never left bare; and a cross-document
+supersession edge NAMES BOTH ENDS — path plus `§n` — and neither end is left implicit** (`[T: the citation
+form this region's cells obey, declared here so the region is checkable from the map | CONTRACT]`).
+
+### §9.1 THE DECLARED EDIT SCOPE — the paths this amendment may write, with the phase that may write each
+
+| # | Path | What the amendment may do there | The phase that may write it |
+| --- | --- | --- | --- |
+| **1** | `docs/specs/storeroom-native/contract.md` + the parts it moves (`seams-and-lifecycle.md` · `store-model.md` · this part) | **amended**: dated `⟶` clauses beside the sites that move — the `§10.4` rule block, `§8.1` #13's trigger list, `§5.7`'s `P-TP-7` census clause and failure list, `§7.1` steps 3/3-bis/4b, `DD-28`'s amended cell, `DD-40`'s `alt` (a), `DD-45`'s refusal and its reversal cell, `store-model.md §1.6` item 4 (d), and this part's own `§9` region | **`A1`** — **LANDED; see `§9.3`'s row `A1`** |
+| **2** | `src/store.rs` | the least code that turns exactly the amendment's red cells green, inside the declared scope: **arm (b)'s exclusive create**, its `AlreadyExists` fall-through to arm (a)'s existing write-mode open, and **the argument-order change that moves the `listeners[]` validation ahead of the create** — and NOTHING else of the crate | **`B2`** |
+| **3** | `tests/construction.rs` — the cell at `:393`–`:397` | **RE-DERIVED, by its author role**, to the contract's DECLARED observables: the path EXISTS, its length is `0`, the parent directory's entry count moved by EXACTLY ONE, and NO byte was written | **`B1`** |
+| **4** | `tests/fail_codes.rs` — the cell at `:435`–`:443` | **RE-DERIVED the same way and to the same observables**; its `:445`–`:448` assertion, which drives the ABSENT-PARENT state, **STAYS BYTE-FOR-BYTE** | **`B1`** |
+| **5** | `tests/gate4_red_set_fix.rs` — the cell `NG-I` at `:863`–`:948`, and its **vacuous assertion at `:944`** | **THE TEST-WRITER'S OWN CORRECTION, and it is a CORRECTION rather than a re-derivation of the amendment's reading: `mode_says_writable` is READ at `:868`–`:871`, BEFORE the `chmod` to `0o555` at `:875`, so the assertion at `:944` names `0o755` while the cell drives `0o555` and is TRUE ABOUT A STATE THE CELL HAS ALREADY LEFT.** **The precondition is read AFTER the `chmod`, or the assertion's subject is re-spelled so it names the state the cell actually drives — and NO OTHER CELL OF THAT FILE MOVES** | **`B1`** |
+| **6** | `tests/**` — new cells only | **the amendment's added drives**, authored from the contract alone: the read-only-mount/ACL-deny form `§8.1` #13's amended trigger list declares, the zero-length-file observable, the entry-count-by-exactly-one observable, the failed-construction-leaves-nothing observable, and the `AlreadyExists` no-truncation observable. **No existing red-set file outside rows `3`–`5` is rewritten and NO assertion is weakened** | **`B1`** |
+| **7** | `bindings/js/greens/live-drive.mjs` · the sibling's `docs/specs/storeroom-js/contract.md §5.6` | **NOT WRITTEN BY THIS AMENDMENT. Named here so the two cells are not read as forgotten: `live-drive.mjs`'s `LIVE-4` cell constructs over a path whose file is ABSENT and asserts *"the store wrote a REAL file at the caller-spelled path"* AT `:213`–`:217`, which is the OBSERVABLE THE AMENDMENT MAKES TRUE EARLIER — its `existsSync` reading at `:214` is taken AFTER the `:212` write, so the cell is UNMOVED; and the sibling's `§5.6` half is DISPOSED OF AT ITS OWN DIRECTORY'S PASS and already carries its dated clause** | — (outside; see `§9.2`) |
+| **8** | the four trackers `docs/{next-steps,decisions,pending,defects}.md` | **by the GATES only** — never by the build: the amended `DONE` row's cells, the reconciled stale cells, and any defect row | **`B7`** |
+| **9** | `archive/**` (gitignored) | each gate's own report and record, in the pass that authors it | **`B1`…`B7`** |
+
+**A tracked-file edit outside every path above — and any write under `../Provident-Electron/**` — is out of
+scope and stays this plan's `NOT-touched` failure.**
+
+**AND THE THREE DRIVEN STATES THE SCOPE ROWS REST ON, EACH STATED WITH WHY IT LANDS WHERE IT DOES — SO NO
+CELL BELOW IS DERIVED FROM A BYTE DIFF:**
+**(i) THE TWO CELLS THAT GO RED ARE THE ONLY TWO, and each asserts the WITHDRAWN READING of a construction
+that now leaves the store's own file: `tests/construction.rs:393`–`:397` (*"the DRY RUN creates NO file — the
+first boot of a fresh path leaves the file system untouched until the first `file`-tier write commits"*, read
+after the `storeCreate` at `:384`–`:387`) and `tests/fail_codes.rs:435`–`:443` (the `storeCreate` at `:436`
+followed by *"the probe leaves the file system untouched"*).** **The FIRST is a CONSUMER-FACING claim and is
+red for exactly the reason the version class was undecided before it was ruled `PATCH`.**
+**(ii) THE CELLS THAT STAY GREEN ARE THE MANY, AND EVERY ONE OF THEM DRIVES A MISSING PARENT OR AN EXISTING
+FILE — where the exclusive create ATTEMPTS AND FAILS leaving nothing, or answers `AlreadyExists` and falls
+through to arm (a)'s write-mode open — so NO ASSERTION OF THEIRS MOVES, and the spans are named so the
+claim is checkable rather than assumed: `tests/construction.rs:366`–`:370` (an EXISTING file, written at
+`:356`, whose bytes the construction leaves byte-identical) · `bindings/js/tests/surface_verbs.rs:87`–`:94` ·
+`bindings/js/tests/crossing_carriers.rs:629`–`:638` · `bindings/js/tests/register_layer.rs:634`–`:648` (the
+`S-PROBE-DRY` strategy line) · `bindings/js/test/surface.test.mjs:647`–`:662` ·
+`tests/gate4_red_set_fix.rs:863`–`:948` (besides its own correction at row `5` above) ·
+`bindings/js/greens/live-drive.mjs:208`–`:219` · `tests/fail_codes.rs:445`–`:448`.**
+**(iii) AND ONE CELL'S SPAN IS READ DIFFERENTLY FROM THE GATE-1 RECORD'S OWN QUOTATION OF IT, SAID PLAINLY
+RATHER THAN SMOOTHED: the record's `§4` names `bindings/js/tests/surface_verbs.rs:86`–`:94`,
+`crossing_carriers.rs:635`–`:638`, `register_layer.rs:623`–`:648`, `surface.test.mjs:647`–`:662` and
+`live-drive.mjs:208`–`:217`; read at the bytes, the CELL that carries each assertion is the span the table
+above prints — `surface_verbs.rs`'s cell at `:87`–`:94` (its doc comment closes at `:86`),
+`crossing_carriers.rs`'s at `:629`–`:638`, `register_layer.rs`'s `S-PROBE-DRY` strategy body at `:634`–`:648`
+(the `row.strategy("S-PROBE-DRY", …)` call opening at `:623`), `live-drive.mjs`'s `LIVE-4` block at
+`:208`–`:219` — and BOTH READINGS ARE OF THE SAME CELLS, so no assertion moves by this paragraph and the
+discrepancy is a boundary of quotation rather than a disagreement about the blast radius.**
+
+### §9.2 THE NOT-TOUCHED SET (a step out of it is a failure at any phase, by any role)
+
+| # | Not touched | The reason it is outside |
+| --- | --- | --- |
+| **1** | **`../Provident-Electron/**` — IN FULL, EVERY BYTE.** | the corpus is read-only for this project: **a finding against it is a `HO-` row in `docs/defects.md`, never a patch** (`contract.md §10.2` item 4 (the prohibited set's item, named by `§` and item NUMBER and NOT by a line anchor, per `contract.md §0.1` item 2's own rule and after the `2026-10-13` re-pointing of the same citation at `contract.md §10`'s `S-6` row); this part's `§1` first member) |
+| **2** | **`../Agent Harness/**`** | the process-rule specs are CITED, never edited — **and no process-rule path is cited in this region, because this repository files none** (`contract.md §0.1` item 2's citation rule) |
+| **3** | **the contract directory's standing clauses outside the amendment's own sites** | **the amendment is a BOUNDED amendment: it moves the cells its `§9.1` row `1` names and no other, and a dated clause is ADDED BESIDE a site rather than re-spelling it** (`RCA-8(d)` ANNOTATE-BESIDE; `contract.md §0.1` item 3's close-out convention) |
+| **4** | **the shipped red set's other cells — every file of `tests/**` outside `§9.1`'s rows `3`–`6`, and the sibling's suite except the two corrected cells** | **the blast radius is TWO RED CELLS plus ONE VACUOUS ASSERTION plus the amendment's own new drives; a third existing cell moving is a finding, not a cleanup** (`contract.md §10.4`'s blast-radius clause; the gate-1 record's `§4`) |
+| **5** | **`docs/handoffs/2026-10-12-consumer-verification-of-storeroom-0.1.2.md`** | **it is the sibling's PLACED document and `contract.md §10.2` item 4 (the prohibited set's item, named by `§` and item NUMBER — `contract.md §10.3` carries the candidate dispositions and no prohibited set) forbids the edit; the reconciliation is CARRIED HERE-ADJACENT and never performed there** (the pointer is at `§9.7`'s row `5`) |
+| **6** | **the register's cap and every landed row id beyond the two rows the amendment updates** | **the register stands at `8` rows with the cap holding (`8 ≤ 8` ✓) and NO ninth row is minted; the amendment updates the two rows whose clauses it moves** (`contract.md §10.4` part 7; `§0.1` item 5) |
+| **7** | **`README.md` · `LICENSE` · `.gitignore` · `docs/specs/storeroom-native-proposal.md` · the gate-1 records of both passes under `archive/**`** | **closed records and unchanged files: a gate record is never rewritten and never re-dispositioned, and a tracker count moves only by the architect's admission** (this part's `§1`'s own set, read forward) |
+| **8** | **any park's subject — and `P-1`/`P-3` are read as `lifted` and NOT as closed** | **a lift is not a closure and no parked work is reported green; the red set's `crate/**` crossing work and `A6` still need the JS unit's own gate to dispose of them** (this part's `§8`'s dated parks clause, read forward) |
+| **9** | **every other project on the shared volume, and every path under `docs/specs/` outside the declared set** | **a new spec path is a spec-gate event, not a plan step; and the sibling directory's `§5.6` half is that directory's own pass** (`contract.md §10.4`'s `S-8` row) |
+
+### §9.3 THE PHASE TABLE — phase · what it does · owner · input · output · the rule that authorizes it
+
+| Phase | What it does | Owner | Its input | Its output | The rule that authorizes it |
+| --- | --- | --- | --- | --- | --- |
+| **`A1` — the amendment's spec region** (**LANDED 2026-10-13**) | **lands the amendment's dated clauses**, keeps the register at `8 ≤ 8` by updating the rows whose clauses move, and lands **this `§9` region** so the contract's index-region promise is not dangling | `role_spec_writer` | the gate-1 record `docs/specs/storeroom-access-probe-review.md` + the three ACTIVE `docs/decisions.md` rows of `2026-10-13` + the shipped contract directory | `contract.md §10.4` and the dated clauses beside every site it moves; **this region** | the contract's own amendment instrument; **`RCA-13`** — ONE delta per pass, no standing row restated |
+| **`B1` — the red set: the two re-derived cells, the vacuous correction, and the amendment's new drives** | **authors the amendment's rows from the contract alone**, RE-DERIVES the two cells that assert the withdrawn reading to the DECLARED observables, CORRECTS the vacuous precondition at its own cell, RUNS the set, and **REPORTS the failing set before any implementation** | `role_test_writer` | the amended contract directory, whole — `§10.4`'s parts `1`–`7`, `§7.1` steps 3/3-bis/4b, `§8.1` #13's amended trigger clause, `§5.7`'s amended census clause | the re-derived cells; new files under `tests/**`; **the reported failing set**; the gate's report | **RED BEFORE GREEN**; and **`§9.1` row `6`'s bound — no existing file outside rows `3`–`6` is rewritten and no assertion is weakened** |
+| **`B2` — the green** | **the least code that turns exactly that red set green**, inside `§9.1` row `2`: the exclusive create, its `AlreadyExists` fall-through, and the argument-order change that moves the `listeners[]` validation ahead of the create | `role_implementer` | the reported red set + the declared scope | `src/store.rs` (and `Cargo.toml` only if a primitive needs it, which it does not: `create_new` is `std` and takes **no dependency**) | least code to green, after the red set is reported; **`contract.md §10.4` part 2 (the primitive) and part 4 (the order)** |
+| **`B3` — the adversarial pass + the register's read-only audit** | attacks the green READ-ONLY; audits the register row by row; **every finding gets ONE recorded disposition**; a package defect is catalogued, never patched | `role_adversarial_reviewer` | the green tree + the executed register | the gate's findings record; the layer-honesty regions filled | the adversarial pass is mandatory per completed unit |
+| **`B4` — the blind greens** | authors **and runs** a set from the docs alone, against the crate as a consumer, by an agent who did **not** implement — including the `AlreadyExists` no-truncation state, which no implementer-authored cell can be trusted to have driven honestly | `role_blind_test_writer` | the delivered docs + the green tree | the amendment's greens record with per-scenario pass/fail | a greens set authored by the implementer without a blind re-run is a finding |
+| **`B5` — the proofread + the per-unit documentation review** | the proofreader audits the docs against the code; the documentation reviewer reconciles the contract, the greens record and the trackers against the build **in the same pass** — **and this region is reconciled to the amendment's landed clauses here** | `role_proofreader` + `role_documentation_reviewer` | the green tree + the greens record + the trackers | the proofread's fixed cells; the review record; **this region's dated reconciliation** | both are mandatory and run per unit, never batched |
+| **`B6` — the trio and the crate's own leg** | the project's three checks plus **the `§8.5` leg's TWO narrowed-clippy commands, one per crate**, each with the LAYER it covers stated, and the crate's own test run as a declared additional leg | the supervisor's validation trio | the frozen green tree | the commands' measured exit codes and figures, each with its layer | **a node-suite green is ENVELOPE-green, never `APP`-green**; **the leg is read at the ONE HOME this part's `§8.5` declares and is NOT re-declared here** |
+| **`B7` — the amortised `DONE` row, the ledger and the archival loop** | **amends the shipped `DONE` row's cells IN PLACE** with dated re-measures and their layers, citing this amendment's adversarial pass and its findings; **reconciles the stale tracker cells** — including the two cells this amendment makes stale; lands the archival loop — **and moves no ledger count** | the supervisor's landing pass (**the row's admission is the ARCHITECT'S**) | every gate's landed artifact | the amended `DONE` row · the reconciled trackers · the archival record | **the architect admits ROWS, not a pass**; **the row must cite this amendment's adversarial pass (`contract.md §10.4`'s version class, ruled `PATCH`)** |
+
+**AND THE ORDER THE TABLE ENCODES, STATED ONCE SO NO CELL IS READ AS AN INDEPENDENT ONE:** **`A1 → B1 → B2
+→ B3 → B4 → B5 → B6 → B7`, each phase taking its input from the phase before it and NOT from a later one**
+(the adopted build order, this part's `§2`) (`[A1: the adopted build order, at this part's `§2`'s own map,
+whose `6` stages are read forward and with `0` inversions | ordering claim]`).
+
+**AND THE ONE PHASE THAT IS EXPLICITLY ALREADY BEHIND US, STATED SO NO READER WAITS ON IT:** **`A1` LANDED IN
+THE GATE-2 PASS OF 2026-10-13 — the clause region at `contract.md §10.4` and the dated clauses beside every
+site it moves are ON FILE, and what `A1`'s row was still owed is this region.** **THE `A1` ROW IS THE ROW THE
+CONTRACT'S INDEX REGION REFERS TO: *"(`implementation-plan.md §9`'s `A1` row, whose reconciliation is landed
+at that part's own dated clause)"* — this row, reconciled by `B5`.** **AND NOTHING OF `A1` RE-OPENS A CONTRACT
+CLAIM: a reconciliation is a DATE and a POINTER, and every clause it points at was written by `A1` itself.**
+
+### §9.4 THE BLOCKED-BY CELLS — every phase the open conditions block, marked
+
+| Phase | What blocks it now | What does NOT block it |
+| --- | --- | --- |
+| **`A1`** | **nothing — LANDED.** | — |
+| **`B1`** | **nothing for the AUTHORING of the set: the amendment's clauses are on file and the two re-derived cells are derivable from `§10.4` alone; and the two corrected cells are the TestWriter's, whose pass has not been entered by this one** | **the absence of any crate/`src/**` byte: the red set is authored AND run against the surface the amendment's clauses name, and its FAILING set is the report** |
+| **`B2`** | **`B1`** | — |
+| **`B3`** | **`B2`** | — |
+| **`B4`** | **`B1` + `B2`** | — |
+| **`B5`, `B6`, `B7`** | **their predecessors; and `B7`'s row admission is the ARCHITECT'S** | — |
+| **the sibling's `§5.6` half** | **nothing of THIS amendment blocks it AND this amendment does not wait on it: the sibling's dated clause is ALREADY LANDED at `docs/specs/storeroom-js/contract.md §5.6`, so the cross-document edge has a cell at each end and no phase here holds it** | — |
+
+### §9.5 THE ACCEPTANCE CRITERION — and what makes it NOT done
+
+**DONE REQUIRES ALL OF THE FOLLOWING, each bound where this unit's contract directory can bind it.**
+
+| # | The item | What makes it checkable |
+| --- | --- | --- |
+| **1** | the amendment's clauses are landed, **with the register at `≤ 8`** and the two rows the amendment moves updated in the same pass | `contract.md §10.4` parts `1`–`7`; `§5.7`'s amended census clause; the register region and its cap arithmetic |
+| **2** | **the two red cells are RE-DERIVED and not deleted or weakened**, each asserting the declared observables: the path EXISTS, its length is `0`, the parent directory's entry count moved by EXACTLY ONE, and NO byte was written | `tests/construction.rs:393`–`:397`; `tests/fail_codes.rs:435`–`:443`; `contract.md §10.4`'s blast-radius clause |
+| **3** | **`NG-I`'s precondition is read AFTER the state it asserts**, so the cell is not vacuous | `tests/gate4_red_set_fix.rs:868`–`:875`, `:944`–`:948` |
+| **4** | the red set was authored from the contract alone, RUN, and **its failing set REPORTED before any implementation**; the shipped red set re-run; **the register layer EXECUTED with every row printing its strategy id and verdict** | the gate's red-set report |
+| **5** | the green is **the least code that turns exactly that red set green inside `§9.1` row `2`** — and the argument order is the amendment's: **every argument validated before the create**, so a construction failing on `listeners[]` leaves NOTHING BEHIND | `§9.1` row `2`; `contract.md §10.4` parts `4` and `5` |
+| **6** | **no construction TRUNCATES an existing file**: on `AlreadyExists` the arm falls through to arm (a)'s write-mode open, and an existing path's bytes are BYTE-IDENTICAL after the construction | `contract.md §10.4` parts `2` and `6`; `tests/construction.rs:366`–`:370` read forward |
+| **7** | the adversarial pass ran READ-ONLY, every finding carries ONE disposition, package findings are catalogued and never patched | the gate's findings record |
+| **8** | the blind greens were authored **and run** by an agent who did not implement, **and the `AlreadyExists` no-truncation state is among them** | the amendment's greens record |
+| **9** | **the consumer's assertion 5 is reconciled by a CLAUSE and the placed document is UNEDITED**, its refusal half DELIVERED and its *"creates nothing"* half SUPERSEDED — **and the reconciliation is CARRIED, not re-decided, here** | `§9.7`'s row `5`; `§9.8`'s edge `2` |
+| **10** | the proofread and the per-unit documentation review ran, and the contract, the greens record and the trackers were reconciled **in the same pass** — **and this region is reconciled to the landing, dated** | their records; this region's own reconciliation clause |
+| **11** | **the trio and the crate's own leg are green, with every layer stated** — the two narrowed-clippy commands per `§8.5`, one per crate | `§8.5`'s own declaration (the ONE HOME; **not re-declared here**) |
+| **12** | the shipped `DONE` row's cells are amended in place with dated re-measures, its own adversarial pass cited, and the row is **not re-opened** | `docs/next-steps.md`'s `## DONE` row |
+| **13** | **the version class is `PATCH` ON THE RECORD** and the two clauses it carries are disposed of — the `release.md §2` PATCH-row clause and the consumer's assertion 5 | `docs/specs/storeroom-publish/release.md §2`'s amended PATCH row; `docs/decisions.md`'s ACTIVE row whose decision marker is *"Proceed with patch."* |
+
+**IT IS NOT DONE IF:** a cell outside the declared scope moves, or an existing red-set file outside `§9.1`'s
+rows `3`–`6` is rewritten, or an assertion is weakened or deleted where the contract requires it RE-DERIVED;
+**`src/store.rs` grows a second reachability predicate, a syscall seam, a dependency or a `File::create`
+truncation** — each REFUSED by the amendment's own rules; a `DD` row is reversed by a preference rather than
+by the ruling that reversed it; **a `DD` row or a census figure is restated in this region where the clause
+that carries it can be cited**; a ninth register row is authored or a second register opened; a sixteenth
+fail-code member is minted; an `APP`-green is claimed from a node-green; a figure moves without a dated
+re-measure or a layer; a citation points at a file, a row or an id that does not resolve in this repository;
+**the sibling's placed document or its `§5.6` clause is edited from here**; a unit row is admitted or a
+ledger count moved by a pass; **or a whole-file rewrite is used where the change is an append** — the route
+`DEF-2026-10-13` records, which is BARRED for this artifact by name.
+
+### §9.6 THE STOP CONDITIONS
+
+**A stop is a RETURN TO THE ARCHITECT in the concrete form the process requires** — what is blocked · the
+evidence · two or three options with a recommendation · what each blocks. **It is never a silent widening
+and never a second question about a ruling already recorded.**
+
+| # | The stop |
+| --- | --- |
+| **A** | **a phase writes outside `§9.1`'s declared scope, or reaches any member of `§9.2`'s NOT-touched set** |
+| **B** | **a `DD` row — `DD-28`, `DD-40`, `DD-45` above all — is read as reversed by a preference rather than by the ACTIVE ruling that reversed it, or a standing clause is re-decided instead of cited** |
+| **C** | **the create is placed BEFORE a later argument's validation**, or a construction that fails is allowed to leave a file, a directory or a byte behind |
+| **D** | **a second reachability predicate, a syscall seam, a dependency or a `File::create` truncation is proposed** |
+| **E** | **the sibling directory is written from here**, or the consumer's placed handoff is edited rather than reconciled by a clause |
+| **F** | **a citation is written to a path this repository does not carry, or to an id that does not resolve in it** |
+| **G** | **a whole-file rewrite is proposed for an append**, or a standing row is restated where `RCA-13` requires it cited once |
+| **H** | **the version class is re-argued after `PATCH` was ruled on the record**, or a second version class is minted for the same delta |
+
+### §9.7 THE POINTER INDEX
+
+| # | What this plan reads or owes | Its path |
+| --- | --- | --- |
+| **1** | this amendment's gate-1 record (the open list `S-1`…`S-8`, the conditions `K-1`…`K-13`, the collision block `C-1`…`C-9`) | `docs/specs/storeroom-access-probe-review.md` |
+| **2** | the amendment's clause region — the rule in seven parts and the eight dispositions | `docs/specs/storeroom-native/contract.md §10.4` |
+| **3** | the three rulings this amendment derives from, each ACTIVE | `docs/decisions.md` (`2026-10-13`) |
+| **4** | the sites that move: the construction sequence, the member's trigger, the census clause, the two `DD` rows | `docs/specs/storeroom-native/seams-and-lifecycle.md §7.1` · `contract.md §8.1` #13 · `§5.7` · `§0.2` |
+| **5** | **the consumer's assertion 5 — the CARRIED reconciliation, read and never performed** | `docs/handoffs/2026-10-12-consumer-verification-of-storeroom-0.1.2.md:125`; the clause that carries it at `contract.md §0`'s index region and the `S-6` row at `§10.4` |
+| **6** | **the DEFECT this pass's own route is recorded under** | `docs/defects.md` (`DEF-2026-10-13`) |
+| **7** | the two crates' red sets, the register's executed layer and the greens record | `tests/**` · `bindings/js/tests/**` · `archive/gate3/storeroom-native-red-set.md` · `docs/specs/storeroom-native-greens.md` |
+
+### §9.8 THE CROSS-DOCUMENT SUPERSESSION EDGES — both ends named, path plus `§n`, neither left implicit
+
+| # | Edge | Its store-side end | Its other end |
+| --- | --- | --- | --- |
+| **1** | **the sibling's `P-SM-6` row and its `S-PROBE-DRY` strategy, narrowed to the FAILED-construction form that directory already drives** | `docs/specs/storeroom-native/contract.md §10.4`'s `S-8` row, and that document's `DD-45`'s amended clause | `docs/specs/storeroom-js/contract.md §5.6`'s dated clause of `2026-10-13`, which cites this directory's `§10.4` back |
+| **2** | **the consumer's assertion 5 — refusal half DELIVERED, *"creates nothing"* half SUPERSEDED — and the placed document NEVER edited** | `docs/specs/storeroom-native/contract.md §0`'s index region and `§10.4`'s `S-6` row | `docs/handoffs/2026-10-12-consumer-verification-of-storeroom-0.1.2.md:125`, carried into `docs/specs/storeroom-publish/release.md §2`'s amended PATCH row |
+| **3** | **the changed construction observable inside PATCH's *"declared surface"*** | `docs/decisions.md`'s ACTIVE row of `2026-10-13` whose decision marker is *"Proceed with patch."* | `docs/specs/storeroom-publish/release.md §2`'s dated clause beside the `PATCH` row |
+
+**AND THE ONE PLACE WHERE THE CONTRACT'S PROMISE AT ITS INDEX REGION AND WHAT THIS REGION CARRIES DO NOT
+FULLY COINCIDE, SAID PLAINLY RATHER THAN SMOOTHED: the index clause promises that this part's `§9` carries
+*"the amendment's plan region — its declared edit scope, its not-touched set, its phase table, its
+blocked-by cells, its acceptance criterion, its stop conditions and its pointer index"*, and all SEVEN are
+carried above; and the `S-6` row at `§10.4` adds a further reference — *"`docs/handoffs/2026-10-12-consumer-verification-of-storeroom-0.1.2.md`'s reconciliation in
+`docs/specs/storeroom-native/implementation-plan.md §9`"*.** **THE RECONCILIATION ITSELF IS ALREADY CARRIED
+BY THE CONTRACT'S OWN BYTES — at `§0`'s index region and at `§10.4`'s `S-6` row — so carrying it again here
+would be a SECOND home for one claim, which `RCA-13` and this directory's shadow-home rule forbid.** **THIS
+REGION THEREFORE CARRIES THE POINTER AND THE EDGE (`§9.7` row `5`, `§9.8` edge `2`) AND NOT A SECOND COPY OF
+THE RECONCILIATION — and if the architect reads the `S-6` row as requiring the reconciliation's TEXT at this
+path, that reading is a bounded amendment of one clause and is NOT taken by this pass.**
+
+**END OF THE AMENDMENT'S PLAN REGION.** **Its authored content is `§9.1`–`§9.8` — the declared edit scope
+and NOT-touched set, the ordered phase table with its blocked-by cells, the acceptance criterion, the stop
+conditions, the pointer index and the two-way edges — and every one of those is a plan step or a pointer,
+never a new pinnable claim.** **NO `tests/**` BYTE, NO `src/**` BYTE, NO TRACKER BYTE AND NO OTHER FILE OF
+THIS REPOSITORY IS TOUCHED BY THE PASS THAT AUTHORED IT** (`[T: the region's own bound, declared at its foot
+so the appended span is self-describing | NEGATIVE]`).
+
