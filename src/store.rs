@@ -646,19 +646,46 @@ pub fn storeCreate(cfg: &StoreConfig) -> Result<Store, StoreError> {
 /// `AlreadyExists`** (`§10.4` part 6): a file that appeared between the probe and the create is decided by
 /// the same write-mode open, so a construction over an EXISTING file truncates nothing. **NO SECOND
 /// PREDICATE IS AUTHORED.**
+///
+/// **⟶ AMENDED 2026-10-13 (`DEF-2026-10-13-D`): THE TWO ARMS ARE SEPARATED BY THE NAME'S OWN EXISTENCE
+/// (`lstat`), NOT BY A FOLLOWED LOOKUP (`stat`), AND THE SEPARATION IS WHAT MAKES THE DANGLING SYMLINK
+/// REFUSE.** **The arms' frontier is exactly the question the exclusive create answers: step 4b's
+/// `create_new` answers `AlreadyExists` **iff an entry (of any kind) occupies the NAME**, and arm (b) is
+/// declared for the path that `PART 1` calls ABSENT — so *"absent"* is read as *"no entry at the name"*,
+/// which is `symlink_metadata`'s answer and not `metadata`'s.** **A DANGLING SYMLINK IS NOT AN ABSENT PATH:
+/// its name IS taken (which is why `create_new` answers `AlreadyExists`), and the write-mode open that arms
+/// (a) is `ENOENT` — the link is followed to a target that does not exist.** **Under the followed lookup the
+/// `ENOENT` of the target was read as the ABSENCE of the path, so the link fell into arm (b) on evidence the
+/// kernel contradicts, step 3 accepted it, and the `AlreadyExists` fall-through re-entered this function and
+/// was answered by the SAME `ENOENT`-means-absent reading — reporting arm (a)'s outcome WITHOUT arm (a)'s
+/// act, at a construction that had created nothing and a first `file`-tier write that silently replaced the
+/// symbol's link** (`§10.4` part 3 and its blast-radius clause, both falsified; the architect's ruling *"the
+/// file store method needs a writeable file address"*; `A55`'s *"File must have write access"*). **NO
+/// PREDICATE IS ADDED, NO ARM IS ADDED, NO MODE BIT IS READ AND NOTHING IS CREATED, TRUNCATED OR REMOVED BY
+/// THIS AMENDMENT: `symlink_metadata` REPLACES `metadata` AT THE ONE LOOKUP THAT SEPARATES THE TWO ARMS, so
+/// every path class it does not reclassify keeps the byte it had.** **AND IT RECLASSIFIES EXACTLY ONE: a name
+/// occupied by a symlink whose target is absent — arm (a)'s path, decided by arm (a)'s open, `ENOENT`, NOT
+/// REACHABLE.** **A SYMLINK WHOSE TARGET IS A REAL WRITEABLE FILE STAYS REACHABLE (`A52`'s *"the
+/// application can write it successfully"* holds of it, measured), A REGULAR DIRECTORY STAYS UNREACHABLE BY
+/// THE `is_dir` ARM, A SYMLINK TO A DIRECTORY REACHES ARM (a) AND IS UNREACHABLE BY ITS OPEN (`EISDIR`),
+/// and a name no entry occupies is unmoved into arm (b)'s create** (`contract.md §10.4` part 1; the red
+/// set's own drives).
 fn path_is_reachable(path: &str) -> bool {
     let candidate = std::path::Path::new(path);
-    match std::fs::metadata(candidate) {
+    match std::fs::symlink_metadata(candidate) {
+        // The `is_dir` guard reads the NAME's own type, so a SYMLINK TO A DIRECTORY is not short-circuited
+        // here: it reaches arm (a)'s open like every other occupied name and is refused by `EISDIR`.
         Ok(metadata) if metadata.is_dir() => false,
         Ok(_) => std::fs::OpenOptions::new()
             .write(true)
             .open(candidate)
             .is_ok(),
-        // ARM (b)'s ANSWER IS REACHABLE: an ABSENT path is UNREACHABLE only where the create refuses it,
-        // and every such refusal is step 4b's own (`EROFS`, `EACCES`, `ENOENT`). **THE PARENT DIRECTORY'S
-        // MODE BITS ARE WITHDRAWN AS THIS ARM'S DECIDING INSTRUMENT** (`§10.4` part 1; `DEF-20`), **so a
-        // mode-readable parent is not read here at all: the create asks whether the process may ADD AN
-        // ENTRY, which is the exact question `§7.1` states.**
+        // ARM (b)'s ANSWER IS REACHABLE, AND THIS ARM NOW MEANS *"NO ENTRY OCCUPIES THE NAME"* RATHER THAN
+        // *"A LOOKUP FAILED"* (the `lstat` amendment above): an ABSENT path is UNREACHABLE only where the
+        // create refuses it, and every such refusal is step 4b's own (`EROFS`, `EACCES`, `ENOENT`). **THE
+        // PARENT DIRECTORY'S MODE BITS ARE WITHDRAWN AS THIS ARM'S DECIDING INSTRUMENT** (`§10.4` part 1;
+        // `DEF-20`), **so a mode-readable parent is not read here at all: the create asks whether the process
+        // may ADD AN ENTRY, which is the exact question `§7.1` states.**
         Err(_) => true,
     }
 }
