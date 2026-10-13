@@ -1564,6 +1564,90 @@ fn p_tp_7_the_construction_is_a_function_of_its_arguments() {
         }
     }
 
+    // **⟶ ADDED 2026-10-13 — THE CREATED-FILE STATE, WHICH `S-CONSTRUCT`'S GENERATOR DID NOT REACH.**
+    // **Drive 1 constructs over a fresh path and reads `{{}}` — and asserts NOTHING about the file the
+    // construction makes.** `contract.md §10.4` part 3 declares FOUR observables for that state: **the path
+    // EXISTS · its length is `0` · the parent directory's entry count moved by EXACTLY ONE · and the
+    // register's landing tier is `file` BEFORE ANY WRITE** (`DD-28`'s amended cell; `A49`/`A50`;
+    // `store-model.md §1.6` item 4 (d)). **THE THREE FILE-SYSTEM ONES ARE THE AMENDMENT'S WHOLE VISIBLE
+    // CHANGE, and a row that asserts only the register cannot tell the amended reading from the WITHDRAWN one
+    // — under which the path stays ABSENT** (`docs/defects.md`'s `DEF-2026-10-13-B`: *"A HELD VERDICT IS
+    // CONSISTENT WITH A CHANGE NOTHING TESTS"*). **SO THE GENERATOR'S REACH IS EXTENDED, WITH ONE ATTEMPT,
+    // INSIDE THE ROW'S EXISTING CAPS (`≤ 100` per row, `≤ 400` in total) — and NO strategy line of this row
+    // is narrowed.**
+    drive.attempt();
+    {
+        let parent = std::path::PathBuf::from(fresh_path("s-construct-created-state"));
+        std::fs::create_dir_all(&parent).expect("this drive's own parent directory");
+        let path = parent.join("store.json");
+        let path_str = path.to_string_lossy().into_owned();
+        let count = |dir: &std::path::Path| {
+            std::fs::read_dir(dir)
+                .expect("this drive's own parent directory is readable")
+                .count()
+        };
+        let before = count(&parent);
+        let mut made = ok(
+            storeCreate(&cfg_at(&path_str, 4)),
+            "§10.4 part 3: the exclusive create at a provided, absent path SUCCEEDS",
+        );
+        drive.check(
+            path.exists(),
+            "§10.4 part 3/A52: the construction CREATES the store's own file at the provided path — under \
+             the WITHDRAWN reading the path stays ABSENT, so this is the observable that separates them",
+        );
+        drive.check(
+            std::fs::metadata(&path).map(|m| m.len()).ok() == Some(0),
+            "§10.4 part 3/DD-28's amended cell: the file is left ZERO-LENGTH — AN EMPTY FILE AND NO BYTE",
+        );
+        drive.check(
+            count(&parent) == before + 1,
+            &format!(
+                "§10.4's blast-radius clause: the parent directory's entry count moved by EXACTLY ONE (was \
+                 {before}, now {}) — not by two (no litter) and not by zero (the create did not happen)",
+                count(&parent)
+            ),
+        );
+        drive.check(
+            landing_tier(&made, &empty_address()) == Tier::File,
+            "A49/A50/§1.6 item 4 (d): the register's tier is FIXED AT CREATION at `file` — asserted BEFORE \
+             any write, which is the clause's own order",
+        );
+        // THE SECOND CONSTRUCTION OVER THE SAME PATH: `AlreadyExists` falls through to arm (a)'s write-mode
+        // open, which creates nothing and truncates nothing (`§10.4` part 6) — so the file is STILL there,
+        // STILL zero-length, and a second create has moved the entry count by ZERO.
+        match storeCreate(&cfg_at(&path_str, 4)) {
+            Ok(second) => {
+                drive.check(
+                    path.exists() && std::fs::metadata(&path).map(|m| m.len()).ok() == Some(0),
+                    "§10.4 part 6: *\"a construction over an EXISTING file NEVER TRUNCATES it\"* — the second \
+                     construction left the zero-length file the first one made exactly as it found it",
+                );
+                drive.check(
+                    count(&parent) == before + 1,
+                    "§10.4 part 6: the fall-through CREATES NOTHING — exactly one construction added \
+                     exactly one entry",
+                );
+                drive.check(
+                    structurally_equal(&read_at(&second, &empty_address()), &v_obj(&[])),
+                    "§5.7 (ii)/DD-38: the boot loads the zero-length file's content as ZERO registrations, so \
+                     the register is `{{}}` again",
+                );
+                let _ = made.write(AddressArg::List(key(&["z"])), w_mem(), v_num(1.0));
+            }
+            Err(e) => drive.check(
+                false,
+                &format!(
+                    "§10.4 part 6: an existing, creatable path is REACHABLE and the fall-through returns an \
+                     instance; got {}",
+                    e.status
+                ),
+            ),
+        }
+        let _ = std::fs::remove_file(&path);
+        let _ = std::fs::remove_dir_all(&parent);
+    }
+
     // The reachability arm — `DD-40`'s three forms, each answering the NEW member (`§8.1` #13).
     drive.attempt();
     {

@@ -32,6 +32,13 @@
 //! domain), `NG-K` (which version decides the kind test), `NG-I` (a mode-writable parent the process cannot
 //! write) — **the cell asserts what the contract DOES state, or records the state's own observation and says
 //! on its face that the clause is still to be declared. No assertion here is weakened to force a green.**
+//! **⟶ CORRECTED 2026-10-13: AND `NG-I`'s PARENTHETICAL IS NOW DRIVEN RATHER THAN MERELY NAMED.** The list
+//! above reads *"`NG-I` (a mode-writable parent the process cannot write)"* — **and the as-filed cell drove
+//! `0o555`, where the mode bits AND the kernel AGREE that the parent is unwritable, so the sentence named a
+//! state the cell did not build.** It is built now, at a fresh directory this process owns in `0o200`
+//! (**owner-write set, owner-EXECUTE cleared**), where `readonly()` answers WRITABLE and the kernel answers
+//! `EACCES` (`docs/defects.md`'s `DEF-2026-10-13-B`) — **so `NG-I` drives the parenthetical it was always
+//! described by, and the mode-bit reading is no longer the deciding instrument in it or in its assertions.**
 //! **AND WHERE THE SEVENTH BOUNDED AMENDMENT HAS SINCE DECLARED A STATE (`DD-41`…`DD-45`), THE CELL IS READ
 //! THROUGH THE AMENDMENT AND NOT AROUND IT:** `NG-C`'s colliding token is now `DD-42`'s (the mint's skip rule
 //! and the caller-spelled duplicate's declared `carries-the-token-twice` answer, driven at both), and `NG-L`'s
@@ -847,86 +854,86 @@ fn ng_d_the_vec_hole_by_write() {
 // `NG-I` (`AM-10`) — THE PROBE'S UNWRITABLE-PARENT AND READ-ONLY-FILE ARMS.
 // ===================================================================================================
 
-// **`NG-I` — `A52`'s TWO ARMS UNDER A PARENT THE MODE BITS CALL WRITABLE AND THE PROCESS CANNOT WRITE.**
+// **`NG-I` — `A52`'s TWO ARMS AT A PARENT THE MODE BITS CALL WRITABLE AND THE PROCESS CANNOT WRITE.**
 // `A52`/`A55`: *"Reachable means the file exists **or that the application can write it successfully**"*;
-// *"Dry run. File must have write access."* **The cell drives the probe's two arms at the state the mode
-// bits mis-describe — a parent directory whose permissions are `0o555` (so `!readonly()` and the parent
-// `metadata` test both pass) while the process cannot create a byte in it — and at the read-only-file arm,
-// where the answer must be `FilePathUnreachable` with NO instance (`§8.1` #13; `DD-40`).** **It is
-// ENVIRONMENT-CONDITIONAL and says so: a privileged process CAN write the directory, in which case `A52`'s
-// arm (b) governs and the store is created at `file` — the cell then asserts the SUCCESS arm's own
-// observables instead of the failure's, and neither branch is softened.** **The gap `AM-10` names (the
-// probe cannot distinguish an ACL deny or an ownership mismatch from mode bits) is the CONTRACT's: the cell
-// drives what `A52` says and reports where the process's answer and the mode bits disagree.**
-// Drives: A52, A55, §8.1 #13, DD-40, §7.2 item 1, §7.1 step 4
+// *"Dry run. File must have write access."* **The cell drives the probe's absent-file arm at the state the
+// mode bits mis-describe and the read-only-file arm, where the answer must be `FilePathUnreachable` with NO
+// instance (`§8.1` #13; `DD-40`).**
+//
+// **⟶ RE-DERIVED 2026-10-13, IN THE TWO PLACES THIS CELL WAS FOUND WEAK — AND NEITHER CORRECTION NARROWS
+// ANYTHING.** **`AM-10`'s finding was that this cell claimed a state it did not drive: the as-filed cell read
+// the mode bit BEFORE the `chmod` and asserted it AFTER, and at `0o555` BOTH instruments answer UNWRITABLE
+// anyway — so its assertion was true by construction and its `app_can_create` match was a TAUTOLOGY
+// (`docs/defects.md`'s `DEF-2026-10-13-B`; `F-4`).**
+//   * **(1) THE STATE IS NOW THE DIVERGENT ONE: A FRESH DIRECTORY THIS PROCESS OWNS AT `0o200` —
+//     OWNER-WRITE SET, OWNER-EXECUTE CLEARED.** `std::fs::metadata(dir).permissions().readonly()` is
+//     `mode & 0o222 == 0`, so it answers **`false` (WRITABLE)** at `0o200`, **while the kernel answers
+//     `EACCES`** to the very `create_new` the code performs — because ADDING A DIRECTORY ENTRY additionally
+//     requires SEARCH/EXECUTE on the parent. **NO ACL, NO MOUNT AND NO PRIVILEGE IS NEEDED, AND IT IS THE
+//     DIVERGENCE `DEF-20` WAS FILED FOR.** `0o555` was GREEN UNDER BOTH READINGS; `0o200` is green under
+//     the amended one alone.
+//   * **(2) THE MODE-BIT READING IS NO LONGER ASSERTED AS THE DECIDING INSTRUMENT.** The as-filed cell
+//     computed `app_can_create` by performing **the same `create_new` the code performs** and then asserted
+//     it on whichever branch the construction took — **a mode-bit-shaped tautology** (`contract.md §8.1`
+//     #13's amended clause (a) declares `metadata.permissions().readonly()` WITHDRAWN as the deciding
+//     instrument). **The replacement instrument is the KERNEL's own answer, taken ONCE as the cell's
+//     PRE-CONDITION — and where it does not hold the cell FAILS LOUDLY rather than passing on a branch it
+//     did not drive.**
+// Drives: A52, A55, §8.1 #13 and its amended clause, DD-40, DD-45's amended clause, §7.1 step 4b, §7.2 item 1
 #[test]
 fn ng_i_the_probe_s_unwritable_parent_and_read_only_file_arms() {
-    // (a) THE PARENT: mode bits writable, the process's write failing in fact.
+    // (a) THE PARENT: mode bits writable, the process's write failing in fact — at `0o200`.
     let dir = fresh_path("ng-i-dir");
     std::fs::create_dir(&dir).expect("a directory for this cell's own path");
     let unreachable = format!("{dir}/state.json");
-    let mode_says_writable = !std::fs::metadata(&dir)
-        .expect("the directory's metadata")
-        .permissions()
-        .readonly();
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o555))
-            .expect("the directory is now unwritable by mode");
+        std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o200))
+            .expect("the directory is now `0o200`: owner-write set, owner-execute cleared");
     }
-    let app_can_create = std::fs::OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(&unreachable)
-        .is_ok();
-    if app_can_create {
-        let _ = std::fs::remove_file(&unreachable);
+    // **PRE-CONDITION (i): THE MODE-BIT INSTRUMENT ANSWERS WRITABLE AT `0o200`** — read INSIDE the state the
+    // kernel's answer is taken in (`implementation-plan.md §9.1` row `5` and `§9.5` item `3`).
+    #[cfg(unix)]
+    {
+        let mode_says_writable = !std::fs::metadata(&dir)
+            .expect("the directory's metadata")
+            .permissions()
+            .readonly();
+        assert!(
+            mode_says_writable,
+            "A52/A55/§8.1` #13's amended clause (a): at `0o200` the parent carries the OWNER-WRITE bit, so \
+             `readonly()` (`mode & 0o222 == 0`) answers `false`, i.e. WRITABLE — and the WITHDRAWN \
+             instrument would answer this path REACHABLE. If this is `true`, the cell is not driving the \
+             divergence it claims and FAILS here rather than passing for the wrong reason (`DEF-2026-10-13-B`)"
+        );
     }
-    // **⟶ THE PRECONDITION THIS CELL DRIVES, READ AFTER THE STATE IT NAMES, DATED `2026-10-13` — THE
-    // CORRECTION `AM-10`'s VACUOUS ASSERTION OWES** (`implementation-plan.md §9.1` row `5` and `§9.5`
-    // item `3`: *"the precondition is read AFTER the `chmod`, or the assertion's subject is re-spelled so it
-    // names the state the cell actually drives"*). **THE AS-FILED CELL READ `mode_says_writable` AT
-    // `:868`–`:871` — BEFORE the `chmod` at `:875` — and asserted it at `:944`, so the assertion declared a
-    // precondition about a state the cell had ALREADY LEFT (`0o755`) while the cell drove `0o555`; it was
-    // therefore TRUE BY CONSTRUCTION and `AM-10`'s discriminating state was not driven by the cell claiming
-    // to drive it.** **THE MODE BIT IS NOW READ IN THE STATE THE KERNEL'S OWN ANSWER WAS TAKEN IN**, so the
-    // cell's own precondition names the state it actually drove.
-    let mode_the_cell_drives = !std::fs::metadata(&dir)
-        .expect("the directory's metadata, read in the state the kernel's answer was taken in")
-        .permissions()
-        .readonly();
+    // **PRE-CONDITION (ii): THE KERNEL ANSWERS DENIED TO THE CREATE THE CODE ITSELF PERFORMS.** **This is
+    // the replacing instrument, asserted ONCE and BEFORE the drive — not re-derived from the branch the
+    // construction took, which is the tautology `F-4` filed.**
+    #[cfg(unix)]
+    assert!(
+        ng_i_kernel_denies_the_exclusive_create(&unreachable),
+        "A52 (b)/§8.1 #13's amended clause (b): the KERNEL refuses the exclusive create at this parent \
+         (`EACCES`), because adding a directory entry additionally requires SEARCH/EXECUTE on it. If it does \
+         not refuse — a `uid=0` runner with `CAP_DAC_OVERRIDE` — THE DISCRIMINATING STATE IS NOT \
+         CONSTRUCTIBLE HERE and every assertion below would hold under BOTH readings, so the cell FAILS \
+         LOUDLY instead of reporting a green it did not earn"
+    );
+    #[cfg(unix)]
+    assert!(
+        !std::path::Path::new(&unreachable).exists(),
+        "PRE-CONDITION (ii), its residue: the probing create was DENIED, so it left nothing behind"
+    );
+
     match storeCreate(&cfg_at(&unreachable, 4)) {
-        Ok(mut s) => {
-            assert!(
-                app_can_create,
-                "A52/A55: the path's parent is unwritable and the application CANNOT write it, so the \
-                 reachability test FAILS and NO instance is returned (`§8.1` #13) — an instance was \
-                 returned although the write that arm (b) promises must fail"
-            );
-            // The success arm's own observable, so the branch is not vacuous: the application CAN write it,
-            // so the register is at `file` and the first `file`-tier write commits (`§7.2` item 1).
-            assert_eq!(
-                landing_tier(&s, &empty_address()),
-                Tier::File,
-                "A49/A50: arm (b) governing puts the register at `file`"
-            );
-            ok(
-                s.write(AddressArg::List(key(&["r"])), w_file(), v_num(1.0)),
-                "§7.2 item 1: the application can write it, so the commit lands",
-            );
-            assert!(
-                std::path::Path::new(&unreachable).exists(),
-                "§7.2 item 1: the commit — and only the commit — puts bytes at the path"
-            );
-        }
+        Ok(_) => panic!(
+            "A52/A55/§8.1 #13's amended clause (b): *\"the application can write it successfully\"* does \
+             NOT hold at this parent — the kernel DENIED the create — so the reachability test FAILS and NO \
+             instance is returned. **AN INSTANCE HERE IS THE WITHDRAWN READING, WHOSE MODE-BIT INSPECTION \
+             ANSWERS THIS PARENT WRITABLE** (`DEF-20`; `DEF-2026-10-13-B`)"
+        ),
         Err(e) => {
-            assert!(
-                !app_can_create,
-                "A52: where the application CAN write the path, arm (b) governs and an instance is returned; \
-                 got {}",
-                e.status
-            );
             assert_code(
                 &e,
                 "FilePathUnreachable",
@@ -945,32 +952,12 @@ fn ng_i_the_probe_s_unwritable_parent_and_read_only_file_arms() {
             );
         }
     }
-    let _ = std::fs::remove_file(&unreachable);
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let _ = std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o755));
+        let _ = std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o700));
     }
-    // **THE CELL'S OWN PRECONDITION, ASSERTED AT THE STATE THE CELL DROVE** (`AM-10`; `implementation-plan.md
-    // `§9.5` item `3`). **THE SENTENCE IT REPLACES NAMED `0o755` — the state read BEFORE the `chmod` — and
-    // was true of a state this cell leaves at `:875`: it is corrected here rather than weakened.** **WHAT IS
-    // TRUE OF THE STATE ACTUALLY DRIVEN: `0o555` carries NO owner-write bit, so every mode-bit reading of
-    // this parent answers UNWRITABLE — and the answer the probe's arm is taken on is the KERNEL's own
-    // (`create_new`), which `app_can_create` above observed.** **SO THIS CELL DRIVES THE NOT-WRITABLE FORM
-    // ITSELF, and it is NOT the discriminating `mode-writable-but-in-fact-denied` shape `AM-10` named: that
-    // shape is the one `docs/specs/storeroom-publish/release.md:25`–`:29`'s privileged runners put out of
-    // this suite's reach, and no assertion here pretends otherwise.**
-    assert!(
-        !mode_the_cell_drives,
-        "A55/AM-10: this arm is driven at a parent whose MODE BITS call it UNWRITABLE (`readonly()` is true \
-         at `0o555`, which has no owner-write bit), so the state the cell drives is the not-writable form and \
-         the probe's arm on it is the kernel's own answer"
-    );
-    assert!(
-        mode_says_writable,
-        "and the PRE-STATE the cell started from read `0o755` — the state the as-filed assertion at `:944` \
-         named while the cell drove `0o555`, which is why that assertion was vacuous and is corrected here"
-    );
+    let _ = std::fs::remove_dir_all(&dir);
 
     // (b) THE READ-ONLY FILE — the canonical form `A55` names (*"File must have write access"*), driven
     // exactly as `tests/construction.rs`'s shipped cell drives it, and here asserted at the arm's own code.
@@ -1003,6 +990,28 @@ fn ng_i_the_probe_s_unwritable_parent_and_read_only_file_arms() {
         }
     }
     let _ = std::fs::remove_file(&ro);
+}
+
+/// **The instrument that replaces the mode-bit reading in `NG-I`: does the KERNEL refuse the exclusive
+/// create the code itself performs?** `true` exactly where `create_new` answers `EACCES` (errno `13`) —
+/// `contract.md §8.1` #13's amended clause (a): *"ARM (b) IS NOW DECIDED BY THE KERNEL'S OWN ANSWER TO AN
+/// EXCLUSIVE CREATE … the MODE-BIT APPROXIMATION AND THE `metadata.permissions().readonly()` INSPECTION ARE
+/// WITHDRAWN AS THE DECIDING INSTRUMENT"* (`docs/defects.md`'s `DEF-2026-10-13-B`). **Where it answers
+/// `true` it leaves nothing behind: the create was denied.**
+#[cfg(unix)]
+fn ng_i_kernel_denies_the_exclusive_create(path: &str) -> bool {
+    match std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+    {
+        Ok(handle) => {
+            drop(handle);
+            let _ = std::fs::remove_file(path);
+            false
+        }
+        Err(e) => e.kind() == std::io::ErrorKind::PermissionDenied && e.raw_os_error() == Some(13),
+    }
 }
 
 // ===================================================================================================
