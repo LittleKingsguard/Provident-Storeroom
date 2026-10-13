@@ -455,7 +455,9 @@ fn p_im_2_a_failed_write_leaves_zero_residue() {
         let _ = std::fs::remove_file(&unwritable);
         let mut failing = ok(
             storeCreate(&cfg_at(&unwritable, 4)),
-            "§7.1: a fresh instance at the reference's own bound (a reachable path)",
+            "§7.1: a fresh instance at the reference's own bound (a reachable path) — and its step 4b \
+             exclusive create leaves the store's OWN zero-length file AT THIS PATH (`§10.4` part 3), \
+             which is what makes the path present rather than absent from here on",
         );
         let failing_prior = ok(
             failing.write(
@@ -469,6 +471,22 @@ fn p_im_2_a_failed_write_leaves_zero_residue() {
             failing.write(AddressArg::List(key(&["purgeme"])), w_mem(), v_str("mem")),
             "§3.4 W-6: the state whose purge the failed write would extend",
         );
+        // **⟶ RE-DERIVED AGAIN 2026-10-13 (`D-GP-SVM-4` outcome (a): malformed TEST, not implementation and not
+        // spec): THE STATE THAT MUST BE *BROKEN* BEFORE THE ATTEMPT IS BROKEN A SECOND TIME, BECAUSE THE
+        // CONSTRUCTION PUT A FILE THERE.** `storeCreate` above now performs step 4b's exclusive create at this
+        // provided, absent path, so the path is NO LONGER ABSENT when this fixture goes to make it a directory
+        // — and this file's own earlier `remove_file` cannot help, because it runs BEFORE the construction
+        // that creates it. **THE REMEDY IS THE ONE THIS REPOSITORY'S OTHER FOUR CELLS ALREADY USE — the
+        // `FileCommitFailed` state is reached as `storeCreate(ok)` → `remove_file` → `create_dir`** (`§7.1`
+        // step 4b; `DD-40` (b), whose *"the same state reached later by a `file`-tier write on an
+        // already-constructed store remains `FileCommitFailed`"* is the reading this drives) — **in the
+        // precedent order of `tests/construction.rs:833`, `tests/fail_codes.rs:540` and `:616` and this
+        // file's own `:2633`.** **THE REMOVAL NAMES NO ROUTE THE CONTRACT REFUSES: the store's own file at
+        // this path is ZERO-LENGTH AND CARRIES NO BYTE** (`§10.4` part 3), **the two successful writes above
+        // are `temp`- and `mem`-tier and commit nothing, and `DD-28` makes `file`-tier durability a *"`file`
+        // write's act alone"` — so no committed byte exists to lose and the removal is not a second durability
+        // route, a truncation, or a second predicate.**
+        let _ = std::fs::remove_file(&unwritable);
         std::fs::create_dir(&unwritable)
             .expect("the path is now a directory, so a file write cannot land");
         let before_fail = read_at(&failing, &empty_address());
@@ -488,6 +506,20 @@ fn p_im_2_a_failed_write_leaves_zero_residue() {
                 e.status
             ),
         );
+        // **HOW THIS CELL WOULD FAIL IF THE RESIDUE GUARANTEE BROKE — STATED SO THE CELL IS NOT A
+        // PASS-BY-CONSTRUCTION.** The write above is a GENUINE FAILURE: its commit is driven at a path that
+        // is a directory, so it fails AFTER the purge stage (`§3.4` `W-6` at `purgeme` would have purged the
+        // `temp` version), which is exactly the arm whose automatic rollback must re-mint the capture
+        // (`§3.5`; `§6.4` item 8; `§7.2` item 2). **The assertions that follow are FALSIFIABLE AND EACH HAS A
+        // NAMED BREAK: a registry left with a partially installed subtree makes the `structurally_equal`
+        // comparison below answer FALSE; a `temp` version purged and NOT restored makes the `versions_at`
+        // comparison answer FALSE; a per-tier fold (a `temp` or `mem` version dropped, or a `file` version
+        // installed) makes the per-tier comparisons answer FALSE; and a journal entry appended for the failed
+        // write moves the reach so that the prior entry's rollback answers differently on `failing` than on
+        // `reference` — which the `undoneOps` and post-rollback comparisons catch.** **AND IF THE FAILED WRITE
+        // STOPPED FAILING — i.e. if a commit at a directory-valued path SUCCEEDED — the check immediately
+        // above answers FALSE before any residue comparison runs**, so no residue assertion can pass by the
+        // write having silently succeeded.
         drive.check(
             structurally_equal(&read_at(&failing, &empty_address()), &before_fail),
             "§5.3 P-IM-2/§3.5: the WHOLE REGISTRY is byte-identical after the failed `file` write",
