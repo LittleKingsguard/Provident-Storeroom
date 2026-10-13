@@ -3488,34 +3488,52 @@ cell('P-PUB-8', 'S-TAG every documented grant is effective at the job that needs
   // THE TABLE THIS CELL OWNS — DATA, NOT PROSE: EVERY `uses:` SITE'S DOCUMENTED REQUIREMENT, EACH
   // ENTRY NAMING ITS SOURCE, TOGETHER WITH THE RUN SITES THAT DOCUMENT A PERMISSION NEED
   // ---------------------------------------------------------------------------------------------
+  // **A ROW IS KEYED BY THE ACTION IT NAMES, AND THE REF IS A DECLARED MEMBER OF THE ROW RATHER THAN THE
+  // ROW'S KEY.** A row keyed by its ref would redden on EVERY dependency bump while asserting NOTHING about
+  // the bump — the ref would be the only thing read — whereas this cell's own name is a claim about
+  // PERMISSIONS. So the version-sensitive member is the one that is declared: when the file's pin moves, it
+  // is reconciled HERE, in the row that names the action, so a major whose documented need actually MOVED is
+  // a FINDING (the ref absent from `refs`, or its requirement read against the wrong one) rather than a row
+  // that quietly matched nothing. **AND ONLY THE REF'S REQUIREMENTS ARE VERSION-SENSITIVE, WHICH THIS TABLE
+  // STATES PER REF: `actions/checkout@v4` → `@v7` moved THE RUNTIME ALONE** (`docs/decisions.md`
+  // `D-GP-NODE-1`; the workflow's own commentary at both checkout steps) — `actions/checkout@v6`'s
+  // credential-persistence change and `@v7`'s fork-PR guard are each outside this file's shape (no container
+  // action, no `pull_request_target`/`workflow_run` trigger), so `contents: read` remains the whole of the
+  // step's need AT EVERY REF NAMED.
   const ACTION_GRANTS = [
     {
-      uses: 'actions/checkout@v4',
-      requires: { contents: 'read' },
-      declined: {},
-      source: 'the action\'s own README, whose recommended workflow declares `permissions: contents: read`; read '
-        + 'with the file\'s own commentary at the `main` job, which names `contents: read` for "its two '
-        + '`actions/checkout@v4` sites"',
+      repo: 'actions/checkout',
+      refs: {
+        v7: { requires: { contents: 'read' }, declined: {} },
+      },
+      source: 'the action\'s own README, whose recommended workflow declares `permissions: contents: read` at this ref; '
+        + 'read with the file\'s own commentary at the `main` job, which names `contents: read` for "its two '
+        + '`actions/checkout@v7` sites" and states that "THE PERMISSION THIS CLAUSE NAMES DOES NOT MOVE WITH IT" — '
+        + '`D-GP-NODE-1` moved the ACTION\'S OWN RUNTIME (`node20` → `node24`), which is not a permission, and each of '
+        + 'v6\'s and v7\'s two documented deltas (credential persistence; the fork-PR guard) falls outside this file\'s '
+        + 'shape (no container action, no `pull_request_target`/`workflow_run` trigger)',
     },
     {
-      uses: 'dtolnay/rust-toolchain@stable',
-      requires: {},
-      declined: {},
+      repo: 'dtolnay/rust-toolchain',
+      refs: { stable: { requires: {}, declined: {} } },
       source: 'the action\'s own README declares no `permissions:` block and reads no repository scope: it fetches a '
         + 'toolchain from `static.rust-lang.org` with the one input this file passes (`toolchain`)',
     },
     {
-      uses: 'actions/setup-node@v6',
-      requires: {},
-      declined: {},
+      repo: 'actions/setup-node',
+      refs: { v6: { requires: {}, declined: {} } },
       source: 'the action\'s own README declares no `permissions:` requirement for the inputs this file passes '
         + '(`node-version` only — no `cache:`, no `registry-url`): the client is downloaded from `nodejs.org` and no '
         + 'repository scope is read (`release.md §1.4`\'s CI-inputs clause)',
     },
     {
-      uses: 'actions/attest-build-provenance@v4',
-      requires: { 'id-token': 'write', attestations: 'write' },
-      declined: { 'artifact-metadata': 'to create the artifact storage record' },
+      repo: 'actions/attest-build-provenance',
+      refs: {
+        v4: {
+          requires: { 'id-token': 'write', attestations: 'write' },
+          declined: { 'artifact-metadata': 'to create the artifact storage record' },
+        },
+      },
       source: 'the action\'s own READMEs, quoted at this file\'s own attestation-grant commentary: `v1` reads '
         + '`id-token: write` · `attestations: write` and `v4` reads the same two beside `artifact-metadata: write`, '
         + 'required only "to create the artifact storage record" — a record this step does not take, '
@@ -3546,6 +3564,37 @@ cell('P-PUB-8', 'S-TAG every documented grant is effective at the job that needs
   // THE RESOLUTION RULE, AS CODE: WORKFLOW BLOCK → EACH JOB'S OWN BLOCK IF IT DECLARES ONE (WHICH
   // REPLACES IT) → EVERY SITE READ AGAINST THE EFFECTIVE SET OF ITS OWN JOB
   // ---------------------------------------------------------------------------------------------
+  /** **THE SITE'S `uses:` STRING READ AS THE TWO THINGS IT ACTUALLY IS: THE ACTION, AND THE REF THE FILE
+   *  PINS THAT ACTION AT.** The census asserts a GRANT, so the action is what it matches on; the ref is
+   *  carried so the row that names the action can be read against the requirement the file's own pin
+   *  carries, and so a ref the row does not declare is a FINDING rather than a silent miss. */
+  const actionOf = (uses) => {
+    const m = /^([^@\s]+)@([^@\s]+)$/.exec(uses);
+    assert.ok(m,
+      `the \`uses:\` site \`${uses}\` is a \`<owner>/<repo>@<ref>\` reference — a site this cell can read an action `
+      + 'and a ref out of, and therefore name the requirement of');
+    return { repo: m[1].toLowerCase(), ref: m[2] };
+  };
+  /** **THE REQUIREMENT THE FILE'S OWN PIN CARRIES**, found by the ACTION and read at the REF the file names.
+   *  A row that does not declare the file's ref is a FINDING: the row's requirements were measured at some
+   *  OTHER ref, so asserting them here would be asserting a requirement nobody read at this one. */
+  const requirementFor = (site, { label }) => {
+    const rows = ACTION_GRANTS.filter((a) => a.repo === site.action.repo);
+    assert.ok(rows.length === 1,
+      `${label}: the site \`${site.subject}\` (line ${site.at + 1}) is covered by EXACTLY ONE documented-requirement `
+      + `row, not ${rows.length}: this cell's table carries one row per action`);
+    const row = rows[0];
+    const declared = row.refs[site.action.ref];
+    assert.ok(declared,
+      `${label}: THE CENSUS COVERS EVERY \`uses:\` SITE — \`${site.subject}\` (line ${site.at + 1}, job `
+      + `\`${site.job}\`) IS ABSENT FROM THIS CELL'S DOCUMENTED-REQUIREMENT TABLE, each entry of which names its `
+      + 'own source. THE ROW FOR ITS ACTION IS PRESENT AND DECLARES ONLY '
+      + `${JSON.stringify(Object.keys(row.refs))}, so THE FILE'S PIN HAS MOVED TO A REF WHOSE DOCUMENTED NEED NOBODY `
+      + 'HAS READ: reconcile the row in this cell — add the ref, carrying the requirement that the ref\'s own '
+      + 'documentation names, and say so where a requirement really moved. A MOVED MAJOR IS CARRIED INTO THAT TABLE AND NOT INTO A '
+      + 'NEW CELL, so this is a FINDING and not an unknown');
+    return { row, requires: declared.requires, declined: declared.declined ?? {} };
+  };
   const resolveGrants = (text, { label }) => {
     const lines = text.split('\n');
     const mapAt = (at, indent) => {
@@ -3596,7 +3645,7 @@ cell('P-PUB-8', 'S-TAG every documented grant is effective at the job that needs
       if (!m) return;
       const job = jobs.find((j) => i > j.start && i < j.end);
       assert.ok(job, `${label}: the \`uses:\` site \`${m[1]}\` at line ${i + 1} lies inside a declared job`);
-      const site = { at: i, kind: 'uses', subject: m[1], job: job.name };
+      const site = { at: i, kind: 'uses', subject: m[1], action: actionOf(m[1]), job: job.name };
       job.sites.push(site);
       sites.push(site);
     });
@@ -3643,16 +3692,9 @@ cell('P-PUB-8', 'S-TAG every documented grant is effective at the job that needs
       // (·) SUFFICIENCY: every documented requirement of every site of this job is present, IN FULL.
       const missing = [];
       for (const site of job.sites) {
-        const req = site.kind === 'uses' ? ACTION_GRANTS.find((a) => a.uses === site.subject) : site.requirement;
-        if (site.kind === 'uses') {
-          assert.ok(req,
-            `${label}: THE CENSUS COVERS EVERY \`uses:\` SITE — \`${site.subject}\` (line ${site.at + 1}, job `
-            + `\`${job.name}\`) IS ABSENT FROM THIS CELL'S DOCUMENTED-REQUIREMENT TABLE, each entry of which names its `
-            + 'own source. A NEWLY ADDED ACTION IS CARRIED INTO THAT TABLE AND NOT INTO A NEW CELL, so this is a '
-            + 'FINDING and not an unknown');
-        }
+        const req = site.kind === 'uses' ? requirementFor(site, { label }) : site.requirement;
         censusRows.push(`  ${(site.kind === 'uses' ? 'uses' : 'run ')}  ${site.subject.padEnd(40)} job \`${job.name}\``
-          + ` · documents ${JSON.stringify(req.requires)} · source: ${req.source}`);
+          + ` · documents ${JSON.stringify(req.requires)} · source: ${req.source ?? req.row.source}`);
         for (const [key, value] of Object.entries(req.requires)) {
           if (job.effective[key] === value) continue;
           missing.push({ site, key, value, got: job.effective[key] });
@@ -3687,8 +3729,7 @@ cell('P-PUB-8', 'S-TAG every documented grant is effective at the job that needs
       const documented = new Set();
       const declined = new Map();
       for (const site of job.sites) {
-        const req = site.kind === 'uses' ? ACTION_GRANTS.find((a) => a.uses === site.subject) : site.requirement;
-        if (!req) continue;
+        const req = site.kind === 'uses' ? requirementFor(site, { label }) : site.requirement;
         for (const key of Object.keys(req.requires)) documented.add(key);
         for (const [key, why] of Object.entries(req.declined ?? {})) declined.set(key, why);
       }
@@ -3708,9 +3749,20 @@ cell('P-PUB-8', 'S-TAG every documented grant is effective at the job that needs
     }
     // (·) THE TABLE'S OWN TWO DIRECTIONS: no row is unused, so no row is a stale requirement left to drift.
     for (const a of ACTION_GRANTS) {
-      assert.ok(r.sites.some((s) => s.kind === 'uses' && s.subject === a.uses),
-        `${label}: the requirement table's row for \`${a.uses}\` matches NO \`uses:\` site in the file — a row no site `
+      const rowSites = r.sites.filter((s) => s.kind === 'uses' && s.action.repo === a.repo);
+      assert.ok(rowSites.length >= 1,
+        `${label}: the requirement table's row for \`${a.repo}\` matches NO \`uses:\` site in the file — a row no site `
         + 'uses is a stale requirement, and the table is AMENDED rather than left to drift');
+      // **AND THE ROW'S SECOND DIRECTION, WHICH THE REF ADDED TO IT MAKES ASSERTABLE: EVERY REF THE ROW DECLARES
+      // IS A REF THE FILE REALLY PINS — so a reconciled row is reconciled against a pin that exists, and a row
+      // that kept a predecessor's ref after the pin moved is named as the stale half it is.**
+      for (const ref of Object.keys(a.refs)) {
+        assert.ok(rowSites.some((s) => s.action.ref === ref),
+          `${label}: the requirement table's row for \`${a.repo}\` declares the ref \`${ref}\` AND NO \`uses:\` SITE IN `
+          + `THE FILE PINS IT (the file pins ${JSON.stringify([...new Set(rowSites.map((s) => s.action.ref))])}) — a ref `
+          + 'no site pins is a requirement measured at a ref nothing here uses, and the table is AMENDED rather than '
+          + 'left to drift');
+      }
     }
     for (const g of RUN_GRANTS) {
       assert.ok(r.runs.some((s) => s.requirement === g),
