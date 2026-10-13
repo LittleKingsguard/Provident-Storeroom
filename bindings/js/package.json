@@ -36,11 +36,11 @@
     "index.d.ts"
   ],
   "optionalDependencies": {
-    "@auspicion/provident-storeroom-js-linux-x64-gnu": "0.1.1",
-    "@auspicion/provident-storeroom-js-linux-arm64-gnu": "0.1.1",
-    "@auspicion/provident-storeroom-js-darwin-x64": "0.1.1",
-    "@auspicion/provident-storeroom-js-darwin-arm64": "0.1.1",
-    "@auspicion/provident-storeroom-js-win32-x64-msvc": "0.1.1"
+    "@auspicion/provident-storeroom-js-linux-x64-gnu": "0.1.2",
+    "@auspicion/provident-storeroom-js-linux-arm64-gnu": "0.1.2",
+    "@auspicion/provident-storeroom-js-darwin-x64": "0.1.2",
+    "@auspicion/provident-storeroom-js-darwin-arm64": "0.1.2",
+    "@auspicion/provident-storeroom-js-win32-x64-msvc": "0.1.2"
   },
   "publishConfig": {
     "access": "public"
