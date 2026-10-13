@@ -135,7 +135,34 @@ else
   warn "no origin/$BRANCH ref locally (a fetch will happen at tag time)"
 fi
 
-# 3. The suite. A release is cut from a green tree or it is not cut.
+# 3. VERSION HONESTY — the check that matters most, and it is not obvious.
+#    If a manifest version is ALREADY TAGGED AND RELEASED, the code must still
+#    BE that version. The moment the code moves past the tag while the manifest
+#    keeps naming it, a build from this tree is stamped with a version the
+#    registry already carries -- with DIFFERENT content. That is §2.1's
+#    version-equals-tag rule broken from the other side, and it is silent:
+#    nothing reddens, and the stamped value lies.
+MANIFEST_V="$(grep -m1 '"version"' "$MAIN_MANIFEST" | sed 's/.*: *"\(.*\)".*/\1/')"
+if git rev-parse -q --verify "refs/tags/v$MANIFEST_V" >/dev/null 2>&1; then
+  TAG_SHA="$(git rev-parse "v$MANIFEST_V^{commit}")"
+  AHEAD="$(git rev-list --count "$TAG_SHA..HEAD" 2>/dev/null || echo 0)"
+  if [ "$AHEAD" -gt 0 ]; then
+    refuse "the manifest reads $MANIFEST_V, which is TAGGED AND RELEASED, but HEAD is $AHEAD commit(s) past that tag."
+    warn "    A build from this tree would be stamped '$MANIFEST_V' with bytes the registry's '$MANIFEST_V' does not have."
+    warn "    The tree claims a released version it is no longer. Resolve it by cutting the next PATCH:"
+    warn "        scripts/publish.sh --bump X.Y.Z --yes"
+  else
+    ok "the manifest's $MANIFEST_V matches its tag exactly, and the code has not moved since"
+  fi
+else
+  if [ -n "$TARGET" ]; then
+    ok "the manifest's $MANIFEST_V is untagged; '$TARGET' is the release being prepared"
+  else
+    warn "the manifest's $MANIFEST_V is not tagged — this tree stands between releases"
+  fi
+fi
+
+# 4. The suite. A release is cut from a green tree or it is not cut.
 if [ "$MODE" != "tag" ]; then
   say "running the suite (this is the long step)"
   if cargo test --offline --no-fail-fast >/tmp/pub-test.log 2>&1; then
@@ -168,7 +195,7 @@ if [ "$MODE" != "tag" ]; then
   else refuse "the node suite FAILED — see /tmp/pub-node.log"; fi
 fi
 
-# 4. The target version, when one is named.
+# 5. The target version, when one is named.
 if [ -n "$TARGET" ]; then
   [[ "$TARGET" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || refuse "'$TARGET' is not X.Y.Z"
   if git rev-parse -q --verify "refs/tags/v$TARGET" >/dev/null; then
