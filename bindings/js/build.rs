@@ -78,30 +78,79 @@ fn main() {
     // yielded THE WHOLE FILE TEXT and the colon it then took was THE FIRST COLON IN THE FILE — another
     // key's value. **THE ABSENT KEY IS THEREFORE A STATE THIS SCRIPT HOLDS AND NOT A PANIC.**
     let slot = match declared.rsplit_once("\"version\"") {
-        // **AT A SLOT THAT HOLDS NO STRING THE CARRIER SUBSTITUTES FOR THAT SLOT AND DOES NOT ABORT**
-        // (`§5.1` `(vii)` steps `(1)` and `(3)`, its clause `(C)`: *"THE VALUE `(vii)` DECLARES IS NEVER
-        // THE NON-STRING"* and *"ONLY A DIRECTIVE-BEARING WRITE STANDS — an empty string or any other
-        // non-string-for-string substitution"*; `docs/specs/storeroom-js/package.md §6.1` item `4`:
-        // *"no error, no warning, no directive omitted, no build failure"*): the slot's own value is
-        // CONSULTED FOR ITS SHAPE, and only a JSON string is a value this read can carry. The
-        // substitution clause `(C)` names is `""`, so no neighbouring key's value is ever stamped.
+        // **AT A SLOT THAT HOLDS NO STRING THE CARRIER ABORTS** (`§5.1` `(vii)` clause `(C)` is
+        // SUPERSEDED — *"THE EMPTY STRING IS NOT AN ANSWER FOR ANY OF THESE STATES"* — and the
+        // four-step clause's steps `(1)`/`(2)` with it: *"AT THESE STATES THE DIRECTIVE IS **NOT**
+        // EMITTED AND THE BUILD **FAILS**"*; `release.md §6.10`'s four-arm clause: *"EACH PRODUCES ITS
+        // OWN ABORT RATHER THAN AN ANSWER: NO DIRECTIVE IS EMITTED, NO ARTEFACT IS BUILT, AND NO
+        // STAMPED VALUE EXISTS AT ANY OF THE FOUR"*; `docs/specs/storeroom-js/package.md §6.1` limb
+        // `(B)` re-cut): the slot's own value is CONSULTED FOR ITS SHAPE, and only a JSON string is a
+        // value this read can carry — **AND WHERE IT IS NOT ONE, EACH OF THE FOUR STATES ABORTS WITH A
+        // MESSAGE CARRYING WHICH STATE, `bindings/js/package.json`'S OWN PATH AS THE CARRIER READ IT,
+        // AND WHAT THE MANIFEST MUST CONTAIN SO THE BUILD CAN PROCEED** (`release.md §6.10` `:569`,
+        // whose *"PROSE IS THE CARRIER'S"*). **NO SUBSTITUTE VALUE IS EMITTED ON ANY OF THE FOUR
+        // PATHS**, so no neighbouring key's value is ever stamped. **AND NO SEMVER VALIDATION STANDS
+        // HERE** (`§6.10` item `4`): the abort is for a SLOT HOLDING NO STRING, so `"version": ""` and
+        // `"version": "banana"` are VALUES THAT WERE READ and the build proceeds from both.
         Some((_, rest)) => match rest.split_once(':') {
             Some((_, value)) => match value.trim_start().strip_prefix('"') {
                 Some(body) => match body.find('"') {
                     Some(end) => &body[..end],
-                    None => "",
+                    // `(N4)` — the value begins with a quote and carries no further quote.
+                    None => panic!(
+                        "bindings/js/build.rs: the version stamp's read aborted at state (N4) — \
+                         UNTERMINATED VALUE: the rightmost `\"version\"` key's value begins with a \
+                         quote and carries no further quote, so this manifest declares no complete \
+                         JSON string for that key. The manifest is bindings/js/package.json, the \
+                         crate's sibling manifest, read at this build's own CARGO_MANIFEST_DIR. For \
+                         the build to proceed it must declare a JSON version key whose value is a \
+                         JSON string — a quoted semver such as the one this package already \
+                         carries."
+                    ),
                 },
-                None => "",
+                // `(N3)` — the value's trimmed text does not begin with a quote: the non-string
+                // case, and any other case whose head is not a quote.
+                None => panic!(
+                    "bindings/js/build.rs: the version stamp's read aborted at state (N3) — \
+                     NON-STRING VALUE: the rightmost `\"version\"` key's value, after leading \
+                     whitespace, does not begin with a quote, so the slot holds no JSON string for \
+                     this read to carry. The manifest is bindings/js/package.json, the crate's \
+                     sibling manifest, read at this build's own CARGO_MANIFEST_DIR. For the build \
+                     to proceed it must declare a JSON version key whose value is a JSON string — a \
+                     quoted semver such as the one this package already carries."
+                ),
             },
-            None => "",
+            // `(N2)` — the rightmost key occurrence carries no colon after it.
+            None => panic!(
+                "bindings/js/build.rs: the version stamp's read aborted at state (N2) — NO COLON \
+                 AFTER THE KEY: the rightmost `\"version\"` byte-sequence in the manifest carries no \
+                 colon after it, so no value is introduced for that key. The manifest is \
+                 bindings/js/package.json, the crate's sibling manifest, read at this build's own \
+                 CARGO_MANIFEST_DIR. For the build to proceed it must declare a JSON version key \
+                 whose value is a JSON string — a quoted semver such as the one this package \
+                 already carries."
+            ),
         },
-        None => "",
+        // `(N1)` — the key's byte-sequence is absent from the manifest text read whole.
+        None => panic!(
+            "bindings/js/build.rs: the version stamp's read aborted at state (N1) — ABSENT KEY: \
+             the manifest text carries no `\"version\"` byte-sequence at all, so there is no slot to \
+             read. The manifest is bindings/js/package.json, the crate's sibling manifest, read at \
+             this build's own CARGO_MANIFEST_DIR. For the build to proceed it must declare a JSON \
+             version key whose value is a JSON string — a quoted semver such as the one this package \
+             already carries."
+        ),
     };
-    // **AN EMPTY STRING IS A VALUE THAT WAS READ AND IS STAMPED AS ONE** (`§6.10` item 3): no fallback
-    // and no validation runs from it. **AND NO SEMVER VALIDATION IS ADDED HERE** (`§6.10` item 4): the
-    // shape consulted above is the slot's own string-or-not identity — what the read produced — and
-    // never a judgement of the value's form. **AND NO FALLBACK RUNS FROM ANY OF ITS THREE PATHS**
-    // (`§5.1` `(vii)` clause `(D)`: the list stays closed at *"absent, unparseable, or unreadable"*).
+    // **THE ONE REMAINING PATH THAT ANSWERS AN EMPTY STRING IS A VALUE THAT WAS READ** (`§6.10` item
+    // 3): `"version": ""` reaches this line as the carried value and is stamped as one, with no
+    // fallback and no validation running from it — the four arms above never reach here, and the
+    // four-path count of paths to a stamped empty value is `1` and is a read. **AND NO SEMVER
+    // VALIDATION IS ADDED HERE** (`§6.10` item 4): the shape consulted above is the slot's own
+    // string-or-not identity — what the read produced — and never a judgement of the value's form, so
+    // `"version": "banana"` is stamped exactly as it was read. **AND NO FALLBACK RUNS FROM THIS
+    // LINE** (`§5.1` `(vii)` clause `(D)`: the list stays closed at *"absent, unparseable, or
+    // unreadable"*, and the four aborting states are a read that produced no value at all rather than
+    // a member added to that list).
     let version = slot.to_string();
     println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");
 
