@@ -120,6 +120,97 @@
 // AND WHAT WAS NOT DONE: no byte of `bindings/js/build.rs`, `bindings/js/src/**`, the specs, the
 // trackers or `.github/**` was written by this pass; no expectation below was formed by reading the
 // carrier's BEHAVIOUR; and the four aborting states are reached ONLY as text.
+//
+// ---------------------------------------------------------------------------------------------
+// ⟶ **THE CARRIER CHANGE HAS LANDED, AND EVERY CELL DERIVED FROM THE FOUR-ARM CLAUSE IS RE-READ HERE.**
+// ---------------------------------------------------------------------------------------------
+// AND WHAT THE PASS THAT WROTE THIS BLOCK DID NOT DO: it wrote no byte outside `bindings/js/test/**`; it
+// deleted no assertion without keeping its as-filed words in the file; it weakened, retargeted or removed
+// no cell the landing did not supersede; it staged nothing; and it read `bindings/js/build.rs` ONLY to
+// MEASURE the figures the landing moved — every expectation below is still the clauses' own.
+//
+// **THE RETIRED CELL ANNOUNCED ITS OWN EXIT CONDITION, AND THAT CONDITION IS MET.** `R2-10`'s assertion
+// `silentArmDefaultsOf(CARRIER).length > 0` carried, in its own message, *"IF THIS ASSERTION EVER FAILS,
+// THE CARRIER CHANGE HAS LANDED — and every cell of this file derived from the four-arm clause must be
+// re-read, because the finding it recorded is then discharged."* **IT FAILED, ITS MESSAGE READING
+// `OBSERVED: 0 silent arm(s) in the value derivation`, AND THIS BLOCK IS THE RE-READ IT ASKED FOR.** Its
+// assertion is **RETIRED AND NOT ERASED**: the cell now asserts **THE DISCHARGE**, with its as-filed words
+// kept verbatim beside the new assertion at `R2-10`. `RCA-8(d)`, applied in spirit — the as-filed bytes of
+// a claim are a RECORD, and a claim the world has changed is SUPERSEDED rather than deleted.
+//
+// THE LANDING, MEASURED, EACH FIGURE BESIDE THE COMMAND THAT PRODUCED IT:
+//   * `grep -n 'None => panic!(' bindings/js/build.rs` → `:100`, `:113`, `:124`, `:135` — **THE FOUR ARMS
+//     ABORT, EACH WITH ITS OWN MESSAGE**, where the pre-landing carrier answered `""` at `:92`, `:94`,
+//     `:96`, `:98` (`git show e9b19cd:bindings/js/build.rs | grep -n 'None => ""'`).
+//   * `node --test bindings/js/test/version-stamp-r2.test.mjs` → `10` tests, `10` pass, `0` fail. **THE RED
+//     SET OF THIS FILE IS NOW EMPTY, WHICH IS WHAT A LANDED CORRECTION LOOKS LIKE** — the pre-landing red
+//     set was `R2-10` alone. **AND THE TWO FIGURES THIS LANDING MOVES ARE THESE: THE REAL-CARRIER
+//     ADMISSION VECTOR IS `11/11` WHERE IT WAS `7/11`, AND `R2-07`'S DRIVEN CONTROL STILL ANSWERS `0.1.1`
+//     AGAINST A MANIFEST OF `0.1.1`.**
+//   * **AND THE `7/11` IS RE-MEASURED WITH THIS FILE'S OWN INSTRUMENT RATHER THAN REMEMBERED, BECAUSE THE
+//     ONE QUESTION THE GREEN CANNOT ANSWER BY ITSELF IS WHETHER THE INSTRUMENT LOOSENED**: the pre-landing
+//     carrier read out of history and put through THIS file's own `ADMISSION` list returns `7/11 ADMIT,
+//     4/11 REFUSE — ADM-3, ADM-4, ADM-5, ADM-7`; and a WRONG carrier cut from the REAL bytes' own four arms
+//     (each `panic!` restored to the superseded `=> ""`) returns the IDENTICAL `7/11 ADMIT, 4/11 REFUSE`
+//     set. **SO `11/11` IS THE CARRIER'S IMPROVEMENT AND NOT A LOOSENED GUARD**, and `R2-10`(d) pins that
+//     demonstration inside the cell rather than printing it once and forgetting it.
+//   * **TWO FIGURE SETS OF `release.md §6.10`'S FOUR-ARM CLAUSE WERE STALE AGAINST THE CARRIER, AND THEY ARE
+//     NAMED HERE AS DRIFT THIS PASS MEASURED AND DID NOT EDIT (the specs are outside this wall)**: the
+//     `R2`-era clause's arm sites (`:92`, `:94`, `:96`, `:98`) and its step `(5)`'s emit sites (`:105`,
+//     `:106`) now read `:100`–`:135` and `:154`, `:155` — `grep -n 'None => panic!(' bindings/js/build.rs`
+//     and `grep -n 'let version = slot.to_string();' bindings/js/build.rs`. **AND THE FIGURE IS NOW AT ITS
+//     OWN HOME RATHER THAN ONLY IN THIS FILE**: the corpus re-cut those anchors at `release.md §6.10`'s own
+//     foot — read at this pass's own reading of the file, dated `2026-10-13`, not written by it — *"AND THE
+//     FOUR PANIC SITES ARE, EXACTLY: `(N4)` AT `:100` … `(N1)` AT `:135`"* and *"THE FILE'S SINGLE EMIT
+//     SITE STANDS AT `:154`–`:155`"* — **and this file's own measured figures AGREE WITH THAT RE-CUT SITE
+//     FOR SITE AND LINE FOR LINE.** **NO CELL BELOW ASSERTS EITHER
+//     SET EITHER WAY**: the clause re-cuts its own limb to read *"IT IS READ AT THE FILE'S STAMP PATH AND
+//     NOT AT A LINE RANGE"*, so the STATE and not the line is the instrument.
+//   * **AND ONE FIGURE THE LANDING BROKE RATHER THAN MERELY MOVED, CORRECTED HERE WITH ITS COMMAND** — the
+//     READER'S OWN. Every site this file prints was counted in the string-blanked view, and blanking a
+//     string literal also blanks the `\`-newline pair of a Rust line continuation, so that view loses one
+//     newline per continuation: `awk 'END{print NR}' bindings/js/build.rs` → `262` source lines against
+//     `229` in that view, and the `33` lines by which they differ are exactly the continuation lines
+//     (`grep -c '\\$' bindings/js/build.rs` → `33`). The drift was invisible while the arms were one-line
+//     `""` answers and every reported site stood before the first continuation; **the ruling's own verbose
+//     messages put it in front of the arms and the emit**, and the same reader then reported the four arms
+//     at `:100`, `:106`, `:111`, `:116` and the emit at `:131` where `grep -n` measures `:100`, `:113`,
+//     `:124`, `:135` and `:155`. **THE VIEW IS CORRECTED (`lineOf` counts in the view that preserves
+//     source newlines) AND A READER-SANITY CONTROL NOW REFUSES A VIEW THAT LOSES THEM**; every site figure
+//     then agrees with `grep` — arm for arm `100=100 113=113 124=124 135=135`, emit `155`, read `70`, slot
+//     `80` — and **no assertion was weakened, retargeted or removed by the correction**, which is why
+//     `R2-10`'s battery is re-run whole after it.
+//
+// EVERY CELL OF THIS FILE THAT DERIVED FROM THE FOUR-ARM CLAUSE, RE-READ, WITH ITS DISPOSITION:
+//   `R2-01` — the state `(N1)` is HELD and ABORTS: **KEPT, AND GREEN.** `(N1)`'s own abort stands at
+//     `:135` and names its state in its message; the guard, the state and the assertion are unmoved.
+//   `R2-02` — the four states each abort, and `""` is emitted for none: **KEPT, AND GREEN.** All four
+//     abort at `:100`, `:113`, `:124`, `:135`. **ITS COMMENT'S CLAIM THAT *"today every one of the four
+//     arms ANSWERS `""`"* WAS TRUE AT AUTHORING AND IS FALSE OF THIS TREE** — corrected in place at the
+//     cell, its own words kept there as the record of what it read.
+//   `R2-03` — `:569`'s three contents in every message: **KEPT, AND GREEN** — four abort sites, four
+//     messages, pairwise distinguishable, each naming its state.
+//   `R2-05` — the directive emitted once and unguarded on the CARRIED path: **KEPT, AND GREEN.** Its
+//     subject was already the carried path and not the four, so the landing does not move it; the clause's
+//     stale `:105`/`:106` emit figures are corrected beside their quote.
+//   `R2-04`, `R2-06`, `R2-08`, `R2-09` — **NOT derived from the four arms**: the parser domain, item `5`'s
+//     carried empty read, the emitted value's provenance, and limb `(A)` at the manifest read.
+//     **RE-READ AND UNMOVED; KEPT — AND EACH ONE'S SUBJECT IS COUNTED RATHER THAN ASSUMED, BECAUSE A CELL
+//     THAT WAS GREEN UNDER THE OLD DESIGN CAN BE GREEN FOR A REASON THAT IS NO LONGER THERE.** `R2-04`
+//     sees its subject (`2` locating steps, receivers `rest` and `body`, both absence-scoped);
+//     `R2-06`'s span is `5950` characters and its emptiness guard is fired by `M4`; `R2-08`'s provenance
+//     chain is `3` rows and does reach the manifest read. **AND `R2-09` IS THE ONE CELL THE LANDING
+//     STRENGTHENS RATHER THAN MERELY LEAVES GREEN**: its third check reads *"every abort this reader finds
+//     inside the span is a MACRO abort with no receiver"*, and with the pre-landing span holding **ZERO**
+//     aborts that check was VACUOUSLY TRUE — `every` over an empty set — while it now ranges over the
+//     carrier's `4` macro aborts. **A GREEN THAT WAS VACUOUS AND IS NOT ANY MORE IS REPORTED HERE SO THE
+//     OLD GREEN IS NOT READ AS HAVING CERTIFIED ANYTHING.** `R2-06` is the other cell the landing makes
+//     sharper rather than vacuous — *"ONE OF THEM FAILS"* is true of the carrier now — and it still reads
+//     the BYTES and not a run.
+//   `R2-07` — THE DRIVEN CONTROL: **KEPT, STILL DRIVEN, AND RE-DRIVEN AFTER THE LANDING** — it loads the
+//     artefact this tree built and reads `0.1.1` against the manifest's `0.1.1`.
+//   `R2-10` — **SUPERSEDED AT ONE ASSERTION, WHICH IS RETIRED AND RE-POINTED**: the live-finding assertion
+//     now asserts its DISCHARGE, and its teeth battery is KEPT and STRENGTHENED by `(d)`.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -250,6 +341,25 @@ function assertClauseSetIsCurrent() {
  * directive's name and the abort messages ARE string literals, and a search for them in `CODE` would
  * find the searcher's own instrument and never the file. Both views are the SAME LENGTH, so an offset
  * found in one is the same offset in the other, and either can be turned into a line number.
+ *
+ * **⟶ AND THE ONE DIFFERENCE THAT DECIDES WHICH VIEW A LINE NUMBER IS COUNTED IN — MEASURED, DATED
+ * `2026-10-13`, AFTER THE CARRIER CHANGE LANDED.** **`CODE` IS NOT A LINE-PRESERVING VIEW**: blanking a
+ * string literal also blanks the `\`-NEWLINE pair of every Rust line continuation, so the newline is
+ * REPLACED BY A SPACE and `CODE` carries FEWER LINES THAN THE SOURCE — `229` lines against this file's
+ * `262` (`awk 'END{print NR}' bindings/js/build.rs` → `262`; `grep -c '\\$' bindings/js/build.rs` → `33`,
+ * and the `33` lines by which the two counts differ are exactly those continuation lines). **SO A LINE
+ * NUMBER COUNTED IN `CODE` DRIFTS DOWNWARD FROM THE FIRST LINE CONTINUATION INSIDE ANY STRING, AND THE
+ * CARRIER'S OWN ABORT MESSAGES ARE BUILT FROM EXACTLY THOSE CONTINUATIONS.** This was invisible while the
+ * four arms were one-line `""` answers: the pre-landing `bindings/js/build.rs` carried `204` `CODE` lines
+ * against `213` source lines (`git show e9b19cd:bindings/js/build.rs | awk 'END{print NR}'` → `213`), and
+ * every site this reader reports stood BEFORE the first continuation (`:70` and `:106` both exact).
+ * **THE RULING'S OWN VERBOSE MESSAGES MOVED THE DRIFT IN FRONT OF THE ARMS AND THE EMIT SITE**, so the
+ * same reader then reported the four arms at `:100`, `:106`, `:111`, `:116` and the emit at `:131` where
+ * `grep -n` measures `:100`, `:113`, `:124`, `:135` and `:154`/`:155`. **`TEXT` PRESERVES EVERY SOURCE
+ * NEWLINE** — the string branch writes to `code` alone — so a line number is counted in `TEXT` and nowhere
+ * else, and the reader-sanity control below refuses a reader whose `TEXT` and source disagree on their
+ * line count. **`CODE` REMAINS THE VIEW FOR STRUCTURE** — braces, `match`, `None`, `=>` — because a
+ * brace inside a message must not be counted, and brace depth does not depend on newlines.
  */
 function analyse(source) {
   const code = source.split(''); // comments blanked AND every string/char literal's BODY blanked
@@ -552,7 +662,13 @@ function messageContentsOf(c) {
 function readCarrier(source) {
   const { code: CODE, text: TEXT } = analyse(source);
 
-  const lineOf = (index) => CODE.slice(0, index).split('\n').length;
+  // **⟶ THE LINE NUMBERS THIS READER REPORTS ARE COUNTED IN `TEXT`, NOT IN `CODE`, AND THAT IS A
+  // CORRECTION THE LANDING MADE NECESSARY RATHER THAN A PREFERENCE**: `CODE` loses one newline per
+  // `\`-continuation inside a string literal, so counting in it reported the four arms at `:100`, `:106`,
+  // `:111`, `:116` and the emit at `:131` where the source has `:100`, `:113`, `:124`, `:135` and `:155`.
+  // The old counting is named here so the figure it produced is not taken for a measurement; `TEXT`
+  // preserves every source newline and is the same length as `CODE`, so an offset is a position in both.
+  const lineOf = (index) => TEXT.slice(0, index).split('\n').length;
   const depthAt = (index) => {
     let d = 0;
     for (let i = 0; i < index; i += 1) { if (CODE[i] === '{') d += 1; else if (CODE[i] === '}') d -= 1; }
@@ -670,6 +786,9 @@ function readCarrier(source) {
   return {
     CODE, TEXT, STATEMENTS, READ_STMT, SEARCH_STMT, EMIT_SITES, EMIT, EMIT_BINDING,
     SPAN_START, SPAN_MODE, SPAN, SPAN_TEXT, READ_ABORT_NOTE,
+    SOURCE_LINE_COUNT: source.split('\n').length,
+    TEXT_LINE_COUNT: TEXT.split('\n').length,
+    CODE_LINE_COUNT: CODE.split('\n').length,
     lineOf, depthAt, spanReport, provenanceOf,
   };
 }
@@ -697,6 +816,16 @@ function assertReaderIsSaneOf(c) {
   assert.ok(c.SPAN.trim().length > 40,
     `READER SANITY: the value-derivation span is degenerate (${c.SPAN.trim().length} characters), so an absence inside it `
     + `would be the instrument's and not the carrier's. Span: [${c.SPAN_MODE}]`);
+  // **AND EVERY LINE NUMBER THIS READER PRINTS IS COUNTED IN `TEXT`, SO THE VIEW IT COUNTS IN MUST CARRY
+  // ONE NEWLINE PER SOURCE LINE.** Without this control a view that silently lost newlines would report
+  // sites at line numbers that no `grep` reproduces, and every cell whose message names a site would print
+  // a figure that is not a measurement. **THE DRIFT IS NAMED AND NOT HIDDEN**: `CODE` legitimately carries
+  // FEWER lines than the source, because blanking a string literal blanks the `\`-newline pair of every
+  // continuation — which is exactly why it is not the view a line is counted in.
+  assert.equal(c.TEXT_LINE_COUNT, c.SOURCE_LINE_COUNT,
+    `READER SANITY: the view every reported line number is counted in carries ${c.TEXT_LINE_COUNT} lines against the source's `
+    + `${c.SOURCE_LINE_COUNT}, so a site this reader names would be reported at a line no reader of the file could find. ` +
+    `(For the record, the string-blanked view carries ${c.CODE_LINE_COUNT} lines; it is not a line-preserving view and is used for structure only.)`);
 }
 const assertReaderIsSane = () => assertReaderIsSaneOf(CARRIER);
 
@@ -705,7 +834,8 @@ const assertReaderIsSane = () => assertReaderIsSaneOf(CARRIER);
 // =============================================================================================
 
 // ---------------------------------------------------------------------------------------------
-// `R2-01` — the KEY'S ABSENCE is a STATE THE SCRIPT HOLDS, and it aborts — RED
+// `R2-01` — the KEY'S ABSENCE is a STATE THE SCRIPT HOLDS, and it aborts — WAS RED; GREEN SINCE THE
+// CARRIER CHANGE LANDED (`(N1)` aborts at `build.rs` `:135`)
 // ---------------------------------------------------------------------------------------------
 test('PAR-PUB-35 (vii-a) SOURCE :: R2-01 — the `version` KEY\'S ABSENCE is a STATE THE SCRIPT HOLDS, and it ABORTS', () => {
   // DERIVES FROM: `release.md §6.10`'s four-arm clause, state `(N1)` — *"(N1) AT `:98` — THE KEY'S
@@ -768,7 +898,8 @@ test('PAR-PUB-35 (vii-a) SOURCE :: R2-01 — the `version` KEY\'S ABSENCE is a S
 });
 
 // ---------------------------------------------------------------------------------------------
-// `R2-02` — the FOUR ABORTING STATES, each named as its own state — RED
+// `R2-02` — the FOUR ABORTING STATES, each named as its own state — WAS RED; GREEN SINCE THE CARRIER
+// CHANGE LANDED (`build.rs` `:100`, `:113`, `:124`, `:135`)
 // ---------------------------------------------------------------------------------------------
 test('PAR-PUB-35 (vii) SOURCE :: R2-02 — A NON-STRING, AN UNTERMINATED VALUE, A VALUE WITH NO COLON AND AN ABSENT KEY EACH ABORT THE BUILD, AND THE EMPTY STRING IS EMITTED FOR NONE', () => {
   // DERIVES FROM: `release.md §6.10`'s four-arm clause, READ WHOLE — *"THE FOUR DECLARED ABORTING
@@ -789,10 +920,15 @@ test('PAR-PUB-35 (vii) SOURCE :: R2-02 — A NON-STRING, AN UNTERMINATED VALUE, 
   //   (vii-c) / `(N2)` — the rightmost key occurrence carries NO COLON after it;
   //   (vii-b) / `(N3)` — the slot's value's trimmed text DOES NOT BEGIN WITH A QUOTE (the non-string case);
   //   (vii-d) / `(N4)` — the value BEGINS WITH A QUOTE and carries NO FURTHER QUOTE (unterminated).
-  // **AND THE ASSERTED PROPERTY IS THE OPPOSITE OF TODAY'S CARRIER, WHICH IS WHY THIS CELL IS RED**:
-  // today every one of the four arms ANSWERS `""` and the build FINISHES; the clause requires all four
-  // to ABORT with a message. The `(A)` guard reads the superseded shape directly; the `(B)` and `(C)`
-  // guards read the required one.
+  // **⟶ AND THE CELL'S OWN STATUS, CORRECTED BECAUSE THE FIGURE IT CARRIED HAS MOVED.** IT WAS AUTHORED
+  // RED, AND ITS OWN WORDS FOR WHY ARE KEPT HERE AS THE RECORD: *"THE ASSERTED PROPERTY IS THE OPPOSITE OF
+  // TODAY'S CARRIER, WHICH IS WHY THIS CELL IS RED: today every one of the four arms ANSWERS `""` and the
+  // build FINISHES; the clause requires all four to ABORT with a message."* **THAT "TODAY" WAS THE
+  // PRE-LANDING TREE AND IS NOW FALSE OF THIS ONE**: the four arms ABORT — `grep -n 'None => panic!('
+  // bindings/js/build.rs` → `:100`, `:113`, `:124`, `:135` — so this cell is GREEN, and it is green
+  // because the carrier moved rather than because the clause moved. The `(A)` guard still reads the
+  // superseded shape directly, which is what makes the cell falsifiable if that shape returns; the `(B)`
+  // and `(C)` guards read the required one.
   assertReaderIsSane();
   const observedSpan = spanReport();
   const failures = [];
@@ -830,7 +966,8 @@ test('PAR-PUB-35 (vii) SOURCE :: R2-02 — A NON-STRING, AN UNTERMINATED VALUE, 
 });
 
 // ---------------------------------------------------------------------------------------------
-// `R2-03` — the ABORT'S MESSAGE carries the THREE REQUIRED CONTENTS — RED
+// `R2-03` — the ABORT'S MESSAGE carries the THREE REQUIRED CONTENTS — WAS RED; GREEN SINCE THE CARRIER
+// CHANGE LANDED
 // ---------------------------------------------------------------------------------------------
 test('PAR-PUB-35 (vii) SOURCE :: R2-03 — the ABORT\'S MESSAGE carries the THREE REQUIRED CONTENTS: the STATE (distinguishable), the MANIFEST\'S PATH, and what the MANIFEST MUST CONTAIN', () => {
   // DERIVES FROM: `release.md §6.10`'s message-content clause at `:569`, READ WHOLE — *"THE MESSAGE EACH
@@ -941,6 +1078,14 @@ test('PAR-PUB-35 (vii) SOURCE :: R2-05 — the directive IS EMITTED FOR THE REAL
   // the four-arm clause's own consequence (*"NO DIRECTIVE IS EMITTED ... AT ANY OF THE FOUR"*) — so the
   // emission is asserted ON THE CARRIED PATH, **which is the only path on which the ruling leaves an
   // emission to assert**.
+  //
+  // **⟶ AND THE TWO LINE FIGURES THAT QUOTE CARRIES ARE STALE AGAINST THE CARRIER, MEASURED HERE AND
+  // REPORTED RATHER THAN ABSORBED**: after the carrier change landed, `grep -n 'let version =
+  // slot.to_string();' bindings/js/build.rs` → `:154`, and `grep -n
+  // 'rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}' bindings/js/build.rs` → `:155`. **THE CELL BELOW
+  // ASSERTS NEITHER FIGURE**, and it does not need to: its instrument is the ONE emit site and its brace
+  // depth, which is what the clause's own step `(5)` fixes as the operative half of that sentence. **THE
+  // STALE FIGURE IS NAMED HERE SO A LATER READER DOES NOT READ THE QUOTE AS A MEASUREMENT OF THIS TREE.**
   //
   // **⟶ THE SUPERSEDED HALF OF THE CELL THIS REPLACES IS NAMED, NOT SILENTLY DROPPED.** The cell that
   // stood here asserted the four-step reading's step `(1)` AT BOTH `(vii)` STATES — *"THE DIRECTIVE IS
@@ -1255,7 +1400,7 @@ test('THE R2 INSTRUMENTS\' OWN TEETH :: R2-10 — a LAWFUL carrier is ADMITTED b
   // (b) EACH GUARD MUST FIRE ON ITS OWN ONE-RESPECT MUTATION.
   const mutations = [
     ['M1 → ADM-3/5/6/7', syntheticCarrier({ silenceArms: true }),
-      (c) => silentArmDefaultsOf(c).length > 0, 'the arms ANSWER the empty string instead of aborting — the shape today\'s carrier carries and the ruling forbids'],
+      (c) => silentArmDefaultsOf(c).length > 0, 'the arms ANSWER the empty string instead of aborting — the shape the shipped carrier carried UNTIL THE CHANGE LANDED (build.rs `:92`, `:94`, `:96`, `:98`, where the four arms now `panic!` at `:100`, `:113`, `:124`, `:135`) and the shape the ruling forbids'],
     ['M2 → ADM-8', syntheticCarrier({ guardEmit: true }),
       (c) => emitIsGuarded(c), 'the directive stands INSIDE a conditional on the carried path'],
     ['M3 → ADM-9', REAL.slice(0, EMIT.start)
@@ -1296,21 +1441,82 @@ test('THE R2 INSTRUMENTS\' OWN TEETH :: R2-10 — a LAWFUL carrier is ADMITTED b
   for (const v of syntheticRefused) failed.push(`THE LAWFUL CARRIER IS REFUSED BY ${v.id}: a guard that refuses the clause's own answer would block the correction it exists to serve.`);
   failed.push(...unfired);
 
-  // **AND ONE REAL-CARRIER FACT IS ASSERTED RATHER THAN ONLY PRINTED, BECAUSE IT IS THE CLAUSE'S OWN
-  // FINDING AND NOT A MATTER OF TASTE**: the guard that reads `release.md §6.10`'s four-arm clause — *"EACH
-  // PRODUCES ITS OWN ABORT RATHER THAN AN ANSWER"* — MUST NOT ADMIT a carrier whose arms answer a value,
-  // and `parameter-semantics.md §5.1` `:468` records that finding as **LIVE AND NOT HISTORICAL**.
+  // (d) **THE TEETH ARE CONFIRMED UNDER THE NEW CARRIER RATHER THAN INFERRED FROM THE GREEN — WHICH IS THE
+  // ONE QUESTION `11/11` CANNOT ANSWER BY ITSELF**: a guard that admits everything after a correction is a
+  // guard that has stopped testing, and if `11/11` stood because the instrument loosened the whole of this
+  // cell would be worth less than the green it prints. **SO THE SAME VECTOR IS RUN OVER A WRONG CARRIER CUT
+  // FROM THE REAL BYTES' OWN FOUR ARMS** — each `panic!` restored to the superseded `=> ""` answer — **AND
+  // IT MUST REFUSE IT.** The wrong carrier is a mutation of this cell's own making and never the real
+  // carrier, so this cell cannot turn RED on a correction landing; and the number of applied substitutions
+  // is COUNTED, so a mutation that quietly failed to apply cannot certify the guard by a vacuous pass.
+  // **MEASURED, AND RECORDED HERE BECAUSE IT IS THE FIGURE THE GREEN RESTS ON**: the pre-landing carrier
+  // read out of history and this wrong carrier BOTH return `7/11 ADMIT, 4/11 REFUSE — ADM-3, ADM-4, ADM-5,
+  // ADM-7`, which is the same four guards and the same verdicts, so the `11/11` over the shipped bytes is
+  // the CARRIER'S IMPROVEMENT and not a loosened instrument.
+  const ARM_ABORT = /None => panic!\([\s\S]*?\n\s*\),/g;
+  const wrongCarrier = REAL.replace(ARM_ABORT, 'None => "",');
+  const substitutions = (wrongCarrier.match(/None => "",/g) ?? []).length;
+  if (substitutions !== 4) {
+    failed.push(`(d) THE WRONG-CARRIER MUTATION DID NOT APPLY: ${substitutions} of the four arms were restored to the superseded `
+      + 'answer, so the refusal asserted below would certify nothing.');
+  } else {
+    const wrong = readCarrier(wrongCarrier);
+    const wrongVerdicts = verdictsOf(wrong);
+    const wrongRefused = wrongVerdicts.filter((v) => v.admitted !== true);
+    console.log('[version-stamp-r2] R2-10 (d) A WRONG CARRIER CUT FROM THE REAL BYTES\' OWN FOUR ARMS — '
+      + `${wrongVerdicts.length - wrongRefused.length}/${wrongVerdicts.length} guards ADMIT it, ${wrongRefused.length}/${wrongVerdicts.length} REFUSE it `
+      + `(${wrongRefused.map((v) => v.id).join(', ') || 'none'}).`);
+    if (!wrongRefused.some((v) => v.id.startsWith('ADM-3'))) {
+      failed.push('(d) THE ARMS-AS-DEFAULTS GUARD ADMITS A CARRIER WHOSE FOUR ARMS ANSWER `""` — the shape `parameter-semantics.md §5.1` `:468` '
+        + 'recorded and `release.md §6.10`\'s four-arm clause forbids. A guard that no longer refuses it has stopped testing, and `11/11` over the '
+        + 'shipped bytes then certifies nothing. **THIS OUTRANKS ANY GREEN THIS CELL PRINTS.**');
+    }
+    const wrongSilent = silentArmDefaultsOf(wrong);
+    if (wrongSilent.length !== 4) {
+      failed.push(`(d) THE WRONG CARRIER DOES NOT CARRY THE SUPERSEDED SHAPE: ${wrongSilent.length} silent arm(s) read where 4 were written, so the `
+        + 'refusal above cannot be attributed to the arms-as-defaults guard.');
+    }
+  }
+
+  // **⟶ THE DISCHARGED ASSERTION, RETIRED HERE AND NOT ERASED — ITS AS-FILED WORDS ARE KEPT FIRST.**
+  //
+  // WHAT THIS CELL ASSERTED UNTIL THIS PASS, VERBATIM AND WHOLE, SO THAT NO READER HAS TO RECONSTRUCT IT:
+  //     const silentArms = silentArmDefaultsOf(CARRIER);
+  //     assert.ok(silentArms.length > 0,
+  //       'THE CLAUSE\'S LIVE FINDING, ASSERTED AND NOT ONLY PRINTED. `parameter-semantics.md §5.1`
+  //        `:468`: *"A SHIPPED CARRIER THAT EMITS `""` FOR A NON-STRING `version` IS STILL A FINDING
+  //        AGAINST THIS ROW ... AND IT IS A FINDING UNTIL THE CARRIER\'S CHANGE LANDS. THE CARRIER THAT
+  //        STANDS IN THE TREE AT THIS CLAUSE\'S DATE STILL TAKES THE EMPTY-STRING BRANCH — the four arms
+  //        and the one carried path answer `""` ... — so the finding is LIVE AND NOT HISTORICAL."* The
+  //        arms-as-defaults guard must REFUSE the shipped bytes while the ruling is unlanded. **IF THIS
+  //        ASSERTION EVER FAILS, THE CARRIER CHANGE HAS LANDED** — and every cell of this file derived
+  //        from the four-arm clause must be re-read, because the finding it recorded is then discharged.
+  //        OBSERVED: ${silentArms.length} silent arm(s) in the value derivation.');
+  // **AND THAT ASSERTION PASSED AT THAT DATE AND IS NOW FALSE OF THIS TREE: THE VERY EXIT CONDITION IT
+  // NAMED HAS HAPPENED.** The clause it rests on bounds its own liveness in its own words — *"AND IT IS A
+  // FINDING UNTIL THE CARRIER'S CHANGE LANDS"* — and scopes it to its own date: *"THE CARRIER THAT STANDS
+  // IN THE TREE AT THIS CLAUSE'S DATE STILL TAKES THE EMPTY-STRING BRANCH"*. **THE CARRIER CHANGE HAS
+  // LANDED**, so the finding is discharged BY THE CLAUSE'S OWN TERM, by a change outside this file's wall.
+  // **SO THIS CELL IS RE-POINTED FROM THE FINDING'S LIVENESS TO ITS DISCHARGE, WHICH IS A POSITIVE
+  // ASSERTION OF WHAT IS NOW TRUE AND NOT A DELETION.** `RCA-8(d)`: the as-filed assertion is a record; a
+  // claim the world has changed is SUPERSEDED, not erased. **AND THE REPLACEMENT KEEPS TEETH**: if any arm
+  // is ever restored to a literal/default answer — the shape `release.md §6.10`'s four-arm clause forbids
+  // and the `:468` finding named — this cell fails, and `(d)` below shows the guard that carries it still
+  // REFUSING that shape when it is present in a carrier cut from these very bytes.
   const silentArms = silentArmDefaultsOf(CARRIER);
-  assert.ok(silentArms.length > 0,
-    'THE CLAUSE\'S LIVE FINDING, ASSERTED AND NOT ONLY PRINTED. `parameter-semantics.md §5.1` `:468`: *"A SHIPPED CARRIER THAT EMITS `""` FOR A '
-    + 'NON-STRING `version` IS STILL A FINDING AGAINST THIS ROW ... AND IT IS A FINDING UNTIL THE CARRIER\'S CHANGE LANDS. THE CARRIER THAT '
-    + 'STANDS IN THE TREE AT THIS CLAUSE\'S DATE STILL TAKES THE EMPTY-STRING BRANCH — the four arms and the one carried path answer `""` ... — so '
-    + 'the finding is LIVE AND NOT HISTORICAL."* The arms-as-defaults guard must REFUSE the shipped bytes while the ruling is unlanded. **IF THIS '
-    + 'ASSERTION EVER FAILS, THE CARRIER CHANGE HAS LANDED** — and every cell of this file derived from the four-arm clause must be re-read, '
-    + `because the finding it recorded is then discharged. OBSERVED: ${silentArms.length} silent arm(s) in the value derivation.`);
+  assert.equal(silentArms.length, 0,
+    'THE CLAUSE\'S FINDING, NOW DISCHARGED AND ASSERTED AS DISCHARGED — where this cell until this pass asserted its LIVENESS. '
+    + '`parameter-semantics.md §5.1` `:468` recorded the finding as *"LIVE AND NOT HISTORICAL"* AT ITS OWN DATE and bounded it with its own term, '
+    + '*"AND IT IS A FINDING UNTIL THE CARRIER\'S CHANGE LANDS"*, because *"THE CARRIER THAT STANDS IN THE TREE AT THIS CLAUSE\'S DATE STILL TAKES THE '
+    + 'EMPTY-STRING BRANCH — the four arms and the one carried path answer `""`"*. **THE CARRIER CHANGE HAS LANDED** '
+    + '(`grep -n \'None => panic!(\' bindings/js/build.rs` → `:100`, `:113`, `:124`, `:135`), so NO ARM ANSWERS A SILENT DEFAULT AND NO ARM EMITS `""` '
+    + 'FOR A NON-STRING `version` — the shape `release.md §6.10`\'s four-arm clause declares must ABORT (*"EACH PRODUCES ITS OWN ABORT RATHER THAN AN '
+    + 'ANSWER"*). **THE ASSERTION THAT STOOD HERE READ `silentArms.length > 0` AND ANNOUNCED ITS OWN EXIT CONDITION; ITS WORDS ARE KEPT ABOVE BESIDE '
+    + `THIS ONE (\`RCA-8(d)\`). OBSERVED: ${silentArms.length} silent arm(s) in the value derivation — the discharge, asserted.`);
 
   assert.ok(failed.length === 0,
     'THE R2 INSTRUMENTS\' OWN TEETH — `A95` read with `release.md §6.10`\'s four-arm clause and `:569`\'s message-content clause. Declared: every '
-    + 'guard above ADMITS a carrier that carries the clause\'s own answer and FIRES on the mutation it exists to catch. '
-    + `OBSERVED: ${failed.length} of ${syntheticVerdicts.length + mutations.length} instrument checks fail.\n  ` + failed.join('\n  '));
+    + 'guard above ADMITS a carrier that carries the clause\'s own answer, FIRES on the mutation it exists to catch, AND REFUSES a WRONG carrier cut '
+    + 'from the real bytes\' own four arms.\n  '
+    + `OBSERVED: ${failed.length} of ${syntheticVerdicts.length + mutations.length + 2} instrument checks fail.\n  ` + failed.join('\n  '));
 });
