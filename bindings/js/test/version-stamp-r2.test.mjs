@@ -1,119 +1,158 @@
 // `bindings/js/test/version-stamp-r2.test.mjs` — **THE `R2` SOURCE-ASSERTION SET FOR
-// `U-STOREROOM-CONSUMER-FIX`, AUTHORED AFTER THE ARCHITECT RULED `R2` ON FINDING `M1`.**
+// `U-STOREROOM-CONSUMER-FIX`, RE-AUTHORED AFTER THE ARCHITECT REVERSED THE DESIGN AND RULED `(a)`.**
 //
-// THE RULING THIS FILE IS AUTHORED UNDER, IN THE ARCHITECT'S OWN TERMS: **`R2` — THE CLAUSE STANDS AS
-// FILED, AND THE CARRIER MUST BE CHANGED SO THAT A NON-STRING `version` REACHES THE DIRECTIVE AND
-// `version()`.** So the CLAUSE is the source of truth and the CARRIER's own bytes are the thing that
-// must move. **NO EXPECTATION BELOW WAS FORMED BY READING THE CARRIER'S BEHAVIOUR**: the carrier's
-// bytes are read HERE FOR ONE PURPOSE ONLY — to LOCATE the declarations and the shapes the assertions
-// must cite, and to show that today's bytes do not carry the clause's answer.
+// THE RULING THIS FILE IS AUTHORED UNDER, IN THE ARCHITECT'S OWN WORDS, VERBATIM: **`proceed with a.
+// Don't pass empty strings, generate verbose message.`** Its landing is recorded at
+// `docs/specs/storeroom-publish/parameter-semantics.md §5.1` (the clause beside the divergence, dated
+// `2026-10-13`) and at `docs/specs/storeroom-publish/release.md §6.10`'s four-arm clause.
 //
 // ---------------------------------------------------------------------------------------------
-// THE CLAUSE THAT GOVERNS, READ WHOLE AND RE-STATED AS THE FOUR STEPS A CELL MUST DERIVE FROM
+// THE OPERATIVE CLAUSE SET, READ WHOLE BEFORE ANY CELL WAS WRITTEN
 // ---------------------------------------------------------------------------------------------
-// `docs/specs/storeroom-publish/parameter-semantics.md §5.1`, outside value `(vii)` — *"A MANIFEST THAT
-// IS READABLE BUT WHOSE `version` KEY IS ABSENT OR NON-STRING"* — together with every `RCA-8(d)` clause
-// standing beside it in that row. Its operative-answer clause prints the answer ONCE, in four steps:
-//   (1) **THE DIRECTIVE *IS* EMITTED AT THIS STATE** — *"the carrier emits the directive for whatever
-//       it read, so THE BUILD SCRIPT'S OWN EMISSION IS A FACT OF THE BUILD SCRIPT AND NOT OF THE
-//       MANIFEST'S SHAPE"* (`docs/specs/storeroom-js/package.md §6.1`, its read-mechanism clause, state
-//       `(iii)`);
-//   (2) **THE `None` ARM IS *NOT* TAKEN AND THE CRATE'S `Cargo.toml` VERSION IS *NOT* THE STAMPED
-//       VALUE AT THIS STATE** — *"this is the whole of what the limb `(i)` above got wrong"*;
-//   (3) **THE LOAD PATH'S ANSWER IS THE SINGLE DECLARED FAILURE ARM: `version()` REFUSES** — and the
-//       row's clause `(C)` fixes what the stamped value then IS: *"IT IS WHATEVER THE CARRIER'S
-//       DECLARED READ PRODUCED FOR A `version` SLOT THAT HOLDS NO STRING ... SO ANY NON-STRING-FOR-
-//       STRING SUBSTITUTION IS A MISMATCH: THE `version()` READ REFUSES AND THE GUARD `P-PUB-10` FAILS
-//       THE RUN"* — with *"THE VALUE `(vii)` DECLARES IS NEVER THE NON-STRING"* as its own words, and
-//       *"ONLY A DIRECTIVE-BEARING WRITE STANDS — an empty string or any other non-string-for-string
-//       substitution"* as the consequence the row names beside it;
-//   (4) **AND THE RUN FAILS AT THE GUARD** (`contract.md §5.0b`; `release.md §1.4a`).
-// **AND CLAUSE `(D)` CLOSES THE FALLBACK'S LIST AT *"absent, unparseable, or unreadable"*, WHILE `(E)`
-// NAMES THE DISTINCTION THE ROW RESTS ON: a READABLE `""` IS A VALUE THAT WAS READ WITH NO FALLBACK,
-// and this state *"is not that one — it is a read that produced no value at all"*.**
+// ONE — `parameter-semantics.md §5.1`, outside value `(vii)` — *"A MANIFEST THAT IS READABLE BUT WHOSE
+// `version` KEY IS ABSENT OR NON-STRING"* — and the clauses standing beside it, RCA-8(d) annotate-beside:
+//   * **CLAUSE `(C)` IS SUPERSEDED** — *"ANY NON-STRING-FOR-STRING SUBSTITUTION IS A MISMATCH: THE
+//     `version()` READ REFUSES AND THE GUARD `P-PUB-10` FAILS THE RUN"* *"DESCRIBE A CARRIER THAT EMITS
+//     A SUBSTITUTE VALUE. THE RULING FORBIDS THAT CARRIER, AND IT FORBIDS THE SUBSTITUTE ITSELF: 'THE
+//     EMPTY STRING IS NOT AN ANSWER FOR ANY OF THESE STATES', SO THERE IS NO `""` FOR THE READ TO
+//     REFUSE AND NO MISMATCH SET FOR IT TO BE A MEMBER OF AT THESE STATES, AND THE GUARD `P-PUB-10`
+//     NEVER RUNS ON THEM."*
+//   * **THE FOUR-STEP READING IS SUPERSEDED AT STEPS `(1)` AND `(2)`** — *"ITS STEPS `(1)` 'THE
+//     DIRECTIVE IS EMITTED AT THIS STATE' AND `(2)` 'THE `None` ARM IS NOT TAKEN ...' WERE THE
+//     OPERATIVE RE-STATE OF THE SUPERSEDED READING. THEIR PLACE: AT THESE STATES THE DIRECTIVE IS NOT
+//     EMITTED AND THE BUILD FAILS, so THE RUN NEVER REACHES `version()` AND NEVER REACHES THE GUARD.
+//     STEPS `(3)` AND `(4)` ARE THEREFORE UNREACHED AT THESE STATES RATHER THAN FALSIFIED ... AND NO
+//     CELL MAY CLAIM EITHER OF THEM BY DRIVING A RUN."*
+//   * **AND THE OPERATIVE READING**: *"At the states clause `(vii)` enumerates the CARRIER ABORTS — the
+//     build script stops before the directive-bearing write — so THE DIRECTIVE IS NOT EMITTED, NO
+//     ARTEFACT IS BUILT, NO STAMPED VALUE EXISTS, AND THE `None` ARM IS NOT A STATE A RUN EVER OBSERVES
+//     AT THESE STATES"* — and *"A CARRIER THAT EMITS `""` FOR A NON-STRING `version` IS A FINDING
+//     AGAINST THIS ROW."*
+//   * **AND THE LAYER, DECLARED SO THE INSTRUMENT IS NOT CHOSEN**: *"NO CELL DRIVES THIS ROW'S OUTSIDE
+//     VALUE `(vii)` ... SO THE ROW'S FIRABILITY IS SATISFIED BY A SOURCE-ASSERTION CELL READING THE
+//     CARRIER'S OWN BYTES, AND NO CELL WHOSE OBSERVABLE IS THE RUN MAY BE AUTHORED AGAINST IT."*
+//   * **AND CLAUSE `(E)` IS RE-VERIFIED, NOT SUPERSEDED** (`:454`): a READABLE `""` is still *"A VALUE
+//     THAT WAS READ WITH NO FALLBACK"*, item `5`'s own case, *"and this state is not that one — it is a
+//     read that produced no value at all."* *"The two are distinguishable again, and they are
+//     distinguishable in exactly one sense — one of them fails."*
+// TWO — `release.md §6.10`'s four-arm clause, which DECLARES THE FOUR ABORTING STATES AND THE MESSAGE:
+//   * *"THE FOUR DECLARED ABORTING STATES, EACH NAMED AS ITS OWN STATE SO A CELL MAY REACH EACH: `(N1)`
+//     AT THE STATE THE KEY'S BYTE-SEQUENCE IS ABSENT FROM THE MANIFEST TEXT ... ABORTS; `(N2)` AT THE
+//     STATE THE RIGHTMOST KEY OCCURRENCE CARRIES NO COLON AFTER IT ... ABORTS; `(N3)` AT THE STATE THE
+//     SLOT'S VALUE'S TRIMMED TEXT DOES NOT BEGIN WITH A QUOTE — ... WHICH IS THE NON-STRING-VALUE CASE
+//     AND ANY OTHER CASE WHOSE HEAD IS NOT A QUOTE — ABORTS; AND `(N4)` AT THE STATE THE VALUE BEGINS
+//     WITH A QUOTE AND CARRIES NO FURTHER QUOTE ... ABORTS. EACH OF THE FOUR IS A STATE THE BUILD CAN BE
+//     DRIVEN INTO ONLY AT THE CARRIER'S OWN BYTES, AND EACH PRODUCES ITS OWN ABORT RATHER THAN AN
+//     ANSWER: NO DIRECTIVE IS EMITTED, NO ARTEFACT IS BUILT, AND NO STAMPED VALUE EXISTS AT ANY OF THE
+//     FOUR."*
+//   * **AND THE MESSAGE'S CONTENT IS REQUIRED AT `:569`** — *"THE MESSAGE EACH OF THESE FOUR STATES
+//     PRODUCES MUST CARRY, AT A MINIMUM — AND THE CARRIER'S OWN PROSE IS ITS OWN — (i) WHICH OF THE FOUR
+//     STATES ABORTED, EACH ONE DISTINGUISHABLE FROM EVERY OTHER, SO A READER OF THE MESSAGE CAN TELL
+//     THEM APART; (ii) THE MANIFEST'S OWN PATH AS THE CARRIER READ IT, WHICH IS `bindings/js/package.json`,
+//     so a reader of the message knows WHICH FILE was read; AND (iii) WHAT THE MANIFEST MUST CONTAIN FOR
+//     THE BUILD TO PROCEED — a `version` KEY WHOSE VALUE IS A JSON STRING — so a reader of the message
+//     knows WHAT TO FIX. THE PROSE IS THE CARRIER'S AND NO FURTHER WORDING IS REQUIRED HERE: THE
+//     REQUIREMENT IS CONTENT, AND IT IS STATED AS A REQUIREMENT ON THE CARRIER."*
+//   * **AND THE ONE SPELLING FIXED ELSEWHERE IS READ AT ITS OWN HOME**: the directive's name
+//     `STOREROOM_JS_PACKAGE_VERSION` (item `1`). No prose spelling is fixed, so no cell below asserts
+//     any prose spelling — the assertions are CONTENT assertions, as `:569` requires.
+// THREE — `docs/specs/storeroom-js/package.md §6.1`, its limb `(B)` RE-CUT TO THE STATE (`:1200`):
+//   * *"LIMB `(B)`, RE-CUT: a READABLE manifest whose `version` SLOT HOLDS NO STRING aborts the build at
+//     `bindings/js/build.rs`'s stamp path, and the four states it covers are [the four]. IT IS READ AT
+//     THE FILE'S STAMP PATH AND NOT AT A LINE RANGE, and each state aborts WITH A VERBOSE MESSAGE whose
+//     content is required at `release.md §6.10`'s four-arm clause."*
+//   * and `:1175`: *"at the states in which the manifest's `version` slot holds no string THE BUILD
+//     FAILS"*; `:1211` (`:1203`'s own line): *"AND NO CELL MAY CLAIM TO FAIL EITHER LIMB BY DRIVING A
+//     RUN: the observable is the CARRIER'S OWN BYTES, which is `A95`'s form."*
+// FOUR — the ONE CONSEQUENCE THAT BINDS EVERY CELL: a state that ABORTS THE BUILD CANNOT BE REACHED BY
+// A RELEASE LEG, so **NO CELL BELOW CLAIMS TO FAIL ANY OF THE FOUR BY DRIVING A RUN.** Every cell that
+// touches `(vii)`/`(N1)`–`(N4)` READS THE CARRIER'S OWN BYTES. The one DRIVEN cell (`R2-05`) is the
+// HAPPY-PATH CONTROL on the artefact's own declared observable, which is not a source-level refusal.
 //
-// SECOND AUTHORITY, READ AT ITS OWN CLAUSES: `docs/specs/storeroom-js/package.md §6.1` — its
-// read-mechanism clause (the three states the two macros divide, printed one by one) and its items `2`,
-// `3`, `4` and `6`; and `docs/specs/storeroom-publish/release.md §6.10` items `2`–`5` and its
-// parser-domain clause; and `docs/specs/storeroom-publish/contract.md §5.0a` (`P-PUB-9`, whose failure
-// list carries *"a `version()` answering an empty string"*, *"a `version()` answering a value that is
-// not a `string`"* and *"a carrier that falls back from an EMPTY string"*) with `§5.0b` (`P-PUB-10`,
-// the guard the run fails at).
+// ---------------------------------------------------------------------------------------------
+// WHY EVERY CELL EXCEPT THE CONTROL IS A SOURCE-ASSERTION CELL — `A95`, BY THE CLAUSE'S OWN WORDS
+// ---------------------------------------------------------------------------------------------
+// `A95` (ACTIVE row of `2026-10-13`, with its dated amendment): **a refusal need not be failed by a run,
+// provided it names the layer at which it can fail; and NO CELL MAY CLAIM TO FAIL SUCH A MEMBER BY
+// DRIVING THE RUN.** The four states here declare their layer in their own clause: THE CARRIER'S OWN
+// BYTES. So: every cell below except `R2-05` reads `bindings/js/build.rs` AS TEXT and asserts on its
+// declarations and its shape. None of them builds anything; none of them drives a release leg.
 //
 // ---------------------------------------------------------------------------------------------
-// WHY EVERY CELL HERE EXCEPT THE CONTROL IS A SOURCE-ASSERTION CELL — `A95`, BY THE ROW'S OWN WORDS
-// ---------------------------------------------------------------------------------------------
-// `A95`: **a refusal need not be failed by a run, PROVIDED IT NAMES THE LAYER AT WHICH IT CAN FAIL, and
-// NO CELL MAY CLAIM TO FAIL SUCH A MEMBER BY DRIVING THE RUN.** The row itself says of THIS state:
-// **"NO CELL DRIVES THIS ROW'S OUTSIDE VALUE `(vii)`, BECAUSE A CELL CLAIMING TO FAIL A SOURCE-LEVEL
-// REFUSAL BY DRIVING THE RUN IS FORBIDDEN BY `A95`'S OWN FORM ... SO THE ROW'S FIRABILITY IS SATISFIED
-// BY A SOURCE-ASSERTION CELL READING THE CARRIER'S OWN BYTES."**
-// **SO: EVERY CELL BELOW EXCEPT `R2-05` READS `bindings/js/build.rs` AS TEXT AND ASSERTS ON ITS
-// DECLARATIONS AND ITS SHAPE. NONE OF THEM BUILDS ANYTHING. NONE OF THEM DRIVES A RELEASE LEG.**
-// `R2-05` is the CONTROL the brief demands — *"a red set that cannot show the correct path intact is a
-// red set that a wrong fix would satisfy"* — and it drives the DECLARED observable of `PAR-PUB-35`
-// (*"the artefact's own `version()`, returned through the facade"*) on the HAPPY path only, which is
-// not a source-level refusal and is therefore not reached by `A95`'s prohibition.
-//
-// ---------------------------------------------------------------------------------------------
-// THE STATES ENUMERATED BEFORE THE CELLS, EACH WITH THE CELL THAT CARRIES IT
+// THE STATE MACHINE, ENUMERATED BEFORE THE CELLS — EACH STATE WITH THE CELL THAT CARRIES IT
 // ---------------------------------------------------------------------------------------------
 // `PAR-PUB-35`'s domain is *"the string `bindings/js/package.json`'s `version` field holds at BUILD
-// TIME, character for character"*. Its states, and this set's coverage of each:
-//   (i)    the directive was emitted and carries a value — THE REAL MANIFEST, whose single occurrence
-//          of the byte-sequence `"version"` stands at `package.json:3`, reading `0.1.1`
-//          → `R2-03` (step `(1)`), `R2-04` (step `(2)`) and `R2-05` (THE CONTROL, DRIVEN);
-//   (ii)   the directive was NEVER EMITTED AT ALL — `(vi)`, a DIFFERENT state whose answer is the
-//          crate's version → NOT this row's subject, and NO cell here;
-//   (v)    the manifest reads `""` — A VALUE THAT WAS READ, NO FALLBACK RUNS
-//          → `R2-07` (the emptiness fail-state of `P-PUB-9`'s list, a SOURCE assertion);
-//   (vii-a) the manifest IS READABLE and its `version` KEY IS ABSENT
-//          → `R2-01` (the key half) and `R2-06` (the value half);
-//   (vii-b) the manifest IS READABLE and its `version` value is NON-STRING
-//          → `R2-02` (the value half: no abort, and a substitution) and `R2-06` (the locator half);
-//   and every cell states, in its own comment, WHICH OF THE FOUR STEPS IT READS.
+// TIME, character for character"*. The states, and this set's coverage:
+//   (i)     the directive is emitted and carries a value — THE REAL MANIFEST, whose byte-sequence
+//           `"version"` stands ONCE at `package.json:3`, reading `0.1.1`
+//           → `R2-07` (the emit site, DRIVEN answer) and `R2-05` (the value, DRIVEN through `version()`);
+//   (ii)    the directive was NEVER EMITTED AT ALL — outside value `(vi)`, the `None` arm's own state
+//           → NOT THIS ROW'S SUBJECT (`release.md §6.10`'s four-arm clause puts the `None` arm outside
+//           it: *"NO DIRECTIVE IS EMITTED, NO ARTEFACT IS BUILT ... AT ANY OF THE FOUR"*) — NO CELL;
+//   (v)     the manifest READS `""` — a value that WAS read, no fallback runs
+//           → `R2-06` (no emptiness test may be introduced on a lawful value);
+//   (vii-a) the manifest is READABLE and the `version` KEY IS ABSENT
+//           → `R2-01` (the absence is a STATE the script HOLDS) and `R2-02` (state `(N1)` ABORTS);
+//   (vii-b) the manifest is READABLE and the `version` value is NON-STRING
+//           → `R2-02` (state `(N3)` ABORTS) and `R2-04` (the locator does not read another key's value);
+//   (vii-c) the rightmost key occurrence carries NO COLON → `R2-02` (state `(N2)` ABORTS);
+//   (vii-d) the value BEGINS WITH A QUOTE and carries NO FURTHER QUOTE → `R2-02` (state `(N4)` ABORTS);
+//   (vii-e) EACH OF `(N1)`–`(N4)` CARRIES ITS OWN MESSAGE WITH THE REQUIRED CONTENT
+//           → `R2-03` (the state, distinguishable; the manifest's path; what the manifest must contain);
+//   (vii-)  the manifest CANNOT BE READ — the read's own abort, NOT one of the four
+//           → `R2-09` (its own state, carried so it is not confused with `(N1)`–`(N4)`).
+// **AND `R2-08` IS THE INSTRUMENTS' OWN TEETH, AND IT CLOSES THE GAP THE ADVERSARIAL PASS FOUND**: the
+// previous set put ONLY A SYNTHETIC through its admission vector. `R2-08` runs THE SAME VECTOR OVER THE
+// REAL `bindings/js/build.rs` AND REPORTS WHAT IT SAYS, guard by guard.
 //
 // ---------------------------------------------------------------------------------------------
 // INSTRUMENT DISCIPLINE
 // ---------------------------------------------------------------------------------------------
-// Every cell reads the carrier's bytes ONCE, through one reader (`analyse` → a comment-stripped,
-// string-blanked view `CODE` for structural tokens and a comment-stripped, string-intact view `TEXT`
-// for literals). Comments are removed before anything is searched, because a form NAMED IN A REMARK
-// is not a declaration and not a read — `build.rs` comments the whole of its own reasoning, and an
-// unstripped search would find the clause's own vocabulary and report a false green. Each span-based
-// cell carries a READER SANITY control (`assertReaderIsSane`) so a reader that found nothing cannot
-// report an absence it manufactured. **The SPAN each cell asserts over is the carrier's own
-// value-derivation region: from the statement that searches the manifest for the `version` key to the
-// statement that emits the directive.** The span's mode is printed in every failure message, so a
-// reader that had to fall back to a wider region says so rather than silently widening.
+// Every cell reads the carrier ONCE, through one reader (`analyse` → a comment-stripped view `TEXT` with
+// string bodies intact, for the literals the clause itself spells, and a string-blanked view `CODE` for
+// structural tokens). Comments are removed before anything is searched, because a form NAMED IN A REMARK
+// is not a declaration — `build.rs` comments its whole reasoning, and an unstripped search would find the
+// clause's own vocabulary (including the words of this very ruling) and report a false green. Every
+// span-based cell carries a READER SANITY control, so a reader that found nothing cannot report an
+// absence it manufactured. Where a cell's own instrument cannot see a shape a lawful carrier might use,
+// THE LIMIT IS STATED IN THE CELL rather than hidden.
+//
+// AND WHAT WAS NOT DONE: no byte of `bindings/js/build.rs`, `bindings/js/src/**`, the specs, the
+// trackers or `.github/**` was written by this pass; no expectation below was formed by reading the
+// carrier's BEHAVIOUR; and the four aborting states are reached ONLY as text.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
 // ---------------------------------------------------------------------------------------------
 // the declared constants, read at their own bytes
 // ---------------------------------------------------------------------------------------------
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PKG_DIR = dirname(HERE); // `bindings/js`
+const REPO_ROOT = resolve(PKG_DIR, '..', '..');
 const BUILD_RS = join(PKG_DIR, 'build.rs');
 const MANIFEST_PATH = join(PKG_DIR, 'package.json');
 const CRATE_MANIFEST = join(PKG_DIR, 'Cargo.toml');
 const BUILT_ARTEFACT = join(PKG_DIR, 'build', 'Release', 'storeroom_js_binding.node');
 
-/** `docs/specs/storeroom-publish/release.md §6.10` item `1` / `docs/specs/storeroom-js/package.md`
- *  §6.1 item `2` — **THE DIRECTIVE'S EXACT NAME**, and the manifest the carrier reads. */
+/** `release.md §6.10` item `1` / `docs/specs/storeroom-js/package.md §6.1` item `2` — **THE DIRECTIVE'S
+ *  EXACT NAME**, and the manifest path the carrier reads (`release.md §6.10`'s four-arm clause, the
+ *  message's content `(ii)`: *"THE MANIFEST'S OWN PATH AS THE CARRIER READ IT, WHICH IS
+ *  `bindings/js/package.json`"*). */
 const DIRECTIVE = 'STOREROOM_JS_PACKAGE_VERSION';
 const EMIT_PREFIX = `cargo:rustc-env=${DIRECTIVE}`;
+const MANIFEST_FILE = 'package.json';
+const MANIFEST_AS_READ = 'bindings/js/package.json';
 
-/** `parameter-semantics.md §5.1` — `PAR-PUB-35`'s **domain** names *"the `version` FIELD"* of
- *  `bindings/js/package.json`. The key's own name is the clause's, not the carrier's. **THE QUOTES
- *  AROUND IT MAY BE ESCAPED**: inside a Rust string that carries a JSON fragment the key is spelled
- *  `\"version\"`, so the pattern admits either spelling and a BARE `version` (an identifier or the
- *  interior of a longer name) is never taken for the key. */
+/** `parameter-semantics.md §5.1` — `PAR-PUB-35`'s **domain** names *"the `version` FIELD"*. The key's
+ *  own name is the clause's, not the carrier's. **THE QUOTES AROUND IT MAY BE ESCAPED**: inside a Rust
+ *  string that carries a JSON fragment the key is spelled `\"version\"`, so the pattern admits either
+ *  spelling and a BARE `version` (an identifier, or the interior of a longer name) is never taken for
+ *  the key. */
 const VERSION_KEY_PATTERN = /\\?"version\\?"/;
 const VERSION_KEY_SPELLED = '"version"';
 
@@ -130,20 +169,91 @@ const CRATE_VERSION = (() => {
 })();
 
 // ---------------------------------------------------------------------------------------------
+// THE CLAUSES THEMSELVES, READ AT THEIR OWN BYTES — so an expectation that came from a clause can be
+// shown to come from one, and so a clause that MOVES is reported rather than silently absorbed.
+// ---------------------------------------------------------------------------------------------
+const SPEC = {
+  parameterSemantics: readFileSync(join(REPO_ROOT, 'docs/specs/storeroom-publish/parameter-semantics.md'), 'utf8'),
+  release: readFileSync(join(REPO_ROOT, 'docs/specs/storeroom-publish/release.md'), 'utf8'),
+  package: readFileSync(join(REPO_ROOT, 'docs/specs/storeroom-js/package.md'), 'utf8'),
+};
+
+/** **THE CLAUSE-CURRENCY CONTROL — AND WHY IT IS AN ASSERTION AND NOT A COMMENT.** Every expectation in
+ *  this file came from a clause; `RCA-8(d)` says a superseded reading may not be derived from. So the
+ *  clauses this ruling RESTS ON are read at their own bytes, and a clause that has MOVED is reported as
+ *  a FAILURE with its own site named — never absorbed into a green cell that would then be asserting the
+ *  superseded reading. **THE SENTENCES BELOW ARE EXCERPTS, NOT PARAPHRASES**: a paraphrase would move
+ *  when the clause moves and would certify nothing. */
+const CLAUSE_CURRENCY = [
+  ['the ruling itself, verbatim',
+    SPEC.parameterSemantics,
+    'proceed with a. Don\'t pass empty strings, generate verbose message',
+    '`parameter-semantics.md §5.1`, the clause beside the divergence (`2026-10-13`)'],
+  ['clause (C) is superseded — the empty string is not an answer',
+    SPEC.parameterSemantics,
+    'THE EMPTY STRING IS NOT AN ANSWER FOR ANY OF THESE STATES',
+    '`parameter-semantics.md §5.1`, the superseding clause'],
+  ['the four-step reading is superseded at its first two steps',
+    SPEC.parameterSemantics,
+    'AT THESE STATES THE DIRECTIVE IS **NOT** EMITTED AND THE BUILD **FAILS**',
+    '`parameter-semantics.md §5.1`, the four-step clause\'s supersession'],
+  ['the four arms are DECLARED ABORTING STATES',
+    SPEC.release,
+    'THE FOUR DECLARED ABORTING STATES, EACH NAMED AS ITS OWN STATE SO A CELL MAY REACH EACH',
+    '`release.md §6.10`, the four-arm clause'],
+  ['each of the four produces its own ABORT rather than an answer',
+    SPEC.release,
+    'EACH PRODUCES ITS OWN ABORT RATHER THAN AN ANSWER',
+    '`release.md §6.10`, the four-arm clause'],
+  ['the message\'s content is required',
+    SPEC.release,
+    'WHICH OF THE FOUR STATES ABORTED, EACH ONE DISTINGUISHABLE FROM EVERY OTHER',
+    '`release.md §6.10` `:569`'],
+  ['the requirement is CONTENT and the prose is the carrier\'s',
+    SPEC.release,
+    'THE PROSE IS THE CARRIER\'S AND NO FURTHER WORDING IS REQUIRED HERE',
+    '`release.md §6.10` `:569`'],
+  ['the read\'s own abort is NOT one of the four',
+    SPEC.release,
+    'AND THE ONE ABORT THE CLAUSE ABOVE ALREADY NAMES IS NOT ONE OF THE FOUR',
+    '`release.md §6.10` `:571`'],
+  ['the empty-string branch is a LIVE finding, at its own home',
+    SPEC.parameterSemantics,
+    'so the finding is LIVE AND NOT HISTORICAL',
+    '`parameter-semantics.md §5.1` `:468` — *"THE CARRIER THAT STANDS IN THE TREE AT THIS CLAUSE\'S DATE STILL TAKES THE EMPTY-STRING BRANCH"*'],
+  ['limb (B) is re-cut to the state, not to a line range',
+    SPEC.package,
+    'IT IS READ AT THE FILE\'S STAMP PATH AND NOT AT A LINE RANGE',
+    '`docs/specs/storeroom-js/package.md §6.1` limb `(B)` re-cut'],
+  ['limb (A) is a panic at the manifest read, not re-cut',
+    SPEC.package,
+    'AND LIMB `(A)` IS DELIBERATELY NOT RE-CUT',
+    '`docs/specs/storeroom-js/package.md §6.1`'],
+];
+function assertClauseSetIsCurrent() {
+  const moved = CLAUSE_CURRENCY.filter(([, doc, sentence]) => !doc.includes(sentence))
+    .map(([what, , sentence, where]) => `${what}: ${JSON.stringify(sentence)} is NOT at its own bytes (${where})`);
+  assert.deepEqual(moved, [],
+    'CLAUSE-CURRENCY CONTROL — a clause this file derives from has MOVED. A cell written to a superseded reading is exactly '
+    + 'the defect `RCA-8(d)` forbids, so this control refuses to certify the set rather than reading it against a clause the '
+    + 'corpus no longer carries. Re-read every cell whose DERIVES FROM names the clause below.');
+}
+
+// ---------------------------------------------------------------------------------------------
 // `analyse` — comments removed, and a string-blanked twin of the same length
 // ---------------------------------------------------------------------------------------------
 /**
  * **TWO VIEWS OF ONE FILE, AND WHY BOTH ARE NEEDED.** `CODE` has every comment removed AND every
- * string/char literal's BODY blanked to spaces — so a structural token (`let`, `match`, `unwrap_or`,
- * `is_empty`, a brace depth count) is found where it is CODE and never inside a message or a JSON
- * name. `TEXT` has the comments removed and the string bodies INTACT — because the `version` KEY and
- * the directive's NAME ARE string literals, and a search for them in `CODE` would find the searcher's
- * own instrument and never the file. Both views are the SAME LENGTH, so an offset found in one is the
- * same offset in the other, and either can be turned into a line number.
+ * string/char literal's BODY blanked to spaces — so a structural token (`match`, `None`, `=>`, a brace
+ * depth count) is found where it is CODE and never inside a message or a JSON name. `TEXT` has the
+ * comments removed and the string bodies INTACT — because the `version` KEY, the manifest's path, the
+ * directive's name and the abort messages ARE string literals, and a search for them in `CODE` would
+ * find the searcher's own instrument and never the file. Both views are the SAME LENGTH, so an offset
+ * found in one is the same offset in the other, and either can be turned into a line number.
  */
 function analyse(source) {
   const code = source.split(''); // comments blanked AND every string/char literal's BODY blanked
-  const text = source.split(''); // comments blanked ONLY — literals INTACT (the key and the names live in them)
+  const text = source.split(''); // comments blanked ONLY — literals INTACT (the key and the messages live in them)
   let i = 0;
   while (i < source.length) {
     const c = source[i];
@@ -193,40 +303,88 @@ function analyse(source) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// THE INSTRUMENTS, NAMED ONCE — a cell and its NEGATIVE CONTROL must run THE SAME predicate,
-// or the control would certify an instrument the cell does not use. `R2-08` drives each of these
-// against a LAWFUL synthetic carrier and against MUTATED copies of this one.
+// THE INSTRUMENTS, NAMED ONCE — a cell and its NEGATIVE CONTROL must run THE SAME predicate, or the
+// control would certify an instrument the cell does not use. `R2-08` drives each of these against a
+// LAWFUL synthetic carrier, against MUTATED copies of the real one, AND — THE GAP THIS PASS CLOSES —
+// against the REAL `bindings/js/build.rs` ITSELF.
 // ---------------------------------------------------------------------------------------------
 /** `R2-01`(A) — a TOTAL consumption of a split iterator (`rsplit(..).next()` / `split(..).next()`):
- *  total by construction, so it cannot report the key's absence. */
+ *  total by construction, so it CANNOT report the key's absence. */
 const TOTAL_SEARCH = /\.\s*(?:rsplit|split)\s*\([\s\S]{0,300}?\)\s*\.\s*next\s*\(\s*\)/;
 /** `R2-01`(B) — the slot's absence HELD AS A STATE. */
 const ABSENCE_HELD = /\bNone\b|\bif\s+let\b|\belse\b|\bmatch\b|\bunwrap_or\b|\bok_or\b/;
-/** `R2-02`(A) — an aborting call standing on the value-derivation path. */
-const ABORT_ANYWHERE = /\.\s*(?:expect|unwrap)\s*\(|\bpanic!\s*\(|\bunreachable!\s*\(|\btodo!\s*\(|\bunimplemented!\s*\(|\bassert(?:_eq|_ne)?!\s*\(/;
-/** `R2-02`(B) — a consultation of the slot value's OWN SHAPE. **THE SET IS DECLARED AND NOT EXHAUSTIVE**:
- *  it names the forms a Rust carrier is expected to reach for, and every one of them is a shape test a
- *  lawful carrier may use. A lawful carrier using a form outside this set would be refused by this
- *  cell, and that LIMIT IS STATED RATHER THAN HIDDEN. */
-const SHAPE_CONSULTED = /\bstarts_with\b|\bends_with\b|\bstrip_prefix\b|\bstrip_suffix\b|\bas_str\b|\bis_string\b|\bas_string\b|\bas_bytes\b|\bchars\s*\(\s*\)|\bfirst\s*\(\s*\)|\bmatches!\b|\bValue::String\b|\bserde_json\b|\.get\s*\(/;
-/** `R2-06` — a step that LOCATES the value (a colon split or a quote scan) TOGETHER WITH ITS RECEIVER.
+/** `R2-02` / `R2-03` — AN ABORTING CALL. **THE SET IS DECLARED AND NOT EXHAUSTIVE**: it names the forms
+ *  a Rust build script reaches for when it must stop the build, and a lawful carrier using a form
+ *  outside it would be refused by this cell — that LIMIT IS STATED rather than hidden. The
+ *  `.expect`/`.unwrap` alternative requires a **RECEIVER** the character before it cannot extend, so a
+ *  match arrow (`=> .expect(..)`) — which is not Rust — is never taken for a call; a manifest-read panic
+ *  is therefore distinguishable from an arm's by its receiver.
+ *  AND AN ARM THAT ANSWERS A VALUE IS AN ABORT TOO, at the clause's own terms (`:568`: `(N3) ... THE
+ *  ARM `:94` HOLDS`) — but the silent-default guard above reads that shape directly, so this reader's
+ *  subject is the MESSAGE-CARRYING abort. */
+const ABORT_CALL = /(?:^|[^=!<>A-Za-z0-9_.)])([A-Za-z_][A-Za-z0-9_.]*)\s*\.\s*(?:expect|unwrap)\s*\(|(?:^|[^A-Za-z0-9_])(panic|unreachable|todo|unimplemented|bail|fail|abort|assert|assert_eq|assert_ne)!\s*\(|\bprocess\s*::\s*exit\s*\(/g;
+/** `R2-02` — a SILENT DEFAULT: a match arm that ANSWERS a value instead of aborting. The clause's own
+ *  words for the superseded shape are *"EVERY ONE OF THEM ANSWERS THE EMPTY STRING"*, so the empty
+ *  string is the default this guard reads; a non-empty literal default is the same defect (`(N3)`
+ *  spells *"ANY OTHER CASE WHOSE HEAD IS NOT A QUOTE"`). **THE BODY IS READ UP TO THE FIRST `,` OR `}`
+ *  — NOT ACROSS IT**, because a pattern like `Some(end) => &body[..end], None => ""` would otherwise be
+ *  read WHOLE and would report a lawful arm as a silent default; the first draft of this guard did
+ *  exactly that and the arms it reported were the carried path's own. */
+/** `R2-02` — a SILENT DEFAULT: a match arm that ANSWERS a value instead of aborting. The clause's own
+ *  words for the superseded shape are *"EVERY ONE OF THEM ANSWERS THE EMPTY STRING"*.
+ *  **THE BODY IS READ UP TO THE FIRST `,` OR `}` AND NEVER ACROSS ONE**, and a match's own nested
+ *  patterns are `match ... {` and so are stopped at the `{` rather than consumed. **THREE DRAFTS OF
+ *  THIS GUARD ARE RECORDED BECAUSE EACH FAILED IN A WAY THAT REPORTED ZERO**: (1) a body that could be
+ *  EMPTY made the match advance past an arm's own `=>`, so the arms after a nested `match` read as zero;
+ *  (2) a literal pattern that stopped at the first inner quote mis-read the arms after `strip_prefix('"')`
+ *  — a carrier spells that quote ESCAPED, as `'\\"'` in the source; (3) a body read up to the first
+ *  `,`/`}` WITHOUT the `[^,}]` head consumed the whole tail to the next `}` when a message contained a
+ *  (3) a body read to the first `,`/`}` WITHOUT a same-line bound over-reached whenever a message carried
+ *  a brace or a comma inside a literal. **THE ARM IS THEREFORE READ ONE LINE AT A TIME** — an abort whose
+ *  arguments span lines is not a silent default, and a silent default is always a single-line arm. */
+const SILENT_ARM_DEFAULT = /=>[ \t]*([^\s,}][^,}\n]*)/g;
+/** **THE BODY THAT IS A SILENT DEFAULT** — the clause's own shapes. **THE LIMIT IS STATED**: a default
+ *  spelled in a form outside this set is not seen, and a block body is deliberately not read. */
+const IS_SILENT_DEFAULT = (body) => /^"/.test(body) || /^'/.test(body)
+  || /^String\s*::\s*(?:new|from|default)\s*\(/.test(body)
+  || /^Default\s*::\s*default\s*\(/.test(body)
+  || /^Vec\s*::\s*new\s*\(\s*\)/.test(body) || /^vec!\s*\[/.test(body)
+  || /^\.to_owned\s*\(\s*\)/.test(body);
+/** `R2-02` — the four states' own identifiers, as the clause names them (`release.md §6.10`'s four-arm
+ *  clause). A lawful carrier that names its states differently cannot be read by this guard, AND THE
+ *  CELL SAYS SO rather than reporting a false absence. */
+const STATE_NAMES = ['N1', 'N2', 'N3', 'N4'];
+const HAS_STATE_NAME = Object.fromEntries(STATE_NAMES.map((s) => [s, new RegExp(`(?:^|[^A-Za-z0-9_])${s}(?:[^A-Za-z0-9_]|$)`)]));
+/** `R2-04` — a step that LOCATES the value (a colon split or a quote scan) TOGETHER WITH ITS RECEIVER.
  *  **THE RECEIVER IS THE SUBJECT, NOT THE STATEMENT**: in a lawful carrier the colon split stands in the
  *  same statement as the key search, so a statement-level test would refuse a lawful shape. */
 const LOCATOR = /([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*split(?:_once)?\s*\(\s*':'|([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*find\s*\(\s*'"/g;
-/** `R2-06` — evidence that a piece of text is SCOPED to the slot: a search that can answer `None`
- *  whose absence is handled. */
+/** `R2-04` — evidence that a piece of text is SCOPED to the slot: a search that can answer `None` whose
+ *  absence is handled. */
 const SCOPE_EVIDENCE = /\bsplit_once\s*\(|\bfind\s*\(|\.nth\s*\(|\bstrip_prefix\s*\(|\bunwrap_or\b|\bok_or\b|\bmatch\b|\bif\s+let\b|\belse\b/;
-/** `R2-07` — a test of the VALUE's EMPTINESS, which is the test a fallback from a PRESENT value
- *  would be hung on (the widening `(b)` the row refused). */
+/** `R2-06` — a test of the VALUE's EMPTINESS, which is the test a fallback from a PRESENT value would be
+ *  hung on (the widening `(b)` the row refused). */
 const EMPTINESS_TEST = /\bis_empty\s*\(|\.len\s*\(\s*\)\s*==\s*0|==\s*""|!=\s*""/;
+/** `R2-03` — the CONTENT `(ii)` requires: the manifest's path AS THE CARRIER READ IT, either spelled in
+ *  the message or reached through the binding the carrier built it from. */
+const MESSAGE_HAS_PATH = /package\.json|[A-Za-z_]*manifest[A-Za-z_]*/;
+/** `R2-03` — the CONTENT `(iii)` requires, at its minimum: the KEY, the fact that its value is a STRING,
+ *  and the JSON form the clause names. The PROSE is the carrier's (`:569`), so this reads CONTENT TOKENS
+ *  and never a sentence. */
+const MESSAGE_HAS_KEY = /\bversion\b/;
+const MESSAGE_HAS_STRING = /\bstring\b/i;
+const MESSAGE_HAS_JSON = /\bjson\b/i;
 
-const snippet = (s, n = 150) => s.replace(/\s+/g, ' ').trim().slice(0, n);
+const snippet = (s, n = 190) => s.replace(/\s+/g, ' ').trim().slice(0, n);
 
-/** `R2-06` — the whole-text taint, run over ONE carrier's own statements: a binding is
+/** `R2-04` — the whole-text taint, run over ONE carrier's own statements: a binding is
  *  WHOLE-TEXT-POSSIBLE if it holds the manifest read, or if it is derived from a whole-text-possible
- *  binding WITHOUT a step that can answer `None` and handle it. A LOCATOR whose RECEIVER is
- *  whole-text-possible is the defect. */
+ *  binding WITHOUT a step that can answer `None` and handle it. **THE CLAUSE THAT SURVIVES THE RULING
+ *  UNCHANGED** (`release.md §6.10` item 2's parser-domain clause, *"THE STAMP THEN CARRIES THAT
+ *  OCCURRENCE'S VALUE RATHER THAN THE DECLARED FIELD'S"*): at no state may a NEIGHBOURING KEY'S VALUE be
+ *  stamped. A LOCATOR whose RECEIVER is whole-text-possible is the defect. */
 function locatorViolations(c) {
+  if (c.READ_STMT === null) return [];
   const tainted = new Set();
   for (const b of (c.READ_STMT.lhs.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [])) tainted.add(b);
   const violations = [];
@@ -235,7 +393,7 @@ function locatorViolations(c) {
     let m;
     while ((m = LOCATOR.exec(stmt.text)) !== null) {
       const receiver = m[1] ?? m[2];
-      if (tainted.has(receiver)) violations.push({ line: stmt.line, receiver, text: snippet(stmt.text, 190) });
+      if (tainted.has(receiver)) violations.push({ line: stmt.line, receiver, text: snippet(stmt.text, 210) });
     }
     const idents = (stmt.rhs.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? []);
     if (idents.some((n) => tainted.has(n)) && !SCOPE_EVIDENCE.test(stmt.rhs)) {
@@ -247,17 +405,149 @@ function locatorViolations(c) {
   return violations;
 }
 
-/** `R2-03` — the emit site stands INSIDE a conditional, so a path can skip the directive. */
+/** `R2-07` — the emit site stands INSIDE a conditional, so a path can skip the directive. **READ WITH
+ *  THE RULING: at the four aborting states the directive IS skipped because the BUILD FAILS, and that is
+ *  the declared shape — so this cell's subject is the CARRIED path (the real manifest), where the clause
+ *  requires *"EXACTLY ONE EMIT SITE"* (`release.md §6.10`'s five-step locator clause, its step `(5)`). */
 const emitIsGuarded = (c) => c.EMIT !== null && c.READ_STMT !== null && c.EMIT.depth !== c.depthAt(c.READ_STMT.start);
 const emitSiteCount = (c) => c.EMIT_SITES.length;
 
-/** `R2-04` — the emit's provenance reaching the crate's `Cargo.toml` version (the `None` arm's value). */
-const fallbackRowsInProvenance = (c) => c.provenanceOf(c.EMIT_BINDING).filter((r) => /CARGO_PKG_VERSION|Cargo\.toml/.test(r.rhs));
+/** `R2-05` — the emit's provenance reaching the crate's `Cargo.toml` version (the `None` arm's value). */
+const fallbackRowsInProvenance = (c) => (c.EMIT_BINDING === null ? [] : c.provenanceOf(c.EMIT_BINDING).filter((r) => /CARGO_PKG_VERSION|Cargo\.toml/.test(r.rhs)));
 const ambientReadOfDirective = (c) => new RegExp(`env::var(?:_os)?\\s*\\(\\s*"${DIRECTIVE}"`).test(c.TEXT);
 
 // ---------------------------------------------------------------------------------------------
-// THE READER — ONE CARRIER AT A TIME, so a control can read a MUTATED COPY of this one through the
-// very same instruments. `CARRIER` is `bindings/js/build.rs` itself.
+// THE ABORT READER — the region the four states live in, and the abort sites inside it
+// ---------------------------------------------------------------------------------------------
+/** **THE SPAN IS THE CARRIER'S OWN VALUE-DERIVATION REGION**: from the statement that names the key
+ *  `"version"` to the statement that emits the directive. It OPENS at the key's own name, so the
+ *  MANIFEST READ's own abort — the one abort `release.md §6.10`'s four-arm clause names and EXCLUDES
+ *  from the four (`:571`: *"THE ONE ABORT THE CLAUSE ABOVE ALREADY NAMES IS NOT ONE OF THE FOUR"*) —
+ *  stands OUTSIDE it, and a carrier's read panic can never be mistaken for an arm's. */
+function abortSitesOf(c) {
+  const re = new RegExp(ABORT_CALL.source, 'g');
+  const sites = [];
+  let m;
+  while ((m = re.exec(c.SPAN)) !== null) {
+    const at = m.index;
+    const line = c.lineOf(c.SPAN_START + at);
+    const receiver = m[1] ?? null;
+    // the message/argument region opens at THIS match's own `(`, so the offset is taken from the match's
+    // LENGTH and never from a fixed step — the match may carry a leading boundary character.
+    const open = c.SPAN.indexOf('(', at + m[0].length - 1);
+    let depth = 0;
+    let end = -1;
+    for (let i = open; i >= 0 && i < c.SPAN.length; i += 1) {
+      if (c.SPAN[i] === '(') depth += 1;
+      else if (c.SPAN[i] === ')') { depth -= 1; if (depth === 0) { end = i; break; } }
+    }
+    if (receiver !== null) {
+      // the RECEIVER, read out of the comment-stripped, string-intact view — so the report says WHICH
+      // object the aborting call hangs on, and the manifest read's own panic is identifiable by name.
+      const before = c.SPAN_TEXT.slice(Math.max(0, at - 90), at + m[0].length);
+      sites.push({ at, line, form: receiver, receiver, text: snippet(before, 220), message: null });
+      continue;
+    }
+    const message = open === -1 ? null : (end === -1 ? null : c.SPAN_TEXT.slice(open + 1, end));
+    sites.push({
+      at, line, form: `${m[2]}!`, receiver: null,
+      text: snippet(c.SPAN_TEXT.slice(at, end === -1 ? at + 160 : end + 1), 300),
+      message,
+    });
+  }
+  return sites;
+}
+
+/** **THE FOUR ARMS THAT ANSWER A VALUE INSTEAD OF ABORTING** — the SUPERSEDED shape, read at the
+ *  carrier's own bytes. The clause names it by its own words (*"EVERY ONE OF THEM ANSWERS THE EMPTY
+ *  STRING"*), so the guard reads a match arm whose body is a literal/default expression. */
+function silentArmDefaultsOf(c) {
+  const re = new RegExp(SILENT_ARM_DEFAULT.source, 'g');
+  const hits = [];
+  let m;
+  while ((m = re.exec(c.SPAN)) !== null) {
+    const body = m[1].trim();
+    if (!IS_SILENT_DEFAULT(body)) continue; // the carried path and a block body are not defaults; the limit is stated at the pattern
+    hits.push({ line: c.lineOf(c.SPAN_START + m.index), body, text: snippet(c.SPAN_TEXT.slice(Math.max(0, m.index - 70), m.index + m[0].length), 180) });
+  }
+  return hits;
+}
+
+/** **THE STATE EACH ARM ANSWERS, read at the arm's own identifier.** `release.md §6.10` names the four
+ *  states `(N1)`–`(N4)`; a lawful carrier names each where it aborts. The guard reads the identifier
+ *  beside each abort, and **WHERE A CARRIER NAMES ITS STATES DIFFERENTLY THE GUARD CANNOT SEE THEM —
+ *  that limit is reported by the cell rather than converted into a pass.** */
+/** **THE MESSAGES THE FOUR STATES PRODUCE, ONE PER ABORT — AND THE STATE NAMED IN EACH.** The state's
+ *  identifier is looked for in the abort's own text (the call and its argument), **AND ALSO IN THE
+ *  MESSAGE ITSELF**, because a lawful carrier may build its message through a helper that takes the
+ *  state as its argument — `panic!` inside the helper then carries the state in its ARGUMENT rather than
+ *  in a literal. **THE LIMIT IS STATED**: a helper whose messages this reader cannot follow refuses
+ *  rather than passes, and the cell reports it. */
+function abortMessagesOf(c) {
+  const rows = [];
+  for (const s of abortSitesOf(c)) {
+    const text = `${s.text} ${s.message ?? ''}`;
+    const state = STATE_NAMES.find((n) => HAS_STATE_NAME[n].test(text)) ?? null;
+    rows.push({ line: s.line, form: s.form, state, message: s.message === null ? null : s.message.replace(/\s+/g, ' ').trim() });
+  }
+  return rows;
+}
+
+/** `ADM-5` — the four states, each present as its own state. */
+function abortStatesOfSites(c) {
+  return new Set(abortMessagesOf(c).map((r) => r.state).filter((s) => s !== null));
+}
+
+/** `ADM-7` — the messages' PAIRWISE DISTINCTNESS: a carrier whose four states produce one and the same
+ *  message cannot satisfy `:569`'s content `(i)` (*"EACH ONE DISTINGUISHABLE FROM EVERY OTHER, SO A
+ *  READER OF THE MESSAGE CAN TELL THEM APART"*), however verbose that one message is. */
+function distinctAbortMessagesOf(c) {
+  return new Set(abortMessagesOf(c).map((r) => r.message).filter((m) => m !== null && m !== ''));
+}
+
+/** **THE ADMISSION VECTOR — THE GUARDS, DECLARED ONCE.** `R2-08` runs THIS list over the lawful
+ *  synthetic AND over the real carrier, so the two verdicts are comparable and neither can drift. */
+const ADMISSION = [
+  ['ADM-1 no TOTAL rightmost-occurrence search (the absence CAN be answered)', (c) => c.SPAN !== '' && !TOTAL_SEARCH.test(c.SPAN)],
+  ['ADM-2 the absence is HELD AS A STATE', (c) => ABSENCE_HELD.test(c.SPAN)],
+  ['ADM-3 NO SILENT DEFAULT answers any arm instead of aborting', (c) => silentArmDefaultsOf(c).length === 0],
+  ['ADM-4 EVERY abort is MESSAGE-CARRYING (the verbose requirement, at the carrier)', (c) => {
+    const sites = abortSitesOf(c);
+    return sites.length > 0 && sites.every((s) => s.message !== null);
+  }],
+  ['ADM-5 all FOUR states abort, each present as its own state', (c) => abortStatesOfSites(c).size === 4],
+  ['ADM-6 each arm\'s message carries the THREE REQUIRED CONTENTS',
+    (c) => messageContentsOf(c).every((r) => r.hasPath && r.hasKey && r.hasString && r.hasJson)],
+  ['ADM-7 the four states\' messages are PAIRWISE DISTINGUISHABLE, and every one of them IDENTIFIES ITS STATE',
+    (c) => {
+      const messages = distinctAbortMessagesOf(c);
+      if (messages.size < 4) return false;
+      const named = new Set();
+      for (const m of messages) for (const n of STATE_NAMES) if (HAS_STATE_NAME[n].test(m)) named.add(n);
+      return named.size === 4;
+    }],
+  ['ADM-8 ONE emit site, standing UNGUARDED (the carried path)', (c) => emitSiteCount(c) === 1 && c.EMIT !== null && !emitIsGuarded(c)],
+  ['ADM-9 provenance is the MANIFEST (no crate version, no ambient read)', (c) => fallbackRowsInProvenance(c).length === 0 && !ambientReadOfDirective(c)],
+  ['ADM-10 every value LOCATOR reads ABSENCE-SCOPED text (no other key\'s value)', (c) => locatorViolations(c).length === 0],
+  ['ADM-11 NO emptiness test on a lawful value', (c) => !EMPTINESS_TEST.test(c.SPAN)],
+];
+
+/** `ADM-6`'s per-message detail, reported so a failure says WHICH required content is missing. */
+function messageContentsOf(c) {
+  return abortMessagesOf(c).filter((r) => r.message !== null).map((r) => ({
+    line: r.line,
+    state: r.state ?? '(unnamed state)',
+    hasPath: MESSAGE_HAS_PATH.test(r.message),
+    hasKey: MESSAGE_HAS_KEY.test(r.message),
+    hasString: MESSAGE_HAS_STRING.test(r.message),
+    hasJson: MESSAGE_HAS_JSON.test(r.message),
+    text: snippet(r.message, 150),
+  }));
+}
+
+// ---------------------------------------------------------------------------------------------
+// THE READER — ONE CARRIER AT A TIME, so a control can read a MUTATED COPY — or a SYNTHETIC — through
+// the very same instruments. `CARRIER` is `bindings/js/build.rs` itself.
 // ---------------------------------------------------------------------------------------------
 function readCarrier(source) {
   const { code: CODE, text: TEXT } = analyse(source);
@@ -349,26 +639,15 @@ function readCarrier(source) {
   const SPAN = CODE.slice(SPAN_START, EMIT !== null ? EMIT.end + 1 : CODE.length);
   const SPAN_TEXT = TEXT.slice(SPAN_START, EMIT !== null ? EMIT.end + 1 : TEXT.length);
 
-  /** **THE REGION THE ABORT CHECK READS.** Where the span opened at the version-key search, that region
-   *  is THE WHOLE SPAN, and the manifest read's own panicking call — *"A MANIFEST THAT CANNOT BE READ
-   *  PANICS AT `:70`–`:71`"*, declared and NOT re-cut (`package.md §6.1`'s tail clause) — stands OUTSIDE
-   *  it, because it stands BEFORE it. Where the reader had to fall back to a POST-READ span (no
-   *  statement carries the key's own name), the region DROPS THE SPAN'S FIRST STATEMENT, because a
-   *  read/parse panic standing there is the same sanctioned panic and NOT state `(vii)`'s subject —
-   *  **AND THE CELL SAYS WHICH REGION IT READ, SO A WIDER SPAN IS NEVER A SILENT WIDENING.** */
-  const firstInSpan = STATEMENTS.find((st) => st.start >= SPAN_START) ?? null;
-  const ABORT_FROM = (SEARCH_STMT === null && firstInSpan !== null) ? firstInSpan.end + 1 : SPAN_START;
-  const SPAN_ABORT = CODE.slice(ABORT_FROM, EMIT !== null ? EMIT.end + 1 : CODE.length);
-  const ABORT_REGION_NOTE = ABORT_FROM === SPAN_START
-    ? 'the whole span'
-    : `the span MINUS its first statement (build.rs:${firstInSpan.line}), which the POST-READ FALLBACK span opens on`;
+  /** **THE REGION THE READ'S OWN ABORT IS EXCLUDED FROM** — named so a reader can see WHY the manifest
+   *  read's `.expect` is never counted among the four states (`release.md §6.10`, its `:571` clause). */
+  const READ_ABORT_NOTE = SEARCH_STMT !== null
+    ? `the manifest read's own abort (build.rs:${READ_STMT ? READ_STMT.line : '?'}) stands BEFORE the span and is excluded from it`
+    : `the span opens AFTER the manifest read, so the read's own abort is excluded from it`;
 
-  /** The span as a READER OF THE EVIDENCE must see it: `TEXT`, so the key, the directive and every
-   *  message stand as the file spells them. `CODE` is the instrument's own view and is never printed. */
   const spanReport = () => `[span: ${SPAN_MODE}; ${SPAN.trim().length} characters from build.rs:${lineOf(SPAN_START)} `
-    + `to build.rs:${EMIT ? EMIT.line : '?'}]\n  span: ${snippet(SPAN_TEXT, 420)}`;
+    + `to build.rs:${EMIT ? EMIT.line : '?'}; ${READ_ABORT_NOTE}]\n  span: ${snippet(SPAN_TEXT, 460)}`;
 
-  /** The transitive provenance of one binding, over THIS carrier's own statements. */
   const provenanceOf = (name) => {
     const seen = new Set();
     const rows = [];
@@ -390,15 +669,15 @@ function readCarrier(source) {
 
   return {
     CODE, TEXT, STATEMENTS, READ_STMT, SEARCH_STMT, EMIT_SITES, EMIT, EMIT_BINDING,
-    SPAN_START, SPAN_MODE, SPAN, SPAN_TEXT, SPAN_ABORT, ABORT_REGION_NOTE, ABORT_FROM,
+    SPAN_START, SPAN_MODE, SPAN, SPAN_TEXT, READ_ABORT_NOTE,
     lineOf, depthAt, spanReport, provenanceOf,
   };
 }
 
 const CARRIER = readCarrier(readFileSync(BUILD_RS, 'utf8'));
 const {
-  CODE, TEXT, STATEMENTS, READ_STMT, SEARCH_STMT, EMIT_SITES, EMIT, EMIT_BINDING,
-  SPAN, SPAN_TEXT, SPAN_START, SPAN_MODE, SPAN_ABORT, ABORT_REGION_NOTE, ABORT_FROM,
+  TEXT, STATEMENTS, READ_STMT, SEARCH_STMT, EMIT_SITES, EMIT, EMIT_BINDING,
+  SPAN, SPAN_TEXT, SPAN_START, SPAN_MODE,
 } = CARRIER;
 const lineOf = CARRIER.lineOf;
 const depthAt = CARRIER.depthAt;
@@ -413,8 +692,8 @@ function assertReaderIsSaneOf(c) {
     + '`version` ITSELF"*). Observed: 0 statements whose right-hand side calls `read_to_string`.');
   assert.ok(c.EMIT !== null,
     `READER SANITY: no EMIT SITE of the directive \`${EMIT_PREFIX}\` was found in \`bindings/js/build.rs\` — ` +
-    '`docs/specs/storeroom-js/package.md §6.1` item 2 / `release.md §6.10` item 1: the carrier EMITS that directive. '
-    + 'Observed: 0 sites.');
+    '`docs/specs/storeroom-js/package.md §6.1` item 2 / `release.md §6.10` item 1: the carrier EMITS that directive on '
+    + 'the carried path. Observed: 0 sites.');
   assert.ok(c.SPAN.trim().length > 40,
     `READER SANITY: the value-derivation span is degenerate (${c.SPAN.trim().length} characters), so an absence inside it `
     + `would be the instrument's and not the carrier's. Span: [${c.SPAN_MODE}]`);
@@ -426,287 +705,333 @@ const assertReaderIsSane = () => assertReaderIsSaneOf(CARRIER);
 // =============================================================================================
 
 // ---------------------------------------------------------------------------------------------
-// `R2-01` — `(vii-a)`: the `version` SLOT IS IDENTIFIED BY ITS OWN KEY — RED
+// `R2-01` — the KEY'S ABSENCE is a STATE THE SCRIPT HOLDS, and it aborts — RED
 // ---------------------------------------------------------------------------------------------
-test('PAR-PUB-35 (vii)-a SOURCE :: R2-01 — the `version` SLOT is identified by its own key: the search can answer ABSENT, and the absent state is a STATE', () => {
-  // DERIVES FROM: `parameter-semantics.md §5.1` — `PAR-PUB-35`'s **domain** (*"the string
-  // `bindings/js/package.json`'s `version` field holds at BUILD TIME"*), its outside value `(vii)`
-  // clause `(E)` (*"it is a read that produced no value at all"*) and its four-step operative clause,
-  // step `(1)` (**THE DIRECTIVE *IS* EMITTED AT THIS STATE**); with `docs/specs/storeroom-js/package.md
-  // §6.1`'s read-mechanism clause state `(iii)` and `release.md §6.10` item `2`'s parser-domain clause.
-  // WHICH STEP IT READS: step `(1)`, at the state `(vii-a)`.
+test('PAR-PUB-35 (vii-a) SOURCE :: R2-01 — the `version` KEY\'S ABSENCE is a STATE THE SCRIPT HOLDS, and it ABORTS', () => {
+  // DERIVES FROM: `release.md §6.10`'s four-arm clause, state `(N1)` — *"(N1) AT `:98` — THE KEY'S
+  // BYTE-SEQUENCE IS ABSENT FROM THE MANIFEST TEXT READ WHOLE AT `:70`; `rsplit_once` ANSWERS `None`,
+  // AND THE ABSENCE IS A STATE THIS SCRIPT HOLDS RATHER THAN A PANIC — the arm carries no `.next()` and
+  // no `.expect`, which the total `rsplit(..).next()` it replaced could not have held, since a split
+  // iterator cannot answer absence and yielded the whole file text instead"* — read with the same
+  // clause's declaration that state `(N1)` **ABORTS** (*"EACH PRODUCES ITS OWN ABORT RATHER THAN AN
+  // ANSWER"*), with `parameter-semantics.md §5.1` clause `(E)` (*"it is a read that produced no value at
+  // all"*), and with `package.md §6.1` limb `(B)` re-cut (`:1200`).
   //
-  // **WHAT THE CLAUSE FIXES.** The stamped value must be THE `version` FIELD'S VALUE or a substitution
-  // made FOR THAT SLOT, and the slot's absence must be a DISTINGUISHABLE STATE — otherwise a manifest
-  // whose `version` key is absent cannot be told from a manifest that declares one, and the value
-  // stamped is whatever the search happened to land on. **AND THE ROW'S OWN PARSER-DOMAIN CLAUSE PRINTS
-  // THE SEARCH ITSELF**: `release.md §6.10` item `2` declares the carrier's read as *"the value after
-  // the RIGHTMOST literal occurrence of the byte-sequence `"version"`"*, and its own words state what
-  // that search does where the key is ABSENT: **a split iterator cannot answer `None`**, so the search
-  // returns THE WHOLE TEXT and the following colon-split takes THE FIRST COLON OF THE FILE.
-  //
-  // **WHAT IS ASSERTED, AND WHY EACH HALF IS A CLAUSE AND NOT A PREFERENCE.**
-  //   (A) the search must NOT be a TOTAL consumption of a split iterator (`rsplit(..).next()` /
-  //       `split(..).next()`): such a construct is total BY CONSTRUCTION — with the key absent the
-  //       splitter yields one item, the whole text — so NO ABSENT STATE EXISTS for the carrier to hold,
-  //       and step `(1)`'s state cannot be reached as a state at all;
-  //   (B) the absent state must be HELD AS A STATE inside the derivation: at least one branch in which
-  //       the slot's absence is a value (`None`, `if let`, `else`, `match`, `unwrap_or`, `ok_or`).
-  //       A carrier that asserts an absence away with `.expect(...)` standing on a search that can
-  //       never fail has not held it.
+  // **WHAT THIS CELL ASSERTS, AND IN WHAT ORDER, BECAUSE THE REQUIREMENT HAS THREE PARTS.**
+  //   (A) THE ABSENCE IS ANSWERABLE AND HELD: the search is NOT a TOTAL consumption of a split iterator
+  //       (`rsplit(..).next()`), which cannot answer absence — with the key absent it yields THE WHOLE
+  //       FILE TEXT; and the derivation DECLARES a branch in which absence is a state (`None`, `if let`,
+  //       `else`, `match`, `unwrap_or`, `ok_or`). Under the ruling the absence is still a STATE the
+  //       script holds — it is NOT asserted away.
+  //   (B) AND THAT STATE ABORTS: **the held-absence shape must not ANSWER A VALUE.** The superseded
+  //       design is named by the superseded clause's own words — *"EVERY ONE OF THEM ANSWERS THE EMPTY
+  //       STRING"* — so a match arm whose body is a literal/default (`=> ""` and its kin) is the
+  //       SUPERSEDED ANSWER, and the operative one is an ABORT. **THE EMPTY STRING IS NOT AN ANSWER FOR
+  //       THIS STATE** (ruling `(a)`, verbatim: *"Don't pass empty strings"*).
   assertReaderIsSane();
   const observedSpan = spanReport();
   const failures = [];
 
-  const TOTAL = TOTAL_SEARCH; // THE INSTRUMENT, SHARED WITH ITS NEGATIVE CONTROL (`R2-08`)
-  const total = TOTAL.exec(SPAN);
+  const total = TOTAL_SEARCH.exec(SPAN);
   if (total !== null) {
-    const at = lineOf(SPAN_START + total.index);
-    failures.push(`(A) THE SEARCH CANNOT ANSWER "ABSENT": the value derivation consumes a split iterator with \`.next()\`, which is `
-      + `TOTAL BY CONSTRUCTION — with the key absent the splitter yields ONE item, THE WHOLE FILE TEXT, so no absent state `
-      + `exists for the carrier to hold. observed at build.rs:${at}: \`${snippet(SPAN_TEXT.slice(total.index, total.index + total[0].length), 120)}\``);
+    failures.push(`(A-i) THE SEARCH CANNOT ANSWER "ABSENT": the value derivation consumes a split iterator with \`.next()\`, which is `
+      + `TOTAL BY CONSTRUCTION — with the key absent it yields ONE item, THE WHOLE FILE TEXT. observed at build.rs:${lineOf(SPAN_START + total.index)}`);
+  }
+  if (!ABSENCE_HELD.test(SPAN)) {
+    failures.push('(A-ii) THE ABSENT STATE IS NOT HELD: no branch in which the slot\'s absence is a value — no `None`, no `if let`, '
+      + 'no `else`, no `match`, no `unwrap_or`, no `ok_or`.');
   }
 
-  const ABSENCE = ABSENCE_HELD; // THE INSTRUMENT, SHARED WITH ITS NEGATIVE CONTROL (`R2-08`)
-  if (!ABSENCE.test(SPAN)) {
-    failures.push('(B) THE ABSENT STATE IS NOT HELD: the value-derivation span declares NO branch in which the slot\'s absence is a '
-      + 'value — no `None`, no `if let`, no `else`, no `match`, no `unwrap_or`, no `ok_or`. The absent case is ASSERTED AWAY by a '
-      + 'panicking call standing on a search that can never fail.');
+  const silent = silentArmDefaultsOf(CARRIER);
+  if (silent.length > 0) {
+    failures.push(`(B) THE HELD ABSENCE ANSWERS A VALUE INSTEAD OF ABORTING THE BUILD: ${silent.length} match arm(s) in the derivation `
+      + `answer a literal/default rather than aborting, at build.rs:${silent.map((s) => s.line).join(', :')} `
+      + `(${silent.map((s) => `\`${s.text}\``).join(' ')}). State \`(N1)\` \\u2014 and every one of the clause's four states \\u2014 MUST ABORT: `
+      + '`release.md §6.10`\'s four-arm clause declares *"EACH PRODUCES ITS OWN ABORT RATHER THAN AN ANSWER: NO DIRECTIVE IS EMITTED, '
+      + 'NO ARTEFACT IS BUILT, AND NO STAMPED VALUE EXISTS AT ANY OF THE FOUR"*, and the ruling says *"Don\'t pass empty strings"*.');
+  }
+
+  const sites = abortSitesOf(CARRIER);
+  const states = abortStatesOfSites(CARRIER);
+  if (!states.has('N1')) {
+    failures.push(`(B) AND STATE \`(N1)\` CARRIES NO ABORT OF ITS OWN: ${sites.length} abort site(s) stand in the derivation and none `
+      + `carries the identifier \`N1\` — the state the key's absence reaches has no abort. **THE ONE LIMIT OF THIS GUARD, STATED: a lawful `
+      + 'carrier that names its states differently cannot be seen by it, so a zero here is reported and never softened.**');
   }
 
   assert.ok(failures.length === 0,
-    'CLAUSE `parameter-semantics.md §5.1` `(vii)` step `(1)` / `(E)` read with `PAR-PUB-35`\'s domain (*"the `version` FIELD"*) and '
-    + '`release.md §6.10` item 2\'s parser-domain clause. DECLARED: the version SLOT IS IDENTIFIED BY ITS OWN KEY, and the slot\'s '
-    + 'absence is a STATE the carrier can hold — `(vii)`\'s answer presupposes it (*"it is a read that produced no value at all"*), '
-    + 'and `package.md §6.1`\'s read-mechanism clause state `(iii)` has the carrier emitting *"for whatever it read"*. '
-    + `OBSERVED: ${failures.length} of this cell's 2 assertions fail.\n  ` + failures.join('\n  ') + '\n  ' + observedSpan);
+    'CLAUSE `release.md §6.10`\'s four-arm clause, state `(N1)` — *"THE ABSENCE IS A STATE THIS SCRIPT HOLDS RATHER THAN A PANIC"* — read '
+    + 'with its own four-state declaration (*"EACH PRODUCES ITS OWN ABORT RATHER THAN AN ANSWER"*) and with the architect\'s ruling `(a)`: '
+    + '*"proceed with a. Don\'t pass empty strings, generate verbose message."* DECLARED: the key\'s absence is a state the script HOLDS, '
+    + 'and AT THAT STATE THE BUILD ABORTS. '
+    + `OBSERVED: ${failures.length} of this cell's 4 assertions fail.\n  ` + failures.join('\n  ') + '\n  ' + observedSpan);
 });
 
 // ---------------------------------------------------------------------------------------------
-// `R2-02` — `(vii-b)`: a NON-STRING `version` neither aborts the build nor is stamped — RED
+// `R2-02` — the FOUR ABORTING STATES, each named as its own state — RED
 // ---------------------------------------------------------------------------------------------
-test('PAR-PUB-35 (vii)-b SOURCE :: R2-02 — a NON-STRING `version` does not abort the build and is not stamped: the derivation consults the slot value\'s own shape', () => {
-  // DERIVES FROM: `parameter-semantics.md §5.1` outside value `(vii)`, step `(1)` (**THE DIRECTIVE *IS*
-  // EMITTED AT THIS STATE**) and step `(3)` read with clause `(C)` (*"ANY NON-STRING-FOR-STRING
-  // SUBSTITUTION IS A MISMATCH: THE `version()` READ REFUSES AND THE GUARD `P-PUB-10` FAILS THE RUN"*,
-  // with *"THE VALUE `(vii)` DECLARES IS NEVER THE NON-STRING"*), the row's own consequence sentence
-  // (*"ONLY A DIRECTIVE-BEARING WRITE STANDS — an empty string or any other non-string-for-string
-  // substitution"*), and the `R2` ruling: THE THIRD ANSWER — the build failure the reconciliation
-  // clause named and left to the architect — **IS REFUSED**, so a panic is not this state's answer.
-  // `docs/specs/storeroom-js/package.md §6.1` item `4`'s own words are the same shape: *"no error, no
-  // warning, no directive omitted, no build failure"*.
-  // WHICH STEP IT READS: steps `(1)` and `(3)`.
+test('PAR-PUB-35 (vii) SOURCE :: R2-02 — A NON-STRING, AN UNTERMINATED VALUE, A VALUE WITH NO COLON AND AN ABSENT KEY EACH ABORT THE BUILD, AND THE EMPTY STRING IS EMITTED FOR NONE', () => {
+  // DERIVES FROM: `release.md §6.10`'s four-arm clause, READ WHOLE — *"THE FOUR DECLARED ABORTING
+  // STATES, EACH NAMED AS ITS OWN STATE SO A CELL MAY REACH EACH: `(N1)` AT THE STATE THE KEY'S
+  // BYTE-SEQUENCE IS ABSENT FROM THE MANIFEST TEXT ... ABORTS; `(N2)` AT THE STATE THE RIGHTMOST KEY
+  // OCCURRENCE CARRIES NO COLON AFTER IT ... ABORTS; `(N3)` AT THE STATE THE SLOT'S VALUE'S TRIMMED TEXT
+  // DOES NOT BEGIN WITH A QUOTE — ... WHICH IS THE NON-STRING-VALUE CASE AND ANY OTHER CASE WHOSE HEAD
+  // IS NOT A QUOTE — ABORTS; AND `(N4)` AT THE STATE THE VALUE BEGINS WITH A QUOTE AND CARRIES NO
+  // FURTHER QUOTE ... ABORTS"* — read with `parameter-semantics.md §5.1`'s supersession clause (*"THE
+  // EMPTY STRING IS NOT AN ANSWER FOR ANY OF THESE STATES"*), with `package.md §6.1` limb `(B)` re-cut
+  // (the four states, read at the STAMP PATH rather than at a dead line range), and with the ruling's
+  // own words: *"Don't pass empty strings, generate verbose message."*
   //
-  // **WHAT IS ASSERTED, AND WHY EACH HALF IS A CLAUSE.**
-  //   (A) NO ABORTING CALL stands on the derivation path: a `.expect(..)`/`.unwrap()`/`panic!` aborts
-  //       the build script, so NO DIRECTIVE IS EMITTED and NO ARTEFACT IS BUILT — which contradicts
-  //       step `(1)` outright and leaves `version()` nothing to refuse, i.e. `(3)` unreachable. The
-  //       clause's answer is a SUBSTITUTION, and a substitution is written where the read produced no
-  //       string — never where the build died. **(THE MANIFEST-READ PANIC IS NOT THIS CELL'S SUBJECT:
-  //       `package.md §6.1`'s tail clause declares that a manifest which cannot be read panics at the
-  //       read, and that state is NOT `(vii)`, which is *"A MANIFEST THAT IS READABLE"*. The span opens
-  //       AT the version-key search, so the read's own panicking call stands OUTSIDE it.)**
-  //   (B) the derivation must CONSULT THE SLOT VALUE'S OWN SHAPE — some test of whether that value is a
-  //       string — because `(C)`'s substitution exists only for a slot that holds no string: without
-  //       such a consultation the carrier either extracts a non-string as if it were a string or skips
-  //       to the next quoted token, and the stamped value is then a NEIGHBOURING KEY'S, not a
-  //       substitution for this one.
+  // **THE FOUR STATES ARE ENUMERATED HERE, EACH WITH THE ARM THE CLAUSE NAMES, BEFORE THE ASSERTION** —
+  // because a cell that cannot say WHICH state it read is a cell that cannot be falsified at the right
+  // place:
+  //   (vii-a) / `(N1)` — the `version` key's byte-sequence is ABSENT from the manifest text;
+  //   (vii-c) / `(N2)` — the rightmost key occurrence carries NO COLON after it;
+  //   (vii-b) / `(N3)` — the slot's value's trimmed text DOES NOT BEGIN WITH A QUOTE (the non-string case);
+  //   (vii-d) / `(N4)` — the value BEGINS WITH A QUOTE and carries NO FURTHER QUOTE (unterminated).
+  // **AND THE ASSERTED PROPERTY IS THE OPPOSITE OF TODAY'S CARRIER, WHICH IS WHY THIS CELL IS RED**:
+  // today every one of the four arms ANSWERS `""` and the build FINISHES; the clause requires all four
+  // to ABORT with a message. The `(A)` guard reads the superseded shape directly; the `(B)` and `(C)`
+  // guards read the required one.
   assertReaderIsSane();
   const observedSpan = spanReport();
   const failures = [];
 
-  const ABORT = ABORT_ANYWHERE; // THE INSTRUMENT, SHARED WITH ITS NEGATIVE CONTROL (`R2-08`)
-  const abortFrom = ABORT_FROM;
-  const hits = [...SPAN_ABORT.matchAll(new RegExp(ABORT.source, 'g'))].map((m) => ({ text: snippet(TEXT.slice(abortFrom + m.index, abortFrom + m.index + m[0].length), 40), line: lineOf(abortFrom + m.index) }));
-  if (hits.length !== 0) {
-    failures.push(`(A) THE BUILD IS ABORTED BEFORE THE DIRECTIVE: ${hits.length} aborting call(s) stand on the value-derivation path, `
-      + `at build.rs:${hits.map((h) => h.line).join(', :')} (${hits.map((h) => `\`${h.text}\``).join(' ')}). A panic emits NO directive, `
-      + 'so step `(1)` fails at this state and step `(3)` is unreachable — there is no stamped value for `version()` to refuse, which is '
-      + 'the THIRD answer the architect\'s `R2` ruling refuses. [region read: ' + ABORT_REGION_NOTE + ']');
+  const silent = silentArmDefaultsOf(CARRIER);
+  if (silent.length > 0) {
+    failures.push(`(A) AN ARM ANSWERS THE EMPTY STRING (or another literal/default) INSTEAD OF ABORTING: ${silent.length} arm(s) at `
+      + `build.rs:${silent.map((s) => s.line).join(', :')} — ${silent.map((s) => `\`${s.text}\``).join('; ')}. The clause requires an `
+      + 'ABORT at each of the four states, and the ruling forbids the empty string as an answer for any of them.');
   }
-
-  const SHAPE = SHAPE_CONSULTED; // THE INSTRUMENT, SHARED WITH ITS NEGATIVE CONTROL (`R2-08`)
-  if (!SHAPE.test(SPAN)) {
-    failures.push('(B) THE SLOT\'S OWN VALUE IS NEVER CONSULTED FOR ITS SHAPE: the derivation holds no `starts_with`, no `as_str`, no '
-      + '`is_string`, no `as_string`, no `as_bytes`, no `Value::String`, no JSON reader and no `get(..)`, so no substitution exists for a '
-      + 'slot that holds no string — the value is taken by a QUOTE SCAN over text that runs PAST the slot, so a NON-STRING value stamps '
-      + 'THE NEXT QUOTED TOKEN IN THE FILE (a neighbouring key\'s name).');
+  const sites = abortSitesOf(CARRIER);
+  if (sites.length === 0) {
+    failures.push('(B) NO ABORT STANDS IN THE VALUE DERIVATION AT ALL: 0 aborting calls were found between the statement that names the '
+      + 'key and the statement that emits the directive — so NONE of the four declared aborting states aborts, and the build finishes at '
+      + 'every one of them. **AND THE ABORT SEARCH IS EXCLUSIVE OF THE MANIFEST READ\'S OWN PANIC BY CONSTRUCTION** (`release.md §6.10`, '
+      + `its \`:571\` clause: *"THE ONE ABORT THE CLAUSE ABOVE ALREADY NAMES IS NOT ONE OF THE FOUR"*) — the span opens AT the key's own `
+      + `name; ${CARRIER.READ_ABORT_NOTE}.`);
+  }
+  const states = abortStatesOfSites(CARRIER);
+  const missing = STATE_NAMES.filter((n) => !states.has(n));
+  if (sites.length > 0 && missing.length > 0) {
+    failures.push(`(C) THE FOUR STATES ARE NOT EACH REACHED: abort sites stand at build.rs:${sites.map((s) => s.line).join(', :')} but the `
+      + `states [${missing.join(', ')}] carry no abort. A state the clause NAMES and the carrier never reaches is a state the build cannot `
+      + 'be driven into — the clause\'s own words are *"EACH NAMED AS ITS OWN STATE SO A CELL MAY REACH EACH"*. **THE ONE LIMIT OF THIS '
+      + 'GUARD, STATED: it reads the identifiers `N1`–`N4`, which the CLAUSE supplies; a lawful carrier that names its states otherwise '
+      + 'would be refused by it, and this zero is reported rather than softened.**');
   }
 
   assert.ok(failures.length === 0,
-    'CLAUSE `parameter-semantics.md §5.1` `(vii)` step `(1)` (*"THE DIRECTIVE IS EMITTED AT THIS STATE"*) read with step `(3)`, its '
-    + 'clause `(C)` (*"ANY NON-STRING-FOR-STRING SUBSTITUTION IS A MISMATCH: THE `version()` READ REFUSES AND THE GUARD `P-PUB-10` FAILS '
-    + 'THE RUN"*, with *"THE VALUE `(vii)` DECLARES IS NEVER THE NON-STRING"*), the consequence sentence beside it (*"ONLY A '
-    + 'DIRECTIVE-BEARING WRITE STANDS — an empty string or any other non-string-for-string substitution"*) and the architect\'s `R2` '
-    + 'ruling. DECLARED: a NON-STRING `version` REACHES the directive — the carrier SUBSTITUTES for the slot, `version()` refuses, and '
-    + 'the run fails at the guard; the build is NOT aborted and NO NEIGHBOURING KEY\'S VALUE IS STAMPED. '
-    + `OBSERVED: ${failures.length} of this cell's 2 assertions fail.\n  ` + failures.join('\n  ') + '\n  ' + observedSpan);
+    'CLAUSE `release.md §6.10`\'s four-arm clause + `parameter-semantics.md §5.1`\'s supersession clause + `docs/specs/storeroom-js/package.md '
+    + '§6.1` limb `(B)` re-cut. DECLARED: a NON-STRING `version` `(N3)`, an UNTERMINATED value `(N4)`, a value with NO COLON after the key '
+    + '`(N2)` and an ABSENT key `(N1)` EACH ABORT THE BUILD — *"NO DIRECTIVE IS EMITTED, NO ARTEFACT IS BUILT, AND NO STAMPED VALUE EXISTS '
+    + 'AT ANY OF THE FOUR"* — and THE EMPTY STRING IS EMITTED FOR NONE OF THEM. '
+    + `OBSERVED: ${failures.length} of this cell's 3 assertions fail.\n  ` + failures.join('\n  ') + '\n  ' + observedSpan);
 });
 
 // ---------------------------------------------------------------------------------------------
-// `R2-06` — the VALUE LOCATOR reads only absence-scoped text — RED
+// `R2-03` — the ABORT'S MESSAGE carries the THREE REQUIRED CONTENTS — RED
 // ---------------------------------------------------------------------------------------------
-test('PAR-PUB-35 (vii) SOURCE :: R2-06 — the value LOCATOR reads only ABSENCE-SCOPED text: no OTHER key\'s value is stamped where the slot holds no string', () => {
-  // DERIVES FROM: `parameter-semantics.md §5.1` outside value `(vii)` clause `(C)` (*"THE STAMPED VALUE
-  // ... IS WHATEVER THE CARRIER'S DECLARED READ PRODUCED FOR A `version` SLOT THAT HOLDS NO STRING"*)
-  // read with `PAR-PUB-35`'s **domain** (*"the `version` FIELD"*) and `release.md §6.10` item `2`'s
-  // parser-domain clause, whose own words are the measured defect: *"WHERE THAT PIN STILL HOLDS A
-  // PREVIOUS VERSION THE ARTEFACT ANSWERS THAT STALE VALUE"* — a value that is NOT this field's.
-  // WHICH STEP IT READS: step `(1)`/`(3)` at BOTH halves of the state, `(vii-a)` and `(vii-b)`.
+test('PAR-PUB-35 (vii) SOURCE :: R2-03 — the ABORT\'S MESSAGE carries the THREE REQUIRED CONTENTS: the STATE (distinguishable), the MANIFEST\'S PATH, and what the MANIFEST MUST CONTAIN', () => {
+  // DERIVES FROM: `release.md §6.10`'s message-content clause at `:569`, READ WHOLE — *"THE MESSAGE EACH
+  // OF THESE FOUR STATES PRODUCES MUST CARRY, AT A MINIMUM — AND THE CARRIER'S OWN PROSE IS ITS OWN —
+  // (i) WHICH OF THE FOUR STATES ABORTED, EACH ONE DISTINGUISHABLE FROM EVERY OTHER, SO A READER OF THE
+  // MESSAGE CAN TELL THEM APART; (ii) THE MANIFEST'S OWN PATH AS THE CARRIER READ IT, WHICH IS
+  // `bindings/js/package.json`, so a reader of the message knows WHICH FILE was read; AND (iii) WHAT THE
+  // MANIFEST MUST CONTAIN FOR THE BUILD TO PROCEED — a `version` KEY WHOSE VALUE IS A JSON STRING — so a
+  // reader of the message knows WHAT TO FIX. THE PROSE IS THE CARRIER'S AND NO FURTHER WORDING IS
+  // REQUIRED HERE: THE REQUIREMENT IS CONTENT"* — read with `package.md §6.1` (`:1176`, `:1182`, each
+  // repeating the three contents) and with the ruling's own words, *"generate verbose message"*.
+  //
+  // **ASSERT THE CONTENT, NOT THE WORDING — AND THIS CELL DOES EXACTLY THAT.** `:569` fixes the CONTENT
+  // and says in its own words that *"THE PROSE IS THE CARRIER'S"*; the only spelling fixed anywhere is
+  // the DIRECTIVE'S NAME, at item `1`. So no cell below reads a sentence. What is read, per message:
+  //   (i)   the state's own identifier (`N1`–`N4`, the clause's names) AND the pairwise distinctness of
+  //         the four messages — which is the clause's own operational test of *"DISTINGUISHABLE FROM
+  //         EVERY OTHER"*;
+  //   (ii)  the manifest's path, either literally or through the binding the carrier read it from;
+  //   (iii) the key word `version`, the fact that the value is a `string`, and the `JSON` form named.
+  //   **THE LIMITS ARE STATED, NOT HIDDEN**: a carrier whose message text is assembled wholly inside a
+  //   helper the reader cannot follow would be refused here, and (i)'s distinctness test is read on the
+  //   message the reader CAN see.
+  assertReaderIsSane();
+  const observedSpan = spanReport();
+  const failures = [];
+
+  const sites = abortSitesOf(CARRIER);
+  if (sites.length === 0) {
+    failures.push('(A) THERE IS NO MESSAGE TO READ: 0 aborting calls stand in the value derivation, so no state produces a message at '
+      + 'all. `release.md §6.10` requires the message\'s CONTENT *"EACH OF THESE FOUR STATES PRODUCES"*, so the requirement has no '
+      + 'subject in today\'s carrier.');
+  } else {
+    const messageless = sites.filter((s) => s.message === null);
+    if (messageless.length > 0) {
+      failures.push(`(B) ${messageless.length} ABORT(S) CARRY NO MESSAGE: at build.rs:${messageless.map((s) => s.line).join(', :')}. `
+        + '*"generate verbose message"* is a requirement on the carrier, so an abort with no message satisfies no part of it.');
+    }
+    const rows = messageContentsOf(CARRIER);
+    for (const r of rows) {
+      const missing = ['hasPath', 'hasKey', 'hasString', 'hasJson'].filter((k) => !r[k]);
+      if (missing.length > 0) {
+        failures.push(`(C) THE MESSAGE AT build.rs:${r.line} (state ${r.state}) LACKS REQUIRED CONTENT: [${missing.join(', ')}] `
+          + `— content (ii) is the manifest's own path and content (iii) is *"a \`version\` KEY WHOSE VALUE IS A JSON STRING"*. `
+          + `message read: \`${r.text}\``);
+      }
+    }
+    const byState = new Map();
+    for (const s of sites) if (s.message !== null) for (const n of STATE_NAMES) if (HAS_STATE_NAME[n].test(s.text)) byState.set(n, s.message.trim());
+    if (byState.size < 4) {
+      failures.push(`(D) THE FOUR STATES ARE NOT EACH IDENTIFIED IN A MESSAGE: ${byState.size} of 4 state identifiers stand beside a `
+        + 'message — content (i) is *"WHICH OF THE FOUR STATES ABORTED, EACH ONE DISTINGUISHABLE FROM EVERY OTHER"*.');
+    } else if (new Set(byState.values()).size !== byState.size) {
+      failures.push('(D) TWO STATES PRODUCE THE SAME MESSAGE: the four messages are not pairwise distinguishable, so a reader of the '
+        + 'message CANNOT tell which of the four states aborted — which is the whole of content (i).');
+    }
+  }
+
+  assert.ok(failures.length === 0,
+    'CLAUSE `release.md §6.10`\'s message-content clause at `:569` read with the architect\'s ruling `(a)` (*"generate verbose message"*) and '
+    + 'with `docs/specs/storeroom-js/package.md §6.1` (`:1176`, `:1182`). DECLARED: each of the four aborting states\' messages carries WHICH '
+    + 'STATE aborted (each distinguishable), THE MANIFEST\'S OWN PATH as the carrier read it, and WHAT THE MANIFEST MUST CONTAIN (a `version` '
+    + 'key whose value is a JSON string). PROSE IS NOT ASSERTED — no sentence of the carrier is read. '
+    + `OBSERVED: ${failures.length} of this cell's content checks fail.\n  ` + failures.join('\n  ') + '\n  ' + observedSpan);
+});
+
+// ---------------------------------------------------------------------------------------------
+// `R2-04` — the VALUE LOCATOR does not read ANOTHER KEY'S VALUE — GREEN (and must stay)
+// ---------------------------------------------------------------------------------------------
+test('PAR-PUB-35 (vii) SOURCE :: R2-04 — the value LOCATOR reads only ABSENCE-SCOPED text: no OTHER key\'s value is stamped where the slot holds no string', () => {
+  // DERIVES FROM: `release.md §6.10` item `2`'s parser-domain clause, whose own words are the measured
+  // defect — *"WHERE THAT PIN STILL HOLDS A PREVIOUS VERSION THE ARTEFACT ANSWERS THAT STALE VALUE"* —
+  // and its hazard sentence *"THE STAMP THEN CARRIES THAT OCCURRENCE'S VALUE RATHER THAN THE DECLARED
+  // FIELD'S"*; read with `PAR-PUB-35`'s **domain** (*"the string `bindings/js/package.json`'s `version`
+  // field holds at BUILD TIME"*). **THIS CLAUSE IS NOT SUPERSEDED BY RULING `(a)`: the ruling changed
+  // WHAT HAPPENS AT THE FOUR STATES (an abort, not a substitution) and changes nothing about WHICH TEXT
+  // the locator may read. A carrier that located the value in whole-file text would stamp a neighbouring
+  // key's value even in a carrier that aborts elsewhere.**
   //
   // **WHAT IS ASSERTED.** Every step that LOCATES the value — a colon split and a quote scan — must be
-  // fed text that the version-key search SCOPED, never text that may be THE WHOLE MANIFEST. The
-  // property is stated as a data-flow fact over the carrier's own statements: a binding is
-  // WHOLE-TEXT-POSSIBLE if it holds the manifest read, or if it is derived from a whole-text-possible
-  // binding WITHOUT any step that answers `None` (an absence-scoped search whose absence is handled).
-  // A locating step applied to a whole-text-possible binding is the defect: with the key absent the
-  // colon taken is THE FIRST COLON IN THE FILE, so the value stamped is another key's.
+  // fed text the version-key search SCOPED, never text that may be THE WHOLE MANIFEST. The property is
+  // stated as a data-flow fact over the carrier's own statements: a binding is WHOLE-TEXT-POSSIBLE if it
+  // holds the manifest read, or if it is derived from a whole-text-possible binding WITHOUT any step
+  // that answers `None`. A locating step applied to a whole-text-possible binding is the defect.
   assertReaderIsSane();
   const observedSpan = spanReport();
-
-  // **THE INSTRUMENT IS `locatorViolations`, SHARED WITH ITS NEGATIVE CONTROL (`R2-08`).** The
-  // locator is looked for in `TEXT` and not in `CODE`, because a COLON or a QUOTE is a CHAR LITERAL in
-  // Rust (`':'`, `'"'`) and `CODE` blanks a char literal's body.
   const violations = locatorViolations(CARRIER);
   assert.ok(violations.length === 0,
-    'CLAUSE `parameter-semantics.md §5.1` `(vii)` clause `(C)` read with `PAR-PUB-35`\'s domain (*"the `version` FIELD"*) and '
-    + '`release.md §6.10` item 2\'s parser-domain clause. DECLARED: at a slot that holds no string the carrier substitutes FOR '
-    + 'THAT SLOT — *"NEVER THE NON-STRING"* and never another key\'s value; the value may not be located in text that may be '
-    + `THE WHOLE MANIFEST. OBSERVED: ${violations.length} locating step(s) read WHOLE-TEXT-POSSIBLE text`
-    + `${violations.length === 0 ? '' : `, at build.rs:${violations.map((v) => v.line).join(', :')}`} — with the \`version\` key `
-    + 'ABSENT the unreachable-absence search returns THE WHOLE FILE, so the colon taken is THE FIRST COLON IN THE FILE and the '
-    + 'value stamped is ANOTHER KEY\'S (the package NAME); with the value NON-STRING the same step stamps THE NEXT QUOTED '
-    + 'TOKEN (a neighbouring key\'s NAME).\n'
+    'CLAUSE `release.md §6.10` item `2`\'s parser-domain clause read with `PAR-PUB-35`\'s domain (*"the `version` FIELD"*). DECLARED: the '
+    + 'value may not be located in text that may be THE WHOLE MANIFEST — with the key ABSENT the unreachable-absence search returns THE '
+    + 'WHOLE FILE, so the colon taken is THE FIRST COLON IN THE FILE and the value stamped is ANOTHER KEY\'S. '
+    + `OBSERVED: ${violations.length} locating step(s) read WHOLE-TEXT-POSSIBLE text`
+    + `${violations.length === 0 ? '' : `, at build.rs:${violations.map((v) => v.line).join(', :')}`}.\n`
     + `  observed: ${violations.map((v) => `build.rs:${v.line} [receiver \`${v.receiver}\` is WHOLE-TEXT-POSSIBLE] \`${v.text}\``).join('\n            ')}\n`
     + `  ${observedSpan}`);
 });
 
 // ---------------------------------------------------------------------------------------------
-// `R2-03` — step `(1)`: the directive IS emitted at both states
+// `R2-05` — step `(1)`'s SURVIVING HALF: the directive is emitted for the REAL manifest, once
 // ---------------------------------------------------------------------------------------------
-test('PAR-PUB-35 (vii) step (1) SOURCE :: R2-03 — the directive IS EMITTED at both states: ONE emit site, standing UNCONDITIONAL', () => {
-  // DERIVES FROM: `parameter-semantics.md §5.1` `(vii)` step `(1)` — *"THE DIRECTIVE **IS** EMITTED AT
-  // THIS STATE — the carrier emits the directive for whatever it read, so THE BUILD SCRIPT'S OWN
-  // EMISSION IS A FACT OF THE BUILD SCRIPT AND NOT OF THE MANIFEST'S SHAPE"* — read with clause `(A)`'s
-  // supersession of the *"THE EMITTING ARM EMITS **NOTHING**"* limb and with the consequence sentence
-  // beside it (*"ONLY A DIRECTIVE-BEARING WRITE STANDS"*); `package.md §6.1` read-mechanism clause state
-  // `(iii)`; `release.md §6.10` item `3`'s supersession clause.
-  // WHICH STEP IT READS: step `(1)`, at BOTH halves of the state.
+test('PAR-PUB-35 (vii) SOURCE :: R2-05 — the directive IS EMITTED FOR THE REAL MANIFEST: ONE emit site, standing UNCONDITIONAL on the carried path', () => {
+  // DERIVES FROM: `release.md §6.10`'s five-step locator clause, its own step `(5)` — *"AND THERE IS
+  // EXACTLY ONE EMIT SITE: `let version = slot.to_string();` AT `:105` AND THE SINGLE
+  // `println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}")` AT `:106` — THE FILE CARRIES ONE
+  // `rustc-env` DIRECTIVE AND NO SECOND"* — read with `release.md §6.10` item `1` / `package.md §6.1`
+  // item `2` (the carrier EMITS the directive from the manifest it read), with `package.md §6.1` item
+  // `3`'s precedence (*"`package.json`'s `version` WINS WHEREVER THE MANIFEST CAN BE READ"*), and with
+  // the four-arm clause's own consequence (*"NO DIRECTIVE IS EMITTED ... AT ANY OF THE FOUR"*) — so the
+  // emission is asserted ON THE CARRIED PATH, **which is the only path on which the ruling leaves an
+  // emission to assert**.
   //
-  // **THIS CELL HOLDS TODAY AND MUST KEEP HOLDING**: it is the cell that a fix which "solves" `(vii-b)`
-  // by writing NOTHING for a non-string slot — leaving `option_env!` on `None` and handing the answer
-  // to `(vi)` — would falsify. Its subject is the EMISSION ITSELF, and its instrument is the emitted
-  // directive's own presence: the emit site must exist, it must be the ONLY one (so no second, silent
-  // path answers the state), and it must stand at the derivation's own statement depth, i.e. OUTSIDE
-  // any conditional that could skip it.
+  // **⟶ THE SUPERSEDED HALF OF THE CELL THIS REPLACES IS NAMED, NOT SILENTLY DROPPED.** The cell that
+  // stood here asserted the four-step reading's step `(1)` AT BOTH `(vii)` STATES — *"THE DIRECTIVE IS
+  // EMITTED AT THIS STATE"* — which ruling `(a)` SUPERSEDES at that state (*"AT THESE STATES THE
+  // DIRECTIVE IS NOT EMITTED AND THE BUILD FAILS"*). So the step-`(1)` assertion is RETARGETED from
+  // *"emitted at both states"* to *"emitted on the carried path, and only there"*, which is what
+  // survives. **THE ASSERTION IS NOT WEAKENED IN SUBSTANCE**: one emit site, and no conditional between
+  // the manifest read and it — the guard that a "writes nothing" fix would still have to pass.
   assertReaderIsSane();
 
   assert.equal(EMIT_SITES.length, 1,
-    `CLAUSE \`parameter-semantics.md §5.1\` \`(vii)\` step \`(1)\`. DECLARED: THE DIRECTIVE IS EMITTED AT THIS STATE. OBSERVED: `
-    + `${EMIT_SITES.length} emit site(s) of \`${EMIT_PREFIX}\` in \`bindings/js/build.rs\` — the superseded reading the row`
-    + ` refuses ("DIRECTIVE NOT EMITTED · \`None\` TAKEN · ANSWER \`(vi)\` GOVERNS") is the reading of a carrier whose state `
-    + `\`(vii)\` write is not directive-bearing. Sites: ${EMIT_SITES.map((s) => `build.rs:${s.line}`).join(', ') || 'none'}`);
+    `CLAUSE \`release.md §6.10\`'s five-step locator clause, step \`(5)\`. DECLARED: THE FILE CARRIES ONE \`rustc-env\` DIRECTIVE AND NO `
+    + `SECOND. OBSERVED: ${EMIT_SITES.length} emit site(s) of \`${EMIT_PREFIX}\` in \`bindings/js/build.rs\`. `
+    + `Sites: ${EMIT_SITES.map((s) => `build.rs:${s.line}`).join(', ') || 'none'}`);
 
   assert.equal(EMIT.depth, depthAt(READ_STMT.start),
-    'CLAUSE `parameter-semantics.md §5.1` `(vii)` step `(1)` read with clause `(A)` and its consequence sentence. DECLARED: the '
-    + 'directive is emitted at this state, i.e. NO PATH THROUGH THE DERIVATION REACHES THE END WITHOUT IT — the emission is not '
-    + `guarded. OBSERVED: the emit site stands INSIDE a conditional (brace depth ${EMIT.depth} at build.rs:${EMIT.line}) while the `
-    + `manifest read stands at depth ${depthAt(READ_STMT.start)} (build.rs:${READ_STMT.line}) — a branch exists that can skip the `
-    + 'directive, which is the superseded "writes nothing" shape the row refuses by name.');
+    'CLAUSE `release.md §6.10` item `1` / `docs/specs/storeroom-js/package.md §6.1` item `2`, read with the four-arm clause\'s consequence '
+    + '(*"NO DIRECTIVE IS EMITTED ... AT ANY OF THE FOUR"*, which is the ABORT\'s doing and not a conditional\'s). DECLARED: on the CARRIED '
+    + 'path the emission is not guarded. OBSERVED: the emit site stands INSIDE a conditional '
+    + `(brace depth ${EMIT.depth} at build.rs:${EMIT.line}) while the manifest read stands at depth ${depthAt(READ_STMT.start)} `
+    + `(build.rs:${READ_STMT.line}) — a branch exists that can skip the directive WITHOUT the build failing, which the clause's own words for `
+    + 'the four states do not sanction: there the build FAILS and produces no artefact, it does not finish without the directive.');
 });
 
 // ---------------------------------------------------------------------------------------------
-// `R2-04` — step `(2)`: the `None` arm is NOT taken at either state
+// `R2-06` — state `(v)`: the EMPTY string is a value that was read — GREEN (and must stay)
 // ---------------------------------------------------------------------------------------------
-test('PAR-PUB-35 (vii) step (2) SOURCE :: R2-04 — the `None` arm is NOT taken at either state: the stamped value\'s provenance is the MANIFEST, never the crate version', () => {
-  // DERIVES FROM: `parameter-semantics.md §5.1` `(vii)` step `(2)` — *"THE `None` ARM IS **NOT** TAKEN
-  // AND THE CRATE'S `Cargo.toml` VERSION IS **NOT** THE STAMPED VALUE AT THIS STATE"* — read with
-  // `package.md §6.1` item `3` (the precedence: the manifest wins wherever it can be read, and the
-  // crate version *"reproduces this unit's defect exactly"*) and its read-mechanism clause (`None` is
-  // taken ONLY where the directive was not emitted at all), with `release.md §6.10` item `2` and with
-  // `docs/specs/storeroom-publish/contract.md §5.0a`'s first failure member (*"a released artefact whose
-  // `version()` answers the crate's `Cargo.toml` version"*).
-  // WHICH STEP IT READS: step `(2)`, at BOTH halves of the state.
+test('PAR-PUB-35 (v) SOURCE :: R2-06 — the EMPTY string is a VALUE THAT WAS READ: no fallback and no emptiness test stands in the derivation', () => {
+  // DERIVES FROM: `parameter-semantics.md §5.1`'s outside value `""` → **REFUSED: *"it is a member of the
+  // version read's own mismatch set ... the STAMP MUST NOT FALL BACK FROM IT — an empty string is a value
+  // that WAS READ, not a manifest that could not be read"***, read with the row's clause `(E)`
+  // RE-VERIFICATION (`:454`) — *"WHAT RULING `(a)` RESTORES ... A MANIFEST THAT DECLARES `\"version\": \"\"`
+  // STILL STAMPS THE EMPTY STRING AND STILL REACHES THE ARTEFACT, which is item `5`'s own case; a READ
+  // THAT PRODUCED NO VALUE AT ALL ABORTS THE BUILD"* — and with `package.md §6.1` item `5` and
+  // `release.md §6.10` item `3`.
   //
-  // **THIS CELL HOLDS TODAY AND MUST KEEP HOLDING.** It is asserted by THE EMITTED DIRECTIVE'S OWN
-  // PRESENCE and by the provenance of the binding it carries — NOT by reasoning about `option_env!`
-  // and not by driving anything. Its teeth face the one wrong fix that would green `R2-02`: a carrier
-  // that answers a non-string slot with the crate's version, which is precisely the answer `(vi)`
-  // governs and which `(2)` refuses at this state.
+  // **AND THE RULING DOES NOT MOVE IT, WHICH IS WHY IT IS A CONTROL AND NOT A RETARGET**: the empty case
+  // is *"a value THAT WAS READ"*; the four aborting states are *"a read that produced no value at all"*.
+  // *"THE TWO ARE DISTINGUISHABLE AGAIN, AND THEY ARE DISTINGUISHABLE IN EXACTLY ONE SENSE — ONE OF THEM
+  // FAILS."* A carrier that ABORTS ON A LAWFUL EMPTY VALUE would collapse the very distinction the
+  // clause set rests on.
+  //
+  // **WHAT IS ASSERTED.** No EMPTINESS TEST stands in the value derivation — no `is_empty()`, no
+  // `.len() == 0`, no `== ""` / `!= ""` — because that is the test a fallback FROM A PRESENT VALUE would
+  // be hung on, and under the ruling it is also the test that would turn the lawful empty string into an
+  // abort. **THE LIMIT IS STATED**: a carrier that compared the extracted value against an empty string
+  // by some other spelling would not be seen by this guard.
   assertReaderIsSane();
 
-  const chain = provenanceOf(EMIT_BINDING);
-  const fallbackRows = chain.filter((r) => /CARGO_PKG_VERSION|Cargo\.toml/.test(r.rhs));
-  assert.equal(fallbackRows.length, 0,
-    'CLAUSE `parameter-semantics.md §5.1` `(vii)` step `(2)` read with `package.md §6.1` item `3`. DECLARED: at this state the '
-    + 'crate\'s `Cargo.toml` version is NOT the stamped value — the directive was emitted, so `None` is not taken and `(vi)` does '
-    + `not govern. OBSERVED: the emit interpolates \`${EMIT_BINDING}\`, whose provenance reaches \`CARGO_PKG_VERSION\`/\`Cargo.toml\` `
-    + `at build.rs:${fallbackRows.map((r) => r.line).join(', :')}.\n  chain: `
-    + chain.map((r) => `build.rs:${r.line} [${r.name}]`).join(' ← '));
-
-  assert.equal(/env::var(?:_os)?\s*\(\s*"STOREROOM_JS_PACKAGE_VERSION"/.test(TEXT), false,
-    'CLAUSE `parameter-semantics.md §5.1` `(vii)` step `(2)` read with `release.md §2.4` item `1` and `package.md §6.1` item `2`. '
-    + 'DECLARED: the value the directive carries is the one THIS BUILD read from the manifest; the directive is a TRANSPORT and '
-    + 'never a source set from outside the build. OBSERVED: the carrier CONSULTS THE AMBIENT ENVIRONMENT for the directive\'s own '
-    + `name (\`${DIRECTIVE}\`), so the stamped value could be supplied from outside this build — the refused workflow-env form.`);
-});
-
-// ---------------------------------------------------------------------------------------------
-// `R2-07` — state `(v)`: the EMPTY string is a value that was read
-// ---------------------------------------------------------------------------------------------
-test('PAR-PUB-35 (v) SOURCE :: R2-07 — the EMPTY string is a VALUE THAT WAS READ: no fallback and no emptiness test stands in the derivation', () => {
-  // DERIVES FROM: `parameter-semantics.md §5.1`'s outside value `""` → **REFUSED: *"it is a member of
-  // the version read\'s own mismatch set ... the STAMP MUST NOT FALL BACK FROM IT — an empty string is
-  // a value that WAS READ, not a manifest that could not be read"***; `package.md §6.1` item `5` (the
-  // empty case); `release.md §6.10` item `3`; and `contract.md §5.0a`'s failure member *"a carrier that
-  // falls back from an EMPTY string"*.
-  // WHICH STEP IT READS: none of the four — this is the OTHER state the row distinguishes, and it is
-  // carried here because `(vii)`'s DERIVATION TURNS ON THE DISTINCTION (`(E)`: *"A READABLE `""` IS
-  // STILL A VALUE THAT WAS READ WITH NO FALLBACK, and this state is not that one"*). A carrier that
-  // treats an empty value as absent breaks the distinction the `(vii)` answer is derived from.
-  //
-  // **THIS CELL HOLDS TODAY AND MUST KEEP HOLDING.** It is a SOURCE assertion: no emptiness test and
-  // no fallback stands in the value derivation.
-  assertReaderIsSane();
-
-  const EMPTINESS = EMPTINESS_TEST; // THE INSTRUMENT, SHARED WITH ITS NEGATIVE CONTROL (`R2-08`)
-  const hit = EMPTINESS.exec(SPAN);
+  const hit = EMPTINESS_TEST.exec(SPAN);
   assert.ok(hit === null,
-    'CLAUSE `parameter-semantics.md §5.1` (outside value `""`) read with `package.md §6.1` item `5` / `release.md §6.10` item `3`. '
-    + 'DECLARED: where the manifest reads `""` the stamped value IS the empty string and NO fallback runs — the empty string is '
-    + 'a value that WAS read, so it is not the absent case. OBSERVED: the value derivation tests the value for EMPTINESS'
-    + `${hit === null ? '' : ` at build.rs:${lineOf(SPAN_START + hit.index)} (\`${snippet(hit[0], 60)}\`)`}, which is the test a `
-    + 'fallback from a PRESENT value would be hung on — the widening `(b)` was refused for.\n  ' + spanReport());
+    'CLAUSE `parameter-semantics.md §5.1` (outside value `""`) read with its clause `(E)` re-verification at `:454`, `package.md §6.1` item `5` '
+    + 'and `release.md §6.10` item `3`. DECLARED: where the manifest reads `""` the stamped value IS the empty string and NO fallback runs — '
+    + 'the empty string is a value that WAS read, and it is NOT one of the four aborting states. OBSERVED: the value derivation tests the '
+    + `value for EMPTINESS${hit === null ? '' : ` at build.rs:${lineOf(SPAN_START + hit.index)} (\`${snippet(hit[0], 60)}\`)`}, which is the `
+    + 'test a fallback from a PRESENT value would be hung on — and the test that would ABORT the lawful empty case the ruling leaves stamping.\n  '
+    + spanReport());
 });
 
 // ---------------------------------------------------------------------------------------------
-// `R2-05` — THE CONTROL: the real manifest still stamps its own `version`, character for character
+// `R2-07` — THE DRIVEN CONTROL on state `(i)`: the value is the MANIFEST's, character for character
 // ---------------------------------------------------------------------------------------------
-test('PAR-PUB-35 (i) DRIVEN :: R2-05 — THE CONTROL: the real manifest still stamps its OWN `version`, character for character', () => {
+test('PAR-PUB-35 (i) DRIVEN :: R2-07 — THE CONTROL: the real manifest still stamps `0.1.1` character for character, through the artefact\'s OWN `version()`', () => {
   // DERIVES FROM: `parameter-semantics.md §5.1` — the row's **observable**, *"the artefact's own
   // `version()`, returned through the facade"*, and its **domain**, *"the string
   // `bindings/js/package.json`'s `version` field holds at BUILD TIME — character for character"* — read
-  // with `contract.md §5.0a` (`P-PUB-9`: *"every released native artefact's `version()` answers the
-  // main package manifest's `version` CHARACTER FOR CHARACTER"*) and `package.md §6.1` item `1`.
-  // WHICH STEP IT READS: none — it is the HAPPY PATH, state `(i)`, and it is the control the red set
-  // owes: **a red set that cannot show the correct path intact is a red set that a wrong fix would
-  // satisfy.** It is a DRIVEN cell because state `(i)` is not a source-level refusal: `A95`'s
-  // prohibition reaches refusals whose falsifier is the source, and this cell asserts the answer of the
-  // artefact's own read instead.
+  // with `contract.md §5.0a` (`P-PUB-9`: *"every released native artefact's `version()` answers the main
+  // package manifest's `version` CHARACTER FOR CHARACTER"*), with `package.md §6.1` item `1`, and with
+  // the read-mechanism clause's states `(i)`/`(ii)`: *"`Some(that value)`, and NO fallback runs ... (ii)
+  // THE DIRECTIVE WAS NOT EMITTED AT ALL — `None`, AND THIS IS THE ONLY BRANCH WHERE THE CRATE'S VERSION
+  // IS TAKEN."* **STATE `(i)` IS NOT A SOURCE-LEVEL REFUSAL, so `A95`'s prohibition does not reach this
+  // cell** — it is the DRIVEN happy-path control: *"a red set that cannot show the correct path intact is
+  // a red set that a wrong fix would satisfy."*
   //
   // **IT DRIVES NO RELEASE LEG AND BUILDS NOTHING**: it loads the host target's own build product
-  // (`distribution.md §3.1`: *"NO BINARY IS EVER COMMITTED"*, so the file is a gitignored build
-  // product) and calls the declared observable. **ITS ABSENCE IS REPORTED AS A NAMED SKIP WITH ITS
-  // REASON AND NEVER AS A PASS.**
-  const occurrences = (readFileSync(MANIFEST_PATH, 'utf8').match(/"version"/g) ?? []).length;
-  assert.equal(occurrences, 1,
-    'CLAUSE `release.md §6.10` item `2`\'s parser-domain clause, whose own instrument this control re-runs: *"THE BYTE-SEQUENCE '
-    + '`"version"` OCCURS EXACTLY ONCE IN THIS MANIFEST — `grep -c \'"version"\' bindings/js/package.json` returns `1`, at line '
-    + `\`3\`"*. OBSERVED: ${occurrences} occurrence(s) — the correct path this control certifies is then not the path the clause `
-    + 'declared, so the control reports the divergence instead of certifying a shape the clause does not carry.');
+  // (`distribution.md §3.1`: *"NO BINARY IS EVER COMMITTED"*, so the file is a gitignored build product)
+  // and calls the declared observable. **AND IT RE-RUNS THE `"version"` COUNT THE CLAUSES THEMSELVES
+  // PRINT — CORRECTED TO THE MEASURED FIGURE**: the count is `1`, measured with `grep -o '"version"
+  // bindings/js/package.json | wc -l` → `1` (and `grep -c` → `1`, at line `3`). A prior pass recorded
+  // `6` BY COUNTING A DIFFERENT TOKEN and the stale premise is corrected here, beside the instrument.
+  const measured = (readFileSync(MANIFEST_PATH, 'utf8').match(/"version"/g) ?? []).length;
+  assert.equal(measured, 1,
+    'CLAUSE `release.md §6.10` item `2`\'s parser-domain clause, whose own instrument this control re-runs: *"THE BYTE-SEQUENCE `"version"` '
+    + 'OCCURS EXACTLY ONCE IN THIS MANIFEST — `grep -c \'"version"\' bindings/js/package.json` returns `1`, at line `3`"*. THE MEASURED FIGURE '
+    + `IS \`1\` (\`grep -o '"version"' bindings/js/package.json | wc -l\` → \`1\`; the count of \`6\` one pass recorded is the number of `
+    + 'PLATFORM MANIFESTS, not of occurrences in this file, and is corrected here). OBSERVED: '
+    + `${measured} occurrence(s) — the correct path this control certifies is then not the path the clause declared, so the control reports the `
+    + 'divergence instead of certifying a shape the clause does not carry.');
 
   if (!existsSync(BUILT_ARTEFACT)) {
-    console.log('[version-stamp-r2] SKIP R2-05 the control — no artefact at ' + BUILT_ARTEFACT
+    console.log('[version-stamp-r2] SKIP R2-07 the control — no artefact at ' + BUILT_ARTEFACT
       + ': the tracked tree carries no binary (`distribution.md §3.1`) and this pass runs no `cargo`. '
       + 'REBUILD TO MAKE THIS CONTROL ACTIVE.');
     return;
@@ -714,141 +1039,278 @@ test('PAR-PUB-35 (i) DRIVEN :: R2-05 — THE CONTROL: the real manifest still st
   const require_ = createRequire(import.meta.url);
   const native = require_(BUILT_ARTEFACT);
   assert.equal(typeof native.version, 'function',
-    '`contract.md §5.0a`: a `version` that is not callable at all is a member of the failure list, so the artefact\'s own read '
-    + 'must be callable. OBSERVED: the loaded artefact exposes no callable `version`.');
+    '`contract.md §5.0a`: a `version` that is not callable at all is a member of the failure list, so the artefact\'s own read must be '
+    + 'callable. OBSERVED: the loaded artefact exposes no callable `version`.');
   const answer = native.version();
   assert.equal(typeof answer, 'string',
-    '`parameter-semantics.md §5.1` (outside value: *"a stamped value that is not a `string` at the artefact\'s own export"* → '
-    + `REFUSED) / \`contract.md §5.0a\`. DECLARED: a semantic version string, the exact string the manifest carries. OBSERVED: `
+    '`parameter-semantics.md §5.1` (outside value: *"a stamped value that is not a `string` at the artefact\'s own export"* → REFUSED) / '
+    + `\`contract.md §5.0a\`. DECLARED: a semantic version string, the exact string the manifest carries. OBSERVED: `
     + `\`typeof version() === '${typeof answer}'\` (${JSON.stringify(answer)}).`);
   assert.equal(answer, MANIFEST_VERSION,
-    'CLAUSE `parameter-semantics.md §5.1` domain + `contract.md §5.0a`. DECLARED: the artefact\'s `version()` answers the package '
-    + `manifest\'s \`version\` CHARACTER FOR CHARACTER. OBSERVED: artefact=${JSON.stringify(answer)} `
+    'CLAUSE `parameter-semantics.md §5.1` domain + `contract.md §5.0a`. DECLARED: the artefact\'s `version()` answers the package manifest\'s '
+    + `\`version\` CHARACTER FOR CHARACTER — \`0.1.1\` today. OBSERVED: artefact=${JSON.stringify(answer)} `
     + `(${[...answer].length} characters), manifest=${JSON.stringify(MANIFEST_VERSION)} (${[...MANIFEST_VERSION].length} characters).`);
   assert.notEqual(answer, CRATE_VERSION,
-    'CLAUSE step `(2)` at state `(i)` read with `release.md §6.10` item `2`: the crate\'s `Cargo.toml` version is the `None` arm\'s '
-    + `value and is NOT the stamped value wherever the manifest could be read. OBSERVED: the artefact answers the crate's own `
-    + `version (${JSON.stringify(CRATE_VERSION)}), which is \`DEF-19\` reproduced — a fallback-sourced artefact.`);
-  console.log(`[version-stamp-r2] R2-05 DRIVEN (the control): artefact version()=${JSON.stringify(answer)} `
+    'CLAUSE `package.md §6.1` read-mechanism clause state `(ii)` read with `release.md §6.10` item `2`: the crate\'s `Cargo.toml` version is '
+    + 'the `None` arm\'s value and is NOT the stamped value wherever the manifest could be read. OBSERVED: the artefact answers the crate\'s '
+    + `own version (${JSON.stringify(CRATE_VERSION)}), which is \`DEF-19\` reproduced — a fallback-sourced artefact.`);
+  console.log(`[version-stamp-r2] R2-07 DRIVEN (the control): artefact version()=${JSON.stringify(answer)} `
     + `(${[...answer].length} chars), manifest=${JSON.stringify(MANIFEST_VERSION)} (${[...MANIFEST_VERSION].length} chars), `
-    + `crate=${JSON.stringify(CRATE_VERSION)} — the correct path is intact.`);
+    + `crate=${JSON.stringify(CRATE_VERSION)} — the correct path is intact. And the measured "version" occurrence count is ${measured} `
+    + '(the corrected figure; the count of 6 was a different token).');
 });
 
 // ---------------------------------------------------------------------------------------------
-// `R2-08` — THE INSTRUMENTS' OWN TEETH: the CORRECT PATH is ADMITTED, and every guard FIRES on the
-// mutation it exists to catch
+// `R2-08` — the provenance of the emitted value: the MANIFEST, never the crate version — GREEN
 // ---------------------------------------------------------------------------------------------
-/** **A SYNTHETIC CARRIER THAT CARRIES THE CLAUSE'S OWN ANSWER** — the shape `(vii)`'s four steps and
- *  clause `(C)` require, written the way a build script would write it: it reads the manifest itself,
- *  identifies the slot by its own key, CONSULTS THE SLOT VALUE'S OWN SHAPE, holds the absence as a
- *  state, substitutes for a slot that holds no string, and emits ONE UNCONDITIONAL directive.
- *  **THE SUBSTITUTION'S SPELLING IS THE TEMPLATE'S AND IS ASSERTED NOWHERE**: the clause fixes THAT a
- *  substitution is stamped and does NOT fix its spelling, so no cell of this set reads it. */
-function syntheticCarrier({ shapeTest = true, emptinessTest = false, emitGuard = false, totalSearch = false } = {}) {
-  const inner = shapeTest
-    ? ['                match text.strip_prefix(\'"\') {',
-       '                    Some(body) => match body.find(\'"\') {',
-       '                        Some(end) => body[..end].to_string(),',
-       '                        None => String::new(),',
-       '                    },',
-       '                    None => String::new(),',
-       '                }']
-    : ['                match text.find(\'"\') {',
-       '                    Some(end) => text[..end].to_string(),',
-       '                    None => String::new(),',
-       '                }'];
+test('PAR-PUB-35 SOURCE :: R2-08 — the emitted value\'s provenance reaches the MANIFEST read: no crate version and no ambient environment path leads to the directive', () => {
+  // DERIVES FROM: `release.md §6.10` item `2` (the absent case is *"WHERE THE MANIFEST CANNOT BE READ AT
+  // BUILD TIME"*, and the fallback *"REPRODUCES `DEF-19` EXACTLY"*), `package.md §6.1` item `3`'s
+  // precedence (*"`package.json`'s `version` WINS WHEREVER THE MANIFEST CAN BE READ"*) and item `2`'s
+  // refusal (*"THE BUILD SCRIPT CONSULTS NO AMBIENT ENVIRONMENT VARIABLE AT ALL"*), and
+  // `contract.md §5.0a`'s first failure member (*"a released artefact whose `version()` answers the
+  // crate's `Cargo.toml` version"*) with its ambient-read member's own declared source-level falsifier.
+  // **THE FOUR-STEP READING'S STEP `(2)` IS SUPERSEDED AT THE `(vii)` STATES** (*"STEPS `(3)` AND `(4)`
+  // ARE THEREFORE UNREACHED AT THESE STATES"*, and `(2)`'s own premise belongs to the superseded
+  // reading), so this cell asserts the surviving control — THE CARRIED PATH's provenance — and asserts
+  // it of the real manifest, where the clause's precedence is unmoved: *"a readable `\"\"` ... still
+  // reaches the artefact"* and the crate version is taken *"IN ONE CASE ONLY, THE MANIFEST THAT CANNOT
+  // BE READ"*.
+  //
+  // **WHAT IS ASSERTED.** The binding the directive interpolates has a provenance that reaches no
+  // `CARGO_PKG_VERSION` / `Cargo.toml` row; the carrier consults no ambient variable under the
+  // directive's own name; and the provenance does reach the manifest read built through
+  // `CARGO_MANIFEST_DIR` (`package.md §6.1` item `7`).
+  assertReaderIsSane();
+
+  const chain = provenanceOf(EMIT_BINDING);
+  const fallbackRows = chain.filter((r) => /CARGO_PKG_VERSION|Cargo\.toml/.test(r.rhs));
+  assert.equal(fallbackRows.length, 0,
+    'CLAUSE `release.md §6.10` item `2` read with `package.md §6.1` item `3`. DECLARED: the crate\'s `Cargo.toml` version is taken in ONE '
+    + 'case only — the manifest that cannot be read — and is NOT the value the directive carries on the carried path. OBSERVED: the emit '
+    + `interpolates \`${EMIT_BINDING}\`, whose provenance reaches \`CARGO_PKG_VERSION\`/\`Cargo.toml\` at build.rs:`
+    + `${fallbackRows.map((r) => r.line).join(', :')}.\n  chain: ` + chain.map((r) => `build.rs:${r.line} [${r.name}]`).join(' ← '));
+
+  assert.ok(chain.some((r) => /read_to_string\s*\(/.test(r.rhs)),
+    'CLAUSE `release.md §2.4` item `1` / `docs/specs/storeroom-js/package.md §6.1` item `2`. DECLARED: the directive\'s value is DERIVED '
+    + 'FROM THE MANIFEST THE CARRIER READS — *"`bindings/js/build.rs` READS THE MANIFEST ITSELF"*. OBSERVED: the provenance of the emitted '
+    + `binding reaches NO \`read_to_string\` statement, so the value printed is not derived from the manifest read.\n  chain: `
+    + chain.map((r) => `build.rs:${r.line} [${r.name}]`).join(' ← '));
+
+  assert.equal(ambientReadOfDirective(CARRIER), false,
+    'CLAUSE `package.md §6.1` item `2` / `release.md §2.4` item `1` and `contract.md §5.0a`\'s ambient-read member (whose falsifier is '
+    + 'declared as a source-level check). DECLARED: the value the directive carries is the one THIS BUILD read from the manifest — the '
+    + 'directive is a TRANSPORT and never a source set from outside the build. OBSERVED: the carrier CONSULTS THE AMBIENT ENVIRONMENT for the '
+    + `directive's own name (\`${DIRECTIVE}\`), so the stamped value could be supplied from outside this build — the refused workflow-env form.`);
+});
+
+// ---------------------------------------------------------------------------------------------
+// `R2-09` — the manifest that CANNOT BE READ: its own state, carried so it is not confused with the four
+// ---------------------------------------------------------------------------------------------
+test('PAR-PUB-35 (vii-) SOURCE :: R2-09 — THE MANIFEST THAT CANNOT BE READ aborts AT ITS OWN SITE: its own state, distinct from the four arms', () => {
+  // DERIVES FROM: `docs/specs/storeroom-js/package.md §6.1` limb `(A)` — DELIBERATELY NOT RE-CUT, and
+  // said to be so at `:1201`: *"AND LIMB `(A)` IS DELIBERATELY NOT RE-CUT ... its anchor and its
+  // mechanism both still stand at `:70`–`:71`"*, with `:1202` — *"`(A)` is a panic at the manifest read
+  // and `(B)` is an abort at the slot; BOTH ARE THE BUILD'S OWN FAILURE"* — and with `:1203`'s own words:
+  // *"(A) A MANIFEST THAT CANNOT BE READ PANICS AT `bindings/js/build.rs` `:70`–`:71`
+  // (`fs::read_to_string(...).expect(...)`)"*; read with `release.md §6.10`'s delimitation clause at
+  // `:571` — *"AND THE ONE ABORT THE CLAUSE ABOVE ALREADY NAMES IS NOT ONE OF THE FOUR: the manifest read
+  // at `:70`–`:71` still aborts where the file cannot be read, and that state is neither `(N1)` nor any
+  // of the other three"* — and with `parameter-semantics.md §5.1`'s reconciliation clause (`:482`,
+  // `:483`): *"A MISSING OR UNREADABLE MANIFEST PANICS AND THAT STATE NEVER REACHES THE FALLBACK
+  // EITHER ... SO THE FALLBACK'S SUBJECT IS NARROWER"*.
+  //
+  // **IS IT DECLARED CLEARLY ENOUGH FOR A CELL? — YES, AND THE TEST OF "CLEARLY ENOUGH" IS WHETHER THE
+  // CELL CAN BE STATED WITHOUT INVENTING A DETAIL.** The clause fixes: the SITE (the manifest read),
+  // the MECHANISM (`fs::read_to_string(...)` followed by a panicking call), the LAYER (the carrier's own
+  // bytes — *"AND NO CELL MAY CLAIM TO FAIL EITHER LIMB BY DRIVING A RUN: the observable is the
+  // CARRIER'S OWN BYTES"*, `:1203`), and the STATE'S DISTINCTNESS from the four (`:571`). **WHAT IT DOES
+  // NOT FIX IS ANY PROSE** — and no cell below asserts any. What it does NOT fix is also why the
+  // message-content requirement at `release.md §6.10` `:569` is NOT read onto this state: `:569` is
+  // *"THE MESSAGE EACH OF THESE FOUR STATES PRODUCES"*, and this is not one of the four.
+  //
+  // **IT HOLDS TODAY AND MUST KEEP HOLDING.** The read aborts; what the ruling does at the four arms
+  // does not move this limb, and a fix that replaced the four arms' aborts while removing this one would
+  // falsify this cell.
+  assertReaderIsSane();
+
+  assert.ok(READ_STMT !== null && /read_to_string\s*\(/.test(READ_STMT.rhs),
+    'CLAUSE `docs/specs/storeroom-js/package.md §6.1` limb `(A)` (`:1201`, `:1203`) read with `release.md §6.10`\'s `:571` delimitation. '
+    + 'DECLARED: the carrier reads the manifest itself with `fs::read_to_string(...)`. OBSERVED: no read statement carrying '
+    + '`read_to_string` stands in the carrier.');
+
+  const readText = READ_STMT.text;
+  assert.ok(/\.\s*(?:expect|unwrap)\s*\(/.test(readText),
+    'CLAUSE `package.md §6.1` limb `(A)` — *"(A) A MANIFEST THAT CANNOT BE READ PANICS AT `bindings/js/build.rs` `:70`–`:71` '
+    + '(`fs::read_to_string(...).expect(...)`)"* — read with `release.md §6.10`\'s `:571`. DECLARED: the manifest read ABORTS AT ITS OWN SITE '
+    + 'where the file cannot be read, and that state is NEITHER `(N1)` NOR ANY OF THE OTHER THREE. OBSERVED: the read statement carries no '
+    + `abort, so the unreadable state would fall through to a value or to a later state rather than aborting where the clause declares. `
+    + `read statement: \`${snippet(readText, 240)}\``);
+
+  const readSites = abortSitesOf(CARRIER);
+  assert.ok(readSites.every((s) => s.receiver === null),
+    'and the read\'s own abort is EXCLUDED from the four-state span BY CONSTRUCTION, so it can never be counted among `(N1)`–`(N4)`: '
+    + 'every abort this reader finds inside the span is a MACRO abort with no receiver, and the read\'s own panic — '
+    + '`fs::read_to_string(..).expect(..)`, which HAS a receiver — lies outside the span. '
+    + `(${CARRIER.READ_ABORT_NOTE}).`);
+});
+
+// =============================================================================================
+// `R2-10` — THE INSTRUMENTS' OWN TEETH, AND THE REAL-CARRIER ADMISSION VECTOR
+// =============================================================================================
+/** **A SYNTHETIC CARRIER THAT CARRIES THE CLAUSE'S OWN ANSWER UNDER RULING `(a)`** — the shape the four
+ *  states and `:569`'s content requirement spell, written the way a build script would write it: it
+ *  reads the manifest itself, identifies the slot by its own key, HOLDS THE ABSENCE AS A STATE, and AT
+ *  EACH OF THE FOUR STATES **ABORTS WITH ITS OWN MESSAGE CARRYING WHICH STATE, THE MANIFEST'S PATH, AND
+ *  WHAT THE MANIFEST MUST CONTAIN**. Its emit site stands UNGUARDED on the carried path.
+ *  **THE PROSE IS THIS TEMPLATE'S AND IS ASSERTED NOWHERE**: `:569` fixes the CONTENT and says *"THE
+ *  PROSE IS THE CARRIER'S"*, so no cell of this set reads a sentence of it. */
+function syntheticCarrier({ silenceArms = false, guardEmit = false, crateVersion = false, totalSearch = false, emptinessTest = false, shapeConsulted = true } = {}) {
+  // **THE FOUR ARMS' OWN BODIES, ONE PER STATE.** The aborting shape is a `panic!` in the SPAN — no
+  // `.expect` from a helper — and the silent shape is a SINGLE-LINE `X => ""` arm, which is how the
+  // superseded reading's own arm reads at the carrier's bytes. **THE ARROW AND ITS BODY ARE ON THE SAME
+  // LINE IN THE SILENT FORM ON PURPOSE**: a guard reads an arm as the text after its arrow, so a
+  // generator that put `""` on its own line would produce a mutation no arm-reading guard could see.
+  const arm = (indent, pattern, state) => (silenceArms
+    ? [`${indent}${pattern} => "",`]
+    : [`${indent}${pattern} => {`,
+       `${indent}    panic!(`,
+       `${indent}        "the stamp's read reached state ${state}: the manifest {MANIFEST} must declare a version "`,
+       `${indent}        + "key whose value is a JSON string, and this one does not"`,
+       `${indent}    );`,
+       `${indent}},`]);
   const emit = '    println!("cargo:rustc-env=STOREROOM_JS_PACKAGE_VERSION={version}");';
+  const search = totalSearch
+    ? ['    let tail = declared.rsplit("\\"version\\"").next().expect("the manifest declares a `version` field");',
+       "    let rest = tail.split_once(':').expect(\"the `version` field is a key with a value\").1;",
+       '    let version = rest.trim_start();']
+    : ['    let version = match declared.rsplit_once("\\"version\\"") {',
+       '        Some((_, rest)) => match rest.split_once(\':\') {',
+       shapeConsulted
+         ? '            Some((_, value)) => match value.trim_start().strip_prefix(\'"\') {'
+         : '            Some((_, value)) => match value.find(\'"\') {',
+       shapeConsulted
+         ? ['                Some(body) => match body.find(\'"\') {',
+            '                    Some(end) => &body[..end],',
+            ...arm('                    ', 'None', 'N4'),
+            '                },',
+            ...arm('                ', 'None', 'N3'),
+            '            },']
+         : ['                Some(body) => &body[..end],',
+            ...arm('                ', 'None', 'N3'),
+            '            },'],
+       '            None => match () {',
+       ...arm('                ', '()', 'N2'),
+       '            },',
+       '        },',
+       '        None => match () {',
+       ...arm('            ', '()', 'N1'),
+       '        },',
+       '    };'];
+  const fallback = crateVersion ? ['    let version = env!("CARGO_PKG_VERSION");'] : [];
+  const emptiness = emptinessTest ? ['    let version = if version.is_empty() { String::new() } else { version };'] : [];
+  const emitBlock = guardEmit ? ['    if declared.len() > 0 {', `    ${emit}`, '    }'] : [emit];
   return [
+    'use std::env; use std::fs;',
     'fn main() {',
     '    let manifest = env::var("CARGO_MANIFEST_DIR").expect("set by cargo for every build script");',
     '    let declared = fs::read_to_string(format!("{manifest}/package.json"))',
-    '        .expect("the sibling manifest is readable");',
-    ...(totalSearch
-      ? ['    let tail = declared.rsplit("\\"version\\"").next().expect("the manifest declares a `version` field");',
-         '    let rest = tail.split_once(\':\').expect("the `version` field is a key with a value").1;',
-         '    let version = rest.trim_start();']
-      : ['    let version = match declared.split_once("\\"version\\"") {',
-         "        Some((_, rest)) => match rest.split_once(':') {",
-         '            Some((_, value)) => {',
-         '                let text = value.trim_start();',
-         ...inner,
-         '            }',
-         '            None => String::new(),',
-         '        },',
-         '        None => String::new(),',
-         '    };']),
-    ...(emptinessTest ? ['    let version = if version.is_empty() { String::new() } else { version };'] : []),
-    ...(emitGuard ? ['    if declared.len() > 0 {', `    ${emit}`, '    }'] : [emit]),
+    '        .expect("bindings/js/package.json is the crate\'s sibling manifest and is readable");',
+    ...fallback,
+    ...search,
+    ...emptiness,
+    ...emitBlock,
     '}',
     '',
-  ].join('\n');
+  ].flat(Infinity).join('\n');
 }
 
-test('THE R2 INSTRUMENTS\' OWN TEETH :: R2-08 — a LAWFUL carrier is ADMITTED by every guard, and each guard FIRES on the mutation it exists to catch', () => {
+test('THE R2 INSTRUMENTS\' OWN TEETH :: R2-10 — a LAWFUL carrier is ADMITTED by every guard, each guard FIRES on its mutation, AND THE SAME VECTOR IS RUN OVER THE REAL `bindings/js/build.rs`', () => {
   // **WHY THIS CELL EXISTS, IN `A95`'S OWN TERMS.** `A95` allows a SOURCE-LEVEL refusal to stand on the
   // source rather than on a run, PROVIDED it names that layer — and a guard that cannot fail is worth
-  // nothing as firability. **SO THIS CELL DRIVES EACH OF THE INSTRUMENTS — the SAME NAMED PREDICATES THE
-  // CLAUSE CELLS RUN — AGAINST (a) A SYNTHETIC CARRIER THAT CARRIES THE CLAUSE'S OWN ANSWER, and (b)
-  // MUTATED COPIES OF THE REAL CARRIER, ONE MUTATION PER GUARD.** No clause is decided here; the
-  // instruments are, and the cell is green today because a correct instrument admits the correct path
-  // and refuses the wrong ones.
+  // nothing as firability. **AND THIS CELL CLOSES THE GAP THE ADVERSARIAL PASS FOUND**: the previous set
+  // put ONLY A SYNTHETIC through its admission vector — `8/8` admissions ran on a synthetic — and the
+  // SHIPPED BYTES WERE NEVER TESTED AGAINST THEM, which is exactly where a contradiction hid. **SO THE
+  // SAME VECTOR RUNS OVER THE REAL CARRIER HERE, AND ITS VERDICT IS PRINTED GUARD BY GUARD.**
   //
-  // **EVERY MUTATION IS A CARRIER OF THIS CELL'S OWN MAKING, AND NONE OF THEM IS THE REAL CARRIER**: a
-  // battery that took the real carrier as its red mutation would turn RED ITSELF the moment the
-  // correction lands, and would then be a control that punishes the fix. `M1` and `M2` are spliced into
-  // the real carrier's own bytes at the offsets THIS FILE'S READER found — so they are anchored to
-  // whatever the carrier BECOMES and not to the spelling it has today — while `M3`–`M6` are knobs of the
-  // synthetic.
+  // **EACH MUTATION IS A CARRIER OF THIS CELL'S OWN MAKING, AND NONE IS THE REAL CARRIER**: a battery
+  // that took the real carrier as its red mutation would turn RED ITSELF the moment the correction lands.
+  // **THE CLAUSE-CURRENCY CONTROL RUNS HERE, ONCE, BESIDE THE INSTRUMENTS** — every cell of this file
+  // derives from one of the sentences it reads, so a clause that has MOVED is reported before any
+  // instrument's verdict is trusted.
+  assertClauseSetIsCurrent();
+
   const REAL = readFileSync(BUILD_RS, 'utf8');
 
   const LAWFUL = syntheticCarrier({});
   const lawful = readCarrier(LAWFUL);
   assertReaderIsSaneOf(lawful); // the synthetic is read by the SAME reader, or nothing below means anything
 
-  const admissions = [
-    ['R2-01(A) no TOTAL rightmost-occurrence search', !TOTAL_SEARCH.test(lawful.SPAN)],
-    ['R2-01(B) the absence is HELD AS A STATE', ABSENCE_HELD.test(lawful.SPAN)],
-    ['R2-02(A) NO aborting call on the derivation path', !ABORT_ANYWHERE.test(lawful.SPAN)],
-    ['R2-02(B) the slot value\'s OWN SHAPE is consulted', SHAPE_CONSULTED.test(lawful.SPAN)],
-    ['R2-03 ONE emit site, standing UNGUARDED', emitSiteCount(lawful) === 1 && !emitIsGuarded(lawful)],
-    ['R2-04 the provenance is the MANIFEST (no crate version, no ambient read)',
-      fallbackRowsInProvenance(lawful).length === 0 && !ambientReadOfDirective(lawful)],
-    ['R2-06 every value LOCATOR reads ABSENCE-SCOPED text', locatorViolations(lawful).length === 0],
-    ['R2-07 NO emptiness test on the value', !EMPTINESS_TEST.test(lawful.SPAN)],
-  ];
+  const verdictsOf = (c) => ADMISSION.map(([id, guard]) => ({ id, admitted: (() => { try { return Boolean(guard(c)); } catch (e) { return `THREW: ${e.message}`; } })() }));
 
-  // **EACH MUTATION DIFFERS FROM THE ADMITTED SHAPE IN ONE RESPECT**, and names the guard it must trip.
+  // (a) THE SYNTHETIC THAT CARRIES THE CLAUSE'S ANSWER MUST BE ADMITTED BY EVERY GUARD.
+  const syntheticVerdicts = verdictsOf(lawful);
+  const syntheticRefused = syntheticVerdicts.filter((v) => v.admitted !== true);
+
+  // (b) EACH GUARD MUST FIRE ON ITS OWN ONE-RESPECT MUTATION.
   const mutations = [
-    ['M1 → R2-03', syntheticCarrier({ emitGuard: true }),
-      (c) => emitIsGuarded(c), 'the directive stands INSIDE a conditional — the "writes NOTHING" path'],
-    ['M2 → R2-04', REAL.slice(0, EMIT.start)
+    ['M1 → ADM-3/5/6/7', syntheticCarrier({ silenceArms: true }),
+      (c) => silentArmDefaultsOf(c).length > 0, 'the arms ANSWER the empty string instead of aborting — the shape today\'s carrier carries and the ruling forbids'],
+    ['M2 → ADM-8', syntheticCarrier({ guardEmit: true }),
+      (c) => emitIsGuarded(c), 'the directive stands INSIDE a conditional on the carried path'],
+    ['M3 → ADM-9', REAL.slice(0, EMIT.start)
       + `    let ${EMIT_BINDING} = env!("CARGO_PKG_VERSION").to_string();\n` + REAL.slice(EMIT.start),
       (c) => fallbackRowsInProvenance(c).length > 0, 'the stamped value is taken from the crate version — the `None` arm'],
-    ['M3 → R2-07', syntheticCarrier({ emptinessTest: true }),
-      (c) => EMPTINESS_TEST.test(c.SPAN), 'a fallback from an EMPTY string — the widening `(b)` the row refused'],
-    ['M4 → R2-02(B)', syntheticCarrier({ shapeTest: false }),
-      (c) => !SHAPE_CONSULTED.test(c.SPAN), 'no consultation of the slot value\'s own shape'],
-    ['M5 → R2-01(A)', syntheticCarrier({ totalSearch: true }),
-      (c) => TOTAL_SEARCH.test(c.SPAN), 'the TOTAL rightmost-occurrence search — the shape `release.md §6.10` item 2 declares, and the one today\'s carrier carries'],
-    ['M6 → R2-06', syntheticCarrier({ totalSearch: true }),
-      (c) => locatorViolations(c).length > 0, 'a value LOCATOR reading WHOLE-TEXT-POSSIBLE text — THE SAME ONE-RESPECT MUTATION as `M5`: the total search is what makes the locator whole-text-possible, and the two guards divide that one defect between them'],
+    ['M4 → ADM-11', syntheticCarrier({ emptinessTest: true }),
+      (c) => EMPTINESS_TEST.test(c.SPAN), 'a fallback from an EMPTY string — the widening `(b)` the row refused, and now also the test that would abort the lawful empty case'],
+    ['M5 → ADM-10', syntheticCarrier({ totalSearch: true }),
+      (c) => locatorViolations(c).length > 0, 'a value LOCATOR reading WHOLE-TEXT-POSSIBLE text — made whole-text-possible by the TOTAL search'],
+    ['M6 → ADM-1', syntheticCarrier({ totalSearch: true }),
+      (c) => TOTAL_SEARCH.test(c.SPAN), 'the TOTAL rightmost-occurrence search — the shape that cannot answer absence'],
+    ['M7 → ADM-9', REAL.slice(0, EMIT.start)
+      + `    let ${EMIT_BINDING} = env::var("${DIRECTIVE}").expect("set outside the build");\n` + REAL.slice(EMIT.start),
+      (c) => ambientReadOfDirective(c), 'the directive\'s value taken from the AMBIENT environment — the refused workflow-env form'],
   ];
-
-  const failed = [];
-  for (const [id, what] of admissions) if (!what) failed.push(`THE LAWFUL CARRIER IS REFUSED BY ${id}: a guard that refuses the clause's own answer would block the correction it exists to serve.`);
   const fired = [];
+  const unfired = [];
   for (const [id, source, fires, what] of mutations) {
-    const carried = readCarrier(source);
-    if (!fires(carried)) failed.push(`${id} DID NOT FIRE ON ITS OWN MUTATION: ${what}. A guard that cannot fail is not firability.`);
-    else fired.push(id);
+    let carried;
+    try { carried = readCarrier(source); } catch (e) { unfired.push(`${id}: the reader threw on the mutation (${e.message})`); continue; }
+    if (fires(carried)) fired.push(id.split(' → ')[1]);
+    else unfired.push(`${id} DID NOT FIRE ON ITS OWN MUTATION: ${what}. A guard that cannot fail is not firability.`);
   }
 
-  console.log(`[version-stamp-r2] R2-08 THE INSTRUMENTS: ${admissions.length - failed.length}/${admissions.length} `
-    + `guards ADMIT the lawful carrier; ${fired.length}/${mutations.length} guards FIRE on their mutation (${fired.join(', ')}).`);
+  // (c) **THE REAL-CARRIER ADMISSION VECTOR — THE GAP THIS PASS CLOSES.** Its verdict is REPORTED, never
+  // silently dropped, and it is NOT turned into a failure of this cell: the real carrier is the SUBJECT
+  // OF THE RED SET, and a cell that failed on it would turn RED the moment the correction lands.
+  const realVerdicts = verdictsOf(CARRIER);
+  const realRefused = realVerdicts.filter((v) => v.admitted !== true);
+  console.log('[version-stamp-r2] R2-10 THE ADMISSION VECTOR OVER THE REAL `bindings/js/build.rs` — '
+    + `${realVerdicts.length - realRefused.length}/${realVerdicts.length} guards ADMIT the shipped bytes, `
+    + `${realRefused.length}/${realVerdicts.length} REFUSE them (${realRefused.map((v) => v.id).join(', ') || 'none'}).`);
+  for (const v of realVerdicts) console.log(`[version-stamp-r2]   ${v.admitted === true ? 'ADMITTED' : 'REFUSED '} ${v.id}`);
+  console.log(`[version-stamp-r2] R2-10 SYNTHETIC: ${syntheticVerdicts.length - syntheticRefused.length}/${syntheticVerdicts.length} guards ADMIT the clause-shaped carrier; `
+    + `${fired.length}/${mutations.length} guards FIRE on their mutation (${fired.join(', ')}).`);
+
+  const failed = [];
+  for (const v of syntheticRefused) failed.push(`THE LAWFUL CARRIER IS REFUSED BY ${v.id}: a guard that refuses the clause's own answer would block the correction it exists to serve.`);
+  failed.push(...unfired);
+
+  // **AND ONE REAL-CARRIER FACT IS ASSERTED RATHER THAN ONLY PRINTED, BECAUSE IT IS THE CLAUSE'S OWN
+  // FINDING AND NOT A MATTER OF TASTE**: the guard that reads `release.md §6.10`'s four-arm clause — *"EACH
+  // PRODUCES ITS OWN ABORT RATHER THAN AN ANSWER"* — MUST NOT ADMIT a carrier whose arms answer a value,
+  // and `parameter-semantics.md §5.1` `:468` records that finding as **LIVE AND NOT HISTORICAL**.
+  const silentArms = silentArmDefaultsOf(CARRIER);
+  assert.ok(silentArms.length > 0,
+    'THE CLAUSE\'S LIVE FINDING, ASSERTED AND NOT ONLY PRINTED. `parameter-semantics.md §5.1` `:468`: *"A SHIPPED CARRIER THAT EMITS `""` FOR A '
+    + 'NON-STRING `version` IS STILL A FINDING AGAINST THIS ROW ... AND IT IS A FINDING UNTIL THE CARRIER\'S CHANGE LANDS. THE CARRIER THAT '
+    + 'STANDS IN THE TREE AT THIS CLAUSE\'S DATE STILL TAKES THE EMPTY-STRING BRANCH — the four arms and the one carried path answer `""` ... — so '
+    + 'the finding is LIVE AND NOT HISTORICAL."* The arms-as-defaults guard must REFUSE the shipped bytes while the ruling is unlanded. **IF THIS '
+    + 'ASSERTION EVER FAILS, THE CARRIER CHANGE HAS LANDED** — and every cell of this file derived from the four-arm clause must be re-read, '
+    + `because the finding it recorded is then discharged. OBSERVED: ${silentArms.length} silent arm(s) in the value derivation.`);
 
   assert.ok(failed.length === 0,
-    'THE R2 INSTRUMENTS\' OWN TEETH — `A95` read with `parameter-semantics.md §5.1` `(vii)`: firability is satisfied by '
-    + 'source-assertion cells, and a source-assertion cell is worth only what its instrument can separate. Declared: every '
+    'THE R2 INSTRUMENTS\' OWN TEETH — `A95` read with `release.md §6.10`\'s four-arm clause and `:569`\'s message-content clause. Declared: every '
     + 'guard above ADMITS a carrier that carries the clause\'s own answer and FIRES on the mutation it exists to catch. '
-    + `OBSERVED: ${failed.length} of ${admissions.length + mutations.length} instrument checks fail.\n  ` + failed.join('\n  '));
+    + `OBSERVED: ${failed.length} of ${syntheticVerdicts.length + mutations.length} instrument checks fail.\n  ` + failed.join('\n  '));
 });
