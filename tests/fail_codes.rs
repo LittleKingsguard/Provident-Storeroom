@@ -432,16 +432,51 @@ fn s8_1_13_file_path_unreachable_fires_on_the_construction_reachability_test() {
         storeCreate(&cfg_at(&exists_path, 4)),
         "A52 (a): the file exists and is writable → the path is reachable and NO code is produced",
     );
+    // **⟶ RE-DERIVED 2026-10-13, AT THIS CONTRACT'S TENTH BOUNDED AMENDMENT (`contract.md §10.4`; the row
+    // `U-STOREROOM-ACCESS-PROBE`): ARM (b)'s CELL IS CORRECTED TO THE DECLARED OBSERVABLES.** **THE AS-FILED
+    // ASSERTION READ** *"`A55`: *\"Dry run\"* — the probe leaves the file system untouched"*, **WHICH IS THE
+    // SUPERSEDED READING**: **a PROVIDED, ABSENT `filePath` whose parent exists IS CREATED EXCLUSIVELY BY THE
+    // CONSTRUCTION ITSELF (`create_new`), LEFT ZERO-LENGTH — AN EMPTY FILE AND NO BYTE** (`§10.4` parts 2–3;
+    // `seams-and-lifecycle.md §7.1` step `4b` part (A); `DD-28`'s amended cell). **AND `A55`'s *"Dry run"*
+    // SURVIVES WHOLE — it governs THE PROBE, which still creates nothing, and NOT the STORE'S OWN ACT**
+    // (`§10.4` part 1; step `4b` part (E)). **THE DECLARED OBSERVABLES NOW ASSERTED: the path EXISTS · its
+    // length is `0` · NO byte was written** (`§10.4`'s blast-radius clause; `implementation-plan.md §9.5`
+    // item 2). **THE PARENT DIRECTORY'S ENTRY COUNT MOVED BY EXACTLY ONE IS NOT ASSERTED HERE**, because this
+    // path stands in the SHARED temp directory whose count every sibling cell's own file moves; that
+    // observable is driven where the count is the cell's own (`tests/construction_access_probe.rs`).
     let creatable = fresh_path("fc-creatable");
-    ok(
-        storeCreate(&cfg_at(&creatable, 4)),
-        "A52 (b): the application can write the path → reachable, no code, and no byte created by the probe",
-    );
     assert!(
         !std::path::Path::new(&creatable).exists(),
-        "A55: *\"Dry run\"* — the probe leaves the file system untouched"
+        "the PRE-STATE: the path is ABSENT, so this is the exclusive create's own arm"
     );
+    ok(
+        storeCreate(&cfg_at(&creatable, 4)),
+        "A52 (b): the application can write the path → reachable, no code, and the construction CREATES the \
+         store's own ZERO-LENGTH file",
+    );
+    assert!(
+        std::path::Path::new(&creatable).exists(),
+        "§10.4 part 3 / §7.1 step 4b (A): the construction CREATES the store's own file — *\"AN EMPTY FILE \
+         AND NO BYTE\"* — where the superseded reading asserted the file system was left untouched"
+    );
+    assert_eq!(
+        std::fs::metadata(&creatable)
+            .expect("the store's own file")
+            .len(),
+        0,
+        "§10.4 part 3: the file is left ZERO-LENGTH, and a creation that writes a BYTE is REFUSED \
+         (`DD-28`'s amended cell)"
+    );
+    assert_eq!(
+        std::fs::read(&creatable).expect("the store's own file is readable"),
+        Vec::<u8>::new(),
+        "§10.4 part 3: NO byte was written — *\"AN EMPTY FILE AND NO BYTE\"*"
+    );
+    let _ = std::fs::remove_file(&creatable);
     let _ = std::fs::remove_file(&exists_path);
+    // **AND THIS ASSERTION IS UNMOVED, BYTE FOR BYTE** (`implementation-plan.md §9.1` row `4`): it drives
+    // the ABSENT-PARENT state, where the exclusive create ATTEMPTS AND FAILS leaving nothing — so the probe's
+    // own creates-nothing claim still holds there and no word of it moves.
     assert!(
         !std::path::Path::new(&absent_parent).exists(),
         "A55/DD-40 (a): the DRY RUN creates NO directory and NO byte — the probe left nothing behind"

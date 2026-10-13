@@ -883,6 +883,19 @@ fn ng_i_the_probe_s_unwritable_parent_and_read_only_file_arms() {
     if app_can_create {
         let _ = std::fs::remove_file(&unreachable);
     }
+    // **⟶ THE PRECONDITION THIS CELL DRIVES, READ AFTER THE STATE IT NAMES, DATED `2026-10-13` — THE
+    // CORRECTION `AM-10`'s VACUOUS ASSERTION OWES** (`implementation-plan.md §9.1` row `5` and `§9.5`
+    // item `3`: *"the precondition is read AFTER the `chmod`, or the assertion's subject is re-spelled so it
+    // names the state the cell actually drives"*). **THE AS-FILED CELL READ `mode_says_writable` AT
+    // `:868`–`:871` — BEFORE the `chmod` at `:875` — and asserted it at `:944`, so the assertion declared a
+    // precondition about a state the cell had ALREADY LEFT (`0o755`) while the cell drove `0o555`; it was
+    // therefore TRUE BY CONSTRUCTION and `AM-10`'s discriminating state was not driven by the cell claiming
+    // to drive it.** **THE MODE BIT IS NOW READ IN THE STATE THE KERNEL'S OWN ANSWER WAS TAKEN IN**, so the
+    // cell's own precondition names the state it actually drove.
+    let mode_the_cell_drives = !std::fs::metadata(&dir)
+        .expect("the directory's metadata, read in the state the kernel's answer was taken in")
+        .permissions()
+        .readonly();
     match storeCreate(&cfg_at(&unreachable, 4)) {
         Ok(mut s) => {
             assert!(
@@ -938,13 +951,25 @@ fn ng_i_the_probe_s_unwritable_parent_and_read_only_file_arms() {
         use std::os::unix::fs::PermissionsExt;
         let _ = std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o755));
     }
-    // `mode_says_writable` names the state this arm was built at, so the cell's own precondition is stated:
-    // a directory whose mode bits call it writable while the process cannot write it is exactly the state
-    // `A52`'s arm (b)'s *"successfully"* governs and mode bits alone cannot decide (`AM-10`).
+    // **THE CELL'S OWN PRECONDITION, ASSERTED AT THE STATE THE CELL DROVE** (`AM-10`; `implementation-plan.md
+    // `§9.5` item `3`). **THE SENTENCE IT REPLACES NAMED `0o755` — the state read BEFORE the `chmod` — and
+    // was true of a state this cell leaves at `:875`: it is corrected here rather than weakened.** **WHAT IS
+    // TRUE OF THE STATE ACTUALLY DRIVEN: `0o555` carries NO owner-write bit, so every mode-bit reading of
+    // this parent answers UNWRITABLE — and the answer the probe's arm is taken on is the KERNEL's own
+    // (`create_new`), which `app_can_create` above observed.** **SO THIS CELL DRIVES THE NOT-WRITABLE FORM
+    // ITSELF, and it is NOT the discriminating `mode-writable-but-in-fact-denied` shape `AM-10` named: that
+    // shape is the one `docs/specs/storeroom-publish/release.md:25`–`:29`'s privileged runners put out of
+    // this suite's reach, and no assertion here pretends otherwise.**
+    assert!(
+        !mode_the_cell_drives,
+        "A55/AM-10: this arm is driven at a parent whose MODE BITS call it UNWRITABLE (`readonly()` is true \
+         at `0o555`, which has no owner-write bit), so the state the cell drives is the not-writable form and \
+         the probe's arm on it is the kernel's own answer"
+    );
     assert!(
         mode_says_writable,
-        "A55/AM-10: this arm is driven at a parent whose MODE BITS call it writable (`!readonly()`), which \
-         is the only state in which the probe's approximation and the application's success can disagree"
+        "and the PRE-STATE the cell started from read `0o755` — the state the as-filed assertion at `:944` \
+         named while the cell drove `0o555`, which is why that assertion was vacuous and is corrected here"
     );
 
     // (b) THE READ-ONLY FILE — the canonical form `A55` names (*"File must have write access"*), driven

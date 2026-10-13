@@ -343,12 +343,34 @@ fn s7_1_a_provided_but_unreachable_path_fails_file_path_unreachable() {
     let _ = std::fs::remove_dir(&dir_path);
 }
 
-// **⟶ ADDED 2026-10-11 — THE TWO ARMS OF `A52`'s DISJUNCTION, EACH CREATING A `file` REGISTER, AND `A55`'s
-// DRY RUN ON BOTH:** **arm (a) — the file EXISTS — and arm (b) — the application CAN WRITE IT (a fresh path
-// in an existent writable directory)** (`A52`; `§7.1` step 3). **Each fixes the register's tier at `file`**
-// (`A49`, `A50`; `store-model.md §1.6` item 4 (d)), **and NEITHER leaves a byte behind: the probe creates NO
-// file, NO directory and NO byte** (`A55`; `§8.1` #13).
-// Drives: §7.1 (amended), §1.6 item 4 (d), A49, A50, A52, A55
+// **⟶ ADDED 2026-10-11 — THE TWO ARMS OF `A52`'s DISJUNCTION, EACH CREATING A `file` REGISTER** (`A52`;
+// `§7.1` step 3). **Each fixes the register's tier at `file`** (`A49`, `A50`; `store-model.md §1.6`
+// item 4 (d)).
+//
+// **⟶ RE-DERIVED 2026-10-13, AT THIS CONTRACT'S TENTH BOUNDED AMENDMENT (`contract.md §10.4`; the row
+// `U-STOREROOM-ACCESS-PROBE`): ARM (b)'s CELL IS CORRECTED TO THE DECLARED OBSERVABLES, AND ITS `A55` HALF
+// IS NARROWED TO ITS OWN SUBJECT.** **THE AS-FILED ASSERTION READ** *"`A55`: the DRY RUN creates NO file —
+// the first boot of a fresh path leaves the file system untouched until the first `file`-tier write
+// commits"*, **WHICH IS THE SUPERSEDED READING**: **under `§10.4` part 3 a PROVIDED, ABSENT `filePath` whose
+// parent exists IS CREATED EXCLUSIVELY BY THE CONSTRUCTION ITSELF (`create_new`), LEFT ZERO-LENGTH — AN
+// EMPTY FILE AND NO BYTE — and the construction returns an instance whose register is fixed at `file`**
+// (`§10.4` parts 2–3; `seams-and-lifecycle.md §7.1` step `4b` parts (A) and (B); `DD-28`'s amended cell).
+// **AND `A55`'S WORD *"Dry run"* SURVIVES WHOLE, GOVERNING THE PROBE AND NOT THE STORE'S OWN ACT** (`§10.4`
+// part 1; `seams-and-lifecycle.md §7.1` step 3's own *"the probe still creates NO FILE, NO DIRECTORY AND NO
+// BYTE"*; the `docs/decisions.md` row of `2026-10-13` whose decision marker is *"Yes, creating the store
+// with a file path can cause a test write to that file path."*), **so this cell's `A55` claim is kept for
+// the PROBE — whose one observable here is that it truncates and rewrites nothing — and the CREATE is
+// asserted as the declared act it now is.**
+//
+// **THE DECLARED OBSERVABLES NOW ASSERTED AT ARM (b)** (`§10.4`'s blast-radius clause; `implementation-plan.md
+// §9.5` item 2): **the path EXISTS · its length is `0` · NO byte was written · and the register's tier is
+// `file` before any write.** **THE PARENT DIRECTORY'S ENTRY COUNT MOVED BY EXACTLY ONE IS NOT ASSERTED
+// HERE**, because this cell's path stands in the SHARED temp directory whose count every sibling cell's own
+// file moves: that observable is driven where the count is the cell's own
+// (`tests/construction_access_probe.rs`'s `acp_a_provided_absent_path_...` cell). **AND THE ARM (a) HALF IS
+// UNMOVED** — an EXISTING path's bytes are byte-identical after the construction, which is `§10.4` part 6's
+// `AlreadyExists` fall-through and NOT the probe's dry run alone.
+// Drives: §7.1 (amended), §10.4 parts 2, 3 and 6, §7.1 step 4b (A)/(B), §1.6 item 4 (d), A49, A50, A52, A55
 #[test]
 fn s7_1_the_two_arms_of_the_reachability_test_each_create_a_file_register_by_a_dry_run() {
     // Arm (a): the file EXISTS — its bytes are the probe's own untouched input.
@@ -381,6 +403,11 @@ fn s7_1_the_two_arms_of_the_reachability_test_each_create_a_file_register_by_a_d
 
     // Arm (b): the application CAN WRITE IT — a fresh path in an existent writable directory.
     let creatable = fresh_path("creatable");
+    // The cell's own PRE-STATE, stated so the create below is an observation and not an assumption.
+    assert!(
+        !std::path::Path::new(&creatable).exists(),
+        "the PRE-STATE: the provided path is ABSENT, so the exclusive create's arm is the one this cell drives"
+    );
     let mut b = ok(
         storeCreate(&cfg_at(&creatable, 4)),
         "A52 (b): the application can write the path, so it is reachable",
@@ -390,18 +417,48 @@ fn s7_1_the_two_arms_of_the_reachability_test_each_create_a_file_register_by_a_d
         Tier::File,
         "A49/A50: a provided path that passes fixes the register's tier at `file`"
     );
+    // **§10.4 PART 3 — THE CONSTRUCTION'S OWN EXCLUSIVE CREATE, IN ITS FOUR DECLARED OBSERVABLES.**
     assert!(
-        !std::path::Path::new(&creatable).exists(),
-        "A55: the DRY RUN creates NO file — the first boot of a fresh path leaves the file system \
-         untouched until the first `file`-tier write commits"
+        std::path::Path::new(&creatable).exists(),
+        "§10.4 part 3 / §7.1 step 4b (A): the construction CREATES the store's OWN FILE at the provided, \
+         absent path — *\"AN EMPTY FILE AND NO BYTE\"*. The superseded reading (*\"the DRY RUN creates NO \
+         file — the first boot of a fresh path leaves the file system untouched until the first `file`-tier \
+         write commits\"*) is what this assertion replaced"
+    );
+    assert_eq!(
+        std::fs::metadata(&creatable)
+            .expect("the store's own file")
+            .len(),
+        0,
+        "§10.4 part 3: the file is left ZERO-LENGTH — a creation that writes a BYTE (an empty registry, a \
+         `{{}}`, a newline, a header) is REFUSED (`DD-28`'s amended cell)"
+    );
+    assert_eq!(
+        std::fs::read(&creatable).expect("the store's own file is readable"),
+        Vec::<u8>::new(),
+        "§10.4 part 3: NO byte was written — an EMPTY FILE AND NO BYTE"
     );
     ok(
         b.write(AddressArg::List(key(&["r"])), w_file(), v_num(2.0)),
         "§7.2 item 1: the first `file`-tier write commits at the path",
     );
+    // **AND THE WRITE HALF THAT REMAINS TRUE AND IS KEPT: the `file`-tier `write` is the ONE durability
+    // route** — the construction's create commits NO register key, NO journal entry and NO registration
+    // (`§10.4` part 6; `DD-28`'s amended cell), so the bytes at the path are the WRITE's and the write has
+    // put SOME at a path the construction left empty.
     assert!(
-        std::path::Path::new(&creatable).exists(),
-        "§7.2 item 1: the commit — and only the commit — puts bytes at the path"
+        std::fs::metadata(&creatable)
+            .expect("the committed file")
+            .len()
+            > 0,
+        "§7.2 item 1 / §10.4 part 6: the `file`-tier WRITE is the durability route — the path held 0 bytes \
+         before it and holds the committed bytes after it"
+    );
+    assert_eq!(
+        landing_tier(&b, &empty_address()),
+        Tier::File,
+        "store-model.md §1.6 item 4 (d) (i): the register's tier is FIXED AT CREATION and the write did not \
+         move it"
     );
     let _ = std::fs::remove_file(&creatable);
 }
