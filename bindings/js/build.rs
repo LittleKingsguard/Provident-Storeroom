@@ -77,58 +77,51 @@ fn main() {
     // `rsplit(..).next()` could not: a split iterator cannot answer absence, so with the key absent it
     // yielded THE WHOLE FILE TEXT and the colon it then took was THE FIRST COLON IN THE FILE — another
     // key's value. **THE ABSENT KEY IS THEREFORE A STATE THIS SCRIPT HOLDS AND NOT A PANIC.**
-    let slot = match declared.rsplit_once("\"version\"") {
-        // **AT A SLOT THAT HOLDS NO STRING THE CARRIER ABORTS** (`§5.1` `(vii)` clause `(C)` is
-        // SUPERSEDED — *"THE EMPTY STRING IS NOT AN ANSWER FOR ANY OF THESE STATES"* — and the
-        // four-step clause's steps `(1)`/`(2)` with it: *"AT THESE STATES THE DIRECTIVE IS **NOT**
-        // EMITTED AND THE BUILD **FAILS**"*; `release.md §6.10`'s four-arm clause: *"EACH PRODUCES ITS
-        // OWN ABORT RATHER THAN AN ANSWER: NO DIRECTIVE IS EMITTED, NO ARTEFACT IS BUILT, AND NO
-        // STAMPED VALUE EXISTS AT ANY OF THE FOUR"*; `docs/specs/storeroom-js/package.md §6.1` limb
-        // `(B)` re-cut): the slot's own value is CONSULTED FOR ITS SHAPE, and only a JSON string is a
-        // value this read can carry — **AND WHERE IT IS NOT ONE, EACH OF THE FOUR STATES ABORTS WITH A
-        // MESSAGE CARRYING WHICH STATE, `bindings/js/package.json`'S OWN PATH AS THE CARRIER READ IT,
-        // AND WHAT THE MANIFEST MUST CONTAIN SO THE BUILD CAN PROCEED** (`release.md §6.10` `:569`,
-        // whose *"PROSE IS THE CARRIER'S"*). **NO SUBSTITUTE VALUE IS EMITTED ON ANY OF THE FOUR
-        // PATHS**, so no neighbouring key's value is ever stamped. **AND NO SEMVER VALIDATION STANDS
-        // HERE** (`§6.10` item `4`): the abort is for a SLOT HOLDING NO STRING, so `"version": ""` and
-        // `"version": "banana"` are VALUES THAT WERE READ and the build proceeds from both.
-        Some((_, rest)) => match rest.split_once(':') {
-            Some((_, value)) => match value.trim_start().strip_prefix('"') {
-                Some(body) => match body.find('"') {
-                    Some(end) => &body[..end],
-                    // `(N4)` — the value begins with a quote and carries no further quote.
-                    None => panic!(
-                        "bindings/js/build.rs: the version stamp's read aborted at state (N4) — \
-                         UNTERMINATED VALUE: the rightmost `\"version\"` key's value begins with a \
-                         quote and carries no further quote, so this manifest declares no complete \
-                         JSON string for that key. The manifest is bindings/js/package.json, the \
-                         crate's sibling manifest, read at this build's own CARGO_MANIFEST_DIR. For \
-                         the build to proceed it must declare a JSON version key whose value is a \
-                         JSON string — a quoted semver such as the one this package already \
-                         carries."
-                    ),
-                },
-                // `(N3)` — the value's trimmed text does not begin with a quote: the non-string
-                // case, and any other case whose head is not a quote.
-                None => panic!(
-                    "bindings/js/build.rs: the version stamp's read aborted at state (N3) — \
-                     NON-STRING VALUE: the rightmost `\"version\"` key's value, after leading \
-                     whitespace, does not begin with a quote, so the slot holds no JSON string for \
-                     this read to carry. The manifest is bindings/js/package.json, the crate's \
-                     sibling manifest, read at this build's own CARGO_MANIFEST_DIR. For the build \
-                     to proceed it must declare a JSON version key whose value is a JSON string — a \
-                     quoted semver such as the one this package already carries."
-                ),
-            },
-            // `(N2)` — the rightmost key occurrence carries no colon after it.
-            None => panic!(
-                "bindings/js/build.rs: the version stamp's read aborted at state (N2) — NO COLON \
-                 AFTER THE KEY: the rightmost `\"version\"` byte-sequence in the manifest carries no \
-                 colon after it, so no value is introduced for that key. The manifest is \
+    //
+    // **⟶ AND `release.md §6.10`'s NEIGHBOURHOOD CLAUSE (`:627`–`:650`), ITS ITEM `3`, OPERATIVE FROM
+    // ITS OWN LINE, IS THE DECLARED REPAIR OF THE DEFECT THE GATE-4 ADVERSARIAL PASS FOUND AND THE
+    // SUPERVISOR REPRODUCED.** The clause, verbatim, is the one the five-step locator clause's step
+    // `(2)` is now read through: *"THE FIRST NON-WHITESPACE BYTE AFTER THE RIGHTMOST OCCURRENCE MUST BE
+    // `:`, ELSE THE STATE IS `(N2)` AND THE BUILD ABORTS"*. **AND WHAT IT REPLACES, NAMED SO THIS IS
+    // NOT A TASTE**: the withdrawn locator took THE FIRST COLON ANYWHERE IN THE TAIL — so over a
+    // manifest whose key carried no colon of its own (`{ "name":"provident-storeroom", "version"
+    // "0.1.2", "type":"module" }`) the colon taken was the NEXT KEY'S, the slot read `module`, and A
+    // NEIGHBOURING KEY'S VALUE WAS STAMPED. **THE COLON IS NOW THE ONE THE KEY ITSELF INTRODUCES**,
+    // standing at the tail's first non-whitespace byte and nowhere else; **WHITESPACE BEFORE IT IS
+    // LAWFUL**, the clause's words being *"THE FIRST NON-WHITESPACE BYTE"* and its item `3` admitting
+    // *"any run of whitespace bytes, including none"*. **AND THE RIGHTMOST-OCCURRENCE DOMAIN IS
+    // UNMOVED** — this is the same `rsplit_once`, at the same step `(1)`.
+    // **⟶ AND `release.md §6.10`'s NEIGHBOURHOOD CLAUSE (`:627`–`:650`), ITS ITEM `3`, VERBATIM:**
+    // *"THE FIRST NON-WHITESPACE BYTE AFTER THE RIGHTMOST OCCURRENCE MUST BE `:`, ELSE THE STATE IS
+    // `(N2)` AND THE BUILD ABORTS"*. **THIS IS THE WHOLE OF THE CORRECTION AND THE LEAST FORM OF IT:
+    // THE BYTE CONSULTED IS THE ONE STANDING AT THE OCCURRENCE'S OWN END, AND NOT THE FIRST COLON
+    // STANDING ANYWHERE IN THE TEXT AFTER IT** — which is what the withdrawn locator took, and how it
+    // came to stamp a NEIGHBOURING KEY'S VALUE (over `{ "name":"provident-storeroom", "version"
+    // "0.1.2", "type":"module" }` the colon taken was `"type"`'s and the slot read `module`).
+    // **WHITESPACE BEFORE THE COLON IS LAWFUL**: the clause's own words are *"THE FIRST NON-WHITESPACE
+    // BYTE"*, and its item `3` admits *"any run of whitespace bytes, including none"*. **AND THE
+    // RIGHTMOST-OCCURRENCE DOMAIN IS UNMOVED** — this is the same `rsplit_once`, at the same step
+    // `(1)`. **AND THE GATE STANDS WHERE THE COLON IS CONSUMED**, so no other colon survives it and
+    // the split below can reach none.
+    let rest = match declared.rsplit_once("\"version\"") {
+        Some((_, tail)) => match tail.trim_start().as_bytes().first() == Some(&b':') {
+            true => &tail[tail.len() - tail.trim_start().len()..],
+            // `(N2)` — the key's own separator is not the first non-whitespace byte after its
+            // occurrence: a colon belonging to ANOTHER KEY, or no colon at all standing in the tail,
+            // **OR NO BYTE AT ALL WHERE THE TAIL IS EMPTY** — the class's degenerate member by the
+            // clause's own words at `release.md` `:634` (*"no name is added to the four and none is
+            // taken away"*), which the indexed read above could not reach: `as_bytes()[0]` panics on
+            // the empty slice and would have aborted with an index-out-of-bounds prose instead of the
+            // state's own message. **`.first()` ANSWERS `None` THERE AND THE STATE IS `(N2)`.**
+            false => panic!(
+                "bindings/js/build.rs: the version stamp's read aborted at state (N2) — NO COLON OF THE \
+                 KEY'S OWN: the first non-whitespace byte after the rightmost `\"version\"` byte-sequence \
+                 in the manifest is not `:`, so that occurrence introduces no value of its own. Either no \
+                 colon stands anywhere after it, or the colon that stands there belongs to a NEIGHBOURING \
+                 KEY and no value of this key's own is introduced. The manifest is \
                  bindings/js/package.json, the crate's sibling manifest, read at this build's own \
-                 CARGO_MANIFEST_DIR. For the build to proceed it must declare a JSON version key \
-                 whose value is a JSON string — a quoted semver such as the one this package \
-                 already carries."
+                 CARGO_MANIFEST_DIR. For the build to proceed it must declare a JSON version key whose \
+                 value is a JSON string — a quoted semver such as the one this package already carries."
             ),
         },
         // `(N1)` — the key's byte-sequence is absent from the manifest text read whole.
@@ -139,6 +132,76 @@ fn main() {
              this build's own CARGO_MANIFEST_DIR. For the build to proceed it must declare a JSON \
              version key whose value is a JSON string — a quoted semver such as the one this package \
              already carries."
+        ),
+    };
+    // **AT A SLOT THAT HOLDS NO STRING THE CARRIER ABORTS** (`§5.1` `(vii)` clause `(C)` is SUPERSEDED —
+    // *"THE EMPTY STRING IS NOT AN ANSWER FOR ANY OF THESE STATES"* — and the four-step clause's steps
+    // `(1)`/`(2)` with it: *"AT THESE STATES THE DIRECTIVE IS **NOT** EMITTED AND THE BUILD **FAILS**"*;
+    // `release.md §6.10`'s four-arm clause: *"EACH PRODUCES ITS OWN ABORT RATHER THAN AN ANSWER: NO
+    // DIRECTIVE IS EMITTED, NO ARTEFACT IS BUILT, AND NO STAMPED VALUE EXISTS AT ANY OF THE FOUR"*):
+    // the slot's own value is CONSULTED FOR ITS SHAPE, and only a JSON string is a value this read can
+    // carry — **AND WHERE IT IS NOT ONE, EACH OF THE FOUR STATES ABORTS WITH A MESSAGE CARRYING WHICH
+    // STATE, `bindings/js/package.json`'S OWN PATH AS THE CARRIER READ IT, AND WHAT THE MANIFEST MUST
+    // CONTAIN SO THE BUILD CAN PROCEED** (`release.md §6.10` `:569`, whose *"PROSE IS THE CARRIER'S"*).
+    // **NO SUBSTITUTE VALUE IS EMITTED ON ANY OF THE FOUR PATHS.** **⟶ AND THE CLAIM THAT ONCE STOOD
+    // HERE — *"so no neighbouring key's value is ever stamped"* — WAS FALSE OF THESE BYTES, AND IS
+    // CORRECTED HERE RATHER THAN LEFT STANDING** (`release.md §6.10`'s neighbourhood clause, its item
+    // `5`, which NAMES this comment as its own site and leaves the re-spelling to this file's author):
+    // the slot below was taken by a whole-tail colon search, which over the manifest above took the
+    // colon belonging to `"type"` and stamped `module`. **THE COLON IS NOW THE KEY'S OWN OR THERE IS NO
+    // SLOT AT ALL**, which is what makes the claim true of these bytes.
+    // **AND NO SEMVER VALIDATION STANDS HERE** (`§6.10` item `4`): the abort is for a SLOT HOLDING NO
+    // STRING, so `"version": ""` and `"version": "banana"` are VALUES THAT WERE READ and the build
+    // proceeds from both.
+    //
+    // **AND THE SPLIT BELOW IS ON THE COLON THE GATE HAS JUST ANSWERED**: it reads the carried text as
+    // bounded by that colon (the five-step locator clause's step `(2)`), and the gate — standing one byte
+    // BEFORE the separator rather than past it — is what answers that colon. **THE GATE NO LONGER
+    // CONSUMES THE BYTE IT CONSULTED**, and that is the whole of the correction above: while it sliced at
+    // `first_non_whitespace + 1` the colon was spent, `rest` began at the byte AFTER it, and the split
+    // below therefore reached for a SECOND colon — over the real `bindings/js/package.json` that is
+    // `description`'s and the stamp carried a NEIGHBOURING KEY'S VALUE on a well-formed manifest. **WITH
+    // THE COLON KEPT, THE FIRST `:` IN `rest` IS THE KEY'S OWN BY ITSELF** — leading whitespace does not
+    // hide it, whitespace being no colon — so the split takes the key's own separator and no other key's,
+    // and every arm below stands exactly as it did. **AND WHETHER ANY COLON SURVIVES THE GATE BEYOND THAT
+    // ONE IS BESIDE THE POINT**: `rest`'s first colon is the key's own at every state, so `Some((_, value))`
+    // is reached exactly where the key introduced a separator and the value read is the one that separator
+    // introduces. Its `None` arm stands where the gate has already answered the colon the key's own, so it
+    // is `(N2)`'s single site in this file and mints no fifth state beside the four.
+    let slot = match rest.split_once(':') {
+        Some((_, value)) => match value.trim_start().strip_prefix('"') {
+            Some(body) => match body.find('"') {
+                Some(end) => &body[..end],
+                // `(N4)` — the value begins with a quote and carries no further quote.
+                None => panic!(
+                    "bindings/js/build.rs: the version stamp's read aborted at state (N4) — \
+                     UNTERMINATED VALUE: the rightmost `\"version\"` key's value begins with a quote \
+                     and carries no further quote, so this manifest declares no complete JSON string \
+                     for that key. The manifest is bindings/js/package.json, the crate's sibling \
+                     manifest, read at this build's own CARGO_MANIFEST_DIR. For the build to proceed \
+                     it must declare a JSON version key whose value is a JSON string — a quoted \
+                     semver such as the one this package already carries."
+                ),
+            },
+            // `(N3)` — the value's trimmed text does not begin with a quote: the non-string case,
+            // and any other case whose head is not a quote.
+            None => panic!(
+                "bindings/js/build.rs: the version stamp's read aborted at state (N3) — NON-STRING \
+                 VALUE: the rightmost `\"version\"` key's value, after leading whitespace, does not \
+                 begin with a quote, so the slot holds no JSON string for this read to carry. The \
+                 manifest is bindings/js/package.json, the crate's sibling manifest, read at this \
+                 build's own CARGO_MANIFEST_DIR. For the build to proceed it must declare a JSON \
+                 version key whose value is a JSON string — a quoted semver such as the one this \
+                 package already carries."
+            ),
+        },
+        None => panic!(
+            "bindings/js/build.rs: the version stamp's read aborted at state (N2) — NO COLON OF THE \
+             KEY'S OWN: the carried text after the rightmost `\"version\"` occurrence carries no colon \
+             of that occurrence's own, so no value is introduced for that key. The manifest is \
+             bindings/js/package.json, the crate's sibling manifest, read at this build's own \
+             CARGO_MANIFEST_DIR. For the build to proceed it must declare a JSON version key whose \
+             value is a JSON string — a quoted semver such as the one this package already carries."
         ),
     };
     // **THE ONE REMAINING PATH THAT ANSWERS AN EMPTY STRING IS A VALUE THAT WAS READ** (`§6.10` item
