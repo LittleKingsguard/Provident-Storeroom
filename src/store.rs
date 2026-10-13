@@ -560,22 +560,62 @@ pub fn storeCreate(cfg: &StoreConfig) -> Result<Store, StoreError> {
         }
         _ => return Err(malformed_named("journalLength")),
     };
-    // Steps 3–4 — `filePath`: ABSENT is LEGAL and fixes the register at `mem`; a non-empty string is PROBED
+    // Step 3 — `filePath`: ABSENT is LEGAL and fixes the register at `mem`; a non-empty string is PROBED
     // by a dry run that writes nothing and requires write access; the three shape-less/non-string forms
     // answer the as-filed `AddressMalformed` and are NOT probed (`§7.1`'s amended `filePath` row).
-    let (file_path, register_tier) = match &cfg.filePath {
-        FilePathArg::Absent => (String::new(), Tier::Mem),
+    let file_path = match &cfg.filePath {
+        FilePathArg::Absent => String::new(),
         FilePathArg::Path(p) if !p.is_empty() => {
+            // **THE PROBE ITSELF: ARM (a) IS DECIDED HERE AND ARM (b) IS DECIDED BY STEP 4b'S OWN
+            // `create_new`** — ONE PREDICATE, TWO KERNEL-DECIDED ARMS (`§10.4` part 1; `DD-45`'s amended
+            // clause, whose *"a second reachability predicate"* is refused).
             if !path_is_reachable(p) {
                 return Err(file_path_unreachable(p));
             }
-            (p.clone(), Tier::File)
+            p.clone()
         }
         _ => return Err(malformed_named("filePath")),
     };
-    // Step 5 — the home is POPULATED FROM `listeners[]`, and a rejected array admits NOTHING. **The adopted
-    // entry is the DECLARED `Listener` record, filed in the address-keyed map (`A45`; `DD-39`).**
+    // Step 3-bis — `PAR-1`/`PAR-13` (`§7.1`'s NEW step; `contract.md §10.4` part 4): **EVERY `listeners[]`
+    // ENTRY IS VALIDATED BEFORE THE CREATE**, and a rejected array admits NOTHING — *"no entry is silently
+    // dropped"*. **The step's reason is that step 4b below is a REAL, ONCE-PER-CONSTRUCTION FILESYSTEM ACT:
+    // a construction that failed on this LATER argument would otherwise LEAVE THE FILE IT CREATED BEHIND,
+    // and `A55`'s *"leaves nothing behind"* must hold of EVERY construction that FAILS** (`§10.4` part 5).
+    // **ITS ANSWER IS THE AS-FILED STEP 5'S OWN** (`§8.1` #1), performed here rather than moved.
     let admitted = construction_listeners(&cfg.listeners)?;
+    // Step 4b — THE CONSTRUCTION'S EXCLUSIVE CREATE, THE LAST ACT OF THE CONSTRUCTION'S ARGUMENT
+    // VALIDATION (`§7.1` step 4b; `contract.md §10.4` parts 1–5; `DD-45`'s amended clause). **ARM (b): WHERE
+    // `filePath` IS PROVIDED AND ITS FILE IS ABSENT, THE STORE CREATES ITS OWN FILE AT THAT PATH —
+    // EXCLUSIVELY, BY `create_new` (`O_CREAT|O_EXCL`) AND NEVER BY `File::create`'s
+    // `O_CREAT|O_WRONLY|O_TRUNC`, WHOSE TRUNCATION WOULD DESTROY A FILE CARRYING COMMITTED BYTES BEFORE THE
+    // BOOT COULD READ IT — AND LEAVES IT ZERO-LENGTH: AN EMPTY FILE AND NO BYTE** (`§10.4` parts 2 and 3).
+    // **ON `AlreadyExists` (an existing file, or one that appeared between the probe and this act) THE ARM
+    // FALLS THROUGH TO ARM (a)'S EXISTING WRITE-MODE OPEN, so a construction over an EXISTING file NEVER
+    // TRUNCATES and the persisted register is never destroyed by the construction that reads it**
+    // (`§10.4` part 6). **EVERY OTHER FAILURE — `EROFS`, `EACCES`, `ENOENT`, a path that IS a directory —
+    // REFUSES AT CONSTRUCTION with `FilePathUnreachable` AND RETURNS NO INSTANCE** (`§10.4` part 5;
+    // `§8.1` #13), **leaving nothing behind**.
+    let register_tier = if file_path.is_empty() {
+        Tier::Mem
+    } else {
+        match std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&file_path)
+        {
+            Ok(created) => drop(created),
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+                if !path_is_reachable(&file_path) {
+                    return Err(file_path_unreachable(&file_path));
+                }
+            }
+            Err(_) => return Err(file_path_unreachable(&file_path)),
+        }
+        Tier::File
+    };
+    // Step 5 — the home is POPULATED FROM the array step 3-bis validated, and a rejected array admits
+    // NOTHING. **The adopted entry is the DECLARED `Listener` record, filed in the address-keyed map
+    // (`A45`; `DD-39`).**
     let mut home = Home::new();
     for (address, handle) in admitted {
         home.adopt(address, handle);
@@ -590,15 +630,22 @@ pub fn storeCreate(cfg: &StoreConfig) -> Result<Store, StoreError> {
     Ok(store)
 }
 
-/// `§7.1` step 3 (`A52`, `A55`; `DD-40`): **the DRY-RUN reachability probe.** **The path is REACHABLE iff
-/// the file exists OR the application can write it successfully**, read with `A55`'s two requirements: **the
-/// probe creates NO file, NO directory and NO byte, and WRITE ACCESS IS REQUIRED** (so an EXISTING BUT
-/// READ-ONLY file fails, and `A52`'s *"the application can write it successfully"* arm governs wherever it
-/// and *"the file exists"* disagree). **A path that IS a directory is UNREACHABLE** (`DD-40` (b)), and a path
-/// whose parent directory does not exist is UNREACHABLE (`DD-40` (a)).
+/// `§7.1` step 3 (`A52`, `A55`; `DD-40`) — **THE DRY-RUN REACHABILITY PROBE, AND THE EXISTING-PATH HALF
+/// OF THE ONE PREDICATE** (`contract.md §10.4` part 1; `§7.1` step 3's dated clauses): **the path is
+/// REACHABLE iff the file exists OR the application can write it successfully**, read with `A55`'s two
+/// requirements: **the probe creates NO file, NO directory and NO byte, and WRITE ACCESS IS REQUIRED** (so
+/// an EXISTING BUT READ-ONLY file fails, and `A52`'s *"the application can write it successfully"* arm
+/// governs wherever it and *"the file exists"* disagree). **A path that IS a directory is UNREACHABLE**
+/// (`DD-40` (b)), and a path whose parent directory does not exist is UNREACHABLE (`DD-40` (a)).
 ///
-/// The probe opens the path for writing (which creates nothing and truncates nothing) where it exists, and
-/// reads its parent directory's own permissions where it does not.
+/// **THE PREDICATE'S TWO ARMS ARE BOTH KERNEL-DECIDED AND IT IS ONE PREDICATE** (`§10.4` part 1;
+/// `DD-45`'s amended clause): **ARM (a) — the path EXISTS — is the WRITE-MODE OPEN performed here, which
+/// creates nothing, truncates nothing and leaves NO byte; ARM (b) — the path is ABSENT — is the
+/// construction's own EXCLUSIVE CREATE, whose success IS the answer, performed once as step 4b.** **This
+/// function therefore answers arm (a) directly and is the FALL-THROUGH arm's test where the create answers
+/// `AlreadyExists`** (`§10.4` part 6): a file that appeared between the probe and the create is decided by
+/// the same write-mode open, so a construction over an EXISTING file truncates nothing. **NO SECOND
+/// PREDICATE IS AUTHORED.**
 fn path_is_reachable(path: &str) -> bool {
     let candidate = std::path::Path::new(path);
     match std::fs::metadata(candidate) {
@@ -607,16 +654,12 @@ fn path_is_reachable(path: &str) -> bool {
             .write(true)
             .open(candidate)
             .is_ok(),
-        Err(_) => {
-            let parent = match candidate.parent() {
-                Some(parent) if !parent.as_os_str().is_empty() => parent,
-                _ => std::path::Path::new("."),
-            };
-            match std::fs::metadata(parent) {
-                Ok(metadata) => metadata.is_dir() && !metadata.permissions().readonly(),
-                Err(_) => false,
-            }
-        }
+        // ARM (b)'s ANSWER IS REACHABLE: an ABSENT path is UNREACHABLE only where the create refuses it,
+        // and every such refusal is step 4b's own (`EROFS`, `EACCES`, `ENOENT`). **THE PARENT DIRECTORY'S
+        // MODE BITS ARE WITHDRAWN AS THIS ARM'S DECIDING INSTRUMENT** (`§10.4` part 1; `DEF-20`), **so a
+        // mode-readable parent is not read here at all: the create asks whether the process may ADD AN
+        // ENTRY, which is the exact question `§7.1` states.**
+        Err(_) => true,
     }
 }
 
