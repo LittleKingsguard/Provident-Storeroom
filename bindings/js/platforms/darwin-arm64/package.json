@@ -1,6 +1,6 @@
 {
   "name": "@auspicion/provident-storeroom-js-darwin-arm64",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "os": [
     "darwin"
   ],
@@ -17,9 +17,14 @@
     "node": ">=18.0.0"
   },
   "license": "AGPL-3.0",
-  "repository": { "type": "git", "url": "git+https://github.com/LittleKingsguard/Provident-Storeroom.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LittleKingsguard/Provident-Storeroom.git"
+  },
   "homepage": "https://github.com/LittleKingsguard/Provident-Storeroom#readme",
-  "bugs": { "url": "https://github.com/LittleKingsguard/Provident-Storeroom/issues" },
+  "bugs": {
+    "url": "https://github.com/LittleKingsguard/Provident-Storeroom/issues"
+  },
   "publishConfig": {
     "access": "public"
   }

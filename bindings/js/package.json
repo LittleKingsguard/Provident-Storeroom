@@ -1,13 +1,18 @@
 {
   "name": "provident-storeroom",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "U-STOREROOM-PUBLISH: the published Node ESM binding for the native Rust store of Provident-Storeroom — the entry resolves the scoped per-target platform package first, the checkout's own module-relative addon second, and answers the store's single declared absent-addon form when neither loads",
   "type": "module",
   "license": "AGPL-3.0",
   "author": "Auspicion Innovations LLC",
-  "repository": { "type": "git", "url": "git+https://github.com/LittleKingsguard/Provident-Storeroom.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LittleKingsguard/Provident-Storeroom.git"
+  },
   "homepage": "https://github.com/LittleKingsguard/Provident-Storeroom#readme",
-  "bugs": { "url": "https://github.com/LittleKingsguard/Provident-Storeroom/issues" },
+  "bugs": {
+    "url": "https://github.com/LittleKingsguard/Provident-Storeroom/issues"
+  },
   "keywords": [
     "provident-storeroom",
     "store",
