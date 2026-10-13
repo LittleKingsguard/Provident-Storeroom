@@ -972,3 +972,148 @@ figure** — **the `375`/`133`/`508` above are assertions of THIS author's scena
 register's to land.** **A set authored by the same agent who implemented the crate would be a review finding;
 this set is the BLIND author's, it was authored from the documentation alone, and no byte of `src/**` was read at
 any pass of it.**
+
+---
+
+## §10. THE GATE-5 BLIND PASS FOR `U-STOREROOM-ACCESS-PROBE` — `NG-21`'S RE-DERIVATION, AUTHORED AND RUN FROM THE DOCUMENTS ALONE, AND THE RUN'S **`107 PASS · 4 FAIL`**
+
+**Role.** `role_blind_test_writer`. **AUTHORED FROM THE DOCUMENTATION ALONE.** The authorities read at this
+pass were: `docs/specs/storeroom-native/contract.md` (**`§0.4`**'s declared Rust surface, **`§10.4`**'s
+seven-part rule and its blast-radius clause, `§8.1` #1/#2/#4/#6/#8/#12/#13, its `§5.7` `P-TP-7` re-derived
+row, `§3.2` item 4's amended clause, `§3.4`'s arm table (`W-1`, `W-6`), `§4.4`'s closed delete-arm table),
+`seams-and-lifecycle.md` (`§7.1`'s ordered construction sequence, step `3`-bis, step `4b`, `§7.2` items 1,
+5 and 6), `store-model.md`'s tier cells, `implementation-plan.md`, `docs/specs/storeroom-access-probe-review.md`,
+the last several dated clauses of `docs/decisions.md` (`2026-10-13`), `docs/defects.md` (`DEF-20`),
+`docs/pending.md`, and this document's own earlier sections. **NO BYTE OF `src/**` WAS READ, AND NO
+IMPLEMENTATION FILE WAS CONSULTED TO DECIDE A SINGLE ASSERTION**; the crate was reached **only as a
+consumer**, through the surface `§0.4` declares. **`tests/**` was read ONLY to establish which states are
+already driven** (per this pass's brief), never to derive an expectation.
+
+**The harness — WHERE IT RUNS, AND WHY IT HAD TO BE BUILT.** **`§(1)`-level role of this document names a
+harness at `/tmp/storeroom-blind/`; THAT PATH DOES NOT EXIST on this machine and is not in this repository,
+so this pass could not reuse it.** **`/tmp` is also unusable here for anything durable**: the host's cleaner
+removed the first harness this pass created there between two invocations, so a harness in `/tmp` cannot even
+be re-run. **This pass therefore created its own harness INSIDE the repository's gitignored build tree:**
+`target/blind-ap-harness/` — its own `Cargo.toml` with a path dependency on the repository root, its own
+`src/main.rs` (the eleven scenarios), its own `CARGO_TARGET_DIR`, and its captured run at
+`target/blind-ap-harness/RUN.txt`. **`/target` is the repository's own `.gitignore` entry (`:152`), so nothing
+this pass created is tracked, nothing under `src/**` or `tests/**` was touched, and no specification was
+edited: the only tracked byte this pass wrote is THIS SECTION.** **The harness builds and runs OFFLINE
+(`cargo run --offline`, no registry, no dependency) and prints `scenario <id> : PASS n FAIL n` per scenario
+plus a total — the whole run is reproducible with one command from `target/blind-ap-harness/`.**
+
+**The run, whole: `uid = 1000`, `TOTAL PASS 107 FAIL 4`, every FAIL inside ONE scenario (`G5-AP-07`).**
+
+| id | The clause(s) it drives | What it asserts, and its measured result |
+| --- | --- | --- |
+| **G5-AP-01** | `§10.4` parts 3, 4, 5 · `§7.1` steps `3`-bis/`4b` · `§7.2` item 6's `2026-10-13` clause · `DD-28`'s amended cell · `§2.1`'s amended block · `§4.1.1` item 3 · `§8.1` #2/#8 · `§6.1` item 1 | **The `NG-21` re-derivation, at the state it is owed against.** Provided + absent + writable parent ⇒ SUCCEEDS, the store's own file EXISTS and is ZERO-LENGTH with an EMPTY byte string (read, not inferred), the parent's entry count moved by EXACTLY ONE, the register lands at `file` **before any write**, `read([])` is `Object({})`, an absent key answers `AddressNotFound`, `readLiteral([])` answers `ReadTargetIsBranch`, `findAddress([], t)` carries `file` at all four caller spellings, and the FIRST write's `seq` is `1` (so the construction committed no journal entry). **`PASS 14 · FAIL 0`.** |
+| **G5-AP-02** | `§10.4` parts 1, 2, 6 · `§7.1` step `4b` (B) · `§7.2` item 6 · `DD-14`'s corrected terms | **REPEATED constructions over the path the first one created.** Four constructions in a row each SUCCEED (arm (a): the path EXISTS), the file stays PRESENT and ZERO-LENGTH after each, the parent's entry count moved by EXACTLY ONE **in total across all four**, each instance's register lands at `file` and reads `Object({})`, and the instances are INDEPENDENT — a `file` write through the second is invisible to the first, whose boot-load happened at ITS construction. **`PASS 22 · FAIL 0`.** |
+| **G5-AP-03** | `§10.4` part 6 (*"BYTE-IDENTICAL … `boot_load` reads them unaltered"*) · `§7.1` step `4b` (B)/(E) · `DD-28`'s amended cell · `§7.2` items 1, 5, 6 | **Arm (a) — "unmoved" — DERIVED AND DRIVEN.** Over a file carrying a committed write: the bytes are BYTE-IDENTICAL, the length is the committed write's (non-zero, not the store's own `0`), the entry count is unmoved, the register lands at `file`, and the boot-load reads the committed key. Then the second half of "unmoved": a `D-1` delete commits NOTHING, a re-construction over the equal path re-boots from the LAST COMMITTED file write's bytes (the deleted key STANDS AGAIN), and after two constructions and a delete the bytes are still the last file write's. **`PASS 12 · FAIL 0`.** |
+| **G5-AP-04** | `§10.4` part 4 (*"LAST act of the construction's ARGUMENT VALIDATION"*) and part 5 (*"LEAVES NOTHING BEHIND"*) · `§7.1` step `3`-bis · `§8.1` #1 | **The ordering `listeners[]`-before-create, made VISIBLE.** A malformed entry at a FRESH path in a WRITABLE parent — **where the create would have succeeded had it run** — answers `AddressMalformed`, and the file is ABSENT afterwards with the entry count unchanged. The same array over a file ALREADY carrying committed bytes also answers `AddressMalformed` and leaves those bytes BYTE-IDENTICAL. **`PASS 6 · FAIL 0`.** |
+| **G5-AP-05** | `§7.1`'s ordered sequence, steps `2`, `3`, `3`-bis, `4b` (*"the order is BINDING"*) · `§10.4` part 4 · `§8.1` #12 | **The construction's own failure ORDER.** `journalLength` absent at a reachable path, at an unreachable path (the path IS a directory) and beside a malformed `listeners[]` each answers `ConstructionArgumentMissing`, creating nothing — step 2 precedes both the probe and step `3`-bis. **`PASS 5 · FAIL 0`**, and one OBSERVATION recorded rather than asserted (`§10.3` item 1). |
+| **G5-AP-06** | `§8.1` #13's amended trigger clause (a)/(d) · `§10.4` part 5 · `DD-45`'s amended clause · `§7.1` step `4b` (C) · `§8.2` | **The amended trigger list's newly-decidable forms.** (i) A parent on a **READ-ONLY MOUNT** — `/snap/<rev>/`, measured `EROFS` at the probe — answers `FilePathUnreachable`, returns NO instance, leaves the path ABSENT and the parent's entry count unchanged, with a non-empty message and no unsubstituted placeholder. (ii) A parent at **`0o200`**, where `metadata().readonly()` is `false` while the kernel denies the create: refused with the same member and nothing left behind — **the divergence `DEF-20` is filed for, printed at the run.** (iii) An EXISTING read-only file: refused, its bytes untouched. **`PASS 11 · FAIL 0`**; the ACL face is `UNRUN` (`§10.3` item 2). |
+| **G5-AP-07** | `§10.4` parts 1, 3, 5 and its blast-radius clause · `§7.1` step `4` and step `4b` · `A55` · `§7.2` item 1 | **THE STATE NO DOCUMENT NAMES: the path EXISTS but as a DANGLING SYMLINK.** See `§10.1` — **`PASS 3 · FAIL 4`, and this is the pass's live finding.** |
+| **G5-AP-08** | `§10.4`'s blast-radius clause and part 6 · `DD-28`'s amended cell · `§7.2` item 5 · `§3.4` arm `W-6` · `§4.4` arms `D-1`, `D-4` | **The blast-radius clause's own claims at the instance the construction returned.** The create writes NO BYTE; `mem`- and `temp`-tier writes perform NO file I/O; the `file` write is the only one that touches the path; `W-6`'s purge leaves `[File]` alone at a key written `mem`,`temp`,`file`; a `D-1` delete removes exactly the named version with `tiers: [File]`; the removed address then resolves to nothing (`D-4`'s code); and **the delete and the rollback each leave the bytes as the last file write left them**. **`PASS 12 · FAIL 0`.** |
+| **G5-AP-09** | `§3.4` arm `W-6` (*"every version … for which `rank(v) ≤ rank(write tier)` is removed"*) · `§5.1` `M-1` · `§3.4` arm `W-1` (`DD-8`, `DD-11`) · `§5.4`'s purge chain · `§3.2` item 4's amended clause · `§8.1` #6 | **A DERIVED PRECONDITION, and a correction of this document's own first reading.** The six pairwise write orders are driven and compared with `W-6`'s own arithmetic — `mem,file`⇒`[File]`; `temp,file`⇒`[File]`; `mem,temp`⇒`[Mem,Temp]`; `temp,mem`⇒`[Mem]`; `file,mem`⇒`[File,Mem]`; `file,temp`⇒`[File,Temp]` — and the THREE-VERSION state `§3.2` item 4 calls possible is shown to be reached by writing `file`,`mem`,`temp`. The `mem`-register half is driven too: `file` at a register key FAILS `ParentAnchorMonotonicityViolation`. **`PASS 11 · FAIL 0`.** |
+| **G5-AP-10** | `§4.4`'s arms `D-1`, `D-3`, `D-2` · `DD-9` · `§8.1` #2, #4 · `§5.1` | **The delete arms on a key whose version count is KNOWN — the state `G5-AP-09` establishes, printed at `[File, Mem, Temp]`.** `D-1` at the `file` tier removes that version ONLY and leaves `mem` and `temp` **still readable** (the clause's *"untouched"* half, asserted POSITIVELY); a second `D-1` at the same tier is `D-3` — the target resolves through its survivors and the delete is a SUCCESS with `tiers: []`; a `D-2` delete removes the survivors in `§5.1`'s canonical order; and over a three-version key the `D-2` receipt carries `[File, Mem, Temp]`. **`PASS 8 · FAIL 0`.** |
+| **G5-AP-11** | `write-and-read.md §4.2`'s read arms · `§2.3`'s tier-qualified arm · `§8.1` #4 · `§5.3`'s shadow rule | **A read is not a write — the probes repeated THREE times.** With `mem`,`temp`,`file` written at one key, `read(['z'], File)` answers and `read(['z'], Mem)`/`read(['z'], Temp)` answer `TierNotFound`, **identically at all three passes**, which is the form that fails if a read minted a version or re-tiered a key. **`PASS 3 · FAIL 0`.** |
+
+### §10.1 THE FINDING — **`G5-AP-07`: A CONSTRUCTION THAT ACCEPTS A DANGLING-SYMLINK PATH RETURNS AN INSTANCE WITHOUT CREATING THE STORE'S OWN FILE, AND THE FIRST `file`-TIER WRITE THEN REPLACES THE SYMLINK**
+
+**The state, and why the documents do not decide it.** `contract.md §7.1`'s amended `filePath` row prints
+the path's states as ABSENT (the absent-file arm), an EXISTING file (arm (a)), `null`/`undefined`/`""`/a
+non-string, and *"a string that FAILS the reachability test"*; `§10.4` part 1 names the predicate's TWO arms
+— **(a)** *"the path EXISTS and a WRITE-MODE OPEN of it succeeds"* and **(b)** *"the path is ABSENT and the
+process can perform an EXCLUSIVE CREATE at it"*. **A path whose NAME IS TAKEN BY A SYMLINK TO A
+NON-EXISTENT TARGET is no arm of that predicate: a write-mode open of it does not succeed (the target is not
+there), and the path is not ABSENT (an exclusive create there answers `EEXIST`).** **THE DOCUMENTS DO NOT
+PRINT THIS STATE'S ANSWER — THAT IS `§10.3` ITEM 3 — but `§10.4` part 3 does print what a construction that
+SUCCEEDS must have done**, and **the measured behaviour contradicts it**:
+
+1. **THE CONSTRUCTION RETURNS `Ok` AND CREATES NOTHING.** `storeCreate` over the dangling-symlink path
+   answered `Ok` with `findAddress([], absent).anchor.tier = File`, **while the path is still the SYMLINK it
+   was** — `symlink_metadata(link).file_type().is_symlink() == true`, `metadata(link)` = `ENOENT`, the
+   symlink's target still absent, and the parent directory's entry count unchanged at `1` (the symlink).
+   **So `§10.4` part 3's *"the construction CREATES the store's own file at the provided path — EXCLUSIVELY
+   — AND LEAVES IT ZERO-LENGTH: AN EMPTY FILE AND NO BYTE"* has NOT happened**, and the blast-radius
+   clause's own declared observables — *"the path EXISTS and its length is `0`"*, *"the parent directory's
+   entry count moved by EXACTLY ONE"* — are both **falsified at a construction that reported SUCCESS** (the
+   count did not move at all, and the path's length is not `0` because there is no file). **Its register tier
+   is nonetheless fixed at `file`, which is the tier `§10.4` part 3 fixes only for a create that succeeded.**
+2. **`§10.4` PART 2's FALL-THROUGH IS NOT WHAT HAPPENED.** The clause says the arm must fall through **to
+   arm (a)'s write-mode open** *"so a construction over an EXISTING file NEVER TRUNCATES"*. **A write-mode
+   open of this path cannot succeed** — the target does not exist — so a fall-through that actually PERFORMED
+   arm (a)'s open would have FAILED, and `§10.4` part 5 would then require `FilePathUnreachable` with NO
+   instance. **The measured `Ok` therefore reports arm (a)'s outcome without arm (a)'s act**, and it leaves
+   the construction having accepted a path that `A55`'s *"File must have write access"* does not hold for.
+3. **THE CONSEQUENCE IS CONSUMER-VISIBLE AND SILENT.** On the instance the construction returned, the first
+   `file`-tier write **answered `Ok`** — and the observation shows the name that was a SYMLINK before the
+   write is **not a symlink after it**, with the path now a regular file of `7` bytes. **So a write the
+   construction had approved silently DESTROYED the name that stood at the configured path and replaced it
+   with the store's own file.** `DEF-20`'s own defect class — *"a path answered REACHABLE whose first
+   `file`-tier write then throws"* — is not what fired here; **what fired is its mirror: a path answered
+   REACHABLE whose first `file`-tier write SUCCEEDS by replacing something the store never read.**
+4. **WHAT THE PASS DOES NOT CLAIM.** **This is not a claim about the amendment's named forms** — its four
+   named forms (`EROFS`, `EACCES`, `ENOENT`, the directory path) were each driven and each REFUSED as the
+   amendment declares (`G5-AP-06`). **It is a claim at a state the amendment's own two arms cannot classify,
+   where the contract's part 3 still states an observable the implementation does not produce.**
+
+### §10.2 THE GAPS — **THIS PASS'S FINDINGS OF THE SECOND KIND: THE PLACES THE DOCUMENTS DID NOT TELL ME WHAT TO EXPECT** (counted as neither PASS nor FAIL)
+
+1. **The ORDER OF THE PROBE (step `3`) AGAINST THE `listeners[]` CHECK (step `3`-bis) IS NOT PRINTED AS AN
+   ANSWER.** `§7.1`'s ordered sequence numbers the steps and `§10.4` part 4 enumerates what the create comes
+   *after*, but **no clause states which member is returned when BOTH the probe and the `listeners[]` check
+   would refuse.** Driven at a parent on a read-only mount with a malformed entry, the measured answer was
+   `AddressMalformed` — **recorded as an OBSERVATION and asserted nowhere**, because from the documents alone
+   it could be either (`FilePathUnreachable` under step 3 first, `AddressMalformed` under step 3-bis first),
+   **and the pair is unreachable in a single-clause reading: whichever ordering is intended, the other member
+   is the one the sequence's own ordering makes unreachable at that input. The documents state the order and
+   never the answer.**
+2. **`§8.1` #13's amended clause (a) NAMES AN *"ACCESS ACL"* FORM THIS PLATFORM CANNOT CONSTRUCT FOR AN
+   UNPRIVILEGED OWNER.** The clause names *"the process is denied the create by an access ACL or by an
+   ownership mismatch"*; **this pass could drive the `EACCES` face (a parent the caller owns whose mode
+   denies the create) but NOT the ACL face**, because a named-user ACL cannot be made to disagree with the
+   owner's own write bit. **`UNRUN`, with that reason, rather than a pass.**
+3. **THE DANGLING-SYMLINK STATE IS UNCLASSIFIED BY THE PREDICATE'S OWN TWO ARMS.** *"The path exists"* and
+   *"the path is absent"* are stated as if they partition the provided-path states; **they do not** — a
+   symlink to a non-existent target is neither (`exists()` answers false, `metadata()` answers `ENOENT`, and
+   an exclusive create answers `EEXIST`). **The clause needs either a third named state or a reading of
+   *"absent"* that names the symlink case; until then no greens cell can be derived for it, which is why
+   `G5-AP-07` asserts the contract's part 3 and not this state's *"declared answer"*.**
+4. **`§10.4` part 3's SUBJECT IS THE CREATE AND NOT THE CONSTRUCTION.** It reads *"A successful exclusive
+   create produces an empty file … and the construction RETURNS AN INSTANCE"*; **it does not state that the
+   construction's SUCCESS is equivalent to the create's success.** **This pass read it as the only available
+   reading — a provided-path construction that returns an instance must have satisfied part 3's observables —
+   and `G5-AP-07`'s four `FAIL`s rest on that reading.** **If the intended reading is the weaker one (a
+   construction may return an instance without part 3's state), then the clause does not say so and `§10.4`
+   part 6's fall-through owes the statement that it may approve a path arm (a) would refuse.**
+5. **`P-TP-7`'s `S-CONSTRUCT` CENSUS IS NOT RE-DERIVED IN THE COPY OF THE CONTRACT THIS PASS READ.** The
+   amendment's own gate-1 record and `docs/decisions.md` both file the census (*`27`*, with two whole
+   failure classes appended) as an open gate-2 finding; **this pass did NOT read the census as an authority
+   and does not claim any figure for it** — no scenario here asserts anything the census would carry.
+6. **THIS DOCUMENT'S OWN HARNESS CITATION IS TO A PATH THAT DOES NOT EXIST ON THIS MACHINE.**
+   `docs/specs/storeroom-native-greens.md:37` (and `:99`, `:530`, `:600`, `:691`, `:864`, `:888`) names
+   `/tmp/storeroom-blind/`, with `CARGO_TARGET_DIR=/tmp/storeroom-blind/target` **outside the repository**;
+   `:654` names a scratch `/tmp/storeroom-doc/` for the `cargo doc` regeneration `§9` cites. **NEITHER PATH
+   EXISTS IN THIS REPOSITORY OR ON THIS MACHINE**, and `/tmp` here does not survive between two invocations —
+   **so no earlier pass of this document can be re-run as written, and none of its figures is re-checkable by
+   a later pass of the same set.** Recorded because **a greens set that cannot be re-run is not a pass**, and
+   `§10`'s header states this pass's own harness location (inside the repository's gitignored `target/`) for
+   exactly that reason. **This is a property of the RECORD and not of the crate: the earlier passes'
+   *"three consecutive runs produced identical counts"* claim (`:101`) is neither confirmed nor denied here —
+   this pass ran its own harness and makes no claim about theirs.**
+
+### §10.3 WHAT THIS PASS DID NOT RE-DRIVE, AND THE ONE THING IT DOES NOT CLAIM
+
+**The states the existing red set already drives were not re-driven**: the created-empty file at all four
+declared observables, the `0o200`-parent refusal, the `/usr/bin` ownership refusal, the exercised `EROFS`
+mount, the absent-parent and path-is-a-directory refusals, arm (a)'s byte-identity, the malformed-`listeners[]`
+ordering and the malformed-`journalLength` ordering. **`G5-AP-01` and `G5-AP-06` reach two of those states as
+SIDE conditions of their own scenarios (the four observables inside a re-derivation; the mount and the mode
+inside the trigger list's reach) — never as a duplicate of another cell's drive, and never asserted where
+another cell already asserts it.** **NOTHING HERE RE-DERIVES, RE-MEASURES OR MOVES ANY EARLIER SECTION'S
+FIGURES** (`§2`'s `355`/`357`, `§8`'s `133`, `§9`'s `508`): **`107`/`4` are THIS pass's assertions at THIS
+run.** **This set is the BLIND author's: no byte of `src/**` was read at any point of it, every expectation
+above was written from a `§`-numbered clause named in its own row, the four `FAIL`s of `G5-AP-07` were
+derived from `§10.4` part 3 before the state was driven, and the harness that produced them is named in this
+section's header.**
