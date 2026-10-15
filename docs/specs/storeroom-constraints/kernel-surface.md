@@ -1,0 +1,732 @@
+# Part — `kernel-surface` (`U-STOREROOM-CONSTRAINTS`, prefix `D-GP-SCNT`): the kernel's declared surface, its record shapes, its message log and its states
+
+- **Status:** **CARRIER PART of the unit's contract directory `docs/specs/storeroom-constraints/`** — authored
+  at the gate-2 spec gate **in the same pass** as the contract document's index region and part map, whose
+  `kernel-surface` row declares it **KIND `carrier`** at the path
+  `docs/specs/storeroom-constraints/kernel-surface.md`. **⟶ REPAIRED at the gate-2 repair pass of
+  2026-10-13 (`role_spec_writer`) against the validity findings `VF-3`–`VF-15` and the critique
+  counter-cases `CC-1`–`CC-16`, `CC-20`–`CC-27`: this head stands and the clauses below carry the repairs.**
+  **⟶ RESTORED AT THE RESTORATION PASS OF 2026-10-13 (`role_spec_writer`), AFTER THE WHOLE-FILE REWRITE THAT
+  DESTROYED MOST OF THIS PART (`DEF-2026-10-13-I`): `§1` items 1–4, `§2.1` items 1–5, `§2.2`, `§2.3`
+  items 1–2, `attempt-lifecycle.md §2.4` item 8 (i)'s stray fragments and `§2.6`–`§2.7` (the last two since MOVED to
+  `docs/specs/storeroom-constraints/composition-and-states.md` by the split clause below, and repaired there
+  as they stand) were repaired region by region against the
+  SIBLING PARTS this unit's clauses are pinned to by name and `§` — `contract.md`'s `§5.x` properties and part
+  map, `fail-surface.md`'s `KC` rows and census, `parameter-semantics.md`'s `PAR-C` rows — and against the
+  gate-2 register's own closes, the recovery dump being used to CORROBORATE wording only, never as text.**
+  **AND THE ARCHITECT'S RULING OF THE SAME DATE IS LANDED HERE: *"Clarification on 1: Roll back to the last
+  state that passed all constraints."* (`A: docs/decisions.md` · `A102`) — `composition-and-states.md §2.6`
+  item 8 declares the
+  composition's TARGET and the checkpoint with its evidence, its recording shape and its observation; `attempt-lifecycle.md §2.4`
+  item 8 (ii) (f)–(g) answers the cross-address, re-entrant case with the EXISTING `KC-7`; and the
+  `RollbackStep` shape gains its `checkpoint` member, whose count is re-derived at `§1` item 4 and at every
+  reader of the shape.**
+  **⟶ RE-DERIVED AT THE RULING-LANDING PASS OF 2026-10-13 (`role_spec_writer`), WHICH LANDS THE ARCHITECT'S LAST THREE ANSWERS AND CLOSES `CW-07`–`CW-11`: `Q-A` *"Redefine the checkpoint AS the stop op."* — `§1` item 4's `RollbackStep` row re-spells the `checkpoint` member FROM A PAIR KEY TO THE OP (`string | null`, the `opId` of the op whose landing left the attempt's last valid state) and NO reader here reads a pair key from it any longer; `§1` item 4 also gains THE COMMIT REGISTRY's own row and re-derives the record set to TWELVE (`11 + 1 = 12` ✓), its clearing rule's one home being `contract.md §5.7`; `Q-B` — `attempt-lifecycle.md §2.4` item 5 (iv)'s descendant-address rule is settled against the atomic single-write reading, and item 8 (ii) (g)'s CROSS-ADDRESS clause now names the CHECKPOINT OP and the architect's own example; `Q-C`/`D5` — `attempt-lifecycle.md §2.4` item 7 (i)'s commit-registry clause cites that clearing rule and never re-derives it, `§2.3` item 1's `AttemptContext.op` member is re-spelled to the op whose landing left the state the evaluation runs at, and `§2.5`'s log clause is unmoved (an `outcome` entry per terminal arm, whose counting key the clearing rule does not change).**
+  **⟶ AND RE-DERIVED AT THE GATE-2 REPAIR PASS OF 2026-10-13 (`role_spec_writer`), WHICH LANDS THE ARCHITECT'S CONFIRMATION THAT A CHECKPOINT OP MAY BE ANOTHER ATTEMPT'S (`A: docs/decisions.md` · `A104` — *"Yes — the checkpoint may name an op ANOTHER attempt landed."*) AND CLOSES THE TWO LIMBS' RESIDUAL FINDINGS: `attempt-lifecycle.md §2.4` item 1's `checkpoint` member is the ATTEMPT'S OWN ninth member, PINNED AT EACH LANDING's atomic evaluation with its instant and its home before any `RollbackStep` exists; `§2.3` item 1 carries the pin and the RE-RUN'S OWN ARM (so no repair landing is routed to no arm); `attempt-lifecycle.md §2.4` item 3's terminal-arm clause fixes WHICH ARMS REMOVE THE ATTEMPT'S OWN REGISTRY ENTRY, `attempt-lifecycle.md §2.4` item 7 (i) defines *"a successful rollback"* as a predicate, the registry's owner and what it holds, and THE COMMIT REGISTRY IS DECLARED AS THE MAP MEMBER OF A SET OF NAMED SHAPES (eleven records + one map = twelve); item 5 (iv) adds *"each pair evaluated at most once per pass"* with the mid-pass registration's reading; and `§1` item 4's count of the record set and of the `RollbackStep` members is read from ONE home, every other site citing it.**
+  **⟶ LANDED AT THE `A108` LANDING PASS OF 2026-10-13 (`role_spec_writer`), WHICH CLOSES `DF-1`–`DF-5`: THE SPLIT'S PARTITION PREDICATE IS THE WRITE'S AUTHOR AND NOT THE LISTENER'S KIND (`§2.2` item 2, `D1`), **⟶ AMENDED AT THE `A112` DELIVERY-MODEL RE-SPELL PASS OF 2026-10-13 (`role_spec_writer`), WHICH LANDS `A: docs/decisions.md` · `A112`: A WRITE'S ENTIRE RETURNED SET OF TRIGGERED CONSTRAINTS STANDS IN THE NAMED MEMBER `CommitRecord.pending` DECLARED AT ITS ONE HOME `§2.1` ITEM 2 (`D2`), EACH ENTRY LEAVING IT ONLY BY BEING CHECKED OFF AS IT PASSES — SO THE `NOT-YET-INVOKED HANDLES` SPELLING THAT ONCE STOOD HERE IS WITHDRAWN BY NAME, sifting a subset out of the returned set being UNNECESSARY AND UNLAWFUL, AND THE CALLER'S OWN LOOP IS ONE INVOKER AMONG THE JS SURFACE'S OWN ORDERED LAYERS AND NOT THE ONLY ONE**, `§2.2` item 3 states which member each layer's handle appears in, and the layer (b) observable is read off that member with the discard rule — WHOSE EXTENT `attempt-lifecycle.md §2.4` item 8 (i) (5) FIXES AND WHICH IS NOT RE-DERIVED HERE — observable in `e2e-scenarios-b.md`'s `E2E-C-16`. THE CENSUS THIS PASS TOUCHES IS ONE MEMBER, AND ITS ARITHMETIC CLOSES: `CommitRecord` `3 + 1 = 4` members ✓, the named kernel-side shape set UNMOVED at `12` (`11` records + `1` map), the register's `8 ≤ 8`, the `KC` set `8` on `13` sites, `PAR-C` `17`, `RollbackStep` `6`, the open `AttemptRecord` `9` and the battery's `16 × 7 = 112` all UNMOVED, AND RE-READ AT THE `A112` DELIVERY-MODEL RE-SPELL PASS OF 2026-10-13, WHICH MOVES NO FIGURE OF IT: `CommitRecord` stays `3 + 1 = 4` members ✓ — `pending` being the KERNEL'S OWN member, sourced from the set the store's own return carries — the named shape set `12`, the register `8 ≤ 8`, the `KC` set `8` on `13` sites, `PAR-C` `17`, `RollbackStep` `6`, the open `AttemptRecord` `9` and the battery's `16 × 7 = 112` all UNMOVED.**
+  **⟶ AND RE-DERIVED AT THE `A105` LANDING PASS OF 2026-10-13 (`role_spec_writer`), WHICH LANDS THE ARCHITECT'S THREE ANSWERS AND CLOSES `VD-4`, `VD-8`, `VD-9`, `CY-1`, `CY-2`, `CY-3`, `CY-5` AND `CY-6` HERE: `§2.3` item 1's evaluation is ADDRESS-SCOPED and NOT ATTEMPT-SCOPED, so a landing by another processing can establish the attempt's last valid state (`Q1` — *"Any last valid state for the store."*); `attempt-lifecycle.md §2.4` item 8 (i)'s head carries THE CONTENTION RULE (`Q2`'s third limb, the single-threaded edge case declared); item 8 (i) (3) states the still-owed predicate and the terminal-arm clause — item 7 (i)'s LIFETIME AS A CITATION TO ITS ONE HOME `contract.md §5.7` being READ THERE — withdrawing the restatement, and pins the entry's removal STRICTLY AFTER the composition's walk (`CY-5`; `A106` `Q3`: the standing remainder is the COMMIT REGISTRY'S own entry and never the open `AttemptRecord` entry; `VG-3`; `VG-5`); item 3's `FAILING` arm carries that order; and `§2.1` item 5 reads the open record's member count from its one home (`VD-8`). THE CENSUS IS UNMOVED: shapes `12` (`11 + 1`), register `8 ≤ 8` ✓, `KC` `8` (`2 + 2 + 2 + 1 + 1`) on `13` sites (`1 + 4 + 4 + 3 + 1`).**
+  **⟶ SPLIT AT THE GATE-2 SPLIT PASS OF 2026-10-13 (`role_spec_writer`): THE ARCHIVAL PASS WAS RUN FIRST AND
+  WAS INSUFFICIENT — the superseded readings still printed in this part total about `1` KB, which does NOT
+  bring the path back under the per-path volume line of `131,072` B — so `§2.6` (the per-op rollback
+  composition) and `§2.7` (the states a TestWriter derives) are MOVED OUT at the PRE-SPLIT EXTENT THEY STOOD
+  AT ON THAT DATE — the one account this directory gives of the move, printed in the same words at
+  `contract.md §0`'s `composition-and-states` map row and at that part's own head: the sections were moved as
+  they stood at the split, with the `VA` closes of the same date landed in them BEFORE the move, and their
+  cross-references were then repointed WITH THEIR PATHS because a bare `§n` does not cross two documents — to
+  the CARRIER PART `docs/specs/storeroom-constraints/composition-and-states.md`, where they KEEP THEIR NUMBERS
+  and are declared by that file's own `composition-and-states` row in the contract document's part map; the
+  one-line pointer at the end of this part's body names the new home and this part's declared scope now
+  ENDS AT `§2.3`, carrying `§2.5` after the pointer** (`RCA-8(g)`: move out, leave a one-line pointer, never
+  retain beside).
+  **⟶ AND SPLIT A SECOND TIME AT THE GATE-2 SPLIT PASS OF 2026-10-13 (`role_spec_writer`): this part measured
+  `129,778` B — `99 %` of the process's per-path volume line of `131,072` B — so `§2.4` (THE ATTEMPT) is
+  MOVED OUT, BYTE-EXACTLY AND WITH ITS `§`-NUMBER UNMOVED, into the CARRIER PART
+  `docs/specs/storeroom-constraints/attempt-lifecycle.md`, one line of pointer standing here where the moved
+  text stood; `122` qualified citations of it were repointed across this directory at this pass (`kernel-surface.md §2.4` → `attempt-lifecycle.md
+  §2.4`), and every remaining bare `§2.4` was repointed WITH ITS PATH in the same act — so THIS PART NOW
+  CARRIES `§1`, `§2`, `§2.1`–`§2.3` and `§2.5` and nothing else, and `§2.4` stands only at the new part's
+  path, declared by that part's own `attempt-lifecycle` row in the contract document's part map** (`RCA-8(g)`:
+  move out, leave a one-line pointer, never retain beside).
+- **What this part is, and what it declares — AND WHERE THIS PART'S DECLARED SCOPE ENDS.** **This part is
+  where the kernel's SURFACE is declared: the module, the five surface items with their signatures, their
+  return shapes and their throw patterns; the record shapes — the attempt's transition table and its states
+  having moved with `§2.4` to `attempt-lifecycle.md`; the message log and its order; and the applied-repair
+  marker.** **THIS PART'S DECLARED SCOPE IS `§1`, `§2`,
+  `§2.1`–`§2.3` AND `§2.5` — exactly those, and it ends at `§2.3` and resumes at `§2.5`:** **`§2.4` (THE
+  ATTEMPT — its record, its states, its transition table and its trigger) is NOT carried here since the split
+  of 2026-10-13; it stands, numbered `§2.4` with its number UNMOVED, at
+  `docs/specs/storeroom-constraints/attempt-lifecycle.md`, and the per-op rollback composition and the states
+  a TestWriter derives are NOT carried here either — they stand, numbered `§2.6`–`§2.7`, at
+  `docs/specs/storeroom-constraints/composition-and-states.md`.** **The ONE-LINE POINTER at the end of this
+  part's body is the only address this part gives `§2.4`, and this head's own scope sentence is the only
+  place this part's carried set is declared** (`RCA-8(g)`). **It declares NO store-side clause,
+  mints no store member, and authors no test and no implementation** (`P: §A.1`'s closing clause — *"NOTHING
+  IN THESE ANSWERS MOVES A STORE-SIDE CONTRACT BY ITSELF"*; `[T: this part's own scope boundary |
+  CONTRACT]`).
+- **THE FUNCTION'S REALM AND THE HANDLE'S SIDE, STATED ONCE AT THIS PART'S HEAD SO NO CLAUSE BELOW IS READ
+  WITHOUT THEM** (`P: §A.1`; `P: §B.7`): **the constraint's HANDLE is checked in the Rust store *"as normal
+  for listeners"* — that is the store's EXISTING listener-machinery duty and it declares no new store
+  surface and no new store record; the constraint's FUNCTION runs in the Node.js space and is invoked by the
+  CALLER'S OWN code; and the constraint's REGISTRATION, its attempt, its message log and its applied-repair
+  marker are THE CALLER'S OWN SHAPES with NO store entry.**
+- **THE ONE READING RULE THIS PART'S CLAUSES ARE WRITTEN TO SATISFY, STATED SO THE REPAIR'S BOUND IS
+  CHECKABLE.** **EVERY CELL A DRIVE OBSERVES IS A MEMBER THIS PART DECLARES, AND EVERY OBSERVATION NAMES THE
+  MEMBER IT READS.** **A state that no declared member carries is not an observation of this unit's
+  kernel — it is either a member this part has yet to declare or an observation the drive does not have.**
+  **The records this part declares are therefore closed at their printed member sets, and the member set of
+  every record below is CLOSED: a seventh member of `LogEntry`, a sixth member of `AttemptContext`, a fifth
+  member of `AttemptReport` or a second `state`-carrying form is not a variation, it is a different
+  shape** (`[T: this part's own reading rule, authored with the repairs so no observation outruns its
+  record | CONTRACT]`).
+
+**Scope boundary — what this part does NOT carry, and why.** **This part carries no fail-state TABLE and no
+closed-set reading: those are `fail-surface.md`'s.** **It carries no parameter-semantics row: those are
+`parameter-semantics.md`'s.** **It carries no register row: those are `contract.md §5`'s.** **And it carries
+no scenario: those are `e2e-scenarios.md`'s.** **A reader seeking one of those is pointed, never served a
+second copy here** (`[T: the part's own omissions, so no rule gains a second addressable home |
+CONTRACT]`).
+- **THE UNIT'S BUILD SCOPE, STATED ONCE AT THIS PART'S MODULE-HOME ROW, BECAUSE THE PLAN'S SCOPE LISTS NAME THE BINDING TREE AND NEVER THE TWO PATHS THIS UNIT'S OWN BYTES STAND AT**: **`bindings/js/src/constraint-kernel.mjs` — the kernel module's ONE home, declared at `§1` item 1 — and `bindings/js/test/**` — the HOME OF THE RED SET THE UNIT'S OWN DRIVES STAND IN (`implementation-plan.md §2`'s `bindings/js/test/**` row, phase `B4`) — are BOTH INSIDE THIS UNIT'S OWN SURFACE `bindings/js/**` (`implementation-plan.md §2`'s `bindings/js/**` row, phase `B3`) AND ARE BOTH DISTINCT FROM THE RUST CRATE'S ROOT `src/**`, WHICH NO PASS OF THIS UNIT TOUCHES** (`implementation-plan.md §2`'s NOT-TOUCHED SET — *"`src/**` (no store byte)"*). **AND THE ROOT THESE TWO PATHS STAND UNDER IS THE BINDING CRATE'S OWN ROOT AND NOT THE STORE CRATE'S: `bindings/js/**` IS THE ROOT `bindings/js/Cargo.toml` DECLARES — the napi binding crate, whose own `src/` tree is `bindings/js/src/` — so THE TWO FILES THIS UNIT ADDS ARE THAT CRATE'S OWN FILES AND ENTER ITS OWN LICENCE AND SWEEP WALK AS ITS FILES, exactly as that crate's existing files do; AND THE DISTINCTION FROM THE RUST STORE CRATE'S ROOT `src/**` STANDS UNMOVED, that path being a DIFFERENT CRATE'S ROOT, of which NO FILE AND NO WALK OF THIS UNIT TOUCHES ONE BYTE** (`implementation-plan.md §2`; the binding crate's own root, `bindings/js/Cargo.toml`). **So a pass of this unit writes inside `bindings/js/**` and nowhere else, the new paths enter the binding crate's own licence and sweep walk as its files, and the two trees' near-identical spellings are settled here rather than left to a reader** (`[T: the unit's build scope AND THE CRATE ROOT IT LIVES UNDER, so a later pass resolves the two paths without a plan cell this contract may not edit | CONTRACT]`).
+- **AND THE LEG THE RED SET'S HOME SITS IN, AND THE LAYER IT RUNS AT, DECLARED HERE ONCE BECAUSE THAT HOME LIES INSIDE THE JS LEG'S OWN GLOBBED TEST COMMAND** (`implementation-plan.md §2`): **the red set's home `bindings/js/test/**` is reached by the JS leg's own globbed test command — THE LEG THIS UNIT'S OWN PHASES `B3` AND `B4` STAND IN, and never a leg of the Rust store crate — and the LAYER a drive of this unit runs at is THE KERNEL MODULE'S OWN TESTS, CALLER-SIDE NODE ESM, reached through the module's one checkout home `bindings/js/src/constraint-kernel.mjs` and through no store-side harness; AND THE JS UNIT'S OWN OPERATIVE TEST CENSUS IS THAT UNIT'S FIGURE AND IS NOT THIS UNIT'S: NO FIGURE OF `U-STOREROOM-JS`'s LEG IS RE-DERIVED, RE-STATED OR MOVED BY A DRIVE OF THIS UNIT, its terms and its layer being read at `implementation-plan.md §2`, WHICH THIS CLAUSE CITES AND DOES NOT RESTATE** (`implementation-plan.md §2`; `docs/specs/storeroom-js/contract.md` §7's census region).
+  (`[T: the leg, the layer and the census's owner, so the new files' addition to a globbed command is never read as moving another unit's figure | CONTRACT]`).
+
+---
+
+## §1. The kernel module — its name, its realm and its declared surface
+
+1. **THE KERNEL MODULE'S NAME AND REALM.** **The kernel is ONE Node ESM module whose declared name is
+   `constraint-kernel`** **`[T: the module's name | DECLARED-DEFAULT]`** — **alternatives priced: (i) a
+   member of the existing JS package's namespace — REFUSED, because `docs/specs/storeroom-js/contract.md`
+   `§2.9` item 1 closes that surface at exactly `8` verbs, and a ninth member is a declared-surface member
+   under `PUB-DD-9`'s `MINOR` row, which is `§B.2`'s reading and phase `B2a`'s conditional and is NOT taken
+   here; (ii) a second package — REFUSED at this pass, because a registry identity, a prebuild matrix and a
+   licence decision are the publish unit's and are named by no ruling of this unit.** **Reversal point: a
+   fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment of
+   `docs/specs/storeroom-constraints/`.** **The kernel is CALLER-SIDE: it lives in the Node.js space, it
+   reaches the store through the store's own declared verbs, and it is not a store structure, not a store
+   home and not a second addressable home.** **⟶ AND THE MODULE'S CHECKOUT HOME IS DECLARED HERE, BECAUSE A NAME A TEST CANNOT IMPORT IS A NAME AND NOT A SURFACE** (`DH-2`): **the kernel module's ONE checkout home is the ESM SOURCE FILE `bindings/js/src/constraint-kernel.mjs`, and the import spelling a red set at `bindings/js/test/**` uses is `import { register, commit, runAttempt, log, report } from '../src/constraint-kernel.mjs'` — a CHECKOUT-RELATIVE ESM SOURCE PATH taken from that test directory, whose `../src/` resolves INSIDE the repository and INSIDE `bindings/js/**`** (`implementation-plan.md §2`'s `bindings/js/**` row; `bindings/js/test/**`'s own directory, `docs/specs/storeroom-js/contract.md` `DD-18`). **AND THE FIXTURE EVERY DRIVE OF THIS UNIT CONSTRUCTS IS NAMED HERE ONCE, SO NO DRIVE INVENTS ONE AND NONE REACHES THE STORE ANOTHER WAY**: **the `store` argument of `§1` item 5 IS an instance the PACKAGE'S OWN `storeCreate(cfg)` returned — `cfg` carrying `StoreConfig`'s three declared keys and no fourth, `journalLength` · `listeners` (the empty array included) · `filePath`, of which `filePath` alone is optional** (`A: bindings/js/index.d.ts`; `A: docs/specs/storeroom-js/surface.md §2.1`) **— AND THE ADDON UNDER IT IS LOADED BY THE PACKAGE'S OWN DECLARED RESOLUTION, which resolves the scoped platform package for this runtime first and this checkout's own module-relative addon second, an absent or mismatching addon being the ONE declared refusal and NEVER a silent fallback** (`A: bindings/js/index.d.ts`, `storeCreate`'s own clause; `A: docs/specs/storeroom-publish/resolution.md §2` · `§5`). **So a drive constructs its fixture through the package's own construction call and reaches the addon by NOTHING ELSE: no path is spelled in a drive, no second load path is declared** — **AND THAT DELETION IS `A110`'S OWN CONSEQUENCE, NAMED HERE BECAUSE THIS IS THE CLAUSE THAT FORBADE IT: the ruling's *"the addon route is DELETED, not widened"* removes the ONLY second load path this directory ever had to forbid, so this unit carries no module interception, no monkey-patch, no addon load path and no second dependency, and the op the repair landed reaches the kernel on the repair's own return and by nothing else** (`A: docs/decisions.md` · `A110`; `parameter-semantics.md §2.7`) — **and every drive of `e2e-scenarios.md` and `e2e-scenarios-b.md` CITES this clause for its store.** **`[T: the fixture a drive constructs | DECLARED-DEFAULT]`** — **alternatives priced: (i) a PACKAGE SUBPATH EXPORT (`@provident-storeroom/js/constraint-kernel`) — REFUSED, because a published subpath is a member of the JS package's declared export surface and would move the publish unit's declared surface, which `docs/specs/storeroom-js/contract.md §2.9` item 1 and `PUB-DD-9`'s `MINOR` row close at this pass; (ii) a NINTH MEMBER OF THE JS PACKAGE'S NAMESPACE — REFUSED for the reason item 1's own alternative `(i)` already prices. AND ONE PLACEMENT THE HOME ITSELF EXCLUDES, NAMED BECAUSE IT LOOKS LIKE A THIRD ALTERNATIVE AND IS NOT: `bindings/js/index.mjs` — REFUSED, because that file IS the JS package's entry and its named exports are exactly the `8` verbs, so the kernel's five items standing there would be the ninth-to-thirteenth members of a namespace this unit does not own** (`A: docs/specs/storeroom-js/contract.md §2.9` item 1; `implementation-plan.md §1`'s scope row). **Reversal point: a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment of `docs/specs/storeroom-constraints/` and of the JS unit's own `§2.9`.** **AND THE HOME ADDS NO ITEM, NO MEMBER AND NO SHAPE: the five items it exports are the five `§2.1` already declares, so the surface's extent and every census of this part are UNMOVED by this row.**
+2. **WHAT THE KERNEL'S SURFACE IS, IN ONE LINE, SO ITS EXTENT IS CHECKABLE.** **The kernel's surface is
+   EXACTLY FIVE ITEMS — `K-1` `register` · `K-2` `commit` · `K-3` `runAttempt` · `K-4` `log` · `K-5`
+   `report` — and NO sixth item is declared** (`kernel-surface.md §2.1`) **`[T: the surface's extent |
+   DECLARED-DEFAULT]`** — **alternative priced: a sixth item (an `unregister`, an `attempts()` enumerator, a
+   `pending()` reader, NAMED SO A READER DOES NOT MISTAKE IT FOR THE `CommitRecord.pending` MEMBER `§2.1` item 2 declares, which is a member of a returned record and no item of this surface) — REFUSED, because each would be a surface member this unit's rulings do not name and
+   each would widen the publish reading's subject.** **Reversal point: `§B.2`'s reading taken, or a fresh
+   ruling plus a bounded amendment.** **AND THE REFUSAL IS CONSEQUENTIAL, NOT COSMETIC: a drive that would
+   need a sixth item to observe a state has found an observation this unit's five items do not support, and
+   `composition-and-states.md §2.7` item 12 names the substitutions those drives use instead.**
+3. **AND ONE BOUNDARY THE SURFACE'S EXTENT DOES NOT CROSS** (`P: §B.4`; `P: §B.6`; `P: §B.7`; `P: §B.8`):
+   **the kernel declares NO store verb, NO store parameter, NO store record, NO store member and NO
+   function-carrying STORE parameter.** **The two store verbs the kernel COMPOSES — the write verb and
+   `rollback` — and the store registration verb the handle check uses — `listen`/`unlisten` — are the
+   store's own DECLARED verbs, cited and never re-declared** (`A: docs/specs/storeroom-native/write-and-read.md
+   §3` · `§6.3` · `§6.5`; `A: docs/specs/storeroom-js/contract.md §2.2` · `§2.10`).
+4. **THE KERNEL'S OWN RECORDS, ENUMERATED ONCE SO THE MEMBER SET OF EACH IS FINDABLE: `CommitRecord`
+   (`§2.1` item 2, `4` members — **the fourth added at the `A108` landing pass of 2026-10-13, `DF-2`**) · `AttemptRef` (`attempt-lifecycle.md §2.4` item 1, `1` member) · `AttemptContext` (`§2.3`
+   item 1, `5` members) · `ConstraintOutcome` (`§2.3` item 1, `3` arms) · `RepairContext` (`§2.3` item 2,
+   `5` members) · `RepairResult` (`§2.3` item 2, `2` arms, `3` members across them since the `A110` pass — `2 + 1 = 3` ✓, the success arm's `op` included, its ONE HOME being `parameter-semantics.md §2.7`) · `LogEntry` (`§2.5` item 1, `6` members) ·
+   `AttemptRecord` (`attempt-lifecycle.md §2.4` item 1, `9` members) · `RollbackStep` (declared at `composition-and-states.md §2.6` item 3,
+   `6` members — the `failed` arm AND the `checkpoint` member included: **THE COUNT OF THAT DECLARATION STANDS HERE ONCE — AND, WITH IT, THE MEMBER ENUMERATION; every other site in this directory that needs the member set CITES this row and re-spells no member of it**, `composition-and-states.md §2.6` item 3's block carrying the SHAPE and `parameter-semantics.md §2.17`'s `domain` cell carrying the member's own domain, **while the `checkpoint` member's DOMAIN — the OP, and the `null` arm with it — is read at ITS OWN ONE HOME, `composition-and-states.md §2.6` item 8 (iii), which every other site CITES: `string | null` is this member's TYPE as it stands here and NOT a second statement of its domain** — `composition-and-states.md §2.6` items 3, 4 and 8; `e2e-scenarios.md`'s `E2E-C-2` and `e2e-scenarios-b.md`'s `E2E-C-9` and `E2E-C-15`) · **the COMMIT REGISTRY** (`attempt-lifecycle.md §2.4` item 7 (i), the caller-side map it is declared in — the edit ops held PER CALL'S PROCESSING for an attempt, `Q2`: **the row stands so this enumeration is closed in both directions, and its clearing rule's ONE home is `contract.md §5.7` and is not re-derived here, and it is a MAP AND NOT A RECORD whose member set this item would be minting**) · `AttemptReport` (`§2.1` items 3
+   and 5, `5` members) · the kernel's failure form (`fail-surface.md §1.1`, `3` members).** **That is TWELVE named kernel-side shapes — `11 + 1 = 12` ✓, the ONE row added at the ruling-landing pass of 2026-10-13 being the commit registry, whose lifetime `Q-C`'s `D5` fixes — and `0` unnamed shapes; AND THE TWELFTH MEMBER IS DECLARED AS THE MEMBER IT IS, SO THE SET'S OWN FIGURE AND ITS MEMBERS' KINDS NEVER DISAGREE** (`VC-11`): **eleven of the twelve are RECORDS with a closed member set, and the commit registry is a MAP AND NOT A RECORD — so it is DECLARED AS THAT MAP (`attempt-lifecycle.md §2.4` item 7 (i)), a MEMBER OF THE SET and not a shape the set omits — and the `0` below counts UNNAMED SHAPES, so both terms close: `11` records + `1` map = `12` named shapes, `0` unnamed.** **AND THE `12` STANDS HERE ONCE: the TWO FURTHER ROWS this enumeration was printed with — each re-ending in the same `12`, the same `11 + 1` and the same `0` unnamed, and each re-listing `AttemptReport` and the failure form — are WITHDRAWN BY NAME, because a figure printed three times is a figure with three homes.** **THE
+   ENUMERATION IS CLOSED IN THE OTHER DIRECTION TOO — every record this part declares stands in the list
+   above, and a record a clause declares without a row here is a finding** (`[T: the record set, so `VF-3`'s
+   and `CC-1`'s subjects each have a home | CENSUS]`).
+5. **HOW A KERNEL ITEM REACHES A STORE — THE ONE BINDING THIS UNIT DECLARES, SO A DRIVE CAN WRITE THE CALL WITHOUT INVENTING ONE.** **EACH OF THE FIVE ITEMS TAKES THE CALLER'S OWN STORE — THE INSTANCE HANDLE THE CALLER ALREADY HOLDS, THE OBJECT `A: docs/specs/storeroom-js/surface.md §2.1`'s `storeCreate(cfg)` returned — AS ITS FIRST ARGUMENT, AND THE CALLER PASSES WHAT IT ALREADY HOLDS: THE STORE IS THE CALLER'S AND THE KERNEL HOLDS NONE.** **So the kernel is bound to a store BY ITS CALLER AT EVERY CALL AND NOT AT IMPORT: it imports no store package, holds no instance handle, keeps no store member and carries no module-level store, and the only store value any item ever sees is the one its own call carried** (`T: §B.7` — the registration's CALLER-SIDE home; `P: §B.4` — *"nothing crossing the store's surface"*).
+   - **THE EXACT CALL SHAPE, PRINTED AT ONE ITEM SO A TEST CAN WRITE THE CALL — `K-3`, THE ITEM WHOSE WINDOW IS THE ATTEMPT** (`kernel-surface.md §2.1` item 3): **`runAttempt(store, commit)` — `store` the caller's own instance handle, `commit` the `CommitRecord` the caller's own `K-2` returned — and the kernel's internal call to the store's own verb is spelled `write(store, address, tier, value)` and `rollback(store, opId)`, each spelled EXACTLY as `A: docs/specs/storeroom-js/surface.md §2.2` declares it, the instance in the first position and no further argument added** (`§2.1`'s item-by-item block; `A: docs/specs/storeroom-js/surface.md §2.2`). **AND ONE READING RULE SO NO SPAN OF `e2e-scenarios.md` OR `e2e-scenarios-b.md` IS READ AGAINST THIS BINDING: WHERE A SCENARIO'S STEP TEXT SPELLS AN ITEM'S CALL AS `register(address, id, constraint)`, `commit(address, tier, value)`, `runAttempt(commit)`, `log(attempt)` or `report(attempt)`, the store argument of `§1` item 5 is the CALLER'S OWN AND IS OMITTED FROM THE STEP'S OWN TEXT ALONE — the ITEM'S signature at `§2.1` keeps it and the drive writes it** (`[T: the scenarios' shorthand against the signatures, stated so the two are never read apart | CONTRACT]`).
+   - **THE BINDING IS DECLARED UNDER THIS UNIT'S OWN NAMING CONVENTION, ITS ALTERNATIVES PRICED AND REFUSED** `[T: how a kernel item reaches a store | DECLARED-DEFAULT]` — **alternatives priced: (i) THE KERNEL IMPORTING THE STORE PACKAGE AND HOLDING AN INSTANCE ITSELF — REFUSED, because a module-level held store is A SECOND ADDRESSABLE HOME, which `§1` item 1 forbids by name; (ii) ONE FACTORY `createKernel(store)` RETURNING THE FIVE ITEMS — PRICED AND NOT CHOSEN: it binds ONE store for the life of the returned object, so it moves the store argument off every item's call site and puts it in a construction act this unit's five items do not declare, and it buys nothing the first-argument form does not already give, since the caller's own handle is what a drive holds at every call site of `e2e-scenarios.md` and `e2e-scenarios-b.md`'s windows.** **The first-argument form is therefore CHOSEN because it is the store's own convention: every store verb of `A: docs/specs/storeroom-js/surface.md §2.2` takes the instance in its FIRST position, so the kernel's five items take it there too and no new shape, member or parameter row is minted.** **Reversal point: a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment of `docs/specs/storeroom-constraints/` that re-spells the five items' signatures at `§2.1` and every call site of this directory.**
+   - **AND NOTHING ELSE REACHES THE STORE — NO SECOND PACKAGE, NO NINTH MEMBER, NO SECOND BINDING** (`§1` item 1's refusals; `A: docs/specs/storeroom-js/contract.md §2.9` item 1): **the bound store's declared namespace is the `8` VERBS and the binding adds NOTHING to it and takes nothing from it; the kernel mints NO verb, NO member and NO record ON THE STORE'S SIDE, and a form that reaches the store by a ninth member of that namespace, by a second package, or by a store value the kernel holds itself is REFUSED BY NAME AND NOT PRICED BESIDE THIS ONE.** **THE BINDING HAS EXACTLY ONE HOME, THIS ITEM, AND NO OTHER CLAUSE OF THIS DIRECTORY DECLARES ONE: `§2.1`'s item-by-item block carries the five signatures under it and re-spells no term of it** (`[T: the binding's single home, so the five signatures cite it and do not re-derive it | CONTRACT]`).
+
+## §2. The surface, item by item, with signatures, return shapes and throw patterns
+
+### §2.1 THE SURFACE ITEMS — the five verbs, each with its signature and its return shape
+
+```
+K-1  register(store, address, id, constraint)     -> Handle              // store: the caller's own instance handle
+K-2  commit(store, address, tier, value)          -> CommitRecord        // on success; throws otherwise
+K-3  runAttempt(store, commit)                    -> AttemptReport       // on success; throws otherwise
+K-4  log(store, attempt)                          -> LogEntry[]          // the attempt's own message log
+K-5  report(store, attempt)                       -> AttemptReport       // the attempt's FINAL record
+```
+**AND THE FIRST POSITION OF EACH IS THE CALLER'S OWN STORE, DECLARED ONCE AT `§1` ITEM 5 — SO THE FIVE SIGNATURES ABOVE CITE THAT BINDING AND RE-DERIVE NO TERM OF IT: the kernel holds no store, the caller passes what it already holds, and the store's own verbs are called with that same instance in their first position** (`§1` item 5).
+
+1. **`K-1` `register(store, address, id, constraint) → Handle`.** **Registers ONE constraint in the CALLER-SIDE
+   registry, keyed by the pair (`address`, `id`), and returns the HANDLE the store's own listener machinery
+   holds for that `address`.**
+   - **THE STORE-SIDE HALF OF THIS ITEM IS THE HANDLE CHECK, AND IT IS THE STORE'S EXISTING DUTY:** the
+     `address` is checked by the store's own listener machinery *"as normal for listeners"* — **the store's
+     listener record is closed at `{address, handle}` and is UNTOUCHED; no constraint record, no constraint
+     token and no constraint id enters it** (`P: §A.1`; `P: §B.7`; `A: docs/specs/storeroom-native/
+     write-and-read.md §6.5` item 10 (a) and item 12 (c); `A: docs/specs/storeroom-native/contract.md §6.5`
+     items 2 and 6).
+   - **THE RETURN SHAPE:** **the handle the store's machinery holds for that `address`** — **the handle is
+     ADOPTED, never minted by the kernel** — **so a second `register` at an address the store already holds
+     returns the SAME handle, because the store's `listen` is idempotent at the address level and returns
+     the existing entry's handle** (`A: docs/specs/storeroom-native/write-and-read.md §6.5` item 12 (c)).
+     **AND THE ONE CALLER-VISIBLE CONSEQUENCE OF THAT IDEMPOTENCE, STATED SO IT IS NOT READ AS A DEFECT: an
+     app's own `listen` at the same address and the kernel's `register` at it return the SAME adopted
+     handle, and neither call replaces the other's holder — the store holds ONE entry at that address, and
+     the kernel holds its own registry entry beside it.**
+   - **THE IDEMPOTENCE IS AT THE PAIR AND NOT AT THE ADDRESS** (`contract.md §5.1`, `P-IM-1`): **a second
+     `register` at the same `address` under the SAME `id` adds no second registry entry and REPLACES the
+     first registration's function; a second `register` at the same `address` under a DIFFERENT `id` adds a
+     SEPARATE entry, and both functions stand.** **AND IT IS THE REPLACEMENT'S OWN CLAUSE THAT SAYS WHERE
+     THE SECOND CONSTRAINT'S FUNCTION SURVIVES** (`CC-5`): **it survives in the CALLER-SIDE registry and
+     nowhere else.** **The store's home holds ONE entry at that address (`{address, handle}`) and knows
+     nothing of either `id` — so the pair's second entry has NO store entry, no store-side home and no
+     handle of its own, and that is the declared state of the design and not a gap** (`P: §B.7` — *"no
+     store entry"*; `A: docs/specs/storeroom-native/write-and-read.md §6.5` item 10 (a)).
+   - **THE PAIR'S ORDER IN ONE EVALUATION PASS, DECLARED SO A RE-REGISTRATION IS NOT A SILENT
+     RE-ORDERING** (`CC-7`): **the registry's entries at one address stand in the order the address's pairs
+     were FIRST registered; a replacement under an existing pair keeps the replaced registration's POSITION
+     and replaces only its function; a NEW pair is appended AFTER every pair already standing at that
+     address.** **So a re-registration NEVER moves an entry and a new `id` NEVER displaces an old one**
+     (`attempt-lifecycle.md §2.4` item 5 (ii); `contract.md §5.5`, `P-SM-5`).
+   - **THROWS — ONE CHANNEL PER REFUSING ACT, PRINTED AS SUCH BECAUSE THIS ITEM'S BULLET ONCE PUT A STORE
+     REFUSAL UNDER THE KERNEL'S OWN MEMBER** (`RC-2`; `VF-6`): **`K-1` throws on exactly two channels and no
+     third.** **(i) THE KERNEL'S OWN CHANNEL — `KC-1` (`ConstraintAddressRefused`)** where the `address` is
+     outside the store's own address domain or its shape is not an address's shape at all (`null`,
+     `undefined`, a non-array, a blank token), **and `KC-2` (`ConstraintArgRefused`)** where the `id` is not a
+     non-empty string or the `constraint` is not a function: **both are refused by the KERNEL BEFORE the
+     store's own `listen` is called, and both throw the form of `fail-surface.md §1.1` with the kernel's own
+     `status`.** **(ii) THE STORE'S OWN CHANNEL — where the store's own `listen(address)` call REFUSES an
+     in-domain address: THE STORE'S OWN CODE IS THROWN AT THAT CALL, IN THE STORE'S OWN FORM, and it reaches
+     the caller UNCONVERTED — `KC-1` is NOT that state and no clause of this item puts it there** (`§2.1`
+     item 1's own channel clause below; `fail-surface.md §1.2` item 2; `parameter-semantics.md §2.1`).
+     **On channel (i) the thrown object's form is `fail-surface.md §1.1`'s, and its `status` is
+     the KERNEL'S OWN: NO store member appears as a registration failure's `status`; on channel (ii) the
+     object thrown is the STORE'S OWN form and the kernel writes no `status` at all**
+     (`P: §B.6`; `contract.md §5.3`, `P-IM-3`). **AND NO REGISTRY ENTRY IS ADDED ON EITHER CHANNEL: a
+     refused registration leaves the registry exactly as it stood, and the store's home holds nothing the
+     refused `listen` did not create — `listen` throws, so it created nothing.**
+   - **AND WHOSE FAILURE THE *"STORE'S MACHINERY REFUSES THE REGISTRATION"* HALF IS, NAMED BECAUSE THE
+     KERNEL INVOKES NO STORE VERB OF ITS OWN** (`VF-6`; `CC-6`): **the kernel reaches the store's listener
+     machinery through the store's own declared `listen` verb and nothing else, and it calls
+     `listen(address)` at `K-1` — so a refusal the STORE's own verb produces is thrown AT THAT CALL, in the
+     STORE'S own form, and it reaches the caller unconverted.** **THE KERNEL WRAPS NOTHING, RE-LABELS
+     NOTHING AND CONVERTS NOTHING: the kernel's own `KC-1` is thrown for the address SHAPES `§2.1` item 1
+     and `parameter-semantics.md §2.1` enumerate as outside the domain, and the store's own code is thrown
+     where the store's own verb is what refused** (`A: docs/specs/storeroom-native/write-and-read.md §6.5`;
+     `A: docs/specs/storeroom-native/contract.md §8.1` · `§8.2`; `fail-surface.md §1.2` items 2 and 4).
+   - **AND NOTHING WITHDRAWS A CONSTRAINT'S STORE REGISTRATION, DECLARED AS THE PERMANENT ENTRY IT IS**
+     (`CC-6`): **the kernel declares NO `unregister` and calls the store's `unlisten` NEVER**
+     (`kernel-surface.md §1` item 2 — the sixth item is refused). **So a store-side listener entry created
+     by a `register` STANDS for the life of the instance unless the APP removes it through the store's own
+     `unlisten` verb, and a registry pair whose store entry the app has removed is a state this unit
+     declares NO arm for: it is neither a kernel state nor a repair arm, and no scenario of this unit
+     reaches it** (`A: docs/specs/storeroom-native/write-and-read.md §6.5` item 6 — `unlisten`; `[T: the
+     omission, stated so a reader does not look for a kernel-side withdrawal | NEGATIVE]`).
+   - **AND THE ENTRY'S OWN LIFETIME AND ITS PLACE IN OTHER LISTENERS' RETURNED SETS, BOTH DECLARED SO THE
+     PERMANENT ENTRY IS AN ARM AND NOT AN OMISSION** (`RC-8`): **(1) LIFETIME — the store-side home entry a
+     `register` creates at the attempt's address STANDS FROM THE MOMENT `K-1`'s `listen(address)` call returns
+     UNTIL THE APP REMOVES IT through the store's own `unlisten` verb, or until the store instance ends; NO
+     KERNEL ACT AND NO ATTEMPT'S TERMINAL ACT REMOVES IT, and the kernel's registry pair survives that
+     removal too, because the two homes are different keys** (`§2.2` item 4; `attempt-lifecycle.md §2.4` item 7). **(2) ITS PLACE
+     IN A RETURNED SET — the entry appears in the store's `triggered`/`watched` handle set for exactly the
+     operations its address is a PREFIX of, on the store's own selection rule and at any tier, WHATEVER
+     CALLER'S OPERATION IT IS: the attempt's own first write, a repair's own `write`/`delete`, and a write or
+     delete made by ANOTHER caller outside this kernel alike** (`A: docs/specs/storeroom-native/write-and-read.md
+     §6.5` item 3 and item 10 (d); `composition-and-states.md §2.6` item 5). **(3) AND ONE CONSEQUENCE NAMED SO IT IS NOT DISCOVERED:
+     the kernel ADOPTS the handle the store returned at `K-1` and never consults it again, so an entry the APP
+     removes through `unlisten` stops appearing in later returned sets while the registry pair keeps being
+     evaluated — this unit declares NO arm for that state, and no scenario of `e2e-scenarios.md` drives
+     `unlisten`** (`§2.2` item 3; `e2e-scenarios.md §1` item 3 (ii)).
+2. **`K-2` `commit(store, address, tier, value) → CommitRecord`.** **Issues the attempt's FIRST WRITE through the
+   caller's own store write verb, and hands back the commit's record.** **⟶ AND WHEN AN ADDRESS COUNTS AS HELD —
+   THE ONE THING THIS ITEM ONCE LEFT TO A REFUSAL'S OWN SENTENCE — IS DECLARED HERE, AT THIS ITEM'S OWN HOME,
+   BECAUSE THE GATE-5 BLIND RUN FOUND THE REFUSAL REACHABLE AND ITS TIMING UNDECLARED** (`live-greens.md`'s
+   `[E2E-C-6.3]`, whose hold-timing half this clause is derived from; `fail-surface.md §2`'s `KC-7` row): **AN ADDRESS IS HELD FROM THE MOMENT THIS CALL'S WRITE VERB RETURNS UNTIL THE ATTEMPT
+   THAT CALL OPENED REACHES ITS TERMINAL ARM — SO THE HOLD OPENS BY `K-2`'S OWN ACT AND ONLY BY IT, AND IT IS
+   RELEASED BY THE ATTEMPT'S OWN TERMINAL ARM AND BY NO OTHER ACT: a `K-2` return releases nothing, a delivery of
+   the write's handles releases nothing, and the store's own further writes release nothing.** **THE CONSEQUENCE,
+   DECLARED SO NO DRIVE HAS TO GUESS: a SECOND `K-2` AT A HELD ADDRESS IS REFUSED `KC-7` BEFORE THE WRITE VERB IS
+   REACHED, AND A SECOND `K-2` AT AN ADDRESS WHOSE EARLIER ATTEMPT HAS REACHED ITS TERMINAL ARM IS LAWFUL
+   WHENEVER IT IS ISSUED — it RETURNS A FRESH `CommitRecord` for its own write and throws no `KC-7`, NO SECOND
+   ACT OF ANY KIND BEING NEEDED BESIDE THE EARLIER ATTEMPT'S TERMINAL ARM** (`e2e-scenarios.md`'s `E2E-C-6`
+   steps (2)–(4), where the terminal arm of step (3) precedes the fresh `K-2` of step (4); `e2e-scenarios-b.md`'s
+   `E2E-C-11` steps (1)–(2) and `E2E-C-13` observation (α), where a fresh `K-2` follows a closed attempt and a
+   refused one). **AND ONE CASE INSIDE THAT WINDOW IS NOT SETTLED HERE AND IS `OWED`: whether a STANDING COMMIT
+   REGISTRY ENTRY a failure arm left behind — the entry holding the ops that attempt never undid
+   (`A: docs/decisions.md` · `A106` `Q3`) — counts as an attempt that has not reached its terminal arm, and
+   therefore refuses a later `K-2` — owner THE ARCHITECT, positive revisit condition *a ruling recorded as an
+   ACTIVE `docs/decisions.md` row on the attempt's window edges (`U12`), followed by a bounded amendment of
+   `docs/specs/storeroom-constraints/`* (`contract.md §0.1` item 5 (ii); `attempt-lifecycle.md §2.4` item 6;
+   `parameter-semantics.md §2.17`'s sibling row at `fail-surface.md §2`'s `KC-7`).** **NO CLAUSE OF THIS
+   DIRECTORY STATES THE STANDING-RESIDUE CASE, AND NO CLAUSE MAY BE READ AS SETTLING IT** — **AND THE BLIND
+   RUN'S OWN `KC-7` PROBE LANDED INSIDE THIS WINDOW AND NOT OUTSIDE IT: two commits issued with the first
+   attempt still open are a second `K-2` at a HELD address and are refused, which is this item's rule and not a
+   second reading of it.**
+   - **RETURN SHAPE — `CommitRecord`, a record with exactly FOUR members, the FOURTH added at the `A108` landing pass of 2026-10-13:**
+     ```
+     CommitRecord {
+       attempt:    AttemptRef,        // the attempt this commit opens — its identity, attempt-lifecycle.md §2.4
+       op:         JournalOp,         // the op the store's write returned, VERBATIM (its §6.2 shape)
+       triggered:  Handle[]           // the store's own `triggered` member, VERBATIM, read as a SET
+       pending:    Handle[]           // THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS — each entry leaving it ONLY BY BEING CHECKED OFF AS IT PASSES; sifting no subset — `§2.1` item 2 and `§2.2` item 2
+     }
+     ```
+   - **WHAT IT IS NOT:** **the `CommitRecord` is the KERNEL'S OWN record and is NOT the store's
+     `WriteResult`** — the store's write returns `{op, watched, triggered}` and the kernel's record carries
+     TWO of those members **verbatim**, plus the attempt's identity and the kernel's own `pending` member; **the kernel adds no member to the
+     store's record and takes none away** (`A: docs/specs/storeroom-native/write-and-read.md §3.6`;
+     `contract.md §5.2`, `P-IM-2`'s `S-REC-SURFACE` line).
+   - **AND THE FOURTH MEMBER IS THE ONE THIS UNIT OWES ITS OWN PARTITION, DECLARED HERE BECAUSE THIS ITEM IS
+     THE RECORD'S ONE HOME AND A RECORD'S MEMBERS ARE DECLARED ONCE** (`A: docs/decisions.md` · `A108` `D2`;
+     `DF-2`): **`CommitRecord.pending` CARRIES THE HANDLES THIS CALL'S WRITE RETURNED THAT THE KERNEL HAS NOT
+     INVOKED IN ITS OWN WINDOW — LAYER (b)'s SET, WHOSE LAYER IS FIXED BY THE WRITE THAT RETURNED EACH HANDLE
+     AND BY NOTHING ELSE (`§2.2` item 2) — so THE CALLER'S INVOCATION LOOP READS ITS WORK OFF THIS MEMBER —
+     off this member and off no other — and invokes each handle ITSELF: THE CALLER'S OWN LOOP OVER THIS
+     MEMBER IS ONE INVOKER AMONG THE JS SURFACE'S OWN ORDERED LAYERS AND NOT THE ONLY ONE (`A: docs/decisions.md` · `A112`; `A109` `D2`; `§2.2` item 2) — **the two superseded spellings this clause carried, *"THE ONLY INVOKER LAYER (b) HAS"* and *"BY NO SECOND INVOKER"*, are WITHDRAWN BY NAME AT THE `A112` DELIVERY-MODEL RE-SPELL PASS OF 2026-10-13: THE STORE RETURNS THE HANDLES AND INVOKES NOTHING, THE JS SURFACE RUNS THE TRIGGERED CONSTRAINTS FIRST AND, ONCE EVERY CONSTRAINT HAS PASSED, THE OTHER LISTENERS, BEFORE RETURNING TO THE CALLING PROCESS** — the
+     ORDER being THE ONE LAW — EVERY LAYER (a) DELIVERY OF THIS CALL COMPLETES BEFORE ANY LAYER (b) BODY OF
+     THIS CALL RUNS — **AND THAT ORDER'S OWN EXTENT IS THE PAIRS THE PASS EVALUATED AND NEVER THE HANDLES THE WRITE RETURNED, DECLARED HERE AS THE ONE READING OF LAYER (a) BECAUSE THE TWO DIFFER EXACTLY WHERE A KERNEL-MADE WRITE RETURNS MORE HANDLES THAN ITS PASS HAS PAIRS: THE DELIVERY AT LAYER (a) RUNS FOR EACH PAIR THE PASS EVALUATED — ONE DELIVERY PER EVALUATED PAIR, EACH CARRYING THAT PAIR'S OWN FUNCTION — AND FOR NO OTHER, AND THE PASS'S OWN SET IS THE ADDRESS-SCOPED ONE `§2.3` ITEM 1 DECLARES, THE PAIRS REGISTERED AT THE LANDING'S OWN ADDRESS AND NOT THOSE OF ANY ANCESTOR ADDRESS (`§2.3` item 1, the evaluation's one home, CITED HERE AND NOT RE-DERIVED); SO A HANDLE THE SAME WRITE RETURNED WHOSE PAIR THE PASS DID NOT EVALUATE STANDS IN THIS MEMBER AS ANY CALLER-MADE WRITE'S HANDLE DOES AND IS RUN BY THE CALLER'S OWN LOOP AT LAYER (b), WHICH IS **ONE INVOKER AMONG THE JS SURFACE'S OWN ORDERED LAYERS AND NEVER THE ONLY ONE** (`A: docs/decisions.md` · `A112`) — AND NO HANDLE IS DELIVERED TWICE, the ORDER above being the order of these two sets and not a claim that both carry one handle.** **THE DECLARED CONSEQUENCE, RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-SPELL PASS OF 2026-10-13 AND PRINTED AT ITS LIVE TERMS: `pending` CARRIES THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS AT THE MOMENT THIS CALL'S WRITE'S SET IS WRITTEN, AND AN ENTRY LEAVES IT ONLY BY BEING CHECKED OFF AS IT PASSES (`A: docs/decisions.md` · `A112`) — so WHERE ONE PAIR'S PASS CHECKS ITS OWN HANDLE OFF AS IT PASSES AND ANOTHER RETURNED HANDLE STANDS IN THIS MEMBER, `pending` CARRIES THE SECOND AND THE FIRST IS CARRIED BY `triggered` ALONE, AND SIFTING A SUBSET OUT OF THE RETURNED SET IS UNNECESSARY AND UNLAWFUL — the superseded spellings *"an already-run handle being a member of `triggered` and of `pending` NEVER"* and *"a subset"* are WITHDRAWN BY NAME AND ARE NOT RETAINED BESIDE THIS CLAUSE — so the two members' difference is a difference of EXTENT and of ORDER and not a filter, and THIS IS THE READING `e2e-scenarios-b.md`'s `E2E-C-16` IS DRIVEN AT** (`A: docs/decisions.md` · `A107` `D1`; `A108` `D1`/`D2`; `e2e-scenarios-b.md`'s `E2E-C-16` step (3) and observation (5)) — the INSTANT being NAMED NOWHERE, layer (b)'s bodies STANDING OUTSIDE THE KERNEL'S
+     OWN ACT (`A: docs/decisions.md` · `A109` `D1`).** **AND THE MEMBER'S TWO STATES, STATED WITH IT SO AN EMPTY
+     LIST IS READ AS A DECISION AND NOT AS AN OMISSION:** **`triggered` CARRIES EVERY HANDLE THE WRITE
+     RETURNED, VERBATIM AND AS A SET, because THAT SET IS THE STORE'S OWN ANSWER; `pending` CARRIES THE
+     WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS, EACH ENTRY LEAVING IT ONLY BY BEING CHECKED OFF AS IT
+     PASSES — the `SUBSET OF IT THE KERNEL HAS NOT ALREADY RUN IN ITS OWN WINDOW` spelling once standing
+     here being WITHDRAWN BY NAME, sifting a subset out of the returned set being UNNECESSARY AND UNLAWFUL
+     (`A: docs/decisions.md` · `A112`; `§2.2` item 2)** — **AND WHERE THAT WRITE FAILED THE
+     REGISTERED CONSTRAINTS AT ITS LANDING AND COULD NOT BE REPAIRED, ITS SET IS DISCARDED RATHER THAN
+     CARRIED — THE DISCARD RULE'S ONE HOME BEING `attempt-lifecycle.md §2.4` ITEM 8 (i) (5), WHICH THIS
+     MEMBER OBSERVES AND DOES NOT STATE, SO ITS EXTENT AND THE BODIES ALREADY RUN ARE READ THERE AND
+     RE-SPELLED NOWHERE HERE — so `triggered` then stands as the store's own returned set while
+     `pending` is `[]` and no handle of that write is invoked by either layer.** **AND EXACTLY WHICH ACT LEAVES A HANDLE IN THIS MEMBER ON THE CLOSED SURFACE IS DECLARED HERE, BESIDE ITS DECLARED STATE, BECAUSE THE GATE-5 BLIND RUN OBSERVED THIS MEMBER EMPTY AT `K-2`'S RETURN AND THE CALLER'S LOOP INVOKING NOTHING, THE BODY HAVING ALREADY RUN INSIDE THIS CALL'S WINDOW** (`live-greens.md`'s `CON-2`, its `[E2E-C-16.1]`–`[E2E-C-16.3]`, `[E2E-C-8.5]`) — **AND THAT OBSERVATION'S INSTRUMENT IS RE-TRIAGED AT THE `A112` DELIVERY-MODEL RE-SPELL PASS OF 2026-10-13: THE INVOCATION THE RUN OBSERVED INSIDE THE VERB CALL'S OWN WINDOW IS THE JS SURFACE'S DECLARED ORDERED LAYER — THE TRIGGERED CONSTRAINTS FIRST — AND NOT A STORE ACT, so `DEF-2026-10-13-K`'s premise (that the store delivers) and `DEF-2026-10-13-L`'s premise (that the store's own `write` return owes a `pending` member) are RE-TRIAGED HERE AND NEITHER BEHAVIOUR IS A PACKAGE DEFECT: `pending` is THIS KERNEL'S member, sourced from the set the store's own return carries** (`A: docs/decisions.md` · `A112`): **THE ONE REACHABLE ACT IS THE CALLER'S OWN `store.write` (or `store.delete`) MADE UNDER A REGISTRATION AT THIS SURFACE — so the handle such a call RETURNS FOR A BODY THIS CALL'S OWN PASS DID NOT RUN STANDS IN THIS MEMBER AT `K-2`'S RETURN, AND THE CALLER'S LOOP OVER THAT MEMBER IS ONE INVOKER OF THAT BODY AND NOT THE ONLY ONE.** **TWO FURTHER SOURCES OF HANDLES IN THIS MEMBER EXIST AND NEITHER IS READABLE OFF THIS SURFACE's OWN RECORD: (i) A KERNEL-MADE WRITE — the composed write of a repair, whose handles `§2.2` item 2 says stand in this member too — because NO `CommitRecord` is returned to the caller for any write but `K-2`'s own, so no returned record of this surface carries them; and (ii) A KERNEL INVOCATION INSIDE THIS CALL'S OWN WINDOW, WHICH IS THE JS SURFACE'S CONSTRAINTS LAYER RUNNING A BODY FOR A PAIR ITS OWN PASS EVALUATED — the act the blind run observed running those bodies and the reading that replaces the superseded *"the store's own delivery"* spelling, which is WITHDRAWN BY NAME (`A: docs/decisions.md` · `A112`).** **AND THIS MEMBER'S POPULATED STATE IS `OWED` AT THE BUILD THE BLIND RUN DROVE — a DECLARED DUTY OF THE KERNEL AND NOT OF THE STORE-SIDE PASS `J-20`–`J-22`, owner `role_kernel_writer`, positive revisit condition *the caller's own loop reading a body off this member at `K-2`'s return, driven again by this directory's `E2E-C-16` step (1) and `E2E-C-8` step (2)* — so `e2e-scenarios-b.md`'s `E2E-C-16` step (1) and `e2e-scenarios.md`'s `E2E-C-8` step (2) each READ RED AT THAT BUILD AND GREEN ON NOTHING ELSE, and NO OTHER LAYER OF THIS DIRECTORY CAN OBSERVE THEIR STATE: the store-side pass `J-20`–`J-22` carries no `pending` member and is named here only so the two duties are not confused, WHICH IS WHY THIS ITEM, AND NOT `J-20`–`J-22`, NAMES THIS OWING** (`contract.md §0.1` item 5 (i); `§2.2` item 2; `e2e-scenarios-b.md`'s `E2E-C-16`; `e2e-scenarios.md`'s `E2E-C-8`). **AND THE LOOP'S CALL SHAPE IS DECLARED HERE, BESIDE THE MEMBER IT READS, SO THE INVOCATION SEAM IS NAMED AND NOT LEFT TO A BINDING** (`DH-1`): **THE CALLER'S OWN LOOP RESOLVES EACH `pending` HANDLE IN THE CALLER'S OWN MAP — the map the caller ITSELF built when it registered, `handle` → the function it passed — AND WHICH OF TWO KINDS ITS MAP ENTRY IS FIXES HOW THAT FUNCTION IS CALLED, BY THE REGISTRATION'S KIND AND BY NOTHING ELSE; AND BOTH SHAPES ARE THIS UNIT'S OWN AND NEITHER IS WITHDRAWN.** **The two kinds, each with the argument its own clause declares:** **(i) A HANDLE WHOSE MAP ENTRY IS A CONSTRAINT OR A REPAIR FUNCTION — the two functions `K-1` registers, declared at `kernel-surface.md §2.3` items 1 and 2 — IS CALLED WITH THAT ATTEMPT'S CONTEXT AS ITS ONE ARGUMENT, which IS the ONE-ARGUMENT shape those two items declare and no other shape: the five-member `AttemptContext` for a constraint, the five-member `RepairContext` for a repair, each VERBATIM as the call it answers carried it.** **(ii) A HANDLE WHOSE MAP ENTRY IS A PLAIN STORE LISTENER — one registered through the store's own `on`/`register` at an address, `A: bindings/js/index.d.ts` and `A: docs/specs/storeroom-js/surface.md §2.4` item 7 — IS CALLED WITH THE TRIGGERING ADDRESS, that registration's own declared `Listener` shape (`Listener = (address: Address) => void`).** **THE HANDLE'S OWN LAYER NAMES NO KIND: a handle of either kind stands in this member where the write that returned it was the CALLER'S, and a body reached at layer (a) is reached as the function its own pair registered at the address the pass runs over — so a drive that reads an attempt context out of a delivery it also calls a plain listener's, or an address out of one it calls a constraint's, has found the kind mis-read.** **AND THE REFERENT OF *"THE TRIGGERING ADDRESS"*, NAMED HERE ONCE SO ONE READING CLOSES IT: IT IS THE WRITE'S OR THE `delete`'s OWN ADDRESS — THE OPERATION'S ADDRESS, which is the address the trigger's own op LANDED AT, and which THAT op's own record carries — AND NOT THE REGISTRATION'S WATCH ADDRESS, WHICH MAY BE A PROPER PREFIX OF IT.** **The two are different addresses exactly where the store's own selection rule puts them apart, and THE RULE THAT MAKES A PREFIX REGISTRATION FIRE AT ALL IS THE STORE'S OWN DESCENDANT-INCLUSIVE PREFIX TEST — a watched address `W` is triggered by an operation at `X` iff `W` IS A PREFIX OF `X`, at any tier — whose ONE HOME is `A: docs/specs/storeroom-native/write-and-read.md §6.5` item 3, CITED HERE AND RE-SPELLED NOWHERE; so a registration at the proper prefix `['a']` that an operation at `['a','c']` fires is called with `['a','c']`, the operation's own address, and NEVER with `['a']`** (`A: docs/specs/storeroom-native/write-and-read.md §6.5` item 3; `A: docs/specs/storeroom-js/contract.md §2.9` item 1 — the module namespace's `8` verbs — and `A: docs/specs/storeroom-js/surface.md §2.1` clause 1 (a) with `§2.4` item 7 — the instance's own `register` · `on` · `off`, `3` members, a different surface from the module's; `e2e-scenarios-b.md`'s `E2E-C-16`, whose listener `cL` is registered at `['a']` and whose call follows this clause). **AND THIS CLAUSE IS THE CARRIER OF THAT RESOLUTION, DECLARED AT THIS ITEM AND AT NO OTHER SITE OF THIS DIRECTORY: the caller's own `handle` → function map IS THE ONE RESOLUTION CARRIER a drive reads to learn WHICH FUNCTION a `pending` handle names and WHICH argument shape its call carries.** **AND A HANDLE THE CALLER CANNOT RESOLVE IN THAT MAP IS A CALLER-SIDE ERROR AND NOT A KERNEL STATE, NO `KC` TOKEN MINTED FOR IT — AND A HANDLE'S OWN WRITES GO THROUGH THE STORE'S DECLARED VERBS, the loop passing no store verb, no context and no callback of its own: every write a body makes is a store verb call the body itself issues, which is exactly what makes `A107` `D2` bite — a write made by a function the kernel is running is CHECKED by the same constraint pass as any other, and a write that fails constraints and is rolled back has the handles IT triggered DISCARDED AND NEVER RUN** (`A: docs/decisions.md` · `A107` `D2`/`D3`; `attempt-lifecycle.md §2.4` item 5 (i), which carries both rules and their `docs/pending.md` `G-8` drives). **AND THE ONE READING THIS CLAUSE WITHDRAWS BY NAME, AT THE SITE THAT DECLARED IT: *"invokes each handle with no arguments"* — a handle is OPAQUE, the store's module namespace is CLOSED at its `8` verbs and the instance at its `3` members, so NO invocation verb exists anywhere for a handle to be called THROUGH, and a handle is RESOLVED IN THE CALLER'S OWN MAP and never called bare.** — THE READING THAT MADE THIS CALL BARE, *"invokes each handle with no arguments"*, IS WITHDRAWN BY NAME, because a handle is OPAQUE and the store's module namespace is CLOSED at its EIGHT verbs and the instance at `register` · `on` · `off`, so NO invocation verb exists anywhere for a handle to be called through (`A: docs/specs/storeroom-js/contract.md §2.9` item 1; `A: bindings/js/index.d.ts`; `A: docs/specs/storeroom-js/contract.md` · `DD-50`, which holds that registry and forbids it to cross) — AND WHAT THE LOOP DOES INSTEAD: THE CALLER'S OWN LOOP RESOLVES EACH `pending` HANDLE **IN THE CALLER'S OWN MAP** — the map the caller ITSELF built when it registered, **`handle` → the function it passed** — AND CALLS THAT FUNCTION WITH THE TRIGGERING ADDRESS AS ITS ONE ARGUMENT, the binding's own declared listener shape (`Listener = (address: Address) => void`; the `register`/`on` registration, `A: bindings/js/index.d.ts`) — a handle the caller cannot resolve being a CALLER-SIDE error and NOT a kernel state, NO token minted for it — AND A HANDLE'S OWN WRITES GO THROUGH THE STORE'S DECLARED VERBS, the loop passing no store verb, no context and no callback of its own: so a body is invoked with the address alone, and every write it makes is a store verb call the body itself issues, which is exactly what makes `A107` `D2` bite — a write made by a function the kernel is running is CHECKED by the same constraint pass as any other, and a write that fails constraints and is rolled back has the handles IT triggered DISCARDED AND NEVER RUN** (`A: docs/decisions.md` · `A107` `D2`/`D3`; `attempt-lifecycle.md §2.4` item 5 (i), which carries both rules and their `docs/pending.md` `G-8` drives). **AND NO SECOND ARGUMENT IS ADDED, SO NO PARAMETER ROW IS MINTED FOR ONE AND NO NAMED SHAPE MOVES: a loop that passed the `AttemptContext` or a callback would be a surface member this unit's five items do not declare** (`§1` item 2's sixth-item refusal; `parameter-semantics.md §2.6`'s `repair` row and `§2.11`'s `evaluator` row — the two `callback` rows this unit declares, neither of them this loop's). **AND WHAT THE SAME MEMBER'S
+     HANDLES GET WHERE THE CALL THE KERNEL ANSWERED WITH THEM THROWS INSTEAD OF RETURNING, DECLARED BESIDE THE DISCARD RULE'S HOME BECAUSE
+     THAT THROW IS WHAT THE CALLER'S LOOP MEETS INSTEAD OF A RETURN (`DG-5`): ON A THROWING ARM THE CALLER'S LOOP PERFORMS NO INVOCATION FOR ANY HANDLE THIS MEMBER CARRIES.** **AND THE CLAUSE'S OWN CITATION: THE HANDLES IT CARRIES ARE EVERY ONE OF THEM OF THE KERNEL'S OWN WINDOW — THE SET THE STORE'S RETURN CARRIED, RUN THROUGH THE JS SURFACE'S CONSTRAINTS LAYER, AN ENTRY LEAVING IT ONLY BY BEING CHECKED OFF AS IT PASSES (`A: docs/decisions.md` · `A112`) — SO THE ARM REACHES THE LOOP WITH NOTHING LEFT IN IT TO INVOKE, AND THE DISCARD RULE'S ONE HOME BEING `attempt-lifecycle.md §2.4` ITEM 8 (i) (5), READ THERE AND RE-SPELLED NOWHERE HERE** (`A: docs/decisions.md` · `A109` `D2`).**
+   - **THE WRITE'S OWN ARGS ARE THE STORE'S AND ARE NOT RE-DECLARED HERE:** `address` is the store's
+     address domain, `tier` is the store's ONE required tier on `write`, and `value` is the store's admitted
+     value taxonomy (`A: docs/specs/storeroom-native/contract.md §1.4` · `§1.5` · `§3.1`; `A:
+     docs/specs/storeroom-js/parameter-semantics.md §2.5`–`§2.7` and `§2.10`). **AND THE THREE ARE
+     PARAMETERS OF THIS SURFACE IN THEIR OWN RIGHT — `address` and `value` each carries its own `PAR-C` row
+     and its own `evaluator` cell, so a drive that varies one of them reads the row that owns it:
+     `parameter-semantics.md §2.1` (`address`) and `§2.14` (`value`)** (`VF-3`;
+     `[T: the item's three parameters, so none is reached only through another row's `domain` cell |
+     CONTRACT]`). **AND THE THIRD OF THE THREE CARRIES NO ROW, PRINTED SO THE CLAIM AND THE ROW SET AGREE**
+     (`NV-7`): **`tier` is NOT a kernel-declared parameter and has NO `PAR-C` row anywhere in this
+     directory — it is the STORE's own required `write` argument, passed through verbatim, and it is
+     disposed of where the store's own surface disposes of it** (`§2.1` item 2's `tier`-refusal clause
+     below; `parameter-semantics.md §2.1`'s outside values; `A: docs/specs/storeroom-native/contract.md
+     §1.5`; `A: docs/specs/storeroom-js/parameter-semantics.md §2.5`–`§2.7`). **The claim this replaces —
+     *"each carries its own `PAR-C` row"* applied to all three, with `§2.16` cited for `tier` — is WITHDRAWN
+     BY NAME: `§2.16` is the ATTEMPT CONTEXT's row and it declares `tier` as a MEMBER of that record's
+     closed set, not as a parameter row of `K-2`'s argument list.**
+   - **THROWS:** **THE STORE'S OWN CODE, VERBATIM** — this is the ONE item of the surface whose failure is
+     the store's, because the store's write verb is what runs: `AddressMalformed` · `AddressNotFound` ·
+     `LeafHasNoDownstream` · `TierNotFound` · `OutOfDomainTier` · `ParentAnchorMonotonicityViolation` ·
+     `ContainerKindConflict` · `WriteParentNotLink` · `ValueNotAdmitted` · `FileCommitFailed`, each of the
+     store's closed `15`-member set, **thrown in the store's own single form** (`A: docs/specs/storeroom-native/
+     contract.md §8.1` · `§8.2`; `A: docs/specs/storeroom-js/contract.md §2.5`). **AND A FAILED `commit` OPENS
+     NO ATTEMPT AND LEAVES NO REGISTRY ENTRY: the store's failed-write guarantee holds whole, and the kernel
+     adds no residue of its own** (`A: docs/specs/storeroom-native/write-and-read.md §3.5`;
+     `contract.md §5.2`).
+   - **AND WHOSE STATE A `tier` REFUSAL IS, SETTLED HERE BECAUSE THE TWO READINGS DIFFER** (`CC-21`): **the
+     `tier` is evaluated STORE-SIDE and the store's own `OutOfDomainTier` is thrown at the verb call; NO
+     ATTEMPT IS OPENED by that call, the address holds no attempt afterwards, the kernel appends no log
+     entry and `K-2`'s `KC-7` half is NOT reached — so `P-SM-4`'s arm `(h)` is NOT this state.**
+     **`P-SM-4` arm `(h)` is the state in which *"a store-side op the attempt composes refuses"* — i.e. an
+     op the ATTEMPT already holds is refused by a store verb the COMPOSITION calls (the per-op rollback's
+     floor, `composition-and-states.md §2.6` items 4–5) — and a refused `commit` is not it.** **The kernel owns no `tier` row and no
+     `tier` refusal: it passes the caller's `tier` through and the store's answer is the store's**
+     (`parameter-semantics.md §2.11` item (ii); `fail-surface.md §1.2` item 2; `A: docs/specs/storeroom-native/
+     contract.md §1.5` · `§8.1`).
+   - **AND ONE STATE THIS ITEM REFUSES:** **a `commit` at an address that ALREADY HOLDS an OPEN attempt is
+     REFUSED with `KC-7` (`ConstraintAttemptOpen`), and the refusal happens BEFORE the write verb is reached,
+     so the store sees no write at all.** **This is the kernel's own bookkeeping and not a store state.**
+     **AND THE REFUSAL'S OWN AFTER-STATE IS READ WITHOUT A SECOND `K-2`, DECIDED HERE** (`NV-3`): **the
+     address is UNHELD AFTER THE REFUSAL — no attempt was opened, so no attempt stands at that address — and
+     the refused call threw BEFORE the write verb ran, so a drive does NOT re-issue `K-2` at that address to
+     read the after-state, and NO second `K-2` returns the refused call's record or an attempt the refusal
+     never opened.** **A drive's observation of this state is the thrown form's `status` (`KC-7`) read
+     against `§2.1` item 2's own clause that *"a failed `commit` opens no attempt and leaves no registry
+     entry"* — which holds for EVERY `K-2` failure and not only for the store's own codes — plus the
+     store's own surface showing no write at that address.**
+3. **`K-3` `runAttempt(store, commit) → AttemptReport`.** **Runs the attempt: the constraint pass, the repair
+   transition (where a repair is registered for a violated constraint whose pair is NOT YET RECORDED AS APPLIED — `appliedRepairs` membership being the transition's own predicate, `attempt-lifecycle.md §2.4` item 4), the re-evaluation of repaired ops,
+   the first-repeat rule, and — on any failure arm — the per-op rollback composition; on the success arm the
+   attempt's entry is REMOVED from the registry and the report is returned.**
+   - **AND THE STALE RECORD A CALLER STILL HOLDS AFTER A TERMINAL ARM IS ANSWERED HERE, DECLARED BECAUSE `CommitRecord` IS THE ONLY DECLARED WAY AN ATTEMPT REFERENCE IS OBTAINED AND THE CALLER KEEPS IT AFTER THE ATTEMPT ENDS** (`RD-9`): **a `K-3` whose `CommitRecord.attempt` names a CLOSED attempt — one its own terminal arm already disposed of, so the kernel's registry holds no attempt for it — OR AN UNKNOWN attempt is REFUSED WITH `KC-2` (`ConstraintArgRefused`), and NOT with `KC-7`: `KC-7`'s `K-3` site is the RE-ENTRANT call for a LIVE attempt (`attempt-lifecycle.md §2.4` item 8 (ii) (b)) and this call's attempt is not live.** **NO STATE MOVES AND NO ENTRY IS APPENDED — the closed record and its log are UNTOUCHED, and `K-4`/`K-5` over the same reference still return that record's log and report** (`fail-surface.md §2`'s `KC-2` row, whose `K-3` site this clause declares; `§2.1` items 4–5). **AND THIS ARM MINTS NO `KC` MEMBER: `KC-2` is an EXISTING member and the set stays CLOSED at `8`.**
+    - **RETURN SHAPE — `AttemptReport`, a record with exactly five members:**
+     ```
+     AttemptReport {
+       attempt:    AttemptRef,       // the attempt's identity, attempt-lifecycle.md §2.4
+       outcome:    'passed',         // the success arm's ONE value: every constraint passed
+       ops:        JournalOp[],      // every op the attempt created, in CREATION order (the write's op first)
+       log:        LogEntry[],       // the message log, §2.5 — the kernel's own order, seq ascending
+       rollback:   RollbackStep[]    // the per-op rollback calls this attempt PERFORMED: [] on the success arm
+     }
+     ```
+   - **`rollback` IS THE MEMBER THAT CARRIES WHAT THE COMPOSITION DID — `CC-14`'s subject and its close:**
+     **each entry is one per-op `rollback` call the attempt's failure arm performed, in the order performed,
+     and each entry carries the store's own `undoneOps` and `restoredTo` VERBATIM** (`composition-and-states.md §2.6` item 3).
+     **NO KERNEL FORM ELSEWHERE CARRIES A `RollbackResult`, AND NONE NEEDS TO: this member is its home, and
+     a drive that would read `undoneOps` reads it here.** **On the success arm the member is `[]` — an empty
+     list, never an absent member** (`P: §B.3`; `[T: the composition's observable carrier, so the store's
+     own report is reachable from the kernel's own record | CONTRACT]`).
+   - **THROWS:** **`KC-3` … `KC-8`** — the kernel's own states, each declared at `fail-surface.md §2`; **and
+     `KC-8` (`ConstraintRollbackFloor`) is the state in which the attempt's per-op rollback composition met
+     a state the floor refuses under `composition-and-states.md §2.6` item 5 (b)'s own condition and the store answered
+     `RollbackCompacted` or `JournalOpUnknown`.** **THE THROWN OBJECT CARRIES THE MESSAGE LOG**
+     (`fail-surface.md §1.1` item 4) — *"returning the message log to the app as an error message"* is the
+     proposal's own clause, and the log is the thrown form's THIRD member. **AND A THROWN FAILURE'S `log`
+     CARRIES EXACTLY ONE ENTRY THE OPEN RECORD DID NOT — the `outcome` entry — ON THE CONSTRAINT-BODY PATH, AND TWO ON THE REPAIR-BODY PATH (the `repair-run` entry and the `outcome` entry), the arm's own row at `attempt-lifecycle.md §2.4` item 4 printing which, whose `state` member carries
+     the `KC` token the form's `status` carries** (`§2.5` item 1; `fail-surface.md §1.1` item 3; `VF-9`).
+   - **AND THE STORE CODE A REFUSED REPAIR MET IS NOT THIS ITEM'S `status`:** **the kernel's answer is
+     `KC-4`, and the store's own code is named INSIDE the `repair-run` entry's `message` — see `§2.3`
+     item 2's channel clause, which is the ONE home of that rule** (`VF-15`; `CC-20`).
+4. **`K-4` `log(store, attempt) → LogEntry[]`.** **Returns the attempt's own message log** — the entries it has
+   appended so far, in the kernel's own order. **It is a READER over the kernel's own record: for an OPEN
+   attempt it returns the open record's own `log` member, and for a CLOSED attempt it returns the closed
+   record's FINAL `log` member, which is the same list the failure's thrown form or the success's report
+   carries.** **It throws `KC-2` where the attempt reference names no attempt the kernel holds at all.**
+   **It never reaches the store.** **AND THE `store` ARGUMENT THIS SIGNATURE TAKES IS UNCONSTRAINED, DECLARED HERE WITH `K-5`'S ALIKE BECAUSE THE TWO READERS SHARE THE POSITION AND NEITHER READS IT** (`DJ-5`): **for `K-4` and `K-5` the argument is NEITHER VALIDATED NOR READ — the position stands only because every one of the five items takes the caller's own store in its FIRST position (`§1` item 5) — so a drive passes the caller's own instance there and asserts NOTHING about it: a store argument that is absent, foreign or of another instance changes no state of either reader and is NO declared arm, the two items reaching the store NEVER.** **THE ONE LIFETIME RULE THIS READER SHARES WITH `K-5` IS STATED ONCE AT
+   `attempt-lifecycle.md §2.4` ITEM 7 AND IS NOT RESTATED HERE** (`VF-5`).
+5. **`K-5` `report(store, attempt) → AttemptReport`.** **Returns the attempt's FINAL record — the same shape
+   `K-3` returns — for a CLOSED attempt.** **Over an attempt that is STILL OPEN it throws `KC-7`; over an
+   unknown attempt reference it throws `KC-2`.** **`K-3`'s return and `K-5`'s return are ONE SHAPE and not
+   two: a report is a report whether it arrives from the run or from the record** (`[T: the two items' one
+   shape | CONTRACT]`). **AND THE SHAPE'S MEMBER COUNT IS THE FIVE PRINTED AT ITEM 3 — `K-3` and `K-5`
+   return ONE FIVE-MEMBER `AttemptReport`, the CLOSED form, while `CommitRecord` carries `4` and the OPEN
+   attempt record carries `9` — THE COUNT READ FROM ITS ONE HOME `attempt-lifecycle.md §2.4` item 1 and NOT RE-PRINTED HERE (`VD-8`)
+   — are DIFFERENT shapes that no clause of this part conflates** (`VF-14`; `parameter-semantics.md §2.13`).
+
+### §2.2 THE HANDLE CHECK'S SIDE, AND WHAT THE KERNEL DOES WITH THE HANDLE
+
+1. **THE CHECK IS THE STORE'S, AND THE KERNEL DOES NOT DUPLICATE IT.** **The kernel never validates an
+   address against its own rule beyond the shape test `§2.1` item 1 names, never mints a token for a
+   store-minted handle, and never re-implements the store's prefix rule:** **the store's own machinery
+   decides the registration and hands the handle back** (`P: §A.1`; `P: §B.7`).
+2. **THE KERNEL NEVER INVOKES THE HANDLE AND NEVER READS A STORE LIST AS AN ORDER.** **The store RETURNS
+   handles and invokes nothing** (`A: docs/specs/storeroom-native/write-and-read.md §6.5` item 10 (d) —
+   *"THE STORE NEVER INVOKES ANYTHING: IT RETURNS THE HANDLES"*): **the constraint's function is invoked by
+   the KERNEL, which is the caller's own code, and the `triggered` list is read as a SET.**
+   **⟶ AMENDED 2026-10-13 AT THE `A107` LANDING PASS, WHICH WITHDRAWS THIS ITEM'S ABSOLUTE FORM BY NAME AND DECLARES THE SPLIT AT THIS, THE HOME OF *"WHAT THE KERNEL DOES WITH THE HANDLE"* (`A: docs/decisions.md` · `A107` `D1`): THE ABSOLUTE *"THE KERNEL NEVER INVOKES THE HANDLE"* IS WITHDRAWN BY NAME, AND THE PASSAGES THAT READ THE SPLIT BY LISTENER KIND ARE REPLACED AT THE `A108` LANDING PASS OF 2026-10-13 BY ITS PREDICATE; AND DELIVERY IS SPLIT BY LAYER — (a) THE KERNEL DELIVERS A HANDLE WHOSE CONSTRAINT IT MUST CHECK — THE HANDLE ITS OWN PAIR'S REGISTRATION RETURNED, CALLED WITH THAT ATTEMPT'S CONTEXT AND WITH NO OTHER ARGUMENT — BECAUSE A WRITE'S CONSTRAINT PASS RUNS INSIDE THE KERNEL'S OWN ACT: the pass is what makes the kernel need the pair's function, so A HANDLE'S BODY REACHED THERE STANDS INSIDE THE ATTEMPT'S OWN WINDOW, which is the window `e2e-scenarios-b.md`'s `E2E-C-15` and `E2E-C-16` drive; and (b) THE CALLER'S OWN LOOP OVER THE HANDLES THE RETURNED `CommitRecord` CARRIES IN ITS `pending` MEMBER — AND ITS CALL SHAPE IS DECLARED AT ITS ONE HOME AND NOT HERE: WHICH OF THE MAP'S TWO KINDS A HANDLE RESOLVES TO FIXES ITS ONE ARGUMENT AND THE REFERENT OF *"THE TRIGGERING ADDRESS"* (`§2.1` item 2) — IS **ONE INVOKER AMONG THE JS SURFACE'S OWN ORDERED LAYERS AND NOT THE ONLY ONE**.** **It invokes each of them itself, and no callback parameter exists on `K-1`–`K-5` and no sixth surface item is declared — those bodies standing OUTSIDE the kernel's own act, and their invocation being what the caller's loop reads off that member.** **⟶ AND THE `ONLY INVOKER` SPELLING THIS ITEM ONCE CARRIED IS WITHDRAWN BY NAME AT THE `A112` DELIVERY-MODEL RE-SPELL PASS OF 2026-10-13 (`A: docs/decisions.md` · `A112`): THE STORE RETURNS THE HANDLES AND INVOKES NOTHING — the half of this item that STANDS — AND THE DELIVERY IS THE JS SURFACE'S OWN ORDER: THE TRIGGERED CONSTRAINTS FIRST, EACH ENTRY CHECKED OFF AS IT PASSES, AND, ONCE EVERY CONSTRAINT HAS PASSED, THE OTHER LISTENERS, THE CALLING PROCESS RECEIVING THE CALL ONLY AFTER BOTH — so the caller's own loop is ONE invoker among those layers, and the invocation observed inside the verb call's own window is the surface's declared layer and never a store act** **AND THE ONE LAW THAT REPLACES THIS ITEM'S WITHDRAWN INSTANT PHRASINGS IS THE ORDER AND NEVER THE INSTANT — EVERY LAYER (a) DELIVERY OF A CALL COMPLETES BEFORE ANY LAYER (b) BODY OF THAT CALL RUNS — STATED AT ITS ONE HOME, `§2.1` ITEM 2, AND CITED HERE AND RE-SPELLED NOWHERE** (`A: docs/decisions.md` · `A109` `D1`/`D2`) — **the two phrasings this item once carried, NOT RE-PRINTED HERE, are WITHDRAWN BY NAME AT THE `A109` LANDING PASS OF 2026-10-13, their ONE QUOTATION HOME BEING `attempt-lifecycle.md §2.4` ITEM 8 (ii) (e), WHICH THIS SITE CITES** (`A: docs/decisions.md` · `A109` `D1`). **AND `A107` `D1`'s PHRASE *"THE HANDLES WHOSE CONSTRAINTS IT MUST CHECK"* IS READ THROUGH THE PREDICATE BELOW AND NOT BY A LISTENER'S KIND: A HANDLE IS LAYER (a)'s IFF THE WRITE THAT RETURNED IT WAS MADE BY THE KERNEL ITSELF — a repair function's or a constraint's own write, made inside the pass — and layer (b)'s IFF THE CALLER MADE THE WRITE, so THE CALLER LAYER TAKES THAT WRITE'S HANDLES AS THE `pending` MEMBER, WHOSE BODIES STAND OUTSIDE THE KERNEL'S OWN ACT, AND THIS PREDICATE AND NOT A KIND IS THE SPLIT'S (`A: docs/decisions.md` · `A108` `D1`). A DRIVE THEREFOREA DRIVE THEREFORE NAMES THE LAYER WHOSE HANDLE IT USES, and `E2E-C-16`'s in-`K-3` delivery is (a)'s — re-grounded at the `A108` landing pass of 2026-10-13 on `rA`'s own write inside the pass, a write THE KERNEL MADE — while the handles a CALLER-made write returned are (b)'s — whose bodies the caller's own loop invokes, the instant being named nowhere and the ORDER being the one law stated at `§2.1` item 2** (`attempt-lifecycle.md §2.4` item 8 (ii) (e); `A109` `D1`/`D2`).** **AND LAYER (b)'s ONE OBSERVABLE IS THE MEMBER ITS OWN WORK IS READ OFF, DECLARED AT `§2.1` ITEM 2 AND HERE FOR THE READING ALONE** (`A: docs/decisions.md` · `A108` `D2`; `DF-4`): **LAYER (b)'s WORK IS THE HANDLES THAT RECORD CARRIES IN `CommitRecord.pending` AND NOTHING ELSE — that member being what its invocation loop reads — AND A WRITE THAT FAILED THE REGISTERED CONSTRAINTS AT ITS LANDING AND WAS ROLLED BACK HAS ITS TRIGGERED SET DISCARDED RATHER THAN CARRIED, SO ITS HANDLES APPEAR IN `triggered` AND IN `pending` NEVER: A DRIVE READS LAYER (b) BY READING `pending` OFF THE RETURNED `CommitRecord` (`e2e-scenarios.md`'s `E2E-C-16`; `attempt-lifecycle.md §2.4` item 8 (i) (5), the discard rule's one home).** **THE STORE'S OWN SIDE OF THIS ITEM IS UNMOVED: THE STORE INVOKES NOTHING ON EITHER LAYER'S BEHALF, and it still RETURNS the handles.**
+3. **AND THE ONE THING THE KERNEL DOES WITH THE HANDLE IS RECORD IT.** **The handle is the STORE'S OWN registration record's member — the store's `{address, handle}` entry, cited here and never re-declared — and it is ADOPTED from the store, never minted by the kernel, and it is what the
+   attempt's `CommitRecord.triggered` carries VERBATIM for the registration the attempt's write triggered.**
+   **The kernel derives NO outcome from a handle's identity and NO outcome from a position in `triggered`**
+   (`contract.md §5.5`, `P-SM-5`'s `S-NO-STORE-ORDER` line). **AND THE ONE ORDER IN WHICH A DRIVE MAY COMPARE `constraint-check` ENTRIES IS NAMED HERE ONCE, BECAUSE A COMPARISON THE SPECS DO NOT FIX IS AN INFERENCE** (`DJ-6`): **the registry's OWN first-registration order at the attempt's address — the order `§2.1` item 1 declares for the registry's entries — while THE ORDER THE STORE'S RETURNED SETS STAND IN IS DECLARED UNOBSERVABLE AND IS COMPARED BY NO DRIVE AT ALL.** **AND THIS CLAUSE CITES THAT ORDER'S ONE HOME AND RE-DERIVES NO TERM OF IT: the registry's order, with the pass that reads it, stands at `attempt-lifecycle.md §2.4` item 5 (ii), whose clause is the ONE HOME of both, and no drive of `e2e-scenarios.md` or `e2e-scenarios-b.md` compares two `constraint-check` entries in any other order** (`[T: the one comparable order, so a drive's comparison is a read and not an inference | CONTRACT]`). **AND A HANDLE THE KERNEL INVOKES IN ITS OWN
+   WINDOW IS CHECKED OFF AS IT PASSES AND THEREFORE STANDS IN `pending` NO LONGER — the `RECORDED IN `pending` NEVER` and `LAYER (b)'s SET ALONE` spellings this clause once carried being WITHDRAWN BY NAME AT THE `A112` DELIVERY-MODEL RE-SPELL PASS OF 2026-10-13, because `pending` is written as THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS and an entry leaves it ONLY by being checked off as it passes (`A: docs/decisions.md` · `A112`; `§2.1` item 2) — so
+   every handle appears in `triggered`, a handle a write the CALLER made returned appears in `pending` TOO,
+   and a handle a write the KERNEL made returned appears in `triggered` ONLY** (`A: docs/decisions.md` ·
+   `A108` `D1`; `e2e-scenarios-b.md`'s `E2E-C-16`).
+4. **AND THE KERNEL HOLDS ITS OWN COPY OF THE PAIR SET, DECLARED SO THE OVERLAP IS NOT A CONTRADICTION**
+   (`CC-5`): **the kernel's registry is keyed by (`address`, `id`) and the store's home is keyed by
+   `address`; the two are DIFFERENT KEYS OVER DIFFERENT MEMBERS and neither is a copy of the other.** **So
+   `n` pairs at one address are `n` registry rows over ONE store entry, and no clause of this part ever
+   counts registry rows against store entries** (`P: §B.7`; `contract.md §5.1`, `P-IM-1`'s `S-KEY-ADDR`
+   line).
+
+### §2.3 THE CONSTRAINT'S FUNCTION AND THE REPAIR'S OWN VERBS — the two caller-side halves
+
+1. **THE CONSTRAINT'S FUNCTION — its signature, its return shape and its throw pattern.** **A constraint is
+   a caller-side function of ONE argument, the ATTEMPT CONTEXT, and its return is the constraint's own
+   OUTCOME.** **THE ATTEMPT CONTEXT IS A RECORD WITH EXACTLY FIVE MEMBERS** (`CC-1`; `VF-3`):
+   ```
+   AttemptContext {
+     address:   Address,      // the address the attempt's evaluation is being run for, VERBATIM
+     tier:      string,       // the tier that write landed at, VERBATIM from the store
+     value:     Value,        // the value that write returned, VERBATIM — the data the constraint confirms
+     attempt:   AttemptRef,   // the attempt's identity, attempt-lifecycle.md §2.4
+     op:        JournalOp     // the op WHOSE LANDING left the state this evaluation is run at, VERBATIM — the op the
+                              // atomic single-write rule evaluates each registered pair against, at most once per pass
+   }
+   ```
+   **`[T: the attempt context's member set | DECLARED-DEFAULT]`** — **alternatives priced: (i) the address
+   alone — REFUSED, because a constraint that cannot see `value` cannot confirm the data shape the proposal
+   makes its subject (`P: §1` — *"confirms if the data shape is valid"*), and `CC-1` is exactly that hole;
+   (ii) the attempt record handed whole to the constraint — REFUSED, because it would hand the caller's
+   bookkeeping (its `ran` set and its `appliedRepairs` set) into a function the caller registers.**
+   **AND THE SECOND GROUND THIS PART'S EARLIER TEXT GAVE FOR (ii) IS WITHDRAWN BY NAME, BECAUSE IT
+   CONTRADICTED A DECLARED ITEM** (`RC-13`): **the phrase *"and would let a constraint read the log it is
+   being evaluated for"* is WITHDRAWN — `attempt-lifecycle.md §2.4` item 8 (ii) (d) DECLARES that a constraint body's own `K-4`
+   call returns the open record's `log`, so the log is readable from inside an evaluation BY THE DECLARED
+   SURFACE ITEM and not by the refused context.** **So (ii) is refused for ONE ground only — the
+   bookkeeping handed into a registered function — and the log's readability is `K-4`'s own declared arm
+   and NOT a reason to refuse the context; no clause of this part carries the withdrawn phrase.** **Reversal point:
+   a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment of
+   `docs/specs/storeroom-constraints/`.**
+   **AND WHEN THE ATOMIC EVALUATION RUNS AND WHERE ITS RESULT IS PINNED, DECLARED HERE BECAUSE THAT EVALUATION IS THE ONLY THING THAT CAN MAKE A LANDING A VALID STATE AND BECAUSE A DRIVE MUST KNOW WHICH INSTANT IT READ** (`CX-10`; `CX-11`; `VC-8`; `Q-B` — *"Single writes are checked atomically."*; **RE-DERIVED AT THE `A105` LANDING PASS, WHICH LANDS THE ARCHITECT'S `Q1` — *"Any last valid state for the store."* — AND MAKES THE CHECKPOINT THE STORE'S LAST VALID STATE, WHOEVER'S LANDING ESTABLISHED IT**): **THE EVALUATION IS ADDRESS-SCOPED AND NOT ATTEMPT-SCOPED, SO WHAT MAKES ONE RUN IS THE LANDING'S ADDRESS AND NOT WHO COMPOSED IT: EVERY WRITE THAT LANDS AT AN ADDRESS THE KERNEL REGISTERS PAIRS AT RUNS, AFTER THE WRITE VERB RETURNS AND BEFORE ANY OTHER KERNEL ACT, ONE PASS OVER EVERY PAIR REGISTERED AT THAT ADDRESS against THAT ONE OP's value and tier, its `AttemptContext.op` naming that op.** **AND A WRITE MADE BY A FUNCTION THE KERNEL IS RUNNING IS CHECKED AND NOT EXEMPT: THIS CLAUSE'S ONE PASS RUNS FOR EVERY WRITE THAT LANDS, WHOEVER COMPOSED IT — the caller's own verb, a constraint body's write, a repair's `write`/`delete`, and A LISTENER BODY's write alike, so a WRITE MADE FROM A HANDLER IS CHECKED BY THE SAME PASS AS ANY OTHER** (`A: docs/decisions.md` · `A107` `D2`; `attempt-lifecycle.md §2.4` item 5 (i), where the triggering write's own discard on a rolled-back failure is declared; `Q-B`). **AND A PASS OVER A PAIR SET WITH NO PAIR IN IT IS STILL THAT RUN: IT RETURNS THE PASS ARM VACUOUSLY, IT PINS THE MEMBER AT THAT OP, AND — WHERE NO ATTEMPT AT THAT ADDRESS IS LIVE — IT APPENDS NO `constraint-check` AND NO `outcome` ENTRY AND REACHES NO ARM, its whole observable being the `checkpoint` member it moves or leaves, DECLARED AT ONE HOME AND CITED HERE** (`composition-and-states.md §2.6` item 8 (i)'s empty-pair-set clause; `DC-8`; `e2e-scenarios-b.md`'s `E2E-C-16` step (3)). **AND ITS RESULT IS PINNED AT THE ATTEMPT'S OWN `checkpoint` MEMBER** (`attempt-lifecycle.md §2.4` item 1's ninth member): **where EVERY pair of that address returned the pass arm, `checkpoint` becomes THAT OP's `opId` AS THAT WRITE LANDS — THE STORE'S LAST VALID STATE AT THE ATTEMPT'S ADDRESS, NAMED FOR THE ATTEMPT THAT READS IT, so the member may name AN OP THIS ATTEMPT DID NOT LAND — and where a pair did not, the member is UNMOVED, so an EARLIER pin SURVIVES a later landing that failed.** **SO *"AS THAT WRITE LANDS"* HAS ONE INSTANT AND ONE HOME, AND THAT HOME IS DECLARED BEFORE ANY `RollbackStep` EXISTS: a composition's steps COPY the member when the composition runs, and a STEP IS NEVER THE MEMBER'S HOME AND NEVER ITS FIRST RECORDING** (`composition-and-states.md §2.6` items 3 and 8 (i)–(iii); `contract.md §5.7`; `A: docs/decisions.md` · `A102`; `A103`). **AND THE ARM A REPAIR'S OWN LANDING REACHES WHERE THE RE-RUN FINDS A VIOLATION IS DECLARED HERE, SO NO REPAIR-BODY LANDING IS ROUTED TO NO ARM** (`CX-8`): **a repair's edit lands, the re-run evaluates EVERY pair at the attempt's address against THAT op, and where one of those evaluations does not return the pass arm THE ATTEMPT MOVES THROUGH THE RE-RUN'S OWN FOUR COMBINATIONS AND BY NO FIFTH PREDICATE — `attempt-lifecycle.md §2.4` item 4's disjointness rule, read over THE PAIR THAT FAILED AT THAT OP, which is a member of the same scope the re-run carries — so the answer is an EXISTING `KC` MEMBER: `KC-3` (arm `(c)`) where that pair is NOT IN `ran` before this re-run and NO repair is registered for it; `KC-6` (arm `(f)`) where it IS IN `ran` and is NOT in `appliedRepairs`; `KC-5` (arm `(e)`) where it IS IN `ran` and IS in `appliedRepairs`; and arm `(b)` where its repair is registered and has not run, so THE REPAIR RUNS THROUGH THE SAME DECLARED TRANSITION.** **AND A VIOLATION LANDING ON ANOTHER PAIR IS NOT A DIFFERENT ARM FROM ONE LANDING ON THE REPAIRED PAIR: the arm is read off THE PAIR THAT FAILED and off nothing else, and NO `KC` MEMBER IS MINTED FOR THIS STATE — the set stands CLOSED at `8`** (`attempt-lifecycle.md §2.4` items 2, 4's disjointness rule and 5 (iv); `fail-surface.md §2` — `KC-3`, `KC-5`, `KC-6`; `contract.md §5.4`, `P-SM-4`).
+   **AND THE LAYER THIS PASS'S OWN RESULT BELONGS TO IS STATED HERE SO THIS DECLARATION CLAIMS NO OBSERVABILITY IT CANNOT HAVE** (`live-greens.md`'s `CON-1`) — **AND, RE-SPELLED AT THE `A112` DELIVERY-MODEL RE-SPELL PASS OF 2026-10-13, ITS OWN DELIVERY TERM IS WITHDRAWN BY NAME: THE STORE INVOKES NOTHING AND RETURNS THE HANDLES (`A: docs/decisions.md` · `A112`; `§2.2` item 2), SO THE PER-LANDING PASS DECLARED ABOVE STANDS `OWED` AS AN OBLIGATION (`OWED` with `J-20`–`J-22` at `contract.md §0.1` item 5 (i), whose cell NAMES THIS CLAUSE among the sites that depend on it) AND ITS DELIVERY IS PERFORMED BY NO STORE ACT — THE INVOCATION THIS DIRECTORY ONCE READ AS *"THE STORE'S OWN DELIVERY"* BEING THE JS SURFACE'S OWN DECLARED ORDERED LAYER, WHICH RUNS THE TRIGGERED CONSTRAINTS FIRST AND, ONCE EVERY CONSTRAINT HAS PASSED, THE OTHER LISTENERS, BEFORE RETURNING TO THE CALLING PROCESS (`A112`), so what a drive of this surface reads of this clause is the `checkpoint` member it pins and the pairs' own `K-3` pass, and NEVER a pass at a landing: the clause states the obligation and does not assert its completion, and no scenario of this directory may read a non-null `checkpoint` as a kernel defect.**
+   **THE OUTCOME IS A CLOSED THREE-ARM SET:**
+   ```
+   ConstraintOutcome =
+     | true                                   // the constraint PASSES
+     | { repair: RepairFn, message: string }  // the constraint FAILS and names a REPAIR and its MESSAGE
+     | { message: string }                    // the constraint FAILS and names NO repair
+   ```
+   - **`true` is the PASS arm and is the ONLY pass value: every other return is a violation** (the proposal's
+     own arms: *"can return True (constraint passes), a repair function + message, or an error message"* —
+     `P: §1`).
+   - **`{repair, message}` is the REPAIRABLE-VIOLATION arm:** **`repair` is a CALLER-SIDE FUNCTION and
+     `message` is the CONSTRAINT's own explanation of the violation, CARRIED WHOLE** (`§2.5` item 1's
+     `constraint-check` row; `fail-surface.md §1.1` item 2's second half).
+   - **`{message}` is the UNREPAIRABLE-VIOLATION arm:** **it FAILS the attempt with `KC-4`'s sibling
+     `KC-3` — but ONLY WHERE NO REPAIR IS REGISTERED FOR ITS PAIR, and the two states are disjoint and are
+     stated once at `attempt-lifecycle.md §2.4` item 4** (`VF-7`; `fail-surface.md §2`'s `KC-3`).
+   - **THE FUNCTION'S THROW PATTERN, WHICH IS THE REPAIR BODY'S PATTERN TOO, NAMED HERE SO THE TWO ARE NEVER READ APART** (`NX-2`; `RD-7`): **a throwing constraint OR REPAIR body is NOT a kernel state and NOT a store
+     state** — its exception propagates out of the kernel's own invocation, exactly as a throwing listener
+     body propagates out of its caller's invocation loop, and **the kernel neither catches it, nor retries
+     it, nor converts it into a kernel state — AND THE ONE CATCH THE KERNEL DOES PERFORM IS THE ATTEMPT'S OWN BOOKKEEPING ON THE WAY OUT, WHICH MINTS NO `KC` TOKEN (`attempt-lifecycle.md §2.4` item 8 (i); `NX-2`)** (`A: docs/specs/storeroom-js/contract.md §2.7` item 4 —
+     *"A THROWING LISTENER BODY IS NOT CAUGHT, NOT RETRIED AND NOT REPORTED"*; `A: docs/specs/storeroom-native/
+     write-and-read.md §6.5` item 10 (d) (i) — *"no body can throw inside a store operation"*).
+2. **THE REPAIR — THE CALLER'S OWN `write`/`delete`, AND NOTHING ELSE.** **A repair function is invoked by
+   the kernel with ONE argument, the REPAIR CONTEXT, and it makes its edit through THE CALLER'S OWN STORE
+   VERB.** **THE REPAIR'S DECLARED CHANNEL IS EXACTLY TWO STORE VERBS: the store's `write` and the store's
+   `delete`.** **No third channel exists — no constraint-specific write verb, no store-side repair route,
+   no store-side journal access, and no function-carrying store parameter** — **and whether a repair writes
+   through the journaled path is `J-22`, `OWED`, owner the architect** (`contract.md §0.1` item 5(i);
+   `A: docs/specs/storeroom-native/contract.md §7.3` clause 3; `P: §B.7`).
+   ```
+   RepairContext {
+     op:       JournalOp,    // the op whose evaluation the violation was found at, VERBATIM
+     address:  Address,      // the address the violated constraint binds, VERBATIM
+     id:       string,       // the violated constraint's own id
+     value:    Value,        // the value standing at that address, VERBATIM — what the repair edits FROM
+     tier:     string        // the tier the repair's own verb must be called at, VERBATIM from the write
+   }
+   ```
+   **`[T: the repair context's member set | DECLARED-DEFAULT]`** — **`value` and `tier` are carried because
+   a repair's own edit is a store verb call and the store's `write` takes BOTH: a repair handed only
+   `{op, address, id}` could not issue a lawful `write` at all, and `CC-25` is that hole.** **Alternative
+   priced: the three-member context — REFUSED, because it makes every repair's edit a guess at the value it
+   must correct and at the tier it must land at.** **Reversal point: a fresh ruling plus a bounded
+   amendment.**
+   - **THE REPAIR'S RETURN SHAPE** (`P: §1` — *"It returns a success true/false and a message explaining
+     the change made/attempted"*) — **the kernel's own closed two-arm set:**
+     ```
+     RepairResult =
+       | { ok: true, op: JournalOp }              // the repair MADE its edit; `op` IS THE OP ITS EDIT LANDED — the store's own write return's value, VERBATIM
+       | { ok: false, message: string }           // the repair FAILED and explains what it ATTEMPTED
+     ```
+     **`[T: the repair result's member set | DECLARED-DEFAULT]`** — **alternatives priced: (i) the
+     proposal's bare *"success true/false"* with the message always present — REFUSED, because the success
+     arm then carries an empty message and `fail-surface.md §2`'s own rule forbids an empty kernel message;
+     (ii) a bare boolean — REFUSED, because the failure arm then explains nothing, and the proposal's own
+     clause requires *"a message explaining the change made/attempted"*.** **Reversal point: a fresh ruling
+     plus a bounded amendment.**
+   - **WHAT THE KERNEL DOES WITH THE REPAIR'S EDIT, PRECISELY, BECAUSE THE REPAIR'S OWN WRITE IS THE
+     MECHANISM'S WHOLE TRANSITION:** **the kernel does NOT perform the edit — the repair does, through the caller's own verb — AND IT READS THE OP OFF THE REPAIR'S OWN RETURN: where that return carried `{ok: true, op}`, THAT OP IS ADDED to the attempt's `ops` and the constraints RE-RUN against it** (`P: §1` — *"If a repair is made and
+      successfully creates a new op, that op is added, and the triggered constraints run again."*).
+    - **AND THE REPAIR-OP SEAM, DECLARED HERE BESIDE THE SHAPE IT AMENDS AND WITH ITS OWN HOME NAMED SO NO SECOND CLAUSE CARRIES IT** (`A: docs/decisions.md` · `A110` — *"the declared repair return shape grows ONE member — the app's repair function returns `{ ok, message, op }`, its `op` being the op its own edit landed; the kernel reads the op off THAT RETURN and nowhere else; the addon route is DELETED, not widened."*): **THE SHAPE ABOVE CARRIES THREE READINGS AND THEY CLOSE IT — `ok` and `message` as they stood, and `op` NEW AND REQUIRED IFF `ok === true`, ABSENT AND NEVER `null` WHERE `ok === false`.** **THE REPAIR'S `write` RETURNS THE STORE'S OWN OP, THE REPAIR'S BODY SPELLS THAT VALUE INTO ITS OWN RETURN'S `op`, AND THE KERNEL READS THE OP OFF THAT RETURN AND NOWHERE ELSE: the op it ADDS to the attempt's `ops` IS `returnValue.op`, so the seam has exactly ONE carrier and no clause of this directory reaches a second** (`parameter-semantics.md §2.7` — **THE SHAPE'S ONE HOME IS THAT ROW AND THIS ITEM RE-SPELLS THE SHAPE WHERE THE SHAPE STANDS, RE-DERIVING NO TERM OF ITS OWN**). **AND AN `ok === true` RETURN WHOSE `op` IS ABSENT, `undefined`, OR NOT THE OP THE REPAIR ACTUALLY LANDED IS THE APP'S OWN DEFECT: THE KERNEL CREDITS NO OP, THE ATTEMPT MOVES TO `FAILING` AT ARM `(d)` AND ITS FAILURE TOKEN IS `KC-4` (`ConstraintRepairFailed`) — the SAME arm a repair returning `{ok: false, message}` reaches — so such a return is disposed of as a FAILED REPAIR and never as a kernel defect of its own** (`fail-surface.md §2`'s `KC-4` row; `parameter-semantics.md §2.8`; `attempt-lifecycle.md §2.4` item 4's arm `(d)`).
+    - **AND NO SECOND ROUTE TO THE OP EXISTS, THE DELETION NAMED AS THIS RULING'S OWN CONSEQUENCE RATHER THAN LEFT AS AN ABSENCE** (`A: docs/decisions.md` · `A110`; `§1` item 1's fixture clause): **the implementer's `ADDON.call` window is not narrowed, it is DELETED — and the clause that does the whole of that work, the four negatives included, is `parameter-semantics.md §2.7`'s `observable` cell, WHICH THIS BULLET CITES AND DOES NOT RESTATE** — **and this deletion's own consequence for the battery is that no clause of this directory and no drive of `e2e-scenarios.md` or `e2e-scenarios-b.md` reaches the native addon by a path of its own: a drive constructs its fixture through the package's own `storeCreate(cfg)` and reads the op off the repair's return, and a repair function that would need another channel has found a channel this unit does not declare.**
+   - **AND THE TWO EDIT SHAPES HAVE DIFFERENT RETURNS, SO BOTH ARE NAMED AND NEITHER IS LEFT TO A DRIVE'S
+     GUESS** (`CC-8`; `CC-27`): **(i) THE `write` SHAPE — the store's write returns `{op, watched,
+     triggered}` on success, and the repair's write DOES NOT NEED TO CHANGE ANY VALUE TO PRODUCE AN OP: a
+     write that lands the same value still returns an op, **the repair SPELLS THAT OP INTO ITS OWN RETURN'S `op` MEMBER**, that op is ADDED to `ops`, and the constraints
+     RE-RUN against it.** **So a repair whose write lands an unchanged value has a declared arm and is NOT
+     a failure of the shape: whether the attempt then passes or fails depends on the RE-RUN's own arms
+     (`attempt-lifecycle.md §2.4` item 5) and on nothing else.** **(ii) THE `delete` SHAPE — the store's `delete` RETURNS a `DeleteReceipt` AND NO OP ON ANY ARM: THE REPAIR HAS PRODUCED NO OP ON EITHER ARM — a `delete` that removed versions returns a receipt carrying `address`/`tiers`/`triggered` and NO op member, and a `delete` that removed nothing returns no op either — so the
+     attempt moves to `FAILING` with `KC-4` exactly as a repair returning `{ok: false, message}` does, SO THE DELETE ROUTE'S `KC-4` IS THE DECLARED ANSWER FOR EVERY DELETE-SHAPED REPAIR — a successful fix by deletion INCLUDED, because the route's op-producing arm is UNREACHABLE BY CONSTRUCTION — and the reading *"a `delete` that removed something produced an op"* is WITHDRAWN BY NAME, because it reads an op off a record that has no op member** (`RC-1`). **AND WHICH `op` A DELETE-SHAPED REPAIR'S OWN RETURN MAY CARRY IS DECLARED HERE, AT THIS SAME HOME, SO THE ROUTE'S IDENTITY IS NOT LEFT TO A CALLER'S GUESS (`RC-1`; `A110`; `CC-27`): THE STORE'S DECLARED SURFACE HANDS A DELETE-SHAPED REPAIR NO `opId` FOR THE OP ITS OWN LANDING CREATED AND NO CLOSURE OF `{ok: true, op}` — the `delete` record `DeleteRecord` carries `address`/`tiers`/`triggered` and NO op member ON ANY ARM (`A: bindings/js/index.d.ts`, the `DeleteRecord` shape — `address`/`tiers`/`triggered`; `A: docs/specs/storeroom-native/write-and-read.md §4.4`'s operative `DeleteReceipt`, whose third member `triggered` is the handles and not an op; `§4.3`), and no other declared store record the kernel receives — the `read`/`readLiteral`/`findAddress` references, the `listen`/`listeners` handles and the write record's own `triggered` set alike — names, echoes or reaches a journal `opId` a `delete` created (`A: docs/specs/storeroom-native/write-and-read.md §3.6`; `parameter-semantics.md §2.7`), SO A REPAIR WHOSE EDIT IS A `delete` CAN NEITHER SPELL NOR DISCOVER THE IDENTITY OF THE OP THAT EDIT LANDED. THE DELETE ROUTE'S OP CARRIER IS THEREFORE `OWED` — owner THE ARCHITECT, positive revisit condition *a ruling recorded as an ACTIVE `docs/decisions.md` row at `J-20`–`J-22` that exposes the op a landing created on the store's declared surface, followed by a bounded amendment of this directory* — AND WHAT THE KERNEL DOES IN THE MEANTIME IS THE CLAUSE ABOVE AND NOTHING ELSE: EVERY DELETE-SHAPED REPAIR REACHES ARM `(d)` OF `attempt-lifecycle.md §2.4` item 4, the `repair-run` ENTRY FOR ITS PAIR IS APPENDED with the store's own code named in its `message` where the store refused the verb, and the terminal token is `KC-4` — so a delete-shaped repair whose edit SUCCEEDED is disposed of exactly as one that failed, and no second route to an op is declared anywhere in this directory (`fail-surface.md §2`'s `KC-4` row; `attempt-lifecycle.md §2.4` item 4's arm `(d)`; `parameter-semantics.md §2.7`'s deleted addon route, WHOSE DELETION THIS CLAUSE READS AS THIS ROUTE'S ONLY OBSERVER HAVING BEEN REMOVED).** **THE TWO
+     ARE DISJOINT AND EACH IS DECLARED** (`A: docs/specs/storeroom-native/write-and-read.md §3.6` ·
+     `§4.4`; `parameter-semantics.md §2.7`).
+   - **AND THE REPAIR'S OWN FAILURE MODE, NAMED — WITH THE CHANNEL, THE HOME AND THE CARRIER SETTLED
+     BECAUSE THREE CLAUSES ONCE DISAGREED** (`VF-15`; `CC-9`; `CC-20`): **a repair's edit that the STORE
+     refuses makes the store's own verb THROW the store's own code AT THE VERB CALL, and that call is made
+     by the repair's own body, which the kernel invoked.** **THE THREE PARTS OF THE ANSWER: (i) THE THROW'S
+     SITE IS THE VERB CALL — the store's code escapes to the code that made the call, which is the repair's
+     own frame and, through it, the kernel; (ii) THE CARRIER IS THE `repair-run` LOG ENTRY — its `message`
+     NAMES the store's own code, and that entry is the ONE place the code is observable from the kernel's
+     own record (`§2.5` item 1's `repair-run` row, `state` member `null`); (iii) THE CALLER'S CHANNEL IS
+     THE KERNEL'S — `runAttempt` does not let the store's code stand as its own answer: the attempt moves
+     to `FAILING` with `KC-4` (`ConstraintRepairFailed`), whose message is the KERNEL'S OWN text, and the
+     thrown form's `status` is NEVER a store member** (`P: §B.6`; `fail-surface.md §1.2` items 2–3;
+     `fail-surface.md §2`'s `KC-4`).
+   - **AND A REPAIR'S OP THAT THE STORE REFUSED IS NOT IN `ops`, DECLARED BECAUSE THE ALTERNATIVE READS AS
+     OBSERVABLE** (`CC-9`): **`ops` holds ONLY ops a store verb RETURNED. An op the store refused was never
+     returned, so it is NOT in `ops`, the attempt has ONE op fewer, and the composition composes over what
+     `ops` holds** (`attempt-lifecycle.md §2.4` item 1; `composition-and-states.md §2.6` item 1).
+   - **A REPAIR THAT FAILS, OR THAT WRITES NOTHING THAT PRODUCES AN OP, FAILS THE ATTEMPT** (`KC-4`), **and
+     the log carries what was ATTEMPTED** (`fail-surface.md §2`).
+   - **AND THE `delete` SHAPE'S `triggered` SET, NAMED SO A REPAIR'S DELETE ROUTE IS NOT READ AS UNWATCHED**
+     (`CC-31`): **the store's trigger selection returns a watched address `W` iff `W` is a PREFIX of the
+     operation's address, descendant-inclusive, AT ANY TIER, for the store's TRACKED operations — and the
+     store's two tracked operations are `write` and `delete`** (`A: docs/specs/storeroom-native/contract.md
+     §6.5` item 3; `A: docs/specs/storeroom-native/write-and-read.md §6.4` item 1's `M-5` — *"EVERY
+     OPERATION TOUCHING THE SAME SUBTREE"*; `A: docs/specs/storeroom-native/write-and-read.md §6.2` item 4 —
+     the journal op's closed `kind` set is exactly `'write'` and `'delete'`). **So a repair's delete at a
+     watched address is in the store's triggered set on the store's own selection rule, and this unit
+     asserts NO order for that set** (`attempt-lifecycle.md §2.4` item 5 (i)).
+
+**`attempt-lifecycle.md §2.4` LIVES AT `docs/specs/storeroom-constraints/attempt-lifecycle.md`** — the attempt's record, its states, its transition table and its trigger are authored there; this part carries `§1`, `§2`, `§2.1`–`§2.3` and `§2.5`, so it stops at `§2.3`, points here, and resumes at `§2.5`.
+
+---
+
+
+### §2.5 THE MESSAGE LOG AND THE APPLIED-REPAIR MARKER
+
+1. **THE MESSAGE LOG — its carrier, its member set, its event kinds and its order.**
+   - **CARRIER:** **the log is the ATTEMPT RECORD's own member** — **the kernel's own shape, with NO store
+     entry, no journal entry and no store record** (`P: §B.4`; `R: docs/decisions.md` · `A98` — D3).
+   - **THE ENTRY'S MEMBER SET — exactly six members:**
+     ```
+     LogEntry {
+       seq:      number,             // the kernel's own append ordinal, strictly increasing from 1
+       kind:     LogKind,            // the entry's own class, one of the four below
+       id:       string | null,      // the constraint's own BARE id where the entry names one, else null
+       message:  string,             // the kernel's OWN text or the constraint's/repair's own text — §2.5 item 1
+       opId:     string | null,      // the op the entry concerns, or null where it concerns none
+       state:    string | null       // one of KC-1…KC-8 on the `outcome` entry of every path that throws a form;
+                                     // — `null` on the constraint-body throw path, AND `KC-8` WHERE THE COMPOSITION MEETS THE FLOOR ON THAT
+                                     // PATH — `composition-and-states.md §2.6` item 6's priority clause, cited here and not
+                                     // ruled here; KC-4's token on the repair-body
+                                     // throw path; `null` on the other three kinds — §2.5 item 1 below
+     }
+     ```
+     **`[T: the log entry's member set | DECLARED-DEFAULT]`** — **alternatives priced: (i) a bare message
+     string per entry — REFUSED, because a TestWriter then cannot derive WHICH constraint or WHICH op an
+     entry concerns, and the proposal's own clause names the log's three subjects as separate things the
+     record tracks; (ii) a `status` member carrying a store-style code — REFUSED, because `P: §B.6` puts the
+     kernel's failure form in the thrown object and NOT in a log entry, and a code-shaped entry member would
+     invite reading a store code where there is none.** **(iii) THE FIFTH-MEMBER-ONLY FORM — the `state`
+     member omitted and the `KC` token left to be read out of the `message` text — REFUSED, because a drive
+     would then have to parse a generated sentence to derive a state, which is the defect `VF-9` files and
+     `CC-3`'s family repeats.** **Reversal point: a fresh ruling plus a bounded amendment.**
+   - **AND WHAT `state` CARRIES, EXACTLY, SO ONE READING CLOSES `VF-9`, `CC-3` AND `CC-22`: on an `outcome`
+     entry it is THE KERNEL'S OWN STATE TOKEN, one of `KC-1`…`KC-8` — the SAME token the thrown form's STATUS CARRIES ON EVERY ARM THAT THROWS THAT FORM, WHILE ON THE TWO BODY-THROW PATHS IT IS `null` ON THE CONSTRAINT-BODY PATH AND `KC-4`'s TOKEN ON THE REPAIR-BODY PATH, DECLARED IN THE CLAUSE BELOW AND DRIVEN BY `composition-and-states.md §2.7` ITEM 13 (`S7`; `NX-2`; `RD-7`) **— AND ON EITHER OF THOSE TWO PATHS THE FLOOR'S OWN TOKEN GOVERNS WHERE THE ATTEMPT'S COMPOSITION MEETS IT, RULED ONCE AT `composition-and-states.md §2.6` ITEM 6 AND CITED HERE: the ONE `outcome` entry then carries `KC-8`, its message naming the store's answer, and that `null` and that `KC-4` stand WHERE THE COMPOSITION MEETS NO FLOOR (`RD-8`; `fail-surface.md §2`'s `KC-8` row; `composition-and-states.md §2.7` item 13)**
+
+     `status` carries — and it is NEVER a store member, NEVER an index and NEVER a variant spelling.** **On
+     the other three kinds it is `null`, EXCEPT ON THE TWO BODY-THROW PATHS `composition-and-states.md §2.7` item 13 DECLARES.** **So a drive derives the attempt's state from its log WITHOUT a
+      reader, WITHOUT a sixth surface item and without parsing text: THE `outcome` ENTRY'S `state` MEMBER IS THE STATE.** **AND ON THE ONE PATH WHERE TWO OF THIS ITEM'S OWN CLAUSES MEET — THE ATTEMPT'S OWN BODY THREW *AND* THE COMPOSITION MET THE FLOOR — THE ENTRY'S `state` IS `KC-8`, RULED ONCE AT `composition-and-states.md §2.6` ITEM 6 AND CITED HERE AND NOT RULED HERE, so *"THE `outcome` ENTRY'S `state` MEMBER IS THE STATE"* holds on that path and the reader above needs no exception: the `null` of the constraint-body path and the `KC-4` of the repair-body path stand WHERE THE COMPOSITION MEETS NO FLOOR (`fail-surface.md §2`'s `KC-8` row; `composition-and-states.md §2.7` item 13).**
+      **AND ONE CONSEQUENCE IS NAMED SO THE BICONDITIONAL IS NEVER ENFORCED IN ITS FALSE DIRECTION** (`S7`): **an
+      `outcome` entry's `state` IS one of `KC-1`…`KC-8`, OR `null` — AND NOT the converse — because a
+      CONSTRAINT BODY that throws leaves its `outcome` entry's `state` at `null`, a REPAIR BODY that throws
+      leaves its `outcome` entry's `state` at `KC-4`'s token, and a PER-OP-CALL THROW inside the composition is
+      read off the `KC-8` arm's own entry; so NO `outcome` entry of any path carries a token outside
+      `KC-1`…`KC-8`, and the ONLY state an `outcome` entry may carry that is not such a token is `null`.** 
+      **AND `null` HERE IS NOT A STATE OUTSIDE THE SET AND NOT A MISSING MEMBER: it is THIS MEMBER'S DECLARED
+      VALUE WHERE NO KERNEL STATE IS MINTED — where a form of `fail-surface.md §1.1` item 1 IS thrown, the two
+      members read the SAME token; where the caller holds the body's OWN throwable, the entry reads `null`,
+      because that item's token set is a set of KERNEL STATES and a body's own throwable is none of them.**
+      **AND THE ONE CLAUSE THE TEST WRITER'S HELPER MUST ENFORCE IS THEREFORE THIS ONE, NAMED SO THE
+      BICONDITIONAL IS NOT ENFORCED IN ITS FALSE DIRECTION: `kind === 'outcome'` IMPLIES *`state` IS ONE OF
+      `KC-1`…`KC-8`, OR `null`* — never *"`state` is null IFF `kind` is not `outcome`"*** (`S7`;
+      `fail-surface.md §1.1` items 1 and 5; `composition-and-states.md §2.7` item 13; `attempt-lifecycle.md
+      §2.4` item 8 (i)).
+    - **AND THE `outcome` ENTRY'S `state` IS READ AS `composition-and-states.md §2.7` ITEM 13 PRINTS IT ON THE TWO BODY-THROW PATHS, AND AS THE THROWN FORM'S `status` TOKEN ON EVERY ARM THAT THROWS A FORM.**
+    - **WHOSE TEXT `message` CARRIES, FIXED BY KIND AND BY NOTHING ELSE** (`VF-8`; `CC-22`; `VF-15`):
+     | Kind | Whose text its `message` is | Can it name a store code? |
+     | --- | --- | --- |
+     | **`constraint-check`** | **THE CONSTRAINT's own text where the constraint supplied one (the
+       `{repair, message}` and `{message}` arms both carry the constraint's own string, CARRIED WHOLE); the
+       KERNEL's own generated text where the arm supplied none — the PASS evaluation's entry, **and the
+       evaluation whose outcome was OUTSIDE the closed three-arm set, where the kernel generates its own
+       sentence naming the unrecognized return** (`parameter-semantics.md §2.5`; `RC-20`)** | **no — never, on either half** |
+     | **`repair-run`** | **THE REPAIR's own text where the repair supplied one (`{ok: false, message}`'s
+       *"what was ATTEMPTED"*); the KERNEL's own generated text where it supplied none.** **AND WHERE THE
+       STORE REFUSED THE REPAIR'S VERB CALL, THIS ENTRY'S `message` NAMES THE STORE'S OWN CODE — the one
+       member of this unit that may carry a store member, and it carries it as the STORE'S answer inside
+       the kernel's own sentence, never as a state token** | **yes — the store's code, named as the store's** |
+      | **`commit`** | **the KERNEL's own generated text** | **no** |
+      | **`outcome`** | **the KERNEL's own generated text, naming the arm and, where the composition met the
+        floor, the store's own `RollbackCompacted`/`JournalOpUnknown` as the store's answer** | **the store's code may be NAMED, as the store's; the `state` member stays a kernel token** |
+
+      **⟶ AND WHAT THE `repair-run` ROW'S OWN CELL OWES AT THE GATE-5 BLIND RUN, DECLARED BESIDE THE TABLE THAT DECLARES THE DUTY** (`live-greens.md`'s `CON-4`, `[E2E-C-13.3]`, `[E2E-C-13.6]`; `fail-surface.md §1.2` item 3; `e2e-scenarios-b.md`'s `E2E-C-13`): **at that build the `repair-run` entry read `message: "the pair's repair was attempted"` with THE STORE'S OWN CODE NAMED NOWHERE IN IT and `state: null`, while the attempt's `outcome` entry carried `KC-4` as this directory declares — so that entry's own two members are present and its NAMING DUTY IS `OWED`: owner `role_kernel_writer`, positive revisit condition *the kernel's own generated sentence for a refused repair naming the store's code, driven again by this directory's `E2E-C-13`*; AND THE `OWED` STANDS AT `fail-surface.md §2`'s `KC-4` ROW AND NOT HERE — this clause states the duty the row carries and names the run's evidence, minting no cell, no row and no member** (`contract.md §0.1` items 3 and 5).
+ (`live-greens.md`'s `CON-4`, `[E2E-C-13.3]`, `[E2E-C-13.6]`; `fail-surface.md §1.2` item 3; `e2e-scenarios-b.md`'s `E2E-C-13`): **at that build the `repair-run` entry read `message: "the pair's repair was attempted"` with THE STORE'S OWN CODE NAMED NOWHERE IN IT and `state: null`, while the attempt's `outcome` entry carried `KC-4` as this directory declares — so that entry's own two members are present and its NAMING DUTY IS `OWED`: owner `role_kernel_writer`, positive revisit condition *the kernel's own generated sentence for a refused repair naming the store's code, driven again by this directory's `E2E-C-13`*; AND THE `OWED` STANDS AT `fail-surface.md §2`'s `KC-4` ROW AND NOT HERE — this clause states the duty the row carries and names the run's evidence, minting no cell, no row and no member** (`contract.md §0.1` items 3 and 5).
+     **AND THE ANSWER TO *"IS A CONSTRAINT'S OWN STRING KERNEL-GENERATED?"* IS NO, IN ONE CLAUSE: a
+     constraint's or a repair's own string is CARRIED, never generated — the kernel generates no text for
+     it, it never rewrites it, and `fail-surface.md §1.1` item 2's *"generated from the kernel's own state
+     and the failing trigger's arguments"* governs THE KERNEL'S OWN sentences and not the caller's
+     carried ones.** **A constraint's own string is therefore never empty-checked against the kernel's own
+     message rule: it is the constraint's and it is carried whole** (`VF-8`; `fail-surface.md §1.1`
+     item 2).
+   - **THE CLOSED `LogKind` SET — exactly four kinds, and no fifth:**
+     | Kind | What it records | Its `id` | Its `opId` | Its `state` |
+     | --- | --- | --- | --- | --- |
+     | **`constraint-check`** | one constraint function's evaluation, **pass or violation** | the constraint's bare id | the op evaluated | `null` |
+     | **`repair-run`** | one repair function's run, **its success or what it ATTEMPTED** | the constraint's bare id | the op the repair produced where it produced one, else the op it was invoked for | `null` |
+     | **`commit`** | the attempt's success arm, appended once | `null` | the attempt's last op | `null` |
+     | **`outcome`** | the attempt's failure arm, appended once | `null` | the attempt's last op | **the kernel's own `KC` token** — `KC-3` … `KC-8` |
+     **AND ONE KIND THAT IS DELIBERATELY ABSENT, SO ITS ABSENCE IS NOT A GAP** (`CC-6`): **there is NO
+     `unregister` kind, because a registration's withdrawal is not a kernel act** (`§2.1` item 1's
+     permanent-entry clause).
+   - **AND WHOSE ENTRY IS WHICH PAIR'S, DECIDED HERE SO A COUNT OVER THIS TABLE IS SINGLE-VALUED** (`RC-12`):
+     **every `constraint-check` entry and every `repair-run` entry belongs to ONE PAIR, and that pair is
+     recovered as THE ENTRY'S OWN PAIR KEY — `(the PASS ADDRESS the entry's evaluation carried, entry.id)` —
+     where the pass address is the `address` member of the `AttemptContext` that evaluation was invoked with,
+     which is the attempt's own address.** **AND THE ENTRY THAT WITNESSES A LANDING IS THE ONE WHOSE OWN `opId` IS THAT OP'S — AND A PAIR REGISTERED MID-PASS APPENDS NONE FOR THE PASS IT WAS REGISTERED IN, SO THE EVIDENCE RULE READS `0` ENTRIES FROM IT AND THE CHECKPOINT CLAIM IS NOT FALSIFIED BY THAT ABSENCE** (`VC-8`; `CX-10`; `CX-11`): **the entries that witness the op the `checkpoint` member names are the `constraint-check` entries WHOSE `opId` IS THAT OP — one per pair of the pass that op's landing triggered, each reading the pass arm — and where a pair entered the registry DURING that pass it carries NO such entry, the pass's evaluated set having been fixed when the pass began; *"every registered pair at the attempt's address passed at that landing"* is therefore READ AS *"every pair THAT PASS evaluated returned the pass arm"*, and a pair registered mid-pass is a pair the NEXT pass's set carries and not a counter-instance** (`attempt-lifecycle.md §2.4` item 5 (iv); item 6's registration clause; `composition-and-states.md §2.6` item 8 (i)). **AND WHERE THE `checkpoint` MEMBER NAMES A LANDING THIS ATTEMPT DID NOT COMPOSE, NO `constraint-check` ENTRY OF THIS ATTEMPT'S LOG CAN WITNESS IT — THE FOREIGN LANDING'S EVALUATION BEING ANOTHER PROCESSING'S — AND THE MEMBER THAT CARRIES THE EVIDENCE IS THEN THE ATTEMPT'S OWN `checkpoint` MEMBER ITSELF, PINNED AT THAT LANDING'S ATOMIC EVALUATION BY `§2.3` ITEM 1'S PIN CLAUSE AND COPIED INTO EVERY STEP: THE EVIDENCE RULE READS THE LOG WHERE THE LANDING WAS THIS ATTEMPT'S, AND READS THAT MEMBER AND NO LOG ENTRY WHERE IT WAS NOT** (`CY-8`; `A105` `Q1`; **AND THE FOREIGN HALF OF THAT EVIDENCE RULE IS READ THROUGH THE RULING THAT DECLARES WHICH LAYER THE MEMBER'S NON-NULL ARM BELONGS TO, `composition-and-states.md §2.6` ITEM 8 (iii), CITED HERE AND NOT RE-DERIVED HERE: WHERE THE LANDING WAS NOT ONE THE KERNEL RAN — OR ONE AT WHICH THE ATTEMPT'S OWN RECORD WAS NOT LIVE — NO SUCH PIN IS CLAIMED BY THIS UNIT, SO THE RULE ABOVE READS THE LOG WHERE THE LANDING WAS THIS ATTEMPT'S AND OWES ITS FOREIGN HALF TO THAT HOME (`RD-7`)**; **NO SECOND SHAPE IS MINTED AND NO SIXTH MEMBER IS ADDED**) **So `LogEntry.id` carries the constraint's BARE id and remains a
+     bare id, while a COUNT over entries is a count over pair keys and never over `id` alone: one `id` may
+     stand at more than one address, and a bare-`id` count would read two pairs' entries as one pair's**
+     (`parameter-semantics.md §2.2`; `§2.5` item 3's two limbs).
+   - **THE ORDER:** **`seq` is strictly increasing from `1`, assigned by the kernel at the append, and the
+     log's sequence IS the kernel's own** (`R: §11.5` — `AR-9`). **No store list's order reaches it and no
+     log entry's position is read off a store list** (`contract.md §5.5`).
+   - **THE LOG IS APPEND-ONLY WITHIN ONE ATTEMPT: no entry is removed, rewritten or reordered by any arm,
+     and a failure arm's log is the SAME list the open attempt held, plus its `outcome` entry.** **SO A
+     FAILURE'S `log` CARRIES EXACTLY ONE ENTRY THE OPEN RECORD'S DID NOT — the `outcome` entry — ON THE CONSTRAINT-BODY PATH, AND TWO ON THE REPAIR-BODY PATH (the `repair-run` entry and the `outcome` entry, per `attempt-lifecycle.md §2.4` item 4's arm `(d)`) — AND THE
+     THROWN FORM'S LOG AND THE CLOSED RECORD'S LOG ARE THE SAME LIST MEMBER FOR MEMBER** (`VF-9`;
+     `fail-surface.md §1.1` item 3).
+2. **THE APPLIED-REPAIR MARKER — what marks a repair applied, who evaluates it, and its lifetime.**
+   - **THE MARKER'S HOME:** **the caller-side registry, declared by this unit** — **specifically the
+     ATTEMPT RECORD's `appliedRepairs` member, which holds the pair keys whose repair is RECORDED AS
+     APPLIED** (`P: §B.8`; `P: §A.2`).
+   - **WHO EVALUATES *"ALREADY RECORDED AS APPLIED"*:** **THE CALLER — that is, the kernel itself, which is
+     the caller's own code — evaluates it against the attempt's own record.** **The STORE evaluates nothing
+     of it, holds nothing of it and is asked nothing about it** (`P: §B.8`; `R: docs/decisions.md` · `A98`
+     — D3).
+   - **THE LIFETIME:** **the marker is PER ATTEMPT AND NEVER GLOBAL.** **It is created with the attempt, it
+     is closed with the attempt, and it holds NO state outside its attempt's lifetime** — **so a second,
+     separate attempt at the same address runs the same repair AGAIN, because the first attempt's marker
+     did not survive it** (`contract.md §5.8`, `P-TP-8`; `P: §A.2` — *"A repair already recorded as applied
+     may not run again"*, whose subject is the ATTEMPT's record). **AND THE ONE SENTENCE THAT MAKES
+     *"SURVIVE"* PRECISE, BECAUSE TWO READERS ONCE READ THE MARKER OFF A SHAPE THAT LACKS IT.** ***"SURVIVE"* IS READ AS A
+     PREDICATE OVER ATTEMPTS AND NOT OVER VALUES, AND THE READING THAT MADE A CLOSED ATTEMPT'S `appliedRepairs` LIST A RETAINED READ-ONLY HISTORY IS WITHDRAWN BY NAME.** **THE MARKER'S WHOLE LIFETIME IS THE ATTEMPT'S LIVE WINDOW, CREATED WITH THE OPEN RECORD AND ENDED WHEN THE ATTEMPT'S OWN TERMINAL ACT DISPOSES OF THE REGISTRY ENTRY — REMOVING IT WHERE THAT ATTEMPT'S ROLLBACK IS A SUCCESSFUL ROLLBACK AND LEAVING IT STANDING WHERE IT IS NOT (`attempt-lifecycle.md §2.4` item 3's terminal-arm clause) — AND PLACES THE CLOSED RECORD — AND THE SHAPE THAT HOLDS THE MARKER IS THE OPEN `AttemptRecord` AND ONLY IT** (`NX-1`; `RD-4`; `attempt-lifecycle.md §2.4` items 1 and 7 (ii)). **`appliedRepairs` is a member of the NINE-MEMBER OPEN `AttemptRecord` OF `attempt-lifecycle.md §2.4` ITEM 1 and of NO other shape in this directory; the CLOSED attempt's record is the FIVE-MEMBER `AttemptReport` of `§2.1` item 3 and carries no `appliedRepairs` member at all.**
+     **AND A LATER ATTEMPT THEREFORE STARTS WITH AN EMPTY `ran` AND AN EMPTY `appliedRepairs`, BECAUSE THIS ATTEMPT'S MARKER ENDED WITH THE ATTEMPT IT BELONGED TO.**
+     **A DRIVE THAT READS `appliedRepairs` OFF A CLOSED RECORD, OR THAT ANSWERS THE MARKER'S SURVIVAL FROM ONE, HAS READ A MEMBER OFF
+     A SHAPE THAT DOES NOT CARRY IT AND HAS FOUND THIS DEFECT** (`contract.md §5.8`; `CC-17`;
+     `e2e-scenarios-b.md`'s `E2E-C-11`).
+   - **AND THE MARKER IS NOT THE JOURNAL'S `compacted` MARK, NAMED SO THE TWO ARE NEVER CONFUSED:** the
+     journal's `compacted` is a predicate over a STORE ENTRY with two sufficient grounds (`§6.1` item 5's
+     compression and `§6.4`'s undo), **while this marker is a caller-side string set over constraint pairs.**
+     **They share no member, no home and no lifetime** (`A: docs/specs/storeroom-native/write-and-read.md
+     §6.4` item 5; `A: docs/specs/storeroom-native/write-and-read.md §6.2`'s closed op record).
+3. **THE FIRST-REPEAT RULE, AS THE KERNEL APPLIES IT — the two limbs, each drivable, each with the member
+   its own observation reads.**
+   - **LIMB (i): the recorded repair refuses the second run — `KC-5`.** **For each violated pair at an
+     evaluation: where THE PAIR IS ALREADY IN `appliedRepairs` — its repair is the repair `§2.5` item 2 marks
+     RECORDED AS APPLIED — and the pair had ALREADY RUN in this attempt (`ran` membership before this
+     evaluation), the attempt moves to `FAILING` with `KC-5` (`ConstraintRepairRepeat`) and NO repair function
+     is invoked a second time.** **AND THE PREDICATE IS `appliedRepairs` MEMBERSHIP AND NOT *"a repair is
+     registered for the pair"*, DECIDED HERE AS AT `attempt-lifecycle.md §2.4` ITEM 4** (`RC-6`): **a pair in `ran` whose
+     registered repair has not run is limb (ii)'s *"NOT in `appliedRepairs`"* state and NOT this limb's, and
+     the reading keyed on registration alone is WITHDRAWN BY NAME, because it demanded a `repair-run` count of
+     `1` for a repair the attempt had never invoked.**
+      **AND THE DISCRIMINATOR BETWEEN THE TWO LIMBS IS STATED HERE ONCE, AT THE ARM ENUMERATION'S OWN HOME,
+      BECAUSE ONE PAIR IN `ran` AND OUT OF `appliedRepairs` WAS ONCE DEMANDED OF THIS LIMB BY ONE ROW AND OF
+      LIMB (ii) BY ANOTHER, AND THE TWO PREDICATES ARE ONE (`VF-4`; `RC-6`; `RE-3`; `RE-4`):** **WHICH LIMB A
+      REPEAT VIOLATION REACHES IS DECIDED BY EXACTLY TWO MEMBERS OF THE ATTEMPT'S OWN OPEN `AttemptRecord`,
+      READ AT THE INSTANT BEFORE THAT EVALUATION AND BY NOTHING ELSE — THE PAIR'S MEMBERSHIP OF `ran` (this
+      limb's precondition and limb (ii)'s alike: the pair MUST have already run) AND THE PAIR'S MEMBERSHIP OF
+      `appliedRepairs` — SO THE `KC-5` ARM IS *IN `ran` AND IN `appliedRepairs`* AND THE `KC-6` ARM IS *IN
+      `ran` AND NOT IN `appliedRepairs`*, THOSE TWO AND NOTHING ELSE EXHAUSTING THE REPEAT. The two arms
+      NEVER overlap and NEVER leave a repeat unmet, and THE PAIR'S OWN RECORDED REPAIR IS THE
+      DISCRIMINATOR:** **a repeat is `KC-6`'s — and NEVER `KC-5`'s — for EVERY pair standing in `ran` and out
+      of `appliedRepairs`, WHEREVER ON THE REGISTRY'S OWN ROW SET THAT PAIR STANDS AND WHATEVER ITS OWN
+      EARLIER RUN DID** — `appliedRepairs` holding the pair keys whose repair is RECORDED AS APPLIED and no
+      other (`§2.5` item 2) — **so the ONE registration fact that reaches these two limbs is the one
+      `attempt-lifecycle.md §2.4` item 4's rows carry: a repeat by a pair whose repair is recorded as applied
+      is `(e)`, and EVERY OTHER repeat is `(f)`, decided by the pair's OWN recorded repair and NEVER by a
+      replacement having moved the pair's row, by an evaluation count, or by WHETHER a repair happens to be
+      registered.** **AND NO CLAUSE OF THIS DIRECTORY READS A REPEAT'S ARM OFF A `repair-run` COUNT: the count
+      is each limb's OBSERVATION — `1` for `(e)`, `0` for `(f)` — and never its predicate**
+      (`attempt-lifecycle.md §2.4` item 4's rows `(e)` and `(f)` and its four-arm disjointness rule;
+      `fail-surface.md §2`'s `KC-5` and `KC-6` rows; `composition-and-states.md §2.7`'s fail-state list;
+      `e2e-scenarios.md`'s `E2E-C-5`, whose three windows drive `(f)` and `(e)` on these two members alone).
+      **AND THE `KC` CENSUS DOES NOT MOVE: `8` members (`2 + 2 + 2 + 1 + 1`) on `13` sites
+      (`1 + 4 + 4 + 3 + 1`), and no ninth member is minted for either limb.**
+     **THE OBSERVATION IS THE `repair-run` ENTRY COUNT FOR THAT PAIR, WHICH IS EXACTLY `1` AND NEVER `2` —
+     read as the number of `repair-run` entries **WHOSE PAIR KEY IS THAT PAIR'S OWN KEY**, the pair being
+     `(the entry's PASS ADDRESS, entry.id)` and the pass address being the address of the `AttemptContext`
+     the entry's evaluation carried** — **and the second invocation's own absence is carried by that count
+     and by nothing else** (`VF-12`; `attempt-lifecycle.md §2.4` item 2; `e2e-scenarios.md`'s `E2E-C-5`).
+   - **LIMB (ii): the second violation itself fails — `KC-6`.** **A pair that had ALREADY RUN and whose repair
+     is NOT recorded as applied — NO repair is registered for it, or a registered repair has not run — the two halves of the SAME predicate, each named for what a drive would otherwise read as a different arm** (`CC-17`; `VF-4`).
+     violated a SECOND time in the same attempt, fails the attempt with `KC-6` (`ConstraintRepeat`).** **THE
+     OBSERVATION IS THE COUNT OF `constraint-check` ENTRIES **WHOSE PAIR KEY IS THAT PAIR'S OWN KEY** IN THE
+     THROWN FORM'S `log`, WHICH IS EXACTLY `2` AND NEVER `3` — **AND THE COUNT THAT SEPARATES THE ARMS IS THE PAIR'S OWN VIOLATION COUNT, WHICH IS EXACTLY `1` AND NEVER `2`, DECLARED BECAUSE THE ENTRY COUNT ALONE READS THE SAME ON TWO DIFFERENT STATES** (`RD-3`): a pair that had already run reaches this limb with a PASSING entry from its first evaluation beside the VIOLATING entry of its second, so its own key carries `2` entries of which `1` is a violation, and a pair that ran `3` times would carry `3` entries of which `2` are violations.** (`attempt-lifecycle.md §2.4` items 2 and 4's
+     disjointness rule; `fail-surface.md §2`'s `KC-6`). **AND THE COUNTING KEY IS THE PAIR AND NOT THE BARE
+     `id`, BECAUSE ONE `id` MAY STAND AT MORE THAN ONE ADDRESS: a bare-`id` count over a log whose passes ran
+     at two addresses counts two pairs' entries as one pair's** (`RC-12`). **AND THE PAIR'S FIRST EVALUATION
+     IN SUCH A WINDOW
+     PASSES — a first violation with no repair registered fails the attempt at `(c)` — so limb (ii)'s state
+     is REACHABLE and not vacuous.**
+   - **AND THE BOUND IS THEREBY FINITE WITHOUT A BUDGET:** **no clause of this directory declares a repair
+     budget, a retry count or a progress measure, and none is owed** (`P: §A.2`; `R: §11.5` — `AR-4`
+     discharged by `§A.2`).
+
+**`§2.6`–`§2.7` LIVE AT `docs/specs/storeroom-constraints/composition-and-states.md`** — the composition, the floor, the ruling `A102` and the states are authored there; this part carries `§1`, `§2`, `§2.1`–`§2.3` and `§2.5` — so it ends at `§2.3`, and `§2.5` stands after the two pointers — and the two sections' own bare `§n` references were repointed with their paths at the gate-2 repair pass of 2026-10-13 (`contract.md §0`'s re-spelling list, item `19` — **its row moved to `archive/spec-history/2026-10-13-recovered-provenance.md` at the volume remedy of 2026-10-13, where it is read; the number is unmoved**).

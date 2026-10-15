@@ -31,7 +31,7 @@
 
 | # | The artifact | What a reviewing step may want it for |
 | --- | --- | --- |
-| 1 | `docs/specs/storeroom-constraints-proposal.md` (this file) | the artifact under review |
+| 1 | `docs/specs/storeroom-constraints/proposal.md` (this file) | the artifact under review |
 | 2 | `docs/specs/storeroom-listeners-proposal.md` | the prior listener filing — the mechanism this proposal says it builds on |
 | 3 | `docs/specs/storeroom-listeners-proposal-review.md` | that filing's gate-1 record |
 | 4 | `archive/gate1/storeroom-listeners-review/{1-validity,2-critique,3-architecture}.md` | that gate's three step reports |
@@ -56,7 +56,7 @@
 | 13 | `docs/pending.md` — the listener/constraint-related parks (their ids and their lift clauses) | whether a park bearing on this subject stands or has been lifted |
 | 14 | `docs/next-steps.md` — the row `L-10` (the architect's `A1`–`A7` answer set and its consumption) | **`A1`–`A8` are cited there with their own words, and one of them bears on constraint/repair evaluation** |
 
-### §2.4 The process rules a reviewing step is bound by
+### attempt-lifecycle.md §2.4 The process rules a reviewing step is bound by
 
 | # | The artifact | What a reviewing step may want it for |
 | --- | --- | --- |
@@ -66,7 +66,7 @@
 
 ---
 
-**§3 is not authored by this filing.** The gate's four steps' verdicts, findings, unions, the `decomposition` row's disposition, the Semantics block and the implementation plan are step 4's output onto this gate's record — `docs/specs/storeroom-constraints-proposal-review.md` — and step 3's onto `archive/gate1/storeroom-constraints-review/3-architecture.md`.
+**§3 is not authored by this filing.** The gate's four steps' verdicts, findings, unions, the `decomposition` row's disposition, the Semantics block and the implementation plan are step 4's output onto this gate's record — `docs/specs/storeroom-constraints/proposal-review.md` — and step 3's onto `archive/gate1/storeroom-constraints-review/3-architecture.md`.
 
 ---
 
@@ -74,7 +74,7 @@
 
 **A FILING OF THE ARCHITECT'S OWN WORDS, AT GATE 1'S EXISTING PAUSE — the same act the native unit's answer set received (filed as that proposal's `§9`), and no analysis is authored here.** **`RCA-8(d)`: every clause of this filing above this section stands byte-for-byte and is read THROUGH this section; the closing clause's *"`§3` is not authored by this filing"* is read as TRUE of `§3` and is unmoved by this section, which is lettered and not numbered.** **This section asserts no behaviour clause, admits no unit row, moves no ledger count (`4 DONE / 0 open` UNITS = `4`) and delegates nothing.**
 
-**The architect was put the gate-1 record's questions (`docs/specs/storeroom-constraints-proposal-review.md` `§7`, `Q1`–`Q8`) and answered `Q1` and `Q2`; the remaining six stand unanswered, and the record's `§7` is their home.** **The answers are consumed by a dated SUPPLEMENTARY `role_change_analysis` pass on the existing gate-1 record — no new pause, no new gate number, no nineteenth tool row.**
+**The architect was put the gate-1 record's questions (`docs/specs/storeroom-constraints/proposal-review.md` `§7`, `Q1`–`Q8`) and answered `Q1` and `Q2`; the remaining six stand unanswered, and the record's `§7` is their home.** **The answers are consumed by a dated SUPPLEMENTARY `role_change_analysis` pass on the existing gate-1 record — no new pause, no new gate number, no nineteenth tool row.**
 
 | # | Question as put | The architect's answer, verbatim |
 | --- | --- | --- |
