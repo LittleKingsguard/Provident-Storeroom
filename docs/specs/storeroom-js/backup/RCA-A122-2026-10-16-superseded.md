@@ -28,6 +28,26 @@ own boundary | requirement]`)
 
 ---
 
-**END OF THE ARCHIVE.** **One region, NAMED by its source path and `§`; the source leaves a one-line pointer
-and re-emits no byte of it; the operative declaration is `docs/specs/storeroom-js/surface.md §2.12`**
-(`RCA-8(g)`).
+## §2. MOVED OUT OF `docs/specs/storeroom-js/contract.md §1`'s `Q1` amendment index table, THE MODULE-NAMESPACE CELL (the cell's operative sentence, as filed)
+
+**ADDED 2026-10-16 — the repointing-and-supersession pass (`role_spec_writer`).** **Reason for the move: the
+cell's figure is SUPERSEDED by the two dated clauses of 2026-10-16 — `docs/specs/storeroom-js/surface.md §2.9`
+item 1's dated clause (`8 → 9` at the module namespace) and `§2.4` item 9 (f)'s dated clause (`4 → 5` at the
+instance's own member set) — so the operative reading of the cell stands at those two clauses and the cell
+itself leaves a one-line pointer.** **The bytes, quoted byte-exactly as they stood at their own row:**
+
+> **UNMOVED: `8` verbs, no ninth, and NEITHER `on` NOR `off` is a named export** (`§2.9` item 1)
+
+**AND THE ONE-LINE POINTER THE SOURCE CARRIES FROM THIS DATE:** *"the operative figures are `§2.9` item 1's
+dated clause of 2026-10-16 (NINE named exports) and `§2.4` item 9 (f)'s dated clause of the same date (FIVE own
+members); the superseded cell is at `docs/specs/storeroom-js/backup/RCA-A122-2026-10-16-superseded.md §2`."*
+**AND THE BOUNDARY OF THE QUOTE IS DECLARED SO NOTHING IS LEFT TO A BYTE DIFF: the quoted bytes above are the
+whole of the superseded region's own sentence, and the ONE clause the source cell carried BESIDE it — its
+trailing cross-reference — is the cell's own and is NOT a byte the source moved out.** **NO RULE LIVES HERE:
+a drive may assert nothing from this section** (`RCA-8(g)`; `docs/decisions.md` · `A123`, 2026-10-16).
+
+---
+
+**END OF THE ARCHIVE.** **TWO REGIONS, EACH NAMED BY ITS SOURCE PATH AND `§`; each source leaves a one-line pointer
+and re-emits no byte of it; the operative declarations are `docs/specs/storeroom-js/surface.md §2.12` and
+`§2.9` item 1's and `§2.4` item 9 (f)'s dated clauses of 2026-10-16** (`RCA-8(g)`).

@@ -18,8 +18,8 @@ per declared JS parameter — and they are a SEPARATE, UNCAPPED surface that is 
 (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.6 — no per-part reading of the `≤ 8` cap |
 requirement]`). **⟶ RE-SPELLED 2026-10-16 BY THE `A122`/`A123` PASS (`role_spec_writer`): the range's own
 figure above is re-spelled `PAR-JS-1`…`PAR-JS-21` → `PAR-JS-1`…`PAR-JS-23`, the two added rows being
-`PAR-JS-22` (the post-creation constraint route's own parameter, `§2.24`) and `PAR-JS-23` (the constraint
-identity, `§2.25`); the count's ONE home is `§1`'s clause of this date, and the arithmetic is
+`PAR-JS-22` (the post-creation constraint route's own parameter, `§2.22`) and `PAR-JS-23` (the constraint
+identity, `§2.23`); the count's ONE home is `§1`'s clause of this date, and the arithmetic is
 `21 + 2 = 23` ✓** (`docs/decisions.md` · `A123`, 2026-10-16; `§1` below).
 
 ---
@@ -28,7 +28,7 @@ identity, `§2.25`); the count's ONE home is `§1`'s clause of this date, and th
 
 **One row per declared JS parameter, carrying its kind, its unit, its domain, the values outside it, the
 declared answer for EACH outside value, its supplier, its evaluator and its observable.** **The rows are
-`PAR-JS-1`…`PAR-JS-21` and they live at `docs/specs/storeroom-js/parameter-semantics.md` `§2`** — **the index
+`PAR-JS-1`…`PAR-JS-23` and they live at `docs/specs/storeroom-js/parameter-semantics.md` `§2`** — **the index
 below is a map and every row of it is one entry, not a restatement.**
 
 | Row | The JS parameter | Its kind | Where it is declared | Its row's home |
@@ -55,8 +55,8 @@ below is a map and every row of it is one entry, not a restatement.**
 | **`PAR-JS-20`** | **`commit` on `write`** — the fifth argument, OPTIONAL, declared LAST; the record identity the write joins, and the key the terminal arm's own `file`-tier save reads (`surface.md §2.11` clause 2) | `parameter` | **`surface.md §2.2`**'s signature block and its dated clause of 2026-10-15 (the declared order) | `parameter-semantics.md` `§2.20` |
 | **`PAR-JS-21`** | **`cfg.constraints`** — the construction's fourth declared key, OPTIONAL: the store's constraint list, one element per `{ address, id }` pair | `parameter` | **`surface.md §2.1`**'s `cfg` block (the fourth key, 2026-10-15) and `surface.md §2.1`'s dated clause | `parameter-semantics.md` `§2.21` |
 
-| **`PAR-JS-22`** | **`manageConstraints(instance, pair, operation)`** — the POST-CREATION constraint route: the one operation position, `'add'` · `'enable'` · `'disable'`, with the `pair` and the `instance` position it is taken over | `parameter` | **`surface.md §2.12`** item 2 (authored 2026-10-16 on `A123`) | `parameter-semantics.md` `§2.24` |
-| **`PAR-JS-23`** | **the constraint identity** — the `{ address, id }` pair's identity as `manageConstraints` returns it, and the key the kernel's own registry holds it under | `return-field` (its construction-side twin is a `parameter`, carried by `PAR-JS-21`'s pair) | **`surface.md §2.12`** item 5 and `surface.md §2.1`'s `cfg` block | `parameter-semantics.md` `§2.25` |
+| **`PAR-JS-22`** | **`manageConstraints(instance, pair, operation)`** — the POST-CREATION constraint route: the one operation position, `'add'` · `'enable'` · `'disable'`, with the `pair` and the `instance` position it is taken over | `parameter` | **`surface.md §2.12`** item 2 (authored 2026-10-16 on `A123`) | `parameter-semantics.md` `§2.22` |
+| **`PAR-JS-23`** | **the constraint identity** — the `{ address, id }` pair's identity as `manageConstraints` returns it, and the key the kernel's own registry holds it under | `return-field` (its construction-side twin is a `parameter`, carried by `PAR-JS-21`'s pair) | **`surface.md §2.12`** item 5 and `surface.md §2.1`'s `cfg` block | `parameter-semantics.md` `§2.23` |
 
 **ARITHMETIC, PRINTED WITH ITS TERMS, RE-DERIVED AT THIS PASS'S OWN DATE — AND RE-DERIVED A SECOND TIME, `2026-10-15`, BY THE `RCA-9` FILE-TIER-SAVE PASS, WHICH MINTS THE TWENTIETH ROW — AND RE-DERIVED A THIRD TIME, 2026-10-15, BY THE GATE-2 CONSISTENCY CLOSE-OUT PASS (`role_spec_writer`), WHICH MINTS THE TWENTY-FIRST ROW: the parameter-semantics set is `21`
 rows (`PAR-JS-1`…`PAR-JS-21`) — `15` are parameters or returned fields this unit declares the JS surface as
@@ -91,10 +91,10 @@ ANNOTATE-BESIDE: **the table above stands BYTE-FOR-BYTE at its own rows — ever
 every earlier arithmetic clause included — and each is read THROUGH this clause; THIS clause re-decides no
 rule of any row's cells, renumbers no row and moves no `§`-number.** **THE TWO ADDED ROWS, EACH WITH ITS OWN
 HOME NAMED BELOW: `PAR-JS-22` — the POST-CREATION constraint route's own parameter, `manageConstraints`, whose
-declared shape is `docs/specs/storeroom-js/surface.md §2.12` item 2, whose row is `§2.24` below, minted on
+declared shape is `docs/specs/storeroom-js/surface.md §2.12` item 2, whose row is `§2.22` below, minted on
 `A123`'s *"expose a function to add/enable/disable new constraints after store creation, similar to listener
 handling"* — and `PAR-JS-23` — the CONSTRAINT IDENTITY that route returns and that the kernel's registry keys
-its own structure by, whose row is `§2.25` below.** **SO THE OPERATIVE COUNT AND ITS ARITHMETIC ARE: `23` rows
+its own structure by, whose row is `§2.23` below.** **SO THE OPERATIVE COUNT AND ITS ARITHMETIC ARE: `23` rows
 (`PAR-JS-1`…`PAR-JS-23`) — the `21` the clauses above re-derived, `+ 1` parameter (`PAR-JS-22`) `+ 1`
 return-field (`PAR-JS-23`), so `21 + 1 + 1 = 23` ✓ — and the addition to the `21` figure is `21 + 2 = 23`.** **AND
 THE TERMS ARE RE-COUNTED RATHER THAN THE TOTAL ASSERTED: `15` parameters or returned fields
@@ -1221,11 +1221,11 @@ is added to the store's own surface by it.**
 **AND ONE FALSIFIED CLAIM OF THIS ROW'S `the values OUTSIDE it` LIST IS NAMED, BECAUSE IT IS NOT ONE OF THE TWO
 CELLS ABOVE: *"a CONSTRAINT VERB"* REMAINS OUTSIDE THE STORE'S OWN SURFACE — the `constrain` verb stays BANNED
 there and this row does not admit it — WHILE `manageConstraints` IS DECLARED AT THE PACKAGE'S OWN SURFACE and
-is the subject of `§2.24` below; so the list's answer is read at the STORE and the new function is read at the
+is the subject of `§2.22` below; so the list's answer is read at the STORE and the new function is read at the
 PACKAGE, and neither reading is the other's** (`surface.md §2.12` item 2; `A123`; `docs/specs/storeroom-native/contract.md §0.1` item 10's ban on the verb `constrain`).
 
 **AND THE ROW'S `kind` CELL IS UNMOVED: this row remains the declared NON-parameter, and the new function's
-own parameter is `PAR-JS-22`, a `parameter`, and not an amendment of this row's kind** (`§2.24` below;
+own parameter is `PAR-JS-22`, a `parameter`, and not an amendment of this row's kind** (`§2.22` below;
 `[A2 docs/decisions.md` · `A122` · `A123`; A3 docs/specs/storeroom-js/surface.md §2.12 item 1 |
 state or fail-state declaration]`).
 
@@ -1258,7 +1258,7 @@ ORDERING-SEAM PASS's own row, minted 2026-10-15, and its subject is declared at
 WAY, IN THIS PASS OF 2026-10-16, AND ARE NAMED HERE FOR THE SAME REASON: they are the `A122`/`A123` pass's own
 two rows (`PAR-JS-22`, the post-creation constraint route's parameter, and `PAR-JS-23`, the constraint identity),
 their subjects are declared at `docs/specs/storeroom-js/surface.md §2.12`, and their ids are `22` and `23` while
-their homes are `§2.24` and `§2.25` — the id and the home being two counts, as `§2.22`'s own requirement list
+their homes are `§2.22` and `§2.23` — the id and the home being two counts, as `§2.22`'s own requirement list
 prints — so the four sections below and this line close the part, and the `23`-row figure `§1` prints is read
 from the ids and not from the `§`-numbers.**
 
@@ -1366,33 +1366,35 @@ docs/specs/storeroom-native-proposal-review.md §18.1 · §22.1 | declared param
 
 **⟶ AND THE LOAD-SIDE PREDICATE THIS ROW'S `observable` AND `park` CELLS LEFT UNSPELLED IS DECLARED, AND THE PARK THIS ROW ONCE WORE IS NOW STALE (`role_spec_writer`, 2026-10-16).** **THE CLAUSE: `docs/specs/storeroom-native/contract.md §7.2` item 1, `ADDED 2026-10-16`, SPELLS *"SATISFIES"* — THE LOADED STATE SATISFIES THE SUPPLIED LIST IFF EVERY SUPPLIED PAIR'S OWN `address` RESOLVES IN THE LOADED STATE — AND TAKES THE ADDRESS-PRESENCE READING, NOT THE KEY-COVERAGE READING, AND DECIDES THE ONE STATE THE TWO READINGS ANSWERED DIFFERENTLY: AN IMAGE CARRYING A KEY THE LIST DOES NOT NAME BOOTS INTO AN INSTANCE, because a resolution is required and a coverage is not** (`docs/specs/storeroom-native/contract.md §7.2` item 1, read with its items `2`–`4`; `A: docs/decisions.md` · `A119`, which settled the reach). **SO THIS ROW'S *"whose loaded state no longer satisfies the SUPPLIED list"* IS READ THROUGH THAT CLAUSE AT THIS DATE, AND THE `park` CELL ABOVE — *"—"*, on the words *"no subject of this row is parked"* — STANDS CORRECT AND WAS ALREADY SO.** **WHAT IS NOW STALE IS THE GATE-5 BLIND SET'S OWN PRINT OF A PARK AT THIS PREDICATE: `bindings/js/greens/file-tier-save/file-tier-save-greens.md`'s `FTS-09.7` still reads `NOT DRIVABLE BLIND` and its `§3` item `2` still reads *"'satisfies' is still spelled nowhere"*, and NEITHER REPRODUCES AT THIS DATE — the predicate is spelled at the clause named above and the differing state is decided there.** **OWNER: the greens author of that artifact — the park's lift and the row's re-spelling are theirs and are touched by no byte of this row** (`RCA-8(g)`; `docs/decisions.md` · `A120` (1)'s own note that the greens park is the greens author's to lift). **THIS CLAUSE MOVES NO CELL OF THIS ROW: `domain`, `the values OUTSIDE it`, the declared answer, `evaluator` and `observable` stand BYTE-FOR-BYTE above and are read THROUGH it.**
 
+**⟶ THE `§`-NUMBERS THIS PART'S OWN CROSS-REFERENCES CARRY ARE REPOINTED, 2026-10-16, AT THE HEADINGS THAT EXIST — AND NO HEADING IS RENUMBERED (`role_spec_writer`; `RCA-8(g)`: a citation re-spelling is enumerated as a REQUIREMENT list and checked off, never inferred from a byte diff).** **THE DEFECT, AT ITS OWN BYTES: `§2.22` AND `§2.23` PHYSICALLY STAND AT THIS HEADING AND THE NEXT (`parameter-semantics.md:1369` and `:1420` AT THIS PASS'S OWN READ), WHILE THE `A122`/`A123` PASS'S REQUIREMENT LIST BELOW — AND, WITH IT, `§1`'s index rows, `§1`'s header clause, `§1`'s arithmetic clause, `§2.18`'s dated clause AND `docs/specs/storeroom-js/contract.md`'s index rows, part-map cell and `§6` rows — POINTED EVERY READER AT `§2.24` AND `§2.25`, WHICH NO HEADING OF THIS FILE CARRIES.** **THE MOVE THAT PASS RECORDED WAS TAKEN TO `§2.22` AND `§2.23` — the two `§`-numbers NEXT FREE AT THIS PART'S OWN END — AND NOT ONE REFERENCE SITE WAS RE-SPELLED WITH IT; SO THE POINTERS ARE REPOINTED HERE, TO THE HEADINGS THAT EXIST, AND THE SUPERSEDED POINTER IS `§2.24`/`§2.25`.** **THE OPERATIVE LAW, AND IT IS THE ONE THIS CLAUSE DECLARES: `PAR-JS-22`'s OWN ROW STANDS AT `§2.22` AND `PAR-JS-23`'s AT `§2.23`, AND EVERY CITATION OF EITHER ROW IN THIS DIRECTORY NAMES THAT SECTION.** **THE READER LIST THIS CLAUSE REPOINTS, EACH SITE AT ITS OWN CELL AND EACH NOW CARRYING `§2.22`/`§2.23`:** **(i) `§1`'s header range clause, this file's own opening clause** (`:21`–`:22`); **(ii) `§1`'s index table, the `PAR-JS-22` ROW's last cell** (`:58`); **(iii) `§1`'s index table, the `PAR-JS-23` ROW's last cell** (`:59`); **(iv) `§1`'s arithmetic clause of 2026-10-16, at BOTH of its two references to the two added rows' homes** (`:94` and `:97`); **(v) `§2.18`'s dated clause, its falsified-claim paragraph** (`:1224`); **(vi) `§2.18`'s dated clause, its closing `kind` paragraph** (`:1228`); **(vii) the closing scope clause of `§2.18`'s dated clause, at its *"their homes are …"* phrase** (`:1261`); **(viii) `§2.22`'s OWN REQUIREMENT LIST, items `1`–`6`, `8` and `9` and its closing no-renumbering clause** (`:1378`–`:1389` and `:1394`–`:1395`).** **AND THREE SITES THE SAME POINTER REACHED ARE NAMED SO NONE IS READ AS LEFT STANDING, EACH IN A FILE THIS CLAUSE DOES NOT OWN: `docs/specs/storeroom-js/contract.md`'s index-region clause, its part-map cell for this part, its `§6`'s two rows and its `§6` arithmetic (THAT FILE's own cells, repointed in that file by the same pass); `docs/specs/storeroom-js/surface.md` `§2.9`'s owed-types clause, whose two row-homes are `parameter-semantics.md §2.22` and `§2.23` (repointed in that file); and `docs/specs/storeroom-js/test-cases.md`'s `A122`/`A123` pointer set (repointed in that file).** **NO ROW'S `§`-NUMBER, NO ROW'S ID AND NO FIGURE OF `§1` MOVES: `PAR-JS-1`…`PAR-JS-21` keep their homes, the two added rows are `22` and `23` IN ID and `§2.22`/`§2.23` IN HOME, the set is `23` ROWS, and the arithmetic stands `21 + 1 + 1 = 23` ✓** (`[A2 docs/decisions.md` · `A123` · `A122`, both 2026-10-16; A3 docs/specs/spec-scope-and-structure/contract.md §C.11.9 — *a bare `§n` across two documents is not an edge*, so a citation names the path AND the `§` its heading carries; A3 docs/defects.md` · `DEF-2026-10-16-N` — the pass whose digest this repointing answers | cross-reference]`).
+
 ### §2.22 `PAR-JS-22` — `manageConstraints(instance, pair, operation)`: the post-creation constraint route
 
 **⟶ AND THE CITATION RE-SPELLINGS THIS SPLIT OWES ARE ENUMERATED HERE AS A REQUIREMENT LIST, ONE SITE AT A
 TIME, AND NOTHING IS LEFT TO A BYTE DIFF (`role_spec_writer`, 2026-10-16).** **THIS PART'S `§1` HAD ALREADY
 MINTED THE TWO `§`-NUMBERS THAT THE TWO NEW SECTIONS WOULD HAVE TAKEN — its index table's last cells and its
 arithmetic clause read *"`parameter-semantics.md` `§2.22`"* and *"`§2.23`"* while the two sections still stood
-beside `§2.18` — SO THE SECTIONS WERE MOVED TO THE TWO `§`-NUMBERS NEXT FREE AT THIS PART'S OWN END, `§2.24` AND
-`§2.25`, AND THE EARLIER REFERENCE SITES CARRY THE NEW PAIR FROM THIS DATE.** **THE REQUIREMENT LIST, EACH
+beside `§2.18` — SO THE SECTIONS WERE MOVED TO THE TWO `§`-NUMBERS NEXT FREE AT THIS PART'S OWN END, `§2.22` AND
+`§2.23`, AND THE EARLIER REFERENCE SITES CARRY THE NEW PAIR FROM THIS DATE — the as-filed `§2.24`/`§2.25` wording of these two lines being the earlier pass's own print and read THROUGH the repointing clause above.** **THE REQUIREMENT LIST, EACH
 SITE NAMED BY ITS OWN CELL, AND EACH CHECKED OFF AT ITS OWN BYTES:**
-1. **`§1`'s header range clause** — `PAR-JS-1`…`PAR-JS-23`, whose two added rows' homes now read `§2.24` and `§2.25` ✓.
-2. **`§1`'s index table, the `PAR-JS-22` row's last cell** — `parameter-semantics.md` `§2.24` ✓.
-3. **`§1`'s index table, the `PAR-JS-23` row's last cell** — `parameter-semantics.md` `§2.25` ✓.
-4. **`§1`'s arithmetic clause of this date** — the two added rows' homes, `§2.24` and `§2.25` ✓.
-5. **`§2.18`'s dated clause, its falsified-claim paragraph** — *"the subject of `§2.24` below"* ✓.
-6. **`§2.18`'s dated clause, its closing `kind` paragraph** — *"`§2.24` below"* ✓.
-7. **`docs/specs/storeroom-js/surface.md` `§2.12` item 6 and its citation block** — `parameter-semantics.md`
-   `§2.24` and `§2.25` ✓ (the re-spelling is landed in that part by this pass).
-8. **`docs/specs/storeroom-js/contract.md` `§6`'s two new index rows** — `parameter-semantics.md` `§2.24` and
-   `§2.25` ✓ (landed by this pass).
+1. **`§1`'s header range clause** — `PAR-JS-1`…`PAR-JS-23`, whose two added rows' homes now read `§2.22` and `§2.23` ✓.
+2. **`§1`'s index table, the `PAR-JS-22` row's last cell** — `parameter-semantics.md` `§2.22` ✓.
+3. **`§1`'s index table, the `PAR-JS-23` row's last cell** — `parameter-semantics.md` `§2.23` ✓.
+4. **`§1`'s arithmetic clause of this date** — the two added rows' homes, `§2.22` and `§2.23` ✓.
+5. **`§2.18`'s dated clause, its falsified-claim paragraph** — *"the subject of `§2.22` below"* ✓.
+6. **`§2.18`'s dated clause, its closing `kind` paragraph** — *"`§2.22` below"* ✓.
+7. **`docs/specs/storeroom-js/surface.md` `§2.9`'s owed-types clause** — `parameter-semantics.md`
+   `§2.22` and `§2.23` ✓ (the re-spelling is landed in that part by this pass).
+8. **`docs/specs/storeroom-js/contract.md` `§6`'s two new index rows** — `parameter-semantics.md` `§2.22` and
+   `§2.23` ✓ (landed by this pass).
 9. **`docs/specs/storeroom-js/contract.md`'s index-region clause of this date and its part-map cell** — the
-   two added rows' homes, `§2.24` and `§2.25` ✓ (landed by this pass).
+   two added rows' homes, `§2.22` and `§2.23` ✓ (landed by this pass).
 10. **`docs/specs/storeroom-js/test-cases.md`'s `A122`/`A123` pointer set**, its third row's source cell —
-    `parameter-semantics.md` `§2.24` ✓ (landed by this pass).
+    `parameter-semantics.md` `§2.22` ✓ (landed by this pass).
 
 **AND WHAT DOES NOT MOVE, SAID SO THE RE-SPELLING IS NOT READ AS A RENUMBERING: NO `§`-NUMBER OF
-`PAR-JS-1`…`PAR-JS-21` MOVES, NO ROW IS RENUMBERED, AND THE TWO ADDED ROWS ARE `22` AND `23` IN ID AND `§2.24`
-AND `§2.25` IN HOME — the id and the home are two different counts and this part prints both**
+`PAR-JS-1`…`PAR-JS-21` MOVES, NO ROW IS RENUMBERED, AND THE TWO ADDED ROWS ARE `22` AND `23` IN ID AND `§2.22`
+AND `§2.23` IN HOME — the id and the home are two different counts and this part prints both**
 (`[A2 docs/decisions.md` · `A123`; A3 docs/specs/spec-scope-and-structure/contract.md §C.11.6 and §C.11.9 —
 a citation re-spelling is enumerated and checked off, never inferred from a byte diff | cross-reference]`).
 
