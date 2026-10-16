@@ -82,12 +82,19 @@ export const KC_NAMES = {
   8: 'ConstraintRollbackFloor',
 };
 
-/** The store's own closed set, read as the untouched neighbour (`fail-surface.md §3`). */
+/** The store's own closed set, read as the untouched neighbour (`fail-surface.md §3`).
+ *
+ * **⟶ WIDENED 2026-10-15 (`DEF-2026-10-15-Y`): `contract.md §8.1`'s amended heading reads `16` members
+ * (`11 + 2 + 1 + 1 + 1 = 16` ✓) and the as-filed `15` here was the superseded figure.** *"The untouched
+ * neighbour"* is exactly what the widening preserves: **this list is READ and never minted, and it now
+ * carries the sixteenth member the spec's own heading carries** (`§7.1` step 4-bis;
+ * `parameter-semantics.md §2.21`, both dated 2026-10-15). `assertStoreRefusal` below reads its figure off
+ * this list, so the two cannot drift. */
 export const STORE_CODES = [
   'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch',
   'WriteParentNotLink', 'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing',
-  'FilePathUnreachable', 'ValueNotAdmitted', 'FileCommitFailed',
+  'FilePathUnreachable', 'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
 ];
 
 /** One counter shared by every drive so the ids and addresses of two drives never collide. */
@@ -141,7 +148,7 @@ export function assertStoreRefusal(err, where) {
   assert.equal(typeof err.status, 'string', `${where}: the store's refusal carries its own status`);
   assert.equal(typeof err.message, 'string', `${where}: the store's refusal carries its own message`);
   assert.equal(STORE_CODES.includes(err.status), true,
-    `${where}: the status is one of the store's closed 15 members (read ${err.status})`);
+    `${where}: the status is one of the store's closed ${STORE_CODES.length} members (read ${err.status})`);
   assert.equal(KC_TOKENS.includes(err.status), false,
     `${where}: and it is NEVER one of the kernel's own eight — the kernel converts no channel into the other's form`);
   assert.equal(err instanceof Error, false,

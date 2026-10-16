@@ -537,7 +537,9 @@ every site that needs it** (`[A3 docs/specs/spec-scope-and-structure/contract.md
    and **(ii) THE ENCODER'S OWN BOUND IS WITHDRAWN, so the core's bound is the only arm at every depth** —
    priced: the boundary would then encode an arbitrarily deep value before the core measured it, and the
    ENGINE'S OWN STACK LIMIT would become a reachable host `RangeError`, a failure OUTSIDE the store's closed
-   `15`-member set, which `DD-10`'s own `alt` already prices and refuses. **BOTH are available only with a
+   `16`-member set (RE-SPELLED 2026-10-15: the set's count is `16` since `ConstraintListInvalid` landed at
+   `docs/specs/storeroom-native/contract.md §8.1` #16; the `alt` above and `DD-10`'s reading of it are
+   UNMOVED), which `DD-10`'s own `alt` already prices and refuses. **BOTH are available only with a
    fresh ruling of the architect recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded
    amendment of `docs/specs/storeroom-js/`; the reversal instrument is that amendment and NO PARK IS NAMED AS
    IT** (`A66`)
@@ -709,7 +711,7 @@ look conforming, is the defect class `A76` rules against, and its four shipped i
 rule's own negative examples at (b) below.**
 
 **THE VALIDATION ORDER IS THREE STEPS, AND IT IS APPLIED TO EVERY JS VALUE AND EVERY ARGUMENT POSITION — the
-`cfg` object and each of its three keys, every verb's `address`, `tier` and `opId`, the construction's
+`cfg` object and each of its four keys, every verb's `address`, `tier` and `opId`, the construction's
 `listeners[]` and every entry and member in it, `register`'s two arguments, and every member of every value
 the walk reaches at any depth** (`[A1 docs/specs/storeroom-js-proposal.md §18 · `A76` — the validation-first
 discipline, in three parts | requirement]`):
@@ -877,11 +879,16 @@ with TWO answers where the state stands at a CARRIER position.**
 1. **AT A VALUE POSITION — a member of a value the WALK meets, or the written value itself — the class is
    `NonPlainCollection` and the code is that class's own `ValueNotAdmitted`** (`§1.2` row 13; `§1.4` item 4
    (f)), **produced AT THE WALK.**
-2. **AT A CARRIER POSITION — `cfg` and each of its three keys, every verb's `address` · `tier` · `opId` ·
+2. **AT A CARRIER POSITION — `cfg` and each of its four keys, every verb's `address` · `tier` · `opId` ·
    `instance`, and the construction's `listeners[]` and every entry in it — the class is decided the same way,
    and THE CODE IS THAT CARRIER'S OWN ROW'S DECLARED CODE: `AddressMalformed` for `cfg`** (`PAR-JS-1`), **the
    same for an array-like class at an address position** (`§1.3`'s `AddressArg` row 11), **and so on row by
-   row** (`§1.7` (d)).
+   row** (`§1.7` (d)). **⟶ AND THE `cfg` KEY COUNT THIS ITEM PRINTS IS RE-SPELLED, 2026-10-15 BY THE `RCA-9`
+   FILE-TIER-SAVE PASS: `three` reads `four` — `filePath` · `journalLength` · `listeners` · `constraints` —
+   per `docs/specs/storeroom-js/surface.md §2.1`'s dated clause, whose `cfg` block is the key set this
+   position is read against, so a `constraints` value at this position is a carrier this item reaches like
+   any other; the POSITION, the class decision and the per-row code above are UNMOVED, and no byte of this
+   item's subject moves with the count.**
 3. **THE RELATIONSHIP, STATED SO NO READER NEEDS TO DERIVE EITHER HALF FROM THE OTHER: `NonPlainCollection`
    IS A CLASS NAME OF THE STORE'S OWN TAXONOMY AND IT IS NEVER A CODE AT A CARRIER POSITION.** **The class
    name travels in the REFUSAL'S REASON HALF, rendered class-first and verbosely; the code travels in the

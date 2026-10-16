@@ -29,7 +29,7 @@
 | Relocated section | Its home in the contract document | What it carries |
 | --- | --- | --- |
 | **`§7`** (with `§7.1`–`§7.3`) | `docs/specs/storeroom-native/contract.md §7` | **the construction inputs** — `storeCreate(cfg)` with its REQUIRED `filePath` and `journalLength` **⟶ AMENDED 2026-10-11: `journalLength` is the ONE required argument, `filePath` is OPTIONAL (`A49`) and `listeners[]` is a THIRD input (`A56`)** — each input's domain, the values outside it, and the declared answer for each; **the `file` tier's persistence** — the JSON file at `cfg.filePath`, the commit's atomicity, and `A16`'s two-step failure arm; **the boot and lifetime clause**; **the node-side constraint-and-repair evaluation seam** with its three OWED residual rows |
-| **`§8`** (with `§8.1`–`§8.3`) | `docs/specs/storeroom-native/contract.md §8` | **the CLOSED fail-code set — `14` members, each with its trigger and its rank** **⟶ AMENDED 2026-10-11: `15` members (`FilePathUnreachable` at rank `13`, `A53`/`A54`)**; the complement block and the two deliberately absent codes; **the generated-message rule `storeErrorMessage(code, args)` with its `MessageArgs` shape, its clause table and three worked examples, the first being the architect's own**; **the `StoreError` record shape** and the `secure` instance's indistinguishable blindness |
+| **`§8`** (with `§8.1`–`§8.3`) | `docs/specs/storeroom-native/contract.md §8` | **the CLOSED fail-code set — `14` members, each with its trigger and its rank** **⟶ AMENDED 2026-10-11: `15` members (`FilePathUnreachable` at rank `13`, `A53`/`A54`)** **⟶ RE-SPELLED 2026-10-15 BY THE GATE-4 FINDINGS PASS: the operative figure is `16` members, `ConstraintListInvalid` appended at rank `16` (`contract.md §8.1`'s dated clause of 2026-10-15), and the `14`→`15` readings above stand BYTE-FOR-BYTE and are read THROUGH this reading**; the complement block and the two deliberately absent codes; **the generated-message rule `storeErrorMessage(code, args)` with its `MessageArgs` shape, its clause table and three worked examples, the first being the architect's own**; **the `StoreError` record shape** and the `secure` instance's indistinguishable blindness |
 | **`§10`** (with `§10.1`–`§10.3`) | `docs/specs/storeroom-native/contract.md §10` | **the two parks, each with its one-line boundary clause**; **the `HO-` handoff rule and the `7`-row prohibited set**; **the candidate-property dispositions (`AR-9`, `F12`) with the id-level mapping recorded as OWED** |
 
 **THE TWO UNNUMBERED TOP-LEVEL BLOCKS THIS PART DECLARES.** **Both are unnumbered headings that stand
@@ -158,6 +158,8 @@ input from a later step FAILS** (`AR-47`; `implementation-plan.md §8.6`'s stop 
    the spelling) — and NO instance is returned**; **a provided path that passes fixes the register's tier
    at `file`, and an ABSENT path fixes it at `mem`, and THE TIER NEVER MOVES AGAIN** (`A49`, `A50`;
    `store-model.md §1.6` item 4 (d); `DD-34`).
+4. **bis. VALIDATE `cfg.constraints` IF IT IS PRESENT — THE CONSTRUCTION-TIME HALF OF THE SIXTEENTH MEMBER'S TRIGGER, ADDED 2026-10-15 BY THE `RCA-9` PASS** (`docs/specs/storeroom-native/contract.md §7.1` step 4 and `§8.1` #16; `docs/specs/storeroom-native-proposal-review.md §22.1` and `§22.4`). **`cfg.constraints` is the construction's FOURTH declared key and it is OPTIONAL: ABSENT is IN DOMAIN, no list is declared and NO code is produced** (`docs/specs/storeroom-js/surface.md §2.1`'s dated clause and its `cfg` block; `parameter-semantics.md §2.21`). **PRESENT, EVERY ELEMENT IS CHECKED AND THE VALIDATION IS ALL-OR-NOTHING: an element that is not a `{ address, id }` pair, or whose `address` lies outside `store-model.md §1.5`'s segment array, or whose `id` is ABSENT, answers THE SIXTEENTH MEMBER `ConstraintListInvalid` (`§8.1` #16), and NO INSTANCE IS RETURNED.** **A VALID LIST IS TAKEN AND THE CONSTRUCTION PROCEEDS TO STEP 5; NOTHING ELSE OF THIS SEQUENCE MOVES, and the construction creates NO file, NO directory and NO byte on either arm of this step** (`DD-40`'s dry-run requirement, read at this step). **AND THE LIST IS A CONSTRUCTION-TIME PARAMETER AND NOTHING MORE, DECLARED AT THIS STEP 2026-10-15 ON THE ARCHITECT'S OWN WORDS: the importing application supplies it on startup from its own information; THE STORE DOES NOT WRITE IT INTO THE FILE AND HOLDS NO REGISTER KEY FOR IT, so no step of this sequence, and no boot, carries it** (`docs/specs/storeroom-js/surface.md §2.1`'s dated clause of this date; `docs/specs/storeroom-native-proposal-review.md §21.4`, whose sentence *"the list PERSISTS THROUGH THE REGISTER"* is thereby SUPERSEDED and NAMED). **THE LOAD-SIDE HALF OF THE SAME MEMBER'S TRIGGER IS STEP 7's, below — AND IT VALIDATES THE LOADED STATE AGAINST THE SUPPLIED LIST, THE LIST BEING NO BYTE OF THE FILE AND NO REGISTER KEY** (`§7.2` item 6, AS AMENDED 2026-10-15; THE ARCHITECT'S WORDS OF THAT DATE: *"The list is not persisted, the importing application will provide the constraints on startup from its own information."*).
+
 5. **POPULATE THE HOME MAP FROM `listeners[]` — BEFORE THE REGISTRY IS GENERATED** (`A56`): **each entry's
    `address` is checked against `PAR-1`'s domain (outside → `AddressMalformed`, NO instance returned) and
    each entry's `handle` becomes a home entry keyed by its address.** **An EMPTY array is legal and is the
@@ -243,6 +245,8 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
 
 ### §7.2 The `file` tier's persistence — what a commit guarantees, and its failure arm
 
+**⟶ AMENDED 2026-10-15 — THE `RCA-9` PASS RE-SPELLS THE STORE'S SIDE HERE: THE COMMIT IS THE TERMINAL ARM'S ACT, AND THE VERB'S `file`-TIER ARM RETURNS AS IT DOES TODAY** (`RCA-9` = the change request at `docs/specs/storeroom-native-proposal-review.md §18.1`; its store-side re-spell is ruled at that record's `§22.5` item 2; `RCA-8(d)` ANNOTATE-BESIDE: **items 1–7 below stand BYTE-FOR-BYTE and are read THROUGH this clause**). **ITEM 1's `M-12` IS UNMOVED — the `file` tier IS saved to a JSON file at `cfg.filePath` — and WHAT MOVES IS THE ACT THAT SAVES IT: the verb's `file`-tier arm performs NO file I/O and returns its `WriteResult` as it does today, while the commit is performed by the SURFACE'S TERMINAL ARM, after every constraint of that write's triggered set has passed and before any listener body of the delivered set runs, KEYED BY THE SETTLED RECORD'S OWN `op`** (`docs/specs/storeroom-native/contract.md §7.2`'s dated clause of this date; `docs/specs/storeroom-js/surface.md §2.11` clauses 2–3). **ITEM 2's ATOMICITY — THE SIBLING WRITE AND THE RENAME — IS UNMOVED IN EVERY RESPECT, and so is its observable: after a FAILED commit the bytes at `cfg.filePath` are BYTE-IDENTICAL to the bytes that stood there before the attempt, so a FAILING PASS LEAVES THE LAST PASSING IMAGE DURABLE and a PASSING PASS'S IMAGE IS DURABLE BEFORE ANY LISTENER BODY RUNS** (`docs/specs/storeroom-js/surface.md §2.11` clause 4). **ITEM 3's TWO-STEP FAILURE ARM IS UNMOVED AND ITS ORDER IS THE ONE A DRIVE READS: the rollback first, the failure answered to the caller second, and the caller receives the failure and never the rolled-back state — SO A FAILED SAVE IS AN UNREPAIRABLE CONSTRAINT VIOLATION and the message it answers is its code's generated one** (`docs/specs/storeroom-native/contract.md §8.1` rank `#15` `FileCommitFailed`, whose trigger column was WIDENED 2026-10-15 to reach the save act (`docs/specs/storeroom-native-proposal-review.md §20.4` `F-3`), and `§8.2`; `docs/specs/storeroom-js/surface.md §2.11` clause 5). **ITEM 4's ONE-FAILURE CLAUSE AND ITS `FileCommitFailed` CODE ARE UNMOVED, and ITEM 5's *"a `file`-tier write is the only write that touches the file"* IS RE-SPELLED AT ONE COORDINATE ONLY: the file's I/O is the TERMINAL ARM's `file`-tier save, and the `delete` and the `rollback` still perform none** (`docs/specs/storeroom-native/contract.md §7.2` item 5, read through its dated clause). **ITEM 6's BOOT AND ITEM 7's NUMBER NORMALIZATION STAND EXACTLY AS PRINTED, read with the boot's new duty: ON `storeCreate`, THE `file` TIER'S CONTENT AT `cfg.filePath` IS LOADED AS BEFORE, AND A PRESENT `cfg.constraints` IS VALIDATED AGAINST IT — A VALIDATION FAILURE AT LOAD BEING THE TRIGGER OF THE SIXTEENTH MEMBER, `ConstraintListInvalid`** (`docs/specs/storeroom-native/contract.md §7.1` step 4 and `§7.2` item 6, AS AMENDED; `§8.1` #16).
+
 1. **`M-12` — THE `file` TIER IS SAVED TO A JSON FILE AT `cfg.filePath`** — *"`file` is meant to be saved to
    a json file in a persistent, external location"* (`P: §1`).
 2. **A COMMIT IS ATOMIC AT THE FILE** (`DD-2`): a successful `file`-tier write's bytes land **whole**; **a
@@ -250,7 +254,7 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
    observable: after a failed `file`-tier commit, the bytes at `cfg.filePath` are BYTE-IDENTICAL to the
    bytes that stood there before the attempt, so re-reading the path answers the pre-attempt content, not a
    truncated or partially rewritten file** — and **the store's `file` state is what the journal restores it
-   to** (`§6.4` `M-11`). **The failure's CODE is `FileCommitFailed`** (`§8.1` #14)
+   to** (`§6.4` `M-11`). **The failure's CODE is `FileCommitFailed`** (`§8.1` #15 — **RE-POINTED 2026-10-16: this cell's as-filed rank was `#14`, which `ValueNotAdmitted` took when the `file`-tier save's pass added the store's sixteenth closed-set member; the rank's ONE home is `docs/specs/storeroom-native/contract.md §8.1`, whose own row prints `FileCommitFailed` at `15` and `ValueNotAdmitted` at `14`**)
    (`[T: the atomicity's observable, stated at this contract's second bounded amendment | CONTRACT]`).
 3. **A FAILED `file`-TIER WRITE'S FAILURE ARM IS EXACTLY TWO STEPS, IN THIS ORDER** (`P: §11 · A16`):
    **(i)** **the file rolls back the change in the journal automatically; (ii)** **then the failure is
@@ -259,7 +263,7 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
 4. **WHAT "FAILURE" COMPRISES** — `A16`'s printed silence is *"what 'failure' comprises (the file write
    alone, the journal's own append, or both)"*. **THIS CONTRACT DECLARES IT COMPRISES BOTH: every failure of
    the `file`-tier write path — the serialization, the file write, and the journal append — is ONE
-   failure** (`[T | DECLARED-DEFAULT]`), **and its ONE code is `FileCommitFailed` (`§8.1` #14; `DD-25`),
+   failure** (`[T | DECLARED-DEFAULT]`), **and its ONE code is `FileCommitFailed` (`§8.1` #15 — **RE-POINTED 2026-10-16: this cell's as-filed rank was `#14`; the store's sixteenth member took `15` and `ValueNotAdmitted` holds `14`**; `DD-25`),
    whose generated message is `§8.2`'s `FileCommitFailed` row**; the alternative (the file write alone) is
    priced: a journal-append
    failure would leave the file's bytes committed and the journal short an entry, so no walk-back could
@@ -277,7 +281,7 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
    clause, NOT a defect.** **The priced alternative and the reversal instrument are `DD-28`'s** — **the
    alternative (a `file`-committing delete and rollback) would give two verbs a second failure arm whose
    only available member is `FileCommitFailed`, whose trigger column is *"a `file`-TIER WRITE'S failure
-   path"* (`§8.1` #14), and would require `A16`'s automatic journal rollback — a write's arm — to be
+   path"* (`§8.1` #15 — **RE-POINTED 2026-10-16: this cell's as-filed rank was `#14`; `FileCommitFailed` stands at `15` and `ValueNotAdmitted` holds `14`**), and would require `A16`'s automatic journal rollback — a write's arm — to be
    re-stated for two verbs `A16` does not name.**
 6. **`mem` IS LOST ON PROCESS EXIT**, and **`temp` with it** (`P: §12 · A19`; `P: §11 · A15`); **`file`
    survives process exit** (`P: §1`). **THE STORE'S BOOT IS: on `storeCreate`, the `file` tier's content at
@@ -373,6 +377,8 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
 
 ### §8.1 THE CLOSED CODE SET — `14` members, each with its trigger
 
+**⟶ AMENDED 2026-10-15 — THE SET NOW CARRIES `16` MEMBERS AND THE AS-FILED HEADING ABOVE STANDS BYTE-FOR-BYTE** (`RCA-9` = the change request at `docs/specs/storeroom-native-proposal-review.md §18.1`, its failure member ruled `SETTLED` at that record's `§22.2` and its census moves carried at `§22.4`; `RCA-8(d)` ANNOTATE-BESIDE: **the 2026-10-11 clause below stands BYTE-FOR-BYTE as that pass's own reading and is read THROUGH this clause**). **The sixteenth member is `ConstraintListInvalid`, ranked `16`, ITS TRIGGER BEING A LOAD-SIDE VALIDATION FAILURE OF THE CONSTRAINT LIST — an element of a present `cfg.constraints` that is not a `{ address, id }` pair, or whose `address` lies outside `store-model.md §1.5`'s segment array, OR A VALIDATION FAILURE AT LOAD** (`docs/specs/storeroom-native/contract.md §7.1` step 4 and `§7.2` item 6, AS AMENDED 2026-10-15; `contract.md §8.1` #16). **NO RANK OF `1`…`15` MOVES AND NO EXISTING TRIGGER MOVES: the member is APPENDED as the sixteenth, and the set's own algebra closes as `11 + 2 + 1 + 1 + 1 = 16` ✓ — the five terms summing the ORIGINAL FOUR at the 2026-10-11 clause below AND this one.** **ITS ROW LIVES AT `docs/specs/storeroom-native/contract.md §8.1` #16 AND ITS GENERATED-MESSAGE ROW AT BOTH `§8.2` HOMES, AS THE CLAUSE ABOVE THIS TABLE DECLARES.** **⟶ AND THE COMMIT'S OWN ACT IS RE-SPELLED BY THE SAME PASS: `contract.md §7.2`'s dated clause of 2026-10-15 moves the `file`-tier commit out of the write verb and onto the terminal arm, so ITEMS 2, 3, 4 AND 5 OF `§7.2` BELOW STAND BYTE-FOR-BYTE AND ARE READ AT THAT INSTANT, while item 1's `M-12` and this part's two sentences that name the WRITE as the file's only toucher are read through that clause** (`docs/specs/storeroom-js/surface.md §2.11`; `docs/specs/storeroom-native-proposal-review.md §22.5` items 2 and 6).
+
 **⟶ AMENDED 2026-10-11 — THE SET NOW CARRIES `15` MEMBERS AND THE AS-FILED HEADING ABOVE STANDS BYTE-FOR-BYTE**
 (`A53`: ***"Add new failure code"***; `A54`: ***"Default name"***; `RCA-8(d)` ANNOTATE-BESIDE): **the member is
 `FilePathUnreachable`, ranked `13` in the CONSTRUCTION GROUP, its trigger being a PROVIDED path that fails
@@ -416,7 +422,7 @@ pair** (`DD-11`).
 `BelowSecureFloor`** (`DD-13`: the instance does not see the address, so the answer is `AddressNotFound`),
 and there is **no `PairOccupied`** (`DD-11`: the pair is purged and re-minted, `W-1`).
 **AND TWO STATES ARE ON THE SET'S SIDE THAT ARE EASY TO READ AS COMPLEMENT MEMBERS, SAID PLAINLY:** **a
-`file`-TIER WRITE'S COMMIT FAILURE IS A FAILURE and answers `FileCommitFailed`** (`§8.1` #14; `DD-25`) —
+`file`-TIER WRITE'S COMMIT FAILURE IS A FAILURE and answers `FileCommitFailed`** (`§8.1` #15 — **RE-POINTED 2026-10-16: this cell's as-filed rank was `#14`; `FileCommitFailed` stands at `15` and `ValueNotAdmitted` holds `14`**; `DD-25`) —
 *whether the serialization, the file write or the journal append is the part that failed*; **and a
 `mem`/`temp`-tier write cannot produce it** (`§7.2` item 5). **A `file`-tier write that succeeds produces no
 code at all** — committing the bytes is the arm's own success.
@@ -426,7 +432,7 @@ construction, `1` (`ValueNotAdmitted`) from the value taxonomy, and `1` (`FileCo
 `file` tier's commit path — `11 + 1 + 1 + 1 = 14` ✓** — and **every member has a trigger and every named
 failure in this contract has a member**
 (`[P: §11 · A14, §13 · A22, §14 · A29; T: the set's closure | CONTRACT + 1 CENSUS]`). **⟶ AMENDED
-2026-10-11 — THE OPERATIVE ARITHMETIC, PRINTED WITH ITS TERMS: `15` members ranked `1`…`15`
+2026-10-11 — THE OPERATIVE ARITHMETIC, PRINTED WITH ITS TERMS (**⟶ RE-SPELLED 2026-10-15 BY THE GATE-4 FINDINGS PASS: the `15` and the `11 + 2 + 1 + 1 = 15` below stand BYTE-FOR-BYTE and are read THROUGH this reading; the OPERATIVE ARITHMETIC is `16` members ranked `1`…`16` (`16 = 16` ✓), closing as `11 + 2 + 1 + 1 + 1 = 16` ✓ with `ConstraintListInvalid` the appended fifth term at rank `16` — `contract.md §8.1`'s dated clause of 2026-10-15**): `15` members ranked `1`…`15`
 (`15 = 15` ✓), closing as `11 + 2 + 1 + 1 = 15` ✓ — `11` from the walk and the three address verbs
 (UNMOVED) + `2` from CONSTRUCTION (`ConstructionArgumentMissing` `12`, `FilePathUnreachable` `13`) + `1`
 (`ValueNotAdmitted`, now `14`) from the value taxonomy + `1` (`FileCommitFailed`, now `15`) from the `file`
@@ -507,6 +513,9 @@ where
 | `ConstructionArgumentMissing` | `requires a <argument-name> argument` | `a <argument-name> is required on store creation` |
 | `ValueNotAdmitted` | `is not an admitted value` | `admitted values are strings, booleans, finite numbers, plain objects and arrays` |
 | `FileCommitFailed` | `could not be committed to` | `the file write failed at '<PATH>'` (`MessageArgs.path`) |
+| `ConstraintListInvalid` | `is not a valid constraint entry in` | `a constraint entry is an address and an id, and the address is a segment array` (`MessageArgs.container` prints the list's own name, `constraints`; `MessageArgs.segment` prints the failing ENTRY's `address` spelling, joined by '/' — and, where the failing element carries no address at all, the element's own position, printed bare — `MessageArgs.keys` prints the entry's members present, each single-quoted) |
+
+**⟶ AMENDED 2026-10-15 — THE `RCA-9` PASS CARRIES THE SIXTEENTH MEMBER'S TABLE ROW HERE, ADDED AT THIS PART'S SECOND HOME OF THE GENERATOR'S RULE** (`RCA-8(d)` ANNOTATE-BESIDE: **every row above and every clause below stands BYTE-FOR-BYTE; the row's own text is `contract.md §8.2`'s, carried here because this part carries the generator's rule as well, and the ONE HOME of the row's clause is `docs/specs/storeroom-native/contract.md §8.2`**). **NO SLOT OF `MessageArgs` MOVES AND NO PHRASE OF AN EXISTING ROW MOVES** (`docs/specs/storeroom-native/contract.md §8.2` AS AMENDED 2026-10-15; `docs/specs/storeroom-native-proposal-review.md §22.5` item 6).
 
 **THE `<available clause>`'s SUBJECT, SETTLED SO EXAMPLE (1) IS REPRODUCIBLE FROM THE RULE — the directory
 defect the amendment closes:** **the architect's own example prints `tabs are 'doc1', 'searchbar'`, naming
@@ -558,11 +567,16 @@ legitimate key, and the claim is narrowed to *"no unsubstituted placeholder"* | 
 
 ```
 StoreError = {
-  status:  Code,       // one of §8.1's 15 members, as a string token — EXACTLY the architect's own
+  status:  Code,       // one of §8.1's 16 members, as a string token — EXACTLY the architect's own
                        // example's spelling: `status: 'AddressNotFound'`
                        //   ⟶ AMENDED 2026-10-11: the as-filed comment read `14`; the set carries 15
                        //   members (`FilePathUnreachable` at rank 13). The record's membership, its
                        //   spelling rule and its two-member closure are UNCHANGED.
+                       //   ⟶ RE-SPELLED 2026-10-15 BY THE GATE-4 FINDINGS PASS: the comment above read
+                       //   `15`, BYTE-FOR-BYTE and read THROUGH this line; the operative figure is `16`,
+                       //   `ConstraintListInvalid` the appended term at rank 16 (contract.md §8.1's
+                       //   dated clause of 2026-10-15). The record's membership, its spelling rule and
+                       //   its two-member closure REMAIN UNCHANGED by the re-spelling.
   message: string      // the generated message of §8.2
 }
 ```
@@ -652,7 +666,7 @@ to this copy is written with this part's path.** **NO ROW OF THIS SECTION IS DEL
 BY THIS CLAUSE; THE PROHIBITED SET STANDS AT THE `7` ROWS THE TABLE ABOVE PRINTS (`7 = 7` ✓); NO PARK IS
 LIFTED BY IT (the `P-1` lift is the architect's act, `A66`, and `P-3`'s stands under `A44`); NO UNIT ROW IS
 ADMITTED; AND NO COUNT OF ANY OTHER SURFACE MOVES — the typed register at `8` rows (`8 ≤ 8` ✓), the closed
-fail set at `15` members (`11 + 2 + 1 + 1 = 15` ✓), the `DD` table at `46` rows
+fail set at `16` members (`11 + 2 + 1 + 1 + 1 = 16` ✓ — **⟶ RE-SPELLED 2026-10-15 BY THE GATE-4 FINDINGS PASS: this clause read `15` and `11 + 2 + 1 + 1 = 15`, BYTE-FOR-BYTE above and read THROUGH this reading; `contract.md §8.1`'s dated clause of 2026-10-15**), the `DD` table at `46` rows
 (`24 + 3 + 2 + 1 + 1 + 9 + 5 + 1 = 46` ✓) and the `PAR` set at `14` rows (`12 + 1 + 1 = 14` ✓).**
 `[P: §11 · A66; docs/specs/storeroom-js-proposal.md §11; contract.md §10.2's dated clause; T: the
 relocated copy's reconciliation, with the as-filed item re-emitted | CROSS-REF]`

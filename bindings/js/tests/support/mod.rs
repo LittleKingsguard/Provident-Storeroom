@@ -38,12 +38,12 @@
 #![allow(dead_code, unused_imports)]
 
 pub use storeroom_js_binding::crossing::{
-    create, from_store_value, to_address_arg, to_config, to_file_path_arg, to_journal_length_arg,
-    to_listeners_arg, to_op_id_arg, to_segment, to_tier_arg, to_tier_set_item, to_store_value, Instance,
-    JsAddressArg, JsBaseState, JsConfig, JsDeleteReceipt, JsFilePathArg, JsHandle, JsHandleArg,
-    JsJournalLengthArg, JsJournalOp, JsKey, JsListenerEntry, JsListenersArg, JsNonArray, JsObject,
-    JsOpIdArg, JsProto, JsRollbackResult, JsSegment, JsTierArg, JsTierSetItem, JsValue, JsWriteResult,
-    Refusal,
+    create, create_with_constraints, from_store_value, to_address_arg, to_config, to_file_path_arg,
+    to_journal_length_arg, to_listeners_arg, to_op_id_arg, to_segment, to_tier_arg, to_tier_set_item,
+    to_store_value, Instance, JsAddressArg, JsBaseState, JsConfig, JsConstraintEntry, JsConstraintsArg,
+    JsDeleteReceipt, JsFilePathArg, JsHandle, JsHandleArg, JsJournalLengthArg, JsJournalOp, JsKey,
+    JsListenerEntry, JsListenersArg, JsNonArray, JsObject, JsOpIdArg, JsProto, JsRollbackResult,
+    JsSegment, JsTierArg, JsTierSetItem, JsValue, JsWriteResult, Refusal,
 };
 
 pub use storeroom_native::{
@@ -338,8 +338,8 @@ pub fn assert_value_refusal(failure: &Refusal, address: &[JsSegment]) {
     assert_refusal_is_the_single_form(failure, "ValueNotAdmitted");
     assert!(
         CODES.contains(&failure.status.as_str()),
-        "`no package-minted code` — the status must be a member of the store's closed 15-member set \
-         (crossing.md §1.6; surface.md §2.5 item 1)"
+        "`no package-minted code` — the status must be a member of the store's closed 16-member set \
+         (crossing.md §1.6; surface.md §2.5 item 1; §8.1's amended heading, 16 members)"
     );
     let oracle = store_value_refusal_message(address);
     assert_eq!(
@@ -373,7 +373,8 @@ pub fn store_value_refusal_message(address: &[JsSegment]) -> String {
 pub fn assert_code_is_in_the_closed_set(failure: &Refusal) {
     assert!(
         CODES.contains(&failure.status.as_str()),
-        "`{}` is outside the store's closed 15-member set — the package MINTS NO CODE (DD-40)",
+        "`{}` is outside the store's closed 16-member set — the package MINTS NO CODE (DD-40; §8.1's \
+         amended heading, 16 members)",
         failure.status
     );
 }
@@ -544,12 +545,18 @@ pub fn store_str(s: &str) -> StoreValue {
 }
 
 
-/// `surface.md §2.9` item 2 / `P-IM-3`'s `S-FAILSET`: **all `15` fail codes remain reachable from the
+/// `surface.md §2.9` item 2 / `P-IM-3`'s `S-FAILSET`: **all `16` fail codes remain reachable from the
 /// crossing** — *"the walk's `9` address codes on the address verbs, the value taxonomy's
 /// `ValueNotAdmitted`, the two construction members, `JournalOpUnknown`, `RollbackCompacted`,
 /// `ReadTargetIsBranch` and `ContainerKindConflict` — and no code is left without a JS-reachable
 /// trigger."* Each drive below reaches its code THROUGH the crossing's own surface (never through the
 /// store's Rust API directly) and returns whether the declared code was the one produced.
+///
+/// **⟶ THE FIGURE MOVES TO `16` 2026-10-15 (`DEF-2026-10-15-Y`).** The amendment adds the FOURTH key's own
+/// member to the set (`§8.1`'s amended heading: `11 + 2 + 1 + 1 + 1 = 16` ✓; the key's semantics are
+/// `parameter-semantics.md §2.21`'s, added the same date), **so the sweep's own sentence — *"all `15` fail
+/// codes remain reachable from the crossing"* — was a figure the amendment had already replaced**, and the
+/// sixteenth member's drive joins the match below.
 pub fn fail_code_drive(code: &'static str) -> bool {
     let produced = |r: Result<(), Refusal>| r.err().map(|e| e.status);
     match code {
@@ -708,25 +715,56 @@ pub fn fail_code_drive(code: &'static str) -> bool {
             // instance exists, so the `file`-tier commit cannot land.
             let _ = std::fs::remove_file(&path);
             std::fs::create_dir(&path).expect("the path now holds a directory");
-            let got = inst
-                .write(
-                    &JsAddressArg::List(vec![key("never")]),
-                    &JsTierArg::Token("file".to_string()),
-                    &JsValue::Num(2.0),
-                )
-                .map(|_| ())
-                .err()
-                .map(|e| e.status);
+            // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 1–2 AS AMENDED, `surface.md §2.11`
+            // clause 2): THE FAILURE IS THE TERMINAL ARM'S ACT'S AND NOT THE VERB'S.** The verb *"performs
+            // NO FILE I/O ON ANY OF ITS ARMS"*, so it returns its `WriteResult` here and no refusal is read
+            // off it; **the act is the store's `commit_file`, keyed by THE SETTLED RECORD'S OWN `op`, and
+            // that is where this member is reached.** The crossing exposes it as `Instance::commit_file`
+            // (`bindings/js/src/crossing.rs`, the package's `commitFile` step).
+            let got = match inst.write(
+                &JsAddressArg::List(vec![key("never")]),
+                &JsTierArg::Token("file".to_string()),
+                &JsValue::Num(2.0),
+            ) {
+                Err(e) => Some(e.status),
+                Ok(w) => inst
+                    .commit_file(&w.op.opId)
+                    .err()
+                    .map(|e| e.status),
+            };
             // The guard's `Drop` removes the child path and its directory on every exit path; the explicit
             // removal below takes the whole directory now, so the ordinary path leaves nothing behind.
             let _ = std::fs::remove_dir_all(scratch.dir());
             got == Some("FileCommitFailed".to_string())
         }
-        other => panic!("`{other}` is not a member of the store's closed 15-member set"),
+        // **⟶ ADDED 2026-10-15 (`DEF-2026-10-15-Y`; `§8.1` #16; `§7.1` step 4-bis;
+        // `parameter-semantics.md §2.21`): THE SIXTEENTH MEMBER'S OWN TRIGGER.** It is reached THROUGH THE
+        // CROSSING'S OWN SURFACE — `create_with_constraints` is the `constraints` carrier's own crossing
+        // (`storeCreateWithConstraints`), and `JsConstraintEntry::Invalid` is the element outside
+        // `{ address, id }` pre-spelled at the boundary — **and at the CONSTRUCTION's instant, which is the
+        // key's own instant.** **`filePath` IS ABSENT**, because `§7.1`'s amended table makes an absent path
+        // LEGAL (`A49`) and this drive must reach the FOURTH key's arm and no other: a reachability failure
+        // would answer `FilePathUnreachable` (`§8.1` #13) and the drive would pass for the wrong member.
+        "ConstraintListInvalid" => {
+            let cfg = cfg_mem();
+            let constraints = JsConstraintsArg::List(vec![JsConstraintEntry::Invalid("'a'".to_string())]);
+            match create_with_constraints(&cfg, Some(&constraints)) {
+                Err(e) => e.status == "ConstraintListInvalid",
+                Ok(_) => false,
+            }
+        }
+        other => panic!("`{other}` is not a member of the store's closed 16-member set"),
     }
 }
 
-/// The closed set itself, printed with its terms: `15` members, and this unit mints no sixteenth.
+/// The closed set itself, printed with its terms: `16` members, and this unit mints no seventeenth.
+///
+/// **⟶ WIDENED 2026-10-15 (`DEF-2026-10-15-Y`): the as-filed *"`15` members, and this unit mints no
+/// sixteenth"* printed a superseded figure.** The figure is `CODES.len()`'s and not this comment's, and the
+/// crate's own array is the implementation's to widen (`§8.1`'s amended heading; `§7.2` item 5 ADDED
+/// 2026-10-15; `parameter-semantics.md §2.21`). **THE SWEEP'S ASSERTION IS NOT WEAKENED BY THE WIDENING: it
+/// is `all_fail_codes().len() == 16` and every member must still have a reachable trigger**
+/// (`surface_verbs.rs`'s `fail_set_is_closed_at_sixteen_and_no_drive_produces_a_seventeenth`).
 pub fn all_fail_codes() -> Vec<&'static str> {
     CODES.to_vec()
 }

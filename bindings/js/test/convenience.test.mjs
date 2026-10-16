@@ -856,18 +856,41 @@ test('the_removal_order_is_validate_then_store_side_withdrawal_then_registry_rem
 //    BESIDE each other, so a cell cannot satisfy one by dropping the other.
 // =============================================================================================
 
-test('the_instance_member_set_is_register_on_off_and_the_module_namespace_is_unchanged_at_the_eight_declared_verbs', async () => {
+test('the_instance_member_set_is_register_on_off_settle_and_the_module_namespace_is_unchanged_at_the_eight_declared_verbs', async () => {
   const inst = mem();
 
-  // --- (a) THE INSTANCE'S OWN MEMBER SET: `{ register, on, off }` — THREE OWN MEMBERS AND NOTHING ELSE.
+  // --- (a) THE INSTANCE'S OWN MEMBER SET: `{ register, on, off, settle }` — FOUR OWN MEMBERS AND NOTHING
+  // ELSE. **⟶ RE-DERIVED AT THE `A116` ORDERING-SEAM PASS (2026-10-15) AT THE CLAUSE THAT OPENED IT, AND
+  // THE ID IS RENAMED WITH ITS SUBJECT:** `surface.md §2.1`'s dated clause now reads
+  // `{ register, on, off, settle }`, opened by ONE clause at `A116` (D1)–(D3) — the instance member set
+  // opens by exactly one name, `settle`, and by no second name — while `§2.4` item 9 keeps it "not a
+  // ninth named export" and the module namespace's OWN half of this cell is UNMOVED at the eight declared
+  // verbs, so a change that would accept a ninth VERB is a finding and not a pass. The OLD value (three
+  // members) is asserted NOWHERE: it is the reading the ruling withdraws.
   assert.deepEqual(
     memberSet(inst),
-    ['off', 'on', 'register'],
-    '`§2.1`\'s dated clause (a): the member set is `{ register, on, off }` and NOTHING ELSE',
+    ['off', 'on', 'register', 'settle'],
+    '`§2.1`\'s dated clause (a) as `A116` (D1)–(D3) opens it: the member set is '
+    + '`{ register, on, off, settle }` and NOTHING ELSE',
   );
   assert.equal(typeof inst.on, 'function', '`on(address, listener)` is a member of the factory\'s own product');
   assert.equal(typeof inst.off, 'function', '`off(handle)` is a member of the factory\'s own product');
   assert.equal(typeof inst.register, 'function', 'and `register` is UNMOVED in spelling (`§2.4` item 5 (a))');
+  // --- AND THE NAME THAT OPENED THE SET IS ASSERTED BY NAME AND BY SHAPE, SO THE FOURTH MEMBER IS NOT
+  // SATISFIED BY AN ACCIDENT OF SPELLING: `settle(record) -> undefined` — arity ONE, the record first
+  // (`surface.md §2.4` item 9; `A116` (D1)), read off the property descriptor so an inherited or
+  // non-enumerable stand-in cannot carry this cell.
+  assert.equal(typeof inst.settle, 'function',
+    '`settle(record)` is the ONE member `A116` (D1) adds to the instance: the seam the kernel CALLS and '
+    + 'the entry IMPLEMENTS (`surface.md §2.4` item 9)');
+  assert.equal(inst.settle.length, 1,
+    'and its arity is ONE — the record at the single position the seam fixes (`§2.4` item 9\'s '
+    + '`settle(record) -> undefined`)');
+  const settleDescriptor = Object.getOwnPropertyDescriptor(inst, 'settle');
+  assert.equal(settleDescriptor !== undefined && settleDescriptor.enumerable, true,
+    'and it is an OWN, enumerable property of the factory\'s own product — the same standing the other '
+    + 'three members have, so a drive that reads the member set above and this member here reads ONE '
+    + 'surface and not two');
 
   // --- (b) **THE MODULE NAMESPACE IS UNCHANGED AT THE EIGHT DECLARED VERBS, AND NEITHER `on` NOR `off` IS
   // ADDED TO THE ENTRY'S NAMED EXPORTS** — `§2.1`'s dated clause (b), *"because both are reached through the

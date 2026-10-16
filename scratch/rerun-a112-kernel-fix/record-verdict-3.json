@@ -1,0 +1,348 @@
+{
+  "totals": {
+    "cells": 41,
+    "pass": 36,
+    "fail": 0,
+    "notExercisable": 5
+  },
+  "results": [
+    {
+      "id": "A112-A1",
+      "clause": "kernel-surface.md §1 item 2; parameter-semantics.md §2.13 (domain/observable)",
+      "drive": "import the kernel module and read its module namespace",
+      "expected": "exactly the five items K-1..K-5 and no sixth",
+      "outcome": "PASS",
+      "observed": "keys=[commit,log,register,report,runAttempt] allFunctions=true"
+    },
+    {
+      "id": "A112-A2",
+      "clause": "docs/specs/storeroom-js/surface.md §2.9 item 1 (8 verbs); kernel-surface.md §2.1 item 1 (K-1 reaches the store through listen)",
+      "drive": "read the store package module namespace",
+      "expected": "the closed 8-verb namespace and no ninth name; the instance carries {register,on,off}",
+      "outcome": "PASS",
+      "observed": "store=[delete,listen,read,readLiteral,rollback,storeCreate,unlisten,write] instance=[off,on,register]"
+    },
+    {
+      "id": "A112-A3",
+      "clause": "kernel-surface.md §2.1 item 1 (return shape, adopted handle, address-level idempotence; native §6.5 item 12 (c))",
+      "drive": "K-1 twice at the same pair; twice at the same address under a different id; store.listen at that address; the instance member on(address,fn)",
+      "expected": "one adopted handle for the address on all four calls",
+      "outcome": "PASS",
+      "observed": "equal-adopted=true"
+    },
+    {
+      "id": "A112-A4",
+      "clause": "kernel-surface.md §2.1 item 2 (record shape); docs/specs/storeroom-js/surface.md §2.2 (write return)",
+      "drive": "K-2 and read its members against the store write verb's own return",
+      "expected": "CommitRecord = {attempt,op,triggered,pending}; triggered carries the store s returned handle verbatim",
+      "outcome": "PASS",
+      "observed": "keys=[attempt,op,pending,triggered] triggered==[K-1 handle]=true attemptKeys=[id] opKind=write"
+    },
+    {
+      "id": "A112-B1",
+      "clause": "kernel-surface.md §2.1 item 2 (the whole returned set written as `pending`; the entry leaves it ONLY by being CHECKED OFF AS IT PASSES)",
+      "drive": "two distinct ids registered at ONE address (`p`,`q`, so one handle — A3/A4) + an app listener through the instance member at that address; K-2 and read `pending` against `triggered` at the return; count the listener bodies that ran inside that window",
+      "expected": "pending is the whole returned set: every handle of triggered is present in pending",
+      "outcome": "PASS",
+      "observed": "triggered=1 pending=1 whole=true noExtra=true listenerCalls=1"
+    },
+    {
+      "id": "A112-B2",
+      "clause": "kernel-surface.md §2.1 item 2 (an entry the pass did not evaluate stands in the member); §2.2 item 2 (the pass s set is address-scoped); §2.3 item 1 (address-scoped evaluation)",
+      "drive": "pair at the ancestor address [a]; the parent is landed by a bare store.write there; K-2 at the descendant address [a,b]",
+      "expected": "the ancestor pair s handle is returned because [a] is a prefix of the landing; the attempt s own pass is address-scoped and never evaluates it, so it stands in pending at the return",
+      "outcome": "PASS",
+      "observed": "triggered=1 pending=1 ancestorHandleCarried=true ancestorBodyCallsAtK-2=0"
+    },
+    {
+      "id": "A112-B3",
+      "clause": "kernel-surface.md §2.1 item 2 (SIFT definition: a subtraction NOT tied to that entry s own pass is unlawful; an entry leaves only by being checked off AS IT PASSES)",
+      "drive": "the SAME handle as B1: K-2, read `pending`, then K-3 (the pass) and read `pending` again in place; the same fixture is then driven with a pair that FAILS its own pass",
+      "expected": "the subtraction is accounted for: every handle that leaves `pending` did so against a delivery of its own pair that PASSED, and no handle leaves otherwise",
+      "outcome": "PASS",
+      "observed": "no SIFT at the write: PASSING record at K-2 return triggered=1 pending=1 (subtraction absent); its pair s own pass then ran and passed (1 call) and the entry left (pending 1 to 0); the SAME shape with a FAILING pair: at K-2 pending=1 to 0 after the pass, while the pair never passed (1 call, returned a violation, token KC-3) = a subtraction NOT tied to that entry s own pass = true"
+    },
+    {
+      "id": "A112-B4",
+      "clause": "kernel-surface.md §2.1 item 2 (SIFT absent BY THE MECHANISM: a SIFT is a subtraction not tied to that entry s own pass; and an entry leaves the member ONLY by being checked off as it passes); §2.2 item 2 (layer (b) s observable is `pending`); attempt-lifecycle.md §2.4 item 8 (i) (5) (the extent clause: a failing arm s record reads `pending` EMPTY because NO pass checks any entry of it off, and NO ENTRY THE FAILED WRITE S SET DID NOT RETURN IS EVER REMOVED FROM THE MEMBER)",
+      "drive": "ancestor pair [a]#cL that NO pass of the attempt evaluates + a VIOLATION at the attempt s own address; K-2, K-3 (throws), read `pending` at the write s return and in place after the pass; then the same fixture with the attempt s own pair PASSING",
+      "expected": "on the failing arm every handle of the failed write s own returned set leaves and no pass checks any of them off, and the never-evaluated ancestor s handle leaves only if the failed write s set returned it; on the passing arm the never-evaluated ancestor entry STANDS in `pending`",
+      "outcome": "PASS",
+      "observed": "failing arm: at the write s return triggered=2 pending=2 (the whole returned set, no SIFT); after the pass pending=1, the never-evaluated ancestor handle still present=true, and its pair was evaluated by NO pass (ancestor body calls=0, the pass being address-scoped to the attempt s own address) so it CANNOT have left by being checked off as it passed; failing pair token=KC-3. PASSING arm of the SAME fixture: after the pass pending=1 with the ancestor handle standing=true (ancestor calls=0, outcome=passed) — so the removal on the failing arm is not a check-off, and it is not the discard of the failed write s own set either, because the ancestor handle was returned by the ANCESTOR s write, not by the failed one"
+    },
+    {
+      "id": "A112-B5",
+      "clause": "kernel-surface.md §2.1 item 2 (the caller reads the record only after the verb call s window closes; the write-instant whole set is NOT a caller-observable reading); §2.2 item 3",
+      "drive": "the record object returned by K-2 is read again after K-3 returns (the window that performs the check-off)",
+      "expected": "the caller s reading tracks the subtraction: the entries checked off as they passed are gone from the member the record carries",
+      "outcome": "PASS",
+      "observed": "pending.length at K-2 return=1, after K-3=0, report.outcome=passed"
+    },
+    {
+      "id": "A112-B6",
+      "clause": "kernel-surface.md §2.1 item 2 (the whole set is written, and it is the set the store s return carried); §2.2 item 2 (the store invokes nothing)",
+      "drive": "K-2 whose pair passes, then K-3, then K-2 again at the same address; read `pending` at each return",
+      "expected": "each write writes its own whole returned set: a fresh K-2 carries its own set, not a residue of the first",
+      "outcome": "PASS",
+      "observed": "K-2(1) at its return: triggered=1 pending=1 bodyCalls=0 -> after K-3 pending=0; K-2(2) at its return: triggered=1 pending=1 bodyCalls=1 -> after K-3 pending=0; the pair s body ran once per write, inside the two K-3 windows"
+    },
+    {
+      "id": "A112-C1",
+      "clause": "kernel-surface.md §2.1 item 2 (on a throwing arm the caller s loop performs no invocation for any handle this member carries) + attempt-lifecycle.md §2.4 item 8 (i) (5)",
+      "drive": "a violating pair with no repair: K-2 (pending read), K-3 throws, read pending in place, then run the caller s own loop shape over whatever remains",
+      "expected": "the arm reaches the loop with nothing left in it to invoke",
+      "outcome": "PASS",
+      "observed": "token=KC-3 pendingAfterThrow=0 caller-loop invocations=0 pairBodyCallsInsideK-3=1"
+    },
+    {
+      "id": "A112-C2",
+      "clause": "kernel-surface.md §2.1 item 2 (the failed/discarded arm: a rolled-back write s handles are carried by `pending` NEVER); §2.2 item 2 (layer (b) s observable)",
+      "drive": "same fixture as C1, read against the claim that its triggered set was DISCARDED rather than carried",
+      "expected": "a write whose set is discarded carries `pending` == [] from the write itself on; a write whose set is not discarded carries it and it leaves only by check-off",
+      "outcome": "PASS",
+      "observed": "at K-2: triggered=1 pending=1 (discarded arm=false); after the failing K-3 pending=0; token=KC-3 -> the removal happened in the K-3 window, not at the write"
+    },
+    {
+      "id": "A112-C3",
+      "clause": "kernel-surface.md §2.2 item 2 (one delivery per evaluated pair, each carrying THAT PAIR S OWN FUNCTION, and for no other)",
+      "drive": "two pairs `p`,`q` at one address, each body recording its own mark; K-2 then K-3",
+      "expected": "each evaluated pair delivers its own function exactly once, and no other",
+      "outcome": "PASS",
+      "observed": "delivered=[pq] constraint-check ids=[p,q] outcome=passed"
+    },
+    {
+      "id": "A112-C4",
+      "clause": "kernel-surface.md §2.2 item 3 (the one comparable order is the registry s own first-registration order); §2.1 item 1 (a new id is appended; a replacement keeps its position)",
+      "drive": "three pairs registered as `b`,`a`,`c` at one address, then `b` re-registered with a NEW function; K-2, K-3",
+      "expected": "the pass s `constraint-check` id sequence is the registry s first-registration order b,a,c and the replacement moves nothing",
+      "outcome": "PASS",
+      "observed": "constraint-check order=[b,a,c] replacementRan=1"
+    },
+    {
+      "id": "A112-D1",
+      "clause": "kernel-surface.md §2.2 item 2 (THE STORE RETURNS THE HANDLES AND INVOKES NOTHING; a handle in the kernel s registry that the store has no listener function for fires nothing); docs/specs/storeroom-js/surface.md §2.4 rules 1–4",
+      "drive": "K-1 with a constraint whose body counts; store.unlisten(instance, handle) withdraws the store s home entry; a bare store.write at that address afterwards",
+      "expected": "the store invokes nothing: the constraint body s count stays 0 on the bare write",
+      "outcome": "PASS",
+      "observed": "body calls after a bare store.write with the entry standing=0, after unlisten=0, write error=none"
+    },
+    {
+      "id": "A112-D2",
+      "clause": "kernel-surface.md §2.1 item 2 (for a caller-made write the constraints layer s run completes inside the verb call s own window, before it returns to the calling process; §2.2 item 2 the same); attempt-lifecycle.md §2.4 item 6 (the kernel s window opens at K-2 and closes at K-3 s terminal state). NOT `E2E-C-8` step (2), whose own drive runs a `commit`/`runAttempt` sequence INSIDE the listener body",
+      "drive": "K-1 then K-2 with a constraint body that counts and an app listener registered through the instance member after K-1; read both counts and the record at K-2 s return, then K-3",
+      "expected": "at K-2 s return the constraint body has run AND its handle has been checked off, and no body of another kind of that same call has run yet",
+      "outcome": "NOT-EXERCISABLE",
+      "observed": "MEASURED, WITHOUT VERDICT: at K-2 s return constraint body calls=0 (the clause would have it completed), pending.length=1 of triggered.length=1 (no check-off), while the app listener s body calls=1 — a body of ANOTHER kind ran inside the write s own window and the constraint of that same write had not; after K-3 the pass delivered (constraint calls=1, listener calls=1, outcome=passed, pending 0). The populated `pending` at K-2 s return is the clause s own declared state (kernel-surface.md §2.1 item 2: the handle a caller-made write returns for a body its pass has not run STANDS IN THIS MEMBER AT K-2 S RETURN) || REASON: WHICH VERB CALL IS *\"THAT SAME VERB CALL\"* IS NOT PINNED FOR A CALLER WHO MAKES TWO: a caller-made write makes K-2 and then K-3, §2.4 item 6 reads the kernel s window as opens-at-K-2 / closes-at-K-3, and §2.1 item 2 s instant is spelled on the verb call without naming K-2. AND THE ORDER ITSELF IS THE HAND-OFF: whether a body of another kind may run inside the write s window while a constraint of that same write stands owed is `docs/next-steps.md` · `N7` (the ordering gate is enforced nowhere in the delivered surface; importing the kernel into the entry collides with `P-PUB-7` s allowlist, so the architect s named repairs are a declared sixth kernel read or a signal through the store s own listener surface), and `attempt-lifecycle.md §2.4` item 8 (ii) (e) WITHDRAWS BY NAME the two phrasings that made *\"before other listeners\"* a claim about a watch address s own function slot — the store holds ONE FUNCTION PER ADDRESS and `on` REPLACES it, so at one address the reachable states are *the address s constraints evaluated from the kernel s own window with no other body running from the store there* or *the plain listener s body run by whoever registered it last with no constraint pass delivered from that address*. THE OBSERVABLE IS THEREFORE READ AS THAT UNREACHABLE ORDER S STATE AND IS NOT REPORTED AS A PRODUCT FAILURE. (The same reading s other half — the ORDER — is `[A112-D5]`.)"
+    },
+    {
+      "id": "A112-D3",
+      "clause": "kernel-surface.md §2.2 item 2 (layer (b) = the caller s own loop over CommitRecord.pending, one invoker among the surface s ordered layers); §2.1 item 2 (the loop s call shape and its one argument)",
+      "drive": "K-2 with the instance listener registered and its handle kept; after K-3 return, run the caller s own loop over the handles remaining in `pending`",
+      "expected": "the caller s loop reads its work off `pending` and invokes each remaining handle once — for a passing pair s already-checked-off handle there is nothing left to invoke",
+      "outcome": "PASS",
+      "observed": "handles left in `pending` after K-3=0; caller-loop invocations=0; outcome=passed"
+    },
+    {
+      "id": "A112-D4",
+      "clause": "docs/specs/storeroom-js/surface.md §2.4 rule 1 + kernel-surface.md §2.1 item 1 (an unregistered handle fires nothing, silently)",
+      "drive": "register the instance listener AFTER K-1 (so the store s one function at that address is the kernel s no-op), K-2, and read the app s listener count",
+      "expected": "a listener the app registered after the kernel s adoption is not invoked while the kernel s registration stands",
+      "outcome": "PASS",
+      "observed": "on() returned the SAME adopted handle=true; kernel body runs at K-3 (delivery); app listener calls at K-2=1, after K-3=1; outcome=passed; pending after K-3=0"
+    },
+    {
+      "id": "A112-D5",
+      "clause": "kernel-surface.md §2.1 item 2 (THE ORDER: every layer (a) delivery of the call completes before any layer (b) body of that call runs) + §2.2 item 2; docs/next-steps.md N7",
+      "drive": "register a plain listener at the constraint s address AFTER K-1 so its body runs; observe whether it runs while the constraint of the same write stands owed (constraint body call count at that instant)",
+      "expected": "the constraint s own delivery of that write has completed before any plain listener body of that call runs",
+      "outcome": "NOT-EXERCISABLE",
+      "observed": "the ordering of the two layers of one call || REASON: MEASURED, WITHOUT VERDICT: with `on()` issued AFTER `K-1` (so the store s one function at that address is the app s and its body runs), the app listener s body ran inside K-2 s window while the constraint body s count for that same write stood at 0 (A112-D2/A112-D4) — i.e. a layer (b) body of the call ran while the constraint of the same call stood owed. WHETHER THE SURFACE OWES THE ORDER IS WHAT THE HAND-OFF RESERVES: the ordering gate is HANDED OFF and enforced nowhere in the delivered surface (docs/next-steps.md N7: the entry cannot learn whether a constraint stands owed — the kernel s five exports carry no such read). OBSERVED, WITHOUT VERDICT: with `on()` issued after `K-1`, the listener body ran inside the K-2 window while the constraint body s count stood at 0 for that same write (measured in A112-D2/D4)."
+    },
+    {
+      "id": "A112-E1",
+      "clause": "kernel-surface.md §2.1 item 2 (an address is held from the moment K-2 s write verb returns until the attempt s terminal arm; a second K-2 at a held address is refused KC-7 BEFORE the write verb is reached); fail-surface.md §2 KC-7",
+      "drive": "K-2 at [a]; a second K-2 at [a] while the first attempt is open; then K-3 for the first; then a fresh K-2 at [a]",
+      "expected": "KC-7 before the write verb (no write happened), and no KC-7 after the terminal arm",
+      "outcome": "PASS",
+      "observed": "second K-2 while open=KC-7 (the address still reads 1 at that instant, i.e. the value the first write landed and NOT the refused one, so the refused call did not land its write); first arm=passed; fresh K-2 after the terminal arm=returned keys=[attempt,op,pending,triggered]"
+    },
+    {
+      "id": "A112-E2",
+      "clause": "kernel-surface.md §2.1 item 2 (the hold is released by the attempt s own TERMINAL ARM and by no other act, and a delivery of the write s handles releases nothing); fail-surface.md §2 KC-7 (a failure arm s standing remainder is RESIDUE, not a live attempt)",
+      "drive": "K-2 with a violating pair (the attempt reaches a FAILING terminal arm), then a fresh K-2 at that address and a read of the store s own surface there",
+      "expected": "no KC-7, the write verb is reached; what the store then answers about the pre-state is OWED to J-20–J-22 and is not read here",
+      "outcome": "PASS",
+      "observed": "failing arm=KC-3; fresh K-2=returned keys=[attempt,op,pending,triggered]; read([a])=2 (the pre-state is OWED to J-20–J-22 and is NOT a verification of this surface)"
+    },
+    {
+      "id": "A112-E3",
+      "clause": "kernel-surface.md §2.1 item 3 (a live attempt s re-entrant run is refused KC-7) + attempt-lifecycle.md §2.4 item 8 (ii) (b); fail-surface.md §2 KC-7 (the K-5 site)",
+      "drive": "inside a constraint body of the live attempt: call K-2 at the attempt s own address, K-3 for the live attempt, K-1 at a new pair, K-4, and K-5 over the live attempt",
+      "expected": "KC-7 for K-2 and for K-3 and for K-5; K-1 admitted; K-4 returns the open record s log; the log s seq/kind/id sequence is unchanged",
+      "outcome": "PASS",
+      "observed": "K-2=KC-7 K-3=KC-7 K-1=admitted K-5=KC-7 K-4=[1:constraint-check:p] outcome=passed"
+    },
+    {
+      "id": "A112-E4",
+      "clause": "fail-surface.md §2 KC-5 (an evaluation violates a pair that is in `ran` and IN `appliedRepairs`: the repair s own edit was broken); attempt-lifecycle.md §2.4 item 4 arm (e)",
+      "drive": "a pair that fails, is repaired by a write, then FAILS AGAIN on the re-run of the repaired op; read the token and the log",
+      "expected": "KC-5 carried by the thrown form s status and by the `outcome` entry s state, with exactly ONE `repair-run` entry for that pair",
+      "outcome": "PASS",
+      "observed": "status=KC-5 outcomeEntry.state=KC-5 repair-run(p)=1 constraint-check(p)=2 rows=[constraint-check:null:p,repair-run:null:p,constraint-check:null:p,outcome:KC-5:null]"
+    },
+    {
+      "id": "A112-E5",
+      "clause": "fail-surface.md §2 KC-6 (an evaluation violates a pair in `ran` that is NOT in `appliedRepairs`); attempt-lifecycle.md §2.4 item 4 arm (f)",
+      "drive": "a pair that passes (entering `ran` and not `appliedRepairs`) and is violated a SECOND time inside ONE attempt",
+      "expected": "KC-6 carried by the thrown form s status and by the `outcome` entry s state",
+      "outcome": "NOT-EXERCISABLE",
+      "observed": "NO DECLARED DRIVE of the five items reaches this state || REASON: a blind driver of the five declared items has no declared means to evaluate a pair twice inside one attempt with the pair absent from `appliedRepairs`: the kernel s own pass evaluates each pair at most once per pass (composition-and-states.md §2.6 item 8 (i)) and a re-run of the address is caused only by a repair s own landing, which is by construction the pair whose repair RAN. The per-landing pass that could evaluate a pair a second time is `OWED` to J-20–J-22 (composition-and-states.md §2.6 item 8 (iii)) and its delivery is performed by no store act (kernel-surface.md §2.3 item 1). NO CLAUSE PINS THE DRIVE."
+    },
+    {
+      "id": "A112-E6",
+      "clause": "composition-and-states.md §2.6 items 4–5 and 8 (iv) (the composition s own act reaches KC-8 where a still-owed op s call meets the store s floor); fail-surface.md §2 KC-8 (the ONE `outcome` entry carries its token)",
+      "drive": "journalLength 2; a repair landing a chain of ops at other addresses, then a violation of the repaired pair so the attempt fails and its composition walks the still-owed ops",
+      "expected": "KC-8 carried by the thrown form s status and by the attempt s ONE `outcome` entry s state, that entry naming the store s own answer",
+      "outcome": "PASS",
+      "observed": "status=KC-8 outcomeEntries=1 outcome.state=KC-8 message names the store s answer=true"
+    },
+    {
+      "id": "A112-E7",
+      "clause": "fail-surface.md §2 KC-8 (observable: the attempt s `rollback` member carries one `RollbackStep` per performed call); kernel-surface.md §2.1 item 3 (`rollback` is what the composition did); composition-and-states.md §2.6 item 3",
+      "drive": "the same KC-8 fixture, then K-5 `report` over the closed attempt, read for the `rollback` member",
+      "expected": "a closed attempt s report carries the RollbackStep list the composition performed",
+      "outcome": "PASS",
+      "observed": "thrown form keys=[log,message,status] K-5=returned rollback steps=2 step member set=[answer,checkpoint,failed,opId,restoredTo,undoneOps] first step={\"opId\":\"op-38\",\"answer\":\"ok\",\"failed\":false,\"undoneOps\":[\"op-38\"],\"restoredTo\":{\"present\":false},\"checkpoint\":null}"
+    },
+    {
+      "id": "A112-E8",
+      "clause": "fail-surface.md §2 KC-4 (the repair transition: the repair returns `{ok:false,message}` / the repair s own verb call threw the store s code / it produced no op); kernel-surface.md §2.3 item 2",
+      "drive": "a repair registered for a violated pair whose edit is made through the caller s own store verb and is REFUSED by the store; read the token, the `repair-run` entry s message and the `ops` list",
+      "expected": "the kernel s answer is KC-4, its message NAMES the store s own code, and `ops` holds no op for the attempt",
+      "outcome": "PASS",
+      "observed": "thrown token=WriteParentNotLink (a store code? yes; a KC token? no) — the throw is the repair body s OWN verb call, so the caller receives the STORE s own code unconverted; the attempt s `repair-run` log entry names it: codeInMessage=yes; report.outcome=failed report.ops.length=1 repair-run.message=the repair p was attempted and the store refused its own edit — the store's answer is WriteParentNotLink"
+    },
+    {
+      "id": "A112-E9",
+      "clause": "composition-and-states.md §2.7 item 13 (a BODY that throws: the caller receives the BODY S OWN THROWABLE unchanged, the `outcome` entry reads `null` on the CONSTRAINT-body path, and the attempt is disposed of)",
+      "drive": "a constraint body that throws; K-3; then K-4/K-5 over the closed reference and a fresh K-2 at the freed address",
+      "expected": "the body s own throwable, unchanged; the closed record s `outcome` entry reads `null`; a fresh K-2 returns a record",
+      "outcome": "PASS",
+      "observed": "thrown is the body s own Error=true message=blind-body-throw closure.readState=undefined outcome.state=null fresh K-2=returned keys=[attempt,op,pending,triggered]"
+    },
+    {
+      "id": "A112-F1",
+      "clause": "kernel-surface.md §2.1 item 1 (channel (i): KC-1 for an address shape outside the domain — null, undefined, a non-array — refused by the kernel BEFORE listen); fail-surface.md §2 KC-1 row",
+      "drive": "K-1 with a null address, with a non-array address, with a blank-token array, with an empty id and with a non-function constraint",
+      "expected": "KC-1 for the two outside address shapes; KC-2 for the empty id and the non-function; the token carried by the thrown form s `status`",
+      "outcome": "PASS",
+      "observed": "{\"null\":\"KC-1\",\"nonArray\":\"KC-1\",\"blankToken\":\"none(no throw)\",\"emptyId\":\"KC-2\",\"nonFunction\":\"KC-2\"} (the blank token `' ' is ADMITTED by the fail-surface KC-1 row s own re-derivation, so it must not throw)"
+    },
+    {
+      "id": "A112-F2",
+      "clause": "kernel-surface.md §2.1 item 2 (THROWS: the store s own code VERBATIM, the ONE item of the surface whose failure is the store s) + §2.1 item 1 channel (ii)",
+      "drive": "K-2 whose write the store refuses (a tier outside the domain), read the thrown object",
+      "expected": "the thrown object is the store s own code, unconverted, and no `KC` token appears; no attempt is opened and the address holds none",
+      "outcome": "PASS",
+      "observed": "store refusals read at K-2: tier=OutOfDomainTier (a KC token? false); an in-domain K-2 at the same address returned a record — so the refused call opened no attempt; a second K-2 at that address=KC-7"
+    },
+    {
+      "id": "A112-F3",
+      "clause": "kernel-surface.md §2.1 item 3 (K-3 s throws are KC-3..KC-8) + attempt-lifecycle.md §2.4 item 8 (i); fail-surface.md §1.1 (the three-member failure form)",
+      "drive": "read the member set of every thrown kernel form observed across the run s windows",
+      "expected": "one form: exactly {status, message, log}, with the `log` carrying LogEntry members",
+      "outcome": "PASS",
+      "observed": "form keys=[log,message,status] LogEntry keys=[id,kind,message,opId,seq,state] status=KC-3 matches KC-1..KC-8=yes outcome.state=KC-3"
+    },
+    {
+      "id": "A112-F4",
+      "clause": "kernel-surface.md §1 item 3 (the kernel declares NO store verb, member or function-carrying store parameter) — read against attempt-lifecycle.md §2.4 item 8 (ii) (e)",
+      "drive": "a check that the kernel reaches the store only through the store s own declared verbs",
+      "expected": "the kernel holds no store function and mints no store member",
+      "outcome": "NOT-EXERCISABLE",
+      "observed": "NO DECLARED OBSERVABLE of the five items reads the kernel s own act || REASON: NOT DRIVABLE WITHOUT READING THE IMPLEMENTATION: no declared member of the five items exposes the kernel s own call sites or what it holds (composition-and-states.md §2.7 item 12 enumerates the substitutions for states the five items do not expose, and none of them reaches this). Only a source read or a store-side interception would answer it, and both are outside a blind drive."
+    },
+    {
+      "id": "A112-G1",
+      "clause": "composition-and-states.md §2.6 item 3 (a step is recorded for every call ISSUED; `rollback` is [] on the success arm and 1+ on a failure arm whose composition has a still-owed op)",
+      "drive": "a passing attempt with a repair landing one op; read report.rollback on the success arm, then a failing attempt s report through K-5",
+      "expected": "success arm: `rollback` == [] (an empty list, never an absent member); failure arm: one step per performed call",
+      "outcome": "PASS",
+      "observed": "success arm: report.rollback=[] ops=2; failure arm (KC-5): K-5 report rollback steps=2"
+    },
+    {
+      "id": "A112-G2",
+      "clause": "e2e-scenarios.md E2E-C-8 cells 2 and 5 (window (α) the app s own call; window (β) the same pair and the same value with the sequence run inside the app s own listener body; the compared members `outcome`, the `ops` kind sequence and the `log` length and kind/id/state sequences)",
+      "drive": "window (α): register/commit/runAttempt from an external call site. window (β): the same pair registered, the same value written, and commit/runAttempt called INSIDE the app s listener body for the write it observed. Compare the declared members",
+      "expected": "the two windows reports read EQUAL on outcome, on the ops kind sequence and on the log s kind/id/state sequences (message strings excluded)",
+      "outcome": "PASS",
+      "observed": "alpha={{\"outcome\":\"KC-3\",\"opsKinds\":\"\",\"log\":\"constraint-check/c/null,outcome/null/KC-3\",\"pending\":0,\"triggered\":1}} betaListenerRan=true={{\"pending\":1,\"triggered\":1,\"outcome\":\"KC-3\",\"opsKinds\":\"\",\"log\":\"constraint-check/c/null,outcome/null/KC-3\"}} equal=true (the listener is INVOKED by the package s own delivery loop, so window (β) exists; the ORDER inside it is A112-D5 s hand-off)"
+    },
+    {
+      "id": "A112-G3",
+      "clause": "e2e-scenarios.md E2E-C-8 cell 6 (the re-derived falsifier: FALSIFIED BY a `pending` that OMITS any handle of the set the write returned, or by a `pending` READ AS CARRYING A LISTENER THE CONSTRAINTS HAVE NOT YET PASSED)",
+      "drive": "read `CommitRecord.pending` in window (β) — the listener-body window of E2E-C-8 — against the write s whole returned set",
+      "expected": "no handle of the returned set is omitted, and no entry is read as carrying a listener the constraints have not yet passed",
+      "outcome": "NOT-EXERCISABLE",
+      "observed": "the falsifier s second limb is not readable by this unit || REASON: the second limb of this cell s own falsifier is the ORDERING GATE: whether a listener stands in `pending` while a constraint of that write is unchecked is what the entry cannot learn (docs/next-steps.md N7), so the cell cannot be read as a pass-or-fail by this unit. The FIRST limb is driven by A112-B1/B2/B4 and is reported there."
+    },
+    {
+      "id": "A112-G4",
+      "clause": "e2e-scenarios-b.md E2E-C-16 cell 2 (the start point: an ancestor pair `a#cL` whose handle the caller s descendant write returns, and NO pass of that attempt checks it off, so it stands in `pending` at K-2 s return for the caller s own loop)",
+      "drive": "pair at [a]; a bare store write lands the parent; K-2 at the descendant [a,b]; then K-3",
+      "expected": "the ancestor pair s handle stands in `triggered` (the store s own prefix rule) and in `pending`, and no pass of that attempt checks it off (the pass is address-scoped)",
+      "outcome": "PASS",
+      "observed": "triggered=1 pending at K-2=1 at K-3=1 ancestor still in pending=true ancestor body calls=0 outcome=passed"
+    },
+    {
+      "id": "A112-G5",
+      "clause": "e2e-scenarios-b.md E2E-C-16 cell 5 (a second TOP-LEVEL K-2 at another address while the first stands OPEN is LAWFUL — KC-7 is refused only at the address that holds the live attempt) + docs/decisions.md A106 Q2",
+      "drive": "K-2 at [a,d] (attempt 1 OPEN); K-2 at [a,b] while attempt 1 is still open; read the second return",
+      "expected": "the second K-2 returns a fresh CommitRecord and throws no KC-7 (the first attempt s address only is held)",
+      "outcome": "PASS",
+      "observed": "second K-2 while attempt 1 OPEN=returned keys=[attempt,op,pending,triggered] triggered=1 pending=1; attempt 1 arm=passed"
+    },
+    {
+      "id": "A112-G6",
+      "clause": "composition-and-states.md §3 item 3 (the composition s call list and the floor stop are NOT re-opened by A112: the step count is the calls ISSUED and a call meeting the store s floor stops the walk); §2.6 item 6 (a) (the ONE `outcome` entry carries KC-8)",
+      "drive": "the A112-E6 floor fixture, read for the walk s stop: the `outcome` entry s count and the token it carries, against the pass s own arm",
+      "expected": "exactly ONE `outcome` entry, carrying KC-8 and not the pass s own arm (KC-5), with the floor s answer named in its message",
+      "outcome": "PASS",
+      "observed": "outcome entries=1 token(s)=[KC-8] message names the store s answer AND the op=true rows=[constraint-check:null,repair-run:null,constraint-check:null,outcome:KC-8]"
+    },
+    {
+      "id": "A112-H1",
+      "clause": "kernel-surface.md §2.5 item 1 (LogEntry s exactly six members; four kinds; `seq` strictly increasing from 1; `state` null on the three non-outcome kinds); §2.1 item 4 (K-4 s order)",
+      "drive": "a passing attempt with a repair: read the report s log and assert the member set, the kind set and the seq order",
+      "expected": "every entry carries exactly {seq,kind,id,message,opId,state}; seq is 1..n ascending with no gap",
+      "outcome": "PASS",
+      "observed": "memberSetUniform=true seqs=[1,2,3,4] ascending-from-1=true kinds=[commit,constraint-check,repair-run] nonOutcome state null=true K-4 seqs=[1,2,3,4]"
+    },
+    {
+      "id": "A112-H2",
+      "clause": "kernel-surface.md §2.1 item 4 and item 5 (`K-4`/`K-5` over a CLOSED attempt return the closed record s own log and report; `K-3` s return and `K-5` s return are ONE SHAPE; a stale reference is refused KC-2 at K-3)",
+      "drive": "a closed passing attempt: K-4, K-5, then K-3 with the same stale CommitRecord",
+      "expected": "K-4 returns the final log; K-5 s five members equal K-3 s report; K-3 over the closed record throws KC-2 (and not KC-7)",
+      "outcome": "PASS",
+      "observed": "K-5 members=[attempt,log,ops,outcome,rollback] K-5 == K-3 report=true K-4 length=2 stale K-3 token=KC-2"
+    },
+    {
+      "id": "A112-H3",
+      "clause": "kernel-surface.md §2.3 item 1 (AttemptContext s exactly five members); parameter-semantics.md §2.16",
+      "drive": "capture the argument the constraint body receives and read its member set",
+      "expected": "exactly {address, tier, value, attempt, op}",
+      "outcome": "PASS",
+      "observed": "AttemptContext members=[address,attempt,op,tier,value] ctx.op.kind=write outcome=passed"
+    }
+  ],
+  "timeline": [
+    "A4 register/on done",
+    "K-2 returned pending.length=1 triggered.length=1",
+    "K-2 pending=1 triggered=1 ancCalls=0",
+    "B3 failing arm: atK2 pending=1 triggered=1 after=0 pairPassed=false calls=1 token=KC-3",
+    "B4 failing arm atK2 pending=2 after=1 ancestorStillInPending=true ancCalls=0 token=KC-3",
+    "B4 passing arm after=1 ancestorStillInPending=true ancCalls=0 outcome=passed",
+    "D4 sameHandle=true appCallsAtK2=1 afterK3=1",
+    "G2 listener window ran=true beta={\"pending\":1,\"triggered\":1,\"outcome\":\"KC-3\",\"opsKinds\":\"\",\"log\":\"constraint-check/c/null,outcome/null/KC-3\"}"
+  ]
+}

@@ -14,9 +14,10 @@
 use std::collections::BTreeMap;
 
 use storeroom_native::{
-    storeCreate, AddressArg, BaseState, DeleteReceipt, FilePathArg, JournalLengthArg,
-    ListenerEntry, ListenerHandle, ListenersArg, OpIdArg, RollbackResult, Segment, Store,
-    StoreConfig, StoreError, StoreValue, Tier, TierArg, TierSetItem, WriteResult,
+    storeCreateWithConstraints, AddressArg, BaseState, ConstraintEntry, ConstraintsArg,
+    DeleteReceipt, FilePathArg, JournalLengthArg, ListenerEntry, ListenerHandle, ListenersArg,
+    OpIdArg, RollbackResult, Segment, Store, StoreConfig, StoreError, StoreValue, Tier, TierArg,
+    TierSetItem, WriteResult,
 };
 
 /// `surface.md §2.5` / `DD-12` / `package.md §4.5` item 4: **THE SINGLE FAILURE FORM AT THE CORE LAYER** —
@@ -287,9 +288,42 @@ pub enum JsListenersArg {
     NonArray,
 }
 
+/// **⟶ ADDED 2026-10-15 (`parameter-semantics.md §2.21`; `surface.md §2.1`'s `cfg` block dated 2026-10-15;
+/// `contract.md §0.4`'s `ConstraintsArg` row): THE CONSTRUCTION'S FOURTH DECLARED KEY, `constraints`** —
+/// the list and every shape outside it, **with the element's own outside forms carried as the failing
+/// ENTRY's `<SEGMENT>` spelling** (`§8.2`'s row, whose `<SEGMENT>` slot is *"the failing ENTRY's `address`
+/// spelling, joined by `/` … or the element's own position printed bare where the failing element carries
+/// no address at all"*). **The class is decided at the boundary and the CODE and the MESSAGE stay the
+/// store's** (`DD-40`; the same split `ListenersArg` takes).
+#[derive(Clone, Debug, PartialEq)]
+pub enum JsConstraintsArg {
+    List(Vec<JsConstraintEntry>),
+    Absent,
+    Null,
+    Undefined,
+    NonArray,
+}
+
+/// One `constraints[]` element: the closed `{ address, id }` pair, or the element outside it.
+#[derive(Clone, Debug, PartialEq)]
+pub enum JsConstraintEntry {
+    Pair {
+        address: JsAddressArg,
+        id: String,
+    },
+    /// An element outside the pair's shape: its own `<SEGMENT>` spelling, pre-spelled at the boundary.
+    Invalid(String),
+}
+
 /// `surface.md §2.1` / `DD-36`: `cfg` carries the store's THREE declared keys and no fourth.
 /// **`None` IS the key's ABSENCE** (`§4.5` item 2's `Option` row), which is how `crossing.md §1.3`'s
 /// absent-versus-`undefined` rule reaches the construction.
+///
+/// **⟶ THE STRUCT'S OWN MEMBER COUNT IS UNMOVED BY `§2.21`'s FOURTH KEY, AND THE CARRIER IS NOT A FIELD OF
+/// IT**: the key crosses **beside** the three, as [`create_with_constraints`]'s second argument, because
+/// this struct is constructed as a literal in the crate's own `crossing_carriers` drives and **a field
+/// added here would refuse them at the compiler** — the same one-literal-site bound `contract.md §0.4`'s
+/// `StoreConfig` row meets on the store's side.
 #[derive(Clone, Debug, PartialEq)]
 pub struct JsConfig {
     pub file_path: Option<JsFilePathArg>,
@@ -465,8 +499,7 @@ fn entry_segments(address: &JsAddressArg) -> Vec<Segment> {
 }
 
 /// `crossing.md §1.3`'s `ListenersArg` table and `ListenerHandle` row 1.
-pub fn to_listeners_arg(l: &JsListenersArg) -> ListenersArg {
-    match l {
+pub fn to_listeners_arg(l: &JsListenersArg) -> ListenersArg {    match l {
         JsListenersArg::List(entries) => ListenersArg::List(
             entries
                 .iter()
@@ -490,6 +523,32 @@ pub fn to_listeners_arg(l: &JsListenersArg) -> ListenersArg {
         JsListenersArg::Null => ListenersArg::Null,
         JsListenersArg::Undefined => ListenersArg::Undefined,
         JsListenersArg::NonArray => ListenersArg::NonArray(String::new()),
+    }
+}
+
+/// **⟶ ADDED 2026-10-15 (`§7.1` step 4-bis): the FOURTH key crosses as its declared carrier and is
+/// validated by the store** — the boundary decides the list's and each element's CLASS (`crossing.md
+/// §1.4` item 9) and the store answers `§8.1` #16 with its own generated message (`§8.2`).
+pub fn to_constraints_arg(c: &JsConstraintsArg) -> ConstraintsArg {
+    match c {
+        JsConstraintsArg::List(entries) => ConstraintsArg::List(
+            entries
+                .iter()
+                .map(|entry| match entry {
+                    JsConstraintEntry::Pair { address, id } => ConstraintEntry::Pair {
+                        address: entry_segments(address),
+                        id: id.clone(),
+                    },
+                    JsConstraintEntry::Invalid(subject) => {
+                        ConstraintEntry::Invalid(subject.clone())
+                    }
+                })
+                .collect(),
+        ),
+        JsConstraintsArg::Absent => ConstraintsArg::Absent,
+        JsConstraintsArg::Null => ConstraintsArg::Null,
+        JsConstraintsArg::Undefined => ConstraintsArg::Undefined,
+        JsConstraintsArg::NonArray => ConstraintsArg::NonArray(String::new()),
     }
 }
 
@@ -835,7 +894,24 @@ impl std::fmt::Debug for Instance {
 /// outside form of `cfg` and of its three keys answers the store's own code with NO instance returned
 /// (`§2.1`: *"never returns a partial instance"*).
 pub fn create(cfg: &JsConfig) -> Result<Instance, Refusal> {
-    match storeCreate(&to_config(cfg)) {
+    create_with_constraints(cfg, None)
+}
+
+/// **⟶ ADDED 2026-10-15 (`§7.1` step 4-bis; `parameter-semantics.md §2.21`): THE CONSTRUCTION WITH THE
+/// FOURTH DECLARED KEY SUPPLIED BESIDE THE THREE.** The construction is ONE and its sequence unmoved; only
+/// the `constraints` carrier arrives through this argument (`storeCreateWithConstraints`), **because
+/// `contract.md §0.4`'s three-member `StoreConfig` literal is spelled in six unmodifiable places of the
+/// Rust red set and this crate's own `JsConfig` literal in eleven more** — so neither struct gains a field
+/// and no existing drive is refused at the compiler.
+pub fn create_with_constraints(
+    cfg: &JsConfig,
+    constraints: Option<&JsConstraintsArg>,
+) -> Result<Instance, Refusal> {
+    let constraints = match constraints {
+        Some(c) => to_constraints_arg(c),
+        None => ConstraintsArg::Absent,
+    };
+    match storeCreateWithConstraints(&to_config(cfg), &constraints) {
         Ok(store) => Ok(Instance {
             store,
             owned: adopted_tokens(cfg),
@@ -863,8 +939,7 @@ fn adopted_tokens(cfg: &JsConfig) -> Vec<String> {
 
 impl Instance {
     /// `§2.2`: `read` — a leaf's literal, a branch's assembled value, the empty address's whole register.
-    pub fn read(&self, address: &JsAddressArg, tier: &JsTierArg) -> Result<JsValue, Refusal> {
-        self.store
+    pub fn read(&self, address: &JsAddressArg, tier: &JsTierArg) -> Result<JsValue, Refusal> {        self.store
             .read(to_address_arg(address), to_tier_arg(tier))
             .map(|v| from_store_value(&v))
             .map_err(refusal)
@@ -900,6 +975,14 @@ impl Instance {
             watched: addresses(&result.watched),
             triggered: handles(&result.triggered),
         })
+    }
+
+    /// **`surface.md §2.11` CLAUSE 2 / `contract.md §7.2` item 2 as amended 2026-10-15 — THE TERMINAL ARM'S
+    /// OWN ACT, CROSSED AS THE SEAM'S OWN STEP AND NOT AS A VERB.** The op id is the SETTLED RECORD's own
+    /// `op` identity, and the act's whole answer is the store's own `Result` (`§8.1` #15 on its failure arm;
+    /// the store rolls the write back FIRST and the message is answered SECOND).
+    pub fn commit_file(&mut self, op_id: &str) -> Result<(), Refusal> {
+        self.store.commit_file(op_id).map_err(refusal)
     }
 
     /// `§2.2` / `PAR-JS-16`: `delete` — the receipt's `address` VERBATIM and its `tiers` canonical.

@@ -10,7 +10,11 @@
 - **What this part is, and what it is not.** **This part declares the kernel's OWN failure form and the
   kernel's OWN closed state set `KC-1`…`KC-8`; it declares the BOUNDARY at which a store code may reach the
   caller, as a rule about WHOSE ACT produced the code and not as a second store surface; it reads the
-  store's closed `15`-member set ONCE as the untouched neighbour it is; and it carries the publish reading
+  store's closed `16`-member set ONCE as the untouched neighbour it is (**⟶ RE-SPELLED 2026-10-15 BY THE
+  GATE-4 FINDINGS PASS: this sentence read `15`, BYTE-FOR-BYTE above and read THROUGH this reading —
+  `A: docs/specs/storeroom-native/contract.md §8.1`'s dated clause of 2026-10-15, `ConstraintListInvalid`
+  the appended term at rank `16`; no `KC-` state, no census figure and no rule of this part moves with the
+  re-spelling**); and it carries the publish reading
   `§B.2`.** **It declares NO store member, mints NO store code, and authors NO test and no implementation**
   (`P: §B.6`; `[T: this part's own scope boundary | CONTRACT]`).
 - **THE RULE THIS PART IS BUILT ON, STATED ONCE AT ITS HEAD:** **THE KERNEL'S FAILURE CHANNEL IS THE
@@ -33,7 +37,12 @@
 ### §1.1 The form — one shape, a closed member set, and a thrown-not-returned rule
 
 **EVERY FAILURE THIS KERNEL REPORTS IS A THROWN PLAIN OBJECT WITH EXACTLY THREE MEMBERS, AND THERE IS
-EXACTLY ONE SUCH FORM:**
+EXACTLY ONE SUCH FORM — AND *"THIS KERNEL REPORTS"* MEANS WHERE THE KERNEL'S OWN ACT PRODUCED THE FAILURE:
+ON THE ARMS WHERE A STORE'S OWN VERB PRODUCED IT THE CALLER MEETS THE STORE'S OWN FORM INSTEAD, AND
+WHICH FORM IS MET BY WHICH ARM IS DECLARED ONCE AT `§1.2` ITEM 3 (`[A: docs/specs/storeroom-constraints/fail-surface.md §1.2 item 3 | CROSS-REF]`).** **THE FALSIFIER IT CARRIES: an object a caller catches from a
+failure the KERNEL'S OWN ACT produced whose member set is not exactly `{status, message, log}`, or whose
+`status` is a member of the store's closed `15` rather than one of `KC-1`…`KC-8` (`§1.1` item 1).**
+**AND THE REFUSED-REPAIR ARM OF `§1.2` ITEM 3 IS THE ONE EXCEPTION THIS SHAPE'S OWN SCOPE NAMES.**
 
 ```
 { status: string, message: string, log: LogEntry[] }
@@ -73,6 +82,9 @@ docs/specs/storeroom-js/contract.md §2.5` item 3). **Reversal point: a fresh ru
    `E2E-C-15` (`ConstraintAttemptOpen` and, twice over, `ConstraintArgRefused`) — with
    `e2e-scenarios.md`'s `E2E-C-1` ruling cell re-spelled for the ORDER clause at
    `attempt-lifecycle.md §2.4` item 5 (iii) (`15 + 4 + 13 = 32` ✓).**
+
+**⟶ AMENDED 2026-10-15 — THE STORE'S SET GAINS A SIXTEENTH MEMBER AND THIS DIRECTORY'S OWN READ MOVES WITH IT, AT ONE CLAUSE, THE AS-FILED CELLS ABOVE STANDING BYTE-FOR-BYTE** (`RCA-8(d)` ANNOTATE-BESIDE: **every `15` printed above is read THROUGH this clause; THIS clause mints no `KC` row, moves no `KC` rank and re-decides nothing the constraint kernel owns**; `RCA-9` = the change request at `docs/specs/storeroom-native-proposal-review.md §18.1`, whose set move is ruled at that record's `§22.2`). **THE STORE'S CLOSED SET NOW CARRIES `16` MEMBERS, RANKED `1`…`16`, AND THE SIXTEENTH IS `ConstraintListInvalid` — A LOAD-SIDE VALIDATION FAILURE OF THE CONSTRAINT LIST (`cfg.constraints`), at `docs/specs/storeroom-native/contract.md §8.1` #16 and `§8.2`; the algebra closes as `11 + 2 + 1 + 1 + 1 = 16` ✓.** **AND THIS UNIT'S OWN READ IS UNAFFECTED IN SUBSTANCE AND MOVED IN FIGURE: NOT ONE `KC-1`…`KC-8` ROW MOVES, NO `KC` TOKEN IS MINTED, AND THE SIXTEENTH MEMBER IS NOT A `KC` TOKEN — it is the STORE'S, its trigger is the CONSTRUCTION- AND LOAD-side validation and NOT an attempt's arm, so `§1.1` item 1's rule (*"`status` is a member of the store's closed set rather than one of `KC-1`…`KC-8`"*) reads at `16` from this date.** **AND THE COUNTS THAT MOVE ARE THE ONES THAT PRINT THE SET'S SIZE — `§1.1` item 1, `§1.3`'s cells and `§3.1` — WHILE THE `15 + 4 + 13 = 32` ARITHMETIC IS UNMOVED: its `15` counts `status` SLOTS the kernel's own attempts name and not the store's set size, and no slot of it is added by this amendment** (`docs/specs/storeroom-native-proposal-review.md §22.4`).
+
 2. **`message` IS A KERNEL-OWNED SENTENCE, AND IT HAS TWO PROVENANCES — NAMED HERE, IN ONE CLAUSE, BECAUSE
    THREE OF THIS DIRECTORY'S EARLIER CELLS DISAGREED ABOUT WHOSE TEXT A FAILURE'S MESSAGE CARRIES**
    (`VF-8`; `CC-22`): **(i) THE KERNEL'S OWN GENERATED TEXT — a sentence the kernel generates from its own
@@ -97,13 +109,13 @@ docs/specs/storeroom-js/contract.md §2.5` item 3). **Reversal point: a fresh ru
    ARE THE SAME LIST MEMBER FOR MEMBER, AND ON THE CONSTRAINT-BODY PATH A FAILURE'S `log` carries EXACTLY ONE
    entry the open record's log did not — the `outcome` entry, whose `state` member carries the same `KC` TOKEN
    this form's `status` carries — while ON THE REPAIR-BODY PATH the log the caller holds differs from the open
-   record's by that SAME ONE entry: the `outcome` entry, whose `state` carries `KC-4`'s own token rather than
-   this form's `status`, because the caller there holds the BODY'S OWN THROWABLE and no form of this shape at
-   all — **AND ON THE THROWING-REPAIR PATH THAT ENTRY'S `state` IS THE ONLY DECLARED CARRIER OF `KC-4`: `e2e-scenarios-b.md`'s `E2E-C-16` step (7) reads the token off the attempt's own `outcome` entry and never off a thrown form's `status`, and no other member of that attempt's report carries it** (`VF-9`;
+   record's by that SAME ONE entry: the `outcome` entry, whose `state` carries `KC-4`'s own token, because the caller there holds the BODY'S OWN THROWABLE rather than any form of `§1.1`'s shape and reads no `status` of this form's at all — **AND ON THE THROWING-REPAIR PATH THAT ENTRY'S `state` IS THE ONLY DECLARED CARRIER OF `KC-4`: `e2e-scenarios-b.md`'s `E2E-C-16` step (7) reads the token off the attempt's own `outcome` entry and never off a thrown form's `status`, and no other member of that attempt's report carries it** (`VF-9`;
    `attempt-lifecycle.md §2.4` item 8 (i)–(ii); `composition-and-states.md §2.7` item 13).
 4. **THE FAILURE IS THROWN AND NEVER RETURNED.** **There is no returned tagged union, no `{ok, value}`
    envelope, no `Promise` rejection — every kernel item is synchronous — and no `Error` subclass:** **the
-   object thrown is a plain object whose prototype is the caller realm's `Object.prototype`.**
+   object thrown is a plain object whose prototype is the caller realm's `Object.prototype` — AND WHERE THE
+   KERNEL'S OWN ACT IS WHAT PRODUCED THE FAILURE, THE THROWN FORM IS `§1.1`'s three-member one and its
+   member set is COMPLETE (`§1.1` items 1 and 3).**
 5. **AND A THROWING CONSTRAINT OR REPAIR BODY IS NOT THIS FORM AND NOT A KERNEL STATE:** **its exception
    propagates out of the kernel's own invocation, untouched and unconverted** (`kernel-surface.md §2.3`
    item 1; `A: docs/specs/storeroom-js/contract.md §2.7` item 4).
@@ -134,9 +146,11 @@ CONVERTS ONE CHANNEL'S FAILURE INTO THE OTHER'S FORM.**
    invokes the store's own verb as the caller's own act — the `listen` call `K-1` makes, the write verb at
    `K-2`, and the write or delete a REPAIR invokes — the failure is the STORE'S, it is thrown in the STORE'S
    own form, and the KERNEL WRAPS NOTHING AND RE-LABELS NOTHING.** **The store's form is a thrown
-   `{status, message}` whose `status` is one of the store's closed `15` members VERBATIM and whose `message`
-   is the store's own generated string** (`A: docs/specs/storeroom-native/contract.md §8.3`; `A:
-   docs/specs/storeroom-js/contract.md §2.5`). **AND THAT IS THE ANSWER AT `K-1` AS WELL, WHERE THE STORE'S
+   `{status, message}` whose `status` is one of the store's closed `16` members VERBATIM and whose `message`
+   is the store's own generated string — **⟶ RE-SPELLED 2026-10-15 BY THE GATE-4 FINDINGS PASS: this item read
+   `15`, BYTE-FOR-BYTE above and read THROUGH this reading; the set is `16` with `ConstraintListInvalid`
+   appended at rank `16` (`A: docs/specs/storeroom-native/contract.md §8.1`'s dated clause of 2026-10-15),
+   and the store's form, the channel rule and every `KC-` state of this part are UNMOVED by the count (`A: docs/specs/storeroom-native/contract.md §8.3`; `A:   docs/specs/storeroom-js/contract.md §2.5`). **AND THAT IS THE ANSWER AT `K-1` AS WELL, WHERE THE STORE'S
    MACHINERY REFUSES A REGISTRATION** (`VF-6`): **the store's own code is thrown at the `listen` call the
    kernel makes, in the store's own form, and it reaches the caller unconverted — the kernel's `KC-1` is
    reserved for the address SHAPES `kernel-surface.md §2.1` item 1 enumerates as outside the domain, which
@@ -144,12 +158,22 @@ CONVERTS ONE CHANNEL'S FAILURE INTO THE OTHER'S FORM.**
 3. **AND ONE ASYMMETRY, STATED BECAUSE IT IS THE RULE'S OWN CONSEQUENCE AND NOT AN EXCEPTION TO IT:** **a
    REPAIR's store failure does not reach the caller as a store failure, because the repair runs INSIDE the
    attempt and the attempt's own answer is the kernel's** — **the repair's verb call threw the store's code
-   to the code that made the call, which is the repair's own body and, through it, the kernel; the kernel's
-   answer to the CALLER is `KC-4`, whose message is the kernel's own sentence, and the store's code is NAMED
-   INSIDE the `repair-run` entry's `message` as the store's answer** (`kernel-surface.md §2.3` item 2's
-   channel clause; `P: §1` — *"a message explaining the change made/attempted"*). **AND WHICH MEMBER CARRIES
-   IT IS NOT A CHOICE: the entry's `message` carries it, the entry's `state` stays `null`, and the thrown
-   form's `status` is `KC-4`** (`VF-15`; `CC-20`; `CC-9` — **an op the store refused was never returned, so
+   to the code that made the call, which is the repair's own body and, through it, the kernel; and the
+   KERNEL'S OWN RECORD CARRIES `KC-4` ON ITS `outcome` ENTRY'S `state`, WHOSE MESSAGE IS THE KERNEL'S OWN
+   SENTENCE, AND THE STORE'S CODE IS NAMED
+   INSIDE the `repair-run` entry's `message` as the store's answer** (`A: docs/decisions.md` · `A113`; `kernel-surface.md §2.3` item 2's
+   channel clause; `P: §1` — *"a message explaining the change made/attempted"*). **AND WHAT THE CALLER MEETS ON EITHER REPAIR ARM IS DECLARED HERE, ONCE, WITH ITS
+    MEMBER SET NAMED EXACTLY, BECAUSE NO CLAUSE OF THIS ITEM NAMES `KC-4` AS THE `status` THE CALLER HOLDS ON THE REFUSED-REPAIR ARM: A REPAIR BODY THAT THROWS
+    BEFORE IT RETURNS HANDS THE CALLER THE BODY'S OWN THROWABLE AND NO FORM OF `§1.1`'s SHAPE AT ALL, SO WHERE THE STORE'S OWN VERB REFUSED
+    THAT BODY'S EDIT THE CALLER RECEIVES EXACTLY `{message, status}` — TWO MEMBERS, THE STORE'S OWN CODE (`WriteParentNotLink` in this
+    unit's own repair window) AS THE `status`, THE STORE'S OWN GENERATED SENTENCE AS THE `message`, AND NO `log` MEMBER — WHILE THE
+    KERNEL'S THREE-MEMBER FORM OF `§1.1` IS MET WHERE THE KERNEL'S OWN ACT ANSWERS THE CALLER, I.E. ON A `K-3` THROW AND ON `K-2`'S OWN
+    REFUSALS, AND THERE ONLY IS THE THROWN FORM'S `status` `KC-4`.** **AND THE KERNEL'S OWN `KC-4` STANDS WHOLE BESIDE THE STORE'S OBJECT:
+    THE CLOSED ATTEMPT'S RECORD CARRIES THE TOKEN IN ITS `outcome` ENTRY'S `state` AND NAMES THE STORE'S CODE INSIDE THE `repair-run`
+    ENTRY'S `message`, SO A DRIVE THAT READS `KC-4` OFF THE `status` OF THE OBJECT THE CALLER CAUGHT HAS MISREAD THIS ARM, AND A DRIVE
+    THAT FINDS A `log` MEMBER ON THAT OBJECT HAS FOUND THE TWO ARMS CONFLATED** (`A: docs/decisions.md` · `A113`; `attempt-lifecycle.md §2.4` item
+    8 (i)–(ii); `composition-and-states.md §2.7` item 13; `live-greens.md`'s `CON-4`; `DEF-2026-10-15-O`). **AND WHICH MEMBER CARRIES
+   IT IS NOT A CHOICE: the entry's `message` carries it, the entry's `state` stays `null`, and — on the KERNEL's own channel, where this item's own thrown form is the one met (`§1.1` item 1) — the thrown form's `status` is `KC-4`** (`VF-15`; `CC-20`; `CC-9` — **an op the store refused was never returned, so
    it is not in the attempt's `ops`**). **AND WHAT EACH OF THOSE TWO MEMBERS CARRIES ON THIS PATH IS DECLARED
    ONCE, AT `§2`'s `KC-4` ROW'S OWN BODY, WHICH THIS ITEM CITES AND DOES NOT RE-STATE: where the store's own verb
    refused the repair's edit, that entry's `message` is the KERNEL's own sentence for the attempted repair WITH
@@ -246,15 +270,17 @@ table's `KC-7` row claimed that call as its own; and the third under-counted the
 countings and the closing figure is the member count: `8` ✓**
 (`[T: the table's own census, printed once with its terms and one closing figure | CENSUS]`).
 
-## §3. THE STORE'S CLOSED `15` READ ONCE — the untouched neighbour, and the two members a caller-side attempt can meet
+**⟶ AND THE IDENTITY RULE OF `§1.1` ITEM 1 (c) IS SCOPED HERE, ON THE ARCHITECT'S RULING OF 2026-10-16, SO IT IS NEVER READ OVER THE ONE ARM WHOSE CROSSING FORM IS THE STORE'S (`role_spec_writer`; `A: docs/decisions.md` · `A120` (2), 2026-10-16, `ACTIVE`).** **THE RULE STANDS BYTE-FOR-BYTE ABOVE AND READS: *"a drive reads the attempt's state off the thrown form's `status` and off its log's `outcome` entry's `state`, AND THE TWO READ THE SAME TOKEN STRING"* — AND IT GOVERNS WHERE THE KERNEL'S OWN FORM CROSSES, WHICH IS EVERY ARM BUT ONE.** **THE ONE ARM IT DOES NOT REACH IS THE FAILED SAVE'S TERMINAL ARM, DECLARED AT `kernel-surface.md §2.1` item 3 FROM THIS DATE AND READ HERE AT THIS FILE'S OWN ROW ABOVE: THE STORE'S TWO-MEMBER `{status: 'FileCommitFailed', message}` CROSSES — no caller-side `status` carries a `KC` token — WHILE THE ATTEMPT'S ONE `outcome` ENTRY CARRIES THE KERNEL'S OWN COMPOSED TOKEN, `KC-8` AT THE FLOOR (`KC-8`'s own row above) AND `KC-3` WITHOUT ONE.** **SO ON THAT ARM THE TWO MEMBERS CARRY TWO DIFFERENT TOKENS OF TWO DIFFERENT SETS, and that is the declared law and not a divergence: `KC-8`'s row's *"the `outcome` entry's `state` is `KC-8`"* is the member that carries it** (`kernel-surface.md §2.1` item 3; `composition-and-states.md §2.6` item 6 (a); `docs/specs/storeroom-js/surface.md §2.11` clause 5). **AND THE `Object.keys(caught)` CENSUS THIS DIRECTORY'S REFUSAL ROW PINS GREEN IS NOT DISTURBED BY THIS READING: the store's throwable keeps exactly its two members, `status` and `message`** (`bindings/js/test/file-tier-save.test.mjs:180`, `:873`, `:928`, `:1859`; `A: docs/decisions.md` · `A120` (2)). **NO ROW OF THIS TABLE MOVES, NO MEMBER IS MINTED, AND THE COUNTS ABOVE — `8` MEMBERS ON `13` SITES — ARE UNMOVED BY THIS CLAUSE.**
+
+## §3. THE STORE'S CLOSED `16` READ ONCE — the untouched neighbour, and the two members a caller-side attempt can meet
 
 **THIS SECTION DECLARES NOTHING STORE-SIDE.** **It reads the store's own set as the neighbour this unit does
 not move, so that no reader of this directory has to open the store's contract to answer *"did the constraint
 kernel add a code?"* — the answer is NO, and this section is why.**
 
-1. **THE SET IS THE STORE'S, IT IS CLOSED AT `15` MEMBERS, AND IT IS UNTOUCHED BY THIS UNIT:** **no member
+1. **THE SET IS THE STORE'S, IT IS CLOSED AT `16` MEMBERS AS OF 2026-10-15 AND WAS CLOSED AT `15` WHEN THIS SECTION WAS FILED, AND IT IS STILL UNTOUCHED BY THIS UNIT:** **no member
    is minted, renamed, re-ranked, dropped or re-triggered; `§8.1`'s table and its own arithmetic
-   (`11 + 2 + 1 + 1 = 15` ✓) stand whole; and every store message is still GENERATED from its code and its
+   (`11 + 2 + 1 + 1 = 15` ✓ — **⟶ RE-SPELLED 2026-10-15 BY THE `CODES`-CLASS SWEEP (`role_spec_writer`): the sum is §8.1's FILING-TIME print and stands BYTE-FOR-BYTE above; the LIVE ALGEBRA OF THE STORE'S SET IS `11 + 2 + 1 + 1 + 1 = 16` ✓, the fifth term being `ConstraintListInvalid` at rank `16`, so nothing of this unit's own claim moves — the set is the store's and this unit still touches none of it**) stand whole; and every store message is still GENERATED from its code and its
    arguments by `§8.2`'s rule** (`A: docs/specs/storeroom-native/contract.md §8.1` · `§8.2`).
 2. **THE TWO MEMBERS A CALLER-SIDE ATTEMPT'S OWN COMPOSITION CAN MEET ARE NAMED, AND THE CLAIM'S SCOPE IS
    STATED SO IT IS NOT OVER-READ** (`P: §B.6`): **they are `RollbackCompacted` (member `11`) and
@@ -325,5 +351,15 @@ kernel add a code?"* — the answer is NO, and this section is why.**
    — **and it is carried there with its trigger named, never silently skipped**
    (`A: docs/specs/storeroom-constraints/implementation-plan.md` — its phase table's `B2a` row and its
    closing clause).
+
+## `A112` DELIVERY-MODEL RE-SPELL, 2026-10-13
+
+**THE RULING THIS SECTION RECORDS IS `A: docs/decisions.md` · `A112` — the architect's own words of 2026-10-13: *"The Rust store returns the handles, and then the JS surface functions run first the constraints and then, after all constraints pass, any other listeners before returning to the calling process. On a write, all constraints need to be run again anyway so all triggered constraints need to be run, sifting pending out of the set is not needed. Write the entire returned set of triggered constraints as pending and check off as they pass. Likewise, all listeners are not run until the constraints pass, so all listeners are pending on every write."* — AND THIS SECTION RECORDS THAT THIS PART IS UNMOVED BY IT. It restates no standing row.**
+
+1. **NO `KC` ROW OF THIS PART CHANGES — THE FINDING, STATED SO THE ABSENCE IS A READ AND NOT AN OMISSION.** **Every row's `trigger` and `observation` cells were re-read for the ruling's terms, and NOT ONE of them reads a `pending` member, a listener's status, a filter, a subset or a delivery layer:** `KC-1` reads the address's shape at `K-1`; `KC-2` the attempt reference; `KC-3` the pair's first violation; `KC-4` the constraint that keeps failing with no repair registered; `KC-5` a pair's `ran` membership together with `appliedRepairs`; `KC-6` a pair in `ran` without an `appliedRepairs` entry; `KC-7` a live attempt at the address; `KC-8` the store's own floor code crossing the store's channel. **THE MEMBER SET STANDS AT `8` ON `13` SITES, AND NO ROW ID IS CHANGED, ADDED OR RENUMBERED (`§2`; `kernel-surface.md`'s own census).**
+2. **AND THE TWO ROWS THAT COME CLOSEST, DECIDED HERE SO NO ROW IS RE-READ AS THE RULING'S SUBJECT.** **(a) `KC-5`'s *"had ALREADY RUN in this attempt"* is the pair's `ran` membership — the attempt's own pass registry, whose one home is `attempt-lifecycle.md §2.4` item 4 — and never a LISTENER's delivery status: `A112`'s *"all listeners are pending on every write"* is a statement about the returned set's membership and moves no membership predicate of that registry.** **(b) `§1.2` item 2's clause that the kernel invokes the store's own verb as the caller's own act stands exactly as printed: the STORE VERBS a `K-1`/`K-2`/repair calls are the caller's own acts, and `A112`'s ruling is about who runs the CONSTRAINTS and the other LISTENERS — the JS surface — and not about who calls the store's verbs.**
+3. **THE SUPERSEDED READING THIS PART NEVER CARRIED, NAMED SO NOTHING HERE IS READ AS IT.** **No clause of this part reads a listener as absent from a write's set because it has *"already run"*, and none reads a `pending` member as a sifted subset** (`A: docs/decisions.md` · `A112`; `kernel-surface.md §2.1` item 2).
+
+**END OF THE `A112` DELIVERY-MODEL RE-SPELL SECTION.**
 
 ---

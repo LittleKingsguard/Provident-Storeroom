@@ -36,10 +36,10 @@ use std::cell::RefCell;
 use std::os::raw::{c_char, c_void};
 
 use crate::crossing::{
-    self, JsAddressArg, JsBaseState, JsConfig, JsDeleteReceipt, JsFilePathArg, JsHandle,
-    JsHandleArg, JsJournalLengthArg, JsJournalOp, JsKey, JsListenerEntry, JsListenersArg,
-    JsNonArray, JsObject, JsOpIdArg, JsProto, JsRollbackResult, JsSegment, JsTierArg,
-    JsTierSetItem, JsValue, JsWriteResult, Refusal,
+    self, JsAddressArg, JsBaseState, JsConfig, JsConstraintEntry, JsConstraintsArg, JsDeleteReceipt,
+    JsFilePathArg, JsHandle, JsHandleArg, JsJournalLengthArg, JsJournalOp, JsKey, JsListenerEntry,
+    JsListenersArg, JsNonArray, JsObject, JsOpIdArg, JsProto, JsRollbackResult, JsSegment,
+    JsTierArg, JsTierSetItem, JsValue, JsWriteResult, Refusal,
 };
 
 /// The address's own segments, where the argument IS the declared list shape — the triggering address a
@@ -896,6 +896,53 @@ impl Codec {
             fourth_key: None,
         }
     }
+
+    /// **⟶ `parameter-semantics.md §2.21` / `surface.md §2.1`'s `cfg` block dated 2026-10-15 — THE FOURTH
+    /// DECLARED KEY, `constraints`.**
+    ///
+    /// **THE CLASS DECISION IS TAKEN AT THE BOUNDARY, ON THE VALUE AS IT IS, AND THE CODE AND THE MESSAGE
+    /// STAY THE STORE'S** (`A76`'s part (1); `crossing.md §1.4` item 9; `DD-40`): `index.mjs`'s
+    /// `encodeConstraints` walks the list — a `Proxy`, a class extending `Array` and every non-array is the
+    /// list's own outside form, and one element outside the `{ address, id }` pair's shape crosses as **the
+    /// failing ENTRY's own `<SEGMENT>` spelling** (`§8.2`'s row) — and this reader is MECHANICAL over that
+    /// encoding, exactly as `address_of` is over `encodeAddress`'s (`§1.3`'s two-layer split).
+    unsafe fn constraints_arg(&self, value: NapiValue) -> JsConstraintsArg {
+        match self.kind_of(value) {
+            NAPI_NULL => return JsConstraintsArg::Null,
+            NAPI_UNDEFINED => return JsConstraintsArg::Undefined,
+            _ => {}
+        }
+        if !self.is_array(value) {
+            return JsConstraintsArg::NonArray;
+        }
+        JsConstraintsArg::List(
+            self.elements(value)
+                .iter()
+                .map(|entry| self.constraint_entry(*entry))
+                .collect(),
+        )
+    }
+
+    /// One `constraints[]` element: the closed `{ address, id }` pair, or the element outside it with its
+    /// own `<SEGMENT>` spelling, read off the boundary's own encoding and nowhere else.
+    unsafe fn constraint_entry(&self, entry: NapiValue) -> JsConstraintEntry {
+        if self.member(entry, "bad").is_some() {
+            let subject = self
+                .member(entry, "subject")
+                .map(|s| self.string_of(s))
+                .unwrap_or_default();
+            return JsConstraintEntry::Invalid(subject);
+        }
+        let address = self
+            .member(entry, "address")
+            .map(|a| self.address_of(a))
+            .unwrap_or(JsAddressArg::Absent);
+        let id = self
+            .member(entry, "id")
+            .map(|i| self.string_of(i))
+            .unwrap_or_default();
+        JsConstraintEntry::Pair { address, id }
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -1149,7 +1196,18 @@ extern "C" fn addon_create(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
     }
     let codec = Codec { env };
     let config = unsafe { codec.config(argv[0]) };
-    match crossing::create(&config) {
+    // **⟶ THE FOURTH DECLARED KEY IS READ HERE, BESIDE THE STRUCT** (`parameter-semantics.md §2.21`;
+    // `surface.md §2.1`'s `cfg` block dated 2026-10-15): read by OWNERSHIP exactly as the three above are,
+    // so its ABSENCE is `None` — no default is fabricated for it — and **a PRESENT `undefined` is the
+    // key's own outside form and not its absence**. **THE CODE AND THE MESSAGE STAY THE STORE'S** (`§8.1`
+    // #16, `§8.2`; `DD-40`), which is why the list crosses as its own carrier and not as a `JsConfig`
+    // field the store could not tell from an absence.
+    let constraints = unsafe {
+        codec
+            .member(argv[0], "constraints")
+            .map(|value| codec.constraints_arg(value))
+    };
+    match crossing::create_with_constraints(&config, constraints.as_ref()) {
         Err(refusal) => unsafe { throw_refusal(env, &refusal) },
         Ok(instance) => {
             let index = INSTANCES.with(|all| {
@@ -1256,6 +1314,25 @@ extern "C" fn addon_call(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
             "unlisten" => {
                 let handle = unsafe { codec.handle_arg(args.first()) };
                 instance.unlisten(&handle)?;
+                Ok(unsafe { codec.undefined_value() })
+            }
+            // **⟶ ADDED 2026-10-15 — THE TERMINAL ARM'S OWN ACT, AND NOT A VERB** (`surface.md §2.11`
+            // clause 2; `contract.md §7.2` item 2 as amended): the package's seam performs the store's
+            // `file`-tier commit as the FIRST act of its passing arm, keyed by the settled record's own `op`
+            // identity. **IT IS NOT ONE OF THE CROSSING'S EIGHT VERBS**: the store's declared namespace stays
+            // at `8` and no member of either census moves (`§2.11` clause 7; `implementation-plan.md §10.9`
+            // row 8). Its one argument is an op id and its answer is `undefined`.
+            "commitFile" => {
+                let op_id = unsafe { codec.op_id(args.first()) };
+                let JsOpIdArg::Str(token) = &op_id else {
+                    return Err(Refusal {
+                        status: "JournalOpUnknown".to_string(),
+                        message: "'the terminal arm's act' is keyed by the settled record's own op \
+                                  identity, and this argument is not one"
+                            .to_string(),
+                    });
+                };
+                instance.commit_file(token)?;
                 Ok(unsafe { codec.undefined_value() })
             }
             _ => Err(Refusal {

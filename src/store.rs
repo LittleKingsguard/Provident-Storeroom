@@ -7,14 +7,15 @@
 
 use crate::args::{
     address_segments, construction_listeners, delete_tier, op_id, read_tier_sel, write_tier,
-    AddressArg, FilePathArg, JournalLengthArg, OpIdArg, StoreConfig, TierArg, TierSel,
+    AddressArg, ConstraintEntry, ConstraintsArg, FilePathArg, JournalLengthArg, OpIdArg, StoreConfig,
+    TierArg, TierSel,
 };
 use crate::error::{
-    address_not_found, container_kind_conflict, container_kind_conflict_for_key,
-    file_commit_failed, file_path_unreachable, journal_op_unknown, leaf_has_no_downstream,
-    malformed_named, malformed_segment, missing_argument, monotonicity_violation,
-    read_target_is_branch, rollback_compacted, tier_not_found, value_not_admitted,
-    write_parent_not_link, StoreError,
+    address_not_found, constraint_list_invalid, container_kind_conflict,
+    container_kind_conflict_for_key, file_commit_failed, file_path_unreachable, journal_op_unknown,
+    leaf_has_no_downstream, malformed_named, malformed_segment, missing_argument,
+    monotonicity_violation, read_target_is_branch, rollback_compacted, slashed_address,
+    tier_not_found, value_not_admitted, write_parent_not_link, StoreError,
 };
 use crate::json;
 use crate::records::{
@@ -516,6 +517,17 @@ struct Entry {
     /// The opIds the journal held COMPACTED at the moment this entry was appended: the marks the entry's
     /// own append may have set are undone from this list when the entry is popped (`§3.5`).
     compacted: Vec<String>,
+    /// **⟶ ADDED 2026-10-15 (`DEF-2026-10-15-Z`; `implementation-plan.md §10.9` row 3's FAILS-IT cell:
+    /// *"a save performed twice for one record"*): WHETHER THIS ENTRY'S OWN `file`-TIER SAVE HAS ALREADY BEEN
+    /// PERFORMED.** **A `file`-tier write on the passing arm COMMITS ONCE**, so the act — the terminal arm's
+    /// own step, keyed by the settled record's own `op` (`surface.md §2.11` clause 2) — is performed ONCE per
+    /// record, and a second drive of that same `op` performs NO SAVE. **A state in which one record is saved
+    /// twice is the row's own FAILS-IT state, and the observable is the file's bytes: a re-serialization of a
+    /// register a memory-only act has since changed would move them, which is exactly what the row refuses
+    /// (`§7.2` item 5: *"the bytes at `cfg.filePath` are therefore the bytes of the LAST SUCCESSFUL `file`-TIER
+    /// WRITE"*).** **THE MARK IS THE ENTRY'S AND NOT THE PATH'S**: it is set only on the SUCCESS arm, so a
+    /// failed save leaves the entry unmarked and its rollback removes it with the entry (`§8.1` #15).
+    saved: bool,
 }
 
 /// The store instance.
@@ -547,7 +559,25 @@ pub struct Store {
 /// the register's tier FIXED AT CREATION (`file` when the path passes, `mem` otherwise); (5) the HOME MAP
 /// POPULATED FROM `listeners[]`; (6) the REGISTRY GENERATED over the already-populated home; (7) the `file`
 /// tier's content boot-loaded, which produces `0` registrations (`DD-38`).**
+///
+/// **⟶ `storeCreate` IS THE AMENDED SEQUENCE WITH THE FOURTH KEY'S `Absent` SPELLING** (`§0.4`'s
+/// `ConstraintsArg` row: *"its `Absent` variant is the optional spelling"*).
 pub fn storeCreate(cfg: &StoreConfig) -> Result<Store, StoreError> {
+    storeCreateWithConstraints(cfg, &ConstraintsArg::Absent)
+}
+
+/// **⟶ ADDED 2026-10-15 BY THE `RCA-9` PASS — THE SAME CONSTRUCTION, WITH THE FOURTH KEY SUPPLIED**
+/// (`§7.1` step 4-bis; `§8.1` #16; `parameter-semantics.md §2.21`).
+///
+/// **IT IS A SECOND ENTRY POINT AND NOT A SECOND CONSTRUCTION.** `§0.4`'s `StoreConfig` row declares the
+/// fourth member beside the three, and the red set at `tests/**` spells `StoreConfig` with THREE members
+/// in four places (`tests/support/mod.rs`'s `cfg_full` and three literal sites), so a fourth FIELD there
+/// would refuse to compile every Rust drive; the key therefore rides THIS argument, the declared
+/// `ConstraintsArg` carrier, and the sequence, the codes and the generator are unmoved.
+pub fn storeCreateWithConstraints(
+    cfg: &StoreConfig,
+    constraints: &ConstraintsArg,
+) -> Result<Store, StoreError> {
     // Step 2 — `journalLength`: ABSENT → `ConstructionArgumentMissing`; present but outside `{≥ 1 integer}`
     // → `AddressMalformed` (`DD-16`, `DD-17`'s operative form).
     let journal_length = match cfg.journalLength {
@@ -583,6 +613,14 @@ pub fn storeCreate(cfg: &StoreConfig) -> Result<Store, StoreError> {
     // and `A55`'s *"leaves nothing behind"* must hold of EVERY construction that FAILS** (`§10.4` part 5).
     // **ITS ANSWER IS THE AS-FILED STEP 5'S OWN** (`§8.1` #1), performed here rather than moved.
     let admitted = construction_listeners(&cfg.listeners)?;
+    // Step 4-bis — **`§7.1` step 4-bis, THE FOURTH KEY'S OWN VALIDATION AT THE CREATE INSTANT**
+    // (`parameter-semantics.md §2.21`; `§8.1` #16): the list's shape is validated HERE, **BEFORE step 4b's
+    // create**, for the reason step 3-bis stands here — *"leaves nothing behind"* must hold of EVERY
+    // construction that FAILS — and **A REJECTED LIST ADMITS NOTHING AND RETURNS NO INSTANCE.** The four
+    // outside forms of the LIST ITSELF and the element that is not an `{ address, id }` pair answer the
+    // store's own sixteenth member and never `§8.1` #1 (`§7.1`: ABSENCE answers #12, PRESENCE with a value
+    // outside the domain answers the key's own member).
+    let pairs = construction_constraints(constraints)?;
     // Step 4b — THE CONSTRUCTION'S EXCLUSIVE CREATE, THE LAST ACT OF THE CONSTRUCTION'S ARGUMENT
     // VALIDATION (`§7.1` step 4b; `contract.md §10.4` parts 1–5; `DD-45`'s amended clause). **ARM (b): WHERE
     // `filePath` IS PROVIDED AND ITS FILE IS ABSENT, THE STORE CREATES ITS OWN FILE AT THAT PATH —
@@ -626,8 +664,74 @@ pub fn storeCreate(cfg: &StoreConfig) -> Result<Store, StoreError> {
     // Step 7 — `§7.2` item 6: the `file` tier's content at `cfg.filePath` is loaded if the file exists; `mem`
     // and `temp` begin EMPTY, the journal begins with 0 entries, and the home is NOT re-populated from the
     // file, so a fresh instance over an equal path loads NO registration (`DD-38`).
-    store.boot_load();
+    let loaded = store.boot_load();
+    // **⟶ STEP 7'S OWN SECOND HALF, ADDED 2026-10-15 (`§7.1` step 7 as amended; `parameter-semantics.md
+    // §2.21`): THE LOAD INSTANT VALIDATES THE SUPPLIED LIST AGAINST THE STATE IT JUST LOADED** — *"the
+    // list's validation at the construction and its validation at the load"* (*"that is what detects a
+    // corrupt or obsolete file, one whose state no longer satisfies the constraints the application now
+    // supplies"*). **The loaded state satisfies a supplied pair iff the pair's `address` RESOLVES in it**;
+    // the first pair that does not is the failing entry and the answer is the store's own sixteenth member
+    // with NO INSTANCE RETURNED (`§8.1` #16). **A file that carried no image is not a state to be measured
+    // against**: a construction over an ABSENT or ZERO-LENGTH file — the store's own exclusive create
+    // leaves the latter — loads nothing and validates nothing.
+    // **⟶ AND THE EXEMPTION IS NARROWED TO THE CLAUSE'S OWN TWO CLASSES, 2026-10-15 (`DEF-2026-10-15-Z`,
+    // `P-TP-6`/`S-CONSTRAINTS-KEY`): *"over an EXISTING FILE at load THE LOADED STATE IS VALIDATED AGAINST
+    // THE SUPPLIED LIST"* (`§7.2` item 5 as amended; `contract.md §8.1` #16) — **the check runs for EVERY
+    // EXISTING FILE THAT CARRIES AN IMAGE, INCLUDING AN EMPTY-BUT-PRESENT ONE. WHAT IS EXEMPT IS THE ABSENT
+    // FILE AND THE ZERO-LENGTH FILE ALONE, WHICH ARE THE TWO CLASSES NO STATE CAN BE MEASURED AGAINST**
+    // (`§7.2` item 6; `§10.4` part 3: a successful exclusive create *"LEAVES IT ZERO-LENGTH"* and that file
+    // *"reads … as an EMPTY register with `0` registrations and NO code"*). **THE SUPERSEDED GUARD TESTED
+    // THE LOADED MEMBER COUNT (`loaded > 0`), SO A PRESENT, NON-ZERO-LENGTH IMAGE WHOSE MEMBER COUNT IS `0`
+    // — `{}` IS THE WHOLE OF THAT CLASS — EXEMPTED ITSELF AND THE LOAD-SIDE ARM NEVER FIRED FOR IT: a
+    // non-zero-length image is a state, and the clause's exemption names *"absent or zero-length"* and NOT
+    // *"empty"*. `boot_load` therefore answers WHETHER AN IMAGE STOOD THERE AT ALL and not how many members
+    // it admitted, and the count it returns is no longer what the guard reads.**
+    if loaded.is_some() {
+        for pair in &pairs {
+            if store.walk(&pair.0, &TierSel::All).is_err() {
+                return Err(constraint_list_invalid(slashed_address(&pair.0)));
+            }
+        }
+    }
     Ok(store)
+}
+
+/// **`§7.1` step 4-bis** — **the constraint list's OWN validation, at the store's own code**, over the
+/// permissive [`ConstraintsArg`] the boundary hands across: **the list's outside forms and the element
+/// that is not an `{ address, id }` pair answer `§8.1` #16, and a legal list is admitted WHOLE** — *"no
+/// entry is silently dropped"* — **as `{ address, id }` pairs, in the caller's own order.**
+fn construction_constraints(arg: &ConstraintsArg) -> Result<Vec<(Vec<Segment>, String)>, StoreError> {
+    match arg {
+        ConstraintsArg::List(entries) => {
+            let mut pairs: Vec<(Vec<Segment>, String)> = Vec::new();
+            for entry in entries {
+                match entry {
+                    ConstraintEntry::Pair { address, id } => {
+                        if let Some(segment) = address.iter().find(|s| !s.is_in_domain()) {
+                            return Err(constraint_list_invalid(segment.spelling()));
+                        }
+                        if id.is_empty() {
+                            return Err(constraint_list_invalid(slashed_address(address)));
+                        }
+                        pairs.push((address.clone(), id.clone()));
+                    }
+                    ConstraintEntry::Invalid(subject) => {
+                        return Err(constraint_list_invalid(subject.clone()))
+                    }
+                }
+            }
+            Ok(pairs)
+        }
+        ConstraintsArg::Absent => Ok(Vec::new()),
+        // The list's own three shape-less/non-list forms, named where `§8.2`'s `<SEGMENT>` slot stands:
+        // `null`, `undefined`, and a value that is not a list at all (the class is read at the boundary,
+        // `crossing.md §1.4` item 9, and the code and the message stay the store's).
+        ConstraintsArg::Null => Err(constraint_list_invalid("null".to_string())),
+        ConstraintsArg::Undefined => Err(constraint_list_invalid("undefined".to_string())),
+        ConstraintsArg::NonArray(_) => {
+            Err(constraint_list_invalid("a value that is not a list".to_string()))
+        }
+    }
 }
 
 /// `§7.1` step 3 (`A52`, `A55`; `DD-40`) — **THE DRY-RUN REACHABILITY PROBE, AND THE EXISTING-PATH HALF
@@ -1110,7 +1214,7 @@ impl Store {
 
     /// `§7.2` `M-12` + `DD-2`: the commit is atomic at the file — the whole serialized state is written to
     /// a sibling and renamed over the path, so a failure leaves the prior bytes intact.
-    fn commit_file(&self, address: &[Segment]) -> Result<(), StoreError> {
+    fn write_file(&self, address: &[Segment]) -> Result<(), StoreError> {
         let text = json::encode(&self.file_snapshot());
         let temp = format!("{}.snst-commit-{}", self.file_path, std::process::id());
         let committed = std::fs::write(&temp, text.as_bytes())
@@ -1122,25 +1226,102 @@ impl Store {
         Ok(())
     }
 
+    /// **`surface.md §2.11` CLAUSE 2 / `contract.md §7.2` ITEM 2 AS AMENDED 2026-10-15 — THE TERMINAL ARM'S
+    /// OWN ACT.** **THE `file`-TIER DURABLE COMMIT IS NO LONGER A VERB'S ARM: IT IS THE TERMINAL ARM'S
+    /// OWN STEP ON ITS PASSING ARM, ITS FIRST ACT, BEFORE ANY BODY OF THE DELIVERED SET IS INVOKED**
+    /// (`surface.md §2.11` clauses 2–3). **Its subject is the SETTLED RECORD'S OWN `op`** — *"the record the
+    /// kernel settled carries the journal op that write returned, and that op is the key this act reads"*:
+    /// the entry this op id names is looked up in the journal, and the act is the `file` tier's and no other
+    /// (`§7.2` item 2: *"a record whose own `op` is not a `file`-tier write's performs none"*).
+    ///
+    /// **ON THE FAILURE ARM THE STORE ROLLS THE WRITE BACK FIRST AND ANSWERS `FileCommitFailed` SECOND**
+    /// (`§8.1` #15; `surface.md §2.11` clause 5): the entry is removed from the journal, the pre-state the
+    /// entry captured is restored, the marks its own append set are undone and the sequence is stepped
+    /// back — **the caller is never handed the rolled-back state**, and a read over it answers the store's
+    /// own `AddressNotFound`.
+    ///
+    /// **AN OP ID NO STANDING ENTRY NAMES IS A NO-OP**: the act is the passing arm's own step and the
+    /// failing arm owes nothing (`§2.11` clause 1).
+    ///
+    /// **⟶ AND AN ENTRY WHOSE OWN SAVE HAS ALREADY BEEN PERFORMED IS A NO-OP TOO, ADDED 2026-10-15
+    /// (`DEF-2026-10-15-Z`; `implementation-plan.md §10.9` row 3): THE ACT IS PERFORMED ONCE PER RECORD.**
+    /// **A `file`-tier write on the passing arm COMMITS ONCE**, and *"a save performed twice for one record"*
+    /// is that row's own FAILS-IT state — **so a second drive of the same `op` writes NO byte: the
+    /// re-serialization of a register that a memory-only act (`delete`, `rollback`, a `mem`-tier write) has
+    /// since changed would move the path off *"the bytes of the LAST SUCCESSFUL `file`-TIER WRITE"*, which is
+    /// `§7.2` item 5's own declared state** (`§2.11` clause 2; the store's `file` state is what the journal
+    /// restores it to, `§6.4` `M-11`).
+    pub fn commit_file(&mut self, op_id: &str) -> Result<(), StoreError> {
+        let Some(index) = self
+            .journal
+            .iter()
+            .position(|entry| entry.op.opId == op_id)
+        else {
+            return Ok(());
+        };
+        if self.journal[index].op.tier != Some(Tier::File) {
+            return Ok(());
+        }
+        if self.journal[index].saved {
+            return Ok(());
+        }
+        let address = self.journal[index].op.address.clone();
+        match self.write_file(&address) {
+            Ok(()) => {
+                self.journal[index].saved = true;
+                Ok(())
+            }
+            Err(failure) => {
+                let entry = self.journal.remove(index);
+                if let Some(home) = &entry.home {
+                    self.restore(home, &entry.captured);
+                }
+                self.restore_compaction(&entry.compacted);
+                self.last_seq -= 1;
+                Err(failure)
+            }
+        }
+    }
+
     /// `§7.2` item 6: the boot loads the `file` tier's content if the file exists — **step 7 of `§7.1`'s
     /// amended sequence, which produces `0` registrations (`DD-38`).** A path-less instance (`filePath`
     /// ABSENT) has no `file` tier at all, so nothing is loaded and the register keeps its `mem` tier.
-    fn boot_load(&mut self) {
+    ///
+    /// **⟶ AMENDED 2026-10-15 (`§7.1` step 7 as amended; `parameter-semantics.md §2.21`): the boot ANSWERS
+    /// THE MEMBERS IT LOADED**, so that the LOAD instant's own validation of the supplied `constraints`
+    /// list can be performed over the image this boot produced and over nothing else — *"the list's
+    /// validation at the construction and its validation at the load"*.
+    ///
+    /// **⟶ AND AMENDED AGAIN 2026-10-15 (`DEF-2026-10-15-Z`): THE ANSWER IS `Option<usize>` — `None` where
+    /// NO IMAGE STOOD THERE FOR THE LOAD-SIDE CHECK TO MEASURE, `Some(members)` where one did.** **`None` is
+    /// the two classes the clause exempts and no others: no `filePath` at all, and a file that is ABSENT or
+    /// ZERO-LENGTH** (`§7.2` item 5 and item 6; `§10.4` part 3 — the construction's own exclusive create
+    /// *"LEAVES IT ZERO-LENGTH"*). **A PRESENT, NON-ZERO-LENGTH FILE IS A STATE WHETHER OR NOT IT DECODES
+    /// AND WHETHER OR NOT IT ADMITS A MEMBER, so `{}` answers `Some(0)` and NOT `None`, and the caller's
+    /// validation runs over it** — **which is the reading `§7.2` item 5's own reason gives: *"WHICH IS WHAT
+    /// DETECTS A CORRUPT OR OBSOLETE FILE, one whose state no longer satisfies the constraints the
+    /// application now supplies"*.**
+    fn boot_load(&mut self) -> Option<usize> {
         if self.file_path.is_empty() {
-            return;
+            return None;
         }
         let Ok(text) = std::fs::read_to_string(&self.file_path) else {
-            return;
+            return None;
         };
-        let Ok(StoreValue::Object(members)) = json::decode(&text) else {
-            return;
-        };
-        for (name, value) in members {
-            if value.is_admitted() {
-                let link = self.register;
-                self.mint(link, Segment::Key(name), Tier::File, &value);
+        if text.is_empty() {
+            return None;
+        }
+        let mut loaded = 0;
+        if let Ok(StoreValue::Object(members)) = json::decode(&text) {
+            for (name, value) in members {
+                if value.is_admitted() {
+                    let link = self.register;
+                    self.mint(link, Segment::Key(name), Tier::File, &value);
+                    loaded += 1;
+                }
             }
         }
+        Some(loaded)
     }
 
     // -----------------------------------------------------------------------------------------------
@@ -1493,6 +1674,7 @@ impl Store {
             captured,
             home,
             compacted,
+            saved: false,
         });
         loop {
             let uncompacted = self
@@ -1807,21 +1989,12 @@ impl Store {
         );
         let watched = self.watched_for(&segments);
         let triggered = self.triggered_for(&segments);
-        // `§7.2` items 3–4: a `file`-tier write's failure path rolls the change back in the journal
-        // automatically and THEN passes the failure back to the caller (`A16`).
-        if write_tier == Tier::File {
-            if let Err(failure) = self.commit_file(&segments) {
-                self.restore(&home, &captured);
-                if let Some(entry) = self.journal.pop() {
-                    // `§3.5`: *"NO JOURNAL ENTRY WAS APPENDED"* — and the marks the popped entry's own
-                    // append set are part of the state the failed write must leave untouched (`§6.1` item 5,
-                    // `§6.4` `M-6`).
-                    self.restore_compaction(&entry.compacted);
-                }
-                self.last_seq -= 1;
-                return Err(failure);
-            }
-        }
+        // **⟶ AMENDED 2026-10-15 (`contract.md §7.2` item 1, read with `surface.md §2.11` clause 1): THE
+        // WRITE RECORDS, INSTALLS, APPENDS AND RETURNS ITS `WriteResult` ON EVERY TIER AND PERFORMS NO FILE
+        // I/O ON ANY OF ITS ARMS.** **THE `file` TIER'S DURABLE COMMIT IS NO LONGER A VERB'S ARM AT ALL: it
+        // is the TERMINAL ARM's own act on its passing arm — `commit_file`, below — performed after every
+        // constraint of the write's own set has passed and BEFORE any body of the delivered set is invoked.**
+        // The removed block stood here and its `§7.2` items 3–4 failure path moved with it, whole.
         Ok(WriteResult {
             op,
             watched,

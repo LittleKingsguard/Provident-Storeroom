@@ -87,7 +87,7 @@ const CLOSED_SET = [
   'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
   'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
-  'ValueNotAdmitted', 'FileCommitFailed',
+  'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
 ];
 const ARM_STATUS = 'FilePathUnreachable';
 const GEN_TAIL = 'is not reachable at construction, the path must exist or the application must be able to write it';
@@ -103,7 +103,7 @@ function assertArmHere(report) {
   assert.deepEqual(Object.keys(A), ['status', 'message'],
     '`§1.4` item 1: the member set is EXACTLY `{status, message}` — no third member, and no minted code');
   assert.equal(A.status, ARM_STATUS, '`PUB-DD-17`: the status is the store\'s own member, carried verbatim');
-  assert.ok(CLOSED_SET.includes(A.status), '`§0.1` item 7: no status outside the store\'s closed 15');
+  assert.ok(CLOSED_SET.includes(A.status), '`§0.1` item 7: no status outside the store\'s closed set');
   assert.equal(typeof A.message, 'string', 'the message is a JS string');
   return A;
 }

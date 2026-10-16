@@ -406,7 +406,7 @@ reading, carried at this part's own taxonomy | DECLARED-DEFAULT]`
    the boot's answer is `DD-29`'s: that register key is DROPPED from the boot's register, the rest of the
    content loads, the instance IS returned, and NO code is produced for the dropped key.** **The two
    states' answers are DIFFERENT AND EACH DECLARED, and no member is added, no rank moves and the set's
-   algebra stands (`11 + 2 + 1 + 1 = 15` ✓ — a NARROWED TRIGGER IS NOT A NEW MEMBER).**
+   algebra stands (`11 + 2 + 1 + 1 = 15` ✓ — **⟶ RE-SPELLED 2026-10-15 BY THE `CODES`-CLASS SWEEP (`role_spec_writer`): this part's FILING-TIME algebra stands BYTE-FOR-BYTE above and is read THROUGH this clause; the LIVE ALGEBRA OF THE SET IS `11 + 2 + 1 + 1 + 1 = 16` ✓, the fifth term being `ConstraintListInvalid` at rank `16` (`§8.1`'s dated clause of 2026-10-15, the ONE home of the set's size)** — a NARROWED TRIGGER IS NOT A NEW MEMBER).**
 **THE FIVE COMPONENTS, THE SEGMENT DOMAIN AND THIS PART'S CLOSURE ARE UNMOVED: the narrowing is a statement
 about ONE class's DOMAIN and adds no record shape, no member and no `§`-number** (`§1.7`'s closure at
 exactly five, `§1.5` item 1's two-class segment domain, and the closure arithmetic `5 = 5` all stand as

@@ -172,7 +172,7 @@ drive's verdict is traceable past the scenario to the authority that fixes it.**
    evaluation completes before the next begins (`attempt-lifecycle.md §2.4` item 5 (ii)). **(4)** `c1` returns
    `true` on `v`: its `constraint-check` entry is appended, `1:a#x` enters `ran`, and the pass goes on.
    **(5)** `c2` returns `{repair: r2, message}` → arm `(b)`: `r2` is invoked with
-   `RepairContext {op: op1, address: ['a'], id: 'y', value: v, tier: '0'}` and issues a write at `['a']`,
+   `RepairContext {op: op1, address: ['a'], id: 'y', value: v, tier: '0', pending: op1's own CommitRecord.pending, handed as a fresh list}` — **RE-SPELLED 2026-10-16 TO THE SIX-MEMBER SHAPE: this cell's as-filed literal carried the FIVE members `{op, address, id, value, tier}`, and the SIXTH, `pending: Handle[]`, was added 2026-10-15 at `kernel-surface.md §2.3` item 2, whose count `§1` item 4 re-derives as `5 + 1 = 6` ✓; its value is the commit's own `CommitRecord.pending` — the commit the repair is part of — handed as a fresh list** — and issues a write at `['a']`,
    whose verb returns **`op2`**; `op2` is ADDED to the attempt's `ops`, and the pair `1:a#y` enters `ran` and
    `appliedRepairs`. **(6)** the RE-RUN over `op2` evaluates EVERY PAIR AT THE ATTEMPT'S ADDRESS in
    registry order — `1:a#x`, `1:a#y`, `1:a#z` — **and `1:a#x` is VIOLATED by the value `r2` wrote while `1:a#y` and
@@ -266,7 +266,7 @@ drive's verdict is traceable past the scenario to the authority that fixes it.**
 3. **The surface it drives:** **the kernel's surface — `K-1`, `K-2`, `K-3` — with the store's own write verb
    reached by `r1`'s edit.**
 4. **Steps:** **(1)** `register` then `commit` → `op1`. **(2)** `runAttempt`: `c1` is violated → arm `(b)`;
-   `r1` is invoked with `RepairContext {op: op1, address: ['a'], id: 'x', value: bigValue, tier: '0'}` and
+   `r1` is invoked with `RepairContext {op: op1, address: ['a'], id: 'x', value: bigValue, tier: '0', pending: op1's own CommitRecord.pending, handed as a fresh list}` — **RE-SPELLED 2026-10-16 TO THE SIX-MEMBER SHAPE, exactly as this file's earlier scenario is (`kernel-surface.md §2.3` item 2; `§1` item 4's `5 + 1 = 6` ✓; the as-filed five-member literal stands at that cell's own dated note)** — and
    writes the smaller value, whose verb returns **`op2`**; `op2` is added and the pair `1:a#x` enters `ran`
    and `appliedRepairs`. **(3)** the re-run evaluates EVERY PAIR AT THE ATTEMPT'S ADDRESS in registry order
    against `op2` (`1:a#x` among them, and the only pair there) and **`c1` returns `true`**. **(4)** every
@@ -605,7 +605,7 @@ base · `0` observations requiring a member no record declares — **`appliedRep
 3. **THE ROWS OF THIS DOCUMENT LEFT UNTOUCHED BY THIS PASS, WITH THE REASON.** **`E2E-C-2` … `E2E-C-7` carry no term the ruling moves** — they drive the arm table, the repair arms, the repeat rule, the registry's disposal, the function's side and the log's own order, and **not one of their steps or observations reads a `pending` member, a listener status, a filter or a subset** — so **no cell of theirs is re-spelled and their expected observations stand BYTE-FOR-BYTE.** **`E2E-C-9` … `E2E-C-16` stand in the carrier part `e2e-scenarios-b.md`, and the rows the ruling reaches there — `E2E-C-10` and `E2E-C-16` — are re-derived at that part's own dated section, cited here and not restated.**
 4. **NO FIGURE OF THIS DOCUMENT MOVES.** **The battery's `16` scenarios, the `7`-cell schema of each, this document's `8` (`E2E-C-1` … `E2E-C-8`) and its carrier's `8` (`8 + 8 = 16` ✓), the `112` cells (`16 × 7 = 112`) and the `12` repair-return sites on `11` windows (`7 + 5 = 12` ✓) are all UNMOVED: this section adds no scenario, no cell and no census.**
 
-**END OF THE `A112` DELIVERY-MODEL RE-SPELL SECTION.**
+**END OF THE `A112` DELIVERY-MODEL RE-SPELL SECTION.** **⟶ AND NO BYTE OF THIS DOCUMENT MOVED AT THIS PASS, AND `RCA-8(g)` WAS CONSIDERED AND NOT INVOKED.** **THE SUPERSEDED SPELLINGS THIS PASS NAMES ARE WITHDRAWN BY NAME IN PLACE AND ENUMERATED IN `§4` ABOVE; they total well under `1` KB, and this pass's own added text is the delta section and the two re-derived cells — so NO ARCHIVAL MOVE WAS RUN, NOTHING IS MOVED OUT, AND NO ONE-LINE POINTER STANDS FOR THIS PASS.** **THE PER-PATH VOLUME READING THAT WOULD DECIDE OTHERWISE IS `OWED` TO A PASS WITH A SHELL: THIS WALL CARRIES NONE, SO NO BYTE FIGURE IS PRINTED HERE** (`RCA-8(g)`: move out, leave a one-line pointer, never retain beside — NOT INVOKED; `DEF-2026-10-13-H`/`-I`'s volume rows carry the readings that were taken).
 
 **Nothing was run: this document is derived from
 `docs/specs/storeroom-constraints/contract.md`, its parts and the filing's rulings, and from nothing else**

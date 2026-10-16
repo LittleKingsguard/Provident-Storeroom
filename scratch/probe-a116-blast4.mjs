@@ -1,0 +1,22 @@
+import { write as storeWrite, storeCreate, read } from 'provident-storeroom';
+const { register, commit, runAttempt } = await import('../bindings/js/src/constraint-kernel.mjs');
+
+const store = storeCreate({ journalLength: 8, listeners: [] });
+const addr = ['blast4'];
+const calls = [];
+let evaluations = 0;
+const kernelHandle = register(store, addr, 'x', () => { evaluations += 1; return true; });
+const held = store.on(addr, (a) => calls.push(a));
+console.log('kernelHandle === held ?', kernelHandle === held);
+const rec = commit(store, addr, 'mem', 'v');
+console.log('pending len', rec.pending.length, 'triggered len', rec.triggered.length, 'calls', calls.length, 'evals', evaluations);
+console.log('triggered[0] === held ?', rec.triggered[0] === held, 'triggered[0] === kernelHandle ?', rec.triggered[0] === kernelHandle);
+const before = calls.length;
+store.settle(rec);
+console.log('after caller settle: invocations', calls.length - before, 'evals', evaluations);
+const b = calls.length;
+const out = runAttempt(store, rec);
+console.log('arm outcome', out.outcome, '| invocations at arm', calls.length - b, 'evals', evaluations);
+const b3 = calls.length;
+storeWrite(store, addr, 'mem', 'next');
+console.log('NEXT BARE WRITE invocations', calls.length - b3);

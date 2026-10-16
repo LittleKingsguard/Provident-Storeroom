@@ -832,14 +832,17 @@ test('register_js_side_three_rows_are_executed_with_strategy_ids_and_verdicts', 
   // **`S-FAILFORM` IS ASSERTED HERE, AND THIS IS ITS OWN ARM — GATE 4'S `JS-15`-CLASS FINDING REPAIRED.**
   // The as-filed predicate was *"a `TypeError`-class check with a status half"* whose second disjunct was
   // implied by its first, so no input could fail it. **The record's member set is asserted to be EXACTLY
-  // two, and its status asserted to be a member of the store's CLOSED `15`-member set** (`surface.md §2.5`
+  // two, and its status asserted to be a member of the store's CLOSED `16`-member set** (`surface.md §2.5`
   // items 1–3: *"a THROWN plain object with EXACTLY TWO MEMBERS"*, *"`status` is the store's own member token
-  // VERBATIM — one of the store's closed `15` members … never a package-minted code"*, `DD-40`).
-  const THE_FIFTEEN = [
+  // VERBATIM — one of the store's closed members … never a package-minted code"*, `DD-40`).
+  // **⟶ THE FIGURE MOVES `15 → 16` 2026-10-15 (`DEF-2026-10-15-Y`): the as-filed `15` was superseded by
+  // `contract.md §8.1`'s amended heading (`11 + 2 + 1 + 1 + 1 = 16` ✓), and the list here is widened with
+  // it — the predicate's own work is unchanged and no assertion is weakened.**
+  const THE_SIXTEEN = [
     'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
     'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
     'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
-    'ValueNotAdmitted', 'FileCommitFailed',
+    'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
   ];
   const formSites = [
     ['a VERB', () => read(mem(), ['gone'])],
@@ -861,7 +864,7 @@ test('register_js_side_three_rows_are_executed_with_strategy_ids_and_verdicts', 
       `S-FAILFORM: ${site}'s record must carry EXACTLY the two declared members`,
     );
     assert.ok(
-      THE_FIFTEEN.includes(thrown.status),
+      THE_SIXTEEN.includes(thrown.status),
       `S-FAILFORM: ${site}'s status \`${thrown.status}\` is outside the store's closed set (DD-40: no code is minted)`,
     );
     assert.ok(typeof thrown.message === 'string' && thrown.message.length > 0, 'S-FAILFORM: the message is generated and never empty');

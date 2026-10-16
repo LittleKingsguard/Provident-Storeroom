@@ -33,7 +33,13 @@ import {
   unlisten,
 } from 'provident-storeroom';
 
-const THE_FIFTEEN = [
+// ── `contract.md §8.1`'s CLOSED SET AT ITS AMENDED SIZE: **`16` MEMBERS**, each with its own trigger
+// (`11 + 2 + 1 + 1 + 1 = 16` ✓). **⟶ WIDENED 2026-10-15 (`DEF-2026-10-15-Y`, the `stale-by-census` class):
+// the as-filed `THE_FIFTEEN` printed a figure the amendment had already replaced** — `§8.1`'s amended
+// heading, `§7.2` item 5 (ADDED 2026-10-15, the constraint list's two validation instants), and
+// `parameter-semantics.md §2.21`. **The figure MOVES; no assertion is weakened, and the sixteenth
+// member's own drive joins the reachability cell below.**
+const THE_SIXTEEN = [
   'AddressMalformed',
   'AddressNotFound',
   'LeafHasNoDownstream',
@@ -49,10 +55,34 @@ const THE_FIFTEEN = [
   'FilePathUnreachable',
   'ValueNotAdmitted',
   'FileCommitFailed',
+  'ConstraintListInvalid',
 ];
 
 function mem(listeners = []) {
   return storeCreate({ journalLength: 8, listeners });
+}
+
+// **⟶ THE TERMINAL ARM'S OWN ACT, DRIVEN FROM THIS FILE (re-pointed 2026-10-15 by the `RCA-9` pass;
+// `contract.md §7.2` items 1–2 AS AMENDED, `surface.md §2.11` clause 2):** *"`Store::write(…)` RECORDS THE
+// WRITE IN THE JOURNAL, INSTALLS THE NODE, APPENDS THE ENTRY AND RETURNS ITS `WriteResult` … AND IT PERFORMS
+// NO FILE I/O ON ANY OF ITS ARMS"*, and *"THE `file`-TIER COMMIT IS THE TERMINAL ARM'S OWN ACT … keyed by THE
+// SETTLED RECORD'S OWN `op`"*. The package's own declared driver for that act is the constraint kernel —
+// `bindings/js/src/constraint-kernel.mjs` (`kernel-surface.md §1` item 1), whose `commit(store, address,
+// tier, value)` is the RECORD half and whose `runAttempt(store, record)` is the ATTEMPT half that settles the
+// record and reaches the act on the passing arm. **The three cells below that read a `file`-tier durable
+// image drive both halves; the three `assert`-only halves of each cell are unmoved.** The home is loaded
+// lazily because it is ESM and this file's imports are static (`file-tier-save.test.mjs` and this package's
+// properties unit load it the same way).
+let KERNEL = null;
+async function kernel() {
+  if (KERNEL === null) KERNEL = await import('../src/constraint-kernel.mjs');
+  return KERNEL;
+}
+
+/** Record a `file`-tier write at `address` and drive THE TERMINAL ARM'S OWN ACT at its own instant. */
+async function fileCommit(inst, address, value) {
+  const { commit, runAttempt } = await kernel();
+  return runAttempt(inst, commit(inst, address, 'file', value));
 }
 
 /// The one failure form's own predicate — `surface.md §2.5` items 1–3.
@@ -493,7 +523,7 @@ test('failure_form_the_status_is_a_member_token_verbatim_and_the_message_is_gene
     read(inst, ['gone']);
     assert.fail('the read must throw');
   } catch (err) {
-    assert.ok(THE_FIFTEEN.includes(err.status), 'the store\'s own member token VERBATIM');
+    assert.ok(THE_SIXTEEN.includes(err.status), 'the store\'s own member token VERBATIM');
     assert.equal(err.status, err.status.trim(), 'never prefixed or padded');
     assert.ok(err.message.length > 0 && !/TBD|placeholder/i.test(err.message));
   }
@@ -539,6 +569,12 @@ test('failure_form_the_crossing_reaches_its_own_codes_and_a_failed_read_is_the_p
   drive(() =>
     storeCreate({ journalLength: 8, filePath: '/nonexistent/dir/x.json', listeners: [] }),
   ); //                                                                     FilePathUnreachable
+  // **⟶ ADDED 2026-10-15 (`DEF-2026-10-15-Y`): THE SIXTEENTH MEMBER'S OWN JS-REACHABLE TRIGGER.** The
+  // `constraints` key's own arm, driven at the construction's instant with a list whose element lies
+  // outside `{ address, id }` (`§7.1` step 4-bis; `parameter-semantics.md §2.21`). `surface.md §2.9`
+  // item 2 leaves NO code without a JS-reachable trigger, and this was the code that had none here.
+  drive(() => storeCreate({ journalLength: 8, listeners: [], constraints: [['a']] }));
+  //                                                                        ConstraintListInvalid
   const required = [
     'AddressMalformed',
     'AddressNotFound',
@@ -550,11 +586,12 @@ test('failure_form_the_crossing_reaches_its_own_codes_and_a_failed_read_is_the_p
     'JournalOpUnknown',
     'ConstructionArgumentMissing',
     'FilePathUnreachable',
+    'ConstraintListInvalid',
   ];
   for (const code of required) {
     assert.ok(seen.has(code), `\`${code}\` remains reachable from JS (surface.md §2.9 item 2)`);
   }
-  for (const code of seen) assert.ok(THE_FIFTEEN.includes(code), `\`${code}\` is outside the closed set`);
+  for (const code of seen) assert.ok(THE_SIXTEEN.includes(code), `\`${code}\` is outside the closed set`);
   // The existence probe: a read that resolves answers the value, and one that does not throws.
   assert.equal(read(inst, ['leaf']), 'v');
 });
@@ -607,7 +644,16 @@ test('file_readings_a_delete_and_a_rollback_perform_no_file_io', async () => {
   const path = join(dir, 'store.json');
   try {
     const inst = storeCreate({ filePath: path, journalLength: 8, listeners: [] });
-    write(inst, ['a'], 'file', 1);
+    // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `contract.md §7.2` items 1–2 AS AMENDED, `surface.md §2.11`
+    // clause 2): the last successful `file` WRITE's bytes are put at the path by THE TERMINAL ARM'S OWN ACT,
+    // which this cell now drives after the verb returned its `WriteResult`.** The two readings this cell
+    // asserts — the delete is not durable, and the fresh boot re-loads the WRITE's image — are unmoved.
+    const held = await fileCommit(inst, ['a'], 1);
+    assert.equal(
+      held.outcome,
+      'passed',
+      `P-TP-8: the attempt HELD — the terminal arm's own act landed at the path (rollback: ${JSON.stringify(held.rollback)})`,
+    );
     remove(inst, ['a'], 'file');
     assert.throws(() => read(inst, ['a'], 'file'), 'removed in the live store');
     const fresh = storeCreate({ filePath: path, journalLength: 8, listeners: [] });
@@ -634,10 +680,20 @@ test('file_readings_a_failed_file_commit_answers_file_commit_failed', async () =
     // The trigger is the REAL one: the path is replaced by a directory after the instance exists.
     await unlink(path);
     await mkdir(path);
+    // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` item 1 AS AMENDED, `surface.md §2.11` clause 5): the VERB
+    // takes no byte of the path — *"it performs NO FILE I/O ON ANY OF ITS ARMS"* — so it does NOT refuse here;
+    // THE FAILURE IS THE TERMINAL ARM'S ACT'S, *"the store rolls the write back FIRST and the call answers
+    // with a message SECOND"*, and this cell reads the refusal off the attempt that reaches that act.** The
+    // code, the failure form and the automatic rollback the reading names are unmoved.
+    const { commit, runAttempt } = await kernel();
     assert.throws(
-      () => write(inst, ['never'], 'file', 2),
+      () => runAttempt(inst, commit(inst, ['never'], 'file', 2)),
       (err) => isTheFailureForm(err) && err.status === 'FileCommitFailed',
       'the failure is passed back AFTER the store\'s own automatic journal rollback',
+    );
+    assert.throws(
+      () => read(inst, ['never'], 'file'),
+      'P-IM-2: the failed commit installed nothing — the rollback ran before the caller was answered',
     );
   } finally {
     await rm(dir, { recursive: true, force: true });
@@ -670,8 +726,15 @@ test('file_readings_two_instances_over_one_path_are_the_callers_own_declared_haz
   try {
     const first = storeCreate({ filePath: path, journalLength: 8, listeners: [] });
     const second = storeCreate({ filePath: path, journalLength: 8, listeners: [] });
-    write(first, ['first'], 'file', 1);
-    write(second, ['second'], 'file', 2);
+    // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `contract.md §7.2` items 1–2 AS AMENDED, `surface.md §2.11`
+    // clause 2): neither instance's VERB puts a byte at the path — the `file`-tier durable commit is THE
+    // TERMINAL ARM'S OWN ACT on each side — so this cell drives both acts, in the order the as-filed line
+    // declared: the first instance's image, then the second instance's own snapshot over it.** The reading
+    // this cell asserts — the last commit's image is the caller's own declared hazard — is unmoved.
+    const firstHeld = await fileCommit(first, ['first'], 1);
+    const secondHeld = await fileCommit(second, ['second'], 2);
+    assert.equal(firstHeld.outcome, 'passed', "the first instance's own act HELD");
+    assert.equal(secondHeld.outcome, 'passed', "the second instance's own act HELD");
     const fresh = storeCreate({ filePath: path, journalLength: 8, listeners: [] });
     assert.equal(read(fresh, ['second'], 'file'), 2, 'the second instance\'s write clobbered the first\'s bytes');
   } finally {

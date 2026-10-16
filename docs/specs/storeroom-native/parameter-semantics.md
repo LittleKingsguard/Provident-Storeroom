@@ -381,7 +381,7 @@ the row needs no conditional, because a foreign instance's id and a prior sessio
 ANOTHER journal and this instance's lookup reaches only its OWN** (`write-and-read.md §6.4` `M-11`; the
 standing cell `tests/journal_and_rollback.rs`'s `par_10_a_foreign_instance_s_op_id_fails_journal_op_unknown`
 asserts exactly this and is untouched). **NO CELL OF THIS ROW IS DELETED, NO CODE IS ADDED TO OR REMOVED
-FROM `seams-and-lifecycle.md §8.1`'s closed `15`-member set, AND NOTHING THE CALLER MAY RELY ON NARROWS.**
+FROM `seams-and-lifecycle.md §8.1`'s closed `16`-member set — **⟶ RE-SPELLED 2026-10-15 BY THE GATE-4 FINDINGS PASS: this clause read `15`, BYTE-FOR-BYTE above and read THROUGH this reading; the set is `16` with `ConstraintListInvalid` appended at rank `16`, per `contract.md §8.1`'s dated clause of 2026-10-15** — AND NOTHING THE CALLER MAY RELY ON NARROWS.**
 
 ### §2.11 `PAR-11` — the `secure` instance's `file` floor: DECLARED CLIENT-SIDE
 
@@ -567,8 +567,10 @@ two CALLER-FACING rows the list
 required and did not have; `PAR-14` is the internal row `AR-6`'s condition forces the moment the member
 tables move.** **`0` cells read `TBD`, and every one of the `14` names the values outside its domain AND the
 declared answer for each outside value** — **with the amendment's own two changed answers named: `PAR-6`'s
-ABSENT case is NO LONGER a failure, and the codes the rows cite now come from the closed `15`-member set at
-`seams-and-lifecycle.md §8.1`** (`[T: this part's own accounting, restated at this contract's sixth bounded
+ABSENT case is NO LONGER a failure, and the codes the rows cite now come from the closed `16`-member set at
+`seams-and-lifecycle.md §8.1` — **⟶ RE-SPELLED 2026-10-15 BY THE GATE-4 FINDINGS PASS: this clause read `15`,
+BYTE-FOR-BYTE above and read THROUGH this reading; `contract.md §8.1`'s dated clause of 2026-10-15 is the
+operative count, and no `PAR` row of this part moves with the re-spelling** (`[T: this part's own accounting, restated at this contract's sixth bounded
 amendment | CENSUS]`).
 
 **AND THE `§1` INDEX'S OWN RECONCILIATION, STATED SO THE TWO HOMES AGREE BY POINTER AND BY COUNT** (`[T: the

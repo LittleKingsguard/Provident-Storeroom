@@ -786,10 +786,14 @@ fn acp_an_existing_read_only_file_refuses_at_construction_and_keeps_its_bytes() 
 // `seams-and-lifecycle.md §7.1` step `4b` part (E)).
 //
 // **THE CELL DRIVES THE WHOLE SEQUENCE SO THE TWO READINGS ARE SEPARATED:** construct over an absent path
-// (the create), write at `file` (the ONE durability route), drop, re-construct over the SAME path (the
-// `AlreadyExists` fall-through), and read. **A truncated byte image at the second construction loses the
-// written value; a boot that reads the file's content finds it.**
-// Drives: §10.4 parts 2, 3 and 6; DD-28's amended cell; §7.2 items 1 and 6; §7.1 step 4b (B) and (E)
+// (the create), write at `file` **and drive the terminal arm's own act that commits it**, drop, re-construct
+// over the SAME path (the `AlreadyExists` fall-through), and read. **A truncated byte image at the second
+// construction loses the written value; a boot that reads the file's content finds it.**
+// **⟶ RE-POINTED 2026-10-15: the clause the durability hangs on is `§7.2` item 1 AS AMENDED — *"it performs NO
+// FILE I/O ON ANY OF ITS ARMS"* — read with item 2, *"THE `file`-TIER COMMIT IS THE TERMINAL ARM'S OWN ACT …
+// keyed by the settled record's own `op`"* (`surface.md §2.11` clause 2). The two acts are driven at their
+// own two instants below.**
+// Drives: §10.4 parts 2, 3 and 6; DD-28's amended cell; §7.2 items 1, 2 and 6 as amended; §7.1 step 4b (B) and (E)
 #[test]
 fn acp_a_fresh_construction_re_boots_from_the_last_committed_bytes() {
     let path = fresh_path("acp-reboot");
@@ -803,13 +807,20 @@ fn acp_a_fresh_construction_re_boots_from_the_last_committed_bytes() {
         Some(0),
         "§10.4 part 3: the created file is ZERO-LENGTH before the first write"
     );
-    ok(
+    // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` item 1 AS AMENDED, `surface.md §2.11` clause 2): the verb
+    // RECORDS the write — *"AND IT PERFORMS NO FILE I/O ON ANY OF ITS ARMS"* — so the bytes at the path are
+    // put there by THE TERMINAL ARM'S OWN ACT, keyed by the settled record's own `op` and by nothing else.**
+    let landed = ok(
         first.write(AddressArg::List(key(&["k"])), w_file(), v_str("kept")),
-        "§7.2 item 1: the first `file`-tier write commits at the path",
+        "§7.2 item 1 as amended: the first `file`-tier write RECORDS the write and returns its `WriteResult`",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut first, &landed.op.opId),
+        "§7.2 item 2 as amended: the terminal arm's own act commits at the path",
     );
     assert!(
         path_length(&path).unwrap_or(0) > 0,
-        "§7.2 item 1: the commit put bytes at the path — the file was not zero-length before it"
+        "§7.2 item 2: the commit put bytes at the path — the file was not zero-length before it"
     );
     drop(first);
 

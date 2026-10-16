@@ -1,4 +1,4 @@
-//! `tests/fail_codes.rs` — contract `§8` (`seams-and-lifecycle.md §8`): the CLOSED **15**-member code set with
+//! `tests/fail_codes.rs` — contract `§8` (`seams-and-lifecycle.md §8`): the CLOSED **16**-member code set with
 //! each member's trigger, the complement block with the two deliberately absent codes, the generated
 //! message rule with its clause table and its three worked examples, and the `StoreError` record shape.
 //!
@@ -6,12 +6,22 @@
 //! closes at `15` members.** **`FilePathUnreachable` (`A53`'s *"Add new failure code"*, `A54`'s *"Default
 //! name"*) is inserted at rank `13` in the CONSTRUCTION GROUP beside `ConstructionArgumentMissing`, so
 //! `ValueNotAdmitted` moves `13 → 14` and `FileCommitFailed` moves `14 → 15` and NO TRIGGER MOVES**
-//! (`§8.1`'s amended arithmetic: `11 + 2 + 1 + 1 = 15` ✓; `DD-40`). **The two renumbered drives below carry
-//! their new rank in their own names, and the closure drive's `14`-member assertions move to `15`.**
+//! (`§8.1`'s arithmetic at that amendment: `11 + 2 + 1 + 1 = 15` ✓; `DD-40`). **The two renumbered drives
+//! below carry their new rank in their own names, and the closure drive's `14`-member assertions move to
+//! `15`.**
 //!
-//! States enumerated for this concern, each driven below: one drive per member of the closed set (15 —
-//! `FilePathUnreachable` at rank `13` is the member this amendment authored, `A53`/`A54`; `FileCommitFailed`
-//! at rank `15` is the member the second bounded amendment authored, `DD-25`);
+//! **⟶ AND WIDENED TO `16` 2026-10-15 (`DEF-2026-10-15-Y`, the `stale-by-census` class; `DEF-2026-10-15-X`
+//! item 4): THE FIGURE ABOVE IS A SUPERSEDED STEP AND THE SET'S OWN FIGURE IS THE AMENDED HEADING'S.**
+//! `§8.1` now reads **`16` members with each member's trigger** and its arithmetic is
+//! **`11 + 2 + 1 + 1 + 1 = 16` ✓** — the sixth member of the CONSTRUCTION GROUP's `2` becoming `3` — while
+//! **every rank this header names stands where it named it** (`FilePathUnreachable` `13`,
+//! `ValueNotAdmitted` `14`, `FileCommitFailed` `15`) **and the new member takes `16` after them** (`§7.1`
+//! step 4-bis; `§7.2` item 5 ADDED 2026-10-15; `parameter-semantics.md §2.21`). **NO MEMBER IS RENAMED.**
+//!
+//! States enumerated for this concern, each driven below: one drive per member of the closed set (16 —
+//! `FilePathUnreachable` at rank `13` is the member the listener amendment authored, `A53`/`A54`;
+//! `FileCommitFailed` at rank `15` is the member the second bounded amendment authored, `DD-25`;
+//! `ConstraintListInvalid` at rank `16` is the member the `constraints` key's amendment authored);
 //! the three worked examples' message forms; the generator's determinism, its dependence on the trigger's
 //! arguments, its completeness and its no-placeholder property; the error record's two members and the
 //! exact spelling of `status`; the eight non-failures of the complement block; the two absent codes.
@@ -523,7 +533,13 @@ fn s8_1_14_value_not_admitted_fires_for_every_outside_value_class() {
 // REAL TRIGGER THE AMENDMENT NAMES — the path at `cfg.filePath` made un-writable — and no invented one.**
 // **⟶ RENUMBERED 2026-10-11: this member stood at rank `14` and its TRIGGER IS UNCHANGED; it is the LAST
 // member of the set and its `§8.2` template row moves with it** (`§8.1`'s own renumbering clause).
-// Drives: §8.1 #15, §7.2 items 2–4, §8.2
+// **⟶ AND RE-POINTED 2026-10-15 BY THE `RCA-9` PASS (`§7.2` items 1–3 AS AMENDED; `surface.md §2.11`
+// clauses 2 and 5): THE TRIGGER IS UNCHANGED — a `file`-tier commit whose path cannot be written — AND THE
+// INSTANT IS NOT. The verb RECORDS the write and *"PERFORMS NO FILE I/O ON ANY OF ITS ARMS"*, so its own
+// return is asserted `Ok` beside the act; THE FAILURE IS THE TERMINAL ARM'S ACT'S, *"the store rolls the
+// write back FIRST and the call answers with a message SECOND"*, and the caller receives the failure and
+// never the rolled-back state. `DD-25`'s ONE code for all three parts of the failure is unmoved.**
+// Drives: §8.1 #15, §7.2 items 2–4 as amended, §8.2
 #[test]
 fn s8_1_15_file_commit_failed_fires_on_the_file_tier_commit_path() {
     let path = fresh_path("s8-1-15");
@@ -531,17 +547,27 @@ fn s8_1_15_file_commit_failed_fires_on_the_file_tier_commit_path() {
         storeCreate(&cfg_at(&path, 8)),
         "§7.1: the three arguments valid",
     );
-    ok(
+    let landed = ok(
         store.write(AddressArg::List(key(&["durable"])), w_file(), v_num(1.0)),
-        "§7.2 item 1: a commit lands",
+        "§7.2 item 1 as amended: the verb records the write",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &landed.op.opId),
+        "§7.2 item 2 as amended: the terminal arm's own act lands a commit at the path",
     );
     let before = read_at(&store, &empty_address());
     let _ = std::fs::remove_file(&path);
     std::fs::create_dir(&path)
         .expect("the path now holds a directory, so a file write cannot land");
-    let e = failure(
+    // THE VERB'S OWN ARM FIRST, AND IT IS `Ok`: *"it performs NO FILE I/O ON ANY OF ITS ARMS"* (`§7.2`
+    // item 1 as amended) — the directory at the path decides nothing at the verb.
+    let never = ok(
         store.write(AddressArg::List(key(&["never"])), w_file(), v_num(2.0)),
-        "§7.2 item 3",
+        "§7.2 item 1 as amended: the verb's `file`-tier arm returns as it does today",
+    );
+    let e = failure(
+        commit_at_the_terminal_arm(&mut store, &never.op.opId),
+        "§7.2 item 3 as amended: THE TERMINAL ARM'S OWN ACT is where the commit failure is passed back",
     );
     assert_code(
         &e,
@@ -555,7 +581,7 @@ fn s8_1_15_file_commit_failed_fires_on_the_file_tier_commit_path() {
     assert_eq!(
         read_at(&store, &empty_address()),
         before,
-        "§7.2 item 2/§3.5: the failure leaves state unchanged"
+        "§7.2 item 2/§3.5: the failure leaves state unchanged — the rollback ran FIRST"
     );
     assert!(
         e.message.contains(&path),
@@ -565,12 +591,26 @@ fn s8_1_15_file_commit_failed_fires_on_the_file_tier_commit_path() {
     let _ = std::fs::remove_dir(&path);
 }
 
-// §8.1's closure — every code a drive produces is a member of the set, and the set carries **15** distinct
+// §8.1's closure — every code a drive produces is a member of the set, and the set carries **16** distinct
 // members with the contract's own spellings, `FilePathUnreachable` included at rank `13` and
 // `FileCommitFailed` at rank `15`. **⟶ AMENDED 2026-10-11: the `14`-member assertions move to `15`, and the
 // new member's own probe joins the closure sweep** (`§5.9`'s census: *"`1` drive per member = `15` code
 // drives, plus the closure sweep = `15 + 1`"*).
-// Drives: §8.1, §5.9
+//
+// **⟶ WIDENED TO `16` 2026-10-15 (`DEF-2026-10-15-Y`, the `stale-by-census` class; `DEF-2026-10-15-X`
+// item 4).** **THE FIGURE THIS DRIVE PRINTED WAS SUPERSEDED AND THE DRIVE IS CORRECTED, NOT RETIRED:** the
+// superseding clauses are named one by one — `contract.md §8.1`'s own amended **heading**, which reads
+// **`16` members, each with its trigger**, its arithmetic `11 + 2 + 1 + 1 + 1 = 16` ✓; **`§7.2` item 5
+// (ADDED 2026-10-15)**, which declares the constraint list's TWO validation instants and names the
+// load-side failure; and `docs/specs/storeroom-js/parameter-semantics.md §2.21`, the key's own declared
+// semantics — **while the sentence this comment supersedes asserted that `FileCommitFailed` *"still closes
+// at the member"*, which was TRUE of the `15`-member set and is FALSE of the `16`-member one it now
+// stands in.** **NO MEMBER IS RENAMED AND NO RANK MOVES: `FilePathUnreachable` stays at `13`,
+// `ValueNotAdmitted` at `14`, `FileCommitFailed` at `15`, and the new member takes `16` after them.** The
+// sixteenth member's own probe joins the sweep below, **reached through a REAL trigger at the
+// CONSTRUCTION's own instant** (`storeCreateWithConstraints`; `§7.1` step 4-bis) — the load-side instant's
+// trigger is driven at this project's JS leg (`bindings/js/tests/surface_verbs.rs`).
+// Drives: §8.1, §5.9, §7.1 step 4-bis, §7.2 item 5
 #[test]
 fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
     let mut store = new_store();
@@ -610,13 +650,32 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
         ))
         .map(|_| ()),
         {
+            // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 1–2 AS AMENDED, `surface.md §2.11` clause 2):
+            // this probe's member is reached at the terminal arm's own act and not at the verb — the verb
+            // records the write and performs NO file I/O on any of its arms, so the closure sweep drives the
+            // act, keyed by the op that write returned, and reads ITS `Err`. The probe's answer is a
+            // `Result<(), StoreError>` either way, so the sweep's own shape is unchanged.**
             let path = fresh_path("closure-commit");
             let mut s = ok(storeCreate(&cfg_at(&path, 4)), "§7.1");
             let _ = std::fs::remove_file(&path);
             std::fs::create_dir(&path).expect("the path now holds a directory");
-            s.write(AddressArg::List(key(&["never"])), w_file(), v_num(1.0))
-                .map(|_| ())
+            let recorded = s.write(AddressArg::List(key(&["never"])), w_file(), v_num(1.0));
+            match recorded {
+                Err(_) => recorded.map(|_| ()),
+                Ok(w) => commit_at_the_terminal_arm(&mut s, &w.op.opId),
+            }
         },
+        // **§8.1 #16's own probe — the CONSTRUCTION's instant, and the member the as-filed sweep had no
+        // probe for** (`DEF-2026-10-15-Y`; `§7.1` step 4-bis; `parameter-semantics.md §2.21`). The list is
+        // WELL-FORMED AS A LIST and its own element lies outside `{ address, id }`, so the answer is the
+        // key's own member and never `§8.1` #1. **`filePath` IS ABSENT**, because `§7.1`'s amended table
+        // makes an absent path LEGAL (`A49`) and the probe must reach the FOURTH key's own arm and no
+        // other.
+        storeCreateWithConstraints(
+            &cfg_no_path(4),
+            &ConstraintsArg::List(vec![ConstraintEntry::Invalid("'a'".to_string())]),
+        )
+        .map(|_| ()),
     ];
     for probe in probes {
         match probe {
@@ -639,13 +698,21 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
         seen.iter().any(|c| c == "FileCommitFailed"),
         "§5.9's converse half: the rank-`15` member is reachable through a real trigger"
     );
+    assert!(
+        seen.iter().any(|c| c == "ConstraintListInvalid"),
+        "§5.9's converse half, ADDED 2026-10-15: THE RANK-`16` MEMBER IS REACHABLE THROUGH A REAL TRIGGER \
+         at the construction's own instant — the as-filed sweep carried no probe for it at all, so its own \
+         closure was asserted over a set it never drove the last member of (`DEF-2026-10-15-Y`)"
+    );
     let mut distinct = CLOSED_CODES.to_vec();
     distinct.sort();
     distinct.dedup();
     assert_eq!(
         distinct.len(),
-        15,
-        "§8.1: the set carries 15 members, ranked 1…15 (`11 + 2 + 1 + 1 = 15` ✓)"
+        16,
+        "§8.1: the set carries 16 members, ranked 1…16 (`11 + 2 + 1 + 1 + 1 = 16` ✓ — the as-filed \
+         `11 + 2 + 1 + 1 = 15` counted the amended heading's own members one short; AMENDED 2026-10-15, \
+         `DEF-2026-10-15-Y`)"
     );
     assert!(
         distinct.contains(&"FilePathUnreachable"),
@@ -653,7 +720,14 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
     );
     assert!(
         distinct.contains(&"FileCommitFailed"),
-        "§8.1 #15: the set's membership still closes at the `file`-commit member"
+        "§8.1 #15: the `file`-commit member is IN the closed set"
+    );
+    assert!(
+        distinct.contains(&"ConstraintListInvalid"),
+        "§8.1 #16: THE SIXTEENTH MEMBER IS IN THE CLOSED SET — the as-filed sweep asserted the set *\"still \
+         closes at the `file`-commit member\"*, and that sentence described the `15`-member set the \
+         amendment's own heading had already superseded (`§8.1`'s amended heading; `§7.1` step 4-bis; \
+         `parameter-semantics.md §2.21`; AMENDED 2026-10-15, `DEF-2026-10-15-Y`)"
     );
     let expected_ranks = [
         "AddressMalformed",
@@ -671,12 +745,14 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
         "FilePathUnreachable",
         "ValueNotAdmitted",
         "FileCommitFailed",
+        "ConstraintListInvalid",
     ];
     assert_eq!(
         CLOSED_CODES.to_vec(),
         expected_ranks.to_vec(),
-        "§8.1's own rank order: `FilePathUnreachable` at `13`, `ValueNotAdmitted` moved to `14`, \
-         `FileCommitFailed` moved to `15`"
+        "§8.1's own rank order: `FilePathUnreachable` at `13`, `ValueNotAdmitted` at `14`, \
+         `FileCommitFailed` at `15`, and the SIXTEENTH member LAST at `16` — no existing rank moves \
+         (AMENDED 2026-10-15, `DEF-2026-10-15-Y`)"
     );
 }
 

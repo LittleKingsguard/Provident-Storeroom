@@ -1,0 +1,4 @@
+  >>> THE APP LISTENER BODY RAN
+after K-2: listener body calls so far = 1, constraint body calls = 0, commit did not fail
+  the attempt's terminal arm = KC-3 :: the constraint refuses this landing
+after the arm: `pending` = 0 of `triggered` = 1 — the record member was discarded, the delivered body was not.

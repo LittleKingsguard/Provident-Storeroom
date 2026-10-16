@@ -2239,9 +2239,16 @@ fn lf_f6_the_mint_never_collides_and_the_caller_spelled_collision_is_lawful() {
 //   `storeCreate(path, 64, [ {["a"], "adopted-a"}, {["a","b"], "adopted-ab"} ])`; `listen(["c"])`;
 //   `listen(["a","c"])`; then
 //   (1) `write(["a"], file, {})` · (2) `write(["a","b"], mem, 1)` · (3) `write(["a","b"], temp, 2)` ·
-//   (4) `write(["a","b"], file, 3)` [commits] · (5) `write(["c"], file, "C")` [commits] ·
-//   (6) `write(["a","c"], temp, "AC")` · (7) `delete(["a","b"], file)` · (8) `delete(["a"], temp)` [the
-//   `D-3` no-op]; then the boot: `storeCreate(path, 64, [])`, the durable read, and a first post-boot edit.
+//   (4) `write(["a","b"], file, 3)` [the terminal arm's act commits] · (5) `write(["c"], file, "C")` [the
+//   terminal arm's act commits] · (6) `write(["a","c"], temp, "AC")` · (7) `delete(["a","b"], file)` ·
+//   (8) `delete(["a"], temp)` [the `D-3` no-op]; then the boot: `storeCreate(path, 64, [])`, the durable
+//   read, and a first post-boot edit.
+// **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 1–2 AS AMENDED, `surface.md §2.11` clause 2): the `file`
+//   tier's durable commit is THE TERMINAL ARM'S OWN ACT, not the verb's — so each `file`-tier step of this
+//   flow drives that act after the verb returned, keyed by the op that write returned, and the `mem`- and
+//   `temp`-tier steps drive none (clause 2: *"a record whose own `op` is not a `file`-tier write's performs
+//   none"*). The two instants are the clause's own: after every constraint has passed, before any listener
+//   body of the delivered set runs. THE EXPECTED SEQUENCE OF SETS AND THE BOOTED REGISTER ARE UNMOVED.**
 // Expected `triggered`, edit by edit, ON THE CONTRACT ALONE (the prefix test over each edit's OWN address):
 //   {a} · {a,ab} · {a,ab} · {a,ab} · {c} · {a,ac} · {a,ab} · {} — and `watched` its address projection each
 //   time. After the boot: the register `{ a: { b: 3 }, c: "C" }` (the LAST successful `file`-tier write's
@@ -2330,6 +2337,14 @@ fn lf_g1_the_full_user_flow_to_the_final_resolved_state() {
     for (i, (address, tier, value, want_handles, want_addresses, clause)) in
         expected.into_iter().enumerate()
     {
+        // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 1–2 AS AMENDED, `surface.md §2.11` clause 2): the
+        // verb RECORDS the write — *"AND IT PERFORMS NO FILE I/O ON ANY OF ITS ARMS"* — and THE `file`-TIER
+        // COMMIT IS THE TERMINAL ARM'S OWN ACT, performed *"after every constraint … has passed, and before
+        // ANY listener body of the delivered set runs"*, keyed by the settled record's own `op`. THE DRIVE
+        // THEREFORE TAKES THE OP THE VERB RETURNED AND DRIVES THAT ACT AT ITS OWN INSTANT, ON THE `file`-TIER
+        // STEPS ALONE — which is also clause 2's negative half, *"a record whose own `op` is not a `file`-tier
+        // write's performs none"*: the `mem`- and `temp`-tier steps below drive no save at all.**
+        let commits = tier == w_file();
         let r = write_at(&mut store, address, tier, value, clause);
         assert_triggered(
             &format!("G1 step {} (a write)", i + 1),
@@ -2343,6 +2358,16 @@ fn lf_g1_the_full_user_flow_to_the_final_resolved_state() {
             &want_addresses,
             "§5.8 (f) (3a): the address projection of `triggered`",
         );
+        // **THE ACT IS DRIVEN AFTER THE VERB'S OWN RETURN AND BEFORE THE BOOT BELOW** — its own two
+        // instants, and the only place a `file`-tier durable image is produced (`§7.2` item 2 as amended).
+        if commits {
+            ok(
+                commit_at_the_terminal_arm(&mut store, &r.op.opId),
+                "§7.2 item 2 as amended / §2.11 clause 2: THE TERMINAL ARM'S OWN ACT — this step's `file` \
+                 write is the one that commits the durable image the boot below reads (`DD-28`: neither \
+                 delete commits)",
+            );
+        }
         log.push(r.triggered);
     }
 
@@ -2505,13 +2530,22 @@ fn lf_g2_a_fresh_instance_over_an_equal_path_shares_no_registration() {
         key(&["a"]),
         w_file(),
         v_num(1.0),
-        "§3.4 W-3 at `file`: this commit IS the durable state (§7.2 item 1)",
+        "§3.4 W-3 at `file` / §7.2 item 1 as amended: the verb RECORDS the write and performs NO FILE I/O \
+         on any of its arms",
     );
     assert_triggered(
         "G2 (the first instance)",
         &r1.triggered,
         &one_handle(&adopted),
         "§5.8 (a): the construction's adopted handle fires at its own address",
+    );
+    // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` item 2 AS AMENDED, `surface.md §2.11` clause 2): the durable
+    // state this cell boots over is produced by THE TERMINAL ARM'S OWN ACT and not by the verb.** The act is
+    // keyed by the settled record's own `op` — here, the op this very write returned.
+    ok(
+        commit_at_the_terminal_arm(&mut first, &r1.op.opId),
+        "§7.2 item 2 as amended: THE TERMINAL ARM'S OWN ACT — this commit IS the durable state the second \
+         instance's boot reads",
     );
 
     let mut second = store_with(&path, listeners(vec![]));

@@ -1,0 +1,12 @@
+import * as storeNs from 'provident-storeroom';
+import { register } from '../bindings/js/src/constraint-kernel.mjs';
+const s = storeNs.storeCreate({ journalLength: 8, listeners: [] });
+const anc = register(s, ['a'], 'cL', () => true);
+const ancPairB = register(s, ['a'], 'own', () => true);
+console.log('two pairs at ONE address -> same handle identity =', anc === ancPairB);
+const q = register(s, ['q'], 'q1', () => true);
+const w = storeNs.write(s, ['a'], 'mem', { k: 1 });
+const wq = storeNs.write(s, ['q'], 'mem', 'v');
+console.log('write at [a] triggered len', w.triggered.length, 'is anc:', w.triggered.includes(anc));
+console.log('write at [q] triggered len', wq.triggered.length, 'q handle identical to anc:', wq.triggered[0] === anc);
+const rec = (() => { try { return null; } catch (e) { return null; } })();

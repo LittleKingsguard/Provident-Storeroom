@@ -153,15 +153,7 @@
 
 ---
 
-## §9. WHAT THIS RECORD MOVES, AND WHAT IT DOES NOT
-
-**IT ADMITS NO UNIT ROW · MOVES NO LEDGER COUNT (`4 DONE / 0 open` UNITS = `4`) · RE-OPENS NO `DONE` ROW · FREEZES NO ARTIFACT · DISPOSITIONS NOTHING ON ANY STEP REPORT · LIFTS NO PARK · FILES NO DEFECT ROW · AUTHORS NO `src/**`, `tests/**` OR `archive/**` BYTE · TAKES NO RULING OF ITS OWN.** **The filing, the three step reports and every tracker stand byte-for-byte; the landing pass owns their movement. No byte under the adjacent project `../Provident-Electron/**` was read as authority or written. Nothing was run.** **THE GO-AHEAD IS WITHHELD AND THIS RECORD CANNOT GIVE IT — a passing review PLUS the architect's go-ahead is what may proceed to the spec gate, and only the first of the two exists.**
-
-**END OF RECORD.** **`BLOCKED-ON-SEMANTICS` / `NOT-DELEGABLE` — `8` blocking union rows with deciders named (`4` architect, `2` contract, `2` this record's landing), `22` conditions, `8` questions of `8`, `0` open dossier rows on a lawfully zero-row dossier, `1` snapshot cell `OWED` to the landing pass, and `NO` ledger count moved.**
-
-**⟶ READ THROUGH `§11` (`RCA-8(d)`): this closing line was issued for the state BEFORE the architect's second answer set; `§10`'s `9`-row state, its ledger (`§10.6`) and `§9`'s *"THE GO-AHEAD IS WITHHELD"* are superseded in their figures by `§11.1` (the word is now `APPROVE-WITH-CONDITIONS` · `DELEGABLE`) and `§11.2` (the ledger now moves to `4 DONE / 1 open` UNITS = `5` ✓). The architect's go-ahead — not the record's — is still what opens the spec gate.**
-
----
+**⟶ `RCA-8(g)` ARCHIVAL MOVE, 2026-10-13: `§9` (`WHAT THIS RECORD MOVES, AND WHAT IT DOES NOT` — already declared read-through by `§11`) moved BYTE-EXACTLY to `archive/spec-history/2026-10-13-a112-respell-superseded.md §2`.**
 
 ## §10. ⟶ SUPPLEMENTARY PASS 2026-10-13 (`role_change_analysis`), ON THE ANSWER SET `docs/specs/storeroom-constraints/proposal.md §A`
 

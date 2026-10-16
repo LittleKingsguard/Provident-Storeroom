@@ -1,0 +1,27 @@
+FAIL JSG-01.9  expected: the instance's own member set is exactly ['off','on','register'] — the three declared members, and NOTHING ELSE (the pre-amendment declaration was ['register'])
+             observed: off,on,register,settle
+             clause:   §2.1 dated clause 1 (a); A79; §2.4 item 7
+
+── THE RUN ─────────────────────────────────────────────────────────────────────────
+SITE:  node bindings/js/greens/greens.mjs   (cwd: /media/ryanr/Shared Files/Projects/Provident-Storeroom)
+ENTRY: /media/ryanr/Shared%20Files/Projects/Provident-Storeroom/bindings/js/index.mjs
+LAYER: ENVELOPE/PURE   APP LAYER: NONE   (no APP-green is claimed)
+SCRATCH: /tmp/sr-js-greens-t9scBf
+  JSG-01: 16 PASS · 1 FAIL   (17 assertions)
+  JSG-02: 16 PASS · 0 FAIL   (16 assertions)
+  JSG-03: 5 PASS · 0 FAIL   (5 assertions)
+  JSG-04: 67 PASS · 0 FAIL   (67 assertions)
+  JSG-05: 14 PASS · 0 FAIL   (14 assertions)
+  JSG-06: 7 PASS · 0 FAIL   (7 assertions)
+  JSG-07: 15 PASS · 0 FAIL   (15 assertions)
+  JSG-08: 22 PASS · 0 FAIL   (22 assertions)
+  JSG-09: 12 PASS · 0 FAIL   (12 assertions)
+  JSG-10: 24 PASS · 0 FAIL   (24 assertions)
+  JSG-11: 18 PASS · 0 FAIL   (18 assertions)
+  JSG-12: 18 PASS · 0 FAIL   (18 assertions)
+  JSG-13: 6 PASS · 0 FAIL   (6 assertions)
+────────────────────────────────────────────────────────────────────────────────────
+AUTHORED 241 · EXECUTED 241 · PASS 240 · FAIL 1
+
+EVERY FAIL, ONE LINE EACH (scenario · expected-from-the-docs · observed · clause):
+  JSG-01.9 :: the instance's own member set is exactly ['off','on','register'] — the three declared members, and NOTHING ELSE (the pre-amendment declaration was ['register']) :: off,on,register,settle :: [§2.1 dated clause 1 (a); A79; §2.4 item 7]

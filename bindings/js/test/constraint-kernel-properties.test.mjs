@@ -397,7 +397,9 @@ test('ck_prop_P_IM_3_no_drive_of_this_unit_produces_a_store_member_as_a_constrai
       assert.ok(KC_TOKENS.includes(r.thrown.status) || Object.values(KC).includes(r.thrown.status),
         `the status is one of the kernel's own eight tokens in one of its two declared spellings (read ${r.thrown.status})`);
       assert.equal(STORE_CODES.includes(r.thrown.status), false,
-        'and NEVER a member of the store\'s closed fifteen');
+        `and NEVER a member of the store's closed ${STORE_CODES.length} — the figure is READ OFF the list `
+        + 'and never printed by hand (`contract.md §8.1`\'s amended heading, 16 members; 2026-10-15, '
+        + '`DEF-2026-10-15-Y`)');
       const checks = entries(r.thrown.log, 'constraint-check');
       for (const e of checks) {
         assert.equal(STORE_CODES.includes(e.message), false,
@@ -916,7 +918,7 @@ test('ck_prop_P_IM_1_the_handle_check_is_the_store_s_on_both_arms', async () => 
           'the store\'s own refusal carries the store\'s own code and is NEVER converted into a kernel '
           + 'state (`fail-surface.md §1.2`: the channel is the failing ACT\'s)');
         assert.equal(STORE_CODES.includes(r.thrown.status), true,
-          `and the code it carries is one of the store's closed fifteen — read ${JSON.stringify(r.thrown.status)}`);
+          `and the code it carries is one of the store's closed ${STORE_CODES.length} — read ${JSON.stringify(r.thrown.status)}`);
       } else {
         assert.notEqual(r.value, undefined,
           'where the store admits the address, the registration answers the store\'s own handle and '
@@ -1013,7 +1015,7 @@ test('ck_prop_P_SM_4_one_drive_per_outside_form_and_its_declared_state', async (
         assert.equal(KC_TOKENS.includes(r.thrown.status), false,
           'by THE STORE at the verb call, on the store\'s own channel');
         assert.equal(STORE_CODES.includes(r.thrown.status), true,
-          `read ${JSON.stringify(r.thrown.status)} — one of the store's closed fifteen, per the row's own ` +
+          `read ${JSON.stringify(r.thrown.status)} — one of the store's closed ${STORE_CODES.length}, per the row's own ` +
           '"which is the STORE\'S OutOfDomainTier at the verb call, with NO attempt opened"');
         return;
       }
@@ -1024,7 +1026,7 @@ test('ck_prop_P_SM_4_one_drive_per_outside_form_and_its_declared_state', async (
           'and the refusal is the STORE\'S write-verb answer on the store\'s channel and NEVER `KC-2` '
           + '(`RD-1`: that site is not one of `K-2`\'s)');
         assert.equal(STORE_CODES.includes(r.thrown.status), true,
-          `so its code stands in the store's closed fifteen — read ${JSON.stringify(r.thrown.status)}`);
+          `so its code stands in the store's closed ${STORE_CODES.length} — read ${JSON.stringify(r.thrown.status)}`);
         return;
       }
       // FORM 5 — A CLOSED ATTEMPT'S OWN REFERENCE.
@@ -1159,8 +1161,27 @@ test('ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op', asyn
  * the store (`store.on` holds ONE function per address); (3) an id the registry holds with NO function
  * — a pair an address's registration replaced — fires NOTHING.
  *
- * FAIL STATES: a constraint evaluated from the store's own delivery; a plain listener's body run by
- * the store at an address the kernel registered at; an invocation with no registration behind it.
+ * FAIL STATES: a constraint evaluated by the kernel's own constraints layer when no pass stands owed for
+ * its pair; a plain listener's body run by the store at an address the kernel registered at; an
+ * invocation with no registration behind it.
+ *
+ * ▸ RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-DERIVATION PASS: THIS CELL ONCE ASSERTED, BESIDE ITS OWN
+ * SUBJECT, THAT *"the store's displaced handle is carried by no member of the record"* — and THAT
+ * ASSERTION ROSE ON THE WITHDRAWN SIFT READING: it read an empty or filtered `pending` as the write's
+ * own DECISION, treating a handle whose pair the kernel runs as one that must not stand in a member the
+ * write wrote. `A112` declares the opposite: `pending` is written as THE WHOLE RETURNED SET OF TRIGGERED
+ * CONSTRAINTS and an entry leaves it ONLY BY BEING CHECKED OFF AS IT PASSES, so a one-function-per-address
+ * home entry is written into that member with the rest of the set and, where the pair it stands behind is
+ * one this pass evaluated, leaves it by that check-off and NEVER by never having been there
+ * (`kernel-surface.md §2.1` item 2 — "AN ENTRY LEAVES IT ONLY BY BEING CHECKED OFF AS IT PASSES" — read
+ * with `§2.2` item 3 AS THE `A112` DELIVERY-MODEL RE-SPELL LEAVES IT, where the *"STANDS IN `pending` NO
+ * LONGER"* spelling is WITHDRAWN BY NAME and the same state is written as an entry that "IS STILL
+ * WRITTEN AS `pending` WITH THE WHOLE RETURNED SET AND LEAVES IT ONLY BY BEING CHECKED OFF AS IT
+ * PASSES"; `A: docs/decisions.md` · `A112`). The assertion is
+ * therefore REMOVED and not inverted: THIS CELL'S SUBJECT IS THE FUNCTION'S REALM — which body ran and
+ * how many times — and that subject is driven, on both sides of the attempt, by the `order` list the
+ * bodies themselves write. The extent of `pending` at a write's own instant is the `ck_dm_*` cells' own
+ * subject, asserted there and not re-asserted here.
  */
 test('ck_prop_P_SM_5_the_constraint_function_is_invoked_by_the_caller_and_never_by_the_store', async () => {
   const { register, commit, runAttempt } = await kernel();
@@ -1183,8 +1204,22 @@ test('ck_prop_P_SM_5_the_constraint_function_is_invoked_by_the_caller_and_never_
       assert.deepEqual(order, ['constraint'],
         'the function ran ONCE, IN THE KERNEL\'S OWN WINDOW, and the plain listener\'s body NEVER ran '
         + 'from the store — the function\'s realm is the caller\'s (`§5.5`, `S-SIDE`)');
-      assert.equal(record.pending.includes(plainHandle), false,
-        'and the store\'s displaced handle is carried by no member of the record');
+      // THE SUBJECT, DRIVEN ON BOTH SIDES OF THE ATTEMPT: the ONE run of the pair's body is the
+      // constraints layer's, and NEITHER the store nor the caller's own loop over the record's member
+      // runs the displaced plain body — read off the bodies' own `order` list and off no member's
+      // extent. RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-DERIVATION PASS: the assertion that once
+      // stood here read the record's `pending` member for the displaced handle's ABSENCE, which is the
+      // withdrawn sift reading — a handle written into that member with the whole returned set leaves
+      // it only by being CHECKED OFF AS IT PASSES and never by having been filtered out
+      // (`kernel-surface.md §2.1` item 2; `A112`).
+      assert.deepEqual(order, ['constraint'],
+        'AND NOTHING RAN IT AGAIN: not the store\'s write verb — which returns the handles and invokes '
+        + 'nothing of either layer\'s (`§2.2` item 2) — not the caller\'s own loop over the record\'s '
+        + 'member, and not a second pass — the displaced plain body ran ZERO times across the '
+        + `whole drive (read ${JSON.stringify(order)})`);
+      assert.equal(typeof plainHandle === 'object' && plainHandle !== null, true,
+        'and the adopted value is the store\'s own handle object, the ONE value both registrations were '
+        + 'answered with (`kernel-surface.md §2.1` item 1; `A: bindings/js/index.d.ts`: `Handle = object`)');
     }),
   });
   assert.deepEqual(result.failures, [],

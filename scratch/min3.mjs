@@ -1,0 +1,18 @@
+import * as store from 'provident-storeroom';
+import { register, commit, runAttempt } from '../bindings/js/src/constraint-kernel.mjs';
+const s = store.storeCreate({ journalLength: 64, listeners: [] });
+let c = 0;
+register(s, ['a'], 'p', () => { c += 1; return true; });
+const cm1 = commit(s, ['a'], 'mem', 1);
+console.log('cm1.pending === cm2.pending test: cm1.pending identity A =', String(cm1.pending));
+const snap1 = cm1.pending.length;
+console.log('snap1 =', snap1);
+const r1 = runAttempt(s, cm1);
+console.log('after K-3: cm1.pending.length =', cm1.pending.length, 'snap1 =', snap1);
+const cm2 = commit(s, ['a'], 'mem', 2);
+console.log('cm2.pending.length right after K-2(2) =', cm2.pending.length);
+console.log('cm1.pending === cm2.pending ?', cm1.pending === cm2.pending);
+console.log('cm1 === cm2 ?', cm1 === cm2);
+console.log('cm1.pending.length now =', cm1.pending.length);
+const r2 = runAttempt(s, cm2);
+console.log('after K-3(2): cm1.pending.length =', cm1.pending.length, 'cm2.pending.length =', cm2.pending.length, 'calls =', c);

@@ -1,0 +1,78 @@
+FAIL JSG-02.10  expected: a FRESH instance over the same cfg.filePath re-loads the committed value: the boot read equals the written value under §1.5
+             observed: threw {message:"'rt' does not exist in '', it holds no keys",status:"AddressNotFound"}
+             clause:   store §7.2 item 6
+FAIL JSG-02.11  expected: the booted value's member set is the written one
+             observed: 
+             clause:   §1.5 item 1; store §7.2 item 6
+FAIL JSG-02.14  expected: after a boot the committed -0 reads back as 0 (Object.is 0 is true)
+             observed: threw {message:"'neg-file' does not exist in '', it holds no keys",status:"AddressNotFound"}
+             clause:   store §7.2 item 7 (c); §4.3 exclusion (i)
+FAIL JSG-02.15  expected: and Object.is(v,-0) is false: the ONE declared number normalization
+             observed: threw {message:"'neg-file' does not exist in '', it holds no keys",status:"AddressNotFound"}
+             clause:   store §7.2 item 7 (c); §4.3 exclusion (i)
+FAIL JSG-02.16  expected: the booted mixed value is still EQUAL to V under §1.5 (the file image moves the -0 only)
+             observed: threw {message:"'rt' does not exist in '', it holds no keys",status:"AddressNotFound"}
+             clause:   store §7.2 item 7 (a)-(c); §1.5
+FAIL JSG-10.16  expected: a file-tier write whose commit path fails answers FileCommitFailed and delivers it to the caller
+             observed: <no throw>
+             clause:   store §8.1 #15; §7.2 items 3-4
+FAIL JSG-10.17  expected: after the failed commit A16's automatic journal rollback has run: the pre-write state stands (the address does not resolve)
+             observed: <no throw>
+             clause:   store §6.4 item 8; §7.2 item 3 (i)
+FAIL JSG-10.18  expected: every one of the driven failures arrives as ONE form: a plain object whose own member set is exactly {message, status}, both non-empty strings
+             observed: 2 did not throw; forms=[message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype []/n/a []/n/a
+             clause:   §2.5 items 1-3; DD-12
+FAIL JSG-10.19  expected: every status is a member of the store's closed 15-member set — no code outside the set and none minted by the package
+             observed: outside=[<no throw>,<no throw>] observed=[AddressMalformed,AddressMalformed,AddressNotFound,LeafHasNoDownstream,TierNotFound,OutOfDomainTier,ParentAnchorMonotonicityViolation,ContainerKindConflict,ReadTargetIsBranch,WriteParentNotLink,JournalOpUnknown,RollbackCompacted,ConstructionArgumentMissing,FilePathUnreachable,ValueNotAdmitted,<no throw>,<no throw>]
+             clause:   §2.5 item 1; DD-40
+FAIL JSG-10.20  expected: every message is non-empty and carries no unsubstituted placeholder token of the generator's own form
+             observed: [undefined,undefined]
+             clause:   store §8.2 property (c)
+
+── THE FIRING AT THE PAIR-ADOPTED ADDRESS: THE RULED READING (ONE SIDE, NOT TWO) ──
+  THE RULING, AND WHAT IT MOVED: a SPLIT once stood here (2026-10-15, `§2.7` item 6 against `§2.4` item 8 (c) as amended, both readings printed, no side taken; `docs/next-steps.md` · `N7` item 1).
+  THE ARCHITECT HAS RULED, AND IT IS ASSERTED HERE: `§2.7` item 6 GOVERNS THE FIRING — for a write the triggered constraints run first and THE OTHER LISTENERS ARE REACHED ONCE EVERY CONSTRAINT HAS PASSED (its force: `docs/decisions.md` · `A114` (D1) with `A112`).
+  `§2.4` item 8 (c) IS A REGISTRATION-side STATEMENT — which identity the app's `on` holds at an address the home entry already carries, which slot it replaced, which function the pass evaluates — and ITS NON-DELIVERY DERIVATIONS ARE SUPERSEDED: at that address a registered listener is owed ONE firing, after the pass, not ZERO.
+  THE CLAUSE TEXT THIS CELL CITES: `§2.4` item 8 (c) as amended 2026-10-15 and `§2.7` item 6 as landed 2026-10-15 BOTH STAND AS PRINTED — the re-scoping remand had NOT landed in `docs/specs/storeroom-js/surface.md` when this cell was written, so the clauses are cited as they stand, WITH the ruling.
+  JSG-16.1  · the pair-adopted address ["split"] — on at the pair-adopted address: count=1 arg=["split"] args=1 store-call-returned=true read=1
+  JSG-16.1.c· the proper prefix [] — on at the proper prefix: count=1 arg=["split"] args=1 store-call-returned=true read=1
+  JSG-16.3  · INSTRUMENT CONTROL (no ruling, no side) — the bare address ["bare"] — on at a bare address: count=1 arg=["bare"] args=1 store-call-returned=true read=1
+  DRIVE: the kernel route the ruling names — `K-1` register(store, address, id, constraint) · `K-2` commit(store, address, tier, value) · `K-3` runAttempt(store, commit) (`kernel-surface.md §1` item 1, `§2.1` items 1–3) — on the instance the package's own `storeCreate` returned.
+  OWED, AND NOT CLAIMED HERE: the seam's two instants as observables — the in-window invocation set EMPTY at instant (a) (`§2.4` item 9 (a)) and the residue delivered at instant (b) — remain the kernel's own two calls at the kernel's own boundary (§3 item 9 of the greens document); this cell drives the pass and reads the PACKAGE's deliverer.
+
+── THE RUN ─────────────────────────────────────────────────────────────────────────
+SITE:  node bindings/js/greens/greens.mjs   (cwd: /media/ryanr/Shared Files/Projects/Provident-Storeroom)
+ENTRY: /media/ryanr/Shared%20Files/Projects/Provident-Storeroom/bindings/js/index.mjs
+ENTRY 2 (JSG-16.1 only): /media/ryanr/Shared%20Files/Projects/Provident-Storeroom/bindings/js/src/constraint-kernel.mjs
+LAYER: ENVELOPE/PURE   APP LAYER: NONE   (no APP-green is claimed)
+SCRATCH: /tmp/sr-js-greens-AyBjxM
+  JSG-01: 17 PASS · 0 FAIL   (17 assertions)
+  JSG-02: 11 PASS · 5 FAIL   (16 assertions)
+  JSG-03: 5 PASS · 0 FAIL   (5 assertions)
+  JSG-04: 67 PASS · 0 FAIL   (67 assertions)
+  JSG-05: 14 PASS · 0 FAIL   (14 assertions)
+  JSG-06: 7 PASS · 0 FAIL   (7 assertions)
+  JSG-07: 15 PASS · 0 FAIL   (15 assertions)
+  JSG-08: 22 PASS · 0 FAIL   (22 assertions)
+  JSG-09: 12 PASS · 0 FAIL   (12 assertions)
+  JSG-10: 19 PASS · 5 FAIL   (24 assertions)
+  JSG-11: 18 PASS · 0 FAIL   (18 assertions)
+  JSG-12: 18 PASS · 0 FAIL   (18 assertions)
+  JSG-13: 6 PASS · 0 FAIL   (6 assertions)
+  JSG-14: 5 PASS · 0 FAIL   (5 assertions)
+  JSG-15: 3 PASS · 0 FAIL   (3 assertions)
+  JSG-16: 4 PASS · 0 FAIL   (4 assertions)
+────────────────────────────────────────────────────────────────────────────────────
+AUTHORED 253 · EXECUTED 253 · PASS 243 · FAIL 10
+
+EVERY FAIL, ONE LINE EACH (scenario · expected-from-the-docs · observed · clause):
+  JSG-02.10 :: a FRESH instance over the same cfg.filePath re-loads the committed value: the boot read equals the written value under §1.5 :: threw {message:"'rt' does not exist in '', it holds no keys",status:"AddressNotFound"} :: [store §7.2 item 6]
+  JSG-02.11 :: the booted value's member set is the written one ::  :: [§1.5 item 1; store §7.2 item 6]
+  JSG-02.14 :: after a boot the committed -0 reads back as 0 (Object.is 0 is true) :: threw {message:"'neg-file' does not exist in '', it holds no keys",status:"AddressNotFound"} :: [store §7.2 item 7 (c); §4.3 exclusion (i)]
+  JSG-02.15 :: and Object.is(v,-0) is false: the ONE declared number normalization :: threw {message:"'neg-file' does not exist in '', it holds no keys",status:"AddressNotFound"} :: [store §7.2 item 7 (c); §4.3 exclusion (i)]
+  JSG-02.16 :: the booted mixed value is still EQUAL to V under §1.5 (the file image moves the -0 only) :: threw {message:"'rt' does not exist in '', it holds no keys",status:"AddressNotFound"} :: [store §7.2 item 7 (a)-(c); §1.5]
+  JSG-10.16 :: a file-tier write whose commit path fails answers FileCommitFailed and delivers it to the caller :: <no throw> :: [store §8.1 #15; §7.2 items 3-4]
+  JSG-10.17 :: after the failed commit A16's automatic journal rollback has run: the pre-write state stands (the address does not resolve) :: <no throw> :: [store §6.4 item 8; §7.2 item 3 (i)]
+  JSG-10.18 :: every one of the driven failures arrives as ONE form: a plain object whose own member set is exactly {message, status}, both non-empty strings :: 2 did not throw; forms=[message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype [message,status]/Object.prototype []/n/a []/n/a :: [§2.5 items 1-3; DD-12]
+  JSG-10.19 :: every status is a member of the store's closed 15-member set — no code outside the set and none minted by the package :: outside=[<no throw>,<no throw>] observed=[AddressMalformed,AddressMalformed,AddressNotFound,LeafHasNoDownstream,TierNotFound,OutOfDomainTier,ParentAnchorMonotonicityViolation,ContainerKindConflict,ReadTargetIsBranch,WriteParentNotLink,JournalOpUnknown,RollbackCompacted,ConstructionArgumentMissing,FilePathUnreachable,ValueNotAdmitted,<no throw>,<no throw>] :: [§2.5 item 1; DD-40]
+  JSG-10.20 :: every message is non-empty and carries no unsubstituted placeholder token of the generator's own form :: [undefined,undefined] :: [store §8.2 property (c)]

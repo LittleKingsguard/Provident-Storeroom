@@ -1351,7 +1351,17 @@ fn e2e_stress_tree_of_at_least_100_nodes_member_for_member() {
     let value = stress_tree();
     let path = fresh_path("stress");
     let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1");
-    ok(store.write(AddressArg::List(key(&["root"])), w_file(), value.clone()), "§3.4 W-4: a file-tier tree");
+    // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 1–2 AS AMENDED): the verb RECORDS the write and
+    // performs NO FILE I/O on any of its arms, so this cell's own file route is completed by THE TERMINAL
+    // ARM'S OWN ACT, keyed by the settled record's own `op` (`surface.md §2.11` clause 2).**
+    let landed = ok(
+        store.write(AddressArg::List(key(&["root"])), w_file(), value.clone()),
+        "§3.4 W-4 / §7.2 item 1 as amended: a `file`-tier tree is RECORDED by the verb",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &landed.op.opId),
+        "§7.2 item 2 as amended: the terminal arm's own act commits the ≥ 100-node tree's JSON image",
+    );
     let back = read_at(&store, &key(&["root"]));
     let mut written_nodes = 0usize;
     let mut read_nodes = 0usize;
@@ -1431,12 +1441,26 @@ fn e2e_re_write_fidelity_three_values_equal() {
 /// Commit `value` at `key(&["root"])` at the `file` tier, then boot a FRESH instance at the same
 /// `cfg.filePath` and read the same address back — the declared boot (`§7.2` item 6: *"on `storeCreate`,
 /// the `file` tier's content at `cfg.filePath` is loaded if the file exists"*) — and compare EXACTLY.
+///
+/// **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 1–2 AS AMENDED, `surface.md §2.11` clause 2): THE
+/// `file`-TIER COMMIT IS THE TERMINAL ARM'S OWN ACT AND NOT THE VERB'S.** *"`Store::write(…)` RECORDS THE
+/// WRITE IN THE JOURNAL, INSTALLS THE NODE, APPENDS THE ENTRY AND RETURNS ITS `WriteResult` … AND IT
+/// PERFORMS NO FILE I/O ON ANY OF ITS ARMS"* (item 1 as amended); *"THE `file`-TIER COMMIT IS THE TERMINAL
+/// ARM'S OWN ACT … keyed by THE SETTLED RECORD'S OWN `op`"* (item 2 as amended). **So the drive takes the
+/// op the verb returned and drives that act at its own instant — the act is what puts the JSON TEXT at
+/// `cfg.filePath` that the boot below reads.** **NO ASSERTION IS WEAKENED: the round trip asserted at the
+/// end is the same one, over the same JSON text, and the boot is the same declared boot.**
 fn boot_round_trip(tag: &str, value: StoreValue, clause: &str) {
     let path = fresh_path(tag);
     {
         let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1: the construction's arguments are valid");
-        ok(store.write(AddressArg::List(key(&["root"])), w_file(), value.clone()),
-            "§7.2 item 1: a file-tier write commits");
+        let landed = ok(store.write(AddressArg::List(key(&["root"])), w_file(), value.clone()),
+            "§7.2 item 1 as amended: the verb RECORDS the write and returns its `WriteResult` — and it \
+             performs NO FILE I/O on any of its arms");
+        ok(commit_at_the_terminal_arm(&mut store, &landed.op.opId),
+            "§7.2 item 2 as amended / `surface.md §2.11` clause 2: THE TERMINAL ARM'S OWN ACT — the \
+             `file`-tier commit, keyed by the settled record's own `op` — lands the whole serialized state \
+             at `cfg.filePath` (`DD-2`)");
     }
     let booted = ok(storeCreate(&cfg_at(&path, 8)),
         "§7.2 item 6: the boot loads the file's content and the instance IS returned");
@@ -1600,11 +1624,16 @@ fn e2e_boot_neg_zero_sign_is_declared_nowhere() {
     }
 
     // (i) at the `file` tier: the instance's OWN state, after the commit and BEFORE any boot.
+    // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 1–2 AS AMENDED, `surface.md §2.11` clause 2): the verb
+    // RECORDS the write and performs NO FILE I/O on any of its arms, so the JSON image this cell's half (ii)
+    // reads is put at the path by THE TERMINAL ARM'S OWN ACT. THE IN-MEMORY HALF (i) IS READ BEFORE THAT ACT,
+    // which is the clause's own order and is why the two halves are separable at all.**
     let path = fresh_path("boot-neg-zero");
     let mut live = ok(storeCreate(&cfg_at(&path, 8)), "§7.1");
-    ok(
+    let landed = ok(
         live.write(AddressArg::List(key(&["root"])), w_file(), v_num(-0.0)),
-        "§7.2 item 1: a file-tier write commits",
+        "§7.2 item 1 as amended: the verb RECORDS the write — and the value the store holds is the \
+         caller's, because the normalization is a property of the FILE's IMAGE and not of the value",
     );
     match read_at(&live, &key(&["root"])) {
         StoreValue::Num(n) => assert!(
@@ -1619,10 +1648,15 @@ fn e2e_boot_neg_zero_sign_is_declared_nowhere() {
         v_num(-0.0),
         "§5.2 P-IM-1: the as-filed case's equality half stands — the declared predicate holds in memory"
     );
+    ok(
+        commit_at_the_terminal_arm(&mut live, &landed.op.opId),
+        "§7.2 item 2 as amended / `surface.md §2.11` clause 2: THE TERMINAL ARM'S OWN ACT, keyed by the \
+         settled record's own `op`",
+    );
 
-    // (ii) THE `file` TIER'S COMMITTED BYTES — `§7.2` item 1 `M-12`, the one JSON image in this unit.
+    // (ii) THE `file` TIER'S COMMITTED BYTES — `§7.2` item 2 as amended `M-12`, the one JSON image in this unit.
     let bytes = std::fs::read_to_string(&path)
-        .expect("§7.2 item 1: a JSON file stands at cfg.filePath after a successful commit");
+        .expect("§7.2 item 2: a JSON file stands at cfg.filePath after the terminal arm's own commit");
     assert_eq!(
         bytes, "{\"root\":0}",
         "A59 — *NORMALIZE INTO FILE*: the `file` tier's JSON text carries the CANONICAL NUMBER SPELLING, so \
@@ -1737,6 +1771,12 @@ const VALUE_NOT_ADMITTED_AT_V: &str = "''v'' is not an admitted value, admitted 
 /// `§7.2` item 1 `M-12` / item 6, driven for ONE value as `A59` separates its two layers: **the `file`-tier
 /// instance's OWN in-memory read-back, the committed BYTES at `cfg.filePath`, and a FRESH BOOT's read-back.**
 /// `DD-2` lands a successful commit's bytes whole, so the bytes read here are the commit's own.
+///
+/// **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 1–2 AS AMENDED, `surface.md §2.11` clause 2): the verb
+/// RECORDS the write and takes NO byte of the path — *"it performs NO FILE I/O ON ANY OF ITS ARMS"* — and
+/// THE TERMINAL ARM'S OWN ACT, keyed by the settled record's own `op`, is what lands the image these three
+/// observables are read at. The in-memory read-back is taken BEFORE the act, which is the clause's own
+/// order: the value the store holds is the caller's, and the image is the act's.**
 fn file_image_drive(tag: &str, value: StoreValue) -> (StoreValue, String, StoreValue) {
     let path = fresh_path(tag);
     let live = {
@@ -1744,14 +1784,21 @@ fn file_image_drive(tag: &str, value: StoreValue) -> (StoreValue, String, StoreV
             storeCreate(&cfg_at(&path, 8)),
             "§7.1: the construction's arguments are valid",
         );
-        ok(
+        let landed = ok(
             store.write(AddressArg::List(key(&["root"])), w_file(), value),
-            "§7.2 item 1: a file-tier write commits",
+            "§7.2 item 1 as amended: the verb RECORDS the write, installs the node, appends the entry and \
+             returns its `WriteResult` — and it performs NO FILE I/O on any of its arms",
         );
-        read_at(&store, &key(&["root"]))
+        let held = read_at(&store, &key(&["root"]));
+        ok(
+            commit_at_the_terminal_arm(&mut store, &landed.op.opId),
+            "§7.2 item 2 as amended / `surface.md §2.11` clause 2: THE TERMINAL ARM'S OWN ACT — the \
+             `file`-tier commit, keyed by the settled record's own `op`",
+        );
+        held
     };
     let bytes = std::fs::read_to_string(&path).unwrap_or_else(|e| {
-        panic!("§7.2 item 1: a JSON file stands at cfg.filePath after a successful commit; got {e}")
+        panic!("§7.2 item 2: a JSON file stands at cfg.filePath after the terminal arm's own commit; got {e}")
     });
     let booted = ok(
         storeCreate(&cfg_at(&path, 8)),

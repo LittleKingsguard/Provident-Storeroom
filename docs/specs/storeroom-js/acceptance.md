@@ -84,7 +84,7 @@ figure reported without its site and its layer is VOID** (`package.md §4.2` ite
 registry through `register(handle, listener)` — the ONE member of the object `storeCreate` returned
 (`surface.md §2.4` item 5) — and NEVER through the module namespace, because `register` is not a named
 export.** **A drive MUST distinguish the TWO throw sites: `§2.5`'s `{status, message}` for a VERB, and
-`PAR-JS-12`'s JS `TypeError` (carrying no `status` and no `message`) for a REGISTRATION — and a `TypeError`
+`PAR-JS-12`'s JS `TypeError` for a REGISTRATION — AND THIS ITEM IS READ WITH ONE LATER ADDITION, 2026-10-15: `docs/specs/storeroom-js/surface.md` `§2.4` item 9 (b) declares a THIRD site, the ORDERING SEAM's `settle` refusal, whose `status` member is ABSENT and whose STRING `message` member is REQUIRED AND NOT FORBIDDEN, while ITS re-spelling of *"NO `message` member"* is read AT THAT SEAM AND NOT as a prohibition of THIS registration site's own refusal's message — and a `TypeError`
 thrown by a VERB remains a FINDING.** **A drive that reads the registry through any spelling other than
 that member is a FINDING** (`archive/gate3/storeroom-js-red-set.md` §5 item 1)
 (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-15`; A3 docs/specs/storeroom-js/surface.md §2.4
@@ -202,8 +202,18 @@ THE TWO LISTS THROUGH TWO DATED CLAUSES THAT STATE THE SAME TWO FACTS, and neith
 neighbourhood; the store's `e2e_json_round_trip` battery is the Rust half). **THE PROPERTY THIS UNIT'S JS
 LAYER ASSERTS, STATED IN THE JS-SIDE EQUALITY TERMS OF `crossing.md §1.5`:**
 **for every value `v` in the layer's corpus, `read(instance, address)` after
-`write(instance, address, tier, v)` must be EQUAL to `v` UNDER THE RELATION OF `crossing.md §1.5` —
+`write(instance, address, tier, v, commit?)` must be EQUAL to `v` UNDER THE RELATION OF `crossing.md §1.5` —
 member-SET equality for objects, array index order significant, and `Object.is` where sign or `NaN` matters.**
+**⟶ THE SIGNATURE IS RE-SPELLED 2026-10-16 WITH ITS FIFTH POSITION AND ITS OWN `§n`, AS THE GATE-10 RULE
+REQUIRES OF A CELL THAT QUOTES A CALL SHAPE (`role_spec_writer`, on the gate-8 documentation review of the
+file-tier save): the as-filed cell quoted `write(instance, address, tier, v)` — **the pre-amendment
+FOUR-position spelling** — and the declared signature is `write(instance, address, tier, value, commit?)`, `4`
+required arguments and the OPTIONAL one at position `5`, DECLARED LAST**
+(`docs/specs/storeroom-js/surface.md §2.2`'s signature block and its dated clause of 2026-10-15;
+`docs/specs/storeroom-js/parameter-semantics.md §1`'s declared arity and `§2.20` — `PAR-JS-20`, the fifth
+argument's own row). **AND THE PROPERTY IS UNMOVED BY THE RE-SPELLING, SAID HERE SO THE CELL IS NOT READ AS
+WIDENED: this cell's drive supplies NO fifth argument, so the position is ABSENT — IN DOMAIN, and no default is
+fabricated for it (`§2.2` clause 4) — and the round trip it asserts is the VERB's own and is unmoved.**
 **THE CORPUS AND THE TWO EXCLUSIONS, AND NOTHING ELSE:** **the corpus is `various JSON` — a string, a
 boolean, a finite number, an empty object, an empty array, a nested object, a nested array, an object
 holding an array holding an object, and a value carrying an integer-like key beside a non-integer-like one;

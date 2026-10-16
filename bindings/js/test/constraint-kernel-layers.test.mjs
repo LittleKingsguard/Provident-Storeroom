@@ -5,6 +5,16 @@
 // handle), `§2.3` item 1 (the evaluation's address-scoped set), `attempt-lifecycle.md §2.4` item 8
 // (ii) (e), and `e2e-scenarios-b.md`'s `E2E-C-16`.
 //
+// ⟶ RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-SPELL OF 2026-10-13. This head's states and FOUR of
+//    this file's cell sites carried the WITHDRAWN readings — *"the caller's own loop is layer (b)'s
+//    only invoker"* and the *"not-yet-invoked"* extents — and are re-grounded here on `A112`'s own law:
+//    **the store returns the handles and invokes nothing; the JS surface is the invoker, in two ordered
+//    layers, the TRIGGERED CONSTRAINTS first and the OTHER LISTENERS once every constraint has passed;
+//    `pending` is the whole returned set of triggered constraints, each entry leaving it only by being
+//    checked off as it passes; and every listener is `pending` on every write.** The cells' ASSERTIONS
+//    stand where they stand under the re-spelled clauses and are re-grounded where they did not; each
+//    re-derived site is marked IN PLACE, and this file's cell count does not move.
+//
 // ── THE STATES ENUMERATED BEFORE THE TESTS ─────────────────────────────────────────────────────
 //
 // DELIVERY IS SPLIT BY LAYER, AND THE LAYER IS FIXED BY THE WRITE THAT RETURNED EACH HANDLE AND BY
@@ -14,14 +24,20 @@
 //       attempt's context and with NO other argument.
 //   (b) A HANDLE THE WRITE RETURNED THAT THE KERNEL HAS NOT INVOKED IN ITS OWN WINDOW: it stands in
 //       the named member `CommitRecord.pending`, its body STANDS OUTSIDE THE KERNEL'S OWN ACT, and
-//       THE CALLER'S OWN LOOP OVER THAT MEMBER IS THE ONLY INVOKER LAYER (b) HAS.
+//       THE CALLER'S OWN LOOP OVER THAT MEMBER IS ONE INVOKER AMONG THE JS SURFACE'S ORDERED LAYERS
+//       AND NEVER THE ONLY ONE (`A: docs/decisions.md` · `A112` — the *"only invoker"* spelling is
+//       WITHDRAWN BY NAME and is asserted nowhere in this file).
 // THE ONE LAW, AND NEVER THE INSTANT: EVERY LAYER (a) DELIVERY OF A CALL COMPLETES BEFORE ANY LAYER (b)
 //   BODY OF THAT CALL RUNS. The layer-(b) instant is deliberately UNNAMED and is asserted NOWHERE here.
 // THE TWO-KIND RULE BY REGISTRATION KIND: a handle whose pair the kernel itself registered resolves to
 //   a `K-1`-registered function; a handle the caller registered as a plain store listener resolves to a
 //   plain store listener and carries THE TRIGGERING ADDRESS as its ONE argument.
-// THE MEMBERS' DIFFERENT EXTENTS: `triggered` carries EVERY handle the write returned, `pending` the
-//   not-yet-invoked ones — and a handle already run is NEVER a member of both.
+// THE MEMBERS' EXTENTS, RE-SPELLED: `triggered` carries EVERY handle the write returned, and `pending`
+//   carries THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS as the kernel writes it, each entry leaving
+//   it only by being checked off as it passes (`§2.1` item 2; `§2.2` item 3). THE WITHDRAWN SPELLING
+//   that read this member as the *"not-yet-invoked"* remainder and held that "a handle already run is
+//   NEVER a member of both" is asserted nowhere in this file; the two cells that read an evaluated
+//   pair's own handle out of this member are grounded on the check-off clause instead.
 // THE TWO-IDS-ONE-HOME STATE (`PAR-C-1`): two registrations at ONE address under two ids leave TWO
 //   registry entries — each with its OWN registered function — and ONE store home entry.
 //
@@ -30,9 +46,14 @@
 // (`kernel-surface.md §2.1` item 2: `{attempt, op, triggered, pending}`, "the store's write returns
 // `{op, watched, triggered}` and the kernel's record carries TWO of those members VERBATIM, plus the
 // attempt's identity and the kernel's own `pending` member"). No cell here reads `pending` — or any
-// member of that record — off a STORE verb's returned value, and `pending` carries THE HANDLES THE
-// CALLER'S OWN WRITE RETURNED, the kernel-made ones standing in `triggered` ONLY (`§2.1` item 2;
-// `§2.2` items 2–3; `A108` `D1`/`D2`).
+// member of that record — off a STORE verb's returned value, and BOTH MEMBERS CARRY THE WHOLE RETURNED
+// SET: `triggered` VERBATIM and AS A SET because THAT SET IS THE STORE'S OWN ANSWER, and `pending`
+// SOURCED FROM THAT SAME SET WHOLE, AN ENTRY LEAVING IT ONLY BY BEING CHECKED OFF AS IT PASSES — AND
+// NEVER BY THE WRITE THAT RETURNED IT, so A HANDLE THIS CALL'S OWN WRITE RETURNED AND A KERNEL-MADE ONE
+// STAND IN THE MEMBER ALIKE: A SUBSET AND A FILTER OF THE RETURNED SET ARE BOTH WITHDRAWN BY NAME, and
+// the head sentence that once stood here — *"the kernel-made ones standing in `triggered` ONLY"* —
+// rested on that withdrawn sift reading and is re-grounded here on the whole-set clause (`§2.1` item 2;
+// `§2.2` items 2–3; `A: docs/decisions.md` · `A112`; `A108` `D1`/`D2`).
 // AND THE HANDLE ITSELF: the value the STORE'S OWN VERB ADOPTED for an address, one per address, never
 // a token the kernel minted and never a type any clause of this directory spells — `A: bindings/js/
 // index.d.ts` declares `Handle = object` and the store's own `on`/`listen` answer it
@@ -133,8 +154,16 @@ test('ck_layer_a_constraints_run_before_other_listeners_at_the_same_address', as
     'the address\'s constraints were evaluated from the KERNEL\'s own window, and NO plain body ran from '
     + 'the store there — the withdrawn phrasing\'s "plain" element is unreachable, not merely unordered');
   assert.equal(record.pending.includes(handlePlain), false,
-    'and the displaced handle stands in no member: the kernel\'s own home handle is carried by `pending` '
-    + 'NEVER, an already-run handle being a member of `triggered` and of `pending` never (`§2.1` item 2)');
+    'and the displaced handle stands in no member after the pass: the entry the write wrote into `pending` '
+    + 'with the whole returned set LEFT IT BY BEING CHECKED OFF AS IT PASSED — "AN ENTRY LEAVES IT ONLY '
+    + 'BY BEING CHECKED OFF AS IT PASSES" (`§2.1` item 2), its pair being the one this attempt\'s pass '
+    + 'evaluated (`§2.2` item 2) — so the removal this cell reads is the check-off\'s own act. '
+    + 'RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-SPELL: the sentences that stood here — "an already-run '
+    + 'handle being a member of `triggered` and of `pending` never" and *"STANDS IN `pending` NO '
+    + 'LONGER"* — are the WITHDRAWN spellings (`A: docs/decisions.md` · `A112`; `§2.2` item 3 as '
+    + 're-spelled: an entry the kernel\'s own window evaluates "IS STILL WRITTEN AS `pending` WITH THE '
+    + 'WHOLE RETURNED SET AND LEAVES IT ONLY BY BEING CHECKED OFF AS IT PASSES"), and the check-off '
+    + 'clause is this ground\'s one live home');
 
   // THE ONE ORDER THE CLAUSE DECLARES, READ OFF `seq` AND OFF THE OUTCOME ENTRY'S OWN `state`.
   const checked = report.log.filter((e) => e.kind === 'constraint-check');
@@ -223,7 +252,12 @@ test('ck_layer_b_the_uninvoked_caller_returned_handle_stands_in_pending_and_in_n
     '`pending` is the kernel\'s own fourth member and is NOT a member of the store\'s record');
   assert.ok(Array.isArray(commitRecord.pending), 'pending is the named member of the record the kernel returned');
   assert.ok(commitRecord.pending.length >= 1,
-    'the caller\'s not-yet-invoked handles stand there: this member is layer (b)\'s ONLY work list');
+    'the returned set stands there as the kernel writes it, each entry leaving it only by being checked '
+    + 'off as it passes — and THIS MEMBER IS AN INVOKER\'S WORK LIST, the caller\'s own loop being ONE '
+    + 'invoker among the JS surface\'s ordered layers and never the only one (`§2.1` item 2; `§2.2` '
+    + 'items 2–3; `A: docs/decisions.md` · `A112`). RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-SPELL: '
+    + 'the sentence that stood here read this member as *"layer (b)\'s ONLY work list"*, a WITHDRAWN '
+    + 'spelling');
   for (const handle of commitRecord.pending) {
     assert.notEqual(handle, undefined, 'every member is a handle the store adopted for a registration');
     assert.equal(commitRecord.triggered.includes(handle), true,
@@ -259,12 +293,18 @@ test('ck_layer_b_the_uninvoked_caller_returned_handle_stands_in_pending_and_in_n
  *
  * WHAT THIS CELL NOW DRIVES, so the argument shape is ACTUALLY OBSERVABLE: the plain listener is
  * registered through the STORE'S OWN `on(address, listener)` at an address at which the kernel holds
- * NO `K-1` PAIR — so nothing displaces it and the STORE'S OWN DELIVERY is what invokes it. The
+ * NO `K-1` PAIR — so nothing displaces it and THE STORE'S OWN VERB CALL is what reaches its body (the
+ * store returns handles and invokes nothing ON EITHER LAYER'S BEHALF, `§2.2` item 2; a plain store
+ * registration's body is reached by the store's machinery itself, and no kernel act is its invoker).
+ * The
  * operation's own landing address is `['<tag>','c']` and the registration's watch address is the
  * proper prefix `['<tag>']`, so the two-address distinction the clause draws is DRIVEN: a body handed
  * the REGISTRATION'S watch address would read `['<tag>']`, and one handed the OPERATION'S address reads
- * `['<tag>','c']`. The delivery is the store's; the caller's loop is layer (b)'s only invoker for a
- * handle the kernel did NOT deliver, and that is the OTHER cell's subject, not this one's.
+ * `['<tag>','c']`. The delivery of a plain store registration is the store's own; the caller's own loop
+ * is ONE invoker among the JS surface's ordered layers for a handle the kernel did NOT deliver, and that
+ * is the OTHER cell's subject, not this one's (`A: docs/decisions.md` · `A112` — RE-DERIVED AT THE
+ * `A112` DELIVERY-MODEL RE-SPELL: the phrase that stood here read that loop as *"layer (b)'s only
+ * invoker"*, a WITHDRAWN spelling).
  *
  * `kernel-surface.md §2.1` item 2, verbatim: the listener's ONE argument "IS the write's or the
  * `delete`'s OWN address … and NOT the registration's watch address, which may be a proper prefix of
@@ -290,7 +330,9 @@ test('ck_layer_b_the_plain_store_listener_carries_the_triggering_address_as_its_
   assert.deepEqual(written.op.address, operationAddress,
     'the operation\'s own landing address is the two-segment descendant');
   assert.equal(plain.seen.length, seenBefore + 1,
-    'THE STORE\'S OWN DELIVERY ran the body — no caller-side loop and no handle was involved');
+    'THE STORE\'S OWN WRITE REACHED THE BODY — the store returns the handles and invokes nothing on '
+    + 'either layer\'s behalf, and a plain registration\'s body is reached by the store\'s own verb call '
+    + 'and by no kernel act (`§2.2` item 2); no caller-side loop and no handle was involved');
   assert.deepEqual(plain.seen[seenBefore].address, operationAddress,
     'and it carried THE TRIGGERING ADDRESS — the OPERATION\'s own address — as its ONE argument, and '
     + 'NOT the registration\'s watch address, which is a proper prefix of it');
@@ -326,9 +368,11 @@ test('ck_layer_b_the_plain_store_listener_carries_the_triggering_address_as_its_
  * and NO CALLER-SIDE SEQUENCE NUMBER IS DECLARED ANYWHERE THAT ORDERED A HANDLE'S INVOCATION AGAINST A
  * `LogEntry`'s `seq`. So the clause's own "BEFORE" is NOT REFINABLE INTO A DRIVE from the declared
  * surface: this cell asserts WHAT THE CLAUSE DOES PIN — that the pass's own entries all stand in the
- * log, in `seq` order, as ONE list the caller reads after its loop — and asserts the reachability of
- * layer (b)'s work list, whose only invoker is that loop. The clause's temporal half pins nothing a
- * drive can read, and that is reported rather than asserted.
+ * log, in `seq` order, as ONE list the caller reads after its loop — and asserts the reachability of a
+ * work list the caller's own loop reads, that loop being ONE invoker among the JS surface's ordered
+ * layers and never the only one (`A: docs/decisions.md` · `A112`; RE-DERIVED AT THE `A112`
+ * DELIVERY-MODEL RE-SPELL, whose superseded phrase read that loop as the work list's *"only invoker"*).
+ * The clause's temporal half pins nothing a drive can read, and that is reported rather than asserted.
  */
 test('ck_layer_b_the_order_law_every_layer_a_delivery_completes_before_any_layer_b_body', async () => {
   const { register, commit, runAttempt, log } = await kernel();
@@ -345,14 +389,18 @@ test('ck_layer_b_the_order_law_every_layer_a_delivery_completes_before_any_layer
   register(store, nestedAddress, 'cB', () => true);
   const record = commit(store, nestedAddress, 'mem', 'v1');
   assert.ok(record.pending.length >= 1,
-    'LAYER (b)\'S ONLY WORK LIST IS NOT EMPTY: it carries the handle the caller\'s own registration '
-    + 'stands behind, which the kernel has not invoked in its own window (`§2.1` item 2; `§2.2` item 2)');
+    'THE WORK LIST THE CALLER\'S OWN LOOP READS IS NOT EMPTY: it carries the handle the caller\'s own '
+    + 'registration stands behind, which the kernel has not invoked in its own window (`§2.1` item 2; '
+    + '`§2.2` item 2). RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-SPELL: "LAYER (b)\'S ONLY WORK LIST" '
+    + 'carried the withdrawn *"only invoker"* reading of that loop');
   assert.equal(record.pending.includes(handlePlain), true,
     'and that handle is the caller\'s own adopted value for its address');
   const beforeTheLoop = log(store, record.attempt).length;
   let loopRuns = 0;
   for (const handle of record.pending) {
-    // THE BODY THE CALLER'S OWN LOOP RUNS — layer (b)'s ONLY INVOKER (item 5 (iii); `§2.2` item 2).
+    // THE BODY THE CALLER'S OWN LOOP RUNS — ONE INVOKER AMONG THE JS SURFACE'S ORDERED LAYERS AND
+    // NEVER THE ONLY ONE (item 5 (iii) as the `A112` DELIVERY-MODEL RE-SPELL re-spells it; `§2.2`
+    // item 2). The withdrawn *"layer (b)'s ONLY INVOKER"* reading is asserted nowhere in this cell.
     assert.notEqual(handle, undefined, 'every member of the work list is a handle');
     loopRuns += 1;
   }
@@ -376,7 +424,7 @@ test('ck_layer_b_the_order_law_every_layer_a_delivery_completes_before_any_layer
     + 'and is driven on the throwing arms by the `states` file');
 });
 
-test('ck_layer_b_a_caller_made_writes_uninvoked_handle_is_left_for_the_caller_and_never_double_delivered', async () => {
+test('ck_layer_b_a_caller_made_writes_uninvoked_handle_stands_in_pending_and_is_not_run_by_the_kernel', async () => {
   const { register, commit, runAttempt } = await kernel();
   const { store, parentAddress, ancestorAddress } = driveE2EC16();
   const plain = countingListener();
@@ -385,40 +433,149 @@ test('ck_layer_b_a_caller_made_writes_uninvoked_handle_is_left_for_the_caller_an
   register(store, parentAddress, 'cB', () => true);
   const record = commit(store, parentAddress, 'mem', 'v1');
   assert.equal(plain.seen.length, 0,
-    'the kernel invoked no caller-made write\'s handle in its own window — that layer\'s only invoker is the caller\'s loop');
+    'the kernel invoked no caller-made write\'s handle in its own window — the caller\'s own loop is ONE '
+    + 'invoker among the JS surface\'s ordered layers and never the only one (`§2.1` item 2; '
+    + '`A: docs/decisions.md` · `A112`). RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-SPELL: "that '
+    + 'layer\'s only invoker is the caller\'s loop" was the WITHDRAWN spelling, and no assertion in this '
+    + 'cell rests on it — the assertion reads the KERNEL\'S OWN window, which the clause fixes');
+  assert.equal(record.triggered.includes(handlePlain), true,
+    'and the handle\'s own origin is the store\'s return: the registration at the ANCESTOR address is '
+    + 'triggered by the write at its descendant (`§2.1` item 2\'s prefix-test citation)');
   const work = record.pending.filter((h) => h === handlePlain);
   assert.equal(work.length, 1,
-    'the handle the caller\'s own write returned stands in the member exactly once and is never a member of both');
+    'the handle the caller\'s own write returned stands in the member exactly once, at `K-2`\'s return, '
+    + 'where the member IS the whole returned set — "`pending` CARRIES THE WHOLE RETURNED SET OF '
+    + 'TRIGGERED CONSTRAINTS AT THE MOMENT THIS CALL\'S WRITE\'S SET IS WRITTEN" (`§2.1` item 2). '
+    + 'RE-DERIVED AT THE DELTA PASS OF 2026-10-13: the id this cell carries once ended '
+    + '`…and_never_double_delivered`, on the WITHDRAWN reading that a handle already run is never a '
+    + 'member of both members — this handle\'s pair is one NO pass of this attempt evaluates (the pass '
+    + 'being address-scoped, `§2.3` item 1), so it is not run at all here and the old spelling is '
+    + 'withdrawn by name (`A: docs/decisions.md` · `A112`). WHAT THE CELL NOW ASSERTS is the handle\'s '
+    + 'one standing in `pending` and the kernel\'s own window having run it zero times');
   const report = runAttempt(store, record);
-  assertAttemptReport(report, 'no double delivery');
+  assertAttemptReport(report, 'the uninvoked handle\'s own cell');
+  assert.equal(plain.seen.length, 0,
+    'and across the whole drive the caller-made write\'s body ran ZERO times: NO pass of this attempt '
+    + 'evaluates a pair at the ancestor address, and the kernel invokes nothing of its own (`§2.3` '
+    + 'item 1; `§2.2` item 2: "THE STORE RETURNS THE HANDLES AND INVOKES NOTHING")');
 });
 
+/**
+ * ⟶ RE-DERIVED AT THE FINAL CELL-CORRECTION PASS OF 2026-10-13 (`D-GP-SVM-4` OUTCOME (a)): THE
+ * ASSERTION THIS CELL MADE AT `K-2`'S OWN RETURN WAS MALFORMED, AND THIS CLAUSE IS THE OPERATIVE ONE.
+ * EVERY CLAUSE BELOW STANDS BYTE-FOR-BYTE AND IS READ THROUGH THIS ONE (`RCA-8(d)` ANNOTATE-BESIDE);
+ * the bullet below that read the check-off as completed by the time the returned record is read names
+ * an instant `K-3`'s pass owns and not `K-2`'s.
+ * WHAT IT ASSERTED AND WHY IT IS MALFORMED: `pending` EMPTY AT `commit`'s OWN RETURN, read as the
+ * check-off's own effect. NO PASS RUNS AT `K-2` — the check-off is a pass's own act and the pass is
+ * `K-3`'s (`attempt-lifecycle.md §2.4` item 5 (iv)) — and that instant is pinned by three GREEN cells of
+ * `constraint-kernel-deliverymodel.test.mjs`: `ck_dm_the_kernel_runs_an_evaluated_pairs_own_body_in_its_
+ * own_window_with_the_attempt_context` (`NO PAIR BODY RUNS AT `K-2``) and the two whole-set cells whose
+ * fixture carries the same pair at the write's own address, each of which reads `pending` EQUAL TO
+ * `triggered` at `K-2`'s return (`ck_dm_a_writes_whole_returned_set_stands_in_pending_at_the_moment_the_
+ * record_is_produced`; `ck_dm_no_sifted_subset_is_produced_and_no_listener_is_absent_from_the_write_
+ * pending`). So the removal this cell demanded at that instant is a removal NO PASS CAN HAVE PERFORMED
+ * THERE, and the drive read a state the kernel's own surface does not write.
+ * THE STANDING ASSERTION: `pending` AT `K-2`'S RETURN IS THE WHOLE RETURNED SET — "`pending` CARRIES THE
+ * WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS AT THE MOMENT THIS CALL'S WRITE'S SET IS WRITTEN, AND AN
+ * ENTRY LEAVES IT ONLY BY BEING CHECKED OFF AS IT PASSES" (`§2.1` item 2) — and WHAT THE CALLER'S OWN
+ * LOOP HAS LEFT TO RUN IS READ AFTER THE PASS THAT CHECKS ENTRIES OFF AS THEY PASS: the drive runs `K-3`
+ * and THEN takes the loop off that member, where the entry has left it BY BEING CHECKED OFF (`§2.1`
+ * item 2; `§2.2` item 3). THE CELL'S ID AND ITS SUBJECT ARE UNMOVED: what the caller's own loop has left
+ * to run.
+ *
+ * RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-DERIVATION PASS, AT `kernel-surface.md §2.1` ITEM 2'S
+ * WHOLE-SET CLAUSE READ WITH `§2.2` ITEM 3'S CHECK-OFF CLAUSE AND WITH `e2e-scenarios-b.md`'s
+ * `E2E-C-16` OBSERVATION CELL (5) AS THE RE-SPELL RE-DERIVES IT.
+ *
+ * THE CELL'S SUBJECT IS UNMOVED AND IS WHAT ITS ID CARRIES: WHAT THE CALLER'S OWN LOOP HAS LEFT TO RUN.
+ * THE GROUND IT RESTED ON IS NOT. Its message once read *"no uninvoked handle stands behind this
+ * record: the empty list is a DECISION and not an omission"* — and THAT IS THE ONE READING `A112`
+ * WITHDRAWS BY NAME: an empty `pending` is NOT the decision the write took when it wrote the member, it
+ * is the STATE THE SET IS IN ONCE EVERY ENTRY OF IT HAS BEEN CHECKED OFF AS IT PASSED. A cell that read
+ * the empty list as the write's own decision read the SIFTED SUBSET as the lawful member, which the
+ * ruling declares UNNECESSARY AND UNLAWFUL.
+ *
+ * WHAT THIS CELL NOW DRIVES, DERIVED FROM THE CLAUSES AND NOT FROM THE MEMBER IT OBSERVES:
+ *   · ONE `K-1` PAIR STANDS AT THE WRITE'S OWN ADDRESS AND THE WRITE IS THE CALLER'S OWN (`commit`), so
+ *     THE WRITE'S RETURNED SET IS THAT PAIR'S ONE HANDLE — read below off ``triggered``, the member the
+ *     store's own answer stands in verbatim, WHICH IS THE HANDLE'S OWN ORIGIN AND NOT A SUBSET CLAIM
+ *     ABOUT THE OTHER MEMBER (`§2.1` item 2);
+ *   · THE PAIR IS ONE THE JS SURFACE'S CONSTRAINTS LAYER RUNS, AND FOR A WRITE THE CALLER MADE THAT RUN
+ *     COMPLETES INSIDE THAT VERB CALL'S OWN WINDOW, BEFORE THAT CALL RETURNS — and on a write on which
+ *     that verb call's own window ran the pair, THE ENTRY IS CHECKED OFF AS IT PASSED AND HAS LEFT THE
+ *     MEMBER BY THE TIME THIS DRIVE READS THE RETURNED RECORD (`§2.1` item 2; `§2.2` item 3);
+ *   · SO THE CALLER'S OWN LOOP READS A WORK LIST WITH NOTHING LEFT IN IT — NOT BECAUSE THE SET WAS
+ *     SIFTED WHEN IT WAS WRITTEN, WHICH IS THE WITHDRAWN READING, BUT BECAUSE WHAT WAS WRITTEN INTO IT
+ *     HAS BEEN CHECKED OFF AS IT PASSED — and the loop reads that state off THE CHECK-OFF STATE OF THE
+ *     SET and off no other member (`§2.1` item 2; `A112`).
+ *
+ * THE WHOLE-SET READING OF THE SAME MEMBER AT THE WRITE'S OWN INSTANT — `pending` EQUAL TO THE WHOLE
+ * RETURNED SET AS THE SIFT IS THE UNLAWFUL ALTERNATIVE — IS THE SUBJECT OF THE `ck_dm_*` CELLS OF
+ * `constraint-kernel-deliverymodel.test.mjs`, WHICH STAND AS THEY ARE AND ARE NOT RE-DERIVED HERE. THIS
+ * CELL ASSERTS THE STATE THE SAME SET IS IN AT THE ONE INSTANT ITS OWN SUBJECT READS IT, and asserts no
+ * instant of its own beyond that.
+ */
 test('ck_layer_b_a_record_with_no_caller_work_leaves_the_caller_s_loop_with_nothing_to_run', async () => {
   const { register, commit, runAttempt } = await kernel();
   const store = makeStore();
   const address = [tag('lb4')];
-  register(store, address, 'x', () => true);
+  const handle = register(store, address, 'x', () => true);
   const record = commit(store, address, 'mem', 1);
-  assert.deepEqual(record.pending, [],
-    'no uninvoked handle stands behind this record: the empty list is a DECISION and not an omission');
-  let calls = 0;
-  for (_handle of record.pending) calls += 1;
-  assert.equal(calls, 0, 'the caller\'s loop reads its work off that member and off no other');
+  assert.ok(record.triggered.length >= 1 && record.triggered.includes(handle),
+    'THE HANDLE\'S OWN ORIGIN, READ OFF THE MEMBER THE STORE\'S OWN ANSWER STANDS IN: this record\'s set '
+    + 'is the ONE pair\'s handle the write\'s own return carried, read here off `triggered` '
+    + '(`kernel-surface.md §2.1` item 2)');
+  assert.equal(record.pending.includes(handle), true,
+    'AND AT `K-2`\'S OWN RETURN THE CALLER\'S WORK LIST IS THE WHOLE RETURNED SET, ENTRY FOR ENTRY: '
+    + '`pending` CARRIES THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS "AT THE MOMENT THIS CALL\'S '
+    + 'WRITE\'S SET IS WRITTEN, AND AN ENTRY LEAVES IT ONLY BY BEING CHECKED OFF AS IT PASSES" (`§2.1` '
+    + 'item 2) — and the pass that checks an entry off is `K-3`\'s and has not run here '
+    + '(`attempt-lifecycle.md §2.4` item 5 (iv)). THE MALFORMED GROUND THIS ASSERTION REPLACES demanded '
+    + 'the check-off\'s own effect AT THIS INSTANT — a removal no pass can have performed at `K-2` '
+    + '(`D-GP-SVM-4` outcome (a)). FAIL-STATE DISTINGUISHED: a member SIFTED at the write — a subset '
+    + 'subtracted without that entry\'s own pass, which `A112` declares UNNECESSARY AND UNLAWFUL — read '
+    + '`pending` ' + JSON.stringify(record.pending.length) + ' of `triggered` '
+    + JSON.stringify(record.triggered.length));
   const report = runAttempt(store, record);
-  assert.equal(report.outcome, 'passed', 'an empty work list drives nothing and changes nothing');
+  assert.equal(report.outcome, 'passed', 'the pass over this attempt\'s own address ran and resolved it');
+  assert.deepEqual(record.pending, [],
+    'AND WHAT THE CALLER\'S OWN LOOP HAS LEFT TO RUN, READ AFTER THE PASS THAT CHECKS ENTRIES OFF AS '
+    + 'THEY PASS, IS NOTHING: the entry written into this member was CHECKED OFF AS IT PASSED and stands '
+    + 'in it no longer (`§2.1` item 2; `§2.2` item 3; `A: docs/decisions.md` · `A112`) — read '
+    + JSON.stringify(record.pending));
+  let calls = 0;
+  for (const _handle of record.pending) calls += 1;
+  assert.equal(calls, 0,
+    'the caller\'s loop reads its work off that member and off no other — and the work it finds there is '
+    + 'what the check-off left, not what a sift omitted');
+  assert.deepEqual(record.pending, [],
+    'and that member carries what THE CHECK-OFF LEFT IN IT and no member of the set the loop must not '
+    + 'run — no pass of this attempt standing owed to the loop for the entry it checked off '
+    + '(`§2.1` item 2; `A: docs/decisions.md` · `A112`) — read ' + JSON.stringify(record.pending));
 });
 
-test('ck_layer_b_a_handle_already_delivered_in_window_is_carried_by_neither_member_again', async () => {
+test('ck_layer_b_a_handle_delivered_in_window_is_checked_off_and_not_handed_to_the_callers_loop', async () => {
   const { register, commit, runAttempt } = await kernel();
   const store = makeStore();
   const address = [tag('lb5')];
   let invocations = 0;
   const handle = register(store, address, 'x', () => { invocations += 1; return true; });
   const record = commit(store, address, 'mem', 1);
+  assert.equal(record.pending.includes(handle), true,
+    'THE HANDLE WAS WRITTEN AS `pending` WITH THE WHOLE RETURNED SET AT `K-2`\'S RETURN: "`pending` '
+    + 'CARRIES THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS AT THE MOMENT THIS CALL\'S WRITE\'S SET IS '
+    + 'WRITTEN" (`§2.1` item 2) — the caller\'s FIRST reading of the member (`§3` item 10)');
   const report = runAttempt(store, record);
   assert.equal(invocations, 1, 'exactly one invocation — the layer (a) delivery of the evaluated pair');
   assert.equal(record.pending.includes(handle), false,
-    'an already-run handle is not handed to the caller\'s loop a second time');
+    'AND AFTER THE PASS THE ENTRY HAS LEFT THE MEMBER BY BEING CHECKED OFF AS IT PASSED: "AN ENTRY LEAVES '
+    + 'IT ONLY BY BEING CHECKED OFF AS IT PASSES" (`§2.1` item 2) — so the caller\'s loop is not handed it '
+    + 'again. RE-DERIVED AT THE DELTA PASS OF 2026-10-13: the id this cell carried once ended '
+    + '`…is_carried_by_neither_member_again` and its message read "it is carried by `triggered` alone", '
+    + 'both on the WITHDRAWN spellings *"an already-run handle is never in `pending`"* and *"THE FIRST IS '
+    + 'CARRIED BY `triggered` ALONE"* — the handle IS in `triggered` and WAS in `pending` until its own '
+    + 'pass checked it off, which is what this cell now asserts (`A: docs/decisions.md` · `A112`)');
   assertAttemptReport(report, 'no second delivery');
 });
 

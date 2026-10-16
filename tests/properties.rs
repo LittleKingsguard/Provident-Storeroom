@@ -491,13 +491,27 @@ fn p_im_2_a_failed_write_leaves_zero_residue() {
             .expect("the path is now a directory, so a file write cannot land");
         let before_fail = read_at(&failing, &empty_address());
         let versions_fail_before = versions_at(&failing, &key(&["purgeme"]));
-        let e = failure(
+        // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 1–2 AS AMENDED, `surface.md §2.11` clause 2): THE
+        // FAILURE IS THE TERMINAL ARM'S ACT'S AND NOT THE VERB'S.** The verb's own arm is asserted FIRST and
+        // it is `Ok` — *"it performs NO FILE I/O ON ANY OF ITS ARMS"* — so the write's install, its append and
+        // its purge stage (`§3.4` `W-6` at `purgeme`) have ALL LANDS; **the act is then driven, keyed by the op
+        // that write returned, and it is where the store rolls the write back (the rollback FIRST) and answers
+        // with the message SECOND.** **THE RESIDUE THIS CELL PINS IS THEREFORE THE ROLLBACK'S OWN, OBSERVED AT
+        // THE SAME STATE IT WAS ALWAYS OBSERVED AT** — the snapshots above are taken before the write and the
+        // comparisons below are made after the failure, exactly as before.
+        let purged = ok(
             failing.write(
                 AddressArg::List(key(&["purgeme"])),
                 w_file(),
                 v_str("durable"),
             ),
-            "§8.1 #15: the `file` write's commit cannot land",
+            "§7.2 item 1 as amended: the verb RECORDS the write, installs the node, appends the entry and \
+             performs NO FILE I/O on any of its arms — so the purge stage of `§3.4` `W-6` lands HERE",
+        );
+        let e = failure(
+            commit_at_the_terminal_arm(&mut failing, &purged.op.opId),
+            "§8.1 #15: the `file` write's commit cannot land — THE TERMINAL ARM'S OWN ACT, keyed by the \
+             settled record's own `op`",
         );
         drive.check(
             e.status == "FileCommitFailed",
@@ -507,19 +521,20 @@ fn p_im_2_a_failed_write_leaves_zero_residue() {
             ),
         );
         // **HOW THIS CELL WOULD FAIL IF THE RESIDUE GUARANTEE BROKE — STATED SO THE CELL IS NOT A
-        // PASS-BY-CONSTRUCTION.** The write above is a GENUINE FAILURE: its commit is driven at a path that
-        // is a directory, so it fails AFTER the purge stage (`§3.4` `W-6` at `purgeme` would have purged the
-        // `temp` version), which is exactly the arm whose automatic rollback must re-mint the capture
-        // (`§3.5`; `§6.4` item 8; `§7.2` item 2). **The assertions that follow are FALSIFIABLE AND EACH HAS A
+        // PASS-BY-CONSTRUCTION.** The commit above is a GENUINE FAILURE: **it is driven by the terminal arm's
+        // own act on a record whose `file`-tier write landed**, at a path that is a directory, so it fails
+        // AFTER the purge stage (`§3.4` `W-6` at `purgeme` would have purged the `temp` version), which is
+        // exactly the arm whose automatic rollback must re-mint the capture (`§3.5`; `§6.4` item 8; `§7.2`
+        // item 2 as amended). **The assertions that follow are FALSIFIABLE AND EACH HAS A
         // NAMED BREAK: a registry left with a partially installed subtree makes the `structurally_equal`
         // comparison below answer FALSE; a `temp` version purged and NOT restored makes the `versions_at`
         // comparison answer FALSE; a per-tier fold (a `temp` or `mem` version dropped, or a `file` version
         // installed) makes the per-tier comparisons answer FALSE; and a journal entry appended for the failed
         // write moves the reach so that the prior entry's rollback answers differently on `failing` than on
-        // `reference` — which the `undoneOps` and post-rollback comparisons catch.** **AND IF THE FAILED WRITE
-        // STOPPED FAILING — i.e. if a commit at a directory-valued path SUCCEEDED — the check immediately
+        // `reference` — which the `undoneOps` and post-rollback comparisons catch.** **AND IF THE COMMIT
+        // STOPPED FAILING — i.e. if the act at a directory-valued path SUCCEEDED — the check immediately
         // above answers FALSE before any residue comparison runs**, so no residue assertion can pass by the
-        // write having silently succeeded.
+        // act having silently succeeded.
         drive.check(
             structurally_equal(&read_at(&failing, &empty_address()), &before_fail),
             "§5.3 P-IM-2/§3.5: the WHOLE REGISTRY is byte-identical after the failed `file` write",
@@ -1814,20 +1829,38 @@ fn p_tp_7_the_construction_is_a_function_of_its_arguments() {
                 );
                 let _ = std::fs::remove_file(&later);
                 std::fs::create_dir(&later).expect("the path is now a directory");
-                match s.write(AddressArg::List(key(&["x"])), w_file(), v_num(1.0)) {
-                    Ok(_) => drive.check(
-                        false,
-                        "§7.2 item 3/§8.1 #15: a `file`-tier write whose commit cannot land must FAIL",
-                    ),
+                // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 1–3 AS AMENDED, `surface.md §2.11`
+                // clause 5): THE VERB AND THE ACT ARE SEPARATED AT THEIR OWN TWO INSTANTS.** The verb's
+                // arm is asserted `Ok` — *"it performs NO FILE I/O ON ANY OF ITS ARMS"* — and the refusal is
+                // taken from THE TERMINAL ARM'S OWN ACT, *"keyed by the settled record's own `op`"*, where
+                // *"the store rolls the write back FIRST and the call answers with a message SECOND"*.
+                let recorded = s.write(AddressArg::List(key(&["x"])), w_file(), v_num(1.0));
+                match recorded {
                     Err(e) => drive.check(
-                        e.status == "FileCommitFailed",
-                        &format!("§8.1 #15: the commit failure's code; got {}", e.status),
+                        false,
+                        &format!(
+                            "§7.2 item 1 as amended: the verb's `file`-tier arm returns its `WriteResult` \
+                             and performs NO FILE I/O — it must not refuse here; got {}",
+                            e.status
+                        ),
                     ),
+                    Ok(w) => match commit_at_the_terminal_arm(&mut s, &w.op.opId) {
+                        Ok(()) => drive.check(
+                            false,
+                            "§7.2 item 3/§8.1 #15: the terminal arm's commit at a directory-valued path \
+                             must FAIL",
+                        ),
+                        Err(e) => drive.check(
+                            e.status == "FileCommitFailed",
+                            &format!("§8.1 #15: the commit failure's code; got {}", e.status),
+                        ),
+                    },
                 }
                 drive.check(
                     s.read(AddressArg::List(key(&["x"])), TierArg::Absent)
                         .is_err(),
-                    "§5.3 P-IM-2/§3.5: the failed commit installed nothing",
+                    "§5.3 P-IM-2/§3.5: the failed commit installed nothing — the rollback ran FIRST and \
+                     the caller was answered SECOND",
                 );
             }
             Err(e) => drive.check(
@@ -2733,6 +2766,10 @@ fn p_tp_9_the_fail_set_is_closed_and_every_message_is_generated() {
         ),
         // §8.1 #15 — `FileCommitFailed`: a `file`-TIER WRITE'S FAILURE PATH, driven through the real trigger
         // (the path at `cfg.filePath` holds a directory, so the file write cannot land), never an invented one.
+        // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 1–2 AS AMENDED, `surface.md §2.11` clause 2): the
+        // probe drives THE TERMINAL ARM'S OWN ACT — `commit_file`, keyed by the op the verb returned — because
+        // the verb itself *"performs NO FILE I/O ON ANY OF ITS ARMS"* and therefore cannot be where this
+        // member is reached. THE TRIGGER, THE MEMBER AND THE WHOLE GENERATED TEXT ARE UNMOVED.**
         {
             let path = fresh_path("failset-commit");
             let whole = format!(
@@ -2748,8 +2785,13 @@ fn p_tp_9_the_fail_set_is_closed_and_every_message_is_generated() {
                         let _ = std::fs::remove_file(&path);
                         std::fs::create_dir(&path)
                             .expect("the path now holds a directory, so a file write cannot land");
-                        s.write(AddressArg::List(key(&["never"])), w_file(), v_num(1.0))
-                            .map(|_| ())
+                        // The verb RECORDS the write (and is where an out-of-domain argument would answer);
+                        // THE ACT is where the commit is attempted and where its failure is answered.
+                        let w = s.write(AddressArg::List(key(&["never"])), w_file(), v_num(1.0));
+                        match w {
+                            Err(e) => Err(e),
+                            Ok(w) => commit_at_the_terminal_arm(&mut s, &w.op.opId),
+                        }
                     }
                 }),
                 // §8.2's `FileCommitFailed` row: `<SEGMENT>` is the addressed path's own spelling and the
@@ -3864,6 +3906,12 @@ fn ng_13_the_five_carry_overs_are_driven() {
     // first successful `file`-tier commit that puts known bytes at the path, and then a commit that cannot
     // land because the commit's own TEMP WRITE in that directory is refused (`§7.2` items 3–4: the file write
     // at `cfg.filePath` is one of the three parts whose failure answers `FileCommitFailed`).**
+    // **⟶ AND RE-POINTED 2026-10-15 BY THE `RCA-9` PASS (`§7.2` items 1–3 AS AMENDED; `surface.md §2.11`
+    // clauses 2 and 5): A `file`-TIER COMMIT IS THE TERMINAL ARM'S OWN ACT AND NOT THE VERB'S** — the verb
+    // *"performs NO FILE I/O ON ANY OF ITS ARMS"* — **so this cell asserts the verb's own arm `Ok` beside the
+    // act, and reads the byte-identity of `§7.2` item 2 at the act's failure, where *"the store rolls the write
+    // back FIRST and the call answers with a message SECOND"*. NO ASSERTION IS WEAKENED: the same bytes are
+    // compared at the same two instants, one act later.**
     drive.attempt();
     {
         let mut path = std::env::temp_dir();
@@ -3872,10 +3920,16 @@ fn ng_13_the_five_carry_overs_are_driven() {
         let _ = std::fs::remove_file(&path);
         // The store's boot loads the file's content if it exists; the bytes below are written by a first
         // successful `file`-tier commit, so the file stands with a known content before the attempt.
+        // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 1–2 AS AMENDED): a `file`-tier commit is THE
+        // TERMINAL ARM'S OWN ACT, so this seed drives the act, keyed by the op the verb returned.**
         let mut seeded = ok(storeCreate(&cfg_at(&path, 8)), "§7.1");
-        ok(
+        let seed_op = ok(
             seeded.write(AddressArg::List(key(&["durable"])), w_file(), v_str("kept")),
-            "§7.2 item 1: the whole serialized `file` state is written",
+            "§7.2 item 1 as amended: the verb RECORDS the write; the verb performs NO FILE I/O",
+        );
+        ok(
+            commit_at_the_terminal_arm(&mut seeded, &seed_op.op.opId),
+            "§7.2 item 2 as amended: the terminal arm's own act writes the whole serialized `file` state",
         );
         let bytes_before = std::fs::read(&path).expect("the commit wrote the file");
         drop(seeded);
@@ -3889,9 +3943,13 @@ fn ng_13_the_five_carry_overs_are_driven() {
             storeCreate(&cfg_at(&unwritable, 8)),
             "§7.1/A52 (b): the application can write the path",
         );
-        ok(
+        let first_op = ok(
             s.write(AddressArg::List(key(&["v"])), w_file(), v_num(1.0)),
-            "§7.2 item 1: a first commit puts known bytes at the path",
+            "§7.2 item 1 as amended: the verb RECORDS the write and performs NO FILE I/O",
+        );
+        ok(
+            commit_at_the_terminal_arm(&mut s, &first_op.op.opId),
+            "§7.2 item 2 as amended: the terminal arm's own act puts known bytes at the path",
         );
         let bytes_at_the_unwritable_path_before = std::fs::read(&unwritable).ok();
         let mut perms = std::fs::metadata(&dir)
@@ -3908,18 +3966,27 @@ fn ng_13_the_five_carry_overs_are_driven() {
             s.write(AddressArg::List(key(&["v"])), w_mem(), v_num(1.5)),
             "§3.4 W-3 at `mem`: no file I/O (§7.2 item 5)",
         );
-        let attempt = s.write(AddressArg::List(key(&["v"])), w_file(), v_num(2.0));
+        // **⟶ THE TWO INSTANTS, SEPARATED AT THIS CELL'S OWN BYTES** (`§7.2` item 1 AS AMENDED, `surface.md
+        // §2.11` clause 2): the verb RECORDS the write — *"it performs NO FILE I/O ON ANY OF ITS ARMS"*, so a
+        // read-only directory decides nothing at the verb — and THE TERMINAL ARM'S OWN ACT, keyed by the op
+        // the verb returned, is where the commit is attempted and where it lands or fails.
+        let attempt_op = ok(
+            s.write(AddressArg::List(key(&["v"])), w_file(), v_num(2.0)),
+            "§7.2 item 1 as amended: the verb's `file`-tier arm returns as it does today — the write is \
+             RECORDED and NO byte of the path is touched",
+        );
+        let attempt = commit_at_the_terminal_arm(&mut s, &attempt_op.op.opId);
         let after = std::fs::read(&unwritable).ok();
         match attempt {
             Ok(_) => {
-                // A privileged process can write anyway: then the SUCCESS arm is what stands (`§7.2` item 1).
+                // A privileged process can write anyway: then the SUCCESS arm is what stands (`§7.2` item 2).
                 drive.check(
                     !writable_dir,
                     "§7.2 item 2: the commit cannot land and the failure must be passed back",
                 );
                 drive.check(
                     after.is_some() && after != bytes_at_the_unwritable_path_before,
-                    "§7.2 item 1: a successful commit writes the whole serialized `file` state",
+                    "§7.2 item 2: a successful commit writes the whole serialized `file` state",
                 );
             }
             Err(e) => {

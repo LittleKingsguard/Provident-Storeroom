@@ -84,10 +84,11 @@
 #![allow(dead_code, non_snake_case)]
 
 pub use storeroom_native::{
-    storeCreate, tier_token, AddressArg, BaseState, ChildAnchor, DeleteReceipt, FilePathArg,
-    JournalLengthArg, JournalOp, JournalOpKind, Listener, ListenerEntry, ListenerHandle,
-    ListenersArg, NodeRef, OpIdArg, RollbackResult, Segment, Store, StoreConfig, StoreError,
-    StoreValue, Tier, TierArg, TierSetItem, WriteResult,
+    storeCreate, storeCreateWithConstraints, tier_token, AddressArg, BaseState, ChildAnchor,
+    ConstraintEntry, ConstraintsArg, DeleteReceipt, FilePathArg, JournalLengthArg, JournalOp,
+    JournalOpKind, Listener, ListenerEntry, ListenerHandle, ListenersArg, NodeRef, OpIdArg,
+    RollbackResult, Segment, Store, StoreConfig, StoreError, StoreValue, Tier, TierArg, TierSetItem,
+    WriteResult,
 };
 
 use std::collections::BTreeMap;
@@ -388,17 +389,51 @@ pub fn ok<T>(r: Result<T, StoreError>, clause: &str) -> T {
     }
 }
 
+/// **`surface.md §2.11` CLAUSE 2 + `contract.md §7.2` ITEMS 1–2 AS AMENDED 2026-10-15 — THE `file` TIER'S
+/// DURABLE COMMIT IS THE TERMINAL ARM'S OWN ACT, AND THIS IS HOW A RUST-SIDE DRIVE REACHES IT.**
+///
+/// **WHAT MOVED, VERBATIM:** `§7.2` item 1 as amended — *"`Store::write(address, tier, value, commit)`
+/// RECORDS THE WRITE IN THE JOURNAL, INSTALLS THE NODE, APPENDS THE ENTRY AND RETURNS ITS `WriteResult` —
+/// INCLUDING FOR A `file`-TIER WRITE — AND IT PERFORMS NO FILE I/O ON ANY OF ITS ARMS"*; item 2 — *"THE
+/// `file`-TIER COMMIT IS THE TERMINAL ARM'S OWN ACT: after every constraint of that write's triggered set
+/// has passed, and before ANY listener body of the delivered set runs, the surface performs the commit for
+/// the record the kernel settled — keyed by THE SETTLED RECORD'S OWN `op`"* (`surface.md §2.11` clause 2).
+/// **THE STORE'S OWN `commit_file(op_id)` IS THAT ACT** (the kernel's terminal arm calls it through
+/// `bindings/js/src/facade.rs`'s `commitFile`), **and this crate's `Store` IS the surface a Rust-side drive
+/// has: there is no kernel in this binary, so a drive that must observe the act's declared consequences —
+/// the bytes at `cfg.filePath`, the boot of `§7.2` item 6, the arm's own refusal — DRIVES THE ACT ITSELF, AT
+/// ITS OWN INSTANT, keyed by the settled write's own `op` identity and by nothing else.**
+///
+/// **THE FAILURE ARM IS THE ACT'S AND NOT THE VERB'S** (`§2.11` clause 5; `§8.1` #15): *"the store rolls the
+/// write back and the call answers with a message"* — **the rollback FIRST and the message SECOND** — so a
+/// drive that must see `FileCommitFailed` sees it HERE, and the verb's own return beside it is `Ok`.
+/// **A WRITE THAT DID NOT REACH THE PASSING ARM PERFORMS NO SAVE, and a record whose own `op` is not a
+/// `file`-tier write's performs none** (clause 2); the store's own method answers that half by no-oping on
+/// an op id no standing entry names, so a drive may call it unconditionally.
+pub fn commit_at_the_terminal_arm(store: &mut Store, op_id: &str) -> Result<(), StoreError> {
+    store.commit_file(op_id)
+}
+
 /// `seams-and-lifecycle.md` §8.3: `status` is the member's EXACT spelling from §8.1's `code` column.
 pub fn assert_code(e: &StoreError, expected: &str, clause: &str) {
     assert_eq!(e.status, expected, "{clause}: §8.3's exact status spelling");
 }
 
-/// The **`15`** members of `§8.1`'s CLOSED code set, in its own rank order (`contract.md`/`seams-and-lifecycle.md`
+/// The **`16`** members of `§8.1`'s CLOSED code set, in its own rank order (`contract.md`/`seams-and-lifecycle.md`
 /// §8.1 — **⟶ AMENDED 2026-10-11: the as-filed array carried `14` members and the listener amendment's
 /// `FilePathUnreachable` (`A53`/`A54`) is inserted at rank `13` in the CONSTRUCTION GROUP, so
 /// `ValueNotAdmitted` and `FileCommitFailed` move by ONE rank each (`14`, `15`) and no trigger moves**
 /// (`11 + 2 + 1 + 1 = 15` ✓; `DD-40`)).
-pub const CLOSED_CODES: [&str; 15] = [
+///
+/// **⟶ WIDENED TO `16` 2026-10-15 (`DEF-2026-10-15-Y`, the `stale-by-census` class; `DEF-2026-10-15-X`
+/// item 4).** The as-filed `[&str; 15]` asserted a **SUPERSEDED FIGURE**: `contract.md §8.1`'s own amended
+/// heading reads **`16` MEMBERS**, its own clause `§7.2` item 5 (ADDED 2026-10-15) declares the list's TWO
+/// VALIDATION INSTANTS and names the load-side failure, `parameter-semantics.md §2.21` mints the key's own
+/// member, and **`§8.1`'s arithmetic is `11 + 2 + 1 + 1 + 1 = 16` ✓ while the arithmetic PRINTED BESIDE
+/// THIS ARRAY (`11 + 2 + 1 + 1 = 15`) counts the sixteen by hand and stops one short.** The new member is
+/// the LAST, at rank `16`, after `FileCommitFailed`. **NO MEMBER MOVES AND NO RANK MOVES: this array is a
+/// drive-side census and is not the crate's `CODES`, whose widening is the implementation's own act.**
+pub const CLOSED_CODES: [&str; 16] = [
     "AddressMalformed",
     "AddressNotFound",
     "LeafHasNoDownstream",
@@ -414,6 +449,7 @@ pub const CLOSED_CODES: [&str; 15] = [
     "FilePathUnreachable",
     "ValueNotAdmitted",
     "FileCommitFailed",
+    "ConstraintListInvalid",
 ];
 
 /// The read's convenience form: an unqualified read (`§2.3`'s zero-tier arm).

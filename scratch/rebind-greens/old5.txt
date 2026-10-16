@@ -1,0 +1,28 @@
+  `JSG-02.10`/`.11`/`.14`/`.15`/`.16` — RE-POINTED to the `settle` seam's terminal arm: `surface.md §2.11` clause 2 moved the file-tier save off the verb, and `A119` ruled the load side.
+  `JSG-10.16`–`.20` — RE-POINTED to the same route (class (ii)); `.19`'s census WIDENED to the sixteen of `store §8.1`'s dated clause of 2026-10-15; `.18`/`.19`/`.20` are the aggregates over that re-pointed set.
+  JSG-02.10 :: terminal-arm save landed ; boot read -> {10:"ten",2:"two",count:3,flag:true,list:["p",{q:false}],name:"alpha",nest:{arr:[1,2,3],z:1},ratio:0.5}
+  JSG-02.11 :: booted member set=[10,2,count,flag,list,name,nest,ratio]
+  JSG-02.14/.15 :: booted 'neg-file' -> 0 ; Object.is(v,-0)=true
+  JSG-02.16 :: booted 'rt' EQUAL to V under §1.5 = true
+  JSG-02.17 :: zero-byte image 0 bytes -> INSTANCE ; read([]) -> {}
+  JSG-02.18 :: present two-byte {} image -> "ConstraintListInvalid" :: "'rt' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment array" ; image="{}"
+  JSG-10.16 :: the terminal arm's save, at the failing path -> FileCommitFailed :: "'fc' could not be committed to '/tmp/sr-js-greens-XXX/g10fc/state.json', the file write failed at '/tmp/sr-js-greens-XXX/g10fc/state.json'"
+  JSG-10.17 :: read(['fc']) after that failure -> AddressNotFound
+  JSG-10.18/.19/.20 :: 17 driven failures ; did-not-throw=0 ; outside-the-16=[none] ; empty-or-placeholder messages=0
+  JSG-01: 17 PASS · 0 FAIL   (17 assertions)
+  JSG-02: 18 PASS · 0 FAIL   (18 assertions)
+  JSG-03: 5 PASS · 0 FAIL   (5 assertions)
+  JSG-04: 67 PASS · 0 FAIL   (67 assertions)
+  JSG-05: 14 PASS · 0 FAIL   (14 assertions)
+  JSG-06: 7 PASS · 0 FAIL   (7 assertions)
+  JSG-07: 15 PASS · 0 FAIL   (15 assertions)
+  JSG-08: 22 PASS · 0 FAIL   (22 assertions)
+  JSG-09: 12 PASS · 0 FAIL   (12 assertions)
+  JSG-10: 24 PASS · 0 FAIL   (24 assertions)
+  JSG-11: 18 PASS · 0 FAIL   (18 assertions)
+  JSG-12: 18 PASS · 0 FAIL   (18 assertions)
+  JSG-13: 6 PASS · 0 FAIL   (6 assertions)
+  JSG-14: 5 PASS · 0 FAIL   (5 assertions)
+  JSG-15: 3 PASS · 0 FAIL   (3 assertions)
+  JSG-16: 4 PASS · 0 FAIL   (4 assertions)
+AUTHORED 255 · EXECUTED 255 · PASS 255 · FAIL 0

@@ -43,6 +43,8 @@ about any consumer's program. **§12 lists what this guide did not do.**
 
 **WHAT ELSE `0.1.3` CARRIES.** **A provided, absent `filePath` that the process cannot in fact create is now REFUSED AT CONSTRUCTION with `FilePathUnreachable` and NO instance, where `0.1.2` decided that state from the parent directory's MODE BITS and could answer REACHABLE and then fail on the first `file`-tier write with `FileCommitFailed`** (`contract.md §10.4` parts `1` and `5`; `§8.1` #13's amended trigger clause, which is the rule's home for the refusal's trigger list). **And a path whose NAME IS A DANGLING SYMLINK is now REFUSED rather than accepted.** **Neither of those is a behaviour you ask for; both are states that used to report success and now do not.**
 
+**★ AND THE THREE SURFACE MOVES, PRINTED TOGETHER BECAUSE A CONSUMER MEETS ALL THREE IN THE TYPE FILE: the construction gains a FOURTH declared key, `constraints` — optional, YOUR list, NEVER persisted, validated at create and again at a boot over an existing file (`§8.6`); the instance gains a FOURTH own member, `settle`, which is the arm that performs the `file`-tier save (`§8.3`); and the closed status set gains a SIXTEENTH member, `ConstraintListInvalid`, while the `file`-tier failure keeps its own `FileCommitFailed`** (`bindings/js/index.d.ts`, the `StoreConfig`, `StoreInstance` and `StoreStatus` declarations; `docs/specs/storeroom-js/surface.md §2.1` and `§2.11`; `docs/specs/storeroom-native/contract.md §8.1` ranks `#15` and `#16`). **The corresponding move at the write is the FIFTH optional argument, `commit?`, declared last (§3).**
+
 **AND HOW TO CHECK WHICH VERSION YOU ACTUALLY HAVE, AT YOUR OWN INSTALL — because a guide's claim about a version is worth nothing to you if you cannot falsify it:**
 1. **What the registry offers as `latest`:** `npm view provident-storeroom version` — **one figure, and it is the package's publish-time `latest` tag rather than the version of anything on your disk.** **If it answers a version below the one you intend to rely on, stop here: you are reading about a version you cannot install.**
 2. **What you have:** read `node_modules/provident-storeroom/package.json` and check its `"version"` field, **and read its five `optionalDependencies` values.** **All six figures must be the SAME version** — the main `version` and the five exact pins move together and never singly (§2.2).
@@ -86,12 +88,13 @@ import {
 that name although it is a reserved word, so the declaration binds it as `deleteOp` and re-exports it
 (`bindings/js/index.d.ts`, the `delete` block). **Import it as `delete` or alias it; either works.**
 
-**`storeCreate` answers an instance object carrying exactly three own members and nothing else:**
+**`storeCreate` answers an instance object carrying exactly four own members and nothing else:**
 
 ```ts
 readonly register(handle: Handle, listener: Listener): void;
 readonly on(address: Address, listener: Listener): Handle;
 readonly off(handle: Handle): void;
+readonly settle(record: CommitRecord): void;   // the ordering seam — see §8.3
 ```
 
 **There is no release verb, no `close()`, no `dispose()`** (`bindings/js/index.d.ts`, the `StoreInstance`
@@ -105,7 +108,7 @@ the instance is the member list.**
 ### §1.2 The types you get
 
 The package ships a hand-authored declaration file — **not a generated one** — reached through the package's own
-`types` field. **It declares the eight verbs, the instance's three members, and the failure surface; it declares
+`types` field. **It declares the eight verbs, the instance's four members, and the failure surface; it declares
 no store type, no store verb, no `findAddress` and no release verb** (`bindings/js/index.d.ts`, opening block,
 citing the distribution contract).
 
@@ -242,10 +245,10 @@ electron-integration.md §2.4` states that hazard in full and it is worth readin
 
 | verb | signature | answers |
 |---|---|---|
-| `storeCreate` | `(cfg: StoreConfig) => StoreInstance` | the instance handle — `{ register, on, off }` |
+| `storeCreate` | `(cfg: StoreConfig) => StoreInstance` | the instance handle — `{ register, on, off, settle }` |
 | `read` | `(instance, address, tier?) => unknown` | a leaf's literal, a branch's assembled value, or the whole register |
 | `readLiteral` | `(instance, address, tier?) => unknown` | the same, narrowed to a leaf — **a branch refuses** |
-| `write` | `(instance, address, tier, value) => WriteRecord` | `{ op, watched, triggered }` |
+| `write` | `(instance, address, tier, value, commit?) => WriteRecord` | `{ op, watched, triggered }` |
 | `delete` | `(instance, address, tier?) => DeleteRecord` | `{ address, tiers, triggered }` |
 | `rollback` | `(instance, opId) => RollbackRecord` | `{ opId, undoneOps, restoredTo }` |
 | `listen` | `(instance, address) => Handle` | a fresh opaque handle |
@@ -254,9 +257,9 @@ electron-integration.md §2.4` states that hazard in full and it is worth readin
 **Signatures are the published declaration's, verb for verb** (`bindings/js/index.d.ts`). **All eight are
 synchronous and every one of them returns a fresh value.**
 
-**`storeCreate` takes one plain object carrying the store's three declared keys and no fourth** — `journalLength`,
-`listeners`, `filePath` (`bindings/js/index.d.ts`; `docs/specs/storeroom-js/surface.md §2.1`). **How the three
-behave is §8's subject, because `filePath` is the one that changes what survives a restart.**
+**`storeCreate` takes one plain object carrying the store's four declared keys and no fifth of its own** — `journalLength`,
+`listeners`, `filePath`, `constraints` (`bindings/js/index.d.ts`; `docs/specs/storeroom-js/surface.md §2.1`). **How
+they behave is §8's subject, because `filePath` is the one that changes what survives a restart.**
 
 **`delete` and `rollback` are the two whose surprise is worth reading in the sections devoted to them rather than
 here** — §9 and §10. Each is a one-line trap if you assume the obvious thing.
@@ -536,27 +539,28 @@ seams-and-lifecycle.md §8.2`, whose rule and worked examples are the generator'
 
 ### §6.1 The statuses a consumer will actually meet
 
-**Fifteen members, and this guide is explicit about which it observed and which it is reading from the type.**
+**Sixteen members, and this guide is explicit about which it observed and which it is reading from the type.**
 
 | status | its trigger, in one line | how this guide knows |
 |---|---|---|
 | `AddressMalformed` | a segment outside the domain; an absent required argument; `null`/`undefined` for an address, tier or opId; a blank opId; a present construction argument outside its domain | **declared type** |
 | `AddressNotFound` | the walk found no anchor at the segment's key — **including a nested write whose parent does not stand (§5.1)** | **measured** |
-| `LeafHasNoDownstream` | the walk stood on a leaf with segments remaining | **declared type** |
+| `LeafHasNoDownstream` | the walk stood on a leaf with segments remaining | **measured**; **MARKED `declared type` AS FILED AND CORRECTED 2026-10-16 (`role_proofreader`) — asserted off a real walk-through of a leaf at `bindings/js/test/surface.test.mjs:345`, and read off the same trigger at `bindings/js/greens/greens.mjs` `JSG-10.4`** |
 | `TierNotFound` | the key exists but **no passed tier matches its tier** — **the read names the tiers that are present (§5.3)** | **measured** |
 | `OutOfDomainTier` | a tier token outside `{file, mem, temp}`; **an array at `write` or `delete` (§5.5)** | **measured** |
 | `ReadTargetIsBranch` | `readLiteral` resolved its target to a branch — **including the empty address (§5.4)** | **measured** |
 | `WriteParentNotLink` | the resolved parent is a leaf and cannot hold a child | **declared type** |
 | `JournalOpUnknown` | `rollback` called with an op id the instance's journal does not hold | **measured** |
-| `RollbackCompacted` | a rollback whose scope includes at least one compacted entry — **and it undoes nothing** | **declared type** |
+| `RollbackCompacted` | a rollback whose scope includes at least one compacted entry — **and it undoes nothing** | **measured**; **MARKED `declared type` AS FILED AND CORRECTED 2026-10-16 (`role_proofreader`) — the code is read off a real rollback whose candidate set holds the compacted entry, at `bindings/js/greens/greens.mjs` `JSG-10.12` and at `bindings/js/test/constraint-kernel-states.test.mjs:1138`** |
 | `FilePathUnreachable` | **two unrelated states that share one member, and conflating them is the mistake this row exists to prevent** — **(a) NO ADDON LOADED at either rung (§2.3)**; **(b) a provided `cfg.filePath` that FAILED THE CONSTRUCTION-TIME REACHABILITY TEST** — an absent parent; the path is a directory; an existing file that is not writable; **a name occupied by a DANGLING SYMLINK**; a parent on a READ-ONLY MOUNT (`EROFS`); a create the process is DENIED (`EACCES`) — **and (b) is delivered at construction, BEFORE any instance exists, with NO instance returned** | **declared type**; **(a) measured at `0.1.2**, **(b)'s extended trigger list declared (`0.1.3`)** |
-| `ValueNotAdmitted` | a write whose value is outside the admitted set (§6.3) | **declared type** |
-| `FileCommitFailed` | a `file`-tier write's failure path — serialization, the file write, or the journal append — **and the caller receives it AFTER the store's own journal rollback has already run** | **declared type** |
-| `ContainerKindConflict` | a write whose value kind contradicts the container's, or whose last segment's class contradicts the container's key domain (§5.2) | **declared type** |
-| `ParentAnchorMonotonicityViolation` | a write whose minted child anchor would outrank its parent's tier | **declared type** |
-| `ConstructionArgumentMissing` | `storeCreate` called with `journalLength` absent | **declared type** |
+| `ValueNotAdmitted` | a write whose value is outside the admitted set (§6.3) | **measured**; **MARKED `declared type` AS FILED AND CORRECTED 2026-10-16 (`role_proofreader`) — asserted off real writes at `bindings/js/test/surface.test.mjs:365`, `:483` and `:631`, and read off the same arm at `bindings/js/greens/greens.mjs` `JSG-10.15` and `bindings/js/greens/live-drive.mjs`** |
+| `FileCommitFailed` | a `file`-tier write's failure path — serialization, the file write, or the journal append — **and the caller receives it AFTER the store's own journal rollback has already run** | **measured**; **MARKED `declared type` AS FILED AND CORRECTED 2026-10-16 (`role_proofreader`) — the code is asserted off a real failing commit at `bindings/js/test/file-tier-save.test.mjs:563` and `:1389`, at `bindings/js/test/surface.test.mjs:691`, and at `bindings/js/greens/greens.mjs` `JSG-10.16`** |
+| `ContainerKindConflict` | a write whose value kind contradicts the container's, or whose last segment's class contradicts the container's key domain (§5.2) | **measured**; **MARKED `declared type` AS FILED AND CORRECTED 2026-10-16 (`role_proofreader`) — both directions of the arm are asserted off real writes at `bindings/js/test/surface.test.mjs:454` and `:466`, and `bindings/js/greens/greens.mjs` `JSG-10.8` and `JSG-10.23` read it** |
+| `ParentAnchorMonotonicityViolation` | a write whose minted child anchor would outrank its parent's tier | **measured**; **MARKED `declared type` AS FILED AND CORRECTED 2026-10-16 (`role_proofreader`) — a `file`-tier write at a register key is DRIVEN and read as this code at `bindings/js/greens/greens.mjs` `JSG-05.9` and `JSG-10.7`** |
+| `ConstructionArgumentMissing` | `storeCreate` called with `journalLength` absent | **measured**; **MARKED `declared type` AS FILED AND CORRECTED 2026-10-16 (`role_proofreader`) — `bindings/js/test/surface.test.mjs:122` and `:568` assert the code off a real `storeCreate` whose `journalLength` is absent, and `bindings/js/greens/greens.mjs` `JSG-05.11` and `JSG-10.13` read it off the same trigger, so the rank is produced by a drive** |
+| `ConstraintListInvalid` | `storeCreate`'s supplied `constraints` list carries an element that is not an `{ address, id }` pair, or whose `address` (or `id`) lies outside its domain — **and, at a boot over an existing `cfg.filePath`, a supplied pair whose `address` no longer resolves in the loaded state** (`§8.6`) | **measured**; **its construction arm and its load arm are DRIVEN — at `bindings/js/test/surface.test.mjs:576`, `bindings/js/test/file-tier-save.test.mjs:1202`, `bindings/js/greens/greens.mjs` `JSG-02.18` and `JSG-10.19`, and the `FTS-08`/`FTS-09` scenarios — at the unit's own blind and live sets, not against a published tarball** |
 
-**Six of the fifteen rows carry a `0.1.2` measurement somewhere in their trigger; none of the fifteen was measured on a `0.1.3`.** **Nine of the fifteen are read from the type declaration and the store's closed code set alone.** **The fifteen-member list is the declaration's own** (`bindings/js/index.d.ts`, the `StoreStatus` declaration, which prints all fifteen and adds an escape arm — see §6.4). **The triggers are the store's own** (`docs/specs/storeroom-native/seams-and-lifecycle.md §8.1`, the closed code set, each member with **the ONLY state that produces it**). **The split is stated here rather than smoothed over: a consumer guide that presented all fifteen as measured would be lying about nine of them, and one that presented only the declared nine would be hiding the six a run has actually answered.** **And the `0.1.2` measurement is of the `0.1.2` tarball: a trigger's EXTENDED list at `0.1.3` — the row below — is declared, and §0-bis says why no run could have been taken against a published `0.1.3`.**
+**⟶ RE-SPELLED 2026-10-16 (THE PROOFREADING PASS, `role_proofreader`): THIS CELL AND §12's ROW BOTH PRINTED A STALE PARTITION AND NEITHER AGREED WITH THE TABLE ABOVE.** **THE AS-FILED FIGURES ARE NAMED AND THE COUNT IS RE-DERIVED FROM THE ARTIFACTS: at the table as this cell printed it, the as-filed count was *six* with a `0.1.2` measurement somewhere in the trigger and *nine* read from the type declaration and the code set alone. It is now SIXTEEN of the sixteen that a drive produces and NONE that is declared and never produced.** **THE SPLIT, RANK BY RANK: measured — ALL SIXTEEN, `1`…`16`, each named at its own row above with the drive that produces it; declared only — NONE.** **AND THE AS-FILED CELL READ *six* MEASURED AND *nine* DECLARED: the six the `0.1.2` tarball run answered stand measured, and the nine it never reached are now ANSWERED BY THE UNIT'S OWN DRIVES.** **The sixteenth member — `ConstraintListInvalid` — is the added one, read from the type and the code set alike, and it is DRIVEN.** **The `0.1.2` tarball measurement stands as the guide's own weaker evidence (§0), and none of the sixteen was measured on a `0.1.3`.** **The sixteen-member list is the declaration's own** (`bindings/js/index.d.ts`, the `StoreStatus` declaration, which prints all sixteen and adds an escape arm — see §6.4). **The triggers are the store's own** (`docs/specs/storeroom-native/seams-and-lifecycle.md §8.1`, the closed code set, each member with **the ONLY state that produces it**). **The split is stated here rather than smoothed over: all sixteen measured is now the truth of the drives, and a guide that called any of them unseen would disown a run that has answered it.** **And where a `0.1.2` measurement was taken it is of the `0.1.2` tarball: a trigger's EXTENDED list at `0.1.3` — the row below — is declared, and §0-bis says why no run could have been taken against a published `0.1.3`.**
 
 **★ AND THE ROW TO READ TWICE IS `FilePathUnreachable`, BECAUSE IT IS THE ONE MEMBER THAT ANSWERS FOR TWO UNRELATED FAILURES — and the pair most likely to be conflated is the one below it, not the one above.**
 
@@ -658,9 +662,9 @@ meant to serialize, a DOM node, a `Buffer`. **Serialize at the boundary, once, c
 ### §6.4 The set is open by design
 
 **`StoreStatus` carries an escape arm — `(string & {})` — and its presence is load-bearing rather than
-looseness.** The store's own set has already grown once, from fourteen members to fifteen, and a future release may
-add a sixteenth; **an immutably-enumerated union would mis-type a lawful refusal the moment the store's set moved**
-(`bindings/js/index.d.ts`, the `StoreStatus` declaration and the clause under it).
+looseness.** The store's own set has already grown twice, from fourteen members to fifteen and then to sixteen, and
+a future release may add a seventeenth; **an immutably-enumerated union would mis-type a lawful refusal the moment
+the store's set moved** (`bindings/js/index.d.ts`, the `StoreStatus` declaration and the clause under it).
 
 **So: do not `switch` on these without a `default`, and never treat an unknown `status` as success.** The set is the
 store's to close and the package mints no member, widens no set and renames none.
@@ -714,19 +718,21 @@ same table's own row (`§3.1.1`).
 
 ## §8 · Construction, and the `file` tier
 
-### §8.1 The three declared keys and no fourth
+### §8.1 The four declared keys and no fifth
 
 ```js
 const store = storeCreate({
   journalLength: 256,          // REQUIRED — a positive integer, counting journal ENTRIES
   listeners: [],               // REQUIRED, even when empty — an absent `listeners` is refused
   filePath: './store.json',    // OPTIONAL — this is what makes a `file`-tier write persist
+  constraints: [],             // OPTIONAL — the application's own constraint list; NOT persisted (§8.6)
 });
 ```
 
-**Three keys and no fourth** (`bindings/js/index.d.ts`, the `StoreConfig` declaration; `docs/specs/storeroom-js/
-surface.md §2.1`, which adds that the package passes each through without adding a default, a rename or a fourth
-key). **What each one does:**
+**Four keys and no fifth** (`bindings/js/index.d.ts`, the `StoreConfig` declaration; `docs/specs/storeroom-js/
+surface.md §2.1`, which adds that the package passes each through without adding a default, a rename or a key of
+its own — **a key YOU add beyond the four the caller supplies is what `§2.1`'s *"NO FIFTH KEY"* governs, and a
+caller-supplied extra key is IGNORED rather than refused**). **What each one does:**
 
 - **`journalLength` is REQUIRED and there is no defaulted length.** An absent `journalLength` answers
   `ConstructionArgumentMissing` — *"the ONE absence the amended construction still refuses"* — while a present but
@@ -749,6 +755,10 @@ key). **What each one does:**
   DANGLING SYMLINK, a read-only mount's `EROFS` and a denied create's `EACCES` join them, and A PROVIDED ABSENT
   PATH IS NOW CREATED AT CONSTRUCTION. §8.5 IS THE TABLE; read it before you choose the path, and read the
   sentence beside this one as the three forms it was written for.**
+- **`constraints` is the fourth key and the only OPTIONAL one of the four.** **Your list, held for the
+  instance's life, never written to the file, and validated at create — and again against the loaded state at a
+  boot over an existing `filePath`** (`docs/specs/storeroom-js/parameter-semantics.md §2.21`, `PAR-JS-21`; §8.6
+  below carries the domain, both refusal instants and the `ConstraintListInvalid` answer).
 
 **A construction-time fact worth carrying: the register's own tier is fixed at creation and never moves** — `file`
 where a `filePath` was provided and passed the probe, `mem` otherwise (`docs/specs/storeroom-native/
@@ -772,15 +782,14 @@ the store and write the new one through the store.**
 declared boot (`docs/specs/storeroom-native/seams-and-lifecycle.md §7.2` item 6, cited by the clauses below) — and
 it is also the source of the two readings in §8.3 and §8.4.
 
-### §8.3 A `file`-tier write is the only thing that commits the file
+### §8.3 A `file`-tier write is the only thing that commits the file — and the WRITE VERB is not what performs it
 
 **A `file`-tier write is the arm that touches the file.** **A `mem`- or `temp`-tier write performs no file I/O**
-(`docs/specs/storeroom-native/write-and-read.md §7.2` item 5, cited by the failure clause the delete carries),
-**and on a `file`-tier write failure the FILE TIER ROLLS BACK THE CHANGE IN THE JOURNAL AUTOMATICALLY, and THEN
-passes the failure back to the caller** — the caller receives `FileCommitFailed` after that automatic rollback has
-run, and the package compensates for nothing (`write-and-read.md §6.4` item 8, citing the ruling; `seams-and-
-lifecycle.md §8.1` #14, whose trigger column names all three parts of the failure as ONE failure; `bindings/js/
-README.md` states the caller-facing consequence).
+(`docs/specs/storeroom-native/write-and-read.md §7.2` item 5, cited by the failure clause the delete carries).
+
+**★ AND THE VERB ITSELF PERFORMS NO FILE I/O ON ANY OF ITS ARMS — the save belongs to the package's own terminal arm, and this is the reading most likely to be guessed wrong.** **`write` reaches the store, answers its record, and no byte of `cfg.filePath` moves while it runs** (`docs/specs/storeroom-js/surface.md §2.11` clause 2, the one home of the rule). **The `file`-tier commit is performed by the instance's own `settle` member, at the TERMINAL ARM of a kernel-driven pass and ON THE PASSING ARM ALONE — as the FIRST thing that arm does, before any listener body is invoked — and it is keyed by the `op` the record carries. So a `file`-tier write's durability lands when the pass settles on its passing arm, and a pass that fails on constraints performs NO save at all: the bytes stand byte-identical to what they were before the write.**
+
+**AND ON A SAVE THAT FAILS — the act itself failing, not a constraint — the FILE TIER ROLLS THE WRITE BACK IN THE JOURNAL AUTOMATICALLY, and the failure reaches the caller AFTER that rollback has run**, so the caller receives `FileCommitFailed` (rank `15`) **and never the rolled-back state**, and the package compensates for nothing (`write-and-read.md §6.4` item 8, citing the ruling; `seams-and-lifecycle.md §8.1` #14, whose trigger column names all three parts of the failure as ONE failure; `surface.md §2.11` clause 5, which declares the order; `bindings/js/README.md` states the caller-facing consequence). **A constraint violation the pass itself carries is the OTHER arm and the OTHER code: `ConstraintListInvalid` is the supplied list's own validation failure (`§8.6`) and `FileCommitFailed` is neither reachable from it nor the reverse — the two triggers do not overlap.**
 
 **So `FileCommitFailed` is the one refusal on the list to take seriously** — surface it to the user rather than
 retrying blindly, because the store's own recovery has already happened by the time you see it.
@@ -832,6 +841,17 @@ restarts, expect it back — and delete it again after the boot, or write over i
 
 **AND ONE THING THAT USED TO BE ABLE TO LEAVE A MESS AND CANNOT ANY MORE: EVERY CONSTRUCTION ARGUMENT IS VALIDATED BEFORE THE CREATE, SO A FAILED CONSTRUCTION LEAVES NOTHING BEHIND.** **A construction whose `listeners` argument is malformed — or absent — is REFUSED BEFORE any filesystem act, and `journalLength` is checked before that**, so **A FAILED CONSTRUCTION LEAVES NO INSTANCE, NO FILE, NO DIRECTORY AND NO BYTE — and that holds for the LATER-argument failures too, which is exactly what the ordering buys** (`contract.md §10.4` part `4`, which fixes the argument order and moves the `listeners[]` domain check ahead of the create, read with part `5`, which draws the consequence; `seams-and-lifecycle.md §7.1` step `3`-bis; `docs/specs/storeroom-js/crossing.md §1.3`'s `ListenersArg` row `5`). **It is why an absent `listeners` costs you nothing but the error.**
 
+### §8.6 The fourth key, `constraints` — supplied by YOU, and never persisted
+
+**`constraints` is the construction's fourth declared key and the only one of the four that is OPTIONAL** (`bindings/js/index.d.ts`, the `StoreConfig` block; `docs/specs/storeroom-js/surface.md §2.1`'s dated clause; `docs/specs/storeroom-js/parameter-semantics.md §2.21`, `PAR-JS-21`). **An absent `constraints` is IN DOMAIN: no list is declared, and nothing downstream of it changes.**
+
+- **The list is a plain array of `{ address, id }` pairs** — an `address` in the address domain of §4, and an `id` that is a NON-EMPTY string (an empty `id` is outside the domain and is refused — `docs/specs/storeroom-native/contract.md §8.1` rank `16`'s trigger clause, whose element shape `§7.2` item 6 fixes; the JS side's element type is `bindings/js/index.d.ts`'s `constraints?: readonly { readonly address: Address; readonly id: string }[]`).
+- **★ THE LIST IS NOT PERSISTED — NOT IN THE FILE, NOT AS A REGISTER KEY, AND NOT IN ANY JOURNAL ENTRY.** **The importing application supplies it at startup from its own information**, and the store holds the pair's `address` and `id` for the instance's life only (`A: docs/decisions.md` · `A118`: *"The list is not persisted, the importing application will provide the constraints on startup from its own information."*).
+- **It is validated at TWO instants, and both answers are the STORE'S OWN code, `ConstraintListInvalid`** (`docs/specs/storeroom-native/contract.md §8.1` rank `#16`, whose rank `15` is `FileCommitFailed` and whose two triggers do not overlap):
+  1. **AT CONSTRUCTION**, before any instance exists — an element that is not a pair, or whose `address` lies outside the segment domain. **No instance is returned.**
+  2. **AT A BOOT OVER AN EXISTING `cfg.filePath`** — every supplied pair's `address` is resolved against the LOADED state. **An address no longer present in the image refuses the boot with `ConstraintListInvalid` and NO instance, and the file's bytes stand byte-identical** (`A: docs/decisions.md` · `A119`: the exemption is the FILE'S emptiness, so a ZERO-BYTE file boots an instance while a present two-byte `{}` image IS validated; a key the list does not name is NOT a failure).
+- **What the key does NOT do here, said because this guide is a consumer guide: it declares a list, not an engine.** **Nothing in this package runs constraints, repairs nothing and refuses nothing on a constraint's verdict** — the evaluation the key feeds is a caller-side concern (`docs/specs/storeroom-js/surface.md §2.11` is the seam's own arm, and §2.4 item 9 is the member that carries it).
+
 ---
 
 ## §9 · Watching for changes
@@ -882,6 +902,8 @@ member of the instance and not a function you hand to the store.**
    is read from the array as it stands when the window opens**, and a registration, replacement or withdrawal made
    during it takes effect at the next trigger (`surface.md §2.4`, the delivery-window clause, with its argument
    for why that is the only reading consistent with the contract).
+
+**★ ADDED 2026-10-16 (`role_proofreader`) — ONE WRITE'S SET IS DELIVERED IN TWO LAYERS, AND THE HANDLE IS THE UNIT OF NEITHER.** **EVERY CONSTRAINT of that write's triggered set is evaluated BEFORE the durable save; EVERY LISTENER of it is invoked AFTER that save** (`docs/specs/storeroom-constraints/kernel-surface.md §2.1` item 3 AS RE-SPELLED 2026-10-16 — the sentence *"no handle is delivered twice"* holds **PER SET AND NOT ACROSS THE TWO**; `composition-and-states.md §2.7` items 5–7; `docs/specs/storeroom-js/surface.md §2.11` clauses 2, 3 and 5). **SO A REGISTRATION REACHABLE IN BOTH LAYERS RUNS ONCE IN EACH — one run as an evaluated pair and one as a delivered body — and the pair of invocations is lawful, each run being one layer's own and not a second delivery of either.** **AND THE ANTI-PATTERN, IN ONE SENTENCE: REGISTERING ONE THING AS BOTH A CONSTRAINT AND A LISTENER IS NOT SUPPORTED BY DESIGN, ITS TWO INVOCATIONS ARE NOT A DEFECT, AND A CALLER THAT WANTS BOTH BEHAVIOURS SHOULD REGISTER TWO THINGS.**
 
 **And two smaller things that save a debugging session:**
 
@@ -1008,8 +1030,7 @@ fail quietly.**
   contents as they sit unpacked in the scratch directory, and I read the scratch consumer's readme for what its run
   established. **The scratch consumer is not a project artefact, lives under a gitignored directory, and I neither
   edited it nor treated it as one.**
-- **Seven of the fifteen statuses are declared and not measured (§6.1), and the split is printed in that table.** I
-  did not drive them.
+- **SIXTEEN of the sixteen statuses are measured and NONE is left declared-only (§6.1), and the split is printed in that table row by row — each row naming the drive that produces its rank.** **⟶ RE-SPELLED 2026-10-16 (THE PROOFREADING PASS, `role_proofreader`): THE AS-FILED FIGURE HERE WAS *SEVEN* declared-and-not-measured, and it has run the other way — the ranks the `0.1.2` tarball run never reached (`6`, `11`, `12` among them) are now each ANSWERED by the unit's own JS suite and blind greens, so the declared-only remainder is ZERO.** I drove none of them myself; the drives are the suite's and the greens', and I read them at the bytes.
 - **I did not settle the tier-eviction reading (§5.3).** **The version eviction is quoted as measured at `0.1.2`,
   and whether the store's declared semantics and its shipped behaviour agree there at every arm and every tier
   combination is not a consumer guide's question.** I have stated what to rely on and what not to, and I have not
@@ -1028,6 +1049,7 @@ fail quietly.**
 - **I did not query the registry, so §0-bis's first check is a CHECK YOU RUN and not a figure I report.** **I state no published version for `0.1.3` anywhere in this guide, and a reader should treat any guide that does — without a measurement — as unreliable on the point.**
 - **I did not run `npm view`, `npm install`, `node`, `cargo` or `git`.** **The manifest figures at §0-bis and the Node figures at §13 were READ AT THEIR FILES; the workflow's two action pins were read at the workflow.**
 - **I did not re-derive any `0.1.2` figure, and I did not check that the `0.1.2` blocks still describe the `0.1.3` artefact at every point they speak of behaviour.** **Where `0.1.3` is known to have moved a behaviour I have said so at the section that carries it — §8.1's `filePath` bullet and §8.5 — rather than editing the `0.1.2` reading.**
+- **⟶ AND THE FILE-TIER SAVE'S SURFACE MOVES ARE STATED AT THE POINTS A CONSUMER MEETS THEM, ADDED 2026-10-16 BY THE GATE-7 PROOFREADING PASS (`role_proofreader`): §0-bis's third paragraph, §1.1's member block and §1.2's count, §3's `write` signature and key count, §6.1's sixteenth row, §6.4's growth clause, §8.1's four-key block, §8.3's *"the verb performs no file I/O on any of its arms"* and the passing-arm save, and the new §8.6 (`constraints`).** **NOTHING IN THE `▸` BLOCKS MOVED, no `0.1.2` measurement was re-derived, and the two readings this pass could NOT confirm at a published artefact are marked DECLARED where they stand rather than presented as measured.**
 
 ---
 

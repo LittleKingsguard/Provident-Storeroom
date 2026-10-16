@@ -9,6 +9,41 @@
 // LAYER: ENVELOPE/PURE.   APP LAYER: NONE.   NO `APP`-GREEN IS CLAIMED HERE OR ANYWHERE IN THIS RUN.
 //
 // RUN:  node bindings/js/greens/greens.mjs        (from the repository root)
+//
+// ⟶ RE-DERIVED 2026-10-15 — THE `A116` ORDERING-SEAM RE-DERIVATION PASS (`role_blind_test_writer`), ON THE
+// RE-SPELLED CLAUSES: `JSG-14.4`, `JSG-14.5` and `JSG-15.1` are re-derived against the clauses as they now
+// read — `§2.4` item 9 (b) (the seam's refusal: `TypeError` and nothing else, `status` ABSENT, a STRING
+// `message` REQUIRED and NOT FORBIDDEN — where the pre-re-spelling cells asserted "NO `message` member", the
+// reading item 5 (d) carries at the REGISTRATION site) and `§2.7` item 2 (the instant measured from the STORE
+// call's completion and the record's copy-out, the package's verb NOT yet returned — where the
+// pre-re-spelling cell asserted the opposite sign of the same flag). Each cell keeps its subject and its
+// drive, and the observable it asserts is the clause's own. `JSG-16.1` NOW TAKES ITS ASSERTION: THE ARCHITECT'S
+// RULING HAS LANDED (2026-10-15) AND IT IS RULED, NOT SPLIT — `§2.7` item 6 GOVERNS THE FIRING (the write's
+// triggered constraints run first and THE OTHER LISTENERS ARE REACHED ONCE EVERY CONSTRAINT HAS PASSED), while
+// `§2.4` item 8 (c) is a REGISTRATION-side statement whose NON-DELIVERY DERIVATIONS ARE SUPERSEDED; A SPLIT
+// ONCE STOOD AT THIS CELL (2026-10-15, `docs/next-steps.md` · `N7` item 1, `250`/`247`/`3`), and it is
+// superseded by that ruling. The cell's one observable, driven through the kernel route the ruling names: the
+// app's registration at the pair-adopted address fires EXACTLY ONCE, AFTER THE PASS — after the store call has
+// completed and the write's own record is readable — WITH THE TRIGGERING ADDRESS AS ITS SINGLE ARGUMENT; its
+// sibling control at the PROPER PREFIX fires once too, and a third registration at a BARE address (no pair
+// there) is the instrument control that shows this drive's registrations and findings work where no pass is in
+// play. THE SET IS `253` AUTHORED · `253` EXECUTED OVER `16` SCENARIOS; its pre-ruling reading at
+// this site was `250` · `250` · `0`, and the one new assertion is expected RED until the implementer's fix
+// lands — reported, not patched.
+//
+// ⟶ RE-DERIVED 2026-10-16 — THE `DEF-2026-10-16-A` PASS (`role_blind_test_writer`). THE SUITE STOOD AT
+// `243`/`253`: TEN CELLS ASSERTED LAW THIS CHANGE MOVED, IN TWO CLASSES, AND EVERY ONE IS SUPERSEDED AND NOT
+// BROKEN — (i) the load-side zero-byte / `ConstraintListInvalid` cells and (ii) the cells that drove the file
+// commit AT THE VERB. The law that moved: `storeroom-js/surface.md §2.11` clause 2 (the `file`-tier save is the
+// `settle` seam's TERMINAL ARM's act; *"the verb performs NO FILE I/O on any of its arms"*) and the ruled load
+// side, `docs/decisions.md` · `A119` (2026-10-16, `ACTIVE`: the exemption is the FILE'S emptiness — a zero-byte
+// file boots an INSTANCE, a present short image is validated and refused). EACH OF THE TEN IS RE-DERIVED, NONE
+// IS RETIRED, AND EACH CARRIES ITS DATED NOTE AT ITS OWN CELL: `JSG-02.10`, `.11`, `.14`, `.15`, `.16` are
+// RE-POINTED to the terminal arm (their property still exists there) and two cells are ADDED at `.17`/`.18`
+// pinning the ruled load side at this scenario's own fixture; `JSG-10.16`–`.20` are RE-POINTED to the same
+// route, `.19`'s census WIDENED from the superseded fifteen to the sixteen of `store §8.1`'s dated clause of
+// 2026-10-15. THE SET IS `255` AUTHORED · `255` EXECUTED OVER `16` SCENARIOS, `255` PASS · `0` FAIL — a
+// RETIRED CELL WOULD OWE A NOTE NAMING ITS SUPERSEDING CLAUSE, AND NO CELL HERE IS RETIRED.
 
 import fs from 'node:fs';
 import os from 'node:os';
@@ -24,6 +59,10 @@ const CLOSED_SET = [
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
   'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
   'ValueNotAdmitted', 'FileCommitFailed',
+  // ⟶ WIDENED 2026-10-16 (`DEF-2026-10-16-A` re-derivation pass, `role_blind_test_writer`): the sixteenth
+  // member, appended at rank `16` by `store §8.1`'s dated clause of 2026-10-15. The census this array feeds is
+  // `JSG-10.19`'s, and the count it printed was the SUPERSEDED FIFTEEN (`DEF-2026-10-15-Y`'s class).
+  'ConstraintListInvalid',
 ];
 const INTERNAL_FIVE = ['version', 'errorMessage', 'storeCreate', 'call', 'register'];
 const PLACEHOLDER_TOKENS = ['<SEGMENT>', '<CONTAINER>', '<mismatch clause>', '<available clause>',
@@ -32,6 +71,9 @@ const PLACEHOLDER_TOKENS = ['<SEGMENT>', '<CONTAINER>', '<mismatch clause>', '<a
 // ── the run's own bookkeeping ───────────────────────────────────────────────────────────────────────────
 let authored = 0, executed = 0, pass = 0, fail = 0;
 const fails = [];
+// ⟶ ADDED 2026-10-16: the observables of the ten cells re-derived by this pass plus the two it adds, printed
+// in the report so each re-derived verdict is readable AT ITS BYTES and not only as a PASS count.
+const REDERIVED = [];
 const perScenario = new Map();
 
 function A(id, clause, expectation, cond, observed) {
@@ -48,6 +90,7 @@ function A(id, clause, expectation, cond, observed) {
 }
 
 // ── the §1.5 relation, and the form checks ──────────────────────────────────────────────────────────────
+const ABSENT = Symbol('ABSENT');   // crossing.md §1.3's dated rule: an ABSENT trailing position is driven by CALL ARITY
 function rel(a, b) {
   // member-SET equality for objects; array index order significant; Object.is for numbers (§1.5).
   if (Object.is(a, b)) return true;
@@ -114,6 +157,35 @@ if (ns === null) {
   process.exit(2);
 }
 
+// ── the SECOND consumer module, reached ONLY by the one cell the ruling sends through it (`JSG-16.1`): the
+// kernel whose two items carry the pass's own instants, `constraint-kernel`, at the ONE checkout home the
+// kernel's own clause declares (`docs/specs/storeroom-constraints/kernel-surface.md §1` item 1 — the ESM
+// source file `bindings/js/src/constraint-kernel.mjs`, whose build scope that clause declares and whose
+// `K-1`–`K-5` signatures `§2.1` prints). The ruling re-derives the pair-adopted address's firing "after the
+// pass", and a pass is reached ONLY through this module: NO clause of `docs/specs/storeroom-js/**` puts a
+// pass on the package's own surface. Imported as DATA (its call shapes are the doc's), never read as source;
+// where it does not resolve, `JSG-16.1` says so and drives nothing else differently.
+let kernel = null, KERNEL_ERROR = null;
+try { kernel = await import('../src/constraint-kernel.mjs'); } catch (e) { KERNEL_ERROR = e; }
+function K1(store, address, id, fn) { return kernel.register(store, address, id, fn); }
+function K2(store, address, tier, value) { return kernel.commit(store, address, tier, value); }
+function K3(store, attempt) { return kernel.runAttempt(store, attempt); }
+
+// ── ⟶ ADDED 2026-10-16 (THE `DEF-2026-10-16-A` RE-DERIVATION PASS, `role_blind_test_writer`): THE `file` TIER'S
+// SAVE REACHED ON THE ONE ROUTE THE AMENDED LAW LEAVES IT. `docs/specs/storeroom-js/surface.md §2.11` clause 2
+// moved the `file`-tier durable commit OFF the write verb and onto the `settle` seam's TERMINAL ARM — the act
+// is *"the FIRST thing that arm does, before any body of the delivered set is invoked"* — so the store's file
+// write is performed by `K-3`'s terminal arm and by NOTHING else: a bare `write` performs NO file I/O on any
+// of its arms. Every cell of this set that once drove the file commit AT THE VERB is re-pointed through this
+// helper (`K-2` `commit` then `K-3` `runAttempt`; `docs/specs/storeroom-constraints/kernel-surface.md §2.1`
+// items 2–3), its subject unchanged. Imported as DATA and driven, never read as source.
+function kernelSaveFile(store, address, value) {
+  if (kernel === null) return { threw: true, err: `KERNEL ABSENT: ${fmt(String(KERNEL_ERROR))}` };
+  const rec = thrown(() => K2(store, address, 'file', value));
+  if (rec.threw) return rec;
+  return thrown(() => K3(store, rec.value));
+}
+
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 // JSG-01 — THE SURFACE                                                      17 assertions
 // ⟶ RE-DERIVED 2026-10-11 (THE `Q1` CONTRACT AMENDMENT, `A79`): the instance's own member set is now the
@@ -121,6 +193,8 @@ if (ns === null) {
 // 1 (a) and carried at that document's §2.4 item 7; the OLD value — the set `{ register }` — was §2.4
 // item 5 (a)'s PRE-AMENDMENT declaration, superseded AS A MEMBER-SET FIGURE by §2.1's dated clause 1 (a)
 // (contract.md §5.5's dated clause, clause 5, names this header and `JSG-01.9` as the two cells that move).
+// ⟶ THIS PARAGRAPH'S THREE-MEMBER FIGURE IS ITS PASS'S OWN READING (2026-10-11) AND IS SUPERSEDED AS A
+// MEMBER-SET FIGURE BY THE `A116` SEAM: `{ register, on, off, settle }`, FOUR OWN MEMBERS — see the cell below.
 // The MODULE NAMESPACE is UNMOVED at the eight declared verbs (§2.1's dated clause 1 (b)): `JSG-01.2`,
 // `.7`, `.11` and `.12` stand as filed. The four cells `.14`–`.17` are this scenario's own coverage of the
 // two new members: their function class, their absence from the module namespace, and their two DECLARED
@@ -139,11 +213,21 @@ if (ns === null) {
   A('JSG-01.6', '§3.5; A74', 'neither dispose nor close is an own export', !('dispose' in ns) && !('close' in ns), `dispose=${'dispose' in ns} close=${'close' in ns}`);
   A('JSG-01.7', '§2.4 item 5 (a)', 'register is NOT an own export of the module namespace', !Object.prototype.hasOwnProperty.call(ns, 'register'), `own=${Object.prototype.hasOwnProperty.call(ns, 'register')}`);
   A('JSG-01.8', '§2.1', 'storeCreate(cfg) returns a non-null object that is neither a function nor an array', i1 !== null && typeof i1 === 'object' && typeof i1 !== 'function' && !Array.isArray(i1), fmt(i1));
-  // §2.1's dated clause 1 (a) FIXES THE NEW VALUE: the instance's member set is `{ register, on, off }`.
+  // §2.1's dated clause 1 (a) FIXES THE NEW VALUE AT THIS PASS'S OWN DATE (2026-10-11): the instance's member
+  // set is `{ register, on, off }` — THE PRE-SEAM READING, superseded as a member-set figure by the clause below.
   // The OLD value this cell asserted — the exact set `['register']`, "one own member and NOTHING ELSE" —
   // was §2.4 item 5 (a)'s PRE-AMENDMENT declaration, superseded as a member-set figure by that clause;
   // `contract.md §5.5`'s dated clause (clause 5) names THIS cell as one of the two that must move.
-  A('JSG-01.9', '§2.1 dated clause 1 (a); A79; §2.4 item 7', "the instance's own member set is exactly ['off','on','register'] — the three declared members, and NOTHING ELSE (the pre-amendment declaration was ['register'])", membersAre(formOf(i1), 'off,on,register'), formOf(i1).members.join(','));
+  // ⟶ RE-DERIVED 2026-10-15 (THE `A116` ORDERING-SEAM PASS), FROM THE CLAUSES AND FROM NOTHING ELSE: §2.1's
+  // dated clause 1 (a) carries the seam's own read-through — "THE INSTANCE'S MEMBER SET IS NOW
+  // `{ register, on, off, settle }` — FOUR OWN MEMBERS, AND NOTHING ELSE" — and §2.4 item 9 mints the fourth
+  // member, `settle(record) -> undefined`. §2.4 item 5 (a) and §2.7 item 8's citation of the three-member
+  // figure are each re-read THROUGH that sentence at their own `§`, so the OLD value this cell asserted —
+  // `['off','on','register']` — is the pre-seam reading and is NOT the operative member set. The MODULE
+  // NAMESPACE does NOT move with it (§2.1 dated clause 1 (b), read through item 9: "`settle` is NOT a ninth
+  // named export — the module namespace stays at the `8` declared verbs"), which `JSG-01.2`/`.15` and the new
+  // `JSG-14.2` each keep at eight names.
+  A('JSG-01.9', '§2.1 dated clause 1 (a) read through A116 (D1); §2.4 item 9; A79', "the instance's own member set is exactly ['off','on','register','settle'] — the FOUR declared members, and NOTHING ELSE (the pre-seam declaration was ['off','on','register']; before that, ['register'])", membersAre(formOf(i1), 'off,on,register,settle'), formOf(i1).members.join(','));
   A('JSG-01.10', '§2.4 item 5', 'the one member is a function', typeof i1.register === 'function', typeof i1.register);
   A('JSG-01.11', '§2.1 dated clause; §2.4 item 5 (a)', "the store's own verbs and findAddress are exposed through NO member of the handle", [...VERBS, 'findAddress'].every((v) => i1[v] === undefined), [...VERBS, 'findAddress'].filter((v) => i1[v] !== undefined).join(',') || 'none');
   A('JSG-01.12', 'package.md §1.3 item 4; §3.1 dated clause', 'none of the internal addon\'s five names is an own export of the entry', ['version', 'errorMessage', 'call'].every((v) => !Object.prototype.hasOwnProperty.call(ns, v)), ['version', 'errorMessage', 'call'].filter((v) => v in ns).join(',') || 'none');
@@ -170,7 +254,7 @@ if (ns === null) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// JSG-02 — THE ROUND TRIP, END TO END, THE BOOT, THE TWO NORMALIZATIONS   16 assertions
+// JSG-02 — THE ROUND TRIP, END TO END, THE BOOT, THE TWO NORMALIZATIONS   18 assertions (16 until 2026-10-16)
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const cfg = mk('g02');
@@ -192,24 +276,66 @@ if (ns === null) {
   A('JSG-02.8', '§1.5 item 3; store §7.2 item 7 (c)', 'a mem-tier -0 member reads back Object.is -0', rm && !rm.threw && Object.is(rm.value?.neg, -0), rm && rm.threw ? `threw ${fmt(rm.err)}` : `neg=${fmt(rm && rm.value && rm.value.neg)}`);
   const whole = thrown(() => ns.read(A2, []));
   A('JSG-02.9', 'store §4.1; §4.2 R-5; A25', 'the empty address answers the whole register: an object whose key set contains the written key', whole && !whole.threw && whole.value && typeof whole.value === 'object' && !Array.isArray(whole.value) && Object.prototype.hasOwnProperty.call(whole.value, 'rt'), whole && whole.threw ? `threw ${fmt(whole.err)}` : fmt(whole && whole.value));
+  // ⟶ RE-DERIVED 2026-10-16 (THE `DEF-2026-10-16-A` PASS, `role_blind_test_writer`) — THE FIVE CELLS `.10`,
+  // `.11`, `.14`, `.15`, `.16`, AND THE TWO ADDED AT `.17`/`.18`. TWO GROUNDS, EACH NAMED BY ITS CLAUSE:
+  // (ii) `docs/specs/storeroom-js/surface.md §2.11` CLAUSE 2 — the `file`-tier durable commit is the `settle`
+  // seam's TERMINAL ARM's act and *"the verb performs NO FILE I/O on any of its arms"* — so the bare `write`
+  // these cells once drove leaves the construction's own ZERO-BYTE image standing, and a boot over it loads
+  // NOTHING; (i) `docs/decisions.md` · `A119` (2026-10-16, ACTIVE) — the load-side exemption keys on the FILE'S
+  // BYTES, so a zero-byte file BOOTS AN INSTANCE carrying `0` register keys. The PROPERTY the five cells pin (a
+  // `file`-tier write is durable and reloads across a boot, and the file image moves the `-0` only) STILL
+  // EXISTS on the amended route, so each is RE-POINTED to it — `K-2` + `K-3`, via `kernelSaveFile` — and NOT
+  // retired. The two cells the same pass ADDS pin the ruled load-side law the re-pointed drives no longer
+  // exercise; no cell of this scenario is retired, so none owes a retirement note.
+  const wSave = kernelSaveFile(A2, ['rt'], V); // the terminal arm's own save, driven through the kernel route
   const B = thrown(() => ns.storeCreate(cfg));
   const rb = (B && !B.threw) ? thrown(() => ns.read(B.value, ['rt'])) : { threw: true, err: B.err };
-  A('JSG-02.10', 'store §7.2 item 6', 'a FRESH instance over the same cfg.filePath re-loads the committed value: the boot read equals the written value under §1.5', rb && !rb.threw && rel(rb.value, V), rb && rb.threw ? `threw ${fmt(rb.err)}` : fmt(rb && rb.value));
+  A('JSG-02.10', 'store §7.2 item 6 (the boot) read through surface.md §2.11 clause 2 as amended 2026-10-15 (the save is the terminal arm\'s act) — RE-POINTED 2026-10-16', 'a FRESH instance over the same cfg.filePath re-loads the committed value: the boot read equals the written value under §1.5', rb && !rb.threw && rel(rb.value, V), `${wSave.threw ? `the terminal arm's save FAILED: ${fmt(wSave.err)} ; ` : ''}${rb && rb.threw ? `threw ${fmt(rb.err)}` : fmt(rb && rb.value)}`);
   const kb = rb && !rb.threw && rb.value && typeof rb.value === 'object' ? Object.keys(rb.value).sort() : [];
-  A('JSG-02.11', '§1.5 item 1; store §7.2 item 6', "the booted value's member set is the written one", kb.join(',') === Object.keys(V).sort().join(','), kb.join(','));
+  A('JSG-02.11', '§1.5 item 1; store §7.2 item 6 — RE-POINTED 2026-10-16 (same ground as `.10`)', "the booted value's member set is the written one", kb.join(',') === Object.keys(V).sort().join(','), kb.join(','));
   const wMem = thrown(() => ns.write(A2, ['neg-mem'], 'mem', -0));
   const rMem = wMem.threw ? wMem : thrown(() => ns.read(A2, ['neg-mem']));
   A('JSG-02.12', 'store §7.2 item 7 (c)', 'a mem-tier -0 reads back Object.is -0', !rMem.threw && Object.is(rMem.value, -0), rMem.threw ? `threw ${fmt(rMem.err)}` : fmt(rMem.value));
   const wTmp = thrown(() => ns.write(A2, ['neg-temp'], 'temp', -0));
   const rTmp = wTmp.threw ? wTmp : thrown(() => ns.read(A2, ['neg-temp']));
   A('JSG-02.13', 'store §7.2 item 7 (c)', 'a temp-tier -0 reads back Object.is -0', !rTmp.threw && Object.is(rTmp.value, -0), rTmp.threw ? `threw ${fmt(rTmp.err)}` : fmt(rTmp.value));
-  const wFile = thrown(() => ns.write(A2, ['neg-file'], 'file', -0));
+  // ⟶ RE-POINTED 2026-10-16 for the same two grounds as `.10`: the `-0` at the `file` tier is committed by
+  // the terminal arm (`surface.md §2.11` clause 2) and read back from a boot over the file's own bytes.
+  const wFile = kernelSaveFile(A2, ['neg-file'], -0);
   const C = wFile.threw ? { threw: true, err: wFile.err } : thrown(() => ns.storeCreate(cfg));
   const rFile = (C && !C.threw) ? thrown(() => ns.read(C.value, ['neg-file'])) : { threw: true, err: C.err };
-  A('JSG-02.14', 'store §7.2 item 7 (c); §4.3 exclusion (i)', 'after a boot the committed -0 reads back as 0 (Object.is 0 is true)', rFile && !rFile.threw && Object.is(rFile.value, 0), rFile && rFile.threw ? `threw ${fmt(rFile.err)}` : fmt(rFile && rFile.value));
-  A('JSG-02.15', 'store §7.2 item 7 (c); §4.3 exclusion (i)', 'and Object.is(v,-0) is false: the ONE declared number normalization', rFile && !rFile.threw && !Object.is(rFile.value, -0), rFile && rFile.threw ? `threw ${fmt(rFile.err)}` : fmt(rFile && rFile.value));
+  A('JSG-02.14', 'store §7.2 item 7 (c); §4.3 exclusion (i) — RE-POINTED 2026-10-16 (surface.md §2.11 clause 2)', 'after a boot the committed -0 reads back as 0 (Object.is 0 is true)', rFile && !rFile.threw && Object.is(rFile.value, 0), rFile && rFile.threw ? `threw ${fmt(rFile.err)}` : fmt(rFile && rFile.value));
+  A('JSG-02.15', 'store §7.2 item 7 (c); §4.3 exclusion (i) — RE-POINTED 2026-10-16 (surface.md §2.11 clause 2)', 'and Object.is(v,-0) is false: the ONE declared number normalization', rFile && !rFile.threw && !Object.is(rFile.value, -0), rFile && rFile.threw ? `threw ${fmt(rFile.err)}` : fmt(rFile && rFile.value));
   const rC = (C && !C.threw) ? thrown(() => ns.read(C.value, ['rt'])) : { threw: true, err: C.err };
-  A('JSG-02.16', 'store §7.2 item 7 (a)-(c); §1.5', 'the booted mixed value is still EQUAL to V under §1.5 (the file image moves the -0 only)', rC && !rC.threw && rel(rC.value, V), rC && rC.threw ? `threw ${fmt(rC.err)}` : fmt(rC && rC.value));
+  A('JSG-02.16', 'store §7.2 item 7 (a)-(c); §1.5 — RE-POINTED 2026-10-16 (surface.md §2.11 clause 2)', 'the booted mixed value is still EQUAL to V under §1.5 (the file image moves the -0 only)', rC && !rC.threw && rel(rC.value, V), rC && rC.threw ? `threw ${fmt(rC.err)}` : fmt(rC && rC.value));
+  // ⟶ ADDED 2026-10-16 (the `DEF-2026-10-16-A` pass): THE RULED LOAD-SIDE LAW, DRIVEN AT THIS SCENARIO'S OWN
+  // FIXTURE. The five re-pointed cells above no longer exercise the input class their reds came from, and the
+  // class is the one the defect names: `docs/decisions.md` · `A119` (2026-10-16, ACTIVE) — *"the exemption is
+  // the FILE'S EMPTINESS, never the loaded state's smallness"* — ruling `store §7.2` item 6's zero-length clause
+  // against `parameter-semantics.md §2.21` with `§8.1` #16. Both halves are driven here, at the file's bytes.
+  const zeroCfg = cfgFor('g02zero');
+  ns.storeCreate(zeroCfg.c); // the construction's own exclusive create leaves the file at 0 bytes
+  const zeroBytes = fs.statSync(zeroCfg.c.filePath).size;
+  const zb = thrown(() => ns.storeCreate({ ...zeroCfg.c, constraints: [{ address: ['rt'], id: 'c1' }] }));
+  const zbRead = zb.threw ? null : thrown(() => ns.read(zb.value, []));
+  A('JSG-02.17', 'A: docs/decisions.md · A119 (2026-10-16); store §7.2 item 6 (the zero-length clause, dated 2026-10-16); surface.md §2.1 (dated: "the loaded state is validated against the supplied list")',
+    'a ZERO-BYTE file boots an INSTANCE under a supplied NON-EMPTY list — the exemption keys on the FILE\'s bytes — and its register reads ZERO keys, the file standing at 0 bytes after the boot',
+    !zb.threw && zeroBytes === 0 && fs.statSync(zeroCfg.c.filePath).size === 0 && !!zbRead && !zbRead.threw && Object.keys(zbRead.value ?? {}).length === 0,
+    `image is ${zeroBytes} bytes ; boot -> ${zb.threw ? fmt(zb.err) : 'INSTANCE'} ; read([]) -> ${zbRead ? (zbRead.threw ? fmt(zbRead.err) : fmt(zbRead.value)) : '-'}`);
+  const shortCfg = cfgFor('g02short');
+  const shortPath = shortCfg.c.filePath;
+  fs.writeFileSync(shortPath, '{}'); // a PRESENT two-byte image: the state is empty, the FILE is not
+  const sh = thrown(() => ns.storeCreate({ ...shortCfg.c, constraints: [{ address: ['rt'], id: 'c1' }] }));
+  A('JSG-02.18', 'A: docs/decisions.md · A119 (2026-10-16); store §7.1 step 4-bis; §8.1 #16; §7.2 item 6 as amended 2026-10-15',
+    'a PRESENT short image whose loaded state satisfies no supplied pair is VALIDATED and refused with ConstraintListInvalid, no instance returned, the image byte-identical',
+    sh.threw && sh.err && sh.err.status === 'ConstraintListInvalid' && fs.readFileSync(shortPath, 'utf8') === '{}',
+    `${sh.threw ? `${fmt(sh.err.status)} :: ${fmt(sh.err.message)}` : 'AN INSTANCE WAS RETURNED'} ; image=${fmt(fs.readFileSync(shortPath, 'utf8'))}`);
+  REDERIVED.push(`JSG-02.10 :: terminal-arm save ${wSave.threw ? `FAILED ${fmt(wSave.err)}` : 'landed'} ; boot read -> ${rb && !rb.threw ? fmt(rb.value) : fmt(rb && rb.err)}`);
+  REDERIVED.push(`JSG-02.11 :: booted member set=[${kb.join(',')}]`);
+  REDERIVED.push(`JSG-02.14/.15 :: booted 'neg-file' -> ${rFile && !rFile.threw ? fmt(rFile.value) : fmt(rFile && rFile.err)} ; Object.is(v,-0)=${rFile && !rFile.threw ? !Object.is(rFile.value, -0) : 'n/a'}`);
+  REDERIVED.push(`JSG-02.16 :: booted 'rt' EQUAL to V under §1.5 = ${rC && !rC.threw ? rel(rC.value, V) : fmt(rC && rC.err)}`);
+  REDERIVED.push(`JSG-02.17 :: zero-byte image ${zeroBytes} bytes -> ${zb.threw ? fmt(zb.err) : 'INSTANCE'} ; read([]) -> ${zbRead ? (zbRead.threw ? fmt(zbRead.err) : fmt(zbRead.value)) : '-'}`);
+  REDERIVED.push(`JSG-02.18 :: present two-byte {} image -> ${sh.threw ? `${fmt(sh.err.status)} :: ${fmt(sh.err.message)}` : 'AN INSTANCE WAS RETURNED'} ; image=${fmt(fs.readFileSync(shortPath, 'utf8'))}`);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -609,17 +735,29 @@ const g10 = { all: [] };
   one('JSG-10.13', 'store §8.1 #12; §7.1', 'storeCreate with an ABSENT journalLength', 'ConstructionArgumentMissing', () => ns.storeCreate({ filePath: mk('g10b').filePath, listeners: [] }));
   one('JSG-10.14', 'store §8.1 #13; §7.1; §1.3 FilePathArg row 4', 'storeCreate with a provided path whose parent directory does not exist', 'FilePathUnreachable', () => ns.storeCreate({ filePath: path.join(ROOT, 'no-such-dir-xyz', 'state.json'), journalLength: 1, listeners: [] }));
   one('JSG-10.15', 'store §8.1 #14; §1.2 row 11', 'a write whose value is NaN', 'ValueNotAdmitted', () => ns.write(i10, ['nv'], 'temp', NaN));
+  // ⟶ RE-DERIVED 2026-10-16 (THE `DEF-2026-10-16-A` PASS, `role_blind_test_writer`) — CLASS (ii): THIS CELL AND
+  // THE FOUR BELOW IT DROVE THE `file` COMMIT **AT THE VERB**, A ROUTE `docs/specs/storeroom-js/surface.md §2.11`
+  // CLAUSE 2 SUPERSEDES (*"the act is the FIRST thing that arm does, before any body of the delivered set is
+  // invoked"*; *"the verb performs NO FILE I/O on any of its arms"*). `NS.WRITE` UNDER THIS FIXTURE CANNOT FAIL
+  // ANY LONGER, so the `<no throw>` these cells printed was THE SUPERSEDED LAW ANSWERING AND NOT A REGRESSION.
+  // The subject is unmoved — a `file`-tier save whose path became unwritable after construction fails, the
+  // store rolls the write back, and the caller meets the store's own single form — so the drive is RE-POINTED
+  // to the terminal arm (`K-2` + `K-3`, `storeroom-constraints/kernel-surface.md §2.1` items 2–3) and no cell is
+  // retired. SAME FIXTURE, SAME FAILING ENVIRONMENT, ONE ROUTE MOVED.
   const cfgFC = cfgFor('g10fc');
   const iFC = ns.storeCreate(cfgFC.c);
   fs.rmSync(cfgFC.dir, { recursive: true, force: true });
   fs.writeFileSync(cfgFC.dir, 'not a directory');
-  const wFC = thrown(() => ns.write(iFC, ['fc'], 'file', 1));
+  const wFC = kernelSaveFile(iFC, ['fc'], 1);
   g10.all.push({ id: 'JSG-10.16', label: 'a file-tier write whose path became unwritable after construction', r: wFC });
-  A('JSG-10.16', 'store §8.1 #15; §7.2 items 3-4', 'a file-tier write whose commit path fails answers FileCommitFailed and delivers it to the caller',
+  A('JSG-10.16', 'store §8.1 #15; §7.2 items 3-4; surface.md §2.11 clause 2 as amended 2026-10-15 (the failing save is the TERMINAL ARM\'s, its refusal reaching the caller) — RE-POINTED 2026-10-16', 'a file-tier write whose commit path fails answers FileCommitFailed and delivers it to the caller',
     statusOf(wFC) === 'FileCommitFailed', String(statusOf(wFC)));
+  // ⟶ RE-DERIVED 2026-10-16: the SAME failing save, read one act later. Its observable is unmoved (the store's
+  // own rollback is `§7.2` item 3's arm and runs before the caller is answered) — and on the re-pointed route
+  // it is the state the store actually reaches.
   const rFC = thrown(() => ns.read(iFC, ['fc']));
   g10.all.push({ id: 'JSG-10.17', label: 'the state after the failed commit', r: rFC });
-  A('JSG-10.17', 'store §6.4 item 8; §7.2 item 3 (i)', "after the failed commit A16's automatic journal rollback has run: the pre-write state stands (the address does not resolve)",
+  A('JSG-10.17', 'store §6.4 item 8; §7.2 item 3 (i) — RE-POINTED 2026-10-16 (same ground as `.16`)', "after the failed commit A16's automatic journal rollback has run: the pre-write state stands (the address does not resolve)",
     statusOf(rFC) === 'AddressNotFound', String(statusOf(rFC)));
 
   const thrownSet = g10.all.filter((x) => !x.r.threw);
@@ -629,12 +767,15 @@ const g10 = { all: [] };
     `${thrownSet.length} did not throw; forms=${forms.map((f) => `[${f.members.join(',')}]/${f.proto}`).join(' ')}`);
   const codes = g10.all.map((x) => statusOf(x.r));
   const outside = codes.filter((c) => !CLOSED_SET.includes(c));
-  A('JSG-10.19', "§2.5 item 1; DD-40", "every status is a member of the store's closed 15-member set — no code outside the set and none minted by the package",
+  A('JSG-10.19', "§2.5 item 1; DD-40; store §8.1's dated clause of 2026-10-15 (the closed set is 16, ConstraintListInvalid appended at rank 16) — CENSUS WIDENED 2026-10-16", "every status is a member of the store's closed 16-member set — no code outside the set and none minted by the package",
     outside.length === 0, `outside=[${outside.join(',')}] observed=[${codes.join(',')}]`);
   const msgs10 = g10.all.map((x) => msgOf(x.r));
   const withPlaceholder = msgs10.filter((m) => typeof m !== 'string' || m.length === 0 || PLACEHOLDER_TOKENS.some((t) => m.includes(t)));
   A('JSG-10.20', 'store §8.2 property (c)', 'every message is non-empty and carries no unsubstituted placeholder token of the generator\'s own form',
     withPlaceholder.length === 0, fmt(withPlaceholder));
+  REDERIVED.push(`JSG-10.16 :: the terminal arm's save, at the failing path -> ${statusOf(wFC)} :: ${fmt(msgOf(wFC))}`);
+  REDERIVED.push(`JSG-10.17 :: read(['fc']) after that failure -> ${statusOf(rFC)}`);
+  REDERIVED.push(`JSG-10.18/.19/.20 :: ${g10.all.length} driven failures ; did-not-throw=${thrownSet.length} ; outside-the-16=[${outside.join(',') || 'none'}] ; empty-or-placeholder messages=${withPlaceholder.length}`);
   const i21 = ns.storeCreate(mk('g10w21'));
   thrown(() => ns.write(i21, ['window'], 'mem', {}));
   const r21 = thrown(() => ns.read(i21, ['window', 'empty']));
@@ -705,7 +846,7 @@ const g10 = { all: [] };
 // spellings already asserted. ONE row is ADDED — `JSG-12.18`, the `files` allowlist (`PUB-DD-1`;
 // `PAR-PUB-3`), a value this unit declares for the first time, with NO pre-rename counterpart. The
 // rename reaches NOTHING ELSE here: the eight module names (`JSG-12.1`, `.2`), the instance's
-// `{ register, on, off }` (`JSG-01.9`), the realm claim (Node ESM alone — `JSG-12.4`, `.5`) and the
+// `{ register, on, off, settle }` (`JSG-01.9`), the realm claim (Node ESM alone — `JSG-12.4`, `.5`) and the
 // `HO-` handoff row (`JSG-12.5`'s `§3.2 HO-1`) are all UNCHANGED, checked and unmoved. NO ASSERTION IN
 // THIS FILE IS WEAKENED BY THIS PASS, AND NO `APP`-GREEN IS CLAIMED.
 // ⟶ SUPERSEDED 2026-10-11 BY THE `A88` PARAGRAPH BELOW, AND RE-EMITTED HERE BYTE-FOR-BYTE SO ITS SITE IS NOT
@@ -723,7 +864,7 @@ const g10 = { all: [] };
 // THE MOVED CELL ITSELF as the spelling the ruling moved, and it is REFUSED by that cell's own assertion.
 // `A86`(b) — `@auspicion/storeroom-js-<label>` — is CARRIED AND UNAPPLIED and is asserted by NO cell here.
 // NOTHING ELSE IN THIS SCENARIO OR THIS FILE MOVES: the eight module names (`JSG-12.1`, `.2`), the
-// instance's `{ register, on, off }` (`JSG-01.9`), the realm claim (Node ESM alone — `JSG-12.4`, `.5`), the
+// instance's `{ register, on, off, settle }` (`JSG-01.9`), the realm claim (Node ESM alone — `JSG-12.4`, `.5`), the
 // `HO-` handoff row (`JSG-12.5`'s `§3.2 HO-1`), the count `5` (`JSG-12.11`) and the `files` allowlist
 // (`JSG-12.18`) are all CHECKED AND STAND UNMOVED. THE ASSERTION CENSUS OF THIS SET IS UNMOVED BY THIS PASS
 // (no cell is added and none is removed), AND NO ASSERTION IN THIS FILE IS WEAKENED BY IT — the moved cell
@@ -741,7 +882,7 @@ const g10 = { all: [] };
 // by the ruling and is asserted by no cell either. THE MAIN PACKAGE'S IDENTITY DOES NOT MOVE: `JSG-12.10` —
 // `provident-storeroom`, UNSCOPED, fixed by `PAR-PUB-1` — IS CHECKED AND DOES NOT MOVE, because a clause about
 // the PLATFORM names contains no term about the main package's own name (`A82`). NOTHING ELSE IN THIS SCENARIO
-// OR THIS FILE MOVES: the eight module names (`JSG-12.1`, `.2`), the instance's `{ register, on, off }`
+// OR THIS FILE MOVES: the eight module names (`JSG-12.1`, `.2`), the instance's `{ register, on, off, settle }`
 // (`JSG-01.9`), the realm claim (Node ESM alone — `JSG-12.4`, `.5`), the `HO-` handoff row (`JSG-12.5`'s
 // `§3.2 HO-1`), the count `5` (`JSG-12.11`) and the `files` allowlist (`JSG-12.18`) are all CHECKED AND STAND
 // UNMOVED. THE ASSERTION CENSUS OF THIS SET IS UNMOVED BY THIS PASS (no cell is added and none is removed),
@@ -918,12 +1059,252 @@ const g10 = { all: [] };
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// JSG-14 — THE ORDERING SEAM ON THE INSTANCE: THE FOURTH MEMBER'S SHAPE, AND THE NAMESPACE IT DOES NOT ENTER
+//                                                                          5 assertions (CELLS ADDED 1-5)
+// ⟶ ADDED 2026-10-15, FROM THE CLAUSES ALONE (`§2.4` item 9; `A116`): the seam's own member, its declared
+// shape, and the one reading the non-exposure sentence owes. The SEAM'S TWO INSTANTS (`§2.4` item 9's table
+// rows (a)/(b)) are the KERNEL's own calls — `commit` and `runAttempt`'s terminal arm — and a drive reaches
+// them only through the kernel module `docs/specs/storeroom-constraints/kernel-surface.md §1` item 1
+// declares; THIS SET REACHES NOTHING OUTSIDE THE PACKAGE'S CLAIMED ESM ENTRY, so the instant cells are
+// OWED and UN-OBSERVABLE AT THIS SET'S BOUNDARY — named at `docs/specs/storeroom-js-greens.md` §3 item 9 and
+// at `§4` of the run's report.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+{
+  const i14 = ns.storeCreate(mk('g14'));
+  A('JSG-14.1', '§2.4 item 9 (read beside §2.1 dated clause 1 (a), `A116` (D1))', "the fourth member exists and is a function on the instance, beside register, on and off — the set opening by ONE clause",
+    typeof i14.settle === 'function', `settle:${typeof i14.settle}`);
+  A('JSG-14.2', '§2.4 item 9 ("`settle` is NOT a ninth named export — the module namespace stays at the `8` declared verbs"); §2.1 dated clause 1 (b); package.md §1.3 item 3', "settle is NOT an own named export of the entry, and the namespace stays closed at the EIGHT declared verbs with no ninth name",
+    !Object.prototype.hasOwnProperty.call(ns, 'settle') && Object.keys(ns).sort().join(',') === VERBS.join(','),
+    `own settle=${Object.prototype.hasOwnProperty.call(ns, 'settle')} namespace=[${Object.keys(ns).sort().join(',')}]`);
+  A('JSG-14.3', '§2.4 item 9 ("IT TAKES EXACTLY ONE argument … AND IT RETURNS `undefined`: there is NO second return shape")', 'settle declares exactly ONE parameter position',
+    typeof i14.settle === 'function' && i14.settle.length === 1, `settle.length=${i14.settle.length}`);
+  const sRow = (i, value) => (value === ABSENT ? thrown(() => i.settle()) : thrown(() => i.settle(value)));
+  const sPos = (name, v) => [name, v, sRow(ns.storeCreate(mk(`g14-${name}`)), v)];
+  const sRows = [sPos('null', null), sPos('string', 'str'), sPos('number', 1), sPos('bigint', 1n),
+    sPos('boolean', true), sPos('symbol', Symbol('s')), sPos('function', () => {})];
+  const sForm = [];
+  const sBad = [];
+  const sStatus = [];
+  const sMsg = [];
+  const hasStatus = (e) => e !== null && typeof e === 'object' && 'status' in e;
+  const clsName = (e) => (e && e.constructor && e.constructor.name) || typeof e;
+  for (const [n, , r] of sRows) {
+    const f = formOf(r.err);
+    const isTypeError = r.threw && r.err instanceof TypeError && r.err.constructor === TypeError;
+    const msgIsString = r.threw && typeof r.err.message === 'string';
+    sForm.push(`${n}:{${f.members.join(',')}}/class=${r.threw ? clsName(r.err) : 'no throw'}${isTypeError ? '' : '/NOT-TypeError-and-nothing-else'}${msgIsString ? ` msg=${fmt(r.err.message)}` : '/NO-STRING-MESSAGE'}`);
+    if (!isTypeError) sBad.push(`${n}:${r.threw ? `${clsName(r.err)} (not the declared TypeError-and-nothing-else)` : `returned ${fmt(r.value)}`}`);
+    if (r.threw && hasStatus(r.err)) sStatus.push(`${n}:{${f.members.join(',')}}`);
+    if (!msgIsString) sMsg.push(`${n}:${r.threw ? typeof r.err.message : 'no throw'}`);
+  }
+  // RE-AIMED 2026-10-15 — THE CLAUSE CITED IS THE RE-SPELLED ONE, AND THE EXPECTATION IS ITS OWN OBSERVABLE:
+  // `§2.4` item 9 (b) as landed 2026-10-15 on `A116` (D1) fixes this seam's refusal as a `TypeError` (an
+  // instance of it, AND OF NOTHING ELSE) whose `status` member MUST BE ABSENT and whose STRING `message` member
+  // is REQUIRED AND NOT FORBIDDEN. The pre-re-spelling cell asserted "NO status and NO message member" — the
+  // reading item 5 (d) carries at the REGISTRATION site and NOT what 9 (b) declares at THIS site — and it is
+  // re-derived here rather than weakened: the subject is unchanged (every declared out-of-domain RECORD
+  // POSITION, one form, one class) and the observable asserted is now the clause's own.
+  A('JSG-14.4', '§2.4 item 9 (b) AS RE-SPELLED 2026-10-15 (on `A116` (D1)) — "the error class is `TypeError` (an instance of it, and of nothing else), its `status` member MUST BE ABSENT … and a STRING `message` member is REQUIRED and NOT FORBIDDEN" — read with 9 (a)\'s own out-of-domain table (`null` · a primitive · a function) and its order walk (`crossing.md §1.7`, the class decision FIRST); parameter-semantics.md §2.19 (`PAR-JS-19`)',
+    'every declared out-of-domain RECORD POSITION (null, each primitive, a function) is refused in the ONE form 9 (b) declares AT THIS SEAM\'S BOUNDARY: an instance of `TypeError` and of nothing else, with its `status` member ABSENT and a STRING `message` member present — one form, one class',
+    sRows.length === 7 && sBad.length === 0 && sStatus.length === 0 && sMsg.length === 0,
+    `outside=[${sBad.join(' | ')}] carryingStatus=[${sStatus.join(' | ')}] messageNotAString=[${sMsg.join(' | ')}] forms=${sForm.join(' ')}`);
+  const rProxy = thrown(() => ns.storeCreate(mk('g14-proxy')).settle(new Proxy({}, {})));
+  const rAbsentRow = sRow(ns.storeCreate(mk('g14-absent')), ABSENT);
+  const rUndefRow = sRow(ns.storeCreate(mk('g14-undef')), undefined);
+  const f9b = (r) => r.threw && r.err instanceof TypeError && r.err.constructor === TypeError
+    && !hasStatus(r.err) && typeof r.err.message === 'string';
+  const d9b = (r) => (r.threw
+    ? `{${formOf(r.err).members.join(',')}}/class=${clsName(r.err)}/msg=${typeof r.err.message === 'string' ? fmt(r.err.message) : typeof r.err.message}`
+    : `returned ${fmt(r.value)}`);
+  // RE-AIMED 2026-10-15 — the same re-spelling as `JSG-14.4`'s: the assertion is the form `§2.4` item 9 (b)
+  // declares AT THIS SEAM'S BOUNDARY, and BOTH rows of 9 (a) this cell's subject names are driven — the
+  // `Proxy` row and the ABSENT/`undefined` row, the ABSENT position by CALL ARITY.
+  A('JSG-14.5', '§2.4 item 9 (a)\'s `Proxy` row and its ABSENT/`undefined` row, read with 9 (b) AS RE-SPELLED 2026-10-15 (on `A116` (D1)): `TypeError` and nothing else, `status` member ABSENT, a STRING `message` member REQUIRED and NOT FORBIDDEN; parameter-semantics.md §2.19 (`PAR-JS-19`)',
+    'a `Proxy` value, an ABSENT argument (driven by call arity) and an explicit `undefined` are all refused in the SAME form 9 (b) declares — an instance of `TypeError` and of nothing else, with no `status` member and a string `message` — so the refusal\'s subject is the POSITION and never an identity\'s adoption history, while the first call that IS made is what adopts',
+    f9b(rProxy) && f9b(rAbsentRow) && f9b(rUndefRow),
+    `proxy:${d9b(rProxy)} absent:${d9b(rAbsentRow)} undefined:${d9b(rUndefRow)}`);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// JSG-15 — THE BARE CALLER-MADE WRITE: ITS INSTANT (THE STORE CALL'S, NOT THE VERB'S RETURN)   3 assertions
+//                                                                    (CELLS ADDED 6-8 — all package-observable)
+// ⟶ ADDED 2026-10-15, FROM THE CLAUSES ALONE (`§2.7` item 8, read beside `§2.7` item 2 and `§2.4` item 9
+// (e)): a write the caller made through the store's own write verb and no `commit` carries NO kernel
+// evaluation set, produces NO `CommitRecord` and NO `pending` member — so NO member is called for it, its
+// delivery instant is item 2's own AS RE-SPELLED 2026-10-15 — AFTER the store call has completed and the
+// record has been copied out, with the package's verb NOT yet returned to the caller — and `§2.4` item 9 (e)
+// says in terms that "THIS ITEM MOVES NEITHER THAT INSTANT NOR ITS DECLARED HOLE". These are the cells the
+// seam owes at the PACKAGE'S OWN boundary: the withholding `§2.4` item 9 (a) declares is declared FOR A
+// KERNEL-DRIVEN WRITE ALONE, so on a bare write the bodies are delivered, once per returned handle, at that
+// instant — outside the STORE verb's window and inside the package verb's own.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+{
+  const i15 = ns.storeCreate(mk('g15'));
+  const bareCalls = [];
+  let bareWriteReturned = false;
+  thrown(() => ns.write(i15, ['bare-a'], 'temp', {}));
+  const hBareA = ns.listen(i15, ['bare-a']);
+  const hBareK = ns.listen(i15, ['bare-a', 'k']);
+  const hBareOff = ns.listen(i15, ['bare-off']);
+  const WRITTEN_BARE = ['bare-a', 'k'];
+  const bareBody = (tag) => (addr) => {
+    // THE BODY'S OWN FINDING, THE ONE OBSERVABLE ITEM 2 NAMES: the store call has COMPLETED (the address the
+    // write was made at already answers the written value, so its record is what the invocation reads) and the
+    // package's verb has NOT yet returned to the caller.
+    const rr = thrown(() => ns.read(i15, WRITTEN_BARE));
+    bareCalls.push(`${tag}:verb-returned=${bareWriteReturned}:read=${rr.threw ? `threw ${String(statusOf(rr))}` : fmt(rr.value)}:arg=${Array.isArray(addr) ? `[${addr.map(fmt).join(',')}]` : fmt(addr)}`);
+  };
+  i15.register(hBareA, bareBody('a'));
+  i15.register(hBareK, bareBody('k'));
+  i15.register(hBareOff, bareBody('off'));
+  const wBare = thrown(() => { const r = ns.write(i15, WRITTEN_BARE, 'temp', 1); bareWriteReturned = true; return r; });
+  // RE-AIMED 2026-10-15 — `§2.7` item 2 AS RE-SPELLED measures this instant from THE STORE CALL's completion
+  // and the record's copy-out and NOT from the package verb's return; the pre-re-spelling cell asserted the
+  // opposite sign of the same flag. The cell is RE-DERIVED and not weakened: its subject (the bare write's
+  // delivery instant), its drive and its two returned handles are unchanged, and the observable asserted is now
+  // item 2's own — each body's finding of the record copied out AND of the package's verb not yet returned.
+  A('JSG-15.1', '§2.7 item 2 AS RE-SPELLED 2026-10-15 — "THE CALL WHOSE COMPLETION THIS INSTANT IS MEASURED FROM IS THE STORE CALL AND NOT THE PACKAGE\'S OWN VERB RETURN … the ONE observable a drive reads either way is that each body of the returned handles records its own finding of the record copied out and of the package\'s verb not yet returned, so A BODY THAT RAN AFTER THE PACKAGE\'S VERB RETURNED TO THE CALLER HAS RUN AT AN INSTANT THIS ITEM DOES NOT DECLARE" — read with `§2.7` item 8 (the bare write\'s instant, named and not moved by item 9) and `§2.4` item 9 (e)',
+    'the bare write\'s delivery happens AFTER the store call has completed and the record has been copied out and BEFORE the package\'s verb returns to the caller: each of the two bodies of the returned set ran with the written value ALREADY READABLE (the store call complete) and with the package\'s verb NOT yet returned — no body of the returned handles ran at an instant item 2 does not declare',
+    !wBare.threw && bareCalls.length === 2
+      && bareCalls.every((c) => c.includes('verb-returned=false') && c.includes(`read=${fmt(1)}`)),
+    `${bareCalls.join(' | ') || 'no invocation'} (returned handles: ${[fmt(hBareA), fmt(hBareK)]})`);
+  const bareBefore = bareCalls.length;
+  const wBare2 = thrown(() => ns.write(i15, ['bare-a', 'k'], 'temp', 2));
+  A('JSG-15.2', '§2.7 item 8 ("such a caller\'s listener body runs at that instant"); §2.4 item 9 (a) ("for a write the kernel has issued"); §2.4 item 9 (e)',
+    'the bare write WITHHOLDS NOTHING: the two registered bodies for the returned handles each run exactly once — an empty delivery here would be the seam\'s withholding reaching a write no record carries',
+    !wBare2.threw && bareCalls.length - bareBefore === 2, `invocations=${bareCalls.length - bareBefore}`);
+  const i15f = ns.storeCreate(mk('g15f'));
+  const failedCalls = [];
+  const discarded = {};
+  thrown(() => ns.write(i15f, ['bare-cc'], 'mem', {}));
+  const hDiscard = ns.listen(i15f, ['bare-cc']);
+  i15f.register(hDiscard, () => { failedCalls.push('kind-conflict'); });
+  discarded.w = thrown(() => ns.write(i15f, ['bare-cc'], 'mem', [1]));   // kind-conflict: it must not fire
+  const i15g = ns.storeCreate(mk('g15g'));
+  const earlyCalls = [];
+  thrown(() => ns.write(i15g, ['bare-lf'], 'temp', 1));
+  const hEarly = ns.listen(i15g, ['bare-lf', 'down']);
+  i15g.register(hEarly, () => { earlyCalls.push(1); });
+  const wEarly = thrown(() => ns.write(i15g, ['bare-lf', 'down'], 'temp', 2));   // no event fires
+  A('JSG-15.3', '§2.7 item 6 (the discard: "not delivered, and not left pending for a later deliverer"); §2.7 item 7 (d) ("A BODY OF THAT FAILED WRITE\'S OWN TRIGGERED SET THAT RAN … IS A FAILURE"); §2.4 item 9 (d); store §8.1 #7 (F-4)',
+    'a write that does not succeed delivers ZERO to a body registered at its address — on the kind-conflict failure and on the failure that resolves no event at all — and no body of either write ran',
+    discarded.w.threw && failedCalls.length === 0 && wEarly.threw && earlyCalls.length === 0,
+    `kind-conflict: threw=${discarded.w.threw} status=${String(statusOf(discarded.w))} invocations=${failedCalls.length} | no-event: threw=${wEarly.threw} invocations=${earlyCalls.length}`);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// JSG-16 — THE FIRING AT THE PAIR-ADOPTED ADDRESS: THE CELL THE ARCHITECT'S RULING RE-DERIVED FROM A SPLIT
+// ⟶ A SPLIT ONCE STOOD AT THIS CELL (2026-10-15: `§2.7` item 6 against `§2.4` item 8 (c) as amended on
+// `A115` (D2), both readings printed, no side taken; `docs/next-steps.md` · `N7` item 1, the `250` · `247` ·
+// `3` tree) — AND THE ARCHITECT'S RULING HAS LANDED: `§2.7` item 6 GOVERNS THE FIRING ("FOR A WRITE, THE
+// SURFACE RUNS THE WRITE'S TRIGGERED CONSTRAINTS FIRST, AND THE OTHER LISTENERS ARE REACHED ONLY ONCE EVERY
+// CONSTRAINT HAS PASSED"), WHILE `§2.4` item 8 (c) IS A REGISTRATION-side statement — which identity the
+// app's `on` holds at an address the home entry already carries, which slot it replaced, which function the
+// pass evaluates — AND IT OVERREACHED BY DERIVING NON-DELIVERY FROM THAT BOOKKEEPING FACT: THOSE
+// DERIVATIONS ARE SUPERSEDED. SO AT AN ADDRESS A CONSTRAINT PAIR HOLDS, A LISTENER REGISTERED THERE IS OWED
+// ONE FIRING, AFTER THE PASS — NOT ZERO.
+// (CITED TEXT: the re-scoping remand has NOT landed in `docs/specs/storeroom-js/surface.md` at this pass —
+// `§2.4` item 8 (c) still stands as amended 2026-10-15 and `§2.7` item 6 still stands as landed 2026-10-15 —
+// so this cell cites BOTH CLAUSES AS THEY STAND PLUS THE RULING `A116`/`A114` (D1): A114's own words are
+// "Constraints pass flows to the listeners (which are discarded if write fails on constraints)"; `A112`.)
+// ⟶ THE RULED OBSERVABLE, AND ITS SIBLING CONTROL: at the pair-adopted address the app's own registration is
+// INVOKED EXACTLY ONCE, AFTER THE PASS — never inside the store verb's WINDOW — WITH THE TRIGGERING ADDRESS AS
+// ITS SINGLE ARGUMENT; and the SAME registration spelled at the PROPER PREFIX fires EXACTLY ONCE on the same
+// terms. The pass is reached ONLY through the kernel the ruling names (`kernel-surface.md §1` item 1's
+// `constraint-kernel`: `K-1` `register(store, address, id, constraint)`, `K-2` `commit(store, address, tier,
+// value)` and `K-3` `runAttempt(store, commit)` — `§2.1` items 1–3), which is why this cell, unlike the rest
+// of this set, reaches a second module.
+// ⟶ AND THE CELL'S EXPECTATION IS THE RULED ONE EVEN WHERE THE BUILD IS NOT: THIS ASSERTION IS EXPECTED RED
+// UNTIL THE IMPLEMENTER'S FIX LANDS — it is REPORTED, and NO green of this set is weakened to carry it.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+const RULED_FIRING = [];   // the printed record of the ruled observable: one line per drive, PASS or RED
+{
+  const i16 = ns.storeCreate(mk('g16'));
+  const ADOPTED = ['split'];
+  const PREFIX = [];                       // the PROPER PREFIX of ADOPTED, at the root tier
+  const fAdopted = [], fPrefix = [];       // the app's OWN bodies: one per address, each recording its firing
+  let storeCallReturned = false;           // `K-2`'s own return: the store call the write's record is copied out of
+  const body = (bag, tag) => (...inc) => {                 // the app's OWN body, its ARITY read off its own rest list
+    const rr = thrown(() => ns.read(i16, ADOPTED));
+    // THE BODY'S OWN FINDING, the observable `§2.7` item 2 names: the store call has COMPLETED — the address the
+    // write was made at already answers the written value, so the write's own record is what the body reads.
+    bag.push({ tag, arg: inc[0], args: inc.length, storeCallReturned,
+      read: rr.threw ? `threw:${String(statusOf(rr))}` : fmt(rr.value) });
+  };
+  let hPair = null, K_ERR = KERNEL_ERROR;
+  if (kernel !== null) {
+    const rK1 = thrown(() => K1(i16, ADOPTED, 'pair-of-jsg-16', () => true));   // `true` IS `ConstraintOutcome`'s PASS arm — the ONLY pass value (`kernel-surface.md §2.3` item 1)
+    hPair = rK1.threw ? null : rK1.value; K_ERR = rK1.threw ? rK1.err : KERNEL_ERROR;
+  } else { K_ERR = KERNEL_ERROR; }
+  const rOnSame = thrown(() => i16.on(ADOPTED, body(fAdopted, 'on at the pair-adopted address')));
+  const rOnPrefix = thrown(() => i16.on(PREFIX, body(fPrefix, 'on at the proper prefix')));
+  const rK2 = thrown(() => K2(i16, ADOPTED, 'temp', 1));       // the write whose constraints run FIRST
+  storeCallReturned = !rK2.threw;
+  const rK3 = rK2.threw ? { threw: true, err: rK2.err } : thrown(() => K3(i16, rK2.value));
+  if (rK3.threw) RULED_FIRING.push(`THE DRIVE DID NOT COMPLETE — K3 threw ${String(rK3.err && rK3.err.status || '')}: ${String(rK3.err && rK3.err.message || rK3.err)}`);
+  const drive = (kernel === null ? 'KERNEL ABSENT' : rK3.threw ? `K3 threw ${fmt(rK3.err)}`
+    : rOnSame.threw ? `on(the address) threw ${fmt(rOnSame.err)}`
+    : rOnPrefix.threw ? `on(the prefix) threw ${fmt(rOnPrefix.err)}`
+    : rK2.threw ? `K2 threw ${fmt(rK2.err)}` : 'driven');
+  const fired = (bag, want) => bag.length === 1 && rel(bag[0].arg, want) && bag[0].args === 1
+    && bag[0].storeCallReturned === true && bag[0].read === fmt(1);
+  const asSeen = (bag) => bag.length === 0 ? 'NO FIRING AT ALL'
+    : bag.map((r) => `${r.tag}: count=${bag.length} arg=${fmt(r.arg)} args=${r.args} store-call-returned=${r.storeCallReturned} read=${r.read}`).join(' | ');
+  A('JSG-16.1', 'RULED 2026-10-15 — `§2.7` item 6 ("FOR A WRITE, THE SURFACE RUNS THE WRITE\'S TRIGGERED CONSTRAINTS FIRST, AND THE OTHER LISTENERS ARE REACHED ONLY ONCE EVERY CONSTRAINT HAS PASSED") GOVERNS THE FIRING, its force being `docs/decisions.md` · `A114` (D1) ("Constraints pass flows to the listeners …") read with `A112`; `§2.4` item 8 (c) as amended 2026-10-15 (on `A115` (D2)) IS A REGISTRATION-side statement whose NON-DELIVERY DERIVATIONS THE RULING SUPERSEDES — it stands as the clause that fixes WHICH identity an `on` holds at a held address, which slot it replaced and which function the pass evaluates, and it is CITED HERE AS IT STILL READS (the re-scoping remand has not landed at this pass)',
+    'AT THE PAIR-ADOPTED ADDRESS, ON A PASSING WRITE, THE APP\'S OWN REGISTRATION IS INVOKED EXACTLY ONCE, AFTER THE PASS — after the store call has completed and the write\'s own record is readable, never at a pre-pass instant — WITH THE TRIGGERING ADDRESS AS ITS SINGLE ARGUMENT, and NOT the pre-ruling 0 the superseded derivation owed',
+    drive === 'driven' && fired(fAdopted, ADOPTED),
+    `${drive} · the pair-adopted address ${fmt(ADOPTED)} — ${asSeen(fAdopted)} · the pair\'s handle=${hPair === null ? 'none' : (rOnSame.value === hPair ? 'the SAME identity on returned' : 'a DIFFERENT identity')}${K_ERR === null ? '' : ` · ${String(K_ERR)}`}`);
+  A('JSG-16.1.c', 'the SAME ruling and the SAME clause — `§2.7` item 6 (the other listeners ARE reached once every constraint has passed), with `§2.7` item 3\'s prefix rule and the store\'s own descendant-inclusive trigger (`docs/specs/storeroom-native/write-and-read.md §6.5` item 3) read together: a registration at a PROPER PREFIX is one of the "other listeners", so the ruling owes it its firing too',
+    'THE SIBLING CONTROL: the SAME app registration, spelled at the PROPER PREFIX of the pair-adopted address, is likewise invoked EXACTLY ONCE on a passing write — after the store call completed, with the TRIGGERING ADDRESS (the operation\'s own address, not the watched prefix) as its single argument',
+    drive === 'driven' && fired(fPrefix, ADOPTED),
+    `${drive} · the proper prefix ${fmt(PREFIX)} — ${asSeen(fPrefix)}`);
+  RULED_FIRING.push(`JSG-16.1  · the pair-adopted address ${fmt(ADOPTED)} — ${asSeen(fAdopted)}`);
+  RULED_FIRING.push(`JSG-16.1.c· the proper prefix ${fmt(PREFIX)} — ${asSeen(fPrefix)}`);
+  // ── AN INSTRUMENT CONTROL, SO THE PAIR-ADOPTED ADDRESS'S `0` IS READ AS A DELIVERY-RESIDUE RESULT AND NOT AS A
+  //    BROKEN REGISTRATION OR A BROKEN DRIVE: a THIRD registration, made the same way (`on`), at an address that
+  //    no constraint pair holds, written through the package's OWN bare write verb. `§2.7` item 8 declares that
+  //    route's instant (after the store call has completed and the record has been copied out); it says NOTHING
+  //    about the pair-adopted address, so this control carries NO ruling and takes NO side — it fixes only that
+  //    THIS drive's registration, argument shape and store-call instrument each work when no pass is involved.
+  const BARE = ['bare'];
+  const fBare = [];
+  const rOnBare = thrown(() => i16.on(BARE, body(fBare, 'on at a bare address')));
+  const wBare = thrown(() => ns.write(i16, BARE, 'temp', 2));
+  const control = (kernel === null ? 'KERNEL ABSENT' : !drive.startsWith('driven') ? `MAIN DRIVE NOT CLEAN (${drive})`
+    : rOnBare.threw ? `on(the bare address) threw ${fmt(rOnBare.err)}` : wBare.threw ? `write threw ${fmt(wBare.err)}` : 'driven');
+  A('JSG-16.3', 'the instrument control — NO ruling and no side: `§2.7` item 2 (the bare write\'s instant: after the store call has completed and the record has been copied out) and item 8 ("such a caller\'s listener body runs at that instant"), read with `§2.7` item 5 (the single argument is the triggering address)',
+    'A REGISTRATION MADE THE SAME WAY, at an address NO constraint pair holds, IS REACHED BY THE PACKAGE\'S DELIVERER: the app\'s body fires EXACTLY ONCE on a bare write at its own address — after the store call returned and the write\'s own record is readable — with the TRIGGERING ADDRESS as its single argument, so the pair-adopted address\'s firing count in `JSG-16.1` is a delivery result and NOT a dead registration or a dead instrument',
+    control === 'driven' && fired(fBare, BARE),
+    `${control} · the bare address ${fmt(BARE)} — ${asSeen(fBare)}`);
+  RULED_FIRING.push(`JSG-16.3  · INSTRUMENT CONTROL (no ruling, no side) — the bare address ${fmt(BARE)} — ${asSeen(fBare)}`);
+  A('JSG-16.2', '`§2.4` item 8 (a) ("the store\'s `listen` mints nothing, the entry\'s own handle is returned unchanged") and 8 (b) ("the second `on` call RETURNS THE SAME OPAQUE IDENTITY THE FIRST RETURNED") — read as the REGISTRATION-side statement the ruling leaves standing; `kernel-surface.md §2.1` item 1 (K-1\'s adoption clause)',
+    'the ruled firing\'s own PRECONDITION, and the registration-side fact item 8 (c) is scoped to: `on` at an address whose home entry already stands returns the SAME handle (`===`) — so the app\'s body and the evaluated pair share ONE identity, which is the bookkeeping item 8 (c) states and from which the ruling derives NO non-delivery',
+    !rOnSame.threw && !rOnPrefix.threw && rOnSame.value === hPair && rOnPrefix.value !== hPair,
+    `on(at the pair-adopted address)===K-1\'s handle:${rOnSame.threw ? `threw ${fmt(rOnSame.err)}` : rOnSame.value === hPair} on(at the proper prefix)===that handle:${rOnPrefix.threw ? `threw ${fmt(rOnPrefix.err)}` : rOnPrefix.value === hPair}`);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 // THE RUN'S OWN REPORT
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+console.log('');
+console.log('── THE FIRING AT THE PAIR-ADOPTED ADDRESS: THE RULED READING (ONE SIDE, NOT TWO) ──');
+console.log('  THE RULING, AND WHAT IT MOVED: a SPLIT once stood here (2026-10-15, `§2.7` item 6 against `§2.4` item 8 (c) as amended, both readings printed, no side taken; `docs/next-steps.md` · `N7` item 1).');
+console.log('  THE ARCHITECT HAS RULED, AND IT IS ASSERTED HERE: `§2.7` item 6 GOVERNS THE FIRING — for a write the triggered constraints run first and THE OTHER LISTENERS ARE REACHED ONCE EVERY CONSTRAINT HAS PASSED (its force: `docs/decisions.md` · `A114` (D1) with `A112`).');
+console.log('  `§2.4` item 8 (c) IS A REGISTRATION-side STATEMENT — which identity the app\'s `on` holds at an address the home entry already carries, which slot it replaced, which function the pass evaluates — and ITS NON-DELIVERY DERIVATIONS ARE SUPERSEDED: at that address a registered listener is owed ONE firing, after the pass, not ZERO.');
+console.log('  THE CLAUSE TEXT THIS CELL CITES: `§2.4` item 8 (c) as amended 2026-10-15 and `§2.7` item 6 as landed 2026-10-15 BOTH STAND AS PRINTED — the re-scoping remand had NOT landed in `docs/specs/storeroom-js/surface.md` when this cell was written, so the clauses are cited as they stand, WITH the ruling.');
+for (const line of RULED_FIRING) console.log(`  ${line}`);
+console.log('  DRIVE: the kernel route the ruling names — `K-1` register(store, address, id, constraint) · `K-2` commit(store, address, tier, value) · `K-3` runAttempt(store, commit) (`kernel-surface.md §1` item 1, `§2.1` items 1–3) — on the instance the package\'s own `storeCreate` returned.');
+console.log('  OWED, AND NOT CLAIMED HERE: the seam\'s two instants as observables — the in-window invocation set EMPTY at instant (a) (`§2.4` item 9 (a)) and the residue delivered at instant (b) — remain the kernel\'s own two calls at the kernel\'s own boundary (§3 item 9 of the greens document); this cell drives the pass and reads the PACKAGE\'s deliverer.');
+console.log('');
+console.log('── THE TEN CELLS RE-DERIVED ON 2026-10-16 (`DEF-2026-10-16-A`), PLUS THE TWO THIS PASS ADDS, WITH THE VALUES THEY PRODUCED ──');
+console.log('  `JSG-02.10`/`.11`/`.14`/`.15`/`.16` — RE-POINTED to the `settle` seam\'s terminal arm: `surface.md §2.11` clause 2 moved the file-tier save off the verb, and `A119` ruled the load side.');
+console.log('  `JSG-10.16`–`.20` — RE-POINTED to the same route (class (ii)); `.19`\'s census WIDENED to the sixteen of `store §8.1`\'s dated clause of 2026-10-15; `.18`/`.19`/`.20` are the aggregates over that re-pointed set.');
+for (const line of REDERIVED) console.log(`  ${line}`);
 console.log('');
 console.log('── THE RUN ─────────────────────────────────────────────────────────────────────────');
 console.log(`SITE:  node bindings/js/greens/greens.mjs   (cwd: ${process.cwd()})`);
 console.log(`ENTRY: ${new URL('../index.mjs', import.meta.url).pathname}`);
+console.log(`ENTRY 2 (JSG-16.1 only): ${new URL('../src/constraint-kernel.mjs', import.meta.url).pathname}`);
 console.log(`LAYER: ${LAYER}   APP LAYER: ${APP_LAYER}   (no APP-green is claimed)`);
 console.log(`SCRATCH: ${ROOT}`);
 for (const [sc, rec] of perScenario) console.log(`  ${sc}: ${rec.pass} PASS · ${rec.fail} FAIL   (${rec.pass + rec.fail} assertions)`);

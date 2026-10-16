@@ -118,6 +118,38 @@ pub enum ListenersArg {
     NonArray(String),
 }
 
+/// **⟶ ADDED 2026-10-15 BY THE `RCA-9` PASS (`contract.md §0.4`'s own row; `§7.1` step 4-bis; `§8.1`
+/// #16):** **the construction's FOURTH declared key `constraints` and its element shape `{ address, id }`**
+/// — an ordered list of pairs, with the `Absent` variant for the optional spelling and the permissive
+/// variants the list's and the element's own outside values need (`§2.21`'s domain and its outside list).
+/// **THIS CARRIER HAS NO BEHAVIOUR OF ITS OWN**: the store validates it at the construction and again over
+/// a loaded image, and the code and the message are the store's own (`§8.2`).
+#[derive(Clone, Debug, PartialEq)]
+pub enum ConstraintsArg {
+    /// The list itself, in the caller's own order. **One element outside the pair's shape crosses as
+    /// [`ConstraintEntry::Invalid`] and is refused at this same code.**
+    List(Vec<ConstraintEntry>),
+    Absent,
+    Null,
+    Undefined,
+    NonArray(String),
+}
+
+/// `§7.1` step 4-bis: **one `constraints[]` element** — the closed `{ address, id }` pair, and the element
+/// outside it, carried as the failing ENTRY's own `<SEGMENT>` spelling (`§8.2`'s own slot: *"the failing
+/// ENTRY's `address` spelling, joined by `/` … or the element's own position printed bare where the failing
+/// element carries no address at all"*).
+#[derive(Clone, Debug, PartialEq)]
+pub enum ConstraintEntry {
+    Pair {
+        address: Vec<Segment>,
+        id: String,
+    },
+    /// An element outside the pair's shape, **pre-spelled at the boundary** — where the value's class is
+    /// read first (`crossing.md §1.4` item 9) — **and answered at the store's own code** (`§8.1` #16).
+    Invalid(String),
+}
+
 /// `§7.1`: `cfg`'s CLOSED three-member set — `filePath`, `journalLength`, `listeners` and nothing else
 /// (`§0.4`; a third-declared key is UNREPRESENTABLE).
 #[derive(Clone, Debug, PartialEq)]

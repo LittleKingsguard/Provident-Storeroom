@@ -143,7 +143,7 @@ import {
 | `storeCreate` | `(cfg: StoreConfig) => StoreInstance` | the instance |
 | `read` | `(instance, address, tier?) => unknown` | a leaf's literal, a branch's assembled value, or the whole register |
 | `readLiteral` | `(instance, address, tier?) => unknown` | the same, narrowed to a leaf — a branch refuses |
-| `write` | `(instance, address, tier, value) => WriteRecord` | the op, what it watched, what it triggered |
+| `write` | `(instance, address, tier, value, commit?) => WriteRecord` | the op, what it watched, what it triggered |
 | `delete` | `(instance, address, tier?) => DeleteRecord` | the address, the tiers removed, what it triggered |
 | `rollback` | `(instance, opId) => RollbackRecord` | the id, what it undid, the state restored |
 | `listen` | `(instance, address) => Handle` | a fresh opaque handle |
@@ -151,13 +151,14 @@ import {
 
 **`delete` is exported under that name although it is a reserved word** — the declaration binds it as `deleteOp` and re-exports it as `delete`. Import it as `delete` or alias it; either works.
 
-**And the instance carries three own members and nothing else:**
+**And the instance carries four own members and nothing else:**
 
 ```ts
 interface StoreInstance {
   register(handle: Handle, listener: Listener): void;   // register a listener under a store-issued handle
   on(address: Address, listener: Listener): Handle;     // register at an address, answer a fresh handle
   off(handle: Handle): void;                            // withdraw the listener the handle names
+  settle(record: CommitRecord): void;                   // the ordering seam — the arm that performs the file-tier save
 }
 ```
 
@@ -170,6 +171,7 @@ const instance = storeCreate({
   journalLength: 128,        // positive integer — the journal's declared length
   listeners: [],             // REQUIRED, even when empty — an absent `listeners` is refused
   filePath: join(app.getPath('userData'), 'store.json'),   // omit for a memory-only store
+  constraints: [],           // OPTIONAL — the app's own constraint list; NOT persisted, supplied at every startup
 });
 ```
 
@@ -270,7 +272,7 @@ try {
 
 **It is thrown, always** — synchronously, from every verb. It is **not** a promise rejection and **not** a returned `{ ok: false }`. `try/catch` is the whole error model.
 
-**The fifteen declared statuses, and what you should do about each:**
+**The sixteen declared statuses, and what you should do about each:**
 
 | status | you probably meant | your move |
 |---|---|---|
@@ -289,8 +291,9 @@ try {
 | `FilePathUnreachable` | **no addon loaded, or the file tier's path is not usable** | see §2.3 — this is *the* integration error |
 | `ValueNotAdmitted` | a value that cannot cross (§5) | serialize it |
 | `FileCommitFailed` | the file tier could not commit | **the one to take seriously** — surface it to the user |
+| `ConstraintListInvalid` | the `constraints` list you supplied is malformed, or names an address the loaded image no longer holds | fix the list, or migrate the file — the boot refused and returned no instance |
 
-**The set is open by design** — the type carries an escape arm, because the store's own set has already grown once and a future release may add a sixteenth. **Do not `switch` on these without a `default`**, and never treat an unknown `status` as success.
+**The set is open by design** — the type carries an escape arm, because the store's own set has already grown twice, from fourteen to fifteen and then to sixteen, and a future release may add a seventeenth. **Do not `switch` on these without a `default`**, and never treat an unknown `status` as success.
 
 ---
 

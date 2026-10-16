@@ -35,12 +35,19 @@ shape, no fail-state and no parameter that the contract document does not alread
 above is the contract's own text, and **every code it names is a member of the contract's closed
 `14`-member fail set at `§8.1`** (`seams-and-lifecycle.md`) — **`14` and not `11`: the first amendment's
 sentence mis-stated the set's own `§8.1` arithmetic, and this part's forward pointer is corrected to the
-set's declared size at this contract's second bounded amendment, so the cross-reference closes**
+set's declared size at this contract's second bounded amendment, so the cross-reference closes** — **and
+from 2026-10-15 the operative size is `16` (`11 + 2 + 1 + 1 + 1 = 16` ✓, `ConstraintListInvalid` appended at
+rank `16`; `contract.md §8.1`'s dated clause of that date), the `14` and `15` prints above standing
+BYTE-FOR-BYTE and read THROUGH this reading**
 (`[T: the pointer's count, corrected | CROSS-REF]`). **⟶ AMENDED 2026-10-11: the pointer's figure moves ONE
 MORE TIME — the listener amendment's added member takes the closed set to `15` members
 (`seams-and-lifecycle.md §8.1`: `FilePathUnreachable` at rank `13`), so this sentence's *"`14`-member"* is
 read as *"`15`-member"* and NO OTHER CELL OF THIS SENTENCE MOVES; the count's own arithmetic is
-`11 + 2 + 1 + 1 = 15` ✓ and it is printed at that section's amended clause.** **In particular this part does NOT carry, and
+`11 + 2 + 1 + 1 = 15` ✓ and it is printed at that section's amended clause — **⟶ RE-SPELLED 2026-10-15 BY
+THE GATE-4 FINDINGS PASS: the pointer's figure moves ONE MORE TIME — the set is `16` members
+(`FilePathUnreachable` keeping rank `13`, `ConstraintListInvalid` appended at rank `16`), so *"`15`-member"*
+above is read as *"`16`-member"* and NO OTHER CELL OF THIS SENTENCE MOVES; the count's own arithmetic is
+`11 + 2 + 1 + 1 + 1 = 16` ✓ and it is printed at `contract.md §8.1`'s dated clause of 2026-10-15**). **In particular this part does NOT carry, and
 does not restate:** the record shapes and the walk (`§1`–`§2`, at `store-model.md`) · the tier domain, the
 rank, the purge chain and the typed property register (`§5`, in the contract document) · the closed fail-code
 set with its generated messages and the construction inputs (`§7`–`§8`, at `seams-and-lifecycle.md`) · the
@@ -75,7 +82,11 @@ RULE IS THE SHADOW-HOME DEFECT THIS PART'S OWN SCOPE BOUNDARY FORBIDS** (`docs/s
 
 ### §3.1 The write's signature, and the write's tier is REQUIRED and SINGULAR
 
-**`write(address, tier, value) → WriteResult`.**
+**`write(address, tier, value, commit?) → WriteResult`.**
+
+**⟶ AMENDED 2026-10-15 — THE `RCA-9` PASS ADDS THE OPTIONAL FOURTH ARGUMENT AND RE-SPELLS THE VERB'S `file`-TIER ARM** (`RCA-9` = the change request at `docs/specs/storeroom-native-proposal-review.md §18.1`; its store-side re-spell is ruled at that record's `§22.5` item 2; `RCA-8(d)` ANNOTATE-BESIDE: **the `write(address, tier, value)` line that stood here, the slot table beneath it and every clause of this section stand BYTE-FOR-BYTE and are read THROUGH this clause**; **the declared JS-side order of the four-and-one arguments is `docs/specs/storeroom-js/surface.md §2.2`'s and the argument is declared LAST there**).
+- **THE FOURTH SLOT, DECLARED SO THE SENTENCE ABOVE IS NOT READ AS FOUR REQUIRED ARGUMENTS: `commit` IS OPTIONAL, and its `Absent` variant is the optional spelling.** **It carries the record identity the write joins** (`docs/specs/storeroom-constraints/kernel-surface.md §2.1` item 2) — **so the terminal arm's own `file`-tier save can be keyed by the settled record's `op`** — **and its outside values and their answers are `docs/specs/storeroom-native/contract.md §3.1`'s own row for it, which is the ONE home of that table.** **A write carrying it and a write carrying nothing are ONE verb with ONE return shape.**
+- **AND THE VERB'S `file`-TIER ARM RETURNS AS IT DOES TODAY: `Store::write` records the journal entry, installs the node and returns its `WriteResult` ON EVERY TIER — and for a `file`-tier write IT PERFORMS NO FILE I/O.** **THE COMMIT IS THE TERMINAL ARM'S ACT** (`docs/specs/storeroom-native/contract.md §7.2`'s dated clause of 2026-10-15; `docs/specs/storeroom-js/surface.md §2.11`). **SO `§3.5`'s post-condition block below is read with ONE COORDINATE ADDED: a successful `file`-tier write's post-conditions hold OF THE WRITE as its own two steps, and the durability of its image is owed by the terminal arm and NOT by this verb.**
 
 | Slot | Domain | Outside the domain |
 | --- | --- | --- |

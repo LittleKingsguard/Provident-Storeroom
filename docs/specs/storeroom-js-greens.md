@@ -43,12 +43,12 @@ an equal `cfg.filePath` reads the committed `-0` back as `0` (`§7.2` item 7 (c)
 
 ---
 
-## §1. THE SCENARIO SET — 13 scenarios, each bound to its clause
+## §1. THE SCENARIO SET — 16 scenarios, each bound to its clause
 
 | id | The clause(s) it drives (and the ruling where one governs) |
 | --- | --- |
 | **JSG-01** | **THE SURFACE.** The eight verbs and nothing else; the instance's own member set is exactly `{ register, on, off }` — `§2.9` item 1, **`§2.1`'s dated clause 1 (a)** (the member set, RE-DERIVED at `Q5`), **`§2.4` item 7** (the two new members' own clauses: their signatures and their return types), `package.md §1.3` item 3, `package.md §1.3` item 4, `§3.5` — **`A63`** · **`A74`** · **`A79`** · **`A80`** · **`A81`** |
-| **JSG-02** | **THE ROUND TRIP, END TO END**, under the declared relation, plus the boot and the two declared normalizations: construct at a real `filePath`, write, read, **boot a FRESH instance on the same path**, read again — `§4.3`, `§1.5`, `§1.1`, `§2.2` (`R-5`'s whole-register read), `§5.1` (`P-IM-1`), `crossing.md §1.3`'s returned-record rows, the store's `§7.2` items 6–7, `DD-5` · `DD-9` · `DD-39` — **`A39`** |
+| **JSG-02** | **THE ROUND TRIP, END TO END**, under the declared relation, plus the boot and the two declared normalizations: construct at a real `filePath`, write, read, **boot a FRESH instance on the same path**, read again — **the `file`-tier write reaching its save through the terminal arm (`K-2` + `K-3`), so the image the boot re-loads is the arm's own act** — and, added 2026-10-16, **the LOAD-side discriminate: a zero-byte file boots an INSTANCE while a present two-byte `{}` image is refused `ConstraintListInvalid` (`A119`)** — `§4.3`, `§1.5`, `§1.1`, `§2.2` (`R-5`'s whole-register read), `§5.1` (`P-IM-1`), `crossing.md §1.3`'s returned-record rows, the store's `§7.1` step `4`-bis, `§7.2` items 6–7, `§8.1` #`16`, `DD-5` · `DD-9` · `DD-39`, **`§2.11` clauses 1–2**, **`parameter-semantics.md §2.21`** — **`A39`** · **`A119`** |
 | **JSG-03** | **THE DEEP-COPY DISCIPLINE, BOTH DIRECTIONS** — mutate the argument after the call and the store is unchanged; mutate the read-back and the store is unchanged — `§1.1` items 1–4, `§5.2` (`P-IM-2`, `S-COPY-IN`/`S-COPY-OUT`) — **`A65`** |
 | **JSG-04** | **THE VALIDATION ORDER AND THE VERBOSE REJECTION** — a `bigint`, a `Symbol`, a symbol-keyed own property, a class instance, an `Array` subclass, a sparse array, `{a: undefined}`, a `Proxy`, an own accessor, a `Map`, a `Date`, a function and a cycle, **each refused in the ONE declared form** with the target and the class carried, **no raw host error** and **nothing installed** — `§1.2` rows 4–13, `§1.4` items 1–4, `§1.7` (a)–(d), `§1.8`, `§2.5` items 1–3, `surface.md §2.5` items 5–6, `crossing.md §1.4`, `crossing.md §1.7` (b) 3's dated clause, `crossing.md §1.8`'s dated clause — **`A76`** |
 | **JSG-05** | **THE ABSENT-VERSUS-`undefined` READING** — a verb's trailing argument by CALL ARITY, a `cfg` key by `in`-MEMBERSHIP — `crossing.md §1.3`'s dated rule, `acceptance.md §4.1` item 7, `§1.3`'s `FilePathArg`/`JournalLengthArg`/`ListenersArg`/`TierArg` rows, the store's `store-model.md §1.6` item 4 (d) — **`A49`** · **`A51`** |
@@ -56,10 +56,13 @@ an equal `cfg.filePath` reads the committed `-0` back as `0` (`§7.2` item 7 (c)
 | **JSG-07** | **THE TIERS AND THE PURGE** — the shadow at a less persistent write, the unqualified read's lowest-persistence selection, the tier-qualified and the zero-token set reads, and the purge chain at `temp` → `mem` → `file`; then the delete's own tier scope (`D-1`/`D-2`/`D-3`) — `§2.2` (`DD-37`), `§2.3`'s zero-tier arm, the store's `§5.1` (`M-1`), `§5.3` item 2–4, `§5.4`'s purge chain, `write-and-read.md §3.4` (`W-5`/`W-6`), `§4.2` (`R-4`), `§4.3`, `§4.4` (`D-1`/`D-2`/`D-3`) — **`A11`** · **`A19`** · **`A28`** |
 | **JSG-08** | **THE HANDLE AND THE TRIGGERED IDS** — `listen` → `register` → a write at that address → the `triggered` member carries the id registration gave; the function runs ONCE; **its single argument is the triggering ADDRESS and not the id**; an id the package holds no function for fires NOTHING; then `unlisten` and no further fire — `§2.3` items 1–6, `§2.4` rules 1–4 and item 6, `§2.7` items 1–5, `§2.10`, `parameter-semantics.md §2.12` and `§2.15`, the store's `§6.5` items 10–12 — **`A57`** · **`A69`** · **`A77`** |
 | **JSG-09** | **THE REGISTRATION SITE'S DOMAIN AND ITS REFUSAL FORM** — a re-registration replaces, a bare `string` and a `null` are refused, and the refusal's OPERATIVE form is the single `{status, message}` with the store's own `AddressMalformed` — `§2.4` item 5 (b)–(e), `surface.md §2.5` item 5 (g), `surface.md §2.4` item 6's reconciliation clause, `parameter-semantics.md §2.12`'s second dated clause, `§0.2`'s `SW-1` record's final clause item 1 — **`A76`** · **`A77`** |
-| **JSG-10** | **THE CLOSED FAIL SET** — as many of the **fifteen** codes as the documents make reachable from the package, each by its own trigger, asserting its OWN code, the ONE failure form, the generated message's form, and the contract's own worked messages — `§2.5`, `§2.9` item 2, `§5.3` (`P-IM-3`), `crossing.md §1.3`, the store's `§8.1` (`15` members), `§8.2` (the generator, its properties and its three worked examples), `§8.3`, `§6.1` item 5, `§7.1`, `§7.2` — **`A14`** · **`A53`** · **`A63`** |
+| **JSG-10** | **THE CLOSED FAIL SET** — as many of the **sixteen** codes as the documents make reachable from the package, each by its own trigger, asserting its OWN code, the ONE failure form, the generated message's form, and the contract's own worked messages — `§2.5`, `§2.9` item 2, `§5.3` (`P-IM-3`), `crossing.md §1.3`, the store's `§8.1` (`16` members), `§8.2` (the generator, its properties and its three worked examples), `§8.3`, `§6.1` item 5, `§7.1`, `§7.2`, **`§2.11` clause 5**, **`parameter-semantics.md §2.21`** — **`A14`** · **`A53`** · **`A63`** |
 | **JSG-11** | **THE JOURNAL AND THE ROLLBACK** — the returned op's closed eight-member shape, its `opId`, `seq`, `before`/`after`; `rollback` with that id restoring the declared state; and a made-up id answering its declared code — `§2.2`, `§2.6`, `parameter-semantics.md §2.13`, the store's `§3.6`, `§6.1` item 1, `§6.2`, `§6.3`, `§6.4` (`M-5`–`M-11`) — **`A7`** · **`A35`** · **`A37`** |
 | **JSG-12** | **THE PACKAGE AND THE LAYER** — the claimed realm is Node ESM and the addon is reached INTERNALLY, the declared exports are the docs' set (one arms-bearing entry, no wildcard, no CJS arm, no `main`), the declared engine floor, licence and prebuild matrix, and **no `APP`-green asserted anywhere** — `§3.1`–`§3.5`, `§4.1`–`§4.2`, `package.md §1.1`–`§1.4`, `§3.1`–`§3.4`, `§4.5` item 5, `§5`, `DD-4` · `DD-18` · `DD-20` · `DD-24` · `DD-25` · `DD-26` · `DD-38` · `DD-43` — **`A70`** · **`A71`** · **`A74`** |
 | **JSG-13** | **THE SCALING CLAIM THE DOCS NOW MAKE** — a value of a few thousand members **completes and round-trips** (nothing is timed into a failure: the RCA's claim is asymptotic and its timing is the implementer's measurement) — `docs/specs/storeroom-js-rca-scaling.md §1`, `§4`, `§5-bis`, `§6` item 1 — **the architect's own requirement, quoted at that file's head** |
+| **JSG-14** | **THE ORDERING SEAM ON THE INSTANCE** — `settle(record)` stands as the instance's FOURTH own member and is a function, takes EXACTLY ONE argument and returns `undefined`, and is **NOT a ninth named export** (the module namespace stays closed at the eight declared verbs); then its DECLARED DOMAIN and its refusal at every declared out-of-domain RECORD POSITION, in the ONE form `§2.4` item 9 (b) re-spells at this site: `TypeError` and nothing else, its `status` member ABSENT, a STRING `message` member REQUIRED and NOT FORBIDDEN — `§2.4` item 9 (its arm and signature, its two instants' table, items (a)–(f)), `§2.1`'s dated clause 1 (a) and 1 (b), `parameter-semantics.md §2.19` (`PAR-JS-19`), `package.md §1.3` item 3, `crossing.md §1.7`'s class-decision-first order — **`A116`** (D1) |
+| **JSG-15** | **THE BARE CALLER-MADE WRITE'S DELIVERY INSTANT** — a write the caller made through the store's own write verb and no `commit` carries no kernel evaluation set, so the seam is never called for it and its bodies are delivered ONCE PER RETURNED HANDLE at `§2.7` item 2's instant READ AS THAT ITEM NOW READS IT — after the STORE call has completed and the record has been copied out and BEFORE the package's verb returns to the caller — while a write that FAILS delivers ZERO to a body registered at its address — `§2.7` item 8, `§2.7` item 2 (re-spelled), `§2.7` item 6 and item 7 (d), `§2.4` item 9 (e) and 9 (d), the store's `§8.1` #7 (`F-4`) — **`A112`** · **`A114`** (D1)/(D2) |
+| **JSG-16** | **THE FIRING AT THE ADDRESS A CONSTRAINT PAIR HOLDS — RULED, ONE SIDE** — at exactly the address a constraint pair was adopted for, `§2.7` item 6 (**the write's triggered constraints run FIRST, and THE OTHER LISTENERS ARE REACHED ONCE EVERY CONSTRAINT HAS PASSED**) GOVERNS THE FIRING, and `§2.4` item 8 (c) as amended 2026-10-15 is a **REGISTRATION-side** statement — which identity the app's `on` holds at an address the home entry already carries, which slot it replaced, which function the pass evaluates — **whose NON-DELIVERY DERIVATIONS THE RULING SUPERSEDES**; so the app's registration at that address is owed **ONE** firing, after the pass, and not the **ZERO** the superseded derivation owed (a SPLIT once stood here — 2026-10-15, both readings printed, no side taken — and the ruling replaced it). **`JSG-16.1` KEEPS ITS ID AND ITS SLOT IN THE NUMBERING** (its cross-citations across `docs/next-steps.md`, `contract.md` and `implementation-plan.md` name it), and its subject is stated at its own `§2` head: the ruled firing. The scenario asserts `4` cells — the ruled firing at the pair-adopted address (`JSG-16.1`, **EXPECTED RED UNTIL THE IMPLEMENTER'S FIX LANDS**), its sibling control at the PROPER PREFIX and the instrument control at a bare address (`.16.1.c`, `.16.3`), and the PRE-CONDITION (`JSG-16.2`) — `§2.7` items 2, 5, 6–8, `§2.4` item 8 (a)–(d), `§2.4` item 9 (b), `docs/specs/storeroom-constraints/kernel-surface.md §2.1` items 1–3 (the `K-1`/`K-2`/`K-3` call shapes the pass is reached through) and `§2.3` item 1 (`ConstraintOutcome`'s three arms), `§2.2` item 4, `write-and-read.md §6.5` item 12 (c) — **`A114`** (D1) · **`A112`** · **`A115`** (D2) · **`A116`** (D1)/(D4) |
 
 **Coverage against gate 5's nine items.** (1) the surface → **JSG-01**; (2) the round trip end to end, the
 declared relation and the two normalizations → **JSG-02**; the deep-copy discipline → **JSG-03**;
@@ -67,16 +70,26 @@ declared relation and the two normalizations → **JSG-02**; the deep-copy disci
 whose site is not a crossing); (4) the absent-versus-`undefined` reading → **JSG-05**; the ceiling's arms and
 the guard → **JSG-06**; (5) the tiers and the purge → **JSG-07**; (6) the handle and the triggered ids →
 **JSG-08**; (7) the failure set → **JSG-10**; (8) the journal and the rollback → **JSG-11**; the package and
-the layer → **JSG-12**; (9) the scaling claim → **JSG-13**.
+the layer → **JSG-12**; (9) the scaling claim → **JSG-13**. **AND THE THREE SCENARIOS THE `A116` ORDERING SEAM
+ADDED — `JSG-14` · `JSG-15` · `JSG-16` — extend no item of that nine: they are bound at the clauses their own
+`§1` rows and `§2` heads name (`§2.4` item 9; `§2.7` items 6–8; `§2.1`'s dated clause 1 (a)–(b)), and their own
+assertion counts are printed at their heads. AND `JSG-16`'s OWN BINDING IS NOW THE RULED ONE: it asserts the
+FIRING the ruling re-derived from the split — `§2.7` item 6 (the write's triggered constraints first, the
+other listeners reached once every constraint has passed), the ruling's force being `A114` (D1) with
+`A112` — and it reaches that clause through the kernel route the clause itself names (`K-1` · `K-2` · `K-3`),
+which is the ONE cell of this set that leaves the package's claimed ESM entry — **⟶ TRUE OF ITS OWN DATE AND NOT OF 2026-10-16's: the file-tier save's own pass moved `JSG-02`'s `file`-tier drives onto the SAME `K-2` + `K-3` kernel route (`JSG-02.10`/`.11`/`.14`/`.15`/`.16`, re-derived at that scenario's own foot clause, item `2`), so the two scenarios that leave the entry are `JSG-16` and `JSG-02`; the module namespace is UNMOVED at the eight declared verbs and no export, member or parameter is added by either**.**
 
 **The assertion census, printed with its terms.** Every table row below is ONE assertion cell; **a refusal
 cell whose row prints an extra assertion carries `4 + 1` assertions and the table says so**, and a scenario's
-own count is printed at its head. **⟶ RE-DERIVED 2026-10-11 (`Q5`): THE SET IS NOW AUTHORED AS `240`  **⟶ AND THE BATTERY'S FIGURE IS RE-READ 2026-10-11 (`LIVE-F5`, the supervisor's landing): the live battery is `91` authored · `91` PASS · `0` FAIL over `13` scenarios (the earlier `72`/`72` this set printed was the pre-`Q6` reading, the `+19` being the `on`/`off` flow `LIVE-13`); and the blind set itself is `240` authored · `240` PASS · `0` FAIL with `JSG-12` at `17`.**  
+own count is printed at its head. **⟶ RE-DERIVED 2026-10-11 (`Q5`): THE SET IS NOW AUTHORED AS `240`  **⟶ AND THE BATTERY'S FIGURE IS RE-READ 2026-10-11 (`LIVE-F5`, the supervisor's landing): the live battery is `91` authored · `91` PASS · `0` FAIL over `13` scenarios (the earlier `72`/`72` this set printed was the pre-`Q6` reading, the `+19` being the `on`/`off` flow `LIVE-13`); and the blind set itself is `240` authored · `240` PASS · `0` FAIL with `JSG-12` at `17`.** **⟶ AND THIS HEAD'S MEMBER-SET FIGURE AND THE SET'S CENSUS ARE RE-DERIVED ONCE MORE, 2026-10-15, BY THE `A116` ORDERING-SEAM PASS: the instance's own member set is `{ register, on, off, settle }` — FOUR OWN MEMBERS, so the clause list at `JSG-01`'s head below reads through `docs/specs/storeroom-js/surface.md` `§2.4` item 9 and `§2.1`'s dated clause, where `settle(record) -> undefined` is declared as the seam the kernel calls and the entry implements — the module namespace is UNMOVED at the `8` verbs, and the set's own census is `250` AUTHORED OVER `16` SCENARIOS — the `13` this head sums plus the three the seam added — whose PRE-RE-DERIVATION reading was `247` PASS · `3` FAIL: **THE THREE FAILS ARE `JSG-14.4` · `JSG-14.5` · `JSG-15.1`**, each having measured its own clause's PRE-RE-SPELLING reading — `§2.4` item 9 (b)'s *"NO `message` member"* (the registration site's phrasing, read at the SEAM's boundary) and `§2.7` item 2's instant measured from the package verb's return rather than from the store call's completion and the record's copy-out — and they are REPORTED and not patched: they are RE-DERIVED against the clauses as those clauses now read, by the pass recorded at §4's foot, where this set reads `250` PASS · `0` FAIL with every cell's subject and drive unmoved. **AND THE FIRING CELL `JSG-16.1` IS NOW ASSERTED, ON THE ARCHITECT'S RULING** — the ruling that replaced the SPLIT this head once carried (2026-10-15: `§2.7` item 6 against `§2.4` item 8 (c), both readings printed with NO SIDE TAKEN): **`§2.7` item 6 GOVERNS THE FIRING and `§2.4` item 8 (c) IS A REGISTRATION-side STATEMENT WHOSE NON-DELIVERY DERIVATIONS ARE SUPERSEDED**, so at the pair-adopted address the app's registration is owed ONE firing, after the pass. **THE CENSUS THEREFORE MOVES BY THE FOUR CELLS THIS PASS ADDED TO `JSG-16` — the ruled firing `JSG-16.1`, its sibling control `.16.1.c`, the instrument control `.16.3` and the pre-condition `.16.2`, whose own count is printed at its head — so THE SET IS `253` AUTHORED · `253` EXECUTED · `252` PASS · `1` FAIL over the same `16` scenarios, the one FAIL being the ruled firing itself, REPORTED AND NOT PATCHED because the ruling's delivery is not yet in the build**** (`[A2 docs/decisions.md · `A116` (D1) and · `A114` (D1)` with `A112` — the ruling on the firing; A3 docs/specs/storeroom-js/surface.md §2.4 items 8 (c) and 9 — the clauses as they stand, cited with the ruling; A3 docs/next-steps.md — the `A116` cycle record's measured figures; A3 `bindings/js/greens/greens.mjs` — this pass's own run | numeric or census claim]`).
+**⟶ AND THIS HEAD'S CENSUS FIGURE IS READ THROUGH ONE MORE PASS, 2026-10-16 — THE `file`-TIER SAVE'S OWN PASS (`role_spec_writer`), the same pass that re-pointed `JSG-02`'s and `JSG-10`'s ten drives to the terminal arm and added `JSG-02.17`/`.18`: THE OPERATIVE AUTHORED CENSUS IS `255` OVER THE SAME `16` SCENARIOS, and the `250` this head prints above is the `A116` landing's own reading — TRUE AT ITS DATE, NAMED AND NOT WITHDRAWN.** **THE TERMS ARE THE FILE'S OWN FOOT CLAUSE'S AND ARE NOT RE-DERIVED HERE: `255 = 253 + 2` — the `253` RE-POINTED plus the `2` ADDED — at the `§2` head sum `17 + 18 + 5 + 67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 + 18 + 6 + 5 + 3 + 4 = 255` ✓.** **AND THE `13`-SCENARIO SUM THIS HEAD SUMS IS ITS OWN CLAUSE'S TREE — the `Q5` landing's, the `236 → 240` re-derivation's — while the OPERATIVE SCENARIO CENSUS IS `16`, carried at `§1`'s own head line and at this file's foot clause.**
 **AND THE FIGURES ARE NOT RE-MEASURED BECAUSE THEY DO NOT NEED TO BE: CODEGEN IS UNMOVED — every allocatable section byte-identical (`546,698` of `.text` among them) and all `2,168` symbols identical in name, value, size, type and section index — so every figure measured against the earlier digest stands against this one.**  **⟶ WITHDRAWN DIGEST-FAMILY FRAGMENT — REMOVED 2026-10-13: the digest-family fragments inserted at this site on 2026-10-11 were WITHDRAWN AS CIRCULAR BY CONSTRUCTION on that date and are deleted here; the AS-FILED clause above is RESTORED, rejoined so it READS ONCE AND WHOLE. The withdrawal's authority is `docs/specs/storeroom-js-proposal-review.md` §5.4; `RCA-8(d)` ANNOTATE-BESIDE, the record standing BESIDE the restored clause and never inside it.**
 ASSERTIONS OVER THE SAME `13` SCENARIOS — the as-filed sentence read *"The set was authored as `236`
 assertions over `13` scenarios"*, and the `4` cells this pass adds to `JSG-01` (`.14`–`.17`, the two new
 instance members' surface coverage) move the assertion census `236 → 240` while the scenario census stays
-`13`; `JSG-01`'s own head moves `13 → 17` and every other head stands unmoved** (the run's record at
+`13`; `JSG-01`'s own head moves `13 → 17` and every other head stands unmoved** (READ THROUGH THE `A116`
+SEAM'S PASS AT §4'S FOOT: the operative scenario census is `16` and the operative assertion census is `250` —
+the `13` and the `240` are THIS clause's own tree's figures, true at their date) (the run's record at
 `archive/gate5/storeroom-js-greens-run.md` prints the executed/PASS/FAIL totals and any cell the run
 could not reach).
 
@@ -193,22 +206,37 @@ weakened by this pass.** **THE CELLS THAT MOVE, AND THE CLAUSE THAT FIXES EACH:*
    (`[A1 docs/specs/storeroom-js-proposal.md §8 · `A79` · `A80` · `A81`; A3 docs/specs/storeroom-js/surface.md
    §2.1's dated clause 1 (a)–(b) and §2.4 item 7 (a)–(c); §2.3's dated clause 1; A3
    docs/specs/storeroom-js/parameter-semantics.md §2.8's and §2.12's dated clauses; A3
-   docs/specs/storeroom-js/contract.md §5.5's dated clause | requirement]`).
+   docs/specs/storeroom-js/contract.md §5.5's dated clause | requirement]`). **⟶ AND THE THREE-MEMBER FIGURE THIS SCENARIO ASSERTS IS RE-DERIVED ONCE MORE, 2026-10-15: `JSG-01.9`'s cell and the clause list at this scenario's head read through `docs/specs/storeroom-js/surface.md` `§2.4` item 9, where `settle(record) -> undefined` is the ONE clause by which the set opened to `{ register, on, off, settle }` — FOUR own members — so *"the THREE declared members"* and the expected `['off','on','register']` above are the PRE-SEAM reading; and the `17`-assertion head with the `240` census above are each re-derived at the seam's own pass (`250` authored over `16` scenarios · `247` PASS · `3` FAIL at that landing — **the three being `JSG-14.4` · `JSG-14.5` · `JSG-15.1`, each re-derived green against the clause it cites as that clause now reads by the pass recorded at §4's foot, where this set reads `250` PASS · `0` FAIL**; and **`JSG-16.1` IS NOT AMONG THEM — it is the FIRING cell at the pair-adopted address, and the ARCHITECT'S RULING HAS LANDED: it now TAKES its assertion, `§2.7` item 6 governing the firing with `§2.4` item 8 (c) read as the registration-side statement it is (its non-delivery derivations superseded), and it stands RED at this pass's own run until the implementer's delivery follows the ruling**)** (`[A2 docs/decisions.md · `A116` (D1); A3 docs/specs/storeroom-js/surface.md §2.4 item 9; A3 docs/next-steps.md — the `A116` cycle record's measured figures | numeric or census claim]`).
 
-### JSG-02 — THE ROUND TRIP, END TO END, THE BOOT AND THE TWO NORMALIZATIONS (16 assertions)
+### JSG-02 — THE ROUND TRIP, END TO END, THE BOOT AND THE TWO NORMALIZATIONS (18 assertions)
 
 **The clause(s).** `§4.3` (the round-trip property and its two exclusions), `§1.5` (the one relation), `§1.1`
 (deep copy out), `§2.2` (`read`'s signature and its freshness), the store's `§4.1` (`R-5`: the empty
 address answers the whole register), `§4.2` (`R-1`/`R-2`/`R-3`), `§5.2`'s `P-IM-1`, `§7.2` items 6–7 (the boot
 and the file image's canonical spelling), `DD-5` (the file's bytes are NOT a JS-side observable), `DD-9`,
-`DD-39` (the returned records' own spellings).
+`DD-39` (the returned records' own spellings); **AND, FROM 2026-10-16, THE TWO CLAUSES THE `file`-TIER SAVE'S OWN
+ARM IS DECLARED AT — `§2.11` clauses 1–2 (the save IS the terminal arm's own act, `file`-tier and passing-arm
+only; A WRITE THAT DID NOT REACH THE PASSING ARM PERFORMS NO SAVE) and `kernel-surface.md §2.1` items 2–3 (the
+`K-2` + `K-3` route the drive takes to reach that arm), with `parameter-semantics.md §2.21` (`cfg.constraints`,
+the construction's fourth key, and its LOAD-side instant), the store's `§7.1` step `4`-bis and `§8.1` #`16`
+(`ConstraintListInvalid`), and **`A119`** (`docs/decisions.md` — the load-side validation's reach keyed on the
+FILE's bytes and not on the loaded state's size)**.
 
 **The steps a caller takes.** (1) `const A = storeCreate({ filePath: <tmp>/state.json, journalLength: 4,
-listeners: [] })`. (2) `A.write(['rt'], 'file', V)` with `V` the mixed JSON value below. (3) `A.read(['rt'])`
+listeners: [] })`. (2) **THE `file`-TIER WRITE IS MADE THROUGH THE KERNEL ROUTE, SO ITS SAVE STANDS — `const w
+= K-2 commit(A, ['rt'], 'file', V)` and then `K-3 runAttempt(A, w)`** (`kernel-surface.md §2.1` items 2–3:
+`commit(store, address, tier, value) -> CommitRecord` · `runAttempt(store, commit) -> AttemptReport`) with `V`
+the mixed JSON value below; **the terminal arm's own act is what performs the `file`-tier save, so a write issued
+at the verb alone saves NOTHING and no boot could re-load it** (`surface.md §2.11` clauses 1–2). (3) `A.read(['rt'])`
 and compare under `§1.5`. (4) `A.read([])`. (5) `const B = storeCreate(<the same cfg>)` — **the boot**.
-(6) `B.read(['rt'])` and compare. (7) `A.write(['neg-mem'],'mem',-0)`, `A.write(['neg-temp'],'temp',-0)`,
-`A.write(['neg-file'],'file',-0)` and read each back **in memory**. (8) `const C = storeCreate(<the same
-cfg>)` and `C.read(['neg-file'])` — **the committed spelling observed through the boot**.
+(6) `B.read(['rt'])` and compare. (7) `A.write(['neg-mem'],'mem',-0)`, `A.write(['neg-temp'],'temp',-0)`, and
+for the `file` tier the SAME kernel route — `K-2 commit(A, ['neg-file'], 'file', -0)` then `K-3
+runAttempt(A, <that record>)` — each read back **in memory**. (8) `const C = storeCreate(<the same
+cfg>)` and `C.read(['neg-file'])` — **the committed spelling observed through the boot**. (9) **the two
+load-side cells (`JSG-02.17`/`.18`)**: over a FRESH path, `storeCreate({ filePath: <tmp>/fresh.json,
+journalLength: 4, listeners: [], constraints: [{ address: ['k'], id: 'c1' }] })` — the construction's own
+zero-length file, against a NON-EMPTY supplied list; then the SAME four keys over a path at which the driver's
+FIXTURE has placed the TWO-BYTE image `{}` (`A119`; `parameter-semantics.md §2.21`; store `§7.1` step `4`-bis).
 
 `V = { name: 'alpha', flag: true, count: 3, ratio: 0.5, nest: { z: 1, arr: [1,2,3] },
 list: ['p', { q: false }], '10': 'ten', '2': 'two' }` — every class in it is admitted
@@ -231,13 +259,15 @@ no cell asserts the pre-boot in-memory sign of a `file`-tier `-0`, which no clau
 | **JSG-02.7** | two `read`s of one address | **not the same object** — every verb returns a FRESH JS value | `§1.1`; `§2.2` |
 | **JSG-02.8** | `A.write(['negmem'],'mem',{neg:-0})`; `A.read(['negmem']).neg` | `Object.is(read.neg, -0)` is **true** — `mem` keeps the sign in memory, and the relation is `Object.is` at a MEMBER position | `§1.5` item 3; store `§7.2` item 7 (c) |
 | **JSG-02.9** | `A.read([])` | an OBJECT whose key set contains `'rt'` — the empty address answers the whole register | store `§4.1`; `§4.2` `R-5`; **`A25`** |
-| **JSG-02.10** | `B = storeCreate(<the same cfg>)`; `B.read(['rt'])` | equal to `V` under `§1.5` — **the boot re-loads the last successful `file` write's bytes** | store `§7.2` item 6 |
-| **JSG-02.11** | `B.read(['rt'])`'s member set | the same member SET as `V`'s | `§1.5` item 1; store `§7.2` item 6 |
+| **JSG-02.10** | the `file`-tier write reaches the PASSING ARM through the kernel route (`K-2` `commit(A,['rt'],'file',V)` + `K-3` `runAttempt(A, w)`), so the terminal arm's save has stood; then `B = storeCreate(<the same cfg>)`; `B.read(['rt'])` | equal to `V` under `§1.5` — **the boot re-loads the last successful `file`-tier SAVE's bytes, that save being THE TERMINAL ARM'S OWN ACT and no arm of the verb** | **`surface.md §2.11` clauses 1–2**; **`kernel-surface.md §2.1` items 2–3** (`K-2`/`K-3`); store `§7.2` item 6 |
+| **JSG-02.11** | `B.read(['rt'])`'s member set — the same kernel-route drive as `JSG-02.10` | the same member SET as `V`'s — **exactly `[10,2,count,flag,list,name,nest,ratio]`** as a sorted set: `V`'s own eight keys, none dropped and none added | `§1.5` item 1; store `§7.2` item 6; **`surface.md §2.11` clause 2** |
 | **JSG-02.12** | `A.write(['neg-mem'],'mem',-0)`; read back | `Object.is(v, -0)` is **true** | store `§7.2` item 7 (c) |
 | **JSG-02.13** | `A.write(['neg-temp'],'temp',-0)`; read back | `Object.is(v, -0)` is **true** | store `§7.2` item 7 (c) |
-| **JSG-02.14** | `A.write(['neg-file'],'file',-0)`; `C = storeCreate(<the same cfg>)`; `C.read(['neg-file'])` | **`Object.is(v, 0)` is true** — the committed bytes carry `0` and the boot converts to the carrier and not to a sign | store `§7.2` item 7 (c) |
-| **JSG-02.15** | the same booted value | **`Object.is(v, -0)` is false** — the ONE declared number normalization | store `§7.2` item 7 (c); `§4.3` exclusion (i) |
-| **JSG-02.16** | `C.read(['rt'])` | **EQUAL to `V` under `§1.5`** — the value's members are unchanged by the file image, and the ONE member the image moves is the `-0` of `JSG-02.14`/`JSG-02.15` | store `§7.2` item 7 (a)–(c); `§1.5` |
+| **JSG-02.14** | `K-2` `commit(A,['neg-file'],'file',-0)` + `K-3` `runAttempt(A, w)` — **the terminal arm's own save, so the committed bytes stand**; `C = storeCreate(<the same cfg>)`; `C.read(['neg-file'])` | **`Object.is(v, 0)` is true** — `-> 0`: the committed bytes carry `0` and the boot converts to the carrier and not to a sign | store `§7.2` item 7 (c); **`surface.md §2.11` clause 2** |
+| **JSG-02.15** | the same booted value — the same kernel-route drive as `JSG-02.14` | **`Object.is(v, -0)` is false** — the ONE declared number normalization | store `§7.2` item 7 (c); `§4.3` exclusion (i) |
+| **JSG-02.16** | `C.read(['rt'])` — the `C` boot of `JSG-02.14`'s own image, whose `['rt']` was saved by `JSG-02.10`'s terminal arm | **EQUAL to `V` under `§1.5`** — the value's members are unchanged by the file image, and the ONE member the image moves is the `-0` of `JSG-02.14`/`JSG-02.15` | store `§7.2` item 7 (a)–(c); `§1.5` |
+| **JSG-02.17** | `storeCreate({ filePath: <tmp>/fresh.json, journalLength: 4, listeners: [], constraints: [{ address: ['k'], id: 'c1' }] })` over the ZERO-byte file the fresh-path construction itself left — a NON-EMPTY supplied list | **the LOAD-side validation does NOT run over a file of length `0`: an INSTANCE IS RETURNED** (no throw), **`read([])` answers `{}`**, and the file's own LENGTH is still `0` — the exemption is **the FILE's emptiness and NOT the loaded state's smallness** | store `§7.2` item 6's dated zero-length clause; `§7.1` step `4`-bis; `parameter-semantics.md §2.21`; **`A119`** |
+| **JSG-02.18** | the SAME four `cfg` keys over a path at which the driver's FIXTURE has placed the TWO-byte image `{}` — a LOADED state of `0` keys that is still VALIDATED | **REFUSED with `ConstraintListInvalid`** — the store's own code, the closed set's **SIXTEENTH** member (`§8.1` #`16`), in `§2.5`'s single form — and **NO instance is returned**; the image is **byte-identical** afterwards | store `§7.1` step `4`-bis; `§8.1` #`16`; `parameter-semantics.md §2.21`; **`A119`** |
 
 **What its failure would mean.** A read that is not equal under `§1.5`, a member dropped or added, an
 asserted member order, a `-0` compared with `===`, a read that is the store's own object, a boot that does
@@ -249,6 +279,68 @@ canonical spelling outside this layer and forbids a JS-side read of `cfg.filePat
 through the boot's own consequence above and by no byte comparison. (ii) **The pre-boot in-memory sign of a
 `file`-tier `-0` is NOT asserted**: the clause names `mem`/`temp` for the in-memory half and the boot for the
 committed half, so a third expectation would be this document's own and not the contract's.
+
+**⟶ RE-DERIVED 2026-10-16 — THE `file`-TIER SAVE'S OWN PASS (`role_spec_writer`), ON THE GATE-8 DOCUMENTATION
+REVIEW OF THAT UNIT (`archive/reviews/2026-10-16-file-tier-save-doc-review.md` §2 items `1`–`6`) AND ON
+`surface.md §2.11` AS LANDED 2026-10-15: THE TEN CELLS THIS SET DROVE AT THE PRE-AMENDMENT VERB ROUTE ARE
+RE-POINTED TO THE TERMINAL ARM, AND TWO CELLS ARE ADDED.** `RCA-8(d)` ANNOTATE-BESIDE: **no byte this clause does
+not name moves; no expectation is weakened; every re-pointed cell keeps ITS SUBJECT AND ITS EXPECTATION and
+changes only THE ROUTE THAT REACHES THE STATE.** **THE ONE CLAUSE THE WHOLE RE-DERIVATION STANDS ON IS `§2.11`
+CLAUSE 2 — *"the terminal arm performs the store's `commit_file` act as its own step"* — READ WITH ITS CLAUSE 1,
+WHICH NAMES THE FIVE CELLS THAT DO NOT MOVE (the arm set, the member set, the member's `undefined` return, the
+registry delivery, and the failing arm), AND WITH ITEM `1`'s OWN SENTENCE: *"a write issued at the verb alone
+performs no save."*** **WHAT MOVED, WITH THE AS-FILED DRIVE KEPT BY ITS OWN WORDS:**
+
+1. **THE FIVE `JSG-02` DRIVES, AND THE ROUTE THEY NOW TAKE.** **The as-filed cells read `JSG-02.10`
+   `"B = storeCreate(<the same cfg>); B.read(['rt'])"`, `JSG-02.11` `"B.read(['rt'])'s member set"`,
+   `JSG-02.14` `"A.write(['neg-file'],'file',-0); C = storeCreate(<the same cfg>); C.read(['neg-file'])"`,
+   `JSG-02.15` `"the same booted value"` and `JSG-02.16` `"C.read(['rt'])"`; each reached its booted value off a
+   `file`-tier write issued AT THE VERB (`A.write(['rt'],'file',V)` at the steps' own `(2)`, whose wording this
+   file keeps above as its own `(2)`'s superseded reading), AND NO ARM OF THE VERB PERFORMS FILE I/O FROM
+   2026-10-15 — so each boot would have re-loaded an image that no act of the package had ever written.** **THE
+   RE-DERIVED DRIVE IS THE `K-2` + `K-3` ROUTE** (`kernel-surface.md §2.1` items 2–3, the kernel's two call
+   shapes; `§2.11` clause 2's keying clause — *"keyed by the settled record's own `op` and never by an address, a
+   handle or a record identity"*), **and the two steps carry the constraint-list-free `cfg` the scenario's own
+   `(1)` already declares.** **AND THE SUBJECT, THE COMPARISON AND THE EXPECTATION ARE UNMOVED: `§1.5`'s equality
+   for `.10`/`.16`, the sorted member-set equality (now printed at `.11` as `V`'s own eight keys) for `.11`,
+   `Object.is(v, 0)` for `.14` and `Object.is(v, -0) === false` for `.15`.**
+2. **A CONSEQUENCE OF THE RE-POINT, NAMED AND NOT LEFT TO A READER: THIS SCENARIO NOW REACHES THE KERNEL
+   MODULE.** **`JSG-16`'s head states that it was *"the ONE cell of this set that leaves the package's claimed
+   ESM entry"*; from this date that sentence is TRUE OF ITS OWN DATE AND NOT OF THIS ONE — `JSG-02`'s
+   `file`-tier drives leave the entry too, at `K-2`/`K-3`, and for the same reason: **the terminal arm's act is
+   reachable from the package's own verb only where the caller carries the fifth argument `commit?` into a
+   `runAttempt`, and the kernel route is the one spelling of that call this set drives.** **THE MODULE NAMESPACE
+   IS UNMOVED at the eight declared verbs and the instance's member set at its four — this re-point adds NO
+   export, NO member and NO parameter to anything the package claims** (`§2.11` clause 7; `§2.1`'s dated clause 1
+   (b)).
+3. **THE TWO ADDED CELLS, AND WHAT EACH OWES.** **`JSG-02.17` — the ZERO-BYTE FILE, and `JSG-02.18` — the
+   TWO-BYTE `{}` IMAGE.** **THE TWO ARE ONE DISCRIMINATE AND NEITHER IS READABLE WITHOUT THE OTHER: the
+   exemption `A119` pins is THE FILE'S EMPTINESS, NEVER the loaded state's smallness, so a `0`-key LOADED state
+   is exempt only where the FILE is zero-length and is REFUSED with `ConstraintListInvalid` (`§8.1` #`16`) where
+   the image is present — **the two rows are the two halves of the same `A119` ruling and a set that drove only
+   one of them would read the exemption over-broadly.** **AND THE TWO ROWS STAND INSIDE THIS SCENARIO because
+   they are the BOOT's own arm — the load-side instant of `parameter-semantics.md §2.21` — driven at the same
+   construction this scenario already drives, at the fourth `cfg` key this scenario's own clause list cites.**
+4. **AND `(i)` ABOVE IS READ THROUGH THIS CLAUSE ON ONE POINT, STATED SO THE TWO ARE NOT READ APART.** **`(i)`'s
+   prohibition is `DD-5`'s — the JS layer's *"read of `cfg.filePath`"*, a read of the file's CONTENT — and it is
+   UNMOVED.** **The two added cells read NO byte of the file's content with a package verb: `JSG-02.17` reads the
+   file's LENGTH (`stat`-class, the same observation the construction's own exclusive create is declared by at
+   `§7.1` step `4`-bis) and `JSG-02.18`'s byte-identity is the FIXTURE's own comparison over a path the driver
+   itself wrote — neither is a read the package performs and neither observes the canonical spelling `DD-5` puts
+   outside this layer.** **NO CELL OF THIS SCENARIO COMPARES THE FILE'S JSON TEXT, and `(i)`'s sentence stands
+   exactly as filed.**
+5. **THE CENSUS, WITH ITS TERMS: `16 → 18` AT THIS SCENARIO'S HEAD, AND THE SET'S OWN FIGURE MOVES WITH IT.**
+   **`16 + 2 = 18` ✓ at this head — the `16` being the cells this scenario already carried, `JSG-02.1`…`.16`, and
+   the `+2` being `JSG-02.17` and `JSG-02.18`, both AUTHORED HERE AND NOW ASSERTED.** **THE SCENARIO CENSUS IS
+   UNMOVED AT `16`: this pass adds no scenario — it adds two cells to one that stands** (`§1`'s table row for
+   `JSG-02` is unmoved; the set's census re-derivation is the dated clause at this file's foot).
+
+(`[A2 docs/decisions.md · `A119` — the load-side validation's reach keyed on the file's bytes; A3
+docs/specs/storeroom-js/surface.md §2.11` clauses 1–2 and 7, §2.2's signature block and its dated clause, §2.1's
+dated clause 1 (b), §4.3, §1.5; A3 docs/specs/storeroom-constraints/kernel-surface.md §2.1` items 2–3; A3
+docs/specs/storeroom-native/contract.md §7.1` step `4`-bis, `§7.2` item 6's dated zero-length clause, `§8.1`
+#`16`; A3 docs/specs/storeroom-js/parameter-semantics.md §2.21`; A3
+archive/reviews/2026-10-16-file-tier-save-doc-review.md §2` items `1`–`6` | state or fail-state declaration]`)
 
 ### JSG-03 — THE DEEP-COPY DISCIPLINE, BOTH DIRECTIONS (5 assertions)
 
@@ -563,11 +655,14 @@ on the documents' own side.**
 ### JSG-10 — THE CLOSED FAIL SET (24 assertions)
 
 **The clause(s).** `§2.5` (the ONE thrown form and its two members), `§2.9` item 2 (a failed `read` is the
-existence probe and **ALL `15` FAIL CODES REMAIN REACHABLE FROM JS**), `§5.3`'s `P-IM-3`, `crossing.md §1.3`'s
-carrier tables, the store's `§8.1` (the closed `15`-member set with each member's trigger), `§8.2` (the
+existence probe and **ALL `16` FAIL CODES REMAIN REACHABLE FROM JS**), `§5.3`'s `P-IM-3`, `crossing.md §1.3`'s
+carrier tables, the store's `§8.1` (the closed `16`-member set with each member's trigger), `§8.2` (the
 generator's rule, its three properties and its three worked examples), `§8.3`, `§6.1` item 5 (the
-compression trigger), `§7.1` (the construction's outside values), `§7.2` items 3–5 (the commit's failure arm
-and the automatic journal rollback).
+compression trigger), `§7.1` (the construction's outside values), `§7.2` items 3–5 (the commit's failure arm,
+the automatic journal rollback, and — as amended 2026-10-15 — the terminal arm the save's own failure is
+reported on), **`surface.md §2.11` clause 5 (a failed save IS an unrepairable constraint violation carrying the
+store's own code and message)** and **`parameter-semantics.md §2.21`** (`cfg.constraints`, whose outside forms
+answer the set's sixteenth member).
 
 **The steps a caller takes.** **The write's PARENT RULE must be honoured by the drive** (`§3.2`): a write
 resolves its parent by walking the address MINUS its last segment, so **a branch is minted at every parent
@@ -595,11 +690,11 @@ store's contract prints.
 | **JSG-10.13** | `storeCreate({filePath: <real>, listeners: []})` — `journalLength` absent | **`ConstructionArgumentMissing`** | store `§8.1` #12; `§7.1` |
 | **JSG-10.14** | `storeCreate({filePath: <a path whose parent directory does not exist>, journalLength: 1, listeners: []})` | **`FilePathUnreachable`**, and no instance is returned | store `§8.1` #13; `§7.1`; `crossing.md §1.3` `FilePathArg` row 4 |
 | **JSG-10.15** | `write(['nv'],'temp',NaN)` | **`ValueNotAdmitted`** | store `§8.1` #14; `§1.2` row 11 |
-| **JSG-10.16** | a `file`-tier write whose path becomes unwritable **after** construction (the file's parent is replaced by a regular file) | **`FileCommitFailed`**, delivered to the caller | store `§8.1` #15; `§7.2` items 3–4 |
-| **JSG-10.17** | the same drive, immediately after the failure: `read(<the written address>)` | the pre-write state stands — **`A16`'s automatic journal rollback has run before the failure is returned** | store `§6.4` item 8; `§7.2` item 3 (i) |
-| **JSG-10.18** | every thrown value across `JSG-10.1`–`JSG-10.17` | a plain object whose own member set is **exactly `{message, status}`**, both non-empty `string`s — ONE form for the whole set | `§2.5` items 1–3 · `DD-12` |
-| **JSG-10.19** | every `status` observed across the whole set | a member of the store's closed `15`-member set — **no code outside the set, and none minted by the package** | `§2.5` item 1 · `DD-40` |
-| **JSG-10.20** | every `message` observed across the whole set | non-empty, and carrying **no unsubstituted placeholder token** of the generator's own form (`<SEGMENT>`, `<CONTAINER>`, `<KEYLIST>`, `<TIERLIST>`, `<DOMAINLIST>`, `<mismatch clause>`, `<available clause>`, `<argument-name>`, `<TRAITS>`) | store `§8.2` property (c) |
+| **JSG-10.16** | the `file`-tier route `JSG-02` drives: `K-2 commit(inst, ['fc'], 'file', <v>)` — the store's write verb, which performs NO file I/O on any of its arms — then `K-3 runAttempt(inst, w)` on a store whose path becomes unwritable **after** construction (the file's parent is replaced by a regular file), so **the SAVE IS THE TERMINAL ARM'S OWN ACT and its failure is what the caller receives** | **`FileCommitFailed`**, delivered to the caller: the store's own two-member form, its `message` **exactly** `` `'fc' could not be committed to '<PATH>', the file write failed at '<PATH>'` `` — `-> FileCommitFailed :: "'fc' could not be committed to '<PATH>', the file write failed at '<PATH>'"` | store `§8.1` #15; `§7.2` items 3–4 as amended; **`surface.md §2.11` clauses 2 and 5**; `kernel-surface.md §2.3` item `3` (the failed save's terminal answer) |
+| **JSG-10.17** | the same drive, immediately after the failure: `read(['fc'])` | **the store's own rollback has run** — **`AddressNotFound`**: `read(['fc']) -> AddressNotFound`, so the caller receives the failure and NEVER the rolled-back state | store `§6.4` item 8; `§7.2` item 3 (i); **`surface.md §2.11` clause 5** (*"the rollback happens FIRST and the message is answered to the caller AFTER it"*) |
+| **JSG-10.18** | every thrown value across `JSG-10.1`–`JSG-10.17` — **`17` driven failures over the re-pointed set, and `0` that did not throw** | a plain object whose own member set is **exactly `{message, status}`**, both non-empty `string`s — ONE form for the whole set | `§2.5` items 1–3 · `DD-12` |
+| **JSG-10.19** | every `status` observed across the whole set | a member of the store's closed **`16`**-member set — **`outside-the-16 = [none]`** — **no code outside the set, and none minted by the package** | `§2.5` item 1 · `DD-40`; store `§8.1` (its dated clause carrying `ConstraintListInvalid` at rank `16`) |
+| **JSG-10.20** | every `message` observed across the whole set | non-empty, and carrying **no unsubstituted placeholder token** of the generator's own form (`<SEGMENT>`, `<CONTAINER>`, `<KEYLIST>`, `<TIERLIST>`, `<DOMAINLIST>`, `<mismatch clause>`, `<available clause>`, `<argument-name>`, `<TRAITS>`) — **empty-or-placeholder messages = `0`** | store `§8.2` property (c); **`surface.md §2.11` clauses 2 and 5** (the failed save's message is the store's generated one) |
 | **JSG-10.21** | `write(['window'],'mem',{})`; then `read(['window','empty'])` | **`AddressNotFound`**, and the message is **exactly** `'empty' does not exist in 'window', it holds no keys` | store `§8.2`'s worked example (2) and its degenerate arm |
 | **JSG-10.22** | `write(inst, ['window'], 'mem', {})`; then `write(inst, ['window','tabs'], 'mem', {doc1:1, searchbar:2})`; then `read(inst, ['window','tabs','LandingPage'])` | **`AddressNotFound`**, and the message is **exactly** `'LandingPage' does not exist in 'window.tabs', tabs are 'doc1', 'searchbar'` | store `§8.2`'s worked example (1) and its `<CONTAINERSEGMENT>` reconciliation |
 | **JSG-10.23** | `write(['window','tabs'],'mem',[1,2])` over the `MAP` that stands there | **`ContainerKindConflict`**, and the message **contains** `does not match the container kind of 'window.tabs', it holds a map, keys are 'doc1', 'searchbar'` | store `§8.2`'s worked example (3) |
@@ -612,11 +707,61 @@ hand-authored `message`, or a message that differs from the store's generated st
 produced it — each is `P-IM-3`'s FAILURE LIST item for item, and each leaves a caller unable to read the
 failure's target and reason out of the ONE record it is given.
 
-**A named tension, recorded rather than asserted away.** `§2.9` item 2 prints **`15`** reachable codes while
+**A named tension, recorded rather than asserted away.** `§2.9` item 2 prints **`16`** reachable codes while
 `§0.2`'s `SW-1` record's row `9` prints **`10`** reached by the shipped JS arms and names
 `RollbackCompacted` and `ParentAnchorMonotonicityViolation` as having no reachable trigger **as of that
-pass**. The set drives all fifteen; a code the build cannot produce is reported as a FINDING against the
+pass**. The set drives all sixteen; a code the build cannot produce is reported as a FINDING against the
 side the record names.
+
+**⟶ RE-DERIVED 2026-10-16 — THE `file`-TIER SAVE'S OWN PASS (`role_spec_writer`), ON THE GATE-8 DOCUMENTATION
+REVIEW OF THAT UNIT (`archive/reviews/2026-10-16-file-tier-save-doc-review.md` §2 items `7`–`11`): THE FIVE
+CELLS THIS SCENARIO DROVE AT THE PRE-AMENDMENT VERB ROUTE ARE RE-POINTED TO THE TERMINAL ARM, AND THE CLOSED
+SET'S OWN COUNT MOVES `15 → 16`.** `RCA-8(d)` ANNOTATE-BESIDE: **no byte this clause does not name moves and no
+cell below is weakened; `JSG-10.1`–`.15` and `JSG-10.21`–`.24` stand EXACTLY AS FILED, and the scenario's own
+head count is UNMOVED at `24` — this pass adds no cell and removes none.**
+
+1. **WHAT MOVED, WITH THE AS-FILED WORDS KEPT.** **The as-filed `JSG-10.16` read** *"a `file`-tier write whose
+   path becomes unwritable **after** construction (the file's parent is replaced by a regular file) → **`FileCommitFailed`**,
+   delivered to the caller"*, cited to `§8.1` #15 and `§7.2` items 3–4; **the as-filed `JSG-10.17` read** *"the
+   same drive, immediately after the failure: `read(<the written address>)` → the pre-write state stands"*;
+   **and BOTH ROUTED THE FAILURE THROUGH THE VERB — the write verb's own commit arm — which no longer performs
+   file I/O at all.** **THE RE-DERIVED DRIVE IS `JSG-02`'s OWN `K-2` + `K-3` ROUTE (`surface.md §2.11` clauses 2
+   and 5), the subject unmoved: the SAVE's failure and the ROLLBACK that precedes the caller's failure.** **AND
+   THE FAILURE'S OWN SHAPE IS DECLARED SO A DRIVE IS SINGLE-VALUED: the store's own two-member form crosses
+   VERBATIM AND UNCONVERTED — the STORE's `status` `FileCommitFailed` and the STORE's generated `message` — while
+   the kernel's own token stands in the log entry's `state` and in NO member of the thrown form**
+   (`kernel-surface.md §2.3` item `3`'s second clause; `fail-surface.md §1.2` items 2–3).
+2. **THE CLOSED SET'S OWN COUNT, `15 → 16`, AND WHY THE SIXTEENTH IS NOT THE SAVE'S CODE.** **The `16`-member
+   set is `§8.1`'s own, closed with rank `16` `ConstraintListInvalid` — the VALIDATION FAILURE OF THE SUPPLIED
+   CONSTRAINT LIST, at construction or over a loaded image — and `FileCommitFailed` STANDS AT `15`**
+   (`§8.1`'s dated clause; `§2.11` clause 5's discrimination — *"the two triggers do not overlap"*). **THE
+   AS-FILED CELLS THAT PRINTED `15` ARE NAMED AND KEPT BY THEIR OWN WORDS: this scenario's head read** *"ALL `15`
+   FAIL CODES REMAIN REACHABLE FROM JS"* **and** *"the store's `§8.1` (the closed `15`-member set with each
+   member's trigger)"*, **`JSG-10.19` read** *"a member of the store's closed `15`-member set"*, **`§1`'s table row
+   for `JSG-10` read** *"as many of the **fifteen** codes … the store's `§8.1` (`15` members)"*, **and this
+   paragraph's own tension read** *"`§2.9` item 2 prints **`15`** reachable codes … The set drives all
+   fifteen"*; **each is re-spelled in place at its own cell and each of those older readings is TRUE OF ITS OWN
+   DATE.** **AND `§2.9` ITEM 2'S OWN ITEM IS `16` TODAY** — *"ALL `16` FAIL CODES REMAIN REACHABLE FROM JS"* —
+   **exactly as the `CODES`-class sweep recorded at `surface.md`'s own foot clause of 2026-10-15.**
+3. **AND THE THREE AGGREGATE CELLS, RE-DERIVED WITH THEIR TERMS.** **`JSG-10.18` prints the set it is taken
+   over — `17` driven failures across `JSG-10.1`–`.17`, and `0` that did not throw — because a form cell that
+   does not print how many values it ranged over can pass over an empty set.** **`JSG-10.19` prints the
+   closed set's own count and the outside-set reading, `outside-the-16 = [none]`.** **`JSG-10.20` prints
+   `empty-or-placeholder messages = 0`.** **NO EXPECTATION IS WEAKENED BY ANY OF THE THREE: each is made
+   STRICTER at its own subject, and the ONE form and the generator's rule are `§2.5` items 1–3, `DD-12` and
+   `§8.2` property (c), unmoved.**
+4. **AND THE COUNTS THAT DO NOT MOVE, SAID HERE SO THE `15 → 16` IS NOT READ WIDER THAN IT IS.** **The scenario
+   census is UNMOVED at `16` and this scenario's own head count is UNMOVED at `24`.** **The DRIVEN-CODES figure
+   this scenario asserts is `17` failure cells over the `16`-member set (`JSG-10.1`–`.17`), because `§6.4`
+   `M-11`'s `JournalOpUnknown` is driven twice — once as `JSG-10.11`'s unknown id and once inside `JSG-10.17`'s
+   rolled-back answer — and because `JSG-10.19`/`.20` range over the observed values and assert no single code.**
+   **`§0.2`'s `SW-1` row `9` keeps its own `10`-reached reading at its own date, named and not withdrawn.**
+
+(`[A2 docs/decisions.md · `A119`; A3 docs/specs/storeroom-js/surface.md §2.11` clauses 2 and 5, §2.9 item 2;
+A3 docs/specs/storeroom-constraints/kernel-surface.md §2.3` item `3`'s second clause,
+`fail-surface.md §1.2` items 2–3; A3 docs/specs/storeroom-native/contract.md §8.1` and its dated clause (rank
+`16`), `§8.2` property (c), `§7.2` items 3–4; A3 docs/specs/storeroom-js/parameter-semantics.md §2.21`; A3
+archive/reviews/2026-10-16-file-tier-save-doc-review.md §2` items `7`–`11` | state or fail-state declaration]`)
 
 ### JSG-11 — THE JOURNAL AND THE ROLLBACK (18 assertions)
 
@@ -923,6 +1068,173 @@ not a scaling finding**, and is reported as such.
 
 ---
 
+### JSG-14 — THE ORDERING SEAM ON THE INSTANCE: THE FOURTH MEMBER'S SHAPE, AND THE NAMESPACE IT DOES NOT ENTER (5 assertions)
+
+**⟶ ADDED 2026-10-15, FROM THE CLAUSES ALONE — the three scenarios below (`JSG-14` · `JSG-15` · `JSG-16`) are
+the seam's own rows, and each is derived from the clauses it cites and from nothing else.** **AND `JSG-16`'s OWN
+FOUR CELLS ARE THE RULED READING — the firing at the address a constraint pair holds (`§2.7` item 6 governing,
+`§2.4` item 8 (c) read as the registration-side statement whose non-delivery derivations the ruling superseded),
+driven through the kernel route the clause names — and its ONE RED at this pass's run is that reading, reported
+and not patched; its own head states which clause text was cited (the clauses as they stand, with the ruling).**
+
+**The clause(s).** `§2.4` item 9 (the seam's own clause: `settle(record) -> undefined` — ONE argument at
+argument position 1, ONE return with no second shape, no store call in any arm — and its non-exposure sentence
+that it is NOT a ninth named export); **`§2.1`'s dated clause 1 (a)** (the instance's own member set is
+`{ register, on, off, settle }` — FOUR own members and NOTHING ELSE, the set opening BY ONE CLAUSE);
+**`§2.1`'s dated clause 1 (b)** (the module namespace is UNCHANGED at the EIGHT declared verbs, and no name is
+added to it); **`§2.4` item 9 (b) AS RE-SPELLED 2026-10-15 at this site** (the refusal is the `TypeError`
+`§2.4` item 5 (d) declares: the error class is `TypeError` — an instance of it, and of nothing else — its
+`status` member **MUST BE ABSENT**, and a STRING `message` member is **REQUIRED and NOT FORBIDDEN**, its
+content undeclared; the class decision comes FIRST, on the value as it is); **`§2.4` item 9 (a)**'s table
+(ABSENT and `undefined` · `null` · a primitive · a `function` · a `Proxy` · an identity this instance was never
+handed by the kernel) with its leading statement that the refusal's subject is the POSITION and NEVER an
+identity's adoption history (the first call IS the adoption, so a first call is never refused);
+`parameter-semantics.md §2.19` (`PAR-JS-19`) — its `domain` cell, its outside-value list, its answer cell and
+its `observable` cell; `package.md §1.3` item 3; `crossing.md §1.7`.
+
+**The steps a caller takes.** (1) `storeCreate` with a legal `cfg`, and ask `typeof inst.settle`.
+(2) Ask whether `settle` is an own named export of the entry, and re-enumerate the namespace's own names.
+(3) Read `settle.length`. (4) Call `settle` at each declared out-of-domain RECORD POSITION — `null`, a
+`string`, a `number`, a `bigint`, a `boolean`, a `symbol`, a `function` — **each on a FRESH instance**, the
+adoption the domain declares being a per-instance act. (5) Drive the `Proxy` row and the ABSENT/`undefined`
+row, the ABSENT position **by CALL ARITY** and the explicit `undefined` by position. (6) Read each refusal's
+OWN FORM: its class, whether it carries a `status` member, and whether its `message` member is a string.
+
+**The expected observable, from the docs.**
+
+| cell | the drive | the expected observable | the clause |
+| --- | --- | --- | --- |
+| **JSG-14.1** | `typeof inst.settle` | `'function'` — the FOURTH own member stands on the object `storeCreate` returned, beside `register`, `on` and `off` | **`§2.1`'s dated clause 1 (a)**; `§2.4` item 9 |
+| **JSG-14.2** | `Object.prototype.hasOwnProperty.call(ns,'settle')`, then `Object.keys(ns).sort()` | **FALSE**, and the namespace is exactly the eight declared verbs sorted — `settle` is **NOT a ninth named export** and no name is added or removed | **`§2.4` item 9**; **`§2.1`'s dated clause 1 (b)**; `package.md §1.3` item 3 |
+| **JSG-14.3** | `inst.settle.length` | `1` — the member takes EXACTLY ONE argument, at argument position `1` | `§2.4` item 9's arm and signature block; `parameter-semantics.md §2.19` |
+| **JSG-14.4** | `settle(v)` for `v` = `null` · `'str'` · `1` · `1n` · `true` · a `symbol` · a function, each on a fresh instance | EACH THROWS, and every thrown value is the ONE form `§2.4` item 9 (b) declares AT THIS SITE: an instance of **`TypeError` and of nothing else**, **no `status` member**, and a STRING `message` member PRESENT — one form, one class, the class decided FIRST | **`§2.4` item 9 (b) AS RE-SPELLED 2026-10-15**; `§2.4` item 9 (a)'s table; `parameter-semantics.md §2.19`; `crossing.md §1.7` |
+| **JSG-14.5** | a `Proxy` value · an ABSENT argument (call arity) · an explicit `undefined`, each on a fresh instance | all three refused in THAT SAME FORM — `TypeError` and nothing else, no `status` member, a string `message` — so the refusal's subject is the POSITION and never an identity's adoption history, while the first call that IS made is what adopts | **`§2.4` item 9 (a)**'s `Proxy` row and its ABSENT/`undefined` row, read with **9 (b) AS RE-SPELLED 2026-10-15**; `parameter-semantics.md §2.19` |
+
+**What its failure would mean.** A fifth own member or a missing fourth, a ninth named export, a `settle` that
+declares more than one position or answers a second return shape, or a refusal that answers the store's
+`{status, message}` form at this site means **the seam's declared arm is not the shipped one** and the clause
+by which the set opened — `§2.1`'s dated clause 1 (a) with `§2.4` item 9 — reads false of the package. **A
+refusal whose `message` member is absent or is not a string, or one that carries a `status` member, is a
+failure of item 9 (b) AS IT NOW READS** — item 5 (d)'s *"NO `message` member"* is the REGISTRATION site's
+phrasing and is not read at the seam's own boundary, which is what these cells cite.
+
+**AND THE SEAM'S TWO INSTANTS ARE NAMED BY THIS SCENARIO'S HEADING AND DRIVEN BY NO CELL OF IT.** Both are the
+KERNEL's own calls — `commit`, and `runAttempt`'s terminal arm (`§2.4` item 9's table; `kernel-surface.md
+§2.1` items 2–3) — and this set reaches nothing outside the package's claimed ESM entry, so **the in-window
+invocation set EMPTY at instant (a) and the residue delivered at instant (b) are `OWED` at this set's
+boundary** (§3 item 9).
+
+---
+
+### JSG-15 — THE BARE CALLER-MADE WRITE: ITS INSTANT, AND NOTHING WITHHELD (3 assertions)
+
+**The clause(s).** `§2.7` item 8 (a record carrying NO kernel evaluation set — a write the caller made through
+the store's own write verb and no `commit`, with no `CommitRecord` and no `pending` member — for which the
+seam is never called and **the delivery instant is item 2's, named and not moved**); **`§2.7` item 2 AS
+RE-SPELLED 2026-10-15** (the call whose completion this instant is measured from is the STORE call and NOT the
+package's own verb return: the package invokes the registered bodies for the returned handles after the addon
+call has completed and the record has been copied out, and the package's verb has NOT yet returned to the
+caller at that instant — the ONE observable a drive reads either way being that each body of the returned
+handles records its own finding of the record copied out and of the package's verb not yet returned, so **A
+BODY THAT RAN AFTER THE PACKAGE'S VERB RETURNED TO THE CALLER HAS RUN AT AN INSTANT THIS ITEM DOES NOT
+DECLARE**); `§2.4` item 9 (e) (a bare write is not this member's subject, item 9 owes it no delivery, and A
+DELIVERY HERE THAT WITHHELD OR DOUBLED A BARE WRITE'S BODIES WOULD BE A FAILURE OF ITEM 9 (e) AND OF ITEM 8);
+`§2.7` item 6 (the discard: on a write that fails on constraints the other listeners are not delivered and
+**not left pending for a later deliverer**) with `§2.7` item 7 (d) (the fail-state: a body of that failed
+write's own triggered set that RAN **is a failure**, a body already run never being un-run); `§2.4` item 9 (d)
+(a terminal arm reached on a failing write delivers ZERO and is a no-op and not a failure); the store's `§8.1`
+#7 (`F-4`, `ContainerKindConflict`).
+
+**The steps a caller takes.** (1) Mint the addresses with `listen` and register a body for each — including
+one body at an address the write will not trigger. (2) `write` through the store's own verb and no `commit`.
+(3) Let each body record its OWN finding: the written address READ INSIDE THE BODY, and whether the package's
+verb had returned at the instant that body ran. (4) Drive a second bare write at the same address and count
+the invocations. (5) Drive two FAILING writes — one whose value contradicts the parent's container kind
+(`F-4`) and one the store resolves no event for — each with a body registered at its address, and count.
+
+**The expected observable, from the docs.**
+
+| cell | the drive | the expected observable | the clause |
+| --- | --- | --- | --- |
+| **JSG-15.1** | one bare `write(['bare-a','k'],'temp',1)` with bodies registered for the two returned handles (`['bare-a']` and `['bare-a','k']`) and a third registered at an address it does not trigger | EACH of the two bodies ran ONCE — with the written value ALREADY READABLE at the address the write was made at (the store call complete and its record copied out) and EACH recording the package's verb **NOT yet returned** — so **no body of the returned handles ran after the package's verb returned to the caller**; the un-triggered address's body does not run | **`§2.7` item 2 AS RE-SPELLED 2026-10-15**; `§2.7` item 8; `§2.4` item 9 (e) |
+| **JSG-15.2** | a second bare `write` at the same address | the bare write **withholds NOTHING**: two further invocations, one per returned handle — an empty delivery would be the seam's withholding reaching a write no record carries | `§2.7` item 8; `§2.4` item 9 (a) (*"for a write the kernel has issued"*) and 9 (e) |
+| **JSG-15.3** | a bare `write` that FAILS on the parent's container kind (`F-4`), and a bare `write` the store resolves no event for — each with a body registered at its address | **ZERO** is delivered to either body and no body of either write ran — a body that ran can never be un-run | `§2.7` item 6; `§2.7` item 7 (d); `§2.4` item 9 (d); store `§8.1` #7 (`F-4`) |
+
+**What its failure would mean.** Bodies of a bare write that ran INSIDE the store verb's window, or that ran
+only after the package's verb had already returned to the caller, mean **item 2's instant is not the shipped
+one**: both halves of that item's own re-spelled sentence are this scenario's observable, and either half read
+false is a divergence with the clause on each side. A bare write that withheld its delivery entirely means
+`§2.4` item 9's withholding has reached a write no record carries; **a body of a FAILED write that ran is item
+6's discard breached, and it can never be un-run.**
+
+---
+
+### JSG-16 — THE FIRING AT THE ADDRESS A CONSTRAINT PAIR HOLDS: THE RULED READING (4 assertions)
+
+**The clause(s), AND WHICH TEXT THIS PASS CITED.** **`§2.7` item 6 GOVERNS THE FIRING: for a write the surface
+runs the write's TRIGGERED CONSTRAINTS FIRST, and THE OTHER LISTENERS ARE REACHED ONLY ONCE EVERY CONSTRAINT
+HAS PASSED** — so at exactly the address a constraint pair was adopted for, the app's own registration is owed
+**ONE** firing, after the pass (**the ruling's force: `docs/decisions.md` · `A114` (D1)** — *"Constraints pass
+flows to the listeners (which are discarded if write fails on constraints), not the write return"* — **read with
+`A112`**). **`§2.4` item 8 (c) AS AMENDED 2026-10-15 IS A REGISTRATION-side STATEMENT** — which identity the
+app's `on` holds at an address the home entry already carries, which slot it replaced, and which function the
+pass evaluates: the identity the pass checked off IS the identity the app's registration returned, the app's
+handle IS the evaluated pair's handle — **AND ITS DERIVATION THAT NOTHING THEREFORE STANDS IN `pending` FOR THE
+RESIDUE TO REACH, i.e. that this body is owed `0`, IS SUPERSEDED BY THE RULING** (a SPLIT once stood at this
+cell, 2026-10-15, **BOTH READINGS PRINTED AND NO SIDE TAKEN** — that framing is dropped here, and the record of
+it is the one line above). **THE CLAUSE TEXT CITED, STATED SO THE CITATION IS CHECKABLE: the re-scoping remand
+had NOT landed in `docs/specs/storeroom-js/surface.md` when this pass wrote — `§2.4` item 8 (c) still reads as
+amended 2026-10-15 and `§2.7` item 6 still reads as landed 2026-10-15 — so BOTH CLAUSES ARE CITED AS THEY
+STAND, WITH THE RULING, and no byte of either is re-spelled here.** The supporting clauses: `§2.4` item 8 (a)
+(the store's `listen` mints nothing and the entry's own handle is returned unchanged) and 8 (b) (the second `on`
+at that address RETURNS THE SAME OPAQUE IDENTITY the first returned) — read as the REGISTRATION-side statement
+item 8 (c) is scoped to; `§2.4` item 9 (b) (the delivery instant is the KERNEL's — `commit`, and `runAttempt`'s
+terminal arm); `§2.7` item 5 (the invocation's single argument is the TRIGGERING ADDRESS), item 2 (the instant
+the body's own finding measures — after the STORE call has completed and the record has been copied out) and
+item 8 (the bare write's instant, named and not moved by item 9); `kernel-surface.md §1` item 1 (the ONE
+checkout home of the kernel module, whose declared name is `constraint-kernel`), `§2.1` items 1–3 (the exact
+call shapes this scenario writes: `K-1 register(store, address, id, constraint) → Handle`, `K-2
+commit(store, address, tier, value) → CommitRecord`, `K-3 runAttempt(store, commit) → AttemptReport`) and
+`§2.3` item 1 (`ConstraintOutcome`'s three declared arms, of which `true` is the ONLY pass value — the arm the
+constraint this scenario registers returns); `§2.2` item 4 (the kernel's registry keyed by (`address`, `id`) —
+a third structure, readable through no item of its five); the store's `write-and-read.md §6.5` item 12 (c) (a
+`listen` whose address IS already registered returns the existing entry's handle rather than minting a second)
+and item 3 (the descendant-inclusive prefix test that makes a prefix registration fire at all).
+
+**The steps a caller takes.** (1) `storeCreate`, then `K-1` registers the constraint at the address — **the
+pair's adoption**, which is also what mints that address's home entry. (2) `on` at THAT SAME address (the
+ruled firing's own registration) and `on` at the PROPER PREFIX (its sibling control), each returning a handle;
+the two returned handles are compared by `===` with `K-1`'s own. (3) `K-2` issues the write and `K-3` runs the
+attempt, so **the write's triggered constraints run FIRST** (the registered constraint returns `true`, the pass
+arm) and the ruled delivery follows it; each body records its own firing — its count, its ARGUMENT LIST LENGTH,
+whether the store call has completed, and the written value read back. (4) The instrument control: a THIRD
+registration, made the same way (`on`), written through the package's own bare write verb at an address NO
+constraint pair holds.
+
+**The expected observable, from the docs.**
+
+| cell | the drive | the expected observable | the clause |
+| --- | --- | --- | --- |
+| **JSG-16.1 — THE RULED FIRING AT THE PAIR-ADOPTED ADDRESS. THE CELL KEEPS ITS ID AND ITS SLOT IN THE NUMBERING (its cross-citations name it), AND ITS SUBJECT IS STATED HERE: THE FIRING.** | `K-1` adopts the pair at `['split']`; `on(['split'],fn)`; then `K-2` + `K-3` drive the passing write (the constraint returns `true`, `ConstraintOutcome`'s only pass value) | **EXACTLY ONE invocation** of the app's registration at the pair-adopted address — after the pass, with the STORE CALL COMPLETED and the write's own record readable at the body's instant — **WITH THE TRIGGERING ADDRESS `['split']` AS ITS SINGLE ARGUMENT** (`arguments.length` `1`), and not the superseded derivation's `0`. **EXPECTED RED UNTIL THE IMPLEMENTER'S FIX LANDS** | **`§2.7` item 6, GOVERNING ON THE RULING** (`A114` (D1) with `A112`); `§2.7` item 2; `§2.7` item 5; `§2.4` item 9 (b) |
+| **JSG-16.1.c — THE SIBLING CONTROL AT THE PROPER PREFIX** | the same drive, with the same registration spelled at `[]`, the PROPER PREFIX of `['split']` | **EXACTLY ONE invocation** on the same terms — after the pass, with the store call completed — and with **THE TRIGGERING ADDRESS `['split']`** (the operation's own address, and never the watched prefix `[]`) as its single argument | **`§2.7` item 6** (a prefix registration is one of the "other listeners"); `§2.7` item 3; the store's `write-and-read.md §6.5` item 3 |
+| **JSG-16.2 — THE PRE-CONDITION** | `on(['split'],fn)` and `on([],fn)` on the instance whose `K-1` handle stands, each compared by `===` with that handle | the registration-side fact item 8 (c) is scoped to: `on` at the address whose home entry already stands returns **the SAME opaque identity** the registered pair's handle is (`===` **true**), while `on` at the PROPER PREFIX returns a DIFFERENT identity — **and from that bookkeeping fact the ruling derives NO non-delivery** | **`§2.4` item 8 (a) and 8 (b)**; `kernel-surface.md §2.1` item 1; store `write-and-read.md §6.5` item 12 (c) |
+| **JSG-16.3 — THE INSTRUMENT CONTROL. NO RULING AND NO SIDE IS TAKEN HERE.** | a THIRD `on` registration at `['bare']` — an address no constraint pair holds — written through the package's OWN bare write verb | **EXACTLY ONE invocation** — after the store call returned and the write's own record is readable — with the triggering address `['bare']` as its single argument: so the pair-adopted address's count in `JSG-16.1` is read as a DELIVERY-RESIDUE result, and never as a dead registration or a dead instrument | `§2.7` item 2 and item 8 (the bare write's instant, a route on which NO pass is involved), `§2.7` item 5 |
+
+**What its failure would mean.** A `JSG-16.1` failure with its two sibling controls PASSING — the proper
+prefix fired once and the bare address fired once, on the same terms — is the ruled reading's own RED: the
+package's deliverer reaches a registration when no pass is in play, and does NOT reach it at the address where
+a pass is in play, which is exactly the NON-DELIVERY the ruling superseded; **it is REPORTED and never patched
+by weakening a green, and it closes when the implementer's delivery follows the ruling.** A `JSG-16.1.c`
+failure would mean the ruling does not reach a prefix registration either. A `JSG-16.2` failure means `on` at a
+held address MINTS a second identity, which would falsify the registration-side reading item 8 (a)/(b)
+declares. **A `JSG-16.3` failure is an INSTRUMENT failure and not a finding about the address: it would mean
+the registration, the argument shape or the store-call finding this scenario reads is itself unsound, and
+`JSG-16.1`'s count must then be read with that in hand.** **THE SEAM'S TWO INSTANTS ARE STILL NOT DRIVEN —
+`OWED` at this set's boundary, named at §3 item 9: this scenario drives the pass and reads the PACKAGE's
+DELIVERER, and it claims nothing about the kernel's own instant observables.**
+
+---
+
 ## §3. WHAT THIS SET COULD NOT DERIVE FROM THE DOCS (named rather than papered)
 
 1. **`watch`/`unwatch` are NOT driven.** The store's own surface declares them (`§6.5` items 1–7), while this
@@ -948,6 +1260,31 @@ not a scaling finding**, and is reported as such.
    — so a fourth key's answer is a state the two documents hand to each other. Recorded, not asserted.
 8. **No figure of this pass is a store figure.** The store's green, its `e2e` battery and its suite are
    QUOTED by this unit's documents and are **not re-measured here** (`DD-31`, `DD-33`).
+9. **THE ORDERING SEAM'S TWO INSTANTS ARE NOT DRIVEN — `OWED` AT THIS SET'S BOUNDARY, AND NAMED WITH THE
+   CLAUSE SEARCHED.** **The clause searched is `docs/specs/storeroom-js/surface.md §2.4` item 9** (its
+   two-instant table, and its own words that *"THE INSTANTS ARE THE KERNEL'S OWN TWO ACTS"*), read with
+   `docs/specs/storeroom-constraints/kernel-surface.md §1` item 1 (the module the instants are reached
+   through — `constraint-kernel`, whose ONE checkout home that clause declares to be the ESM source file
+   `bindings/js/src/constraint-kernel.mjs`) and `§2.1` items 2–3 (`K-2`'s `commit` and `K-3`'s `runAttempt`).
+   **THIS SET REACHES NOTHING OUTSIDE THE PACKAGE'S CLAIMED ESM ENTRY — the one `import` its driver performs —
+   so instant (a)'s EMPTY in-window invocation set and instant (b)'s residue delivery are observables no drive
+   of this layer reaches**, and `JSG-14` asserts nothing about them: its cells stop at the seam's SHAPE, its
+   ONE argument, its ONE return and its declared out-of-domain refusal. **The two instants are therefore
+   recorded as `OWED` and not papered, and no cell of `§2` stands in for them.**
+10. **`JSG-16.1` IS NO LONGER `OWED` — THE RULING HAS LANDED AND THE CELL IS ASSERTED; AND WHAT IS STILL
+   NAMED, WITH THE CLAUSE SEARCHED.** **THE SPLIT THIS ITEM ONCE RECORDED IS SUPERSEDED: the two clauses it
+   named were `docs/specs/storeroom-js/surface.md §2.7` item 6** (*"THE OTHER LISTENERS ARE REACHED ONLY ONCE
+   EVERY CONSTRAINT HAS PASSED"*) **and `docs/specs/storeroom-js/surface.md §2.4` item 8 (c) as amended
+   2026-10-15**, **and the RULING SETTLES THEM: item 6 GOVERNS THE FIRING, item 8 (c) is a REGISTRATION-side
+   statement, and the NON-DELIVERY it derived is SUPERSEDED — so a listener registered at an address a
+   constraint pair holds is owed ONE firing, after the pass.** **THE CLAUSES ARE CITED AS THEY STAND — the
+   re-scoping remand had not landed at this pass — TOGETHER WITH THE RULING (`A114` (D1) with `A112`), and
+   `§2`'s `JSG-16` table now asserts that reading at three cells (the ruled firing, its proper-prefix sibling
+   control and the bare-address instrument control) beside the pre-condition `JSG-16.2`.** **WHAT REMAINS
+   `OWED` AT THIS SET'S BOUNDARY IS THE SEAM'S TWO INSTANTS ALONE (§3 item 9), named with the clause searched
+   there; and the ONE cell that now stands RED is `JSG-16.1` — the ruled reading, measured against a build
+   whose delivery does not yet follow it — REPORTED and not patched, with the clause searched at its own `§2`
+   head and its clause text stated there.**
 
 ---
 
@@ -1023,6 +1360,15 @@ ANYWHERE IN THIS REPOSITORY, AND THE `72`-ASSERTION LIVE BATTERY (`archive/gate6
 (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 · `AR-10` — every figure carries its site and its layer;
 A3 archive/gate6/storeroom-js-live-determination.md §2.3 · §3 · §4 — the re-measurement and the live battery |
 numeric or census claim]`).
+
+**⟶ RE-DERIVED AND RE-RUN 2026-10-15 — THE `A116` ORDERING-SEAM RE-DERIVATION PASS (`role_blind_test_writer`): THE THREE FAILING CELLS RE-DERIVED AGAINST THE CLAUSES AS THEY NOW READ, THE SPLIT CELL CONFIRMED UNASSERTED, AND THE ADDED SCENARIOS' `§1` ROWS AND `§2` HEADS AUTHORED.** `RCA-8(d)` ANNOTATE-BESIDE: **every expectation this clause does not name stands as filed and is read THROUGH it; no cell is re-worded after the run that exposed it, no assertion is weakened, and the three cells named below each keep their subject and their drive while the observable they assert becomes the clause's own.**
+
+1. **WHAT MOVED, WITH THE CLAUSE THAT FIXES EACH, AND WHY THIS IS A RE-DERIVATION AND NOT A WEAKENING.** **`JSG-14.4` and `JSG-14.5` asserted the seam's refusal to carry NO `message` member** — that is `§2.4` item 5 (d)'s phrasing at the REGISTRATION site, and **`§2.4` item 9 (b) has since RE-SPELLED it at the SEAM's own boundary**: the error class is `TypeError` (an instance of it, and of nothing else), its `status` member **MUST BE ABSENT**, and a STRING `message` member is **REQUIRED and NOT FORBIDDEN**. Both cells are re-derived to that clause's own observable — class · `status`-absence · string `message` — their subjects unmoved (the declared out-of-domain RECORD POSITIONS; the `Proxy` row and the ABSENT/`undefined` row, the ABSENT position by call arity) and **their clause citations RE-AIMED at the re-spelled text.** **`JSG-15.1` measured the bare write's delivery from THE PACKAGE VERB'S RETURN** (it asserted that no body ran before the verb returned); **`§2.7` item 2 has since been re-spelled to measure it from the STORE/ADDON CALL's completion plus the record's copy-out** — the package's verb being NOT yet returned at that instant, so that *"a body that ran after the package's verb returned to the caller has run at an instant this item does not declare"*. The cell is re-derived to that item's own observable: each body's own finding that the store call had COMPLETED (the written address read INSIDE the body) AND that the package's verb had NOT yet returned.
+2. **`JSG-16.1` IS CONFIRMED UNASSERTED AND NO SIDE IS TAKEN.** **The census counter lives in the `A(...)` helper, so the SPLIT cell advances neither `authored` nor `executed`: it can be neither a PASS nor a FAIL and it was never a failure.** It is printed with BOTH readings (its `§2` head) and recorded `OWED` with the clause searched (§3 item 10). **The naming of it among the three FAILs, at three sites of this file, was a MIS-NAMING of this file's own and is corrected at each: the head's census clause, `JSG-01`'s foot clause, and the census clause at §4. The three real FAILs are `JSG-14.4` · `JSG-14.5` · `JSG-15.1`.**
+5. **⟶ AND THE FIRING CELL IS RE-DERIVED AND RE-RUN ONCE MORE, 2026-10-15, ON THE ARCHITECT'S RULING — THE RULED FIRING (`role_blind_test_writer`).** **THE RULING HAS LANDED AND IT SETTLES THE SPLIT THIS FILE ONCE CARRIED AS AN OPEN CELL: `surface.md §2.7` item 6 GOVERNS THE FIRING — for a write, the write's triggered constraints run first, and THE OTHER LISTENERS ARE REACHED ONCE EVERY CONSTRAINT HAS PASSED — while `surface.md §2.4` item 8 (c) IS A REGISTRATION-side STATEMENT (which identity the app's `on` holds at an address the home entry already carries, which slot it replaced, which function the pass evaluates) WHOSE NON-DELIVERY DERIVATIONS ARE SUPERSEDED; the ruling's force is `docs/decisions.md` · `A114` (D1) read with `A112`.** **SO AT AN ADDRESS A CONSTRAINT PAIR HOLDS, A LISTENER REGISTERED THERE IS OWED ONE FIRING, AFTER THE PASS — NOT ZERO.** **THE SPLIT'S RECORD IS KEPT AS ONE DATED LINE AND NOT RE-ARGUED: a SPLIT once stood at `JSG-16.1` (2026-10-15, both readings printed, no side taken — `docs/next-steps.md` · `N7` item 1 and this file's earlier clauses at §1, `JSG-01`'s foot, §2 and §3 item 10), and item 2 immediately above is THAT PASS'S OWN reading at ITS date, named here and NOT WITHDRAWN.** **AND THE CLAUSES ARE CITED AS THEY STAND: the re-scoping remand had NOT landed in `docs/specs/storeroom-js/surface.md` at this pass, so `§2.4` item 8 (c) as amended 2026-10-15 and `§2.7` item 6 as landed 2026-10-15 are cited AS PRINTED, WITH THE RULING, and no byte of either clause is re-spelled here.** **THE CELL KEEPS ITS ID (`JSG-16.1`) AND ITS SLOT IN THE NUMBERING, so every cross-citation that names it still resolves; its subject is stated at its own `§2` head — THE FIRING at the pair-adopted address.** **THE PASS ADDED THREE CELLS TO `JSG-16` — the ruled firing (`JSG-16.1`), its sibling control at the PROPER PREFIX (`.16.1.c`) and the bare-address instrument control (`.16.3`), beside the pre-condition `.16.2` — and IT RE-RAN THE SET FOUR TIMES, each run byte-identical once the scratch path is masked: `253` AUTHORED · `253` EXECUTED · `252` PASS · `1` FAIL over the same `16` scenarios, THE ONE FAIL BEING THE RULED FIRING ITSELF: at the pair-adopted address the app's registration fired NOT AT ALL (the superseded `0` the ruling replaced) while its PROPER-PREFIX sibling control fired exactly once with `['split']` as its single argument, the store call completed and the written value readable, and the bare-address control fired exactly once on the same terms.** **THE FAIL IS REPORTED AND NOT PATCHED: no green is weakened, no cell re-worded after its run, no package byte touched — it closes when the implementer's delivery follows the ruling.** **AND WHAT REMAINS `OWED` AT THIS SET'S BOUNDARY IS THE SEAM'S TWO INSTANTS ALONE (§3 item 9), WITH THE CLAUSE SEARCHED THERE: `§2.4` item 9's table and its own words that the instants are the KERNEL's own two acts, read with `kernel-surface.md §1` item 1 and `§2.1` items 2–3 — this pass drives the pass and reads the PACKAGE's deliverer, and claims nothing about the kernel's own instant observables** (`[A2 docs/decisions.md · `A114` (D1) with `A112`, and · `A116` (D1)/(D4); A3 docs/specs/storeroom-js/surface.md §2.7 item 6 · §2.4 items 8 (c) and 9 — the clauses as they stand; A3 docs/specs/storeroom-constraints/kernel-surface.md §1 item 1 and §2.1 items 1–3 · §2.3 item 1; A3 `bindings/js/greens/greens.mjs` — this pass's own driver and four runs; A3 docs/next-steps.md · `N7` item 1 — the split's own record | numeric or census claim]`).3. **THE RUN, WITH BOTH TERMS, AT ITS SITE AND WITH ITS LAYER.** **SITE: `node bindings/js/greens/greens.mjs` at the repository root, against the package's claimed ESM entry — the driver's one import — its scratch area being a `mkdtemp` directory outside the repository tree; and, for the FOUR `JSG-16` cells alone, against the kernel module `bindings/js/src/constraint-kernel.mjs`, the second module the RULED FIRING is reached through (the pass is reached through no package surface).** **THE PRE-RE-DERIVATION READING: `250` AUTHORED · `250` EXECUTED · `247` PASS · `3` FAIL, the failing ids being exactly `JSG-14.4` · `JSG-14.5` · `JSG-15.1` and no other.** **THE POST-RE-DERIVATION READING, AT THIS PASS'S OWN TREE: `253` AUTHORED · `253` EXECUTED · `252` PASS · `1` FAIL over the same `16` scenarios, with `JSG-14` at `5 PASS · 0 FAIL`, `JSG-15` at `3 PASS · 0 FAIL` and `JSG-16` at `3 PASS · 1 FAIL`** — **the same totals over FOUR CONSECUTIVE RUNS, byte-identical once the scratch path is masked, so the set is DETERMINISTIC over the runs this pass took. THE ONE FAIL IS `JSG-16.1`, THE RULED FIRING: the ruled reading measured against a build whose delivery does not yet follow it — REPORTED AND NOT PATCHED, and never read as a pass.** **LAYER `ENVELOPE/PURE`; `APP` LAYER `NONE`; NO `APP`-GREEN IS CLAIMED.**
+4. **THE CENSUS, WITH BOTH ITS TERMS, BECAUSE BOTH MOVE AT THIS PASS.** **THE SCENARIO CENSUS IS `16`** — the `13` this file carried, plus the `A116` seam's `JSG-14` · `JSG-15` · `JSG-16` — **and THE ASSERTION CENSUS IS `253`, over the same `16` scenarios** — **READ THROUGH THE 2026-10-16 CLAUSE AT THIS FILE'S FOOT: the OPERATIVE authored census is `255` (`253 + 2`, the two being `JSG-02.17`/`.18`) at the `§2` head sum `17 + 18 + 5 + 67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 + 18 + 6 + 5 + 3 + 4 = 255` ✓, while the `253` here is THIS clause's own tree's reading**: `17 + 16 + 5 + 67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 + 18 + 6 + 5 + 3 + 4 = 253` ✓ — **the seam's three heads being `5` · `3` · `4`, where `JSG-16`'s own head is `4` asserted because THE RULING LANDED AND THE SPLIT CELL'S ASSERTION IS NOW TAKEN: `JSG-16.1` (the ruled firing at the pair-adopted address), `.16.1.c` (its sibling control at the proper prefix) and `.16.3` (the bare-address instrument control) join the pre-condition `.16.2`, so the `1` this census printed at that head is the PRE-RULING reading and the `+3` is exactly the ruled cell and its two controls.** **AND THIS PASS OWED THE ADDED SCENARIOS' HEADS AND THEIR OWN COUNTS AND HAS AUTHORED THEM — the `OWED` this file's census clause carried is CLOSED, and what remains `OWED` at this set's boundary is the seam's two instants (§3 item 9) ALONE, named with the clause searched there; §3 item 10's `OWED` — the split cell's ruling — IS CLOSED BY THE RULING.** **AND EVERY EARLIER CLAUSE OF THIS FILE THAT READS THE SCENARIO CENSUS AS `13` — the gate-8 `UNMOVED` sentence, the census-settled clause's item `4`, the `Q5` and `Q7` clauses — IS THAT CLAUSE'S OWN TREE'S READING, TRUE AT ITS DATE, NAMED HERE AND NOT WITHDRAWN; the operative figure is `16`, and the head's census clause, `§1`'s table, `§2`'s heads and §4's close-out clause each read it.**
+
+(`[A2 docs/decisions.md · `A116` (D1); A3 docs/specs/storeroom-js/surface.md §2.4 item 9 (b) as re-spelled and §2.7 item 2 — the two re-spelled clauses; A3 docs/specs/storeroom-js/surface.md §2.1's dated clause 1 (a)–(b), §2.4 item 9, §2.7 items 6–8; A3 docs/specs/storeroom-js/parameter-semantics.md §2.19; A3 bindings/js/greens/greens.mjs — this pass's own driver and run | numeric or census claim]`).
 
 **END OF THE GREENS SET.**
 
@@ -1194,7 +1540,7 @@ the pass `contract.md §5.5`'s dated clause (clause 5) tasked.**
    §2.1's dated clause 1 (a)–(b), §2.3's dated clause 1 and §2.4 item 7 (a)–(c); A3
    docs/specs/storeroom-js/parameter-semantics.md §2.8's and §2.12's dated clauses; A3
    docs/specs/storeroom-js/contract.md §5.5's dated clause; bindings/js/README.md — the build step the JS
-   leg runs after | numeric or census claim]`).**
+   leg runs after | numeric or census claim]`).** **⟶ AND THIS SET'S CENSUS IS READ THROUGH ONE MORE PASS, 2026-10-15: THE `A116` ORDERING-SEAM PASS ADDED SCENARIOS TO THE GREEN SET (`bindings/js/greens/greens.mjs`, `JSG-14`…`JSG-16` — THREE scenarios, `13` cells: the `9` asserted ones (`.14.1`–`.14.5`, `.15.1`–`.15.3`, `.16.2`) **plus the `4` THE RULING'S OWN PASS ADDED TO `JSG-16` (`.16.1`, `.16.1.c`, `.16.3` and the pre-condition `.16.2`) — where the `10`-cell / `9`-asserted / `1`-UNASSERTED reading this cell filed is the PRE-RULING one, NAMED AND NOT WITHDRAWN: THE SPLIT CELL `JSG-16.1` TOOK NO ASSERTION THEN AND TAKES ITS ASSERTION NOW, on the architect's ruling**), so the operative set was `250` AUTHORED · `247` PASS · `3` FAIL and THE `13`-SCENARIO CENSUS THIS PART'S HEADS SUM TO WAS ONE LANDING BEHIND — the `+` is the added scenarios and the `-` is the three reported FAILs, which are `JSG-14.4` · `JSG-14.5` · `JSG-15.1` and NOT the SPLIT cell (`JSG-16.1` carries no assertion at all: it is the clause split awaiting the architect's ruling, `surface.md §2.7` item 6 against `§2.4` item 8 (c), both readings printed and no side taken).** **THE SCENARIO COUNT IS `OWED` NO LONGER: THIS PART HAS SINCE AUTHORED THE ADDED SCENARIOS' `§1` ROWS AND `§2` HEADS WITH THEIR OWN ASSERTION COUNTS (`JSG-14` at `5`, `JSG-15` at `3`, `JSG-16` at `1` asserted at that landing, and `4` ASSERTED AT THIS ONE — `241 + 5 + 3 + 4 = 253` ✓), and the count is `16` — the as-filed `241 + 5 + 3 + 1 = 250` ✓ being that landing's own arithmetic at ITS head count — while the three `247`-tree FAILs are re-derived green against the clauses as those clauses now read by the dated pass at §4's foot, and THAT pass's set reads `250` PASS · `0` FAIL, THIS pass's reading being `253` AUTHORED · `252` PASS · `1` FAIL, its one FAIL the ruled firing `JSG-16.1`** — **READ THROUGH THE 2026-10-16 CLAUSE AT THIS FILE'S FOOT: the OPERATIVE set is `255` AUTHORED · `255` EXECUTED · `255` PASS · `0` FAIL over the SAME `16` scenarios (`253 + 2`, the two added cells being `JSG-02.17`/`.18`, the ten re-pointed cells' subjects unmoved), while the `250`/`247`/`3` and the `253`/`252`/`1` readings of this cell are ITS OWN tree's, true at its date** (`[A2 docs/decisions.md · `A116`; A3 docs/next-steps.md — the `A116` cycle record's measured figures; A3 `bindings/js/greens/greens.mjs`'s own scenario banners | numeric or census claim]`).**
 
 ---
 
@@ -1217,5 +1563,52 @@ the pass `contract.md §5.5`'s dated clause (clause 5) tasked.**
 1. **THE SET'S OWN LAYER, READ AT ITS DRIVER: `ENVELOPE/PURE`, AND THE LABEL TRAVELS WITH EVERY FIGURE OF THE RUN.** **`bindings/js/greens/greens.mjs` declares `const LAYER = 'ENVELOPE/PURE'` and asserts it in-cell at `JSG-12.15`; its own header reads** *"LAYER: ENVELOPE/PURE. APP LAYER: NONE. NO `APP`-GREEN IS CLAIMED HERE OR ANYWHERE IN THIS RUN."* **UNMOVED, AND `§4.2` items `1`–`2` are the clause that pins it.**
 2. **THE LIVE BATTERY'S LAYER, READ AT ITS DRIVER: `LIVE / ASSEMBLED PACKAGE`, `APP` LAYER `NONE`.** **`bindings/js/greens/live-drive.mjs` prints, on its own totals line, `layer LIVE / ASSEMBLED PACKAGE (real artifact, real process, real file I/O, real caller) — APP layer NONE` and closes `LAYER: LIVE / ASSEMBLED PACKAGE … — APP layer NONE, no APP-green claimed`; and the run's own record prints the same line verbatim** (`archive/gate6/live-run-auspicion-scope-2026-10-11.txt`, its lines `9` and `53`; `archive/gate6/live-run-prerename-8.7-red-2026-10-11.txt` — the pre-rename reading of the SAME battery). **THE BATTERY IS ADDITIVE: it retires no `ENVELOPE/PURE` row of this set, and this set's rows are not re-labelled by it.**
 3. **AND THE THIRD LAYER, NAMED HERE BECAUSE THIS FILE DID NOT NAME IT AND A READER OF THIS SET ALONE COULD NOT TELL IT APART FROM EITHER OF THE TWO ABOVE: `LIVE/INSTALL` IS A DIFFERENT LAYER, IT IS THIS PROJECT'S OWN, IT IS POST-RELEASE BY CONSTRUCTION, AND IT IS NEVER A GREEN — of this set, of its driver, of the live battery, or of any pass of this repository.** **ITS DEFINITION IS THE INSTALL OF THE RELEASED BYTES, BY A REAL PACKAGE MANAGER, IN A CLEAN DIRECTORY WITH NO REPOSITORY IN ITS ANCESTRY AND NO `build/Release` BESIDE THE ENTRY, EXERCISED THROUGH THE CLAIMED ESM ENTRY TO A FINAL RESOLVED STATE — so it PRESUMES REGISTRY STATE (five published platform names and a published main package), ITS FIGURE CANNOT EXIST BEFORE THE ARCHITECT'S RELEASE ACT, AND RUNNING IT EARLY — OR REPORTING ITS FIGURE BEFORE THE RELEASE — IS A STOP CONDITION.** **ITS HOME IS THE `U-STOREROOM-PUBLISH` CONTRACT ALONE — `docs/specs/storeroom-publish/contract.md` `§4.1`–`§4.5` and `docs/specs/storeroom-publish/acceptance.md` `§2`–`§5` — AND ITS LABEL IS CITED AND NEVER INSERTED AT THIS SET'S LAYER CLAUSE, because a layer-vocabulary amendment is not one of the two homes the `A82`+`A84` amendment reaches.** **SO NO `LIVE/INSTALL` FIGURE IS, OR CAN BE, A FIGURE OF THIS FILE; AND A CELL HERE THAT READ ONE AS A GREEN — OR THAT READ THE INSTALL LAYER AS A SUBSTITUTE FOR THIS SET'S `ENVELOPE/PURE` LEG OR FOR THE LIVE BATTERY'S `LIVE / ASSEMBLED PACKAGE` LEG — WOULD BE A FINDING.** **THIS PASS FOUND NONE AND PRINTS THIS ITEM SO THE READING CANNOT DRIFT** (`docs/specs/storeroom-publish/acceptance.md` `§2.1`, `§3.2`, `§4`; `docs/specs/storeroom-publish/implementation-plan.md` `§5` · stop condition `I`; `docs/specs/storeroom-publish-proposal-review.md` `§5.1` item `5`).
-4. **AND THE SCENARIO SETS AND COUNTS, READ AGAINST THE TWO DRIVERS AS THEY NOW STAND — EACH WITH THE TREE IT DESCRIBES, AND WITH THE STALE READINGS LEFT WHERE THEY STAND.** **THE BLIND SET: `13` SCENARIOS (`JSG-01`…`JSG-13`) and the `§2` heads, whose operative reading this file's `JSG-12` clause item `5` and its close-out clause both print — `17 + 16 + 5 + 67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 + 18 + 6 = 241` ✓, `JSG-12` at `18`, `JSG-13` at `6` — and THE DRIVER'S OWN SCENARIO ROWS ARE THOSE SAME THIRTEEN, `JSG-12.18` being the cell this unit's pass added and `JSG-12.15`/`.16` the two layer constants asserted in items `1`–`2` above.** **THE LIVE BATTERY: `13` SCENARIOS (`LIVE-1`…`LIVE-13`) and `91` ASSERTIONS, `LIVE-13` at `19`, printed by the driver's own totals line and by the run record's fourteen scenario lines.** **AND THE READINGS THIS FILE STILL CARRIES AT THEIR OLDER TREES — the head's `240` beside its `LIVE-F5` clause, the `§4` table's `236`/`233` figure and its `72`-assertion battery sentence, and the `Q5` clause's two legs — ARE EACH ALREADY NAMED AND RECONCILED BY A CLAUSE ABOVE AND ARE NOT MOVED HERE: they belong to the stale-`FIGURE` class, which this gate does not sweep, and they are NAMED in this pass's own record rather than edited** (`archive/reviews/2026-10-11-U-STOREROOM-PUBLISH-doc-review.md`).
+4. **AND THE SCENARIO SETS AND COUNTS, READ AGAINST THE TWO DRIVERS AS THEY NOW STAND — EACH WITH THE TREE IT DESCRIBES, AND WITH THE STALE READINGS LEFT WHERE THEY STAND.** **THE BLIND SET: `16` SCENARIOS (`JSG-01`…`JSG-16`) and the `§2` heads, whose operative reading this file's `JSG-12` clause item `5` and its close-out clause both print — **RE-SPELLED 2026-10-16: the OPERATIVE sum is `17 + 18 + 5 + 67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 + 18 + 6 + 5 + 3 + 4 = 255` ✓ — `JSG-02`'s head having moved `16 → 18` with the two added load-side cells (`JSG-02.17`/`.18`) — while the sum printed at this cell is the `253`-era reading and stands at its own date** — `17 + 16 + 5 + 67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 + 18 + 6 + 5 + 3 + 4 = 253` ✓ (the same sum AT THE `A116` SEAM'S OWN HEAD COUNT `1` closed at `250`, and the `+3` is the ruled firing's cell and its two controls), `JSG-12` at `18`, `JSG-13` at `6`, and the seam's three at `5` · `3` · `4` asserted — **THE RULING HAVING LANDED, `JSG-16`'s head is `4` ASSERTED AND NO CELL OF IT IS UNASSERTED ANY MORE: the as-filed `5` · `3` · `1` asserted *"beside the unasserted SPLIT cell `JSG-16.1`"* is that landing's own reading, NAMED AND NOT WITHDRAWN** — and THE DRIVER'S OWN SCENARIO ROWS ARE THOSE SAME SIXTEEN, `JSG-12.18` being the cell this unit's pass added, `JSG-12.15`/`.16` the two layer constants asserted in items `1`–`2` above, and `JSG-14`…`JSG-16` the three the `A116` seam added (CORRECTED IN PLACE BY THE DATED PASS AT §4'S FOOT: this cell's as-filed bytes read *"`13` SCENARIOS (`JSG-01`…`JSG-13`) … THOSE SAME THIRTEEN"* with the sum `… + 18 + 6 = 241`, which was TRUE OF THE DRIVER AS IT STOOD AT `2026-10-11` and FALSE OF IT FROM `2026-10-15`, when the seam's three scenario rows landed; THIS clause's own subject — *"read against the two drivers as they now stand"* — is the SIXTEEN).** **THE LIVE BATTERY: `13` SCENARIOS (`LIVE-1`…`LIVE-13`) and `91` ASSERTIONS, `LIVE-13` at `19`, printed by the driver's own totals line and by the run record's fourteen scenario lines.** **AND THE READINGS THIS FILE STILL CARRIES AT THEIR OLDER TREES — the head's `240` beside its `LIVE-F5` clause, the `§4` table's `236`/`233` figure and its `72`-assertion battery sentence, and the `Q5` clause's two legs — ARE EACH ALREADY NAMED AND RECONCILED BY A CLAUSE ABOVE AND ARE NOT MOVED HERE: they belong to the stale-`FIGURE` class, which this gate does not sweep, and they are NAMED in this pass's own record rather than edited** (`archive/reviews/2026-10-11-U-STOREROOM-PUBLISH-doc-review.md`).
 **NO FIGURE OF THIS SET MOVES BY THIS CLAUSE, AND NO `APP`-GREEN AND NO `LIVE/INSTALL` GREEN IS CLAIMED OR AVAILABLE** (`[A1 docs/specs/storeroom-publish/acceptance.md §2`–`§4`; A3 `bindings/js/greens/greens.mjs`'s and `bindings/js/greens/live-drive.mjs`'s own layer lines; A3 `archive/gate6/live-run-auspicion-scope-2026-10-11.txt`; A3 `docs/specs/storeroom-publish/contract.md §4.2` item `3` | CENSUS]`).
+
+---
+
+**⟶ RE-DERIVED 2026-10-16 — THE `file`-TIER SAVE'S OWN CENSUS CLAUSE (`role_spec_writer`), ON THE GATE-8
+DOCUMENTATION REVIEW OF THAT UNIT AND ON THE RUNNER'S OWN SETTLED READING: THE BLIND SET IS `255` AUTHORED ·
+`255` EXECUTED · `255` PASS · `0` FAIL OVER THE SAME `16` SCENARIOS.** **THE AS-FILED CENSUS CLAUSE THIS ONE
+READS THROUGH, NAMED BY ITS OWN FIGURES AND LEFT BYTE-FOR-BYTE: `§4`'s own census clause of 2026-10-15 prints**
+*"the operative set was `250` AUTHORED · `247` PASS · `3` FAIL"* **and** *"`241 + 5 + 3 + 4 = 253` ✓"*, **and the
+`A116` foot clause's item `4` prints** *"THE ASSERTION CENSUS IS `253`, over the same `16` scenarios"*; **each is
+TRUE AT ITS OWN DATE AND IS NAMED HERE AND NOT WITHDRAWN** (`RCA-8(d)` ANNOTATE-BESIDE; the review's owed
+correction is `archive/reviews/2026-10-16-file-tier-save-doc-review.md` §2 items `12`–`13`).
+
+1. **THE FIGURE AND ITS TERMS, SO THE MOVE IS CHECKABLE AND NOT MERELY ASSERTED: `253 + 2 = 255` ✓.** **THE
+   `253` IS THE RE-POINTED SET** — the TEN cells this pass moved to the terminal arm, `JSG-02.10` · `.11` ·
+   `.14` · `.15` · `.16` and `JSG-10.16` · `.17` · `.18` · `.19` · `.20`, **each keeping ITS SUBJECT AND ITS
+   EXPECTATION and changing only the route that reaches its state** — **and THE `2` IS THE ADDED SET** —
+   `JSG-02.17` and `JSG-02.18`, **the two halves of `A119`'s load-side discriminate** (a zero-byte file boots an
+   INSTANCE and `read([])` answers `{}`; a present two-byte `{}` image is refused `ConstraintListInvalid` and the
+   image is byte-identical). **THE `§2` HEADS SUM `17 + 18 + 5 + 67 + 14 + 7 + 15 + 22 + 12 + 24 + 18 + 18 + 6 +
+   5 + 3 + 4 = 255` ✓, `JSG-02`'s head moving `16 → 18` and EVERY OTHER SCENARIO HEAD UNMOVED** (`§1`'s own head
+   line prints the scenario census `16`; `§2`'s heads are re-read at this clause).
+2. **AND THE RUNNER'S OWN READING, WHICH THIS CENSUS MATCHES: `node bindings/js/greens/greens.mjs` at the
+   REPOSITORY ROOT — `255` authored · `255` EXECUTED · `255` PASS · `0` FAIL over the SAME `16` scenarios, exit
+   `0`, NOTHING RETIRED, and the artefact's own `§7` records the same relation (`253` before, the ten cells
+   re-derived, the two added).** **LAYER `ENVELOPE/PURE`; `APP` LAYER `NONE`; no `APP`-green exists, is claimed
+   or becomes available** (items `1`–`3` of the 2026-10-11 layer clause above, UNMOVED).
+3. **AND THE FIGURES THIS PASS DOES NOT MOVE, EACH NAMED SO THE `255` IS NOT READ AS A RE-MEASUREMENT OF THEM.**
+   **The scenario census stays `16`.** **`JSG-01` stays `17`; `JSG-12` stays `18`; `JSG-13` stays `6`; the
+   `A116` seam's three stay `5` · `3` · `4` asserted; `JSG-10` stays `24`; and the live battery stays `91`
+   authored · `91` PASS · `0` FAIL over `13` scenarios with `LIVE-13` at `19`.** **THIS PASS RAN NOTHING: it
+   holds no execution verb, every figure above is the runner's and the tracker's own reading, and the register
+   runner's JS half — `107` attempts in this file's clauses against the `117` the register's `line(...)` caps
+   print — REMAINS OPEN for that runner's own output and is not touched here.**
+4. **AND THE READINGS THIS FILE STILL CARRIES AT THEIR OLDER TREES, EACH KEPT WHERE IT STANDS.** **`253`** (the
+   `A116` foot clause's item `4`, `§4`'s close-out clause, and the `A116`-era census sentence at `§4`'s foot) ·
+   **`250` / `247` / `3`** (the `A116` landing) · **`241` / `241`** (the `U-STOREROOM-PUBLISH` re-derivation) ·
+   **`240`** (the `Q5` re-derivation) · **`236`** (the gate-5 and gate-6 trees). **THE JS LEG'S OWN TEST COUNTS
+   (`113`, `108`, `101`, `185`, `348`, `410`) ARE A DIFFERENT LEG'S FIGURES AND ARE NEVER THIS SET'S CENSUS — no
+   clause of this file prints one as such, and this pass moves none of them** (`docs/specs/storeroom-js/`
+   `contract.md §10` and `implementation-plan.md` are that leg's own homes). **`16` SCENARIOS IS THE ONE FIGURE
+   THAT MOVED AT `2026-10-15` AND STANDS; `255` IS THE ONE FIGURE THAT MOVES AT `2026-10-16`.**
+
+(`[A2 docs/decisions.md · `A119`; A3 docs/next-steps.md — the settled tree's `GATE 5 RE-MEASURED` and gate-9
+figures (`255/255`, the runner's own exit `0`); A3 bindings/js/greens/greens.mjs` — the runner this census
+describes, and its own scenario rows; A3
+archive/reviews/2026-10-16-file-tier-save-doc-review.md §1` and its §2 items `12`–`13`; A3
+docs/specs/storeroom-js/surface.md §2.11` clauses 1–2 | numeric or census claim]`)

@@ -32,20 +32,63 @@ addon's path directly is outside every clause of this contract.
 
 ## The surface
 
-**The eight verbs of `surface.md §2` and NOTHING ELSE**, plus the one member of the object `storeCreate`
-returned:
+**The eight verbs of `surface.md §2` and NOTHING ELSE**, plus the instance `storeCreate` returned — whose own
+member set is the FOUR the dated clause below prints:
 
 | The member | Its answer |
 | --- | --- |
-| `storeCreate(cfg)` | the package's own instance handle — `cfg` carries the store's three declared keys and no fourth |
+| `storeCreate(cfg)` | the package's own instance handle — `cfg` carries the store's four declared keys and no fifth |
 | `read(instance, address, tier?)` | a leaf's literal, a branch's assembled value, the empty address's whole register |
 | `readLiteral(instance, address, tier?)` | the same, narrowed to a leaf (`ReadTargetIsBranch` on a branch) |
-| `write(instance, address, tier, value)` | `{op, watched, triggered}` |
+| `write(instance, address, tier, value, commit?)` | `{op, watched, triggered}` — the fifth argument OPTIONAL and declared LAST; its absence is in domain |
 | `delete(instance, address, tier?)` | `{address, tiers, triggered}` |
 | `rollback(instance, opId)` | `{opId, undoneOps, restoredTo}` |
 | `listen(instance, address)` | a fresh opaque handle |
 | `unlisten(instance, handle)` | `undefined` — and a no-op success for every value outside the domain |
 | `instance.register(handle, listener)` | `undefined`; a non-function listener or a handle this instance never minted throws a `TypeError` |
+| `instance.on(address, listener)` | a fresh opaque handle — the store's `listen` plus this package's own registration |
+| `instance.off(handle)` | `undefined` — the store-side withdrawal, and this package's own registry removal |
+| `instance.settle(record)` | `undefined` — the ordering seam: the one member THE KERNEL CALLS, and the arm that performs the `file`-tier save |
+
+**⟶ AMENDED 2026-10-15 — THE TABLE ABOVE IS READ AT THE FOUR-KEY CONSTRUCTION, THE FOURTH OWN MEMBER AND THE
+WRITE'S FIFTH ARGUMENT** (`surface.md §2.1`'s dated clause of 2026-10-15 and its `cfg` block; `§2.2`'s dated
+clause of the same date and its clause 4; `§2.11`; `parameter-semantics.md §2.20` = `PAR-JS-20` and `§2.21` =
+`PAR-JS-21`; `docs/decisions.md` · `A116`). **THE THREE CELLS IT RE-SPELLS, EACH NAMED BY ITS OWN WORDS: the
+cells above are ALREADY RE-SPELLED IN PLACE, so the table stands in its OPERATIVE form and the as-filed wording
+is the one NAMED here — *"the store's three declared keys and no fourth"* READS *"the store's four declared keys
+and no fifth"*; *"plus the one member of the object `storeCreate` returned"* READS *"plus the instance
+`storeCreate` returned — whose own member set is the FOUR printed above"*; and the `write` cell's
+*"`write(instance, address, tier, value)`"* READS *"`write(instance, address, tier, value, commit?)`"*.**
+
+1. **THE FOUR DECLARED KEYS, AND NO FIFTH.** **They are `filePath` · `journalLength` · `listeners` ·
+   `constraints` — `4` — each passed through WITHOUT a default, a rename or a key of the package's own, and
+   the declared arity is `4`.** **THE FOURTH IS `constraints`, OPTIONAL AND ABSENT-IN-DOMAIN like `filePath`:
+   it is the APPLICATION'S OWN constraint list, supplied at startup — and THE LIST IS NOT PERSISTED, so the
+   store writes no byte of it into the file and holds no register key for it, while at a boot over an existing
+   file the LOADED STATE is validated against the supplied list.** **AND A CALLER-SUPPLIED KEY BEYOND THE FOUR
+   IS IGNORED AND PRODUCES NO CODE** — *"no fifth"* is a constraint on the PACKAGE's own passing and never a
+   refusal of the caller's extra key (`parameter-semantics.md §2.21`; `docs/specs/storeroom-native/contract.md
+   §7.1`).
+2. **THE INSTANCE'S OWN MEMBERS ARE FOUR: `{ register, on, off, settle }`, AND NOTHING ELSE.** **`register` is
+   the registration site; `on` and `off` are the listener members; and `settle(record) -> undefined` is THE
+   ORDERING SEAM the kernel calls at the two instants of a kernel-driven write** (`surface.md §2.1`'s dated
+   clause of 2026-10-15 (a); `§2.4` item 9; `A116` (D1)). **AND NO RELEASE VERB IS ONE OF THEM** — none of the
+   four releases the instance.
+3. **THE WRITE'S DECLARED ARITY IS `4` REQUIRED ARGUMENTS WITH A FIFTH OPTIONAL `commit`, DECLARED LAST**, and
+   the declaration governs over the flow's own order: the `commit` is the kernel's own `{ attempt, op,
+   triggered, pending }` record — `K-2 commit`'s return — and **AN ABSENT `commit` IS IN DOMAIN**, because the
+   write opens or joins a commit all the same (`surface.md §2.2` clause 1). **THE PACKAGE READS THE CALL'S
+   ARGUMENT COUNT AT THE FIFTH POSITION AND NOWHERE ELSE** (`§2.2` clause 4): the position ABSENT proceeds, and
+   a SUPPLIED `undefined` at the position — or any other form outside the admitted one — is REFUSED, so no
+   verb is reached and no byte moves. **AND NO OTHER POSITION OF ANY VERB GAINS AN ARITY READ, A DEFAULT OR A
+   SUBSTITUTED ARGUMENT.**
+4. **THE VERB PERFORMS NO FILE I/O ON ANY OF ITS ARMS** (`§2.11` clause 2): the durable `file`-tier save is the
+   instance's `settle` member's own act at THE TERMINAL ARM of a kernel-driven pass and ON ITS PASSING ARM
+   ALONE — constraints, then save, then the delivered listener bodies, the save first because no listener body
+   runs before it — keyed by the `op` the settled record carries. **AND THE SAVE *IS* A CONSTRAINT, EVALUATED
+   LAST: a FAILED SAVE IS AN UNREPAIRABLE CONSTRAINT VIOLATION** (`§2.11` clause 5). **WHERE THE SAVE'S ACT
+   FAILS, THE STORE ROLLS THE WRITE BACK AND THE CALLER RECEIVES THE FAILURE AFTER IT AND NEVER THE
+   ROLLED-BACK STATE**, and the package compensates for nothing (`§2.11` clauses 3 and 5).
 
 **The failure form is ONE** (`surface.md §2.5`, `DD-12`): a THROWN plain object carrying exactly
 `{status, message}` — never an `Error` subclass, never a returned tagged union and never a `Promise`.
@@ -61,7 +104,11 @@ session's token names no registration of this process, and `unlisten` over it is
 a `file`-tier version and then constructs a fresh instance over an equal `filePath` sees the removed version
 STAND AGAIN — that re-boot is the store's own declared boot and not a defect. And a `file`-tier `write` that
 fails answers `FileCommitFailed` after the store's own automatic journal rollback has run; the package
-compensates for nothing.
+compensates for nothing. **⟶ AMENDED 2026-10-15 — THE SECOND READING'S *"a `file`-tier `write` that fails"* IS
+RE-SPELLED IN PLACE, BECAUSE THE VERB IS NO LONGER WHAT PERFORMS THE SAVE: it READS *"a `file`-tier save that
+fails"* — the `settle` member's terminal-arm act of the clause above — the cell above standing in that
+operative form** (`surface.md §2.8` item 2 and `§2.11` clause 5; `parameter-semantics.md
+§2.19`; `A116` (D3)).
 
 ## How the addon is resolved — three rungs, and the covered/uncovered answer
 

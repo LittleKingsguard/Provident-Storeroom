@@ -1,0 +1,34 @@
+
+== A. passing-arm `commit` entry (surface.md §2.11 cl. 2; kernel-surface.md §2.1 item 3) ==
+  kinds = ["constraint-check","commit"]
+  entries = [{"seq":1,"kind":"constraint-check","id":"c1","opId":"op-1","message":"the constraint c1 passed at [\"c\"]","state":null},{"seq":2,"kind":"commit","id":null,"opId":"op-1","message":"every constraint registered at [\"c\"] passed; the commit stands","state":null}]
+  OK   commit entries = 1
+  OK   last kind = commit
+  OK   outcome entries = 0
+  OK   commit.id = null
+  OK   commit.state = null
+  OK   commit.opId = "op-1" vs last op "op-1"
+  OK   seq = [1,2]
+  OK   member counts = [6,6] names=["seq","kind","id","opId","message","state"]
+  OK   report.outcome = "passed"
+
+== B. control: the `commit` entry on a mem-tier passing arm ==
+  kinds = ["constraint-check","commit"] outcome = passed
+
+== C. the entry-shape law (contract.md §7.2, items (a)/(b)/(c), ADDED 2026-10-16) ==
+  [{address:['a'], id:''}] (a: empty-string id): THREW Object status="ConstraintListInvalid" message="'a' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment array" ; file exists=false ; message="'a' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment array"
+  [{address:[], id:"c1"}] (b: the empty address): INSTANCE ; file exists=true register={} ; register carries a constraints key?=false
+  [{address:[0], id:"c1"}] (b: the single integer segment): INSTANCE ; file exists=true register={} ; register carries a constraints key?=false
+  pair carrying a third member (c): INSTANCE ; file exists=true register={} ; register carries a constraints key?=false
+  control: [{address:['a']}] (id absent -> #16): THREW Object status="ConstraintListInvalid" message="'a' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment array" ; file exists=false ; message="'a' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment array"
+  [{address:['a'], id: 42}] (id not a string -> #16): THREW Object status="ConstraintListInvalid" message="'a' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment array" ; file exists=false ; message="'a' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment array"
+
+== D. the wider class at the fifth position (surface.md §2.4 item 9 (g) item 2, re-spelt 2026-10-16) ==
+  a context carrying ANOTHER instance's handle (pending: [foreignHandle]): PROCEEDED op="op-4"
+  a context carrying ANOTHER instance's whole record: PROCEEDED op="op-5"
+  a context carrying a member that is NOT a handle at all (pending: [42, "x", null]): PROCEEDED op="op-6"
+  a context carrying a plain object in pending: PROCEEDED op="op-7"
+  control: an object carrying no pending member: refused/other: THREW the write's fifth argument is a plain object, and the commit position takes an object carrying a `pending` member
+  control: a plain object carrying pending: []: PROCEEDED op="op-8"
+  foreign record own members = ["attempt","op","triggered","pending"]
+  foreign record pending = [{}]

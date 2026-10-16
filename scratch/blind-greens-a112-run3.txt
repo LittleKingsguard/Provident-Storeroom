@@ -1,0 +1,56 @@
+A112-A1  PASS              keys=[commit,log,register,report,runAttempt] allFunctions=true
+A112-A2  PASS              store=[delete,listen,read,readLiteral,rollback,storeCreate,unlisten,write] instance=[off,on,register]
+A112-A3  PASS              equal-adopted=true
+A112-A4  PASS              keys=[attempt,op,pending,triggered] triggered==[K-1 handle]=true attemptKeys=[id] opKind=write
+A112-B1  PASS              triggered=1 pending=1 whole=true noExtra=true listenerCalls=1
+A112-B2  PASS              triggered=1 pending=1 ancestorHandleCarried=true ancestorBodyCallsAtK-2=0
+A112-B3  PASS              PASSING pair: pending 1->0 ownPassRan=true; FAILING pair: pending 1->0 ownPassRan=true pairPassed=false -> the handle left `pending` without being checked off as it passed = true
+A112-B4  PASS              pending 2 -> 0; the never-evaluated ancestor handle stands in pending afterwards=false; ancestor body calls=0; failing pair token=KC-3
+A112-B5  PASS              pending.length at K-2 return=1, after K-3=0, report.outcome=passed
+A112-B6  PASS              K-2(1) at its return: triggered=1 pending=1 bodyCalls=0 -> after K-3 pending=0; K-2(2) at its return: triggered=1 pending=1 bodyCalls=1 -> after K-3 pending=0; the pair s body ran once per write, inside the two K-3 windows
+A112-C1  PASS              token=KC-3 pendingAfterThrow=0 caller-loop invocations=0 pairBodyCallsInsideK-3=1
+A112-C2  PASS              at K-2: triggered=1 pending=1 (discarded arm=false); after the failing K-3 pending=0; token=KC-3 -> the removal happened in the K-3 window, not at the write
+A112-C3  PASS              delivered=[pq] constraint-check ids=[p,q] outcome=passed
+A112-C4  PASS              constraint-check order=[b,a,c] replacementRan=1
+A112-D1  PASS              body calls after a bare store.write with the entry standing=0, after unlisten=0, write error=none
+A112-D2  FAIL              constraint body calls at K-2 s return=0; pending.length at K-2 s return=1; triggered.length=1
+A112-D3  PASS              handles left in `pending` after K-3=0; caller-loop invocations=0; outcome=passed
+A112-D4  PASS              on() returned the SAME adopted handle=true; kernel body runs at K-3 (delivery); app listener calls at K-2=1, after K-3=1; outcome=passed; pending after K-3=0
+A112-D5  NOT-EXERCISABLE  undefined || REASON: the ordering gate is HANDED OFF and enforced nowhere in the delivered surface (docs/next-steps.md N7: the entry cannot learn whether a constraint stands owed — the kernel s five exports carry no such read). OBSERVED, WITHOUT VERDICT: with `on()` issued after `K-1`, the listener body ran inside the K-2 window while the constraint body s count stood at 0 for that same write (measured in A112-D2/D4).
+A112-E1  PASS              second K-2 while open=KC-7; first arm=passed; fresh K-2 after it=returned keys=[attempt,op,pending,triggered]
+A112-E2  PASS              failing arm=KC-3; fresh K-2=returned keys=[attempt,op,pending,triggered]; read([a])=2 (the pre-state is OWED to J-20–J-22 and is NOT a verification of this surface)
+A112-E3  PASS              K-2=KC-7 K-3=KC-7 K-1=admitted K-5=KC-7 K-4=[1:constraint-check:p] outcome=passed
+A112-E4  PASS              status=KC-5 outcomeEntry.state=KC-5 repair-run(p)=1 constraint-check(p)=2 rows=[constraint-check:null:p,repair-run:null:p,constraint-check:null:p,outcome:KC-5:null]
+A112-E5  NOT-EXERCISABLE  undefined || REASON: a blind driver of the five declared items has no declared means to evaluate a pair twice inside one attempt with the pair absent from `appliedRepairs`: the kernel s own pass evaluates each pair at most once per pass (composition-and-states.md §2.6 item 8 (i)) and a re-run of the address is caused only by a repair s own landing, which is by construction the pair whose repair RAN. The per-landing pass that could evaluate a pair a second time is `OWED` to J-20–J-22 (composition-and-states.md §2.6 item 8 (iii)) and its delivery is performed by no store act (kernel-surface.md §2.3 item 1). NO CLAUSE PINS THE DRIVE.
+A112-E6  PASS              status=KC-8 outcomeEntries=1 outcome.state=KC-8 message names the store s answer=true
+A112-E7  PASS              thrown form keys=[log,message,status] K-5=returned rollback steps=2 step member set=[answer,checkpoint,failed,opId,restoredTo,undoneOps] first step={"opId":"op-37","answer":"ok","failed":false,"undoneOps":["op-37"],"restoredTo":{"present":false},"checkpoint":null}
+A112-E8  PASS              thrown token=WriteParentNotLink (a store code? yes; a KC token? no) — the throw is the repair body s OWN verb call, so the caller receives the STORE s own code unconverted; the attempt s `repair-run` log entry names it: codeInMessage=yes; report.outcome=failed report.ops.length=1 repair-run.message=the repair p was attempted and the store refused its own edit — the store's answer is WriteParentNotLink
+A112-E9  PASS              thrown is the body s own Error=true message=blind-body-throw closure.readState=undefined outcome.state=null fresh K-2=returned keys=[attempt,op,pending,triggered]
+A112-F1  PASS              {"null":"KC-1","nonArray":"KC-1","blankToken":"none(no throw)","emptyId":"KC-2","nonFunction":"KC-2"} (the blank token `' ' is ADMITTED by the fail-surface KC-1 row s own re-derivation, so it must not throw)
+A112-F2  PASS              store refusals read at K-2: tier=OutOfDomainTier (a KC token? false); an in-domain K-2 at the same address returned a record — so the refused call opened no attempt; a second K-2 at that address=KC-7
+A112-F3  PASS              form keys=[log,message,status] LogEntry keys=[id,kind,message,opId,seq,state] status=KC-3 matches KC-1..KC-8=yes outcome.state=KC-3
+A112-F4  NOT-EXERCISABLE  undefined || REASON: NOT DRIVABLE WITHOUT READING THE IMPLEMENTATION: no declared member of the five items exposes the kernel s own call sites or what it holds (composition-and-states.md §2.7 item 12 enumerates the substitutions for states the five items do not expose, and none of them reaches this). Only a source read or a store-side interception would answer it, and both are outside a blind drive.
+A112-G1  PASS              success arm: report.rollback=[] ops=2; failure arm (KC-5): K-5 report rollback steps=2
+A112-G2  PASS              alpha={{"outcome":"KC-3","opsKinds":"","log":"constraint-check/c/null,outcome/null/KC-3","pending":0,"triggered":1}} betaListenerRan=true={{"pending":1,"triggered":1,"outcome":"KC-3","opsKinds":"","log":"constraint-check/c/null,outcome/null/KC-3"}} equal=true (the listener is INVOKED by the package s own delivery loop, so window (β) exists; the ORDER inside it is A112-D5 s hand-off)
+A112-G3  NOT-EXERCISABLE  undefined || REASON: the second limb of this cell s own falsifier is the ORDERING GATE: whether a listener stands in `pending` while a constraint of that write is unchecked is what the entry cannot learn (docs/next-steps.md N7), so the cell cannot be read as a pass-or-fail by this unit. The FIRST limb is driven by A112-B1/B2/B4 and is reported there.
+A112-G4  PASS              triggered=1 pending at K-2=1 at K-3=1 ancestor still in pending=true ancestor body calls=0 outcome=passed
+A112-G5  PASS              second K-2 while attempt 1 OPEN=returned keys=[attempt,op,pending,triggered] triggered=1 pending=1; attempt 1 arm=passed
+A112-G6  PASS              outcome entries=1 token(s)=[KC-8] message names the store s answer AND the op=true rows=[constraint-check:null,repair-run:null,constraint-check:null,outcome:KC-8]
+A112-H1  PASS              memberSetUniform=true seqs=[1,2,3,4] ascending-from-1=true kinds=[commit,constraint-check,repair-run] nonOutcome state null=true K-4 seqs=[1,2,3,4]
+A112-H2  PASS              K-5 members=[attempt,log,ops,outcome,rollback] K-5 == K-3 report=true K-4 length=2 stale K-3 token=KC-2
+A112-H3  PASS              AttemptContext members=[address,attempt,op,tier,value] ctx.op.kind=write outcome=passed
+
+TOTALS {"cells":41,"pass":36,"fail":1,"notExercisable":4}
+FAILING: A112-D2
+NOT-EXERCISABLE: A112-D5, A112-E5, A112-F4, A112-G3
+
+TIMELINE
+  A4 register/on done
+  K-2 returned pending.length=1 triggered.length=1
+  K-2 pending=1 triggered=1 ancCalls=0
+  B3 failing arm: pendingBefore=1 after=0 pairPassed=false calls=1 token=KC-3
+  B4 before=2 after=0 ancestorStillInPending=false ancCalls=0 token=KC-3
+  D4 sameHandle=true appCallsAtK2=1 afterK3=1
+  G2 listener window ran=true beta={"pending":1,"triggered":1,"outcome":"KC-3","opsKinds":"","log":"constraint-check/c/null,outcome/null/KC-3"}
+
+wrote scratch/blind-greens-a112-out.json

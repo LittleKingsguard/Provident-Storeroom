@@ -1,0 +1,5 @@
+FTS-09.5  zero-byte file: size=0 -> INSTANCE read([])={} ; size after=0
+FTS-09.6  present two-byte {} image: REFUSED ConstraintListInvalid
+FTS-11.1  RepairContext members=[address,id,op,pending,tier,value] repairs=1 -> six declared=true
+FTS-11.5  the kernel-handed context carried at the fifth position: ACCEPTED (op="op-2")
+(the passing arm of the same drive) outcome=passed ops=2 kinds=["constraint-check","repair-run","constraint-check","commit"] listener invocations=2 image="{\"c\":10}"

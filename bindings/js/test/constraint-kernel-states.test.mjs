@@ -460,7 +460,8 @@ test('ck_states_each_refused_repeat_token_is_one_of_the_eight_and_is_never_a_sto
     'identity: one token, read twice, from two members');
   assert.equal(STORE_CODES.includes(r.thrown.status), false,
     'AND IT IS NEVER A STORE MEMBER: the kernel\'s eight are closed and disjoint from the store\'s own '
-    + 'fifteen (`fail-surface.md §1.1` item 1 (a); `§3`)');
+    + `${STORE_CODES.length} — the figure READ OFF the list and never printed by hand `
+    + '(`fail-surface.md §1.1` item 1 (a); `§3`; `contract.md §8.1`\'s amended heading, 16 members)');
   assert.equal(STORE_CODES.includes(outcome[0].state), false,
     'on both members, and the store\'s own report never reaches the caller converted');
 });
@@ -1276,7 +1277,7 @@ test('ck_neg_4_every_step_carries_its_own_answer_and_a_two_member_restored_to_on
           + 'domain: "`answer` is EXACTLY ONE OF TWO THINGS"');
       } else {
         assert.equal(STORE_CODES.includes(step.answer), true,
-          `and on the FLOOR arm it is THE STORE'S OWN CODE, one of the closed fifteen — read `
+          `and on the FLOOR arm it is THE STORE'S OWN CODE, one of the closed ${STORE_CODES.length} — read `
           + `${JSON.stringify(step.answer)}; §2.6 item 5 (a)`);
       }
       const restored = step.restoredTo;

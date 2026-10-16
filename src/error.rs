@@ -15,12 +15,32 @@ pub struct StoreError {
     pub message: String,
 }
 
-/// `§8.1`: the CLOSED set, ranked `1`…`15`. **⟶ AMENDED 2026-10-11 (`A53`/`A54`): the as-filed set carried
+/// `§8.1`: the CLOSED set, ranked `1`…`16`. **⟶ AMENDED 2026-10-11 (`A53`/`A54`): the as-filed set carried
 /// `14` members and the amendment's `FilePathUnreachable` is inserted at rank `13` in the CONSTRUCTION
 /// GROUP, so `ValueNotAdmitted` and `FileCommitFailed` move by ONE rank each (`14`, `15`) and NO TRIGGER
 /// MOVES** (`11 + 2 + 1 + 1 = 15` ✓). A failure whose code is outside this set is a contract violation,
 /// not an extension of the set.
-pub const CODES: [&str; 15] = [
+/// **⟶ AND AMENDED 2026-10-15 BY THE `RCA-9` PASS (`contract.md`'s eleventh bounded amendment): THE SET'S
+/// SIXTEENTH MEMBER `ConstraintListInvalid` IS ADDED AT RANK `16`, AFTER `FileCommitFailed`, and NO RANK OF
+/// `1`…`15` MOVES** (`§8.1`'s amended heading; `proposal-review.md §22.2`; `implementation-plan.md §10.9`
+/// row 8). `11 + 2 + 1 + 1 + 1 = 16` ✓.
+///
+/// **⟶ AND THE CENSUS MOVES WITH THE SET, 2026-10-15 (`DEF-2026-10-15-Y`, ruled by the gate-4 adversarial
+/// pass as a `stale-by-census` disposition): THE ARRAY BELOW CARRIES THE AMENDMENT'S SIXTEENTH MEMBER, so
+/// THE SET IS COMPLETE AT ITS OWN CENSUS AND AT THE GENERATOR ALIKE.** **THE ARRAY IS A CENSUS OVER THE SET
+/// AND [`storeErrorMessage`] RESOLVES ITS CLAUSE BY LOOKUP IN IT** (`§8.2`): **while the array stood at `15`
+/// the generator's `ConstraintListInvalid` arm was UNREACHABLE FROM ANY ENTRY THAT RESOLVES BY CENSUS** —
+/// `errorMessage('ConstraintListInvalid', …)` answered *"a code outside the closed set, no clause is
+/// declared here"*, because the addon's `errorMessage` export routes through this function
+/// (`bindings/js/src/facade.rs`), **and `§8.2`'s declared completeness over the set was broken for the
+/// member at a PUBLIC ENTRY while the store's own minted status stayed correct. THE ARRAY IS THE SET'S OWN
+/// CENSUS AND NOT A SECOND STATEMENT OF IT, and `§8.1`'s algebra is unmoved by this widening in its original
+/// terms: `11 + 2 + 1 + 1 = 15` still sums the four as-filed groups and the sixteenth is the fifth term
+/// appended to that line, `11 + 2 + 1 + 1 + 1 = 16` ✓.** **THE LENGTH IS COUNTED BY DRIVES, AND THOSE ARE
+/// RE-DERIVED BY THEIR OWN AUTHOR ROLE FROM THE AMENDED CLAUSE** (`implementation-plan.md §10.9` row 8:
+/// *"a set of `15` or `17` FAILS it"*): **the artefact is widened and the superseded census is the losing
+/// side, so no drive that counts this array may assert `15`.**
+pub const CODES: [&str; 16] = [
     "AddressMalformed",
     "AddressNotFound",
     "LeafHasNoDownstream",
@@ -36,6 +56,7 @@ pub const CODES: [&str; 15] = [
     "FilePathUnreachable",
     "ValueNotAdmitted",
     "FileCommitFailed",
+    "ConstraintListInvalid",
 ];
 
 /// `§8.2`: the generator's `args` record — five OPTIONAL members, each present only when the trigger
@@ -193,6 +214,19 @@ pub(crate) fn build(m: &Msg) -> String {
                 m.subject
             )
         }
+        // `§8.2`'s eleventh-amendment row (`contract.md`'s `ConstraintListInvalid` row and the dated clause
+        // that adds it): `<mismatch clause>` = `is not a valid constraint entry in`, `<available clause>` =
+        // `a constraint entry is an address and an id, and the address is a segment array`, and the trigger
+        // supplies `MessageArgs.segment` (the failing entry's `address` spelling, or the element's own
+        // position printed bare) and `MessageArgs.container` (`constraints`). **THE ROW'S OWN WORKED
+        // EXAMPLE, reproduced from this rule: `storeCreate({ filePath: 'p.json', journalLength: 4,
+        // listeners: [], constraints: [{ address: ['a'], id: 'c1' }, { address: 'a', id: 'c2' }] })`
+        // answers `'a' is not a valid constraint entry in 'constraints', a constraint entry is an address
+        // and an id, and the address is a segment array`.**
+        "ConstraintListInvalid" => format!(
+            "{} is not a valid constraint entry in '{container}', a constraint entry is an address and an id, and the address is a segment array",
+            m.subject
+        ),
         other => format!("{} is a failure of the code {other}, no clause is declared here", m.subject),
     }
 }
@@ -608,6 +642,28 @@ pub(crate) fn file_commit_failed(address: &[Segment], path: &str) -> StoreError 
             keys: Vec::new(),
             tiers: Vec::new(),
             path: Some(path.to_string()),
+            kind: Kind::Map,
+            argument: None,
+        }),
+    )
+}
+
+/// `§8.1` #16 (`§7.1` step 4-bis; `§7.2` item 3 as amended 2026-10-15): **the construction's
+/// `constraints` list validation at its TWO instants** — the CREATE-side shape test and the LOAD-side
+/// state test — **at the store's own code and through the store's own generator** (`§8.2`'s row: the
+/// `<SEGMENT>` slot is the failing entry's own `address` spelling, or the element's own position printed
+/// bare where it carries no address, and the `<CONTAINER>` is the list's own key, `constraints`).
+pub(crate) fn constraint_list_invalid(subject: String) -> StoreError {
+    error(
+        "ConstraintListInvalid",
+        build(&Msg {
+            code: "ConstraintListInvalid",
+            subject,
+            container: Some("constraints".to_string()),
+            container_segment: None,
+            keys: Vec::new(),
+            tiers: Vec::new(),
+            path: None,
             kind: Kind::Map,
             argument: None,
         }),

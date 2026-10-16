@@ -234,7 +234,14 @@ test('ck_surface_K2_commit_returns_a_four_member_CommitRecord_and_opens_the_atte
   assert.deepEqual(record.op.address, address, 'the op names the address the write landed at');
   assert.equal(record.op.tier, 'mem', 'the op names the tier the write landed at');
   assert.ok(Array.isArray(record.triggered), 'triggered is the store\'s own member, read as a SET');
-  assert.ok(Array.isArray(record.pending), 'pending is the kernel\'s own fourth member — layer (b)\'s handles');
+  assert.ok(Array.isArray(record.pending),
+    'pending is the kernel\'s own fourth member — THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS this '
+    + 'call\'s write returned, each entry leaving it ONLY by being checked off as it passes, and the '
+    + 'member the caller\'s own loop reads its work off (`kernel-surface.md §2.1` item 2; '
+    + '`A: docs/decisions.md` · `A112`). RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-DERIVATION PASS: the '
+    + 'label that once stood here read this member as *"layer (b)\'s handles"*, which carried the '
+    + 'withdrawn sift reading — both members carry the whole returned set, and their difference is one of '
+    + 'EXTENT AND ORDER and not a filter');
 });
 
 test('ck_surface_K2_a_second_commit_at_the_same_address_meets_KC7_before_the_write_verb', async () => {
@@ -260,7 +267,8 @@ test('ck_surface_K2_an_out_of_domain_tier_is_the_store_s_own_code_on_the_store_s
   // THE CHANNEL RULE, READ OFF ITS OWN ROW (`fail-surface.md §1.2` item 2: where the kernel invokes the
   // store's own verb — "the write verb at `K-2`" — "the failure is the STORE'S, it is thrown in the
   // STORE'S own form, and the KERNEL WRAPS NOTHING AND RE-LABELS NOTHING", its `status` being one of the
-  // store's closed 15 "VERBATIM"); and the state's own row (`§2.1` item 2's `tier`-refusal clause:
+  // store's closed set "VERBATIM" — the amended heading carries `16` members (`11 + 2 + 1 + 1 + 1 = 16` ✓;
+  // AMENDED 2026-10-15, `DEF-2026-10-15-Y`); and the state's own row (`§2.1` item 2's `tier`-refusal clause:
   // "the `tier` is evaluated STORE-SIDE and the store's own `OutOfDomainTier` is thrown at the verb call").
   assertStoreRefusal(r.thrown, 'the out-of-domain tier on the store\'s own channel');
   // AND NO ATTEMPT WAS OPENED: a second, lawful commit at the same address is NOT refused with KC-7

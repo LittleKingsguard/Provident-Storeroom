@@ -13,9 +13,15 @@
 // store another way.
 //
 // ── THE EIGHT CELLS, ONE LINE EACH, WITH THE CLAUSE EACH IS DERIVED FROM ─────────────────────────
-//   `P-NEG-14` the ancestor plain listener's handle: `[]` after a failing `K-3`, still standing after a
-//        passing one whose checkpoint is non-null — `attempt-lifecycle.md §2.4` item 8 (i) (5), read
-//        with `kernel-surface.md §2.1` item 2's discarded-set clause.
+//   `P-NEG-14` THE DISCRIMINATOR IS THE SET, NEVER THE AUTHOR: the ancestor plain listener's handle —
+//        which THIS write's own returned set carries but which the pass never evaluates — LEAVES
+//        `pending` on the failing `K-3` arm BY THE DISCARD, because "THE DISCARD ACTS ON THAT WRITE'S
+//        OWN RETURNED SET AND REACHES EVERY HANDLE OF IT" (`A: docs/decisions.md` · `A112`;
+//        `attempt-lifecycle.md §2.4` item 8 (i) (5); `§3` item 8), and STANDS on the passing arm, where
+//        nothing is discarded — `kernel-surface.md §2.1` item 2's discarded-set clause. **RE-DERIVED
+//        FROM THE BY-SET LAW: this cell ONCE asserted the ancestor handle STANDING after the failing
+//        arm by reading it as ANOTHER write's — the premise `kernel-surface.md §2.1` item 2 WITHDRAWS
+//        (the registration's AUTHOR is no discriminator; the set a handle came back in is).**
 //   `P-NEG-15` a pair registered MID-PASS joins no pass: `checkIds == ['a']`, `b` ran zero times, the
 //        attempt `passed` — `attempt-lifecycle.md §2.4` item 5 (iv)'s no-exclusion clause read with
 //        `CX-12`.
@@ -45,7 +51,8 @@ import {
 } from './constraint-kernel-helpers.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
-// `P-NEG-14` — THE DISCARDED HANDLE SET: EMPTY AFTER A FAILING `K-3`, STANDING AFTER A PASSING ONE
+// `P-NEG-14` — THE DISCARD'S DISCRIMINATOR IS THE SET A HANDLE CAME BACK IN, NEVER THE ANCESTRY
+// OF ITS REGISTRATION: THE SAME ANCESTOR HANDLE LEAVES ON THE FAILING ARM AND STANDS ON THE PASSING ONE
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 
 /**
@@ -53,41 +60,85 @@ import {
  * failed the registered constraints at its landing and could not be repaired, its composition is rolled
  * back to the attempt's last valid state and the triggered set THAT WRITE RETURNED IS DISCARDED WHOLE —
  * no handle in it is delivered by either layer, and a body already run is never un-run, so the discard
- * reaches only the triggers not yet invoked.** Read with `kernel-surface.md §2.1` item 2, which is the
- * member's own observable: *"so `triggered` then stands as the store's own returned set while `pending`
- * is `[]` and no handle of that write is invoked by either layer."*
+ * reaches only the triggers not yet invoked.** Read with `kernel-surface.md §2.1` item 2's discarded-set
+ * clause AT ITS `A112` RECONCILIATION: **the discard reaches THE FAILED WRITE'S OWN RETURNED SET and
+ * nothing beside it — `WHOLE` READS THE SET THAT WRITE RETURNED, hand by hand, and NEVER the
+ * registration's ancestry or its author** — so `triggered` then stands as the store's own returned set,
+ * every handle OF THAT WRITE leaves the member by that DISCARD, and the ONE entry that stands is one of
+ * ANOTHER WRITE — a handle no returned record of this attempt carried at all. The blanket-clear sentence
+ * this head once quoted (*"so `triggered` then stands as the store's own returned set while `pending` is
+ * `[]`"*) is the SECOND, UNLAWFUL REMOVAL, WITHDRAWN BY NAME at that clause and at `attempt-lifecycle.md
+ * §3` item 8; and the `SIFT` clause at `kernel-surface.md §2.1` item 2 names FILTERING BY THE WRITE'S
+ * AUTHOR unlawful beside it.
  *
- * THE DRIVE'S OWN MEMBER: an ANCESTOR plain listener's handle — a registration the store's prefix
- * selection returns for the attempt's write and which the kernel invokes in NO window of its own, so it
- * is layer (b)'s and `CommitRecord.pending` is its only work list (`§2.1` item 2; `§2.2` item 2 (ii)).
+ * THE DRIVE'S OWN MEMBER, AND THE PREMISE THIS CELL WAS RE-DERIVED FOR: an ANCESTOR plain listener's
+ * handle — a registration at a PROPER PREFIX of the attempt's address, which the STORE'S OWN trigger
+ * selection returns FOR THIS WRITE and which NO pass of this attempt evaluates, the pass being
+ * ADDRESS-SCOPED (`kernel-surface.md §2.3` item 1; `§2.1` item 2). **THAT HANDLE IS A MEMBER OF THE
+ * FAILED WRITE'S OWN RETURNED SET — `record.triggered` carries it, asserted below at the arm — SO THE
+ * DISCARD REACHES IT AND IT LEAVES `pending`, exactly as the attempt-address entry beside it does.** The
+ * premise this cell previously rested on — that the handle STANDS because it is *"the ANCESTOR write's
+ * own returned handle"* which the failed write *"does NOT OWN"* — IS THE READING THE BY-SET LAW
+ * WITHDRAWS: `A112` fixes the discriminator as THE SET A HANDLE CAME BACK IN and the `SIFT` clause names
+ * filtering by the write's author unlawful, so a handle this write returned leaves with this write's set
+ * whatever the ancestry of its registration.
+ *
+ * THE SURVIVOR READING IS RECORDED HERE AS THE FINDING IT IS, AND IS NOT ASSERTED: `attempt-lifecycle.md
+ * §3` item 8's other half — *"AN ENTRY FOR A HANDLE OF ANY OTHER WRITE STANDS"* — **HAS NO REACHABLE
+ * DRIVE IN THIS UNIT'S FIXTURES.** A handle reaches `pending` only by being returned for a write, and on
+ * this surface the only returned record is `K-2`'s own, whose set every entry of `pending` came back in;
+ * a kernel-made write's set is carried by no returned record (`kernel-surface.md §2.1` item 2's two
+ * further sources (i)/(ii), declared there as NOT READABLE OFF THIS SURFACE'S OWN RECORD). The sibling
+ * pass recorded the same finding at `constraint-kernel-deltamodel.test.mjs:640`–`652`, where the
+ * surviving entry is read as the PREFIX handle of the SAME write's returned set and NOT as another
+ * write's. So this cell reads the survivor half ONLY at the one instant it is observable — the PASSING
+ * arm below, where no discard runs and the same ancestor handle stands for a reason the law gives it:
+ * `attempt-lifecycle.md §3` item 8 — *"a passing arm's `pending` as `triggered` MINUS the evaluated
+ * pairs' checked-off entries"* — and NOT as another write's standing entry.
  *
  * STATES ENUMERATED FIRST: (1) the record as `K-2` returns it — the ancestor's handle stands in
- * `pending`; (2) THE FAILING ARM — `x` registers no repair, the attempt fails `KC-3`, its write is
- * rolled back and the set is discarded, so `pending` reads `[]`; (3) THE PASSING ARM WHOSE CHECKPOINT IS
- * NON-NULL — `x`'s repair lands and the re-run's landing evaluation passes at that op, so the landing
- * left every registered pair at the attempt's address passing and the checkpoint is that op
+ * `pending` because the member IS the whole returned set at that instant, no pass having run
+ * (`attempt-lifecycle.md §3` item 10); (2) THE FAILING ARM — `x` registers no repair, the attempt fails
+ * `KC-3`, its write is rolled back and THAT WRITE'S OWN RETURNED HANDLES ARE DISCARDED, the ancestor
+ * handle among them (it is IN that set), while `triggered` stands verbatim; (3) THE PASSING ARM WHOSE
+ * CHECKPOINT IS NON-NULL — `x`'s repair lands and the re-run's landing evaluation passes at that op
  * (`composition-and-states.md §2.6` item 8 (i)–(ii)); no discard reaches a passing attempt, so the
- * handle STILL STANDS.
+ * attempt-address entry leaves by ITS OWN pass's check-off alone and the ancestor handle STANDS.
  *
  * ▸ THE STORE'S OWN DELIVERY IS NOT A LAYER OF THIS UNIT AND IS NOT COUNTED AS ONE: a plain registration
  * at an ancestor address is invoked by the STORE ITSELF on every write beneath it, on both arms, and no
  * clause of this part reaches that delivery (`A: docs/specs/storeroom-js/surface.md §2.4` item 7). The
  * count is therefore read as a POSITIVE CONTROL that the registration is live, and the discard is read
- * where the clauses read it — off the record's own `pending` member, layer (b)'s only work list.
+ * where the clauses read it — off the record's own `pending` member, the member the caller's own loop
+ * reads its work off and the ONE INVOKER it is among the JS surface's ordered layers (`A:
+ * docs/decisions.md` · `A112`).
  *
- * FAIL STATES: a record whose discarded set still stands in `pending` after the failure (the defect this
- * cell exists for); a passing attempt that empties `pending` for a set the attempt never rolled back.
+ * AND THE PASSING ARM OWES THE DISCRIMINATOR ITSELF: the SAME ancestor handle, in the SAME relation to
+ * this write's returned set, STANDS on the passing arm — so the removal observed on the failing arm is
+ * the DISCARD's own act and never a general rule about ancestor registrations, and the arm's own member
+ * is read as the SET RELATION (`triggered` against `pending`) rather than as a count.
+ *
+ * FAIL STATES: a `pending` member still carrying a handle OF THE FAILED WRITE'S OWN RETURNED SET after
+ * the failing arm — the prefix handle included — which is the SECOND DELIVERY the caller's loop would
+ * make off that member (the defect this cell exists for, read at
+ * `constraint-kernel-deltamodel.test.mjs`'s `ck_neg_dm_05_*`); a failing arm that removes an entry the
+ * failed write did NOT return (the second, unlawful removal — a whole-member clear or a discard widened
+ * to another write's entry); a passing attempt that empties `pending` for a set the attempt never rolled
+ * back, i.e. a subtraction taken beside the evaluated pairs' own check-offs (the `SIFT`).
  *
  * ▸ AND ONE READING OF ONE MEMBER IS REPORTED AND NOT ASSERTED HERE: `composition-and-states.md §2.7`
  * item 4b's own sentence — *"a write that failed the registered constraints and was rolled back leaves
  * its set in `triggered` and in `pending` NEVER"* — read literally would empty `triggered` too, while
  * `kernel-surface.md §2.1` item 2 prints the SAME state as *"`triggered` then stands as the store's own
- * returned set"*. This cell therefore reads `pending` alone, the member both clauses agree is `[]`.
+ * returned set"*. This cell therefore reads `pending` alone, the member both clauses agree is `[]` of
+ * that write's own handles.
  */
-test('ck_p_neg_14_the_discarded_handle_set_reads_empty_after_a_failing_attempt_and_stands_on_a_passing_one', async () => {
+test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_not_by_the_ancestry_of_its_registration', async () => {
   const { register, commit, runAttempt, report } = await kernel();
 
-  // ── ARM 2 FIRST, so the two arms' own addresses and handles never meet ──────────────────────────
+  // ── ARM 2 FIRST — THE PASSING ARM, WHERE THE SAME ANCESTOR HANDLE STANDS FOR THE REASON THE LAW
+  // GIVES A PASSING ARM (`§3` item 8), and where the attempt-address entry leaves by ITS OWN pass's
+  // check-off alone — so the two arms' own addresses and handles never meet ───────────────────────
   {
     const store = makeStore({ journalLength: 16 });
     const ancestor = [tag('n14p')];
@@ -97,7 +148,7 @@ test('ck_p_neg_14_the_discarded_handle_set_reads_empty_after_a_failing_attempt_a
     const handlePlain = store.on(ancestor, plain);
     let landed = null;
     let evaluations = 0;
-    register(store, address, 'x', () => {
+    const handleX = register(store, address, 'x', () => {
       evaluations += 1;
       if (evaluations === 1) {
         return {
@@ -111,10 +162,19 @@ test('ck_p_neg_14_the_discarded_handle_set_reads_empty_after_a_failing_attempt_a
       return true;
     });
     const record = commit(store, address, 'mem', 'broken');
-    assert.equal(record.pending.includes(handlePlain), true,
-      'the caller\'s own write returned the ancestor registration\'s handle and the kernel has invoked '
-      + 'it in no window of its own, so it stands in `pending` — layer (b)\'s ONLY work list '
-      + '(`kernel-surface.md §2.1` item 2)');
+    assert.equal(record.triggered.includes(handlePlain), true,
+      'THE SAME ANCESTOR HANDLE IS A MEMBER OF THIS WRITE\'S RETURNED SET — the registration stands at a '
+      + 'PROPER PREFIX of the attempt\'s address, so the store\'s own descendant-inclusive prefix test '
+      + 'returns it FOR THIS WRITE (`kernel-surface.md §2.1` item 2) — and THE PASSING ARM THEREFORE OWES '
+      + 'IT A READING FOR A REASON THE FAILING ARM DOES NOT: here nothing is discarded, so it stands in '
+      + '`pending` because no removal reaches it, and NOT because it is another write\'s');
+    assert.equal(record.triggered.includes(handleX), true,
+      'and the attempt-address pair\'s own handle is a member of that same returned set — read '
+      + JSON.stringify(record.triggered.map(String)));
+    assert.deepEqual(record.pending.slice(), record.triggered.slice(),
+      'AND AT `K-2`\'S RETURN THE MEMBER IS THE WHOLE RETURNED SET, ENTRY FOR ENTRY — both handles above '
+      + 'standing in `pending` before any pass has run (`attempt-lifecycle.md §3` item 10; '
+      + '`kernel-surface.md §2.1` item 2) — read ' + JSON.stringify(record.pending.map(String)));
     const done = runAttempt(store, record);
     assertAttemptReport(done, 'P-NEG-14 passing arm');
     assert.equal(done.outcome, 'passed', 'the attempt resolves on the pass arm: the repair landed and the '
@@ -140,9 +200,28 @@ test('ck_p_neg_14_the_discarded_handle_set_reads_empty_after_a_failing_attempt_a
       + 'this count is the store\'s — read ' + plain.seen.length + ' — and the DISCARD is read where the '
       + 'clauses read it: off the record\'s own `pending` member');
     assert.equal(record.pending.includes(handlePlain), true,
-      'AND THE HANDLE STILL STANDS: no discard reaches a passing attempt — the discard rule is the '
-      + 'FAILURE arm\'s own (`attempt-lifecycle.md §2.4` item 8 (i) (5)) — read '
+      'AND THE ANCESTOR HANDLE STILL STANDS, SO THE REMOVAL OBSERVED ON THE FAILING ARM IS THE DISCARD\'S '
+      + 'OWN ACT AND NEVER A RULE ABOUT ANCESTOR REGISTRATIONS: no discard reaches a passing attempt — the '
+      + 'discard rule is the FAILURE arm\'s own (`attempt-lifecycle.md §2.4` item 8 (i) (5)) — and the '
+      + 'check-off that empties an entry removes only the entry OF A PAIR THE PASS EVALUATED, this '
+      + 'registration\'s pair being at an ancestor address the ADDRESS-SCOPED pass never reaches '
+      + '(`kernel-surface.md §2.3` item 1) — read '
       + `pending.length = ${record.pending.length}`);
+    assert.deepEqual(record.pending.slice(), record.triggered.filter((h) => h !== handleX),
+      'AND THE ARM RULES THE TWO ENTRIES APART BY WHAT REACHED EACH, AND BY NOTHING ELSE: the member after '
+      + 'a passing arm is "`triggered` MINUS the evaluated pairs\' checked-off entries" '
+      + '(`attempt-lifecycle.md §3` item 8) — the attempt-address pair\'s own handle leaves BY ITS OWN '
+      + 'CHECK-OFF AS IT PASSED (`§2.4` item 8 (i) (5); the same removal asserted at '
+      + '`constraint-kernel-deltamodel.test.mjs`\'s `ck_neg_dm_06_*`) and the ancestor handle leaves by '
+      + 'nothing and stands, WHILE ON THE FAILING ARM THAT SAME ANCESTOR HANDLE LEAVES BY THE DISCARD. '
+      + 'FAIL-STATE DISTINGUISHED: a passing arm that subtracted an entry no pass evaluated — the `SIFT` '
+      + '`kernel-surface.md §2.1` item 2 declares UNLAWFUL — read `pending` '
+      + JSON.stringify(record.pending.map(String)) + ' of `triggered` '
+      + JSON.stringify(record.triggered.map(String)));
+    assert.equal(record.triggered.includes(handleX), true,
+      'and `triggered` STANDS UNMOVED ON THIS ARM TOO: the check-off reaches the MEMBER and never the '
+      + 'store\'s own returned set (`kernel-surface.md §2.1` item 2; `attempt-lifecycle.md §2.4` item 8 (i) '
+      + `(5), its comment on the pair\'s own pass) — read triggered.length = ${record.triggered.length}`);
   }
 
   // ── ARM 1 — THE FAILING ATTEMPT, WHOSE SET IS DISCARDED ─────────────────────────────────────────
@@ -156,26 +235,68 @@ test('ck_p_neg_14_the_discarded_handle_set_reads_empty_after_a_failing_attempt_a
     register(store, address, 'x', () => ({ message: 'x is invalid and registers no repair' }));
     const record = commit(store, address, 'mem', 'v');
     assert.equal(record.triggered.includes(handlePlain), true,
-      'the set the caller\'s own write returned carries the ancestor registration\'s handle, so the '
-      + 'discard below has a member to reach');
+      'the set the caller\'s own write returned carries the ancestor registration\'s handle — a '
+      + 'registration at a PROPER PREFIX of the attempt\'s address, returned FOR THIS WRITE by the store\'s '
+      + 'own descendant-inclusive prefix test (`kernel-surface.md §2.1` item 2) — so the discard below has '
+      + 'a member to reach, and the membership is read at THE WRITE\'S OWN RETURNED SET and not at the '
+      + 'ancestry of the registration');
     assert.equal(record.pending.includes(handlePlain), true,
-      'and it stands in `pending` as `K-2` returns the record');
+      'and it stands in `pending` as `K-2` returns the record: at that instant the member IS the whole '
+      + 'returned set, no pass having run (`attempt-lifecycle.md §3` item 10)');
+    assert.deepEqual(record.pending.slice(), record.triggered.slice(),
+      'AND `pending` CARRIES THE WHOLE SET AT THIS INSTANT, ENTRY FOR ENTRY — the premise the arm below is '
+      + 'read against (`kernel-surface.md §2.1` item 2\'s `pending` clause; `attempt-lifecycle.md §3` '
+      + `item 10) — read ${JSON.stringify(record.pending.map(String))} of `
+      + `${JSON.stringify(record.triggered.map(String))}`);
     const r = capture(() => runAttempt(store, record));
     assert.equal(r.threw, true, 'the attempt fails: `x` registers no repair for its violation');
     assertKernelForm(r.thrown, 'P-NEG-14 failing arm');
     assert.equal(r.thrown.status, KC[3],
       'and the arm it fails on is the first-violation arm `(c)` read with the outside-form rule — here '
       + `\`x\`'s own \`{message}\` arm — read ${JSON.stringify(r.thrown.status)}`);
-    assert.ok(plain.seen.length >= 1,
-      'and the store\'s own delivery reached the ancestor registration before the attempt closed — read '
-      + plain.seen.length + '; the set the record carries points at a live registration');
-    assert.deepEqual(record.pending, [],
-      'THE DISCARD RULE\'S OWN OBSERVABLE: the set the rolled-back write returned is DISCARDED rather '
-      + 'than carried, "so `triggered` then stands as the store\'s own returned set while `pending` is '
-      + '`[]`" (`kernel-surface.md §2.1` item 2; `attempt-lifecycle.md §2.4` item 8 (i) (5)) — and `pending` '
-      + 'is layer (b)\'s ONLY WORK LIST, the member the caller\'s own loop runs off, so a record that '
-      + 'still carries the handle hands a discarded set to a loop that must not run it — read '
+    assert.equal(plain.seen.length, 0,
+      'AND ON THIS ARM THE STORE\'S OWN DELIVERY REACHED THE ANCESTOR REGISTRATION NOWHERE — NEITHER '
+      + 'INSIDE THE WRITE\'S WINDOW NOR AT THE TERMINAL ARM: the write is KERNEL-DRIVEN, so instant (a) '
+      + 'withheld its in-window invocation before the store\'s verb was called (`surface.md §2.4` item 9; '
+      + '`A116` (D1)–(D2); `§2.7` item 7), and the arm then FAILED, so the residue that carries this '
+      + 'handle was delivered by nothing — "no handle of that write being invoked by either layer" '
+      + '(`attempt-lifecycle.md §2.4` item 8 (i) (5); `§3` item 8). READ THE TWO ARMS APART: the passing '
+      + 'arm above reaches this same body ONCE at its terminal arm — read ' + plain.seen.length + ' here; '
+      + 'the set the record carries points at a live registration either way, which is why this count is '
+      + 'not the membership premise the arm below is read against');
+    assert.deepEqual(record.pending.slice(), [],
+      'THE DISCARD RULE\'S OWN EXTENT, READ AT `A112` AS RECONCILED: the DISCARD "ACTS ON THAT WRITE\'S '
+      + 'OWN RETURNED SET AND REACHES EVERY HANDLE OF IT" (`attempt-lifecycle.md §2.4` item 8 (i) (5); '
+      + '`§3` item 8) — and `handlePlain` IS IN THAT SET, which `record.triggered` carries above, so THE '
+      + 'DISCARD REACHES IT AND IT LEAVES `pending` beside the attempt-address entry: THE DISCRIMINATOR IS '
+      + 'THE SET A HANDLE CAME BACK IN AND NEVER THE ANCESTRY OF ITS REGISTRATION (the `SIFT` clause, '
+      + '`kernel-surface.md §2.1` item 2: "filtering by the write\'s author" is UNLAWFUL, and so is any '
+      + 'reading that spares an entry because another write registered it). THE PREMISE THIS CELL ONCE '
+      + 'RESTED ON — that the ancestor handle STANDS as "the ANCESTOR write\'s own returned handle ... '
+      + 'which the failed write does NOT OWN" — IS THE READING THE BY-SET LAW WITHDRAWS: the entry that '
+      + 'stands is one of a handle THIS WRITE DID NOT RETURN, and this write returned `handlePlain`. The '
+      + 'blanket clear — `record.pending = []` — is the SECOND, UNLAWFUL REMOVAL WITHDRAWN BY NAME at that '
+      + 'clause for the OPPOSITE reason: it removes an entry whether or not the failed write returned it, '
+      + 'whereas the law removes by THE SET and never by the member (a member with a foreign entry would '
+      + 'keep it, which no fixture of this unit can reach). `pending` is the member the caller\'s own loop '
+      + 'reads its work off, so an entry left standing here is the SECOND DELIVERY that loop would make '
+      + '(`kernel-surface.md §2.1` item 2\'s throwing-arm clause; `A: docs/decisions.md` · `A112`) — read '
       + `pending.length = ${record.pending.length}`);
+    assert.deepEqual(record.triggered.filter((h) => record.pending.includes(h)), [],
+      'AND THE READING IS THE SET RELATION OVER EVERY HANDLE OF THAT SET AND NOT A COUNT: no entry of the '
+      + 'failed write\'s own returned set survives the arm, WHATEVER THE SIZE OF THE SET — the two handles '
+      + 'this fixture produces are read by their own names at the two assertions either side of this one, '
+      + 'and this expression is the SAME LAW read over the whole set at once, so a third handle of the set '
+      + 'would be caught here as well (`kernel-surface.md §2.4` item 5 (i): "`WHOLE` READS THAT WRITE\'S '
+      + 'OWN RETURNED SET, WHOSE EVERY HANDLE IS A NOT-YET-INVOKED TRIGGER WHEN THE ARM TAKES IT") — read '
+      + `\`pending\` ${JSON.stringify(record.pending.map(String))} of \`triggered\` `
+      + `${JSON.stringify(record.triggered.map(String))}`);
+    assert.equal(record.triggered.includes(handlePlain), true,
+      'AND `triggered` STANDS VERBATIM AS THE STORE\'S OWN RETURNED SET THROUGH THE ARM: the clause prints '
+      + 'the SAME state as "`triggered` then stands as the store\'s own returned set" — the DISCARD reaches '
+      + 'the MEMBER and never the store\'s own answer'
+      + ` (\`kernel-surface.md §2.1\` item 2; \`composition-and-states.md §2.7\` item 4b) — read `
+      + `triggered.length = ${record.triggered.length}`);
   }
 });
 

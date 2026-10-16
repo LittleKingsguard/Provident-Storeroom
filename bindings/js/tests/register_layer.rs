@@ -694,24 +694,34 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
                 }
             };
             let file = JsTierArg::Token("file".into());
-            if first
-                .write(
-                    &JsAddressArg::List(vec![key("first")]),
-                    &file,
-                    &JsValue::Num(1.0),
-                )
-                .is_err()
-            {
+            // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `contract.md §7.2` items 1–2 AS AMENDED, `surface.md
+            // §2.11` clause 2): THE `file`-TIER DURABLE COMMIT IS THE TERMINAL ARM'S OWN ACT AND NOT THE
+            // VERB'S.** The verb *"RECORDS THE WRITE IN THE JOURNAL, INSTALLS THE NODE, APPENDS THE ENTRY AND
+            // RETURNS ITS `WriteResult` — … AND IT PERFORMS NO FILE I/O ON ANY OF ITS ARMS"*, so each of this
+            // line's `file`-tier writes below is completed by driving THE ACT — `commit_file`, keyed by the
+            // settled record's own `op` — at its own instant. **BOTH HALVES OF THE DECLARED PAIR ARE
+            // UNMOVED**: the surviving image is still the LAST write's and the earlier instance's version is
+            // still NOT in it, because the second instance's commit writes ITS OWN snapshot over the path.
+            let first_w = match first.write(
+                &JsAddressArg::List(vec![key("first")]),
+                &file,
+                &JsValue::Num(1.0),
+            ) {
+                Ok(w) => w,
+                Err(_) => return false,
+            };
+            if first.commit_file(&first_w.op.opId).is_err() {
                 return false;
             }
-            if second
-                .write(
-                    &JsAddressArg::List(vec![key("second")]),
-                    &file,
-                    &JsValue::Num(2.0),
-                )
-                .is_err()
-            {
+            let second_w = match second.write(
+                &JsAddressArg::List(vec![key("second")]),
+                &file,
+                &JsValue::Num(2.0),
+            ) {
+                Ok(w) => w,
+                Err(_) => return false,
+            };
+            if second.commit_file(&second_w.op.opId).is_err() {
                 return false;
             }
             let fresh = match create(&cfg) {
@@ -732,19 +742,21 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
             };
             // (iii) AND A THIRD PATH THROUGH THE SAME DRIVE, SO THE LINE IS NOT ONE FIXED SEQUENCE: the fresh
             // boot writes its own third version and a FOURTH boot reads it — the durability claim at another
-            // generation of the same file.
+            // generation of the same file. **⟶ RE-POINTED 2026-10-15: the third write is a `file`-tier write
+            // too, so its own commit is the terminal arm's act and is driven here as well.**
             let mut third = match create(&cfg) {
                 Ok(inst) => inst,
                 Err(_) => return false,
             };
-            if third
-                .write(
-                    &JsAddressArg::List(vec![key("third")]),
-                    &file,
-                    &JsValue::Num(3.0),
-                )
-                .is_err()
-            {
+            let third_w = match third.write(
+                &JsAddressArg::List(vec![key("third")]),
+                &file,
+                &JsValue::Num(3.0),
+            ) {
+                Ok(w) => w,
+                Err(_) => return false,
+            };
+            if third.commit_file(&third_w.op.opId).is_err() {
                 return false;
             }
             let fourth = match create(&cfg) {

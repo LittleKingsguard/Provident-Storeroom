@@ -675,6 +675,12 @@ fn delivery_the_record_is_complete_before_the_window_opens() {
 /// `§2.8` item 1 / `DD-45`: **a `delete` and a `rollback` perform NO file I/O**, so a JS caller that deletes
 /// a `file`-tier version and then constructs a FRESH instance over an equal `cfg.filePath` sees the removed
 /// version **STAND AGAIN** — *"that re-boot is the store's own declared boot … NOT a defect"*.
+/// **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `contract.md §7.2` item 1 AS AMENDED, `surface.md §2.11` clause 2):
+/// the last successful `file`-tier WRITE's bytes are produced by THE TERMINAL ARM'S OWN ACT and not by the
+/// verb** — *"`Store::write(…)` … PERFORMS NO FILE I/O ON ANY OF ITS ARMS"* — **so this cell drives that act
+/// at its own instant, keyed by the op the write returned, and the boot below then stands exactly as
+/// before.** **NO ASSERTION MOVES: the delete still performs no file I/O and the version still STANDS
+/// AGAIN.**
 #[test]
 fn file_readings_a_delete_performs_no_file_io_and_the_version_stands_again() {
     // The path is THIS cell's own (`support::DrivePath`): the cells of one binary run on parallel threads,
@@ -683,12 +689,17 @@ fn file_readings_a_delete_performs_no_file_io_and_the_version_stands_again() {
     let scratch = DrivePath::unique("storeroom-js-redset-delete-no-io", "store.json");
     {
         let mut inst = create(&cfg_at(scratch.as_str(), 8)).expect("a reachable path");
-        inst.write(
-            &JsAddressArg::List(vec![key("a")]),
-            &JsTierArg::Token("file".to_string()),
-            &JsValue::Num(1.0),
-        )
-        .expect("a file-tier write commits");
+        let landed = inst
+            .write(
+                &JsAddressArg::List(vec![key("a")]),
+                &JsTierArg::Token("file".to_string()),
+                &JsValue::Num(1.0),
+            )
+            .expect("§7.2 item 1 as amended: the verb RECORDS the write and performs NO FILE I/O");
+        inst.commit_file(&landed.op.opId).expect(
+            "§7.2 item 2 as amended / `surface.md §2.11` clause 2: THE TERMINAL ARM'S OWN ACT — the \
+             `file`-tier commit, keyed by the settled record's own `op`",
+        );
         inst.delete(
             &JsAddressArg::List(vec![key("a")]),
             &JsTierArg::Token("file".to_string()),
@@ -740,11 +751,18 @@ fn file_readings_only_a_file_tier_write_is_durable() {
 
 /// `§2.8` item 2: **a `file`-tier write that fails answers `FileCommitFailed` AFTER the store's own
 /// automatic journal rollback has run** — and the package compensates for nothing.
+/// **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `contract.md §7.2` items 1–3 AS AMENDED, `surface.md §2.11`
+/// clause 5): THE FAILURE IS THE TERMINAL ARM'S ACT'S AND NOT THE VERB'S** — the verb *"performs NO FILE I/O
+/// ON ANY OF ITS ARMS"*, the act is `commit_file` keyed by the settled record's own `op`, and *"the store
+/// rolls the write back FIRST and the call answers with a message SECOND"*. **The drive is
+/// `fail_code_drive("FileCommitFailed")`, which now drives the act; the reading this cell asserts — the
+/// failure is passed back AFTER the automatic rollback — and the code are unmoved.**
 #[test]
 fn file_readings_a_failed_file_commit_answers_file_commit_failed() {
     assert!(
         fail_code_drive("FileCommitFailed"),
-        "§2.8 item 2: the failure is passed back to the caller after the automatic rollback"
+        "§2.8 item 2 as amended: the failure is passed back to the caller after the automatic rollback — \
+         answered by the terminal arm's own act (`§2.11` clause 5)"
     );
 }
 
@@ -822,11 +840,30 @@ fail_code_cell!(
 fail_code_cell!(fail_code_13_file_path_unreachable_is_reachable, "FilePathUnreachable");
 fail_code_cell!(fail_code_14_value_not_admitted_is_reachable, "ValueNotAdmitted");
 fail_code_cell!(fail_code_15_file_commit_failed_is_reachable, "FileCommitFailed");
+fail_code_cell!(
+    fail_code_16_constraint_list_invalid_is_reachable,
+    "ConstraintListInvalid"
+);
 
-/// The set's own census, and the converse no drive may break: **`15` members and not one more.**
+/// The set's own census, corrected to the amended set: **`16` members and not one more.**
+/// **⟶ RE-POINTED 2026-10-15 (`RCA-9`): the `FileCommitFailed` row of this sweep is driven at THE TERMINAL
+/// ARM'S OWN ACT** — *"`Store::write(…)` … PERFORMS NO FILE I/O ON ANY OF ITS ARMS"* (`§7.2` item 1 as
+/// amended; `surface.md §2.11` clause 2) — **inside `support::fail_code_drive`.**
+///
+/// **⟶ WIDENED TO `16` 2026-10-15 (`DEF-2026-10-15-Y`, the `stale-by-census` class; `DEF-2026-10-15-X`
+/// item 4).** The sentence this comment supersedes read *"the census the sweep counts is the crate's own
+/// `15`-member array, which the amendment does not widen"* — **AND THAT SENTENCE WAS THE DEFECT: the crate's
+/// own array is not the amendment's, `contract.md §8.1`'s amended heading reads `16` members with each
+/// member's trigger, its arithmetic is `11 + 2 + 1 + 1 + 1 = 16` ✓, `§7.2` item 5 (ADDED 2026-10-15)
+/// declares the constraint list's two validation instants, and `parameter-semantics.md §2.21` mints the
+/// key's own member.** **A CENSUS THAT PRINTS A SUPERSEDED FIGURE IS NOT A DRIVE THAT "DOES NOT WIDEN": it
+/// is a drive asserting a figure the spec has already replaced.** **NO ASSERTION IS WEAKENED — the figure
+/// MOVES and the sixteenth member's own trigger JOINS the sweep, so every member is still reached through a
+/// real trigger** (`support::fail_code_drive`'s `ConstraintListInvalid` arm, reached through the crossing's
+/// own `create_with_constraints` at the construction's instant; `§7.1` step 4-bis).
 #[test]
-fn fail_set_is_closed_at_fifteen_and_no_drive_produces_a_sixteenth() {
-    assert_eq!(all_fail_codes().len(), 15);
+fn fail_set_is_closed_at_sixteen_and_no_drive_produces_a_seventeenth() {
+    assert_eq!(all_fail_codes().len(), 16);
     for code in all_fail_codes() {
         assert!(fail_code_drive(code), "`{code}` is a member with a reachable trigger");
     }

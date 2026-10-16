@@ -1,0 +1,13 @@
+import * as storeNs from 'provident-storeroom';
+import { register, commit, runAttempt } from '../bindings/js/src/constraint-kernel.mjs';
+const s = storeNs.storeCreate({ journalLength: 64, listeners: [] });
+const anc = register(s, ['a'], 'a#cL', () => true);
+storeNs.write(s, ['a'], 'mem', { k: 1 });
+const own = register(s, ['a', 'b'], 'ab#cX', () => true);
+const rec = commit(s, ['a', 'b'], 'mem', 2);
+console.log('anc===own?', anc === own);
+console.log('triggered', rec.triggered.map(h => h === anc ? 'anc' : h === own ? 'own' : 'other'));
+console.log('pending at K-2', rec.pending.map(h => h === anc ? 'anc' : h === own ? 'own' : 'other'));
+console.log('pending[0]===anc', rec.pending[0] === anc, 'includes(anc)', rec.pending.includes(anc));
+const rep = runAttempt(s, rec);
+console.log('after K-3 pending', rec.pending.map(h => h === anc ? 'anc' : h === own ? 'own' : 'other'), 'outcome', rep.outcome);

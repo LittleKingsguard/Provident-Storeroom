@@ -52,10 +52,17 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_DIR = dirname(HERE);
 const ADDON_PATH = join(PACKAGE_DIR, 'build', 'Release', 'storeroom_js_binding.node');
 
-/// **THE STORE'S CLOSED `15`-MEMBER SET** — the set `surface.md §2.5` item 1 draws a rejection's `status`
+/// **THE STORE'S CLOSED `16`-MEMBER SET** — the set `surface.md §2.5` item 1 draws a rejection's `status`
 /// from (`DD-40`: *"never a package-minted code"*). It is the set `surface.test.mjs` spells and the Rust
 /// leg's `CODES` const carries.
-const THE_FIFTEEN = [
+///
+/// **⟶ WIDENED 2026-10-15 (`DEF-2026-10-15-Y`, the `stale-by-census` class).** The as-filed heading read
+/// **`15`** and its list stopped at `FileCommitFailed`; **`contract.md §8.1`'s amended heading reads `16`
+/// members and its arithmetic is `11 + 2 + 1 + 1 + 1 = 16` ✓**, the sixteenth member's trigger is `§7.1`
+/// step 4-bis's and its key's semantics are `parameter-semantics.md §2.21`'s (both dated 2026-10-15). **The
+/// figure MOVES and no assertion is weakened: `isTheFailureForm` below still refuses a package-minted code,
+/// and the widened set only admits one more declared member.**
+const THE_SIXTEEN = [
   'AddressMalformed',
   'AddressNotFound',
   'LeafHasNoDownstream',
@@ -71,6 +78,7 @@ const THE_FIFTEEN = [
   'FilePathUnreachable',
   'ValueNotAdmitted',
   'FileCommitFailed',
+  'ConstraintListInvalid',
 ];
 
 // =============================================================================================
@@ -107,7 +115,7 @@ function isTheFailureForm(err) {
     Object.getPrototypeOf(err) === Object.prototype &&
     Object.keys(err).sort().join(',') === 'message,status' &&
     typeof err.status === 'string' &&
-    THE_FIFTEEN.includes(err.status) &&
+    THE_SIXTEEN.includes(err.status) &&
     typeof err.message === 'string' &&
     err.message.length > 0 &&
     !(err instanceof Error)
@@ -1309,7 +1317,7 @@ test('ng_js_h_the_absent_addon_state_answers_the_one_form_and_the_two_arms_messa
     assert.equal(answer.plain, true, "the record's prototype is the caller realm's Object.prototype");
     assert.equal(answer.isError, false, 'never an Error subclass (DD-12)');
     assert.equal(answer.status, 'FilePathUnreachable', 'the declared status for the load state');
-    assert.ok(THE_FIFTEEN.includes(answer.status), "the status is a member of the store's closed set (DD-40)");
+    assert.ok(THE_SIXTEEN.includes(answer.status), "the status is a member of the store's closed set (DD-40)");
 
     // **THE BYTE EQUALITY, ASSERTED AGAINST THE GENERATOR ITSELF** (`JS-3`): the boundary's reproduction of
     // the generator's rendering of THE SUBJECTS THE LOAD PATH TRIED and the generator's own answer for that

@@ -438,21 +438,33 @@ fn s7_1_the_two_arms_of_the_reachability_test_each_create_a_file_register_by_a_d
         Vec::<u8>::new(),
         "§10.4 part 3: NO byte was written — an EMPTY FILE AND NO BYTE"
     );
-    ok(
+    // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` item 1 AS AMENDED, `surface.md §2.11` clause 2): the verb
+    // RECORDS the write, installs the node, appends the entry and returns its `WriteResult` — *"AND IT
+    // PERFORMS NO FILE I/O ON ANY OF ITS ARMS"* — and THE TERMINAL ARM'S OWN ACT is what puts bytes at
+    // `cfg.filePath`. The drive therefore takes the op the verb returned and DRIVES THAT ACT AT ITS OWN
+    // INSTANT, keyed by that op's identity and nothing else.**
+    let landed = ok(
         b.write(AddressArg::List(key(&["r"])), w_file(), v_num(2.0)),
-        "§7.2 item 1: the first `file`-tier write commits at the path",
+        "§7.2 item 1 as amended: the `file`-tier write RECORDS the write and returns its `WriteResult` — \
+         the verb's `file`-tier arm is indistinguishable at its own return from its `mem`-tier arm but for \
+         the tier the anchor carries",
     );
-    // **AND THE WRITE HALF THAT REMAINS TRUE AND IS KEPT: the `file`-tier `write` is the ONE durability
-    // route** — the construction's create commits NO register key, NO journal entry and NO registration
-    // (`§10.4` part 6; `DD-28`'s amended cell), so the bytes at the path are the WRITE's and the write has
+    ok(
+        commit_at_the_terminal_arm(&mut b, &landed.op.opId),
+        "§7.2 item 2 as amended / §2.11 clause 2: THE TERMINAL ARM'S OWN ACT — the `file`-tier commit, \
+         keyed by the settled record's own `op` — is what commits at the path",
+    );
+    // **AND THE WRITE HALF THAT REMAINS TRUE AND IS KEPT: a `file`-tier write is the ONE durability route**
+    // — the construction's create commits NO register key, NO journal entry and NO registration
+    // (`§10.4` part 6; `DD-28`'s amended cell), so the bytes at the path are the WRITE's act's and it has
     // put SOME at a path the construction left empty.
     assert!(
         std::fs::metadata(&creatable)
             .expect("the committed file")
             .len()
             > 0,
-        "§7.2 item 1 / §10.4 part 6: the `file`-tier WRITE is the durability route — the path held 0 bytes \
-         before it and holds the committed bytes after it"
+        "§7.2 item 2 / §10.4 part 6: the `file`-tier write's own act is the durability route — the path \
+         held 0 bytes before it and holds the committed bytes after it"
     );
     assert_eq!(
         landing_tier(&b, &empty_address()),
@@ -690,9 +702,18 @@ fn s7_2_the_file_tier_s_content_is_loaded_at_creation() {
     let path = fresh_path("boot");
     let config = cfg_at(&path, 8);
     let mut first = ok(storeCreate(&config), "§7.1");
-    ok(
+    // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` item 1 AS AMENDED): the verb records the write and performs
+    // NO file I/O on any of its arms, so the boot below would load nothing from the verb's return alone.
+    // The terminal arm's own act — driven here at its own instant, keyed by the settled record's own `op` —
+    // is what puts the content at `cfg.filePath` that item 6's boot reads.**
+    let landed = ok(
         first.write(AddressArg::List(key(&["durable"])), w_file(), v_str("kept")),
-        "§3.4 W-3 at file",
+        "§3.4 W-3 at file / §7.2 item 1 as amended: the write is RECORDED and its `WriteResult` returned",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut first, &landed.op.opId),
+        "§7.2 item 2 as amended / §2.11 clause 2: the terminal arm's own act commits the `file` state at \
+         `cfg.filePath`",
     );
     let second = ok(storeCreate(&config), "§7.2 item 6: the boot");
     assert_eq!(
@@ -758,9 +779,16 @@ fn s7_2_a_boot_loads_no_registration() {
         listeners(vec![entry(key(&["durable"]), handle("boot-lost"))]),
     );
     let mut first = ok(storeCreate(&config), "§7.1 step 5");
-    ok(
+    // **⟶ RE-POINTED 2026-10-15 (`RCA-9`): the verb performs NO FILE I/O on any of its arms (`§7.2` item 1
+    // as amended), so the content item 6's boot loads is put there by THE TERMINAL ARM'S OWN ACT, keyed by
+    // the settled record's own `op` (`§2.11` clause 2).**
+    let landed = ok(
         first.write(AddressArg::List(key(&["durable"])), w_file(), v_str("kept")),
-        "§7.2 item 1: the file tier is committed at the path",
+        "§7.2 item 1 as amended: the write is RECORDED; the verb performs no file I/O",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut first, &landed.op.opId),
+        "§7.2 item 2 as amended: the terminal arm's own act commits the `file` tier's state at the path",
     );
     // **THE FRESH INSTANCE IS CONSTRUCTED OVER AN EQUAL PATH WITH ITS OWN (EMPTY) LISTENER ARRAY** — the
     // clause's own state: *"a fresh instance over an equal `cfg.filePath` begins with `triggered: []` on its
@@ -790,23 +818,34 @@ fn s7_2_a_boot_loads_no_registration() {
 
 // §7.2 items 1–2 (`M-12`, DD-2) — the `file` tier is saved to a JSON file at `cfg.filePath`, and a
 // successful commit's bytes land whole.
-// Drives: §7.2 items 1
+// **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 1–2 AS AMENDED, `surface.md §2.11` clause 2): THE
+// `file`-TIER DURABLE COMMIT IS THE TERMINAL ARM'S OWN ACT AND NOT THE VERB'S. The drive therefore keeps
+// the verb's own return beside the act — the write RECORDS the write and performs NO FILE I/O on any of
+// its arms — and drives the commit keyed by the settled record's own `op`, which is the one key the act
+// reads.**
+// Drives: §7.2 items 1–2 as amended
 #[test]
 fn s7_2_a_file_tier_write_commits_to_the_json_file_at_the_path() {
     let path = fresh_path("commit");
     let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1");
-    ok(
+    let landed = ok(
         store.write(AddressArg::List(key(&["durable"])), w_file(), v_str("kept")),
-        "§3.4 W-3 at file",
+        "§3.4 W-3 at file / §7.2 item 1 as amended: the verb records the write, installs the node, appends \
+         the entry and returns its `WriteResult`",
     );
-    let bytes = std::fs::read_to_string(&path).expect("§7.2 item 1: a JSON file at cfg.filePath");
+    ok(
+        commit_at_the_terminal_arm(&mut store, &landed.op.opId),
+        "§7.2 item 2 as amended / §2.11 clause 2: the terminal arm's own act — keyed by the settled \
+         record's own `op` — writes the whole serialized `file` state",
+    );
+    let bytes = std::fs::read_to_string(&path).expect("§7.2 item 2: a JSON file at cfg.filePath");
     assert!(
         !bytes.is_empty(),
         "§0.2 DD-2: a successful commit writes the whole serialized file state"
     );
     assert!(
         bytes.contains("durable"),
-        "§7.2 item 1: the committed state carries the store's keys"
+        "§7.2 item 2: the committed state carries the store's keys"
     );
 }
 
@@ -819,22 +858,39 @@ fn s7_2_a_file_tier_write_commits_to_the_json_file_at_the_path() {
 // HALF: the SAME state at CONSTRUCTION is `FilePathUnreachable` (`§8.1` #13, driven in
 // `s7_1_a_provided_but_unreachable_path_fails_file_path_unreachable`), while here — after the instance
 // exists — it remains `FileCommitFailed`.**
-// Drives: §7.2 items 2–4, §8.1 #15, §8.2, DD-40 (b)
+// **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `§7.2` items 2–3 AS AMENDED, `surface.md §2.11` clause 5): THE
+// FAILURE IS THE TERMINAL ARM'S ACT'S AND NOT THE VERB'S.** **The drive separates the two instants at its
+// own bytes: the verb's return is asserted `Ok` — *"it performs NO FILE I/O ON ANY OF ITS ARMS"* — and the
+// refusal is taken from the act, where *"the store rolls the write back FIRST and the call answers with a
+// message SECOND"*, so the caller receives the failure and never the rolled-back state.**
+// Drives: §7.2 items 2–4 as amended, §8.1 #15, §8.2, DD-40 (b)
 #[test]
 fn s7_2_a_failed_file_tier_commit_passes_the_failure_back_and_leaves_state_unchanged() {
     let path = fresh_path("commit-fails");
     let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1");
-    ok(
+    let kept = ok(
         store.write(AddressArg::List(key(&["ok"])), w_file(), v_num(1.0)),
-        "§3.4 W-3",
+        "§3.4 W-3 / §7.2 item 1 as amended: the verb records the write",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &kept.op.opId),
+        "§7.2 item 2 as amended: the passing write's last image is committed at the path",
     );
     let before = read_at(&store, &empty_address());
     let _ = std::fs::remove_file(&path);
     std::fs::create_dir(&path)
         .expect("the path now holds a directory, so a file write cannot land");
-    let failed = store.write(AddressArg::List(key(&["never"])), w_file(), v_num(2.0));
-    match failed {
-        Ok(_) => panic!("§7.2 item 3: the failure is passed back to the caller"),
+    // **THE VERB'S OWN ARM FIRST — AND IT IS `Ok`.** `§7.2` item 1 as amended: the `file`-tier write records
+    // the write, installs the node, appends the entry and returns its `WriteResult`; NO byte of the path is
+    // touched by the verb, so the directory beside it decides nothing at this instant.
+    let never = ok(
+        store.write(AddressArg::List(key(&["never"])), w_file(), v_num(2.0)),
+        "§7.2 item 1 as amended: the verb's `file`-tier arm returns as it does today — it records the write \
+         and performs NO FILE I/O on any of its arms",
+    );
+    // **THE ACT'S OWN FAILURE ARM — WHERE `FileCommitFailed` LIVES NOW.**
+    match commit_at_the_terminal_arm(&mut store, &never.op.opId) {
+        Ok(()) => panic!("§7.2 item 3: the failure is passed back to the caller"),
         Err(e) => assert_code(
             &e,
             "FileCommitFailed",

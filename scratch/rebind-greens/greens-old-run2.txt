@@ -1,0 +1,36 @@
+
+── THE FIRING AT THE PAIR-ADOPTED ADDRESS: THE RULED READING (ONE SIDE, NOT TWO) ──
+  THE RULING, AND WHAT IT MOVED: a SPLIT once stood here (2026-10-15, `§2.7` item 6 against `§2.4` item 8 (c) as amended, both readings printed, no side taken; `docs/next-steps.md` · `N7` item 1).
+  THE ARCHITECT HAS RULED, AND IT IS ASSERTED HERE: `§2.7` item 6 GOVERNS THE FIRING — for a write the triggered constraints run first and THE OTHER LISTENERS ARE REACHED ONCE EVERY CONSTRAINT HAS PASSED (its force: `docs/decisions.md` · `A114` (D1) with `A112`).
+  `§2.4` item 8 (c) IS A REGISTRATION-side STATEMENT — which identity the app's `on` holds at an address the home entry already carries, which slot it replaced, which function the pass evaluates — and ITS NON-DELIVERY DERIVATIONS ARE SUPERSEDED: at that address a registered listener is owed ONE firing, after the pass, not ZERO.
+  THE CLAUSE TEXT THIS CELL CITES: `§2.4` item 8 (c) as amended 2026-10-15 and `§2.7` item 6 as landed 2026-10-15 BOTH STAND AS PRINTED — the re-scoping remand had NOT landed in `docs/specs/storeroom-js/surface.md` when this cell was written, so the clauses are cited as they stand, WITH the ruling.
+  JSG-16.1  · the pair-adopted address ["split"] — on at the pair-adopted address: count=1 arg=["split"] args=1 store-call-returned=true read=1
+  JSG-16.1.c· the proper prefix [] — on at the proper prefix: count=1 arg=["split"] args=1 store-call-returned=true read=1
+  JSG-16.3  · INSTRUMENT CONTROL (no ruling, no side) — the bare address ["bare"] — on at a bare address: count=1 arg=["bare"] args=1 store-call-returned=true read=1
+  DRIVE: the kernel route the ruling names — `K-1` register(store, address, id, constraint) · `K-2` commit(store, address, tier, value) · `K-3` runAttempt(store, commit) (`kernel-surface.md §1` item 1, `§2.1` items 1–3) — on the instance the package's own `storeCreate` returned.
+  OWED, AND NOT CLAIMED HERE: the seam's two instants as observables — the in-window invocation set EMPTY at instant (a) (`§2.4` item 9 (a)) and the residue delivered at instant (b) — remain the kernel's own two calls at the kernel's own boundary (§3 item 9 of the greens document); this cell drives the pass and reads the PACKAGE's deliverer.
+
+── THE RUN ─────────────────────────────────────────────────────────────────────────
+SITE:  node bindings/js/greens/greens.mjs   (cwd: /media/ryanr/Shared Files/Projects/Provident-Storeroom)
+ENTRY: /media/ryanr/Shared%20Files/Projects/Provident-Storeroom/bindings/js/index.mjs
+ENTRY 2 (JSG-16.1 only): /media/ryanr/Shared%20Files/Projects/Provident-Storeroom/bindings/js/src/constraint-kernel.mjs
+LAYER: ENVELOPE/PURE   APP LAYER: NONE   (no APP-green is claimed)
+SCRATCH: /tmp/sr-js-greens-Bw9bFD
+  JSG-01: 17 PASS · 0 FAIL   (17 assertions)
+  JSG-02: 18 PASS · 0 FAIL   (18 assertions)
+  JSG-03: 5 PASS · 0 FAIL   (5 assertions)
+  JSG-04: 67 PASS · 0 FAIL   (67 assertions)
+  JSG-05: 14 PASS · 0 FAIL   (14 assertions)
+  JSG-06: 7 PASS · 0 FAIL   (7 assertions)
+  JSG-07: 15 PASS · 0 FAIL   (15 assertions)
+  JSG-08: 22 PASS · 0 FAIL   (22 assertions)
+  JSG-09: 12 PASS · 0 FAIL   (12 assertions)
+  JSG-10: 24 PASS · 0 FAIL   (24 assertions)
+  JSG-11: 18 PASS · 0 FAIL   (18 assertions)
+  JSG-12: 18 PASS · 0 FAIL   (18 assertions)
+  JSG-13: 6 PASS · 0 FAIL   (6 assertions)
+  JSG-14: 5 PASS · 0 FAIL   (5 assertions)
+  JSG-15: 3 PASS · 0 FAIL   (3 assertions)
+  JSG-16: 4 PASS · 0 FAIL   (4 assertions)
+────────────────────────────────────────────────────────────────────────────────────
+AUTHORED 255 · EXECUTED 255 · PASS 255 · FAIL 0

@@ -151,11 +151,16 @@ const MUSL_PAIRS = [
 // `§1.1` item 2 / `resolution.md §2.1` item 2 / `PAR-PUB-30` — rung two's declared path.
 const RUNG_TWO_TAIL = ['build', 'Release', 'storeroom_js_binding.node'].join(sep);
 // `docs/specs/storeroom-native/contract.md §8.1` — the closed set, carried and never minted (`§0.1` item 7).
+// **⟶ WIDENED TO `16` 2026-10-15 (`DEF-2026-10-15-Y`, the `stale-by-census` class).** The as-filed list
+// stopped at `FileCommitFailed`; **`§8.1`'s amended heading reads `16` members, each with its own trigger,
+// and its arithmetic is `11 + 2 + 1 + 1 + 1 = 16` ✓** (`§7.1` step 4-bis; `parameter-semantics.md §2.21`,
+// both dated 2026-10-15). **The figure MOVES; the list is still carried and never minted, and no cell
+// below is weakened** — including `P-PUB-7`'s discoverability count, which now reads over the widened set.
 const CLOSED_SET = [
   'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
   'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
-  'ValueNotAdmitted', 'FileCommitFailed',
+  'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
 ];
 // `§1.4` item 1 — the arm's status, carried VERBATIM, and the ONE member this unit's arm may carry.
 const ARM_STATUS = 'FilePathUnreachable';
@@ -749,7 +754,7 @@ function assertArm(report, { subject }) {
     '`§1.4` item 1: the member set is EXACTLY `{status, message}`');
   assert.equal(A.status, ARM_STATUS,
     '`PUB-DD-17`: the status is the store\'s own `FilePathUnreachable`, carried and never minted');
-  assert.ok(CLOSED_SET.includes(A.status), '`§0.1` item 7: no status outside the store\'s closed 15');
+  assert.ok(CLOSED_SET.includes(A.status), '`§0.1` item 7: no status outside the store\'s closed set');
   if (subject !== undefined) {
     assert.ok(A.message.includes(gen(subject)) || A.message === gen(subject),
       `the message is the store's generator's string at the subject; got ${JSON.stringify(A.message)}`);
@@ -1646,7 +1651,7 @@ cell('P-PUB-5', 'S-ONEARM the status is carried from the store\'s closed set, ne
   ];
   for (const r of drives) {
     const A = assertArm(r, {});
-    assert.ok(CLOSED_SET.includes(A.status), `the status ${JSON.stringify(A.status)} is a member of the store's closed 15`);
+    assert.ok(CLOSED_SET.includes(A.status), `the status ${JSON.stringify(A.status)} is a member of the store's closed ${CLOSED_SET.length}`);
     assert.equal(A.status, ARM_STATUS, 'and it is the same member in each direction');
     assert.ok(!/Mismatch|Version|Addon|Unreachable$|NotFound$/.test(A.status.replace('FilePathUnreachable', '')),
       'no package-minted token such as `AddonVersionMismatch` exists (`PUB-DD-17`\'s priced alternative, refused)');
@@ -2193,18 +2198,24 @@ cell('P-PUB-7', 'S-TYPES `index.d.ts` is present, authored, and listed', async (
 });
 
 cell('P-PUB-7', 'S-TYPES the `status` union is over a declared-but-open set', async () => {
-  // `§2.4` item 2 / `PUB-DD-3` / `distribution.md §5.3`: the fifteen members are DISCOVERABLE in the type
+  // `§2.4` item 2 / `PUB-DD-3` / `distribution.md §5.3`: the members are DISCOVERABLE in the type
   // AND AN UNKNOWN STATUS IS STILL TYPED — the union's members beside an explicit escape — and the set's
   // MEMBERSHIP is declared in the type's own prose as THE STORE'S and not the package's. An immutably
   // enumerated union is REFUSED.
+  //
+  // **⟶ THE FIGURE IN THIS CELL'S OWN PROSE MOVES `15 → 16` 2026-10-15 (`DEF-2026-10-15-Y`): `§8.1`'s
+  // amended heading carries `16` members (`11 + 2 + 1 + 1 + 1 = 16` ✓).** **THE ASSERTIONS DO NOT MOVE: the
+  // escape clause is still required, the membership is still the STORE'S, and the discoverability count is
+  // still `>= 11` — `index.d.ts` is not this pass's file, so the count is the DECLARED set's and the two
+  // figures are read off `CLOSED_SET.length` rather than printed by hand.**
   const path = join(PKG_DIR, 'index.d.ts');
   assert.ok(existsSync(path), 'the declaration file exists');
   const dts = readFileSync(path, 'utf8');
   assert.ok(/string\s*&\s*\{\s*\}/.test(dts) || /\|\s*string\b/.test(dts) || /\(string\s*&\s*\{\}\)/.test(dts),
-    'the union carries an ESCAPE so an unknown status is still typed; an immutable union of fifteen is REFUSED');
+    'the union carries an ESCAPE so an unknown status is still typed; an immutable union of the closed set is REFUSED');
   const discoverable = CLOSED_SET.filter((member) => dts.includes(member));
   assert.ok(discoverable.length >= 11,
-    `the set's members are DISCOVERABLE in the type (found ${discoverable.length} of 15)`);
+    `the set's members are DISCOVERABLE in the type (found ${discoverable.length} of ${CLOSED_SET.length})`);
   assert.ok(/store('s)?\b/i.test(dts), 'the set\'s membership is declared in the type\'s own prose as THE STORE\'S');
   for (const verb of ['storeCreate', 'readLiteral', 'unlisten']) {
     assert.ok(dts.includes(verb), `the declaration carries the entry's surface (${verb} missing)`);
@@ -4031,10 +4042,17 @@ cell('GUARD', 'the real entry still resolves IN PLACE at rung two', async () => 
   assert.ok(r.loads[0].endsWith(RUNG_TWO_TAIL), `the in-place load is rung two's path (${r.loads[0]})`);
   assert.ok(r.loads[0].startsWith(PKG_DIR + sep), 'and it is INSIDE the package, beside the entry module');
   assert.equal(r.value, 'v', 'the store works through that load');
-  assert.deepEqual(r.members, ['off', 'on', 'register'], 'the instance\'s own member set is unmoved');
+  assert.deepEqual(r.members, ['off', 'on', 'register', 'settle'],
+    'the instance\'s own member set as `surface.md §2.1` states it at `A116` (D1)–(D3): `settle` is the '
+    + 'ONE name the seam opened the set by, and the other three are UNMOVED (`§2.4` item 9; read here '
+    + 'through the real rung-two load and not through a stub)');
+  assert.equal(typeof r.members.includes === 'function' && r.members.includes('settle'), true,
+    'and the member that opened it is reached THROUGH THE IN-PLACE ENTRY\'s own product, which is the '
+    + 'only place `settle` is declared at (`§2.4` item 9: "not a ninth named export")');
   assert.deepEqual(r.verbs,
     ['delete', 'listen', 'read', 'readLiteral', 'rollback', 'storeCreate', 'unlisten', 'write'],
-    'the entry carries the EIGHT verbs and NOTHING else');
+    'the entry carries the EIGHT verbs and NOTHING else — `§2.9` item 1\'s count UNMOVED, so the seam '
+    + 'added no ninth verb and `settle` is not among them');
 });
 
 cell('GUARD', 'the in-place loop still resolves and works at rung two', async () => {
@@ -4045,7 +4063,10 @@ cell('GUARD', 'the in-place loop still resolves and works at rung two', async ()
   const api = await import('provident-storeroom');
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
   const store = api.storeCreate({ journalLength: 8, listeners: [] });
-  assert.deepEqual(Object.keys(store).sort(), ['off', 'on', 'register'], 'the instance\'s own member set is unmoved');
+  assert.deepEqual(Object.keys(store).sort(), ['off', 'on', 'register', 'settle'],
+    'the instance\'s own member set as `surface.md §2.1` states it at `A116` (D1)–(D3): the same FOUR '
+    + 'names the in-place entry\'s own product carries, read at the self-reference this cell resolves '
+    + 'through');
   api.write(store, ['k'], 'mem', 'v');
   assert.equal(api.read(store, ['k']), 'v', 'the store works in place at rung two');
   assert.equal(manifest.name, 'provident-storeroom',
