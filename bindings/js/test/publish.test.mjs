@@ -2143,7 +2143,9 @@ cell('P-PUB-6', 'S-SCOPE the five spellings agree across every home the contract
 // ---------------------------------------------------------------------------------------------
 // §5.7 P-PUB-7 — THE MAIN PACKAGE'S OWN SHAPE (`§2.1`–`§2.5`, `distribution.md §2`–`§5`)
 // ---------------------------------------------------------------------------------------------
-// STATES: `files` with and without `build/Release` · a binary shipped or not · the `types` field and the
+// STATES: `files` with and without `build/Release` · **`files`' FOURTH entry, the constraint kernel's own
+//   module (`§2.1` item 6, landed 2026-10-16 on `A122`) and the `LICENSE` row that stays refused beside it
+//   (item 5, in force)** · a binary shipped or not · the `types` field and the
 //   `.d.ts`'s presence · the `status` union's carriage · the licence field and its four sites · the six
 //   artefacts' notices · **the THREE metadata fields PRESENT and each resolving to the provenance's own
 //   source repository** · a secret in a tracked byte
@@ -2162,10 +2164,16 @@ cell('P-PUB-6', 'S-SCOPE the five spellings agree across every home the contract
 
 cell('P-PUB-7', 'S-MANIFEST `build/Release` leaves `files`, and no binary ships', async () => {
   // `§2.1` item 1 / `PUB-DD-1` / `PAR-PUB-3`: the allowlist is `index.mjs` · `README.md` · `index.d.ts` and
-  // NOTHING ELSE; NO binary ships, at any key, on any target.
+  // NOTHING ELSE; NO binary ships, at any key, on any target. **⟶ MOVED 2026-10-16 BY THE `A122` PASS, AND
+  // ONLY THIS EQUALITY MOVES: item `1`'s three names are THE RULE AS THAT ITEM AUTHORED IT and `§2.1` ITEM
+  // `6`, landed that date, is THE OPERATIVE READING — THE CONSTRAINT KERNEL'S OWN MODULE IS THE ARRAY'S
+  // FOURTH ENTRY (`A122`; `A121`), "the SAME FOUR ENTRIES are the whole of what the tarball ships", the
+  // entry stated by path as `src/constraint-kernel.mjs` RELATIVE TO THIS PACKAGE'S ROOT, `bindings/js/`.**
+  // The binary prohibition, the `postinstall` prohibition and the tracked-tree walk stand beside it.
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
-  assert.deepEqual([...(manifest.files ?? [])].sort(), ['README.md', 'index.d.ts', 'index.mjs'],
-    '`§2.1` item 1: exactly three entries');
+  assert.deepEqual([...(manifest.files ?? [])].sort(),
+    ['README.md', 'index.d.ts', 'index.mjs', 'src/constraint-kernel.mjs'],
+    '`§2.1` item 6: exactly FOUR entries, the fourth being the constraint kernel\'s own module');
   assert.ok(!(manifest.files ?? []).includes('build/Release'), '`build/Release` LEAVES `files`');
   assert.ok(!(manifest.files ?? []).some((f) => f.endsWith('.node')), 'no `.node` is published');
   assert.equal(manifest.scripts?.postinstall, undefined, '`PUB-DD-1`: no `postinstall` build-on-install route');
@@ -2389,10 +2397,17 @@ cell('P-PUB-7', 'S-MANIFEST the licence notice travels with all six artefacts', 
   // the five declared names, whatever they are spelled — which is why this line is re-emitted UNMOVED.
   const noticeBearing = ['provident-storeroom', ...FIVE_NAMES];
   assert.equal(noticeBearing.length, 6, '`distribution.md §6.3`: SIX artefacts carry a notice');
-  // **(1) THE MAIN PACKAGE'S OWN HALF, ASSERTED AS THE CONTRADICTION-FREE PAIR IT IS.** `§2.1` item 1 forbids
-  // a fourth allowlist entry, so the copy is an ARTEFACT-LEVEL fact and no `files` entry may carry it.
-  assert.deepEqual([...(mainManifest.files ?? [])].sort(), ['README.md', 'index.d.ts', 'index.mjs'],
-    '`§2.1` item 1: the main package\'s allowlist is `index.mjs` · `README.md` · `index.d.ts` and NOTHING ELSE');
+  // **(1) THE MAIN PACKAGE'S OWN HALF, ASSERTED AS THE CONTRADICTION-FREE PAIR IT IS.** `§2.1` ITEM `6`,
+  // LANDED 2026-10-16, fixes the allowlist at FOUR entries — the three above plus THE CONSTRAINT KERNEL'S
+  // OWN MODULE — while ITEM `5`, STILL IN FORCE, keeps the LICENCE COPY OUT OF IT. **SO THE TWO CLAUSES ARE
+  // READ TOGETHER AND THE PROHIBITION IS THE `LICENSE` ROW'S AND NOT "A FOURTH ENTRY"'S:** the copy is an
+  // ARTEFACT-LEVEL fact and no `files` entry may carry it, and the fourth entry the array DOES carry is the
+  // kernel's (`A122`; `A121`). ⟶ THE EQUALITY MOVES TO THE FOUR; THE `LICENSE` PROHIBITION BESIDE IT DOES NOT.
+  assert.deepEqual([...(mainManifest.files ?? [])].sort(),
+    ['README.md', 'index.d.ts', 'index.mjs', 'src/constraint-kernel.mjs'],
+    '`§2.1` item 6: the main package\'s allowlist is FOUR entries — `index.mjs` · `README.md` · `index.d.ts` · '
+    + 'the constraint kernel\'s `src/constraint-kernel.mjs` — and the kernel travels because it is behind the '
+    + 'surface, not beside it');
   assert.equal((mainManifest.files ?? []).includes('LICENSE'), false,
     'and therefore no `LICENSE` `files` entry exists — the copy is the assembly step\'s, not the allowlist\'s');
   assert.equal(mainManifest.license, 'AGPL-3.0', '`§2.3` item 1 site (i): the manifest\'s own field reads the declared spelling');
@@ -2451,6 +2466,13 @@ cell('P-PUB-7', 'S-MANIFEST the main package\'s identity, realm and one ESM entr
   }
   assert.equal(manifest.type, 'module', '`PAR-PUB-16`: the claimed realm is Node ESM alone');
   const exports_ = manifest.exports ?? {};
+  // **⟶ UNMOVED BY `A122`, ITS RATIONALE MOVED (the pass that measured this cell at `:2453–:2455` names it so,
+  // `archive/reviews/2026-10-16-constraints-publication-gate1.md §17.5`): THE CONSTRAINT KERNEL ARRIVES BEHIND
+  // THIS ONE ARM AND NOT BESIDE IT.** The kernel's module travels in `files` (`§2.1` item 6) and is NOT a
+  // separately reachable export — "the `exports` arm set is UNMOVED, the subpath shape is REFUSED BY NAME, and
+  // the kernel's five items stay INTERNAL ORCHESTRATION STAGES that no consumer verb exposes" — so the arm
+  // count and the two equalities below are this cell's own reading from this date as they were before it, and
+  // the prohibition they carry now bites on the subpath shape `A122` refuses.
   assert.deepEqual(Object.keys(exports_), ['.'], '`PAR-PUB-5`: exactly ONE arms-bearing entry, the ESM one');
   assert.deepEqual(Object.keys(exports_['.'] ?? {}), ['import'], 'no CJS arm, no wildcard, no deep import');
 });

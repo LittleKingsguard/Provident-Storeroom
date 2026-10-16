@@ -85,6 +85,22 @@ test('package_the_claim_is_node_esm_alone_through_exactly_one_arms_bearing_entry
   assert.equal(arms.length, 1, 'DD-24: EXACTLY ONE arms-bearing entry — the ESM one');
   assert.ok(arms[0].import, 'and it is the ESM arm');
   assert.equal(arms[0].require, undefined, 'HO-1: the package publishes NO CJS arm');
+  // **⟶ RE-READ 2026-10-16 BY THE `A122` PASS, AND THE EXPECTATION ABOVE DOES NOT MOVE BECAUSE THE RULING
+  // KEEPS THE ARM: *"the engine is BEHIND the package surface … THE KERNEL'S FIVE ITEMS ARE INTERNAL, not
+  // consumer API. There is NO second `exports` arm."*** **THE CONSTRAINT KERNEL'S MODULE ARRIVES IN `files`
+  // AND NOT IN THIS MAP** — it is not a separately reachable export and the subpath shape is REFUSED BY NAME
+  // (`docs/specs/storeroom-publish/distribution.md §2.1` item 6; `A122`) — **SO THE ONE-ARM EQUALITY IS THIS
+  // CELL'S OWN READING FROM THIS DATE AS IT WAS BEFORE IT, AND WHAT THE CELL GAINS IS THE PROHIBITION
+  // BESIDE IT: the kernel's own two spellings reach NO arm of this map, and a drive that found one there
+  // would have found the second entry `A122` refuses.** The count and the two subpath probes below are read
+  // together, so neither can be satisfied by moving the kernel from one home to the other.
+  for (const subpath of ['./src/constraint-kernel.mjs', './kernel', './constraint-kernel']) {
+    assert.equal(exportsMap[subpath], undefined,
+      `the subpath shape \`${subpath}\` is REFUSED BY NAME: the kernel is BEHIND the surface, not beside it`);
+  }
+  assert.equal(typeof api.manageConstraints, 'function',
+    'and the kernel is reached by NOTHING at this map: the surface\'s ninth named export is the whole of the '
+    + 'post-creation constraint route (`surface.md §2.12` item 2; `A123`)');
 });
 
 test('package_a_wildcard_export_and_a_deep_import_are_both_refused', (t) => {
