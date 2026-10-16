@@ -48,13 +48,13 @@
 #
 #    scripts/publish.sh                     # DRY RUN — measures, changes nothing
 #    scripts/publish.sh --check             # the preflight + the guard only
-#    scripts/publish.sh --bump 0.1.3        # writes the version and prose cells
-#    scripts/publish.sh --tag   0.1.3       # commits, tags, pushes the tag
-#    scripts/publish.sh --verify 0.1.3      # post-publish checks, read-only
+#    scripts/publish.sh --bump X.Y.Z        # writes the version and prose cells
+#    scripts/publish.sh --tag   X.Y.Z       # commits, tags, pushes the tag
+#    scripts/publish.sh --verify X.Y.Z      # post-publish checks, read-only
 #
 #  `--bump`, `--tag` and `--verify` each require `--yes` as well:
 #
-#    scripts/publish.sh --bump 0.1.3 --yes
+#    scripts/publish.sh --bump X.Y.Z --yes
 #
 # ==============================================================================
 
@@ -147,9 +147,13 @@ if git rev-parse -q --verify "refs/tags/v$MANIFEST_V" >/dev/null 2>&1; then
   TAG_SHA="$(git rev-parse "v$MANIFEST_V^{commit}")"
   AHEAD="$(git rev-list --count "$TAG_SHA..HEAD" 2>/dev/null || echo 0)"
   if [ "$AHEAD" -gt 0 ]; then
-    refuse "the manifest reads $MANIFEST_V, which is TAGGED AND RELEASED, but HEAD is $AHEAD commit(s) past that tag."
+    if [ "$MODE" = "bump" ]; then
+      warn "the manifest reads $MANIFEST_V, which is TAGGED AND RELEASED, but HEAD is $AHEAD commit(s) past that tag."
+    else
+      refuse "the manifest reads $MANIFEST_V, which is TAGGED AND RELEASED, but HEAD is $AHEAD commit(s) past that tag."
+    fi
     warn "    A build from this tree would be stamped '$MANIFEST_V' with bytes the registry's '$MANIFEST_V' does not have."
-    warn "    The tree claims a released version it is no longer. Resolve it by cutting the next PATCH:"
+    warn "    The tree claims a released version it is no longer. Resolve it by cutting the next release:"
     warn "        scripts/publish.sh --bump X.Y.Z --yes"
   else
     ok "the manifest's $MANIFEST_V matches its tag exactly, and the code has not moved since"
@@ -252,7 +256,7 @@ fi
 # ==============================================================================
 if [ "$MODE" = "bump" ]; then
   echo
-  say "BUMPING $CUR -> $TARGET  (PATCH; §2.5's order is binding)"
+  say "BUMPING $CUR -> $TARGET  (§2.5's order is binding)"
 
   # ---- carrier FIRST -------------------------------------------------------
   act "§2.5(1)" "the carrier: the proposal's sequence sentence names $TARGET" "the architect's, by this script"
