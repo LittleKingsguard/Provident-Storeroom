@@ -856,22 +856,29 @@ test('the_removal_order_is_validate_then_store_side_withdrawal_then_registry_rem
 //    BESIDE each other, so a cell cannot satisfy one by dropping the other.
 // =============================================================================================
 
-test('the_instance_member_set_is_register_on_off_settle_and_the_module_namespace_is_unchanged_at_the_eight_declared_verbs', async () => {
+test('the_instance_member_set_is_seven_own_members_and_the_module_namespace_is_at_the_eleven_declared_names', async () => {
   const inst = mem();
 
-  // --- (a) THE INSTANCE'S OWN MEMBER SET: `{ register, on, off, settle }` — FOUR OWN MEMBERS AND NOTHING
-  // ELSE. **⟶ RE-DERIVED AT THE `A116` ORDERING-SEAM PASS (2026-10-15) AT THE CLAUSE THAT OPENED IT, AND
-  // THE ID IS RENAMED WITH ITS SUBJECT:** `surface.md §2.1`'s dated clause now reads
-  // `{ register, on, off, settle }`, opened by ONE clause at `A116` (D1)–(D3) — the instance member set
-  // opens by exactly one name, `settle`, and by no second name — while `§2.4` item 9 keeps it "not a
-  // ninth named export" and the module namespace's OWN half of this cell is UNMOVED at the eight declared
-  // verbs, so a change that would accept a ninth VERB is a finding and not a pass. The OLD value (three
-  // members) is asserted NOWHERE: it is the reading the ruling withdraws.
+  // --- (a) THE INSTANCE'S OWN MEMBER SET: `{ register, on, off, settle, addConstraint, constraintOn,
+  // constraintOff }` — SEVEN OWN MEMBERS AND NOTHING ELSE. **⟶ RE-DERIVED AT THE `A116` ORDERING-SEAM PASS
+  // (2026-10-15) AT THE CLAUSE THAT OPENED IT, AND THE ID IS RENAMED WITH ITS SUBJECT:** `surface.md §2.1`'s
+  // dated clause as `A116` (D1)–(D3) opens it reads `{ register, on, off, settle }`, opened by ONE clause
+  // at `A116` (D1)–(D3) — the instance member set opens by exactly one name, `settle`, and by no second
+  // name — while `§2.4` item 9 keeps it "not a ninth named export" and the module namespace's OWN half of
+  // this cell is at the eleven declared names, so a change that would accept a wrong count on either half
+  // is a finding and not a pass. **⟶ AND BOTH SETS ARE RE-DERIVED AGAIN, 2026-10-16, BY `A126`: the member
+  // set above is displaced and the operative declared set is
+  // `{ register, on, off, settle, addConstraint, constraintOn, constraintOff }` — `§2.4` item 9 (f)'s dated
+  // clause of that date, FOUR UNMOVED PLUS THREE, `4 + 3 = 7` — while the namespace's own count moves to
+  // `8 + 3 = 11` at `§2.9` item 1's dated clause of the same date.** The OLDER value (three members, then
+  // four) is asserted NOWHERE: each is the reading a later ruling withdraws.
   assert.deepEqual(
     memberSet(inst),
-    ['off', 'on', 'register', 'settle'],
-    '`§2.1`\'s dated clause (a) as `A116` (D1)–(D3) opens it: the member set is '
-    + '`{ register, on, off, settle }` and NOTHING ELSE',
+    ['addConstraint', 'constraintOff', 'constraintOn', 'off', 'on', 'register', 'settle'],
+    '`§2.1`\'s dated clause (a) as `A116` (D1)–(D3) opens it and as `§2.4` item 9 (f)\'s dated clause of '
+    + '2026-10-16 re-derives it: the member set is '
+    + '`{ register, on, off, settle, addConstraint, constraintOn, constraintOff }`, SEVEN own members, '
+    + '`4 + 3 = 7`, and NOTHING ELSE',
   );
   assert.equal(typeof inst.on, 'function', '`on(address, listener)` is a member of the factory\'s own product');
   assert.equal(typeof inst.off, 'function', '`off(handle)` is a member of the factory\'s own product');
@@ -892,18 +899,21 @@ test('the_instance_member_set_is_register_on_off_settle_and_the_module_namespace
     + 'three members have, so a drive that reads the member set above and this member here reads ONE '
     + 'surface and not two');
 
-  // --- (b) **THE MODULE NAMESPACE IS UNCHANGED AT THE EIGHT DECLARED VERBS, AND NEITHER `on` NOR `off` IS
-  // ADDED TO THE ENTRY'S NAMED EXPORTS** — `§2.1`'s dated clause (b), *"because both are reached through the
+  // --- (b) **THE MODULE NAMESPACE IS AT THE EIGHT DECLARED VERBS PLUS THE THREE SURFACE FUNCTIONS
+  // `A126` DECLARES — ELEVEN, `8 + 3 = 11` — AND NEITHER `on` NOR `off` IS ADDED TO THE ENTRY'S NAMED
+  // EXPORTS** — `§2.1`'s dated clause (b), *"because both are reached through the
   // FACTORY'S OWN PRODUCT and through nothing else"* — so a drive asserts the count AND the absence of the
   // two names, and asserts that the FACTORY is still reachable so the cell cannot pass on an empty module.
   const namespace = await import('provident-storeroom');
   const names = Object.keys(namespace).sort();
   assert.deepEqual(
     names,
-    ['delete', 'listen', 'read', 'readLiteral', 'rollback', 'storeCreate', 'unlisten', 'write'],
-    '`§2.9` item 1\'s `8`-name count, UNMOVED: no ninth name and no name removed',
+    ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral',
+      'rollback', 'storeCreate', 'unlisten', 'write'],
+    '`§2.9` item 1\'s dated clause of 2026-10-16: the operative enumeration is the eight verbs plus the '
+    + 'THREE surface functions `A126` declares, `8 + 3 = 11`, and `11` is the whole of the namespace',
   );
-  assert.equal(names.length, 8, 'the count is EIGHT');
+  assert.equal(names.length, 11, 'the count is ELEVEN (`8 + 3 = 11`)');
   assert.equal(names.includes('on'), false, '`on` is NOT a named export — it is reached through the instance');
   assert.equal(names.includes('off'), false, '`off` is NOT a named export — it is reached through the instance');
   // The FACTORY is present in the same namespace, so the two absences are not the absence of the module.

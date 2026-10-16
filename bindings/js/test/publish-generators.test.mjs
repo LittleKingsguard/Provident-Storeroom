@@ -1185,12 +1185,13 @@ generator('NG-PUB-I', 'the shipped value type-checks against the declaration, an
   const shipped = measureAgainst('NG-PUB-I', null, () => {
     assertOpIsTheJournalRecord(dts);
     // THE SIX-ARTEFACT NOTICE CLAIM, AS THE DECLARED MECHANISM — the assembly step — NOT as a `files`
-    // entry: `§2.1` item 1 fixes the main package's allowlist as three entries and NOTHING ELSE, so the
+    // entry: `§2.1` item 6 fixes the main package's `files` array as FOUR entries and NOTHING ELSE, so the
     // copy cannot be a `files` entry and the claim is about the release's own assembly step (`§4.3` item 2).
     assertSixNotices(readme);
-    assertAllowlistIsThree(mainManifest.files ?? []);
+    assertAllowlistIsFour(mainManifest.files ?? []);
     assert.equal((mainManifest.files ?? []).includes('LICENSE'), false,
-      'and the copy is NOT a `files` entry — the allowlist refuses every fourth entry (`§2.1` item 1)');
+      'and the copy is NOT a `files` entry — the four-entry allowlist refuses the notice copy '
+      + '(`§2.1` item 6, read with item 5\'s prohibition)');
     assert.equal(mainManifest.license, 'AGPL-3.0', 'site (i) reads the declared spelling');
   });
   assert.equal(shipped.verdict, 'PASS', `NG-PUB-I: THE PROPERTY DOES NOT HOLD AT THE SHIPPED BYTES — ${shipped.why}`);
@@ -1201,7 +1202,7 @@ generator('NG-PUB-I', 'the shipped value type-checks against the declaration, an
     'control-readme-states-the-copy-is-not-carried': () =>
       assertSixNotices('/** THE LICENCE OF RECORD IS `AGPL-3.0`.** the licence copy does NOT travel with every artefact'),
     'control-manifest-lists-license-in-files': () =>
-      assertAllowlistIsThree(['index.mjs', 'README.md', 'index.d.ts', 'LICENSE']),
+      assertAllowlistIsFour(['index.mjs', 'README.md', 'index.d.ts', 'LICENSE']),
   };
   for (const [name, control] of Object.entries(controls)) {
     const result = measureAgainst('NG-PUB-I', name, control);
@@ -1218,9 +1219,12 @@ function assertSixNotices(readme) {
     '§2.3 item 2 / distribution.md §4.2 item 1: the shipped README declares that EACH OF THE SIX artefacts carries a copy');
   assert.ok(/assembly step/.test(normalized), 'and names the assembly step that lands the copy (`§4.3` item 2; `Q3-5`)');
 }
-function assertAllowlistIsThree(files) {
-  assert.deepEqual([...files].sort(), ['README.md', 'index.d.ts', 'index.mjs'],
-    '§2.1 item 1: the main package\'s allowlist is three entries and NOTHING ELSE');
+function assertAllowlistIsFour(files) {
+  assert.deepEqual([...files].sort(),
+    ['README.md', 'index.d.ts', 'index.mjs', 'src/constraint-kernel.mjs'],
+    '§2.1 item 6: the main package\'s `files` array is FOUR entries — `index.mjs` · `README.md` · '
+    + '`index.d.ts` plus the kernel\'s own package-root-relative path `src/constraint-kernel.mjs` — and '
+    + 'NOTHING BESIDE THEM');
 }
 
 // =============================================================================================

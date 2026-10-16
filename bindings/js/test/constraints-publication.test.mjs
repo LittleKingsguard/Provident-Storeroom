@@ -252,7 +252,7 @@ test('cp_a126_seven_own_members_the_storecreate_object_carries_seven_own_members
     '`§2.4` item 9 (f)\'s dated clause of 2026-10-16: the operative declared member set is '
     + '`{ register, on, off, settle, addConstraint, constraintOn, constraintOff }` — SEVEN own members, '
     + '`4 + 3 = 7`');
-  for (const [label, name] of [['the construction verb', 'storeCreate'], ['the listener member', 'on'],
+  for (const [label, name] of [['the registration site', 'register'], ['the listener member', 'on'],
     ['the withdrawal', 'off'], ['the ordering seam', 'settle']]) {
     assert.equal(typeof inst[name], 'function', `${label} \`${name}\` is UNMOVED in the same set`);
   }

@@ -759,9 +759,11 @@ test('fts_prop_P_TP_8_S_CENSUS_the_set_the_keys_and_the_rows_are_single_valued',
         `P-TP-8: the construction's declared arity is ${drawn} at this draw and no fifth key is added`);
       const store = storeCreate(cfg2.cfg);
       assert.equal(typeof store, 'object', 'P-TP-8: the drawn key set constructs');
-      // THE INSTANCE'S MEMBER SET, `4` own members and no ninth row anywhere.
-      assert.deepEqual(Object.getOwnPropertyNames(store).sort(), ['off', 'on', 'register', 'settle'],
-        'P-TP-8: `{ register, on, off, settle }` — FOUR own members and nothing else');
+      // THE INSTANCE'S MEMBER SET, `7` own members — `4 + 3 = 7` — and no ninth row anywhere.
+      assert.deepEqual(Object.getOwnPropertyNames(store).sort(),
+        ['addConstraint', 'constraintOff', 'constraintOn', 'off', 'on', 'register', 'settle'],
+        'P-TP-8: `{ register, on, off, settle, addConstraint, constraintOn, constraintOff }` — SEVEN own '
+        + 'members, `4 + 3 = 7`, and nothing else (`§2.4` item 9 (f)\'s dated clause of 2026-10-16)');
       assert.equal(register !== undefined && commit !== undefined && typeof runAttempt === 'function', true,
         'P-TP-8: the kernel\'s extent stays FIVE and no second register exists');
       // AND EVERY OP THE ATTEMPT CARRIES STANDS IN THE STORE'S OWN CLOSED SET AT ITS OWN RANK.

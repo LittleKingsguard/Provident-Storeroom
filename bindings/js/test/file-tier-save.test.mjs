@@ -1248,17 +1248,24 @@ test('fts_S_CENSUS_the_construction_declares_four_keys_and_no_fifth_is_added', a
 test('fts_S_CENSUS_no_rank_moves_no_ninth_register_row_and_no_second_register', async () => {
   const namespace = await import('provident-storeroom');
   const exported = Object.keys(namespace).sort();
-  assert.equal(exported.length, 8,
-    'S-CENSUS: the module namespace stays at `8` verbs — a ninth member is a declared-surface member and a '
-    + '`MINOR` change, and this amendment mints none (`surface.md §2.11` clause 7; `kernel-surface.md §1` '
-    + 'item 1 (i))');
+  assert.equal(exported.length, 11,
+    'S-CENSUS: the module namespace is at ELEVEN names — the `8` verbs plus the THREE surface functions '
+    + '`A126` declares, `8 + 3 = 11` (`§2.9` item 1\'s dated clause of 2026-10-16; `surface.md §2.11` '
+    + 'clause 7)`');
   assert.equal(exported.includes('settle'), false,
     'S-CENSUS: no named export is added for the seam — it is reached through `storeCreate`\'s own product '
     + 'alone');
+  for (const name of ['addConstraint', 'constraintOn', 'constraintOff']) {
+    assert.equal(exported.includes(name), true,
+      `S-CENSUS: \`${name}\` IS a named export of the entry — one of the THREE surface functions \`A126\` `
+      + 'declares (`§2.9` item 1\'s dated clause of 2026-10-16)');
+  }
   const f = newStore();
-  assert.deepEqual(Object.getOwnPropertyNames(f.store).sort(), ['off', 'on', 'register', 'settle'],
-    'S-CENSUS: the instance\'s member set stays `{ register, on, off, settle }` — FOUR own members and '
-    + 'nothing else (`surface.md §2.4` item 9 (f))');
+  assert.deepEqual(Object.getOwnPropertyNames(f.store).sort(),
+    ['addConstraint', 'constraintOff', 'constraintOn', 'off', 'on', 'register', 'settle'],
+    'S-CENSUS: the instance\'s member set is '
+    + '`{ register, on, off, settle, addConstraint, constraintOn, constraintOff }` — SEVEN own members, '
+    + '`4 + 3 = 7`, and nothing else (`surface.md §2.4` item 9 (f)\'s dated clause of 2026-10-16)');
 
   // THE REGISTER'S OWN ROW COUNT, read off its one home: `implementation-plan.md §10.9` declares `8` rows
   // (`3 + 3 + 2 = 8` ✓ at the cap `8 ≤ 8`) and NO NINTH ROW. FAIL-STATE: "a ninth register row or a second
@@ -1272,17 +1279,21 @@ test('fts_S_CENSUS_no_rank_moves_no_ninth_register_row_and_no_second_register', 
     'S-CENSUS: the register carries its `8` rows in their own order and no ninth row is minted');
 
   // THE PARAMETER SET'S OWN ROW COUNT: `parameter-semantics.md §1` is the index and its enumeration is the
-  // rows themselves; the OPERATIVE count is `21` and the two rows this amendment mints are `PAR-JS-20`
-  // (`commit`) and `PAR-JS-21` (`cfg.constraints`). This file's finding F4 records `§10.9` row 8's stale `20`.
+  // rows themselves; the OPERATIVE count is `25` — the `21` this amendment reached, PLUS the rows the
+  // `A126` pass of 2026-10-16 re-derived: `PAR-JS-22` (`constraint`, `§2.22`), `PAR-JS-23` (`instance`,
+  // `§2.23`), `PAR-JS-24` (`pair`, `§2.24`) and `PAR-JS-25` (the returned identity, `§2.25`) — and THIS
+  // FILE'S OWN COUNT IS THE MEASUREMENT (the row set the section prints), never the range its opening
+  // clause prints. This file's finding F4 records `§10.9` row 8's stale `20`.
   const ps = readFileSync(join(PACKAGE_DIR, '..', '..', 'docs', 'specs', 'storeroom-js',
     'parameter-semantics.md'), 'utf8');
   const parRows = [...ps.matchAll(/^\| \*\*`(PAR-JS-\d+)`\*\* \|/gm)].map((m) => m[1]);
-  assert.equal(parRows.length, 21,
-    'S-CENSUS: the parameter-semantics set is `21` rows — `15 + 1 + 1 + 1 + 1 + 1 + 1 = 21` ✓ '
-    + '(`parameter-semantics.md §1`\'s re-derived arithmetic; `surface.md §2.4` item 9 (g) item 3\'s '
-    + 'operative count)');
-  assert.equal(parRows[parRows.length - 1], 'PAR-JS-21', 'S-CENSUS: `PAR-JS-21` is the last row, unmoved');
-  assert.equal(new Set(parRows).size, 21, 'S-CENSUS: no existing `PAR-JS` row is renumbered or duplicated');
+  assert.equal(parRows.length, 25,
+    'S-CENSUS: the parameter-semantics file prints `25` rows — `21 + 4 = 25`, the `A126` pass re-deriving '
+    + '`PAR-JS-22` … `PAR-JS-25` (`parameter-semantics.md §1`\'s re-derived arithmetic; `surface.md §2.4` '
+    + 'item 9 (g) item 3\'s operative count, read at the rows the section itself prints)');
+  assert.equal(parRows[parRows.length - 1], 'PAR-JS-25',
+    'S-CENSUS: `PAR-JS-25` is the last row the section prints, the returned identity');
+  assert.equal(new Set(parRows).size, 25, 'S-CENSUS: no existing `PAR-JS` row is renumbered or duplicated');
   assert.equal(typeof (await kernel()).register, 'function', 'S-CENSUS: no second register exists');
 });
 
