@@ -171,3 +171,4 @@ archive/
 
 # The live battery's copy-drive (a duplicate of the checkout's own files, rebuilt by the report's own commands)
 scratch/live/install-0.2.0/drive/
+scratch/probe-shape-a/
