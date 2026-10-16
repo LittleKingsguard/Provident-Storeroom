@@ -33,7 +33,8 @@
   "files": [
     "index.mjs",
     "README.md",
-    "index.d.ts"
+    "index.d.ts",
+    "src/constraint-kernel.mjs"
   ],
   "optionalDependencies": {
     "@auspicion/provident-storeroom-js-linux-x64-gnu": "0.2.0",

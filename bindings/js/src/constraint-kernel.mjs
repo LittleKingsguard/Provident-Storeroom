@@ -465,7 +465,10 @@ export function commit(store, address, tier, value) {
 
   let written;
   try {
-    written = storeWrite(store, address, tier, value);
+    // **THE FIFTH POSITION** (`kernel-surface.md §1` item 5's dated spelling; `surface.md §2.12` item 1
+    // stage 2): the kernel drives the Rust store with the record identity `K-2` opened or joined, so the
+    // kernel's own store leg IS the entry's own write and its delivery is withheld for the terminal arm.
+    written = storeWrite(store, address, tier, value, record);
   } catch (refusal) {
     if (token !== null) kernel.held.delete(token);
     throw refusal;

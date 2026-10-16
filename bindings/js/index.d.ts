@@ -294,9 +294,14 @@ export interface CommitRecord {
 }
 
 /**
- * **THE INSTANCE `storeCreate` RETURNS — `{ register, on, off, settle }`, FOUR OWN MEMBERS AND NOTHING
- * ELSE** (`distribution.md §5.2` item 2 read with `surface.md §2.1`'s dated clause (a) and `§2.4` item 9).
- * **The instance's own state is released with the instance and by nothing else: none of the four is a
+ * **THE INSTANCE `storeCreate` RETURNS — `{ register, on, off, settle, addConstraint, constraintOn,
+ * constraintOff }`, SEVEN OWN MEMBERS AND NOTHING ELSE, `4 + 3 = 7`** (`distribution.md §5.2` item 2 read
+ * with `surface.md §2.4` item 9 (f)'s dated clause of 2026-10-16, `docs/decisions.md` · `A126`, and
+ * `§2.12`'s items 2–3, which declare the three's own shapes). **The `+3` are the THREE SURFACE FUNCTIONS** —
+ * the ADD route that CARRIES the constraint, and the `on`/`off` pair that enables and disables it — **and
+ * each is ONE FUNCTION OF THE SURFACE, the same declared arity of THREE positions the module namespace's
+ * own name carries: `instance`, `pair`, `constraint`.**
+ * **The instance's own state is released with the instance and by nothing else: none of the seven is a
  * release verb.**
  */
 export interface StoreInstance {
@@ -306,6 +311,26 @@ export interface StoreInstance {
   on(address: Address, listener: Listener): Handle;
   /** Withdraw the store-side home entry the `handle` names, and answer `undefined`. */
   off(handle: Handle): void;
+  /**
+   * **THE POST-CREATION ADD ROUTE — `addConstraint(instance, pair, constraint) -> constraint identity`**
+   * (`surface.md §2.12` item 2 (a) and item 3's ADD row; `parameter-semantics.md §2.25` = `PAR-JS-25`):
+   * **the pair's element IS the supplied `constraint` from this call on, whether the pair was HELD or NOT**,
+   * and at a pair already held the supplied constraint OVERWRITES the held one under **THE SAME IDENTITY**
+   * the pair was already added under, so the call throws nothing for the mere fact that the pair was held.
+   * **Every outside form of any of the three positions throws ONE `TypeError`, whose `status` member is
+   * ABSENT, and nothing is added, enabled, disabled or otherwise changed.**
+   */
+  addConstraint(instance: StoreInstance, pair: ConstraintPair, constraint: Constraint): ConstraintIdentity;
+  /** **THE ENABLE HALF** (`§2.12` item 2 (a) and item 3's `constraintOn` row): `undefined`. **The third
+   *  position is REQUIRED and is a NO-OP on every success** — the caller supplies as a function the identity
+   *  it holds at that pair, the entry never substitutes one, and it is the element the entry carried at that
+   *  pair that is evaluated at the next write. **Idempotent success where the pair already stands ENABLED.** */
+  constraintOn(instance: StoreInstance, pair: ConstraintPair, constraint: Constraint): void;
+  /** **THE DISABLE HALF** (`§2.12` item 2 (a) and item 3's `constraintOff` row): `undefined`; the pair's
+   *  element is NOT evaluated on a subsequent write, and **a write the disabled constraint would have refused
+   *  is ACCEPTED**. The third position's rule is `constraintOn`'s, clause for clause.
+   *  **Idempotent success where the pair already stands DISABLED.** */
+  constraintOff(instance: StoreInstance, pair: ConstraintPair, constraint: Constraint): void;
   /**
    * **THE ORDERING SEAM — `settle(record) -> undefined`** (`surface.md §2.4` item 9; `A116` (D1)–(D2);
    * `PAR-JS-19`): the one member THE KERNEL CALLS and the entry implements, at the two instants of a
@@ -354,6 +379,36 @@ export interface StoreInstance {
  * when neither yields a loadable artefact.
  */
 export function storeCreate(cfg: StoreConfig): StoreInstance;
+
+/**
+ * **THE POST-CREATION CONSTRAINT PAIR — `parameter-semantics.md §2.24` (`PAR-JS-24`)**: the key the three
+ * surface functions name — **an `address` inside `§1.5`'s segment array, and an `id` that is a NON-EMPTY
+ * `string`** — **and NOT the whole of a batch element**, which is this pair PLUS its constraint function.
+ * **Every outside form of the pair throws the three functions' one `TypeError`**, and **a well-formed pair
+ * the entry does not carry is outside the two toggles' domain**: it is NOT a third population route.
+ */
+export interface ConstraintPair {
+  readonly address: Address;
+  readonly id: string;
+}
+
+/**
+ * **THE CONSTRAINT FUNCTION — `parameter-semantics.md §2.22` (`PAR-JS-22`)**: a JS function, supplied by THE
+ * CALLER at whichever of the three functions it takes — **the ADD route's own argument** or the batch
+ * element's own — **invoked by the KERNEL with ONE argument, the attempt's own context**, and read for its
+ * answer (`kernel-surface.md §2.3` item 1: `true` is the only pass value). **Every non-function is outside
+ * the position AT EVERY ONE OF THE THREE FUNCTIONS**, and a non-function at the toggle's position is refused
+ * on the ARGUMENT's ground and never on the pair's.
+ */
+export type Constraint = (context: unknown) => unknown;
+
+/**
+ * **THE CONSTRAINT IDENTITY — `parameter-semantics.md §2.25` (`PAR-JS-25`)**: ONE OPAQUE VALUE THE PACKAGE
+ * OWNS, minted once per pair, **equal to itself on a second `addConstraint` at the SAME pair** (the
+ * overwrite arm) **and distinguishable from every other pair's**. **No spelling for it is declared, no
+ * accessor reaches a member of it, and a consumer compares identities and never contents.**
+ */
+export type ConstraintIdentity = object;
 
 /**
  * Read a leaf's literal, a branch's assembled value, or the empty address's whole register.
@@ -415,3 +470,37 @@ export function listen(instance: StoreInstance, address: Address): Handle;
 
 /** Withdraw a watching, and answer `undefined` — a no-op success for every value outside the domain. */
 export function unlisten(instance: StoreInstance, handle: Handle): void;
+
+/**
+ * **THE POST-CREATION ADD ROUTE — `addConstraint(instance, pair, constraint) -> constraint identity`**
+ * (`surface.md §2.12` item 2 (a), a named export of this entry by `§2.9` item 1's dated clause of 2026-10-16,
+ * `8 + 3 = 11`; `A126`). **THE ONE SUPPLY OF A POST-CREATION CONSTRAINT'S FUNCTION IS THIS CALL'S OWN THIRD
+ * POSITION**, and the element the entry carries at that pair IS the supplied function from this call on.
+ * **At a pair already HELD the supplied constraint OVERWRITES the held one and the call refuses nothing**
+ * (item 3's ADD row) — the returned identity is the SAME identity the pair was already added under.
+ * **The same function is an own member of `storeCreate`'s product**, with the same declared arity.
+ */
+export function addConstraint(
+  instance: StoreInstance,
+  pair: ConstraintPair,
+  constraint: Constraint,
+): ConstraintIdentity;
+
+/** **THE ENABLE HALF** (`§2.12` item 2 (a) and item 3's `constraintOn` row): `undefined`; the pair is
+ *  ENABLED and its element — **the element the entry carried at that pair, never a second constraint** — is
+ *  evaluated at the next write. **The third position is REQUIRED and is a NO-OP on every success.**
+ *  **Idempotent success at a pair already ENABLED.** */
+export function constraintOn(
+  instance: StoreInstance,
+  pair: ConstraintPair,
+  constraint: Constraint,
+): void;
+
+/** **THE DISABLE HALF** (`§2.12` item 2 (a) and item 3's `constraintOff` row): `undefined`; the pair is
+ *  DISABLED and **a write the disabled constraint would have refused is ACCEPTED**. The third position's rule
+ *  is `constraintOn`'s, clause for clause. **Idempotent success at a pair already DISABLED.** */
+export function constraintOff(
+  instance: StoreInstance,
+  pair: ConstraintPair,
+  constraint: Constraint,
+): void;

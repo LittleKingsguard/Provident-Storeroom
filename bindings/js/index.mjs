@@ -1472,7 +1472,14 @@ export function storeCreate(cfg) {
   // **`withheld` IS THE WRITE-IN-FLIGHT SET** (`§2.4` item 9's instant (a)): the record identities this
   // instance has adopted as kernel-driven writes, whose post-verb invocation this instance withholds.
   // It holds IDENTITIES and no function, no handle and no address.
-  const state = { id, tokens: new Map(), registry: new Map(), withheld: new Set(), adopted: new Set(), answered: new Map(), delivered: new WeakSet() };
+  // **`constraints` IS THE ENTRY'S OWN REGISTRY OF THE PAIRS IT CARRIES** (`surface.md §2.12` item 1's
+  // preamble clause (a)–(b)): keyed by `(address, id)`, holding the pair's element, its state and ITS
+  // address's own spelling — the three things `PAR-JS-24`, `§2.12` item 3's toggles and the write path's
+  // carriage rule read. **IT IS POPULATED BY THE ONE ACT BOTH ROUTES REACH AND BY NOTHING ELSE**
+  // (`carryConstraint` below), and **`leg` IS THE SLOT THE NESTED FIVE-POSITION CALL THE KERNEL'S STORE
+  // LEG MAKES LEAVES ITS OWN RETURNED RECORD IN**, so that a kernel-driven write answers the record its
+  // own write returned rather than a copy of it (`§2.12` item 1's stage 2).
+  const state = { id, tokens: new Map(), registry: new Map(), withheld: new Set(), adopted: new Set(), answered: new Map(), delivered: new WeakSet(), constraints: new Map(), leg: null };
   // **TWO STRUCTURES CARRY THE ADOPTION** (`§2.4` item 9 (a)–(b)): `adopted` holds the record identities
   // whose own write verb has NOT YET ANSWERED — the identity a write in flight is keyed by, and the one
   // identity per write the entry's own verb consumes — and `answered` is THE LEDGER, mapping each adopted
@@ -1507,8 +1514,31 @@ export function storeCreate(cfg) {
     settle(record) {
       return settleOn(state, record, arguments.length >= 1);
     },
+    /// `surface.md §2.12` item 2 (a) / `§2.4` item 9 (f)'s dated clause of 2026-10-16: **`addConstraint` ·
+    /// `constraintOn` · `constraintOff` — THE THREE SURFACE FUNCTIONS, carried on the factory's own product
+    /// as its own enumerable members.** **EACH IS ONE FUNCTION OF THE SURFACE** (`§2.4` item 9 (f)'s dated
+    /// clause, `4 + 3 = 7`): the SAME module-level function the namespace carries, with the same declared
+    /// arity of THREE positions — `instance`, `pair`, `constraint` — read at either home (`§2.12` item 2 (a)).
+    addConstraint,
+    constraintOn,
+    constraintOff,
   };
   INSTANCES.set(instance, state);
+  // **⟶ `§2.12` ITEM 1 CLAUSE (b): `storeCreate` REGISTERS EACH OF `cfg.constraints`' ELEMENTS THAT CARRIES
+  // ITS OWN FUNCTION AT `K-1`, AT THE INSTANCE IT IS CONSTRUCTING** — the SAME call the ADD route makes, so
+  // a batch-populated pair is a pair the entry carries on the same footing (`§2.12` item 3's preamble clause
+  // (a)). **A WELL-FORMED PAIR CARRYING NO FUNCTION IS NOT AN ELEMENT AND IS NOT REGISTERED**: it is read at
+  // the store's two validation instants (`PAR-JS-21`) and by nothing here.
+  if (isPlainObjectValue(cfg) && isAdmittedArray(cfg.constraints)) {
+    const list = cfg.constraints;
+    for (let i = 0; i < list.length; i += 1) {
+      const element = list[i];
+      const encoded = constraintEntry(element, i);
+      if (encoded.bad !== undefined) continue;
+      if (typeof element.constraint !== 'function') continue;
+      carryConstraint(state, instance, encoded.address.s, encoded.id, element.constraint);
+    }
+  }
   return instance;
 }
 
@@ -1570,6 +1600,17 @@ function commitPositionRefusal(commit) {
 
 export function write(instance, address, tier, value, commit) {
   const state = stateOf(instance);
+  // **⟶ `§2.12` ITEM 1, STAGE 1: A `write` CALLED WITH FOUR POSITIONS — `write(instance, address, tier,
+  // value)` — ENTERS THE KERNEL'S `K-2`**, where this instance carries a constraint at this write's
+  // address; the kernel's pass then evaluates every pair registered at that address and the two arms of
+  // `§2.12` item 1's fail arm are taken by the kernel's own acts. **A CARRYING ADDRESS IS THE WHOLE OF THIS
+  // GATE: an instance that carries no pair at this address takes the path this verb has always taken, and a
+  // FIVE-POSITION CALL IS THE KERNEL'S OWN STORE LEG AND NEVER ENTERS `K-2`** — item 1's stage 4 no-recursion
+  // clause: *"a five-position call can never start a second pass — and the call that carries an ADOPTED
+  // identity is item 3's own, so there is no recursion and need not be one"*.
+  if (arguments.length <= 4 && carriesConstraintAt(state, address)) {
+    return constraintWrite(state, instance, address, tier, value);
+  }
   let answer;
   try {
     // **THE CLASS TEST IS TAKEN BEFORE THE WALK AND BEFORE THE VERB** (`§2.4` item 9 (g) item 1): the
@@ -1610,6 +1651,10 @@ export function write(instance, address, tier, value, commit) {
     watched: answer.watched.map(decodeSegments),
     triggered: wrapHandles(state, answer.triggered),
   };
+  // **AND THE RECORD IS LEFT IN THE SLOT THE KERNEL'S STORE LEG READS** (`state.leg`; `§2.12` item 1's
+  // stage 2): a kernel-driven write takes the record THIS VERY WRITE returned and not a copy of it, and the
+  // slot is read before the pass that may write again, so a repair's own write can never be mistaken for it.
+  state.leg = record;
   // **THE INVOCATION WINDOW** (`§2.7` item 2, `DD-22`): the record above is COMPLETE before the window
   // opens, the invocation is SYNCHRONOUS, it happens AFTER the addon's call returned, and **its ONE
   // argument is the TRIGGERING ADDRESS** (`PAR-JS-12`).
@@ -2344,6 +2389,235 @@ function offAt(state, instance, handle) {
 /// and not of this sentence.**
 function deregister(state, handle) {
   state.registry.delete(handle);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+// THE POST-CREATION CONSTRAINT SET — `surface.md §2.12` items 1–5, `A126` (2026-10-16), AND ITS TWO ROUTES
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+//
+// **TWO ROUTES POPULATE THE SET AND NEITHER SUBSTITUTES FOR THE OTHER**: the BATCH, which `storeCreate`
+// registers at `K-1` as it constructs (clause (b) above), and the ADD route's own argument. **THE ENTRY
+// CARRIES A PAIR IF AND ONLY IF A FUNCTION STANDS REGISTERED AT THAT PAIR IN THE KERNEL'S OWN PAIR-KEYED
+// REGISTRY** — so `state.constraints` is that registry's record and the ONE act both routes reach is
+// `carryConstraint` below. **NOTHING OF `§2.6` SURVIVES THE MOVEOUT**: the engine is behind this surface,
+// the constraint and repair limbs are the kernel's, and this file owns only the form of what crosses.
+
+/// `parameter-semantics.md §2.17`'s dated clause, at this section's three sites: the THIRD position's own
+/// spelling, beside the two the `register` site already carries.
+const ARGUMENT_POSITION_THIRD = 'third argument';
+
+/// **THE KERNEL, RESOLVED ON THE FIRST CONSTRAINT ACT AND NEVER AT LOAD** (`kernel-surface.md §1` item 1;
+/// `A121`, `A122`). **IT IS NOT AN EXPORT AND NOT A SUBPATH**: the module is reached as a FILE, at the path
+/// the allowlist publishes it at. **AND THE RESOLUTION IS LAZY ON PURPOSE**: the entry must still LOAD where
+/// nothing is staged beside it — the publish and negative drives assemble trees carrying `index.mjs` alone
+/// — and a load-time import of `./src/` would make every one of those trees unable to reach the artefact
+/// they were built to drive. A drive that never carries and never asks for a constraint reaches no byte of
+/// the kernel.
+let KERNEL = null;
+function constraintsKernel() {
+  if (KERNEL === null) KERNEL = require_('./src/constraint-kernel.mjs');
+  return KERNEL;
+}
+
+/// `fail-surface.md §2` / `kernel-surface.md §2.2`'s `KC-1`…`KC-8`, read HERE for their ONE use: to tell a
+/// refusal the KERNEL raised from one a STORE VERB raised, so that `A120` (2) can be applied to the first
+/// and not to the second. **NO `KC` SPELLING CROSSES THIS SURFACE** (`§2.12` item 1's read-through clause:
+/// printed here it would be a second, unowned home for the kernel's own vocabulary).
+const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8'];
+
+/// THE PAIR'S OWN KEY — `(address, id)`, the key the kernel's registry is keyed by (`kernel-surface.md §2.2`
+/// item 4). The address half is JSON's own spelling of the segment array, which is TOTAL over every address
+/// the pair's domain admits and collides across no two of them.
+function constraintPairKey(address, id) {
+  return `${JSON.stringify(address)}\u0000${id}`;
+}
+
+/// **THE ONE REFUSAL `§2.12` ITEM 4 DECLARES, TAKEN BEFORE ANY ACT AND LEAVING NOTHING CHANGED** — a JS
+/// `TypeError`, its `status` member ABSENT, no `message` member of this unit's own, **the store's closed
+/// `16`-member set neither minted nor widened, and the store reached by no call this refusal makes.**
+function constraintRefuse(where, value) {
+  throw new TypeError(
+    `the ${where} of this call is ${classSpelling(value)}, and it is not a value this position's domain `
+    + 'admits',
+  );
+}
+
+/// **`§2.12` ITEM 4'S THREE POSITIONS, CLASS FIRST AND IN THEIR DECLARED ORDER** (`PAR-JS-22`–`PAR-JS-24`).
+/// **NOTHING BELOW RUNS UNLESS ALL THREE HAVE PASSED** (`A81`), so a refused call performs no store call,
+/// no registry write and no `K-1` — atomicity by the validation's POSITION.
+function constraintSite(verb, instance, pair, constraint) {
+  const state = INSTANCES.get(instance);
+  if (state === undefined) constraintRefuse(`instance at the ${ARGUMENT_POSITION_FIRST} of \`${verb}\``, instance);
+  if (!isPlainObjectValue(pair)
+    || !Object.hasOwn(pair, 'address')
+    || pair.address === undefined) {
+    constraintRefuse(`pair at the ${ARGUMENT_POSITION_SECOND} of \`${verb}\``, pair);
+  }
+  const encoded = constraintAddress(pair.address);
+  if (typeof encoded === 'string'
+    || !Object.hasOwn(pair, 'id')
+    || pair.id === undefined
+    || typeof pair.id !== 'string'
+    || pair.id === '') {
+    constraintRefuse(`pair at the ${ARGUMENT_POSITION_SECOND} of \`${verb}\``, pair);
+  }
+  if (typeof constraint !== 'function') {
+    constraintRefuse(`constraint at the ${ARGUMENT_POSITION_THIRD} of \`${verb}\``, constraint);
+  }
+  return { state, address: encoded.s, id: pair.id };
+}
+
+/// **THE ONE ACT THAT MAKES A PAIR A PAIR THE ENTRY CARRIES** (`§2.12` item 1's preamble clause (a)–(b)):
+/// `K-1` AT THE INSTANCE — the key at its own positions and the caller's function at the fourth, which is
+/// the SAME call `storeCreate`'s batch registration makes — and THE ENTRY'S OWN RECORD BESIDE IT, whose
+/// `enabled` member is the pair's state and whose identity is THE PAIR'S OWN OPAQUE VALUE (`PAR-JS-25`).
+/// **THE IDENTITY IS THE RECORD AND IS MINTED ONCE PER PAIR**: a second ADD at the same pair overwrites the
+/// element and answers THIS SAME VALUE, and two pairs answer two values.
+function carryConstraint(state, instance, address, id, constraint) {
+  constraintsKernel().register(instance, address, id, constraint);
+  const entry = { address, addressKey: JSON.stringify(address), id, fn: constraint, enabled: true };
+  state.constraints.set(constraintPairKey(address, id), entry);
+  return entry;
+}
+
+/// **THE DISABLED PAIR'S STANDING ELEMENT** — a function that PASSES (`kernel-surface.md §2.3` item 1:
+/// `true` is the only pass value). **THE ELEMENT IS PARKED AND NEVER WITHDRAWN**: `constraintOn` re-registers
+/// `entry.fn`, so *"it is the element the entry carried at that pair — never a second constraint and never a
+/// re-registration"* (`§2.12` item 3's `constraintOn` row).
+function constraintParked() {
+  return true;
+}
+
+/// **A WELL-FORMED PAIR THE ENTRY DOES NOT CARRY — `§2.12` item 3's second answered question and
+/// `PAR-JS-24`'s second declared answer: at EITHER toggle, in EITHER direction, an OUTSIDE VALUE taking
+/// item 4's refusal, ONE THROWN `TypeError`, THE ENTRY NOT WIDENED.** It is NOT a third population route:
+/// were the entry widened with the function the refused call carried, a pair would stand ENABLED WITH NO
+/// FUNCTION — a state no clause of that directory declares.
+function constraintUncarried(verb, pair) {
+  throw new TypeError(
+    `the pair at the ${ARGUMENT_POSITION_SECOND} of \`${verb}\` carries no constraint in this instance, and `
+    + 'a toggle names a pair the entry carries',
+  );
+}
+
+/**
+ * **`§2.12` ITEM 2 (a): `addConstraint(instance, pair, constraint) -> constraint identity` — THE ADD ROUTE,
+ * WHICH CARRIES THE FUNCTION.**
+ *
+ * **ITS TARGET STATE AT THE PAIR IS *"the pair's element IS the supplied `constraint`, whether the pair was
+ * HELD or NOT"*, AND THE HELD ARM IS AN OVERWRITE AND NOT A THROW**: *"where the pair was already held, the
+ * supplied constraint OVERWRITES the held one … and the call REFUSES NOTHING and THROWS NOTHING for the mere
+ * fact that the pair was held"* — the SAME identity the pair was already added under is returned.
+ */
+export function addConstraint(instance, pair, constraint) {
+  const site = constraintSite('addConstraint', instance, pair, constraint);
+  const key = constraintPairKey(site.address, site.id);
+  const held = site.state.constraints.get(key);
+  if (held === undefined) return carryConstraint(site.state, instance, site.address, site.id, constraint);
+  constraintsKernel().register(instance, site.address, site.id, constraint);
+  held.fn = constraint;
+  held.enabled = true;
+  return held;
+}
+
+/**
+ * **`§2.12` ITEM 2 (a): `constraintOn(instance, pair, constraint) -> undefined` — THE ENABLE HALF.**
+ *
+ * **IDEMPOTENT SUCCESS AT A PAIR ALREADY ENABLED** (item 3's first answered question): `undefined`, the pair
+ * and its element EXACTLY as they stood, and NOTHING THROWN. **THE THIRD POSITION IS REQUIRED AND IS A
+ * NO-OP ON EVERY SUCCESS** (`item 3`'s `constraintOn` row): a FUNCTION there is never refused on the pair's
+ * ground, the entry NEVER SUBSTITUTES ONE, and it is `entry.fn` — the element the entry carried — that is
+ * evaluated at the next write.
+ */
+export function constraintOn(instance, pair, constraint) {
+  const site = constraintSite('constraintOn', instance, pair, constraint);
+  const entry = site.state.constraints.get(constraintPairKey(site.address, site.id));
+  if (entry === undefined) constraintUncarried('constraintOn', pair);
+  if (entry.enabled === false) {
+    constraintsKernel().register(instance, site.address, site.id, entry.fn);
+    entry.enabled = true;
+  }
+  return undefined;
+}
+
+/**
+ * **`§2.12` ITEM 2 (a): `constraintOff(instance, pair, constraint) -> undefined` — THE DISABLE HALF.**
+ *
+ * **IDEMPOTENT SUCCESS AT A PAIR ALREADY DISABLED** (item 3's first answered question), and **A WRITE THE
+ * DISABLED ELEMENT WOULD HAVE REFUSED IS ACCEPTED**: the element is not evaluated on any subsequent write.
+ * The third position's rule is `constraintOn`'s, clause for clause.
+ */
+export function constraintOff(instance, pair, constraint) {
+  const site = constraintSite('constraintOff', instance, pair, constraint);
+  const entry = site.state.constraints.get(constraintPairKey(site.address, site.id));
+  if (entry === undefined) constraintUncarried('constraintOff', pair);
+  if (entry.enabled === true) {
+    constraintsKernel().register(instance, site.address, site.id, constraintParked);
+    entry.enabled = false;
+  }
+  return undefined;
+}
+
+/// **WHETHER THIS INSTANCE CARRIES A PAIR AT THIS WRITE'S ADDRESS** (`§2.12` item 1's preamble clause (a)) —
+/// the gate stage 1 takes before the kernel is reached at all. **THE CLASS DECISION COMES FIRST AND NO TRAP
+/// IS RUN ON ANY PATH** (`DD-34`): a `Proxy` address, a class extending `Array` and every non-array lies
+/// outside every pair's own address domain, so no pair of this entry can stand at one.
+function carriesConstraintAt(state, address) {
+  if (state.constraints.size === 0) return false;
+  if (types.isProxy(address) || !isAdmittedArray(address)) return false;
+  const key = JSON.stringify(address);
+  for (const entry of state.constraints.values()) {
+    if (entry.addressKey === key) return true;
+  }
+  return false;
+}
+
+/**
+ * **THE KERNEL-DRIVEN WRITE — `§2.12` ITEM 1'S FIVE STAGES, TAKEN IN THEIR ONE ORDER.**
+ * ```
+ *   1. K-2      the attempt is opened at this address, or the address's own live attempt is JOINED
+ *   2. the store leg     the kernel's own call on this entry's `write`, FIVE POSITIONS, the record
+ *                        identity its fifth position carries — so the delivery of that write's handles
+ *                        is WITHHELD here and owed to stage 5
+ *   3. K-3      the pass: every pair registered at this address, each against this op's own value
+ *   4. K-3      the attempt's terminal arm — the pass's, or the floor's where a save failed
+ *   5. settle   the residue the record's `pending` carries, delivered at instant (b), failing arm alone
+ * ```
+ * **THE CALLER MEETS A THROW INSTEAD OF A RETURN ON THE FAILING ARM, AND THE STORE'S OWN VERB PRODUCED
+ * NEITHER FORM** (`§1.2` item 2): see `constraintCrossing` for what crosses.
+ */
+function constraintWrite(state, instance, address, tier, value) {
+  const kernel = constraintsKernel();
+  let record;
+  try {
+    record = kernel.commit(instance, address, tier, value);
+  } catch (refusal) {
+    constraintCrossing(refusal);
+  }
+  const answer = state.leg;
+  try {
+    kernel.runAttempt(instance, record);
+  } catch (refusal) {
+    constraintCrossing(refusal);
+  }
+  return answer;
+}
+
+/// **THE FAIL ARM'S CROSSING — `A120` (2): THE ENTRY CARRIES THE KERNEL'S TOKEN, THE THROW KEEPS THE
+/// STORE'S.** `§2.12` item 1's read-through clause fixes what crosses here: **A PLAIN OBJECT OF EXACTLY THE
+/// TWO MEMBERS `status` AND `message`, `status` A STRING DRAWN FROM THE STORE'S CLOSED `16`-MEMBER SET, the
+/// kernel's third member `log` ABSENT AND UNREACHABLE.** The member `status` carries is the store's
+/// `FileCommitFailed`, because no caller-side status can carry a `KC` token and a constraint-refused write
+/// is a commit that did not stand. **A STORE VERB'S OWN REFUSAL CROSSES VERBATIM AND UNCONVERTED** (`§1.2`).
+function constraintCrossing(refusal) {
+  const status = refusal !== null && typeof refusal === 'object' ? refusal.status : undefined;
+  if (typeof status !== 'string' || KC_TOKENS.includes(status) === false) throw refusal;
+  throw {
+    status: 'FileCommitFailed',
+    message: typeof refusal.message === 'string'
+      ? refusal.message
+      : 'the write was refused by a constraint of this attempt',
+  };
 }
 
 // `delete` is a reserved word and the declared spelling is preserved on the way out.
