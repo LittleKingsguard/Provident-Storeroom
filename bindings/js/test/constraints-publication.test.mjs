@@ -59,8 +59,15 @@
 //   delivers NO listener of the failing write.
 // FAIL-STATES (`§2.12` item 4; `PAR-JS-22`/`PAR-JS-23`/`PAR-JS-24`'s outside-value cells): the `instance`
 //   position — ABSENT · `null` · `undefined` · a non-object (`number` · `string` · `boolean` · `symbol` ·
-//   `bigint` · a function) · an object that is not the one `storeCreate` returned (a second instance and the
-//   pair itself included); the `pair` position — ABSENT · `null` · `undefined` · a non-object · a function ·
+//   `bigint` · a function) · an object that is not the one `storeCreate` returned (the plain pair, an empty
+//   object and the pair itself included). **AND THE ONE ENTRY THAT CELL ONCE CARRIED IS WITHDRAWN BY THE
+//   SUPERVISOR'S DETERMINATION OF 2026-10-16 (`archive/reviews/2026-10-16-constraints-publication-gate1.md
+//   §21`): *"an instance another `storeCreate` call returned"* is a CATEGORY ERROR at this position, so the
+//   `PAR-JS-23` `domain` cell now reads *"THE OBJECT `storeCreate` RETURNED — ONE PER CALL, AND ANY OF THEM
+//   IS IN DOMAIN: the `instance` position is a SELECTOR over this package's own instance handles, not a
+//   predicate over one particular call's product, so a call naming a handle ANOTHER `storeCreate` call
+//   returned PROCEEDS and its act LANDS IN THAT INSTANCE'S REGISTRY"* — and the SELECTOR's own cell below
+//   (`cp_instance_is_a_selector_…`) is the one drive of that positive semantics, never a refusal; the `pair` position — ABSENT · `null` · `undefined` · a non-object · a function ·
 //   an array · an object whose `address` is ABSENT or outside `§1.5`'s segment array · an object whose `id`
 //   is ABSENT or not a `string`; the `constraint` position — ABSENT · `null` · `undefined` · a number · a
 //   string · a boolean · a symbol · a bigint · an object · an array · a `PAR-JS-8` listener handle — each
@@ -95,9 +102,15 @@
 //     TWELVE `operation` STRING CELLS THEMSELVES (`'ADD'` · `'remove'` · `'delete'` · `'set'` · `''` and the
 //     non-strings) HAVE NO SUCCESSOR: the `operation` position does not exist at the re-derived route, so
 //     no value can be outside its domain** (`§2.12` item 2's re-derived clause; `RCA-8(g)`'s move-out).
-// S8. `cp_fail_outside_pair_…` / `cp_fail_outside_instance_…` → RE-DERIVED as cells 20 and 19, each driven at
-//     ALL THREE functions; the pair row's ONE new state — a well-formed pair the entry does not carry — is
-//     cell 13.
+// S8. `cp_fail_outside_pair_…` → RE-DERIVED as cell 20, driven at ALL THREE functions; the pair row's
+//     ONE new state — a well-formed pair the entry does not carry — is cell 13. **AND
+//     `cp_fail_outside_instance_…` → RE-DERIVED AS CELL 19, THE SELECTOR'S OWN CELL, POSITIVE AND NOT A
+//     REFUSAL**, on the supervisor's determination recorded at
+//     `archive/reviews/2026-10-16-constraints-publication-gate1.md §21`: `PAR-JS-23`'s `instance` position
+//     is a SELECTOR over this package's own instance handles — *"any object `storeCreate` returned is in
+//     its domain, and the act POPULATES THE REGISTRY OF THE INSTANCE NAMED"* — so the outside-value cell's
+//     *"an instance another `storeCreate` call returned"* entry is WITHDRAWN AS A CATEGORY ERROR and the
+//     cell is re-derived, NEVER DELETED; its ten remaining values still carry the duty at cell 19.
 // S9. The write-path cells → RE-DERIVED as cells 15–16 (`§2.12` item 1), the fail arm's crossing form being
 //     DECLARED by that item's read-through clause of this date, so the old cell's refusal to assert the
 //     form is retired.
@@ -755,7 +768,12 @@ test('cp_anti_pattern_an_external_supply_carrying_pending_is_adopted_and_refused
 // §7  THE THREE POSITIONS' OUTSIDE VALUES — `§2.12` item 4; `PAR-JS-22`, `PAR-JS-23` and `PAR-JS-24`
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('cp_fail_outside_instance_is_one_typeerror_and_changes_nothing', () => {
+test('cp_fail_outside_instance_is_one_typeerror_at_every_value_that_remains_outside', () => {
+  // THE TEN VALUES THE WITHDRAWAL LEAVES IN PLACE (`PAR-JS-23`'s `the values OUTSIDE it` cell, read at its
+  // own remaining entries; `§2.12` item 4): the ONE entry the supervisor's determination of 2026-10-16
+  // withdrew — *"an instance another `storeCreate` call returned"* — is NAMED AS WITHDRAWN and is NOT in
+  // the list below; the cell that follows this one drives it at its positive semantics instead, and no
+  // value that remains outside the domain loses its refusal duty to that withdrawal.
   for (const name of THREE) {
     assert.equal(typeof api[name], 'function',
       `the surface function \`${name}\` exists before its refusals can be read (\`§2.12\` item 2)`);
@@ -768,8 +786,10 @@ test('cp_fail_outside_instance_is_one_typeerror_and_changes_nothing', () => {
     ['a boolean', true], ['a symbol', Symbol('instance')], ['a bigint', 1n], ['a function', () => {}],
     ['the pair itself', thePair],
     ['an object that is not the one `storeCreate` returned', {}],
-    ['ANOTHER instance', other],
   ];
+  assert.equal(OUTSIDE.some(([, value]) => value === other), false,
+    'PREMISE: the withdrawn entry is not driven here — a handle another `storeCreate` call returned is IN '
+    + 'DOMAIN and its own cell drives it as the proceeding call it is (`PAR-JS-23`\'s `domain` cell)');
   for (const name of THREE) {
     for (const [where, value] of OUTSIDE) {
       const r = capture(() => api[name](value, thePair, passing(counter())));
@@ -783,9 +803,111 @@ test('cp_fail_outside_instance_is_one_typeerror_and_changes_nothing', () => {
     assertNewRefusal(capture(() => api[name]()).thrown, `\`${name}\`: all three positions ABSENT`);
   }
   assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), SEVEN_MEMBERS,
-    'and the refusals on a foreign instance changed nothing of this one');
+    'and the refusals on a value outside the domain changed nothing of this instance');
   assert.equal(Object.keys(api).length, 11,
     'and the module namespace stands at its eleven declared names, so no refusal minted a name');
+});
+
+test('cp_instance_is_a_selector_the_act_lands_in_the_registry_of_the_instance_named', () => {
+  // THE SUPERVISOR'S DETERMINATION, DERIVED AND NOT REOPENED (`archive/reviews/
+  // 2026-10-16-constraints-publication-gate1.md §21`): **THE `instance` FIRST POSITION IS A SELECTOR, NOT A
+  // PREDICATE — ANY OBJECT `storeCreate` RETURNED IS IN ITS DOMAIN, AND THE ACT POPULATES THE REGISTRY OF
+  // THE INSTANCE NAMED** — the shape `listen(instance, address)` already pins and the shape `A126`'s
+  // *"similar to listeners"* carries, and this cell is that determination's POSITIVE arm. **THE CELL THIS
+  // ONE REPLACES IS NAMED RATHER THAN QUIETLY DELETED**: `cp_fail_outside_instance_is_one_typeerror_and_
+  // changes_nothing` required a FOREIGN instance to be REFUSED, which was unsatisfiable jointly with the
+  // sixteen green siblings whose `inst` is a product of the same `makeStore()`, and its ground — the
+  // `PAR-JS-23` `domain` cell's *"FOR THIS INSTANCE"* — was VACUOUS at these three sites, because the
+  // instance's only referent IS the first argument being tested. THE TEN VALUES THAT REMAIN OUTSIDE THE
+  // DOMAIN KEEP THE REFUSAL DUTY AND ARE DRIVEN BELOW.
+  for (const name of THREE) {
+    assert.equal(typeof api[name], 'function',
+      `the surface function \`${name}\` exists before its domain can be driven (\`§2.12\` item 2)`);
+  }
+  const inst = makeStore();
+  const other = makeStore();
+  const thePair = pair('cp-sel', 's1');
+  const body = counter();
+  const element = refusing(body);
+  // (1) THE CALL PROCEEDS — no throw on any of the three functions, `other` being a handle `storeCreate`
+  // returned and therefore IN DOMAIN by `PAR-JS-23`'s re-derived `domain` cell.
+  const added = capture(() => api.addConstraint(other, thePair, element));
+  assert.equal(added.threw, false,
+    'a call whose `instance` is the object ANOTHER `storeCreate` call returned PROCEEDS: the position is a '
+    + 'SELECTOR over this package\'s own instance handles, not a predicate over one particular call\'s '
+    + 'product (`PAR-JS-23`\'s `domain` cell; the same shape `§2.10`\'s `listen(instance, address)` pins)');
+  assert.notEqual(added.value, undefined,
+    'and it returns the pair\'s constraint identity like every success of the ADD route (`§2.12` item 3; '
+    + '`PAR-JS-25`)');
+  // (2) IT LANDS IN THE NAMED INSTANCE'S REGISTRY — the drivable observable is a write AT THE NAMED
+  // INSTANCE, which the element now refuses.
+  assert.equal(body.runs, 0, 'PREMISE: the element has not been evaluated yet');
+  const at = body.runs;
+  const atOther = capture(() => api.write(other, thePair.address, 'mem', 1));
+  assert.equal(atOther.threw, true,
+    'the element stands in THE NAMED INSTANCE\'S registry: a write through the instance the call NAMED is '
+    + 'refused by it');
+  assert.equal(body.runs >= at + 1, true,
+    `and it is THAT element\'s body that ran at that write — it ran ${body.runs} time(s)`);
+  const back = capture(() => api.read(other, thePair.address, 'mem'));
+  assert.ok(back.threw === true || back.value !== 1,
+    'and the refused landing does not stand at that address in the named instance');
+  // (3) AND NOT IN THE CALLER'S OWN — driven twice and independently, so neither reading alone is the ground.
+  const atMine = body.runs;
+  const atMineWrite = capture(() => api.write(inst, thePair.address, 'mem', 2));
+  assert.equal(atMineWrite.threw, false,
+    'and THE CALLER\'S OWN INSTANCE CARRIES NOTHING AT THAT PAIR: a write at the same address through the '
+    + 'instance that MADE the call is not gated by the element the call carried (`§2.12` item 1\'s preamble '
+    + 'clause (a): the entry carries a pair if and only if a function stands registered at it)');
+  assert.equal(body.runs, atMine,
+    'and that element was not evaluated at the caller\'s own write: nothing reached it');
+  // (a) THE TOGGLE AT THE CALLER'S OWN INSTANCE REFUSES — the second, independent reading of the same
+  // non-carriage, taken at the route whose observable is its own: it names a pair the caller's entry does
+  // not carry (`§2.12` item 3's second answered question; `PAR-JS-24`'s second declared answer).
+  for (const name of ['constraintOff', 'constraintOn']) {
+    const reached = capture(() => api[name](inst, thePair, element));
+    assert.equal(reached.threw, true,
+      `\`${name}\` at the caller's OWN instance names a pair that entry does not carry and is refused — so `
+      + 'the element did not land in the caller\'s registry (`§2.12` item 3\'s second answered question)');
+    assertNewRefusal(reached.thrown, `\`${name}\` at the caller's own instance for a pair the named one carries`);
+  }
+  const still = capture(() => api.write(other, thePair.address, 'mem', 3));
+  assert.equal(still.threw, true,
+    'AND THOSE REFUSALS DID NOT REACH THE NAMED INSTANCE: its pair still stands ENABLED and still refuses');
+  // (b) THE TOGGLE AT THE NAMED INSTANCE IS THE WORKING OBSERVABLE, and it is the named element that moves.
+  assert.equal(api.constraintOff(other, thePair, element), undefined,
+    '`constraintOff` AT THE NAMED INSTANCE answers `undefined` (`§2.12` item 3, the `constraintOff` row)');
+  const after = capture(() => api.write(other, thePair.address, 'mem', 4));
+  assert.equal(after.threw, false,
+    'and a write the disabled element would have refused IS ACCEPTED — THE DISABLE REACHED THE NAMED '
+    + 'INSTANCE\'S REGISTRY and no other (`§2.12` item 3)');
+  assert.deepEqual(Object.keys(after.value ?? {}).sort(), ['op', 'triggered', 'watched'],
+    'and the accepted write is the declared three-member record (`§2.2`\'s signature block)');
+  assert.equal(body.runs, atMine + 1,
+    'and it is the ELEMENT THE NAMED INSTANCE CARRIED that ran, once: the toggle never substituted the '
+    + 'caller\'s argument (`§2.12` item 3)');
+  // (c) THE ENABLE HALF AT THE NAMED INSTANCE, SO THE SELECTOR IS DRIVEN AT ALL THREE OF THE FUNCTIONS THE
+  // DETERMINATION NAMES AND NOT AT ONE ALONE.
+  const atNamed = body.runs;
+  assert.equal(api.constraintOn(other, thePair, element), undefined,
+    '`constraintOn` AT THE NAMED INSTANCE answers `undefined` (`§2.12` item 3, the `constraintOn` row)');
+  const armed = capture(() => api.write(other, thePair.address, 'mem', 5));
+  assert.equal(armed.threw, true,
+    'AND THE ELEMENT IS EVALUATED AGAIN AT THE NAMED INSTANCE\'S OWN WRITE — the enable reached THE NAMED '
+    + 'REGISTRY and no other (`§2.12` item 3)');
+  assert.equal(body.runs, atNamed + 1,
+    'and it is the one element the named instance carried that ran, once, at that write');
+  assert.equal(api.addConstraint(other, thePair, element), added.value,
+    'and THE IDENTITY IS THE PAIR\'S OWN and is not re-minted by the route that reached it — the same '
+    + 'identity the first call returned (`PAR-JS-25`\'s `domain` cell: "equal to itself on a SECOND '
+    + '`addConstraint` at the SAME pair")');
+  // (4) AND NOTHING ABOUT THE CALLER IS CHANGED — read at the two censuses the file's own clauses fix.
+  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), SEVEN_MEMBERS,
+    'the caller\'s own member set stands at its seven declared members: the act landed in another '
+    + 'instance\'s registry and moved no member of this one (`§2.12` item 5; `§2.4` item 9 (f))');
+  assert.equal(Object.keys(api).length, 11,
+    'and the module namespace stands at its eleven declared names, so the selector minted no name '
+    + '(`§2.9` item 1\'s dated clause)');
 });
 
 test('cp_fail_outside_pair_is_one_typeerror_and_changes_nothing', () => {

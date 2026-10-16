@@ -1,9 +1,9 @@
 # ARCHIVE — the bytes the `A126` re-derivation of 2026-10-16 moved out of `docs/specs/storeroom-js/`
 
-**This file is the one home of the clause `docs/specs/storeroom-js/surface.md` displaced on `2026-10-16`** —
+**This file is the one home of the bytes `docs/specs/storeroom-js/` displaced on `2026-10-16`** —
 it NAMES its source path and its `§`, and it is written under `RCA-8(g)`: **the superseded bytes are MOVED
 OUT byte-exactly and the source leaves a ONE-LINE POINTER, never the displaced text beside its
-replacement.** **No rule lives here: this is the record of the clause that WAS, and a drive may assert
+replacement.** **No rule lives here: this is the record of what WAS, and a drive may assert
 nothing from it** (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.6 — a relocation carries its
 text and moves no claim; `RCA-8(g)` — move out, leave a one-line pointer | requirement]`).
 
@@ -218,8 +218,38 @@ rule; the operative row at `parameter-semantics.md §2.22` declares the FUNCTION
 
 ---
 
-**END OF THE ARCHIVE.** **SIX REGIONS, EACH NAMED BY ITS SOURCE PATH AND `§`; each source leaves a one-line pointer
+## §7. MOVED OUT OF `docs/specs/storeroom-js/parameter-semantics.md §2.23` — THE OUTSIDE-VALUE ENTRY *"an instance another `storeCreate` call returned"* (the entry, byte-exactly, in its cell's own context)
+
+**Reason for the move:** **the `instance` position of `addConstraint` · `constraintOn` · `constraintOff` is a
+SELECTOR, not a predicate — the object `storeCreate` returned, ONE PER CALL, and ANY of them in domain — so
+that entry named, ON THE OUTSIDE SIDE, the same kind of object the row's `domain` cell names on the INSIDE
+side, and it is therefore WITHDRAWN AS A CATEGORY ERROR: the two objects are indistinguishable except by
+process-global creation order, which no clause pins.** **The move is taken under `RCA-8(g)` — superseded bytes
+OUT byte-exactly, a ONE-LINE POINTER at the source — and NOT under `RCA-8(d)` ANNOTATE-BESIDE, whose spelling
+is RETIRED: a citation to that spelling is a finding (`docs/defects.md` · `DEF-2026-10-16-O`).** **The
+determination is the supervisor's, taken on measured evidence and recorded at
+`archive/reviews/2026-10-16-constraints-publication-gate1.md` §21.** **The operative reading is
+`parameter-semantics.md §2.23`'s `domain` cell of this date and the positive-semantics sentence at
+`docs/specs/storeroom-js/surface.md §2.12` item 4 — *the act populates the registry of the instance NAMED* —
+and NOTHING here.** **THE ENTRY'S BYTES, byte-exactly as they stood IN THEIR CELL — the withdrawn entry is the
+LAST member of the cell's enumeration, and the cell's own preceding members stand at the source and are NOT
+moved:**
+
+> | `the values OUTSIDE it` | **ABSENT** · `null` · `undefined` · **a non-object** (`number` · `string` · `boolean` · `symbol` · `bigint` · a function) · **an object that is not the one `storeCreate` returned** — including the plain `{ address, id }` pair, the kernel's own instance handle, a store-minted listener handle, and **an instance another `storeCreate` call returned** |
+
+**AND THE BOUNDARY OF THE QUOTE IS DECLARED SO NOTHING IS LEFT TO A BYTE DIFF: the row's OTHER cells — its `id`,
+its `parameter`, its `kind`, its `unit`, the cell's remaining values, the declared answer, the `supplier`, the
+`evaluator`, the `observable`, the clause, the ruling, the `alt` and the `park` — were NOT moved by this pass
+and stand at their own bytes at `parameter-semantics.md §2.23`, whose dated clause of this date names this
+withdrawal and re-emits no byte of it.** **THE WITHDRAWN ENTRY IS ONE AND ONLY ONE: the four values it is
+enumerated beside stay OUTSIDE the domain and keep their one declared answer, because each of them is a KIND
+of object `storeCreate` did not return.** **NO RULE LIVES HERE AND NO DRIVE MAY ASSERT ANYTHING FROM IT**
+(`RCA-8(g)`; A1 `archive/reviews/2026-10-16-constraints-publication-gate1.md` §21).
+
+---
+
+**END OF THE ARCHIVE.** **SEVEN REGIONS, EACH NAMED BY ITS SOURCE PATH AND `§`; each source leaves a one-line pointer
 and re-emits no byte of it; the operative declarations are `docs/specs/storeroom-js/surface.md §2.12`'s items 1–5
-of 2026-10-16, `§2.9` item 1's dated clause of that date, `§2.4` item 9 (f)'s dated clause of that date, and
+of 2026-10-16 — item 4's positive-semantics sentence of that date among them — `§2.9` item 1's dated clause of that date, `§2.4` item 9 (f)'s dated clause of that date, and
 `docs/specs/storeroom-js/parameter-semantics.md §1`'s clause of that date with its rows `§2.21`–`§2.25`**
 (`RCA-8(g)`; `docs/decisions.md` · `A126` · `A123` · `A122`).
