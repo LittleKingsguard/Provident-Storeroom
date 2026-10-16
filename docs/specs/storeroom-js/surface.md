@@ -148,6 +148,15 @@ requirement]`)
 
 4. **THE ONE ARITY CHECK THIS PACKAGE PERFORMS, AND THE ONE PLACE IT PERFORMS IT.** **THE PACKAGE MAY READ THE CALL'S ARGUMENT COUNT FOR THE FIFTH POSITION, AND ONLY FOR THE FIFTH POSITION: where the fifth position was SUPPLIED, the class test of clause 3 is taken on the value standing there; where it was NOT SUPPLIED, the write proceeds with the fourth position's own arity exactly as clauses 1–2 declare it, and NO DEFAULT IS FABRICATED FOR THE ABSENT POSITION.** **THE SENTENCE THIS CLAUSE SUPERSEDES IS NAMED BY ITS OWN WORDS AND STANDS BYTE-FOR-BYTE ABOVE: clause 3's *"THE PACKAGE PERFORMS NO ARITY CHECK OF ITS OWN, and the position is the one place where that rule and this signature meet"* — AND `DD-46`'s OWN CELL, *"the package passes every argument position through as supplied and performs NO arity check of its own"*, is read THROUGH this clause AT THE FIFTH POSITION ALONE** (`docs/specs/storeroom-js/contract.md §0.2 · `DD-46`; `docs/specs/storeroom-native/contract.md §0.2`'s `DD-46` row, whose `alt` cell's priced alternative — *"a JS-side arity check throwing a package `TypeError`"* — is TAKEN HERE, and the fresh ruling the cell required is this clause's own authority). **THE LAW THAT REPLACES IT: THE DECLARED ARITY OF `write` REMAINS `4` REQUIRED ARGUMENTS WITH THE FIFTH OPTIONAL AND DECLARED LAST** (`§2.2` clauses 1–2; `docs/specs/storeroom-js/parameter-semantics.md §1`), AND THE PACKAGE READS THE CALL'S ARGUMENT COUNT FOR THE FIFTH POSITION AND FOR NO OTHER POSITION OF ANY VERB: NO OTHER VERB AND NO OTHER POSITION OF THIS SURFACE GAINS AN ARITY READING, A DEFAULT OR A SUBSTITUTED ARGUMENT** (**READ AT THE BOUNDARY'S OWN BYTES**, 2026-10-15: `bindings/js/index.mjs:1547` gates the position on `arguments.length >= 5`, and **ITS ABSENCE IS A READ OF THE CALL, NOT OF THE VALUE — the count is the whole of what this position's arity half reads, and no other position of `write` and no other verb carries such a read**). **SO THE POSITION'S TWO CALL SHAPES ARE ONE LAW EACH AND NOT ONE LAW AND ONE HOLE: `write(instance, address, tier, value)` — the position ABSENT — OPENS OR JOINS ITS COMMIT AND PROCEEDS WHETHER OR NOT A COMMIT WAS SUPPLIED (IN DOMAIN); AND `write(instance, address, tier, value, undefined)` — the position SUPPLIED WITH `undefined` — IS REFUSED** (`docs/specs/storeroom-js/parameter-semantics.md §2.20`'s outside-value cells AS RE-SPELLED 2026-10-15, where the ground's closure is declared). **AND NOTHING ELSE MOVES: the module namespace stays at the `8` declared verbs, the instance's member set stays `{ register, on, off, settle }`, the register keeps its `8` rows, the store's namespace stays CLOSED at `8` verbs, and every other outside-value answer of every other position stands exactly as this part prints it** (`docs/specs/storeroom-native-proposal-review.md §19.1`).
 
+**⟶ ADDED 2026-10-16 — THE FIFTH-POSITION ANTI-PATTERN, DECLARED IN THIS SPECIFICATION'S OWN TERMS ON `A125` (`role_spec_writer`; `docs/decisions.md`, 2026-10-16).** `RCA-8(d)` ANNOTATE-BESIDE: **the signature block, the paragraph after it and clauses 1–4 above stand BYTE-FOR-BYTE and are read THROUGH this clause; THIS clause is a PURE INSERTION — it adds no argument, moves no position, mints no code, moves no cell of the fifth position's own row and no count of this part.**
+
+5. **AN EXTERNALLY-SUPPLIED `commit` IS AN UNSUPPORTED ANTI-PATTERN — NOT A REFUSED CALL, NOT A THROW, AND NOT A SILENT DEGRADATION.** **`A125`, verbatim: *"Externally calling a write with a commit is an unsupported anti-pattern. It is present because repair functions need to use the external package surface and still be added to a commit log."*** **THIS SPECIFICATION'S OWN TERMS, SO NO READER SUPPLIES ONE OF ITS OWN:**
+   1. **WHAT THE POSITION IS FOR.** **The fifth position exists SO THAT A REPAIR WRITE MADE BY THE KERNEL'S OWN FLOW — an act that MUST go through the external package surface and MUST land in the commit log — carries the record identity it joins. It is not a caller's control and it is not a way to reach the store directly.**
+   2. **WHAT AN EXTERNAL SUPPLY IS.** **An EXTERNAL supply is a fifth-position argument the CALLER authored or obtained for its own call and did NOT receive as the identity THIS INSTANCE HAS ADOPTED as a record position.**
+   3. **THE DECLARED ANSWER, AND ITS EXACT SHAPE — THE NARROWEST ANSWER CONSISTENT WITH `A124` AND `§2.4` ITEM 9 (g).** **AN EXTERNAL SUPPLY IS NOT REFUSED BY ARITY, IS NOT REFUSED BY A NAMED CODE, AND IS NOT DETECTED BY A TEST THIS UNIT DECLARES: THE PACKAGE READS NO ARITY AND NO PROVENANCE FOR THIS POSITION BEYOND THE ONE ARITY READING CLAUSE 4 DECLARES, AND EVERY OBJECT AT THE POSITION THAT FAILS `§2.4` ITEM 9 (g)'s CLASS TEST IS REFUSED BY THAT TEST'S OWN SINGLE FORM.** **SO A `commit` THIS INSTANCE HAS NOT ADOPTED AND THAT DOES NOT CARRY A `pending` MEMBER TAKES `parameter-semantics.md §2.20`'s refusal at its own `the declared answer for EACH outside value` cell — CITED AND NOT RESTATED HERE — WHILE ONE THAT DOES CARRY a `pending` member is ADOPTED at its first call by `§2.4` item 9 (g)'s own admission, which `A120` (1) made law.** **THIS UNIT DECLARES NO THIRD ARM AND MINTS NO CODE FOR THE ANTI-PATTERN'S OWN CASE.**
+   4. **THE SUPPORTED SHAPE IS THE ONLY ONE THIS UNIT PLACES IN ITS OWN FLOW.** **`§2.12` ITEM 1 IS THE ONE EXTERNAL SUPPLY THIS UNIT DECLARES: THE KERNEL'S, WHERE THE IDENTITY IS THE RECORD POSITION THE INSTANCE HAS ADOPTED, and every write the package's own flow makes carries it for that reason alone.**
+(`[A2 docs/decisions.md` · `A125` and `A124`, both 2026-10-16; A3 docs/specs/storeroom-js/surface.md §2.4 item 9 (g) and §2.12 item 1; A3 docs/specs/storeroom-js/parameter-semantics.md §2.20; archive/reviews/2026-10-16-constraints-publication-gate1.md §19 | requirement]`)
+
 ### §2.3 The handle clause — the construction's string, the returned opaque, and the accepted hazard
 
 1. **THE TOKEN'S DOMAIN IS THE PROCESS, AND IT IS THE STORE'S DECLARED DOMAIN.** **A store-minted handle is
@@ -946,6 +955,27 @@ what this member's two instants act on and is not touched; and (iii) the kernel'
 HOME ENTRY and is unmoved by a member that reaches the PACKAGE'S registry.**
 
 **AND NO CLAUSE OF `§2.7` ITEMS 6–8, OF `§2.4` ITEM 8, OR OF THE KERNEL'S HOLDER CLAUSE IS CONTRADICTED HERE.** **(f) WHAT THE PUBLISHED TYPED SURFACE MUST SAY — STATED HERE SO THE IMPLEMENTER FOLLOWS IT, THIS DOCUMENT AUTHORING NO `index.d.ts` BYTE.** **The published declaration file is the authoring file `bindings/js/index.d.ts`, the IMPLEMENTER'S wall and not this pass's, and it must carry the instance object `storeCreate(cfg)` returns with FOUR own members — `register(handle, listener) -> undefined`, `on(address, listener) -> handle`, `off(handle) -> undefined` and `settle(record) -> undefined` — each with its argument types and its return, and NOTHING ELSE: no fifth member, no named export added for `settle`, and no `pending`-shaped record type this unit does not declare.** **AND THE PUBLISHED `files` ALLOWLIST IS UNMOVED BY THIS ADDITION: the three published files already ship — the entry, the README and the authored `index.d.ts` — so this item adds no fourth published path and moves no cell of that allowlist** (`[A2 docs/decisions.md · `A116` (D3) — the published `files` allowlist UNMOVED; A3 docs/specs/storeroom-publish/contract.md §2.1` and its `PUB-DD-1` row — the allowlist's own clause, cited and not restated | requirement]`).
+
+**⟶ AMENDED 2026-10-16 — THE INSTANCE'S MEMBER SET MOVES FROM FOUR OWN MEMBERS TO FIVE, AND THE PUBLISHED
+TYPED SURFACE'S OWN DUTY MOVES WITH IT (`role_spec_writer`; `docs/decisions.md` · `A123`, 2026-10-16; read
+with the `exports` half of `A122` and with `A121`'s `MINOR` class).** **THE CELL ABOVE STANDS BYTE-FOR-BYTE
+AT ITS OWN BYTES — *"FOUR own members — `register(handle, listener) -> undefined`, `on(address, listener) ->
+handle`, `off(handle) -> undefined` and `settle(record) -> undefined` … no fifth member, no named export
+added for `settle`"* — AND IS READ THROUGH THIS CLAUSE, WHICH IS THE OPERATIVE STATEMENT OF THE SET FROM
+THIS DATE.** **THE OPERATIVE DECLARED MEMBER SET IS `{ register, on, off, settle, manageConstraints }` —
+FIVE OWN MEMBERS, `4 + 1 = 5`, the `+1` being the post-creation constraint route `A123` requests, whose
+declared shape is `§2.12` item 2.** **AND `settle` REMAINS NOT A NAMED EXPORT OF THE MODULE NAMESPACE, which
+is what the cell's own *"no named export added for `settle`"* half declares; `manageConstraints` IS a named
+export, and its count and its enumeration are `§2.9` item 1's dated clause of this date — so the two halves
+of the cell above are read apart and neither is widened by this clause.**
+**WHAT `bindings/js/index.d.ts` OWES, STATED ONCE AND AT THE HOME THAT CARRIES THE DUTY:** **the published
+declaration file must carry the FIVE-member instance object with each member's argument types and its
+return, `manageConstraints` among them, AND the ninth named export — and **THE EDIT IS THE IMPLEMENTER'S AND
+IS AUTHORED BY NO BYTE OF THIS PASS**. **A declaration file that still reads four own members or eight verbs
+after this date is a FINDING**, and `§2.9` item 1's dated clause of this date re-states the same two figures
+at the module namespace's own item** (`[A2 docs/decisions.md` · `A123` · `A122` · `A121`; A3
+docs/specs/storeroom-js/surface.md §2.12 and §2.9 item 1's dated clause; A3
+archive/reviews/2026-10-16-constraints-publication-gate1.md §17.4 | requirement]`).
 **AND ONE CELL THAT CANNOT STAND
 BESIDE THIS ITEM AS PRINTED, RECORDED AS A FINDING AND NOT PAPERED: `§2.4` item 7 (d)'s *"the `PAR-JS` set stays
 `18`"* is FALSE OF THE OPERATIVE SET, which this item's own semantics row `parameter-semantics.md §2.19`
@@ -1253,17 +1283,13 @@ it, so no row of `§5` is RED against this state** (`archive/gate3/storeroom-js-
 `bindings/js/index.mjs`'s `wrapHandles`/`deliver`; A1 docs/specs/storeroom-js-proposal.md §18 · `A77`; A3
 docs/specs/storeroom-native/contract.md §0.2 · `DD-42` clause 3 · `DD-39` | state or fail-state declaration).
 
-### §2.6 The constraint/repair pattern — a usage pattern over declared verbs, never a seam
+### §2.6 The constraint/repair pattern — MOVED OUT 2026-10-16; the operative law is `§2.12`
 
-**CONSTRAINT AND REPAIR EVALUATION IS CLIENT-SIDE.** **The JS side holds the constraint functions; the
-crossing this subject needs is ALREADY IN the surface (`write` out, `rollback` in).** **The pattern, stated
-in full because it is the whole of what this unit declares about it:** **evaluate constraints AFTER a
-`write` returns; on a violation, call `rollback` with the `JournalOp.opId` THAT WRITE RETURNED.**
-**NO constraint verb, NO repair verb, NO constraint parameter, NO constraint record and NO function-carrying
-parameter is declared — and the store's own surface takes no function at any position** (`DD-16`).
-(`[A1 docs/specs/storeroom-js-proposal.md §15 · A73 — *"Constraint/Repair is client-side, using rollback to
-reverse constraint violations."*; A3 docs/specs/storeroom-native/contract.md §7.3 — the constraint seam's
-own boundary | requirement]`)
+**THIS SECTION'S AS-FILED TEXT IS SUPERSEDED FOR THE WRITE PATH AND HAS MOVED OUT, BYTE-EXACTLY, TO
+`docs/specs/storeroom-js/backup/RCA-A122-2026-10-16-superseded.md §1`; the operative law is
+`docs/specs/storeroom-js/surface.md §2.12`, and the row this section is cited by is
+`docs/specs/storeroom-js/parameter-semantics.md §2.18`** (`RCA-8(g)`: **move out, leave a one-line pointer,
+never retain beside**; `docs/decisions.md` · `A122`, 2026-10-16).
 
 ### §2.7 Listener delivery — the window, the order and a throwing body
 
@@ -1356,6 +1382,37 @@ docs/specs/storeroom-js/parameter-semantics.md §2.12 | declared parameter seman
    reference crosses either way, so the non-exposure is entailed by the copy discipline and not merely a
    surface choice | prohibition]`)
 
+**⟶ AMENDED 2026-10-16 — THE MODULE NAMESPACE'S FIGURE IS RE-SPELLED `8 → 9` BY THE `A123` PASS
+(`role_spec_writer`; `docs/decisions.md` · `A123`, 2026-10-16).** **THE AS-FILED CELL ABOVE STANDS
+BYTE-FOR-BYTE AT ITS OWN BYTES — *"THE JS SURFACE IS EXACTLY `storeCreate` · `read` · `readLiteral` · `write` ·
+`delete` · `rollback` · `listen` · `unlisten` — `8` verbs"* — AND IS READ THROUGH THIS CLAUSE, WHICH IS THE
+OPERATIVE STATEMENT OF THE COUNT FROM THIS DATE.** **THE OPERATIVE ENUMERATION IS TEN NAMES, NINE OF THEM
+VERBS: `storeCreate` · `read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` ·
+`manageConstraints` — `9` VERBS — plus the returned records.** **THE ARITHMETIC, PRINTED WITH ITS TERMS AND
+CLOSED: `8 + 1 = 9`, the `+1` being `manageConstraints`, whose declared shape and whose own section are
+`§2.12`, minted 2026-10-16 by `A123` (*"If not already present, expose a function to add/enable/disable new
+constraints after store creation, similar to listener handling."*), and NOT a tenth name of any other
+kind.** **AND NOTHING ELSE OF THIS ITEM MOVES:** **`findAddress` remains unexposed, no `NodeRef` and no
+reference crosses, the *"no `exists()` verb, no `findAddress` shim, no binding-side resolver"* prohibition
+stands whole, and `§2.6`'s own subject — whose operative law is now `§2.12` — gains no verb beyond
+`manageConstraints`** (`[A2 docs/decisions.md` · `A123` · `A121`; A3 docs/specs/storeroom-js/surface.md §2.12;
+A3 docs/specs/storeroom-js/parameter-semantics.md §1 | numeric or census claim]`).
+
+**⟶ AND ONE DUTY THIS ITEM OWES ANOTHER AUTHORING FILE, DECLARED HERE SO IT IS CARRIED AND NOT LEFT TO
+INFERENCE (`role_spec_writer`, 2026-10-16).** **`bindings/js/index.d.ts` IS NOT EDITED BY THIS PASS — it is
+the IMPLEMENTER'S wall — BUT WHAT IT OWES IS DECLARED, AND THE CLAUSE THAT CARRIES THE DUTY IS THIS
+DIRECTORY'S OWN `§2.4` ITEM 9 (f).** **THE `index.d.ts` THAT STANDS UNTIL THE IMPLEMENTER'S PASS DECLARES
+THE EIGHT VERBS AND, BY `A121`'s GATE-RECORD READING AT `archive/reviews/2026-10-16-constraints-publication-gate1.md`
+`§17.4`, *"NO ninth name"* — AND `A123` FALSIFIES BOTH FIGURES FROM 2026-10-16: THE TYPES SURFACE MOVES.** **SO
+THE FILE OWES (i) `manageConstraints` AS A NAMED EXPORT WITH ITS DECLARED ARGUMENT TYPES AND ITS RETURN, whose
+domains are the rows `parameter-semantics.md` `§2.24` and `§2.25`; and (ii) THE INSTANCE'S DECLARED MEMBER SET
+WIDENED FROM FOUR TO FIVE OWN MEMBERS — the fifth being `manageConstraints` — whose figures are
+`§2.4` item 9 (f)'s dated clause of this date and `§2.4` item 7's own member-set cell, each read through it.**
+**A TYPES SURFACE THAT STILL DECLARES EIGHT VERBS OR A FOUR-MEMBER INSTANCE AFTER THIS DATE IS A FINDING, and
+the `MINOR` version class `A121` names is what the addition requires** (`[A2 docs/decisions.md` · `A123` ·
+`A121`; A3 docs/specs/storeroom-js/surface.md §2.4 item 9 (f) and §2.12 item 2; A3
+archive/reviews/2026-10-16-constraints-publication-gate1.md §17.4 | requirement]`).
+
 ### §2.10 `listen` and `unlisten` — the crossing's two registration verbs
 
 ```
@@ -1402,6 +1459,139 @@ except for a malformed argument's shape.** (`[A3 docs/specs/storeroom-native/con
 9. **⟶ ADDED 2026-10-15 — THE SECOND WELL-KNOWN SYMBOL, SET HERE AND DECLARED ON BOTH SIDES OF THE CROSSING** (`role_spec_writer`; `A: docs/decisions.md` · `A117` (D6) **CITED AS THE PRECEDENT, the precedent being the FIRST symbol**). **`Symbol.for('provident-storeroom.save-failed-at-the-terminal-arm')` IS SET BY THIS SURFACE ON THE VERY RECORD THE SEAM WAS HANDED, AT CLAUSE 2's OWN ACT — the terminal arm's `file`-tier save — AND ON THE FAILING ARM OF THAT ACT ALONE, AND IT IS READ BY THE CONSTRAINT KERNEL AT ITS OWN CATCH** (`docs/specs/storeroom-constraints/kernel-surface.md §2.3` item 3, where the kernel's half is declared; `§2.4` item 9 (g) item 1's record identity).
    **WHAT IT CARRIES, AND WHY THE IDENTITY AND NOT A COPY: THE VERY THROWABLE THE STORE'S `commit_file` RETHREW** — the store's own two-member form, produced by the store's verb and crossing on the STORE's channel (`§1.2` item 2; clause 5 above; `docs/specs/storeroom-native/contract.md §8.1` rank `#15` `FileCommitFailed`). **THE KERNEL'S PASSING ARM TAKES ITS ONE TERMINAL ACT ON THAT IDENTITY ALONE**: the mark is what distinguishes a FAILED SAVE from A BODY OF THE DELIVERED SET THAT THREW, the latter being *"NOT CAUGHT, NOT RETRIED AND NOT REPORTED"* (`§2.7` item 4) — so a drive that asserts the failed-save arm reads the arm off this mark and off nothing else.
    **AND NO NAMED MEMBER IS ADDED, SAID EXPLICITLY WHERE THE SYMBOL FAMILY IS ENUMERATED: THE RECORD'S `Object.keys` AND `Object.getOwnPropertyNames` CENSUSES ARE UNMOVED — a symbol-keyed own property is invisible to both — so `CommitRecord` keeps its declared FOUR members (`3 + 1 = 4` ✓) and no record shape's census of this part moves** (`docs/specs/storeroom-constraints/kernel-surface.md §2.1` item 2 and `§1` item 4; `A117` (D6) — **the precedent clause's own words: *"NO MEMBER IS ADDED"***). **AND THE SYMBOL IS THE SECOND OF THE FAMILY AND NOT A THIRD: the family is exactly two well-known symbols, `provident-storeroom.settled-on-the-passing-arm` (`SETTLED_ON_THE_PASSING_ARM`, the first) and this one — `2` ✓ — and both are `Symbol.for` keys under the same package prefix so BOTH SIDES DECLARE THEM INDEPENDENTLY and neither side imports the other** (`docs/specs/storeroom-constraints/kernel-surface.md §2.3` item 3; `A117` (D6)).
+
+### §2.12 THE WRITE PATH AND `manageConstraints` — authored in `surface.md` 2026-10-16 on `A122` · `A123` · `A124` · `A125`
+
+**⟶ AUTHORED 2026-10-16 BY THE `A122` PASS (`role_spec_writer`), ON THE ARCHITECT'S FOUR RULINGS OF THAT DATE
+(`docs/decisions.md` · `A122` · `A123` · `A124` · `A125`).** **THIS SECTION IS AUTHORED HERE FIRST AND IS OWED
+ITS CARRIAGE INTO `docs/specs/storeroom-js/contract.md` AS A CLAUSE, WITH `§2.6`'s POINTER AND THE TYPED
+REGISTER'S UNMOVED FIGURES, BY THE AMENDMENT `docs/specs/storeroom-js/implementation-plan.md §7` DECLARES —
+exactly as `§2.11`'s own end-of-part note records for its own section.** **THE AS-FILED SENTENCES THIS SECTION
+SUPERSEDES ARE NAMED BY THEIR OWN WORDS AND ARE **NOT** RETAINED BESIDE IT: `§2.6`'s whole text has MOVED OUT
+BYTE-EXACTLY to `docs/specs/storeroom-js/backup/RCA-A122-2026-10-16-superseded.md §1`, and `§2.6` above carries
+the one-line pointer** (`RCA-8(g)`: **move out, leave a one-line pointer, never retain beside**).
+
+**1. THE ENTRY→KERNEL CALL IS DECLARED — THE ONE UNDECLARED EDGE, CLOSED.** **A `write` CALLED WITH FOUR
+POSITIONS — `write(instance, address, tier, value)` — ENTERS THE KERNEL'S `K-2` `commit`, AND THE ENTRY'S OWN
+SURFACE IS THE ROUTE BY WHICH THE KERNEL REACHES THE STORE.** **THE FLOW, IN FIVE STAGES AND NO SIXTH, EACH AT
+ITS OWN HOME:**
+1. **`Package surface → kernel`** — the four-position call enters `K-2`, which RETURNS the record identity it
+   opened or joined; **this call is the entry→kernel edge, and this item is its one home** (`docs/specs/storeroom-constraints/kernel-surface.md §2.1` item 2 — `K-2`'s signature and its return shape, cited and not restated).
+2. **`Kernel → Rust store`** — the kernel calls the STORE's own write with the FIFTH POSITION SUPPLIED:
+   `write(instance, address, tier, value, commit)`, the form `docs/specs/storeroom-constraints/kernel-surface.md §1` item 5's dated extension already declares.
+3. **`Rust store → kernel`** — the store returns the write's result to the kernel, and the kernel evaluates
+   the constraint set the store's list carries against it, exactly as `docs/specs/storeroom-constraints/contract.md §5`'s register pins that pass.
+4. **THE KERNEL'S OWN STORE LEG IS THE ENTRY'S OWN WRITE.** **THE ENTRY IS THE ROUTE AND THE KERNEL IS THE
+   DRIVER: a five-position call carrying a commit THIS INSTANCE HAS NOT ADOPTED as a record position is
+   REFUSED by `§2.4` item 9 (g)'s class test before the store's write leg runs, so a five-position call can
+   never start a second pass — and the call that carries an ADOPTED identity is `item 3`'s own.**
+   **SO THERE IS NO RECURSION AND NEED NOT BE ONE:** the entry's four-position call opens the record, the
+   kernel's five-position call is that same record's store leg, and a second five-position call carrying the
+   same adopted identity JOINS THE SAME RECORD rather than opening a second one.
+5. **THE TWO SUCCESS ARMS AND THE FAIL ARM, EACH DECLARED — `A122`'s own flow:**
+   - **Success, NOT a `file`-tier write: `Kernel → listeners → report success to the package surface's
+     caller`** — the listeners are delivered by `§2.7`'s window and `§2.4` item 8's instants, and the caller
+     receives the write's three-member record (`§2.2`'s signature block).
+   - **Success, a `file`-tier write: `Kernel → save command to Rust store → Rust store reports success to the
+     kernel → listeners → report success to the package surface's caller`** — the save is the terminal arm's
+     act, declared at `§2.11` and at no other site.
+   - **Fail: `Kernel → rollback over the Rust store → report failure to the package surface's caller`** — the
+     rollback is the kernel's own act over the attempt's ops, the listeners of the failing write are NOT
+     delivered (`§2.7` item 7 (d)), and the caller receives the refusal.
+
+**THE WORDS OF THE AS-FILED `CLIENT-SIDE` SENTENCE THAT SURVIVE, AND THE WORDS THAT DO NOT, EACH NAMED SO
+NEITHER IS LEFT TO INFERENCE.** **SURVIVING: *"The JS side holds the constraint functions"*** — still true,
+the functions are JS values the construction's list carries and the package reaches; ***"the crossing this
+subject needs is ALREADY IN the surface (`write` out, `rollback` in)"*** — still true as a MECHANICAL
+statement, since both verbs remain declared and reachable; and ***"NO constraint verb, NO repair verb, NO
+constraint parameter, NO constraint record and NO function-carrying parameter is declared"*** — true of the
+STORE's own surface exactly as `§2.6`'s citation of `docs/specs/storeroom-native/contract.md §7.3` has it, and
+**UNMOVED**. **SUPERSEDED, AND THEREFORE DISPLACED FROM `§2.6`: *"CONSTRAINT AND REPAIR EVALUATION IS
+CLIENT-SIDE"*** — FALSIFIED FOR THE WRITE PATH by item 1, because the evaluation is the KERNEL's act inside
+the pass; and ***"evaluate constraints AFTER a `write` returns"*** — FALSIFIED, because on the write path the
+evaluation happens INSIDE the call, before it returns. **AND THE ONE SENTENCE THAT IS NOW READ THROUGH THIS
+ITEM RATHER THAN DISPLACED, NAMED BECAUSE IT IS STILL THE ROW'S OWN: `parameter-semantics.md §2.18`'s
+`evaluator` cell *"the caller — the evaluation is CLIENT-SIDE"* is RE-SPELLED AT ITS OWN ROW to name the
+KERNEL for the write path and the caller on the read path, and that row's own dated clause of 2026-10-16 is
+the operative statement of it** (this directory's own two homes: `surface.md §2.12` here, and
+`parameter-semantics.md §2.18` there).
+
+**2. `manageConstraints` — THE POST-CREATION CONSTRAINT ROUTE, ONE NAME CARRYING THE OPERATION.** **`A123`'s
+request, verbatim: *"If not already present, expose a function to add/enable/disable new constraints after
+store creation, similar to listener handling."*** **ITS DECLARED SHAPE, AND THE DECLARED ARITY THAT GOVERNS
+OVER ANY SHAPE A READER WOULD DERIVE FROM THE THREE OPERATIONS:**
+
+```
+manageConstraints(instance, pair, operation) -> constraint identity | undefined
+                                               // instance: the object storeCreate returned
+                                               // pair:     { address, id } — PAR-JS-23's domain
+                                               // operation: 'add' | 'enable' | 'disable' — PAR-JS-22's domain
+                                               // 'add' returns the constraint identity; 'enable' and 'disable' return undefined
+```
+
+1. **THE OPERATION IS A DECLARED STRING OF THREE MEMBERS AND OF NO FOURTH.** **`'add'` · `'enable'` ·
+   `'disable'` are the whole of the domain; every other string, every non-string and the ABSENT position are
+   OUTSIDE it and take `item 3`'s refusal.** **THE THREE ARE ONE NAMED FUNCTION'S THREE OPERATIONS, NOT THREE
+   NAMES: `A123`'s *"add/enable/disable"* is READ AS ONE OPERATION POSITION, mirroring `§2.10`'s `listen` /
+   `unlisten` pair's shape rather than minting a second and a third verb.**
+2. **ITS MEMBERSHIP AND ITS ROUTE.** **`manageConstraints` is the NINTH named export of the claimed ESM
+   entry and the FIFTH own member of the object `storeCreate` returns, added 2026-10-16 by `A123`** —
+   **`§2.9` item 1's enumeration and this part's `§2.4` item 9 (f) each carry a dated clause of this date
+   stating the same addition, and this item declares the route rather than the count** (`A123`; `A121`'s
+   `MINOR` class, whose own clause reads the post-creation constraint route as the member addition its cell
+   requires).
+3. **THE THREE ARMS, EACH WITH ITS PRE-CONDITION AND ITS OBSERVABLE.**
+
+   | The arm | Its pre-condition | Its observable |
+   | --- | --- | --- |
+   | **`'add'`** | the entry carries no constraint at the pair (`address`, `id`) | the pair's identity is returned, the constraint joins the set the kernel evaluates on every subsequent write, and a write the constraint refuses on its FIRST evaluation is refused before item 1's stage 2's store leg is taken |
+   | **`'enable'`** | the entry carries the pair and it is DISABLED | `undefined`; the constraint is evaluated again on the next write, and it is the constraint that was DISABLED and not a second constraint |
+   | **`'disable'`** | the entry carries the pair and it is ENABLED | `undefined`; the constraint is NOT evaluated on a subsequent write, and **a write the disabled constraint would have refused is ACCEPTED** |
+
+4. **THE REFUSAL — THE SAME SINGLE FORM THE REGISTRATION SITE'S OWN CLASS TEST ANSWERS WITH, AND IT ADDS
+   NO CODE AND NO MESSAGE.** **An outside value of `pair`, an outside value of `operation`, or an ABSENT
+   `instance` position throws — `TypeError`, carrying no `status` member and no `message` member of this
+   unit's own — and NOTHING IS ADDED, ENABLED, DISABLED OR OTHERWISE
+   CHANGED** (`§2.4` item 5 (d)'s
+   read-through of the store's `{status, message}` form; `§2.5`'s single form; `parameter-semantics.md §2.17`).
+   **THE STORE'S CLOSED `16`-MEMBER SET IS UNTOUCHED BY THIS VERB: `manageConstraints` mints no code, and
+   every code this surface can throw remains a member of the SET the store's own contract closes**
+   (`docs/specs/storeroom-js/contract.md §0.1` item 9; `docs/specs/storeroom-native/contract.md §8.1`).
+5. **THE IDENTITY IT RETURNS, AND WHAT IDENTITY THE ARM CARRIES.** **The returned constraint identity is
+   `PAR-JS-23`'s domain, and it is an OPAQUE value the package owns: this unit declares no spelling for it,
+   no accessor reaching a member of it, and a drive compares identities and never contents** (`§2.3` item 1's
+   token-domain rule, read at this identity and not widened by it). **AND IT IS NOT ADDED TO `cfg.constraints`:
+   the construction's key is read ONLY at the two validation instants `parameter-semantics.md §2.21`
+   declares, and this verb is the POST-CREATION route that key does not carry** (`A123`: *"after store
+   creation"*; `A121`).
+6. **WHAT THIS SECTION DOES NOT DO.** **It re-decides no rule and moves no count of the typed register: the
+   register keeps its `8` rows (`contract.md §5.0`), the store's closed set keeps its `16`, the addon's export
+   set keeps its `5`, the store's own namespace keeps its `8` verbs, and the store's constraint list — its
+   `{ address, id }` pairs — is READ by the kernel and never written by this verb at any instant** (`A123`;
+   `A122`; `docs/specs/storeroom-native/contract.md §7.1`). **The TWO counts this pass moves, and no third,
+   are named and re-derived at their own clauses: the module namespace's `8 → 9` (`§2.9` item 1's dated clause
+   of this date) and the `PAR-JS` set's `21 → 23` (`parameter-semantics.md §1`'s clause of this date).**
+   (`[A2 docs/decisions.md · `A122` · `A123` · `A124` · `A125`, all 2026-10-16; A3
+   docs/specs/storeroom-constraints/kernel-surface.md §1 item 5 and §2.1 items 1–3; A3
+   docs/specs/storeroom-js/surface.md §2.2 · §2.4 item 9 (g) · §2.5 · §2.9 item 1 · §2.11;
+   archive/reviews/2026-10-16-constraints-publication-gate1.md §17–§19 | state or fail-state declaration]`).
+
+**⟶ AND THE SEVEN EARLIER CELLS OF THIS PART THAT PRINT THE TWO FIGURES THIS SECTION MOVES ARE NAMED, ONE
+BY ONE, SO NO STALE READ IS LEFT BESIDE A MOVED ONE (`role_spec_writer`, 2026-10-16; `A122` · `A123`).**
+**ONLY TWO FIGURES OF THIS PART MOVE — THE INSTANCE'S DECLARED MEMBER SET, `4 → 5`, WHOSE OPERATIVE STATEMENT
+IS `§2.4` ITEM 9 (f)'s DATED CLAUSE OF THIS DATE, AND THE MODULE NAMESPACE, `8 → 9`, WHOSE OPERATIVE
+STATEMENT IS `§2.9` ITEM 1's DATED CLAUSE OF THIS DATE.** **EVERY CELL THAT PRINTS EITHER FIGURE IS READ
+THROUGH THE OPERATIVE STATEMENT, ITS AS-FILED BYTES STANDING WHERE THEY STAND AND NO RULE BEING RE-DECIDED:
+`§2.1`'s dated clause at its member-set sentence; `§2.4` item 5 (a) at its *"member set is `{ register }`"*;
+`§2.4` item 7 at its *"THE OPERATIVE DECLARATION IS `{ register, on, off }`"*; `§2.4` item 9 (e)'s dated clause
+at its *"THE INSTANCE'S MEMBER SET STAYS `{ register, on, off, settle }`"* and at its *"the `PAR-JS` set's
+`19`"*; `§2.4` item 9 (f) at its four-member sentence; `§2.11`'s clause 8 at its *"the instance's member set
+stays `{ register, on, off, settle }`"* and at its *"the module namespace stays at `8` verbs"*; and `§2.11`'s
+clause 9 at the same pair.** **NO EIGHTH CELL IS MOVED BY THIS PASS: the store's own `8`-verb namespace, the
+addon's `5` exports, the dispatcher's `8` tokens, the register's `8` rows, the kernel's five items and the
+seam's arity are all UNMOVED, and this clause moves no figure of any of them** (`[A2 docs/decisions.md` ·
+`A123`; A3 docs/specs/storeroom-js/surface.md §2.4 item 9 (f) and §2.9 item 1's dated clause | numeric or
+census claim]`).
 
 ---
 

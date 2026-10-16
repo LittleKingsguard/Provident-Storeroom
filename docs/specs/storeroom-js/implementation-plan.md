@@ -301,6 +301,7 @@ requirement]`).
 | **E** | a red set is authored against an unruled builder, realm or boundary; or the addon is made a prerequisite of the Rust core's own tests |
 | **F** | an `APP`-green is claimed from a node-suite green, or the store's `379/379` is re-labelled as this unit's green (**the figure as filed in this row is `377/377`; the bounded close-out pass of 2026-10-11 re-states it, and the re-statement is this part's dated clause under this table**) |
 | **G** | a step takes its input from a later phase of this table |
+| **H** | **a consumer-reachable route to the constraint engine is shipped — an `exports` arm, a subpath, a second entry point or a second package for the kernel — instead of the engine sitting behind the one declared package surface (`A122`, 2026-10-16; `§7` below, which is that ruling's re-derivation in this plan)** |
 
 ## §6. THE POINTER INDEX
 
@@ -381,4 +382,60 @@ census claim]`).
 4. **AND THE FIGURES THIS CLAUSE DOES NOT MOVE: the live battery stays `91` authored · `91` PASS · `0` FAIL over `13` scenarios with `LIVE-13` at `19`; the artefact identity of item `3` stays `sha256:0136c912…` at `958,112` bytes with its historical `cf088d91…`/`957,904` tie; the two Rust legs stay `223` and `379`; item `4`'s register-JS debt (`107` as filed against `117` over `12` lines) REMAINS OPEN exactly as filed; and item `5`'s ledger stands as that item reads it.**
 
 (`[A3 bindings/js/greens/greens.mjs` and `bindings/js/test/file-tier-save.test.mjs` — the two runners this clause reads; A3 docs/next-steps.md` — the settled tree's `410/410/0/0`, `255/255`, root `cargo test` `395`/`0` and binding crate `224`/`0`; A2 docs/decisions.md` · `A114` (D1), `A117` (D3)–(D6), `A119`; A3 docs/specs/storeroom-js/contract.md §10`'s own re-derivation clause of this date — the same two figures at their other home | numeric or census claim]`)
+
+---
+
+## §7. THE ENGINE'S RE-HOMING INTO THE DELIVERY ROUTE — RE-DERIVED 2026-10-16 ON `A122` · `A123` · `A124` · `A125`
+
+**LANDED BY THE `A122` PASS (`role_spec_writer`) ON THE ARCHITECT'S FOUR RULINGS OF 2026-10-16
+(`docs/decisions.md`).** **THIS SECTION IS A RE-DERIVATION AND NOT AN ANNOTATION BESIDE THE `§1` SCOPE ROW OR
+THE `§2` PHASE TABLE: it RESTATES the cells it moves, so that a reader takes each moved cell from ONE
+statement and so that the engine's route is a PLAN STEP rather than a hole.** **Every step below is a PLAN
+STEP and
+never a contract claim; the law this plan drives is `docs/specs/storeroom-js/surface.md §2.12`, authored the
+same date in the `surface` part and owed its carriage into the contract document by this section.**
+
+**1. WHAT MOVED, AND WHY — WITH ITS TERMS.** **`A122`, verbatim: *"The kernel is supposed to be behind the
+published surface, not a separately reachable export."*** **THE ENGINE — the constraint kernel module, whose
+home is inside the sibling package at `bindings/js/src/**` — IS BEHIND THE PUBLISHED PACKAGE SURFACE FROM THIS
+DATE: it ships INSIDE the package and it is reached ONLY from the entry module's own `write` verb. IT IS NOT AN
+`exports` TARGET AND IT HAS NO ARMS-BEARING ARM OF ITS OWN.** **THE ONE DELIVERY ROUTE THIS UNIT DECLARES IS
+THEREFORE THE CLAIMED ESM ENTRY ALONE — the namespace `surface.md §2.9` item 1 declares, whose count moves
+`8 → 9` with `manageConstraints` — and no consumer-spelled specifier reaches the engine.** **AND ONE
+CONSEQUENCE IS PRINTED BECAUSE IT IS WHAT MOVED AND NOT WHAT WAS ALREADY TRUE: another planning pass recommended
+a `provident-storeroom/…` SUBPATH EXPORT for the kernel
+(`docs/specs/storeroom-constraints/publication-plan.md`), and under `A122` THAT RECOMMENDATION IS WRONG — a
+subpath is exactly the *"separately reachable export"* the ruling refuses, and it would also move the `exports`
+map's arms-bearing arm count, which `A122` keeps at ONE.** **THAT FILE IS RE-DERIVED BY ANOTHER PASS AND IS
+TOUCHED BY NO BYTE OF THIS ONE; this sentence is the pointer and not the edit.**
+
+**2. THE WORK, PHASE BY PHASE, IN THE PHASES `§2` ALREADY NAMES.** **No phase is added, no owner changes and no
+output is invented; the three rows below are the cells this section moves.**
+
+| The phase | What it now carries, re-derived | Which cell of `§1`'s scope it writes |
+| --- | --- | --- |
+| **`Q1` — gate 2, the contract** | **the spec side of this re-homing: `surface.md §2.12` authored, and owed its carriage into `contract.md §2` as a clause; `§2.6`'s one-line pointer; the two moved counts (`9` verbs and FIVE own members) with their arithmetic; and the two added `PAR-JS` rows (`PAR-JS-22` at `parameter-semantics.md §2.24`, `PAR-JS-23` at `§2.25`). `Q1` writes no package byte and no plugin byte** | `docs/specs/storeroom-js/contract.md` **+ its declared parts** |
+| **`Q3` — gate 3, the green** | **the code side, THREE EDITS AND NO FOURTH: (i) the one code defect the gate-1 record MEASURED is closed — the kernel module's own store write must carry the FIFTH POSITION, per `docs/specs/storeroom-constraints/kernel-surface.md` `§1` item 5's dated spelling, so that the entry does not re-enter the kernel for the kernel's own store leg; (ii) `manageConstraints` is added as the ninth named export and the instance's FIFTH own member, per `surface.md §2.12` item 2; and (iii) the published allowlist takes the kernel module's own path, so the engine SHIPS** | the JS package inside `bindings/js/**` — `package.json`, its entry points, its generated `.d.ts`, its JS sources and its JS tests |
+| **`Q3` — the same phase, the types half** | **`bindings/js/index.d.ts` is re-derived to declare the NINE names and the FIVE own members. THE FIGURES AND THE DUTY ARE NOT THIS PLAN'S: they are `surface.md §2.4` item 9 (f)'s dated clause of 2026-10-16 and `§2.9` item 1's, and this plan only NAMES the phase that performs the edit** | the JS package inside `bindings/js/**` |
+
+**3. THE ONE EDGE THIS PLAN NOW PUTS WORK UNDER, AND WHAT IT DOES NOT LICENSE.** **THE ENTRY→KERNEL CALL IS
+`surface.md §2.12` ITEM 1's AND NOT THIS PLAN'S: a four-position `write` enters the kernel's `K-2`, the kernel
+drives the store with the fifth position, the constraint pass runs INSIDE the call, and the two success arms
+and the fail arm report back to the caller exactly as that item prints them.** **AND `A125` IS HONOURED BY EVERY
+STEP ABOVE: an externally-supplied `commit` is an UNSUPPORTED ANTI-PATTERN and no step of this plan requires
+one — the fifth position these edits carry is the KERNEL's own supply of a record identity THIS INSTANCE HAS
+ADOPTED (`A124`: passed and matching, the write joins it; passed and matching nothing, it is refused; absent, a
+new commit is created) — and a consumer's own supply is neither a step, nor an output, nor a drive's subject**
+(`surface.md §2.2` clause 5).
+
+**4. WHAT THIS SECTION DOES NOT DO.** **It adds no phase and no owner; it adds no acceptance item beyond
+naming the phase that already owns each edit; it lifts no park; it re-measures nothing; and it writes no byte
+outside `docs/specs/storeroom-js/**`.** **The store's crate, its `src/**` and its `tests/**` are NOT TOUCHED —
+the engine is the sibling package's own module, and the store's closed `16`-member set, its `8`-verb namespace
+and its `379` are UNMOVED** — and **`docs/specs/storeroom-constraints/**`, `docs/specs/storeroom-publish/**`
+and the four trackers are OUTSIDE this plan's edit scope: each is re-derived by its own pass or written by a
+gate** (`[A2 docs/decisions.md` · `A122` · `A123` · `A124` · `A125`, all 2026-10-16; A3
+docs/specs/storeroom-js/surface.md §2.12 and §2.9 item 1's dated clause; A3
+docs/specs/storeroom-constraints/kernel-surface.md` `§1` item 5; A3
+archive/reviews/2026-10-16-constraints-publication-gate1.md §17.1 · §17.5 · §17.6 | cross-reference]`).
 

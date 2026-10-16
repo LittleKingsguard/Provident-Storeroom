@@ -13,10 +13,14 @@ old form → new form** (`[A3 docs/specs/spec-scope-and-structure/contract.md §
 
 **AND ONE SCOPE STATEMENT, SO THIS PART IS NOT MISTAKEN FOR THE STORE'S OWN:** **the store's parameter rows
 are `PAR-1`…`PAR-14` and live at `docs/specs/storeroom-native/parameter-semantics.md`; they are CITED here
-and never restated.** **This part's rows are `PAR-JS-1`…`PAR-JS-21` — the JS SURFACE's own parameters, one row
+and never restated.** **This part's rows are `PAR-JS-1`…`PAR-JS-23` — the JS SURFACE's own parameters, one row
 per declared JS parameter — and they are a SEPARATE, UNCAPPED surface that is NOT the typed register's**
 (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.6 — no per-part reading of the `≤ 8` cap |
-requirement]`).
+requirement]`). **⟶ RE-SPELLED 2026-10-16 BY THE `A122`/`A123` PASS (`role_spec_writer`): the range's own
+figure above is re-spelled `PAR-JS-1`…`PAR-JS-21` → `PAR-JS-1`…`PAR-JS-23`, the two added rows being
+`PAR-JS-22` (the post-creation constraint route's own parameter, `§2.24`) and `PAR-JS-23` (the constraint
+identity, `§2.25`); the count's ONE home is `§1`'s clause of this date, and the arithmetic is
+`21 + 2 = 23` ✓** (`docs/decisions.md` · `A123`, 2026-10-16; `§1` below).
 
 ---
 
@@ -51,6 +55,9 @@ below is a map and every row of it is one entry, not a restatement.**
 | **`PAR-JS-20`** | **`commit` on `write`** — the fifth argument, OPTIONAL, declared LAST; the record identity the write joins, and the key the terminal arm's own `file`-tier save reads (`surface.md §2.11` clause 2) | `parameter` | **`surface.md §2.2`**'s signature block and its dated clause of 2026-10-15 (the declared order) | `parameter-semantics.md` `§2.20` |
 | **`PAR-JS-21`** | **`cfg.constraints`** — the construction's fourth declared key, OPTIONAL: the store's constraint list, one element per `{ address, id }` pair | `parameter` | **`surface.md §2.1`**'s `cfg` block (the fourth key, 2026-10-15) and `surface.md §2.1`'s dated clause | `parameter-semantics.md` `§2.21` |
 
+| **`PAR-JS-22`** | **`manageConstraints(instance, pair, operation)`** — the POST-CREATION constraint route: the one operation position, `'add'` · `'enable'` · `'disable'`, with the `pair` and the `instance` position it is taken over | `parameter` | **`surface.md §2.12`** item 2 (authored 2026-10-16 on `A123`) | `parameter-semantics.md` `§2.24` |
+| **`PAR-JS-23`** | **the constraint identity** — the `{ address, id }` pair's identity as `manageConstraints` returns it, and the key the kernel's own registry holds it under | `return-field` (its construction-side twin is a `parameter`, carried by `PAR-JS-21`'s pair) | **`surface.md §2.12`** item 5 and `surface.md §2.1`'s `cfg` block | `parameter-semantics.md` `§2.25` |
+
 **ARITHMETIC, PRINTED WITH ITS TERMS, RE-DERIVED AT THIS PASS'S OWN DATE — AND RE-DERIVED A SECOND TIME, `2026-10-15`, BY THE `RCA-9` FILE-TIER-SAVE PASS, WHICH MINTS THE TWENTIETH ROW — AND RE-DERIVED A THIRD TIME, 2026-10-15, BY THE GATE-2 CONSISTENCY CLOSE-OUT PASS (`role_spec_writer`), WHICH MINTS THE TWENTY-FIRST ROW: the parameter-semantics set is `21`
 rows (`PAR-JS-1`…`PAR-JS-21`) — `15` are parameters or returned fields this unit declares the JS surface as
 carrying (`PAR-JS-1`…`PAR-JS-11` and `PAR-JS-13`…`PAR-JS-16`) + `1` callback (`PAR-JS-12`) + `1` error-code
@@ -76,6 +83,31 @@ CLAUSE PRINTS — *"`18` rows before and `18` rows after"* — ARE ITS OWN PASS'
 TO `18` AND `19` by the `A116` ORDERING-SEAM PASS of 2026-10-15: `PAR-JS-19` is MINTED THERE, the table's rows
 stand at `19`, and no row's `§`-number moves** (`[A2 docs/decisions.md · `A116` (D5); A3
 docs/specs/storeroom-js/parameter-semantics.md §2.19 | numeric or census claim]`).
+
+**⟶ AND ONE RE-DERIVATION OF THIS INDEX, LANDED 2026-10-16 BY THE `A122`/`A123` PASS (`role_spec_writer`), ON
+`docs/decisions.md` · `A123` OF THAT DATE — AND IT IS A PURE INSERTION AT THE TABLE'S OWN END: THE
+PARAMETER-SEMANTICS SET MOVES `21 → 23`, AND THE ARITHMETIC IS PRINTED WITH ITS TERMS.** `RCA-8(d)`
+ANNOTATE-BESIDE: **the table above stands BYTE-FOR-BYTE at its own rows — every row's entry, every figure and
+every earlier arithmetic clause included — and each is read THROUGH this clause; THIS clause re-decides no
+rule of any row's cells, renumbers no row and moves no `§`-number.** **THE TWO ADDED ROWS, EACH WITH ITS OWN
+HOME NAMED BELOW: `PAR-JS-22` — the POST-CREATION constraint route's own parameter, `manageConstraints`, whose
+declared shape is `docs/specs/storeroom-js/surface.md §2.12` item 2, whose row is `§2.24` below, minted on
+`A123`'s *"expose a function to add/enable/disable new constraints after store creation, similar to listener
+handling"* — and `PAR-JS-23` — the CONSTRAINT IDENTITY that route returns and that the kernel's registry keys
+its own structure by, whose row is `§2.25` below.** **SO THE OPERATIVE COUNT AND ITS ARITHMETIC ARE: `23` rows
+(`PAR-JS-1`…`PAR-JS-23`) — the `21` the clauses above re-derived, `+ 1` parameter (`PAR-JS-22`) `+ 1`
+return-field (`PAR-JS-23`), so `21 + 1 + 1 = 23` ✓ — and the addition to the `21` figure is `21 + 2 = 23`.** **AND
+THE TERMS ARE RE-COUNTED RATHER THAN THE TOTAL ASSERTED: `15` parameters or returned fields
+(`PAR-JS-1`…`PAR-JS-11` and `PAR-JS-13`…`PAR-JS-16`; `11 + 4 = 15`) `+ 1` callback (`PAR-JS-12`) `+ 1`
+error-code carrier (`PAR-JS-17`) `+ 1` declared NON-parameter (`PAR-JS-18`) `+ 1` seam (`PAR-JS-19`) `+ 1`
+parameter (`PAR-JS-20`) `+ 1` parameter (`PAR-JS-21`) `+ 1` parameter (`PAR-JS-22`) `+ 1` return-field
+(`PAR-JS-23`) = `15 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 23` ✓.** **AND NO ROW IS RENUMBERED AND NO HOME MOVES:
+`PAR-JS-1`…`PAR-JS-21` keep their ids and their `§`-homes, `PAR-JS-16`'s home stays `§2.16`, and the two new
+rows take the two next free ids.** **AND THE SET CARRIES NO STATED CAP: this part's surface is the UNCAPPED
+one — the `≤ 8` figure is the TYPED REGISTER's and is PER UNIT (`§0`'s scope statement above) — so this
+addition is measured against `0` cap and its arithmetic is the one printed here, not against a ceiling**
+(`[A2 docs/decisions.md` · `A123`; A3 docs/specs/storeroom-js/surface.md §2.12; A3 docs/specs/storeroom-js/contract.md §5.0` — the register's
+`8 ≤ 8`, UNMOVED | numeric or census claim]`).
 
 ---
 
@@ -1163,6 +1195,56 @@ the position this clause applies at the two sites; `DD-40` | declared parameter 
 `[A1 docs/specs/storeroom-js-proposal.md §15 · A73; A3 docs/specs/storeroom-native/contract.md §7.3 |
 declared parameter semantics]`
 
+**⟶ AMENDED 2026-10-16 — `CLIENT-SIDE` IS FALSIFIED FOR THE WRITE PATH BY `A122`, AND THE TWO CELLS IT
+FALSIFIES ARE RE-SPELLED AT THEIR OWN SITES (`role_spec_writer`; `docs/decisions.md`, 2026-10-16).**
+`RCA-8(d)` ANNOTATE-BESIDE: **every cell of this row stands BYTE-FOR-BYTE at its own bytes above and is read
+THROUGH this clause; THIS clause re-spells the two cells it names and NOTHING ELSE of the row — its `domain`,
+its outside-value list, its `supplier`, its `alt` and its `park` are UNMOVED, and no code, no verb and no row
+is added to the store's own surface by it.**
+
+**THE TWO RE-SPELLINGS, EACH NAMED BY ITS OWN WORDS:**
+1. **THE `evaluator` CELL.** **It reads** *"**the caller** — the evaluation is CLIENT-SIDE"* **and it is
+   RE-SPELLED TO READ: *"the KERNEL, on the write path — a four-position `write` enters the kernel's `K-2`
+   and the kernel evaluates the constraint set inside the pass — and the CALLER on the read path, where no
+   write is in flight"*.** **The operative declaration of the write path is
+   `docs/specs/storeroom-js/surface.md §2.12` item 1, which is that rule's ONE home; this row is read through
+   it** (`A122`; `archive/reviews/2026-10-16-constraints-publication-gate1.md` `§17.1`).
+2. **THE `domain` CELL'S TIMING CLAUSE.** **It reads** *"**evaluate constraints AFTER a `write` returns; on a
+   violation, call `rollback` with the `JournalOp.opId` THAT WRITE RETURNED**"* **and it is RE-SPELLED TO READ:
+   *"the kernel evaluates the constraint set INSIDE the pass a four-position `write` opens; on a violation the
+   kernel's own `rollback` over the attempt's ops reports the failure to the package surface's caller; the
+   caller-side reading the cell carried is the read path's, where no write is in flight"*.** **AND THE CELL'S
+   OWN WORDS THAT SURVIVE ARE NAMED SO THE RE-SPELLING IS NOT READ AS A WITHDRAWAL: *"the JS side holds the
+   constraint functions"* SURVIVES, and the prohibition on a STORE-side constraint verb, parameter, record or
+   function-carrying parameter SURVIVES WHOLE and is UNMOVED** (`surface.md §2.12` item 1; `docs/specs/storeroom-native/contract.md §7.3`).
+
+**AND ONE FALSIFIED CLAIM OF THIS ROW'S `the values OUTSIDE it` LIST IS NAMED, BECAUSE IT IS NOT ONE OF THE TWO
+CELLS ABOVE: *"a CONSTRAINT VERB"* REMAINS OUTSIDE THE STORE'S OWN SURFACE — the `constrain` verb stays BANNED
+there and this row does not admit it — WHILE `manageConstraints` IS DECLARED AT THE PACKAGE'S OWN SURFACE and
+is the subject of `§2.24` below; so the list's answer is read at the STORE and the new function is read at the
+PACKAGE, and neither reading is the other's** (`surface.md §2.12` item 2; `A123`; `docs/specs/storeroom-native/contract.md §0.1` item 10's ban on the verb `constrain`).
+
+**AND THE ROW'S `kind` CELL IS UNMOVED: this row remains the declared NON-parameter, and the new function's
+own parameter is `PAR-JS-22`, a `parameter`, and not an amendment of this row's kind** (`§2.24` below;
+`[A2 docs/decisions.md` · `A122` · `A123`; A3 docs/specs/storeroom-js/surface.md §2.12 item 1 |
+state or fail-state declaration]`).
+
+**⟶ AND THE ANTI-PATTERN `A125` DECLARES IS CARRIED AT THIS ROW'S OWN HOME, AND ITS REFUSAL IS `§2.20`'s
+`the declared answer for EACH outside value` CELL ABOVE — WHICH IS CITED AND NOT RESTATED (`role_spec_writer`,
+2026-10-16).** `RCA-8(d)` ANNOTATE-BESIDE: **no cell of this row moves; THIS clause ADDS the anti-pattern's own
+declaration and nothing else, and it re-spells no figure of `§1`'s arithmetic.** **`A125`, verbatim: *"Externally
+calling a write with a commit is an unsupported anti-pattern. It is present because repair functions need to use
+the external package surface and still be added to a commit log."*** **ITS SPECIFICATION TERMS ARE THIS
+DIRECTORY'S AND STAND AT `docs/specs/storeroom-js/surface.md §2.2` clause 5, which is the ONE HOME of the
+declaration; THIS row carries the consequence it has for the PARAMETER: a `commit` the CALLER supplied — one
+this instance has not ADOPTED as a record position — is REFUSED by the class test `surface.md §2.4` item 9 (g)
+states, exactly as the cell above declares for every value outside its domain, and NO package-side code and NO
+package-side message is minted to name the anti-pattern itself.** **AND THE SUPPORTED SUPPLY IS THE KERNEL'S,
+and it is a supply of an ADOPTED identity — so this row's `supplier` cell above, *"the CALLER, and for the
+kernel-driven flow the KERNEL — `K-2 commit` answers the record identity and passes it to the write"*, is
+UNMOVED and is the cell `A122`'s write path is read through** (`[A2 docs/decisions.md` · `A125`; A3
+docs/specs/storeroom-js/surface.md §2.2 clause 5 and §2.12 item 1 | declared parameter semantics]`).
+
 ---
 
 **END OF THIS PART.** **Its `§1` is the contract's `§6` relocated WHOLE and its `§2` is its OWN authored
@@ -1172,7 +1254,13 @@ docs/specs/spec-scope-and-structure/contract.md §C.11.6 and §C.6 — a carrier
 and the `implementation-plan`/`parameter-semantics` footing | requirement]`). **AND `§2.19` BELOW IS AUTHORED
 AFTER THIS LINE AND NOT BEFORE IT, NAMED HERE SO THE NUMBERING IS NOT READ AS A MIS-SORT: it is the `A116`
 ORDERING-SEAM PASS's own row, minted 2026-10-15, and its subject is declared at
-`docs/specs/storeroom-js/surface.md §2.4` item 9.**
+`docs/specs/storeroom-js/surface.md §2.4` item 9.** **⟶ AND `§2.22` AND `§2.23` BELOW ARE AUTHORED THE SAME
+WAY, IN THIS PASS OF 2026-10-16, AND ARE NAMED HERE FOR THE SAME REASON: they are the `A122`/`A123` pass's own
+two rows (`PAR-JS-22`, the post-creation constraint route's parameter, and `PAR-JS-23`, the constraint identity),
+their subjects are declared at `docs/specs/storeroom-js/surface.md §2.12`, and their ids are `22` and `23` while
+their homes are `§2.24` and `§2.25` — the id and the home being two counts, as `§2.22`'s own requirement list
+prints — so the four sections below and this line close the part, and the `23`-row figure `§1` prints is read
+from the ids and not from the `§`-numbers.**
 
 ### §2.19 `PAR-JS-19` — `settle(record)`: the ordering seam
 
@@ -1277,4 +1365,78 @@ docs/specs/storeroom-native/contract.md §8.1` #16 — `ConstraintListInvalid`; 
 docs/specs/storeroom-native-proposal-review.md §18.1 · §22.1 | declared parameter semantics]`
 
 **⟶ AND THE LOAD-SIDE PREDICATE THIS ROW'S `observable` AND `park` CELLS LEFT UNSPELLED IS DECLARED, AND THE PARK THIS ROW ONCE WORE IS NOW STALE (`role_spec_writer`, 2026-10-16).** **THE CLAUSE: `docs/specs/storeroom-native/contract.md §7.2` item 1, `ADDED 2026-10-16`, SPELLS *"SATISFIES"* — THE LOADED STATE SATISFIES THE SUPPLIED LIST IFF EVERY SUPPLIED PAIR'S OWN `address` RESOLVES IN THE LOADED STATE — AND TAKES THE ADDRESS-PRESENCE READING, NOT THE KEY-COVERAGE READING, AND DECIDES THE ONE STATE THE TWO READINGS ANSWERED DIFFERENTLY: AN IMAGE CARRYING A KEY THE LIST DOES NOT NAME BOOTS INTO AN INSTANCE, because a resolution is required and a coverage is not** (`docs/specs/storeroom-native/contract.md §7.2` item 1, read with its items `2`–`4`; `A: docs/decisions.md` · `A119`, which settled the reach). **SO THIS ROW'S *"whose loaded state no longer satisfies the SUPPLIED list"* IS READ THROUGH THAT CLAUSE AT THIS DATE, AND THE `park` CELL ABOVE — *"—"*, on the words *"no subject of this row is parked"* — STANDS CORRECT AND WAS ALREADY SO.** **WHAT IS NOW STALE IS THE GATE-5 BLIND SET'S OWN PRINT OF A PARK AT THIS PREDICATE: `bindings/js/greens/file-tier-save/file-tier-save-greens.md`'s `FTS-09.7` still reads `NOT DRIVABLE BLIND` and its `§3` item `2` still reads *"'satisfies' is still spelled nowhere"*, and NEITHER REPRODUCES AT THIS DATE — the predicate is spelled at the clause named above and the differing state is decided there.** **OWNER: the greens author of that artifact — the park's lift and the row's re-spelling are theirs and are touched by no byte of this row** (`RCA-8(g)`; `docs/decisions.md` · `A120` (1)'s own note that the greens park is the greens author's to lift). **THIS CLAUSE MOVES NO CELL OF THIS ROW: `domain`, `the values OUTSIDE it`, the declared answer, `evaluator` and `observable` stand BYTE-FOR-BYTE above and are read THROUGH it.**
+
+### §2.22 `PAR-JS-22` — `manageConstraints(instance, pair, operation)`: the post-creation constraint route
+
+**⟶ AND THE CITATION RE-SPELLINGS THIS SPLIT OWES ARE ENUMERATED HERE AS A REQUIREMENT LIST, ONE SITE AT A
+TIME, AND NOTHING IS LEFT TO A BYTE DIFF (`role_spec_writer`, 2026-10-16).** **THIS PART'S `§1` HAD ALREADY
+MINTED THE TWO `§`-NUMBERS THAT THE TWO NEW SECTIONS WOULD HAVE TAKEN — its index table's last cells and its
+arithmetic clause read *"`parameter-semantics.md` `§2.22`"* and *"`§2.23`"* while the two sections still stood
+beside `§2.18` — SO THE SECTIONS WERE MOVED TO THE TWO `§`-NUMBERS NEXT FREE AT THIS PART'S OWN END, `§2.24` AND
+`§2.25`, AND THE EARLIER REFERENCE SITES CARRY THE NEW PAIR FROM THIS DATE.** **THE REQUIREMENT LIST, EACH
+SITE NAMED BY ITS OWN CELL, AND EACH CHECKED OFF AT ITS OWN BYTES:**
+1. **`§1`'s header range clause** — `PAR-JS-1`…`PAR-JS-23`, whose two added rows' homes now read `§2.24` and `§2.25` ✓.
+2. **`§1`'s index table, the `PAR-JS-22` row's last cell** — `parameter-semantics.md` `§2.24` ✓.
+3. **`§1`'s index table, the `PAR-JS-23` row's last cell** — `parameter-semantics.md` `§2.25` ✓.
+4. **`§1`'s arithmetic clause of this date** — the two added rows' homes, `§2.24` and `§2.25` ✓.
+5. **`§2.18`'s dated clause, its falsified-claim paragraph** — *"the subject of `§2.24` below"* ✓.
+6. **`§2.18`'s dated clause, its closing `kind` paragraph** — *"`§2.24` below"* ✓.
+7. **`docs/specs/storeroom-js/surface.md` `§2.12` item 6 and its citation block** — `parameter-semantics.md`
+   `§2.24` and `§2.25` ✓ (the re-spelling is landed in that part by this pass).
+8. **`docs/specs/storeroom-js/contract.md` `§6`'s two new index rows** — `parameter-semantics.md` `§2.24` and
+   `§2.25` ✓ (landed by this pass).
+9. **`docs/specs/storeroom-js/contract.md`'s index-region clause of this date and its part-map cell** — the
+   two added rows' homes, `§2.24` and `§2.25` ✓ (landed by this pass).
+10. **`docs/specs/storeroom-js/test-cases.md`'s `A122`/`A123` pointer set**, its third row's source cell —
+    `parameter-semantics.md` `§2.24` ✓ (landed by this pass).
+
+**AND WHAT DOES NOT MOVE, SAID SO THE RE-SPELLING IS NOT READ AS A RENUMBERING: NO `§`-NUMBER OF
+`PAR-JS-1`…`PAR-JS-21` MOVES, NO ROW IS RENUMBERED, AND THE TWO ADDED ROWS ARE `22` AND `23` IN ID AND `§2.24`
+AND `§2.25` IN HOME — the id and the home are two different counts and this part prints both**
+(`[A2 docs/decisions.md` · `A123`; A3 docs/specs/spec-scope-and-structure/contract.md §C.11.6 and §C.11.9 —
+a citation re-spelling is enumerated and checked off, never inferred from a byte diff | cross-reference]`).
+
+| Cell | Its value |
+| --- | --- |
+| `id` | **`PAR-JS-22`** |
+| `parameter` | **the post-creation constraint route's own call** — its THREE positions: `instance`, the object `storeCreate` returned; `pair`, the `{ address, id }` the constraint is taken at; and `operation`, the ONE operation position |
+| `kind` | **`parameter`** — a position of a declared verb of this surface, and NOT a seam, a callback, an option of the construction or a returned field. **ITS `instance` AND `pair` POSITIONS ARE CARRIED BY ROWS THAT ALREADY EXIST — `PAR-JS-1`'s construction product and `PAR-JS-21`'s pair — so the ONLY position this row adds to the surface's parameter set is `operation`** (`§2.1`; `§2.21`) |
+| `unit` | **unitless** — the operation is a token, the pair an identity and the instance an object |
+| `domain` | **ONE string of EXACTLY THREE members — `'add'` · `'enable'` · `'disable'` — taken over an `instance` that is the object `storeCreate` returned, at a `pair` inside `PAR-JS-21`'s domain** |
+| `the values OUTSIDE it` | **THE `operation` POSITION:** `null` · `undefined` · **ABSENT** · **a non-string** (`number` · `bigint` · `boolean` · `symbol` · a function · an object · an array) · **any other string** — `'ADD'`, `'remove'`, `'delete'`, `'set'`, `''` and every spelling not one of the three. **THE `pair` POSITION:** every value `PAR-JS-21`'s own outside-value list names. **THE `instance` POSITION:** **ABSENT** · `null` · `undefined` · **a non-object** · **an object that is not the one `storeCreate` returned** |
+| `the declared answer for EACH outside value` | **ONE ANSWER, THE SAME FOR EVERY ONE OF THEM: the package throws `TypeError`, carrying NO `status` member and NO `message` member of this unit's own, and NOTHING IS ADDED, ENABLED, DISABLED OR OTHERWISE CHANGED.** **This is `§2.4` item 5 (d)'s class test read through at a second site, and it MINTS NO CODE AND ADDS NO MEMBER TO THE STORE'S CLOSED `16`** (`docs/specs/storeroom-js/surface.md §2.12` item 4; `§2.17`; `docs/specs/storeroom-native/contract.md §8.1`) |
+| `supplier` | **the CALLER** — and, for the kernel's own construction-time set, the `cfg.constraints` key `PAR-JS-21` already carries; **this verb's own supplies are the caller's and are POST-CREATION** |
+| `evaluator` | **THE PACKAGE, at this verb's own three arms and at no other act — and the KERNEL evaluates the constraint SET this verb's `'add'` arm joins, inside the pass `surface.md §2.12` item 1 declares** |
+| `observable` | **THE THREE ARMS, EACH AS `surface.md §2.12` item 3 prints it: `'add'` returns the constraint identity and the constraint is evaluated on every subsequent write — a write it refuses on its FIRST evaluation is refused before the store's own write leg is taken; `'enable'` returns `undefined` and the constraint is evaluated again at the next write; `'disable'` returns `undefined` and a write the disabled constraint would have refused is ACCEPTED.** **AND THE ONE REFUSAL, OBSERVABLE: a `TypeError` with no `status` member, for every outside value of every position, changing nothing** |
+| `the clause that declares it` | **`docs/specs/storeroom-js/surface.md §2.12`** — authored there 2026-10-16 — and the module-namespace count it moves is `§2.9` item 1's dated clause of that date |
+| `the ruling that pins it` | **`A123`** (`docs/decisions.md`, 2026-10-16) — *"If not already present, expose a function to add/enable/disable new constraints after store creation, similar to listener handling."* — **read with `A121`, whose `MINOR` class the member addition requires, and with `A122`, whose flow this verb's constraints are evaluated in** |
+| `alt` | **THREE NAMES INSTEAD OF ONE — `addConstraint` · `enableConstraint` · `disableConstraint`** — priced: `A123`'s own sentence names THREE OPERATIONS and the corpus's precedent for a route pair is `§2.10`'s ONE NAME CARRYING A HANDLE with its counterpart carrying the withdrawal (`listen` / `unlisten`), so three verbs would mint three module-namespace names where one operation position carries the same three states — **and a SECOND NAME AT THE INSTANCE — a member beside `register` rather than the route's own member** — priced: the instance's declared member set is fixed at FIVE own members by `surface.md §2.4` item 9 (f)'s dated clause of this date, so a second member would move that figure again; **both available only with a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment of `docs/specs/storeroom-js/` — NEVER a park** |
+| `park` | **—** (no subject of this row is parked: the route, its three arms, its refusal and its membership are declared at `surface.md §2.12` and pinned at `A123`) |
+
+`[A2 docs/decisions.md` · `A123` · `A121` · `A122`, all 2026-10-16; A3
+docs/specs/storeroom-js/surface.md §2.12 items 2–4; A3 docs/specs/storeroom-constraints/kernel-surface.md §2.2`
+item 4 — the kernel's pair-keyed registry this verb's pair is the key of | declared parameter semantics]`
+
+### §2.23 `PAR-JS-23` — the constraint identity `manageConstraints` returns
+
+| Cell | Its value |
+| --- | --- |
+| `id` | **`PAR-JS-23`** |
+| `parameter` | **the CONSTRAINT IDENTITY** — the value `manageConstraints`'s `'add'` arm returns, and the identity the kernel's own pair-keyed registry holds the constraint under |
+| `kind` | **`return-field`** — **its construction-side twin is a `parameter` and is carried by `PAR-JS-21`'s pair**, which is the same `{ address, id }` read at the construction instead of at this verb (`§2.8`'s two-spelling pattern, read at this identity and not widened by it) |
+| `unit` | **unitless** — an identity, not a measure |
+| `domain` | **ONE OPAQUE JS VALUE the package owns**, equal to and distinguishable from no other identity by any rule this unit declares beyond the pair it was minted at, and returned by the `'add'` arm alone |
+| `the values OUTSIDE it` | **every JS value that is not a returned constraint identity:** a plain `string` · a number · a boolean · `null` · `undefined` · **a LISTENER handle of `PAR-JS-8`'s domain** · **a `JournalOp` of `PAR-JS-13`'s domain** · any object the package did not return |
+| `the declared answer for EACH outside value` | **NO ANSWER IS OWED BY THE STORE OR BY THE PACKAGE, and this row's outside values are NOT arguments of any verb of this surface: the identity is never CONSUMED by a verb this unit declares — `'enable'` and `'disable'` are taken over a `pair`, not over this value — so an outside value here reaches no call and THROWS NOTHING and CHANGES NOTHING.** **WHAT A CALLER MAY DO WITH IT IS PRINTED WITH ITS LIMIT: a caller MAY hand the pair back to `manageConstraints`, which is what the three arms are keyed by; a caller may NOT read a member of it, spell it, serialize it or carry it across a process reload** |
+| `supplier` | **the PACKAGE** — minted at the `'add'` arm; and the kernel's own registry reads it as the pair-keyed structure `docs/specs/storeroom-constraints/kernel-surface.md §2.2` item 4 declares |
+| `evaluator` | **THE PACKAGE**, at the `surface.md §2.12` item 3 arm table and at `§2.12` item 5's opacity rule |
+| `observable` | **the returned value of a successful `'add'`; and, for every outside value, NO throw, NO change and no reach into any state of this unit** — **because no verb of this surface consumes this identity, and `'enable'` / `'disable'` take the pair** |
+| `the clause that declares it` | **`docs/specs/storeroom-js/surface.md §2.12`** item 5 (the identity clause, 2026-10-16) and `§2.12` item 2's signature block |
+| `the ruling that pins it` | **`A123`** (`docs/decisions.md`, 2026-10-16) — the route whose `'add'` arm mints it — **read with the store's own pair-keyed registry clause at `docs/specs/storeroom-constraints/kernel-surface.md §2.2` item 4, which is why the identity is a PAIR's and not a fresh token family's** |
+| `alt` | **A STORE-MINTED TOKEN OF THIS VERB'S OWN, BESIDE OR IN PLACE OF THE PAIR** — priced: the kernel's registry is keyed by (`address`, `id`) and the store's own constraint list is a list of pairs (`PAR-JS-21`), so a third identity family would put ONE constraint under TWO keys and would make `'enable'` / `'disable'` untakeable over the pair — **and a TYPED MEMBER OR ACCESSOR ON THE RETURNED VALUE** — priced: `PAR-JS-8`'s opacity rule and `A69`'s accepted hazard are declared one spelling in each direction, and an accessor would make one of them readable; **both available only with a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment of `docs/specs/storeroom-js/` — NEVER a park** |
+| `park` | **—** (no subject of this row is parked; the identity's opacity, its pair and its one arm are declared at `surface.md §2.12` item 5) |
+
+`[A2 docs/decisions.md` · `A123`, 2026-10-16; A3 docs/specs/storeroom-js/surface.md §2.12 items 2, 3 and 5; A3
+docs/specs/storeroom-constraints/kernel-surface.md §2.2` item 4; A3
+docs/specs/storeroom-js/parameter-semantics.md §2.21 | declared parameter semantics]`
 
