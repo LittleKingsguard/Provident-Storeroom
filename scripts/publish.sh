@@ -274,7 +274,8 @@ if [ "$MODE" = "bump" ]; then
   i=1
   for n in "${PIN_NAMES[@]}"; do
     i=$((i+1)); printf "  %2d/11  pin %s\n" "$i" "$n"
-    [ "$DRY" -eq 0 ] && perl -pi -e "s/(\"\Q$n\E\"\s*:\s*\")[^\"]+(\")/\${1}$TARGET\${2}/" "$MAIN_MANIFEST"
+    [ "$DRY" -eq 0 ] && PIN="$n" TARGET="$TARGET" perl -pi -e \
+      'my ($p,$t)=@ENV{qw(PIN TARGET)}; s{("\Q$p\E"\s*:\s*")[^"]+(")}{$1.$t.$2}ge' "$MAIN_MANIFEST"
   done
   for d in "$PLATFORM_DIR"/*/; do
     i=$((i+1)); printf "  %2d/11  platform %s\n" "$i" "$(basename "$d")"

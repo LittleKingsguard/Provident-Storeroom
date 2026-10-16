@@ -403,3 +403,22 @@ FAIL PREFLIGHT REFUSED. Nothing was changed.
 **AUDIT FINDING, SAME FILE, NOT YET MOVED:** the usage block hard-codes `scripts/publish.sh --bump 0.1.3` (a spent version as an example) and the bump prints `(PATCH; §2.5's order is binding)` for a change `release.md §2.3`'s dated clause of 2026-10-15 rules **MINOR**. Both are in the dispatched pass's brief.
 
 **⟶ THE FIX LANDED 2026-10-16 (`role_implementer`, `scripts/publish.sh` only, 379 lines).** The honesty refusal is now mode-gated at `150–154` — `if [ "$MODE" = "bump" ]` prints it as a `warn` and sets nothing, `else` keeps the `refuse` (and `FAILED=1` is reachable only there, since `refuse(){ bad "$*"; FAILED=1; }` is the only setter). The consequence lines and the advice stay `warn` in both modes, the advice reads *"cutting the next release"* with no class asserted, the `AHEAD == 0` branch and the `refs/tags/v$MANIFEST_V` guard are byte-unchanged, the bump's own label prints `(§2.5's order is binding)` without a class, and the usage slice's four `0.1.3` examples are `X.Y.Z` line-for-line so `sed -n '30,60p'` still frames it. **Two-sided, both observed:** `bash -n` parses; `bash scripts/publish.sh --check` **still refuses with the same message** (exit 1) — the reach is preserved where it belongs; and `node --test bindings/js/test/*.test.mjs` stays **`414 / 414 / 0 / 0`** with no cell reading those bytes. **Unverified by its own walls and reported as a reading:** the bump's end-to-end exit code; **the row closes on the architect's successful `--bump 0.2.0 --yes` and not before.**
+
+### `DEF-2026-10-16-H` — THE BUMP'S PIN LOOP CANNOT RUN: TWO FAULTS IN ONE `perl` ONE-LINER, AND THEY ARE WHY NO RELEASE HAS EVER BEEN CUT (**OPEN — fix in flight, `role_implementer`**)
+
+**Found in the runbook's own log from a real bump** (`nohup bash scripts/publish.sh --bump 0.2.0 --yes`, preflight PASSED, carrier moved, then):
+
+```
+  1/11  main version
+   2/11  pin @auspicion/provident-storeroom-js-linux-x64-gnu
+Scalar found where operator expected (Missing operator before "${1}"?) at -e line 1, near "s/("\Q@auspicion/provident-storeroom-js-linux-x64-gnu\E"\s*:\s*")[^"]+(")/${1}"
+syntax error at -e line 1, … Execution of -e aborted due to compilation errors.
+```
+
+**THE SCRIPT ABORTED INSIDE THE PINS LOOP (line `277`), so the POST-BUMP CHECK (`287–302`) never ran, the platform loop (`279–282`) never ran, and the tree was left with 2 of 11 cells moved** — carrier `0.2.0`, main `version` `0.2.0`; **five pins and five platform versions still `0.1.3`**. Every earlier observation follows from this: the tag was re-cut three times against bytes that could not move, `.github/workflows/publish.yml` published the platform manifests' own spent `0.1.3`, and three CI runs failed at the first `npm publish` having published nothing.
+
+**TWO FAULTS IN THE ONE LINE, both fatal, both present for all five pins:** (1) **the `/` in every scoped pin name is the `s///` DELIMITER** — `\Q…\E` escapes regex metacharacters at match time and does nothing to shield the delimiter from the parser, so the pattern ends at `@auspicion/` and the remainder is a syntax error; (2) **the `@` interpolates as an ARRAY inside a Perl regex literal** — `\Q` does not stop interpolation, so even with a safe delimiter `@auspicion` expands to the undefined array `@auspicion` → empty → **a silent no-match that would leave the pins unmoved with no error at all.** Measured on a copy: the `/`-delimited form errors; a `{}`-delimited form with the `@` still interpolating **rewrites nothing**.
+
+**THE FIX AS BRIEFED:** pass both values through the environment and write the Perl program **single-quoted**, so neither character is ever source text — `PIN="$n" TARGET="$TARGET" perl -pi -e 'my ($p,$t)=@ENV{qw(PIN TARGET)}; s{("\Q$p\E"\s*:\s*")[^"]+(")}{$1.$t.$2}ge' "$MAIN_MANIFEST"`. **Executable verification is owed and is not the bump:** the fixed form is run against a throwaway copy of the manifest and must move the pin, and the old form against a fresh copy must be shown to fail two-sidedly. The carrier site (`266`) has been observed working and the platform site (`281`) is well-formed literally — neither is rewritten for style.
+
+**CLOSE CONDITION:** a successful `--bump` whose POST-BUMP CHECK prints `1/11 … 11/11` all at the target and `ok bump complete`. The row does not close on the edit.
