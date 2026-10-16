@@ -1,0 +1,172 @@
+N7 GATE 6 — TRIAGE OF THE SIX FAILING CELLS OF THE ARCHITECT'S ACCEPTANCE TEST, AT THE CLAUSES
+=============================================================================================
+Role: role_live_scenario_runner. Root: /media/ryanr/Shared Files/Projects/Provident-Storeroom. Pass date
+2026-10-16. LAYER: LIVE / ASSEMBLED PACKAGE (the package resolved by its published name through
+scratch/node_modules/provident-storeroom -> bindings/js; the constraint kernel at its declared checkout home
+bindings/js/src/constraint-kernel.mjs, whose own binding is the package self-reference, so kernel + driver +
+store share ONE module instance and ONE loaded addon; the Rust store exercised in a real Node process,
+node v24.20.0).
+
+THE RUN TRIAGED (READ-ONLY INPUT, NOT REWRITTEN BY THIS PASS)
+  scratch/n7-ordering-demo-gate6b.mjs               driver, 2026-10-15 14:46 (sha256 833b4926…)
+  scratch/n7-ordering-demo-gate6b-out-b1.{json,txt} the architect's re-run, 2026-10-16 15:16
+                                                    exit 0, digest 76ada774cc453dc76e823cfa4666be9a40ad45f88d5d21b9aca1b0a3797005da
+                                                    TOTALS cells=20 verdicts=18 PASS=12 FAIL=6
+  PROVENANCE, MEASURED: b1 ≡ b3 ≡ b4 are byte-identical apart from the `run` label (one differing leaf path
+  `/run`, across the whole record tree) and carry the SAME digest — so the architect's run is exactly what the
+  driver produces today, and `-b2` (2026-10-15 14:46, digest d7b02816…, PASS=18 FAIL=0) is the PRE-`A117` run:
+  it measured `app body calls 0` at the pair-adopted address. `scratch/n7-ordering-demo-gate6b-out-b2.json` is
+  the live record of the defect `A117` (D7) names and is preserved here as such.
+
+THE OPERATIVE CLAUSES READ (hashes of the bytes this pass read)
+  docs/decisions.md                                                    395b1a58… (mtime 2026-10-15 22:12) · A117 ACTIVE
+  docs/specs/storeroom-js/surface.md                                   66a921db… (mtime 2026-10-15 22:04) · §2.4 item 8 (c) AS CORRECTED, §2.7 item 6 / item 7 (a) AS RE-SPELLED
+  docs/specs/storeroom-constraints/kernel-surface.md                    9bd9a173… (mtime 2026-10-15 22:12)
+  bindings/js/src/constraint-kernel.mjs                                 a3a3cc3b… (mtime 2026-10-15 21:08) · the checked-off note + settleArm
+  bindings/js/index.mjs                                                 bba34da5… (mtime 2026-10-15 22:46) · settleOn instant (b)
+
+WHY THE SIX ARE WHERE THEY ARE: the driver was written 2026-10-15 14:46. The correction that supersedes its six
+expectations landed the same day at 21:08 (kernel), 22:04 (surface.md), 22:12 (decisions.md / kernel-surface.md).
+The driver therefore carries PRE-AMENDMENT expectations — the class closed as `DEF-2026-10-16-E`.
+
+THE RULING, CELL BY CELL — (a) PRE-AMENDMENT or (b) REAL CONTRADICTION
+---------------------------------------------------------------------------------------------
+The five cells of limbs 1 and 7 and the limb 3 cell share ONE superseded clause sentence; it is quoted once here
+and cited for each.
+
+SUPERSEDED EXPECTATION (quoted from scratch/n7-ordering-demo-gate6b.mjs :524 and its file header :26–:27):
+  "…NO entry for it stands in `pending` for the residue to reach, AND THE APP'S BODY IS NOT DELIVERED AT THAT
+   INSTANT — "a drive that finds that body run at the delivery instant has found a failure of item 7"."
+and (limb 3, :569): "…At the ADOPTED address the pass still runs the kernel's pair-keyed body (once) and the
+   app's replaced slot is NOT DELIVERED on either arm…"
+and (limb 7, :613): "The exact spelling returns the adopted identity (one home entry, one function) — NOT DELIVERED…"
+
+GOVERNING CLAUSE THAT SUPERSEDES IT:
+  docs/decisions.md · A117 (ACTIVE, 2026-10-15) —
+    D3: "The derived NON-DELIVERY is SUPERSEDED and withdrawn by name: item 8 (c)'s "IS NOT DELIVERED AT THAT
+        INSTANT" and "no entry for it stands in `pending` for the residue to reach" are deleted; a
+        registration-identity fact cannot withdraw a firing the law declares, and a listener turned on at that
+        address is not a listener that never fires."
+    D4: "A listener registered at a pair-adopted address is owed ONE firing — after the pass, at the pass's
+        terminal arm, never inside the store verb's window, with the triggering address as its single argument —
+        exactly as its sibling at the proper prefix is."
+    D5: the owed firing's home is THE REGISTRY'S RESOLUTION OF THE IDENTITY, never an occurrence in `pending`;
+        the check-off keeps its act and extent (`pending` = returned set minus that entry, minus nothing else).
+  docs/specs/storeroom-js/surface.md §2.4 item 8 (c) AS CORRECTED 2026-10-15: "THE APP'S REGISTRATION AT THE
+    PAIR-ADOPTED ADDRESS IS OWED ITS FIRING AFTER THE PASS, EXACTLY AS ITS SIBLING REGISTRATION AT THE PROPER
+    PREFIX IS … A DRIVE THAT FINDS IT UNREACHED THERE HAS FOUND A FAILURE OF §2.7 ITEM 6."
+  docs/specs/storeroom-js/surface.md §2.7 item 6 (THE FIRING LAW) + item 7 (a)/(c) AS RE-SPELLED 2026-10-15.
+
+CELL 1 — O1-on-at-adopted-address-r1   (limb 1)   → (a) PRE-AMENDMENT
+  ITS OWN EXPECTATION (driver :524, quoted above): the app's body NOT DELIVERED at that instant; `pending`-based
+  non-delivery declared.
+  OBSERVED (b1 and this pass): identity identical to the adopted one=true; residue at K-2={length:1,
+  carriesTheAppIdentity:true}; residue after the arm=0 of triggered=1; app body calls=1 with seq 28 in the K-3
+  frame, in the verb's window 0; args ["n7","ord"]; arm=passed.
+  RULING: (a). The superseded sentence is DELETED by A117 (D3) and replaced by (D4), which requires exactly the
+  one invocation at the terminal arm the build makes. Re-derived and re-run: PASS.
+CELL 2 — O1-on-at-adopted-address-r2   (limb 1)   → (a) PRE-AMENDMENT — same clause, round 2; same observed
+  shape (seq 85, args ["n7","ord"]). Re-derived: PASS.
+CELL 3 — O1-register-at-adopted-handle-r1 (limb 1) → (a) PRE-AMENDMENT — same superseded clause. The `register`
+  route reaches the same owe: the app's registration replaces the registry's slot for the identity `register`
+  adopted (surface.md §2.4 rule 2; A117 (D2): "the home entry and the registry's function slot … two holders
+  over different members"), so the arm's registry resolution reaches the app's function. Observed app body
+  calls=1 at the terminal arm, in-window 0, args ["n7","ord"], residue after the arm 0 of triggered 1.
+  Re-derived: PASS.
+CELL 4 — O1-register-at-adopted-handle-r2 (limb 1) → (a) PRE-AMENDMENT — same clause, round 2. Re-derived: PASS.
+CELL 5 — L3-replacement-seam           (limb 3)   → (a) PRE-AMENDMENT
+  ITS OWN EXPECTATION (driver :569, quoted above): "the app's replaced slot is NOT DELIVERED on either arm".
+  OBSERVED: (a) on-route passing write: kernel's pair-keyed body calls=1 (inside the pass), app body calls=1 at
+  the terminal arm, residue after the arm=0 of triggered=1; failing write arm=KC-3, app body calls=0. (b) the
+  same through `register`: passing app body calls=1 at the arm; failing 0. (c) the PREFIX control: passing app
+  body calls=1 at the arm, failing 0.
+  RULING: (a). The only term that failed is "NOT DELIVERED on either arm" — A117 (D3)'s withdrawn derivation.
+  Its OTHER terms were faithful and are kept verbatim, and are the reason this limb exists: ONE FUNCTION per
+  identity; the KERNEL'S PAIR-KEYED BODY still runs once inside the pass (the replacement touches the registry's
+  slot and no pair keyed in the kernel's own map); the failing arm delivers ZERO (§2.7 item 7 (d)). Re-derived:
+  PASS.
+CELL 6 — I-identity-control             (limb 7)   → (a) PRE-AMENDMENT
+  ITS OWN EXPECTATION (driver :613, quoted above): "The exact spelling returns the adopted identity … — NOT
+  DELIVERED"; its failing-write arm owed 0 (kept, and still correct).
+  OBSERVED: EXACT — app identity IS the adopted identity=true, triggered=1 with 1 occurrence, residue at
+  K-2={length:1,carriesTheAppIdentity:true}, kernel pair-keyed body calls=1, app body calls 1 of 1 at the
+  terminal arm, in-window 0, args ["c1","pair"], residue after the arm=0, arm=passed; PROPER PREFIX — a SECOND
+  identity=true, triggered=2, residue at K-2={length:2}, app body calls 1 of 1 at the terminal arm, args
+  ["c2","pair"], residue after the arm=1, arm=passed; EXACT + FAILING WRITE — arm=KC-3, app body calls 0 of 0.
+  RULING: (a). The control's decisive term (WHICH IDENTITY `on` returns decides the outcome at that address) is
+  unmoved and still measures `true` / `false`; only "NOT DELIVERED" for the exact spelling is superseded, and
+  A117 (D4) makes both spellings owed one firing at the arm. Re-derived: PASS.
+
+(b) REAL CONTRADICTIONS: NONE. No failing cell's observed behaviour stands against the operative clause; each is
+  a stale expectation read at a clause amended earlier the same day.
+
+WHAT THE RE-DERIVATION CHANGED (and what it did NOT)
+---------------------------------------------------------------------------------------------
+The six expectations were re-derived against the operative clauses and EXECUTED; the pre-amendment verdicts are
+STILL COMPUTED, in the same run, and carried as `supersededVerdict` in the new record — nothing was deleted, no
+cell was dropped and no assertion was weakened. Two MEASUREMENT additions carry the corrected clauses' own terms
+so the re-derived cells are asserted at them and not at prose:
+  * the KERNEL'S PAIR-KEYED BODY is counted separately from the app's registered body (A117 (D2)'s two facts);
+  * the record's own finding is read at the well-known symbol key (`Symbol.for(
+    'provident-storeroom.checked-off-at-the-terminal-arm')`, declared on both sides and re-declared by this
+    driver by `Symbol.for`, never imported): the note must be present, NON-ENUMERABLE, carry the app's identity,
+    and leave the enumerable member set at its four (`A117` (D6));
+  * the invocation's single argument is asserted to be THE TRIGGERING ADDRESS, and the phase of the invocation is
+    read off the act itself (the first form of this count matched the trail's `listenerArg` against the WATCH
+    spelling while the invocation's argument is the TRIGGERING address — a measurement fault in this driver's own
+    helper, fixed here and reported as such; it did not affect the b1 run, which counted the arm from the trail's
+    phase).
+The driver's inherited PROSE was corrected where the operative clauses moved it (the "amended 2026-10-15 (on
+A115 (D2))" header clause; the Q2 answer, which read the 0-of-1 as that clause's declared observable) and where a
+figure was stale (the suite cross-check: `node --test bindings/js/test/*.test.mjs` = 414 tests / 414 pass / 0 fail
+on 2026-10-16, superseding the inherited 348/348 as-run figure of a smaller tree — corrected, not deleted; no
+cell of this battery turns on it).
+
+THE RE-RUN
+---------------------------------------------------------------------------------------------
+  node scratch/n7-ordering-demo-gate6c.mjs c1
+  node scratch/n7-ordering-demo-gate6c.mjs c2
+  BOTH EXIT 0. Both: cells=20 verdicts=18 PASS=18 FAIL=0
+    limb1=7P/0F limb2=6P/0F limb3=1P/0F limb4=1P/0F limb5=1P/0F limb6=1P/0F limb7=1P/0F
+  DIGEST STABLE ACROSS THE TWO RUNS: determinismDigest=ea984c2fcd28328a021db870a71a1869bf1b45accedc21a838137b6c39f0cb85
+  (the two JSON records differ in ONE leaf path, `/run` — exactly as b1/b3/b4 do.)
+
+COUNTS OLD → NEW, WITH THE REASON
+  gate6b (b1/b3/b4)   PASS=12 FAIL=6   limbs 1=3P/4F 3=0P/1F 7=0P/1F
+  gate6c (c1/c2)      PASS=18 FAIL=0   limbs 1=7P/0F 3=1P/0F 7=1P/0F
+  RECONCILIATION, MEASURED: the six re-derived cells each compute `supersededVerdict` = FAIL, the very verdict
+  b1 returned, and the twelve verdicts carried from gate6b unchanged are byte-identical to b1's in verdict AND in
+  `requires` — so 6 + 12 = 18 reconciles and no change is unattributed (the record carries this as `countsOldToNew`).
+  REASON: five cells (limbs 1 and 7) carried §2.4 item 8 (c)'s PRE-AMENDMENT non-delivery sentence, deleted by
+  name at `A117` (D3) and replaced by (D4); the sixth (limb 3) shared that sentence's second term. No cell was
+  added, none deleted, and no other limb's terms moved. ATTRIBUTION IS EXACT AND CHECKED: the 18 verdict keys of
+  gate6c == the 18 of b1; the 12 verdicts WITHOUT a re-derived expectation are byte-identical in verdict AND in
+  `requires` to b1's; the 6 re-derived ones each compute `supersededVerdict` = the very verdict b1 returned
+  (FAIL), so 12 + 6 = 18 reconciles and no change is unattributed.
+
+CELLS THAT COULD NOT BE DECIDED / CARRIED FORWARD — NONE OF THE SIX
+  All six are (a) and all six are re-derived and PASS live. For completeness, and NOT part of the six, TWO TERMS
+  OF OTHER CELLS ARE REPORTED AS RESIDUAL (neither is a failure of its clause):
+  1. `S-stale-adoption` (limb 6, PASS): the first bare write's body is delivered at seq 208 — the seam's second
+     reach stands at seq 205 with phase `idle`, i.e. the caller's own second `settle` call, and its own delivery
+     lands before the write. The clause read is `§2.7` item 8's post-verb instant for a caller-made write, which
+     holds (both bare writes owe 1 and make 1, in their own windows). `A117` (D6) leaves this instant unmoved.
+     The driver's own residual note (`§2.7` item 5 fixes the argument of a SURFACE delivery only) stands.
+  2. `B-bare-write` (limb 5, PASS): its cited clause is `§2.7` item 8, which now carries a `SUPERSEDED-WHOLE`
+     header pointing to `§2.11` for the instant of a record with no kernel evaluation set. The measured
+     behaviour (post-verb instant, never withheld, no `pending`) is the same instant both clauses declare and
+     the cell passes; the CITATION alone is dated and is carried here rather than patched into a passing cell.
+
+WHAT THIS PASS WROTE (only under scratch/; every earlier file READ-ONLY, none overwritten)
+  scratch/n7-ordering-demo-gate6c.mjs                      the driver (copy of gate6b with the six expectations
+                                                           re-derived; read-only inputs unmoved: gate6b.mjs 833b4926…, b1 47d2a9a0…, b2 9b6a9a63…, b3 70fc3886…, b4 d0928dc2…)
+  scratch/n7-ordering-demo-gate6c-out-c1.json / .txt       run c1 (digest ea984c2f…)
+  scratch/n7-ordering-demo-gate6c-out-c2.json / .txt       run c2 (same digest — determinism)
+  scratch/n7-ordering-demo-gate6c-TRIAGE.txt               this record
+  scratch/g6e-logs/gate6c-c1-console.txt                   c1 console
+  scratch/g6e-logs/gate6c-c2-console.txt                   c2 console
+  scratch/g6e-logs/gate6c-suite-crosscheck.txt             `node --test bindings/js/test/*.test.mjs` (414/414)
+  UNTOUCHED: bindings/**, src/**, docs/**, archive/**, tests/, scripts/, and every pre-existing
+  scratch/n7-ordering-demo* byte (b1/b2/b3/b4, gate6a–d records, FINDINGS, logs). `git status` shows no tracked
+  change under bindings/, src/, docs/, archive/, tests/ or scripts/ from this pass; the `docs/**` entries git
+  reports as modified were present before this pass began (a publish-tree pass) and are cited nowhere here.

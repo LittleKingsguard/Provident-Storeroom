@@ -1,0 +1,4329 @@
+{
+  "demo": "N7 GATE 6 SECOND RE-RUN — the `A116` ordering seam, its `A115` (D2) amended clause, and the identity control",
+  "run": "b1",
+  "layer": "LIVE / ASSEMBLED PACKAGE",
+  "layerStatement": {
+    "resolution": "the package is RESOLVED BY ITS PUBLISHED NAME through scratch/node_modules/provident-storeroom -> bindings/js (package.json v0.1.3, exports \".\" -> ./index.mjs); the kernel module is reached at its declared checkout home bindings/js/src/constraint-kernel.mjs, whose own binding is the package SELF-REFERENCE (Node resolves 'provident-storeroom' from bindings/js/src to bindings/js/index.mjs), so the kernel, the driver and the store share ONE module instance and ONE loaded addon; the Rust store behind the JS binding is exercised in a real Node process (node v24.20.0).",
+    "publishedInstall": "NOT exercised, and it could not show this battery at all: package.json \"files\" carries index.mjs + README.md + index.d.ts only and \"exports\" declares \".\" alone, so an install from the registry carries NO src/constraint-kernel.mjs and no subpath that reaches it — the constraint kernel is checkout-only (kernel-surface.md §1 item 1). `settle` IS a member of the published instance (storeInstance is built by index.mjs), so a published install WOULD show the fourth member and the withheld post-verb window for a write an install's own code adopted — but it could not show the constraint pass, its ordering, its discard, the kernel's two settle instants, or the identity control, because no consumer can reach src/.",
+    "settleWrapper": "the instance's `settle` member is wrapped by this driver ON THE INSTANCE IT ITSELF CREATED, for the trail alone (it records the reach, the phase and the pending length, then calls the original member with the same receiver and same argument). No package file, no kernel module and no existing record was edited by this file.",
+    "suiteCrossCheck": "the package's own suite was read in this pass, not modified: `node --test bindings/js/test/*.test.mjs` reports 348 tests / 348 pass / 0 fail."
+  },
+  "fixture": {
+    "address": [
+      "n7",
+      "ord"
+    ],
+    "prefixAddress": [
+      "n7"
+    ],
+    "tier": "mem",
+    "constraintPair": {
+      "address": [
+        "n7",
+        "ord"
+      ],
+      "ids": [
+        "n7c",
+        "n7c2"
+      ]
+    },
+    "registrationHandlings": [
+      "prefix-address",
+      "on-at-adopted-address",
+      "register-at-adopted-handle"
+    ],
+    "identityControlAddresses": {
+      "exact": [
+        "c1",
+        "pair"
+      ],
+      "prefix": [
+        "c2"
+      ],
+      "exactFailing": [
+        "c3",
+        "pair"
+      ]
+    },
+    "drivingOrder": "K-1 register -> listener registration -> K-2 commit -> K-3 runAttempt -> store read / log / report"
+  },
+  "memberFigure": {
+    "instanceMembers": [
+      "off",
+      "on",
+      "register",
+      "settle"
+    ],
+    "memberCount": 4,
+    "settleIsAMember": true,
+    "moduleNamespaceKeys": [
+      "delete",
+      "listen",
+      "read",
+      "readLiteral",
+      "rollback",
+      "storeCreate",
+      "unlisten",
+      "write"
+    ],
+    "settleIsANamedExportOfTheEntry": false
+  },
+  "questions": {
+    "q1": {
+      "question": "Does the withheld window actually hold now? For every kernel-driven write: the in-window invocation count and the delivery instant.",
+      "writesMeasured": 17,
+      "anyInWindowInvocationOfAnyBody": false,
+      "rows": [
+        {
+          "cell": "O1-prefix-address-r1",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 7 in the K-3 frame"
+            ],
+            "appListenerCalls": [
+              "seq 9 in the K-3 frame"
+            ],
+            "appListenerAtTheTerminalArm": 1,
+            "appListenerInThePassWindow": 1
+          }
+        },
+        {
+          "cell": "O2-prefix-address-r1",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 17 in the K-3 frame"
+            ],
+            "appListenerCalls": [],
+            "appListenerAtTheTerminalArm": 0,
+            "appListenerInThePassWindow": 0
+          }
+        },
+        {
+          "cell": "O1-on-at-adopted-address-r1",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 26 in the K-3 frame"
+            ],
+            "appListenerCalls": [
+              "seq 28 in the K-3 frame"
+            ],
+            "appListenerAtTheTerminalArm": 1,
+            "appListenerInThePassWindow": 1
+          }
+        },
+        {
+          "cell": "O2-on-at-adopted-address-r1",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 36 in the K-3 frame"
+            ],
+            "appListenerCalls": [],
+            "appListenerAtTheTerminalArm": 0,
+            "appListenerInThePassWindow": 0
+          }
+        },
+        {
+          "cell": "O1-register-at-adopted-handle-r1",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 45 in the K-3 frame"
+            ],
+            "appListenerCalls": [
+              "seq 47 in the K-3 frame"
+            ],
+            "appListenerAtTheTerminalArm": 1,
+            "appListenerInThePassWindow": 1
+          }
+        },
+        {
+          "cell": "O2-register-at-adopted-handle-r1",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 55 in the K-3 frame"
+            ],
+            "appListenerCalls": [],
+            "appListenerAtTheTerminalArm": 0,
+            "appListenerInThePassWindow": 0
+          }
+        },
+        {
+          "cell": "O1-prefix-address-r2",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 64 in the K-3 frame"
+            ],
+            "appListenerCalls": [
+              "seq 66 in the K-3 frame"
+            ],
+            "appListenerAtTheTerminalArm": 1,
+            "appListenerInThePassWindow": 1
+          }
+        },
+        {
+          "cell": "O2-prefix-address-r2",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 74 in the K-3 frame"
+            ],
+            "appListenerCalls": [],
+            "appListenerAtTheTerminalArm": 0,
+            "appListenerInThePassWindow": 0
+          }
+        },
+        {
+          "cell": "O1-on-at-adopted-address-r2",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 83 in the K-3 frame"
+            ],
+            "appListenerCalls": [
+              "seq 85 in the K-3 frame"
+            ],
+            "appListenerAtTheTerminalArm": 1,
+            "appListenerInThePassWindow": 1
+          }
+        },
+        {
+          "cell": "O2-on-at-adopted-address-r2",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 93 in the K-3 frame"
+            ],
+            "appListenerCalls": [],
+            "appListenerAtTheTerminalArm": 0,
+            "appListenerInThePassWindow": 0
+          }
+        },
+        {
+          "cell": "O1-register-at-adopted-handle-r2",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 102 in the K-3 frame"
+            ],
+            "appListenerCalls": [
+              "seq 104 in the K-3 frame"
+            ],
+            "appListenerAtTheTerminalArm": 1,
+            "appListenerInThePassWindow": 1
+          }
+        },
+        {
+          "cell": "O2-register-at-adopted-handle-r2",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 112 in the K-3 frame"
+            ],
+            "appListenerCalls": [],
+            "appListenerAtTheTerminalArm": 0,
+            "appListenerInThePassWindow": 0
+          }
+        },
+        {
+          "cell": "O1-two-pairs-pass",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 123 in the K-3 frame"
+            ],
+            "appListenerCalls": [
+              "seq 126 in the K-3 frame"
+            ],
+            "appListenerAtTheTerminalArm": 1,
+            "appListenerInThePassWindow": 1
+          }
+        },
+        {
+          "cell": "R-seq1-pass",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 134 in the K-3 frame"
+            ],
+            "appListenerCalls": [
+              "seq 136 in the K-3 frame"
+            ],
+            "appListenerAtTheTerminalArm": 1,
+            "appListenerInThePassWindow": 1
+          }
+        },
+        {
+          "cell": "R-seq2-fail",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 144 in the K-3 frame"
+            ],
+            "appListenerCalls": [],
+            "appListenerAtTheTerminalArm": 0,
+            "appListenerInThePassWindow": 0
+          }
+        },
+        {
+          "cell": "R-seq3-pass",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 153 in the K-3 frame"
+            ],
+            "appListenerCalls": [
+              "seq 155 in the K-3 frame"
+            ],
+            "appListenerAtTheTerminalArm": 1,
+            "appListenerInThePassWindow": 1
+          }
+        },
+        {
+          "cell": "R-seq4-fail",
+          "inWindowInvocationCounts": {
+            "constraint1": 0,
+            "constraint2": 0,
+            "appListener": 0
+          },
+          "deliveryInstant": {
+            "constraintBodies": [
+              "seq 163 in the K-3 frame"
+            ],
+            "appListenerCalls": [],
+            "appListenerAtTheTerminalArm": 0,
+            "appListenerInThePassWindow": 0
+          }
+        }
+      ],
+      "deliveriesObserved": [
+        {
+          "cell": "O1-prefix-address-r1",
+          "appBodyCalls": 1,
+          "atTheTerminalArm": 1,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "O2-prefix-address-r1",
+          "appBodyCalls": 0,
+          "atTheTerminalArm": 0,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "O1-on-at-adopted-address-r1",
+          "appBodyCalls": 1,
+          "atTheTerminalArm": 1,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "O2-on-at-adopted-address-r1",
+          "appBodyCalls": 0,
+          "atTheTerminalArm": 0,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "O1-register-at-adopted-handle-r1",
+          "appBodyCalls": 1,
+          "atTheTerminalArm": 1,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "O2-register-at-adopted-handle-r1",
+          "appBodyCalls": 0,
+          "atTheTerminalArm": 0,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "O1-prefix-address-r2",
+          "appBodyCalls": 1,
+          "atTheTerminalArm": 1,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "O2-prefix-address-r2",
+          "appBodyCalls": 0,
+          "atTheTerminalArm": 0,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "O1-on-at-adopted-address-r2",
+          "appBodyCalls": 1,
+          "atTheTerminalArm": 1,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "O2-on-at-adopted-address-r2",
+          "appBodyCalls": 0,
+          "atTheTerminalArm": 0,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "O1-register-at-adopted-handle-r2",
+          "appBodyCalls": 1,
+          "atTheTerminalArm": 1,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "O2-register-at-adopted-handle-r2",
+          "appBodyCalls": 0,
+          "atTheTerminalArm": 0,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "O1-two-pairs-pass",
+          "appBodyCalls": 1,
+          "atTheTerminalArm": 1,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "R-seq1-pass",
+          "appBodyCalls": 1,
+          "atTheTerminalArm": 1,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "R-seq2-fail",
+          "appBodyCalls": 0,
+          "atTheTerminalArm": 0,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "R-seq3-pass",
+          "appBodyCalls": 1,
+          "atTheTerminalArm": 1,
+          "inTheWriteWindow": 0
+        },
+        {
+          "cell": "R-seq4-fail",
+          "appBodyCalls": 0,
+          "atTheTerminalArm": 0,
+          "inTheWriteWindow": 0
+        }
+      ],
+      "answer": "THE WITHHOLD HOLDS: across every kernel-driven write of every limb the in-window invocation count is 0 for the app listener AND 0 for the constraint body, and every delivery that exists stands in the pass's own frame (the terminal arm), never in the write verb's frame."
+    },
+    "q2": {
+      "question": "Is a listener registered at an address that carries a constraint pair now DELIVERED on a passing write — and on a failing write, is it still never delivered?",
+      "passingWriteAtThePairAddress": {
+        "onAtTheAdoptedAddress": {
+          "owedByTheLimb": 1,
+          "made": 1,
+          "round2": 1
+        },
+        "registerAtTheAdoptedHandle": {
+          "owedByTheLimb": 1,
+          "made": 1,
+          "round2": 1
+        },
+        "identityControlExactSpelling": {
+          "owedByTheLimb": 1,
+          "made": 1
+        },
+        "identityControlProperPrefixSpelling": {
+          "owedByTheLimb": 1,
+          "made": 1
+        },
+        "prefixAddressCellsOfLimb1": [
+          1,
+          1
+        ]
+      },
+      "failingWriteAtThePairAddress": {
+        "onAtTheAdoptedAddress": [
+          0,
+          0
+        ],
+        "registerAtTheAdoptedHandle": [
+          0,
+          0
+        ],
+        "identityControlExactSpelling": 0
+      },
+      "answer": "NOT DELIVERED (0 of 1 owed) at the address that carries the pair — by BOTH the `on` route and the `register(adoptedHandle, …)` route, in both rounds, and in the one-argument identity control. The cause is measured and not inferred: the app's registration and the evaluated pair's handle are ONE identity (the store holds one home entry per address, so `on` returns the identity `register` adopted), the pass checks that identity off as it passes, the residue is EMPTY and the terminal arm has nothing to invoke. At a PREFIX address — a second identity — the same call IS delivered once at the terminal arm. On the failing write the listener is still never delivered anywhere (0 in every cell). THIS OUTCOME IS THE ONE `storeroom-js/surface.md §2.4` item 8 (c) AS AMENDED (2026-10-15, on `A115` (D2)) DECLARES, so the 0-of-1 is NOT a product failure at that clause: it is that clause's declared observable. It IS a live contradiction with the ordering law read as `§2.7` item 6 (\"THE OTHER LISTENERS ARE REACHED ONLY ONCE EVERY CONSTRAINT HAS PASSED\") on the same address, and with this battery's own pre-amendment expectation."
+    },
+    "q3": {
+      "question": "Is route (i) of the stale adoption closed live — a caller calling `settle` itself, then a bare caller-made write owing 1 in-window invocation — and does the next bare write still keep its post-verb instant?",
+      "callerSettleThrew": null,
+      "callerSettleReturnsUndefined": true,
+      "secondCallForTheSameIdentityThrew": null,
+      "seamReaches": [
+        {
+          "seq": 194,
+          "phase": "idle",
+          "pendingLen": 0
+        },
+        {
+          "seq": 198,
+          "phase": "idle",
+          "pendingLen": 0
+        },
+        {
+          "seq": 203,
+          "phase": "caller",
+          "pendingLen": 1
+        },
+        {
+          "seq": 205,
+          "phase": "idle",
+          "pendingLen": 1
+        }
+      ],
+      "firstBareWrite": {
+        "owed": 1,
+        "made": 1,
+        "triggeredReturned": 1,
+        "seqsInItsOwnWindow": [
+          196,
+          200,
+          208
+        ]
+      },
+      "secondBareWrite": {
+        "owed": 1,
+        "made": 1,
+        "seqsInItsOwnWindow": [
+          211
+        ]
+      },
+      "theCallersOwnDeliveryCall": [
+        {
+          "seq": 206,
+          "listenerArg": "[]",
+          "note": "the caller's own second `settle` call delivers the identity's residue; it stands in NO write window"
+        }
+      ],
+      "answer": "ROUTE (i) IS CLOSED LIVE: the caller's own `settle` call threw nothing and returned `undefined`, the second call for the same identity threw nothing, and the seam's call RECEIVED a `pending` residue of 1 at its own delivery — so the adoption was ended by that delivery and NOT carried as an in-flight identity. The next bare caller-made write owed 1 in-window invocation and made 1; the write after it owed 1 and made 1. Neither write's window was withheld, and no seam reach stands in either write's frame.",
+      "residualNote": "ONE TERM OF THE CALLER'S OWN DELIVERY, REPORTED AND NOT A VERDICT: the invocation the CALLER'S second `settle` call makes carries the EMPTY array as its argument (the caller-made record carries no triggering address), while the two invocations the BARE WRITES make carry the written address. `§2.7` item 5 fixes the triggering address as the argument of an invocation the SURFACE's delivery makes; the caller's own delivery is not a kernel act and the clause fixes no argument for it."
+    }
+  },
+  "verdicts": [
+    {
+      "limb": 1,
+      "cell": "O1-prefix-address-r1",
+      "handling": "prefix-address",
+      "verdict": "PASS",
+      "requires": "`A112`/`A114`/`A116`: the triggered constraint runs FIRST; the app listener at the watched PREFIX is reached ONLY ONCE EVERY CONSTRAINT HAS PASSED — never in the write verb's window, delivered ONCE at the pass's terminal arm, with the triggering address as its one argument. The app's handle here is a SECOND home entry the pass never evaluates (`§2.7` item 7 (a)).",
+      "observed": "constraint body calls=1 (seqs [{\"seq\":7,\"phase\":\"K-3\"}]), app body calls=1 (owed 1; seqs [9]); in the write verb's window: constraint1=0, appListener=0; at the pass's terminal arm: appListener=1; app ran before any constraint=false; residue at K-2's return={\"length\":2,\"carriesTheAppIdentity\":true}; residue after the arm=1; arm=passed; args=[\"[\\\"n7\\\",\\\"ord\\\"]\"]"
+    },
+    {
+      "limb": 1,
+      "cell": "O1-prefix-address-r2",
+      "handling": "prefix-address",
+      "verdict": "PASS",
+      "requires": "`A112`/`A114`/`A116`: the triggered constraint runs FIRST; the app listener at the watched PREFIX is reached ONLY ONCE EVERY CONSTRAINT HAS PASSED — never in the write verb's window, delivered ONCE at the pass's terminal arm, with the triggering address as its one argument. The app's handle here is a SECOND home entry the pass never evaluates (`§2.7` item 7 (a)).",
+      "observed": "constraint body calls=1 (seqs [{\"seq\":64,\"phase\":\"K-3\"}]), app body calls=1 (owed 1; seqs [66]); in the write verb's window: constraint1=0, appListener=0; at the pass's terminal arm: appListener=1; app ran before any constraint=false; residue at K-2's return={\"length\":2,\"carriesTheAppIdentity\":true}; residue after the arm=1; arm=passed; args=[\"[\\\"n7\\\",\\\"ord\\\"]\"]"
+    },
+    {
+      "limb": 1,
+      "cell": "O1-on-at-adopted-address-r1",
+      "handling": "on-at-adopted-address",
+      "verdict": "FAIL",
+      "requires": "`storeroom-js/surface.md §2.4` item 8 (c) AS AMENDED 2026-10-15 (on `A115` (D2)), read with `§2.7` item 6/7: where the app's registration stands at the address the evaluated pair stands at, the `on` call returns the SAME identity the adopted registration returned, the pass checks that identity off as it passes, NO entry for it stands in `pending` for the residue to reach, AND THE APP'S BODY IS NOT DELIVERED AT THAT INSTANT — \"a drive that finds that body run at the delivery instant has found a failure of item 7\". The withheld window and the constraint-first order still hold.",
+      "observed": "the app's registration returned the IDENTICAL identity the kernel adopted=true; the write returned 1 handle(s) with 1 occurrence(s) of that identity; residue at K-2's return={\"length\":1,\"carriesTheAppIdentity\":true}; constraint body calls=1, app body calls=1 (owed by the limb's expectation: 1; owed by the amended clause: 0) with seqs [28]; in the write verb's window: appListener=0, constraint1=0; residue after the arm=0 of triggered=1; arm=passed; settle reaches: K-2=[{\"seq\":23,\"pendingLen\":0}], K-3=[{\"seq\":27,\"pendingLen\":0}]"
+    },
+    {
+      "limb": 1,
+      "cell": "O1-on-at-adopted-address-r2",
+      "handling": "on-at-adopted-address",
+      "verdict": "FAIL",
+      "requires": "`storeroom-js/surface.md §2.4` item 8 (c) AS AMENDED 2026-10-15 (on `A115` (D2)), read with `§2.7` item 6/7: where the app's registration stands at the address the evaluated pair stands at, the `on` call returns the SAME identity the adopted registration returned, the pass checks that identity off as it passes, NO entry for it stands in `pending` for the residue to reach, AND THE APP'S BODY IS NOT DELIVERED AT THAT INSTANT — \"a drive that finds that body run at the delivery instant has found a failure of item 7\". The withheld window and the constraint-first order still hold.",
+      "observed": "the app's registration returned the IDENTICAL identity the kernel adopted=true; the write returned 1 handle(s) with 1 occurrence(s) of that identity; residue at K-2's return={\"length\":1,\"carriesTheAppIdentity\":true}; constraint body calls=1, app body calls=1 (owed by the limb's expectation: 1; owed by the amended clause: 0) with seqs [85]; in the write verb's window: appListener=0, constraint1=0; residue after the arm=0 of triggered=1; arm=passed; settle reaches: K-2=[{\"seq\":80,\"pendingLen\":0}], K-3=[{\"seq\":84,\"pendingLen\":0}]"
+    },
+    {
+      "limb": 1,
+      "cell": "O1-register-at-adopted-handle-r1",
+      "handling": "register-at-adopted-handle",
+      "verdict": "FAIL",
+      "requires": "`storeroom-js/surface.md §2.4` item 8 (c) AS AMENDED 2026-10-15 (on `A115` (D2)), read with `§2.7` item 6/7: where the app's registration stands at the address the evaluated pair stands at, the `on` call returns the SAME identity the adopted registration returned, the pass checks that identity off as it passes, NO entry for it stands in `pending` for the residue to reach, AND THE APP'S BODY IS NOT DELIVERED AT THAT INSTANT — \"a drive that finds that body run at the delivery instant has found a failure of item 7\". The withheld window and the constraint-first order still hold.",
+      "observed": "the app's registration returned the IDENTICAL identity the kernel adopted=true; the write returned 1 handle(s) with 1 occurrence(s) of that identity; residue at K-2's return={\"length\":1,\"carriesTheAppIdentity\":true}; constraint body calls=1, app body calls=1 (owed by the limb's expectation: 1; owed by the amended clause: 0) with seqs [47]; in the write verb's window: appListener=0, constraint1=0; residue after the arm=0 of triggered=1; arm=passed; settle reaches: K-2=[{\"seq\":42,\"pendingLen\":0}], K-3=[{\"seq\":46,\"pendingLen\":0}]"
+    },
+    {
+      "limb": 1,
+      "cell": "O1-register-at-adopted-handle-r2",
+      "handling": "register-at-adopted-handle",
+      "verdict": "FAIL",
+      "requires": "`storeroom-js/surface.md §2.4` item 8 (c) AS AMENDED 2026-10-15 (on `A115` (D2)), read with `§2.7` item 6/7: where the app's registration stands at the address the evaluated pair stands at, the `on` call returns the SAME identity the adopted registration returned, the pass checks that identity off as it passes, NO entry for it stands in `pending` for the residue to reach, AND THE APP'S BODY IS NOT DELIVERED AT THAT INSTANT — \"a drive that finds that body run at the delivery instant has found a failure of item 7\". The withheld window and the constraint-first order still hold.",
+      "observed": "the app's registration returned the IDENTICAL identity the kernel adopted=true; the write returned 1 handle(s) with 1 occurrence(s) of that identity; residue at K-2's return={\"length\":1,\"carriesTheAppIdentity\":true}; constraint body calls=1, app body calls=1 (owed by the limb's expectation: 1; owed by the amended clause: 0) with seqs [104]; in the write verb's window: appListener=0, constraint1=0; residue after the arm=0 of triggered=1; arm=passed; settle reaches: K-2=[{\"seq\":99,\"pendingLen\":0}], K-3=[{\"seq\":103,\"pendingLen\":0}]"
+    },
+    {
+      "limb": 1,
+      "cell": "O1-two-pairs-pass",
+      "handling": "prefix-address",
+      "verdict": "PASS",
+      "requires": "with TWO pairs at the address, EVERY constraint runs first and the app's body at the prefix is reached only once BOTH have passed, exactly once (`A112`).",
+      "observed": "constraint1 calls=1 (seqs [{\"seq\":123,\"phase\":\"K-3\"}]), constraint2 calls=1, app calls=1 (owe 1); in-window appListener=0; at the arm=1; app before any constraint=false; residue after the arm=1 of triggered=2; arm=passed"
+    },
+    {
+      "limb": 2,
+      "cell": "O2-prefix-address-r1",
+      "handling": "prefix-address",
+      "verdict": "PASS",
+      "requires": "`A114`/`A113` (D1)/`A116` (b): a write that fails on constraints DISCARDS the listeners — the app's body must NOT RUN AT ALL (never in the window, never at the arm), the residue is EMPTY, and the rollback undid the attempt's own op. The write must ACTUALLY fail on constraints (a constraint body ran).",
+      "observed": "arm=KC-3; constraint body calls=1; app body calls=0 (seqs []); in-window appListener=0; at the arm=0; residue after the arm=0 of triggered=2; rollback calls all returned=true, undid the attempt's own op=true; store read at the address after the arm={\"absent\":false,\"value\":\"0\"}; log=[\"1:constraint-check:n7c:null\",\"2:outcome:null:KC-3\"]"
+    },
+    {
+      "limb": 2,
+      "cell": "O2-prefix-address-r2",
+      "handling": "prefix-address",
+      "verdict": "PASS",
+      "requires": "`A114`/`A113` (D1)/`A116` (b): a write that fails on constraints DISCARDS the listeners — the app's body must NOT RUN AT ALL (never in the window, never at the arm), the residue is EMPTY, and the rollback undid the attempt's own op. The write must ACTUALLY fail on constraints (a constraint body ran).",
+      "observed": "arm=KC-3; constraint body calls=1; app body calls=0 (seqs []); in-window appListener=0; at the arm=0; residue after the arm=0 of triggered=2; rollback calls all returned=true, undid the attempt's own op=true; store read at the address after the arm={\"absent\":false,\"value\":\"0\"}; log=[\"1:constraint-check:n7c:null\",\"2:outcome:null:KC-3\"]"
+    },
+    {
+      "limb": 2,
+      "cell": "O2-on-at-adopted-address-r1",
+      "handling": "on-at-adopted-address",
+      "verdict": "PASS",
+      "requires": "`A114`/`A113` (D1)/`A116` (b): a write that fails on constraints DISCARDS the listeners — the app's body must NOT RUN AT ALL (never in the window, never at the arm), the residue is EMPTY, and the rollback undid the attempt's own op. The write must ACTUALLY fail on constraints (a constraint body ran).",
+      "observed": "arm=KC-3; constraint body calls=1; app body calls=0 (seqs []); in-window appListener=0; at the arm=0; residue after the arm=0 of triggered=1; rollback calls all returned=true, undid the attempt's own op=true; store read at the address after the arm={\"absent\":false,\"value\":\"0\"}; log=[\"1:constraint-check:n7c:null\",\"2:outcome:null:KC-3\"]"
+    },
+    {
+      "limb": 2,
+      "cell": "O2-on-at-adopted-address-r2",
+      "handling": "on-at-adopted-address",
+      "verdict": "PASS",
+      "requires": "`A114`/`A113` (D1)/`A116` (b): a write that fails on constraints DISCARDS the listeners — the app's body must NOT RUN AT ALL (never in the window, never at the arm), the residue is EMPTY, and the rollback undid the attempt's own op. The write must ACTUALLY fail on constraints (a constraint body ran).",
+      "observed": "arm=KC-3; constraint body calls=1; app body calls=0 (seqs []); in-window appListener=0; at the arm=0; residue after the arm=0 of triggered=1; rollback calls all returned=true, undid the attempt's own op=true; store read at the address after the arm={\"absent\":false,\"value\":\"0\"}; log=[\"1:constraint-check:n7c:null\",\"2:outcome:null:KC-3\"]"
+    },
+    {
+      "limb": 2,
+      "cell": "O2-register-at-adopted-handle-r1",
+      "handling": "register-at-adopted-handle",
+      "verdict": "PASS",
+      "requires": "`A114`/`A113` (D1)/`A116` (b): a write that fails on constraints DISCARDS the listeners — the app's body must NOT RUN AT ALL (never in the window, never at the arm), the residue is EMPTY, and the rollback undid the attempt's own op. The write must ACTUALLY fail on constraints (a constraint body ran).",
+      "observed": "arm=KC-3; constraint body calls=1; app body calls=0 (seqs []); in-window appListener=0; at the arm=0; residue after the arm=0 of triggered=1; rollback calls all returned=true, undid the attempt's own op=true; store read at the address after the arm={\"absent\":false,\"value\":\"0\"}; log=[\"1:constraint-check:n7c:null\",\"2:outcome:null:KC-3\"]"
+    },
+    {
+      "limb": 2,
+      "cell": "O2-register-at-adopted-handle-r2",
+      "handling": "register-at-adopted-handle",
+      "verdict": "PASS",
+      "requires": "`A114`/`A113` (D1)/`A116` (b): a write that fails on constraints DISCARDS the listeners — the app's body must NOT RUN AT ALL (never in the window, never at the arm), the residue is EMPTY, and the rollback undid the attempt's own op. The write must ACTUALLY fail on constraints (a constraint body ran).",
+      "observed": "arm=KC-3; constraint body calls=1; app body calls=0 (seqs []); in-window appListener=0; at the arm=0; residue after the arm=0 of triggered=1; rollback calls all returned=true, undid the attempt's own op=true; store read at the address after the arm={\"absent\":false,\"value\":\"0\"}; log=[\"1:constraint-check:n7c:null\",\"2:outcome:null:KC-3\"]"
+    },
+    {
+      "limb": 3,
+      "cell": "L3-replacement-seam",
+      "verdict": "FAIL",
+      "requires": "one function per identity (`surface.md §2.4` rule 2 read with item 8 (a)–(c)): a later registration REPLACES the registry's function slot for the identity that address's home entry carries. At the ADOPTED address the pass still runs the kernel's pair-keyed body (once) and the app's replaced slot is NOT delivered on either arm; at a PREFIX address — a second identity the pass never evaluates — the app's body IS delivered once on the passing arm and never on the failing one.",
+      "observed": "(a) the app's ON call at the address: the app received the IDENTICAL handle the kernel adopted=true; passing write — constraint body calls=1, app body calls=1 (owned by §2.4 item 8 (c): the identity the pass checked off is the app's own), residue after the arm=0 of triggered=1; failing write — arm=KC-3, app body calls=0. (b) the same adopted handle through the register member: passing write — constraint body calls=1, app body calls=1; failing write — arm=KC-3, app body calls=0. (c) THE CONTROL, the app at the PREFIX (a second identity): passing write — app body calls=1 at the arm=1; failing write — app body calls=0."
+    },
+    {
+      "limb": 4,
+      "cell": "L4-repeat",
+      "verdict": "PASS",
+      "requires": "the result is not a first-call artifact: the passing and the failing write are each run twice on fresh stores per handling, and four sequential attempts at ONE address on ONE store in one process.",
+      "observed": "the four-arm sequence: R-seq1-pass: arm=passed, c1=1, appDelivered=1, inWindow=0, pending@arm=1 | R-seq2-fail: arm=KC-3, c1=1, appDelivered=0, inWindow=0, pending@arm=0 | R-seq3-pass: arm=passed, c1=1, appDelivered=1, inWindow=0, pending@arm=1 | R-seq4-fail: arm=KC-8, c1=1, appDelivered=0, inWindow=0, pending@arm=0; the passing write repeats identically across the two rounds of every handling=true and the failing write too=true; the two-round cells repeat including their arm=true; every arm token is the one the law fixes for its outcome=true; the failing arms' tokens diverge across the sequence=true (KC-3/KC-8 — the per-op rollback meeting the store's own floor); the app body is delivered once per passing write and zero times on a failing one, in every round=true"
+    },
+    {
+      "limb": 5,
+      "cell": "B-bare-write",
+      "verdict": "PASS",
+      "requires": "a caller-made write with NO kernel evaluation set keeps the POST-VERB instant, is NEVER withheld and carries no `pending` (`§2.7` item 8; `A116` (d)): it reaches no adoption.",
+      "observed": "(a) a store no kernel act has touched: threw=null, triggered=1, record members=[\"op\",\"triggered\",\"watched\"] (no `pending`=true); app body ran 1 time(s) at seqs [167], INSIDE the verb's own frame=true. (b) after a kernel-driven write reached its arm (passed) at another address: the next bare write delivered in its own window=true (calls=1), seam reaches during it=0."
+    },
+    {
+      "limb": 7,
+      "cell": "I-identity-control",
+      "verdict": "FAIL",
+      "requires": "`surface.md §2.4` item 8 (c) as amended, driven at ITS OWN TERM: the outcome at the address carrying the pair is decided by WHICH IDENTITY the app's `on` returns. The exact spelling returns the adopted identity (one home entry, one function) — NOT DELIVERED; the proper-prefix spelling returns a second identity the pass never evaluates — DELIVERED ONCE at the arm. A failing write delivers neither.",
+      "observed": "ONE registration call, ONE store, ONE address; the two stores differ ONLY in the address argument's spelling: EXACT — the app identity IS the adopted identity=true, write returned triggered=1 with 1 occurrence(s) of it, residue at K-2={\"length\":1,\"carriesTheAppIdentity\":true}, constraint body calls=1, app body calls owed 1 / made 1, residue after the arm=0, arm=passed; PROPER PREFIX — the app identity is a SECOND identity=true, triggered=2, residue at K-2={\"length\":2,\"carriesTheAppIdentity\":true}, constraint body calls=1, app body calls owed 1 / made 1 at the arm with args [\"[\\\"c2\\\",\\\"pair\\\"]\"], residue after the arm=1, arm=passed; EXACT + FAILING WRITE — arm=KC-3, app body calls made 0 of 0 owed"
+    },
+    {
+      "limb": 6,
+      "cell": "S-stale-adoption",
+      "verdict": "PASS",
+      "requires": "`A116` (d) with `§2.7` item 8: (ii) a `commit` refused BETWEEN instant (a) and the verb leaves NO adoption consumable — the next bare write still delivers in its own window; (i) route (i) — the caller calling `settle` itself must leave NO in-flight identity that the NEXT bare caller-made write draws on: that write owes 1 in-window invocation and keeps its post-verb instant, and the write after it too.",
+      "observed": "(ii-a) refusal at the store's own verb: the seam was reached 1 time(s) before the refusal (\"ValueNotAdmitted\"); the next bare write owed 1 and made 1 (in its own window=true, seqs [196]). (ii-b) the KC-7 route: refusal \"KC-7\" BEFORE instant (a); the next bare write owed 1 and made 1 (in its own window=true, seqs [200]). (i) THE CALLER CALLS THE SETTLE MEMBER ITSELF: threw=null, returned undefined=true, the second call for the same identity threw=null; seam reaches=[{\"seq\":194,\"phase\":\"idle\",\"pendingLen\":0},{\"seq\":198,\"phase\":\"idle\",\"pendingLen\":0},{\"seq\":203,\"phase\":\"caller\",\"pendingLen\":1},{\"seq\":205,\"phase\":\"idle\",\"pendingLen\":1}]; THE FIRST BARE WRITE owed 1 and made 1 (in its own window=false, seqs [196,200,208], triggered returned=1); THE SECOND BARE WRITE owed 1 and made 1 (in its own window=true, seqs [211]); the caller's own delivery call stands in NO write window = [{\"seq\":206,\"listenerArg\":\"[]\",\"note\":\"the caller's own second `settle` call delivers the identity's residue; it stands in NO write window\"}]. the caller's own `settle` did NOT withhold any bare write's window: both bare writes delivered once each"
+    }
+  ],
+  "totals": {
+    "cells": 20,
+    "verdicts": 18,
+    "byLimb": [
+      {
+        "limb": 1,
+        "cells": 7,
+        "pass": 3,
+        "fail": 4
+      },
+      {
+        "limb": 2,
+        "cells": 6,
+        "pass": 6,
+        "fail": 0
+      },
+      {
+        "limb": 3,
+        "cells": 1,
+        "pass": 0,
+        "fail": 1
+      },
+      {
+        "limb": 4,
+        "cells": 1,
+        "pass": 1,
+        "fail": 0
+      },
+      {
+        "limb": 5,
+        "cells": 1,
+        "pass": 1,
+        "fail": 0
+      },
+      {
+        "limb": 6,
+        "cells": 1,
+        "pass": 1,
+        "fail": 0
+      },
+      {
+        "limb": 7,
+        "cells": 1,
+        "pass": 0,
+        "fail": 1
+      }
+    ],
+    "pass": 12,
+    "fail": 6
+  },
+  "determinismDigest": "76ada774cc453dc76e823cfa4666be9a40ad45f88d5d21b9aca1b0a3797005da",
+  "cells": [
+    {
+      "cell": "O1-prefix-address-r1",
+      "limb": 1,
+      "variant": "prefix-address",
+      "outcome": "pass",
+      "round": 1,
+      "store": "fresh store",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": false,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 4,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 2,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": true,
+      "settleReachesInsideK3": [
+        {
+          "seq": 8,
+          "pendingLen": 1
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appListenerArgsThisWrite": [
+        "[\"n7\",\"ord\"]"
+      ],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 7,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": [
+            {
+              "seq": 9,
+              "phase": "K-3"
+            }
+          ]
+        },
+        "appListenerCallsAtTheTerminalArm": 1,
+        "appListenerCallsInThePassWindow": 1,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 1,
+        "appBodySeqs": [
+          9
+        ],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": 9,
+          "k3EnterSeq": 6,
+          "k3ReturnSeq": 10
+        }
+      },
+      "triggeredAfterTheArm": 2,
+      "pendingAfterTheArm": 1,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "100"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "rollbackCallsAllReturned": false,
+      "rollbackUndidTheAttemptsOwnOp": false
+    },
+    {
+      "cell": "O2-prefix-address-r1",
+      "limb": 2,
+      "variant": "prefix-address",
+      "outcome": "fail",
+      "round": 1,
+      "store": "fresh store",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": false,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 14,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 2,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": true,
+      "settleReachesInsideK3": [
+        {
+          "seq": 18,
+          "pendingLen": 0
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appListenerArgsThisWrite": [],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 17,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": []
+        },
+        "appListenerCallsAtTheTerminalArm": 0,
+        "appListenerCallsInThePassWindow": 0,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 0,
+        "appBodySeqs": [],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": null,
+          "k3EnterSeq": 16,
+          "k3ReturnSeq": 19
+        }
+      },
+      "triggeredAfterTheArm": 2,
+      "pendingAfterTheArm": 0,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "rollbackCallsAllReturned": true,
+      "rollbackUndidTheAttemptsOwnOp": true
+    },
+    {
+      "cell": "O1-on-at-adopted-address-r1",
+      "limb": 1,
+      "variant": "on-at-adopted-address",
+      "outcome": "pass",
+      "round": 1,
+      "store": "fresh store",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": true,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 23,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 1,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": false,
+      "settleReachesInsideK3": [
+        {
+          "seq": 27,
+          "pendingLen": 0
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appListenerArgsThisWrite": [
+        "[\"n7\",\"ord\"]"
+      ],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 26,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": [
+            {
+              "seq": 28,
+              "phase": "K-3"
+            }
+          ]
+        },
+        "appListenerCallsAtTheTerminalArm": 1,
+        "appListenerCallsInThePassWindow": 1,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 1,
+        "appBodySeqs": [
+          28
+        ],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": 28,
+          "k3EnterSeq": 25,
+          "k3ReturnSeq": 29
+        }
+      },
+      "triggeredAfterTheArm": 1,
+      "pendingAfterTheArm": 0,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "100"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "rollbackCallsAllReturned": false,
+      "rollbackUndidTheAttemptsOwnOp": false
+    },
+    {
+      "cell": "O2-on-at-adopted-address-r1",
+      "limb": 2,
+      "variant": "on-at-adopted-address",
+      "outcome": "fail",
+      "round": 1,
+      "store": "fresh store",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": true,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 33,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 1,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": false,
+      "settleReachesInsideK3": [
+        {
+          "seq": 37,
+          "pendingLen": 0
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appListenerArgsThisWrite": [],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 36,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": []
+        },
+        "appListenerCallsAtTheTerminalArm": 0,
+        "appListenerCallsInThePassWindow": 0,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 0,
+        "appBodySeqs": [],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": null,
+          "k3EnterSeq": 35,
+          "k3ReturnSeq": 38
+        }
+      },
+      "triggeredAfterTheArm": 1,
+      "pendingAfterTheArm": 0,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "rollbackCallsAllReturned": true,
+      "rollbackUndidTheAttemptsOwnOp": true
+    },
+    {
+      "cell": "O1-register-at-adopted-handle-r1",
+      "limb": 1,
+      "variant": "register-at-adopted-handle",
+      "outcome": "pass",
+      "round": 1,
+      "store": "fresh store",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": true,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 42,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 1,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": false,
+      "settleReachesInsideK3": [
+        {
+          "seq": 46,
+          "pendingLen": 0
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appListenerArgsThisWrite": [
+        "[\"n7\",\"ord\"]"
+      ],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 45,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": [
+            {
+              "seq": 47,
+              "phase": "K-3"
+            }
+          ]
+        },
+        "appListenerCallsAtTheTerminalArm": 1,
+        "appListenerCallsInThePassWindow": 1,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 1,
+        "appBodySeqs": [
+          47
+        ],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": 47,
+          "k3EnterSeq": 44,
+          "k3ReturnSeq": 48
+        }
+      },
+      "triggeredAfterTheArm": 1,
+      "pendingAfterTheArm": 0,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "100"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "rollbackCallsAllReturned": false,
+      "rollbackUndidTheAttemptsOwnOp": false
+    },
+    {
+      "cell": "O2-register-at-adopted-handle-r1",
+      "limb": 2,
+      "variant": "register-at-adopted-handle",
+      "outcome": "fail",
+      "round": 1,
+      "store": "fresh store",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": true,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 52,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 1,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": false,
+      "settleReachesInsideK3": [
+        {
+          "seq": 56,
+          "pendingLen": 0
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appListenerArgsThisWrite": [],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 55,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": []
+        },
+        "appListenerCallsAtTheTerminalArm": 0,
+        "appListenerCallsInThePassWindow": 0,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 0,
+        "appBodySeqs": [],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": null,
+          "k3EnterSeq": 54,
+          "k3ReturnSeq": 57
+        }
+      },
+      "triggeredAfterTheArm": 1,
+      "pendingAfterTheArm": 0,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "rollbackCallsAllReturned": true,
+      "rollbackUndidTheAttemptsOwnOp": true
+    },
+    {
+      "cell": "O1-prefix-address-r2",
+      "limb": 1,
+      "variant": "prefix-address",
+      "outcome": "pass",
+      "round": 2,
+      "store": "fresh store",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": false,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 61,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 2,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": true,
+      "settleReachesInsideK3": [
+        {
+          "seq": 65,
+          "pendingLen": 1
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appListenerArgsThisWrite": [
+        "[\"n7\",\"ord\"]"
+      ],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 64,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": [
+            {
+              "seq": 66,
+              "phase": "K-3"
+            }
+          ]
+        },
+        "appListenerCallsAtTheTerminalArm": 1,
+        "appListenerCallsInThePassWindow": 1,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 1,
+        "appBodySeqs": [
+          66
+        ],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": 66,
+          "k3EnterSeq": 63,
+          "k3ReturnSeq": 67
+        }
+      },
+      "triggeredAfterTheArm": 2,
+      "pendingAfterTheArm": 1,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "200"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "rollbackCallsAllReturned": false,
+      "rollbackUndidTheAttemptsOwnOp": false
+    },
+    {
+      "cell": "O2-prefix-address-r2",
+      "limb": 2,
+      "variant": "prefix-address",
+      "outcome": "fail",
+      "round": 2,
+      "store": "fresh store",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": false,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 71,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 2,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": true,
+      "settleReachesInsideK3": [
+        {
+          "seq": 75,
+          "pendingLen": 0
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appListenerArgsThisWrite": [],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 74,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": []
+        },
+        "appListenerCallsAtTheTerminalArm": 0,
+        "appListenerCallsInThePassWindow": 0,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 0,
+        "appBodySeqs": [],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": null,
+          "k3EnterSeq": 73,
+          "k3ReturnSeq": 76
+        }
+      },
+      "triggeredAfterTheArm": 2,
+      "pendingAfterTheArm": 0,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "rollbackCallsAllReturned": true,
+      "rollbackUndidTheAttemptsOwnOp": true
+    },
+    {
+      "cell": "O1-on-at-adopted-address-r2",
+      "limb": 1,
+      "variant": "on-at-adopted-address",
+      "outcome": "pass",
+      "round": 2,
+      "store": "fresh store",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": true,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 80,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 1,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": false,
+      "settleReachesInsideK3": [
+        {
+          "seq": 84,
+          "pendingLen": 0
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appListenerArgsThisWrite": [
+        "[\"n7\",\"ord\"]"
+      ],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 83,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": [
+            {
+              "seq": 85,
+              "phase": "K-3"
+            }
+          ]
+        },
+        "appListenerCallsAtTheTerminalArm": 1,
+        "appListenerCallsInThePassWindow": 1,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 1,
+        "appBodySeqs": [
+          85
+        ],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": 85,
+          "k3EnterSeq": 82,
+          "k3ReturnSeq": 86
+        }
+      },
+      "triggeredAfterTheArm": 1,
+      "pendingAfterTheArm": 0,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "200"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "rollbackCallsAllReturned": false,
+      "rollbackUndidTheAttemptsOwnOp": false
+    },
+    {
+      "cell": "O2-on-at-adopted-address-r2",
+      "limb": 2,
+      "variant": "on-at-adopted-address",
+      "outcome": "fail",
+      "round": 2,
+      "store": "fresh store",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": true,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 90,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 1,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": false,
+      "settleReachesInsideK3": [
+        {
+          "seq": 94,
+          "pendingLen": 0
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appListenerArgsThisWrite": [],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 93,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": []
+        },
+        "appListenerCallsAtTheTerminalArm": 0,
+        "appListenerCallsInThePassWindow": 0,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 0,
+        "appBodySeqs": [],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": null,
+          "k3EnterSeq": 92,
+          "k3ReturnSeq": 95
+        }
+      },
+      "triggeredAfterTheArm": 1,
+      "pendingAfterTheArm": 0,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "rollbackCallsAllReturned": true,
+      "rollbackUndidTheAttemptsOwnOp": true
+    },
+    {
+      "cell": "O1-register-at-adopted-handle-r2",
+      "limb": 1,
+      "variant": "register-at-adopted-handle",
+      "outcome": "pass",
+      "round": 2,
+      "store": "fresh store",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": true,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 99,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 1,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": false,
+      "settleReachesInsideK3": [
+        {
+          "seq": 103,
+          "pendingLen": 0
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appListenerArgsThisWrite": [
+        "[\"n7\",\"ord\"]"
+      ],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 102,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": [
+            {
+              "seq": 104,
+              "phase": "K-3"
+            }
+          ]
+        },
+        "appListenerCallsAtTheTerminalArm": 1,
+        "appListenerCallsInThePassWindow": 1,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 1,
+        "appBodySeqs": [
+          104
+        ],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": 104,
+          "k3EnterSeq": 101,
+          "k3ReturnSeq": 105
+        }
+      },
+      "triggeredAfterTheArm": 1,
+      "pendingAfterTheArm": 0,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "200"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "rollbackCallsAllReturned": false,
+      "rollbackUndidTheAttemptsOwnOp": false
+    },
+    {
+      "cell": "O2-register-at-adopted-handle-r2",
+      "limb": 2,
+      "variant": "register-at-adopted-handle",
+      "outcome": "fail",
+      "round": 2,
+      "store": "fresh store",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": true,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 109,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 1,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": false,
+      "settleReachesInsideK3": [
+        {
+          "seq": 113,
+          "pendingLen": 0
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appListenerArgsThisWrite": [],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 112,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": []
+        },
+        "appListenerCallsAtTheTerminalArm": 0,
+        "appListenerCallsInThePassWindow": 0,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 0,
+        "appBodySeqs": [],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": null,
+          "k3EnterSeq": 111,
+          "k3ReturnSeq": 114
+        }
+      },
+      "triggeredAfterTheArm": 1,
+      "pendingAfterTheArm": 0,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "rollbackCallsAllReturned": true,
+      "rollbackUndidTheAttemptsOwnOp": true
+    },
+    {
+      "cell": "O1-two-pairs-pass",
+      "limb": 1,
+      "variant": "prefix-address",
+      "outcome": "pass",
+      "round": 1,
+      "store": "fresh store",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": false,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 120,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 2,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": true,
+      "settleReachesInsideK3": [
+        {
+          "seq": 125,
+          "pendingLen": 1
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 1,
+        "app": 1
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 1,
+        "app": 1
+      },
+      "appListenerArgsThisWrite": [
+        "[\"n7\",\"ord\"]"
+      ],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 123,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": [
+            {
+              "seq": 126,
+              "phase": "K-3"
+            }
+          ]
+        },
+        "appListenerCallsAtTheTerminalArm": 1,
+        "appListenerCallsInThePassWindow": 1,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 1,
+        "appBodySeqs": [
+          126
+        ],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": 126,
+          "k3EnterSeq": 122,
+          "k3ReturnSeq": 127
+        }
+      },
+      "triggeredAfterTheArm": 2,
+      "pendingAfterTheArm": 1,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "100"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:constraint-check:n7c2:null",
+        "3:commit:null:null"
+      ],
+      "rollbackCallsAllReturned": false,
+      "rollbackUndidTheAttemptsOwnOp": false
+    },
+    {
+      "cell": "R-seq1-pass",
+      "limb": 4,
+      "variant": "prefix-address",
+      "outcome": "pass",
+      "round": 1,
+      "store": "SAME STORE (sequence)",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": false,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 131,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 2,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": true,
+      "settleReachesInsideK3": [
+        {
+          "seq": 135,
+          "pendingLen": 1
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appListenerArgsThisWrite": [
+        "[\"n7\",\"ord\"]"
+      ],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 134,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": [
+            {
+              "seq": 136,
+              "phase": "K-3"
+            }
+          ]
+        },
+        "appListenerCallsAtTheTerminalArm": 1,
+        "appListenerCallsInThePassWindow": 1,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 1,
+        "appBodySeqs": [
+          136
+        ],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": 136,
+          "k3EnterSeq": 133,
+          "k3ReturnSeq": 137
+        }
+      },
+      "triggeredAfterTheArm": 2,
+      "pendingAfterTheArm": 1,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "100"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "rollbackCallsAllReturned": false,
+      "rollbackUndidTheAttemptsOwnOp": false
+    },
+    {
+      "cell": "R-seq2-fail",
+      "limb": 4,
+      "variant": "prefix-address",
+      "outcome": "fail",
+      "round": 2,
+      "store": "SAME STORE (sequence)",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": false,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 141,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 2,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": true,
+      "settleReachesInsideK3": [
+        {
+          "seq": 145,
+          "pendingLen": 0
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appListenerArgsThisWrite": [],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 144,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": []
+        },
+        "appListenerCallsAtTheTerminalArm": 0,
+        "appListenerCallsInThePassWindow": 0,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 0,
+        "appBodySeqs": [],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": null,
+          "k3EnterSeq": 143,
+          "k3ReturnSeq": 146
+        }
+      },
+      "triggeredAfterTheArm": 2,
+      "pendingAfterTheArm": 0,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "rollbackCallsAllReturned": true,
+      "rollbackUndidTheAttemptsOwnOp": true
+    },
+    {
+      "cell": "R-seq3-pass",
+      "limb": 4,
+      "variant": "prefix-address",
+      "outcome": "pass",
+      "round": 3,
+      "store": "SAME STORE (sequence)",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": false,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 150,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 2,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": true,
+      "settleReachesInsideK3": [
+        {
+          "seq": 154,
+          "pendingLen": 1
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appListenerArgsThisWrite": [
+        "[\"n7\",\"ord\"]"
+      ],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 153,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": [
+            {
+              "seq": 155,
+              "phase": "K-3"
+            }
+          ]
+        },
+        "appListenerCallsAtTheTerminalArm": 1,
+        "appListenerCallsInThePassWindow": 1,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 1,
+        "appBodySeqs": [
+          155
+        ],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": 155,
+          "k3EnterSeq": 152,
+          "k3ReturnSeq": 156
+        }
+      },
+      "triggeredAfterTheArm": 2,
+      "pendingAfterTheArm": 1,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "300"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "rollbackCallsAllReturned": false,
+      "rollbackUndidTheAttemptsOwnOp": false
+    },
+    {
+      "cell": "R-seq4-fail",
+      "limb": 4,
+      "variant": "prefix-address",
+      "outcome": "fail",
+      "round": 4,
+      "store": "SAME STORE (sequence)",
+      "kernelAdoptedHandleClass": "object",
+      "appHandleIsTheKernelAdoptedHandle": false,
+      "theAppHandleIsTheVeryIdentityTheWriteReturns": true,
+      "bodiesAfterRegistration": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "bodiesBeforeThisWrite": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "settleReachesInsideK2": [
+        {
+          "seq": 160,
+          "pendingLen": 0
+        }
+      ],
+      "bodiesAtK2Return": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "k2": {
+        "threw": false,
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+      "residueAtK2Return": {
+        "length": 2,
+        "carriesTheAppIdentity": true
+      },
+      "theAppIdentityIsASeparateEntryThePassDoesNotEvaluate": true,
+      "settleReachesInsideK3": [
+        {
+          "seq": 164,
+          "pendingLen": 0
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-8",
+        "outcome": null
+      },
+      "bodiesAfterTheArm": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appListenerArgsThisWrite": [],
+      "windowFigures": {
+        "inWindow": {
+          "constraint1": 0,
+          "constraint2": 0,
+          "appListener": 0
+        },
+        "framesOfEachCall": {
+          "constraint1": [
+            {
+              "seq": 163,
+              "phase": "K-3"
+            }
+          ],
+          "appListener": []
+        },
+        "appListenerCallsAtTheTerminalArm": 0,
+        "appListenerCallsInThePassWindow": 0,
+        "appRanBeforeAnyConstraint": false,
+        "appRanBeforeEveryConstraint": false,
+        "owedToTheAppBody": 1,
+        "madeToTheAppBody": 0,
+        "appBodySeqs": [],
+        "appBodySeqVsThePassesArm": {
+          "firstAppSeq": null,
+          "k3EnterSeq": 162,
+          "k3ReturnSeq": 165
+        }
+      },
+      "triggeredAfterTheArm": 2,
+      "pendingAfterTheArm": 0,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "400"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-8"
+      ],
+      "rollbackCallsAllReturned": false,
+      "rollbackUndidTheAttemptsOwnOp": false
+    },
+    {
+      "cell": "B-bare-write",
+      "limb": 5,
+      "phases": {
+        "freshStoreNoKernel": {
+          "whatTheLawRequires": "a bare caller-made write is delivered at the package's own POST-VERB instant, never withheld (`§2.7` item 8)",
+          "writeThrew": null,
+          "triggeredReturned": 1,
+          "returnedRecordMembers": [
+            "op",
+            "triggered",
+            "watched"
+          ],
+          "carriesNoPendingMember": true,
+          "appListenerBodyCalls": 1,
+          "appListenerSeqs": [
+            167
+          ],
+          "deliveredInsideTheWriteVerbsOwnFrame": true,
+          "handleOpaque": true
+        },
+        "afterAKernelPass": {
+          "whatTheLawRequires": "the kernel act moved no instant of the NEXT, unrelated bare write",
+          "kernelWriteArm": "passed",
+          "appListenerBodyCalls": 1,
+          "appListenerSeqs": [
+            167,
+            172
+          ],
+          "deliveredInsideTheWriteVerbsOwnFrame": true,
+          "settleReachesDuringTheBareWrite": 0
+        }
+      }
+    },
+    {
+      "cell": "I-identity-control",
+      "limb": 7,
+      "phases": {
+        "exactAddressSpelling": {
+          "whatTheLawRequires": "the app's `on` stands at the SAME address the evaluated pair stands at, so the two registrations are ONE identity and `surface.md §2.4` item 8 (c) AS AMENDED declares the app's body NOT DELIVERED at the delivery instant",
+          "addressArgumentSpelling": "exact-address",
+          "theAppRegistrationIsTheVeryIdentityTheKernelAdopted": true,
+          "writeReturnedTriggered": 1,
+          "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+          "residueAtK2Return": {
+            "length": 1,
+            "carriesTheAppIdentity": true
+          },
+          "residueAfterTheArm": 0,
+          "constraintBodyCalls": 1,
+          "appBodyCallsOwedOnAPassingWrite": 1,
+          "appBodyCallsMade": 1,
+          "appBodyArgs": [
+            "[\"c1\",\"pair\"]"
+          ],
+          "inWindowAppBodyCalls": 0,
+          "arm": "passed"
+        },
+        "properPrefixSpelling": {
+          "whatTheLawRequires": "the app's `on` stands at a PREFIX of the written address, a SECOND home entry — an identity the pass never evaluates — so the app's body is delivered ONCE at the pass's terminal arm",
+          "addressArgumentSpelling": "proper-prefix",
+          "theAppRegistrationIsTheVeryIdentityTheKernelAdopted": false,
+          "writeReturnedTriggered": 2,
+          "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+          "residueAtK2Return": {
+            "length": 2,
+            "carriesTheAppIdentity": true
+          },
+          "residueAfterTheArm": 1,
+          "constraintBodyCalls": 1,
+          "appBodyCallsOwedOnAPassingWrite": 1,
+          "appBodyCallsMade": 1,
+          "appBodyArgs": [
+            "[\"c2\",\"pair\"]"
+          ],
+          "inWindowAppBodyCalls": 0,
+          "arm": "passed"
+        },
+        "exactAddressSpellingFailingWrite": {
+          "whatTheLawRequires": "the DISCARD empties the member, so the failed write's own triggered handles leave it and the app's body is NEVER run",
+          "addressArgumentSpelling": "exact-address-fail",
+          "theAppRegistrationIsTheVeryIdentityTheKernelAdopted": true,
+          "writeReturnedTriggered": 1,
+          "occurrencesOfTheAppIdentityInTheReturnedSet": 1,
+          "residueAtK2Return": {
+            "length": 1,
+            "carriesTheAppIdentity": true
+          },
+          "residueAfterTheArm": 0,
+          "constraintBodyCalls": 1,
+          "appBodyCallsOwedOnAPassingWrite": 0,
+          "appBodyCallsMade": 0,
+          "appBodyArgs": [],
+          "inWindowAppBodyCalls": 0,
+          "arm": "KC-3"
+        },
+        "theControl": {
+          "theTwoSpellingsDifferInExactlyOneArgument": true,
+          "exactAppBodyCalls": 1,
+          "prefixAppBodyCalls": 1,
+          "exactTheAppIdentityIsTheAdoptedOne": true,
+          "prefixTheAppIdentityIsTheAdoptedOne": false
+        }
+      }
+    },
+    {
+      "cell": "S-stale-adoption",
+      "limb": 6,
+      "phases": {
+        "noAttemptWasOpen": {
+          "whatTheLawRequires": "instant (a) stands BEFORE the store's write verb, so the seam is reached and the refusal follows it; the store's own refusal releases that adoption, so the NEXT bare write reaches NO adoption and is NOT withheld",
+          "refusedCommit": "ValueNotAdmitted",
+          "refusalCode": "ValueNotAdmitted",
+          "settledReachesBeforeTheRefusal": 1,
+          "extra": null,
+          "bareWrite": {
+            "threw": null,
+            "triggeredReturned": 1,
+            "callsOwedByThisBareWrite": 1,
+            "callsMadeByThisBareWrite": 1,
+            "deliveredInsideTheWriteVerbsOwnFrame": true,
+            "appListenerSeqsInTheCellSoFar": [
+              196
+            ]
+          }
+        },
+        "anAttemptWasAlreadyOpen": {
+          "whatTheLawRequires": "the same law, the other route: the second commit is refused KC-7 BEFORE instant (a), so the FIRST attempt's adoption is the identity the next bare write meets",
+          "refusedCommit": "KC-7",
+          "refusalCode": "KC-7",
+          "settledReachesBeforeTheRefusal": 0,
+          "extra": null,
+          "bareWrite": {
+            "threw": null,
+            "triggeredReturned": 1,
+            "callsOwedByThisBareWrite": 1,
+            "callsMadeByThisBareWrite": 1,
+            "deliveredInsideTheWriteVerbsOwnFrame": true,
+            "appListenerSeqsInTheCellSoFar": [
+              200
+            ]
+          }
+        },
+        "callerCallsSettleItself": {
+          "whatTheLawRequires": "the seam is the kernel's arm alone (`A116` (D1)); a caller's own `settle` call is not a kernel act, so the NEXT bare caller-made write keeps the post-verb instant and is NEVER withheld (`§2.7` item 8)",
+          "callerSettleThrew": null,
+          "callerSettleReturnsUndefined": true,
+          "secondCallForTheSameIdentityThrew": null,
+          "settleReaches": [
+            {
+              "seq": 194,
+              "phase": "idle",
+              "pendingLen": 0
+            },
+            {
+              "seq": 198,
+              "phase": "idle",
+              "pendingLen": 0
+            },
+            {
+              "seq": 203,
+              "phase": "caller",
+              "pendingLen": 1
+            },
+            {
+              "seq": 205,
+              "phase": "idle",
+              "pendingLen": 1
+            }
+          ],
+          "firstBareWrite": {
+            "threw": null,
+            "triggeredReturned": 1,
+            "callsOwed": 1,
+            "callsMade": 1,
+            "deliveredInsideItsOwnWindow": false,
+            "appListenerSeqsInThisWindow": [
+              196,
+              200,
+              208
+            ]
+          },
+          "secondBareWrite": {
+            "threw": null,
+            "callsOwed": 1,
+            "callsMade": 1,
+            "deliveredInsideItsOwnWindow": true,
+            "appListenerSeqsInThisWindow": [
+              211
+            ],
+            "totalAppListenerBodyCallsInTheCell": 3,
+            "appListenerArgsSeen": [
+              "[]",
+              "[\"n7\",\"settleprobe\"]",
+              "[\"n7\",\"settleprobe\"]"
+            ]
+          },
+          "theCallersOwnDeliveryCall": [
+            {
+              "seq": 206,
+              "listenerArg": "[]",
+              "note": "the caller's own second `settle` call delivers the identity's residue; it stands in NO write window"
+            }
+          ],
+          "reading": "the caller's own `settle` did NOT withhold any bare write's window: both bare writes delivered once each"
+        }
+      }
+    }
+  ],
+  "trail": [
+    {
+      "seq": 1,
+      "phase": "K-1",
+      "cell": "O1-prefix-address-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 2,
+      "phase": "K-1",
+      "cell": "O1-prefix-address-r1",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 3,
+      "phase": "K-2",
+      "cell": "O1-prefix-address-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 4,
+      "phase": "K-2",
+      "cell": "O1-prefix-address-r1",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 5,
+      "phase": "K-2",
+      "cell": "O1-prefix-address-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 6,
+      "phase": "K-3",
+      "cell": "O1-prefix-address-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 7,
+      "phase": "K-3",
+      "cell": "O1-prefix-address-r1",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "seq": 8,
+      "phase": "K-3",
+      "cell": "O1-prefix-address-r1",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true
+    },
+    {
+      "seq": 9,
+      "phase": "K-3",
+      "cell": "O1-prefix-address-r1",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 10,
+      "phase": "K-3",
+      "cell": "O1-prefix-address-r1",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 11,
+      "phase": "K-1",
+      "cell": "O2-prefix-address-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 12,
+      "phase": "K-1",
+      "cell": "O2-prefix-address-r1",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 13,
+      "phase": "K-2",
+      "cell": "O2-prefix-address-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 14,
+      "phase": "K-2",
+      "cell": "O2-prefix-address-r1",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 15,
+      "phase": "K-2",
+      "cell": "O2-prefix-address-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 16,
+      "phase": "K-3",
+      "cell": "O2-prefix-address-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 17,
+      "phase": "K-3",
+      "cell": "O2-prefix-address-r1",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "seq": 18,
+      "phase": "K-3",
+      "cell": "O2-prefix-address-r1",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 19,
+      "phase": "K-3",
+      "cell": "O2-prefix-address-r1",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": null
+    },
+    {
+      "seq": 20,
+      "phase": "K-1",
+      "cell": "O1-on-at-adopted-address-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 21,
+      "phase": "K-1",
+      "cell": "O1-on-at-adopted-address-r1",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 22,
+      "phase": "K-2",
+      "cell": "O1-on-at-adopted-address-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 23,
+      "phase": "K-2",
+      "cell": "O1-on-at-adopted-address-r1",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 24,
+      "phase": "K-2",
+      "cell": "O1-on-at-adopted-address-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 25,
+      "phase": "K-3",
+      "cell": "O1-on-at-adopted-address-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 26,
+      "phase": "K-3",
+      "cell": "O1-on-at-adopted-address-r1",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "seq": 27,
+      "phase": "K-3",
+      "cell": "O1-on-at-adopted-address-r1",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 28,
+      "phase": "K-3",
+      "cell": "O1-on-at-adopted-address-r1",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 29,
+      "phase": "K-3",
+      "cell": "O1-on-at-adopted-address-r1",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 30,
+      "phase": "K-1",
+      "cell": "O2-on-at-adopted-address-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 31,
+      "phase": "K-1",
+      "cell": "O2-on-at-adopted-address-r1",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 32,
+      "phase": "K-2",
+      "cell": "O2-on-at-adopted-address-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 33,
+      "phase": "K-2",
+      "cell": "O2-on-at-adopted-address-r1",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 34,
+      "phase": "K-2",
+      "cell": "O2-on-at-adopted-address-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 35,
+      "phase": "K-3",
+      "cell": "O2-on-at-adopted-address-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 36,
+      "phase": "K-3",
+      "cell": "O2-on-at-adopted-address-r1",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "seq": 37,
+      "phase": "K-3",
+      "cell": "O2-on-at-adopted-address-r1",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 38,
+      "phase": "K-3",
+      "cell": "O2-on-at-adopted-address-r1",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": null
+    },
+    {
+      "seq": 39,
+      "phase": "K-1",
+      "cell": "O1-register-at-adopted-handle-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 40,
+      "phase": "K-1",
+      "cell": "O1-register-at-adopted-handle-r1",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 41,
+      "phase": "K-2",
+      "cell": "O1-register-at-adopted-handle-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 42,
+      "phase": "K-2",
+      "cell": "O1-register-at-adopted-handle-r1",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 43,
+      "phase": "K-2",
+      "cell": "O1-register-at-adopted-handle-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 44,
+      "phase": "K-3",
+      "cell": "O1-register-at-adopted-handle-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 45,
+      "phase": "K-3",
+      "cell": "O1-register-at-adopted-handle-r1",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "seq": 46,
+      "phase": "K-3",
+      "cell": "O1-register-at-adopted-handle-r1",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 47,
+      "phase": "K-3",
+      "cell": "O1-register-at-adopted-handle-r1",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 48,
+      "phase": "K-3",
+      "cell": "O1-register-at-adopted-handle-r1",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 49,
+      "phase": "K-1",
+      "cell": "O2-register-at-adopted-handle-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 50,
+      "phase": "K-1",
+      "cell": "O2-register-at-adopted-handle-r1",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 51,
+      "phase": "K-2",
+      "cell": "O2-register-at-adopted-handle-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 52,
+      "phase": "K-2",
+      "cell": "O2-register-at-adopted-handle-r1",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 53,
+      "phase": "K-2",
+      "cell": "O2-register-at-adopted-handle-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 54,
+      "phase": "K-3",
+      "cell": "O2-register-at-adopted-handle-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 55,
+      "phase": "K-3",
+      "cell": "O2-register-at-adopted-handle-r1",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "seq": 56,
+      "phase": "K-3",
+      "cell": "O2-register-at-adopted-handle-r1",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 57,
+      "phase": "K-3",
+      "cell": "O2-register-at-adopted-handle-r1",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": null
+    },
+    {
+      "seq": 58,
+      "phase": "K-1",
+      "cell": "O1-prefix-address-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 59,
+      "phase": "K-1",
+      "cell": "O1-prefix-address-r2",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 60,
+      "phase": "K-2",
+      "cell": "O1-prefix-address-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 61,
+      "phase": "K-2",
+      "cell": "O1-prefix-address-r2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 62,
+      "phase": "K-2",
+      "cell": "O1-prefix-address-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 63,
+      "phase": "K-3",
+      "cell": "O1-prefix-address-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 64,
+      "phase": "K-3",
+      "cell": "O1-prefix-address-r2",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "seq": 65,
+      "phase": "K-3",
+      "cell": "O1-prefix-address-r2",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true
+    },
+    {
+      "seq": 66,
+      "phase": "K-3",
+      "cell": "O1-prefix-address-r2",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 67,
+      "phase": "K-3",
+      "cell": "O1-prefix-address-r2",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 68,
+      "phase": "K-1",
+      "cell": "O2-prefix-address-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 69,
+      "phase": "K-1",
+      "cell": "O2-prefix-address-r2",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 70,
+      "phase": "K-2",
+      "cell": "O2-prefix-address-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 71,
+      "phase": "K-2",
+      "cell": "O2-prefix-address-r2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 72,
+      "phase": "K-2",
+      "cell": "O2-prefix-address-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 73,
+      "phase": "K-3",
+      "cell": "O2-prefix-address-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 74,
+      "phase": "K-3",
+      "cell": "O2-prefix-address-r2",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "seq": 75,
+      "phase": "K-3",
+      "cell": "O2-prefix-address-r2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 76,
+      "phase": "K-3",
+      "cell": "O2-prefix-address-r2",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": null
+    },
+    {
+      "seq": 77,
+      "phase": "K-1",
+      "cell": "O1-on-at-adopted-address-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 78,
+      "phase": "K-1",
+      "cell": "O1-on-at-adopted-address-r2",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 79,
+      "phase": "K-2",
+      "cell": "O1-on-at-adopted-address-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 80,
+      "phase": "K-2",
+      "cell": "O1-on-at-adopted-address-r2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 81,
+      "phase": "K-2",
+      "cell": "O1-on-at-adopted-address-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 82,
+      "phase": "K-3",
+      "cell": "O1-on-at-adopted-address-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 83,
+      "phase": "K-3",
+      "cell": "O1-on-at-adopted-address-r2",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "seq": 84,
+      "phase": "K-3",
+      "cell": "O1-on-at-adopted-address-r2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 85,
+      "phase": "K-3",
+      "cell": "O1-on-at-adopted-address-r2",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 86,
+      "phase": "K-3",
+      "cell": "O1-on-at-adopted-address-r2",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 87,
+      "phase": "K-1",
+      "cell": "O2-on-at-adopted-address-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 88,
+      "phase": "K-1",
+      "cell": "O2-on-at-adopted-address-r2",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 89,
+      "phase": "K-2",
+      "cell": "O2-on-at-adopted-address-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 90,
+      "phase": "K-2",
+      "cell": "O2-on-at-adopted-address-r2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 91,
+      "phase": "K-2",
+      "cell": "O2-on-at-adopted-address-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 92,
+      "phase": "K-3",
+      "cell": "O2-on-at-adopted-address-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 93,
+      "phase": "K-3",
+      "cell": "O2-on-at-adopted-address-r2",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "seq": 94,
+      "phase": "K-3",
+      "cell": "O2-on-at-adopted-address-r2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 95,
+      "phase": "K-3",
+      "cell": "O2-on-at-adopted-address-r2",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": null
+    },
+    {
+      "seq": 96,
+      "phase": "K-1",
+      "cell": "O1-register-at-adopted-handle-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 97,
+      "phase": "K-1",
+      "cell": "O1-register-at-adopted-handle-r2",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 98,
+      "phase": "K-2",
+      "cell": "O1-register-at-adopted-handle-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 99,
+      "phase": "K-2",
+      "cell": "O1-register-at-adopted-handle-r2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 100,
+      "phase": "K-2",
+      "cell": "O1-register-at-adopted-handle-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 101,
+      "phase": "K-3",
+      "cell": "O1-register-at-adopted-handle-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 102,
+      "phase": "K-3",
+      "cell": "O1-register-at-adopted-handle-r2",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "seq": 103,
+      "phase": "K-3",
+      "cell": "O1-register-at-adopted-handle-r2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 104,
+      "phase": "K-3",
+      "cell": "O1-register-at-adopted-handle-r2",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 105,
+      "phase": "K-3",
+      "cell": "O1-register-at-adopted-handle-r2",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 106,
+      "phase": "K-1",
+      "cell": "O2-register-at-adopted-handle-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 107,
+      "phase": "K-1",
+      "cell": "O2-register-at-adopted-handle-r2",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 108,
+      "phase": "K-2",
+      "cell": "O2-register-at-adopted-handle-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 109,
+      "phase": "K-2",
+      "cell": "O2-register-at-adopted-handle-r2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 110,
+      "phase": "K-2",
+      "cell": "O2-register-at-adopted-handle-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 111,
+      "phase": "K-3",
+      "cell": "O2-register-at-adopted-handle-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 112,
+      "phase": "K-3",
+      "cell": "O2-register-at-adopted-handle-r2",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "seq": 113,
+      "phase": "K-3",
+      "cell": "O2-register-at-adopted-handle-r2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 114,
+      "phase": "K-3",
+      "cell": "O2-register-at-adopted-handle-r2",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": null
+    },
+    {
+      "seq": 115,
+      "phase": "K-1",
+      "cell": "O1-two-pairs-pass",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 116,
+      "phase": "K-1",
+      "cell": "O1-two-pairs-pass",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 117,
+      "phase": "K-1",
+      "cell": "O1-two-pairs-pass",
+      "kind": "K1b.enter"
+    },
+    {
+      "seq": 118,
+      "phase": "K-1",
+      "cell": "O1-two-pairs-pass",
+      "kind": "K1b.return"
+    },
+    {
+      "seq": 119,
+      "phase": "K-2",
+      "cell": "O1-two-pairs-pass",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 120,
+      "phase": "K-2",
+      "cell": "O1-two-pairs-pass",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 121,
+      "phase": "K-2",
+      "cell": "O1-two-pairs-pass",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 122,
+      "phase": "K-3",
+      "cell": "O1-two-pairs-pass",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 123,
+      "phase": "K-3",
+      "cell": "O1-two-pairs-pass",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "seq": 124,
+      "phase": "K-3",
+      "cell": "O1-two-pairs-pass",
+      "kind": "constraint2.body",
+      "returned": "true"
+    },
+    {
+      "seq": 125,
+      "phase": "K-3",
+      "cell": "O1-two-pairs-pass",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true
+    },
+    {
+      "seq": 126,
+      "phase": "K-3",
+      "cell": "O1-two-pairs-pass",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 127,
+      "phase": "K-3",
+      "cell": "O1-two-pairs-pass",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 128,
+      "phase": "K-1",
+      "cell": "R-seq1-pass",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 129,
+      "phase": "K-1",
+      "cell": "R-seq1-pass",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 130,
+      "phase": "K-2",
+      "cell": "R-seq1-pass",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 131,
+      "phase": "K-2",
+      "cell": "R-seq1-pass",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 132,
+      "phase": "K-2",
+      "cell": "R-seq1-pass",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 133,
+      "phase": "K-3",
+      "cell": "R-seq1-pass",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 134,
+      "phase": "K-3",
+      "cell": "R-seq1-pass",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "seq": 135,
+      "phase": "K-3",
+      "cell": "R-seq1-pass",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true
+    },
+    {
+      "seq": 136,
+      "phase": "K-3",
+      "cell": "R-seq1-pass",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 137,
+      "phase": "K-3",
+      "cell": "R-seq1-pass",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 138,
+      "phase": "K-1",
+      "cell": "R-seq2-fail",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 139,
+      "phase": "K-1",
+      "cell": "R-seq2-fail",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 140,
+      "phase": "K-2",
+      "cell": "R-seq2-fail",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 141,
+      "phase": "K-2",
+      "cell": "R-seq2-fail",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 142,
+      "phase": "K-2",
+      "cell": "R-seq2-fail",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 143,
+      "phase": "K-3",
+      "cell": "R-seq2-fail",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 144,
+      "phase": "K-3",
+      "cell": "R-seq2-fail",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "seq": 145,
+      "phase": "K-3",
+      "cell": "R-seq2-fail",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 146,
+      "phase": "K-3",
+      "cell": "R-seq2-fail",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": null
+    },
+    {
+      "seq": 147,
+      "phase": "K-1",
+      "cell": "R-seq3-pass",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 148,
+      "phase": "K-1",
+      "cell": "R-seq3-pass",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 149,
+      "phase": "K-2",
+      "cell": "R-seq3-pass",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 150,
+      "phase": "K-2",
+      "cell": "R-seq3-pass",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 151,
+      "phase": "K-2",
+      "cell": "R-seq3-pass",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 152,
+      "phase": "K-3",
+      "cell": "R-seq3-pass",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 153,
+      "phase": "K-3",
+      "cell": "R-seq3-pass",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "seq": 154,
+      "phase": "K-3",
+      "cell": "R-seq3-pass",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true
+    },
+    {
+      "seq": 155,
+      "phase": "K-3",
+      "cell": "R-seq3-pass",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 156,
+      "phase": "K-3",
+      "cell": "R-seq3-pass",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 157,
+      "phase": "K-1",
+      "cell": "R-seq4-fail",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 158,
+      "phase": "K-1",
+      "cell": "R-seq4-fail",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 159,
+      "phase": "K-2",
+      "cell": "R-seq4-fail",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 160,
+      "phase": "K-2",
+      "cell": "R-seq4-fail",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 161,
+      "phase": "K-2",
+      "cell": "R-seq4-fail",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 162,
+      "phase": "K-3",
+      "cell": "R-seq4-fail",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 163,
+      "phase": "K-3",
+      "cell": "R-seq4-fail",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "seq": 164,
+      "phase": "K-3",
+      "cell": "R-seq4-fail",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 165,
+      "phase": "K-3",
+      "cell": "R-seq4-fail",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": null
+    },
+    {
+      "seq": 166,
+      "phase": "store-write",
+      "cell": "B-bare-write",
+      "kind": "write.enter"
+    },
+    {
+      "seq": 167,
+      "phase": "store-write",
+      "cell": "B-bare-write",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"bare\"]",
+      "route": "bare-write-only"
+    },
+    {
+      "seq": 168,
+      "phase": "store-write",
+      "cell": "B-bare-write",
+      "kind": "write.return",
+      "thrown": null
+    },
+    {
+      "seq": 169,
+      "phase": "idle",
+      "cell": "B-bare-write",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 170,
+      "phase": "idle",
+      "cell": "B-bare-write",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 171,
+      "phase": "store-write",
+      "cell": "B-bare-write",
+      "kind": "write.enter"
+    },
+    {
+      "seq": 172,
+      "phase": "store-write",
+      "cell": "B-bare-write",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"bare2\"]",
+      "route": "bare-write-after-a-kernel-pass"
+    },
+    {
+      "seq": 173,
+      "phase": "store-write",
+      "cell": "B-bare-write",
+      "kind": "write.return",
+      "thrown": null
+    },
+    {
+      "seq": 174,
+      "phase": "K-2",
+      "cell": "I-identity-control",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 175,
+      "phase": "K-2",
+      "cell": "I-identity-control",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 176,
+      "phase": "K-2",
+      "cell": "I-identity-control",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 177,
+      "phase": "K-3",
+      "cell": "I-identity-control",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 178,
+      "phase": "K-3",
+      "cell": "I-identity-control",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 179,
+      "phase": "K-3",
+      "cell": "I-identity-control",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"c1\",\"pair\"]",
+      "route": "exact-address"
+    },
+    {
+      "seq": 180,
+      "phase": "K-3",
+      "cell": "I-identity-control",
+      "kind": "K3.return",
+      "thrown": null
+    },
+    {
+      "seq": 181,
+      "phase": "K-2",
+      "cell": "I-identity-control",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 182,
+      "phase": "K-2",
+      "cell": "I-identity-control",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 183,
+      "phase": "K-2",
+      "cell": "I-identity-control",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 184,
+      "phase": "K-3",
+      "cell": "I-identity-control",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 185,
+      "phase": "K-3",
+      "cell": "I-identity-control",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true
+    },
+    {
+      "seq": 186,
+      "phase": "K-3",
+      "cell": "I-identity-control",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"c2\",\"pair\"]",
+      "route": "proper-prefix"
+    },
+    {
+      "seq": 187,
+      "phase": "K-3",
+      "cell": "I-identity-control",
+      "kind": "K3.return",
+      "thrown": null
+    },
+    {
+      "seq": 188,
+      "phase": "K-2",
+      "cell": "I-identity-control",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 189,
+      "phase": "K-2",
+      "cell": "I-identity-control",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 190,
+      "phase": "K-2",
+      "cell": "I-identity-control",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 191,
+      "phase": "K-3",
+      "cell": "I-identity-control",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 192,
+      "phase": "K-3",
+      "cell": "I-identity-control",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 193,
+      "phase": "K-3",
+      "cell": "I-identity-control",
+      "kind": "K3.return",
+      "thrown": null
+    },
+    {
+      "seq": 194,
+      "phase": "idle",
+      "cell": "S-stale-adoption",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 195,
+      "phase": "store-write",
+      "cell": "S-stale-adoption",
+      "kind": "write.enter"
+    },
+    {
+      "seq": 196,
+      "phase": "store-write",
+      "cell": "S-stale-adoption",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"bare\"]",
+      "route": "the store's own refusal at the verb: `value` absent"
+    },
+    {
+      "seq": 197,
+      "phase": "store-write",
+      "cell": "S-stale-adoption",
+      "kind": "write.return",
+      "thrown": null
+    },
+    {
+      "seq": 198,
+      "phase": "idle",
+      "cell": "S-stale-adoption",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true
+    },
+    {
+      "seq": 199,
+      "phase": "store-write",
+      "cell": "S-stale-adoption",
+      "kind": "write.enter"
+    },
+    {
+      "seq": 200,
+      "phase": "store-write",
+      "cell": "S-stale-adoption",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"bare\"]",
+      "route": "KC-7, a live attempt stands open at that address"
+    },
+    {
+      "seq": 201,
+      "phase": "store-write",
+      "cell": "S-stale-adoption",
+      "kind": "write.return",
+      "thrown": null
+    },
+    {
+      "seq": 202,
+      "phase": "caller",
+      "cell": "S-stale-adoption",
+      "kind": "caller.settle.enter"
+    },
+    {
+      "seq": 203,
+      "phase": "caller",
+      "cell": "S-stale-adoption",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true
+    },
+    {
+      "seq": 204,
+      "phase": "caller",
+      "cell": "S-stale-adoption",
+      "kind": "caller.settle.return",
+      "thrown": null
+    },
+    {
+      "seq": 205,
+      "phase": "idle",
+      "cell": "S-stale-adoption",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true
+    },
+    {
+      "seq": 206,
+      "phase": "idle",
+      "cell": "S-stale-adoption",
+      "kind": "app-listener.body",
+      "listenerArg": "[]",
+      "route": "caller-settle"
+    },
+    {
+      "seq": 207,
+      "phase": "store-write",
+      "cell": "S-stale-adoption",
+      "kind": "write.enter"
+    },
+    {
+      "seq": 208,
+      "phase": "store-write",
+      "cell": "S-stale-adoption",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"settleprobe\"]",
+      "route": "caller-settle"
+    },
+    {
+      "seq": 209,
+      "phase": "store-write",
+      "cell": "S-stale-adoption",
+      "kind": "write.return",
+      "thrown": null
+    },
+    {
+      "seq": 210,
+      "phase": "store-write",
+      "cell": "S-stale-adoption",
+      "kind": "write2.enter"
+    },
+    {
+      "seq": 211,
+      "phase": "store-write",
+      "cell": "S-stale-adoption",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"settleprobe\"]",
+      "route": "caller-settle"
+    },
+    {
+      "seq": 212,
+      "phase": "store-write",
+      "cell": "S-stale-adoption",
+      "kind": "write2.return",
+      "thrown": null
+    }
+  ]
+}

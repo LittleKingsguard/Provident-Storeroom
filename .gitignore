@@ -165,3 +165,9 @@ archive/
 
 # The supervisor's own in-flight tracker backup, same rule as the others.
 .tracker-reflow-backup/
+
+# Generated npm cache (the LIVE/INSTALL battery installs into scratch/live/)
+.npm-cache/
+
+# The live battery's copy-drive (a duplicate of the checkout's own files, rebuilt by the report's own commands)
+scratch/live/install-0.2.0/drive/
