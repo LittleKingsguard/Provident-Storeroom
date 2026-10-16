@@ -4064,17 +4064,26 @@ cell('GUARD', 'the real entry still resolves IN PLACE at rung two', async () => 
   assert.ok(r.loads[0].endsWith(RUNG_TWO_TAIL), `the in-place load is rung two's path (${r.loads[0]})`);
   assert.ok(r.loads[0].startsWith(PKG_DIR + sep), 'and it is INSIDE the package, beside the entry module');
   assert.equal(r.value, 'v', 'the store works through that load');
-  assert.deepEqual(r.members, ['off', 'on', 'register', 'settle'],
-    'the instance\'s own member set as `surface.md §2.1` states it at `A116` (D1)–(D3): `settle` is the '
-    + 'ONE name the seam opened the set by, and the other three are UNMOVED (`§2.4` item 9; read here '
-    + 'through the real rung-two load and not through a stub)');
+  assert.deepEqual(r.members,
+    ['addConstraint', 'constraintOff', 'constraintOn', 'off', 'on', 'register', 'settle'],
+    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s dated clause of 2026-10-16 states '
+    + 'it: SEVEN own members, `4 + 3 = 7` — the four the seam and the registry fixed (with `settle` the ONE '
+    + 'name the seam opened the set by) plus the THREE surface functions `A126` declares; **⟶ RE-DERIVED by '
+    + 'the `A126` pass from the FOUR the `A116` (D1)–(D3) reading carried, the superseded `manageConstraints` '
+    + 'being displaced and not accumulated**; read here through the real rung-two load and not through a stub');
+  assert.equal(r.members.includes('manageConstraints'), false,
+    'and the superseded name is NOT a member of that product (`surface.md §2.9` item 1\'s dated clause: "the '
+    + '`+1` of `manageConstraints` is displaced by this clause and by no other")');
   assert.equal(typeof r.members.includes === 'function' && r.members.includes('settle'), true,
     'and the member that opened it is reached THROUGH THE IN-PLACE ENTRY\'s own product, which is the '
     + 'only place `settle` is declared at (`§2.4` item 9: "not a ninth named export")');
   assert.deepEqual(r.verbs,
-    ['delete', 'listen', 'read', 'readLiteral', 'rollback', 'storeCreate', 'unlisten', 'write'],
-    'the entry carries the EIGHT verbs and NOTHING else — `§2.9` item 1\'s count UNMOVED, so the seam '
-    + 'added no ninth verb and `settle` is not among them');
+    ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral', 'rollback',
+      'storeCreate', 'unlisten', 'write'],
+    'the entry carries the ELEVEN declared names — the eight verbs plus the THREE surface functions `A126` '
+    + 'declares — and NOTHING else (`surface.md §2.9` item 1\'s dated clause of 2026-10-16, `8 + 3 = 11`), so '
+    + 'the seam\'s own ninth name is displaced with `settle` and neither bare `on` nor bare `off` is among '
+    + 'them');
 });
 
 cell('GUARD', 'the in-place loop still resolves and works at rung two', async () => {
@@ -4085,10 +4094,11 @@ cell('GUARD', 'the in-place loop still resolves and works at rung two', async ()
   const api = await import('provident-storeroom');
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
   const store = api.storeCreate({ journalLength: 8, listeners: [] });
-  assert.deepEqual(Object.keys(store).sort(), ['off', 'on', 'register', 'settle'],
-    'the instance\'s own member set as `surface.md §2.1` states it at `A116` (D1)–(D3): the same FOUR '
-    + 'names the in-place entry\'s own product carries, read at the self-reference this cell resolves '
-    + 'through');
+  assert.deepEqual(Object.keys(store).sort(),
+    ['addConstraint', 'constraintOff', 'constraintOn', 'off', 'on', 'register', 'settle'],
+    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s dated clause of 2026-10-16 states '
+    + 'it — SEVEN own members, `4 + 3 = 7` — the same set the in-place entry\'s own product carries, read '
+    + 'at the self-reference this cell resolves through');
   api.write(store, ['k'], 'mem', 'v');
   assert.equal(api.read(store, ['k']), 'v', 'the store works in place at rung two');
   assert.equal(manifest.name, 'provident-storeroom',

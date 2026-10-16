@@ -98,9 +98,21 @@ test('package_the_claim_is_node_esm_alone_through_exactly_one_arms_bearing_entry
     assert.equal(exportsMap[subpath], undefined,
       `the subpath shape \`${subpath}\` is REFUSED BY NAME: the kernel is BEHIND the surface, not beside it`);
   }
-  assert.equal(typeof api.manageConstraints, 'function',
-    'and the kernel is reached by NOTHING at this map: the surface\'s ninth named export is the whole of the '
-    + 'post-creation constraint route (`surface.md §2.12` item 2; `A123`)');
+  // **⟶ RE-DERIVED 2026-10-16 BY THE `A126` PASS (`role_test_writer`): THE POST-CREATION ROUTE'S NAME IS
+  // DISPLACED — ONE NAME WITH AN `operation` POSITION → THREE SURFACE FUNCTIONS — WHILE THE `exports` HALF
+  // OF THIS CELL STANDS WHOLE.** `A122` keeps the one arms-bearing arm and the kernel behind the surface;
+  // the namespace's figure moves `9 → 11` at its own home (`surface.md §2.9` item 1's dated clause of this
+  // date, `8 + 3 = 11`), and `manageConstraints` is displaced by that clause and by no other.
+  for (const route of ['addConstraint', 'constraintOn', 'constraintOff']) {
+    assert.equal(typeof api[route], 'function',
+      `and the kernel is reached by NOTHING at this map: the surface's own post-creation constraint `
+      + `function \`${route}\` is reached through the entry and not through an arm (\`surface.md §2.12\` `
+      + 'item 2; `docs/decisions.md` · `A126`)');
+  }
+  assert.equal('manageConstraints' in api, false,
+    'and the superseded name is NOT a name of this namespace — "the `+1` of `manageConstraints` is displaced '
+    + 'by this clause and by no other, so the count does not accumulate two readings of one route" '
+    + '(`surface.md §2.9` item 1\'s dated clause of 2026-10-16)');
 });
 
 test('package_a_wildcard_export_and_a_deep_import_are_both_refused', (t) => {
