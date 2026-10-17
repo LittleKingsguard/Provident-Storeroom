@@ -90,11 +90,11 @@ import {
 } from 'provident-storeroom';
 ```
 
-**That is the whole entry, and it is the whole surface: eight verbs, no ninth name.** `delete` is exported under
+**That is the whole entry, and it is the whole surface: eight verbs, no ninth name.** **⟶ AND THE FIGURE OF THAT SENTENCE IS SUPERSEDED, DATED `2026-10-16`, AND IS WITHDRAWN WITH ITS SUBJECT NAMED SO IT IS NOT READ AS THE OPERATIVE ENTRY: THE MODULE NAMESPACE IS ONE NAME — `storeCreate` ALONE, `11 → 1` ✓ — and the eight verbs of the block above are the store's own METHODS at `0.3.0`, the ten methods of the table at §1.1-bis plus `register` and `settle` making the product's TWELVE own members, `10 + 1 + 1 = 12` ✓; THE OPERATIVE FIGURES HAVE ONE HOME IN THIS GUIDE, §1.1-bis, whose own sentence reads *"THE SURFACE IS THEREFORE `1` MODULE NAME PLUS THE STORE'S OWN MEMBERS, AND NOTHING ELSE"* with the same `10 + 1 + 1 = 12` ✓** (`docs/specs/storeroom-js/surface.md §2.9` item 1's and `§2.4` item 9 (f)'s `A127` clauses of 2026-10-16; `docs/decisions.md` · `A127` · `A128`; the `11 → 1` terms `8 + 3`). `delete` is exported under
 that name although it is a reserved word, so the declaration binds it as `deleteOp` and re-exports it
 (`bindings/js/index.d.ts`, the `delete` block). **Import it as `delete` or alias it; either works.**
 
-**`storeCreate` answers an instance object carrying exactly four own members and nothing else:**
+**`storeCreate` answers an instance object carrying exactly four own members and nothing else:** **⟶ AND THE FIGURE OF THAT SENTENCE IS SUPERSEDED, DATED `2026-10-16`, AND IS WITHDRAWN WITH ITS OWN WORDS QUOTED: *"exactly four own members and nothing else"* WAS THE `0.2.0`-ERA SEAM'S SET — the four members the block below declares, unmoved as members — AND THE PRODUCT'S DECLARED MEMBER SET IS TWELVE, `10 + 1 + 1 = 12` ✓: the TEN METHODS of §1.1-bis's table, which the four names below do not carry, plus `register` and `settle`; the four-member figure is the `A116`/`0.2.0` reading and every reading of it at §1.1, §1.2 and the `1.1`-era blocks of this guide has §1.1-bis's line as its home**
 
 ```ts
 readonly register(handle: Handle, listener: Listener): void;
@@ -110,7 +110,7 @@ declaration). **The instance's own state is released with the instance and by no
 saying construct one and keep it.**
 
 **WHAT THE SCRATCH CONSUMER SAW, AND IT AGREES WITH THE README:** all eight verbs are functions, and the instance
-carries `on` · `off` · `register`. **That run's own output for the surface is a type line per verb; its output for
+carries `on` · `off` · `register`. **⟶ AND THE INSTANCE'S LIST IN THAT SENTENCE IS THE ONE PART OF THE `0.1.2` MEASUREMENT THAT IS SUPERSEDED, 2026-10-16, AND IT IS WITHDRAWN WITH ITS SUBJECT NAMED: THE PRODUCT'S DECLARED MEMBER SET IS TWELVE, `10 + 1 + 1 = 12` ✓ — §1.1-bis's table of TEN METHODS plus `register` and `settle` — so *"carries `on` · `off` · `register`"* is a LIST OF THREE OF TWELVE AND NOT THE SET; the run's own *"all eight verbs are functions"* is that run's reading of ITS date and the module namespace's operative count is the ONE name §1.1-bis declares** **That run's own output for the surface is a type line per verb; its output for
 the instance is the member list.** **That run is a `0.1.2` measurement and §1.1-bis is what the `0.3.0` surface is; both stand, at their own dates.**
 
 ### §1.1-bis · The `0.3.0` surface — ONE module function, and the store's own methods
@@ -155,7 +155,7 @@ import { storeCreate } from 'provident-storeroom';
 The package ships a hand-authored declaration file — **not a generated one** — reached through the package's own
 `types` field. **It declares the eight verbs, the instance's four members, and the failure surface; it declares
 no store type, no store verb, no `findAddress` and no release verb** (`bindings/js/index.d.ts`, opening block,
-citing the distribution contract).
+citing the distribution contract). **⟶ AND THE TWO COUNTS OF THAT SENTENCE ARE DISPOSED OF AT THEIR OWN BYTES BY THE ONE-LINE POINTER THIS GUIDE OWES THEM, 2026-10-16: *"the eight verbs"* AND *"the instance's four members"* ARE THE `0.2.0` DECLARATION'S OWN FIGURES AND ARE READ THROUGH §1.1-bis, WHOSE SENTENCE *"THE SURFACE IS THEREFORE `1` MODULE NAME PLUS THE STORE'S OWN MEMBERS, AND NOTHING ELSE"* CARRIES THE OPERATIVE ONES — ONE MODULE NAME, `11 → 1` ✓, AND TWELVE OWN MEMBERS, `10 + 1 + 1 = 12` ✓ — AND THE SENTENCE'S OTHER CLAIMS (the failure surface, `findAddress`'s absence, no release verb) STAND WHOLE**
 
 **⟶ AND BOTH COUNTS IN THAT SENTENCE HAVE MOVED SINCE, AND THEY MOVE AGAIN AT `A127`, SO NEITHER IS READ AS THE OPERATIVE ONE: THE DECLARATION OWES `storeCreate` AS ITS ONE NAMED EXPORT — `11 → 1` — AND THE PRODUCT'S TWELVE OWN MEMBERS, `10 + 1 + 1 = 12`; a file still reading eight, nine or eleven names, or a four-, five- or seven-member product, is a FINDING, and an `A126`-era file reading `8 + 3 = 11` and `4 + 3 = 7` is read as that pass's own date and not as this one's** (`docs/specs/storeroom-js/surface.md §2.4` item `9 (f)`'s and `§2.9` item `1`'s `A127` clauses of 2026-10-16; `docs/decisions.md` · `A127` · `A128`, read with `A126` · `A123`). **AND THE OPERATIVE SURFACE THAT DECLARATION MUST DECLARE IS §1.1-bis's: ONE MODULE NAME AND THE STORE'S OWN METHODS.**
 
