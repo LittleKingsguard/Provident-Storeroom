@@ -155,3 +155,5 @@
 | `6b66a1d8df028c0bd8694d19b9e04c2fa72af9c70daaf33c08d881d478abe407` | 10804 | `docs/specs/storeroom-publish/backup/STAGED-RELEASE-2026-10-11-manifest.md` |
 
 **Amendment 2026-10-16 (post-`§46`): `archive/reviews/2026-10-16-constraints-publication-gate1.md` = `0e2afb16b91ad2427b00fd536fbdafd0e3ff3052fd0accf67f543a23fc05cfdb` — the record grew by one live section after the baseline was taken, which is itself the first exercise of this manifest's purpose (a post-baseline change, disclosed and re-pinned).**
+
+**Amendment 2026-10-16 post-`§47`: `archive/reviews/2026-10-16-constraints-publication-gate1.md` = `b9959923d8bce64d07913635e94e998a5df21c5c4cfeb2bcebeb8a20b5404148`.**
