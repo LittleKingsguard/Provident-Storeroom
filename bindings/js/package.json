@@ -26,6 +26,7 @@
   },
   "exports": {
     ".": {
+      "types": "./index.d.ts",
       "import": "./index.mjs"
     }
   },

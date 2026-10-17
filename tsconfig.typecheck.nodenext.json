@@ -1,0 +1,56 @@
+{
+  // ==========================================================================
+  //  tsconfig.typecheck.nodenext.json — THE SHIPPED DECLARATION'S
+  //  REACHABILITY UNDER A MODERN RESOLVER (`DEF-2026-10-16-Q`'s instrument,
+  //  second leg)
+  // ==========================================================================
+  //  WHY THIS FILE EXISTS. The first leg (`tsconfig.typecheck.json`) checks the
+  //  declaration under `moduleResolution: "node10"` — the mode that reads a
+  //  package's top-level `types` field. A MODERN CONSUMER does not: under
+  //  `nodenext` (and `bundler`) resolution walks the `exports` map, and the
+  //  top-level `types` field is NOT consulted when an `exports` map is present.
+  //  So a manifest whose `exports` map carries no `types` condition ships a
+  //  declaration that a modern consumer CANNOT REACH — it silently receives
+  //  `any` — while the `node10` leg stays GREEN.
+  //
+  //  WHAT THIS LEG MEASURES, AND IT MEASURES IT THE WAY A CONSUMER DOES. The
+  //  SAME fixture (`typecheck/consumer-fixture.ts`), the SAME package-specifier
+  //  import (`from 'provident-storeroom'`), the SAME strict/noEmit/`types: []`
+  //  settings — with ONE setting moved: `moduleResolution: "nodenext"` (and
+  //  `module: "nodenext"`, which TypeScript requires to accompany it). The
+  //  fixture's 28 `@ts-expect-error` refusals are untouched: they are re-checked
+  //  here exactly as they are on the first leg, because an unused
+  //  `@ts-expect-error` is itself a compile error. A run of this leg therefore
+  //  proves TWO things at once — the declaration RESOLVES through the `exports`
+  //  map, and every call the declaration must refuse is still refused.
+  //
+  //  THE FAILURE MODE THIS LEG CATCHES, NAMED SO IT IS RECOGNISED RATHER THAN
+  //  RE-DISCOVERED — `TS7016`: *"Could not find a declaration file for module
+  //  'provident-storeroom'. '…/typecheck/node_modules/provident-storeroom/
+  //  index.mjs' implicitly has an 'any' type. There are types at '…/index.d.ts',
+  //  but this result could not be resolved when respecting package.json
+  //  exports."* The instrument that found this was the FIRST leg; it could not
+  //  have, because `node10` never reads the `exports` map.
+  //
+  //  THE TWO LEGS ARE ONE INSTRUMENT AND NEITHER REPLACES THE OTHER: `node10`
+  //  is the routing the package also declares (its top-level `types` field, kept
+  //  for classic consumers), and `nodenext` is the routing a modern consumer
+  //  takes. Both must be green, and `npm run typecheck` runs both.
+  // ==========================================================================
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    // THE MODERN RESOLVER: walks `exports`, ignores the top-level `types` field
+    // when an `exports` map stands. `nodenext` is the stricter of the two
+    // modern modes — `bundler` shares this map's resolution rules but is more
+    // permissive about extensionless specifiers — so the failing mode is taken.
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "es2022",
+    "lib": ["es2022"],
+    "types": [],
+    "skipLibCheck": false,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["typecheck/**/*.ts"]
+}

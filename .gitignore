@@ -178,3 +178,12 @@ scratch/g7-cache/
 scratch/g7-consumer/
 scratch/g7-logs/
 scratch/g7-stage/
+
+# The type-check fixture's package resolution (`DEF-2026-10-16-Q`; `npm run typecheck`).
+# `tsc` refuses a symlinked package under Node10 resolution, so the shipped manifest and the shipped
+# declaration are COPIED here by the script from their ONE home in `bindings/js/` -- never edited, never a
+# second source of truth -- and the copy must never be committed.
+typecheck/node_modules/
+
+# Ephemeral npm cache used by the instrument passes (never a deliverable)
+scratch/npmcache/

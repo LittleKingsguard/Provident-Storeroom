@@ -7,7 +7,7 @@
 
 use crate::error::{
     malformed_address_argument, malformed_named, malformed_tier_argument, missing_argument,
-    out_of_domain_tier, StoreError,
+    missing_construction_key, out_of_domain_tier, StoreError,
 };
 use crate::records::{ListenerHandle, Tier};
 use crate::value::Segment;
@@ -281,8 +281,19 @@ pub(crate) fn construction_listeners(
 ) -> Result<Vec<(Vec<Segment>, ListenerHandle)>, StoreError> {
     let entries = match arg {
         ListenersArg::List(entries) => entries,
-        ListenersArg::Absent => return Err(malformed_named("listeners")),
-        ListenersArg::Null | ListenersArg::Undefined => return Err(malformed_named("listeners")),
+        // **⟶ `DEF-2026-10-17-A`'s SECOND SHAPE, REPAIRED HERE 2026-10-17: THESE THREE ABSENCE STATES TAKE
+        // THE `AddressMalformed` ROW'S ABSENT-ARGUMENT ARM.** Their CODE is unmoved (`ListenersArg` row 5;
+        // `PAR-JS-4`'s answer cell; `crossing.md` §1.3 rule 2), and what moves is the SENTENCE: an omitted
+        // (or `null`/`undefined`) config KEY is answered in the shape its sibling `journalLength`'s own
+        // omission already takes — *"'listeners' requires a listeners argument, a listeners is required on
+        // store creation"* — instead of the PRESENT-BUT-MALFORMED arm's *"'listeners' is not a legal address
+        // segment in '' …"*, which described a CONFIG KEY as an address segment. **THE THREE PRESENT-BUT-
+        // MALFORMED ARMS BELOW KEEP THAT SENTENCE BYTE-FOR-BYTE** (`NonArray`, a bad entry, a blank token):
+        // those are the states the row's segment arm is for, and the pinning Rust cell sits at one of them.
+        ListenersArg::Absent => return Err(missing_construction_key("listeners")),
+        ListenersArg::Null | ListenersArg::Undefined => {
+            return Err(missing_construction_key("listeners"))
+        }
         ListenersArg::NonArray(_) => return Err(malformed_named("listeners")),
     };
     let mut admitted = Vec::new();

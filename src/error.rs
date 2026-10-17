@@ -102,11 +102,17 @@ pub fn storeErrorMessage(code: &str, args: &MessageArgs) -> String {
         path: args.path.clone(),
         kind: Kind::Map,
         argument: None,
+    ..Default::default()
     })
 }
 
 /// The generator's own input, one step closer to the trigger than `MessageArgs`: it carries the container
 /// kind where the message needs it and the argument name where the trigger is an absent argument.
+///
+/// **`Default` IS IMPLEMENTED BELOW SO THE ONE MEMBER THIS PASS ADDS COSTS EVERY PRE-EXISTING `Msg`
+/// LITERAL NOTHING:** all twenty-one of them take `construction` from `..Default::default()` — the
+/// compiler proves each one, and none of their messages can move by accident — while
+/// `missing_construction_key` is the one site that names it, and it names it `true`.
 pub(crate) struct Msg {
     pub code: &'static str,
     /// The pre-spelled subject (a segment's spelling, or the address's own spelling).
@@ -118,6 +124,31 @@ pub(crate) struct Msg {
     pub path: Option<String>,
     pub kind: Kind,
     pub argument: Option<String>,
+    /// **`DEF-2026-10-17-A`'s second shape, 2026-10-17 (`docs/specs/storeroom-native/contract.md` §8.2's
+    /// `AddressMalformed` row, whose own `<available clause>` prints *"for a construction argument, `a
+    /// <argument-name> is required`"*).** **TRUE exactly at the construction's OWN absent-key call sites,
+    /// where the act that supplies the missing key IS the construction; FALSE everywhere else — `write`'s
+    /// required tier and `rollback`'s `opId` included — so their whole messages stay byte-for-byte.**
+    pub construction: bool,
+}
+
+impl Default for Msg {
+    /// `kind: Kind::Map` is the reading the generator's own default already carries — `storeErrorMessage`
+    /// builds its `Msg` with `Kind::Map` — so a literal that leaves both members off takes what it took.
+    fn default() -> Self {
+        Msg {
+            code: "",
+            subject: String::new(),
+            container: None,
+            container_segment: None,
+            keys: Vec::new(),
+            tiers: Vec::new(),
+            path: None,
+            kind: Kind::Map,
+            argument: None,
+            construction: false,
+        }
+    }
 }
 
 /// `§8.2`'s clause table, taken code by code.
@@ -132,6 +163,20 @@ pub(crate) fn build(m: &Msg) -> String {
         .join(", ");
     match m.code {
         "AddressMalformed" => match &m.argument {
+            // **⟶ AND THIS ARM IS CONSTRUCTION-AWARE, ADDED 2026-10-17 (`DEF-2026-10-17-A`'s second shape).
+            // `docs/specs/storeroom-native/contract.md` §8.2's `AddressMalformed` row PRINTS THE QUALIFIER
+            // FOR THIS ARM: its `<mismatch clause>` is *"`is not a legal address segment` (or, for an absent
+            // argument, `requires a <argument-name> argument`)"* and its `<available clause>` is
+            // *"`segments are strings or non-negative integers` (or, for a construction argument, `a
+            // <argument-name> is required`)"* — while the CONSTRUCTION member's own available clause reads
+            // *"a `<argument-name>` is required ON STORE CREATION"*. An absent-argument arm of this row that
+            // governs a CONSTRUCTION KEY therefore takes the qualified clause; `Msg.construction` is set at
+            // exactly those call sites and nowhere else, so `write`'s required tier and `rollback`'s `opId`
+            // — this code's two other absent-argument call sites — keep the unqualified sentence
+            // byte-for-byte (`tests/properties.rs`'s whole-text cells pin the first of them).**
+            Some(name) if m.construction => format!(
+                "'{name}' requires a {name} argument, a {name} is required on store creation"
+            ),
             Some(name) => format!("'{name}' requires a {name} argument, a {name} is required"),
             None => format!(
                 "{} is not a legal address segment in '{container}', segments are strings or non-negative integers",
@@ -287,6 +332,7 @@ pub(crate) fn malformed_segment(segment: &Segment, container: &[Segment]) -> Sto
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -305,6 +351,7 @@ pub(crate) fn malformed_address_argument() -> StoreError {
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -323,6 +370,7 @@ pub(crate) fn malformed_named(name: &str) -> StoreError {
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -342,6 +390,42 @@ pub(crate) fn malformed_tier_argument() -> StoreError {
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
+        }),
+    )
+}
+
+/// **`§8.1` #1'S ABSENT-ARGUMENT ARM AT A CONSTRUCTION KEY — `DEF-2026-10-17-A`'s second shape, added
+/// 2026-10-17.**
+///
+/// **THE DEFECT, MEASURED ON INSTALLED BYTES: `storeCreate({ journalLength: 64 })` — the `listeners` key
+/// OMITTED — answered `'listeners' is not a legal address segment in '', segments are strings or
+/// non-negative integers` (`malformed_named`'s rendering): A CONFIG KEY DESCRIBED AS AN ADDRESS SEGMENT,
+/// IN THE EMPTY CONTAINER, while its sibling `journalLength`'s own omission answered `'journalLength'
+/// requires a journalLength argument, a journalLength is required on store creation`. TWO
+/// REQUIRED-IN-EFFECT `cfg` KEYS FAILED IN TWO DIFFERENT SHAPES.**
+///
+/// **THE CLAUSE IMPLEMENTED, AND IT IS THE CONTRACT'S OWN:** §8.2's `AddressMalformed` row carries TWO
+/// ARMS — the segment arm and *"for an absent argument, `requires a <argument-name> argument`"*, whose
+/// `<available clause>` is *"for a construction argument, `a <argument-name> is required`"* — and `DD-52`
+/// names `Msg.argument` as *"the argument name where the trigger is an absent argument"*. **THE CODE IS
+/// UNMOVED AND IS THE ONE THE CLAUSES PIN:** an absent `listeners` key stays the `AddressMalformed` of
+/// `ListenersArg` row 5 and of `parameter-semantics.md` §2.4's `PAR-JS-4` answer cell (*"`AddressMalformed`
+/// for every one of them"*), read verbatim by `crossing.md` §1.3's absent-versus-`undefined` rule, rule 2.
+/// **ONLY THE ARM MOVES: absent-argument at a construction key, instead of present-but-malformed.**
+pub(crate) fn missing_construction_key(name: &str) -> StoreError {
+    // THE SAME BUILDER `missing_argument` USES, WITH `construction` THE ONE MEMBER THAT FLAGS THE ACT —
+    // so the two shapes cannot drift into two hand-written sentences, and the qualifier is read off the
+    // row's own template in `build` rather than appended here.
+    error(
+        "AddressMalformed",
+        build(&Msg {
+            code: "AddressMalformed",
+            subject: format!("'{name}'"),
+            container: Some(String::new()),
+            argument: Some(name.to_string()),
+            construction: true,
+            ..Default::default()
         }),
     )
 }
@@ -361,6 +445,7 @@ pub(crate) fn missing_argument(code: &'static str, name: &str) -> StoreError {
             path: None,
             kind: Kind::Map,
             argument: Some(name.to_string()),
+            ..Default::default()
         }),
     )
 }
@@ -381,6 +466,7 @@ pub(crate) fn file_path_unreachable(path: &str) -> StoreError {
             path: Some(path.to_string()),
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -399,6 +485,7 @@ pub(crate) fn out_of_domain_tier(subject: String) -> StoreError {
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -429,6 +516,7 @@ pub(crate) fn address_not_found(
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -451,6 +539,7 @@ pub(crate) fn tier_not_found(
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -469,6 +558,7 @@ pub(crate) fn leaf_has_no_downstream(segment: &Segment, leaf: &[Segment]) -> Sto
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -487,6 +577,7 @@ pub(crate) fn monotonicity_violation(segment: &Segment, address: &[Segment]) -> 
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -510,6 +601,7 @@ pub(crate) fn container_kind_conflict(
             path: None,
             kind,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -535,6 +627,7 @@ pub(crate) fn container_kind_conflict_for_key(
             path: None,
             kind,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -553,6 +646,7 @@ pub(crate) fn read_target_is_branch(address: &[Segment]) -> StoreError {
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -571,6 +665,7 @@ pub(crate) fn write_parent_not_link(subject: String, address: &[Segment]) -> Sto
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -589,6 +684,7 @@ pub(crate) fn journal_op_unknown(op_id: &str) -> StoreError {
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -607,6 +703,7 @@ pub(crate) fn rollback_compacted(op_id: &str) -> StoreError {
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -625,6 +722,7 @@ pub(crate) fn value_not_admitted(address: &[Segment]) -> StoreError {
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -644,6 +742,7 @@ pub(crate) fn file_commit_failed(address: &[Segment], path: &str) -> StoreError 
             path: Some(path.to_string()),
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }
@@ -666,6 +765,7 @@ pub(crate) fn constraint_list_invalid(subject: String) -> StoreError {
             path: None,
             kind: Kind::Map,
             argument: None,
+            ..Default::default()
         }),
     )
 }

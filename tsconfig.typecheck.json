@@ -1,0 +1,88 @@
+{
+  // ==========================================================================
+  //  tsconfig.typecheck.json — THE TYPE-CHECK OF THE SHIPPED DECLARATION
+  //  (`DEF-2026-10-16-Q`: `bindings/js/index.d.ts` SHIPS TO CONSUMERS and
+  //  nothing in this repository checked it; this file and the fixture beside
+  //  it are that instrument, driven by `npm run typecheck`. JSONC: `tsc`
+  //  reads comments in a tsconfig, and the reasoning belongs beside the
+  //  settings it justifies.)
+  //
+  //  WHAT IT CHECKS, AND THE ONE THING IT MUST NOT DO
+  //  -------------------------------------------------------------------------
+  //  The subject is `bindings/js/index.d.ts` — the file `bindings/js/package.json`'s
+  //  `types` field reaches and its `files` allowlist ships. The fixture
+  //  (`typecheck/consumer-fixture.ts`) reaches it THE WAY A CONSUMER DOES:
+  //
+  //      import { storeCreate } from 'provident-storeroom';
+  //
+  //  i.e. by the PACKAGE SPECIFIER, never by a relative path into the tree. A
+  //  relative import would bypass the manifest entirely and would keep passing
+  //  after the manifest itself broke.
+  //
+  //  ⟶ AND THE RESOLUTION MODE IS A MEASURED CHOICE, NOT A DEFAULT — `node10`.
+  //  Measured on this machine (`typescript@5.9.3`, the pinned devDependency):
+  //  under `moduleResolution: "nodenext"` resolution walks the `exports` map,
+  //  matches `import` → `./index.mjs`, looks for `index.d.mts` beside it, finds
+  //  none, and REFUSES; `bundler` fails identically. `bindings/js/package.json`
+  //  carries no `types` condition INSIDE its `exports` map (only the top-level
+  //  `types` field), so THE SHIPPED DECLARATION IS UNREACHABLE TO A `nodenext`
+  //  CONSUMER. That is a real finding about the manifest, recorded here and NOT
+  //  fixed by this instrument (`bindings/js/package.json`'s `exports` map is
+  //  outside this task's write wall). `node10` is the mode that reads the
+  //  `types` field — the routing the package actually declares — so it is the
+  //  mode that checks the shipped bytes today.
+  //
+  //  WHAT A GREEN RUN PROVES, AND WHAT IT DOES NOT
+  //  -------------------------------------------------------------------------
+  //  GREEN PROVES: the declaration is INTERNALLY CONSISTENT (it compiles); a
+  //  consumer's calls against the surface it declares — the ONE export, the
+  //  TWELVE own members, each method's arity and argument order, `write`'s
+  //  optional fourth-position commit, the declared return shapes — would
+  //  COMPILE; and the calls the declaration must REFUSE are refused (the
+  //  `@ts-expect-error` cells).
+  //  GREEN DOES **NOT** PROVE THE DECLARATION MATCHES THE RUNTIME. A `.d.ts`
+  //  that said `read` takes a `number` where the implementation takes an array
+  //  would type-check green all day: `tsc` never loads `index.mjs`, never loads
+  //  the addon, and never compares a declaration to a value. The runtime's own
+  //  agreement is the node suite's subject (`npm test`), not this instrument's.
+  //  Neither does it prove the THREE CLAIMS the declaration's own header names
+  //  as unenforceable (supplied-vs-omitted `undefined` at the tier position;
+  //  non-negative-integer address segments; the twelve-own-member COUNT) — the
+  //  fixture does not assert those, and says so in its own bytes.
+  //
+  //  WHY THE FIXTURE LIVES UNDER `typecheck/` AND NOT UNDER `bindings/js/`
+  //  -------------------------------------------------------------------------
+  //  `bindings/js/package.json`'s `files` allowlist is exactly
+  //  `[index.mjs, README.md, index.d.ts, src/constraint-kernel.mjs]` and must
+  //  not move: anything placed under `bindings/js/` risks being swept into the
+  //  published tarball, and this instrument must never ship. `typecheck/` is at
+  //  the ROOT, beside this file, and the root manifest is `private: true`.
+  // ==========================================================================
+  "compilerOptions": {
+    // THE DECLARATION IS A CONSUMER-FACING CONTRACT: file it at strict mode,
+    // because that is what a consumer's own project is likely to be.
+    "strict": true,
+    // NO EMIT: this is a check, never a build. A fixture that wrote a `.js`
+    // beside itself would be an artefact of an instrument, not a deliverable.
+    "noEmit": true,
+    // The mode that reads `bindings/js/package.json`'s `types` field — see the
+    // measured note above for why `nodenext`/`bundler` cannot reach the
+    // declaration at all.
+    "module": "esnext",
+    "moduleResolution": "node10",
+    "target": "es2022",
+    "lib": ["es2022"],
+    // The fixture is a CONSUMER project: it must not lean on ambient typing the
+    // package itself would never ship (`@types/node` and friends).
+    "types": [],
+    // And it must not silently accept a module that resolved to `any`: an
+    // unsilenced `any` is exactly the failure mode this instrument exists to
+    // catch (`TS7016`, "no declaration file for module").
+    "skipLibCheck": false,
+    "forceConsistentCasingInFileNames": true
+  },
+  // The fixture only. There is no `src/**/*.ts` in this repository to sweep in:
+  // the implementation is Rust plus authored JavaScript (`.mjs`), and `checkJs`
+  // is deliberately NOT enabled — this instrument's subject is the DECLARATION.
+  "include": ["typecheck/**/*.ts"]
+}

@@ -1002,6 +1002,59 @@ test('cp_allowlist_the_kernel_travels_in_files_and_is_no_second_exports_arm', ()
     assert.equal(exports_[spelling], undefined,
       `the subpath shape \`${spelling}\` is REFUSED BY NAME — the kernel is BEHIND the surface, not beside it`);
   }
-  assert.deepEqual(Object.keys(exports_['.'] ?? {}), ['import'],
-    'and the one arms-bearing arm is the ESM one, unmoved (`DD-24`)');
+  // ⟶ RE-DERIVED 2026-10-17 (`DEF-2026-10-17-D`, `role_test_writer`): THE AS-FILED ASSERTION HERE WAS
+  // `assert.deepEqual(Object.keys(exports_['.'] ?? {}), ['import'], …)` — EXACT KEY-SET EQUALITY — AND IT
+  // WAS **OVER-STRENGTH**: IT FORBADE A FOURTH THING ITS OWN MESSAGE NEVER NAMED AND ITS CLAUSE NEVER
+  // GRANTED. **THE CLAUSE IS `PAR-PUB-5`** (`parameter-semantics.md §2.5`, line 119): *"exactly ONE
+  // **arms-bearing** entry — the ESM one, at the package root."* **A `types` CONDITION IS NOT ARMS-BEARING**
+  // — it routes no runtime module, it only tells a type checker where the declaration lives — **so its
+  // presence does not violate the domain the clause declares, and key-set equality asserted more than
+  // `PAR-PUB-5` grants.** `DD-24` says the same thing in the same word: *"EXACTLY ONE **arms-bearing**
+  // entry."* **AND THE CORPUS'S OWN FALSIFIER ALREADY SANCTIONED IT: `negative-generators.test.mjs:2547`
+  // writes `if (arm !== 'import' && arm !== 'types')` — it REFUSES `require`/`default`/`node` BY NAME and
+  // then PERMITS ONLY `import` AND `types`** — so the positive cell contradicted the sibling falsifier.
+  // **THE RE-DERIVATION KEEPS EVERY REFUSAL AND ADDS TWO: `import` STAYS REQUIRED AND EXACT; `import` STAYS
+  // FIRST (conditions evaluate in order, so a `types` before `import` would be the only one a `nodenext`
+  // resolver could take — and the manifest places `types` first, so the ORDER is asserted as load-bearing);
+  // and `types`, once ADMITTED, is ADMITTED ONLY WHERE IT POINTS AT THE DECLARATION THAT ACTUALLY SHIPS** —
+  // an admitted-but-misrouted `types` condition is precisely the defect `DEF-2026-10-17-D` is about.
+  // **NO ASSERTION WAS WEAKENED OR DELETED: the `['.']` equality above and the three subpath refusals stay
+  // byte-for-byte as they were, and the arm set gains a by-name refusal and an exact `import` equality.**
+  const rootArm = exports_['.'] ?? {};
+  assert.deepEqual(Object.keys(rootArm), ['types', 'import'],
+    '`PAR-PUB-5` (`parameter-semantics.md §2.5`, line 119) / `DD-24`: the `.` entry carries EXACTLY TWO '
+    + 'conditions — `types` (NOT arms-bearing: it routes no runtime module, it only names the declaration) '
+    + 'and the ONE arms-bearing arm, `import`, unmoved (`A122`). The `types` condition is admitted on the '
+    + 'corpus\'s own falsifier\'s rule (`negative-generators.test.mjs:2547`: `if (arm !== \'import\' && '
+    + 'arm !== \'types\')`)');
+  // ⟶ ORDER IS LOAD-BEARING AND IS ASSERTED AS SUCH: `Object.keys` preserves the manifest's own insertion
+  // order, and a resolver evaluates conditions in that order, so `types` first and `import` second is the
+  // spelling that lets BOTH a `nodenext` type checker AND an ESM runtime resolve. A `types` placed AFTER
+  // `import` would be unreachable to a resolver that takes `import` first.
+  assert.equal(Object.keys(rootArm)[0], 'types',
+    '`DEF-2026-10-17-D`: `types` is the FIRST condition — a `types` placed after `import` is never '
+    + 'consulted by a resolver that takes `import` first, so the order is the repair and not a style');
+  assert.equal(Object.keys(rootArm)[1], 'import',
+    'and the ONE arms-bearing arm stands SECOND, unmoved: `import` is still the entry the runtime takes');
+  assert.equal(rootArm.import, './index.mjs',
+    'the ESM arm IS REQUIRED and EXACT: it points at the package\'s own `.mjs` module — misspell or rename '
+    + 'it and this cell fails (`PAR-PUB-5`: the ESM entry is the claimed realm)');
+  for (const forbidden of ['require', 'default', 'node']) {
+    assert.equal(rootArm[forbidden], undefined,
+      `\`${forbidden}\` is REFUSED BY NAME — a \`${forbidden}\` arm is a SECOND CLAIMED REALM or a fallback `
+      + 'the pack claims nowhere (`PAR-PUB-5`: "a CJS arm → REFUSED: it is a second claimed realm"; '
+      + '`negative-generators.test.mjs:2544` refuses the same three by the same names)');
+  }
+  // `types` IS ADMITTED, AND NOT BLINDLY: an admitted-but-MISROUTED `types` is the defect itself
+  // (`DEF-2026-10-17-D` — the shipped `index.d.ts` was UNREACHABLE to a `nodenext` consumer). So the arm is
+  // pinned to the declaration that actually ships, and that declaration is pinned INTO the `files`
+  // allowlist — a `types` pointing anywhere else would be unreachable exactly as the as-filed map was.
+  assert.equal(rootArm.types, './index.d.ts',
+    '`PAR-PUB-4` / `PAR-PUB-5` / `DEF-2026-10-17-D`: the admitted `types` condition points at the ONE '
+    + 'declaration this package authors and ships, `./index.d.ts` package-root-relative');
+  assert.ok((manifest.files ?? []).includes('index.d.ts'),
+    'and that declaration is in the `files` allowlist, so the path `types` names is a path the tarball '
+    + 'ACTUALLY CARRIES (`§2.1`; `PAR-PUB-4`: "a `types` value absent from `files` → REFUSED")');
+  assert.ok(existsSync(join(PACKAGE_DIR, 'index.d.ts')),
+    'and it resolves in this checkout, so the `types` condition is not admitted on a path that does not exist');
 });
