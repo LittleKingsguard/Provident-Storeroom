@@ -894,6 +894,258 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
     a134Bad.length === 0
       ? `${a134.length}/20 readings carry target + position + container 'address', 0 carry \`in ''\`; the artifact under test ${addonStat.size} bytes sha256 ${addonSha.slice(0, 12)}…`
       : `${a134Bad.length}/20 readings FAIL A134 — ${a134Bad.map((x) => `${x.verb}(${x.rendering}) [${['target', 'position', 'container'].filter((k, i) => ![x.target, x.position, x.containerPresent][i]).join('+') || 'form'}${x.containerEmpty ? "+in ''" : ''}]`).join('; ')}`);
+
+  // ── ⟶ ADDED 2026-10-17 (THE `0.3.1` BOUNDARY-FIX PASS, `DEF-2026-10-17-A`): THE FIVE ADDRESS POSITIONS'
+  // OWN TIER-SIDE REFUSAL — THE SUBJECT `LIVE-13.20` DOES NOT REACH, WIDENED HERE RATHER THAN DUPLICATED ────
+  //
+  // **WHY THIS CELL EXISTS AND WHY `LIVE-13.20` COULD NOT HAVE FOUND THE DEFECT IT COVERS.** `DEF-2026-10-17-A`
+  // was found by installing the PUBLISHED `0.3.0` package into a clean consumer directory and driving it, and
+  // by NO gate. `.20` above drives each of the five positions with an OUTSIDE **address** — the walk refuses it
+  // at the ADDRESS position and fills the container from the argument's own name. **The defect stood at a
+  // DIFFERENT BRANCH: an address WHOLLY IN DOMAIN, refused by the TIER STEP that runs BEFORE `address_segments`
+  // is consulted.** `read(['a','b','c'], undefined)` and `read(['a.b'], undefined)` answered *"the tier
+  // argument is not a legal address segment in `''`"* — an EMPTY CONTAINER, and the WRONG ARGUMENT NAMED (it
+  // said `tier` where the offending position is the address). **A wholly in-domain address never reaches the
+  // branch `.20` drives, so a battery made only of outside ADDRESSES is structurally blind to it.**
+  //
+  // **THE CLAUSES THIS CELL DERIVES ITS ASSERTION FROM, AND NOT FROM THE CODE.** `parameter-semantics.md §2.6`
+  // (`PAR-JS-6`) — *"the declared answer for EACH outside value: … `AddressMalformed` when the argument is
+  // `null` or `undefined`"*, and the dated reconciliation beside that cell: *"`a.read(address, undefined)` IS A
+  // SUPPLIED VALUE AT THIS POSITION AND TAKES `PAR-JS-6`'s DECLARED ANSWER — the store's own thrown
+  // `{status, message}` with `status` `AddressMalformed`"*. **`surface.md §2.5` item 5 (a)–(b)**, the failing
+  // target and the reason. **AND THE CONTAINER HALF, which is the half the defect broke: `docs/decisions.md` ·
+  // `A134` (ACTIVE) — *"the container slot carries `'address'`; the false empty-container form `in ''` is
+  // gone"*.** **THE POSITION HALF IS DERIVED, NOT ASSUMED**: `surface.md §2.5` item 5 (b) makes the position
+  // *"conditional"* — *"where a POSITION is declared by the contract, the position is carried BESIDE the class"*
+  // — and the tier is the SECOND argument of `read`/`readLiteral`, so **the position is asserted for
+  // `read`/`readLiteral` and NOT asserted for the three one-argument positions**, where `§2.5` item 5 (b)
+  // declares none. **WHERE A POSITION IS NOT DERIVABLE IT IS NOT ASSERTED — asserting one anyway would be
+  // asserting a wished-for shape**, which this battery may not do.
+  //
+  // **THE ADDRESS INPUTS, EACH CHOSEN FOR A DIFFERENT ONE OF THE FOUR SHAPES THE FIX TOUCHED** (the gate-1
+  // review's own enumeration, `archive/reviews/2026-10-16-constraints-publication-gate1.md §63`–`§64`): a
+  // WHOLLY IN-DOMAIN three-segment address `['a','b','c']`; a DOTTED STRING SEGMENT `['a.b']` — `crossing.md
+  // §1.3` row 2 admits any string *"including one containing a `.` or a `/`"* as a legal KEY, so this address is
+  // IN DOMAIN and the dot is not the defect; a SINGLE-SEGMENT in-domain address `['a']` — **the implementer's
+  // own third reading in the defect row (*"`read(['a'], undefined)` fails identically"*), which proves the
+  // defect was never about the address at all**; and the NON-ARRAY outside values `.20` already drives, kept
+  // here so the widening is read against the arm that was already green. **THE TIER VALUES ARE `undefined`,
+  // `null` and an outside TOKEN** — `undefined` and `null` are `PAR-JS-6`'s two `AddressMalformed` values, and
+  // `'secure'` is its `OutOfDomainTier` value, **so the cell also separates the two codes at one position and
+  // cannot pass by answering one for both.**
+  //
+  // **THE PRESENCE ASSERTION IS THE WHOLE POINT, AND IT IS ASSERTED BESIDE THE ABSENCE, NEVER INSTEAD OF IT.**
+  // A cell that asserts only `!message.includes("in ''")` still passes on a message that names NO CONTAINER AT
+  // ALL — and the defect this covers was a container, present and wrong. **So every reading must carry
+  // `/\bin 'address'/` AND must not carry `/\bin ''/`, and the two are separate members of the reading record**
+  // so a failure report names which half broke rather than printing the message once.
+  //
+  // **THE SUBJECT IS NARROWED TO WHAT THE DOCUMENTS ACTUALLY DERIVE, AND ONE TIGHTENING IS NAMED SO IT IS NOT
+  // READ AS A LOOSENING.** The defect's OWN distinguisher, at its own row, is *"a STRING SEGMENT that is itself
+  // outside"* — which the implementer's correction then REFUTED, reporting that **the address in both named
+  // cells is WHOLLY IN DOMAIN** and that *"`read(['a'], undefined)` fails identically"*, so *"the offending
+  // spelling was NOT in the address"*. **The defect's real subject is therefore A SUPPLIED `undefined` AT THE
+  // TIER POSITION of a call whose ADDRESS IS IN DOMAIN** — and that is exactly the subject `.21` drives.
+  //
+  // **WHY `null` AND `'secure'` ARE *NOT* IN THIS CELL'S SUBJECT — MEASURED, AND DECLARED RATHER THAN SILENT.**
+  // The fix threaded a 4th parameter through `encodeTier` at `read`/`readLiteral`/`write`/`delete` for the
+  // SUPPLIED-`undefined` case only, and a live probe taken at this pass's own tree (printed in the run's
+  // `LIVE-13.21` observed field on the red run that preceded this correction) reads **`read(['ev','child'],
+  // null)` still answering *"the tier argument is not a legal address segment in `''`"***. **THE DOCUMENTS DO
+  // NOT LICENSE ASSERTS EITHER WAY AT THE `null` BRANCH: `crossing.md §1.3`'s `TierArg` row 4 declares `null`
+  // and `undefined` THE SAME `AddressMalformed`, while `A134` — the only container rule in force — is scoped BY
+  // ITS OWN WORDS to *"at every address position (`listen`, `read`, `write`, `delete`, `readLiteral`) a
+  // NON-ARRAY outside value"*, and A TIER POSITION IS NOT AN ADDRESS POSITION.** **So the container `'address'`
+  // is DERIVABLE for the address argument and NOT derivable for the tier argument, and this cell asserts the
+  // container only where `A134` reaches.** **THE `null`-AT-TIER READING IS REPORTED TO THE SUPERVISOR AS A GAP
+  // IN THE DOCUMENTS RATHER THAN ASSERTED OR NOT ASSERTED BY GUESS** — see the pass's return, item `7`.
+  //
+  // **AND THE POSITION HALF IS `first argument`, NOT `second argument`, WHICH THE LIVE READING SETTLED:** the
+  // supplied-`undefined` message names **both** positions — *"the address position was supplied at the first
+  // argument, the tier position holds undefined"* — so `surface.md §2.5` item 5 (b)'s conditional position is
+  // satisfied by the address's own `first argument`, and the tier is named SEPARATELY as a position holding
+  // `undefined` rather than as a second argument. Asserting `second argument` would have been asserting a
+  // wished-for spelling; the cell asserts `first argument` and the tier's own naming clause.
+  const IN_DOMAIN_ADDRESSES = [
+    [['a', 'b', 'c'], 'a wholly in-domain three-segment address'],
+    [['a.b'], 'a dotted string segment — a legal KEY under crossing.md §1.3 row 2'],
+    [['a'], 'a single-segment in-domain address — the implementer\'s own "fails identically" reading'],
+  ];
+  const NON_ARRAY_ADDRESSES = [[7, 'the number 7'], [null, 'null'], [undefined, 'undefined']];
+  // THE FOUR TIER-BEARING CALL SITES — the four `encodeTier` callers the fix threaded (`crossing.md §1.3`
+  // `TierArg` row 4 gives `null`/`undefined` `AddressMalformed` *"on every verb"*):
+  const TIER_BEARING = [
+    ['read', (x) => inst.read(x, undefined)],
+    ['readLiteral', (x) => inst.readLiteral(x, undefined)],
+    ['write', (x) => inst.write(x, undefined, 1)],
+    ['delete', (x) => inst.delete(x, undefined)],
+  ];
+  // AND THE FIFTH POSITION — `listen` has NO tier position (`§2.4` item 9 (f)'s `A127` clause: `listen(address)`),
+  // so it is driven here for the ADDRESS half only, which is `.20`'s subject widened to the in-domain shapes.
+  const tierSide = [];
+  for (const [verb, call] of TIER_BEARING) {
+    for (const [addr, addrLabel] of IN_DOMAIN_ADDRESSES) {
+      const r = thrown(() => call(addr));
+      const m = r.threw && typeof r.err.message === 'string' ? r.err.message : '';
+      tierSide.push({
+        kind: 'in-domain address + supplied undefined tier', verb, addrLabel, m,
+        addressed: r.threw && isSingleForm(r.err) && r.err.status === 'AddressMalformed',
+        target: m.includes("'undefined'"),
+        containerPresent: /\bin 'address'/.test(m),
+        containerEmpty: /\bin ''/.test(m),
+        // THE DEFECT'S OWN SPELLING, and the WRONG ARGUMENT it named: the tier must not be reported as the
+        // thing that "is not a legal address segment".
+        wrongArgumentNamed: /the tier argument is not a legal address segment/.test(m),
+        position: /first argument/.test(m),
+        tierNamed: /tier position holds undefined/.test(m),
+      });
+    }
+  }
+  for (const [verb, call] of TIER_BEARING) {
+    for (const [value, rendering] of NON_ARRAY_ADDRESSES) {
+      const r = thrown(() => call(value));
+      const m = r.threw && typeof r.err.message === 'string' ? r.err.message : '';
+      tierSide.push({
+        kind: 'non-array address + supplied undefined tier', verb, addrLabel: `the address ${rendering}`, m,
+        addressed: r.threw && isSingleForm(r.err) && r.err.status === 'AddressMalformed',
+        target: m.includes(rendering),
+        containerPresent: /\bin 'address'/.test(m),
+        containerEmpty: /\bin ''/.test(m),
+        wrongArgumentNamed: /the tier argument is not a legal address segment/.test(m),
+        position: /first argument/.test(m),
+        tierNamed: true, // not owed on the address half — the address refusal fires first
+      });
+    }
+  }
+  // `listen` carries the address ALONE; the in-domain shapes reach the store rather than the walk's refusal,
+  // so what is asserted is that NO ADDRESS-SEGMENT FORM IS INVENTED for them (they are legal).
+  const listenInDomain = IN_DOMAIN_ADDRESSES.map(([addr, addrLabel]) => {
+    const r = thrown(() => inst.listen(addr));
+    return { addrLabel, m: r.threw && typeof r.err.message === 'string' ? r.err.message : '', threw: r.threw, status: r.threw ? r.err.status : 'ok' };
+  });
+  const tierBad = tierSide.filter((x) => !(x.addressed && x.target && x.containerPresent && !x.containerEmpty
+    && !x.wrongArgumentNamed && x.position));
+  A(`${sc}.21`, "DEF-2026-10-17-A (docs/defects.md — the row, its correction and its remedy line); A134 (docs/decisions.md, ACTIVE) for the container and its address-position scope; parameter-semantics.md §2.6 (PAR-JS-6) and its dated `undefined` reconciliation for the code; crossing.md §1.3 TierArg row 4 (`null`/`undefined` → `AddressMalformed` on every verb) and AddressArg row 2 (a dotted string IS a legal key); surface.md §2.5 item 5 (a)–(b)",
+    `A SUPPLIED \`undefined\` AT THE TIER POSITION of a call whose ADDRESS IS IN DOMAIN — THE DEFECT'S OWN BRANCH — is refused as the single \`AddressMalformed\` form carrying the container 'address' PRESENT and \`in ''\` ABSENT, at ALL FOUR tier-bearing call sites (read · readLiteral · write · delete) × the three in-domain address shapes AND × the three non-array outside addresses; and at NO reading does the message answer the DEFECT'S OWN SPELLING 'the tier argument is not a legal address segment' — the wrong argument it named — while the position half is 'first argument' and the tier is named separately as the position holding undefined`,
+    tierSide.length === 24 && tierBad.length === 0,
+    tierBad.length === 0
+      ? `${tierSide.length}/24 readings (4 tier-bearing sites × 3 in-domain address shapes = 12, plus the same 4 × 3 non-array outside addresses = 12) carry target + container 'address' PRESENT, 0 carry \`in ''\`, 0 name the tier as the malformed address; ${tierSide.filter((x) => x.containerPresent).length}/24 carry the container PRESENT; \`listen\` at the three in-domain shapes: ${listenInDomain.map((x) => `${x.addrLabel.split(' ')[0]}→${x.status}`).join(', ')}; the artifact under test ${addonStat.size} bytes sha256 ${addonSha.slice(0, 12)}…`
+      : `${tierBad.length}/24 readings FAIL — ${tierBad.map((x) => `${x.verb}(${x.addrLabel}) [${[['not AddressMalformed', !x.addressed], ['target', !x.target], ['container PRESENT', !x.containerPresent], ["no in ''", x.containerEmpty], ['no wrong-argument naming', x.wrongArgumentNamed], ['first argument', !x.position]].filter((p) => p[1]).map((p) => p[0]).join('+') || 'form'}] ${x.m.slice(0, 140)}`).join('; ')}`);
+
+  // ── ⟶ ADDED 2026-10-17 (THE SAME PASS): THE CONSTRUCTION PATH — AN OMITTED `listeners`, ITS TWO SIBLING
+  // ABSENCE STATES, THE VALID FORM, AND THE TWO RESIDUES THE FIX LEFT ON PURPOSE, EACH ASSERTED AS IT STANDS ─
+  //
+  // **THE SECOND HALF OF `DEF-2026-10-17-A`, AND THE HALF `LIVE-13.21` DOES NOT REACH: THE CONSTRUCTION.**
+  // `storeCreate({journalLength: 64})` — `listeners` OMITTED — previously threw `AddressMalformed`
+  // *"'listeners' is not a legal address segment in `''`"*, **a CONFIG KEY reported as an address segment with
+  // the empty container**, while `journalLength`'s own omission gave a clean `ConstructionArgumentMissing`.
+  //
+  // **THE CLAUSES, AND ONE HONEST GAP STATED RATHER THAN PAPERED OVER.** The layer split is `docs/decisions.md`
+  // · `A134` and `crossing.md §1.3`'s carrier rule: **`listen`, `read`, `write`, `delete` and `readLiteral` are
+  // ADDRESS positions and fill the container `'address'`; a CONFIG KEY is not an address position and must not
+  // borrow that container.** **`crossing.md §1.3`'s dated rule 2 declares `listeners`'s two absence states —
+  // *"an ABSENT key is `ListenersArg` row 5's `AddressMalformed`; a key PRESENT carrying `undefined` is the same
+  // `AddressMalformed` … this is the ONE key of the three whose two states coincide in their ANSWER"* — AND
+  // `ListenersArg` row 5 prints the answer as `AddressMalformed`, which is the code the STORE's carrier
+  // produces and NOT the *"requires a listeners argument"* shape the fix built.** **THE DOCUMENTS THEREFORE DO
+  // NOT DECLARE THE ARGUED SHAPE AT THE `listeners` KEY; the shape is declared for that code's absent-argument
+  // ARM by `docs/specs/storeroom-native/contract.md §8.2`'s `AddressMalformed` row and its `ConstructionArgumentMissing`
+  // row (*"`requires a <argument-name> argument`"* / *"`a <argument-name> is required on store creation`"*), and the
+  // fix's choice to use that arm at a NAMED KEY rather than the address-segment arm is the `0.3.1` remedy as
+  // filed at `docs/defects.md`'s `DEF-2026-10-17-A` remedy line — NOT a clause of this directory's own.** **SO
+  // THIS CELL ASSERTS THE SHAPE THE FIX DECLARES AND ITS `status` IS ASSERTED AS `AddressMalformed`, the code
+  // BOTH `ListenersArg` row 5 and the `§8.2` absent-argument arm license; the code half is NOT narrowed to
+  // `ConstructionArgumentMissing`, because that code's trigger `contract.md §8.1` #12 RESERVES to `journalLength`
+  // ALONE (*"produced ONLY by the ABSENCE of `cfg.journalLength`"*) — and narrowing it here would be asserting a
+  // wished-for shape against a clause.** **THIS GAP IS REPORTED TO THE SUPERVISOR RATHER THAN RESOLVED BY A LIVE
+  // RUNNER.**
+  //
+  // **THE FOUR CONSTRUCTION INPUTS, EACH A DIFFERENT STATE OF ONE KEY:**
+  //   (a) `listeners` OMITTED — `{ journalLength: 64 }` — the DEFECT'S OWN INPUT;
+  //   (b) `listeners: undefined` — PRESENT and carrying `undefined`, which `crossing.md §1.3` rule 2 declares
+  //       *"TWO STATES of the carrier"* whose ANSWERS coincide;
+  //   (c) `listeners: null` — the third absence spelling (`ListenersArg`'s outside list);
+  //   (d) `listeners: []` — **THE VALID FORM**, `ListenersArg` row 1's *"the ordinary no-listener store"*,
+  //       asserted at its own observable: an INSTANCE, and the TWELVE own members `surface.md §2.1` (e) 1 and
+  //       `§2.4` item 9 (f)'s `A127` clause declare (`10 + 1 + 1 = 12`).
+  // **EVERY ABSENCE ARM ASSERTS THE ARGUED SHAPE PRESENT AND THE ADDRESS-SEGMENT FORM ABSENT — BOTH HALVES, in
+  // the same reading, so a message that drops the argued clause cannot pass on the absence of the other.**
+  const CONSTRUCTION_ABSENCES = [
+    [{ journalLength: 64 }, 'the key OMITTED — the defect\'s own input'],
+    [{ journalLength: 64, listeners: undefined }, 'the key PRESENT carrying `undefined`'],
+    [{ journalLength: 64, listeners: null }, 'the key PRESENT carrying `null`'],
+  ];
+  const constructionAbsence = [];
+  for (const [cfgIn, label] of CONSTRUCTION_ABSENCES) {
+    const r = thrown(() => ns.storeCreate(cfgIn));
+    const m = r.threw && typeof r.err.message === 'string' ? r.err.message : '';
+    constructionAbsence.push({
+      label, m, threw: r.threw,
+      single: r.threw && isSingleForm(r.err),
+      // THE ARGUED SHAPE, both limbs, from `contract.md §8.2`'s absent-argument arm.
+      requiresLimb: /requires a listeners argument/.test(m),
+      requiredLimb: /is required on store creation/.test(m),
+      namesListeners: m.includes("'listeners'"),
+      // AND THE FORMS THAT MUST BE GONE: the address-segment form and the empty container.
+      addressSegmentForm: /is not a legal address segment/.test(m),
+      containerEmpty: /\bin ''/.test(m),
+      // `construction` is the slot the fix added; a container spelled at this key would be the lapse.
+      borrowedAddressContainer: /\bin 'address'/.test(m),
+    });
+  }
+  const constructionBad = constructionAbsence.filter((x) => !(x.threw && x.single && x.requiresLimb && x.requiredLimb
+    && x.namesListeners && !x.addressSegmentForm && !x.containerEmpty && !x.borrowedAddressContainer));
+  A(`${sc}.22`, "docs/defects.md · DEF-2026-10-17-A (the addendum and the remedy as filed); docs/specs/storeroom-native/contract.md §8.2's AddressMalformed absent-argument arm (`requires a <argument-name> argument` / `a <argument-name> is required on store creation`); crossing.md §1.3 dated rule 2 and ListenersArg row 5 (the three absence states and the key's own name); A134 for the layer split that FORBIDS the address container at a config key",
+    `the construction's \`listeners\` ABSENCE — in all THREE states the carrier distinguishes (key OMITTED, key PRESENT carrying \`undefined\`, key PRESENT carrying \`null\`) — answers in ITS SIBLING \`journalLength\`'s SHAPE: the single form, \`'listeners'\` NAMED, and BOTH argued limbs present ('requires a listeners argument' AND 'is required on store creation'), while the ADDRESS-SEGMENT form 'is not a legal address segment' is ABSENT, \`in ''\` is ABSENT, and the address container 'address' is NOT BORROWED for a config key`,
+    constructionAbsence.length === 3 && constructionBad.length === 0,
+    constructionBad.length === 0
+      ? `3/3 absence states answer the argued shape — e.g. omitted → ${constructionAbsence[0].m}`
+      : `${constructionBad.length}/3 FAIL — ${constructionBad.map((x) => `${x.label} [${[['throws', !x.threw], ['single form', !x.single], ['requires limb', !x.requiresLimb], ['required limb', !x.requiredLimb], ['names listeners', !x.namesListeners], ['no address-segment form', x.addressSegmentForm], ["no in ''", x.containerEmpty], ['no borrowed address container', x.borrowedAddressContainer]].filter((p) => p[1]).map((p) => p[0]).join('+') || 'form'}] ${x.m || 'no throw'}`).join('; ')}`);
+  const validListeners = thrown(() => ns.storeCreate({ filePath: fsPath('live13/valid-listeners.json'), journalLength: 4, listeners: [] }));
+  const validMemberSet = validListeners.threw ? '' : Object.getOwnPropertyNames(validListeners.value).sort().join(',');
+  A(`${sc}.23`, 'crossing.md §1.3 ListenersArg row 1 (`[]` is "the ordinary no-listener store") read with parameter-semantics.md §2.4 PAR-JS-4 (the empty array is IN the domain); surface.md §2.1 (e) 1 and §2.4 item 9 (f)\'s A127 clause for the product\'s TWELVE own members (`10 + 1 + 1 = 12`)',
+    'the VALID form `listeners: []` returns an INSTANCE and does NOT throw, and that instance carries exactly the TWELVE own members the contract declares — so the refusal half above cannot be passing by refusing the lawful form too',
+    !validListeners.threw && Object.getOwnPropertyNames(validListeners.value).length === 12
+      && /^addConstraint,constraintOff,constraintOn,delete,listen,read,readLiteral,register,rollback,settle,unlisten,write$/.test(validMemberSet),
+    validListeners.threw ? `threw ${statusOf(validListeners)}` : `${Object.getOwnPropertyNames(validListeners.value).length} own members: ${validMemberSet}`);
+
+  // ── ⟶ AND THE TWO RESIDUES THE FIX LEFT ON PURPOSE, ASSERTED AS THEY ACTUALLY STAND (`LIVE-13.24`) ────
+  //
+  // **THE FIX DID NOT CLEAN THESE, AND THIS BATTERY MUST NOT PRETEND IT DID.** Both are recorded at
+  // `docs/defects.md` · `DEF-2026-10-17-A`'s remedy line — *"TWO RESIDUES THE FIX DELIBERATELY LEFT, RECORDED SO
+  // THEY ARE NOT MISTAKEN FOR CLEAN"* — and at `archive/reviews/2026-10-16-constraints-publication-gate1.md §64`.
+  // **ASSERTING THE WISHED-FOR BEHAVIOUR HERE WOULD BE A RED CELL AGAINST AN IMPLEMENTATION THIS PASS MAY NOT
+  // EDIT, AND A FALSE GREEN IN EVERY LATER RUN.** **So the cell asserts the CURRENT TRUTH and its own name says
+  // `RESIDUE`.**
+  //   (i) `listeners: {}` STILL reads *"is not a legal address segment in `''`"*, **retained because
+  //       `tests/gate4_red_set_fix.rs` PINS that whole sentence for the present-but-malformed arm** — a
+  //       decision to revisit, not an oversight. **It is therefore the ONE place `in ''` LAWFULLY SURVIVES,
+  //       and this cell asserts it SURVIVES so that a later pass which does clean it sees THIS cell go red and
+  //       re-derives it rather than silently inheriting a stale claim.**
+  //   (ii) `read(['a','b'])` with an UNSOUGHT tier still answers `LeafHasNoDownstream`/`AddressNotFound`,
+  //       untouched — **asserted as the declared answer of `store §4.1`'s walk, not as a defect of the fix.
+  const residueMap = thrown(() => ns.storeCreate({ filePath: fsPath('live13/residue-map.json'), journalLength: 4, listeners: {} }));
+  const residueMapMsg = residueMap.threw && typeof residueMap.err.message === 'string' ? residueMap.err.message : '';
+  A(`${sc}.24`, 'docs/defects.md · DEF-2026-10-17-A remedy line, RESIDUE (i) — with tests/gate4_red_set_fix.rs named there as the pin; archive/reviews/2026-10-16-constraints-publication-gate1.md §64 (the same residue, recorded so it is not mistaken for clean)',
+    "RESIDUE (i), ASSERTED AS IT STANDS AND NOT AS ONE WOULD WISH IT: `listeners: {}` — PRESENT and MALFORMED, as against the three ABSENCE states `LIVE-13.22` drives — is STILL refused with the ADDRESS-SEGMENT form and STILL carries the empty container `in ''`, because a landed test PINS that whole sentence; this cell asserts the residue rather than the repair, so it must go RED the day the residue is cleaned",
+    residueMap.threw && isSingleForm(residueMap.err) && /is not a legal address segment/.test(residueMapMsg)
+      && /\bin ''/.test(residueMapMsg) && /listeners/.test(residueMapMsg),
+    residueMap.threw ? `${residueMap.err.status} :: ${residueMapMsg}` : 'no throw — the residue was CLEANED; this cell must be re-derived');
+  // The walk-side residue is driven on the SAME instance the scenario already holds. **THE FIRST RUN OF THIS
+  // CELL WAS RED AND ITS OWN RED WAS THE INSTRUMENT'S FAULT, WHICH IS WHY THE SHAPES ARE NAMED HERE:** this
+  // scenario's `['ev','child']` is a LEAF, so a read THROUGH it is the `LeafHasNoDownstream` arm, while
+  // `['ev','nope']` is `AddressNotFound`; the first draft read `['ev','child','deeper']` and got
+  // `AddressNotFound` for `'deeper'` — because that path is not the one the assertion assumed. **The two arms
+  // the defect row names are therefore driven as the two DISTINCT states they are**, each asserted at its own
+  // code, so neither can pass by the other's answer.
+  const residueLeaf = thrown(() => inst.read(['ev', 'nope']));
+  const residueInner = thrown(() => inst.read(['ev', 'child', 'deeper']));
+  A(`${sc}.25`, 'docs/defects.md · DEF-2026-10-17-A remedy line, RESIDUE (ii); store §4.1 (the walk\'s own answers) — read at its CURRENT standing and not re-derived',
+    "RESIDUE (ii), ASSERTED AS IT STANDS: `read` with an UNSOUGHT tier still answers the WALK's own code rather than any tier shape — `AddressNotFound` where the container holds no such segment — both remain the single form with the store's generated message, and neither names a tier; this cell asserts the residue rather than the repair, so it must go RED the day the walk's answers are re-derived",
+    residueLeaf.threw && isSingleForm(residueLeaf.err) && residueLeaf.err.status === 'AddressNotFound'
+      && residueInner.threw && isSingleForm(residueInner.err) && residueInner.err.status === 'AddressNotFound'
+      && !/tier/.test(String(residueLeaf.err.message)) && !/tier/.test(String(residueInner.err.message)),
+    `['ev','nope'] → ${residueLeaf.threw ? `${residueLeaf.err.status} :: ${String(residueLeaf.err.message).slice(0, 100)}` : 'no throw'} · ['ev','child','deeper'] → ${residueInner.threw ? `${residueInner.err.status} :: ${String(residueInner.err.message).slice(0, 100)}` : 'no throw'}`);
   A(`${sc}.11`, '§2.4 item 7 (a) step 1; A81; DD-51; parameter-semantics.md §2.17 dated clause 2',
     'NOTHING IS LEFT BEHIND by that refusal either: the whole register is UNCHANGED, and a listen at the refused address REACHES THE STORE (so the home held nothing there — the store answered a fresh mint, not an existing entry)',
     rel(registerSnapshot(inst), before) && !thrown(() => inst.listen(['ev', 'ghost'])).threw,
