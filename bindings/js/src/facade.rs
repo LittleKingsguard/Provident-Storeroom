@@ -1555,11 +1555,42 @@ extern "C" fn addon_error_message(env: NapiEnv, info: NapiCallbackInfo) -> NapiV
     } else {
         Some(unsafe { arg_string(env, argv[2]) })
     };
+    // **⟶ AND THE FOURTH SLOT IS THE CONTAINERSEGMENT, ADDED 2026-10-17 (`DEF-2026-10-17-E`'s second
+    // branch).** The clause's own split is exact, and this is the FIRST HALF OF IT: the SUBJECT of the
+    // available clause is *"the container's OWN segment spelling — the last string-key segment of the
+    // address at which the container stands … and `keys` where the container has no segment spelling of its
+    // own (the REGISTER, whose address is empty)"* (`docs/specs/storeroom-native/contract.md` §8.2's
+    // `<CONTAINERSEGMENT>`), so **a caller that supplies the container AS THE ADDRESS'S OWN SPELLING — `''`
+    // for the register, a dotted path such as `window.tabs` otherwise — gets this half DERIVED from the
+    // container the way the STORE's own trigger derives it** (the last dot-separated segment, `keys` when
+    // there is none).
+    //
+    // **WHY THIS SLOT EXISTS RATHER THAN A NEW BOUNDARY RENDERING, STATED AT ITS OWN SITE:** before it, a
+    // package-side caller could fill the container and NOT the segment — the register's own not-found
+    // sentence, *"'a' does not exist in '', keys are 'a', 'leaf', 'window'"* (`src/error.rs`'s
+    // `address_not_found`), was unreachable from JS, and the `AddressNotFound` refusal of an ORDINARY read
+    // was blanked into a container with no content claim at all. **THE DERIVATION IS THE CONTRACT'S OWN AND
+    // NOT A SECOND READING OF IT:** it is applied to the string the CALLER supplied, and where that string is
+    // not an address's spelling the caller's own fourth argument is omitted and the derivation is simply
+    // `keys` — the degenerate arm the clause prints, never a claim about a container the caller did not name.
+    //
+    // **WHAT DOES NOT MOVE: A CALL THAT SUPPLIES NO FOURTH ARGUMENT TAKES THE SAME DERIVATION FOR FREE** —
+    // the store's own `<CONTAINERSEGMENT>` rule has always been a rule over `MessageArgs.container` — **and
+    // a call that supplies NEITHER a third NOR a fourth argument leaves the container `None`, so its bytes
+    // are byte-for-byte what the two-argument call has always produced** (`16` codes × `14` subjects
+    // re-verified on the rebuilt artefact).
+    let derived_container_segment = container.as_deref().and_then(|c| {
+        c.rsplit('.')
+            .next()
+            .filter(|s| !s.is_empty() && !s.contains(' '))
+            .map(|s| s.to_string())
+    });
     let message = storeroom_native::storeErrorMessage(
         &code,
         &storeroom_native::MessageArgs {
             segment: Some(format!("'{subject}'")),
             container,
+            keys: derived_container_segment.into_iter().collect(),
             path: Some(subject),
             ..Default::default()
         },

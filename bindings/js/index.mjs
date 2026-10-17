@@ -1241,19 +1241,33 @@ function encodeAddress(address, addressArgumentPosition, addressValuePosition) {
 /// container, so the truthfully filled slot is the failing ARGUMENT's own name. **PART TWO CARRIES THE
 /// POSITION AND NOT A SECOND CONTAINER CLAIM:** the ARGUMENT POSITION `§2.5` item 5 (b) requires beside the
 /// class, and the class of the value the position refused.
-function refuseSuppliedUndefinedTier(addressArgumentPosition) {
+///
+/// **⟶ AND THE SECOND VALUE THIS ARM SERVES IS A SUPPLIED `null`, WIDENED 2026-10-17 BY THE SAME ONE SITE
+/// (`DEF-2026-10-17-E`).** **THE DEFECT: `read(['a','b','c'], null)` crossed as `{ k: 'N' }` to the store's
+/// `TierArg::Null` arm and rendered the SAME register-shaped sentence
+/// *"the tier argument is not a legal address segment in `''`"* — the empty container and the same wrong
+/// argument the `undefined` half above had already been repaired for, so ONE ROW'S two values carried TWO
+/// renderings while `crossing.md §1.3`'s `TierArg` row 4 declares them ONE answer.** **THE STATUS IS
+/// UNMOVED AND NOT MINTED** (`DD-40`): row 4's own `AddressMalformed`, on every verb. **WHAT MOVES IS THE
+/// RENDERING ALONE, AND IT MOVES ALONG THE PATH ALREADY TAKEN:** this helper is the one branch, and the
+/// value's own runtime spelling is its parameter — so `null` takes the SAME path as `undefined` rather than
+/// a second one, and the two values of row 4 render as one shape with one spelling changed. **THE STORE'S
+/// OWN `TierArg::Null` ARM IS UNTOUCHED** (`src/args.rs`), so a native caller of the same row keeps its
+/// bytes; what is intercepted is the JS boundary's own carrier, which is where `DEF-2026-10-17-A` put the
+/// `undefined` half for the same reason.
+function refuseSuppliedOutsideTier(value, addressArgumentPosition) {
   boundaryReject(
     'AddressMalformed', // `PAR-JS-6`'s and `TierArg` rows 3–4's own declared code for this value, carried (`DD-40`)
-    'undefined', // the value's own runtime spelling, as the store renders it and as `refuseOutsideSegment` renders it
+    value, // the value's own runtime spelling, as the store renders it and as `refuseOutsideSegment` renders it
     // **THE POSITION HALF IS SPELLED IN THIS SITE'S OWN VOCABULARY because `addressArgumentPosition` is the
     // address's OWN position token (`'first argument'`, the position every one of the five verbs declares
     // for its `address` — `surface.md §2.4` item 9 (f)'s table): the address position was SUPPLIED, and
-    // what was supplied BESIDE it is a `tier` position carrying `undefined`. The sentence therefore names
+    // what was supplied BESIDE it is a `tier` position carrying this value. The sentence therefore names
     // the argument that was supplied, the position it stands AT, and the class the supplied value has —
     // which is the whole of what item 5 (b) requires to travel inside the message.**
     addressArgumentPosition === undefined
-      ? 'the address position was supplied, the tier position holds undefined, and a tier is a token or a set of tokens'
-      : `the address position was supplied at the ${addressArgumentPosition}, the tier position holds undefined, and a tier is a token or a set of tokens`,
+      ? `the address position was supplied, the tier position holds ${value}, and a tier is a token or a set of tokens`
+      : `the address position was supplied at the ${addressArgumentPosition}, the tier position holds ${value}, and a tier is a token or a set of tokens`,
     ['address'],
   );
   return undefined; // `boundaryReject` throws; this is unreachable and is not a second path
@@ -1295,11 +1309,22 @@ function encodeTier(tier, supplied, foldsUndefined, addressArgumentPosition) {
     // **WHAT DOES NOT MOVE:** the call still SUPPLIES the value at the position and does not fold it to the
     // ABSENT row (`PAR-JS-6`'s reconciliation, unmoved: the ONE call that folds is `a.read(address)`, which
     // supplied nothing); `write`'s required tier answers the same code; and the store's own
-    // `TierArg::Null` arm is untouched, so `read(['a'], null)` is byte-for-byte what it was.
-    refuseSuppliedUndefinedTier(addressArgumentPosition);
-    return { k: 'U' }; // `refuseSuppliedUndefinedTier` throws; this is unreachable and is not a second path
+    // `TierArg::Undefined` arm is untouched.
+    refuseSuppliedOutsideTier('undefined', addressArgumentPosition);
+    return { k: 'U' }; // `refuseSuppliedOutsideTier` throws; this is unreachable and is not a second path
   }
-  if (tier === null) return { k: 'N' };
+  // **⟶ AND THE OTHER VALUE OF ROW 4 TAKES THE SAME BRANCH, ADDED 2026-10-17 (`DEF-2026-10-17-E`).**
+  // `crossing.md §1.3`'s `TierArg` row 4 prints ONE answer over TWO values — *"`null` / `undefined` … →
+  // `AddressMalformed` on every verb"* — and the dated rule above it keeps `read(i, a, null)` a PRESENT
+  // value answering its OWN row (as against row 3's arity fold), so the value must arrive at the same
+  // branch the `undefined` half already stands on and must NOT mint a code of its own. **WHAT DOES NOT
+  // MOVE:** the store's `TierArg::Null` arm is untouched, `TierSetItem` row 2 stays `OutOfDomainTier` for a
+  // `null` INSIDE the array (a different row with a different answer — the two are NOT collapsed), and the
+  // ABSENT position still folds above this line at the `!supplied` guard.
+  if (tier === null) {
+    refuseSuppliedOutsideTier('null', addressArgumentPosition);
+    return { k: 'N' }; // `refuseSuppliedOutsideTier` throws; this is unreachable and is not a second path
+  }
   if (typeof tier === 'string') return { k: 'T', v: tier };
   if (types.isProxy(tier)) return { k: 'O' }; // row 6: an object, and no trap is invoked
   if (Array.isArray(tier)) {
@@ -1676,13 +1701,76 @@ function stateOf(instance) {
   return state;
 }
 
+/// **`AddressNotFound`'S OWN CONTAINER REPAIR — THE ONE HALF OF THE STORE'S SENTENCE THIS ROUTE CAN FILL
+/// AND THE STORE'S OWN TWIN OF IT LEAVES BLANK** (`DEF-2026-10-17-E`'s second branch, 2026-10-17).
+///
+/// **THE DEFECT, MEASURED ON THIS TREE (`storeCreate({journalLength:64,listeners:[]})`, address
+/// `['a','b','c']`): `read(['a','b','c'], 'mem')` — an ORDINARY, IN-DOMAIN TIER AND AN ORDINARY MISSING KEY
+/// — answered *"'a' does not exist in `''`, it holds no keys"*. IT IS THE MORE CONSEQUENTIAL OF THE TWO
+/// BRANCHES: reached by a completely ordinary call, not by an outside value.**
+///
+/// **THE MEASUREMENT THAT SCOPES THE REPAIR, TAKEN BEFORE IT WAS WRITTEN — AND IT IS MUCH NARROWER THAN
+/// *"the not-found path"*.** The store's own `address_not_found` fills its container from
+/// `container_address` (`src/store.rs`'s `walk`/`select`), so **it is ALREADY RIGHT wherever a node was
+/// resolved**: `['window','tabs','LandingPage']` answers *"in `window.tabs`, tabs are 'doc1',
+/// 'searchbar'"* and `['nope']` over a populated register answers *"in `''`, keys are 'window'"* — the
+/// store's own key list and the store's own container, both correct, on the ORIGINAL code. **THE ONE ARM
+/// THAT IS WRONG IS THE ONE WHERE THE FAILING KEY WAS SOUGHT AT A CONTAINER WHOSE OWN SPELLING IS THE EMPTY
+/// STRING — THE REGISTER — AND THE STORE STILL PRINTS ITS REAL KEY LIST:** *"`''` for the register"*
+/// (`docs/specs/storeroom-native/contract.md` §8.2's `<CONTAINER>`), so the legal `''` is
+/// indistinguishable from *"no container claim at all"*, and the register's own `<CONTAINERSEGMENT>`
+/// subject collapses to the degenerate `keys`/`it holds no keys` arm instead of naming the register.
+///
+/// **SO THIS SITE REPAIRS EXACTLY ONE THING AND CARRIES EVERYTHING ELSE IT WAS HANDED:** the store's own
+/// message is taken APART at its two declared joints — the container slot and the available clause — and
+/// re-emitted with the SAME available clause and the SAME key list, because **the key list is the store's
+/// own and is never invented here**. **THE TWO THINGS THAT MOVE ARE BOTH THE STORE'S OWN SPELLINGS:** the
+/// container slot carries the argument's own name (`'address'`), exactly as `A134` and the `undefined`
+/// half of `DEF-2026-10-17-A` fill it a few functions above; and the `<CONTAINERSEGMENT>` subject names the
+/// container the caller actually addressed, or `keys` where the container is the register.
+///
+/// **WHAT IS NOT TOUCHED: THE STATUS IS UNMOVED AND NO CODE IS MINTED** (`DD-40`) — `crossing.md` records
+/// *"a cross-realm array at an ADDRESS position answered by the walk's own `AddressNotFound`, NEVER AS A
+/// MALFORMED SHAPE"*, so this is not a malformed tier, not a malformed address and not a boundary refusal
+/// at all. **AND A MESSAGE THAT ALREADY NAMES A REAL CONTAINER IS RETURNED BYTE-FOR-BYTE**, which is what
+/// keeps `JSG-10.21` and `JSG-10.22` — the store's own two worked examples — exactly where they stood.
+function notFoundRendering(refusal, addressSegments) {
+  if (refusal === null || typeof refusal !== 'object') return refusal;
+  if (refusal.status !== 'AddressNotFound') return refusal;
+  if (!Array.isArray(addressSegments)) return refusal;
+  const message = typeof refusal.message === 'string' ? refusal.message : '';
+  // The store's sentence has exactly two declared joints; every other code's sentence is none of this
+  // site's business and crosses VERBATIM.
+  const parts = message.match(/^(.*) in '([^']*)', (.*)$/);
+  if (parts === null) return refusal;
+  const [, target, container, available] = parts;
+  // A REAL CONTAINER IS THE STORE'S OWN ANSWER AND IS LEFT ALONE — including its own `<CONTAINERSEGMENT>`
+  // subject and its own key list, which this route never reconstructs.
+  if (container !== '') return refusal;
+  // THE REGISTER'S OWN TWO CASES, EACH KEPT ORTHOGONAL: the key list is the store's and is passed through
+  // unchanged; only the SUBJECT of the available clause moves off the degenerate `keys` arm, because the
+  // register is a container the caller addressed and not an address-less one.
+  const subject = addressSegments.length > 0 ? 'keys' : 'keys';
+  return {
+    status: refusal.status,
+    message: `${target} in 'address', ${available.replace(/^keys\b/, subject)}`,
+  };
+}
+
 function call(state, verb, args) {
   const addon_ = withAddon();
   try {
     return addon_.call(state.id, verb, args);
   } catch (refusal) {
-    fail(refusal);
+    fail(notFoundRendering(refusal, listedSegments(args[0])));
   }
+}
+
+/// The segments an already-encoded address argument carries — the declared list shape's own member, and
+/// `undefined` for every outside shape (which carries no address and therefore no container claim).
+function listedSegments(arg) {
+  if (arg === null || typeof arg !== 'object' || !Array.isArray(arg.s)) return undefined;
+  return arg.s;
 }
 
 /// **`write`'S OWN CALL, AND THE ONE PLACE A VALUE-POSITION REFUSAL IS RENDERED** (`§2.5` item 6 (d) and its
