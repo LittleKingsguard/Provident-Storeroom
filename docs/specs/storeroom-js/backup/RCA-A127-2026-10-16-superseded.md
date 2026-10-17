@@ -54,7 +54,7 @@
 > `A121`; A3 docs/specs/storeroom-js/surface.md §2.4 item 9 (f) and §2.12 item 2; A3
 > archive/reviews/2026-10-16-constraints-publication-gate1.md §17.4 | requirement]`).
 
-**AND ONE FIGURE THIS HEADER OWES, CORRECTED AT THIS DATE: THE FILE CARRIES FIFTEEN REGIONS AND NOT FOURTEEN — `§15` was added by this pass's second half, and `§14`'s own provenance line was corrected from `§2.9` item 1 to `§2.4` item 9 (f), the item whose clause those bytes were the subject of; the footer at this file's end is read with both corrections.**
+**AND ONE FIGURE THIS HEADER OWES, CORRECTED AT THIS DATE: THE FILE CARRIES SIXTEEN REGIONS AND NOT FOURTEEN — `§15` and `§16` were added by this pass's second half, and `§14`'s own provenance line was corrected from `§2.9` item 1 to `§2.4` item 9 (f), the item whose clause those bytes were the subject of; the footer at this file's end is read with all three corrections.**
 
 **AND WHAT IS NOT MOVED WITH IT, SAID SO THE SOURCE'S SURVIVING ITEMS ARE NOT READ AS DISPLACED: `§2.9` item 2's sixteen-code reachability item and its dated read-through, item 3's *"no `exists()` verb, no `findAddress` shim and no binding-side resolver"* prohibition, and `§2.9`'s opening non-exposure clause all stand at their own bytes at the source and are untouched by `A127`.** **THE MODULE NAMESPACE'S OWN `on`/`off` PROHIBITION SURVIVES IN SUBSTANCE AND STRENGTHENS: with `listen` and `unlisten` themselves removed from the namespace, no `on`/`off` spelling reaches it either** (`RCA-8(g)`; `docs/decisions.md` · `A127`, 2026-10-16).
 
