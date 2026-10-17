@@ -53,7 +53,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { write as storeWrite, read as storeRead } from 'provident-storeroom';
+// ⟶ RESHAPED: the package namespace carries ONE name (`surface.md §2.9` item 1's `A127` clause; `11 → 1`).
 
 import {
   kernel, makeStore, tag, KC, KC_NAMES, STORE_CODES,
@@ -98,7 +98,7 @@ test('ck_states_arm_b_a_successful_repair_adds_its_op_and_the_re_run_passes', as
           // · `A110`): the repair SPELLS THE OP ITS OWN EDIT LANDED onto its own return — THE STORE'S OWN
           // `write` RETURN'S VALUE, READ HERE and never fabricated — and the kernel reads that op off this
           // return and nowhere else. The declared shape is `{ok, message, op}`, `op` REQUIRED IFF `ok === true`.
-          const landed = storeWrite(store, address, 'mem', 'fixed').op;
+          const landed = store.write(address, 'mem', 'fixed').op;
           return { ok: true, message: 'the repair landed a lawful value at the attempt\'s address', op: landed };
         },
         message: 'a is invalid',
@@ -284,7 +284,7 @@ test('ck_states_arm_f_a_repeat_by_a_pair_whose_repair_is_not_recorded_is_KC6_and
   register(store, address, 'y', () => {
     y += 1;
     return y === 1
-      ? { repair: () => { const landed = storeWrite(store, address, 'mem', 'y-fixed').op; return { ok: true, message: 'y was repaired at the same address', op: landed }; }, message: 'y is invalid' }
+      ? { repair: () => { const landed = store.write(address, 'mem', 'y-fixed').op; return { ok: true, message: 'y was repaired at the same address', op: landed }; }, message: 'y is invalid' }
       : true;
   });
   // pass 1: x PASSES on v, y violates there and its repair lands a new op ⇒ the re-run breaks x.
@@ -307,11 +307,11 @@ test('ck_states_arm_e_a_repeat_by_a_pair_already_recorded_as_applied_is_KC5_and_
   const address = [tag('re')];
   // x violates on the FIRST evaluation and its repair lands a value y is violated by
   register(store, address, 'x', () => ({ repair: () => {
-    const landed = storeWrite(store, address, 'mem', 'x-fixed').op;
+    const landed = store.write(address, 'mem', 'x-fixed').op;
     return { ok: true, message: 'x was repaired at the same address', op: landed };
   }, message: 'x is invalid' }));
   register(store, address, 'y', () => ({ repair: () => {
-    const landed = storeWrite(store, address, 'mem', 'y-fixed').op;
+    const landed = store.write(address, 'mem', 'y-fixed').op;
     return { ok: true, message: 'y was repaired at the same address', op: landed };
   }, message: 'y is invalid' }));
   const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
@@ -354,7 +354,7 @@ test('ck_states_the_two_repeat_limbs_are_disjoint_by_the_appliedRepairs_member_a
       return x === 1 ? true : { message: 'x is invalid at the re-run and registers no repair' };
     });
     register(store, address, 'y', () => ({ repair: () => {
-      const landed = storeWrite(store, address, 'mem', 'y2').op;
+      const landed = store.write(address, 'mem', 'y2').op;
       return { ok: true, message: 'y was repaired by the op this repair landed', op: landed };
     }, message: 'y is invalid on the committed value' }));
     limbs.push(['KC-6', capture(() => runAttempt(store, commit(store, address, 'mem', 'v')))]);
@@ -363,7 +363,7 @@ test('ck_states_the_two_repeat_limbs_are_disjoint_by_the_appliedRepairs_member_a
     const store = makeStore();
     const address = [tag('re2b')];
     register(store, address, 'x', () => ({ repair: () => {
-      const landed = storeWrite(store, address, 'mem', 'x2').op;
+      const landed = store.write(address, 'mem', 'x2').op;
       return { ok: true, message: 'x was repaired by the op this repair landed', op: landed };
     }, message: 'x is invalid at every evaluation' }));
     limbs.push(['KC-5', capture(() => runAttempt(store, commit(store, address, 'mem', 'v')))]);
@@ -432,7 +432,7 @@ test('ck_states_each_refused_repeat_token_is_one_of_the_eight_and_is_never_a_sto
   register(store, address, 'y', () => {
     ny += 1;
     if (ny === 1) return { repair: () => {
-      const landed = storeWrite(store, address, 'mem', `ry${ny}`).op;
+      const landed = store.write(address, 'mem', `ry${ny}`).op;
       return { ok: true, message: 'y was repaired by the op this repair landed', op: landed };
     }, message: 'y is invalid on the committed value' };
     return true; // passes at its own repair's landing, so the pass carries on to x and closes there
@@ -521,7 +521,7 @@ test('ck_states_the_composition_runs_repaired_ops_first_in_reverse_then_the_firs
   register(store, address, 'x', () => {
     nx += 1;
     if (nx === 1) return { repair: () => {
-      const landed = storeWrite(store, address, 'mem', `rx${nx}`).op;
+      const landed = store.write(address, 'mem', `rx${nx}`).op;
       return { ok: true, message: 'x was repaired by the op this repair landed', op: landed };
     }, message: 'x is invalid on the committed value' };
     if (nx === 2) return true; // passes on x's own repair's landing — no repeat, the pass continues
@@ -530,7 +530,7 @@ test('ck_states_the_composition_runs_repaired_ops_first_in_reverse_then_the_firs
   register(store, address, 'y', () => {
     ny += 1;
     if (ny === 1) return { repair: () => {
-      const landed = storeWrite(store, address, 'mem', `ry${ny}`).op;
+      const landed = store.write(address, 'mem', `ry${ny}`).op;
       return { ok: true, message: 'y was repaired by the op this repair landed', op: landed };
     }, message: 'y is invalid at the first repair\'s landing' };
     return { message: 'y fails for good' };
@@ -667,7 +667,7 @@ test('ck_states_every_step_carries_the_six_declared_members_and_the_arm_s_own_ch
   register(store, address, 'x', () => {
     nx += 1;
     if (nx === 1) return { repair: () => {
-      const landed = storeWrite(store, address, 'mem', `rx${nx}`).op;
+      const landed = store.write(address, 'mem', `rx${nx}`).op;
       return { ok: true, message: 'x was repaired by the op this repair landed', op: landed };
     }, message: 'x is invalid on the committed value' };
     if (nx === 2) return true; // passes at its own repair's landing: the pass continues
@@ -679,7 +679,7 @@ test('ck_states_every_step_carries_the_six_declared_members_and_the_arm_s_own_ch
   register(store, address, 'y', () => {
     ny += 1;
     if (ny === 1) return { repair: () => {
-      const landed = storeWrite(store, address, 'mem', `ry${ny}`).op;
+      const landed = store.write(address, 'mem', `ry${ny}`).op;
       return { ok: true, message: 'y was repaired by the op this repair landed', op: landed };
     }, message: 'y is invalid at the first repair\'s landing' };
     return { message: 'y fails for good' };
@@ -842,7 +842,7 @@ test('ck_states_a_throwing_per_op_call_leaves_the_attempt_s_own_registry_entry_s
   // performed and the call reports that as its OWN answer.
   const store = makeStore({ journalLength: 2 });
   const address = [tag('reg2')];
-  for (let i = 0; i < 6; i += 1) storeWrite(store, address, 'mem', `seed-${i}`);
+  for (let i = 0; i < 6; i += 1) store.write(address, 'mem', `seed-${i}`);
   register(store, address, 'x', () => ({ message: 'x is invalid, and registers no repair' }));
   const commitRecord = commit(store, address, 'mem', 1);
   const r = capture(() => runAttempt(store, commitRecord));
@@ -1018,7 +1018,7 @@ test('ck_neg_1_the_first_violating_pair_decides_and_the_second_pair_is_never_eva
   register(store, address, 'y', () => {
     yRan += 1;
     ran.push('y');
-    return { repair: () => { const landed = storeWrite(store, address, 'mem', 'y-fixed').op; return { ok: true, message: 'y was repaired at the same address', op: landed }; }, message: 'y violates too' };
+    return { repair: () => { const landed = store.write(address, 'mem', 'y-fixed').op; return { ok: true, message: 'y was repaired at the same address', op: landed }; }, message: 'y violates too' };
   });
   const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
   assert.equal(r.threw, true, 'the attempt fails');
@@ -1100,14 +1100,14 @@ test('ck_neg_2_the_call_list_reaches_beside_addresses_and_the_walk_runs_to_its_l
   register(store, address, 'x', () => {
     nx += 1;
     if (nx === 1) {
-      return { repair: () => { const landed = storeWrite(store, beside, 'mem', 'child-fixed').op; return { ok: true, message: 'x was repaired at the address beside the attempt\'s own', op: landed }; }, message: 'x is invalid at the attempt\'s own address' };
+      return { repair: () => { const landed = store.write(beside, 'mem', 'child-fixed').op; return { ok: true, message: 'x was repaired at the address beside the attempt\'s own', op: landed }; }, message: 'x is invalid at the attempt\'s own address' };
     }
     return { message: 'x is broken again at the op its own repair landed beside it' };
   });
   // THE STORE'S OWN TREE NEEDS ITS PARENT LINK BEFORE A DESCENDANT CAN BE WRITTEN AT ALL ("`root` does
   // not exist in `''`, it holds no keys"), so the caller makes ONE write above the attempt's address —
   // an ordinary caller-made write, taking its own processing and its own registry entry.
-  storeWrite(store, [root], 'mem', {});
+  store.write([root], 'mem', {});
   const commitRecord = commit(store, address, 'mem', {});
   const r = capture(() => runAttempt(store, commitRecord));
   assert.equal(r.threw, true, 'the attempt fails');
@@ -1159,7 +1159,7 @@ test('ck_neg_2_the_call_list_reaches_beside_addresses_and_the_walk_runs_to_its_l
   // AFTER the terminal act is the state the composition LEFT and not the state the failed call met.
   let beforeTerminal;
   try {
-    beforeTerminal = { present: true, value: storeRead(store, address) };
+    beforeTerminal = { present: true, value: store.read(address) };
   } catch (refused) {
     beforeTerminal = { present: false, value: undefined };
   }
@@ -1203,7 +1203,7 @@ test('ck_neg_3_a_still_owed_call_meeting_a_compacted_base_is_KC8_with_one_outcom
   const { register, commit, runAttempt, report } = await kernel();
   const store = makeStore({ journalLength: 2 });
   const address = [tag('neg3')];
-  for (let i = 0; i < 6; i += 1) storeWrite(store, address, 'mem', `seed-${i}`);
+  for (let i = 0; i < 6; i += 1) store.write(address, 'mem', `seed-${i}`);
   register(store, address, 'x', () => ({ message: 'x is invalid, and registers no repair' }));
   const commitRecord = commit(store, address, 'mem', 1);
   const r = capture(() => runAttempt(store, commitRecord));
@@ -1256,7 +1256,7 @@ test('ck_neg_4_every_step_carries_its_own_answer_and_a_two_member_restored_to_on
   {
     const store = makeStore({ journalLength: 2 });
     const address = [tag('neg4b')];
-    for (let i = 0; i < 6; i += 1) storeWrite(store, address, 'mem', `seed-${i}`);
+    for (let i = 0; i < 6; i += 1) store.write(address, 'mem', `seed-${i}`);
     register(store, address, 'x', () => ({ message: 'x fails' }));
     const record = commit(store, address, 'mem', 'v');
     capture(() => runAttempt(store, record));

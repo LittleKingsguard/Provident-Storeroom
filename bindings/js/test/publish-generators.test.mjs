@@ -287,9 +287,10 @@ throw (${throwRungOne.kind === 'undefined' ? 'undefined' : 'thrown'});
     ? `storeCreate(encodedCfg) {
     calls.storeCreate += 1;
     const instance = {
-      on(address, listener) { return registerOn(instance, listener); },
-      off(handle) { return undefined; },
+      listen(address) { return minted; },
       register(handle, listener) { return registerOn(instance, listener, handle); },
+      unlisten(handle) { return undefined; },
+      settle(record) { return undefined; },
     };
     return instance;
   },`
@@ -297,6 +298,7 @@ throw (${throwRungOne.kind === 'undefined' ? 'undefined' : 'thrown'});
   return `'use strict';
 // THE FAKE CANDIDATE. Variant: ${variant}. errorMessage: ${errorMessage}. storeCreate: ${storeCreate}.
 const calls = { version: 0, storeCreate: 0, errorMessage: 0 };
+const minted = { opaque: 'the fake candidate handle' };
 const GEN_TAIL = ${JSON.stringify(GEN_TAIL)};
 const report = { variant: ${JSON.stringify(variant)}, calls, loadError: null };
 function versionValue() { return ${VALUE[variant]}; }

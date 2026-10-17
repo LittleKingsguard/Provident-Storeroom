@@ -15,7 +15,7 @@
 // converts one into the other.
 
 import assert from 'node:assert/strict';
-import { storeCreate, write, read } from 'provident-storeroom';
+import { storeCreate } from 'provident-storeroom';
 
 /**
  * THE KERNEL MODULE AND ITS FIVE ITEMS, LOADED THROUGH THE CONTRACT'S OWN ONE CHECKOUT HOME
@@ -282,14 +282,32 @@ export function countingListener() {
   return fn;
 }
 
+/**
+ * THE NO-OP LISTENER BODY, AND ITS ONE DECLARED USE.
+ *
+ * **⟶ ADDED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause; `§2.12` item 5):** the combined
+ * `on(address, listener)` is MERGED AWAY, so a drive whose subject is the HOME ENTRY — its minting, its
+ * address-level idempotence, or the registration a kernel pass reads through — must now take the two acts
+ * the product declares: `listen(address)` mints the entry and answers its handle, and `register(handle,
+ * listener)` places a function at it. A drive that takes both acts but whose subject is NOT the listener
+ * body's own firing passes this body at the `listener` position; a drive whose subject IS that firing
+ * passes its own counting body instead. This module owns the no-op so no drive re-declares one.
+ */
+export const noop = () => {};
+
 /** Every constraint-check entry's `id`, in the log's own order — the only order a drive may compare. */
 export function checkIds(log) {
   return entries(log, 'constraint-check').map((e) => e.id);
 }
 
-/** The store's own read, used only where a scenario's observation names it. */
-export function readBack(store, address) {
-  return read(store, address);
+/** The store's own read, used only where a scenario's observation names it.
+ *
+ * **⟶ RESHAPED 2026-10-16 (`surface.md §2.9` item 1's `A127` clause and `§2.4` item 9 (f)'s `A127`
+ * clause): the module's named-export count is `11 → 1` ✓ — `storeCreate` ALONE — and the ten
+ * store-reaching names are METHODS of the object that call returned, so the LEADING `instance` POSITION IS
+ * DROPPED (`8 → 1` ✓) and this observer is spelled on its RECEIVER.** `write`/`read` are not named exports
+ * of the package any more: this module neither re-exports them nor reaches a store through them.
+ */
+export function readBack(instance, address) {
+  return instance.read(address);
 }
-
-export { write, read, storeCreate };

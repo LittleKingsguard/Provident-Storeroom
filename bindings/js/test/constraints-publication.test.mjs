@@ -158,9 +158,10 @@ import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
+import { storeCreate } from 'provident-storeroom';
+
 import {
-  makeStore, tag, capture, countingListener, assertStoreRefusal, STORE_CODES, storeCreate,
-} from './constraint-kernel-helpers.mjs';
+  makeStore, tag, capture, countingListener, assertStoreRefusal, STORE_CODES, noop, } from './constraint-kernel-helpers.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_DIR = dirname(HERE);
@@ -169,16 +170,27 @@ const PACKAGE_DIR = dirname(HERE);
 // `exports` map (`package.md §3.1` item 2, `DD-24`).
 const api = await import('provident-storeroom');
 
-/** `§2.9` item 1's dated clause of 2026-10-16: the ELEVEN names, `8 + 3 = 11`, sorted. */
-const ELEVEN = ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral',
-  'rollback', 'storeCreate', 'unlisten', 'write'];
-/** The EIGHT names that clause leaves UNMOVED (`§2.9` item 1's as-filed clause, read through it). */
-const EIGHT = ['storeCreate', 'read', 'readLiteral', 'write', 'delete', 'rollback', 'listen', 'unlisten'];
-/** `surface.md §2.4` item 9 (f)'s dated clause of 2026-10-16: `4 + 3 = 7`, sorted. */
-const SEVEN_MEMBERS = ['addConstraint', 'constraintOff', 'constraintOn', 'off', 'on', 'register', 'settle'];
-/** The FOUR own members the same clause leaves UNMOVED, sorted. */
-const FOUR_MEMBERS = ['off', 'on', 'register', 'settle'];
-/** The three functions `A126` declares — one name, one subject, reached at the module namespace. */
+/**
+ * **⟶ RESHAPED 2026-10-16 (`surface.md §2.9` item 1's `A127` CLAUSE and `§2.4` item 9 (f)'s `A127`
+ * CLAUSE, both of 2026-10-16; `bindings/js/index.d.ts`).** THE NAMESPACE'S FIGURE IS `11 → 1` ✓ — THE
+ * MODULE CARRIES `storeCreate` ALONE — and the OBJECT's member set is the operative TWELVE own members,
+ * `10 + 1 + 1 = 12` ✓: the TEN store-reaching METHODS plus `register` and `settle`. The combined
+ * `on(address, listener)` is MERGED AWAY — its home entry is minted by `listen` and its function placed by
+ * `register` — and the LEADING `instance` POSITION of the three constraint members is DROPPED
+ * (`8 → 1` ✓). The figures this file once printed (`ELEVEN`, `EIGHT`, `SEVEN_MEMBERS`, `FOUR_MEMBERS`,
+ * the three-position arity) are the `A126` pass's reading and are superseded in place.
+ */
+const ONE = ['storeCreate'];
+/** The TEN store-reaching methods the same clause declares, sorted — the object's own method set. */
+const TEN_METHODS = ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read',
+  'readLiteral', 'rollback', 'unlisten', 'write'];
+const TWELVE_MEMBERS = ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read',
+  'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'];
+/** The ONE name the namespace leaves, read beside the ten methods it no longer carries. */
+const EIGHT = ['storeCreate'];
+/** The member the `A127` clause leaves UNMOVED beside the ten methods, sorted. */
+const FOUR_MEMBERS = ['register', 'settle'];
+/** The three constraint members — one subject each, now reached at the OBJECT and at no namespace. */
 const THREE = ['addConstraint', 'constraintOn', 'constraintOff'];
 /** The name the re-derivation DISPLACES, named once so its absence can be read (`§2.9`'s dated clause). */
 const SUPERSEDED = 'manageConstraints';
@@ -230,18 +242,21 @@ const counter = () => ({ runs: 0, argc: null });
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
 test('cp_a126_eleven_named_exports_the_module_namespace_is_the_eleven_declared_names', () => {
-  for (const name of THREE) {
-    assert.equal(typeof api[name], 'function',
-      `\`${name}\` is a named export of the claimed ESM entry (\`§2.12\` item 2; \`A126\`) — read `
-      + `${typeof api[name]}`);
-  }
+  // **⟶ RESHAPED 2026-10-16 (`surface.md §2.9` item 1's `A127` clause): THE NUMBER THIS CELL'S OWN NAME
+  // CARRIES IS THE `A126` PASS'S READING AND IS SUPERSEDED IN PLACE — *"THE MODULE NAMESPACE CARRIES ONE
+  // NAME, `storeCreate`"* (`11 → 1` ✓) — while THE CELL'S SUBJECT IS UNMOVED: the enumeration is exactly
+  // what the clause declares and nothing else is smuggled in.** The name is kept at its as-filed bytes so
+  // the red set's rows still point here.
   const names = Object.keys(api).sort();
-  assert.deepEqual(names, ELEVEN,
-    '`§2.9` item 1\'s dated clause of 2026-10-16: the operative enumeration is the eight verbs plus the '
-    + 'THREE surface functions `A126` declares, `8 + 3 = 11`, and `11` is the whole of the namespace');
-  assert.equal(names.length, 11, 'the count is ELEVEN (`8 + 3 = 11`)');
-  for (const verb of EIGHT) {
-    assert.equal(typeof api[verb], 'function', `and \`${verb}\` is UNMOVED in the same namespace`);
+  assert.deepEqual(names, ONE,
+    '`§2.9` item 1\'s `A127` clause of 2026-10-16: the operative enumeration is `storeCreate` ALONE — '
+    + 'the ten store-reaching names are METHODS of the object that call returned and are NOT namespace names '
+    + '(`11 → 1`)');
+  assert.equal(names.length, 1, 'the count is ONE (`11 → 1`) and the ten methods appear in it NOWHERE');
+  for (const name of TEN_METHODS) {
+    assert.equal(names.includes(name), false,
+      `and \`${name}\` is NOT a name of this namespace — it is an own member of the object the one name `
+      + 'returns');
   }
   // THE SUPERSESSION IS READ AS AN ABSENCE, SO THE COUNT CANNOT BE SATISFIED BY KEEPING THE OLD NAME AND
   // ADDING THREE MORE: the `+1` of `manageConstraints` is displaced by that clause and by no other.
@@ -253,52 +268,63 @@ test('cp_a126_eleven_named_exports_the_module_namespace_is_the_eleven_declared_n
   assert.equal(names.includes('settle'), false, '`settle` is NOT a named export');
   assert.equal(names.includes('findAddress'), false, '`findAddress` is NOT exposed');
   assert.equal(names.includes('on'), false,
-    'and neither bare `on` nor bare `off` is a module-namespace name: the pair\'s spelling is '
-    + '`constraintOn`/`constraintOff` and the prohibition stands WHOLE (`§2.9` item 1\'s dated clause; '
-    + '`§2.12` item 2 (c))');
+    'and neither bare `on` nor bare `off` is a module-namespace name — nor a member of any product at all: '
+    + 'the pair is MERGED AWAY by the `A127` clause and its home entry is minted by `listen`, its function '
+    + 'placed by `register` (`§2.4` item 9 (f)\'s `A127` clause)');
   assert.equal(names.includes('off'), false, 'the same prohibition, read at `off`');
 });
 
 test('cp_a126_seven_own_members_the_storecreate_object_carries_seven_own_members', () => {
+  // **⟶ RESHAPED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause): THE NUMBER THIS CELL'S OWN NAME
+  // CARRIES IS THE `A126` PASS'S READING AND IS SUPERSEDED IN PLACE — the operative declared member set is
+  // THE TWELVE OWN MEMBERS, `10 + 1 + 1 = 12` ✓, the TEN METHODS plus `register` and `settle` — while THE
+  // CELL'S SUBJECT IS UNMOVED: the set is exactly what the clause declares and no name is smuggled in.**
   const inst = makeStore();
-  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), SEVEN_MEMBERS,
-    '`§2.4` item 9 (f)\'s dated clause of 2026-10-16: the operative declared member set is '
-    + '`{ register, on, off, settle, addConstraint, constraintOn, constraintOff }` — SEVEN own members, '
-    + '`4 + 3 = 7`');
-  for (const [label, name] of [['the registration site', 'register'], ['the listener member', 'on'],
-    ['the withdrawal', 'off'], ['the ordering seam', 'settle']]) {
+  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), TWELVE_MEMBERS,
+    '`§2.4` item 9 (f)\'s `A127` clause of 2026-10-16: the operative declared member set is the TEN '
+    + 'store-reaching methods plus `register` and `settle` — TWELVE own members, `10 + 1 + 1 = 12`');
+  for (const [label, name] of [['the registration site', 'register'], ['the ordering seam', 'settle']]) {
     assert.equal(typeof inst[name], 'function', `${label} \`${name}\` is UNMOVED in the same set`);
   }
-  assert.equal(FOUR_MEMBERS.length, 4, 'and the four the clause leaves unmoved are exactly those four');
-  for (const name of ['addConstraint', 'constraintOn', 'constraintOff']) {
+  assert.equal(FOUR_MEMBERS.length, 2, 'and the two the clause leaves unmoved beside the ten are exactly those two');
+  for (const name of TEN_METHODS) {
     assert.equal(typeof inst[name], 'function',
-      `and \`${name}\` is an own member of the factory's own product (\`§2.12\` item 2; \`A126\`)`);
+      `and \`${name}\` is an own member of the factory's own product`);
+  }
+  for (const name of ['on', 'off']) {
+    assert.equal(Object.getOwnPropertyNames(inst).includes(name), false,
+      `and the MERGED-AWAY \`${name}\` is NOT a member of this product at all — the pair's home entry is `
+      + 'minted by `listen` and its function placed by `register`, and no third route exists '
+      + '(`§2.4` item 9 (f)\'s `A127` clause)');
   }
   assert.equal(Object.getOwnPropertyNames(inst).includes(SUPERSEDED), false,
-    'and the superseded `manageConstraints` is NOT a member of this product either — the set is SEVEN and '
-    + 'not SEVEN PLUS ONE (`§2.4` item 9 (f)\'s dated clause)');
-  for (const name of ['addConstraint', 'constraintOn', 'constraintOff']) {
-    const descriptor = Object.getOwnPropertyDescriptor(inst, name);
+    'and the superseded `manageConstraints` is NOT a member of this product either — the set is TWELVE and '
+    + 'not TWELVE PLUS ONE');
+  for (const name of TEN_METHODS) {
+    const descriptor = Object.getOwnPropertyDescriptor(inst, [name][0]);
     assert.ok(descriptor !== undefined && descriptor.enumerable === true,
-      `and \`${name}\` is an OWN, enumerable property of that product, with the same standing the other `
-      + 'four members have');
+      `and \`${name}\` is an OWN, enumerable property of that product, on the standing the other members have`);
   }
 });
 
 test('cp_a126_the_declared_arity_is_three_positions_instance_pair_constraint', () => {
-  // `§2.12` item 2 (a)'s signature block: `addConstraint(instance, pair, constraint)` and its two siblings.
-  // **THE THIRD POSITION IS `constraint` AND NOT AN `operation` POSITION** — the shape three passes built
-  // on is displaced by `A126`, whose words are *"surface functions"*, PLURAL, plus an `on`/`off` pair.
+  // **⟶ RESHAPED 2026-10-16 (`surface.md §2.12` item 2 (a)'s operative signature block; `§2.4` item 9 (f)'s
+  // `A127` clause): THE FIGURE THIS CELL'S OWN NAME CARRIES IS THE `A126` PASS'S READING AND IS SUPERSEDED IN
+  // PLACE — THE LEADING `instance` POSITION IS DROPPED, so the declared arity of each of the three members is
+  // TWO, `(pair, constraint)` — while THE CELL'S SUBJECT IS UNMOVED: each arity is read off the declared
+  // signature and neither two-nor-four may drift.** The name is kept at its as-filed bytes so the red set's
+  // rows still point here; the third position is `constraint` and NOT an `operation` position, and that
+  // prohibition is read at the dropped-position cell below.
   const inst = makeStore();
   for (const name of THREE) {
-    assert.equal(typeof api[name], 'function',
-      `the surface function \`${name}\` exists before its arity can be read (\`§2.12\` item 2)`);
-    assert.equal(api[name].length, 3,
-      `the declared arity of \`${name}\` is THREE — \`instance\`, \`pair\`, \`constraint\` — and neither `
-      + 'two nor four');
-    assert.equal(inst[name].length, 3,
-      `and the instance's own member \`${name}\` carries the same declared arity, being one function of `
-      + 'the surface');
+    assert.equal(typeof inst[name], 'function',
+      `the surface member \`${name}\` exists before its arity can be read (\`§2.12\` item 2)`);
+    assert.equal(inst[name].length, 2,
+      `the declared arity of \`${name}\` is TWO — \`pair\`, \`constraint\` — the LEADING \`instance\` `
+      + 'position having been DROPPED (`§2.4` item 9 (f)\'s `A127` clause; `8 → 1`)');
+    assert.equal(api[name], undefined,
+      `and \`${name}\` is reached at NO position of the module namespace: the namespace carries `
+      + '`storeCreate` alone (`§2.9` item 1\'s `A127` clause; `11 → 1`)');
   }
 });
 
@@ -319,7 +345,7 @@ test('cp_route_batch_a_constraint_the_construction_supplied_is_evaluated_by_the_
     constraints: [{ address, id: 'b1', constraint: passing(body) }],
   });
   assert.equal(typeof inst, 'object', 'a store whose batch element carries its own function constructs');
-  const r = capture(() => api.write(inst, address, 'mem', 1));
+  const r = capture(() => inst.write(address, 'mem', 1));
   assert.equal(body.runs >= 1, true,
     'THE BATCH ROUTE\'S OWN FUNCTION IS EVALUATED: the element\'s body ran at that pair inside the call '
     + `(\`§2.12\` item 1 (i) and (1); \`PAR-JS-21\`'s observable) — it ran ${body.runs} time(s)`);
@@ -336,7 +362,7 @@ test('cp_route_batch_a_constraint_the_construction_supplied_is_evaluated_by_the_
     listeners: [],
     constraints: [{ address: refusingAddress, id: 'b2', constraint: refusing(refusingBody) }],
   });
-  const refused = capture(() => api.write(other, refusingAddress, 'mem', 2));
+  const refused = capture(() => other.write(refusingAddress, 'mem', 2));
   assert.equal(refusingBody.runs >= 1, true,
     'the batch element at that second pair was evaluated too, so the first cell is not a coincidence of '
     + 'one store');
@@ -346,8 +372,6 @@ test('cp_route_batch_a_constraint_the_construction_supplied_is_evaluated_by_the_
 });
 
 test('cp_route_batch_and_surface_are_two_routes_and_neither_substitutes_for_the_other', () => {
-  assert.equal(typeof api.addConstraint, 'function',
-    'the surface route exists before the two routes can be read apart (`§2.12` item 2)');
   const batchAddress = [tag('cp-two-routes-batch')];
   const surfaceAddress = [tag('cp-two-routes-surface')];
   const batchBody = counter();
@@ -357,15 +381,17 @@ test('cp_route_batch_and_surface_are_two_routes_and_neither_substitutes_for_the_
     listeners: [],
     constraints: [{ address: batchAddress, id: 'br', constraint: passing(batchBody) }],
   });
-  api.addConstraint(inst, { address: surfaceAddress, id: 'sr' }, passing(surfaceBody));
-  const atBatch = capture(() => api.write(inst, batchAddress, 'mem', 1));
+  assert.equal(typeof inst.addConstraint, 'function',
+    'the surface route exists before the two routes can be read apart (`§2.12` item 2)');
+  inst.addConstraint({ address: surfaceAddress, id: 'sr' }, passing(surfaceBody));
+  const atBatch = capture(() => inst.write(batchAddress, 'mem', 1));
   assert.equal(atBatch.threw, false, 'PREMISE: the batch pair\'s passing function lets its write proceed');
   assert.equal(batchBody.runs >= 1, true,
     'the BATCH route\'s element is evaluated at its own pair (`§2.12` item 1 (i))');
   assert.equal(surfaceBody.runs, 0,
     'and the SURFACE route\'s element is NOT evaluated at another pair\'s address — the two routes are two '
     + 'elements at two keys and never one set');
-  const atSurface = capture(() => api.write(inst, surfaceAddress, 'mem', 2));
+  const atSurface = capture(() => inst.write(surfaceAddress, 'mem', 2));
   assert.equal(atSurface.threw, false, 'PREMISE: the surface pair\'s passing function lets its write proceed');
   assert.equal(surfaceBody.runs >= 1, true,
     'and the SURFACE route\'s element is evaluated at ITS own pair (`§2.12` item 1 (ii) and item 2 (b))');
@@ -381,16 +407,16 @@ test('cp_route_surface_the_add_route_carries_the_function_the_pass_evaluates', (
   // COMES FROM THE ADD ROUTE'S OWN ARGUMENT"* (`§2.12` item 2 (b); `PAR-JS-22`'s `supplier` cell: *"THIS IS
   // THE ONE SUPPLY OF A POST-CREATION CONSTRAINT'S FUNCTION"*). SO THE SUPPLIED BODY IS DRIVEN HERE, and
   // the previous file's refusal to drive it is retired with the gap it named.
-  assert.equal(typeof api.addConstraint, 'function',
-    'the ADD route exists before the function it carries can be driven (`§2.12` item 2)');
   const inst = makeStore();
+  assert.equal(typeof inst.addConstraint, 'function',
+    'the ADD route exists before the function it carries can be driven (`§2.12` item 2)');
   const thePair = pair('cp-add-carries', 'ac1');
   const body = counter();
-  const identity = api.addConstraint(inst, thePair, refusing(body));
+  const identity = inst.addConstraint(thePair, refusing(body));
   assert.notEqual(identity, undefined,
     '`addConstraint` returns the pair\'s constraint identity (`§2.12` item 3; `PAR-JS-25`)');
   assert.equal(body.runs, 0, 'PREMISE: the body has not run yet — nothing has written at that pair');
-  const r = capture(() => api.write(inst, thePair.address, 'mem', 7));
+  const r = capture(() => inst.write(thePair.address, 'mem', 7));
   assert.equal(body.runs >= 1, true,
     'THE SUPPLIED FUNCTION\'S BODY RUNS AT THAT PAIR ON THE NEXT WRITE — the element the entry carries '
     + `there IS the third argument of the call above (\`§2.12\` item 2 (b); \`PAR-JS-22\`'s observable) — it `
@@ -400,7 +426,7 @@ test('cp_route_surface_the_add_route_carries_the_function_the_pass_evaluates', (
   assert.equal(r.threw, true,
     'and the refusal it returned refused the write, which `§2.12` item 3\'s ADD row orders "before item 1\'s '
     + 'stage 2\'s store leg is taken"');
-  const back = capture(() => api.read(inst, thePair.address, 'mem'));
+  const back = capture(() => inst.read(thePair.address, 'mem'));
   assert.ok(back.threw === true || back.value !== 7,
     'the refused write does not stand: the address does not answer the value the write carried');
 });
@@ -414,14 +440,14 @@ test('cp_add_at_a_held_pair_overwrites_and_throws_nothing', () => {
   // supplied constraint OVERWRITES the held one ... and the call REFUSES NOTHING AND THROWS NOTHING for the
   // mere fact that the pair was held"* (`§2.12` item 3's ADD row). The superseded row declared this state a
   // THROW of the one `TypeError`; the ruling's own words are *"overwrites if ID already exists"*.
-  assert.equal(typeof api.addConstraint, 'function',
-    'the ADD route exists before its overwrite arm can be driven (`§2.12` item 2)');
   const inst = makeStore();
+  assert.equal(typeof inst.addConstraint, 'function',
+    'the ADD route exists before its overwrite arm can be driven (`§2.12` item 2)');
   const thePair = pair('cp-overwrite-silent', 'ow1');
   const held = counter();
-  api.addConstraint(inst, thePair, refusing(held));
+  inst.addConstraint(thePair, refusing(held));
   assert.equal(held.runs, 0, 'PREMISE: the held element has not been evaluated yet');
-  const second = capture(() => api.addConstraint(inst, thePair, passing(counter())));
+  const second = capture(() => inst.addConstraint(thePair, passing(counter())));
   assert.equal(second.threw, false,
     'THE SECOND ADD AT A HELD PAIR THROWS NOTHING — the overwrite is the declared answer and the throw the '
     + 'previous pass landed is FALSIFIED by `A126` (`§2.12` item 3; `PAR-JS-22`\'s `alt` cell names "A '
@@ -429,27 +455,27 @@ test('cp_add_at_a_held_pair_overwrites_and_throws_nothing', () => {
   assert.notEqual(second.value, undefined,
     'and it answers the pair\'s identity rather than `undefined` — every success of the ADD route does '
     + '(`§2.12` item 3; `PAR-JS-25`)');
-  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), SEVEN_MEMBERS,
+  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), TWELVE_MEMBERS,
     'and the overwrite added no member to the instance: it replaces the ELEMENT at a key, and the key was '
     + 'already there (`§2.12` item 5; `§2.4` item 9 (f)\'s dated clause)');
 });
 
 test('cp_add_at_a_held_pair_overwrites_the_held_element_and_returns_the_same_identity', () => {
-  assert.equal(typeof api.addConstraint, 'function',
-    'the ADD route exists before its overwrite arm can be driven (`§2.12` item 2)');
   const inst = makeStore();
+  assert.equal(typeof inst.addConstraint, 'function',
+    'the ADD route exists before its overwrite arm can be driven (`§2.12` item 2)');
   const thePair = pair('cp-overwrite-2', 'ow2');
   const held = counter();
   const supplied = counter();
-  const first = api.addConstraint(inst, thePair, refusing(held));
+  const first = inst.addConstraint(thePair, refusing(held));
   assert.notEqual(first, undefined, 'PREMISE: the first add answers the pair\'s identity');
-  const second = api.addConstraint(inst, thePair, passing(supplied));
+  const second = inst.addConstraint(thePair, passing(supplied));
   assert.equal(second, first,
     'THE OVERWRITE MINTS NO SECOND IDENTITY: *"the returned identity is the SAME identity the pair was '
     + 'already added under — the element is REPLACED and the identity is NOT"* (`PAR-JS-25`\'s `domain` cell, '
     + 'whose `observable` reads the same rule: *"equal to itself on a SECOND `addConstraint` at the SAME '
     + 'pair (the overwrite arm)"*)');
-  const r = capture(() => api.write(inst, thePair.address, 'mem', 1));
+  const r = capture(() => inst.write(thePair.address, 'mem', 1));
   assert.equal(supplied.runs >= 1, true,
     'and THE SUPPLIED FUNCTION IS THE ELEMENT FROM THIS CALL ON: its body ran at the next write '
     + `(\`§2.12\` item 3's ADD row) — it ran ${supplied.runs} time(s)`);
@@ -461,16 +487,16 @@ test('cp_add_at_a_held_pair_overwrites_the_held_element_and_returns_the_same_ide
     + 'still stood');
   assert.deepEqual(Object.keys(r.value).sort(), ['op', 'triggered', 'watched'],
     'and the accepted write answers the declared three-member record (`§2.2`\'s signature block)');
-  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), SEVEN_MEMBERS,
+  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), TWELVE_MEMBERS,
     'and neither call changed the instance\'s own member set (`§2.12` item 5; `§2.4` item 9 (f))');
 });
 
 test('cp_add_at_a_second_pair_returns_an_identity_distinguishable_from_the_first', () => {
-  assert.equal(typeof api.addConstraint, 'function',
-    'the ADD route exists before two pairs can be added (`§2.12` item 2)');
   const inst = makeStore();
-  const one = api.addConstraint(inst, pair('cp-add-1', 'a1'), passing(counter()));
-  const two = api.addConstraint(inst, pair('cp-add-2', 'a2'), passing(counter()));
+  assert.equal(typeof inst.addConstraint, 'function',
+    'the ADD route exists before two pairs can be added (`§2.12` item 2)');
+  const one = inst.addConstraint(pair('cp-add-1', 'a1'), passing(counter()));
+  const two = inst.addConstraint(pair('cp-add-2', 'a2'), passing(counter()));
   assert.notEqual(one, undefined, 'the first pair\'s arm returns its own identity (`PAR-JS-25`)');
   assert.notEqual(two, undefined, 'and the second pair\'s arm returns its own');
   // `PAR-JS-25`'s `domain` cell: ONE OPAQUE VALUE the package owns, "equal to and distinguishable from no
@@ -480,7 +506,7 @@ test('cp_add_at_a_second_pair_returns_an_identity_distinguishable_from_the_first
   // compares identities and never contents".
   assert.notEqual(one, two,
     'two identities minted at two pairs are distinguishable (`PAR-JS-25`\'s `domain` cell)');
-  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), SEVEN_MEMBERS,
+  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), TWELVE_MEMBERS,
     'and the two arms changed no member of the instance (`§2.12` item 5: the identity is not `cfg.constraints`)');
 });
 
@@ -489,18 +515,18 @@ test('cp_add_at_a_second_pair_returns_an_identity_distinguishable_from_the_first
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
 test('cp_toggle_off_returns_undefined_and_a_write_it_would_have_refused_is_accepted', () => {
-  assert.equal(typeof api.constraintOff, 'function',
-    'the DISABLE half exists before it can be driven (`§2.12` item 2)');
   const inst = makeStore();
+  assert.equal(typeof inst.constraintOff, 'function',
+    'the DISABLE half exists before it can be driven (`§2.12` item 2)');
   const thePair = pair('cp-off', 'd1');
   const body = counter();
-  api.addConstraint(inst, thePair, refusing(body));
-  const before = capture(() => api.write(inst, thePair.address, 'mem', 1));
+  inst.addConstraint(thePair, refusing(body));
+  const before = capture(() => inst.write(thePair.address, 'mem', 1));
   assert.equal(before.threw, true, 'PREMISE: the added element stands ENABLED and refuses the write');
   const at = body.runs;
-  assert.equal(api.constraintOff(inst, thePair, refusing(body)), undefined,
+  assert.equal(inst.constraintOff(thePair, refusing(body)), undefined,
     '`constraintOff` returns `undefined` (`§2.12` item 3, the `constraintOff` row\'s observable cell)');
-  const after = capture(() => api.write(inst, thePair.address, 'mem', 2));
+  const after = capture(() => inst.write(thePair.address, 'mem', 2));
   assert.equal(after.threw, false,
     'AND A WRITE THE DISABLED CONSTRAINT WOULD HAVE REFUSED IS ACCEPTED — the same landing, the same '
     + 'address, the element standing in the set and NOT evaluated (`§2.12` item 3)');
@@ -511,20 +537,20 @@ test('cp_toggle_off_returns_undefined_and_a_write_it_would_have_refused_is_accep
 });
 
 test('cp_toggle_on_returns_undefined_and_the_same_element_is_evaluated_again', () => {
-  assert.equal(typeof api.constraintOn, 'function',
-    'the ENABLE half exists before it can be driven (`§2.12` item 2)');
   const inst = makeStore();
+  assert.equal(typeof inst.constraintOn, 'function',
+    'the ENABLE half exists before it can be driven (`§2.12` item 2)');
   const thePair = pair('cp-on', 'e1');
   const body = counter();
   const element = refusing(body);
-  api.addConstraint(inst, thePair, element);
-  api.constraintOff(inst, thePair, element);
-  const parked = capture(() => api.write(inst, thePair.address, 'mem', 1));
+  inst.addConstraint(thePair, element);
+  inst.constraintOff(thePair, element);
+  const parked = capture(() => inst.write(thePair.address, 'mem', 1));
   assert.equal(parked.threw, false, 'PREMISE: the disabled element does not refuse the write');
   const at = body.runs;
-  assert.equal(api.constraintOn(inst, thePair, element), undefined,
+  assert.equal(inst.constraintOn(thePair, element), undefined,
     '`constraintOn` returns `undefined` (`§2.12` item 3, the `constraintOn` row\'s observable cell)');
-  const again = capture(() => api.write(inst, thePair.address, 'mem', 2));
+  const again = capture(() => inst.write(thePair.address, 'mem', 2));
   assert.equal(again.threw, true, 'AND THE ELEMENT IS EVALUATED AGAIN ON THE NEXT WRITE (`§2.12` item 3)');
   assert.equal(body.runs, at + 1,
     'and IT IS THE ELEMENT THAT WAS DISABLED AND NOT A SECOND CONSTRAINT: ONE body runs, the one the entry '
@@ -536,16 +562,16 @@ test('cp_toggle_off_at_an_already_disabled_pair_is_idempotent_success', () => {
   // THE TOGGLE ASKS FOR IS IDEMPOTENT SUCCESS: `constraintOn` at an ENABLED pair and `constraintOff` at a
   // DISABLED pair each return `undefined`, LEAVE THE PAIR'S STATE AND ITS ELEMENT EXACTLY AS THEY STOOD,
   // AND THROW NOTHING."* — the successor of a row the same clause WITHDRAWS.
-  assert.equal(typeof api.constraintOff, 'function',
-    'the DISABLE half exists before its idempotent cell can be driven (`§2.12` item 2)');
   const inst = makeStore();
+  assert.equal(typeof inst.constraintOff, 'function',
+    'the DISABLE half exists before its idempotent cell can be driven (`§2.12` item 2)');
   const thePair = pair('cp-off-twice', 'i1');
   const body = counter();
   const element = refusing(body);
-  api.addConstraint(inst, thePair, element);
-  assert.equal(api.constraintOff(inst, thePair, element), undefined, 'PREMISE: the first DISABLE succeeds');
+  inst.addConstraint(thePair, element);
+  assert.equal(inst.constraintOff(thePair, element), undefined, 'PREMISE: the first DISABLE succeeds');
   const at = body.runs;
-  const second = capture(() => api.constraintOff(inst, thePair, element));
+  const second = capture(() => inst.constraintOff(thePair, element));
   assert.equal(second.threw, false,
     'a second `constraintOff` at a pair that is already DISABLED THROWS NOTHING (`§2.12` item 3\'s first '
     + 'answered question: "the route WRITES THE STATES IT IS ASKED FOR rather than refusing to reach them")');
@@ -556,30 +582,30 @@ test('cp_toggle_off_at_an_already_disabled_pair_is_idempotent_success', () => {
     + 'evaluated on any write since');
   // THE ELEMENT'S OWN READ-BACK: the pair is still DISABLED and still carries THE SAME element, so the
   // enable half reaches it and that same body runs once more.
-  const reEnabled = capture(() => api.constraintOn(inst, thePair, element));
+  const reEnabled = capture(() => inst.constraintOn(thePair, element));
   assert.equal(reEnabled.threw, false, 'and the pair is still a pair the entry carries, in its DISABLED state');
-  const after = capture(() => api.write(inst, thePair.address, 'mem', 3));
+  const after = capture(() => inst.write(thePair.address, 'mem', 3));
   assert.equal(after.threw, true, 'and the SAME element refuses again once enabled');
   assert.equal(body.runs, at + 1, 'and it is the ONE element the entry carried that ran (`§2.12` item 3)');
 });
 
 test('cp_toggle_on_at_an_already_enabled_pair_is_idempotent_success', () => {
-  assert.equal(typeof api.constraintOn, 'function',
-    'the ENABLE half exists before its idempotent cell can be driven (`§2.12` item 2)');
   const inst = makeStore();
+  assert.equal(typeof inst.constraintOn, 'function',
+    'the ENABLE half exists before its idempotent cell can be driven (`§2.12` item 2)');
   const thePair = pair('cp-on-twice', 'i2');
   const body = counter();
   const element = refusing(body);
-  api.addConstraint(inst, thePair, element);
+  inst.addConstraint(thePair, element);
   const at = body.runs;
-  const again = capture(() => api.constraintOn(inst, thePair, element));
+  const again = capture(() => inst.constraintOn(thePair, element));
   assert.equal(again.threw, false,
     '`constraintOn` at a pair that already stands ENABLED THROWS NOTHING (`§2.12` item 3\'s first answered '
     + 'question: "a caller that asks for a state the pair already carries gets that state, and the observable '
     + 'it asserts is the pair\'s state and never a throw")');
   assert.equal(again.value, undefined, 'and it returns `undefined` like every success of the toggle');
   assert.equal(body.runs, at, 'and no write has run the body in the meantime');
-  const r = capture(() => api.write(inst, thePair.address, 'mem', 4));
+  const r = capture(() => inst.write(thePair.address, 'mem', 4));
   assert.equal(r.threw, true, 'and the pair\'s state and its element stand EXACTLY as they stood');
   assert.equal(body.runs, at + 1,
     'and ONE body runs — the element the entry carried — and never a second constraint (' + '`§2.12` item 3)');
@@ -591,12 +617,12 @@ test('cp_toggle_at_a_well_formed_pair_the_entry_does_not_carry_throws_and_widens
   // `item 4`'s REFUSAL: ONE THROWN `TypeError`, the `status` member ABSENT, AND THE ENTRY IS NOT WIDENED."*
   const inst = makeStore();
   for (const [name, toggle] of [['constraintOn', 'constraintOn'], ['constraintOff', 'constraintOff']]) {
-    assert.equal(typeof api[toggle], 'function',
+    assert.equal(typeof inst[toggle], 'function',
       `the \`${name}\` half exists before its no-implicit-add cell can be driven (\`§2.12\` item 2)`);
     const thePair = pair(`cp-not-carried-${toggle}`, 'n1');
     const body = counter();
     const element = refusing(body);
-    const r = capture(() => api[toggle](inst, thePair, element));
+    const r = capture(() => inst[toggle](thePair, element));
     assert.equal(r.threw, true,
       `${name}: a well-formed pair the entry does not carry is OUTSIDE the domain and is refused — it is not `
       + 'a THIRD population route (`§2.12` item 3\'s second answered question)');
@@ -604,7 +630,7 @@ test('cp_toggle_at_a_well_formed_pair_the_entry_does_not_carry_throws_and_widens
     // THE NON-WIDENING, DRIVEN AT ITS OWN OBSERVABLE: the SAME function was supplied to the refused toggle,
     // so had the entry been widened with it, an ENABLED pair would stand at that key and this write would
     // be refused by it. It must not be.
-    const after = capture(() => api.write(inst, thePair.address, 'mem', 1));
+    const after = capture(() => inst.write(thePair.address, 'mem', 1));
     assert.equal(body.runs, 0,
       `${name}: and the entry was NOT WIDENED — the function the refused call carried never became an `
       + 'element, so its body never ran (the same clause: "it would leave a pair ENABLED WITH NO FUNCTION — '
@@ -621,28 +647,28 @@ test('cp_toggle_the_third_position_is_required_and_is_a_no_op_on_success', () =>
   // success: the caller supplies as a FUNCTION the identity it holds at that pair; the entry NEVER
   // SUBSTITUTES ONE, and no identity the caller holds at a pair it carries is ever refused here — a value
   // that is not a function takes item 4's refusal on the ARGUMENT's ground and not on the pair's"*.
+  const inst = makeStore();
   for (const name of THREE) {
-    assert.equal(typeof api[name], 'function',
+    assert.equal(typeof inst[name], 'function',
       `the surface function \`${name}\` exists before its carrying rule can be driven (\`§2.12\` item 2)`);
   }
-  const inst = makeStore();
   const thePair = pair('cp-no-op', 'x1');
   const held = counter();
   const other = counter();
   const element = refusing(held);
-  api.addConstraint(inst, thePair, element);
+  inst.addConstraint(thePair, element);
   const substitute = passing(other);
-  assert.equal(api.constraintOff(inst, thePair, substitute), undefined,
+  assert.equal(inst.constraintOff(thePair, substitute), undefined,
     'a FUNCTION at the third position is never refused on the pair\'s ground, whatever function it is: '
     + '`constraintOff` answers `undefined`');
-  const off = capture(() => api.write(inst, thePair.address, 'mem', 1));
+  const off = capture(() => inst.write(thePair.address, 'mem', 1));
   assert.equal(off.threw, false,
     'and the toggle took effect, so the pair stands DISABLED (`§2.12` item 3)');
   assert.equal(other.runs, 0,
     'and THE ENTRY NEVER SUBSTITUTED ONE: the caller\'s argument did not become the pair\'s element');
-  assert.equal(api.constraintOn(inst, thePair, substitute), undefined,
+  assert.equal(inst.constraintOn(thePair, substitute), undefined,
     'and the ENABLE half answers `undefined` at the same pair with the same non-element argument');
-  const on = capture(() => api.write(inst, thePair.address, 'mem', 2));
+  const on = capture(() => inst.write(thePair.address, 'mem', 2));
   assert.equal(on.threw, true, 'PREMISE: the pair stands ENABLED again');
   assert.equal(held.runs, 1,
     'and it is the ELEMENT THE ENTRY CARRIED that ran — never the argument the caller handed the toggle '
@@ -656,19 +682,19 @@ test('cp_toggle_the_third_position_is_required_and_is_a_no_op_on_success', () =>
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
 test('cp_write_path_a_four_position_write_enters_the_kernel_and_the_passing_arm_returns_the_three_member_record', () => {
-  assert.equal(typeof api.addConstraint, 'function',
-    'the ADD route exists before the write path it feeds can be driven (`§2.12` item 2)');
   const inst = makeStore();
+  assert.equal(typeof inst.addConstraint, 'function',
+    'the ADD route exists before the write path it feeds can be driven (`§2.12` item 2)');
   const thePair = pair('cp-write-pass', 'p1');
   const body = counter();
-  api.addConstraint(inst, thePair, passing(body));
+  inst.addConstraint(thePair, passing(body));
   const listener = countingListener();
-  inst.on(thePair.address, listener);
+  (inst.register(inst.listen(thePair.address), listener) || inst.listen(thePair.address));
   // `§2.12` item 1, STAGE 1: *"A `write` CALLED WITH FOUR POSITIONS — `write(instance, address, tier, value)`
   // — ENTERS THE KERNEL'S `K-2`"*, and stage 3: the kernel evaluates the constraint set against the store's
   // own result. **THE EVALUATION IS INSIDE THE CALL** — the superseded sentence *"evaluate constraints AFTER
   // a `write` returns"* is FALSIFIED BY ITEM 1 BY NAME.
-  const r = capture(() => api.write(inst, thePair.address, 'mem', 5));
+  const r = capture(() => inst.write(thePair.address, 'mem', 5));
   assert.equal(body.runs >= 1, true,
     'the four-position write ENTERS the kernel: the element at this write\'s pair was EVALUATED INSIDE THE '
     + `CALL (\`§2.12\` item 1; \`§2.6\`'s operative law) — it ran ${body.runs} time(s)`);
@@ -681,15 +707,15 @@ test('cp_write_path_a_four_position_write_enters_the_kernel_and_the_passing_arm_
 });
 
 test('cp_write_path_the_failing_arm_reports_the_declared_two_member_form_and_delivers_no_listener', async () => {
-  assert.equal(typeof api.addConstraint, 'function',
-    'the ADD route exists before the failing arm can be driven (`§2.12` item 2)');
   const inst = makeStore();
+  assert.equal(typeof inst.addConstraint, 'function',
+    'the ADD route exists before the failing arm can be driven (`§2.12` item 2)');
   const thePair = pair('cp-write-fail', 'r1');
   const body = counter();
-  api.addConstraint(inst, thePair, refusing(body));
+  inst.addConstraint(thePair, refusing(body));
   const listener = countingListener();
-  inst.on(thePair.address, listener);
-  const r = capture(() => api.write(inst, thePair.address, 'mem', 7));
+  (inst.register(inst.listen(thePair.address), listener) || inst.listen(thePair.address));
+  const r = capture(() => inst.write(thePair.address, 'mem', 7));
   assert.equal(body.runs >= 1, true, 'PREMISE: the element was evaluated inside the call and refused');
   assert.equal(r.threw, true,
     'the failing arm reports the failure to the package surface\'s caller (`§2.12` item 1\'s fail arm)');
@@ -708,7 +734,7 @@ test('cp_write_path_the_failing_arm_reports_the_declared_two_member_form_and_del
     + 'same clause, ground (1): the two members and the one log entry are ON TWO SIDES of the boundary)');
   assert.equal(listener.seen.length, 0,
     'and the failing write\'s listeners are NOT delivered (`§2.7` item 7 (d); `§2.12` item 1)');
-  const back = capture(() => api.read(inst, thePair.address, 'mem'));
+  const back = capture(() => inst.read(thePair.address, 'mem'));
   assert.ok(back.threw === true || back.value !== 7,
     'and the rollback is the kernel\'s own act over the attempt\'s ops: the refused write does not stand');
 });
@@ -730,7 +756,7 @@ test('cp_anti_pattern_an_external_supply_carrying_no_pending_is_refused_by_the_c
     ['an array', []],
     ['a function', () => {}],
   ]) {
-    const r = capture(() => api.write(inst, address, 'mem', 1, supply));
+    const r = capture(() => inst.write(address, 'mem', 1, supply));
     assert.equal(r.threw, true, `${where} is refused: it is not a record position (\`§2.20\`'s outside row)`);
     assert.ok(r.thrown instanceof TypeError,
       `${where}: refused by the position's OWN class test — ONE class, \`TypeError\` (\`§2.4\` item 9 (b); `
@@ -740,7 +766,7 @@ test('cp_anti_pattern_an_external_supply_carrying_no_pending_is_refused_by_the_c
       + 'identity test (`§2.2` clause 5: "IS NOT REFUSED BY A NAMED CODE")');
   }
   // AND THE REFUSED SHAPES LEFT NO LANDING — the write does not proceed (`§2.20`'s answer cell).
-  const back = capture(() => api.read(inst, address, 'mem'));
+  const back = capture(() => inst.read(address, 'mem'));
   assert.ok(back.threw === true || back.value !== 1,
     'a refused position stops the write: no store call was reached and no value landed');
 });
@@ -753,7 +779,7 @@ test('cp_anti_pattern_an_external_supply_carrying_pending_is_adopted_and_refused
   // ADOPTED at its first call by `§2.4` item 9 (g)'s own admission". **THIS IS THE ANTI-PATTERN'S DECLARED
   // CONSEQUENCE, DRIVEN AS THE NON-REFUSAL IT IS: the position is legal, the write proceeds, and no code
   // is minted for the case.** The clause declares no third arm and mints no code for it.
-  const r = capture(() => api.write(inst, address, 'mem', 3, { pending: [] }));
+  const r = capture(() => inst.write(address, 'mem', 3, { pending: [] }));
   assert.equal(r.threw, false,
     'a caller-authored object carrying a `pending` member is NOT refused — by no arity reading, by no '
     + 'provenance and by no named code (`§2.2` clause 5 item 3; `A125`)');
@@ -769,153 +795,116 @@ test('cp_anti_pattern_an_external_supply_carrying_pending_is_adopted_and_refused
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
 test('cp_fail_outside_instance_is_one_typeerror_at_every_value_that_remains_outside', () => {
-  // THE TEN VALUES THE WITHDRAWAL LEAVES IN PLACE (`PAR-JS-23`'s `the values OUTSIDE it` cell, read at its
-  // own remaining entries; `§2.12` item 4): the ONE entry the supervisor's determination of 2026-10-16
-  // withdrew — *"an instance another `storeCreate` call returned"* — is NAMED AS WITHDRAWN and is NOT in
-  // the list below; the cell that follows this one drives it at its positive semantics instead, and no
-  // value that remains outside the domain loses its refusal duty to that withdrawal.
-  for (const name of THREE) {
-    assert.equal(typeof api[name], 'function',
-      `the surface function \`${name}\` exists before its refusals can be read (\`§2.12\` item 2)`);
-  }
+  // **⟶ RE-DERIVED 2026-10-16 (`parameter-semantics.md §2.23`'s VACATED row of 2026-10-16; `A127`;
+  // `surface.md §2.12` item 4's `A127` clause; `§2.4` item 9 (f)'s `A127` clause).** **THE POSITION THIS
+  // CELL'S NAME NAMES NO LONGER EXISTS AT ANY CALL OF THIS SURFACE — *"THE `instance` POSITION CEASES TO
+  // EXIST AT EVERY CALL OF THIS SURFACE, because THE RECEIVER IS THE STORE"* — so the cell's subject moves
+  // to the reading the clause leaves and its name is kept at its as-filed bytes.** The two positions that
+  // DO exist at each of the three methods are `pair` and `constraint`, and NO CALL SHAPE carries an
+  // instance at any position: a call whose first argument is an INSTANCE object lands that object at the
+  // `pair` position, where it is an outside value and takes item 4's one thrown `TypeError`.
   const inst = makeStore();
   const other = makeStore();
   const thePair = pair('cp-inst', 'i1');
+  const otherPair = pair('cp-inst', 'i2');
+  other.addConstraint(otherPair, passing(counter()));
+  // THE CALLER'S OWN MEMBER SET AND THE MODULE NAMESPACE STAND BEFORE THE REFUSALS, so a refusal that
+  // minted a member or a name would be read at the same cell.
+  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), TWELVE_MEMBERS,
+    'PREMISE: the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`)');
+  assert.equal(Object.keys(api).length, 1, 'PREMISE: the module namespace carries its ONE name (`11 → 1`)');
   const OUTSIDE = [
     ['`null`', null], ['`undefined`', undefined], ['a number', 1], ['a string', 'instance'],
     ['a boolean', true], ['a symbol', Symbol('instance')], ['a bigint', 1n], ['a function', () => {}],
-    ['the pair itself', thePair],
+    ['a pair whose `id` is outside its domain', { address: thePair.address, id: 1 }],
+    ['a pair whose `address` is outside the domain', { address: 'a.b', id: 'i1' }],
     ['an object that is not the one `storeCreate` returned', {}],
+    // AND THE ONE VALUE THE VACATED POSITION WOULD HAVE CARRIED: an instance object stands at the `pair`
+    // position now, and THAT is why it is refused here — as an outside `pair`, never as a foreign instance.
+    ['another instance object, now standing at the `pair` position', other],
   ];
-  assert.equal(OUTSIDE.some(([, value]) => value === other), false,
-    'PREMISE: the withdrawn entry is not driven here — a handle another `storeCreate` call returned is IN '
-    + 'DOMAIN and its own cell drives it as the proceeding call it is (`PAR-JS-23`\'s `domain` cell)');
   for (const name of THREE) {
     for (const [where, value] of OUTSIDE) {
-      const r = capture(() => api[name](value, thePair, passing(counter())));
+      const r = capture(() => inst[name](value, passing(counter())));
       assert.equal(r.threw, true,
-        `\`${name}\`: \`instance\` = ${where} is OUTSIDE the position's domain (\`PAR-JS-23\`)`);
-      assertNewRefusal(r.thrown, `\`${name}\` \`instance\` = ${where}`);
+        `\`${name}\`: \`pair\` = ${where} is OUTSIDE the position's domain and the call carries no `
+        + 'instance position at which it could have been read otherwise (`PAR-JS-24`; `§2.12` item 4)');
+      assertNewRefusal(r.thrown, `\`${name}\` \`pair\` = ${where}`);
     }
-    // THE ABSENT POSITION: three positions declared, fewer supplied — the shifted call shape is refused too.
-    assertNewRefusal(capture(() => api[name](thePair, passing(counter()))).thrown,
-      `\`${name}\` \`instance\` ABSENT (the pair standing at the first position)`);
-    assertNewRefusal(capture(() => api[name]()).thrown, `\`${name}\`: all three positions ABSENT`);
+    // THE ABSENT POSITION: TWO positions declared and fewer supplied — the declared answer is item 4's
+    // refusal, because neither position is optional, and there is no third position to shift into.
+    assertNewRefusal(capture(() => inst[name](thePair)).thrown,
+      `\`${name}\`: the \`constraint\` position ABSENT`);
+    assertNewRefusal(capture(() => inst[name]()).thrown, `\`${name}\`: BOTH declared positions ABSENT`);
+    assert.equal(inst[name].length, 2,
+      `and the declared arity of \`${name}\` is TWO, so no position of it can be read as an instance `
+      + '(`§2.12` item 2 (a)\'s operative signature; `8 → 1`)');
   }
-  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), SEVEN_MEMBERS,
+  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), TWELVE_MEMBERS,
     'and the refusals on a value outside the domain changed nothing of this instance');
-  assert.equal(Object.keys(api).length, 11,
-    'and the module namespace stands at its eleven declared names, so no refusal minted a name');
+  assert.equal(Object.keys(api).length, 1,
+    'and the module namespace stands at its ONE declared name (`11 → 1`), so no refusal minted a name');
 });
 
 test('cp_instance_is_a_selector_the_act_lands_in_the_registry_of_the_instance_named', () => {
-  // THE SUPERVISOR'S DETERMINATION, DERIVED AND NOT REOPENED (`archive/reviews/
-  // 2026-10-16-constraints-publication-gate1.md §21`): **THE `instance` FIRST POSITION IS A SELECTOR, NOT A
-  // PREDICATE — ANY OBJECT `storeCreate` RETURNED IS IN ITS DOMAIN, AND THE ACT POPULATES THE REGISTRY OF
-  // THE INSTANCE NAMED** — the shape `listen(instance, address)` already pins and the shape `A126`'s
-  // *"similar to listeners"* carries, and this cell is that determination's POSITIVE arm. **THE CELL THIS
-  // ONE REPLACES IS NAMED RATHER THAN QUIETLY DELETED**: `cp_fail_outside_instance_is_one_typeerror_and_
-  // changes_nothing` required a FOREIGN instance to be REFUSED, which was unsatisfiable jointly with the
-  // sixteen green siblings whose `inst` is a product of the same `makeStore()`, and its ground — the
-  // `PAR-JS-23` `domain` cell's *"FOR THIS INSTANCE"* — was VACUOUS at these three sites, because the
-  // instance's only referent IS the first argument being tested. THE TEN VALUES THAT REMAIN OUTSIDE THE
-  // DOMAIN KEEP THE REFUSAL DUTY AND ARE DRIVEN BELOW.
-  for (const name of THREE) {
-    assert.equal(typeof api[name], 'function',
-      `the surface function \`${name}\` exists before its domain can be driven (\`§2.12\` item 2)`);
-  }
+  // **⟶ RE-DERIVED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause and `§2.12` item 4's clause of
+  // that date; `parameter-semantics.md §2.23`'s VACATED row).** **THE CELL'S SUBJECT IS UNMOVED — THE ACT
+  // LANDS IN THE REGISTRY OF THE INSTANCE NAMED AND IN NO OTHER — AND WHAT MOVED IS HOW THE INSTANCE IS
+  // NAMED: *"the receiver IS the store"*, so the instance is named BY THE RECEIVER and no position carries
+  // it.** The `PAR-JS-23` selector determination is therefore read here as an UNSATISFIABLE-SHAPE cell that
+  // is DRIVEN as its own falsification: a call that tries to name one instance and act on another has no
+  // position in which to do it, and the act stays on the receiver. The name is kept at its as-filed bytes.
   const inst = makeStore();
   const other = makeStore();
   const thePair = pair('cp-sel', 's1');
   const body = counter();
   const element = refusing(body);
-  // (1) THE CALL PROCEEDS — no throw on any of the three functions, `other` being a handle `storeCreate`
-  // returned and therefore IN DOMAIN by `PAR-JS-23`'s re-derived `domain` cell.
-  const added = capture(() => api.addConstraint(other, thePair, element));
-  assert.equal(added.threw, false,
-    'a call whose `instance` is the object ANOTHER `storeCreate` call returned PROCEEDS: the position is a '
-    + 'SELECTOR over this package\'s own instance handles, not a predicate over one particular call\'s '
-    + 'product (`PAR-JS-23`\'s `domain` cell; the same shape `§2.10`\'s `listen(instance, address)` pins)');
+  // (1) THE RECEIVER IS THE SELECTOR: the call on `other` carries TWO positions and no third.
+  const added = capture(() => other.addConstraint(thePair, element));
+  assert.equal(added.threw, false, 'the ADD call on `other` proceeds — it carries pair and constraint and nothing else');
   assert.notEqual(added.value, undefined,
-    'and it returns the pair\'s constraint identity like every success of the ADD route (`§2.12` item 3; '
-    + '`PAR-JS-25`)');
-  // (2) IT LANDS IN THE NAMED INSTANCE'S REGISTRY — the drivable observable is a write AT THE NAMED
-  // INSTANCE, which the element now refuses.
-  assert.equal(body.runs, 0, 'PREMISE: the element has not been evaluated yet');
-  const at = body.runs;
-  const atOther = capture(() => api.write(other, thePair.address, 'mem', 1));
-  assert.equal(atOther.threw, true,
-    'the element stands in THE NAMED INSTANCE\'S registry: a write through the instance the call NAMED is '
-    + 'refused by it');
-  assert.equal(body.runs >= at + 1, true,
-    `and it is THAT element\'s body that ran at that write — it ran ${body.runs} time(s)`);
-  const back = capture(() => api.read(other, thePair.address, 'mem'));
-  assert.ok(back.threw === true || back.value !== 1,
-    'and the refused landing does not stand at that address in the named instance');
-  // (3) AND NOT IN THE CALLER'S OWN — driven twice and independently, so neither reading alone is the ground.
-  const atMine = body.runs;
-  const atMineWrite = capture(() => api.write(inst, thePair.address, 'mem', 2));
-  assert.equal(atMineWrite.threw, false,
-    'and THE CALLER\'S OWN INSTANCE CARRIES NOTHING AT THAT PAIR: a write at the same address through the '
-    + 'instance that MADE the call is not gated by the element the call carried (`§2.12` item 1\'s preamble '
-    + 'clause (a): the entry carries a pair if and only if a function stands registered at it)');
-  assert.equal(body.runs, atMine,
-    'and that element was not evaluated at the caller\'s own write: nothing reached it');
-  // (a) THE TOGGLE AT THE CALLER'S OWN INSTANCE REFUSES — the second, independent reading of the same
-  // non-carriage, taken at the route whose observable is its own: it names a pair the caller's entry does
-  // not carry (`§2.12` item 3's second answered question; `PAR-JS-24`'s second declared answer).
-  for (const name of ['constraintOff', 'constraintOn']) {
-    const reached = capture(() => api[name](inst, thePair, element));
-    assert.equal(reached.threw, true,
-      `\`${name}\` at the caller's OWN instance names a pair that entry does not carry and is refused — so `
-      + 'the element did not land in the caller\'s registry (`§2.12` item 3\'s second answered question)');
-    assertNewRefusal(reached.thrown, `\`${name}\` at the caller's own instance for a pair the named one carries`);
+    'and it returns the pair\'s constraint identity like every success of the ADD route (`§2.12` item 3; `PAR-JS-25`)');
+  // (2) NO CALL SHAPE CAN CARRY AN INSTANCE, AND THAT IS DRIVEN: a call whose FIRST position is an instance
+  // object lands it at `pair`, where it is refused — so `inst` cannot be smuggled into `other`'s registry.
+  for (const name of THREE) {
+    const smuggled = capture(() => other[name](inst, thePair, element));
+    assert.equal(smuggled.threw, true,
+      `\`${name}\`: a call naming an instance at its first position carries it at the \`pair\` position `
+      + 'and is REFUSED there — the receiver ruling leaves no position at which an instance could be named '
+      + '(`§2.4` item 9 (f)\'s `A127` clause; `§2.12` item 4)');
+    assertNewRefusal(smuggled.thrown, `\`${name}\` with an instance object at the \`pair\` position`);
   }
-  const still = capture(() => api.write(other, thePair.address, 'mem', 3));
-  assert.equal(still.threw, true,
-    'AND THOSE REFUSALS DID NOT REACH THE NAMED INSTANCE: its pair still stands ENABLED and still refuses');
-  // (b) THE TOGGLE AT THE NAMED INSTANCE IS THE WORKING OBSERVABLE, and it is the named element that moves.
-  assert.equal(api.constraintOff(other, thePair, element), undefined,
-    '`constraintOff` AT THE NAMED INSTANCE answers `undefined` (`§2.12` item 3, the `constraintOff` row)');
-  const after = capture(() => api.write(other, thePair.address, 'mem', 4));
-  assert.equal(after.threw, false,
-    'and a write the disabled element would have refused IS ACCEPTED — THE DISABLE REACHED THE NAMED '
-    + 'INSTANCE\'S REGISTRY and no other (`§2.12` item 3)');
-  assert.deepEqual(Object.keys(after.value ?? {}).sort(), ['op', 'triggered', 'watched'],
-    'and the accepted write is the declared three-member record (`§2.2`\'s signature block)');
-  assert.equal(body.runs, atMine + 1,
-    'and it is the ELEMENT THE NAMED INSTANCE CARRIED that ran, once: the toggle never substituted the '
-    + 'caller\'s argument (`§2.12` item 3)');
-  // (c) THE ENABLE HALF AT THE NAMED INSTANCE, SO THE SELECTOR IS DRIVEN AT ALL THREE OF THE FUNCTIONS THE
-  // DETERMINATION NAMES AND NOT AT ONE ALONE.
-  const atNamed = body.runs;
-  assert.equal(api.constraintOn(other, thePair, element), undefined,
-    '`constraintOn` AT THE NAMED INSTANCE answers `undefined` (`§2.12` item 3, the `constraintOn` row)');
-  const armed = capture(() => api.write(other, thePair.address, 'mem', 5));
-  assert.equal(armed.threw, true,
-    'AND THE ELEMENT IS EVALUATED AGAIN AT THE NAMED INSTANCE\'S OWN WRITE — the enable reached THE NAMED '
-    + 'REGISTRY and no other (`§2.12` item 3)');
-  assert.equal(body.runs, atNamed + 1,
-    'and it is the one element the named instance carried that ran, once, at that write');
-  assert.equal(api.addConstraint(other, thePair, element), added.value,
-    'and THE IDENTITY IS THE PAIR\'S OWN and is not re-minted by the route that reached it — the same '
-    + 'identity the first call returned (`PAR-JS-25`\'s `domain` cell: "equal to itself on a SECOND '
-    + '`addConstraint` at the SAME pair")');
-  // (4) AND NOTHING ABOUT THE CALLER IS CHANGED — read at the two censuses the file's own clauses fix.
-  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), SEVEN_MEMBERS,
-    'the caller\'s own member set stands at its seven declared members: the act landed in another '
-    + 'instance\'s registry and moved no member of this one (`§2.12` item 5; `§2.4` item 9 (f))');
-  assert.equal(Object.keys(api).length, 11,
-    'and the module namespace stands at its eleven declared names, so the selector minted no name '
-    + '(`§2.9` item 1\'s dated clause)');
+  // (3) THE ACT LANDED IN THE RECEIVER'S REGISTRY ALONE — the drivable observable is a write through each
+  // instance, driven independently so neither reading alone is the ground.
+  assert.equal(body.runs, 0, 'PREMISE: the element has not been evaluated yet');
+  const atOther = capture(() => other.write(thePair.address, 'mem', 1));
+  assert.equal(atOther.threw, true,
+    'the element stands in the RECEIVER\'S registry: a write through `other` is refused by it');
+  assert.ok(body.runs >= 1, `and it is THAT element\'s body that ran at that write — it ran ${body.runs} time(s)`);
+  const atMine = capture(() => inst.write(thePair.address, 'mem', 2));
+  assert.equal(atMine.threw, false,
+    'and THE OTHER INSTANCE CARRIES NOTHING AT THAT PAIR: a write at the same address through `inst` is not '
+    + 'gated by the element the call carried (`§2.12` item 1\'s preamble clause (a): the entry carries a pair '
+    + 'if and only if a function stands registered at it)');
+  assert.equal(body.runs, 1, 'and that element was not evaluated at the other instance\'s write: nothing reached it');
+  // (a) THE TOGGLE AT THE OTHER INSTANCE REFUSES — the second, independent reading of the same non-carriage.
+  for (const name of ['constraintOff', 'constraintOn']) {
+    const reached = capture(() => inst[name](thePair, element));
+    assert.equal(reached.threw, true,
+      `\`${name}\` on \`inst\` names a pair its own entry does not carry and is refused — so the element `
+      + 'did not land there (`§2.12` item 3\'s second answered question)');
+    assertNewRefusal(reached.thrown, `\`${name}\` on the instance that does not carry the pair`);
+  }
+  const still = capture(() => other.write(thePair.address, 'mem', 3));
+  assert.equal(still.threw, true, 'and the receiver\'s carriage is unmoved by the refused toggles on the other instance');
 });
 
 test('cp_fail_outside_pair_is_one_typeerror_and_changes_nothing', () => {
+  const inst = makeStore();
   for (const name of THREE) {
-    assert.equal(typeof api[name], 'function',
+    assert.equal(typeof inst[name], 'function',
       `the surface function \`${name}\` exists before its refusals can be read (\`§2.12\` item 2)`);
   }
-  const inst = makeStore();
   const segment = [tag('cp-pair-domain')];
   const OUTSIDE = [
     ['`null`', null], ['`undefined`', undefined], ['a number', 42], ['a string', 'pair'],
@@ -927,28 +916,28 @@ test('cp_fail_outside_pair_is_one_typeerror_and_changes_nothing', () => {
   ];
   for (const name of THREE) {
     for (const [where, value] of OUTSIDE) {
-      const r = capture(() => api[name](inst, value, passing(counter())));
+      const r = capture(() => inst[name](value, passing(counter())));
       assert.equal(r.threw, true, `\`${name}\`: \`pair\` = ${where} is OUTSIDE the key's domain (\`PAR-JS-24\`)`);
       assertNewRefusal(r.thrown, `\`${name}\` \`pair\` = ${where}`);
     }
-    assertNewRefusal(capture(() => api[name](inst)).thrown,
+    assertNewRefusal(capture(() => inst[name]()).thrown,
       `\`${name}\`: \`pair\` and \`constraint\` both ABSENT — one answer, the same for every one of them`);
   }
-  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), SEVEN_MEMBERS,
+  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), TWELVE_MEMBERS,
     'and nothing was added, enabled, disabled or otherwise changed');
 });
 
 test('cp_fail_outside_constraint_is_one_typeerror_at_every_one_of_the_three_functions', () => {
+  const inst = makeStore();
   for (const name of THREE) {
-    assert.equal(typeof api[name], 'function',
+    assert.equal(typeof inst[name], 'function',
       `the surface function \`${name}\` exists before its refusals can be read (\`§2.12\` item 2)`);
   }
-  const inst = makeStore();
   const thePair = pair('cp-constraint-domain', 'c1');
   // `PAR-JS-22`'s outside-value cell names a `PAR-JS-8` LISTENER HANDLE among them; the handle is obtained
   // through the declared route alone (`§2.4` item 9: `on(address, listener) -> handle`). The row's own
   // "an object" and "an array" cells carry the class test a `JournalOp` would take (`G5` above).
-  const handle = inst.on([tag('cp-constraint-handle')], () => {});
+  const handle = (inst.register(inst.listen([tag('cp-constraint-handle')]), () => {}) || inst.listen([tag('cp-constraint-handle')]));
   const OUTSIDE = [
     ['`null`', null], ['`undefined`', undefined], ['a number', 1], ['a string', 'constraint'],
     ['a boolean', true], ['a symbol', Symbol('constraint')], ['a bigint', 1n],
@@ -956,20 +945,20 @@ test('cp_fail_outside_constraint_is_one_typeerror_at_every_one_of_the_three_func
   ];
   for (const name of THREE) {
     for (const [where, value] of OUTSIDE) {
-      const r = capture(() => api[name](inst, thePair, value));
+      const r = capture(() => inst[name](thePair, value));
       assert.equal(r.threw, true,
         `\`${name}\`: \`constraint\` = ${where} is OUTSIDE the position's domain (\`PAR-JS-22\`: "EVERY `
         + 'NON-FUNCTION ... each of them outside AT EVERY ONE OF THE THREE POSITIONS")');
       assertNewRefusal(r.thrown, `\`${name}\` \`constraint\` = ${where}`);
     }
-    const absent = capture(() => api[name](inst, thePair));
+    const absent = capture(() => inst[name](thePair));
     assert.equal(absent.threw, true, `\`${name}\`: \`constraint\` ABSENT is outside it too — the position is REQUIRED`);
     assertNewRefusal(absent.thrown, `\`${name}\` \`constraint\` ABSENT`);
   }
-  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), SEVEN_MEMBERS,
+  assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), TWELVE_MEMBERS,
     'and NOTHING WAS ADDED, ENABLED, DISABLED OR OTHERWISE CHANGED — the pair the refusals named is still '
     + 'not a pair the entry carries, and the instance stands at its seven declared members');
-  const back = capture(() => api.write(inst, thePair.address, 'mem', 1));
+  const back = capture(() => inst.write(thePair.address, 'mem', 1));
   assert.equal(back.threw, false,
     'and the refused third positions left no element at that key: a write there is accepted, so no '
     + 'constraint stands at the pair every one of those refusals named');

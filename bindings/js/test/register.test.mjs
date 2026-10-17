@@ -224,13 +224,13 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
   //     item 5 (e) calls a FINDING — and a REGISTRATION answers the bare `TypeError` of item 5 (d).
   const probe = mem();
   const verbSites = [
-    () => read(probe, ['nope']), //                             AddressNotFound
-    () => read(probe, ['a'], 'secure'), //                      OutOfDomainTier
-    () => write(probe, ['a'], 'secure', 1), //                  OutOfDomainTier
-    () => remove(probe, ['a'], 'secure'), //                    OutOfDomainTier
-    () => listen(probe, 'not-an-address'), //                   AddressMalformed
-    () => write(probe, ['a'], 'mem', () => {}), //              ValueNotAdmitted
-    () => rollback(probe, 'no-such-op'), //                     JournalOpUnknown
+    () => probe.read(['nope']), //                             AddressNotFound
+    () => probe.read(['a'], 'secure'), //                      OutOfDomainTier
+    () => probe.write(['a'], 'secure', 1), //                  OutOfDomainTier
+    () => probe.delete(['a'], 'secure'), //                    OutOfDomainTier
+    () => probe.listen('not-an-address'), //                   AddressMalformed
+    () => probe.write(['a'], 'mem', () => {}), //              ValueNotAdmitted
+    () => probe.rollback('no-such-op'), //                     JournalOpUnknown
   ];
   for (const verb of verbSites) {
     let thrown = null;
@@ -251,11 +251,11 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
   //     so a trace of `['listener', 'after-return']` puts the invocation after the verb's return and before
   //     the statement that follows it (which is what SYNCHRONOUS means here), and never before either.
   const adopted = mem([{ address: ['a'], handle: 'l1' }]);
-  const adoptedHandle = write(adopted, ['a'], 'mem', value(rng.next().value)).triggered[0];
+  const adoptedHandle = adopted.write(['a'], 'mem', value(rng.next().value)).triggered[0];
   const trace = [];
   let adoptedFired = 0;
   let sawCompleteRecord = false;
-  let lastRecord = write(adopted, ['a'], 'mem', value(rng.next().value)); // the caller already holds one
+  let lastRecord = adopted.write(['a'], 'mem', value(rng.next().value)); // the caller already holds one
   if (adopted.register(adoptedHandle, () => {
     adoptedFired += 1;
     sawCompleteRecord =
@@ -265,13 +265,13 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
     return false; // item 5 (b): the return is `undefined` on every success
   }
   trace.length = 0;
-  lastRecord = write(adopted, ['a'], 'mem', value(rng.next().value));
+  lastRecord = adopted.write(['a'], 'mem', value(rng.next().value));
   trace.push('after-return');
   if (adoptedFired !== 1) return false; // rule 1: a registered handle fires
   if (!(trace.length === 2 && trace[0] === 'listener' && trace[1] === 'after-return')) return false;
   if (!sawCompleteRecord) return false; // the record was COMPLETE and copied out before the window opened
   trace.length = 0;
-  lastRecord = write(adopted, ['a'], 'mem', value(rng.next().value));
+  lastRecord = adopted.write(['a'], 'mem', value(rng.next().value));
   if (adoptedFired !== 2) return false; // one invocation per trigger, never two and never none
 
   // --- rule 2: a SECOND registration for the SAME handle REPLACES the first, and drops it without notice.
@@ -284,7 +284,7 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
   }
   let replacementThrew = false;
   try {
-    write(adopted, ['a'], 'mem', value(rng.next().value));
+    adopted.write(['a'], 'mem', value(rng.next().value));
   } catch (err) {
     replacementThrew = err instanceof TypeError && !('status' in err);
   }
@@ -295,25 +295,25 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
   // --- rule 4 (`DD-15`): after `unlisten`, the function "simply never fires again" — while the STORE's
   //     own home entry is gone. The re-`listen` mints a DIFFERENT handle whose registration is a NEW entry.
   const withdrawn = mem();
-  const minted = listen(withdrawn, ['w']);
+  const minted = withdrawn.listen(['w']);
   let before = 0;
   let after = 0;
   withdrawn.register(minted, () => { before += 1; });
-  write(withdrawn, ['w'], 'mem', value(rng.next().value));
+  withdrawn.write(['w'], 'mem', value(rng.next().value));
   if (before !== 1) return false; // the minted handle fires while it stands
-  if (unlisten(withdrawn, minted) !== undefined) return false;
-  const afterWithdrawal = write(withdrawn, ['w'], 'mem', value(rng.next().value));
+  if (withdrawn.unlisten(minted) !== undefined) return false;
+  const afterWithdrawal = withdrawn.write(['w'], 'mem', value(rng.next().value));
   if (afterWithdrawal.triggered.length !== 0) return false; // the STORE-side home entry is withdrawn
   if (before !== 1) return false; // and the function simply never fires again
-  const again = listen(withdrawn, ['w']);
+  const again = withdrawn.listen(['w']);
   if (again === minted) return false; // a DIFFERENT handle
   withdrawn.register(again, () => { after += 1; });
-  write(withdrawn, ['w'], 'mem', value(rng.next().value));
+  withdrawn.write(['w'], 'mem', value(rng.next().value));
   if (after !== 1) return false; // the NEW handle's registration is a NEW entry that fires
 
   // --- rule 1 (unregistered half): a handle with NO registration invokes nothing and reports nothing.
   const silent = mem([{ address: ['s'], handle: 'l-silent' }]);
-  write(silent, ['s'], 'mem', 1); // no registration: no code, no warning, no log, and no throw
+  silent.write(['s'], 'mem', 1); // no registration: no code, no warning, no log, and no throw
 
   // --- rule 3, READ THROUGH `§2.4`'s DATED CLAUSE OF 2026-10-11 (its twin at `contract.md §2.4`), WHICH
   //     SPLITS THE ONE SENTENCE INTO TWO INDEPENDENT OBSERVABLES: **(i) THE INVOCATION COUNT IS THE
@@ -342,7 +342,7 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
     { address: ['d'], handle: 'l-dup' },
     { address: ['d'], handle: 'l-dup' },
   ]);
-  const dupRecord = write(dup, ['d'], 'mem', value(rng.next().value));
+  const dupRecord = dup.write(['d'], 'mem', value(rng.next().value));
   if (dupRecord.triggered.length !== 2) return false; // (ii) THE ARRAY'S MULTIPLICITY IS THE STORE'S: TWICE
   // **MEMBER BY MEMBER, NEVER BY SIZE** (`A77`): each of the two members is the SAME opaque identity, each
   // carrying the caller's own token — so a boundary that collapsed the duplicate to one member breaks HERE,
@@ -354,7 +354,7 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
   let dupFired = 0;
   let dupArgs = null;
   dup.register(dupRecord.triggered[0], (...args) => { dupFired += 1; dupArgs = args; });
-  write(dup, ['d'], 'mem', value(rng.next().value));
+  dup.write(['d'], 'mem', value(rng.next().value));
   if (dupFired !== 1) return false; // once per DISTINCT handle — not one per occurrence, not one per entry
   if (dupArgs === null || dupArgs.length !== 1) return false; // the invocation's view is EXACTLY ONE argument
   if (JSON.stringify(dupArgs[0]) !== JSON.stringify(['d'])) return false; // ...and it is the TRIGGERING address
@@ -364,11 +364,11 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
   //     THE TARGET, THE CLASS AND THE POSITION — and the IN-DOMAIN form is still a SUCCESS, so the predicate
   //     cannot be satisfied by a site that throws on everything.
   const mine = mem([{ address: ['a'], handle: 'l1' }]);
-  const held = write(mine, ['a'], 'mem', 1).triggered[0];
+  const held = mine.write(['a'], 'mem', 1).triggered[0];
   let heldFired = 0;
   if (mine.register(held, () => { heldFired += 1; }) !== undefined) return false;
   const stranger = mem();
-  const fabricated = listen(stranger, ['x']);
+  const fabricated = stranger.listen(['x']);
   // One row per outside class: the site, the failing TARGET's own rendering (item 5 (a)), the CLASS the
   // reason must name (item 5 (b)) and the POSITION (item 5 (b)).
   const outside = [
@@ -399,7 +399,7 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
     }
   }
   // NOTHING REACHES THE STORE IN ANY OF THOSE CASES (`item 5 (d)`), and no other registration is disturbed:
-  const untouched = write(mine, ['a'], 'mem', 2);
+  const untouched = mine.write(['a'], 'mem', 2);
   if (untouched.triggered.length !== 1 || heldFired !== 1) return false;
   return true;
 });
@@ -422,7 +422,7 @@ line(P_SM_5, 'S-REG-DUP', 10, (attempt) => {
     { address: ['a'], handle: 'l1' },
     { address: ['a'], handle: 'l1' },
   ]);
-  const record = write(inst, ['a'], 'mem', 1);
+  const record = inst.write(['a'], 'mem', 1);
   if (record.triggered.length !== 2) return false; // THE STORE'S OWN LIST, CARRIED OUT ELEMENT FOR ELEMENT
   // MEMBER BY MEMBER, NEVER BY SIZE (`A77`): the two members are ONE identity — so a collapse breaks here.
   if (record.triggered[0] !== record.triggered[1]) return false;
@@ -431,7 +431,7 @@ line(P_SM_5, 'S-REG-DUP', 10, (attempt) => {
   let fired = 0;
   let seen = null;
   if (inst.register(record.triggered[0], (...args) => { fired += 1; seen = args; }) !== undefined) return false;
-  write(inst, ['a'], 'mem', 2);
+  inst.write(['a'], 'mem', 2);
   if (fired !== 1) return false; // ONE per DISTINCT handle — never once per occurrence, never once per entry
   if (seen === null || seen.length !== 1) return false; // the invocation's view is EXACTLY ONE argument
   return JSON.stringify(seen[0]) === JSON.stringify(['a']); // ...and it is the TRIGGERING address
@@ -449,8 +449,8 @@ line(P_SM_5, 'S-OPAQUE', 10, (attempt) => {
   // spellings are the two the section declares (`§2.3` item 2: IN is a plain string, OUT is the opaque).**
   const rng = draw(attempt);
   const token = `l${1 + rng.next().value}`; // a caller-spelled token the construction ADOPTS verbatim
-  const minted = listen(mem(), ['x', rng.next().value]);
-  const adopted = write(mem([{ address: ['a'], handle: token }]), ['a'], 'mem', 1).triggered[0];
+  const minted = mem().listen(['x', rng.next().value]);
+  const adopted = mem([{ address: ['a'], handle: token }]).write(['a'], 'mem', 1).triggered[0];
   for (const [label, handle] of [['a MINTED handle', minted], ['an ADOPTED handle', adopted]]) {
     if (handle === null || typeof handle !== 'object') return false; // never the bare token
     if (Object.getPrototypeOf(handle) !== Object.prototype) return false;
@@ -491,9 +491,9 @@ line(P_SM_5, 'S-OPAQUE', 10, (attempt) => {
   // ...and `unlisten` over a bare string is the declared unknown-handle no-op, which is the OTHER half of
   // item 2 the probe keeps.
   const inst = mem();
-  listen(inst, ['y']);
-  const bare = unlisten(inst, 'l1') === undefined && unlisten(inst, token) === undefined;
-  if (write(inst, ['y'], 'mem', 1).triggered.length !== 1) return false; // no other registration removed
+  inst.listen(['y']);
+  const bare = inst.unlisten('l1') === undefined && inst.unlisten(token) === undefined;
+  if (inst.write(['y'], 'mem', 1).triggered.length !== 1) return false; // no other registration removed
   return bare;
 });
 
@@ -516,11 +516,11 @@ line(P_SM_5, 'S-WITHDRAW', 10, () => {
   // withdrawn one, which is why the row's failure list's *"a re-`listen` that re-uses a withdrawn handle"*
   // stays FALSE OF THE BUILD** (`§5.5`).
   const inst = mem();
-  const first = listen(inst, ['a']);
-  unlisten(inst, first);
-  const afterWithdrawal = write(inst, ['a'], 'mem', 1);
-  const again = listen(inst, ['a']);
-  const afterAgain = write(inst, ['a'], 'mem', 2);
+  const first = inst.listen(['a']);
+  inst.unlisten(first);
+  const afterWithdrawal = inst.write(['a'], 'mem', 1);
+  const again = inst.listen(['a']);
+  const afterAgain = inst.write(['a'], 'mem', 2);
   if (!(afterWithdrawal.triggered.length === 0)) return false; // the home entry is gone
   if (!(again !== first)) return false; // THE WITHDRAWN ARM: a FRESH token, never a re-use of the withdrawn one
   if (!(afterAgain.triggered.length === 1)) return false; // ...whose registration is a NEW entry that fires
@@ -536,30 +536,30 @@ line(P_SM_5, 'S-WITHDRAW', 10, () => {
   // the value the repeat returned WITHDRAWS that ONE entry, which a second, separately-registered entry could
   // not leave behind.
   const held = mem();
-  const standing = listen(held, ['a']);
+  const standing = held.listen(['a']);
   let fires = 0;
   held.register(standing, () => { fires += 1; });
-  if (write(held, ['a'], 'mem', 1).triggered.length !== 1) return false; // ONE home entry, ONE handle
+  if (held.write(['a'], 'mem', 1).triggered.length !== 1) return false; // ONE home entry, ONE handle
   if (fires !== 1) return false; // and its function fires for it
   // (a) A NO-OP SUCCESS AHEAD OF THE LATER `listen`: an unknown handle and a FOREIGN instance's value both
   //     remove NOTHING (§2.3 item 4; PAR-JS-8), so the address is still registered when the repeat lands.
   const elsewhere = mem();
-  const foreign = listen(elsewhere, ['a']);
-  if (unlisten(held, 'listener-not-minted-here') !== undefined) return false; // the no-op success, still a success
-  if (unlisten(held, foreign) !== undefined) return false; // a foreign value: the same no-op success
-  if (write(held, ['a'], 'mem', 2).triggered.length !== 1) return false; // ...and it removed NOTHING
+  const foreign = elsewhere.listen(['a']);
+  if (held.unlisten('listener-not-minted-here') !== undefined) return false; // the no-op success, still a success
+  if (held.unlisten(foreign) !== undefined) return false; // a foreign value: the same no-op success
+  if (held.write(['a'], 'mem', 2).triggered.length !== 1) return false; // ...and it removed NOTHING
   // (b) THE REPEAT AT THE STILL-REGISTERED ADDRESS: MINTS NOTHING, returns the EXISTING entry's handle.
-  const repeat = listen(held, ['a']);
+  const repeat = held.listen(['a']);
   if (repeat !== standing) return false; // THE SAME opaque value — no second mint, no new registry entry
   // (c) AND THE NO-NEW-ENTRY HALF, OBSERVED AT THE STORE: ONE home entry still stands, so the trigger carries
   //     that ONE handle ONCE — and the value the REPEAT answered withdraws EXACTLY that entry, which is not
   //     what a second separately-registered value would leave behind.
-  const standingRecord = write(held, ['a'], 'mem', 3);
+  const standingRecord = held.write(['a'], 'mem', 3);
   if (standingRecord.triggered.length !== 1) return false;
   if (standingRecord.triggered[0] !== standing) return false;
   if (fires !== 3) return false; // the SAME identity invoked once per trigger, never a fan-out
-  if (unlisten(held, repeat) !== undefined) return false;
-  if (write(held, ['a'], 'mem', 4).triggered.length !== 0) return false; // NO SECOND ENTRY EXISTS
+  if (held.unlisten(repeat) !== undefined) return false;
+  if (held.write(['a'], 'mem', 4).triggered.length !== 0) return false; // NO SECOND ENTRY EXISTS
   if (fires !== 3) return false; // and the withdrawn identity's function never fires again (rule 4's own half)
   return true;
 });
@@ -571,7 +571,7 @@ const P_TP_7 = row('P-TP-7');
 
 line(P_TP_7, 'S-LOAD', 5, () => {
   const inst = mem();
-  return read(inst, []) !== undefined;
+  return inst.read([]) !== undefined;
 });
 
 line(P_TP_7, 'S-ONE-ADDON', 5, (attempt) => {
@@ -617,11 +617,11 @@ line(P_TP_8, 'S-TRIGGER', 10, (attempt) => {
     { address: [`z${rng.next().value}`], handle: 'at-z' },
   ]);
   // The containers the write runs through are created first: a write's parent is resolved BY ADDRESS.
-  write(inst, ['a'], 'mem', {});
-  write(inst, ['a', 'b'], 'mem', {});
-  const onWrite = write(inst, ['a', 'b', 'c'], 'mem', 1);
+  inst.write(['a'], 'mem', {});
+  inst.write(['a', 'b'], 'mem', {});
+  const onWrite = inst.write(['a', 'b', 'c'], 'mem', 1);
   if (onWrite.triggered.length !== 2) return false;
-  const onDelete = remove(inst, ['a', 'b'], 'mem');
+  const onDelete = inst.delete(['a', 'b'], 'mem');
   return onDelete.triggered.length === 2;
 });
 
@@ -629,16 +629,16 @@ line(P_TP_8, 'S-NOOP', 10, (attempt) => {
   const rng = draw(attempt);
   const owner = mem();
   const stranger = mem();
-  const kept = listen(owner, ['a']);
-  const foreign = listen(stranger, ['a']);
+  const kept = owner.listen(['a']);
+  const foreign = stranger.listen(['a']);
   const noops = [
-    unlisten(owner, foreign) === undefined,
-    unlisten(owner, `listener-${rng.next().value}`) === undefined,
-    unlisten(owner, '') === undefined,
-    unlisten(owner, {}) === undefined,
-    unlisten(owner, null) === undefined,
+    owner.unlisten(foreign) === undefined,
+    owner.unlisten(`listener-${rng.next().value}`) === undefined,
+    owner.unlisten('') === undefined,
+    owner.unlisten({}) === undefined,
+    owner.unlisten(null) === undefined,
   ];
-  const stillFires = write(owner, ['a'], 'mem', 1).triggered.length === 1;
+  const stillFires = owner.write(['a'], 'mem', 1).triggered.length === 1;
   return noops.every(Boolean) && stillFires && kept !== undefined && foreign !== undefined;
 });
 
@@ -675,8 +675,8 @@ line(P_TP_8, 'S-SET', 10, (attempt) => {
     { address: ['a'], handle: 'l1' },
     { address: ['a'], handle: distinct },
   ]);
-  const first = write(inst, ['a'], 'mem', 1);
-  const second = write(inst, ['a'], 'mem', 2);
+  const first = inst.write(['a'], 'mem', 1);
+  const second = inst.write(['a'], 'mem', 2);
   if (first.triggered.length !== 3) return false; // the duplicate is carried TWICE — three entries, three members
   if (second.triggered.length !== 3) return false;
   // MEMBER BY MEMBER: every id of the first enumeration is in the second, and every id of the second is in
@@ -709,7 +709,7 @@ line(P_TP_8, 'S-SET', 10, (attempt) => {
   // three members (two identities) yield exactly TWO invocations — never one per entry.
   let invocations = 0;
   for (const id of first.triggered) inst.register(id, () => { invocations += 1; });
-  write(inst, ['a'], 'mem', 3);
+  inst.write(['a'], 'mem', 3);
   if (invocations !== 2) return false; // one per DISTINCT handle, never one per entry
   // AND THE DUPLICATE CASE ON ITS OWN, with NOTHING but the duplicate: its array carries TWO members of ONE
   // identity, and its ONE function runs ONCE.
@@ -717,14 +717,14 @@ line(P_TP_8, 'S-SET', 10, (attempt) => {
     { address: ['b'], handle: 'l-dup' },
     { address: ['b'], handle: 'l-dup' },
   ]);
-  const dupRecord = write(dup, ['b'], 'mem', 1);
+  const dupRecord = dup.write(['b'], 'mem', 1);
   if (dupRecord.triggered.length !== 2) return false; // the store's own list, carried element for element
   if (dupRecord.triggered[0] !== dupRecord.triggered[1]) return false; // MEMBER BY MEMBER: ONE identity
   if (new Set(dupRecord.triggered).size !== 1) return false; // ...whose distinct-identity count is ONE
   let dupFired = 0;
   let dupArgs = null;
   dup.register(dupRecord.triggered[0], (...args) => { dupFired += 1; dupArgs = args; });
-  write(dup, ['b'], 'mem', 2);
+  dup.write(['b'], 'mem', 2);
   if (dupFired !== 1) return false; // one invocation for the ONE distinct identity
   if (dupArgs === null || dupArgs.length !== 1) return false; // the invocation's view: EXACTLY ONE argument
   return JSON.stringify(dupArgs[0]) === JSON.stringify(['b']); // ...and it is the TRIGGERING address
@@ -746,7 +746,7 @@ line(P_TP_8, 'S-FIRE-WINDOW', 5, () => {
   // and its argument is asserted at the cell that declares it** — no other argument is asserted, because
   // the cell declares none.
   const inst = mem([{ address: ['a'], handle: 'l1' }]);
-  const handle = write(inst, ['a'], 'mem', 1).triggered[0];
+  const handle = inst.write(['a'], 'mem', 1).triggered[0];
   const trace = [];
   let insideWindow = null; // the store's own state AT THE MOMENT the listener runs
   let argCount = -1;
@@ -754,35 +754,35 @@ line(P_TP_8, 'S-FIRE-WINDOW', 5, () => {
   inst.register(handle, (...args) => {
     argCount = args.length;
     argAddress = args[0];
-    insideWindow = read(inst, ['a']);
+    insideWindow = inst.read(['a']);
     trace.push('listener');
   });
   // The listener runs INSIDE this call and the caller's very next statement is the SECOND trace marker:
   // `['listener', 'after-return']` therefore places the invocation after the verb's return and before the
   // statement that follows it. THE RECORD THE CALL RETURNED IS THEN CHECKED COMPLETE below, and the store's
   // own state as the listener found it is checked too — nothing the clause does not fix is asserted.
-  const record = write(inst, ['a'], 'mem', 2);
+  const record = inst.write(['a'], 'mem', 2);
   trace.push('after-return');
   if (!(trace.length === 2 && trace[0] === 'listener' && trace[1] === 'after-return')) return false;
   if (insideWindow !== 2) return false; // the store's call had completed BEFORE the window opened
   if (argCount !== 1) return false; // PAR-JS-12: the triggering ADDRESS, and NO other argument
   if (JSON.stringify(argAddress) !== JSON.stringify(['a'])) return false; // ...and it is the TRIGGERING address
   if (record.triggered.length !== 1 || record.op.after.present !== true) return false; // COMPLETE
-  if (read(inst, ['a']) !== 2) return false; // ...and its result stands
+  if (inst.read(['a']) !== 2) return false; // ...and its result stands
 
   // The throwing-body half (`§2.7` item 4): the exception propagates out of the package's own invocation
   // loop, the write is already complete, and the store is neither rolled back nor altered.
   const thrown = mem([{ address: ['t'], handle: 'l-throw' }]);
-  const thrownHandle = write(thrown, ['t'], 'mem', 1).triggered[0];
+  const thrownHandle = thrown.write(['t'], 'mem', 1).triggered[0];
   let threw = false;
   thrown.register(thrownHandle, () => { throw new Error('the caller\'s own exception'); });
   try {
-    write(thrown, ['t'], 'mem', 2);
+    thrown.write(['t'], 'mem', 2);
   } catch (err) {
     threw = true;
   }
   if (!threw) return false; // NOT caught, NOT retried and NOT reported
-  return read(thrown, ['t']) === 2; // the write stands
+  return thrown.read(['t']) === 2; // the write stands
 });
 
 // =============================================================================================
@@ -845,8 +845,8 @@ test('register_js_side_three_rows_are_executed_with_strategy_ids_and_verdicts', 
     'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
   ];
   const formSites = [
-    ['a VERB', () => read(mem(), ['gone'])],
-    ['a VERB', () => rollback(mem(), 'no-such-op')],
+    ['a VERB', () => mem().read(['gone'])],
+    ['a VERB', () => mem().rollback('no-such-op')],
     ['a VERB', () => storeCreate({ listeners: [] })],
     ['a REGISTRATION', () => storeCreate({ journalLength: 8, listeners: [] }).register(null, () => {})],
   ];

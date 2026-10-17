@@ -82,13 +82,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { write as storeWrite } from 'provident-storeroom';
+// ⟶ RESHAPED: the package namespace carries ONE name (`surface.md §2.9` item 1's `A127` clause; `11 → 1`).
 
 import {
   kernel, makeStore, tag, KC,
   assertLogEntry, assertAttemptReport, assertSeqIncreasesFromOne,
-  capture, entries,
-} from './constraint-kernel-helpers.mjs';
+  capture, entries, noop, } from './constraint-kernel-helpers.mjs';
 
 /**
  * THE WHOLE-SET CITATION, printed into the message of every cell that reads the whole-set clause AT ITS
@@ -118,10 +117,10 @@ const wholeSetLaw =
 function twoHandleFixture({ watch, operation, pairAddress }) {
   const store = makeStore();
   const listenerCalls = [];
-  const listenerHandle = store.on(watch, (address) => { listenerCalls.push(address); });
+  const listenerHandle = (store.register(store.listen(watch), (address) => { listenerCalls.push(address); }) || store.listen(watch));
   const pairCalls = [];
   const pairHandle = register(store, pairAddress, 'p', (ctx) => { pairCalls.push(ctx); return true; });
-  storeWrite(store, watch, 'mem', { [tag('dm-link')]: 1 });
+  store.write(watch, 'mem', { [tag('dm-link')]: 1 });
   const beforeCalls = listenerCalls.length;
   return { store, listenerHandle, listenerCalls, pairHandle, pairCalls, beforeCalls };
 }
@@ -139,7 +138,7 @@ test('ck_dm_the_callers_own_write_returns_the_handle_the_adopted_registration_an
   // S2's own act: the `K-1` pair stands at this address, so the write's returned set carries the
   // registration handle the kernel adopted.
   const pairHandle = register(store, address, 'x', () => true);
-  const written = storeWrite(store, address, 'mem', 1);
+  const written = store.write(address, 'mem', 1);
 
   assert.deepEqual(Object.keys(written).sort(), ['op', 'triggered', 'watched'],
     'the store\'s own write returns its own three members, and the kernel adds no member to it '
@@ -160,12 +159,12 @@ test('ck_dm_the_triggering_address_is_the_operations_own_address_and_never_the_w
   const watch = [tag('dm-w')];
   const operation = [...watch, tag('dm-wo')];
   const listenerCalls = [];
-  const listenerHandle = store.on(watch, (address) => { listenerCalls.push(address); });
+  const listenerHandle = (store.register(store.listen(watch), (address) => { listenerCalls.push(address); }) || store.listen(watch));
   register(store, operation, 'y', () => true);
-  storeWrite(store, watch, 'mem', { [tag('dm-wl')]: 1 }); // the caller's own minting act
+  store.write(watch, 'mem', { [tag('dm-wl')]: 1 }); // the caller's own minting act
   listenerCalls.length = 0;
 
-  const written = storeWrite(store, operation, 'mem', 1);
+  const written = store.write(operation, 'mem', 1);
   assert.equal(written.triggered.includes(listenerHandle), true,
     'the proper-prefix registration is triggered by the operation at its descendant address '
     + '(`§2.1` item 2\'s prefix-test citation: a watched address `W` is triggered by an operation at `X` '
@@ -362,11 +361,11 @@ test('ck_dm_on_a_throwing_arm_the_callers_loop_performs_no_invocation_for_a_hand
   // §2.4` item 8 (ii) (e)), while `K-1`'s return is the store's own home handle for the address it
   // registered at — the handle the write at that address returns (`kernel-surface.md §2.1` item 2).
   const listenerBody = (address) => { listenerCalls.push(address); };
-  const listenerHandle = store.on(watch, listenerBody);
+  const listenerHandle = (store.register(store.listen(watch), listenerBody) || store.listen(watch));
   let pairRuns = 0;
   const pairBody = () => { pairRuns += 1; return false; };
   const pairHandle = register(store, operation, 'x', pairBody);
-  storeWrite(store, watch, 'mem', { [tag('dm-fl')]: 1 });
+  store.write(watch, 'mem', { [tag('dm-fl')]: 1 });
   listenerCalls.length = 0; // the minting write is the caller's own act and not this arm's window
 
   const record = commit(store, operation, 'mem', 1);
@@ -568,7 +567,7 @@ test('ck_dm_a_rolled_back_writes_triggered_set_is_discarded_rather_than_carried'
   // repair registered for its id, is arm (c)'s violation (`fail-surface.md §2`'s `KC-3` row;
   // `attempt-lifecycle.md §2.4` item 4).
   register(store, operation, 'x', () => ({ message: 'the value is invalid and no repair is registered' }));
-  storeWrite(store, watch, 'mem', { [tag('dm-hl')]: 1 });
+  store.write(watch, 'mem', { [tag('dm-hl')]: 1 });
 
   const record = commit(store, operation, 'mem', 1);
   const outcome = capture(() => runAttempt(store, record));
@@ -642,9 +641,9 @@ test('ck_dm_a_writes_whole_returned_set_stands_in_pending_at_the_moment_the_reco
   const watch = [tag('dm-i')];
   const operation = [...watch, tag('dm-io')];
   const listenerCalls = [];
-  const listenerHandle = store.on(watch, (address) => { listenerCalls.push(address); });
+  const listenerHandle = (store.register(store.listen(watch), (address) => { listenerCalls.push(address); }) || store.listen(watch));
   const pairHandle = register(store, operation, 'x', () => true);
-  storeWrite(store, watch, 'mem', { [tag('dm-il')]: 1 }); // the caller's own minting act for the watcher
+  store.write(watch, 'mem', { [tag('dm-il')]: 1 }); // the caller's own minting act for the watcher
   listenerCalls.length = 0;
 
   const record = commit(store, operation, 'mem', 1);
@@ -814,8 +813,8 @@ test('ck_dm_the_callers_loop_is_one_invoker_and_the_kernel_runs_a_pair_body_in_i
   const store = makeStore();
   register(store, attemptAddress, 'x', (ctx) => { kernelRuns.push(ctx.address); return true; });
   const storeDeliveries = [];
-  const listenerHandle = store.on(watch, (arg) => { storeDeliveries.push(arg); });
-  storeWrite(store, watch, 'mem', { [tag('dm-ml')]: 1 }); // the caller's own minting act
+  const listenerHandle = (store.register(store.listen(watch), (arg) => { storeDeliveries.push(arg); }) || store.listen(watch));
+  store.write(watch, 'mem', { [tag('dm-ml')]: 1 }); // the caller's own minting act
   storeDeliveries.length = 0;
   const record = commit(store, attemptAddress, 'mem', 1);
 

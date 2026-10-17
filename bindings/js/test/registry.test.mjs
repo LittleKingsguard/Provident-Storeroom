@@ -33,7 +33,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { storeCreate, read, write, delete as remove, listen, unlisten } from 'provident-storeroom';
+import { storeCreate } from 'provident-storeroom';
 
 function mem(listeners = []) {
   return storeCreate({ journalLength: 8, listeners });
@@ -45,7 +45,7 @@ function mem(listeners = []) {
 
 test('handle_the_construction_takes_a_plain_string_and_the_return_value_is_opaque', () => {
   const inst = mem([{ address: ['a'], handle: 'l1' }]);
-  const record = write(inst, ['a'], 'mem', 1);
+  const record = inst.write(['a'], 'mem', 1);
   const returned = record.triggered[0];
   assert.equal(record.triggered.length, 1);
   assert.notEqual(typeof returned, 'string', 'the returned handle is NOT the token string (DD-14)');
@@ -53,7 +53,7 @@ test('handle_the_construction_takes_a_plain_string_and_the_return_value_is_opaqu
 
 test('handle_the_returned_token_is_readable_by_no_js_code', () => {
   const inst = mem([{ address: ['a'], handle: 'l1' }]);
-  const returned = write(inst, ['a'], 'mem', 1).triggered[0];
+  const returned = inst.write(['a'], 'mem', 1).triggered[0];
   const spellings = [
     String(returned),
     JSON.stringify(returned),
@@ -93,11 +93,11 @@ test('handle_the_returned_token_is_readable_by_no_js_code', () => {
 // `docs/specs/storeroom-js/`, reported to the supervisor.
 test('handle_a_repeat_listen_at_a_registered_address_returns_the_entries_own_handle', () => {
   const inst = mem();
-  const minted = listen(inst, ['a']);
-  const repeat = listen(inst, ['a']);
+  const minted = inst.listen(['a']);
+  const repeat = inst.listen(['a']);
   // **NO SECOND ENTRY EXISTS:** `A45`'s one home holds ONE entry per address, so ONE write at that address
   // triggers EXACTLY ONE handle — never two, and never none.
-  const first = write(inst, ['a'], 'mem', 1);
+  const first = inst.write(['a'], 'mem', 1);
   assert.equal(first.triggered.length, 1, '`§6.5` item 8 (a): ONE home entry per address, so ONE handle');
   // **AND THE REPEAT HANDS BACK THE VERY VALUE THE FIRST CALL RETURNED — `===`, WHICH IS WHAT `§2.3` ITEM 2
   // MAKES ASSERTABLE AND `§5.5`'s STILL-REGISTERED ARM REQUIRES** (*"MINTS NOTHING and RETURNS THE EXISTING
@@ -117,12 +117,12 @@ test('handle_a_repeat_listen_at_a_registered_address_returns_the_entries_own_han
   // handed (`§6.5` item 12's *"which is why `unlisten` over the returned handle removes exactly one entry"*),
   // so withdrawing the REPEAT's value withdraws the address's registration — which IS NOT what a second,
   // separately-minted entry would leave behind.
-  assert.equal(unlisten(inst, repeat), undefined);
-  const after = write(inst, ['a'], 'mem', 2);
+  assert.equal(inst.unlisten(repeat), undefined);
+  const after = inst.write(['a'], 'mem', 2);
   assert.deepEqual(after.triggered, [], 'the repeat\'s value names the entry the first `listen` minted');
   // ...and the FIRST call's value names that same, now-withdrawn entry: the two calls name ONE entry, and the
   // withdrawal over an already-removed entry is the ordinary no-op success (`§2.3` item 4).
-  assert.equal(unlisten(inst, minted), undefined);
+  assert.equal(inst.unlisten(minted), undefined);
   assert.ok(minted !== undefined && repeat !== undefined, 'both calls returned handles, never a unit');
 });
 
@@ -133,23 +133,23 @@ test('handle_a_repeat_listen_at_a_registered_address_returns_the_entries_own_han
 test('handle_a_mint_is_unique_per_process_and_two_addresses_on_one_instance_differ', () => {
   const owner = mem();
   const other = mem();
-  const atA = listen(owner, ['a']);
-  const atB = listen(owner, ['b']);
+  const atA = owner.listen(['a']);
+  const atB = owner.listen(['b']);
   assert.ok(atA !== atB, '`§2.3` item 1: two mints are two tokens, and no mint repeats another');
   // BINDING IS BY ADDRESS AND BY NOTHING ELSE (`§6.5` item 10 (b)): each registration fires for its own
   // address alone — and a write at an address no registration is a prefix of fires nothing (`§6.5` item 3).
-  assert.equal(write(owner, ['a'], 'mem', 1).triggered.length, 1);
-  assert.equal(write(owner, ['b'], 'mem', 1).triggered.length, 1);
-  assert.deepEqual(write(owner, ['c'], 'mem', 1).triggered, []);
+  assert.equal(owner.write(['a'], 'mem', 1).triggered.length, 1);
+  assert.equal(owner.write(['b'], 'mem', 1).triggered.length, 1);
+  assert.deepEqual(owner.write(['c'], 'mem', 1).triggered, []);
   // THE SAME ADDRESS ON A SECOND INSTANCE IS A SECOND MINT, and the two are DISTINGUISHABLE — which is what
   // `A69`'s per-process domain means across instances (`§2.3` item 1: *"in ANY other instance of THIS
   // process"*): the foreign value names NO entry of this one.
-  const foreign = listen(other, ['a']);
+  const foreign = other.listen(['a']);
   assert.ok(foreign !== atA, 'the same address on another instance is another mint');
   // `unlisten` over the foreign value is the declared NO-OP SUCCESS and removes NOTHING here (`§2.3` item 4;
   // `PAR-JS-8`'s *"a value a FOREIGN instance minted"*), so the owner's own registration still fires.
-  assert.equal(unlisten(owner, foreign), undefined);
-  assert.equal(write(owner, ['a'], 'mem', 2).triggered.length, 1, 'NO OTHER REGISTRATION IS REMOVED');
+  assert.equal(owner.unlisten(foreign), undefined);
+  assert.equal(owner.write(['a'], 'mem', 2).triggered.length, 1, 'NO OTHER REGISTRATION IS REMOVED');
   // **⟶ AND AT THE REGISTRATION SITE THE SAME CLASS ANSWERS THE OPERATIVE DECLARED FORM — RE-DERIVED
   // 2026-10-11, BECAUSE THE AS-FILED CELL ASSERTED A FORM THE CLAUSE HAS SINCE RE-SPELLED.**
   //
@@ -187,12 +187,12 @@ test('handle_a_mint_is_unique_per_process_and_two_addresses_on_one_instance_diff
       err.message.includes('plain object') && // ...and the CLASS that failed (item 5 (b), mandatory)
       err.message.includes('THIS INSTANCE'), // ...and WHY: the site admits this instance's opaque spelling alone
   );
-  assert.equal(write(owner, ['a'], 'mem', 3).triggered.length, 1, 'nothing reached the store on that case');
+  assert.equal(owner.write(['a'], 'mem', 3).triggered.length, 1, 'nothing reached the store on that case');
 });
 
 test('handle_a_caller_spelled_token_is_adopted_verbatim_and_is_lawful', () => {
   const inst = mem([{ address: ['a'], handle: 'listener-1' }]);
-  const record = write(inst, ['a'], 'mem', 1);
+  const record = inst.write(['a'], 'mem', 1);
   assert.equal(record.triggered.length, 1, 'A69: the construction ADOPTS the caller\'s tokens verbatim');
 });
 
@@ -209,34 +209,34 @@ test('handle_a_blank_token_is_outside_the_domain_at_the_construction', () => {
 
 test('registry_rule_4_unlisten_over_a_bare_string_is_an_unknown_handle_and_a_no_op_success', () => {
   const inst = mem([{ address: ['a'], handle: 'l1' }]);
-  listen(inst, ['b']);
-  assert.equal(unlisten(inst, 'l1'), undefined, 'a bare string is an UNKNOWN handle');
-  assert.equal(unlisten(inst, 'listener-1'), undefined);
-  assert.equal(unlisten(inst, ''), undefined, 'a blank token is the same no-op success');
+  inst.listen(['b']);
+  assert.equal(inst.unlisten('l1'), undefined, 'a bare string is an UNKNOWN handle');
+  assert.equal(inst.unlisten('listener-1'), undefined);
+  assert.equal(inst.unlisten(''), undefined, 'a blank token is the same no-op success');
   // NO OTHER REGISTRATION IS REMOVED: the `b` mint still fires.
-  const record = write(inst, ['b'], 'mem', 2);
+  const record = inst.write(['b'], 'mem', 2);
   assert.equal(record.triggered.length, 1);
 });
 
 test('registry_rule_4_unlisten_over_a_foreign_handle_fabricated_or_non_opaque_is_a_no_op_success', () => {
   const owner = mem();
   const foreign = mem();
-  const kept = listen(owner, ['a']);
-  const foreignHandle = listen(foreign, ['a']);
-  assert.equal(unlisten(owner, foreignHandle), undefined, 'a foreign instance\'s value is a no-op success');
-  assert.equal(unlisten(owner, 42), undefined, 'a non-opaque value is a no-op success');
-  assert.equal(unlisten(owner, {}), undefined);
-  assert.equal(unlisten(owner, undefined), undefined, 'an absent handle is a no-op success');
-  const record = write(owner, ['a'], 'mem', 1);
+  const kept = owner.listen(['a']);
+  const foreignHandle = foreign.listen(['a']);
+  assert.equal(owner.unlisten(foreignHandle), undefined, 'a foreign instance\'s value is a no-op success');
+  assert.equal(owner.unlisten(42), undefined, 'a non-opaque value is a no-op success');
+  assert.equal(owner.unlisten({}), undefined);
+  assert.equal(owner.unlisten(undefined), undefined, 'an absent handle is a no-op success');
+  const record = owner.write(['a'], 'mem', 1);
   assert.equal(record.triggered.length, 1, 'NO OTHER REGISTRATION IS REMOVED');
   assert.ok(kept !== undefined && kept !== foreignHandle);
 });
 
 test('registry_the_withdrawal_removes_the_store_side_home_entry_and_never_the_function', () => {
   const inst = mem();
-  const handle = listen(inst, ['a']);
-  unlisten(inst, handle);
-  const record = write(inst, ['a'], 'mem', 1);
+  const handle = inst.listen(['a']);
+  inst.unlisten(handle);
+  const record = inst.write(['a'], 'mem', 1);
   assert.deepEqual(
     record.triggered,
     [],
@@ -270,14 +270,14 @@ test('registry_the_withdrawal_removes_the_store_side_home_entry_and_never_the_fu
   // WITHDRAWN handle's function "simply never fires again" — is driven at `register.test.mjs`'s `S-REG` line,
   // which reaches the registration site `§2.4` item 5 declared; this cell keeps the STORE-side half it can
   // reach.)
-  const again = listen(inst, ['a']);
+  const again = inst.listen(['a']);
   assert.ok(
     again !== handle,
     '§5.5\'s WITHDRAWN arm: the `unlisten` ABOVE removed the address\'s home entry, so this re-`listen` ' +
       'mints a FRESH handle — *"a later `listen` at that address MINTS A FRESH token"* — and it is NOT the ' +
       'still-registered arm, where the SAME opaque value would come back',
   );
-  const second = write(inst, ['a'], 'mem', 2);
+  const second = inst.write(['a'], 'mem', 2);
   assert.equal(second.triggered.length, 1);
 });
 
@@ -292,11 +292,11 @@ test('registry_the_triggered_handle_set_is_exactly_the_prefix_set_descendant_inc
     { address: ['zzz'], handle: 'at-zzz' },
   ]);
   // The containers the write runs through are created first: a write's parent is resolved BY ADDRESS.
-  write(inst, ['a'], 'mem', {});
-  write(inst, ['a', 'b'], 'mem', {});
-  const record = write(inst, ['a', 'b', 'c'], 'mem', 1);
+  inst.write(['a'], 'mem', {});
+  inst.write(['a', 'b'], 'mem', {});
+  const record = inst.write(['a', 'b', 'c'], 'mem', 1);
   assert.equal(record.triggered.length, 2, 'the prefix set, descendant-inclusive, on a WRITE');
-  const outside = write(inst, ['q'], 'mem', 1);
+  const outside = inst.write(['q'], 'mem', 1);
   assert.deepEqual(outside.triggered, [], 'a write outside every registration\'s scope fires nothing');
 });
 
@@ -305,8 +305,8 @@ test('registry_a_delete_fires_its_own_triggered_set_on_the_same_prefix_test', ()
     { address: ['a'], handle: 'at-a' },
     { address: ['zzz'], handle: 'at-zzz' },
   ]);
-  write(inst, ['a'], 'mem', 1);
-  const receipt = remove(inst, ['a'], 'mem');
+  inst.write(['a'], 'mem', 1);
+  const receipt = inst.delete(['a'], 'mem');
   assert.equal(receipt.triggered.length, 1, 'A43: a delete FIRES');
   assert.deepEqual(receipt.tiers, ['mem']);
 });
@@ -405,8 +405,8 @@ test('registry_a_lawful_duplicate_token_fires_once_for_the_distinct_handle', () 
     { address: ['a'], handle: 'l1' },
     { address: ['a'], handle: 'l1' },
   ]);
-  const held = listen(inst, ['a']);
-  const record = write(inst, ['a'], 'mem', 1);
+  const held = inst.listen(['a']);
+  const record = inst.write(['a'], 'mem', 1);
 
   // (2) THE INVOCATION IS THE PACKAGE'S — ONE PER DISTINCT IDENTITY, however many occurrences carry it:
   // **"not one per occurrence, and not one per entry"**, the as-filed wording, asserted where it belongs.
@@ -422,7 +422,7 @@ test('registry_a_lawful_duplicate_token_fires_once_for_the_distinct_handle', () 
     invocations += 1;
     seen.push({ argc: arguments.length, address: args[0] });
   });
-  write(inst, ['a'], 'mem', 2);
+  inst.write(['a'], 'mem', 2);
   assert.equal(
     invocations,
     1,
@@ -442,13 +442,13 @@ test('registry_a_lawful_duplicate_token_fires_once_for_the_distinct_handle', () 
     { address: ['a'], handle: 'x1' },
     { address: ['a'], handle: 'x2' },
   ]);
-  const first = write(distinct, ['a'], 'mem', 1);
+  const first = distinct.write(['a'], 'mem', 1);
   assert.equal(first.triggered.length, 2, 'two entries, two tokens: the store returns BOTH');
   assert.equal(new Set(first.triggered).size, 2, '...and they are TWO distinct identities, never one twice');
   const fired = new Map();
   for (const id of first.triggered) fired.set(id, 0);
   for (const id of first.triggered) distinct.register(id, () => { fired.set(id, fired.get(id) + 1); });
-  const second = write(distinct, ['a'], 'mem', 2);
+  const second = distinct.write(['a'], 'mem', 2);
   assert.equal(second.triggered.length, 2, 'the distinct identities stand on the second write too');
   assert.equal(fired.size, 2, 'two registrations, two DISTINCT identities');
   for (const count of fired.values()) {
@@ -480,7 +480,7 @@ test('registry_a_lawful_duplicate_token_fires_once_for_the_distinct_handle', () 
   // entry the clause declares does NOT arise.** In THIS state the assertion is robust to WHICH of the two
   // entries the lookup names, because both construction entries carry the one caller-spelled token and both
   // therefore wrap to the one value (`DD-39`'s duplicate case; `§2.4` rule 3).
-  const repeat = listen(inst, ['a']);
+  const repeat = inst.listen(['a']);
   assert.equal(
     repeat,
     held,
@@ -492,7 +492,7 @@ test('registry_a_lawful_duplicate_token_fires_once_for_the_distinct_handle', () 
   // entries are KEPT) and this figure would move off `2`; a wrapper that lost the identity would put a
   // different value in the members and the two `===` assertions below would move. **NO ORDER IS ASSERTED**
   // (`§2.7` item 3; `DD-37`), and the members are read one by one, never by size alone.
-  const afterRepeat = write(inst, ['a'], 'mem', 3).triggered;
+  const afterRepeat = inst.write(['a'], 'mem', 3).triggered;
   assert.equal(
     afterRepeat.length,
     2,
@@ -509,8 +509,8 @@ test('registry_the_triggered_set_is_compared_as_a_set_and_no_order_is_asserted',
     { address: ['a'], handle: 'l2' },
     { address: ['a'], handle: 'l3' },
   ]);
-  const first = write(inst, ['a'], 'mem', 1);
-  const second = write(inst, ['a'], 'mem', 2);
+  const first = inst.write(['a'], 'mem', 1);
+  const second = inst.write(['a'], 'mem', 2);
   assert.equal(first.triggered.length, 3);
   // Membership only: the two enumerations may differ and no drive may treat that as a failure (DD-22).
   assert.equal(new Set(first.triggered).size, new Set(second.triggered).size);
@@ -523,39 +523,39 @@ test('registry_the_triggered_set_is_compared_as_a_set_and_no_order_is_asserted',
 
 test('delivery_the_record_is_complete_before_the_window_opens', () => {
   const inst = mem([{ address: ['a'], handle: 'l1' }]);
-  const record = write(inst, ['a'], 'mem', 1);
+  const record = inst.write(['a'], 'mem', 1);
   // Everything the window could need is already in the returned value: the handle set, the watched
   // addresses, the op and the state halves — no member is filled in later.
   assert.equal(record.triggered.length, 1);
   assert.deepEqual(record.watched, [['a']]);
   assert.equal(record.op.after.present, true);
-  assert.equal(read(inst, ['a']), 1, 'the store\'s result is COMPLETE and copied out');
+  assert.equal(inst.read(['a']), 1, 'the store\'s result is COMPLETE and copied out');
 });
 
 test('delivery_unlisten_returns_the_unit_on_success_including_its_no_op_success', () => {
   const inst = mem();
-  const handle = listen(inst, ['a']);
-  assert.equal(unlisten(inst, handle), undefined);
-  assert.equal(unlisten(inst, 'not-a-handle'), undefined, 'its no-op success returns the same unit');
-  assert.equal(unlisten(inst, 'not-a-handle'), undefined, 'and it is idempotent');
+  const handle = inst.listen(['a']);
+  assert.equal(inst.unlisten(handle), undefined);
+  assert.equal(inst.unlisten('not-a-handle'), undefined, 'its no-op success returns the same unit');
+  assert.equal(inst.unlisten('not-a-handle'), undefined, 'and it is idempotent');
 });
 
 test('delivery_listen_carries_no_tier_qualifier_its_address_is_the_whole_of_its_key', () => {
   const inst = mem();
-  const handle = listen(inst, ['a', 'b']);
-  write(inst, ['a'], 'mem', {});
-  write(inst, ['a', 'b'], 'mem', {});
-  const atDepth = write(inst, ['a', 'b', 'c'], 'mem', 1);
+  const handle = inst.listen(['a', 'b']);
+  inst.write(['a'], 'mem', {});
+  inst.write(['a', 'b'], 'mem', {});
+  const atDepth = inst.write(['a', 'b', 'c'], 'mem', 1);
   assert.equal(atDepth.triggered.length, 1, 'the listener binds by ADDRESS alone');
-  const sibling = write(inst, ['a'], 'mem', 1);
+  const sibling = inst.write(['a'], 'mem', 1);
   assert.deepEqual(sibling.triggered, [], 'a write ABOVE the registration does not fire it');
   assert.ok(handle !== undefined);
 });
 
 test('delivery_the_watched_member_is_a_list_of_addresses_and_never_a_list_of_handles', () => {
   const inst = mem([{ address: ['a'], handle: 'l1' }]);
-  write(inst, ['a'], 'mem', {});
-  const record = write(inst, ['a', 'b'], 'mem', 1);
+  inst.write(['a'], 'mem', {});
+  const record = inst.write(['a', 'b'], 'mem', 1);
   assert.deepEqual(record.watched, [['a']], 'PAR-JS-14: an address is a SEGMENT LIST');
   for (const address of record.watched) assert.ok(Array.isArray(address));
 });

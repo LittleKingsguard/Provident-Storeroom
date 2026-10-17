@@ -43,8 +43,7 @@ import assert from 'node:assert/strict';
 import {
   kernel, makeStore, tag, KC, STORE_CODES, KC_TOKENS,
   assertAttemptRef, assertKernelForm, assertLogEntry, assertSeqIncreasesFromOne,
-  assertAttemptReport, assertStoreRefusal, capture, entries, checkIds,
-} from './constraint-kernel-helpers.mjs';
+  assertAttemptReport, assertStoreRefusal, capture, entries, checkIds, noop, } from './constraint-kernel-helpers.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // §1  `K-1` `register` — EVERY ARGUMENT'S DOMAIN, AND THE HANDLE IT ADOPTS
@@ -77,7 +76,7 @@ test('ck_surface_K1_a_lawful_registration_returns_the_store_s_own_adopted_handle
   assert.equal(again, handle,
     'a second registration at the SAME address answers the SAME adopted handle: the store\'s `listen` '
     + 'is idempotent at the address level and returns the existing entry\'s handle (`§2.1` item 1)');
-  const same = store.on(address, () => {});
+  const same = (store.register(store.listen(address), () => {}) || store.listen(address));
   assert.equal(same, handle,
     'the kernel ADOPTS the store\'s own home entry for the address and mints no token of its own: the '
     + 'store\'s own verb answers the kernel\'s own value, so the two are the ONE value');
@@ -148,7 +147,7 @@ test('ck_surface_K1_the_empty_address_is_in_the_store_s_domain', async () => {
   // verb adopted for that address, `===` to it (`A: bindings/js/index.d.ts`: `Handle = object`).
   assert.notEqual(handle, undefined,
     'the empty array is inside the address domain (§2.1: "the empty array included"), so it is admitted and not KC-1');
-  assert.equal(store.on([], () => {}), handle,
+  assert.equal((store.register(store.listen([]), () => {}) || store.listen([])), handle,
     'and the admitted address answers the store\'s own adopted handle — one value, adopted and never minted');
 });
 

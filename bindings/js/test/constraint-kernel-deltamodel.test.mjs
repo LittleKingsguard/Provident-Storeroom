@@ -126,13 +126,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { write as storeWrite, read as storeRead } from 'provident-storeroom';
+// ⟶ RESHAPED: the package namespace carries ONE name (`surface.md §2.9` item 1's `A127` clause; `11 → 1`).
 
 import {
   kernel, makeStore, tag, KC,
   assertKernelForm, assertLogEntry, assertSeqIncreasesFromOne,
-  capture, entries, countingListener, checkIds,
-} from './constraint-kernel-helpers.mjs';
+  capture, entries, countingListener, checkIds, noop, } from './constraint-kernel-helpers.mjs';
 
 // ── `NEG-DM-05`'s OWN READING AID, SO THE FAILURE PRINTS THE HANDLE AND NOT A COUNT ─────────────
 // The entries of the failed write's returned set that are STILL STANDING in `pending` after the arm,
@@ -167,14 +166,14 @@ test('ck_neg_dm_01_throwing_arm_prefix_listener_discard_extent', async () => {
   const store = makeStore({ journalLength: 16 });
   const ancestor = [tag('dm01a')];
   const own = [...ancestor, tag('dm01o')];
-  storeWrite(store, ancestor, 'mem', { seed: 'the ancestor home entry stands' });
+  store.write(ancestor, 'mem', { seed: 'the ancestor home entry stands' });
   const root = countingListener();
-  const ancestorHandle = store.on(ancestor, root);
+  const ancestorHandle = (store.register(store.listen(ancestor), root) || store.listen(ancestor));
   register(store, own, 'x', () => ({ message: 'x is invalid and registers no repair' }));
   // THE REGISTRATION STANDS AFTER `K-1` AT THE WRITE'S OWN ADDRESS, because the store holds ONE function
   // per address and a pair registered there would displace it (`§2.4` item 5 (iii)).
   const ownListener = countingListener();
-  const ownHandle = store.on(own, ownListener);
+  const ownHandle = (store.register(store.listen(own), ownListener) || store.listen(own));
 
   const record = commit(store, own, 'mem', 'v');
 
@@ -360,7 +359,7 @@ test('ck_neg_dm_02_pass_exits_at_repair_unevaluated_handle', async () => {
   const store = makeStore({ journalLength: 16 });
   const ancestor = [tag('dm02a')];
   const own = [...ancestor, tag('dm02o')];
-  storeWrite(store, ancestor, 'mem', { seed: 'the ancestor home entry stands' });
+  store.write(ancestor, 'mem', { seed: 'the ancestor home entry stands' });
 
   let p1Runs = 0;
   let p2Runs = 0;
@@ -371,7 +370,7 @@ test('ck_neg_dm_02_pass_exits_at_repair_unevaluated_handle', async () => {
         repair: () => ({
           ok: true,
           message: 'p1 was repaired at the attempt\'s own address',
-          op: storeWrite(store, own, 'mem', 'fixed').op,
+          op: store.write(own, 'mem', 'fixed').op,
         }),
         message: 'p1 is invalid on the committed value',
       };
@@ -381,9 +380,9 @@ test('ck_neg_dm_02_pass_exits_at_repair_unevaluated_handle', async () => {
   register(store, own, 'p2', () => { p2Runs += 1; return { message: 'p2 is invalid and registers no repair' }; });
 
   const root = countingListener();
-  const ancestorHandle = store.on(ancestor, root);
+  const ancestorHandle = (store.register(store.listen(ancestor), root) || store.listen(ancestor));
   const ownListener = countingListener();
-  const ownHandle = store.on(own, ownListener);
+  const ownHandle = (store.register(store.listen(own), ownListener) || store.listen(own));
   const ownBeforeCommit = ownListener.seen.length;
 
   const record = commit(store, own, 'mem', 'v');
@@ -543,7 +542,7 @@ test('ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_a
   const rootAddress = [tag('dm03r')];
   const outerAddress = [...rootAddress, tag('dm03o')];
   const descendantAddress = [...outerAddress, tag('dm03d')];
-  storeWrite(store, rootAddress, 'mem', { seed: { container: 'the root home entry stands as a container' } });
+  store.write(rootAddress, 'mem', { seed: { container: 'the root home entry stands as a container' } });
 
   // ── THE WITHDRAWAL'S OWN OBSERVER — A PLAIN BODY AT A PROPER PREFIX OF THE WRITE UNDER TEST ──────
   // Its handle IS a member of that write's returned set (the store's trigger selection is
@@ -551,7 +550,7 @@ test('ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_a
   // inside `K-2`'s window. IT IS KEPT AS THE WITHDRAWAL'S OWN MEASUREMENT — never as an assertion that
   // it stands in the window, which is the half `A115` (D2) / `A116` (D1) (a) withdraw.
   let bodyCalls = 0;
-  const listenerHandle = store.on(rootAddress, () => { bodyCalls += 1; });
+  const listenerHandle = (store.register(store.listen(rootAddress), () => { bodyCalls += 1; }) || store.listen(rootAddress));
 
   // ── THE BODY THE PASS ITSELF REACHES: THE CONSTRAINT BODY OF THE PAIR AT THE HELD ADDRESS ───────
   // It is invoked by the kernel's own layer (a) evaluation, inside the pass, while the attempt stands
@@ -590,7 +589,7 @@ test('ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_a
   const outer = capture(() => commit(store, outerAddress, 'mem', { seed: 'the outer write' }));
   // THE OUTER WRITE'S OWN VALUE AT THE HELD ADDRESS, read back through the store's own verb: the baseline
   // the refused call's landing would have moved (`§2.1` item 2's "the store sees no write at all").
-  const heldValueBefore = storeRead(store, outerAddress);
+  const heldValueBefore = store.read(outerAddress);
   assert.equal(heldValueBefore.seed, 'the outer write',
     'the fixture\'s own write landed at the held address, so the address the live attempt holds carries '
     + 'THIS WRITE\'S value and no other at that member — read ' + JSON.stringify(heldValueBefore.seed));
@@ -632,7 +631,7 @@ test('ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_a
     + 'attempt is REFUSED with `KC-7` … and the refusal happens BEFORE the write verb is reached, so the '
     + 'store sees no write at all" (`§2.1` item 2; `attempt-lifecycle.md §2.4` item 8 (ii) (a)) — read '
     + (heldAgain && heldAgain.threw ? JSON.stringify(heldAgain.thrown.status) : 'it returned a record'));
-  const heldValueAfter = storeRead(store, outerAddress);
+  const heldValueAfter = store.read(outerAddress);
   // THE HELD ADDRESS'S OWN VALUE IS READ THROUGH THE MEMBER THE OUTER WRITE SET, AND NOT THROUGH THE
   // ASSEMBLED BRANCH: `read` returns "the assembled JSON of a branch" (`storeroom-native/contract.md
   // §8.1` #8), and the ADMITTED limb's own write landed UNDER this address — so the child the
@@ -871,9 +870,9 @@ test('ck_neg_dm_05_the_failing_arms_discard_reaches_every_handle_of_the_failed_w
   // S1's OWN EARLIER CALLER WRITE: it lands the prefix address's home entry and carries back the handle
   // this write returns again — its body being the store's own delivery and never a pass's
   // (`kernel-surface.md §2.1` item 2 (ii)).
-  storeWrite(store, prefix, 'mem', { seed: 'the prefix registration\'s own earlier caller write' });
+  store.write(prefix, 'mem', { seed: 'the prefix registration\'s own earlier caller write' });
   const prefixBody = countingListener();
-  const prefixHandle = store.on(prefix, prefixBody);
+  const prefixHandle = (store.register(store.listen(prefix), prefixBody) || store.listen(prefix));
   const prefixRunsAtTheEarlierWrite = prefixBody.seen.length;
   // S2: the pair at the write's own address. Its handle is the store's own home handle for that address
   // and is a member of the same returned set.
@@ -883,7 +882,7 @@ test('ck_neg_dm_05_the_failing_arms_discard_reaches_every_handle_of_the_failed_w
     return { message: 'x is invalid at this landing and registers no repair' };
   });
   const ownBody = countingListener();
-  const ownHandle = store.on(own, ownBody);
+  const ownHandle = (store.register(store.listen(own), ownBody) || store.listen(own));
   const ownRunsAtCommit = ownBody.seen.length;
 
   const record = commit(store, own, 'mem', 'v');
@@ -973,14 +972,14 @@ test('ck_neg_dm_06_the_passing_arms_entry_leaves_by_its_own_checkoff_and_the_dis
   const store = makeStore({ journalLength: 16 });
   const prefix = [tag('dm06p')];
   const own = [...prefix, tag('dm06o')];
-  storeWrite(store, prefix, 'mem', { seed: 'the prefix registration\'s own earlier caller write' });
+  store.write(prefix, 'mem', { seed: 'the prefix registration\'s own earlier caller write' });
   const prefixBody = countingListener();
-  const prefixHandle = store.on(prefix, prefixBody);
+  const prefixHandle = (store.register(store.listen(prefix), prefixBody) || store.listen(prefix));
   const prefixRunsAtTheEarlierWrite = prefixBody.seen.length;
   let pairRuns = 0;
   const pairHandle = register(store, own, 'x', () => { pairRuns += 1; return true; });
   const ownBody = countingListener();
-  const ownHandle = store.on(own, ownBody);
+  const ownHandle = (store.register(store.listen(own), ownBody) || store.listen(own));
   const ownRunsAtCommit = ownBody.seen.length;
 
   const record = commit(store, own, 'mem', 'v');
@@ -1214,8 +1213,8 @@ test('ck_neg_dm_07_the_stale_adoption_of_a_write_that_never_ran_withholds_the_ne
     const store = makeStore();
     const address = [tag('dm07c')];
     const calls = [];
-    store.on(address, (a) => { calls.push(a); });
-    storeWrite(store, address, 'mem', 'the control write');
+    (store.register(store.listen(address), (a) => { calls.push(a); }) || store.listen(address));
+    store.write(address, 'mem', 'the control write');
     assert.deepEqual(calls, [address],
       'CONTROL — A BARE CALLER-MADE WRITE WITH NO ADOPTION STANDING DELIVERS IN ITS OWN WINDOW, ONCE: '
       + 'the package performs the invocation after the store call has completed and the record has been '
@@ -1231,7 +1230,7 @@ test('ck_neg_dm_07_the_stale_adoption_of_a_write_that_never_ran_withholds_the_ne
     const store = makeStore();
     const address = [tag('dm07a')];
     const calls = [];
-    store.on(address, (a) => { calls.push(a); });
+    (store.register(store.listen(address), (a) => { calls.push(a); }) || store.listen(address));
     // THE IDENTITY IS A CALLER-MADE OBJECT CARRYING THE FOUR RECORD MEMBERS, AND THE FIRST CALL ON IT
     // IS ITS ADOPTION — NOT A REFUSAL (`§2.4` item 9 (a) as amended; `PAR-JS-19`'s domain cell).
     const orphan = { attempt: { id: 'a record no commit issued' }, op: null, triggered: [], pending: [] };
@@ -1282,7 +1281,7 @@ test('ck_neg_dm_07_the_stale_adoption_of_a_write_that_never_ran_withholds_the_ne
       + `${JSON.stringify(delivery.value)}`);
 
     const beforeBare = calls.length;
-    storeWrite(store, address, 'mem', 'the bare write after the abandoned adoption');
+    store.write(address, 'mem', 'the bare write after the abandoned adoption');
     assert.equal(calls.length - beforeBare, 1,
       'AND THE NEXT BARE CALLER-MADE WRITE STILL DELIVERS AT ITS POST-VERB INSTANT, ONCE — '
       + '`§2.7` ITEM 8 DECLARED AS LAW AND NOT AS A HEDGE: a write made through the store\'s own write '
@@ -1305,7 +1304,7 @@ test('ck_neg_dm_07_the_stale_adoption_of_a_write_that_never_ran_withholds_the_ne
 
     // ── AND THE LEVER IS READ BEFORE THE SECOND WRITE, SO THE DEFECT IS NAMED AND NOT INFERRED ──────
     const beforeSecond = calls.length;
-    storeWrite(store, address, 'mem', 'the second bare write');
+    store.write(address, 'mem', 'the second bare write');
     assert.equal(calls.length - beforeSecond, 1,
       'AND THE SECOND BARE WRITE DELIVERS AGAIN: the emptiness above is read AGAINST A LIVE '
       + 'REGISTRATION — the same instance, the same address, the same body — and never against a fixture '
@@ -1320,7 +1319,7 @@ test('ck_neg_dm_07_the_stale_adoption_of_a_write_that_never_ran_withholds_the_ne
     const store = makeStore();
     const address = [tag('dm07b')];
     const calls = [];
-    store.on(address, (a) => { calls.push(a); });
+    (store.register(store.listen(address), (a) => { calls.push(a); }) || store.listen(address));
     const refused = capture(() => commit(store, address, 'mem'));
     assert.equal(refused.threw, true,
       'THE REFUSED CALL IS THE STORE\'S OWN AND ITS WRITE NEVER RAN: an absent `value` is answered by the '
@@ -1334,7 +1333,7 @@ test('ck_neg_dm_07_the_stale_adoption_of_a_write_that_never_ran_withholds_the_ne
       + 'pass exists for a refused write) — read ' + `${calls.length} invocation(s)`);
 
     const beforeBare = calls.length;
-    storeWrite(store, address, 'mem', 'the bare write after the refused commit');
+    store.write(address, 'mem', 'the bare write after the refused commit');
     assert.equal(calls.length - beforeBare, 1,
       'AND THE NEXT BARE CALLER-MADE WRITE DELIVERS AT ITS POST-VERB INSTANT, ONCE — THE SAME CLAUSE AND '
       + 'THE SAME FAIL-STATE AS ROUTE (i): a `commit` refused before the verb leaves no write for its '
@@ -1471,10 +1470,10 @@ test('ck_neg_dm_08_the_check_off_removes_one_occurrence_and_the_residue_delivers
   const pairHandle = register(store, address, 'x', () => { pairRuns += 1; return true; });
   const appRuns = [];
   let appArgs = null;
-  const appHandle = store.on(address, (...view) => {
+  const appHandle = (store.register(store.listen(address), (...view) => {
     appArgs = view;
     appRuns.push(view.length);
-  });
+  }) || store.listen(address));
   assert.equal(appHandle, pairHandle,
     'THE ONE IDENTITY IS THE EVALUATED ONE: the store holds ONE home entry per address, so `K-1`\'s own '
     + 'registration and this later `store.on` at the SAME address answer with ONE handle value, and the '
@@ -1657,16 +1656,16 @@ test('ck_neg_dm_09_the_abandoned_attempt_stands_open_holds_its_address_and_is_di
   const held = [tag('dm09h')];
   const fresh = [...held, tag('dm09f')];
   const store = makeStore({ journalLength: 16 });
-  storeWrite(store, held, 'mem', { seed: 'the abandoned attempt\'s own address holds a link' });
+  store.write(held, 'mem', { seed: 'the abandoned attempt\'s own address holds a link' });
 
   let pairRuns = 0;
   const pairHandle = register(store, held, 'x', () => { pairRuns += 1; return true; });
   const appRuns = [];
   let appArgs = null;
-  const appHandle = store.on(held, (...view) => {
+  const appHandle = (store.register(store.listen(held), (...view) => {
     appArgs = view;
     appRuns.push(view.length);
-  });
+  }) || store.listen(held));
   assert.equal(appHandle, pairHandle,
     'the fixture\'s one registration at this address answers with ONE identity — the pair\'s own — so '
     + 'the residue this cell reads after the late arm is that identity\'s (`write-and-read.md §6.5` item '
@@ -1929,7 +1928,7 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
 
     // ── THE FIXTURE. A home entry stands at the prefix, so the write's own trigger selection carries
     //    BOTH addresses' registrations (the store's descendant-inclusive prefix test). ───────────────
-    storeWrite(store, prefix, 'mem', { seed: 'the prefix home entry stands' });
+    store.write(prefix, 'mem', { seed: 'the prefix home entry stands' });
     let pairRuns = 0;
     const pairHandle = register(store, own, 'x', () => {
       pairRuns += 1;
@@ -1940,10 +1939,10 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
     // THE SIBLING: a registration at the PROPER PREFIX — a SECOND identity the pass never evaluates
     // (kernel-surface.md section 2.3 item 1: the pass's set is the address-scoped one).
     const siblingSeen = [];
-    const siblingHandle = store.on(prefix, (address) => {
+    const siblingHandle = (store.register(store.listen(prefix), (address) => {
       siblingSeen.push(address);
       passLog('sibling-body', { address });
-    });
+    }) || store.listen(prefix));
     const siblingsBeforeThisWrite = siblingSeen.length;
 
     // ── THE APP'S OWN BODY AT THE ADDRESS THE PAIR HOLDS ─────────────────────────────────────────────
@@ -1953,7 +1952,7 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
       passLog('app-body', { address });
     };
     const onRoute = route === 'on-at-the-adopted-address';
-    const appHandle = onRoute ? store.on(own, appBody) : pairHandle;
+    const appHandle = onRoute ? (store.register(store.listen(own), appBody) || store.listen(own)) : pairHandle;
     if (!onRoute) store.register(pairHandle, appBody);
     // BOTH ROUTES REACH ONE IDENTITY, so the register(adoptedHandle, ·) route is covered here and no
     // second cell is added for it (section 2.4 item 8 (b)'s held-arm observable: "the second on call
@@ -2152,16 +2151,16 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
     const store = makeStore({ journalLength: 16 });
     const prefix = [tag('dm10fp')];
     const own = [...prefix, tag('dm10fo')];
-    storeWrite(store, prefix, 'mem', { seed: 'the prefix home entry stands' });
+    store.write(prefix, 'mem', { seed: 'the prefix home entry stands' });
     let pairRuns = 0;
     const pairHandle = register(store, own, 'x', () => {
       pairRuns += 1;
       return { message: 'x is invalid and registers no repair' };
     });
     const appSeen = [];
-    const appHandle = store.on(own, (address) => appSeen.push(address));
+    const appHandle = (store.register(store.listen(own), (address) => appSeen.push(address)) || store.listen(own));
     const siblingSeen = [];
-    const siblingHandle = store.on(prefix, (address) => siblingSeen.push(address));
+    const siblingHandle = (store.register(store.listen(prefix), (address) => siblingSeen.push(address)) || store.listen(prefix));
     const siblingsBeforeThisWrite = siblingSeen.length;
 
     const record = commit(store, own, 'mem', 'v');

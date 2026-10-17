@@ -976,6 +976,52 @@ function encodeSegment(segment, position, argumentPosition) {
   return { bad: 'object' };
 }
 
+/// **A SEGMENT'S OWN CLASS OUTSIDE `PAR-JS-5`'s DOMAIN, DECIDED AT THE PACKAGE'S OWN BOUNDARY AND REFUSED
+/// `AddressMalformed` — THE OUTSIDE-VALUE CLASSIFICATION, TAKEN **BEFORE** THE STORE IS REACHED AND SO
+/// BEFORE ANY ABSENT-KEY LOOKUP** (`parameter-semantics.md §2.5` line `357`: *"**The declared answer for EACH
+/// outside value** — **`AddressMalformed` for every one of them, with the store's generated message**"*,
+/// the fourteen carrier-variant rows `crossing.md §1.3` names — *"an array holding a negative integer · an
+/// array holding a non-integer number · an array holding `null`/`undefined`/a boolean/an object/a nested
+/// array/a function"*).
+///
+/// **WHY THE DECISION STANDS HERE AND NOT AT THE STORE: a well-formed address no node holds is the store's
+/// own `AddressNotFound` (`a127-surface.test.mjs`'s F1 arm asserts that code at the ABSENT position), while
+/// a node HELD and a segment outside the domain must answer `AddressMalformed` — so the CLASS must be
+/// decided before the lookup rather than after it. The store's own walk decides it at `write` · `delete` ·
+/// `listen` (`src/args.rs`, `src/store.rs`); at the READER the carrier reaches the walk FIRST, which returns
+/// `AddressNotFound` for a held key. **The class is decided ONCE, at `encodeAddress`, for every verb alike**,
+/// so no verb's address position can answer a lookup's code for a class the row refuses.
+///
+/// **THE MESSAGE IS THE STORE'S GENERATED ONE AND NEVER AN AUTHORED ONE** (`boundaryReject` reaches the
+/// addon's `errorMessage`, `§2.5` item 2): the SUBJECT is the failing segment's own spelling as the store's
+/// generator renders it (`src/value.rs`'s `Segment::spelling`), and *"the integer `-1`"*, *"a shapeless
+/// value"*, *"a boolean"*, *"an array"* and *"a Proxy"* are that rendering carried here, not invented.
+/// **NOTHING IS COERCED** (`A76`/`JS-1`): the class is read with `typeof`, `Number.isInteger` and
+/// `Array.isArray` alone — no `String(segment)`, no `Number(segment)`, no `valueOf` and no trap — so a
+/// segment that is a `Proxy` is refused by `util.types.isProxy` and NO TRAP RUNS (`surface.md §2.4` item 7
+/// (a) item 1; `crossing.md §1.4` item 4; `C-1`).
+function refuseOutsideSegment(segment, position, container, addressArgumentPosition) {
+  const kind = typeof segment;
+  let subject;
+  if (segment === null) subject = 'a shapeless value';
+  else if (kind === 'undefined') subject = 'an absent value';
+  else if (kind === 'boolean') subject = 'a boolean';
+  else if (kind === 'number') subject = Number.isInteger(segment) ? `the integer ${segment}` : `the number ${segment}`;
+  else if (kind === 'function') subject = 'a function';
+  else if (kind === 'symbol' || kind === 'bigint') subject = classSpelling(segment);
+  else if (Array.isArray(segment)) subject = 'an array';
+  else subject = 'an object'; // a `Proxy` over an array included: its class is `an object` to the carrier
+  const where = container === '' ? '' : ` in '${container}'`;
+  boundaryReject(
+    'AddressMalformed', // `PAR-JS-5`'s own declared answer for every one of the fourteen rows, carried (`DD-40`)
+    subject,
+    addressArgumentPosition === undefined
+      ? `the address holds ${subject} at position ${position}${where}, and a segment is a string or a non-negative integer`
+      : `the address holds ${subject} at position ${position} of the ${addressArgumentPosition}${where}, and a segment is a string or a non-negative integer`,
+  );
+  return { bad: 'object' }; // `boundaryReject` throws; this is unreachable and is not a second path
+}
+
 /// `crossing.md §1.3`'s `AddressArg` table, rows 1–14.
 ///
 /// **⟶ AND ONE OPTIONAL PARAMETER, ADDED 2026-10-11 BY THE `Q3` PASS, SO `on` CAN OBEY `A81` WITHOUT A
@@ -991,21 +1037,55 @@ function encodeAddress(address, addressArgumentPosition) {
   // 4 and 5 answer the one code, so no declared answer moves by the fold.
   if (address === undefined) return { k: 'A' };
   if (address === null) return { k: 'N' };
-  // **`A76`/`JS-2`: THE CLASS DECISION COMES FIRST HERE TOO, ON THE ADDRESS AS IT IS.** A `Proxy` is
-  // refused BEFORE the array shape test and before any element is read (row 12, `DD-34`), and a class
-  // extending `Array` — for which `Array.isArray` is TRUE — is refused under its own declared class
-  // (`AddressArg` row 11's `AddressMalformed`: *"the shape is not an array"*) rather than ADMITTED as an
-  // address because a language predicate made it look like one.
-  if (types.isProxy(address)) return { k: 'X' }; // row 12 (`DD-34`)
+  // **`A76`/`JS-2`: THE CLASS DECISION COMES FIRST HERE TOO, ON THE ADDRESS AS IT IS — AND THE `Proxy`
+  // REFUSAL IS PART OF THAT DECISION AND NOT BESIDE IT** (`surface.md §2.4` item 7 (a) item 1: *"the `Proxy`
+  // refusal is part of that decision, not beside it … BEFORE the shape test, BEFORE `Array.isArray`, BEFORE
+  // any `.length` read and BEFORE any element is read"*). **`util.types.isProxy` READS NO MEMBER AND
+  // INVOKES NO HANDLER**, which is what makes the class decidable with NO TRAP RUN at both proxies-over-array
+  // and proxies-over-object (`crossing.md §1.4` item 4; `DD-34`; `C-1`). **AND `§2.5` item 5 (b) MAKES THE
+  // CLASS HALF MANDATORY**: the refusal's message carries `a Proxy` and the POSITION, so the class the value
+  // HAS is named rather than the store's own generic object arm; a class extending `Array` — for which
+  // `Array.isArray` is TRUE — is refused under its own declared class (`AddressArg` row 11's
+  // `AddressMalformed`: *"the shape is not an array"*) rather than ADMITTED because a language predicate made
+  // it look like one.
+  if (types.isProxy(address)) {
+    boundaryReject(
+      'AddressMalformed', // row 12's own declared code (`DD-34`), carried and never minted (`DD-40`)
+      classSpelling(address), // the class half, mandatory under item 5 (b): `a Proxy`
+      addressArgumentPosition === undefined
+        ? 'the address position holds a Proxy, and a Proxy over an array is refused as AddressArg row 12\'s own class with no trap run'
+        : `the address position of the ${addressArgumentPosition} holds a Proxy, and a Proxy over an array is refused as AddressArg row 12's own class with no trap run`,
+    );
+  }
   if (Array.isArray(address)) {
     if (arrayClass(address) === 'class') return { k: 'C' }; // row 11: a class extending `Array`
     for (let i = 0; i < address.length; i += 1) {
       if (!(i in address)) return { k: 'S' }; // row 14 (`DD-8`)
     }
-    return {
-      k: 'L',
-      s: address.map((segment, position) => encodeSegment(segment, position, addressArgumentPosition)),
-    }; // rows 1–3, 13
+    const segments = [];
+    // **THE CONTAINER IS BUILT WITHOUT COERCING A SEGMENT THE ENCODER REFUSES**: `String(segment)` on a
+    // `symbol` throws a RAW HOST `TypeError` and on a trap-carrying object RUNS ITS TRAPS (`JS-1`, `C-1`),
+    // so only the two classes the store's own container rendering reads are rendered here and every other
+    // class is answered by its CLASS spelling.
+    const containerParts = [];
+    for (let i = 0; i < address.length; i += 1) {
+      const part = address[i];
+      containerParts.push(typeof part === 'string' ? part : classSpelling(part));
+    }
+    const container = containerParts.join('/');
+    for (let i = 0; i < address.length; i += 1) {
+      const segment = address[i];
+      const encoded = encodeSegment(segment, i, addressArgumentPosition);
+      // **`PAR-JS-5`: THE FOURTEEN ROWS' CLASS IS DECIDED HERE, BEFORE THE STORE AND BEFORE ANY LOOKUP**
+      // — a `{bad: …}` marker, a negative or non-integer number, a boolean, or a `Proxy` over an array.
+      const outsideMarker = encoded !== null && typeof encoded === 'object' && typeof encoded.bad === 'string';
+      const outsideNumber = typeof segment === 'number' && !(Number.isInteger(segment) && segment >= 0);
+      if (outsideMarker || typeof segment === 'boolean' || outsideNumber) {
+        refuseOutsideSegment(segment, i, container, addressArgumentPosition);
+      }
+      segments.push(encoded);
+    }
+    return { k: 'L', s: segments }; // rows 1–3, 13
   }
   if (typeof address === 'object') return { k: 'C' }; // rows 6 and 11: the shape is not an array's
   return { k: 'D', o: encodeSegment(address, 0) }; // row 6: a non-array's five named classes
@@ -1013,11 +1093,20 @@ function encodeAddress(address, addressArgumentPosition) {
 
 /// `crossing.md §1.3`'s `TierArg` table and `TierSetItem` table.
 ///
-/// **THE TWO READERS AND THE TWO WRITERS ARE READ DIFFERENTLY, AND `§1.3` SAYS SO:** rule 1 reads a VERB's
-/// trailing argument BY CALL ARITY and folds a supplied `undefined` to the ABSENT row **for `read` ·
-/// `readLiteral` and `write`** — which is why `read(i, a, undefined)` answers the value while `read(i, a,
-/// null)` answers row 4 — **while `delete`'s `tier` is reached as a VALUE, and its own `null`/`undefined`
-/// row is row 4's `AddressMalformed`.**
+/// **A SUPPLIED `undefined` IS PRESENT AT THIS POSITION AND `delete`'s TIER IS REACHED AS A VALUE — THE ONE
+/// CALL THAT FOLDS TO THE ABSENT ROW IS THE CALL THAT SUPPLIED NOTHING THERE.** **⟶ ADJUDICATED 2026-10-16,
+/// AND THIS CLAUSE IS THE OPERATIVE READING OF THE BYTES BELOW** (`parameter-semantics.md §2.6`'s
+/// `PAR-JS-6` row, its `the declared answer for EACH outside value` cell as reconciled the same date, whose
+/// words are *"`a.read(address, undefined)` IS A SUPPLIED VALUE AT THIS POSITION AND TAKES `PAR-JS-6`'s
+/// DECLARED ANSWER — the store's own thrown `{status, message}` with `status` `AddressMalformed` — while the
+/// ONE CALL THAT FOLDS TO THE ABSENT ROW IS `a.read(address)`, WHICH SUPPLIED NOTHING THERE"*; the same
+/// adjudication stands at `acceptance.md §4.1` item `7`, whose *"folds to the ABSENT row"* is read through
+/// that row from that date). **SO `foldsUndefined` IS `false` AT EVERY SUPPLYING SITE — `read` ·
+/// `readLiteral` · `write` · `delete` — and the arity fold that reaches `{ k: 'A' }` is the NO-ARGUMENT CALL
+/// ALONE**, which is exactly what `supplied` carries: `n >= 2` at the readers and the writers, read off the
+/// METHOD's own call arity (`§2.12` item 3's one-spelling rule). **THE STORE'S OWN `TierArg::Undefined` ARM
+/// ANSWERS `AddressMalformed` AT ALL FOUR** (`src/args.rs`'s `read_tier_sel` and `write_tier`), so no code is
+/// minted here and the answer is the store's own.
 ///
 /// **AND `A76`'S CLASS ORDER IS TAKEN HERE FIRST (`JS-2`'s reach at this carrier):** a `Proxy` is refused
 /// as an OBJECT before any element is read from it — **so a throwing `get` trap cannot be raised, because
@@ -1479,7 +1568,7 @@ export function storeCreate(cfg) {
   // (`carryConstraint` below), and **`leg` IS THE SLOT THE NESTED FIVE-POSITION CALL THE KERNEL'S STORE
   // LEG MAKES LEAVES ITS OWN RETURNED RECORD IN**, so that a kernel-driven write answers the record its
   // own write returned rather than a copy of it (`§2.12` item 1's stage 2).
-  const state = { id, tokens: new Map(), registry: new Map(), withheld: new Set(), adopted: new Set(), answered: new Map(), delivered: new WeakSet(), constraints: new Map(), leg: null };
+  const state = { id, tokens: new Map(), home: [], registry: new Map(), withheld: new Set(), adopted: new Set(), answered: new Map(), delivered: new WeakSet(), constraints: new Map(), leg: null };
   // **TWO STRUCTURES CARRY THE ADOPTION** (`§2.4` item 9 (a)–(b)): `adopted` holds the record identities
   // whose own write verb has NOT YET ANSWERED — the identity a write in flight is keyed by, and the one
   // identity per write the entry's own verb consumes — and `answered` is THE LEDGER, mapping each adopted
@@ -1488,40 +1577,65 @@ export function storeCreate(cfg) {
   // the pass checks entries off in as they pass). **BOTH ARE EMPTIED BY THE TERMINAL ARM**: a pass that
   // reaches its terminal instant is the only writer either structure has.
   const instance = {
-    /// `surface.md §2.4` item 7 (a) / `§2.1`'s dated clause (a): **`on(address, listener) -> handle`** — the
-    /// combined call `A79` adopts, whose clauses are `§2.4` item 7 (a) and whose order is FIXED there.
-    /// **IT IS NOT A NINTH NAMED EXPORT OF THE ENTRY** (`package.md §1.3` item 3): it is reached through the
-    /// factory's own product alone.
-    on(address, listener) {
-      return onAt(state, instance, address, listener);
+    /// **`surface.md §2.4` item 9 (f)'s `A127` clause — THE PRODUCT'S DECLARED MEMBER SET IS TWELVE OWN
+    /// MEMBERS, `10 + 1 + 1 = 12` ✓: THE TEN METHODS, `register` AND `settle`.** Each is reached through
+    /// THIS factory's own product alone (`package.md §1.3` item 3): the module namespace carries ONE name,
+    /// `storeCreate` (`§2.9` item 1's `A127` clause; `11 → 1` ✓, and *"a deprecation window"* is declared
+    /// away at that clause on `A128`'s fiat), so NO member below is a named export and the ten
+    /// store-reaching names have no second spelling at any layer.
+    /// **THE STATE STAYS PRIVATE** (`§2.1` (e) item 1): `state` below is this factory's own closure and is
+    /// keyed in `INSTANCES` — NO own member is store data, a record, a Map, a Set, a tier, an address, a
+    /// handle or a commit, and the twelve members above are the whole of what a caller sees.
+    /// **`on` AND `off` ARE MERGED AWAY AND ARE NOT MEMBERS** (`A127`): the listener registration route is
+    /// `listen` + `register` and its withdrawal is `unlisten`, exactly as the seven store-reaching methods
+    /// and `register` below spell them.
+    read(address, tier) {
+      return read(instance, arguments.length, address, tier);
     },
-    /// `surface.md §2.4` item 7 (b) / `§2.1`'s dated clause (a): **`off(handle) -> undefined`** — the
-    /// store-side withdrawal AND the PACKAGE'S OWN registry removal, on the one order `DD-54` declares.
-    /// **It is NOT a ninth named export of the entry** (`package.md §1.3` item 3).
-    off(handle) {
-      return offAt(state, instance, handle);
+    readLiteral(address, tier) {
+      return readLiteral(instance, arguments.length, address, tier);
+    },
+    write(address, tier, value, commit) {
+      return write(instance, arguments.length, address, tier, value, commit);
+    },
+    delete(address, tier) {
+      return deleteOp(instance, arguments.length, address, tier);
+    },
+    rollback(opId) {
+      return rollback(instance, arguments.length, opId);
+    },
+    listen(address) {
+      return listen(instance, arguments.length, address);
+    },
+    unlisten(handle) {
+      return unlisten(instance, arguments.length, handle);
+    },
+    /// `surface.md §2.12` item 2 (a): **`a.addConstraint(pair, constraint) -> constraint identity`** — the
+    /// ADD route, which carries the function and OVERWRITES at a pair the entry already holds.
+    addConstraint(pair, constraint) {
+      return addConstraint(instance, arguments.length, pair, constraint);
+    },
+    /// `surface.md §2.12` item 2 (a): **`a.constraintOn(pair, constraint) -> undefined`** — the ENABLE half.
+    constraintOn(pair, constraint) {
+      return constraintToggle(true, instance, arguments.length, pair, constraint);
+    },
+    /// `surface.md §2.12` item 2 (a): **`a.constraintOff(pair, constraint) -> undefined`** — the DISABLE half.
+    constraintOff(pair, constraint) {
+      return constraintToggle(false, instance, arguments.length, pair, constraint);
     },
     /// `surface.md §2.4` item 5 (b): `register(handle, listener) -> undefined` — the OPAQUE handle a verb
-    /// returned or the construction adopted, and ANY JS function. **It is NOT a ninth named export of the
-    /// entry** (`package.md §1.3` item 3): it is reached through the factory's own product alone.
+    /// returned or the construction adopted, and ANY JS function. **It is NOT a named export of the entry**
+    /// (`package.md §1.3` item 3): it is reached through the factory's own product alone.
     register(handle, listener) {
       return registerOn(state, handle, listener);
     },
     /// `surface.md §2.4` item 9 / `§2.1`'s dated clause (a): **`settle(record) -> undefined`** — THE
     /// ORDERING SEAM, the one member the kernel calls and the entry implements, at the two instants of a
-    /// kernel-driven write (`A116` (D1)–(D2)). **It is NOT a ninth named export of the entry**
+    /// kernel-driven write (`A116` (D1)–(D2)). **It is NOT a named export of the entry**
     /// (`package.md §1.3` item 3): it is reached through the factory's own product alone.
     settle(record) {
       return settleOn(state, record, arguments.length >= 1);
     },
-    /// `surface.md §2.12` item 2 (a) / `§2.4` item 9 (f)'s dated clause of 2026-10-16: **`addConstraint` ·
-    /// `constraintOn` · `constraintOff` — THE THREE SURFACE FUNCTIONS, carried on the factory's own product
-    /// as its own enumerable members.** **EACH IS ONE FUNCTION OF THE SURFACE** (`§2.4` item 9 (f)'s dated
-    /// clause, `4 + 3 = 7`): the SAME module-level function the namespace carries, with the same declared
-    /// arity of THREE positions — `instance`, `pair`, `constraint` — read at either home (`§2.12` item 2 (a)).
-    addConstraint,
-    constraintOn,
-    constraintOff,
   };
   INSTANCES.set(instance, state);
   // **⟶ `§2.12` ITEM 1 CLAUSE (b): `storeCreate` REGISTERS EACH OF `cfg.constraints`' ELEMENTS THAT CARRIES
@@ -1539,25 +1653,50 @@ export function storeCreate(cfg) {
       carryConstraint(state, instance, encoded.address.s, encoded.id, element.constraint);
     }
   }
+  // **⟶ AND THE CONSTRUCTION'S OWN ADOPTION ENTERS THE PACKAGE'S HOME MIRROR** (`§2.4` item 7 (b)'s dated
+  // narrowing reads TWO lawful duplicate states, and the ONE-ADDRESS one is `DD-39`'s CONSTRUCTION duplicate;
+  // `src/store.rs`'s own `adopt` keeps BOTH entries under one address and pushes the token's index entry for
+  // each). **THE MIRROR IS THE HOME'S OWN SHAPE AND NOT A SECOND DECISION**: an accepted entry's handle is
+  // adopted VERBATIM, in the caller's own spelling order ACROSS addresses and the bucket's own order WITHIN
+  // one — which is the order `DD-42` clause (2)'s *"FIRST match"* is defined by. **A REJECTED ARRAY ADMITS
+  // NOTHING** (`src/args.rs`), so a listeners list the store refused never reaches `storeCreate`'s return and
+  // no mirror entry is written for it.
+  if (isPlainObjectValue(cfg) && isAdmittedArray(cfg.listeners) && arrayClass(cfg.listeners) !== 'class') {
+    for (const entry of cfg.listeners) {
+      if (!isPlainObjectValue(entry) || !Object.hasOwn(entry, 'address') || !Object.hasOwn(entry, 'handle')) continue;
+      if (typeof entry.handle !== 'string' || entry.handle === '') continue;
+      const adoptedAddress = entry.address;
+      state.home.push({ key: homeAddressKey(adoptedAddress), token: entry.handle });
+    }
+  }
   return instance;
 }
 
+/// **`§2.4` ITEM 9 (f)'S `A127` CLAUSE — THE TEN STORE-REACHING NAMES ARE THE PRODUCT'S OWN METHODS AND
+/// THE MODULE NAMESPACE CARRIES ONE NAME.** Every function below is the BODY of one of those methods and is
+/// no longer a named export (`§2.9` item 1's `A127` clause; `11 → 1` ✓, no deprecation window and no second
+/// spelling — `A128`). **`n` IS THE RECEIVER'S OWN CALL ARITY** (`arguments.length` at the method), because
+/// the LEADING `instance` POSITION IS DROPPED (`§2.12` item 3's one-spelling rule): the arity folds that
+/// were written against `n_old` are read here against `n_old − 1` and nothing else moves.
+
 /** `§2.2`: `read` — a leaf's literal, a branch's assembled value, the empty address's whole register. */
-export function read(instance, address, tier) {
+function read(instance, n, address, tier) {
   const state = stateOf(instance);
   // A position the call supplied no value for is handed as the runtime's own `undefined` — NEVER as an
   // absent array slot — so the facade can tell an unsupplied position from a supplied `undefined` and the
   // core is never reached with a null pointer (`crossing.md §1.3`'s absent-versus-`undefined` rule).
-  const args = arguments.length >= 2 ? [encodeAddress(address)] : [];
-  args.push(encodeTier(tier, arguments.length >= 3, true));
+  const args = n >= 1 ? [encodeAddress(address)] : [];
+  // `PAR-JS-6`: a SUPPLIED `undefined` at this position is PRESENT and takes the row's own
+  // `AddressMalformed`; the NO-ARGUMENT call is the one that folds to the ABSENT row.
+  args.push(encodeTier(tier, n >= 2, false));
   return decodeValue(call(state, 'read', args));
 }
 
 /** `§2.2` / `§2.9` item 2: `readLiteral` narrows the read to a leaf and answers `ReadTargetIsBranch`. */
-export function readLiteral(instance, address, tier) {
+function readLiteral(instance, n, address, tier) {
   const state = stateOf(instance);
-  const args = arguments.length >= 2 ? [encodeAddress(address)] : [];
-  args.push(encodeTier(tier, arguments.length >= 3, true));
+  const args = n >= 1 ? [encodeAddress(address)] : [];
+  args.push(encodeTier(tier, n >= 2, false));
   return decodeValue(call(state, 'readLiteral', args));
 }
 
@@ -1598,7 +1737,7 @@ function commitPositionRefusal(commit) {
   );
 }
 
-export function write(instance, address, tier, value, commit) {
+function write(instance, n, address, tier, value, commit) {
   const state = stateOf(instance);
   // **⟶ `§2.12` ITEM 1, STAGE 1: A `write` CALLED WITH FOUR POSITIONS — `write(instance, address, tier,
   // value)` — ENTERS THE KERNEL'S `K-2`**, where this instance carries a constraint at this write's
@@ -1608,7 +1747,7 @@ export function write(instance, address, tier, value, commit) {
   // FIVE-POSITION CALL IS THE KERNEL'S OWN STORE LEG AND NEVER ENTERS `K-2`** — item 1's stage 4 no-recursion
   // clause: *"a five-position call can never start a second pass — and the call that carries an ADOPTED
   // identity is item 3's own, so there is no recursion and need not be one"*.
-  if (arguments.length <= 4 && carriesConstraintAt(state, address)) {
+  if (n <= 3 && carriesConstraintAt(state, address)) {
     return constraintWrite(state, instance, address, tier, value);
   }
   let answer;
@@ -1616,12 +1755,14 @@ export function write(instance, address, tier, value, commit) {
     // **THE CLASS TEST IS TAKEN BEFORE THE WALK AND BEFORE THE VERB** (`§2.4` item 9 (g) item 1): the
     // refused position leaves no landing, so the same release the catch block below performs is taken for
     // an adoption this refusal left unrun (`§2.4` item 9's table row (a) read with `§2.7` item 8).
-    if (arguments.length >= 5) {
+    if (n >= 4) {
       const refusal = commitPositionRefusal(commit);
       if (refusal !== null) throw refusal;
     }
-    const args = arguments.length >= 2 ? [encodeAddress(address)] : [];
-    args.push(encodeTier(tier, arguments.length >= 3, true));
+    const args = n >= 1 ? [encodeAddress(address)] : [];
+    // `PAR-JS-7`: `write`'s tier is REQUIRED — an ABSENT position and a SUPPLIED `undefined` both answer
+    // `AddressMalformed`, and neither folds.
+    args.push(encodeTier(tier, n >= 2, false));
     // THE WALK'S OWN FAULT RECORD — see `refusedValue`: the walk CLASSIFIES and RECORDS, and the record is
     // read at the one site where the store answered `ValueNotAdmitted` for a value the walk refused.
     const fault = { found: null, value: undefined, path: [] };
@@ -1812,12 +1953,12 @@ function deliver(state, triggered, triggeringAddress) {
 /// and the in-domain no-op arm a SUCCESS returning `tiers: []`. **Its declared NAME is `delete`, and it is
 /// published under that name ALONE** (`package.md §1.3` item 3): `deleteOp` is a reserved-word workaround
 /// for the declaration and never a member of the package's namespace.
-function deleteOp(instance, address, tier) {
+function deleteOp(instance, n, address, tier) {
   const state = stateOf(instance);
-  const args = arguments.length >= 2 ? [encodeAddress(address)] : [];
+  const args = n >= 1 ? [encodeAddress(address)] : [];
   // `delete`'s tier is read as a VALUE and not by an arity fold: an ABSENT position is the whole-target
   // removal, and a supplied `undefined` answers row 4's `AddressMalformed` (`crossing.md §1.3`).
-  args.push(encodeTier(tier, arguments.length >= 3, false));
+  args.push(encodeTier(tier, n >= 2, false));
   const answer = call(state, 'delete', args);
   const receipt = {
     address: decodeSegments(answer.address),
@@ -1830,9 +1971,9 @@ function deleteOp(instance, address, tier) {
 }
 
 /// `PAR-JS-9`: `{opId, undoneOps, restoredTo}` — the constraint pattern's reverse step (`§2.6`).
-export function rollback(instance, opId) {
+function rollback(instance, n, opId) {
   const state = stateOf(instance);
-  const args = arguments.length >= 2 ? [encodeOpId(opId)] : [];
+  const args = n >= 1 ? [encodeOpId(opId)] : [];
   const answer = call(state, 'rollback', args);
   return {
     opId: answer.opId,
@@ -1843,26 +1984,97 @@ export function rollback(instance, opId) {
 
 /// `§2.10`: `listen` mints a token, populates the store's home and wraps it for JS — and its `address` is
 /// `AddressArg`'s domain and NOTHING MORE: a listener carries NO tier qualifier.
-export function listen(instance, address) {
+///
+/// **THE PACKAGE MIRRORS THE STORE'S OWN HOME, AND IT MIRRORS IT INSIDE THE SAME DECLARED RULES THE STORE
+/// USES — ONE ENTRY PER CALL, `DD-39`'s duplicate bucket included** (`write-and-read.md §6.5` item 12 (c)
+/// and its item 8; `src/store.rs`'s `first_at` FIRST and `mint` SECOND, whose `mint` skips any token the
+/// home already holds, `DD-42` clause (1)). **NO SECOND DECISION IS TAKEN HERE**: the store's answer is
+/// carried VERBATIM and the only thing this side adds is WHICH ENTRY THAT ANSWER NAMED — the address the
+/// call spelled, and the token the store answered. **THAT ONE DATUM IS THE WHOLE REASON THE MIRROR EXISTS**:
+/// `unlisten`'s declared **DEREGISTRATION** step (`surface.md §2.4` item 7 (b)) is defined over the two
+/// lawful duplicate states the SAME clause's dated narrowing names, and the store's `triggered` list carries
+/// tokens and never the address they were minted at (`§2.7` item 1) — **so the address is kept beside the
+/// identity rather than guessed from it.** Nothing of it is observable: it is this factory's own closure,
+/// like `tokens` and `registry`, and `§2.1` (e) item 1's private-state rule is untouched.
+function homeAddressKey(address) {
+  return Array.isArray(address)
+    ? address.map((segment) => (typeof segment === 'string' ? segment : `${typeof segment}:${String(segment)}`)).join('\u0000')
+    : `\u0001${typeof address}`;
+}
+
+function listen(instance, n, address) {
   const state = stateOf(instance);
-  const args = arguments.length >= 2 ? [encodeAddress(address)] : [];
-  return wrapHandles(state, [call(state, 'listen', args)])[0];
+  // **AND `listen`'s ONE POSITION IS AN ADDRESS POSITION THAT CARRIES ITS ARGUMENT POSITION** (`§2.17`'s dated
+  // clause; `surface.md §2.5` item 5 (b)'s position half): the CLASS half is mandatory at every site and the
+  // position half is read at the site that DECLARES one, and this verb's address is `1` of `1` — so a class
+  // refusal here names the argument it is about (`NG-JS-I`'s `listen` arm). *"first argument"* is written
+  // with the same bytes the registry's own registration clause spells; the constant below is declared with
+  // the constraint sites and is NOT reachable from here.
+  const args = n >= 1 ? [encodeAddress(address, 'first argument')] : [];
+  const wrapped = wrapHandles(state, [call(state, 'listen', args)])[0];
+  if (n >= 1) {
+    // **THE STORE CONSULTED THE ADDRESS FIRST**: where a bucket already stands under this address the store
+    // MINTED NOTHING and pushed NOTHING (`first_at`), so the mirror records nothing a second time either —
+    // and where it did not, the store's own `mint` pushed exactly ONE entry, which is the ONE recorded.
+    if (!state.home.some((entry) => entry.key === homeAddressKey(address))) {
+      state.home.push({ key: homeAddressKey(address), token: state.tokens.get(wrapped) });
+    }
+  }
+  return wrapped;
 }
 
 /// `§2.3` item 4 / `PAR-JS-8`: **`unlisten` over ANY value outside the domain is a NO-OP SUCCESS** — a
 /// foreign instance's value, a prior session's value, a fabricated value, a blank token, a non-opaque value
 /// and an absent handle are EACH a no-op success, no code is produced, and NO OTHER REGISTRATION IS REMOVED.
-/// **The package's own registry entry STANDS** (`§2.4` rule 4, `DD-15`): only the store-side home entry is
-/// withdrawn, so a withdrawn handle's function simply never fires again.
-export function unlisten(instance, handle) {
+///
+/// **⟶ THE `off`-CLASS WITHDRAWAL IS THE ONE A `A127`'S RECEIVER RULING LEAVES AT THIS MEMBER, AND IT HAS
+/// TWO HALVES — THE STORE'S AND THE PACKAGE'S OWN** (`surface.md §2.4` item 7 (b)'s `off` step list, whose
+/// three steps are VALIDATE · UNLISTEN · DEREGISTER, read with that item's own dated clause: *"the
+/// store-side home entry is withdrawn, the registry's entry for that identity is REMOVED, and `undefined` is
+/// returned"*, and `contract.md §5.5`'s fourth added failure-list entry, *"an `unlisten` that unregisters
+/// the function"*, which the `A127` surface closes by MERGING `off` INTO THIS MEMBER — `on` and `off` are
+/// *"MERGED AWAY AND ARE NOT MEMBERS"* and *"the listener registration route is `listen` + `register` and
+/// its withdrawal is `unlisten`"*, `surface.md §2.4` item 9 (f)'s `A127` clause). **THE REMOVAL IS KEYED TO
+/// THE IDENTITY THIS CALL WAS HANDED AND TO NOTHING ELSE — not to the address and not to the function**
+/// (`§2.4` item 7 (b)'s dated narrowing: *"the deregistration is keyed by the identity and not by a count of
+/// entries"*), so at the CALLER-SPELLED DUPLICATE the surviving entry's own trigger still CARRIES the
+/// identity while the package invokes NOTHING for it: rule 1's declared silence (*"an unregistered handle
+/// fires nothing silently"*). **A LATER TRIGGER THAT CARRIES THE IDENTITY AND A SILENT INVOCATION ARE NOT
+/// IN CONFLICT** — *"the silence is the registry-entry removal rather than a second withdrawal"* — and the
+/// store-side half stays EXACTLY the store's own FIRST-MATCH withdrawal, which removes ONE home entry per
+/// call (`DD-42` clause (2)).
+function unlisten(instance, n, handle) {
   const state = stateOf(instance);
-  if (arguments.length < 2) return undefined;
+  if (n < 1) return undefined;
   const encoded = encodeHandle(state, handle);
   if (encoded.k !== 'O') return undefined; // outside the domain: a no-op success, and the store is not reached
   call(state, 'unlisten', [encoded]);
-  // **The package's registry entry STANDS** (`§2.4` rule 4, `DD-15`): only the store-side home entry is
-  // withdrawn, so the withdrawn handle's function simply never fires again, and a later re-`listen` at the
-  // same address mints a DIFFERENT handle whose registration is a NEW entry.
+  // **⟶ STEP 3 — THE DEREGISTRATION, TAKEN WHERE AND ONLY WHERE THE IDENTITY NO LONGER STANDS** — read
+  // against the PACKAGE'S OWN HOME MIRROR rather than against a second store call, so the withdrawal's own
+  // observable (ONE entry, the token's FIRST match, `DD-42` clause (2)) is the whole of what this call does
+  // to the store:
+  //   * **THE ONE-ENTRY STATE** and the token's entries at NO OTHER address: this call withdrew the ONE entry
+  //     the identity named, **so the identity no longer stands anywhere** and the registry's entry is
+  //     REMOVED (`§2.4` item 7 (b) item 1, *"WITH NO QUALIFICATION"*; `§5.5`'s WITHDRAWN arm).
+  //   * **THE CALLER-SPELLED TWO-ADDRESS DUPLICATE** — the token named ONE entry at EACH of two addresses:
+  //     this call withdrew the ONE entry ITS OWN address held, **so THAT ADDRESS carries the identity no
+  //     more** and **the identity's registry entry is REMOVED**. A later trigger at the OTHER entry's address
+  //     still CARRIES the identity — the store's half, unmoved — **while the package invokes NOTHING for it,
+  //     which is rule 1's declared silence and not a second withdrawal** (`convenience.test.mjs`'s
+  //     `off_deregisters_…`; `ng_js_k`'s two-address arm).
+  //   * **THE CALLER-SPELLED ONE-ADDRESS DUPLICATE** — the token named MORE THAN ONE entry at the SAME
+  //     address (`DD-39`, `DD-42` clause (2)): this call withdrew ONE of them, the bucket's FIRST match,
+  //     **and the address STILL HOLDS the identity**, so **the registry's entry STANDS** and a later trigger
+  //     under that address STILL returns the identity WITH THE FUNCTION FIRING FOR IT — which is
+  //     `contract.md §5.5`'s THIRD added entry (*"the registry still fires that ONE identity ONCE, never once
+  //     per occurrence and never once per entry"*) and `§2.4` rule 4's own *"never the function"*.
+  const mirror = state.home.findIndex((entry) => entry.token === encoded.v);
+  if (mirror !== -1) {
+    const key = state.home[mirror].key;
+    state.home.splice(mirror, 1); // the store's own FIRST-match withdrawal, mirrored entry for entry
+    if (state.home.some((entry) => entry.token === encoded.v && entry.key === key)) return undefined;
+  }
+  state.registry.delete(handle);
   return undefined;
 }
 
@@ -2142,254 +2354,16 @@ function settleOn(state, record, supplied) {
 // and contract directory untouched (`§2.1`'s dated clause (c); `A68`).
 // ---------------------------------------------------------------------------------------------
 
-/// **THE ARGUMENT POSITION, AT THESE TWO SITES** — `parameter-semantics.md §2.17`'s dated clause: *"the
-/// POSITION IS CARRIED BESIDE IT AS THE ARGUMENT POSITION: `1` OF `2` for an `address` or a `handle`, `2` OF
-/// `2` for a `listener`"*, inside `docs/specs/storeroom-js/surface.md §2.5` item 5 (b)'s generated message
-/// and NEVER as a third member. **The spelling is the two positions' own, named as the `register` site
-/// already names its pair** (`§2.12`'s re-derived row carries the same two positions).
-const ARGUMENT_POSITION_FIRST = 'first argument';
-const ARGUMENT_POSITION_SECOND = 'second argument';
-
-/// **`crossing.md §1.3`'s `AddressArg` domain AT ITS OWN ROWS 7–10 AND 14, DECIDED AT THE BOUNDARY FOR `on`
-/// ALONE — `A81`'s *"always validate"*, VERBATIM** (`parameter-semantics.md §2.17`'s dated clause: *"An
-/// `address` outside `AddressArg`'s domain at `on`'s position `1` of `2` → `AddressMalformed`"*).
-///
-/// **WHY THIS WALK EXISTS, AND WHY IT IS NOT `DD-46`'s PRE-CHECK:** **`DD-46` is a declaration about the
-/// DECLARED VERBS of `§2.2` and `§2.10`, whose arguments are passed through to the store's own carrier
-/// so the STORE chooses which refusal answers** — and this walk is not taken on any of their paths.
-/// **The listener home is the ONE store surface where that division fails: `listen` keeps the address's
-/// segments as the caller spelled them, so an out-of-domain segment reaches the home's key without the
-/// `L-1` walk ever running over it — measured, not assumed** (`bindings/js/test/convenience.test.mjs`'s
-/// second cell drives the rows below through `on`). **`§2.4` item 7 (a) step 1 makes `on` the site that owns
-/// this validation, so `on` decides the four rows the carrier cannot.**
-///
-/// **THE ROWS DECIDED, EACH NAMED AT ITS OWN `AddressArg` ROW** — row 7: an array holding a NEGATIVE
-/// integer · row 8: an array holding a NON-INTEGER number (`1.5`, `NaN`, `Infinity`) · row 9: an array
-/// holding `null`/`undefined` · row 10: an array holding an object (and, by the same clause's own reading of
-/// `§1.2`'s classes, an array, a `function`, a `symbol` or a `bigint`) · row 14: a sparse array. **AND ROW
-/// 6's SHAPE HALF IS DECIDED FIRST AND BESIDE THEM: a non-array IS `AddressMalformed`, and `'a.b'` is not a
-/// delimited address** — `classSpelling` names each class the value HAS (`§1.8`'s no-repair prohibition: no
-/// value here is converted, defaulted or substituted). **EACH REFUSAL IS THE ONE FORM, with the failing
-/// TARGET printed as its own value, the CLASS that failed and the ARGUMENT POSITION** (`§2.5` items 5 (a)
-/// and (b); `§2.17`'s dated clause) — **and NOTHING HERE IS A SECOND STATUS, A THIRD MEMBER OR A RAW HOST
-/// ERROR.**
-///
-/// **AND NOTHING IS LEFT BEHIND:** this walk performs NO store call and NO registry write, so it runs at
-/// step 1 and leaves no home entry, no registry entry, no node and no journal entry.
-///
-/// **⟶ AND THE PROXY DECISION IS TAKEN FIRST, IN `encodeAddress`'S OWN ORDER — `C-1` OF THE GATE-4
-/// ADVERSARIAL PASS, THE STOP-GRADE FINDING, CLOSED AT THIS SITE (2026-10-11).** The walk's first statement
-/// was `isAdmittedArray(address)`, which reads `Array.isArray` and then `arrayClass`'s
-/// `Object.getPrototypeOf` — **so a trap-carrying `Proxy` over an array RAN ITS TRAPS BEFORE ANY DECISION
-/// WAS TAKEN**: a `getPrototypeOf` trap that throws raised a RAW HOST ERROR out of `on` (against
-/// `§2.5` item 5 (e): *"a rejection is NEVER A RAW HOST ERROR"*), a `get` trap's side effects ran, and a
-/// re-entrant verb could be invoked from inside the walk — for an argument the contract refuses as
-/// `AddressArg` row 12 (`DD-34`) without reading it at all. **`encodeAddress` at `:609` already took this
-/// decision first, in its own words** (*"A `Proxy` is refused BEFORE the array shape test and before any
-/// element is read"*), **and this function now does the same, in the same order, with the same refusal.**
-/// **NO TRAP RUNS ON ANY PATH: the shape test, the prototype read that follows it, the `.length` read, every
-/// element read and the listener-position check are each reached only for a value `types.isProxy` has
-/// already answered about — and `util.types.isProxy` reads no member and invokes no handler.** The refusal
-/// is `AddressArg` row 12's own `AddressMalformed`, carried and never minted (`DD-40`).
-function validateOnAddress(address) {
-  if (types.isProxy(address)) {
-    // `AddressArg` row 12 (`DD-34`): the CLASS decision first, before the shape test and before any read —
-    // the order `encodeAddress` takes at the same position.
-    boundaryReject(
-      'AddressMalformed',
-      targetSpelling(address),
-      `the address at the ${ARGUMENT_POSITION_FIRST} of \`on\` is ${classSpelling(address)}, and an address is an array of segments`,
-    );
-  }
-  if (!isAdmittedArray(address)) {
-    // `AddressArg` row 6 (a non-array, its five named classes), row 11 (a class extending `Array`), row 12
-    // (a `Proxy`) and rows 4–5 (`undefined`/`null`, whose own class spelling is the target's).
-    boundaryReject(
-      'AddressMalformed', // `AddressArg` rows 4–6's own declared code, carried and never minted (`DD-40`)
-      targetSpelling(address),
-      `the address at the ${ARGUMENT_POSITION_FIRST} of \`on\` is ${classSpelling(address)}, and an address is an array of segments`,
-    );
-  }
-  for (let i = 0; i < address.length; i += 1) {
-    // Row 14 (`DD-8`): a HOLE refuses the WHOLE value — and `isAdmittedArray` has already decided the
-    // CLASS, so `in` below reads an element of a genuine array and no chain.
-    if (!(i in address)) {
-      boundaryReject(
-        'AddressMalformed',
-        'an array with a hole',
-        `the address at the ${ARGUMENT_POSITION_FIRST} of \`on\` is a sparse array, and an address is a dense array of segments`,
-      );
-    }
-    const segment = address[i];
-    // Rows 2–3: the two IN-DOMAIN classes — a string (the empty string included) and a non-negative
-    // integer. **The integer test is taken on the value as it is and nothing is repaired**: `1.5`, `-1`,
-    // `NaN` and `Infinity` are each refused as `a number`, which is the class the value HAS.
-    //
-    // **⟶ AND THE TWO CLASSES THIS PASS ADDED ARE DECIDED HERE TOO, BEFORE THE STORE IS REACHED — `C-4`'s
-    // segment half and `C-12` (`2026-10-11`).** They are the same two decisions `encodeSegment` takes for
-    // the other verbs' addresses, taken at this site's own position and with this site's own ARGUMENT
-    // POSITION spelling, **so `on` and `listen` answer one address the same way and neither reaches the
-    // carrier with a value it cannot spell**: a LONE SURROGATE in a string segment (row 1's dated clause —
-    // the class has no Rust spelling and is refused *"at the PACKAGE's own edge, BEFORE any verb is
-    // called"*, never repaired), and an INTEGRAL segment above the `u64` the carrier's `Index` variant
-    // carries (`package.md §4.5` item 2's `JsSegment` row) — **which the facade's `n as u64` used to
-    // SATURATE, folding `2**64` and `1e30` onto one store address and one handle (`C-12`).**
-    if (typeof segment === 'string') {
-      if (hasLoneSurrogate(segment)) {
-        boundaryReject(
-          'ValueNotAdmitted', // row 1's dated clause's own answer, carried and never minted (`DD-40`)
-          // **THE TARGET IS THE SEGMENT POSITION'S OWN NAME AND NOT THE STRING**: a lone surrogate cannot
-          // cross into the generator either — its bytes are not a `String` — so the failing TARGET is named
-          // as `encodeSegment` names it at the same class (`'address'`), and the failing segment is named by
-          // its INDEX beside it. **The class half is mandatory and it is carried; the failing VALUE is not
-          // printed, because the only spellings for it are the caller's own unrepresentable code unit or a
-          // REPAIR of it, and `§1.8` forbids the repair.**
-          'address',
-          `the segment at index ${i} of the address at the ${ARGUMENT_POSITION_FIRST} of \`on\` is a string carrying a lone surrogate, and a segment is a string or a non-negative integer`,
-        );
-      }
-      continue;
-    }
-    if (typeof segment === 'number' && Number.isInteger(segment) && segment >= 0) {
-      if (!Number.isSafeInteger(segment)) {
-        boundaryReject(
-          'AddressMalformed', // `AddressArg` row 8's own declared code, carried and never minted (`DD-40`)
-          targetSpelling(segment),
-          `the segment at index ${i} of the address at the ${ARGUMENT_POSITION_FIRST} of \`on\` is an integral segment above the carrier's own range, and a segment is a string or a non-negative integer a \`u64\` can carry exactly`,
-        );
-      }
-      continue;
-    }
-    // Rows 7–10 + `§1.2`'s class set: every other class is refused AT THE BOUNDARY, inside the one form,
-    // naming the failing SEGMENT — the target the item's own clause names — its class and the position.
-    boundaryReject(
-      'AddressMalformed',
-      targetSpelling(segment),
-      `the segment at index ${i} of the address at the ${ARGUMENT_POSITION_FIRST} of \`on\` is ${classSpelling(segment)}, and a segment is a string or a non-negative integer`,
-    );
-  }
-  return undefined;
-}
-
-/// **`on`'s STEP 1, WHOLE: VALIDATE THE `address` THEN THE `listener`, CLASS FIRST AND NOTHING REPAIRED**
-/// (`surface.md §2.4` item 7 (a); `A81` *"always validate"*, verbatim; `crossing.md §1.7`'s order — class,
-/// then shape, then admit-or-refuse). **EACH REFUSAL IS `AddressMalformed` IN `§2.5`'s SINGLE FORM, carrying
-/// the failing TARGET, the CLASS the value HAS and the ARGUMENT POSITION** (`§2.17`'s dated clause, whose
-/// class set is EXHAUSTIVE AND CLOSED and whose two new arms are a non-function at `2` of `2` and an
-/// `address` outside `AddressArg` at `1` of `2`).
-///
-/// **AND NOTHING IS LEFT BEHIND** (`§2.4` item 7 (a)): this function performs NO store call and no registry
-/// write, so a refusal here leaves NO STORE-SIDE HOME ENTRY, NO REGISTRY ENTRY, NO NODE MINTED AND NO
-/// JOURNAL ENTRY APPENDED — **atomicity by the validation's POSITION and not by a rollback.**
-function validateOnArguments(address, listener) {
-  validateOnAddress(address);
-  if (typeof listener !== 'function') {
-    boundaryReject(
-      'AddressMalformed',
-      targetSpelling(listener),
-      `the listener at the ${ARGUMENT_POSITION_SECOND} of \`on\` is ${classSpelling(listener)}, and a listener is a JS function`,
-    );
-  }
-}
-
-/// **`on(address, listener) -> handle`** — `surface.md §2.4` item 7 (a), ITS THREE STEPS IN THEIR ONE FIXED
-/// ORDER, AND NO FOURTH:
-/// ```
-///   1. VALIDATE   this file's own step, above: the address, then the listener, class first, never repaired
-///   2. LISTEN     the store's own listen(instance, address)   — the SAME declared verb, unchanged
-///   3. REGISTER   the package's registry takes the returned handle with this listener (rule 2 = replacement)
-/// ```
-/// **THE RETURN IS THE HANDLE** in `§2.3` item 2's ONE output spelling — the package's opaque value and
-/// never the token string. **AND AT AN ADDRESS THE STORE'S HOME ALREADY HOLDS IT RETURNS THAT ADDRESS'S
-/// EXISTING HANDLE**, because the store's own address-level idempotence makes a repeat `listen` mint
-/// nothing and answer the entry's own handle (`write-and-read.md §6.5` item 12 (c); `§2.3`'s dated clause).
-/// **THE TWO ARMS ARE THEREFORE THESE AND NO OTHERS:** the FRESH arm, where the store minted a token and
-/// the package wrapped it, and the HELD arm, where the SAME opaque value is answered again and the
-/// registry's function for it becomes THIS listener — **a REPLACEMENT, never a second entry and never a
-/// fan-out** (`§2.4` rule 2), and **including over an entry `register` placed, which `DD-52` settles: the
-/// registry does not record which member wrote an entry.** **SO A LATER WRITE UNDER THAT ADDRESS INVOKES
-/// THIS FUNCTION ONCE AND THE REPLACED ONE NEVER FIRES AGAIN** — and *which* listener fires and *when* is
-/// the STORE's rule, derived from `write-and-read.md §6.5` item 14 and never stated here.
-function onAt(state, instance, address, listener) {
-  // STEP 1 — VALIDATE. Nothing below runs unless BOTH arguments have passed (`A81`; `A76`).
-  validateOnArguments(address, listener);
-  // STEP 2 — LISTEN. The store's own verb, reached with the address the caller supplied and through this
-  // package's ONE declared `listen` spelling (`§2.10`): same name, same position, same arity, same return.
-  const handle = listen(instance, address);
-  // STEP 3 — REGISTER. `§2.4` rule 2 at the registry that holds the function: ONE identity, ONE function.
-  state.registry.set(handle, listener);
-  return handle;
-}
-
-/// **`off(handle) -> undefined`** — `surface.md §2.4` item 7 (b), ITS THREE STEPS IN THEIR ONE FIXED ORDER,
-/// AND `DD-54`'s ONE OBSERVABLE: **after any `off` that throws, BOTH the store-side entry and the registry
-/// entry are exactly as they were.**
-/// ```
-///   1. VALIDATE    the handle against THIS INSTANCE's own handle domain, class first, never repaired
-///   2. UNLISTEN    the store's own unlisten(instance, handle)   — the same declared verb, unchanged
-///   3. DEREGISTER  the package's own registry entry for that identity, and NOTHING ELSE
-/// ```
-/// **AND ITS THREE ARMS, EACH WITH ITS OBSERVABLE** (item 7 (b)'s own table):
-///   * **THE OWN ARM** — an in-domain identity the registry holds a function for: the store-side home entry
-///     is withdrawn, the registry's entry for that identity is REMOVED, and `undefined` is returned.
-///   * **THE OWN-ENTRYLESS ARM** — an in-domain identity the registry holds NO function for (registered
-///     never, or already withdrawn): `undefined`, the store-side withdrawal IS performed, nothing is
-///     removed that was not there and NO OTHER REGISTRATION IS DISTURBED (`DD-53`: `off`'s refusal arm is
-///     the OUTSIDE-DOMAIN handle ALONE).
-///   * **THE OUTSIDE ARM** — a foreign instance's value, a prior session's value, a fabricated value, a bare
-///     `string`, a blank token, a non-opaque value, `null`, `undefined` or an ABSENT argument: **a REFUSAL**
-///     — `AddressMalformed` in `§2.5`'s single form, with the failing target, the class and the position —
-///     **and NEITHER removal is performed.** **THIS is the arm that makes `off` differ from `unlisten` over
-///     one value, and the difference is DECLARED and not incidental** (`§2.3`'s dated clause 3; `§2.8`).
-///
-/// **`unlisten` ITSELF IS UNTOUCHED AND KEEPS RULE 4 VERBATIM**: it withdraws the registration and NEVER the
-/// function, with the registry's entry STANDING. `off` is the PACKAGE-OWNED verb that removes one, and a
-/// reader who takes it as an exception to rule 4 has read a second withdrawal into the store's surface —
-/// there is none. **AND `off` REMOVES NO MORE THAN THE HANDLE NAMES**: a lawful sibling registration —
-/// another address's entry, another identity in the same instance — STANDS. **AND NEITHER IT NOR `on` IS A
-/// RELEASE VERB** (`A74`): no `dispose()`, no `close()`, no finalizer and no teardown is declared here, and
-/// the instance's state is still released with the instance and by nothing else.
-///
-/// **AND `off` DOES NOT CANCEL A DELIVERY IN FLIGHT**, because the delivery's recipient set is read when the
-/// window opens (item 7 (b); `§2.4`'s `CF-DUP-3` re-homing clause; `write-and-read.md §6.5` item 14).
-function offAt(state, instance, handle) {
-  // STEP 1 — VALIDATE. An outside value is refused HERE, and steps 2 and 3 never run (`DD-54`).
-  const encoded = encodeHandle(state, handle);
-  if (encoded.k !== 'O') {
-    // The ONE form, with the failing TARGET printed as its own value (item 5 (a)), the CLASS the value HAS
-    // (item 5 (b), mandatory) and the ARGUMENT POSITION (`§2.17`'s dated clause, `1` of `2`) — **and NOT
-    // `unlisten`'s no-op `undefined`, which is that verb's own declared answer and not this one's.**
-    boundaryReject(
-      'AddressMalformed', // `§2.8`'s own declared code at this site, carried and never minted (`DD-40`)
-      targetSpelling(handle),
-      `the handle at the ${ARGUMENT_POSITION_FIRST} of \`off\` is ${classSpelling(handle)}, and it is not an opaque value THIS INSTANCE minted or adopted`,
-    );
-  }
-  // STEP 2 — UNLISTEN. The store's own verb through the ONE declared `unlisten` spelling (`§2.10`), reached
-  // with the handle this instance already owns. **A THROWING PATH LEAVES THE REGISTRY ENTRY STANDING**
-  // (`DD-54`): there is no `finally` here and none may be added.
-  unlisten(instance, handle);
-  // STEP 3 — DEREGISTER, the PACKAGE'S OWN state and nothing of the store's.
-  deregister(state, handle);
-  return undefined;
-}
-
-/// **THE DEREGISTRATION OF ONE IDENTITY — `§2.4` item 7 (b)'s THIRD STEP.** The registry's entry for THIS
-/// identity is removed, and NOTHING ELSE OF THE PACKAGE'S STATE: **the identity's own token-to-handle
-/// binding STANDS**, because it is not the withdrawal's to move and three declared answers rest on it —
-/// `register(h, …)` over a handle this instance adopted or minted is judged by the INSTANCE's own domain
-/// (`§2.4` item 5 (c)) and not by which verbs have run since, `unlisten`'s OPAQUE-only acceptance is the
-/// same domain (`§2.3` item 2), and `off`'s own ENTRY-LESS arm is declared over an identity that has
-/// ALREADY been removed by an earlier `off` (`DD-53`). **AND NO LATER `listen` CAN BE HANDED THIS BINDING
-/// BY ACCIDENT**, because the store MINTS A FRESH TOKEN after its home entry is withdrawn
-/// (`write-and-read.md §6.5` item 12; `A69`'s uniqueness is over the tokens the store MINTS), so a re-`listen`
-/// at the same address reaches `wrapHandles` with a token no map entry holds and is wrapped as a NEW
-/// identity — which is exactly `§2.4` rule 4's *"a later re-`listen` … mints a DIFFERENT handle"*. **A drive
-/// that finds the withdrawn identity's function reachable after one `off` has found a failure of this step
-/// and not of this sentence.**
-function deregister(state, handle) {
-  state.registry.delete(handle);
-}
+/// **THE `on`/`off` ROUTE IS MERGED AWAY — `A127` (2026-10-16).** The combined `on(address, listener)`
+/// and the package-owned withdrawal `off(handle)`, together with their argument walks
+/// (`validateOnAddress`, `validateOnArguments`), their two step lists and `deregister`, are REMOVED FROM
+/// THIS FILE at that dated clause: the product's declared member set is the TWELVE `10 + 1 + 1 = 12` ✓.
+/// **THE LISTENER REGISTRATION ROUTE IS REACHED AS ITS TWO DECLARED HALVES** — `a.listen(address)` and
+/// `a.register(handle, listener)` — and withdrawal as `a.unlisten(handle)`. **NOTHING OF THE STORE'S OWN
+/// `listen`/`unlisten` MOVES** (`§2.10`: same names, same positions, same arity, same returns, and rule 4
+/// verbatim), and the ONE observable the removed route alone owned — `AddressMalformed` for an outside
+/// `handle` at `off`'s position — is declared away with it: `unlisten`'s own answer over an outside value
+/// stays the NO-OP SUCCESS `§2.3` item 4 / `PAR-JS-8` declares.
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 // THE POST-CREATION CONSTRAINT SET — `surface.md §2.12` items 1–5, `A126` (2026-10-16), AND ITS TWO ROUTES
@@ -2402,9 +2376,12 @@ function deregister(state, handle) {
 // `carryConstraint` below. **NOTHING OF `§2.6` SURVIVES THE MOVEOUT**: the engine is behind this surface,
 // the constraint and repair limbs are the kernel's, and this file owns only the form of what crosses.
 
-/// `parameter-semantics.md §2.17`'s dated clause, at this section's three sites: the THIRD position's own
-/// spelling, beside the two the `register` site already carries.
-const ARGUMENT_POSITION_THIRD = 'third argument';
+/// `parameter-semantics.md §2.17`'s dated clause, at this section's own sites: the two positions' own
+/// spelling, **read at the method's own arity — `pair` at `1` of `2` and `constraint` at `2` of `2`**, since
+/// the LEADING `instance` POSITION IS DROPPED by `§2.4` item 9 (f)'s `A127` clause (the receiver is not a
+/// position of any declared signature; `§2.12` item 3's one-spelling rule).
+const ARGUMENT_POSITION_FIRST = 'first argument';
+const ARGUMENT_POSITION_SECOND = 'second argument';
 
 /// **THE KERNEL, RESOLVED ON THE FIRST CONSTRAINT ACT AND NEVER AT LOAD** (`kernel-surface.md §1` item 1;
 /// `A121`, `A122`). **IT IS NOT AN EXPORT AND NOT A SUBPATH**: the module is reached as a FILE, at the path
@@ -2442,16 +2419,26 @@ function constraintRefuse(where, value) {
   );
 }
 
-/// **`§2.12` ITEM 4'S THREE POSITIONS, CLASS FIRST AND IN THEIR DECLARED ORDER** (`PAR-JS-22`–`PAR-JS-24`).
-/// **NOTHING BELOW RUNS UNLESS ALL THREE HAVE PASSED** (`A81`), so a refused call performs no store call,
-/// no registry write and no `K-1` — atomicity by the validation's POSITION.
-function constraintSite(verb, instance, pair, constraint) {
+/// **A POSITION BELOW THE DECLARED ONE — `§2.12` item 4 AND `§2.4` item 9 (f)'s RULE (ii): a SHORT ARITY
+/// TAKES THE SAME ONE `TypeError` AND CHANGES NOTHING.** *"No assertion is made over `message`, and its
+/// absence is the declared reading"* — the member is not one of the three this form is observed by.
+function constraintArity(verb) {
+  throw new TypeError(`\`${verb}\` declares two positions, and this call supplied fewer`);
+}
+
+/// **`§2.12` ITEM 4'S TWO CALLER POSITIONS, CLASS FIRST AND IN THEIR DECLARED ORDER** (`PAR-JS-22`–`PAR-JS-24`)
+/// — **the receiver, which was item 4's first position, is DROPPED and is judged by the CALL and no longer by
+/// a walk** (`§2.4` item 9 (f)'s `A127` clause): a member reached through the product IS a product of this
+/// factory, so no instance-domain arm stands here. **NOTHING BELOW RUNS UNLESS BOTH POSITIONS HAVE PASSED**
+/// (`A81`), so a refused call performs no store call, no registry write and no `K-1` — atomicity by the
+/// validation's POSITION.
+function constraintSite(verb, instance, supplied, pair, constraint) {
+  if (supplied < 2) constraintArity(verb);
   const state = INSTANCES.get(instance);
-  if (state === undefined) constraintRefuse(`instance at the ${ARGUMENT_POSITION_FIRST} of \`${verb}\``, instance);
   if (!isPlainObjectValue(pair)
     || !Object.hasOwn(pair, 'address')
     || pair.address === undefined) {
-    constraintRefuse(`pair at the ${ARGUMENT_POSITION_SECOND} of \`${verb}\``, pair);
+    constraintRefuse(`pair at the ${ARGUMENT_POSITION_FIRST} of \`${verb}\``, pair);
   }
   const encoded = constraintAddress(pair.address);
   if (typeof encoded === 'string'
@@ -2459,10 +2446,10 @@ function constraintSite(verb, instance, pair, constraint) {
     || pair.id === undefined
     || typeof pair.id !== 'string'
     || pair.id === '') {
-    constraintRefuse(`pair at the ${ARGUMENT_POSITION_SECOND} of \`${verb}\``, pair);
+    constraintRefuse(`pair at the ${ARGUMENT_POSITION_FIRST} of \`${verb}\``, pair);
   }
   if (typeof constraint !== 'function') {
-    constraintRefuse(`constraint at the ${ARGUMENT_POSITION_THIRD} of \`${verb}\``, constraint);
+    constraintRefuse(`constraint at the ${ARGUMENT_POSITION_SECOND} of \`${verb}\``, constraint);
   }
   return { state, address: encoded.s, id: pair.id };
 }
@@ -2470,12 +2457,21 @@ function constraintSite(verb, instance, pair, constraint) {
 /// **THE ONE ACT THAT MAKES A PAIR A PAIR THE ENTRY CARRIES** (`§2.12` item 1's preamble clause (a)–(b)):
 /// `K-1` AT THE INSTANCE — the key at its own positions and the caller's function at the fourth, which is
 /// the SAME call `storeCreate`'s batch registration makes — and THE ENTRY'S OWN RECORD BESIDE IT, whose
-/// `enabled` member is the pair's state and whose identity is THE PAIR'S OWN OPAQUE VALUE (`PAR-JS-25`).
-/// **THE IDENTITY IS THE RECORD AND IS MINTED ONCE PER PAIR**: a second ADD at the same pair overwrites the
-/// element and answers THIS SAME VALUE, and two pairs answer two values.
+/// `enabled` member is the pair's state and whose `identity` is THE PAIR'S OWN OPAQUE VALUE (`PAR-JS-25`).
+/// **THE IDENTITY IS MINTED ONCE PER PAIR AND IT CARRIES NO READABLE MEMBER**: a second ADD at the same pair
+/// overwrites the element and answers THIS SAME VALUE, and two pairs answer two values. **`PAR-JS-25`'s
+/// opacity is the observable** — *"it has no own enumerable member at all"* — so it is a null-prototype
+/// object and NOT the entry record: every datum above stays the entry's own and never crosses.
 function carryConstraint(state, instance, address, id, constraint) {
   constraintsKernel().register(instance, address, id, constraint);
-  const entry = { address, addressKey: JSON.stringify(address), id, fn: constraint, enabled: true };
+  const entry = {
+    address,
+    addressKey: JSON.stringify(address),
+    id,
+    fn: constraint,
+    enabled: true,
+    identity: Object.create(null),
+  };
   state.constraints.set(constraintPairKey(address, id), entry);
   return entry;
 }
@@ -2495,65 +2491,57 @@ function constraintParked() {
 /// FUNCTION — a state no clause of that directory declares.
 function constraintUncarried(verb, pair) {
   throw new TypeError(
-    `the pair at the ${ARGUMENT_POSITION_SECOND} of \`${verb}\` carries no constraint in this instance, and `
+    `the pair at the ${ARGUMENT_POSITION_FIRST} of \`${verb}\` carries no constraint in this instance, and `
     + 'a toggle names a pair the entry carries',
   );
 }
 
 /**
- * **`§2.12` ITEM 2 (a): `addConstraint(instance, pair, constraint) -> constraint identity` — THE ADD ROUTE,
- * WHICH CARRIES THE FUNCTION.**
+ * **`§2.12` ITEM 2 (a): `addConstraint(pair, constraint) -> constraint identity` — THE ADD ROUTE, WHICH
+ * CARRIES THE FUNCTION.**
  *
  * **ITS TARGET STATE AT THE PAIR IS *"the pair's element IS the supplied `constraint`, whether the pair was
  * HELD or NOT"*, AND THE HELD ARM IS AN OVERWRITE AND NOT A THROW**: *"where the pair was already held, the
  * supplied constraint OVERWRITES the held one … and the call REFUSES NOTHING and THROWS NOTHING for the mere
- * fact that the pair was held"* — the SAME identity the pair was already added under is returned.
+ * fact that the pair was held"* — the SAME identity the pair was already added under is returned, and it is
+ * THE IDENTITY AND NOT THE ENTRY RECORD (`PAR-JS-25`'s opacity, `carryConstraint` above).
  */
-export function addConstraint(instance, pair, constraint) {
-  const site = constraintSite('addConstraint', instance, pair, constraint);
+function addConstraint(instance, n, pair, constraint) {
+  const site = constraintSite('addConstraint', instance, n, pair, constraint);
   const key = constraintPairKey(site.address, site.id);
   const held = site.state.constraints.get(key);
-  if (held === undefined) return carryConstraint(site.state, instance, site.address, site.id, constraint);
+  if (held === undefined) {
+    return carryConstraint(site.state, instance, site.address, site.id, constraint).identity;
+  }
   constraintsKernel().register(instance, site.address, site.id, constraint);
   held.fn = constraint;
   held.enabled = true;
-  return held;
+  return held.identity;
 }
 
 /**
- * **`§2.12` ITEM 2 (a): `constraintOn(instance, pair, constraint) -> undefined` — THE ENABLE HALF.**
+ * **`§2.12` ITEM 2 (a): `constraintOn(pair, constraint) -> undefined` / `constraintOff(pair, constraint) ->
+ * undefined` — THE TWO HALVES OF THE ONE TOGGLE, AND NEITHER STANDS IN THE KERNEL.**
  *
- * **IDEMPOTENT SUCCESS AT A PAIR ALREADY ENABLED** (item 3's first answered question): `undefined`, the pair
- * and its element EXACTLY as they stood, and NOTHING THROWN. **THE THIRD POSITION IS REQUIRED AND IS A
- * NO-OP ON EVERY SUCCESS** (`item 3`'s `constraintOn` row): a FUNCTION there is never refused on the pair's
- * ground, the entry NEVER SUBSTITUTES ONE, and it is `entry.fn` — the element the entry carried — that is
- * evaluated at the next write.
+ * **THEIR THREE ANSWERS, AND THE TWO SHARED CLAUSES:**
+ *   * **IDEMPOTENT SUCCESS WHERE THE PAIR ALREADY STANDS IN THE STATE IT ASKS FOR** (item 3's first answered
+ *     question): `undefined`, the pair and its element EXACTLY as they stood, and NOTHING THROWN.
+ *   * **THE SECOND POSITION IS REQUIRED AND IS A NO-OP ON EVERY SUCCESS** (`item 3`'s `constraintOn` row;
+ *     `§2.4` item 9 (f)'s method table: *"the third position is REQUIRED and is a no-op on success"*): a
+ *     FUNCTION there is never refused on the pair's ground, the entry NEVER SUBSTITUTES ONE, and it is
+ *     `entry.fn` — the element the entry carried — that is evaluated at the next write. **CARRIAGE IS
+ *     PAIR-KEYED AND THE TOGGLE'S OWN ARGUMENTS DO NOT DECIDE IT.**
+ *   * **AN OUTSIDE `pair` OR A SHORT ARITY TAKES `constraintSite`'s ONE `TypeError`**, and a WELL-FORMED PAIR
+ *     THE ENTRY DOES NOT CARRY takes `constraintUncarried`'s (`A126`).
  */
-export function constraintOn(instance, pair, constraint) {
-  const site = constraintSite('constraintOn', instance, pair, constraint);
+function constraintToggle(enabled, instance, n, pair, constraint) {
+  const verb = enabled ? 'constraintOn' : 'constraintOff';
+  const site = constraintSite(verb, instance, n, pair, constraint);
   const entry = site.state.constraints.get(constraintPairKey(site.address, site.id));
-  if (entry === undefined) constraintUncarried('constraintOn', pair);
-  if (entry.enabled === false) {
-    constraintsKernel().register(instance, site.address, site.id, entry.fn);
-    entry.enabled = true;
-  }
-  return undefined;
-}
-
-/**
- * **`§2.12` ITEM 2 (a): `constraintOff(instance, pair, constraint) -> undefined` — THE DISABLE HALF.**
- *
- * **IDEMPOTENT SUCCESS AT A PAIR ALREADY DISABLED** (item 3's first answered question), and **A WRITE THE
- * DISABLED ELEMENT WOULD HAVE REFUSED IS ACCEPTED**: the element is not evaluated on any subsequent write.
- * The third position's rule is `constraintOn`'s, clause for clause.
- */
-export function constraintOff(instance, pair, constraint) {
-  const site = constraintSite('constraintOff', instance, pair, constraint);
-  const entry = site.state.constraints.get(constraintPairKey(site.address, site.id));
-  if (entry === undefined) constraintUncarried('constraintOff', pair);
-  if (entry.enabled === true) {
-    constraintsKernel().register(instance, site.address, site.id, constraintParked);
-    entry.enabled = false;
+  if (entry === undefined) constraintUncarried(verb, pair);
+  if (entry.enabled !== enabled) {
+    constraintsKernel().register(instance, site.address, site.id, enabled ? entry.fn : constraintParked);
+    entry.enabled = enabled;
   }
   return undefined;
 }
@@ -2620,5 +2608,6 @@ function constraintCrossing(refusal) {
   };
 }
 
-// `delete` is a reserved word and the declared spelling is preserved on the way out.
-export { deleteOp as delete };
+// **THE MODULE NAMESPACE CARRIES ONE NAME, `storeCreate` ALONE** (`surface.md §2.9` item 1's `A127` clause;
+// `11 → 1` ✓): `delete`'s reserved-word spelling, the ten store-reaching names and the three constraint
+// functions are the product's own members above and have no export and no second spelling at any layer.

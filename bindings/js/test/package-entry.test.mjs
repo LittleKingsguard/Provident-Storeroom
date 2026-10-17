@@ -103,16 +103,29 @@ test('package_the_claim_is_node_esm_alone_through_exactly_one_arms_bearing_entry
   // OF THIS CELL STANDS WHOLE.** `A122` keeps the one arms-bearing arm and the kernel behind the surface;
   // the namespace's figure moves `9 → 11` at its own home (`surface.md §2.9` item 1's dated clause of this
   // date, `8 + 3 = 11`), and `manageConstraints` is displaced by that clause and by no other.
+  // **⟶ RE-DERIVED AGAIN 2026-10-16 (`surface.md §2.9` item 1's `A127` CLAUSE; `§2.12` item 2 (a)'s clause
+  // of that date).** **THE NAMESPACE IS AT ONE NAME AND EVERY STORE-REACHING ROUTE IS A METHOD OF THE
+  // OBJECT `storeCreate` RETURNS, so the constraint functions are reached through the ENTRY'S OWN PRODUCT
+  // and not through an arm — which is the `A122` half this cell guards — and no name of the displaced
+  // readings (`manageConstraints`, `addConstraint`, …) stands in the namespace.** `[A2 docs/decisions.md ·
+  // `A122` · `A127` | requirement]`
+  const probe = api.storeCreate({ journalLength: 8, listeners: [] });
   for (const route of ['addConstraint', 'constraintOn', 'constraintOff']) {
-    assert.equal(typeof api[route], 'function',
+    assert.equal(typeof probe[route], 'function',
       `and the kernel is reached by NOTHING at this map: the surface's own post-creation constraint `
-      + `function \`${route}\` is reached through the entry and not through an arm (\`surface.md §2.12\` `
-      + 'item 2; `docs/decisions.md` · `A126`)');
+      + `function \`${route}\` is reached through the entry's OWN PRODUCT and not through an arm `
+      + '(`surface.md §2.12` item 2; `docs/decisions.md` · `A126` · `A127`)');
+    assert.equal(route in api, false,
+      `and \`${route}\` is NOT a name of the namespace (\`10 → 0\` named, \`11 → 1\` total; §2.9 item 1's `
+      + '`A127` clause of 2026-10-16)');
   }
-  assert.equal('manageConstraints' in api, false,
-    'and the superseded name is NOT a name of this namespace — "the `+1` of `manageConstraints` is displaced '
-    + 'by this clause and by no other, so the count does not accumulate two readings of one route" '
-    + '(`surface.md §2.9` item 1\'s dated clause of 2026-10-16)');
+  for (const superseded of ['manageConstraints', 'on', 'off', 'read', 'write', 'listen', 'unlisten']) {
+    assert.equal(superseded in api, false,
+      `and the superseded name \`${superseded}\` is NOT a name of this namespace — "the \`+1\` of `
+      + '`manageConstraints` is displaced by this clause and by no other, so the count does not accumulate '
+      + 'two readings of one route" and the merged pair is displaced by the `A127` clause '
+      + '(`surface.md §2.9` item 1\'s `A127` clause of 2026-10-16)');
+  }
 });
 
 test('package_a_wildcard_export_and_a_deep_import_are_both_refused', (t) => {
@@ -237,17 +250,17 @@ test('package_no_cjs_arm_and_no_require_entry_is_published', () => {
 });
 
 test('package_the_named_exports_are_the_eight_verbs_and_nothing_that_reaches_the_store_directly', () => {
-  for (const verb of [
-    'storeCreate',
-    'read',
-    'readLiteral',
-    'write',
-    'delete',
-    'rollback',
-    'listen',
-    'unlisten',
-  ]) {
-    assert.equal(typeof api[verb], 'function', `\`${verb}\` is a named export of the claimed entry`);
+  // **⟶ RE-DERIVED 2026-10-16 (`surface.md §2.9` item 1's `A127` CLAUSE).** **THE NAMESPACE IS AT ITS ONE
+  // DECLARED NAME (`11 → 1`): THE EIGHT VERBS ARE METHODS OF THE OBJECT `storeCreate` RETURNS, and the
+  // cell's own subject — NOTHING THAT REACHES THE STORE DIRECTLY IS A NAME OF THE ENTRY — is read at the
+  // namespace AND at the product, so the reading is strengthened rather than moved.** `[A2
+  // docs/decisions.md · `A122` · `A127` | requirement]`
+  assert.equal(Object.keys(api).length, 1, 'the namespace is at ONE name');
+  assert.equal(typeof api.storeCreate, 'function', '`storeCreate` is a named export of the claimed entry');
+  const probe = api.storeCreate({ journalLength: 8, listeners: [] });
+  for (const verb of ['read', 'readLiteral', 'write', 'delete', 'rollback', 'listen', 'unlisten']) {
+    assert.equal(typeof probe[verb], 'function', `\`${verb}\` is a METHOD of the product \`storeCreate\` returns`);
+    assert.equal(verb in api, false, `and \`${verb}\` is NOT a named export of the claimed entry`);
   }
   // **`§2.4` item 5 (a)'s DATED CLAUSE OF 2026-10-11, ASSERTED AT THE NAMESPACE IT NAMES:** *"`register`
   // … is NOT a NINTH NAMED EXPORT of the entry … because `register` is reached through the FACTORY'S OWN
@@ -255,6 +268,8 @@ test('package_the_named_exports_are_the_eight_verbs_and_nothing_that_reaches_the
   // WHOLE **and this cell records the reading the remand moved: the registration site exists, and it is
   // NOT here.** `§2.9` item 1's `8`-verb count therefore does not move.
   assert.ok(!('register' in api), '§2.4 item 5 (a): `register` is reached through the INSTANCE, not the namespace');
+  assert.equal(typeof probe.register, 'function',
+    'and it IS reached through the instance — the member the clause names (`§2.4` item 9 (f)\'s `A127` clause)');
   assert.ok(!('findAddress' in api), 'A63: no resolver is exposed');
   assert.ok(!('dispose' in api) && !('close' in api), 'A74: no release verb at either layer');
   assert.ok(!('exists' in api), '§2.9 item 3: no `exists()` verb and no binding-side resolver');

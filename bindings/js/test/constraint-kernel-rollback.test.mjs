@@ -163,7 +163,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { write as storeWrite, read as storeRead } from 'provident-storeroom';
+// ⟶ RESHAPED: the package namespace carries ONE name (`surface.md §2.9` item 1's `A127` clause; `11 → 1`).
 
 import {
   kernel, makeStore, tag, KC,
@@ -174,7 +174,7 @@ import {
 /** The store's own read, captured without conflating "returned" with "refused" (`§6.4`). */
 function readAt(store, address) {
   try {
-    return { threw: false, value: storeRead(store, address) };
+    return { threw: false, value: store.read(address) };
   } catch (thrown) {
     return { threw: true, thrown };
   }
@@ -258,7 +258,7 @@ function twoOpFailingWindow(register, store, address) {
       repair: () => ({
         ok: true,
         message: 'y was repaired by the op this repair landed',
-        op: storeWrite(store, address, 'mem', 'repaired').op,
+        op: store.write(address, 'mem', 'repaired').op,
       }),
       message: 'y is violated by the committed value',
     }
@@ -476,7 +476,7 @@ test('ck_constraint_a_failed_attempt_at_an_address_the_caller_already_wrote_undo
   // (1) THE CALLER'S OWN EARLIER WRITE — the live run's own pre-existing op at the attempt's address,
   // under the caller's own processing, before any attempt is opened (`A106` `D6`: a write that opens no
   // attempt still has its own registry entry; nothing in this unit's surface is used to make it).
-  const earlier = storeWrite(store, address, 'mem', 2).op;
+  const earlier = store.write(address, 'mem', 2).op;
   const beforeAttempt = readAt(store, address);
   assert.equal(beforeAttempt.threw, false,
     'the caller\'s own earlier write LANDED, so the address holds a value before the attempt — read '
@@ -553,7 +553,7 @@ test('ck_constraint_a_failed_attempt_at_an_address_the_caller_already_wrote_undo
   assert.equal(after.threw, true,
     'AND AFTER THE FAILED ATTEMPT THE CALLER\'S OWN READ AT THAT ADDRESS ANSWERS THE STORE\'S OWN '
     + '`AddressNotFound` — read ' + JSON.stringify(after.threw ? after.thrown.status : after.value)
-    + '; `composition-and-states.md §2.6` item 8 (iii): "the state the caller\'s own `read(address, '
+    + '; `composition-and-states.md §2.6` item 8 (iii): "the state the caller\'s own `address.read('
     + 'tier?)` then answers — IS the end state", and item 8 (iii)\'s standing limit: "the address is '
     + 'ABSENT, the caller\'s own earlier write there being part of what the sweep removed"');
   assertStoreRefusal(after.thrown, 'the store\'s own read after the failed attempt\'s composition');
@@ -616,7 +616,7 @@ test('ck_constraint_a_later_commit_at_a_failed_attempts_address_returns_a_fresh_
   const address = [tag('ckc4')];
 
   // (1) THE CALLER'S OWN EARLIER WRITE, so the address the attempt leaves behind held a value.
-  storeWrite(store, address, 'mem', 2);
+  store.write(address, 'mem', 2);
 
   // (2) THE FAILED ATTEMPT: one pair, violated with NO repair, so the attempt fails `KC-3` and its own
   // composition sweeps its op (`attempt-lifecycle.md §2.4` item 4's arm `(c)`).
@@ -849,14 +849,14 @@ test('ck_constraint_a_store_refused_repair_has_its_own_token_named_in_the_repair
   const { register, commit, runAttempt, report } = await kernel();
   const store = makeStore({ journalLength: 64 });
   const address = [tag('ckc6')];
-  storeWrite(store, address, 'mem', 7); // the attempt's address holds a LEAF
+  store.write(address, 'mem', 7); // the attempt's address holds a LEAF
 
   let reached = false;
   register(store, address, 'x', () => ({
     repair: () => {
       reached = true;
       // THE REPAIR'S OWN EDIT, REFUSED BY THE STORE BEFORE ANY OP EXISTS (`E2E-C-13` (β)).
-      const landed = storeWrite(store, [address[0], 'child'], 'mem', 9).op;
+      const landed = store.write([address[0], 'child'], 'mem', 9).op;
       return { ok: true, message: 'the edit landed', op: landed };
     },
     message: 'x is invalid at this address',

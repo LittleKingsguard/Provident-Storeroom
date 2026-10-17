@@ -93,12 +93,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { write as storeWrite } from 'provident-storeroom';
+// ⟶ RESHAPED: the package namespace carries ONE name (`surface.md §2.9` item 1's `A127` clause; `11 → 1`).
 
 import {
   kernel, makeStore, tag,
-  assertKernelForm, capture,
-} from './constraint-kernel-helpers.mjs';
+  assertKernelForm, capture, noop, } from './constraint-kernel-helpers.mjs';
 
 /**
  * ONE MONOTONE SEQUENCE FOR THIS FILE'S OWN CALL RECORDS. Every body pushes its own mark as it is entered,
@@ -141,7 +140,7 @@ async function orderedFixture({ label, arm }) {
   const constraintArgs = [];
   const listenerArgs = [];
 
-  storeWrite(store, watch, 'mem', { [tag(label + '-link')]: 1 });
+  store.write(watch, 'mem', { [tag(label + '-link')]: 1 });
 
   const pairHandle = register(store, operation, 'ord-x', (...view) => {
     constraintArgs.push(view);
@@ -150,10 +149,10 @@ async function orderedFixture({ label, arm }) {
     return { message: label + ': the registered constraint refused this landing' };
   });
 
-  const listenerHandle = store.on(watch, (...view) => {
+  const listenerHandle = (store.register(store.listen(watch), (...view) => {
     listenerArgs.push(view);
     mark(listenerLog, { argumentCount: view.length });
-  });
+  }) || store.listen(watch));
 
   const registeredDuring = { constraint: constraintLog.length, listener: listenerLog.length };
   const record = commit(store, operation, 'mem', 1);
@@ -461,10 +460,10 @@ test('ord_the_held_arms_two_holders_the_home_entry_stands_and_the_registrys_func
   // ── THE REPLACEMENT ITSELF: THE APP'S OWN REGISTRATION AT THE ADDRESS THE KERNEL ADOPTED ────────────
   const appLog = [];
   const appArgs = [];
-  const appHandle = f.store.on(f.operation, (...view) => {
+  const appHandle = (f.store.register(f.store.listen(f.operation), (...view) => {
     appArgs.push(view);
     mark(appLog, { argumentCount: view.length });
-  });
+  }) || f.store.listen(f.operation));
 
   assert.equal(appHandle === f.pairHandle, true,
     '`surface.md §2.4` item 8 (b)\'s held-arm observable, at its own terms: "Held address, two '
@@ -533,7 +532,7 @@ test('ord_the_held_arms_two_holders_the_home_entry_stands_and_the_registrys_func
   // count of this fixture's two watched bodies would not read the slot at all.
   const appRunsAtTheOrderedAttempt = appLog.length;
   const appArgsAtTheOrderedAttempt = appArgs.length;
-  const bareRecord = storeWrite(f.store, f.operation, 'mem', { [tag('ord-held-l2')]: 1 });
+  const bareRecord = f.store.write(f.operation, 'mem', { [tag('ord-held-l2')]: 1 });
   assert.equal(bareRecord.triggered.includes(appHandle), true,
     'the later write\'s own returned set carries the identity the registry slot is keyed by — the held '
     + 'address\'s home entry still carries it, one entry, one handle (item 8 (a))');
@@ -561,7 +560,7 @@ test('ord_the_held_arms_two_holders_the_home_entry_stands_and_the_registrys_func
   // MOST ONE FUNCTION PER IDENTITY and does not record which member wrote it (`§2.4` rule 2; `DD-52`), so
   // the `on` below takes the identity's slot for its own caller's function — which is why the drive that
   // reads the app listener's own body, above, is made BEFORE this statement.
-  const identityAtTheEnd = f.store.on(f.operation, () => {});
+  const identityAtTheEnd = (f.store.register(f.store.listen(f.operation), () => {}) || f.store.listen(f.operation));
   assert.equal(identityAtTheEnd === appHandle, true,
     'and after the pass has run, after a later trigger of that identity and after the replacement has been '
     + 'reached, the address STILL answers ONE identity: the home entry the returned set was produced by is '
@@ -590,18 +589,18 @@ test('ord_a_bare_caller_made_write_carries_no_kernel_evaluation_set_and_its_deli
   const args = [];
   let insideTheWriteVerbsOwnCall = false;
 
-  storeWrite(store, watch, 'mem', { [tag('ord-bare-link')]: 1 });
+  store.write(watch, 'mem', { [tag('ord-bare-link')]: 1 });
 
-  const handle = store.on(operation, (...view) => {
+  const handle = (store.register(store.listen(operation), (...view) => {
     args.push(view);
     calls.push({ mark: ++SEQ, insideTheWriteVerbsOwnCall });
-  });
+  }) || store.listen(operation));
 
   // ONE FLAG, SET AROUND THE CALLER'S OWN STATEMENT AND CLEARED IMMEDIATELY AFTER IT: it is true exactly
   // while the caller's `write` call has not yet returned, so a body that ran inside that call reads it
   // true. This is an instrument of THIS file and asserts nothing of the store.
   insideTheWriteVerbsOwnCall = true;
-  const record = storeWrite(store, operation, 'mem', 1);
+  const record = store.write(operation, 'mem', 1);
   insideTheWriteVerbsOwnCall = false;
 
   // ── NO KERNEL EVALUATION SET EXISTS TO READ ─────────────────────────────────────────────────────────

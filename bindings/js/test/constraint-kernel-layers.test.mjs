@@ -62,13 +62,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { write as storeWrite } from 'provident-storeroom';
+// ⟶ RESHAPED: the package namespace carries ONE name (`surface.md §2.9` item 1's `A127` clause; `11 → 1`).
 
 import {
   kernel, makeStore, tag,
   assertAttemptReport, assertLogEntry, assertSeqIncreasesFromOne,
-  capture, entries, checkIds, countingListener,
-} from './constraint-kernel-helpers.mjs';
+  capture, entries, checkIds, countingListener, noop, } from './constraint-kernel-helpers.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // §1  LAYER (a) — ONE DELIVERY PER EVALUATED PAIR, EACH WITH THAT PAIR'S OWN FUNCTION
@@ -142,7 +141,7 @@ test('ck_layer_a_constraints_run_before_other_listeners_at_the_same_address', as
   // and the kernel's own `K-1` REPLACES it — so the plain body is UNREACHABLE from the store's delivery
   // at an address the kernel registers a pair at (`kernel-surface.md §2.1` item 1's return-shape row).
   const plain = () => order.push('plain');
-  const handlePlain = store.on(address, plain);
+  const handlePlain = (store.register(store.listen(address), plain) || store.listen(address));
   const handleKernel = register(store, address, 'x', () => { order.push('constraint'); return true; });
   assert.equal(handleKernel, handlePlain,
     'ONE store home entry per address: both registrations are answered the SAME adopted handle, so the '
@@ -215,7 +214,7 @@ function driveE2EC16() {
   const parentAddress = [tag('e2e16'), 'c'];
   const ancestorAddress = [parentAddress[0]];
   const store = makeStore({ journalLength: 16 });
-  storeWrite(store, ancestorAddress, 'mem', { seed: 'the ancestor home entry stands' });
+  store.write(ancestorAddress, 'mem', { seed: 'the ancestor home entry stands' });
   return { store, parentAddress, ancestorAddress };
 }
 
@@ -225,7 +224,7 @@ test('ck_layer_b_the_uninvoked_caller_returned_handle_stands_in_pending_and_in_n
   const cA = () => ({ repair: () => {
     // THE REPAIR-OP SEAM (`parameter-semantics.md §2.7`; `A: docs/decisions.md` · `A110`): `op` IS THE OP
     // THIS REPAIR'S OWN EDIT LANDED, read off the store's own `write` return in the repair's own body.
-    const landed = storeWrite(store, ancestorAddress, 'mem', 'nested').op;
+    const landed = store.write(ancestorAddress, 'mem', 'nested').op;
     return { ok: true, message: 'cA was repaired at the ancestor address', op: landed };
   }, message: 'a is bad' });
   register(store, ancestorAddress, 'cL', () => true);
@@ -245,7 +244,7 @@ test('ck_layer_b_the_uninvoked_caller_returned_handle_stands_in_pending_and_in_n
   // triggered}` and carries `pending` NEVER (`A: docs/specs/storeroom-native/write-and-read.md §3.6`;
   // `kernel-surface.md §2.1` item 2's "WHAT IT IS NOT" row; `contract.md §5.2`, `P-IM-2`). Read at its
   // OWN address, because a second `K-2` at a live address is `KC-7`.
-  const storeOwned = storeWrite(store, [tag('lb-shape')], 'mem', 'the store\'s own record');
+  const storeOwned = store.write([tag('lb-shape')], 'mem', 'the store\'s own record');
   assert.deepEqual(Object.keys(storeOwned).sort(), ['op', 'triggered', 'watched'],
     'the store\'s own write record is the THREE declared members');
   assert.equal('pending' in storeOwned, false,
@@ -321,12 +320,12 @@ test('ck_layer_b_the_plain_store_listener_carries_the_triggering_address_as_its_
   // an object value at the ancestor, exactly as `driveE2EC16` seeds its own, so the descendant address
   // stays writable (`store.on` refuses an address the register does not hold — `AddressNotFound` — and
   // a leaf there would refuse the descendant with `WriteParentNotLink`).
-  storeWrite(store, ancestorAddress, 'mem', { seed: 'the ancestor home entry stands as a container' });
+  store.write(ancestorAddress, 'mem', { seed: 'the ancestor home entry stands as a container' });
   // THE REGISTRATION THE KERNEL DOES NOT DISPLACE: `store.on` at an address carrying NO `K-1` pair.
-  const handlePlain = store.on(ancestorAddress, plain);
+  const handlePlain = (store.register(store.listen(ancestorAddress), plain) || store.listen(ancestorAddress));
   const seenBefore = plain.seen.length;
   // THE OPERATION LANDS AT THE DESCENDANT ADDRESS, so the watch address IS a proper prefix of it.
-  const written = storeWrite(store, operationAddress, 'mem', 'the operation\'s own landing address');
+  const written = store.write(operationAddress, 'mem', 'the operation\'s own landing address');
   assert.deepEqual(written.op.address, operationAddress,
     'the operation\'s own landing address is the two-segment descendant');
   assert.equal(plain.seen.length, seenBefore + 1,
@@ -340,7 +339,7 @@ test('ck_layer_b_the_plain_store_listener_carries_the_triggering_address_as_its_
     'the two addresses are distinct, so the distinction the clause draws is DRIVEN and not assumed');
   assert.equal(plain.seen[seenBefore].address.length, 2,
     'the two-kind rule fixes exactly one argument, and it is the op\'s address');
-  assert.equal(store.on(ancestorAddress, () => {}), handlePlain,
+  assert.equal((store.register(store.listen(ancestorAddress), () => {}) || store.listen(ancestorAddress)), handlePlain,
     'the map\'s key is the handle the registration answered — THE STORE\'S OWN ADOPTED VALUE for that '
     + 'address and `===` to it, no type beyond the row\'s own declaration being read '
     + '(`kernel-surface.md §2.1` item 1\'s return-shape row; `A: bindings/js/index.d.ts`: `Handle = object`; '
@@ -383,8 +382,8 @@ test('ck_layer_b_the_order_law_every_layer_a_delivery_completes_before_any_layer
   // THE DESCENDANT: the write the attempt lands there returns TWO handles — so one of them is a member
   // of `CommitRecord.pending` and NOT of `triggered`'s kernel-side home entry (`kernel-surface.md §2.1`
   // item 2; `§2.2` items 2–3).
-  storeWrite(store, address, 'mem', { seed: 'the ancestor home entry stands as a container' });
-  const handlePlain = store.on(address, () => {});
+  store.write(address, 'mem', { seed: 'the ancestor home entry stands as a container' });
+  const handlePlain = (store.register(store.listen(address), () => {}) || store.listen(address));
   const passIds = ['cB'];
   register(store, nestedAddress, 'cB', () => true);
   const record = commit(store, nestedAddress, 'mem', 'v1');
@@ -588,7 +587,7 @@ test('ck_layer_b_a_foreign_instances_handle_is_never_invoked_by_the_kernel', asy
   const foreignStore = makeStore();
   const foreign = register(foreignStore, address, 'x', () => { invocations += 1; return true; });
   assert.notEqual(foreign, undefined, 'the registration answers a handle and not a refusal');
-  assert.equal(foreignStore.on(address, () => {}), foreign,
+  assert.equal((foreignStore.register(foreignStore.listen(address), () => {}) || foreignStore.listen(address)), foreign,
     'a foreign instance adopts and answers its OWN handle for that address — one value per instance, '
     + '`===` to the store\'s own answer (`kernel-surface.md §2.2` item 1: the kernel "never mints a token '
     + 'for a store-minted handle"; `A: bindings/js/index.d.ts`: `Handle = object`)');

@@ -6,21 +6,31 @@
 // banner, no build-time code generator produces it, and it is the file the package's own `types` field
 // reaches and the package's own `files` allowlist ships.
 //
-// **IT DECLARES THREE THINGS AND NOTHING ELSE** (`distribution.md §5.2`): (1) the EIGHT VERBS of the
-// claimed ESM entry, exactly as the sibling directory enumerates them and with NO ninth name; (2) the
-// instance's own member set, `{ register, on, off, settle }` — FOUR own members and nothing else
-// (`distribution.md §5.2` item 2 read with `surface.md §2.1`'s dated clause (a) and `§2.4` item 9 (f)):
-// `register(handle, listener) -> undefined` · `on(address, listener) -> handle` · `off(handle) ->
-// undefined` · `settle(record) -> undefined`, each with its argument types and its return, the FOURTH
-// being THE ORDERING SEAM the kernel calls and the entry implements, and with NO fifth member and NO
-// ninth named export for it; and (3) the failure surface, a thrown plain object with exactly
+// **IT DECLARES THREE THINGS AND NOTHING ELSE** (`distribution.md §5.2`): (1) the claimed entry's OWN
+// NAMED EXPORT SET — **ONE NAME, `storeCreate`, AND NOTHING ELSE** (`surface.md §2.9` item 1's `A127`
+// clause; `docs/decisions.md` · `A127`/`A128`, 2026-10-16: the module-level count is `11 → 1` ✓, the
+// deprecation window of `A128`'s fiat being declared away at that clause); (2) the instance's own member
+// set, **TWELVE OWN MEMBERS AND NOTHING ELSE — `10 + 1 + 1 = 12` ✓** (`distribution.md §5.2` item 2 read
+// with `surface.md §2.4` item 9 (f)'s `A127` clause): **THE TEN METHODS** `read(address, tier?)` ·
+// `readLiteral(address, tier?)` · `write(address, tier, value, commit?)` · `delete(address, tier?)` ·
+// `rollback(opId)` · `listen(address)` · `unlisten(handle)` · `addConstraint(pair, constraint)` ·
+// `constraintOn(pair, constraint)` · `constraintOff(pair, constraint)`, **PLUS `register(handle, listener)
+// -> undefined` and `settle(record) -> undefined`** — the last being THE ORDERING SEAM the kernel calls and
+// the entry implements; and (3) the failure surface, a thrown plain object with exactly
 // `{status, message}`.
 //
-// **AND THE RECORDS THOSE VERBS ANSWER WITH ARE DECLARED BESIDE THEM, WHICH IS STILL PART (1) AND NOT A
+// **THE TEN METHODS TAKE THE RECEIVER'S OWN POSITION AWAY: `8 → 1` ✓ AND `4 → 12` ✓** (`surface.md §2.9`
+// item 1's and `§2.4` item 9 (f)'s `A127` clauses). The seven verbs that reach the store are METHODS of the
+// object `storeCreate` returned, so **NO DECLARED SIGNATURE CARRIES A LEADING `instance` POSITION** — the
+// receiver is not a position — and the module namespace's own spelling, not a second name at any layer,
+// is what a consumer reaches them through. **`on` AND `off` ARE MERGED AWAY BY `A127` AND ARE NOT
+// MEMBERS**: the listener registration route is `listen` + `register` and its withdrawal is `unlisten`.
+//
+// **AND THE RECORDS THOSE METHODS ANSWER WITH ARE DECLARED BESIDE THEM, WHICH IS STILL PART (1) AND NOT A
 // FOURTH THING**: `Address` · `Tier` · `TierSet` · `StoreConfig` · `BaseState` · `JournalOp` ·
 // `WriteRecord` · `DeleteRecord` · `RollbackRecord` · `Handle` · `Listener` are the SHAPES OF THE
 // ARGUMENTS AND OF THE ANSWERS, in `DD-39`'s own member spellings (the sibling directory's `contract.md
-// §0.2`), and a declaration that did not carry them would declare eight names and no surface. **None of
+// §0.2`), and a declaration that did not carry them would declare one name and no surface. **None of
 // them is a STORE type**: no register, no anchor, no tier tree, no journal and no store verb is declared
 // here (`§5.2` item 4).
 //
@@ -76,9 +86,9 @@ export type TierSet = Tier | readonly Tier[];
  * `contract.md` `DD-36` as amended 2026-10-15; `parameter-semantics.md §2.21` = `PAR-JS-21`): this cell as
  * filed read *"the store's THREE declared keys and no fourth"* and is re-spelled IN PLACE to the four-key,
  * no-FIFTH reading — the fourth declared key is `constraints`, whose own declaration stands below, and the
- * set's declared arity is `4`.** **NO OTHER CELL OF THIS FILE MOVES** (`distribution.md §5.2`; the entry's
- * `8` verbs, the addon's `5`, the instance's `4` own members, the kernel's `5` and the store's `8` register
- * rows all stand as printed).
+ * set's declared arity is `4`.** **NO OTHER CELL OF THIS FILE MOVES** (`distribution.md §5.2`), **READ AT
+ * THE FIGURES `A127` MOVED** — the entry's `1` named export (`11 → 1` ✓), the addon's `5`, the instance's
+ * `12` own members (`4 → 12` ✓), the kernel's `5` and the store's `8` register rows.
  */
 export interface StoreConfig {
   /** The journal's declared length: a positive integer (`PAR-JS-3`). */
@@ -294,43 +304,128 @@ export interface CommitRecord {
 }
 
 /**
- * **THE INSTANCE `storeCreate` RETURNS — `{ register, on, off, settle, addConstraint, constraintOn,
- * constraintOff }`, SEVEN OWN MEMBERS AND NOTHING ELSE, `4 + 3 = 7`** (`distribution.md §5.2` item 2 read
- * with `surface.md §2.4` item 9 (f)'s dated clause of 2026-10-16, `docs/decisions.md` · `A126`, and
- * `§2.12`'s items 2–3, which declare the three's own shapes). **The `+3` are the THREE SURFACE FUNCTIONS** —
- * the ADD route that CARRIES the constraint, and the `on`/`off` pair that enables and disables it — **and
- * each is ONE FUNCTION OF THE SURFACE, the same declared arity of THREE positions the module namespace's
- * own name carries: `instance`, `pair`, `constraint`.**
- * **The instance's own state is released with the instance and by nothing else: none of the seven is a
- * release verb.**
+ * **THE INSTANCE `storeCreate` RETURNS — THE TWELVE OWN MEMBERS OF `surface.md §2.4` item 9 (f)'s `A127`
+ * clause, `10 + 1 + 1 = 12` ✓: THE TEN METHODS, `register` AND `settle`.** Each is reached through the
+ * factory's own product alone (`package.md §1.3` item 3) — **NO member below is a named export**, because
+ * the module namespace carries ONE name, `storeCreate` (`§2.9` item 1's `A127` clause; `11 → 1` ✓).
+ *
+ * **THE TEN METHODS ARE THE DECLARED POSITIONS OF `§2.2`, `§2.4`, `§2.10` AND `§2.12` WITH THE LEADING
+ * `instance` POSITION DROPPED** (`A127`): `a.read(address, tier?)` is the declared `read`, `a.write(address,
+ * tier, value, commit?)` the declared `write`, and so on — **the receiver IS the instance, so the position
+ * is not a position and the arity every one of them is judged by is the arity of the method's OWN call.**
+ * **`on` and `off` are merged away and are NOT members**: registration is `listen` + `register`, and
+ * withdrawal is `unlisten`.
+ *
+ * **THE STATE IS PRIVATE AND NONE OF THE TWELVE IS A RELEASE VERB** (`surface.md §2.1` (e) item 1; `A74`):
+ * the instance's own state is released with the instance and by nothing else — no `dispose()`, no `close()`
+ * and no finalizer is declared here.
  */
 export interface StoreInstance {
-  /** Register `listener` under the opaque `handle`, and answer `undefined`. */
-  register(handle: Handle, listener: Listener): void;
-  /** Register a listener at `address` and answer the fresh opaque handle it is keyed by. */
-  on(address: Address, listener: Listener): Handle;
-  /** Withdraw the store-side home entry the `handle` names, and answer `undefined`. */
-  off(handle: Handle): void;
   /**
-   * **THE POST-CREATION ADD ROUTE — `addConstraint(instance, pair, constraint) -> constraint identity`**
-   * (`surface.md §2.12` item 2 (a) and item 3's ADD row; `parameter-semantics.md §2.25` = `PAR-JS-25`):
-   * **the pair's element IS the supplied `constraint` from this call on, whether the pair was HELD or NOT**,
-   * and at a pair already held the supplied constraint OVERWRITES the held one under **THE SAME IDENTITY**
-   * the pair was already added under, so the call throws nothing for the mere fact that the pair was held.
-   * **Every outside form of any of the three positions throws ONE `TypeError`, whose `status` member is
-   * ABSENT, and nothing is added, enabled, disabled or otherwise changed.**
+   * Read a leaf's literal, a branch's assembled value, or the empty address's whole register.
+   *
+   * **`tier` IS THE READER'S ARITY** (`PAR-JS-6`): absent, ONE token, or an ARRAY of tokens read as an
+   * ANY-MATCH set — **so the earlier `tier?: Tier` spelling refused, as a type error, a lawful call
+   * spelling a set**.
+   *
+   * **AND `undefined` AT THIS POSITION IS NOT THE SAME CALL AS NO POSITION AT ALL** (`parameter-semantics.md
+   * §2.6`, read with `acceptance.md §4.1` item 7): **a SUPPLIED `undefined` is PRESENT and the store answers
+   * `AddressMalformed` for it**, while ONLY the call that spells NO tier folds to absent. **THE DECLARATION
+   * CANNOT TELL THE TWO APART** — `tier?: TierSet` admits both spellings, which is why `TierSet` carries no
+   * `undefined` member — and the distinction is a RUNTIME one at this member (`a127`'s
+   * `read_the_absent_tier_position_is_in_domain`).
    */
-  addConstraint(instance: StoreInstance, pair: ConstraintPair, constraint: Constraint): ConstraintIdentity;
-  /** **THE ENABLE HALF** (`§2.12` item 2 (a) and item 3's `constraintOn` row): `undefined`. **The third
-   *  position is REQUIRED and is a NO-OP on every success** — the caller supplies as a function the identity
-   *  it holds at that pair, the entry never substitutes one, and it is the element the entry carried at that
-   *  pair that is evaluated at the next write. **Idempotent success where the pair already stands ENABLED.** */
-  constraintOn(instance: StoreInstance, pair: ConstraintPair, constraint: Constraint): void;
+  read(address: Address, tier?: TierSet): unknown;
+  /** The same read, narrowed to a leaf — a branch answers `ReadTargetIsBranch`; `tier` is `TierSet`, with the same SUPPLIED-`undefined` reading as `read`. */
+  readLiteral(address: Address, tier?: TierSet): unknown;
+  /**
+   * Write `value` at `address` on `tier` — EXACTLY ONE token, never an array (`PAR-JS-7`).
+   *
+   * **THE DECLARED ORDER IS `write(address, tier, value, commit?)`** (`surface.md §2.2`'s dated clause of
+   * 2026-10-15; `parameter-semantics.md §2.20`), read with `§2.4` item 9 (f)'s `A127` clause: **THREE
+   * REQUIRED ARGUMENTS AND THE OPTIONAL ONE LAST — the commit, at the FOURTH position of the METHOD**,
+   * which is the position the `instance`-leading spelling made FIVE (`A124`).
+   *
+   * **AN ABSENT `commit` IS IN DOMAIN** (§2.2 clause 3: *"the write opens or joins a commit all the
+   * same"*) and **NO DEFAULT RECORD IS FABRICATED FOR IT**; **the admitted form is the kernel's own
+   * `CommitRecord`** (`surface.md §2.4` item 9 (g) item 1: an object carrying a `pending` member present
+   * and not `undefined`), and **every other form at this position throws the registration site's own
+   * `TypeError`**, whose `status` member is ABSENT. **A REFUSED POSITION STOPS THE WRITE**: no verb is
+   * reached and no byte moves.
+   *
+   * **AND A SUPPLIED `undefined` AT THE `tier` POSITION IS PRESENT HERE TOO** (`parameter-semantics.md
+   * §2.6`; `PAR-JS-6`): it is not the absent tier and the store answers `AddressMalformed` for it.
+   */
+  write(address: Address, tier: Tier, value: unknown, commit?: CommitRecord): WriteRecord;
+  /**
+   * Remove the versions the address names, and answer the operation's record.
+   *
+   * **THE NAME IS `delete` AND IT IS A METHOD NAME, WHICH IS WHY THIS DECLARATION PARSES**: `delete` is a
+   * RESERVED WORD, so under the superseded module-level spelling the function had to be declared as
+   * `deleteOp` and re-exported (`export { deleteOp as delete }`). **A METHOD NAME IS NOT AN IDENTIFIER
+   * BINDING, so the member is declared under the one name the surface publishes** (`A127`).
+   */
+  delete(address: Address, tier?: Tier): DeleteRecord;
+  /**
+   * Roll the journal back to `opId`, and answer what the rollback restored.
+   *
+   * **`opId` IS A NON-EMPTY `string` AND NOT A NUMBER** (`PAR-JS-9`'s own unit: *"the `JournalOp.opId`
+   * string"*): a number is an OUTSIDE value the store answers `AddressMalformed` for, and the ordinary
+   * call `a.rollback(w.op.opId)`, whose id is the string `write` returned, is a correct call.
+   */
+  rollback(opId: string): RollbackRecord;
+  /**
+   * Begin watching an address, and answer the fresh opaque handle it is keyed by.
+   *
+   * **AND IT IS AN ADDRESS SITE THAT DECLARES ITS ARGUMENT POSITION** (`parameter-semantics.md §2.17`'s
+   * dated clause; `surface.md §2.5` item 5 (b)'s position half): the address is `1` of `1`, so a CLASS
+   * refusal here — a `Proxy` over an array included — carries `a Proxy` AND `first argument` inside the one
+   * failure form's message, and NO trap is run (`NG-JS-I`).
+   *
+   * **A REPEATED CALL AT A HELD ADDRESS MINTS NOTHING AND ANSWERS THE ADDRESS'S EXISTING ENTRY'S HANDLE**
+   * (`write-and-read.md §6.5` item 12 (c); `§0.4` clause 2), so the two calls answer ONE opaque value.
+   */
+  listen(address: Address): Handle;
+  /**
+   * Withdraw a watching, and answer `undefined` — a no-op success for every value outside the domain.
+   *
+   * **AND THE WITHDRAWAL CARRIES THE PACKAGE'S OWN HALF TOO** (`surface.md §2.4` item 7 (b)'s
+   * VALIDATE · UNLISTEN · DEREGISTER step list, MERGED INTO THIS ONE MEMBER by `A127`'s receiver ruling;
+   * `contract.md §5.5`'s fourth added entry): **the store-side home entry named by this call is withdrawn,
+   * and the registry's entry for the identity is REMOVED where the identity no longer stands anywhere** — so
+   * the registered function is unreachable afterwards and a re-`listen` at the withdrawn address answers a
+   * DIFFERENT handle. **AT `DD-39`'s CONSTRUCTION DUPLICATE — ONE caller-spelled token naming MORE THAN ONE
+   * entry at ONE address — ONE entry is withdrawn per call while the address still holds the identity, and
+   * the registry's entry STANDS: a later trigger there STILL returns that identity and the function fires
+   * for it ONCE, never once per entry** (`contract.md §5.5`'s third added entry; `§2.4` rule 4's *"never the
+   * function"*).
+   */
+  unlisten(handle: Handle): void;
+  /**
+   * **THE POST-CREATION ADD ROUTE — `addConstraint(pair, constraint) -> constraint identity`**
+   * (`surface.md §2.12` item 2 (a) and item 3's ADD row; `parameter-semantics.md §2.25` = `PAR-JS-25`):
+   * **the pair's element IS the supplied `constraint` from this call on, whether the pair was HELD or
+   * NOT**, and at a pair already held the supplied constraint OVERWRITES the held one under **THE SAME
+   * IDENTITY** the pair was already added under, so the call throws nothing for the mere fact that the
+   * pair was held.
+   *
+   * **Every outside form of either position throws ONE `TypeError`, whose `status` member is ABSENT, and
+   * nothing is added, enabled, disabled or otherwise changed.**
+   */
+  addConstraint(pair: ConstraintPair, constraint: Constraint): ConstraintIdentity;
+  /** **THE ENABLE HALF** (`§2.12` item 2 (a) and item 3's `constraintOn` row): `undefined`. **The
+   *  `constraint` position is REQUIRED and is a NO-OP on every success** — the caller supplies as a function
+   *  the identity it holds at that pair, the entry never substitutes one, and it is the element the entry
+   *  carried at that pair that is evaluated at the next write. **Idempotent success where the pair already
+   *  stands ENABLED.** */
+  constraintOn(pair: ConstraintPair, constraint: Constraint): void;
   /** **THE DISABLE HALF** (`§2.12` item 2 (a) and item 3's `constraintOff` row): `undefined`; the pair's
-   *  element is NOT evaluated on a subsequent write, and **a write the disabled constraint would have refused
-   *  is ACCEPTED**. The third position's rule is `constraintOn`'s, clause for clause.
+   *  element is NOT evaluated on a subsequent write, and **a write the disabled constraint would have
+   *  refused is ACCEPTED**. The `constraint` position's rule is `constraintOn`'s, clause for clause.
    *  **Idempotent success where the pair already stands DISABLED.** */
-  constraintOff(instance: StoreInstance, pair: ConstraintPair, constraint: Constraint): void;
+  constraintOff(pair: ConstraintPair, constraint: Constraint): void;
+  /** Register `listener` under the opaque `handle`, and answer `undefined` (`surface.md §2.4` item 5 (b)). */
+  register(handle: Handle, listener: Listener): void;
   /**
    * **THE ORDERING SEAM — `settle(record) -> undefined`** (`surface.md §2.4` item 9; `A116` (D1)–(D2);
    * `PAR-JS-19`): the one member THE KERNEL CALLS and the entry implements, at the two instants of a
@@ -348,7 +443,7 @@ export interface StoreInstance {
    * *"the carrier `CommitRecord.pending` and its two removal rules unchanged"*). **THE INSTANTS' OWN TABLE
    * NAMES IT: the record is *"the `CommitRecord` `commit` is building"* at instant (a) and *"the SAME record
    * identity"* at instant (b)** (`surface.md` `§2.4` item 9 (a)–(b)). **AND THE STORE'S RECORD IS NOT ONE:
-   * `WriteRecord` above is the three-member `{op, watched, triggered}` the `write` verb answers with and
+   * `WriteRecord` above is the three-member `{op, watched, triggered}` the `write` member answers with and
    * carries NO `pending` member, `PAR-JS-13` is that record's returned `op` field (`parameter-semantics.md
    * §2.13`) and not the record's own shape, and the kernel's record carries TWO of the store's members
    * VERBATIM beside its own `attempt` identity and its own `pending` member** (`kernel-surface.md §2.1` item
@@ -382,9 +477,9 @@ export function storeCreate(cfg: StoreConfig): StoreInstance;
 
 /**
  * **THE POST-CREATION CONSTRAINT PAIR — `parameter-semantics.md §2.24` (`PAR-JS-24`)**: the key the three
- * surface functions name — **an `address` inside `§1.5`'s segment array, and an `id` that is a NON-EMPTY
+ * constraint methods name — **an `address` inside `§1.5`'s segment array, and an `id` that is a NON-EMPTY
  * `string`** — **and NOT the whole of a batch element**, which is this pair PLUS its constraint function.
- * **Every outside form of the pair throws the three functions' one `TypeError`**, and **a well-formed pair
+ * **Every outside form of the pair throws the three methods' one `TypeError`**, and **a well-formed pair
  * the entry does not carry is outside the two toggles' domain**: it is NOT a third population route.
  */
 export interface ConstraintPair {
@@ -394,11 +489,12 @@ export interface ConstraintPair {
 
 /**
  * **THE CONSTRAINT FUNCTION — `parameter-semantics.md §2.22` (`PAR-JS-22`)**: a JS function, supplied by THE
- * CALLER at whichever of the three functions it takes — **the ADD route's own argument** or the batch
- * element's own — **invoked by the KERNEL with ONE argument, the attempt's own context**, and read for its
- * answer (`kernel-surface.md §2.3` item 1: `true` is the only pass value). **Every non-function is outside
- * the position AT EVERY ONE OF THE THREE FUNCTIONS**, and a non-function at the toggle's position is refused
- * on the ARGUMENT's ground and never on the pair's.
+ * CALLER at whichever of the three methods it takes — **the ADD route's own argument** or the batch
+ * element's own — **invoked by the KERNEL with ONE argument, the attempt's own context** (`PAR-C-16`: *"the
+ * attempt context — the constraint's ONE argument"*), and read for its answer (`kernel-surface.md §2.3`
+ * item 1: `true` is the only pass value). **Every non-function is outside the position AT EVERY ONE OF THE
+ * THREE METHODS**, and a non-function at the toggle's position is refused on the ARGUMENT's ground and
+ * never on the pair's.
  */
 export type Constraint = (context: unknown) => unknown;
 
@@ -409,98 +505,3 @@ export type Constraint = (context: unknown) => unknown;
  * accessor reaches a member of it, and a consumer compares identities and never contents.**
  */
 export type ConstraintIdentity = object;
-
-/**
- * Read a leaf's literal, a branch's assembled value, or the empty address's whole register.
- *
- * **`tier` IS THE READER'S ARITY** (`PAR-JS-6`): absent, ONE token, or an ARRAY of tokens read as an
- * ANY-MATCH set — **so the shipped `tier?: Tier` refused, as a type error, a lawful call spelling a set**.
- */
-export function read(instance: StoreInstance, address: Address, tier?: TierSet): unknown;
-
-/** The same read, narrowed to a leaf — a branch answers `ReadTargetIsBranch`; `tier` is `TierSet`. */
-export function readLiteral(instance: StoreInstance, address: Address, tier?: TierSet): unknown;
-
-/**
- * Write `value` at `address` on `tier` — EXACTLY ONE token, never an array (`PAR-JS-7`).
- *
- * **⟶ AMENDED 2026-10-15 (`surface.md §2.2`'s dated clause of 2026-10-15; `parameter-semantics.md §2.20`):
- * THE DECLARED ORDER IS `write(instance, address, tier, value, commit?)`** — **FOUR REQUIRED ARGUMENTS
- * AND THE OPTIONAL ONE AT POSITION FIVE** (`proposal-review.md §22.5` item 5) — and this is the published
- * declaration file `surface.md §2.4` item 9 (f) names.
- *
- * **AN ABSENT `commit` IS IN DOMAIN** (§2.2 clause 3: *"the write opens or joins a commit all the same"*)
- * and **NO DEFAULT RECORD IS FABRICATED FOR IT**; **the admitted form is the kernel's own `CommitRecord`**
- * (`surface.md §2.4` item 9 (g) item 1: an object carrying a `pending` member present and not `undefined`),
- * and **every other form at this position throws the registration site's own `TypeError`**, whose `status`
- * member is ABSENT. **A REFUSED POSITION STOPS THE WRITE**: no verb is reached and no byte moves.
- */
-export function write(
-  instance: StoreInstance,
-  address: Address,
-  tier: Tier,
-  value: unknown,
-  commit?: CommitRecord,
-): WriteRecord;
-
-/**
- * Remove the versions the address names, and answer the operation's record.
- *
- * **AND THE NAME IS `delete`, WHICH THIS DECLARATION CANNOT BIND AS AN IDENTIFIER**: `delete` is a RESERVED
- * WORD, so the function is declared as `deleteOp` and EXPORTED under the name the entry publishes —
- * `export { deleteOp as delete }` — exactly as `bindings/js/index.mjs` does on its own side.
- * **`export function delete(…)`, WHICH THE SHIPPED FILE CARRIED, IS NOT A PARSEABLE DECLARATION AT ALL**, so
- * a consumer's compiler read no surface from this file rather than a mis-typed one (`P-PUB-7`; `Q3-4`).
- */
-declare function deleteOp(instance: StoreInstance, address: Address, tier?: Tier): DeleteRecord;
-export { deleteOp as delete };
-
-/**
- * Roll the journal back to `opId`, and answer what the rollback restored.
- *
- * **`opId` IS A NON-EMPTY `string` AND NOT A NUMBER** (`PAR-JS-9`'s own unit: *"the `JournalOp.opId`
- * string"*): the shipped `opId: number` both mis-declared the domain — a number is an OUTSIDE value the
- * store answers `AddressMalformed` for — and made the ordinary call `rollback(i, w.op.opId)`, whose id is
- * the string `write` returned, a type error.
- */
-export function rollback(instance: StoreInstance, opId: string): RollbackRecord;
-
-/** Begin watching an address, and answer the fresh opaque handle it is keyed by. */
-export function listen(instance: StoreInstance, address: Address): Handle;
-
-/** Withdraw a watching, and answer `undefined` — a no-op success for every value outside the domain. */
-export function unlisten(instance: StoreInstance, handle: Handle): void;
-
-/**
- * **THE POST-CREATION ADD ROUTE — `addConstraint(instance, pair, constraint) -> constraint identity`**
- * (`surface.md §2.12` item 2 (a), a named export of this entry by `§2.9` item 1's dated clause of 2026-10-16,
- * `8 + 3 = 11`; `A126`). **THE ONE SUPPLY OF A POST-CREATION CONSTRAINT'S FUNCTION IS THIS CALL'S OWN THIRD
- * POSITION**, and the element the entry carries at that pair IS the supplied function from this call on.
- * **At a pair already HELD the supplied constraint OVERWRITES the held one and the call refuses nothing**
- * (item 3's ADD row) — the returned identity is the SAME identity the pair was already added under.
- * **The same function is an own member of `storeCreate`'s product**, with the same declared arity.
- */
-export function addConstraint(
-  instance: StoreInstance,
-  pair: ConstraintPair,
-  constraint: Constraint,
-): ConstraintIdentity;
-
-/** **THE ENABLE HALF** (`§2.12` item 2 (a) and item 3's `constraintOn` row): `undefined`; the pair is
- *  ENABLED and its element — **the element the entry carried at that pair, never a second constraint** — is
- *  evaluated at the next write. **The third position is REQUIRED and is a NO-OP on every success.**
- *  **Idempotent success at a pair already ENABLED.** */
-export function constraintOn(
-  instance: StoreInstance,
-  pair: ConstraintPair,
-  constraint: Constraint,
-): void;
-
-/** **THE DISABLE HALF** (`§2.12` item 2 (a) and item 3's `constraintOff` row): `undefined`; the pair is
- *  DISABLED and **a write the disabled constraint would have refused is ACCEPTED**. The third position's rule
- *  is `constraintOn`'s, clause for clause. **Idempotent success at a pair already DISABLED.** */
-export function constraintOff(
-  instance: StoreInstance,
-  pair: ConstraintPair,
-  constraint: Constraint,
-): void;

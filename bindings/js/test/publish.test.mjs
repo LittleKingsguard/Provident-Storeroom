@@ -597,6 +597,7 @@ function stubSource(variant, opts = {}) {
   return `'use strict';
 // THE FAKE CANDIDATE: this stands where a platform package's resolution would land. Variant: ${variant}.
 const calls = { version: 0, storeCreate: 0, errorMessage: 0 };
+const minted = { opaque: 'the fake candidate handle' };
 const GEN_TAIL = ${JSON.stringify(GEN_TAIL)};
 const report = { variant: ${JSON.stringify(variant)}, calls, loadError: null };
 function versionValue() { return ${versionValue}; }
@@ -616,19 +617,22 @@ ${generatorMember}
   /// **THE CONSTRUCTION THE ENTRY PERFORMS ON THE ARTEFACT IT RESOLVED** — the ONE source of an instance
   /// (the contract's own §1.4 item 3 refutes every JS-side fallback, a partial instance and a no-op verb).
   /// It records its OWN invocation (the cells that assert the loaded candidate is what constructs the store
-  /// count it) and answers an instance of the DECLARED SHAPE: the THREE own members 'surface.md §2.4' item
-  /// 5 declares — 'on(address, listener)' the combined registration, 'off(handle)' the store-side
-  /// withdrawal together with this instance's own registry removal, and 'register(handle, listener)' the
-  /// opaque-handle registration — in the order the real factory builds them, and NOTHING else. It performs
+  /// count it) and answers an instance of the DECLARED SHAPE — the members which the surface's own item 9
+  /// (f) clause names: 'listen(address)' the home-entry mint that answers its handle, 'register(handle,
+  /// listener)' the opaque-handle registration, 'unlisten(handle)' the store-side withdrawal together with
+  /// this instance's own registry removal, and the ordering seam 'settle(record)' — in the order the real
+  /// factory builds them, and NOTHING else. RESHAPED 2026-10-16: THE MERGED-AWAY PAIR 'on'/'off' IS A
+  /// MEMBER OF NO PRODUCT, AND ITS TWO HOMES ARE 'listen' AND 'unlisten' ABOVE. It performs
   /// NO core work, because this drive observes the LOAD PATH's outcome and never the store's behaviour: the
   /// store's own arms belong to the sibling unit's battery and to the live drive, each of which runs
   /// against the REAL artefact.
   storeCreate(encodedCfg) {
     calls.storeCreate += 1;
     const instance = {
-      on(address, listener) { return registerOn(instance, listener); },
-      off(handle) { return undefined; },
+      listen(address) { return minted; },
       register(handle, listener) { return registerOn(instance, listener, handle); },
+      unlisten(handle) { return undefined; },
+      settle(record) { return undefined; },
     };
     return instance;
   },
@@ -4048,8 +4052,8 @@ cell('GUARD', 'the real entry still resolves IN PLACE at rung two', async () => 
     process.dlopen = function counting(...args) { loads.push(String(args[1])); return real.apply(this, args); };
     import(${JSON.stringify('file://' + join(PKG_DIR, 'index.mjs'))}).then(async (mod) => {
       const store = mod.storeCreate({ journalLength: 8, listeners: [] });
-      mod.write(store, ['k'], 'mem', 'v');
-      const value = mod.read(store, ['k']);
+      store.write(['k'], 'mem', 'v');
+      const value = store.read(['k']);
       process.stdout.write('__PUBRED__' + JSON.stringify({
         loads, value, members: Object.keys(store).sort(),
         verbs: Object.keys(mod).sort(),
@@ -4064,26 +4068,28 @@ cell('GUARD', 'the real entry still resolves IN PLACE at rung two', async () => 
   assert.ok(r.loads[0].endsWith(RUNG_TWO_TAIL), `the in-place load is rung two's path (${r.loads[0]})`);
   assert.ok(r.loads[0].startsWith(PKG_DIR + sep), 'and it is INSIDE the package, beside the entry module');
   assert.equal(r.value, 'v', 'the store works through that load');
+  // **⟶ RE-DERIVED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause; `§2.9` item 1's `A127` clause).**
+  // **THE PRODUCT IS AT ITS TWELVE OWN MEMBERS — `10 + 1 + 1 = 12` — AND THE ENTRY AT ITS ONE NAME
+  // (`11 → 1`), so the as-filed `4 + 3 = 7` and `8 + 3 = 11` are VACATED with the ruling and neither figure
+  // is asserted anywhere.** Read here through the real rung-two load and not through a stub.
   assert.deepEqual(r.members,
-    ['addConstraint', 'constraintOff', 'constraintOn', 'off', 'on', 'register', 'settle'],
-    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s dated clause of 2026-10-16 states '
-    + 'it: SEVEN own members, `4 + 3 = 7` — the four the seam and the registry fixed (with `settle` the ONE '
-    + 'name the seam opened the set by) plus the THREE surface functions `A126` declares; **⟶ RE-DERIVED by '
-    + 'the `A126` pass from the FOUR the `A116` (D1)–(D3) reading carried, the superseded `manageConstraints` '
-    + 'being displaced and not accumulated**; read here through the real rung-two load and not through a stub');
-  assert.equal(r.members.includes('manageConstraints'), false,
-    'and the superseded name is NOT a member of that product (`surface.md §2.9` item 1\'s dated clause: "the '
-    + '`+1` of `manageConstraints` is displaced by this clause and by no other")');
+    ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral',
+      'register', 'rollback', 'settle', 'unlisten', 'write'],
+    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s `A127` clause of 2026-10-16 states '
+    + 'it: the TEN store-reaching methods plus `register` and `settle` — TWELVE own members, `10 + 1 + 1 = 12`');
+  for (const displaced of ['manageConstraints', 'on', 'off']) {
+    assert.equal(r.members.includes(displaced), false,
+      `and the displaced name \`${displaced}\` is NOT a member of that product (\`surface.md §2.9\` item 1's `
+      + '`A127` clause: "the `+1` of `manageConstraints` is displaced by this clause and by no other", and '
+      + 'the merged pair is displaced by the `A127` clause itself)');
+  }
   assert.equal(typeof r.members.includes === 'function' && r.members.includes('settle'), true,
     'and the member that opened it is reached THROUGH THE IN-PLACE ENTRY\'s own product, which is the '
     + 'only place `settle` is declared at (`§2.4` item 9: "not a ninth named export")');
-  assert.deepEqual(r.verbs,
-    ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral', 'rollback',
-      'storeCreate', 'unlisten', 'write'],
-    'the entry carries the ELEVEN declared names — the eight verbs plus the THREE surface functions `A126` '
-    + 'declares — and NOTHING else (`surface.md §2.9` item 1\'s dated clause of 2026-10-16, `8 + 3 = 11`), so '
-    + 'the seam\'s own ninth name is displaced with `settle` and neither bare `on` nor bare `off` is among '
-    + 'them');
+  assert.deepEqual(r.verbs, ['storeCreate'],
+    'the entry carries its ONE declared name — `storeCreate` — and NOTHING else (`surface.md §2.9` item 1\'s '
+    + '`A127` clause of 2026-10-16, `11 → 1`), so every verb is reached through the product and neither the '
+    + 'seam\'s own name nor the merged pair is among the entry\'s names');
 });
 
 cell('GUARD', 'the in-place loop still resolves and works at rung two', async () => {
@@ -4095,12 +4101,14 @@ cell('GUARD', 'the in-place loop still resolves and works at rung two', async ()
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
   const store = api.storeCreate({ journalLength: 8, listeners: [] });
   assert.deepEqual(Object.keys(store).sort(),
-    ['addConstraint', 'constraintOff', 'constraintOn', 'off', 'on', 'register', 'settle'],
-    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s dated clause of 2026-10-16 states '
-    + 'it — SEVEN own members, `4 + 3 = 7` — the same set the in-place entry\'s own product carries, read '
-    + 'at the self-reference this cell resolves through');
-  api.write(store, ['k'], 'mem', 'v');
-  assert.equal(api.read(store, ['k']), 'v', 'the store works in place at rung two');
+    ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral',
+      'register', 'rollback', 'settle', 'unlisten', 'write'],
+    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s `A127` clause of 2026-10-16 states '
+    + 'it — the TEN store-reaching methods plus `register` and `settle`, TWELVE own members, `10 + 1 + 1 = 12` '
+    + '— the same set the in-place entry\'s own product carries, read at the self-reference this cell '
+    + 'resolves through');
+  store.write(['k'], 'mem', 'v');
+  assert.equal(store.read(['k']), 'v', 'the store works in place at rung two');
   assert.equal(manifest.name, 'provident-storeroom',
     '`Q3-1`: the package\'s identity is the unscoped `provident-storeroom`, which is the spelling the '
     + 'self-reference above resolves through — and the five platform names stay SCOPED');

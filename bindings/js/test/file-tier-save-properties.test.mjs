@@ -22,7 +22,13 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { storeCreate, write as storeWrite, read } from 'provident-storeroom';
+import { storeCreate } from 'provident-storeroom';
+
+// **⟶ ADDED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause): the combined `on(address,
+// listener)` is MERGED AWAY, so a home entry is minted by `listen(address)` and its function placed by
+// `register(handle, listener)`. This file takes both acts at the sites that need them and passes this
+// no-op body wherever the listener body's own firing is NOT the site's subject.**
+const noop = () => {};
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_DIR = dirname(HERE);
@@ -226,7 +232,7 @@ test('fts_prop_P_IM_1_S_ORDER_SAVE_ordinals_and_the_pre_save_image', async () =>
       const seen = { constraint: undefined, listener: undefined };
       const before = bytesOf(f.filePath);
       register(f.store, [key], 'p-ord', () => { log.push('c'); seen.constraint = bytesOf(f.filePath); return true; });
-      f.store.on([key], () => { log.push('l'); seen.listener = bytesOf(f.filePath); });
+      (f.store.register(f.store.listen([key]), () => { log.push('l'); seen.listener = bytesOf(f.filePath); }) || f.store.listen([key]));
       runAttempt(f.store, commit(f.store, [key], tier, `v${i}`));
       assert.deepEqual(log, ['c', 'l'],
         `P-IM-1: the constraint body precedes the listener body (tier ${tier})`);
@@ -276,10 +282,10 @@ test('fts_prop_P_IM_2_S_DURABLE_IMAGE_a_failing_pass_is_byte_identical', async (
       // re-reads"*) — **and beside it the KEPT version is asserted still durable there**, so a file that
       // lost BOTH versions fails this leg too (`contract.md §7.2` item 2; `§7.2` item 6).
       const afterFailure = storeCreate({ filePath: f.filePath, journalLength, listeners: [] });
-      assert.throws(() => read(afterFailure, [refused], 'file'),
+      assert.throws(() => afterFailure.read([refused], 'file'),
         (err) => err.status === 'AddressNotFound',
         'P-IM-2: the refused version is NOT durable — a fresh instance over the equal path does not hold it');
-      assert.equal(read(afterFailure, [kept], 'file'), `K${i}`,
+      assert.equal(afterFailure.read([kept], 'file'), `K${i}`,
         'P-IM-2: and the last passing image IS the one the fresh instance boots');
 
       // ── THE PASSING ARM (`§10.9` row 2's second drive; the row's own second drive, drawn here so the
@@ -293,10 +299,10 @@ test('fts_prop_P_IM_2_S_DURABLE_IMAGE_a_failing_pass_is_byte_identical', async (
       let atFirstBody = null;
       let bodies = 0;
       register(g.store, [passed], 'p-dur-pass', () => true);
-      g.store.on([passed], () => {
+      (g.store.register(g.store.listen([passed]), () => {
         bodies += 1;
         if (bodies === 1) atFirstBody = bytesOf(g.filePath);
-      });
+      }) || g.store.listen([passed]));
       runAttempt(g.store, commit(g.store, [passed], 'file', `P${i}`));
       assert.equal(atFirstBody === gBefore, false,
         'P-IM-2: the passing arm\'s image is NOT the pre-save image at the first body\'s own instant — '
@@ -305,7 +311,7 @@ test('fts_prop_P_IM_2_S_DURABLE_IMAGE_a_failing_pass_is_byte_identical', async (
       assert.ok(String(atFirstBody).includes(`P${i}`),
         `P-IM-2: the version the write installed is IN the bytes the first body read — read ${atFirstBody}`);
       const fresh = storeCreate({ filePath: g.filePath, journalLength, listeners: [] });
-      assert.equal(read(fresh, [passed], 'file'), `P${i}`,
+      assert.equal(fresh.read([passed], 'file'), `P${i}`,
         'P-IM-2: and a FRESH instance over an equal `cfg.filePath` boots the very version the write installed '
         + '(`§10.9` row 2\'s observable: "what a fresh instance\'s boot re-reads")');
     }),
@@ -415,7 +421,7 @@ test('fts_prop_P_SM_4_S_REFUSAL_rollback_first_message_second_and_no_repair', as
       let listeners = 0;
       let evaluated = 0;
       register(f.store, [key], 'p-refuse', () => { evaluated += 1; return true; });
-      f.store.on([key], () => { listeners += 1; });
+      (f.store.register(f.store.listen([key]), () => { listeners += 1; }) || f.store.listen([key]));
       // THE COMMIT'S OWN ACT IS MADE TO FAIL BY REMOVING THE PARENT THE CONSTRUCTION'S OWN PREDICATE
       // ACCEPTED (`contract.md §7.1` step 3-bis: the path's parent stands at construction), never by a
       // mode-bit reading of it.
@@ -462,7 +468,7 @@ test('fts_prop_P_SM_4_S_REFUSAL_rollback_first_message_second_and_no_repair', as
         + '`<SEGMENT>` slot, the `file` tier\'s path in the `<CONTAINER>` slot, and the row\'s own '
         + '`the file write failed at \'<PATH>\'` available clause with `MessageArgs.path` substituted');
       assert.equal(listeners, 0, 'P-SM-4: the discard reaches that write\'s bodies');
-      assert.throws(() => read(f.store, [key], 'file'), (err) => err.status === 'AddressNotFound',
+      assert.throws(() => f.store.read([key], 'file'), (err) => err.status === 'AddressNotFound',
         'P-SM-4: the rollback happened before the message and left no readable version');
     }),
   });
@@ -504,7 +510,7 @@ test('fts_prop_P_SM_5_S_JOIN_the_op_set_grows_by_exactly_one_per_repair_write', 
             message: `the landed value contradicts the shape this pair confirms (${i}/${j})`,
             repair: () => {
               runs += 1;
-              const w = storeWrite(f.store, [key], 'file', j, held);
+              const w = f.store.write([key], 'file', j, held);
               landed.push(j);
               return { ok: true, op: w.op };
             },
@@ -526,7 +532,7 @@ test('fts_prop_P_SM_5_S_JOIN_the_op_set_grows_by_exactly_one_per_repair_write', 
       assert.equal(report.ops[0].opId, record.op.opId, 'P-SM-5: the write\'s own op is the first entry');
       assert.equal(report.ops.length, new Set(report.ops.map((o) => o.opId)).size,
         'P-SM-5: every entry of the op set is a NEW ENTRY, none a second identity');
-      assert.equal(read(f.store, [key], 'file'), pairs - 1,
+      assert.equal(f.store.read([key], 'file'), pairs - 1,
         'P-SM-5: the LAST repair write\'s own landing is the durable one');
     }),
   });
@@ -615,7 +621,7 @@ test('fts_prop_P_TP_6_S_CONSTRAINTS_KEY_instance_iff_the_list_lies_inside_its_do
       assert.equal(bytesOf(loadPath), image,
         'P-TP-6: and the refused LOAD construction writes no byte at `cfg.filePath`');
       const boot = storeCreate({ filePath: loadPath, journalLength: 8, listeners: [], constraints: [{ address: [held], id: 'c' }] });
-      assert.equal(read(boot, [held], 'file'), `L${i}`,
+      assert.equal(boot.read([held], 'file'), `L${i}`,
         'P-TP-6: while the SAME file boots under a list its loaded state satisfies — the discriminator that '
         + 'makes the load-side arm single-valued');
       rmSync(loadDir, { recursive: true, force: true });
@@ -677,13 +683,13 @@ test('fts_prop_P_TP_7_S_ARG5_a_refused_fifth_position_stops_the_write', async ()
       const f = newStore();
       const key = tag(`prop-arg-${i}`);
       const before = bytesOf(f.filePath);
-      assert.throws(() => storeWrite(f.store, [key], 'file', i, form.make()), (err) => {
+      assert.throws(() => f.store.write([key], 'file', i, form.make()), (err) => {
         assert.ok(err instanceof TypeError, `P-TP-7: "${form.name}" is refused by the class test`);
         assert.equal('status' in err, false, 'P-TP-7: the refusal\'s status member MUST BE ABSENT');
         assert.equal(typeof err.message, 'string', 'P-TP-7: a string message member is REQUIRED');
         return true;
       }, `P-TP-7: "${form.name}" is outside the fifth position's domain`);
-      assert.throws(() => read(f.store, [key], 'file'), (err) => err.status === 'AddressNotFound',
+      assert.throws(() => f.store.read([key], 'file'), (err) => err.status === 'AddressNotFound',
         `P-TP-7: the write did not proceed past the refused commit ("${form.name}")`);
       assert.equal(bytesOf(f.filePath), before,
         `P-TP-7: and no durable byte moved ("${form.name}")`);
@@ -697,21 +703,21 @@ test('fts_prop_P_TP_7_S_ARG5_a_refused_fifth_position_stops_the_write', async ()
       // and a present `pending` — is ADOPTED and its write PROCEEDS** (`§2.4` item 9 (g) item 1's class
       // test; `§2.5`'s single form; `DD-34`'s class order taken first).
       const proxyKey = tag(`prop-arg-proxy-pending-${i}`);
-      assert.throws(() => storeWrite(f.store, [proxyKey], 'mem', i, new Proxy({ pending: [] }, {})), (err) => {
+      assert.throws(() => f.store.write([proxyKey], 'mem', i, new Proxy({ pending: [] }, {})), (err) => {
         assert.ok(err instanceof TypeError,
           'P-TP-7: a `Proxy` carrying a `pending` member is refused by the CLASS test — the discriminator '
           + 'that pins the branch, since the `pending` reading alone would have ADMITTED it');
         assert.equal('status' in err, false, 'P-TP-7: and its status member is absent');
         return true;
       }, 'P-TP-7: the `Proxy` branch of §2.20\'s outside-value row refuses before `pending` is read');
-      assert.throws(() => read(f.store, [proxyKey], 'mem'), (err) => err.status === 'AddressNotFound',
+      assert.throws(() => f.store.read([proxyKey], 'mem'), (err) => err.status === 'AddressNotFound',
         'P-TP-7: and that refused write did not proceed');
       const twinKey = tag(`prop-arg-twin-${i}`);
-      const twin = storeWrite(f.store, [twinKey], 'mem', i, { attempt: {}, op: {}, triggered: [], pending: [] });
+      const twin = f.store.write([twinKey], 'mem', i, { attempt: {}, op: {}, triggered: [], pending: [] });
       assert.equal(typeof twin.op.opId, 'string',
         'P-TP-7: while the PLAIN twin carrying the same `pending` member is ADOPTED and its write lands — '
         + 'so the discriminator is the CLASS and never the `pending` reading (§2.4 item 9 (g) item 1)');
-      assert.equal(read(f.store, [twinKey], 'mem'), i,
+      assert.equal(f.store.read([twinKey], 'mem'), i,
         'P-TP-7: and the twin\'s own value is the one its write installed');
     }),
   });
@@ -735,9 +741,9 @@ test('fts_prop_P_TP_8_S_CENSUS_the_set_the_keys_and_the_rows_are_single_valued',
         'P-TP-8: the sixteenth member is reachable and answers its own name');
       const f = newStore();
       const key = tag(`prop-census-${i}`);
-      assert.throws(() => storeWrite(f.store, [key], 'disk', 1),
+      assert.throws(() => f.store.write([key], 'disk', 1),
         (err) => err.status === 'OutOfDomainTier', 'P-TP-8: rank 5 is unmoved');
-      assert.throws(() => storeWrite(f.store, [key], 'mem', undefined),
+      assert.throws(() => f.store.write([key], 'mem', undefined),
         (err) => err.status === 'ValueNotAdmitted', 'P-TP-8: rank 14 is unmoved');
       assert.throws(() => storeCreate({ filePath: null, journalLength: 4, listeners: [] }),
         (err) => err.status === 'AddressMalformed', 'P-TP-8: rank 1 is unmoved');
@@ -759,11 +765,14 @@ test('fts_prop_P_TP_8_S_CENSUS_the_set_the_keys_and_the_rows_are_single_valued',
         `P-TP-8: the construction's declared arity is ${drawn} at this draw and no fifth key is added`);
       const store = storeCreate(cfg2.cfg);
       assert.equal(typeof store, 'object', 'P-TP-8: the drawn key set constructs');
-      // THE INSTANCE'S MEMBER SET, `7` own members — `4 + 3 = 7` — and no ninth row anywhere.
+      // THE INSTANCE'S MEMBER SET, `12` own members — `10 + 1 + 1 = 12` — and no thirteenth member anywhere
+      // (`surface.md §2.4` item 9 (f)'s `A127` clause of 2026-10-16; the as-filed `4 + 3 = 7` is VACATED with
+      // the merged-away pair).
       assert.deepEqual(Object.getOwnPropertyNames(store).sort(),
-        ['addConstraint', 'constraintOff', 'constraintOn', 'off', 'on', 'register', 'settle'],
-        'P-TP-8: `{ register, on, off, settle, addConstraint, constraintOn, constraintOff }` — SEVEN own '
-        + 'members, `4 + 3 = 7`, and nothing else (`§2.4` item 9 (f)\'s dated clause of 2026-10-16)');
+        ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral',
+          'register', 'rollback', 'settle', 'unlisten', 'write'],
+        'P-TP-8: the TEN store-reaching methods plus `register` and `settle` — TWELVE own '
+        + 'members, `10 + 1 + 1 = 12`, and nothing else (`§2.4` item 9 (f)\'s `A127` clause of 2026-10-16)');
       assert.equal(register !== undefined && commit !== undefined && typeof runAttempt === 'function', true,
         'P-TP-8: the kernel\'s extent stays FIVE and no second register exists');
       // AND EVERY OP THE ATTEMPT CARRIES STANDS IN THE STORE'S OWN CLOSED SET AT ITS OWN RANK.

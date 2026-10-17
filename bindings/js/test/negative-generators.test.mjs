@@ -37,16 +37,13 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import { runInNewContext } from 'node:vm';
 
-import {
-  storeCreate,
-  read,
-  readLiteral,
-  write,
-  delete as remove,
-  rollback,
-  listen,
-  unlisten,
-} from 'provident-storeroom';
+import { storeCreate } from 'provident-storeroom';
+
+// **⟶ ADDED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause): the combined `on(address,
+// listener)` is MERGED AWAY, so a home entry is minted by `listen(address)` and its function placed by
+// `register(handle, listener)`. This file takes both acts at the sites that need them and passes this
+// no-op body wherever the listener body's own firing is NOT the site's subject.**
+const noop = () => {};
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_DIR = dirname(HERE);
@@ -245,8 +242,8 @@ test('ng_js_a_the_rollback_op_id_corpus_answers_the_one_form_and_never_a_raw_hos
   runGenerator('NG-JS-A', 'rollback op-id corpus', 8, (attempt, rng) => {
     const inst = mem();
     // THE ACCEPTED ROW FIRST: the journal's own op id, from a real write.
-    const record = write(inst, ['a'], 'mem', 1);
-    const accepted = rollback(inst, record.op.opId);
+    const record = inst.write(['a'], 'mem', 1);
+    const accepted = inst.rollback(record.op.opId);
     if (accepted.opId !== record.op.opId) return 'the accepted row did not echo its op id';
 
     const throwingProxy = new Proxy({}, { get() { throw new Error('the trap must never run'); } });
@@ -279,8 +276,8 @@ test('ng_js_a_the_rollback_op_id_corpus_answers_the_one_form_and_never_a_raw_hos
     for (const one of cases) {
       let thrown = null;
       try {
-        if (one.absent) rollback(inst);
-        else rollback(inst, one.value);
+        if (one.absent) inst.rollback();
+        else inst.rollback(one.value);
       } catch (err) {
         thrown = err;
       }
@@ -317,7 +314,7 @@ test('ng_js_a_the_rollback_op_id_corpus_answers_the_one_form_and_never_a_raw_hos
     // the same reversal).
     let afterRollback = null;
     try {
-      read(inst, ['a']);
+      inst.read(['a']);
     } catch (err) {
       afterRollback = err;
     }
@@ -376,7 +373,7 @@ test('ng_js_b_an_array_subclass_is_refused_as_a_value_and_as_an_address_and_the_
     for (const one of classStates) {
       let thrown = null;
       try {
-        write(inst, [key], 'mem', one.value);
+        inst.write([key], 'mem', one.value);
       } catch (err) {
         thrown = err;
       }
@@ -390,7 +387,7 @@ test('ng_js_b_an_array_subclass_is_refused_as_a_value_and_as_an_address_and_the_
     // entry) — a refused write leaves the address absent, which a "repaired" write would not.
     let probed = null;
     try {
-      read(inst, [key]);
+      inst.read([key]);
     } catch (err) {
       probed = err;
     }
@@ -402,11 +399,11 @@ test('ng_js_b_an_array_subclass_is_refused_as_a_value_and_as_an_address_and_the_
     const asAddress = new V();
     asAddress[0] = key;
     const addressSites = [
-      { label: 'read', call: () => read(inst, asAddress) },
-      { label: 'readLiteral', call: () => readLiteral(inst, asAddress) },
-      { label: 'listen', call: () => listen(inst, asAddress) },
-      { label: 'write', call: () => write(inst, asAddress, 'mem', 1) },
-      { label: 'delete', call: () => remove(inst, asAddress, 'mem') },
+      { label: 'read', call: () => inst.read(asAddress) },
+      { label: 'readLiteral', call: () => inst.readLiteral(asAddress) },
+      { label: 'listen', call: () => inst.listen(asAddress) },
+      { label: 'write', call: () => inst.write(asAddress, 'mem', 1) },
+      { label: 'delete', call: () => inst.delete(asAddress, 'mem') },
     ];
     for (const one of addressSites) {
       let thrown = null;
@@ -424,13 +421,13 @@ test('ng_js_b_an_array_subclass_is_refused_as_a_value_and_as_an_address_and_the_
     // AND THE PLAIN ARRAY, WHICH IS THE CONTROL THIS RULE NEEDS: the class decision admits it at BOTH
     // positions, so a package that refused every `Array.isArray`-true value would fail HERE.
     const control = mem();
-    write(control, ['c'], 'mem', [1, 2, 3]);
-    const back = read(control, ['c']);
+    control.write(['c'], 'mem', [1, 2, 3]);
+    const back = control.read(['c']);
     if (!Array.isArray(back) || back.length !== 3 || back[0] !== 1 || back[2] !== 3) {
       return 'a PLAIN array was not admitted at the value position';
     }
-    write(control, ['c', 0], 'mem', 9);
-    if (read(control, ['c', 0]) !== 9) return 'a PLAIN array address was not admitted at the address position';
+    control.write(['c', 0], 'mem', 9);
+    if (control.read(['c', 0]) !== 9) return 'a PLAIN array address was not admitted at the address position';
     return null;
   });
 });
@@ -504,8 +501,8 @@ test('ng_js_c_the_cfg_shapes_are_decided_by_class_first_and_an_absent_key_is_nev
       if (typeof answer === 'string') return answer;
       if (answer === null) return `${label}: REFUSED, and the contract admits this shape`;
       // The admitted instance is a real one: the empty address resolves and a write lands at `mem`.
-      write(answer.inst, ['c'], 'mem', tag);
-      if (read(answer.inst, ['c'], 'mem') !== tag) return `${label}: the returned instance does not carry the store`;
+      answer.inst.write(['c'], 'mem', tag);
+      if (answer.inst.read(['c'], 'mem') !== tag) return `${label}: the returned instance does not carry the store`;
     }
 
     // THE REFUSED SHAPES — class first, then the shape, and NEVER a chain read.
@@ -604,7 +601,7 @@ test('ng_js_d_the_depth_and_node_ceilings_are_the_packages_own_walks_arm', { tim
     for (const [depth, admitted] of [[63, true], [64, true], [65, false], [66, false]]) {
       let thrown = null;
       try {
-        write(inst, ['depth'], 'mem', chain(depth));
+        inst.write(['depth'], 'mem', chain(depth));
       } catch (err) {
         thrown = err;
       }
@@ -634,7 +631,7 @@ test('ng_js_d_the_depth_and_node_ceilings_are_the_packages_own_walks_arm', { tim
     const overStarted = Date.now();
     let refusal = null;
     try {
-      write(inst, ['nodes-over'], 'mem', over);
+      inst.write(['nodes-over'], 'mem', over);
     } catch (err) {
       refusal = err;
     }
@@ -649,7 +646,7 @@ test('ng_js_d_the_depth_and_node_ceilings_are_the_packages_own_walks_arm', { tim
     let admitted = null;
     let threw = null;
     try {
-      admitted = write(inst, ['nodes-exact'], 'mem', exact);
+      admitted = inst.write(['nodes-exact'], 'mem', exact);
     } catch (err) {
       threw = err;
     }
@@ -722,7 +719,7 @@ test('ng_js_e_a_cross_realm_plain_object_or_array_is_accepted_at_both_positions'
     for (const one of valueStates) {
       let thrown = null;
       try {
-        write(inst, [one.at], 'mem', one.value);
+        inst.write([one.at], 'mem', one.value);
       } catch (err) {
         thrown = err;
       }
@@ -732,7 +729,7 @@ test('ng_js_e_a_cross_realm_plain_object_or_array_is_accepted_at_both_positions'
           'item 4 (e) ACCEPTS a plain object from any realm'
         );
       }
-      const back = read(inst, [one.at]);
+      const back = inst.read([one.at]);
       if (back === undefined || back === null) return `${one.label}: the read answered no value`;
       if (Array.isArray(one.value) && !Array.isArray(back)) return `${one.label}: the round trip is not an array`;
     }
@@ -740,7 +737,7 @@ test('ng_js_e_a_cross_realm_plain_object_or_array_is_accepted_at_both_positions'
     // AS AN ADDRESS: `AddressArg` row 13 admits a cross-realm array, and the write must land where the
     // address says. (A `ContainerKindConflict`/`AddressNotFound` answer is NOT this generator's subject —
     // the declared class it refuses on is `AddressMalformed`, and only that answer is a failure here.)
-    write(inst, ['addr'], 'mem', {});
+    inst.write(['addr'], 'mem', {});
     const addressStates = [
       { label: 'a cross-realm array as an ADDRESS (vm)', address: runInNewContext(`['addr', '${key}av']`) },
       { label: 'a structuredClone array as an ADDRESS', address: structuredClone(['addr', `${key}cv`]) },
@@ -749,7 +746,7 @@ test('ng_js_e_a_cross_realm_plain_object_or_array_is_accepted_at_both_positions'
     for (const one of addressStates) {
       let thrown = null;
       try {
-        write(inst, one.address, 'mem', 1);
+        inst.write(one.address, 'mem', 1);
       } catch (err) {
         thrown = err;
       }
@@ -796,15 +793,15 @@ test('ng_js_f_the_handle_inputs_answer_the_declared_form_and_no_other_registrati
   runGenerator('NG-JS-F', 'handle inputs at register and unlisten', 8, (attempt, rng) => {
     const owner = mem([{ address: ['a'], handle: 'l-owner' }]);
     const foreign = mem([{ address: ['a'], handle: 'l-foreign' }]);
-    const held = write(owner, ['a'], 'mem', 1).triggered[0];
-    const foreignHandle = write(foreign, ['a'], 'mem', 1).triggered[0];
+    const held = owner.write(['a'], 'mem', 1).triggered[0];
+    const foreignHandle = foreign.write(['a'], 'mem', 1).triggered[0];
     // THE PRE-EXISTING REGISTRATION, WHICH NO REFUSED CALL MAY DISTURB (`§2.4` item 5 (d): *"nothing reaches
     // the store in any of these cases"*).
     let ownerFired = 0;
     if (owner.register(held, () => { ownerFired += 1; }) !== undefined) {
       return 'an IN-DOMAIN registration did not return undefined';
     }
-    write(owner, ['a'], 'mem', 2);
+    owner.write(['a'], 'mem', 2);
     if (ownerFired !== 1) return 'the in-domain registration did not fire once per trigger';
 
     const handleStates = [
@@ -833,7 +830,7 @@ test('ng_js_f_the_handle_inputs_answer_the_declared_form_and_no_other_registrati
       let thrown = null;
       let returned;
       try {
-        returned = unlisten(owner, one.value);
+        returned = owner.unlisten(one.value);
       } catch (err) {
         thrown = err;
       }
@@ -874,12 +871,12 @@ test('ng_js_f_the_handle_inputs_answer_the_declared_form_and_no_other_registrati
 
     // AND THE WHOLE OUTSIDE SET LEFT THE PRE-EXISTING REGISTRATION UNTOUCHED, and the store unreached.
     ownerFired = 0;
-    const after = write(owner, ['a'], 'mem', 3);
+    const after = owner.write(['a'], 'mem', 3);
     if (after.triggered.length !== 1) return 'a refused registration removed the store-side home entry';
     if (ownerFired !== 1) {
       return 'a refused registration MUTATED another registration (it fired a different number of times)';
     }
-    if (read(owner, ['a']) !== 3) return 'a refused registration changed the store';
+    if (owner.read(['a']) !== 3) return 'a refused registration changed the store';
     return null;
   });
 });
@@ -938,7 +935,7 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
       { address: [key], handle: 'b' },
       { address: [key], handle: 'c' },
     ]);
-    const first = write(three, [key], 'mem', 1);
+    const first = three.write([key], 'mem', 1);
     if (first.triggered.length !== 3) {
       return `three distinct ids: triggered carried ${first.triggered.length}, not 3`;
     }
@@ -950,7 +947,7 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
         return 'a registration did not return undefined';
       }
     }
-    const record = write(three, [key], 'mem', 2);
+    const record = three.write([key], 'mem', 2);
     if (record.triggered.length !== 3) return 'a second write did not carry all three ids';
     for (const id of ids) {
       if (!argCounts.has(id)) return 'an id that WAS registered fired nothing';
@@ -962,9 +959,9 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     // different, and a package that passed the id would fail here.
     let argument = 'not-observed';
     const probe = mem([{ address: ['probe'], handle: 'p' }]);
-    const probeId = write(probe, ['probe'], 'mem', 1).triggered[0];
+    const probeId = probe.write(['probe'], 'mem', 1).triggered[0];
     probe.register(probeId, (a) => { argument = a; });
-    write(probe, ['probe'], 'mem', 2);
+    probe.write(['probe'], 'mem', 2);
     if (!Array.isArray(argument) || argument[0] !== 'probe') {
       return `the invocation's ONE argument is not the triggering address: ${JSON.stringify(argument)}`;
     }
@@ -988,7 +985,7 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
       { address: ['d'], handle: 't' },
       { address: ['d'], handle: 't' },
     ]);
-    const dupRecord = write(duplicate, ['d'], 'mem', 1);
+    const dupRecord = duplicate.write(['d'], 'mem', 1);
     if (dupRecord.triggered.length !== 2) {
       return `a lawful duplicate token: triggered carried ${dupRecord.triggered.length}, not 2`;
     }
@@ -1011,7 +1008,7 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     let dupFired = 0;
     let dupArgs = null;
     duplicate.register(dupRecord.triggered[0], (...args) => { dupFired += 1; dupArgs = args; });
-    write(duplicate, ['d'], 'mem', 2);
+    duplicate.write(['d'], 'mem', 2);
     if (dupFired !== 1) return `once per DISTINCT id: the function fired ${dupFired} times, not 1`;
     if (dupArgs === null || dupArgs.length !== 1) {
       return "the invocation's view is not EXACTLY ONE argument";
@@ -1041,15 +1038,15 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
       { address: ['del'], handle: 'x' },
       { address: ['del', 'deep'], handle: 'y' },
     ]);
-    const atRegister = listen(deleting, []);
-    const atNamed = listen(deleting, ['del']);
-    const atDescendant = listen(deleting, ['del', 'deep']);
+    const atRegister = deleting.listen([]);
+    const atNamed = deleting.listen(['del']);
+    const atDescendant = deleting.listen(['del', 'deep']);
     if (new Set([atRegister, atNamed, atDescendant]).size !== 3) {
       return 'the three entries of the delete arm are not three distinct identities';
     }
-    write(deleting, ['del'], 'mem', {});
-    write(deleting, ['del', 'deep'], 'mem', 1);
-    const receipt = remove(deleting, ['del'], 'mem');
+    deleting.write(['del'], 'mem', {});
+    deleting.write(['del', 'deep'], 'mem', 1);
+    const receipt = deleting.delete(['del'], 'mem');
     if (!Array.isArray(receipt.triggered)) return "a delete's receipt carries no triggered array";
     // THE PREFIX-BOUND HALF: the entry AT the deleted address IS a prefix of it and fires, and so does the
     // register-bound entry, whose address is a prefix of every address.
@@ -1097,12 +1094,12 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
       { address: ['del'], handle: 'x2' },
       { address: ['del', 'deep'], handle: 'y2' },
     ]);
-    const belowRegister = listen(below, []);
-    const belowAncestor = listen(below, ['del']);
-    const belowOwn = listen(below, ['del', 'deep']);
-    write(below, ['del'], 'mem', {});
-    write(below, ['del', 'deep'], 'mem', 1);
-    const belowReceipt = remove(below, ['del', 'deep'], 'mem');
+    const belowRegister = below.listen([]);
+    const belowAncestor = below.listen(['del']);
+    const belowOwn = below.listen(['del', 'deep']);
+    below.write(['del'], 'mem', {});
+    below.write(['del', 'deep'], 'mem', 1);
+    const belowReceipt = below.delete(['del', 'deep'], 'mem');
     if (!Array.isArray(belowReceipt.triggered)) return "a descendant delete's receipt carries no triggered array";
     if (!belowReceipt.triggered.includes(belowAncestor)) {
       return (
@@ -1131,7 +1128,7 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     // the delete arms' instance every write fires at least that entry — and the arm is therefore driven on
     // an instance whose home is empty, which is what makes `triggered` the EMPTY set the clause declares.
     const bare = mem();
-    const emptyRecord = write(bare, ['nowhere'], 'mem', 1);
+    const emptyRecord = bare.write(['nowhere'], 'mem', 1);
     if (emptyRecord.triggered.length !== 0) return 'a write at an unregistered address carried an id';
 
     // (5) **AN UNREGISTERED ID FIRES NOTHING — AND THE SILENCE IS THE OBSERVABLE** (`§2.4` rule 1, item 6
@@ -1143,8 +1140,8 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
       { address: ['s'], handle: 'silent-a' },
       { address: ['t'], handle: 'silent-b' },
     ]);
-    write(silent, ['t'], 'mem', {});
-    const registeredId = write(silent, ['t'], 'mem', 1).triggered[0];
+    silent.write(['t'], 'mem', {});
+    const registeredId = silent.write(['t'], 'mem', 1).triggered[0];
     let invocations = 0;
     silent.register(registeredId, () => { invocations += 1; });
     const before = invocations;
@@ -1155,7 +1152,7 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     console.error = (...args) => { logged.push(['error', ...args]); };
     let carried = -1;
     try {
-      const silentRecord = write(silent, ['s'], 'mem', 2); // the id at `s` has NO registered function
+      const silentRecord = silent.write(['s'], 'mem', 2); // the id at `s` has NO registered function
       carried = silentRecord.triggered.length;
     } catch (err) {
       return `an unregistered id THREW (${err && err.status ? err.status : String(err)}) where section 2.4 rule 1 declares silence`;
@@ -1170,7 +1167,7 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     }
     if (logged.length !== 0) return `an unregistered id produced output: ${JSON.stringify(logged)}`;
     // ...AND THE REGISTRATION IS STILL LIVE, so the silence above was the ARM's and not a dead function.
-    write(silent, ['t'], 'mem', 3);
+    silent.write(['t'], 'mem', 3);
     if (invocations !== before + 1) {
       return 'the control trigger did not fire the registration, so the silence was not the arm being measured';
     }
@@ -1204,8 +1201,8 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
       { address: ['set'], handle: 'p' },
       { address: ['set'], handle: 'q' },
     ]);
-    const one = write(sets, ['set'], 'mem', 1);
-    const two = write(sets, ['set'], 'mem', 2);
+    const one = sets.write(['set'], 'mem', 1);
+    const two = sets.write(['set'], 'mem', 2);
     if (one.triggered.length !== 3 || two.triggered.length !== 3) {
       return (
         `the declared set has TWO distinct ids and its array carries THREE members ` +
@@ -1240,7 +1237,7 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     }
     let distinctFired = 0;
     for (const id of one.triggered) sets.register(id, () => { distinctFired += 1; });
-    write(sets, ['set'], 'mem', 3);
+    sets.write(['set'], 'mem', 3);
     if (distinctFired !== 2) {
       return `one invocation per DISTINCT id: ${distinctFired} invocations for two distinct ids`;
     }
@@ -1452,6 +1449,12 @@ test('ng_js_i_the_proxy_over_array_corpus_at_the_address_position_is_refused_wit
       getOwnPropertyNames() { traps.count += 1; return []; },
     });
 
+    // **⟶ RESHAPED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause; `§2.3`).** **THE ADDRESS
+    // POSITION LIVES AT `listen(address)` AND THE REGISTRATION AT `register(handle, listener)`, so the corpus
+    // value is driven at the member that declares the position and the handle the registration carries is one
+    // THIS INSTANCE MINTED — otherwise the refusal would be the HANDLE's class and not the address's.**
+    // A handle is minted ONCE from a well-formed address for every arm; the malformed value is passed to
+    // `listen` alone, which mints nothing when it refuses.
     const corpus = [
       {
         what: 'a BENIGN handler over an array with a counter on every trap',
@@ -1474,7 +1477,7 @@ test('ng_js_i_the_proxy_over_array_corpus_at_the_address_position_is_refused_wit
           getPrototypeOf(instance_) {
             traps.count += 1;
             traps.reentries += 1;
-            reentrant.on([key], () => {});
+            (reentrant.register(reentrant.listen([key]), () => {}) || reentrant.listen([key]));
             return Reflect.getPrototypeOf(instance_);
           },
           get(target, property, receiver) {
@@ -1502,7 +1505,13 @@ test('ng_js_i_the_proxy_over_array_corpus_at_the_address_position_is_refused_wit
       const before = traps.count;
       let thrown = null;
       let admitted = null;
-      try { admitted = reentrant.on(one.make(), () => {}); } catch (err) { thrown = err; }
+      // THE ADDRESS ITSELF AT ITS OWN MEMBER, and the class it is refused for is the ADDRESS's.
+      try { admitted = reentrant.listen(one.make()); } catch (err) { thrown = err; }
+      if (thrown === null) {
+        // The address was admitted: the registration half still carries a well-formed handle, so the arm's
+        // own claim below (`ADMITTED at the address position`) is the one read.
+        try { reentrant.register(admitted, () => {}); } catch (err) { thrown = err; admitted = null; }
+      }
       // **⟶ AND THE TRAP COUNTER IS READ FIRST, BEFORE THE REFUSAL'S OWN FORM — THE ONE ORDERING CORRECTION
       // THIS GENERATOR'S OWN CONTROL RUN FORCED, RECORDED HERE RATHER THAN HIDDEN.** As first authored, this
       // arm asserted the message's CLASS half before the counter, and a control build that RESTORES `C-1`
@@ -1533,7 +1542,7 @@ test('ng_js_i_the_proxy_over_array_corpus_at_the_address_position_is_refused_wit
       if (!thrown.message.includes('first argument')) return `${one.what}: the message carries no POSITION \`first argument\` (\u00a72.17's dated clause)`;
       // **AND THE RE-ENTRANT ARM'S OWN SECOND HALF: a trap that ran would have MINTED at the address it
       // spelled, because \`on\` performs a \`listen\`. The home must hold nothing there.**
-      const after = write(reentrant, [key], 'mem', 1);
+      const after = reentrant.write([key], 'mem', 1);
       if (after.triggered.length !== 0) {
         return `${one.what}: a re-entrant trap MINTED a home entry at [${key}] — the walk ran a handler before it decided`;
       }
@@ -1554,7 +1563,7 @@ test('ng_js_i_the_proxy_over_array_corpus_at_the_address_position_is_refused_wit
       const before = traps.count;
       let thrown = null;
       let answered = null;
-      try { answered = read(reader, one.make(), 'mem'); } catch (err) { thrown = err; }
+      try { answered = reader.read(one.make(), 'mem'); } catch (err) { thrown = err; }
       if (answered !== null) return `${one.what} at \`read\`: ADMITTED at the address position`;
       if (!isTheFailureForm(thrown) || thrown.status !== 'AddressMalformed') {
         return `${one.what} at \`read\`: not the one form (AddressMalformed): ${
@@ -1607,7 +1616,7 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
   // parent rule: a write at a nested address whose parent does not resolve fails `AddressNotFound` and
   // installs nothing, `DD-5`) — **and the setup write is taken BEFORE the arm's counts, so no arm's figure
   // includes it.**
-  const build = (parent, listeners) => { const inst = mem(listeners); write(inst, [parent], 'mem', {}); return inst; };
+  const build = (parent, listeners) => { const inst = mem(listeners); inst.write([parent], 'mem', {}); return inst; };
 
   runGenerator('NG-JS-J', 'register/replace/off/unlisten from inside a body', 8, (attempt, rng) => {
     const key = `j${rng.next().value}`;
@@ -1618,11 +1627,15 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       let nestedFires = 0;
       let outerFires = 0;
       outerFires = 0;
-      inst.on([key, 'd'], () => {
+      inst.register(inst.listen([key, 'd']), () => {
         outerFires += 1;
-        inst.on([key], () => { nestedFires += 1; });
+        // THE REGISTRATION IS MADE **INSIDE THE WINDOW** — the clause's own subject — so it is placed by
+        // the merged pair's two members AT THAT INSTANT (`§2.4` item 9 (f)'s `A127` clause: `listen` mints,
+        // `register` places). **THE HANDLE AT `[key]` IS THE CONSTRUCTION's ADOPTED ENTRY, so the placement
+        // REPLACES nothing and the identity the trigger set already carries gains its function here.**
+        inst.register(inst.listen([key]), () => { nestedFires += 1; });
       });
-      const first = write(inst, [key, 'd'], 'mem', 1);
+      const first = inst.write([key, 'd'], 'mem', 1);
       if (first.triggered.length !== 2) {
         return `register-in-body: the trigger set carried ${first.triggered.length} identities, and TWO stand at that address (the descendant's own and the construction entry's at its parent)`;
       }
@@ -1630,7 +1643,7 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
         return `register-in-body: a registration made INSIDE the window was invoked in THAT window (${nestedFires} invocation(s)) — the recipient set is read when the window OPENS`;
       }
       if (outerFires !== 1) return `register-in-body: the body standing in the set ran ${outerFires} times, not once`;
-      write(inst, [key, 'd'], 'mem', 2);
+      inst.write([key, 'd'], 'mem', 2);
       if (nestedFires !== 1) {
         return `register-in-body: the registration took effect ${nestedFires === 0 ? 'NOWHERE' : `${nestedFires} time(s)`} at the NEXT trigger, and exactly ONE is declared`;
       }
@@ -1646,17 +1659,19 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       // drive the drive's own frame into a `RangeError` (the recursion is the DRIVE's, exactly as arm (6)
       // records). **THE ONE DELIVERY THE ARM DRIVES IS THE ONE THE CLAUSE IS ABOUT: a replacement made from
       // inside a body takes effect at the NEXT trigger.**
-      inst.on([key], () => {
+      inst.register(inst.listen([key]), () => {
         firstFires += 1;
-        if (firstFires === 1) inst.on([key], () => { secondFires += 1; });
+        // THE REPLACEMENT IS MADE **FROM INSIDE A BODY**, at the NEXT-trigger clause's own site, and the
+        // guard keeps it to the FIRST delivery alone (`§2.4` rule 2; item 9 (f)'s `A127` clause).
+        if (firstFires === 1) inst.register(inst.listen([key]), () => { secondFires += 1; });
       });
-      const record = write(inst, [key], 'mem', 1);
+      const record = inst.write([key], 'mem', 1);
       if (record.triggered.length !== 1) return `replace-in-body: the trigger set carried ${record.triggered.length} identities, not 1`;
       if (firstFires !== 1) return `replace-in-body: the function the registry held WHEN THE WINDOW OPENED ran ${firstFires} times, not once`;
       if (secondFires !== 0) {
         return `replace-in-body: the REPLACEMENT ran inside the window it was made in (${secondFires}) — a replacement takes effect at the NEXT trigger (\`§2.4\` rule 2)`;
       }
-      write(inst, [key], 'mem', 2);
+      inst.write([key], 'mem', 2);
       if (secondFires !== 1) return `replace-in-body: the replacement ran ${secondFires} times at the next trigger, not once`;
       if (firstFires !== 1) return `replace-in-body: the replaced function ran again (${firstFires}) — it is dropped without notice`;
     }
@@ -1674,16 +1689,16 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       // which is why the nested trigger carries TWO identities and not one: the same identity stands in the
       // nested window, and ONE INVOCATION PER WINDOW is the declared count.**
       let guard = false;
-      const sibling = inst.on([key, 'q'], () => { siblingFires += 1; });
-      inst.on([key], () => {
+      const sibling = (inst.register(inst.listen([key, 'q']), () => { siblingFires += 1; }) || inst.listen([key, 'q']));
+      (inst.register(inst.listen([key]), () => {
         ownFires += 1;
         if (!guard) {
           guard = true;
-          nestedTriggered = write(inst, [key, 'q'], 'mem', 9).triggered.length;
+          nestedTriggered = inst.write([key, 'q'], 'mem', 9).triggered.length;
         }
-        inst.off(sibling);
-      });
-      const record = write(inst, [key, 'q'], 'mem', 1);
+        inst.unlisten(sibling);
+      }) || inst.listen([key]));
+      const record = inst.write([key, 'q'], 'mem', 1);
       if (record.triggered.length !== 2) return `off-in-body: the trigger set carried ${record.triggered.length} identities, not 2`;
       if (siblingFires !== 2) {
         return `off-in-body: the SIBLING standing when the window opened ran ${siblingFires} time(s), not TWICE — it is invoked for the window this body was entered in AND for the nested window that opened before the call below ('\`off\` does not cancel a delivery in flight'; item 7 (b)'s own arm)`;
@@ -1694,7 +1709,7 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       }
       siblingFires = 0;
       ownFires = 0;
-      const after = write(inst, [key, 'q'], 'mem', 2);
+      const after = inst.write([key, 'q'], 'mem', 2);
       if (after.triggered.length !== 1) return `off-in-body: the next trigger carried ${after.triggered.length} identities, and only the descendant's own is left`;
       if (siblingFires !== 0) {
         return `off-in-body: the deregistered function was invoked again (${siblingFires}) — §5.5's fourth added entry`;
@@ -1707,16 +1722,16 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       const inst = build(key, []);
       let siblingFires = 0;
       let ownFires = 0;
-      const sibling = inst.on([key, 'r'], () => { siblingFires += 1; });
-      inst.on([key], () => { ownFires += 1; unlisten(inst, sibling); });
-      const record = write(inst, [key, 'r'], 'mem', 1);
+      const sibling = (inst.register(inst.listen([key, 'r']), () => { siblingFires += 1; }) || inst.listen([key, 'r']));
+      (inst.register(inst.listen([key]), () => { ownFires += 1; inst.unlisten(sibling); }) || inst.listen([key]));
+      const record = inst.write([key, 'r'], 'mem', 1);
       if (record.triggered.length !== 2) return `unlisten-in-body: the trigger set carried ${record.triggered.length} identities, not 2`;
       if (siblingFires !== 1) {
         return `unlisten-in-body: the sibling ran ${siblingFires} times in the window it stood in, not once`;
       }
       if (ownFires !== 1) return `unlisten-in-body: the acting body ran ${ownFires} times, not once`;
       siblingFires = 0;
-      const after = write(inst, [key, 'r'], 'mem', 2);
+      const after = inst.write([key, 'r'], 'mem', 2);
       if (after.triggered.length !== 1) return `unlisten-in-body: the next trigger carried ${after.triggered.length} identities, and the withdrawn registration is gone`;
       if (siblingFires !== 0) return `unlisten-in-body: the withdrawn registration was invoked again (${siblingFires})`;
     }
@@ -1728,15 +1743,15 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       let descendantFires = 0;
       let nestedTriggered = null;
       let guard = false;
-      inst.on([key, 'n'], () => { descendantFires += 1; });
-      inst.on([key], () => {
+      (inst.register(inst.listen([key, 'n']), () => { descendantFires += 1; }) || inst.listen([key, 'n']));
+      (inst.register(inst.listen([key]), () => {
         addressFires += 1;
         if (!guard) {
           guard = true; // the arm drives ONE nested delivery; the guard is the drive's own, not a claim
-          nestedTriggered = write(inst, [key], 'mem', 9).triggered.length;
+          nestedTriggered = inst.write([key], 'mem', 9).triggered.length;
         }
-      });
-      const outer = write(inst, [key, 'n'], 'mem', 1);
+      }) || inst.listen([key]));
+      const outer = inst.write([key, 'n'], 'mem', 1);
       if (outer.triggered.length !== 2) return `nested-delivery: the outer trigger set carried ${outer.triggered.length} identities, not 2`;
       if (descendantFires !== 1) {
         return `nested-delivery: the descendant-bound identity ran ${descendantFires} times in the outer window, not once`;
@@ -1765,8 +1780,8 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       // build that is right. **THE RECURSION IS THE DRIVE'S AND IS REMOVED; EVERY ASSERTION BELOW IS
       // UNCHANGED.** The arms that DO call a verb from inside a body (1)–(5) call it at an address whose
       // trigger does not cover the calling body's own registration, so each drives ONE nested window.
-      const handle = inst.on([key], () => { fires += 1; });
-      const record = write(inst, [key], 'mem', 1);
+      const handle = (inst.register(inst.listen([key]), () => { fires += 1; }) || inst.listen([key]));
+      const record = inst.write([key], 'mem', 1);
       if (record.triggered.length !== 2) {
         return `duplicate-in-set: the array carried ${record.triggered.length} members where TWO home entries carrying ONE token stand (DD-42 clause 3; DD-39)`;
       }
@@ -1820,8 +1835,8 @@ test('ng_js_k_the_caller_spelled_duplicate_is_withdrawn_entry_by_entry_and_dereg
         { address: [token], handle: token },
       ]);
       let fires = 0;
-      const handle = inst.on([token], () => { fires += 1; });
-      const before = write(inst, [token], 'mem', 1);
+      const handle = (inst.register(inst.listen([token]), () => { fires += 1; }) || inst.listen([token]));
+      const before = inst.write([token], 'mem', 1);
       if (before.triggered.length !== 2) {
         return `one-address: the array carried ${before.triggered.length} members where TWO entries carrying ONE caller-spelled token stand (DD-42 clause (2); DD-39)`;
       }
@@ -1830,9 +1845,9 @@ test('ng_js_k_the_caller_spelled_duplicate_is_withdrawn_entry_by_entry_and_dereg
       if (fires !== 1) return `one-address: the ONE distinct identity ran ${fires} times, not once (\`§2.4\` rule 3)`;
 
       // **`unlisten` — THE STORE-SIDE WITHDRAWAL ONLY, AND THE REGISTRY'S ENTRY STANDS** (rule 4, `DD-15`).
-      if (unlisten(inst, handle) !== undefined) return 'one-address: `unlisten` over an in-domain handle is not `undefined`';
+      if (inst.unlisten(handle) !== undefined) return 'one-address: `unlisten` over an in-domain handle is not `undefined`';
       fires = 0;
-      const afterUnlisten = write(inst, [token], 'mem', 2);
+      const afterUnlisten = inst.write([token], 'mem', 2);
       if (afterUnlisten.triggered.length !== 1) {
         return `one-address: after \`unlisten\` the array carried ${afterUnlisten.triggered.length} members, and ONE of the two entries is withdrawn (\`§6.5\` item 12)`;
       }
@@ -1842,18 +1857,18 @@ test('ng_js_k_the_caller_spelled_duplicate_is_withdrawn_entry_by_entry_and_dereg
       }
 
       // **`off` OVER THE SAME HANDLE: THE FIRST MATCH IS THE SURVIVOR, and the registry's entry is REMOVED.**
-      if (inst.off(handle) !== undefined) return 'one-address: `off` over an in-domain identity is not `undefined`';
+      if (inst.unlisten(handle) !== undefined) return 'one-address: `off` over an in-domain identity is not `undefined`';
       fires = 0;
-      const afterOff = write(inst, [token], 'mem', 3);
+      const afterOff = inst.write([token], 'mem', 3);
       if (afterOff.triggered.length !== 0) {
         return `one-address: after \`off\` the array still carried ${afterOff.triggered.length} members — the survivor was NOT withdrawn, and it is UNWITHDRAWABLE`;
       }
       if (fires !== 0) return `one-address: the deregistered function ran ${fires} time(s) (\`§5.5\`'s fourth added entry)`;
 
       // **A SECOND `off`: the entry-less success, and the address is CLEAN.**
-      if (inst.off(handle) !== undefined) return 'one-address: the second `off` is not the success `undefined` (`DD-53`)';
-      if (write(inst, [token], 'mem', 4).triggered.length !== 0) return 'one-address: a later trigger resurrected the withdrawn entry';
-      const remint = listen(inst, [token]);
+      if (inst.unlisten(handle) !== undefined) return 'one-address: the second `off` is not the success `undefined` (`DD-53`)';
+      if (inst.write([token], 'mem', 4).triggered.length !== 0) return 'one-address: a later trigger resurrected the withdrawn entry';
+      const remint = inst.listen([token]);
       if (remint === handle) return 'one-address: a later `listen` RE-USED the withdrawn handle (`§2.4` rule 4; `§2.3` item 6)';
     }
 
@@ -1865,10 +1880,10 @@ test('ng_js_k_the_caller_spelled_duplicate_is_withdrawn_entry_by_entry_and_dereg
         { address: [token, 'a'], handle: shared },
         { address: [token, 'b'], handle: shared },
       ]);
-      write(inst, [token], 'mem', {}); // the parent branch the two addresses resolve through (§3.2 item 2)
+      inst.write([token], 'mem', {}); // the parent branch the two addresses resolve through (§3.2 item 2)
       let fires = 0;
-      const handle = inst.on([token, 'a'], () => { fires += 1; });
-      const both = write(inst, [token, 'a'], 'mem', 1);
+      const handle = (inst.register(inst.listen([token, 'a']), () => { fires += 1; }) || inst.listen([token, 'a']));
+      const both = inst.write([token, 'a'], 'mem', 1);
       if (both.triggered.length !== 1) return `two-addresses: the write at the entry's own address carried ${both.triggered.length} members, not 1`;
       if (both.triggered[0] !== handle) return 'two-addresses: the trigger does not carry the caller\'s identity';
       if (fires !== 1) return `two-addresses: the identity ran ${fires} times, not once`;
@@ -1880,11 +1895,11 @@ test('ng_js_k_the_caller_spelled_duplicate_is_withdrawn_entry_by_entry_and_dereg
       // **AN ARM THAT TRIGGERED ONLY THE WITHDRAWN ADDRESS STAYED GREEN WITH THE DEREGISTRATION BYTE DELETED,
       // because a write at a withdrawn address carries nothing and invokes nothing whatever the registry
       // holds — which is `C-7` itself.**
-      if (inst.off(handle) !== undefined) return 'two-addresses: `off` is not `undefined`';
+      if (inst.unlisten(handle) !== undefined) return 'two-addresses: `off` is not `undefined`';
       fires = 0;
-      const aOff = write(inst, [token, 'a'], 'mem', 3).triggered.length;
+      const aOff = inst.write([token, 'a'], 'mem', 3).triggered.length;
       let bOff = null;
-      if (aOff === 0) bOff = write(inst, [token, 'b'], 'mem', 3).triggered.length;
+      if (aOff === 0) bOff = inst.write([token, 'b'], 'mem', 3).triggered.length;
       const firesOff = fires;
       const surviving = aOff === 0 ? bOff : aOff;
       if (surviving !== 1) {
@@ -1893,13 +1908,13 @@ test('ng_js_k_the_caller_spelled_duplicate_is_withdrawn_entry_by_entry_and_dereg
       if (firesOff !== 0) {
         return `two-addresses: the DEREGISTERED function was invoked ${firesOff} time(s) from the surviving entry's own trigger (\`§5.5\`'s fourth added entry) — the array still carried the identity and the package invoked it anyway`;
       }
-      if (inst.off(handle) !== undefined) return 'two-addresses: the second `off` is not the success `undefined` (`DD-53`)';
-      const aFinal = write(inst, [token, 'a'], 'mem', 4).triggered.length;
-      const bFinal = write(inst, [token, 'b'], 'mem', 4).triggered.length;
+      if (inst.unlisten(handle) !== undefined) return 'two-addresses: the second `off` is not the success `undefined` (`DD-53`)';
+      const aFinal = inst.write([token, 'a'], 'mem', 4).triggered.length;
+      const bFinal = inst.write([token, 'b'], 'mem', 4).triggered.length;
       if (aFinal !== 0 || bFinal !== 0) {
         return `two-addresses: after the second call the home still carried ${aFinal + bFinal} entries — a surviving entry became UNWITHDRAWABLE`;
       }
-      if (listen(inst, [token, 'a']) === handle) return 'two-addresses: a later `listen` re-used the withdrawn handle';
+      if (inst.listen([token, 'a']) === handle) return 'two-addresses: a later `listen` re-used the withdrawn handle';
     }
 
     console.log(`NG NG-JS-K-arm strategy=caller-spelled duplicate attempt=${attempt} arms=2 verdict=HELD`);
@@ -1953,7 +1968,7 @@ test('ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_sil
       let surrogateFires = 0;
       let replacementFires = 0;
       let refusedOn = null;
-      try { inst.on([LONE], () => { surrogateFires += 1; }); } catch (err) { refusedOn = err; }
+      try { (inst.register(inst.listen([LONE]), () => { surrogateFires += 1; }) || inst.listen([LONE])); } catch (err) { refusedOn = err; }
       if (refusedOn === null) {
         return 'segment: `on` ADMITTED a lone-surrogate segment — the class is refused at the package\'s own walk (§1.2 row 1\'s dated clause)';
       }
@@ -1964,10 +1979,10 @@ test('ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_sil
       }
       // **THE REPLACEMENT CHARACTER'S OWN ADDRESS IS A LEGAL KEY** (`AddressArg` row 2), so the listener that
       // stands there is the CONTROL: it fires, and the surrogate one does not.
-      const replacementHandle = inst.on([REPLACEMENT], () => { replacementFires += 1; });
+      const replacementHandle = (inst.register(inst.listen([REPLACEMENT]), () => { replacementFires += 1; }) || inst.listen([REPLACEMENT]));
       if (replacementHandle === null || typeof replacementHandle !== 'object') return 'segment: the replacement character\'s own address was not admitted';
       let refusedWrite = null;
-      try { write(inst, [LONE], 'mem', 1); } catch (err) { refusedWrite = err; }
+      try { inst.write([LONE], 'mem', 1); } catch (err) { refusedWrite = err; }
       if (refusedWrite === null) {
         return 'segment: a write AT the lone-surrogate address was ADMITTED — a listener fires at an address the caller never spelled (C-4)';
       }
@@ -1977,7 +1992,7 @@ test('ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_sil
       if (surrogateFires !== 0) {
         return `segment: the SILENT REPAIR HAPPENED — ${surrogateFires} invocation(s) of a listener bound at the lone-surrogate address`;
       }
-      write(inst, [REPLACEMENT], 'mem', 1);
+      inst.write([REPLACEMENT], 'mem', 1);
       if (replacementFires !== 1) {
         return `segment: the replacement character's own address fired ${replacementFires} time(s) — the control must fire ONCE, or the arm above proves nothing`;
       }
@@ -1987,27 +2002,27 @@ test('ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_sil
     // --- (2) THE LONE SURROGATE AT A MEMBER KEY, INSIDE THE WRITTEN VALUE.
     {
       const inst = mem();
-      write(inst, [key], 'mem', {}); //                       the branch, minted by the drive
-      write(inst, [key, 'good'], 'mem', 1); //               one standing member
-      const before = read(inst, [key]);
+      inst.write([key], 'mem', {}); //                       the branch, minted by the drive
+      inst.write([key, 'good'], 'mem', 1); //               one standing member
+      const before = inst.read([key]);
       if (before === null || typeof before !== 'object' || before.good !== 1) {
         return `member-key: the pre-state read did not answer the member the drive installed: ${JSON.stringify(before)}`;
       }
       let refused = null;
-      try { write(inst, [key], 'mem', { good: 2, [LONE]: 3 }); } catch (err) { refused = err; }
+      try { inst.write([key], 'mem', { good: 2, [LONE]: 3 }); } catch (err) { refused = err; }
       if (refused === null) {
         return 'member-key: the write carrying a LONE-SURROGATE member key was ADMITTED — the key is renamed by the boundary (C-4\'s member-key half)';
       }
       if (!isTheFailureForm(refused)) {
         return `member-key: the refusal is not the one form: ${refused instanceof Error ? `a RAW HOST ${refused.constructor.name}` : JSON.stringify(refused)}`;
       }
-      const after = read(inst, [key]);
+      const after = inst.read([key]);
       if (JSON.stringify(after) !== JSON.stringify(before)) {
         return `member-key: the REFUSED write left the node changed: ${JSON.stringify(after)} where ${JSON.stringify(before)} stood — a refused write installs nothing (§2.4 item 7 (a) read at the value position)`;
       }
       // **AND THE KEY WAS NOT RENAMED: the node holds `good` and no repaired spelling of the surrogate key.**
       let renamed = null;
-      try { renamed = read(inst, [key, REPLACEMENT]); } catch (err) { renamed = err; }
+      try { renamed = inst.read([key, REPLACEMENT]); } catch (err) { renamed = err; }
       if (renamed === null || (renamed !== null && typeof renamed === 'object' && renamed.status === undefined)) {
         return `member-key: a read at \`['${key}','${REPLACEMENT}']\` answered ${JSON.stringify(renamed)} — a member KEY was silently RENAMED into the replacement character`;
       }
@@ -2023,13 +2038,13 @@ test('ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_sil
       // `DD-5`): the write at the in-range address below walks `['sat']`, and a home that holds nothing there
       // answers `AddressNotFound` — **a state of the DRIVE's making and not of the boundary's, which this
       // generator's own author met while authoring the arm and records rather than leaves as a failure.**
-      write(inst, ['sat'], 'mem', {});
+      inst.write(['sat'], 'mem', {});
       const inRange = [2 ** 32, 2 ** 53 - 1];
       const outOfRange = [2 ** 64, 1e30];
       const handles = [];
       for (const segment of inRange) {
         let handle = null;
-        try { handle = inst.on(['sat', segment], () => {}); } catch (err) {
+        try { handle = (inst.register(inst.listen(['sat', segment]), () => {}) || inst.listen(['sat', segment])); } catch (err) {
           return `saturation: the IN-RANGE control segment ${segment} was REFUSED (\`${err && err.status}\`) — \`AddressArg\` row 3 admits it`;
         }
         handles.push(handle);
@@ -2046,7 +2061,7 @@ test('ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_sil
       // ARM'S OBSERVABLE IS THE STORE'S, so the boundary's half above (two DISTINCT handles) is not satisfied by
       // it and vice versa.**
       let kindAnswer = null;
-      try { kindAnswer = read(inst, ['sat', 2 ** 32], 'mem'); } catch (err) { kindAnswer = err; }
+      try { kindAnswer = inst.read(['sat', 2 ** 32], 'mem'); } catch (err) { kindAnswer = err; }
       if (kindAnswer === null || kindAnswer === undefined || kindAnswer.status === undefined) {
         return `saturation: a read at the in-range address answered ${JSON.stringify(kindAnswer)} where the store's own kind test decides — the address did not cross as itself`;
       }
@@ -2061,7 +2076,7 @@ test('ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_sil
       for (const segment of outOfRange) {
         let thrown = null;
         let admitted = null;
-        try { admitted = inst.on(['sat', segment], () => {}); } catch (err) { thrown = err; }
+        try { admitted = (inst.register(inst.listen(['sat', segment]), () => {}) || inst.listen(['sat', segment])); } catch (err) { thrown = err; }
         if (admitted !== null) {
           return `saturation: the segment ${segment} was ADMITTED — \`AddressArg\` row 3 admits a number integral, >= 0 and EXACT AS AN \`f64\`, and this one is silently saturated by \`n as u64\` (C-12)`;
         }
@@ -2074,7 +2089,7 @@ test('ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_sil
           return `saturation: the segment ${segment} answered \`${thrown.status}\` where \`AddressMalformed\` is the declared answer at the boundary (C-12)`;
         }
         let held = null;
-        try { held = read(inst, ['sat', segment], 'mem'); } catch (err) { held = err; }
+        try { held = inst.read(['sat', segment], 'mem'); } catch (err) { held = err; }
         if (held !== null && held !== undefined && held.status === undefined) {
           return `saturation: a read at the REFUSED address \`${segment}\` answered a VALUE (${JSON.stringify(held)}) — the refused \`on\` minted a node there`;
         }

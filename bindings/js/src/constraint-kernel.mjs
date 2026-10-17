@@ -17,10 +17,18 @@
 
 // THE MODULE'S WHOLE IMPORT FOOTPRINT, AND IT CARRIES NO SECOND LOAD PATH (`kernel-surface.md §1` item
 // 1's fixture clause; `parameter-semantics.md §2.7`'s no-second-route clause; `A: docs/decisions.md` ·
-// `A110`): the caller's own instance's package and NOTHING ELSE — no `createRequire`, no addon path, no
-// native module and no dependency of the module's own. Every op this kernel credits is an op the
-// caller's own instance's verb calls answered.
-import { write as storeWrite, rollback as storeRollback, read as storeRead } from 'provident-storeroom';
+// `A110`): **NOTHING** — no `createRequire`, no addon path, no native module and no dependency of the
+// module's own. Every op this kernel credits is an op the caller's own instance's verb calls answered.
+//
+// **⟶ AND THE ENTRY IS NOT IMPORTED EITHER, FROM 2026-10-16 ON `A127` (`surface.md §2.9` item 1's and
+// `§2.4` item 9 (f)'s `A127` clauses).** The import that stood here — `{ write, rollback, read }` from
+// `'provident-storeroom'` — is REMOVED WITH THE TEN NAMES IT NAMED (`11 → 1` ✓): **the module namespace
+// carries ONE name, `storeCreate`, and every store-reaching act is a METHOD of the object it returned**, so
+// this module reaches the store through the caller's own instance's members and through nothing else (the
+// fifth position's record included — `store.write(address, tier, value, record)`). **THE KERNEL'S OWN
+// IMPORT FOOTPRINT IS THEREFORE EMPTY, WHICH IS WHAT THIS HEADER HAS DECLARED ALL ALONG** (`§1` item 1;
+// the paragraph at `THE REPAIR'S OWN OP` below, whose *"the caller's own instance is the only way it ever
+// reaches the store"* is now the code and no longer only the sentence).
 
 // ---------------------------------------------------------------------------------------------
 // `fail-surface.md §2` — THE KERNEL'S OWN CLOSED STATE SET, `8` MEMBERS AND NO NINTH.
@@ -347,7 +355,15 @@ export function register(store, address, id, constraint) {
 
   // CHANNEL (ii) — THE STORE'S OWN. An in-domain address the store's own listener machinery refuses
   // throws THE STORE'S OWN CODE, in the store's own form, at this call and unconverted.
-  const home = store.on(address, noopListener);
+  //
+  // **⟶ AND THE ACT IS THE PRODUCT'S TWO DECLARED HALVES, FROM 2026-10-16 ON `A127`** (`surface.md §2.4`
+  // item 9 (f)'s `A127` clause): the combined `on(address, listener)` is MERGED AWAY, so the home entry is
+  // minted by `listen` and its function placed by `register` — ONE act, the two members the product
+  // declares, and no second spelling of either. `listen` keeps the address-level idempotence the removed
+  // route read (`write-and-read.md §6.5` item 12 (c)): a repeat at an address the home already holds mints
+  // nothing and answers the entry's own handle.
+  const home = store.listen(address);
+  store.register(home, noopListener);
 
   const key = pairKey(address, id);
   const standing = kernel.pairs.get(key);
@@ -468,7 +484,7 @@ export function commit(store, address, tier, value) {
     // **THE FIFTH POSITION** (`kernel-surface.md §1` item 5's dated spelling; `surface.md §2.12` item 1
     // stage 2): the kernel drives the Rust store with the record identity `K-2` opened or joined, so the
     // kernel's own store leg IS the entry's own write and its delivery is withheld for the terminal arm.
-    written = storeWrite(store, address, tier, value, record);
+    written = store.write(address, tier, value, record);
   } catch (refusal) {
     if (token !== null) kernel.held.delete(token);
     throw refusal;
@@ -1232,7 +1248,7 @@ function composeRollback(kernel, attempt) {
     let failed = false;
     let record = null;
     try {
-      record = storeRollback(attempt.store, op.opId);
+      record = attempt.store.rollback(op.opId);
     } catch (thrown) {
       failed = true;
       answer = thrown !== null && typeof thrown === 'object' && typeof thrown.status === 'string'
@@ -1274,7 +1290,7 @@ function composeRollback(kernel, attempt) {
  */
 function baseState(store, address) {
   try {
-    return { present: true, value: storeRead(store, address) };
+    return { present: true, value: store.read(address) };
   } catch (refused) {
     // `AddressNotFound` is the store's own arm for an address that stands nowhere: ABSENT, and still
     // the declared two-member `BaseState`.

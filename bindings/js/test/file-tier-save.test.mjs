@@ -112,7 +112,13 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { storeCreate, write as storeWrite, read } from 'provident-storeroom';
+import { storeCreate } from 'provident-storeroom';
+
+// **⟶ ADDED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause): the combined `on(address,
+// listener)` is MERGED AWAY, so a home entry is minted by `listen(address)` and its function placed by
+// `register(handle, listener)`. This file takes both acts at the sites that need them and passes this
+// no-op body wherever the listener body's own firing is NOT the site's subject.**
+const noop = () => {};
 
 // ── THE ONE KERNEL HOME, LOADED DYNAMICALLY SO THE RED SET ENUMERATES BY TEST NAME
 // (`kernel-surface.md §1` item 1 declares the checkout home `bindings/js/src/constraint-kernel.mjs` and the
@@ -223,10 +229,10 @@ test('fts_S_ORDER_SAVE_the_constraint_body_reads_the_pre_save_image_and_the_list
     seen.constraint = bytesOf(f.filePath);
     return true;
   });
-  f.store.on([key], () => {
+  (f.store.register(f.store.listen([key]), () => {
     ord.mark('listener');
     seen.listener = bytesOf(f.filePath);
-  });
+  }) || f.store.listen([key]));
 
   const record = commit(f.store, [key], 'file', 'ordered');
   runAttempt(f.store, record);
@@ -254,7 +260,7 @@ test('fts_S_ORDER_SAVE_no_listener_body_runs_while_a_constraint_of_the_same_writ
 
   register(f.store, [key], 'ord-a', () => { ord.mark('constraint-a'); return true; });
   register(f.store, [key], 'ord-b', () => { ord.mark('constraint-b'); return true; });
-  f.store.on([key], () => { ord.mark('listener'); });
+  (f.store.register(f.store.listen([key]), () => { ord.mark('listener'); }) || f.store.listen([key]));
 
   const record = commit(f.store, [key], 'file', 1);
   runAttempt(f.store, record);
@@ -280,10 +286,10 @@ test('fts_S_ORDER_SAVE_the_save_precedes_every_body_of_the_delivered_set_and_not
 
   // THE PARENT STANDS AT THE `file` TIER because the operation's own `file`-tier anchor may not outrank its
   // parent's (`contract.md §8.1` #6), and the two bodies stand at two prefixes of the operation's address.
-  storeWrite(f.store, [watch], 'file', { [tag('s-order3-link')]: 1 });
+  f.store.write([watch], 'file', { [tag('s-order3-link')]: 1 });
   register(f.store, [watch, key], 'ord-c', () => { order.push('constraint'); return true; });
-  f.store.on([watch], () => { order.push('listener-a'); seen.push(bytesOf(f.filePath)); });
-  f.store.on([watch, key], () => { order.push('listener-b'); seen.push(bytesOf(f.filePath)); });
+  (f.store.register(f.store.listen([watch]), () => { order.push('listener-a'); seen.push(bytesOf(f.filePath)); }) || f.store.listen([watch]));
+  (f.store.register(f.store.listen([watch, key]), () => { order.push('listener-b'); seen.push(bytesOf(f.filePath)); }) || f.store.listen([watch, key]));
 
   const record = commit(f.store, [watch, key], 'file', 'both');
   runAttempt(f.store, record);
@@ -334,13 +340,13 @@ test('fts_S_DURABLE_IMAGE_a_passing_passs_image_is_durable_before_the_first_list
   const observed = { insideBody: undefined, freshInstance: undefined };
 
   register(f.store, [key], 'dur-pass', () => true);
-  f.store.on([key], () => {
+  (f.store.register(f.store.listen([key]), () => {
     observed.insideBody = bytesOf(f.filePath);
     // THE FRESH INSTANCE OVER AN EQUAL `cfg.filePath` — the clause's own declared observable (`§2.11`
     // clause 4 (ii); `contract.md §7.2` item 6's boot).
     const fresh = storeCreate({ filePath: f.filePath, journalLength: 8, listeners: [] });
-    observed.freshInstance = read(fresh, [key], 'file');
-  });
+    observed.freshInstance = fresh.read([key], 'file');
+  }) || f.store.listen([key]));
 
   runAttempt(f.store, commit(f.store, [key], 'file', 'durable'));
 
@@ -369,7 +375,7 @@ test('fts_S_ARM_SAVE_the_file_tier_passing_arm_commits_once_and_only_at_the_term
   runAttempt(f.store, record);
   const afterArm = bytesOf(f.filePath);
   const stateAfterArm = modState(f.filePath);
-  read(f.store, [key], 'file');
+  f.store.read([key], 'file');
   const afterRead = modState(f.filePath);
 
   assert.equal(afterVerb, before,
@@ -490,7 +496,7 @@ test('fts_S_REFUSAL_a_failed_save_rolls_the_write_back_first_and_answers_the_cal
   const key = tag('refuse');
   let listenerRuns = 0;
   register(f.store, [key], 'refuse-pass', () => true);
-  f.store.on([key], () => { listenerRuns += 1; });
+  (f.store.register(f.store.listen([key]), () => { listenerRuns += 1; }) || f.store.listen([key]));
 
   // THE VERB RETURNS: a `file`-tier write performs no file I/O, so the commit failure cannot stand here.
   let record = null;
@@ -527,7 +533,7 @@ test('fts_S_REFUSAL_a_failed_save_rolls_the_write_back_first_and_answers_the_cal
   assert.equal(listenerRuns, 0,
     'S-REFUSAL: the save IS a constraint, EVALUATED LAST, so a failed save is a constraint violation and the '
     + 'discard reaches that write\'s bodies — no body of the delivered set ran');
-  assert.throws(() => read(f.store, [key], 'file'),
+  assert.throws(() => f.store.read([key], 'file'),
     (err) => err.status === 'AddressNotFound',
     'S-REFUSAL: the rollback happened FIRST and the message was answered AFTER it — the caller never '
     + 'receives the rolled-back state, and a read answers the store\'s own `AddressNotFound` over the '
@@ -578,7 +584,7 @@ test('fts_S_REFUSAL_the_save_is_evaluated_last_after_every_constraint_of_its_set
   let listenerRuns = 0;
   register(f.store, [key], 'refuse-last-a', () => { ord.mark('constraint-a'); return true; });
   register(f.store, [key], 'refuse-last-b', () => { ord.mark('constraint-b'); return true; });
-  f.store.on([key], () => { listenerRuns += 1; });
+  (f.store.register(f.store.listen([key]), () => { listenerRuns += 1; }) || f.store.listen([key]));
   let record = null;
   try {
     record = commit(f.store, [key], 'file', 'never-durable');
@@ -603,7 +609,7 @@ test('fts_S_REFUSAL_the_save_is_evaluated_last_after_every_constraint_of_its_set
     + 'failure and NEVER the rolled-back state');
   assert.equal(listenerRuns, 0,
     'S-REFUSAL: the discard reaches that write\'s bodies, so a save that fails runs no listener body');
-  assert.throws(() => read(f.store, [key], 'file'), (err) => err.status === 'AddressNotFound',
+  assert.throws(() => f.store.read([key], 'file'), (err) => err.status === 'AddressNotFound',
     'S-REFUSAL: the rollback stands BEFORE the message and the write left no readable version');
 });
 
@@ -628,7 +634,7 @@ test('fts_S_JOIN_a_repairs_write_joins_the_same_commit_and_the_op_set_grows_by_e
       message: 'the landed value contradicts the shape this pair confirms',
       repair: () => {
         repairs += 1;
-        const w = storeWrite(f.store, [key], 'file', 'fixed', held);
+        const w = f.store.write([key], 'file', 'fixed', held);
         return { ok: true, op: w.op };
       },
     };
@@ -663,7 +669,7 @@ test('fts_S_JOIN_a_repairs_write_is_an_ordinary_write_and_its_refusal_is_the_ker
     // position, and `undefined` is outside the value's admitted set — so the STORE refuses the verb at the
     // call (`contract.md §8.1` #14) and the refusal is the REPAIR's own arm.
     repair: () => {
-      const w = storeWrite(f.store, [key], 'file', undefined, held);
+      const w = f.store.write([key], 'file', undefined, held);
       return { ok: true, op: w.op };
     },
   }));
@@ -696,7 +702,7 @@ test('fts_S_JOIN_a_repair_refused_as_WriteParentNotLink_answers_the_callers_KC_4
   const f = newStore();
   const key = tag('join-refused-parent');
   // THE ATTEMPT'S ADDRESS HOLDS A LEAF, so a write INTO it is the store's `WriteParentNotLink` (`§8.1` #9).
-  storeWrite(f.store, [key], 'mem', 7);
+  f.store.write([key], 'mem', 7);
   let held = null;
   let reached = false;
   register(f.store, [key], 'join-c3', () => ({
@@ -704,7 +710,7 @@ test('fts_S_JOIN_a_repair_refused_as_WriteParentNotLink_answers_the_callers_KC_4
     // THE REPAIR'S OWN EDIT, REFUSED BY THE STORE BEFORE ANY OP EXISTS: a segment remains under a leaf.
     repair: () => {
       reached = true;
-      const w = storeWrite(f.store, [key, 'child'], 'mem', 9, held);
+      const w = f.store.write([key, 'child'], 'mem', 9, held);
       return { ok: true, op: w.op };
     },
   }));
@@ -891,7 +897,7 @@ test('fts_S_CONSTRAINTS_KEY_the_load_side_validates_the_persisted_list_and_a_val
   // its validation at the load").
   const second = storeCreate({ filePath, journalLength: 8, listeners: [], constraints: [{ address: [key], id: 'load-1' }] });
   assert.equal(typeof second, 'object', 'S-CONSTRAINTS-KEY: a valid persisted list boots');
-  assert.equal(read(second, [key], 'file'), 'booted',
+  assert.equal(second.read([key], 'file'), 'booted',
     'S-CONSTRAINTS-KEY: "the register\'s own keys after a boot" — the observable `§10.9` row 6 pins');
 });
 
@@ -945,7 +951,7 @@ test('fts_S_CONSTRAINTS_KEY_the_load_side_failure_answers_ConstraintListInvalid_
     'S-CONSTRAINTS-KEY: the refused LOAD construction writes no byte at `cfg.filePath`');
   const third = storeCreate({ filePath, journalLength: 8, listeners: [], constraints: [{ address: [key], id: 'load-1' }] });
   assert.equal(typeof third, 'object', 'S-CONSTRAINTS-KEY: the same file boots under a satisfied list');
-  assert.equal(read(third, [key], 'file'), 'booted',
+  assert.equal(third.read([key], 'file'), 'booted',
     'S-CONSTRAINTS-KEY: and the version it carried is the one the boot reads');
 });
 
@@ -955,20 +961,29 @@ test('fts_S_CONSTRAINTS_KEY_the_load_side_failure_answers_ConstraintListInvalid_
 
 test('fts_S_ARG5_the_declared_position_is_the_fifth_and_the_last_and_it_is_optional', () => {
   const dts = readFileSync(join(PACKAGE_DIR, 'index.d.ts'), 'utf8');
-  const decl = dts.match(/export function write\(([\s\S]*?)\)/);
+  // **⟶ RESHAPED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause; `§2.12` item 2 (a)'s `A127`
+  // clause; `parameter-semantics.md §2.23`'s VACATED row).** **`write` IS A MEMBER OF THE PUBLISHED
+  // `StoreInstance` INTERFACE NOW AND NOT A NAMED EXPORT, and the `instance` POSITION IS DROPPED — *"the
+  // receiver IS the instance, so the position has no subject"* — so the declared order is read at the
+  // interface member and the FIVE positions become FOUR.**
+  assert.equal(/export function write\(/.test(dts), false,
+    'S-ARG5: `write` is NOT a named function of the published declaration (`11 → 1`; `§2.9` item 1\'s `A127` clause)');
+  const iface = dts.slice(dts.indexOf('export interface StoreInstance'));
+  const decl = iface.match(/^\s*write\(([\s\S]*?)\):/m);
   assert.ok(decl !== null,
-    'S-ARG5: the published typed surface declares `write` (`surface.md §2.4` item 9 (f) names the published '
-    + 'declaration file as the implementer\'s wall)');
+    'S-ARG5: the published typed surface declares `write` as a member of `StoreInstance` (`surface.md §2.4` '
+    + 'item 9 (f) names the published declaration file as the implementer\'s wall)');
   const params = decl[1].split(',').map((p) => p.trim()).filter((p) => p.length > 0);
-  assert.equal(params.length, 5,
-    'S-ARG5: the declared order is `write(instance, address, tier, value, commit?)` — FOUR REQUIRED '
-    + 'ARGUMENTS AND THE OPTIONAL ONE AT POSITION FIVE (`surface.md §2.2`\'s dated clause of 2026-10-15; '
-    + '`proposal-review.md §22.5` item 5). FAIL-STATE: "a call whose position is read off the flow"');
-  assert.deepEqual(params.slice(0, 4).map((p) => p.split(/[?:]/)[0].trim()),
-    ['instance', 'address', 'tier', 'value'],
-    'S-ARG5: the four required arguments stand in their declared order and none of them moved');
-  assert.match(params[4], /^commit\??:/,
-    'S-ARG5: the fifth is `commit` and it is OPTIONAL (`commit?:`) — a REQUIRED `commit` is a refused '
+  assert.equal(params.length, 4,
+    'S-ARG5: the declared order is `write(address, tier, value, commit?)` — THREE REQUIRED ARGUMENTS AND '
+    + 'THE OPTIONAL ONE AT POSITION FOUR, the `instance` position having NO SUBJECT from 2026-10-16 '
+    + '(`surface.md §2.2`\'s `A127` clause; `parameter-semantics.md §2.23`\'s VACATED row). FAIL-STATE: '
+    + '"a call whose position is read off the flow"');
+  assert.deepEqual(params.slice(0, 3).map((p) => p.split(/[?:]/)[0].trim()),
+    ['address', 'tier', 'value'],
+    'S-ARG5: the three required arguments stand in their declared order and none of them moved');
+  assert.match(params[3], /^commit\??:/,
+    'S-ARG5: the fourth is `commit` and it is OPTIONAL (`commit?:`) — a REQUIRED `commit` is a refused '
     + 'alternative (`parameter-semantics.md §2.20`\'s `alt` cell)');
 });
 
@@ -980,7 +995,7 @@ test('fts_S_ARG5_an_absent_commit_is_in_domain_and_the_write_proceeds', async ()
   const record = commit(f.store, [key], 'file', 'no-commit');
   assert.equal(typeof record.op.opId, 'string', 'S-ARG5: the write returned its own record');
   runAttempt(f.store, record);
-  assert.equal(read(f.store, [key], 'file'), 'no-commit',
+  assert.equal(f.store.read([key], 'file'), 'no-commit',
     'S-ARG5: an ABSENT `commit` is IN DOMAIN and is not an outside value, and NO default record is '
     + 'fabricated for it. FAIL-STATE: "a defaulted `commit`"');
 });
@@ -992,7 +1007,7 @@ test('fts_S_ARG5_an_adopted_record_position_is_accepted_and_the_write_proceeds',
   const record = commit(f.store, [key], 'file', 'joined');
   // THE CLASS TEST'S ADMITTED FORM (`surface.md §2.4` item 9 (g) item 1 (iii)): an object carrying `pending`
   // is admitted by the class test, refused by it for nothing, and adopted as a first call.
-  const w = storeWrite(f.store, [key], 'mem', 'joined-again', record);
+  const w = f.store.write([key], 'mem', 'joined-again', record);
   assert.equal(typeof w.op.opId, 'string',
     'S-ARG5: a record position is accepted at the fifth position and the write proceeds ("a write carrying '
     + 'it and a write carrying nothing are ONE verb with ONE return shape", `write-and-read.md §3.1`)');
@@ -1004,9 +1019,9 @@ test('fts_S_ARG5_null_is_refused_by_the_class_test_and_the_write_does_not_procee
   const f = newStore();
   const key = tag('arg-null');
   const before = bytesOf(f.filePath);
-  assert.throws(() => storeWrite(f.store, [key], 'file', 'never', null), positionRefusal('commit: null'),
+  assert.throws(() => f.store.write([key], 'file', 'never', null), positionRefusal('commit: null'),
     'S-ARG5: `null` is outside the fifth position\'s domain (`parameter-semantics.md §2.20`)');
-  assert.throws(() => read(f.store, [key], 'file'), (err) => err.status === 'AddressNotFound',
+  assert.throws(() => f.store.read([key], 'file'), (err) => err.status === 'AddressNotFound',
     'S-ARG5: THE WRITE DOES NOT PROCEED past a refused `commit` — no landing, so no version to read');
   assert.equal(bytesOf(f.filePath), before, 'S-ARG5: and no durable byte moved');
   assert.equal(typeof commit, 'function', 'S-ARG5: the kernel\'s second item is untouched by this cell');
@@ -1017,10 +1032,10 @@ test('fts_S_ARG5_a_non_object_scalar_is_refused_and_the_write_does_not_proceed',
   const scalars = [1, 'a commit', 7n, true, Symbol('commit')];
   for (const [i, value] of scalars.entries()) {
     const key = tag(`arg-scalar-${i}`);
-    assert.throws(() => storeWrite(f.store, [key], 'file', 'never', value),
+    assert.throws(() => f.store.write([key], 'file', 'never', value),
       positionRefusal(`commit: a non-object scalar (${typeof value})`),
       'S-ARG5: a non-object scalar (number, string, bigint, boolean, symbol) is outside the domain');
-    assert.throws(() => read(f.store, [key], 'file'), (err) => err.status === 'AddressNotFound',
+    assert.throws(() => f.store.read([key], 'file'), (err) => err.status === 'AddressNotFound',
       'S-ARG5: and the refused write did not proceed');
   }
 });
@@ -1028,21 +1043,21 @@ test('fts_S_ARG5_a_non_object_scalar_is_refused_and_the_write_does_not_proceed',
 test('fts_S_ARG5_a_function_is_refused_and_the_write_does_not_proceed', async () => {
   const f = newStore();
   const key = tag('arg-fn');
-  assert.throws(() => storeWrite(f.store, [key], 'file', 'never', () => ({ pending: [] })),
+  assert.throws(() => f.store.write([key], 'file', 'never', () => ({ pending: [] })),
     positionRefusal('commit: a function'),
     'S-ARG5: a `function` is outside the fifth position\'s domain');
-  assert.throws(() => read(f.store, [key], 'file'), (err) => err.status === 'AddressNotFound',
+  assert.throws(() => f.store.read([key], 'file'), (err) => err.status === 'AddressNotFound',
     'S-ARG5: and the refused write did not proceed');
 });
 
 test('fts_S_ARG5_a_proxy_value_carrying_no_pending_member_is_refused', async () => {
   const f = newStore();
   const key = tag('arg-proxy');
-  assert.throws(() => storeWrite(f.store, [key], 'file', 'never', new Proxy({}, {})),
+  assert.throws(() => f.store.write([key], 'file', 'never', new Proxy({}, {})),
     positionRefusal('commit: a Proxy value'),
     'S-ARG5: a `Proxy` value is outside the fifth position\'s domain, and this one carries no `pending` '
     + 'member, so the class test and the row agree (this file\'s finding F5)');
-  assert.throws(() => read(f.store, [key], 'file'), (err) => err.status === 'AddressNotFound',
+  assert.throws(() => f.store.read([key], 'file'), (err) => err.status === 'AddressNotFound',
     'S-ARG5: and the refused write did not proceed');
 });
 
@@ -1056,12 +1071,12 @@ test('fts_S_ARG5_the_object_and_any_object_whose_pending_is_absent_or_undefined_
   ];
   for (const [i, value] of forms.entries()) {
     const key = tag(`arg-object-${i}`);
-    assert.throws(() => storeWrite(f.store, [key], 'file', 'never', value),
+    assert.throws(() => f.store.write([key], 'file', 'never', value),
       positionRefusal(`commit: object form ${i}`),
       'S-ARG5: "the object `{}` and any object whose `pending` member is ABSENT or `undefined`" is outside '
       + 'the domain — the discriminator the boundary reads is the `pending` member\'s presence and never an '
       + 'identity\'s history (`surface.md §2.4` item 9 (g) item 1)');
-    assert.throws(() => read(f.store, [key], 'file'), (err) => err.status === 'AddressNotFound',
+    assert.throws(() => f.store.read([key], 'file'), (err) => err.status === 'AddressNotFound',
       'S-ARG5: and the refused write did not proceed');
   }
 });
@@ -1069,9 +1084,9 @@ test('fts_S_ARG5_the_object_and_any_object_whose_pending_is_absent_or_undefined_
 test('fts_S_ARG5_an_array_is_refused_and_the_write_does_not_proceed', async () => {
   const f = newStore();
   const key = tag('arg-array');
-  assert.throws(() => storeWrite(f.store, [key], 'file', 'never', []), positionRefusal('commit: an array'),
+  assert.throws(() => f.store.write([key], 'file', 'never', []), positionRefusal('commit: an array'),
     'S-ARG5: an array is outside the fifth position\'s domain');
-  assert.throws(() => read(f.store, [key], 'file'), (err) => err.status === 'AddressNotFound',
+  assert.throws(() => f.store.read([key], 'file'), (err) => err.status === 'AddressNotFound',
     'S-ARG5: and the refused write did not proceed');
 });
 
@@ -1083,7 +1098,7 @@ test('fts_S_ARG5_an_absent_fifth_argument_opens_or_joins_its_commit_and_the_writ
   // FOUR ARGUMENTS — THE POSITION ABSENT. `§2.2` clause 4: "where it was NOT SUPPLIED, the write proceeds
   // with the fourth position's own arity exactly as clauses 1–2 declare it, and NO DEFAULT IS FABRICATED
   // FOR THE ABSENT POSITION"; clause 1: "absent, THE WRITE OPENS OR JOINS A COMMIT ALL THE SAME".
-  const record = storeWrite(f.store, [key], 'file', 'absent-carried');
+  const record = f.store.write([key], 'file', 'absent-carried');
   assert.equal(typeof record.op.opId, 'string',
     'S-ARG5: an ABSENT fifth argument is IN DOMAIN and the write happened — "the write opens or joins its '
     + 'commit all the same" (`parameter-semantics.md §2.20`\'s domain cell as RE-SPELLED 2026-10-15; '
@@ -1094,7 +1109,7 @@ test('fts_S_ARG5_an_absent_fifth_argument_opens_or_joins_its_commit_and_the_writ
   // THE COMMIT ITS OWN FLOW OPENED, read as the two observables the declaration names: the write LANDED (its
   // address answers with its own value) and its own record IS the write's record — so the commit that carries
   // it is the flow's own and no default stands in for the absent position.
-  assert.equal(read(f.store, [key], 'file'), 'absent-carried',
+  assert.equal(f.store.read([key], 'file'), 'absent-carried',
     'S-ARG5: the version the write carried is the version the address now reads');
   assert.equal('status' in record, false, 'S-ARG5: the admitted shape is a RECORD and never a failure form');
   // AND THE POSITION IS ABSENT IN ERGONOMY AS WELL AS IN LAW: the same write through the kernel's own route
@@ -1116,13 +1131,13 @@ test('fts_S_ARG5_a_supplied_undefined_at_the_fifth_position_is_refused_and_the_w
   // cell RE-SPELLED 2026-10-15: "`undefined` SUPPLIED AT POSITION `5` IS OUTSIDE THE DOMAIN AND REFUSED, AND
   // ITS GROUND IS THE ARITY GATE". The refusal's own form is that cell's declared answer: "an instance of
   // ONE class, its `status` member ABSENT, a STRING `message` member REQUIRED and its content undeclared".
-  assert.throws(() => storeWrite(f.store, [key], 'file', 'never', undefined),
+  assert.throws(() => f.store.write([key], 'file', 'never', undefined),
     positionRefusal('commit: undefined supplied at position 5 (the arity gate)'),
-    'S-ARG5: `write(address, tier, value, undefined)` — the fifth position SUPPLIED with `undefined` — IS '
+    'S-ARG5: `address.write(tier, value, undefined)` — the fifth position SUPPLIED with `undefined` — IS '
     + 'REFUSED (`surface.md §2.2` clause 4; `parameter-semantics.md §2.20`)');
   // AND THE WRITE DOES NOT PROCEED — the refusal is taken before the walk and before the verb, so nothing
   // landed and no byte moved.
-  assert.throws(() => read(f.store, [key], 'file'), (err) => err.status === 'AddressNotFound',
+  assert.throws(() => f.store.read([key], 'file'), (err) => err.status === 'AddressNotFound',
     'S-ARG5: no landing was taken, so there is no version to read (`surface.md §2.4` item 9 (g) item 1: the '
     + 'class test "IS TAKEN BEFORE THE WALK AND BEFORE THE VERB")');
   assert.equal(bytesOf(f.filePath), before, 'S-ARG5: and no durable byte moved');
@@ -1141,13 +1156,13 @@ test('fts_S_ARG5_the_refusal_is_the_arity_gates_by_the_count_alone', async () =>
   // and the class half reads the value standing there (`surface.md §2.2` clause 4: "where the fifth position
   // was SUPPLIED, the class test of clause 3 is taken on the value standing there; where it was NOT
   // SUPPLIED, the write proceeds …").
-  const absent = storeWrite(f.store, [key], 'file', 'by-count-absent');
+  const absent = f.store.write([key], 'file', 'by-count-absent');
   assert.equal(typeof absent.op.opId, 'string', 'S-ARG5: the ABSENT shape PROCEEDS (IN DOMAIN)');
 
   const suppliedKey = tag('arg5-discriminator-supplied');
   let refusal = null;
   try {
-    storeWrite(f.store, [suppliedKey], 'file', 'by-count-supplied', undefined);
+    f.store.write([suppliedKey], 'file', 'by-count-supplied', undefined);
   } catch (err) {
     refusal = err;
   }
@@ -1160,14 +1175,14 @@ test('fts_S_ARG5_the_refusal_is_the_arity_gates_by_the_count_alone', async () =>
     + 'STRING `message` REQUIRED (`surface.md §2.4` item 9 (b); `parameter-semantics.md §2.20`\'s answer '
     + 'cell; `contract.md §0.2`\'s `DD-46` amendment of 2026-10-15: "the refusal is an instance of `TypeError` '
     + 'whose `status` member is ABSENT and whose string `message` member is required")');
-  assert.throws(() => read(f.store, [suppliedKey], 'file'), (err) => err.status === 'AddressNotFound',
+  assert.throws(() => f.store.read([suppliedKey], 'file'), (err) => err.status === 'AddressNotFound',
     'S-ARG5: the refused shape left no landing, so the two outcomes are read at ONE address each');
 
   // THE PAIR, READ AS A PAIR: the SAME absence of a value, TWO call shapes, TWO outcomes — and the two
   // outcomes are read on the same instance, at two addresses, so nothing but the count separates them.
-  assert.notEqual(read(f.store, [key], 'file'), undefined,
+  assert.notEqual(f.store.read([key], 'file'), undefined,
     'S-ARG5: four arguments — the write happened');
-  assert.throws(() => read(f.store, [suppliedKey], 'file'), (err) => err.status === 'AddressNotFound',
+  assert.throws(() => f.store.read([suppliedKey], 'file'), (err) => err.status === 'AddressNotFound',
     'S-ARG5: five arguments with `undefined` at the position — the write did not happen. FAIL-STATE: "a '
     + 'refused `undefined` indistinguishable from the admitted absence"');
   assert.equal(typeof runAttempt, 'function',
@@ -1219,9 +1234,9 @@ test('fts_S_CENSUS_no_existing_trigger_is_widened_to_reach_the_new_member', asyn
     + 'ABSENCE answers #12, PRESENCE with a value outside the domain answers #1)');
   // #5's own trigger, and #14's.
   const key = tag('census');
-  assert.throws(() => storeWrite(f.store, [key], 'disk', 1), storeFailure('OutOfDomainTier', '#5 tier'),
+  assert.throws(() => f.store.write([key], 'disk', 1), storeFailure('OutOfDomainTier', '#5 tier'),
     'S-CENSUS: `OutOfDomainTier` is not widened and does not move');
-  assert.throws(() => storeWrite(f.store, [key], 'mem', undefined), storeFailure('ValueNotAdmitted', '#14 value'),
+  assert.throws(() => f.store.write([key], 'mem', undefined), storeFailure('ValueNotAdmitted', '#14 value'),
     'S-CENSUS: `ValueNotAdmitted` is not widened and does not move');
   assert.equal(typeof commit, 'function', 'S-CENSUS: the kernel\'s extent stays FIVE');
   runAttempt(f.store, commit(f.store, [key], 'mem', 'ok'));
@@ -1248,24 +1263,30 @@ test('fts_S_CENSUS_the_construction_declares_four_keys_and_no_fifth_is_added', a
 test('fts_S_CENSUS_no_rank_moves_no_ninth_register_row_and_no_second_register', async () => {
   const namespace = await import('provident-storeroom');
   const exported = Object.keys(namespace).sort();
-  assert.equal(exported.length, 11,
-    'S-CENSUS: the module namespace is at ELEVEN names — the `8` verbs plus the THREE surface functions '
-    + '`A126` declares, `8 + 3 = 11` (`§2.9` item 1\'s dated clause of 2026-10-16; `surface.md §2.11` '
-    + 'clause 7)`');
-  assert.equal(exported.includes('settle'), false,
-    'S-CENSUS: no named export is added for the seam — it is reached through `storeCreate`\'s own product '
-    + 'alone');
-  for (const name of ['addConstraint', 'constraintOn', 'constraintOff']) {
-    assert.equal(exported.includes(name), true,
-      `S-CENSUS: \`${name}\` IS a named export of the entry — one of the THREE surface functions \`A126\` `
-      + 'declares (`§2.9` item 1\'s dated clause of 2026-10-16)');
+  // **⟶ RE-DERIVED 2026-10-16 (`surface.md §2.9` item 1's `A127` clause; `§2.4` item 9 (f)'s `A127` clause;
+  // `§2.12` item 2 (a)'s `A127` clause).** **THE NAMESPACE IS AT ONE NAME (`11 → 1`) AND EVERY STORE-REACHING
+  // VERB IS A METHOD OF THE PRODUCT, so the census's subject is unmoved and its figures move with the ruling.**
+  assert.equal(exported.length, 1,
+    'S-CENSUS: the module namespace is at its ONE declared name — `storeCreate` (`§2.9` item 1\'s `A127` '
+    + 'clause of 2026-10-16; `surface.md §2.11` clause 7)`');
+  for (const name of ['settle', 'addConstraint', 'constraintOn', 'constraintOff', 'read', 'write', 'listen',
+    'unlisten', 'rollback', 'readLiteral', 'delete']) {
+    assert.equal(exported.includes(name), false,
+      `S-CENSUS: \`${name}\` is NOT a name of the entry — it is reached through \`storeCreate\`'s own `
+      + 'product alone (`§2.9` item 1\'s `A127` clause; `10 → 0` named, `11 → 1` total)');
   }
   const f = newStore();
   assert.deepEqual(Object.getOwnPropertyNames(f.store).sort(),
-    ['addConstraint', 'constraintOff', 'constraintOn', 'off', 'on', 'register', 'settle'],
-    'S-CENSUS: the instance\'s member set is '
-    + '`{ register, on, off, settle, addConstraint, constraintOn, constraintOff }` — SEVEN own members, '
-    + '`4 + 3 = 7`, and nothing else (`surface.md §2.4` item 9 (f)\'s dated clause of 2026-10-16)');
+    ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral',
+      'register', 'rollback', 'settle', 'unlisten', 'write'],
+    'S-CENSUS: the instance\'s member set is the TEN store-reaching methods plus `register` and `settle` — '
+    + 'TWELVE own members, `10 + 1 + 1 = 12`, and nothing else (`surface.md §2.4` item 9 (f)\'s `A127` '
+    + 'clause of 2026-10-16)');
+  for (const merged of ['on', 'off']) {
+    assert.equal(Object.getOwnPropertyNames(f.store).includes(merged), false,
+      `S-CENSUS: \`${merged}\` is a member of NO product — its home entry is minted by \`listen\`, its `
+      + 'function placed by `register`, and `unlisten` is the withdrawal (`§2.4` item 9 (f)\'s `A127` clause)');
+  }
 
   // THE REGISTER'S OWN ROW COUNT, read off its one home: `implementation-plan.md §10.9` declares `8` rows
   // (`3 + 3 + 2 = 8` ✓ at the cap `8 ≤ 8`) and NO NINTH ROW. FAIL-STATE: "a ninth register row or a second
@@ -1746,7 +1767,7 @@ test('fts_FTS_11_5_a_repairs_write_carries_the_commit_it_is_part_of_at_the_fifth
         repairs += 1;
         let w = null;
         try {
-          w = storeWrite(f.store, [key], 'file', 'repaired', rc);
+          w = f.store.write([key], 'file', 'repaired', rc);
         } catch (err) {
           refusal = err;
           return { ok: false, message: 'the repair could not carry its own commit' };
@@ -1843,7 +1864,7 @@ test('fts_FTS_09_zero_byte_file_boots_an_instance_while_a_two_byte_empty_image_i
     + 'this cell is a `D-GP-SVM-4` bubble and not a drive against the package — read '
     + `${secondRefused && secondRefused.status} :: ${secondRefused && secondRefused.message}`);
   assert.equal(typeof second, 'object', 'FTS-09.5: HALF ONE — the instance is returned');
-  assert.deepEqual(read(second, [], 'file'), {},
+  assert.deepEqual(second.read([], 'file'), {},
     'FTS-09.5: HALF ONE — and its register carries `0` register keys, the loaded empty text\'s own reading');
   assert.equal(bytesOf(zeroPath), '',
     'FTS-09.5: HALF ONE — the boot is a read: the zero-byte file is still zero bytes');
@@ -1956,7 +1977,7 @@ function repairContextFixture(k, label, beforeSave) {
           ? seen.recordPendingAtCopy.includes(SENTINEL) === false : null;
         seen.pendingAtRepair = Array.isArray(rc.pending) ? rc.pending.slice() : null;
         try {
-          seen.write = storeWrite(f.store, [key], 'file', 'repaired', rc);
+          seen.write = f.store.write([key], 'file', 'repaired', rc);
           seen.repairOrder = seen.order.length;
           seen.order.push('repair:write-landed');
           seen.afterRepairLen = Array.isArray(record.pending) ? record.pending.length : null;
@@ -2100,7 +2121,7 @@ test('fts_S_REPAIR_CTX_the_fifth_position_accepts_the_context_only_because_it_ca
         const { pending, ...withoutPending } = rc;
         seen.stripped = Object.keys(withoutPending).sort();
         try {
-          storeWrite(f.store, [key], 'file', 'repaired', withoutPending);
+          f.store.write([key], 'file', 'repaired', withoutPending);
         } catch (err) {
           seen.strippedRefusal = err;
         }
@@ -2108,7 +2129,7 @@ test('fts_S_REPAIR_CTX_the_fifth_position_accepts_the_context_only_because_it_ca
         // position's class test reads THIS member; "WITHOUT THIS MEMBER `§2.11` CLAUSE 6's ROUTE IS
         // UNREACHABLE", and with it the route is whole). THE SAME BODY, THE SAME WINDOW, THE SAME ADDRESS.
         try {
-          seen.acceptedWrite = storeWrite(f.store, [key], 'file', 'repaired', rc);
+          seen.acceptedWrite = f.store.write([key], 'file', 'repaired', rc);
           seen.accepted = true;
         } catch (err) {
           seen.strippedRefusal = err;

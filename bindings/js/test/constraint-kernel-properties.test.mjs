@@ -45,13 +45,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { write as storeWrite, read } from 'provident-storeroom';
+// ⟶ RESHAPED: the package namespace carries ONE name (`surface.md §2.9` item 1's `A127` clause; `11 → 1`).
 
 import {
   kernel, makeStore, tag, KC, KC_TOKENS, STORE_CODES,
   assertKernelForm, assertLogEntry, assertSeqIncreasesFromOne, assertAttemptReport,
-  assertRollbackStep, assertAttemptRef, capture, entries, checkIds, repairRunsFor,
-} from './constraint-kernel-helpers.mjs';
+  assertRollbackStep, assertAttemptRef, capture, entries, checkIds, repairRunsFor, noop, } from './constraint-kernel-helpers.mjs';
 
 // ── THE DETERMINISTIC PINNED SEEDS ───────────────────────────────────────────────────────────────
 //
@@ -203,7 +202,7 @@ test('ck_prop_P_IM_1_a_malformed_address_is_refused_caller_side_and_a_store_refu
       }
       // THE STORE'S OWN CHECK IS THE STORE'S: an in-domain address the store refuses carries the
       // store's own code in the store's own form, UNCONVERTED
-      const r = capture(() => store.on(address, () => {}));
+      const r = capture(() => (store.register(store.listen(address), () => {}) || store.listen(address)));
       if (r.threw) {
         assert.equal(KC_TOKENS.includes(r.thrown.status), false,
           'a store refusal on the store\'s channel is never a kernel state');
@@ -246,7 +245,7 @@ test('ck_prop_P_IM_1_two_distinct_pairs_that_spell_alike_each_answer_their_own_a
   // keys`), and registration walks the same path — so the caller lays the four nodes down FIRST, with
   // NO pair registered yet: each pre-write is an ordinary caller-made write and reaches no pass.
   for (const node of [[root], [root, 'a'], [root, 'a', 'b'], [root, 'a/b'], [root, 'a#b']]) {
-    storeWrite(store, node, 'mem', {});
+    store.write(node, 'mem', {});
   }
   const families = [
     { first: [root, 'a', 'b'], firstId: 'x', second: [root, 'a/b'], secondId: 'x', why: 'F1: a `/` inside a segment against two segments — both pairs spell `' + root + '/a/b#x`' },
@@ -298,7 +297,7 @@ test('ck_prop_P_IM_2_no_attempt_record_member_crosses_the_store_s_surface', asyn
       register(store, address, 'x', () => {
         if (arm === 'pass') return true;
         if (arm === 'violate') return { message: 'the caller\'s own string' };
-        if (arm === 'repair-ok') return { repair: () => { const landed = storeWrite(store, address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
+        if (arm === 'repair-ok') return { repair: () => { const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
         return { repair: () => ({ ok: false, message: 'what was attempted' }), message: 'unrepairable' };
       });
       const record = commit(store, address, 'mem', n(0, 9));
@@ -341,7 +340,7 @@ test('ck_prop_P_IM_2_an_op_the_attempt_created_and_no_op_it_did_not', async () =
         register(store, address, `p${k}`, () => {
           seen += 1;
           if (seen === 1) {
-            return { repair: () => { const landed = storeWrite(store, address, 'mem', n(0, 99)).op; return { ok: true, message: `p${k} was repaired`, op: landed }; },
+            return { repair: () => { const landed = store.write(address, 'mem', n(0, 99)).op; return { ok: true, message: `p${k} was repaired`, op: landed }; },
               message: `p${k} is repairable` };
           }
           return true;
@@ -430,7 +429,7 @@ test('ck_prop_P_SM_4_every_attempt_reaches_exactly_one_declared_terminal_answer'
         register(store, address, `c${k}`, () => {
           if (arm === 'pass') return true;
           if (arm === 'violate') return { message: 'violation' };
-          if (arm === 'repair') return { repair: () => { const landed = storeWrite(store, address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
+          if (arm === 'repair') return { repair: () => { const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
           return undefined;
         });
       }
@@ -559,7 +558,7 @@ test('ck_prop_P_SM_6_an_applied_repair_never_runs_twice_within_one_attempt', asy
         c1 += 1;
         if (c1 === 1) {
           return { repair: () => {
-            const landed = storeWrite(store, address, 'mem', n(0, 999)).op;
+            const landed = store.write(address, 'mem', n(0, 999)).op;
             return { ok: true, message: 'c1 was repaired by the op this repair landed', op: landed };
           }, message: 'c1 is invalid on the committed value' };
         }
@@ -567,7 +566,7 @@ test('ck_prop_P_SM_6_an_applied_repair_never_runs_twice_within_one_attempt', asy
         // repair — which the limb's own words forbid the attempt to invoke.
         return { repair: () => {
           secondRepairRuns += 1;
-          const landed = storeWrite(store, address, 'mem', n(0, 999)).op;
+          const landed = store.write(address, 'mem', n(0, 999)).op;
           return { ok: true, message: 'c1 was repaired again by the op this repair landed', op: landed };
         }, message: 'c1 is invalid again at its own repair\'s landing' };
       });
@@ -627,7 +626,7 @@ test('ck_prop_P_SM_6_the_two_repeat_limbs_are_distinguishable_by_the_pair_s_own_
           ? true // the FIRST evaluation PASSES: this is what makes the repeat reachable at all
           : { message: 'x violates at the re-run and registers no repair' };
       });
-      register(store, address, 'y', () => ({ repair: () => { const landed = storeWrite(store, address, 'mem', n(0, 9)).op; return { ok: true, message: 'y was repaired at the same address', op: landed }; }, message: 'y is invalid' }));
+      register(store, address, 'y', () => ({ repair: () => { const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'y was repaired at the same address', op: landed }; }, message: 'y is invalid' }));
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', n(0, 9))));
       assert.equal(r.threw, true, 'the re-run repeats x and fails the attempt');
       // THE SAME ONE DISCRIMINATOR, READ AT THE ARM ENUMERATION'S OWN HOME (`fail-surface.md §2`'s
@@ -671,7 +670,7 @@ test('ck_prop_P_TP_7_a_failed_attempt_ran_one_call_per_op_and_a_passed_one_rolle
       register(store, address, 'x', () => {
         evaluation += 1;
         if (evaluation > repaired) return { message: 'x has no repair left' };
-        return { repair: () => { const landed = storeWrite(store, address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value at the attempt\'s address', op: landed }; }, message: 'repairable' };
+        return { repair: () => { const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value at the attempt\'s address', op: landed }; }, message: 'repairable' };
       });
       const record = commit(store, address, 'mem', n(0, 9));
       const r = capture(() => runAttempt(store, record));
@@ -780,7 +779,7 @@ test('ck_prop_P_TP_7_a_failed_attempt_ran_one_call_per_op_and_a_passed_one_rolle
       // through THE STORE'S OWN READ VERB (`§2.6` item 8 (iii)): this attempt's address stood at NO NODE
       // before its own first write — every attempt of this file runs on a fresh store — so the whole
       // attempt is undone and the address answers the store's own `AddressNotFound`.
-      const restored = capture(() => read(store, address));
+      const restored = capture(() => store.read(address));
       assert.equal(restored.threw, true,
         'ALL OR NOTHING: an attempt whose first landing already violated passed NO checkpoint, so its end '
         + 'state is "the state the address stood at BEFORE THE ATTEMPT\'S OWN WRITE" — no node — and the '
@@ -817,7 +816,7 @@ test('ck_prop_P_TP_8_the_marker_opens_empty_on_a_second_attempt_at_the_same_addr
       register(store, address, 'x', () => {
         evaluations += 1;
         if (evaluations % 2 === 0) return true;
-        return { repair: () => { repairs += 1; const landed = storeWrite(store, address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
+        return { repair: () => { repairs += 1; const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
       });
       const first = runAttempt(store, commit(store, address, 'mem', n(0, 9)));
       assert.equal(first.outcome, 'passed', 'the first attempt resolves once its re-run passes');
@@ -905,7 +904,7 @@ test('ck_prop_P_IM_1_the_handle_check_is_the_store_s_on_both_arms', async () => 
       if (i % 2 === 0) {
         // ARM 1 — THE STORE ADMITS THE ADDRESS: the registration is answered by the store's own handle.
         const handle = register(store, address, 'x', () => true);
-        assert.equal(store.on(address, () => {}), handle,
+        assert.equal((store.register(store.listen(address), () => {}) || store.listen(address)), handle,
           'the kernel mints no token for a store-minted handle: the registration\'s answer IS the '
           + 'store\'s own answer for that address (`kernel-surface.md §2.2` item 1)');
         return;
@@ -1078,7 +1077,7 @@ test('ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op', asyn
         // caller-side observable that forces the store's own compression).
         const hStore = makeStore({ journalLength: 2 });
         const hAddress = [tag('attarm-h')];
-        for (let k = 0; k < 6; k += 1) storeWrite(hStore, hAddress, 'mem', `seed-${k}`);
+        for (let k = 0; k < 6; k += 1) hStore.write(hAddress, 'mem', `seed-${k}`);
         register(hStore, hAddress, 'x', () => ({ message: 'x is invalid, and registers no repair' }));
         const hRecord = commit(hStore, hAddress, 'mem', 1);
         const hr = capture(() => runAttempt(hStore, hRecord));
@@ -1108,7 +1107,7 @@ test('ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op', asyn
         register(store, address, 'x', () => {
           x += 1;
           if (x === 1) {
-            return { repair: () => { const landed = storeWrite(store, address, 'mem', `fixed-${n(0, 9)}`).op; return { ok: true, message: 'x was repaired by the op this repair landed', op: landed }; }, message: 'repairable' };
+            return { repair: () => { const landed = store.write(address, 'mem', `fixed-${n(0, 9)}`).op; return { ok: true, message: 'x was repaired by the op this repair landed', op: landed }; }, message: 'repairable' };
           }
           return { message: 'x is broken again' };
         });
@@ -1132,7 +1131,7 @@ test('ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op', asyn
       register(store, address, 'y', () => {
         y += 1;
         return y === 1
-          ? { repair: () => { const landed = storeWrite(store, address, 'mem', `y-fixed-${n(0, 9)}`).op; return { ok: true, message: 'y was repaired by the op this repair landed', op: landed }; }, message: 'y is invalid' }
+          ? { repair: () => { const landed = store.write(address, 'mem', `y-fixed-${n(0, 9)}`).op; return { ok: true, message: 'y was repaired by the op this repair landed', op: landed }; }, message: 'y is invalid' }
           : true;
       });
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
@@ -1193,7 +1192,7 @@ test('ck_prop_P_SM_5_the_constraint_function_is_invoked_by_the_caller_and_never_
     body: (rng) => attempt(rng, ({ store, address, int: n }) => {
       const order = [];
       const plain = () => order.push('plain');
-      const plainHandle = store.on(address, plain);
+      const plainHandle = (store.register(store.listen(address), plain) || store.listen(address));
       const kernelHandle = register(store, address, 'x', () => { order.push('constraint'); return true; });
       assert.equal(kernelHandle, plainHandle,
         'one home entry per address: the registration REPLACES the plain listener in the store\'s own '
@@ -1253,7 +1252,7 @@ test('ck_prop_P_SM_6_no_repair_budget_or_retry_count_is_the_attempt_s_bound', as
         x += 1;
         // EVERY evaluation registers a repair and lands a NEW op: without a bound the attempt would
         // never stop, and the row declares that NO bound exists — the FIRST REPEAT is the bound.
-        return { repair: () => { const landed = storeWrite(store, address, 'mem', `again-${x}-${n(0, 9)}`).op; return { ok: true, message: 'x was repaired by the op this repair landed', op: landed }; }, message: 'x is invalid' };
+        return { repair: () => { const landed = store.write(address, 'mem', `again-${x}-${n(0, 9)}`).op; return { ok: true, message: 'x was repaired by the op this repair landed', op: landed }; }, message: 'x is invalid' };
       });
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
       assert.equal(r.threw, true, 'the attempt terminates and fails — a run that needed a budget to '
@@ -1297,7 +1296,7 @@ test('ck_prop_P_TP_8_two_instances_never_see_each_other_s_marker', async () => {
       const body = (which) => () => {
         seen[which] += 1;
         if (seen[which] === 1) {
-          return { repair: () => { const landedOp = storeWrite(which === 'first' ? store : other, address, 'mem', n(0, 9)).op; return { ok: true, message: 'the store this attempt drives landed a lawful value', op: landedOp }; }, message: 'repairable' };
+          return { repair: () => { const landedOp = (which === 'first' ? store : other).write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the store this attempt drives landed a lawful value', op: landedOp }; }, message: 'repairable' };
         }
         return true;
       };
@@ -1349,7 +1348,7 @@ test('ck_prop_P_TP_8_the_marker_writes_no_store_entry_no_journal_entry_and_no_cl
         if (x === 1) {
           return { repair: () => {
             landed = `fixed-${n(0, 9)}`;
-            const landedOp = storeWrite(store, address, 'mem', landed).op;
+            const landedOp = store.write(address, 'mem', landed).op;
             return { ok: true, message: 'the repair landed a fixed value', op: landedOp };
           }, message: 'repairable' };
         }
@@ -1366,7 +1365,7 @@ test('ck_prop_P_TP_8_the_marker_writes_no_store_entry_no_journal_entry_and_no_cl
       assert.equal(closed.ops.length, 2,
         'and `ops` carries the two ops the two write VERBS returned and no third op of the marker\'s '
         + 'own (`§5.2`, `P-IM-2`: `ops` is the ops THIS ATTEMPT CREATED)');
-      const back = read(store, address);
+      const back = store.read(address);
       assert.equal(back, landed,
         'the marker wrote NO store entry: the value the address now stands at is THE REPAIR\'S OWN '
         + 'landing and nothing the marker appended (`§5.8`: "its only home is the open `AttemptRecord`")');

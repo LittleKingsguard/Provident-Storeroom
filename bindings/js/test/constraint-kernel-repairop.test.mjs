@@ -48,7 +48,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { read as storeRead, write as storeWrite } from 'provident-storeroom';
+// ⟶ RESHAPED: the package namespace carries ONE name (`surface.md §2.9` item 1's `A127` clause; `11 → 1`).
 
 import {
   kernel, makeStore, tag, KC, assertKernelForm, assertRollbackStep, assertAttemptReport,
@@ -116,7 +116,7 @@ function assertArmD(drive, why) {
   assert.ok(closed.rollback.length >= 1,
     `${why}: arm \`(d)\` composes the per-op rollback over the attempt's own ops`);
   for (const step of closed.rollback) assertRollbackStep(step, `${why}: RollbackStep`);
-  const restored = capture(() => storeRead(store, address));
+  const restored = capture(() => store.read(address));
   assert.equal(restored.threw, true,
     `${why}: THE ROLLBACK RESTORES THE LAST VALID STATE — the attempt's address stands at NO node, which `
     + 'is the state it stood at before the attempt\'s first write (`A: docs/decisions.md` · `A102`)');
@@ -149,7 +149,7 @@ test('ck_repairop_arm_b_the_declared_success_arm_carries_the_op_the_callers_own_
           // (`parameter-semantics.md §2.7`): the repair calls the store's own `write` IN ITS OWN BODY,
           // that call's return carries the store's own op value, and the repair SPELLS THAT VALUE onto
           // its own return's `op` member. Nothing is fabricated here: `landed` IS what the verb answered.
-          landed = storeWrite(store, address, 'mem', 'fixed').op;
+          landed = store.write(address, 'mem', 'fixed').op;
           returned = { ok: true, message: 'x was repaired at the attempt\'s own address', op: landed };
           return returned;
         },
@@ -190,7 +190,7 @@ test('ck_repairop_arm_b_the_declared_success_arm_carries_the_op_the_callers_own_
   assert.equal(runs[0].opId, landed.opId,
     'and its `repair-run` entry names the op the repair landed (`attempt-lifecycle.md §2.4` item 4 (b))');
   // THE STORE ITSELF STANDS WHERE THE CALLER'S OWN VERB PUT IT
-  assert.equal(storeRead(store, address), 'fixed',
+  assert.equal(store.read(address), 'fixed',
     'the caller\'s own write verb landed the value, and the attempt resolved on it');
   assert.equal(report(store, commitRecord.attempt).ops.length, 2,
     'and the closed record `K-5` answers carries the same two ops');
@@ -212,7 +212,7 @@ test('ck_repairop_arm_d_an_ok_true_return_with_no_op_member_is_KC4_and_its_repai
     if (evaluations === 1) {
       return {
         repair: () => {
-          landed = storeWrite(store, address, 'mem', 'fixed').op; // THE EDIT **IS** LANDED
+          landed = store.write(address, 'mem', 'fixed').op; // THE EDIT **IS** LANDED
           returned = { ok: true, message: 'x was repaired' }; // …AND NO `op` MEMBER IS CARRIED
           return returned;
         },
@@ -259,7 +259,7 @@ test('ck_repairop_arm_d_an_ok_true_return_whose_op_is_undefined_is_KC4', async (
     if (evaluations === 1) {
       return {
         repair: () => {
-          landed = storeWrite(store, address, 'mem', 'fixed').op;
+          landed = store.write(address, 'mem', 'fixed').op;
           returned = { ok: true, message: 'x was repaired', op: undefined };
           return returned;
         },
@@ -291,7 +291,7 @@ test('ck_repairop_arm_d_an_ok_true_return_naming_an_op_the_repair_never_landed_i
     if (evaluations === 1) {
       return {
         repair: () => {
-          landed = storeWrite(store, address, 'mem', 'fixed').op; // the op it REALLY landed
+          landed = store.write(address, 'mem', 'fixed').op; // the op it REALLY landed
           returned = { ok: true, message: 'x was repaired', op: unlanded }; // …and it names another op
           return returned;
         },
@@ -350,7 +350,7 @@ test('ck_repairop_the_kernel_reaches_the_store_only_through_the_callers_own_inst
     nx += 1;
     if (nx !== 1) return true;
     return { repair: () => {
-      const op = storeWrite(store, address, 'mem', 'x-fixed').op;
+      const op = store.write(address, 'mem', 'x-fixed').op;
       answered.push(op);
       return { ok: true, message: 'x was repaired by the op this repair landed', op };
     }, message: 'x is invalid' };
@@ -359,7 +359,7 @@ test('ck_repairop_the_kernel_reaches_the_store_only_through_the_callers_own_inst
     ny += 1;
     if (ny !== 1) return true;
     return { repair: () => {
-      const op = storeWrite(store, address, 'mem', 'y-fixed').op;
+      const op = store.write(address, 'mem', 'y-fixed').op;
       answered.push(op);
       return { ok: true, message: 'y was repaired by the op this repair landed', op };
     }, message: 'y is invalid' };
@@ -386,7 +386,7 @@ test('ck_repairop_the_kernel_reaches_the_store_only_through_the_callers_own_inst
       + 'has ONE carrier, and the caller\'s own instance is it');
   }
   // THE STORE'S OWN STATE IS WHERE THE CALLER'S OWN VERBS PUT IT, AND NOWHERE ELSE
-  assert.equal(storeRead(store, address), 'y-fixed',
+  assert.equal(store.read(address), 'y-fixed',
     'the last value a repair wrote through the caller\'s own instance stands at the attempt\'s address');
   assert.equal(report(store, commitRecord.attempt).outcome, 'passed',
     'and the closed record `K-5` answers carries the same resolved arm');

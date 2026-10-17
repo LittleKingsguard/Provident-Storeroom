@@ -25,16 +25,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import {
-  storeCreate,
-  read,
-  readLiteral,
-  write,
-  delete as remove,
-  rollback,
-  listen,
-  unlisten,
-} from 'provident-storeroom';
+// **⟶ RESHAPED 2026-10-16 ON `A127` (`surface.md §2.9` item 1's and `§2.4` item 9 (f)'s `A127` clauses):**
+// the module namespace carries ONE name — `storeCreate` — and the ten store-reaching names are METHODS of the
+// object it returns. The import list and every call below moved with the receiver ruling; no property of
+// `acceptance.md §4.3`'s corpus, relation or exclusions moved by it. (`A128`: *"Inconsistency — all
+// store-modifying acts should operate by method, not function."*)
+import { storeCreate } from 'provident-storeroom';
 
 /// `crossing.md §1.5`'s relation, implemented by THIS LAYER (the clause: *"the relation is a property of the
 /// PACKAGE's own helper and of this unit's acceptance layer, NEVER of the store"*).
@@ -90,8 +86,8 @@ test('round_trip_the_corpus_is_the_nine_declared_states_plus_the_key_set_state',
 for (const { label, value } of CORPUS) {
   test(`round_trip_${label.replace(/[^a-z0-9]+/gi, '_').toLowerCase()}_is_exact_under_the_relation`, () => {
     const inst = instance();
-    write(inst, ['rt'], 'mem', value);
-    const back = read(inst, ['rt']);
+    inst.write(['rt'], 'mem', value);
+    const back = inst.read(['rt']);
     assert.ok(
       jsEqual(back, value),
       `\`read\` after \`write\` must be EQUAL to the written value: got ${JSON.stringify(back)}`,
@@ -105,8 +101,8 @@ test('round_trip_at_every_tier_the_mem_register_holds', () => {
   for (const tier of ['temp', 'mem']) {
     const inst = instance();
     const value = { [tier]: [1, 2, { k: true }] };
-    write(inst, ['t'], tier, value);
-    assert.ok(jsEqual(read(inst, ['t'], tier), value));
+    inst.write(['t'], tier, value);
+    assert.ok(jsEqual(inst.read(['t'], tier), value));
   }
 });
 
@@ -121,8 +117,8 @@ test('round_trip_negative_zero_is_exact_at_the_mem_tier_before_any_boot', () => 
   // Exclusion (i) is a FILE-tier, post-boot normalization and is asserted by the STORE's battery (`DD-5`);
   // in memory the sign is kept and the relation is `Object.is`.
   const inst = instance();
-  write(inst, ['z'], 'mem', -0);
-  const back = read(inst, ['z']);
+  inst.write(['z'], 'mem', -0);
+  const back = inst.read(['z']);
   assert.ok(Object.is(back, -0), 'a mem-tier `-0` round trip is `Object.is`-equal');
   assert.ok(!Object.is(back, 0), 'and it is NOT the `0` that `===` would confuse it with');
 });
@@ -136,11 +132,11 @@ test('round_trip_the_layer_declares_exactly_two_exclusions', () => {
 
 test('round_trip_a_failed_write_returns_nothing_and_a_successful_one_returns_the_record', () => {
   const inst = instance();
-  const record = write(inst, ['w'], 'mem', { a: 1 });
+  const record = inst.write(['w'], 'mem', { a: 1 });
   assert.equal(typeof record, 'object');
   assert.ok('op' in record && 'watched' in record && 'triggered' in record);
   assert.throws(
-    () => write(inst, ['w'], 'mem', null),
+    () => inst.write(['w'], 'mem', null),
     (err) => err.status === 'ValueNotAdmitted',
     'a failed write returns NOTHING (`§2.2`)',
   );
@@ -148,25 +144,30 @@ test('round_trip_a_failed_write_returns_nothing_and_a_successful_one_returns_the
 
 test('round_trip_read_literal_returns_the_literal_at_a_leaf', () => {
   const inst = instance();
-  write(inst, ['leaf'], 'mem', 'v');
-  assert.equal(readLiteral(inst, ['leaf']), 'v');
-  write(inst, ['branch'], 'mem', { k: 1 });
+  inst.write(['leaf'], 'mem', 'v');
+  assert.equal(inst.readLiteral(['leaf']), 'v');
+  inst.write(['branch'], 'mem', { k: 1 });
   assert.throws(
-    () => readLiteral(inst, ['branch']),
+    () => inst.readLiteral(['branch']),
     (err) => err.status === 'ReadTargetIsBranch',
     '`§2.2`/`§2.9` item 2: the literal-only read narrows to a leaf',
   );
 });
 
-test('round_trip_the_surface_carries_the_eight_verbs_and_no_resolver', () => {
-  // `§2.9` item 1: the JS surface is EXACTLY `storeCreate` · `read` · `readLiteral` · `write` · `delete` ·
-  // `rollback` · `listen` · `unlisten` — `8` verbs — plus the returned records.
-  for (const verb of [storeCreate, read, readLiteral, write, remove, rollback, listen, unlisten]) {
-    assert.equal(typeof verb, 'function');
+test('round_trip_the_module_carries_one_name_and_the_product_the_twelve_members', () => {
+  // `surface.md §2.9` item 1's `A127` clause: the module namespace carries ONE name, `storeCreate` ALONE,
+  // `11 → 1` ✓. `surface.md §2.4` item 9 (f)'s `A127` clause: the product's declared member set is the TWELVE
+  // `10 + 1 + 1 = 12` ✓. **THIS CELL REPLACES the pre-`A127` cell that asserted *"the eight verbs"* at the
+  // namespace: that figure is superseded at its own clause and the round-trip property is unmoved by it.**
+  assert.equal(typeof storeCreate, 'function');
+  const inst = instance();
+  const twelve = Object.keys(inst).sort();
+  assert.equal(twelve.length, 12, 'the product carries TWELVE own members');
+  for (const member of twelve) {
+    assert.equal(typeof inst[member], 'function', `"${member}" is an own callable`);
   }
-  const api = { storeCreate, read, readLiteral, write, delete: remove, rollback, listen, unlisten };
-  assert.equal(Object.keys(api).length, 8);
-  assert.ok(!('findAddress' in api), '`A63`: findAddress is an internal tool and is NOT exposed');
-  assert.ok(!('exists' in api), '`§2.9` item 3: no exists() verb and no binding-side resolver');
-  assert.ok(!('dispose' in api) && !('close' in api), '`A74`: no release verb at either layer');
+  assert.ok(!('findAddress' in inst), '`A63`: findAddress is an internal tool and is NOT exposed');
+  assert.ok(!('exists' in inst), '`§2.9` item 3: no exists() verb and no binding-side resolver');
+  assert.ok(!('dispose' in inst) && !('close' in inst), '`A74`: no release verb at either layer');
+  assert.ok(!('on' in inst) && !('off' in inst), '`A127`: `on` and `off` are merged away and are not members');
 });

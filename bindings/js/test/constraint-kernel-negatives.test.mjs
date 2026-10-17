@@ -42,13 +42,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { write as storeWrite, delete as storeDelete } from 'provident-storeroom';
+// ⟶ RESHAPED: the package namespace carries ONE name (`surface.md §2.9` item 1's `A127` clause; `11 → 1`).
 
 import {
   kernel, makeStore, tag, KC,
   assertKernelForm, assertAttemptReport, assertSeqIncreasesFromOne,
-  capture, entries, checkIds, countingListener,
-} from './constraint-kernel-helpers.mjs';
+  capture, entries, checkIds, countingListener, noop, } from './constraint-kernel-helpers.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // `P-NEG-14` — THE DISCARD'S DISCRIMINATOR IS THE SET A HANDLE CAME BACK IN, NEVER THE ANCESTRY
@@ -143,9 +142,9 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
     const store = makeStore({ journalLength: 16 });
     const ancestor = [tag('n14p')];
     const address = [ancestor[0], 'c'];
-    storeWrite(store, ancestor, 'mem', { seed: 'the ancestor home entry stands' });
+    store.write(ancestor, 'mem', { seed: 'the ancestor home entry stands' });
     const plain = countingListener();
-    const handlePlain = store.on(ancestor, plain);
+    const handlePlain = (store.register(store.listen(ancestor), plain) || store.listen(ancestor));
     let landed = null;
     let evaluations = 0;
     const handleX = register(store, address, 'x', () => {
@@ -153,7 +152,7 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
       if (evaluations === 1) {
         return {
           repair: () => {
-            landed = storeWrite(store, address, 'mem', 'fixed').op;
+            landed = store.write(address, 'mem', 'fixed').op;
             return { ok: true, message: 'x was repaired at the attempt\'s own address', op: landed };
           },
           message: 'x is invalid on the committed value',
@@ -229,9 +228,9 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
     const store = makeStore({ journalLength: 16 });
     const ancestor = [tag('n14f')];
     const address = [ancestor[0], 'c'];
-    storeWrite(store, ancestor, 'mem', { seed: 'the ancestor home entry stands' });
+    store.write(ancestor, 'mem', { seed: 'the ancestor home entry stands' });
     const plain = countingListener();
-    const handlePlain = store.on(ancestor, plain);
+    const handlePlain = (store.register(store.listen(ancestor), plain) || store.listen(ancestor));
     register(store, address, 'x', () => ({ message: 'x is invalid and registers no repair' }));
     const record = commit(store, address, 'mem', 'v');
     assert.equal(record.triggered.includes(handlePlain), true,
@@ -420,7 +419,7 @@ test('ck_p_neg_16_the_outside_form_decides_at_the_first_violating_pair_whatever_
     return {
       repair: () => {
         bRepairs += 1;
-        const landed = storeWrite(store, address, 'mem', 'fixed').op;
+        const landed = store.write(address, 'mem', 'fixed').op;
         return { ok: true, message: 'b was repaired', op: landed };
       },
       message: 'b is invalid on this value',
@@ -575,7 +574,7 @@ test('ck_p_neg_18_a_repair_naming_a_pre_attempt_op_credits_nothing_and_is_KC4', 
   const store = makeStore({ journalLength: 16 });
   const address = [tag('n18')];
   // (1) THE FOREIGN OP: a write that landed BEFORE the attempt, at the attempt's own address.
-  const before = storeWrite(store, address, 'mem', 'before').op;
+  const before = store.write(address, 'mem', 'before').op;
   let repairedOp = null;
   let evaluations = 0;
   register(store, address, 'x', () => {
@@ -584,7 +583,7 @@ test('ck_p_neg_18_a_repair_naming_a_pre_attempt_op_credits_nothing_and_is_KC4', 
       return {
         repair: () => {
           // (2) THE REPAIR'S OWN EDIT LANDS — and its own op is NOT the one it names below.
-          repairedOp = storeWrite(store, address, 'mem', 'fixed').op;
+          repairedOp = store.write(address, 'mem', 'fixed').op;
           // (3) THE IDENTITY IT NAMES IS THE PRE-ATTEMPT OP.
           return { ok: true, message: 'x was repaired', op: before };
         },
@@ -755,7 +754,7 @@ test('ck_p_neg_20_a_throwing_body_over_a_compacted_base_leaves_the_one_outcome_e
   const { register, commit, runAttempt, report } = await kernel();
   const store = makeStore({ journalLength: 2 });
   const address = [tag('n20')];
-  for (let i = 0; i < 6; i += 1) storeWrite(store, address, 'mem', `seed-${i}`);
+  for (let i = 0; i < 6; i += 1) store.write(address, 'mem', `seed-${i}`);
   const fromTheBody = { fromTheConstraintBody: true };
   register(store, address, 'x', () => { throw fromTheBody; });
   const record = commit(store, address, 'mem', 'v');
@@ -819,7 +818,7 @@ test('ck_p_neg_22_a_delete_shaped_repair_reaches_arm_d_KC4_because_the_delete_re
   const { register, commit, runAttempt, report } = await kernel();
   const store = makeStore({ journalLength: 16 });
   const address = [tag('n22')];
-  storeWrite(store, address, 'mem', 'one');
+  store.write(address, 'mem', 'one');
   let removed = null;
   let evaluations = 0;
   register(store, address, 'x', () => {
@@ -828,7 +827,7 @@ test('ck_p_neg_22_a_delete_shaped_repair_reaches_arm_d_KC4_because_the_delete_re
       return {
         repair: () => {
           // THE EDIT LANDS — THE STORE'S OWN `delete` REMOVES THE VERSIONS THE ADDRESS NAMES.
-          removed = storeDelete(store, address);
+          removed = store.delete(address);
           return { ok: true, message: 'x was repaired by removing the versions at the address' };
         },
         message: 'x is invalid on the committed value',
