@@ -60,11 +60,11 @@
 npm install provident-storeroom
 ```
 
-One name to install. The package is a thin ESM entry that **resolves the correct native addon for the runtime** and re-exports eight verbs.
+One name to install. The package is a thin ESM entry that **resolves the correct native addon for the runtime** and re-exports eight verbs. **⟶ AND THE FIGURE OF THAT SENTENCE IS SUPERSEDED, DATED `2026-10-16`, AND IS WITHDRAWN WITH ITS SUBJECT NAMED (`role_proofreader`, gate 7): the module namespace is ONE NAME — `storeCreate` ALONE, `11 → 1` ✓ — and the store's own verbs are METHODS of the object `storeCreate(cfg)` returns, TWELVE own members `10 + 1 + 1 = 12` ✓ (the ten methods plus `register` and `settle`); `on` and `off` are MERGED AWAY and the leading `instance` position is DROPPED everywhere, so `read(instance, addr)` is `store.read(addr)`** (`docs/specs/storeroom-js/surface.md §2.9` item 1's and `§2.4` item 9 (f)'s `A127` clauses of 2026-10-16; `docs/decisions.md` · `A127` · `A128`; the `11 → 1` terms being `8 + 3`).
 
 ### §2.2 The five platform packages
 
-The addon ships as five separate packages, declared as `optionalDependencies` of the main one, pinned **exactly** to the same version:
+The addon ships as five separate packages, declared as `optionalDependencies` of the main one, pinned **exactly** to the same version: — **⟶ AND AT `0.2.0` THE PINS READ `0.2.0`, FIVE TIMES: the bump to `0.3.0` is the ARCHITECT'S release act and has NOT been taken (`role_proofreader`, gate 7, 2026-10-16; `docs/guides/package-use.md §2.2`).**
 
 | runtime | platform package |
 |---|---|
@@ -130,7 +130,7 @@ The addon is a native binary, so it must be signed like any other binary in your
 
 ## §4 · The API you actually get
 
-### §4.1 The eight verbs
+### §4.1 The eight verbs — ⟶ and the operative reading is ONE module name plus the store's own methods (`role_proofreader`, gate 7, 2026-10-16)
 
 ```ts
 import {
@@ -149,9 +149,9 @@ import {
 | `listen` | `(instance, address) => Handle` | a fresh opaque handle |
 | `unlisten` | `(instance, handle) => void` | — |
 
-**`delete` is exported under that name although it is a reserved word** — the declaration binds it as `deleteOp` and re-exports it as `delete`. Import it as `delete` or alias it; either works.
+**The eight verbs of the block and the table below are the `0.2.0` MODULE FORM — ⟶ SUPERSEDED AND READ THROUGH THIS ONE-LINE POINTER, DATED `2026-10-16` (`role_proofreader`, gate 7): the OPERATIVE surface is ONE module name, `storeCreate`, plus the store's own TWELVE own members `10 + 1 + 1 = 12` ✓ — the ten methods of the table below, re-spelled as METHODS with the `instance` FIRST POSITION DROPPED, plus `register` and `settle` — so a verb's receiver is the store (`docs/specs/storeroom-js/surface.md §2.9` item 1's and `§2.4` item 9 (f)'s `A127` clauses of 2026-10-16; `docs/guides/package-use.md §1.1-bis`, which carries the consumer-side derivation of the same rule).** **`delete` is exported under that name although it is a reserved word** — the declaration binds it as `deleteOp` and re-exports it as `delete`. Import it as `delete` or alias it; either works. **⟶ AND UNDER THE METHOD FORM IT IS A METHOD NAME AND NOT AN IDENTIFIER BINDING, so it is declared as `delete` with no `deleteOp` workaround and no alias needed** (`bindings/js/index.d.ts`, the `StoreInstance` declaration).
 
-**And the instance carries four own members and nothing else:**
+**And the instance carries four own members and nothing else:** **⟶ AND THIS FIGURE IS SUPERSEDED AND IS READ THROUGH HERE, `2026-10-16` (`role_proofreader`, gate 7): the product's declared member set is TWELVE own members, `10 + 1 + 1 = 12` ✓, and `on`/`off` of the block below are MERGED AWAY — registration is `listen` + `register` and withdrawal is `unlisten`. The block stands byte-for-byte as the `0.2.0` instance's own shape** (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s `A127` clause; `docs/guides/package-use.md §1.1-bis`).
 
 ```ts
 interface StoreInstance {
@@ -320,7 +320,7 @@ const handle = on(instance, ['users'], (address) => {
 2. **A second `register` for one handle replaces the first.** Re-registering is a replacement, not a duplicate.
 3. **A registration made during a firing window is not invoked during that window.** Registering while listeners are firing does not make the new one fire for the change in flight.
 
-**`on(address, listener)` answers a fresh handle; `off(handle)` withdraws it.** `unlisten(instance, handle)` is the watching-side counterpart. **`off` with a handle the store does not know is a no-op success** — declared, not an error, because withdrawal is idempotent.
+**`on(address, listener)` answers a fresh handle; `off(handle)` withdraws it.** **⟶ AND BOTH HALVES OF THAT ARE SUPERSEDED AND ARE READ THROUGH HERE, `2026-10-16` (`role_proofreader`, gate 7): `on` and `off` are MERGED AWAY by `A127` and are NOT members of the product — the same registration is `const h = store.listen(address); store.register(h, listener);` and the withdrawal is `store.unlisten(h)`, which `A127` MERGES BOTH HALVES INTO: the store-side withdrawal AND the removal of the package's registry entry for the identity where the identity no longer stands anywhere** (`docs/specs/storeroom-js/surface.md §2.4` item 7 (b)'s step list as merged by `A127`; `bindings/js/index.d.ts`, the `unlisten` member's own clause; `docs/guides/package-use.md §6.2`). **`unlisten(handle)` is the watching-side counterpart — and under the merged member it is the whole of the withdrawal, so `off` with a handle the store does not know no longer has a `{status, message}` arm to speak of here; `unlisten` over any value outside the domain is a plain no-op success** (`docs/guides/package-use.md §6.2`'s three-arm table, which states the contrast at its own site).
 
 **On shutdown, stop caring about listeners.** They die with the instance; there is no release verb to call.
 
@@ -343,6 +343,8 @@ filePath: join(app.getPath('userData'), 'provident-store.json')
 ---
 
 ## §9 · A complete minimal skeleton
+
+**⟶ AND EVERY SAMPLE IN THIS SECTION — the `import { storeCreate, read, write, delete as del, on }` below with its `read(store(), …)` calls, and §7's `on(instance, …)` — IS AT THE `0.2.0` MODULE FORM AND IS READ THROUGH §4.1's POINTER (`role_proofreader`, gate 7, 2026-10-16): under the operative surface there are NO `read`/`write`/`del`/`on` MODULE EXPORTS AT ALL, and each call is a METHOD of the store `storeCreate` returned — `store.read(address)`, `store.write(address, tier, value)`, `store.delete(address, tier)`, and `const h = store.listen(address); store.register(h, listener)` in place of `on`.** **The samples are left at the form their own version measured; the re-spelling of each is owed to the pass that re-derives the surface, and `docs/guides/package-use.md §12-bis` records the same state for the consumer guide.**
 
 **`main/store.ts`** — the only place the addon is ever required.
 
