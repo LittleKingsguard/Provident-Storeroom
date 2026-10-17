@@ -22,8 +22,16 @@ artefact — so the count of SITES stays four and the count of artefacts CARRYIN
 ## The one entry
 
 ```js
-import { storeCreate, read, readLiteral, write, delete as remove, rollback, listen, unlisten } from 'provident-storeroom';
+import { storeCreate } from 'provident-storeroom';
 ```
+
+**⟶ AND THIS BLOCK'S SUPERSEDED FORM IS NAMED SO IT IS NOT READ AS THE ENTRY: it once printed
+`import { storeCreate, read, readLiteral, write, delete as remove, rollback, listen, unlisten }` — EIGHT module
+names, seven of which are no longer exports at all. THE MODULE NAMESPACE IS ONE NAME**, and the seven that left it
+are the instance's own methods, `delete` among them spelled `a.delete(address, tier?)` on the receiver (the
+`delete as remove` binding was the MODULE-side workaround for a reserved word and is not the consumer spelling).
+**These are the `0.2.0`-era names; the `8 → 1` is `A127`'s** (`surface.md §2.9` item 1's `A127` clause;
+`docs/guides/package-use.md` `§1.1-bis`).
 
 **The `exports` map publishes EXACTLY ONE arms-bearing entry — the ESM one** (`package.md §1.3`, `DD-24`):
 there is no wildcard export, no deep import to the addon and no CJS arm. **The addon is reached INTERNALLY
@@ -32,33 +40,60 @@ addon's path directly is outside every clause of this contract.
 
 ## The surface
 
-**The eight verbs of `surface.md §2` and NOTHING ELSE**, plus the instance `storeCreate` returned — whose own
-member set is the FOUR the dated clause below prints:
+**ONE module name — `storeCreate` — and NOTHING ELSE** (`surface.md §2.9` item 1's `A127` clause; the namespace's
+`8 → 1`), **plus the instance `storeCreate` returned — whose own member set is the TWELVE the table below prints,
+`10 + 1 + 1 = 12` ✓** (`surface.md §2.4` item 9 (f)'s `A127` clause; the member set's `4 → 12`).
+
+**⟶ WITHDRAWN 2026-10-17 — THE SENTENCE THIS ONE REPLACES READ *"The eight verbs of `surface.md §2` and NOTHING
+ELSE"*, plus an instance whose own member set was *"the FOUR the dated clause below prints"*: BOTH FIGURES ARE THE
+`0.2.0`-ERA READING AND NEITHER DESCRIBES A SURFACE THAT EXISTS. The operative figures are the ONE module name and
+the TWELVE own members above, whose home is `docs/guides/package-use.md` `§1.1-bis`.**
+
+**AND THE LEADING `instance` POSITION IS DROPPED AT EVERY METHOD** (`surface.md §2.1` (e) item 3's one-spelling
+and receiver rule): **the receiver IS the store, so `a.write(address, tier, value, commit?)` is the shape every
+method takes and an `instance` passed first is a SUPERSEDED SPELLING — wrong, not redundant.**
 
 | The member | Its answer |
 | --- | --- |
-| `storeCreate(cfg)` | the package's own instance handle — `cfg` carries the store's four declared keys and no fifth |
-| `read(instance, address, tier?)` | a leaf's literal, a branch's assembled value, the empty address's whole register |
-| `readLiteral(instance, address, tier?)` | the same, narrowed to a leaf (`ReadTargetIsBranch` on a branch) |
-| `write(instance, address, tier, value, commit?)` | `{op, watched, triggered}` — the fifth argument OPTIONAL and declared LAST; its absence is in domain |
-| `delete(instance, address, tier?)` | `{address, tiers, triggered}` |
-| `rollback(instance, opId)` | `{opId, undoneOps, restoredTo}` |
-| `listen(instance, address)` | a fresh opaque handle |
-| `unlisten(instance, handle)` | `undefined` — and a no-op success for every value outside the domain |
-| `instance.register(handle, listener)` | `undefined`; a non-function listener or a handle this instance never minted throws a `TypeError` |
-| `instance.on(address, listener)` | a fresh opaque handle — the store's `listen` plus this package's own registration |
-| `instance.off(handle)` | `undefined` — the store-side withdrawal, and this package's own registry removal |
-| `instance.settle(record)` | `undefined` — the ordering seam: the one member THE KERNEL CALLS, and the arm that performs the `file`-tier save |
+| `storeCreate(cfg)` | the package's own instance handle — `cfg` carries the store's four declared keys and no fifth; the four are `filePath` · `journalLength` · `listeners` · `constraints`, and `listeners` is an ARRAY |
+| `read(address, tier?)` | a leaf's literal, a branch's assembled value, the empty address's whole register |
+| `readLiteral(address, tier?)` | the same, narrowed to a leaf (`ReadTargetIsBranch` on a branch) |
+| `write(address, tier, value, commit?)` | `{op, watched, triggered}` — the fifth argument OPTIONAL and declared LAST; its absence is in domain |
+| `delete(address, tier?)` | `{address, tiers, triggered}` |
+| `rollback(opId)` | `{opId, undoneOps, restoredTo}` |
+| `listen(address)` | a fresh opaque handle — the registration route is `listen` **then** `register` |
+| `unlisten(handle)` | `undefined` — the withdrawal: the store-side removal AND this package's own registry removal; a no-op success for every value outside the domain |
+| `addConstraint(pair, constraint)` | the constraint's identity — the ADD route, which CARRIES the function and OVERWRITES if the id already exists |
+| `constraintOn(pair, constraint)` | `undefined` — ENABLE; idempotent, and it throws at a pair the store does not carry |
+| `constraintOff(pair, constraint)` | `undefined` — DISABLE; idempotent, and it throws at a pair the store does not carry |
+| `register(handle, listener)` | `undefined`; a non-function listener or a handle this instance never minted throws a `TypeError` |
+| `settle(record)` | `undefined` — the ordering seam: the one member THE KERNEL CALLS, and the arm that performs the `file`-tier save |
 
-**⟶ AMENDED 2026-10-15 — THE TABLE ABOVE IS READ AT THE FOUR-KEY CONSTRUCTION, THE FOURTH OWN MEMBER AND THE
+**⟶ AND THE `on` AND `off` ROWS THIS TABLE ONCE CARRIED ARE WITHDRAWN, NOT MOVED AND NOT COUNTED: both members
+were MERGED AWAY** (`surface.md §2.4` item 9 (e) items 2 and 3; `A127`). **`on(address, listener)` was a SECOND
+SPELLING of `listen` then `register`, and both admissions are now methods, so the pair of calls `a.listen(address)`
+then `a.register(handle, listener)` carries its whole subject; `off(handle)`'s withdrawal IS `a.unlisten(handle)`'s,
+and the registry entry's own standing is `unlisten`'s rule, not a call.** **`on` and `off` are therefore NOT
+members of the product and NOTHING above declares them as one** — the listener pair the guide at `§1.1-bis` calls
+`on`/`off`-shaped is the CONSTRAINT toggles, which are `constraintOn`/`constraintOff` and a DIFFERENT subject.
+
+**AND A `tier` IS OPTIONAL BY OMISSION ALONE: a SUPPLIED `undefined` tier is a PRESENT value and takes the
+`AddressMalformed` refusal, while only the call that supplies nothing there — `a.read(address)` — folds to the
+absent tier** (`parameter-semantics.md §2.6`'s `PAR-JS-6`, its in-writing adjudication of 2026-10-16).
+
+**⟶ AMENDED 2026-10-15 — THE TABLE ABOVE IS READ AT THE FOUR-KEY CONSTRUCTION AND THE
 WRITE'S FIFTH ARGUMENT** (`surface.md §2.1`'s dated clause of 2026-10-15 and its `cfg` block; `§2.2`'s dated
 clause of the same date and its clause 4; `§2.11`; `parameter-semantics.md §2.20` = `PAR-JS-20` and `§2.21` =
-`PAR-JS-21`; `docs/decisions.md` · `A116`). **THE THREE CELLS IT RE-SPELLS, EACH NAMED BY ITS OWN WORDS: the
+`PAR-JS-21`; `docs/decisions.md` · `A116`). **THE CELLS IT RE-SPELLS, EACH NAMED BY ITS OWN WORDS: the
 cells above are ALREADY RE-SPELLED IN PLACE, so the table stands in its OPERATIVE form and the as-filed wording
 is the one NAMED here — *"the store's three declared keys and no fourth"* READS *"the store's four declared keys
 and no fifth"*; *"plus the one member of the object `storeCreate` returned"* READS *"plus the instance
-`storeCreate` returned — whose own member set is the FOUR printed above"*; and the `write` cell's
-*"`write(instance, address, tier, value)`"* READS *"`write(instance, address, tier, value, commit?)`"*.**
+`storeCreate` returned — whose own member set is the TWELVE printed above"*; and the `write` cell's
+*"`write(instance, address, tier, value)`"* READS *"`write(address, tier, value, commit?)`"*.**
+**⟶ AND THE *"FOURTH OWN MEMBER"* THIS CLAUSE WAS FILED WITH, AND ITS *"whose own member set is the FOUR printed
+above"*, ARE BOTH WITHDRAWN 2026-10-17 AND ARE READ AT THE TWELVE, `10 + 1 + 1 = 12` ✓** — the `A116`/`0.2.0`
+member figure this pass supersedes (`surface.md §2.4` item 9 (f)'s `A127` clause; `A127`), **and the
+`instance` FIRST POSITION the as-filed `write` spelling carries is DROPPED with it** (`§2.1` (e) item 3).
 
 1. **THE FOUR DECLARED KEYS, AND NO FIFTH.** **They are `filePath` · `journalLength` · `listeners` ·
    `constraints` — `4` — each passed through WITHOUT a default, a rename or a key of the package's own, and
@@ -69,11 +104,16 @@ and no fifth"*; *"plus the one member of the object `storeCreate` returned"* REA
    IS IGNORED AND PRODUCES NO CODE** — *"no fifth"* is a constraint on the PACKAGE's own passing and never a
    refusal of the caller's extra key (`parameter-semantics.md §2.21`; `docs/specs/storeroom-native/contract.md
    §7.1`).
-2. **THE INSTANCE'S OWN MEMBERS ARE FOUR: `{ register, on, off, settle }`, AND NOTHING ELSE.** **`register` is
-   the registration site; `on` and `off` are the listener members; and `settle(record) -> undefined` is THE
-   ORDERING SEAM the kernel calls at the two instants of a kernel-driven write** (`surface.md §2.1`'s dated
-   clause of 2026-10-15 (a); `§2.4` item 9; `A116` (D1)). **AND NO RELEASE VERB IS ONE OF THEM** — none of the
-   four releases the instance.
+2. **THE INSTANCE'S OWN MEMBERS ARE TWELVE: `{ read, readLiteral, write, delete, rollback, listen, unlisten,
+   addConstraint, constraintOn, constraintOff, register, settle }`, AND NOTHING ELSE** — `10 + 1 + 1 = 12` ✓
+   (`surface.md §2.4` item 9 (f)'s `A127` clause of 2026-10-16). **`register` is the registration site, reached
+   after `listen`; the withdrawal is `unlisten`; the listener pair `on`/`off` is MERGED AWAY and is no member of
+   this set; and `settle(record) -> undefined` is THE ORDERING SEAM the kernel calls at the two instants of a
+   kernel-driven write** (`surface.md §2.4` item 9 (e) items 1–3; `§2.4` item 9 (f); `A127`). **AND NO RELEASE VERB
+   IS ONE OF THEM** — none of the twelve releases the instance. **⟶ WITHDRAWN 2026-10-17: THIS CLAUSE ONCE READ
+   *"THE INSTANCE'S OWN MEMBERS ARE FOUR: `{ register, on, off, settle }`, AND NOTHING ELSE"* — the `A116`/`0.2.0`
+   figure, superseded in BOTH of its halves, the set's `4 → 12` and the `on`/`off` merge; the operative figure is
+   the TWELVE above and its home is `docs/guides/package-use.md` `§1.1-bis`.**
 3. **THE WRITE'S DECLARED ARITY IS `4` REQUIRED ARGUMENTS WITH A FIFTH OPTIONAL `commit`, DECLARED LAST**, and
    the declaration governs over the flow's own order: the `commit` is the kernel's own `{ attempt, op,
    triggered, pending }` record — `K-2 commit`'s return — and **AN ABSENT `commit` IS IN DOMAIN**, because the

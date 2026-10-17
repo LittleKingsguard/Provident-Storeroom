@@ -1228,9 +1228,77 @@ function encodeAddress(address, addressArgumentPosition, addressValuePosition) {
 /// as an OBJECT before any element is read from it — **so a throwing `get` trap cannot be raised, because
 /// nothing reads the proxy** — and a class extending `Array` is refused as an OBJECT (`TierArg` row 6's
 /// `OutOfDomainTier`) rather than admitted as the array spelling row 2 declares for the readers.
-function encodeTier(tier, supplied, foldsUndefined) {
+/// **THE SUPPLIED-`undefined`-TIER ARM AT AN ADDRESS POSITION** — `refuseOutsideAddressValue`'s own
+/// shape, taken at the one value that reached neither of the boundary's two segment/address arms
+/// (`DEF-2026-10-17-A`; `surface.md §2.5` item 5 (a)–(b) and its `CF-3` authority split).
+///
+/// **THE TARGET IS THE VALUE'S OWN RENDERING AND IT IS THE STORE'S OWN SPELLING FOR THAT VALUE** (item 5
+/// (a): *"a non-segment value PRINTED AS ITS OWN VALUE"*) — `undefined`, which is the spelling
+/// `refuseOutsideAddressValue` already gives this same value at the whole-address arm, so ONE value has
+/// ONE rendering at both arms and neither is authored here. **THE CONTAINER IS THE ARGUMENT'S OWN NAME**
+/// (`['address']`, handed to `boundaryReject`, whose third slot fills the generator's own `<container>`),
+/// exactly as the whole-address arm does one function above — a WHOLE-ADDRESS refusal is found in no
+/// container, so the truthfully filled slot is the failing ARGUMENT's own name. **PART TWO CARRIES THE
+/// POSITION AND NOT A SECOND CONTAINER CLAIM:** the ARGUMENT POSITION `§2.5` item 5 (b) requires beside the
+/// class, and the class of the value the position refused.
+function refuseSuppliedUndefinedTier(addressArgumentPosition) {
+  boundaryReject(
+    'AddressMalformed', // `PAR-JS-6`'s and `TierArg` rows 3–4's own declared code for this value, carried (`DD-40`)
+    'undefined', // the value's own runtime spelling, as the store renders it and as `refuseOutsideSegment` renders it
+    // **THE POSITION HALF IS SPELLED IN THIS SITE'S OWN VOCABULARY because `addressArgumentPosition` is the
+    // address's OWN position token (`'first argument'`, the position every one of the five verbs declares
+    // for its `address` — `surface.md §2.4` item 9 (f)'s table): the address position was SUPPLIED, and
+    // what was supplied BESIDE it is a `tier` position carrying `undefined`. The sentence therefore names
+    // the argument that was supplied, the position it stands AT, and the class the supplied value has —
+    // which is the whole of what item 5 (b) requires to travel inside the message.**
+    addressArgumentPosition === undefined
+      ? 'the address position was supplied, the tier position holds undefined, and a tier is a token or a set of tokens'
+      : `the address position was supplied at the ${addressArgumentPosition}, the tier position holds undefined, and a tier is a token or a set of tokens`,
+    ['address'],
+  );
+  return undefined; // `boundaryReject` throws; this is unreachable and is not a second path
+}
+
+function encodeTier(tier, supplied, foldsUndefined, addressArgumentPosition) {
   if (!supplied) return { k: 'A' };
-  if (tier === undefined) return foldsUndefined ? { k: 'A' } : { k: 'U' };
+  if (tier === undefined) {
+    if (foldsUndefined) return { k: 'A' };
+    // **⟶ AND THE SUPPLIED-`undefined` ARM IS THE FOURTH BRANCH, REFUSED AT THE BOUNDARY 2026-10-17
+    // (`DEF-2026-10-17-A`; `surface.md` §2.5 item 5 (a)–(b) and its `CF-3` authority split).**
+    //
+    // **THE DEFECT, MEASURED ON INSTALLED BYTES AND REPRODUCED AT THIS TREE: this value crossed to the
+    // store as `{ k: 'U' }` and the store answered its OWN `malformed_tier_argument()`
+    // (`src/args.rs`'s `read_tier_sel` / `read_literal_tier_sel` / `write_tier`), whose generated text is
+    // *"the tier argument is not a legal address segment in `''`, segments are strings or non-negative
+    // integers"* — AN EMPTY CONTAINER AND A NAMED ARGUMENT THE OFFENDING VALUE IS NOT.** *"`''` for the
+    // register"* (`docs/specs/storeroom-native/contract.md` §8.2's `<CONTAINER>`), so that message answers
+    // a failure found INSIDE THE REGISTER, while a `read(['a','b','c'], undefined)` on an EMPTY store has
+    // resolved against no register node at all.
+    //
+    // **WHY THIS IS THE MISMATCH THE OTHER THREE BRANCHES ALREADY REPAIR, AND WHY IT IS THE FOURTH:** rows
+    // 1–3 of that classification are whole-ADDRESS shapes refused by `refuseOutsideAddressValue`
+    // (container `'address'`, position `at the first argument`), and the array's own outside SEGMENTS are
+    // refused by `refuseOutsideSegment` (container = the failing segment's PREFIX). **A SUPPLIED
+    // `undefined` TIER BESIDE AN ADDRESS THAT IS ITSELF WHOLLY IN DOMAIN — `['a','b','c']`, `['a.b']`,
+    // `['a']`, `[]` — REACHED NEITHER ARM** and fell through to the store's register-shaped sentence.
+    //
+    // **WHAT IS DECLARED HERE, AT THIS ONE SITE:** the ARGUMENT POSITION the verb's own signature declares
+    // (item 5 (b): *"the ARGUMENT POSITION for a verb's arguments"*) and a TRUE container — the same
+    // reading the whole-address arm takes one function above and the same one the store's own
+    // `ConstraintListInvalid` row takes where its container is a KEY and not an address
+    // (`constraints`; native `contract.md` §8.2's row and its `<CONTAINERSEGMENT>` degenerate arm).
+    // **THE STATUS IS NOT MINTED** (`DD-40`): it stays the store's own `AddressMalformed`, which is the
+    // code this row declares — *"`AddressMalformed` when the argument is `null` or `undefined`"*
+    // (`parameter-semantics.md` §2.6's `PAR-JS-6` answer cell, as reconciled 2026-10-16) — carried and not
+    // re-minted, exactly as `refuseOutsideSegment` carries it.
+    //
+    // **WHAT DOES NOT MOVE:** the call still SUPPLIES the value at the position and does not fold it to the
+    // ABSENT row (`PAR-JS-6`'s reconciliation, unmoved: the ONE call that folds is `a.read(address)`, which
+    // supplied nothing); `write`'s required tier answers the same code; and the store's own
+    // `TierArg::Null` arm is untouched, so `read(['a'], null)` is byte-for-byte what it was.
+    refuseSuppliedUndefinedTier(addressArgumentPosition);
+    return { k: 'U' }; // `refuseSuppliedUndefinedTier` throws; this is unreachable and is not a second path
+  }
   if (tier === null) return { k: 'N' };
   if (typeof tier === 'string') return { k: 'T', v: tier };
   if (types.isProxy(tier)) return { k: 'O' }; // row 6: an object, and no trap is invoked
@@ -1812,7 +1880,7 @@ function read(instance, n, address, tier) {
   const args = n >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
   // `PAR-JS-6`: a SUPPLIED `undefined` at this position is PRESENT and takes the row's own
   // `AddressMalformed`; the NO-ARGUMENT call is the one that folds to the ABSENT row.
-  args.push(encodeTier(tier, n >= 2, false));
+  args.push(encodeTier(tier, n >= 2, false, 'first argument'));
   return decodeValue(call(state, 'read', args));
 }
 
@@ -1820,7 +1888,7 @@ function read(instance, n, address, tier) {
 function readLiteral(instance, n, address, tier) {
   const state = stateOf(instance);
   const args = n >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
-  args.push(encodeTier(tier, n >= 2, false));
+  args.push(encodeTier(tier, n >= 2, false, 'first argument'));
   return decodeValue(call(state, 'readLiteral', args));
 }
 
@@ -1886,7 +1954,7 @@ function write(instance, n, address, tier, value, commit) {
     const args = n >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
     // `PAR-JS-7`: `write`'s tier is REQUIRED — an ABSENT position and a SUPPLIED `undefined` both answer
     // `AddressMalformed`, and neither folds.
-    args.push(encodeTier(tier, n >= 2, false));
+    args.push(encodeTier(tier, n >= 2, false, 'first argument'));
     // THE WALK'S OWN FAULT RECORD — see `refusedValue`: the walk CLASSIFIES and RECORDS, and the record is
     // read at the one site where the store answered `ValueNotAdmitted` for a value the walk refused.
     const fault = { found: null, value: undefined, path: [] };
@@ -2082,7 +2150,7 @@ function deleteOp(instance, n, address, tier) {
   const args = n >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
   // `delete`'s tier is read as a VALUE and not by an arity fold: an ABSENT position is the whole-target
   // removal, and a supplied `undefined` answers row 4's `AddressMalformed` (`crossing.md §1.3`).
-  args.push(encodeTier(tier, n >= 2, false));
+  args.push(encodeTier(tier, n >= 2, false, 'first argument'));
   const answer = call(state, 'delete', args);
   const receipt = {
     address: decodeSegments(answer.address),

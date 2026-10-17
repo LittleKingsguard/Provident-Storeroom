@@ -27,9 +27,11 @@
 // completed and the write's own record is readable — WITH THE TRIGGERING ADDRESS AS ITS SINGLE ARGUMENT; its
 // sibling control at the PROPER PREFIX fires once too, and a third registration at a BARE address (no pair
 // there) is the instrument control that shows this drive's registrations and findings work where no pass is in
-// play. THE SET IS `253` AUTHORED · `253` EXECUTED OVER `16` SCENARIOS; its pre-ruling reading at
-// this site was `250` · `250` · `0`, and the one new assertion is expected RED until the implementer's fix
-// lands — reported, not patched.
+// play. ⟶ THE FIGURE THIS CELL ONCE PRINTED IS SUPERSEDED, DATED 2026-10-17 (`RCA-8(g)`; `DEF-2026-10-17-C`):
+// *"THE SET IS `253` AUTHORED · `253` EXECUTED OVER `16` SCENARIOS"* IS THIS PASS'S OWN PRE-RULING READING, AND
+// THE OPERATIVE ONE IS THE `255` · `255` · `0` SET THE `DEF-2026-10-16-A` BLOCK BELOW CARRIES — the one new
+// assertion that block added is the difference. THE PRE-RULING READING AT THIS SITE WAS `250` · `250` · `0`,
+// and the assertion that was then expected RED has since landed: nothing here is reported as awaiting a fix.
 //
 // ⟶ RE-DERIVED 2026-10-16 — THE `DEF-2026-10-16-A` PASS (`role_blind_test_writer`). THE SUITE STOOD AT
 // `243`/`253`: TEN CELLS ASSERTED LAW THIS CHANGE MOVED, IN TWO CLASSES, AND EVERY ONE IS SUPERSEDED AND NOT
