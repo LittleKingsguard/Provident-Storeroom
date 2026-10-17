@@ -827,6 +827,73 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
     bad.threw && isSingleForm(bad.err) && bad.err.status === 'AddressMalformed'
       && typeof bad.err.message === 'string' && /first argument/.test(bad.err.message),
     bad.threw ? `${bad.err.status} :: ${bad.err.message}` : 'no throw');
+  // ── ⟶ ADDED 2026-10-17, THE OWED PRESENT-TOKEN ASSERTION (`A134`; `surface.md §2.5` item 5 (a)–(b)) ────
+  //
+  // **THE DEFECT THIS CELL CLOSES, NAMED AS GATE 6 MEASURED IT (`LIVE-F9`, `DEF-2026-10-16-T`): THE PAIR WAS
+  // ASYMMETRIC. The node suite asserted the ABSENT token `in ''` EIGHT times, and NO live instrument asserted
+  // the PRESENT token `in 'address'` at all — `grep -c "in 'address'"` read `0 · 0 · 0 · 0` across
+  // `live-drive.mjs`, `greens.mjs`, `file-tier-save/scenarios.mjs` and `convenience.test.mjs` — so the two
+  // readings SEPARATED ONLY ON INSTALLED BYTES and nothing here could see the difference.** **THE ABSENCE HALF
+  // IS BOUND TO WHICHEVER ARTEFACT THE SELF-REFERENCING IMPORT RESOLVES and therefore holds on ANY artefact
+  // that merely fails to carry the false form; the PRESENCE HALF is the claim `A134` actually makes and is
+  // the one that distinguishes an artefact carrying the repair from one that drops the container argument.**
+  //
+  // **THE CLAUSE, VERBATIM (`docs/decisions.md` · `A134`, `ACTIVE`, 2026-10-16):** *"at every address position
+  // (`listen`, `read`, `write`, `delete`, `readLiteral`) a NON-ARRAY outside value is refused with **its own
+  // rendering** … **AND the argument position** … and the container slot carries **`'address'`**; **the false
+  // empty-container form `in ''` is gone**"* — read with `surface.md §2.5` item 5 (a), THE FAILING TARGET
+  // rendered as the store's generator renders it, and item 5 (b), THE REASON — the class that failed and the
+  // ARGUMENT POSITION beside it — the position being *"the one thing this section declares that the store's own
+  // phrases do not carry"*. **`A134` fills the generator's `<container>` slot with the ARGUMENT'S OWN NAME,
+  // following the store's own `ConstraintListInvalid` precedent (`'constraints'` as a KEY and not an address).**
+  //
+  // **ASSERTED AT ALL FIVE POSITIONS AND ALL FOUR OUTSIDE VALUES — `20` readings, not one** — because `A134`
+  // says *"every address position"* and the gate-6 measurement found the false form at *"all five address
+  // positions"*: a cell that drove one verb would report `1` where the finding is `5`. **THE FOUR VALUES ARE
+  // `'a.b'` · `7` · `null` · `undefined`, THEIR OWN RENDERINGS `the string 'a.b'` · `the number 7` · `null` ·
+  // `undefined`** — the target half and the position half are asserted BESIDE the container at every reading, so
+  // a message that carried the container while dropping either of the other two halves still fails here.
+  //
+  // **AND THIS CELL IS ASSERTED ONLY, NEVER LOOSENED: nothing above it is removed, softened or re-pointed, and
+  // the `in ''` absence half stays where it lives (`convenience.test.mjs`) — this is the SYMMETRIC half the
+  // pair owed.**
+  //
+  // **`LIVE-13.20` IS A NEW ID AND NOT A RE-NUMBERING**: `.1`–`.19` keep the ids they already carried, and this
+  // cell is APPENDED to the id space while standing at the `.10`/`.11` seam because that is where its subject
+  // belongs — `.10` drives ONE malformed address and asserts the target and position halves, and this cell
+  // widens exactly that subject to every position and every value, adding THE HALF `.10` DOES NOT ASSERT: THE
+  // CONTAINER. **No cell below is renumbered**, so a reader of any earlier record still finds `.11`–`.19` at
+  // the id it was written under.
+  const ADDRESS_POSITIONS = [
+    ['listen', (x) => inst.listen(x)],
+    ['read', (x) => inst.read(x)],
+    ['write', (x) => inst.write(x, 'temp', 1)],
+    ['delete', (x) => inst.delete(x)],
+    ['readLiteral', (x) => inst.readLiteral(x)],
+  ];
+  const OUTSIDE_ADDRESS_VALUES = [['a.b', "the string 'a.b'"], [7, 'the number 7'], [null, 'null'], [undefined, 'undefined']];
+  const a134 = [];
+  for (const [verb, call] of ADDRESS_POSITIONS) {
+    for (const [value, rendering] of OUTSIDE_ADDRESS_VALUES) {
+      const r = thrown(() => call(value));
+      const m = r.threw && typeof r.err.message === 'string' ? r.err.message : '';
+      a134.push({
+        verb, rendering, m,
+        addressed: r.threw && isSingleForm(r.err) && r.err.status === 'AddressMalformed',
+        target: m.includes(rendering),
+        position: /first argument/.test(m),
+        containerPresent: /\bin 'address'/.test(m),
+        containerEmpty: /\bin ''/.test(m),
+      });
+    }
+  }
+  const a134Bad = a134.filter((x) => !(x.addressed && x.target && x.position && x.containerPresent && !x.containerEmpty));
+  A(`${sc}.20`, "A134 (docs/decisions.md, ACTIVE 2026-10-16); surface.md §2.5 item 5 (a)–(b); crossing.md §1.3 AddressArg rows 5–6",
+    `AT ALL FIVE ADDRESS POSITIONS (listen · read · write · delete · readLiteral) and for ALL FOUR outside values ('a.b' · 7 · null · undefined), the whole-address refusal is the single AddressMalformed form and carries ALL THREE HALVES: the VALUE'S OWN RENDERING (item 5 (a)), the ARGUMENT POSITION 'first argument' (item 5 (b)), and THE CONTAINER SLOT FILLED WITH THE ARGUMENT'S OWN NAME — 'address' — with the false empty-container form \`in ''\` ABSENT (A134: 'the container slot carries address; the false empty-container form in '' is gone')`,
+    a134.length === 20 && a134Bad.length === 0,
+    a134Bad.length === 0
+      ? `${a134.length}/20 readings carry target + position + container 'address', 0 carry \`in ''\`; the artifact under test ${addonStat.size} bytes sha256 ${addonSha.slice(0, 12)}…`
+      : `${a134Bad.length}/20 readings FAIL A134 — ${a134Bad.map((x) => `${x.verb}(${x.rendering}) [${['target', 'position', 'container'].filter((k, i) => ![x.target, x.position, x.containerPresent][i]).join('+') || 'form'}${x.containerEmpty ? "+in ''" : ''}]`).join('; ')}`);
   A(`${sc}.11`, '§2.4 item 7 (a) step 1; A81; DD-51; parameter-semantics.md §2.17 dated clause 2',
     'NOTHING IS LEFT BEHIND by that refusal either: the whole register is UNCHANGED, and a listen at the refused address REACHES THE STORE (so the home held nothing there — the store answered a fresh mint, not an existing entry)',
     rel(registerSnapshot(inst), before) && !thrown(() => inst.listen(['ev', 'ghost'])).threw,
