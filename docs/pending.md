@@ -226,3 +226,19 @@ return shape and `A116` (D4)'s "carrier unchanged").
 **RECORDED CONSTRAINTS:** (a) **it must not become a route for moving bytes that a live clause depends on** — the `§28` classification rule is the instrument, applied per site before any move; (b) **the four live orderings this record named (`surface.md :971`, `:974`, `:979`; `parameter-semantics.md :1269`–`:1271`) are FINDINGS NOW, not conversion items, and are being fixed in the spec pass rather than deferred to this item**; (c) **a site already converted (`§25` #5's two — `surface.md §2.1`'s `A127` clause and `release.md §2.3:598`) is not re-touched**; (d) **no new byte may cite the retired spelling, at any site, from this date.**
 
 **OWED BY THIS ITEM AND NOT YET DONE:** the plan entry itself — `docs/specs/storeroom-js/implementation-plan.md` must carry the conversion as a unit with its own scope and ordering (a spec artifact, not a tracker row).
+
+
+---
+
+## ARCHIVAL PASS — ORDERED BY THE ARCHITECT 2026-10-16 (*"Archive before proceeding"*), NOW ACTIVE, NOT PARKED
+
+**Decision `A131`. This is no longer a parked item: it runs BEFORE gate 3 opens.** The parked entry above for the `RCA-8(d)` corpus conversion is **folded into this one pass**, and the four documents over the byte line are its primary targets.
+
+**Targets and their remedy (`RCA-8(g)`, byte-exact move-out + one-line pointer; whole-file rewrite barred by `DEF-2026-10-02`):**
+1. `docs/specs/storeroom-js/contract.md` (`3683` lines) — the superseded/read-through regions move to `docs/specs/storeroom-js/backup/`, which already carries `RCA-A122`/`A126`/`A127-2026-10-16-superseded.md`.
+2. `docs/specs/storeroom-js/surface.md` (`1752` lines) — same, with its cell inventory's pointers repointed to the new homes.
+3. `docs/specs/storeroom-js/parameter-semantics.md` and `docs/specs/storeroom-publish/release.md` (`281.7 KB`).
+4. The gate-1 record `archive/reviews/2026-10-16-constraints-publication-gate1.md` (`~117 KB` against the `40 KB` ceiling) — its superseded deltas move to `archive/gate1/storeroom-js-oop-0.3.0-review/`.
+5. The `RCA-8(d)` corpus conversion (`~516` sites in four named paths) — **the live orderings are findings now, not conversion items** (`A129`).
+
+**Revisit condition:** none — it is in progress as an ordered pass. **Recorded constraints:** every move must be byte-exact with a one-line pointer left in place; every citation to a moved byte must be repointed in the same pass (the archival loop's rule (c)); the pointer must name the new home's `§`; and the eight-way read-back of `§43`'s check list applies to the moved bytes, not merely to the source.
