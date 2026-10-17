@@ -157,3 +157,5 @@
 **Amendment 2026-10-16 (post-`§46`): `archive/reviews/2026-10-16-constraints-publication-gate1.md` = `0e2afb16b91ad2427b00fd536fbdafd0e3ff3052fd0accf67f543a23fc05cfdb` — the record grew by one live section after the baseline was taken, which is itself the first exercise of this manifest's purpose (a post-baseline change, disclosed and re-pinned).**
 
 **Amendment 2026-10-16 post-`§47`: `archive/reviews/2026-10-16-constraints-publication-gate1.md` = `b9959923d8bce64d07913635e94e998a5df21c5c4cfeb2bcebeb8a20b5404148`.**
+
+**Amendment 2026-10-16 post-`§48`: `archive/reviews/2026-10-16-constraints-publication-gate1.md` = `71bbfe32747a4b462ac410b2c04b7a3394b41ec97d584356706bde5e80bec2d1`.**
