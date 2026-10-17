@@ -321,4 +321,27 @@
 
 ---
 
-**END OF THE ARCHIVE.** **THIRTEEN REGIONS, EACH NAMED BY ITS SOURCE PATH AND `§`; each source leaves a one-line pointer or a re-derivation in place and re-emits no byte of the displaced text; the operative declarations are `docs/specs/storeroom-js/surface.md §2.9` item 1's and removal clause of 2026-10-16, `§2.1`'s clause of that date, `§2.4` item 9 (f)'s clause of that date, `§2.12`'s re-derived items 2 and 4 of that date, `docs/specs/storeroom-js/parameter-semantics.md §1`'s clause of that date with its rows `§2.20` and `§2.22`–`§2.25`, and `docs/specs/storeroom-js/contract.md §2`'s and `§7`'s clauses of that date** (`RCA-8(g)`; `docs/decisions.md` · `A127` · `A128` · `A126` · `A124` · `A125`).
+## §14. MOVED OUT OF `docs/specs/storeroom-js/surface.md §2.9` ITEM 1 — THE `A123`-ERA DUTY CLAUSE THAT ORDERED THE `manageConstraints` EXPORT AND THE INSTANCE'S FIVE-MEMBER SET (the clause, as filed)
+
+**Reason for the move:** **this clause's live text orders (i) *"`manageConstraints` AS A NAMED EXPORT"* and (ii) *"THE INSTANCE'S DECLARED MEMBER SET WIDENED FROM FOUR TO FIVE OWN MEMBERS — the fifth being `manageConstraints`"*, AND ITS SUBJECT IS SUPERSEDED TWICE OVER: `A126` replaced the ONE name with the three names `addConstraint` · `constraintOn` · `constraintOff`, and `A127` then moved all module-level names but `storeCreate` off the namespace and made every store-reaching act a METHOD of the product, whose own member set reads TWELVE at `surface.md §2.4` item 9 (f)'s `A127` clause of this date — so the clause ordered a name the module namespace no longer carries and a member-set figure that no longer sums.** **A LIVE CLAUSE ORDERING A NAME THE SURFACE NO LONGER CARRIES, AND A MEMBER-SET FIGURE THAT NO LONGER SUMS, IS THE FINDING: this clause is the region the previous pass DECLARED moved and did not move, and the move-out is PERFORMED HERE — the clause's bytes LEAVE `surface.md` and that source's one-line `RCA-8(g)` pointer is now the evidence that they have** (`RCA-8(g)`; `docs/defects.md`'s `DEF-2026-10-02`'s class — a whole-file rewrite is never the remedy). **The bytes, byte-exactly as they stood (the clause's own four paragraphs, contiguous at the source):**
+
+> **⟶ AND ONE DUTY THIS ITEM OWES ANOTHER AUTHORING FILE, DECLARED HERE SO IT IS CARRIED AND NOT LEFT TO
+> INFERENCE (`role_spec_writer`, 2026-10-16).** **`bindings/js/index.d.ts` IS NOT EDITED BY THIS PASS — it is
+> the IMPLEMENTER'S wall — BUT WHAT IT OWES IS DECLARED, AND THE CLAUSE THAT CARRIES THE DUTY IS THIS
+> DIRECTORY'S OWN `§2.4` ITEM 9 (f).** **THE `index.d.ts` THAT STANDS UNTIL THE IMPLEMENTER'S PASS DECLARES
+> THE EIGHT VERBS AND, BY `A121`'s GATE-RECORD READING AT `archive/reviews/2026-10-16-constraints-publication-gate1.md`
+> `§17.4`, *"NO ninth name"* — AND `A123` FALSIFIES BOTH FIGURES FROM 2026-10-16: THE TYPES SURFACE MOVES.** **SO
+> THE FILE OWES (i) `manageConstraints` AS A NAMED EXPORT WITH ITS DECLARED ARGUMENT TYPES AND ITS RETURN, whose
+> domains are the rows `parameter-semantics.md` `§2.22` and `§2.23`; and (ii) THE INSTANCE'S DECLARED MEMBER SET
+> WIDENED FROM FOUR TO FIVE OWN MEMBERS — the fifth being `manageConstraints` — whose figures are
+> `§2.4` item 9 (f)'s dated clause of this date and `§2.4` item 7's own member-set cell, each read through it.**
+> **A TYPES SURFACE THAT STILL DECLARES EIGHT VERBS OR A FOUR-MEMBER INSTANCE AFTER THIS DATE IS A FINDING, and
+> the `MINOR` version class `A121` names is what the addition requires** (`[A2 docs/decisions.md` · `A123` ·
+> `A121`; A3 docs/specs/storeroom-js/surface.md §2.4 item 9 (f) and §2.12 item 2; A3
+> archive/reviews/2026-10-16-constraints-publication-gate1.md §17.4 | requirement]`).
+
+**AND WHAT IS NOT MOVED WITH IT, SAID SO THE SOURCE'S SURVIVING ITEMS ARE NOT READ AS DISPLACED: `§2.9` item 1's operative `A127` enumeration clause, its ten-methods clause and its `AND NOTHING ELSE OF THIS ITEM MOVES` clause, `§2.9`'s removal-versus-deprecation clause of the same date with its four sentences, the two `RCA-8(g)` pointer clauses for the three earlier namespace clauses, and the RE-DERIVED duty clause that stands immediately below it all STAND at their own bytes at the source; `§2.9`'s opening non-exposure clause, item 2's sixteen-code reachability item and item 3's prohibition stand unmoved too, and this region's subject shares its source item with `§9` above while being a DIFFERENT clause of it** (`RCA-8(g)`; `docs/decisions.md` · `A127` · `A126` · `A123`, 2026-10-16).
+
+---
+
+**END OF THE ARCHIVE.** **FOURTEEN REGIONS, EACH NAMED BY ITS SOURCE PATH AND `§`; each source leaves a one-line pointer or a re-derivation in place and re-emits no byte of the displaced text; the operative declarations are `docs/specs/storeroom-js/surface.md §2.9` item 1's and removal clause of 2026-10-16, `§2.1`'s clause of that date, `§2.4` item 9 (f)'s clause of that date, `§2.12`'s re-derived items 2 and 4 of that date, `docs/specs/storeroom-js/parameter-semantics.md §1`'s clause of that date with its rows `§2.20` and `§2.22`–`§2.25`, and `docs/specs/storeroom-js/contract.md §2`'s and `§7`'s clauses of that date** (`RCA-8(g)`; `docs/decisions.md` · `A127` · `A128` · `A126` · `A124` · `A125`).
