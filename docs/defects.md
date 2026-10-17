@@ -434,3 +434,13 @@ All eight rows reach the runner (`ROW_CELLS=8`, budget `8×50=400`, deterministi
 **Until one is adopted, no archival pass may claim byte-exactness as verified — only as asserted — and every such claim is to be recorded in that form.**
 
 **NAMED BY THIS RCA, NOT CHANGED BY IT:** the record's own `§46` (fix pass 10) remains unwritten and owed; the record stands at `90,425` bytes against a `40 KB` ceiling; and `docs/pending.md` §241's tracked `~117 KB` figure is a pass's unmeasured reading — **the measured figure is `90,425` AFTER the move, so the pre-move record was approximately `166 KB`, not `117 KB`.**
+
+## DEF-2026-10-16-Q — `bindings/js/index.d.ts` IS TYPE-CHECKED NOWHERE, AND THE TYPES SHIP TO CONSUMERS
+**STATUS: OPEN.** Found by the gate-3 implementer's own declaration, 2026-10-16. The published package ships `bindings/js/index.d.ts`, and **no instrument in this repository checks it**: `typescript` is not installed (`npm ls typescript` empty), there is no `node_modules`, and no configuration or CI step type-checks a `.d.ts`. The gate-3 pass's `index.d.ts` rewrite was verified **TEXTUALLY ONLY** (exactly one `export function`, balanced braces, `interface WriteRecord.op` preserved because `publish-generators.test.mjs` consumes it).
+**WHY IT MATTERS:** the `0.3.0` change moves the whole member surface into that file — a wrong declaration is a wrong published contract for every consumer, and **no test in the suite can fail on it.** A `.d.ts` that is textually plausible and structurally wrong passes everything here.
+**REMEDY:** install `typescript` as a dev dependency and add a type-check (or `tsc --noEmit` over a fixture that exercises the declared surface) to the gate-9 runner. **Until then, every claim about the types is a textual claim and MUST BE RECORDED AS SUCH.**
+
+## DEF-2026-10-16-R — THE VALIDATION TRIO DOES NOT EXIST IN THIS REPOSITORY; GATE 9 HAS NO INSTRUMENT BUT THE NODE SUITE
+**STATUS: OPEN.** There is **no root `package.json` and no `scripts` key anywhere**, so `npm test`, `npm run typecheck`, `npm run build` and `npm run demo:smoke` **cannot run**. The only executable gate is `cd bindings/js && node --test test/*.test.mjs`.
+**WHY IT MATTERS:** the mandate's gate 9 presumes a trio. **Reporting "the trio is green" here would be a false claim**: a node-suite green is ENVELOPE/PURE only (`RCA-12`), and it is not a typecheck and not a build.
+**REMEDY:** record gate 9 as **RUN BY THE SUBSTITUTE, with its coverage named** (`ENVELOPE/PURE` only), and either add the missing instruments or record the absence as a standing, accepted limit of this repository.
