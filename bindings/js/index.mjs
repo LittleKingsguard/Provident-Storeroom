@@ -1048,6 +1048,77 @@ function refuseOutsideSegment(segment, position, prefix, addressArgumentPosition
   return { bad: 'object' }; // `boundaryReject` throws; this is unreachable and is not a second path
 }
 
+/// **`AddressArg` ROWS 5–6'S OUTSIDE SHAPE, DECIDED ON THE VALUE AS IT IS AND BEFORE ANY READ** (`A76`'s
+/// class-first order; `C-1`): everything that is neither an `Array` nor a `Proxy` is rows 5–6's outside
+/// value at the ADDRESS position — **and a `Proxy` is NOT this arm**: its own refusal stands above, where the
+/// class decision is taken on `util.types.isProxy` before any `.length` read and before any element
+/// (`surface.md §2.4` item 7 (a) item 1; `crossing.md` `AddressArg` row 12; `DD-34`), so no trap is run by
+/// THIS predicate either.
+function isOutsideAddressValue(value) {
+  if (value === undefined || value === null) return true; // row 5's two named classes, on the value as it is
+  if (types.isProxy(value)) return false; // row 12's own arm, decided above, with no trap run
+  if (Array.isArray(value)) return false; // rows 1–3, 13, 14 — the ordinary array arm and its own tests
+  return true; // rows 5–6: a string, a number, a boolean, an object, a function, a symbol, a bigint
+}
+
+/// **THE VALUE-SHAPE ARM OF `AddressArg` ROWS 5–6 — A NON-ARRAY OUTSIDE VALUE AT AN ADDRESS POSITION,
+/// REFUSED AT THE BOUNDARY WITH ITS OWN RENDERING AND THE ARGUMENT POSITION IT STANDS AT** (`surface.md`
+/// §2.5 item 5 (a)–(b); the `CF-3` authority split).
+///
+/// **THE DEFECT IT CLOSES, NAMED AS THE SUPERVISOR'S OWN RECORD NAMES IT** (`archive/reviews/
+/// 2026-10-16-constraints-publication-gate1.md` §57, finding `2`): at EVERY address position — `listen`,
+/// `read`, `write`, `delete`, `readLiteral` — a NON-ARRAY outside value (`'a.b'`, `7`, `null`, `undefined`)
+/// answered the store's GENERIC line *"the address argument is not a legal address segment in `''` …"*,
+/// **carrying the class half and NEITHER the failing TARGET NOR the argument POSITION** — while `§2.5` item 5
+/// (a) makes the failing target mandatory and item 5 (b) makes the ARGUMENT POSITION mandatory where the
+/// contract declares one (and a verb's argument position is the one place it does). **IT WAS HIDDEN UNTIL
+/// NOW because the older `register` subject carried both at a HANDLE position — a VALUE position, where a
+/// non-segment value is printed as its own value — and once the subject moved to an ADDRESS position the gap
+/// became visible.**
+///
+/// **WHAT IS DECLARED, AND WHAT THIS SITE THEREFORE DOES:**
+///   * **THE TARGET IS THE VALUE'S OWN RENDERING** (item 5 (a): *"a non-segment value PRINTED AS ITS OWN
+///     VALUE … where the failure is about a value and not about a segment"*), in the spelling the store's own
+///     generator and this package already give that value at every other site: `the number 7` · `the string
+///     'a.b'` · `null` · `undefined` — **and a class whose own value cannot be printed (a `bool` · a
+///     `function` · an `object` · a `Proxy`) is rendered by the store's own class spelling for it**, exactly
+///     as `refuseOutsideSegment` renders the same classes at a SEGMENT position.
+///   * **THE POSITION IS THE ARGUMENT POSITION** the verb's own signature declares (item 5 (b): *"the
+///     ARGUMENT POSITION for a verb's arguments"*) — `first argument` at all five verbs, whose `address` is
+///     the first position of each (`surface.md` §2.4 item 9 (f)'s table).
+///   * **AND THE CONTAINER IS THE ARGUMENT ITSELF AND NEVER THE EMPTY REGISTER.** **THE ONE DECISION THE
+///     CLAUSE DOES NOT PIN, STATED RATHER THAN GUESSED:** the store's `AddressMalformed` template always
+///     prints a container (`src/error.rs`, *"… in '{container}', …"*), and the store's own trigger for this
+///     state supplies the empty string (`malformed_address_argument`, whose rendering *"… in '', …"* names
+///     THE REGISTER). **THAT CONTAINER IS FALSE HERE** — a whole-address SHAPE failure is found in no
+///     container at all, the address argument never having resolved against the register — so the truthfully
+///     filled slot is the failing ARGUMENT's own name, `address`, which is the same reading the store's own
+///     `ConstraintListInvalid` row takes where the container is a KEY and not an address (`'constraints'`;
+///     `docs/specs/storeroom-native/contract.md` §8.2's row and its `<CONTAINERSEGMENT>` degenerate arm).
+///     **NO CLAUSE FIXES THIS WORDING: the clause fixes the TARGET, the CLASS and the POSITION, and the
+///     container is this site's own truth claim.** **PART TWO then carries the reason's class half and the
+///     position, appended after a separator, exactly as `boundaryReject` appends it at every other site.**
+function refuseOutsideAddressValue(address, addressArgumentPosition) {
+  const kind = typeof address;
+  let subject;
+  if (address === null) subject = 'null';
+  else if (kind === 'undefined') subject = 'undefined';
+  else if (kind === 'number') subject = `the number ${address}`;
+  else if (kind === 'string') subject = `the string '${address}'`;
+  else if (kind === 'boolean') subject = 'a boolean';
+  else if (kind === 'function') subject = 'a function';
+  else if (kind === 'symbol' || kind === 'bigint') subject = classSpelling(address);
+  else subject = 'an object'; // a `Proxy` over a plain object included: its class is `an object` to the carrier
+  // **THE CONTAINER SLOT CARRIES THE ARGUMENT'S OWN NAME AND NOT `''`** — see this site's own clause above.
+  boundaryReject(
+    'AddressMalformed', // `AddressArg` rows 5–6's own declared code, carried and never minted (`DD-40`)
+    subject,
+    `the address position holds ${subject} at the ${addressArgumentPosition}, and an address is an array of segments`,
+    ['address'],
+  );
+  return { k: 'A' }; // `boundaryReject` throws; this is unreachable and is not a second path
+}
+
 /// `crossing.md §1.3`'s `AddressArg` table, rows 1–14.
 ///
 /// **⟶ AND ONE OPTIONAL PARAMETER, ADDED 2026-10-11 BY THE `Q3` PASS, SO `on` CAN OBEY `A81` WITHOUT A
@@ -1057,10 +1128,35 @@ function refuseOutsideSegment(segment, position, prefix, addressArgumentPosition
 /// refuses at the BOUNDARY rather than carrying its class to the store. **EVERY OTHER CALLER PASSES
 /// NOTHING AND EVERY BYTE OF EVERY OTHER ARM IS UNMOVED**, so no verb's answer and no other site's message
 /// changes: the parameter is additive and its absence is the as-filed reading.
-function encodeAddress(address, addressArgumentPosition) {
+///
+/// **⟶ AND FROM 2026-10-17 A SECOND, SEPARATE POSITION PARAMETER GOVERNS `AddressArg` ROWS 5–6**
+/// (`§2.5` item 5 (a)–(b); see `refuseOutsideAddressValue` above): a NON-ARRAY outside value — a supplied
+/// `undefined`, a `null`, a string, a number, a boolean, an object, a function — is refused at the boundary
+/// at EVERY verb that declares an argument position, verbosely, carrying its own rendering and that position.
+///
+/// **WHY IT IS A SEPARATE PARAMETER AND NOT THE SAME ONE, STATED SO THE BLAST RADIUS IS EXACTLY ONE ARM:**
+/// `addressArgumentPosition` is the SEGMENT arm's (`rows 7–10`, and the `Proxy` and out-of-range arms) and it
+/// is passed by `listen` ALONE, so the segment arm's bytes at the other four verbs are UNMOVED — **THE
+/// INSTRUCTION IS THAT NO MESSAGE ALREADY CORRECT MOVES, and the supervisor's defect is the NON-ARRAY arm
+/// only.** `addressValuePosition` reaches the arms THIS PASS REPAIRS, and nothing else.
+/// **WHERE NO VALUE POSITION IS PASSED — the construction's `listeners[]` walk, which calls this encoder with
+/// one argument — EVERY BYTE IS UNMOVED and the store answers the construction itself** (`PAR-JS-21`; the
+/// construction's own answer is the store's, and no argument position is declared at that site).
+function encodeAddress(address, addressArgumentPosition, addressValuePosition) {
   // `crossing.md §1.3`'s absent-versus-`undefined` rule, rule 1: an argument position the call supplied no
   // value for is ABSENT, and `undefined` at a supplied position folds to that SAME state. `AddressArg` rows
   // 4 and 5 answer the one code, so no declared answer moves by the fold.
+  //
+  // **⟶ AND AT A SITE THAT DECLARES AN ARGUMENT POSITION, ROWS 5 AND 6 ARE ANSWERED HERE AND VERBOSELY**
+  // (`§2.5` item 5 (a)–(b); `refuseOutsideAddressValue`): a supplied `undefined`, a `null` and every
+  // non-array carry their OWN RENDERING and the POSITION instead of the store's generic argument-shaped line.
+  // **THE ARITY-ABSENT CALL IS NOT THIS ARM AND CHANGES NOTHING**: `undefined` reaches this encoder only
+  // from a call that SUPPLIED it (every caller passes `[encodeAddress(address)]` under its own `n >= 1`
+  // test), while the NO-ARGUMENT call reaches the store as its own carrier and answers there — which is
+  // `CF-3`'s part 5 unmoved (*"an absent CARRIER argument … crosses to the store as its own carrier value"*).
+  if (addressValuePosition !== undefined && isOutsideAddressValue(address)) {
+    refuseOutsideAddressValue(address, addressValuePosition);
+  }
   if (address === undefined) return { k: 'A' };
   if (address === null) return { k: 'N' };
   // **`A76`/`JS-2`: THE CLASS DECISION COMES FIRST HERE TOO, ON THE ADDRESS AS IT IS — AND THE `Proxy`
@@ -1713,7 +1809,7 @@ function read(instance, n, address, tier) {
   // A position the call supplied no value for is handed as the runtime's own `undefined` — NEVER as an
   // absent array slot — so the facade can tell an unsupplied position from a supplied `undefined` and the
   // core is never reached with a null pointer (`crossing.md §1.3`'s absent-versus-`undefined` rule).
-  const args = n >= 1 ? [encodeAddress(address)] : [];
+  const args = n >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
   // `PAR-JS-6`: a SUPPLIED `undefined` at this position is PRESENT and takes the row's own
   // `AddressMalformed`; the NO-ARGUMENT call is the one that folds to the ABSENT row.
   args.push(encodeTier(tier, n >= 2, false));
@@ -1723,7 +1819,7 @@ function read(instance, n, address, tier) {
 /** `§2.2` / `§2.9` item 2: `readLiteral` narrows the read to a leaf and answers `ReadTargetIsBranch`. */
 function readLiteral(instance, n, address, tier) {
   const state = stateOf(instance);
-  const args = n >= 1 ? [encodeAddress(address)] : [];
+  const args = n >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
   args.push(encodeTier(tier, n >= 2, false));
   return decodeValue(call(state, 'readLiteral', args));
 }
@@ -1787,7 +1883,7 @@ function write(instance, n, address, tier, value, commit) {
       const refusal = commitPositionRefusal(commit);
       if (refusal !== null) throw refusal;
     }
-    const args = n >= 1 ? [encodeAddress(address)] : [];
+    const args = n >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
     // `PAR-JS-7`: `write`'s tier is REQUIRED — an ABSENT position and a SUPPLIED `undefined` both answer
     // `AddressMalformed`, and neither folds.
     args.push(encodeTier(tier, n >= 2, false));
@@ -1983,7 +2079,7 @@ function deliver(state, triggered, triggeringAddress) {
 /// for the declaration and never a member of the package's namespace.
 function deleteOp(instance, n, address, tier) {
   const state = stateOf(instance);
-  const args = n >= 1 ? [encodeAddress(address)] : [];
+  const args = n >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
   // `delete`'s tier is read as a VALUE and not by an arity fold: an ABSENT position is the whole-target
   // removal, and a supplied `undefined` answers row 4's `AddressMalformed` (`crossing.md §1.3`).
   args.push(encodeTier(tier, n >= 2, false));
@@ -2095,7 +2191,7 @@ function listen(instance, n, address) {
   // refusal here names the argument it is about (`NG-JS-I`'s `listen` arm). *"first argument"* is written
   // with the same bytes the registry's own registration clause spells; the constant below is declared with
   // the constraint sites and is NOT reachable from here.
-  const args = n >= 1 ? [encodeAddress(address, 'first argument')] : [];
+  const args = n >= 1 ? [encodeAddress(address, 'first argument', 'first argument')] : [];
   const wrapped = wrapHandles(state, [call(state, 'listen', args)])[0];
   if (n >= 1) {
     // **THE STORE CONSULTED THE ADDRESS FIRST**: where a bucket already stands under this address the store

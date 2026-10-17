@@ -53,7 +53,17 @@ const LAYER = 'ENVELOPE/PURE';
 const APP_LAYER = 'NONE';
 
 // ── the declared surface, from the docs alone ──────────────────────────────────────────────────────────
-const VERBS = ['delete', 'listen', 'read', 'readLiteral', 'rollback', 'storeCreate', 'unlisten', 'write'];
+// ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): THE `8`-NAME
+// `MODULE_VERBS` READING IS THE `Q1` PASS'S AND IS **STALE AS A NAMESPACE FIGURE**, `RCA-8(g)`:
+// `docs/specs/storeroom-js/surface.md §2.9` item 1's `A127` clause of 2026-10-16 gives the module namespace ONE
+// name, `storeCreate`, and moves those ten store-reaching names — `read` · `readLiteral` · `write` · `delete` ·
+// `rollback` · `listen` · `unlisten` · `addConstraint` · `constraintOn` · `constraintOff` — onto the PRODUCT as
+// methods (`§2.9`'s removal-versus-deprecation clause of that date, no deprecation window). The two constants
+// below are the operative declared sets; no cell reads them for a figure another clause now fixes, and the
+// superseded `8`-verb array is not re-spelled as if it were still a namespace figure.
+const NAMESPACE = ['storeCreate'];
+const PRODUCT_MEMBERS = ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read',
+  'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'];
 const CLOSED_SET = [
   'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
@@ -206,8 +216,22 @@ function kernelSaveFile(store, address, value) {
   const names = Object.keys(ns).sort();
   const C1 = '§2.9 item 1; package.md §1.3 item 3';
   A('JSG-01.1', C1, 'the entry resolves to a non-null namespace object', ns && typeof ns === 'object', fmt(ns));
-  A('JSG-01.2', C1, "the namespace's own named exports are exactly the 8 verbs", names.join(',') === VERBS.join(','), names.join(','));
-  A('JSG-01.3', C1, "each of the 8 is a function", VERBS.every((v) => typeof ns[v] === 'function'), VERBS.map((v) => `${v}:${typeof ns[v]}`).join(','));
+  // ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): THE `8` NAMES THIS
+  // CELL AND ITS SIBLING BELOW ASSERTED ARE THE `Q1` PASS'S READING AND ARE **STALE GREENS DOC**, `RCA-8(g)`:
+  // `docs/specs/storeroom-js/surface.md §2.9` item 1's `A127` clause of 2026-10-16 moves the MODULE NAMESPACE
+  // to ONE name, `storeCreate` ALONE, `11 → 1` ✓ — *"`storeCreate` IS NOT A MEMBER OF ITS OWN PRODUCT: it is
+  // the MODULE NAMESPACE'S one remaining name and the factory that returns the product"* — and `§2.9`'s
+  // removal-versus-deprecation clause of the same date declares the ten store-reaching names' removal WITH NO
+  // DEPRECATION WINDOW: `read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` ·
+  // `addConstraint` · `constraintOn` · `constraintOff`. EACH CELL KEEPS ITS SUBJECT (the namespace's exact
+  // name set; each name's function class), ITS DRIVE AND ITS EXACTNESS — the set is asserted by SET EQUALITY
+  // and each member by its own class test — AND NOTHING IS LOOSENED. The ten names' NEW home is the product's
+  // own method set, and their arity and refusal are `§2.4` item 9 (f)'s `A127` table; `.11` below asserts
+  // their presence AS METHODS, which is this cell's counterpart and not a retirement of it.
+  A('JSG-01.2', `${C1}; §2.9 item 1's \`A127\` clause (the namespace falls \`11 → 1\`)`, "the namespace's own named exports are exactly the ONE remaining name, `storeCreate` — and no other name (`11 → 1`)",
+    names.join(',') === 'storeCreate', names.join(','));
+  A('JSG-01.3', `${C1}; §2.9 item 1's \`A127\` clause; §2.9's removal-versus-deprecation clause of 2026-10-16`, "the one exported name is a function, and none of the ten store-reaching names is a module-level name any longer",
+    typeof ns.storeCreate === 'function' && Object.keys(ns).every((v) => typeof ns[v] === 'function'), Object.keys(ns).map((v) => `${v}:${typeof ns[v]}`).join(','));
   A('JSG-01.4', '§2.9 item 1', 'findAddress is NOT an own export', !Object.prototype.hasOwnProperty.call(ns, 'findAddress'), `own=${Object.prototype.hasOwnProperty.call(ns, 'findAddress')}`);
   A('JSG-01.5', '§2.9 item 3', 'exists is NOT an own export (no exists() verb, no shim)', !Object.prototype.hasOwnProperty.call(ns, 'exists'), `own=${Object.prototype.hasOwnProperty.call(ns, 'exists')}`);
   A('JSG-01.6', '§3.5; A74', 'neither dispose nor close is an own export', !('dispose' in ns) && !('close' in ns), `dispose=${'dispose' in ns} close=${'close' in ns}`);
@@ -227,30 +251,57 @@ function kernelSaveFile(store, address, value) {
   // NAMESPACE does NOT move with it (§2.1 dated clause 1 (b), read through item 9: "`settle` is NOT a ninth
   // named export — the module namespace stays at the `8` declared verbs"), which `JSG-01.2`/`.15` and the new
   // `JSG-14.2` each keep at eight names.
-  A('JSG-01.9', '§2.1 dated clause 1 (a) read through A116 (D1); §2.4 item 9; A79', "the instance's own member set is exactly ['off','on','register','settle'] — the FOUR declared members, and NOTHING ELSE (the pre-seam declaration was ['off','on','register']; before that, ['register'])", membersAre(formOf(i1), 'off,on,register,settle'), formOf(i1).members.join(','));
+  // ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): **STALE GREENS DOC**,
+  // `RCA-8(g)`. The `['off','on','register','settle']` figure is the `A116` pass's reading; `A127` moves the
+  // declared member set `7 → 12` — `docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s `A127` clause of
+  // 2026-10-16: *"THE OPERATIVE DECLARED MEMBER SET IS `{ read, readLiteral, write, delete, rollback, listen,
+  // unlisten, addConstraint, constraintOn, constraintOff, register, settle }` — TWELVE OWN MEMBERS, AND NOTHING
+  // ELSE: `10 + 1 + 1 = 12` ✓"*, and *"`on` and `off` ARE MERGED AWAY AND ARE NOT MEMBERS"*. THE CELL'S SUBJECT
+  // (the product's exact own member set, set equality, nothing else) IS KEPT WHOLE and the expected value alone
+  // is re-derived. `.14` and `.15` remain the cells that assert `on`/`off`'s absence and its reason.
+  A('JSG-01.9', '§2.4 item 9 (f)\'s `A127` clause of 2026-10-16 (the twelve, `10 + 1 + 1 = 12`), read with §2.1\'s `A127` clause', "the store's own member set is exactly the TWELVE declared members ['addConstraint','constraintOff','constraintOn','delete','listen','read','readLiteral','register','rollback','settle','unlisten','write'] — `10 + 1 + 1 = 12`, and NOTHING ELSE (the superseded readings were four, five and seven own members)", membersAre(formOf(i1), 'addConstraint,constraintOff,constraintOn,delete,listen,read,readLiteral,register,rollback,settle,unlisten,write'), formOf(i1).members.join(','));
   A('JSG-01.10', '§2.4 item 5', 'the one member is a function', typeof i1.register === 'function', typeof i1.register);
-  A('JSG-01.11', '§2.1 dated clause; §2.4 item 5 (a)', "the store's own verbs and findAddress are exposed through NO member of the handle", [...VERBS, 'findAddress'].every((v) => i1[v] === undefined), [...VERBS, 'findAddress'].filter((v) => i1[v] !== undefined).join(',') || 'none');
+  // ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): **STALE GREENS DOC**,
+  // `RCA-8(g)`. The `8 → 1` figure is the `Q1` pass's; `docs/specs/storeroom-js/surface.md §2.9` item 1's
+  // `A127` clause of 2026-10-16 moves the module namespace to ONE name and `§2.9`'s removal-versus-deprecation
+  // clause of that date names the TEN names removed with no deprecation window — `read` · `readLiteral` ·
+  // `write` · `delete` · `rollback` · `listen` · `unlisten` · `addConstraint` · `constraintOn` ·
+  // `constraintOff` — so THEIR EXPOSURE AS PRODUCT METHODS IS LAWFUL AND `.11`'s OLD EXPECTATION IS ITSELF THE
+  // SUPERSEDED READING. THE CELL'S SUBJECT IS KEPT: which names the product's members are NOT. The store-side
+  // non-exposures this cell was written to protect are asserted unchanged — `findAddress` is never exposed
+  // (`§2.9` item 1, which `A127` does not move), no `exists` shim exists (`§2.9` item 3), and `storeCreate` is
+  // the namespace's name and NOT a member of its own product (`§2.4` item 9 (f)'s `A127` clause).
+  A('JSG-01.11', '§2.9 item 1 (findAddress unexposed); §2.9 item 3 (no exists shim); §2.4 item 9 (f)\'s `A127` clause (`storeCreate` is not a member of its own product)', "the store-side non-exposures stand through the product: `findAddress`, `exists`, `dispose`, `close` and `storeCreate` itself are members of NO product, and the ten store-reaching names ARE its methods (`A127`)", [...['findAddress', 'exists', 'dispose', 'close', 'storeCreate']].every((v) => i1[v] === undefined), [...['findAddress', 'exists', 'dispose', 'close', 'storeCreate']].filter((v) => i1[v] !== undefined).join(',') || 'none');
   A('JSG-01.12', 'package.md §1.3 item 4; §3.1 dated clause', 'none of the internal addon\'s five names is an own export of the entry', ['version', 'errorMessage', 'call'].every((v) => !Object.prototype.hasOwnProperty.call(ns, v)), ['version', 'errorMessage', 'call'].filter((v) => v in ns).join(',') || 'none');
   A('JSG-01.13', '§2.6; A73', 'no constraint verb and no repair verb is an own export', !('addConstraint' in ns) && !('repair' in ns) && !('constraint' in ns), ['addConstraint', 'repair', 'constraint'].filter((v) => v in ns).join(',') || 'none');
 
-  // ── THE TWO NEW MEMBERS `A79` ADDS BESIDE `register`: THEIR FUNCTION CLASS, THE NAMESPACE THEY DO NOT
-  // ENTER, AND THE TWO RETURN TYPES `§2.4` ITEM 7 DECLARES. Each cell cites its own clause; nothing of any
-  // firing rule is stated (`A78`), and the address is MINTED FIRST only so the declared positions are
-  // reachable (a DRIVING step, as at JSG-08 and JSG-09).
-  A('JSG-01.14', '§2.1 dated clause 1 (a); §2.4 item 7', 'the two members the amendment adds are functions on the instance, beside register', typeof i1.on === 'function' && typeof i1.off === 'function', `on:${typeof i1.on} off:${typeof i1.off}`);
-  A('JSG-01.15', '§2.1 dated clause 1 (b); §2.4 item 7; package.md §1.3 item 3', 'neither on nor off is an own named export of the entry: the module namespace stays at the EIGHT declared verbs', !Object.prototype.hasOwnProperty.call(ns, 'on') && !Object.prototype.hasOwnProperty.call(ns, 'off'), `own on=${Object.prototype.hasOwnProperty.call(ns, 'on')} own off=${Object.prototype.hasOwnProperty.call(ns, 'off')}`);
+  // ── ⟶ RE-DERIVED 2026-10-17 (THE `A127` GREENS RE-POINTING PASS, `role_test_writer`): THE TWO MEMBERS THIS
+  // BLOCK ONCE NAMED — `on` AND `off` — ARE **MERGED AWAY AND ARE NOT MEMBERS** (`A127`; `§2.4` item 9 (f)'s
+  // `A127` clause, verbatim: *"`on` and `off` ARE MERGED AWAY AND ARE NOT MEMBERS"* — the listener
+  // registration route is `listen` + `register`, its withdrawal `unlisten`). **THE MIGRATION TO THE OO
+  // SURFACE IS AFFORDED HERE AND BY NOTHING ELSE: each cell's SUBJECT, DRIVE and ASSERTION are KEPT and only
+  // the SPELLING of the route moves** — `on(__, fn)` → `listen(__)` then `register(handle, fn)`, `off(h)` →
+  // `unlisten(h)`; the leading `instance` position is dropped throughout the file by the same pass.
+  // **NO CELL OF THIS SCENARIO IS WEAKENED AND NONE IS RETIRED, AND NO EXPECTATION WAS RE-SPELLED TO FIT A
+  // MEASUREMENT.** The reds this scenario reports are NOT this pass's spelling changes where their subject is
+  // a figure `A127` moved: `.9` (the member-set figure), `.11` (the ten names are now METHOD names) and `.14`
+  // (`on`/`off`'s own existence) are SUPERSEEDED-AND-REPORTED below; `.2`/`.3`/`.15` read a MODULE NAMESPACE
+  // figure `A127` moved from `8 → 1` (`§2.9` item 1's `A127` clause), reported as measured and owed to the
+  // supervisor — the OO migration of the HARNESS changes neither figure and closes none of them.
+  A('JSG-01.14', '§2.1\'s dated clause read through A127; §2.4 item 9 (f)\'s `A127` clause; §2.12 item 1\'s twelve-member product (`10 + 1 + 1`)', 'the two members this scenario once found beside `register` are MERGED AWAY by `A127`: `on` and `off` are NOT members of the product, and their route is carried by `listen` + `register` and by `unlisten`', i1.on === undefined && i1.off === undefined, `on:${typeof i1.on} off:${typeof i1.off}`);
+  A('JSG-01.15', '§2.1\'s dated clause 1 (b) read through A127; §2.9 item 1\'s `A127` clause; package.md §1.3 item 3', 'neither on nor off is an own named export of the entry: the module namespace stays CLOSED at the `A127` figure, where the ONE remaining name is `storeCreate`', !Object.prototype.hasOwnProperty.call(ns, 'on') && !Object.prototype.hasOwnProperty.call(ns, 'off'), `own on=${Object.prototype.hasOwnProperty.call(ns, 'on')} own off=${Object.prototype.hasOwnProperty.call(ns, 'off')}`);
   const fnOn = () => {};
-  const wOn = thrown(() => ns.write(i1, ['surf-on'], 'temp', {}));
-  const wLs = thrown(() => ns.write(i1, ['surf-ls'], 'temp', {}));
-  const rOn = wOn.threw ? { threw: true, err: wOn.err } : thrown(() => i1.on(['surf-on'], fnOn));
-  const rLs = wLs.threw ? { threw: true, err: wLs.err } : thrown(() => ns.listen(i1, ['surf-ls']));
+  const wOn = thrown(() => i1.write(['surf-on'], 'temp', {}));
+  const wLs = thrown(() => i1.write(['surf-ls'], 'temp', {}));
+  const rOn = wOn.threw ? { threw: true, err: wOn.err } : thrown(() => { const h = i1.listen(['surf-on']); return i1.register(h, fnOn) === undefined ? h : { bad: 'register did not answer undefined' }; });
+  const rLs = wLs.threw ? { threw: true, err: wLs.err } : thrown(() => i1.listen(['surf-ls']));
   const onH = rOn.threw ? undefined : rOn.value;
   const lsH = rLs.threw ? undefined : rLs.value;
-  A('JSG-01.16', '§2.4 item 7 (a); §2.3 dated clause 1; §2.3 item 2', "on(address, listener) returns the package's OPAQUE handle — a non-null object, neither a function nor an array — and it is the SAME output spelling listen returns: the two-spelling rule gains NO third", !rOn.threw && onH !== null && typeof onH === 'object' && !Array.isArray(onH) && !rLs.threw && lsH !== null && typeof lsH === 'object' && !Array.isArray(lsH), rOn.threw ? `on threw ${fmt(rOn.err)}` : `on:${fmt(onH)} listen:${rLs.threw ? `listen threw ${fmt(rLs.err)}` : fmt(lsH)}`);
-  const rOff = rOn.threw
-    ? { threw: true, err: `off's handle position was never reachable: on refused (${fmt(rOn.err)})` }
-    : thrown(() => i1.off(onH));
-  A('JSG-01.17', '§2.4 item 7 (b); parameter-semantics.md §2.8 dated clause', 'off(handle) returns undefined on every success, driven over the in-domain handle on returned', !rOff.threw && rOff.value === undefined, rOff.threw ? `threw ${fmt(rOff.err)}` : fmt(rOff.value));
+  A('JSG-01.16', '§2.4 item 9 (f)\'s `A127` clause (the route is `listen` + `register`); §2.3 dated clause 1; §2.3 item 2', "the combined route `listen(address)` then `register(handle, listener)` answers the package's OPAQUE handle from `listen` — a non-null object, neither a function nor an array — and it is the SAME output spelling the bare `listen` returns, with `register` answering `undefined`: the two-spelling rule gains NO third", !rOn.threw && onH !== null && typeof onH === 'object' && !Array.isArray(onH) && !rLs.threw && lsH !== null && typeof lsH === 'object' && !Array.isArray(lsH), rOn.threw ? `the combined route threw ${fmt(rOn.err)}` : `register:${fmt(onH)} listen:${rLs.threw ? `listen threw ${fmt(rLs.err)}` : fmt(lsH)}`);
+  const rOff = lsH === undefined
+    ? { threw: true, err: 'the withdrawal\'s handle position was never reachable: `listen`\'s handle was never reachable' }
+    : thrown(() => i1.unlisten(lsH));
+  A('JSG-01.17', '§2.4 item 9 (f)\'s `A127` clause (the withdrawal is `unlisten`); parameter-semantics.md §2.8 dated clause', 'unlisten(handle) returns undefined on every success, driven over the in-domain handle `listen` returned', !rOff.threw && rOff.value === undefined, rOff.threw ? `threw ${fmt(rOff.err)}` : fmt(rOff.value));
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -260,21 +311,21 @@ function kernelSaveFile(store, address, value) {
   const cfg = mk('g02');
   const A2 = ns.storeCreate(cfg);
   const V = { name: 'alpha', flag: true, count: 3, ratio: 0.5, nest: { z: 1, arr: [1, 2, 3] }, list: ['p', { q: false }], '10': 'ten', '2': 'two' };
-  const w = thrown(() => ns.write(A2, ['rt'], 'file', V));
+  const w = thrown(() => A2.write(['rt'], 'file', V));
   A('JSG-02.1', '§2.2; §4.3', 'the file-tier write returns a record and does not throw', !w.threw && w.value !== undefined, w.threw ? `threw ${fmt(w.err)}` : fmt(w.value));
-  const r = w.threw ? null : thrown(() => ns.read(A2, ['rt']));
+  const r = w.threw ? null : thrown(() => A2.read(['rt']));
   A('JSG-02.2', '§4.3; §5.2 P-IM-1; crossing.md §1.5', 'the read is EQUAL to the written value under §1.5', r && !r.threw && rel(r.value, V), r && r.threw ? `threw ${fmt(r.err)}` : fmt(r && r.value));
   const kv = r && !r.threw && r.value && typeof r.value === 'object' ? Object.keys(r.value).sort() : [];
   A('JSG-02.3', '§1.5 item 1; DD-9', "the read's member key set equals the written key set as SETS (sorted)", kv.join(',') === Object.keys(V).sort().join(','), kv.join(','));
   const arrOk = r && !r.threw && Array.isArray(r.value?.nest?.arr) && r.value.nest.arr.length === 3 && r.value.nest.arr[0] === 1 && r.value.nest.arr[1] === 2 && r.value.nest.arr[2] === 3;
   A('JSG-02.4', '§1.5 item 2; DD-9', 'the nested array is dense, of equal length and equal member-by-member by INDEX', !!arrOk, fmt(r && r.value && r.value.nest && r.value.nest.arr));
   A('JSG-02.5', '§1.5 items 1-2', 'a nested object inside an array keeps its member value (list[1].q === false)', r && !r.threw && r.value?.list?.[1]?.q === false, fmt(r && r.value && r.value.list));
-  const r2 = thrown(() => ns.read(A2, ['rt']));
+  const r2 = thrown(() => A2.read(['rt']));
   A('JSG-02.6', '§1.1 item 2', 'the returned value is NOT the caller\'s own object', r && !r.threw && r.value !== V, `same=${r && r.value === V}`);
   A('JSG-02.7', '§1.1; §2.2', 'two reads of one address are not the same object (a FRESH JS value each call)', r && r2 && !r.threw && !r2.threw && r.value !== r2.value, `same=${r && r2 && r.value === r2.value}`);
-  const rm = thrown(() => { ns.write(A2, ['negmem'], 'mem', { neg: -0 }); return ns.read(A2, ['negmem']); });
+  const rm = thrown(() => { A2.write(['negmem'], 'mem', { neg: -0 }); return A2.read(['negmem']); });
   A('JSG-02.8', '§1.5 item 3; store §7.2 item 7 (c)', 'a mem-tier -0 member reads back Object.is -0', rm && !rm.threw && Object.is(rm.value?.neg, -0), rm && rm.threw ? `threw ${fmt(rm.err)}` : `neg=${fmt(rm && rm.value && rm.value.neg)}`);
-  const whole = thrown(() => ns.read(A2, []));
+  const whole = thrown(() => A2.read([]));
   A('JSG-02.9', 'store §4.1; §4.2 R-5; A25', 'the empty address answers the whole register: an object whose key set contains the written key', whole && !whole.threw && whole.value && typeof whole.value === 'object' && !Array.isArray(whole.value) && Object.prototype.hasOwnProperty.call(whole.value, 'rt'), whole && whole.threw ? `threw ${fmt(whole.err)}` : fmt(whole && whole.value));
   // ⟶ RE-DERIVED 2026-10-16 (THE `DEF-2026-10-16-A` PASS, `role_blind_test_writer`) — THE FIVE CELLS `.10`,
   // `.11`, `.14`, `.15`, `.16`, AND THE TWO ADDED AT `.17`/`.18`. TWO GROUNDS, EACH NAMED BY ITS CLAUSE:
@@ -289,24 +340,24 @@ function kernelSaveFile(store, address, value) {
   // exercise; no cell of this scenario is retired, so none owes a retirement note.
   const wSave = kernelSaveFile(A2, ['rt'], V); // the terminal arm's own save, driven through the kernel route
   const B = thrown(() => ns.storeCreate(cfg));
-  const rb = (B && !B.threw) ? thrown(() => ns.read(B.value, ['rt'])) : { threw: true, err: B.err };
+  const rb = (B && !B.threw) ? thrown(() => B.value.read(['rt'])) : { threw: true, err: B.err };
   A('JSG-02.10', 'store §7.2 item 6 (the boot) read through surface.md §2.11 clause 2 as amended 2026-10-15 (the save is the terminal arm\'s act) — RE-POINTED 2026-10-16', 'a FRESH instance over the same cfg.filePath re-loads the committed value: the boot read equals the written value under §1.5', rb && !rb.threw && rel(rb.value, V), `${wSave.threw ? `the terminal arm's save FAILED: ${fmt(wSave.err)} ; ` : ''}${rb && rb.threw ? `threw ${fmt(rb.err)}` : fmt(rb && rb.value)}`);
   const kb = rb && !rb.threw && rb.value && typeof rb.value === 'object' ? Object.keys(rb.value).sort() : [];
   A('JSG-02.11', '§1.5 item 1; store §7.2 item 6 — RE-POINTED 2026-10-16 (same ground as `.10`)', "the booted value's member set is the written one", kb.join(',') === Object.keys(V).sort().join(','), kb.join(','));
-  const wMem = thrown(() => ns.write(A2, ['neg-mem'], 'mem', -0));
-  const rMem = wMem.threw ? wMem : thrown(() => ns.read(A2, ['neg-mem']));
+  const wMem = thrown(() => A2.write(['neg-mem'], 'mem', -0));
+  const rMem = wMem.threw ? wMem : thrown(() => A2.read(['neg-mem']));
   A('JSG-02.12', 'store §7.2 item 7 (c)', 'a mem-tier -0 reads back Object.is -0', !rMem.threw && Object.is(rMem.value, -0), rMem.threw ? `threw ${fmt(rMem.err)}` : fmt(rMem.value));
-  const wTmp = thrown(() => ns.write(A2, ['neg-temp'], 'temp', -0));
-  const rTmp = wTmp.threw ? wTmp : thrown(() => ns.read(A2, ['neg-temp']));
+  const wTmp = thrown(() => A2.write(['neg-temp'], 'temp', -0));
+  const rTmp = wTmp.threw ? wTmp : thrown(() => A2.read(['neg-temp']));
   A('JSG-02.13', 'store §7.2 item 7 (c)', 'a temp-tier -0 reads back Object.is -0', !rTmp.threw && Object.is(rTmp.value, -0), rTmp.threw ? `threw ${fmt(rTmp.err)}` : fmt(rTmp.value));
   // ⟶ RE-POINTED 2026-10-16 for the same two grounds as `.10`: the `-0` at the `file` tier is committed by
   // the terminal arm (`surface.md §2.11` clause 2) and read back from a boot over the file's own bytes.
   const wFile = kernelSaveFile(A2, ['neg-file'], -0);
   const C = wFile.threw ? { threw: true, err: wFile.err } : thrown(() => ns.storeCreate(cfg));
-  const rFile = (C && !C.threw) ? thrown(() => ns.read(C.value, ['neg-file'])) : { threw: true, err: C.err };
+  const rFile = (C && !C.threw) ? thrown(() => C.value.read(['neg-file'])) : { threw: true, err: C.err };
   A('JSG-02.14', 'store §7.2 item 7 (c); §4.3 exclusion (i) — RE-POINTED 2026-10-16 (surface.md §2.11 clause 2)', 'after a boot the committed -0 reads back as 0 (Object.is 0 is true)', rFile && !rFile.threw && Object.is(rFile.value, 0), rFile && rFile.threw ? `threw ${fmt(rFile.err)}` : fmt(rFile && rFile.value));
   A('JSG-02.15', 'store §7.2 item 7 (c); §4.3 exclusion (i) — RE-POINTED 2026-10-16 (surface.md §2.11 clause 2)', 'and Object.is(v,-0) is false: the ONE declared number normalization', rFile && !rFile.threw && !Object.is(rFile.value, -0), rFile && rFile.threw ? `threw ${fmt(rFile.err)}` : fmt(rFile && rFile.value));
-  const rC = (C && !C.threw) ? thrown(() => ns.read(C.value, ['rt'])) : { threw: true, err: C.err };
+  const rC = (C && !C.threw) ? thrown(() => C.value.read(['rt'])) : { threw: true, err: C.err };
   A('JSG-02.16', 'store §7.2 item 7 (a)-(c); §1.5 — RE-POINTED 2026-10-16 (surface.md §2.11 clause 2)', 'the booted mixed value is still EQUAL to V under §1.5 (the file image moves the -0 only)', rC && !rC.threw && rel(rC.value, V), rC && rC.threw ? `threw ${fmt(rC.err)}` : fmt(rC && rC.value));
   // ⟶ ADDED 2026-10-16 (the `DEF-2026-10-16-A` pass): THE RULED LOAD-SIDE LAW, DRIVEN AT THIS SCENARIO'S OWN
   // FIXTURE. The five re-pointed cells above no longer exercise the input class their reds came from, and the
@@ -317,7 +368,7 @@ function kernelSaveFile(store, address, value) {
   ns.storeCreate(zeroCfg.c); // the construction's own exclusive create leaves the file at 0 bytes
   const zeroBytes = fs.statSync(zeroCfg.c.filePath).size;
   const zb = thrown(() => ns.storeCreate({ ...zeroCfg.c, constraints: [{ address: ['rt'], id: 'c1' }] }));
-  const zbRead = zb.threw ? null : thrown(() => ns.read(zb.value, []));
+  const zbRead = zb.threw ? null : thrown(() => zb.value.read([]));
   A('JSG-02.17', 'A: docs/decisions.md · A119 (2026-10-16); store §7.2 item 6 (the zero-length clause, dated 2026-10-16); surface.md §2.1 (dated: "the loaded state is validated against the supplied list")',
     'a ZERO-BYTE file boots an INSTANCE under a supplied NON-EMPTY list — the exemption keys on the FILE\'s bytes — and its register reads ZERO keys, the file standing at 0 bytes after the boot',
     !zb.threw && zeroBytes === 0 && fs.statSync(zeroCfg.c.filePath).size === 0 && !!zbRead && !zbRead.threw && Object.keys(zbRead.value ?? {}).length === 0,
@@ -344,14 +395,14 @@ function kernelSaveFile(store, address, value) {
 {
   const i3 = ns.storeCreate(mk('g03'));
   const arg = { a: { b: [1, 2] } };
-  const w = thrown(() => ns.write(i3, ['cp'], 'temp', arg));
+  const w = thrown(() => i3.write(['cp'], 'temp', arg));
   arg.a.b.push(3);
   arg.x = 'later';
-  const r = w.threw ? w : thrown(() => ns.read(i3, ['cp']));
+  const r = w.threw ? w : thrown(() => i3.read(['cp']));
   A('JSG-03.1', '§1.1 items 1 & 4; §5.2 S-COPY-IN', 'mutating the argument after the call is invisible: a.b is still [1,2]', !r.threw && rel(r.value?.a?.b, [1, 2]), r.threw ? `threw ${fmt(r.err)}` : fmt(r.value));
   A('JSG-03.2', '§1.1 items 1 & 4', 'a member added to the argument after the call is not in the store', !r.threw && r.value && !Object.prototype.hasOwnProperty.call(r.value, 'x'), r.threw ? `threw ${fmt(r.err)}` : fmt(r.value));
   if (!r.threw && r.value) { r.value.a.b.push(9); r.value.a = 'nope'; }
-  const r2 = thrown(() => ns.read(i3, ['cp']));
+  const r2 = thrown(() => i3.read(['cp']));
   A('JSG-03.3', '§1.1 items 2-3; §5.2 S-COPY-OUT', 'mutating the read-back does not reach the store: a.b is still [1,2]', !r2.threw && rel(r2.value?.a?.b, [1, 2]), r2.threw ? `threw ${fmt(r2.err)}` : fmt(r2.value));
   A('JSG-03.4', '§1.1 items 2-3', 'a replaced member of the read-back is not the store\'s value', !r2.threw && r2.value?.a && typeof r2.value.a === 'object', r2.threw ? `threw ${fmt(r2.err)}` : fmt(r2.value?.a));
   A('JSG-03.5', '§1.1 item 3; A65', 'the read-back\'s nested object is not the caller\'s own nested object', !r.threw && r.value?.a !== arg.a, `same=${r.value?.a === arg.a}`);
@@ -365,7 +416,7 @@ const g04 = { caught: [], readAfter: [] };
   const i4 = ns.storeCreate(mk('g04'));
   const C4V = '§1.2 rows 4-13; §1.4 items 1-4; §2.5 items 1-3; surface.md §2.5 item 5';
   const refusal = (id, clause, label, makeValue, extra) => {
-    const w = thrown(() => ns.write(i4, ['v'], 'temp', makeValue()));
+    const w = thrown(() => i4.write(['v'], 'temp', makeValue()));
     const form = formOf(w.err);
     A(`${id}.i`, clause, `the write of ${label} is REFUSED (a value is thrown)`, w.threw, w.threw ? 'threw' : `returned ${fmt(w.value)}`);
     A(`${id}.ii`, clause, `the status is exactly 'ValueNotAdmitted'`, statusOf(w) === 'ValueNotAdmitted', String(statusOf(w)));
@@ -376,7 +427,7 @@ const g04 = { caught: [], readAfter: [] };
       typeof msgOf(w) === 'string' && msgOf(w).includes('is not an admitted value'), fmt(msgOf(w)));
     if (extra) extra(id, clause, w, label);
     g04.caught.push({ id, label, w });
-    const rd = thrown(() => ns.read(i4, ['v']));
+    const rd = thrown(() => i4.read(['v']));
     g04.readAfter.push({ id, status: statusOf(rd), threw: rd.threw });
   };
 
@@ -412,13 +463,13 @@ const g04 = { caught: [], readAfter: [] };
   A('JSG-04.17', '§1.7 (a); §1.7 (b) 3 dated clause', 'Array.isArray is TRUE for the Array subclass and the value is nonetheless refused: the class decision is not short-circuited by a shape test',
     Array.isArray(arraySubclass) === true && statusOf(g04.caught.find((x) => x.id === 'JSG-04.5')?.w ?? {}) === 'ValueNotAdmitted',
     `Array.isArray=${Array.isArray(arraySubclass)} status=${statusOf(g04.caught.find((x) => x.id === 'JSG-04.5')?.w ?? {})}`);
-  const addrSub = thrown(() => ns.read(i4, new (class V extends Array {})()));
+  const addrSub = thrown(() => i4.read(new (class V extends Array {})()));
   A('JSG-04.18', '§1.7 (b) 3; §1.3 AddressArg row 11; §1.8 dated clause', 'a class extending Array at the ADDRESS position answers AddressMalformed (the code moves with the position)',
     statusOf(addrSub) === 'AddressMalformed', String(statusOf(addrSub)));
-  const addrProxy = thrown(() => ns.read(i4, new Proxy(['a'], {})));
+  const addrProxy = thrown(() => i4.read(new Proxy(['a'], {})));
   A('JSG-04.19', '§1.3 AddressArg row 12; DD-34', 'a Proxy over an array at the ADDRESS position answers AddressMalformed',
     statusOf(addrProxy) === 'AddressMalformed', String(statusOf(addrProxy)));
-  const addrStr = thrown(() => ns.read(i4, 'a.b'));
+  const addrStr = thrown(() => i4.read('a.b'));
   A('JSG-04.20', '§1.3 AddressArg row 6', "a bare string address answers AddressMalformed ('a.b' is not a delimited address)",
     statusOf(addrStr) === 'AddressMalformed', String(statusOf(addrStr)));
   const dir = cfgFor('g04c').dir;
@@ -442,30 +493,44 @@ const g04 = { caught: [], readAfter: [] };
   A('JSG-05.1', '§2.1; §1.3 JournalLengthArg row 1', 'the legal cfg with a real filePath, journalLength 1 and an empty listeners array returns an instance',
     !A5.threw && A5.value != null, A5.threw ? `threw ${fmt(A5.err)}` : 'instance');
   const i5 = A5.value ?? { read: () => { throw new Error('no instance'); }, write: () => { throw new Error('no instance'); }, delete: () => { throw new Error('no instance'); } };
-  thrown(() => ns.write(i5, ['ab'], 'mem', 1));
-  const rAbsent = thrown(() => ns.read(i5, ['ab']));
+  thrown(() => i5.write(['ab'], 'mem', 1));
+  const rAbsent = thrown(() => i5.read(['ab']));
   A('JSG-05.2', "crossing.md §1.3 dated rule 1; §1.3 TierArg row 3", 'an UNSET trailing tier on read is the absent state and is IN DOMAIN: the read succeeds and answers 1',
     !rAbsent.threw && rAbsent.value === 1, rAbsent.threw ? `threw ${fmt(rAbsent.err)}` : fmt(rAbsent.value));
-  const rUndef = thrown(() => ns.read(i5, ['ab'], undefined));
-  A('JSG-05.3', 'crossing.md §1.3 dated rule 1', 'read(i,a,undefined) folds to the SAME state as absent: the read succeeds and answers 1',
-    !rUndef.threw && rUndef.value === 1, rUndef.threw ? `threw ${fmt(rUndef.err)}` : fmt(rUndef.value));
-  const rNull = thrown(() => ns.read(i5, ['ab'], null));
+  // ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): **STALE GREENS DOC**,
+  // `RCA-8(g)`, ON THE `PAR-JS-6` ADJUDICATION MADE IN WRITING AT TWO HOMES: `docs/specs/storeroom-js/
+  // parameter-semantics.md §2.6` (*"`a.read(address, undefined)` IS A SUPPLIED VALUE AT THIS POSITION AND TAKES
+  // `PAR-JS-6`'s DECLARED ANSWER — the store's own thrown `{status, message}` with `status` `AddressMalformed`
+  // — while THE ONE CALL THAT FOLDS TO THE ABSENT ROW IS `a.read(address)`"*) and `docs/specs/storeroom-js/
+  // acceptance.md §4.1` item 7's own dated clause (the same reading, with the reason: *"`PAR-JS-6` is the
+  // OPERATIVE DECLARATION of this parameter's domain and of its outside values … where the two answer one call
+  // differently the inventory is read through the parameter row and never the row through the inventory"*).
+  // THE CELL'S SUBJECT IS KEPT — the supplied `undefined` at the `tier` position, driven as a SUPPLIED value —
+  // and the expectation alone is re-derived: the THREE STATES `a.read(a)` / `a.read(a, undefined)` /
+  // `a.read(a, null)` stand as three states, and `.2` above is the one that drives the ABSENT row.
+  const rUndef = thrown(() => i5.read(['ab'], undefined));
+  A('JSG-05.3', 'parameter-semantics.md §2.6 (`PAR-JS-6`), adjudicated 2026-10-16 and carried at acceptance.md §4.1 item 7\'s dated clause', 'a SUPPLIED undefined at the tier position is PRESENT and is not the absent row: the call answers the store\'s own thrown {status, message} with status AddressMalformed (only the OMITTED call, .2 above, folds to the absent row)',
+    rUndef.threw && statusOf(rUndef) === 'AddressMalformed'
+      && formOf(rUndef.err).obj && formOf(rUndef.err).proto === 'Object.prototype' && membersAre(formOf(rUndef.err), 'message,status')
+      && typeof rUndef.err.message === 'string' && rUndef.err.message.length > 0,
+    rUndef.threw ? `${fmt(rUndef.err)} form={${formOf(rUndef.err).members.join(',')}}` : `did not throw: ${fmt(rUndef.value)}`);
+  const rNull = thrown(() => i5.read(['ab'], null));
   A('JSG-05.4', '§1.3 TierArg row 4', 'read(i,a,null) is PRESENT and its shape is not a tier\'s: AddressMalformed',
     statusOf(rNull) === 'AddressMalformed', String(statusOf(rNull)));
-  const rEmpty = thrown(() => ns.read(i5, ['ab'], []));
+  const rEmpty = thrown(() => i5.read(['ab'], []));
   A('JSG-05.5', 'store-model.md §2.3 zero-tier bullet; §1.3 TierArg row 2', 'a 0-token set is the zero-tier arm: the read succeeds and answers 1 (the lowest-persistence selection)',
     !rEmpty.threw && rEmpty.value === 1, rEmpty.threw ? `threw ${fmt(rEmpty.err)}` : fmt(rEmpty.value));
-  thrown(() => ns.write(i5, ['abt'], 'mem', 1));
-  const dAbsent = thrown(() => ns.delete(i5, ['abt']));
+  thrown(() => i5.write(['abt'], 'mem', 1));
+  const dAbsent = thrown(() => i5.delete(['abt']));
   A('JSG-05.6', '§1.3 TierArg row 3 (delete); store §4.4 D-2', "delete with the tier position UNSET succeeds and its receipt's tiers is ['mem']",
     !dAbsent.threw && Array.isArray(dAbsent.value?.tiers) && dAbsent.value.tiers.join(',') === 'mem', dAbsent.threw ? `threw ${fmt(dAbsent.err)}` : fmt(dAbsent.value));
-  const wNoTier = thrown(() => ns.write(i5, ['x']));
+  const wNoTier = thrown(() => i5.write(['x']));
   A('JSG-05.7', '§1.3 TierArg row 3 (write); write-and-read.md §3.4 F-1', 'a write with the tier position UNSET answers AddressMalformed (a required argument is missing)',
     statusOf(wNoTier) === 'AddressMalformed', String(statusOf(wNoTier)));
   const noPath = thrown(() => ns.storeCreate({ journalLength: 1, listeners: [] }));
   A('JSG-05.8', '§1.3 FilePathArg row 2', 'an ABSENT filePath key is IN DOMAIN: an instance IS returned',
     !noPath.threw && noPath.value != null, noPath.threw ? `threw ${fmt(noPath.err)}` : 'instance');
-  const fileAtRegister = noPath.threw ? { threw: true } : thrown(() => ns.write(noPath.value, ['x2'], 'file', 1));
+  const fileAtRegister = noPath.threw ? { threw: true } : thrown(() => noPath.value.write(['x2'], 'file', 1));
   A('JSG-05.9', 'store-model.md §1.6 item 4 (d)(ii); §8.1 #6', 'on a mem-register store a file-tier write at a register key answers ParentAnchorMonotonicityViolation',
     statusOf(fileAtRegister) === 'ParentAnchorMonotonicityViolation', String(statusOf(fileAtRegister)));
   const pathUndef = thrown(() => ns.storeCreate({ filePath: undefined, journalLength: 1, listeners: [] }));
@@ -491,18 +556,18 @@ const g04 = { caught: [], readAfter: [] };
 {
   const i6 = ns.storeCreate(mk('g06'));
   const nest = (k) => { let v = [0]; for (let n = 1; n < k; n += 1) v = [v]; return v; };
-  const w63 = thrown(() => ns.write(i6, ['d63'], 'temp', nest(63)));
-  const r63 = w63.threw ? w63 : thrown(() => ns.read(i6, ['d63']));
+  const w63 = thrown(() => i6.write(['d63'], 'temp', nest(63)));
+  const r63 = w63.threw ? w63 : thrown(() => i6.read(['d63']));
   A('JSG-06.1', 'crossing.md §1.4 item 5 dated two-arm table', 'a value of nesting depth 63 is ADMITTED: the write succeeds and the value round-trips',
     !w63.threw && !r63.threw && rel(r63.value, nest(63)), w63.threw ? `threw ${fmt(w63.err)}` : `roundtrip=${!r63.threw && rel(r63.value, nest(63))}`);
-  const w64 = thrown(() => ns.write(i6, ['d64'], 'temp', nest(64)));
-  const r64 = w64.threw ? w64 : thrown(() => ns.read(i6, ['d64']));
+  const w64 = thrown(() => i6.write(['d64'], 'temp', nest(64)));
+  const r64 = w64.threw ? w64 : thrown(() => i6.read(['d64']));
   A('JSG-06.2', 'crossing.md §1.4 item 5 dated two-arm table', 'a value of nesting depth 64 is ADMITTED: the write succeeds and the value round-trips',
     !w64.threw && !r64.threw && rel(r64.value, nest(64)), w64.threw ? `threw ${fmt(w64.err)}` : `roundtrip=${!r64.threw && rel(r64.value, nest(64))}`);
-  const w65 = thrown(() => ns.write(i6, ['d65'], 'temp', nest(65)));
+  const w65 = thrown(() => i6.write(['d65'], 'temp', nest(65)));
   A('JSG-06.3', 'crossing.md §1.4 item 5 dated two-arm table; DD-10', 'a value of nesting depth 65 is REFUSED ValueNotAdmitted (the conversion core\'s own bound)',
     statusOf(w65) === 'ValueNotAdmitted', w65.threw ? String(statusOf(w65)) : `returned ${fmt(w65.value)}`);
-  const w66 = thrown(() => ns.write(i6, ['d66'], 'temp', nest(66)));
+  const w66 = thrown(() => i6.write(['d66'], 'temp', nest(66)));
   A('JSG-06.4', 'crossing.md §1.4 item 5 dated two-arm table; DD-10', 'a value of nesting depth 66 is REFUSED ValueNotAdmitted (the boundary encoder\'s own bound)',
     statusOf(w66) === 'ValueNotAdmitted', w66.threw ? String(statusOf(w66)) : `returned ${fmt(w66.value)}`);
   const f65 = formOf(w65.err);
@@ -514,8 +579,8 @@ const g04 = { caught: [], readAfter: [] };
     w66.threw && f66.obj && membersOf(f66, 'message,status') && w66.err.status === 'ValueNotAdmitted' && typeof w66.err.message === 'string' && w66.err.message.length > 0,
     `members=[${f66.members.join(',')}] proto=${f66.proto} status=${fmt(w66.err?.status)}`);
   const d = { n: 1 };
-  const wDia = thrown(() => ns.write(i6, ['dia'], 'temp', { x: d, y: d }));
-  const rDia = wDia.threw ? wDia : thrown(() => ns.read(i6, ['dia']));
+  const wDia = thrown(() => i6.write(['dia'], 'temp', { x: d, y: d }));
+  const rDia = wDia.threw ? wDia : thrown(() => i6.read(['dia']));
   A('JSG-06.7', '§1.4 item 6; DD-11', 'a DIAMOND (one value reachable by two paths but acyclic) is ADMITTED and round-trips: the guard is the walk\'s own ancestor stack, never a WeakSet of visited objects',
     !wDia.threw && !rDia.threw && rel(rDia.value, { x: { n: 1 }, y: { n: 1 } }), wDia.threw ? `threw ${fmt(wDia.err)}` : fmt(rDia.value));
 }
@@ -526,57 +591,57 @@ function membersOf(r, want) { return r.members.join(',') === want; }
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const i7 = ns.storeCreate(mk('g07'));
-  thrown(() => ns.write(i7, ['p'], 'file', 100));
-  const q1 = thrown(() => ns.read(i7, ['p']));
+  thrown(() => i7.write(['p'], 'file', 100));
+  const q1 = thrown(() => i7.read(['p']));
   A('JSG-07.1', 'store §4.1; R-1', 'the only version at the key answers 100', !q1.threw && q1.value === 100, q1.threw ? `threw ${fmt(q1.err)}` : fmt(q1.value));
-  thrown(() => ns.write(i7, ['p'], 'temp', 1));
-  const q2 = thrown(() => ns.read(i7, ['p']));
+  thrown(() => i7.write(['p'], 'temp', 1));
+  const q2 = thrown(() => i7.read(['p']));
   A('JSG-07.2', 'store-model.md §2.3 zero-tier arm; store §5.3 item 2; A11', 'after a LESS persistent write the unqualified read selects the SHADOW: 1',
     !q2.threw && q2.value === 1, q2.threw ? `threw ${fmt(q2.err)}` : fmt(q2.value));
-  const q3 = thrown(() => ns.read(i7, ['p'], 'file'));
+  const q3 = thrown(() => i7.read(['p'], 'file'));
   A('JSG-07.3', 'write-and-read.md §3.4 W-5', 'the shadowed more-persistent version SURVIVES: the file-tier read answers 100',
     !q3.threw && q3.value === 100, q3.threw ? `threw ${fmt(q3.err)}` : fmt(q3.value));
-  const q4 = thrown(() => ns.read(i7, ['p'], 'temp'));
+  const q4 = thrown(() => i7.read(['p'], 'temp'));
   A('JSG-07.4', '§2.2; store §4.2 R-4', 'the temp-tier read answers 1', !q4.threw && q4.value === 1, q4.threw ? `threw ${fmt(q4.err)}` : fmt(q4.value));
-  thrown(() => ns.write(i7, ['p'], 'mem', 2));
-  const q5 = thrown(() => ns.read(i7, ['p']));
+  thrown(() => i7.write(['p'], 'mem', 2));
+  const q5 = thrown(() => i7.read(['p']));
   A('JSG-07.5', 'store §5.4 purge chain; write-and-read.md §3.4 W-6', 'the mem write purged the temp version (rank <= 1): the unqualified read answers 2',
     !q5.threw && q5.value === 2, q5.threw ? `threw ${fmt(q5.err)}` : fmt(q5.value));
-  const q6 = thrown(() => ns.read(i7, ['p'], 'file'));
+  const q6 = thrown(() => i7.read(['p'], 'file'));
   A('JSG-07.6', "store §5.4 purge chain column (file left standing, rank 2 > 1)", 'the file version stands: 100', !q6.threw && q6.value === 100, q6.threw ? `threw ${fmt(q6.err)}` : fmt(q6.value));
-  const q7 = thrown(() => ns.read(i7, ['p'], 'temp'));
+  const q7 = thrown(() => i7.read(['p'], 'temp'));
   A('JSG-07.7', 'store-model.md §2.3; store §8.1 #4', 'the temp version is gone: the key exists and the tier does not — TierNotFound', statusOf(q7) === 'TierNotFound', String(statusOf(q7)));
-  thrown(() => ns.write(i7, ['p'], 'file', 300));
-  const q8 = thrown(() => ns.read(i7, ['p']));
+  thrown(() => i7.write(['p'], 'file', 300));
+  const q8 = thrown(() => i7.read(['p']));
   A('JSG-07.8', 'store §5.4 purge chain; W-6', 'the file write purged file, mem and temp (rank <= 2): the unqualified read answers 300',
     !q8.threw && q8.value === 300, q8.threw ? `threw ${fmt(q8.err)}` : fmt(q8.value));
-  const q9 = thrown(() => ns.read(i7, ['p'], 'mem'));
+  const q9 = thrown(() => i7.read(['p'], 'mem'));
   A('JSG-07.9', 'store §5.4 purge chain; §8.1 #4', 'no mem version stands: TierNotFound', statusOf(q9) === 'TierNotFound', String(statusOf(q9)));
-  ns.write(i7, ['set'], 'file', 8);
-  ns.write(i7, ['set'], 'temp', 7);
-  const q10 = thrown(() => ns.read(i7, ['set'], ['file', 'temp']));
+  i7.write(['set'], 'file', 8);
+  i7.write(['set'], 'temp', 7);
+  const q10 = thrown(() => i7.read(['set'], ['file', 'temp']));
   A('JSG-07.10', 'store-model.md §2.3; store §4.2 R-4; DD-37', 'a tier-qualified SET read answers the lowest-persistence member of the matched subset: 7',
     !q10.threw && q10.value === 7, q10.threw ? `threw ${fmt(q10.err)}` : fmt(q10.value));
-  const q11 = thrown(() => ns.read(i7, ['set'], ['temp', 'temp']));
+  const q11 = thrown(() => i7.read(['set'], ['temp', 'temp']));
   A('JSG-07.11', '§1.3 TierArg row 2', 'duplicates in the set are in domain and change nothing: the same answer 7',
     !q11.threw && q11.value === 7, q11.threw ? `threw ${fmt(q11.err)}` : fmt(q11.value));
-  const wArr = thrown(() => ns.write(i7, ['pa'], ['temp'], [1]));
+  const wArr = thrown(() => i7.write(['pa'], ['temp'], [1]));
   A('JSG-07.12', '§1.3 TierArg row 2; §5.4 P-SM-4', 'an ARRAY tier on a WRITE answers OutOfDomainTier (the array spelling is the reader\'s arity)',
     statusOf(wArr) === 'OutOfDomainTier', String(statusOf(wArr)));
-  thrown(() => ns.write(i7, ['d1'], 'file', 2));
-  thrown(() => ns.write(i7, ['d1'], 'temp', 1));
-  const d1 = thrown(() => ns.delete(i7, ['d1'], 'temp'));
-  const d1r = d1.threw ? d1 : thrown(() => ns.read(i7, ['d1']));
+  thrown(() => i7.write(['d1'], 'file', 2));
+  thrown(() => i7.write(['d1'], 'temp', 1));
+  const d1 = thrown(() => i7.delete(['d1'], 'temp'));
+  const d1r = d1.threw ? d1 : thrown(() => i7.read(['d1']));
   A('JSG-07.13', 'store §4.4 D-1; §4.3', "a one-tier delete removes only the named tier's version: tiers is ['temp'] and the file version still reads 2",
     !d1.threw && d1.value.tiers.join(',') === 'temp' && !d1r.threw && d1r.value === 2,
     d1.threw ? `threw ${fmt(d1.err)}` : `tiers=[${d1.value.tiers}] read=${fmt(d1r.value)}`);
-  const d2 = thrown(() => ns.delete(i7, ['d1']));
-  const d2r = d2.threw ? d2 : thrown(() => ns.read(i7, ['d1']));
+  const d2 = thrown(() => i7.delete(['d1']));
+  const d2r = d2.threw ? d2 : thrown(() => i7.read(['d1']));
   A('JSG-07.14', 'store §4.4 D-2', "an unqualified delete removes every version: tiers is ['file'] and the address no longer resolves",
     !d2.threw && d2.value.tiers.join(',') === 'file' && statusOf(d2r) === 'AddressNotFound',
     d2.threw ? `threw ${fmt(d2.err)}` : `tiers=[${d2.value.tiers}] read.status=${statusOf(d2r)}`);
-  thrown(() => ns.write(i7, ['d3'], 'mem', 1));
-  const d3 = thrown(() => ns.delete(i7, ['d3'], 'file'));
+  thrown(() => i7.write(['d3'], 'mem', 1));
+  const d3 = thrown(() => i7.delete(['d3'], 'file'));
   A('JSG-07.15', 'store §4.4 D-3; DD-9', "a delete at a tier the target does not hold is a SUCCESS carrying tiers: [] and no code is produced",
     !d3.threw && Array.isArray(d3.value.tiers) && d3.value.tiers.length === 0, d3.threw ? `threw ${fmt(d3.err)}` : fmt(d3.value));
 }
@@ -588,8 +653,8 @@ function membersOf(r, want) { return r.members.join(',') === want; }
   const i8 = ns.storeCreate(mk('g08'));
   // A listener binds to an ADDRESS, and a write that fails its walk fires NOTHING, so the addressed branch
   // is minted before the listener is registered there (a DRIVING step, named in the run's record).
-  ns.write(i8, ['ev'], 'temp', {});
-  const h1 = ns.listen(i8, ['ev']);
+  i8.write(['ev'], 'temp', {});
+  const h1 = i8.listen(['ev']);
   A('JSG-08.1', '§2.3 item 2; DD-14', "listen returns an opaque JS value and NOT a string", typeof h1 === 'object' && h1 !== null && typeof h1 !== 'string', `${typeof h1} ${fmt(h1)}`);
   A('JSG-08.2', '§2.3 item 2; DD-28', 'the token is PRIVATE: no own enumerable member carries it', Object.keys(h1).length === 0, Object.keys(h1).join(',') || 'none');
   const spelled = `${String(h1)}|${(() => { try { return JSON.stringify(h1); } catch { return ''; } })()}`;
@@ -598,7 +663,7 @@ function membersOf(r, want) { return r.members.join(',') === want; }
   const fn = (...args) => { calls.push(args); };
   const reg1 = thrown(() => i8.register(h1, fn));
   A('JSG-08.4', '§2.4 item 5 (b)', 'register(handle, listener) returns undefined on success', !reg1.threw && reg1.value === undefined, reg1.threw ? `threw ${fmt(reg1.err)}` : fmt(reg1.value));
-  const w1 = thrown(() => ns.write(i8, ['ev', 'child'], 'temp', 5));
+  const w1 = thrown(() => i8.write(['ev', 'child'], 'temp', 5));
   const trig1 = w1.threw ? [] : w1.value?.triggered;
   A('JSG-08.5', '§2.7 item 1; §2.4 item 6 (a); A77', "the record's triggered carries the id REGISTRATION was given (h1)", Array.isArray(trig1) && trig1.includes(h1), fmt(trig1));
   A('JSG-08.6', '§2.4 rule 3 and item 6 (b)', 'the registered function is invoked exactly ONCE for that write', calls.length === 1, `calls=${calls.length}`);
@@ -607,52 +672,52 @@ function membersOf(r, want) { return r.members.join(',') === want; }
   A('JSG-08.8', '§2.7 item 5; parameter-semantics.md §2.12 dated producer clause', "the single argument is the TRIGGERING ADDRESS ['ev','child'], index-equal",
     !!arg1 && rel(arg1[0], ['ev', 'child']), arg1 ? fmt(arg1[0]) : 'not invoked');
   A('JSG-08.9', 'surface.md §2.4 item 6 (d); parameter-semantics.md §2.15 dated clause', 'the argument is NOT the id that selected the function', !!arg1 && arg1[0] !== h1, arg1 ? `same=${arg1[0] === h1}` : 'not invoked');
-  const w2 = thrown(() => ns.write(i8, ['ev', 'child2'], 'temp', 6));
+  const w2 = thrown(() => i8.write(['ev', 'child2'], 'temp', 6));
   A('JSG-08.10', '§2.3 item 5; store §6.5 item 3', 'the prefix test is descendant-inclusive: a write at a DESCENDANT address triggers the listener bound at ["ev"]',
     !w2.threw && Array.isArray(w2.value?.triggered) && w2.value.triggered.includes(h1), w2.threw ? `threw ${fmt(w2.err)}` : fmt(w2.value?.triggered));
-  const h2 = ns.listen(i8, ['no']);
-  ns.write(i8, ['no'], 'temp', {});
+  const h2 = i8.listen(['no']);
+  i8.write(['no'], 'temp', {});
   const before = calls.length;
   const logged = [];
   const orig = { log: console.log, warn: console.warn, error: console.error, info: console.info, debug: console.debug };
   console.log = (...a) => logged.push(['log', ...a]); console.warn = (...a) => logged.push(['warn', ...a]);
   console.error = (...a) => logged.push(['error', ...a]); console.info = (...a) => logged.push(['info', ...a]); console.debug = (...a) => logged.push(['debug', ...a]);
   let w3 = null;
-  try { w3 = thrown(() => ns.write(i8, ['no', 'x'], 'temp', 4)); } finally {
+  try { w3 = thrown(() => i8.write(['no', 'x'], 'temp', 4)); } finally {
     console.log = orig.log; console.warn = orig.warn; console.error = orig.error; console.info = orig.info; console.debug = orig.debug;
   }
   A('JSG-08.11', 'store §6.5 item 10 (c)', "an id the package holds no function for is still returned in triggered", !w3.threw && Array.isArray(w3.value?.triggered) && w3.value.triggered.includes(h2), w3.threw ? `threw ${fmt(w3.err)}` : fmt(w3.value?.triggered));
   A('JSG-08.12', '§2.4 rule 1; surface.md §2.4 item 6 (c)', 'an unregistered handle invokes NOTHING: the call count is unchanged', calls.length === before, `calls ${before} -> ${calls.length}`);
   A('JSG-08.13', '§2.4 rule 1; surface.md §2.4 item 6 (c)', 'and reports NOTHING: no console output of any level', logged.length === 0, fmt(logged.map((l) => l[0])));
   A('JSG-08.14', 'surface.md §2.4 item 6 (c)', 'and the write neither throws nor answers a code: the silence is an assertable observable', !w3.threw, w3.threw ? `threw ${fmt(w3.err)}` : 'no throw');
-  const un1 = thrown(() => ns.unlisten(i8, h1));
+  const un1 = thrown(() => i8.unlisten(h1));
   A('JSG-08.15', '§2.10', 'unlisten returns undefined', !un1.threw && un1.value === undefined, un1.threw ? `threw ${fmt(un1.err)}` : fmt(un1.value));
   const afterUn = calls.length;
-  const w4 = thrown(() => ns.write(i8, ['ev', 'child3'], 'temp', 3));
+  const w4 = thrown(() => i8.write(['ev', 'child3'], 'temp', 3));
   A('JSG-08.16', '§2.4 rule 4; §2.3 item 6', "after unlisten the store-side home entry is gone: the record's triggered no longer contains h1",
     !w4.threw && Array.isArray(w4.value?.triggered) && !w4.value.triggered.includes(h1), w4.threw ? `threw ${fmt(w4.err)}` : fmt(w4.value?.triggered));
   A('JSG-08.17', '§2.4 rule 4; DD-15', 'and the function never fires again: the call count is unchanged', calls.length === afterUn, `calls ${afterUn} -> ${calls.length}`);
-  ns.write(i8, ['keep'], 'temp', {});
-  const ka = ns.listen(i8, ['keep']);
-  const kb = ns.listen(i8, ['keep']);
+  i8.write(['keep'], 'temp', {});
+  const ka = i8.listen(['keep']);
+  const kb = i8.listen(['keep']);
   A('JSG-08.18', '§2.3 item 6 (the STILL-REGISTERED arm); surface.md §2.3 dated pointer', 'a repeat listen at an ALREADY-REGISTERED address mints nothing and returns the SAME opaque value',
     ka === kb, `same=${ka === kb}`);
-  const w5 = thrown(() => ns.write(i8, ['keep', 'x'], 'temp', 2));
+  const w5 = thrown(() => i8.write(['keep', 'x'], 'temp', 2));
   const distinct5 = w5.threw ? [] : [...new Set(w5.value.triggered)];
   A('JSG-08.19', 'store §6.5 item 2; §2.4 rule 3', "the record's DISTINCT-handle set for that address has ONE member", distinct5.length === 1, `${distinct5.length} distinct of [${fmt(w5.value?.triggered)}]`);
-  ns.write(i8, ['wit'], 'temp', {});
-  const wa = ns.listen(i8, ['wit']);
-  ns.unlisten(i8, wa);
-  const wb = ns.listen(i8, ['wit']);
+  i8.write(['wit'], 'temp', {});
+  const wa = i8.listen(['wit']);
+  i8.unlisten(wa);
+  const wb = i8.listen(['wit']);
   A('JSG-08.20', '§2.3 item 6 (the WITHDRAWN arm)', 'after the withdrawal removed that address\'s home entry, a later listen MINTS A FRESH handle (a !== b)',
     wa !== wb, `same=${wa === wb}`);
   const dupCfg = { ...mk('g08dup'), listeners: [{ address: ['dup'], handle: 'tok' }, { address: ['dup'], handle: 'tok' }] };
   const iDup = thrown(() => ns.storeCreate(dupCfg));
-  if (!iDup.threw) ns.write(iDup.value, ['dup'], 'temp', {});
-  const hDup = iDup.threw ? null : thrown(() => ns.listen(iDup.value, ['dup']));
+  if (!iDup.threw) iDup.value.write(['dup'], 'temp', {});
+  const hDup = iDup.threw ? null : thrown(() => iDup.value.listen(['dup']));
   const dupCalls = [];
   if (!iDup.threw && !hDup.threw) iDup.value.register(hDup.value, () => { dupCalls.push(1); });
-  const wDup = (!iDup.threw && !hDup.threw) ? thrown(() => ns.write(iDup.value, ['dup', 'x'], 'temp', 1)) : { threw: true };
+  const wDup = (!iDup.threw && !hDup.threw) ? thrown(() => iDup.value.write(['dup', 'x'], 'temp', 1)) : { threw: true };
   A('JSG-08.21', '§2.4 rule 3; store DD-42 caller-spelled clause', 'two construction entries at ONE address carrying the SAME caller-spelled token fire the registry ONCE (one invocation per DISTINCT handle)',
     !wDup.threw && dupCalls.length === 1, wDup.threw ? `threw ${fmt(wDup.err)}` : `invocations=${dupCalls.length}`);
   const dupDistinct = wDup.threw ? [] : [...new Set(wDup.value.triggered)];
@@ -664,15 +729,15 @@ function membersOf(r, want) { return r.members.join(',') === want; }
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const i9 = ns.storeCreate(mk('g09'));
-  ns.write(i9, ['site'], 'temp', {});
-  const hIn = ns.listen(i9, ['site']);
+  i9.write(['site'], 'temp', {});
+  const hIn = i9.listen(['site']);
   const f1c = [], f2c = [];
   const f1 = () => { f1c.push(1); }, f2 = () => { f2c.push(1); };
   const r1 = thrown(() => i9.register(hIn, f1));
   A('JSG-09.1', '§2.4 item 5 (b)', 'register(handle, listener) returns undefined for an in-domain pair', !r1.threw && r1.value === undefined, r1.threw ? `threw ${fmt(r1.err)}` : fmt(r1.value));
   const r2 = thrown(() => i9.register(hIn, f2));
   A('JSG-09.2', '§2.4 item 5 (b) & rule 2', 'a RE-registration returns undefined (a success on every success, including a replacement)', !r2.threw && r2.value === undefined, r2.threw ? `threw ${fmt(r2.err)}` : fmt(r2.value));
-  const w9 = thrown(() => ns.write(i9, ['site', 'x'], 'temp', 1));
+  const w9 = thrown(() => i9.write(['site', 'x'], 'temp', 1));
   A('JSG-09.3', '§2.4 rule 2', 'the replacement took effect: f2 fired and f1 did NOT', !w9.threw && f2c.length === 1 && f1c.length === 0, `f1=${f1c.length} f2=${f2c.length}`);
   const bare = thrown(() => i9.register('a-bare-string', f1));
   A('JSG-09.4', '§2.4 item 5 (d); surface.md §2.5 item 5 (g)', 'a bare string at the handle position is REFUSED (a value is thrown)', bare.threw, bare.threw ? 'threw' : `returned ${fmt(bare.value)}`);
@@ -690,7 +755,7 @@ function membersOf(r, want) { return r.members.join(',') === want; }
   const nothing = thrown(() => i9.register());
   A('JSG-09.10', '§2.4 item 5 (d)', 'both positions absent answers the same form and status', statusOf(nothing) === 'AddressMalformed', String(statusOf(nothing)));
   const f2Before = f2c.length;
-  const w9b = thrown(() => ns.write(i9, ['site', 'y'], 'temp', 2));
+  const w9b = thrown(() => i9.write(['site', 'y'], 'temp', 2));
   A('JSG-09.11', '§2.4 item 5 (d) ("nothing reaches the store ... changes no node")', 'no standing registration is disturbed by a refusal: the pre-refusal registration still fires',
     !w9b.threw && f2c.length === f2Before + 1, `f2 ${f2Before} -> ${f2c.length}`);
   const msgs = [bare, fab, nul, noListener, nothing].map((x) => msgOf(x));
@@ -709,32 +774,32 @@ const g10 = { all: [] };
     A(id, clause, `${label} answers ${want}`, statusOf(r) === want, String(statusOf(r)));
   };
   const i10 = ns.storeCreate(mk('g10'));
-  one('JSG-10.1', '§1.3 AddressArg row 6; store §8.1 #1', 'read(inst, "a.b")', 'AddressMalformed', () => ns.read(i10, 'a.b'));
-  one('JSG-10.2', '§1.3 TierArg row 3; store §8.1 #1 / F-1', 'a write with the tier position absent', 'AddressMalformed', () => ns.write(i10, ['x']));
-  one('JSG-10.3', 'store §8.1 #2 (L-3)', 'read at an unoccupied address', 'AddressNotFound', () => ns.read(i10, ['nothing-here']));
-  thrown(() => ns.write(i10, ['lf'], 'temp', 1));
-  one('JSG-10.4', 'store §8.1 #3 (L-4)', 'a read that must walk THROUGH a leaf', 'LeafHasNoDownstream', () => ns.read(i10, ['lf', 'down']));
-  thrown(() => ns.write(i10, ['tt'], 'mem', 1));
-  one('JSG-10.5', 'store §8.1 #4 (L-TIER)', 'a read at a tier the key does not hold', 'TierNotFound', () => ns.read(i10, ['tt'], 'temp'));
-  one('JSG-10.6', 'store §8.1 #5; A29', 'a tier token outside {file, mem, temp}', 'OutOfDomainTier', () => ns.read(i10, ['tt'], 'secure'));
+  one('JSG-10.1', '§1.3 AddressArg row 6; store §8.1 #1', 'read(inst, "a.b")', 'AddressMalformed', () => i10.read('a.b'));
+  one('JSG-10.2', '§1.3 TierArg row 3; store §8.1 #1 / F-1', 'a write with the tier position absent', 'AddressMalformed', () => i10.write(['x']));
+  one('JSG-10.3', 'store §8.1 #2 (L-3)', 'read at an unoccupied address', 'AddressNotFound', () => i10.read(['nothing-here']));
+  thrown(() => i10.write(['lf'], 'temp', 1));
+  one('JSG-10.4', 'store §8.1 #3 (L-4)', 'a read that must walk THROUGH a leaf', 'LeafHasNoDownstream', () => i10.read(['lf', 'down']));
+  thrown(() => i10.write(['tt'], 'mem', 1));
+  one('JSG-10.5', 'store §8.1 #4 (L-TIER)', 'a read at a tier the key does not hold', 'TierNotFound', () => i10.read(['tt'], 'temp'));
+  one('JSG-10.6', 'store §8.1 #5; A29', 'a tier token outside {file, mem, temp}', 'OutOfDomainTier', () => i10.read(['tt'], 'secure'));
   const iMem = thrown(() => ns.storeCreate({ journalLength: 2, listeners: [] }));
   const iM = iMem.threw ? i10 : iMem.value;
-  thrown(() => ns.write(iM, ['m'], 'mem', {}));
-  one('JSG-10.7', 'store §8.1 #6 (F-6); store-model.md §1.6 item 4 (d)(ii)', 'a write whose tier outranks its parent anchor\'s tier (mem register)', 'ParentAnchorMonotonicityViolation', () => ns.write(iM, ['m', 'k'], 'file', 1));
-  thrown(() => ns.write(i10, ['cc'], 'mem', {}));
-  one('JSG-10.8', 'store §8.1 #7 (F-4)', 'a write whose value kind contradicts the target container kind', 'ContainerKindConflict', () => ns.write(i10, ['cc'], 'mem', [1]));
-  thrown(() => ns.write(i10, ['rb'], 'temp', {}));
-  one('JSG-10.9', 'store §8.1 #8; write-and-read.md §4.1.1 item 3', 'readLiteral at a BRANCH target', 'ReadTargetIsBranch', () => ns.readLiteral(i10, ['rb']));
-  thrown(() => ns.write(i10, ['wp'], 'temp', 1));
-  one('JSG-10.10', 'store §8.1 #9 (F-5)', 'a write whose resolved PARENT is a leaf', 'WriteParentNotLink', () => ns.write(i10, ['wp', 'down'], 'temp', 2));
-  one('JSG-10.11', 'store §8.1 #10 (M-11)', 'rollback with a well-shaped but unknown op id', 'JournalOpUnknown', () => ns.rollback(i10, 'no-such-op'));
+  thrown(() => iM.write(['m'], 'mem', {}));
+  one('JSG-10.7', 'store §8.1 #6 (F-6); store-model.md §1.6 item 4 (d)(ii)', 'a write whose tier outranks its parent anchor\'s tier (mem register)', 'ParentAnchorMonotonicityViolation', () => iM.write(['m', 'k'], 'file', 1));
+  thrown(() => i10.write(['cc'], 'mem', {}));
+  one('JSG-10.8', 'store §8.1 #7 (F-4)', 'a write whose value kind contradicts the target container kind', 'ContainerKindConflict', () => i10.write(['cc'], 'mem', [1]));
+  thrown(() => i10.write(['rb'], 'temp', {}));
+  one('JSG-10.9', 'store §8.1 #8; write-and-read.md §4.1.1 item 3', 'readLiteral at a BRANCH target', 'ReadTargetIsBranch', () => i10.readLiteral(['rb']));
+  thrown(() => i10.write(['wp'], 'temp', 1));
+  one('JSG-10.10', 'store §8.1 #9 (F-5)', 'a write whose resolved PARENT is a leaf', 'WriteParentNotLink', () => i10.write(['wp', 'down'], 'temp', 2));
+  one('JSG-10.11', 'store §8.1 #10 (M-11)', 'rollback with a well-shaped but unknown op id', 'JournalOpUnknown', () => i10.rollback('no-such-op'));
   const iJ = ns.storeCreate({ ...mk('g10j'), journalLength: 1 });
-  const jw1 = thrown(() => ns.write(iJ, ['rc1'], 'temp', 1));
-  thrown(() => ns.write(iJ, ['rc2'], 'temp', 1));
-  one('JSG-10.12', 'store §8.1 #11; §6.1 item 5; §6.4 M-6', 'a rollback whose candidate set includes the entry the append compressed', 'RollbackCompacted', () => ns.rollback(iJ, jw1.value.op.opId));
+  const jw1 = thrown(() => iJ.write(['rc1'], 'temp', 1));
+  thrown(() => iJ.write(['rc2'], 'temp', 1));
+  one('JSG-10.12', 'store §8.1 #11; §6.1 item 5; §6.4 M-6', 'a rollback whose candidate set includes the entry the append compressed', 'RollbackCompacted', () => iJ.rollback(jw1.value.op.opId));
   one('JSG-10.13', 'store §8.1 #12; §7.1', 'storeCreate with an ABSENT journalLength', 'ConstructionArgumentMissing', () => ns.storeCreate({ filePath: mk('g10b').filePath, listeners: [] }));
   one('JSG-10.14', 'store §8.1 #13; §7.1; §1.3 FilePathArg row 4', 'storeCreate with a provided path whose parent directory does not exist', 'FilePathUnreachable', () => ns.storeCreate({ filePath: path.join(ROOT, 'no-such-dir-xyz', 'state.json'), journalLength: 1, listeners: [] }));
-  one('JSG-10.15', 'store §8.1 #14; §1.2 row 11', 'a write whose value is NaN', 'ValueNotAdmitted', () => ns.write(i10, ['nv'], 'temp', NaN));
+  one('JSG-10.15', 'store §8.1 #14; §1.2 row 11', 'a write whose value is NaN', 'ValueNotAdmitted', () => i10.write(['nv'], 'temp', NaN));
   // ⟶ RE-DERIVED 2026-10-16 (THE `DEF-2026-10-16-A` PASS, `role_blind_test_writer`) — CLASS (ii): THIS CELL AND
   // THE FOUR BELOW IT DROVE THE `file` COMMIT **AT THE VERB**, A ROUTE `docs/specs/storeroom-js/surface.md §2.11`
   // CLAUSE 2 SUPERSEDES (*"the act is the FIRST thing that arm does, before any body of the delivered set is
@@ -755,7 +820,7 @@ const g10 = { all: [] };
   // ⟶ RE-DERIVED 2026-10-16: the SAME failing save, read one act later. Its observable is unmoved (the store's
   // own rollback is `§7.2` item 3's arm and runs before the caller is answered) — and on the re-pointed route
   // it is the state the store actually reaches.
-  const rFC = thrown(() => ns.read(iFC, ['fc']));
+  const rFC = thrown(() => iFC.read(['fc']));
   g10.all.push({ id: 'JSG-10.17', label: 'the state after the failed commit', r: rFC });
   A('JSG-10.17', 'store §6.4 item 8; §7.2 item 3 (i) — RE-POINTED 2026-10-16 (same ground as `.16`)', "after the failed commit A16's automatic journal rollback has run: the pre-write state stands (the address does not resolve)",
     statusOf(rFC) === 'AddressNotFound', String(statusOf(rFC)));
@@ -777,19 +842,19 @@ const g10 = { all: [] };
   REDERIVED.push(`JSG-10.17 :: read(['fc']) after that failure -> ${statusOf(rFC)}`);
   REDERIVED.push(`JSG-10.18/.19/.20 :: ${g10.all.length} driven failures ; did-not-throw=${thrownSet.length} ; outside-the-16=[${outside.join(',') || 'none'}] ; empty-or-placeholder messages=${withPlaceholder.length}`);
   const i21 = ns.storeCreate(mk('g10w21'));
-  thrown(() => ns.write(i21, ['window'], 'mem', {}));
-  const r21 = thrown(() => ns.read(i21, ['window', 'empty']));
+  thrown(() => i21.write(['window'], 'mem', {}));
+  const r21 = thrown(() => i21.read(['window', 'empty']));
   const want21 = "'empty' does not exist in 'window', it holds no keys";
   A('JSG-10.21', "store §8.2 worked example (2) and its degenerate arm", `read(['window','empty']) over an empty MAP answers AddressNotFound with EXACTLY ${want21}`,
     statusOf(r21) === 'AddressNotFound' && msgOf(r21) === want21, `${statusOf(r21)} :: ${fmt(msgOf(r21))}`);
   const i22 = ns.storeCreate(mk('g10w22'));
-  ns.write(i22, ['window'], 'mem', {});
-  thrown(() => ns.write(i22, ['window', 'tabs'], 'mem', { doc1: 1, searchbar: 2 }));
-  const r22 = thrown(() => ns.read(i22, ['window', 'tabs', 'LandingPage']));
+  i22.write(['window'], 'mem', {});
+  thrown(() => i22.write(['window', 'tabs'], 'mem', { doc1: 1, searchbar: 2 }));
+  const r22 = thrown(() => i22.read(['window', 'tabs', 'LandingPage']));
   const want22 = "'LandingPage' does not exist in 'window.tabs', tabs are 'doc1', 'searchbar'";
   A('JSG-10.22', "store §8.2 worked example (1) and its <CONTAINERSEGMENT> reconciliation", `read(['window','tabs','LandingPage']) answers AddressNotFound with EXACTLY ${want22}`,
     statusOf(r22) === 'AddressNotFound' && msgOf(r22) === want22, `${statusOf(r22)} :: ${fmt(msgOf(r22))}`);
-  const r23 = thrown(() => ns.write(i22, ['window', 'tabs'], 'mem', [1, 2]));
+  const r23 = thrown(() => i22.write(['window', 'tabs'], 'mem', [1, 2]));
   const want23 = "does not match the container kind of 'window.tabs', it holds a map, keys are 'doc1', 'searchbar'";
   A('JSG-10.23', 'store §8.2 worked example (3)', 'writing an array where a MAP stands answers ContainerKindConflict carrying the store\'s own kind clause',
     statusOf(r23) === 'ContainerKindConflict' && typeof msgOf(r23) === 'string' && msgOf(r23).includes(want23),
@@ -805,7 +870,7 @@ const g10 = { all: [] };
 {
   const i11 = ns.storeCreate(mk('g11'));
   const V11 = { n: 1, s: 'x', arr: [1, 2] };
-  const w = thrown(() => ns.write(i11, ['j'], 'mem', V11));
+  const w = thrown(() => i11.write(['j'], 'mem', V11));
   const rec = w.threw ? null : w.value;
   A('JSG-11.1', '§2.2; store §3.6; DD-35', "the write's returned record has exactly the member set {op, watched, triggered}",
     !w.threw && rec && membersAre(formOf(rec), 'op,triggered,watched'), rec ? formOf(rec).members.join(',') : `threw ${fmt(w.err)}`);
@@ -821,17 +886,17 @@ const g10 = { all: [] };
   A('JSG-11.9', 'store §6.2 (BaseState)', 'before.present is false at an address whose pre-state was absent', op?.before?.present === false, fmt(op?.before));
   A('JSG-11.10', 'store §6.2 property 2', 'after.present is true and its value is EQUAL to the written value under §1.5', op?.after?.present === true && rel(op.after.value, V11), fmt(op?.after));
   A('JSG-11.11', 'parameter-semantics.md §2.14; store §3.6', 'watched is an array (possibly empty) and never undefined', Array.isArray(rec?.watched), fmt(rec?.watched));
-  const rb = thrown(() => ns.rollback(i11, op.opId));
+  const rb = thrown(() => i11.rollback(op.opId));
   A('JSG-11.12', 'store §6.3', "the rollback's record has exactly the member set {opId, undoneOps, restoredTo}",
     !rb.threw && membersAre(formOf(rb.value), 'opId,restoredTo,undoneOps'), rb.threw ? `threw ${fmt(rb.err)}` : formOf(rb.value).members.join(','));
   A('JSG-11.13', 'store §6.3', 'the id the caller passed is echoed', !rb.threw && rb.value.opId === op.opId, rb.threw ? `threw ${fmt(rb.err)}` : fmt(rb.value?.opId));
   A('JSG-11.14', 'store §6.3; §6.4 M-7 (i)', 'undoneOps contains the id whose reversal the store actually performed', !rb.threw && Array.isArray(rb.value.undoneOps) && rb.value.undoneOps.includes(op.opId), rb.threw ? `threw ${fmt(rb.err)}` : fmt(rb.value?.undoneOps));
   A('JSG-11.15', 'store §6.3; §6.4 M-5/M-8', 'restoredTo reports the state the addressed subtree now stands at: {present: false}', !rb.threw && rb.value.restoredTo?.present === false, rb.threw ? `threw ${fmt(rb.err)}` : fmt(rb.value?.restoredTo));
-  const after11 = thrown(() => ns.read(i11, ['j']));
+  const after11 = thrown(() => i11.read(['j']));
   A('JSG-11.16', 'store §6.4 M-5/M-8', 'the write that installed the node was undone: the address no longer resolves', statusOf(after11) === 'AddressNotFound', String(statusOf(after11)));
-  const unknown = thrown(() => ns.rollback(i11, 'no-such-op'));
+  const unknown = thrown(() => i11.rollback('no-such-op'));
   A('JSG-11.17', 'store §8.1 #10; §6.4 M-11; §1.3 OpIdArg row 2', 'a made-up op id answers JournalOpUnknown in the single form', statusOf(unknown) === 'JournalOpUnknown', String(statusOf(unknown)));
-  const w2 = thrown(() => ns.write(i11, ['j2'], 'mem', 1));
+  const w2 = thrown(() => i11.write(['j2'], 'mem', 1));
   A('JSG-11.18', 'store §6.4 M-9 (iv); §6.1 item 1', 'a rollback appends NO journal entry: the next write\'s seq is 2, as though the rollback had not happened',
     !w2.threw && w2.value?.op?.seq === 2, w2.threw ? `threw ${fmt(w2.err)}` : fmt(w2.value?.op?.seq));
 }
@@ -890,11 +955,16 @@ const g10 = { all: [] };
 // spellings and in a form STRICTLY TIGHTER than the one it replaces.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
+  // ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): **STALE GREENS DOC**,
+  // `RCA-8(g)`, for the SAME single clause as `JSG-01.2`/`.3` — `docs/specs/storeroom-js/surface.md §2.9`
+  // item 1's `A127` clause of 2026-10-16 gives the module namespace ONE name, `storeCreate`, `11 → 1` ✓ — with
+  // one subject this scenario adds of its own and which is UNMOVED: THE CLAIMED ESM ENTRY RESOLVES. Each cell
+  // keeps its subject, its drive (the ONE import the runner performed) and its exact set-equality form.
   const names = Object.keys(ns).sort();
-  A('JSG-12.1', '§3.1; A70; package.md §1.1', 'the ONE import of the claimed ESM entry resolved and the namespace carries the 8 verbs',
-    names.join(',') === VERBS.join(','), names.join(','));
-  A('JSG-12.2', 'package.md §1.3 item 3; §2.9 item 1', "the entry's named exports are exactly the 8 verbs and NOTHING ELSE",
-    Object.keys(ns).length === 8 && VERBS.every((v) => v in ns), Object.keys(ns).join(','));
+  A('JSG-12.1', '§3.1; A70; package.md §1.1; §2.9 item 1\'s `A127` clause (the namespace is ONE name, `11 → 1`)', 'the ONE import of the claimed ESM entry resolved and the namespace carries its one remaining name, `storeCreate`',
+    names.join(',') === 'storeCreate', names.join(','));
+  A('JSG-12.2', 'package.md §1.3 item 3; §2.9 item 1\'s `A127` clause; §2.9\'s removal-versus-deprecation clause of 2026-10-16', "the entry's named exports are exactly `storeCreate` and NOTHING ELSE — the ten store-reaching names are the product's methods, not module names",
+    Object.keys(ns).length === 1 && Object.prototype.hasOwnProperty.call(ns, 'storeCreate') && typeof ns.storeCreate === 'function', Object.keys(ns).join(','));
   let pkg = null, pkgErr = null;
   try { pkg = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')); } catch (e) { pkgErr = e; }
   const ex = (pkg && pkg.exports) || {};
@@ -1011,21 +1081,25 @@ const g10 = { all: [] };
   // MOVES. The `A86`(a) reading above stands as the state that ruling moved and is read THROUGH this line.
   A('JSG-12.17', 'package.md §3.2 item 2; §3.3 item 2; DD-25', 'the five prebuild artefacts are OPTIONAL per-target dependencies and not required dependencies (no fallback build-on-install as the primary route)',
     wantOpts.every((n) => !deps.includes(n)), `dependencies=[${deps.join(',')}]`);
-  // ⟶ ADDED 2026-10-11 (U-STOREROOM-PUBLISH, `PUB-DD-1`; `A85`(1)): the manifest's `files` allowlist is
-  // declared by THIS unit for the FIRST time — the sibling unit's `package.md` and `contract.md` declare
-  // no `files` cell — so this row has NO pre-rename counterpart and is an ADDITION rather than a
-  // re-derivation. `PAR-PUB-3` fixes the domain as exactly `index.mjs` · `README.md` · `index.d.ts`, and
-  // `contract.md §2.1` item 1 / `distribution.md §6.1` item 8 carry it: "NO binary ships, at any key, on
-  // any target". Asserted EXACTLY — set equality with the three declared paths, no `build/Release` path
-  // and no `.node` entry anywhere in the allowlist — and NO LOOSER FORM.
-  const FILES = ['index.mjs', 'README.md', 'index.d.ts'];
+  // ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): **STALE GREENS DOC**,
+  // `RCA-8(g)`. The three-entry allowlist is the `A85`(1)/`PUB-DD-1` reading; `docs/specs/storeroom-publish/
+  // distribution.md §2.1` ITEM 6, LANDED 2026-10-16 on `A121`/`A122`, adds the FOURTH entry — *"THE CONSTRAINT
+  // KERNEL'S OWN MODULE IS THE MAIN PACKAGE'S `files` ALLOWLIST's FOURTH ENTRY … the THREE of item `1` above —
+  // `index.mjs` · `README.md` · `index.d.ts` — PLUS THE KERNEL'S OWN PACKAGE-ROOT-RELATIVE PATH
+  // `src/constraint-kernel.mjs`: FOUR ENTRIES, AND NOTHING BESIDE THEM"* — and item `1` of that part stands
+  // BYTE-FOR-BYTE, read THROUGH item 6. THE CELL'S SUBJECTS ARE KEPT WHOLE: the allowlist asserted by EXACT
+  // SET EQUALITY, `build/Release` excluded, and no `.node` at any entry. NO LOOSER FORM IS TAKEN: the fourth
+  // path is asserted BY NAME, and the row additionally refuses a fifth entry and a `LICENSE` row (item 5's
+  // standing prohibition: *"a `LICENSE` ROW ADDED TO THE MAIN PACKAGE'S `files` ARRAY IS A FINDING"*).
+  const FILES = ['index.mjs', 'README.md', 'index.d.ts', 'src/constraint-kernel.mjs'];
   const filesList = Array.isArray(pkg?.files) ? pkg.files : null;
   const filesSorted = filesList ? [...filesList].sort() : null;
   const filesBinaryFree = filesList
     ? filesList.every((f) => typeof f !== 'string' || (!f.includes('build/Release') && !f.endsWith('.node')))
     : false;
-  A('JSG-12.18', 'PUB-DD-1; A85(1); PAR-PUB-3; contract.md §2.1 item 1; distribution.md §6.1 item 8', "the manifest's files allowlist is EXACTLY ['README.md','index.d.ts','index.mjs'] — and no build/Release path and no .node entry ships",
-    filesSorted !== null && filesSorted.join(',') === [...FILES].sort().join(',') && filesBinaryFree,
+  A('JSG-12.18', 'distribution.md §2.1 ITEM 6, LANDED 2026-10-16 on A121/A122 (the allowlist\'s FOURTH entry), read with item 1 (unmoved) and item 5 (the licence-row prohibition); PUB-DD-1; A85(1); PAR-PUB-3; contract.md §2.1 item 1; distribution.md §6.1 item 8', "the manifest's files allowlist is EXACTLY ['src/constraint-kernel.mjs','README.md','index.d.ts','index.mjs'] — the kernel's own module as the FOURTH entry, a fifth entry refused, no LICENSE row, no build/Release path and no .node entry",
+    filesSorted !== null && filesSorted.join(',') === [...FILES].sort().join(',') && filesBinaryFree
+      && !filesList.some((f) => typeof f === 'string' && /(^|\/)LICEN[CS]E$/i.test(f)),
     filesList ? `${filesList.join(',')} (binary-free: ${filesBinaryFree})` : 'no files array');
 }
 
@@ -1041,17 +1115,17 @@ const g10 = { all: [] };
   for (let i = 0; i < N; i += 1) bigVec.push(i);
   const bigNest = {};
   for (let i = 0; i < 50; i += 1) { const inner = {}; for (let j = 0; j < 60; j += 1) inner[`j${j}`] = j; bigNest[`i${i}`] = inner; }
-  const wm = thrown(() => ns.write(i13, ['big-map'], 'temp', bigMap));
+  const wm = thrown(() => i13.write(['big-map'], 'temp', bigMap));
   A('JSG-13.1', 'RCA §1, §4, §5-bis', `a ${N}-member object completes its write without throwing`, !wm.threw, wm.threw ? `threw ${fmt(wm.err)}` : 'returned a record');
-  const rm = wm.threw ? wm : thrown(() => ns.read(i13, ['big-map']));
+  const rm = wm.threw ? wm : thrown(() => i13.read(['big-map']));
   A('JSG-13.2', 'RCA §6 item 1; store §4.2 R-2', `the read answers an object with ${N} members`, !rm.threw && rm.value && Object.keys(rm.value).length === N, rm.threw ? `threw ${fmt(rm.err)}` : `members=${rm.value ? Object.keys(rm.value).length : 'n/a'}`);
   A('JSG-13.3', '§1.5 item 1', 'its member key set is equal to the written one as a SET', !rm.threw && rel(rm.value, bigMap), 'see JSG-13.2');
-  const wv = thrown(() => ns.write(i13, ['big-vec'], 'temp', bigVec));
-  const rv = wv.threw ? wv : thrown(() => ns.read(i13, ['big-vec']));
+  const wv = thrown(() => i13.write(['big-vec'], 'temp', bigVec));
+  const rv = wv.threw ? wv : thrown(() => i13.read(['big-vec']));
   A('JSG-13.4', '§1.5 item 2; store §4.2 R-3', `a ${N}-member array round-trips dense, in index order, equal member-by-member`,
     !wv.threw && !rv.threw && rel(rv.value, bigVec), wv.threw ? `threw ${fmt(wv.err)}` : (rv.threw ? `read threw ${fmt(rv.err)}` : `len=${rv.value && rv.value.length}`));
-  const wn = thrown(() => ns.write(i13, ['big-nest'], 'temp', bigNest));
-  const rn = wn.threw ? wn : thrown(() => ns.read(i13, ['big-nest']));
+  const wn = thrown(() => i13.write(['big-nest'], 'temp', bigNest));
+  const rn = wn.threw ? wn : thrown(() => i13.read(['big-nest']));
   A('JSG-13.5', '§1.5; RCA §6 item 3', 'a nested 50 x 60 structure round-trips with every nested member set equal',
     !wn.threw && !rn.threw && rel(rn.value, bigNest), wn.threw ? `threw ${fmt(wn.err)}` : (rn.threw ? `read threw ${fmt(rn.err)}` : 'round trip'));
   A('JSG-13.6', 'RCA §1, §6 item 1; §1.4 item 5', 'none of the three writes produces a failure code: the declared bound is not reached at this size',
@@ -1073,8 +1147,8 @@ const g10 = { all: [] };
   const i14 = ns.storeCreate(mk('g14'));
   A('JSG-14.1', '§2.4 item 9 (read beside §2.1 dated clause 1 (a), `A116` (D1))', "the fourth member exists and is a function on the instance, beside register, on and off — the set opening by ONE clause",
     typeof i14.settle === 'function', `settle:${typeof i14.settle}`);
-  A('JSG-14.2', '§2.4 item 9 ("`settle` is NOT a ninth named export — the module namespace stays at the `8` declared verbs"); §2.1 dated clause 1 (b); package.md §1.3 item 3', "settle is NOT an own named export of the entry, and the namespace stays closed at the EIGHT declared verbs with no ninth name",
-    !Object.prototype.hasOwnProperty.call(ns, 'settle') && Object.keys(ns).sort().join(',') === VERBS.join(','),
+  A('JSG-14.2', '§2.4 item 9\'s non-exposure sentence ("`settle` is NOT a ninth named export"), READ THROUGH A127 — its `8`-verb figure is superseded by §2.9 item 1\'s `A127` clause (ONE name, `storeCreate`, `11 → 1`) while the sentence\'s own point STANDS; parameter-semantics.md §2.19 (`PAR-JS-19`)', "settle is NOT a name of the module namespace — it is the product's own twelfth member and no consumer route — and the namespace is exactly its one remaining name, `storeCreate`, with no second name beside it",
+    !Object.prototype.hasOwnProperty.call(ns, 'settle') && Object.keys(ns).sort().join(',') === 'storeCreate',
     `own settle=${Object.prototype.hasOwnProperty.call(ns, 'settle')} namespace=[${Object.keys(ns).sort().join(',')}]`);
   A('JSG-14.3', '§2.4 item 9 ("IT TAKES EXACTLY ONE argument … AND IT RETURNS `undefined`: there is NO second return shape")', 'settle declares exactly ONE parameter position',
     typeof i14.settle === 'function' && i14.settle.length === 1, `settle.length=${i14.settle.length}`);
@@ -1142,22 +1216,22 @@ const g10 = { all: [] };
   const i15 = ns.storeCreate(mk('g15'));
   const bareCalls = [];
   let bareWriteReturned = false;
-  thrown(() => ns.write(i15, ['bare-a'], 'temp', {}));
-  const hBareA = ns.listen(i15, ['bare-a']);
-  const hBareK = ns.listen(i15, ['bare-a', 'k']);
-  const hBareOff = ns.listen(i15, ['bare-off']);
+  thrown(() => i15.write(['bare-a'], 'temp', {}));
+  const hBareA = i15.listen(['bare-a']);
+  const hBareK = i15.listen(['bare-a', 'k']);
+  const hBareOff = i15.listen(['bare-off']);
   const WRITTEN_BARE = ['bare-a', 'k'];
   const bareBody = (tag) => (addr) => {
     // THE BODY'S OWN FINDING, THE ONE OBSERVABLE ITEM 2 NAMES: the store call has COMPLETED (the address the
     // write was made at already answers the written value, so its record is what the invocation reads) and the
     // package's verb has NOT yet returned to the caller.
-    const rr = thrown(() => ns.read(i15, WRITTEN_BARE));
+    const rr = thrown(() => i15.read(WRITTEN_BARE));
     bareCalls.push(`${tag}:verb-returned=${bareWriteReturned}:read=${rr.threw ? `threw ${String(statusOf(rr))}` : fmt(rr.value)}:arg=${Array.isArray(addr) ? `[${addr.map(fmt).join(',')}]` : fmt(addr)}`);
   };
   i15.register(hBareA, bareBody('a'));
   i15.register(hBareK, bareBody('k'));
   i15.register(hBareOff, bareBody('off'));
-  const wBare = thrown(() => { const r = ns.write(i15, WRITTEN_BARE, 'temp', 1); bareWriteReturned = true; return r; });
+  const wBare = thrown(() => { const r = i15.write(WRITTEN_BARE, 'temp', 1); bareWriteReturned = true; return r; });
   // RE-AIMED 2026-10-15 — `§2.7` item 2 AS RE-SPELLED measures this instant from THE STORE CALL's completion
   // and the record's copy-out and NOT from the package verb's return; the pre-re-spelling cell asserted the
   // opposite sign of the same flag. The cell is RE-DERIVED and not weakened: its subject (the bare write's
@@ -1169,23 +1243,23 @@ const g10 = { all: [] };
       && bareCalls.every((c) => c.includes('verb-returned=false') && c.includes(`read=${fmt(1)}`)),
     `${bareCalls.join(' | ') || 'no invocation'} (returned handles: ${[fmt(hBareA), fmt(hBareK)]})`);
   const bareBefore = bareCalls.length;
-  const wBare2 = thrown(() => ns.write(i15, ['bare-a', 'k'], 'temp', 2));
+  const wBare2 = thrown(() => i15.write(['bare-a', 'k'], 'temp', 2));
   A('JSG-15.2', '§2.7 item 8 ("such a caller\'s listener body runs at that instant"); §2.4 item 9 (a) ("for a write the kernel has issued"); §2.4 item 9 (e)',
     'the bare write WITHHOLDS NOTHING: the two registered bodies for the returned handles each run exactly once — an empty delivery here would be the seam\'s withholding reaching a write no record carries',
     !wBare2.threw && bareCalls.length - bareBefore === 2, `invocations=${bareCalls.length - bareBefore}`);
   const i15f = ns.storeCreate(mk('g15f'));
   const failedCalls = [];
   const discarded = {};
-  thrown(() => ns.write(i15f, ['bare-cc'], 'mem', {}));
-  const hDiscard = ns.listen(i15f, ['bare-cc']);
+  thrown(() => i15f.write(['bare-cc'], 'mem', {}));
+  const hDiscard = i15f.listen(['bare-cc']);
   i15f.register(hDiscard, () => { failedCalls.push('kind-conflict'); });
-  discarded.w = thrown(() => ns.write(i15f, ['bare-cc'], 'mem', [1]));   // kind-conflict: it must not fire
+  discarded.w = thrown(() => i15f.write(['bare-cc'], 'mem', [1]));   // kind-conflict: it must not fire
   const i15g = ns.storeCreate(mk('g15g'));
   const earlyCalls = [];
-  thrown(() => ns.write(i15g, ['bare-lf'], 'temp', 1));
-  const hEarly = ns.listen(i15g, ['bare-lf', 'down']);
+  thrown(() => i15g.write(['bare-lf'], 'temp', 1));
+  const hEarly = i15g.listen(['bare-lf', 'down']);
   i15g.register(hEarly, () => { earlyCalls.push(1); });
-  const wEarly = thrown(() => ns.write(i15g, ['bare-lf', 'down'], 'temp', 2));   // no event fires
+  const wEarly = thrown(() => i15g.write(['bare-lf', 'down'], 'temp', 2));   // no event fires
   A('JSG-15.3', '§2.7 item 6 (the discard: "not delivered, and not left pending for a later deliverer"); §2.7 item 7 (d) ("A BODY OF THAT FAILED WRITE\'S OWN TRIGGERED SET THAT RAN … IS A FAILURE"); §2.4 item 9 (d); store §8.1 #7 (F-4)',
     'a write that does not succeed delivers ZERO to a body registered at its address — on the kind-conflict failure and on the failure that resolves no event at all — and no body of either write ran',
     discarded.w.threw && failedCalls.length === 0 && wEarly.threw && earlyCalls.length === 0,
@@ -1225,7 +1299,7 @@ const RULED_FIRING = [];   // the printed record of the ruled observable: one li
   const fAdopted = [], fPrefix = [];       // the app's OWN bodies: one per address, each recording its firing
   let storeCallReturned = false;           // `K-2`'s own return: the store call the write's record is copied out of
   const body = (bag, tag) => (...inc) => {                 // the app's OWN body, its ARITY read off its own rest list
-    const rr = thrown(() => ns.read(i16, ADOPTED));
+    const rr = thrown(() => i16.read(ADOPTED));
     // THE BODY'S OWN FINDING, the observable `§2.7` item 2 names: the store call has COMPLETED — the address the
     // write was made at already answers the written value, so the write's own record is what the body reads.
     bag.push({ tag, arg: inc[0], args: inc.length, storeCallReturned,
@@ -1236,8 +1310,17 @@ const RULED_FIRING = [];   // the printed record of the ruled observable: one li
     const rK1 = thrown(() => K1(i16, ADOPTED, 'pair-of-jsg-16', () => true));   // `true` IS `ConstraintOutcome`'s PASS arm — the ONLY pass value (`kernel-surface.md §2.3` item 1)
     hPair = rK1.threw ? null : rK1.value; K_ERR = rK1.threw ? rK1.err : KERNEL_ERROR;
   } else { K_ERR = KERNEL_ERROR; }
-  const rOnSame = thrown(() => i16.on(ADOPTED, body(fAdopted, 'on at the pair-adopted address')));
-  const rOnPrefix = thrown(() => i16.on(PREFIX, body(fPrefix, 'on at the proper prefix')));
+  // ⟶ SPELLED ON THE OO SURFACE 2026-10-17 (`A127`; `§2.4` item 9 (f)'s `A127` clause): `on(__, fn)` is the
+  // route `listen(__)` + `register(handle, fn)`, so `rOnSame`/`rOnPrefix` each carry the HANDLE `listen`
+  // answered and the `undefined` `register` must answer — the same two observables `on`'s return carried.
+  const onRoute = (addr, fn) => {
+    const h = i16.listen(addr);
+    const r = i16.register(h, fn);
+    if (r !== undefined) return { bad: 'register did not answer undefined' };
+    return h;
+  };
+  const rOnSame = thrown(() => onRoute(ADOPTED, body(fAdopted, 'on at the pair-adopted address')));
+  const rOnPrefix = thrown(() => onRoute(PREFIX, body(fPrefix, 'on at the proper prefix')));
   const rK2 = thrown(() => K2(i16, ADOPTED, 'temp', 1));       // the write whose constraints run FIRST
   storeCallReturned = !rK2.threw;
   const rK3 = rK2.threw ? { threw: true, err: rK2.err } : thrown(() => K3(i16, rK2.value));
@@ -1268,8 +1351,8 @@ const RULED_FIRING = [];   // the printed record of the ruled observable: one li
   //    THIS drive's registration, argument shape and store-call instrument each work when no pass is involved.
   const BARE = ['bare'];
   const fBare = [];
-  const rOnBare = thrown(() => i16.on(BARE, body(fBare, 'on at a bare address')));
-  const wBare = thrown(() => ns.write(i16, BARE, 'temp', 2));
+  const rOnBare = thrown(() => onRoute(BARE, body(fBare, 'on at a bare address')));
+  const wBare = thrown(() => i16.write(BARE, 'temp', 2));
   const control = (kernel === null ? 'KERNEL ABSENT' : !drive.startsWith('driven') ? `MAIN DRIVE NOT CLEAN (${drive})`
     : rOnBare.threw ? `on(the bare address) threw ${fmt(rOnBare.err)}` : wBare.threw ? `write threw ${fmt(wBare.err)}` : 'driven');
   A('JSG-16.3', 'the instrument control — NO ruling and no side: `§2.7` item 2 (the bare write\'s instant: after the store call has completed and the record has been copied out) and item 8 ("such a caller\'s listener body runs at that instant"), read with `§2.7` item 5 (the single argument is the triggering address)',

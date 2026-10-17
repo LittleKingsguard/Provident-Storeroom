@@ -498,27 +498,122 @@ test('validation_first_and_atomicity_a_non_function_listener_and_a_malformed_add
     });
     assert.equal(trouble, null, `an absent address must be refused verbosely: ${trouble}`);
   }
-  // **AND THE SCALAR ARM'S MEASURED GAP IS READ HERE AS A READING AND NOT LEFT AS A DESCRIPTION: at every
-  // non-array outside value this site's message carries NEITHER the failing target's spelling NOR the
-  // argument position.** **THE FALSIFIER: give the store's own phrase the failing value (or add the position
-  // to it) and this block fails — which is exactly the repair the finding asks for; leave it and the block
-  // records that the target and position halves of `§2.5` item 5 (a)–(b) are NOT carried at
-  // `AddressArg` rows 5–6.** (`crossing.md §1.3`'s `AddressArg` rows 4–6; `surface.md §2.5` item 5 (a)–(b),
-  // (d); `docs/specs/storeroom-native/contract.md §8.2`.)
-  for (const outside of ['a.b', 7, null, undefined]) {
+  // **⟶ FLIPPED 2026-10-17 (`role_test_writer`; THE ARCHITECT HAS RULED: REPAIR IT).** **THE BLOCK THAT STOOD
+  // HERE READ THE GAP — it asserted that the store's generic phrase carries NEITHER the failing target's
+  // spelling NOR the argument position, and FAILED IF THE STORE WAS REPAIRED. IT NOW ASSERTS THE REPAIR, and
+  // it is expected RED against the current build: that red is this pass's deliverable, and the implementer's
+  // repair lands in parallel.** **NO ASSERTION IS WEAKENED BY THE FLIP — each of the two readings the old
+  // block took as an ABSENCE is now taken as a PRESENCE, at EVERY address position the surface declares and
+  // not at `listen` alone:**
+  //   * **`§2.5` item 5 (a) — THE FAILING TARGET, RENDERED AS THE STORE'S GENERATOR RENDERS IT.** The message
+  //     must carry the outside value's OWN rendering, in the same spelling the store gives it elsewhere: the
+  //     string single-quoted (`'a.b'`), the number printed as its own value (`7`, `the number 7`), and `null` /
+  //     `undefined` as their own runtime spellings. **THE CELL DOES NOT ASSERT ONE FIXED SENTENCE** — it
+  //     asserts that the value's own rendering is PRESENT, so the two passes cannot diverge on wording.
+  //   * **`§2.5` item 5 (b) — THE POSITION, carried BESIDE the class INSIDE the message's own text.** *"the
+  //     position is carried BESIDE the class: the ARGUMENT POSITION for a verb's arguments"*, and *"carried
+  //     INSIDE the generated message's own text and NEVER as a third member"*. **The ARGUMENT POSITION each
+  //     verb declares for its address is `first argument`** — the address is position `1` of every one of the
+  //     five calls driven below (`crossing.md §1.3`'s `AddressArg` rows 5 and 6 are the two rows this block
+  //     drives: **row 5** — `null` / `undefined`, *"the shape is not the address's shape at all"* — and
+  //     **row 6** — *"a non-array — a number, a string, a boolean, an object, a function"*, whose own sentence
+  //     prints the subject of this block's first value: *"`'a.b'` is NOT a delimited address and is refused as
+  //     a shape, verbatim"*). The `listen(['a', 1.5])` cell below asserts the same position name for the
+  //     ARRAY arm, so one clause is read at both arms and neither is read as the other.
+  //   * **AND THE EMPTY-CONTAINER FORM IS REFUSED:** the message must NOT carry `in ''`. That form is the
+  //     REGISTER's own container spelling (`docs/specs/storeroom-native/contract.md §8.2`'s `<CONTAINER>`:
+  //     *"`''` for the register"*), so a message carrying it is answering a failure INSIDE the register rather
+  //     than a failure of the ADDRESS ARGUMENT, and it carries no position at all.
+  // **THE FALSIFIER, STATED SO THE CELL CANNOT PASS BY ACCIDENT: leave the store's generic phrase in place —
+  // *"the address argument is not a legal address segment in '', segments are strings or non-negative
+  // integers"* — and the target half, the position half AND the empty-container half each fail, at all
+  // twenty readings this block takes (5 positions × 4 values), which is exactly the current build.**
+  // (`surface.md §2.5` item 5 (a)–(b); `crossing.md §1.3`'s `AddressArg` rows 5 and 6; `§2.4` item 9 (f)'s
+  // `A127` clause — the ten methods' first position is the address; `docs/specs/storeroom-js/test-cases.md`'s
+  // `AddressArg` pointer set.)
+  //
+  // **THE STATES, ENUMERATED BEFORE THE DRIVE:**
+  //   (i) the FIVE ADDRESS POSITIONS the surface declares (`surface.md §2.2`'s method table, each row's first
+  //       position) — `listen(address)`, `read(address, tier?)`, `write(address, tier, value)`,
+  //       `delete(address, tier?)` and `readLiteral(address, tier?)`;
+  //   (ii) the FOUR NON-ARRAY OUTSIDE VALUES `AddressArg` rows 5–6 declare — `'a.b'` (row 6's own printed
+  //       subject, a string that is NOT a delimited address), `7` (row 6, a number), `null` (row 5) and
+  //       `undefined` (row 5, driven BOTH as a present argument and as the absent trailing position);
+  //   (iii) the declared ANSWER at every one of those twenty states: `AddressMalformed` in `§2.5`'s single
+  //       form, carrying the class half, the failing target's own rendering and the argument position.
+  const ADDRESS_POSITIONS = [
+    { name: 'listen(address)', position: 'first argument', call: (v) => inst.listen(v) },
+    { name: 'read(address, tier?)', position: 'first argument', call: (v) => inst.read(v) },
+    { name: 'write(address, tier, value)', position: 'first argument', call: (v) => inst.write(v, 'mem', 1) },
+    { name: 'delete(address, tier?)', position: 'first argument', call: (v) => inst.delete(v) },
+    { name: 'readLiteral(address, tier?)', position: 'first argument', call: (v) => inst.readLiteral(v) },
+  ];
+  // Each value's OWN rendering, in the spelling the store's generator uses for it (`§2.5` item 5 (a)): the
+  // string single-quoted, the number as its own value, and the two nullish spellings as the runtime prints
+  // them. `renderings` is a SET of admissible spellings and never one fixed sentence, so the cell asserts the
+  // value's own rendering and not a wording two parallel passes could diverge on.
+  const OUTSIDE_ADDRESS_VALUES = [
+    { value: 'a.b', row: 'AddressArg row 6', renderings: ["'a.b'", 'a.b'] },
+    { value: 7, row: 'AddressArg row 6', renderings: ['the number 7', '7'] },
+    { value: null, row: 'AddressArg row 5', renderings: ['null'] },
+    { value: undefined, row: 'AddressArg row 5', renderings: ['undefined'] },
+  ];
+  for (const site of ADDRESS_POSITIONS) {
+    for (const outside of OUTSIDE_ADDRESS_VALUES) {
+      let refusal = null;
+      try {
+        site.call(outside.value);
+      } catch (err) {
+        refusal = err;
+      }
+      const where = `${site.name} with ${outside.row}'s ${String(outside.value)}`;
+      assert.ok(refusal !== null && typeof refusal === 'object',
+        `${where}: the outside value is REFUSED and the refusal is thrown (\`§2.5\` item 3)`);
+      assert.equal(refusal.status, 'AddressMalformed',
+        `${where}: the status is the store's own \`AddressMalformed\` — minted by nothing (\`§2.5\` item 5 (c); \`DD-40\`)`);
+      const message = String(refusal.message);
+      assert.ok(message.includes('is not a legal address segment'),
+        `${where}: the CLASS half is carried (\`§2.5\` item 5 (b))`);
+      // (a) THE FAILING TARGET, AT ITS OWN RENDERING — the repair's first half.
+      assert.ok(
+        outside.renderings.some((r) => message.includes(r)),
+        `${where}: the message carries the VALUE'S OWN RENDERING (\`§2.5\` item 5 (a): a non-segment value is printed as its own value) — sought one of ${JSON.stringify(outside.renderings)} in \`${message}\``,
+      );
+      // (b) THE ARGUMENT POSITION, BESIDE the class, inside the message's own text — the repair's second half.
+      assert.ok(
+        message.includes(site.position),
+        `${where}: and names the ARGUMENT POSITION it stands at — \`${site.position}\` (\`§2.5\` item 5 (b); \`crossing.md §1.3\`'s \`AddressArg\` rows 5–6, read at the first position of every method \`§2.2\` declares) — in \`${message}\``,
+      );
+      // AND THE EMPTY-CONTAINER FORM IS REFUSED: `in ''` is the REGISTER's own container spelling, so a
+      // message carrying it answers a failure INSIDE the register and not a failure of the ADDRESS ARGUMENT.
+      assert.equal(
+        message.includes("in ''"), false,
+        `${where}: and does NOT carry the empty-container form \`in ''\` — that is the REGISTER's own container spelling (native contract §8.2's \`<CONTAINER>\`), not an address argument's failure — in \`${message}\``,
+      );
+    }
+  }
+  // AND THE ABSENT POSITION IS THE SAME SCALAR ARM (`AddressArg` row 4, *"an ABSENT `address`"*), driven at
+  // the one method whose address ARITY makes absence reachable with no other position supplied: the same
+  // target rendering (`undefined`) and the same argument position are owed by `§2.5` item 5 (a)–(b), and the
+  // empty-container form is refused with them.
+  for (const site of ADDRESS_POSITIONS) {
     let refusal = null;
     try {
-      inst.listen(outside);
+      site.call(undefined);
     } catch (err) {
       refusal = err;
     }
-    assert.ok(refusal !== null && refusal.status === 'AddressMalformed', `\`listen(${String(outside)})\` answers the one form`);
+    assert.ok(refusal !== null && typeof refusal === 'object',
+      `${site.name}: an ABSENT address is refused (\`AddressArg\` row 4)`);
+    assert.equal(refusal.status, 'AddressMalformed',
+      `${site.name}: and answers the store's own \`AddressMalformed\``);
     const message = String(refusal.message);
-    assert.ok(message.includes('is not a legal address segment'), 'the class half is carried');
-    assert.equal(message.includes(String(outside)), false,
-      `THE MEASURED GAP: the store's generic phrase carries no failing TARGET at this site (\`${String(outside)}\`)`);
-    assert.equal(message.includes('first argument'), false,
-      'THE MEASURED GAP: and no argument POSITION, which `§2.5` item 5 (b) declares for a verb\'s arguments');
+    assert.ok(message.includes('undefined'),
+      `${site.name}: the absent position's own runtime rendering is carried (\`§2.5\` item 5 (a)) — in \`${message}\``);
+    assert.ok(message.includes(site.position),
+      `${site.name}: and the argument position \`${site.position}\` (\`§2.5\` item 5 (b)) — in \`${message}\``);
+    assert.equal(message.includes("in ''"), false,
+      `${site.name}: and the empty-container form \`in ''\` is NOT carried — in \`${message}\``);
   }
   // **⟶ AND THE ADDRESS-POSITION RENDERING IS ASSERTED AT ITS OWN CELL, 2026-10-17 (`role_test_writer`;
   // GATE 4's ADVERSARIAL PASS).** **THE READING THIS CELL TAKES IS THE ONE THE LOOP ABOVE COULD NOT TAKE

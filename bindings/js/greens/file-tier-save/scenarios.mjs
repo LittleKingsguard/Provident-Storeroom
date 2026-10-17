@@ -185,7 +185,7 @@ scenario('FTS-02', 'a constraint\'s refusal prevents the save and discards the w
     cell('FTS-02.5', 'surface.md §2.11 clause 1 (the failing arm drives no store call for that write)',
       'the refused write left no state: the store answers AddressNotFound at its address while the pre-image remains readable',
       () => {
-        const r = tryCall(() => PKG.read(s, ['e']));
+        const r = tryCall(() => s.read(['e']));
         return C(!r.ok && r.v && r.v.status === 'AddressNotFound', `read e -> ${describe(r.v)}`);
       });
     cell('FTS-02.6', 'surface.md §2.1 item 3 (THROWS — the log gains the outcome entry)',
@@ -209,7 +209,7 @@ scenario('FTS-03', 'a passing pass\'s image is durable before any listener body 
     const h = K.register(s, ['c'], 'c1', () => true);
     s.register(h, () => {
       const fresh = PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [] });
-      const r = tryCall(() => PKG.read(fresh, ['c']));
+      const r = tryCall(() => fresh.read(['c']));
       freshRead = r.ok ? JSON.stringify(r.v) : describe(r.v);
     });
     const rec = K.commit(s, ['c'], 'file', 4242);
@@ -221,7 +221,7 @@ scenario('FTS-03', 'a passing pass\'s image is durable before any listener body 
       'a fresh boot after the pass loads the installed version (the image is the register the pass settled)',
       () => {
         const fresh = PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [] });
-        const r = tryCall(() => PKG.read(fresh, ['c']));
+        const r = tryCall(() => fresh.read(['c']));
         return C(r.ok && r.v === 4242, `fresh boot read = ${r.ok ? JSON.stringify(r.v) : describe(r.v)} image=${imgStr(bytes(P))}`);
       });
     cell('FTS-03.3', 'surface.md §2.11 clause 2 (the act is keyed by the settled record\'s own op)',
@@ -249,7 +249,7 @@ scenario('FTS-04', 'the failing save: rollback first, message second, the pre-im
     const h = K.register(s, ['b'], 'cB', () => true);
     s.register(h, () => { fired++; });
     const rec = K.commit(s, ['b'], 'file', 222);
-    try { K.runAttempt(s, rec); } catch (e) { caught = e; stateInsideCatch = tryCall(() => PKG.read(s, ['b'])); }
+    try { K.runAttempt(s, rec); } catch (e) { caught = e; stateInsideCatch = tryCall(() => s.read(['b'])); }
     fs.chmodSync(d, 0o755);
     if (denyProbe.ok) {
       notDrivable('FTS-04.*', 'surface.md §2.11 clause 5 (the failing save)',
@@ -281,7 +281,7 @@ scenario('FTS-04', 'the failing save: rollback first, message second, the pre-im
       'at the instant the caller catches the failure the store\'s own state is already rolled back: the failed write\'s value is gone and the pre-image value is readable',
       () => {
         const r = stateInsideCatch;
-        const a = tryCall(() => PKG.read(s, ['a']));
+        const a = tryCall(() => s.read(['a']));
         return C(r && !r.ok && r.v && r.v.status === 'AddressNotFound' && a.ok && a.v === 111,
           `inside the catch: read b -> ${describe(r && r.v)} ; read a -> ${a.ok ? JSON.stringify(a.v) : describe(a.v)}`);
       });
@@ -377,7 +377,7 @@ scenario('FTS-05', 'the save\'s arm table is closed and total (bare write, mem t
     // (a) a bare caller-made file-tier write, with no kernel pass at all
     const d1 = tmp(); const P1 = path.join(d1, 'a.json');
     const s1 = PKG.storeCreate({ filePath: P1, journalLength: 8, listeners: [] });
-    const w1 = tryCall(() => PKG.write(s1, ['a'], 'file', 1));
+    const w1 = tryCall(() => s1.write(['a'], 'file', 1));
     cell('FTS-05.1', 'surface.md §2.11 clause 2 (the act is the terminal arm\'s, and there is no second arm of it)',
       'a bare caller-made file-tier write performs NO save: the verb returns its own result and the file keeps the construction\'s zero-byte image',
       () => C(w1.ok && !!w1.v.op && (bytes(P1) || Buffer.from('')).length === 0, `write=${w1.ok ? JSON.stringify(w1.v.op.opId) : describe(w1.v)} image=${imgStr(bytes(P1))}`));
@@ -430,10 +430,10 @@ scenario('FTS-06', 'the fifth position: absence proceeds, a supplied `undefined`
     cell('FTS-06.1', 'surface.md §2.2 clause 2 (the position is optional; absent it is IN DOMAIN)',
       'a write of four arguments proceeds and returns the store\'s own write result',
       () => {
-        const w = tryCall(() => PKG.write(s, ['a'], 'file', 1));
+        const w = tryCall(() => s.write(['a'], 'file', 1));
         return C(w.ok && !!w.v && !!w.v.op && typeof w.v.op.opId === 'string', `write -> ${w.ok ? JSON.stringify(Object.keys(w.v)) : describe(w.v)}`);
       });
-    const refused = tryCall(() => PKG.write(s, ['z'], 'file', 1, undefined));
+    const refused = tryCall(() => s.write(['z'], 'file', 1, undefined));
     cell('FTS-06.2', 'surface.md §2.2 clause 3 (a supplied `undefined` is refused, and this is the arity gate\'s own case)',
       'a fifth argument supplied as undefined is refused by the position\'s own arity reading (not by the class test)',
       () => C(!refused.ok, `write(a,t,v,undefined) -> ${refused.ok ? 'PROCEEDED' : describe(refused.v)}`));
@@ -448,8 +448,8 @@ scenario('FTS-06', 'the fifth position: absence proceeds, a supplied `undefined`
     cell('FTS-06.4', 'surface.md §2.2 clause 4 (a refused write does not proceed)',
       'the refused write performed no store call: the address still holds nothing',
       () => {
-        const r = tryCall(() => PKG.read(s, ['z']));
-        const reg = tryCall(() => PKG.read(s, []));
+        const r = tryCall(() => s.read(['z']));
+        const reg = tryCall(() => s.read([]));
         return C(!r.ok && r.v && r.v.status === 'AddressNotFound' && reg.ok && !('z' in reg.v),
           `read z -> ${describe(r.v)} ; register=${reg.ok ? JSON.stringify(reg.v) : describe(reg.v)}`);
       });
@@ -468,7 +468,7 @@ scenario('FTS-07', 'the fifth position\'s class test: every outside value refuse
       ['a plain object carrying `pending: undefined`', { pending: undefined }],
     ];
     for (const [i, [label, v]] of outside.entries()) {
-      const r = tryCall(() => PKG.write(s, ['q'], 'file', 1, v));
+      const r = tryCall(() => s.write(['q'], 'file', 1, v));
       cell(`FTS-07.${i + 1}`, 'surface.md §2.4 item 9 (g) item 1 (the class test)',
         `${label} at the fifth position is refused: a TypeError whose status is ABSENT and whose message is a string`,
         () => {
@@ -480,14 +480,14 @@ scenario('FTS-07', 'the fifth position\'s class test: every outside value refuse
     cell('FTS-07.9', 'surface.md §2.4 item 9 (g) item 1 + §2.19 (a Proxy is refused on its class, before any member read)',
       'a Proxy carrying `pending` is refused, where the same member on a plain object stands IN DOMAIN',
       () => {
-        const proxied = tryCall(() => PKG.write(s, ['q'], 'file', 1, new Proxy({ pending: [] }, {})));
-        const plain = tryCall(() => PKG.write(s, ['q'], 'file', 1, { pending: [] }));
+        const proxied = tryCall(() => s.write(['q'], 'file', 1, new Proxy({ pending: [] }, {})));
+        const plain = tryCall(() => s.write(['q'], 'file', 1, { pending: [] }));
         return C(!proxied.ok && plain.ok, `Proxy -> ${proxied.ok ? 'PROCEEDED' : describe(proxied.v)} ; plain {pending: []} -> ${plain.ok ? 'PROCEEDED' : describe(plain.v)}`);
       });
     cell('FTS-07.10', 'surface.md §2.19 (the class test is what the boundary evaluates, and never an adoption history)',
       'a plain object carrying a present, non-undefined `pending` is IN DOMAIN: the write proceeds with no throw',
       () => {
-        const r = tryCall(() => PKG.write(s, ['q'], 'file', 1, { pending: [] }));
+        const r = tryCall(() => s.write(['q'], 'file', 1, { pending: [] }));
         return C(r.ok && !!r.v.op, `write -> ${r.ok ? JSON.stringify(r.v.op.opId) : describe(r.v)}`);
       });
     // ⟶ THE PARK IS LIFTED 2026-10-16 (this pass), BY THE CLAUSE THAT WAS WRITTEN TO LIFT IT. `surface.md §2.4`
@@ -506,16 +506,16 @@ scenario('FTS-07', 'the fifth position\'s class test: every outside value refuse
         const other = PKG.storeCreate({ filePath: P2, journalLength: 8, listeners: [] });
         const fh = K.register(other, ['f'], 'cf', () => true);
         const foreignRec = K.commit(other, ['f'], 'mem', 1); // another instance's own record identity
-        const byHandle = tryCall(() => PKG.write(s, ['q'], 'file', 1, { pending: [fh] }));
-        const byRecord = tryCall(() => PKG.write(s, ['q'], 'file', 1, foreignRec));
+        const byHandle = tryCall(() => s.write(['q'], 'file', 1, { pending: [fh] }));
+        const byRecord = tryCall(() => s.write(['q'], 'file', 1, foreignRec));
         return C(byHandle.ok && !!byHandle.v.op && byRecord.ok && !!byRecord.v.op,
           `context carrying another instance's handle -> ${byHandle.ok ? `PROCEEDED (op=${JSON.stringify(byHandle.v.op.opId)})` : describe(byHandle.v)} ; the same instance's whole record -> ${byRecord.ok ? `PROCEEDED (op=${JSON.stringify(byRecord.v.op.opId)})` : describe(byRecord.v)}`);
       });
     cell('FTS-07.13', 'surface.md §2.4 item 9 (g) item 2 AS RE-SPELLED 2026-10-16 (the object carrying a member that is NOT a handle at all PROCEEDS; `A: docs/decisions.md` · `A120` (1)), read with item 9 (g) item 1 (the position reads the MEMBER\'S PRESENCE and never its contents)',
       'a value carrying `pending` whose entries are NOT HANDLES AT ALL is IN DOMAIN at the fifth position: the write PROCEEDS and returns the store\'s own result, the member\'s contents being unread there',
       () => {
-        const g = tryCall(() => PKG.write(s, ['q'], 'file', 1, { pending: [42, 'x', null] }));
-        const o = tryCall(() => PKG.write(s, ['q'], 'file', 1, { pending: [{ notAHandle: true }] }));
+        const g = tryCall(() => s.write(['q'], 'file', 1, { pending: [42, 'x', null] }));
+        const o = tryCall(() => s.write(['q'], 'file', 1, { pending: [{ notAHandle: true }] }));
         return C(g.ok && !!g.v.op && o.ok && !!o.v.op,
           `pending:[42,'x',null] -> ${g.ok ? `PROCEEDED (op=${JSON.stringify(g.v.op.opId)})` : describe(g.v)} ; pending:[{notAHandle:true}] -> ${o.ok ? `PROCEEDED (op=${JSON.stringify(o.v.op.opId)})` : describe(o.v)}`);
       });
@@ -539,7 +539,7 @@ scenario('FTS-08', 'the fourth cfg key at construction: the legal forms make an 
           if (value !== 'ABSENT') cfg.constraints = value;
           const r = tryCall(() => PKG.storeCreate(cfg));
           if (!r.ok) return C(false, `THREW ${describe(r.v)}`);
-          const reg = tryCall(() => PKG.read(r.v, []));
+          const reg = tryCall(() => r.v.read([]));
           const keys = reg.ok ? Object.keys(reg.v) : [];
           return C(!keys.includes('constraints'), `instance returned ; register keys=${JSON.stringify(keys)}`);
         });
@@ -596,7 +596,7 @@ scenario('FTS-08', 'the fourth cfg key at construction: the legal forms make an 
           const P = path.join(d, `addr-${JSON.stringify(a).replace(/[^0-9a-z]/gi, '')}.json`);
           const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: a, id: 'c1' }] }));
           if (!r.ok) return `address ${JSON.stringify(a)} -> THREW ${describe(r.v)}`;
-          const reg = tryCall(() => PKG.read(r.v, []));
+          const reg = tryCall(() => r.v.read([]));
           const keys = reg.ok ? Object.keys(reg.v) : null;
           return `address ${JSON.stringify(a)} -> ${reg.ok && !keys.includes('constraints') ? `INSTANCE, no code, register without a constraints key (${JSON.stringify(keys)})` : `INSTANCE but register=${reg.ok ? JSON.stringify(reg.v) : describe(reg.v)}`}`;
         });
@@ -608,7 +608,7 @@ scenario('FTS-08', 'the fourth cfg key at construction: the legal forms make an 
         const d = tmp(); const P = path.join(d, 'third-member.json');
         const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['c'], id: 'c1', note: 'x' }] }));
         if (!r.ok) return C(false, `THREW ${describe(r.v)} — the extra member was read as outside the domain`);
-        const reg = tryCall(() => PKG.read(r.v, []));
+        const reg = tryCall(() => r.v.read([]));
         const keys = reg.ok ? Object.keys(reg.v) : null;
         return C(reg.ok && !keys.includes('constraints') && !keys.includes('note'),
           `INSTANCE (no code) ; register=${reg.ok ? JSON.stringify(keys) : describe(reg.v)}`);
@@ -657,7 +657,7 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
       () => {
         const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1' }, { address: ['b'], id: 'c2' }] }));
         if (!r.ok) return C(false, `THREW ${describe(r.v)}`);
-        const reg = tryCall(() => PKG.read(r.v, []));
+        const reg = tryCall(() => r.v.read([]));
         return C(reg.ok && reg.v.a === 5 && reg.v.b === 6, `register=${reg.ok ? JSON.stringify(reg.v) : describe(reg.v)}`);
       });
     cell('FTS-09.2', 'contract.md §8.1 #16 (the load-side trigger: "the loaded state no longer satisfies the supplied list")',
@@ -689,7 +689,7 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
         PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [] }); // the construction's own create leaves 0 bytes
         const size = fs.statSync(PP).size;
         const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1' }] }));
-        const reg = r.ok ? tryCall(() => PKG.read(r.v, [])) : null;
+        const reg = r.ok ? tryCall(() => r.v.read([])) : null;
         return C(r.ok && size === 0 && fs.statSync(PP).size === 0 && reg && reg.ok && Object.keys(reg.v).length === 0,
           `image is ${size} bytes ; the run answers: ${r.ok ? `INSTANCE — read([]) -> ${reg && reg.ok ? JSON.stringify(reg.v) : describe(reg && reg.v)}` : `THREW ${describe(r.v)}`}`);
       });
@@ -721,7 +721,7 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
         const before = bytes(P);
         const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1' }] }));
         if (!r.ok) return C(false, `THREW ${describe(r.v)} — an image carrying the key 'b', which the supplied list does not name, was REFUSED; that is the KEY-COVERAGE reading, which §7.2 item 1 refuses by name`);
-        const reg = tryCall(() => PKG.read(r.v, []));
+        const reg = tryCall(() => r.v.read([]));
         const v = reg.ok ? reg.v : null;
         return C(reg.ok && v && v.a === 5 && v.b === 6 && bytesEq(bytes(P), before),
           `INSTANCE, no code ; register=${reg.ok ? JSON.stringify(reg.v) : describe(reg.v)} — the loaded state carries 2 keys and the list names 1, so the key-coverage reading would have refused this boot ; the image stands byte-identical=${bytesEq(bytes(P), before)} ; before=${imgStr(before)} after=${imgStr(bytes(P))}`);
@@ -748,7 +748,7 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
         const size = fs.existsSync(PP) ? fs.statSync(PP).size : null;
         const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1' }] }));
         if (!r.ok) return C(false, `a zero-byte file (${size} bytes) under a non-empty supplied list THREW ${describe(r.v)} — the exemption is the FILE'S emptiness and the file IS empty`);
-        const reg = tryCall(() => PKG.read(r.v, []));
+        const reg = tryCall(() => r.v.read([]));
         return C(c.ok && size === 0 && reg.ok && Object.keys(reg.v).length === 0 && fs.statSync(PP).size === 0,
           `file=${size} bytes (the construction's own exclusive create) ; INSTANCE, no code ; read([]) = ${reg.ok ? JSON.stringify(reg.v) : describe(reg.v)} ; size after the boot=${fs.statSync(PP).size}`);
       });
@@ -813,13 +813,13 @@ scenario('FTS-11', 'the join: a repair\'s write is a new entry in the same commi
         // the context the kernel hands the repair CARRIES the commit at the fifth position (`§2.3` item 2's
         // sixth member, `pending: Handle[]`, added 2026-10-15) and the class test of `§2.4` item 9 (g) item 1
         // admits it. The pre-re-spelling route (the position ABSENT) is recorded beside it, not asserted.
-        const wCarry = tryCall(() => PKG.write(s, ['c'], 'file', 10, rc));
+        const wCarry = tryCall(() => s.write(['c'], 'file', 10, rc));
         carryRoute = wCarry.ok ? `ACCEPTED (op=${JSON.stringify(wCarry.v.op && wCarry.v.op.opId)})` : `REFUSED: ${describe(wCarry.v)}`;
-        const w = wCarry.ok ? wCarry : tryCall(() => PKG.write(s, ['c'], 'file', 10)); // §2.20's in-domain form
+        const w = wCarry.ok ? wCarry : tryCall(() => s.write(['c'], 'file', 10)); // §2.20's in-domain form
         return { ok: true, op: w.ok ? w.v.op : undefined };
       } };
     });
-    const hListen = PKG.listen(s, ['c']);
+    const hListen = s.listen(['c']);
     s.register(hListen, () => { fired++; });
     const rec = K.commit(s, ['c'], 'file', 99);
     const out = tryCall(() => K.runAttempt(s, rec));
@@ -904,20 +904,28 @@ scenario('FTS-11', 'the join: a repair\'s write is a new entry in the same commi
 
 // =============================================================== FTS-12 =====
 scenario('FTS-12', 'the censuses clause 7 leaves unmoved',
-  'surface.md §2.11 clause 7; §2.3 item 1 (the instance\'s member set); kernel-surface.md §1 (the kernel\'s extent)', () => {
+  'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-16 MARK (its two figures re-derived to `§2.4` item 9 (f)\'s and `§2.9` item 1\'s `A127` clauses), with §2.3 item 1 (the product\'s member set) and kernel-surface.md §1 (the kernel\'s extent)', () => {
     const d = tmp(); const P = path.join(d, 'census.json');
     const s = PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [] });
-    cell('FTS-12.1', 'surface.md §2.11 clause 7 (the instance\'s member set stays { register, on, off, settle })',
-      'the instance exposes exactly those four members and no fifth',
+    // ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): **STALE GREENS DOC**,
+    // `RCA-8(g)`. `surface.md §2.11` clause 7's two figures carry their own 2026-10-16 mark — *"THE TWO FIGURES
+    // THIS SENTENCE PRINTS ARE SUPERSEDED AND ARE READ THROUGH AT THIS CLAUSE'S OWN BYTES"* — and the operative
+    // figures are ONE named export, `storeCreate` ALONE, `11 → 1` ✓ (`§2.9` item 1's `A127` clause), and TWELVE
+    // own members, `10 + 1 + 1 = 12` ✓ (`§2.4` item 9 (f)'s `A127` clause). EACH CELL KEEPS ITS SUBJECT AND ITS
+    // EXACT SET-EQUALITY FORM; only the figures move, and `on`/`off`'s absence stays asserted BY that equality.
+    cell('FTS-12.1', 'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-16 MARK; the operative figure is §2.4 item 9 (f)\'s `A127` clause (`10 + 1 + 1 = 12`)',
+      'the instance exposes exactly the TWELVE declared members and no thirteenth — `on` and `off` among the absent',
       () => {
         const members = Object.getOwnPropertyNames(s).sort();
-        return C(JSON.stringify(members) === JSON.stringify(['off', 'on', 'register', 'settle']), `members=${JSON.stringify(members)}`);
+        const want = ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral',
+          'register', 'rollback', 'settle', 'unlisten', 'write'];
+        return C(JSON.stringify(members) === JSON.stringify(want), `members=${JSON.stringify(members)}`);
       });
-    cell('FTS-12.2', 'surface.md §2.11 clause 7 (the module namespace stays at 8 verbs)',
-      'the package\'s module namespace carries exactly the eight declared verbs',
+    cell('FTS-12.2', 'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-16 MARK; the operative figure is §2.9 item 1\'s `A127` clause (`11 → 1`)',
+      "the package's module namespace carries exactly its one remaining name, `storeCreate`",
       () => {
         const keys = Object.keys(PKG).sort();
-        return C(keys.length === 8 && JSON.stringify(keys) === JSON.stringify(['delete', 'listen', 'read', 'readLiteral', 'rollback', 'storeCreate', 'unlisten', 'write']), `namespace=${JSON.stringify(keys)}`);
+        return C(keys.length === 1 && JSON.stringify(keys) === JSON.stringify(['storeCreate']), `namespace=${JSON.stringify(keys)}`);
       });
     cell('FTS-12.3', 'surface.md §2.11 clause 7 (the kernel\'s extent stays FIVE)',
       'the kernel entry carries exactly its five declared items',
@@ -928,7 +936,7 @@ scenario('FTS-12', 'the censuses clause 7 leaves unmoved',
     observed('FTS-12.4', 'surface.md §2.1 item 1 (an app\'s own `listen` and the kernel\'s `register` at one address return the same adopted handle)',
       'the two handles\' identity at one address', () => {
         const h1 = K.register(s, ['x'], 'cx', () => true);
-        const h2 = PKG.listen(s, ['x']);
+        const h2 = s.listen(['x']);
         return `kernel.register === PKG.listen ? ${h1 === h2}`;
       });
   });
