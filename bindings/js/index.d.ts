@@ -49,6 +49,28 @@
 // (`distribution.md §5.2` item 4): **it declares NO store type, NO store verb, NO `findAddress`, NO
 // release verb and NO constraint or repair seam** — each of those is a declaration the sibling directory
 // refuses, and a declaration file carrying one would declare a surface the package does not publish.
+//
+// **⟶ AND THE LIMITS OF THIS FILE ARE STATED RATHER THAN IMPLIED, ADDED 2026-10-17** (`DEF-2026-10-16-Q`:
+// *"`bindings/js/index.d.ts` IS TYPE-CHECKED NOWHERE, AND THE TYPES SHIP TO CONSUMERS"*). **NOTHING IN THIS
+// REPOSITORY TYPE-CHECKS THIS FILE — no `tsc`, no `tsd`, no `checkJs` and no type-test file anywhere in the
+// tree — so EVERY CHANGE MADE HERE IS TEXTUAL: it is a claim read by a HUMAN and by a consumer's own
+// compiler, never a claim this repository's own suite can fail on.** **THE THREE CLAIMS A `TypeScript`
+// DECLARATION CANNOT ENFORCE, EACH NAMED SO NO READER READS THEM AS ENFORCED:**
+// 1. **`tier?: TierSet` CANNOT EXPRESS SUPPLIED-VERSUS-OMITTED `undefined`** (`PAR-JS-6`: a SUPPLIED
+//    `undefined` at the tier position is PRESENT and takes the store's `AddressMalformed`, while the call
+//    that supplied NOTHING there folds to the ABSENT row). An optional parameter admits both spellings
+//    identically and no type can separate them; the distinction is a RUNTIME one, driven at
+//    `a127-surface.test.mjs`.
+// 2. **`Address = readonly (string | number)[]` CANNOT EXPRESS NON-NEGATIVE INTEGER** (`PAR-JS-5`). The
+//    domain is a string key or a non-negative integer a `u64` can carry exactly; `number` admits `-1`,
+//    `1.5`, `NaN` and `Infinity`, each of which the boundary REFUSES with the store's own
+//    `AddressMalformed`. The narrowest lawful widening a declaration can make is `number`, and this file
+//    makes it.
+// 3. **THE INSTANCE'S *"TWELVE OWN MEMBERS AND NOTHING ELSE"* IS NOT STRUCTURALLY ENFORCEABLE HERE**
+//    (`§2.4` item 9 (f)'s `A127` clause; `§2.9` item 1's). An interface declares the members a value HAS
+//    and constrains no excess member, so a product carrying a thirteenth own member still satisfies
+//    `StoreInstance`. The count is driven at the boundary instead (`a127-surface.test.mjs`'s
+//    `Object.getOwnPropertyNames` cell, which exists precisely because this declaration cannot fail on it).
 
 /**
  * A position in the register: the address a verb is called at, as a sequence of path segments.
@@ -349,9 +371,24 @@ export interface StoreInstance {
    * **AN ABSENT `commit` IS IN DOMAIN** (§2.2 clause 3: *"the write opens or joins a commit all the
    * same"*) and **NO DEFAULT RECORD IS FABRICATED FOR IT**; **the admitted form is the kernel's own
    * `CommitRecord`** (`surface.md §2.4` item 9 (g) item 1: an object carrying a `pending` member present
-   * and not `undefined`), and **every other form at this position throws the registration site's own
-   * `TypeError`**, whose `status` member is ABSENT. **A REFUSED POSITION STOPS THE WRITE**: no verb is
-   * reached and no byte moves.
+   * and not `undefined`), and **every other form at this position — absent, `undefined`, `null`, a
+   * primitive, a function, a `Proxy`, an object whose `pending` member is absent or `undefined` — throws
+   * THE CLASS TEST'S OWN `TypeError`, whose `status` member is ABSENT and whose STRING `message` member is
+   * REQUIRED** (`surface.md` §2.4 item 9 (g) item 1's discriminator, landed 2026-10-15 on `A116` (D1); the
+   * operative predicate is `file-tier-save.test.mjs`'s `positionRefusal`, which asserts exactly those two
+   * halves). **A REFUSED POSITION STOPS THE WRITE**: no verb is reached and no byte moves.
+   *
+   * **⟶ CORRECTED 2026-10-17 — THIS CELL ATTRIBUTED THAT `TypeError` TO *"the registration site's own"*
+   * FORM, AND THE ATTRIBUTION WAS FALSE** (`DEF-2026-10-16-Q`; `surface.md` §2.5 item 5 (g), THE OPERATIVE
+   * READING). **THE REGISTRATION SITE THROWS NO `TypeError` AT ALL**: its refusal *"IS a rejection under
+   * `A76` and travels in THIS section's single form, with its `status` drawn from the store's closed set —
+   * the store's own `AddressMalformed`"*, `message` generated as clause (d) declares, so `register`'s
+   * outside argument answers a plain `{status, message}` (driven at `register.test.mjs`'s
+   * `isRegistrationRefusal`, which counts a `TypeError` as a FAILURE). **A `TypeError` thrown by any
+   * STORE-REACHING VERB is itself a FINDING** (`a127-surface.test.mjs`'s
+   * `a127_no_store_reaching_verb_throws_the_class_test_form`). The two forms are DIFFERENT forms of
+   * DIFFERENT sites, and this position's is the class test's own, declared at `§2.4` item 9 (g) —
+   * beside, and not drawn from, the registration site's `§2.4` item 5.
    *
    * **AND A SUPPLIED `undefined` AT THE `tier` POSITION IS PRESENT HERE TOO** (`parameter-semantics.md
    * §2.6`; `PAR-JS-6`): it is not the absent tier and the store answers `AddressMalformed` for it.
@@ -435,7 +472,19 @@ export interface StoreInstance {
    * record's own `pending` member is delivered through this instance's own registry, one invocation per
    * handle, each with the triggering address as its single argument). **Every other form at the record
    * position — absent, `undefined`, `null`, a primitive, a function, a `Proxy`, an identity this instance
-   * never adopted — throws the registration site's own `TypeError` and changes nothing.**
+   * never adopted — throws THE ORDERING SEAM'S OWN `TypeError`, whose `status` member is ABSENT and whose
+   * STRING `message` member is REQUIRED, and changes nothing.**
+   *
+   * **⟶ CORRECTED 2026-10-17 — THIS CELL ATTRIBUTED THAT `TypeError` TO *"the registration site's own"*
+   * FORM AND THAT ATTRIBUTION WAS FALSE** (`DEF-2026-10-16-Q`; `surface.md` §2.5 item 5 (g), the operative
+   * reading of the registration site; `§2.4` item 9 (b), landed 2026-10-15 on `A116` (D1), which re-spells
+   * the re-spelling this position takes). **THE REGISTRATION SITE ANSWERS A PLAIN `{status, message}` with
+   * `status` `AddressMalformed` — a `TypeError` there is a FAILURE** (`register.test.mjs`'s
+   * `isRegistrationRefusal`), and **the seam's own form is declared at `§2.4` item 9 (b) and not at item
+   * 5**: *"a `TypeError` with its `status` member ABSENT and a STRING `message` member REQUIRED AND NOT
+   * FORBIDDEN"* (`§2.5` item 5 (g)'s own record of that re-spelling, whose two dated readings of one
+   * phrase it reports and settles by no clause). **SO THE TWO SITES' FORMS ARE NOT ONE FORM, and this
+   * member's is the seam's.**
    *
    * **THE RECORD POSITION TAKES THE KERNEL'S OWN `CommitRecord` — `{ attempt, op, triggered, pending }`,
    * FOUR MEMBERS — AND NOT THE STORE'S `WriteRecord`** (`surface.md` `§2.4` item 9 (f)'s *"each with its

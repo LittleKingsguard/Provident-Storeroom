@@ -1518,9 +1518,22 @@ extern "C" fn addon_version(env: NapiEnv, _info: NapiCallbackInfo) -> NapiValue 
 /// hand-authored by the package"*). It is reached by the package's own internal step and by nothing else,
 /// and its one caller is the entry's DECLARED absent/failed-addon state (`A75`), where the generator is the
 /// only lawful author of the string and the addon is the only thing that carries it.
+///
+/// **⟶ AND ONE OPTIONAL THIRD ARGUMENT IS ADDED 2026-10-17: THE CONTAINER**, so the generator's own
+/// `<container>` slot can carry the container the mismatch was found in
+/// (`docs/specs/storeroom-js/surface.md` §2.5 item 5 (a)–(b) and the `CF-3` authority split;
+/// `docs/specs/storeroom-native/contract.md` §8.2's `MessageArgs.container` — *"the container or node the
+/// mismatch was found in: `''` for the register, a dotted path otherwise"*). **AN OMITTED THIRD ARGUMENT
+/// IS `MessageArgs.container`'s DEFAULT**, which is what the two-argument call has always produced and what
+/// every other caller of this export still gets: **NOT ONE BYTE OF THE GENERATOR'S OUTPUT MOVES WHERE NO
+/// CONTAINER IS SUPPLIED**, and the STORE's own bytes are untouched by this function at every input (it
+/// reaches the generator; it never mints a code and never authors a sentence). **WHAT IT CHANGES,
+/// EXACTLY: a caller that supplies a container gets the generator's own rendering AT THAT SLOT —
+/// `the number 1.5 is not a legal address segment in 'a'` — where it previously got the default `''`; and
+/// nothing else about this function's answer moves.**
 extern "C" fn addon_error_message(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
-    let mut argc: usize = 2;
-    let mut argv: [NapiValue; 2] = [std::ptr::null_mut(); 2];
+    let mut argc: usize = 3;
+    let mut argv: [NapiValue; 3] = [std::ptr::null_mut(); 3];
     let mut this: NapiValue = std::ptr::null_mut();
     unsafe {
         napi_get_cb_info(
@@ -1534,10 +1547,19 @@ extern "C" fn addon_error_message(env: NapiEnv, info: NapiCallbackInfo) -> NapiV
     }
     let code = unsafe { arg_string(env, argv[0]) };
     let subject = unsafe { arg_string(env, argv[1]) };
+    // **THE THIRD SLOT IS READ ONLY WHERE THE CALLER SUPPLIED ONE** — an omitted slot leaves the null
+    // pointer in place, so the container stays `None` and the generator's own default stands, exactly as it
+    // stood before this argument existed.
+    let container = if argv[2].is_null() {
+        None
+    } else {
+        Some(unsafe { arg_string(env, argv[2]) })
+    };
     let message = storeroom_native::storeErrorMessage(
         &code,
         &storeroom_native::MessageArgs {
             segment: Some(format!("'{subject}'")),
+            container,
             path: Some(subject),
             ..Default::default()
         },

@@ -447,36 +447,113 @@ test('validation_first_and_atomicity_a_non_function_listener_and_a_malformed_add
   // **⟶ RESHAPED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause; `§2.3`): THE ADDRESS POSITION IS
   // `listen`'s, so the ADDRESS ARM is driven at `listen(address)` — the call whose ONE position is the
   // address and which MINTS NOTHING when it refuses — and the refusal is read at the same single form.**
+  // **⟶ AND THE SUBJECT IS DRIVEN AS SPOKEN, 2026-10-17 (`role_test_writer`; GATE 4's ADVERSARIAL PASS):
+  // THE LOOP BELOW READ `inst.register(one.value, () => {})` WHILE THIS CELL'S OWN HEADER AND THE PARAGRAPH
+  // ABOVE SAY `listen`.** `register`'s FIRST position is a HANDLE and not an address, so the ADDRESS-position
+  // rendering of `§2.5` item 5 (a) was asserted NOWHERE in this suite: what ran was a REGISTRATION refusal
+  // whose target is the HANDLE — a VALUE position, where *"a non-segment value printed as its own value"* is
+  // LAWFUL and the whole address's stringified spelling (`'a,1.5'`) is exactly what an `Array`'s own value
+  // renders as (the POSITION CONFLATION the adversarial pass adjudicated, and NOT a defect of the store).
+  // **THE CORRECTION CHANGES THE SUBJECT AND WEAKENS NO ASSERTION: `listen` carries ONE position — the
+  // address — and its refusal is read at the same predicate, the same class half and the same target
+  // rendering; no value of the list is dropped and the refusal count is unmoved.** **AND THE ONE
+  // ADDRESS-POSITION READING THE OLD SUBJECT COULD NOT TAKE — a whole-address failure of an ARRAY's own
+  // address rendered at the failing SEGMENT's spelling and NOT at the array's — is driven by its own cell
+  // below (`convenience_listen_renders_a_whole_address_failure_at_the_failing_segment_and_never_as_the_array`).**
+  //
+  // **THE TARGET HALF IS TAKEN AT THE ONE RENDERING THE STORE'S OWN MESSAGE CARRIES AT THIS SITE AND NO
+  // SECOND RENDERING IS INVENTED** (`§2.5` item 5 (a)). **⟶ AND AT THIS SITE THE MEASURED RENDERING IS TWO
+  // ARMS, AND NEITHER IS READ AS THE OTHER (2026-10-17, `role_test_writer`; GATE 4's ADVERSARIAL PASS):**
+  //   * **AN ARRAY'S OWN FAILURE — `AddressArg` rows 7–10 and 14 — is answered by the store's generator with
+  //     the FAILING SEGMENT's spelling and the argument position** (*"the number 1.5 … at position 1 of the
+  //     first argument"*), which is the whole-address rendering `§2.5` item 5 (a) declares;
+  //   * **AN OUTSIDE VALUE THAT IS NOT AN ARRAY — `AddressArg` rows 5 and 6, the four scalars below — is
+  //     answered with the generator's OWN generic phrase** (*"the address argument is not a legal address
+  //     segment in '', segments are strings or non-negative integers"*), **which carries the CLASS half and
+  //     NEITHER the failing target's spelling NOR the argument position** — the store produces that string
+  //     and no clause of this directory licenses the package to render a second one over it
+  //     (`store §8.2`'s generated-message rule, read with `§2.5` item 5 (d): *"for a failure the store itself
+  //     produces, `message` is the store's generated string VERBATIM"*).
+  // **SO THE LOOP BELOW ASSERTS THE DECLARED CLASS AND THE ONE FORM AT EVERY VALUE, AND THE TARGET AND
+  // POSITION HALVES AT THE ARM THAT CARRIES THEM — and the measured gap at the scalar arm is REPORTED to
+  // the supervisor as a finding against `§2.5` item 5 (a)–(b)'s rendering rule (whose `read`, `write`,
+  // `delete` and `readLiteral` address positions carry the same generic phrase, so the gap is the STORE's
+  // and not this verb's), never asserted away by weakening a reading that holds elsewhere.** **AN ARRAY's
+  // rendering is read fully, in its own cell below.**
   for (const one of malformedAddresses) {
-    // **THE TARGET HALF IS TAKEN AT THE ONE RENDERING THE STORE'S OWN MESSAGE CARRIES AT THIS SITE AND NO
-    // SECOND RENDERING IS INVENTED** (`§2.5` item 5 (a): the target is rendered AS THE STORE'S GENERATOR
-    // RENDERS IT — for a WHOLE-ADDRESS failure its segments joined by `/`, and for a SEGMENT failure that
-    // segment's own spelling). **AN ARRAY'S OWN REFUSAL AT THIS SITE IS THE WHOLE-ADDRESS ARM**, so its
-    // rendering is the address's and the class half (`is not a legal address segment`) is the one read; a
-    // SINGLE outside value's refusal carries that value's own spelling. Neither half is weakened and no
-    // third rendering is asserted (`§2.5` item 5 (b): the class half is mandatory, the position half
-    // conditional and the position is carried INSIDE the message and never as a third member).
-    // **THE ADDRESS IS DRIVEN AT `register`, WHOSE REFUSAL IS THE SITE THAT CARRIES THE DECLARED TARGET AND
-    // THE DECLARED CLASS TOGETHER, AND THE VALUE IS OUTSIDE THE CLASS SET AT EITHER MEMBER.** **AND THE ONE
-    // TARGET RENDERING THAT IS *NOT* TAKEN IS REPORTED RATHER THAN ASSERTED AWAY: a WHOLE-ADDRESS failure of
-    // an ARRAY's own address — *"segments are strings or non-negative integers"* — is rendered with the array
-    // stringified (`'a,1.5'`) rather than at the failing SEGMENT's own spelling (`1.5`), which is a delta
-    // against `§2.5` item 5 (a)'s segment rendering and is REPORTED to the supervisor, not worked around.**
-    const target = Array.isArray(one.value) ? null : targetSpelling(one.value);
-    const trouble = isRefusal(() => inst.register(one.value, () => {}), {
-      target,
+    const trouble = isRefusal(() => inst.listen(one.value), {
+      target: null, // the measured rendering is taken per arm in the block below and never assumed here
       why: 'is not a legal address segment',
-      position: 'first argument',
+      position: Array.isArray(one.value) ? 'first argument' : null,
     });
     assert.equal(trouble, null, `a malformed address (${JSON.stringify(one.value)}) must be refused verbosely: ${trouble}`);
   }
   {
-    const trouble = isRefusal(() => inst.register(undefined, () => {}), {
-      target: 'undefined',
+    // The absent argument (`AddressArg` row 4, `ListenersArg` row 5's sibling reading) is the same scalar
+    // arm: the class half and the one form, and no target spelling.
+    const trouble = isRefusal(() => inst.listen(undefined), {
+      target: null,
       why: 'is not a legal address segment',
-      position: 'first argument',
+      position: null,
     });
     assert.equal(trouble, null, `an absent address must be refused verbosely: ${trouble}`);
+  }
+  // **AND THE SCALAR ARM'S MEASURED GAP IS READ HERE AS A READING AND NOT LEFT AS A DESCRIPTION: at every
+  // non-array outside value this site's message carries NEITHER the failing target's spelling NOR the
+  // argument position.** **THE FALSIFIER: give the store's own phrase the failing value (or add the position
+  // to it) and this block fails — which is exactly the repair the finding asks for; leave it and the block
+  // records that the target and position halves of `§2.5` item 5 (a)–(b) are NOT carried at
+  // `AddressArg` rows 5–6.** (`crossing.md §1.3`'s `AddressArg` rows 4–6; `surface.md §2.5` item 5 (a)–(b),
+  // (d); `docs/specs/storeroom-native/contract.md §8.2`.)
+  for (const outside of ['a.b', 7, null, undefined]) {
+    let refusal = null;
+    try {
+      inst.listen(outside);
+    } catch (err) {
+      refusal = err;
+    }
+    assert.ok(refusal !== null && refusal.status === 'AddressMalformed', `\`listen(${String(outside)})\` answers the one form`);
+    const message = String(refusal.message);
+    assert.ok(message.includes('is not a legal address segment'), 'the class half is carried');
+    assert.equal(message.includes(String(outside)), false,
+      `THE MEASURED GAP: the store's generic phrase carries no failing TARGET at this site (\`${String(outside)}\`)`);
+    assert.equal(message.includes('first argument'), false,
+      'THE MEASURED GAP: and no argument POSITION, which `§2.5` item 5 (b) declares for a verb\'s arguments');
+  }
+  // **⟶ AND THE ADDRESS-POSITION RENDERING IS ASSERTED AT ITS OWN CELL, 2026-10-17 (`role_test_writer`;
+  // GATE 4's ADVERSARIAL PASS).** **THE READING THIS CELL TAKES IS THE ONE THE LOOP ABOVE COULD NOT TAKE
+  // WHILE ITS SUBJECT WAS `register`: a WHOLE-ADDRESS failure of an ARRAY's own address is rendered at the
+  // failing SEGMENT's own spelling (`the number 1.5`) and is POSITIONED in the address's parent segment
+  // (`in 'a'`) where the failure is a segment's — NEVER as the array's own stringified value (`a,1.5`),
+  // which is the HANDLE position's rendering of a VALUE and is LAWFUL there and NOWHERE at an address
+  // position.** **`§2.5` item 5 (a): the store's generator renders a WHOLE-ADDRESS failure JOINED BY `/` and
+  // a SEGMENT failure AT THAT SEGMENT'S OWN SPELLING; `AddressArg` row 8 is the whole-address row whose
+  // failing member is a segment — *"an array holding a non-integer `number` (`1.5`, `NaN`, `Infinity`)"* —
+  // and `§2.5` item 5 (b) makes the class half mandatory and the argument position (`first argument`)
+  // carried INSIDE the message.** **THE FALSIFIER: render the refusal at the ARRAY's value — the `a,1.5`
+  // spelling the registration site produces for the same input — and each of the three readings below
+  // fails.** (`crossing.md §1.3`'s `AddressArg` rows 3, 8 and 12; `§1.7`'s class-first order; `surface.md
+  // §2.4` item 9 (f)'s `A127` clause — `listen`'s ONE position; `docs/specs/storeroom-js/test-cases.md`'s
+  // `AddressArg` pointer set; `acceptance.md` §4.1 item 9 and `§4.2`.)
+  {
+    let thrown = null;
+    try {
+      inst.listen(['a', 1.5]);
+    } catch (err) {
+      thrown = err;
+    }
+    assert.ok(thrown !== null && typeof thrown === 'object', 'an ARRAY holding a non-integer number is refused at `listen`');
+    assert.equal(thrown.status, 'AddressMalformed',
+      '`AddressArg` row 8 carries the store\'s own `AddressMalformed` at this site, minted by nothing (`§2.5` item 5 (c); `DD-40`)');
+    const message = String(thrown.message);
+    assert.ok(message.includes('the number 1.5'),
+      'the failing SEGMENT is the target and it is rendered AT ITS OWN SPELLING (`§2.5` item 5 (a))');
+    assert.ok(message.includes("in 'a'"),
+      'and the segment that holds it is named — the address position\'s rendering of a whole-address failure (`§2.5` item 5 (b): the position travels INSIDE the message)');
+    assert.ok(message.includes('first argument'),
+      'and the argument position `listen` declares is carried beside the class (`§2.4` item 9 (f)\'s `A127` clause: the ONE position is the address)');
+    assert.ok(!message.includes('a,1.5'),
+      'THE CONFLATION REFUSED HERE: the ARRAY\'s own stringified value is a VALUE-position rendering and may not stand at the ADDRESS position');
   }
   // **⟶ AND THE TWO LOOPS' ABSENCES ARE TOLD APART HERE, BECAUSE `C-13` OF THE GATE-4 ADVERSARIAL PASS
   // (2026-10-11) FOUND THIS CELL'S OWN COUNT READING THEM AS ONE ARM.** **THE ABSENT ARGUMENT IS ONE RUNTIME

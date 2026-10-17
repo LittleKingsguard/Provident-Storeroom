@@ -44,6 +44,12 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+// **THE CONTRACT'S OWN BYTES ARE READ BY THE REGISTER'S CLOSURE CELL** (`contract.md §5.1`–`§5.8`; the
+// re-derivation of 2026-10-17): the declared strategy ids are EXTRACTED FROM THE DOCUMENT that declares
+// them, so the closure cannot close over this file's own literal.
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 
 // ⟶ RESHAPED: the package namespace carries ONE name (`surface.md §2.9` item 1's `A127` clause; `11 → 1`).
 
@@ -1378,16 +1384,44 @@ test('ck_prop_P_TP_8_the_marker_writes_no_store_entry_no_journal_entry_and_no_cl
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // THE REGISTER'S OWN DECLARED IDS, `contract.md §5.1`–`§5.8`, in the rows' own order — the ONE home of
 // the list, read by the budget cell's two-direction closure and by `P-NEG-21`.
-const DECLARED_STRATEGY_IDS = [
-  'S-KEY', 'S-KEY-ADDR', 'S-CHECK',
-  'S-REC', 'S-REC-SURFACE', 'S-REC-DISPOSE', 'S-REC-RETAIN',
-  'S-CHAN', 'S-CHAN-CONV', 'S-CHAN-FORM',
-  'S-ATT-ARM', 'S-ATT-OUT', 'S-ATT-SHAPE',
-  'S-SIDE', 'S-WINDOW', 'S-LOG-ORDER', 'S-NO-STORE-ORDER',
-  'S-FIRST-REPEAT', 'S-SECOND-VIOLATION', 'S-NO-BUDGET',
-  'S-ROLLBACK-ALL', 'S-ROLLBACK-PER-OP', 'S-ROLLBACK-FLOOR', 'S-ROLLBACK-TARGET',
-  'S-MARK-ATTEMPT', 'S-MARK-SCOPE', 'S-MARK-NO-HOME',
-];
+//
+// **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`; GATE 4's ADVERSARIAL PASS): THE SET IS NO LONGER A
+// LITERAL TYPED IN THIS FILE.** It was one — and so was the `24`/`27` arithmetic below — so a `28`th id
+// landing in `contract.md §5` would have moved NOTHING: the closure read compared this file's own list
+// against this file's own list's consumers. **THE DECLARED SET IS NOW EXTRACTED FROM THE CONTRACT BYTES IT
+// CLAIMS TO CHECK** — the eight `### §5.n` headings and, inside each, the bolded ids of that row's own
+// *"**Strategy ids.**"* line — and the extraction is asserted to have found the same number of ids the
+// contract's own counts print (`3 + 4 + 3 + 3 + 4 + 3 + 4 + 3 = 27`) and to be a set of DISTINCT ids.
+const CONTRACT_PATH = join(
+  dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'docs', 'specs', 'storeroom-constraints', 'contract.md',
+);
+/// The eight `§5.n` sections of the register, each with the ids ITS OWN `Strategy ids` line carries. The
+/// reading is the heading's own `§n`, never a position: a row that MOVED would be read at its new section
+/// rather than silently re-slotted.
+function declaredStrategyIdsFromContract(bytes) {
+  const headings = [];
+  const heading = /^### §5\.([1-8]) [^\n]*$/gm;
+  let hit;
+  while ((hit = heading.exec(bytes)) !== null) headings.push({ section: `§5.${hit[1]}`, start: hit.index });
+  for (let i = 0; i < headings.length; i += 1) {
+    const end = i + 1 < headings.length ? headings[i + 1].start : bytes.length;
+    const body = bytes.slice(headings[i].start, end);
+    // The row's own list, from its `**Strategy ids.**` label to its `**FAILURE LIST.**` label — the two
+    // labels the register fixes for every row — so the ids are read off the ROW and never off a neighbouring
+    // row's ids or off the text beside them.
+    const list = /\*\*Strategy ids\.\*\*([\s\S]*?)\*\*FAILURE LIST\.\*\*/.exec(body);
+    headings[i].ids = list === null ? [] : [...list[1].matchAll(/\*\*`(S-[A-Z][A-Z-]*)`\*\*/g)].map((x) => x[1]);
+  }
+  return headings;
+}
+const CONTRACT_STRATEGY_ROWS = declaredStrategyIdsFromContract(
+  readFileSync(CONTRACT_PATH, 'utf8'),
+);
+const DECLARED_STRATEGY_IDS = CONTRACT_STRATEGY_ROWS.flatMap((row) => row.ids);
+/// The contract's own arithmetic for the eight rows' ids, printed at the register's census and at this
+/// file's own header (`§5.1`–`§5.8`: `3 + 4 + 3 + 3 + 4 + 3 + 4 + 3 = 27`). **AN EMPTY OR TRUNCATED READ IS
+/// BELOW IT, SO THE READING FAILS LOUDLY INSTEAD OF CLOSING OVER NOTHING.**
+const IDS_PER_SECTION = [3, 4, 3, 3, 4, 3, 4, 3];
 
 /**
  * THE NAMED UNDRIVABLE LIST — the declared ids NO `row()` CELL OF THIS FILE CITES, each with its
@@ -1479,7 +1513,18 @@ test('ck_prop_the_register_ran_at_most_four_hundred_attempts_and_stopped_after_f
   assert.equal(cited.size + undrivable.length, DECLARED_STRATEGY_IDS.length,
     `and the two sets CLOSE the register: ${cited.size} cited + ${undrivable.length} undrivable = `
     + `${DECLARED_STRATEGY_IDS.length} declared ids (${undrivable.join(', ')})`);
-  assert.equal(DECLARED_STRATEGY_IDS.length, 27,
+  // **⟶ THE DECLARED SET IS THE CONTRACT'S OWN, AND THE READING OF IT IS ASSERTED BEFORE IT IS USED
+  // (2026-10-17, `role_test_writer`; GATE 4's ADVERSARIAL PASS).** **THE FALSIFIER: add a `28`th id to
+  // `contract.md §5` — its own row's `Strategy ids` line — and THIS CELL FAILS at `IDS_PER_SECTION` (the
+  // row's count moves) and at the closure below (an id neither cited nor named undrivable), where the
+  // as-filed literals `27`/`24` could not see it at all.** **A TRUNCATED OR FAILED EXTRACTION IS BELOW THE
+  // CONTRACT'S OWN FIGURES, so the closure can never close over an EMPTY reading.**
+  const readCounts = CONTRACT_STRATEGY_ROWS.map((row) => `${row.section}:${row.ids.length}`).join(' · ');
+  assert.deepEqual(CONTRACT_STRATEGY_ROWS.map((row) => row.ids.length), IDS_PER_SECTION,
+    `the eight rows' own id counts, READ FROM \`contract.md\` BY THE ROW'S SECTION (${readCounts})`);
+  assert.equal(new Set(DECLARED_STRATEGY_IDS).size, DECLARED_STRATEGY_IDS.length,
+    'and every declared id is DISTINCT across the eight rows, so the closure is a set and not a multiset');
+  assert.equal(DECLARED_STRATEGY_IDS.length, IDS_PER_SECTION.reduce((a, b) => a + b, 0),
     'and the declared set is the rows\' own: 3 + 4 + 3 + 3 + 4 + 3 + 4 + 3 = 27');
 });
 
@@ -1519,6 +1564,16 @@ test('ck_p_neg_21_every_declared_strategy_id_cites_a_row_cell_or_stands_in_the_n
   assert.equal(cited.size, 24, 'the register\'s own first term, read off the cells');
   assert.equal(cited.size + undrivable.length, DECLARED_STRATEGY_IDS.length,
     `the register's closure: ${cited.size} + ${undrivable.length} = ${DECLARED_STRATEGY_IDS.length}`);
+  // **AND THE `27` THE ARITHMETIC ABOVE CLOSES OVER IS A READING OF `contract.md §5`, NOT A LITERAL TYPED
+  // HERE (2026-10-17, `role_test_writer`; GATE 4's ADVERSARIAL PASS): THE IDS ARE EXTRACTED FROM THE EIGHT
+  // ROWS' OWN `Strategy ids` LINES, so a `28`th id landing in the contract makes BOTH closure cells fail
+  // instead of moving nothing.**
+  assert.deepEqual(CONTRACT_STRATEGY_ROWS.map((row) => row.section), ['§5.1', '§5.2', '§5.3', '§5.4', '§5.5', '§5.6', '§5.7', '§5.8'],
+    'the eight rows are read at their own sections, in the register\'s own order');
+  assert.deepEqual(CONTRACT_STRATEGY_ROWS.map((row) => row.ids.length), IDS_PER_SECTION,
+    'and each row\'s own `Strategy ids` line carries the count the register\'s census prints for it');
+  assert.equal(DECLARED_STRATEGY_IDS.length, IDS_PER_SECTION.reduce((a, b) => a + b, 0),
+    'the declared set read from the contract bytes: 3 + 4 + 3 + 3 + 4 + 3 + 4 + 3 = 27');
   for (const entry of UNDRIVABLE_BY_A_ROW_CELL) {
     assert.equal(typeof entry.reason === 'string' && entry.reason.length >= 60, true,
       `every undrivable id carries the reason it is undrivable by: ${entry.id} carries `

@@ -72,18 +72,49 @@ function * draw(attempt) {
   }
 }
 
-/// **THE ARTIFACT THIS FILE'S OWN FIGURES NAME, MINTED BY THE RUNNER AND READ BACK BY `S-LAYER`** —
-/// `acceptance.md §4.2` item 1: *"THIS UNIT'S JS-SIDE GREEN IS `ENVELOPE/PURE`, AND THE LABEL TRAVELS WITH
-/// EVERY FIGURE … Every reported figure names its SITE (the command and the directory it ran in) and its
-/// LAYER"*, with item 2 (*"the ASSEMBLED/`APP` LAYER for this unit is `NONE`"*) and item 3 (*"NO `APP`-GREEN
-/// MAY BE CLAIMED FROM A NODE TEST"*). **THE AS-FILED `S-LAYER` LINE ASSERTED OVER LITERALS TYPED INSIDE ITS
-/// OWN CELL — `sites = [...]`, `layers = ['ENVELOPE/PURE', …]` — so it could not fail (gate 4's §B finding);
-/// THIS RECORD IS THE RUNNER'S OWN OUTPUT and the line asserts over IT.**
+/// **THE ARTIFACT THIS FILE'S OWN FIGURES NAME, AND THE LAYER LABEL `S-LAYER` READS OFF THE RUNNER THAT
+/// CARRIES IT** — `acceptance.md §4.2` item 1: *"THIS UNIT'S JS-SIDE GREEN IS `ENVELOPE/PURE`, AND THE LABEL
+/// TRAVELS WITH EVERY FIGURE … Every reported figure names its SITE (the command and the directory it ran in)
+/// and its LAYER"*, with item 2 (*"the ASSEMBLED/`APP` LAYER for this unit is `NONE`"*) and item 3 (*"NO
+/// `APP`-GREEN MAY BE CLAIMED FROM A NODE TEST"*).
+///
+/// **⟶ CORRECTED 2026-10-17 (`role_test_writer`, GATE 4's ADVERSARIAL PASS): THE AS-FILED REPAIR THAT MOVED
+/// THE LABEL FROM THE CELL'S OWN ARRAY TO THIS MODULE-SCOPE RECORD MOVED A LITERAL AND NOT A READING, SO
+/// `S-LAYER` STILL COMPARED A CONSTANT TO ITSELF AND COULD NOT FAIL.** The two literals it needs are TYPED
+/// NOWHERE IN THIS FILE: they are EXTRACTED FROM `bindings/js/greens/greens.mjs` — the battery artifact this
+/// unit's figures come from, which is the file that must carry the label for the figure to travel with it —
+/// and the two homes the artifact itself prints (its `const` declaration and its head comment) are read
+/// against each other, so a reader who meets either one first meets the same label. **THE FALSIFIER: change
+/// the label the artifact carries — `greens/greens.mjs`'s `const LAYER = 'ENVELOPE/PURE'` and the `LAYER:`
+/// line of its head comment → `ASSEMBLED/RENDERER` — and `S-LAYER` FAILS at the extraction (its label is no
+/// longer the `ENVELOPE/PURE` `§4.2` item 1 declares for this unit) and at the two homes' equality; delete
+/// the artifact and it FAILS rather than passing over a literal.**
 const FIGURE = {
   site: `node --test, ${PACKAGE_DIR}`,
-  layer: 'ENVELOPE/PURE',
   appGreenClaimed: false,
 };
+/// The battery artifact that carries the layer label (`acceptance.md §4.2` item 1; `DD-31`/`DD-33`: this
+/// unit's green is `ENVELOPE/PURE` and the store's own suite is not re-labelled as this unit's).
+const LAYER_ARTIFACT = join(PACKAGE_DIR, 'greens', 'greens.mjs');
+/// The artifact's own two homes of the label, read as bytes: its `const LAYER = '<label>'` declaration and
+/// the `LAYER: <label>` line of its head comment. `null` where a home is absent, so a missing home is a
+/// FAILURE of the line rather than a reading that quietly disappears.
+function layerLabelHomes() {
+  const bytes = readFileSync(LAYER_ARTIFACT, 'utf8');
+  const declared = /\bconst\s+LAYER\s*=\s*'([^']+)'/.exec(bytes);
+  const commented = /LAYER:\s*([A-Z][A-Z/]*)/.exec(bytes);
+  // **AND THE `APP` LAYER IS EXTRACTED BY THE SAME READING, SO `§4.2` ITEM 2 IS ASSERTED AND NOT ASSUMED:**
+  // the artifact's head comment reads `APP LAYER: NONE.` and its own constant is `const APP_LAYER = 'NONE'`,
+  // and a claim of any other `APP` layer is a FAILURE of the line (`§4.2` items 2–3; `DD-20`). The pattern
+  // reads a BARE label, never `NONE`-with-a-suffix, so the two spellings the artifact prints are not read as
+  // one.
+  const appLayer = /APP LAYER:\s*(?!NONE\b)([A-Z][A-Z/]*)/.exec(bytes);
+  return {
+    declared: declared === null ? null : declared[1],
+    commented: commented === null ? null : commented[1],
+    appLayer: appLayer === null ? null : appLayer[1],
+  };
+}
 
 const LEDGER = [];
 function row(id) {
@@ -101,7 +132,16 @@ function line(r, sid, attempts, drive, unrunReason) {
   globalThis.__TRACE = [];
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     run += 1;
-    if (!drive(attempt)) {
+    // **A DRIVE THAT RAISES IS A BROKEN LINE AND NOT AN UNCAUGHT FRAME** — the same reading `un-run` gives
+    // at the ledger (`§2.4` item 5; `acceptance.md §4.4`): a label the artifact does not carry, or an
+    // artifact that is not there, must make its LINE fail rather than abort the run at a stack.
+    let held = false;
+    try {
+      held = drive(attempt);
+    } catch {
+      held = false;
+    }
+    if (!held) {
       if (sid === 'S-REG') console.log('S-REG TRACE:', JSON.stringify(globalThis.__TRACE));
       failures += 1;
       if (failures >= 5) break; // stop-after-5
@@ -589,19 +629,30 @@ line(P_TP_7, 'S-HO', 7, (attempt) => {
 });
 
 line(P_TP_7, 'S-LAYER', 5, () => {
-  // **THE LINE ASSERTS OVER THE RUNNER'S OWN RECORD (`FIGURE`), NOT OVER LITERALS IN ITS OWN CELL** — the
-  // artifact-read shape `acceptance.md §4.2` item 1 requires, and the repair of the as-filed line whose two
-  // arrays made every conjunct true by construction.
+  // **⟶ CORRECTED 2026-10-17 (`role_test_writer`), AND THE LINE NOW READS THE LABEL IT CLAIMS TO READ.**
+  // **THE DEFECT, NAMED: the as-filed line compared `FIGURE.layer` — a literal typed in THIS file at module
+  // scope — to the literal `'ENVELOPE/PURE'`, so `RCA-12`'s `ENVELOPE`-versus-`APP` LAYER SPLIT carried here
+  // as a COMMENT and not as a READING (gate 4's adversarial pass: *"a label asserted against its own literal
+  // cannot state WHICH LAYER a verification covers"*).** **THE REPAIR IS THE SUBJECT: the two labels are
+  // extracted from the battery artifact that CARRIES them (`greens/greens.mjs`), and the three readings
+  // below are read against each other — the artifact's declaration, the artifact's head comment, and the
+  // label `acceptance.md §4.2` item 1 declares for this unit's JS green — so the split is asserted over the
+  // bytes that own it and no conjunct is true by construction.
+  const homes = layerLabelHomes();
   if (typeof FIGURE.site !== 'string' || !FIGURE.site.includes('node --test')) return false;
   if (!FIGURE.site.includes(PACKAGE_DIR)) return false; // the site names the directory it ran in
-  if (FIGURE.layer !== 'ENVELOPE/PURE') return false; // §4.2 item 1's label for this unit's JS green
+  if (homes.declared !== 'ENVELOPE/PURE') return false; // §4.2 item 1's label, READ OFF THE ARTIFACT
+  if (homes.commented !== homes.declared) return false; // the artifact's two homes of the label agree
   if (FIGURE.appGreenClaimed !== false) return false; // §4.2 items 2–3: `APP` is `NONE`, and no node test claims one
   // AND THE RECORD IS CHECKED AGAINST THE PACKAGE'S OWN BYTES, so the artifact cannot drift from what it
-  // reports: no `APP`-green claim appears anywhere in the package's documentation.
+  // reports: no `APP`-green claim appears anywhere in the package's documentation, and no `APP` layer label
+  // is claimed by the battery that carries this unit's figures.
   const appGreenClaimed = /APP[- ]?(layer|green)\s*[:=]\s*(green|GREEN)/.test(
     readFileSync(join(PACKAGE_DIR, 'README.md'), 'utf8'),
   );
-  return !appGreenClaimed;
+  if (appGreenClaimed) return false;
+  if (homes.appLayer !== null) return false; // §4.2 item 2: the artifact claims NO `APP` layer but `NONE`
+  return true;
 });
 
 // =============================================================================================
@@ -882,9 +933,21 @@ test('register_the_figure_names_its_site_and_its_layer_from_the_records_own_arti
   // ran in) and its LAYER."* The record below is the one `S-LAYER` asserts over, printed so a reader of this
   // run's output has the site and the layer beside the figure (`DD-31`: the store's suite is NOT re-labelled
   // as this unit's, and no `APP`-green is claimed).
+  //
+  // **⟶ AND THIS CELL IS THE SECOND OF THE TWO THE ADVERSARIAL PASS FOUND ASSERTING ONLY OVER A LITERAL
+  // TYPED IN THIS FILE.** It no longer holds one: the label it prints and asserts is EXTRACTED FROM THE
+  // BATTERY ARTIFACT THAT CARRIES IT (`greens/greens.mjs`), and the three readings — the artifact's
+  // declaration, the artifact's head comment, and `acceptance.md §4.2` item 1's label for this unit — are
+  // asserted against EACH OTHER. **THE FALSIFIER: move the artifact's label to `ASSEMBLED/RENDERER` and this
+  // cell fails at `homes.declared` and at `homes.commented === homes.declared`; delete the artifact and it
+  // fails on the read.**
+  const homes = layerLabelHomes();
   console.log(`SITE ${FIGURE.site}`);
-  console.log(`LAYER ${FIGURE.layer} (APP = NONE, app-green claimed: ${FIGURE.appGreenClaimed})`);
+  console.log(`LAYER ${homes.declared} (APP = NONE, app-green claimed: ${FIGURE.appGreenClaimed})`);
   assert.match(FIGURE.site, /^node --test, /, 'the site names the command');
-  assert.equal(FIGURE.layer, 'ENVELOPE/PURE', 'the layer label travels WITH the figure');
+  assert.equal(homes.commented, homes.declared,
+    'the artifact that carries the label carries it in BOTH of its homes — the head comment and the constant');
+  assert.equal(homes.declared, 'ENVELOPE/PURE',
+    '§4.2 item 1: the layer label READ OFF the artifact is this unit\'s JS-side green, and it travels WITH the figure');
   assert.equal(FIGURE.appGreenClaimed, false, '§4.2 items 2–3: `APP` is `NONE` for this unit');
 });

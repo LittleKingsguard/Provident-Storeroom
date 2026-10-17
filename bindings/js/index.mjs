@@ -433,14 +433,34 @@ function withAddon() {
 /// NOTHING on this path coerces the value: no `Number(...)`, no `String(...)`, no `valueOf`, no
 /// `Symbol.toPrimitive` and no trap is ever invoked, so no host `TypeError` can be raised from this frame
 /// in the first place.**
-function boundaryReject(status, subject, clause) {
+///
+/// **⟶ AND THE FAILING SEGMENT'S CONTAINER IS HANDED TO THE GENERATOR'S OWN `<container>` SLOT, ADDED
+/// 2026-10-17 (`§2.5` item 5 (a)–(b) AND ITS `CF-3` AUTHORITY SPLIT; `docs/specs/storeroom-native/contract.md`
+/// §8.2's `MessageArgs.container`, *"the container or node the mismatch was found in: `''` for the register,
+/// a dotted path otherwise"*).** **THE DEFECT IT CLOSES, NAMED: the two-slot route filled `segment` and
+/// `path` ALONE, so `container` took its default and PART ONE READ *"the number 1.5 is not a legal address
+/// segment in `''`"* — a FALSE container — while PART TWO appended *"in 'a'"* and the store's own bytes for
+/// that same input are `the number 1.5 is not a legal address segment in 'a'` (`src/store.rs`'s `listen`
+/// arm, whose container is the prefix `['a']`; `src/error.rs`'s `malformed_segment`).** **TWO CONTAINERS
+/// STOOD, ONE OF THEM FALSE; ONE STANDS NOW AND IT IS THE TRUE ONE.** **`container` is the failing
+/// segment's OWN PREFIX — the store's own `dotted_address` spelling of it — and `undefined` at every site
+/// that declares none, where the slot is left at its default and THE GENERATOR'S OWN BYTES ARE UNMOVED**
+/// (the two-argument `errorMessage(code, subject)` call included).
+function boundaryReject(status, subject, clause, container) {
   const addon_ = withAddon();
   if (typeof addon_.errorMessage !== 'function') {
     // An artefact that LOADED but does not carry the generator is not the declared artefact: the state is
     // the declared absent/failed-addon one, and its message is the generator's own rendering reproduced.
     fail({ status: 'FilePathUnreachable', message: generatorFilePathUnreachable(ADDON_PATH) });
   }
-  fail({ status, message: `${addon_.errorMessage(status, subject)}, ${clause}` });
+  // **THE CONTAINER IS THE PREFIX'S OWN DOTTED SPELLING AND NOTHING ELSE** (`src/error.rs`'s
+  // `dotted_address`: a key bare, an index bare, joined by `.`) — the same reading the store's own
+  // `malformed_segment` triggers take, where the container is the segment the mismatch was found in.
+  const where = container === undefined ? undefined : container.map((segment) => String(segment)).join('.');
+  const generated = where === undefined
+    ? addon_.errorMessage(status, subject)
+    : addon_.errorMessage(status, subject, where);
+  fail({ status, message: `${generated}, ${clause}` });
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1000,7 +1020,13 @@ function encodeSegment(segment, position, argumentPosition) {
 /// `Array.isArray` alone — no `String(segment)`, no `Number(segment)`, no `valueOf` and no trap — so a
 /// segment that is a `Proxy` is refused by `util.types.isProxy` and NO TRAP RUNS (`surface.md §2.4` item 7
 /// (a) item 1; `crossing.md §1.4` item 4; `C-1`).
-function refuseOutsideSegment(segment, position, container, addressArgumentPosition) {
+/// **THE CONTAINER IS NOW A PREFIX ARGUMENT AND NOT A SPELLED STRING, 2026-10-17** (`§2.5` item 5 (a)–(b)):
+/// the segments the failing one stood in are handed to `boundaryReject`, which passes the store's own
+/// `dotted_address` spelling of them into the generator's `<container>` slot, so **the container is stated
+/// ONCE and by the store's generator** — and PART TWO carries the reason's class-and-position half ALONE,
+/// which is the half `§2.5` item 5 (b) declares the boundary's own (*"the ARGUMENT POSITION … is carried
+/// INSIDE the generated message's own text"*) and is never a second container claim.
+function refuseOutsideSegment(segment, position, prefix, addressArgumentPosition) {
   const kind = typeof segment;
   let subject;
   if (segment === null) subject = 'a shapeless value';
@@ -1011,13 +1037,13 @@ function refuseOutsideSegment(segment, position, container, addressArgumentPosit
   else if (kind === 'symbol' || kind === 'bigint') subject = classSpelling(segment);
   else if (Array.isArray(segment)) subject = 'an array';
   else subject = 'an object'; // a `Proxy` over an array included: its class is `an object` to the carrier
-  const where = container === '' ? '' : ` in '${container}'`;
   boundaryReject(
     'AddressMalformed', // `PAR-JS-5`'s own declared answer for every one of the fourteen rows, carried (`DD-40`)
     subject,
     addressArgumentPosition === undefined
-      ? `the address holds ${subject} at position ${position}${where}, and a segment is a string or a non-negative integer`
-      : `the address holds ${subject} at position ${position} of the ${addressArgumentPosition}${where}, and a segment is a string or a non-negative integer`,
+      ? `the address holds ${subject} at position ${position}, and a segment is a string or a non-negative integer`
+      : `the address holds ${subject} at position ${position} of the ${addressArgumentPosition}, and a segment is a string or a non-negative integer`,
+    prefix,
   );
   return { bad: 'object' }; // `boundaryReject` throws; this is unreachable and is not a second path
 }
@@ -1063,16 +1089,6 @@ function encodeAddress(address, addressArgumentPosition) {
       if (!(i in address)) return { k: 'S' }; // row 14 (`DD-8`)
     }
     const segments = [];
-    // **THE CONTAINER IS BUILT WITHOUT COERCING A SEGMENT THE ENCODER REFUSES**: `String(segment)` on a
-    // `symbol` throws a RAW HOST `TypeError` and on a trap-carrying object RUNS ITS TRAPS (`JS-1`, `C-1`),
-    // so only the two classes the store's own container rendering reads are rendered here and every other
-    // class is answered by its CLASS spelling.
-    const containerParts = [];
-    for (let i = 0; i < address.length; i += 1) {
-      const part = address[i];
-      containerParts.push(typeof part === 'string' ? part : classSpelling(part));
-    }
-    const container = containerParts.join('/');
     for (let i = 0; i < address.length; i += 1) {
       const segment = address[i];
       const encoded = encodeSegment(segment, i, addressArgumentPosition);
@@ -1081,7 +1097,11 @@ function encodeAddress(address, addressArgumentPosition) {
       const outsideMarker = encoded !== null && typeof encoded === 'object' && typeof encoded.bad === 'string';
       const outsideNumber = typeof segment === 'number' && !(Number.isInteger(segment) && segment >= 0);
       if (outsideMarker || typeof segment === 'boolean' || outsideNumber) {
-        refuseOutsideSegment(segment, i, container, addressArgumentPosition);
+        // **AND THE PREFIX IS THE SEGMENTS THIS ONE STOOD IN AND NOTHING ELSE** — the container the
+        // store's own `malformed_segment` names at its `L-1` arm (the store's walk pushes each in-domain
+        // segment into its own container before it tests the next), so the refusal's container is the
+        // SAME datum at both layers and not a second spelling of it.
+        refuseOutsideSegment(segment, i, address.slice(0, i), addressArgumentPosition);
       }
       segments.push(encoded);
     }
@@ -1661,12 +1681,20 @@ export function storeCreate(cfg) {
   // one — which is the order `DD-42` clause (2)'s *"FIRST match"* is defined by. **A REJECTED ARRAY ADMITS
   // NOTHING** (`src/args.rs`), so a listeners list the store refused never reaches `storeCreate`'s return and
   // no mirror entry is written for it.
+  //
+  // **⟶ AND ONE ENTRY IS PUSHED PER ADOPTED ELEMENT, WITH NO `some(key)` TEST HERE — CORRECTED 2026-10-17**
+  // (`§2.4` item 7 (a) item 3; rules 1, 3 and 4 with `DD-39`'s *"both entries are KEPT"*): the store's own
+  // population calls `adopt` for EVERY admitted element, and two elements at ONE address stay TWO store
+  // entries (`src/store.rs`'s bucket, whose `first_at` answers the bucket's FIRST). **SO A PER-KEY DEDUPE
+  // HERE WOULD BE A SECOND DECISION THE STORE NEVER TAKES and the mirror would hold fewer entries than the
+  // home** — the `-1` absence route below is what that divergence breaks. **THE PREDICATE IS THE ONE THE
+  // STORE'S OWN ADMISSION AGREES WITH** (`isLawfulListenerElement`): a `cfg.listeners` array that reached
+  // this line was admitted WHOLE by `encodeListeners`, the facade and `src/args.rs`, so a lawful element is
+  // pushed and the two sides' element counts are the same number.
   if (isPlainObjectValue(cfg) && isAdmittedArray(cfg.listeners) && arrayClass(cfg.listeners) !== 'class') {
     for (const entry of cfg.listeners) {
-      if (!isPlainObjectValue(entry) || !Object.hasOwn(entry, 'address') || !Object.hasOwn(entry, 'handle')) continue;
-      if (typeof entry.handle !== 'string' || entry.handle === '') continue;
-      const adoptedAddress = entry.address;
-      state.home.push({ key: homeAddressKey(adoptedAddress), token: entry.handle });
+      if (!isLawfulListenerElement(entry)) continue;
+      state.home.push({ key: homeAddressKey(entry.address), token: entry.handle });
     }
   }
   return instance;
@@ -1996,10 +2024,67 @@ function rollback(instance, n, opId) {
 /// tokens and never the address they were minted at (`§2.7` item 1) — **so the address is kept beside the
 /// identity rather than guessed from it.** Nothing of it is observable: it is this factory's own closure,
 /// like `tokens` and `registry`, and `§2.1` (e) item 1's private-state rule is untouched.
+/// **AND THE KEY IS INJECTIVE, 2026-10-17 — TWO DISTINCT LAWFUL ADDRESSES CANNOT SHARE ONE KEY**
+/// (`§2.4` rules 1 and 4 and item 7 (a)/(b), which all rest on the mirror holding EXACTLY the store's own
+/// entries). **THE DEFECT IT CLOSES, NAMED: the shipped key joined RAW segment spellings with `\u0000`, so
+/// `['a', 1]` and `['a', 'number:1']` BOTH keyed `a\u0000number:1` — one key, two lawful addresses — and
+/// every `some(key)` test below then read a second ADDRESS as an already-held one.** **THE KEY NOW CARRIES
+/// EACH SEGMENT'S OWN CLASS AND ITS LENGTH**, which is what makes it injective over the two classes
+/// `§1.5`'s domain holds (`PAR-JS-5`: a string key or a non-negative integer index): `s1:a` and `n1:1` can
+/// never be read off one another, because the class letter decides the spelling and the length decides
+/// where it ends. **THE STORE'S OWN KEY IS THE SEGMENT VECTOR ITSELF and the mirror's key is its faithful
+/// image**: no coercion, no case folding and no normalization stands between the two.
 function homeAddressKey(address) {
-  return Array.isArray(address)
-    ? address.map((segment) => (typeof segment === 'string' ? segment : `${typeof segment}:${String(segment)}`)).join('\u0000')
-    : `\u0001${typeof address}`;
+  if (!Array.isArray(address)) return `\u0001${typeof address}`;
+  const parts = [];
+  for (let i = 0; i < address.length; i += 1) {
+    const segment = address[i];
+    // **THE TWO CLASSES `§1.5`'S DOMAIN HOLDS, AND NOTHING ELSE IS EVER KEYED** (`inDomainAddress` below
+    // is the one predicate that admits an address here): a string segment is `s<length>:<bytes>` and an
+    // index segment is `n<length>:<digits>` — the length prefix is what makes the join injective.
+    if (typeof segment === 'string') {
+      parts.push(`s${segment.length}:${segment}`);
+    } else {
+      const digits = String(segment);
+      parts.push(`n${digits.length}:${digits}`);
+    }
+  }
+  return parts.join('\u0000');
+}
+
+/// **ONE `listeners[]` ELEMENT IS LAWFUL WHERE THE STORE'S OWN ADMISSION AND THE BOUNDARY'S OWN WALK AGREE
+/// ON IT — ADDED 2026-10-17, SO THE SEEDING PREDICATE AND `listen`'S PUSH CONDITION CANNOT DISAGREE ABOUT
+/// WHAT A LAWFUL ELEMENT IS** (`§2.4` item 7 (a) item 3's *"ADMIT-OR-REFUSE COMES THIRD, and every element
+/// read … is reached ONLY for a value the first step has admitted"*, read with `§1.4`'s walk and the store's
+/// own `src/args.rs`, which admits exactly the elements whose every segment `Segment::is_in_domain` holds
+/// and whose handle token is not blank). **THE FOUR TESTS ARE THE ONES `encodeListeners` AND
+/// `constraintAddress` ALREADY TAKE, AND NOT ONE OF THEM IS NEW**: the entry is a plain object (a `Proxy`,
+/// an `Array` and a prototype-carrying object refused before a member is read — `§1.4` item 4 (e)–(g),
+/// `DD-34`/`DD-35`); `address` and `handle` are OWN members (`Object.hasOwn` and never `in`, `JS-5`); the
+/// handle is a non-empty string (`§0.4` clause 3 / `PAR-13`); and the address is an admitted array whose
+/// every segment is a string without a lone surrogate or a non-negative SAFE integer — the two classes
+/// `encodeSegment` pushes and `Segment::is_in_domain` admits, so the elements the store ADOPTS and the
+/// elements this predicate ACCEPTS are one set and the mirror holds one entry per store entry.
+function inDomainAddress(address) {
+  if (types.isProxy(address) || !Array.isArray(address) || arrayClass(address) === 'class') return false;
+  for (let i = 0; i < address.length; i += 1) {
+    if (!(i in address)) return false; // a hole is `AddressArg` row 14's own outside shape (`DD-8`)
+    const segment = address[i];
+    if (typeof segment === 'string') {
+      if (hasLoneSurrogate(segment)) return false; // the class the walk refuses before any verb (`C-4`)
+    } else if (!(typeof segment === 'number' && Number.isInteger(segment) && segment >= 0
+      && Number.isSafeInteger(segment))) {
+      return false; // and every other class is `§1.5`'s own outside set
+    }
+  }
+  return true;
+}
+
+/// **AND THE SEEDING PREDICATE IS THAT ONE PREDICATE** — the entry's own four tests, taken together.
+function isLawfulListenerElement(entry) {
+  if (!isPlainObjectValue(entry) || !Object.hasOwn(entry, 'address') || !Object.hasOwn(entry, 'handle')) return false;
+  if (typeof entry.handle !== 'string' || entry.handle === '') return false;
+  return inDomainAddress(entry.address);
 }
 
 function listen(instance, n, address) {
@@ -2068,12 +2153,24 @@ function unlisten(instance, n, handle) {
   //     under that address STILL returns the identity WITH THE FUNCTION FIRING FOR IT — which is
   //     `contract.md §5.5`'s THIRD added entry (*"the registry still fires that ONE identity ONCE, never once
   //     per occurrence and never once per entry"*) and `§2.4` rule 4's own *"never the function"*.
+  //
+  // **⟶ AND THE ABSENCE ROUTE REMOVES THE REGISTRY ENTRY ONLY WHERE THE STORE GENUINELY WITHDREW THE
+  // IDENTITY — CORRECTED 2026-10-17** (`§2.4` item 7 (b) item 1, *"WITH WITHDRAWAL"*, read with rules 1 and
+  // 4 and item 7 (a) item 3's own *"leaves no store-side home entry"*). **THE DEFECT IT CLOSES, NAMED: the
+  // shipped arm deleted the registry entry UNCONDITIONALLY whenever the token was absent from the mirror —
+  // including for a call whose token the mirror never held at all (an identity the store holds nothing for),
+  // where NOTHING was withdrawn and the registry is not this call's to touch.** **THE WITHDRAWAL IS NOW THE
+  // PRECONDITION: the mirror held the token, and this call's own single-entry removal left no survivor
+  // carrying it** — which is exactly the state in which *"the store has genuinely withdrawn the identity"*
+  // is true, and it is the state the mirror can read because it holds one entry per store entry (see
+  // `homeAddressKey` and `isLawfulListenerElement` above). **WHERE THE MIRROR HELD NOTHING, THIS CALL
+  // REMOVES NOTHING AND THE REGISTRY STANDS**, which is the no-op success `§2.10` declares for a withdrawal
+  // the store makes none of.
   const mirror = state.home.findIndex((entry) => entry.token === encoded.v);
-  if (mirror !== -1) {
-    const key = state.home[mirror].key;
-    state.home.splice(mirror, 1); // the store's own FIRST-match withdrawal, mirrored entry for entry
-    if (state.home.some((entry) => entry.token === encoded.v && entry.key === key)) return undefined;
-  }
+  if (mirror === -1) return undefined;
+  const key = state.home[mirror].key;
+  state.home.splice(mirror, 1); // the store's own FIRST-match withdrawal, mirrored entry for entry
+  if (state.home.some((entry) => entry.token === encoded.v && entry.key === key)) return undefined;
   state.registry.delete(handle);
   return undefined;
 }

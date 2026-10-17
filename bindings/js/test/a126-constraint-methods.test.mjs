@@ -339,6 +339,21 @@ test('a126_add_at_a_batch_pair_takes_the_overwrite_and_the_batch_function_is_dis
 test('a126_a_functionless_batch_element_is_admitted_and_its_pair_is_not_carried', () => {
   const a = mem({ constraints: [{ address: ['a'], id: 'b3' }] });
   assert.deepEqual(a.read([]), {}, 'a well-formed pair with no function is admitted by the store`s list rule');
+  // **⟶ THE EXISTENCE AND ARITY PRECONDITIONS, ADDED 2026-10-17 (`role_test_writer`, GATE 4's ADVERSARIAL
+  // PASS) — THE CELL'S SUBJECT IS A THROW, SO WITHOUT THEM AN ABSENT `constraintOn` SATISFIED IT.** The
+  // member set is `A127`'s TWELVE, and the three constraint functions are read by `typeof` and by ARITY `2`
+  // BEFORE the refusal is driven — the same precondition the four cells of this class carry (`surface.md
+  // §2.4` item 9 (f)'s `A127` clause; `parameter-semantics.md §2.23`'s VACATED row; `§2.12` item 3's one
+  // spelling, `8 → 1`). **A MISSING `constraintOn` THROWS A `TypeError` TOO, WHICH IS THE ONE CLASS TEST —
+  // so deleting the member makes this cell FAIL at the `typeof` reading and not pass at the predicate.**
+  assert.deepEqual(Object.getOwnPropertyNames(a).sort(), TWELVE_MEMBERS,
+    'the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`) before any refusal is driven');
+  for (const name of THREE) {
+    assert.equal(typeof a[name], 'function',
+      `and \`${name}\` IS a member of the product, arity TWO — so the TypeError below is the CLASS TEST's `
+      + 'and not a missing member\'s');
+    assert.equal(a[name].length, 2, `and \`${name}\` declares TWO positions and no more (\`8 → 1\`)`);
+  }
   const fn = refusing();
   assert.ok(
     isTheOneTypeError(thrown(() => a.constraintOn({ address: ['a'], id: 'b3' }, fn))),

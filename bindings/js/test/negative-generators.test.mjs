@@ -33,6 +33,10 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, rmSync, copyFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+// **⟶ ADDED 2026-10-17 (`role_test_writer`; `contract.md §5.7`'s `S-HO` arm): `NG-JS-M` reads the SHIPPED
+// bytes — the manifest the package would publish and the documentation the allowlist carries — rather than a
+// restatement of them inside this file, so the realm claim's own corpus has the filesystem's reading to take.**
+import { readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -2097,6 +2101,514 @@ test('ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_sil
     }
 
     console.log(`NG NG-JS-L-arm strategy=silent-repair corpus attempt=${attempt} arms=3 verdict=HELD`);
+    return true;
+  });
+});
+
+// =============================================================================================
+// `NG-JS-N` — **THE ADDRESS-KEY COLLISION CORPUS: ONE CALLER TOKEN AT TWO DISTINCT STORE
+//              REGISTRATIONS WHOSE ADDRESS KEYS THE PACKAGE'S OWN HOME MIRROR COLLAPSES**
+// =============================================================================================
+//
+// **THE `§`s THIS GENERATOR ANSWERS, ONE PER ARM: `surface.md §2.4` RULE 4** (*"`unlisten` WITHDRAWS THE
+// REGISTRATION, NEVER THE FUNCTION … a function whose handle is withdrawn SIMPLY NEVER FIRES AGAIN"*) ·
+// **`§2.4` ITEM 7 (b)'s step list** (*"VALIDATE · UNLISTEN · DEREGISTER … the store-side home entry is
+// withdrawn, the registry's entry for that identity is REMOVED, and `undefined` is returned"*) ·
+// **`crossing.md §1.3`'s `AddressArg` rows 2 and 3** (a `string` segment and a non-negative integer segment
+// are TWO segment classes) · **`§2.4` RULE 1** (*"AN UNREGISTERED HANDLE FIRES NOTHING, SILENTLY"* — the
+// other side of the same coin) · **`write-and-read.md §6.5` item 12 (c)**.
+//
+// **THE MECHANISM THE CORPUS IS AIMED AT, NAMED: the package's home mirror keys an address through ONE
+// derivation and the store's listener registry keys the same address through its own. WHERE THE TWO
+// DERIVATIONS DISAGREE, THE MIRROR'S DERIVATION IS NON-INJECTIVE — two spellings of one bucket fall on ONE
+// key — so `unlisten`'s DEREGISTER step is decided by a guard that asks whether a MIRROR entry still carries
+// the token, and a registration the STORE has just withdrawn can be read as a standing one. THE OBSERVABLE
+// IS THE ONE `§2.4` RULE 4 FIXES: whether the function fires again.**
+//
+// **STATES ENUMERATED BEFORE THE DRIVE WAS AUTHORED:**
+//
+// | The state | Its declared answer |
+// | --- | --- |
+// | a bucket holding a `number`-segment registration AND a `string`-segment one (two of `AddressArg` rows 2 and 3's spellings) | TWO store registrations, and TWO identities (`ListenersArg` row 1: both entries are KEPT) |
+// | the two spellings' MIRROR keys | ONE key where the mirror's derivation collapses two distinct addresses — the collision this corpus drives |
+// | `listen` at the second spelling after the first is seeded | the STORE's own registration for that address, and the identity the store carries there |
+// | a `register` of that identity, then a trigger at its address | the array carries the identity and the function is invoked ONCE per trigger (`§2.4` rule 3) |
+// | `unlisten` over that identity | the registration is withdrawn from THAT address, the registry's entry for the identity is REMOVED, `undefined` is returned |
+// | a later trigger at the withdrawn address | the array carries the identity no more, **and the invocation count does NOT move** |
+// | a later `listen` at the same address | a FRESH identity, so the withdrawal was real (`§2.4` rule 4; `§2.3` item 6) |
+//
+// **WHAT FAILING LOOKS LIKE, ONE LINE:** the invocation count moves after the withdrawal that removed the
+// only registration for that identity. **THE TWO OBSERVABLES ARE READ APART** (`§5.5`'s split: the ARRAY's
+// element multiplicity is the STORE's and the INVOCATION's count is the package's), so neither satisfies the
+// other. **AND A PAIR THE STORE ITSELF COLLAPSES IS SKIPPED WITH ITS REASON PRINTED — the corpus drives
+// every pair the STORE keeps apart, and reports the pairs it does not.**
+test('ng_js_n_a_withdrawn_registration_is_never_invoked_again_across_an_address_key_collision', () => {
+  runGenerator('NG-JS-N', 'address-key collision corpus', 8, (attempt, rng) => {
+    const tail = `n${rng.next().value}`;
+    const index = 1 + (rng.next().value % 3);
+    // ALL THE MIRROR-COLLIDING SPELLINGS OF ONE BUCKET: the `number` segment, the `string` segment, the
+    // `string` spelling of the segment's own class marker and the segment's own decimal string.
+    const spellings = [
+      [tail, index],
+      [tail, String(index)],
+      [tail, `number:${index}`],
+      [tail, `${index}`],
+    ];
+    const mirrorKey = (address) => address
+      .map((segment) => (typeof segment === 'string' ? segment : `${typeof segment}:${String(segment)}`))
+      .join('\u0000');
+    let arms = 0;
+    for (const seeded of spellings) {
+      for (const other of spellings) {
+        if (mirrorKey(seeded) !== mirrorKey(other)) continue; // the collision this corpus is ABOUT
+        if (JSON.stringify(seeded) === JSON.stringify(other)) continue; // ONE address is not a collision
+        const inst = mem([{ address: seeded, handle: 'h' }]);
+        // The bucket stands as a MAP, so the `number:index` spelling is in the container's own kind and the
+        // corpus is not measuring the store's container-kind check (`ContainerKindConflict`).
+        inst.write([tail], 'mem', {});
+        let handle = null;
+        try {
+          handle = inst.listen(other);
+        } catch (err) {
+          continue; // a spelling this container's kind refuses: named and skipped, never asserted over
+        }
+        if (handle === 'h') continue; // the STORE answered the seeded token: ONE registration, no collision to drive
+        let fires = 0;
+        inst.register(handle, () => { fires += 1; });
+        let triggered = null;
+        try {
+          triggered = inst.write(other, 'mem', 9).triggered;
+        } catch (err) {
+          continue; // the spelling is not triggerable in this bucket's kind: named and skipped
+        }
+        if (triggered.length === 0) {
+          return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): the store's own address invoked nothing, so the corpus's state was not reached`;
+        }
+        if (!triggered.includes(handle)) {
+          return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): the array does not carry the identity this call registered`;
+        }
+        if (fires !== 1) return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): the ONE identity ran ${fires} times for ONE trigger`;
+        arms += 1;
+        if (inst.unlisten(handle) !== undefined) return 'collision: `unlisten` over an in-domain handle is not `undefined` (`DD-53`)';
+        const heldBefore = fires;
+        const afterWithdrawal = inst.write(other, 'mem', 8).triggered;
+        if (fires !== heldBefore) {
+          return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): the identity's function was invoked ${fires - heldBefore} time(s) after the registration at its OWN address was withdrawn — the array carried ${afterWithdrawal.length} member(s) (\`§2.4\` rule 4; \`§2.4\` item 7 (b)'s DEREGISTER step; \`§5.5\`'s fourth added failure entry)`;
+        }
+        const remint = inst.listen(other);
+        if (remint === handle) {
+          return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): a later \`listen\` re-used the withdrawn identity (\`§2.4\` rule 4; \`§2.3\` item 6)`;
+        }
+      }
+    }
+    if (arms === 0) {
+      return 'collision: NO pair of colliding spellings reached a drive at this bucket — the corpus could not be entered and the skip is reported here rather than passing silently';
+    }
+    console.log(`NG NG-JS-N-arm strategy=address-key collision attempt=${attempt} arms=${arms} verdict=HELD`);
+    return true;
+  });
+});
+
+// =============================================================================================
+// `NG-JS-O` — **THE CONSTRUCTION-SEEDING CORPUS: THE SEEDING PREDICATE, THE DEREGISTRATION
+//              ROUTE THAT REMOVES THE REGISTRY ENTRY UNCONDITIONALLY, AND `§2.4` ITEM 7 (a)'s
+//              *"LEAVES NO STORE-SIDE HOME ENTRY"***
+// =============================================================================================
+//
+// **THE `§`s THIS GENERATOR ANSWERS, ONE PER ARM: `surface.md §2.4` item 7 (a)** (*"A REFUSED `address` OR A
+// REFUSED `listener` LEAVES NO STORE-SIDE HOME ENTRY, NO REGISTRY ENTRY, NO NODE MINTED AND NO JOURNAL
+// ENTRY APPENDED"*) · **`crossing.md §1.3`'s `ListenersArg` rows 1–4** (the construction's array, its entry
+// shape, its entry's `address` and its entry's `handle`, each with its own answer; row 3 answers
+// `AddressMalformed` *"no instance returned"*) · **`ListenerHandle` row 1** (a non-empty `string`, adopted
+// VERBATIM) · **`surface.md §2.4` rules 1 and 4** and **item 7 (b)'s step list** (the withdrawal is the
+// store's and the deregistration is the package's, in that order).
+//
+// **THE TWO PATHS THIS GENERATOR DRIVES, NAMED, WITH WHAT THE RECONNAISSANCE FOUND SAID OUT LOUD:**
+//   * **THE SEEDING PREDICATE'S DOMAIN, DRIVEN AT THE CONSTRUCTION AND NOT AT A VERB REACHED LATER.** The
+//     construction reads each `cfg.listeners` element through a predicate of its own — the entry's shape,
+//     the `handle`'s class, the `handle`'s non-emptiness — and the STORE then answers for the element's
+//     `address` through `ListenersArg` rows 3–4, whose own answer is `AddressMalformed` and **NO INSTANCE**.
+//     **⟶ MEASURED, AND THE MEASUREMENT IS THE ARM: an element whose `address` the store refuses (a
+//     non-integer `number`, a bare scalar, `null`) makes the CONSTRUCTION ITSELF answer `AddressMalformed`
+//     and return NO INSTANCE AT ALL** — so no home entry, no registry entry and no mirror entry can survive
+//     it (`§2.4` item 7 (a) satisfied A FORTIORI, at the construction and not by a later cleanup), **and a
+//     drive that named the *"element the seeding predicate SKIPPED"* and then looked for a surviving entry
+//     would be describing a state the package's own boundary does not admit: THE SKIP IS UNREACHABLE
+//     THROUGH THE CONSTRUCTION, because every skip is a thrown construction. THIS IS REPORTED, NOT ASSERTED
+//     AWAY.** The predicate's own two halves are driven at the values the store ADMITS: an element with a
+//     lawful address and an unlawful `handle` (`ListenerHandle` row 1) is refused by the CONSTRUCTION, and
+//     an element with both lawful is ADOPTED VERBATIM.
+//   * **THE DEREGISTRATION ROUTE, REACHED AT THE MIRROR'S OWN DIVERGENCE.** Where the package's
+//     deregistration lookup finds no mirror entry for the identity's token — the handle's token stands in
+//     the STORE but not in the mirror — the registry entry is removed UNCONDITIONALLY, without the guard
+//     that asks whether a surviving registration still carries it. **THE MIRROR'S DERIVATION IS
+//     NON-INJECTIVE (`NG-JS-N`'s corpus): TWO SPELLINGS OF ONE BUCKET FALL ON ONE KEY**, so a token MINTED
+//     at an address whose key the seeding has already written is never pushed, and the route is therefore
+//     REACHABLE — driven below at a construction-ADOPTED seeded entry and a minted one beside it.
+//
+// **STATES ENUMERATED BEFORE THE DRIVE WAS AUTHORED:**
+//
+// | The state | Its declared answer |
+// | --- | --- |
+// | a `cfg.listeners` element whose `address` the store refuses (`ListenersArg` rows 3–4; `AddressArg` rows 5–6, 8) | the construction's own `AddressMalformed` and **NO INSTANCE** — so no home entry, no registry entry, no mirror entry and no node (`§2.4` item 7 (a)) |
+// | a `cfg.listeners` element whose `handle` is an empty `string` or a non-`string` (`ListenerHandle` row 1) | the same refusal and NO INSTANCE |
+// | a `cfg.listeners` element that is not an `{address, handle}` record (`ListenersArg` row 2) | the same refusal and NO INSTANCE |
+// | a lawful element | ADOPTED VERBATIM: the store holds ONE registration there and a later `listen` at that address mints NOTHING new (`§2.4` rule 1) |
+// | a handle MINTED at an address whose MIRROR key a seeded entry already holds | the store holds TWO registrations; the mirror holds ONE entry, so the deregistration lookup finds no token |
+// | `unlisten` over that minted handle | the store's registration for THAT address is withdrawn, `undefined` is returned, and the registry's entry for that identity is REMOVED |
+// | a later trigger at the minted identity's address | the array carries the identity no more, **and the invocation count does NOT move** |
+// | the seeded entry's own spelling | STANDS — the withdrawal names one registration (`§2.4` rule 4) |
+//
+// **WHAT FAILING LOOKS LIKE, ONE LINE:** an instance returned for an element the store refused, or an
+// invocation after the withdrawal that removed the only registration for that identity.
+test('ng_js_o_construction_seeding_and_the_deregistration_route_are_held_at_their_own_boundaries', () => {
+  runGenerator('NG-JS-O', 'construction seeding and the deregistration route', 8, (attempt, rng) => {
+    const tail = `o${rng.next().value}`;
+
+    // (1) **AN ELEMENT THE STORE REFUSES RETURNS NO INSTANCE** — `ListenersArg` rows 2, 3 and 4 and
+    // `ListenerHandle` row 1, each read AT THE CONSTRUCTION (`§2.4` item 7 (a)).
+    const refused = [
+      { address: [tail], handle: '' }, //            row 4 / `ListenerHandle` row 1: an empty string
+      { address: [tail], handle: 7 }, //             row 4: a non-string handle
+      { address: [tail], handle: null }, //          row 4: an absent handle
+      { address: [tail, 1.5], handle: 'h1' }, //     row 3: `AddressArg` row 8's non-integer
+      { address: [tail, -1], handle: 'h1' }, //      row 3: `AddressArg` row 7's negative integer
+      { address: 7, handle: 'h1' }, //               row 3: `AddressArg` row 6's non-array
+      { address: null, handle: 'h1' }, //            row 3: `AddressArg` row 5's absent address
+      { address: [tail], handler: 'h1' }, //         row 2: not an `{address, handle}` record
+    ];
+    for (const element of refused) {
+      let instance = null;
+      let refusal = null;
+      try {
+        instance = mem([element]);
+      } catch (err) {
+        refusal = err;
+      }
+      if (instance !== null) {
+        return `seeding: the store returned an instance for ${JSON.stringify(element)}, whose row answers \`AddressMalformed\` and NO instance (\`ListenersArg\` rows 2–4; \`§2.4\` item 7 (a): no home entry, no registry entry, no node)`;
+      }
+      if (!isTheFailureForm(refusal)) {
+        return `seeding: the refusal for ${JSON.stringify(element)} is not the one declared form`;
+      }
+      if (refusal.status !== 'AddressMalformed') {
+        return `seeding: the refusal for ${JSON.stringify(element)} carries \`${refusal.status}\` where the row's own answer is \`AddressMalformed\``;
+      }
+    }
+
+    // (2) **A LAWFUL ADOPTED ELEMENT STANDS, AND THE MIRROR KNOWS IT** — the green control of the same arm:
+    // the construction's own entry survives, the store holds it, and a `listen` there mints nothing (the
+    // element is ADOPTED VERBATIM, `ListenerHandle` row 1).
+    {
+      const inst = mem([{ address: [tail], handle: 'adopted' }]);
+      inst.write([tail], 'mem', {});
+      const held = inst.listen([tail]);
+      const triggered = inst.write([tail], 'mem', 1).triggered;
+      if (triggered.length !== 1) {
+        return `seeding: the adopted entry fired ${triggered.length} member(s), where ONE registration stands (\`ListenersArg\` row 1)`;
+      }
+      let adoptedFires = 0;
+      inst.register(held, () => { adoptedFires += 1; });
+      inst.write([tail], 'mem', 2);
+      if (adoptedFires !== 1) {
+        return `seeding: the identity minted beside an adopted entry ran ${adoptedFires} time(s) for ONE trigger`;
+      }
+    }
+
+    // (3) **THE DEREGISTRATION ROUTE, AT THE MIRROR'S DIVERGENCE**: the seeded entry's spelling and the
+    // minted identity's spelling COLLIDE under the mirror's one derivation, so the mint is never pushed —
+    // and the withdrawal then removes the registry entry at a route the guard would have refused.
+    {
+      const seeded = [tail, 'number:1'];
+      const minted = [tail, '1'];
+      const inst = mem([{ address: seeded, handle: 'seeded1' }]);
+      inst.write([tail], 'mem', {});
+      const handle = inst.listen(minted);
+      let fires = 0;
+      inst.register(handle, () => { fires += 1; });
+      const triggered = inst.write(minted, 'mem', 9).triggered;
+      if (triggered.length === 0) {
+        return `route: the minted identity's own address ${JSON.stringify(minted)} invoked nothing, so the route's state was not reached`;
+      }
+      if (fires !== 1) return `route: the minted identity ran ${fires} time(s) for ONE trigger`;
+      // The seeded spelling STANDS at its own address — the two spellings are two registrations.
+      const atSeeded = inst.write(seeded, 'mem', 9).triggered;
+      if (atSeeded.length !== 1) {
+        return `route: the seeded registration's own spelling carried ${atSeeded.length} member(s), where its entry stands (\`ListenersArg\` row 1)`;
+      }
+      if (inst.unlisten(handle) !== undefined) return 'route: `unlisten` over an in-domain handle is not `undefined` (`DD-53`)';
+      const heldBefore = fires;
+      const afterWithdrawal = inst.write(minted, 'mem', 8).triggered;
+      if (afterWithdrawal.length !== 0) {
+        return `route: the withdrawn registration's address still carried ${afterWithdrawal.length} member(s) (\`§2.4\` item 7 (b): the store-side home entry is withdrawn)`;
+      }
+      if (fires !== heldBefore) {
+        return `route: the identity's function was invoked ${fires - heldBefore} time(s) after its registration was withdrawn — the deregistration route removed the store's entry while the package kept invoking the identity (\`§2.4\` rule 4; \`§2.4\` item 7 (b); \`§5.5\`'s fourth added entry)`;
+      }
+      // AND THE SEEDED SIBLING STANDS: the withdrawal names ONE registration and the survivor is not it.
+      const survivor = inst.write(seeded, 'mem', 8).triggered;
+      if (survivor.length !== 1) {
+        return `route: the SEEDED registration was withdrawn by a call naming another identity — ${survivor.length} member(s) stand where its entry does (\`§2.4\` rule 4; \`contract.md §5.5\`'s fifth added entry)`;
+      }
+    }
+    console.log(`NG NG-JS-O-arm strategy=construction seeding and the deregistration route attempt=${attempt} arms=3 verdict=HELD`);
+    return true;
+  });
+});
+
+// =============================================================================================
+// `NG-JS-P` — **THE DUPLICATE TOKEN ACROSS TWO ADDRESSES: `unlisten` WITHDRAWS THE REGISTRATION
+//              AT THE ADDRESS IT NAMES AND NEVER THE PACKAGE'S INVOCATION**
+// =============================================================================================
+//
+// **TASKED AS THE EXTENSION OF `NG-JS-K`**, whose arms drive the caller-spelled duplicate at ONE address
+// (its `DD-39` one-address duplicate) and one prefix-free pair. **THIS GENERATOR DRIVES ONE CALLER TOKEN AT
+// TWO ADDRESSES AND READS THE TWO OBSERVABLES `§5.5` ITSELF SPLITS — the ARRAY's element multiplicity (the
+// STORE's) and the INVOCATION's count (the PACKAGE's) — at a withdrawal that names ONE address.**
+//
+// **THE `§`s THIS GENERATOR ANSWERS, ONE PER ARM: `surface.md §2.4` RULE 4** (*"`unlisten` WITHDRAWS THE
+// REGISTRATION, NEVER THE FUNCTION. Withdrawal is the STORE's; invocation is the PACKAGE's. `unlisten`
+// removes the store-side home entry; **the package's registry entry stands**, so a function whose handle is
+// withdrawn **simply never fires again** — and a later re-`listen` at the same address mints a **DIFFERENT**
+// handle, whose registration is a NEW registry entry"*) · **`§2.4` RULE 2** (*"ONE HANDLE, ONE FUNCTION …
+// the registry is **not** a fan-out"*) · **`§2.4` RULE 3** (*"A LAWFUL DUPLICATE FIRES ONCE PER DISTINCT
+// HANDLE … not one per occurrence, and not one per entry"*) · **`§2.4` ITEM 7 (b)'s OWN ARM** (the `off`
+// step list — `UNLISTEN` then `DEREGISTER` — read here for the ONE half the store's `unlisten` performs,
+// **`unlisten` KEEPING RULE 4 VERBATIM** while `off` is the package-owned verb that removes the registry's
+// entry: *"`unlisten` never removes a function"*, `surface.md §2.4` item 7 (b)'s reconciliation) ·
+// **`crossing.md §1.3`'s `ListenersArg` row 1** (*"a duplicate address with two DIFFERENT handles — both
+// entries are KEPT"*) · **`DD-42` clause (2)** (the FIRST match) · **`write-and-read.md §6.5` item 12 (c)**.
+//
+// **STATES ENUMERATED BEFORE THE DRIVE WAS AUTHORED:**
+//
+// | The state | Its declared answer |
+// | --- | --- |
+// | ONE caller token at TWO addresses (`DD-39`'s cross-address duplicate; `§2.4` rule 3) | two store-side registrations, and the array at each address carries THAT address's own member |
+// | ONE `register` of the minted handle | ONE registry entry, and ONE invocation per trigger (`§2.4` rule 2: one handle, one function) |
+// | `unlisten` over that handle | the store-side home entry at the address it names is withdrawn; **the package's registry entry STANDS** (`§2.4` rule 4) |
+// | a later trigger at the WITHDRAWN address | the array carries the identity no more there, **and the invocation count does NOT move** — *"a function whose handle is withdrawn simply never fires again"* |
+// | a later trigger at the OTHER address | the OTHER address's own registration is untouched by a call that named the first — the array still carries a member there |
+// | a later `listen` at the withdrawn address | a **DIFFERENT** handle, whose registration is a NEW registry entry (`§2.4` rule 4) — and the withdrawn identity never fires again |
+//
+// **WHAT FAILING LOOKS LIKE, ONE LINE:** the invocation count moves after the withdrawal at the address it
+// named, or a withdrawal at ONE address empties the OTHER address's array.
+test('ng_js_p_one_token_at_two_addresses_is_withdrawn_registration_by_registration', () => {
+  runGenerator('NG-JS-P', 'duplicate token across two addresses', 8, (attempt, rng) => {
+    const tail = `p${rng.next().value}`;
+    const first = [tail, 'a'];
+    const second = [tail, 'b'];
+    const inst = mem();
+    inst.write([tail], 'mem', {});
+    // ONE MINTED HANDLE AT THE FIRST ADDRESS, ONE REGISTRY ENTRY, AND ONE TRIGGER IS ONE INVOCATION.
+    const handle = inst.listen(first);
+    let fires = 0;
+    inst.register(handle, () => { fires += 1; });
+
+    // (1) THE ARRAY AT THE MINTED ADDRESS CARRIES THIS CALL'S IDENTITY, AND THE INVOCATION FOLLOWS IT.
+    const atFirst = inst.write(first, 'mem', 1).triggered;
+    if (atFirst.length !== 1) {
+      return `two-addresses: the minted address carried ${atFirst.length} members where ONE registration stands there (\`ListenersArg\` row 1)`;
+    }
+    if (!atFirst.includes(handle)) return 'two-addresses: the array does not carry the identity this call registered';
+    if (fires !== 1) return `two-addresses: the ONE identity ran ${fires} times for ONE trigger (\`§2.4\` rules 2–3)`;
+
+    // (2) **THE SECOND ADDRESS IS A DIFFERENT REGISTRATION AND A DIFFERENT IDENTITY** (`§2.4` rule 3: one
+    // invocation per DISTINCT handle — the store's array at each address carries its own member).
+    const sibling = inst.listen(second);
+    if (sibling === handle) {
+      return 'two-addresses: the store answered the SAME identity for a different address, so the two registrations are one (\`DD-39\`)';
+    }
+    const atSecond = inst.write(second, 'mem', 2).triggered;
+    if (atSecond.length !== 1) {
+      return `two-addresses: the sibling address carried ${atSecond.length} members where its own registration stands`;
+    }
+    const firesAfterSibling = fires;
+
+    // (3) **THE WITHDRAWAL NAMES ONE ADDRESS: the store-side home entry there is withdrawn, the PACKAGE'S
+    // REGISTRY ENTRY STANDS (`§2.4` rule 4's own four words), AND `undefined` IS THE SUCCESS** (`DD-53`).
+    if (inst.unlisten(handle) !== undefined) return 'two-addresses: `unlisten` over an in-domain handle is not `undefined` (`DD-53`)';
+    const firstAfter = inst.write(first, 'mem', 3).triggered;
+    if (firstAfter.length !== 0) {
+      return `two-addresses: the withdrawn address still carried ${firstAfter.length} member(s) after its OWN registration was withdrawn (\`DD-42\` clause (2))`;
+    }
+    if (fires !== firesAfterSibling) {
+      return `two-addresses: the withdrawn identity's function was invoked ${fires - firesAfterSibling} time(s) after the registration at its own address was withdrawn — \`§2.4\` rule 4's own words are *"a function whose handle is withdrawn simply never fires again"*`;
+    }
+
+    // (4) **AND THE WITHDRAWAL EMPTIED NO OTHER ADDRESS: the sibling's own registration stands** — a call
+    // that names ONE handle may not disturb another registration (`§2.4` rule 4's *"the later re-`listen` …
+    // mints a DIFFERENT handle"* is read with `§2.4` item 7 (b)'s *"`off` REMOVES NO MORE THAN THE HANDLE
+    // NAMES"*, the same reading for the store-side half).
+    const secondAfter = inst.write(second, 'mem', 4).triggered;
+    if (secondAfter.length !== 1) {
+      return `two-addresses: the SIBLING address carried ${secondAfter.length} member(s) after a withdrawal that named the OTHER address's handle — a removal of more than the handle names`;
+    }
+
+    // (5) **A LATER `listen` AT THE WITHDRAWN ADDRESS MINTS A DIFFERENT HANDLE, AND THE WITHDRAWN IDENTITY
+    // NEVER FIRES AGAIN** (`§2.4` rule 4).
+    const remint = inst.listen(first);
+    if (remint === handle) return 'two-addresses: a later `listen` re-used the withdrawn identity (`§2.4` rule 4)';
+    let remintFires = 0;
+    inst.register(remint, () => { remintFires += 1; });
+    const firesBeforeRemint = fires;
+    const final = inst.write(first, 'mem', 5).triggered;
+    if (final.length !== 1) return `two-addresses: the re-minted address carried ${final.length} members, where the new registration stands alone`;
+    if (!final.includes(remint)) return 'two-addresses: the fresh registration is not the identity the store carries';
+    if (remintFires !== 1) return `two-addresses: the fresh identity ran ${remintFires} time(s) for ONE trigger`;
+    if (fires !== firesBeforeRemint) {
+      return `two-addresses: the WITHDRAWN identity fired again at the address it was withdrawn from — \`§2.4\` rule 4's own four words`;
+    }
+    console.log(`NG NG-JS-P-arm strategy=duplicate token across two addresses attempt=${attempt} arms=5 verdict=HELD`);
+    return true;
+  });
+});
+
+// =============================================================================================
+// `NG-JS-M` — **THE REALM CLAIM'S OWN CORPUS: NO SHIPPED CJS ARM, NO DOCUMENTED `require`
+//              ENTRY, NO WILDCARD EXPORT, AND NO BROWSER OR RENDERER PROMISE IN THE
+//              PACKAGE'S OWN DOCUMENTATION**
+// =============================================================================================
+//
+// **THE `§`s THIS GENERATOR ANSWERS, ONE PER ARM: `contract.md §5.7`'s (`P-TP-7`) FAILURE LIST, VERBATIM**
+// (*"a shipped CJS arm beside the ESM one; a documented `require` entry; a wildcard `"./*"` export that
+// exposes the `.node`; a browser or renderer promise anywhere in the package's documentation"*) · **`§5.7`'s
+// PROPERTY** (*"`import`ing the package's ESM entry … reaches exactly ONE claimed realm: **NO other realm, no
+// second addon, no subprocess, no shared library and no WASM module is loaded at any point to reach the
+// store**; and **every unclaimed realm of `§3.2` has a `HO-` row whose own drive asserts ONLY that the
+// package exposes no entry for it**"*) · **`package.md §1.1`–`§1.3`** (the claimed realm `{ Node ESM }`,
+// `DD-24`'s one-arm map, `DD-4`'s no-documented-`require` ruling) · **`package.md §2`'s `HO-1`…`HO-7` rows,
+// each with its own declared answer** (`HO-1` *"the package publishes NO CJS arm and NO `require` entry"* ·
+// `HO-4` and `HO-5` *"nothing is shipped and nothing is promised"* · `HO-6` *"no worker-specific entry"* ·
+// `HO-7` *"this unit ships no bridge, no channel protocol and no serialized value form"*) · **`acceptance.md
+// §4.2` items 2–3** (`APP` layer `NONE`; no `APP`-green claimed).
+//
+// **THE SITES THIS GENERATOR READS ARE THE SHIPPED BYTES AND NOT A RESTATEMENT OF THEM: the manifest the
+// package would publish (`package.json`) and the ONE documentation surface the allowlist carries
+// (`README.md`)**, together with the package's own description string. **A RESTATEMENT IN A TEST FILE IS A
+// LITERAL; THESE ARE THE ARTEFACTS. THE FALSIFIER: add a `require` arm to the `exports` map, a `"main"`
+// field, a `"./*"` key, a `.node` path to the allowlist, or a sentence promising the browser on either
+// documented surface — and the arm whose site that is FAILS.**
+//
+// **STATES ENUMERATED BEFORE THE DRIVE WAS AUTHORED:**
+//
+// | The state | Its declared answer |
+// | --- | --- |
+// | the `exports` map's own entries | EXACTLY ONE (`package.md §1.3`; `DD-24`), carrying the ESM arm |
+// | a `require`, `default` or `node` condition inside it | a documented `require` entry — a FAILURE of `§5.7` (`HO-1`'s declared answer) |
+// | a wildcard key (`"./*"`, `"./package.json"`, any deep path) | a wildcard export that exposes the `.node` — a FAILURE of `§5.7` |
+// | a root `main` field, or any `.cjs`/`.node` path inside the allowlist | a shipped CJS arm or a published addon path — a FAILURE of `§5.7` |
+// | every unclaimed realm of `package.md §2` | named at the package's own documentation with its declared answer, and NO browser or renderer promise |
+// | a browser/Electron-`renderer` promise on a documented surface | a FAILURE of `§5.7` (**`HO-4`/`HO-5`: *"nothing is shipped and nothing is promised"***) |
+// | the package's own description string | the same rule, read at the second documented surface |
+//
+// **WHAT FAILING LOOKS LIKE, ONE LINE:** a second entry in the map, a `require`/`default` arm, a wildcard
+// key, a published `.node` path, an unclaimed realm left unnamed, or a promise to a realm this unit does not
+// claim.
+test('ng_js_m_the_manifest_and_the_documentation_publish_one_realm_and_promise_no_other', () => {
+  runGenerator('NG-JS-M', 'realm claim, manifest and documentation', 8, (attempt, rng) => {
+    const manifest = JSON.parse(readFileSync(join(PACKAGE_DIR, 'package.json'), 'utf8'));
+    const README = readFileSync(join(PACKAGE_DIR, 'README.md'), 'utf8');
+    // The two documentation surfaces that SHIP with the package (the README the allowlist carries, and the
+    // manifest's own description) — both read on every attempt, in the rotation's own order.
+    const surfaces = [
+      { name: 'README.md', bytes: README },
+      { name: 'package.json:description', bytes: String(manifest.description || '') },
+    ];
+    const rotation = rng.next().value % 2;
+
+    // (1) **THE `exports` MAP: EXACTLY ONE ENTRY, THE ESM ARM, AND NOTHING ELSE** (`package.md §1.3`;
+    // `DD-24`; `surface.md §2.9` item 1: ONE named export, `11 → 1`).
+    const exportsMap = manifest.exports;
+    if (exportsMap === null || typeof exportsMap !== 'object') {
+      return 'realm: the manifest carries no `exports` map, so the claimed realm is not published as a map at all';
+    }
+    const keys = Object.keys(exportsMap);
+    if (keys.length !== 1) {
+      return `realm: the \`exports\` map carries ${keys.length} entries (${keys.join(', ')}), where the claimed realm is ONE (\`DD-24\`)`;
+    }
+    if (keys[0] !== '.') {
+      return `realm: the \`exports\` map's own entry is \`${keys[0]}\` and not the register's \`"."\` (\`package.md §1.3\`)`;
+    }
+    for (const [key, arms] of Object.entries(exportsMap)) {
+      if (key.includes('*')) {
+        return `realm: the exported key \`${key}\` is a WILDCARD, and \`contract.md §5.7\`'s failure list names *"a wildcard \`\"./*\"\` export that exposes the \`.node\`"*`;
+      }
+      if (key !== '.' && key !== './') {
+        return `realm: the exported key \`${key}\` is a DEEP path, and the addon may not be an entry point (\`package.md §1.2\`; \`DD-4\`)`;
+      }
+      if (arms === null || typeof arms !== 'object') {
+        return `realm: the \`${key}\` entry is a bare string (\`${String(arms)}\`) rather than the single-arm record \`DD-24\` declares`;
+      }
+      const armNames = Object.keys(arms);
+      for (const arm of armNames) {
+        if (arm === 'require' || arm === 'default' || arm === 'node') {
+          return `realm: the \`${key}\` entry carries a \`${arm}\` arm — \`contract.md §5.7\` names *"a documented \`require\` entry"\* and *"a shipped CJS arm beside the ESM one"\*, and \`HO-1\`'s declared answer is *"the package publishes NO CJS arm and NO \`require\` entry"\*`;
+        }
+        if (arm !== 'import' && arm !== 'types') {
+          return `realm: the \`${key}\` entry carries the undeclared arm \`${arm}\` (\`DD-24\`: ONE arms-bearing entry, the ESM one)`;
+        }
+      }
+      if (!armNames.includes('import')) {
+        return `realm: the \`${key}\` entry carries no \`import\` arm, where the claimed realm IS the ESM one`;
+      }
+      if (typeof arms.import !== 'string' || !arms.import.endsWith('.mjs')) {
+        return `realm: the ESM arm points at \`${String(arms.import)}\`, and the entry is the package's own \`.mjs\` module`;
+      }
+      if (arms.import.includes('.node')) {
+        return 'realm: the ESM arm points AT the addon — the addon may not be an entry point (`package.md §1.2`)';
+      }
+    }
+    if ('main' in manifest) {
+      return 'realm: the manifest carries a root `main` field, which is the CJS entry point `HO-1` refuses';
+    }
+    // (2) **THE ALLOWLIST CARRIES NO `.cjs` AND NO `.node` PATH** (`contract.md §5.7`: a shipped CJS arm;
+    // a wildcard export that exposes the `.node`).
+    const files = Array.isArray(manifest.files) ? manifest.files : [];
+    if (files.length === 0) return 'realm: the manifest declares no `files` allowlist, so what ships is undeclared';
+    for (const path of files) {
+      if (path.endsWith('.cjs') || path.endsWith('.node')) {
+        return `realm: the allowlist publishes \`${path}\` — a CJS arm or the addon binary itself (\`contract.md §5.7\`; \`package.md §1.2\`)`;
+      }
+      if (path.includes('*')) {
+        return `realm: the allowlist entry \`${path}\` is a WILDCARD (\`contract.md §5.7\`)`;
+      }
+    }
+    // (3) **EVERY UNCLAIMED REALM OF `package.md §2` IS NAMED AT A DOCUMENTED SURFACE, WITH ITS OWN
+    // DECLARED ANSWER**, and (4) **NO BROWSER OR RENDERER PROMISE STANDS ON EITHER SURFACE**
+    // (`HO-1`…`HO-7`; `contract.md §5.7`'s *"a browser or renderer promise anywhere in the package's
+    // documentation"*).
+    const realms = [
+      { id: 'HO-1', named: /CJS|CommonJS/, promise: /\bCJS\b[^.]{0,60}\b(supported|available|entry)\b/i },
+      { id: 'HO-2', named: /Electron\s*`?main`?/, promise: /Electron\s*`?main`?[^.]{0,60}\b(supported|available|works|guaranteed)\b/i },
+      { id: 'HO-3', named: /`?preload`?/, promise: /preload[^.]{0,60}\b(supported|available|works|guaranteed)\b/i },
+      { id: 'HO-4', named: /renderer/, promise: /renderer[^.]{0,60}\b(supported|available|works|guaranteed)\b/i },
+      { id: 'HO-5', named: /browser/, promise: /browser[^.]{0,60}\b(supported|available|works|bundled)\b/i },
+      { id: 'HO-6', named: /worker_threads|worker/, promise: /worker[^.]{0,60}\b(supported|available|works)\b/i },
+      { id: 'HO-7', named: /IPC/, promise: /\bIPC\b[^.]{0,60}\b(supported|available|shipped)\b/i },
+    ];
+    for (const surface of surfaces) {
+      for (const realm of realms) {
+        if (!realm.named.test(surface.bytes)) continue; // a realm a surface does not speak of is read at the other
+        if (realm.promise.test(surface.bytes)) {
+          return `realm: \`${surface.name}\` promises the unclaimed realm ${realm.id} — \`HO-4\`/\`HO-5\`'s declared answer is *"nothing is shipped and nothing is promised"*, and \`contract.md §5.7\` names *"a browser or renderer promise anywhere in the package's documentation"*`;
+        }
+      }
+    }
+    // AND THE ONE SURFACE THE ALLOWLIST CARRIES MUST NAME THE UNCLAIMED SET AT ALL: a blank README would pass
+    // every reading above by saying nothing.
+    const namedCount = realms.filter((realm) => realm.named.test(README)).length;
+    if (namedCount !== realms.length) {
+      const missing = realms.filter((realm) => !realm.named.test(README)).map((realm) => realm.id);
+      return `realm: \`README.md\` does not name the unclaimed ${missing.join(', ')} — \`package.md §2\` enumerates the set rather than leaving it to a reader's judgement, and \`§5.7\`'s \`S-HO\` reads one drive per \`HO-\` row off the shipped documentation`;
+    }
+    // AND THE TWO DECLARED ANSWERS THE README MUST CARRY, READ AS ITS OWN WORDS (`HO-1`; `DD-24`).
+    if (!/no CJS arm/i.test(README)) {
+      return 'realm: `README.md` does not carry `HO-1`\'s declared answer — *"the package publishes NO CJS arm and NO `require` entry"* — as its own words';
+    }
+    if (!/no wildcard export/i.test(README)) {
+      return 'realm: `README.md` does not carry the `exports` map\'s own one-arm reading — *"no wildcard export, no deep import to the addon"* (`DD-24`)';
+    }
+    console.log(`NG NG-JS-M-arm strategy=realm claim, manifest and documentation attempt=${attempt} rotation=${rotation} arms=4 verdict=HELD`);
     return true;
   });
 });
