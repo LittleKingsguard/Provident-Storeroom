@@ -736,7 +736,9 @@ storeroom-js-adversarial.md` §A · `JS-6` · `JS-1` · `JS-2` · `JS-5`):
    `§1.2` row 10's outside class — **and it is REFUSED as that class, BEFORE any numeric arm is entered**
    (`archive/gate4/storeroom-js-adversarial.md` §A · `JS-6`).
 2. **A `Number()` CALL THROWING A HOST `TypeError` FROM THE BOUNDARY'S OWN FRAME.** **(ii) OF STEP ONE, AND
-   THE REASON STEP ONE MUST PRECEDE ANY CONVERSION.** **`rollback(instance, Symbol())` reached
+   THE REASON STEP ONE MUST PRECEDE ANY CONVERSION.** **`a.rollback(Symbol())` — the method form, the receiver
+   being the store, re-spelled 2026-10-16 under `A127`'s receiver ruling at this clause's own bytes and stated
+   here so no drive reads the shipped module-form example as the declared shape — reached
    `Number(opId)`, which throws a RAW JS `TypeError` from the package's own frame — a form outside `§2.5`'s
    single failure form, and one no clause of this unit permits.** **THE RULE'S ANSWER: a `Symbol` IS a
    `Symbol`** — `§1.2` row 9's outside class — **and `OpIdArg`'s own rows answer `AddressMalformed` for an

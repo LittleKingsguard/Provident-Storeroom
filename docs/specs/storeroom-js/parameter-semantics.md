@@ -218,9 +218,9 @@ docs/specs/storeroom-js/parameter-semantics.md §2.21 | declared parameter seman
 outside form of `cfg` is unmoved; THIS clause is a PURE INSERTION, IT ADDS NO ROW — `§1`'s `18` and its
 `16 + 1 + 1 + 1` arithmetic stand, and no printed range or count of this directory moves — and it declares ONE
 parameter the set had left to discovery.** **THE DEFECT IT CLOSES, NAMED WITH ITS TERMS: EVERY verb's FIRST
-argument is the package's own instance handle — `read` · `readLiteral` · `write` · `delete` · `rollback` as
-`(instance, …)`, and `listen`/`unlisten` likewise (`contract.md §2.2`, `§2.10`) — while NO `PAR-JS` row
-declared that position's domain, its outside values or its code.**
+argument WAS the package's own instance handle — `read` · `readLiteral` · `write` · `delete` · `rollback` as
+`(instance, …)`, and `listen`/`unlisten` likewise (`docs/specs/storeroom-js/contract.md §2.2`, `§2.10`) — while NO `PAR-JS` row
+declared that position's domain, its outside values or its code.** **⟶ AND THAT POSITION IS **VACATED** FROM 2026-10-16: `A127`'s receiver ruling DROPS it at every store-reaching site, the receiver IS the store, and the sentence above is read at its own dated bytes as the clause that WAS — the ten methods' arity, positions, answer and refusal standing at `docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s clause of that date, and the sites the position stood at being the SIX `docs/specs/storeroom-js/surface.md §2.4` item 3 lists with their file.**
 
 - **WHY A CLAUSE ON THIS ROW AND NOT A NINETEENTH ROW, SAID BECAUSE THE CHOICE MUST BE STATED: minting
   `PAR-JS-19` would falsify NINE printed ranges and counts at once** — `contract.md`'s index-region
@@ -674,9 +674,9 @@ every arm and NO ARM IS LEFT TO DISCOVERY:**
 
    | The triggering verb | What the invocation receives as its ONE argument |
    | --- | --- |
-   | **`write(instance, address, tier, value)`** — its `triggered` comes from the `WriteResult` | **the caller's own `address` argument, verbatim** — the same address the write was aimed at, whether it resolved to an existing node or minted one |
-   | **`delete(instance, address, tier)` with a tier PRESENT** — its `triggered` comes from the `DeleteReceipt` | **the caller's own `address` argument, verbatim** |
-   | **`delete(instance, address)` with the TIER ABSENT** — the same receipt and the same `triggered` | **the caller's own `address` argument, verbatim: the absent tier changes WHAT IS REMOVED and never the invoking address** |
+   | **`a.write(address, tier, value)`** — its `triggered` comes from the `WriteResult` | **the caller's own `address` argument, verbatim** — the same address the write was aimed at, whether it resolved to an existing node or minted one |
+   | **`a.delete(address, tier)` with a tier PRESENT** — its `triggered` comes from the `DeleteReceipt` | **the caller's own `address` argument, verbatim** |
+   | **`a.delete(address)` with the TIER ABSENT** — the same receipt and the same `triggered` | **the caller's own `address` argument, verbatim: the absent tier changes WHAT IS REMOVED and never the invoking address** |
 
 4. **THE TWO ARMS GATE 4 NAMED AS UNSTATED, ANSWERED ONE LINE EACH.** **(i) A `delete` WITH AN ABSENT TIER
    contributes the SAME producer as the tier-present arm, per item 3's third row.** **(ii) A NO-OP `listen`
@@ -758,10 +758,14 @@ verbs was carried inside `PAR-JS-1` and the registration's handle inside `PAR-JS
 falsified nine printed ranges at once for a datum whose domain, spells and outside values are already these.**
 
 **THE SLOT, NAMED WITH ITS SIGNATURE AND ITS POSITION: `off(handle) -> undefined`, the handle at `off`'s FIRST
-AND ONLY ARGUMENT POSITION — and the position is ARGUMENT POSITION `1` OF `2`, reported as such.** **THE SLOT IS
+AND ONLY ARGUMENT POSITION — and the position is ARGUMENT POSITION `1` OF `2`, reported as such.** **⟶ READ TOGETHER WITH ONE LATER RULING, 2026-10-16: THE `on`/`off` NAME PAIR IS MERGED AWAY BY `A127`, and the two
+address-level acts this cell names are carried by the product's `listen`/`unlisten` METHODS, whose arity, positions,
+answer and refusal stand at `docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s clause of this date; the
+`on`/`off` spelling is retained here as this cell's dated subject and re-decides no rule.** **THE SLOT IS
 A DIFFERENT VERB REACHING THE SAME DOMAIN, AND ITS DIFFERENCE FROM `unlisten` IS DECLARED AND NOT INCIDENTAL:
-`unlisten(instance, handle)` performs the STORE-FACING WITHDRAWAL ONLY — the package's registry entry STANDING
-(`§2.4` rule 4, UNMOVED) — while `off` performs the store-side withdrawal AND removes the PACKAGE'S OWN registry
+THE `unlisten` METHOD performs the STORE-FACING WITHDRAWAL ONLY — the package's registry entry STANDING
+(`§2.4` rule 4, UNMOVED, and re-spelled 2026-10-16 to the method form, no position of it being an instance) —
+while the `off` act performs the store-side withdrawal AND removes the PACKAGE'S OWN registry
 entry for that identity, so RULE 4 IS SUPPLEMENTED AND NOT EXCEPTED** (`docs/specs/storeroom-js/surface.md §2.4`
 item 7 (b), at its own home; `A80`'s own reconciliation).
 
@@ -1543,7 +1547,7 @@ docs/specs/storeroom-js/parameter-semantics.md §2.21 | declared parameter seman
 2. **THIS ROW'S `the values OUTSIDE it` and `the declared answer for EACH outside value` cells** → the same move-out ✓.
 3. **`docs/specs/storeroom-js/surface.md §2.12` item 4** → RE-DERIVED to the two positions the receiver ruling leaves, with its `instance`-selector clause moved out to that archive's `§4` ✓ (landed by this pass).
 4. **`docs/specs/storeroom-js/surface.md §2.12` item 2 clause (ii)'s signature block** → RE-SPELLED to `a.addConstraint(pair, constraint)` and its two siblings, with the as-filed block moved out to that archive's `§3` ✓ (landed by this pass).
-5. **`docs/specs/storeroom-js/surface.md`'s `§2.1` dated clause and `§2.4` item 9 (f)'s clause of this date** → the ten methods' arity and refusal table DECLARED there, where the receiver reading's operative statement lives ✓ (landed by this pass).
+5. **`docs/specs/storeroom-js/surface.md`'s `§2.1` (e) item 4 and `§2.4` item 9 (f)'s clause of this date** → the ten methods' arity, positions, answer and refusal table is **DECLARED AT `§2.4` ITEM 9 (f), THE ONE HOME THAT CARRIES IT**, while `§2.1` (e) item 4 only POINTS at that item and RESTATES NO ROW OF IT ✓ — **⟶ AND THIS CELL'S AS-FILED *"DECLARED there"* WAS FALSE OF `§2.23` item 5's FIRST SITE AND IS CORRECTED HERE 2026-10-16 BY THE GATE-2 FOURTH REVIEWER-LOOP PASS: `§2.1`'s clause declares the product's opacity, the ONE module name and the receiver rule and POINTS AT the table; the table stands at `§2.4` item 9 (f) and at no other site** (`surface.md §2.1` (e) item 4, opened and read at its own bytes).
 6. **`docs/specs/storeroom-js/contract.md §6`'s index row for `PAR-JS-23`** → re-spelled in that document's own index-region clause, because the row's subject is re-derived and its `§`-home is unmoved ✓ (landed by this pass).
 7. **`PAR-JS-26` — THE `operation` POSITION — IS DISPOSED OF EXPLICITLY, AND ITS DISPOSITION IS THAT IT WAS NEVER A ROW OF THIS PART: the id `PAR-JS-26` is carried by NO heading and NO index row of `parameter-semantics.md`; `A126` ADDED NO SUCH ROW (the operative range being `PAR-JS-1`…`PAR-JS-25`, `23 + 2 = 25` ✓, whose ONE home is `§1`'s clause of this date), and the only place the string `PAR-JS-26` occurs is inside superseded RANGE clauses whose figures were corrected the same date — so a citation to `PAR-JS-26` as a row is a citation to a count's earlier spelling and NOT to a row.** **THE `operation` POSITION ITSELF IS SUPERSEDED AND ITS CELLS STAND AT `docs/specs/storeroom-js/backup/RCA-A126-2026-10-16-superseded.md §2` and `§4`, whose source paths and `§`s are named there; the position exists at NO call of this surface from this date, `A126` having replaced it with the three functions and `A127` having removed the position they shared.** **SO NO `PAR-JS-26` ROW IS OWED AND NO ROW IS MINTED BY THIS VACATION** (`[A2 docs/decisions.md` · `A127` · `A126` · `A123`, 2026-10-16; A3 docs/specs/storeroom-js/parameter-semantics.md `§1` and `§2.22`–`§2.25`; A3 docs/specs/storeroom-js/backup/RCA-A126-2026-10-16-superseded.md `§2`, `§4` and `§5` | declared parameter semantics]`).
 
