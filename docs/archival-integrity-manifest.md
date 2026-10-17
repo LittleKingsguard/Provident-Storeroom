@@ -153,3 +153,5 @@
 | `314fe78d141b360f684db5e03436d99a8161e4a5fcbd83fe7dfebade28c893cd` | 9502 | `docs/specs/storeroom-publish/backup/SELF-REPORT-LIFT-2026-10-13-manifest.md` |
 | `2faef1dd8e513d3cd3b1d20167eaf331b9bbb92457f0cac8abe699ae5fc28e3a` | 19173 | `docs/specs/storeroom-publish/backup/SEVEN-CLOSE-2026-10-11-manifest.md` |
 | `6b66a1d8df028c0bd8694d19b9e04c2fa72af9c70daaf33c08d881d478abe407` | 10804 | `docs/specs/storeroom-publish/backup/STAGED-RELEASE-2026-10-11-manifest.md` |
+
+**Amendment 2026-10-16 (post-`§46`): `archive/reviews/2026-10-16-constraints-publication-gate1.md` = `0e2afb16b91ad2427b00fd536fbdafd0e3ff3052fd0accf67f543a23fc05cfdb` — the record grew by one live section after the baseline was taken, which is itself the first exercise of this manifest's purpose (a post-baseline change, disclosed and re-pinned).**
