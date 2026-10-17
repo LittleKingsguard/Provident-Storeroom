@@ -172,3 +172,9 @@ archive/
 # The live battery's copy-drive (a duplicate of the checkout's own files, rebuilt by the report's own commands)
 scratch/live/install-0.2.0/drive/
 scratch/probe-shape-a/
+
+# Gate-6/10 archival staging (scratch verification byproducts, never deliverables)
+scratch/g7-cache/
+scratch/g7-consumer/
+scratch/g7-logs/
+scratch/g7-stage/
