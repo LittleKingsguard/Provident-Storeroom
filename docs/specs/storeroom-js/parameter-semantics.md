@@ -105,7 +105,7 @@ declared shape is `docs/specs/storeroom-js/surface.md §2.12` item 2, whose row 
 handling"* — and `PAR-JS-23` — the CONSTRAINT IDENTITY that route returns and that the kernel's registry keys
 its own structure by, whose row is `§2.23` below.** **SO THE OPERATIVE COUNT AND ITS ARITHMETIC ARE: `23` rows
 (`PAR-JS-1`…`PAR-JS-23`) — the `21` the clauses above re-derived, `+ 1` parameter (`PAR-JS-22`) `+ 1`
-return-field (`PAR-JS-23`), so `21 + 1 + 1 = 23` ✓ — and the addition to the `21` figure is `21 + 2 = 23`.** **AND
+return-field (`PAR-JS-23`), so `21 + 1 + 1 = 23` ✓ — and the addition to the `21` figure is `21 + 2 = 23` — **A LABEL WITHDRAWN 2026-10-16 BY THE GATE-2 SEVENTH REVIEWER-LOOP PASS, this clause's `23` and its `21 + 1 + 1 = 23` ✓ sum being the `A122`/`A123` pass's reading and the OPERATIVE count and arithmetic being `PAR-JS-1`…`PAR-JS-25`, `23 + 2 = 25` ✓, whose ONE home is this part's `§1` count-correction clause of that date**.** **AND
 THE TERMS ARE RE-COUNTED RATHER THAN THE TOTAL ASSERTED: `15` parameters or returned fields
 (`PAR-JS-1`…`PAR-JS-11` and `PAR-JS-13`…`PAR-JS-16`; `11 + 4 = 15`) `+ 1` callback (`PAR-JS-12`) `+ 1`
 error-code carrier (`PAR-JS-17`) `+ 1` declared NON-parameter (`PAR-JS-18`) `+ 1` seam (`PAR-JS-19`) `+ 1`
