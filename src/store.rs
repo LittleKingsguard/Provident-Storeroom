@@ -2195,10 +2195,18 @@ impl Store {
             return Err(journal_op_unknown(&op_id));
         };
         let address = self.journal[index].op.address.clone();
-        // `M-5`/`DD-21`: the candidate set is EVERY entry the addressed subtree contains, compacted
-        // entries included — the walk's floor is then the predicate that decides.
+        // `M-5` item 1's amendment (a) (ii): the TEMPORAL FLOOR, read off the named entry's own `seq` —
+        // *"`E.seq` ≥ THE NAMED OP'S OWN `seq`"*, `≥` because *"the named op itself must be reversed or
+        // nothing is"*. It bounds the candidate set FIRST; `M-6`'s compacted floor is then evaluated over
+        // that bounded set.
+        let floor = self.journal[index].op.seq;
+        // `M-5`/`DD-21`: the candidate set is every entry in the addressed subtree AT OR AFTER the named
+        // op's `seq`, compacted entries included — the walk's floor is then the predicate that decides.
         let scope: Vec<usize> = (0..self.journal.len())
-            .filter(|candidate| is_prefix(&address, &self.journal[*candidate].op.address))
+            .filter(|candidate| {
+                let entry = &self.journal[*candidate].op;
+                is_prefix(&address, &entry.address) && entry.seq >= floor
+            })
             .collect();
         if scope
             .iter()
