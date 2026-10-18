@@ -349,6 +349,24 @@ return shape and `A116` (D4)'s "carrier unchanged").
 
 **AND IT SUPERSEDES `(D-iv)`'s READING: *"`mint` replaced in place"* IS WITHDRAWN IN FAVOUR OF A SEPARATE OPERATION — a function that both purges and installs cannot be one function, because the purge needs the OLD handle and the install needs the NEW one, and `mint` takes only the address.**
 
+**(M-3) `addressToken` IS DELETED — THE KERNEL NEEDS NO ADDRESS-KEYED LOOKUP, BECAUSE THE STORE SUPPLIES THE TRIGGERING ADDRESSES.** **THE ARCHITECT'S GROUND, VERBATIM: *"Address token doesn't need to exist because it doesn't need to be a map key. The kernel receives the triggering addresses from the store now, it doesn't need an internal lookup"*. THIS SUPERSEDES MY PASS-6 CORRECTION, WHICH HAD KEPT `addressToken` ALIVE ON THE GROUND THAT IT HAS "FIVE SURVIVING CALLERS" — THE CALLERS SURVIVE, BUT EACH IS A LOOKUP THAT SHOULD NOT EXIST.**
+
+**THE SIX SITES AND EACH ONE'S DISPOSITION, VERIFIED AT THE BYTES (`constraint-kernel.mjs:200-212` for the definition):**
+
+**(i) `:221` — `pairKey`'s address half, `${addressToken(address)}#${id}`. GOES with the registry rows that use it: under (M-2) the pair's identity is its `id`, and under R-B3 the kernel holds no address-keyed map. THE PROPOSAL MUST STATE WHAT REPLACES THE COMPOSITE KEY, because `kernel.pairs` is keyed by it and `withdrawRegistration` looks rows up by it.** **⟶ AND IF `pairs` SURVIVES AS A MAP, IT IS KEYED BY `id` ALONE — WHICH IS WHAT "ONE ID, N ADDRESSES" ALREADY DECLARED.**
+
+**(ii) `:404` and `:465` — the `byAddress` write and read. GONE with `byAddress` (R-B3). No new obligation.**
+
+**(iii) `:778` — `commit`'s `kernel.held` map. THE ONLY REAL ONE: `kernel.held.has(token)` refuses a second attempt at the same address (`KC-7`). IT GOES, AND THE PROPOSAL MUST SAY WHAT REPLACES THE MEMBERSHIP TEST — because `KC-7`'s refusal still has to fire, and the record must not lose it. THE CANDIDATE READING: the attempt's address is carried on the attempt and compared STRUCTURALLY against the live attempts' addresses, since there are as many live attempts as there are nesting levels and a scan over them is bounded by nesting depth, not by pair count.**
+
+**(iv) `:1391` — `evaluate`'s checkpoint test, `addressToken(landing.address) === addressToken(attempt.address)`. THIS IS AN EQUALITY COMPARISON BETWEEN TWO ADDRESSES AND NEVER NEEDED A KEY AT ALL: it spelled them as strings for no reason. THE PROPOSAL MUST STATE THE STRUCTURAL COMPARISON (segment-wise, `string` vs `number` distinguished — the same distinction `addressToken`'s `k:`/`i:` prefixes were carrying).**
+
+**(v) `:1570` — `release`'s `kernel.held.delete`. GONE with (iii).**
+
+**WHAT THIS CLOSES, AND IT IS THE COST THE PASS-6 AND PASS-7 REVIEWS PRICED: the `O(N_pairs)` scan `(R-B3)` forced, with a string rebuilt per row, is NOT the design — there is no scan, because the store tells the kernel which pairs stand where.** **AND IT RETIRES THE ORDER LOSS `(R-B3)` INTRODUCED: `attempt-lifecycle.md:193`'s *"clause (ii)'s first-registration order"* is preserved by the store's own returned order, not by an index's append order.**
+
+**AND THE PROPOSAL MUST STATE THE SEAM THIS DEPENDS ON, WHICH `(R-B3)` LEFT AS PROSE: WHAT THE STORE TELLS THE KERNEL, ON WHICH CALL, AND IN WHAT SHAPE.** **That shape is `P-7`'s pair — `{handle, address}` — and (M-3) makes `P-7` load-bearing for the kernel rather than merely informative.**
+
 **(M-2) A REMOVE MECHANISM IS ADDED — IT IS THE `K-6` THE RULINGS PREVIOUSLY NAMED WITHOUT A SIGNATURE.** **THIS CLOSES `(D-ii)`'s CIRCULARITY: the repair route *"`removeConstraint` then `addConstraint`"* named a member that did not exist, and `removeConstraint`/`removeListener` (R4, `12 → 14`) had no kernel-side counterpart, because `kernel-surface.md §1` item 2 closes the extent at FIVE and `withdrawRegistration` (`:460-476`) declines to withdraw the store's home entry.**
 
 **THE PROPOSAL MUST DECLARE THE REMOVAL'S EXTENT, WHICH R4 STATES AND WHICH THE MECHANISM NOW IMPLEMENTS: after it the pair is gone from `state.constraints` (the JS read model), from `kernel.pairs` (`:243`), from EVERY `byAddress` row — **and `byAddress` is deleted by R-B3, so this clause must state which structure replaces it** — from `kernel.handles` (`:251`), and from the store's home entry via (M-1)'s purge or `withdraw`.**
