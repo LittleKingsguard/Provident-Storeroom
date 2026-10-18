@@ -38,8 +38,8 @@ use std::os::raw::{c_char, c_void};
 use crate::crossing::{
     self, JsAddressArg, JsBaseState, JsConfig, JsConstraintEntry, JsConstraintsArg, JsDeleteReceipt,
     JsFilePathArg, JsHandle, JsHandleArg, JsJournalLengthArg, JsJournalOp, JsKey, JsListenerEntry,
-    JsListenersArg, JsNonArray, JsObject, JsOpIdArg, JsProto, JsRollbackResult, JsSegment,
-    JsTierArg, JsTierSetItem, JsValue, JsWriteResult, Refusal,
+    JsListenerTrigger, JsListenersArg, JsNonArray, JsObject, JsOpIdArg, JsProto, JsRollbackResult,
+    JsSegment, JsTierArg, JsTierSetItem, JsValue, JsWriteResult, Refusal,
 };
 
 /// The address's own segments, where the argument IS the declared list shape — the triggering address a
@@ -783,7 +783,7 @@ impl Codec {
             None => return JsHandleArg::NonOpaque,
         };
         match tag.as_str() {
-            "O" => JsHandleArg::Opaque(JsHandle::from_token(
+            "O" => JsHandleArg::Opaque(JsHandle::from_handle(
                 &self
                     .member(h, "v")
                     .map(|x| self.string_of(x))
@@ -1111,13 +1111,26 @@ impl Codec {
         ])
     }
 
-    unsafe fn to_js_handles(&self, handles: &[JsHandle]) -> NapiValue {
-        self.array(
-            handles
-                .iter()
-                .map(|handle| self.string_value(handle.token()))
-                .collect(),
-        )
+    /// **⟶ THE PAIR EMITTER — `{handle, address}` (`contract.md §2.4` item 1; `trigger-and-pair.md §2`
+    /// item 2).** The function that stood here mapped a bare `JsHandle` list to a bare string list, and it
+    /// **BECOMES A PAIR EMITTER whose `handle` member is the string and whose `address` member is a segment
+    /// array** (`P: docs/pending.md · P-7`, the crossing clause; `PAR-HL-38`).
+    ///
+    /// **AND WITH THE TOKEN GONE, `handle.token()` IS THE HANDLE ITSELF** (`P: docs/pending.md · P-6`, the
+    /// type ruling: *"`JsHandle { token: String }` collapses to the string it always was"*).
+    ///
+    /// **NO PARALLEL `triggeredAddresses` ARRAY EXISTS AND NONE MAY BE ADDED** — the aligned form is an i-th
+    /// correspondence, and it reverses `DD-37` (`contract.md §2.4` item 1; `trigger-and-pair.md §2` item 4).
+    unsafe fn to_js_trigger_pairs(&self, triggered: &[JsListenerTrigger]) -> NapiValue {
+        let pairs = triggered
+            .iter()
+            .map(|pair| {
+                let handle = self.string_value(pair.handle.handle());
+                let address = self.to_js_segments(&pair.address);
+                self.object(vec![("handle", handle), ("address", address)])
+            })
+            .collect();
+        self.array(pairs)
     }
 
     unsafe fn to_js_write_result(&self, r: &JsWriteResult) -> NapiValue {
@@ -1129,7 +1142,7 @@ impl Codec {
         self.object(vec![
             ("op", self.to_js_journal_op(&r.op)),
             ("watched", self.array(watched)),
-            ("triggered", self.to_js_handles(&r.triggered)),
+            ("triggered", self.to_js_trigger_pairs(&r.triggered)),
         ])
     }
 
@@ -1140,7 +1153,7 @@ impl Codec {
                 "tiers",
                 self.array(r.tiers.iter().map(|t| self.string_value(t)).collect()),
             ),
-            ("triggered", self.to_js_handles(&r.triggered)),
+            ("triggered", self.to_js_trigger_pairs(&r.triggered)),
         ])
     }
 
@@ -1306,14 +1319,32 @@ extern "C" fn addon_call(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
                 let result = instance.rollback(&op_id)?;
                 Ok(unsafe { codec.to_js_rollback_result(&result) })
             }
+            // **⟶ `U-STOREROOM-HELD-LISTENER-IDENTITY`: `listen(handle, addresses)` — THE TWO POSITIONS
+            // REACH THE CORE AS THE TWO THE STORE DECLARES** (`contract.md §2.2`; `listen-verb.md §1` item
+            // 1). **POSITION 1 IS THE CALLER-SPELLED HANDLE; POSITION 2 IS THE SET** — an ARRAY OF ADDRESSES,
+            // each member already inside the store's address domain, refused otherwise by the package's own
+            // set-position class test before this frame is entered (`F-2`). **AND THE ANSWER IS `undefined`**
+            // — the caller supplied the identity, so there is no datum to return (`PAR-HL-3`).
             "listen" => {
-                let address = unsafe { codec.address(args.first()) };
-                let handle = instance.listen(&address)?;
-                Ok(unsafe { codec.string_value(handle.token()) })
+                let handle = unsafe { codec.handle_arg(args.first()) };
+                let addresses = unsafe { codec.address_set(args.get(1)) };
+                instance.listen(&handle, &addresses)?;
+                Ok(unsafe { codec.undefined_value() })
             }
             "unlisten" => {
                 let handle = unsafe { codec.handle_arg(args.first()) };
                 instance.unlisten(&handle)?;
+                Ok(unsafe { codec.undefined_value() })
+            }
+            // **⟶ ADDED — `removeListener(handle)`'s STORE HALF, `U-STOREROOM-HELD-LISTENER-IDENTITY`
+            // (`D-GP-SHLI`).** **THE REMOVAL *IS* THE PURGE** (`removal-members.md §2` item 3: *"the removal
+            // IS the purge"*), so this verb reaches the store's own wholesale `Home::purge` and answers
+            // `undefined`. **It is NOT a crossing verb of the eight the store's declared namespace carries** —
+            // it is the package's own member reaching the store's own new operation, exactly as `listen` does
+            // (`contract.md §2.7` item 2).
+            "removeListener" => {
+                let handle = unsafe { codec.handle_arg(args.first()) };
+                instance.remove_listener(&handle)?;
                 Ok(unsafe { codec.undefined_value() })
             }
             // **⟶ ADDED 2026-10-15 — THE TERMINAL ARM'S OWN ACT, AND NOT A VERB** (`surface.md §2.11`
@@ -1381,6 +1412,31 @@ impl Codec {
             Some(v) => self.address_of(*v),
             None => JsAddressArg::Absent,
         }
+    }
+
+    /// **THE SET POSITION — `listen`'s SECOND argument, an ARRAY OF ADDRESSES** (`contract.md §2.2` item 2;
+    /// `PAR-HL-2`). **THE MEMBER COUNT IS THE CALLER'S AND EACH MEMBER IS READ THROUGH THE ADDRESS READER
+    /// THE OTHER POSITIONS USE**: a member outside the store's address domain is refused by the package's own
+    /// class test before this frame, so what arrives here is a set of list-shaped members — and a shape that
+    /// is not list-shaped still crosses as it stands, to be answered by the store's own `AddressMalformed`.
+    unsafe fn address_set(&self, value: Option<&NapiValue>) -> Vec<JsAddressArg> {
+        let Some(array) = value else {
+            return Vec::new();
+        };
+        let mut out = Vec::new();
+        let mut length: u32 = 0;
+        if napi_get_array_length(self.env, *array, &mut length) != 0 {
+            return out;
+        }
+        for index in 0..length {
+            let mut element: NapiValue = std::ptr::null_mut();
+            if napi_get_element(self.env, *array, index, &mut element) != 0 {
+                out.push(JsAddressArg::Absent);
+                continue;
+            }
+            out.push(self.address_of(element));
+        }
+        out
     }
 
     unsafe fn tier(&self, value: Option<&NapiValue>) -> JsTierArg {

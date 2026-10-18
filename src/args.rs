@@ -253,7 +253,7 @@ pub(crate) fn delete_tier(arg: &TierArg) -> Result<Option<Tier>, StoreError> {
 // superseded table row stands in the contract as record; no byte of it is reached from this crate.
 
 /// `PAR-1` / `PAR-8`: an address is a JS/JSON array of segments — any other shape is `AddressMalformed`.
-pub(crate) fn address_segments(arg: &AddressArg) -> Result<Vec<Segment>, StoreError> {
+pub fn address_segments(arg: &AddressArg) -> Result<Vec<Segment>, StoreError> {
     match arg {
         AddressArg::List(segments) => Ok(segments.clone()),
         _ => Err(malformed_address_argument()),

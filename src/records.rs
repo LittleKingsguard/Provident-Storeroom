@@ -139,9 +139,11 @@ pub struct JournalOp {
 pub struct DeleteReceipt {
     pub address: Vec<Segment>,
     pub tiers: Vec<Tier>,
-    /// `§4.4`'s amended member: the handles of the TRIGGERED listeners — `[]` where nothing was removed
-    /// (`D-3`, `§6.5` item 11).
-    pub triggered: Vec<ListenerHandle>,
+    /// `§4.4`'s amended member: the pairs of the TRIGGERED listeners — `[]` where nothing was removed
+    /// (`D-3`, `§6.5` item 11). **⟶ `U-STOREROOM-HELD-LISTENER-IDENTITY`: the element is the PAIR
+    /// `{handle, address}` (`contract.md §2.4` item 1; `PAR-HL-38`), and `A43` is what makes a delete's
+    /// receipt carry the same member a write's record does.**
+    pub triggered: Vec<ListenerTrigger>,
 }
 
 /// `§6.3`: the rollback's result — **exactly THREE members: `opId` · `undoneOps` · `restoredTo`** (**⟶
@@ -190,6 +192,22 @@ pub struct Listener {
     pub handle: ListenerHandle,
 }
 
+/// **`U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`) — THE TRIGGER'S PAIR, `{handle, address}`
+/// (`contract.md §2.4` item 1; `trigger-and-pair.md §1`).** **`handle` is the store's own listener identity
+/// and `address` is THE BINDING's OWN ADDRESS — `listener.address`, available at the selection site inside
+/// the filter and formerly DISCARDED by the `.map(|listener| listener.handle.clone())` beside it.** **THE
+/// PAIR REPLACES AND DOES NOT SUPPLEMENT: there is NO parallel `triggeredAddresses` array, because an i-th
+/// correspondence reverses `DD-37` (`contract.md §2.4` item 1; `trigger-and-pair.md §2` item 4).**
+///
+/// **AND THE TWO MEMBERS ARE TOLD APART AT THEIR OWN SITES: the pair's `address` is the BINDING's, and
+/// `triggeringAddress` — the member the facade attaches beside the record — is THE WRITE's**
+/// (`contract.md §2.4` item 7; `PAR-HL-20`, `PAR-HL-23`).
+#[derive(Clone, Debug, PartialEq)]
+pub struct ListenerTrigger {
+    pub handle: ListenerHandle,
+    pub address: Vec<Segment>,
+}
+
 /// `§3.6` (`DD-35`; `write-and-read.md §6.5` item 13's delta): the write's return, **exactly THREE members:
 /// `op` · `watched` (the watched ADDRESSES, `§3.6`/`§6.5`) · `triggered`** (the triggered `ListenerHandle`s —
 /// the amendment's dated clause) — and it is returned on the success path only: **`watched` keeps
@@ -198,6 +216,8 @@ pub struct Listener {
 pub struct WriteResult {
     pub op: JournalOp,
     pub watched: Vec<Vec<Segment>>,
-    /// `§3.6`'s amended member: the handles of the listeners the trigger fired, as a SET (`DD-37`).
-    pub triggered: Vec<ListenerHandle>,
+    /// `§3.6`'s amended member: the pairs of the listeners the trigger fired, as a SET (`DD-37`).
+    /// **⟶ `U-STOREROOM-HELD-LISTENER-IDENTITY`: the element is the PAIR `{handle, address}`
+    /// (`contract.md §2.4` item 1; `PAR-HL-38`), replacing — never supplementing — a bare handle list.**
+    pub triggered: Vec<ListenerTrigger>,
 }

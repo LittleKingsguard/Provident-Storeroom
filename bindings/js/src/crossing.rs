@@ -15,9 +15,9 @@ use std::collections::BTreeMap;
 
 use storeroom_native::{
     storeCreateWithConstraints, AddressArg, BaseState, ConstraintEntry, ConstraintsArg,
-    DeleteReceipt, FilePathArg, JournalLengthArg, ListenerEntry, ListenerHandle, ListenersArg,
-    OpIdArg, RollbackResult, Segment, Store, StoreConfig, StoreError, StoreValue, Tier, TierArg,
-    TierSetItem, WriteResult,
+    DeleteReceipt, FilePathArg, JournalLengthArg, ListenerEntry, ListenerHandle, ListenerTrigger,
+    ListenersArg, OpIdArg, RollbackResult, Segment, Store, StoreConfig, StoreError, StoreValue, Tier,
+    TierArg, TierSetItem, WriteResult,
 };
 
 /// `surface.md §2.5` / `DD-12` / `package.md §4.5` item 4: **THE SINGLE FAILURE FORM AT THE CORE LAYER** —
@@ -395,6 +395,18 @@ pub fn to_address_arg(a: &JsAddressArg) -> AddressArg {
     }
 }
 
+/// **THE SEGMENTS AN ALREADY-ADMITTED ADDRESS SET MEMBER CARRIES** — the second position of
+/// `listen(handle, addresses)` is a SET, and the package's own set-position class test has already refused
+/// every member outside the store's address domain (`listen-verb.md §2.2` items 2–3). **THE STORE'S OWN
+/// `address_segments` IS THE ONE RESOLVER AND THIS FRAME DOES NOT RE-SPELL IT**: a member that is not a list
+/// is answered by the store's own `AddressMalformed` at that call, unconverted (`fail-surface.md §1.2`).
+fn address_segments_of(a: &JsAddressArg) -> Result<Vec<Segment>, Refusal> {
+    match to_address_arg(a) {
+        AddressArg::List(segs) => Ok(segs),
+        other => storeroom_native::address_segments(&other).map_err(refusal),
+    }
+}
+
 /// The three tier tokens and no fourth (`docs/specs/storeroom-native/contract.md §5.1`'s closed set).
 pub fn tier_of(tok: &str) -> Option<Tier> {
     match tok {
@@ -731,36 +743,68 @@ pub fn from_store_value(v: &StoreValue) -> JsValue {
 // THE RETURNED RECORDS — `package.md §4.5` item 4, member for member (`DD-39`).
 // =================================================================================================
 
-/// `surface.md §2.3` / `DD-14`: the package's own OPAQUE handle around the store's token. **The token has
-/// no public accessor**: it is reachable only through the store's own declared `Display` spelling inside
-/// this crate, and its `PartialEq` is token equality — which is exactly the "no other token the store
-/// mints is equal to it" rule read as an equality.
+/// **⟶ `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`): THE HANDLE IS THE CALLER-SPELLED STRING, AND THE
+/// TOKEN BEHIND IT IS DELETED** (`P: docs/pending.md · P-6`, the type ruling, verbatim: *"Refuse handles
+/// that aren't strings."*; its wire-form ruling: *"Not needed — the handle is a string, so there is nothing
+/// to carry"*). **`JsHandle { token: String }` COLLAPSES TO THE STRING IT ALWAYS WAS** — the value the store
+/// reports and the value the caller holds ARE ONE VALUE, compared by STRING EQUALITY throughout
+/// (`contract.md §2.1` item 1). **NOTHING IS MINTED, NOTHING IS WRAPPED, AND NO LAYER TRANSLATES:** the
+/// facade's `string_value(handle.token())` becomes `string_value(handle)` and the two halves meet in the
+/// middle.
+///
+/// **WHAT THIS RETIRES, EACH NAMED AT ITS OWN BYTES** (`P: docs/pending.md · P-6`, consequences (i)–(vi)):
+/// the mint (`src/store.rs`'s `NEXT_HANDLE` and its skip loop), `Home::holds_token`, `Instance::owned`'s
+/// second bookkeeping of one fact, and the JS-side `{}` wrapper. **THE DOMAIN TEST THAT SURVIVES IS A DIRECT
+/// MAP KEY CHECK** (`identity-and-domain.md §1` item 4).
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct JsHandle {
-    token: String,
+    handle: String,
 }
 
 impl JsHandle {
-    /// Wrap a token the store returned (`§2.3` item 2: *"the package's opaque JS value wrapping a token the
-    /// store returned"*).
+    /// **THE ONE CONSTRUCTION: the handle the STORE returned, carried as it stands** — no wrap, no token, no
+    /// translation (`contract.md §2.4` item 1: the pair's `handle` member *"is the caller own STRING, never a
+    /// wrapper, a token or an encoding"*).
     pub fn wrap(handle: &ListenerHandle) -> JsHandle {
         JsHandle {
-            token: handle.to_string(),
+            handle: handle.to_string(),
         }
     }
 
-    /// The token, for this crate's own facade — never for a `Js*` type a consumer may read.
-    pub(crate) fn token(&self) -> &str {
-        &self.token
+    /// The handle, for this crate's own facade — the string itself, and never a token behind it.
+    pub(crate) fn handle(&self) -> &str {
+        &self.handle
     }
 
-    /// A handle spelled by a token — the addon's own read of an opaque argument into the core's model
-    /// (`§2.4` item 5's domain test needs an identity, and the identity is the token). **⟶ AMENDED
-    /// 2026-10-11 (`F-13`): the registry lookup it was also spelled for is GONE — the core holds no
-    /// function and the package's own registry is keyed by the opaque value, not by this spelling.**
-    pub(crate) fn from_token(token: &str) -> JsHandle {
+    /// A handle spelled by the caller — **which is now the ordinary case and not a special route**: the
+    /// caller spells it, holds it and passes it back (`contract.md §2.1` item 1).
+    pub(crate) fn from_handle(handle: &str) -> JsHandle {
         JsHandle {
-            token: token.to_string(),
+            handle: handle.to_string(),
+        }
+    }
+}
+
+/// **⟶ THE TRIGGER'S PAIR ACROSS THE BOUNDARY — `{handle, address}` (`contract.md §2.4` item 1;
+/// `trigger-and-pair.md §2` item 2).** **The element type of `triggered` on BOTH returned records, and it
+/// REPLACES the bare handle list rather than supplementing it**: the two `Vec<JsHandle>` members this crate
+/// declared at `JsWriteResult`/`JsDeleteReceipt` are the old shape, and this carrier moves with `PAR-HL-38`.
+///
+/// **THE TWO MEMBERS ARE THE DECLARED TWO AND NO THIRD** (`PAR-HL-19`, `PAR-HL-20`): `handle` is the
+/// caller's own string and `address` is **THE BINDING's** address — a segment list — never the written
+/// address the record's `triggeringAddress` carries beside it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct JsListenerTrigger {
+    pub handle: JsHandle,
+    pub address: Vec<JsSegment>,
+}
+
+impl JsListenerTrigger {
+    /// The pair the store selected, crossed member for member and with nothing re-derived.
+    pub fn wrap(trigger: &ListenerTrigger) -> JsListenerTrigger {
+        JsListenerTrigger {
+            handle: JsHandle::wrap(&trigger.handle),
+            address: trigger.address.iter().map(from_segment).collect(),
         }
     }
 }
@@ -808,7 +852,9 @@ pub struct JsJournalOp {
 pub struct JsWriteResult {
     pub op: JsJournalOp,
     pub watched: Vec<Vec<JsSegment>>,
-    pub triggered: Vec<JsHandle>,
+    /// **⟶ THE PAIRS, NOT A BARE HANDLE LIST** (`contract.md §2.4` item 1; `PAR-HL-38`): the element is
+    /// `{handle, address}` and the pair REPLACES what stood here rather than supplementing it.
+    pub triggered: Vec<JsListenerTrigger>,
 }
 
 /// `PAR-JS-16`: `{address, tiers, triggered}` — `address` VERBATIM and `tiers` in the store's canonical
@@ -817,7 +863,8 @@ pub struct JsWriteResult {
 pub struct JsDeleteReceipt {
     pub address: Vec<JsSegment>,
     pub tiers: Vec<String>,
-    pub triggered: Vec<JsHandle>,
+    /// **⟶ THE PAIRS** (`contract.md §2.4` item 1; `PAR-HL-38`; `A43` — a delete fires its own set).
+    pub triggered: Vec<JsListenerTrigger>,
 }
 
 /// `PAR-JS-13` / `PAR-JS-9`: `{opId, undoneOps, restoredTo}`.
@@ -850,8 +897,11 @@ fn addresses(list: &[Vec<Segment>]) -> Vec<Vec<JsSegment>> {
         .collect()
 }
 
-fn handles(list: &[ListenerHandle]) -> Vec<JsHandle> {
-    list.iter().map(JsHandle::wrap).collect()
+/// **⟶ THE PAIR CARRIER — `{handle, address}`, member for member** (`contract.md §2.4` item 1). The
+/// function that stood here mapped a bare `ListenerHandle` list to a bare `JsHandle` list, and the pair
+/// REPLACES it (`trigger-and-pair.md §2` item 2).
+fn triggers(list: &[ListenerTrigger]) -> Vec<JsListenerTrigger> {
+    list.iter().map(JsListenerTrigger::wrap).collect()
 }
 
 // =================================================================================================
@@ -973,7 +1023,7 @@ impl Instance {
         Ok(JsWriteResult {
             op: journal_op(&result.op),
             watched: addresses(&result.watched),
-            triggered: handles(&result.triggered),
+            triggered: triggers(&result.triggered),
         })
     }
 
@@ -1002,7 +1052,7 @@ impl Instance {
                 .iter()
                 .map(|t| storeroom_native::tier_token(*t).to_string())
                 .collect(),
-            triggered: handles(&receipt.triggered),
+            triggered: triggers(&receipt.triggered),
         })
     }
 
@@ -1017,18 +1067,62 @@ impl Instance {
         })
     }
 
-    /// `§2.10`: `listen` mints a token, populates the store's home and wraps it for JS — and the minted
-    /// token enters THIS instance's own handle domain (`§2.4` item 5 (c)).
-    pub fn listen(&mut self, address: &JsAddressArg) -> Result<JsHandle, Refusal> {
-        let handle = self
-            .store
-            .listen(to_address_arg(address))
-            .map_err(refusal)?;
-        let token = handle.to_string();
-        if !self.owned.contains(&token) {
-            self.owned.push(token);
+    /// **⟶ `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`): `listen(handle, addresses)` — THE CALLER
+    /// SUPPLIES THE IDENTITY AND THE SET** (`contract.md §2.2`; `listen-verb.md §1` item 1).
+    /// **NOTHING IS MINTED, NOTHING IS WRAPPED AND THE ANSWER IS `()`**: the caller supplied the identity, so
+    /// there is no datum to return (`contract.md §2.2` item 10; `PAR-HL-3`).
+    ///
+    /// **AND `listen` POPULATES EVERYTHING THE MINTED TOKEN USED TO**: the store's home entry (through the
+    /// store's own verb), the home mirror, the function map's key and the instance's domain — which is why
+    /// the handle is recorded in `owned` here exactly as an adopted one is at construction
+    /// (`P: docs/pending.md · P-5`, ruling (4)).
+    pub fn listen(&mut self, handle: &JsHandleArg, addresses: &[JsAddressArg]) -> Result<(), Refusal> {
+        // **THE HANDLE POSITION'S CLASS TEST IS THE CALLER'S AND THIS SITE IS REACHED ONLY WITH A STRING**
+        // (`identity-and-domain.md §2` item 1): the package's own verb refuses every outside value before the
+        // addon is called, so an out-of-domain `JsHandleArg` cannot arrive here — and if one did, it is an
+        // absent argument and the core refuses it in the registration site's one form.
+        let spelled = match handle {
+            JsHandleArg::Opaque(opaque) => opaque.handle.clone(),
+            JsHandleArg::Bare(_) | JsHandleArg::NonOpaque | JsHandleArg::Absent => {
+                return Err(registration_refusal(
+                    "",
+                    "listen's first argument",
+                    "an absent argument",
+                ))
+            }
+        };
+        let mut set: Vec<Vec<Segment>> = Vec::with_capacity(addresses.len());
+        for address in addresses {
+            set.push(address_segments_of(address)?);
         }
-        Ok(JsHandle::wrap(&handle))
+        self.store
+            .listen(&ListenerHandle::from(spelled.as_str()), &set)
+            .map_err(refusal)?;
+        if !self.owned.contains(&spelled) {
+            self.owned.push(spelled);
+        }
+        Ok(())
+    }
+
+    /// **⟶ `removeListener(handle)`'s STORE HALF — THE PURGE, AND IT IS WHOLESALE**
+    /// (`contract.md §2.7` item 2; `removal-members.md §2` item 3: *"the removal IS the purge"*).
+    ///
+    /// **IT REMOVES EVERY ENTRY THE HANDLE NAMES, AT EVERY ADDRESS IT STOOD AT** (`P: docs/pending.md ·
+    /// (M-1)`; `(Y-1)`: *"the purge is by HANDLE — it never enumerates addresses or consults a count"*) — and
+    /// **it does NOT reach `unlisten`**, whose first-match withdrawal is a different act (`listen-verb.md §3`
+    /// item 2: *"the purge is NEITHER `withdraw` … NOR `adopt`"*). **The one handle position is the caller's
+    /// own string and nothing else** (`contract.md §2.1` item 1).
+    pub fn remove_listener(&mut self, handle: &JsHandleArg) -> Result<(), Refusal> {
+        match handle {
+            JsHandleArg::Opaque(named) => self
+                .store
+                .remove_listener(&ListenerHandle::from(named.handle.as_str()))
+                .map_err(refusal),
+            // A non-string cannot name an entry: the package's own class test refuses it before this frame
+            // (`removal-members.md §6` item 1), so an arrival here is an absent argument and answers the
+            // store's own no-op (`PAR-HL-4`'s outside-value cell: a purge of nothing is a lawful act).
+            JsHandleArg::Bare(_) | JsHandleArg::NonOpaque | JsHandleArg::Absent => Ok(()),
+        }
     }
 
     /// `§2.3` item 4: **`unlisten` over any value outside the domain is a NO-OP SUCCESS** — and a
@@ -1037,7 +1131,7 @@ impl Instance {
         match handle {
             JsHandleArg::Opaque(opaque) => self
                 .store
-                .unlisten(&ListenerHandle::from(opaque.token.as_str()))
+                .unlisten(&ListenerHandle::from(opaque.handle.as_str()))
                 .map_err(refusal),
             JsHandleArg::Bare(_) | JsHandleArg::NonOpaque | JsHandleArg::Absent => Ok(()),
         }
@@ -1058,7 +1152,7 @@ impl Instance {
     /// fans out (rule 2) at the registry that holds the function, which is the package's.**
     pub fn register(&mut self, handle: &JsHandleArg) -> Result<(), Refusal> {
         match handle {
-            JsHandleArg::Opaque(opaque) if self.owned.contains(&opaque.token) => Ok(()),
+            JsHandleArg::Opaque(opaque) if self.owned.contains(&opaque.handle) => Ok(()),
             JsHandleArg::Opaque(_)
             | JsHandleArg::Bare(_)
             | JsHandleArg::NonOpaque
@@ -1067,8 +1161,8 @@ impl Instance {
                 // otherwise (`surface.md §2.5` item 5 (a)), with the argument position beside it (item 5 (b)).
                 let (target, class) = match handle {
                     JsHandleArg::Opaque(opaque) => (
-                        opaque.token.clone(),
-                        "an opaque handle a FOREIGN instance minted",
+                        opaque.handle.clone(),
+                        "a handle a FOREIGN instance holds",
                     ),
                     JsHandleArg::Bare(bare) => (bare.clone(), "a bare string"),
                     _ => (String::from(""), "an absent argument"),

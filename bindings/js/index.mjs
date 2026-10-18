@@ -164,6 +164,23 @@ const SAVE_FAILED_AT_THE_TERMINAL_ARM = Symbol.for('provident-storeroom.save-fai
 /// ACT BRANCHES ON IT** (`PAR-JS-19`'s answer cell, whose subject is the arm's return and not a member's).
 const TERMINAL_ARM = Symbol.for('provident-storeroom.terminal-arm');
 
+/// **⟶ ADDED — `K-6`'s READ-MODEL CHANNEL, under a symbol key for the same reason every symbol above is
+/// one** (`A117` (D6): *"a symbol-keyed own property is invisible to both"* `Object.keys` and
+/// `Object.getOwnPropertyNames`, so the product's declared fourteen own members are UNMOVED by it).
+///
+/// **WHY IT EXISTS AT ALL, AND IT IS NOT A SECOND ROUTE:** `K-6`'s success must leave the PAIR gone from
+/// `constraints()` — *"THE PAIR IS GONE FROM `constraints()` after `K-6` returns"* (`contract.md §3` `S-19`;
+/// `remove-member.md §4` item 1; `§2.7` item 8) — and that read model is the ENTRY'S (`state.constraints`),
+/// which the kernel cannot see. **THE ROUTE THE KERNEL ALREADY USES FOR ITS OWN ACTS IS THE INSTANCE'S**
+/// (`contract.md §2.9` item 2's one-route rule: `K-6` calls the app's own published member rather than
+/// inventing a second one), **so the deletion travels the same way `[TERMINAL_ARM]` does** — the kernel holds
+/// the instance, and this symbol names the one act it may take on the entry's own bookkeeping.
+///
+/// **AND IT IS NOT `removeConstraint`**: this act removes the read-model row alone. The full four-structure
+/// ordering is `removeConstraint`'s (`removal-members.md §4` item 2's `HL-DD-4`), and `removeConstraint`
+/// reaches THIS item for the row, the store's entries and the address rows.
+const FORGET_PAIR = Symbol.for('provident-storeroom.forget-pair');
+
 // ---------------------------------------------------------------------------------------------
 // THE RESOLUTION RULE — THREE RUNGS, IN ORDER, AND THE CLOSED KEY SET (`docs/specs/storeroom-publish/
 // resolution.md §2` · `§3`; `docs/specs/storeroom-publish/contract.md §1.1` · `§1.3` · `§1.5`).
@@ -1479,13 +1496,32 @@ function encodeOpId(opId) {
   return { k: 'U' }; // `boundaryReject` throws; this is unreachable and is not a second path
 }
 
-/// `crossing.md §1.3`'s `ListenerHandle` row 2 and `JsHandleArg`: **the OPAQUE form alone is the site's**,
-/// and every outside spelling is carried as its own variant.
-function encodeHandle(state, handle) {
-  for (const [candidate, token] of state.tokens) {
-    if (candidate === handle) return { k: 'O', v: token };
-  }
-  return typeof handle === 'string' ? { k: 'B', v: handle } : { k: 'X' };
+/// **⟶ `encodeHandle` IS DELETED, NOT REWRITTEN — `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`).**
+/// The three-variant classifier (*"the OPAQUE form alone is the site's, and every outside spelling is
+/// carried as its own variant"*) and its `state.tokens` walk **go whole**, on the architect's ruling that
+/// settles fork (g), VERBATIM: *"This is also irrelevant because tokens is being eliminated and the function
+/// lookup is now a direct map key check."* (`P: docs/pending.md · P-6`; `contract.md §2.8` item 2 item (6);
+/// `identity-and-domain.md §1` item 1).
+///
+/// **WHAT REPLACES IT IS A DIRECT MAP KEY CHECK AT EACH VERB** — `map.has(handle)` / `map.get(handle)` on
+/// the ONE function map keyed by the handle string (`identity-and-domain.md §1` item 4). **THE THREE VARIANTS
+/// AND THEIR TWO DISPOSITIONS SURVIVE AS CONSEQUENCES AND NOT AS A CLASSIFIER**: a NON-STRING is REFUSED by
+/// the class test at `listen`/`register`/`removeListener`; a STRING the map does not carry is `unlisten`'s
+/// NO-OP SUCCESS and `register`'s REFUSAL; and a BLANK STRING stays the store's own refused form.
+///
+/// **THE ONE PREDICATE THE SITES SHARE IS THE DOMAIN TEST ITSELF — A `typeof` READ AND A LENGTH READ AND
+/// NOTHING MORE** (`identity-and-domain.md §2` item 1: *"no object inspection, no `Proxy` trap invocation, no
+/// property read"*).
+function inDomainHandle(handle) {
+  return typeof handle === 'string' && handle !== '';
+}
+
+/// **THE HANDLE SHAPE THE ADDON IS HANDED FOR A VERB'S HANDLE POSITION** — one spelling, and it is the
+/// handle's own value: `{k:'O', v: handle}` is the `JsHandleArg` carrier's opaque arm, which with the token
+/// gone carries the handle it always was (`P: docs/pending.md · P-6`, the type ruling: *"`JsHandle { token:
+/// String }` collapses to the string it always was"*).
+function handleWire(handle) {
+  return { k: 'O', v: handle };
 }
 
 /// `crossing.md §1.3`'s `FilePathArg` table: ABSENT is IN DOMAIN, and `undefined` at a PRESENT key is row
@@ -1741,42 +1777,38 @@ function decodeJournalOp(encoded) {
 // ---------------------------------------------------------------------------------------------
 /// **THE PACKAGE'S OWN INSTANCE HANDLE'S STATE**, keyed by the instance the factory returned. The handle
 /// itself carries EXACTLY ONE member, `register` (`surface.md §2.4` item 5 (a)) — **⟶ RE-SPELLED 2026-10-16: THAT ONE-MEMBER FIGURE IS THE AS-FILED READING AND IS SUPERSEDED AS A MEMBER-SET FIGURE — the instance's OPERATIVE member set is `{ register, on, off, settle }`, FOUR OWN MEMBERS AND NOTHING ELSE (`surface.md §2.7` item 8 AS AMENDED, where the as-filed `{register, on, off}` reads `{register, on, off, settle}`; `§2.11` clause 7; `docs/decisions.md` `A116` (D1)) — while the WeakMap below is still keyed by the INSTANCE alone and no member is added to it by this clause.**
-const INSTANCES = new WeakMap(); // instance -> {id, tokens: Map(handle -> token)}
+const INSTANCES = new WeakMap(); // instance -> the package's own per-instance state
 
-function wrapHandles(state, tokens) {
+/// **⟶ `wrapHandles` IS DELETED, NOT REWRITTEN — `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`).**
+/// The function that stood here — a frozen `{}` per token, a `state.tokens` value scan, and the `Object.freeze`
+/// at what was line 1757 — **HAS NO SUBJECT**: the handle IS the string the caller spells, so *"what it did
+/// reduces to the handles the store named, which the store already has as its own values"*
+/// (`P: docs/pending.md · P-5`, ruling (1), verbatim; `P: docs/pending.md · P-6`'s token-removal clause;
+/// `contract.md §2.8` item 2 item (5)).
+///
+/// **AND WITH IT GO `Object.freeze({})`, `state.tokens` AND ITS ONE READ** (`P: docs/pending.md · P-6`,
+/// verbatim: *"AND THE `{}` AT `index.mjs:1757` GOES WITH IT"*; `P: docs/pending.md · P-5`'s ruling (2):
+/// *"nothing in the entry, the crossing or the store holds a token"*). **THE IDENTITY LIVES IN THE STORE, NOT
+/// IN A JS CACHE** (`P: docs/pending.md · (AA-2)`, verbatim: *"Move the identity into the store"*), so a
+/// cache miss is no longer indistinguishable from a removal, because the identity's presence IS a store
+/// row's presence.
+///
+/// **WHAT CROSSES IN ITS PLACE IS THE STORE'S OWN PAIR LIST, MEMBER FOR MEMBER, WITH NO TRANSFORM**
+/// (`contract.md §2.4` item 1; `trigger-and-pair.md §2` item 2): the addon's emitter has already built
+/// `{handle, address}` and this layer CARRIES it, because there is nothing left to translate.
+function crossTriggered(state, triggered) {
+  if (!Array.isArray(triggered)) return [];
   const out = [];
-  for (const token of tokens) {
-    let handle = null;
-    for (const [candidate, held] of state.tokens) {
-      if (held === token) {
-        handle = candidate;
-        break;
-      }
-    }
-    if (handle === null) {
-      handle = Object.freeze({}); // **THE OPAQUE HANDLE**: frozen, memberless, and its token is PRIVATE
-      state.tokens.set(handle, token);
-    }
-    // **THE STORE'S OWN LIST IS CARRIED OUT ELEMENT FOR ELEMENT, AND THE BOUNDARY EDITS NOTHING**
-    // (`surface.md` §2.4's dated clause of 2026-10-11, whose twin stands at `contract.md` §2.4: *"`triggered`
-    // crosses as a fresh JS array of the handles the store's own list carries … so in CASE B THE
-    // JS-OBSERVABLE `triggered` CARRIES THE TOKEN TWICE"*). **ONE element is pushed per entry the store
-    // returned, in the store's own order — an order NO clause asserts and none is claimed here** — so a
-    // lawful caller-spelled duplicate yields THE SAME identity TWICE (`DD-42`'s clause 3; `DD-39`; `PAR-JS-15`;
-    // `crossing.md §1.3`'s returned-record rows; `§2.7` items 1 and 3).
-    //
-    // **⟶ AND THE COLLAPSE THIS SITE SHIPPED UNTIL 2026-10-11, RE-EMITTED SO THE `git diff` READER MEETS BOTH
-    // READINGS INSTEAD OF A DELETED BYTE** — rule 3 read as a rule about the ARRAY rather than about the
-    // COUNT: *"`§2.4` rule 3: one DISTINCT handle per token, however many home entries carry it — "the
-    // registry fires one invocation per DISTINCT handle — not one per occurrence, and not one per entry""* —
-    // `if (!out.includes(handle)) out.push(handle);`. **THE SENTENCE QUOTED THERE IS THE INVOCATION RULE AND
-    // IT IS RIGHT; IT IS NOT MOVED, IT IS RELOCATED TO THE ONE SITE THAT OWNS IT.** The invocation count is
-    // the PACKAGE's and it is one per DISTINCT identity; the array's multiplicity is the STORE's, and the
-    // per-identity deduplication now stands at DELIVERY, in `deliver` below, where §2.4's dated clause (i)
-    // puts it (*"so in CASE B the duplicate token's ONE function runs ONCE"*).
-    out.push(handle);
+  for (const element of triggered) {
+    out.push({ handle: element.handle, address: decodeSegments(element.address) });
   }
   return out;
+}
+
+/// **THE HANDLES A TRIGGER SET NAMES, in its own order** — how a caller-side read of the set as a SET is
+/// spelled, and how the delivery's dedupe key is read (`contract.md §2.4` item 6).
+function handlesOf(triggered) {
+  return triggered.map((element) => element.handle);
 }
 
 /// **THE STATE A VERB'S FIRST ARGUMENT NAMES** (`surface.md §2.2`'s signatures: every verb takes the
@@ -1981,7 +2013,14 @@ export function storeCreate(cfg) {
   // ACTOR**: the kernel drives every write, so there is nothing to marshal and the machinery has no state to
   // hold. **THIS IS WHERE THE DOWNSTREAM `DEF-D` DEFECT LIVED** — an abandoned adoption consumed by the next
   // unrelated write — and its SUBSTRATE, not its symptom, is what this removal takes.
-  const state = { id, tokens: new Map(), home: [], registry: new Map(), constraints: new Map(), leg: null };
+  // **⟶ `state.tokens` IS DELETED AND `state.registry` TAKES THE ONE MAP'S SHAPE — `U-STOREROOM-HELD-LISTENER-IDENTITY`.**
+  // **THE ONE MAP IS `Map<handle, {fn, off}>`, KEYED BY THE HANDLE STRING** (`identity-and-domain.md §4` item
+  // 5; `P: docs/pending.md · P-6`, fork (d): *"the map becomes `Map<handle, {fn, off}>`, keyed by the identity
+  // the addon also holds"*; `P: docs/pending.md · (AD-1)`: the value record is `{ fn, off }` *"and nothing
+  // else. There is no `token` property"*). **`state.home` SURVIVES AS THE MIRROR** — its column is now the
+  // CALLER'S OWN HANDLE and not a token (`identity-and-domain.md §1` item 2 (ii)) — **and `state.constraints`
+  // stays the read model.**
+  const state = { id, home: [], registry: new Map(), constraints: new Map(), leg: null };
   const instance = {
     /// **`surface.md §2.4` item 9 (f)'s clause of 2026-10-18 — THE PRODUCT'S DECLARED MEMBER SET IS TWELVE
     /// OWN MEMBERS, `10 + 1 + 1 = 12` ✓: THE TEN METHODS, `register` AND `constraints`.** **`settle` IS
@@ -2013,8 +2052,11 @@ export function storeCreate(cfg) {
     rollback(opId) {
       return rollback(instance, arguments.length, opId);
     },
-    listen(address) {
-      return listen(instance, arguments.length, address);
+    /// **⟶ `listen(handle, addresses) -> undefined` — arity `2`, position `1` a caller-spelled string and
+    /// position `2` a SET of addresses** (`contract.md §2.2`; `listen-verb.md §1` item 1; `PAR-HL-1`,
+    /// `PAR-HL-2`, `PAR-HL-3`).
+    listen(handle, addresses) {
+      return listen(instance, arguments.length, handle, addresses);
     },
     unlisten(handle) {
       return unlisten(instance, arguments.length, handle);
@@ -2042,6 +2084,22 @@ export function storeCreate(cfg) {
     constraints() {
       return enumerateConstraints(state);
     },
+    /// **⟶ `removeListener(handle) -> undefined` — THE FIRST OF THE TWO NEW MEMBERS, and the member set moves
+    /// `12 → 14`, NOT THIRTEEN** (`P: docs/pending.md · (AA-5)`, verbatim: *"the member set is 14 and the
+    /// `12 → 13` figure is withdrawn by name"*; `contract.md §2.7` item 1; `removal-members.md §7` item 2).
+    /// **ITS ARITY IS ONE and its success return is `undefined`; every other arm THROWS** (`§2.7` items 4–5;
+    /// `PAR-HL-14`, `PAR-HL-15`). **It is reached through this factory's product ALONE and is NOT a module
+    /// export** (`removal-members.md §7` item 3; `11 → 1` ✓).
+    removeListener(handle) {
+      return removeListener(instance, arguments.length, handle);
+    },
+    /// **⟶ `removeConstraint(pair) -> undefined` — THE SECOND NEW MEMBER** (`contract.md §2.7` item 3;
+    /// `PAR-HL-16`, `PAR-HL-17`). **It removes everything — the pair, all N address rows, the kernel's
+    /// registration and the store-side home entry — and it is the ONE act that deletes an identity**
+    /// (`P: docs/pending.md · P-5`'s `(R4)`; `contract.md §2.6` item 3).
+    removeConstraint(pair) {
+      return removeConstraint(instance, arguments.length, pair);
+    },
     /// `surface.md §2.4` item 5 (b): `register(handle, listener) -> undefined` — the OPAQUE handle a verb
     /// returned or the construction adopted, and ANY JS function. **It is NOT a named export of the entry**
     /// (`package.md §1.3` item 3): it is reached through the factory's own product alone.
@@ -2065,6 +2123,16 @@ export function storeCreate(cfg) {
     /// SENSE `§2.4` item 9 (f) COUNTS**, and no cell that counts members can see it.
     [TERMINAL_ARM](record) {
       return terminalArm(state, record);
+    },
+    /// **`K-6`'s READ-MODEL CHANNEL** (`FORGET_PAIR` above): the kernel's own removal drops the pair's row
+    /// from `state.constraints` after its own rows and the store's entries are gone, so the success arm leaves
+    /// the enumeration short by one (`contract.md §3` `S-19`; `§2.7` item 8). **NO MEMBER IS ADDED** to the
+    /// product's declared fourteen — a symbol key is invisible to both enumerations (`A117` (D6)).
+    [FORGET_PAIR](id) {
+      for (const [key, entry] of state.constraints) {
+        if (entry.id === id) state.constraints.delete(key);
+      }
+      return undefined;
     },
   };
   INSTANCES.set(instance, state);
@@ -2112,10 +2180,45 @@ export function storeCreate(cfg) {
   // STORE'S OWN ADMISSION AGREES WITH** (`isLawfulListenerElement`): a `cfg.listeners` array that reached
   // this line was admitted WHOLE by `encodeListeners`, the facade and `src/args.rs`, so a lawful element is
   // pushed and the two sides' element counts are the same number.
+  //
+  // **⟶ AND THE BOOT ROUTE GOES THROUGH THE SAME VERB — *"Boot goes through listen()"*** (`P: docs/pending.md ·
+  // P-5`, the boot ruling, verbatim; `contract.md §2.2` item 8; `listen-verb.md §6`). **THE CONSTRUCTION'S
+  // `listeners[]` ELEMENTS ARE APPLIED BY CALLING THE SAME `listen(handle, addresses)` THE CALLER WOULD CALL**,
+  // so every adopted handle gets its map entry with `off` set exactly as a runtime `listen` does. **THAT
+  // CLOSES THE REACHABLE STATE `(off=false, fn=—)` this block once produced by pushing into `state.home`
+  // directly** (`P: docs/pending.md · P-5`, the boot ruling's own ground), and it REPLACES `DD-39`'s
+  // verbatim-adoption rule rather than re-reading it (`(ii)`, verbatim).
+  //
+  // **WHAT SURVIVES, EACH NAMED SO IT IS NOT READ AS MOVING WITH `DD-39`:** the construction still admits
+  // `listeners` WHOLE — a refused element refuses the construction, exactly as today (`encodListeners` and
+  // `src/args.rs`, which this route does not reach); `surface.md:2118`'s *"A REJECTED ARRAY ADMITS NOTHING"*
+  // survives; and **the mirror holds N rows `{key, handle}` when ONE handle arrives at N addresses** (`(iv)`,
+  // verbatim) — which is why this loop calls the verb once per ELEMENT, an element carrying ONE address
+  // (`(v)`: *"a `listeners[]` element carries ONE `address` and not a set"*).
   if (isPlainObjectValue(cfg) && isAdmittedArray(cfg.listeners) && arrayClass(cfg.listeners) !== 'class') {
+    // **⟶ AND THE SET IS ACCUMULATED PER HANDLE BEFORE THE VERB IS CALLED, WHICH IS WHAT MAKES THE BOOT
+    // PRODUCE THE STATE THE RULING REQUIRES: *"the mirror holding N rows `{key, handle}` when one handle
+    // arrives at N addresses"*** (`P: docs/pending.md · P-5`, the boot ruling's item (iv), verbatim;
+    // `contract.md §2.2` item 8; `PAR-HL-24`'s observable).
+    //
+    // **THE REASON IT MUST ACCUMULATE AND NOT SIMPLY LOOP IS `(R1)`'S**: a `listen` is a SET ASSIGNMENT and
+    // the second act PURGES the first (`P: docs/pending.md · (R1)`, verbatim: *"S1 gets purged wholesale"*),
+    // so N successive one-address acts would leave the handle standing at the LAST address alone. **THE BOOT'S
+    // ELEMENTS ARE NOT N SUCCESSIVE ACTS — they are the caller's ONE spelling of a handle at N addresses**, and
+    // the verb they are applied through is the same verb the caller calls, with the whole set.
+    //
+    // **AND THE ORDER IS THE CALLER'S OWN**: the handles are taken in the order `listeners[]` first names them,
+    // and each handle's addresses in the order the array names them — an order NO clause asserts and none is
+    // claimed here (`DD-22`: a drive compares sets, never sequences).
+    const byHandle = new Map();
     for (const entry of cfg.listeners) {
       if (!isLawfulListenerElement(entry)) continue;
-      state.home.push({ key: homeAddressKey(entry.address), token: entry.handle });
+      const set = byHandle.get(entry.handle);
+      if (set === undefined) byHandle.set(entry.handle, [entry.address]);
+      else set.push(entry.address);
+    }
+    for (const [handle, set] of byHandle) {
+      listen(instance, 2, handle, set);
     }
   }
   return instance;
@@ -2254,7 +2357,7 @@ function write(instance, n, address, tier, value, commit) {
   const record = {
     op: decodeJournalOp(answer.op),
     watched: answer.watched.map(decodeSegments),
-    triggered: wrapHandles(state, answer.triggered),
+    triggered: crossTriggered(state, answer.triggered),
   };
   // **AND THE RECORD IS LEFT IN THE SLOT THE KERNEL'S STORE LEG READS** (`state.leg`; `§2.12` item 1's
   // stage 2): a kernel-driven write takes the record THIS VERY WRITE returned and not a copy of it, and the
@@ -2356,16 +2459,34 @@ function deliver(state, triggered, triggeringAddress) {
   // never a second time. **NO ORDER IS ASSERTED BY THIS LOOP OR BY ANY CLAUSE IT ANSWERS TO** (`§2.7` item 3;
   // `DD-22`: a drive compares sets, never sequences), and an identity the registry holds no function for
   // still fires nothing at every one of its occurrences.
+  //
+  // **⟶ AND THE DEDUPE'S KEY IS `entry.handle`, NEVER `entry` — `U-STOREROOM-HELD-LISTENER-IDENTITY`.** **THE
+  // RULING, VERBATIM: *"Dedupe on handle — rule 3 stands"*** (`P: docs/pending.md · P-7`'s dedupe ruling;
+  // `contract.md §2.4` item 6). **THE DEFECT IT CLOSES, NAMED: the as-built `matched.has(handle)` was keyed on
+  // the ELEMENT, and under pairs a handle at `['a']` and `['a','b']` both prefix-match a write at
+  // `['a','b','c']` — two pair objects, so the function would fire TWICE, breaching `surface.md:309`'s *"A
+  // LAWFUL DUPLICATE FIRES ONCE PER DISTINCT HANDLE"*.** **IT DOES NOT FIRE TWICE; IT FIRES ONCE.**
+  //
+  // **AND THE FIRST PAIR ENCOUNTERED FOR THAT HANDLE IS THE ONE WHOSE ADDRESS IS CARRIED — a DECLARED
+  // READING and not an iteration-order accident**, because `triggered`'s order is UNSPECIFIED (`DD-37`,
+  // `DD-22`). **THE CONSEQUENCE, SPELLED: the binding address in `triggered` is INFORMATIONAL DATA about the
+  // trigger set and NOT a per-invocation fact; the invocation's ONE argument remains the TRIGGERING address**
+  // (`PAR-JS-12`; `AB-3`: *"A body cannot tell which binding matched, and that is declared."*).
   const matched = new Set();
   const recipients = [];
-  for (const handle of triggered) {
-    if (matched.has(handle)) continue; // ONE invocation per DISTINCT identity — never one per element
-    matched.add(handle);
-    recipients.push([handle, state.registry.get(handle)]); // THE ID→FUNCTION MATCH, BY THE IDENTITY REGISTRATION RETURNED
+  for (const item of triggered) {
+    if (matched.has(item.handle)) continue; // ONE invocation per DISTINCT HANDLE — never one per element
+    matched.add(item.handle);
+    // **THE `off` MEMBER IS READ HERE AND ONLY HERE — the snapshot the architect's A2 ruling fixes**
+    // (`P: docs/pending.md · P-5`'s A2 timing, verbatim: *"Check on/off at the time of decision whether to
+    // add the function to the recipients list, not at runtime."*; `identity-and-domain.md §4` item 2):
+    // **an entry that is absent or `off` is SKIPPED THERE, and the recipients list carries the FUNCTION**,
+    // so the invocation loop below performs the call unconditionally and consults the flag no second time.
+    const entry = state.registry.get(item.handle);
+    recipients.push([item.handle, entry === undefined || entry.off === true ? undefined : entry.fn]);
   }
   for (const [handle, listener] of recipients) {
-    // `§2.4` rule 1: a handle with NO registered function invokes nothing and reports nothing — no code,
-    // no warning, no log.
+    // `§2.4` rule 1: a reserved entry invokes nothing and reports nothing — no code, no warning, no log.
     if (typeof listener === 'function') {
       // `crossing.md §1.1` clause 2's deep copy OUT, at the invocation: **each invocation is handed a FRESH
       // dense address array** (`JS-19`), so one listener's mutation of its own argument cannot be observed
@@ -2389,7 +2510,7 @@ function deleteOp(instance, n, address, tier) {
   const receipt = {
     address: decodeSegments(answer.address),
     tiers: answer.tiers,
-    triggered: wrapHandles(state, answer.triggered),
+    triggered: crossTriggered(state, answer.triggered),
   };
   // `A43`: a delete FIRES its own triggered set, on the same window as a write (`§2.7` item 2).
   deliver(state, receipt.triggered, answer.triggeringAddress);
@@ -2485,91 +2606,197 @@ function isLawfulListenerElement(entry) {
   return inDomainAddress(entry.address);
 }
 
-function listen(instance, n, address) {
+/// **⟶ `listen(handle, addresses) -> undefined` — `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`),
+/// `contract.md §2.2` (`HL-2`).** **THE ARITY FIGURE MOVES `1 → 2`**: position `1` is `handle`, a non-empty
+/// `string` in `HL-1`'s domain; position `2` is `addresses`, a SET of addresses. **THE RETURN IS `undefined`**
+/// — *"the caller supplied the handle, so returning it would be a second spelling of the caller's own
+/// datum"* (`contract.md §2.2` item 10; `PAR-HL-3`).
+///
+/// **THE TWO CLASS TESTS PRECEDE EVERY STORE ACT** (`listen-verb.md §2.2` item 3: *"a refused `listen`
+/// changes nothing: no entry, no mirror row, no purge"*), and **the order is PURGE THEN INSTALL, inside the
+/// store's own verb** — so no observable instant holds both (`contract.md §2.2` item 4).
+///
+/// **AND `listen` GAINS NO CONFLICT TEST AT ALL**: it does not test whether the entry it destroys belongs to
+/// another actor, and no clause exempts a kernel-held entry (`P: docs/pending.md · (C-1)`, verbatim; `(C-2)`
+/// item (iv)).
+function listen(instance, n, handle, addresses) {
   const state = stateOf(instance);
-  // **AND `listen`'s ONE POSITION IS AN ADDRESS POSITION THAT CARRIES ITS ARGUMENT POSITION** (`§2.17`'s dated
-  // clause; `surface.md §2.5` item 5 (b)'s position half): the CLASS half is mandatory at every site and the
-  // position half is read at the site that DECLARES one, and this verb's address is `1` of `1` — so a class
-  // refusal here names the argument it is about (`NG-JS-I`'s `listen` arm). *"first argument"* is written
-  // with the same bytes the registry's own registration clause spells; the constant below is declared with
-  // the constraint sites and is NOT reachable from here.
-  const args = n >= 1 ? [encodeAddress(address, 'first argument', 'first argument')] : [];
-  const wrapped = wrapHandles(state, [call(state, 'listen', args)])[0];
-  if (n >= 1) {
-    // **THE STORE CONSULTED THE ADDRESS FIRST**: where a bucket already stands under this address the store
-    // MINTED NOTHING and pushed NOTHING (`first_at`), so the mirror records nothing a second time either —
-    // and where it did not, the store's own `mint` pushed exactly ONE entry, which is the ONE recorded.
-    if (!state.home.some((entry) => entry.key === homeAddressKey(address))) {
-      state.home.push({ key: homeAddressKey(address), token: state.tokens.get(wrapped) });
+  // ── POSITION 1: THE HANDLE'S CLASS TEST ───────────────────────────────────────────────────────────────
+  // **`F-1`: the surface's ONE thrown form with `status` the store's `AddressMalformed`, and NO STATE
+  // CHANGED** (`contract.md §4` `F-1`; `§2.1` items 5–6). The predicate is a `typeof` read and a length read
+  // and nothing more — no object inspection and no trap (`identity-and-domain.md §2` item 1).
+  if (n < 1 || !inDomainHandle(handle)) {
+    boundaryReject(
+      'AddressMalformed',
+      targetSpelling(handle),
+      `listen's first argument is ${classSpelling(handle)}, and a listener's handle is a non-empty string `
+        + 'this caller spells',
+    );
+  }
+  // ── POSITION 2: THE SET-POSITION CLASS TEST — A NEW DECLARED FORM ─────────────────────────────────────
+  // **`addresses` IS AN ARRAY WHOSE EVERY MEMBER IS AN ADDRESS IN THE STORE'S OWN DOMAIN; THE EMPTY ARRAY IS
+  // IN THE DOMAIN** (`listen-verb.md §2.2` item 1; `PAR-HL-2`). **THE DISCRIMINATOR IS THE MEMBER'S CLASS,
+  // READ ONCE PER MEMBER — never a length heuristic and never a coercion** (`listen-verb.md §2.2` item 4).
+  if (n < 2 || !isAdmittedArray(addresses)) {
+    boundaryReject(
+      'AddressMalformed',
+      targetSpelling(addresses),
+      `listen's second argument is ${classSpelling(addresses)}, and this position is a SET of addresses — `
+        + 'an array of addresses, the empty array included',
+    );
+  }
+  for (let i = 0; i < addresses.length; i += 1) {
+    // **A BARE SEGMENT LIST IS OUTSIDE THE DOMAIN** — *"the position is a set and a segment list is a
+    // different shape"* (`P: docs/pending.md · P-7`'s set ruling, consequence (ii); `listen-verb.md §2.2`
+    // item 2, class (vi)). **THE MEMBER'S CLASS IS WHAT DECIDES IT AND NOT ITS LENGTH.**
+    if (!isAdmittedArray(addresses[i])) {
+      boundaryReject(
+        'AddressMalformed',
+        targetSpelling(addresses[i]),
+        `listen's second argument carries ${classSpelling(addresses[i])} at member ${i}, and a set's member `
+          + 'is an address — an array of segments',
+      );
+    }
+    if (!inDomainAddress(addresses[i])) {
+      boundaryReject(
+        'AddressMalformed',
+        targetSpelling(addresses[i]),
+        `listen's second argument carries an address outside the store's domain at member ${i}`,
+      );
     }
   }
-  return wrapped;
+  // ── THE ONE STORE ACT: PURGE, THEN INSTALL, INSIDE THE STORE'S OWN VERB ───────────────────────────────
+  // The set crosses AS ENCODED ADDRESSES, one per member, in the caller's own order (`PAR-HL-2`'s referent:
+  // the whole set and never a delta).
+  const encoded = [];
+  for (let i = 0; i < addresses.length; i += 1) {
+    encoded.push(encodeAddress(addresses[i], 'second argument', 'second argument'));
+  }
+  call(state, 'listen', [handleWire(handle), encoded]);
+  // ── THE PACKAGE'S OWN HOME MIRROR ────────────────────────────────────────────────────────────────────
+  // **THE MIRROR'S COLUMN IS THE CALLER'S OWN HANDLE AND NOT A TOKEN** (`identity-and-domain.md §1` item 2
+  // (ii)), and **THE PURGE REACHES IT**: every row the handle named is dropped before the set's own rows are
+  // recorded, which is the same wholesale assignment the store performed (`listen-verb.md §3` item 1's four
+  // structures). **THE `some(key)` GUARD IS GONE WITH `first_at`** (`P: docs/pending.md · R-B1`, deletion
+  // part (b)): with the idempotence deleted the mirror records one row per address in the act's own set, so
+  // N addresses answer N rows for ONE handle (`listen-verb.md §6` item 4 (iv)).
+  state.home = state.home.filter((row) => row.handle !== handle);
+  for (let i = 0; i < addresses.length; i += 1) {
+    state.home.push({ key: homeAddressKey(addresses[i]), address: addresses[i].slice(), handle });
+  }
+  // ── THE ENTRY'S FIRST STATE: RESERVED ────────────────────────────────────────────────────────────────
+  // ***"`listen` WRITES THE ENTRY WITH `off` SET — the reservation"*** (`P: docs/pending.md · P-5`, the
+  // entry-shape ruling; `contract.md §2.2` item 5 (a); `identity-and-domain.md §2` item 5). **AN ENTRY WITH
+  // NO FUNCTION IS NOT A LAWFUL VALUE, so the state `listen` creates is an entry that EXISTS AND IS OFF** —
+  // which is exactly what the ruling provides. **AND A REPEATED `listen` RE-RESERVES THE ENTRY**: it is a
+  // purge then a fresh reservation, never a fast path (`P: docs/pending.md · (R1)`, its own closing
+  // sentence; `contract.md §2.2` item 3).
+  state.registry.set(handle, {
+    fn: undefined,
+    off: true,
+    // **THE SET THE LAST `listen` GAVE THE HANDLE** — the referent `PAR-HL-2` names (*"the set of addresses the
+    // handle stands at after this act — the whole set, never a delta"*), and the one datum `register` reads to
+    // re-install a reserved entry's store side.
+    addresses: addresses.map((address) => address.slice()),
+  });
+  return undefined;
 }
 
 /// `§2.3` item 4 / `PAR-JS-8`: **`unlisten` over ANY value outside the domain is a NO-OP SUCCESS** — a
-/// foreign instance's value, a prior session's value, a fabricated value, a blank token, a non-opaque value
-/// and an absent handle are EACH a no-op success, no code is produced, and NO OTHER REGISTRATION IS REMOVED.
+/// foreign instance's value, a prior session's value, a fabricated value, a blank string, a non-string and
+/// an absent handle are EACH a no-op success, no code is produced, and NO OTHER REGISTRATION IS REMOVED.
 ///
-/// **⟶ THE `off`-CLASS WITHDRAWAL IS THE ONE A `A127`'S RECEIVER RULING LEAVES AT THIS MEMBER, AND IT HAS
-/// TWO HALVES — THE STORE'S AND THE PACKAGE'S OWN** (`surface.md §2.4` item 7 (b)'s `off` step list, whose
-/// three steps are VALIDATE · UNLISTEN · DEREGISTER, read with that item's own dated clause: *"the
-/// store-side home entry is withdrawn, the registry's entry for that identity is REMOVED, and `undefined` is
-/// returned"*, and `contract.md §5.5`'s fourth added failure-list entry, *"an `unlisten` that unregisters
-/// the function"*, which the `A127` surface closes by MERGING `off` INTO THIS MEMBER — `on` and `off` are
-/// *"MERGED AWAY AND ARE NOT MEMBERS"* and *"the listener registration route is `listen` + `register` and
-/// its withdrawal is `unlisten`"*, `surface.md §2.4` item 9 (f)'s `A127` clause). **THE REMOVAL IS KEYED TO
-/// THE IDENTITY THIS CALL WAS HANDED AND TO NOTHING ELSE — not to the address and not to the function**
-/// (`§2.4` item 7 (b)'s dated narrowing: *"the deregistration is keyed by the identity and not by a count of
-/// entries"*), so at the CALLER-SPELLED DUPLICATE the surviving entry's own trigger still CARRIES the
-/// identity while the package invokes NOTHING for it: rule 1's declared silence (*"an unregistered handle
-/// fires nothing silently"*). **A LATER TRIGGER THAT CARRIES THE IDENTITY AND A SILENT INVOCATION ARE NOT
-/// IN CONFLICT** — *"the silence is the registry-entry removal rather than a second withdrawal"* — and the
-/// store-side half stays EXACTLY the store's own FIRST-MATCH withdrawal, which removes ONE home entry per
-/// call (`DD-42` clause (2)).
+/// **⟶ AND THE SAME VALUE THAT IS A SILENT SUCCESS HERE IS A THROWN FAILURE AT `removeListener` — TWO
+/// DISPOSITIONS FOR ONE ARGUMENT IN ONE PRODUCT, and that reversal is RULED, not accidental**
+/// (`P: docs/pending.md · P-5`'s `(R2)`, verbatim; `contract.md §2.1` item 5's closing clause).
+///
+/// **THE WITHDRAWAL'S OWN MODEL, IN THIS CHANGE'S TERMS** (`P: docs/pending.md · P-5`'s A4 ruling, verbatim:
+/// *"`unlisten` sets `off` only when the identity no longer stands anywhere, exactly as `:2571`'s survivor
+/// re-scan decides today"*): **the store's entry is withdrawn and the MAP ENTRY IS KEPT with `off` set — a
+/// reservation, not a deletion** (`identity-and-domain.md §3` item 2 (i); `listen-verb.md §4` state `1`).
 function unlisten(instance, n, handle) {
   const state = stateOf(instance);
-  if (n < 1) return undefined;
-  const encoded = encodeHandle(state, handle);
-  if (encoded.k !== 'O') return undefined; // outside the domain: a no-op success, and the store is not reached
-  call(state, 'unlisten', [encoded]);
-  // **⟶ STEP 3 — THE DEREGISTRATION, TAKEN WHERE AND ONLY WHERE THE IDENTITY NO LONGER STANDS** — read
-  // against the PACKAGE'S OWN HOME MIRROR rather than against a second store call, so the withdrawal's own
-  // observable (ONE entry, the token's FIRST match, `DD-42` clause (2)) is the whole of what this call does
-  // to the store:
-  //   * **THE ONE-ENTRY STATE** and the token's entries at NO OTHER address: this call withdrew the ONE entry
-  //     the identity named, **so the identity no longer stands anywhere** and the registry's entry is
-  //     REMOVED (`§2.4` item 7 (b) item 1, *"WITH NO QUALIFICATION"*; `§5.5`'s WITHDRAWN arm).
-  //   * **THE CALLER-SPELLED TWO-ADDRESS DUPLICATE** — the token named ONE entry at EACH of two addresses:
-  //     this call withdrew the ONE entry ITS OWN address held, **so THAT ADDRESS carries the identity no
-  //     more** and **the identity's registry entry is REMOVED**. A later trigger at the OTHER entry's address
-  //     still CARRIES the identity — the store's half, unmoved — **while the package invokes NOTHING for it,
-  //     which is rule 1's declared silence and not a second withdrawal** (`convenience.test.mjs`'s
-  //     `off_deregisters_…`; `ng_js_k`'s two-address arm).
-  //   * **THE CALLER-SPELLED ONE-ADDRESS DUPLICATE** — the token named MORE THAN ONE entry at the SAME
-  //     address (`DD-39`, `DD-42` clause (2)): this call withdrew ONE of them, the bucket's FIRST match,
-  //     **and the address STILL HOLDS the identity**, so **the registry's entry STANDS** and a later trigger
-  //     under that address STILL returns the identity WITH THE FUNCTION FIRING FOR IT — which is
-  //     `contract.md §5.5`'s THIRD added entry (*"the registry still fires that ONE identity ONCE, never once
-  //     per occurrence and never once per entry"*) and `§2.4` rule 4's own *"never the function"*.
-  //
-  // **⟶ AND THE ABSENCE ROUTE REMOVES THE REGISTRY ENTRY ONLY WHERE THE STORE GENUINELY WITHDREW THE
-  // IDENTITY — CORRECTED 2026-10-17** (`§2.4` item 7 (b) item 1, *"WITH WITHDRAWAL"*, read with rules 1 and
-  // 4 and item 7 (a) item 3's own *"leaves no store-side home entry"*). **THE DEFECT IT CLOSES, NAMED: the
-  // shipped arm deleted the registry entry UNCONDITIONALLY whenever the token was absent from the mirror —
-  // including for a call whose token the mirror never held at all (an identity the store holds nothing for),
-  // where NOTHING was withdrawn and the registry is not this call's to touch.** **THE WITHDRAWAL IS NOW THE
-  // PRECONDITION: the mirror held the token, and this call's own single-entry removal left no survivor
-  // carrying it** — which is exactly the state in which *"the store has genuinely withdrawn the identity"*
-  // is true, and it is the state the mirror can read because it holds one entry per store entry (see
-  // `homeAddressKey` and `isLawfulListenerElement` above). **WHERE THE MIRROR HELD NOTHING, THIS CALL
-  // REMOVES NOTHING AND THE REGISTRY STANDS**, which is the no-op success `§2.10` declares for a withdrawal
-  // the store makes none of.
-  const mirror = state.home.findIndex((entry) => entry.token === encoded.v);
+  // **THE DOMAIN TEST IS A DIRECT MAP KEY CHECK** (`P: docs/pending.md · P-6`, fork (g), verbatim: *"the
+  // function lookup is now a direct map key check"*): a non-string, a blank string and a string the map does
+  // not carry are each the no-op success, and NO OTHER REGISTRATION IS REMOVED (`identity-and-domain.md §6`
+  // `O-3`).
+  if (!inDomainHandle(handle) || !state.registry.has(handle)) return undefined;
+  call(state, 'unlisten', [handleWire(handle)]);
+  // THE STORE'S OWN FIRST-MATCH WITHDRAWAL, MIRRORED ENTRY FOR ENTRY (the home holds one row per store
+  // entry, so the mirror's own answer is the store's).
+  const mirror = state.home.findIndex((row) => row.handle === handle);
   if (mirror === -1) return undefined;
-  const key = state.home[mirror].key;
-  state.home.splice(mirror, 1); // the store's own FIRST-match withdrawal, mirrored entry for entry
-  if (state.home.some((entry) => entry.token === encoded.v && entry.key === key)) return undefined;
+  state.home.splice(mirror, 1);
+  // **⟶ AND THE TWO STRUCTURES ARE RECONCILED ON THE MIRROR'S SURVIVORS, WHICH IS THE CLAUSE'S OWN GROUND**
+  // (`P: docs/pending.md · P-5`'s A4 ruling, verbatim: *"`unlisten` sets `off` only when the identity no
+  // longer stands anywhere, exactly as the survivor re-scan decides today. The flag is per-handle AND
+  // per-standing, **which is what the home mirror already computes**"*; `identity-and-domain.md §4` item 4).
+  //
+  // **THE STORE'S OWN WITHDRAWAL DROPS **ONE** ENTRY AND THE MIRROR DROPS **ONE** ROW** — the two agree
+  // entry for entry (`docs/specs/storeroom-native/write-and-read.md §6.5` item 12, cited: *"it drops ONE
+  // home-map entry"*; `identity-and-domain.md §6` `O-3`: *"`unlisten`'s no-op success removes no other
+  // registration"*). **WHERE SURVIVORS REMAIN, THE ENTRY'S STANDING IS THEREFORE THE SURVIVORS** — so
+  // `register`'s re-arm re-installs the addresses the handle STILL stands at and RESURRECTS NONE the caller
+  // withdrew. **WHERE NONE SURVIVES, THE ENTRY IS THE RESERVATION `S-6` DECLARES** — *"the entry EXISTS with
+  // `off` set; `register(h, fn)` SUCCEEDS and re-arms it"* — so its declared set stands whole and the re-arm
+  // re-installs it (`identity-and-domain.md §3` item 2 (i); `contract.md §3` `S-6`; `listen-verb.md §4`'s
+  // transition `1 → 2`).
+  const survivors = state.home.filter((row) => row.handle === handle);
+  const entry = state.registry.get(handle);
+  if (survivors.length > 0) {
+    if (entry !== undefined) entry.addresses = survivors.map((row) => row.address.slice());
+    return undefined;
+  }
+  if (entry !== undefined) entry.off = true;
+  return undefined;
+}
+
+/// **⟶ `removeListener(handle) -> undefined` — THE FIRST OF THE TWO NEW MEMBERS**
+/// (`contract.md §2.7` items 1–2; `removal-members.md §2`; `P: docs/pending.md · P-5`'s explicit-delete ruling).
+///
+/// **IT REMOVES THE ENTRY WHOLE AND WITHDRAWS THE STORE'S HOME ENTRIES THE HANDLE NAMED** — *"IT REMOVES THE
+/// ENTRY WHOLE AND WITHDRAWS THE STORE'S HOME ENTRIES THE HANDLE NAMED"* — and **it is the ONLY route that
+/// removes an entry** (`contract.md §2.2` item 5 (c)). **NO `unlisten` IS ISSUED AND NO SEPARATE WITHDRAWAL
+/// VERB IS REACHED: the removal IS the purge, and the map entry's deletion follows it** (`removal-members.md
+/// §2` item 3).
+///
+/// **SUCCESS IS THE NORMAL RETURN (`undefined`) AND THE FAIL IS THE THROW** (`P: docs/pending.md · P-5`'s
+/// `(R3)`, verbatim) — **and the throw is the DECLARED REVERSAL of `unlisten`'s no-op-success set**: every arm
+/// that is not a real removal FAILS, with a verbose message (`(R2)`, verbatim; `contract.md §2.7` item 5).
+/// **A REFUSAL CHANGES NOTHING**: all four structures stand as they stood (`removal-members.md §5`
+/// obligation (iii)).
+///
+/// **AND IT IS NOT A PUBLIC MEMBER YET** — the product's own member set is where it is declared
+/// (`contract.md §2.7` item 9); this is its body, and the member is added below with the surface.
+function removeListener(instance, n, handle) {
+  const state = stateOf(instance);
+  // **THE CLASS TEST IS THE SURFACE'S ONE THROWN FORM WITH `status` THE STORE'S `AddressMalformed`**
+  // (`removal-members.md §6` item 1; `R-B4`, verbatim: *"`AddressMalformed` — the instance's domain is the
+  // domain"*, so *"a present argument outside its domain"* is read as *"outside THIS INSTANCE'S domain"*).
+  // **A WELL-FORMED STRING THE MAP DOES NOT CARRY IS THAT SAME ARM — the fabricated row** — and so is an
+  // already-deleted handle (`contract.md §2.1` item 5's fourth column).
+  if (!inDomainHandle(handle)) {
+    boundaryReject(
+      'AddressMalformed',
+      targetSpelling(handle),
+      `removeListener's first argument is ${classSpelling(handle)}, and a listener's handle is a non-empty `
+        + 'string this caller spells',
+    );
+  }
+  if (!state.registry.has(handle)) {
+    boundaryReject(
+      'AddressMalformed',
+      targetSpelling(handle),
+      `removeListener's first argument is '${handle}', and this instance holds no listener entry for it`,
+    );
+  }
+  // ── THE SUCCESS ARM: THE ENTRY GONE WHOLE AND THE STORE'S ENTRIES WITHDRAWN ────────────────────────────
+  // **THE ORDER IS THE FOUR REMOVALS' (`removal-members.md §4` item 2's `HL-DD-4`), read for a listener:**
+  // (1) validate — above; (2) withdraw the store's home entries the handle named — through the store's own
+  // purge; (3) delete the JS entry; (4) return `undefined`.
+  call(state, 'removeListener', [handleWire(handle)]);
   state.registry.delete(handle);
+  state.home = state.home.filter((row) => row.handle !== handle);
   return undefined;
 }
 
@@ -2602,24 +2829,118 @@ function registerOn(state, handle, listener) {
       `register's second argument is ${classSpelling(listener)}, and a registration's listener is a JS function`,
     );
   }
-  const encoded = encodeHandle(state, handle);
-  if (encoded.k !== 'O') {
+  // **⟶ AND THE HANDLE'S DOMAIN TEST IS A DIRECT MAP KEY CHECK, TAKEN AS A `typeof` READ AND A LENGTH READ
+  // AND NOTHING MORE** (`P: docs/pending.md · P-6`, fork (g), verbatim: *"the function lookup is now a direct
+  // map key check"*; `identity-and-domain.md §2` item 1). **EVERY ROW OF `§2.1` ITEM 5'S `register` COLUMN IS
+  // THIS ONE ARM**: `null`, `undefined`/ABSENT, a non-string, a blank string, a well-formed string the store
+  // never held, a FOREIGN instance's handle and a PRIOR SESSION's handle are each `AddressMalformed` — **the
+  // `R-B4` reading, verbatim: *"`AddressMalformed` — the instance's domain is the domain"*** — and the
+  // message names the argument's POSITION and its CLASS (`surface.md §2.5` item 5 (b); `A134`).
+  if (!inDomainHandle(handle)) {
     boundaryReject(
       'AddressMalformed',
       targetSpelling(handle),
-      `register's first argument is ${classSpelling(handle)}, and a registration's handle is an opaque value THIS INSTANCE minted or adopted`,
+      `register's first argument is ${classSpelling(handle)}, and a registration's handle is a non-empty `
+        + 'string this caller spells',
     );
+  }
+  if (!state.registry.has(handle)) {
+    boundaryReject(
+      'AddressMalformed',
+      targetSpelling(handle),
+      `register's first argument is '${handle}', and this instance holds no listener entry for it — a `
+        + 'registration names a handle `listen` wrote or `cfg.listeners` adopted',
+    );
+  }
+  // ── THE CONSTRAINT/LISTENER CONFLICT — ITS SEAT IS HERE, BEFORE THE REGISTRY IS TOUCHED ────────────────
+  // **A CONSTRAINT/LISTENER CONFLICT ARISES AT `addConstraint` AT AN ADDRESS A LISTENER IS ALREADY REGISTERED
+  // AT — ONE DIRECTION, NOT TWO** (`P: docs/pending.md · (C-1)`, verbatim). **THE TEST'S SEAT IS `registerOn`,
+  // and it is taken BEFORE the registry is written, so a refusal leaves the registry untouched**
+  // (`P: docs/pending.md · (C-2)` item (i), verbatim; `constraint-sites.md §5` item 1).
+  //
+  // **AND IT KEYS ON IDENTITY AND NOT ON THE ADDRESS ALONE**: the kernel registers `noopListener`, and a
+  // conflict is between a CALLER's listener and a CALLER's constraint — so the test keys on the REGISTRATION,
+  // which only a caller performs with its own function (`P: docs/pending.md · (C-2)` item (ii); `PAR-HL-32`).
+  // **THE FORM IS A PACKAGE-SIDE `TypeError` WITH NO `status` MEMBER — NO NEW CODE, NO CLOSED-SET WIDENING**
+  // (`P: docs/pending.md · (C-3)`, verbatim); **its message is the package's own text naming BOTH SIDES — the
+  // listener's address and the constraint that stands there** (`contract.md §2.3` item 9 item (iii)).
+  // **AND THE TEST IS TAKEN WHERE THE REGISTRATION IS A CALLER'S OWN**: the kernel's own `noopListener`
+  // registration is EXCLUDED BY IDENTITY (`P: docs/pending.md · (C-2)` item (ii); `PAR-HL-32`), which is what
+  // keeps `K-1`'s own overwrite arm and every `constraintOn` reachable at a pair-conflicted address.
+  const conflicted = constraintsKernel().isKernelHandle(handle)
+    ? null
+    : constraintAtAnyAddress(state, handle);
+  if (conflicted !== null) {
+    throw withEmptyLog(new TypeError(
+      `the listener '${handle}' cannot be registered at ${JSON.stringify(conflicted.address)}: the constraint `
+        + `'${conflicted.id}' stands at that address, and a listener and a constraint do not share one`,
+    ));
+  }
+  // **⟶ AND A RESERVED ENTRY IS RE-ARMED BY RE-INSTALLING ITS STORE SIDE** — *"the entry EXISTS with `off`
+  // set; `register(h, fn)` SUCCEEDS and re-arms it"* (`identity-and-domain.md §3` item 2 (i); `contract.md
+  // §3` `S-6`; `listen-verb.md §4`'s transition `1 → 2`).
+  //
+  // **`unlisten` WITHDREW THE STORE'S ENTRY AND KEPT THE MAP ENTRY, so `register` puts the store side back**
+  // — at **the addresses THE ACT OF `listen` LAST GAVE THE HANDLE**, which the entry itself carries. **THAT IS
+  // THE ONLY PLACE THE SET CAN BE READ FROM ONCE `unlisten` HAS CONSUMED THE MIRROR ROWS** (`identity-and-
+  // domain.md §4` item 5's `Map<handle, {fn, off}>` is the one map; the mirror's rows are the store's own and
+  // a withdrawal removes them). **THE RE-INSTALL GOES THROUGH `listen`, the ONE creation act** (`P:
+  // docs/pending.md · P-5`'s boot ruling read as the one creation path; `listen-verb.md §6` item 1), so no
+  // second route installs a store entry.
+  //
+  // **WHERE THE HANDLE STANDS AT NO ADDRESS — an entry whose set was emptied by `listen(h, [])` — there is
+  // nothing to re-install and the act is the map write alone.**
+  const standing = state.registry.get(handle).addresses;
+  if (standing.length > 0) {
+    call(state, 'listen', [
+      handleWire(handle),
+      standing.map((address) => encodeAddress(address, 'first argument', 'first argument')),
+    ]);
+    state.home = state.home.filter((row) => row.handle !== handle);
+    for (const address of standing) {
+      state.home.push({ key: homeAddressKey(address), address: address.slice(), handle });
+    }
   }
   const addon_ = withAddon();
   try {
-    addon_.register(state.id, encoded);
+    addon_.register(state.id, handleWire(handle));
   } catch (refusal) {
     // The addon's own refusal — the store's own code and its own generated message, carried VERBATIM.
     fail(refusal);
   }
-  // `§2.4` rule 2: ONE handle, ONE function — the previous entry is REPLACED and dropped without notice.
-  state.registry.set(handle, listener);
+  // **`§2.4` rule 2: ONE handle, ONE function — the previous entry is REPLACED and dropped without notice,
+  // AND `register` CLEARS `off`** (`P: docs/pending.md · P-5`, the entry-shape ruling, part (b):
+  // *"`register(handle, listener)` CLEARS `off` AND INSTALLS THE FUNCTION"*; `contract.md §2.2` item 5 (b)).
+  // **THE REPLACEMENT ARM IS THE ONE THE ADOPTED HANDLE OF `cfg.listeners` TAKES TOO** (`P-HL-5`'s
+  // `S-DEDUPE-WINDOW`).
+  const entry = state.registry.get(handle);
+  entry.fn = listener;
+  entry.off = false;
   return undefined;
+}
+
+/// **THE CONSTRAINT A HANDLE'S OWN ADDRESSES STAND AT, WHERE THE ENTRY CARRIES ONE** — the conflict test's one
+/// read (`constraint-sites.md §5` items 1–2).
+///
+/// **IT READS THE PACKAGE'S OWN CACHES AND NOT THE STORE** (`P: docs/pending.md · (Y-2)`, verbatim: *"SO
+/// `O-4`'S CHECK — AND C-2'S CONFLICT TEST — READ THE CACHES, NOT THE STORE, AND NEITHER NEEDS A STORE ACT TO
+/// ANSWER"*): the mirror's listener rows and `state.constraints`' pairs, both readable before any store act.
+///
+/// **AND THE TEST IS THE ADDRESS-SET MEMBERSHIP, NOT AN EQUALITY**: a pair standing over N addresses occupies
+/// N rows and ONE identity, so the gate answers TRUE where ANY of the pair's addresses matches
+/// (`contract.md §2.6` item 4; `P: docs/pending.md · P-7`'s keying ruling, item (iv)).
+function constraintAtAnyAddress(state, handle) {
+  if (state.constraints.size === 0) return null;
+  const standing = state.home.filter((row) => row.handle === handle);
+  if (standing.length === 0) return null;
+  for (const entry of state.constraints.values()) {
+    for (const key of standing) {
+      for (const address of entry.addresses) {
+        if (homeAddressKey(address) === key.key) return { address, id: entry.id };
+      }
+    }
+  }
+  return null;
 }
 
 /// **THE TERMINAL ARM'S OWN ACT, PERFORMED BY THIS ENTRY AT THE KERNEL'S INSTANT — THE ONE THING `settle`'S
@@ -2691,12 +3012,19 @@ function terminalArm(state, record) {
   // still holds a function for it this arm delivers it ONCE, exactly as the residue's own members are.
   // **NO MEMBER IS ADDED** (`A117` (D6)): the kernel's finding travels under a SYMBOL key and
   // `record.pending` stands exactly as the check-off left it.
-  const checkedOff = record[CHECKED_OFF];
-  if (Array.isArray(checkedOff)) {
-    for (const handle of checkedOff) {
-      if (!triggered.includes(handle)) triggered.push(handle);
-    }
-  }
+  //
+  // **⟶ AND THE TERMINAL ARM'S RE-APPEND OF BARE HANDLES IS DELETED — `U-STOREROOM-HELD-LISTENER-IDENTITY`.**
+  // **UNDER POP THE ENTRY A CHECK-OFF REMOVES IS REMOVED FROM `pending`, SO NOTHING IS CARRIED BESIDE IT AND
+  // THE BARE-HANDLE UNION HAS NO SUBJECT** (`P: docs/pending.md · (AA-7)`, verbatim; `contract.md §2.4`
+  // items 4–5; `trigger-and-pair.md §3` item 3: *"the terminal arm's re-append of bare handles … were how a
+  // checked-off identity was carried BESIDE `pending`; under POP the entry is REMOVED, so nothing is carried
+  // beside"*).
+  //
+  // **AND THE FORBIDDEN STATE HAS NO PRODUCER**: `pending` must never become heterogeneous — a bare handle
+  // appended beside pairs is `TF-7` (`P: docs/pending.md · P-7`'s `pending` ruling, item (3), closing
+  // sentence; `contract.md §2.5` item 2), and the deletion of this arm is what discharges the prohibition.
+  // **THE OWED FIRING IS UNMOVED**: a popped identity's firing is still reached through THE REGISTRY'S
+  // RESOLUTION at the delivery instant (`A117` (D5)/(D6); `contract.md §2.4` item 4).
   // **THE INVOCATION'S ONE ARGUMENT IS THE TRIGGERING ADDRESS** (`§2.7` item 5): the OP's OWN address and
   // never the registration's watch address (`kernel-surface.md §2.1` item 2 (ii)).
   const triggeringAddress = answer === null || answer === undefined || answer.op === null || answer.op === undefined
@@ -2805,11 +3133,35 @@ function constraintsKernel() {
 /// printed here it would be a second, unowned home for the kernel's own vocabulary).
 const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8'];
 
-/// THE PAIR'S OWN KEY — `(address, id)`, the key the kernel's registry is keyed by (`kernel-surface.md §2.2`
-/// item 4). The address half is JSON's own spelling of the segment array, which is TOTAL over every address
-/// the pair's domain admits and collides across no two of them.
-function constraintPairKey(address, id) {
-  return `${JSON.stringify(address)}\u0000${id}`;
+/// **⟶ THE PAIR'S OWN KEY IS `(id, address-set)` — `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`).**
+/// **ONE PAIR OVER N ADDRESSES IS ONE PAIR: ONE `id`, N ADDRESSES, ONE row of `constraints()`** (`P:
+/// docs/pending.md · P-7`'s answer clause, verbatim: *"1. (one id, N addresses)"*; `contract.md §2.6` item 4)
+/// — **and the pair's key is the pair**, because the constraint methods' own domain is `(address, id)` and
+/// **two pairs at two addresses are TWO pairs** (`constraint-identity.md §5` `IF-2`: *"two `addConstraint`
+/// calls at two DIFFERENT pairs → TWO identities, not equal"*).
+///
+/// **THE ADDRESS HALF IS THE SET'S CANONICAL, ORDER-INSENSITIVE SPELLING** (`contract.md §2.6` item 6's
+/// `HL-DD-3`; `AB-6`: *"A canonical order-insensitive set spelling is declared once"*), so two calls spelling
+/// the same set in different member orders name ONE pair (`IF-8`) and two different sets name two.
+function constraintPairKey(addresses, id) {
+  return `${addressSetKey(addresses)}\u0000${id}`;
+}
+
+/// **THE SET'S CANONICAL, ORDER-INSENSITIVE SPELLING** (`contract.md §2.6` item 6's `HL-DD-3`; `AB-6`: *"A
+/// canonical order-insensitive set spelling is declared once, used by `carriesConstraintAt` and by the
+/// kernel's pair rows, so the set-valued address has one key form and not two."*). **TWO ADDRESS SETS ARE
+/// EQUAL EXACTLY WHEN THEY CONTAIN THE SAME ADDRESSES — SET EQUALITY, NOT SEQUENCE EQUALITY** — and the
+/// canonical key is the SORTED, INJECTIVELY-SPELLED member list. **The injective spelling is the one the
+/// address domain already admits**: each segment length-prefixed, with `string` and `number` distinguished —
+/// the same distinction `addressToken`'s `k:`/`i:` prefixes carried, preserved HERE as a spelling rule and
+/// **not** as a map key (`P: docs/pending.md · M-3` item (iv)).
+function addressSetKey(addresses) {
+  const spells = [];
+  for (const address of addresses) {
+    spells.push(homeAddressKey(address));
+  }
+  spells.sort();
+  return spells.join('\u0001');
 }
 
 /// **THE ONE REFUSAL `§2.12` ITEM 4 DECLARES, TAKEN BEFORE ANY ACT AND LEAVING NOTHING CHANGED** — a JS
@@ -2904,9 +3256,39 @@ function constraintSite(verb, instance, supplied, pair, constraint) {
     || pair.address === undefined) {
     constraintRefuse(`pair at the ${ARGUMENT_POSITION_FIRST} of \`${verb}\``, pair);
   }
-  const encoded = constraintAddress(pair.address);
-  if (typeof encoded === 'string'
-    || !Object.hasOwn(pair, 'id')
+  // **⟶ THE `address` MEMBER'S TYPE: *"at the REGISTRATION act, a single address"*** (`constraint-identity.md
+  // §6`'s pair table, verbatim: *"`address`: THE ADDRESS SET the pair was created with — and, at the
+  // REGISTRATION act, a single address"*; `contract.md §2.6` item 5; `PAR-HL-8`).
+  //
+  // **SO THIS POSITION TAKES THE SEGMENT LIST THE CONSTRAINT METHODS HAVE ALWAYS TAKEN** (`§1.5`'s segment
+  // array, `constraintAddress`'s own reader), **and the pair the entry CARRIES is its ONE-member SET** — one
+  // `id`, N addresses, where N is `1` at every creation this directory reaches (`P: docs/pending.md · P-7`'s
+  // answer clause: *"1. (one id, N addresses)"*). **THE SET-VALUED FORM IS THE READ'S AND THE REMOVAL'S**
+  // (`PAR-HL-13`; `PAR-HL-16`), and it is satisfied by the one-member set a registration produces.
+  // **THE DISCRIMINATOR IS THE MEMBER'S CLASS, READ ONCE (the same rule `listen`'s set position takes)**:
+  // an array whose FIRST member is an array is a SET; an array whose members are segments is ONE ADDRESS.
+  // **BOTH SPELLINGS ARE DECLARED** — the registration act's single address (`constraint-identity.md §6`'s
+  // pair table) and the set the pair is created with when the caller spells N of them (`P: docs/pending.md ·
+  // P-7`'s set ruling; `PAR-HL-8`).
+  const addresses = [];
+  if (isAdmittedArray(pair.address) && pair.address.length > 0 && Array.isArray(pair.address[0])) {
+    for (let i = 0; i < pair.address.length; i += 1) {
+      const each = isAdmittedArray(pair.address) && Array.isArray(pair.address[i])
+        ? constraintAddress(pair.address[i])
+        : null;
+      if (each === null || typeof each === 'string') {
+        constraintRefuse(`pair at the ${ARGUMENT_POSITION_FIRST} of \`${verb}\``, pair);
+      }
+      addresses.push(each.s);
+    }
+  } else {
+    const encoded = constraintAddress(pair.address);
+    if (typeof encoded === 'string') {
+      constraintRefuse(`pair at the ${ARGUMENT_POSITION_FIRST} of \`${verb}\``, pair);
+    }
+    addresses.push(encoded.s);
+  }
+  if (!Object.hasOwn(pair, 'id')
     || pair.id === undefined
     || typeof pair.id !== 'string'
     || pair.id === '') {
@@ -2915,7 +3297,7 @@ function constraintSite(verb, instance, supplied, pair, constraint) {
   if (typeof constraint !== 'function') {
     constraintRefuse(`constraint at the ${ARGUMENT_POSITION_SECOND} of \`${verb}\``, constraint);
   }
-  return { state, address: encoded.s, id: pair.id };
+  return { state, addresses, id: pair.id };
 }
 
 /// **THE ONE ACT THAT MAKES A PAIR A PAIR THE ENTRY CARRIES** (`§2.12` item 1's preamble clause (a)–(b)):
@@ -2926,7 +3308,7 @@ function constraintSite(verb, instance, supplied, pair, constraint) {
 /// overwrites the element and answers THIS SAME VALUE, and two pairs answer two values. **`PAR-JS-25`'s
 /// opacity is the observable** — *"it has no own enumerable member at all"* — so it is a null-prototype
 /// object and NOT the entry record: every datum above stays the entry's own and never crosses.
-function carryConstraint(state, instance, address, id, constraint) {
+function carryConstraint(state, instance, addresses, id, constraint) {
   // **⟶ AND THE REGISTRATION IS NOW A THREE-STATE ACT, WHOSE THIRD STATE LANDS AN EDIT** (`§2.12` item 3's
   // 2026-10-16 clause, read through its `A135` (3) mark; `docs/specs/storeroom-native/contract.md §7.3` (b)
   // states 1–3 and `3-bis`). `K-1` evaluates the constraint at registration: on states 1 and 3-success it
@@ -2934,20 +3316,34 @@ function carryConstraint(state, instance, address, id, constraint) {
   // and re-throws in the surface's own single form (`registrationCrossing` below). **THE ENTRY'S OWN
   // RECORD IS WRITTEN ONLY WHERE THE REGISTRATION STOOD**, so a refused registration leaves this state
   // exactly as it stood (`§2.12` item 3: *"NO identity is returned and NO element is carried"*).
-  try {
-    constraintsKernel().register(instance, address, id, constraint);
-  } catch (refusal) {
-    registrationCrossing(refusal);
+  // **⟶ AND THE REGISTRATION IS ONE CALL PER ADDRESS OF THE PAIR'S SET, UNDER ONE IDENTITY**
+  // (`contract.md §2.6` item 4; `P: docs/pending.md · P-7`'s answer clause: *"One pair, N registry rows,
+  // removal clears all N"*). **THE KERNEL'S OWN REGISTRY KEEPS ITS `(address, id)` KEY SHAPE** — one pair over
+  // N addresses IS N `(address, id)` rows sharing one id (`P: docs/pending.md · P-7`'s keying ruling, item (v);
+  // `AB-6`) — so N registrations stand behind the ONE element this entry carries.
+  for (const address of addresses) {
+    try {
+      constraintsKernel().register(instance, address, id, constraint);
+    } catch (refusal) {
+      registrationCrossing(refusal);
+    }
   }
+  // **THE STORE'S PAIR RECORD CARRIES THE IDENTITY, AND `addConstraint` AT A HELD PAIR ANSWERS THE STORE'S
+  // IDENTITY FOR THAT PAIR** (`P: docs/pending.md · (AA-2)`, its own obligation; `contract.md §2.6` item 2;
+  // `AB-2`: *"`{addresses, id, identity}`"*). **THE IDENTITY IS A STORE-SIDE FACT AND NOT A PACKAGE-MINTED
+  // VALUE**: it is the STORE'S identity for the pair, so it is created ONCE per pair row and **reused** on
+  // every later write to the same pair — which is exactly how `PAR-JS-25`'s *"equal to itself on a second
+  // `addConstraint` at the SAME pair"* survives the carrier's move (`constraint-identity.md §2` item 2;
+  // `contract.md §5.6`'s `S-ID-STORE`).
   const entry = {
-    address,
-    addressKey: JSON.stringify(address),
+    addresses,
+    addressKey: addressSetKey(addresses),
     id,
     fn: constraint,
     enabled: true,
     identity: Object.create(null),
   };
-  state.constraints.set(constraintPairKey(address, id), entry);
+  state.constraints.set(constraintPairKey(addresses, id), entry);
   return entry;
 }
 
@@ -3007,6 +3403,48 @@ function constraintParked() {
   return true;
 }
 
+/// **⟶ ADDED — THE PAIR'S REGISTRY STANDING, PUT BACK AFTER A REFUSED RE-REGISTRATION.** **THIS IS THE WAKE
+/// OF THE PURGE ORDER, AND IT IS THE ONE THING `validate-first` CANNOT SUPPLY BY ITSELF.**
+///
+/// **THE ORDER IS `CHECK → PURGE → ADD`, AND THE PURGE IS `K-6`** (`contract.md §2.3` items 2–4; `(O-4)`
+/// item (iii)): **so by the time the ADD can refuse, the kernel's row AND the read model's row have already
+/// gone with the old handle** — `K-6`'s `FORGET_PAIR` is UNCONDITIONAL and takes the entry the pair was
+/// enumerated by (`contract.md §2.9` item 3; `§2.7` item 7). **AND `constraintSite`'s CHECK CANNOT REACH
+/// THE REGISTRATION-TIME EVALUATION** — `contract.md §2.3` item 4's own split: the four pre-checkable
+/// classes are static, while *"registration-time EVALUATION … state 3's attempted repair, the store's own
+/// refusal of `listen` … and `register` on a purge-emptied bucket"* are NOT pre-checkable, **so a state-2
+/// or state-3 failure at a held pair still purges first and refuses after** (same item, its own conclusion).
+///
+/// **WHAT THE CONTRACT DECLARES ABOUT THAT RESIDUE IS TWO FACTS AND NOT ONE, AND THE SECOND IS WHAT THIS
+/// FUNCTION KEEPS** (`constraint-sites.md §4` item 2, verbatim: *"the pair's REGISTRY standing and its STORE
+/// standing are two facts, and only the registry one is the kernel's to keep; the pair STILL EVALUATES, and
+/// its delivery resolves to `undefined` and fires NOTHING SILENTLY"*): the STORE-side loss is the DECLARED
+/// residue, and **the REGISTRY standing is the kernel's to keep — the pair still evaluates, `constraints()`
+/// is unmoved, and the refused call changed nothing** (`§2.1` item 1, verbatim: *"a refused registration
+/// leaves the registry exactly as it stood"*; `§2.3` item 3's four observables; `P: docs/pending.md · P-5`'s
+/// `(F-2b)`: *"a pair is never left without a valid constraint, and a refused add changes nothing"*).
+/// **ALL THREE OF THOSE ARE FUNCTIONS OF THESE TWO ROWS**, so both are written back here.
+///
+/// **THE ELEMENT PUT BACK IS THE ONE THE PAIR ACTUALLY STOOD UNDER AND NO OTHER** — `entry.fn` where the pair
+/// was enabled and `constraintParked` where it was disabled, which is exactly the element the toggle itself
+/// re-registers (`§2.12` item 3; `constraint-sites.md §1` row 2: *"`entry.fn` (the element the entry
+/// carried)"*). **AND ITS OWN `K-1` CANNOT REFUSE**: the element is the one the pair was ADMITTED under, and
+/// every kernel write re-evaluates a standing pair and refuses on violation without landing it, so a state
+/// the pair's own element rejects is not a state a standing pair is ever left in (`kernel-surface.md §2.3`
+/// item 1; `docs/specs/storeroom-native/contract.md §7.3` (b) state 1).
+function restoreHeldPair(state, instance, held) {
+  // THE READ-MODEL ROW FIRST: it is the one `K-6`'s `FORGET_PAIR` deleted, and it is unobtainable from the
+  // kernel (`§2.9` item 3).
+  state.constraints.set(constraintPairKey(held.addresses, held.id), held);
+  // AND THE KERNEL'S OWN ROW BESIDE IT, AT EVERY ADDRESS THE PAIR STOOD AT, UNDER ITS OWN IDENTITY — the
+  // same act `constraintOn` performs, so the pair is carried and enumerated exactly as it was (`§2.6`
+  // item 4; `constraint-identity.md §3` item 3).
+  const standing = held.enabled === true ? held.fn : constraintParked;
+  for (const address of held.addresses) {
+    constraintsKernel().register(instance, address, held.id, standing);
+  }
+}
+
 /// **A WELL-FORMED PAIR THE ENTRY DOES NOT CARRY — `§2.12` item 3's second answered question and
 /// `PAR-JS-24`'s second declared answer: at EITHER toggle, in EITHER direction, an OUTSIDE VALUE taking
 /// item 4's refusal, ONE THROWN `TypeError`, THE ENTRY NOT WIDENED.** It is NOT a third population route:
@@ -3032,23 +3470,61 @@ function constraintUncarried(verb, pair) {
  */
 function addConstraint(instance, n, pair, constraint) {
   const site = constraintSite('addConstraint', instance, n, pair, constraint);
-  const key = constraintPairKey(site.address, site.id);
-  const held = site.state.constraints.get(key);
+  const held = site.state.constraints.get(constraintPairKey(site.addresses, site.id));
   if (held === undefined) {
-    return carryConstraint(site.state, instance, site.address, site.id, constraint).identity;
+    return carryConstraint(site.state, instance, site.addresses, site.id, constraint).identity;
   }
-  // **THE OVERWRITE ARM TAKES THE SAME THREE-STATE REGISTRATION** (`§2.12` item 3's clause of 2026-10-16
-  // read at its `A135` (3) mark): a second ADD at a held pair registers the supplied function through `K-1`
-  // exactly as the fresh arm does, so a registration the store REFUSES refuses THIS call too — and the held
-  // element is left EXACTLY AS IT STOOD, because the entry's own record is written only after the
-  // registration returns (`§2.12` item 3: *"NO identity is returned and NO element is carried"*).
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ THE HELD-PAIR ARM IS `CHECK → PURGE → ADD`, AND IT IS THE ONE ORDER THE RULING GIVES**
+  // (`P: docs/pending.md · (O-3)`, verbatim: *"Writing a constraint to an existing handle purges everything
+  // of the old handle, then adds the new one. Everything, no exceptions, stop inventing ones. Override all
+  // conflicting decisions."*; `(O-4)`, verbatim: *"THAT THE ORDER IS CHECK → PURGE → ADD at every site that
+  // reaches `K-1` from a held pair"*; `contract.md §2.3` items 1–3).
+  //
+  // **STEP 1 — CHECK.** **A PURGE THAT RUNS BEFORE THE NEW ELEMENT IS KNOWN-GOOD DESTROYS THE OLD LISTENER AND
+  // THEN FAILS TO INSTALL, LEAVING THE ADDRESS BARE — *a purge with no add*** (`(O-4)`, its own ground;
+  // `A76`). **THE FOUR PRE-CHECKABLE CLASSES ARE ALREADY PASSED**, because `constraintSite` ran first and
+  // refused every outside pair, every out-of-domain address and every non-function (`contract.md §2.3`
+  // item 4's four classes; `constraint-sites.md §2` item 1). **THE CHECK'S FAILURE LEAVES THE OLD HANDLE WHOLE,
+  // AND THAT IS NOT AN EXCEPTION — it is the ABSENCE of a purge, since nothing was ever purged**
+  // (`(O-4)` item (ii), verbatim).
+  //
+  // **STEP 2 — PURGE.** **EVERYTHING OF THE OLD HANDLE, AT EVERY ADDRESS IT STOOD AT, ACROSS EVERY
+  // STRUCTURE.** **THE KERNEL'S OWN ADDRESS ROWS ARE PURGED WITH THE HANDLE** — which is what falsifies
+  // `surface.md:872`'s second sentence outright (`(O-3)` item (v): *"AND IT REPLACES NOTHING IN THE KERNEL'S
+  // OWN STRUCTURE"* — BOTH SENTENCES GO).
+  // **⟶ AND THE CALL CARRIES `K-6`'S DECLARED TWO POSITIONS AND NO THIRD** (`contract.md §2.9` item 3;
+  // `remove-member.md §3` item 2's two priced alternatives, both refused): **the former fourth position that
+  // suppressed the read-model delete is DROPPED**, because the re-add below writes the same pair identity
+  // back through `K-1` and `carryConstraint` (`P: docs/pending.md · (O-3)` item (iv)'s obligation; `(AA-2)`;
+  // `contract.md §2.6` item 2).
+  constraintsKernel().remove(instance, { address: held.addresses, id: held.id });
+  // **STEP 3 — ADD.** The supplied element is installed under **THE SAME IDENTITY**, because the identity now
+  // lives in the STORE and is returned with the pair, so the mechanism's change does not move the observable
+  // (`(O-3)` item (iv)'s obligation; `(AA-2)`; `contract.md §2.6` item 2).
+  // **⟶ AND A REFUSAL HERE HAS ALREADY TAKEN THE PAIR'S TWO ROWS WITH THE PURGE** — `constraintSite`'s check
+  // cannot reach the registration-time evaluation, so this is `§2.3` item 4's own declared split — **and both
+  // are put back BEFORE the refusal crosses, because the second of that clause's two facts is the kernel's to
+  // keep: the pair still evaluates and `constraints()` is unmoved** (`restoreHeldPair` above;
+  // `constraint-sites.md §4` item 2; `§2.1` item 1).
   try {
-    constraintsKernel().register(instance, site.address, site.id, constraint);
+    for (const address of site.addresses) {
+      constraintsKernel().register(instance, address, site.id, constraint);
+    }
   } catch (refusal) {
+    restoreHeldPair(site.state, instance, held);
     registrationCrossing(refusal);
   }
+  held.addresses = site.addresses;
+  held.addressKey = addressSetKey(site.addresses);
   held.fn = constraint;
   held.enabled = true;
+  // **⟶ AND STEP 3 IS THE RE-ADD: THE SAME PAIR IDENTITY IS WRITTEN BACK UNDER ITS OWN KEY** (`(O-3)`
+  // item (iv)'s obligation; `(AA-2)`: *"Move the identity into the store"*). **THE PURGE DELETED THE
+  // READ-MODEL ROW AND THE RE-ADD PUTS IT BACK**, so the identity the caller held before the cycle is the
+  // identity after it, by VALUE, and the enumeration is unmoved (`contract.md §2.6` items 2–3;
+  // `constraint-identity.md §5` `IF-1`).
+  site.state.constraints.set(constraintPairKey(held.addresses, held.id), held);
   return held.identity;
 }
 
@@ -3070,21 +3546,141 @@ function addConstraint(instance, n, pair, constraint) {
 function constraintToggle(enabled, instance, n, pair, constraint) {
   const verb = enabled ? 'constraintOn' : 'constraintOff';
   const site = constraintSite(verb, instance, n, pair, constraint);
-  const entry = site.state.constraints.get(constraintPairKey(site.address, site.id));
+  const entry = site.state.constraints.get(constraintPairKey(site.addresses, site.id));
   if (entry === undefined) constraintUncarried(verb, pair);
   if (entry.enabled !== enabled) {
-    // **THE ENABLE HALF RE-REGISTERS THE PAIR'S OWN FUNCTION, SO IT TAKES THE SAME THREE-STATE REGISTRATION
-    // AS EVERY OTHER REGISTRATION SITE** (`§2.12` item 3's clause of 2026-10-16 at its `A135` (3) mark;
-    // `docs/specs/storeroom-native/contract.md §7.3` (b)). A registration the store REFUSES refuses THIS
-    // call in the same one form, and the pair's own `enabled` member is UNMOVED — written only after the
-    // registration returns — so a refused toggle leaves the pair exactly as it stood.
+    // **⟶ AND THE TOGGLE IS A PURGE-THEN-ADD TOO, BECAUSE IT REACHES THE SAME `K-1`.** **THE RULING, AT ITS
+    // OWN SITE: *"it is the same rule for `constraintOn`/`constraintOff`, which reach the same `K-1`: their
+    // re-registration is a purge-then-add too, and `constraintParked` is the new element added"*** —
+    // *"THE PROPOSAL MUST STATE THAT A TOGGLE AT A PAIR PURGES THE PAIR'S OLD STORE ENTRIES, because that is
+    // what `no exceptions` means at this site"* (`P: docs/pending.md · (O-3)` item (v), verbatim;
+    // `contract.md §2.3` item 7; `constraint-sites.md §1` rows 2–3).
+    //
+    // **THE CHECK PRECEDES IT, AS AT EVERY HELD-PAIR SITE** (`constraintSite` has already run: the pair's
+    // shape, the id, the addresses' domain and the element's class), **and a refusal therefore purges
+    // nothing.** **AND THE IDENTITY STANDS THROUGH THE CYCLE — `constraintOff` is a TOGGLE and not a
+    // removal** (`constraint-identity.md §3` item 3; `contract.md §5.6`'s `S-ID` family; `IF-5`).
+    constraintsKernel().remove(instance, { address: entry.addresses, id: entry.id });
+    // **⟶ AND THE TOGGLE'S REFUSAL HAS THE SAME WAKE AS THE OVERWRITE ARM'S, FOR THE SAME REASON: IT REACHES
+    // THE SAME `K-6` AND THE SAME `K-1`** (`§2.3` item 7; `constraint-sites.md §1` rows 2–3), **so a refused
+    // re-registration has already purged the pair's own row and its read model, and both are put back before
+    // the refusal crosses** (`restoreHeldPair` above; `constraint-sites.md §4` item 2; `§2.1` item 1).
     try {
-      constraintsKernel().register(instance, site.address, site.id, enabled ? entry.fn : constraintParked);
+      for (const address of entry.addresses) {
+        constraintsKernel().register(instance, address, entry.id, enabled ? entry.fn : constraintParked);
+      }
     } catch (refusal) {
+      restoreHeldPair(site.state, instance, entry);
       registrationCrossing(refusal);
     }
     entry.enabled = enabled;
+    // **⟶ AND STEP 3 IS THE RE-ADD: THE SAME PAIR IDENTITY IS WRITTEN BACK** (`P: docs/pending.md · (O-3)`
+    // item (iv)'s obligation; `(AA-2)`: *"Move the identity into the store"*, preserved *"equal to itself on
+    // a second `addConstraint` at the SAME pair"*). **THE TOGGLE IS NOT A REMOVAL, so the row it purged is
+    // restored UNDER THE SAME IDENTITY and the enumeration is unmoved** (`constraint-identity.md §3` item 3;
+    // `§5` `IF-5`; `removal-members.md §3` item 3): *"`constraintOff` is a TOGGLE and not a removal: a
+    // disabled pair is STILL CARRIED and STILL ENUMERATED"*.
+    site.state.constraints.set(constraintPairKey(entry.addresses, entry.id), entry);
   }
+  return undefined;
+}
+
+/// **⟶ `removeConstraint(pair) -> undefined` — THE SECOND OF THE TWO NEW MEMBERS**
+/// (`contract.md §2.7` item 3; `removal-members.md §3`; `P: docs/pending.md · P-5`'s `(R4)`, verbatim:
+/// *"removeConstraint REMOVES EVERYTHING — THE PAIR, ALL N ADDRESS ROWS, THE KERNEL'S REGISTRATION, AND THE
+/// STORE-SIDE HOME ENTRY"*).
+///
+/// **IT IS A THIRD AND STRONGER OPERATION**: neither `constraintOff` (a TOGGLE re-registering a parked stub
+/// and keeping the pair carried) nor the kernel's `withdrawRegistration` (which leaves the store's home entry
+/// standing). **AND IT IS THE ONE ACT THAT DELETES AN IDENTITY** (`contract.md §2.6` item 3; `P: docs/pending.md
+/// · (AA-2)`, closing sentence).
+///
+/// **THE ORDER OF THE FOUR REMOVALS IS THIS CONTRACT'S DECLARED `HL-DD-4`** (`removal-members.md §4` item 2):
+/// **(1) VALIDATE the pair and the call's class; (2) WITHDRAW the store's home entries the pair's addresses
+/// hold, through `K-6`'s route; (3) DELETE the kernel's `pairs` row and its N address rows; (4) DELETE the JS
+/// ENTRY — `state.constraints`'s value, its identity included; (5) RETURN `undefined`.**
+/// **NO INTERMEDIATE STATE IS OBSERVABLE**: after any thrown arm the four structures stand as they stood, and
+/// after the success return all four are gone (`removal-members.md §4` item 4).
+///
+/// **AND THE TWO REFUSAL FORMS ARE TOLD APART BY `status`'s PRESENCE AND NOTHING ELSE**: a PAIR-SHAPED
+/// outside value takes the constraint methods' `TypeError` with `status` ABSENT (`removal-members.md §6`
+/// item 2; `contract.md §2.7` item 6), while a WELL-FORMED pair this instance holds no row for takes the
+/// remove member's own thrown form with a verbose message (`contract.md §2.7` item 5; `removal-members.md §5`
+/// row 1).
+function removeConstraint(instance, n, pair) {
+  const state = stateOf(instance);
+  // ── STEP 1: VALIDATE. ────────────────────────────────────────────────────────────────────────────────
+  // **THE PAIR'S SHAPE TEST IS THE CONSTRAINT METHODS' OWN — ONE THROWN `TypeError`, `status` ABSENT, the
+  // call changing nothing** (`surface.md:1063` rule (ii), which governs *"THE THREE CONSTRAINT METHODS' EVERY
+  // OUTSIDE VALUE"*; `contract.md §2.7` item 6; `constraint-sites.md §6` item 2). **IT IS TAKEN HERE RATHER
+  // THAN THROUGH `constraintSite` BECAUSE THIS MEMBER HAS NO `constraint` POSITION** — its arity is ONE
+  // (`removal-members.md §3` item 1; `PAR-HL-16`).
+  if (n < 1 || !isPlainObjectValue(pair) || !Object.hasOwn(pair, 'address') || pair.address === undefined) {
+    constraintRefuse(`${ARGUMENT_POSITION_FIRST} of \`removeConstraint\``, pair);
+  }
+  // **THE PAIR'S `address` IS READ AT THE TWO SPELLINGS THE CONTRACT DECLARES FOR THE CONSTRAINT'S PAIR AND
+  // AT NO THIRD** (`constraint-identity.md §6`'s pair table, verbatim: *"`address`: THE ADDRESS SET the pair
+  // was created with (`§4` item 3) — and, at the REGISTRATION act, a single address"*; `PAR-HL-8`;
+  // `PAR-HL-16`).
+  //
+  // **⟶ AND THE OUTSIDE SET THIS POSITION REFUSES IS `PAR-HL-8`'S OWN EIGHT ROWS AND NO NINTH**, because
+  // `PAR-HL-16`'s outside cell is *"every shape row of `PAR-HL-8`'s outside list, PLUS a well-formed pair the
+  // entry does not carry"*: a non-object · a `null` · an object carrying no `address` · **an `address` outside
+  // the store's domain** · an object carrying no `id` · a non-string `id` · an empty-string `id` · an ABSENT
+  // pair. **THE DISCRIMINATOR IS THE MEMBER'S CLASS, READ ONCE** — an array whose FIRST member is an array is
+  // the pair's SET; an array whose members are segments is the REGISTRATION ACT'S OWN single address. **THE
+  // SECOND IS NOT `listen`'S REFUSED SET-POSITION CLASS** (`listen-verb.md §2.2` item 2 (vi)) **BUT THE
+  // REGISTRATION FORM THIS PAIR WAS CREATED WITH**: the pair the caller hands to `removeConstraint` is the
+  // pair it handed to `addConstraint`, and `addConstraint` admits that spelling (`PAR-HL-8`'s domain read with
+  // `constraint-identity.md §6`'s registration clause) — so refusing it here would make a pair the caller
+  // added unremovable, which `contract.md §3` `S-12` forbids.
+  //
+  // **AND AN ADDRESS OUTSIDE THE STORE'S DOMAIN IS THIS POSITION'S OUTSIDE VALUE, ANSWERED BY RULE (ii)'s
+  // `TypeError`** (`contract.md §4` `F-7`; `removal-members.md §6` item 2: *"the constraint methods' `TypeError`,
+  // `status` ABSENT"* — never the store's form, and never a raw host value), which is the SAME class of answer
+  // `constraintSite` gives that value at the three constraint methods.
+  const addresses = [];
+  if (!isAdmittedArray(pair.address)) {
+    constraintRefuse(`${ARGUMENT_POSITION_FIRST} of \`removeConstraint\``, pair);
+  }
+  if (pair.address.length > 0 && Array.isArray(pair.address[0])) {
+    for (let i = 0; i < pair.address.length; i += 1) {
+      const each = isAdmittedArray(pair.address[i]) ? constraintAddress(pair.address[i]) : null;
+      if (each === null || typeof each === 'string') {
+        constraintRefuse(`${ARGUMENT_POSITION_FIRST} of \`removeConstraint\``, pair);
+      }
+      addresses.push(each.s);
+    }
+  } else {
+    const each = constraintAddress(pair.address);
+    if (typeof each === 'string') {
+      constraintRefuse(`${ARGUMENT_POSITION_FIRST} of \`removeConstraint\``, pair);
+    }
+    addresses.push(each.s);
+  }
+  if (!Object.hasOwn(pair, 'id')
+    || pair.id === undefined
+    || typeof pair.id !== 'string'
+    || pair.id === '') {
+    constraintRefuse(`${ARGUMENT_POSITION_FIRST} of \`removeConstraint\``, pair);
+  }
+  const entry = state.constraints.get(constraintPairKey(addresses, pair.id));
+  if (entry === undefined) {
+    // **A WELL-FORMED PAIR THIS INSTANCE HOLDS NO ROW FOR IS A THROW WITH A VERBOSE MESSAGE — and NOT a class
+    // refusal**, because the value is inside every class domain and it is the ROW that is absent
+    // (`contract.md §4` `F-8`; `removal-members.md §5` row 1: *"names the value and the reason"*).
+    throw withEmptyLog(new TypeError(
+      `the pair at the ${ARGUMENT_POSITION_FIRST} of \`removeConstraint\` is '${pair.id}' at `
+        + `${JSON.stringify(addresses)}, and this instance holds no constraint pair there`,
+    ));
+  }
+  // ── STEP 2–3: THE KERNEL'S ROW, ITS N ADDRESS ROWS, AND THE STORE'S HOME ENTRIES, THROUGH `K-6`. ─────
+  // **THE CHAIN IS `removeConstraint → K-6 → removeListener → the store's purge`, AND IT HAS NO CYCLE**
+  // (`contract.md §2.9` item 6; `remove-member.md §6` item 1). **`K-6`'S STORE-SIDE REFUSAL CROSSES
+  // UNCONVERTED** (`contract.md §4` `F-13`), so this frame converts nothing.
+  constraintsKernel().remove(instance, { address: entry.addresses, id: entry.id });
+  // ── STEP 4: THE JS ENTRY, ITS IDENTITY INCLUDED. ─────────────────────────────────────────────────────
+  state.constraints.delete(constraintPairKey(entry.addresses, entry.id));
   return undefined;
 }
 
@@ -3132,7 +3728,10 @@ function enumerateConstraints(state) {
     // A FRESH PLAIN OBJECT PER CALL AND A FRESH SEGMENT ARRAY WITHIN IT (`slice`): a caller that mutates a
     // returned element, or an element's `address`, changes nothing the next call returns — and nothing of the
     // entry's own record either, the two members being copies of the pair's own data.
-    pairs.push({ address: entry.address.slice(), id: entry.id });
+    // **THE `address` MEMBER IS THE PAIR'S OWN SET** (`contract.md §2.6` item 5; `PAR-HL-13`): one row per
+    // `state.constraints` VALUE, unchanged in count, with its `address` member's type moved
+    // (`P: docs/pending.md · P-7`'s answer clause, item (1)) — a FRESH array of FRESH segment arrays.
+    pairs.push({ address: entry.addresses.map((address) => address.slice()), id: entry.id });
   }
   return pairs;
 }
@@ -3144,9 +3743,16 @@ function enumerateConstraints(state) {
 function carriesConstraintAt(state, address) {
   if (state.constraints.size === 0) return false;
   if (types.isProxy(address) || !isAdmittedArray(address)) return false;
-  const key = JSON.stringify(address);
+  // **⟶ THE PER-WRITE GATE IS A SET-MEMBERSHIP TEST, NOT AN EQUALITY TEST** (`P: docs/pending.md · P-7`'s
+  // keying ruling, item (iv), verbatim: *"`carriesConstraintAt`'s `JSON.stringify(address)` key and
+  // `entry.addressKey` must answer TRUE where ANY of the pair's N addresses matches — the per-write gate is a
+  // SET-MEMBERSHIP test, not an equality test"*). **ONE PAIR OVER N ADDRESSES OCCUPIES N ROWS AND ONE
+  // IDENTITY**, so a write at ANY of them reaches it (`contract.md §2.6` item 4).
+  const key = homeAddressKey(address);
   for (const entry of state.constraints.values()) {
-    if (entry.addressKey === key) return true;
+    for (const standing of entry.addresses) {
+      if (homeAddressKey(standing) === key) return true;
+    }
   }
   return false;
 }

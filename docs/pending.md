@@ -836,3 +836,17 @@ constraintOff(pair, constraint)     { return constraintToggle(false, instance, a
 **PACKAGE-DEFECTS: NONE** — `docs/defects.md` and `HANDOFF.md` untouched.
 
 **LAYER CLAIM: EVERY GREEN IN THIS UNIT IS `ENVELOPE/PURE`** — store surface, package surface, kernel module, all in-process. **NO `APP`-GREEN EXISTS AND NONE IS CLAIMED.** The native boundary is exercised only through `typecheck` and the fixture, not green.
+
+## GATE 4 CLOSED — `PASS`, AND THE PBT LAYER CAUGHT A LIVE DEFECT THE AUDITS DID NOT
+
+**THE DEFECT.** `index.mjs:3456` ran the purge (`K-6`) at a HELD pair **BEFORE** the `K-1` that can refuse. On a refused re-registration, `withdrawRegistration` deleted the kernel row and the store entry while the read-model row was never restored — **so a REFUSED `addConstraint` silently destroyed a standing constraint**: `constraints()` read `[]`, the pair's body never evaluated again, and `removeConstraint` on it threw. **The exact *"purge with no add"* class the gate-1 record named and `(O-4)` was written to prevent.**
+
+**IT WAS FOUND BY A DRIVE, NOT BY A REVIEW.** Three adversarial audits returned `PASS-WITH-FINDINGS` on this unit while the defect stood: they reasoned over the contract and over generator COVERAGE, and the drive EXECUTED the model. Two audit rounds had already narrowed to smaller and smaller classes; the defect surfaced only when a counterexample forced a drive to probe `withdrawRegistration`'s refusal path.
+
+**THE FIX: option (b), RESTORE-ON-REFUSAL.** `restoreHeldPair` (`index.mjs:3435`) is called from all three held-pair sites — `addConstraint`'s overwrite arm (`:3515`) and `constraintToggle` (`:3573`, serving both toggles). **`(a)` validate-before-purge is FORECLOSED BY THE CONTRACT**: `contract.md §2.3` item 4 declares the registration evaluation NOT pre-checkable and the purge-then-refuse residue DECLARED, while `constraint-sites.md §4` item 2 grounds `(b)` — *"only the registry one is the kernel's to keep; the pair STILL EVALUATES."* **AND THE DEFECT WAS PRESENT AT THE TOGGLES TOO, PROVED RED**: a new `held-listener-identity-refusal-restore.test.mjs` drives `constraintOn` re-registering a now-refusing `entry.fn`; reverting only the two `restoreHeldPair` calls makes both cells read `[]`.
+
+**TWO DRIVE DEFECTS OF THE TEST WRITER'S OWN, BOTH CORRECTED, NEITHER A PRODUCT GAP.** The `P_HL_8` drive's invocation arithmetic could not hold — its own fixture writes fire the caller's handle under prefix selection, so `fired === firedBefore + 1` read 4 vs 2; the baseline is now captured immediately before the write it means, and its defect assertions (`§2.1` item 1's *"exactly as it stood"*, the held body still evaluating, `removeConstraint === undefined`) are UNTOUCHED. And the earlier `P_HL-2` driver bug was the writer's own control, not a product defect.
+
+**STATE: 580 tests · 447 pass · 133 fail · 0 failing in the unit's own files.** `build` clean; `typecheck`'s 8 errors are confined to `typecheck/consumer-fixture.ts` and are pre-existing. **THE 133 ARE THE LEGACY CELLS: the crate's `tests/**` still compile against the pre-unit `listen`/`triggered` signatures — the `contract.md §8` items 5–6 re-derivation duty, untouched by this unit's green.**
+
+**AND THE LAYER CLAIM IS UNCHANGED: everything green here is `ENVELOPE/PURE`. No `APP`-green exists and none is claimed.**

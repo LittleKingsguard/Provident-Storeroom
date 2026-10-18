@@ -184,41 +184,54 @@ function inDomainId(id) {
 }
 
 /**
- * `attempt-lifecycle.md §2.4` item 2 — THE ADDRESS HALF OF THE PAIR KEY, AND THE REGISTRY'S OWN KEY FOR
- * ONE ADDRESS — WITH EACH SEGMENT'S OWN CLASS MARKER, WHICH IS THIS SPELLING'S WHOLE POINT: an INDEX
- * (`i`) bears THE SEGMENT'S OWN SIGNLESS DECIMAL DIGITS immediately, a KEY (`k`) bears THE SEGMENT'S OWN
- * CHARACTER COUNT, and each is then followed by `:`, by the segment VERBATIM and by `;`; the segments so
- * spelled are joined with `/`. THE MARKER IS WHAT KEEPS THE TWO DECLARED SEGMENT CLASSES APART — the
- * withdrawn UNMARKED spelling spelled an index `3` and the key `'3'` IDENTICALLY, so its "injective"
- * claim was false over a domain closed at exactly two classes — and the `;` is a delimiter the field's
- * own grammar cannot carry, so a `;`, a `:`, a `/`, a `#`, a NUL or the empty segment `0:` INSIDE a
- * segment is that segment's own character and never a separator: `['a/b'],'c'` spells `k:3;a/b` against
- * `['a','b'],'c'`'s `k:1;a/k:1;b`, `['v',3]`'s second segment spells `i:3;` and not a character count,
- * `['a\0b']` and `['a','b']` are two addresses, and the empty address spells the empty string. NO
- * READER MAY STRIP THE MARKER, and no clause of this module re-spells a key anywhere else.
+ * **⟶ `addressToken` IS DELETED — `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`).** **THE ARCHITECT'S
+ * GROUND, VERBATIM: *"Address token doesn't need to exist because it doesn't need to be a map key. The kernel
+ * receives the triggering addresses from the store now, it doesn't need an internal lookup"*** (`P:
+ * docs/pending.md · M-3`; `contract.md §2.8` item 2 item (2)). **THE PASS-6 CORRECTION THAT KEPT IT ALIVE ON
+ * THE GROUND THAT IT HAS *"FIVE SURVIVING CALLERS"* IS SUPERSEDED: the callers survive, but EACH IS A LOOKUP
+ * THAT SHOULD NOT EXIST.**
+ *
+ * **WHAT REPLACES EACH OF ITS SITES, EACH NAMED AS THE RULING NAMES IT:**
+ *   **(i)** its own `pairKey` use — **THE COMPOSITE KEY'S ADDRESS HALF GOES, and `pairs` IS KEYED BY `id`
+ *   ALONE**, which is what *"one id, N addresses"* already declared (`(M-3)` item (i); `contract.md §2.6`
+ *   item 4);
+ *   **(iii)** `commit`'s `kernel.held` membership test — **replaced by A STRUCTURAL COMPARISON of the
+ *   attempt's address against the LIVE attempts' addresses**, since there are as many live attempts as there
+ *   are nesting levels and a scan over them is bounded by NESTING DEPTH (`(M-3)` item (iii));
+ *   **(iv)** `evaluate`'s checkpoint test — **a STRUCTURAL, SEGMENT-WISE COMPARISON WITH `string` AND `number`
+ *   DISTINGUISHED**, the exact distinction the `k:`/`i:` prefixes carried (`(M-3)` item (iv));
+ *   **(v)** `release`'s `kernel.held.delete` — gone with (iii) (`(M-3)` item (v)).
+ *
+ * **AND THE PER-PASS SNAPSHOT IS MATERIALISED FROM `attempt.address` AGAINST `kernel.pairs`** — one scan per
+ * LANDING, whose cost `(AA-1)` prices and accepts (`contract.md §2.8` items 1 and 6).
  */
-function addressToken(address) {
-  let token = '';
-  for (let i = 0; i < address.length; i += 1) {
-    if (i > 0) token += '/';
-    const segment = address[i];
-    if (typeof segment === 'number') token += `i:${segment};`;
-    else {
-      const text = String(segment);
-      token += `k:${text.length}:${text};`;
-    }
-  }
-  return token;
+
+/**
+ * **THE PAIR'S KEY IS ITS `id` ALONE** (`P: docs/pending.md · (M-3)` item (i); `P: docs/pending.md · P-7`'s
+ * answer clause: *"One pair, N registry rows, removal clears all N"*). **ONE PAIR OVER N ADDRESSES IS ONE
+ * ELEMENT: N `(address, id)` rows SHARING ONE `id`, and the identity is the `id`, NEVER the key**
+ * (`contract.md §2.6` item 4). **SO `pairs` IS ONE ROW PER PAIR, CARRYING EVERY ADDRESS IT STANDS AT.**
+ */
+function pairKey(id) {
+  return id;
 }
 
 /**
- * `attempt-lifecycle.md §2.4` item 2 — THE PAIR TOKEN: THE ADDRESS HALF ABOVE, then ONE `#`, then the
- * bare `id`. `(['a','b'],'x')` spells `k:1;a/k:1;b#x`, `(['a'],'b#x')` spells `k:1;a#b#x`, `(['a/b'],'c')`
- * spells `k:3;a/b#c`, `(['v',3],'x')` spells `k:1;v/i:3;#x` and `([],'x')` spells `#x` — the `#` the
- * address half cannot carry being the one separator between the two halves.
+ * **THE STRUCTURAL ADDRESS COMPARISON — SEGMENT-WISE, WITH `string` AND `number` DISTINGUISHED**
+ * (`P: docs/pending.md · (M-3)` item (iv), verbatim). **IT REPLACES THE STRING SPELLING `addressToken` built
+ * for the same job, and NO OBSERVABLE MOVES**: a landing at `['a', 0]` and an attempt at `['a', '0']` are
+ * DIFFERENT addresses and the comparison answers `false`, exactly as the prefixes made it.
  */
-function pairKey(address, id) {
-  return `${addressToken(address)}#${id}`;
+function sameAddress(left, right) {
+  if (!Array.isArray(left) || !Array.isArray(right)) return false;
+  if (left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i += 1) {
+    const a = left[i];
+    const b = right[i];
+    if (typeof a !== typeof b) return false;
+    if (a !== b) return false;
+  }
+  return true;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -238,19 +251,36 @@ function kernelFor(store) {
   let kernel = KERNELS.get(store);
   if (kernel === undefined) {
     kernel = {
-      // The registration registry, keyed by the pair token, in first-registration order per
-      // address (`kernel-surface.md §2.1` item 1, `CC-7`).
+      // **THE REGISTRATION REGISTRY, KEYED BY THE PAIR'S `id` ALONE, in first-registration order per address**
+      // (`kernel-surface.md §2.1` item 1, `CC-7`; `P: docs/pending.md · (M-3)` item (i)). **ONE ROW PER PAIR,
+      // CARRYING EVERY ADDRESS IT STANDS AT** — `{ addresses, id, constraint }` — so *"one pair, N registry
+      // rows, removal clears all N"* is one row here and N at the store (`contract.md §2.6` item 4).
       pairs: new Map(),
-      byAddress: new Map(),
-      // address token -> the store's own adopted home handle for that address.
-      homes: new Map(),
-      // pair token -> THE STORE'S OWN ADOPTED HANDLE the pair's registration answered. The kernel
-      // "mints no token for a store-minted handle" (`§2.2` item 1) and "THE ONE THING THE KERNEL DOES
-      // WITH THE HANDLE IS RECORD IT" (`§2.2` item 3) — so the handle the delivery is keyed by is
-      // recorded here and nowhere else.
+      // **⟶ `byAddress` IS DELETED** (`P: docs/pending.md · R-B3`, the operative ruling, verbatim: *"Delete
+      // byAddress — attempt.address already carries it"*; `contract.md §2.8` item 2 item (1)): `evaluate` and
+      // `registrationRerun` READ THE PAIR LIST OFF `attempt.address`, which is IN HAND ONE FRAME ABOVE the
+      // only two `byAddress.get` calls. **THEY SO READING `kernel.pairs` BY ADDRESS IS A SCAN, NOT AN INDEX.**
+      //
+      // **⟶ AND `kernel.homes` IS DELETED WHOLE, with its `has` guard in ONE ACT** (`P: docs/pending.md ·
+      // D-v`, verbatim: *"`kernel.homes` … DELETED. It is written once and READ NOWHERE in the file — dead
+      // state"*; `contract.md §2.8` item 3): **the guard and the map's declaration leave together, so no
+      // intermediate tree holds a guarded write to a deleted map** (`kernel-selection.md §2` item 5).
+      //
+      // pair id -> THE STORE'S OWN HANDLE the pair's registration answered. The kernel "mints no token for a
+      // store-minted handle" (`§2.2` item 1) and "THE ONE THING THE KERNEL DOES WITH THE HANDLE IS RECORD IT"
+      // (`§2.2` item 3) — so the handle the delivery is keyed by is recorded here and nowhere else.
+      // **THIS IS NOT RETIRED** (`P: docs/pending.md · R-B3`, item (ii), verbatim: *"it is what the
+      // `pending`/check-off machinery keys on, and P-7's pair shape lands in that same list"*).
       handles: new Map(),
-      // address token -> the AttemptRef.id holding it.
-      held: new Map(),
+      // **⟶ `kernel.held` IS DELETED WITH `addressToken`'s site (v)**: the `KC-7` membership test is now a
+      // STRUCTURAL comparison against the live attempts' addresses (`P: docs/pending.md · M-3`, items (iii)
+      // and (v)), and **THE REFUSAL ITSELF IS UNMOVED** — a second `K-2` at a HELD address is refused
+      // (`contract.md §2.8` item 7; `S-20`).
+      //
+      // **AND THE INSTANCE IS RECORDED BESIDE THE STATE SO A KERNEL-SIDE ACT CAN REACH THE APP'S OWN PUBLISHED
+      // MEMBERS WITHOUT A SECOND POSITION BEING THREADED THROUGH** (`contract.md §2.9` item 2: `K-6` calls
+      // `removeListener`, and this is how the kernel holds the instance it acts on).
+      store,
     };
     KERNELS.set(store, kernel);
   }
@@ -391,23 +421,48 @@ export function register(store, address, id, constraint) {
   // declares, and no second spelling of either. `listen` keeps the address-level idempotence the removed
   // route read (`write-and-read.md §6.5` item 12 (c)): a repeat at an address the home already holds mints
   // nothing and answers the entry's own handle.
-  const home = store.listen(address);
-  store.register(home, noopListener);
-
-  const key = pairKey(address, id);
+  //
+  // **⟶ AND THE CALLER-SPELLED HANDLE IS A STRING THE KERNEL ITSELF SPELLS**, because the kernel IS a caller
+  // of the app's own verbs (`contract.md §2.9` item 2's route: *"the kernel already reaches a store verb … so
+  // `K-6` withdraws through the same route rather than inventing a second one"*). **ONE ADDRESS HOLDS ONE
+  // KERNEL-OWNED REGISTRATION**, and the address's own spelling is the handle's own spelling — so two pairs at
+  // ONE address share ONE store entry, which is the declared consequence `(Y-1)` carries (`contract.md §2.2`
+  // item 7; `listen-verb.md §5` item 4).
+  // **⟶ `listen` ANSWERS `undefined` AND THE KERNEL ALREADY KNOWS THE HANDLE IT SPELLED** — the caller
+  // supplied it, so there is nothing to return (`contract.md §2.2` item 10; `PAR-HL-3`). **SO THE KERNEL SPELLS
+  // THE HANDLE ONCE AND USES IT AT BOTH VERBS**, which is exactly the *"handle replaces token in all cases"*
+  // rule read at this site (`P: docs/pending.md · P-5`, ruling (3)).
+  // **⟶ THE PAIR'S OWN HANDLE IS ONE HANDLE STANDING OVER EVERY ADDRESS THE PAIR HAS, AND THIS IS WHAT MAKES
+  // THE PURGE'S REACH TOTAL** (`P: docs/pending.md · (Y-1)`, verbatim: *"THE PURGE TAKES THE OLD HANDLE AND
+  // REMOVES EVERY ENTRY THAT HANDLE NAMES, WHEREVER IT STANDS"*; `contract.md §2.9` item 7). **`kernel.handles`
+  // HOLDS ONE HANDLE PER PAIR AND NOT ONE PER ADDRESS**, so `K-6` hands that handle to the published
+  // `removeListener` ONCE and consults no count of addresses.
+  const key = pairKey(id);
   const standing = kernel.pairs.get(key);
-  // THE PAIR'S OWN IDEMPOTENCE: a second registration under the SAME pair key keeps the replaced
-  // registration's POSITION and replaces only its function (`§2.1` item 1; `CC-7`).
+  // **A PAIR WHOSE SET IS EXTENDED BY A LATER `K-1` AT ANOTHER OF ITS ADDRESSES JOINS THAT ROW** — one id,
+  // N addresses, ONE handle (`contract.md §2.6` item 4).
+  const set = standing === undefined
+    ? [address.slice()]
+    : (standing.addresses.some((held) => sameAddress(held, address))
+      ? standing.addresses
+      : [...standing.addresses, address.slice()]);
+  const home = standing === undefined ? noopHandleFor(address) : kernel.handles.get(key);
+  // **`listen` IS THE SET ASSIGNMENT** (`contract.md §2.2` item 3): the pair's ONE handle is given the whole
+  // accumulated set, so the pair's registration stands at every one of its addresses under THAT handle.
+  store.listen(home, set);
+  store.register(home, noopListener);
+  // **THE PAIR'S OWN IDEMPOTENCE: a second registration under the SAME pair keeps the replaced registration's
+  // PLACE and replaces only its function** (`kernel-surface.md §2.1` item 1; `CC-7`). **AND UNDER
+  // PURGE-THEN-ADD THE STANDING ARM IS NO LONGER THE ORDINARY PATH** — a re-registration over a held pair
+  // purges first (`(O-3)` item (i): *"there is no position to keep, because the old handle's entries are
+  // purged before the new one is added"*) — so this branch answers the DIRECT `K-1` call and the idempotence
+  // is kept for it alone.
   if (standing === undefined) {
-    kernel.pairs.set(key, { address, id, constraint });
+    kernel.pairs.set(key, { addresses: set, id, constraint });
     kernel.handles.set(key, home);
-    const token = addressToken(address);
-    const list = kernel.byAddress.get(token);
-    if (list === undefined) kernel.byAddress.set(token, [key]);
-    else list.push(key);
-    if (!kernel.homes.has(token)) kernel.homes.set(token, home);
   } else {
     standing.constraint = constraint;
+    standing.addresses = set;
   }
 
 
@@ -459,19 +514,27 @@ export function register(store, address, id, constraint) {
  */
 function withdrawRegistration(kernel, address, id, fresh, home) {
   if (!fresh) return;
-  const key = pairKey(address, id);
+  // **⟶ THE KERNEL'S OWN ROWS GO WITH THE HANDLE — `U-STOREROOM-HELD-LISTENER-IDENTITY`.** The `byAddress`
+  // reads and its delete that stood here are DELETED WITH THE INDEX (`P: docs/pending.md · R-B3`), and the
+  // address's row is now one of the pair's own N addresses.
+  const key = pairKey(id);
   kernel.pairs.delete(key);
   kernel.handles.delete(key);
-  const token = addressToken(address);
-  const list = kernel.byAddress.get(token);
-  if (list !== undefined) {
-    const at = list.indexOf(key);
-    if (at >= 0) list.splice(at, 1);
-    if (list.length === 0) kernel.byAddress.delete(token);
+  // **⟶ AND THE SENTENCE THAT STOOD HERE — *"no clause of this unit declares a kernel-side withdrawal of
+  // it"* — IS FALSIFIED AND IS REPLACED, NOT AMENDED** (`P: docs/pending.md · R-B2`, verbatim: *"the new item
+  // DOES withdraw the store-side home entry"*; `contract.md §2.9` item 1; `remove-member.md §1` item 2):
+  // **`K-6` IS THE KERNEL-SIDE WITHDRAWAL**, and it reaches the app's own published `removeListener` rather
+  // than a store-side private act. **A REFUSED REGISTRATION WITHDRAWS THE ADDRESS'S HOME ENTRY THROUGH THAT
+  // ROUTE**, which is the one route the kernel has for it (`remove-member.md §2` item 2).
+  try {
+    // **A FAILED WITHDRAWAL IS SWALLOWED HERE AND ONLY HERE**: this frame runs on a refusal path whose own
+    // throwable is already the answer the caller must see, so a second throwable would replace the declared
+    // refusal with an undeclared one. **THE STATE IT LEAVES IS `(D-vi)`'S — the pair's REGISTRY standing and
+    // its STORE standing are two facts** (`contract.md §2.8` item 5).
+    remove(kernel.store, { address: [address], id });
+  } catch {
+    // declared silence: the refusal being carried is the caller's answer
   }
-  // THE ADDRESS'S HOME ENTRY STANDS: it was minted by the store's own `listen`, which this act has already
-  // performed, and no clause of this unit declares a kernel-side withdrawal of it (`§2.1` item 1: *"nothing
-  // withdraws a constraint's store registration"* — `unlisten` is the app's own verb and never this one's).
   return home;
 }
 
@@ -691,9 +754,18 @@ function registrationAttempt(kernel, store, pair) {
 /// repeat by the repair's OWN edit reaches `(e)`; a pair IN `ran` and NOT in `appliedRepairs` reaches
 /// `(f)`. **`(c)` is unreachable here**, the pair's own function having already run at this instant.
 function registrationRerun(kernel, attempt, produced) {
-  const list = kernel.byAddress.get(addressToken(attempt.address));
-  if (list === undefined) return null;
-  for (const key of list.slice()) {
+  // **⟶ THE PAIR LIST IS READ OFF `attempt.address` AND NOT OFF AN INDEX** (`P: docs/pending.md · R-B3`,
+  // verbatim: *"Delete byAddress — attempt.address already carries it"*; `contract.md §2.8` item 2 item (1)).
+  // **THE ADDRESS IS IN HAND ONE FRAME ABOVE the `byAddress.get` call that stood here**, and the store→kernel
+  // channel is `record` alone (`A117` (D6) forbids a fifth member).
+  //
+  // **AND THE SELECTION IS AN EXACT-ADDRESS MATCH, NEVER A PREFIX ONE**: the pass's set is the pairs WHOSE OWN
+  // ADDRESS IS THE ATTEMPT'S, which preserves `attempt-lifecycle.md §2.4` item 5 (iv)'s exact-address rule
+  // rather than widening it to the store's prefix-selected `triggered` (`P: docs/pending.md · (AA-1)`;
+  // `contract.md §2.8` item 1). **EACH ELEMENT IS EVALUATED AT MOST ONCE**, so a pair standing at N addresses
+  // whose two addresses both match is reached once (`contract.md §2.6` item 5).
+  const list = pairsAtAddress(kernel, attempt.address);
+  for (const key of list) {
     const pair = kernel.pairs.get(key);
     if (pair === undefined) continue;
     const outcome = pair.constraint({
@@ -767,19 +839,60 @@ function closeRegistrationAttempt(attempt, outcome = 'failed') {
 }
 
 
-/** The store holds ONE registration per address, and its `listen` takes a function. */
+/** The store holds ONE registration per address, and its `register` takes a function. */
 function noopListener() {}
+
+/**
+ * **THE KERNEL'S OWN HANDLE FOR ONE ADDRESS** — the string the kernel spells when it calls the app's own
+ * `listen(handle, addresses)` (`contract.md §2.9` item 2; `remove-member.md §2` item 2: *"`K-6` REACHES
+ * `removeListener`, THE PRODUCT'S OWN PUBLISHED MEMBER, exactly as `K-1` reaches `listen`/`register`"*).
+ *
+ * **IT IS NOT A MINT**: nothing increments and no counter exists — the spelling is a FUNCTION of the address,
+ * so the same address always names the same entry, and two pairs at one address share ONE store entry
+ * (`(Y-1)`'s declared consequence). **AND IT IS DELIBERATELY OUTSIDE THE CALLER'S OWN NAMING SPACE**: a
+ * caller-spelled handle of the same text is the caller's own entry by the identity rule, so a caller that
+ * chooses that spelling collides with the kernel's — the declared consequence of *"the client should be
+ * trusted"* and of one identity per string (`contract.md §2.1` item 3).
+ *
+ * **THE ENTRY EXISTS SO THAT `triggered` NAMES SOMETHING AT THE ADDRESS**, which is what makes a purged
+ * pair's delivery resolve to nothing SILENTLY rather than to a missing key (`contract.md §2.8` item 5;
+ * `listen-verb.md §5` item 2).
+ */
+function noopHandleFor(address) {
+  return `constraint@${JSON.stringify(address)}`;
+}
+
+/**
+ * **WHETHER A HANDLE IS THE KERNEL'S OWN** — the exclusion the conflict test keys on
+ * (`P: docs/pending.md · (C-2)` item (ii), verbatim: *"the kernel registers `noopListener` … a conflict is
+ * between a CALLER's listener and a CALLER's constraint — so the test keys on the REGISTRATION"*;
+ * `PAR-HL-32`'s domain cell: *"the kernel's own `noopListener` is EXCLUDED BY IDENTITY"*).
+ *
+ * **THE TEST IS STRUCTURAL AND NOT A COMPARISON OF FUNCTIONS**: `noopListener` is a module-private function
+ * and the package cannot see it, so the identity the two layers can both read is the HANDLE the kernel
+ * spelled (`noopHandleFor`). **A CALLER THAT SPELLS THAT EXACT TEXT NAMES THE KERNEL'S OWN ENTRY** — the
+ * declared consequence of one identity per string (`contract.md §2.1` item 3) and of *"the client is trusted"*.
+ */
+export function isKernelHandle(handle) {
+  return typeof handle === 'string' && handle.startsWith('constraint@');
+}
 
 // ---------------------------------------------------------------------------------------------
 // `K-2` `commit(store, address, tier, value) -> CommitRecord`
 // ---------------------------------------------------------------------------------------------
 export function commit(store, address, tier, value) {
   const kernel = kernelFor(store);
-  const token = inDomainAddress(address) ? addressToken(address) : null;
+  const held = inDomainAddress(address);
 
-  // THE ADDRESS THE ATTEMPT HOLDS REFUSES A SECOND ATTEMPT BEFORE THE WRITE VERB IS REACHED, and
-  // the refused call opens no attempt and leaves no entry (`KC-7`; `kernel-surface.md §2.1` item 2).
-  if (token !== null && kernel.held.has(token)) {
+  // **⟶ THE `KC-7` MEMBERSHIP TEST IS A STRUCTURAL COMPARISON AGAINST THE LIVE ATTEMPTS' ADDRESSES**
+  // (`P: docs/pending.md · M-3` item (iii), verbatim: *"the attempt's address is carried on the attempt and
+  // compared STRUCTURALLY against the live attempts' addresses, since there are as many live attempts as there
+  // are nesting levels and a scan over them is bounded by nesting depth, not by pair count"*).
+  // **THE REFUSAL ITSELF IS UNMOVED** — `kernel-surface.md §2.1` item 2's hold clause, cited at
+  // `contract.md §2.8` item 7: a second `K-2` at a HELD address is refused BEFORE the write verb is reached,
+  // and a `K-2` at a DESCENDANT address is ADMITTED because the hold is taken at the call's OWN address.
+  // **AND A DRIVE ASSERTS THE REFUSAL AND NOT THE MAP IT CAME FROM** (`contract.md §8` item 12).
+  if (held && attemptHeldAt(address)) {
     refuse(KC.attemptOpen,
       `a constraint attempt is already open at ${JSON.stringify(address)}; it is disposed of by its own `
       + 'K-3 and by no other act',
@@ -794,7 +907,7 @@ export function commit(store, address, tier, value) {
   // head's `kernel.held.has(token)` refusal reads, and the map's values are only ever `has`ed and
   // `delete`d (`release`). `KC-7`'s `K-2` half is refused ONLY at the address that already holds the
   // live attempt: a nested `K-2` at a DESCENDANT address meets no hold of its own and is ADMITTED.
-  if (token !== null) kernel.held.set(token, token);
+  // ── (the hold is the LIVE map's own membership from here on: no second structure is taken) ──────────
 
   // THE STORE'S OWN VERB CHOOSES WHICH REFUSAL ANSWERS. An out-of-domain `tier` and an absent
   // `value` are THE STORE'S own code on THE STORE'S own channel, and the kernel mints no `KC-2` for
@@ -873,7 +986,6 @@ export function commit(store, address, tier, value) {
     // kernel's own store leg IS the entry's own write and its delivery is withheld for the terminal arm.
     written = store.write(address, tier, value, record);
   } catch (refusal) {
-    if (token !== null) kernel.held.delete(token);
     throw refusal;
   }
 
@@ -1121,6 +1233,61 @@ function runToCompletion(kernel, attempt) {
 }
 
 /**
+ * **THE PASS'S EVALUATED SET, MATERIALISED FROM `attempt.address` AGAINST `kernel.pairs`** — the ONE
+ * replacement for `byAddress`'s index, declared at `contract.md §2.8` item 6 (`HL-DD-6`) and
+ * `kernel-selection.md §3` item 1.
+ *
+ * **THE SET IS THE PAIRS WHOSE OWN ADDRESS IS THE ATTEMPT'S — selected by an EXACT-ADDRESS match and NEVER
+ * widened to `triggered`'s prefix set** (`P: docs/pending.md · (AA-1)`, verbatim: *"the pass selects the rows
+ * whose address IS the triggering address, which PRESERVES the EXACT-ADDRESS RULE rather than widening it to
+ * `triggered`'s prefix set"*; `contract.md §2.8` item 1).
+ *
+ * **IT IS A SCAN, AND THE COST IS PRICED AND ACCEPTED** (`P: docs/pending.md · (AA-1)`, verbatim: *"selecting
+ * rows by address is a scan over `kernel.pairs` … THAT GROUND WAS WRONG AND IS WITHDRAWN: the store names the
+ * ADDRESS, and the kernel selects"*).
+ *
+ * **AND THE RESULT IS MATERIALISED ONCE, WHICH IS WHAT IMPLEMENTS `CX-12`'s *"the pass's evaluated set is
+ * FIXED WHEN THE PASS BEGINS"*** (`P: docs/pending.md · R-B3`'s snapshot clause; `contract.md §2.8` item 6):
+ * the returned list is a fresh array, so a `K-1` that returns DURING the pass enters the NEXT pass's set and
+ * no earlier one, and a pair PURGED mid-pass is still evaluated by the pass that began with it
+ * (`kernel-selection.md §3` item 5).
+ *
+ * **THE ORDER IS THE PAIR'S FIRST-REGISTRATION ORDER AT THE ADDRESS** — `attempt-lifecycle.md:193`'s *"clause
+ * (ii)'s first-registration order"* — **and `kernel.pairs`' own `Map` iteration supplies it**, which is the
+ * order the ruling says is preserved *"by the store's own returned order, not by an index's append order"*
+ * (`P: docs/pending.md · M-3`, its closing sentence; `contract.md §2.8` item 6's `HL-DD-6`).
+ */
+function pairsAtAddress(kernel, address) {
+  const out = [];
+  for (const [key, pair] of kernel.pairs) {
+    for (const standing of pair.addresses) {
+      if (sameAddress(standing, address)) {
+        out.push(key);
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * **WHETHER A LIVE ATTEMPT STANDS AT THIS ADDRESS — the structural replacement for `kernel.held.has(token)`**
+ * (`P: docs/pending.md · M-3` item (iii), verbatim). **THE SCAN IS OVER THE LIVE ATTEMPTS AND IS BOUNDED BY
+ * NESTING DEPTH, not by pair count**, which is why the ruling accepts it: *"there are as many live attempts as
+ * there are nesting levels"*.
+ *
+ * **AND THE ANSWER IS THE DECLARED REFUSAL'S SUBJECT AND NOTHING ELSE**: a second `K-2` at the SAME address is
+ * refused `KC-7`; one at a DESCENDANT address meets no attempt of its own and is ADMITTED
+ * (`kernel-surface.md §2.1` item 2's hold clause; `contract.md §2.8` item 7).
+ */
+function attemptHeldAt(address) {
+  for (const attempt of LIVE.values()) {
+    if (sameAddress(attempt.address, address)) return true;
+  }
+  return false;
+}
+
+/**
  * ONE EVALUATION RUN — a LANDING'S OWN PASS. `attempt-lifecycle.md §2.4` item 5 (iv): "a pass's evaluated
  * set is THE PAIRS STANDING AT THE ATTEMPT'S OWN `address` WHEN THAT PASS BEGINS … the first pass and
  * every re-run alike … the pairs that had already run INCLUDED, the pair whose repair just ran INCLUDED
@@ -1145,8 +1312,7 @@ function evaluate(kernel, attempt, landing) {
   // DURING A PASS APPENDS A PAIR TO THE REGISTRY WITHOUT APPENDING ANY ENTRY TO THAT PASS AND WITHOUT
   // BEING EVALUATED BY IT: the new pair enters the NEXT pass's set" (`attempt-lifecycle.md §2.4` item 5
   // (iv); `CX-12`). The snapshot is ALSO the set the layer (a) delivery of this run is read over.
-  const standing = kernel.byAddress.get(addressToken(attempt.address));
-  const list = standing === undefined ? undefined : standing.slice();
+  const list = pairsAtAddress(kernel, attempt.address);
   // THE ATOMIC LANDING EVALUATION'S OWN ARM-TAKING IS `attempt-lifecycle.md §2.4` item 4's arms, read
   // over THE PAIR THAT FAILED AT THAT OP (`kernel-surface.md §2.3` item 1; `§2.4`: `KC-3` where that pair
   // is NOT in `ran` before this run and no repair is registered for it; `KC-6` where it IS in `ran` and
@@ -1388,7 +1554,10 @@ function evaluate(kernel, attempt, landing) {
   // not reach) pins no member of this attempt and moves nothing (`§2.6` item 8 (i)'s foreign-landing
   // clause; `VD-3`; `VD-6`). A violation arm returned above and therefore LEAVES THE MEMBER UNMOVED, so
   // an earlier pin survives a later landing that failed.
-  if (addressToken(landing.address) === addressToken(attempt.address)) attempt.checkpoint = landing.opId;
+  // **⟶ THE CHECKPOINT'S COMPARISON IS STRUCTURAL AND SEGMENT-WISE, WITH `string` AND `number` DISTINGUISHED**
+  // (`P: docs/pending.md · M-3` item (iv), verbatim). **NO OBSERVABLE MOVES**: the prefixes made exactly this
+  // distinction, so a landing at `['a', 0]` and an attempt at `['a', '0']` are still DIFFERENT addresses.
+  if (sameAddress(landing.address, attempt.address)) attempt.checkpoint = landing.opId;
   return { terminal: null, rerun: false };
 }
 
@@ -1427,8 +1596,13 @@ function releasePending(kernel, attempt, keys) {
   for (const key of keys) {
     const handle = kernel.handles.get(key);
     if (handle === undefined) continue;
-    record.pending = record.pending.filter((h) => h !== handle);
-    if (!attempt.checkedOff.includes(handle)) attempt.checkedOff.push(handle);
+    // **⟶ THE CHECK-OFF POPS: THE ENTRY IS REMOVED, AND THE FILTER COMPARES `entry.handle` AND NEVER `entry`**
+    // (`P: docs/pending.md · (AA-7)`, verbatim: *"Pop from set to check off. Pending will only store the actual
+    // still-pending steps"*; `P: docs/pending.md · P-7`'s `pending` ruling, item (2); `contract.md §2.4`
+    // item 4; `trigger-and-pair.md §3` items 3–5). **UNDER POP NOTHING IS CARRIED BESIDE `pending`, so the
+    // bare-handle union has no subject** — and `attempt.checkedOff` is therefore NOT written here any more
+    // (`AA-7`'s own reading; `contract.md §2.4` item 5).
+    record.pending = record.pending.filter((entry) => entry.handle !== handle);
   }
 }
 
@@ -1447,14 +1621,18 @@ function releasePending(kernel, attempt, keys) {
  * through the same four.
  */
 function publishCheckedOff(attempt) {
-  const record = attempt.record;
-  if (record === undefined || attempt.checkedOff.length === 0) return;
-  Object.defineProperty(record, CHECKED_OFF, {
-    value: attempt.checkedOff.slice(),
-    enumerable: false,
-    configurable: true,
-    writable: true,
-  });
+  // **⟶ UNDER POP IT PUBLISHES NOTHING — `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`).** **The entry a
+  // check-off removes is REMOVED from `pending`, so nothing is carried beside it and the bare-handle union
+  // has no subject** (`P: docs/pending.md · (AA-7)`, verbatim; `contract.md §2.4` item 5; `trigger-and-pair.md
+  // §3` item 3). **THE THIRD SITE THAT CARRIED THE UNION IS NAMED WITH THE OTHER TWO**: `releasePending`'s push
+  // into `checkedOff` and the terminal arm's re-append of bare handles are the two, and this is the third —
+  // **all three have no subject under POP**, so the symbol key is left UNWRITTEN and the record keeps its FOUR
+  // members (`A117` (D6)).
+  //
+  // **AND THE OWED FIRING IS UNMOVED**: `A117` (D5)/(D6) already holds that an owed firing's home is THE
+  // REGISTRY'S RESOLUTION OF ITS IDENTITY, so a popped identity's firing is still reached at the delivery
+  // instant (`contract.md §2.4` item 4).
+  return attempt;
 }
 
 /** `PAR-C-5`'s outside value, read as the `{message}` arm with the KERNEL's own generated sentence. */
@@ -1537,8 +1715,13 @@ function terminal(kernel, attempt, status, message) {
   // discards nothing (its own removals are the check-offs `releasePending` performs), and the member is
   // NEVER cleared as a whole.
   if (attempt.record !== undefined) {
-    const returnedSet = attempt.write.triggered;
-    attempt.record.pending = attempt.record.pending.filter((h) => !returnedSet.includes(h));
+    // **⟶ AND THE DISCARD'S FILTER IS PAIR-AWARE: IT COMPARES `entry.handle`, NEVER `entry`**
+    // (`P: docs/pending.md · P-7`'s `pending` ruling, item (2), verbatim; `contract.md §2.4` item 5;
+    // `trigger-and-pair.md §4` item 1 item (ii)). **WITH PAIR ELEMENTS THE AS-BUILT FILTER COMPARED A PAIR TO
+    // A HANDLE AND WOULD SILENTLY STOP REMOVING ANYTHING** (`TF-4`). **THE FAILED WRITE'S OWN RETURNED SET IS
+    // READ OFF THE WRITE ITSELF, VERBATIM** (`A112`).
+    const returnedSet = attempt.write.triggered.map((element) => element.handle);
+    attempt.record.pending = attempt.record.pending.filter((entry) => !returnedSet.includes(entry.handle));
   }
   attempt.status = 'closed';
   attempt.throwState = finalStatus;
@@ -1566,8 +1749,10 @@ function terminal(kernel, attempt, status, message) {
  * and NOT this map's.
  */
 function release(kernel, attempt) {
+  // **⟶ `kernel.held.delete` IS GONE** (`P: docs/pending.md · M-3` item (v), verbatim): **the hold is the LIVE
+  // map's own membership now**, so removing the live attempt record IS the release, and the address is left
+  // FREE for a fresh `K-2` (`attempt-lifecycle.md §2.4` item 3's terminal-arm clause).
   LIVE.delete(attempt.ref.id);
-  kernel.held.delete(addressToken(attempt.address));
 }
 
 /** The success arm's own bookkeeping, shared with `terminal`'s removal rule. */
@@ -1768,4 +1953,103 @@ export function report(store, reference) {
   if (closed !== undefined) return closed;
   // AN UNKNOWN REFERENCE IS KC-2 AND NEVER KC-7 (`kernel-surface.md §2.1` item 5).
   refuse(KC.arg, `no constraint attempt answers to ${id}`, []);
+}
+
+// ---------------------------------------------------------------------------------------------
+// `K-6` `remove(store, pair) -> undefined`
+//
+// **⟶ THE KERNEL'S DECLARED EXTENT MOVES `5 → 6`** — *"Add a sixth kernel item (K-6)"* (`P: docs/pending.md ·
+// R-B2`, verbatim; `contract.md §2.9` item 1). **The extent's arithmetic, printed with its terms: `K-1`
+// `register` · `K-2` `commit` · `K-3` `runAttempt` · `K-4` `log` · `K-5` `report` · `K-6` `remove` —
+// `5 + 1 = 6` ✓** (`remove-member.md §5` item 1).
+//
+// **THE ROUTE, STATED ONCE FOR BOTH ACTS, AND IT IS THE RULING'S:** *"the kernel already reaches a store verb
+// (`store.listen` / `store.register`), so `K-6` withdraws through the same route rather than inventing a
+// second one — and the proposal must state that route once, for both acts"* (`P: docs/pending.md · (D-iv)`,
+// verbatim). **SO `K-6` CALLS THE APP'S OWN REMOVAL VERB — `removeListener`, THE PRODUCT'S PUBLISHED MEMBER —
+// AND NOT A STORE-SIDE PRIVATE ACT** (`contract.md §2.9` item 2; `remove-member.md §2` items 2–3). **THE CHAIN
+// IS `removeConstraint → K-6 → removeListener → the store's purge`, AND IT HAS NO CYCLE** (`contract.md §2.9`
+// item 6).
+//
+// **AND `K-6` DOES NOT ENUMERATE ADDRESSES AND DOES NOT CONSULT A COUNT: it hands the handle to
+// `removeListener`, whose purge reach is total** (`P: docs/pending.md · (Y-1)`, verbatim: *"the kernel does not
+// need to know N because it does not enumerate addresses at all"*; `contract.md §2.9` item 7).
+// ---------------------------------------------------------------------------------------------
+export function remove(store, pair) {
+  const kernel = kernelFor(store);
+
+  // CHANNEL (i) — THE KERNEL'S OWN, REFUSED BEFORE ANY STORE VERB IS REACHED (`remove-member.md §4` item 2
+  // (i): *"a pair outside the kernel's domain is `KC-2`, thrown in the kernel's own form BEFORE any store verb
+  // is reached"*; the two-channel rule at `kernel-surface.md §2.1` item 1's throws bullet).
+  if (pair === null || typeof pair !== 'object' || Array.isArray(pair)) {
+    refuse(KC.arg,
+      'a removal\'s pair is a plain object carrying an `address` SET and a NON-EMPTY STRING id',
+      []);
+  }
+  if (!Array.isArray(pair.address) || !inDomainId(pair.id)) {
+    refuse(KC.arg,
+      'a removal\'s pair is a plain object carrying an `address` SET and a NON-EMPTY STRING id',
+      []);
+  }
+  // **THE PAIR'S `address` IS READ AT THE TWO SPELLINGS THE CONSTRAINT METHODS DECLARE** — one address (the
+  // registration act's own form) or the set the pair stands over (`constraint-identity.md §6`'s pair table;
+  // `PAR-HL-30`). **THE DISCRIMINATOR IS THE MEMBER'S CLASS**, the same rule `listen`'s set position takes
+  // (`listen-verb.md §2.2` item 4): an array whose first member is an array is a SET.
+  const set = pair.address.length > 0 && Array.isArray(pair.address[0]) ? pair.address : [pair.address];
+  for (const address of set) {
+    if (!inDomainAddress(address)) {
+      refuse(KC.arg,
+        'a removal\'s pair carries an address outside the store\'s own address domain',
+        []);
+    }
+  }
+
+  // CHANNEL (ii) — A PAIR THE KERNEL HOLDS NO ROW FOR IS `KC-2` AND NO STATE MOVES (`remove-member.md §4`
+  // item 2 (ii); `contract.md §4` `F-12`). **THE REGISTRY IS UNMOVED BY THAT REFUSAL.**
+  const key = pairKey(pair.id);
+  const standing = kernel.pairs.get(key);
+  if (standing === undefined) {
+    refuse(KC.arg, `no constraint pair answers to '${pair.id}'`, []);
+  }
+
+  // **THE SUCCESS ARM: THE KERNEL'S ROW AND ITS ADDRESS ROWS GO, AND THE STORE'S HOME ENTRIES ARE WITHDRAWN
+  // THROUGH THE APP'S OWN PUBLISHED MEMBER** (`contract.md §2.9` items 3–4; `remove-member.md §4` item 1).
+  // **ITS ANSWER IS `undefined`** — *"matching `removeConstraint`'s own answer"* (`P: docs/pending.md · P-5`'s
+  // `(R3)`; `contract.md §2.9` item 3; `PAR-HL-31`).
+  //
+  // **⟶ THE ADDRESSES ARE NOT ENUMERATED AND NO COUNT IS CONSULTED: `K-6` READS THE PAIR'S OWN STORE HANDLE
+  // OFF THE ROW IT ALREADY HOLDS AND HANDS IT TO THE PUBLISHED VERB ONCE, WHOSE PURGE REACH IS TOTAL** (`P:
+  // docs/pending.md · (Y-1)`, verbatim: *"THE KERNEL DOES NOT NEED TO KNOW N BECAUSE IT DOES NOT ENUMERATE
+  // ADDRESSES AT ALL: THE PURGE TAKES THE OLD HANDLE AND REMOVES EVERY ENTRY THAT HANDLE NAMES, WHEREVER IT
+  // STANDS"*; `contract.md §2.9` item 7; `remove-member.md §6` item 4). **`K-1` GIVES A PAIR ONE HANDLE
+  // STANDING OVER EVERY ADDRESS OF ITS SET** — that is what makes a single call total.
+  const home = kernel.handles.get(key);
+  kernel.pairs.delete(key);
+  kernel.handles.delete(key);
+  // **AND THE ENTRY'S OWN READ MODEL IS TOLD, THROUGH THE ONE CHANNEL THE KERNEL HAS FOR IT** — the
+  // `FORGET_PAIR` symbol both sides spell, exactly as `TERMINAL_ARM` and `CHECKED_OFF` travel (`A117` (D6):
+  // a symbol key adds no member). **`K-6`'s success must leave the pair GONE FROM `constraints()`**
+  // (`contract.md §3` `S-19`; `remove-member.md §4` item 1). **WHERE THE INSTANCE CARRIES NO SUCH CHANNEL —
+  // an instance that is not this package's product — there is nothing to tell and nothing is told.**
+  //
+  // **⟶ AND THE READ-MODEL DELETE IS NOT A POSITION.** **`K-6`'S DECLARED SHAPE IS THE TWO POSITIONS OF
+  // `PAR-HL-29`/`PAR-HL-30` AND ITS DECLARED RETURN OF `PAR-HL-31`, AND NO THIRD POSITION EXISTS**
+  // (`contract.md §2.9` item 3; `remove-member.md §3` item 2's two priced alternatives, both refused). **THE
+  // DELETE IS THEREFORE UNCONDITIONAL**, and the two PURGES the constraint site takes (`constraint-sites.md
+  // §1` rows 1–3: `addConstraint`'s overwrite arm, `constraintOn`, `constraintOff`) delete the row and then
+  // WRITE IT BACK THEMSELVES through `K-1` — because `(O-3)`'s purge-then-add re-registers the element at the
+  // SAME pair identity, so no identity a toggle must keep is lost (`constraint-identity.md §5` `IF-5`;
+  // `P: docs/pending.md · (O-3)` item (iv)'s obligation; `(AA-2)`). **`removeConstraint` IS THE ONE ACT THAT
+  // DELETES AN IDENTITY, AND IT IS THE ONE ACT THAT DOES NOT RE-ADD** (`contract.md §2.6` item 3).
+  const forget = store[Symbol.for('provident-storeroom.forget-pair')];
+  if (typeof forget === 'function') forget.call(store, pair.id);
+  // **CHANNEL (iii) — THE STORE'S OWN REFUSAL CROSSES UNCONVERTED** (`remove-member.md §4` item 2 (iii);
+  // `contract.md §4` `F-13`; `fail-surface.md §1.2` item 2): this frame converts nothing, catches nothing and
+  // mints no `KC` token, so the store's own code reaches the caller in the store's own form.
+  // **A PURGED PAIR'S STALE HANDLE IS `OWED`'S ARM AND IS NOT DECLARED HERE** (`contract.md §2.9` item 7;
+  // `remove-member.md §4` item 5): the removal names the handle the ROW holds, and whether a no-op or a
+  // purge is reached on the stale state is the spec writer's unsettled subject. **THIS FRAME ASSERTS NO
+  // FOURTH ARM** — it performs the declared one and lets whatever the store answers cross.
+  if (home !== undefined) store.removeListener(home);
+  return undefined;
 }

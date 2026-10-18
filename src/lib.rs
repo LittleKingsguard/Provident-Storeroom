@@ -29,13 +29,13 @@ mod store;
 mod value;
 
 pub use args::{
-    AddressArg, ConstraintEntry, ConstraintsArg, FilePathArg, JournalLengthArg, ListenerEntry,
-    ListenersArg, OpIdArg, StoreConfig, TierArg, TierSetItem,
+    address_segments, AddressArg, ConstraintEntry, ConstraintsArg, FilePathArg, JournalLengthArg,
+    ListenerEntry, ListenersArg, OpIdArg, StoreConfig, TierArg, TierSetItem,
 };
 pub use error::{storeErrorMessage, MessageArgs, StoreError, CODES};
 pub use records::{
     tier_token, BaseState, ChildAnchor, DeleteReceipt, JournalOp, JournalOpKind, Listener,
-    ListenerHandle, NodeRef, RollbackResult, Tier, WriteResult,
+    ListenerHandle, ListenerTrigger, NodeRef, RollbackResult, Tier, WriteResult,
 };
 pub use store::{storeCreate, storeCreateWithConstraints, Store};
 pub use value::{Segment, StoreValue};

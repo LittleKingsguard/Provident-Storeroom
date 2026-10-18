@@ -261,8 +261,17 @@ export interface StoreRefusal {
   readonly log: LogEntry[];
 }
 
-/** The opaque handle a listener registration is keyed by: the package's own value for one registration. */
-export type Handle = object;
+/**
+ * **⟶ `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`): `Handle` MOVES `object → string`**
+ * (`contract.md §2.1` item 1; `P: docs/pending.md · P-6`, the type ruling, verbatim: *"Refuse handles that
+ * aren't strings."*). **THE CALLER SPELLS IT, HOLDS IT AND PASSES IT BACK; NOTHING MINTS IT.** The value the
+ * store reports in a trigger pair and the value the caller holds ARE ONE VALUE, and its domain is
+ * `{ s : s ∈ String ∧ s ≠ "" }` (`identity-and-domain.md §2` item 1).
+ *
+ * **THIS IS A CONSUMER-VISIBLE BREAK** (§7 item 2 of the contract): every signature below that names a
+ * handle is re-typed with it, and the release class is the release gate's (`P: docs/pending.md · (AA-4)`).
+ */
+export type Handle = string;
 
 /** The caller's listener: any JS function, invoked with the triggering address as its ONE argument. */
 export type Listener = (address: Address) => void;
@@ -311,14 +320,33 @@ export interface JournalOp {
 export interface WriteRecord {
   readonly op: JournalOp;
   readonly watched: readonly Address[];
-  readonly triggered: readonly Handle[];
+  /** **THE TRIGGER'S PAIRS** (`contract.md §2.4` item 1; `PAR-HL-38`): the pair REPLACES a bare handle list. */
+  readonly triggered: readonly TriggerPair[];
+}
+
+/**
+ * **⟶ `U-STOREROOM-HELD-LISTENER-IDENTITY`: THE TRIGGER'S PAIR, `{handle, address}`** (`contract.md §2.4`
+ * item 1; `trigger-and-pair.md §1`; `PAR-HL-19`, `PAR-HL-20`, `PAR-HL-21`).
+ *
+ * **`handle` IS THE CALLER'S OWN STRING** and **`address` IS THE BINDING'S OWN ADDRESS** — the address the
+ * listener was bound at, never the address the write targeted. **THE TWO ARE TOLD APART**: the write's own
+ * address crosses as the record's `triggeringAddress`, and the invocation's ONE argument is that write
+ * address (`contract.md §2.4` item 7).
+ *
+ * **NO PARALLEL `triggeredAddresses` ARRAY EXISTS AND NONE MAY BE ADDED** — the aligned form is an i-th
+ * correspondence, which reverses `DD-37` (`contract.md §2.4` item 1; `trigger-and-pair.md §2` item 4).
+ */
+export interface TriggerPair {
+  readonly handle: Handle;
+  readonly address: Address;
 }
 
 /** The record a `delete` answers. */
 export interface DeleteRecord {
   readonly address: Address;
   readonly tiers: readonly Tier[];
-  readonly triggered: readonly Handle[];
+  /** **THE TRIGGER'S PAIRS** (`contract.md §2.4` item 1; `PAR-HL-38`; `A43` — a delete fires its own set). */
+  readonly triggered: readonly TriggerPair[];
 }
 
 /**
@@ -388,10 +416,20 @@ export interface CommitRecord {
   readonly attempt: AttemptRef;
   /** The op the store's write returned, VERBATIM (`JournalOp` above; `§2.1` item 2). */
   readonly op: JournalOp;
-  /** The store's own `triggered` member, VERBATIM, read as a SET (`§2.1` item 2). */
-  readonly triggered: readonly Handle[];
-  /** THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS, each entry leaving it only by being checked off as it passes (`§2.1` item 2). */
-  readonly pending: readonly Handle[];
+  /** The store's own `triggered` member, VERBATIM, read as a SET (`§2.1` item 2) — now a PAIR LIST. */
+  readonly triggered: readonly TriggerPair[];
+  /**
+   * **THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS, each entry leaving it only by being checked off as it
+   * passes — and now a PAIR list, because `pending` is SEEDED AS A CLONE OF `triggered` and therefore
+   * INHERITS ITS SHAPE** (`P: docs/pending.md · P-7`'s `pending` ruling, verbatim: *"Push the pair into
+   * pending. Pending is seeded as a clone of triggered."*; `(AA-7)`: *"Pop from set to check off"*;
+   * `contract.md §2.4` items 3–4; `PAR-HL-22`, `PAR-HL-39`).
+   *
+   * **ITS ELEMENT TYPE IS TOTAL — NO BARE HANDLE STANDS IN IT** (`contract.md §2.5` item 2): the bare-handle
+   * union the check-off and the discard once carried has no subject under POP, because the checked-off entry
+   * is REMOVED rather than carried beside.
+   */
+  readonly pending: readonly TriggerPair[];
 }
 
 /**
@@ -494,7 +532,7 @@ export interface StoreInstance {
    * **A REPEATED CALL AT A HELD ADDRESS MINTS NOTHING AND ANSWERS THE ADDRESS'S EXISTING ENTRY'S HANDLE**
    * (`write-and-read.md §6.5` item 12 (c); `§0.4` clause 2), so the two calls answer ONE opaque value.
    */
-  listen(address: Address): Handle;
+  listen(handle: Handle, addresses: readonly Address[]): void;
   /**
    * Withdraw a watching, and answer `undefined` — a no-op success for every value outside the domain.
    *
@@ -535,6 +573,10 @@ export interface StoreInstance {
   constraintOff(pair: ConstraintPair, constraint: Constraint): void;
   /** Register `listener` under the opaque `handle`, and answer `undefined` (`surface.md §2.4` item 5 (b)). */
   register(handle: Handle, listener: Listener): void;
+  /** **`removeListener(handle) -> undefined`** — the entry removed WHOLE and its store entries withdrawn; every arm that is not a real removal THROWS (`contract.md §2.7` item 2; `PAR-HL-14`, `PAR-HL-15`). */
+  removeListener(handle: Handle): void;
+  /** **`removeConstraint(pair) -> undefined`** — the pair, its N address rows, the kernel's registration and the store's home entry all gone; it is the ONE act that deletes an identity (`contract.md §2.7` item 3; `PAR-HL-16`, `PAR-HL-17`). */
+  removeConstraint(pair: ConstraintPair): void;
   /**
    * **THE REGISTERED-PAIR READ — `constraints() -> ConstraintPair[]`** (`surface.md §2.4` item 9 (f)'s
    * `constraints` clause of 2026-10-17, items 2–9; `§2.12` item 2-bis; `parameter-semantics.md §2.27` =
@@ -628,7 +670,13 @@ export function storeCreate(cfg: StoreConfig): StoreInstance;
  * the element**, so no third member is declared here and this interface is left exactly as it stood.
  */
 export interface ConstraintPair {
-  readonly address: Address;
+  /**
+   * **THE ADDRESS MEMBER'S TYPE MOVES.** At the CREATION act it is a single address (`constraint-identity.md
+   * §6`'s pair table: *"and, at the REGISTRATION act, a single address"*); on the READ and at the REMOVAL it
+   * is the pair's own SET (`P: docs/pending.md · P-7`'s answer clause: *"1. (one id, N addresses)"*;
+   * `contract.md §2.6` item 5; `PAR-HL-13`).
+   */
+  readonly address: Address | readonly Address[];
   readonly id: string;
 }
 
