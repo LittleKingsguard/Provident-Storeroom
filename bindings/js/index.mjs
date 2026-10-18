@@ -2024,7 +2024,18 @@ export function storeCreate(cfg) {
       const encoded = constraintEntry(element, i);
       if (encoded.bad !== undefined) continue;
       if (typeof element.constraint !== 'function') continue;
-      carryConstraint(state, instance, encoded.address.s, encoded.id, element.constraint);
+      // **⟶ AND THIS SITE TAKES THE THREE-STATE REGISTRATION TOO** (`§2.12` item 3's clause of 2026-10-16
+      // at its `A135` (3) mark; `docs/specs/storeroom-native/contract.md §7.3` (b)). **THE BATCH ROUTE AND THE
+      // ADD ROUTE REACH THE SAME `K-1`**, so a batch element the current state violates — with no repair
+      // standing, or with one that does not resolve it — refuses the CONSTRUCTION in this surface's one
+      // failure form, exactly as the ADD route refuses the call. **THE STATE 3 SUCCESS ARM IS THE ONE THAT
+      // MOVES THE STORE**: the repair's edit stands, the registration stands, and the construction returns
+      // its instance with no log crossing (`3-bis` (c)).
+      try {
+        carryConstraint(state, instance, encoded.address.s, encoded.id, element.constraint);
+      } catch (refusal) {
+        registrationCrossing(refusal);
+      }
     }
   }
   // **⟶ AND THE CONSTRUCTION'S OWN ADOPTION ENTERS THE PACKAGE'S HOME MIRROR** (`§2.4` item 7 (b)'s dated
@@ -2978,7 +2989,18 @@ function constraintSite(verb, instance, supplied, pair, constraint) {
 /// opacity is the observable** — *"it has no own enumerable member at all"* — so it is a null-prototype
 /// object and NOT the entry record: every datum above stays the entry's own and never crosses.
 function carryConstraint(state, instance, address, id, constraint) {
-  constraintsKernel().register(instance, address, id, constraint);
+  // **⟶ AND THE REGISTRATION IS NOW A THREE-STATE ACT, WHOSE THIRD STATE LANDS AN EDIT** (`§2.12` item 3's
+  // 2026-10-16 clause, read through its `A135` (3) mark; `docs/specs/storeroom-native/contract.md §7.3` (b)
+  // states 1–3 and `3-bis`). `K-1` evaluates the constraint at registration: on states 1 and 3-success it
+  // RETURNS the handle and no log crosses; on states 2 and 3-failure it THROWS a refusal this entry renders
+  // and re-throws in the surface's own single form (`registrationCrossing` below). **THE ENTRY'S OWN
+  // RECORD IS WRITTEN ONLY WHERE THE REGISTRATION STOOD**, so a refused registration leaves this state
+  // exactly as it stood (`§2.12` item 3: *"NO identity is returned and NO element is carried"*).
+  try {
+    constraintsKernel().register(instance, address, id, constraint);
+  } catch (refusal) {
+    registrationCrossing(refusal);
+  }
   const entry = {
     address,
     addressKey: JSON.stringify(address),
@@ -2989,6 +3011,54 @@ function carryConstraint(state, instance, address, id, constraint) {
   };
   state.constraints.set(constraintPairKey(address, id), entry);
   return entry;
+}
+
+/// **THE REGISTRATION REFUSAL'S CROSSING — THE KERNEL HANDS BACK A CODE AND ITS SLOTS, AND THIS ENTRY
+/// RENDERS THE TEXT THROUGH THE GENERATOR IT ALREADY HOLDS** (`docs/specs/storeroom-native/contract.md
+/// §8.2`'s 2026-10-16 clause, items 1–5; `surface.md §2.12` item 3's clause of the same date).
+///
+/// **NO MESSAGE IS AUTHORED HERE AND NONE IS AUTHORED IN THE KERNEL.** `DD-52` forbids a code's message
+/// from a second source, so the sentence is produced by the store's own generator — reached through
+/// `addon_.errorMessage(code, subject[, container])`, the very path `boundaryReject` already takes — from
+/// the `§8.2` row's own SLOTS: `<CONTAINER>` the pair's own list name `constraints`, and `<SEGMENT>` the
+/// added pair's `address` spelling joined by `/`. **THE FIXED PHRASE IS THE ROW'S AND IS RENDERED VERBATIM**
+/// (`§8.2` clause 3), and no per-instant template stands.
+///
+/// **⟶ AND THE 2026-10-17 FORGERY FIX SURVIVES INTACT, WHICH IS THIS FRAME'S HIGHEST-RISK OBLIGATION.** The
+/// classification is **IDENTITY, NOT SHAPE** — the kernel's own mark under the `Symbol.for` key both sides
+/// spell (`KERNEL_REFUSAL` above) and nothing a caller can spell — so:
+///   * **A KERNEL-BUILT REFUSAL** (its `status` a string, its slot members present) is rendered and
+///     re-thrown in the surface's single two-member-plus-`log` form below;
+///   * **EVERYTHING ELSE IS THE CALLER'S AND CROSSES AS ITSELF** — a forged two-member object, a forged
+///     three-member object, a `TypeError`, a bare string and `undefined` all reach the caller as the very
+///     value that was thrown, `caught === thrown`, and none of them reaches the generator.
+///
+/// **AND A BODY'S OWN THROW IS THAT SECOND ARM AND NOT A THIRD**: `fail-surface.md §1.1` item 5 leaves a
+/// throwing constraint or repair body *"untouched and unconverted"*, and it carries no mark, so it is
+/// re-thrown by the one line above the render.
+function registrationCrossing(refusal) {
+  if (isKernelBuiltRefusal(refusal) === false) throw refusal;
+  const addon_ = withAddon();
+  // THE SLOTS THE KERNEL HANDS BACK ARE THE `§8.2` ROW'S OWN, and the generator's own three-argument call
+  // fills `<CONTAINER>` beside `<SEGMENT>`. Where an artefact loaded but does not carry the generator, the
+  // declared absent/failed-addon state is the answer, exactly as `boundaryReject` takes it — and where a
+  // marked value carries no usable slots the handler below answers it, so no unsubstituted placeholder can
+  // reach a caller from this frame.
+  const usable = typeof addon_.errorMessage === 'function'
+    && typeof refusal.status === 'string'
+    && typeof refusal.segment === 'string';
+  if (usable === false) throw refusal;
+  const generated = addon_.errorMessage(refusal.status, refusal.segment, refusal.container);
+  // **THE FORM IS THIS SURFACE'S ONE FORM** (`§2.5` items 3–4, whose `log` is PRESENT and never absent):
+  // `{status, message, log}`, the `status` the STORE's `ConstraintListInvalid`, the `message` the STORE'S
+  // OWN GENERATED SENTENCE, and the `log` the synthetic attempt's log where a repair was attempted and `[]`
+  // where none was. **NO `KC` TOKEN CROSSES** (`A120` (2); `§2.12` item 3 item 2): the synthetic attempt's
+  // terminal token stays in the kernel and reaches no caller.
+  throw {
+    status: refusal.status,
+    message: generated,
+    log: refusalLog(refusal.log),
+  };
 }
 
 /// **THE DISABLED PAIR'S STANDING ELEMENT** — a function that PASSES (`kernel-surface.md §2.3` item 1:
@@ -3029,7 +3099,16 @@ function addConstraint(instance, n, pair, constraint) {
   if (held === undefined) {
     return carryConstraint(site.state, instance, site.address, site.id, constraint).identity;
   }
-  constraintsKernel().register(instance, site.address, site.id, constraint);
+  // **THE OVERWRITE ARM TAKES THE SAME THREE-STATE REGISTRATION** (`§2.12` item 3's clause of 2026-10-16
+  // read at its `A135` (3) mark): a second ADD at a held pair registers the supplied function through `K-1`
+  // exactly as the fresh arm does, so a registration the store REFUSES refuses THIS call too — and the held
+  // element is left EXACTLY AS IT STOOD, because the entry's own record is written only after the
+  // registration returns (`§2.12` item 3: *"NO identity is returned and NO element is carried"*).
+  try {
+    constraintsKernel().register(instance, site.address, site.id, constraint);
+  } catch (refusal) {
+    registrationCrossing(refusal);
+  }
   held.fn = constraint;
   held.enabled = true;
   return held.identity;
@@ -3056,7 +3135,16 @@ function constraintToggle(enabled, instance, n, pair, constraint) {
   const entry = site.state.constraints.get(constraintPairKey(site.address, site.id));
   if (entry === undefined) constraintUncarried(verb, pair);
   if (entry.enabled !== enabled) {
-    constraintsKernel().register(instance, site.address, site.id, enabled ? entry.fn : constraintParked);
+    // **THE ENABLE HALF RE-REGISTERS THE PAIR'S OWN FUNCTION, SO IT TAKES THE SAME THREE-STATE REGISTRATION
+    // AS EVERY OTHER REGISTRATION SITE** (`§2.12` item 3's clause of 2026-10-16 at its `A135` (3) mark;
+    // `docs/specs/storeroom-native/contract.md §7.3` (b)). A registration the store REFUSES refuses THIS
+    // call in the same one form, and the pair's own `enabled` member is UNMOVED — written only after the
+    // registration returns — so a refused toggle leaves the pair exactly as it stood.
+    try {
+      constraintsKernel().register(instance, site.address, site.id, enabled ? entry.fn : constraintParked);
+    } catch (refusal) {
+      registrationCrossing(refusal);
+    }
     entry.enabled = enabled;
   }
   return undefined;

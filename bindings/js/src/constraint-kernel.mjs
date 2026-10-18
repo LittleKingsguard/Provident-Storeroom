@@ -399,8 +399,363 @@ export function register(store, address, id, constraint) {
   } else {
     standing.constraint = constraint;
   }
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════
+  // THE THIRD STEP — THE REGISTRATION-TIME EVALUATION (`docs/specs/storeroom-native/contract.md §7.3`
+  // (b) states 1–3 and its `3-bis` clause of 2026-10-16; `kernel-surface.md §2.1` item 1's third step).
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════
+  //
+  // **WHAT THIS STEP OWES, IN THE RULING'S OWN TERMS: after channels (i) and (ii) are passed and the pair
+  // stands in the registry, the kernel EVALUATES THAT ONE CONSTRAINT AGAINST THE STORE'S CURRENT STATE,
+  // ONCE, BEFORE THE HANDLE IS RETURNED.** The scope is THAT ONE PAIR and no other: no pass is opened over
+  // the registry and no other registered pair is re-evaluated.
+  //
+  // **⟶ THE THREE STATES, EACH ANSWERED HERE AND AT NO OTHER SITE:**
+  //   (i)   the state PASSES → the call returns the handle exactly as before, and nothing else happened;
+  //   (ii)  it VIOLATES and NO repair is registered → the registration is REFUSED;
+  //   (iii) it VIOLATES and a repair IS registered → THE REPAIR IS ATTEMPTED on the synthetic attempt
+  //         `3-bis` (a) declares, and its outcome answers the call as (i) or as (ii).
+  //
+  // **AND WHAT THE KERNEL HANDS THE SURFACE IS A CODE AND ITS SLOTS, NEVER A SENTENCE.** This module owns
+  // no message generator, and `kernel-surface.md §1` item 2 closes its surface at the FIVE `K-1`…`K-5`
+  // items with no sixth name — so it imports none, is handed none, and declares no channel to one. The
+  // refusal it throws carries `status` (the STORE's member, `A120` (2)) and the `§8.2` row's own slot
+  // VALUES, and the surface renders the text through the generator it already holds. **NO `KC` TOKEN IS
+  // MINTED:** the synthetic attempt's own terminal token stays inside this module (`registrationRefusal`).
+  const refused = registrationEvaluation(kernel, store, address, id, constraint);
+  if (refused !== null) {
+    // **A REFUSED REGISTRATION LEAVES THE REGISTRY EXACTLY AS IT STOOD** (`§2.1` item 1's sentence, whose
+    // regulatory force reaches this third refusing act — `§7.3` (b) state 2's own reading of it): the pair
+    // row this call wrote is withdrawn, with its handle and its place in the address's order list.
+    withdrawRegistration(kernel, address, id, standing === undefined, home);
+    throw refused;
+  }
   return home;
 }
+
+/**
+ * **WITHDRAWING THE REGISTRY ROW A REFUSED REGISTRATION WROTE** — `kernel-surface.md §2.1` item 1: *"a
+ * refused registration leaves the registry exactly as it stood"*, read at `docs/specs/storeroom-native/
+ * contract.md §7.3` (b) state 2 by that item's own clause (*"the sentence's `2` counts `KC` CHANNELS and
+ * the registration-time refusal is a THIRD REFUSING ACT carrying no `KC` token, so the sentence's FIGURE IS
+ * UNMOVED while its regulatory force (no entry on a refusal) reaches this third act"*).
+ *
+ * **WHAT IT UNDOES IS THIS CALL'S OWN WRITE AND NOTHING ELSE**, which is why the prior-standing fact is
+ * passed in: on the FRESH arm the pair row, its handle and its address-list entry all go; on the
+ * REPLACEMENT arm (a second `register` under a pair that already stood) the row's own POSITION and handle
+ * are left exactly as they were — the pair's idempotence rule (`CC-7`) puts the replaced registration's
+ * position back by never moving it.
+ */
+function withdrawRegistration(kernel, address, id, fresh, home) {
+  if (!fresh) return;
+  const key = pairKey(address, id);
+  kernel.pairs.delete(key);
+  kernel.handles.delete(key);
+  const token = addressToken(address);
+  const list = kernel.byAddress.get(token);
+  if (list !== undefined) {
+    const at = list.indexOf(key);
+    if (at >= 0) list.splice(at, 1);
+    if (list.length === 0) kernel.byAddress.delete(token);
+  }
+  // THE ADDRESS'S HOME ENTRY STANDS: it was minted by the store's own `listen`, which this act has already
+  // performed, and no clause of this unit declares a kernel-side withdrawal of it (`§2.1` item 1: *"nothing
+  // withdraws a constraint's store registration"* — `unlisten` is the app's own verb and never this one's).
+  return home;
+}
+
+/**
+ * **THE REGISTRATION-TIME EVALUATION, AT ITS ONE SITE** (`docs/specs/storeroom-native/contract.md §7.3`
+ * (b) and its `3-bis` clause of 2026-10-16; `kernel-surface.md §2.1` item 1's third step and `§2.3` item
+ * 1's clause of 2026-10-17). It answers `null` on state 1 and on state 3's passing arm, and **the refusal
+ * to throw** on state 2 and on state 3's failing one.
+ *
+ * **THE EVALUATION'S CONTEXT IS `§2.3` ITEM 1'S CLAUSE OF 2026-10-17, MEMBER FOR MEMBER, AND IT IS THE
+ * SAME FIVE MEMBERS AS AT A LANDING** — `address` the pair's own; `tier` ABSENT, spelled `null`; `value`
+ * THE STORE'S CURRENT VALUE AT THE PAIR'S ADDRESS, READ AND NOT LANDED; `attempt` the synthetic attempt's
+ * `AttemptRef` on state 3 and `null` on states 1/2; `op` ABSENT, spelled `null`. **A SIXTH MEMBER IS
+ * REFUSED BY NAME** (`5 + 1 = 6` is refused at that item's (6)), and both `null`s are THAT CLAUSE's own
+ * spellings of an absence inside a closed record, taken from the `RollbackStep.checkpoint` precedent, and
+ * are not tokens minted here.
+ *
+ * **THE `value` IS OBTAINED BY THE STORE'S OWN `read` AT THE PAIR'S ADDRESS WITH THE TIER ARGUMENT
+ * OMITTED** — the zero-tier call — **and where that read REFUSES `AddressNotFound` the member carries
+ * `undefined`**, which is that clause's (3) (e) arm. **NO `null` IS MINTED FOR IT** (`DD-12` forbids a
+ * READ answering one) and no `AddressNotFound` code is put in a `Value` slot: the fresh-pair outcome is
+ * the CALLER'S OWN BODY's answer to absence, and no clause decides which a given body is.
+ *
+ * **⟶ AND THE BODY'S OWN THROW IS NOT CONVERTED HERE.** A throw out of the constraint body at this instant
+ * SURFACES AS ITSELF (`fail-surface.md §1.1` item 5, at `kernel-surface.md §2.3` item 1's clause of
+ * 2026-10-17): not re-shaped into this module's form, not wrapped, and carrying no `KC` token. So the
+ * invocation below is NOT wrapped — a throwing body reaches the caller as the very value it threw.
+ */
+function registrationEvaluation(kernel, store, address, id, constraint) {
+  const outcome = constraint(registrationContext(store, address, null));
+  // THE OUTCOME IS `PAR-C-5`'S CLOSED THREE-ARM SET, read as the landing pass reads it: `true` is the pass
+  // arm; an object carrying `message` is the violation arm (its `repair`, where present, the repair the
+  // caller registered); a value outside the three arms is READ AS the `{message}` arm (`VA-11`) and never as
+  // an arm of its own. **A REPAIR THE OUTCOME DOES NOT CARRY IS NO REPAIR REGISTERED FOR THE PAIR.**
+  if (outcome === true) return null;
+  const repair = outcome !== null && typeof outcome === 'object' && 'message' in outcome
+    && 'repair' in outcome && typeof outcome.repair === 'function'
+    ? outcome.repair
+    : null;
+  // STATE 2 — THE STATE VIOLATES IT AND NO REPAIR IS REGISTERED. Nothing is attempted and no attempt is
+  // opened; the refusal carries the store's code and the row's own slots.
+  if (repair === null) return registrationRefusal(address, id, []);
+  // STATE 3 — THE REPAIR IS ATTEMPTED, on the synthetic attempt `3-bis` (a) declares.
+  return registrationAttempt(kernel, store, { address, id, repair });
+}
+
+/// **THE FIVE-MEMBER EVALUATION CONTEXT** (`kernel-surface.md §2.3` item 1's clause of 2026-10-17), built
+/// at ONE site so states 1, 2 and 3 hand the caller's body the SAME record and only `attempt` moves:
+/// `null` on states 1 and 2, the synthetic attempt's `AttemptRef` on state 3.
+function registrationContext(store, address, attemptRef) {
+  return {
+    address: address.slice(),
+    // `tier` — ABSENT, and `op` — ABSENT: the two members carrying the landing's own absence, spelled
+    // `null` on that clause's (2) and (5).
+    tier: null,
+    // `value` — READ, not landed, and `undefined` at an address holding nothing (that clause's (3) (e)).
+    value: readCurrent(store, address),
+    attempt: attemptRef,
+    op: null,
+  };
+}
+
+/// The store's current value at an address, read NOT landed: the zero-tier call whose tier argument is
+/// OMITTED, and `undefined` where that read refuses.
+function readCurrent(store, address) {
+  try {
+    return store.read(address);
+  } catch (refused) {
+    return undefined;
+  }
+}
+
+/**
+ * **THE SIX-MEMBER `RepairContext` THE REPAIR IS HANDED AT REGISTRATION** (`kernel-surface.md §2.3` item
+ * 2's shape, its sixth member `pending: Handle[]` added 2026-10-15; `surface.md §2.11` clause 6, the one
+ * home of the architect's ruling that a repair *"IS PASSED THE COMMIT IT IS PART OF"*).
+ *
+ * **THE REPAIR'S CONTEXT IS NOT THE CONSTRAINT'S CONTEXT, AND THE TWO ARE NOT INTERCHANGEABLE**: the
+ * constraint receives the FIVE-member `AttemptContext` and the repair the SIX-member `RepairContext`, whose
+ * extra member is the commit's own `pending` — *"so that they can make their own write call use that
+ * commit"*. **THE SYNTHETIC ATTEMPT'S OWN `commit` MEMBER IS WHAT THIS SLOT CARRIES** (`3-bis` (a): *"the
+ * `CommitRecord` of the registration act"*), handed as a FRESH LIST the way the landing instant hands it, so
+ * the record's member is never aliased and a repair that mutated its context's list moves nothing on the
+ * commit.
+ *
+ * **AND THE ABSENCE AT THIS INSTANT IS SPELLED BY THE `AttemptContext`'S OWN CLAUSE, NOT MINTED HERE:** there
+ * is no landing, so `op` is `null` (that clause's (5)) and `tier` is `null` (its (2)) — the two absences the
+ * `RollbackStep.checkpoint` precedent already fixes — while `value` is the store's CURRENT value at the
+ * pair's address, read and not landed (its (3)). **`id` IS THE PAIR'S OWN**, which the constraint's context
+ * does not carry at all, the repair's shape declaring it.
+ */
+function registrationRepairContext(store, address, id, commitRecord) {
+  return {
+    address: address.slice(),
+    id,
+    // `tier` — ABSENT, spelled `null`; `value` — READ, not landed; `op` — ABSENT, spelled `null`.
+    tier: null,
+    value: readCurrent(store, address),
+    op: null,
+    // THE COMMIT THE REPAIR IS PART OF — a FRESH LIST, never the record's own member (`§2.3` item 2).
+    pending: Array.isArray(commitRecord.pending) ? commitRecord.pending.slice() : [],
+  };
+}
+
+/**
+ * **STATE 3 — THE SYNTHETIC ATTEMPT AND THE REPAIR IT CARRIES** (`docs/specs/storeroom-native/contract.md
+ * §7.3` (b) `3-bis` (a)–(f); `attempt-lifecycle.md §2.4` items 1, 3, 4 arm (b)).
+ *
+ * **THE ATTEMPT'S RECORD IS ITEM 1's NINE MEMBERS UNCHANGED — NO TENTH MEMBER IS MINTED AND NO MEMBER'S
+ * DOMAIN MOVES:** `ref`, `commit`, `ops`, `log`, `ran`, `appliedRepairs`, `open`, `rollback`, `checkpoint`.
+ * **ITS `address` IS THE PAIR'S OWN**, **`ITS `checkpoint` BEGINS `null`*** — that member's declared `null`
+ * arm, because no landing at that address has yet left it valid for THIS attempt — and **its `ref` is a
+ * kernel-minted `AttemptRef` unique within the instance**. **Its `log` is a real `LogEntry[]` carrying this
+ * kernel's own `seq` ordinal**, and the `constraint-check` and `repair-run` entries arm (b) appends stand in
+ * it. **IT IS TERMINAL-AWARE ON BOTH ARMS**: it reaches `PASSED` or `FAILING` and closes, and no
+ * registration leaves an open attempt in the registry.
+ *
+ * **THE OP THE REPAIR LANDS IS HELD BY THIS ATTEMPT AND NOTHING ELSE** — `3-bis` (a)'s selection of the
+ * synthetic branch, so principle (1) (*"a repair's op is an attempt's op"*) still binds and no op is
+ * admitted outside one.
+ *
+ * **AND ITS OP LANDS DURABLY** (`3-bis` (f)): the repair's edit goes through the store's OWN verbs, its
+ * `op` is a real `JournalOp` in the store's own journal, readable back through every read verb at that
+ * address, and it stands after the registration returns. **THIS IS NOT A DRY RUN**, and no clause of that
+ * contract may be read as one. **ON SUCCESS NO LOG CROSSES** (`3-bis` (c), under `A135` (1)'s
+ * failure-only bubbling): the caller receives the identity ALONE, and the repair's outcome is carried by
+ * this attempt's own `log` and `ops` — the two carriers that clause fixes.
+ *
+ * **ON FAILURE THE REGISTRATION IS REFUSED** (`3-bis` (d)'s arms (d)/(e)/(f)): the store's
+ * `ConstraintListInvalid` is answered in the SAME form and with the SAME THREE SLOTS as state 2's. The
+ * synthetic attempt's `KC-4`/`KC-5`/`KC-6` **stays inside this module** and reaches no caller, because the
+ * caller's act is the registration and it is the registration that is refused (`§7.3` (e)'s re-reading).
+ */
+function registrationAttempt(kernel, store, pair) {
+  const address = pair.address;
+  const key = pairKey(address, pair.id);
+  ATTEMPTS += 1;
+  const attempt = {
+    ref: { id: `attempt-${ATTEMPTS}` },
+    store,
+    address: address.slice(),
+    tier: null,
+    value: undefined,
+    // `commit` — THE REGISTRATION ACT'S OWN `CommitRecord` (`3-bis` (a)): this kernel's four members, with
+    // no write's op and no write's triggered set, because a registration lands no `K-2` of its own.
+    commit: { attempt: null, op: null, triggered: [], pending: [] },
+    write: null,
+    ops: [],
+    log: [],
+    ran: [],
+    appliedRepairs: [],
+    rollback: [],
+    checkpoint: null,
+    checkedOff: [],
+    status: 'open',
+    report: null,
+  };
+
+  // ARM (b) VERBATIM: the `constraint-check` entry and the `repair-run` entry are appended, the repair runs
+  // through the caller's own verb, and the op its `{ok: true, op}` return names is added to `ops` while its
+  // pair is appended to BOTH `ran` and `appliedRepairs` (`3-bis` (b): the pair JOINS both members — of the
+  // SYNTHETIC attempt, and of no other). **THE PAIR ENTERS `ran` BEFORE THE REPAIR RUNS**, which is that
+  // arm's own ordering and is what makes the repeat arms reachable at the re-run below.
+  append(attempt, 'constraint-check', pair.id, null, `the evaluation of ${pair.id}`);
+  attempt.ran.push(key);
+  append(attempt, 'repair-run', pair.id, null, 'the pair\'s repair was attempted at registration');
+
+  let result;
+  try {
+    result = pair.repair(registrationRepairContext(store, address, pair.id, attempt.commit));
+  } catch (body) {
+    // A REPAIR WHOSE BODY THROWS IS A FAILED REPAIR AND THE REGISTRATION IS REFUSED — the caller's act is
+    // the registration, so the refusal is this module's one form (`3-bis` (d); the `KC` boundary at (e)).
+    // **THE BODY'S THROWABLE IS NOT CONVERTED INTO A STORE FORM AND IS NOT REACHED BY THE CALLER HERE**: it
+    // is caught so the attempt can close and the registration can be refused in the declared form; a drive
+    // that expected the body's own value out of `addConstraint` has read a route no clause declares.
+    closeRegistrationAttempt(attempt);
+    return registrationRefusal(address, pair.id, attempt.log);
+  }
+
+  const ok = result !== null && typeof result === 'object' && result.ok === true;
+  const produced = ok ? landedOp(attempt, result, null) : null;
+  if (produced === null) {
+    // ARM (d) — THE REPAIR PRODUCED NO OP: `{ok: false, message}`, an outside-form return, or an
+    // `ok === true` return whose `op` is absent, `undefined` or not the one it landed.
+    closeRegistrationAttempt(attempt);
+    return registrationRefusal(address, pair.id, attempt.log);
+  }
+
+  attempt.ops.push(produced);
+  attempt.appliedRepairs.push(key);
+  const entry = attempt.log[attempt.log.length - 1];
+  entry.opId = produced.opId;
+  entry.message = `the repair ${pair.id} landed ${produced.opId}`;
+
+  // THE RE-RUN — `3-bis` (d)'s arms (e)/(f) and `3-bis` (e)'s ordinary landing rules: the repair's op
+  // LANDED, so the pairs registered at ITS OWN landing's address are evaluated by the ordinary pass
+  // (`kernel-surface.md §2.3` item 1), in first-registration order, against THAT op.
+  const failed = registrationRerun(kernel, attempt, produced);
+  if (failed !== null) {
+    closeRegistrationAttempt(attempt);
+    return registrationRefusal(address, pair.id, attempt.log);
+  }
+  // THE PASSING ARM: `PASSED` → `CLOSED` and the registration STANDS. **NO LOG CROSSES**, and the repair's
+  // edit STANDS in the store — the side effect the architect's trust clause licenses (`3-bis` (f)).
+  closeRegistrationAttempt(attempt, 'passed');
+  return null;
+}
+
+/// **THE SYNTHETIC ATTEMPT'S RE-RUN** — every pair standing at the attempt's own address, evaluated once
+/// against the repair's own op (`attempt-lifecycle.md §2.4` item 5 (iv)'s evaluated set, which the
+/// registration instant neither widens nor displaces). Answers `null` where the re-run passes and the arm's
+/// token where it does not.
+///
+/// **THE ARM IS READ OFF THE PAIR THAT FAILED AND OFF NOTHING ELSE** (item 4's disjointness rule): the
+/// pair under repair is IN `ran` — arm (b) wrote it — and arm (b) has just put it in `appliedRepairs`, so a
+/// repeat by the repair's OWN edit reaches `(e)`; a pair IN `ran` and NOT in `appliedRepairs` reaches
+/// `(f)`. **`(c)` is unreachable here**, the pair's own function having already run at this instant.
+function registrationRerun(kernel, attempt, produced) {
+  const list = kernel.byAddress.get(addressToken(attempt.address));
+  if (list === undefined) return null;
+  for (const key of list.slice()) {
+    const pair = kernel.pairs.get(key);
+    if (pair === undefined) continue;
+    const outcome = pair.constraint({
+      address: attempt.address.slice(),
+      tier: produced.tier === undefined ? null : produced.tier,
+      value: produced.after === undefined ? undefined : produced.after.value,
+      attempt: attempt.ref,
+      op: produced,
+    });
+    if (outcome === true) continue;
+    attempt.terminalArm = attempt.appliedRepairs.includes(key) ? 'KC-5' : 'KC-6';
+    return attempt.terminalArm;
+  }
+  return null;
+}
+
+/**
+ * **THE REFUSAL THE REGISTRATION ANSWERS — `ConstraintListInvalid` WITH ITS `§8.2`-GENERATED MESSAGE —
+ * COMPOSED HERE AS A CODE AND ITS SLOTS, AND RENDERED BY THE SURFACE.**
+ *
+ * **⟶ THIS IS THE ROUTE THE ARCHITECT SETTLED, AND IT IS NOT A MESSAGE FROM A SECOND SOURCE.** `DD-52`
+ * forbids a code's message being produced from a second source, and `§8.2`'s one row declares the slots
+ * this instant supplies: **`<CONTAINER>` the pair's own list name, `constraints`**; and **`<SEGMENT>` the
+ * ADDED PAIR's `address` spelling, joined by `/`** — the pair's OWN address and not a failing element's,
+ * because at this instant the entry is WELL-FORMED and the pair is SUBMITTED rather than found wrong.
+ * (`<KEYLIST>`, the row's third slot, is the added pair's members present; no slot of it is asserted here,
+ * `§8.2` clause 3 declaring that the sentence the slots make is asserted by NO clause of that contract.)
+ *
+ * **THE FIXED PHRASE *"is not a valid constraint entry in"* IS RENDERED VERBATIM AND IS NOT RE-AUTHORED** —
+ * `§8.2`'s clause 3 of 2026-10-16, which names the honest consequence: at this instant the sentence's SHAPE
+ * reports an entry that failed its own validity check while the state is a well-formed pair whose FUNCTION
+ * DID NOT PASS. **A HAND-AUTHORED REGISTRATION MESSAGE IS A FAIL OF `P-TP-9` AND NONE STANDS HERE**: not a
+ * byte of the text is written in this module, and the sentence is produced by the store's own generator at
+ * the surface's existing `errorMessage` path.
+ *
+ * **THE VALUE CARRIES THIS MODULE'S OWN MARK** (`KERNEL_REFUSAL`) so the surface can tell it from a
+ * caller's throw, and the mark is set HERE — in the frame that BUILT the value — and never by a test over
+ * members. **A CALLER'S OWN THROWN VALUE STILL SURFACES AS ITSELF**: the 2026-10-17 forgery fix's whole
+ * point, and the five shapes are re-probed with this arm in place.
+ */
+function registrationRefusal(address, id, log) {
+  return {
+    status: 'ConstraintListInvalid',
+    segment: address.map((segment) => String(segment)).join('/'),
+    container: 'constraints',
+    id,
+    log: Array.isArray(log) ? log : [],
+    [KERNEL_REFUSAL]: true,
+  };
+}
+
+/// **THE SYNTHETIC ATTEMPT'S TERMINAL ACT — `PASSED` OR `FAILING`, AND `CLOSED` FROM THOSE TWO AND FROM
+/// NOWHERE ELSE** (`attempt-lifecycle.md §2.4` item 3). It reaches neither the per-op rollback composition
+/// nor the delivery seam: **the registration instant opens no `K-2`, delivers no listener and composes no
+/// rollback** — the repair's edit STANDS on the passing arm (`3-bis` (f)), and a failed repair's own state
+/// is left where the store's own verb left it (`3-bis` (d): the store's state is left where the composition
+/// restored it, which for an attempt with no rollback composed is the state the verb produced).
+function closeRegistrationAttempt(attempt, outcome = 'failed') {
+  attempt.status = 'closed';
+  const report = {
+    attempt: attempt.ref,
+    outcome,
+    ops: attempt.ops.slice(),
+    log: attempt.log,
+    rollback: [],
+  };
+  attempt.report = report;
+  CLOSED.set(attempt.ref.id, report);
+  LIVE.delete(attempt.ref.id);
+  return report;
+}
+
 
 /** The store holds ONE registration per address, and its `listen` takes a function. */
 function noopListener() {}
