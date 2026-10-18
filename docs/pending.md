@@ -335,6 +335,22 @@ return shape and `A116` (D4)'s "carrier unchanged").
 
 **THESE THREE SUPERSEDE THE *"3. Both"*/*"1. New"* PAIR RECORDED BELOW, WHICH IS LEFT STANDING AS THE SUPERSEDED READING.**
 
+**⟶ THE ARCHITECT'S TWO MECHANISMS — 2026-10-18, VERBATIM: *"1. Add a purge mechanism"* · *"2. Add a remove mechanism"*.**
+
+**(M-1) A PURGE MECHANISM IS ADDED — IT IS A NEW `Home` OPERATION AND NOT A MODIFICATION OF `mint`.** **THIS CLOSES THE BLOCKER PASS 7 AND PASS 8 FOUND: `Home::mint` (`store.rs:406-425`) ADDS a second bucket member and deletes nothing, and `first_at` (`:388-393`) returns early — so NOTHING IN THE STORE PURGES AT ANY SITE TODAY, and F-3's producer, `(D-vi)`'s purged-pair state, `(D-ii)`'s subject and F-2a's repair route all described states the code could not reach.**
+
+**THE PROPOSAL MUST DECLARE: (i) the operation's NAME and POSITION — a `Home` method beside `mint`/`withdraw`/`adopt` (`store.rs:363-490`), reached ONLY from the `listen` verb; (ii) WHICH ENTRIES IT REMOVES — every `Listener` at every address the handle names, across `members`' buckets (`:341`) and the `handles` index (`:344`); (iii) its ATOMICITY relative to the install — the purge precedes the install and no intermediate state is observable (the purge ruling's own item (b)); (iv) its ANSWER — whether it reports how many entries it removed or returns `()`, and what a purge of a handle holding no entries does; (v) that it is NOT `withdraw` (`:442-472`, ONE entry by `DD-42` clause (2)'s first-match rule) and NOT `adopt` (`:363-384`, which appends).**
+
+**AND IT SUPERSEDES `(D-iv)`'s READING: *"`mint` replaced in place"* IS WITHDRAWN IN FAVOUR OF A SEPARATE OPERATION — a function that both purges and installs cannot be one function, because the purge needs the OLD handle and the install needs the NEW one, and `mint` takes only the address.**
+
+**(M-2) A REMOVE MECHANISM IS ADDED — IT IS THE `K-6` THE RULINGS PREVIOUSLY NAMED WITHOUT A SIGNATURE.** **THIS CLOSES `(D-ii)`'s CIRCULARITY: the repair route *"`removeConstraint` then `addConstraint`"* named a member that did not exist, and `removeConstraint`/`removeListener` (R4, `12 → 14`) had no kernel-side counterpart, because `kernel-surface.md §1` item 2 closes the extent at FIVE and `withdrawRegistration` (`:460-476`) declines to withdraw the store's home entry.**
+
+**THE PROPOSAL MUST DECLARE THE REMOVAL'S EXTENT, WHICH R4 STATES AND WHICH THE MECHANISM NOW IMPLEMENTS: after it the pair is gone from `state.constraints` (the JS read model), from `kernel.pairs` (`:243`), from EVERY `byAddress` row — **and `byAddress` is deleted by R-B3, so this clause must state which structure replaces it** — from `kernel.handles` (`:251`), and from the store's home entry via (M-1)'s purge or `withdraw`.**
+
+**AND THE ORDER OF THE FOUR REMOVALS IS R4'S OWN OUTSTANDING OBLIGATION (*"the proposal must state the ORDER OF THE FOUR REMOVALS and that NO INTERMEDIATE STATE IS OBSERVABLE"*) — now answerable, because both mechanisms exist.**
+
+**AND ONE THING THESE TWO MECHANISMS DO NOT SETTLE, RECORDED SO IT IS NOT READ AS CLOSED: `kernel.handles` (`:251`) keeps the PRE-PURGE handle after an app `listen` purges a pair's store entry (per `(D-vi)`), so the removal's `unlisten`-equivalent may name a handle the store no longer holds. THE PROPOSAL MUST STATE WHETHER THE REMOVAL IS A NO-OP ON THAT STATE OR WHETHER (M-1) IS ALSO REACHED FROM THE REMOVAL.**
+
 **(C-1) PURGE WINS AT `listen`; THE CONFLICT IS `addConstraint`-ONLY.** **BOTH REVIEWERS LANDED THE CONTRADICTION INDEPENDENTLY AND IN THE SAME WORDS: F-3 declares `listen` at a pair's address PURGES the kernel's entry, while the conflict ruling declares the same act FAILS BEFORE ANY STORE ACT — *"one act cannot both destroy and refuse"*. THE ARCHITECT'S ANSWER KEEPS F-3 WHOLE: `listen` PURGES AND SUCCEEDS, and THE CONFLICT FIRES IN ONE DIRECTION ONLY — AT `addConstraint` AT AN ADDRESS A LISTENER IS ALREADY REGISTERED AT.**
 
 **WHAT THAT SAVES, EACH NAMED SO NONE IS SILENTLY RETIRED: F-3's four declared assertions survive; `(D-vi)`'s purged-pair state keeps its producer; `(D-ii)`'s *"kernel.handles is fixed and never refreshed"* keeps its subject; F-2a's remove-then-add repair route keeps a state to repair; and `(D-vi)`'s silent-enforcement outcome stands.** **AND `critique`'s A2 — *"every route to the purged-pair state closes"* — IS ANSWERED: the route is `listen`, unchanged by this ruling.**
