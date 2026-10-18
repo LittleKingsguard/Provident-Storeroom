@@ -817,6 +817,7 @@ amendment itself and NOT a park.** **AND ONE CONSEQUENCE IS NAMED SO IT IS NOT R
 totality is what makes `Instance`'s own `read`/`readLiteral`'s `Result<JsValue, Refusal>` a `Result` of the
 VERB and never of the conversion — the `Err` arm there is the STORE's answer to the read, and the copy out
 adds none of its own.**
+**⟶ `RCA-8(g)` ONE-LINE POINTER, AUTHORED 2026-10-16: *"the shape the refusal would carry is `Refusal`'s, exactly `{status, message}`"* IS A STATEMENT ABOUT THE **CORE'S RECORD** AND IS UNMOVED BY THE ARCHITECT'S RULING *"Override the failure form limit"*; the CROSSED form is `{status, message, log}`, `3` members, and the two are records of two different layers — see item 4's `Refusal` clause of this date. THE PARAGRAPH'S OWN SUBJECT — that a future failure channel at the copy out would be a CONTRACT AMENDMENT and never a silent widening — STANDS WHOLE.**
 (`[A1 docs/specs/storeroom-js-proposal-review.md §5.3 — `V1`'s drivability; A3
 docs/specs/storeroom-js/crossing.md §1.1 clause 2 — the copy out; A3 docs/specs/storeroom-native/contract.md
 §0.4 — the `StoreValue` taxonomy; `DD-1`; `DD-40` | state or fail-state declaration]`).
