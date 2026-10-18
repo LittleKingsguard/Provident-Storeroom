@@ -381,6 +381,20 @@ and `removeConstraint` removes the row and the identity with it — WHICH IS NOW
 
 **(AA-8) Z-6 ANSWERED: THE HOLD STANDS — CODE REVIEW IS NOT FINISHED AND THE PROPOSAL RUN DOES NOT OPEN.** **THE FOUR ITEMS REMAIN `QUEUED — NOT STARTED` UNDER THEIR OWN REVISIT CONDITION, AND NO RULING IN THIS PASS SUPERSEDES IT.** **THE GATE-1 RECORD ACCUMULATES; NOTHING IS DELEGATED.**
 
+**⟶ THE AMENDMENT PASS RETURNED: TEN ROWS CLOSED, TWO OPEN, AND MY OWN FIGURE OF SEVENTEEN WAS WRONG.**
+
+**(AC-1) THE DOSSIERS NOW PRINT `1` / `1` / `0` OPEN ROWS, NOT `3` / `8` / `6`.** **AND THE CORRECTION IS MINE: this record's “seventeen open rows” was read from the dossiers' HEADER claims, and the TABLES re-derive differently — `P-6`'s header read `6 + 8 = 14` while its table read `11 + 3 = 14` (over-counted by five), and `P-7`'s header read `11` rows while its table read `14` (the total and `defined` each short by three, its `6` open exact).** **THE TRUE AS-FILED COUNT WAS `12`, TEN CLOSED BY THE EIGHT ANSWERS, TWO REMAIN.** **THE FIVE “further rows the dossier's own table does not name” THIS RECORD CARRIED WERE PHANTOM ROWS FROM THE HEADER, NOT ROWS.**
+
+**(AC-2) TEN ROWS CLOSED, EACH BY ITS OWN ANSWER: `(AB-1)` closes THREE (P-5's `the triggering address`, P-6's `triggeringAddress`, P-7's `triggeringAddress`); `(AB-2)` the store's pair record; `(AB-3)` the binding tell; `(AB-4)` DELETES the `watched`-to-`triggered` row outright (identifier retired, bytes stand, table reads 13); `(AB-5)` the pair's arrival in both records; `(AB-6)` the set-address key; `(AB-7)` the two consumers' route; `(AB-8)` the map's bound.**
+
+**(AC-3) THE COINED LABEL IS REMOVED AT ITS OWN SITES (`AM-P5-10`, `AM-P6-8`), and `AM-P7-7` records that P-7 never coined it so no reader hunts a removal it does not owe.** **THE STATUS VOCABULARY IS RECORDED AS THE CLOSED TWO.**
+
+**(AC-4) THE TWO ROWS STILL OPEN, NAMED, AND THEY ARE THE WHOLE OF GATE 2'S REMAINING BAR:** **(i) `P-5`'s `the function map's value record` — THE PACKAGE'S OWN MAP VALUE SHAPE (`{fn, off}`), which `(AB-2)` does NOT settle because that answer declares the STORE'S pair record `{addresses, id, identity}` and not the package's map value.** **(ii) `P-6`'s `mint` — THE DE-COLLISIONED INSTALL OPERATION'S NAME, which no `(AB-n)` names.** **⟶ SO GATE 2'S VERDICT IS `NOT DELEGABLE` ON EXACTLY THESE TWO ROWS AND NOTHING ELSE.**
+
+**(AC-5) TWO STALE FIGURES IN THE CONTRACT ARE FLAGGED FOR THE NEXT PASS AND WERE OUTSIDE THE DOSSIERS' SCOPE: `docs/specs/storeroom-held-listener-identity/contract.md §10` rows 1–3 print the superseded dossier figures `3` / `8` / `6` (operative `1` / `1` / `0`), and §10 row 6's `triggeringAddress` home `OWED` is settled by `(AB-1)`.** **BOTH ARE A SUPERVISOR DISPATCH TO THE SPEC WRITER, NOT A NEW QUESTION.** 
+
+
+
 **⟶ THE ARCHITECT'S EIGHT ANSWERS CLOSING THE FIRST EIGHT OPEN DOSSIER ROWS — 2026-10-18.**
 
 **(AB-1) `triggeringAddress` IS A DECLARED MEMBER OF THE STORE'S RESPONSE — ONE RULING CLOSING ALL THREE DOSSIERS' HIGHEST-LEVERAGE ROW. It is declared at its own § and the kernel caches it per `(O-2)`.**
