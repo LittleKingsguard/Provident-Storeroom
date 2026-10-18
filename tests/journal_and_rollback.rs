@@ -171,9 +171,11 @@ fn s6_2_the_after_half_agrees_with_the_current_read() {
 // So this drive rolls back an operation at a DESCENDANT address and the prefix test does NOT reach
 // upward: the older write at `["a"]` is OUT of scope (`§6.4` item 1, `A35`, `DD-21`), the named op is the
 // only entry undone, and its `before` half is what stands at the addressed node afterwards. Driving two
-// writes at ONE address instead would put both entries in scope and make the rollback total over them —
-// the state `s6_3_restored_to_is_the_state_the_addressed_subtree_now_stands_at` and `s6_4_m8` drive — so
-// the two shapes are the two halves of the one scope rule, not two claims about it.
+// writes at ONE address would put NEITHER on the far side of `M-5`'s TEMPORAL floor — an entry at the same
+// address whose `seq` is ≥ the named op's is in scope — but this drive's older write is OUT of scope by the
+// SPATIAL test alone, which is the half `§6.4` item 1 (a)(i) keeps unmoved, so the two shapes are two halves
+// of ONE scope rule (amended 2026-10-16, `M-5` (a)(i)+(a)(ii)) and not two claims about it. `s6_4_m8` drives
+// the other half: an entry AT the named op's own `seq` IS in scope, which is item 1 (a)(ii)/(b)'s `≥`.
 // Drives: §6.2 property 1, §6.4 M-5, §6.4 item 1 / DD-21, §6.4 M-8 / DD-20
 #[test]
 fn s6_2_the_before_half_reconstructs_the_original_tree() {
@@ -273,33 +275,90 @@ fn s6_3_rollback_echoes_the_op_id_and_orders_undone_ops_newest_first() {
     );
 }
 
-// §6.3 — `restoredTo` is the state the addressed subtree now stands at: after undoing every version ever
-// written at that address, the address holds nothing.
-// Drives: §6.3
+// §6.3 + §6.4 item 3 (ii) — `restoredTo` IS THE STATE THE ADDRESSED SUBTREE ACTUALLY STANDS AT AFTER THE
+// ROLLBACK — PRESENT OR ABSENT, NEVER AN UNDONE ENTRY'S PRE-STATE.
+//
+// **⟶ RE-DERIVED 2026-10-16 (THE TEMPORAL STOP; `M-5`'s amended scope). THE SUPERSEDED PREMISE, NAMED SO IT
+// CANNOT BE RE-READ: this cell's own comment read *"after undoing every version ever written at that address,
+// the address holds nothing"* — the ADDRESS-WIDE reach `write-and-read.md §6.4` item 1's `⟶ AMENDED
+// 2026-10-16` clause WITHDREW.** **BOTH ARCHITECT'S RULINGS, VERBATIM: *"Add temporal stop to the rollback."*
+// AND *"Overshoot is a defect."*** **The operative scope is item 1's amendment (a): an entry `E` is in scope
+// IFF the SPATIAL test holds (`op.address` is a prefix of `E.address`; `DD-21`) **AND** the TEMPORAL test
+// holds — `E.seq` ≥ the named op's own `seq` — *"AN ENTRY AT OR AFTER THE NAMED OP, WITHIN ITS SUBTREE, AND
+// NOTHING OLDER"* (`≥` NOT `>`).** **So the earlier value at the SAME address STANDS: THE ADDRESS DOES NOT
+// HOLD NOTHING, and this cell now asserts what the clause says it holds.**
+//
+// **THE DECIDING CLAUSE IS §6.4 ITEM 3 (ii) (`write-and-read.md`, and `contract.md §6.4` item 3 (ii) at the
+// same bytes): `restoredTo` *"REPORTS THE STATE THE ADDRESSED SUBTREE ACTUALLY STANDS AT AFTER THE ROLLBACK —
+// PRESENT OR ABSENT, NEVER AN UNDONE ENTRY'S PRE-STATE"*.** **The window this cell drives is a
+// **pre-existing address**, not a fresh one, so §6.4 item 1A (B) — `{present: false}` for a FRESH-ADDRESS
+// window — does not decide it; what decides it is that the seed's entry is OUT of the rollback's temporal
+// scope (`seq` 1 < the named op's `seq` 2) and is therefore standing when the walk finishes.**
+// **`restoredTo` is read here as the record of `read` that item 1A refuses AS THE PROPERTY'S TEST** — on THIS
+// window the two readings agree, because the seed's entry was never reached, so no compression and no
+// overshoot can be confused with each other.**
+//
+// **THE OBSERVABLE IS ITEM 1A'S, NOT A PLAIN `read`:** **(A1) `undoneOps` CONTAINS NO `opId` WHOSE ENTRY LIES
+// AT OR UNDER THE ROLLED-BACK ADDRESS WITH `seq` < THE NAMED OP'S** — read on EVERY window, floor-met or not;
+// **AND (A2) WHERE CALLS RETURNED AND AT LEAST ONE UNDID AN ENTRY AT OR UNDER THAT ADDRESS, THE SEED'S OWN
+// `opId` IS ABSENT FROM THE UNION OF THE RETURNED `undoneOps`** — a MEMBERSHIP test over the id the seeding
+// write itself returned, never an absence inferred from a value. **The plain `read` below is DRIVEN and
+// asserted, exactly as item 1's amendment prints it (*"has found the property when the seed still reads"*),
+// but it is (A2)'s SUPPORTING evidence and NOT the discriminating one** (`§6.4` item 1A's own retained-but-
+// demoted note): a store that OVERSHOT the temporal floor also leaves the seed reading by compression, so no
+// cell may rest on that observation alone.
+//
+// Drives: §6.3, §6.4 item 1 (M-5, as amended (a)(i)+(a)(ii)), §6.4 item 1A (A1) and (A2), §6.4 item 3 (ii),
+//         §6.4 M-7 (the walk stops at the named op), §6.2 property 3 (the id the caller holds)
 #[test]
 fn s6_3_restored_to_is_the_state_the_addressed_subtree_now_stands_at() {
     let mut store = new_store();
-    ok(
+    let seed = ok(
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
-        "§3.4 W-3",
+        "§3.4 W-3: the seed stands BEFORE the named op, so it is outside the temporal scope",
     );
     let second = ok(
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
         "§3.4 W-1",
     );
+    // The two `seq`s the scope is measured in, asserted rather than assumed (`§6.2`: strictly increasing
+    // from 1) — the temporal test is `E.seq ≥ the named op's seq`, and this cell's whole window is that
+    // the seed is strictly older.
+    assert_eq!(
+        (seed.op.seq, second.op.seq),
+        (1, 2),
+        "§6.2: the seed's `seq` is the named op's - 1, so `M-5` (a)(ii)'s `E.seq >= floor` excludes it"
+    );
     let r = ok(store.rollback(OpIdArg::Id(second.op.opId.clone())), "§6.3");
+    // **(A1)** — the performed set names nothing older than the named op, on this window and every window.
+    assert_eq!(
+        r.undoneOps,
+        vec![second.op.opId.clone()],
+        "§6.4 item 1A (A1) + M-7: the scope is the named op AT OR AFTER its `seq` (>=, item 1 (a)(ii)/(b)), \
+         so the walk stops at the named op and the seed's entry — `seq` 1, older than the floor — is in NO \
+         walk; a second member here would be the OVERSHOOT the second ruling names a defect"
+    );
+    // **(A2)** — a membership test over the id the seeding write itself returned, never an absence inferred
+    // from a value.
     assert!(
-        !r.restoredTo.present,
-        "§6.3: the state the addressed subtree now stands at is ABSENT"
+        !r.undoneOps.contains(&seed.op.opId),
+        "§6.4 item 1A (A2): the seed's own `opId` is ABSENT from `undoneOps` — the seed's entry lies at the \
+         rolled-back address and its `seq` is below the floor"
     );
-    let e = failure(
-        store.read(AddressArg::List(key(&["a"])), TierArg::Absent),
-        "§6.4 M-5",
+    // **§6.4 item 3 (ii)** — `restoredTo` is the state the address ACTUALLY stands at: the seed PRESENT, not
+    // the undone entry's pre-state (which was ABSENT).
+    assert!(
+        r.restoredTo.present,
+        "§6.4 item 3 (ii): the addressed subtree STANDS with the seed still there; the undone entry's \
+         pre-state was absent and the clause forbids reporting THAT"
     );
-    assert_code(
-        &e,
-        "AddressNotFound",
-        "§6.3: both versions were undone, so the address holds nothing",
+    // The plain `read` — item 1's amendment's own words, and (A2)'s supporting evidence only.
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_num(1.0),
+        "§6.4 item 1 (M-5, as amended): *\"a pre-existing value at the rolled-back op's own address survives \
+         the rollback that reverses that op, and the caller finds it where it stood\"* — the seed value, \
+         read back"
     );
 }
 

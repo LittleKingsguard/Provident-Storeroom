@@ -80,7 +80,7 @@ NOT this set's verdict; neither is the gate-5 count, which the gate-6 pass close
 | **NG-09** | the register's own reference at the empty address — c`§2.1`'s empty-address reference clause, c`§1.6` item 3 · **`A25`** · **`A23`** |
 | **NG-10** | the delete: its tier scoping (`D-1`), the unqualified delete (`D-2`), the no-op success (`D-3`/`DD-9`), the walk-code failure (`D-4`), the whole-subtree cascade, the register-emptying delete (`D-5`), and the `VEC` renumbering (`DD-30`) with the MAP's keys unrelabelled — c`§4.3`, c`§4.4`, c`§4.2` `R-3`'s density, c`§5.5` `P-IM-3` · **`A12`** · **`A11`** · **`A19`** |
 | **NG-11** | the returned op: its id, its closed record shape, the `before`/`after` duty, `seq` from 1, the entry-formation rule (**one entry per SUCCESSFUL write, and one entry per SUCCESSFUL delete that removed a version — that delete's own entry occupies the next append ordinal, so the next operation's `seq` is the write's `+ 2`; a failed write, a `D-3` no-op delete and a `D-4` failed delete append NONE and advance the ordinal by exactly `1`** — the success half corrected at the gate-6 pass, `§7`), the delete's own arms (`D-1`/`D-2`/`D-3`/`D-4`), and **the same-address rollback's reach over BOTH entries at the written address (`M-5` "itself or a descendant" + `M-8` totality + `M-7` direction + `M-9` mark + `M-10` unchanged-on-failure)** — c`§3.6`, c`§6.1` item 1, c`§6.2` properties 1–4, c`§6.3`, c`§6.4` `M-5`/`M-7`/`M-8`/`M-9`/`M-10`, c`§4.3`/c`§4.4` `D-1`/`D-2`/`D-3`/`D-4` + `DD-9`, `DD-20`/`DD-21` · **`A7`** · **`A12`** · **`A35`** · **`A37`** |
-| **NG-12** | the rollback's reach over every operation touching the same subtree, the scope measured against the written address, `undoneOps`' reverse append order and performed-reversal rule, `restoredTo`'s actual state, the undone entry's mark, `M-10`, `M-11` — c`§6.4` `M-5`–`M-11`, `DD-20`/`DD-21` · **`A35`** |
+| **NG-12** | the rollback's reach over every operation touching the same subtree **AS `M-5`'s AMENDED SCOPE BOUNDS IT — the SPATIAL test AND the TEMPORAL test (`E.seq` ≥ the named op's `seq`), so an entry OLDER than the named op is REVERSED BY NOTHING** (⟶ RE-SPELLED `2026-10-16`, `§11`), the scope measured against the written address, `undoneOps`' reverse append order and performed-reversal rule, `restoredTo`'s actual state, the undone entry's mark, `M-10`, `M-11` — c`§6.4` `M-5`–`M-11`, `DD-20`/`DD-21` · **`A35`** |
 | **NG-13** | the configured journal length and compression into a base state: the append trigger at `journalLength + 1`, the compacted entry's out-of-scope floor, the all-or-nothing refusal, and `seq`'s continuation after a rollback — c`§6.1` items 4–5, c`§6.4` `M-6`/`M-9`, `DD-16` · **`A5`** · **`A31`** |
 | **NG-14** | the `file` tier: its commit and the bytes at `cfg.filePath`, the `mem` write's zero file I/O, the failure arm (`FileCommitFailed`) with `A16`'s automatic journal rollback having run before the failure is returned, and the caller receiving the failure — c`§7.2` items 1–5, c`§6.4`'s automatic-rollback clause, c`§8.1` #14, `DD-2`/`DD-25`/`DD-28` · **`A16`** |
 | **NG-15** | the construction inputs and their failure arms (16 outside-value cells), the returned instance's EMPTY register, its journal of 0 entries, `journalLength = 1`'s domain, and the file tier bound to `cfg.filePath` — c`§7.1`, c`§8.1` #1/#12, `DD-16`/`DD-17`, c`§5.7` · **`A16`** · **`A31`** |
@@ -128,7 +128,7 @@ the row names the `§` it now drives).
 | **NG-09** | **PASS** (3 PASS · 0 FAIL) — **F-2's two cells are now PASS**: `findAddress([], file)` and `findAddress([], temp)` answer the SAME reference's tier (`Mem`, the register's own), so neither answer asserts the caller's tier; the register's key marker is `Key("")` |
 | **NG-10** | **PASS** (25 PASS · 0 FAIL) — `D-1`'s receipt names exactly the removed tier and leaves the other two untouched; `D-2`'s receipt is in the canonical order `file, mem, temp`; `D-3` is a success with `tiers: []`; the cascade removes root and descendants; `D-5` empties the register; `DD-30` leaves the parent's read dense, moves the survivor to one index from `0`, leaves the deleted index's node resolving nowhere, and never relabels a MAP key |
 | **NG-11** | **PASS** (39 PASS · 0 FAIL — the gate-6 count; at the gate-5 pass this row stood `37 · 2`) — **the three re-derived cells are PASS**: the absent `BaseState.value` is `Undefined`; the same-address rollback undoes BOTH entries (`undoneOps = [w2, w1]`, newest-first) and the reads after it answer `AddressNotFound` at every tier; the delete the old drive then made at the emptied address is `D-4`'s failure. **The two gate-5 FAILs are closed by correcting THIS DOCUMENT'S OWN arithmetic, not the store's** (`F-NEW-1`, `§3`): the `D-1` and `D-2` cells asserted *"a successful version-removing delete appends nothing"* (`seq + 1`) where **`§6.1` item 1** requires exactly ONE entry — the run's own ordinals are `write.seq = 1`, the delete's entry `2`, the next write `3` — so each cell now asserts the write's `+ 2` and cites `§6.1` item 1 with `§6.2` (`§7`) |
-| **NG-12** | **PASS** (13 PASS · 0 FAIL) — the rollback undoes the named op **and** a descendant's later operation, reports them newest-first, leaves an unrelated key standing, marks the undone entries so a second rollback over one fails `RollbackCompacted`, appends no entry, and continues `seq` |
+| **NG-12** | **PASS** (13 PASS · 0 FAIL — **RE-DERIVED `2026-10-16` TO `M-5`'s AMENDED SCOPE, `§11`**) — the rollback undoes the named op **and** a descendant's later operation **and NOT an entry at or under the same address whose `seq` is below the named op's (`M-5` (a)(ii))**, reports the undone entries newest-first, leaves an unrelated key standing **and leaves the OLDER same-address entry standing**, marks the undone entries so a second rollback over one fails `RollbackCompacted`, appends no entry, and continues `seq` |
 | **NG-13** | **PASS** (7 PASS · 0 FAIL) — the fourth append under `journalLength = 2` compacted the older entries; the oldest entry is then out of scope and its rollback fails `RollbackCompacted` all-or-nothing |
 | **NG-14** | **PASS** (8 PASS · 0 FAIL) — the committed bytes carry the written key; a `mem` write performs no file I/O; a `file` write whose path is a directory fails `FileCommitFailed` and `A16`'s automatic rollback has already removed the failed version from the store before the failure is returned |
 | **NG-15** | **PASS** (20 PASS · 0 FAIL) — all 16 outside-value cells answer their declared code, the instance is returned with `0` register keys and a journal of `0` entries, `journalLength = 1` is in the domain, and the file tier is bound to `cfg.filePath` |
@@ -320,7 +320,10 @@ precisely so the set could not be mistaken for a self-verified pass); **this pas
 clause's own scope rule, as instructed, and each now cites the `§` it drives.** **`NG-12` — the dedicated
 scope scenario, authored separately from the same clauses — PASSES all 13 of its assertions**, including the
 subtree-wide reach, the newest-first order, the exclusion of an unrelated key (`M-5`/`DD-21`), `M-9`'s mark
-and `seq`'s continuation, and it was driven **unchanged** at this pass.
+and `seq`'s continuation, and it was driven **unchanged** at this pass. **⟶ AMENDED `2026-10-16`: THE
+SUBJECT THAT `M-5`'s AMENDMENT MOVED IS RE-DERIVED AT `§11` AND THIS SENTENCE IS READ THROUGH IT** — the
+reach is now the SPATIAL test **AND** the TEMPORAL test, so *"the subtree-wide reach"* names the entries at
+or after the named op's `seq` and **NOT** an entry older than it at the same address.
 
 **The scenario's intent, kept.** The drive still exercises **the returned op's `before` half end to end**
 (`w2.before` carries the replaced version; `op.before.value` is the declared absent-state spelling) and **a
@@ -517,8 +520,8 @@ the zero-tier read selects lowest-persistence per address and omits nothing.**
 
 | # | the cell | the `§` it now drives | what the old expectation contradicted |
 | --- | --- | --- | --- |
-| 1 | **NG-11** · the same-address rollback's reach and report | **`§6.4` `M-5` + `DD-21` + `M-8` + `DD-20` + `M-7`** | that rolling back `write(['j'])` leaves the earlier `write(['j'])` standing — a **PARTIAL** rollback, which `M-8`/`DD-20` forbid and `M-5`'s *"itself"* excludes |
-| 2 | **NG-11** · `restoredTo` and the reads that follow | **`§6.4` `M-5`/`M-8` + `M-9` + `M-10` + `§6.2` property 1 + `§2.2`'s walk** | that the rollback's `before` half restores `"first"` at an address whose whole history the rollback reversed (`§6.4` `M-7` (ii): `restoredTo` reports the state the address **ACTUALLY** stands at, never an undone entry's pre-state) |
+| 1 | **NG-11** · the same-address rollback's reach and report — **⟶ SUPERSEDED `2026-10-16` BY `M-5`'s TEMPORAL FLOOR AND RE-DERIVED AT `§11`; the cell's expectation now stands the OTHER way and this row is read THROUGH that one** | **`§6.4` `M-5`'s amended scope (a)(i)+(a)(ii) + `M-8` + `DD-20` + `M-7` (as amended) + `DD-21`** | **the row's as-filed expectation was that the earlier `write(['j'])` is REVERSED with the newer one — the ADDRESS-WIDE reach `M-5`'s amendment WITHDREW. `M-5` (a)(ii) puts an entry older than the named op IN NO WALK: the earlier value STANDS, and a rollback that reverses it is the OVERSHOOT the architect's second ruling (*"Overshoot is a defect."*) names a defect.** **The older row's own reason survives and is NOT retracted: a rollback reversing ONE entry and leaving the OTHER *unreversed in its own scope* would still be `M-8`/`DD-20`'s partial rollback — `M-8` is total over the scope `M-5` fixes, not over the address** |
+| 2 | **NG-11** · `restoredTo` and the reads that follow — **⟶ SUPERSEDED `2026-10-16` AND RE-DERIVED AT `§11`** | **`§6.4` item 3 (ii) + `M-5`'s amended scope + `M-9` + `M-10` + `§6.2` property 1 + `§2.2`'s walk** | **the row's as-filed expectation was `restoredTo.present = false` and `AddressNotFound` at every tier after the rollback — the state of an address whose WHOLE history was reversed. Under `M-5` (a)(ii) the earlier value STANDS, so `restoredTo` reports it PRESENT and the reads answer it. Item 3 (ii)'s own rule is UNMOVED and is what decides both readings: `restoredTo` is *"the state the addressed subtree ACTUALLY stands at — present or absent, NEVER an undone entry's pre-state"*** |
 | 3 | **NG-11** · the delete that follows | **`§4.3`/`§4.4` `D-4`** first, then **`D-1`/`D-2`/`D-3` + `DD-9` + `§6.1` item 1** on their own stores | that a delete succeeds at the address the rollback had just emptied: *"a delete that removed nothing is a SUCCESS"* is `D-3`/`DD-9` and belongs to an address that **RESOLVES**, while an address resolving to nothing is `D-4`'s failure |
 | 4 | **NG-08** · the register read under a passed set | **`§4.2`'s reconciliation clause (b) + `DD-31` + `§4.1`'s reconciliation** | that `read([], {file})` over a `temp`-only register key answers `TierNotFound` — the reading `§4.2`'s **as-filed** cell carried and the **fifth bounded amendment WITHDREW**; the read now answers `Ok(Object({}))` with the member OMITTED and NO code, which is `DD-31`'s own worked example (*"the empty object `DD-1` declares where nothing is left to assemble"*) |
 
@@ -1135,3 +1138,97 @@ section's header.**
    - **(b) THE HARNESS'S `g5_ap_07` NOW DRIVES BOTH ARMS: it asserts part `3`'s four observables and the write's success IF THE CONSTRUCTION RETURNS AN INSTANCE, and `FilePathUnreachable` IF IT REFUSES, with the link's own survival and the parent's entry count asserted in both arms** (`target/blind-ap-harness/src/main.rs`, `g5_ap_07`). **AGAINST THE FIXED CODE THE REFUSAL ARM IS THE ONE TAKEN, SO THE FOUR `FAIL`s' ASSERTIONS ARE NOT REACHED — the observables the pre-fix run falsified are not falsified vacuously, they are not asserted at that input.** **AND THAT CHANGES THE ARITHMETIC OF THE TOTAL: the pre-fix total is `107 PASS + 3 PASS + 4 FAIL` in `G5-AP-07` (the `3` its refusal-arm assertion does not cover), while the post-fix refusal arm carries THREE assertions where the success arm carried FIVE — so the SAME HARNESS AT THE FIXED CODE YIELDS FEWER ASSERTIONS EXECUTED, AND `107 · 0` IS NOT DERIVABLE FROM THE FIXED SOURCE BY ADDITION.**
    - **(c) THIS REVIEW RAN NOTHING.** **A documentation review holds no shell: `cargo run --offline` from `target/blind-ap-harness/` was NOT run, so the `107 · 0` figure is REPORTED AS GIVEN AND IS NEITHER CONFIRMED NOR REFUTED HERE** — and the figure that CAN be settled without running anything is the one a reader can check: **the fixed code refuses the dangling-symlink state, which is what the four `FAIL`s were about.** **THE DISCREPANCY IS FILED AS A FINDING AND NOT AS A DISAGREEMENT: A RE-RUN OF THE NAMED HARNESS OWES THIS SECTION ITS OWN TRANSCRIPT AT THE PATH ABOVE, AND A `107 · 0` THAT IS NOT REPRODUCED FROM THE FIXED SOURCE IS A FIGURE WITHOUT A DRIVE.**
 4. **AND WHAT THE FIX DID NOT CHANGE, VERIFIED AT THE SOURCE AND PRINTED SO THE LIMITATION IS NOT READ AS A GAP: `permissions()` AND `readonly()` NOW OCCUR NOWHERE IN `src/**`.** **`§10`'s own harness still CALLS `metadata().permissions().readonly()` once — at its `0o200` observation, where the mode-bit word is printed BESIDE the kernel's answer precisely because the two diverge (`DEF-20`).** **SO THE WITHDRAWN READING SURVIVES ONLY AS A DIAGNOSTIC IN A BLIND HARNESS, WHICH IS THE ONE PLACE IT STILL HAS A JOB; the code no longer decides anything by it** (`§10`'s `G5-AP-06` row; `docs/defects.md`'s `DEF-20` re-filing clause and its gate-7 correction).
+
+---
+
+### §12. THE TEMPORAL-STOP RE-DERIVATION — the assertions that still read the **WITHDRAWN ADDRESS-WIDE SCOPE**, and their re-derivation to `M-5`'s amended scope (`2026-10-16`)
+
+**THE INSTRUMENT THAT MOVED, AND IT IS TWO RULINGS, BOTH VERBATIM: *"Add temporal stop to the rollback."*
+AND *"Overshoot is a defect."*** **`write-and-read.md §6.4` item 1's `⟶ AMENDED 2026-10-16` clause (at
+`contract.md §6.4` item 1 at the same bytes) REPLACES the address-wide scope with a SPATIAL test AND a
+TEMPORAL test:** **an entry `E` is in scope IFF `op.address` is a prefix of `E.address` (item 1 (a)(i),
+`DD-21`, UNMOVED) **AND** `E.seq` ≥ THE NAMED OP'S OWN `seq` (item 1 (a)(ii)) — *"AN ENTRY AT OR AFTER THE
+NAMED OP, WITHIN ITS SUBTREE, AND NOTHING OLDER"*, `≥` NOT `>` — so **a pre-existing value at the rolled-back
+op's own address SURVIVES the rollback that reverses that op.** **`M-7`'s direction is UNMOVED and only its
+STOP moves: the walk ends AT THE NAMED OP (`write-and-read.md §6.4` item 3's dated clause).** **`M-6`, `M-8`,
+`M-9`, `M-10` and the `16`-member fail set are UNMOVED in every cell, and no code is minted.**
+
+**⟶ AND THE OBSERVABLE ON A FLOOR-MEETING WINDOW IS NOT A PLAIN `read`** — **`write-and-read.md §6.4` item
+1A, at `contract.md §6.4` item 1A at the same bytes:** **(A1) `undoneOps` contains no `opId` whose entry lies
+at or under the rolled-back address with `seq` below the named op's — read on EVERY window; (A2) where the
+calls returned and at least one undid an entry at or under the seed's address, the seed's own `opId` is
+absent from the union of the returned `undoneOps`.** **A plain `read` is REFUSED AS THE TEST there because
+the un-compacted entries are compressed into the base state and the value then agrees with the property's
+NEGATION; it is retained only as (A2)'s supporting evidence on a window where the compacted floor is not in
+play.**
+
+**THE ENUMERATED SET, MEASURED AT THIS FILE RATHER THAN REPORTED, WITH EACH ASSERTION'S OWN TERM.** **`NG-12`
+carries `13` assertions (this document's own per-scenario rows print `13 PASS · 0 FAIL` at `:131`, and the
+gate-5, gate-6, gate-5-record and `§9.2` figures agree) and **THIRTEEN IS ALSO THIS FILE'S SENTENCE-LEVEL
+COUNT, NOT THIRTEEN ASSERTIONS AND NOT THE THIRTEEN THE ROW PRINTS — the coincidence is stated so no reader
+adds the two.** **Of the `13` assertions, `3` ARE RE-DERIVED — the ones whose SUBJECT is the scope — and
+`10` are UNMOVED, each because its subject is a term `M-5`'s amendment does not move (`M-8` totality over the
+scope, `M-7`'s order, `M-9`'s mark, `M-9`'s no-append, `M-11`, the descendant's later op, the unrelated key,
+`undoneOps`' performed-reversal rule, `restoredTo`'s ACTUAL-state rule at an address nothing else touched,
+`seq`'s continuation).**
+
+| # | the assertion (`NG-12`) | its subject | the clause it now derives from | SUBJECT moved or VALUE moved |
+| --- | --- | --- | --- | --- |
+| 1 | **the named op's own entry IS reversed** | the scope | `§6.4` item 1 (a)(ii)/(b): `≥`, not `>`, *"the named op itself must be reversed or nothing is"* | **NEITHER — asserted unchanged**, and the `≥` is what makes it hold |
+| 2 | **a descendant's LATER operation is reversed** (`seq` above the floor, address below the named op's) | the scope | `§6.4` item 1 (a)(i)+(a)(ii); `M-8` | **NEITHER — asserted unchanged**; the entry satisfies both tests |
+| 3 | **an operation at or under the same address whose `seq` is BELOW the named op's is REVERSED BY NOTHING** | **the scope** | `§6.4` item 1 (a)(ii); `M-7` as amended (§6.4 item 3); the second ruling *"Overshoot is a defect."* | **SUBJECT MOVED.** The assertion is re-derived: `undoneOps` names no id older than the named op (item 1A **(A1)**), and the older entry's `opId` is absent from it (item 1A **(A2)**) |
+| 4 | **`undoneOps` is REVERSE APPEND order (newest first), over the entries the temporal scope bounded** | the order | `§6.4` `M-7` (direction UNMOVED) | **VALUE MOVED, SUBJECT KEPT** — the list is shorter by the older entry; the newest-first rule is the same rule |
+| 5 | **the OLDER same-address value STANDS after the rollback** | **the state** | `§6.4` item 1's amended observable (*"a pre-existing value … survives the rollback that reverses that op"*) with **item 1A (A2)** — the id, not the value | **SUBJECT MOVED.** The old premise (*"the address holds nothing"*) is WITHDRAWN; the assertion is now item 1A's membership test, and the plain `read` is supporting evidence only |
+| 6 | **`restoredTo` reports the state the address ACTUALLY stands at** | the record | `§6.4` item 3 (ii) — *present or absent, never an undone entry's pre-state* — which is UNMOVED; only the state it reports has changed | **VALUE MOVED, SUBJECT KEPT** — from `{present: false}` to `{present: true}` carrying the surviving value. **The same move lands the red set's `s6_3_restored_to_…` cell** |
+| 7 | **the reads at every tier answer the surviving value** (where they previously answered `AddressNotFound`) | the state | `§6.4` item 1's amended observable; `§2.2`'s walk | **VALUE MOVED, SUBJECT KEPT** — the reads still run and still answer, now with the seed |
+| 8 | **an unrelated key is untouched** (`M-5`/`DD-21`) | the spatial exclusion | `§6.4` item 1 (a)(i) | **NEITHER — asserted unchanged** |
+| 9 | **`M-9`'s mark: a second rollback over an UNDONE entry fails `RollbackCompacted`** | the mark | `§6.4` `M-9` + `M-6` | **NEITHER — asserted unchanged.** **And the mark is read off a DIFFERENT entry where assertion 3 moved: the unaffected older entry was NEVER undone, so it carries NO mark and MUST NOT refuse** |
+| 10 | **`M-9`: a rollback appends NO entry** | the residue | `§6.4` `M-9` | **NEITHER — asserted unchanged** |
+| 11 | **`M-10`: a failed rollback leaves the store unchanged** | the residue | `§6.4` `M-10` | **NEITHER — asserted unchanged** |
+| 12 | **`M-11`: an op id the journal does not hold fails `JournalOpUnknown`** | the identity | `§6.4` `M-11` (`§8.1` #10) | **NEITHER — asserted unchanged** |
+| 13 | **`seq` continues after the rollback** (`w_z.op.seq + 2` with the intervening write) | the ordinal | `§6.2`; `§6.1` item 1 | **NEITHER — asserted unchanged**; a rollback is not a tracked verb and the temporal floor mints no entry |
+
+**THE SENTENCE-LEVEL SET (the premises and outcomes that NAME the withdrawn scope), MEASURED, `5` SITES AT
+`5` ROWS THIS PASS EDITS AND THEIR OLD LINE NUMBERS PRINTED AS THE REPORT THEY ARE:** **`:83`** (the `§1`
+scenario row — *"the rollback's reach over every operation touching the same subtree"*, which read as the
+address-wide reach) · **`:131`** (the `§2` per-scenario verdict — *"leaves an unrelated key standing"* and
+nothing about the older same-address entry) · **`:320`–`:323`** (the `F-DOC-1` closing paragraph's
+*"PASSES all 13 of its assertions … driven **unchanged**"*) · **`:521`–`:522`** (the `§6` gate-5 record's rows
+`1` and `2`, which record the ADDRESS-WIDE expectation as the pass's corrected reading) · **`:82` and `:273`–
+`:298` are the `NG-11` row and the `F-DOC-1` body — REPORTED AND NOT OF THIS SET**, because the `NG-11` row's
+subject is the entry-formation rule's ordinal arithmetic and `F-DOC-1`'s subject is the clause-versus-store
+finding**, and neither asserts the scope's reach as its own subject; both are named here so the census is
+complete rather than short.**
+
+**WHICH OF THE `18` SCENARIOS THIS TOUCHES, CENSUSED RATHER THAN GUESSED: `NG-12` (the scope scenario) and
+`NG-11` (whose same-address rollback is one of its `39` assertions) carry the scope; `NG-13` drives `M-6`'s
+floor and `NG-16` drives a returned `opId`'s acceptance by `rollback` — `25` assertion-bearing rows across
+`18` scenarios stand in this document, `3` of `NG-12`'s `13` are re-derived here, `1` of `NG-11`'s `39` is
+SUPERSEDED by the same ruling and is re-derived at `§6`'s rows `1`–`2` and at the red set's own cell, and the
+rest stand.**
+
+**AND WHETHER A HARNESS DRIVES IT — ASKED AND ANSWERED, BECAUSE A GREENS SET THAT PASSED ON A DEFECT MUST SAY
+WHICH INSTRUMENT PASSED.** **This document is a RECORD of a scenario set, not a live one: its own harness was
+`/tmp/storeroom-blind/` — which §0's clause (1) above declares DOES NOT EXIST on this machine and is not in
+this repository — and its `NG-12` source file (`gNN.rs` under that harness) is GONE with it, so **NOTHING IN
+THIS REPOSITORY RUNS `NG-12` AND ITS `13 PASS · 0 FAIL` IS A RECORDED FIGURE, NOT A RE-MEASURABLE ONE.** **No
+other harness in the tree drives `NG-01`…`NG-18`:** the repository's `bindings/js/greens/greens.mjs` drives
+`storeroom-js-greens.md`'s `JSG-*` set (**and its `JSG-11.14`/`JSG-11.15`/`JSG-11.16` drive the SEPARATE
+FRESH-ADDRESS window, which `M-5`'s amendment does not move — the seed there is the un-done entry itself, not
+a pre-existing value, so those three are correctly UNCHANGED and are reported as such rather than re-derived
+here**), `live-drive.mjs` and `file-tier-save/scenarios.mjs` drive their own sets, and `npm test`'s four
+suites drive the JS surface. **SO THE ANSWER IS: THIS GREENS SET PASSED ON THE DEFECT AT AN INSTRUMENT THAT
+NO LONGER EXISTS, AND RE-MEASURING ITS RE-DERIVED CELLS REQUIRES A NEW HARNESS — which this document may not
+author (it is a document) and which this pass therefore REPORTS rather than fakes.**
+
+**NO ASSERTION WAS WEAKENED AND NONE WAS DELETED.** **The three re-derived cells assert MORE than their
+predecessors: the performed set's own membership (`A1`/`A2`), the surviving entry's own `opId`, and the mark's
+ABSENCE on the entry the scope never reached — a store that overshot the temporal floor fails all three,
+which the withdrawn cells could not detect because they asserted the overshoot as the law.** **NO FIGURE ON
+ANY RUN ROW ABOVE IS REWRITTEN: `13 · 0` stands as that pass's recorded count of ITS OWN cells, and this
+section is the LATER reading that re-derives three of them.** (`[T: the superseded address-wide assertions,
+their re-derivation to `M-5`'s amended scope, the observable item 1A fixes, and the harness that no longer
+exists | CONTRACT]`; `write-and-read.md §6.4` items 1, 1A, 3, 4, 5, 6 and `§6.2`; `contract.md §6.4` items 1,
+1A and 3 at the same bytes; the rulings, verbatim and dated `2026-10-16`: *"Add temporal stop to the
+rollback."* AND *"Overshoot is a defect."*; `docs/specs/storeroom-native/implementation-plan.md §11.1` row
+`14`, which routed exactly this set here.)
