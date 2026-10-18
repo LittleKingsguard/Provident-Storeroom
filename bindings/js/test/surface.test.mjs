@@ -85,14 +85,21 @@ async function fileCommit(inst, address, value) {
   return runAttempt(inst, commit(inst, address, 'file', value));
 }
 
-/// The one failure form's own predicate — `surface.md §2.5` items 1–3.
+/// The one failure form's own predicate — **`surface.md §2.5` item 4** (*"the three-member member set is
+/// therefore FLAT ACROSS ARMS and not conditional"*) **read with item 9** (*"`Object.keys(caught)` reads
+/// exactly `["log","message","status"]` … `log` is NEVER ABSENT, NEVER `null` and NEVER a non-array"*):
+/// exactly `{log, message, status}`, a plain object of the caller's realm, `log` an ARRAY on every arm, and
+/// no `Error` subclass. **RE-DERIVED FROM THE SUPERSEDED TWO-MEMBER SET, 2026-10-16** — the `status` and
+/// `message` limbs are unmoved.
 function isTheFailureForm(err) {
   return (
     err !== null &&
     typeof err === 'object' &&
     !Array.isArray(err) &&
     Object.getPrototypeOf(err) === Object.prototype &&
-    Object.keys(err).sort().join(',') === 'message,status' &&
+    Object.keys(err).sort().join(',') === 'log,message,status' &&
+    Object.keys(err).length === 3 &&
+    Array.isArray(err.log) &&
     typeof err.status === 'string' &&
     typeof err.message === 'string' &&
     err.message.length > 0 &&
@@ -529,12 +536,39 @@ test('address_the_package_performs_no_arity_check_of_its_own', () => {
 // `§2.5` the single failure form, at its own throw site
 // ---------------------------------------------------------------------------------------------
 
-test('failure_form_the_thrown_object_is_a_plain_two_member_record', () => {
+// **⟶ RE-DERIVED 2026-10-16 — THE CELL'S WHOLE SUBJECT WAS THE THROWN RECORD'S MEMBER SET, AND THAT SET
+// IS NOW THREE MEMBERS AND NOT TWO** (`surface.md §2.5` item 4: *"the three-member member set is therefore
+// FLAT ACROSS ARMS and not conditional"*; item 9: *"`Object.keys(caught)` reads exactly
+// `["log","message","status"]` and `Object.keys(caught).length` is `3` on EVERY arm"*). **THE CELL IS
+// RE-DERIVED RATHER THAN DELETED: its subject is the same one — the thrown record's plain shape at its own
+// throw site — and the `AddressNotFound` status it pinned is UNMOVED.** The member-set limb now reads the
+// three declared members, and the arm is a `[]` arm: a `read` whose address is absent opens no attempt
+// (`§2.5` item 4's own enumeration), so the empty array is the DECLARED value.
+test('failure_form_the_thrown_object_is_a_plain_three_member_record', () => {
   const inst = mem();
   assert.throws(
     () => inst.read(['gone']),
     (err) => isTheFailureForm(err) && err.status === 'AddressNotFound',
   );
+  // AND THE MEMBER SET READ DIRECTLY OFF THE CAUGHT VALUE, so the census does not rest on the predicate
+  // alone (`surface.md §2.5` item 9).
+  let caught = null;
+  try {
+    inst.read(['gone']);
+  } catch (err) {
+    caught = err;
+  }
+  assert.deepEqual(Object.keys(caught).sort(), ['log', 'message', 'status'],
+    'the thrown record carries EXACTLY the three declared members, sorted ascending — FLAT across every '
+    + 'arm of this surface (`surface.md §2.5` item 4; item 9)');
+  assert.equal(Object.keys(caught).length, 3,
+    '`Object.keys(caught).length` is `3` on this arm (`surface.md §2.5` item 9)');
+  assert.ok(Array.isArray(caught.log),
+    '`log` is an ARRAY — never absent, never `null`, never a non-array (`surface.md §2.5` item 9; '
+    + '`parameter-semantics.md §2.26`\'s `domain` cell)');
+  assert.deepEqual(caught.log, [],
+    'and a `read` with no attempt live carries `log: []` — the empty array and never a placeholder entry '
+    + '(`surface.md §2.5` item 4)');
 });
 
 test('failure_form_the_prototype_is_the_caller_realms_object_prototype', () => {
@@ -545,7 +579,16 @@ test('failure_form_the_prototype_is_the_caller_realms_object_prototype', () => {
   } catch (err) {
     assert.equal(Object.getPrototypeOf(err), Object.prototype);
     assert.ok(!(err instanceof Error), 'no Error subclass (DD-12)');
-    assert.equal(err.stack, undefined, 'no third member, and no `stack`');
+    // **⟶ RE-SPELLED 2026-10-16**: the as-filed label read *"no third member, and no `stack`"*, and the
+    // form NOW DECLARES a third member (`log`, `surface.md §2.5` item 4), so the label would name the
+    // opposite of the law. **THE ASSERTIONS THEMSELVES ARE UNMOVED AND NOTHING IS WEAKENED**: these four
+    // members are absent exactly as they were, and they are absent because they are NOT members the form
+    // declares — **the descriptor clause (`§2.5` item 9) puts `log` ON THE OBJECT AS AN ORDINARY OWN
+    // ENUMERABLE DATA MEMBER, which is precisely why an `Error`-shaped apparatus stays off it.** A `stack`
+    // or a `code` member appearing here would be a FINDING at the site that produced it.
+    assert.equal(err.stack, undefined,
+      'no `stack` — the form declares `log`, `message` and `status` and no `Error` apparatus '
+      + '(`surface.md §2.5` item 9: ordinary own enumerable data members, no prototype entry and no getter)');
     assert.equal(err.code, undefined);
     assert.equal(err.cause, undefined);
     assert.equal(err.name, undefined);

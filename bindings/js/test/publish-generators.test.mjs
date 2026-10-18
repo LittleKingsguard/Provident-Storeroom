@@ -95,13 +95,27 @@ const GEN_TAIL = 'is not reachable at construction, the path must exist or the a
 const gen = (subject) => `'${subject}' ${GEN_TAIL}`;
 const RUNG_ONE_TAIL = FIVE_NAMES[0];
 
-/** `§1.4` item 1 — the arm's form, exactly, as the observer reports it. */
+/** `§1.4` item 1 read with `surface.md §2.5` items 4 and 9 — the arm's form, exactly, as the observer reports it. */
 function assertArmHere(report) {
   const A = report.arm;
   assert.ok(A && A.notTheArm !== true,
     `no declared arm was thrown; the report was ${JSON.stringify(report).slice(0, 500)}`);
-  assert.deepEqual(Object.keys(A), ['status', 'message'],
-    '`§1.4` item 1: the member set is EXACTLY `{status, message}` — no third member, and no minted code');
+  // **⟶ RE-DERIVED TO THE THREE-MEMBER FORM: the member-count limb moves from two to three.** The count was
+  // `§1.4` item 1's *"no third member"*, the two-member `Refusal` struct and `DD-12` — **SUPERSEDED BY THE
+  // ARCHITECT: `surface.md` `§2.5` ITEM 4 (*"\`log\` IS PRESENT ON EVERY FAILURE THIS SURFACE THROWS … FLAT
+  // ACROSS ARMS and not conditional"\*) read with ITEM 9 (*"\`Object.keys(caught)\` reads exactly
+  // \`[\"log\",\"message\",\"status\"]\` and \`Object.keys(caught).length\` is \`3\` on EVERY arm"\*).** **THE THREE
+  // LIMBS BELOW IT ARE UNMOVED**: the store-member status (\`PUB-DD-17\`), its CLOSED-set membership (\`§0.1\`
+  // item 7) and the \`string\` message.
+  assert.deepEqual(Object.keys(A).sort(), ['log', 'message', 'status'],
+    '`surface.md §2.5` items 4 and 9: the member set is EXACTLY `{log, message, status}` — FLAT across arms '
+    + 'and not conditional; no minted code and no member outside the declared set');
+  assert.equal(Object.keys(A).length, 3,
+    '`surface.md §2.5` item 9: `Object.keys(caught).length` is `3` on every arm');
+  assert.equal(Array.isArray(A.log), true,
+    '`surface.md §2.5` item 9: `log` is an ARRAY — never absent, never `null`, never a non-array');
+  assert.equal(A.log.length, 0,
+    '`surface.md §2.5` item 4: `[]` is the declared value where the cause has NO ATTEMPT AT ALL');
   assert.equal(A.status, ARM_STATUS, '`PUB-DD-17`: the status is the store\'s own member, carried verbatim');
   assert.ok(CLOSED_SET.includes(A.status), '`§0.1` item 7: no status outside the store\'s closed set');
   assert.equal(typeof A.message, 'string', 'the message is a JS string');
@@ -186,12 +200,22 @@ const STUB = process.env.PUBGEN_STUB;
 const req = createRequire(import.meta.url);
 const say = (o) => { process.stdout.write(MARK + JSON.stringify(o) + '\\n'); };
 const CLOSED_SET = ${JSON.stringify(CLOSED_SET)};
+// **⟶ RE-DERIVED TO THE DECLARED THREE-MEMBER FORM: THE MEMBER-COUNT LIMB MOVES FROM TWO TO THREE, AND
+// EVERY OTHER LIMB THIS OBSERVER ASSERTS IS KEPT WORD FOR WORD.** The count came from \`§1.4\` item 1 and the
+// two-member \`Refusal\` struct (\`DD-12\`'s *"EXACTLY two members, no third"*) — **BOTH SUPERSEDED BY THE
+// ARCHITECT, whose active clause is \`surface.md\` \`§2.5\` ITEM 4 (*"\`log\` IS PRESENT ON EVERY FAILURE THIS
+// SURFACE THROWS … The three-member member set is therefore FLAT ACROSS ARMS and not conditional"*) read with
+// ITEM 9 (*"\`Object.keys(caught)\` reads exactly \`[\"log\",\"message\",\"status\"]\` and
+// \`Object.keys(caught).length\` is \`3\` on EVERY arm of this surface"*).** **UNMOVED**: the plain-object test
+// (\`!(err instanceof Error)\`), the CLOSED-set membership of \`status\` (\`§0.1\` item 7; \`PUB-DD-17\`), and the
+// two store members recorded onto \`report.arm\` for the generators to read.
 function recordArm(err) {
   if (err !== null && typeof err === 'object') {
     const own = Object.keys(err);
-    if (own.length === 2 && own.includes('status') && own.includes('message') && !(err instanceof Error)
-        && CLOSED_SET.includes(err.status)) {
-      report.arm = { status: err.status, message: err.message };
+    if (own.length === 3 && own.includes('log') && own.includes('status') && own.includes('message')
+        && !(err instanceof Error) && CLOSED_SET.includes(err.status)
+        && Array.isArray(err.log) && err.log.length === 0) {
+      report.arm = { status: err.status, message: err.message, log: err.log };
     } else {
       report.arm = { notTheArm: true, name: err.constructor ? err.constructor.name : 'unknown', code: err.code ?? null, message: String(err.message ?? err).slice(0, 200) };
     }
@@ -745,7 +769,14 @@ generator('NG-PUB-C', 'a throwing version() is the arm, never a fallback to a lo
     const r = drive(env, { platform: COVERED[0].platform, arch: COVERED[0].arch });
     assert.equal(r.stub?.calls?.version, 1, 'the read WAS attempted — the throw is the read\'s own outcome');
     assert.ok(r.arm !== null && r.arm.notTheArm !== true, 'a throwing read is the single declared arm');
-    assert.deepEqual(Object.keys(r.arm), ['status', 'message'], '§1.4 item 1: exactly two members');
+    // **⟶ RE-DERIVED TO THE THREE-MEMBER FORM** (`surface.md` `§2.5` items 4 and 9; the `§1.4` item 1
+    // *"no third member"* half and `DD-12`'s two-member `Refusal` are SUPERSEDED by the Architect). The
+    // generator's own claim is kept: ONE arm, its declared member set, nothing minted.
+    assert.deepEqual(Object.keys(r.arm).sort(), ['log', 'message', 'status'],
+      '`surface.md §2.5` items 4 and 9: the member set is EXACTLY `{log, message, status}`');
+    assert.equal(Object.keys(r.arm).length, 3, '`surface.md §2.5` item 9: and its length is `3`');
+    assert.equal(Array.isArray(r.arm.log) && r.arm.log.length === 0, true,
+      '`surface.md §2.5` item 4: `log` is the EMPTY ARRAY where the cause has no attempt at all');
     assert.equal(r.arm.status, ARM_STATUS, 'and the status is the store\'s own member, never a minted one');
     assert.equal(r.returned, false, 'and NO instance is returned beside the arm');
     assert.equal(r.requests.filter(isRungTwo).length, 0,
@@ -912,27 +943,37 @@ generator('NG-PUB-F', 'an artefact with no usable generator names rung one\'s pa
     }),
     // (2) THE SUB-CASE IS ANSWERED BY A SECOND FAILURE SHAPE — the `alt` `§1.4` item 7 prices and REFUSES.
     // **⟶ RE-CUT BY THE `F-14` PASS (`§13`): THE AS-FILED FORM MUTATED THE `addonArm` ASSIGNMENT ALONE, AND
-    // THE SHIPPED `fail()` RECONSTRUCTS THE TWO MEMBERS OUT OF THE REFUSAL IT IS HANDED**
-    // (`throw { status: refusal.status, message: refusal.message }`, `index.mjs:347` — *"mints no code of its
-    // own … and adds no third member"*), **so a `code` minted at that site was DROPPED before it reached any
-    // consumer and the control was INERT — it PASSED the generator, which is the `F-14` class exactly: a check
-    // that appeared to fail for the right reason and did not.** **THE AS-FILED SUBSTITUTION, RE-EMITTED
-    // VERBATIM** — `return text.replace(before, "        addonArm = { status: 'FilePathUnreachable', message:
-    // mismatchArmMessage(candidate, name), code: 'AddonVersionMismatch' };");` — **IS KEPT, AND THE MUTANT IS
-    // ALSO MINTED at the ONE place this unit's arm acquires its member set, so the second shape really REACHES
-    // the consumer. THE PROPERTY AND THE ASSERTIONS ARE UNTOUCHED: only the control's site set moved, and it
-    // now fails the generator at the shape clause it is cut for.**
+    // THE SHIPPED `fail()` RECONSTRUCTS THE ARM OUT OF THE REFUSAL IT IS HANDED**
+    // (`throw { status: refusal.status, message: refusal.message, log: refusalLog(log) }`,
+    // `index.mjs:462` — *"mints no code of its own"*), **so a `code` minted at that site was DROPPED before it
+    // reached any consumer and the control was INERT — it PASSED the generator, which is the `F-14` class
+    // exactly: a check that appeared to fail for the right reason and did not.** **THE AS-FILED SUBSTITUTION,
+    // RE-EMITTED VERBATIM** — `return text.replace(before, "        addonArm = { status:
+    // 'FilePathUnreachable', message: mismatchArmMessage(candidate, name), code: 'AddonVersionMismatch' };");`
+    // — **IS KEPT, AND THE MUTANT IS ALSO MINTED at the ONE place this unit's arm acquires its member set, so
+    // the second shape really REACHES the consumer. THE PROPERTY AND THE ASSERTIONS ARE UNTOUCHED: only the
+    // control's site set moved, and it now fails the generator at the shape clause it is cut for.**
+    //
+    // **⟶ AND THE SECOND SITE IS RE-CUT AGAIN, BECAUSE THE `F-14` CUT WAS ANCHORED ON THE SUPERSEDED TWO-MEMBER
+    // THROW.** The anchor read `  throw { status: refusal.status, message: refusal.message };` — the form the
+    // TWO-MEMBER `Refusal` struct and `DD-12` licensed. **THE ARCHITECT HAS OVERRIDDEN THAT FORM AND THE
+    // IMPLEMENTATION NOW THROWS THREE MEMBERS** (`surface.md` `§2.5` items 4 and 9; `index.mjs:462` above), so
+    // the old anchor matched NO byte of the shipped entry and this control FAILED AT ITS OWN `assert.ok`,
+    // reporting *"the entry's one arm-building site moved"* rather than measuring the shape it is cut for.
+    // **THE ANCHOR MOVES TO THE SHIPPED THREE-MEMBER THROW AND `code` IS STILL THE MEMBER MINTED OUTSIDE THE
+    // DECLARED SET — the `alt` second shape `§1.4` item 7 prices and refuses — so the control measures exactly
+    // what it measured before: a member outside `{log, message, status}` must not reach a consumer.**
     'control-the-sub-case-mints-a-second-shape': controlEntry('NG-PUB-F', (text) => {
       const before = `        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name) };`;
       assert.ok(text.includes(before), 'NG-PUB-F: the mismatch arm site moved; the control must be re-cut');
-      const memberSite = `  throw { status: refusal.status, message: refusal.message };`;
+      const memberSite = `  throw { status: refusal.status, message: refusal.message, log: refusalLog(log) };`;
       assert.ok(text.includes(memberSite),
         'NG-PUB-F: the entry\'s one arm-building site moved; the control must be re-cut where the member set is built');
       return text
         .replace(before,
           "        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name), code: 'AddonVersionMismatch' };")
         .replace(memberSite,
-          "  throw { status: refusal.status, message: refusal.message, code: 'AddonVersionMismatch' };");
+          "  throw { status: refusal.status, message: refusal.message, log: refusalLog(log), code: 'AddonVersionMismatch' };");
     }),
     // (3) THE ARM (b) FALLBACK ITSELF NAMES A PATH THE WALK NEVER TRIED.
     // **⟶ RE-CUT BY THE `F-14` PASS (`§13`), AND THE AS-FILED SITE IS KEPT BESIDE THE NEW ONE.** `absentSubject()`

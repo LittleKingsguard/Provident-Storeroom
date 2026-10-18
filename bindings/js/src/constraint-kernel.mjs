@@ -131,8 +131,27 @@ const SETTLED_ON_THE_PASSING_ARM = Symbol.for('provident-storeroom.settled-on-th
 const SAVE_FAILED_AT_THE_TERMINAL_ARM = Symbol.for('provident-storeroom.save-failed-at-the-terminal-arm');
 
 /** `fail-surface.md §1.1` — ONE THROWN PLAIN OBJECT, EXACTLY THREE MEMBERS, NEVER AN `Error`. */
+const KERNEL_REFUSAL = Symbol.for('provident-storeroom.kernel-refusal');
 function refuse(status, message, log) {
-  throw { status, message, log: log === undefined ? [] : log };
+  throw {
+    status,
+    message,
+    log: log === undefined ? [] : log,
+    [KERNEL_REFUSAL]: true,
+  };
+}
+
+/// **WHETHER A VALUE IS A REFUSAL THIS KERNEL BUILT** — the entry's crossing and this kernel's own repair
+/// arm both ask this and nothing else.
+///
+/// **IT IS NOT AN EXPORT, AND THE REASON IS THE SPEC'S OWN CLOSED COUNT:** `kernel-surface.md §1` item 2
+/// declares the module's export set as **EXACTLY the five `K-1`–`K-5` items** — *"the kernel exports no
+/// route, no addon handle and no sixth name"* — so a predicate exported from here would be a SIXTH NAME and
+/// a FINDING. **The mark is therefore read through the `Symbol.for` key itself, which both sides spell**
+/// (`KERNEL_REFUSAL` above), and the fact travels on the VALUE rather than in the module's namespace —
+/// exactly as `SETTLED_ON_THE_PASSING_ARM` and `SAVE_FAILED_AT_THE_TERMINAL_ARM` already travel.
+function isKernelRefusal(value) {
+  return value !== null && typeof value === 'object' && value[KERNEL_REFUSAL] === true;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -908,10 +927,24 @@ function evaluate(kernel, attempt, landing) {
         // (the store's form is `{status, message}`, carrying no `log` member — `§1.2` item 2; the
         // kernel's own form carries three members, and a `KC` token is never named as a store code).
         // The entry's `state` stays `null`; the thrown form's `status` is `KC-4`.
+        // **⟶ THE TEST THAT THIS THROWABLE IS *NOT* THE KERNEL'S OWN WAS `!('log' in body)`, AND THAT
+        // TEST DIED ON 2026-10-16 WITH THE FLAT `log` RULING — THIS IS THE SECOND SITE THE RULING BROKE AND
+        // IS REPORTED AS A FINDING, NOT SILENTLY REPAIRED.** The old test read *"the store's form carries two
+        // members and the kernel's carries three, so a `log` member means the kernel built it"*. **`surface.md
+        // §2.5` item 4 now puts `log` on EVERY failure the JS surface throws, so a STORE REFUSAL REACHING
+        // THIS FRAME THROUGH THE PACKAGE CARRIES A `log` AND THE OLD TEST READ IT AS THE KERNEL'S OWN** —
+        // measured: the two `S-JOIN` `WriteParentNotLink` cells went red with the caller's `status` reading
+        // `WriteParentNotLink` instead of `KC-4`, because `storeCode` was answered `null` and the refusal fell
+        // through to the unconverted `throw body` below.
+        //
+        // **THE REPLACEMENT IS THE SAME ONE THE ENTRY'S CROSSING TOOK — THE KERNEL'S OWN REFUSAL-CLASS MARK
+        // AND NEVER A MEMBER'S PRESENCE** (`KERNEL_REFUSAL` above): a value this kernel built is marked, and
+        // everything unmarked that carries a store code IS a store code, whatever members the surface has
+        // attached to it on its way back. A `KC` token is still never a store code on either spelling.
         const storeCode = body !== null && typeof body === 'object'
+          && isKernelRefusal(body) === false
           && typeof body.status === 'string'
           && body.status.length > 0
-          && !('log' in body)
           && !KC_TOKENS.includes(body.status)
           ? body.status
           : null;

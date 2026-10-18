@@ -168,19 +168,28 @@ test('handle_a_mint_is_unique_per_process_and_two_addresses_on_one_instance_diff
   // **WHAT THE CELL ASSERTED BEFORE AND WHAT IT ASSERTS NOW.** As filed it required
   // `err instanceof TypeError && !('status' in err) && !hasOwnProperty(err, 'message')` — the WITHDRAWN
   // form (`§2.4` item 5 (d) as filed). **It now asserts the DECLARED form and its DECLARED CONTENT, and it
-  // is STRONGER rather than weaker:** the record's member set is EXACTLY `{status, message}`; its status is
-  // the closed-set member `AddressMalformed`; **the message carries the FAILING TARGET** — the foreign
-  // handle, rendered as the store's own generator renders a non-segment value, *"PRINTED AS ITS OWN VALUE,
-  // SINGLE-QUOTED"* (`§2.5` item 5 (a)) — **the CLASS that failed** (item 5 (b), whose class half is
-  // MANDATORY: *"the reason is the CLASS the value HAS … never as a class the value could be converted to"*)
-  // **and the POSITION** (item 5 (b): *"the ARGUMENT POSITION for a verb's arguments"* — here `register`'s
-  // FIRST argument); and **nothing reached the store**, which the write below the assertion measures.
+  // is STRONGER rather than weaker:** the record's member set is the THREE members the form declares,
+  // EXACTLY; its status is the closed-set member `AddressMalformed`; **the message carries the FAILING
+  // TARGET** — the foreign handle, rendered as the store's own generator renders a non-segment value,
+  // *"PRINTED AS ITS OWN VALUE, SINGLE-QUOTED"* (`§2.5` item 5 (a)) — **the CLASS that failed** (item 5 (b),
+  // whose class half is MANDATORY: *"the reason is the CLASS the value HAS … never as a class the value
+  // could be converted to"*) **and the POSITION** (item 5 (b): *"the ARGUMENT POSITION for a verb's
+  // arguments"* — here `register`'s FIRST argument); and **nothing reached the store**, which the write
+  // below the assertion measures. **⟶ THE MEMBER-SET LIMB MOVES `2 → 3` ON THE 2026-10-16 CLAUSE, AND NOTHING
+  // ELSE OF THIS DRIVE MOVES** (`surface.md §2.5` item 4: *"the three-member member set is therefore FLAT
+  // ACROSS ARMS and not conditional"*; item 9: *"`Object.keys(caught)` reads exactly
+  // `["log","message","status"]` … `log` is NEVER ABSENT, NEVER `null` and NEVER a non-array"*). **The
+  // `register` `TypeError` is item 4's OWN enumerated `log: []` arm**, so the empty array is asserted as the
+  // DECLARED value and not as an absence (`parameter-semantics.md §2.26`).
   assert.throws(
     () => owner.register(foreign, () => {}),
     (err) =>
       !(err instanceof TypeError) &&
       Object.getPrototypeOf(err) === Object.prototype &&
-      Object.keys(err).sort().join(',') === 'message,status' &&
+      Object.keys(err).sort().join(',') === 'log,message,status' &&
+      Object.keys(err).length === 3 &&
+      Array.isArray(err.log) &&
+      err.log.length === 0 &&
       err.status === 'AddressMalformed' &&
       err.message.includes('[object Object]') && // the failing TARGET (item 5 (a))
       err.message.includes('first argument') && // ...the POSITION (item 5 (b))

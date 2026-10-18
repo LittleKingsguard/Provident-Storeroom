@@ -706,7 +706,7 @@ test('cp_write_path_a_four_position_write_enters_the_kernel_and_the_passing_arm_
     + 'listener of the write\'s own address was delivered (`§2.12` item 1; `§2.7` item 2)');
 });
 
-test('cp_write_path_the_failing_arm_reports_the_declared_two_member_form_and_delivers_no_listener', async () => {
+test('cp_write_path_the_failing_arm_reports_the_declared_three_member_form_and_delivers_no_listener', async () => {
   const inst = makeStore();
   assert.equal(typeof inst.addConstraint, 'function',
     'the ADD route exists before the failing arm can be driven (`§2.12` item 2)');
@@ -719,19 +719,37 @@ test('cp_write_path_the_failing_arm_reports_the_declared_two_member_form_and_del
   assert.equal(body.runs >= 1, true, 'PREMISE: the element was evaluated inside the call and refused');
   assert.equal(r.threw, true,
     'the failing arm reports the failure to the package surface\'s caller (`§2.12` item 1\'s fail arm)');
-  // **THE CROSSING FORM IS DECLARED BY THAT ITEM'S READ-THROUGH CLAUSE OF THIS DATE** — the previous red
-  // set\'s `G3` (which asserted only *"the failure IS reported"*) is retired with it: *"WHAT CROSSES IS THE
-  // SURFACE'S OWN TWO-MEMBER FORM — `{status, message}`, a THROWN PLAIN OBJECT OF EXACTLY THOSE TWO MEMBERS,
-  // `status` a member of the store's closed `16`-member set and `message` the store's own text — AND WHAT
-  // DOES NOT CROSS IS THE KERNEL'S THREE-MEMBER `{status, message, log}`"*. WHICH member the `status` carries
-  // is NOT declared (`G3` above), so the membership alone is asserted.
-  assert.deepEqual(Object.keys(r.thrown).sort(), ['message', 'status'],
-    'the refusal is a thrown plain object of EXACTLY the surface\'s two members — no `log`, no third member '
-    + '(`§2.12` item 1\'s read-through clause; `§2.5`\'s single form)');
+  // **⟶ RE-DERIVED 2026-10-16: BOTH LIMBS THIS CELL ONCE CARRIED ARE SUPERSEDED AT THEIR OWN SITES.**
+  // The as-filed cell read `Object.keys(...)` against `['message','status']` AND asserted
+  // `'log' in thrown === false`. **THE FIRST IS ITEM 4'S (`surface.md §2.5`: *"the three-member member set
+  // is therefore FLAT ACROSS ARMS and not conditional"*); THE SECOND IS ITEM 5'S OWN WITHDRAWAL**, which
+  // disposes of `§2.12` item 1's clause at that clause's cell: *"`§2.12` item 1's clause declares 'WHAT DOES
+  // NOT CROSS IS THE KERNEL'S THREE-MEMBER `{status, message, log}`' … and THAT SENTENCE IS WITHDRAWN BY
+  // THIS MARK — the log DOES cross, and it crosses on this arm."* **SO THE CELL IS RE-DERIVED RATHER THAN
+  // DELETED: ITS SUBJECT WAS THE CROSSING FORM ON THE FAILING ARM, AND THAT SUBJECT IS THE THREE-MEMBER
+  // FORM.** **THIS ARM IS NOT A `[]` ARM AND IS NOT ASSERTED AS ONE**: the refusal is the kernel's own pass
+  // and an attempt is live, so `log` carries THAT ATTEMPT'S OWN ENTRIES (`§2.5` item 4's second half:
+  // *"every failure whose attempt exists carries that attempt's own entries"*), which is why only the
+  // member's TYPE and the presence of the entry the refusal appended are asserted here — the content
+  // clauses are `item 3`'s and are driven at the kernel's own cells (`PAR-JS-26`).
+  assert.deepEqual(Object.keys(r.thrown).sort(), ['log', 'message', 'status'],
+    'the refusal is a thrown plain object of EXACTLY the surface\'s THREE members — FLAT across arms and '
+    + 'not conditional (`§2.5` item 4), sorted ascending with length `3` (item 9)');
+  assert.equal(Object.keys(r.thrown).length, 3,
+    '`Object.keys(caught).length` is `3` on this arm too (`§2.5` item 9)');
   assertStoreRefusal(r.thrown, 'the failing arm\'s refusal');
-  assert.equal('log' in r.thrown, false,
-    'and the kernel\'s `log` member is the attempt\'s own record and reaches NO JS caller on this arm (the '
-    + 'same clause, ground (1): the two members and the one log entry are ON TWO SIDES of the boundary)');
+  assert.equal('log' in r.thrown, true,
+    'the `log` member DOES reach the JS caller on this arm — it is an ORDINARY OWN ENUMERABLE DATA MEMBER '
+    + 'of the thrown object and never absent, never `null`, never a non-array (`§2.5` item 9, whose '
+    + 'descriptor clause is the one that makes a canonical census see it; item 5 withdraws the sentence this '
+    + 'cell once asserted)');
+  assert.ok(Array.isArray(r.thrown.log),
+    'and it is an ARRAY — the attempt\'s own message log, carried verbatim (`§2.5` items 3–4; '
+    + '`parameter-semantics.md §2.26`\'s `domain` cell)');
+  assert.ok(r.thrown.log.length >= 1,
+    'and an attempt WAS live at this refusal, so the list is NOT `[]`: it carries that attempt\'s own '
+    + 'entries, the refusal\'s `outcome` entry among them (`§2.5` item 4\'s second half, read with item 10 '
+    + '(iii) — the log is taken as it stood when the refusal was built)');
   assert.equal(listener.seen.length, 0,
     'and the failing write\'s listeners are NOT delivered (`§2.7` item 7 (d); `§2.12` item 1)');
   const back = capture(() => inst.read(thePair.address, 'mem'));

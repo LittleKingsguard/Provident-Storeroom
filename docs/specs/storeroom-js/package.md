@@ -825,6 +825,12 @@ docs/specs/storeroom-js/crossing.md §1.1 clause 2 — the copy out; A3 docs/spe
 members are the store's own spellings of `§0.2`'s `DD-39`:**
 ```
 struct Refusal                 { status: String, message: String }               // EXACTLY two members, no third
+// ⟶ `RCA-8(g)` ONE-LINE POINTER, AUTHORED 2026-10-16: THIS STRUCT LINE'S *"EXACTLY two members, no third"* IS
+// SUPERSEDED AS A CORE-LAYER CLAIM BY THE ARCHITECT'S RULING *"Override the failure form limit"* OF THIS DATE,
+// READ WITH HIS EARLIER RULING *"Bubble the message log to the client on failure, override any clauses that
+// forbid this"*: THE RECORD STANDS UNMOVED AT THE CORE (two members) AND THE CROSSED FORM IS THREE,
+// `{status, message, log}`. THE OPERATIVE DECLARATION IS THIS SECTION'S OWN DATED CLAUSE BELOW, item 4's
+// `Refusal` clause of 2026-10-16; no byte above this line is re-emitted there.
 struct JsBaseState             { present: bool, value: JsValue }
 struct JsJournalOp             { opId: String, kind: String, address: Vec<JsSegment>,
                                  tier: Option<String>, before: JsBaseState, after: JsBaseState,
@@ -836,6 +842,64 @@ struct JsRollbackResult        { opId: String, undoneOps: Vec<String>, restoredT
   **`Refusal` IS `§2.5`'s SINGLE FAILURE FORM AT THE CORE LAYER — a record with EXACTLY `{status, message}`
   and not one member beside them — and it is the ONLY error type the core exposes.** **A `status` outside
   the store's closed `16`-member set is carried VERBATIM and re-mapped to nothing** (`DD-40`).
+  **⟶ `RCA-8(g)` ONE-LINE POINTER, AUTHORED 2026-10-16: THE SENTENCE IMMEDIATELY ABOVE — *"a record with
+  EXACTLY `{status, message}` and not one member beside them"* — IS SUPERSEDED AS A STATEMENT ABOUT THE
+  **CROSSED** FORM BY THE ARCHITECT'S RULING *"Override the failure form limit"* OF THIS DATE, READ WITH HIS
+  EARLIER RULING *"Bubble the message log to the client on failure, override any clauses that forbid this"*;
+  it STANDS WHOLE as a statement about THE CORE'S OWN RECORD. THE OPERATIVE DECLARATION IS THE `Refusal`
+  CLAUSE AT THIS SECTION'S FOOT, item 4's clause of 2026-10-16, which states which of the two the `Refusal`
+  struct IS; NO BYTE OF IT IS RE-EMITTED HERE.**
+
+  **⟶ AND THE `Refusal` STRUCT'S OWN LIMIT IS SUPERSEDED AS AN ARITY, AND THE CORE'S RECORD IS NOT
+  CHANGED, LANDED 2026-10-16 ON THE ARCHITECT'S RULINGS *"Override the failure form limit"* AND, EARLIER,
+  *"Bubble the message log to the client on failure, override any clauses that forbid this"* (`role_spec_writer`;
+  `RCA-8(g)`: items 1–7 above stand byte-for-byte and are read THROUGH this clause, and the struct line at
+  `:827` and its explanatory sentence above carry their own one-line pointers to it).** **THE QUESTION THIS
+  CLAUSE CLOSES, STATED WITH ITS TERMS BECAUSE IT DECIDES THE SCOPE: WHETHER THE `Refusal` STRUCT DESCRIBES
+  WHAT THE CORE RETURNS OR A SURFACE FORM BUILT AT THE CROSSING — AND IT IS ANSWERED FROM THE BYTES, NOT
+  ASSUMED.**
+
+  1. **THE STRUCT DESCRIBES WHAT THE CORE RETURNS, AND THE CORE NEEDS NO CHANGE.** **The struct block above is
+     titled *"THE RECORD TYPES — THE DEEP COPY OUT, MEMBER FOR MEMBER"* and every struct in it is a Rust type
+     the core's own verbs answer in a `Result`'s `Err` arm** (`bindings/js/src/crossing.rs:26`–`:29` — `pub
+     struct Refusal { pub status: String, pub message: String }`, read at its own bytes; its verbs' signatures
+     at `:942`–`:1059`, each `-> Result<…, Refusal>`). **THE THIRD MEMBER IS NOT AMONG THEM AND IS NOT OWED:
+     `Refusal` carries the STORE's two values and holds NO attempt, NO log and NO reference to one — the core
+     is the conversion core of `§4.5` and holds no kernel state** (`DD-2`; `DD-15`; `DD-49`). **So THE LIMIT
+     WAS A STATEMENT ABOUT THE CORE'S OWN RECORD, and the record keeps it: `{status, message}`, `2` members,
+     `EXACTLY`.
+  2. **THE THIRD MEMBER IS BUILT AT THE CROSSING, IN JS, AND THAT IS WHERE THE IMPLEMENTATION ALREADY BUILDS
+     IT — WHICH IS THE MEASUREMENT THAT SETTLES THE SCOPE QUESTION.** **`bindings/js/index.mjs`'s `fail(refusal,
+     log)` throws `{ status: refusal.status, message: refusal.message, log: refusalLog(log) }`** — the two
+     members READ OFF the core's record and `log` **ATTACHED BESIDE THEM AT THE PACKAGE'S OWN FRAME**
+     (`bindings/js/index.mjs:457`–`:463`, read at its own bytes; its own comment at `:443`–`:456` states the
+     provenance test is *"IS THIS THE STORE'S TWO-MEMBER FORM?"* and that `log` *"is then ATTACHED BESIDE THE
+     TWO, NEVER READ AS THE DISCRIMINATOR"*). **AND THE FACADE'S OWN `throw_refusal` SETS EXACTLY TWO NAMED
+     PROPERTIES** (`bindings/js/src/facade.rs:241`–`:259`, `napi_set_named_property` twice — `status`,
+     `message` — and no third) — **so the `cdylib` half matches the core's record and the third member is
+     minted one layer above it.** **⟶ SO THREE DISPOSITIONS ARE POSSIBLE AND ONLY ONE IS TAKEN: the `Refusal`
+     struct is NOT superseded (it keeps `2` members and its own words stand), it is NOT re-scoped (its subject
+     never was the crossed form), and THE CORE DOES NOT CHANGE.** **THE CLAUSE THAT MOVED IS THE ONE THAT READ
+     THE STRUCT'S OWN FIGURE AS A FIGURE ABOUT THE JS FORM — `:843`'s *"EXACTLY `{status, message}` and not one
+     member beside them"* — READ AS A STATEMENT ABOUT THE CORE, WHICH IS WHAT IT ALWAYS SAID.**
+  3. **AND THE ONE THING THE STRUCT OWES FROM THIS DATE, NAMED SO ITS LIMIT IS NOT READ AS A BAN:** **the
+     `Refusal` struct declares THE CROSSING'S INPUT TO THE JS FORM AND NOT THE JS FORM**, and `§2.5`'s
+     three-member form is produced from it by ATTACHING `log` beside the two — which is the act `index.mjs`'s
+     `fail` performs and which `surface.md §2.5`'s clause of this date, item 10 (ii), declares as the
+     store-channel rule (*"the store's `status` and `message` are PRESERVED BYTE-FOR-BYTE and `log` IS ATTACHED
+     BESIDE THEM AS AN OWN MEMBER"*). **A CONSEQUENCE A DRIVE TAKES: no Rust-side cell asserts a `log` member,
+     because the core mints none — the third member has no core-side home and a core-side `log` would be a
+     FINDING under item 7's rule.**
+  4. **AND THE TWO READINGS THIS CLAUSE FORECLOSES, EACH NAMED SO IT IS NOT DERIVED BY ACCIDENT: (i) A
+     THREE-MEMBER `Refusal` STRUCT IS OWED BY NOTHING — it would put an attempt's log into a core that holds no
+     attempt (`DD-2`'s purity and `DD-49`'s *"the function never crosses"* both forbid the carrier); and (ii)
+     READ ALOUD AS *"THE RECORD IS TWO MEMBERS, THEREFORE THE THROWN FORM IS TWO"* IT IS FALSE FROM THIS DATE,
+     because the two are records of two different layers and `§2.5` declares the crossing's own.**
+  (`[A2 docs/decisions.md` · the architect's ruling *"Override the failure form limit"*, 2026-10-16, read with
+  his ruling of the same date *"Bubble the message log to the client on failure, override any clauses that
+  forbid this"*; A3 docs/specs/storeroom-js/surface.md §2.5's clause of 2026-10-16 — the crossed form's ONE
+  home; the build read at `bindings/js/src/crossing.rs:26`–`:29`, `bindings/js/src/facade.rs:241`–`:259` and
+  `bindings/js/index.mjs:457`–`:463`; `DD-2`; `DD-15`; `DD-40`; `DD-49` | state or fail-state declaration]`).
   **⟶ AND `JsJournalOp`'S `kind` MEMBER IS RE-SPELLED BY THE BOUNDED CLOSE-OUT PASS OF 2026-10-11: the struct
   carries `kind: String`, and the `enum JsJournalOpKind { Write, Delete }` the block above printed DOES NOT
   EXIST IN THE BUILD.** **The declared Rust type set is reconciled to the shipped one, and NOTHING

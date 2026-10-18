@@ -17,7 +17,10 @@
 // `constraintOn(pair, constraint)` · `constraintOff(pair, constraint)`, **PLUS `register(handle, listener)
 // -> undefined` and `settle(record) -> undefined`** — the last being THE ORDERING SEAM the kernel calls and
 // the entry implements; and (3) the failure surface, a thrown plain object with exactly
-// `{status, message}`.
+// `{status, message, log}` — **THREE MEMBERS FROM 2026-10-16, `2 → 3`, on the architect's ruling *"Bubble
+// the message log to the client on failure, override any clauses that forbid this."*** (`surface.md §2.5`'s
+// clause of that date, the crossing form's ONE home; **the ONE figure that moves is the arity, and
+// `storeCreate` remains the namespace's one name and the product its twelve own members**).
 //
 // **THE TEN METHODS TAKE THE RECEIVER'S OWN POSITION AWAY: `8 → 1` ✓ AND `4 → 12` ✓** (`surface.md §2.9`
 // item 1's and `§2.4` item 9 (f)'s `A127` clauses). The seven verbs that reach the store are METHODS of the
@@ -188,14 +191,46 @@ export type StoreStatus =
   | (string & {});
 
 /**
- * **THE SINGLE FAILURE SURFACE** (`contract.md §1.4`; `distribution.md §5.2` item 3): a THROWN plain
- * object carrying exactly `{status, message}` — never an `Error` subclass, never a returned tagged union,
- * never a `Promise` rejection and never a third member. **The status is carried VERBATIM from the store's
- * own closed set and the message is the store's own generated string**; this package mints neither.
+ * **THE KERNEL'S OWN LOG ENTRY** — *"exactly six members — `seq` · `kind` · `id` · `message` · `opId` ·
+ * `state`"* (`docs/specs/storeroom-constraints/kernel-surface.md §2.5` item 1, whose member set is CLOSED:
+ * *"a seventh member of `LogEntry` … is not a variation, it is a different shape"*). **DECLARED HERE ONLY
+ * AS THE ELEMENT SHAPE OF THE FAILURE'S `log` MEMBER, AND MINTED BY NO CLAUSE OF THIS UNIT**: an attempt's
+ * message log entries are the KERNEL'S records, carried VERBATIM, and no flattening is declared — a client
+ * that reads one reads the kernel's own entry.
+ *
+ * `kind` is the kernel's closed four-member `LogKind` set, and `state` is the kernel's own `KC` token on the
+ * one `outcome` entry and `null` on the three non-`outcome` kinds.
+ */
+export interface LogEntry {
+  readonly seq: number;
+  readonly kind: 'constraint-check' | 'repair-run' | 'commit' | 'outcome';
+  readonly id: string | null;
+  readonly message: string;
+  readonly opId: string | null;
+  readonly state: string | null;
+}
+
+/**
+ * **THE SINGLE FAILURE SURFACE** (`contract.md §1.4`; `distribution.md §5.2` item 3) — **AND ITS MEMBER SET
+ * MOVES `2 → 3` FROM 2026-10-16 ON THE ARCHITECT'S RULING *"Bubble the message log to the client on failure,
+ * override any clauses that forbid this."*** (`surface.md §2.5`'s clause of that date, whose items 1–10 are
+ * the crossing form's ONE home). A THROWN plain object carrying exactly `{status, message, log}` — never an
+ * `Error` subclass, never a returned tagged union and never a `Promise` rejection. **The status is carried
+ * VERBATIM from the store's own closed set and the message is the store's own generated string**; this
+ * package mints neither.
+ *
+ * **`log` IS AN ORDINARY OWN ENUMERABLE DATA MEMBER OF THAT SAME PLAIN OBJECT** (item 9): *"written with an
+ * object literal, not `Object.defineProperty`, not a getter, not on a prototype and not behind a `Symbol`"* —
+ * so `Object.keys(caught)` reads exactly `["log","message","status"]` and its length is `3` on EVERY arm. **IT
+ * IS NEVER ABSENT, NEVER `null` AND NEVER A NON-ARRAY** (item 9), **and `[]` is its declared value where the
+ * failure's cause has no attempt at all** (item 4: the empty array, never an absent member and never a
+ * placeholder entry) — **while every failure whose attempt exists carries that attempt's own entries, taken
+ * BEFORE the attempt is disposed of** (item 10 (iii)).
  */
 export interface StoreRefusal {
   readonly status: StoreStatus;
   readonly message: string;
+  readonly log: LogEntry[];
 }
 
 /** The opaque handle a listener registration is keyed by: the package's own value for one registration. */

@@ -105,16 +105,27 @@ function mem(listeners = []) {
   return storeCreate({ journalLength: 8, listeners });
 }
 
-/// The failure form's own predicate — `surface.md §2.5` items 1–3: exactly `{status, message}`, a plain
-/// object of the caller's realm, no `Error` subclass, no third member, and **the status a member of the
-/// store's closed set** — so a package-minted code fails HERE rather than passing as "an error occurred".
+/// The failure form's own predicate — **`surface.md §2.5` item 4** (*"`log` IS PRESENT ON EVERY FAILURE
+/// THIS SURFACE THROWS … the three-member member set is therefore FLAT ACROSS ARMS and not conditional"*)
+/// **and item 9** (*"`log` stands on the thrown object as an ORDINARY OWN ENUMERABLE DATA MEMBER … so
+/// `Object.keys(caught)` reads exactly `["log","message","status"]` … `log` is NEVER ABSENT, NEVER `null`
+/// and NEVER a non-array"*): exactly `{log, message, status}` — THREE members, sorted ascending, a plain
+/// object of the caller's realm, no `Error` subclass, `log` an ARRAY on every arm, and **the status a
+/// member of the store's closed set** — so a package-minted code fails HERE rather than passing as "an
+/// error occurred". **RE-DERIVED FROM THE SUPERSEDED TWO-MEMBER SET, 2026-10-16; the `status`-membership
+/// limb this predicate was built for is UNMOVED and is the reason it exists.** **THE `log` LIMB IS THE
+/// MEMBER'S TYPE AND NOT ITS CONTENT**: the entries are the kernel's own and are asserted at the cells
+/// that drive an attempt (`surface.md §2.5` item 3; `PAR-JS-26`), while `[]` is this predicate's own
+/// per-arm reading and is asserted only where the arm has no attempt.
 function isTheFailureForm(err) {
   return (
     err !== null &&
     typeof err === 'object' &&
     !Array.isArray(err) &&
     Object.getPrototypeOf(err) === Object.prototype &&
-    Object.keys(err).sort().join(',') === 'message,status' &&
+    Object.keys(err).sort().join(',') === 'log,message,status' &&
+    Object.keys(err).length === 3 &&
+    Array.isArray(err.log) &&
     typeof err.status === 'string' &&
     THE_SIXTEEN.includes(err.status) &&
     typeof err.message === 'string' &&
@@ -1303,6 +1314,14 @@ test('ng_js_h_the_absent_addon_state_answers_the_one_form_and_the_two_arms_messa
       'console.log(JSON.stringify({',
       '  inst: inst === null ? null : typeof inst,',
       '  keys: thrown === null ? null : Object.keys(thrown).sort(),',
+      '  keyCount: thrown === null ? null : Object.keys(thrown).length,',
+      // **THE `log` MEMBER IS READ ACROSS THE PROCESS BOUNDARY AND BY ITS OWN DECLARED PROPERTIES**
+      // (`surface.md §2.5` items 4 and 9): whether the member is PRESENT at all (`'log' in thrown`), whether
+      // its value is an ARRAY, and its length — so the census is taken off the actual thrown value and not
+      // off a key list alone.
+      "  hasLog: thrown === null ? null : ('log' in thrown),",
+      '  isArrayLog: thrown === null ? null : Array.isArray(thrown.log),',
+      '  logLength: thrown === null ? null : (Array.isArray(thrown.log) ? thrown.log.length : null),',
       '  plain: thrown === null ? null : Object.getPrototypeOf(thrown) === Object.prototype,',
       '  isError: thrown === null ? null : thrown instanceof Error,',
       '  status: thrown === null ? null : thrown.status,',
@@ -1314,7 +1333,28 @@ test('ng_js_h_the_absent_addon_state_answers_the_one_form_and_the_two_arms_messa
     const answer = JSON.parse(out.trim().split('\n').pop());
 
     assert.equal(answer.inst, null, 'the absent-addon state must return NO instance');
-    assert.deepEqual(answer.keys, ['message', 'status'], 'the member set is EXACTLY {status, message}');
+    // **⟶ RE-DERIVED TO THE THREE-MEMBER FORM, 2026-10-16** (`surface.md §2.5` item 4 and item 9;
+    // `parameter-semantics.md §2.26`). **THIS CELL'S WHOLE SUBJECT WAS THE MEMBER SET** — so it is
+    // RE-DERIVED to the three-member census rather than deleted, and EVERY OTHER LIMB IT ASSERTED IS KEPT
+    // BELOW WORD FOR WORD: no instance, the caller realm's prototype, no `Error` subclass, the declared
+    // `FilePathUnreachable` status, and that status's membership in the store's closed `16`.
+    // **THE ARM IS A `[]` ARM**: the absent-addon load state fails before any attempt exists, which is
+    // `§2.5` item 4's own enumeration (*"a `read`/`readLiteral`/`delete`/`rollback` store refusal with no
+    // attempt live … carry `log: []`"*, read here at the `cfg`-side load refusal).
+    assert.deepEqual(answer.keys, ['log', 'message', 'status'],
+      'the member set is EXACTLY {log, message, status} — FLAT across arms and not conditional '
+      + '(`surface.md §2.5` item 4), sorted ascending (item 9)');
+    assert.equal(answer.keyCount, 3,
+      'and `Object.keys(caught).length` is `3` (`surface.md §2.5` item 9)');
+    assert.equal(answer.hasLog, true,
+      '`log` is PRESENT as an own enumerable data member and is NEVER ABSENT and NEVER `null` '
+      + '(`surface.md §2.5` item 9)');
+    assert.equal(answer.isArrayLog, true,
+      '`log` is an ARRAY on this arm — never a non-array (`surface.md §2.5` item 9; '
+      + '`parameter-semantics.md §2.26`\'s `domain` cell)');
+    assert.equal(answer.logLength, 0,
+      'and its DECLARED value is `[]` where the failure\'s cause has NO ATTEMPT AT ALL — the empty array '
+      + 'and never a placeholder entry (`surface.md §2.5` item 4)');
     assert.equal(answer.plain, true, "the record's prototype is the caller realm's Object.prototype");
     assert.equal(answer.isError, false, 'never an Error subclass (DD-12)');
     assert.equal(answer.status, 'FilePathUnreachable', 'the declared status for the load state');

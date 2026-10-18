@@ -179,15 +179,40 @@ function modState(filePath) {
   return { ino: s.ino, size: s.size, mtimeMs: s.mtimeMs };
 }
 
-/** THE STORE'S OWN FAILURE FORM (`surface.md §2.5`): exactly `{status, message}`, thrown. */
+/**
+ * THE SINGLE FAILURE FORM (`surface.md §2.5`, its clause of 2026-10-16): exactly `{status, message, log}`,
+ * thrown — **the THREE-MEMBER SET AT `§2.5` ITEM 4** (*"`log` IS PRESENT ON EVERY FAILURE THIS SURFACE
+ * THROWS, AND `[]` IS ITS DECLARED VALUE WHERE THE FAILURE'S CAUSE HAS NO ATTEMPT AT ALL … the
+ * three-member member set is therefore FLAT ACROSS ARMS and not conditional"*) **READ WITH `§2.5` ITEM 9**
+ * (*"`log` stands on the thrown object as an ORDINARY OWN ENUMERABLE DATA MEMBER … so `Object.keys(caught)`
+ * reads exactly `["log","message","status"]` and `Object.keys(caught).length` is `3` on EVERY arm"*).
+ * **EVERY ARM THIS HELPER GUARDS IS A `log: []` ARM** — the construction's own `cfg`-side refusals and a
+ * store refusal with no attempt live are `§2.5` item 4's OWN enumeration — so the empty array is asserted
+ * as the DECLARED VALUE and never as an absence: `[]` is IN the domain (`parameter-semantics.md §2.26`'s
+ * `domain` cell), and a non-array here is a FINDING at the site that produced it. **NOTHING THE AS-FILED
+ * HELPER ASSERTED IS WEAKENED** — the code, the string message and its non-emptiness stand word for word;
+ * only the member-set limb moves, from two members to three.
+ */
 function storeFailure(code, extra) {
   return (err) => {
     assert.ok(err !== null && typeof err === 'object', `${extra}: the store's failure is a thrown object`);
-    assert.deepEqual(Object.keys(err).sort(), ['message', 'status'],
-      `${extra}: the store's form carries exactly {status, message}`);
+    assert.deepEqual(Object.keys(err).sort(), ['log', 'message', 'status'],
+      `${extra}: the store's form carries exactly {log, message, status} — the three-member set is FLAT `
+      + 'across arms and not conditional (`surface.md §2.5` item 4; item 9)');
+    assert.equal(Object.keys(err).length, 3,
+      `${extra}: and the member set's length is \`3\` on EVERY arm (\`surface.md §2.5\` item 9)`);
+    assert.ok(Array.isArray(err.log),
+      `${extra}: \`log\` is an ARRAY on every arm — never absent, never \`null\`, never a non-array `
+      + '(`surface.md §2.5` item 9; `parameter-semantics.md §2.26`\'s `domain` cell)');
+    assert.deepEqual(err.log, [],
+      `${extra}: and it is \`[]\` — this arm's cause has NO ATTEMPT AT ALL (\`surface.md §2.5\` item 4's `
+      + 'own enumeration of the empty-array state), never a placeholder entry and never `null`');
+    assert.equal('log' in err, true,
+      `${extra}: \`log\` is PRESENT as an own enumerable data member (\`surface.md §2.5\` item 9)`);
     assert.equal(err.status, code, `${extra}: the code is ${code}`);
     assert.equal(typeof err.message, 'string', `${extra}: the message is a string`);
     assert.ok(err.message.length > 0, `${extra}: the message is never empty`);
+    assert.equal(err instanceof Error, false, `${extra}: no \`Error\` subclass (DD-12)`);
     return true;
   };
 }
@@ -874,10 +899,22 @@ test('fts_S_CONSTRAINTS_KEY_no_package_side_code_and_no_package_side_message_is_
     assert.equal(err instanceof TypeError, false,
       'S-CONSTRAINTS-KEY: the answer is THE STORE\'S OWN CODE, NEVER A PACKAGE CODE — the class test\'s '
       + '`TypeError` is the FIFTH ARGUMENT\'s refusal and not this key\'s (`§2.21`\'s declared answer cell; '
-      + '`surface.md §2.5`\'s single form carries `{status, message}`)');
+      + '`surface.md §2.5`\'s single form carries `{status, message, log}`)');
     assert.equal(err.status, 'ConstraintListInvalid', 'S-CONSTRAINTS-KEY: the store\'s sixteenth member');
-    assert.deepEqual(Object.keys(err).sort(), ['message', 'status'],
-      'S-CONSTRAINTS-KEY: in the store\'s own two-member form');
+    // **RE-DERIVED TO THE THREE-MEMBER FORM 2026-10-16** — the `cfg`-side refusal is `surface.md §2.5`
+    // item 4's OWN enumerated `log: []` arm (*"the construction's own refusals (`cfg`-side) … all carry
+    // `log: []`"*), read with item 9's own-enumerable-descriptor clause.
+    assert.deepEqual(Object.keys(err).sort(), ['log', 'message', 'status'],
+      'S-CONSTRAINTS-KEY: in the surface\'s three-member form — FLAT across arms (`surface.md §2.5` item 4), '
+      + 'the set sorted ascending and length `3` (item 9)');
+    assert.equal(Object.keys(err).length, 3,
+      'S-CONSTRAINTS-KEY: `Object.keys(caught).length` is `3` on this arm too (`surface.md §2.5` item 9)');
+    assert.ok(Array.isArray(err.log),
+      'S-CONSTRAINTS-KEY: `log` is an ARRAY — never absent, never `null`, never a non-array '
+      + '(`surface.md §2.5` item 9; `parameter-semantics.md §2.26`\'s `domain` cell)');
+    assert.deepEqual(err.log, [],
+      'S-CONSTRAINTS-KEY: and this construction refusal has NO ATTEMPT AT ALL, so its DECLARED value is '
+      + '`[]` — the empty array and never a placeholder entry (`surface.md §2.5` item 4)');
     return true;
   }, 'S-CONSTRAINTS-KEY: no package-side code and no package-side message is minted');
 });
@@ -931,8 +968,21 @@ test('fts_S_CONSTRAINTS_KEY_the_load_side_failure_answers_ConstraintListInvalid_
   assert.throws(() => storeCreate({
     filePath, journalLength: 8, listeners: [], constraints: [{ address: [key], id: 'load-1' }, { address: [absent], id: 'load-2' }],
   }), (err) => {
-    assert.deepEqual(Object.keys(err).sort(), ['message', 'status'],
-      'S-CONSTRAINTS-KEY: the load-side answer is the store\'s own two-member form');
+    // **RE-DERIVED TO THE THREE-MEMBER FORM 2026-10-16**: the LOAD-side refusal is likewise a
+    // construction `cfg`-side refusal — `surface.md §2.5` item 4's own enumerated `log: []` arm — so the
+    // set is three members and the empty array is the DECLARED value, not an absence.
+    assert.deepEqual(Object.keys(err).sort(), ['log', 'message', 'status'],
+      'S-CONSTRAINTS-KEY: the load-side answer is the surface\'s THREE-member form, FLAT across arms '
+      + '(`surface.md §2.5` item 4), sorted ascending with length `3` (item 9)');
+    assert.equal(Object.keys(err).length, 3,
+      'S-CONSTRAINTS-KEY: `Object.keys(caught).length` is `3` on the load-side instant as on every arm '
+      + '(`surface.md §2.5` item 9)');
+    assert.ok(Array.isArray(err.log),
+      'S-CONSTRAINTS-KEY: `log` is an ARRAY and not `null`, not absent and not a non-array '
+      + '(`surface.md §2.5` item 9; `parameter-semantics.md §2.26`\'s `domain` cell)');
+    assert.deepEqual(err.log, [],
+      'S-CONSTRAINTS-KEY: and no attempt is live at a boot that returns no instance, so the DECLARED value '
+      + 'is `[]` — never a placeholder entry (`surface.md §2.5` item 4)');
     assert.equal(err.status, 'ConstraintListInvalid',
       'S-CONSTRAINTS-KEY: the LOAD-side instant answers the set\'s sixteenth member and no other code '
       + '(`contract.md §8.1` #16; `§7.2` item 5; the FAIL-STATE "a load-side failure answered with a '
@@ -1300,21 +1350,34 @@ test('fts_S_CENSUS_no_rank_moves_no_ninth_register_row_and_no_second_register', 
     'S-CENSUS: the register carries its `8` rows in their own order and no ninth row is minted');
 
   // THE PARAMETER SET'S OWN ROW COUNT: `parameter-semantics.md §1` is the index and its enumeration is the
-  // rows themselves; the OPERATIVE count is `25` — the `21` this amendment reached, PLUS the rows the
-  // `A126` pass of 2026-10-16 re-derived: `PAR-JS-22` (`constraint`, `§2.22`), `PAR-JS-23` (`instance`,
-  // `§2.23`), `PAR-JS-24` (`pair`, `§2.24`) and `PAR-JS-25` (the returned identity, `§2.25`) — and THIS
-  // FILE'S OWN COUNT IS THE MEASUREMENT (the row set the section prints), never the range its opening
-  // clause prints. This file's finding F4 records `§10.9` row 8's stale `20`.
+  // rows themselves, and THIS FILE'S OWN COUNT IS THE MEASUREMENT (the row set the section prints), never
+  // the range its opening clause prints. This file's finding F4 records `§10.9` row 8's stale `20`.
+  // **⟶ RE-DERIVED `25 → 26`, 2026-10-16, ON THE LOG ROUTE'S OWN SPEC PASS.** The row `PAR-JS-26` has
+  // LANDED: `parameter-semantics.md §2.26`'s heading and its index row are AUTHORED TOGETHER —
+  // *"`PAR-JS-26` | **`log`** — the THIRD member of the thrown failure form: the failing attempt's own
+  // message log, CARRIED VERBATIM as the kernel's `LogEntry[]`"*, whose home is `§2.26` and whose declaring
+  // clause is `surface.md §2.5`'s clause of 2026-10-16. **THE OPERATIVE ARITHMETIC AT `§1`'s OWN COUNT
+  // HOME IS `23 + 3 = 26` ✓** — the `A122`/`A123` range `PAR-JS-1`…`PAR-JS-23` (`23`) plus the three rows
+  // added over it: `PAR-JS-24` (the `pair`, `A126`), `PAR-JS-25` (the returned identity, `A126`) and
+  // `PAR-JS-26` (this row) — **so the two cells below that pinned `25` were pinning a SUPERSEDED figure and
+  // are re-derived here to the count the section now prints. NO OTHER LIMB OF THIS CELL MOVES**: the module
+  // namespace's one name, the instance's twelve own members, the register's `8` rows and their order, and
+  // the no-duplicate-row rule all stand exactly as filed.
   const ps = readFileSync(join(PACKAGE_DIR, '..', '..', 'docs', 'specs', 'storeroom-js',
     'parameter-semantics.md'), 'utf8');
   const parRows = [...ps.matchAll(/^\| \*\*`(PAR-JS-\d+)`\*\* \|/gm)].map((m) => m[1]);
-  assert.equal(parRows.length, 25,
-    'S-CENSUS: the parameter-semantics file prints `25` rows — `21 + 4 = 25`, the `A126` pass re-deriving '
-    + '`PAR-JS-22` … `PAR-JS-25` (`parameter-semantics.md §1`\'s re-derived arithmetic; `surface.md §2.4` '
-    + 'item 9 (g) item 3\'s operative count, read at the rows the section itself prints)');
-  assert.equal(parRows[parRows.length - 1], 'PAR-JS-25',
-    'S-CENSUS: `PAR-JS-25` is the last row the section prints, the returned identity');
-  assert.equal(new Set(parRows).size, 25, 'S-CENSUS: no existing `PAR-JS` row is renumbered or duplicated');
+  assert.equal(parRows.length, 26,
+    'S-CENSUS: the parameter-semantics file prints `26` rows — `23 + 3 = 26`, the `A122`/`A123` range '
+    + '`PAR-JS-1`…`PAR-JS-23` plus `PAR-JS-24` (the `pair`), `PAR-JS-25` (the returned identity) and '
+    + '`PAR-JS-26` (`log`, the thrown form\'s third member) (`parameter-semantics.md §1`\'s count clause of '
+    + '2026-10-16 and `§2.26`\'s own row, measured at the rows the section itself prints)');
+  assert.deepEqual(parRows.slice(-3), ['PAR-JS-24', 'PAR-JS-25', 'PAR-JS-26'],
+    'S-CENSUS: the last three rows the section prints are the three added over the `23`: the `pair`, the '
+    + 'returned identity and `log` (`parameter-semantics.md §1`\'s count clause of 2026-10-16)');
+  assert.equal(parRows[parRows.length - 1], 'PAR-JS-26',
+    'S-CENSUS: `PAR-JS-26` is the last row the section prints — `log`, the thrown failure form\'s THIRD '
+    + 'member (`§2.26`; `surface.md §2.5`\'s clause of 2026-10-16)');
+  assert.equal(new Set(parRows).size, 26, 'S-CENSUS: no existing `PAR-JS` row is renumbered or duplicated');
   assert.equal(typeof (await kernel()).register, 'function', 'S-CENSUS: no second register exists');
 });
 
@@ -1888,9 +1951,23 @@ test('fts_FTS_09_zero_byte_file_boots_an_instance_while_a_two_byte_empty_image_i
     'FTS-09.6: the `2`-byte `{}` image against the same supplied list IS validated and answers the closed '
     + 'set\'s sixteenth member (`contract.md §8.1` #`16`; `parameter-semantics.md §2.21`; `§7.2` item 6 as '
     + `amended) — read ${refused && refused.status}`);
-  assert.deepEqual(Object.keys(refused || {}).sort(), ['message', 'status'],
-    'FTS-09.6: in the store\'s own two-member form, and never a package-side code or message '
+  // **RE-DERIVED TO THE THREE-MEMBER FORM 2026-10-16** — the discriminated `{}`-image refusal is the same
+  // `cfg`-side class of construction refusal, so `surface.md §2.5` item 4's own `log: []` enumeration
+  // governs it. **THE CELL'S OTHER LIMB IS UNMOVED**: no package-side code and no package-side message is
+  // minted for this arm, which is asserted by the code and message limbs around this one.
+  assert.deepEqual(Object.keys(refused || {}).sort(), ['log', 'message', 'status'],
+    'FTS-09.6: in the surface\'s THREE-member form — FLAT across arms, sorted ascending (surface.md §2.5 '
+    + 'item 4; item 9) — and never a package-side code or message '
     + '(`surface.md §2.5`; `parameter-semantics.md §2.21`\'s declared-answer cell)');
+  assert.equal(Object.keys(refused || {}).length, 3,
+    'FTS-09.6: and the member set\'s length is `3` on this refused boot as on every arm '
+    + '(`surface.md §2.5` item 9)');
+  assert.ok(Array.isArray(refused && refused.log),
+    'FTS-09.6: `log` is an ARRAY on the load-side refusal too — never absent, never `null`, never a '
+    + 'non-array (`surface.md §2.5` item 9; `parameter-semantics.md §2.26`\'s `domain` cell)');
+  assert.deepEqual(refused && refused.log, [],
+    'FTS-09.6: and the refused boot returns NO instance and opens NO attempt, so the DECLARED value is '
+    + '`[]` — never a placeholder entry (`surface.md §2.5` item 4)');
   assert.equal(bytesOf(twoPath), '{}',
     'FTS-09.6: and the refused boot is a read — the image is BYTE-IDENTICAL (`contract.md §7.2` item 2)');
   assert.equal(typeof report, 'function', 'FTS-09.6: the kernel\'s fifth item is untouched by this cell');

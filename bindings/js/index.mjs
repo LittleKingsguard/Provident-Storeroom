@@ -402,11 +402,29 @@ function addonLoadMessage() {
 }
 
 /// `surface.md §2.5`: **THE SINGLE FAILURE FORM** — a THROWN plain object carrying EXACTLY
-/// `{status, message}` and nothing else. **The status and the message are the store's own and are carried
-/// VERBATIM** (`§2.5` items 1–2, `DD-40`): this function constructs the two-member form out of the refusal
-/// the addon threw and mints no code of its own, authors no message of its own and adds no third member.
+/// `{status, message, log}`. **The status and the message are the store's own and are carried
+/// VERBATIM** (`§2.5` items 1–2, `DD-40`): this function constructs the form out of the refusal the addon
+/// threw and mints no code of its own and authors no message of its own.
 ///
-/// **⟶ AND ITS TWO MEMBERS ARE READ OFF THE STORE'S OWN REFUSAL AND OFF NOTHING ELSE — CORRECTED
+/// **⟶ AND THE FORM CROSSES AT THREE MEMBERS FROM 2026-10-16 — `surface.md §2.5` ITEM 4, THE ARCHITECT'S
+/// RULING OF THAT DATE: *"`log` IS PRESENT ON EVERY FAILURE THIS SURFACE THROWS, AND `[]` IS ITS DECLARED
+/// VALUE WHERE THE FAILURE'S CAUSE HAS NO ATTEMPT AT ALL."*** **The three-member member set is FLAT ACROSS
+/// ARMS and not conditional:** a `read`/`readLiteral`/`delete`/`rollback` store refusal with no attempt
+/// live, the construction's own `cfg`-side refusals, `a.register`'s refusal and the constraint methods'
+/// `TypeError` all carry `log: []` — **the EMPTY ARRAY, never an absent member, never `null`, and never a
+/// placeholder entry** — while every failure whose attempt exists carries that attempt's own entries
+/// (`§2.5` items 3–4 and 10 (i)–(iii); `§2.12` item 1's mark of the same date). **AND WHERE A STORE ACT
+/// PRODUCED IT, THE STORE'S `status` AND `message` ARE PRESERVED BYTE-FOR-BYTE AND `log` IS ATTACHED BESIDE
+/// THEM — nothing is converted, a member is added** (`§2.5` item 10 (ii); `fail-surface.md §1.2`'s
+/// *"the kernel NEVER CONVERTS ONE CHANNEL'S FAILURE INTO THE OTHER'S FORM"* stands whole).
+///
+/// **THE `log` MEMBER IS AN ORDINARY OWN ENUMERABLE DATA MEMBER** — written with the object literal below,
+/// **not `Object.defineProperty`, not a getter, not on a prototype and not behind a `Symbol`** — so
+/// `Object.keys(caught)` reads exactly `["log","message","status"]` and its length is `3` on every arm
+/// (`§2.5` item 9). **IT IS NOT `defineProperty`'D BECAUSE A MEMBER THAT IS NOT ENUMERABLE IS NOT A MEMBER
+/// A CANONICAL CENSUS CAN SEE**, and it is not a getter because a client reads a list and not a call.
+///
+/// **⟶ AND ITS TWO STORE MEMBERS ARE READ OFF THE STORE'S OWN REFUSAL AND OFF NOTHING ELSE — CORRECTED
 /// 2026-10-17 (`A64`'s one form read with `surface.md §2.5` item 5 (e)).** **THE CONSTRUCTION BELOW ONCE
 /// READ `refusal.status` AND `refusal.message` OF WHATEVER IT WAS HANDED, WITH NO PROVENANCE TEST AT ALL**,
 /// and the two failures that cost are named rather than left to be re-derived: **a caller's own throwable
@@ -419,17 +437,49 @@ function addonLoadMessage() {
 /// **THE TEST IS PROVENANCE'S OWN SHAPE AND NOT A CLASS DECISION OF THIS UNIT'S:** the store's refusal is a
 /// plain object whose `status` and `message` are `string`s (`docs/specs/storeroom-native/contract.md §8.3`'s
 /// closed two-member form; `§2.5` items 1–2), and **a value that is not that object is NOT this form's
-/// provenance** — so it is THROWN AS ITSELF, in the one line below, and **NEITHER A STATUS NOR A MESSAGE IS
-/// MINTED FOR IT AND NO OTHER MEMBER IS ADDED TO THE STORE'S FORM.** **NO ARM OF THE DECLARED SURFACE MOVES:
-/// every store refusal this package crosses — the eight verbs, the construction, the `16`-code set and the
-/// two-member census the refusal row pins — is read through the line below EXACTLY as it stood, member for
-/// member and byte for byte.**
-function fail(refusal) {
+/// provenance** — so it is THROWN AS ITSELF, by the one line below, and **NEITHER A STATUS NOR A MESSAGE IS
+/// MINTED FOR IT AND NO `log` IS ADDED TO A VALUE THAT IS NOT THE STORE'S FORM.**
+///
+/// **⟶ THE PROVENANCE TEST IS *"IS THIS THE STORE'S TWO-MEMBER FORM?"* AND NOT *"DOES THIS CARRY A
+/// `log`?"*, AND THAT DISTINCTION IS THE WHOLE OF THE CORRECTION THIS MEMBER FORCED.** The two-member
+/// presence test **was** the earlier discriminator at the crossing (`constraintCrossing`'s own history: it
+/// discriminated on `log`'s PRESENCE) — **and now that EVERY surface failure carries `log`, presence alone
+/// can no longer tell a store refusal, a kernel refusal and a CALLER'S FORGED OBJECT apart.** **THE TEST
+/// REPLACED IT IS THE STORE'S FORM ITSELF — `status` a `string` AND `message` a `string`, both READ OFF THE
+/// HANDED VALUE AND NEITHER MINTED** — and `log` is then **ATTACHED BESIDE THE TWO, NEVER READ AS THE
+/// DISCRIMINATOR** (`refusalLog` below). A caller's forged `{status, message}` thrown from a constraint body
+/// carries both strings and would pass this test — **which is why this function is never ON the body-throw
+/// path at all**: the body's throwable leaves `runAttempt` unconverted and reaches the caller without
+/// passing here (`fail-surface.md §1.1` item 5; see `constraintCrossing`'s rethrow). **SO NO BYTE OF THIS
+/// FRAME'S PROVENANCE TEST MOVES: every store refusal this package crosses — the eight verbs, the
+/// construction, the `16`-code set — keeps its `status` and its `message` member for member and byte for
+/// byte, and the ONE member this date adds is `log`.**
+function fail(refusal, log) {
   if (refusal === null || typeof refusal !== 'object'
     || typeof refusal.status !== 'string' || typeof refusal.message !== 'string') {
     throw refusal;
   }
-  throw { status: refusal.status, message: refusal.message };
+  throw { status: refusal.status, message: refusal.message, log: refusalLog(log) };
+}
+
+/// **THE ONE PLACE A REFUSAL'S `log` MEMBER IS DECIDED** — `surface.md §2.5` item 4's flat reading, taken
+/// once so no arm can spell it differently. **AN ABSENT ARGUMENT IS THE DECLARED `[]`**: the failure's cause
+/// has no attempt at all (a store refusal with no attempt live, a `cfg`-side refusal, a `register` refusal,
+/// a constraint-method `TypeError`) — *"the EMPTY ARRAY, never an absent member, never `null`, and never a
+/// placeholder entry"*. **A LIST HANDED IN IS THE ATTEMPT'S OWN AND CROSSES VERBATIM** (`§2.5` item 3: *"THE
+/// ATTEMPT'S OWN MESSAGE LOG, VERBATIM … CARRIED AND NOT RE-SHAPED"*), and it is **NOT COPIED**: a copy would
+/// be a second list and the spec's *"the same list the attempt record held"* is a statement about identity
+/// of content, which a copy preserves while costing an allocation on every failure — and **a copy would also
+/// silently paper over the timing trap below**, because a copy taken late reads the same bytes as one taken
+/// early. The list crosses as it stands, and `[]` is minted fresh at each no-attempt failure so that no two
+/// failures alias one array.
+///
+/// **A `log` THAT IS NOT AN ARRAY IS A FINDING AT THE SITE THAT PRODUCED IT** (`§2.5` item 9) — this
+/// function declares no arm for it and answers the empty array rather than propagating a shape the spec
+/// calls impossible: the alternative is a failure whose `log` is `null` or a non-array, which the same item
+/// names as the finding verbatim.
+function refusalLog(log) {
+  return Array.isArray(log) ? log : [];
 }
 
 function withAddon() {
@@ -2556,9 +2606,12 @@ function settleOn(state, record, supplied) {
   // `crossing.md §1.7`): an absent argument, every non-object and every `Proxy` is refused before any
   // marker is read or set.
   if (!supplied || record === null || typeof record !== 'object' || types.isProxy(record)) {
-    throw new TypeError(
+    // **AND IT CARRIES `log: []` ON THE RULING'S FLAT READING** (`surface.md §2.5` item 4 names the
+    // registration site's `TypeError` among the arms that carry the empty array; the `status` this form
+    // never had is still not minted — `§2.4` item 9 (b)'s *"its `status` member MUST BE ABSENT"* stands).
+    throw withEmptyLog(new TypeError(
       `settle's argument is ${classSpelling(record)}, and the ordering seam takes a record identity this instance adopted`,
-    );
+    ));
   }
   // **⟶ ONE WRITE, ONE ADOPTION, AND TWO IDENTITIES CARRY IT** (`§2.4` item 9's table rows (a) and (b);
   // `PAR-JS-19`: *"the adoption happens AT the first call, and the SECOND call for that identity is the
@@ -2594,9 +2647,9 @@ function settleOn(state, record, supplied) {
   }
   if (!pre) {
     if (record.pending === undefined) {
-      throw new TypeError(
+      throw withEmptyLog(new TypeError(
         `settle's argument is ${classSpelling(record)}, and the ordering seam takes a record identity this instance adopted`,
-      );
+      ));
     }
     // INSTANT (a): the adoption. The ledger entry stands EMPTY until the verb answers, so the write that
     // drains it is the one write identity this adoption is for.
@@ -2813,18 +2866,79 @@ function constraintPairKey(address, id) {
 /// **THE ONE REFUSAL `§2.12` ITEM 4 DECLARES, TAKEN BEFORE ANY ACT AND LEAVING NOTHING CHANGED** — a JS
 /// `TypeError`, its `status` member ABSENT, no `message` member of this unit's own, **the store's closed
 /// `16`-member set neither minted nor widened, and the store reached by no call this refusal makes.**
+///
+/// **⟶ AND THE `TypeError` CARRIES `log: []` FROM 2026-10-16, AND THIS IS THE ONE PLACE THE FLAT RULING AND
+/// `A127`'S TWO REFUSAL RULES MEET — SO THE RECONCILIATION IS STATED RATHER THAN LEFT TO THE READER**
+/// (`surface.md §2.5` item 4, which names *"the three constraint methods' `TypeError`"* among the arms that
+/// *"all carry `log: []`"*; `§2.12` item 4's replacement clause and `§2.4` item 9 (f)'s rule (ii), which fix
+/// the class, the absent `status` and the change-nothing atomicity).
+///
+/// **THE TWO RULES ARE NOT IN TENSION AND NEITHER MOVES:** rule (ii) declares the refusal is **a `TypeError`
+/// CARRYING NO `status` MEMBER** — and it still carries none: the member below is written on the *error
+/// object* and is `log`, not `status`, and **`'status' in err` is still `false` on every call of this
+/// method.** The ruling does not re-class the refusal as a store refusal, does not mint a `status`, does not
+/// reach the store and does not change the call's effects — *"no store call is made, no pair is added,
+/// enabled or disabled, no journal entry is appended and no code is minted"* stands whole. **THE ONE THING
+/// THE RULING ADDS IS A MEMBER, AND A `TypeError` IS AN ORDINARY OBJECT: an own enumerable data member can
+/// be set on it without making it any less an instance of `TypeError` and of nothing else** — which is the
+/// single question that had to be answered before this could be written, and it is answered by the class,
+/// not by a judgement here (`Object.keys(new TypeError('x'))` is `[]` and the object is EXTENSIBLE).
+///
+/// **SO THE DECLARED FORM DOES CARRY A THIRD MEMBER, AND THIS IS *NOT* A SPEC CONFLICT: the collision the
+/// task warned of would be a form that had to become *"a different form"* to hold `log`, and it does not —
+/// the class (`TypeError`, and of nothing else), the ABSENT `status`, the change-nothing atomicity, the
+/// caller's own `message` text and the one-`TypeError`-for-both-refusals rule all cross this frame
+/// untouched. What changes is `Object.keys` on the thrown error, from `[]` to `["log"]`.**
+///
+/// **THE MEMBER IS SET WITH `Object.defineProperty` RATHER THAN BY ASSIGNMENT, AND THE REASON IS THE ONE
+/// `§2.5` ITEM 9 DECLARES: THE DESCRIPTOR MUST BE ORDINARY — own, enumerable, a data member, writable and
+/// configurable.** A plain `err.log = []` on an error object achieves exactly that descriptor on V8 and every
+/// engine this package supports, **but it is written with `defineProperty` HERE because an error's own
+/// members are not universally ordinary across realms and a runtime that made `Error.prototype.log` an
+/// accessor would silently divert the write**, and the declaration is cheap where the alternative is a
+/// silent miss on a member the census reads. **THE PROHIBITION IN `§2.5` ITEM 9 (*"written with an object
+/// literal, not `Object.defineProperty`"*) BINDS THE STORE'S PLAIN-OBJECT FORM AND ITS `log`, WHICH THIS
+/// PACKAGE WRITES WITH AN OBJECT LITERAL IN `fail` ABOVE AND IN `constraintCrossing` BELOW; it cannot bind a
+/// `TypeError`, because a `TypeError` has no object literal and its class is what rule (ii) declares. The
+/// ITEM'S PURPOSE — that a canonical census sees the member — is the property both routes preserve, and the
+/// descriptor is asserted explicitly below so the purpose is met member for member.**
 function constraintRefuse(where, value) {
-  throw new TypeError(
+  const error = new TypeError(
     `the ${where} of this call is ${classSpelling(value)}, and it is not a value this position's domain `
     + 'admits',
   );
+  throw withEmptyLog(error);
+}
+
+/// **THE ONE PLACE `log: []` IS SET ON A REFUSAL THAT IS NOT AN OBJECT LITERAL** — the three constraint
+/// methods' `TypeError` and nothing else. **`surface.md §2.5` item 4 calls for the EMPTY ARRAY on exactly
+/// these arms** — *"the EMPTY ARRAY, never an absent member, never `null`, and never a placeholder entry"* —
+/// and item 9 calls for an **own enumerable data member**, which is the descriptor written here BY HAND so
+/// that no default, no engine and no realm decides it. **THE ERROR'S PROTOYPE IS NOT TOUCHED**, so
+/// `err instanceof TypeError` stays `true` and `Object.getPrototypeOf(err)` stays `TypeError.prototype`:
+/// the member is the error's own and the class is the error's own.
+///
+/// **THE ARRAY IS A FRESH `[]` AT EACH THROW**, so two refusals never alias one list — a shared frozen
+/// constant would be a value a caller could observe as the *same* array across calls, and `§2.5` item 4
+/// declares a VALUE (`[]`), not a shared identity.
+function withEmptyLog(error) {
+  Object.defineProperty(error, 'log', {
+    value: [],
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
+  return error;
 }
 
 /// **A POSITION BELOW THE DECLARED ONE — `§2.12` item 4 AND `§2.4` item 9 (f)'s RULE (ii): a SHORT ARITY
 /// TAKES THE SAME ONE `TypeError` AND CHANGES NOTHING.** *"No assertion is made over `message`, and its
 /// absence is the declared reading"* — the member is not one of the three this form is observed by.
+/// **AND IT IS THE SAME ONE `TypeError` IN THE RULING'S OWN SENSE TOO: the SHORT-ARITY refusal and the
+/// OUTSIDE-VALUE refusal are ONE form, so `log: []` is set by the same `withEmptyLog` and neither refusal
+/// gains a `status`** (`surface.md §2.5` item 4's *"the three constraint methods' `TypeError`"*).
 function constraintArity(verb) {
-  throw new TypeError(`\`${verb}\` declares two positions, and this call supplied fewer`);
+  throw withEmptyLog(new TypeError(`\`${verb}\` declares two positions, and this call supplied fewer`));
 }
 
 /// **`§2.12` ITEM 4'S TWO CALLER POSITIONS, CLASS FIRST AND IN THEIR DECLARED ORDER** (`PAR-JS-22`–`PAR-JS-24`)
@@ -2889,12 +3003,13 @@ function constraintParked() {
 /// `PAR-JS-24`'s second declared answer: at EITHER toggle, in EITHER direction, an OUTSIDE VALUE taking
 /// item 4's refusal, ONE THROWN `TypeError`, THE ENTRY NOT WIDENED.** It is NOT a third population route:
 /// were the entry widened with the function the refused call carried, a pair would stand ENABLED WITH NO
-/// FUNCTION — a state no clause of that directory declares.
+/// FUNCTION — a state no clause of that directory declares. **AND IT IS THAT SAME ONE `TypeError`, carrying
+/// `log: []` on the ruling's flat reading and no `status` on rule (ii)'s** (`surface.md §2.5` item 4).
 function constraintUncarried(verb, pair) {
-  throw new TypeError(
+  throw withEmptyLog(new TypeError(
     `the pair at the ${ARGUMENT_POSITION_FIRST} of \`${verb}\` carries no constraint in this instance, and `
     + 'a toggle names a pair the entry carries',
-  );
+  ));
 }
 
 /**
@@ -2993,19 +3108,155 @@ function constraintWrite(state, instance, address, tier, value) {
 }
 
 /// **THE FAIL ARM'S CROSSING — `A120` (2): THE ENTRY CARRIES THE KERNEL'S TOKEN, THE THROW KEEPS THE
-/// STORE'S.** `§2.12` item 1's read-through clause fixes what crosses here: **A PLAIN OBJECT OF EXACTLY THE
-/// TWO MEMBERS `status` AND `message`, `status` A STRING DRAWN FROM THE STORE'S CLOSED `16`-MEMBER SET, the
-/// kernel's third member `log` ABSENT AND UNREACHABLE.** The member `status` carries is the store's
-/// `FileCommitFailed`, because no caller-side status can carry a `KC` token and a constraint-refused write
-/// is a commit that did not stand. **A STORE VERB'S OWN REFUSAL CROSSES VERBATIM AND UNCONVERTED** (`§1.2`).
+/// STORE'S — AND THE FORM CROSSES AT THREE MEMBERS FROM 2026-10-16** (`surface.md §2.5`'s clause of that
+/// date, items 3–4 and 10 (i)–(iii); `§2.12` item 1's mark of the same date).
+///
+/// **WHAT MOVES IS THE REACHABILITY OF `log` AND NOTHING ELSE.** The member `status` carries is still the
+/// store's `FileCommitFailed`, because no caller-side status can carry a `KC` token and a
+/// constraint-refused write is a commit that did not stand; **the kernel token does NOT enter `status`**
+/// (`A120` (2)'s rule survives whole). **A STORE VERB'S OWN REFUSAL CROSSES VERBATIM AND UNCONVERTED**
+/// (`fail-surface.md §1.2`): its `status` and its `message` are carried BYTE-FOR-BYTE, never re-mapped and
+/// never re-spelled, and `log` is ATTACHED BESIDE them as an own member — *"nothing is converted, and a
+/// member is added"* (`§2.5` item 10 (ii)).
+///
+/// **THE TWO ARMS, EACH AT ITS OWN FORM:**
+/// * **A `KC`-TOKEN REFUSAL — THE KERNEL'S OWN PASS PRODUCED IT.** Its `{status, message, log}` is the
+///   KERNEL'S OWN three-member form (`docs/specs/storeroom-constraints/fail-surface.md §1.1`, whose member
+///   set is the same three), and it would cross UNCHANGED were it not that `status` must carry the store's
+///   `FileCommitFailed` on this surface: **the `log` it carries is the attempt's, VERBATIM, and it crosses
+///   with the store-side `status` in its place.**
+/// * **A STORE VERB'S OWN REFUSAL.** Its `status` and `message` cross verbatim and `log` is attached beside
+///   them — the attempt's log where this write's own attempt holds one, and `[]` where it does not (a `K-2`
+///   the store refused opened no attempt, so there is no attempt at all — `§2.5` item 4).
+///
+/// **AND THE TIMING TRAP IS HONOURED, WHICH IS THE WHOLE OF ITEM 10 (iii): `log` IS TAKEN BEFORE THE
+/// ATTEMPT IS DISPOSED OF, NOT AFTER.** The kernel's terminal act has already run when this frame is
+/// reached (its `refuse` was thrown WITH the log in hand, `constraint-kernel.mjs`'s `refuse`), so the list
+/// read here is the list AS IT STOOD WHEN THE REFUSAL WAS BUILT — the failure arm's `outcome` entry
+/// included — and it is read OFF THE THROWN VALUE AND NEVER OFF A LATER READ: the registry entry is gone
+/// and a reader that reached for the attempt afterwards would reach nothing.
+///
+/// **⟶ THE FORGERY DISCRIMINATOR, RE-EXAMINED AND REPLACED 2026-10-16, BECAUSE THE RULING MADE THE OLD ONE
+/// UNSAFE — THIS IS THE HIGH-RISK EDIT AND IT IS NAMED WITH WHAT IT WAS AND WHAT IT IS.**
+///
+/// **WHAT IT WAS.** The previous pass fixed a broken forgery guard by discriminating on **`log`'s
+/// PRESENCE**: *a value carrying a `log` was the kernel's, and a value carrying none was the caller's.*
+/// That was sound only while the KERNEL'S OWN form was the only three-member form in the system.
+///
+/// **WHY IT NO LONGER SUFFICES.** `surface.md §2.5` item 4 now declares **`log` flat on EVERY failure this
+/// surface throws** — so every surface-produced failure carries one, **and so does a CALLER'S forged object
+/// that happens to carry a `log` member.** A caller's constraint body may throw
+/// `{status: 'ValueNotAdmitted', message: 'FORGED BY THE CALLER', log: []}` — a plain object it authored,
+/// carrying the member the old test looked for — **and under the old test that object was RE-WRAPPED into a
+/// fresh three-member object, so `caught === thrown` was `false` for a value the caller threw.** Measured on
+/// the tree before this edit: `forged {status,message,log} => caught===thrown: false`. **A caller's own
+/// throwable must surface AS ITSELF** (`fail-surface.md §1.1` item 5 — the body's exception *"propagates out
+/// of the kernel's own invocation, untouched and unconverted"*; `kernel-surface.md §2.3` item 1 — a body's
+/// throwable *"is NOT a kernel state and NOT a store state"*), **so the test had to stop reading a member
+/// the caller can forge.**
+///
+/// **WHAT REPLACED IT — IDENTITY, NOT SHAPE.** The kernel's own refusals are **built by the kernel**, and
+/// every one of them is thrown from `constraint-kernel.mjs`'s single `refuse` frame. The entry therefore
+/// **MARKS WHAT THE KERNEL BUILT**, at the one place the kernel's values enter this entry, **with a
+/// module-private `WeakSet`** — `kernelRefusals` above — **and this frame asks whether the handed value IS
+/// ONE OF THOSE VALUES, never whether it LOOKS LIKE one.** A caller cannot forge membership of a set it
+/// cannot reach, so:
+/// * a `KC`-token value the kernel built → **the kernel's arm**, and `FileCommitFailed` crossings below;
+/// * a store verb's own refusal (built by the addon, carrying the store's code) → the store's arm below;
+/// * **EVERYTHING ELSE IS THE CALLER'S AND CROSSES AS ITSELF** — a forged three-member object, a forged
+///   two-member object, a `TypeError`, a bare string, `undefined` — `caught === thrown` on all of them.
+///
+/// **THE MARK IS SET WHERE THE KERNEL'S FAILURE IS FIRST SEEN** — at the two `catch` frames in
+/// `constraintWrite` above, which are the only places a kernel-thrown value reaches this entry — and **NOT
+/// by a test over members, which is the whole defect being repaired.** **IT IS A `WeakSet` AND NOT A MEMBER
+/// ON THE VALUE**: no member is added to the kernel's own form (`fail-surface.md §1.1`'s member set stays the
+/// three), nothing is mutated, nothing is frozen, and the mark is invisible to every census — while a value
+/// that is not an object (a string, `undefined`) is simply never in the set and needs no special case, since
+/// `WeakSet.has` on a primitive is `false` rather than a throw.
+/// **THE KERNEL'S OWN REFUSAL-CLASS QUESTION, AND WHY THE ENTRY ASKS THE KERNEL IT RATHER THAN READING A
+/// MEMBER** — the discriminator that replaced `log`'s presence, and the reason a `WeakSet` local to this
+/// entry will not do.
+///
+/// **THE MARK CANNOT LIVE HERE, AND THAT WAS MEASURED RATHER THAN REASONED:** a `WeakSet` populated from the
+/// two `catch` frames in `constraintWrite` marks **EVERY** value leaving the kernel's frames — **a caller's
+/// constraint BODY throws from inside `runAttempt` too**, so the body's own throwable passes the same frame
+/// and is marked alongside the kernel's. On the tree with the `WeakSet` in place, all three of
+/// `forged {status,message}`, `forged {status,message,log}` and `TypeError` answered `caught === thrown:
+/// false`: **the mark was set by the frame and not by the author of the value.** A mark is only worth
+/// anything if the thing that SETS it is the thing that BUILT the value, and for a kernel refusal that thing
+/// is `constraint-kernel.mjs`'s own `refuse`.
+///
+/// **SO THE KERNEL DECLARES IT, AT ITS ONE THROW SITE, UNDER A `Symbol.for` KEY BOTH SIDES SPELL** — exactly
+/// the pattern `SETTLED_ON_THE_PASSING_ARM` and `SAVE_FAILED_AT_THE_TERMINAL_ARM` already use across this
+/// same boundary (`constraint-kernel.mjs`'s `KERNEL_REFUSAL`): the entry imports no kernel at load and the
+/// kernel imports no entry, and **a symbol key is invisible to `Object.keys`**, so the thrown form's readable
+/// member set stays the three `§2.5` items 3–4 declare (`§2.5` item 9's census reads `["log","message",
+/// "status"]` and no fourth). **A CALLER'S BODY CANNOT SET IT**: the mark is written in a frame no caller
+/// reaches, and it is not a member a caller would think to spell.
+///
+/// **AND A KERNEL THAT DID NOT CARRY THE DECLARATION ANSWERS `false`** — every value is then the caller's and
+/// surfaces as itself, which is the safe direction: a refusal crossed unconverted is the declared form once
+/// the surface stops re-wrapping it, while a caller's value crossed converted is the FINDING this whole
+/// discriminator exists to prevent.
+
+/// **THE SAME `Symbol.for` KEY THE KERNEL WRITES, SPELLED HERE SO THE ENTRY IMPORTS NO KERNEL AND THE KERNEL
+/// IMPORTS NO ENTRY** — the pattern `SETTLED_ON_THE_PASSING_ARM` and `SAVE_FAILED_AT_THE_TERMINAL_ARM`
+/// already cross this boundary by (`constraint-kernel.mjs`'s `KERNEL_REFUSAL`).
+///
+/// **IT IS A SYMBOL AND NOT A KERNEL FUNCTION, AND THE REASON IS A SPEC COUNT: `kernel-surface.md §1` item 2
+/// declares that module's export set as EXACTLY the five `K-1`–`K-5` items — *"no sixth name"* — so a
+/// predicate exported from the kernel to serve this entry would be a FINDING.** The fact travels on the
+/// VALUE, under a key both sides spell, and the kernel's namespace is untouched.
+///
+/// **THE QUESTION IS ANSWERED WITHOUT REACHING THE KERNEL AT ALL**, which is the shape `WeakSet.has` gave
+/// for free and is what lets this entry keep loading where nothing is staged beside it: no `require` of
+/// `./src/` is triggered by a failure's own classification.
+const KERNEL_REFUSAL = Symbol.for('provident-storeroom.kernel-refusal');
+
+/// **WHETHER THE HANDED VALUE IS A REFUSAL THE KERNEL ITSELF BUILT** — the discriminator that replaced
+/// `log`'s presence, answered by the mark the kernel's one `refuse` frame sets and by nothing a caller can
+/// spell. **A NON-OBJECT IS `false`** without a member read, and **a value the kernel never built is
+/// `false`** whatever members it carries.
+function isKernelBuiltRefusal(value) {
+  return value !== null && typeof value === 'object' && value[KERNEL_REFUSAL] === true;
+}
+
 function constraintCrossing(refusal) {
-  const status = refusal !== null && typeof refusal === 'object' ? refusal.status : undefined;
-  if (typeof status !== 'string' || KC_TOKENS.includes(status) === false) throw refusal;
+  const isObject = refusal !== null && typeof refusal === 'object';
+  const status = isObject ? refusal.status : undefined;
+  // **THE CALLER'S OWN VALUE CROSSES AS ITSELF, FIRST AND UNCONDITIONALLY.** The test is IDENTITY against
+  // the kernel's marked set (above) and NOT any member's presence: a caller's forged `log`, a forged
+  // `status` spelling and a forged two-member object are all its own, and `caught === thrown` holds for
+  // each (`fail-surface.md §1.1` item 5). A value that is not an object at all is never the kernel's either.
+  if (!isObject || isKernelBuiltRefusal(refusal) === false) throw refusal;
+  // THE LOG IS THE THROWN VALUE'S OWN `log` MEMBER — the same list either arm carries — and `[]` where the
+  // value carries none (`§2.5` item 4: never absent, never `null`, never a non-array; a non-array here is a
+  // finding at the site that produced it and is answered with the empty array rather than a shape).
+  // **AND IT IS TAKEN HERE, BEFORE THE ATTEMPT IS DISPOSED OF** — item 10 (iii)'s timing trap: the list is
+  // READ OFF THE THROWN VALUE, which the kernel built with the log in hand, and never off a later read.
+  const log = Array.isArray(refusal.log) ? refusal.log : [];
+  // **A MARKED VALUE WHOSE `status` IS NOT A `KC` TOKEN IS THE STORE VERB'S OWN REFUSAL CROSSING BACK
+  // THROUGH THE KERNEL'S OWN LEG** (`constraint-kernel.mjs`'s `attempt.throwState` carries the store's code
+  // at the repair arm): its `status` and `message` cross VERBATIM and `log` is attached BESIDE them —
+  // *"nothing is converted, and a member is added"* (`§2.5` item 10 (ii)).
+  if (typeof status !== 'string' || KC_TOKENS.includes(status) === false) {
+    throw {
+      status: refusal.status,
+      message: refusal.message,
+      log: refusalLog(log),
+    };
+  }
+  // **THE KERNEL'S OWN `KC` REFUSAL.** Its `{status, message, log}` is the KERNEL'S OWN three-member form
+  // (`docs/specs/storeroom-constraints/fail-surface.md §1.1`), and it crosses with the STORE's
+  // `FileCommitFailed` in `status` because no caller-side status can carry a `KC` token and a
+  // constraint-refused write is a commit that did not stand: **the kernel token does NOT enter `status`, and
+  // the `log` it carries is the attempt's, VERBATIM.**
   throw {
     status: 'FileCommitFailed',
     message: typeof refusal.message === 'string'
       ? refusal.message
       : 'the write was refused by a constraint of this attempt',
+    log: refusalLog(log),
   };
 }
 

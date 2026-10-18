@@ -54,7 +54,7 @@ below is a map and every row of it is one entry, not a restatement.**
 | **`PAR-JS-14`** | **the returned `watched`** — the watched ADDRESSES | `return-field` | `contract.md §1.3`, `contract.md §2.2` | `parameter-semantics.md` `§2.14` |
 | **`PAR-JS-15`** | **the returned `triggered`** — the triggered handles | `return-field` | `contract.md §2.7`, `contract.md §1.3` | `parameter-semantics.md` `§2.15` |
 | **`PAR-JS-16`** | **the returned `tiers`** on the delete receipt | `return-field` | `contract.md §1.3` | `parameter-semantics.md` `§2.16` |
-| **`PAR-JS-17`** | **the thrown `{status, message}`** — the failure channel's two members | `error-code` | `contract.md §2.5` | `parameter-semantics.md` `§2.17` |
+| **`PAR-JS-17`** | **the thrown `{status, message, log}`** — the failure channel's members; **⟶ READ AT ITS FIRST FIGURE FROM 2026-10-16: the `two` this cell printed is superseded as an ARITY by the architect's ruling *"Override the failure form limit"*, and the operative form is three members whose ONE home is `surface.md §2.5`'s clause of that date; the row's SUBJECT — `status`'s and `message`'s provenance and domain — is UNMOVED, and the third member has its own row, `PAR-JS-26` below** | `error-code` | `contract.md §2.5`; **`surface.md §2.5`'s clause of 2026-10-16, items 1–2** | `parameter-semantics.md` `§2.17` |
 | **`PAR-JS-18`** | **the constraint/repair pattern's own carrier** — the `write` → `rollback` pair, declared as a USAGE PATTERN and NOT as a parameter | `vocabulary-token` | `contract.md §2.6` | `parameter-semantics.md` `§2.18` |
 | **`PAR-JS-19`** | **`settle(record)` — the ORDERING SEAM**: the one member the kernel calls and the entry implements, and the identity it receives at each of its two instants | `seam` | **`surface.md §2.4` item 9** (the seam's own clause, 2026-10-15) and `surface.md §2.1`'s dated clause | `parameter-semantics.md` `§2.19` |
 | **`PAR-JS-20`** | **`commit` on `write`** — the fifth argument, OPTIONAL, declared LAST; the record identity the write joins, and the key the terminal arm's own `file`-tier save reads (`surface.md §2.11` clause 2) | `parameter` | **`surface.md §2.2`**'s signature block and its dated clause of 2026-10-15 (the declared order) | `parameter-semantics.md` `§2.20` |
@@ -1106,6 +1106,8 @@ declared parameter semantics]`
 
 ### §2.17 `PAR-JS-17` — the thrown `{status, message}`, the failure channel's two members
 
+**⟶ `RCA-8(g)` ONE-LINE POINTER, AUTHORED 2026-10-16: THIS HEADING'S *"the failure channel's two members"* AND THE ROW'S OWN `parameter`/`domain`/`observable` CELLS BELOW ARE SUPERSEDED AS AN ARITY BY THE ARCHITECT'S RULING *"Override the failure form limit"*, READ WITH HIS EARLIER RULING *"Bubble the message log to the client on failure, override any clauses that forbid this"*; THE FORM IS `{status, message, log}`, `3` MEMBERS, WHOSE ONE HOME IS `docs/specs/storeroom-js/surface.md §2.5`'s clause of this date, AND THE THIRD MEMBER HAS ITS OWN ROW AT `§2.26` (`PAR-JS-26`) BELOW. THIS ROW'S `status` AND `message` CELLS REMAIN THE OPERATIVE DECLARATION OF THOSE TWO MEMBERS' PROVENANCE AND DOMAIN AND ARE UNMOVED; its `the values OUTSIDE it` cell's entry *"a third member (`code`, `cause`, `stack`, `data`)"* STANDS, because it names the DIAGNOSTIC third member `DD-12`'s `alt` cell refuses and NOT the attempt's log `DD-12` now adopts; and its `alt` cell stands whole.**
+
 | Cell | Its value |
 | --- | --- |
 | `id` | **`PAR-JS-17`** |
@@ -1152,6 +1154,7 @@ is declared** (`docs/specs/storeroom-js/surface.md §2.5` item 5 (b)). **AND BOT
 GENERATED MESSAGE'S OWN TEXT AND NEVER AS A THIRD MEMBER — the member set stays EXACTLY `{status, message}`**
 (`docs/specs/storeroom-js/surface.md §2.5` item 5 (b) and its Segment One / Segment Two split clause, which fixes
 Segment One as the store's own and Segment Two as the boundary's appended class-and-position half).
+**⟶ `RCA-8(g)` ONE-LINE POINTER, AUTHORED 2026-10-16: *"the member set stays EXACTLY `{status, message}`"* IS SUPERSEDED AS AN ARITY BY THE ARCHITECT'S RULING *"Override the failure form limit"*, read with his earlier ruling *"Bubble the message log to the client on failure, override any clauses that forbid this"*; the member set is `{status, message, log}` from this date, at `surface.md §2.5`'s clause of this date. THIS SENTENCE'S OWN RULE IS UNMOVED AND IS NOT SATISFIED BY `log`: the CLASS HALF and the POSITION HALF still travel INSIDE the generated message's text and still never as a member — `log` is neither of those halves and §2.5's clause of this date, item 3, declares what it is.**
 **AND THREE THINGS THIS CLAUSE DECLARES SO THEY ARE NOT MET AS SURPRISES.** **FIRST, THE MESSAGE'S AUTHORITY IS
 THE STORE'S GENERATOR AND NOT A PACKAGE CONSTANT: a package-authored string that STANDS IN FOR Segment One is a
 FINDING, and the honest consequence that a target-VARYING refusal is not byte-identical to any constant stands as

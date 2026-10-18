@@ -447,9 +447,31 @@ test('fts_prop_P_SM_4_S_REFUSAL_rollback_first_message_second_and_no_repair', as
       assert.equal(caught.status, 'FileCommitFailed',
         'P-SM-4: the failed save answers the rank-`15` member ITSELF (§8.1` #15`, whose trigger column was'
         + ' widened to reach the save act; `surface.md §2.11` clause 5)');
-      assert.deepEqual(Object.keys(caught).sort(), ['message', 'status'],
-        'P-SM-4: and the answer is `§8.3`\'s CLOSED two-member record — so no third member, and no repair '
-        + 'member, is a shape this answer can carry at all');
+      // **⟶ RE-DERIVED TO THE THROWN FORM'S THREE MEMBERS, 2026-10-16** (`surface.md §2.5` item 4 and
+      // item 9; `parameter-semantics.md §2.26`). **THE AS-FILED LIMB WAS THE TWO-MEMBER CENSUS AND THE
+      // `§8.3` CLOSED-RECORD READING ITS TEXT NAMED; BOTH ARE SUPERSEDED BY THE ROUTE THAT MOVES THE
+      // ARITY AND NOT THE PROVENANCE.** **WHAT THE CELL WAS REALLY ASSERTING SURVIVES WORD FOR WORD AND IS
+      // NAMED SO IT IS NOT READ AS RE-DERIVED: NO REPAIR MEMBER, NO THIRD-PARTY SHAPE AND NO PACKAGE
+      // ENVELOPE IS CARRIED BY THIS ANSWER** — the only member the form gained is the declared `log`, so
+      // `caught.repair` remains absent and the "no repair return" observable still holds.
+      assert.deepEqual(Object.keys(caught).sort(), ['log', 'message', 'status'],
+        'P-SM-4: and the answer is the surface\'s THREE-member form — FLAT across arms and not conditional '
+        + '(`surface.md §2.5` item 4), sorted ascending with length `3` (item 9) — so the only member it '
+        + 'gained over the superseded `§8.3` record is the declared `log`, and no repair member and no '
+        + 'envelope is a shape this answer can carry at all');
+      assert.equal(Object.keys(caught).length, 3,
+        'P-SM-4: `Object.keys(caught).length` is `3` on this arm as on every arm (`surface.md §2.5` item 9)');
+      assert.ok(Array.isArray(caught.log),
+        'P-SM-4: `log` is an ARRAY — never absent, never `null`, never a non-array (`surface.md §2.5` '
+        + 'item 9; `parameter-semantics.md §2.26`\'s `domain` cell)');
+      assert.deepEqual(caught.log, [],
+        'P-SM-4: and the failed save\'s own attempt reaches this frame with NO APPENDED ENTRY, so the '
+        + 'member\'s DECLARED value is `[]` — the empty array and never a placeholder entry '
+        + '(`surface.md §2.5` item 4; item 10 (iii): the log is taken as it stood when the refusal was '
+        + 'built, and the terminal act that removes the registry entry runs before this frame)');
+      assert.equal(caught.repair, undefined,
+        'P-SM-4: and NO repair member is carried by this answer — the observable `§10.9` row 4 declares '
+        + '(*"the absence of any repair return"*), asserted on the shape itself and not inferred');
       // **THE REAL "NO REPAIR RETURNED" OBSERVABLE: THE SAVE'S OWN VIOLATION IS ANSWERED TO THE CALLER
       // AND NOT ROUTED THROUGH THE REPAIR MACHINERY.** A failure the kernel's repair arm had carried
       // answers `KC-4` (`kernel-surface.md §2.3` item 2 (iii)); this caller is answered the STORE'S OWN
@@ -583,8 +605,20 @@ test('fts_prop_P_TP_6_S_CONSTRAINTS_KEY_instance_iff_the_list_lies_inside_its_do
         assert.throws(() => storeCreate(cfg), (err) => {
           assert.equal(err.status, 'ConstraintListInvalid',
             `P-TP-6: "${form.name}" answers the store's own sixteenth member`);
-          assert.deepEqual(Object.keys(err).sort(), ['message', 'status'],
-            'P-TP-6: in the store\'s own two-member form');
+          // **RE-DERIVED TO THE THREE-MEMBER FORM 2026-10-16** — a `cfg`-side construction refusal is
+          // `surface.md §2.5` item 4's own enumerated `log: []` arm, so the set is three members, sorted
+          // ascending, with the empty array as the DECLARED value and not an absence (item 9).
+          assert.deepEqual(Object.keys(err).sort(), ['log', 'message', 'status'],
+            'P-TP-6: in the surface\'s three-member form — FLAT across arms (`surface.md §2.5` item 4), '
+            + 'sorted ascending with length `3` (item 9)');
+          assert.equal(Object.keys(err).length, 3,
+            'P-TP-6: `Object.keys(caught).length` is `3` on this arm (`surface.md §2.5` item 9)');
+          assert.ok(Array.isArray(err.log),
+            'P-TP-6: `log` is an ARRAY — never absent, never `null`, never a non-array (`surface.md §2.5` '
+            + 'item 9; `parameter-semantics.md §2.26`\'s `domain` cell)');
+          assert.deepEqual(err.log, [],
+            'P-TP-6: and a refused construction opens NO attempt, so the DECLARED value is `[]` — never a '
+            + 'placeholder entry (`surface.md §2.5` item 4)');
           return true;
         }, `P-TP-6: "${form.name}" is outside the key's domain and NO instance is returned`);
       }

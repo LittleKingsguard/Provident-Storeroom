@@ -202,11 +202,17 @@ function targetSpelling(value) {
  * boundary, is that finding and not a declared form, because the store's closed set holds no such member"*
  * (`surface.md §2.5` item 5 (e) and (g)). **SO THIS PREDICATE NOW ASSERTS THE DECLARED FORM AND ITS DECLARED
  * CONTENT — and it is STRONGER than the form it replaces rather than weaker:** the record's member set must be
- * EXACTLY `{status, message}`, the status must be the closed-set member `AddressMalformed`, and the message
+ * EXACTLY `{log, message, status}`, the status must be the closed-set member `AddressMalformed`, and the message
  * must carry the failing TARGET (item 5 (a)), the CLASS that failed (item 5 (b), whose class half is
  * mandatory) and the POSITION (item 5 (b): a verb's ARGUMENT POSITION), because *"the rejection is verbose
  * where it carries two things: the failing target, and the reason"*. **A bare "an error occurred" is what
  * this predicate REFUSES.**
+ * **⟶ THE MEMBER-SET LIMB MOVES `2 → 3` ON THE 2026-10-16 CLAUSE** (`surface.md §2.5` item 4: *"the
+ * three-member member set is therefore FLAT ACROSS ARMS and not conditional"*; item 9: *"`Object.keys(caught)`
+ * reads exactly `["log","message","status"]` … `log` is NEVER ABSENT, NEVER `null` and NEVER a non-array"*).
+ * **THE `register` `TypeError` IS ITEM 4'S OWN ENUMERATED `log: []` ARM** — *"`a.register`'s `TypeError` …
+ * carry `log: []` — the EMPTY ARRAY, never an absent member, never `null`, and never a placeholder entry"* —
+ * so the array's TYPE is asserted here and its emptiness at each arm this predicate drives.
  */
 function isRegistrationRefusal(site, target, position, why) {
   let thrown = null;
@@ -220,7 +226,9 @@ function isRegistrationRefusal(site, target, position, why) {
   if (thrown instanceof TypeError) return false;
   if (!(thrown !== null && typeof thrown === 'object' && !Array.isArray(thrown))) return false;
   if (Object.getPrototypeOf(thrown) !== Object.prototype) return false;
-  if (Object.keys(thrown).sort().join(',') !== 'message,status') return false; // EXACTLY two members
+  if (Object.keys(thrown).sort().join(',') !== 'log,message,status') return false; // EXACTLY three members
+  if (Object.keys(thrown).length !== 3) return false;
+  if (!Array.isArray(thrown.log)) return false; // `log` is an ARRAY on every arm, never absent or `null`
   if (thrown.status !== 'AddressMalformed') return false; // the store's closed-set member, carried
   const message = String(thrown.message);
   if (message.length === 0) return false;
@@ -882,13 +890,20 @@ test('register_js_side_three_rows_are_executed_with_strategy_ids_and_verdicts', 
 
   // **`S-FAILFORM` IS ASSERTED HERE, AND THIS IS ITS OWN ARM — GATE 4'S `JS-15`-CLASS FINDING REPAIRED.**
   // The as-filed predicate was *"a `TypeError`-class check with a status half"* whose second disjunct was
-  // implied by its first, so no input could fail it. **The record's member set is asserted to be EXACTLY
-  // two, and its status asserted to be a member of the store's CLOSED `16`-member set** (`surface.md §2.5`
-  // items 1–3: *"a THROWN plain object with EXACTLY TWO MEMBERS"*, *"`status` is the store's own member token
-  // VERBATIM — one of the store's closed members … never a package-minted code"*, `DD-40`).
+  // implied by its first, so no input could fail it. **The record's member set is asserted against the
+  // declared set, and its status asserted to be a member of the store's CLOSED `16`-member set** (`surface.md
+  // §2.5: *"`status` is the store's own member token VERBATIM — one of the store's closed members … never a
+  // package-minted code"*, `DD-40`).
   // **⟶ THE FIGURE MOVES `15 → 16` 2026-10-15 (`DEF-2026-10-15-Y`): the as-filed `15` was superseded by
   // `contract.md §8.1`'s amended heading (`11 + 2 + 1 + 1 + 1 = 16` ✓), and the list here is widened with
   // it — the predicate's own work is unchanged and no assertion is weakened.**
+  // **⟶ AND THE MEMBER-SET FIGURE MOVES `2 → 3` 2026-10-16** (`surface.md §2.5` item 4: *"the three-member
+  // member set is therefore FLAT ACROSS ARMS and not conditional"*; item 9: *"`Object.keys(caught)` reads
+  // exactly `["log","message","status"]` … `log` is NEVER ABSENT, NEVER `null` and NEVER a non-array"*).
+  // **ALL FOUR ARMS THIS DRIVE REACHES CARRY `log: []` BY ITEM 4'S OWN ENUMERATION** — a `read` and a
+  // `rollback` with no attempt live, the construction's `cfg`-side refusal, and `register`'s `TypeError` —
+  // so the empty array is asserted as the DECLARED VALUE and not as an absence (`parameter-semantics.md
+  // §2.26`). **The four arms, their statuses and the no-mint limb are UNMOVED.**
   const THE_SIXTEEN = [
     'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
     'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
@@ -911,8 +926,25 @@ test('register_js_side_three_rows_are_executed_with_strategy_ids_and_verdicts', 
     assert.ok(thrown !== null, `S-FAILFORM: ${site} must answer the one failure form`);
     assert.equal(
       Object.keys(thrown).sort().join(','),
-      'message,status',
-      `S-FAILFORM: ${site}'s record must carry EXACTLY the two declared members`,
+      'log,message,status',
+      `S-FAILFORM: ${site}'s record must carry EXACTLY the three declared members — FLAT across arms and `
+      + 'not conditional (`surface.md §2.5` item 4)',
+    );
+    assert.equal(
+      Object.keys(thrown).length,
+      3,
+      `S-FAILFORM: ${site}'s member-set length must be \`3\` (\`surface.md §2.5\` item 9)`,
+    );
+    assert.ok(
+      Array.isArray(thrown.log),
+      `S-FAILFORM: ${site}'s \`log\` must be an ARRAY — never absent, never \`null\`, never a non-array `
+      + '(`surface.md §2.5` item 9; `parameter-semantics.md §2.26`\'s `domain` cell)',
+    );
+    assert.equal(
+      thrown.log.length,
+      0,
+      `S-FAILFORM: ${site} reaches no attempt at all, so its DECLARED \`log\` is \`[]\` — the empty array `
+      + 'and never a placeholder entry (`surface.md §2.5` item 4)',
     );
     assert.ok(
       THE_SIXTEEN.includes(thrown.status),

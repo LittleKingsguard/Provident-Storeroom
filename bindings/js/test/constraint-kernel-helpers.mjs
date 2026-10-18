@@ -137,10 +137,19 @@ export function assertKernelForm(err, where) {
 }
 
 /**
- * THE STORE'S OWN FAILURE FORM — A THROWN `{status, message}` WHOSE `status` IS ONE OF THE STORE'S
- * CLOSED `15` MEMBERS VERBATIM (`fail-surface.md §1.2` item 2; `fail-surface.md §1.1`'s alternative (i)
- * prints the two-member form as the JS unit's own; `A: docs/specs/storeroom-native/contract.md §8.3`).
- * The kernel WRAPS NOTHING and RE-LABELS NOTHING on this channel, so the two members are the store's.
+ * THE STORE'S OWN FAILURE CHANNEL — A THROWN `{status, message, log}` WHOSE `status` IS ONE OF THE
+ * STORE'S CLOSED MEMBERS VERBATIM (`fail-surface.md §1.2` item 2; `A: docs/specs/storeroom-native/
+ * contract.md §8.3`). The kernel WRAPS NOTHING and RE-LABELS NOTHING on this channel, so the `status` and
+ * the `message` are the store's own.
+ *
+ * **⟶ RE-SPELLED 2026-10-16: THE AS-FILED CLAUSE CALLED THIS A `{status, message}` FORM AND SAID *"the two
+ * members are the store's"*.** Since `surface.md §2.5` item 4 the crossing form is THREE members and
+ * `log` is the attempt's own message log, not a store value — *"the store supplies no part of this member
+ * and holds no log"* (`parameter-semantics.md §2.26`'s `supplier` cell) — so the two-member phrasing would
+ * name a provenance the law denies. **THE ASSERTIONS THIS HELPER MAKES ARE UNMOVED AND IT ASSERTS NO
+ * MEMBER SET**: it gates the CHANNEL (the status is the store's, never a `KC` token; the shape is a plain
+ * object), and the member-set census is made at each cell that reads a caught value, against the `3` the
+ * descriptor clause declares (`surface.md §2.5` item 9).
  */
 export function assertStoreRefusal(err, where) {
   assert.equal(typeof err, 'object', `${where}: the store's refusal is a thrown object`);

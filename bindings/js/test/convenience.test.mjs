@@ -164,8 +164,12 @@ function targetSpelling(value) {
 /// `parameter-semantics.md §2.17`'s dated clause.** The rejection is VERBOSE where it carries TWO things:
 /// the FAILING TARGET and the REASON — and the reason's CLASS half is MANDATORY while its POSITION half is
 /// the ARGUMENT POSITION the contract declares, carried INSIDE the generated message's own text and never
-/// as a third member. **A raw host `TypeError` escaping from either new site is a FINDING and not a form**
-/// (`§2.17`'s dated clause, second of its three; `§2.5` item 5 (e)).
+/// as a member BESIDE the three the form declares. **A raw host `TypeError` escaping from either new site
+/// is a FINDING and not a form** (`§2.17`'s dated clause, second of its three; `§2.5` item 5 (e)).
+/// **⟶ RE-SPELLED 2026-10-16: the as-filed clause read *"never as a third member"*, and the form NOW
+/// DECLARES a third member — `log` (`surface.md §2.5` item 4) — so that phrase named the opposite of the
+/// law. THE REASON IS STILL NOT A MEMBER**: it stays inside `message`'s text, and `log` is the attempt's
+/// own message log and carries no reason member of its own (`§2.5` item 3; `PAR-JS-26`).
 function isRefusal(site, { target = null, why = null, position = null, thrown = null } = {}) {
   let err = thrown;
   if (err === null) {
@@ -183,9 +187,24 @@ function isRefusal(site, { target = null, why = null, position = null, thrown = 
   if (Object.getPrototypeOf(err) !== Object.prototype) {
     return 'the thrown object\'s prototype is not the caller realm\'s `Object.prototype` (`DD-12`)';
   }
+  // **⟶ RE-DERIVED TO THE THREE-MEMBER SET, 2026-10-16** (`surface.md §2.5` item 4: *"the three-member
+  // member set is therefore FLAT ACROSS ARMS and not conditional"*; item 9: *"`Object.keys(caught)` reads
+  // exactly `["log","message","status"]` … `log` is NEVER ABSENT, NEVER `null` and NEVER a non-array"*).
+  // **A THIRD MEMBER IS NO LONGER THE PROHIBITION THIS PREDICATE WROTE** — the prohibition survives only
+  // for members OUTSIDE the declared three, and `log` is now one of the three. **THE `log` LIMB IS THE
+  // MEMBER'S TYPE, NOT ITS CONTENT** (`PAR-JS-26`): the entries belong to an attempt and are asserted at
+  // the cells that drive one, while this predicate only refuses a missing, `null` or non-array member.
   const members = Object.keys(err).sort().join(',');
-  if (members !== 'message,status') {
-    return `the member set is \`{${members}}\` and is EXACTLY \`{status, message}\` and nothing else`;
+  if (members !== 'log,message,status') {
+    return `the member set is \`{${members}}\` and is EXACTLY \`{log, message, status}\` and nothing else `
+      + '(surface.md §2.5 item 4; item 9)';
+  }
+  if (Object.keys(err).length !== 3) {
+    return `the member set's length is \`${Object.keys(err).length}\` and must be \`3\` (surface.md §2.5 item 9)`;
+  }
+  if (!Array.isArray(err.log)) {
+    return '`log` is not an ARRAY — never absent, never `null`, never a non-array (surface.md §2.5 item 9; '
+      + 'parameter-semantics.md §2.26\'s `domain` cell)';
   }
   if (err.status !== 'AddressMalformed') {
     return `the status is \`${String(err.status)}\`, and the store's closed-set member for this site is \`AddressMalformed\``;
