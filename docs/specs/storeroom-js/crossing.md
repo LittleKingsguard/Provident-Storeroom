@@ -638,7 +638,7 @@ JS values are EQUAL under this unit's relation iff all three of the following ho
 objects with `===` is comparing REFERENCES and not values** — the relation above is the only value
 comparison this unit declares; and **the relation is a property of the PACKAGE's own helper and of this
 unit's acceptance layer, NEVER of the store**, whose own equality already ignores member order
-(`[A3 docs/specs/storeroom-native/contract.md §5.2 · P-IM-1 — *"an object's key order counted as significant"*
+(`[A3 docs/specs/storeroom-native/contract.md §5.2 · P-IM-1 — **THE STORE UNIT'S OWN `P-IM-1`, SPELLED WITH ITS PATH AND REACHED BY NO RENAMING: the re-mint of 2026-10-17 (`DEF-2026-10-16-S`) renamed THIS unit's eight register ids and left every id of `docs/specs/storeroom-native/` UNTOUCHED** — *"an object's key order counted as significant"*
 FAILS the row | cross-reference]`).
 
 ### §1.6 The crossing's own census, printed with its terms

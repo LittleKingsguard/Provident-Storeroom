@@ -110,13 +110,13 @@ states the figures the tree's own runs print, with the figures the clauses above
    does not sum to it, is a FINDING at whatever record prints it** (`DD-33`).
 2. **THE REGISTER LAYER'S TWO FIGURES, COUNTED ROW BY ROW.** **THE CLAUSES ABOVE PRINT the Rust half's `395`
    attempts and the JS half's `107` attempts.** **THE OPERATIVE READING, AT THE TWO TREES' OWN BYTES: `8` ROWS
-   TOTAL — `5` Rust register rows at `bindings/js/tests/register_layer.rs` (`P-IM-1` · `P-IM-2` · `P-SM-4` ·
-   `P-SM-6` · `P-TP-8`, together `395` attempts, ALL `HELD`) beside `3` JS rows at
-   `bindings/js/test/register.test.mjs` (`P-SM-5` · `P-TP-7` · `P-TP-8`, together `107` attempts, ALL `HELD`,
+   TOTAL — `5` Rust register rows at `bindings/js/tests/register_layer.rs` (`P-SR-1` · `P-SR-2` · `P-SR-4` ·
+   `P-SR-6` · `P-SR-8`, together `395` attempts, ALL `HELD`) beside `3` JS rows at
+   `bindings/js/test/register.test.mjs` (`P-SR-5` · `P-SR-7` · `P-SR-8`, together `107` attempts, ALL `HELD`,
    `0` un-run), against the declared `≤ 100` per row and `≤ 400` total — so both figures stand as printed, the
    layer's row count is `8` (`5 + 3 = 8` ✓, the register's own `8 ≤ 8` cap holding), and the `11`-strategy-line
    or `8/8`-row readings belong to the store's tree and to the amendment's clauses, each as its own record
-   prints them** (`docs/specs/storeroom-js/contract.md` `§5.1`–`§5.8`; `archive/gate3/storeroom-js-red-set.md`
+   prints them** (**⟶ THE EIGHT IDS ABOVE ARE RE-SPELLED AT THIS ITEM, 2026-10-17 BY `DEF-2026-10-16-S`'s RE-MINT PASS: the `5 + 3 = 8` ✓ SPLIT, the two halves' `395` and `107` ATTEMPTS and the whole count are UNMOVED, and the item printed `P-IM-1` · `P-IM-2` · `P-SM-4` · `P-SM-6` · `P-TP-8` and `P-SM-5` · `P-TP-7` · `P-TP-8`, which are `U-STOREROOM-CONSTRAINTS`' own rows; the mapping is printed at `docs/specs/storeroom-js/contract.md`'s unit/prefix line**) (`docs/specs/storeroom-js/contract.md` `§5.1`–`§5.8`; `archive/gate3/storeroom-js-red-set.md`
    `§9`/`§10`; `DD-31`).
 3. **THE SIBLING CRATE'S RUST LEG.** **THE CLAUSE ABOVE PRINTS `cargo test --manifest-path
    bindings/js/Cargo.toml --offline --no-fail-fast` as *"`223` executed cells"*.** **THAT IS THE FIGURE THE TREE

@@ -74,7 +74,7 @@ failure state, whose single failure FORM is declared at `contract.md §2.5` item
    store, never absorbs the state silently, never degrades to a partial instance or a no-op verb, and never
    substitutes a package-authored message, status or instance for it.** **AND BECAUSE THE ADDON IS REACHED
    BEFORE ANY VERB, EVERY VERB AND EVERY CONSTRUCTION IN THAT STATE ANSWERS THE SAME THROWN FORM.**
-   **THE ROW THAT PINS THE STATE IS `P-TP-7`'s `S-LOAD`, whose drive is one `import` of the entry from
+   **THE ROW THAT PINS THE STATE IS `P-SR-7`'s `S-LOAD`, whose drive is one `import` of the entry from
    outside the unit directory, resolving and loading exactly one Node-API addon — and this state is that
    row's FAILURE arm.** **`contract.md §2.5` item 5 is the declaration of record for the state, its status,
    its message's home and the no-fallback rule; this item is the LOAD PATH's own statement of where the

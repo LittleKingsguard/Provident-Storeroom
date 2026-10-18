@@ -265,7 +265,7 @@ declared that position's domain, its outside values or its code.** **⟶ AND THA
 - **ITS OBSERVABLE: a verb whose first argument is a handle the factory returned proceeds to that verb's own
   arguments and its own arm; EACH outside form above throws `{status: 'AddressMalformed', message}`, with the
   failing target and the class carried inside the one form; and no code of the closed set gains or loses a
-  trigger by this clause** (`contract.md §2.9` item 2; `P-IM-3`'s `S-FAILSET`).
+  trigger by this clause** (`contract.md §2.9` item 2; `P-SR-3`'s `S-FAILSET`).
 - **ITS `alt`, PRICED: A CALLER-SPELLED INSTANCE TOKEN — a plain `string` id — AS THE VERBS' FIRST
   ARGUMENT** — priced: it would make an instance addressable by a guessable name beside the handle `DD-14`
   makes opaque, and it would give the position a second spelling that `unlisten`-style reasoning would then

@@ -18,13 +18,13 @@
   *declared by this contract, not previously filed*: the filing declared no prefix and `§11.6` names none.
   **This document mints FOUR id families and no fifth: the typed register's rows are
   `P-IM-1` · `P-IM-2` · `P-IM-3` · `P-SM-4` · `P-SM-5` · `P-SM-6` · `P-TP-7` · `P-TP-8` (`§5.1`–`§5.8`,
-  `8` rows, cap `≤ 8` ✓), the parameter-semantics rows are `PAR-C-1`…`PAR-C-17`
-  (`parameter-semantics.md` `§2`, `17` rows — `6` `parameter` + `2` `seam` + `2` `callback` + `2`
+  `8` rows, cap `≤ 8` ✓), the parameter-semantics rows are `PAR-C-1`…`PAR-C-17` — `6` `parameter` + `2` `seam` + `2` `callback` + `2`
   `return-field` + `5` `option`, `6 + 2 + 2 + 2 + 5 = 17` ✓), the kernel's surface items are `K-1`…`K-5`
   (`kernel-surface.md` `§2.1`), and the kernel's own fail states are `KC-1`…`KC-8` (`fail-surface.md` `§2`).**
   **No id family of the store
   unit or of the JS unit is reached, re-used, renumbered or moved** (`P: §B.1` — *"A NEW UNIT with its own
   `≤ 8` register"*; `A: docs/specs/storeroom-native/contract.md §0.1` item 5 — the cap is PER UNIT).
+  **⟶ AND THE EIGHT REGISTER SPELLINGS ABOVE ARE NOW THIS UNIT'S ALONE, 2026-10-17, BY `DEF-2026-10-16-S`'s RE-MINT PASS (`role_spec_writer`; `RCA-8(g)`: this bullet stands BYTE-FOR-BYTE above and is read THROUGH this clause, which states the ONE fact the ruling changed and moves no figure of it).** **THE SAME EIGHT IDS WERE DECLARED BY `U-STOREROOM-JS` AT ITS OWN `docs/specs/storeroom-js/contract.md §5.1`–`§5.8`, so a bare `P-IM-1` resolved to two different rows in two documents; THE RULING RE-MINTS THE JS UNIT'S EIGHT IDS TO `P-SR-1`…`P-SR-8` — `DD-3`'s own priced alternative, adopted at its own cell — and THIS UNIT'S EIGHT SPELLINGS ARE THEREFORE UNMOVED AND UNIQUE.** **THE ARITHMETIC, WITH ITS TERMS: `8` ROWS HERE at `8 ≤ 8` ✓ (`3 + 3 + 2 = 8` ✓, `§5.0` unmoved) + `8` ROWS THERE at `8 ≤ 8` ✓ = `16` DISTINCT ROW IDS ACROSS THE TWO DIRECTORY EDGES, `0` SHARED — AND NO ROW AND NO COUNT MOVED ON EITHER SIDE** (`docs/specs/storeroom-js/contract.md`'s unit/prefix line and its `DD-3` row as re-derived; `DEF-2026-10-16-S`; this document's `§5.0` clause of the same date).
 - **The gate-1 disposition this contract derives from — one clause, and it is the only `derivation:` clause
   in this document:**
   `derivation: docs/specs/storeroom-constraints/proposal-review.md · decomposition · disposition = SPLIT-NOW · decider = the user`
@@ -405,7 +405,7 @@ document, in the same pass as the parts, and no row is added to the store's regi
 **`8` rows — `P-IM-1` · `P-IM-2` · `P-IM-3` (invariants) + `P-SM-4` · `P-SM-5` · `P-SM-6` (state/arm rows)
 + `P-TP-7` · `P-TP-8` (transition/property rows) — `3 + 3 + 2 = 8` ✓**, **and every row below carries: its
 property · one or more strategy ids · and an explicit FAILURE LIST.** **A strategy id names the SHAPE of the
-drive; a row's failure list names every observable that makes it FAIL.** **THE REGISTER'S OWN ARITHMETIC IS
+drive; a row's failure list names every observable that makes it FAIL.** **AND THE EIGHT IDS ARE NOW THIS UNIT'S ALONE, 2026-10-17 (`DEF-2026-10-16-S`'s re-mint pass; `RCA-8(g)`: this census line stands BYTE-FOR-BYTE above and is read THROUGH this clause, which re-spells NOTHING here and states the one fact that changed): the ids were SHARED with `U-STOREROOM-JS` until that unit's eight were re-minted to `P-SR-1`…`P-SR-8`, and THIS UNIT'S EIGHT SPELLINGS, THEIR ORDER, THEIR THREE TERMS AND ITS `8 ≤ 8` ✓ ARE UNMOVED.** **AND THE `§5.1`–`§5.8` ROW HEADERS BELOW ARE UNMOVED WITH THEM: every one of the eight rows stands at its own `§`-number, carrying its own id, its property, its strategy ids and its failure list, and NO ROW'S TEXT MOVED IN THIS PASS** (`docs/specs/storeroom-js/contract.md`'s unit/prefix line and its `DD-3` row as re-derived; `DEF-2026-10-16-S`; `§5.1`'s own row below). **THE REGISTER'S OWN ARITHMETIC IS
 PRINTED WITH ITS TERMS AND AGAINST BOTH NEIGHBOURS: the store's register stands `8 ≤ 8` ✓ and the JS unit's
 stands `8 ≤ 8` ✓ — this unit's `8` is a THIRD surface and moves neither** (`A: docs/specs/storeroom-native/
 contract.md §0.1` item 5; `A: docs/specs/storeroom-js/contract.md §5.0`; `[T: this unit's own census |
@@ -416,6 +416,8 @@ span `§5.1`–`§5.8` carries `8` REGISTER ROWS and nothing else, and a `P-*` I
 citation names the section and a `P-*` citation names the row, and a sentence reading *"`§5.4`'s `P-SM-4`"*
 is naming a section and the row that lives in it** (`[A: docs/specs/storeroom-js/contract.md §5.0` — the
 same disclosure at the sibling's own register | CROSS-REF]`).
+
+**⟶ AND THIS CENSUS'S OWN DISAMBIGUATION IS RE-DERIVED AT THIS CELL, 2026-10-17 BY `DEF-2026-10-16-S`'s RE-MINT PASS (`role_spec_writer`; `RCA-8(g)`: the census and the disclosure above stand BYTE-FOR-BYTE and are read THROUGH this clause, which moves NO term of their arithmetic and adds no row).** **THE `8` IS UNMOVED AND ITS TERMS ARE UNMOVED: `8` rows — `P-IM-1` · `P-IM-2` · `P-IM-3` (invariants) + `P-SM-4` · `P-SM-5` · `P-SM-6` (state/arm rows) + `P-TP-7` · `P-TP-8` (transition/property rows) — `3 + 3 + 2 = 8` ✓, the cap holding at `8 ≤ 8` ✓; the register stays a THIRD surface, the store's stands `8 ≤ 8` ✓ and the JS unit's stands `8 ≤ 8` ✓.** **WHAT MOVES IS ONE FACT AND NOT ONE FIGURE: THE JS UNIT RE-MINTED ITS EIGHT IDS TO `P-SR-1`…`P-SR-8`, so the two registers are now DISJOINT (`8 + 8 = 16` DISTINCT IDS, `0` SHARED) and THIS SPAN'S OWN DUAL-MAPPING DISCLOSURE — *"a `§n` citation names the section and a `P-*` citation names the row"* — keeps its `§`-half ONLY: a bare `P-IM-1` now names ONE row in this repository, and it is OURS.** **AND THE TWO CITATIONS ABOVE STILL RESOLVE EXACTLY AS PRINTED: `§5.4`'s `P-SM-4` is this unit's row, and the sibling's `§5.0` disclosure is the sibling's own** (`docs/specs/storeroom-js/contract.md`'s unit/prefix line and its `DD-3` row as re-derived; `DEF-2026-10-16-S`; this document's index-region clause of the same date).
 
 ### §5.1 `P-IM-1` — the registration key's uniqueness domain, and the handle check's side
 

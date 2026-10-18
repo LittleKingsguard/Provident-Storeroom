@@ -224,7 +224,7 @@ file-image normalization, asserted by the STORE's battery and NOT by this layer 
 member ORDER is not compared, because the engine re-orders integer-like keys.** **`0` other exclusion is
 declared, and a third exclusion is a finding**
 (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 — `AR-14`'s round-trip property; A3
-docs/specs/storeroom-native/contract.md §5.2 · P-IM-1 | requirement]`).
+docs/specs/storeroom-native/contract.md §5.2 · P-IM-1 — **THE STORE UNIT'S OWN `P-IM-1`, NOT THIS UNIT'S REGISTER ROW: the re-mint of 2026-10-17 (`DEF-2026-10-16-S`) renamed THIS unit's eight ids to `P-SR-1`…`P-SR-8` and reaches no id of `docs/specs/storeroom-native/`, so this citation is UNMOVED AND UNTOUCHED** | requirement]`).
 
 **AND THE ONE THING THIS PROPERTY DOES NOT CLAIM, STATED SO THE LAYER'S HONESTY IS CHECKABLE:** **the
 FILE-IMAGE CANONICAL NUMBER SPELLING IS OUTSIDE THIS UNIT'S ACCEPTANCE LAYER.** **`docs/specs/storeroom-native/contract.md
