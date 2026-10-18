@@ -213,3 +213,5 @@
 **Amendment post-`§79`: `archive/reviews/2026-10-16-constraints-publication-gate1.md` = `0383e2be2d1a5d7b767c6befa408130cacd5862a2b824e4bbfb067b8940aba40`.**
 
 **Amendment post-`§80`: `archive/reviews/2026-10-16-constraints-publication-gate1.md` = `2497d982a32e77177f81cdddf97a0bb8cd21c3825fa2dd2710f46ae23e795acf`.**
+
+**Amendment post-`§81`: `archive/reviews/2026-10-16-constraints-publication-gate1.md` = `641f3258f6d82f83db364039f2fb761badd64dee7e12377b6146bdabfb0cf105`.**
