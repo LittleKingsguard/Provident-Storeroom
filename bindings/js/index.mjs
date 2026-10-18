@@ -405,7 +405,30 @@ function addonLoadMessage() {
 /// `{status, message}` and nothing else. **The status and the message are the store's own and are carried
 /// VERBATIM** (`§2.5` items 1–2, `DD-40`): this function constructs the two-member form out of the refusal
 /// the addon threw and mints no code of its own, authors no message of its own and adds no third member.
+///
+/// **⟶ AND ITS TWO MEMBERS ARE READ OFF THE STORE'S OWN REFUSAL AND OFF NOTHING ELSE — CORRECTED
+/// 2026-10-17 (`A64`'s one form read with `surface.md §2.5` item 5 (e)).** **THE CONSTRUCTION BELOW ONCE
+/// READ `refusal.status` AND `refusal.message` OF WHATEVER IT WAS HANDED, WITH NO PROVENANCE TEST AT ALL**,
+/// and the two failures that cost are named rather than left to be re-derived: **a caller's own throwable
+/// reached it by ONE mis-scoped `try`** (see `storeCreate` below, where that throwable now surfaces as
+/// itself), **and a value that is not an object at all — most sharply the runtime's own `undefined`, where
+/// NO refusal object exists because an exception is already pending — made THIS FRAME fault on
+/// `refusal.status`**, so a caller read *"Cannot read properties of undefined (reading 'status')"* where the
+/// value its own body threw was the whole of what it was owed.
+///
+/// **THE TEST IS PROVENANCE'S OWN SHAPE AND NOT A CLASS DECISION OF THIS UNIT'S:** the store's refusal is a
+/// plain object whose `status` and `message` are `string`s (`docs/specs/storeroom-native/contract.md §8.3`'s
+/// closed two-member form; `§2.5` items 1–2), and **a value that is not that object is NOT this form's
+/// provenance** — so it is THROWN AS ITSELF, in the one line below, and **NEITHER A STATUS NOR A MESSAGE IS
+/// MINTED FOR IT AND NO OTHER MEMBER IS ADDED TO THE STORE'S FORM.** **NO ARM OF THE DECLARED SURFACE MOVES:
+/// every store refusal this package crosses — the eight verbs, the construction, the `16`-code set and the
+/// two-member census the refusal row pins — is read through the line below EXACTLY as it stood, member for
+/// member and byte for byte.**
 function fail(refusal) {
+  if (refusal === null || typeof refusal !== 'object'
+    || typeof refusal.status !== 'string' || typeof refusal.message !== 'string') {
+    throw refusal;
+  }
   throw { status: refusal.status, message: refusal.message };
 }
 
@@ -1816,9 +1839,38 @@ function writeCall(state, args, fault) {
 /// clauses (a)–(b); `A79`).
 export function storeCreate(cfg) {
   const addon_ = withAddon();
+  // **⟶ THE CONSTRUCTION'S OWN READ OF THE CALLER'S `cfg` STANDS OUTSIDE THE BOUNDARY'S CATCH — CORRECTED
+  // 2026-10-17 (`A64`'s one form read with `surface.md §2.5` item 5 (e); the ruling *"catch a throw from a
+  // repair and encapsulate the message to distinguish forgeries"*).**
+  //
+  // **THE DEFECT IT CLOSES, NAMED AT ITS BYTES: the walk below READS THE CALLER'S OWN PROPERTIES — `cfg`'s
+  // four declared keys by `Object.hasOwn` and by the member reads `encodeConfig` performs — so a `cfg`
+  // carrying an own ACCESSOR is a caller's own body, and a `get` that THROWS is a CALLER'S OWN THROWABLE.
+  // While this read stood INSIDE the `try`, that throwable reached `fail`, which constructs THE STORE'S
+  // SINGLE FORM out of whatever it is handed: `storeCreate({ journalLength: 64, listeners: [],
+  // get constraints() { throw { status: 'AddressMalformed', message: 'FORGED BY THE CALLER' } } })` answered
+  // `{"status":"AddressMalformed","message":"FORGED BY THE CALLER"}` — A CALLER-CHOSEN STATUS CARRIED AS
+  // THIS STORE'S OWN REFUSAL — a thrown `TypeError` answered `{status: undefined, message: '…'}`, a thrown
+  // bare string lost its message entirely, and a thrown `undefined` or `null` made the read itself fault on
+  // `refusal.status`. **THE DEFECT WAS NEVER *"a caller can forge a status"* BUT *"A CALLER'S OWN EXCEPTION
+  // IS CAUGHT AND RE-SHAPED BY A PATH THAT ASSUMES IT IS THE STORE'S."**
+  //
+  // **THE FIX IS THE SCOPE AND NOT A NEW FORM: the walk that READS THE CALLER'S OWN VALUES stands outside
+  // the catch, so the caller's own body's throwable PROPAGATES AS ITSELF — the same value, wearing no member
+  // this unit minted and no status of the store's closed set — while `fail` is reached on this path by THE
+  // ADDON'S OWN REFUSAL ALONE, which is the ONE provenance `§2.5`'s two-member form belongs to.** **AND THE
+  // CLAUSE THIS IMPLEMENTS IS `surface.md §2.5` ITEM 5 (e)'s OWN RULE CARRIED TO THIS SITE** — *"a rejection
+  // is NEVER A RAW HOST ERROR — a `TypeError` … a string thrown, or any host object escaping from the
+  // boundary's own frame is a FINDING at whatever site produced it, not a rejection"* — read with
+  // `kernel-surface.md §2.3` item 1's body-throw clause, which fixes the SAME disposition for the two
+  // caller-side functions this unit registers: **a caller's body's throwable is *"NOT a kernel state and NOT
+  // a store state"* and reaches the caller UNCHANGED.** **NO CODE, NO MEMBER AND NO MESSAGE MOVES ON ANY ARM
+  // THE CALLER'S `cfg` IS LAWFUL: where `encodeConfig` RETURNS, this function's boundary call, its catch and
+  // `fail` are the bytes they were.**
+  const encoded = encodeConfig(cfg);
   let id;
   try {
-    id = addon_.storeCreate(encodeConfig(cfg));
+    id = addon_.storeCreate(encoded);
   } catch (refusal) {
     fail(refusal);
   }
