@@ -35,3 +35,31 @@
 2. **Treat R6/R7/R16 as a candidate `0.4.0` scope, not a `0.3.x` patch** — each adds a surface, and `MINOR` is "a member ADDED".
 3. **Answer R14 explicitly**: whether a graph concept is in scope for this project at all, since `'secure'`'s refusal is currently declared law (`crossing.md:342`).
 4. **Note the `constraintOff`-is-not-removal hazard in the guides**, since a downstream reader has already been misled by it in a review.
+
+
+---
+
+# ADDENDUM — IS THE CONSTRAINT-VIOLATION AND REPAIR-ATTEMPT LOG REACHABLE BY A CLIENT?
+
+**THE ARCHITECT'S QUESTION, ANSWERED BY MEASUREMENT ON THE PUBLISHED `0.3.1` BYTES. THE ANSWER IS: THE KERNEL WRITES IT AND THE KERNEL CAN READ IT, BUT NO CLIENT CAN REACH EITHER.**
+
+## WHAT THE KERNEL HAS
+
+**`bindings/js/src/constraint-kernel.mjs` exports FIVE items (`kernel-surface.md §1` item 2): `register` · `commit` · `runAttempt` · `log(store, attempt) -> LogEntry[]` · `report(store, attempt) -> AttemptReport`.** **`K-4`'s own clause (`:1302`) reads *"the attempt's own log, OPEN or CLOSED alike"*, and `K-5` returns the attempt report.** **So the log EXISTS, is per-attempt, is built entry by entry (`:236`, `attempt.log.push({seq, …})`), and is readable through two exported functions.** **THE KERNEL'S OWN REFUSAL OBJECT IS THREE-MEMBERED — `refuse(status, message, log)` at `:134` builds `{status, message, log}`.**
+
+## WHAT A CLIENT CAN REACH — THREE MEASURED BLOCKERS, ALL OF THEM STRUCTURAL
+
+1. **THE MODULE IS NOT IMPORTABLE.** The `exports` map declares **one entry, `.`**, so a deep import is refused at the resolution layer: **`import('provident-storeroom/src/constraint-kernel.mjs')` → `ERR_PACKAGE_PATH_NOT_EXPORTED`.** The kernel travels **as a `files` entry — shipped, present on disk, and NOT a reachable subpath.** That is `A122`'s own shape: *"the exports arm set is UNMOVED, the subpath shape is REFUSED BY NAME, and the kernel's five items stay INTERNAL ORCHESTRATION STAGES that no consumer verb exposes."*
+2. **THE PRODUCT CARRIES NO MEMBER FOR IT.** Measured on a live instance: **twelve members, and `a.log` and `a.report` are both `undefined`.** The twelve are the ten methods plus `register` and `settle`; **no member returns a log or a report.**
+3. **THE THROWN REFUSAL CARRIES TWO KEYS.** `Object.keys(caught)` is **`["status","message"]`** — `status: 'FileCommitFailed'`, and `message` carrying the constraint's own text. **The kernel's third member (`log`) is stripped at the entry's crossing (`constraintCrossing`, `index.mjs:2952`–`:2960`), per `A120` (2) — and the `Object.keys(caught)` census that pins exactly two members green is a landed assertion.**
+
+## SO, PRECISELY
+
+- **IS THE LOG WRITTEN?** Yes — per attempt, entry by entry, with a sequence number and the kernel's composed `KC` token on the entry (`KC-8` at the floor, `KC-3` without one).
+- **IS IT READABLE?** Yes — **by the kernel, through `K-4`/`K-5`.**
+- **IS IT REACHABLE BY A CLIENT?** **No — not by deep import (refused at resolution), not as a product member (absent), and not on the thrown object (stripped to two keys by a ruled, test-pinned crossing).**
+- **WHAT A CLIENT CAN LEARN FROM A REFUSAL:** the store's `FileCommitFailed` status and a message. **Measured: a constraint registered as `{address:['k'], id:'c1'}` returning `{message:'refused by c1'}` produces a thrown `message` of `refused by c1` — so THE CONSTRAINT'S OWN MESSAGE IS PRESENT, while THE ATTEMPT'S LOG, THE SEQUENCE OF ATTEMPTS, THE `KC` TOKEN AND THE REPAIR HISTORY ARE NOT.** **A client therefore learns WHAT failed and NOT WHICH constraint, HOW MANY attempts, WHAT each attempt did, or WHETHER a repair ran.** *(The upstream reading that a client *"cannot learn which constraint failed"* is right for a constraint that returns no message, and wrong where the constraint's own message is supplied — the id itself never crosses.)*
+
+## THE RELEVANT ASYMMETRY, AND WHY THIS IS A SURFACE QUESTION RATHER THAN A BUG
+
+**Nothing here is broken:** the crossing behaves exactly as `A120` (2) rules, the deep-import refusal is `A122`'s declared shape, and the two-key throw is pinned by a green census. **The gap is that a facility the kernel builds on every attempt has NO declared route to the consumer — and the downstream project's own `R6`/`R7` are asking for exactly that route under a different name.** **THIS IS THEREFORE ONE REQUIREMENT, NOT THREE:** exposing the attempt entry the ruling already populates would simultaneously answer the downstream `R6`/`R7` ask and make the log reachable, **and it is a `MINOR` change to the declared surface — a member added — which is a `0.4.0` shape of work, not a `0.3.x` patch.**
