@@ -983,3 +983,96 @@ so the appended span is self-describing | NEGATIVE]`).
 5. **`§9.6`'s STOP CONDITIONS WERE NOT MET, EACH READ AT ITS OWN SUBJECT: no phase wrote outside `§9.1`'s scope, no `DD` row was read as reversed by a preference rather than by the ACTIVE ruling, no create preceded an argument's validation, no second reachability predicate or syscall seam or dependency or `File::create` truncation was proposed (the landed fix is a LOOKUP swap and the crate's `[dependencies]` is still EMPTY), no citation in the region points at a path this repository does not carry, no whole-file rewrite was used for the append, and the `PATCH` class was not re-argued** (`docs/defects.md`'s gate-7 clause; `docs/decisions.md`'s `PATCH` row; `src/store.rs`; `Cargo.toml` and `Cargo.lock`).
 6. **AND THE TWO RECORDS THIS REGION'S `§9.7` POINTS AT THAT DO NOT EXIST FOR THIS ROW ARE NAMED RATHER THAN LEFT TO A READER: `docs/specs/storeroom-access-probe-review.md` (row `1`) EXISTS as the gate-1 record and IS THE OVERSIZE ARTIFACT `RCA-13`'s ceiling already records; and for the AMENDMENT itself there is NO gate-4 file and NO gate-6 file under `archive/` — the adversarial pass's outcome and the live determination are carried in `docs/next-steps.md`'s own dated clauses rather than in per-gate records, which is the tracker's shape and not a missing artifact of this plan** (`docs/next-steps.md`'s gate-4 `GREEN SURVIVES WITH FINDINGS` clause). **NO FILE IS ARCHIVED OR REPOINTED BY THIS ITEM: it states where each outcome is, not where it should have been.**
 
+---
+
+## §11. THE TEMPORAL-STOP AMENDMENT'S PLAN — the declared edit scope, the phase table, the acceptance criterion, the stop conditions and the pointer index (dated 2026-10-16; the amendment's plan region, for THIS CONTRACT'S TWELFTH BOUNDED AMENDMENT inside the `DONE` unit `U-STOREROOM-NATIVE`)
+
+**WHAT THIS REGION IS.** **It is the plan region for the temporal-stop amendment — the TWELFTH bounded amendment of `docs/specs/storeroom-native/contract.md`, a BOUNDED AMENDMENT inside the existing `DONE` unit and NOT a successor unit, its authority the architect's ruling of `2026-10-16`, verbatim: *"Add temporal stop to the rollback."*** **It states PROSPECTIVE PLAN STEPS: what will be built, in what order, and verified how.** **Every step below is a PLAN STEP and never a contract claim; the amendment's RULES stand at their own homes — `docs/specs/storeroom-native/write-and-read.md §6.4` items 1–3 and the same clauses at `docs/specs/storeroom-native/contract.md §6.4` — cited clause by clause and re-derived nowhere here.** **It authors NO typed property register: the register stands at its `8` rows with the cap holding (`8 ≤ 8` ✓), the amendment ADDS and REMOVES no row, and the drives it owes are re-derivations of the rows whose clauses it moves, named at `§11.6` below.**
+
+**WHY IT SITS HERE AND NOT IN A NEW DIRECTORY.** **One unit id, one contract directory, one `≤ 8` register at its cap, one red set, one crate at the repository root, one `DONE` row** — the layout `§1.1` fixes for ONE unit. **The amendment's declared surface carries NO new identifier that could found a directory: it mints no id of any family, and its `16`-member closed set and its set of record members are BOTH UNMOVED.**
+
+### §11.1 THE DECLARED EDIT SCOPE — the paths this amendment may write, with the phase that may write each
+
+| # | Path | What the amendment may do there | The phase that may write it |
+| --- | --- | --- | --- |
+| **1** | `docs/specs/storeroom-native/write-and-read.md` · `docs/specs/storeroom-native/contract.md` | **LANDED at this pass**: the dated `⟶ AMENDED 2026-10-16` clauses beside `§6.4` item 1 (`M-5`'s scope), beside `§6.4` item 2 (`M-6`, the two floors' relationship) and beside `§6.4` item 3 (`M-7`'s direction and stop); the index region's twelfth-amendment derivation clause; this region | **`A1` — LANDED at this pass** |
+| **2** | `tests/**` | **the drives the moved clauses require**: the temporal floor's drive and the overshoot observable, authored from the amended clauses alone, and the re-derivation of every cell whose assertion the amendment makes false | **`A2`** |
+| **3** | `src/store.rs` | **the least code that turns exactly those drives green**: the scope filter gains its `seq` bound and NOTHING ELSE of the crate | **`A3`** |
+| **4** | `docs/specs/storeroom-constraints/**` | **OWED — ONE RE-SPELL, and it is the sibling unit's to land**: `composition-and-states.md §2.6` item 8 (iii)'s STANDING LIMIT clause and item 4's per-op reach clause, whose text states the store's reach as *"backward to the oldest entry"*, and `kernel-surface.md §2.1`'s neighbour — each re-pointed to the amended `M-5`/`M-7` and each re-spelled in the sibling's own pass | **`A6`** |
+| **5** | the four trackers `docs/{next-steps,decisions,pending,defects}.md` | **by the GATES only** — never by the build: the fresh ACTIVE row the ruling needs, the reconciled cells and the defect row this change closes | **`A0`, `A4`, `A9`** |
+| **6** | `docs/specs/storeroom-native/backup/**` | **this pass's own backup record**, if a later pass judges one owed; **a subdirectory file, contributing to NEITHER side of the closure predicate** | **`A1`** |
+
+**NOT-TOUCHED SET — a step out of it is a FAILURE at any phase, by any role.** **`docs/specs/storeroom-native-proposal-review.md` (the closed gate-1 record — READ and CITED only)** · `docs/specs/storeroom-native-proposal.md` and every proposal · every `backup/**` and `archive/**` byte not this amendment's own · **`docs/specs/storeroom-js/**`, `docs/specs/storeroom-publish/**` and `bindings/js/**` — the JS unit's `rollback(opId)` arity is UNMOVED, no position is added, and the crossing is not reached** · **any ninth register row, any second register, any new `DD`/`PAR`/`P-*` id, any new fail-code member, any new record member** · any byte under the adjacent project `../Provident-Electron/**` (read-only) · **any whole-file rewrite as a remedy for a growth ceiling** (`DEF-2026-10-02`'s class).
+
+### §11.2 THE PHASE TABLE — phase · what it does · owner · input · output · the rule that authorizes it
+
+| Phase | What it does | Owner | Input | Output | The rule that authorizes it |
+| --- | --- | --- | --- | --- | --- |
+| **`A0` — the record and the go-ahead** | records the amendment's derivation with its `decomposition` cell `BOUNDED AMENDMENT` and requests the go-ahead | the supervisor's landing pass | the architect's ruling; this region | the tracker row; this pass's report | no gate is skipped and no gate count moves |
+| **`A1` — the specification** | lands the amended `M-5` scope, the reconciled `M-7` direction and stop, the two floors' relationship and the overshoot observable, each with its dated `⟶` clause | `role_spec_writer` | the ruling + the shipped contract directory + the consumer's clause the floor's source is chosen from | the amended clauses at `write-and-read.md §6.4` and `contract.md §6.4`; this region | the contract's own amendment instrument |
+| **`A2` — the red set** | authors the amendment's drives **from the amended clauses alone**, RE-DERIVES every cell the amendment makes false, RUNS the set and REPORTS the failing set **before any implementation** | `role_test_writer` | the amended contract directory, whole | the re-derived cells; new cells for the floor and the overshoot; the reported failing set | **RED BEFORE GREEN** |
+| **`A3` — the green** | the least code that turns exactly that red set green: the scope filter's `seq` bound, nothing else | `role_implementer` | the reported red set + `§11.1` row `3` | `src/store.rs` | least code to green, after the red set is reported |
+| **`A4` — the adversarial pass** | attacks the green read-only; every finding gets ONE recorded disposition | `role_adversarial_reviewer` | the green tree | the gate's findings record | the adversarial pass is mandatory per completed unit |
+| **`A5` — the blind greens** | authors **and runs** a set from the docs alone, by an agent who did **not** implement — **the overshoot observable among them, since it is the property this amendment exists to give** | `role_blind_test_writer` | the delivered docs + the green tree | the amendment's greens record | a greens set authored by the implementer without a blind re-run is a finding |
+| **`A6` — the sibling's re-spell** | lands the `U-STOREROOM-CONSTRAINTS` re-spell of its clauses that cite the store's reach as *"backward to the oldest entry"* | `role_spec_writer` | the amended `M-5`/`M-7` | the sibling's dated clauses | `§11.1` row `4` |
+| **`A7` — the proofread and the documentation review** | both audit the docs against the code, per unit, in the same pass | `role_proofreader` + `role_documentation_reviewer` | the green tree + the greens record + the trackers | the proofread's fixed cells; the review record | both are mandatory and run per unit, never batched |
+| **`A8` — the validation trio** | the project's three checks plus the additive leg, each with its LAYER | the supervisor's trio | the frozen green tree | the measured exit codes and figures | a node-suite green is ENVELOPE-green, never `APP`-green |
+| **`A9` — the landing** | amends the shipped `DONE` row's cells IN PLACE with dated re-measures and their layers; lands the fresh ACTIVE `docs/decisions.md` row and discharges this change's defect row | the supervisor's landing pass (**the row's admission is the ARCHITECT'S**) | every gate's landed artifact | the amended `DONE` row · the reconciled trackers · the archival record | the architect admits ROWS, not a pass |
+
+### §11.3 THE BLOCKED-BY CELLS — every phase the open rows block, marked
+
+| The phase | Blocked by | Why |
+| --- | --- | --- |
+| **`A1`** | — | **LANDED at this pass** |
+| **`A2`** | `A1` | the amended clauses are the red set's only input |
+| **`A3`** | `A2` | least code to green requires a reported red set |
+| **`A4`** | `A3` | the adversarial pass attacks a green |
+| **`A5`** | `A3` | the blind set runs against the green tree |
+| **`A6`** | `A1` | the sibling re-spell cites the amended clauses; **it is NOT blocked by `A3` and it changes no code** |
+| **`A7`, `A8`, `A9`** | their predecessors; **`A9`'s row admission is the architect's** | — |
+
+### §11.4 THE ACCEPTANCE CRITERION — `DONE`, and what makes it `NOT DONE`
+
+| # | The item | Its evidence |
+| --- | --- | --- |
+| 1 | the amended `M-5` scope, the reconciled `M-7` stop, the two floors' relationship and the overshoot observable each stand at their own sites with a dated `⟶` clause | `write-and-read.md §6.4` items 1–3; `contract.md §6.4` items 1–3 |
+| 2 | `RollbackResult`'s THREE members and `undoneOps`'s order are UNMOVED, and `§6.3`'s one verb's signature is UNMOVED | `contract.md §6.3` |
+| 3 | the closed fail set stands at `16` members with `11 + 2 + 1 + 1 + 1 = 16` ✓ and no member's rank or trigger moves | `seams-and-lifecycle.md §8.1`; `contract.md §8.1` |
+| 4 | the typed register stands at `8` rows with the cap holding and no row added or re-numbered | `contract.md §5.2`–`§5.9` |
+| 5 | a drive shows a pre-existing value at the rolled-back op's own address STANDING after the rollback, and a drive shows an entry older than the named op unreversed | `§11.1` row `2` |
+| 6 | `RollbackCompacted` is still produced for a temporally-in-scope candidate set containing a compacted entry, and is still all-or-nothing | `contract.md §6.4` item 2's neighbour; `seams-and-lifecycle.md §8.1` #11 |
+| 7 | no byte outside `§11.1`'s declared scope is written | `§11.1` |
+
+**AND WHAT MAKES IT `NOT DONE`: a clause of `§6.4` re-derived at a second home instead of cited · a new member, a new record, a new parameter, a new fail code or a ninth register row · `RollbackCompacted` read as lifted or narrowed · the sibling's re-spell read as landed before `A6` · and any file of this amendment's scope rewritten WHOLE.**
+
+### §11.5 THE STOP CONDITIONS — a pass meeting one stops and reports
+
+**`A`** — a term of the amended scope or of the stop cannot be read off the ruling and the corpus, and would have to be invented. **`B`** — a name not compelled by the conventions would have to be invented. **`C`** — a move would exceed `131,072` bytes at a single path and the only remedy offered is a whole-file rewrite. **`D`** — a move would write outside `§11.1`'s declared scope, or write `docs/decisions.md`/`docs/pending.md`/`docs/defects.md`/`docs/next-steps.md`, or write a byte under `src/**`, `tests/**`, `bindings/**` or `../Provident-Electron/**`. **`E`** — a move would reach `docs/specs/storeroom-native-proposal-review.md`. **`F`** — a move would mint a ninth register row, a second register, a new fail member or a new record member. **`G`** — a citation would resolve to no path this repository carries.
+
+### §11.6 THE POINTER INDEX, AND THE CELLS THIS AMENDMENT MOVES
+
+**THE CLAUSES AND CELLS THAT GO RED OR MOVE, EACH BY FILE AND BY THE CLAUSE THAT CARRIES IT — a line anchor is NOT printed, because these files are appended to and an anchor drifts (`contract.md §0.1` item 2's own rule):**
+
+| # | The site | What it now reads |
+| --- | --- | --- |
+| 1 | `docs/specs/storeroom-native/write-and-read.md §6.4` item 1 (`M-5`) — **every cell asserting the ADDRESS-WIDE scope** | **AMENDED**: the prefix test is HALF the scope; the `seq` bound is the other half. **A drive asserting that an older entry under the named op IS reversed is now FALSE.** |
+| 2 | `docs/specs/storeroom-native/write-and-read.md §6.4` item 3 (`M-7`) — **its direction sentence's *"oldest in scope"*** | **AMENDED**: the stop is the NAMED OP; the direction is unmoved |
+| 3 | `docs/specs/storeroom-native/write-and-read.md §6.4` item 3 (i)/(ii) — the `undoneOps`/`restoredTo` clauses | **UNMOVED and read through the new scope**: an entry out of scope by `seq` is absent from `undoneOps` for the SCOPE's reason, and the parent-chain-gone answer (i)/(ii) keeps its subject |
+| 4 | `docs/specs/storeroom-native/write-and-read.md §6.4` item 2 (`M-6`) and `seams-and-lifecycle.md §8.1` #11 | **RECONCILED, not moved**: `RollbackCompacted` is produced over the TEMPORALLY BOUNDED candidate set; code, rank and message text unmoved |
+| 5 | `docs/specs/storeroom-native/contract.md §6.4` items 1, 2 and 3 | the same three clauses, carried at the contract document's own home |
+| 6 | `src/store.rs`'s `rollback` scope filter | **THE CODE THE AMENDMENT MOVES**: the filter gains its `seq` bound; nothing else of the crate |
+| 7 | `tests/journal_and_rollback.rs` — **its rollback-scope cells** | **RE-DERIVED by `A2`**: any cell asserting that a write made BEFORE the named op at the same address is reversed now asserts the opposite — the seed stands |
+| 8 | `docs/specs/storeroom-constraints/composition-and-states.md §2.6` item 4's per-op reach clause and item 8 (iii)'s STANDING LIMIT clause | **OWED at `A6`**: each states the store's reach as *"backward to the oldest entry"*; each is re-pointed to the amended `M-5`/`M-7` **in that unit's own pass**, and no byte of it is written by this one |
+| 9 | `docs/specs/storeroom-constraints/kernel-surface.md §2.1`'s neighbour (the binding, `§1` item 5's call shape) | **UNMOVED and CONFIRMED**: `rollback(store, opId)` gains no third argument; the floor is the named op's own `seq` |
+| 10 | the kernel's reach/stop clauses — `composition-and-states.md §2.6` item 8 (i), (v), (vi) | **UNMOVED AND NOW BACKED BY THE STORE**: *"only the ops after it are undone"* is what the store's own scope now produces, and the kernel's separate `checkpoint` stop stands beside it |
+
+### §11.7 THE CROSS-DOCUMENT SUPERSESSION EDGES — both ends named, path plus `§n`, neither left implicit
+
+| # | Edge | Its end A | Its end B |
+| --- | --- | --- | --- |
+| 1 | **`SUPERSEDED`** — the address-wide scope, as filed | `docs/specs/storeroom-native/write-and-read.md §6.4` item 1 | `docs/specs/storeroom-native/write-and-read.md §6.4` item 1's `⟶ AMENDED 2026-10-16` clause |
+| 2 | **`SUPERSEDED`** — the direction's stop term, as filed | `docs/specs/storeroom-native/write-and-read.md §6.4` item 3 | `docs/specs/storeroom-native/write-and-read.md §6.4` item 3's `⟶ AMENDED 2026-10-16` clause |
+| 3 | **`OWED` re-spell** | `docs/specs/storeroom-constraints/composition-and-states.md §2.6` item 4 and item 8 (iii) | this region's `§11.1` row `4`, landed by `A6` |
+
+**END OF THE TEMPORAL-STOP AMENDMENT'S PLAN REGION.** **Its authored content is `§11.1`–`§11.7` — a plan step, a pointer or a cell of this region's own reading, never a new pinnable claim** (`[T: the region's own bound, declared at its foot so the appended span is self-describing | NEGATIVE]`).
+
