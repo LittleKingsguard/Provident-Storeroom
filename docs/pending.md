@@ -850,3 +850,15 @@ constraintOff(pair, constraint)     { return constraintToggle(false, instance, a
 **STATE: 580 tests · 447 pass · 133 fail · 0 failing in the unit's own files.** `build` clean; `typecheck`'s 8 errors are confined to `typecheck/consumer-fixture.ts` and are pre-existing. **THE 133 ARE THE LEGACY CELLS: the crate's `tests/**` still compile against the pre-unit `listen`/`triggered` signatures — the `contract.md §8` items 5–6 re-derivation duty, untouched by this unit's green.**
 
 **AND THE LAYER CLAIM IS UNCHANGED: everything green here is `ENVELOPE/PURE`. No `APP`-green exists and none is claimed.**
+
+## SECOND LIVE DEFECT, FOUND BY TEST WORK — THE BATCH ROUTE WAS BROKEN FOR EVERY `cfg.constraints` CALLER
+
+**`storeCreate({constraints:[{address:['a'],…}]})` THREW `KC-1` WHILE THE IDENTICAL PAIR VIA `addConstraint` SUCCEEDED**, and `address: []` succeeded through the batch route. **Cause:** `encodeConstraints`/`constraintAddress` returned `address` as the *encoded* `{k:'L', s:[…]}` and `storeCreate` handed it to `carryConstraint` while `addConstraint` passed a DECODED segment list — so the batch route delivered a non-segment into `K-1`'s `inDomainAddress`. **This is a CONSTRUCTOR-ARGUMENT path: it would have hit every user on first use.**
+
+**FIX: one line, `index.mjs:2171`** — the batch loop now passes `[encoded.address.s]`, the pair's ONE-member set, exactly the shape `constraintSite` hands `K-1` from `addConstraint`. No new position, code or failure form. **No other encode/decode mismatch exists**: the only encoder carrier feeding a `K-1` position was this site.
+
+**AND THE LEGACY RE-DERIVATION'S LANDED STATE: `npm run typecheck` IS GREEN, 0 ERRORS, EXIT 0** — the `consumer-fixture.ts` re-derivation cleared all 8 errors that had stood since the earlier `settle` removal. `a127-surface.test.mjs` and `a126-constraint-methods.test.mjs` are fully re-derived (`THE_TWELVE`→`THE_FOURTEEN`, `TWELVE_MEMBERS`→`FOURTEEN_MEMBERS`, changed IN PLACE, not deleted). **Failing `133 → 114` of 580 (466 pass); `build` exit 0; `greens` byte-identical.**
+
+**THE RESIDUAL 114, BY CLASS, NONE OF THEM THIS DEFECT:** `57` `AddressMalformed` from the pre-unit `listen(address)` call shape; `~13` kernel state/repair cells; the stale `12`-vs-`14` member census; and the `watch`/`settle`/`on`/`off` subjects. **RETIREMENTS RECORDED, NOT DELETED:** `watch` → `A58`; `settle` → `surface.md §2.4` item 9 (2026-10-18); `on`/`off` → `A127`; a minted `Handle` → `contract.md §2.1` item 1 and `(AA-5)`.
+
+**AND ONE PASS THAT IS ITS OWN UNIT, NOT A TAIL: the Rust `tests/**` re-derivation.** `cargo test --no-run` reports **~233 compile errors across 7 files** — `59` sites calling `listen` at the old arity and `207` `triggered: Vec<ListenerHandle>` against the shipped `Vec<ListenerTrigger>`, which means re-deriving `same_handle_set`/`one_handle` in `tests/support/mod.rs` plus ~200 call sites.

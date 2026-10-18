@@ -2155,8 +2155,20 @@ export function storeCreate(cfg) {
       // failure form, exactly as the ADD route refuses the call. **THE STATE 3 SUCCESS ARM IS THE ONE THAT
       // MOVES THE STORE**: the repair's edit stands, the registration stands, and the construction returns
       // its instance with no log crossing (`3-bis` (c)).
+      //
+      // **⟶ AND THE FIRST POSITION IS THE DECODED SEGMENT LIST AND NEVER THE ENCODER'S CARRIER — CORRECTED
+      // 2026-10-18, AND THIS IS THE WHOLE OF THE DEFECT.** `constraintAddress` answers `{k:'L', s:[…]}` — a
+      // CARRIER (`§1.5`'s segment array as `encodeAddress` declares it) — while `carryConstraint` hands its
+      // `addresses` to `K-1`'s `inDomainAddress`, which admits A LIST OF SEGMENTS AND NOTHING ELSE. **SO
+      // `encoded.address.s` DELIVERED `['a']`'s ENCODING INTO A POSITION THAT ASKS FOR `['a']` ITSELF**: an
+      // in-domain pair was refused `KC-1` through the batch route alone, `addConstraint` — which passes
+      // `constraintSite`'s decoded `addresses` — succeeding at the identical pair. **THE TWO ROUTES REACH ONE
+      // `K-1` WITH ONE SHAPE** (`§2.12` item 3's preamble clause (a): *"the SAME call the ADD route makes"*),
+      // so the carrier is read back to its segments here and no new position, no new code and no new failure
+      // form is minted: `s` IS the decoded list `constraintAddress` built, and the pair is its ONE-member set
+      // (`constraint-identity.md §6`'s pair table — a single address at the REGISTRATION act).
       try {
-        carryConstraint(state, instance, encoded.address.s, encoded.id, element.constraint);
+        carryConstraint(state, instance, [encoded.address.s], encoded.id, element.constraint);
       } catch (refusal) {
         registrationCrossing(refusal);
       }

@@ -50,20 +50,22 @@ function mem(extra = {}) {
 }
 
 /// **THE OPERATIVE SURFACE THIS FILE DRIVES** (`surface.md §2.4` item 9 (f)'s `A127` clause; `§2.12` item 2
-/// (a)'s clause of that date; `parameter-semantics.md §2.23`'s VACATED row): the product's own TWELVE members
-/// (`10 + 1 + 1 = 12`) and the THREE constraint functions, each at the TWO positions the receiver ruling
+/// (a)'s clause of that date; `parameter-semantics.md §2.23`'s VACATED row): the product's own FOURTEEN members
+/// (`10 + 1 + 1 + 2 = 14`) and the THREE constraint functions, each at the TWO positions the receiver ruling
 /// leaves (`8 → 1`).
-// **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE SET MOVES `13 → 12`, `10 + 1 + 1 = 12` ✓**, on the
-// architect's ruling VERBATIM *"Settle is redundant because the kernel is always in the loop."* — the ten
-// methods plus the TWO remaining singles `register` and `constraints` (`surface.md §2.4` item 9 (f)'s clause of
-// that date, whose item `1` names both: *"TWO SINGLES REMAIN, AND THEY ARE NAMED"*), read through `§2.4`
-// item 9's `REMOVED-WHOLE` pointer over the `settle` seam. **The constant's NAME is kept so no citing cell is
-// renamed by a figure.** Every cell
-// below reads this constant as a PREMISE — "the product carries its declared own members before any
-// refusal is driven" — so the premise moves by one and each cell's own subject is untouched.
-const TWELVE_MEMBERS = [
+// **⟶ RE-DERIVED 2026-10-18, TWICE — AND THE SECOND STEP IS THIS PASS'S.** **STEP 1, `settle`:** the set moved
+// `13 → 12`, `10 + 1 + 1 = 12` ✓, on the architect's ruling VERBATIM *"Settle is redundant because the kernel is
+// always in the loop."* — the ten methods plus the TWO remaining singles `register` and `constraints`
+// (`surface.md §2.4` item 9 (f)'s clause of that date, whose item `1` names both: *"TWO SINGLES REMAIN, AND THEY
+// ARE NAMED"*), read through `§2.4` item 9's `REMOVED-WHOLE` pointer over the `settle` seam. **STEP 2, THIS
+// UNIT:** the set moves `12 → 14`, `10 + 1 + 1 + 2 = 14` ✓, the two new members `removeListener` and
+// `removeConstraint` (`contract.md §2.7` item 1 and item 9; `P: docs/pending.md · (AA-5)`, which WITHDRAWS the
+// `12 → 13` figure BY NAME). **The constant's NAME is kept so no citing cell is renamed by a figure.** Every
+// cell below reads this constant as a PREMISE — "the product carries its declared own members before any
+// refusal is driven" — so the premise moves by two and each cell's own subject is untouched.
+const FOURTEEN_MEMBERS = [
   'addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-  'readLiteral', 'register', 'rollback', 'unlisten', 'write',
+  'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write',
 ];
 const THREE = ['addConstraint', 'constraintOn', 'constraintOff'];
 
@@ -393,14 +395,14 @@ test('a126_a_toggle_reached_in_the_state_it_asks_for_is_idempotent_success', () 
 
 test('a126_a_toggle_at_a_pair_the_entry_does_not_carry_throws_the_one_type_error', () => {
   const a = mem();
-  // **THE EXISTENCE PRECONDITION — `A127`'s TWELVE-MEMBER SET, ASSERTED AS THE STATE THE FAILURE IS
+  // **THE EXISTENCE PRECONDITION — `contract.md §2.7` item 9's FOURTEEN-MEMBER SET, ASSERTED AS THE STATE THE FAILURE IS
   // DECLARED AGAINST** (`surface.md §2.4` item 9 (f)'s `A127` clause; `parameter-semantics.md §2.23`'s
   // VACATED row; the three functions at their TWO declared positions, `8 → 1` arity). **AN ACCIDENTALLY
   // GREEN CELL — one whose subject is a THROW — is otherwise satisfied by a member that does not exist,
   // because `undefined(x)` throws a `TypeError` too**, so the member's own existence and arity are read
   // FIRST at every cell of this class and no assertion below is weakened by it.
-  assert.deepEqual(Object.getOwnPropertyNames(a).sort(), TWELVE_MEMBERS,
-    'the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`) before any refusal '
+  assert.deepEqual(Object.getOwnPropertyNames(a).sort(), FOURTEEN_MEMBERS,
+    'the product carries its FOURTEEN declared own members (`10 + 1 + 1 + 2 = 14`) before any refusal '
     + 'is driven');
   for (const name of THREE) {
     assert.equal(typeof a[name], 'function',
@@ -524,13 +526,13 @@ test('a126_a_functionless_batch_element_is_admitted_and_its_pair_is_not_carried'
   assert.deepEqual(a.read([]), {}, 'a well-formed pair with no function is admitted by the store`s list rule');
   // **⟶ THE EXISTENCE AND ARITY PRECONDITIONS, ADDED 2026-10-17 (`role_test_writer`, GATE 4's ADVERSARIAL
   // PASS) — THE CELL'S SUBJECT IS A THROW, SO WITHOUT THEM AN ABSENT `constraintOn` SATISFIED IT.** The
-  // member set is `A127`'s TWELVE, and the three constraint functions are read by `typeof` and by ARITY `2`
+  // member set is `contract.md §2.7` item 9's FOURTEEN, and the three constraint functions are read by `typeof` and by ARITY `2`
   // BEFORE the refusal is driven — the same precondition the four cells of this class carry (`surface.md
   // §2.4` item 9 (f)'s `A127` clause; `parameter-semantics.md §2.23`'s VACATED row; `§2.12` item 3's one
   // spelling, `8 → 1`). **A MISSING `constraintOn` THROWS A `TypeError` TOO, WHICH IS THE ONE CLASS TEST —
   // so deleting the member makes this cell FAIL at the `typeof` reading and not pass at the predicate.**
-  assert.deepEqual(Object.getOwnPropertyNames(a).sort(), TWELVE_MEMBERS,
-    'the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`) before any refusal '
+  assert.deepEqual(Object.getOwnPropertyNames(a).sort(), FOURTEEN_MEMBERS,
+    'the product carries its FOURTEEN declared own members (`10 + 1 + 1 + 2 = 14`) before any refusal '
     + 'is driven');
   for (const name of THREE) {
     assert.equal(typeof a[name], 'function',
@@ -552,14 +554,14 @@ test('a126_a_functionless_batch_element_is_admitted_and_its_pair_is_not_carried'
 
 test('a126_an_outside_pair_throws_the_one_type_error_and_changes_nothing', () => {
   const a = mem();
-  // **THE EXISTENCE PRECONDITION — `A127`'s TWELVE-MEMBER SET, ASSERTED AS THE STATE THE FAILURE IS
+  // **THE EXISTENCE PRECONDITION — `contract.md §2.7` item 9's FOURTEEN-MEMBER SET, ASSERTED AS THE STATE THE FAILURE IS
   // DECLARED AGAINST** (`surface.md §2.4` item 9 (f)'s `A127` clause; `parameter-semantics.md §2.23`'s
   // VACATED row; the three functions at their TWO declared positions, `8 → 1` arity). **AN ACCIDENTALLY
   // GREEN CELL — one whose subject is a THROW — is otherwise satisfied by a member that does not exist,
   // because `undefined(x)` throws a `TypeError` too**, so the member's own existence and arity are read
   // FIRST at every cell of this class and no assertion below is weakened by it.
-  assert.deepEqual(Object.getOwnPropertyNames(a).sort(), TWELVE_MEMBERS,
-    'the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`) before any refusal '
+  assert.deepEqual(Object.getOwnPropertyNames(a).sort(), FOURTEEN_MEMBERS,
+    'the product carries its FOURTEEN declared own members (`10 + 1 + 1 + 2 = 14`) before any refusal '
     + 'is driven');
   for (const name of THREE) {
     assert.equal(typeof a[name], 'function',
@@ -601,14 +603,14 @@ test('a126_an_outside_pair_throws_the_one_type_error_and_changes_nothing', () =>
 
 test('a126_an_outside_constraint_throws_the_one_type_error', () => {
   const a = mem();
-  // **THE EXISTENCE PRECONDITION — `A127`'s TWELVE-MEMBER SET, ASSERTED AS THE STATE THE FAILURE IS
+  // **THE EXISTENCE PRECONDITION — `contract.md §2.7` item 9's FOURTEEN-MEMBER SET, ASSERTED AS THE STATE THE FAILURE IS
   // DECLARED AGAINST** (`surface.md §2.4` item 9 (f)'s `A127` clause; `parameter-semantics.md §2.23`'s
   // VACATED row; the three functions at their TWO declared positions, `8 → 1` arity). **AN ACCIDENTALLY
   // GREEN CELL — one whose subject is a THROW — is otherwise satisfied by a member that does not exist,
   // because `undefined(x)` throws a `TypeError` too**, so the member's own existence and arity are read
   // FIRST at every cell of this class and no assertion below is weakened by it.
-  assert.deepEqual(Object.getOwnPropertyNames(a).sort(), TWELVE_MEMBERS,
-    'the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`) before any refusal '
+  assert.deepEqual(Object.getOwnPropertyNames(a).sort(), FOURTEEN_MEMBERS,
+    'the product carries its FOURTEEN declared own members (`10 + 1 + 1 + 2 = 14`) before any refusal '
     + 'is driven');
   for (const name of THREE) {
     assert.equal(typeof a[name], 'function',
@@ -625,14 +627,14 @@ test('a126_an_outside_constraint_throws_the_one_type_error', () => {
 
 test('a126_a_short_arity_throws_the_one_type_error', () => {
   const a = mem();
-  // **THE EXISTENCE PRECONDITION — `A127`'s TWELVE-MEMBER SET, ASSERTED AS THE STATE THE FAILURE IS
+  // **THE EXISTENCE PRECONDITION — `contract.md §2.7` item 9's FOURTEEN-MEMBER SET, ASSERTED AS THE STATE THE FAILURE IS
   // DECLARED AGAINST** (`surface.md §2.4` item 9 (f)'s `A127` clause; `parameter-semantics.md §2.23`'s
   // VACATED row; the three functions at their TWO declared positions, `8 → 1` arity). **AN ACCIDENTALLY
   // GREEN CELL — one whose subject is a THROW — is otherwise satisfied by a member that does not exist,
   // because `undefined(x)` throws a `TypeError` too**, so the member's own existence and arity are read
   // FIRST at every cell of this class and no assertion below is weakened by it.
-  assert.deepEqual(Object.getOwnPropertyNames(a).sort(), TWELVE_MEMBERS,
-    'the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`) before any refusal '
+  assert.deepEqual(Object.getOwnPropertyNames(a).sort(), FOURTEEN_MEMBERS,
+    'the product carries its FOURTEEN declared own members (`10 + 1 + 1 + 2 = 14`) before any refusal '
     + 'is driven');
   for (const name of THREE) {
     assert.equal(typeof a[name], 'function',

@@ -13,7 +13,7 @@
 //  ---------------------------------------------------------------------------
 //  · the module's ONE export — `storeCreate`, and NOTHING ELSE (a second named
 //    export appearing in the declaration is refused below);
-//  · the instance's TWELVE own members, each CALLED at its declared arity and
+//  · the instance's FOURTEEN own members, each CALLED at its declared arity and
 //    in its declared argument order, with the address / handle / `opId` / pair
 //    FIRST;
 //  · `write`'s OPTIONAL FOURTH-POSITION `commit`;
@@ -21,7 +21,9 @@
 //    store's `JournalOp` record (not a number), `RollbackRecord.opId` is a
 //    string and `undoneOps` an ARRAY of ids (not counts), `restoredTo` a
 //    `BaseState`, `delete`'s record's `tiers` the tier tokens, `listen`'s
-//    handle opaque, the constraint triple's `ConstraintIdentity` opaque;
+//    answer `void` (the caller spells the identity), the trigger sets the
+//    PAIR `{handle, address}` and not a bare handle, the constraint triple's
+//    `ConstraintIdentity` opaque;
 //  · and the calls the declaration must REFUSE, each under `@ts-expect-error`
 //    — an unused `@ts-expect-error` is a COMPILE ERROR, so every refusal below
 //    is a live assertion and not a comment.
@@ -49,16 +51,17 @@
 //     and makes NO `@ts-expect-error` demand on the two bad ones: the
 //     declaration cannot refuse them and this instrument does not pretend it
 //     does.
-//  3. THE TWELVE-OWN-MEMBER COUNT (`surface.md §2.4` item 9 (f)'s `A127`
-//     clause). An `interface` declares the members a value HAS and constrains no
-//     excess member, so a product carrying a THIRTEENTH own member still
-//     satisfies `StoreInstance` and a FOURTEENTH name reached off the instance
-//     is the only thing this file could refuse. The count is driven at the
-//     RUNTIME boundary (`a127-surface.test.mjs`'s `Object.getOwnPropertyNames`
-//     cell), which exists precisely because this declaration cannot fail on it.
-//     The fixture below names all twelve and refuses the members `A127`
-//     MERGED AWAY (`on` / `off` / `manageConstraints`), which is a statement
-//     about NAMES, not about the count.
+//  3. THE FOURTEEN-OWN-MEMBER COUNT (`surface.md §2.4` item 9 (f)'s clause as
+//     moved by `(AA-5)`). An `interface` declares the members a value HAS and
+//     constrains no excess member, so a product carrying a FIFTEENTH own member
+//     still satisfies `StoreInstance` and a name reached off the instance that
+//     the interface does not declare is the only thing this file could refuse.
+//     The count is driven at the RUNTIME boundary (`a127-surface.test.mjs`'s
+//     `Object.getOwnPropertyNames` cell), which exists precisely because this
+//     declaration cannot fail on it. The fixture below names all fourteen and
+//     refuses the members `A127` MERGED AWAY (`on` / `off` /
+//     `manageConstraints`) and the member later REMOVED (`settle`), which is a
+//     statement about NAMES, not about the count.
 //
 //  AND ONE MORE, WHICH IS THE WHOLE LIMIT OF THIS INSTRUMENT:
 //  A GREEN `tsc` DOES NOT PROVE THE DECLARATION MATCHES THE RUNTIME. `tsc`
@@ -90,6 +93,7 @@ import type {
   StoreStatus,
   Tier,
   TierSet,
+  TriggerPair,
   WriteRecord,
 } from 'provident-storeroom';
 
@@ -119,7 +123,7 @@ import { read as readExport } from 'provident-storeroom';
 import { write as writeExport } from 'provident-storeroom';
 
 // ===========================================================================
-// 2 · THE TWELVE OWN MEMBERS, EACH CALLED AT ITS DECLARED ARITY AND ORDER
+// 2 · THE FOURTEEN OWN MEMBERS, EACH CALLED AT ITS DECLARED ARITY AND ORDER
 // ===========================================================================
 // The address / handle / opId / pair is FIRST in every one of them: the
 // receiver is the instance, so NO declared signature carries a leading
@@ -148,12 +152,14 @@ const opAfter: BaseState = op.after;
 const opSeq: number = op.seq;
 const opCompacted: boolean = op.compacted;
 const watched: readonly Address[] = written.watched;
-const writtenTriggered: readonly Handle[] = written.triggered;
+// `triggered` IS THE PAIR, NOT A BARE HANDLE (`contract.md §2.4` item 1;
+// `trigger-and-pair.md §1`): the pair REPLACES the handle list it supersedes.
+const writtenTriggered: readonly TriggerPair[] = written.triggered;
 
 const removed: DeleteRecord = store.delete(address, 'temp');
 const removedAddress: Address = removed.address;
 const removedTiers: readonly Tier[] = removed.tiers;
-const removedTriggered: readonly Handle[] = removed.triggered;
+const removedTriggered: readonly TriggerPair[] = removed.triggered;
 
 const rolledBack: RollbackRecord = store.rollback(opId);
 const rolledBackOpId: string = rolledBack.opId;
@@ -162,7 +168,13 @@ const restoredTo: BaseState = rolledBack.restoredTo;
 const restoredPresent: boolean = restoredTo.present;
 const restoredValue: unknown = restoredTo.value;
 
-const handle: Handle = store.listen(address);
+// `listen(handle, addresses)` — TWO positions, the second a SET
+// (`contract.md §2.2` item 1; `listen-verb.md §2.2` item 1: the arity moves
+// `1 → 2`), and IT ANSWERS `void` (`contract.md §2.2` item 10: the caller
+// supplied the identity, so there is no datum to return). THE CALLER SPELLS
+// THE HANDLE — `Handle` is a `string` (`contract.md §2.1` item 1).
+const handle: Handle = 'listener-a';
+const listened: void = store.listen(handle, [address]);
 const withdrawn: void = store.unlisten(handle);
 
 // ---- the constraint triple: pair first, constraint second ---------------
@@ -178,14 +190,24 @@ const listener: Listener = (at: Address): void => {
 };
 const registered: void = store.register(handle, listener);
 
+// ---- the TWO remove members, the set `12 → 14` --------------------------
+// `removeListener(handle) -> undefined` and `removeConstraint(pair) ->
+// undefined` (`contract.md §2.7` items 1–3; `removal-members.md §2`,
+// `§3`), the success return each and NOT a returned discriminant: every arm
+// that is not a real removal THROWS (`contract.md §2.7` item 4).
+const listenerRemoved: void = store.removeListener(handle);
+const constraintRemoved: void = store.removeConstraint(pair);
+
 const attempt: AttemptRef = { id: 'attempt-1' };
+// THE KERNEL'S `CommitRecord` KEEPS ITS FOUR MEMBERS AND BOTH LISTS ARE PAIRS
+// (`contract.md §2.4` item 8; `trigger-and-pair.md §3` item 3 — `pending` is
+// SEEDED AS A CLONE OF `triggered` and therefore inherits its shape).
 const commit: CommitRecord = {
   attempt,
   op,
   triggered: writtenTriggered,
   pending: writtenTriggered,
 };
-const settled: void = store.settle(commit);
 
 // ===========================================================================
 // 3 · `write`'s OPTIONAL FOURTH-POSITION COMMIT
@@ -222,10 +244,21 @@ store.delete(address, tierSet);
 store.rollback(1);
 
 // ---- the seam's record is the kernel's FOUR-member `CommitRecord` -------
-// @ts-expect-error — a store `WriteRecord` carries no `attempt` member
-store.settle(written);
+// THE `settle` MEMBER IS REMOVED WHOLE (`contract.md §1` item 2's clause of
+// 2026-10-18; `bindings/js/index.d.ts`'s header: *"no instance declares
+// `settle(record) -> undefined` after this date"*), so the name is reached and
+// REFUSED here rather than called. The record position it served survives as
+// `write`'s own OPTIONAL FOURTH argument, exercised in section 3 above.
+// @ts-expect-error — `settle` is REMOVED: no instance carries the member
+store.settle(commit);
 // @ts-expect-error — and the primitive forms never reach the record position
 store.settle(undefined);
+
+// ---- `removeConstraint`'s pair is a PAIR, both members required ---------
+// @ts-expect-error — `removeConstraint` requires the pair's `address` and `id`
+store.removeConstraint({ address: ['k'] });
+// @ts-expect-error — and a bare handle is not a pair (`contract.md §2.7` item 3)
+store.removeConstraint(handle);
 
 // ---- the toggle pair is a PAIR: both positions are required -------------
 // @ts-expect-error — `addConstraint` requires the pair AND the constraint
@@ -234,17 +267,28 @@ store.addConstraint(pair);
 store.addConstraint(pair, 'not a function');
 
 // ---- `unlisten` takes a HANDLE and answers `void` -----------------------
-// NOT REFUSED HERE, AND DELIBERATELY SO: `Handle` is declared `object`, and an
-// `Address` is an array, which IS an object — so `store.unlisten(address)`
-// COMPILES and this fixture must not claim otherwise. The narrower domain (a
-// handle this instance minted) is a RUNTIME rule the store answers as a no-op
-// success, not a type rule; `Handle` is opaque BY DECLARATION and this
-// instrument checks the OPACITY (a consumer cannot read a member off it, see
-// below) rather than the PROVENANCE, which no declared type could express.
-const unlistenedWithAddress: void = store.unlisten(address);
-void unlistenedWithAddress;
-// The opacity IS checkable: no declared member is reachable off a `Handle`.
-// @ts-expect-error — a `Handle` declares no members, so none may be read off it
+// **⟶ RE-DERIVED 2026-10-18: THE `object` PREMISE IS GONE.** `Handle` MOVED
+// `object → string` (`contract.md §2.1` item 1; `P: docs/pending.md · P-6`,
+// the rule *"Refuse handles that aren't strings"*), so the earlier cell's
+// reason for NOT refusing `unlisten(address)` — *"an `Address` is an array,
+// which IS an object"* — is no longer true of the declared type. The former
+// PROVENANCE claim (a handle *this instance minted*) is retired with the mint:
+// the handle is the CALLER'S STRING and nothing mints it (`§2.1` items 1–3).
+// What the declaration still cannot express is the handle's NON-EMPTINESS and
+// its presence in the instance's own map, which stay RUNTIME rules
+// (`§2.1` items 1, 4) driven by the runtime suite and never claimed here.
+// NOT REFUSED, AND DELIBERATELY SO: an `Address` is not a `string`, so
+// `store.unlisten(address)` is a TYPE ERROR the declaration already makes — the
+// cell below is therefore a REFUSAL and not a compiled call.
+// @ts-expect-error — `unlisten`'s position is the caller's `string`, not an `Address`
+store.unlisten(address);
+// The `string` handle is the declared spelling, and it compiles.
+const unlistenedWithHandle: void = store.unlisten(handle);
+void unlistenedWithHandle;
+// The OPACITY CLAIM LEFT WITH THE WRAPPER: `Handle` is a `string`, so it has
+// no declared MEMBER to read — `handle.id` is refused as a property of a
+// primitive, which is the same fact spelled the only way a `string` can spell it.
+// @ts-expect-error — a `string` carries no `id` member, and `Handle` is a `string`
 const handleMember: unknown = handle.id;
 
 // ---- the config's FOUR keys and no fifth; `listeners` is REQUIRED ------
@@ -302,10 +346,10 @@ const widenedAddressFraction: Address = ['k', 1.5];
 void widenedAddressSegment;
 void widenedAddressFraction;
 //
-// NOR does it assert the twelve-member COUNT. It names the twelve (above) and
-// refuses the three names `A127` merged away; a thirteenth own member on the
-// real product still satisfies `StoreInstance` and is caught by the RUNTIME
-// suite (`a127-surface.test.mjs`), not here.
+// NOR does it assert the fourteen-member COUNT. It names the fourteen (above),
+// refuses the three names `A127` merged away and the removed `settle`; a
+// fifteenth own member on the real product still satisfies `StoreInstance` and
+// is caught by the RUNTIME suite (`a127-surface.test.mjs`), not here.
 
 // ---------------------------------------------------------------------------
 // Everything bound above is consumed here so that `noUnusedLocals`-style
@@ -316,8 +360,9 @@ void [
   readWhole, readAt, readOneTier, readTierSet, literal,
   opKind, opAddress, opTier, opBefore, opAfter, opSeq, opCompacted,
   watched, writtenTriggered, removedAddress, removedTiers, removedTriggered,
-  rolledBackOpId, restoredPresent, restoredValue, withdrawn,
-  identity, enabled, disabled, registered, settled,
+  rolledBackOpId, restoredPresent, restoredValue, listened, withdrawn,
+  identity, enabled, disabled, registered,
+  listenerRemoved, constraintRemoved,
   withCommit, withoutCommit,
   undoneAsCount, opAsNumber, opIdAsNumber,
   refusalStatus, refusalMessage, refusalThird,

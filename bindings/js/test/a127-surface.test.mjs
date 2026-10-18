@@ -86,17 +86,17 @@ const THE_TEN = [
   'constraintOn',
   'constraintOff',
 ];
-// **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE SET MOVES `13 → 12`, `10 + 1 + 1 = 12` ✓**, on the
-// architect's ruling VERBATIM *"Settle is redundant because the kernel is always in the loop."*
-// (`surface.md §2.4` item 9 (f)'s clause of 2026-10-18, whose operative set is
+// **⟶ RE-DERIVED 2026-10-18 (gate-4 close, legacy re-derivation): THE SET MOVES `12 → 14`, `10 + 1 + 1 + 2 = 14` ✓**,
+// on `U-STOREROOM-HELD-LISTENER-IDENTITY`'s ruling *"the member set is 14 and the `12 → 13` figure is withdrawn by
+// name"* (`P: docs/pending.md · (AA-5)`; `contract.md §2.7` item 1 and item 9, whose operative set is
 // `{ read, readLiteral, write, delete, rollback, listen, unlisten, addConstraint, constraintOn, constraintOff,
-// register, constraints }` — "TWELVE OWN MEMBERS, AND NOTHING ELSE: `10 + 1 + 1 = 12` ✓, the `10` being the ten
-// methods, the FIRST `1` being `register`, and the SECOND `1` being `constraints`"). **THE TWO REMAINING SINGLES
-// ARE NAMED AND NEITHER IS A LONE `+1`: `register` IS THE FIRST AND `constraints` IS THE SECOND** (`§2.4`
-// item 9 (f)'s clause of 2026-10-18, item `1`: *"SO THE FIGURE THAT MOVES IS `13 → 12` AND THE ONLY MEMBER THAT
-// MOVES IS `settle`"*). **The constant's NAME is kept so no citing cell is renamed by a figure; the LIST and the
-// COUNT move** — exactly as they moved `12 → 13` on 2026-10-17 and `7 → 12` before that.
-const THE_TWELVE = [...THE_TEN, 'register', 'constraints'];
+// register, constraints, removeListener, removeConstraint }` — *"`10 + 1 + 1 + 2 = 14` ✓, the `10` being the ten
+// methods, the first `1` `register`, the second `1` `constraints`, and the `2` the two new members"*).
+// **THE TWO NEW MEMBERS ARE `removeListener` AND `removeConstraint`, AND NEITHER IS A MODULE EXPORT** — the module
+// namespace stays at ONE name, `11 → 1` ✓ (`contract.md §2.7` item 9 item 3). **THE EARLIER `12 → 13` FIGURE IS
+// WITHDRAWN BY NAME** (`§2.7` item 1). **The constant's NAME is kept so no citing cell is renamed by a figure; the
+// LIST and the COUNT move** — as they moved `13 → 12` for `settle` and `12 → 13` before that.
+const THE_FOURTEEN = [...THE_TEN, 'register', 'constraints', 'removeListener', 'removeConstraint'];
 // The store's closed set, at its amended size of `16` (`docs/specs/storeroom-native/contract.md §8.1`, read at
 // `surface.md §2.5` item 1 and at `test-cases.md` row 37's `16`).
 const THE_SIXTEEN = [
@@ -194,25 +194,25 @@ test('a127_the_ten_store_reaching_names_are_not_module_exports', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────
-// `surface.md §2.4` item 9 (f)'s clause of 2026-10-18 — THE PRODUCT'S DECLARED MEMBER SET IS TWELVE OWN
-// MEMBERS AND NOTHING ELSE, `10 + 1 + 1 = 12` ✓, with BOTH remaining singles NAMED: `register` and
-// `constraints`. `surface.md §2.1` (e) item 1 — the state held PRIVATELY.
+// `contract.md §2.7` item 9 (`P: docs/pending.md · (AA-5)`) — THE PRODUCT'S DECLARED MEMBER SET IS
+// **FOURTEEN** OWN MEMBERS AND NOTHING ELSE, `10 + 1 + 1 + 2 = 14` ✓, with the two new members NAMED:
+// `removeListener` and `removeConstraint`. `surface.md §2.1` (e) item 1 — the state held PRIVATELY.
 // ─────────────────────────────────────────────────────────────────────────────────────────────
 
-test('a127_the_products_own_member_set_is_exactly_twelve', () => {
+test('a127_the_products_own_member_set_is_exactly_fourteen', () => {
   const a = mem();
   const own = Object.keys(a).sort();
-  assert.equal(own.length, 12,
-    'the product carries TWELVE own members — `10 + 1 + 1 = 12` ✓ (`surface.md §2.4` item 9 (f)\'s '
-    + 'clause of 2026-10-18, `13 → 12`)');
-  assert.deepEqual(own, [...THE_TWELVE].sort(),
-    'and they are the ten methods plus the TWO remaining singles, `register` and `constraints` — `settle` '
-    + 'leaves the set at `§2.4` item 9\'s `REMOVED-WHOLE` pointer and no other member moves with it');
+  assert.equal(own.length, 14,
+    'the product carries FOURTEEN own members — `10 + 1 + 1 + 2 = 14` ✓ (`contract.md §2.7` item 9; '
+    + '`P: docs/pending.md · (AA-5)`, the `12 → 13` figure withdrawn by name)');
+  assert.deepEqual(own, [...THE_FOURTEEN].sort(),
+    'and they are the ten methods, `register`, `constraints` and the TWO NEW members `removeListener` and '
+    + '`removeConstraint` — no fourth figure and no member the set does not name');
 });
 
-test('a127_each_of_the_twelve_members_is_an_own_callable', () => {
+test('a127_each_of_the_fourteen_members_is_an_own_callable', () => {
   const a = mem();
-  for (const name of THE_TWELVE) {
+  for (const name of THE_FOURTEEN) {
     assert.equal(
       Object.prototype.hasOwnProperty.call(a, name),
       true,
@@ -335,23 +335,37 @@ test('a127_rollback_returns_the_three_member_record', () => {
   assert.equal(r.opId, w.op.opId, 'it echoes the id it was passed');
 });
 
-test('a127_listen_answers_the_packages_opaque_handle', () => {
+// **⟶ RE-DERIVED 2026-10-18 (gate-4 close): `listen` MOVED `listen(address) -> Handle` TO
+// `listen(handle, addresses) -> undefined`.** The arity figure moves `1 → 2` (`contract.md §2.2` item 1;
+// `P: docs/pending.md · P-6`), the second position is a SET of addresses (`§2.2` item 2), and the answer is
+// `undefined` because THE CALLER SUPPLIED THE IDENTITY and there is no datum to give back (`§2.2` item 10;
+// `listen-verb.md §2.4`). **THE OLD CELL'S SUBJECT — "the package's opaque handle" — IS RETIRED WITH THE
+// MINT**: nothing mints, and the handle is the caller's own non-empty string (`§2.1` item 1).
+test('a127_listen_takes_a_handle_and_a_set_of_addresses_and_answers_undefined', () => {
   const a = mem();
-  const h = a.listen(['a']);
-  assert.ok(h !== null && typeof h === 'object', 'listen answers the package`s opaque wrapper');
-  const h2 = a.listen(['b']);
-  assert.notEqual(h, h2, 'two different addresses answer two different handles on one instance');
+  const answer = a.listen('h-a', [['a']]);
+  assert.equal(answer, undefined,
+    '`listen(handle, addresses)` answers `undefined` — the caller spelled the identity, so there is no datum '
+    + 'to return (`contract.md §2.2` item 10; `listen-verb.md §2.4`)');
+  assert.equal(a.listen.length, 2,
+    'and the declared arity is TWO, the second position a SET (`contract.md §2.2` item 1: the arity figure '
+    + 'moves `1 → 2` at four declared sites and at the shipped signature)');
+  assert.equal(a.listen('h-b', [['b']]), undefined,
+    'a different handle at a different address is a second lawful call, and its answer is the same `undefined`');
 });
 
-test('a127_unlisten_answers_undefined_for_a_handle_this_instance_minted', () => {
+test('a127_unlisten_answers_undefined_for_a_handle_the_caller_spelled', () => {
   const a = mem();
-  const h = a.listen(['a']);
-  assert.equal(a.unlisten(h), undefined, 'the return is `undefined` on every success');
+  a.listen('h-a', [['a']]);
+  assert.equal(a.unlisten('h-a'), undefined, 'the return is `undefined` on every success');
 });
 
 test('a127_unlisten_over_an_outside_value_is_a_no_op_success', () => {
   const a = mem();
-  const held = a.listen(['a']);
+  a.listen('h-a', [['a']]);
+  // EVERY outside value is a NO-OP SUCCESS at `unlisten` (`contract.md §2.1` item 5's third column) — the
+  // row-for-row table `identity-and-domain.md §2` item 3 prints, and the DECLARED REVERSAL whose other half
+  // is `removeListener`'s throw (`P: docs/pending.md · P-5`'s `(R2)`).
   for (const outside of [null, undefined, 'not-a-handle', '', 0, false, {}, [], () => {}]) {
     assert.equal(
       a.unlisten(outside),
@@ -359,13 +373,15 @@ test('a127_unlisten_over_an_outside_value_is_a_no_op_success', () => {
       `unlisten over ${String(outside)} is a NO-OP SUCCESS and not a failure`,
     );
   }
-  assert.equal(typeof held, 'object', 'and no other registration is removed by those calls');
+  assert.equal(a.register('h-a', () => {}), undefined,
+    'and no other registration is removed by those calls: the handle the drive listened is still in the '
+    + 'instance\'s map, so `register` over it succeeds');
 });
 
-test('a127_register_answers_undefined_for_a_handle_this_instance_minted', () => {
+test('a127_register_answers_undefined_for_a_handle_the_caller_spelled', () => {
   const a = mem();
-  const h = a.listen(['a']);
-  assert.equal(a.register(h, () => {}), undefined, 'register succeeds with `undefined`');
+  a.listen('h-a', [['a']]);
+  assert.equal(a.register('h-a', () => {}), undefined, 'register succeeds with `undefined`');
 });
 
 // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE SUBJECT OF THE CELL THIS LINE HELD — `a.settle(record)`
@@ -377,19 +393,28 @@ test('a127_register_answers_undefined_for_a_handle_this_instance_minted', () => 
 // reading `§2.4` item 9 (f)'s clause of 2026-10-18 declares (*"a declaration file that … declares a
 // `settle(record) -> undefined` member at any position, after this date is a FINDING"*) brought to the product's
 // own observable.
-test('a127_settle_is_not_a_member_and_the_twelve_stand_without_it', () => {
+// **⟶ RE-DERIVED 2026-10-18 (gate-4 close), IN TWO STEPS.**
+// **STEP 1 (`settle`, 2026-10-18):** the subject this cell first held — a call of `a.settle(record)` — is
+// `REMOVED-WHOLE` from the declared surface (`surface.md §2.4` item 9's pointer of that date: *"NO DRIVE MAY
+// ASSERT A CALL OF `settle` FROM THIS DATE, ON ANY INSTANCE, FOR ANY ARGUMENT"*); the cell was NOT deleted and
+// NOT weakened, its remaining subject being the SET the removed member left, with `settle`'s absent half read
+// as a NAMED ABSENCE. **STEP 2 (THIS PASS): the set that remains is re-derived `12 → 14`.**
+// `contract.md §2.7` item 9 moves the product's own member set to FOURTEEN — `10 + 1 + 1 + 2 = 14` ✓, the two
+// new members `removeListener` and `removeConstraint` (`P: docs/pending.md · (AA-5)`, which WITHDRAWS the
+// `12 → 13` figure BY NAME). **THE `settle` ABSENCE IS UNMOVED by that ruling**: the retirement is `settle`'s
+// own and no remove member re-opens it, so the cell keeps BOTH its halves — the absent term AND the whole set.
+test('a127_settle_is_absent_and_the_fourteen_stand_without_it', () => {
   const a = mem();
   assert.equal(Object.prototype.hasOwnProperty.call(a, 'settle'), false,
-    '`settle` is NOT an own member of the product from 2026-10-18 — `§2.4` item 9\'s `REMOVED-WHOLE` pointer, '
-    + 'and `§2.4` item 9 (f)\'s clause of the same date: the set is `10 + 1 + 1 = 12` ✓ with the two singles '
-    + '`register` and `constraints` NAMED, `settle` being the term that leaves');
+    '`settle` is NOT an own member of the product — `§2.4` item 9\'s `REMOVED-WHOLE` pointer, and `§2.4` '
+    + 'item 9 (f)\'s clause of 2026-10-18: the term leaves and no other member moves with it');
   assert.equal(typeof a.settle, 'undefined',
     'and a READ of the property answers `undefined` on every instance — so no caller reaches a seam by the '
     + 'old spelling and no drive can pass by finding one');
-  assert.deepEqual(Object.keys(a).sort(), [...THE_TWELVE].sort(),
-    'while the TWELVE declared members stand whole: the removal takes ONE term and moves no method, no '
-    + 'refusal, no arity, no position and no return with it (`§2.4` item 9 (f)\'s clause of 2026-10-18, '
-    + 'item `1`)');
+  assert.deepEqual(Object.keys(a).sort(), [...THE_FOURTEEN].sort(),
+    'while the FOURTEEN declared members stand whole: the `settle` removal takes ONE term, and this unit\'s '
+    + '`12 → 14` adds TWO (`contract.md §2.7` item 9) — no method, no refusal, no arity, no position and no '
+    + 'return moves with either figure');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -530,9 +555,13 @@ test('a127_rollback_over_a_blank_op_id_answers_AddressMalformed', () => {
 
 test('a127_register_over_a_non_function_is_refused_in_the_single_form', () => {
   const a = mem();
-  const h = a.listen(['a']);
+  // **⟶ RE-DERIVED 2026-10-18 (gate-4 close): `register`'s FIRST position is now the CALLER-SPELLED HANDLE**
+  // (`contract.md §2.1` item 5's table, second column; `§2.2` item 5 (b)) — the old cell listened at `['a']`
+  // and passed the minted object it was answered, both retired. The handle is listened FIRST so the refusal
+  // driven below is the LISTENER position's and never the handle's (`§2.4` item 5 (d)).
+  a.listen('h-register', [['a']]);
   for (const outside of [null, undefined, 0, 'fn', {}, []]) {
-    const err = thrown(() => a.register(h, outside));
+    const err = thrown(() => a.register('h-register', outside));
     assert.ok(
       isTheSingleForm(err),
       'the registration site`s OPERATIVE form is the store`s single `{status, message}` (test-cases.md §151)',
@@ -637,7 +666,7 @@ test('a127_the_class_test_stands_at_the_writes_fifth_position_for_an_object_carr
   // **THE EXISTENCE PRECONDITION, AT THE SAME GROUND AS THE SIBLING CELL (`surface.md §2.4` item 9 (g) item 1's
   // record-position test, read at `§2.2` clause 4): a `TypeError` raised by a MISSING member is indistinguishable
   // from the class test's own, so the members under test are read BEFORE any call below is made.**
-  assert.deepEqual(Object.keys(a).sort(), [...THE_TWELVE].sort(),
+  assert.deepEqual(Object.keys(a).sort(), [...THE_FOURTEEN].sort(),
     'the twelve declared members stand whole, so neither the member nor the position below is absent');
   const err = thrown(() => a.write(['a'], 'mem', 1, {}));
   assert.ok(isTheClassTestForm(err),
@@ -655,7 +684,7 @@ test('a127_the_class_test_stands_at_the_writes_fifth_position_for_an_object_carr
 
 test('a127_the_class_test_at_the_writes_fifth_position_refuses_an_object_carrying_no_pending_member_only', () => {
   const a = mem();
-  assert.deepEqual(Object.keys(a).sort(), [...THE_TWELVE].sort(),
+  assert.deepEqual(Object.keys(a).sort(), [...THE_FOURTEEN].sort(),
     'the twelve declared members stand whole before the pair of readings below is taken');
   // **THE ADMITTED ARM IS DRIVEN WITHOUT THE REFUSAL HELPER**, because `thrown()` ASSERTS that the call
   // refuses and a lawful write is not a refusal: the two arms are read side by side, so the class test's
@@ -681,11 +710,11 @@ test('a127_no_store_reaching_verb_throws_the_class_test_form', () => {
   // METHOD (`surface.md §2.4` item 9 (f)'s `A127` clause; `§2.9` item 1's `A127` clause): a `TypeError`
   // raised by a MISSING member is indistinguishable from the class test's own `TypeError`, so the
   // twelve-member set is asserted HERE, by name and by class, BEFORE any call below is made.**
-  assert.deepEqual(Object.getOwnPropertyNames(a).sort(), THE_TWELVE.slice().sort(),
+  assert.deepEqual(Object.getOwnPropertyNames(a).sort(), THE_FOURTEEN.slice().sort(),
     'the product carries TWELVE own members, `10 + 1 + 1 = 12` — the ten methods, plus the two remaining '
     + 'singles `register` and `constraints` (`surface.md §2.4` item 9 (f)\'s clause of 2026-10-18, `13 → 12`); '
     + '`settle` is the term that left and it is NOT substituted by an absent member read as one');
-  for (const member of THE_TWELVE) {
+  for (const member of THE_FOURTEEN) {
     assert.equal(typeof a[member], 'function', `\`${member}\` IS a function — the cell below drives it and no absent member may stand in for it`);
   }
   const calls = [
