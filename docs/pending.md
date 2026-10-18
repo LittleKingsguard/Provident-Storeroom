@@ -337,9 +337,15 @@ return shape and `A116` (D4)'s "carrier unchanged").
 
 **⟶ THE ARCHITECT'S TWO MECHANISMS — 2026-10-18, VERBATIM: *"1. Add a purge mechanism"* · *"2. Add a remove mechanism"*.**
 
-**(M-1) A PURGE MECHANISM IS ADDED — IT IS A NEW `Home` OPERATION AND NOT A MODIFICATION OF `mint`.** **THIS CLOSES THE BLOCKER PASS 7 AND PASS 8 FOUND: `Home::mint` (`store.rs:406-425`) ADDS a second bucket member and deletes nothing, and `first_at` (`:388-393`) returns early — so NOTHING IN THE STORE PURGES AT ANY SITE TODAY, and F-3's producer, `(D-vi)`'s purged-pair state, `(D-ii)`'s subject and F-2a's repair route all described states the code could not reach.**
+**⟶ THE ARCHITECT'S TWO MECHANISMS — 2026-10-18, VERBATIM: *"1. Add a purge mechanism"* · *"2. Add a remove mechanism"*.**
 
-**THE PROPOSAL MUST DECLARE: (i) the operation's NAME and POSITION — a `Home` method beside `mint`/`withdraw`/`adopt` (`store.rs:363-490`), reached ONLY from the `listen` verb; (ii) WHICH ENTRIES IT REMOVES — every `Listener` at every address the handle names, across `members`' buckets (`:341`) and the `handles` index (`:344`); (iii) its ATOMICITY relative to the install — the purge precedes the install and no intermediate state is observable (the purge ruling's own item (b)); (iv) its ANSWER — whether it reports how many entries it removed or returns `()`, and what a purge of a handle holding no entries does; (v) that it is NOT `withdraw` (`:442-472`, ONE entry by `DD-42` clause (2)'s first-match rule) and NOT `adopt` (`:363-384`, which appends).**
+**(M-1) A PURGE MECHANISM IS ADDED — AND ITS SCOPE IS NOT OPEN: *"purge everything"* WAS ALREADY RULED THREE TIMES AND IS NOT RE-ASKED HERE.**
+
+**THE SCOPE, AS THE RULINGS THEMSELVES STATE IT, VERBATIM: *"purge the previous listener entirely"* · *"purge EVERY entry the handle named, at EVERY address it stood at"* · *"S1 gets purged wholesale"*.** **SO THE OPERATION REMOVES EVERY `Listener` AT EVERY ADDRESS THE HANDLE NAMES — across `members`' buckets (`store.rs:341`) and the `handles` index (`:344`), nothing surviving, nothing partial — AND IT PRECEDES THE INSTALL SO NO INTERMEDIATE STATE IS OBSERVABLE.**
+
+**THIS CLOSES THE BLOCKER PASSES 7 AND 8 FOUND, AND IT WAS A GAP IN THE CODE AND NOT IN THE SPECIFICATION: `Home::mint` (`store.rs:406-425`) ADDS a second bucket member and deletes nothing, and `first_at` (`:388-393`) returns early — so NOTHING IN THE STORE PURGES AT ANY SITE TODAY. THE MECHANISM WAS ABSENT; THE BEHAVIOUR WAS NEVER IN QUESTION.**
+
+**WHAT THE PROPOSAL STILL OWES IS SHAPE, NOT SEMANTICS: the operation's NAME and its POSITION as a `Home` method beside `mint`/`withdraw`/`adopt` (`store.rs:363-490`), its ANSWER (a removed-count or `()`), and the statement that it is NEITHER `withdraw` (`:442-472`, ONE entry by `DD-42` clause (2)'s first-match rule) NOR `adopt` (`:363-384`, which appends).** **Those are naming and signature questions; asking them is not asking what "purge" means.**
 
 **AND IT SUPERSEDES `(D-iv)`'s READING: *"`mint` replaced in place"* IS WITHDRAWN IN FAVOUR OF A SEPARATE OPERATION — a function that both purges and installs cannot be one function, because the purge needs the OLD handle and the install needs the NEW one, and `mint` takes only the address.**
 
