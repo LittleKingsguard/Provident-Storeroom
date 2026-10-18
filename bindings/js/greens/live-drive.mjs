@@ -72,12 +72,46 @@ function rel(a, b) {
   return false;
 }
 function thrown(fn) { try { return { threw: false, value: fn() }; } catch (e) { return { threw: true, err: e }; } }
+// ── ⟶ RE-DERIVED 2026-10-17 (THE FAILURE-FORM OVERRIDE, THIS FILE'S LAST CELL): THE FIXED TWO-MEMBER FORM
+// IS SUPERSEDED AND THE HELPER NOW ASSERTS THE DECLARED THREE-MEMBER FORM AT ITS OWN BYTES.
+// `docs/specs/storeroom-js/surface.md §2.5` ITEM 9: *"`log` stands on the thrown object as an ORDINARY OWN
+// ENUMERABLE DATA MEMBER of the same plain object that carries `status` and `message` … so `Object.keys(caught)`
+// reads exactly `["log","message","status"]` and `Object.keys(caught).length` is `3` on EVERY arm of this
+// surface"* — and *"`log` is NEVER ABSENT, NEVER `null` and NEVER a non-array"*. ITEM 4: *"`log` IS PRESENT ON
+// EVERY FAILURE THIS SURFACE THROWS, AND `[]` IS ITS DECLARED VALUE WHERE THE FAILURE'S CAUSE HAS NO ATTEMPT AT
+// ALL … The three-member member set is therefore FLAT ACROSS ARMS and not conditional."*
+// EVERY OTHER LIMB THE SUPERSEDED HELPER ASSERTED IS KEPT: the plain-`Object.prototype` prototype test, the
+// non-empty `string` status, the non-empty `string` message, and the own-property-set test (now at length 3).
+//
+// THE THIRD MEMBER'S VALUE IS **NOT** UNIFORMLY `[]`, AND THIS HELPER DOES NOT FORCE IT TO BE (item 4's second
+// half: *"while every failure whose attempt exists carries that attempt's own entries"*). The two classes of arm
+// are treated by the SAME helper and told apart by WHERE THE HELPER IS APPLIED, not by weakening a limb:
+//   • ATTEMPT-LESS arms — the construction's own `cfg`-side refusals, a `read`/`readLiteral`/`delete`/`rollback`
+//     store refusal with no attempt live, `a.register`'s `TypeError`, and the three constraint methods'
+//     `TypeError` — carry `log: []`. EVERY call site of THIS driver is such an arm (measured, see below), and
+//     those sites assert emptiness EXPLICITLY through `isAttemptLessForm(e)` below.
+//   • ATTEMPT-BEARING arms — every failure whose attempt exists — carry that attempt's own entries. `isSingleForm`
+//     asserts only that `log` is an ARRAY (item 9's own limb), never that it is empty, so an attempt-bearing
+//     failure is NOT rejected by the member-set test. A cell that drives such an arm asserts its entries itself.
+// MEASURED STATE OF THIS FILE (all 13 call sites, 2026-10-17): not one of them drives an attempt-bearing arm and
+// not one of them drives a constraint-method `TypeError` — this driver constructs no `cfg.constraints`, and every
+// refusal it catches carries `log: []`. The `TypeError` SHAPE is a DIFFERENT one and is NOT asserted here: the
+// three constraint methods' `TypeError` carries `log: []` and NO `status` (`Object.keys === ["log"]`, length `1`),
+// so `isSingleForm` would REJECT it BY DESIGN — correctly, because it is not this surface's store-refusal form;
+// and the FIFTH-POSITION `write` `TypeError` carries no `log` at all, so item 4's enumeration does not cover it
+// and the form is NOT uniform. No cell of this driver applies this helper to either.
 function isSingleForm(e) {
   if (e === null || typeof e !== 'object' || e instanceof Error) return false;
   if (Object.getPrototypeOf(e) !== Object.prototype) return false;
   const k = Object.getOwnPropertyNames(e).sort().join(',');
-  return k === 'message,status' && typeof e.status === 'string' && e.status.length > 0
-    && typeof e.message === 'string' && e.message.length > 0;
+  return k === 'log,message,status' && typeof e.status === 'string' && e.status.length > 0
+    && typeof e.message === 'string' && e.message.length > 0
+    && Array.isArray(e.log);
+}
+// THE ATTEMPT-LESS SUB-CLASS, NAMED SO THE DISTINCTION IS ASSERTED AND NOT MERELY RECORDED: item 4's first half.
+// `log` is the EMPTY ARRAY — never an absent member, never `null`, never a placeholder entry.
+function isAttemptLessForm(e) {
+  return isSingleForm(e) && e.log.length === 0;
 }
 function statusOf(r) { return r.threw ? (r.err && r.err.status) : 'ok'; }
 function fsPath(name) { return path.join(ROOT, name); }
@@ -356,8 +390,19 @@ console.log(JSON.stringify({ pid: process.pid, value: i.read(${JSON.stringify(['
   A(`${sc}.4`, 'store §8.1 #2; §8.2 property (c)', 'an absent address is refused AddressNotFound with the store\'s own generated message, no placeholder',
     n.threw && statusOf(n) === 'AddressNotFound' && typeof n.err.message === 'string' && !/<[A-Za-z-]+>/.test(n.err.message), n.threw ? n.err.message : 'no throw');
   const all = [b, c, n];
-  A(`${sc}.5`, 'surface.md §2.5 item 5 (e); A76', 'not one refusal is a raw host Error, and every one is exactly {message, status}',
-    all.every((x) => x.threw && isSingleForm(x.err)), all.map(statusOf).join(','));
+  // ⟶ RE-DERIVED 2026-10-17 (THE FAILURE-FORM OVERRIDE, this driver's last cell). `role_spec_writer` /
+  // `role_test_writer`: the text *"exactly {message, status}"* PINNED THE SUPERSEDED TWO-MEMBER FORM. Re-derived to
+  // the declared three-member form AT ITS OWN CELL, at `docs/specs/storeroom-js/surface.md §2.5` ITEM 9 (the own
+  // member set is EXACTLY `["log","message","status"]`, length `3`, `log` an ORDINARY OWN ENUMERABLE DATA MEMBER,
+  // never absent, never `null`, never a non-array) and ITEM 4 (`log` PRESENT on every failure, `[]` where the cause
+  // has NO attempt — the arm all three of these refusals sit on). The two limbs item 5 (e) owns are UNMOVED and are
+  // still asserted: no raw host `Error`, and the one form. `isAttemptLessForm` adds item 4's emptiness for this
+  // arm; the plain-`Object.prototype` prototype, non-empty-`string` status and non-empty-`string` message limbs
+  // all stand inside `isSingleForm` unchanged. THE ID IS KEPT (`LIVE-7.5`), as the override requires.
+  A(`${sc}.5`, 'surface.md §2.5 item 5 (e); §2.5 items 4 and 9 (the three-member set `["log","message","status"]`, FLAT ACROSS ARMS, `log` an ARRAY and `[]` on this no-attempt arm); A76',
+    'not one refusal is a raw host Error, and every one is the ONE form: a plain object whose own member set is exactly {log, message, status} — length 3, `log` an ARRAY and `[]` here — with status and message both non-empty strings',
+    all.every((x) => x.threw && isAttemptLessForm(x.err)),
+    all.map((x) => (x.threw ? `${statusOf(x)}[${Object.keys(x.err).sort().join(',')}|log=${Array.isArray(x.err.log) ? `len ${x.err.log.length}` : typeof x.err.log}]` : 'no throw')).join(','));
   end(sc, `three refusals, each thrown in the single form; verbatim messages — ValueNotAdmitted: "${b.threw ? b.err.message : ''}" · ValueNotAdmitted(class): "${c.threw ? c.err.message : ''}" · AddressNotFound: "${n.threw ? n.err.message : ''}"`);
 }
 

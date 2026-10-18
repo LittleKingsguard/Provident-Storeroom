@@ -46,6 +46,22 @@
 // route, `.19`'s census WIDENED from the superseded fifteen to the sixteen of `store §8.1`'s dated clause of
 // 2026-10-15. THE SET IS `255` AUTHORED · `255` EXECUTED OVER `16` SCENARIOS, `255` PASS · `0` FAIL — a
 // RETIRED CELL WOULD OWE A NOTE NAMING ITS SUPERSEDING CLAUSE, AND NO CELL HERE IS RETIRED.
+//
+// ⟶ RE-DERIVED 2026-10-17 — THE FAILURE-FORM OVERRIDE PASS (`role_test_writer`), ON THE ARCHITECT'S RULING
+// *"Override the failure form limit"* READ WITH HIS EARLIER *"Bubble the message log to the client on failure,
+// override any clauses that forbid this."* THE SUITE STOOD AT `235`/`20`. TWENTY CELLS ASSERTED THE SUPERSEDED
+// `DD-12` / `Refusal` LIMIT (*"EXACTLY two members, no third"*) AND EVERY ONE IS RE-DERIVED, NONE RETIRED:
+// `JSG-04.1.iii`–`04.14.iii` (`:14` cells through the `refusal` helper), `04.16`, `05.3`, `06.5`, `06.6`,
+// `09.6` and `10.18` — EACH NOW ASSERTS THE DECLARED THREE-MEMBER SET `["log","message","status"]`, SORTED,
+// LENGTH `3`, WITH `log` AN ARRAY, from `docs/specs/storeroom-js/surface.md §2.5` ITEM 4 (the set is FLAT ACROSS
+// ARMS; `[]` is the declared value where the cause has no attempt) READ WITH ITEM 9 (`log` an ORDINARY OWN
+// ENUMERABLE DATA MEMBER). `10.18`'s authority WAS `DD-12` EXPLICITLY and its citation now records that override.
+// ONLY THE MEMBER-SET LIMB MOVED: every cell keeps its other limbs — which refusal, which code, which non-empty
+// message, that nothing was left behind. ONE CELL IS ADDED AND TAKES A NEW ID (`JSG-09.13`, the `log: []` limb on
+// the three constraint methods' `TypeError`, which item 4 names BY NAME and which no cell of this set pinned).
+// `const LAYER` AND `const APP_LAYER` ABOVE, THE HEAD COMMENT AND THE PRINT ARE BYTE-IDENTICAL: a cell of
+// `bindings/js/test/register.test.mjs` reads them, and a change there would manufacture a false green.
+// THE SET IS NOW `256` AUTHORED · `256` EXECUTED OVER `16` SCENARIOS, `256` PASS · `0` FAIL.
 
 import fs from 'node:fs';
 import os from 'node:os';
@@ -147,6 +163,17 @@ function formOf(e) {
   };
 }
 function membersAre(r, want) { return r.members.join(',') === want; }
+// ⟶ ADDED 2026-10-17 (THE FAILURE-FORM OVERRIDE RE-DERIVATION PASS, `role_test_writer`): THE DECLARED CROSSED
+// FORM'S OWN TWO HELPERS, so no cell below re-spells the member set by hand. `surface.md §2.5` item 4 fixes the
+// THREE-member set FLAT ACROSS ARMS (`log` PRESENT on every failure, `[]` where the cause has no attempt at all)
+// and item 9 declares `log` an ORDINARY OWN ENUMERABLE DATA MEMBER, never absent, never `null`, never a non-array.
+const FORM_MEMBERS = 'log,message,status';   // sorted, §2.5 item 9
+const formIsThree = (r) => r.members.join(',') === FORM_MEMBERS;   // the member set, by NAME
+const logIsDeclared = (v) => Array.isArray(v);                       // item 9: NEVER a non-array
+// §2.5 item 4's own discrimination, STATED WHERE EVERY CELL BELOW CAN READ IT: an arm whose cause has no attempt
+// at all carries `log: []` — the construction's `cfg`-side refusals, a `read`/`readLiteral`/`delete`/`rollback`
+// store refusal with no attempt live, `a.register`'s `TypeError` and the three constraint methods' `TypeError`.
+const logIsEmpty = (v) => Array.isArray(v) && v.length === 0;        // item 4's `[]` arms
 function statusOf(r) { return r.threw ? (r.err && typeof r.err === 'object' ? r.err.status : undefined) : '<no throw>'; }
 function msgOf(r) { return r.threw && r.err && typeof r.err === 'object' ? r.err.message : undefined; }
 
@@ -422,9 +449,18 @@ const g04 = { caught: [], readAfter: [] };
     const form = formOf(w.err);
     A(`${id}.i`, clause, `the write of ${label} is REFUSED (a value is thrown)`, w.threw, w.threw ? 'threw' : `returned ${fmt(w.value)}`);
     A(`${id}.ii`, clause, `the status is exactly 'ValueNotAdmitted'`, statusOf(w) === 'ValueNotAdmitted', String(statusOf(w)));
-    A(`${id}.iii`, clause, 'the ONE form: a plain object, own member set exactly {message, status}, both non-empty strings',
-      w.threw && form.obj && form.proto === 'Object.prototype' && membersAre(form, 'message,status') && typeof w.err.status === 'string' && w.err.status.length > 0 && typeof w.err.message === 'string' && w.err.message.length > 0,
-      `members=[${form.members.join(',')}] proto=${form.proto} errorish=${form.errorish} status=${fmt(w.err?.status)}`);
+    // ⟶ RE-DERIVED 2026-10-17 (THE FAILURE-FORM OVERRIDE RE-DERIVATION PASS, `role_test_writer`), ON THE
+    // ARCHITECT'S RULING *"Override the failure form limit"* READ WITH HIS EARLIER *"Bubble the message log to the
+    // client on failure, override any clauses that forbid this."*: THIS CELL'S FORM LIMB WAS THE SUPERSEDED
+    // `DD-12` / `Refusal` DECLARATION (*"EXACTLY two members, no third"*), and the AMENDED CLAUSE IS `surface.md
+    // §2.5` item 4 (the member set is THREE and FLAT ACROSS ARMS, `log` PRESENT with `[]` where the cause has no
+    // attempt — a `write` value refusal mints no attempt, so `[]` is ITS declared value) read with item 9 (`log`
+    // an ORDINARY OWN ENUMERABLE DATA MEMBER; `Object.keys(caught)` reads `["log","message","status"]`, length
+    // `3`). THE SUBJECT IS KEPT — the ONE form, `status` `ValueNotAdmitted` and a non-empty `message` — and the
+    // member-set limb alone moves; the drive, the label and the `[]`-arm's own emptiness are all asserted.
+    A(`${id}.iii`, `${clause}; surface.md §2.5 items 4 and 9 (the three-member set, FLAT ACROSS ARMS: \`log\` PRESENT and \`[]\` where the cause has no attempt — this value refusal's own arm)`, 'the ONE form: a plain object, own member set exactly {log, message, status} with `log` an ARRAY — `[]` on this arm — both status and message non-empty strings',
+      w.threw && form.obj && form.proto === 'Object.prototype' && formIsThree(form) && logIsEmpty(w.err.log) && typeof w.err.status === 'string' && w.err.status.length > 0 && typeof w.err.message === 'string' && w.err.message.length > 0,
+      `members=[${form.members.join(',')}] proto=${form.proto} errorish=${form.errorish} log=${fmt(w.err?.log)} status=${fmt(w.err?.status)}`);
     A(`${id}.iv`, clause, "the message carries the store's own mismatch clause 'is not an admitted value'",
       typeof msgOf(w) === 'string' && msgOf(w).includes('is not an admitted value'), fmt(msgOf(w)));
     if (extra) extra(id, clause, w, label);
@@ -459,9 +495,14 @@ const g04 = { caught: [], readAfter: [] };
   A('JSG-04.15', "§1.2's closing clause", `after EVERY refusal, read(['v']) answers AddressNotFound (no node minted, no anchor installed, no container changed, no journal entry appended)`,
     clean === 14, `${clean}/14 answered AddressNotFound; statuses=${g04.readAfter.map((x) => x.status).join(',')}`);
   const errorish = g04.caught.filter((x) => formOf(x.w.err).errorish).length;
-  const badForm = g04.caught.filter((x) => !membersAre(formOf(x.w.err), 'message,status')).length;
-  A('JSG-04.16', "surface.md §2.5 item 5 (e); A76's reach clause", 'not one refusal is an Error instance, and every thrown value has exactly {message, status} (no raw host error is a rejection)',
-    errorish === 0 && badForm === 0, `errorish=${errorish} wrongForm=${badForm} of 14`);
+  const badForm = g04.caught.filter((x) => !formIsThree(formOf(x.w.err)) || !logIsDeclared(x.w.err?.log)).length;
+  // ⟶ RE-DERIVED 2026-10-17 (THE FAILURE-FORM OVERRIDE RE-DERIVATION PASS, `role_test_writer`): the *"exactly
+  // {message, status}"* limb is the SUPERSEDED `DD-12`/`Refusal` limit; `surface.md §2.5` item 4 makes the set
+  // THREE and item 9 makes `log` a member a census can see. `.16`'s SUBJECT IS KEPT WHOLE — not one refusal is an
+  // `Error` instance (no raw host error is a rejection), which is `item 5 (e)` and `A76`'s reach clause — and the
+  // form limb alone moves, now also asserting item 9's *"never a non-array"*.
+  A('JSG-04.16', "surface.md §2.5 item 5 (e) and item 9; A76's reach clause; the Architect's *\"Override the failure form limit\"*", 'not one refusal is an Error instance, and every thrown value has exactly {log, message, status} with `log` an ARRAY (no raw host error is a rejection)',
+    errorish === 0 && badForm === 0, `errorish=${errorish} wrongForm=${badForm} of 14; members=${g04.caught.map((x) => `[${formOf(x.w.err).members.join(',')}]`).join(' ')}`);
   A('JSG-04.17', '§1.7 (a); §1.7 (b) 3 dated clause', 'Array.isArray is TRUE for the Array subclass and the value is nonetheless refused: the class decision is not short-circuited by a shape test',
     Array.isArray(arraySubclass) === true && statusOf(g04.caught.find((x) => x.id === 'JSG-04.5')?.w ?? {}) === 'ValueNotAdmitted',
     `Array.isArray=${Array.isArray(arraySubclass)} status=${statusOf(g04.caught.find((x) => x.id === 'JSG-04.5')?.w ?? {})}`);
@@ -511,11 +552,18 @@ const g04 = { caught: [], readAfter: [] };
   // and the expectation alone is re-derived: the THREE STATES `a.read(a)` / `a.read(a, undefined)` /
   // `a.read(a, null)` stand as three states, and `.2` above is the one that drives the ABSENT row.
   const rUndef = thrown(() => i5.read(['ab'], undefined));
-  A('JSG-05.3', 'parameter-semantics.md §2.6 (`PAR-JS-6`), adjudicated 2026-10-16 and carried at acceptance.md §4.1 item 7\'s dated clause', 'a SUPPLIED undefined at the tier position is PRESENT and is not the absent row: the call answers the store\'s own thrown {status, message} with status AddressMalformed (only the OMITTED call, .2 above, folds to the absent row)',
+  // ⟶ RE-DERIVED 2026-10-17 (THE FAILURE-FORM OVERRIDE RE-DERIVATION PASS, `role_test_writer`): THE MEMBER-SET
+  // LIMB ALONE MOVES — the {message, status} figure is the superseded `DD-12`/`Refusal` limit — and the cell now
+  // derives it from `surface.md §2.5` item 4 read with item 9: THREE members, `log` PRESENT as an ARRAY. `A SUPPLIED
+  // undefined` mints NO attempt, and item 4 names *"a `read`/`readLiteral`/`delete`/`rollback` store refusal with no
+  // attempt live"* BY NAME among its `log: []` arms, so `[]` is this arm's declared value. THE SUBJECT IS KEPT WHOLE:
+  // a SUPPLIED `undefined` is PRESENT and is not the absent row, and the answer is the store's own AddressMalformed;
+  // its `PAR-JS-6` authority is unmoved.
+  A('JSG-05.3', 'parameter-semantics.md §2.6 (`PAR-JS-6`), adjudicated 2026-10-16 and carried at acceptance.md §4.1 item 7\'s dated clause; surface.md §2.5 item 4 (a `read` refusal with NO attempt live is a `log: []` arm) and item 9', 'a SUPPLIED undefined at the tier position is PRESENT and is not the absent row: the call answers the store\'s own thrown {log, message, status} — `log` an ARRAY, `[]` on this no-attempt arm — with status AddressMalformed (only the OMITTED call, .2 above, folds to the absent row)',
     rUndef.threw && statusOf(rUndef) === 'AddressMalformed'
-      && formOf(rUndef.err).obj && formOf(rUndef.err).proto === 'Object.prototype' && membersAre(formOf(rUndef.err), 'message,status')
+      && formOf(rUndef.err).obj && formOf(rUndef.err).proto === 'Object.prototype' && formIsThree(formOf(rUndef.err)) && logIsEmpty(rUndef.err.log)
       && typeof rUndef.err.message === 'string' && rUndef.err.message.length > 0,
-    rUndef.threw ? `${fmt(rUndef.err)} form={${formOf(rUndef.err).members.join(',')}}` : `did not throw: ${fmt(rUndef.value)}`);
+    rUndef.threw ? `${fmt(rUndef.err)} form={${formOf(rUndef.err).members.join(',')}} log=${fmt(rUndef.err.log)}` : `did not throw: ${fmt(rUndef.value)}`);
   const rNull = thrown(() => i5.read(['ab'], null));
   A('JSG-05.4', '§1.3 TierArg row 4', 'read(i,a,null) is PRESENT and its shape is not a tier\'s: AddressMalformed',
     statusOf(rNull) === 'AddressMalformed', String(statusOf(rNull)));
@@ -573,13 +621,21 @@ const g04 = { caught: [], readAfter: [] };
   A('JSG-06.4', 'crossing.md §1.4 item 5 dated two-arm table; DD-10', 'a value of nesting depth 66 is REFUSED ValueNotAdmitted (the boundary encoder\'s own bound)',
     statusOf(w66) === 'ValueNotAdmitted', w66.threw ? String(statusOf(w66)) : `returned ${fmt(w66.value)}`);
   const f65 = formOf(w65.err);
-  A('JSG-06.5', '§2.5 items 1-3; §1.7 (d)', 'the 65 refusal carries the ONE form: a plain object whose member set is exactly {message, status}, status ValueNotAdmitted, message non-empty',
-    w65.threw && f65.obj && f65.proto === 'Object.prototype' && membersAre(f65, 'message,status') && w65.err.status === 'ValueNotAdmitted' && typeof w65.err.message === 'string' && w65.err.message.length > 0,
-    `members=[${f65.members.join(',')}] proto=${f65.proto} status=${fmt(w65.err?.status)}`);
+  // ⟶ RE-DERIVED 2026-10-17 (THE FAILURE-FORM OVERRIDE RE-DERIVATION PASS, `role_test_writer`): the *"exactly
+  // {message, status}"* limb is the SUPERSEDED `DD-12`/`Refusal` limit; re-derived to `surface.md §2.5` item 4 read
+  // with item 9 — THREE members, `log` an ARRAY, and `[]` because a depth refusal mints NO attempt. The subject and
+  // the `ValueNotAdmitted` code limb are unmoved.
+  A('JSG-06.5', '§2.5 items 1-3 and item 4 (no attempt on this arm, so `log: []`) and item 9; §1.7 (d); the Architect\'s *"Override the failure form limit"*', 'the 65 refusal carries the ONE form: a plain object whose member set is exactly {log, message, status} with `log` an ARRAY (`[]` here), status ValueNotAdmitted, message non-empty',
+    w65.threw && f65.obj && f65.proto === 'Object.prototype' && formIsThree(f65) && logIsEmpty(w65.err.log) && w65.err.status === 'ValueNotAdmitted' && typeof w65.err.message === 'string' && w65.err.message.length > 0,
+    `members=[${f65.members.join(',')}] proto=${f65.proto} log=${fmt(w65.err?.log)} status=${fmt(w65.err?.status)}`);
   const f66 = formOf(w66.err);
-  A('JSG-06.6', '§2.5 items 1-3; §1.7 (d)', 'the 66 refusal carries the SAME form and the SAME code — the two arms answer ONE answer',
-    w66.threw && f66.obj && membersOf(f66, 'message,status') && w66.err.status === 'ValueNotAdmitted' && typeof w66.err.message === 'string' && w66.err.message.length > 0,
-    `members=[${f66.members.join(',')}] proto=${f66.proto} status=${fmt(w66.err?.status)}`);
+  // ⟶ RE-DERIVED 2026-10-17 — the same clause pair as `.5`'s (`surface.md §2.5` items 4 and 9). `.6`'s SUBJECT is
+  // that the two depth arms answer ONE answer; both limbs of that subject stand (the form and the code), and the
+  // form limb is now the three-member one. `membersOf` (the file's own duplicate at `:589`) is left as it stands and
+  // is not used here: the form check is the shared `formIsThree`, so no third spelling of the set can drift.
+  A('JSG-06.6', '§2.5 items 1-3 and item 4 (`log: []`, no attempt on this arm) and item 9; §1.7 (d); the Architect\'s *"Override the failure form limit"*', 'the 66 refusal carries the SAME form and the SAME code — the two arms answer ONE answer',
+    w66.threw && f66.obj && formIsThree(f66) && logIsEmpty(w66.err.log) && w66.err.status === 'ValueNotAdmitted' && typeof w66.err.message === 'string' && w66.err.message.length > 0,
+    `members=[${f66.members.join(',')}] proto=${f66.proto} log=${fmt(w66.err?.log)} status=${fmt(w66.err?.status)}`);
   const d = { n: 1 };
   const wDia = thrown(() => i6.write(['dia'], 'temp', { x: d, y: d }));
   const rDia = wDia.threw ? wDia : thrown(() => i6.read(['dia']));
@@ -727,7 +783,7 @@ function membersOf(r, want) { return r.members.join(',') === want; }
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// JSG-09 — THE REGISTRATION SITE'S DOMAIN AND ITS REFUSAL FORM            12 assertions
+// JSG-09 — THE REGISTRATION SITE'S DOMAIN AND ITS REFUSAL FORM            13 assertions
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const i9 = ns.storeCreate(mk('g09'));
@@ -745,9 +801,16 @@ function membersOf(r, want) { return r.members.join(',') === want; }
   A('JSG-09.4', '§2.4 item 5 (d); surface.md §2.5 item 5 (g)', 'a bare string at the handle position is REFUSED (a value is thrown)', bare.threw, bare.threw ? 'threw' : `returned ${fmt(bare.value)}`);
   A('JSG-09.5', 'surface.md §2.5 item 5 (g); SW-1 final clause item 1; DD-40', "the refusal's status is the store's own AddressMalformed, minted by nothing", statusOf(bare) === 'AddressMalformed', String(statusOf(bare)));
   const fb = formOf(bare.err);
-  A('JSG-09.6', 'surface.md §2.5 items 1-3 and item 5 (e)', 'the refusal travels in the single form: a plain object, own member set exactly {message, status}, both non-empty strings',
-    bare.threw && fb.obj && fb.proto === 'Object.prototype' && membersAre(fb, 'message,status') && typeof bare.err.status === 'string' && bare.err.status.length > 0 && typeof bare.err.message === 'string' && bare.err.message.length > 0,
-    `members=[${fb.members.join(',')}] proto=${fb.proto} errorish=${fb.errorish} status=${fmt(bare.err?.status)}`);
+  // ⟶ RE-DERIVED 2026-10-17 (THE FAILURE-FORM OVERRIDE RE-DERIVATION PASS, `role_test_writer`): the *"exactly
+  // {message, status}"* limb is the SUPERSEDED `DD-12`/`Refusal` limit. THIS arm is the store's own
+  // `AddressMalformed` (item 5 (g)) and mints NO attempt, so `surface.md §2.5` item 4's second named family —
+  // *"a `read`/`readLiteral`/`delete`/`rollback` store refusal with no attempt live"*, read at ITS OWN subject as
+  // the store-refusal-no-attempt family — fixes `log: []` here, and item 9 makes that member visible to a census.
+  // The set is THREE. The subject — the refusal's form, its status and its non-empty message — is kept; only the
+  // member-set limb moved.
+  A('JSG-09.6', 'surface.md §2.5 items 1-3 and item 4 (`log: []` — a `register` refusal mints no attempt) and item 9; the Architect\'s *"Override the failure form limit"*', 'the refusal travels in the single form: a plain object, own member set exactly {log, message, status} with `log` an ARRAY (`[]` here), status and message both non-empty strings',
+    bare.threw && fb.obj && fb.proto === 'Object.prototype' && formIsThree(fb) && logIsEmpty(bare.err.log) && typeof bare.err.status === 'string' && bare.err.status.length > 0 && typeof bare.err.message === 'string' && bare.err.message.length > 0,
+    `members=[${fb.members.join(',')}] proto=${fb.proto} errorish=${fb.errorish} log=${fmt(bare.err?.log)} status=${fmt(bare.err?.status)}`);
   const fab = thrown(() => i9.register({}, f1));
   A('JSG-09.7', '§2.4 item 5 (d)', 'a fabricated non-opaque value at the handle position answers the same form and the same status', statusOf(fab) === 'AddressMalformed', String(statusOf(fab)));
   const nul = thrown(() => i9.register(null, f1));
@@ -763,6 +826,26 @@ function membersOf(r, want) { return r.members.join(',') === want; }
   const msgs = [bare, fab, nul, noListener, nothing].map((x) => msgOf(x));
   const hasPlaceholder = msgs.some((m) => typeof m !== 'string' || m.length === 0 || PLACEHOLDER_TOKENS.some((t) => m.includes(t)));
   A('JSG-09.12', 'surface.md §2.5 item 5 (a) & (e); store §8.2 property (c)', 'every refusal message is a non-empty string carrying no unsubstituted <...> placeholder', !hasPlaceholder, fmt(msgs));
+  // ⟶ ADDED 2026-10-17 (THE FAILURE-FORM OVERRIDE RE-DERIVATION PASS, `role_test_writer`) — A NEW CELL TAKES A
+  // NEW ID. THE LIMB NO CELL OF THIS SET PINNED: `surface.md §2.5` item 4 NAMES *"the three constraint methods'
+  // `TypeError`"* **BY NAME** among its `log: []` arms, and item 9 makes that member visible to a census — so this
+  // arm's `log` is `[]` BY DECLARATION and not by accident. `§2.4` item 9 (f)'s rule (ii) is kept WHOLE and is what
+  // the `status`-ABSENT half asserts: the `TypeError` carries NO `status` member and no `message` member of this
+  // unit's own, and it is NO member of the store's closed `16`. THE ID IS NEW (`JSG-09.13`) AND NO EXISTING ID MOVES.
+  const ci9 = ns.storeCreate(mk('g09c'));
+  const constraintArms = [
+    ['addConstraint', () => ci9.addConstraint(null, 'c1', () => true)],
+    ['constraintOn', () => ci9.constraintOn(null, 'c1')],
+    ['constraintOff', () => ci9.constraintOff(null, 'c1')],
+  ].map(([name, drive]) => [name, thrown(drive)]);
+  const cArmDetail = constraintArms.map(([n, r]) => (r.threw
+    ? `${n}:class=${(r.err && r.err.constructor && r.err.constructor.name) || typeof r.err}/keys=[${(r.err && typeof r.err === 'object' ? Object.keys(r.err).sort() : []).join(',')}]/log=${fmt(r.err && r.err.log)}/statusAbsent=${!(r.err && typeof r.err === 'object' && 'status' in r.err)}`
+    : `${n}:NO THROW (${fmt(r.value)})`)).join(' ');
+  A('JSG-09.13', 'surface.md §2.5 item 4 (naming *"the three constraint methods\' `TypeError`"* BY NAME among its `log: []` arms) and item 9 (`log` an ordinary own enumerable data member, never absent, never `null`, never a non-array) read with §2.4 item 9 (f)\'s rule (ii) and §2.12 item 4',
+    'each of the three constraint methods\' out-of-domain refusal is a `TypeError` whose `status` member is ABSENT (rule (ii), unmoved) AND which carries `log: []` by declaration — the EMPTY ARRAY, so `Object.keys` reads exactly `["log"]` and the member is PRESENT on this arm as on every arm',
+    constraintArms.every(([, r]) => r.threw && r.err instanceof TypeError && r.err.constructor === TypeError
+      && !('status' in r.err) && logIsEmpty(r.err.log) && Object.keys(r.err).sort().join(',') === 'log'),
+    cArmDetail);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -829,9 +912,19 @@ const g10 = { all: [] };
 
   const thrownSet = g10.all.filter((x) => !x.r.threw);
   const forms = g10.all.map((x) => formOf(x.r.err));
-  A('JSG-10.18', '§2.5 items 1-3; DD-12', 'every one of the driven failures arrives as ONE form: a plain object whose own member set is exactly {message, status}, both non-empty strings',
-    thrownSet.length === 0 && forms.every((f) => f.obj && f.proto === 'Object.prototype' && membersAre(f, 'message,status')),
-    `${thrownSet.length} did not throw; forms=${forms.map((f) => `[${f.members.join(',')}]/${f.proto}`).join(' ')}`);
+  // ⟶ RE-DERIVED 2026-10-17 (THE FAILURE-FORM OVERRIDE RE-DERIVATION PASS, `role_test_writer`). THIS CELL'S
+  // AUTHORITY WAS `DD-12` AND THE `Refusal` STRUCT, WHICH DECLARED *"EXACTLY two members, no third"* — AND THE
+  // ARCHITECT HAS OVERRIDDEN BOTH (*"Override the failure form limit"*, read with *"Bubble the message log to the
+  // client on failure, override any clauses that forbid this"*). EVERY OTHER LIMB IS KEPT: `thrownSet.length === 0`
+  // (every driven failure arrives as a THROWN value), the plain-object class and the `Object.prototype` prototype.
+  // The member-set limb alone moves, to `surface.md §2.5` item 4 (THREE members, FLAT ACROSS ARMS, `log` an ARRAY
+  // and `[]` where the cause has no attempt) read with item 9 (`log` never absent, never `null`, never a non-array).
+  // THE CENSUS IS ALSO WIDENED BY ONE LIMB THE SUPERSEDED LIMIT COULD NOT CARRY: `log`'s array-ness is asserted for
+  // EVERY driven failure, which is item 9's *"a failure whose `log` is not an array is a FINDING"*.
+  const badLog = g10.all.filter((x) => !logIsDeclared(x.r.err?.log)).length;
+  A('JSG-10.18', '§2.5 item 4 (THREE members, FLAT ACROSS ARMS) and item 9 (`log` an ordinary own enumerable data member, never a non-array); the Architect\'s *"Override the failure form limit"* — the member-set limb this cell took from `DD-12` is superseded', 'every one of the driven failures arrives as ONE form: a plain object whose own member set is exactly {log, message, status}, `log` an ARRAY on every one, and status and message both non-empty strings',
+    thrownSet.length === 0 && badLog === 0 && forms.every((f) => f.obj && f.proto === 'Object.prototype' && formIsThree(f)),
+    `${thrownSet.length} did not throw; non-array logs=${badLog}; forms=${forms.map((f) => `[${f.members.join(',')}]/${f.proto}`).join(' ')}`);
   const codes = g10.all.map((x) => statusOf(x.r));
   const outside = codes.filter((c) => !CLOSED_SET.includes(c));
   A('JSG-10.19', "§2.5 item 1; DD-40; store §8.1's dated clause of 2026-10-15 (the closed set is 16, ConstraintListInvalid appended at rank 16) — CENSUS WIDENED 2026-10-16", "every status is a member of the store's closed 16-member set — no code outside the set and none minted by the package",
