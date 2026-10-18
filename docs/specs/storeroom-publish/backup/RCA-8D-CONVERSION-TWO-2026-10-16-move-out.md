@@ -26,7 +26,9 @@ recorded there).
 
 **THIS FILE CARRIES THE REGIONS THIS PASS MOVED, EACH WITH ONE `## §n.` HEADING.** **THE HEAD AND THE FOOTER
 COUNT THE SAME REGIONS, AND THAT COUNT IS PRINTED IN BOTH PLACES RATHER THAN IN ONE** — the arithmetic is at the
-foot, and the head names the count here: **`§1`–`§17`, SEVENTEEN REGIONS, EACH HOLDING ONE MOVED CLAUSE.**
+foot, and the head names the count here: **`§1`–`§26`, TWENTY-SIX REGIONS, EACH HOLDING ONE MOVED CLAUSE.**
+**THE FIRST SEVENTEEN ARE THE PRIOR PASS'S; `§18`–`§26` ARE THE SECOND CONTINUATION'S, MOVED OUT OF
+`docs/specs/storeroom-publish/contract.md` ALONE.**
 
 ---
 
@@ -205,21 +207,115 @@ stood at the source's line `:71` immediately before the move:**
 
 ---
 
+## §18. MOVED OUT OF `docs/specs/storeroom-publish/contract.md` — the unit/prefix line's register-figure read-forward clause, read at the source's line `:5`
+
+**Reason for the move: the clause is carried in the retired `RCA-8(d)` ANNOTATE-BESIDE spelling (`A129`); the
+unit/prefix line it reads forward STANDS UNMOVED at the source, and its own citation tag at `:6` stands unmoved
+below the pointer.** **The bytes, byte-exactly as they stood at the source's line `:5` immediately before the move:**
+
+BECAUSE A REGISTER THAT HAS MOVED IS NOT READ AT THE FIGURE IT MOVED FROM.** `RCA-8(d)` ANNOTATE-BESIDE: **this line stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause is a PURE INSERTION, it edits no byte of the line, mints no id, moves no family and re-decides no ruling.** **THE LINE'S OWN FIGURE — the typed register's rows `P-PUB-1`…`P-PUB-8`, `8` rows, *"the cap holds at `8 ≤ 8` ✓, and every one of the `8` is FAILABLE"* — IS TRUE OF ITS OWN PASS'S DATE, WHICH ITS OWN WORDS PRINT: what the `A88` PROJECT-TOKEN PASS checked and left unmoved was the register AS THAT PASS FOUND IT, and that pass moved no `P-PUB` row.** **SO THE LINE CARRIES TWO READINGS, EACH DATED: *"checked and unmoved by that pass"* is TRUE AT THAT PASS'S DATE, and THE OPERATIVE READING IS `P-PUB-1`…`P-PUB-10` WITH THE CAP HOLDING AT `10 ≤ 10` ✓, EVERY ONE OF THE `10` FAILABLE** (`§5.0`'s extension block; `§5.0a`; `§5.0b`). **AND ONE FIGURE OF THE LINE IS TRUE AT BOTH DATES AND IS NOT RE-CUT: every register row is FAILABLE, at `8` as at `10`, and no row's failure list is empty.** **AND THE LINE'S OTHER RANGE CELL IS READ THE SAME WAY AND IS NOT THIS CLAUSE'S SUBJECT: its design-defaults clause's `PUB-DD-1`…`PUB-DD-24` already carries its own dated forward-read at the words *"AND ONE RANGE ON THIS LINE IS READ FORWARD, DATED"*, standing byte-for-byte beside it and not re-decided here.**
+
+---
+
+## §19. MOVED OUT OF `docs/specs/storeroom-publish/contract.md` — the index region's scope-boundary item's figure read-forward clause, read at the source's line `:19`
+
+**Reason for the move: the clause is carried in the retired `RCA-8(d)` ANNOTATE-BESIDE spelling (`A129`); the
+item it reads forward STANDS UNMOVED at the source.** **The bytes, byte-exactly as they stood at the source's line
+`:19` immediately before the move:**
+
+    **⟶ AND THE `§`-SPAN AND THE TWO FIGURES OF THIS ITEM ARE READ FORWARD HERE, DATED `2026-10-12` BY THE BOUNDED CAP-RE-CUT PASS (`role_spec_writer`), SO THE SCOPE BOUNDARY IS NOT READ AT A REGISTER THIS UNIT HAS SINCE EXTENDED.** `RCA-8(d)` ANNOTATE-BESIDE: **the item above is an entry of the INDEX REGION and carries no pinnable claim; it stands BYTE-FOR-BYTE and is read THROUGH this clause, which edits no byte of it, adds no item and moves no scope.** **ITS OPERATIVE READING: THE TYPED REGISTER IS `P-PUB-1`…`P-PUB-10` — `10` rows — WITH THE CAP HOLDING AT `10 ≤ 10` ✓, and its `§`-spread is `§5.1`–`§5.8` BESIDE `§5.0a` and `§5.0b`, which are numbered in `§5.0`'s own ordinal and stand between `§5.0` and `§5.1`** (`§5.0`'s extension block; the `§5.0a`/`§5.0b` placement disclosure). **AND THE ITEM'S OWN FIGURES AND SPAN ARE TRUE OF THE AUTHORING THEY WERE WRITTEN AT: THIS CLAUSE SUPPLIES THE DATED READING AND RE-SPELLS NOTHING.** `[A2 docs/decisions.md · the ACTIVE `A91` row of 2026-10-12; A1 docs/specs/storeroom-publish/contract.md §5.0` · `§5.0a` · `§5.0b` | numeric or census claim]`
+
+---
+
+## §20. MOVED OUT OF `docs/specs/storeroom-publish/contract.md` — the cross-reference reading rule's device parenthetical, read at the source's line `:37`
+
+**Reason for the move: the parenthetical is carried in the retired `RCA-8(d)` ANNOTATE-BESIDE spelling (`A129`);
+the reading rule that carries it STANDS UNMOVED at the source.** **The bytes, byte-exactly as they stood at the
+source's line `:37` immediately before the move:**
+
+- **AND ONE READING RULE FOR THIS DIRECTORY'S OWN CROSS-REFERENCES, STATED SO NO BARE `§n` IS READ AS AN EDGE** (`RCA-8(d)` ANNOTATE-BESIDE: **this bullet adds no claim, moves no row and re-decides no rule; it states how a citation that names a section of a SIBLING HOME is read**): **a `§n` citation in a CLAUSE OF THIS CONTRACT DOCUMENT whose target is a section of ONE OF THIS DIRECTORY'S PARTS is written `path §n` — `docs/specs/storeroom-publish/contract.md`'s own clauses write a part's `§`-number with that part's path (`resolution.md §2.1`, `distribution.md §3.2`, `release.md §3.1`, `acceptance.md §2.2`) and never bare `§2.1`** **where the number could belong to another document — because *a bare `§n` whose target is not in the same document is NOT a resolvable reference*, and a reader of either home must be able to resolve it.** **AND THE ONE PLACE THIS DOCUMENT'S OWN PROSE STILL PRINTS A BARE `§n` BESIDE A PART'S NAME IS THE ONE WHERE THE NAME IS THE DOCUMENT'S OWN — `§1.4`'s table, printed at `docs/specs/storeroom-publish/resolution.md §5.2` as a POINTER to this document's home rather than as a second copy of the table — and that pointer is read as an INTRA-DOCUMENT reference to this document, which is lawful because its target IS in the same document.** **A `§n` in a part's own prose whose target is IN THAT PART is intra-document and lawful; a `§n` in a part's prose whose target is in this document or in another part is written with its path.** `[A1 | cross-reference]`
+
+---
+
+## §21. MOVED OUT OF `docs/specs/storeroom-publish/contract.md` — `§0.1` item `5`'s cap read-forward clause, read at the source's line `:67`
+
+**Reason for the move: the clause is carried in the retired `RCA-8(d)` ANNOTATE-BESIDE spelling (`A129`); the
+item it reads forward STANDS UNMOVED at the source.** **The bytes, byte-exactly as they stood at the source's line
+`:67` immediately before the move:**
+
+**⟶ AND THE CAP THIS CLAUSE PRINTS IS READ FORWARD HERE, DATED `2026-10-12` BY THE BOUNDED CAP-RE-CUT PASS (`role_spec_writer`), BECAUSE THE CAP IT PHRASES AS A RULE IS THIS UNIT'S AND THIS UNIT'S HAS MOVED.** `RCA-8(d)` ANNOTATE-BESIDE: **this item's own bytes stand BYTE-FOR-BYTE and are read THROUGH this clause; THIS clause is a PURE INSERTION, it edits no byte of the item, mints no id and re-decides no rule.** **THE TWO HALVES OF THE ITEM, READ SEPARATELY BECAUSE ONE HAS MOVED AND ONE HAS NOT.** **ONE: *"its cap is `≤ 8` rows per unit"* and *"the cap is PER UNIT, so this unit owes its OWN register and authors no row in any other unit's"* — the PER-UNIT RULE IS UNMOVED and its FIGURE has moved for this unit: THE OPERATIVE CAP IS `≤ 10`, HOLDING AT `10 ≤ 10` ✓, and the unit's operative range is `P-PUB-1`…`P-PUB-10`** (`§5.0`'s extension block; `§5.0a`; `§5.0b`). **TWO: *"the JS unit's register stays `8 ≤ 8` with NO NINTH ROW"* — UNMOVED, TRUE, AND CHECKED RATHER THAN ASSUMED: the cap is PER UNIT, the amendment of `2026-10-12` reaches THIS unit's register alone, and the sibling register stands at its `8` rows with its own cap holding** (`[A3 docs/specs/storeroom-js/contract.md §0.1 item 5 — the per-unit cap and the row form | requirement]`; `[A3 docs/specs/storeroom-js/contract.md §5.0 — the sibling register's own census | numeric or census claim]`). **SO NO PART OF THE ITEM'S OWN SUBJECT IS FALSIFIED: what a reader must not do is read the item's `≤ 8` as THIS unit's operative cap, which is the reading this clause supplies.** **AND NO BYTE UNDER `docs/specs/storeroom-js/**` IS WRITTEN BY THIS CLAUSE: the sibling surface is cited and never re-spelled.**
+
+---
+
+## §22. MOVED OUT OF `docs/specs/storeroom-publish/contract.md` — `§0.1` item `9`'s rule-numbering clause, read at the source's line `:73`
+
+**Reason for the move: the clause is carried in the retired `RCA-8(d)` ANNOTATE-BESIDE spelling (`A129`); the
+rule it numbers STANDS UNMOVED at the source.** **The bytes, byte-exactly as they stood at the source's line `:73`
+immediately before the move:**
+
+**⟶ AND ONE RULE THAT STOOD AT THIS DOCUMENT'S FOOT WITH NO `§`-NUMBER IS GIVEN ITS OWN NUMBER HERE, DATED `2026-10-13`, BY THE GATE-2 EIGHT-FINDING CLOSE-OUT PASS (`role_spec_writer`), BECAUSE A RULE A REVIEWER CANNOT ADDRESS BY `§` IS A RULE THAT IS CITABLE BY PROSE ALONE.** `RCA-8(d)` ANNOTATE-BESIDE: **items `1`–`8` above stand BYTE-FOR-BYTE and are read THROUGH this clause; THIS clause is a PURE INSERTION at this span's foot, it renumbers NO pre-pass item, edits no byte of any item, mints no id and re-decides no rule; and NO pre-pass CITATION of *"`§0.1` item `5`"* moves, because item `5` keeps its number.**
+
+---
+
+## §23. MOVED OUT OF `docs/specs/storeroom-publish/contract.md` — the width rule's second half, read at the source's line `:77`
+
+**Reason for the move: the clause is carried in the retired `RCA-8(d)` ANNOTATE-BESIDE spelling (`A129`); the
+rule whose second half it states STANDS UNMOVED at the source above it.** **The bytes, byte-exactly as they stood at
+the source's line `:77` immediately before the move:**
+
+**⟶ AND THIS RULE'S OWN SECOND HALF IS STATED HERE, DATED `2026-10-13` BY GATE 7'S PROOFREADING PASS (`role_proofreader`), BECAUSE THE RULE AS IT STOOD NAMED ITS WIDTH IN CHARACTERS AND THE WIDTH IS MEASURED IN BYTES, AND A CHARACTER-COUNTING TOOL REPORTS AN OUTSIDE-A-LIMIT LINE AS INSIDE IT.** `RCA-8(d)` ANNOTATE-BESIDE: **item `10` above STANDS BYTE-FOR-BYTE and is read WITH this clause, never replaced by it; THIS clause adds the second half at the convention's own house and adds no rule of its own.** **THE SECOND HALF: THE WIDTH'S UNIT IS **BYTES**, AND THE WIDTH'S CEILING IS `2000` PER LINE — so THE INSTRUMENT IS `LC_ALL=C awk 'length($0)>2000'`, WHICH COUNTS BYTES IN THE `C` LOCALE, AND NEVER A TOOL THAT COUNTS CHARACTERS (a line of `2001` bytes can report `1999` characters, WHICH IS THE FAILURE THIS HALF EXISTS TO PREVENT, AND IT HAS HAPPENED TWICE IN THIS UNIT).** **AND THE OBLIGATION THE HALF CARRIES: ANY LINE THIS CORPUS TOUCHES WHOSE WIDTH EXCEEDS `2000` BYTES IS RE-FLOWED IN THE PASS THAT WROTE IT — an amendment authored as its own line and never appended — WITH THE MEASUREMENT PRINTED BESIDE THE FIGURE IT REPLACES.** `[A1 | requirement]`
+
+---
+
+## §24. MOVED OUT OF `docs/specs/storeroom-publish/contract.md` — `§0.2`'s arithmetic read-forward clause, read at the source's line `:90`
+
+**Reason for the move: the clause is carried in the retired `RCA-8(d)` ANNOTATE-BESIDE spelling (`A129`); the
+arithmetic paragraph it reads forward STANDS UNMOVED at the source.** **The bytes, byte-exactly as they stood at the
+source's line `:90` immediately before the move:**
+
+**ARITHMETIC, PRINTED WITH ITS TERMS: the register's census is `8` rows = `8` FAILABLE rows (`8 = 8` ✓), the cap holds at `8 ≤ 8` ✓, and the strategy set is `14` ids — `14` ids cited by `8` rows, with no id orphaned and no row citing none.** **⟶ AND ONE READING OF THAT ARITHMETIC, DATED `2026-10-12` BY THE BOUNDED CAP-RE-CUT PASS (`role_spec_writer`), SO A CENSUS FIGURE IS NOT READ FOR A RULE:** `RCA-8(d)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause is a PURE INSERTION, it edits no cell, moves no family and re-decides no rule.** **THE SENTENCE'S OWN FIGURES ARE TRUE OF THE AUTHORING THEY WERE WRITTEN AT AND ARE NOT THE OPERATIVE ONES: its *"`8` rows = `8` FAILABLE rows (`8 = 8` ✓), the cap holds at `8 ≤ 8`"* census is the PRE-PASS one, whose OPERATIVE READING IS `10` ROWS = `10` FAILABLE ROWS (`10 = 10` ✓) HOLDING AT `10 ≤ 10` ✓ — every one of the `10` still FAILABLE — and its *"strategy set is `14` ids"* is the PRE-PASS set, whose OPERATIVE READING IS `16` — `14 + 2 = 16` ✓ — the two added being `S-STAMP` and `S-GUARD`, each still cited by at least one row and every row still citing at least one id** (`§5.0`'s extension block; `§5.0a`; `§5.0b`). **SO THE PARAGRAPH IS A TRUE CENSUS AT ITS OWN DATE AND NOT A RULE, WHICH IS THE READING THIS CLAUSE SUPPLIES RATHER THAN A RE-SPELLING OF IT.** **AND ONE ABSENCE OF THE PARAGRAPH IS NAMED SO IT IS NOT READ AS A CLAIM: it prints NO `PUB-DD` row count, so no `PUB-DD` figure of it is read across to this pass — that family's operative count is the one `§0.3`'s own later clauses print.** **AND THE AS-FILED LINE'S OWN CITATION TAG, WHICH STOOD BEYOND THIS PASS'S `2000`-CHARACTER READING WINDOW, IS RE-EMITTED HERE AS THE TAG THAT GOVERNS THE ARITHMETIC PARAGRAPH ABOVE AND NOT THIS CLAUSE: `[A1 | numeric or census claim]`.**
+
+---
+
+## §25. MOVED OUT OF `docs/specs/storeroom-publish/contract.md` — `§0.2`'s `PUB-DD` range read-forward clause, read at the source's line `:93`
+
+**Reason for the move: the clause is carried in the retired `RCA-8(d)` ANNOTATE-BESIDE spelling (`A129`); the
+table row it reads forward STANDS UNMOVED at the source.** **The bytes, byte-exactly as they stood at the source's
+line `:93` immediately before the move:**
+
+**AND ONE RANGE CELL OF THIS TABLE IS READ FORWARD, DATED, SO THE TWO `PUB-DD` RANGES ARE NOT TAKEN FOR A DISAGREEMENT** (`RCA-8(d)` ANNOTATE-BESIDE: **this clause edits no row of the table above and moves no family; it states which range a reader applies at each family's own count**): **the `design defaults` row still prints `PUB-DD-1`…`PUB-DD-24`, THE RANGE THAT STOOD AT THIS DOCUMENT'S ORIGINAL AUTHORING, and `§0.3`'s own insertion clauses move the family THREE TIMES after it — to `26` (`24 + 2 = 26` ✓, `PUB-DD-25` and `PUB-DD-26`), then to `28` (`26 + 2 = 28` ✓, `PUB-DD-27` and `PUB-DD-28`), and then to `29` (`28 + 1 = 29` ✓, `PUB-DD-29` at this pass).** **SO THE OPERATIVE RANGE IS `PUB-DD-1`…`PUB-DD-29` AND THE OPERATIVE COUNT IS `29`, while the table's own row is TRUE OF THE AUTHORING IT WAS WRITTEN AT; NO ROW IS RE-SPELLED, NO FAMILY IS MINTED, and the other five rows of this table are UNMOVED.** `[A1 | cross-reference]`
+
+---
+
+## §26. MOVED OUT OF `docs/specs/storeroom-publish/contract.md` — the two-range-cells read-forward clause, read at the source's line `:95`
+
+**Reason for the move: the clause is carried in the retired `RCA-8(d)` ANNOTATE-BESIDE spelling (`A129`); the
+two table rows it reads forward STAND UNMOVED at the source.** **The bytes, byte-exactly as they stood at the
+source's line `:95` immediately before the move:**
+
+**⟶ AND TWO RANGE CELLS OF THIS TABLE ARE READ FORWARD, DATED 2026-10-12, BY THE `U-STOREROOM-CONSUMER-FIX` SPEC PASS (`role_spec_writer`) — THE `parameter-semantics rows` ROW AND THE `strategy ids` ROW.** `RCA-8(d)` ANNOTATE-BESIDE: **this clause edits no row of the table above, moves no family and re-decides no rule; the clause immediately above stands byte-for-byte and is read with this one.** **`PAR-PUB` — the table's row prints `PAR-PUB-1`…`PAR-PUB-32`, the range that stood at this document's original authoring; the family was moved twice before this pass (`33`/`34` by the bounded two-clause pass of `PUB-CF-7`/`PUB-CF-12`) and moves ONCE by this pass, to `35` — `34 + 1 = 35` ✓, `PAR-PUB-35` being the released artefact's STAMPED self-report — so THE OPERATIVE RANGE IS `PAR-PUB-1`…`PAR-PUB-35` AND THE OPERATIVE COUNT IS `35`** (`parameter-semantics.md §1`'s index row and its re-emitted `12 + 3 + 1 + 8 + 10 + 1 = 35` ✓ arithmetic; `parameter-semantics.md §5.1`; `§6`'s census row `6`). **`S-*` — the table's row prints `14` ids; this pass MINTS TWO beside them (`S-STAMP`, `S-GUARD`) and moves the set to `16` — `14 + 2 = 16` ✓ — with every id still cited by at least one row and every row still citing at least one id** (`§5.0`'s extension clause; `§5.0a`; `§5.0b`). **AND THE OTHER FOUR ROWS OF THE TABLE ARE UNMOVED: the register's `P-PUB` row's own printed span is read forward at `§5.0`, the `PUB-DD` row's printed span is read forward by the clause above, and the CONTRACT FINDINGS and the not-minted family each stand as printed.** `[A2 docs/decisions.md · the ACTIVE `A91` row of 2026-10-12; A1 docs/specs/storeroom-publish/release.md §2.4` and `§6.10`; A1 docs/specs/storeroom-publish/parameter-semantics.md §1 | numeric or census claim]`
+
+---
+
 ## FOOTER — THE REGION COUNT, WITH ITS TERMS
 
-**THIS FILE CARRIES `17` REGIONS: `§1`–`§17`, EACH WITH ONE `## §n.` HEADING AND EACH HOLDING ONE MOVED CLAUSE.**
-**THE ARITHMETIC, PRINTED WITH ITS SET: `17` headings over the contiguous run `§1` … `§17` WITH NO VACANCY AND NO
-RE-EMITTED CELL — `17 = 17 ✓`.** **THE HEAD NAMES THE SAME SPAN, so head and footer agree.**
+**THIS FILE CARRIES `26` REGIONS: `§1`–`§26`, EACH WITH ONE `## §n.` HEADING AND EACH HOLDING ONE MOVED CLAUSE.**
+**THE ARITHMETIC, PRINTED WITH ITS SET: `26` headings over the contiguous run `§1` … `§26` WITH NO VACANCY AND NO
+RE-EMITTED CELL — `26 = 26 ✓`, which is `17 + 9 = 26 ✓`: the prior pass's `17` plus this continuation's `9`.**
+**THE HEAD NAMES THE SAME SPAN, so head and footer agree.**
 
 **THE SOURCE SITES, EACH NAMED WITH ITS OWN SOURCE PATH AND ITS PRE-MOVE LINE RANGE, SO THE `sha256` LIMB CAN BE
 TAKEN AND NO REGION IS RECOVERED FROM A DIFF: `docs/specs/storeroom-publish/acceptance.md` `:58` (`§1`) · `:64`
 (`§2`) · `:127` (`§3`) · `:135` (`§4`) · `:146` (`§5`) · `:154` (`§6`) · `:159` (`§7`) — `7` regions at that ONE
 source path; `docs/specs/storeroom-publish/resolution.md` `:59` (`§8`) · `:71` (`§9`) · `:93` (`§10`) · `:97`
-(`§11`) · `:101` (`§12`) · `:123` (`§13`) · `:127` (`§14`) — `7` regions at that ONE source path; and
+(`§11`) · `:101` (`§12`) · `:123` (`§13`) · `:127` (`§14`) — `7` regions at that ONE source path;
 `docs/specs/storeroom-publish/parameter-semantics.md` `:5` (`§15`) · `:10` (`§16`) · `:71` (`§17`) — `3` regions at
-that ONE source path; so `7 + 7 + 3 = 17` ✓ regions across `3` source paths.** **EVERY LINE NUMBER ABOVE IS THE
+that ONE source path; and `docs/specs/storeroom-publish/contract.md` `:5` (`§18`) · `:19` (`§19`) · `:37` (`§20`) ·
+`:67` (`§21`) · `:73` (`§22`) · `:77` (`§23`) · `:90` (`§24`) · `:93` (`§25`) · `:95` (`§26`) — `9` regions at that
+ONE source path; so `7 + 7 + 3 + 9 = 26` ✓ regions across `4` source paths.** **EVERY LINE NUMBER ABOVE IS THE
 SITE'S NUMBER AS IT STOOD AT THIS PASS'S FIRST READ OF THAT FILE, before this pass's own insertions moved the
-numbers of the sites below it.**
+numbers of the sites below it — and the `contract.md` numbers are that file's numbers AS THIS CONTINUATION OPENED
+IT, which is why they are printed here rather than recomputed from the post-move file.**
 
 **AND THE BYTE-EXACTNESS OF EACH MOVE IS *ASSERTED* AND NOT *HASHED*, AND THE DISTINCTION IS STATED RATHER THAN
 SMOOTHED (`A133`): this pass holds no shell, so no `sha256` of any region-as-moved could be taken by the session
