@@ -6,7 +6,9 @@
 
 ```
 tree                 CLEAN (18 untracked scratch probes removed)
-HEAD                 45b23bf, 20 commits AHEAD of origin/main
+HEAD                 31 commits AHEAD of origin/main (all conversion parts landed and committed)
+conversion           publish: contract.md 65 occurrences + release.md 39 live sites remain; trackers 88 (per-row judgement pass owed)
+                     NONE of it gates the release: no shipped artefact is touched, and all four instruments held 499/256/100/12 after every part
 version sites        6, ALL reading 0.3.1
 tags                 v0.3.1 ONLY — locally and remotely (v0.3.0 and v0.1.2 retired)
 node suite           499 tests / 499 pass / 0 fail        exit 0
