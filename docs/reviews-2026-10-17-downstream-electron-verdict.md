@@ -63,3 +63,36 @@
 ## THE RELEVANT ASYMMETRY, AND WHY THIS IS A SURFACE QUESTION RATHER THAN A BUG
 
 **Nothing here is broken:** the crossing behaves exactly as `A120` (2) rules, the deep-import refusal is `A122`'s declared shape, and the two-key throw is pinned by a green census. **The gap is that a facility the kernel builds on every attempt has NO declared route to the consumer — and the downstream project's own `R6`/`R7` are asking for exactly that route under a different name.** **THIS IS THEREFORE ONE REQUIREMENT, NOT THREE:** exposing the attempt entry the ruling already populates would simultaneously answer the downstream `R6`/`R7` ask and make the log reachable, **and it is a `MINOR` change to the declared surface — a member added — which is a `0.4.0` shape of work, not a `0.3.x` patch.**
+
+
+---
+
+# SECOND ADDENDUM — THE DOWNSTREAM DEFECT CLAIMS, VERIFIED INDIVIDUALLY ON INSTALLED `0.3.1`
+
+**THE ARCHITECT ASKED FOR THESE TO BE REVIEWED FOR ACCURACY. EACH WAS DRIVEN IN A CLEAN CONSUMER DIRECTORY AGAINST THE PUBLISHED PACKAGE. TWO CONFIRM — ONE OF THEM WORSE THAN REPORTED. ONE DOES NOT REPRODUCE AS DESCRIBED, AND THE REAL BEHAVIOUR IS DIFFERENT AND MORE INTERESTING.**
+
+## CLAIM 1 — THE FORGED-STATUS PATH: **CONFIRMED, AND WIDER THAN REPORTED**
+
+**REPRODUCED EXACTLY:** `storeCreate({journalLength:64, listeners:[], get constraints(){ throw {status:'AddressMalformed', message:'FORGED BY THE CALLER'} }})` **throws `{"status":"AddressMalformed","message":"FORGED BY THE CALLER"}` — A CALLER-CHOSEN STATUS PRESENTED AS THE STORE'S OWN REFUSAL.**
+**⟶ AND THE SUPERVISOR'S EXTENSION SHOWS IT IS NOT A NARROW HOLE ABOUT `status`: ANY VALUE A CALLER THROWS FROM THAT GETTER IS RE-SURFACED THROUGH THE STORE'S REFUSAL SHAPE —**
+- a thrown plain object with a `status` → **that status, verbatim** (`AddressMalformed | FORGED`);
+- a thrown `TypeError('genuine internal conflict')` → **`object | genuine internal conflict`** — an exception that is NOT a store refusal, wearing the refusal's clothes;
+- a thrown bare string → **`object | [object Object]`** — a string coerced into a refusal object;
+- a thrown `undefined` → **`TypeError: Cannot read properties of undefined (reading 'status')`** — the internal read itself faulting.
+**SO THE DEFECT IS NOT *"a caller can forge a status"* BUT *"THE CALLER'S OWN EXCEPTION IS CAUGHT AND RE-SHAPED BY A PATH THAT ASSUMES IT IS THE STORE'S."*** **That is a larger finding, and it is the same class as `DEF-2026-10-17-A`/`-E`: an internal crossing that does not distinguish what it is crossing.** **The fix must not merely validate `status` — it must not present a caller's own throw as a store refusal at all.**
+
+## CLAIM 2 — THE REVERSAL OVERSHOOTS ITS OWN SCOPE: **CONFIRMED, AND IT DESTROYS LAWFUL STATE**
+
+**REPRODUCED EXACTLY:** seed `'good'`, register the constraint, then write `'bad'` → **the write throws `FileCommitFailed` *"only good is admitted"*, and the NEXT READ ANSWERS `AddressNotFound` — *"'k' does not exist in 'address', it holds no keys'"*. A LAWFUL, PRE-EXISTING VALUE THAT NO CONSTRAINT EVER JUDGED IS GONE.**
+**AND THE DOWNSTREAM READING IS RIGHT ABOUT WHY IT MATTERS: the reversal removes MORE THAN THE ATTEMPT'S OWN ASSOCIATION, and it exposes NO op list a caller could inspect.** **This project's own clauses NAME the correct target and are more specific than a whole-value reversal — `composition-and-states.md`'s atomicity clause fixes the checkpoint as *"THE OP OF THE LAST WRITE THAT LEFT A VALID STATE"* and states *"ONLY THE OPS AFTER IT ARE UNDONE, AND THE OPS BEFORE IT — AND THE CHECKPOINT OP ITSELF — ARE NEVER UNDONE, WHETHER OR NOT THE ATTEMPT CREATED THEM."*** **SO THE CONTRACT ALREADY SAYS THE SEEDED VALUE MUST SURVIVE, AND THE BUILD DOES NOT HONOUR IT.** **THIS IS A CONTRACT-VERSUS-BUILD DEFECT, NOT A GAP IN THE CONTRACT.**
+
+## CLAIM 3 — THE REPAIR TRAP: **DOES NOT REPRODUCE AS DESCRIBED, AND THE MEASURED BEHAVIOUR IS DIFFERENT**
+
+**THE CLAIM:** *"a repair that closes over the instance and calls `write(addr, tier, val)` … meets 'a constraint attempt is already open at ['k']' and the outer write fails as 'the store refused its own edit'."*
+**MEASURED — IT DOES NOT:** a repair closing over the instance calling `a.write(['k'],'mem',{v:'good'})` **PROCEEDS, no throw**; the same with the handed context threaded **also proceeds**. **A third variant — the constraint calling the instance's `write` NESTED INSIDE ITS OWN BODY — ALSO PROCEEDS, and the nested write neither threw nor ran (`inside: null`).**
+**⟶ AND HERE IS THE REAL FINDING, WHICH IS WORSE THAN THE REPORTED ONE: IN EVERY VARIANT THE WRITE *PROCEEDS* AND THE VALUE STAYS `{"v":"bad"}` — THE REPAIR NEVER LANDS.** **A constraint that returns `{message, repair}` reports success while the value it was supposed to fix is unchanged, and NOTHING TELLS THE CALLER.** **So the downstream project's `R8`-side complaint is real, but the failure is silent non-repair rather than a thrown 'attempt already open'.**
+**CARRIED AS A QUALIFIED CLAIM: the downstream observer may have met that message under a DIFFERENT spelling than the one reproduced here (a repair invoked on a later attempt, or a nested write on an instance already inside an attempt). THIS REVIEW DOES NOT DISPUTE THAT THEY SAW IT; IT RECORDS THAT THE THREE SPELLINGS TESTED DID NOT PRODUCE IT, AND THAT THE BEHAVIOUR THEY DID PRODUCE — SILENT NON-REPAIR — IS ITSELF A DEFECT WORTH MORE THAN THE ONE REPORTED.**
+
+## DISPOSITION
+
+**Claims 1 and 2 are CONFIRMED and file as defects against `0.3.1`; claim 3 is NOT REPRODUCED as described, and the measured behaviour replaces it.** **All three belong to the constraint engine's own unit, which is where the downstream verdict already says the boundary of this package's responsibility lies.** **They are NOT in the returned `0.3.1` and must not be reported as fixed there.**
