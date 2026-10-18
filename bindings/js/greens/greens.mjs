@@ -79,9 +79,14 @@ const APP_LAYER = 'NONE';
 // methods (`§2.9`'s removal-versus-deprecation clause of that date, no deprecation window). The two constants
 // below are the operative declared sets; no cell reads them for a figure another clause now fixes, and the
 // superseded `8`-verb array is not re-spelled as if it were still a namespace figure.
+// **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): `PRODUCT_MEMBERS` MOVES `13 → 12`, `10 + 1 + 1 = 12` ✓** —
+// the ten methods plus the TWO remaining singles `register` and `constraints`, `settle` leaving at
+// `surface.md §2.4` item 9's `REMOVED-WHOLE` pointer of that date. **THIS CONSTANT HAS NO READER** (measured:
+// one occurrence in the file), so the move is a census duty and not a live expectation — it is corrected here
+// so the declared set printed at the head of this driver is not stale beside the cells that assert it.
 const NAMESPACE = ['storeCreate'];
-const PRODUCT_MEMBERS = ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read',
-  'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'];
+const PRODUCT_MEMBERS = ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen',
+  'read', 'readLiteral', 'register', 'rollback', 'unlisten', 'write'];
 const CLOSED_SET = [
   'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
@@ -288,16 +293,18 @@ function kernelSaveFile(store, address, value) {
   // ELSE: `10 + 1 + 1 = 12` ✓"*, and *"`on` and `off` ARE MERGED AWAY AND ARE NOT MEMBERS"*. THE CELL'S SUBJECT
   // (the product's exact own member set, set equality, nothing else) IS KEPT WHOLE and the expected value alone
   // is re-derived. `.14` and `.15` remain the cells that assert `on`/`off`'s absence and its reason.
-  // ── **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): THE SET MOVES `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**,
-  // on the architect's ruling VERBATIM *"Add surface methods for reading registered constraints."*
-  // (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s `constraints` clause of that date, whose
-  // thirteen-name set is `{ read, readLiteral, write, delete, rollback, listen, unlisten, addConstraint,
-  // constraintOn, constraintOff, register, settle, constraints }`, read with `§2.12` item 2-bis and with
-  // `§2.9` item 1's ONE-name namespace, which is UNMOVED — the read took no module-namespace name).
+  // ── **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE SET MOVES `13 → 12`, `10 + 1 + 1 = 12` ✓**, on
+  // the architect's ruling VERBATIM *"Settle is redundant because the kernel is always in the loop."*
+  // (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s clause of that date, whose twelve-name set is
+  // `{ read, readLiteral, write, delete, rollback, listen, unlisten, addConstraint, constraintOn, constraintOff,
+  // register, constraints }` — **THE TWO REMAINING SINGLES ARE NAMED, `register` FIRST AND `constraints`
+  // SECOND**, because item `1` of that clause says *"a lone `+1` would not [compute]"*), read with `§2.12`
+  // item 2-bis and with `§2.9` item 1's ONE-name namespace, which is UNMOVED — the read took no
+  // module-namespace name, and `settle` was never one.
   // **THE CELL'S SUBJECT IS KEPT WHOLE — the product's exact own member set, by set equality, and NOTHING
   // ELSE — and the expected value alone is re-derived**, exactly as this cell's own `20 → 12` clause above
   // did. `.14` and `.15` remain the cells that assert `on`/`off`'s absence and its reason.
-  A('JSG-01.9', '§2.4 item 9 (f)\'s `constraints` clause of 2026-10-17 (the thirteen, `10 + 1 + 1 + 1 = 13`), read with §2.12 item 2-bis and §2.1\'s `A127` clause', "the store's own member set is exactly the THIRTEEN declared members ['addConstraint','constraintOff','constraintOn','constraints','delete','listen','read','readLiteral','register','rollback','settle','unlisten','write'] — `10 + 1 + 1 + 1 = 13`, and NOTHING ELSE (the superseded readings were four, five, seven and twelve own members)", membersAre(formOf(i1), 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,rollback,settle,unlisten,write'), formOf(i1).members.join(','));
+  A('JSG-01.9', '§2.4 item 9 (f)\'s clause of 2026-10-18 (the twelve, `10 + 1 + 1 = 12`, `13 → 12`), read with §2.12 item 2-bis and §2.1\'s `A127` clause', "the store's own member set is exactly the TWELVE declared members ['addConstraint','constraintOff','constraintOn','constraints','delete','listen','read','readLiteral','register','rollback','unlisten','write'] — `10 + 1 + 1 = 12`, and NOTHING ELSE (the superseded readings were four, five, seven, twelve and thirteen own members)", membersAre(formOf(i1), 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,rollback,unlisten,write'), formOf(i1).members.join(','));
   A('JSG-01.10', '§2.4 item 5', 'the one member is a function', typeof i1.register === 'function', typeof i1.register);
   // ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): **STALE GREENS DOC**,
   // `RCA-8(g)`. The `8 → 1` figure is the `Q1` pass's; `docs/specs/storeroom-js/surface.md §2.9` item 1's
@@ -1237,84 +1244,111 @@ const g10 = { all: [] };
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// JSG-14 — THE ORDERING SEAM ON THE INSTANCE: THE FOURTH MEMBER'S SHAPE, AND THE NAMESPACE IT DOES NOT ENTER
-//                                                                          5 assertions (CELLS ADDED 1-5)
-// ⟶ ADDED 2026-10-15, FROM THE CLAUSES ALONE (`§2.4` item 9; `A116`): the seam's own member, its declared
-// shape, and the one reading the non-exposure sentence owes. The SEAM'S TWO INSTANTS (`§2.4` item 9's table
-// rows (a)/(b)) are the KERNEL's own calls — `commit` and `runAttempt`'s terminal arm — and a drive reaches
-// them only through the kernel module `docs/specs/storeroom-constraints/kernel-surface.md §1` item 1
-// declares; THIS SET REACHES NOTHING OUTSIDE THE PACKAGE'S CLAIMED ESM ENTRY, so the instant cells are
-// OWED and UN-OBSERVABLE AT THIS SET'S BOUNDARY — named at `docs/specs/storeroom-js-greens.md` §3 item 9 and
-// at `§4` of the run's report.
+// JSG-14 — THE SEAM'S MEMBER IS REMOVED WHOLE: THE NAMESPACE ABSENCE STANDS, AND THE ONE CLASS TEST IT CARRIED
+//          MOVES TO THE POSITION THAT STILL CARRIES IT                                  5 assertions (1-5)
+//
+// ⟶ RE-DERIVED WHOLE, 2026-10-18 (`role_test_writer`). The block this header held drove `<instance>.settle(…)`
+// at five cells. **THE MEMBER IS `REMOVED-WHOLE`** (`surface.md §2.4` item 9's pointer of that date: *"NO DRIVE
+// MAY ASSERT A CALL OF `settle` FROM THIS DATE, ON ANY INSTANCE, FOR ANY ARGUMENT"*), so the block is
+// **RE-DERIVED AND NOT DELETED**, and the disposition is the one the spec itself records, cell by cell:
+//
+//   · **`JSG-14.2` IS MEASURED UNMOVED AND KEPT BYTE-FOR-BYTE.** Its subject is that `settle` is NOT a name of
+//     the module namespace — which stays true and is now true for a SECOND reason (the member left the
+//     product too). **THE SPEC PASS NAMED THIS CELL AS ONE OF ITS TWO UNMOVED AND THE MEASUREMENT AGREES.**
+//   · **`JSG-14.4` AND `JSG-14.5`'s SUBJECT — the ONE CLASS TEST over the declared out-of-domain RECORD
+//     POSITIONS — IS NOT LOST WITH THE MEMBER.** `parameter-semantics.md §2.19`'s clause of 2026-10-18 states
+//     exactly where it lives now: *"the CLASS TEST the `domain` and outside-value cells declare is `surface.md
+//     §2.4` item 9 (g) item 1's and STANDS AT THE WRITE'S FIFTH POSITION (`PAR-JS-20`), where it is the
+//     record-position test and not a route into an adoption."* **SO THE TWO CELLS MOVE TO `write`'s FIFTH
+//     POSITION AND ASSERT THE SAME FORM THERE** — `TypeError` and nothing else, `status` member ABSENT, a
+//     STRING `message` member REQUIRED and NOT FORBIDDEN (`§2.4` item 9 (b) as re-spelled 2026-10-15). Every
+//     outside value the old cells drove is driven again; **NOTHING IS WEAKENED and no position is invented.**
+//   · **`JSG-14.1` AND `JSG-14.3`'s SHAPE DUTY MOVES TO `constraints`, THE SECOND OF THE TWO SINGLES** the
+//     clause of 2026-10-18 names — so the "a product member exists, is a function, and declares exactly the
+//     arity the clause prints" reading is kept, one member over (`§2.12` item 2: arity `0`).
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const i14 = ns.storeCreate(mk('g14'));
-  A('JSG-14.1', '§2.4 item 9 (read beside §2.1 dated clause 1 (a), `A116` (D1))', "the fourth member exists and is a function on the instance, beside register, on and off — the set opening by ONE clause",
-    typeof i14.settle === 'function', `settle:${typeof i14.settle}`);
+  const hasStatus = (e) => e !== null && typeof e === 'object' && 'status' in e;
+  const clsName = (e) => (e && e.constructor && e.constructor.name) || typeof e;
+  A('JSG-14.1', '§2.4 item 9 (f)\'s clause of 2026-10-18 — the TWELVE own members, `10 + 1 + 1 = 12` ✓, whose two singles are `register` and `constraints`; §2.12 item 2 (arity `0`)', "the SECOND of the two remaining singles, `constraints`, exists and is a function on the instance — and `settle`, the member the removal takes, is NOT one",
+    typeof i14.constraints === 'function' && i14.constraints.length === 0
+      && !Object.prototype.hasOwnProperty.call(i14, 'settle'),
+    `constraints:${typeof i14.constraints}/len=${i14.constraints && i14.constraints.length}/settle=${Object.prototype.hasOwnProperty.call(i14, 'settle')}`);
   A('JSG-14.2', '§2.4 item 9\'s non-exposure sentence ("`settle` is NOT a ninth named export"), READ THROUGH A127 — its `8`-verb figure is superseded by §2.9 item 1\'s `A127` clause (ONE name, `storeCreate`, `11 → 1`) while the sentence\'s own point STANDS; parameter-semantics.md §2.19 (`PAR-JS-19`)', "settle is NOT a name of the module namespace — it is the product's own twelfth member and no consumer route — and the namespace is exactly its one remaining name, `storeCreate`, with no second name beside it",
     !Object.prototype.hasOwnProperty.call(ns, 'settle') && Object.keys(ns).sort().join(',') === 'storeCreate',
     `own settle=${Object.prototype.hasOwnProperty.call(ns, 'settle')} namespace=[${Object.keys(ns).sort().join(',')}]`);
-  A('JSG-14.3', '§2.4 item 9 ("IT TAKES EXACTLY ONE argument … AND IT RETURNS `undefined`: there is NO second return shape")', 'settle declares exactly ONE parameter position',
-    typeof i14.settle === 'function' && i14.settle.length === 1, `settle.length=${i14.settle.length}`);
-  const sRow = (i, value) => (value === ABSENT ? thrown(() => i.settle()) : thrown(() => i.settle(value)));
-  const sPos = (name, v) => [name, v, sRow(ns.storeCreate(mk(`g14-${name}`)), v)];
-  const sRows = [sPos('null', null), sPos('string', 'str'), sPos('number', 1), sPos('bigint', 1n),
-    sPos('boolean', true), sPos('symbol', Symbol('s')), sPos('function', () => {})];
+  A('JSG-14.3', '§2.4 item 9 (f)\'s clause of 2026-10-18 (the twelve, the two singles NAMED) read with §2.12 item 2 — "the call takes NO argument at all (arity `0`)"', 'the registered-constraint read declares exactly ZERO parameter positions, and returns a FRESH array',
+    typeof i14.constraints === 'function' && i14.constraints.length === 0
+      && Array.isArray(i14.constraints()) && i14.constraints() !== i14.constraints(),
+    `constraints.length=${i14.constraints && i14.constraints.length}/fresh=${(() => { try { return i14.constraints() !== i14.constraints(); } catch { return 'threw'; } })()}`);
+  // ── THE ONE CLASS TEST, DRIVEN AT THE POSITION THAT STILL CARRIES IT (`PAR-JS-20`; `§2.4` item 9 (g) item 1)
+  //    — the SAME seven outside values the old `JSG-14.4` drove at the removed seam, at `write`'s fifth.
+  const sRow = (value) => {
+    const inst = ns.storeCreate(mk('g14-' + String(Math.random()).slice(2, 8)));
+    inst.write(['g14-seed'], 'mem', 0);
+    return value === ABSENT ? thrown(() => inst.write(['g14-pos'], 'mem', 1))
+      : thrown(() => inst.write(['g14-pos'], 'mem', 1, value));
+  };
+  const sRows = [sRow(null), sRow('str'), sRow(1), sRow(1n), sRow(true), sRow(Symbol('s')), sRow(() => {})];
   const sForm = [];
   const sBad = [];
   const sStatus = [];
   const sMsg = [];
-  const hasStatus = (e) => e !== null && typeof e === 'object' && 'status' in e;
-  const clsName = (e) => (e && e.constructor && e.constructor.name) || typeof e;
-  for (const [n, , r] of sRows) {
+  for (const [k, r] of sRows.entries()) {
     const f = formOf(r.err);
     const isTypeError = r.threw && r.err instanceof TypeError && r.err.constructor === TypeError;
     const msgIsString = r.threw && typeof r.err.message === 'string';
-    sForm.push(`${n}:{${f.members.join(',')}}/class=${r.threw ? clsName(r.err) : 'no throw'}${isTypeError ? '' : '/NOT-TypeError-and-nothing-else'}${msgIsString ? ` msg=${fmt(r.err.message)}` : '/NO-STRING-MESSAGE'}`);
-    if (!isTypeError) sBad.push(`${n}:${r.threw ? `${clsName(r.err)} (not the declared TypeError-and-nothing-else)` : `returned ${fmt(r.value)}`}`);
-    if (r.threw && hasStatus(r.err)) sStatus.push(`${n}:{${f.members.join(',')}}`);
-    if (!msgIsString) sMsg.push(`${n}:${r.threw ? typeof r.err.message : 'no throw'}`);
+    sForm.push(`#${k}:{${f.members.join(',')}}/class=${r.threw ? clsName(r.err) : 'no throw'}${isTypeError ? '' : '/NOT-TypeError-and-nothing-else'}${msgIsString ? ` msg=${fmt(r.err.message)}` : '/NO-STRING-MESSAGE'}`);
+    if (!isTypeError) sBad.push(`#${k}:${r.threw ? `${clsName(r.err)} (not the declared TypeError-and-nothing-else)` : `returned ${fmt(r.value)}`}`);
+    if (r.threw && hasStatus(r.err)) sStatus.push(`#${k}:{${f.members.join(',')}}`);
+    if (!msgIsString) sMsg.push(`#${k}:${r.threw ? typeof r.err.message : 'no throw'}`);
   }
-  // RE-AIMED 2026-10-15 — THE CLAUSE CITED IS THE RE-SPELLED ONE, AND THE EXPECTATION IS ITS OWN OBSERVABLE:
-  // `§2.4` item 9 (b) as landed 2026-10-15 on `A116` (D1) fixes this seam's refusal as a `TypeError` (an
-  // instance of it, AND OF NOTHING ELSE) whose `status` member MUST BE ABSENT and whose STRING `message` member
-  // is REQUIRED AND NOT FORBIDDEN. The pre-re-spelling cell asserted "NO status and NO message member" — the
-  // reading item 5 (d) carries at the REGISTRATION site and NOT what 9 (b) declares at THIS site — and it is
-  // re-derived here rather than weakened: the subject is unchanged (every declared out-of-domain RECORD
-  // POSITION, one form, one class) and the observable asserted is now the clause's own.
-  A('JSG-14.4', '§2.4 item 9 (b) AS RE-SPELLED 2026-10-15 (on `A116` (D1)) — "the error class is `TypeError` (an instance of it, and of nothing else), its `status` member MUST BE ABSENT … and a STRING `message` member is REQUIRED and NOT FORBIDDEN" — read with 9 (a)\'s own out-of-domain table (`null` · a primitive · a function) and its order walk (`crossing.md §1.7`, the class decision FIRST); parameter-semantics.md §2.19 (`PAR-JS-19`)',
-    'every declared out-of-domain RECORD POSITION (null, each primitive, a function) is refused in the ONE form 9 (b) declares AT THIS SEAM\'S BOUNDARY: an instance of `TypeError` and of nothing else, with its `status` member ABSENT and a STRING `message` member present — one form, one class',
+  // RE-AIMED 2026-10-18: THE CLAUSE CITED IS `§2.4` ITEM 9 (b) AS RE-SPELLED 2026-10-15, READ AT THE POSITION
+  // `parameter-semantics.md §2.19`'s clause of 2026-10-18 NAMES AS ITS SURVIVING HOME. The subject — every
+  // declared out-of-domain RECORD POSITION, one form, one class — is UNCHANGED.
+  A('JSG-14.4', '§2.4 item 9 (b) AS RE-SPELLED 2026-10-15, read at §2.4 item 9 (g) item 1\'s record-position test and `parameter-semantics.md §2.19`\'s clause of 2026-10-18 (the class test STANDS AT THE WRITE\'S FIFTH POSITION, `PAR-JS-20`) — "the error class is `TypeError` (an instance of it, and of nothing else), its `status` member MUST BE ABSENT … and a STRING `message` member is REQUIRED and NOT FORBIDDEN"',
+    'every declared out-of-domain RECORD POSITION at `write`\'s FIFTH POSITION (`null`, each primitive, a function) is refused in the ONE form 9 (b) declares: an instance of `TypeError` and of nothing else, with its `status` member ABSENT and a STRING `message` member present — one form, one class',
     sRows.length === 7 && sBad.length === 0 && sStatus.length === 0 && sMsg.length === 0,
     `outside=[${sBad.join(' | ')}] carryingStatus=[${sStatus.join(' | ')}] messageNotAString=[${sMsg.join(' | ')}] forms=${sForm.join(' ')}`);
-  const rProxy = thrown(() => ns.storeCreate(mk('g14-proxy')).settle(new Proxy({}, {})));
-  const rAbsentRow = sRow(ns.storeCreate(mk('g14-absent')), ABSENT);
-  const rUndefRow = sRow(ns.storeCreate(mk('g14-undef')), undefined);
+  const rProxy = (() => { const inst = ns.storeCreate(mk('g14-proxy')); return thrown(() => inst.write(['p'], 'mem', 1, new Proxy({}, {}))); })();
+  const rAbsentRow = sRow(ABSENT);
+  const rUndefRow = sRow(undefined);
   const f9b = (r) => r.threw && r.err instanceof TypeError && r.err.constructor === TypeError
     && !hasStatus(r.err) && typeof r.err.message === 'string';
   const d9b = (r) => (r.threw
     ? `{${formOf(r.err).members.join(',')}}/class=${clsName(r.err)}/msg=${typeof r.err.message === 'string' ? fmt(r.err.message) : typeof r.err.message}`
     : `returned ${fmt(r.value)}`);
-  // RE-AIMED 2026-10-15 — the same re-spelling as `JSG-14.4`'s: the assertion is the form `§2.4` item 9 (b)
-  // declares AT THIS SEAM'S BOUNDARY, and BOTH rows of 9 (a) this cell's subject names are driven — the
-  // `Proxy` row and the ABSENT/`undefined` row, the ABSENT position by CALL ARITY.
-  A('JSG-14.5', '§2.4 item 9 (a)\'s `Proxy` row and its ABSENT/`undefined` row, read with 9 (b) AS RE-SPELLED 2026-10-15 (on `A116` (D1)): `TypeError` and nothing else, `status` member ABSENT, a STRING `message` member REQUIRED and NOT FORBIDDEN; parameter-semantics.md §2.19 (`PAR-JS-19`)',
-    'a `Proxy` value, an ABSENT argument (driven by call arity) and an explicit `undefined` are all refused in the SAME form 9 (b) declares — an instance of `TypeError` and of nothing else, with no `status` member and a string `message` — so the refusal\'s subject is the POSITION and never an identity\'s adoption history, while the first call that IS made is what adopts',
-    f9b(rProxy) && f9b(rAbsentRow) && f9b(rUndefRow),
-    `proxy:${d9b(rProxy)} absent:${d9b(rAbsentRow)} undefined:${d9b(rUndefRow)}`);
+  // RE-AIMED 2026-10-18 — the same re-aiming as `JSG-14.4`'s, and the SAME three readings: the `Proxy` row,
+  // the ABSENT position driven by CALL ARITY, and an explicit `undefined`. `§2.4` item 9 (a)'s table still
+  // carries all three rows; only the position they are read at has moved.
+  A('JSG-14.5', '§2.4 item 9 (a)\'s `Proxy` row and its ABSENT/`undefined` row, read with 9 (b) AS RE-SPELLED 2026-10-15, AT `write`\'s FIFTH POSITION where `parameter-semantics.md §2.19`\'s clause of 2026-10-18 puts the surviving class test (`PAR-JS-20`): `TypeError` and nothing else, `status` member ABSENT, a STRING `message` member REQUIRED and NOT FORBIDDEN; §2.2 clause 4 (the fifth position\'s own arity law)',
+    'a `Proxy` value and an explicit `undefined` are refused in the SAME form 9 (b) declares — an instance of `TypeError` and of nothing else, with no `status` member and a string `message` — while the ABSENT position is IN DOMAIN at this position and NOT refused at all (`§2.2` clause 4: *"the position ABSENT — OPENS OR JOINS ITS COMMIT AND PROCEEDS WHETHER OR NOT A COMMIT WAS SUPPLIED (IN DOMAIN)"*), so the refusal\'s subject is the POSITION and never an identity\'s adoption history',
+    f9b(rProxy) && f9b(rUndefRow) && rAbsentRow.threw === false,
+    `proxy:${d9b(rProxy)} undefined:${d9b(rUndefRow)} absent:${rAbsentRow.threw ? `THREW ${d9b(rAbsentRow)}` : `returned ${fmt(rAbsentRow.value)} (IN DOMAIN, as §2.2 clause 4 declares)`}`);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 // JSG-15 — THE BARE CALLER-MADE WRITE: ITS INSTANT (THE STORE CALL'S, NOT THE VERB'S RETURN)   3 assertions
 //                                                                    (CELLS ADDED 6-8 — all package-observable)
-// ⟶ ADDED 2026-10-15, FROM THE CLAUSES ALONE (`§2.7` item 8, read beside `§2.7` item 2 and `§2.4` item 9
-// (e)): a write the caller made through the store's own write verb and no `commit` carries NO kernel
-// evaluation set, produces NO `CommitRecord` and NO `pending` member — so NO member is called for it, its
-// delivery instant is item 2's own AS RE-SPELLED 2026-10-15 — AFTER the store call has completed and the
-// record has been copied out, with the package's verb NOT yet returned to the caller — and `§2.4` item 9 (e)
-// says in terms that "THIS ITEM MOVES NEITHER THAT INSTANT NOR ITS DECLARED HOLE". These are the cells the
-// seam owes at the PACKAGE'S OWN boundary: the withholding `§2.4` item 9 (a) declares is declared FOR A
-// KERNEL-DRIVEN WRITE ALONE, so on a bare write the bodies are delivered, once per returned handle, at that
-// instant — outside the STORE verb's window and inside the package verb's own.
+// ── ⟶ RE-DERIVED WHOLE, 2026-10-18 (`role_test_writer`). THE PREMISE THE HEADER ABOVE STATED IS DEAD ON TWO
+// RULINGS, AND THE CELLS MOVE WITH IT RATHER THAN GOING RED:
+//   (i) **`§2.4` item 9 (e) CARRIES `SUPERSEDED-WHOLE` DATED 2026-10-15** on `RCA-9`: *"EVERY WRITE, WITH OR
+//       WITHOUT A SUPPLIED `commit`, OPENS OR JOINS A COMMIT AND PROCEEDS THROUGH THE FLOW, SO NO WRITE IS A
+//       `BARE CALLER-MADE WRITE`"* — so the class this block is named for DOES NOT EXIST.
+//  (ii) **`§2.12` item 1's clause of 2026-10-18 REMOVES THE ENTRY'S `carriesConstraintAt` GATE**, so the
+//       four-position call *"enters `K-2` at EVERY address"* and *"the registry's own emptiness is no longer a
+//       branch of the write path"*.
+// **WHAT SURVIVES IS THE OBSERVABLE EACH CELL ALREADY READ, AND IT IS THE SAME OBSERVABLE**: the write still
+// delivers its listeners, ONCE PER RETURNED HANDLE, with the triggering address as the single argument — and
+// `§2.12` item 1's amended clause names exactly that as the reading: *"the observable a drive reads is the
+// INVOCATION COUNT of that write's own listeners — not whether the kernel was consulted"*. **THE INSTANT MOVES
+// TOO, ON `§2.7`'s CLAUSE OF 2026-10-18, ITEM `2`, WHICH IS SINGLE-VALUED ABOUT IT**: item 2's window *"IS READ
+// FROM THIS DATE AS THE WINDOW BETWEEN THE STORE CALL'S COMPLETION AND `K-2`'S RETURN … AND IS NO LONGER READ AS
+// AN INVOCATION INSTANT OF ITS OWN, because item `7` supplies the invocation instant and the two are one
+// instant and not two"*. **SO `verb-returned=false` IS STILL THE RIGHT SIGN — the body runs before the package
+// verb returns — and the clause that fixes it is `§2.7`'s 2026-10-18 clause, item `2`, read with `§2.12` item
+// 1's amended clause of the same date.**
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const i15 = ns.storeCreate(mk('g15'));
@@ -1341,15 +1375,15 @@ const g10 = { all: [] };
   // opposite sign of the same flag. The cell is RE-DERIVED and not weakened: its subject (the bare write's
   // delivery instant), its drive and its two returned handles are unchanged, and the observable asserted is now
   // item 2's own — each body's finding of the record copied out AND of the package's verb not yet returned.
-  A('JSG-15.1', '§2.7 item 2 AS RE-SPELLED 2026-10-15 — "THE CALL WHOSE COMPLETION THIS INSTANT IS MEASURED FROM IS THE STORE CALL AND NOT THE PACKAGE\'S OWN VERB RETURN … the ONE observable a drive reads either way is that each body of the returned handles records its own finding of the record copied out and of the package\'s verb not yet returned, so A BODY THAT RAN AFTER THE PACKAGE\'S VERB RETURNED TO THE CALLER HAS RUN AT AN INSTANT THIS ITEM DOES NOT DECLARE" — read with `§2.7` item 8 (the bare write\'s instant, named and not moved by item 9) and `§2.4` item 9 (e)',
-    'the bare write\'s delivery happens AFTER the store call has completed and the record has been copied out and BEFORE the package\'s verb returns to the caller: each of the two bodies of the returned set ran with the written value ALREADY READABLE (the store call complete) and with the package\'s verb NOT yet returned — no body of the returned handles ran at an instant item 2 does not declare',
+  A('JSG-15.1', '§2.7\'s clause of 2026-10-18, item `2` (item 2\'s window is READ AS THE WINDOW BETWEEN THE STORE CALL\'S COMPLETION AND `K-2`\'S RETURN, and IS NO LONGER READ AS AN INVOCATION INSTANT OF ITS OWN — item `7` supplies the invocation instant), read with §2.12 item 1\'s amended clause of the same date, item `2` (ii) ("the observable a drive reads is the INVOCATION COUNT of that write\'s own listeners — not whether the kernel was consulted") and §2.7 item `5` (the single argument)',
+    'a write at an address carrying NO pair STILL DELIVERS ITS LISTENERS — the removed gate does not bypass the kernel and the uniform path does not lose the delivery: each of the two bodies of the returned set ran with the written value ALREADY READABLE (the store call complete) and with the package\'s verb NOT yet returned, which is the window §2.7\'s 2026-10-18 clause declares — no body of the returned handles ran at an instant that clause does not declare',
     !wBare.threw && bareCalls.length === 2
       && bareCalls.every((c) => c.includes('verb-returned=false') && c.includes(`read=${fmt(1)}`)),
     `${bareCalls.join(' | ') || 'no invocation'} (returned handles: ${[fmt(hBareA), fmt(hBareK)]})`);
   const bareBefore = bareCalls.length;
   const wBare2 = thrown(() => i15.write(['bare-a', 'k'], 'temp', 2));
-  A('JSG-15.2', '§2.7 item 8 ("such a caller\'s listener body runs at that instant"); §2.4 item 9 (a) ("for a write the kernel has issued"); §2.4 item 9 (e)',
-    'the bare write WITHHOLDS NOTHING: the two registered bodies for the returned handles each run exactly once — an empty delivery here would be the seam\'s withholding reaching a write no record carries',
+  A('JSG-15.2', '§2.7\'s clause of 2026-10-18, item `1` ("THE DELIVERY OF THAT WRITE\'S TRIGGERED HANDLES IS THE PASS\'S TERMINAL ARM\'s") read with item `7` (a) ("each ONCE, with the triggering address as its single argument") and §2.12 item 1\'s amended clause of the same date, item `2` (ii)',
+    'NO WRITE WITHHOLDS ANYTHING ANY MORE, and the count proves it: the two registered bodies for the returned handles each run exactly once, on every write and by every route — the entry no longer makes a delivery decision at all (§2.7\'s 2026-10-18 clause, item `1`: "it cannot withhold them, because a withholding is a choice about a delivery the entry no longer makes")',
     !wBare2.threw && bareCalls.length - bareBefore === 2, `invocations=${bareCalls.length - bareBefore}`);
   const i15f = ns.storeCreate(mk('g15f'));
   const failedCalls = [];
@@ -1449,18 +1483,21 @@ const RULED_FIRING = [];   // the printed record of the ruled observable: one li
   RULED_FIRING.push(`JSG-16.1.c· the proper prefix ${fmt(PREFIX)} — ${asSeen(fPrefix)}`);
   // ── AN INSTRUMENT CONTROL, SO THE PAIR-ADOPTED ADDRESS'S `0` IS READ AS A DELIVERY-RESIDUE RESULT AND NOT AS A
   //    BROKEN REGISTRATION OR A BROKEN DRIVE: a THIRD registration, made the same way (`on`), at an address that
-  //    no constraint pair holds, written through the package's OWN bare write verb. `§2.7` item 8 declares that
-  //    route's instant (after the store call has completed and the record has been copied out); it says NOTHING
-  //    about the pair-adopted address, so this control carries NO ruling and takes NO side — it fixes only that
-  //    THIS drive's registration, argument shape and store-call instrument each work when no pass is involved.
+  //    no constraint pair holds, written through the package's own write verb. **⟶ RE-DERIVED 2026-10-18: the
+  //    route this comment called "bare" is not a route any more** (`§2.4` item 9 (e) is `SUPERSEDED-WHOLE` on
+  //    `RCA-9`; `§2.12` item 1's clause of 2026-10-18 removes the gate so every write enters the kernel).
+  //    **WHAT THE CONTROL STILL FIXES, AND IT IS ALL IT EVER NEEDED TO: that THIS drive's registration, its
+  //    argument shape and its store-call instrument each work AT AN ADDRESS NO PAIR HOLDS** — so the
+  //    pair-adopted address's count is a delivery result and not a dead fixture. It still carries NO ruling on
+  //    the pair-adopted address and takes NO side.
   const BARE = ['bare'];
   const fBare = [];
   const rOnBare = thrown(() => onRoute(BARE, body(fBare, 'on at a bare address')));
   const wBare = thrown(() => i16.write(BARE, 'temp', 2));
   const control = (kernel === null ? 'KERNEL ABSENT' : !drive.startsWith('driven') ? `MAIN DRIVE NOT CLEAN (${drive})`
     : rOnBare.threw ? `on(the bare address) threw ${fmt(rOnBare.err)}` : wBare.threw ? `write threw ${fmt(wBare.err)}` : 'driven');
-  A('JSG-16.3', 'the instrument control — NO ruling and no side: `§2.7` item 2 (the bare write\'s instant: after the store call has completed and the record has been copied out) and item 8 ("such a caller\'s listener body runs at that instant"), read with `§2.7` item 5 (the single argument is the triggering address)',
-    'A REGISTRATION MADE THE SAME WAY, at an address NO constraint pair holds, IS REACHED BY THE PACKAGE\'S DELIVERER: the app\'s body fires EXACTLY ONCE on a bare write at its own address — after the store call returned and the write\'s own record is readable — with the TRIGGERING ADDRESS as its single argument, so the pair-adopted address\'s firing count in `JSG-16.1` is a delivery result and NOT a dead registration or a dead instrument',
+  A('JSG-16.3', 'the instrument control — NO ruling and no side: `§2.12` item 1\'s amended clause of 2026-10-18, item `2` (ii) (an address carrying no pair STILL enters the kernel and the kernel\'s pass "evaluates NOTHING and PASSES, so the write proceeds to the terminal arm\'s delivery"), read with `§2.7` items `6`–`7` and item `5` (the single argument is the triggering address)',
+    'A REGISTRATION MADE THE SAME WAY, at an address NO constraint pair holds, IS REACHED BY THE DELIVERER: the app\'s body fires EXACTLY ONCE on a write at its own address — after the store call returned and the write\'s own record is readable — with the TRIGGERING ADDRESS as its single argument, so the pair-adopted address\'s firing count in `JSG-16.1` is a delivery result and NOT a dead registration or a dead instrument',
     control === 'driven' && fired(fBare, BARE),
     `${control} · the bare address ${fmt(BARE)} — ${asSeen(fBare)}`);
   RULED_FIRING.push(`JSG-16.3  · INSTRUMENT CONTROL (no ruling, no side) — the bare address ${fmt(BARE)} — ${asSeen(fBare)}`);

@@ -841,16 +841,17 @@ test('fts_prop_P_TP_8_S_CENSUS_the_set_the_keys_and_the_rows_are_single_valued',
       // THE INSTANCE'S MEMBER SET, `12` own members — `10 + 1 + 1 = 12` — and no thirteenth member anywhere
       // (`surface.md §2.4` item 9 (f)'s `A127` clause of 2026-10-16; the as-filed `4 + 3 = 7` is VACATED with
       // the merged-away pair).
-      // ── **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**, the
-      // thirteenth being `constraints()` (`surface.md §2.4` item 9 (f)'s `constraints` clause of that date;
-      // `§2.12` item 2-bis; `PAR-JS-27`). **The row's own subject — the drawn key set constructs a product
-      // whose member set is METHODS ONLY — is unmoved.**
+      // ── **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): `13 → 12`, `10 + 1 + 1 = 12` ✓**, the two
+      // remaining singles being `register` and `constraints` (`surface.md §2.4` item 9 (f)'s clause of that
+      // date, item `1`, read with `§2.4` item 9's `REMOVED-WHOLE` pointer). **The row's own subject — the
+      // drawn key set constructs a product whose member set is METHODS ONLY — is unmoved; `settle` alone
+      // leaves and no term beside it moves.**
       assert.deepEqual(Object.getOwnPropertyNames(store).sort(),
         ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-          'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'],
-        'P-TP-8: the TEN store-reaching methods plus `register`, `settle` and `constraints` — THIRTEEN own '
-        + 'members, `10 + 1 + 1 + 1 = 13` ✓, and nothing else (`§2.4` item 9 (f)\'s `constraints` clause '
-        + 'of 2026-10-17)');
+          'readLiteral', 'register', 'rollback', 'unlisten', 'write'],
+        'P-TP-8: the TEN store-reaching methods plus the TWO remaining singles `register` and `constraints` — '
+        + 'TWELVE own members, `10 + 1 + 1 = 12` ✓, and nothing else (`§2.4` item 9 (f)\'s clause '
+        + 'of 2026-10-18, `13 → 12`)');
       assert.equal(register !== undefined && commit !== undefined && typeof runAttempt === 'function', true,
         'P-TP-8: the kernel\'s extent stays FIVE and no second register exists');
       // AND EVERY OP THE ATTEMPT CARRIES STANDS IN THE STORE'S OWN CLOSED SET AT ITS OWN RANK.

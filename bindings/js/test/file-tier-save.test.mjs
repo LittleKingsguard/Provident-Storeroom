@@ -1409,19 +1409,21 @@ test('fts_S_CENSUS_no_rank_moves_no_ninth_register_row_and_no_second_register', 
       + 'product alone (`§2.9` item 1\'s `A127` clause; `10 → 0` named, `11 → 1` total)');
   }
   const f = newStore();
-  // ── **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): THE SET MOVES `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓,
-  // ON THE ARCHITECT'S RULING VERBATIM *"Add surface methods for reading registered constraints."***
-  // (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s `constraints` clause of that date, whose
-  // thirteen-name set is `{ read, readLiteral, write, delete, rollback, listen, unlisten, addConstraint,
-  // constraintOn, constraintOff, register, settle, constraints }`). **The cell's own subject — the
-  // instance's own-property set is METHODS ONLY and carries no store data — is unmoved; the terms move by
-  // ONE and the thirteenth is `constraints()`.**
+  // ── **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE SET MOVES `13 → 12`, `10 + 1 + 1 = 12` ✓, ON THE
+  // ARCHITECT'S RULING VERBATIM *"Settle is redundant because the kernel is always in the loop."***
+  // (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s clause of that date, whose twelve-name set is
+  // `{ read, readLiteral, write, delete, rollback, listen, unlisten, addConstraint, constraintOn, constraintOff,
+  // register, constraints }` — the two singles NAMED, `register` first and `constraints` second). **The cell's
+  // own subject — the
+  // instance's own-property set is METHODS ONLY and carries no store data — is unmoved; `settle` alone leaves
+  // and no method, no refusal, no arity, no position and no return moves with it.**
   assert.deepEqual(Object.getOwnPropertyNames(f.store).sort(),
     ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-      'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'],
-    'S-CENSUS: the instance\'s member set is the TEN store-reaching methods plus `register`, `settle` '
-    + 'and `constraints` — THIRTEEN own members, `10 + 1 + 1 + 1 = 13` ✓, and nothing else '
-    + '(`surface.md §2.4` item 9 (f)\'s `constraints` clause of 2026-10-17; `§2.12` item 2-bis)');
+      'readLiteral', 'register', 'rollback', 'unlisten', 'write'],
+    'S-CENSUS: the instance\'s member set is the TEN store-reaching methods plus the TWO remaining '
+    + 'singles `register` and `constraints` — TWELVE own members, `10 + 1 + 1 = 12` ✓, and nothing else '
+    + '(`surface.md §2.4` item 9 (f)\'s clause of 2026-10-18, `13 → 12`; `§2.12` item 2-bis); `settle` '
+    + 'leaves the set at `§2.4` item 9\'s `REMOVED-WHOLE` pointer and no other member moves with it');
   for (const merged of ['on', 'off']) {
     assert.equal(Object.getOwnPropertyNames(f.store).includes(merged), false,
       `S-CENSUS: \`${merged}\` is a member of NO product — its home entry is minted by \`listen\`, its `

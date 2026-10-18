@@ -427,12 +427,20 @@ scenario('FTS-04', 'the failing save: rollback first, message second, the pre-im
 // =============================================================== FTS-05 =====
 scenario('FTS-05', 'the save\'s arm table is closed and total (bare write, mem tier, file tier, a closed record)',
   'surface.md §2.11 clause 2; contract.md §7.2 item 5; §2.11 clause 1 (the failing arm unmoved)', () => {
-    // (a) a bare caller-made file-tier write, with no kernel pass at all
+    // (a) a file-tier write at an address no constraint pair holds, with NO kernel pass driven over it
+    // ── **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): "bare caller-made" IS RETIRED AS A CLASS** (`§2.4` item
+    // 9 (e) is `SUPERSEDED-WHOLE` on `RCA-9`: *"EVERY WRITE, WITH OR WITHOUT A SUPPLIED `commit`, OPENS OR JOINS
+    // A COMMIT AND PROCEEDS THROUGH THE FLOW, SO NO WRITE IS A `BARE CALLER-MADE WRITE`"*; and `§2.12` item 1's
+    // clause of 2026-10-18 removes the gate so the four-position call enters `K-2` at EVERY address). **THE
+    // CELL'S SUBJECT IS UNMOVED AND IS THE ONE THE FROZEN CLAUSE DECIDES: `§2.11` clause 2 puts the `file`-tier
+    // save on the TERMINAL ARM of a PASSING attempt and on no other act — so a write whose attempt was never run
+    // through `K-3` performs no save and leaves the construction's zero-byte image.** The route the write now
+    // takes to its delivery is NOT this cell's subject and no clause makes the save that route's business.
     const d1 = tmp(); const P1 = path.join(d1, 'a.json');
     const s1 = PKG.storeCreate({ filePath: P1, journalLength: 8, listeners: [] });
     const w1 = tryCall(() => s1.write(['a'], 'file', 1));
-    cell('FTS-05.1', 'surface.md §2.11 clause 2 (the act is the terminal arm\'s, and there is no second arm of it)',
-      'a bare caller-made file-tier write performs NO save: the verb returns its own result and the file keeps the construction\'s zero-byte image',
+    cell('FTS-05.1', 'surface.md §2.11 clause 2 (the act is the terminal arm\'s, and there is no second arm of it), read with §2.12 item 1\'s amended clause of 2026-10-18',
+      'a file-tier write whose attempt is never run through `K-3` performs NO save: the verb returns its own result and the file keeps the construction\'s zero-byte image',
       () => C(w1.ok && !!w1.v.op && (bytes(P1) || Buffer.from('')).length === 0, `write=${w1.ok ? JSON.stringify(w1.v.op.opId) : describe(w1.v)} image=${imgStr(bytes(P1))}`));
     cell('FTS-05.2', 'surface.md §2.11 clause 2 (a record whose own op is not a file-tier write\'s performs no save)',
       'a mem-tier write driven through commit and runAttempt performs no save and still delivers its listener',
@@ -974,18 +982,19 @@ scenario('FTS-12', 'the censuses clause 7 leaves unmoved',
     // figures are ONE named export, `storeCreate` ALONE, `11 → 1` ✓ (`§2.9` item 1's `A127` clause), and TWELVE
     // own members, `10 + 1 + 1 = 12` ✓ (`§2.4` item 9 (f)'s `A127` clause). EACH CELL KEEPS ITS SUBJECT AND ITS
     // EXACT SET-EQUALITY FORM; only the figures move, and `on`/`off`'s absence stays asserted BY that equality.
-    // ── **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): THE SET MOVES `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**, on
-    // the architect's ruling VERBATIM *"Add surface methods for reading registered constraints."*
-    // (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s `constraints` clause of that date and `§2.12` item
-    // 2-bis; its register row is `PAR-JS-27`). **THE CELL KEEPS ITS SUBJECT AND ITS EXACT SET-EQUALITY FORM;
+    // ── **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE SET MOVES `13 → 12`, `10 + 1 + 1 = 12` ✓**, on the
+    // architect's ruling VERBATIM *"Settle is redundant because the kernel is always in the loop."*
+    // (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s clause of that date, whose item `1` names BOTH
+    // remaining singles, read with `§2.12` item 2-bis and item 9's `REMOVED-WHOLE` pointer over `settle`).
+    // **THE CELL KEEPS ITS SUBJECT AND ITS EXACT SET-EQUALITY FORM;
     // only the figure moves, and `on`/`off`'s absence stays asserted BY that equality** — the same rule this
     // scenario's own `20 → 12` clause above applied.
-    cell('FTS-12.1', 'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-17 MARK; the operative figure is §2.4 item 9 (f)\'s `constraints` clause (`10 + 1 + 1 + 1 = 13`)',
-      'the instance exposes exactly the THIRTEEN declared members and no fourteenth — `on` and `off` among the absent',
+    cell('FTS-12.1', 'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-18 MARK; the operative figure is §2.4 item 9 (f)\'s clause (`10 + 1 + 1 = 12`, `13 → 12`)',
+      'the instance exposes exactly the TWELVE declared members and no thirteenth — `on`, `off` and the removed `settle` among the absent',
       () => {
         const members = Object.getOwnPropertyNames(s).sort();
         const want = ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-          'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'];
+          'readLiteral', 'register', 'rollback', 'unlisten', 'write'];
         return C(JSON.stringify(members) === JSON.stringify(want), `members=${JSON.stringify(members)}`);
       });
     cell('FTS-12.2', 'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-16 MARK; the operative figure is §2.9 item 1\'s `A127` clause (`11 → 1`)',

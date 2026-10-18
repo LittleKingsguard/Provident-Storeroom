@@ -137,6 +137,33 @@ const SETTLED_ON_THE_PASSING_ARM = Symbol.for('provident-storeroom.settled-on-th
 /// untouched by it.
 const SAVE_FAILED_AT_THE_TERMINAL_ARM = Symbol.for('provident-storeroom.save-failed-at-the-terminal-arm');
 
+/// **⟶ ADDED 2026-10-18 — THE TERMINAL ARM'S DELIVERY CHANNEL, AND IT IS A SYMBOL-KEYED OWN PROPERTY ON THE
+/// PRODUCT FOR THE SAME REASON EVERY SYMBOL ABOVE IS ONE** (`surface.md §2.7`'s clause of 2026-10-18, item
+/// `2`; `§2.4` item 9's `REMOVED-WHOLE` pointer of the same date; `A117` (D6), the precedent this family is
+/// declared under).
+///
+/// **THE PROBLEM THIS SOLVES, STATED PLAINLY: `settle` WAS THE CHANNEL, AND THE CHANNEL IS NOT THE
+/// DELIVERY.** `settle`'s REMOVAL takes a MEMBER off the product (`13 → 12`); it does NOT abolish what that
+/// member was the conduit for — **THE TERMINAL ARM'S ACT IS `§2.7` ITEM `7`'s AND IT IS THE ENTRY'S TO
+/// PERFORM**, and `§2.11` clause 2's `file`-tier save is the FIRST thing that arm does (`§2.11` clause `9`'s
+/// mark of this date: *"the `file`-tier save's own arm is UNMOVED and is REACHED BY EVERY WRITE from this
+/// date"*). **SO THE KERNEL STILL NEEDS ONE WAY TO REACH THIS ENTRY AT ITS TERMINAL ARM, AND THAT WAY MUST
+/// ADD NO MEMBER**: `§2.4` item 9 (f) declares TWELVE own members *"AND NOTHING ELSE"*, and a thirteenth
+/// NAMED member would be the finding that clause exists to catch.
+///
+/// **THE DEVICE IS THE FAMILY'S OWN**: a `Symbol.for` key, spelled on both sides, so the entry imports no
+/// kernel and the kernel imports no entry (`§2.11` clause 9 — *"BOTH SIDES DECLARE THEM INDEPENDENTLY and
+/// neither side imports the other"*). **IT IS INVISIBLE TO `Object.keys` AND TO
+/// `Object.getOwnPropertyNames`** — the two censuses `§2.11` clause 9 declares UNMOVED — **so the product's
+/// declared twelve own members, every own-key count and every member-set assertion read exactly what they
+/// read before.** **AND IT IS NOT A THIRD SYMBOL OF THE SAVE FAMILY**: that family is the `2` symbols above
+/// (`§2.11` clause 9's own enumeration), each a mark ON A RECORD; this key is a CHANNEL ON THE PRODUCT and
+/// marks no record.
+/// **IT CARRIES THE ONE ARGUMENT THE TERMINAL ARM HAS: the attempt's own `CommitRecord`** — the identity
+/// `K-2` built, never a copy (`kernel-surface.md §2.1` item 2). **ITS ANSWER IS `undefined` AND NO KERNEL
+/// ACT BRANCHES ON IT** (`PAR-JS-19`'s answer cell, whose subject is the arm's return and not a member's).
+const TERMINAL_ARM = Symbol.for('provident-storeroom.terminal-arm');
+
 // ---------------------------------------------------------------------------------------------
 // THE RESOLUTION RULE — THREE RUNGS, IN ORDER, AND THE CLOSED KEY SET (`docs/specs/storeroom-publish/
 // resolution.md §2` · `§3`; `docs/specs/storeroom-publish/contract.md §1.1` · `§1.3` · `§1.5`).
@@ -1932,27 +1959,35 @@ export function storeCreate(cfg) {
   // (rule 2, never a fan-out). **⟶ AND `off` — the ONE declared member that DOES remove an entry —
   // removes THE ONE THE HANDLE NAMES** (`§2.4` item 7 (b); `DD-53`), while the instance's own state is
   // still released with the instance and by nothing else (`DD-17`; `A74`: `off` is not a release verb).
-  // **`withheld` IS THE WRITE-IN-FLIGHT SET** (`§2.4` item 9's instant (a)): the record identities this
-  // instance has adopted as kernel-driven writes, whose post-verb invocation this instance withholds.
-  // It holds IDENTITIES and no function, no handle and no address.
+  // **⟶ AND `withheld` IS GONE WITH THE ADOPTION MACHINERY, 2026-10-18** (§2.4 item 9's
+  // adoption-machinery clause, whose item `(i)` disposes of this very name: *"the WITHHOLD as a declared
+  // STATE is WITHDRAWN WITH THE MEMBER THAT HELD IT"*). **NO WRITE-IN-FLIGHT SET, NO LEDGER AND NO DELIVERED
+  // MARK STANDS ON THIS INSTANCE**: the kernel drives every write and its terminal arm is the delivery's one
+  // instant, so the entry has nothing to withhold.
   // **`constraints` IS THE ENTRY'S OWN REGISTRY OF THE PAIRS IT CARRIES** (`surface.md §2.12` item 1's
-  // preamble clause (a)–(b)): keyed by `(address, id)`, holding the pair's element, its state and ITS
-  // address's own spelling — the three things `PAR-JS-24`, `§2.12` item 3's toggles and the write path's
-  // carriage rule read. **IT IS POPULATED BY THE ONE ACT BOTH ROUTES REACH AND BY NOTHING ELSE**
-  // (`carryConstraint` below), and **`leg` IS THE SLOT THE NESTED FIVE-POSITION CALL THE KERNEL'S STORE
-  // LEG MAKES LEAVES ITS OWN RETURNED RECORD IN**, so that a kernel-driven write answers the record its
-  // own write returned rather than a copy of it (`§2.12` item 1's stage 2).
-  const state = { id, tokens: new Map(), home: [], registry: new Map(), withheld: new Set(), adopted: new Set(), answered: new Map(), delivered: new WeakSet(), constraints: new Map(), leg: null };
-  // **TWO STRUCTURES CARRY THE ADOPTION** (`§2.4` item 9 (a)–(b)): `adopted` holds the record identities
-  // whose own write verb has NOT YET ANSWERED — the identity a write in flight is keyed by, and the one
-  // identity per write the entry's own verb consumes — and `answered` is THE LEDGER, mapping each adopted
-  // identity to THE IDENTITY THE WRITE ITSELF RETURNED, which is the identity the terminal arm reads the
-  // residue off (`record.pending`, the member `K-2` fills from its own verb's returned set and the member
-  // the pass checks entries off in as they pass). **BOTH ARE EMPTIED BY THE TERMINAL ARM**: a pass that
-  // reaches its terminal instant is the only writer either structure has.
+  // preamble clause (a)–(b)): keyed by `(address, id)`, holding the pair's element and ITS address's own
+  // spelling. **⟶ FROM 2026-10-18 IT IS A READ MODEL AND NOTHING MORE** (`§2.12` item 1's amended clause
+  // (iii)): the write path reads the STORE'S OWN `triggered` set and the KERNEL'S registry, and **NO
+  // WRITE-PATH BRANCH OF THIS FILE IS TAKEN ON THIS MAP'S CONTENTS** — its one reader is `a.constraints()`.
+  // **IT IS POPULATED BY THE ONE ACT BOTH ROUTES REACH AND BY NOTHING ELSE** (`carryConstraint` below), and
+  // **`leg` IS THE SLOT THE NESTED FOUR-POSITION CALL THE KERNEL'S STORE LEG MAKES LEAVES ITS OWN RETURNED
+  // RECORD IN**, so that a kernel-driven write answers the record its own write returned rather than a copy
+  // of it (`§2.12` item 1's stage 2).
+  //
+  // **⟶ AND THE ADOPTION MACHINERY IS REMOVED WHOLE, 2026-10-18** (`§2.4` item 9's adoption-machinery
+  // clause, the three architect's rulings of that date): **`withheld`, `adopted`, `answered` and `delivered`
+  // are GONE WITH `settle`**, because they existed only to marshal ONE delivery BETWEEN TWO ACTORS — a
+  // caller who made a bare write and a kernel which drove the other. **RULINGS `(2)` AND `(3)` LEAVE ONE
+  // ACTOR**: the kernel drives every write, so there is nothing to marshal and the machinery has no state to
+  // hold. **THIS IS WHERE THE DOWNSTREAM `DEF-D` DEFECT LIVED** — an abandoned adoption consumed by the next
+  // unrelated write — and its SUBSTRATE, not its symptom, is what this removal takes.
+  const state = { id, tokens: new Map(), home: [], registry: new Map(), constraints: new Map(), leg: null };
   const instance = {
-    /// **`surface.md §2.4` item 9 (f)'s `A127` clause — THE PRODUCT'S DECLARED MEMBER SET IS TWELVE OWN
-    /// MEMBERS, `10 + 1 + 1 = 12` ✓: THE TEN METHODS, `register` AND `settle`.** Each is reached through
+    /// **`surface.md §2.4` item 9 (f)'s clause of 2026-10-18 — THE PRODUCT'S DECLARED MEMBER SET IS TWELVE
+    /// OWN MEMBERS, `10 + 1 + 1 = 12` ✓: THE TEN METHODS, `register` AND `constraints`.** **`settle` IS
+    /// REMOVED WHOLE** (`REMOVED-WHOLE`, item 9's pointer of that date): the member set moved `13 → 12`, and
+    /// **THE TWO REMAINING SINGLES ARE NAMED** because *"a lone `+1` would not compute"* — the first `1` is
+    /// `register` and the second is `constraints`, the registered-constraint read. Each is reached through
     /// THIS factory's own product alone (`package.md §1.3` item 3): the module namespace carries ONE name,
     /// `storeCreate` (`§2.9` item 1's `A127` clause; `11 → 1` ✓, and *"a deprecation window"* is declared
     /// away at that clause on `A128`'s fiat), so NO member below is a named export and the ten
@@ -2013,12 +2048,23 @@ export function storeCreate(cfg) {
     register(handle, listener) {
       return registerOn(state, handle, listener);
     },
-    /// `surface.md §2.4` item 9 / `§2.1`'s dated clause (a): **`settle(record) -> undefined`** — THE
-    /// ORDERING SEAM, the one member the kernel calls and the entry implements, at the two instants of a
-    /// kernel-driven write (`A116` (D1)–(D2)). **It is NOT a named export of the entry**
-    /// (`package.md §1.3` item 3): it is reached through the factory's own product alone.
-    settle(record) {
-      return settleOn(state, record, arguments.length >= 1);
+    /// **⟶ `settle` IS REMOVED FROM THIS PRODUCT, 2026-10-18 — THE MEMBER SET IS TWELVE, `10 + 1 + 1 = 12`
+    /// ✓** (`surface.md §2.4` item 9's `REMOVED-WHOLE` pointer and item 9 (f)'s clause of that date). **THE
+    /// ARCHITECT'S RULING, VERBATIM: *"Settle is redundant because the kernel is always in the loop."*** **NO
+    /// DRIVE MAY ASSERT A CALL OF IT FROM THIS DATE, ON ANY INSTANCE, FOR ANY ARGUMENT**: the member is not a
+    /// member of the product, so a call reaches a property no clause of this unit declares. **AND THE DELIVERY
+    /// IT ONCE MARSHALLED IS NOT LOST WITH IT**: it was never `settle`'s — it is `§2.7` item `7`'s
+    /// terminal-arm act, taken inside the kernel's own act, and this entry PERFORMS the one the kernel
+    /// triggers. **The one member this factory does NOT expose and the kernel does NOT call from here.**
+    ///
+    /// **⟶ AND THE CHANNEL THAT MEMBER WAS IS REPLACED BY A SYMBOL-KEYED PROPERTY, NOT BY A NAMED MEMBER**
+    /// (`TERMINAL_ARM` above): the kernel still reaches this entry at its terminal arm, and **the product's
+    /// declared twelve own members are UNMOVED** because a symbol key is invisible to `Object.keys` and to
+    /// `Object.getOwnPropertyNames` — the precedent `A117` (D6) declares and `§2.11` clause 9 prints
+    /// (*"a symbol-keyed own property is invisible to both"*). **IT IS NOT A MEMBER OF THE PRODUCT IN THE
+    /// SENSE `§2.4` item 9 (f) COUNTS**, and no cell that counts members can see it.
+    [TERMINAL_ARM](record) {
+      return terminalArm(state, record);
     },
   };
   INSTANCES.set(instance, state);
@@ -2142,52 +2188,67 @@ function commitPositionRefusal(commit) {
 
 function write(instance, n, address, tier, value, commit) {
   const state = stateOf(instance);
-  // **⟶ `§2.12` ITEM 1, STAGE 1: A `write` CALLED WITH FOUR POSITIONS — `write(instance, address, tier,
-  // value)` — ENTERS THE KERNEL'S `K-2`**, where this instance carries a constraint at this write's
-  // address; the kernel's pass then evaluates every pair registered at that address and the two arms of
-  // `§2.12` item 1's fail arm are taken by the kernel's own acts. **A CARRYING ADDRESS IS THE WHOLE OF THIS
-  // GATE: an instance that carries no pair at this address takes the path this verb has always taken, and a
-  // FIVE-POSITION CALL IS THE KERNEL'S OWN STORE LEG AND NEVER ENTERS `K-2`** — item 1's stage 4 no-recursion
-  // clause: *"a five-position call can never start a second pass — and the call that carries an ADOPTED
-  // identity is item 3's own, so there is no recursion and need not be one"*.
-  if (n <= 3 && carriesConstraintAt(state, address)) {
+  // **⟶ `§2.12` ITEM 1, STAGE 1, AMENDED 2026-10-18 — THE ENTRY→KERNEL EDGE IS UNCONDITIONAL: EVERY
+  // FOUR-POSITION WRITE ENTERS THE KERNEL'S `K-2`, AND THE `carriesConstraintAt` GATE THIS VERB ONCE TOOK
+  // BEFORE THE CALL IS REMOVED.** The architect's ruling, verbatim: *"Always route to the kernel, because the
+  // JS code does not decide whether constraints trigger."* — and its sibling, *"The kernel is always
+  // supposed to be in the middle. Any occasion where the write path is not governed by the kernel is a
+  // hallucination."* **SO THE JS DECIDES NOTHING ABOUT WHETHER A CONSTRAINT TRIGGERS**: the STORE'S OWN
+  // `triggered` SET and the KERNEL'S OWN PAIR-KEYED REGISTRY are the trigger authority (`§2.12` item 1's
+  // amended clause (iii)), and `state.constraints` is a READ MODEL for `a.constraints()` and for nothing on
+  // this path. **AN INSTANCE THAT CARRIES NO PAIR AT THIS ADDRESS STILL ENTERS THE KERNEL**: the pass over an
+  // address with no registered pair evaluates NOTHING and PASSES, and the write proceeds to the terminal arm's
+  // delivery exactly as `§2.7` items 6–7 declare (amended clause (ii)).
+  //
+  // **AND THE FIVE-POSITION CALL IS THE KERNEL'S OWN STORE LEG AND NEVER ENTERS `K-2`** — item 1's stage `4`
+  // no-recursion clause, which this edit leaves UNMOVED: *"a five-position call can never start a second pass
+  // — and the call that carries an ADOPTED identity is item 3's own, so there is no recursion and need not be
+  // one"*. **THAT EXCLUSION IS THE CLAUSE'S AND NOT THIS TEST'S**: the gate removed above was an
+  // ADDRESS-CARRYING test, and the position test below is the one stage `4` declares. `K-2` calls this very
+  // `write` with FOUR positions (`src/constraint-kernel.mjs`'s `store.write(address, tier, value, record)` is
+  // the method's own four, the `instance` receiver not being a position of it), so the kernel's leg reaches
+  // `constraintWrite` NOT AT ALL: it reaches the store verb through the `n <= 3` arm below, and the recursion
+  // stage `4` forbids is unreachable BY POSITION and not by a registry's contents.
+  //
+  // **⟶ AND THE FIFTH POSITION'S CLASS TEST IS TAKEN HERE, BEFORE THE ROUTE IS CHOSEN, BECAUSE IT IS THE
+  // POSITION'S AND NOT THE ROUTE'S** (`§2.4` item 9 (g) item 1; `§2.20`'s answer cell): **a SUPPLIED COMMIT
+  // THAT IS NOT A RECORD POSITION IS REFUSED ON BOTH PATHS THE SAME WAY** — the routing amendment removed an
+  // ADDRESS-CARRYING gate and touches no class test, and a drive that supplied an invalid commit to a
+  // no-pair instance asserted the refusal before this date and asserts it after (`a127`'s two
+  // fifth-position cells). **THE REFUSAL LEAVES NO LANDING AND NO ADOPTION TO RELEASE**: nothing is opened
+  // and nothing is put in flight, which is the whole of what the machinery's release used to secure.
+  if (n >= 4) {
+    const refusal = commitPositionRefusal(commit);
+    if (refusal !== null) throw refusal;
+  }
+  // **⟶ AND THE BOUNDARY'S OWN WALK IS TAKEN BEFORE THE ROUTE IS CHOSEN, WHICH IS THE ONE THING THE ROUTING
+  // AMENDMENT MOVES OUT OF THE ORDER IT STOOD IN** (`§2.5` item 5 (a)–(c); `§2.2` clause 3). **THE ENTRY'S OWN
+  // POSITIONS ARE ENCODED HERE, ONCE, FOR BOTH PATHS**: the four-position call enters the kernel with values
+  // THIS BOUNDARY HAS ALREADY ADMITTED, so an outside address still answers the store's `AddressMalformed`
+  // with the FAILING TARGET and the ARGUMENT POSITION in it (`§2.5` item 5 (a)–(b); `convenience.test.mjs`'s
+  // `AddressArg` rows drive exactly this), **and a route to the kernel can never be a route AROUND the
+  // boundary's own class tests.** **NOTHING IS DECIDED TWICE: the encoders are total over the positions and
+  // their answers are the store's own, so the kernel receives the same values the bare path always built.**
+  const fault = { found: null, value: undefined, path: [] };
+  const args = n >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
+  // `PAR-JS-7`: `write`'s tier is REQUIRED — an ABSENT position and a SUPPLIED `undefined` both answer
+  // `AddressMalformed`, and neither folds.
+  args.push(encodeTier(tier, n >= 2, false, 'first argument'));
+  // THE WALK'S OWN FAULT RECORD — see `refusedValue`: the walk CLASSIFIES and RECORDS, and the record is
+  // read at the one site where the store answered `ValueNotAdmitted` for a value the walk refused.
+  args.push(encodeValue(value, [], 0, [], fault));
+  if (n <= 3) {
     return constraintWrite(state, instance, address, tier, value);
   }
   let answer;
   try {
-    // **THE CLASS TEST IS TAKEN BEFORE THE WALK AND BEFORE THE VERB** (`§2.4` item 9 (g) item 1): the
-    // refused position leaves no landing, so the same release the catch block below performs is taken for
-    // an adoption this refusal left unrun (`§2.4` item 9's table row (a) read with `§2.7` item 8).
-    if (n >= 4) {
-      const refusal = commitPositionRefusal(commit);
-      if (refusal !== null) throw refusal;
-    }
-    const args = n >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
-    // `PAR-JS-7`: `write`'s tier is REQUIRED — an ABSENT position and a SUPPLIED `undefined` both answer
-    // `AddressMalformed`, and neither folds.
-    args.push(encodeTier(tier, n >= 2, false, 'first argument'));
-    // THE WALK'S OWN FAULT RECORD — see `refusedValue`: the walk CLASSIFIES and RECORDS, and the record is
-    // read at the one site where the store answered `ValueNotAdmitted` for a value the walk refused.
-    const fault = { found: null, value: undefined, path: [] };
-    args.push(encodeValue(value, [], 0, [], fault));
     answer = writeCall(state, args, fault);
   } catch (refusal) {
-    // **⟶ A WRITE THAT NEVER RAN RELEASES THE ADOPTION IT WAS TAKEN FOR** (`§2.4` item 9's table row (a)
-    // read with `§2.7` item 8, and `PAR-JS-19`'s own keying of one adoption to one write): the adoption
-    // instant (a) took is KEYED TO ONE WRITE and is *"never a queue an unrelated write may draw from"*,
-    // so a `commit` the store refused between instant (a) and the verb — or a walk this boundary refused
-    // before the verb was reached — leaves NO write for that adoption to belong to (`kernel-surface.md
-    // §2.1` item 2: a refused `commit` *"threw BEFORE the write verb ran"*, so no residue exists for any
-    // terminal arm to reach). **IT IS RELEASED HERE AND NOT CARRIED FORWARD**, so the NEXT write reaches
-    // no adoption at all: `§2.7` ITEM 8'S POST-VERB INSTANT FOR A BARE CALLER-MADE WRITE IS UNMOVED BY
-    // ANY KERNEL ACT (`§2.4` item 9 (e); `A116` (D1): the seam withholds *"the write in flight"* and
-    // only it), and an abandoned adoption standing as a pending identity is exactly the withholding this
-    // clause forbids. The store's own refusal crosses back UNCHANGED AND UNCONVERTED.
-    const unrun = state.adopted.size === 0 ? null : state.adopted.values().next().value;
-    if (unrun !== null) {
-      state.adopted.delete(unrun);
-      state.answered.delete(unrun);
-    }
+    // **⟶ AND THE RELEASE AN ABANDONED ADOPTION ONCE NEEDED IS GONE WITH THE MACHINERY, 2026-10-18.** The
+    // catch this replaces released *"the adoption it was taken for"* — an identity `settle` had put in
+    // flight and this write then failed to claim. **WITH `settle` REMOVED THERE IS NO ADOPTION TO RELEASE**
+    // (`§2.4` item 9's adoption-machinery clause; the three architect's rulings of that date), so the store's
+    // own refusal crosses back UNCHANGED AND UNCONVERTED and this frame adds nothing to it.
     throw refusal;
   }
   const record = {
@@ -2203,63 +2264,25 @@ function write(instance, n, address, tier, value, commit) {
   // opens, the invocation is SYNCHRONOUS, it happens AFTER the addon's call returned, and **its ONE
   // argument is the TRIGGERING ADDRESS** (`PAR-JS-12`).
   //
-  // **⟶ AND WHERE THIS WRITE IS ONE `commit` ISSUED, THE WINDOW IS WITHHELD** (`§2.7` items 6–8 with
-  // `§2.4` item 9's instant (a), and `A115` (D2)): the record identity the seam adopted BEFORE this
-  // verb was called stands in `state.withheld`, so this instance invokes NO handle of that write here
-  // and the delivery waits for the pass's terminal arm, where the seam delivers the record's `pending`
-  // residue. **A BARE CALLER-MADE WRITE REACHES NO ADOPTION AND ITS POST-VERB INSTANT STANDS UNMOVED**
-  // (`§2.7` item 8; `§2.4` item 9 (e)): such a record was never passed to the seam, so its set is
-  // delivered exactly as it always was.
-  // **THE ADOPTION IS CONSUMED HERE, AND THE IDENTITY THAT STANDS IN `withheld` IS THIS RECORD'S**
-  // (`§2.4` item 9's table row (a): *"the record identity the instance adopted at instant (a)"*): the
-  // seam marks the write in flight, and this verb — the very write that marker was made for, called by
-  // `commit` on the next statement — is the one write it withholds. **A WRITE THAT FINDS NO ADOPTION IS A
-  // BARE CALLER-MADE WRITE AND ITS POST-VERB INSTANT STANDS UNMOVED** (`§2.7` item 8; `§2.4` item 9 (e)).
-  // **⟶ THE BARE WRITE'S OWN GUARD IS `withheld`, BECAUSE THE MARKER IS THE WITHHOLD AND NOT A
-  // CONSTRUCTION ORDER** (`§2.4` item 9's table row (a): *"WITHHOLDS the package's own delivery for
-  // IT"*; row (b): *"AT THE PASS'S TERMINAL ARM … the SAME record identity"*). **THE ONLY ADOPTION A
-  // KERNEL-DRIVEN WRITE CAN FIND IS ITS OWN**: `settle`'s FIRST call records the identity in BOTH
-  // structures, and the verb that carries that identity DELETES IT FROM `adopted` at `:1438` — so an
-  // entry standing in `adopted` beside a non-empty `withheld` is a second identity, which is another
-  // kernel-driven write's, and this write finds no marker of its own. **ONLY THIS WRITE'S OWN IDENTITY
-  // IS CONSUMED AND ONLY ITS OWN WINDOW IS WITHHELD** — *"A WRITE THAT FINDS NO ADOPTION IS A BARE
-  // CALLER-MADE WRITE AND ITS POST-VERB INSTANT STANDS UNMOVED"* (`§2.7` item 8; `§2.4` item 9 (e)).
-  const pending = state.withheld.size === 0 ? null : state.adopted.values().next().value;
-  // **WHETHER THIS WRITE'S LEDGER ENTRY WAS STILL EMPTY WHEN THE CALL CAME** (`§2.4` item 9 (a)): an
-  // adoption whose own write verb has not yet answered is one a CALLER's own `settle` call may deliver
-  // before the write runs, and it is that delivery the write's own record carries the mark of (`:1456`).
-  const pendingAnswerEmpty = pending !== null && pending !== undefined && state.answered.get(pending) === null;
-  if (pending === null || pending === undefined) {
-    deliver(state, record.triggered, answer.triggeringAddress);
-  } else {
-    state.adopted.delete(pending);
-    state.answered.set(pending, record); // THE IDENTITY THIS ADOPTION'S OWN WRITE RETURNED
-    state.withheld.add(record);
-    // **⟶ AND BOTH IDENTITIES ARE MARKED DELIVERED, BECAUSE THIS WRITE'S DELIVERY HAS NOW HAPPENED**
-    // (`§2.4` item 9: the two instants are counted, and NO third instant is declared — *"there is NO
-    // second adoption"*; `PAR-JS-19`'s domain cell). A delivery taken while the ledger entry stood EMPTY
-    // is a caller's own call and it DELIVERS THIS WRITE'S RESIDUE — the adopted identity `pending` names —
-    // so that identity's occurrence after this instant is no longer a first call, and **THE IDENTITY THE
-    // WRITE RETURNED IS MARKED WITH IT**: `K-2` hands the write's own record to the seam at its terminal
-    // arm, and where the caller took the delivery first, that record arrives with no ledger entry left to
-    // answer it (`state.answered.delete(pending)` above) and would be READ AS A FIRST CALL — adopted, put
-    // in flight a second time, and its marker left standing for a pass that never comes, which withholds
-    // the next bare caller-made write's window (`§2.7` item 8; `§2.4` item 9 (e)). **THE MARK IS TAKEN
-    // ONLY WHERE THE LEDGER ENTRY WAS EMPTY**: an identity delivered at the terminal arm is answered by
-    // the write's own record through `answered`, and marking it there would reach the abandoned attempt's
-    // late arm as a no-op — the delivery the clause owes at that instant (`§2.4` item 9 (b);
-    // `ck_neg_dm_09_*`).
-    if (pendingAnswerEmpty) {
-      state.delivered.add(pending);
-      state.delivered.add(record);
-    }
-    // **AND THE IDENTITY IS THIS WRITE'S FROM HERE ON** (`§2.4` item 9's table row (a): the write *"the
-    // adopted identity names"* is the one its window withholds): a delivery this identity had already
-    // taken — a caller's own call, made while the ledger entry stood EMPTY (`:1735`) — is SUPERSEDED by
-    // the write it belongs to, and the seam's SECOND call for it is the terminal arm's delivery and not
-    // a no-op, so the abandonment's own late arm still reaches the residue (`§2.4` item 9 (b)).
-    state.delivered.delete(record);
-  }
+  // **⟶ AND THE DELIVERY DOES NOT HAPPEN IN THIS FRAME FOR A KERNEL-DRIVEN WRITE, 2026-10-18 — IT HAPPENS AT
+  // THE KERNEL'S TERMINAL ARM, WHICH IS `§2.7` ITEM `7`'s ONE HOME** (`§2.4` item 9's adoption-machinery
+  // clause; `§2.7`'s clause of that date, item `3`: *"so the entry stops DECIDING whether to honour a
+  // delivery and SIMPLY PERFORMS THE ONE THE KERNEL TRIGGERS"*).
+  //
+  // **THE RULE IS THE WINDOW'S AND NOT A FLAG'S:** every write this file performs is now KERNEL-DRIVEN
+  // (`§2.12` item 1's amended stage `1`), and the kernel reaches this verb as ITS OWN STORE LEG — the
+  // `n >= 4` arm above, whose `commit` is the kernel's own record. **SO THIS FRAME IS THE LEG AND ITS DELIVERY
+  // IS WITHHELD BY THE DECLARED INSTANT AND NOT BY A WITHHOLD SET**: `§2.7` item 7 declares that for a record
+  // carrying a kernel evaluation set the package's delivery *"does NOT occur inside the store verb's window:
+  // it follows the pass"*. **THE LEG THEREFORE INVOKES NOTHING, AND `terminalArm` PERFORMS THE ONE DELIVERY
+  // THE KERNEL TRIGGERS** — `record.pending`'s residue plus the checked-off identities — where the pass has
+  // completed and the discard and the check-off have already decided what the set holds.
+  //
+  // **AND A WRITE WHOSE `commit` THE KERNEL DID NOT SUPPLY IS STILL DELIVERED HERE, AT ITS OWN POST-VERB
+  // INSTANT** (`§2.7` item 2): that is the `n <= 3` caller path never reaching this frame at all, so THIS
+  // frame is reached only as the kernel's leg and its silence is total. **THE ONE INVOCATION PER DISTINCT
+  // IDENTITY RULE `deliver` enforces is thus never asked to dedupe two windows, because only one window
+  // exists** (`§2.4` rule 3; `deliver` below).
   return record;
 }
 
@@ -2599,216 +2622,121 @@ function registerOn(state, handle, listener) {
   return undefined;
 }
 
-/// **THE ORDERING SEAM — `settle(record) -> undefined`** (`surface.md §2.4` item 9; `A116` (D1)–(D4);
-/// `PAR-JS-19`). The one member the kernel calls and the entry implements, taken at the two instants of a
-/// kernel-driven write, AND IT REACHES THE REGISTRY AND NOTHING ELSE: no store verb is called, no node is
-/// minted and no journal entry is appended.
+/// **THE TERMINAL ARM'S OWN ACT, PERFORMED BY THIS ENTRY AT THE KERNEL'S INSTANT — THE ONE THING `settle`'S
+/// REMOVAL DOES NOT TAKE** (`surface.md §2.7` item `7` (a)–(d) and that item's clause of 2026-10-18; `§2.11`
+/// clauses 2–5 and clause 9's mark of the same date).
 ///
-/// * **INSTANT (a) — BEFORE THE STORE'S WRITE VERB IS CALLED.** The identity's FIRST call on this instance
-///   IS ITS ADOPTION (`PAR-JS-19`'s own domain cell: *"the adoption happens AT the first call and is not
-///   required before it"*). The record identity is marked as a kernel-driven write in flight, which is
-///   what makes the write's own post-verb window (`write` above) deliver NOTHING: `§2.4` item 9's table
-///   row (a), *"WITHHOLDS the package's own delivery for it: the package's post-verb invocation reaches
-///   NO handle of that write, so its in-window invocation set is EMPTY"*.
-/// * **INSTANT (b) — AT THE PASS'S TERMINAL ARM.** The SECOND call for that identity IS the delivery: the
-///   residue standing in the record's `pending` at that instant is iterated through this instance's own
-///   registry, one invocation per handle, each carrying the TRIGGERING ADDRESS as its single argument
-///   (`§2.4` item 9's table row (b); `§2.7` items 5 and 7 (a)–(b)). **WHAT IT ITERATES IS THE RESIDUE AND
-///   NEVER `triggered`**: on a passing attempt the check-off has removed the evaluated pair's entry, and on
-///   a write that FAILED on constraints the DISCARD has emptied the member — so an empty residue is a
-///   no-op and not a failure (`§2.7` item 7 (c)–(d)).
-/// * **EVERY OTHER FORM AT THE RECORD POSITION THROWS THE REGISTRATION SITE'S OWN `TypeError`** — absent,
-///   `undefined`, `null`, a primitive, a `function`, a `Proxy`, and an identity this instance never
-///   adopted — **and CHANGES NOTHING** (`§2.4` item 9 (a)–(b); `PAR-JS-19`'s outside-value row).
-/// * **A RESIDUE HANDLE WITH NO REGISTERED FUNCTION IS A SILENT NO-OP** (`§2.4` rule 1 read at instant
-///   (b), item 9 (c)): no code, no warning, no log and no throw.
-function settleOn(state, record, supplied) {
-  // **THE CLASS DECISION COMES FIRST, ON THE VALUE AS IT IS** (`§2.4` item 5 (a)'s order walk;
-  // `crossing.md §1.7`): an absent argument, every non-object and every `Proxy` is refused before any
-  // marker is read or set.
-  if (!supplied || record === null || typeof record !== 'object' || types.isProxy(record)) {
-    // **AND IT CARRIES `log: []` ON THE RULING'S FLAT READING** (`surface.md §2.5` item 4 names the
-    // registration site's `TypeError` among the arms that carry the empty array; the `status` this form
-    // never had is still not minted — `§2.4` item 9 (b)'s *"its `status` member MUST BE ABSENT"* stands).
-    throw withEmptyLog(new TypeError(
-      `settle's argument is ${classSpelling(record)}, and the ordering seam takes a record identity this instance adopted`,
-    ));
-  }
-  // **⟶ ONE WRITE, ONE ADOPTION, AND TWO IDENTITIES CARRY IT** (`§2.4` item 9's table rows (a) and (b);
-  // `PAR-JS-19`: *"the adoption happens AT the first call, and the SECOND call for that identity is the
-  // delivery"*). `K-2` builds its record BEFORE the write verb and hands that identity to the seam at
-  // instant (a); **THE ENTRY'S OWN `write` MINTS THE RECORD IT RETURNS** (`PAR-JS-13`), and that is the
-  // identity this instance puts in flight and whose `pending` member carries the residue the terminal arm
-  // reads. The two calls are ONE identity apart: the arm calls `settle` with the identity it built, and
-  // the ledger entry made at instant (a) carries the write's own record forward to it.
-  //
-  // **THE DOMAIN IS THE INSTANCE'S OWN MARKER AND NOTHING ELSE** (`§2.4` item 9 (a)–(b)): an object this
-  // instance never adopted — *"another instance's record included"* — carries no `pending` member and no
-  // ledger entry, and is refused here with the registration site's own `TypeError`; nothing is set for it.
-  const pre = state.answered.has(record); // this identity is the one a write verb was ADOPTED for
-  const written = pre ? state.answered.get(record) : null;
-  // **AN IDENTITY WHOSE DELIVERY HAS ALREADY HAPPENED SETS NO MARKER** (`§2.4` item 9's two instants,
-  // counted: THE FIRST CALL IS THE ADOPTION and THE SECOND IS THE DELIVERY — *"there is NO second
-  // adoption"*, and no third instant is declared). **THE SECOND CALL REMOVES THE IDENTITY FROM `answered`
-  // AND FROM `adopted`, so its next occurrence arrives with NO LEDGER ENTRY** — and were that occurrence
-  // read as a FIRST call, it would ADOPT, leaving the marker `:1438`'s own deletion never reaches: a
-  // KERNEL-DRIVEN WRITE PUT IN FLIGHT A SECOND TIME, whose window is withheld for a pass that never
-  // comes. **SO A THIRD CALL IS A NO-OP AND CHANGES NOTHING**, which leaves the write that OWNS the
-  // identity as the only act that consumes it, and NO IDENTITY STANDING ADOPTED ON THIS INSTANCE that no
-  // write belongs to — the state the caller-made bare write below reads, which `§2.7` item 8 declares
-  // *"does not move"* whatever stands on the instance (`§2.4` item 9 (e); `PAR-JS-19`).
-  if (!pre && state.delivered.has(record)) {
-    // **AND AN OCCURRENCE AFTER THE TWO DECLARED INSTANTS ENDS ANY IN-FLIGHT STATE STANDING FOR IT**:
-    // a marker is put in flight only by an adoption, and this identity's adoption was consumed (or the
-    // write that would have consumed it never arrived), so the marker this occurrence names is the stale
-    // one the NEXT BARE CALLER-MADE WRITE would otherwise draw on (`§2.4` item 9 (e); `§2.7` item 8).
-    // **NOTHING ELSE CHANGES** — no invocation, no ledger, no residue, and the member's return `undefined`.
-    state.withheld.delete(record);
+/// **THE KERNEL REACHES THIS FUNCTION UNDER THE `TERMINAL_ARM` SYMBOL KEY AND NEVER THROUGH A NAMED MEMBER**:
+/// the product's declared twelve own members are unmoved (`§2.4` item 9 (f)), because a symbol-keyed own
+/// property is invisible to `Object.keys` and to `Object.getOwnPropertyNames` (`A117` (D6); `§2.11` clause 9).
+///
+/// **AND THE TWO ACTS IT PERFORMS ARE NOT ADOPTION MACHINERY — THEY ARE `§2.11` CLAUSE 2'S SAVE AND `§2.7`
+/// ITEM `7`'S DELIVERY, EACH DECLARED AT ITS OWN HOME AND EACH WHICH THE REMOVAL LEAVES STANDING:**
+///
+/// * **THE `file`-TIER SAVE, FIRST, BEFORE ANY BODY OF THE DELIVERED SET IS INVOKED** (`§2.11` clause 2:
+///   *"THE ACT IS THE FIRST THING THAT ARM DOES, before any body of the delivered set is invoked"*). **IT IS
+///   GATED BY THE KERNEL'S OWN MARK AND BY NOTHING ELSE** — `record[SETTLED_ON_THE_PASSING_ARM] === true`,
+///   which is `A117` (D6)'s fact told under a symbol key and NOT `settle`'s signal (`§2.4` item 9's
+///   adoption-machinery clause, item `(v)`: *"IT SURVIVES, AND FOR A REASON THAT IS NOT LOYALTY TO A REMOVED
+///   MEMBER"*). **A FAILED SAVE SETS `SAVE_FAILED_AT_THE_TERMINAL_ARM` ON THE VERY RECORD AND RETHROWS**
+///   (`§2.11` clause 9; the kernel's catch reads that mark and nothing else).
+/// * **THE RESIDUE'S DELIVERY** (`§2.7` item 7 (a)): the handle set standing in `record.pending` at this
+///   instant — the whole triggered set MINUS what the pass checked off, MINUS the failing write's own set —
+///   **PLUS the checked-off identities the kernel published under `CHECKED_OFF`**, each resolved through THIS
+///   instance's registry, each invoked ONCE with the TRIGGERING ADDRESS as its single argument (`PAR-JS-12`).
+///   **AN EMPTY RESIDUE IS A NO-OP AND NOT A FAILURE** (item 7 (c)), and a handle with no registered function
+///   fires NOTHING SILENTLY (`§2.4` rule 1).
+///
+/// **NO ADOPTION, NO LEDGER, NO WITHHOLD AND NO DELIVERED MARK IS TOUCHED HERE** — those four structures are
+/// gone with `settle` — **and `CommitRecord.pending` is READ and never owned** (`§2.4` item 9's
+/// adoption-machinery clause, item `(vi)`: the record keeps its `FOUR` members).
+function terminalArm(state, record) {
+  // **THE CLASS TEST COMES FIRST AND IS THE ONE THE FIFTH POSITION ALREADY TAKES** (`§2.4` item 9 (g) item 1
+  // read with `§2.20`): a value carrying no `pending` is no record position, and this channel is the kernel's
+  // own — a caller never reaches it. Nothing is changed by a refused value.
+  if (record === null || typeof record !== 'object' || types.isProxy(record) || record.pending === undefined) {
     return undefined;
   }
-  if (!pre) {
-    if (record.pending === undefined) {
-      throw withEmptyLog(new TypeError(
-        `settle's argument is ${classSpelling(record)}, and the ordering seam takes a record identity this instance adopted`,
-      ));
-    }
-    // INSTANT (a): the adoption. The ledger entry stands EMPTY until the verb answers, so the write that
-    // drains it is the one write identity this adoption is for.
-    state.adopted.add(record);
-    state.answered.set(record, null);
-    // **AND THE IDENTITY IS THE WRITE IN FLIGHT FROM THIS INSTANT** (`§2.4` item 9's table row (a):
-    // *"ADOPTS that identity as a kernel-driven write in flight AND WITHHOLDS the package's own delivery
-    // for it"*): the two structures above carry the LEDGER, and `withheld` is the WITHHOLD ITSELF — the
-    // marker the write verb reads (`:1450`) to know that the delivery of THIS write is not made in its own
-    // window. **BOTH HALVES OF INSTANT (a) ARE TAKEN AT THIS ONE SITE OR NEITHER IS**: without it the
-    // write delivers in-window and the terminal arm's `settle` finds no marker to end. **IT IS SET HERE AND
-    // NOT AT THE VERB, BECAUSE THE SEAM IS CALLED BEFORE THE VERB IS REACHED** (`A116` (D1)).
-    state.withheld.add(record);
-    return undefined;
-  }
-  // **⟶ THE TERMINAL ARM'S OWN ACT, 2026-10-15** (`surface.md §2.11` clause 2; `contract.md §7.2` item 2 as
-  // amended): **on the PASSING arm of a `file`-tier write, the arm PERFORMS THE STORE'S `commit_file` AS
-  // ITS FIRST ACT — BEFORE ANY BODY OF THE DELIVERED SET IS INVOKED** (clause 3 (ii): *"no body before the
-  // save"*; the delivery's one invocation site is `deliver`, below). **Its key is THE SETTLED RECORD'S OWN
-  // `op`** — *"the record the kernel settled carries the journal op that write returned, and that op is the
-  // key this act reads"* — and it is the FIRST THING this arm does, so an arm whose pass FAILED drives no
-  // save and no store call of the write's own at all (clause 1: the lift's scope is the passing arm alone).
-  // **THE ARM IS READ OFF THE MARK THE KERNEL SETS ON ITS PASSING ARM AND OFF NOTHING ELSE**: a `file`-tier
-  // write whose pass failed reaches this same instant, and the act is NOT ITS.
-  //
-  // **A FAILED SAVE IS ANSWERED HERE AND ITS THROW TRAVELS OUT OF THE ARM**: the STORE has already rolled
-  // the write back (`§8.1` #15; clause 5: ROLLBACK FIRST, MESSAGE SECOND) and no body of the delivered set
-  // is reached.
-  //
-  // **⟶ AND THE KERNEL'S OWN HALF OF THIS CELL IS TOLD, ON THE IDENTITY IT HOLDS, 2026-10-15** (`§2.11`
-  // clause 5; `kernel-surface.md §2.1` items 3–5; `fail-surface.md §1.1` item 3): **THE SAVE IS A CONSTRAINT
-  // EVALUATED LAST, AND THE PASS REPORTS ITS FAILURE AS IT REPORTS ANY OTHER** — so the failed save's own
-  // log gains the `outcome` entry, the closed record is the terminal answer and the report carries the
-  // rollback that happened. **THE FAILURE'S OWN CHANNEL IS NOT MOVED BY THIS MARK**: the store's verb
-  // produced it, so its two-member form reaches the caller UNCHANGED (`§1.2` item 2) and NO `log` member and
-  // NO THIRD MEMBER IS ADDED HERE. The mark carries THE VERY THROWABLE — one identity, not a copy — so the
-  // kernel's own catch reads the arm and NOTHING ELSE, and a body of the delivered set that throws (which
-  // this arm never reaches: the throw above leaves the arm first) is never mistaken for the save.
+  // ── `§2.11` CLAUSE 2: THE TERMINAL ARM'S FIRST ACT, ON THE PASSING ARM AND THE `file` TIER ALONE ─────────
+  // **THE ARM IS READ OFF THE KERNEL'S MARK AND OFF NOTHING ELSE**: a `file`-tier write whose pass FAILED
+  // arrives here with its record in hand and drives NO save and NO store call of its own (`§2.11` clause 1).
+  const answer = state.leg;
   if (
     record[SETTLED_ON_THE_PASSING_ARM] === true
-    && written !== null
-    && written.op !== null
-    && written.op !== undefined
-    && written.op.tier === 'file'
+    && answer !== null
+    && answer !== undefined
+    && answer.op !== null
+    && answer.op !== undefined
+    && answer.op.tier === 'file'
   ) {
     try {
-      call(state, 'commitFile', [encodeOpId(written.op.opId)]);
+      call(state, 'commitFile', [encodeOpId(answer.op.opId)]);
     } catch (saveFailure) {
+      // **THE FAILURE CARRIES THE VERY THROWABLE AND ITS OWN MARK** (`§2.11` clause 9): the kernel's catch
+      // reads `SAVE_FAILED_AT_THE_TERMINAL_ARM` to tell a failed save from a body of the delivered set that
+      // threw, and the store's own two-member form crosses UNCHANGED (`§1.2` item 2).
       record[SAVE_FAILED_AT_THE_TERMINAL_ARM] = saveFailure;
       throw saveFailure;
     }
   }
-  // **THE RESIDUE IS READ OFF THE ADOPTED IDENTITY** (`§2.4` item 9 (b)): the write's own record and the
-  // adopted one are ONE WRITE AND ONE RESIDUE — `K-2` fills the member it built from the very set its own
-  // verb returned (`record.pending = written.triggered.slice()`), and it is THAT member the pass checks each
-  // entry off in as it passes (`releasePending`), so the adopted identity is the record whose `pending`
-  // holds the residue AT THIS INSTANT and the write's own record is the identity that was put in flight.
-  // **A SECOND CALL FOR THAT IDENTITY IS THE DELIVERY, WHATEVER THE LEDGER ENTRY HOLDS** (`§2.4` item 9's
-  // table row (b): *"the SECOND call for that identity IS the delivery"* — the ONE clause that decides
-  // this instant; `PAR-JS-19`'s domain cell). **THE EARLY RETURN THIS SITE ONCE SHIPPED — `if
-  // (state.answered.get(record) === null) return undefined;` — WAS A CONSTRUCTION-ORDER DISCRIMINATOR
-  // AND NOT THE CLAUSE'S READING: it asked whether the write verb had answered YET, left the marker
-  // standing, and reached this seam's SECOND call as a no-op.** **A CALLER THAT MADE INSTANT (a)'s CALL
-  // ITSELF — an identity whose write never ran (`§2.4` item 9 (a): *"the RECORD POSITIONS … AND NEVER AN
-  // IDENTITY'S ADOPTION HISTORY"*) — therefore left an adopted identity standing for a write no act
-  // issued, and THE NEXT BARE CALLER-MADE WRITE DREW ON IT: that write's marker was consumed by an
-  // identity that was not its own, its own post-verb window was withheld, and `§2.7` item 8's instant
-  // MOVED for a write the kernel never issued.** **THE DECLARED READING OF THIS CALL IS THE DELIVERY OF
-  // THE IDENTITY'S OWN RESIDUE — the member the RECORD carries at THIS instant** (`§2.4` item 9 (c):
-  // *"A TERMINAL ARM WHOSE RESIDUE CARRIES NO REGISTERED FUNCTION IS A SILENT NO-OP … this member's
-  // return still `undefined`"*) — **AND IT ENDS THE IN-FLIGHT STATE IT TOOK**: the ledger entry goes with
-  // it, so the identity is left adopted by NO write.
-  state.adopted.delete(record);
-  // **AND THE IDENTITY LEAVES `withheld` HERE, WHATEVER THE LEDGER ENTRY HOLDS** (`§2.4` item 9's table
-  // row (b): the delivery *"ends the in-flight state"*, and a second call reaching a write whose verb has
-  // not answered ends it too). **A MARKER THIS CALL LEAVES STANDING IS THE ONE THE NEXT BARE CALLER-MADE
-  // WRITE DRAWS ON** (`§2.4` item 9 (e); `§2.7` item 8) — its window withheld for an act the kernel never
-  // issued — and the identity that marker was taken for is the one this call names.
-  state.withheld.delete(record);
-  // INSTANT (b): the identity leaves the in-flight set and the residue it carries is delivered.
-  state.answered.delete(record);
-  state.withheld.delete(written);
-  // **AND AN IDENTITY'S DELIVERY IS COUNTED WHERE IT HAPPENS, SO THE OCCURRENCES AFTER IT ARE READ AS
-  // NEITHER AN ADOPTION NOR A DELIVERY** (`§2.4` item 9: THE FIRST CALL IS THE ADOPTION AND THE SECOND IS
-  // THE DELIVERY — *"there is NO second adoption"*). **AN EMPTY RESIDUE MARKS NOTHING** (`ck_neg_dm_07_*`
-  // route (i): a caller's first call takes an identity whose `pending` is empty, and its LATER call is
-  // still the delivery that ends it, carrying nothing): the mark is taken by the write's own consumption
-  // of its adoption below (`:1456`), which is the one place both the adopted identity and THE IDENTITY THE
-  // WRITE RETURNED are in hand.
-  // THE DELIVERY THIS CALL MAKES IS STILL THE CLAUSE'S DELIVERY WHATEVER THE LEDGER ENTRY HOLDS.
-  // **THE RESIDUE IS THE MEMBER'S OWN VALUE AT THIS INSTANT** (`§2.7` item 7 (a): *"the handle set that
-  // stands in `CommitRecord.pending` at that instant"*), and each member is the SAME opaque identity this
-  // instance wraps its token as (`§2.3` item 1: handle identity is token equality alone; `§2.4` item 6
-  // (b): the registry's lookup is by THAT identity and by nothing else). **A MEMBER THIS INSTANCE HOLDS
-  // NO HANDLE FOR — the identity a FOREIGN instance minted — is not a member of this registry's key set
-  // and fires nothing silently** (`§2.4` rule 1): this seam writes no entry and mints no identity, so
-  // such a member is passed to `deliver` as it stands and matches no function there.
+  // ── `§2.7` ITEM 7 (a): THE DELIVERED SET — THE RESIDUE PLUS THE CHECKED-OFF IDENTITIES ──────────────────
+  // **THE RESIDUE IS THE MEMBER'S OWN VALUE AT THIS INSTANT** (`§2.7` item 7 (a)): the residue's members are
+  // THIS instance's own opaque handles, and one it holds no handle for fires nothing silently (`§2.4` rule 1).
   const triggered = Array.isArray(record.pending) ? record.pending.slice() : [];
-  // **⟶ AND BESIDE THE RESIDUE, THE IDENTITIES THE PASS CHECKED OFF WHOSE OWED FIRING STANDS**
-  // (`docs/decisions.md` · `A117` (D5); `surface.md §2.7` item 7's keying of 2026-10-15 and its sub-item
-  // (a)). **THE CHECK-OFF CONSUMES THE EVALUATED PAIR'S OWN DELIVERY OF THAT IDENTITY, NOT THAT
-  // IDENTITY'S WHOLE OWED DELIVERY**: the carrier has ONE entry per address, and the entry's own owed
-  // firings are not counted in `pending` — they are counted where the owed firings live, THIS REGISTRY.
-  // So an identity whose pair the pass evaluated and checked off is NOT an identity with no owed firing,
-  // and where this registry still holds a function for it the terminal arm delivers it ONCE, exactly as
-  // the residue's own members are delivered (`§2.7` item 6 — the other listeners are reached ONCE every
-  // constraint has passed — read with `§2.4` item 8 (c) AS CORRECTED 2026-10-15: *"the app's registration
-  // at a pair-adopted address IS OWED ITS FIRING AFTER THE PASS"*).
-  //
-  // **THIS IS NOT A SECOND CHANNEL**: the resolution is the SAME ONE the residue is delivered by — this
-  // registry's lookup by the identity alone — and it is the resolution that DECIDES the arm, so an
-  // identity the registry holds no function for fires NOTHING SILENTLY, exactly as a residue member with
-  // no function does (`§2.4` rule 1; item 9 (c)). **NO MEMBER IS ADDED ANYWHERE** (`A117` (D6)): the
-  // finding is the kernel's own, carried on the record under a SYMBOL key, and `record.pending` — the
-  // member the residue's own assertions read — stands EXACTLY as the check-off left it (the returned set
-  // minus the checked-off entries and minus nothing else). **AND ON A FAILING WRITE NOTHING IS
-  // DELIVERED**: the kernel publishes no such list on that arm, and its residue stands empty by the
-  // discard (`§2.7` item 7 (d); `A114` (D1)/(D2)).
+  // **BESIDE IT, THE IDENTITIES THE PASS CHECKED OFF WHOSE OWED FIRING STANDS** (`docs/decisions.md` · `A117`
+  // (D5); `§2.7` item 7 (a)'s keying of 2026-10-15): **the check-off consumes the EVALUATED PAIR'S OWN
+  // delivery of that identity and never that identity's WHOLE owed delivery** — the app's registration at a
+  // pair-adopted address is OWED ITS FIRING AFTER THE PASS (`§2.4` item 8 (c) as corrected 2026-10-15), so an
+  // identity whose pair the pass evaluated is NOT an identity with no owed firing, and where this registry
+  // still holds a function for it this arm delivers it ONCE, exactly as the residue's own members are.
+  // **NO MEMBER IS ADDED** (`A117` (D6)): the kernel's finding travels under a SYMBOL key and
+  // `record.pending` stands exactly as the check-off left it.
   const checkedOff = record[CHECKED_OFF];
   if (Array.isArray(checkedOff)) {
     for (const handle of checkedOff) {
       if (!triggered.includes(handle)) triggered.push(handle);
     }
   }
-  // **THE INVOCATION'S ONE ARGUMENT IS THE TRIGGERING ADDRESS** (`§2.7` item 5): the address the
-  // trigger's own op landed at, read off the op the record carries — the OP's address and never the
-  // registration's watch address (`kernel-surface.md §2.1` item 2 (ii)).
-  // **A SECOND CALL ARRIVING BEFORE THE WRITE VERB HAS ANSWERED CARRIES NO OP, AND ITS ADDRESS IS
-  // `undefined` BESIDE IT** (`written` is the ledger entry and it stands EMPTY at instant (a)): the record
-  // carries no op yet, and `§2.7` item 5's argument is the OP's own address or nothing.
-  const triggeringAddress = written === null || written.op === null || written.op === undefined
+  // **THE INVOCATION'S ONE ARGUMENT IS THE TRIGGERING ADDRESS** (`§2.7` item 5): the OP's OWN address and
+  // never the registration's watch address (`kernel-surface.md §2.1` item 2 (ii)).
+  const triggeringAddress = answer === null || answer === undefined || answer.op === null || answer.op === undefined
     ? undefined
-    : written.op.address;
-  // `deliver` is THE SAME loop the post-verb window uses (`§2.4` rules 1–3 read once, at both instants):
-  // ONE invocation per DISTINCT handle, and a handle with no registered function fires nothing silently.
+    : answer.op.address;
+  // `deliver` is THE SAME loop the post-verb window uses (`§2.4` rules 1–3 read once, at both instants): ONE
+  // invocation per DISTINCT handle, and a handle with no registered function fires nothing silently.
   deliver(state, triggered, triggeringAddress);
   return undefined;
 }
+
+/// **⟶ THE ORDERING SEAM IS REMOVED WHOLE, 2026-10-18 — `settle(record)` IS NOT A MEMBER OF THIS PRODUCT.
+/// THIS SITE CARRIES THE POINTER AND NO BYTES OF THE FUNCTION THAT STOOD HERE** (`surface.md §2.4` item 9
+/// (the `REMOVED-WHOLE` pointer of that date, whose own words are *"NO DRIVE MAY ASSERT A CALL OF `settle`
+/// FROM THIS DATE, ON ANY INSTANCE, FOR ANY ARGUMENT"*) read with that item's adoption-machinery clause,
+/// which reconciles the machinery this function carried.
+///
+/// **THE ARCHITECT'S RULINGS, VERBATIM AND DATED 2026-10-18: *"Settle is redundant because the kernel is
+/// always in the loop."* · *"Always route to the kernel, because the JS code does not decide whether
+/// constraints trigger."* · *"The kernel is always supposed to be in the middle. Any occasion where the
+/// write path is not governed by the kernel is a hallucination."***
+///
+/// **WHAT WENT WITH IT, NAMED SO NOTHING IS DISPOSED OF BY SILENCE:** the ADOPTION (an identity put in
+/// flight at instant (a) and withheld from the write that would claim it), the LEDGER (the identity the
+/// verb answered with), the DELIVERED MARK (a first-versus-second call discriminator) and the WITHHOLD set —
+/// the four structures the three rulings leave with nothing to hold, because ONE ACTOR drives every write and
+/// there is nothing to marshal. **THIS IS WHERE THE DOWNSTREAM `DEF-D` DEFECT LIVED** (an abandoned adoption
+/// consumed by the next unrelated write), and its SUBSTRATE is what the removal takes rather than its symptom.
+///
+/// **AND WHAT THE FUNCTION ALSO CARRIED IS NOT LOST WITH IT, WHICH IS THE ONE THING THAT MUST BE SAID HERE
+/// RATHER THAN LEFT TO A READER: THE TERMINAL ARM'S `file`-TIER SAVE AND THE RESIDUE'S DELIVERY.** Both are
+/// `§2.11` clause 2's and `§2.7` item `7`'s own acts and both are declared at those homes — **and this entry
+/// still performs them, at the one site that owes them:** the kernel's `runAttempt` reaches this instance's
+/// own delivery through `deliver` (the same loop the post-verb window uses), and the passing arm's save is
+/// gated by `SETTLED_ON_THE_PASSING_ARM`, which SURVIVES this removal on its own fact — it is `A117` (D6)'s
+/// kernel-told symbol and `§2.11` clause 2's save gate, and it is NOT adoption machinery
+/// (`§2.4` item 9's adoption-machinery clause, item `(v)`: *"IT SURVIVES, AND FOR A REASON THAT IS NOT
+/// LOYALTY TO A REMOVED MEMBER"*). `CommitRecord.pending` ALSO SURVIVES, at `FOUR` members (item `(vi)`):
+/// the adoption system CONSUMED it and did not OWN it, and `§2.7` item 7 (a) still reads the delivered
+/// residue off it.
 
 // ---------------------------------------------------------------------------------------------
 // THE TWO NEW INSTANCE MEMBERS — `surface.md §2.4` ITEM 7, READ AT ITS OWN BYTES, AND `§2.1`'s DATED

@@ -15,24 +15,34 @@
 // `readLiteral(address, tier?)` · `write(address, tier, value, commit?)` · `delete(address, tier?)` ·
 // `rollback(opId)` · `listen(address)` · `unlisten(handle)` · `addConstraint(pair, constraint)` ·
 // `constraintOn(pair, constraint)` · `constraintOff(pair, constraint)`, **PLUS `register(handle, listener)
-// -> undefined` and `settle(record) -> undefined`** — the last being THE ORDERING SEAM the kernel calls and
-// the entry implements; and (3) the failure surface, a thrown plain object with exactly
+// -> undefined` AND `constraints() -> ConstraintPair[]`** — the two remaining singles, the first being the
+// listener registration and the second the registered-pair read; **`settle(record) -> undefined` STOOD HERE
+// AS THE ORDERING SEAM AND IS REMOVED WHOLE** (the clause below carries the mark and the ruling); and (3) the
+// failure surface, a thrown plain object with exactly
 // `{status, message, log}` — **THREE MEMBERS FROM 2026-10-16, `2 → 3`, on the architect's ruling *"Bubble
 // the message log to the client on failure, override any clauses that forbid this."*** (`surface.md §2.5`'s
 // clause of that date, the crossing form's ONE home; **the ONE figure that moves is the arity, and
 // `storeCreate` remains the namespace's one name and the product its twelve own members**).
 //
-// **⟶ AND THE MEMBER-SET FIGURE ABOVE IS SUPERSEDED AND IS READ THROUGH THIS CLAUSE, 2026-10-17: THE
-// OPERATIVE SET IS THIRTEEN OWN MEMBERS, `10 + 1 + 1 + 1 = 13` ✓, THE THIRTEENTH BEING `constraints()`** —
-// the registered-pair read, declared at `surface.md §2.4` item 9 (f)'s `constraints` clause of that date and
-// at `§2.12` item 2-bis, on the architect's ruling verbatim *"Add surface methods for reading registered
-// constraints."* **THE BYTES ABOVE STAND AS THE `A127` PASS'S READING (`DEF-2026-10-02`: no whole-file
-// rewrite) and every "twelve own members" figure in this file is read through this sentence as THIRTEEN.**
-// **SO A DECLARATION FILE THAT STILL READS TWELVE OWN MEMBERS AFTER THAT DATE IS A FINDING** (`surface.md
-// §2.4` item 9 (f)'s item 10, which names the declaration file among the cells that go red; item 13; its own
-// mark at `§2.9` item 1). **THE TWO ROUTES THAT WOULD HAVE MOVED THE SET EARLIER ARE STILL REFUSED BY NAME
-// AND THIS ONE IS NOT ONE OF THEM** (`§2.5`'s clause of 2026-10-16: a `constraintLog(commit)` reader and a
-// second module-namespace name) — and the second `1` above is `settle`, the third `1` being `constraints`.
+// **⟶ AND THE MEMBER-SET FIGURE ABOVE IS SUPERSEDED AND IS READ THROUGH THIS CLAUSE, 2026-10-18: THE
+// OPERATIVE SET IS TWELVE OWN MEMBERS, `10 + 1 + 1 = 12` ✓ — THE TEN METHODS, `register` AND `constraints`** —
+// declared at `surface.md §2.4` item 9 (f)'s clause of that date, which moves the set `13 → 12` on the
+// architect's rulings of 2026-10-18, VERBATIM: *"Settle is redundant because the kernel is always in the
+// loop."* · *"Always route to the kernel, because the JS code does not decide whether constraints trigger."* ·
+// *"The kernel is always supposed to be in the middle. Any occasion where the write path is not governed by
+// the kernel is a hallucination."* **`settle` IS THE MEMBER THAT LEAVES AND NO OTHER MEMBER MOVES WITH IT**
+// (`§2.4` item 9's `REMOVED-WHOLE` pointer of the same date, whose own words are *"NO DRIVE MAY ASSERT A CALL
+// OF `settle` FROM THIS DATE, ON ANY INSTANCE, FOR ANY ARGUMENT"*). **THE TWO REMAINING SINGLES ARE `register`
+// AND `constraints`, AND THEY ARE NAMED BECAUSE A LONE `+1` WOULD NOT COMPUTE.** **SO A DECLARATION FILE THAT
+// STILL DECLARES A `settle(record) -> undefined` MEMBER AT ANY POSITION, OR THAT READS THIRTEEN OWN MEMBERS,
+// AFTER THIS DATE IS A FINDING BY THAT CLAUSE'S OWN WORDS** (`surface.md §2.4` item 9 (f)'s clause of
+// 2026-10-18, item 4: *"a declaration file that still reads THIRTEEN own members, or that declares a
+// `settle(record) -> undefined` member at any position, after this date is a FINDING"*). **THE BYTES ABOVE
+// STAND AS THE `A127` PASS'S READING (`DEF-2026-10-02`: no whole-file rewrite) and every "twelve own members"
+// figure in this file is read through the 2026-10-17 thirteen-mark and through THIS clause as TWELVE AGAIN,
+// with the thirteen being the 2026-10-17 reading and not the operative one.** **THE TWO ROUTES THAT WOULD
+// HAVE MOVED THE SET EARLIER ARE STILL REFUSED BY NAME AND NEITHER IS ONE OF THESE** (`§2.5`'s clause of
+// 2026-10-16: a `constraintLog(commit)` reader and a second module-namespace name).
 //
 // **THE TEN METHODS TAKE THE RECEIVER'S OWN POSITION AWAY: `8 → 1` ✓ AND `4 → 12` ✓** (`surface.md §2.9`
 // item 1's and `§2.4` item 9 (f)'s `A127` clauses). The seven verbs that reach the store are METHODS of the
@@ -49,16 +59,22 @@
 // them is a STORE type**: no register, no anchor, no tier tree, no journal and no store verb is declared
 // here (`§5.2` item 4).
 //
-// **AND TWO MORE SHAPES STAND BESIDE THOSE ELEVEN WITHOUT A BYTE OF EITHER BEING MINTED HERE, BECAUSE
-// `settle`'s ONE ARGUMENT POSITION IS THE KERNEL'S OWN RECORD AND NOT THIS PACKAGE'S** (`§2.4` item 9
+// **AND TWO MORE SHAPES STAND BESIDE THOSE ELEVEN WITHOUT A BYTE OF EITHER BEING MINTED HERE, BECAUSE THE
+// WRITE'S COMMIT POSITION IS THE KERNEL'S OWN RECORD AND NOT THIS PACKAGE'S** (`§2.4` item 9
 // (f)'s *"each with its argument types"* read with its *"no `pending`-shaped record type this unit does
 // not declare"*): **`AttemptRef` (`1` member) and `CommitRecord` (`4` members — `attempt` · `op` ·
 // `triggered` · `pending`) are THE KERNEL'S OWN NAMED SHAPES, DECLARED BY THE KERNEL AND NOT BY THIS
 // UNIT** (`kernel-surface.md §1` item 4's closed record enumeration; its `§2.1` item 2 for the record's
-// four members; `attempt-lifecycle.md §2.4` item 1 for the one-member `AttemptRef`) — so the seam's
-// argument carries its own `pending` member and this file MINTS NO RECORD TYPE OF ITS OWN to carry it.
+// four members; `attempt-lifecycle.md §2.4` item 1 for the one-member `AttemptRef`) — so the record position
+// carries its own `pending` member and this file MINTS NO RECORD TYPE OF ITS OWN to carry it.
 // **`AttemptRef` and `CommitRecord` are therefore not STORE types either, and not store records**: they
-// are kernel-side shapes the instance's `settle` member takes, cited from their own unit's declaration.
+// are kernel-side shapes, cited from their own unit's declaration.
+// **⟶ AND THE POSITION THEY ARE CITED FOR MOVED WITH `settle`'s REMOVAL, 2026-10-18**: `settle`'s own
+// argument is gone with the member, and these two shapes now stand here for the ONE position that still
+// reads a `CommitRecord` — the `commit` argument of `write` (`§2.4` item 9 (g) item 1's class test, the
+// record position `A120` (1) admits). **THE SHAPES THEMSELVES ARE UNMOVED AND `CommitRecord` KEEPS ITS
+// `FOUR` MEMBERS, `pending` AMONG THEM** (`§2.4` item 9's adoption-machinery clause of that date, item
+// `(vi)`: *"THE ADOPTION SYSTEM CONSUMED IT AND DID NOT OWN IT"*).
 //
 // **AND THE ONE THING THIS DECLARATION MUST NOT CARRY, STATED SO THE FINDING RULE IS CHECKABLE**
 // (`distribution.md §5.2` item 4): **it declares NO store type, NO store verb, NO `findAddress`, NO
@@ -327,8 +343,11 @@ export interface RollbackRecord {
  * it as a named kernel-side shape).
  *
  * **IT IS DECLARED HERE FOR ONE POSITION AND NO OTHER**: the `attempt` member of the `CommitRecord` the
- * instance's `settle` member takes (`§2.4` item 9 (f)'s *"each with its argument types"*). **No verb of
- * this entry answers with it and this package mints it nowhere.**
+ * `write` member's `commit` position takes (`§2.4` item 9 (f)'s *"each with its argument types"* read
+ * with item 9 (g) item 1's record-position class test). **⟶ THE POSITION IT IS CITED FOR MOVED WITH
+ * `settle`'s REMOVAL, 2026-10-18**: that member's argument is gone with the member, and the ONE position
+ * that still reads a `CommitRecord` is the `commit` argument above. **No verb of this entry answers with it
+ * and this package mints it nowhere.**
  */
 export interface AttemptRef {
   /** The attempt's identity: a non-empty, kernel-unique token. */
@@ -336,8 +355,11 @@ export interface AttemptRef {
 }
 
 /**
- * **THE ORDERING SEAM'S ONE ARGUMENT — THE KERNEL'S OWN `{ attempt, op, triggered, pending }` RECORD, AND
- * NOT THE STORE'S `WriteRecord`** (`kernel-surface.md §2.1` item 2's return-shape block: *"`CommitRecord`,
+ * **THE WRITE'S COMMIT POSITION IS THIS RECORD — THE KERNEL'S OWN `{ attempt, op, triggered, pending }`, AND
+ * NOT THE STORE'S `WriteRecord`** (**⟶ RE-SPELLED 2026-10-18: this block read *"THE ORDERING SEAM'S ONE
+ * ARGUMENT"*, and the seam `settle` is REMOVED WHOLE from the product — the BYTES stand and are read through
+ * this clause; THE SHAPE IS UNMOVED and takes the ONE position that still reads it, the `write` member's
+ * `commit` argument) (`kernel-surface.md §2.1` item 2's return-shape block: *"`CommitRecord`,
  * a record with exactly FOUR members, the FOURTH added at the `A108` landing pass of 2026-10-13"*; its
  * `§1` item 4 counts it among the kernel's own named shapes).
  *
@@ -373,8 +395,8 @@ export interface CommitRecord {
 }
 
 /**
- * **THE INSTANCE `storeCreate` RETURNS — THE TWELVE OWN MEMBERS OF `surface.md §2.4` item 9 (f)'s `A127`
- * clause, `10 + 1 + 1 = 12` ✓: THE TEN METHODS, `register` AND `settle`.** Each is reached through the
+ * **THE INSTANCE `storeCreate` RETURNS — THE TWELVE OWN MEMBERS OF `surface.md §2.4` item 9 (f)'s clause of
+ * 2026-10-18, `10 + 1 + 1 = 12` ✓: THE TEN METHODS, `register` AND `constraints`.** Each is reached through the
  * factory's own product alone (`package.md §1.3` item 3) — **NO member below is a named export**, because
  * the module namespace carries ONE name, `storeCreate` (`§2.9` item 1's `A127` clause; `11 → 1` ✓).
  *
@@ -387,9 +409,10 @@ export interface CommitRecord {
  *
  * **THE STATE IS PRIVATE AND NONE OF THE TWELVE IS A RELEASE VERB** (`surface.md §2.1` (e) item 1; `A74`):
  * the instance's own state is released with the instance and by nothing else — no `dispose()`, no `close()`
- * and no finalizer is declared here. **⟶ AND `"THE TWELVE"` READS AS `THIRTEEN` FROM 2026-10-17, the
- * thirteenth being `constraints()`** (this interface's own clause for it below; the file's header carries the
- * member-set mark and the two still-refused routes).
+ * and no finalizer is declared here. **⟶ AND `"THE TWELVE"` IS THE OPERATIVE FIGURE FROM 2026-10-18: the
+ * set read THIRTEEN from 2026-10-17 to that date, and `settle`'s removal brings it BACK TO TWELVE — the ten
+ * methods, `register` and `constraints`** (this interface's own clause for the last one below; the file's
+ * header carries the member-set mark, the architect's rulings and the two still-refused routes).
  */
 export interface StoreInstance {
   /**
@@ -513,63 +536,18 @@ export interface StoreInstance {
   /** Register `listener` under the opaque `handle`, and answer `undefined` (`surface.md §2.4` item 5 (b)). */
   register(handle: Handle, listener: Listener): void;
   /**
-   * **THE ORDERING SEAM — `settle(record) -> undefined`** (`surface.md §2.4` item 9; `A116` (D1)–(D2);
-   * `PAR-JS-19`): the one member THE KERNEL CALLS and the entry implements, at the two instants of a
-   * kernel-driven write — **the adoption at the first call for a record identity**, taken before the write
-   * verb (the write in flight is withheld: the in-window invocation set is empty), **and the delivery at
-   * the second call for that identity**, taken at the pass's terminal arm (the residue standing in the
-   * record's own `pending` member is delivered through this instance's own registry, one invocation per
-   * handle, each with the triggering address as its single argument). **Every other form at the record
-   * position — absent, `undefined`, `null`, a primitive, a function, a `Proxy`, an identity this instance
-   * never adopted — throws THE ORDERING SEAM'S OWN `TypeError`, whose `status` member is ABSENT and whose
-   * STRING `message` member is REQUIRED, and changes nothing.**
-   *
-   * **⟶ CORRECTED 2026-10-17 — THIS CELL ATTRIBUTED THAT `TypeError` TO *"the registration site's own"*
-   * FORM AND THAT ATTRIBUTION WAS FALSE** (`DEF-2026-10-16-Q`; `surface.md` §2.5 item 5 (g), the operative
-   * reading of the registration site; `§2.4` item 9 (b), landed 2026-10-15 on `A116` (D1), which re-spells
-   * the re-spelling this position takes). **THE REGISTRATION SITE ANSWERS A PLAIN `{status, message}` with
-   * `status` `AddressMalformed` — a `TypeError` there is a FAILURE** (`register.test.mjs`'s
-   * `isRegistrationRefusal`), and **the seam's own form is declared at `§2.4` item 9 (b) and not at item
-   * 5**: *"a `TypeError` with its `status` member ABSENT and a STRING `message` member REQUIRED AND NOT
-   * FORBIDDEN"* (`§2.5` item 5 (g)'s own record of that re-spelling, whose two dated readings of one
-   * phrase it reports and settles by no clause). **SO THE TWO SITES' FORMS ARE NOT ONE FORM, and this
-   * member's is the seam's.**
-   *
-   * **THE RECORD POSITION TAKES THE KERNEL'S OWN `CommitRecord` — `{ attempt, op, triggered, pending }`,
-   * FOUR MEMBERS — AND NOT THE STORE'S `WriteRecord`** (`surface.md` `§2.4` item 9 (f)'s *"each with its
-   * argument types"* read with item 9's own two-instant table; `PAR-JS-19`'s `supplier` cell; `A116` (D4):
-   * *"the carrier `CommitRecord.pending` and its two removal rules unchanged"*). **THE INSTANTS' OWN TABLE
-   * NAMES IT: the record is *"the `CommitRecord` `commit` is building"* at instant (a) and *"the SAME record
-   * identity"* at instant (b)** (`surface.md` `§2.4` item 9 (a)–(b)). **AND THE STORE'S RECORD IS NOT ONE:
-   * `WriteRecord` above is the three-member `{op, watched, triggered}` the `write` member answers with and
-   * carries NO `pending` member, `PAR-JS-13` is that record's returned `op` field (`parameter-semantics.md
-   * §2.13`) and not the record's own shape, and the kernel's record carries TWO of the store's members
-   * VERBATIM beside its own `attempt` identity and its own `pending` member** (`kernel-surface.md §2.1` item
-   * 2's *"WHAT IT IS NOT"* clause: *"the `CommitRecord` is the KERNEL'S OWN record and is NOT the store's
-   * `WriteResult`"*).
-   *
-   * **`CommitRecord` IS THE KERNEL'S DECLARED SHAPE AND IS NOT MINTED HERE** (`surface.md` `§2.4` item 9
-   * (f) forbids *"a `pending`-shaped record type this unit does not declare"*, and this unit declares none):
-   * the type is declared above with the kernel's own four members and cited from its own unit's declaration
-   * — `kernel-surface.md §1` item 4's closed record enumeration, `§2.1` item 2 for the record, and
-   * `attempt-lifecycle.md §2.4` item 1 for its `AttemptRef` — **and NO named export is added for it or for
-   * `settle`.**
-   *
-   * **It is NOT a named export of this entry** (`package.md §1.3` item 3): it is reached through
-   * `storeCreate`'s own product alone.
-   */
-  settle(record: CommitRecord): void;
-  /**
    * **THE REGISTERED-PAIR READ — `constraints() -> ConstraintPair[]`** (`surface.md §2.4` item 9 (f)'s
    * `constraints` clause of 2026-10-17, items 2–9; `§2.12` item 2-bis; `parameter-semantics.md §2.27` =
-   * `PAR-JS-27`) — **the THIRTEENTH own member** (`10 + 1 + 1 + 1 = 13` ✓, the third `1` being this member),
-   * added on the architect's ruling of that date, verbatim: *"Add surface methods for reading registered
-   * constraints."*
+   * `PAR-JS-27`) — **one of the TWELVE own members, `10 + 1 + 1 = 12` ✓, the SECOND of the two remaining
+   * singles** (`surface.md §2.4` item 9 (f)'s clause of 2026-10-18, `13 → 12`: the ten methods, `register`
+   * and this member, with `settle` the term that left). **AND THIS MEMBER'S OWN SIBLING AMONG THE
+   * NON-STORE-REACHING MEMBERS IS `register` ALONE FROM THAT DATE**: the sentence that read *"beside
+   * `register` and `settle`"* is re-spelled at its own bytes, and this is the operative reading.
    *
    * **THE RECEIVER IS THE STORE, THE CALL TAKES NO ARGUMENT (arity `0`) AND IT THROWS NOTHING**: there is no
    * outside argument for the class test to refuse, and the call makes NO STORE CALL, MINTS NO CODE, APPENDS
    * NO JOURNAL ENTRY AND CHANGES NO NODE — so this member is one of the product's NON-STORE-REACHING members
-   * beside `register` and `settle`, and `§2.4` item 9 (f)'s rule (ii) has no subject at it.
+   * and `§2.4` item 9 (f)'s rule (ii) has no subject at it.
    *
    * **WHAT IS RETURNED, EXACTLY — THE PAIRS AND NOT THE FUNCTIONS:** a **FRESH JS ARRAY on every call**,
    * whose **every element is a FRESH plain object carrying EXACTLY TWO MEMBERS** — `address` (a fresh array of

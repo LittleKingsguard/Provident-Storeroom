@@ -162,13 +162,19 @@ test('round_trip_the_module_carries_one_name_and_the_product_the_twelve_members'
   assert.equal(typeof storeCreate, 'function');
   const inst = instance();
   const twelve = Object.keys(inst).sort();
-  // **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**, the thirteenth
-  // being `constraints()` (`surface.md §2.4` item 9 (f)'s `constraints` clause; `§2.12` item 2-bis).
-  assert.equal(twelve.length, 13,
-    'the product carries THIRTEEN own members — `10 + 1 + 1 + 1 = 13` ✓');
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): `13 → 12`, `10 + 1 + 1 = 12` ✓**, the two remaining
+  // singles being `register` and `constraints` (`surface.md §2.4` item 9 (f)'s clause of that date, item `1`,
+  // read with `§2.4` item 9's `REMOVED-WHOLE` pointer: *"NO DRIVE MAY ASSERT A CALL OF `settle` FROM THIS
+  // DATE, ON ANY INSTANCE, FOR ANY ARGUMENT"*). **The cell's subject — every own member is an own callable and
+  // the property set is METHODS ONLY — is unmoved.**
+  assert.equal(twelve.length, 12,
+    'the product carries TWELVE own members — `10 + 1 + 1 = 12` ✓');
   for (const member of twelve) {
     assert.equal(typeof inst[member], 'function', `"${member}" is an own callable`);
   }
+  assert.ok(!('settle' in inst),
+    '`§2.4` item 9\'s `REMOVED-WHOLE` pointer of 2026-10-18: `settle` is NOT a member of the product, so it is '
+    + 'read here as the NAMED ABSENCE the removal makes and never left to silence');
   assert.ok(!('findAddress' in inst), '`A63`: findAddress is an internal tool and is NOT exposed');
   assert.ok(!('exists' in inst), '`§2.9` item 3: no exists() verb and no binding-side resolver');
   assert.ok(!('dispose' in inst) && !('close' in inst), '`A74`: no release verb at either layer');

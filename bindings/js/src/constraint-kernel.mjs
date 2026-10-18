@@ -132,6 +132,16 @@ const SAVE_FAILED_AT_THE_TERMINAL_ARM = Symbol.for('provident-storeroom.save-fai
 
 /** `fail-surface.md §1.1` — ONE THROWN PLAIN OBJECT, EXACTLY THREE MEMBERS, NEVER AN `Error`. */
 const KERNEL_REFUSAL = Symbol.for('provident-storeroom.kernel-refusal');
+
+/// **⟶ ADDED 2026-10-18 — THE TERMINAL ARM'S CHANNEL, SPELLED ON THIS SIDE TOO** (`docs/specs/storeroom-js/
+/// surface.md §2.7`'s clause of 2026-10-18, item `2`; `§2.4` item 9's `REMOVED-WHOLE` pointer of the
+/// same date). **`settle` WAS THE CHANNEL AND IS NO LONGER A MEMBER OF THE PRODUCT; THE TERMINAL ARM'S ACT
+/// IS STILL THE ENTRY'S TO PERFORM** — `§2.11` clause 2's `file`-tier save and `§2.7` item `7`'s
+/// residue delivery — **so this module reaches it under a `Symbol.for` key, exactly as it reaches the two
+/// record marks above.** **NO KERNEL ITEM IS MINTED** (`§1` item 2: the extent stays FIVE) **and NO MEMBER IS
+/// ADDED** to the product (`§2.4` item 9 (f): TWELVE own members, *"AND NOTHING ELSE"*): the key is
+/// invisible to `Object.keys` and to `Object.getOwnPropertyNames` (`A117` (D6)).
+const TERMINAL_ARM = Symbol.for('provident-storeroom.terminal-arm');
 function refuse(status, message, log) {
   throw {
     status,
@@ -851,7 +861,10 @@ export function commit(store, address, tier, value) {
     pending: [],
   };
   attempt.record = record;
-  if (typeof store.settle === 'function') store.settle(record);
+  // **⟶ INSTANT (a)'S SEAM CALL IS WITHDRAWN, 2026-10-18** (`docs/specs/storeroom-constraints/kernel-surface.md
+  // §2.1` item 2's clause of that date: *"the call of `settle(record)` THIS ITEM MAKES AT INSTANT (a) … IS
+  // WITHDRAWN"*). **WITH ONE ACTOR THERE IS NOTHING TO WITHHOLD**: the record is built and complete BEFORE the
+  // store's own write verb is reached — THE ORDER that clause protects — and no member is called here.
 
   let written;
   try {
@@ -1060,7 +1073,12 @@ export function runAttempt(store, commitRecord) {
 function settleArm(store, attempt) {
   const record = attempt.record;
   if (record === undefined) return;
-  if (typeof store.settle === 'function') store.settle(record);
+  // **⟶ AND THE SEAM'S INSTANT (b) IS REACHED THROUGH THE `TERMINAL_ARM` CHANNEL, 2026-10-18** (`§2.1` item 3's
+  // clause of that date: *"THE KERNEL CALLS NO SEAM ON EITHER TERMINAL ARM"* — the SEAM `settle` is gone; what
+  // remains is the ENTRY'S OWN ACT at this instant, which `docs/specs/storeroom-js/surface.md §2.7` item `7`
+  // declares and `§2.11` clause 2 keys). **THE ARM STILL OWES ITS DELIVERY AND ITS SAVE, AND THIS IS WHERE IT
+  // IS MADE**: a symbol-keyed channel adds no member and mints no kernel item.
+  if (typeof store[TERMINAL_ARM] === 'function') store[TERMINAL_ARM](record);
 }
 
 /**

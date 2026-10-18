@@ -174,7 +174,11 @@ const api = await import('provident-storeroom');
  * **⟶ RESHAPED 2026-10-16 (`surface.md §2.9` item 1's `A127` CLAUSE and `§2.4` item 9 (f)'s `A127`
  * CLAUSE, both of 2026-10-16; `bindings/js/index.d.ts`).** THE NAMESPACE'S FIGURE IS `11 → 1` ✓ — THE
  * MODULE CARRIES `storeCreate` ALONE — and the OBJECT's member set is the operative TWELVE own members,
- * `10 + 1 + 1 = 12` ✓: the TEN store-reaching METHODS plus `register` and `settle`. The combined
+ * CORRECTION 2026-10-18 (`role_test_writer`): the sentence above is the `A127` pass's reading and its
+ * figure is read THROUGH `§2.4` item 9 (f)'s clause of 2026-10-18 — the operative TWELVE own members are
+ * `10 + 1 + 1 = 12` ✓: the TEN store-reaching METHODS plus the TWO remaining singles `register` and
+ * `constraints`, `settle` being the term that leaves (`13 → 12`) (`§2.4` item 9's `REMOVED-WHOLE` pointer).
+ * The combined
  * `on(address, listener)` is MERGED AWAY — its home entry is minted by `listen` and its function placed by
  * `register` — and the LEADING `instance` POSITION of the three constraint members is DROPPED
  * (`8 → 1` ✓). The figures this file once printed (`ELEVEN`, `EIGHT`, `SEVEN_MEMBERS`, `FOUR_MEMBERS`,
@@ -185,21 +189,28 @@ const ONE = ['storeCreate'];
 const TEN_METHODS = ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read',
   'readLiteral', 'rollback', 'unlisten', 'write'];
 /**
- * **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): THE SET MOVES `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**, on
- * the architect's ruling VERBATIM *"Add surface methods for reading registered constraints."* — the ten
- * methods, `register`, `settle` and the THIRTEENTH, `constraints()` (`docs/specs/storeroom-js/surface.md
- * §2.4` item 9 (f)'s `constraints` clause of that date and `§2.12` item 2-bis; its register row is
- * `PAR-JS-27`). **Every cell below that reads this constant therefore asserts THIRTEEN names, and the
- * constant's own NAME is kept so no citing cell is renamed by a figure.** The superseded
- * `10 + 1 + 1 = 12` reading stands at `§2.4` item 9 (f)'s `A127` clause, read THROUGH the `constraints`
- * clause that marks it.
+ * **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE SET MOVES `13 → 12`, `10 + 1 + 1 = 12` ✓**, on the
+ * architect's ruling VERBATIM *"Settle is redundant because the kernel is always in the loop."* — the ten
+ * methods, plus the TWO remaining singles `register` and `constraints` (`docs/specs/storeroom-js/surface.md
+ * §2.4` item 9 (f)'s clause of that date: *"TWELVE OWN MEMBERS, AND NOTHING ELSE: `10 + 1 + 1 = 12` ✓, the
+ * `10` being the ten methods … the FIRST `1` being `register`, and the SECOND `1` being `constraints`"*), read
+ * through `§2.4` item 9's `REMOVED-WHOLE` pointer over the `settle` seam. **Every cell below that reads this
+ * constant therefore asserts TWELVE names, and the constant's own NAME is kept so no citing cell is renamed
+ * by a figure** — exactly as it was kept when the set moved `12 → 13` on 2026-10-17 and `7 → 12` before that.
+ * The superseded `10 + 1 + 1 + 1 = 13` reading stands at `§2.4` item 9 (f)'s `constraints` clause of
+ * 2026-10-17, read THROUGH the clause of 2026-10-18 that marks it.
  */
 const TWELVE_MEMBERS = ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen',
-  'read', 'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'];
+  'read', 'readLiteral', 'register', 'rollback', 'unlisten', 'write'];
 /** The ONE name the namespace leaves, read beside the ten methods it no longer carries. */
 const EIGHT = ['storeCreate'];
-/** The member the `A127` clause leaves UNMOVED beside the ten methods, sorted. */
-const FOUR_MEMBERS = ['register', 'settle'];
+/**
+ * **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE TWO SINGLES BESIDE THE TEN ARE `register` AND
+ * `constraints`, AND `settle` IS NOT ONE** (`§2.4` item 9 (f)'s clause of 2026-10-18, item `1`: *"TWO SINGLES
+ * REMAIN, AND THEY ARE NAMED, BECAUSE THE ARITHMETIC MUST COMPUTE AND A LONE `+1` WOULD NOT"*). The constant's
+ * NAME is kept; its MEMBERSHIP and the count its citing cell reads both move.
+ */
+const FOUR_MEMBERS = ['register', 'constraints'];
 /** The three constraint members — one subject each, now reached at the OBJECT and at no namespace. */
 const THREE = ['addConstraint', 'constraintOn', 'constraintOff'];
 /** The name the re-derivation DISPLACES, named once so its absence can be read (`§2.9`'s dated clause). */
@@ -313,7 +324,13 @@ test('cp_a126_eleven_named_exports_the_module_namespace_is_the_eleven_declared_n
     + 'is displaced by this clause and by no other, so the count does not accumulate two readings of one '
     + 'route" (`§2.9` item 1\'s dated clause; `A126`)');
   // THE THREE ABSENCES THE SAME ITEM CARRIES, READ SO THE COUNT CANNOT BE SATISFIED BY AN EXTRA NAME.
-  assert.equal(names.includes('settle'), false, '`settle` is NOT a named export');
+  // **⟶ MEASURED AND LEFT UNMOVED 2026-10-18 (`role_test_writer`): this row asserts a NAMESPACE absence and
+  // not a MEMBER, and `settle` was never a module-namespace name — so the removal makes it true for a second,
+  // stronger reason and NO SWEEP MAY FLIP IT** (`§2.4` item 9's `REMOVED-WHOLE` pointer: the member left the
+  // PRODUCT; `§2.9` item 1's `A127` clause: the namespace carried ONE name throughout, `11 → 1` ✓).
+  assert.equal(names.includes('settle'), false,
+    '`settle` is NOT a named export — and from 2026-10-18 it is not a product member either, so the absence '
+    + 'is asserted over both carriers (`§2.4` item 9 (f)\'s clause of that date; `§2.9` item 1\'s `A127` clause)');
   assert.equal(names.includes('findAddress'), false, '`findAddress` is NOT exposed');
   assert.equal(names.includes('on'), false,
     'and neither bare `on` nor bare `off` is a module-namespace name — nor a member of any product at all: '
@@ -325,17 +342,24 @@ test('cp_a126_eleven_named_exports_the_module_namespace_is_the_eleven_declared_n
 test('cp_a126_seven_own_members_the_storecreate_object_carries_seven_own_members', () => {
   // **⟶ RESHAPED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause): THE NUMBER THIS CELL'S OWN NAME
   // CARRIES IS THE `A126` PASS'S READING AND IS SUPERSEDED IN PLACE — the operative declared member set is
-  // THE TWELVE OWN MEMBERS, `10 + 1 + 1 = 12` ✓, the TEN METHODS plus `register` and `settle` — while THE
-  // CELL'S SUBJECT IS UNMOVED: the set is exactly what the clause declares and no name is smuggled in.**
+  // THE TWELVE OWN MEMBERS, `10 + 1 + 1 = 12` ✓, the TEN METHODS plus the TWO remaining singles `register` and
+  // `constraints` — while THE CELL'S SUBJECT IS UNMOVED: the set is exactly what the clause declares and no
+  // name is smuggled in.** **AND THE SET MOVED ONCE MORE, `13 → 12`, 2026-10-18, ON THE RULING THAT `settle`
+  // IS REDUNDANT: the removal takes ONE term and this cell's own `register` limb stands whole beside the new
+  // `constraints` limb (`§2.4` item 9 (f)'s clause of that date, items `1`–`3`).**
   const inst = makeStore();
   assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), TWELVE_MEMBERS,
-    '`§2.4` item 9 (f)\'s `A127` clause of 2026-10-16: the operative declared member set is the TEN '
-    + 'store-reaching methods plus `register`, `settle` and `constraints` — THIRTEEN own members, '
-    + '`10 + 1 + 1 + 1 = 13` (`surface.md §2.4` item 9 (f)\'s `constraints` clause of 2026-10-17)');
-  for (const [label, name] of [['the registration site', 'register'], ['the ordering seam', 'settle']]) {
+    '`§2.4` item 9 (f)\'s clause of 2026-10-18: the operative declared member set is the TEN '
+    + 'store-reaching methods plus the TWO remaining singles `register` and `constraints` — TWELVE own '
+    + 'members, `10 + 1 + 1 = 12` ✓, and `settle` is the term that leaves (`13 → 12`)');
+  for (const [label, name] of [['the registration site', 'register'], ['the registered-constraint read', 'constraints']]) {
     assert.equal(typeof inst[name], 'function', `${label} \`${name}\` is UNMOVED in the same set`);
   }
-  assert.equal(FOUR_MEMBERS.length, 2, 'and the two the clause leaves unmoved beside the ten are exactly those two');
+  assert.equal(Object.getOwnPropertyNames(inst).includes('settle'), false,
+    'and `settle` — the ordering seam the kernel once called — is NOT a member of this product from '
+    + '2026-10-18 (`§2.4` item 9\'s `REMOVED-WHOLE` pointer: *"NO DRIVE MAY ASSERT A CALL OF `settle` FROM '
+    + 'THIS DATE, ON ANY INSTANCE, FOR ANY ARGUMENT"*)');
+  assert.equal(FOUR_MEMBERS.length, 2, 'and the two the clause leaves beside the ten are exactly those two');
   for (const name of TEN_METHODS) {
     assert.equal(typeof inst[name], 'function',
       `and \`${name}\` is an own member of the factory's own product`);
@@ -347,8 +371,8 @@ test('cp_a126_seven_own_members_the_storecreate_object_carries_seven_own_members
       + '(`§2.4` item 9 (f)\'s `A127` clause)');
   }
   assert.equal(Object.getOwnPropertyNames(inst).includes(SUPERSEDED), false,
-    'and the superseded `manageConstraints` is NOT a member of this product either — the set is THIRTEEN '
-    + 'and not THIRTEEN PLUS ONE');
+    'and the superseded `manageConstraints` is NOT a member of this product either — the set is TWELVE '
+    + 'and not TWELVE PLUS ONE');
   for (const name of TEN_METHODS) {
     const descriptor = Object.getOwnPropertyDescriptor(inst, [name][0]);
     assert.ok(descriptor !== undefined && descriptor.enumerable === true,
@@ -878,7 +902,7 @@ test('cp_fail_outside_instance_is_one_typeerror_at_every_value_that_remains_outs
   // THE CALLER'S OWN MEMBER SET AND THE MODULE NAMESPACE STAND BEFORE THE REFUSALS, so a refusal that
   // minted a member or a name would be read at the same cell.
   assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), TWELVE_MEMBERS,
-    'PREMISE: the product carries its THIRTEEN declared own members (`10 + 1 + 1 + 1 = 13`)');
+    'PREMISE: the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`)');
   assert.equal(Object.keys(api).length, 1, 'PREMISE: the module namespace carries its ONE name (`11 → 1`)');
   const OUTSIDE = [
     ['`null`', null], ['`undefined`', undefined], ['a number', 1], ['a string', 'instance'],
@@ -1024,7 +1048,8 @@ test('cp_fail_outside_constraint_is_one_typeerror_at_every_one_of_the_three_func
   }
   assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), TWELVE_MEMBERS,
     'and NOTHING WAS ADDED, ENABLED, DISABLED OR OTHERWISE CHANGED — the pair the refusals named is still '
-    + 'not a pair the entry carries, and the instance stands at its seven declared members');
+    + 'not a pair the entry carries, and the instance stands at its TWELVE declared members '
+    + '(`10 + 1 + 1 = 12`, `§2.4` item 9 (f)\'s clause of 2026-10-18)');
   const back = capture(() => inst.write(thePair.address, 'mem', 1));
   assert.equal(back.threw, false,
     'and the refused third positions left no element at that key: a write there is accepted, so no '

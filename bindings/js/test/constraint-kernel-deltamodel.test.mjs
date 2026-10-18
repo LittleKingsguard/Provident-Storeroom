@@ -1235,11 +1235,61 @@ test('ck_neg_dm_06_the_passing_arms_entry_leaves_by_its_own_checkoff_and_the_dis
 // post-verb instant driven twice in this cell.
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('ck_neg_dm_07_the_stale_adoption_of_a_write_that_never_ran_withholds_the_next_bare_writes_window', async () => {
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+// `NEG-DM-07` — THE UNIFORM WRITE PATH: NO WRITE IS "BARE" ANY MORE, AND NO ADOPTION OUTLIVES ITS WRITE
+//
+// ── ⟶ RE-DERIVED WHOLE, 2026-10-18 (`role_test_writer`). THE CELL THIS LINE HELD DROVE THE **ADOPTION
+//    MACHINERY** AND ITS PREMISE WAS THE **BARE CALLER-MADE WRITE** — AND BOTH SUBJECTS ARE DEAD ON THE
+//    SAME ARCHITECT'S RULINGS, SO THE CELL IS RE-DERIVED AND NOT DELETED, WEAKENED OR SILENTLY DROPPED.
+//    ITS OLD TITLE — `ck_neg_dm_07_the_stale_adoption_of_a_write_that_never_ran_withholds_the_next_bare_
+//    writes_window` — NAMED TWO SUBJECTS THAT NO CLAUSE NOW CARRIES, and each is disposed of here by name:
+//
+//    · **THE ADOPTION MACHINERY IS GONE.** `settle` is `REMOVED-WHOLE` from the declared surface
+//      (`surface.md §2.4` item 9's pointer of 2026-10-18) and the machinery that existed only to serve the
+//      bare write — *"the withhold, the adoption ledger and the delivery-at-instant-(b) marshalling"* — goes
+//      with it (`§2.4` item 9's adoption-machinery clause of that date: *"RULINGS `(2)` AND `(3)` LEAVE ONE
+//      ACTOR: the kernel drives every write … so there is nothing to marshal, and the machinery has no state
+//      to hold"*). **THE `DEFECT` THIS CELL PINNED — an abandoned adoption consumed by the next write — IS
+//      DISPOSED OF WITH ITS SUBSTRATE AND NOT WITH ITS SYMPTOM**, which is what the removal's own clause
+//      claims and what this cell now reads at the boundary.
+//
+//    · **THE BARE-WRITE DISTINCTION IS DEAD.** `§2.4` item 9 (e) carries `SUPERSEDED-WHOLE` dated
+//      2026-10-15 on `RCA-9` (*"EVERY WRITE, WITH OR WITHOUT A SUPPLIED `commit`, OPENS OR JOINS A COMMIT
+//      AND PROCEEDS THROUGH THE FLOW, SO NO WRITE IS A `BARE CALLER-MADE WRITE`"*), and `§2.12` item 1's
+//      clause of 2026-10-18 removes the entry's `carriesConstraintAt` gate so that **the four-position call
+//      enters `K-2` AT EVERY ADDRESS** (`§2.12` item 1's amended clause, items `2` (i)–(iii): *"THE ENTRY'S
+//      `carriesConstraintAt` GATE IS REMOVED … an instance constructed with NO `cfg.constraints` element, and
+//      an instance constructed WITH them at OTHER addresses, each reach the kernel on every four-position
+//      write"*).
+//
+// ── WHAT SURVIVES, AND IT IS WHAT THIS CELL NOW ASSERTS — THREE OBSERVABLES, EACH ITS OWN:
+//    (1) **A WRITE AT AN ADDRESS CARRYING NO PAIR STILL ENTERS THE KERNEL AND STILL DELIVERS ITS LISTENERS
+//        EXACTLY ONCE**, with the triggering address as the single argument — the observable the spec
+//        declares for this state is *"the INVOCATION COUNT of that write's own listeners — not whether the
+//        kernel was consulted"* (`§2.12` item 1's amended clause, item `2` (ii) VERBATIM).
+//    (2) **A `commit` THE STORE REFUSED BEFORE ITS VERB LEAVES NO WRITE AND THEREFORE NO DELIVERY** — the
+//        refusal is the STORE's own on the STORE's own channel (`kernel-surface.md §2.1` item 2), and no
+//        residue exists for any terminal arm to reach. **This route is UNMOVED by the rulings: it never
+//        needed the seam, and its `OWED`/floor disposition is the kernel's own.**
+//    (3) **THE WRITE THAT FOLLOWS A REFUSED `commit` DELIVERS AT THE PASS'S TERMINAL ARM, ONCE** — and it
+//        reaches that delivery as EVERY write now does, through the kernel, not through a bypass
+//        (`§2.7`'s clause of 2026-10-18, item `1`: *"THE DELIVERY OF THAT WRITE'S TRIGGERED HANDLES IS THE
+//        PASS'S TERMINAL ARM's — `§2.7` ITEM 7's INSTANT"*).
+//
+// ── THE SINGLE ACTOR, STATED SO THE CELL CANNOT BE READ AS ASSERTING A BYPASS: the kernel is in the middle
+//    of every write (ruling `(3)`: *"Any occasion where the write path is not governed by the kernel is a
+//    hallucination"*), so NO arm below asserts a delivery reached *outside* the kernel. **WHAT THE COUNT
+//    READS IS THE DELIVERY'S OWN ARITY FROM THE CALLER'S SIDE** (`§2.7` item `7` (a): the delivered set,
+//    each identity ONCE, the triggering address as its single argument), which is the ONE observable both
+//    the old and the new law agree a drive may read.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+
+test('ck_neg_dm_07_every_write_enters_the_kernel_and_delivers_its_listeners_once_including_after_a_refused_commit', async () => {
   const { commit } = await kernel();
 
-  // ── THE CONTROL — `§2.7` ITEM 8'S OWN INSTANT, DRIVEN BEFORE EITHER ROUTE ON A STORE WHOSE ADOPTION
-  //    SET IS EMPTY: this is the reading the two routes below are measured against ──────────────────
+  // ── (1) THE ADDRESS CARRYING NO PAIR — `§2.12` item 1's amended clause, item `2` (ii). THIS ARM IS THE
+  //    ONE THE REMOVED GATE USED TO BYPASS, and its observable is UNCHANGED by the removal: the listener
+  //    body runs ONCE, carrying the triggering address.
   {
     const store = makeStore();
     const address = [tag('dm07c')];
@@ -1247,105 +1297,20 @@ test('ck_neg_dm_07_the_stale_adoption_of_a_write_that_never_ran_withholds_the_ne
     (store.register(store.listen(address), (a) => { calls.push(a); }) || store.listen(address));
     store.write(address, 'mem', 'the control write');
     assert.deepEqual(calls, [address],
-      'CONTROL — A BARE CALLER-MADE WRITE WITH NO ADOPTION STANDING DELIVERS IN ITS OWN WINDOW, ONCE: '
-      + 'the package performs the invocation after the store call has completed and the record has been '
-      + 'copied out (`§2.7` item 2), one invocation per distinct handle (`§2.4` rule 3), carrying THE '
-      + 'TRIGGERING ADDRESS as its ONE argument (`§2.7` item 5) — read '
+      'AN ADDRESS CARRYING NO PAIR STILL DELIVERS ITS LISTENER, ONCE, WITH THE TRIGGERING ADDRESS — '
+      + '`§2.12` item 1\'s amended clause of 2026-10-18, item `2` (ii): the write reaches the kernel at '
+      + 'EVERY address and the kernel\'s pass over an address with no registered pair "evaluates NOTHING '
+      + 'and PASSES, so the write proceeds to the terminal arm\'s delivery exactly as `§2.7` items 6–7 '
+      + 'declare, and the observable a drive reads is the INVOCATION COUNT of that write\'s own listeners '
+      + '— not whether the kernel was consulted". One invocation per distinct handle (`§2.4` rule 3), '
+      + 'carrying the triggering address as its ONE argument (`§2.7` item 5) — read '
       + `${JSON.stringify(calls.length)} call(s). FAIL-STATE DISTINGUISHED: a surface that delivers `
-      + 'nothing at all here, which this cell would then be unable to tell from a withheld window');
+      + 'nothing here, or that delivers twice — the first would be the removed gate still bypassing the '
+      + 'kernel, the second a double delivery `§2.7` item 7 (a) forbids by "each ONCE"');
   }
 
-  // ── ROUTE (i) — THE CALLER'S OWN `settle` CALL, WHOSE FIRST CALL ADOPTS AND WHOSE WRITE NEVER
-  //    FOLLOWS; THE FIRST CALL IS ASSERTED AS THE LAW NOW PRINTS IT AND THE LEAK IS ITS CONSUMPTION ──
-  {
-    const store = makeStore();
-    const address = [tag('dm07a')];
-    const calls = [];
-    (store.register(store.listen(address), (a) => { calls.push(a); }) || store.listen(address));
-    // THE IDENTITY IS A CALLER-MADE OBJECT CARRYING THE FOUR RECORD MEMBERS, AND THE FIRST CALL ON IT
-    // IS ITS ADOPTION — NOT A REFUSAL (`§2.4` item 9 (a) as amended; `PAR-JS-19`'s domain cell).
-    const orphan = { attempt: { id: 'a record no commit issued' }, op: null, triggered: [], pending: [] };
-    const adopted = capture(() => store.settle(orphan));
-    // ▸ THE DECLARED OBSERVABLE OF A CALLER-CALLED SEAM, ASSERTED AS THE LAW PRINTS IT: a caller's
-    //   FIRST call with an object identity ADOPTS — it throws nothing and returns `undefined`, there
-    //   being "NO second return shape, no refusal value and no count for a drive to read off the
-    //   return" (`§2.4` item 9). THE WITHDRAWN EXPECTATION IS NAMED HERE AND NOWHERE RE-ASSERTED: this
-    //   route once answered a `TypeError` at this position on `§2.4` item 9's fail-state row and
-    //   `PAR-JS-19`'s outside-value row *"an identity this instance never adopted as a record"* — AN
-    //   ADOPTION HISTORY, WHICH THE AMENDED CLAUSE WITHDRAWS BY NAME: the amended domain cell reads
-    //   *"the RECORD POSITIONS and the never-handed identity below, AND NEVER AN IDENTITY'S ADOPTION
-    //   HISTORY"*, and *"A FIRST CALL IS NEVER REFUSED: no class test and no marker test can refuse
-    //   one, because the adoption is what that call performs"* (`§2.4` item 9 (a); `PAR-JS-19`'s domain
-    //   cell at `§2.19`, the two being ONE law). A `TypeError` here is therefore a FAIL-STATE OF THE
-    //   WITHDRAWN READING AND NOT OF THE STANDING ONE, and this assertion is the amended law.
-    assert.equal(adopted.threw, false,
-      'THE CALLER\'S FIRST CALL WITH AN OBJECT IDENTITY ADOPTS AND IS NEVER REFUSED — `§2.4` item 9 '
-      + '(a) AS AMENDED: "A FIRST CALL IS NEVER REFUSED: no class test and no marker test can refuse '
-      + 'one, because the adoption is what that call performs", read with `PAR-JS-19`\'s domain cell '
-      + '(`§2.19`), whose outside-value row reaches THE RECORD POSITIONS and the never-handed identity '
-      + '"AND NEVER AN IDENTITY\'S ADOPTION HISTORY". THE `TypeError` THIS ROUTE ONCE EXPECTED IS '
-      + 'WITHDRAWN AT THAT CLAUSE AND IS NOT RE-ASSERTED: a throw here means a refusal the law no longer '
-      + 'promises was made — read '
-      + (adopted.threw ? `the refusal (${String(adopted.thrown && adopted.thrown.name)})` : 'no throw'));
-    assert.equal(adopted.value, undefined,
-      'AND THE ADOPTION\'S RETURN IS `undefined` AND NOTHING ELSE — `§2.4` item 9: the member "TAKES '
-      + 'EXACTLY ONE argument … AND IT RETURNS `undefined`: there is NO second return shape, no refusal '
-      + 'value and no count for a drive to read off the return" — read '
-      + `${JSON.stringify(adopted.value)}`);
-    // ▸ AND THE MARKER IS NOT ASSERTED AS A VALUE — IT HAS NO DECLARED READ AT THIS BOUNDARY — BUT ITS
-    //   DECLARED EFFECT IS: a LATER call for the same identity is the DELIVERY of that identity's
-    //   residue and NOT a second adoption (`§2.4` item 9's two instants; `PAR-JS-19`: "a caller's LATER
-    //   call delivers that identity's `pending` residue silently"). The residue here is empty, so the
-    //   delivery reaches zero handles and reports nothing (`§2.4` item 9 (c)) — and the leak itself,
-    //   measured by the bare write below, is the marker's OTHER declared effect: an identity whose
-    //   write verb never returns is what the next bare write consumes.
-    const delivery = capture(() => store.settle(orphan));
-    assert.equal(delivery.threw, false,
-      'AND THE CALLER\'S LATER CALL FOR THAT IDENTITY DELIVERS AND DOES NOT THROW — the marker the '
-      + 'first call took is what makes this call a delivery (`§2.4` item 9\'s two instants; '
-      + '`PAR-JS-19`\'s domain cell: "a caller\'s LATER call delivers that identity\'s `pending` residue '
-      + 'silently") — read ' + (delivery.threw ? String(delivery.thrown && delivery.thrown.name) : 'no throw'));
-    assert.equal(delivery.value, undefined,
-      'and the delivery of an EMPTY residue is a silent no-op returning `undefined`, invoking nothing '
-      + 'and reporting nothing (`§2.4` item 9 (c): "A TERMINAL ARM WHOSE RESIDUE CARRIES NO REGISTERED '
-      + 'FUNCTION IS A SILENT NO-OP … this member\'s return still `undefined`") — read '
-      + `${JSON.stringify(delivery.value)}`);
-
-    const beforeBare = calls.length;
-    store.write(address, 'mem', 'the bare write after the abandoned adoption');
-    assert.equal(calls.length - beforeBare, 1,
-      'AND THE NEXT BARE CALLER-MADE WRITE STILL DELIVERS AT ITS POST-VERB INSTANT, ONCE — '
-      + '`§2.7` ITEM 8 DECLARED AS LAW AND NOT AS A HEDGE: a write made through the store\'s own write '
-      + 'verb and no `commit` carries item 2\'s instant, "and this clause does not move it", while '
-      + '`§2.4` item 9\'s instant (a) withholds the delivery of THE ONE WRITE THE ADOPTED IDENTITY NAMES '
-      + 'and of no other (`A116` (D1)/(D2): the seam is the kernel\'s arm at the two instants of a '
-      + 'KERNEL-DRIVEN write). AN IN-WINDOW INVOCATION SET OF ZERO HERE IS A WITHHELD WINDOW FOR A WRITE '
-      + 'NO KERNEL ACT ISSUED. FAIL-STATE DISTINGUISHED — THE DEFECT THIS CELL PINS: an abandoned '
-      + 'adoption standing as a pending identity that the next bare write CONSUMES, withholding that '
-      + `write's own window — read ${calls.length - beforeBare} in-window invocation(s) of ${1} owed. `
-      + 'THE ADOPTION ROUTE (i) DROVE IS THE ONE THE AMENDED CLAUSE DECLARES — the caller\'s first '
-      + 'call took it, returning `undefined` and throwing nothing (`§2.4` item 9 (a); `PAR-JS-19`\'s '
-      + 'domain cell) — so the emptiness counted here is THE LEAK\'S OWN CONTENT and is not bought by '
-      + 'a refusal the law withdrew');
-    assert.deepEqual(calls, [address],
-      'and the one invocation this write owes carries THIS WRITE\'S OWN TRIGGERING ADDRESS as its single '
-      + 'argument (`§2.7` item 5): a delivery withheld at instant (a) reaches no handle of the write '
-      + '(`§2.19`\'s observable), so the count above is the whole of the reading and not a delivery made '
-      + 'to the wrong body');
-
-    // ── AND THE LEVER IS READ BEFORE THE SECOND WRITE, SO THE DEFECT IS NAMED AND NOT INFERRED ──────
-    const beforeSecond = calls.length;
-    store.write(address, 'mem', 'the second bare write');
-    assert.equal(calls.length - beforeSecond, 1,
-      'AND THE SECOND BARE WRITE DELIVERS AGAIN: the emptiness above is read AGAINST A LIVE '
-      + 'REGISTRATION — the same instance, the same address, the same body — and never against a fixture '
-      + 'whose registration can deliver nothing. AN ADOPTION IS CONSUMED BY A WRITE AND NEVER CARRIED '
-      + 'FORWARD (`§2.4` item 9\'s instant (a): "the record identity the instance adopted at instant '
-      + '(a)" is the one identity that write withholds, and its own write is the act that consumes it) — '
-      + `read ${calls.length - beforeSecond} in-window invocation(s) on the second write`);
-  }
-
-  // ── ROUTE (ii) — A `commit` THE STORE REFUSED BETWEEN INSTANT (a) AND THE VERB ────────────────────
+  // ── (2) A `commit` THE STORE REFUSED BETWEEN THE RECORD AND THE VERB — THIS ARM IS UNMOVED BY THE
+  //    RULINGS AND ITS OBSERVABLE IS STILL THE STORE'S OWN REFUSAL WITH NO DELIVERY.
   {
     const store = makeStore();
     const address = [tag('dm07b')];
@@ -1359,19 +1324,32 @@ test('ck_neg_dm_07_the_stale_adoption_of_a_write_that_never_ran_withholds_the_ne
       + (refused.threw ? `the store's own refusal (${JSON.stringify(refused.thrown && refused.thrown.status)})`
         : 'a return, so this route drove no refusal at all'));
     assert.equal(calls.length, 0,
-      'and the refused call delivered nothing: its adoption was lawful AND ITS WRITE NEVER RAN, so no '
-      + 'residue exists for a terminal arm to reach (`§2.4` item 9\'s instant (b) is the pass\'s, and no '
-      + 'pass exists for a refused write) — read ' + `${calls.length} invocation(s)`);
+      'and the refused call delivered nothing: ITS WRITE NEVER RAN, so no residue exists for any terminal '
+      + 'arm to reach (`§2.7` item 7\'s instant is the PASS\'s terminal arm, and no pass exists for a '
+      + 'refused write) — read ' + `${calls.length} invocation(s)`);
 
-    const beforeBare = calls.length;
-    store.write(address, 'mem', 'the bare write after the refused commit');
-    assert.equal(calls.length - beforeBare, 1,
-      'AND THE NEXT BARE CALLER-MADE WRITE DELIVERS AT ITS POST-VERB INSTANT, ONCE — THE SAME CLAUSE AND '
-      + 'THE SAME FAIL-STATE AS ROUTE (i): a `commit` refused before the verb leaves no write for its '
-      + 'adoption to belong to, and `§2.7` item 8\'s post-verb instant for the caller\'s own write is '
-      + 'unmoved by any kernel act (`A116` (D1): the seam withholds "the write in flight" and only it). '
-      + 'FAIL-STATE DISTINGUISHED: an adoption that outlives the write it was made for and is drawn on by '
-      + `the next bare write — read ${calls.length - beforeBare} in-window invocation(s) of ${1} owed`);
+    // ── (3) THE NEXT WRITE DELIVERS THROUGH THE UNIFORM PATH — NOT "AT ITS POST-VERB INSTANT" AS A
+    //    BYPASS, because no such instant survives (`§2.7`'s clause of 2026-10-18, item `2`: *"ITEM 2'S
+    //    WINDOW … IS NO LONGER READ AS AN INVOCATION INSTANT OF ITS OWN, because item `7` supplies the
+    //    invocation instant"*). **THE OLD CELL'S FAIL-STATE — an adoption outliving its write and being
+    //    consumed by the next one — IS ASSERTED HERE AS THE OUTCOME IT IS NOW GUARANTEED NOT TO HAVE:**
+    //    one delivery, once, and no state carried across the refusal.
+    const beforeNext = calls.length;
+    store.write(address, 'mem', 'the write after the refused commit');
+    assert.equal(calls.length - beforeNext, 1,
+      'AND THE WRITE THAT FOLLOWS THE REFUSED `commit` DELIVERS ONCE AND ONLY ONCE — the refusal left no '
+      + 'write for any residue to belong to, and the uniform path carries no state across it: the kernel '
+      + 'drives this write as it drives every write (ruling `(3)`: *"Any occasion where the write path is '
+      + 'not governed by the kernel is a hallucination"*), and its delivery is `§2.7` item `7`\'s '
+      + 'terminal-arm act, ONE invocation per identity (`§2.7` item `7` (a)) — read '
+      + `${calls.length - beforeNext} invocation(s) of ${1} owed. FAIL-STATE DISTINGUISHED: an abandoned `
+      + 'state outliving the refused write and consuming the next write\'s delivery — the defect the '
+      + 'removed machinery\'s own substrate made possible, now asserted absent at the boundary that can '
+      + 'see it');
+    assert.deepEqual(calls, [address],
+      'and the one invocation carries THIS WRITE\'S OWN TRIGGERING ADDRESS as its single argument '
+      + '(`§2.7` item 5) — so the count above is the whole of the reading and not a delivery made to the '
+      + 'wrong body, nor a residue of the refused call replayed at this one');
   }
 });
 

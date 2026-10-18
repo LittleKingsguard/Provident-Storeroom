@@ -307,6 +307,11 @@ throw (${throwRungOne.kind === 'undefined' ? 'undefined' : 'thrown'});
     : (errorMessage === 'mutated'
       ? `errorMessage(code, subject) { calls.errorMessage += 1; return "'" + subject + "' " + GEN_TAIL + ' [MUTATED BY THE LOADED ARTEFACT]'; },`
       : `errorMessage(code, subject) { calls.errorMessage += 1; return "'" + subject + "' " + GEN_TAIL; },`);
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): 'settle(record)' IS REPLACED BY 'constraints()' IN THIS
+  // GENERATED STUB** (`surface.md §2.4` item 9 (f)'s clause of that date: the twelve members are the ten
+  // methods plus the TWO SINGLES `register` and `constraints`, `13 → 12`). The generator's own subject — a
+  // candidate answering an instance of the DECLARED member shape — is unmoved, and the generated stub now
+  // matches the declaration it stands in for.
   const storeCreateBody = storeCreate === 'constructs'
     ? `storeCreate(encodedCfg) {
     calls.storeCreate += 1;
@@ -314,7 +319,7 @@ throw (${throwRungOne.kind === 'undefined' ? 'undefined' : 'thrown'});
       listen(address) { return minted; },
       register(handle, listener) { return registerOn(instance, listener, handle); },
       unlisten(handle) { return undefined; },
-      settle(record) { return undefined; },
+      constraints() { return []; },
     };
     return instance;
   },`

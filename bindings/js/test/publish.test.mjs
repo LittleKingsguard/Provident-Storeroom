@@ -642,9 +642,15 @@ ${generatorMember}
   /// count it) and answers an instance of the DECLARED SHAPE — the members which the surface's own item 9
   /// (f) clause names: 'listen(address)' the home-entry mint that answers its handle, 'register(handle,
   /// listener)' the opaque-handle registration, 'unlisten(handle)' the store-side withdrawal together with
-  /// this instance's own registry removal, and the ordering seam 'settle(record)' — in the order the real
-  /// factory builds them, and NOTHING else. RESHAPED 2026-10-16: THE MERGED-AWAY PAIR 'on'/'off' IS A
-  /// MEMBER OF NO PRODUCT, AND ITS TWO HOMES ARE 'listen' AND 'unlisten' ABOVE. It performs
+  /// this instance's own registry removal, and the registered-constraint read 'constraints()' — in the order
+  /// the real factory builds them, and NOTHING else. RESHAPED 2026-10-16: THE MERGED-AWAY PAIR 'on'/'off' IS
+  /// A MEMBER OF NO PRODUCT, AND ITS TWO HOMES ARE 'listen' AND 'unlisten' ABOVE.
+  /// RE-DERIVED 2026-10-18 (role_test_writer): 'settle(record)' IS REPLACED BY 'constraints()' IN THIS
+  /// STUB (surface.md §2.4 item 9 (f)'s clause of that date: the twelve members are the ten methods plus
+  /// the TWO SINGLES 'register' and 'constraints', 13 -> 12). The stub's own subject -- a candidate answering
+  /// an instance of the DECLARED member shape and nothing beside it -- is unmoved, and the stub is now faithful
+  /// to the declaration it stands in for, where before it carried a member the declaration no longer owes.
+  /// It performs
   /// NO core work, because this drive observes the LOAD PATH's outcome and never the store's behaviour: the
   /// store's own arms belong to the sibling unit's battery and to the live drive, each of which runs
   /// against the REAL artefact.
@@ -654,7 +660,7 @@ ${generatorMember}
       listen(address) { return minted; },
       register(handle, listener) { return registerOn(instance, listener, handle); },
       unlisten(handle) { return undefined; },
-      settle(record) { return undefined; },
+      constraints() { return []; },
     };
     return instance;
   },
@@ -4232,19 +4238,26 @@ cell('GUARD', 'the real entry still resolves IN PLACE at rung two', async () => 
   // unmoved; the figure moves by one and the entry stays at its ONE name.**
   assert.deepEqual(r.members,
     ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-      'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'],
-    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s `constraints` clause of 2026-10-17 '
-    + 'states it: the TEN store-reaching methods plus `register`, `settle` and `constraints` — THIRTEEN own '
-    + 'members, `10 + 1 + 1 + 1 = 13` ✓');
+      'readLiteral', 'register', 'rollback', 'unlisten', 'write'],
+    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s clause of 2026-10-18 '
+    + 'states it: the TEN store-reaching methods plus the TWO remaining singles `register` and '
+    + '`constraints` — TWELVE own members, `10 + 1 + 1 = 12` ✓ (`13 → 12`)');
   for (const displaced of ['manageConstraints', 'on', 'off']) {
     assert.equal(r.members.includes(displaced), false,
       `and the displaced name \`${displaced}\` is NOT a member of that product (\`surface.md §2.9\` item 1's `
       + '`A127` clause: "the `+1` of `manageConstraints` is displaced by this clause and by no other", and '
       + 'the merged pair is displaced by the `A127` clause itself)');
   }
-  assert.equal(typeof r.members.includes === 'function' && r.members.includes('settle'), true,
-    'and the member that opened it is reached THROUGH THE IN-PLACE ENTRY\'s own product, which is the '
-    + 'only place `settle` is declared at (`§2.4` item 9: "not a ninth named export")');
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE MEMBER THIS LINE ASSERTED PRESENT IS REMOVED WHOLE,
+  // SO ITS SUBJECT IS INVERTED AND NOT DELETED** (`surface.md §2.4` item 9's `REMOVED-WHOLE` pointer: *"NO
+  // DRIVE MAY ASSERT A CALL OF `settle` FROM THIS DATE"*). **THE POINT THE LINE STOOD FOR — that a member is
+  // reached THROUGH THE IN-PLACE ENTRY's own product and never through the namespace — STANDS AT THE ABSENCE,
+  // and is asserted over the product the REAL rung-two load returned** (`§2.4` item 9 (f)'s clause of
+  // 2026-10-18; `§2.9` item 1's `A127` clause).
+  assert.equal(typeof r.members.includes === 'function' && r.members.includes('settle'), false,
+    'and `settle` is NOT a member of the in-place entry\'s own product from 2026-10-18 — it is a product '
+    + 'member no longer and never was a module-namespace name (`§2.4` item 9\'s `REMOVED-WHOLE` pointer: '
+    + '"not a ninth named export"), so the name stands in NEITHER carrier');
   assert.deepEqual(r.verbs, ['storeCreate'],
     'the entry carries its ONE declared name — `storeCreate` — and NOTHING else (`surface.md §2.9` item 1\'s '
     + '`A127` clause of 2026-10-16, `11 → 1`), so every verb is reached through the product and neither the '
@@ -4259,15 +4272,16 @@ cell('GUARD', 'the in-place loop still resolves and works at rung two', async ()
   const api = await import('provident-storeroom');
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
   const store = api.storeCreate({ journalLength: 8, listeners: [] });
-  // **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓** — the thirteenth
-  // is `constraints()` (`surface.md §2.4` item 9 (f)'s `constraints` clause of that date; `§2.12` item
-  // 2-bis; `PAR-JS-27`). The self-reference this cell resolves through is unmoved.
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): `13 → 12`, `10 + 1 + 1 = 12` ✓** — the two remaining
+  // singles are `register` and `constraints` (`surface.md §2.4` item 9 (f)'s clause of that date, item `1`,
+  // read with `§2.4` item 9's `REMOVED-WHOLE` pointer). The self-reference this cell resolves through is
+  // unmoved.
   assert.deepEqual(Object.keys(store).sort(),
     ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-      'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'],
-    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s `constraints` clause of 2026-10-17 '
-    + 'states it — the TEN store-reaching methods plus `register`, `settle` and `constraints`, THIRTEEN own '
-    + 'members, `10 + 1 + 1 + 1 = 13` ✓ — the same set the in-place entry\'s own product carries, read at '
+      'readLiteral', 'register', 'rollback', 'unlisten', 'write'],
+    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s clause of 2026-10-18 '
+    + 'states it — the TEN store-reaching methods plus the TWO remaining singles `register` and `constraints`, '
+    + 'TWELVE own members, `10 + 1 + 1 = 12` ✓ — the same set the in-place entry\'s own product carries, read at '
     + 'the self-reference this cell resolves through');
   store.write(['k'], 'mem', 'v');
   assert.equal(store.read(['k']), 'v', 'the store works in place at rung two');

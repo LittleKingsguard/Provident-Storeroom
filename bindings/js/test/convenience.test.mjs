@@ -1140,10 +1140,10 @@ test('the_instance_member_set_is_seven_own_members_and_the_module_namespace_is_a
   assert.deepEqual(
     memberSet(inst),
     ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-      'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'],
-    '`§2.4` item 9 (f)\'s `constraints` clause of 2026-10-17: the member set is the TEN store-reaching '
-    + 'methods plus the registration site, the ordering seam and the registered-constraint read — '
-    + 'THIRTEEN own members, `10 + 1 + 1 + 1 = 13` ✓, and NOTHING ELSE',
+      'readLiteral', 'register', 'rollback', 'unlisten', 'write'],
+    '`§2.4` item 9 (f)\'s clause of 2026-10-18: the member set is the TEN store-reaching '
+    + 'methods plus the TWO remaining singles, `register` and `constraints` — TWELVE own members, '
+    + '`10 + 1 + 1 = 12` ✓, and NOTHING ELSE (`13 → 12`)',
   );
   for (const merged of ['on', 'off']) {
     assert.equal(memberSet(inst).includes(merged), false,
@@ -1151,21 +1151,29 @@ test('the_instance_member_set_is_seven_own_members_and_the_module_namespace_is_a
       + 'its function placed by `register`, and `unlisten` is the withdrawal (`§2.4` item 9 (f)\'s `A127` clause)');
   }
   assert.equal(typeof inst.register, 'function', 'and `register` is UNMOVED in spelling (`§2.4` item 5 (a))');
-  // --- AND THE NAME THAT OPENED THE SET IS ASSERTED BY NAME AND BY SHAPE, SO THE FOURTH MEMBER IS NOT
-  // SATISFIED BY AN ACCIDENT OF SPELLING: `settle(record) -> undefined` — arity ONE, the record first
-  // (`surface.md §2.4` item 9; `A116` (D1)), read off the property descriptor so an inherited or
-  // non-enumerable stand-in cannot carry this cell.
-  assert.equal(typeof inst.settle, 'function',
-    '`settle(record)` is the ONE member `A116` (D1) adds to the instance: the seam the kernel CALLS and '
-    + 'the entry IMPLEMENTS (`surface.md §2.4` item 9)');
-  assert.equal(inst.settle.length, 1,
-    'and its arity is ONE — the record at the single position the seam fixes (`§2.4` item 9\'s '
-    + '`settle(record) -> undefined`)');
-  const settleDescriptor = Object.getOwnPropertyDescriptor(inst, 'settle');
-  assert.equal(settleDescriptor !== undefined && settleDescriptor.enumerable, true,
-    'and it is an OWN, enumerable property of the factory\'s own product — the same standing the other '
-    + 'three members have, so a drive that reads the member set above and this member here reads ONE '
-    + 'surface and not two');
+  assert.equal(typeof inst.constraints, 'function',
+    'and `constraints` is the SECOND of the two remaining singles — the registered-constraint read the ruling '
+    + 'of 2026-10-17 added and the ruling of 2026-10-18 leaves standing (`§2.4` item 9 (f)\'s clause of that '
+    + 'date, item `1`; `§2.12` item 2-bis; `PAR-JS-27`)');
+  // --- **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE MEMBER THE THREE ASSERTIONS BELOW READ IS REMOVED
+  // WHOLE AND THEY ARE RE-DERIVED, NOT DELETED** (`surface.md §2.4` item 9's `REMOVED-WHOLE` pointer: *"NO
+  // DRIVE MAY ASSERT A CALL OF `settle` FROM THIS DATE, ON ANY INSTANCE, FOR ANY ARGUMENT"*). **THEIR SUBJECT
+  // IS UNMOVED IN KIND — the shape a product member is read by, asserted off the PROPERTY DESCRIPTOR so an
+  // inherited or non-enumerable stand-in cannot carry the cell — AND IT IS MOVED TO THE MEMBER THAT CARRIES
+  // THE DUTY NOW, `constraints`, which is one of the two singles the clause of 2026-10-18 names.** A removal
+  // that left the shape unchecked would be exactly the "accident of spelling" these lines exist to forbid.
+  const cDescriptor = Object.getOwnPropertyDescriptor(inst, 'constraints');
+  assert.equal(cDescriptor !== undefined && cDescriptor.enumerable === true, true,
+    '`constraints` is an OWN, enumerable property of the factory\'s own product — the same standing the ten '
+    + 'methods and `register` have, so a drive that reads the member set above and this member here reads ONE '
+    + 'surface and not two (`§2.4` item 9 (f)\'s clause of 2026-10-18)');
+  assert.equal(inst.constraints.length, 0,
+    'and its arity is ZERO — the registered-constraint read takes NO argument at all (`§2.12` item 2: *"the '
+    + 'call takes NO argument at all (arity `0`)"*), so a foreign `settle`-shaped position is not what this '
+    + 'member carries');
+  assert.equal(Object.prototype.hasOwnProperty.call(inst, 'settle'), false,
+    'AND `settle` IS READ AS THE NAMED ABSENCE THE REMOVAL MAKES, NEVER LEFT TO SILENCE: the product does not '
+    + 'carry it (`§2.4` item 9\'s `REMOVED-WHOLE` pointer of 2026-10-18)');
 
   // --- (b) **THE MODULE NAMESPACE IS AT THE EIGHT DECLARED VERBS PLUS THE THREE SURFACE FUNCTIONS
   // `A126` DECLARES — ELEVEN, `8 + 3 = 11` — AND NEITHER `on` NOR `off` IS ADDED TO THE ENTRY'S NAMED
