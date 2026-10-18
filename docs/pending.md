@@ -348,8 +348,6 @@ return shape and `A116` (D4)'s "carrier unchanged").
 
 **⟶ THE ARCHITECT'S TWO MECHANISMS — 2026-10-18, VERBATIM: *"1. Add a purge mechanism"* · *"2. Add a remove mechanism"*.**
 
-**⟶ THE ARCHITECT'S TWO MECHANISMS — 2026-10-18, VERBATIM: *"1. Add a purge mechanism"* · *"2. Add a remove mechanism"*.**
-
 **(M-1) A PURGE MECHANISM IS ADDED — AND ITS SCOPE IS NOT OPEN: *"purge everything"* WAS ALREADY RULED THREE TIMES AND IS NOT RE-ASKED HERE.**
 
 **THE SCOPE, AS THE RULINGS THEMSELVES STATE IT, VERBATIM: *"purge the previous listener entirely"* · *"purge EVERY entry the handle named, at EVERY address it stood at"* · *"S1 gets purged wholesale"*.** **SO THE OPERATION REMOVES EVERY `Listener` AT EVERY ADDRESS THE HANDLE NAMES — across `members`' buckets (`store.rs:341`) and the `handles` index (`:344`), nothing surviving, nothing partial — AND IT PRECEDES THE INSTALL SO NO INTERMEDIATE STATE IS OBSERVABLE.**
