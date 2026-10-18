@@ -169,6 +169,7 @@ import {
   kernel, makeStore, tag, KC,
   assertKernelForm, assertAttemptReport, assertRollbackStep, assertStoreRefusal,
   capture, entries,
+  passAtRegistration,
 } from './constraint-kernel-helpers.mjs';
 
 /** The store's own read, captured without conflating "returned" with "refused" (`§6.4`). */
@@ -620,7 +621,10 @@ test('ck_constraint_a_later_commit_at_a_failed_attempts_address_returns_a_fresh_
 
   // (2) THE FAILED ATTEMPT: one pair, violated with NO repair, so the attempt fails `KC-3` and its own
   // composition sweeps its op (`attempt-lifecycle.md §2.4` item 4's arm `(c)`).
-  const failing = register(store, address, 'a-fails', () => ({ message: 'a-fails violates and registers no repair' }));
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: this body violates at its registration, so it is shielded or
+  // the pair is REFUSED there (`ConstraintListInvalid`, state 2) and the `KC-3` arm this cell reads — and the
+  // later `K-2` at the same address — are never reached.
+  const failing = register(store, address, 'a-fails', passAtRegistration(() => ({ message: 'a-fails violates and registers no repair' })));
   assert.equal(failing !== undefined, true, 'the failing pair is registered');
   const first = commit(store, address, 'mem', 1);
   const firstRun = capture(() => runAttempt(store, first));
@@ -717,7 +721,9 @@ test('ck_constraint_a_second_attempt_at_a_failed_attempts_address_meets_the_stor
   const missing = readAt(store, address);
   assert.equal(missing.threw, true,
     'the address held NOTHING before the first attempt, so this cell reads the residue alone');
-  register(store, address, 'a-fails', () => ({ message: 'a-fails violates and registers no repair' }));
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: shielded — the failed first attempt whose own composition sweeps its op
+  // is the state this cell reads, and it is reached only where the registration STOOD.
+  register(store, address, 'a-fails', passAtRegistration(() => ({ message: 'a-fails violates and registers no repair' })));
   const first = commit(store, address, 'mem', 1);
   const firstRun = capture(() => runAttempt(store, first));
   assert.equal(firstRun.threw, true, 'the first attempt fails');
@@ -852,7 +858,10 @@ test('ck_constraint_a_store_refused_repair_has_its_own_token_named_in_the_repair
   store.write(address, 'mem', 7); // the attempt's address holds a LEAF
 
   let reached = false;
-  register(store, address, 'x', () => ({
+  // ⟶ `A135` (3) / `§7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: this body carries a `repair`, so an
+  // unshielded registration ATTEMPTS it at the registration and the store's own refusal surfaces THERE, with
+  // `reached` already set by a call this cell did not drive.
+  register(store, address, 'x', passAtRegistration(() => ({
     repair: () => {
       reached = true;
       // THE REPAIR'S OWN EDIT, REFUSED BY THE STORE BEFORE ANY OP EXISTS (`E2E-C-13` (β)).
@@ -860,7 +869,7 @@ test('ck_constraint_a_store_refused_repair_has_its_own_token_named_in_the_repair
       return { ok: true, message: 'the edit landed', op: landed };
     },
     message: 'x is invalid at this address',
-  }));
+  })));
   const record = commit(store, address, 'mem', 1);
   const r = capture(() => runAttempt(store, record));
   assert.equal(r.threw, true, 'the attempt terminates');

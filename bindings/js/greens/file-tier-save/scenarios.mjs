@@ -92,6 +92,31 @@ const imgStr = (b) => (b === null ? 'NO FILE' : JSON.stringify(b.toString('utf8'
 const PLACEHOLDER = /<[A-Za-z_ ]+>/;
 const dirs = [];
 function tmp() { const d = fs.mkdtempSync(path.join(os.tmpdir(), 'fts-green-')); dirs.push(d); return d; }
+
+/// **THE REGISTRATION-INSTANT SHIELD, ADDED 2026-10-17** (`A135` (3); `docs/specs/storeroom-native/
+/// contract.md §7.3` (b) state 1).
+///
+/// EVERY CELL OF THIS SET THAT REGISTERS A CONSTRAINT THROUGH `K.register` AND THEN READS WHAT THE **WRITE**
+/// DID — its own ordinal against the listener's (`FTS-01.*`), the failing arm's own bytes and tokens
+/// (`FTS-02.*`, `FTS-04.*`), the save's arm (`FTS-11.*`) — MEETS THE RULING THE SAME WAY: `A135` (3) ADDS ONE
+/// INVOCATION OF EVERY CONSTRAINT BODY AT ITS REGISTRATION, AND AT THAT INSTANT NO SAVE HAS RUN, NO ATTEMPT
+/// EXISTS AND NO WRITE'S OP IS IN ANY SET. **A BODY THAT VIOLATES ITS REGISTRATION'S STATE IS REFUSED THERE
+/// WITH `ConstraintListInvalid` AND NOTHING IS REGISTERED AT ALL** (`§7.3` (b) state 2); a body that passes
+/// would still mark an ordinal an attempt's window never produced.
+///
+/// **THE SHIELD ANSWERS THE REGISTRATION INSTANT `true` AND HANDS EVERY OTHER CONTEXT TO THE CELL'S OWN
+/// BODY UNTOUCHED**, so the pair is CARRIED (state 1) and every observable the cell reads is the WRITE's. The
+/// instant is told by the two members `kernel-surface.md §2.3` item 1's registration clause spells `null`
+/// (`tier`, `op`), which no landing's context carries together.
+function atLandingOnly(record) {
+  return (context) => {
+    if (context !== null && typeof context === 'object'
+      && context.tier === null && context.op === null) {
+      return true; // the registration stands (`§7.3` (b) state 1) and this invocation is no write's
+    }
+    return record(context);
+  };
+}
 function scenario(id, title, clause, body) {
   SCENARIO = id;
   SCENARIO_VERDICT[id] = SCENARIO_VERDICT[id] || 'PASS';
@@ -111,7 +136,14 @@ scenario('FTS-01', 'the terminal arm: constraint first, save second, listener th
     const imageAt = () => (bytes(P) === null ? 'NO FILE' : bytes(P).toString('utf8'));
     // the kernel's own registration comes first: §2.1 item 1 (K) rule 2 / §2.4 item 7 (a) —
     // a second registration at one identity replaces the function the slot holds.
-    const h = K.register(s, ['c'], 'c1', (ctx) => { ord.push(['constraint', imageAt()]); return true; });
+    // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THE REGISTRATION RUNS THIS BODY ONCE, and at that
+    // instant no save has run — so an unshielded `ord.push` would open the ordinal list this cell orders with
+    // a second `'constraint'` entry carrying the CONSTRUCTION's own zero-byte image. **`FTS-01.3`'s own
+    // observable is *"the recorded ordinals are exactly two — the constraint then the listener"*, AND THE
+    // CONSTRAINT BODY'S OWN SUBJECT IS PRESERVED EXACTLY: it still reads the file's bytes at the PASS's own
+    // instant, which is the pre-save image `FTS-01.1` asserts.** The shield answers the registration `true`
+    // (`§7.3` (b) state 1 — the pair is CARRIED) and hands the LANDING's context to this body unchanged.
+    const h = K.register(s, ['c'], 'c1', atLandingOnly((ctx) => { ord.push(['constraint', imageAt()]); return true; }));
     s.register(h, (addr) => { ord.push(['listener', imageAt()]); seen.push(addr); });
     const rec = K.commit(s, ['c'], 'file', 42);
     const rep = K.runAttempt(s, rec);
@@ -165,7 +197,15 @@ scenario('FTS-02', 'a constraint\'s refusal prevents the save and discards the w
     const preImage = bytes(P);
     // the write under test: its pair refuses
     let fired = 0;
-    const h = K.register(s, ['e'], 'cE', () => ({ message: 'refused by the application' }));
+    // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THIS BODY VIOLATES AT ITS REGISTRATION, AND UNTIL THIS
+    // PASS *"registering a constraint does not run its body"* WAS THE PREMISE THE WHOLE SET STOOD ON — so this
+    // registration WAS the refusal the scenario threw on (`FTS-02.x0`). **THE CELL'S SUBJECT IS UNMOVED:**
+    // `FTS-02.1`–`FTS-02.6` all read the WRITE's own failing pass (`KC-3`, the byte-identical image, the
+    // discard reaching the triggered set, the one `outcome` entry), and every one of them is reached exactly
+    // as filed once the registration STANDS. **THE SHELF REACHES THE VIOLATION THE WAY THE LAW NOW REQUIRES:
+    // THE PAIR IS REGISTERED AGAINST A STATE IT ACCEPTS, AND THE VIOLATING VALUE IS WRITTEN AFTERWARDS** —
+    // `K.commit(s, ['e'], 'file', 7)` registers nothing and writes `7`, which this body refuses.
+    const h = K.register(s, ['e'], 'cE', atLandingOnly(() => ({ message: 'refused by the application' })));
     s.register(h, () => { fired++; });
     const rec = K.commit(s, ['e'], 'file', 7);
     const out = tryCall(() => K.runAttempt(s, rec));
@@ -816,7 +856,15 @@ scenario('FTS-11', 'the join: a repair\'s write is a new entry in the same commi
     const rcMembers = []; const logKinds = [];
     let repairCalls = 0; let carryAttempt = 'NOT ATTEMPTED'; let carryRoute = 'NOT ATTEMPTED';
     let fired = 0;
-    K.register(s, ['c'], 'c1', (ctx) => {
+    // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` MAKES THE SHIELD MANDATORY: THIS BODY
+    // CARRIES A `repair`, so an unshielded registration reaches STATE 3, ATTEMPTS the repair there, and the
+    // synthetic attempt's own `repair-run` entry and op are what `FTS-11.1`'s `rcMembers` records first — the
+    // members list the cell prints carries the context twice, once from the registration and once from the
+    // write (`["address,id,op,pending,tier,value","address,id,op,pending,tier,value"]`). **`FTS-11.1`'s own
+    // subject is the context the repair is handed FOR THE WRITE'S OWN ATTEMPT**, and the shield restores
+    // exactly that: the registration is answered `true`, the pair is CARRIED, and the repair runs once, at the
+    // `K-3` pass the cell drives.
+    K.register(s, ['c'], 'c1', atLandingOnly((ctx) => {
       if (ctx.value <= 10) return true;
       return { message: 'too large', repair: (rc) => {
         repairCalls++;
@@ -831,7 +879,7 @@ scenario('FTS-11', 'the join: a repair\'s write is a new entry in the same commi
         const w = wCarry.ok ? wCarry : tryCall(() => s.write(['c'], 'file', 10)); // §2.20's in-domain form
         return { ok: true, op: w.ok ? w.v.op : undefined };
       } };
-    });
+    }));
     const hListen = s.listen(['c']);
     s.register(hListen, () => { fired++; });
     const rec = K.commit(s, ['c'], 'file', 99);

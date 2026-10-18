@@ -320,3 +320,98 @@ export function checkIds(log) {
 export function readBack(instance, address) {
   return instance.read(address);
 }
+
+/**
+ * **THE REGISTRATION-INSTANT SHIELD, ADDED 2026-10-17 FOR THE `A135` RE-DERIVATION.**
+ *
+ * **THE FALSIFIED PREMISE, NAMED:** the corpus was authored against *"registering a constraint does not run
+ * its body"*. THE ARCHITECT'S RULING `A135` (3) FALSIFIES IT — *"run constraints against the store when
+ * they are added, otherwise they can result in the rollback state not being valid"* — and
+ * `docs/specs/storeroom-native/contract.md §7.3` (b) declares the three registration states: **state 1** the
+ * current state passes → the registration stands; **state 2** it violates and no repair is registered → the
+ * registration is REFUSED with `ConstraintListInvalid` (`§8.1` #16); **state `3-bis`** it violates and a
+ * repair is registered → the repair is attempted.
+ *
+ * **THE CONTEXT THE BODY MEETS AT THAT INSTANT IS DECLARED** (`kernel-surface.md §2.3` item 1's clause of
+ * 2026-10-17): the same five members, with `tier` ABSENT spelled `null`, `op` ABSENT spelled `null`, and
+ * `value` THE STORE'S CURRENT VALUE, read not landed (`undefined` where the address holds nothing).
+ *
+ * **SO A BODY THAT VIOLATES EVERY CONTEXT VIOLATES AT ITS REGISTRATION TOO, AND THE PAIR IS NEVER
+ * CARRIED** — which is why 130 cells of this corpus read `ConstraintListInvalid` where they expected their
+ * own subject. **THIS HELPER IS THE ROUTE THE LAW ITSELF NAMES: *"register it against a state it accepts,
+ * THEN write the violating value."*** It answers `true` on the registration instant — recognised by the two
+ * members that clause spells `null` and that a LANDING's context never carries together — and hands every
+ * OTHER context to the cell's own body untouched, so:
+ *   · **the cell's SUBJECT IS UNMOVED** — the body still refuses every landed value, and every count, log,
+ *     token and repair the cell asserts is produced by the same body as before;
+ *   · **the premise moves and nothing else** — the pair is carried (state 1), and the violation the cell
+ *     drives is reached by the WRITE, which is where the cell always meant it to happen.
+ *
+ * **A CELL WHOSE SUBJECT *IS* THE NON-RUN AT REGISTRATION USES `registrationRuns` BELOW INSTEAD, and a cell
+ * whose subject is the registration's own refusal uses NO shield at all.**
+ */
+export function passAtRegistration(constraint) {
+  const wrapper = (context) => {
+    if (context !== null && typeof context === 'object'
+      && context.tier === null && context.op === null) {
+      return true; // STATE 1 — the registration stands and the pair is carried (`§7.3` (b) state 1)
+    }
+    return constraint(context);
+  };
+  // THE CELL'S OWN OBSERVABLES ARE CARRIED ONTO THE SHIELD, so no cell must reach through it by name.
+  for (const key of Object.keys(constraint)) wrapper[key] = constraint[key];
+  return wrapper;
+}
+
+/**
+ * **THE CALL COUNTER A CELL READS WHEN ITS SUBJECT IS THE BODY'S *RUN* — AND THE ONE IT NOW READS ONCE MORE
+ * THAN BEFORE.** `A135` (3) runs the body ONCE at its registration, so a cell asserting *"the body ran `1`
+ * time"* off a write alone now reads `2`. **THE CELL'S SUBJECT IS KEPT AND ITS PREMISE IS MOVED: the count is
+ * split into the registration's own run and every run after it**, and a cell asserts whichever of the two its
+ * clause speaks of.
+ */
+export function registrationRuns(constraint) {
+  const wrapper = (context) => {
+    wrapper.calls.push(context);
+    return constraint(context);
+  };
+  wrapper.calls = [];
+  wrapper.atRegistration = () => wrapper.calls.filter((c) => (
+    c !== null && typeof c === 'object' && c.tier === null && c.op === null
+  ));
+  wrapper.afterRegistration = () => wrapper.calls.filter((c) => !(
+    c !== null && typeof c === 'object' && c.tier === null && c.op === null
+  ));
+  return wrapper;
+}
+
+/**
+ * **A RECORDER THAT THE REGISTRATION INSTANT DOES NOT REACH** — for a cell whose subject is the SEQUENCE of
+ * invocations the WRITES produced (`contract.md §5.1`'s order clauses, `§5.5`'s window) and whose own list
+ * would otherwise open with one entry per registration (`A135` (3); `§7.3` (b) state 1).
+ *
+ * **THE REGISTRATION'S OWN RUN IS NOT HIDDEN, IT IS EXCLUDED BY THE ONE MARK THE CLAUSE ITSELF GIVES IT:**
+ * `kernel-surface.md §2.3` item 1's registration clause spells that instant's `tier` and `op` `null`, and no
+ * LANDING's context carries both. The body is handed every other context untouched, so the cell's subject —
+ * which function ran, in which order, for which write — is exactly as filed.
+ */
+export function recordsAfterRegistration(record) {
+  const wrapper = (context) => {
+    if (context !== null && typeof context === 'object'
+      && context.tier === null && context.op === null) {
+      return true; // STATE 1 (`§7.3` (b)): the registration stands and this invocation is not a write's
+    }
+    return record(context);
+  };
+  return wrapper;
+}
+
+/**
+ * **THE SAME SHIELD, UNDER THE NAME THE `deltamodel` FIXTURES USE IT BY** — a body whose own run counter,
+ * call list or guard belongs to the WRITE's window (`surface.md §2.4` item 9's instant (a); `A116` (D1)) and
+ * must not carry the registration's own invocation (`A135` (3); `contract.md §7.3` (b) state 1).
+ *
+ * **IT IS AN ALIAS OF `recordsAfterRegistration` AND NOT A SECOND RULE**, declared here so a fixture reads
+ * the name its own comment uses and so the two cannot drift.
+ */
+export const atLandingOnly = recordsAfterRegistration;

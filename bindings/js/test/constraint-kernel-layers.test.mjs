@@ -67,7 +67,8 @@ import assert from 'node:assert/strict';
 import {
   kernel, makeStore, tag,
   assertAttemptReport, assertLogEntry, assertSeqIncreasesFromOne,
-  capture, entries, checkIds, countingListener, noop, } from './constraint-kernel-helpers.mjs';
+  capture, entries, checkIds, countingListener, noop,
+  passAtRegistration, atLandingOnly, } from './constraint-kernel-helpers.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // §1  LAYER (a) — ONE DELIVERY PER EVALUATED PAIR, EACH WITH THAT PAIR'S OWN FUNCTION
@@ -78,10 +79,13 @@ test('ck_layer_a_a_kernel_made_writes_returned_handle_is_invoked_in_the_kernel_s
   const store = makeStore();
   const address = [tag('la')];
   const contexts = [];
-  register(store, address, 'x', (ctx) => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THIS CELL'S SUBJECT IS *"ONE delivery per EVALUATED PAIR"*
+  // IN LAYER (a) — the window's own deliveries — and the registration's invocation is not one of them. The
+  // shield answers the registration `true` (the pair is CARRIED) and records only the LANDING's context.
+  register(store, address, 'x', atLandingOnly((ctx) => {
     contexts.push(ctx);
     return true;
-  });
+  }));
   const commitRecord = commit(store, address, 'mem', 'v');
   const report = runAttempt(store, commitRecord);
   assertAttemptReport(report, 'layer (a)');
@@ -99,8 +103,11 @@ test('ck_layer_a_two_ids_at_one_address_each_get_their_own_function_and_one_stor
   // ONE store home entry: the second registration at the same address adopts the SAME handle, and
   // the store holds one entry while the kernel's registry holds TWO pairs.
   const seen = [];
-  const h1 = register(store, address, 'x', () => { seen.push(['x']); return true; });
-  const h2 = register(store, address, 'y', () => { seen.push(['y']); return true; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: `seen` IS THIS CELL'S LIST OF THE PASS'S OWN DELIVERIES *"in the
+  // registry's own first-registration order"*, so neither registration's invocation may appear. Both shields
+  // answer their registration `true` — both pairs are CARRIED — and let the LANDING's context through.
+  const h1 = register(store, address, 'x', atLandingOnly(() => { seen.push(['x']); return true; }));
+  const h2 = register(store, address, 'y', atLandingOnly(() => { seen.push(['y']); return true; }));
   assert.equal(h1, h2, 'two pairs at ONE address stand behind ONE store home entry');
   const report = runAttempt(store, commit(store, address, 'mem', 'v'));
   assertAttemptReport(report, 'two ids at one address');
@@ -142,7 +149,9 @@ test('ck_layer_a_constraints_run_before_other_listeners_at_the_same_address', as
   // at an address the kernel registers a pair at (`kernel-surface.md §2.1` item 1's return-shape row).
   const plain = () => order.push('plain');
   const handlePlain = (store.register(store.listen(address), plain) || store.listen(address));
-  const handleKernel = register(store, address, 'x', () => { order.push('constraint'); return true; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: `order` reads the bodies the STORE's own window ran, and the
+  // registration is not one of them — the shield answers it `true` and records the LANDING alone.
+  const handleKernel = register(store, address, 'x', atLandingOnly(() => { order.push('constraint'); return true; }));
   assert.equal(handleKernel, handlePlain,
     'ONE store home entry per address: both registrations are answered the SAME adopted handle, so the '
     + 'second REPLACES the first and the two bodies never stand in one slot (`§2.1` item 1)');
@@ -227,8 +236,11 @@ test('ck_layer_b_the_uninvoked_caller_returned_handle_stands_in_pending_and_in_n
     const landed = store.write(ancestorAddress, 'mem', 'nested').op;
     return { ok: true, message: 'cA was repaired at the ancestor address', op: landed };
   }, message: 'a is bad' });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1 — AND `3-bis` MAKES THE SHIELD MANDATORY FOR `cA`: it carries a
+  // `repair`, so an unshielded registration ATTEMPTS it and lands an op at the ancestor with the synthetic
+  // attempt's log (the `ConstraintListInvalid` bytes this cell was reading). `cL` and `cB` pass every context.
   register(store, ancestorAddress, 'cL', () => true);
-  register(store, ancestorAddress, 'cA', cA);
+  register(store, ancestorAddress, 'cA', atLandingOnly(cA));
   register(store, parentAddress, 'cB', () => true);
   const record = commit(store, parentAddress, 'mem', 'v1');
   // THE MEMBER'S OWN HOME, READ THERE AND NOT OFF THE STORE'S RECORD (`kernel-surface.md §2.1` item 2's
@@ -427,7 +439,13 @@ test('ck_layer_b_a_caller_made_writes_uninvoked_handle_stands_in_pending_and_is_
   const { register, commit, runAttempt } = await kernel();
   const { store, parentAddress, ancestorAddress } = driveE2EC16();
   const plain = countingListener();
-  const handlePlain = register(store, ancestorAddress, 'cL', plain);
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THIS CELL'S SUBJECT IS *"the kernel invoked no caller-made
+  // write's handle in its own window"*, READ OFF `plain.seen` — and the registration IS an invocation of that
+  // body, at an instant that is no window. The body passed here is a CONSTRAINT (`K-1`'s fourth position) that
+  // carries the counting listener's own `seen` as its observable: it answers every context `true`, so the
+  // registration STANDS (state 1), and it records ONLY the LANDING's invocations, which is the count the cell's
+  // zero reads. `cA` and `cB` pass every context, so both registrations stand too.
+  const handlePlain = register(store, ancestorAddress, 'cL', atLandingOnly(() => { plain(ancestorAddress); return true; }));
   register(store, ancestorAddress, 'cA', () => true);
   register(store, parentAddress, 'cB', () => true);
   const record = commit(store, parentAddress, 'mem', 'v1');
@@ -559,7 +577,10 @@ test('ck_layer_b_a_handle_delivered_in_window_is_checked_off_and_not_handed_to_t
   const store = makeStore();
   const address = [tag('lb5')];
   let invocations = 0;
-  const handle = register(store, address, 'x', () => { invocations += 1; return true; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: THIS CELL COUNTS THE DELIVERIES AND ASSERTS *"exactly one invocation —
+  // the layer (a) delivery of the evaluated pair"*, so the registration's own invocation is answered by the
+  // shield and not counted; the pair is CARRIED (state 1).
+  const handle = register(store, address, 'x', atLandingOnly(() => { invocations += 1; return true; }));
   const record = commit(store, address, 'mem', 1);
   assert.equal(record.pending.includes(handle), true,
     'THE HANDLE WAS WRITTEN AS `pending` WITH THE WHOLE RETURNED SET AT `K-2`\'S RETURN: "`pending` '
@@ -583,9 +604,12 @@ test('ck_layer_b_a_foreign_instances_handle_is_never_invoked_by_the_kernel', asy
   const store = makeStore();
   const address = [tag('lb6')];
   let invocations = 0;
-  const home = register(store, address, 'x', () => { invocations += 1; return true; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: this cell asserts *"no body ran for it"* as its terminal reading and
+  // *"and no body ran for it: the store's check is the store's and the kernel invokes nothing of its own"* —
+  // so BOTH registrations are shielded and no registration's invocation stands in `invocations`.
+  const home = register(store, address, 'x', atLandingOnly(() => { invocations += 1; return true; }));
   const foreignStore = makeStore();
-  const foreign = register(foreignStore, address, 'x', () => { invocations += 1; return true; });
+  const foreign = register(foreignStore, address, 'x', atLandingOnly(() => { invocations += 1; return true; }));
   assert.notEqual(foreign, undefined, 'the registration answers a handle and not a refusal');
   assert.equal((foreignStore.register(foreignStore.listen(address), () => {}) || foreignStore.listen(address)), foreign,
     'a foreign instance adopts and answers its OWN handle for that address — one value per instance, '

@@ -97,7 +97,8 @@ import assert from 'node:assert/strict';
 
 import {
   kernel, makeStore, tag,
-  assertKernelForm, capture, noop, } from './constraint-kernel-helpers.mjs';
+  assertKernelForm, capture, noop,
+  passAtRegistration, atLandingOnly, } from './constraint-kernel-helpers.mjs';
 
 /**
  * ONE MONOTONE SEQUENCE FOR THIS FILE'S OWN CALL RECORDS. Every body pushes its own mark as it is entered,
@@ -142,12 +143,14 @@ async function orderedFixture({ label, arm }) {
 
   store.write(watch, 'mem', { [tag(label + '-link')]: 1 });
 
-  const pairHandle = register(store, operation, 'ord-x', (...view) => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: `log` IS THIS CELL'S ORDER OF THE WRITE'S OWN ACTS, so the
+  // registration's invocation must not mark one; the pair is CARRIED (state 1).
+  const pairHandle = register(store, operation, 'ord-x', atLandingOnly((...view) => {
     constraintArgs.push(view);
     mark(constraintLog, { argumentCount: view.length });
     if (arm === 'pass') return true;
     return { message: label + ': the registered constraint refused this landing' };
-  });
+  }));
 
   const listenerHandle = (store.register(store.listen(watch), (...view) => {
     listenerArgs.push(view);
@@ -287,10 +290,13 @@ test('ord_an_ordered_write_whose_every_entry_was_checked_off_delivers_nothing_an
   const store = makeStore();
   const address = [tag('ord-empty-a')];
   const bodyLog = [];
-  const pairHandle = register(store, address, 'only', () => {
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: THIS CELL READS *"the ONE body the set carried RAN ONCE, IN ONE
+  // WINDOW"* — the pass's own window (`§2.7` item 6; `A115` (D2)) — and the registration is no window's, so its
+  // invocation is answered by the shield and the body's count is the pass's alone.
+  const pairHandle = register(store, address, 'only', atLandingOnly(() => {
     mark(bodyLog, { note: 'the only pair of this attempt' });
     return true;
-  });
+  }));
 
   const record = commit(store, address, 'mem', 1);
   assert.deepEqual(record.triggered, [pairHandle],

@@ -43,7 +43,8 @@ import assert from 'node:assert/strict';
 import {
   kernel, makeStore, tag, KC, STORE_CODES, KC_TOKENS,
   assertAttemptRef, assertKernelForm, assertLogEntry, assertSeqIncreasesFromOne,
-  assertAttemptReport, assertStoreRefusal, capture, entries, checkIds, noop, } from './constraint-kernel-helpers.mjs';
+  assertAttemptReport, assertStoreRefusal, capture, entries, checkIds, noop,
+  atLandingOnly, } from './constraint-kernel-helpers.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // §1  `K-1` `register` — EVERY ARGUMENT'S DOMAIN, AND THE HANDLE IT ADOPTS
@@ -298,10 +299,14 @@ test('ck_surface_K3_the_happy_path_is_a_two_entry_log_a_one_op_report_and_an_emp
   const store = makeStore();
   const address = [tag('k3a')];
   const seen = [];
-  register(store, address, 'x', (ctx) => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THIS CELL READS THE PASS'S OWN CONTEXT (`K-3`'s act,
+  // `attempt-lifecycle.md §2.4` item 5 (iv)) — *"the constraint was invoked exactly once"* — so the
+  // registration's own invocation, whose `attempt` is `attempt-lifecycle.md §2.4` item 1's `null` on state 1
+  // (`kernel-surface.md §2.3` item 1's registration clause (4)), is answered by the shield and not recorded.
+  register(store, address, 'x', atLandingOnly((ctx) => {
     seen.push({ ...ctx, attempt: ctx.attempt, op: ctx.op });
     return true;
-  });
+  }));
   const commitRecord = commit(store, address, 'mem', 'v1');
   const report = runAttempt(store, commitRecord);
   assertAttemptReport(report, 'E2E-C-1 pass');
@@ -360,7 +365,9 @@ test('ck_surface_K3_a_closed_commit_record_is_refused_with_KC2_and_never_reruns'
   const store = makeStore();
   const address = [tag('k3d')];
   let calls = 0;
-  register(store, address, 'x', () => { calls += 1; return true; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: `calls` IS THIS CELL'S COUNT OF THE RUNS *"the constraint ran once"*
+  // names — the attempt's — so the registration's own invocation is answered by the shield and not counted.
+  register(store, address, 'x', atLandingOnly(() => { calls += 1; return true; }));
   const commitRecord = commit(store, address, 'mem', 1);
   const first = runAttempt(store, commitRecord);
   assert.equal(first.outcome, 'passed', 'the first run resolves');

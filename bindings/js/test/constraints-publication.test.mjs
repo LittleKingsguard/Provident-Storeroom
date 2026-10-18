@@ -217,20 +217,58 @@ function pair(label, id) {
   return { address: [tag(label)], id };
 }
 
-/** A constraint body that PASSES (`kernel-surface.md §2.3` item 1: `true` is the only pass value). */
+/**
+ * **A constraint body that PASSES** (`kernel-surface.md §2.3` item 1: `true` is the only pass value).
+ *
+ * **⟶ RE-DERIVED 2026-10-17 FOR THE REGISTRATION INSTANT (`A135` (3); `contract.md §7.3` (b) state 1;
+ * `kernel-surface.md §2.3` item 1's clause of 2026-10-17).** A REGISTRATION EVALUATES ITS CONSTRAINT ONCE
+ * AGAINST THE STORE'S CURRENT STATE — `value` READ NOT LANDED, `tier` and `op` ABSENT spelled `null`,
+ * `attempt` `null` — and A REGISTRATION WHOSE STATE DOES NOT PASS IS REFUSED with `ConstraintListInvalid`
+ * (`§7.3` (b) state 2). So a body that would REFUSE the registration's state can never make its pair a
+ * pair the entry carries, and every cell whose subject is the WRITE would be refused before it ran.
+ *
+ * **`body.runs`/`body.argc` ARE READ FOR THE WRITE'S OWN OBSERVABLE (`surface.md §2.12` item 3: the count
+ * is *"`1` per write that reaches the pair"*), SO THE REGISTRATION'S INVOCATION IS NOT COUNTED HERE**: the
+ * counter is a count of LANDINGS, and the registration instant is told from a landing by the two members
+ * that clause spells `null` and that no landing's context carries together. **THE REGISTRATION'S OWN RUN IS
+ * NOT HIDDEN — it is asserted directly at the cells whose subject it is.** `argc` is read at every
+ * invocation, so the declared ONE-argument arity is observable wherever it is asserted.
+ */
 function passing(body) {
-  return function constraintPass() {
+  return function constraintPass(...args) {
+    const context = args[0];
+    if (context !== null && typeof context === 'object'
+      && context.tier === null && context.op === null) {
+      body.argc = args.length; // THE DECLARED ARITY IS RECORDED AT EVERY INVOCATION, REGISTRATION INCLUDED
+      return true; // STATE 1 — the registration stands and the pair is carried
+    }
     body.runs += 1;
-    body.argc = arguments.length;
+    body.argc = args.length;
     return true;
   };
 }
 
-/** A constraint body that REFUSES (`kernel-surface.md §2.3` item 1: `{ message }`, the unrepairable arm). */
+/**
+ * **A constraint body that REFUSES** (`kernel-surface.md §2.3` item 1's `{ message }`, the unrepairable
+ * arm).
+ *
+ * **⟶ RE-DERIVED 2026-10-17 UNDER THE SAME CLAUSE AS `passing` ABOVE, AND ITS SUBJECT IS UNMOVED: every
+ * LANDING this body is handed is still REFUSED, and `body.runs` is still the count of the writes that
+ * reached the pair.** What moves is the PREMISE and nothing else: the registration is answered `true`, so
+ * the pair is CARRIED (state 1) and the write's own refusal — the state every cell below reads — is reached.
+ * A body that refused the registration's own context would be refused THERE (`§7.3` (b) state 2) and the
+ * cell's subject would be unreachable.
+ */
 function refusing(body) {
-  return function constraintRefuse() {
+  return function constraintRefuse(...args) {
+    const context = args[0];
+    if (context !== null && typeof context === 'object'
+      && context.tier === null && context.op === null) {
+      body.argc = args.length; // THE DECLARED ARITY IS RECORDED AT EVERY INVOCATION, REGISTRATION INCLUDED
+      return true; // STATE 1 — the registration stands and the pair is carried
+    }
     body.runs += 1;
-    body.argc = arguments.length;
+    body.argc = args.length;
     return { message: 'this landing is refused while the constraint stands ENABLED' };
   };
 }

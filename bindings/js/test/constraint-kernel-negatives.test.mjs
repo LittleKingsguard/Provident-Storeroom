@@ -47,7 +47,8 @@ import assert from 'node:assert/strict';
 import {
   kernel, makeStore, tag, KC,
   assertKernelForm, assertAttemptReport, assertSeqIncreasesFromOne,
-  capture, entries, checkIds, countingListener, noop, } from './constraint-kernel-helpers.mjs';
+  capture, entries, checkIds, countingListener, noop,
+  passAtRegistration, atLandingOnly, } from './constraint-kernel-helpers.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // `P-NEG-14` — THE DISCARD'S DISCRIMINATOR IS THE SET A HANDLE CAME BACK IN, NEVER THE ANCESTRY
@@ -147,7 +148,10 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
     const handlePlain = (store.register(store.listen(ancestor), plain) || store.listen(ancestor));
     let landed = null;
     let evaluations = 0;
-    const handleX = register(store, address, 'x', () => {
+    // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: this body carries a
+    // `repair`, so an unshielded registration ATTEMPTS it and consumes `evaluations === 1`, which is the
+    // checkpoint evidence this cell reads at the attempt's SECOND op.
+    const handleX = register(store, address, 'x', passAtRegistration(() => {
       evaluations += 1;
       if (evaluations === 1) {
         return {
@@ -159,7 +163,7 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
         };
       }
       return true;
-    });
+    }));
     const record = commit(store, address, 'mem', 'broken');
     assert.equal(record.triggered.includes(handlePlain), true,
       'THE SAME ANCESTOR HANDLE IS A MEMBER OF THIS WRITE\'S RETURNED SET — the registration stands at a '
@@ -231,7 +235,10 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
     store.write(ancestor, 'mem', { seed: 'the ancestor home entry stands' });
     const plain = countingListener();
     const handlePlain = (store.register(store.listen(ancestor), plain) || store.listen(ancestor));
-    register(store, address, 'x', () => ({ message: 'x is invalid and registers no repair' }));
+    // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: this body violates at its registration, so it is shielded
+    // or the pair is REFUSED there (`ConstraintListInvalid`, state 2) and the failing arm this cell reads is
+    // never reached. The body still violates every LANDING — the cell's subject is unmoved.
+    register(store, address, 'x', passAtRegistration(() => ({ message: 'x is invalid and registers no repair' })));
     const record = commit(store, address, 'mem', 'v');
     assert.equal(record.triggered.includes(handlePlain), true,
       'the set the caller\'s own write returned carries the ancestor registration\'s handle — a '
@@ -330,16 +337,19 @@ test('ck_p_neg_15_a_pair_registered_mid_pass_joins_no_pass_and_appends_no_entry_
   let aRuns = 0;
   let bRuns = 0;
   let bHandle = null;
-  register(store, address, 'a', () => {
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: THIS CELL'S SUBJECT IS A PAIR REGISTERED *MID-PASS*, so `a`'s own
+  // first LANDING evaluation must be the one that registers `b` — unshielded the registration consumes
+  // `aRuns === 1` and `b` is registered before the pass, which is the state the cell excludes.
+  register(store, address, 'a', atLandingOnly(() => {
     aRuns += 1;
     if (aRuns === 1) {
-      bHandle = register(store, address, 'b', () => {
+      bHandle = register(store, address, 'b', passAtRegistration(() => {
         bRuns += 1;
         return { message: 'b is invalid on this value' };
-      });
+      }));
     }
     return true;
-  });
+  }));
   const record = commit(store, address, 'mem', 'v');
   const first = capture(() => runAttempt(store, record));
   assert.equal(first.threw, false,
@@ -413,8 +423,11 @@ test('ck_p_neg_16_the_outside_form_decides_at_the_first_violating_pair_whatever_
   const address = [tag('n16')];
   let bRuns = 0;
   let bRepairs = 0;
-  register(store, address, 'a', () => undefined);
-  register(store, address, 'b', () => {
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: `a`'s OUTSIDE FORM is itself a violation (`VA-11`), so both bodies are
+  // shielded or each is refused at its own registration (`ConstraintListInvalid`) and the outside form — this
+  // cell's subject — is never the pair the pass decides at.
+  register(store, address, 'a', passAtRegistration(() => undefined));
+  register(store, address, 'b', passAtRegistration(() => {
     bRuns += 1;
     return {
       repair: () => {
@@ -424,7 +437,7 @@ test('ck_p_neg_16_the_outside_form_decides_at_the_first_violating_pair_whatever_
       },
       message: 'b is invalid on this value',
     };
-  });
+  }));
   const record = commit(store, address, 'mem', 'v');
   const r = capture(() => runAttempt(store, record));
   assert.equal(bRuns, 0,
@@ -482,10 +495,13 @@ test('ck_p_neg_17_the_repair_run_entry_names_the_op_it_was_invoked_for_on_both_a
   {
     const store = makeStore({ journalLength: 16 });
     const address = [tag('n17a')];
-    register(store, address, 'x', () => ({
+    // ⟶ `A135` (3) / `§7.3` (b) state 1 — and `3-bis` makes it mandatory: unshielded, the registration
+    // ATTEMPTS this repair, its `{ok: false}` return fires arm (d) at the registration, and the `repair-run`
+    // entry this cell reads is written by the registration and not by the write's attempt.
+    register(store, address, 'x', passAtRegistration(() => ({
       repair: () => ({ ok: false, message: 'the repair attempted a rewrite of the value' }),
       message: 'x is invalid on the committed value',
-    }));
+    })));
     const record = commit(store, address, 'mem', 'broken');
     const r = capture(() => runAttempt(store, record));
     assert.equal(r.threw, true, 'arm 1: the attempt fails');
@@ -504,10 +520,12 @@ test('ck_p_neg_17_the_repair_run_entry_names_the_op_it_was_invoked_for_on_both_a
     const store = makeStore({ journalLength: 16 });
     const address = [tag('n17b')];
     const fromTheBody = { fromTheRepairBody: true };
-    register(store, address, 'x', () => ({
+    // ⟶ `A135` (3) / `§7.3` (b) state 1 — and `3-bis` makes it mandatory: unshielded, the body's throw
+    // surfaces out of `register` itself instead of out of the attempt this cell drives.
+    register(store, address, 'x', passAtRegistration(() => ({
       repair: () => { throw fromTheBody; },
       message: 'x is invalid on the committed value',
-    }));
+    })));
     const record = commit(store, address, 'mem', 'broken');
     const r = capture(() => runAttempt(store, record));
     assert.equal(r.threw, true, 'arm 2: the attempt ends at the body\'s throw');
@@ -577,7 +595,10 @@ test('ck_p_neg_18_a_repair_naming_a_pre_attempt_op_credits_nothing_and_is_KC4', 
   const before = store.write(address, 'mem', 'before').op;
   let repairedOp = null;
   let evaluations = 0;
-  register(store, address, 'x', () => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: this body carries a
+  // `repair`, so an unshielded registration ATTEMPTS it and `repairedOp` is set by a call the drive has not
+  // reached — which is exactly what the cell's own next assertion (*"the drive has run no repair yet"*) names.
+  register(store, address, 'x', passAtRegistration(() => {
     evaluations += 1;
     if (evaluations === 1) {
       return {
@@ -591,7 +612,7 @@ test('ck_p_neg_18_a_repair_naming_a_pre_attempt_op_credits_nothing_and_is_KC4', 
       };
     }
     return true;
-  });
+  }));
   const record = commit(store, address, 'mem', 'broken');
   assert.equal(repairedOp, null, 'the drive has run no repair yet');
   const r = capture(() => runAttempt(store, record));
@@ -670,7 +691,10 @@ test('ck_p_neg_19_a_commit_record_from_another_instance_is_refused_KC2_and_eats_
   const storeB = makeStore({ journalLength: 16 });
   const address = [tag('n19')];
   let runs = 0;
-  register(storeA, address, 'x', () => { runs += 1; return true; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: `runs` IS THIS CELL'S COUNT OF THE PASS'S OWN RUNS, and its own
+  // assertion reads `0` at `K-2`'s return — so the registration's invocation is answered by the shield and
+  // not counted (`kernel-surface.md §2.1` item 3: *"`K-2` opens the attempt and evaluates nothing"*).
+  register(storeA, address, 'x', atLandingOnly(() => { runs += 1; return true; }));
   const recordA = commit(storeA, address, 'mem', 'v');
   assert.equal(runs, 0, 'no pass has run: `K-2` opens the attempt and evaluates nothing');
 
@@ -756,7 +780,10 @@ test('ck_p_neg_20_a_throwing_body_over_a_compacted_base_leaves_the_one_outcome_e
   const address = [tag('n20')];
   for (let i = 0; i < 6; i += 1) store.write(address, 'mem', `seed-${i}`);
   const fromTheBody = { fromTheConstraintBody: true };
-  register(store, address, 'x', () => { throw fromTheBody; });
+  // ⟶ `A135` (3) / `§7.3` (b): a THROWING body at its registration surfaces AS ITSELF out of `register`
+  // (`kernel-surface.md §2.3` item 1's clause of 2026-10-17), before the compacted base this cell reads is ever
+  // written through — so the shield lets the registration stand and the throw reaches the ATTEMPT.
+  register(store, address, 'x', passAtRegistration(() => { throw fromTheBody; }));
   const record = commit(store, address, 'mem', 'v');
   const r = capture(() => runAttempt(store, record));
   assert.equal(r.threw, true, 'the attempt ends at the body\'s throw');
@@ -821,7 +848,10 @@ test('ck_p_neg_22_a_delete_shaped_repair_reaches_arm_d_KC4_because_the_delete_re
   store.write(address, 'mem', 'one');
   let removed = null;
   let evaluations = 0;
-  register(store, address, 'x', () => {
+  // ⟶ `A135` (3) / `§7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: this body carries a `repair`, so an
+  // unshielded registration ATTEMPTS it, `removed` is set before the attempt, and the arm-(d) state this cell
+  // reads is spent at the registration.
+  register(store, address, 'x', passAtRegistration(() => {
     evaluations += 1;
     if (evaluations === 1) {
       return {
@@ -834,7 +864,7 @@ test('ck_p_neg_22_a_delete_shaped_repair_reaches_arm_d_KC4_because_the_delete_re
       };
     }
     return true;
-  });
+  }));
   const record = commit(store, address, 'mem', 'two');
   const r = capture(() => runAttempt(store, record));
   assert.equal(removed !== null, true,

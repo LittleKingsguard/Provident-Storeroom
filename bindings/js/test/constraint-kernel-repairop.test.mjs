@@ -53,6 +53,7 @@ import { dirname, join } from 'node:path';
 import {
   kernel, makeStore, tag, KC, assertKernelForm, assertRollbackStep, assertAttemptReport,
   capture, entries,
+  passAtRegistration, atLandingOnly,
 } from './constraint-kernel-helpers.mjs';
 
 /** The kernel module's ONE checkout home (`kernel-surface.md §1` item 1) and this directory. */
@@ -140,7 +141,11 @@ test('ck_repairop_arm_b_the_declared_success_arm_carries_the_op_the_callers_own_
   let landed = null; // THE OP THE REPAIR'S OWN EDIT LANDED, read off the caller's own `write` return
   let returned = null; // the repair's own return, read whole
   let evaluations = 0;
-  register(store, address, 'x', () => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: this body carries a
+  // `repair`, so an unshielded registration ATTEMPTS it and consumes `evaluations === 1` (landing an op and
+  // setting `landed`/`returned` at the registration), while this cell's own two-op report speaks of the WRITE's
+  // attempt alone.
+  register(store, address, 'x', passAtRegistration(() => {
     evaluations += 1;
     if (evaluations === 1) {
       return {
@@ -157,7 +162,7 @@ test('ck_repairop_arm_b_the_declared_success_arm_carries_the_op_the_callers_own_
       };
     }
     return true;
-  });
+  }));
   const commitRecord = commit(store, address, 'mem', 'broken');
   const attempt = runAttempt(store, commitRecord);
   assertAttemptReport(attempt, 'arm (b): the successful repair');
@@ -207,7 +212,11 @@ test('ck_repairop_arm_d_an_ok_true_return_with_no_op_member_is_KC4_and_its_repai
   let landed = null;
   let returned = null;
   let evaluations = 0;
-  register(store, address, 'x', () => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: this body carries a
+  // `repair`, so an unshielded registration ATTEMPTS it and consumes `evaluations === 1` (landing an op and
+  // setting `landed`/`returned` at the registration), while this cell's own two-op report speaks of the WRITE's
+  // attempt alone.
+  register(store, address, 'x', passAtRegistration(() => {
     evaluations += 1;
     if (evaluations === 1) {
       return {
@@ -220,7 +229,7 @@ test('ck_repairop_arm_d_an_ok_true_return_with_no_op_member_is_KC4_and_its_repai
       };
     }
     return true;
-  });
+  }));
   const commitRecord = commit(store, address, 'mem', 'broken');
   const run = capture(() => runAttempt(store, commitRecord));
   assert.equal('op' in returned, false,
@@ -254,7 +263,11 @@ test('ck_repairop_arm_d_an_ok_true_return_whose_op_is_undefined_is_KC4', async (
   let landed = null;
   let returned = null;
   let evaluations = 0;
-  register(store, address, 'x', () => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: this body carries a
+  // `repair`, so an unshielded registration ATTEMPTS it and consumes `evaluations === 1` (landing an op and
+  // setting `landed`/`returned` at the registration), while this cell's own two-op report speaks of the WRITE's
+  // attempt alone.
+  register(store, address, 'x', passAtRegistration(() => {
     evaluations += 1;
     if (evaluations === 1) {
       return {
@@ -267,7 +280,7 @@ test('ck_repairop_arm_d_an_ok_true_return_whose_op_is_undefined_is_KC4', async (
       };
     }
     return true;
-  });
+  }));
   const commitRecord = commit(store, address, 'mem', 'broken');
   const run = capture(() => runAttempt(store, commitRecord));
   assert.equal('op' in returned, true, 'the member is PRESENT here and its value is `undefined`');
@@ -286,7 +299,11 @@ test('ck_repairop_arm_d_an_ok_true_return_naming_an_op_the_repair_never_landed_i
   let unlanded = null; // an op THIS repair never landed: the attempt's own first-write op
   let returned = null;
   let evaluations = 0;
-  register(store, address, 'x', () => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: this body carries a
+  // `repair`, so an unshielded registration ATTEMPTS it and consumes `evaluations === 1` (landing an op and
+  // setting `landed`/`returned` at the registration), while this cell's own two-op report speaks of the WRITE's
+  // attempt alone.
+  register(store, address, 'x', passAtRegistration(() => {
     evaluations += 1;
     if (evaluations === 1) {
       return {
@@ -299,7 +316,7 @@ test('ck_repairop_arm_d_an_ok_true_return_naming_an_op_the_repair_never_landed_i
       };
     }
     return true;
-  });
+  }));
   const commitRecord = commit(store, address, 'mem', 'broken');
   unlanded = commitRecord.op; // the attempt's own first write: an op of THIS attempt, landed by no repair
   const run = capture(() => runAttempt(store, commitRecord));
@@ -346,7 +363,10 @@ test('ck_repairop_the_kernel_reaches_the_store_only_through_the_callers_own_inst
   const answered = []; // EVERY op this drive's own calls on the caller's instance answered
   let nx = 0;
   let ny = 0;
-  register(store, address, 'x', () => {
+  // ⟶ `A135` (3) / `§7.3` (b) state 1 — and `3-bis` makes it mandatory: `answered` IS THIS CELL'S RECORD OF
+  // *"EVERY op this drive's own calls on the caller's instance answered"*, and an unshielded registration
+  // would ATTEMPT each repair and push an op the drive never called for.
+  register(store, address, 'x', passAtRegistration(() => {
     nx += 1;
     if (nx !== 1) return true;
     return { repair: () => {
@@ -354,8 +374,8 @@ test('ck_repairop_the_kernel_reaches_the_store_only_through_the_callers_own_inst
       answered.push(op);
       return { ok: true, message: 'x was repaired by the op this repair landed', op };
     }, message: 'x is invalid' };
-  });
-  register(store, address, 'y', () => {
+  }));
+  register(store, address, 'y', passAtRegistration(() => {
     ny += 1;
     if (ny !== 1) return true;
     return { repair: () => {
@@ -363,7 +383,7 @@ test('ck_repairop_the_kernel_reaches_the_store_only_through_the_callers_own_inst
       answered.push(op);
       return { ok: true, message: 'y was repaired by the op this repair landed', op };
     }, message: 'y is invalid' };
-  });
+  }));
   const commitRecord = commit(store, address, 'mem', 'broken');
   answered.unshift(commitRecord.op); // the caller's own `K-2` call: the op its write answered with
   const attempt = runAttempt(store, commitRecord);

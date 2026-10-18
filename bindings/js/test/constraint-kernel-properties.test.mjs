@@ -56,7 +56,8 @@ import { dirname, join } from 'node:path';
 import {
   kernel, makeStore, tag, KC, KC_TOKENS, STORE_CODES,
   assertKernelForm, assertLogEntry, assertSeqIncreasesFromOne, assertAttemptReport,
-  assertRollbackStep, assertAttemptRef, capture, entries, checkIds, repairRunsFor, noop, } from './constraint-kernel-helpers.mjs';
+  assertRollbackStep, assertAttemptRef, capture, entries, checkIds, repairRunsFor, noop,
+  passAtRegistration, recordsAfterRegistration, } from './constraint-kernel-helpers.mjs';
 
 // ── THE DETERMINISTIC PINNED SEEDS ───────────────────────────────────────────────────────────────
 //
@@ -163,7 +164,11 @@ test('ck_prop_P_IM_1_the_pair_key_is_unique_and_the_handle_check_is_the_store_s'
       const ids = i % 3 === 0 ? ['x'] : ['x', 'y', 'z'].slice(0, n(1, 3));
       const invoked = [];
       for (const id of ids) {
-        register(store, address, id, () => { invoked.push(`${id}:first`); return true; });
+        // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THE REGISTRATION RUNS EACH BODY ONCE, so a recorder
+        // whose subject is the ORDER THE PASS INVOKED THE PAIRS IN (`§5.1`'s uniqueness and order clauses)
+        // must not carry the registration's own entry. `recordsAfterRegistration` answers the registration
+        // `true` and lets every LANDING's context reach this recorder unchanged.
+        register(store, address, id, recordsAfterRegistration(() => { invoked.push(`${id}:first`); return true; }));
       }
       // ── `P-NEG-11` · THE DUPLICATE PAIR KEY ITS OWN ROW NAMES, DRIVEN AND NEVER ASSUMED AWAY (`§5.1`:
       // "a registration at an address AND id the registry already holds is IDEMPOTENT — it adds no
@@ -174,7 +179,7 @@ test('ck_prop_P_IM_1_the_pair_key_is_unique_and_the_handle_check_is_the_store_s'
       const replaced = ids[n(0, ids.length - 1)];
       const duplicated = i % 3 === 0;
       if (duplicated) {
-        register(store, address, replaced, () => { invoked.push(`${replaced}:second`); return true; });
+        register(store, address, replaced, recordsAfterRegistration(() => { invoked.push(`${replaced}:second`); return true; }));
       }
       const report = runAttempt(store, commit(store, address, 'mem', n(0, 9)));
       assert.deepEqual(checkIds(report.log), ids,
@@ -260,8 +265,12 @@ test('ck_prop_P_IM_1_two_distinct_pairs_that_spell_alike_each_answer_their_own_a
   const observed = [];
   for (const family of families) {
     const ran = [];
-    register(store, family.first, family.firstId, ((name) => () => { ran.push(name); return true; })('first'));
-    register(store, family.second, family.secondId, ((name) => () => { ran.push(name); return true; })('second'));
+    // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THE REGISTRATION RUNS EACH BODY ONCE, and this cell's
+    // subject is WHICH PAIR'S OWN FUNCTION ANSWERS AT WHICH ADDRESS — so the registration's own run must not
+    // stand in `ran`. `recordsAfterRegistration` answers the registration `true` and passes every LANDING's
+    // context to the recorder, so `atFirst`/`atSecond` read exactly the writes the cell drives.
+    register(store, family.first, family.firstId, recordsAfterRegistration(((name) => () => { ran.push(name); return true; })('first')));
+    register(store, family.second, family.secondId, recordsAfterRegistration(((name) => () => { ran.push(name); return true; })('second')));
     const firstReport = runAttempt(store, commit(store, family.first, 'mem', 1));
     const atFirst = ran.slice();
     ran.length = 0;
@@ -300,12 +309,15 @@ test('ck_prop_P_IM_2_no_attempt_record_member_crosses_the_store_s_surface', asyn
     attempts: ROW_BUDGET,
     body: (rng) => attempt(rng, ({ store, address, int: n, pick: p }) => {
       const arm = p(['pass', 'violate', 'repair-ok', 'repair-fail']);
-      register(store, address, 'x', () => {
+      // ⟶ `A135` (3) / `§7.3` (b) state 1: SHIELDED, because three of this row's four arms violate at the
+      // registration and would be REFUSED there (`ConstraintListInvalid`) with the arm's own attempt never
+      // opened. The shield's answer is the registration's; every LANDING's context reaches this body unchanged.
+      register(store, address, 'x', passAtRegistration(() => {
         if (arm === 'pass') return true;
         if (arm === 'violate') return { message: 'the caller\'s own string' };
         if (arm === 'repair-ok') return { repair: () => { const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
         return { repair: () => ({ ok: false, message: 'what was attempted' }), message: 'unrepairable' };
-      });
+      }));
       const record = commit(store, address, 'mem', n(0, 9));
       assert.deepEqual(Object.keys(record).sort(), ['attempt', 'op', 'pending', 'triggered'],
         'the commit record carries exactly the four declared members and never a store write result');
@@ -339,18 +351,21 @@ test('ck_prop_P_IM_2_an_op_the_attempt_created_and_no_op_it_did_not', async () =
       // ITS first evaluation and never again (`attempt-lifecycle.md §2.4` item 4's arms `(b)` and `(e)`).
       const repairs = i % 3;
       if (repairs === 0) {
-        register(store, address, 'p0', () => true);
+        register(store, address, 'p0', () => true); // passes every context, the registration's included
       }
       for (let k = 0; k < repairs; k += 1) {
         let seen = 0;
-        register(store, address, `p${k}`, () => {
+        // ⟶ `A135` (3) / `§7.3` (b) state 1 — AND `3-bis` makes it mandatory: unshielded the registration
+        // ATTEMPTS this pair's repair and spends `seen === 1` there, so the row's own "one repair per pair"
+        // shape is never produced by the attempt the row drives.
+        register(store, address, `p${k}`, passAtRegistration(() => {
           seen += 1;
           if (seen === 1) {
             return { repair: () => { const landed = store.write(address, 'mem', n(0, 99)).op; return { ok: true, message: `p${k} was repaired`, op: landed }; },
               message: `p${k} is repairable` };
           }
           return true;
-        });
+        }));
       }
       const record = commit(store, address, 'mem', n(0, 99));
       const report = runAttempt(store, record);
@@ -378,13 +393,16 @@ test('ck_prop_P_IM_3_no_drive_of_this_unit_produces_a_store_member_as_a_constrai
     body: (rng) => attempt(rng, ({ store, address, pick: p, int: n }) => {
       const arm = p(['violate', 'outside', 'repair-fail', 'repair-throw', 'constraint-throw']);
       const thrown = new Error('the caller body\'s own throwable');
-      register(store, address, 'x', () => {
+      // ⟶ `A135` (3) / `§7.3` (b) state 1: EVERY arm of this row violates or throws at the registration, so
+      // without the shield each is refused THERE and the attempt the row drives is never opened. The shield
+      // answers the registration `true`; every LANDING's context reaches this body, arms and throws intact.
+      register(store, address, 'x', passAtRegistration(() => {
         if (arm === 'violate') return { message: 'the caller\'s own violation string' };
         if (arm === 'outside') return n(0, 1) === 0 ? undefined : n(0, 5);
         if (arm === 'repair-fail') return { repair: () => ({ ok: false, message: 'attempted' }), message: 'v' };
         if (arm === 'repair-throw') return { repair: () => { throw thrown; }, message: 'v' };
         throw thrown;
-      });
+      }));
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', n(0, 9))));
       assert.equal(r.threw, true, 'every arm of this state fails the attempt');
       if (arm === 'repair-throw' || arm === 'constraint-throw') {
@@ -432,12 +450,15 @@ test('ck_prop_P_SM_4_every_attempt_reaches_exactly_one_declared_terminal_answer'
       const arms = [];
       for (let k = 0; k < n(0, 2); k += 1) arms.push(p(['pass', 'violate', 'repair', 'outside']));
       for (const [k, arm] of arms.entries()) {
-        register(store, address, `c${k}`, () => {
+        // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: three of this row's four arms violate at the
+        // registration (and the `repair` arm would be ATTEMPTED there under state `3-bis`), so each is
+        // shielded and the arm the ROW drives is the one its own `runAttempt` reaches.
+        register(store, address, `c${k}`, passAtRegistration(() => {
           if (arm === 'pass') return true;
           if (arm === 'violate') return { message: 'violation' };
           if (arm === 'repair') return { repair: () => { const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
           return undefined;
-        });
+        }));
       }
       const record = commit(store, address, 'mem', n(0, 9));
       const r = capture(() => runAttempt(store, record));
@@ -499,7 +520,12 @@ test('ck_prop_P_SM_5_the_constraint_reads_only_the_value_the_write_landed', asyn
     body: (rng) => attempt(rng, ({ store, address, int: n }) => {
       const value = n(0, 999);
       const seen = [];
-      register(store, address, 'x', (ctx) => { seen.push(ctx.value); return true; });
+      // ⟶ `A135` (3) / `§7.3` (b) state 1: this row's subject is THE WINDOW — *"the evaluation happens after
+      // the write verb returned, on the value the verb returned"* (`§5.5`'s `S-WINDOW`) — so the list it reads
+      // must hold the LANDING's value alone. The registration's own context carries `value` READ AND NOT
+      // LANDED (`kernel-surface.md §2.3` item 1's registration clause (3)) and is excluded by its own mark;
+      // the body's answer is `true` at both instants, so the registration stands (state 1).
+      register(store, address, 'x', recordsAfterRegistration((ctx) => { seen.push(ctx.value); return true; }));
       const record = commit(store, address, 'mem', value);
       const report = runAttempt(store, record);
       assert.deepEqual(seen, [value], 'the constraint saw the value the write landed, VERBATIM');
@@ -560,7 +586,10 @@ test('ck_prop_P_SM_6_an_applied_repair_never_runs_twice_within_one_attempt', asy
       // limbs is the pair's own VIOLATION count and never an entry count.
       let c1 = 0;
       let secondRepairRuns = 0;
-      register(store, address, 'c1', () => {
+      // ⟶ `A135` (3) / `§7.3` (b) state 1 — and `3-bis` makes the shield mandatory: unshielded, the
+      // registration ATTEMPTS c1's repair and spends `c1 === 1` there, so the arm-(e) window this row reads
+      // is never reached by the attempt the row drives.
+      register(store, address, 'c1', passAtRegistration(() => {
         c1 += 1;
         if (c1 === 1) {
           return { repair: () => {
@@ -575,8 +604,8 @@ test('ck_prop_P_SM_6_an_applied_repair_never_runs_twice_within_one_attempt', asy
           const landed = store.write(address, 'mem', n(0, 999)).op;
           return { ok: true, message: 'c1 was repaired again by the op this repair landed', op: landed };
         }, message: 'c1 is invalid again at its own repair\'s landing' };
-      });
-      register(store, address, 'c2', () => true);
+      }));
+      register(store, address, 'c2', () => true); // passes every context, the registration's included
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', n(0, 999))));
       assert.equal(r.threw, true, 'the re-run repeats c1 and fails the attempt');
       assert.equal(c1, 2,
@@ -626,13 +655,18 @@ test('ck_prop_P_SM_6_the_two_repeat_limbs_are_distinguishable_by_the_pair_s_own_
       // produced an op" — and then VIOLATES with no repair registered at the op the OTHER pair's landed
       // repair drives the re-run onto. IN `ran` AND OUT of `appliedRepairs` IS limb (ii): `KC-6`.
       const seen = [];
-      register(store, address, 'x', () => {
+      // ⟶ `A135` (3) / `§7.3` (b) state 1 — AND THE SHIELD IS WHAT MAKES THE ROW'S PREMISE HOLD: *"a pair
+      // reaches `(e)` or `(f)` only by having run at least once before"*, and unshielded the registration's own
+      // evaluation is that "once", so `seen.length === 1` is spent there and the LANDING's first evaluation
+      // violates instead of passing — the limb is never reached. Both pairs are shielded; the order this row
+      // asserts (x passes, y's repair lands, x repeats with no applied repair) is exactly as filed.
+      register(store, address, 'x', passAtRegistration(() => {
         seen.push('evaluated');
         return seen.length === 1
           ? true // the FIRST evaluation PASSES: this is what makes the repeat reachable at all
           : { message: 'x violates at the re-run and registers no repair' };
-      });
-      register(store, address, 'y', () => ({ repair: () => { const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'y was repaired at the same address', op: landed }; }, message: 'y is invalid' }));
+      }));
+      register(store, address, 'y', passAtRegistration(() => ({ repair: () => { const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'y was repaired at the same address', op: landed }; }, message: 'y is invalid' })));
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', n(0, 9))));
       assert.equal(r.threw, true, 'the re-run repeats x and fails the attempt');
       // THE SAME ONE DISCRIMINATOR, READ AT THE ARM ENUMERATION'S OWN HOME (`fail-surface.md §2`'s
@@ -673,11 +707,15 @@ test('ck_prop_P_TP_7_a_failed_attempt_ran_one_call_per_op_and_a_passed_one_rolle
     body: (rng, i) => attempt(rng, ({ store, address, int: n }) => {
       const repaired = i % 2 === 0 ? n(0, 2) : 0;
       let evaluation = 0;
-      register(store, address, 'x', () => {
+      // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: unshielded, the registration consumes `evaluation === 1`
+      // — and on the `repaired === 0` arms it takes the `{message}` arm there and the pair is REFUSED at the
+      // registration. The shield answers the registration `true`; the row's own evaluation budget (`repaired`)
+      // is spent by the LANDING's evaluations alone, which is what the row's clause reads.
+      register(store, address, 'x', passAtRegistration(() => {
         evaluation += 1;
         if (evaluation > repaired) return { message: 'x has no repair left' };
         return { repair: () => { const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value at the attempt\'s address', op: landed }; }, message: 'repairable' };
-      });
+      }));
       const record = commit(store, address, 'mem', n(0, 9));
       const r = capture(() => runAttempt(store, record));
       if (!r.threw) {
@@ -819,11 +857,14 @@ test('ck_prop_P_TP_8_the_marker_opens_empty_on_a_second_attempt_at_the_same_addr
       // and `4` evaluations stand over the two attempts below.
       let evaluations = 0;
       let repairs = 0;
-      register(store, address, 'x', () => {
+      // ⟶ `A135` (3) / `§7.3` (b) state 1 — MANDATORY here because of `3-bis`: unshielded the registration
+      // ATTEMPTS this repair and `repairs`/`evaluations` — the two counters this row's clause reads off the
+      // TWO ATTEMPTS — each gain a run that belongs to neither attempt.
+      register(store, address, 'x', passAtRegistration(() => {
         evaluations += 1;
         if (evaluations % 2 === 0) return true;
         return { repair: () => { repairs += 1; const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
-      });
+      }));
       const first = runAttempt(store, commit(store, address, 'mem', n(0, 9)));
       assert.equal(first.outcome, 'passed', 'the first attempt resolves once its re-run passes');
       const firstRuns = entries(first.log, 'repair-run');
@@ -870,8 +911,12 @@ test('ck_prop_P_IM_1_a_second_id_at_one_address_stands_and_the_store_holds_one_h
     body: (rng) => attempt(rng, ({ store, address, int: n }) => {
       const second = `id-${n(0, 99)}`;
       const invoked = [];
-      const firstHandle = register(store, address, 'x', () => { invoked.push('x'); return true; });
-      const secondHandle = register(store, address, second, () => { invoked.push(second); return true; });
+      // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: this row's subject is the ADDRESS-LEVEL HOME ENTRY and
+      // the two pairs the pass evaluates, so both registrations must STAND and the recorder must hold the
+      // PASS's invocations alone. Both bodies pass every context; the recorder is shielded so the two
+      // registration invocations are not read as the one pass this row counts.
+      const firstHandle = register(store, address, 'x', recordsAfterRegistration(() => { invoked.push('x'); return true; }));
+      const secondHandle = register(store, address, second, recordsAfterRegistration(() => { invoked.push(second); return true; }));
       assert.equal(secondHandle, firstHandle,
         'ONE store home entry at the address: both registrations are answered the SAME adopted handle '
         + '(`kernel-surface.md §2.2` item 4 — `listen` is idempotent at the address level)');
@@ -954,7 +999,9 @@ test('ck_prop_P_IM_2_the_two_disposal_arms_and_the_log_they_carry', async () => 
     seed: SEEDS['P-IM-2'] ^ 0x85EBCA6B,
     attempts: ROW_BUDGET,
     body: (rng, i) => attempt(rng, ({ store, address, int: n }) => {
-      register(store, address, 'x', () => (i % 2 === 0 ? true : { message: 'the caller\'s own string' }));
+      // ⟶ `A135` (3) / `§7.3` (b) state 1: the odd-`i` arms violate, so each is shielded and the disposal arm
+      // the row drives is the one its own `runAttempt` reaches.
+      register(store, address, 'x', passAtRegistration(() => (i % 2 === 0 ? true : { message: 'the caller\'s own string' })));
       const record = commit(store, address, 'mem', n(0, 9));
       const r = capture(() => runAttempt(store, record));
       const closed = report(store, record.attempt);
@@ -1084,7 +1131,11 @@ test('ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op', asyn
         const hStore = makeStore({ journalLength: 2 });
         const hAddress = [tag('attarm-h')];
         for (let k = 0; k < 6; k += 1) hStore.write(hAddress, 'mem', `seed-${k}`);
-        register(hStore, hAddress, 'x', () => ({ message: 'x is invalid, and registers no repair' }));
+        // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: this pair violates at its registration, so it is
+        // shielded or the registration is REFUSED there (`ConstraintListInvalid`) and no attempt is opened for
+        // the floor this limb reads. The shield's answer is the registration's — the body still violates the
+        // LANDING, which is the state limb (h) drives.
+        register(hStore, hAddress, 'x', passAtRegistration(() => ({ message: 'x is invalid, and registers no repair' })));
         const hRecord = commit(hStore, hAddress, 'mem', 1);
         const hr = capture(() => runAttempt(hStore, hRecord));
         assert.equal(hr.threw, true, 'the attempt fails');
@@ -1110,13 +1161,16 @@ test('ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op', asyn
         // on its FIRST evaluation and that repair lands an op, so the pair is recorded as applied; its
         // second evaluation (the re-run at its own repair's landing) violates again.
         let x = 0;
-        register(store, address, 'x', () => {
+        // ⟶ `A135` (3) / `§7.3` (b) state 1 — and `3-bis` makes the shield mandatory: unshielded, the
+        // registration ATTEMPTS this repair, so `x === 1` is spent at the registration and the limb-(e) window
+        // this row reads (first evaluation repairs, the re-run repeats) is never reached.
+        register(store, address, 'x', passAtRegistration(() => {
           x += 1;
           if (x === 1) {
             return { repair: () => { const landed = store.write(address, 'mem', `fixed-${n(0, 9)}`).op; return { ok: true, message: 'x was repaired by the op this repair landed', op: landed }; }, message: 'repairable' };
           }
           return { message: 'x is broken again' };
-        });
+        }));
         const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
         assert.equal(r.threw, true, 'a repeat is a failure arm of the closed table');
         assert.equal(r.thrown.status, 'KC-5',
@@ -1133,13 +1187,17 @@ test('ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op', asyn
       // first pass — limb (ii)'s state is reached "ONLY where the pair's first evaluation passes" —
       // `y` violates and its repair lands, and the re-run breaks `x`.
       let y = 0;
-      register(store, address, 'x', () => (y === 0 ? true : { message: 'x is broken by the re-run' }));
-      register(store, address, 'y', () => {
+      // ⟶ `A135` (3) / `§7.3` (b) state 1: limb (f) is reached *"only where the pair's first evaluation
+      // passes"*, and unshielded the registration IS `x`'s first evaluation — so `y === 0` is false at the
+      // LANDING, `x` violates at its first landing evaluation, and the limb is unreachable. Both pairs are
+      // shielded so the order the limb's own clause declares is the order the row drives.
+      register(store, address, 'x', passAtRegistration(() => (y === 0 ? true : { message: 'x is broken by the re-run' })));
+      register(store, address, 'y', passAtRegistration(() => {
         y += 1;
         return y === 1
           ? { repair: () => { const landed = store.write(address, 'mem', `y-fixed-${n(0, 9)}`).op; return { ok: true, message: 'y was repaired by the op this repair landed', op: landed }; }, message: 'y is invalid' }
           : true;
-      });
+      }));
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
       assert.equal(r.threw, true, 'the re-run fails the attempt');
       assert.equal(r.thrown.status, 'KC-6',
@@ -1199,7 +1257,13 @@ test('ck_prop_P_SM_5_the_constraint_function_is_invoked_by_the_caller_and_never_
       const order = [];
       const plain = () => order.push('plain');
       const plainHandle = (store.register(store.listen(address), plain) || store.listen(address));
-      const kernelHandle = register(store, address, 'x', () => { order.push('constraint'); return true; });
+      // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THE REGISTRATION RUNS THE BODY ONCE, SO A RECORDER
+      // WHOSE SUBJECT IS *"the function ran ONCE, IN THE KERNEL'S OWN WINDOW"* (`§5.5`'s `S-SIDE`) MUST NOT
+      // CARRY THE REGISTRATION'S OWN ENTRY. `recordsAfterRegistration` answers the registration `true` and
+      // passes every LANDING's context to this recorder, so `order` holds the WINDOW's invocations alone and
+      // the cell's subject — which layer ran the body, and that the displaced plain body ran ZERO times — is
+      // exactly as filed.
+      const kernelHandle = register(store, address, 'x', recordsAfterRegistration(() => { order.push('constraint'); return true; }));
       assert.equal(kernelHandle, plainHandle,
         'one home entry per address: the registration REPLACES the plain listener in the store\'s own '
         + 'one slot (`kernel-surface.md §2.1` item 1)');
@@ -1254,12 +1318,15 @@ test('ck_prop_P_SM_6_no_repair_budget_or_retry_count_is_the_attempt_s_bound', as
     attempts: ROW_BUDGET,
     body: (rng) => attempt(rng, ({ store, address, int: n }) => {
       let x = 0;
-      register(store, address, 'x', () => {
+      // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: unshielded, the
+      // registration ATTEMPTS this always-repairing body and lands an op of its own, so the count this row
+      // reads (`x` evaluated exactly `2` times) is never the LANDING's own two evaluations.
+      register(store, address, 'x', passAtRegistration(() => {
         x += 1;
         // EVERY evaluation registers a repair and lands a NEW op: without a bound the attempt would
         // never stop, and the row declares that NO bound exists — the FIRST REPEAT is the bound.
         return { repair: () => { const landed = store.write(address, 'mem', `again-${x}-${n(0, 9)}`).op; return { ok: true, message: 'x was repaired by the op this repair landed', op: landed }; }, message: 'x is invalid' };
-      });
+      }));
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
       assert.equal(r.threw, true, 'the attempt terminates and fails — a run that needed a budget to '
         + 'stop would have found this row\'s failure');
@@ -1299,13 +1366,16 @@ test('ck_prop_P_TP_8_two_instances_never_see_each_other_s_marker', async () => {
     body: (rng) => attempt(rng, ({ store, address, int: n }) => {
       const other = makeStore({ journalLength: 64 });
       const seen = { first: 0, second: 0 };
-      const body = (which) => () => {
+      // ⟶ `A135` (3) / `§7.3` (b) state 1 — AND `3-bis` MAKES THE SHIELD MANDATORY: unshielded, each
+      // registration ATTEMPTS this pair's repair and spends `seen[which] === 1` on the registration, so the
+      // two-window count this row reads (`2` per instance) is never produced by the two ATTEMPTS the row drives.
+      const body = (which) => passAtRegistration(() => {
         seen[which] += 1;
         if (seen[which] === 1) {
           return { repair: () => { const landedOp = (which === 'first' ? store : other).write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the store this attempt drives landed a lawful value', op: landedOp }; }, message: 'repairable' };
         }
         return true;
-      };
+      });
       register(store, address, 'x', body('first'));
       register(other, address, 'x', body('second'));
       const a = runAttempt(store, commit(store, address, 'mem', n(0, 9)));
@@ -1349,7 +1419,10 @@ test('ck_prop_P_TP_8_the_marker_writes_no_store_entry_no_journal_entry_and_no_cl
     body: (rng) => attempt(rng, ({ store, address, int: n }) => {
       let landed = null;
       let x = 0;
-      register(store, address, 'x', (ctx) => {
+      // ⟶ `A135` (3) / `§7.3` (b) state 1 — and `3-bis` makes the shield mandatory: unshielded, the
+      // registration ATTEMPTS this repair, so `landed` is set and an op landed at the REGISTRATION — a state in
+      // which `x === 1` is spent there and the closed record this row reads carries the registration's own op.
+      register(store, address, 'x', passAtRegistration((ctx) => {
         x += 1;
         if (x === 1) {
           return { repair: () => {
@@ -1359,7 +1432,7 @@ test('ck_prop_P_TP_8_the_marker_writes_no_store_entry_no_journal_entry_and_no_cl
           }, message: 'repairable' };
         }
         return true;
-      });
+      }));
       const done = runAttempt(store, commit(store, address, 'mem', 'v'));
       assert.equal(done.outcome, 'passed', 'the attempt resolves on the repaired arm');
       const closed = report(store, done.attempt);

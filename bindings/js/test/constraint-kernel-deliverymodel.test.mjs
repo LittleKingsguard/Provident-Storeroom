@@ -87,7 +87,8 @@ import assert from 'node:assert/strict';
 import {
   kernel, makeStore, tag, KC,
   assertLogEntry, assertAttemptReport, assertSeqIncreasesFromOne,
-  capture, entries, noop, } from './constraint-kernel-helpers.mjs';
+  capture, entries, noop,
+  passAtRegistration, atLandingOnly, } from './constraint-kernel-helpers.mjs';
 
 /**
  * THE WHOLE-SET CITATION, printed into the message of every cell that reads the whole-set clause AT ITS
@@ -119,7 +120,10 @@ function twoHandleFixture({ watch, operation, pairAddress }) {
   const listenerCalls = [];
   const listenerHandle = (store.register(store.listen(watch), (address) => { listenerCalls.push(address); }) || store.listen(watch));
   const pairCalls = [];
-  const pairHandle = register(store, pairAddress, 'p', (ctx) => { pairCalls.push(ctx); return true; });
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THIS CELL'S SUBJECT IS *"NO PAIR BODY RUNS AT `K-2`"*, read
+  // off `pairCalls` before `K-3` — AND THE REGISTRATION IS AN INVOCATION THE CELL DID NOT DRIVE. The shield
+  // answers the registration `true` (the pair is CARRIED, state 1) and records the LANDING's contexts alone.
+  const pairHandle = register(store, pairAddress, 'p', atLandingOnly((ctx) => { pairCalls.push(ctx); return true; }));
   store.write(watch, 'mem', { [tag('dm-link')]: 1 });
   const beforeCalls = listenerCalls.length;
   return { store, listenerHandle, listenerCalls, pairHandle, pairCalls, beforeCalls };
@@ -186,10 +190,10 @@ test('ck_dm_the_kernel_runs_an_evaluated_pairs_own_body_in_its_own_window_with_t
   const store = makeStore();
   const address = [tag('dm-b')];   // the pair's OWN address: the attempt's first pass evaluates it
   const contexts = [];
-  register(store, address, 'x', (ctx) => {
+  register(store, address, 'x', atLandingOnly((ctx) => {
     contexts.push({ address: ctx.address, tier: ctx.tier, value: ctx.value });
     return true;
-  });
+  }));
 
   const record = commit(store, address, 'mem', 7);
   assert.deepEqual(contexts, [],
@@ -364,7 +368,7 @@ test('ck_dm_on_a_throwing_arm_the_callers_loop_performs_no_invocation_for_a_hand
   const listenerHandle = (store.register(store.listen(watch), listenerBody) || store.listen(watch));
   let pairRuns = 0;
   const pairBody = () => { pairRuns += 1; return false; };
-  const pairHandle = register(store, operation, 'x', pairBody);
+  const pairHandle = register(store, operation, 'x', atLandingOnly(pairBody));
   store.write(watch, 'mem', { [tag('dm-fl')]: 1 });
   listenerCalls.length = 0; // the minting write is the caller's own act and not this arm's window
 
@@ -540,7 +544,10 @@ test('ck_dm_the_throw_reaches_the_caller_and_the_arm_leaves_nothing_for_a_loop_t
   const store = makeStore();
   const address = [tag('dm-g')];
   const runs = [];
-  register(store, address, 'x', () => { runs.push('pair'); return false; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: `false` is OUTSIDE the three arms and is read as the `{message}` arm
+  // (`VA-11`), so this body violates at its registration — the shield answers the registration `true` and lets
+  // the LANDING's own arm reach the body, which is what the cell's `runs` list reads.
+  register(store, address, 'x', passAtRegistration(() => { runs.push('pair'); return false; }));
   const record = commit(store, address, 'mem', 1);
 
   const outcome = capture(() => runAttempt(store, record));
@@ -566,7 +573,9 @@ test('ck_dm_a_rolled_back_writes_triggered_set_is_discarded_rather_than_carried'
   // THE OUTSIDE FORM IS THE VIOLATION ARM: a body returning an object carrying no `repair` key, with NO
   // repair registered for its id, is arm (c)'s violation (`fail-surface.md §2`'s `KC-3` row;
   // `attempt-lifecycle.md §2.4` item 4).
-  register(store, operation, 'x', () => ({ message: 'the value is invalid and no repair is registered' }));
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: shielded, so the pair is CARRIED and the failing arm this cell reads is
+  // the WRITE's own.
+  register(store, operation, 'x', passAtRegistration(() => ({ message: 'the value is invalid and no repair is registered' })));
   store.write(watch, 'mem', { [tag('dm-hl')]: 1 });
 
   const record = commit(store, operation, 'mem', 1);
@@ -642,7 +651,7 @@ test('ck_dm_a_writes_whole_returned_set_stands_in_pending_at_the_moment_the_reco
   const operation = [...watch, tag('dm-io')];
   const listenerCalls = [];
   const listenerHandle = (store.register(store.listen(watch), (address) => { listenerCalls.push(address); }) || store.listen(watch));
-  const pairHandle = register(store, operation, 'x', () => true);
+  const pairHandle = register(store, operation, 'x', () => true); // passes every context, the registration's included
   store.write(watch, 'mem', { [tag('dm-il')]: 1 }); // the caller's own minting act for the watcher
   listenerCalls.length = 0;
 
@@ -811,7 +820,9 @@ test('ck_dm_the_callers_loop_is_one_invoker_and_the_kernel_runs_a_pair_body_in_i
   const kernelRuns = [];
   const loopRuns = [];
   const store = makeStore();
-  register(store, attemptAddress, 'x', (ctx) => { kernelRuns.push(ctx.address); return true; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: THIS CELL READS *"NO PAIR BODY RUNS AT `K-2`"* OFF `kernelRuns`, so the
+  // registration's own invocation — which is no window's — is answered by the shield and not recorded.
+  register(store, attemptAddress, 'x', atLandingOnly((ctx) => { kernelRuns.push(ctx.address); return true; }));
   const storeDeliveries = [];
   const listenerHandle = (store.register(store.listen(watch), (arg) => { storeDeliveries.push(arg); }) || store.listen(watch));
   store.write(watch, 'mem', { [tag('dm-ml')]: 1 }); // the caller's own minting act

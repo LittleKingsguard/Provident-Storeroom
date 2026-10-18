@@ -131,7 +131,8 @@ import assert from 'node:assert/strict';
 import {
   kernel, makeStore, tag, KC,
   assertKernelForm, assertLogEntry, assertSeqIncreasesFromOne,
-  capture, entries, countingListener, checkIds, noop, } from './constraint-kernel-helpers.mjs';
+  capture, entries, countingListener, checkIds, noop,
+  passAtRegistration, atLandingOnly, } from './constraint-kernel-helpers.mjs';
 
 // ── `NEG-DM-05`'s OWN READING AID, SO THE FAILURE PRINTS THE HANDLE AND NOT A COUNT ─────────────
 // The entries of the failed write's returned set that are STILL STANDING in `pending` after the arm,
@@ -169,7 +170,10 @@ test('ck_neg_dm_01_throwing_arm_prefix_listener_discard_extent', async () => {
   store.write(ancestor, 'mem', { seed: 'the ancestor home entry stands' });
   const root = countingListener();
   const ancestorHandle = (store.register(store.listen(ancestor), root) || store.listen(ancestor));
-  register(store, own, 'x', () => ({ message: 'x is invalid and registers no repair' }));
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: this body violates at its registration, so it is shielded
+  // or the pair is REFUSED there (`ConstraintListInvalid`, state 2) and the failing arm this cell reads is
+  // never reached. The body still violates every LANDING — the cell's subject is unmoved.
+  register(store, own, 'x', passAtRegistration(() => ({ message: 'x is invalid and registers no repair' })));
   // THE REGISTRATION STANDS AFTER `K-1` AT THE WRITE'S OWN ADDRESS, because the store holds ONE function
   // per address and a pair registered there would displace it (`§2.4` item 5 (iii)).
   const ownListener = countingListener();
@@ -363,7 +367,10 @@ test('ck_neg_dm_02_pass_exits_at_repair_unevaluated_handle', async () => {
 
   let p1Runs = 0;
   let p2Runs = 0;
-  register(store, own, 'p1', () => {
+  // ⟶ `A135` (3) / `§7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: this body carries a `repair`, so an
+  // unshielded registration ATTEMPTS it and consumes `p1Runs === 1`, which is the state this cell's own one
+  // repair-window reads.
+  register(store, own, 'p1', passAtRegistration(() => {
     p1Runs += 1;
     if (p1Runs === 1) {
       return {
@@ -376,8 +383,8 @@ test('ck_neg_dm_02_pass_exits_at_repair_unevaluated_handle', async () => {
       };
     }
     return true;
-  });
-  register(store, own, 'p2', () => { p2Runs += 1; return { message: 'p2 is invalid and registers no repair' }; });
+  }));
+  register(store, own, 'p2', passAtRegistration(() => { p2Runs += 1; return { message: 'p2 is invalid and registers no repair' }; }));
 
   const root = countingListener();
   const ancestorHandle = (store.register(store.listen(ancestor), root) || store.listen(ancestor));
@@ -564,7 +571,12 @@ test('ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_a
   let nestedReport = null;
   let nestedPendingAtReturn = null;
   let bodyCallsAtNestedReturn = null;
-  register(store, outerAddress, 'a', () => {
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: THIS CELL'S GUARD READS *"a later evaluation of this pair is not this
+  // cell's subject"* OFF `pairRuns`, AND THE REGISTRATION IS AN EVALUATION THE CELL DID NOT DRIVE — so
+  // unshielded it would consume run 1, the nested `commit` this body issues would never execute, and the
+  // asymmetry the cell reads would be measured at the registration. The shield answers the registration
+  // `true` (state 1) and lets every LANDING reach this body, so `pairRuns === 1` is the pass's own first.
+  register(store, outerAddress, 'a', atLandingOnly(() => {
     pairRuns += 1;
     // THE GUARD IS THE FIXTURE'S AND NOT THE CLAUSE'S: a later evaluation of this pair is not this
     // cell's subject, and the drive reads the FIRST pass's own acts alone.
@@ -583,8 +595,8 @@ test('ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_a
     // as the law's own and not as a hold that lapsed under the nested acts.
     heldAfter = capture(() => commit(store, outerAddress, 'mem', { seed: 'a third commit at the held address' }));
     return true;
-  });
-  register(store, descendantAddress, 'b', () => true);
+  }));
+  register(store, descendantAddress, 'b', () => true); // passes every context, the registration's included
 
   const outer = capture(() => commit(store, outerAddress, 'mem', { seed: 'the outer write' }));
   // THE OUTER WRITE'S OWN VALUE AT THE HELD ADDRESS, read back through the store's own verb: the baseline
@@ -735,7 +747,9 @@ test('ck_neg_dm_04_sift_and_checkoff_indistinguishable_to_the_caller', async () 
   const store = makeStore({ journalLength: 16 });
   const address = [tag('dm04')];
   let bodyRuns = 0;
-  const handle = register(store, address, 'x', () => { bodyRuns += 1; return true; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: `bodyRuns` is this cell's count of the PASS's own runs (`K-3`'s act),
+  // so the registration's own invocation is answered by the shield and not counted.
+  const handle = register(store, address, 'x', atLandingOnly(() => { bodyRuns += 1; return true; }));
 
   const record = commit(store, address, 'mem', 1);
   assert.equal(record.triggered.includes(handle), true,
@@ -877,10 +891,12 @@ test('ck_neg_dm_05_the_failing_arms_discard_reaches_every_handle_of_the_failed_w
   // S2: the pair at the write's own address. Its handle is the store's own home handle for that address
   // and is a member of the same returned set.
   let pairRuns = 0;
-  const pairHandle = register(store, own, 'x', () => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: shielded, so the pair is CARRIED and the failing arm this
+  // cell reads is the WRITE's own. `pairRuns` counts the LANDING's evaluations alone.
+  const pairHandle = register(store, own, 'x', atLandingOnly(() => {
     pairRuns += 1;
     return { message: 'x is invalid at this landing and registers no repair' };
-  });
+  }));
   const ownBody = countingListener();
   const ownHandle = (store.register(store.listen(own), ownBody) || store.listen(own));
   const ownRunsAtCommit = ownBody.seen.length;
@@ -977,7 +993,9 @@ test('ck_neg_dm_06_the_passing_arms_entry_leaves_by_its_own_checkoff_and_the_dis
   const prefixHandle = (store.register(store.listen(prefix), prefixBody) || store.listen(prefix));
   const prefixRunsAtTheEarlierWrite = prefixBody.seen.length;
   let pairRuns = 0;
-  const pairHandle = register(store, own, 'x', () => { pairRuns += 1; return true; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: `pairRuns` is this cell's count of the PASS's own runs, so the
+  // registration's invocation is answered by the shield and not counted; the pair is CARRIED (state 1).
+  const pairHandle = register(store, own, 'x', atLandingOnly(() => { pairRuns += 1; return true; }));
   const ownBody = countingListener();
   const ownHandle = (store.register(store.listen(own), ownBody) || store.listen(own));
   const ownRunsAtCommit = ownBody.seen.length;
@@ -1467,7 +1485,9 @@ test('ck_neg_dm_08_the_check_off_removes_one_occurrence_and_the_residue_delivers
     { address, handle: token },
   ] });
   let pairRuns = 0;
-  const pairHandle = register(store, address, 'x', () => { pairRuns += 1; return true; });
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: `pairRuns` is this cell's count of the PASS's own runs
+  // (`K-3`'s act), so the registration's invocation is answered by the shield; the pair is CARRIED (state 1).
+  const pairHandle = register(store, address, 'x', atLandingOnly(() => { pairRuns += 1; return true; }));
   const appRuns = [];
   let appArgs = null;
   const appHandle = (store.register(store.listen(address), (...view) => {
@@ -1659,7 +1679,9 @@ test('ck_neg_dm_09_the_abandoned_attempt_stands_open_holds_its_address_and_is_di
   store.write(held, 'mem', { seed: 'the abandoned attempt\'s own address holds a link' });
 
   let pairRuns = 0;
-  const pairHandle = register(store, held, 'x', () => { pairRuns += 1; return true; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: same shield — the pair's own run count is the ATTEMPT's, and the
+  // registration's own invocation belongs to neither the window nor the residue this cell reads.
+  const pairHandle = register(store, held, 'x', atLandingOnly(() => { pairRuns += 1; return true; }));
   const appRuns = [];
   let appArgs = null;
   const appHandle = (store.register(store.listen(held), (...view) => {
@@ -1930,11 +1952,15 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
     //    BOTH addresses' registrations (the store's descendant-inclusive prefix test). ───────────────
     store.write(prefix, 'mem', { seed: 'the prefix home entry stands' });
     let pairRuns = 0;
-    const pairHandle = register(store, own, 'x', () => {
+    // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THIS CELL READS THE PAIR'S BODY *"INSIDE THE PASS"* AND
+    // THE RUN COUNT AT THE WINDOW'S CLOSE, so the registration's own invocation — an act of neither the window
+    // nor the pass — is answered by the shield, and the pair is CARRIED (state 1). The event log this cell
+    // filters by `where` would otherwise carry one `'pair-body'` event from outside every window.
+    const pairHandle = register(store, own, 'x', atLandingOnly(() => {
       pairRuns += 1;
       passLog('pair-body', { runs: pairRuns });
       return true;
-    });
+    }));
 
     // THE SIBLING: a registration at the PROPER PREFIX — a SECOND identity the pass never evaluates
     // (kernel-surface.md section 2.3 item 1: the pass's set is the address-scoped one).
@@ -2153,10 +2179,13 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
     const own = [...prefix, tag('dm10fo')];
     store.write(prefix, 'mem', { seed: 'the prefix home entry stands' });
     let pairRuns = 0;
-    const pairHandle = register(store, own, 'x', () => {
+    // ⟶ `A135` (3) / `§7.3` (b) state 1: shielded, so the pair is CARRIED and its own run count is the
+    // PASS's — `pairRuns === 1` is the run this cell asserts, and the failing arm's zero deliveries are read
+    // against a pass that ran.
+    const pairHandle = register(store, own, 'x', atLandingOnly(() => {
       pairRuns += 1;
       return { message: 'x is invalid and registers no repair' };
-    });
+    }));
     const appSeen = [];
     const appHandle = (store.register(store.listen(own), (address) => appSeen.push(address)) || store.listen(own));
     const siblingSeen = [];

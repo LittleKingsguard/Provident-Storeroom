@@ -30,6 +30,32 @@ import { storeCreate } from 'provident-storeroom';
 // no-op body wherever the listener body's own firing is NOT the site's subject.**
 const noop = () => {};
 
+/**
+ * **THE REGISTRATION-INSTANT SHIELD, ADDED 2026-10-17** (`A135` (3); `docs/specs/storeroom-native/
+ * contract.md §7.3` (b) state 1).
+ *
+ * EVERY GENERATOR BELOW REGISTERS A CONSTRAINT AND THEN READS WHAT THE **WRITE** DID — its own ordinal
+ * against the listener's, the durability of the file's bytes, the save's own arm, the op set a repair's
+ * write joined. `A135` (3) ADDS ONE INVOCATION OF EVERY CONSTRAINT BODY AT ITS REGISTRATION, AND AT THAT
+ * INSTANT NO SAVE HAS RUN, NO ATTEMPT EXISTS AND NO WRITE'S OP IS IN ANY SET — so an unshielded registration
+ * inserts an event the generator reads as a write's, or (for a body carrying a `repair`) is REFUSED there
+ * with `ConstraintListInvalid` (`§7.3` (b) state 2) before the generator's own state is reached.
+ *
+ * **THE GENERATOR'S SUBJECT IS UNMOVED AND ITS PREMISE MOVES: the registration is answered here, so its pair
+ * is CARRIED (state 1), and the body sees the write's own context alone.** The instant is told by the two
+ * members `kernel-surface.md §2.3` item 1's registration clause spells `null` (`tier`, `op`), which no
+ * landing's context carries together.
+ */
+function atLandingOnly(record) {
+  return (context) => {
+    if (context !== null && typeof context === 'object'
+      && context.tier === null && context.op === null) {
+      return true; // the registration stands (`§7.3` (b) state 1) and this invocation is no write's
+    }
+    return record(context);
+  };
+}
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_DIR = dirname(HERE);
 
@@ -231,7 +257,10 @@ test('fts_prop_P_IM_1_S_ORDER_SAVE_ordinals_and_the_pre_save_image', async () =>
       const log = [];
       const seen = { constraint: undefined, listener: undefined };
       const before = bytesOf(f.filePath);
-      register(f.store, [key], 'p-ord', () => { log.push('c'); seen.constraint = bytesOf(f.filePath); return true; });
+      // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THIS GENERATOR'S SUBJECT IS *"the constraint body
+      // precedes the listener body"* — an ORDER of the WRITE's own acts, read off `log` — so the registration's
+      // invocation must not mark one and must not read a pre-save image the cell then attributes to the pass.
+      register(f.store, [key], 'p-ord', atLandingOnly(() => { log.push('c'); seen.constraint = bytesOf(f.filePath); return true; }));
       (f.store.register(f.store.listen([key]), () => { log.push('l'); seen.listener = bytesOf(f.filePath); }) || f.store.listen([key]));
       runAttempt(f.store, commit(f.store, [key], tier, `v${i}`));
       assert.deepEqual(log, ['c', 'l'],
@@ -269,7 +298,10 @@ test('fts_prop_P_IM_2_S_DURABLE_IMAGE_a_failing_pass_is_byte_identical', async (
       runAttempt(f.store, commit(f.store, [kept], 'file', `K${i}`));
       const before = bytesOf(f.filePath);
       const refused = tag(`prop-refused-${i}`);
-      register(f.store, [refused], 'p-dur', () => ({ message: `refused ${i}` }));
+      // ⟶ `A135` (3) / `§7.3` (b) state 1: this generator reads the FAILING arm's own bytes and the fresh
+      // instance's boot, so the pair must be CARRIED — the shield answers the registration `true` and the body
+      // still refuses the write's own landing.
+      register(f.store, [refused], 'p-dur', atLandingOnly(() => ({ message: `refused ${i}` })));
       assert.throws(() => runAttempt(f.store, commit(f.store, [refused], 'file', `R${i}`)),
         (err) => err.status === 'KC-3', 'P-IM-2: the pass fails on its constraint');
       assert.equal(bytesOf(f.filePath), before,
@@ -336,7 +368,8 @@ test('fts_prop_P_SM_3_S_ARM_SAVE_the_arm_table_is_total_over_tier_and_arm', asyn
       const key = tag(`prop-arm-${i}`);
       const before = bytesOf(f.filePath);
       if (arm === 'failing') {
-        register(f.store, [key], 'p-arm', () => ({ message: `refused ${i}` }));
+        // ⟶ `A135` (3) / `§7.3` (b) state 1: shielded, so the arm this generator reads is the WRITE's own.
+        register(f.store, [key], 'p-arm', atLandingOnly(() => ({ message: `refused ${i}` })));
         assert.throws(() => runAttempt(f.store, commit(f.store, [key], tier, 1)),
           (err) => err.status === 'KC-3', 'P-SM-3: the pass fails on its constraint');
       } else {
@@ -420,7 +453,10 @@ test('fts_prop_P_SM_4_S_REFUSAL_rollback_first_message_second_and_no_repair', as
       const key = tag(`prop-refuse-${i}`);
       let listeners = 0;
       let evaluated = 0;
-      register(f.store, [key], 'p-refuse', () => { evaluated += 1; return true; });
+      // ⟶ `A135` (3) / `§7.3` (b) state 1: THIS GENERATOR'S SUBJECT IS *"the attempt's own constraint WAS
+      // evaluated and passed, so the pass reached the save"* — an act of the WRITE's attempt — so the
+      // registration's invocation is answered by the shield and `evaluated` counts the landing's alone.
+      register(f.store, [key], 'p-refuse', atLandingOnly(() => { evaluated += 1; return true; }));
       (f.store.register(f.store.listen([key]), () => { listeners += 1; }) || f.store.listen([key]));
       // THE COMMIT'S OWN ACT IS MADE TO FAIL BY REMOVING THE PARENT THE CONSTRUCTION'S OWN PREDICATE
       // ACCEPTED (`contract.md §7.1` step 3-bis: the path's parent stands at construction), never by a
@@ -526,7 +562,10 @@ test('fts_prop_P_SM_5_S_JOIN_the_op_set_grows_by_exactly_one_per_repair_write', 
       let runs = 0;
       const landed = [];
       for (let j = 0; j < pairs; j += 1) {
-        register(f.store, [key], `p-join-${j}`, (ctx) => {
+        // ⟶ `A135` (3) / `§7.3` (b) state 1 — and `3-bis` MAKES IT MANDATORY: this body carries a `repair`,
+        // so an unshielded registration ATTEMPTS it, `runs`/`landed` each gain a run no pair owed, and the
+        // `1 + n` op-set arithmetic this generator reads is never the write's.
+        register(f.store, [key], `p-join-${j}`, atLandingOnly((ctx) => {
           if (typeof ctx.value === 'number' && ctx.value >= j) return true;
           return {
             message: `the landed value contradicts the shape this pair confirms (${i}/${j})`,
@@ -537,7 +576,7 @@ test('fts_prop_P_SM_5_S_JOIN_the_op_set_grows_by_exactly_one_per_repair_write', 
               return { ok: true, op: w.op };
             },
           };
-        });
+        }));
       }
       const record = commit(f.store, [key], 'file', `broken-${i}`);
       held = record;

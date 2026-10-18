@@ -237,6 +237,39 @@ function ordinals() {
   return { log, mark: (what, extra) => { log.push(Object.assign({ seq: log.length + 1, what }, extra)); } };
 }
 
+/**
+ * **THE REGISTRATION-INSTANT SHIELD FOR THIS FILE, ADDED 2026-10-17** (`A135` (3);
+ * `docs/specs/storeroom-native/contract.md §7.3` (b) state 1).
+ *
+ * EVERY `S-ORDER-SAVE` CELL BELOW MARKS ITS CONSTRAINT BODY'S OWN ORDINAL AND READS THE FILE'S BYTES AT THAT
+ * INSTANT — *"the drive separates them by ORDINAL and never by timing"* (`§10.9` row 1). `A135` (3) ADDS ONE
+ * INVOCATION OF EVERY CONSTRAINT BODY AT ITS REGISTRATION, AND AT THAT INSTANT NO SAVE HAS RUN AND NO
+ * ATTEMPT EXISTS — so without this shield a second `'constraint'` ordinal, carrying a PRE-SAVE image, opens
+ * every one of those lists. **THE CELL'S SUBJECT IS THE ORDER OF THE WRITE'S OWN ACTS; THE PREMISE MOVES AND
+ * THE SUBJECT DOES NOT: the registration's invocation is answered here and the LANDING's reaches the cell's
+ * own body unchanged.** The instant is told by the two members `kernel-surface.md §2.3` item 1's registration
+ * clause spells `null` (`tier`, `op`), which no landing's context carries together.
+ */
+function atLandingOnly(record) {
+  return (context) => {
+    if (context !== null && typeof context === 'object'
+      && context.tier === null && context.op === null) {
+      return true; // STATE 1 — the registration stands and the pair is carried
+    }
+    return record(context);
+  };
+}
+
+/**
+ * **THE SAME SHIELD WHERE THE CELL'S BODY VIOLATES**: the registration is answered `true` so the pair is
+ * CARRIED (state 1), and the body's own refusal reaches the LANDING alone. A body left unshielded here would
+ * refuse its own registration (`§7.3` (b) state 2) and the write's refusal — the state the cell drives —
+ * would never be reached.
+ */
+function refusesAtLandingOnly(record) {
+  return atLandingOnly(record);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 // §10.9 ROW 1 — `P-IM-1` · STRATEGY `S-ORDER-SAVE` — THE ORDERING INVARIANT
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -249,11 +282,16 @@ test('fts_S_ORDER_SAVE_the_constraint_body_reads_the_pre_save_image_and_the_list
   const seen = { constraint: undefined, listener: undefined };
   const before = bytesOf(f.filePath);
 
-  register(f.store, [key], 'ord-c1', () => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THE REGISTRATION RUNS THIS BODY ONCE, and at that instant
+  // no save has run — so an unshielded `ord.mark('constraint')` would open the list this cell orders, and the
+  // PRE-SAVE image it records belongs to the registration and not to the pass. `atLandingOnly` answers the
+  // registration `true` (the pair is CARRIED, state 1) and hands the LANDING's context to this body, so the
+  // cell's own subject — constraint, then save, then listener, by ORDINAL — is exactly as filed.
+  register(f.store, [key], 'ord-c1', atLandingOnly(() => {
     ord.mark('constraint');
     seen.constraint = bytesOf(f.filePath);
     return true;
-  });
+  }));
   (f.store.register(f.store.listen([key]), () => {
     ord.mark('listener');
     seen.listener = bytesOf(f.filePath);
@@ -283,8 +321,11 @@ test('fts_S_ORDER_SAVE_no_listener_body_runs_while_a_constraint_of_the_same_writ
   const key = tag('s-order2');
   const ord = ordinals();
 
-  register(f.store, [key], 'ord-a', () => { ord.mark('constraint-a'); return true; });
-  register(f.store, [key], 'ord-b', () => { ord.mark('constraint-b'); return true; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: both registrations would otherwise contribute one `'constraint-*'`
+  // ordinal each BEFORE the pass, and this cell counts exactly TWO of them between the head of the list and
+  // the first listener body. The shield answers each registration `true`, so both pairs are CARRIED.
+  register(f.store, [key], 'ord-a', atLandingOnly(() => { ord.mark('constraint-a'); return true; }));
+  register(f.store, [key], 'ord-b', atLandingOnly(() => { ord.mark('constraint-b'); return true; }));
   (f.store.register(f.store.listen([key]), () => { ord.mark('listener'); }) || f.store.listen([key]));
 
   const record = commit(f.store, [key], 'file', 1);
@@ -312,7 +353,9 @@ test('fts_S_ORDER_SAVE_the_save_precedes_every_body_of_the_delivered_set_and_not
   // THE PARENT STANDS AT THE `file` TIER because the operation's own `file`-tier anchor may not outrank its
   // parent's (`contract.md §8.1` #6), and the two bodies stand at two prefixes of the operation's address.
   f.store.write([watch], 'file', { [tag('s-order3-link')]: 1 });
-  register(f.store, [watch, key], 'ord-c', () => { order.push('constraint'); return true; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: the shield keeps the registration's own invocation out of `order`, whose
+  // length this cell reads as *"one constraint body and two listener bodies"* — the bodies of the WRITE.
+  register(f.store, [watch, key], 'ord-c', atLandingOnly(() => { order.push('constraint'); return true; }));
   (f.store.register(f.store.listen([watch]), () => { order.push('listener-a'); seen.push(bytesOf(f.filePath)); }) || f.store.listen([watch]));
   (f.store.register(f.store.listen([watch, key]), () => { order.push('listener-b'); seen.push(bytesOf(f.filePath)); }) || f.store.listen([watch, key]));
 
@@ -343,7 +386,11 @@ test('fts_S_DURABLE_IMAGE_a_failing_pass_leaves_the_last_passing_image_byte_iden
   const before = bytesOf(f.filePath);
   assert.ok(String(before).includes('K'), 'S-DURABLE-IMAGE: the fixture stands on a passing image');
 
-  register(f.store, [gone], 'dur-fail', () => ({ message: 'the pass refuses this landing' }));
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: this body REFUSES, so it is shielded or its own
+  // registration is refused there (`ConstraintListInvalid`, state 2) and the failing pass this cell reads is
+  // never reached. THE SUBJECT IS UNMOVED: the body still refuses every LANDING, so `KC-3` and the
+  // byte-identical image are exactly as filed.
+  register(f.store, [gone], 'dur-fail', refusesAtLandingOnly(() => ({ message: 'the pass refuses this landing' })));
   const record = commit(f.store, [gone], 'file', 'G');
   assert.throws(() => runAttempt(f.store, record), (err) => err.status === 'KC-3',
     'S-DURABLE-IMAGE: the pass fails on its constraint (`§2.11` clause 5: ok === false, a KC token)');
@@ -431,7 +478,9 @@ test('fts_S_ARM_SAVE_the_file_tier_failing_arm_commits_nothing', async () => {
   const before = bytesOf(f.filePath);
   const stateBefore = modState(f.filePath);
 
-  register(f.store, [refused], 'arm-fail', () => ({ message: 'refused' }));
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: shielded, so the registration stands and the FAILING ARM this cell
+  // reads is the write's own.
+  register(f.store, [refused], 'arm-fail', refusesAtLandingOnly(() => ({ message: 'refused' })));
   assert.throws(() => runAttempt(f.store, commit(f.store, [refused], 'file', 'R')),
     (err) => err.status === 'KC-3', 'S-ARM-SAVE: the pass fails on its constraint');
 
@@ -454,7 +503,8 @@ test('fts_S_ARM_SAVE_a_mem_tier_write_commits_nothing_on_either_arm', async () =
     + 'successful `file`-tier write ONLY)');
 
   const other = tag('arm-mem-f');
-  register(f.store, [other], 'arm-mem-f', () => ({ message: 'refused' }));
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: shielded — the arm table this cell reads is the WRITE's.
+  register(f.store, [other], 'arm-mem-f', refusesAtLandingOnly(() => ({ message: 'refused' })));
   assert.throws(() => runAttempt(f.store, commit(f.store, [other], 'mem', 'M2')),
     (err) => err.status === 'KC-3', 'S-ARM-SAVE: the `mem` failing arm\'s pass fails');
   assert.equal(bytesOf(f.filePath), before,
@@ -471,7 +521,8 @@ test('fts_S_ARM_SAVE_a_temp_tier_write_commits_nothing_on_either_arm', async () 
     'S-ARM-SAVE (temp, passing): a `temp`-tier write commits nothing');
 
   const other = tag('arm-temp-f');
-  register(f.store, [other], 'arm-temp-f', () => ({ message: 'refused' }));
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: shielded — the arm table this cell reads is the WRITE's.
+  register(f.store, [other], 'arm-temp-f', refusesAtLandingOnly(() => ({ message: 'refused' })));
   assert.throws(() => runAttempt(f.store, commit(f.store, [other], 'temp', 'T2')),
     (err) => err.status === 'KC-3', 'S-ARM-SAVE: the `temp` failing arm\'s pass fails');
   assert.equal(bytesOf(f.filePath), before,
@@ -607,8 +658,10 @@ test('fts_S_REFUSAL_the_save_is_evaluated_last_after_every_constraint_of_its_set
   const key = tag('refuse-last');
   const ord = ordinals();
   let listenerRuns = 0;
-  register(f.store, [key], 'refuse-last-a', () => { ord.mark('constraint-a'); return true; });
-  register(f.store, [key], 'refuse-last-b', () => { ord.mark('constraint-b'); return true; });
+  // ⟶ `A135` (3) / `§7.3` (b) state 1: the save-is-last cell reads the ORDER of the write's own acts, so
+  // neither registration's invocation may mark an ordinal here. Both shields answer the registration `true`.
+  register(f.store, [key], 'refuse-last-a', atLandingOnly(() => { ord.mark('constraint-a'); return true; }));
+  register(f.store, [key], 'refuse-last-b', atLandingOnly(() => { ord.mark('constraint-b'); return true; }));
   (f.store.register(f.store.listen([key]), () => { listenerRuns += 1; }) || f.store.listen([key]));
   let record = null;
   try {
@@ -653,7 +706,10 @@ test('fts_S_JOIN_a_repairs_write_joins_the_same_commit_and_the_op_set_grows_by_e
   let held = null;
   let repairs = 0;
 
-  register(f.store, [key], 'join-c1', (ctx) => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` MAKES THE SHIELD MANDATORY HERE: this body
+  // carries a `repair`, so an unshielded registration ATTEMPTS it immediately, `repairs` gains a run that
+  // belongs to no write, and the commit this cell measures its op set against is the registration's own.
+  register(f.store, [key], 'join-c1', atLandingOnly((ctx) => {
     if (ctx.value === 'fixed') return true;
     return {
       message: 'the landed value contradicts the shape this pair confirms',
@@ -663,7 +719,7 @@ test('fts_S_JOIN_a_repairs_write_joins_the_same_commit_and_the_op_set_grows_by_e
         return { ok: true, op: w.op };
       },
     };
-  });
+  }));
 
   const record = commit(f.store, [key], 'file', 'broken');
   held = record;
@@ -688,7 +744,10 @@ test('fts_S_JOIN_a_repairs_write_is_an_ordinary_write_and_its_refusal_is_the_ker
   const key = tag('join-refused');
   let held = null;
 
-  register(f.store, [key], 'join-c2', () => ({
+  // ⟶ `A135` (3) / `§7.3` (b) state 1 — and `3-bis` makes it mandatory: unshielded, the registration
+  // ATTEMPTS this repair and the store's own refusal (`ValueNotAdmitted`) surfaces THERE, at a call this cell
+  // does not drive, instead of at the write's attempt.
+  register(f.store, [key], 'join-c2', atLandingOnly(() => ({
     message: 'repair this landing',
     // THE REPAIR IS AN ORDINARY WRITE OF THIS SURFACE: it carries the commit it is part of at the FIFTH
     // position, and `undefined` is outside the value's admitted set — so the STORE refuses the verb at the
@@ -697,7 +756,7 @@ test('fts_S_JOIN_a_repairs_write_is_an_ordinary_write_and_its_refusal_is_the_ker
       const w = f.store.write([key], 'file', undefined, held);
       return { ok: true, op: w.op };
     },
-  }));
+  })));
 
   const record = commit(f.store, [key], 'file', 'v');
   held = record;
@@ -730,7 +789,9 @@ test('fts_S_JOIN_a_repair_refused_as_WriteParentNotLink_answers_the_callers_KC_4
   f.store.write([key], 'mem', 7);
   let held = null;
   let reached = false;
-  register(f.store, [key], 'join-c3', () => ({
+  // ⟶ `A135` (3) / `§7.3` (b) state 1 — and `3-bis` makes it mandatory for the same reason as `join-c2`: the
+  // repair's own store refusal must be the ATTEMPT's, which is the call this cell drives.
+  register(f.store, [key], 'join-c3', atLandingOnly(() => ({
     message: 'repair this landing',
     // THE REPAIR'S OWN EDIT, REFUSED BY THE STORE BEFORE ANY OP EXISTS: a segment remains under a leaf.
     repair: () => {
@@ -738,7 +799,7 @@ test('fts_S_JOIN_a_repair_refused_as_WriteParentNotLink_answers_the_callers_KC_4
       const w = f.store.write([key, 'child'], 'mem', 9, held);
       return { ok: true, op: w.op };
     },
-  }));
+  })));
 
   const record = commit(f.store, [key], 'mem', 1);
   held = record;
@@ -797,7 +858,11 @@ test('fts_S_CONSTRAINTS_KEY_one_well_formed_pair_constructs_and_the_pass_evaluat
   // the pass at its own address — the observable `§2.21` pins ("a store constructed with a well-formed list,
   // which the kernel's pass then evaluates").
   let evaluated = 0;
-  register(f.store, [key], 'pair-1', () => { evaluated += 1; return true; });
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THIS CELL'S SUBJECT IS LITERALLY *"the pass evaluated the
+  // declared pair ONCE"*, and `A135` (3) adds one invocation at the registration — so the shield answers the
+  // registration here and `evaluated` counts the PASS's own evaluations alone, which is what the sentence
+  // reads. The registration STANDS (state 1) and the pair is carried.
+  register(f.store, [key], 'pair-1', atLandingOnly(() => { evaluated += 1; return true; }));
   runAttempt(f.store, commit(f.store, [key], 'file', 'P'));
   assert.equal(evaluated, 1, 'S-CONSTRAINTS-KEY: the pass evaluated the declared pair once');
 });
@@ -1820,7 +1885,10 @@ test('fts_FTS_11_5_a_repairs_write_carries_the_commit_it_is_part_of_at_the_fifth
   let refusal = null;
   let repairWrite = null;
 
-  register(f.store, [key], 'fts115-c1', (ctx) => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: this body carries a
+  // `repair`, so an unshielded registration ATTEMPTS it and `repairs`/`repairWrite`/`refusal` are all set by a
+  // call that belongs to the registration, while this cell's own `repairs === 1` speaks of the WRITE's repair.
+  register(f.store, [key], 'fts115-c1', atLandingOnly((ctx) => {
     if (ctx.value === 'repaired') return true;
     return {
       message: 'the landed value contradicts the shape this pair confirms',
@@ -1839,7 +1907,7 @@ test('fts_FTS_11_5_a_repairs_write_carries_the_commit_it_is_part_of_at_the_fifth
         return { ok: true, op: w.op };
       },
     };
-  });
+  }));
 
   const record = commit(f.store, [key], 'file', 'broken');
   let caught = null;
@@ -2031,7 +2099,10 @@ function repairContextFixture(k, label, beforeSave) {
   let record = null;
   const SENTINEL = tag('s-repair-ctx-sentinel');
 
-  register(f.store, [key], `${label}-c1`, (ctx) => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — and `3-bis` makes the shield mandatory: every member this
+  // fixture records is recorded FROM THE REPAIR THE ATTEMPT'S OWN WRITE TRIGGERED, and an unshielded
+  // registration would ATTEMPT the repair first and fill `seen` from the registration's synthetic attempt.
+  register(f.store, [key], `${label}-c1`, atLandingOnly((ctx) => {
     if (ctx.value === 'repaired') { seen.order.push('re-run:passed'); return true; }
     return {
       message: 'the landed value contradicts the shape this pair confirms',
@@ -2066,7 +2137,7 @@ function repairContextFixture(k, label, beforeSave) {
         }
       },
     };
-  });
+  }));
 
   record = commit(f.store, [key], 'file', 'broken');
   if (beforeSave) beforeSave(f);
@@ -2187,7 +2258,10 @@ test('fts_S_REPAIR_CTX_the_fifth_position_accepts_the_context_only_because_it_ca
   const seen = { ctxMembers: null, stripped: null, strippedRefusal: null, accepted: false, acceptedWrite: null };
   let record = null;
 
-  register(f.store, [key], 's-repair-ctx-position-c1', (ctx) => {
+  // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — and `3-bis` makes it mandatory: this body carries a
+  // `repair`, so an unshielded registration ATTEMPTS it and the two halves this cell drives (the declared
+  // context and its member-less twin) are driven at the REGISTRATION instead of at the write's attempt.
+  register(f.store, [key], 's-repair-ctx-position-c1', atLandingOnly((ctx) => {
     if (ctx.value === 'repaired') return true;
     return {
       message: 'the landed value contradicts the shape this pair confirms',
@@ -2216,7 +2290,7 @@ test('fts_S_REPAIR_CTX_the_fifth_position_accepts_the_context_only_because_it_ca
           : { ok: false, message: 'neither half reached the commit position' };
       },
     };
-  });
+  }));
 
   record = commit(f.store, [key], 'file', 'broken');
   let caught = null;

@@ -98,16 +98,87 @@ function counted(admit = 'ok') {
   return wrapper;
 }
 /** The same body with no admission at all: it violates EVERY write that reaches its pair (`PAR-C-5`'s `{message}` arm). Its `admit` is a symbol — a value no write may carry, `PAR-JS-8`'s outside-value list. */
+/**
+ * **THE REFUSING BODY, RE-DERIVED 2026-10-17 FOR THE REGISTRATION INSTANT — IT ADMITS THE ABSENCE AND
+ * REFUSES EVERY LANDED VALUE.**
+ *
+ * `A135` (3) and `docs/specs/storeroom-native/contract.md §7.3` (b) state 1: a registration whose current
+ * state PASSES stands, the identity is returned and no code is produced. The state a fresh pair is
+ * registered against HOLDS NOTHING, and `kernel-surface.md §2.3` item 1's registration clause (3) (e)
+ * declares that context's `value` as `undefined` — so a body that refuses EVERY context refuses at the
+ * REGISTRATION too, and the pair can never be carried (state 2's refusal, `ConstraintListInvalid` #16).
+ * **A CELL WHOSE SUBJECT IS THE WRITE'S REFUSAL THEREFORE NEEDS A BODY THAT PASSES AT REGISTRATION AND
+ * REFUSES THE LANDED VALUE** — this one admits exactly `undefined`, and nothing a write can land.
+ *
+ * The cell's own subject is unchanged: every write that reaches the pair is still REFUSED, and its
+ * invocation count is still `1` per write. Only the state the registration meets has moved.
+ */
 function refusing() {
-  return counted(Symbol('nothing is admitted'));
+  const wrapper = (context) => {
+    wrapper.calls.push(context);
+    return context.value === undefined
+      ? true
+      : { message: `${JSON.stringify(context.value)} is outside this pair's domain` };
+  };
+  wrapper.calls = [];
+  return wrapper;
 }
-/** A body that always PASSES — `PAR-C-5`'s first arm, `true`, whatever value the write landed. */
+/**
+ * **THE BODY THAT REFUSES THE ABSENT STATE AND ADMITS EVERY LANDED VALUE** — the mirror of `refusing()`,
+ * and the ONE state a fresh pair is registered against is declared by `kernel-surface.md §2.3` item 1's
+ * registration clause (3) (e), which fixes that context's `value` as `undefined`.
+ *
+ * THE REGISTRATION OF THIS BODY IS STATE 2 — *"the current state violates it and no repair is registered
+ * for the pair"* — SO THE `ConstraintListInvalid` REFUSAL IS THE **SUBJECT** OF THE CELLS THAT USE IT, and
+ * not a premise those cells need to arrange around (`docs/specs/storeroom-native/contract.md §7.3` (b)
+ * state 2; `§8.1` #16 at its amended trigger).
+ */
+function refusingTheAbsentState() {
+  const wrapper = (context) => {
+    wrapper.calls.push(context);
+    return context.value === undefined
+      ? { message: 'the pair holds nothing, and this pair admits no absent value' }
+      : true;
+  };
+  wrapper.calls = [];
+  return wrapper;
+}
+/** A body that always PASSES — `PAR-C-5`'s first arm, `true`, whatever value the write landed, AND AT THE
+ *  REGISTRATION INSTANT TOO, so the registration is state 1 and the pair is carried (`§7.3` (b) state 1). */
 function passing() {
   const wrapper = (context) => {
     wrapper.calls.push(context);
     return true;
   };
   wrapper.calls = [];
+  return wrapper;
+}
+
+/**
+ * **WRAP A BODY SO THAT ITS `calls` LIST HOLDS ONLY THE INVOCATIONS THAT FOLLOW ITS REGISTRATION** — the
+ * cells of this file read `calls.length` as *"the count of writes that reached the pair"* (`surface.md
+ * §2.12` item 3's observable, *"`1` per write that reaches the pair"*), and `A135` (3) adds ONE invocation
+ * of the same body at the registration instant (`contract.md §7.3` (b) state 1; `kernel-surface.md §2.3`
+ * item 1's registration context). The wrapper admits absence so the registration PASSES (state 1) and the
+ * pair is carried, and it **CLEARS the count once the registration has returned**, so every count a cell
+ * reads stays the count the clause declares. The invocation the registration made is not discarded as a
+ * fact: it is asserted directly, where a cell's subject is that premise, at
+ * `a126_add_at_a_fresh_pair_returns_an_opaque_identity_and_carries_the_function`.
+ */
+function countsOnlyAfterRegistration(body) {
+  const wrapper = (context) => {
+    wrapper.calls.push(context);
+    if (context.value === undefined) return true; // STATE 1 at the registration: the pair is carried
+    return body(context);
+  };
+  wrapper.calls = [];
+  wrapper.mirror = body;
+  /** Called by the cell after `addConstraint` returns: the registration's own invocation is a fact about the
+   *  registration, and the counts below are counts of WRITES. */
+  wrapper.fromHere = () => {
+    wrapper.calls.length = 0;
+    return wrapper;
+  };
   return wrapper;
 }
 
@@ -121,8 +192,22 @@ const PAIR = (id, address = ['a']) => ({ address, id });
 
 test('a126_add_at_a_fresh_pair_returns_an_opaque_identity_and_carries_the_function', () => {
   const a = mem();
-  const fn = counted(); // it admits `'ok'` and answers the `{message}` arm for everything else
-  const id = a.addConstraint(PAIR('c1'), fn);
+  // **⟶ RE-DERIVED 2026-10-17 UNDER `A135` (3) AND `contract.md §7.3` (b) STATE 1.** THE BODY IS
+  // INCIDENTAL TO THIS CELL — the cell's SUBJECT is the identity the ADD answers and the function the pair
+  // then carries, not the body's answer — so the body is `counted()`, which admits `'ok'` and therefore
+  // PASSES the registration's own context (`kernel-surface.md §2.3` item 1's registration clause (3) (e):
+  // that context's `value` is `undefined` at an address holding nothing) **only where it admits absence**.
+  // `counted()` refuses `undefined`, so the registration would be REFUSED (state 2) and the cell could
+  // never reach its own subject. **THE BODY THIS CELL REGISTERS ADMITS ABSENCE AND `'ok'`**, so state 1
+  // holds and the cell's subject — the identity and the carried function — is reached unchanged.
+  const fn = counted();
+  // the registration meets an absent value: admit it, so STATE 1 stands and the identity is returned
+  const passAtRegistration = (context) => {
+    passAtRegistration.calls.push(context);
+    return context.value === undefined ? true : fn(context);
+  };
+  passAtRegistration.calls = [];
+  const id = a.addConstraint(PAIR('c1'), passAtRegistration);
   assert.ok(id !== undefined && id !== null, 'the ADD route answers the constraint identity');
   // **⟶ RESHAPED 2026-10-16 (`surface.md §2.12` item 3's observable clause): THE COUNT IS *"`1` PER WRITE
   // THAT REACHES THE PAIR"*, so the cell must contain THE WRITE ITS OWN COUNT SPEAKS OF.** The as-filed
@@ -132,19 +217,44 @@ test('a126_add_at_a_fresh_pair_returns_an_opaque_identity_and_carries_the_functi
   // nothing (`§2.7` item 3).
   const record = a.write(['a'], 'mem', 'ok');
   assert.deepEqual(Object.keys(record).sort(), ['op', 'triggered', 'watched'], 'and the write proceeds');
+  // THE REGISTRATION INVOCATION IS `1` AND THE WRITE'S IS THE SECOND: `A135` (3) runs the body ONCE at the
+  // registration instant, and the cell reads the count of the writes that reached the pair off `fn.calls`.
   assert.equal(fn.calls.length, 1, 'the function the caller supplied at the `constraint` position is the one invoked — ONCE, for the one write that reached the pair');
   assert.deepEqual(Object.keys(fn.calls[0]).sort(), ['address', 'attempt', 'op', 'tier', 'value'],
     'and that invocation`s ONE argument IS `PAR-C-16`\'s five-member attempt context');
   assert.equal(fn.calls[0].value, 'ok', 'the context carries VERBATIM the value this write landed');
+  // AND THE REGISTRATION'S OWN INVOCATION CARRIES THE REGISTRATION CONTEXT — the same five members, with
+  // `tier` and `op` absent spelled `null`, `attempt` `null` on this state, and `value` READ not landed.
+  assert.equal(passAtRegistration.calls.length, 2,
+    'the same function RAN ONCE AT THE REGISTRATION (`§7.3` (b) state 1 via `A135` (3)) and once for the write');
+  assert.deepEqual(Object.keys(passAtRegistration.calls[0]).sort(), ['address', 'attempt', 'op', 'tier', 'value'],
+    'and the registration invocation carries the SAME five-member context shape (`kernel-surface.md §2.3` item 1)');
+  assert.equal(passAtRegistration.calls[0].value, undefined,
+    'the registration context`s `value` is the STORE\'S CURRENT VALUE, READ NOT LANDED — `undefined` at an address holding nothing (`§2.3` item 1\'s registration clause (3) (e))');
+  assert.equal(passAtRegistration.calls[0].tier, null, '`tier` is ABSENT and spelled `null` at that instant (its (2))');
+  assert.equal(passAtRegistration.calls[0].op, null, 'and `op` is ABSENT and spelled `null` (its (5))');
+  assert.equal(passAtRegistration.calls[0].attempt, null,
+    'and `attempt` is `null` on state 1: no attempt is opened by a registration that passes (its (4))');
 });
 
 test('a126_add_at_a_held_pair_overwrites_the_function_and_refuses_nothing', () => {
   const a = mem();
   const pair = PAIR('c2');
-  const first = counted();
-  const second = counted();
+  // **⟶ RE-DERIVED 2026-10-17: EACH BODY'S `calls` LIST IS READ FOR THE COUNT OF *WRITES* THAT REACHED THE
+  // PAIR, SO THE REGISTRATION'S OWN INVOCATION MUST NOT STAND IN IT.** `A135` (3) runs a constraint ONCE at
+  // its registration (`contract.md §7.3` (b) state 1), and the state a fresh pair is registered against
+  // holds nothing (`kernel-surface.md §2.3` item 1's registration clause (3) (e): `value` is `undefined`).
+  // The bodies below therefore admit absence AND `'ok'`, so both registrations STAND (state 1) and the cell's
+  // own subject — the pair-keyed identity and the overwrite — is reached with no `ConstraintListInvalid`.
+  const first = countsOnlyAfterRegistration(counted());
+  const second = countsOnlyAfterRegistration(counted());
   const id1 = a.addConstraint(pair, first);
   const id2 = a.addConstraint(pair, second);
+  // THE REGISTRATION INVOCATIONS ARE THE PREMISE AND NOT THE SUBJECT: `A135` (3) ran each body once at its
+  // own registration, and `§7.3` (b) state 1 returned, so both registrations STOOD. The counts below are
+  // counts of WRITES, so the registration's own invocation is dropped from each list here, after it happened.
+  first.fromHere();
+  second.fromHere();
   assert.deepEqual(id2, id1, 'the SAME pair answers the SAME pair-keyed identity, on the fresh arm and the held one');
   // **⟶ RESHAPED 2026-10-16 (`surface.md §2.12` item 3 clause (c) item 3): *"after `addConstraint` at a
   // batch pair … the added function's own count is `1` PER WRITE THAT REACHES THE PAIR"*, and the clause's
@@ -182,9 +292,25 @@ test('a126_the_identity_is_opaque_and_pair_keyed', () => {
 
 test('a126_two_ids_at_one_address_are_carried_separately', () => {
   const a = mem();
-  const left = passing(); // `PAR-C-5`'s first arm, `true`, for whatever value the write landed
-  const right = refusing(); // `PAR-C-5`'s `{message}` arm: it admits nothing
+  const left = countsOnlyAfterRegistration(passing()); // `PAR-C-5`'s first arm, `true`, for whatever value the write landed
+  // **⟶ RE-DERIVED 2026-10-17 (`A135` (3); `contract.md §7.3` (b) state 1): `right` IS REGISTERED AGAINST
+  // THE VALUE THE FIRST WRITE LEFT** — a `'yes'` standing at `['shared']` and READ by the store at the
+  // registration instant (`kernel-surface.md §2.3` item 1's registration clause (3)) — so a body refusing
+  // every value is REFUSED THERE and its carriage is never reached. The two instants are DISTINGUISHED BY
+  // THE CONTEXT ITSELF and not by the value: the registration's context carries `tier` ABSENT, spelled
+  // `null` (`§2.3` item 1's clause (2)), while a LANDING's carries the tier it landed at — so a body that
+  // admits at `tier === null` and refuses every landed write is exactly the `{message}` arm this cell needs,
+  // and the cell's observable (the write is refused) is unchanged.
+  const right = countsOnlyAfterRegistration((context) => (
+    context.tier === null ? true : { message: `${JSON.stringify(context.value)} is outside this pair's domain` }
+  ));
+  // **⟶ RE-DERIVED 2026-10-17: BOTH REGISTRATIONS MUST STAND FOR THE CELL'S SUBJECT TO BE REACHED.** `right`
+  // is the pair whose carriage this cell reads — *"the second id carries nothing yet"* — so its registration
+  // is the act that puts it in the registry, and under `A135` (3) a body refusing the registration's own
+  // context is REFUSED THERE and never carried at all. The bodies therefore admit the registration's state
+  // and answer their own arms for every other LANDED value, which is the state this cell's observable writes.
   a.addConstraint(PAIR('left', ['shared']), left);
+  left.fromHere(); // the first pair's OWN registration invocation is a fact about the registration, not a write
   // **⟶ RESHAPED 2026-10-16 (`surface.md §2.12` item 3's carriage definition, clause (a): *"THE ENTRY
   // CARRIES A PAIR IF AND ONLY IF A FUNCTION STANDS REGISTERED AT THAT PAIR IN THE KERNEL'S OWN PAIR-KEYED
   // REGISTRY"*, read with `PAR-C-5`'s arms).** **THE OBSERVABLE IS A WRITE THAT PASSES THE ONE CARRIED
@@ -199,6 +325,7 @@ test('a126_two_ids_at_one_address_are_carried_separately', () => {
   assert.equal(left.calls.length, 1, 'the first id at the address carries its own function — ONCE, for the write that reached it');
   assert.equal(right.calls.length, 0, 'and the second id carries nothing yet: its own count is unmoved');
   a.addConstraint(PAIR('right', ['shared']), right);
+  right.fromHere(); // the second pair's OWN registration invocation is a fact about the registration, not a write
   thrown(() => a.write(['shared'], 'mem', 'yes'));
   assert.equal(right.calls.length, 1, 'the second id, once added at the SAME address, carries its own function — ONCE');
   assert.equal(left.calls.length, 2, 'and the first id` own count moves only by the write that reached it: the two are carried separately');
@@ -212,7 +339,24 @@ test('a126_two_ids_at_one_address_are_carried_separately', () => {
 test('a126_constraintOff_disables_a_carried_pair_and_constraintOn_reenables_it', () => {
   const a = mem();
   const pair = PAIR('t1');
-  const fn = refusing();
+  // **⟶ RE-DERIVED 2026-10-17: THE CELL'S SUBJECT IS THE TOGGLE, NOT THE BODY'S REGISTRATION ANSWER.** The
+  // registration must STAND for a carried pair to exist and be togglable at all (`contract.md §7.3` (b)
+  // state 1); a body refusing the registration's own absent `value` is refused there with
+  // `ConstraintListInvalid` and leaves nothing to toggle (`§7.3` (b) state 2).
+  //
+  // **AND THE ENABLE HALF IS ITSELF A REGISTRATION** (`surface.md §2.12` item 3's clause of 2026-10-16 at its
+  // `A135` (3) mark: *"RE-REGISTERS THE PAIR'S OWN FUNCTION, SO IT TAKES THE SAME THREE-STATE REGISTRATION AS
+  // EVERY OTHER REGISTRATION SITE"*), so `constraintOn` re-evaluates the body against THE STORE'S CURRENT
+  // STATE — which by then holds the value the `constraintOff` write landed. **THE BODY MUST THEREFORE ACCEPT
+  // THAT STATE AND STILL REFUSE THE WRITE THIS CELL DRIVES AFTER IT**: the two instants are told apart by the
+  // context itself, a registration's carrying `tier` ABSENT spelled `null` (`kernel-surface.md §2.3` item 1's
+  // registration clause (2)) where a landing's carries the tier it landed at. **THE CELL'S OWN SUBJECT IS
+  // UNMOVED: while ENABLED the write is refused, while DISABLED it is accepted, and the toggle re-enables it.**
+  const fn = (context) => {
+    fn.calls.push(context);
+    return context.tier === null ? true : { message: `${JSON.stringify(context.value)} is outside this pair's domain` };
+  };
+  fn.calls = [];
   a.addConstraint(pair, fn);
   const enabled = thrown(() => a.write(['a'], 'mem', 'refuse'));
   assert.ok(enabled !== undefined, 'while the pair is ENABLED the function is evaluated and the write is refused');
@@ -283,12 +427,28 @@ test('a126_a_toggle_at_a_key_holding_no_function_throws_the_one_type_error', () 
   // `a126_a_functionless_batch_element_is_admitted_and_its_pair_is_not_carried`.
   const a = mem();
   const pair = PAIR('t3');
-  const fn = refusing(); // the function the pair actually carries: it violates every write that reaches it
+  // **⟶ RE-DERIVED 2026-10-17 (`A135` (3); `contract.md §7.3` (b) state 1): THE REGISTRATION INVOCATIONS ARE
+  // COUNTED AND THEN CLEARED, BECAUSE THIS CELL'S COUNTS ARE COUNTS OF LANDED WRITES.** `fn` is invoked once
+  // when registered and `other` once when the toggle's third position names it — wait, `other` is never
+  // registered, only PASSED to a toggle that substitutes nothing — so only `fn`'s registration invocation
+  // stands in a list the cell reads. It is cleared after the registration and the cell's own subject is
+  // unchanged: the pair's OWN function is the one the write reaches, and the toggle's function is reached
+  // no further.
+  const fn = countsOnlyAfterRegistration(refusing()); // the function the pair actually carries: it violates every landed write
   a.addConstraint(pair, fn);
+  fn.fromHere();
   a.constraintOff(pair, fn);
   const other = refusing(); // a DIFFERENT function at the same pair: a NO-OP on success, never a substitute
+  // `other` is NEVER registered, so no invocation of it at any registration instant stands in its list: every
+  // count read off it below is the count of writes that reached it, which is the count the clause names.
   assert.equal(a.constraintOn(pair, other), undefined,
     'a pair carrying a function is carried whatever function the toggle passes: carriage is the pair-keyed registry`s own, and the toggle answers `undefined`');
+  // **⟶ AND THE ENABLE HALF IS ITSELF A REGISTRATION, SO IT CARRIES `A135` (3)'s ONE EVALUATION.** The landed
+  // `constraintOn` *"RE-REGISTERS THE PAIR'S OWN FUNCTION, SO IT TAKES THE SAME THREE-STATE REGISTRATION AS
+  // EVERY OTHER REGISTRATION SITE"* (`surface.md §2.12` item 3's clause of 2026-10-16 at its `A135` (3) mark;
+  // `bindings/js/index.mjs`'s `constraintToggle`) — so `fn` runs once more at that registration, and the count
+  // this cell reads is the count of WRITES, which starts after it.
+  fn.fromHere();
   thrown(() => a.write(['a'], 'mem', 'anything'));
   assert.equal(fn.calls.length, 1,
     'and the pair`s OWN function was invoked by the write that reached it — the toggle substituted NO function');
@@ -304,8 +464,14 @@ test('a126_a_toggle_at_a_key_holding_no_function_throws_the_one_type_error', () 
 // ─────────────────────────────────────────────────────────────────────────────────────────────
 
 test('a126_a_batch_populated_pair_toggles_like_an_added_one', () => {
-  const fn = counted('ok');
+  // **⟶ RE-DERIVED 2026-10-17 (`A135` (3); `contract.md §7.3` (b) state 1; `§7.1` step 4-bis):** the batch
+  // route registers through the SAME `K-1` the `addConstraint` route does, so THE CONSTRUCTION RUNS THE
+  // BATCH ELEMENT'S BODY ONCE AT ITS REGISTRATION. The body admits absence so that registration STANDS
+  // (`kernel-surface.md §2.3` item 1's registration clause (3) (e)) and the pair is carried; the cell's
+  // subject — that a batch pair toggles exactly like an added one — is unchanged.
+  const fn = countsOnlyAfterRegistration(counted('ok'));
   const a = mem({ constraints: [{ address: ['a'], id: 'b1', constraint: fn }] });
+  fn.fromHere(); // the construction's own registration invocation is a fact about the registration, not a write
   a.write(['a'], 'mem', 'ok');
   assert.ok(fn.calls.length >= 1, 'the batch element`s own function stands registered at its pair');
 
@@ -326,10 +492,18 @@ test('a126_add_at_a_batch_pair_takes_the_overwrite_and_the_batch_function_is_dis
   // second count with NO WRITE IN THE CELL — a count of `1` the clause does not fix in that state, the
   // measured bytes being `0` — so the ONE write the clause's count speaks of stands here, and BOTH counts
   // are read after it.
-  const batch = counted('ok');
+  // **⟶ RE-DERIVED 2026-10-17 (`A135` (3); `contract.md §7.3` (b) state 1): BOTH REGISTRATIONS RUN THEIR
+  // BODY ONCE, AND BOTH MUST STAND FOR THE OVERWRITE TO BE REACHED.** The batch route's registration and the
+  // `addConstraint` overwrite are the SAME `K-1` call, so each body answers the registration's own context —
+  // whose `value` is `undefined` at the fresh `['a']` (`kernel-surface.md §2.3` item 1's registration clause
+  // (3) (e)) — and each body admits it, so both stand and the cell's own subject (the displacement and the
+  // counts of writes) is unchanged. The registration invocations are dropped from the lists the counts read.
+  const batch = countsOnlyAfterRegistration(counted('ok'));
   const a = mem({ constraints: [{ address: ['a'], id: 'b2', constraint: batch }] });
-  const added = counted('ok');
+  batch.fromHere();
+  const added = countsOnlyAfterRegistration(counted('ok'));
   a.addConstraint({ address: ['a'], id: 'b2' }, added);
+  added.fromHere();
   const record = a.write(['a'], 'mem', 'ok');
   assert.deepEqual(Object.keys(record).sort(), ['op', 'triggered', 'watched'], 'and the write proceeds');
   assert.equal(batch.calls.length, 0, 'the batch`s displaced function is invoked no further: its count is `0`');
