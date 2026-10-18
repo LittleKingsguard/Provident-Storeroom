@@ -22,6 +22,18 @@
 // clause of that date, the crossing form's ONE home; **the ONE figure that moves is the arity, and
 // `storeCreate` remains the namespace's one name and the product its twelve own members**).
 //
+// **⟶ AND THE MEMBER-SET FIGURE ABOVE IS SUPERSEDED AND IS READ THROUGH THIS CLAUSE, 2026-10-17: THE
+// OPERATIVE SET IS THIRTEEN OWN MEMBERS, `10 + 1 + 1 + 1 = 13` ✓, THE THIRTEENTH BEING `constraints()`** —
+// the registered-pair read, declared at `surface.md §2.4` item 9 (f)'s `constraints` clause of that date and
+// at `§2.12` item 2-bis, on the architect's ruling verbatim *"Add surface methods for reading registered
+// constraints."* **THE BYTES ABOVE STAND AS THE `A127` PASS'S READING (`DEF-2026-10-02`: no whole-file
+// rewrite) and every "twelve own members" figure in this file is read through this sentence as THIRTEEN.**
+// **SO A DECLARATION FILE THAT STILL READS TWELVE OWN MEMBERS AFTER THAT DATE IS A FINDING** (`surface.md
+// §2.4` item 9 (f)'s item 10, which names the declaration file among the cells that go red; item 13; its own
+// mark at `§2.9` item 1). **THE TWO ROUTES THAT WOULD HAVE MOVED THE SET EARLIER ARE STILL REFUSED BY NAME
+// AND THIS ONE IS NOT ONE OF THEM** (`§2.5`'s clause of 2026-10-16: a `constraintLog(commit)` reader and a
+// second module-namespace name) — and the second `1` above is `settle`, the third `1` being `constraints`.
+//
 // **THE TEN METHODS TAKE THE RECEIVER'S OWN POSITION AWAY: `8 → 1` ✓ AND `4 → 12` ✓** (`surface.md §2.9`
 // item 1's and `§2.4` item 9 (f)'s `A127` clauses). The seven verbs that reach the store are METHODS of the
 // object `storeCreate` returned, so **NO DECLARED SIGNATURE CARRIES A LEADING `instance` POSITION** — the
@@ -375,7 +387,9 @@ export interface CommitRecord {
  *
  * **THE STATE IS PRIVATE AND NONE OF THE TWELVE IS A RELEASE VERB** (`surface.md §2.1` (e) item 1; `A74`):
  * the instance's own state is released with the instance and by nothing else — no `dispose()`, no `close()`
- * and no finalizer is declared here.
+ * and no finalizer is declared here. **⟶ AND `"THE TWELVE"` READS AS `THIRTEEN` FROM 2026-10-17, the
+ * thirteenth being `constraints()`** (this interface's own clause for it below; the file's header carries the
+ * member-set mark and the two still-refused routes).
  */
 export interface StoreInstance {
   /**
@@ -545,6 +559,66 @@ export interface StoreInstance {
    * `storeCreate`'s own product alone.
    */
   settle(record: CommitRecord): void;
+  /**
+   * **THE REGISTERED-PAIR READ — `constraints() -> ConstraintPair[]`** (`surface.md §2.4` item 9 (f)'s
+   * `constraints` clause of 2026-10-17, items 2–9; `§2.12` item 2-bis; `parameter-semantics.md §2.27` =
+   * `PAR-JS-27`) — **the THIRTEENTH own member** (`10 + 1 + 1 + 1 = 13` ✓, the third `1` being this member),
+   * added on the architect's ruling of that date, verbatim: *"Add surface methods for reading registered
+   * constraints."*
+   *
+   * **THE RECEIVER IS THE STORE, THE CALL TAKES NO ARGUMENT (arity `0`) AND IT THROWS NOTHING**: there is no
+   * outside argument for the class test to refuse, and the call makes NO STORE CALL, MINTS NO CODE, APPENDS
+   * NO JOURNAL ENTRY AND CHANGES NO NODE — so this member is one of the product's NON-STORE-REACHING members
+   * beside `register` and `settle`, and `§2.4` item 9 (f)'s rule (ii) has no subject at it.
+   *
+   * **WHAT IS RETURNED, EXACTLY — THE PAIRS AND NOT THE FUNCTIONS:** a **FRESH JS ARRAY on every call**,
+   * whose **every element is a FRESH plain object carrying EXACTLY TWO MEMBERS** — `address` (a fresh array of
+   * the store's own segments) and `id` (the constraint's own BARE `id`, a `string`) — the same two data the
+   * kernel's own registry is keyed by. **The empty array `[]` is the declared value where the instance carries
+   * no pair at all** (`PAR-JS-27`'s `domain` cell).
+   *
+   * **THE FOUR DECLARED EXCLUSIONS, EACH STATED SO A DECLARATION THAT VIOLATED ONE WOULD BE VISIBLE AT ITS OWN
+   * BYTES:**
+   * 1. **NO CONSTRAINT FUNCTION IS RETURNED** (item 3, four named grounds — the operative one being the
+   *    anti-pattern rulings' *do not hand out a value whose later use the contract cannot bound*). The
+   *    `Constraint` type below is that function and **NO MEMBER OF THIS RETURN CARRIES ONE**; a disabled pair
+   *    makes the hazard sharp, since `constraintOff` parks a stub in the kernel while the caller's function is
+   *    kept in the entry.
+   * 2. **NO OPAQUE IDENTITY IS EXPOSED** (item 4): `ConstraintIdentity` is NOT reachable through this return —
+   *    `PAR-JS-25`'s opacity would break the moment a consumer read one out of the array. **The pair is the
+   *    caller's own datum; the identity is this unit's opaque handle for it, and the two are NOT the same
+   *    datum.**
+   * 3. **NO ORDER IS PROMISED** (item 6): the returned array's order is **UNDECLARED** and a consumer compares
+   *    the pairs **as a SET and never as a sequence** (`DD-22`; `§2.7` item 3). **Nothing in this declaration
+   *    may be read as a registration order, an address order or a `seq`-like ordinal.**
+   * 4. **A DISABLED PAIR DOES APPEAR** (item 5): `constraintOff` is a TOGGLE and NOT A REMOVAL, so a pair it
+   *    disabled is STILL REGISTERED and still enumerated — **and therefore there is NO `enabled` member on an
+   *    element and NO way to read a pair's state off this return**; the state is read at the toggles' own
+   *    clauses. **No removal route exists**, so an absence here means nothing was ever registered.
+   *
+   * **THE COVERAGE, BOTH POPULATION ROUTES ON ONE FOOTING** (item 7): a pair the batch registered at
+   * `storeCreate` (`cfg.constraints`) and a pair `addConstraint` registered appear alike, because *"the entry
+   * carries a pair if and only if a function stands registered at that pair in the kernel's own pair-keyed
+   * registry"*. **The two declared exclusions are therefore structural**: a well-formed `cfg.constraints`
+   * element that carried no function is **not** a carried pair and does not appear, and a REFUSED
+   * registration — at the batch loop or at `addConstraint` — leaves the entry exactly as it stood and does not
+   * appear. **An overwrite changes no membership**: a second `addConstraint` at a held pair replaces the
+   * function at the SAME pair and returns the SAME identity, so the pair is carried ONCE before and after.
+   *
+   * **IT ADDS NO POPULATION ROUTE** (`§2.12` item 2-bis): the two routes stand at TWO, and a read closes none
+   * and opens none. **It is NOT a `pending()` reader, NOT an `attempts()` enumerator and NOT a live view of a
+   * running commit**; it announces no identity, no function and no order.
+   *
+   * **AND IT MOVES NO OTHER FIGURE**: the module namespace keeps its ONE name `storeCreate` (`§2.9` item 1's
+   * `A127` clause, `11 → 1` ✓), the kernel's extent stays FIVE with no `K-6` proposed (`§2.4` item 9 (f),
+   * item 8 — the pairs are read from the entry's OWN registry, which is keyed exactly as the kernel's is), the
+   * store's closed `16`-member set is not reached, the kernel's `KC` set stands closed at `8`, and the register
+   * keeps its `8` rows.
+   *
+   * **It is NOT a named export of this entry** (`package.md §1.3` item 3): it is reached through
+   * `storeCreate`'s own product alone.
+   */
+  constraints(): ConstraintPair[];
 }
 
 /**
@@ -565,6 +639,15 @@ export function storeCreate(cfg: StoreConfig): StoreInstance;
  * `string`** — **and NOT the whole of a batch element**, which is this pair PLUS its constraint function.
  * **Every outside form of the pair throws the three methods' one `TypeError`**, and **a well-formed pair
  * the entry does not carry is outside the two toggles' domain**: it is NOT a third population route.
+ *
+ * **⟶ AND THIS SHAPE IS ALSO THE ELEMENT OF THE FOURTH MEMBER'S RETURN, ADDED 2026-10-17**
+ * (`surface.md §2.4` item 9 (f)'s `constraints` clause; `parameter-semantics.md §2.27` = `PAR-JS-27`,
+ * `return-field`): `a.constraints()`'s every element carries **exactly these TWO members and no third** —
+ * the `address` a pair was registered under and its bare `id` — **and NEITHER the constraint function nor the
+ * opaque identity** (`PAR-JS-25`'s opacity, unmoved). **THE TWO ROLES ARE ONE SHAPE AND NOT TWO**: this is the
+ * caller's own datum entering at `addConstraint` (and at `cfg.constraints`' elements, which are this pair
+ * PLUS a `constraint`) and coming back out at the read. **`Row 27`'s `alt` cell refuses an `enabled` member on
+ * the element**, so no third member is declared here and this interface is left exactly as it stood.
  */
 export interface ConstraintPair {
   readonly address: Address;

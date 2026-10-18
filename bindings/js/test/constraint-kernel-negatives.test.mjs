@@ -752,19 +752,33 @@ test('ck_p_neg_19_a_commit_record_from_another_instance_is_refused_KC2_and_eats_
  * bytes; a cell written against `composition-and-states.md §2.7` item 13's `null` alone would be the
  * reading this clause WITHDRAWS by name where the floor is met** (`RE-6`; `RD-7`; `RD-8`; `S7`).
  *
- * THE DRIVE: a journal base COMPACTED under the attempt (`StoreConfig.journalLength` small, six seeded
- * writes past it — the same store-state condition `constraint-kernel-states.test.mjs`'s `ck_neg_3`
- * pins), an attempt whose own commit op lies past that base, and a constraint body that THROWS.
+ * **⟶ RE-DERIVED 2026-10-16 (`role_test_writer`) FOR THE TEMPORAL STOP: THE FILED WINDOW NO LONGER
+ * REACHES THE FLOOR, AND THE COMPENSATING HALF OF THIS CELL'S SUBJECT MOVED WITH IT.** The filed drive
+ * was a journal base compacted under the attempt (`journalLength: 2`, six seeded writes past it) with the
+ * attempt's own op lying past it. **Under `M-5` (a) (ii) every seeded entry is OLDER than the attempt's
+ * own op and is therefore OUT OF SCOPE**, so `M-6` never examines it and the per-op call RETURNS — measured
+ * on this checkout: `failed` steps `0` and a single `{answer: "ok", undoneOps: ["op-7"]}`. The clause that
+ * closes the filed window is the spec's own, verbatim: *"an entry OLDER than the named op that carries
+ * `compacted: true` IS IN NO ROLLBACK OVER THAT OP AND CANNOT FAIL ONE"* (`write-and-read.md §6.4` item 2's
+ * dated neighbour of 2026-10-16).
  *
- * STATES ENUMERATED FIRST: (1) the compacted base and the attempt's own op standing on it; (2) the
- * constraint body's THROW on the first evaluation, no `constraint-check` entry retained and the body's
- * own throwable reaching the caller; (3) the composition, whose call over the still-owed op meets
- * `RollbackCompacted` — ONE step with `failed: true` and the store's own code in `answer`;
- * (4) THE ONE `outcome` ENTRY, its `state` `KC-8` and its `message` naming the store's own
+ * THE DRIVE THIS CELL NOW RUNS, AND WHY IT IS THE ONE THE CLAUSES NAME: the compacted entry must be
+ * TEMPORALLY IN SCOPE for the call that meets it. A two-op failing attempt at ONE address produces that —
+ * the FIRST call reverses the newer op and marks it compacted (`M-9`'s residue), and the SECOND call over
+ * the still-owed older op has it inside its bounded candidate set — and a constraint body that THROWS
+ * reaches the body-throw path this cell reads. **That combination is the exact case `§2.6` item 6 (a) rules
+ * once: the CONSTRAINT-body path's entry carries `KC-8` and not `null` where the composition met the floor.**
+ *
+ * STATES ENUMERATED FIRST: (1) the two ops the attempt creates at one address, the first call's residue
+ * standing inside the second call's temporally bounded candidate set; (2) the constraint body's THROW on
+ * its evaluation, the body's own throwable reaching the caller; (3) the composition, whose call over the
+ * still-owed op meets `RollbackCompacted` — ONE step with `failed: true` and the store's own code in
+ * `answer`; (4) THE ONE `outcome` ENTRY, its `state` `KC-8` and its `message` naming the store's own
  * `RollbackCompacted` as the store's answer (`§2.6` item 6 (a)).
  *
  * FAIL STATES: an `outcome` entry left at `null` on this path (the withdrawn reading); a SECOND
- * `outcome` entry appended for the floor; a floor answered by the violation arm's own token.
+ * `outcome` entry appended for the floor; a floor answered by the violation arm's own token; a drive whose
+ * compacted entry is OUT OF SCOPE by `seq` (where the floor is not met at all and this cell cannot speak).
  *
  * ▸ AND ONE MEMBER THIS CELL DOES NOT READ, WITH ITS TWO READINGS NAMED BECAUSE THE SPEC IS INTERNALLY
  * INCONSISTENT ON IT AND THE SUPERVISOR OF THIS PASS HAS NOT RULED IT: THE CALLER'S OWN CHANNEL.
@@ -776,13 +790,25 @@ test('ck_p_neg_19_a_commit_record_from_another_instance_is_refused_KC2_and_eats_
  */
 test('ck_p_neg_20_a_throwing_body_over_a_compacted_base_leaves_the_one_outcome_entry_at_KC8', async () => {
   const { register, commit, runAttempt, report } = await kernel();
-  const store = makeStore({ journalLength: 2 });
+  const store = makeStore({ journalLength: 64 });
   const address = [tag('n20')];
-  for (let i = 0; i < 6; i += 1) store.write(address, 'mem', `seed-${i}`);
   const fromTheBody = { fromTheConstraintBody: true };
   // ⟶ `A135` (3) / `§7.3` (b): a THROWING body at its registration surfaces AS ITSELF out of `register`
-  // (`kernel-surface.md §2.3` item 1's clause of 2026-10-17), before the compacted base this cell reads is ever
-  // written through — so the shield lets the registration stand and the throw reaches the ATTEMPT.
+  // (`kernel-surface.md §2.3` item 1's clause of 2026-10-17), so the shield lets the registration stand and
+  // the throw reaches the ATTEMPT — which is the body-throw path this cell reads.
+  //
+  // THE TWO OPS: `y` violates on the committed value and ITS repair lands one op; `x`'s body THROWS on the
+  // re-run at that landing. Item 2's list is `[op-2 (y's repair), op-1 (the commit)]`; the first call
+  // reverses `op-2` and leaves it compacted, and the second call over `op-1` meets it.
+  let y = 0;
+  register(store, address, 'y', passAtRegistration((ctx) => {
+    y += 1;
+    if (y === 1) return { repair: () => {
+      const landed = store.write(address, 'mem', 'y-fixed').op;
+      return { ok: true, message: 'y was repaired by the op this repair landed', op: landed };
+    }, message: 'y is violated by the committed value' };
+    return true;
+  }));
   register(store, address, 'x', passAtRegistration(() => { throw fromTheBody; }));
   const record = commit(store, address, 'mem', 'v');
   const r = capture(() => runAttempt(store, record));

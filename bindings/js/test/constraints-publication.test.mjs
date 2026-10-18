@@ -184,8 +184,18 @@ const ONE = ['storeCreate'];
 /** The TEN store-reaching methods the same clause declares, sorted — the object's own method set. */
 const TEN_METHODS = ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read',
   'readLiteral', 'rollback', 'unlisten', 'write'];
-const TWELVE_MEMBERS = ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read',
-  'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'];
+/**
+ * **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): THE SET MOVES `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**, on
+ * the architect's ruling VERBATIM *"Add surface methods for reading registered constraints."* — the ten
+ * methods, `register`, `settle` and the THIRTEENTH, `constraints()` (`docs/specs/storeroom-js/surface.md
+ * §2.4` item 9 (f)'s `constraints` clause of that date and `§2.12` item 2-bis; its register row is
+ * `PAR-JS-27`). **Every cell below that reads this constant therefore asserts THIRTEEN names, and the
+ * constant's own NAME is kept so no citing cell is renamed by a figure.** The superseded
+ * `10 + 1 + 1 = 12` reading stands at `§2.4` item 9 (f)'s `A127` clause, read THROUGH the `constraints`
+ * clause that marks it.
+ */
+const TWELVE_MEMBERS = ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen',
+  'read', 'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'];
 /** The ONE name the namespace leaves, read beside the ten methods it no longer carries. */
 const EIGHT = ['storeCreate'];
 /** The member the `A127` clause leaves UNMOVED beside the ten methods, sorted. */
@@ -320,7 +330,8 @@ test('cp_a126_seven_own_members_the_storecreate_object_carries_seven_own_members
   const inst = makeStore();
   assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), TWELVE_MEMBERS,
     '`§2.4` item 9 (f)\'s `A127` clause of 2026-10-16: the operative declared member set is the TEN '
-    + 'store-reaching methods plus `register` and `settle` — TWELVE own members, `10 + 1 + 1 = 12`');
+    + 'store-reaching methods plus `register`, `settle` and `constraints` — THIRTEEN own members, '
+    + '`10 + 1 + 1 + 1 = 13` (`surface.md §2.4` item 9 (f)\'s `constraints` clause of 2026-10-17)');
   for (const [label, name] of [['the registration site', 'register'], ['the ordering seam', 'settle']]) {
     assert.equal(typeof inst[name], 'function', `${label} \`${name}\` is UNMOVED in the same set`);
   }
@@ -336,8 +347,8 @@ test('cp_a126_seven_own_members_the_storecreate_object_carries_seven_own_members
       + '(`§2.4` item 9 (f)\'s `A127` clause)');
   }
   assert.equal(Object.getOwnPropertyNames(inst).includes(SUPERSEDED), false,
-    'and the superseded `manageConstraints` is NOT a member of this product either — the set is TWELVE and '
-    + 'not TWELVE PLUS ONE');
+    'and the superseded `manageConstraints` is NOT a member of this product either — the set is THIRTEEN '
+    + 'and not THIRTEEN PLUS ONE');
   for (const name of TEN_METHODS) {
     const descriptor = Object.getOwnPropertyDescriptor(inst, [name][0]);
     assert.ok(descriptor !== undefined && descriptor.enumerable === true,
@@ -867,7 +878,7 @@ test('cp_fail_outside_instance_is_one_typeerror_at_every_value_that_remains_outs
   // THE CALLER'S OWN MEMBER SET AND THE MODULE NAMESPACE STAND BEFORE THE REFUSALS, so a refusal that
   // minted a member or a name would be read at the same cell.
   assert.deepEqual(Object.getOwnPropertyNames(inst).sort(), TWELVE_MEMBERS,
-    'PREMISE: the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`)');
+    'PREMISE: the product carries its THIRTEEN declared own members (`10 + 1 + 1 + 1 = 13`)');
   assert.equal(Object.keys(api).length, 1, 'PREMISE: the module namespace carries its ONE name (`11 → 1`)');
   const OUTSIDE = [
     ['`null`', null], ['`undefined`', undefined], ['a number', 1], ['a string', 'instance'],

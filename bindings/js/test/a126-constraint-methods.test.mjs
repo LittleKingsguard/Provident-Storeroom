@@ -53,9 +53,15 @@ function mem(extra = {}) {
 /// (a)'s clause of that date; `parameter-semantics.md §2.23`'s VACATED row): the product's own TWELVE members
 /// (`10 + 1 + 1 = 12`) and the THREE constraint functions, each at the TWO positions the receiver ruling
 /// leaves (`8 → 1`).
+// **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): THE SET MOVES `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**, the
+// thirteenth being `constraints()` on the architect's ruling VERBATIM *"Add surface methods for reading
+// registered constraints."* (`surface.md §2.4` item 9 (f)'s `constraints` clause of that date; `§2.12` item
+// 2-bis; `PAR-JS-27`). **The constant's NAME is kept so no citing cell is renamed by a figure.** Every cell
+// below reads this constant as a PREMISE — "the product carries its declared own members before any
+// refusal is driven" — so the premise moves by one and each cell's own subject is untouched.
 const TWELVE_MEMBERS = [
-  'addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral',
-  'register', 'rollback', 'settle', 'unlisten', 'write',
+  'addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
+  'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write',
 ];
 const THREE = ['addConstraint', 'constraintOn', 'constraintOff'];
 
@@ -392,7 +398,8 @@ test('a126_a_toggle_at_a_pair_the_entry_does_not_carry_throws_the_one_type_error
   // because `undefined(x)` throws a `TypeError` too**, so the member's own existence and arity are read
   // FIRST at every cell of this class and no assertion below is weakened by it.
   assert.deepEqual(Object.getOwnPropertyNames(a).sort(), TWELVE_MEMBERS,
-    'the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`) before any refusal is driven');
+    'the product carries its THIRTEEN declared own members (`10 + 1 + 1 + 1 = 13`) before any refusal '
+    + 'is driven');
   for (const name of THREE) {
     assert.equal(typeof a[name], 'function',
       `and \`${name}\` IS a member of the product, arity TWO — so the TypeError below is the CLASS TEST's `
@@ -521,7 +528,8 @@ test('a126_a_functionless_batch_element_is_admitted_and_its_pair_is_not_carried'
   // spelling, `8 → 1`). **A MISSING `constraintOn` THROWS A `TypeError` TOO, WHICH IS THE ONE CLASS TEST —
   // so deleting the member makes this cell FAIL at the `typeof` reading and not pass at the predicate.**
   assert.deepEqual(Object.getOwnPropertyNames(a).sort(), TWELVE_MEMBERS,
-    'the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`) before any refusal is driven');
+    'the product carries its THIRTEEN declared own members (`10 + 1 + 1 + 1 = 13`) before any refusal '
+    + 'is driven');
   for (const name of THREE) {
     assert.equal(typeof a[name], 'function',
       `and \`${name}\` IS a member of the product, arity TWO — so the TypeError below is the CLASS TEST's `
@@ -549,7 +557,8 @@ test('a126_an_outside_pair_throws_the_one_type_error_and_changes_nothing', () =>
   // because `undefined(x)` throws a `TypeError` too**, so the member's own existence and arity are read
   // FIRST at every cell of this class and no assertion below is weakened by it.
   assert.deepEqual(Object.getOwnPropertyNames(a).sort(), TWELVE_MEMBERS,
-    'the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`) before any refusal is driven');
+    'the product carries its THIRTEEN declared own members (`10 + 1 + 1 + 1 = 13`) before any refusal '
+    + 'is driven');
   for (const name of THREE) {
     assert.equal(typeof a[name], 'function',
       `and \`${name}\` IS a member of the product, arity TWO — so the TypeError below is the CLASS TEST's `
@@ -597,7 +606,8 @@ test('a126_an_outside_constraint_throws_the_one_type_error', () => {
   // because `undefined(x)` throws a `TypeError` too**, so the member's own existence and arity are read
   // FIRST at every cell of this class and no assertion below is weakened by it.
   assert.deepEqual(Object.getOwnPropertyNames(a).sort(), TWELVE_MEMBERS,
-    'the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`) before any refusal is driven');
+    'the product carries its THIRTEEN declared own members (`10 + 1 + 1 + 1 = 13`) before any refusal '
+    + 'is driven');
   for (const name of THREE) {
     assert.equal(typeof a[name], 'function',
       `and \`${name}\` IS a member of the product, arity TWO — so the TypeError below is the CLASS TEST's `
@@ -620,7 +630,8 @@ test('a126_a_short_arity_throws_the_one_type_error', () => {
   // because `undefined(x)` throws a `TypeError` too**, so the member's own existence and arity are read
   // FIRST at every cell of this class and no assertion below is weakened by it.
   assert.deepEqual(Object.getOwnPropertyNames(a).sort(), TWELVE_MEMBERS,
-    'the product carries its TWELVE declared own members (`10 + 1 + 1 = 12`) before any refusal is driven');
+    'the product carries its THIRTEEN declared own members (`10 + 1 + 1 + 1 = 13`) before any refusal '
+    + 'is driven');
   for (const name of THREE) {
     assert.equal(typeof a[name], 'function',
       `and \`${name}\` IS a member of the product, arity TWO — so the TypeError below is the CLASS TEST's `

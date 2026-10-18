@@ -1391,12 +1391,19 @@ test('fts_S_CENSUS_no_rank_moves_no_ninth_register_row_and_no_second_register', 
       + 'product alone (`§2.9` item 1\'s `A127` clause; `10 → 0` named, `11 → 1` total)');
   }
   const f = newStore();
+  // ── **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): THE SET MOVES `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓,
+  // ON THE ARCHITECT'S RULING VERBATIM *"Add surface methods for reading registered constraints."***
+  // (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s `constraints` clause of that date, whose
+  // thirteen-name set is `{ read, readLiteral, write, delete, rollback, listen, unlisten, addConstraint,
+  // constraintOn, constraintOff, register, settle, constraints }`). **The cell's own subject — the
+  // instance's own-property set is METHODS ONLY and carries no store data — is unmoved; the terms move by
+  // ONE and the thirteenth is `constraints()`.**
   assert.deepEqual(Object.getOwnPropertyNames(f.store).sort(),
-    ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral',
-      'register', 'rollback', 'settle', 'unlisten', 'write'],
-    'S-CENSUS: the instance\'s member set is the TEN store-reaching methods plus `register` and `settle` — '
-    + 'TWELVE own members, `10 + 1 + 1 = 12`, and nothing else (`surface.md §2.4` item 9 (f)\'s `A127` '
-    + 'clause of 2026-10-16)');
+    ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
+      'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'],
+    'S-CENSUS: the instance\'s member set is the TEN store-reaching methods plus `register`, `settle` '
+    + 'and `constraints` — THIRTEEN own members, `10 + 1 + 1 + 1 = 13` ✓, and nothing else '
+    + '(`surface.md §2.4` item 9 (f)\'s `constraints` clause of 2026-10-17; `§2.12` item 2-bis)');
   for (const merged of ['on', 'off']) {
     assert.equal(Object.getOwnPropertyNames(f.store).includes(merged), false,
       `S-CENSUS: \`${merged}\` is a member of NO product — its home entry is minted by \`listen\`, its `
@@ -1425,24 +1432,36 @@ test('fts_S_CENSUS_no_rank_moves_no_ninth_register_row_and_no_second_register', 
   // HOME IS `23 + 3 = 26` ✓** — the `A122`/`A123` range `PAR-JS-1`…`PAR-JS-23` (`23`) plus the three rows
   // added over it: `PAR-JS-24` (the `pair`, `A126`), `PAR-JS-25` (the returned identity, `A126`) and
   // `PAR-JS-26` (this row) — **so the two cells below that pinned `25` were pinning a SUPERSEDED figure and
-  // are re-derived here to the count the section now prints. NO OTHER LIMB OF THIS CELL MOVES**: the module
-  // namespace's one name, the instance's twelve own members, the register's `8` rows and their order, and
-  // the no-duplicate-row rule all stand exactly as filed.
+  // are re-derived here to the count the section now prints.**
+  // **⟶ RE-DERIVED `26 → 27`, 2026-10-17 (`role_test_writer`), ON THE `constraints()` MEMBER'S OWN LANDING:
+  // `PAR-JS-27` — *"the returned pair list"* — is AUTHORED at `parameter-semantics.md §2.27` with its index
+  // row, and `§1`'s count-correction clause of that date is the count's ONE home (`23 + 4 = 27` ✓).** The
+  // register's own `8` rows and their order, the no-duplicate-row rule and the module namespace's ONE name
+  // all stand exactly as filed; **the instance's member set is now THIRTEEN, `10 + 1 + 1 + 1 = 13` ✓**, and
+  // that figure is asserted above at its own cell (`surface.md §2.4` item 9 (f)'s `constraints` clause).
   const ps = readFileSync(join(PACKAGE_DIR, '..', '..', 'docs', 'specs', 'storeroom-js',
     'parameter-semantics.md'), 'utf8');
   const parRows = [...ps.matchAll(/^\| \*\*`(PAR-JS-\d+)`\*\* \|/gm)].map((m) => m[1]);
-  assert.equal(parRows.length, 26,
-    'S-CENSUS: the parameter-semantics file prints `26` rows — `23 + 3 = 26`, the `A122`/`A123` range '
-    + '`PAR-JS-1`…`PAR-JS-23` plus `PAR-JS-24` (the `pair`), `PAR-JS-25` (the returned identity) and '
-    + '`PAR-JS-26` (`log`, the thrown form\'s third member) (`parameter-semantics.md §1`\'s count clause of '
-    + '2026-10-16 and `§2.26`\'s own row, measured at the rows the section itself prints)');
-  assert.deepEqual(parRows.slice(-3), ['PAR-JS-24', 'PAR-JS-25', 'PAR-JS-26'],
-    'S-CENSUS: the last three rows the section prints are the three added over the `23`: the `pair`, the '
-    + 'returned identity and `log` (`parameter-semantics.md §1`\'s count clause of 2026-10-16)');
-  assert.equal(parRows[parRows.length - 1], 'PAR-JS-26',
-    'S-CENSUS: `PAR-JS-26` is the last row the section prints — `log`, the thrown failure form\'s THIRD '
-    + 'member (`§2.26`; `surface.md §2.5`\'s clause of 2026-10-16)');
-  assert.equal(new Set(parRows).size, 26, 'S-CENSUS: no existing `PAR-JS` row is renumbered or duplicated');
+  // ── **⟶ RE-DERIVED 2026-10-17: `26 → 27`, `23 + 4 = 27` ✓, ON THE ARCHITECT'S RULING VERBATIM *"Add
+  // surface methods for reading registered constraints."*** (`parameter-semantics.md §1`'s
+  // count-correction clause of that date, which is the count's ONE home, and `§2.27`'s own `PAR-JS-27`
+  // row, authored in the same pass as its home). **The four terms: the `A122`/`A123` range
+  // `PAR-JS-1`…`PAR-JS-23` (`23`) plus `PAR-JS-24` (the `pair`), `PAR-JS-25` (the returned identity),
+  // `PAR-JS-26` (`log`) and `PAR-JS-27` (the returned pair list of `a.constraints()`).**
+  assert.equal(parRows.length, 27,
+    'S-CENSUS: the parameter-semantics file prints `27` rows — `23 + 4 = 27`, the `A122`/`A123` range '
+    + '`PAR-JS-1`…`PAR-JS-23` plus `PAR-JS-24` (the `pair`), `PAR-JS-25` (the returned identity), '
+    + '`PAR-JS-26` (`log`, the thrown form\'s third member) and `PAR-JS-27` (the returned pair list of '
+    + '`a.constraints()`) (`parameter-semantics.md §1`\'s count-correction clause of 2026-10-17 and '
+    + '`§2.27`\'s own row, measured at the rows the section itself prints)');
+  assert.deepEqual(parRows.slice(-4), ['PAR-JS-24', 'PAR-JS-25', 'PAR-JS-26', 'PAR-JS-27'],
+    'S-CENSUS: the last four rows the section prints are the four added over the `23`: the `pair`, the '
+    + 'returned identity, `log` and the returned pair list (`parameter-semantics.md §1`\'s count clause of '
+    + '2026-10-17)');
+  assert.equal(parRows[parRows.length - 1], 'PAR-JS-27',
+    'S-CENSUS: `PAR-JS-27` is the last row the section prints — the returned pair list of '
+    + '`a.constraints()` (`§2.27`; `surface.md §2.4` item 9 (f)\'s `constraints` clause of 2026-10-17)');
+  assert.equal(new Set(parRows).size, 27, 'S-CENSUS: no existing `PAR-JS` row is renumbered or duplicated');
   assert.equal(typeof (await kernel()).register, 'function', 'S-CENSUS: no second register exists');
 });
 

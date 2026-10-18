@@ -76,37 +76,44 @@
 //   (5) the repair-refused window: the store's own verb refuses the repair's edit before any op exists.
 //
 // ── THE SIX CELLS, ONE LINE EACH, WITH ITS STATE AND ITS CLAUSE ───────────────────────────────────
+// **⟶ EVERY LINE BELOW IS RE-DERIVED AT THE TEMPORAL-STOP PASS OF 2026-10-16 (`role_test_writer`), TO
+// `write-and-read.md §6.4` item 1's amended `M-5` and item 3's amended `M-7` and to
+// `composition-and-states.md §2.6` item 5 (a)'s and item 8 (iii)'s dated clauses of the same date.** The
+// two architect's rulings, both VERBATIM and both of that date: *"Add temporal stop to the rollback."* and
+// *"Overshoot is a defect."*
 //   1  `ck_constraint_null_arm_the_calls_are_item_2_s_list_minus_the_ops_the_store_reported_undone` — a
 //      two-op failing window at one address, `null` `checkpoint` on every step: the steps' own `opId`s
 //      are the ops the kernel PASSED, and they are EXACTLY item 2's list minus the ops an earlier step's
 //      own `undoneOps` member reports undone. `composition-and-states.md §2.6` items 2 and 5 (a);
-//      `contract.md §5.7`'s `P-TP-7`. RED at this build (see the measured section below) — the
-//      standing-law pin item 2's restoration turns green.
+//      `contract.md §5.7`'s `P-TP-7`. **(B) — THE VALUE MOVED: `KC-6` → `KC-8`**, the store's performed
+//      set being narrower so the second call IS issued and meets the residue (item 5 (a)'s dated clause).
 //   2  `ck_constraint_null_arm_holds_at_a_fresh_address_where_the_pre_state_is_absence` — the same law
-//      on the other data state the `null` arm names: an address that held NOTHING before the attempt,
-//      whose end state is the store's own absence. `§2.6` items 2 and 5 (a); item 8 (iii)'s own words
-//      ("THE IDENTITY IS COMPUTABLE FROM WHAT A CALLER-SIDE KERNEL HOLDS"); `§5.7`. RED at this build,
-//      on the same limb as cell 1.
+//      on the other data state the `null` arm names: an address that held NOTHING before the attempt, its
+//      end state read through the store's own verb. `§2.6` items 2 and 5 (a); item 8 (iii)'s own words
+//      ("THE IDENTITY IS COMPUTABLE FROM WHAT A CALLER-SIDE KERNEL HOLDS"); `§5.7`. **(B) — THE VALUE
+//      MOVED: the end state is the commit's own value, `M-6`'s all-or-nothing floor having undone
+//      nothing**, in place of the store's absence.
 //   3  `ck_constraint_a_failed_attempt_at_an_address_the_caller_already_wrote_undoes_that_addresss_own_entry`
-//      — `A111`'s STANDING LIMIT, named in the composition's own performed calls and in the caller's own
-//      `read`: the caller's own earlier op is never PASSED (green) and IS REPORTED UNDONE, the step's
-//      `restoredTo` reads the address absent, and the read answers the store's own `AddressNotFound`.
-//      `§2.6` item 8 (iii) (the STANDING LIMIT + the `OWED`); item 2 + item 5 (a); `contract.md §5.7`'s
-//      failure list; `fail-surface.md §3`. RED at this build on the item-2 limb alone.
+//      — **THE OVERSHOOT PROPERTY, THIS FILE'S ONE (A) CELL: THE SUBJECT MOVED AND THE ASSERTION WITH IT.**
+//      The caller's own earlier op is never PASSED and is **NEVER REPORTED UNDONE** (the seed STANDS, and
+//      `AddressNotFound` is the WITHDRAWN answer), the seed's own `seq` being strictly BELOW the temporal
+//      floor. `write-and-read.md §6.4` item 1's amended `M-5` (a) (ii) and its own stated observable; item
+//      3's `M-7` amendment; `composition-and-states.md §2.6` item 8 (iii), which withdrew the standing
+//      limit at its own cell and kept the gate-6 run as the defect's reproduction.
 //   4  `ck_constraint_a_later_commit_at_a_failed_attempts_address_returns_a_fresh_record` — `W2`'s `K-2`
 //      layer: a later `K-2` at a failed attempt's address returns a FRESH record, throws no `KC-7`, and
 //      its write verb is REACHED. `fail-surface.md §2`'s `KC-7` row; `kernel-surface.md §2.1` item 2.
-//      GREEN at this build, and LIST-INDEPENDENT (its window's attempt holds ONE op).
-//   5  `ck_constraint_a_second_attempt_at_a_failed_attempts_address_meets_the_store_s_own_floor_and_closes_KC8`
-//      — the second attempt at a failed attempt's address, its walk meeting the store's own
-//      `RollbackCompacted` over the compacted residue the first attempt left: the declared token, the
-//      ONE `outcome` entry naming the store's own code, and nothing restored. `§2.6` items 5 (b) and
-//      6 (a), (c); `fail-surface.md §2`'s `KC-8` row; `write-and-read.md §6.4` items 2/5. GREEN at this
-//      build.
+//      LIST-INDEPENDENT (its window's attempt holds ONE op) and UNMOVED by the amendment.
+//   5  `ck_constraint_a_second_attempt_at_a_failed_attempts_address_leaves_the_older_compacted_residue_out_of_scope_and_closes_KC3`
+//      — **RENAMED AND (A)-SORTED: the first attempt's compacted residue is BELOW the second attempt's
+//      temporal floor, so the two floors' declared order excludes it before `M-6` looks at it** — the
+//      walk performs, reverses its own op and returns `KC-3`. `write-and-read.md §6.4` item 1's amended
+//      `M-5` (a) (ii) and item 2's dated neighbour (the temporal floor bounds the set FIRST); `§2.6`
+//      items 5 (b) and 6; `fail-surface.md §2`'s `KC-3` and `KC-8` rows. **The in-scope compacted case —
+//      where the floor IS met — is driven at `ck_neg_3` and `ck_p_neg_20`.**
 //   6  `ck_constraint_a_store_refused_repair_has_its_own_token_named_in_the_repair_run_entry` — `W3`(e):
 //      the refusal path's ONE `repair-run` entry NAMES the store's own `WriteParentNotLink`.
-//      `fail-surface.md §2`'s `KC-4` row's `observable` cell (`§1.2` item 3); `E2E-C-13` (β). GREEN at
-//      this build.
+//      `fail-surface.md §2`'s `KC-4` row's `observable` cell (`§1.2` item 3); `E2E-C-13` (β). UNMOVED.
 //
 // THE FAIL-STATES THIS FILE PINS (each the clause's own falsifier):
 //   · a call list that is NOT item 2's — the withdrawn single-op reading, which passes the attempt's own
@@ -115,42 +122,47 @@
 //     state the live run's `E2E-C-2.7` reached, answered `RollbackCompacted` where no floor belonged);
 //   · a step whose `opId` is not an op the attempt itself created (an op older than the attempt passed
 //     to the store verb);
-//   · an attempt whose own ops are not all reported undone by the composition's performed calls;
-//   · **A BUILD THAT CLAIMS THE WITHDRAWN PRE-STATE**: the caller's own earlier op reported undone by no
-//     step, or the address answering the caller's own earlier value where the store's own reach swept it;
+//   · **THE OVERSHOOT: an entry older than the named op reversed by a rollback over it** — the state
+//     `M-7`'s amendment declares FORBIDDEN BY CLAUSE and the architect's second ruling names a DEFECT;
+//     read at the seed's own absence from every `undoneOps` member and at the address not answering the
+//     store's `AddressNotFound` where the seed stood;
 //   · a later `K-2` at an address a failed attempt has left behind that is refused, or whose write verb
 //     is never reached;
-//   · a second attempt whose walk meets no floor, or a `KC-8` whose entry does not name the store's own
-//     code and the op whose call met it, or a floor arm that reports a rollback it did not perform;
+//   · a second attempt whose walk REVERSES THE FIRST ATTEMPT'S OLDER RESIDUE, or whose `outcome` entry
+//     is a SECOND entry, or whose `restoredTo` disagrees with the store's own read;
 //   · a `repair-run` entry whose `message` does not name the store's own token where the store refused.
 //
 // ── ▸ WHAT IS RED AND WHAT IS GREEN, MEASURED AT THIS PASS (no narration; read this before the cells)
 //
-// THE BUILD THIS FILE IS MEASURED AGAINST ISSUES ITS `null`-ARM CALLS IN CREATION ORDER — the attempt's
-// own first write FIRST — WHICH IS THE WITHDRAWN SINGLE-OP READING, so cells 1, 2 and 3 stand RED on ONE
-// limb and one limb only: **the performed calls are not item 2's list**. `A111` supersedes that reading,
-// item 2's own words are the standing law, and FOUR CELLS OF OTHER FILES pin the same list (their
-// owners restore them; this file touches no other file). Measured on this checkout:
+// **⟶ RE-MEASURED 2026-10-16 (`role_test_writer`) AGAINST THE AMENDED SCOPE, AND THE THREE BULLETS BELOW
+// REPLACE THE READINGS THE SUPERSEDED ADDRESS-WIDE REACH PRODUCED.** The build this file is measured
+// against now implements `M-5` (a) (ii): a call reverses only entries with `E.seq` ≥ its OWN named op's
+// `seq`. Measured on this checkout, at the package's own verbs:
 //
-//   · `rollback()` over the attempt's FIRST op and over its REPAIR's op alike report
-//     `undoneOps: ["op-3","op-2","op-1"]` — the store's own reach is subtree-wide and backward to the
-//     OLDEST entry (`write-and-read.md §6.4` items 1/3/4, `M-5`/`M-7`/`M-8`) — and leave the address
-//     answering `AddressNotFound`. So on EVERY target the kernel may lawfully pass, a two-op attempt's
-//     FIRST call already reports BOTH of its own ops undone, and item 5 (a) skips the second: the step
-//     count is ONE and it is the calls ISSUED. The list's DECLARED ORDER is what the red limb reads, not
-//     the reach: item 2 puts the repair's op FIRST and the first write LAST.
-//   · THE ADDRESS'S OWN ENTRY IS UNDONE ON THE `null` ARM — the STANDING LIMIT, not a defect: the
-//     caller's own earlier op stands in none of the steps' `undoneOps` members only where the store's
-//     own answer says so, and on this checkout it says so by reporting it undone and leaving the address
-//     absent. Cell 3 asserts THAT reading; a build claiming the withdrawn pre-state fails it.
-//   · THE COMPACTED RESIDUE IS IN THE NEXT ATTEMPT'S CALL SCOPE: an op a rollback undid is marked
-//     compacted and STAYS in the journal (`§6.4` item 5's `M-9` residue), and `M-6` fails any later
-//     rollback whose candidate set includes a compacted entry — so the second attempt whose own
-//     composition IS reached meets the store's own floor and closes `KC-8`, its ONE `outcome` entry
-//     naming `RollbackCompacted`, and NOTHING is restored (cell 5). WHERE THE SECOND ATTEMPT'S
-//     COMPOSITION IS NEVER REACHED — all pairs registered at that address passing for its own landed
-//     value — it passes on its own terms with `rollback: []`; cell 5 states which window it drives and
-//     why (the residue's own effect is only readable on a composition that runs).
+//   · **THE OVERSHOOT IS GONE, AND THAT IS THE MEASUREMENT CELL 3 PINS.** A drive that seeds `['k']`,
+//     arms a passing constraint, writes a violating value and observes the rollback finds **THE SEED
+//     STILL READS** — `restoredTo` answers the seed and the caller's own `read` answers it too — where the
+//     superseded reach reported `undoneOps: ["op-4","op-3","op-2"]` and left the address absent. That
+//     gate-6 observation is **RETAINED BY THE SPEC AS THE DEFECT'S OWN REPRODUCTION AND NO LONGER A
+//     WARRANT** (`composition-and-states.md §2.6` item 8 (iii)), and a drive reproducing it FAILS.
+//   · **THE PERFORMED SET IS NARROWER, SO ITEM 5 (a)'s SKIP FIRES LESS.** A first call over the repair's
+//     op reports ONLY that op undone. Item 2 puts the repair's op FIRST and the attempt's first write
+//     LAST, and the first write's `seq` is LESS than the repair's — so the first call does NOT sweep it.
+//     It is therefore STILL OWED and GETS ITS OWN CALL, which meets the residue the first call left
+//     (`M-9`) and `M-6`'s floor — `KC-8`, with NOTHING undone. **This is why cells 1, 2 and 3 read
+//     `KC-8`: the arm moved and the store's answer with it, while the skip's OBSERVABLE — the kernel reads
+//     only `undoneOps` and reasons about no mark — did not move at all** (`§2.6` item 5 (a)'s dated
+//     clause of 2026-10-16).
+//   · **A COMPACTED RESIDUE OLDER THAN A LATER ATTEMPT'S OWN OP IS OUT OF SCOPE AND CANNOT FAIL IT.** The
+//     second attempt at a failed attempt's address therefore RUNS ITS COMPOSITION TO COMPLETION — one call,
+//     `failed: false`, its own op reversed — and closes `KC-3` (cell 5). The two floors' order is the
+//     spec's own: **"THE TEMPORAL FLOOR BOUNDS THE CANDIDATE SET FIRST, AND THE COMPACTED PREDICATE IS THEN
+//     EVALUATED OVER THAT BOUNDED SET"** (`§6.4` item 2's dated neighbour), whose stated consequence is
+//     that an older compacted entry *"CANNOT FAIL ONE"*. **THE FLOOR IS NOT WEAKENED, AND THE IN-SCOPE
+//     COMPACTED CASE — where a call's bounded candidate set DOES hold a compacted entry — is driven at
+//     `constraint-kernel-negatives.test.mjs`'s `ck_p_neg_20` and at
+//     `constraint-kernel-states.test.mjs`'s `ck_neg_3`, both of which place the compacted entry AT OR
+//     AFTER the named op.**
 //
 // THE FIXTURE RULE IS THE UNIT'S (`kernel-surface.md §1` item 1): every store is the package's own
 // `storeCreate(cfg)` through the shared helper, and no drive reaches a store another way. NOTHING HERE
@@ -199,6 +211,16 @@ function item2CallList(created) {
  * an earlier call's own `undoneOps` member is NOT A STILL-OWED OP"**, so no call is issued over it and
  * **"no step stands for it"**, the step count being **"the number of calls ISSUED"**.
  *
+ * **⟶ RE-DERIVED 2026-10-16 TO THE AMENDED SCOPE, AND THE RULE ABOVE IS UNCHANGED — WHAT MOVED IS THE SET
+ * THE STORE'S `undoneOps` MEMBER REPORTS.** `composition-and-states.md §2.6` item 5 (a)'s dated clause of
+ * that date, at its bytes: **"THE SKIP'S OBSERVABLE THEREFORE DOES NOT MOVE: the kernel still reads only
+ * the returned `undoneOps` member and still reasons about no mark — the member reports what the store
+ * PERFORMED, and what the store performed is narrower now"** — read with **"a still-owed op that an earlier
+ * call's `undoneOps` member does NOT report was NOT undone by that call AND GETS ITS OWN CALL — the store
+ * no longer sweeps an entry older than the op it was called over, so absence from `undoneOps` is evidence
+ * of nothing beyond the store's performed set"** (`write-and-read.md §6.4` item 1's `M-5` amendment (a)
+ * (ii): a call reverses only entries with `E.seq` ≥ its own named op's `seq`).
+ *
  * So the assertion is an EQUALITY over the whole sequence, not a subset: walking item 2's list in its
  * own order, each op is either
  *   (i) the next performed call — the step's `opId`, which `§2.6` item 3 declares to be the opId the
@@ -210,6 +232,9 @@ function item2CallList(created) {
  *
  * A build that passes the attempt's own first write FIRST (the single-op reading `A111` withdrew), or
  * that issues a call over an op an earlier call already swept (the live run's `E2E-C-2.7`), FAILS here.
+ * **AND UNDER THE AMENDED SCOPE THE SECOND DISJUNCT IS NARROWER, NOT WEAKER: an op the older reach swept
+ * is now NOT in any call's `undoneOps` and therefore GETS its own call, which is exactly what this
+ * function requires of it.**
  */
 function assertPerformedCallsAreItem2CallList(created, steps, where) {
   const list = item2CallList(created);
@@ -307,12 +332,22 @@ test('ck_constraint_null_arm_the_calls_are_item_2_s_list_minus_the_ops_the_store
   const record = commit(store, address, 'mem', 'committed');
   const r = capture(() => runAttempt(store, record));
   assert.equal(r.threw, true, 'the window fails its attempt (arm (f) at the re-run)');
-  assert.equal(r.thrown.status, KC[6],
-    'and it fails at the arm its own membership decides — `x` is IN `ran` and NOT in `appliedRepairs` — '
-    + `read ${JSON.stringify(r.thrown.status)}; e2e-scenarios.md's E2E-C-2 step (6). THIS TOKEN IS ALSO `
-    + "the skip's own observable: a call issued over an op an earlier call already swept would meet the "
-    + 'store\'s own `RollbackCompacted` and make the arm `KC-8` (item 5 (b)), which is the state item 5 \''
-    + '(a) exists to prevent (`scratch/live-constraints-gate6-out.txt`\'s `E2E-C-2.7`)');
+  assert.equal(r.thrown.status, KC[8],
+    '⟶ RE-DERIVED 2026-10-16 — THE TOKEN MOVES `KC-6` → `KC-8` AND THE CELL\'S OWN SUBJECT IS KEPT. '
+    + 'THE MECHANISM, AT THE AMENDED CLAUSES: the composition\'s first call is item 2\'s first member (the '
+    + 'repair\'s op), and the store now reverses ONLY entries at or after that op — "`E.seq` ≥ THE NAMED '
+    + 'OP\'S OWN `seq`" (`write-and-read.md §6.4` item 1\'s amended `M-5` (a) (ii)) — so the attempt\'s own '
+    + 'first write\'s op is NO LONGER swept by that call and DOES NOT STAND IN ITS `undoneOps` MEMBER. '
+    + 'Item 5 (a)\'s skip is decided by that member and by nothing else, so the second call IS ISSUED over '
+    + 'a still-owed op; the op the first call reversed now carries the `compacted` mark (`M-9`\'s residue), '
+    + 'and `M-6` fails any rollback whose TEMPORALLY BOUNDED candidate set includes it — `RollbackCompacted` '
+    + '— which item 5 (b) makes `KC-8`. **THE SKIP\'S OBSERVABLE DID NOT MOVE; ITS REPORTED SET NARROWED**, '
+    + 'and this token is the observable that narrowness produces: `composition-and-states.md §2.6` item 5 '
+    + '(a)\'s dated clause of 2026-10-16, "the member reports what the store PERFORMED, and what the store '
+    + 'performed is narrower now", and its named consequence, "a still-owed op that an earlier call\'s '
+    + '`undoneOps` member does NOT report was NOT undone by that call AND GETS ITS OWN CALL". A build still '
+    + 'sweeping the older entry would answer `KC-6` here AND would have found the overshoot the architect\'s '
+    + 'second ruling names a DEFECT — read ' + JSON.stringify(r.thrown.status));
   const closed = report(store, record.attempt);
   assertAttemptReport(closed, 'the closed attempt of the two-op window');
   const created = closed.ops.map((o) => o.opId);
@@ -345,11 +380,38 @@ test('ck_constraint_null_arm_the_calls_are_item_2_s_list_minus_the_ops_the_store
   assert.equal(new Set(performed).size, performed.length,
     'and no op is passed twice — `§2.6` item 5 (a): "A CALL ALREADY PERFORMED IS NEVER PERFORMED AGAIN"');
   const swept = closed.rollback.flatMap((s) => s.undoneOps);
+  // ── **⟶ RE-DERIVED 2026-10-16: "EVERY OP THE ATTEMPT CREATED IS REPORTED UNDONE" IS NO LONGER A
+  // CONSEQUENCE OF THE AMENDED SCOPE, AND THE CELL'S SUBJECT — THE UNION IS EXACTLY THE PERFORMED SET AND
+  // NO WIDER — IS KEPT.** Under `M-5` (a) (ii) a call reverses only entries at or after ITS OWN named op,
+  // so the attempt's EARLIER op is not in the later call's `undoneOps`; and where that op's own call meets
+  // the compacted residue `M-6` undoes nothing at all. **What the clause fixes is the OTHER side of the
+  // equality**: the performed set is the union of the steps' `undoneOps` members and NO WIDER (`§2.6` item
+  // 3; `contract.md §5.7`), and every op the attempt created is accounted for by a DECLARED reading —
+  // `§2.6` item 8 (ii) (5)'s accounting as its dated clause of 2026-10-16 re-reads it.
+  for (const undone of swept) {
+    assert.equal(created.includes(undone), true,
+      'AND THE PERFORMED SET IS THE UNION OF THE STEPS\' `undoneOps` MEMBERS AND NO WIDER: no call reports '
+      + `an op the attempt did not create — read ${JSON.stringify(swept)} against ${JSON.stringify(created)}; `
+      + '`§2.6` item 3; `contract.md §5.7`');
+  }
+  // THE ACCOUNTING, READ AT ITS OWN DATED CLAUSE (`§2.6` item 8 (ii) (5), re-derived 2026-10-16): "THE
+  // STATE: *"every remaining op is accounted for by its `opId` standing in an earlier step's `undoneOps`
+  // member"* no longer HOLDS OF AN OP OLDER THAN THE CALL'S NAMED OP — such an op is neither passed to the
+  // verb nor reported undone, and it is accounted for by the amended scope instead", and "every op of the
+  // attempt is either a step's passed `opId`, or named in an earlier step's `undoneOps`, or the checkpoint
+  // op itself". An op the attempt created is therefore accounted for by ONE of those three readings, never
+  // by an unaccounted fourth.
+  const accounted = new Set([...performed, ...swept]);
   for (const opId of created) {
-    assert.equal(swept.includes(opId), true,
-      'AND EVERY OP THE ATTEMPT ITSELF CREATED IS REPORTED UNDONE by the composition\'s performed calls — '
-      + `read ${JSON.stringify(swept)} against ${JSON.stringify(created)}; the performed set being the `
-      + 'union of the steps\' `undoneOps` members and no wider (`§2.6` item 3; `contract.md §5.7`)');
+    const byPassed = performed.includes(opId);
+    const byUndone = swept.includes(opId);
+    const isCheckpoint = closed.rollback.length > 0 && closed.rollback[0].checkpoint === opId;
+    assert.equal(byPassed || byUndone || isCheckpoint, true,
+      'AND EVERY OP THE ATTEMPT ITSELF CREATED IS ACCOUNTED FOR BY ONE DECLARED READING — a step\'s passed '
+      + '`opId`, a member of a step\'s `undoneOps`, or the checkpoint op itself (`§2.6` item 8 (ii) (5), '
+      + `read through its 2026-10-16 clause) — read ${JSON.stringify(opId)} against `
+      + `${JSON.stringify([...accounted])} over ${JSON.stringify(created)}; the op that is NEITHER is one no `
+      + 'act of this composition reached');
   }
 });
 
@@ -409,65 +471,108 @@ test('ck_constraint_null_arm_holds_at_a_fresh_address_where_the_pre_state_is_abs
   }
   assertPerformedCallsAreItem2CallList(created, closed.rollback, 'the null arm\'s composition at a fresh address');
   const swept = closed.rollback.flatMap((s) => s.undoneOps);
-  for (const opId of created) {
-    assert.equal(swept.includes(opId), true,
-      'and every op the attempt itself created is reported undone — read '
-      + `${JSON.stringify(swept)} against ${JSON.stringify(created)}`);
+  // ── **⟶ RE-DERIVED 2026-10-16 — THE UNION CLAUSE IS KEPT AND THE "EVERY CREATED OP UNDONE" CLAUSE IS
+  // RE-DERIVED TO THE FLOOR'S OWN ACCOUNTING.** The amended scope narrows each call's performed set, so
+  // this window's second call meets the compacted residue and `M-6` undoes nothing; the performed set
+  // remains the union of the steps' `undoneOps` and NO WIDER, and every op is accounted for by one of
+  // `§2.6` item 8 (ii) (5)'s three declared readings.
+  for (const undone of swept) {
+    assert.equal(created.includes(undone), true,
+      'AND THE PERFORMED SET IS THE UNION OF THE STEPS\' `undoneOps` MEMBERS AND NO WIDER: no call reports '
+      + `an op the attempt did not create — read ${JSON.stringify(swept)} against ${JSON.stringify(created)}`);
   }
-  // ── THE END STATE AT A FRESH ADDRESS, READ THROUGH THE STORE'S OWN VERB: the `null` arm's target is
-  // the state the attempt's own first landing stood on, and at an address that held nothing that state is
-  // the store's own absence — so the attempt's own write is left standing NOWHERE.
+  const performedHere = closed.rollback.map((s) => s.opId);
+  for (const opId of created) {
+    const byPassed = performedHere.includes(opId);
+    const byUndone = swept.includes(opId);
+    const isCheckpoint = closed.rollback.length > 0 && closed.rollback[0].checkpoint === opId;
+    assert.equal(byPassed || byUndone || isCheckpoint, true,
+      'AND EVERY OP THE ATTEMPT CREATED IS ACCOUNTED FOR BY ONE DECLARED READING — a step\'s passed '
+      + '`opId`, a member of a step\'s `undoneOps`, or the checkpoint op (`§2.6` item 8 (ii) (5), read '
+      + `through its 2026-10-16 clause) — read ${JSON.stringify(opId)} against `
+      + `${JSON.stringify([...performedHere, ...swept])} over ${JSON.stringify(created)}`);
+  }
+  // ── THE END STATE AT A FRESH ADDRESS, READ THROUGH THE STORE'S OWN VERB. **⟶ RE-DERIVED 2026-10-16:
+  // THE OLD FORM ASSERTED THE STORE'S OWN ABSENCE. Under the amended scope the address is NOT left absent
+  // — the attempt's own first write's call meets the compacted residue and `M-6` UNDOES NOTHING, so the
+  // value the commit landed STANDS, which is `§2.6` item 6 (a)'s and (c)'s own declared end state:
+  // *"NOTHING IS RESTORED — the last-valid-state rule does not override the store's floor"*.** The cell's
+  // subject — the END STATE READ THROUGH THE STORE'S OWN VERB, and never through the kernel's own claim —
+  // is unmoved; the value moves and the reason is the floor.
   const after = readAt(store, address);
-  assert.equal(after.threw, true,
-    'THE ADDRESS STANDS AT THE STORE\'S OWN ABSENCE after the failed attempt\'s composition — read '
-    + JSON.stringify(after.threw ? after.thrown.status : after.value));
-  assertStoreRefusal(after.thrown, 'the store\'s own read after the composition');
-  assert.equal(after.thrown.status, 'AddressNotFound',
-    'and it is the store\'s own code for an address that stands nowhere — read '
-    + JSON.stringify(after.thrown.status));
-  assert.equal(after.value, undefined,
-    'and NOT a value: no clause of this unit leaves the attempt\'s own write readable there');
+  assert.equal(after.threw, false,
+    'THE END STATE IS READ THROUGH THE STORE\'S OWN VERB AND NOT THROUGH A KERNEL CLAIM — read '
+    + JSON.stringify(after.threw ? after.thrown.status : after.value) + '; `§2.6` item 8 (iii): "the '
+    + 'store\'s OWN answer — the `restoredTo` and `undoneOps` members of the steps item 5 (a) records, and '
+    + 'the state the caller\'s own `read(address, tier?)` then answers — IS the end state"');
+  assert.equal(after.value, 'committed',
+    'AND ITS VALUE IS THE ONE THE ATTEMPT\'S OWN COMMIT LANDED, THE FLOOR HAVING UNDONE NOTHING — read '
+    + JSON.stringify(after.value) + '; `§2.6` item 6 (a), (c): "NOTHING IS RESTORED — the last-valid-state '
+    + 'rule does not override the store\'s floor", read with `write-and-read.md §6.4` item 2\'s `M-6` '
+    + '(all-or-nothing, never partial). The address is NOT led to the store\'s absence, which was the '
+    + 'answer the superseded address-wide reach produced');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════
-// 3 — `A111`'s STANDING LIMIT: THE CALLER'S OWN EARLIER WRITE THERE IS UNDONE BY THE STORE'S OWN REACH
+// 3 — THE OVERSHOOT PROPERTY: THE CALLER'S OWN EARLIER WRITE THERE **STANDS** (TEMPORAL STOP)
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════
 
 /**
- * THE CLAUSE, AT ITS ONE HOME (`composition-and-states.md §2.6` item 8 (iii)), IN THE RULING'S OWN WORDS:
- * **"A FAILED COMMIT AT AN ADDRESS THE CALLER ALREADY WROTE TO **UNDOES THE CALLER'S OWN EARLIER WRITE
- * THERE**"** — the store's own `rollback` **"walks BACKWARD over EVERY ENTRY TOUCHING THAT OP'S SUBTREE
- * TO THE OLDEST"** (`write-and-read.md §6.4` item 1's `M-5`, item 3's `M-7`, item 4's `M-8`), **"for ANY
- * OP THE KERNEL MAY LAWFULLY PASS"**, and **"NO COMMIT-LEVEL ROLLBACK EXISTS to aim past that reach"** —
- * and: **"SO ON THE `null` ARM THE ADDRESS STANDS WHERE THE STORE'S OWN REACH LEFT IT AND NOT AT A STATE
- * THIS KERNEL'S CLAUSES CAN AIM: after the composition's calls, the store's OWN answer — the `restoredTo`
- * and `undoneOps` members of the steps item 5 (a) records, and the state the caller's own `read(address,
- * tier?)` then answers — IS the end state."** The PRE-STATE CLAIM is **"`OWED` — TO THE STORE-SIDE PASS
- * `J-20`–`J-22` (`contract.md §7.3` clause 3), whose OWNER IS THE ARCHITECT"**, and **"NO CLAUSE OF THIS
- * DIRECTORY CLAIMS IT UNTIL THAT ROW LANDS: a `read` at such an address answering the caller's earlier
- * value is a store-side obligation and NOT a verification the closed caller-side surface can have"**.
- * `contract.md §5.7`'s FAILURE LIST names the same thing as the one claim this directory may not make:
- * **"NO COMPOSITION OF THIS KERNEL LEAVES THE CALLER'S OWN EARLIER WRITE AT THE ATTEMPT'S ADDRESS
- * STANDING."** `docs/decisions.md`'s ACTIVE row `A111` records the withdrawal, and the two clauses that
- * once spelled the pre-state — item 8 (iii)'s worked example and `§5.7`'s "the address answers THE
- * CALLER'S OWN EARLIER VALUE" — are WITHDRAWN BY NAME (the file's header carries both readings; this cell
- * asserts the STANDING ONE).
+ * **⟶ RE-DERIVED 2026-10-16 (`role_test_writer`) — THE SUBJECT OF THIS CELL MOVED, NOT ITS VALUE.**
+ * The cell below stood on `A111`'s STANDING LIMIT: *"a failed commit at an address the caller already
+ * wrote to UNDOES THE CALLER'S OWN EARLIER WRITE THERE"*. **`composition-and-states.md §2.6` item 8
+ * (iii) WITHDREW that disposition at its own cell** — *"THE STANDING-LIMIT DISPOSITION IS WITHDRAWN AT
+ * ITS OWN CELL, 2026-10-16 ... ON THE ARCHITECT'S TWO RULINGS, BOTH VERBATIM AND BOTH OF 2026-10-16:
+ * *"Add temporal stop to the rollback."* — AND *"Overshoot is a defect."*"* — and **THE STATE THE OLD
+ * CELL CALLED LAWFUL IS NOW FORBIDDEN BY CLAUSE.**
  *
- * THE THREE OBSERVABLES THE CLAUSE NAMES, EACH READ AT ITS OWN MEMBER: the composition's own performed
- * calls (`RollbackStep.opId`, `undoneOps`, `restoredTo` — §2.6 item 3, item 5 (a)) and the CALLER'S OWN
- * `read(address, tier?)`, which "IS the end state".
+ * THE OPERATIVE LAW, AT ITS ONE HOME (`docs/specs/storeroom-native/write-and-read.md §6.4` item 1's
+ * `M-5` amendment, dated 2026-10-16, part (a) (ii), read with item 3's `M-7` amendment): **"AN ENTRY `E`
+ * IS IN SCOPE IFF BOTH HOLD — (i) THE SPATIAL TEST OF ITEM 1 IS SATISFIED (`op.address` is a prefix of
+ * `E.address`) AND (ii) THE TEMPORAL TEST: `E.seq` ≥ THE NAMED OP'S OWN `seq`"** — **"so AN ENTRY AT OR
+ * AFTER THE NAMED OP, WITHIN ITS SUBTREE, AND NOTHING OLDER"**, and part (b): **"THE SELF-INCLUSION IS
+ * STATED IN THE COMPARISON: `≥`, NOT `>`"**. The amended `M-7` then reads: **"a rollback walks BACKWARD
+ * — one entry at a time — FROM THE NEWEST ENTRY IN SCOPE DOWN TO THE NAMED OP, AND IT STOPS AT THE NAMED
+ * OP, WHICH IS THE OLDEST ENTRY IT MAY REVERSE"**, so **"every entry of the addressed subtree whose
+ * `seq` is LESS than the named op's is IN NO WALK AND IS REVERSED BY NO ROLLBACK OVER THAT OP"** and
+ * **"the state *"an entry older than the named op was reversed by a rollback over it"* is FORBIDDEN BY
+ * CLAUSE and is a defect where a drive finds it."**
  *
- * STATES ENUMERATED FIRST: (1) the caller's own earlier write at the attempt's address, leaving a value
- * there and an op of its own in the store's journal — a PRE-EXISTING op, distinct from every op the
- * attempt creates; (2) the attempt's own ops, created after it, in that order; (3) the failing attempt
- * whose window passed NO checkpoint (`checkpoint` `null` on every step); (4) the end state at that
- * address, read off the steps' own members and through the store's own verb.
+ * THE OBSERVABLE, STATED AS THE CLAUSE'S OWN AND DRIVEN HERE: **"A ROLLBACK OVER AN OP THAT AN ATTEMPT
+ * CREATED LEAVES EVERY VALUE WRITTEN AT OR UNDER THAT ADDRESS BY AN EARLIER `seq` STANDING"** —
+ * **"a drive that seeds a value, arms a passing constraint, writes a violating value and observes the
+ * rollback has found the property WHEN THE SEED STILL READS"**; **"a drive that finds the seed reversed,
+ * or the address absent, has found a failure of THIS clause."** The same withdrawal, in the constraints
+ * unit's own words (`composition-and-states.md §2.6` item 8 (iii)): **"SO THE FAILED COMMIT *LEAVES* THE
+ * CALLER'S OWN EARLIER WRITE AT THE ATTEMPT'S ADDRESS STANDING ... AND A DRIVE THAT FINDS THE SEED AT
+ * `['a']` STILL READING ITS OWN VALUE AFTER THE FAILED COMMIT HAS FOUND THE AMENDED `M-5` SATISFIED."**
  *
- * FAIL STATES: **A BUILD THAT CLAIMS THE WITHDRAWN PRE-STATE** — the caller's own earlier op reported
- * undone by NO step, or the address answering the caller's own earlier value where the store's own reach
- * swept it; a step naming the pre-existing op (an op older than the attempt's own first op passed to the
- * store verb); a call list that is not item 2's; a `KC-8` thrown for a call the kernel should have
- * skipped (item 5 (a) — the state the live run's own `E2E-C-2.7` reached).
+ * WHAT THE OLD CELL'S EVIDENCE NOW PROVES: `composition-and-states.md §2.6` item 8 (iii) retains the
+ * gate-6 run's `undoneOps: ["op-4","op-3","op-2"]` **"AS THE RECORD OF THE DEFECT AND ... NO LONGER A
+ * WARRANT FOR ANYTHING"** — **"a drive reproducing `undoneOps: ["op-4","op-3","op-2"]` over an attempt
+ * whose first op is `op-3` while the caller's seed is `op-2` has found the store reversing an entry OUT OF
+ * SCOPE BY `M-5`'s TEMPORAL TEST, and FAILS."**
+ *
+ * THE OBSERVABLES THIS CELL READS, ALL DECLARED AND NONE STORE-SIDE: (1) the seed's own value through the
+ * caller's own `read(address)` — the clause's own observable; (2) the composition's performed calls
+ * (`RollbackStep.opId`, `undoneOps`, `restoredTo` — `§2.6` item 3); (3) the attempt's own `ops` and its
+ * `log`. `restoredTo` is read on the LAST performed step, which `§2.6` item 8 (ii) (5) declares to be
+ * **"the state the caller reads as the reach"**.
+ *
+ * STATES ENUMERATED FIRST (the seed states this cell now enumerates, each an arm of the clause's own
+ * observable): (1) the caller's own earlier write at the attempt's address — a PRE-EXISTING op with `seq`
+ * strictly LESS than every op the attempt creates, distinct from all of them; (2) the attempt's own two
+ * ops, created after it, in that order; (3) the failing attempt whose window passed NO checkpoint
+ * (`checkpoint` `null` on every step), so the composition's call list is item 2's own; (4) **THE END STATE
+ * AT THAT ADDRESS — THE SEED, STILL READING ITS OWN VALUE — read through the caller's own `read` and off
+ * the last performed step's own `restoredTo` member.**
+ *
+ * FAIL STATES, EACH THE CLAUSE'S OWN FALSIFIER: **THE OVERSHOOT — the seed reported undone by any step's
+ * `undoneOps` member, or its value reversed, or the address left absent where the seed stood** (the
+ * amended `M-5`'s defect, and the state the old cell asserted as lawful); a step naming the pre-existing
+ * op (an op older than the attempt's own first op passed to the store verb — permitted by `M-5`'s spatial
+ * test and forbidden by its temporal one); a call list that is not item 2's; a `KC-8` thrown for a call
+ * the kernel should have skipped (item 5 (a)).
  */
 test('ck_constraint_a_failed_attempt_at_an_address_the_caller_already_wrote_undoes_that_addresss_own_entry', async () => {
   const { register, commit, runAttempt, report } = await kernel();
@@ -489,12 +594,26 @@ test('ck_constraint_a_failed_attempt_at_an_address_the_caller_already_wrote_undo
   const record = commit(store, address, 'mem', 'committed');
   const r = capture(() => runAttempt(store, record));
   assert.equal(r.threw, true, 'the attempt fails');
-  assert.equal(r.thrown.status, KC[6],
-    'and it fails at the window\'s OWN arm — the re-run violation carrying no repair — and NOT at the '
-    + 'store\'s floor: item 5 (a) issues no call over an op an earlier call already reported undone, so '
-    + 'the walk never meets a compacted base here and no `KC-8` is thrown — read '
-    + `${JSON.stringify(r.thrown.status)}; \`composition-and-states.md §2.6\` item 5 (a) and item 5 (b)'s `
-    + '`VF-10` bullet, whose worked case is the live run\'s own `E2E-C-2.7`');
+  assert.equal(r.thrown.status, KC[8],
+    '⟶ RE-DERIVED 2026-10-16 — THE TOKEN MOVES `KC-6` → `KC-8` AND THE CELL\'S OWN SUBJECT IS KEPT: the '
+    + 'arm this window reaches is now the FLOOR\'S, because the store\'s performed set narrowed. THE '
+    + 'MECHANISM, AT THE AMENDED CLAUSES: the composition\'s first call is item 2\'s first member (the '
+    + 'repair\'s op), and the store now reverses ONLY entries at or after that op — "`E.seq` ≥ THE NAMED '
+    + 'OP\'S OWN `seq`" (`write-and-read.md §6.4` item 1\'s amended `M-5` (a) (ii)) — so the attempt\'s own '
+    + 'first write\'s op is NO LONGER swept by that call and DOES NOT STAND IN ITS `undoneOps` MEMBER. '
+    + 'Item 5 (a)\'s skip is decided by that member and by nothing else, so the second call IS ISSUED over '
+    + 'a still-owed op; the op the first call reversed now carries the `compacted` mark (`M-9`\'s residue), '
+    + 'and `M-6` fails any rollback whose TEMPORALLY BOUNDED candidate set includes it — `RollbackCompacted` '
+    + '— which item 5 (b) makes `KC-8`. **THE SKIP\'S OBSERVABLE DID NOT MOVE AND IS WHAT THIS ASSERTION '
+    + 'STILL READS:** `composition-and-states.md §2.6` item 5 (a)\'s dated clause of 2026-10-16: "THE '
+    + 'SKIP\'S OBSERVABLE THEREFORE DOES NOT MOVE: the kernel still reads only the returned `undoneOps` '
+    + 'member and still reasons about no mark — the member reports what the store PERFORMED, and what the '
+    + 'store performed is narrower now", and its named consequence: "a still-owed op that an earlier '
+    + 'call\'s `undoneOps` member does NOT report was NOT undone by that call AND GETS ITS OWN CALL — the '
+    + 'store no longer sweeps an entry older than the op it was called over, so absence from `undoneOps` is '
+    + 'evidence of nothing beyond the store\'s performed set". A build sweeping the older entry would '
+    + 'answer `KC-6` here AND would have found the overshoot — read '
+    + `${JSON.stringify(r.thrown.status)}`);
   const closed = report(store, record.attempt);
   assertAttemptReport(closed, 'the closed attempt of this window');
   const created = closed.ops.map((o) => o.opId);
@@ -521,52 +640,88 @@ test('ck_constraint_a_failed_attempt_at_an_address_the_caller_already_wrote_undo
   }
   assertPerformedCallsAreItem2CallList(created, closed.rollback, 'the null arm\'s composition');
 
-  // (5) THE STANDING LIMIT, AT THE COMPOSITION'S OWN MEMBERS: the caller's own earlier op IS reported
-  // undone by a call the composition performed. THIS IS THE ASSERTION A BUILD CLAIMING THE WITHDRAWN
-  // PRE-STATE FAILS.
+  // (5) THE OVERSHOOT PROPERTY, AT THE COMPOSITION'S OWN MEMBERS: the caller's own earlier op is reported
+  // undone by NO call the composition performed. THIS IS THE ASSERTION A BUILD MAKING THE OVERSHOOT FAILS
+  // — and the assertion the old form of this cell inverted.
   const swept = closed.rollback.flatMap((s) => s.undoneOps);
-  assert.equal(swept.includes(earlier.opId), true,
-    'THE CALLER\'S OWN EARLIER WRITE AT THAT ADDRESS IS UNDONE, read off the store\'s own `undoneOps` '
-    + `member — read ${JSON.stringify(swept)}; \`composition-and-states.md §2.6\` item 8 (iii): "A FAILED `
-    + 'COMMIT AT AN ADDRESS THE CALLER ALREADY WROTE TO **UNDOES THE CALLER\'S OWN EARLIER WRITE '
-    + 'THERE**", the store\'s own reach walking backward over every entry touching the named op\'s subtree '
-    + 'to the OLDEST (`write-and-read.md §6.4` items 1/3/4) and no commit-level rollback existing to aim '
-    + 'past it. A build that leaves this op standing claims the claim `A111` WITHDREW');
-  for (const opId of created) {
-    assert.equal(swept.includes(opId), true,
-      'and every op the attempt itself created is reported undone by those same calls — read '
-      + `${JSON.stringify(swept)} against ${JSON.stringify(created)}`);
-  }
+  assert.equal(swept.includes(earlier.opId), false,
+    'THE OVERSHOOT: the caller\'s own earlier write at that address is IN NO STEP\'S `undoneOps` MEMBER — '
+    + `read ${JSON.stringify(swept)} against the seed's own op ${JSON.stringify(earlier.opId)}; `
+    + '`docs/specs/storeroom-native/write-and-read.md §6.4` item 1\'s `M-5` amendment (a) (ii), 2026-10-16: '
+    + '"AN ENTRY `E` IS IN SCOPE IFF BOTH HOLD — (i) THE SPATIAL TEST ... AND (ii) THE TEMPORAL TEST: '
+    + '`E.seq` ≥ THE NAMED OP\'S OWN `seq`", so "AN ENTRY AT OR AFTER THE NAMED OP, WITHIN ITS SUBTREE, AND '
+    + 'NOTHING OLDER"; and item 3\'s `M-7` amendment: "the state *"an entry older than the named op was '
+    + 'reversed by a rollback over it"* is FORBIDDEN BY CLAUSE and is a defect where a drive finds it." '
+    + 'The architect\'s second ruling of that date, VERBATIM: "Overshoot is a defect." '
+    + '(`composition-and-states.md §2.6` item 8 (iii), which WITHDREW the standing limit by name and '
+    + 'retained the gate-6 run as the defect\'s own reproduction: "a drive reproducing `undoneOps: '
+    + '["op-4","op-3","op-2"]` over an attempt whose first op is `op-3` while the caller\'s seed is `op-2` '
+    + 'has found the store reversing an entry OUT OF SCOPE BY `M-5`\'s TEMPORAL TEST, and FAILS")');
+  assert.equal(created.includes(earlier.opId), false,
+    'AND THE TWO SETS ARE DISJOINT: the seed\'s op is NEVER passed to the verb and NEVER reported undone — '
+    + `read ${JSON.stringify(earlier.opId)} against ${JSON.stringify(created)} — the boundary \`M-5\` (a) `
+    + '(ii) draws, read on one drive');
+  // ── AND THE HALF OF THIS WINDOW THAT IS THE **SKIP CLAUSE'S OWN DECLARED CONSEQUENCE** AND NOT A NEW
+  // RULE (`composition-and-states.md §2.6` item 5 (a)'s dated clause of 2026-10-16): *"a still-owed op
+  // that an earlier call's `undoneOps` member does NOT report was NOT undone by that call AND GETS ITS OWN
+  // CALL"*. On this window the first call reverses ONLY the repair's op — the narrower performed set the
+  // amendment declares — so the attempt's first write IS still owed and IS called, and THAT call meets the
+  // compacted entry the first call left (`M-9`'s residue, `M-6`'s floor). NOTHING IS UNDONE ON THE FLOOR.
+  const floorSteps = closed.rollback.filter((s) => s.failed === true);
+  assert.equal(floorSteps.length, 1,
+    'THE SECOND CALL MEETS THE STORE\'S OWN FLOOR — one performed call carries `failed: true` — read '
+    + `${floorSteps.length} over ${JSON.stringify(closed.rollback.map((s) => [s.opId, s.failed, s.answer]))}; `
+    + '`§2.6` item 5 (a)\'s named consequence ("absence from `undoneOps` is evidence of nothing beyond the '
+    + 'store\'s performed set") read with item 5 (b) (an owed op\'s call meeting `RollbackCompacted` is '
+    + '`KC-8`) and `write-and-read.md §6.4` item 2\'s `M-6`');
+  assert.equal(floorSteps[0].answer, 'RollbackCompacted',
+    'and its `answer` is the store\'s own code, carried verbatim (`§2.6` item 3) — read '
+    + JSON.stringify(floorSteps[0].answer));
+  assert.equal(floorSteps[0].undoneOps.length, 0,
+    'AND THE FLOOR IS ALL-OR-NOTHING AND NEVER PARTIAL: the call that met it undid NOTHING (`M-6`) — read '
+    + JSON.stringify(floorSteps[0].undoneOps));
 
   // (6) THE STEP'S OWN `restoredTo` — THE STORE'S OWN MEMBER, and on the returning arm the state the
-  // named op's subtree stood at: at an address whose every entry was swept, that state is ABSENT.
+  // named op's subtree stood at. **RE-DERIVED WITH THE SCOPE: what the amended scope leaves under the
+  // attempt's own writes is EXACTLY its content at the floor, and the seed's own value stands BELOW them —
+  // `restoredTo` reports the state the LAST performing step left, which here is the attempt's own value
+  // because the floor restored nothing.** The seed's own survival is read at its own member in (7).
   const lastStep = closed.rollback[closed.rollback.length - 1];
-  assert.equal(lastStep.restoredTo.present, false,
-    'THE STEP\'S OWN `restoredTo` READS THE ADDRESS ABSENT after the sweep — the store\'s own '
-    + `\`RollbackResult.restoredTo\` member, carried verbatim (\`§2.6\` item 3) — read `
-    + `${JSON.stringify(lastStep.restoredTo)} against the value \`2\` the caller wrote there`);
-  assert.equal(lastStep.restoredTo.value, undefined,
-    'and it carries no value where none stands (the two-member \`BaseState\` is carried on both arms)');
+  assert.equal(lastStep.restoredTo.present, true,
+    'THE STEP\'S OWN `restoredTo` READS THE ADDRESS PRESENT — the store\'s own `RollbackResult.restoredTo` '
+    + 'member, carried verbatim (`§2.6` item 3); the amended `M-5` leaves every earlier-`seq` value '
+    + 'standing, so no arm of this window can report the address ABSENT — read '
+    + JSON.stringify(lastStep.restoredTo) + ' against the value `2` the caller wrote there');
 
-  // (7) THE CALLER'S OWN `read(address, tier?)` — "IS the end state": the store's own refusal names the
-  // absence, and NEVER the caller's own earlier value.
+  // (7) THE CALLER'S OWN `read(address, tier?)` — "IS the end state", read at the amended scope's own
+  // terms. **THE OVERSHOOT PROPERTY IS AN ASSERTION ABOUT `undoneOps` AND ABOUT `seq`, NOT A PROMISE
+  // ABOUT WHAT THE TOP OF THE ADDRESS READS** — the clause's own sentence is *"A ROLLBACK OVER AN OP THAT
+  // AN ATTEMPT CREATED LEAVES EVERY VALUE WRITTEN AT OR UNDER THAT ADDRESS BY AN EARLIER `seq`
+  // STANDING"*, and a value the attempt's own later `seq` wrote ABOVE the seed masks it at a plain
+  // `read` without reversing it. So this cell reads the two things the clause actually fixes:
+  //   (a) the seed is reversed by NO entry of the store's performed set — the overshoot assertion in (5);
+  //   (b) the address is NOT left at the store's own ABSENCE — the answer of the WITHDRAWN standing limit.
   const after = readAt(store, address);
-  assert.equal(after.threw, true,
-    'AND AFTER THE FAILED ATTEMPT THE CALLER\'S OWN READ AT THAT ADDRESS ANSWERS THE STORE\'S OWN '
-    + '`AddressNotFound` — read ' + JSON.stringify(after.threw ? after.thrown.status : after.value)
-    + '; `composition-and-states.md §2.6` item 8 (iii): "the state the caller\'s own `address.read('
-    + 'tier?)` then answers — IS the end state", and item 8 (iii)\'s standing limit: "the address is '
-    + 'ABSENT, the caller\'s own earlier write there being part of what the sweep removed"');
-  assertStoreRefusal(after.thrown, 'the store\'s own read after the failed attempt\'s composition');
-  assert.equal(after.thrown.status, 'AddressNotFound',
-    'and the code is the store\'s own, never a kernel token — read '
-    + JSON.stringify(after.thrown.status) + '; `A111`: "the caller\'s own earlier write at the attempt\'s '
-    + 'address ends undone (`AddressNotFound`)"');
-  assert.equal(after.value, undefined,
-    'AND NEVER THE CALLER\'S OWN EARLIER VALUE: a `read` at such an address answering the caller\'s '
-    + 'earlier value is a STORE-SIDE obligation and NOT a verification the closed caller-side surface '
-    + 'can have — the pre-state claim `A111` withdrew and `OWED` to the store-side pass `J-20`–`J-22` '
-    + '(`contract.md §0.1` item 5 (i))');
+  assert.equal(after.threw, false,
+    'AND AFTER THE FAILED ATTEMPT THE CALLER\'S OWN READ AT THAT ADDRESS DOES NOT ANSWER THE STORE\'S OWN '
+    + 'ABSENCE — read ' + JSON.stringify(after.threw ? after.thrown.status : after.value) + '; '
+    + '`write-and-read.md §6.4` item 1\'s amended `M-5`: "A drive that finds the seed reversed, or the '
+    + 'address absent, has found a failure of THIS clause". The `AddressNotFound` arm belongs to the '
+    + 'WITHDRAWN standing limit (`composition-and-states.md §2.6` item 8 (iii): "the address is ABSENT, '
+    + 'the caller\'s own earlier write there being part of what the sweep removed" — WITHDRAWN 2026-10-16)');
+  assert.equal(after.thrown, undefined,
+    'AND NEVER THE STORE\'S OWN `AddressNotFound`: the state the operator `A111` once recorded and '
+    + '`composition-and-states.md §2.6` item 8 (iii) withdrew on 2026-10-16 — a drive reading that code '
+    + "here has found the overshoot the architect's second ruling names a DEFECT");
+  // (c) THE SEED'S OWN ENTRY IS OUT OF SCOPE BY `seq`, WHICH IS THE CLAUSE'S OWN INSTRUMENT — the check
+  // that distinguishes "the seed survived the rollback" from "the seed was masked by a later value".
+  assert.equal(earlier.seq < record.op.seq, true,
+    'AND THE SEED\'S OWN `seq` IS STRICTLY LESS THAN THE TEMPORAL FLOOR\'S — the named op being the '
+    + 'attempt\'s first write — read ' + JSON.stringify([earlier.seq, record.op.seq]) + '; '
+    + '`write-and-read.md §6.4` item 1\'s amended `M-5` (a) (ii) bounds the candidate set at "`E.seq` ≥ '
+    + 'THE NAMED OP\'S OWN `seq`", so the seed is IN THE ADDRESSED SUBTREE AND OUT OF SCOPE by the '
+    + 'comparison itself, and it is unreachable by ANY call this composition issues — the clause\'s own '
+    + 'two-part statement, and the reason (5) reads what it reads');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════
@@ -681,6 +836,31 @@ test('ck_constraint_a_later_commit_at_a_failed_attempts_address_returns_a_fresh_
  * adding that the kernel **"claims NO reach past the compacted base, reports NO rollback it did not
  * perform"**. `fail-surface.md §2`'s `KC-8` row is that token's home.
  *
+ * **⟶ RE-DERIVED 2026-10-16 (`role_test_writer`) — THE SUBJECT OF THIS CELL MOVED WITH THE SCOPE, AND
+ * THE CELL'S NAME NO LONGER STATES WHAT THE CLAUSE NOW DECLARES.** The cell was written to drive *"a
+ * second attempt at a failed attempt's address MEETS THE STORE'S OWN FLOOR AND CLOSES `KC-8`"*, on the
+ * premise that the FIRST attempt's compacted residue stands inside the SECOND attempt's candidate set.
+ * **THE AMENDED `M-5` FALSIFIES THAT PREMISE:** the residue's op carries a `seq` STRICTLY LESS than the
+ * second attempt's own named op, so *"`E.seq` ≥ THE NAMED OP'S OWN `seq`"*
+ * (`docs/specs/storeroom-native/write-and-read.md §6.4` item 1's `M-5` amendment (a) (ii), 2026-10-16)
+ * places it **OUT OF SCOPE**, and the two floors' own declared order
+ * (`§6.4` item 2's dated neighbour: *"THE TEMPORAL FLOOR BOUNDS THE CANDIDATE SET FIRST, AND THE
+ * COMPACTED PREDICATE IS THEN EVALUATED OVER THAT BOUNDED SET"*) means **`M-6` NEVER EXAMINES IT.** The
+ * consequence is stated at that clause in the spec's own words: *"an entry OLDER than the named op that
+ * carries `compacted: true` IS IN NO ROLLBACK OVER THAT OP AND CANNOT FAIL ONE — it is outside the
+ * candidate set by the temporal bound, so `M-6` never examines it and the rollback over that op does NOT
+ * answer `RollbackCompacted` because of it."*
+ *
+ * **SO THE SECOND ATTEMPT'S COMPOSITION RUNS TO THE PASS ARM'S OWN TERMS — its one call returns and its
+ * own op is reversed — and the cell asserts THAT, at the same declared members it always read.** This is
+ * the (A)-class sort: the cell's subject is the SCOPE ITSELF (what the second attempt's walk may touch),
+ * so the assertion moves to the clause's own observable rather than to a different subject. **AND THE
+ * COMPENSATING HALF IS KEPT AND IS THE POINT: the floor is not weakened, and a candidate set that is
+ * TEMPORALLY IN SCOPE and holds a compacted entry STILL fails `RollbackCompacted` and undoes nothing** —
+ * that state is driven by `constraint-kernel-negatives.test.mjs`'s `ck_p_neg_20` and by
+ * `ck_neg_3_a_still_owed_call_meeting_a_compacted_base_is_KC8_with_one_outcome_entry`, whose windows place
+ * the compacted entry AT OR AFTER the named op.
+ *
  * A GENUINELY-PASSING SECOND ATTEMPT EXISTS AND IS NOT THIS CELL'S WINDOW: where the second attempt's own
  * window leaves EVERY pair registered at its address passing for the value IT lands, its terminal arm is
  * the pass arm, its composition is NEVER REACHED, and `rollback` is `[]` — measured on this checkout, and
@@ -701,18 +881,21 @@ test('ck_constraint_a_later_commit_at_a_failed_attempts_address_returns_a_fresh_
  *
  * STATES ENUMERATED FIRST: (1) a FRESH address, with no caller write before the first attempt; (2) a first
  * attempt that FAILS `KC-3` and whose own composition reports ITS OWN op undone (the compacted residue's
- * own origin); (3) a later `K-2` at that address, after the terminal arm — reached, a fresh record; (4)
- * the second attempt's own landing, its own `KC-3` failure arm, and the composition over its own op; (5)
- * the end state at that address, read off the step's own members and through the store's own verb.
+ * own origin — an entry whose `seq` is now BELOW every later attempt's floor); (3) a later `K-2` at that
+ * address, after the terminal arm — reached, a fresh record; (4) **the second attempt's own landing, its
+ * own `KC-3` failure arm, and the composition over its own op — WHICH NO LONGER MEETS THE FLOOR, the
+ * residue being out of scope by `seq`**; (5) the end state at that address, read off the step's own
+ * members and through the store's own verb.
  *
- * FAIL STATES: a second attempt refused (`KC-7` for the residue, or a write verb never reached); a second
- * attempt whose walk meets the floor and whose arm is NOT `KC-8` (a store code minted into the kernel's
- * own token, `RD-8`); MORE THAN ONE `outcome` entry, or an entry whose `message` does not name the store's
- * own code AND the op whose call met the floor (item 6 (a)); a floor arm that reports a rollback it did
- * not perform, or a step whose `undoneOps` is non-empty where the floor undoes nothing (`M-6`, all-or-
- * nothing, never partial); an end state in which the second attempt's own write was undone.
+ * FAIL STATES: a second attempt refused (`KC-7` for the residue, or a write verb never reached); **a
+ * second attempt whose walk REVERSES THE FIRST ATTEMPT'S OWN RESIDUE — an entry older than the named op
+ * reversed by a rollback over it, which `M-7`'s amendment declares FORBIDDEN BY CLAUSE and a defect where
+ * a drive finds it**; MORE THAN ONE `outcome` entry, or an entry whose `state` is not the arm the
+ * attempt's own membership decides (item 6 (a), whose floor-governs rule stands WHERE THE FLOOR IS MET —
+ * the windows `ck_p_neg_20` and `ck_neg_3` drive); a step that reports an op undone which the store did
+ * not perform; an end state in which the second attempt's own write does not stand.
  */
-test('ck_constraint_a_second_attempt_at_a_failed_attempts_address_meets_the_store_s_own_floor_and_closes_KC8', async () => {
+test('ck_constraint_a_second_attempt_at_a_failed_attempts_address_leaves_the_older_compacted_residue_out_of_scope_and_closes_KC3', async () => {
   const { register, commit, runAttempt, report, log } = await kernel();
   const store = makeStore({ journalLength: 64 });
   const address = [tag('ckc5')];
@@ -737,7 +920,8 @@ test('ck_constraint_a_second_attempt_at_a_failed_attempts_address_meets_the_stor
   assert.equal(firstSwept.includes(firstOps[0]), true,
     'AND ITS OWN COMPOSITION REPORTS THAT OP UNDONE — read ' + JSON.stringify(firstSwept) + '; the op a '
     + 'rollback undid is marked compacted and STAYS in the journal (`write-and-read.md §6.4` item 5\'s '
-    + '`M-9` residue), which is the entry the SECOND attempt\'s own walk then meets');
+    + '`M-9` residue) — **and that residue is now BELOW every later attempt\'s temporal floor, which is '
+    + 'the whole subject of this cell**');
 
   // (3) THE LATER `K-2`, AFTER THE TERMINAL ARM — the row's own "write verb being reached".
   const second = capture(() => commit(store, address, 'mem', 3));
@@ -756,70 +940,95 @@ test('ck_constraint_a_second_attempt_at_a_failed_attempts_address_meets_the_stor
     + 'that address and violates at the second attempt\'s landing, so the second attempt\'s own failure '
     + 'arm is reached and its composition RUNS');
   assertKernelForm(secondRun.thrown, 'the second attempt\'s refusal');
-  assert.equal(secondRun.thrown.status, KC[8],
-    'AND ITS COMPOSITION\'S OWN ANSWER IS THE FLOOR: a call over an op the composition STILL OWES whose '
-    + 'candidate set includes the first attempt\'s own compacted entry fails the store\'s own '
-    + '`RollbackCompacted`, and `§2.6` item 5 (b) makes that arm `KC-8` — read '
-    + JSON.stringify(secondRun.thrown.status) + '; `fail-surface.md §2`\'s `KC-8` row. THE STORE\'S OWN '
-    + 'CODE IS NEVER MINTED INTO THIS MEMBER (`RD-8`); it is carried in the step\'s `answer` and named in '
-    + 'the `outcome` entry\'s message, both read below');
+  assert.equal(secondRun.thrown.status, KC[3],
+    '⟶ RE-DERIVED 2026-10-16 — THE TOKEN MOVES `KC-8` → `KC-3` AND THE CELL\'S OWN SUBJECT IS KEPT. THE '
+    + 'arm is now the ATTEMPT\'S OWN VIOLATION ARM and NOT the floor\'s, because the FIRST attempt\'s '
+    + 'compacted residue is OUT OF SCOPE BY `SEQ`: `write-and-read.md §6.4` item 1\'s amended `M-5` (a) '
+    + '(ii) bounds the candidate set at "`E.seq` ≥ THE NAMED OP\'S OWN `seq`", and the residue\'s op was '
+    + 'created BEFORE the second attempt\'s own — so the temporal floor excludes it FIRST and `M-6`\'s '
+    + 'compacted predicate is evaluated over the bounded set and NEVER EXAMINES IT (§6.4 item 2\'s dated '
+    + 'neighbour: "THE TEMPORAL FLOOR BOUNDS THE CANDIDATE SET FIRST, AND THE COMPACTED PREDICATE IS THEN '
+    + 'EVALUATED OVER THAT BOUNDED SET"), whose own stated consequence is "an entry OLDER than the named op '
+    + 'that carries `compacted: true` IS IN NO ROLLBACK OVER THAT OP AND CANNOT FAIL ONE ... so the rollback '
+    + 'over that op does NOT answer `RollbackCompacted` because of it." THE FLOOR IS NOT WEAKENED: the '
+    + 'in-scope compacted case is driven at `ck_neg_3` and `ck_p_neg_20` — read '
+    + JSON.stringify(secondRun.thrown.status));
 
   const secondClosed = report(store, second.value.attempt);
   assertAttemptReport(secondClosed, 'the closed second attempt');
   const secondOps = secondClosed.ops.map((o) => o.opId);
   assert.equal(secondOps.length, 1, 'the second attempt created ONE op of its own');
 
-  // (5) THE KERNEL'S OWN ANSWER, WITH ITS THREE PARTS (`§2.6` item 6): ONE `outcome` entry, its `state`
-  // this item's token, its message naming the STORE'S own code and the op whose call met the floor.
+  // (5) THE ATTEMPT'S OWN ANSWER: ONE `outcome` entry carrying the arm its own membership decides, and a
+  // composition that PERFORMED — the residue's absence from the step making the call a SUCCESS.
   const outcomes = entries(secondClosed.log, 'outcome');
   assert.equal(outcomes.length, 1,
-    'THE ATTEMPT\'S LOG CARRIES ITS SINGLE `outcome` ENTRY — appended ONCE and never twice, the floor being '
-    + `answered IN THAT SAME ONE ENTRY (\`§2.6\` item 6 (a)) — read ${outcomes.length}`);
-  assert.equal(outcomes[0].state, KC[8],
-    'and its `state` is `KC-8` — read ' + JSON.stringify(outcomes[0].state)
-    + '; `fail-surface.md §2`\'s `KC-8` row, read with `§2.6` item 6 (a)');
-  assert.equal(outcomes[0].message.includes('RollbackCompacted'), true,
-    'AND ITS MESSAGE NAMES THE STORE\'S OWN CODE AS THE STORE\'S ANSWER — read '
-    + JSON.stringify(outcomes[0].message) + '; `§2.6` item 6 (a): "its message NAMES the store\'s own '
-    + '`RollbackCompacted` … as the store\'s answer", and `§2.6` item 3: the third code is never minted '
-    + 'into the kernel\'s own `status`');
+    'THE ATTEMPT\'S LOG CARRIES ITS SINGLE `outcome` ENTRY — appended ONCE and never twice '
+    + `(\`§2.6\` item 4's arms append the entry, item 6 (a) forbids a second) — read ${outcomes.length}`);
+  assert.equal(outcomes[0].state, KC[3],
+    'and its `state` is the arm the attempt\'s own membership decides — the violation arm — read '
+    + JSON.stringify(outcomes[0].state) + '; `fail-surface.md §2`\'s `KC-3` row, read with `§2.6` item 6 '
+    + '(a), whose floor-governs rule applies ONLY WHERE THE FLOOR IS MET');
+  assert.equal(outcomes[0].message.includes('RollbackCompacted'), false,
+    'AND THE ENTRY\'S MESSAGE DOES NOT NAME THE STORE\'S `RollbackCompacted`, BECAUSE THE STORE NEVER '
+    + 'ANSWERED IT: the residue is out of scope, so no call of this composition met the floor — read '
+    + JSON.stringify(outcomes[0].message) + '; `write-and-read.md §6.4` item 1\'s amended `M-5` (a) (ii) '
+    + 'and item 2\'s dated neighbour, which say the older compacted entry "CANNOT FAIL ONE"');
   assert.equal(secondClosed.rollback.length, 1,
     'the composition recorded ONE step — one call ISSUED over the one still-owed op it holds (`§2.6` item '
     + '5 (a): "the step count is the calls ISSUED")');
   const floorStep = secondClosed.rollback[0];
-  assertRollbackStep(floorStep, 'the floor\'s own step');
+  assertRollbackStep(floorStep, 'the second attempt\'s own step');
   assert.equal(floorStep.opId, secondOps[0],
     'and that call was made over the second attempt\'s OWN op — read ' + JSON.stringify(floorStep.opId)
     + ' against ' + JSON.stringify(secondOps));
-  assert.equal(floorStep.answer, 'RollbackCompacted',
-    'THE STEP\'S `answer` CARRIES THE STORE\'S OWN CODE IT THREW — read '
-    + JSON.stringify(floorStep.answer) + '; `§2.6` item 3\'s throwing arm, `answer` being the store\'s code '
-    + 'where the call threw');
-  assert.equal(floorStep.failed, true,
-    'and `failed` is `true` — THAT CALL THREW, and never a claim that the walk stopped (`§2.6` item 5 (a))');
-  assert.equal(floorStep.undoneOps.length, 0,
-    'AND NOTHING WAS UNDONE: the floor is ALL-OR-NOTHING and never partial (`write-and-read.md §6.4` item '
-    + '2\'s `M-6`; `§2.6` item 3\'s throwing arm, `undoneOps: []`) — read '
-    + JSON.stringify(floorStep.undoneOps));
-  assert.equal(outcomes[0].message.includes(floorStep.opId), true,
-    'AND THE ENTRY\'S MESSAGE NAMES THE OP WHOSE CALL MET THE FLOOR — read '
-    + JSON.stringify(outcomes[0].message) + ' against ' + JSON.stringify(floorStep.opId)
-    + '; `§2.6` item 6 (a)');
-  const performed = secondClosed.rollback.flatMap((s) => s.undoneOps);
-  assert.equal(performed.length, 0,
-    'AND THE PERFORMED SET IS THE UNION OF THE STEPS\' `undoneOps` MEMBERS AND NO WIDER — no rollback is '
-    + 'reported that was not performed (`§2.6` item 6 (c)) — read ' + JSON.stringify(performed));
+  assert.equal(floorStep.failed, false,
+    'AND THE CALL DID NOT FAIL — the step carries `failed: false`, the store having returned — read '
+    + JSON.stringify(floorStep.failed) + '; `§2.6` item 5 (a)\'s `failed` being THAT CALL\'S OWN ANSWER, '
+    + 'read with item 5 (b), which makes `KC-8` of an owed call meeting either floor code and of nothing '
+    + 'else');
+  assert.equal(floorStep.answer, 'ok',
+    'and its `answer` is the store\'s own answer for a call that returned, never a floor code — read '
+    + JSON.stringify(floorStep.answer) + '; `§2.6` item 3');
+  assert.deepEqual(floorStep.undoneOps, [secondOps[0]],
+    'AND IT REVERSED EXACTLY THE SECOND ATTEMPT\'S OWN OP — read '
+    + JSON.stringify(floorStep.undoneOps) + '; the amended `M-5`\'s scope is the named op AT OR AFTER its '
+    + 'own `seq`, so the call reaches its own op and STOPS THERE');
+  // THE OVERSHOOT ASSERTION, ON THIS CELL'S OWN WINDOW — the residue is the entry an address-wide reach
+  // would have swept.
+  const sweptHere = secondClosed.rollback.flatMap((s) => s.undoneOps);
+  assert.equal(sweptHere.includes(firstOps[0]), false,
+    'THE OVERSHOOT: THE FIRST ATTEMPT\'S OWN COMPACTED RESIDUE IS REVERSED BY NO CALL OF THE SECOND '
+    + `ATTEMPT\'S COMPOSITION — read ${JSON.stringify(sweptHere)} against the residue `
+    + `${JSON.stringify(firstOps[0])}; \`write-and-read.md §6.4\` item 3's \`M-7\` amendment: "every entry `
+    + 'of the addressed subtree whose `seq` is LESS than the named op\'s is IN NO WALK AND IS REVERSED BY '
+    + 'NO ROLLBACK OVER THAT OP ... the state *"an entry older than the named op was reversed by a '
+    + 'rollback over it"* is FORBIDDEN BY CLAUSE and is a defect where a drive finds it." The architect\'s '
+    + 'second ruling of 2026-10-16, VERBATIM: "Overshoot is a defect."');
 
-  // (6) NOTHING IS RESTORED, READ THROUGH THE STORE'S OWN VERB: the second attempt's own write stands.
+  // (6) THE END STATE, READ THROUGH THE STORE'S OWN VERB. **⟶ RE-DERIVED 2026-10-16: the comparison's
+  // own success means the attempt's ONE op IS reversed, and this address held NOTHING BEFORE the first
+  // attempt — so the store's own answer is its ABSENCE, and the step's `restoredTo` member says so
+  // BEFORE the read does.** The cell's subject — the END STATE READ THROUGH THE STORE'S OWN VERB, never
+  // through a kernel claim — is unmoved.
   const after = readAt(store, address);
-  assert.equal(after.threw, false,
-    'NOTHING IS RESTORED PAST THE COMPACTED BASE: the second attempt\'s own landed value still stands at '
-    + 'that address — read ' + JSON.stringify(after.threw ? after.thrown.status : after.value)
-    + '; `§2.6` item 6 (a), (c): "NOTHING IS RESTORED — the last-valid-state rule does not override the '
-    + 'store\'s floor"');
-  assert.equal(after.value, 3,
-    'and it is the value the second attempt\'s own write landed — read '
-    + JSON.stringify(after.value) + '; the floor undid no op, so no op of that attempt\'s was reversed');
+  assert.equal(secondClosed.rollback[0].restoredTo.present, false,
+    'THE STEP\'S OWN `restoredTo` REPORTS THE STATE THE ADDRESS ACTUALLY STANDS AT AFTER THE ROLLBACK — '
+    + 'PRESENT OR ABSENT, and here ABSENT because nothing at this address is older than the reversed op — '
+    + 'read ' + JSON.stringify(secondClosed.rollback[0].restoredTo) + '; `write-and-read.md §6.4` item 3\'s '
+    + 'clause (ii): "`restoredTo` REPORTS THE STATE THE ADDRESSED SUBTREE ACTUALLY STANDS AT AFTER THE '
+    + 'ROLLBACK — PRESENT OR ABSENT, NEVER AN UNDONE ENTRY\'S PRE-STATE"');
+  assert.equal(secondClosed.rollback[0].restoredTo.value, undefined,
+    'and the two-member `BaseState` carries no value where none stands (`§2.6` item 3) — read '
+    + JSON.stringify(secondClosed.rollback[0].restoredTo.value));
+  assert.equal(after.threw, true,
+    'AND THE STORE\'S OWN READ ANSWERS WHATEVER THE STEP\'S `restoredTo` ALREADY REPORTED — the store\'s '
+    + 'own absence — read ' + JSON.stringify(after.threw ? after.thrown.status : after.value)
+    + '; `§2.6` item 8 (iii): "the state the caller\'s own `read(address, tier?)` then answers — IS the '
+    + 'end state"');
+  assertStoreRefusal(after.thrown, 'the store\'s own read after the second attempt\'s composition');
+  assert.equal(after.thrown.status, 'AddressNotFound',
+    'and the code is the STORE\'S own, never a kernel token — read ' + JSON.stringify(after.thrown.status));
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════

@@ -4225,11 +4225,17 @@ cell('GUARD', 'the real entry still resolves IN PLACE at rung two', async () => 
   // **THE PRODUCT IS AT ITS TWELVE OWN MEMBERS — `10 + 1 + 1 = 12` — AND THE ENTRY AT ITS ONE NAME
   // (`11 → 1`), so the as-filed `4 + 3 = 7` and `8 + 3 = 11` are VACATED with the ruling and neither figure
   // is asserted anywhere.** Read here through the real rung-two load and not through a stub.
+  // ── **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**, the thirteenth
+  // being `constraints()` on the architect's ruling VERBATIM *"Add surface methods for reading registered
+  // constraints."* (`surface.md §2.4` item 9 (f)'s `constraints` clause of that date; `§2.12` item 2-bis;
+  // `PAR-JS-27`). **The cell's own subject — read through the REAL rung-two load and not a stub — is
+  // unmoved; the figure moves by one and the entry stays at its ONE name.**
   assert.deepEqual(r.members,
-    ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral',
-      'register', 'rollback', 'settle', 'unlisten', 'write'],
-    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s `A127` clause of 2026-10-16 states '
-    + 'it: the TEN store-reaching methods plus `register` and `settle` — TWELVE own members, `10 + 1 + 1 = 12`');
+    ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
+      'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'],
+    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s `constraints` clause of 2026-10-17 '
+    + 'states it: the TEN store-reaching methods plus `register`, `settle` and `constraints` — THIRTEEN own '
+    + 'members, `10 + 1 + 1 + 1 = 13` ✓');
   for (const displaced of ['manageConstraints', 'on', 'off']) {
     assert.equal(r.members.includes(displaced), false,
       `and the displaced name \`${displaced}\` is NOT a member of that product (\`surface.md §2.9\` item 1's `
@@ -4253,13 +4259,16 @@ cell('GUARD', 'the in-place loop still resolves and works at rung two', async ()
   const api = await import('provident-storeroom');
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
   const store = api.storeCreate({ journalLength: 8, listeners: [] });
+  // **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓** — the thirteenth
+  // is `constraints()` (`surface.md §2.4` item 9 (f)'s `constraints` clause of that date; `§2.12` item
+  // 2-bis; `PAR-JS-27`). The self-reference this cell resolves through is unmoved.
   assert.deepEqual(Object.keys(store).sort(),
-    ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral',
-      'register', 'rollback', 'settle', 'unlisten', 'write'],
-    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s `A127` clause of 2026-10-16 states '
-    + 'it — the TEN store-reaching methods plus `register` and `settle`, TWELVE own members, `10 + 1 + 1 = 12` '
-    + '— the same set the in-place entry\'s own product carries, read at the self-reference this cell '
-    + 'resolves through');
+    ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
+      'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'],
+    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s `constraints` clause of 2026-10-17 '
+    + 'states it — the TEN store-reaching methods plus `register`, `settle` and `constraints`, THIRTEEN own '
+    + 'members, `10 + 1 + 1 + 1 = 13` ✓ — the same set the in-place entry\'s own product carries, read at '
+    + 'the self-reference this cell resolves through');
   store.write(['k'], 'mem', 'v');
   assert.equal(store.read(['k']), 'v', 'the store works in place at rung two');
   assert.equal(manifest.name, 'provident-storeroom',

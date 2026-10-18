@@ -291,7 +291,7 @@ test('ck_states_a_constraint_body_that_throws_reaches_the_caller_unconverted', a
 //    declares UNREACHABLE, and it passed only because the source under it did not yet take the
 //    transition at the first violating pair (`P-NEG-1`). THE FIX IS THE ROW'S OWN SHAPE: `x` PASSES on
 //    the first pass, `y` violates there and its repair lands an op, and the RE-RUN breaks `x`.
-test('ck_states_arm_f_a_repeat_by_a_pair_whose_repair_is_not_recorded_is_KC6_and_the_repair_never_ran', async () => {
+test('ck_states_arm_f_a_repeat_by_a_pair_whose_repair_is_not_recorded_reaches_the_floor_arm_and_the_repair_never_ran', async () => {
   const { register, commit, runAttempt } = await kernel();
   const store = makeStore();
   const address = [tag('rf')];
@@ -315,7 +315,22 @@ test('ck_states_arm_f_a_repeat_by_a_pair_whose_repair_is_not_recorded_is_KC6_and
   // pass 1: x PASSES on v, y violates there and its repair lands a new op ⇒ the re-run breaks x.
   const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
   assert.equal(r.threw, true, 'the re-run fails the attempt');
-  assert.equal(r.thrown.status, 'KC-6', 'ConstraintRepeat — the arm a repeat of a pair with NO recorded applied repair reaches');
+  // ── **⟶ RE-DERIVED 2026-10-16 — THE TOKEN MOVES `KC-6` → `KC-8`, AND THE CELL'S SUBJECT IS KEPT AT
+  // THE CLAUSE THAT NOW GOVERNS IT.** The attempt's own membership still decides the LIMB (`x` is IN
+  // `ran` and OUT of `appliedRepairs`, as the log below still shows), **but the arm the CALLER receives is
+  // the FLOOR'S**: under `M-5` (a) (ii) the first performed call reverses only `y`'s repair's op, leaving
+  // it compacted (`M-9`), so the second call — over the attempt's own commit op, which is still owed —
+  // meets that residue and `M-6` fails it. **`composition-and-states.md §2.6` item 6 (a) rules exactly
+  // this case once and by name: "WHICH CLAUSE GOVERNS THE ENTRY'S `state` WHERE THE ATTEMPT'S OWN BODY
+  // THREW *AND* THE COMPOSITION MET THE FLOOR IS RULED HERE, ONCE ... THE FLOOR GOVERNS — this clause's
+  // rule is applied to EVERY path on which the attempt's own composition meets the floor", and "the
+  // attempt has ONE `outcome` ENTRY, ITS `state` IS THIS ITEM'S `KC-8` ... and NO SECOND ENTRY IS
+  // APPENDED"** — read with item 5 (b) (an owed op's call meeting either floor code is `KC-8`) and
+  // `write-and-read.md §6.4` item 2's `M-6`.
+  assert.equal(r.thrown.status, 'KC-8',
+    'ConstraintRollbackFloor — the floor governs because the composition MET it; the LIMB the cell reads '
+    + '(limb (ii), `x` IN `ran` and OUT of `appliedRepairs`) is still asserted at the log below, and the '
+    + `floor's precedence over it is §2.6 item 6 (a)'s own ruling — read ${JSON.stringify(r.thrown.status)}`);
   assert.deepEqual(checkIds(r.thrown.log), ['x', 'y', 'x'],
     'x\'s own key carries EXACTLY TWO `constraint-check` entries — its first, passing evaluation and '
     + 'its second, violating one — and never three (§5.6, `S-SECOND-VIOLATION`)');
@@ -323,10 +338,16 @@ test('ck_states_arm_f_a_repeat_by_a_pair_whose_repair_is_not_recorded_is_KC6_and
     + 'number of ITS entries, never the log\'s total');
   assert.deepEqual(repairRunsFor(r.thrown.log, 'x').length, 0, 'x carries no repair at all, so its count is 0');
   assert.equal(repairRunsFor(r.thrown.log, 'y').length, 1, 'y\'s repair ran once');
-  assert.equal(outcomeEntry(r.thrown.log).state, 'KC-6', 'the outcome entry carries KC-6');
+  assert.equal(outcomeEntry(r.thrown.log).state, 'KC-8',
+    'AND THE ATTEMPT\'S ONE `outcome` ENTRY CARRIES THE FLOOR\'S TOKEN — §2.6 item 6 (a): "the floor is '
+    + 'answered IN THAT SAME ONE ENTRY ... and NO SECOND ENTRY IS APPENDED" — read '
+    + JSON.stringify(outcomeEntry(r.thrown.log).state));
+  assert.equal(outcomeEntry(r.thrown.log).message.includes('RollbackCompacted'), true,
+    'and its `message` NAMES the store\'s own code as the store\'s answer, as item 6 (a) requires — read '
+    + JSON.stringify(outcomeEntry(r.thrown.log).message));
 });
 
-test('ck_states_arm_e_a_repeat_by_a_pair_already_recorded_as_applied_is_KC5_and_runs_no_second_repair', async () => {
+test('ck_states_arm_e_a_repeat_by_a_pair_already_recorded_as_applied_reaches_the_floor_arm_and_runs_no_second_repair', async () => {
   const { register, commit, runAttempt } = await kernel();
   const store = makeStore();
   const address = [tag('re')];
@@ -344,10 +365,24 @@ test('ck_states_arm_e_a_repeat_by_a_pair_already_recorded_as_applied_is_KC5_and_
   }, message: 'y is invalid' })));
   const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
   assert.equal(r.threw, true, 'x is broken again by y\'s repair, so the attempt fails');
-  assert.equal(r.thrown.status, 'KC-5', 'ConstraintRepairRepeat — a repeat of a pair already in ran AND appliedRepairs');
+  // ── **⟶ RE-DERIVED 2026-10-16 — THE TOKEN MOVES `KC-5` → `KC-8`; THE CELL'S OWN OBSERVATION IS KEPT.**
+  // The repeat the pair reaches is STILL limb (i) — `x` is in `ran` AND in `appliedRepairs` — and the
+  // repair-run count below STILL proves no repair ran twice. **What moved is which clause governs the
+  // CALLER'S token:** the composition now MEETS the floor (the first call reverses only the newer op and
+  // leaves it compacted, so the second call over the still-owed older op fails `M-6` all-or-nothing), and
+  // **`composition-and-states.md §2.6` item 6 (a) rules that the FLOOR GOVERNS on every path where it is
+  // met — "the attempt has ONE `outcome` ENTRY, ITS `state` IS THIS ITEM'S `KC-8` ... and NO SECOND ENTRY
+  // IS APPENDED"** — read with item 5 (b) and `write-and-read.md §6.4` item 2's `M-6`.
+  assert.equal(r.thrown.status, 'KC-8',
+    'ConstraintRollbackFloor — the floor governs because the composition MET it, and it overrides the '
+    + 'repeat limb the pair\'s own state still decides (`§2.6` item 6 (a)) — read '
+    + JSON.stringify(r.thrown.status));
   assert.deepEqual(repairRunsFor(r.thrown.log, 'x').length, 1,
     'arm (e)\'s own observation: the count for that pair is exactly 1 and NEVER 2 — no repair ran twice');
-  assert.equal(outcomeEntry(r.thrown.log).state, 'KC-5', 'the outcome entry carries KC-5');
+  assert.equal(outcomeEntry(r.thrown.log).state, 'KC-8',
+    'and the attempt\'s ONE `outcome` entry carries the floor\'s token, by identity with `status` '
+    + '(`fail-surface.md §1.1` item 1 (c); `§2.6` item 6 (a)) — read '
+    + JSON.stringify(outcomeEntry(r.thrown.log).state));
 });
 
 test('ck_states_the_two_repeat_limbs_are_disjoint_by_the_appliedRepairs_member_and_not_by_the_count', async () => {
@@ -385,7 +420,7 @@ test('ck_states_the_two_repeat_limbs_are_disjoint_by_the_appliedRepairs_member_a
       const landed = store.write(address, 'mem', 'y2').op;
       return { ok: true, message: 'y was repaired by the op this repair landed', op: landed };
     }, message: 'y is invalid on the committed value' })));
-    limbs.push(['KC-6', capture(() => runAttempt(store, commit(store, address, 'mem', 'v')))]);
+    limbs.push(['KC-6', 'OUT', capture(() => runAttempt(store, commit(store, address, 'mem', 'v')))]);
   }
   {
     const store = makeStore();
@@ -394,23 +429,41 @@ test('ck_states_the_two_repeat_limbs_are_disjoint_by_the_appliedRepairs_member_a
       const landed = store.write(address, 'mem', 'x2').op;
       return { ok: true, message: 'x was repaired by the op this repair landed', op: landed };
     }, message: 'x is invalid at every evaluation' })));
-    limbs.push(['KC-5', capture(() => runAttempt(store, commit(store, address, 'mem', 'v')))]);
+    limbs.push(['KC-5', 'IN', capture(() => runAttempt(store, commit(store, address, 'mem', 'v')))]);
   }
-  for (const [token, r] of limbs) {
+  // ── **⟶ RE-DERIVED 2026-10-16 — THE CELL'S DISJOINTNESS IS KEPT AND THE MEMBER THAT CARRIES IT MOVED.**
+  // The cell used to read the LIMB off the caller's `status`. **The floor now governs that member on both
+  // windows** (`composition-and-states.md §2.6` item 6 (a): "THE FLOOR GOVERNS ... on EVERY path on which
+  // the attempt's own composition meets the floor"), because under `M-5` (a) (ii) each window's first call
+  // leaves a compacted residue the second call meets. **So the discriminator is read where the clause puts
+  // it — the pair's OWN registry membership, `ran` versus `appliedRepairs`, whose home is
+  // `attempt-lifecycle.md §2.4` item 4's closing clause, and whose OBSERVABLE is the pair's own
+  // repair-run count** (`kernel-surface.md §2.5` item 3). The cell's own sentence — "THE DISJOINTNESS IS
+  // READ OFF THE PAIR'S OWN STATE AND NOT OFF THE COUNT" — is thereby kept, and the caller's token is
+  // asserted to be the SAME on both windows, which is exactly what makes the underlying limbs
+  // indistinguishable from `status` and distinguishable from the pair's state.
+  for (const [token, membership, r] of limbs) {
     assert.equal(r.threw, true, `the limb (${token}) drive fails the attempt`);
-    assert.equal(r.thrown.status, token,
-      'the pair\'s own registry membership decides the limb — IN `ran` AND OUT of `appliedRepairs` is '
-      + `${token === 'KC-6' ? 'KC-6' : 'KC-5'} and nothing else (read ${JSON.stringify(r.thrown.status)})`);
+    assert.equal(r.thrown.status, 'KC-8',
+      'BOTH WINDOWS REACH THE FLOOR, so the caller\'s own token is the SAME ON BOTH and cannot be the '
+      + 'discriminator (`§2.6` item 6 (a), the floor\'s precedence) — read '
+      + `${JSON.stringify(r.thrown.status)} on the ${token} window whose limb is ${membership} \`appliedRepairs\``);
   }
-  assert.equal(repairRunsFor(limbs[0][1].thrown.log, 'x').length, 0,
+  assert.equal(repairRunsFor(limbs[0][2].thrown.log, 'x').length, 0,
     'window (ii)\'s own observation: the repeating pair\'s repair-run count is 0 — no repair was registered'
-    + ' for its pair at all, and its FIRST evaluation had PASSED');
-  assert.equal(repairRunsFor(limbs[1][1].thrown.log, 'x').length, 1,
-    'window (i)\'s own observation: the repeating pair\'s repair-run count is EXACTLY 1 — the count is the'
-    + ' observable on both limbs and the discriminator on neither');
-  assert.equal(entries(limbs[0][1].thrown.log, 'constraint-check').filter((e) => e.id === 'x').length, 2,
+    + ' for its pair at all, and its FIRST evaluation had PASSED, so it is IN `ran` and OUT of '
+    + '`appliedRepairs` — limb (ii), `attempt-lifecycle.md §2.4` item 4\'s closing clause');
+  assert.equal(repairRunsFor(limbs[1][2].thrown.log, 'x').length, 1,
+    'window (i)\'s own observation: the repeating pair\'s repair-run count is EXACTLY 1 — it is IN `ran` '
+    + 'AND IN `appliedRepairs` — limb (i); the count is the observable on both limbs and the '
+    + 'discriminator on neither (`kernel-surface.md §2.5` item 3)');
+  assert.notEqual(repairRunsFor(limbs[0][2].thrown.log, 'x').length,
+    repairRunsFor(limbs[1][2].thrown.log, 'x').length,
+    'AND THE TWO WINDOWS ARE DISJOINT AT THE PAIR\'S OWN STATE, which the caller\'s token no longer '
+    + 'shows: 0 repairs applied versus 1');
+  assert.equal(entries(limbs[0][2].thrown.log, 'constraint-check').filter((e) => e.id === 'x').length, 2,
     'and the pair of each window carries TWO checks: its passing first evaluation and its one repeat');
-  assert.equal(entries(limbs[1][1].thrown.log, 'constraint-check').filter((e) => e.id === 'x').length, 2,
+  assert.equal(entries(limbs[1][2].thrown.log, 'constraint-check').filter((e) => e.id === 'x').length, 2,
     'on the KC-5 window too — its repair\'s landing is the op of its second check');
 });
 
@@ -473,9 +526,19 @@ test('ck_states_each_refused_repeat_token_is_one_of_the_eight_and_is_never_a_sto
   }));
   const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
   assert.equal(r.threw, true, 'the attempt is refused');
-  assert.equal(r.thrown.status, KC[6],
-    'the pair that repeated was IN `ran` and OUT of `appliedRepairs` — limb (ii), and the token this '
-    + 'refusal carries is exactly that one and no other of the eight');
+  // ── **⟶ RE-DERIVED 2026-10-16 — THE TOKEN MOVES `KC-6` → `KC-8`; THE CELL'S OWN SUBJECT IS KEPT.**
+  // The pair that repeated IS STILL the one IN `ran` and OUT of `appliedRepairs` — that is read at the
+  // log below, and the check list is unmoved — but the token the caller receives is the FLOOR'S, because
+  // under `M-5` (a) (ii) the composition now MEETS it: the first call reverses only the repair's op and
+  // leaves it compacted, so the second call over the still-owed older op fails `M-6`. **The governing
+  // clause is `composition-and-states.md §2.6` item 6 (a): "THE FLOOR GOVERNS — this clause's rule is
+  // applied to EVERY path on which the attempt's own composition meets the floor"**, and the cell's
+  // remaining assertions — that the token is ONE OF THE EIGHT, never a full name, never a store member,
+  // and identical across `status` and `state` — are UNMOVED and still falsify on their own subjects.
+  assert.equal(r.thrown.status, KC[8],
+    'the pair that repeated was IN `ran` and OUT of `appliedRepairs` — limb (ii) — and the token the '
+    + 'CARRIER now reads is the floor\'s, the floor governing wherever it is met (`§2.6` item 6 (a)); read '
+    + JSON.stringify(r.thrown.status));
   assert.equal(KC_TOKENS.includes(r.thrown.status), true,
     'THE TOKEN IS ONE OF `KC-1` … `KC-8` AND NOTHING ELSE (`fail-surface.md §1.1` item 1 (a))');
   assert.deepEqual(checkIds(r.thrown.log), ['x', 'y', 'x'],
@@ -487,9 +550,10 @@ test('ck_states_each_refused_repeat_token_is_one_of_the_eight_and_is_never_a_sto
     + 'the kernel\'s surface carries a label as its value (§1.1 item 1 (d))');
   const outcome = r.thrown.log.filter((e) => e.kind === 'outcome');
   assert.equal(outcome.length, 1, 'the refusal\'s own log carries exactly one `outcome` entry');
-  assert.equal(outcome[0].state, KC[6],
+  assert.equal(outcome[0].state, KC[8],
     'AND `LogEntry.state` CARRIES THE SAME TOKEN, `status` and `state` being related by IDENTITY — '
-    + 'asserted as STRING EQUALITY and not as membership of a set (§1.1 item 1 (c))');
+    + 'asserted as STRING EQUALITY and not as membership of a set (§1.1 item 1 (c)) — read '
+    + JSON.stringify(outcome[0].state));
   assert.equal(outcome[0].state === r.thrown.status, true,
     'identity: one token, read twice, from two members');
   assert.equal(STORE_CODES.includes(r.thrown.status), false,
@@ -534,14 +598,30 @@ test('ck_states_each_refused_repeat_token_is_one_of_the_eight_and_is_never_a_sto
  * STATES ENUMERATED BEFORE THE DRIVE — the ops are created in this order and ALL AT ONE ADDRESS:
  *   (1) `op-1`, the attempt's FIRST WRITE (the commit's own landing) — x violates on it;
  *   (2) `op-2`, x's repair's landing — x passes there and y violates;
- *   (3) `op-3`, y's repair's landing — y violates AGAIN for good → arm `(e)`/`KC-5`, the terminal arm.
+ *   (3) `op-3`, y's repair's landing — y violates AGAIN for good → the attempt's own membership decides
+ *       limb `(e)`.
  * The checkpoint is `null` (no landing at the attempt's own address left EVERY registered pair there
  * passing), so item 2's list is the whole of `ops` reversed: `[op-3, op-2, op-1]`.
  *
+ * **⟶ AND THE SKIP THIS CELL WAS BUILT TO EXERCISE NO LONGER FIRES, WHICH IS THE CELL'S ONE RE-DERIVED
+ * FACT OF 2026-10-16 (`role_test_writer`).** Item 5 (a)'s skip is decided by a returned call's own
+ * `undoneOps` member; under `M-5` (a) (ii) a call reverses only entries at or after ITS OWN named op, so
+ * the first call over `op-3` reports `op-3` ALONE and the two later list members are each still owed.
+ * The second call over `op-2` then meets the residue the first left and `M-6` fails it, undoing nothing —
+ * so `op-1` is never reached and the composition issues TWO calls, not three. **THE SKIP'S RULE AND ITS
+ * OBSERVABLE ARE UNCHANGED — "THE SKIP'S OBSERVABLE THEREFORE DOES NOT MOVE ... the member reports what
+ * the store PERFORMED, and what the store performed is narrower now" (`§2.6` item 5 (a)'s dated clause) —
+ * and what this window now exhibits is that clause's OWN named consequence: "a still-owed op that an
+ * earlier call's `undoneOps` member does NOT report was NOT undone by that call AND GETS ITS OWN CALL."**
+ * The "skip arm and not a degenerate one" assertion is therefore re-derived to what this window can
+ * honestly show: the performed calls are item 2's list PREFIX, and the call that stopped the walk met the
+ * floor.
+ *
  * FAIL STATES: a step standing for an op an earlier call already reported undone (the second call item 5
- * (a) forbids); a step missing where an op was still owed; a call issued out of item 2's order (the first
- * write called before a repaired op); a first call over an op that is not the list's first member; an op of
- * the attempt in neither a step's `opId`, an earlier step's `undoneOps`, nor the checkpoint member.
+ * (a) forbids); a step missing where an op was still owed AND the walk had not stopped at a floor; a call
+ * issued out of item 2's order (the first write called before a repaired op); a first call over an op
+ * that is not the list's first member; an op of the attempt in neither a step's `opId`, an earlier step's
+ * `undoneOps`, nor the checkpoint member, where the walk ran to its end.
  */
 test('ck_states_the_composition_runs_repaired_ops_first_in_reverse_then_the_first_write_last', async () => {
   const { register, commit, runAttempt, report } = await kernel();
@@ -574,10 +654,15 @@ test('ck_states_the_composition_runs_repaired_ops_first_in_reverse_then_the_firs
   const commitRecord = commit(store, address, 'mem', 'v');
   const r = capture(() => runAttempt(store, commitRecord));
   assert.equal(r.threw, true, 'the attempt fails');
-  assert.equal(r.thrown.status, 'KC-5',
+  // ── **⟶ THE TOKEN MOVES `KC-5` → `KC-8` (`§2.6` item 6 (a): the floor governs wherever the composition
+  // meets it). THE CELL'S OWN SUBJECT — ITEM 2'S ORDER — IS UNMOVED AND IS ASSERTED BELOW.**
+  assert.equal(r.thrown.status, 'KC-8',
     'THE ARM THIS DRIVE\'S OWN MEMBERSHIP DECIDES: x is IN `ran` AND IN `appliedRepairs` at its third '
-    + 'evaluation — limb `(e)` and its own answer `KC-5` (`attempt-lifecycle.md §2.4` item 4)');
-  assert.equal(outcomeEntry(r.thrown.log).state, 'KC-5',
+    + 'evaluation — limb `(e)` (`attempt-lifecycle.md §2.4` item 4) — and THE CARRIER READS THE FLOOR, '
+    + 'because the composition met it: the second call over `op-2` meets the residue the first call left '
+    + 'and `M-6` fails it all-or-nothing (`§2.6` item 6 (a), the floor\'s precedence; read '
+    + JSON.stringify(r.thrown.status) + ')');
+  assert.equal(outcomeEntry(r.thrown.log).state, 'KC-8',
     'and the outcome entry carries the SAME token as the thrown form\'s status');
   assert.equal(repairRunsFor(r.thrown.log, 'x').length, 1,
     'arm (e)\'s own count for that pair: its repair ran ONCE and never twice');
@@ -590,8 +675,7 @@ test('ck_states_the_composition_runs_repaired_ops_first_in_reverse_then_the_firs
   const opIds = closed.ops.map((o) => o.opId);
   assert.equal(opIds.length, 3,
     'THIS ATTEMPT OWED THREE OPS — the first write and the two the repairs landed — so the ORDER read '
-    + 'below is non-degenerate, and the SKIP the clause states is exercised on the two later-op members '
-    + '(`composition-and-states.md §2.6` item 2)');
+    + 'below is non-degenerate (`composition-and-states.md §2.6` item 2)');
   assert.equal(opIds[0], commitRecord.op.opId, 'ops[0] is the attempt\'s first write');
   // ITEM 2'S OWN LIST, FIXED AT COMPOSITION TIME: the repaired ops in REVERSE of their creation, then the
   // attempt's first write's op last (`§2.6` item 2: "the order is TOTAL over `ops`").
@@ -611,45 +695,48 @@ test('ck_states_the_composition_runs_repaired_ops_first_in_reverse_then_the_firs
   }
   const reportedUndone = new Set();
   for (const step of closed.rollback) for (const undone of step.undoneOps) reportedUndone.add(undone);
-  // AND THE LIST'S OWN SKIP: where a member's own step was performed it stands, where it was NOT
-  // performed it stands IF AND ONLY IF the first call's own `undoneOps` member already reports it undone.
-  const skippedOps = new Set();
-  for (const step of closed.rollback) for (const undone of step.undoneOps) skippedOps.add(undone);
-  const expected = list.filter((opId) => performed.includes(opId) || !skippedOps.has(opId));
-  assert.deepEqual(performed, expected,
-    'THE STEP COUNT IS THE CALLS ISSUED AND THE LIST MAY RUN BELOW ITS SIZE (`§2.6` item 5 (a); '
-    + '`contract.md §5.7`\'s `P-TP-7`): every member of item 2\'s list carries a step ONLY where no earlier '
-    + 'step\'s own `undoneOps` member already reports it undone — read ' + `${JSON.stringify(performed)} `
-    + `against ${JSON.stringify(expected)}; the ops left standing here are the ones the store's own first `
-    + 'call already reversed');
-  const skipped = list.filter((opId) => !performed.includes(opId));
-  assert.ok(skipped.length > 0,
-    'THIS WINDOW IS THE SKIP ARM AND NOT A DEGENERATE ONE: the first call\'s own `undoneOps` member '
-    + 'covers a later member of the list, so the composition issues NO call over it — read '
-    + `${JSON.stringify(skipped)} as the ops that carry no step`);
-  for (const opId of skipped) {
-    assert.equal(reportedUndone.has(opId), true,
-      'AND EVERY OP THAT CARRIES NO STEP STANDS IN A CALL THAT WAS ISSUED AND RETURNED — an op the attempt '
-      + `still owed that no step and no \`undoneOps\` member names is an op no act of this composition `
-      + `reached — read ${JSON.stringify(opId)}`);
+  // ── AND THE WALK'S OWN STOP, READ UNDER THE AMENDED SCOPE (§2.6 item 5 (a)'s dated clause of
+  // 2026-10-16): the performed calls are the list's PREFIX, and the call that ended the walk is the one
+  // that met the floor. **A member carries no step because an earlier call reported it undone** ("THE
+  // SKIP'S OBSERVABLE THEREFORE DOES NOT MOVE ... the member reports what the store PERFORMED") **OR
+  // because the walk stopped at a failed call — "a still-owed op that an earlier call's `undoneOps`
+  // member does NOT report was NOT undone by that call AND GETS ITS OWN CALL", and no call follows one
+  // that threw.**
+  const stopAt = closed.rollback.findIndex((s) => s.failed === true);
+  const walked = stopAt === -1 ? list.length : stopAt + 1;
+  assert.deepEqual(performed, list.slice(0, walked),
+    'THE PERFORMED CALLS ARE ITEM 2\'S LIST\'S OWN PREFIX, CUT AT THE CALL THAT MET THE FLOOR (`§2.6` '
+    + 'items 2 and 5 (a)) — read ' + JSON.stringify(performed) + ' against ' + JSON.stringify(list)
+    + `; the failing call stands at index ${stopAt} and no call is issued after it`);
+  assert.equal(stopAt !== -1, true,
+    'AND THE WALK ENDED AT A FAILED CALL AND NOT BY EXHAUSTING THE LIST: one step carries `failed: true` '
+    + `(§2.6 item 5 (b)) — read ${JSON.stringify(closed.rollback.map((s) => [s.opId, s.failed, s.answer]))}`);
+  assert.equal(closed.rollback[stopAt].answer, 'RollbackCompacted',
+    'and its `answer` is the store\'s own code, carried verbatim (`§2.6` item 3) — read '
+    + JSON.stringify(closed.rollback[stopAt].answer));
+  for (const opId of list.slice(walked)) {
+    assert.equal(reportedUndone.has(opId), false,
+      'AND NO OP BEYOND THE STOP IS REPORTED UNDONE — the floor undoes nothing, so a member the walk never '
+      + `reached stands in no \`undoneOps\` member — read ${JSON.stringify(opId)} against `
+      + JSON.stringify([...reportedUndone]));
   }
   assert.equal(performed.includes(commitRecord.op.opId), false,
-    'AND THE ATTEMPT\'S FIRST WRITE IS NOT THE LAST CALL OF THIS WINDOW EITHER, although item 2 puts it '
-    + 'LAST in the list: it was ALREADY REPORTED UNDONE by the first call, so item 5 (a) skips it — read '
-    + `${JSON.stringify(performed)}`);
-  assert.equal(closed.rollback[0].undoneOps.includes(commitRecord.op.opId), true,
-    'the first write\'s op is accounted for INSIDE a step that was performed — "every op of the attempt is '
-    + 'either a step\'s passed `opId`, or named in an earlier step\'s `undoneOps`, or the checkpoint op '
-    + `itself" (\`§2.6\` item 8 (ii) (5)) — read ${JSON.stringify(closed.rollback[0].undoneOps)}`);
+    'AND THE ATTEMPT\'S FIRST WRITE IS NOT PASSED TO THE VERB IN THIS WINDOW, although item 2 puts it '
+    + `LAST in the list: the walk stopped before reaching it — read ${JSON.stringify(performed)}`);
   const covered = new Set();
   for (const step of closed.rollback) {
     covered.add(step.opId);
     for (const undone of step.undoneOps) covered.add(undone);
   }
   for (const opId of opIds) {
-    assert.equal(covered.has(opId), true,
-      'and no op the attempt created is left unaccounted for by a declared reading — read '
-      + JSON.stringify(opId));
+    const byPassed = covered.has(opId);
+    const isCheckpoint = closed.rollback.length > 0 && closed.rollback[0].checkpoint === opId;
+    const beyondStop = list.slice(walked).includes(opId);
+    assert.equal(byPassed || isCheckpoint || beyondStop, true,
+      'and no op the attempt created is left unaccounted for by a declared reading — a step\'s passed '
+      + '`opId`, a member of a step\'s `undoneOps`, the checkpoint op, or a member of the list BEYOND the '
+      + 'call that met the floor (`§2.6` item 8 (ii) (5), re-read at its 2026-10-16 clause: "the value it '
+      + 'wrote STANDS" where the amended scope puts it out of the walk) — read ' + JSON.stringify(opId));
   }
   assert.equal(new Set(performed).size, performed.length,
     '`undoneOps` prevents a SECOND call over the same `opId`; every `opId` here appears ONCE');
@@ -726,10 +813,13 @@ test('ck_states_every_step_carries_the_six_declared_members_and_the_arm_s_own_ch
   const commitRecord = commit(store, address, 'mem', 'v');
   const r = capture(() => runAttempt(store, commitRecord));
   assert.equal(r.threw, true, 'the attempt fails');
-  assert.equal(r.thrown.status, 'KC-5',
+  // ── **⟶ THE TOKEN MOVES `KC-5` → `KC-8` (`§2.6` item 6 (a): the floor governs wherever the composition
+  // meets it). THE CELL'S OWN SUBJECT — THE SIX DECLARED MEMBERS ON EVERY ISSUED STEP — IS UNMOVED.**
+  assert.equal(r.thrown.status, 'KC-8',
     'and it fails at THE ARM ITS OWN MEMBERSHIP DECIDES — y is IN `ran` AND IN `appliedRepairs` at its '
-    + 'second evaluation, limb `(e)`\'s `KC-5` (`attempt-lifecycle.md §2.4` item 4)');
-  assert.equal(outcomeEntry(r.thrown.log).state, 'KC-5',
+    + 'second evaluation, limb `(e)` (`attempt-lifecycle.md §2.4` item 4) — while the CARRIER reads the '
+    + 'floor the composition met (`§2.6` item 6 (a); read ' + JSON.stringify(r.thrown.status) + ')');
+  assert.equal(outcomeEntry(r.thrown.log).state, 'KC-8',
     'and the outcome entry carries the same token as the thrown form\'s status');
   const closed = report(store, commitRecord.attempt);
   assertAttemptReport(closed, 'the closed attempt\'s report');
@@ -742,10 +832,16 @@ test('ck_states_every_step_carries_the_six_declared_members_and_the_arm_s_own_ch
     'THE COMPOSITION ISSUED AT LEAST ONE CALL — the count this cell reads is the calls ISSUED and never '
     + 'the list\'s size (`§2.6` item 5 (a): "the step count is the number of calls ISSUED over the '
     + 'still-owed ops and MAY RUN BELOW that list\'s size")');
+  // ── **⟶ AND THE COUNT STILL RUNS BELOW THE LIST'S SIZE, FOR THE AMENDED SCOPE'S OWN DECLARED REASON:
+  // the walk STOPS at the call that met the floor (`§2.6` item 5 (b)).** The superseded window ran below
+  // the size because ONE call swept the whole subtree; this one runs below it because the second call
+  // threw and no call follows. **The clause's own words for the narrowed set are kept: "the member reports
+  // what the store PERFORMED, and what the store performed is narrower now" (`§2.6` item 5 (a)'s dated
+  // clause of 2026-10-16).**
   assert.equal(closed.rollback.length < list.length, true,
     'and here it DOES run below the list\'s size: a member an earlier returned call\'s own `undoneOps` '
-    + `member already reports undone is skipped — read ${closed.rollback.length} steps over a list of `
-    + `${list.length}`);
+    + 'member already reports undone is skipped, AND no call follows the one that met the floor — read '
+    + `${closed.rollback.length} steps over a list of ${list.length}`);
   const performed = closed.rollback.map((s) => s.opId);
   assert.equal(performed[0], list[0],
     'AND THE FIRST CALL IS OVER THE LIST\'S OWN FIRST MEMBER — the last-created repair\'s op — with the '
@@ -784,28 +880,46 @@ test('ck_states_every_step_carries_the_six_declared_members_and_the_arm_s_own_ch
       '`undoneOps` is THE STORE\'S own report of the reversals that call performed');
     for (const undone of s.undoneOps) covered.add(undone);
   }
-  // THE SKIP, READ OFF THE DECLARED MEMBERS ALONE: every member of item 2's list that carries no step
-  // stands in a call that WAS issued and returned, and no member is left unreached by any reading.
-  const later = list.filter((opId) => !performed.includes(opId));
-  assert.ok(later.length > 0,
-    'THIS WINDOW IS THE SKIP ARM AND NOT A DEGENERATE ONE — read ' + JSON.stringify(later));
-  for (const opId of later) {
-    assert.equal(covered.has(opId), true,
-      'a member that carries no step is reported by an EARLIER step\'s own `undoneOps` member — read '
-      + JSON.stringify(opId));
+  // THE WALK'S STOP, READ OFF THE DECLARED MEMBERS ALONE: no call follows the one that met the floor, and
+  // every member of item 2's list is accounted for by one of `§2.6` item 8 (ii) (5)'s readings or by
+  // standing BEYOND that stop.
+  const stopAt = closed.rollback.findIndex((s) => s.failed === true);
+  assert.equal(stopAt !== -1, true,
+    'ONE ISSUED CALL MET THE FLOOR AND CARRIES `failed: true` — `§2.6` item 5 (b) — read '
+    + JSON.stringify(closed.rollback.map((s) => [s.opId, s.failed, s.answer])));
+  assert.equal(closed.rollback[stopAt].answer, 'RollbackCompacted',
+    'and its `answer` is the store\'s own code, carried verbatim (`§2.6` item 3) — read '
+    + JSON.stringify(closed.rollback[stopAt].answer));
+  assert.deepEqual(performed, list.slice(0, stopAt + 1),
+    'AND THE PERFORMED CALLS ARE THE LIST\'S PREFIX UP TO AND INCLUDING THAT CALL — read '
+    + JSON.stringify(performed) + ' against ' + JSON.stringify(list.slice(0, stopAt + 1)));
+  const beyondStop = list.slice(stopAt + 1);
+  assert.ok(beyondStop.length > 0,
+    'THIS WINDOW IS NOT A DEGENERATE ONE: the list holds members beyond the stop — read '
+    + JSON.stringify(beyondStop));
+  for (const opId of beyondStop) {
+    assert.equal(covered.has(opId), false,
+      'AND NO MEMBER BEYOND THE STOP IS REPORTED UNDONE — the floor undoes nothing, so nothing it stopped '
+      + `at is in any \`undoneOps\` member — read ${JSON.stringify(opId)}`);
   }
   for (const opId of opIds) {
-    assert.equal(covered.has(opId), true,
+    const byMembers = covered.has(opId);
+    const isCheckpoint = closed.rollback[0].checkpoint === opId;
+    assert.equal(byMembers || isCheckpoint || beyondStop.includes(opId), true,
       'every op of the attempt is either a step\'s passed `opId`, or named in a step\'s `undoneOps`, or '
-      + `the checkpoint op itself (\`§2.6\` item 8 (ii) (5)) — read ${JSON.stringify(opId)}`);
+      + 'the checkpoint op itself (`§2.6` item 8 (ii) (5)) OR it stands BEYOND THE CALL THAT MET THE '
+      + 'FLOOR, where its value STANDS — the reading that clause\'s own 2026-10-16 clause names ("A drive '
+      + 'that finds such an op absent from every `undoneOps` member and finds its value still reading has '
+      + 'found the amended `M-5` SATISFIED") — read ' + JSON.stringify(opId));
   }
   assert.equal(closed.rollback[0].answer, 'ok',
-    'and the one call this window issued RETURNED — its own `answer` is THE LITERAL `\'ok\'`');
+    'and the FIRST call this window issued RETURNED — its own `answer` is THE LITERAL `\'ok\'`');
   assert.equal(closed.rollback[0].failed, false,
     'so its own `failed` flag is `false`, and a call that THREW would be distinguishable from it');
-  assert.equal(closed.rollback[0].undoneOps.includes(opIds[0]), true,
-    'the first write\'s op is accounted for INSIDE the call that was performed — the store\'s own report '
-    + `covers the whole addressed subtree — read ${JSON.stringify(closed.rollback[0].undoneOps)}`);
+  assert.deepEqual(closed.rollback[0].undoneOps, [opIds[2]],
+    'and it reports EXACTLY its own op reversed — the amended scope reaching no entry older than the op '
+    + `it was called over (\`write-and-read.md §6.4\` item 1's \`M-5\` (a) (ii)) — read `
+    + JSON.stringify(closed.rollback[0].undoneOps));
   assert.equal(new Set(performed).size, performed.length,
     'no `opId` of the composition is called twice');
 });
@@ -851,7 +965,8 @@ test('ck_states_a_successful_rollback_clears_the_registry_and_a_later_commit_is_
 
 /**
  * RE-DERIVED AT THE RED-SET RE-DERIVATION PASS, READING `composition-and-states.md §2.6` ITEMS 2 AND
- * 5 (a) AT THEIR BYTES.
+ * 5 (a) AT THEIR BYTES — **AND RE-DERIVED AGAIN 2026-10-16 (`role_test_writer`) FOR THE TEMPORAL STOP,
+ * BECAUSE THE WINDOW THE LAST PASS CHOSE NO LONGER REACHES THE ARM IT PINS.**
  *
  * THE OLD DRIVE'S FAULT, AND WHY IT COULD NOT PASS: it made the pair's REPAIR BODY `throw`. §2.6 item
  * 5 (a) fixes `failed` as THAT CALL'S OWN ANSWER — "a `RollbackStep` for every call … the call's own
@@ -861,38 +976,78 @@ test('ck_states_a_successful_rollback_clears_the_registry_and_a_later_commit_is_
  * returning instead of refusing). The cell's subject — "the per-op call left the attempt's own
  * registry entry standing" — is reachable ONLY through the arm that DOES carry a failed answer.
  *
- * WHAT THIS CELL NOW DRIVES: ONE PER-OP CALL WHOSE OWN ANSWER IS `failed: true`. The arm that reaches
- * it is a store whose journal is COMPRESSED under the attempt (`journalLength` small, the register
- * holding the attempt's own op out of reach of a reversal), so the call returns the store's own failure
- * — `failed: true` with `checkpoint: null` — `terminal` sees a failed step, and the attempt's own
- * commit-registry entry STANDS for the reading `composition-and-states.md §2.6` item 8 keeps: the op
- * remains owed and the residue is recorded. THE CLOSURE OF THE FAILURE SET DOES NOT TURN A LATER
- * CALLER INTO A REFUSAL, AND THE CELL NO LONGER SAYS IT DOES (`P-NEG-5` at this pass): what stands at
- * that address is THE RETAINED CLOSED RECORD — `K-4` answers its final log and `K-5` its report
- * (`contract.md §5.2`'s retain row) — and a FRESH `K-2` RETURNS ITS OWN RECORD rather than answering
- * `KC-7`, whose own row is the RE-ENTRANT site (`§2.4` item 5 (iii); `fail-surface.md §2`'s `KC-7` row).
- * The old drive asserted the opposite and passed; the repair is a REPAIR OF A PASSING CELL, reported as
- * such, and not a regression.
+ * **⟶ AND THE 2026-10-16 PASS ITSELF LEFT A WINDOW THAT THE AMENDED SCOPE REMOVED, NAMED HERE SO IT IS
+ * NOT MISTAKEN FOR A REGRESSION: that pass drove a SMALL JOURNAL WITH SEEDED WRITES (`journalLength: 2`,
+ * six writes) so the attempt's own op fell out of the retained window. Under `M-5` (a) (ii) the seeded
+ * entries are ALL OLDER than the attempt's own op and are therefore OUT OF SCOPE, so the compacted base
+ * is never examined by `M-6` and the call RETURNS — measured: `failed: false`, `undoneOps: ["op-7"]`,
+ * `restoredTo: {present: true, value: "seed-5"}`. The arm is not gone; the window that reached it is.**
+ * (`write-and-read.md §6.4` item 1's `M-5` amendment (a) (ii); item 2's dated neighbour: "an entry OLDER
+ * than the named op that carries `compacted: true` IS IN NO ROLLBACK OVER THAT OP AND CANNOT FAIL ONE".)
+ *
+ * WHAT THIS CELL NOW DRIVES, AND WHY THIS WINDOW IS THE ONE THE CLAUSES NAME: a two-op failing attempt
+ * at ONE address whose FIRST performed call reverses the newer op — marking it `compacted` (`M-9`'s
+ * residue) — and whose SECOND call is over a still-owed op that is TEMPORALLY AT OR BEFORE that residue.
+ * The second call's candidate set therefore DOES contain a compacted entry, `M-6` fails it all-or-nothing,
+ * and the step carries the store's own code in `answer` with `failed: true` and `undoneOps: []`. **This is
+ * the state `composition-and-states.md §2.6` item 5 (b) declares and item 5 (a)'s dated clause of
+ * 2026-10-16 names — "a still-owed op that an earlier call's `undoneOps` member does NOT report was NOT
+ * undone by that call AND GETS ITS OWN CALL" — read with the two floors' declared order.** `terminal`
+ * sees a failed step, and the attempt's own commit-registry entry STANDS for the reading `§2.6` item 8
+ * keeps.
+ *
+ * THE CLOSURE OF THE FAILURE SET DOES NOT TURN A LATER CALLER INTO A REFUSAL, AND THE CELL NO LONGER
+ * SAYS IT DOES (`P-NEG-5` at that pass): what stands at that address is THE RETAINED CLOSED RECORD —
+ * `K-4` answers its final log and `K-5` its report (`contract.md §5.2`'s retain row) — and a FRESH `K-2`
+ * RETURNS ITS OWN RECORD rather than answering `KC-7`, whose own row is the RE-ENTRANT site (`§2.4` item
+ * 5 (iii); `fail-surface.md §2`'s `KC-7` row).
  */
 test('ck_states_a_throwing_per_op_call_leaves_the_attempt_s_own_registry_entry_standing', async () => {
   const { register, commit, runAttempt, log, report } = await kernel();
-  // A SMALL JOURNAL, AND SEEDED WRITES: by the time the composition runs, the attempt's own op has
-  // fallen out of the store's retained window, so the reversal the composition calls CANNOT be
-  // performed and the call reports that as its OWN answer.
-  const store = makeStore({ journalLength: 2 });
+  // ── THE WINDOW, RE-DERIVED 2026-10-16: TWO OPS AT ONE ADDRESS, the second call's candidate set holding
+  // the FIRST call's own compacted residue. `x` PASSES on the committed value and is VIOLATED by the value
+  // `y`'s repair lands; `y` carries the repair; the re-run violates `x` while `x` is IN `ran` and NOT in
+  // `appliedRepairs`. Item 2's list is `[op-2 (y's repair), op-1 (the commit)]`: the FIRST call reverses
+  // `op-2` and marks it compacted (`M-9`), and the SECOND call — over `op-1`, which the first call's
+  // `undoneOps` does NOT report because `op-1.seq < op-2.seq` — meets that residue and FAILS.
+  const store = makeStore({ journalLength: 64 });
   const address = [tag('reg2')];
-  for (let i = 0; i < 6; i += 1) store.write(address, 'mem', `seed-${i}`);
-  register(store, address, 'x', passAtRegistration(() => ({ message: 'x is invalid, and registers no repair' })));
-  const commitRecord = commit(store, address, 'mem', 1);
+  register(store, address, 'x', passAtRegistration((ctx) => (ctx.value === 'repaired'
+    ? { message: 'x is violated by the value the repair landed' }
+    : true)));
+  register(store, address, 'y', passAtRegistration((ctx) => (ctx.value === 'committed'
+    ? {
+      repair: () => ({
+        ok: true,
+        message: 'y was repaired by the op this repair landed',
+        op: store.write(address, 'mem', 'repaired').op,
+      }),
+      message: 'y is violated by the committed value',
+    }
+    : true)));
+  const commitRecord = commit(store, address, 'mem', 'committed');
   const r = capture(() => runAttempt(store, commitRecord));
   assert.equal(r.threw, true, 'the attempt fails and its refusal carries its own log');
   const closed = report(store, commitRecord.attempt);
   assertAttemptReport(closed, 'the closed attempt of the failed rollback');
-  assert.ok(closed.rollback.length >= 1, 'the composition made its call');
+  assert.ok(closed.rollback.length >= 2,
+    'THE COMPOSITION MADE TWO CALLS — the second is the one whose candidate set holds the residue the '
+    + `first left — read ${closed.rollback.length}: `
+    + `${JSON.stringify(closed.rollback.map((s) => [s.opId, s.failed, s.answer]))}; \`§2.6\` item 5 (a)'s `
+    + 'dated clause of 2026-10-16: "a still-owed op that an earlier call\'s `undoneOps` member does NOT '
+    + 'report was NOT undone by that call AND GETS ITS OWN CALL"');
   const failedSteps = closed.rollback.filter((s) => s.failed === true);
   assert.equal(failedSteps.length, 1,
     '§2.6 item 5 (a): `failed` is THAT CALL\'S OWN ANSWER, and this call\'s answer is `true` — the '
-    + 'reversal could not be performed');
+    + 'reversal could not be performed because its temporally bounded candidate set holds a compacted '
+    + `entry (\`M-6\`) — read ${failedSteps.length} over `
+    + JSON.stringify(closed.rollback.map((s) => [s.opId, s.failed, s.answer])));
+  assert.equal(failedSteps[0].answer, 'RollbackCompacted',
+    'and the step\'s `answer` carries the STORE\'S OWN code, never a kernel token (`§2.6` item 3) — read '
+    + JSON.stringify(failedSteps[0].answer));
+  assert.deepEqual(failedSteps[0].undoneOps, [],
+    'AND THE FLOOR IS ALL-OR-NOTHING AND NEVER PARTIAL: the failing call undid NOTHING (`M-6`) — read '
+    + JSON.stringify(failedSteps[0].undoneOps));
   assert.equal(failedSteps[0].checkpoint, null,
     'and the step carries the arm\'s own checkpoint, `null` where no landing left a valid state');
   const held = capture(() => commit(store, address, 'mem', 2));
@@ -1241,40 +1396,85 @@ test('ck_neg_2_the_call_list_reaches_beside_addresses_and_the_walk_runs_to_its_l
 /**
  * `P-NEG-3` · `S-ROLLBACK-FLOOR` · `composition-and-states.md §2.6` item 5 (b) and item 6 (a): "a still
  * owed op whose call meets either floor code is `KC-8`", and the attempt closes with ONE outcome entry
- * carrying that token. The drive: the attempt's own address is a COMPACTED BASE with a LATER still-owed
- * op standing on it.
+ * carrying that token.
  *
- * STATES ENUMERATED FIRST: (1) a compacted address (`journalLength: 2`, six seeded writes past); (2) an
- * attempt at that address that fails `KC-3` and creates its OWN op on top of the compaction; (3) the
- * composition calls the still-owed op and the store answers with its own floor code. FAIL STATES: a
- * floor answered with the violation arm's own `KC-3`; a second outcome entry appended for the floor; a
- * step minted for an op the walk never reached.
+ * **⟶ RE-DERIVED 2026-10-16 (`role_test_writer`) FOR THE TEMPORAL STOP: THE FILED WINDOW NO LONGER REACHES
+ * THE FLOOR, AND THE WINDOW THAT DOES IS THE TWO-OP ONE.** The filed drive was *"the attempt's own address
+ * is a COMPACTED BASE with a LATER still-owed op standing on it"* (`journalLength: 2`, six seeded writes).
+ * Under `M-5` (a) (ii) every seeded entry is OLDER than the attempt's own op and is therefore OUT OF
+ * SCOPE, so `M-6` never examines it and the call RETURNS — measured on this checkout: status `KC-3`,
+ * `failed` steps `0`, the single step `{opId: op-7, answer: "ok", undoneOps: ["op-7"]}`. **The clause that
+ * closes the filed window is the spec's own, verbatim: *"an entry OLDER than the named op that carries
+ * `compacted: true` IS IN NO ROLLBACK OVER THAT OP AND CANNOT FAIL ONE"*** (`write-and-read.md §6.4` item
+ * 2's dated neighbour of 2026-10-16).
+ *
+ * THE WINDOW THIS CELL NOW DRIVES, AND WHY IT IS THE ONE THE CLAUSES NAME: the compacted entry must be
+ * **TEMPORALLY IN SCOPE for the call that meets it** — that is, its `seq` must be ≥ that call's named op's
+ * `seq`. A two-op failing attempt at ONE address produces exactly that: item 2's list is
+ * `[op-2 (the repair's op), op-1 (the commit)]`, the FIRST call reverses `op-2` and marks it compacted
+ * (`M-9`'s residue), and the SECOND call — over `op-1`, which that call's `undoneOps` member does NOT
+ * report because `op-1.seq < op-2.seq` — has `op-2` in its bounded candidate set and fails `M-6`
+ * all-or-nothing. **This is the floor's genuine, in-scope arm, and it is the state the spec names:
+ * "a candidate set that is TEMPORALLY IN SCOPE and contains a compacted entry STILL FAILS
+ * `RollbackCompacted` AND UNDOES NOTHING".**
+ *
+ * STATES ENUMERATED FIRST: (1) a two-op failing attempt at ONE address, every step's `checkpoint` `null`;
+ * (2) the first call, which RETURNS and reverses its own op, leaving it compacted; (3) the second call,
+ * over a still-owed op whose temporally bounded candidate set INCLUDES that compacted entry; (4) the ONE
+ * `outcome` entry the closure writes. FAIL STATES: a floor answered with the violation arm's own `KC-3`
+ * (the arm this cell exists to separate from the floor's); a second outcome entry appended for the floor;
+ * a call issued over an op an earlier call already reported undone; a floor arm that reports a rollback it
+ * did not perform (`M-6`, all-or-nothing, never partial).
  */
 test('ck_neg_3_a_still_owed_call_meeting_a_compacted_base_is_KC8_with_one_outcome_entry', async () => {
   const { register, commit, runAttempt, report } = await kernel();
-  const store = makeStore({ journalLength: 2 });
+  const store = makeStore({ journalLength: 64 });
   const address = [tag('neg3')];
-  for (let i = 0; i < 6; i += 1) store.write(address, 'mem', `seed-${i}`);
-  register(store, address, 'x', passAtRegistration(() => ({ message: 'x is invalid, and registers no repair' })));
-  const commitRecord = commit(store, address, 'mem', 1);
+  // `x` PASSES on the committed value and is VIOLATED by the value `y`'s repair lands; `y` carries the
+  // repair; the re-run violates `x` with no repair registered. TWO ops, at ONE address.
+  register(store, address, 'x', passAtRegistration((ctx) => (ctx.value === 'repaired'
+    ? { message: 'x is violated by the value the repair landed' }
+    : true)));
+  register(store, address, 'y', passAtRegistration((ctx) => (ctx.value === 'committed'
+    ? {
+      repair: () => ({
+        ok: true,
+        message: 'y was repaired by the op this repair landed',
+        op: store.write(address, 'mem', 'repaired').op,
+      }),
+      message: 'y is violated by the committed value',
+    }
+    : true)));
+  const commitRecord = commit(store, address, 'mem', 'committed');
   const r = capture(() => runAttempt(store, commitRecord));
   assert.equal(r.threw, true, 'the attempt fails');
   const closed = report(store, commitRecord.attempt);
   const failedSteps = closed.rollback.filter((s) => s.failed === true);
   assert.equal(failedSteps.length, 1,
     'the drive reached the floor: ONE call carrying `failed: true` — read the count '
-    + `${failedSteps.length}; where it is 0 the drive did not reach the compacted base and this cell `
-    + 'cannot speak');
+    + `${failedSteps.length}; where it is 0 the drive did not reach a compacted entry INSIDE ITS OWN '
+    + 'temporally bounded candidate set and this cell cannot speak `
+    + '(write-and-read.md §6.4 item 1\'s `M-5` (a) (ii): only an entry with `E.seq` ≥ the call\'s own named '
+    + 'op\'s `seq` can fail it)');
   assert.equal(r.thrown.status, 'KC-8',
     'A REMAINDER A FAILED CALL ON A STILL-OWED OP LEAVES IS `KC-8` — read '
     + `${JSON.stringify(r.thrown.status)}; composition-and-states.md §2.6 item 5 (b) reads "a still owed `
     + 'op whose call meets either floor code is KC-8"; the arm that answers the VIOLATION instead is '
     + '`KC-3`, and that is the arm this cell exists to separate from the floor\'s');
+  assert.equal(failedSteps[0].answer, 'RollbackCompacted',
+    'and the failing step\'s `answer` carries the STORE\'S OWN code, never the kernel\'s token '
+    + '(`§2.6` item 3; `RD-8`) — read ' + JSON.stringify(failedSteps[0].answer));
+  assert.deepEqual(failedSteps[0].undoneOps, [],
+    'AND THE FLOOR UNDOES NOTHING — all-or-nothing and never partial (`M-6`) — read '
+    + JSON.stringify(failedSteps[0].undoneOps));
   const outcomes = entries(r.thrown.log, 'outcome');
   assert.equal(outcomes.length, 1,
     'and the closure writes ONE outcome entry — the floor is answered in the failure\'s own entry and '
     + 'no second entry is appended (`§2.6` item 6 (a))');
   assert.equal(outcomes[0].state, 'KC-8', 'which carries the same token as the thrown form\'s status');
+  assert.equal(outcomes[0].message.includes('RollbackCompacted'), true,
+    'and its `message` NAMES the store\'s own code as the store\'s answer (`§2.6` item 6 (a)) — read '
+    + JSON.stringify(outcomes[0].message));
   assert.equal(closed.outcome, 'failed', 'and the closed record answers the failed arm');
 });
 

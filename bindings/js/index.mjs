@@ -1997,6 +1997,16 @@ export function storeCreate(cfg) {
     constraintOff(pair, constraint) {
       return constraintToggle(false, instance, arguments.length, pair, constraint);
     },
+    /// **`surface.md §2.4` item 9 (f)'s `constraints` clause of 2026-10-17: `a.constraints() -> Array<{ address,
+    /// id }>` — THE REGISTERED-PAIR READ, the thirteenth own member (`10 + 1 + 1 + 1 = 13` ✓; `PAR-JS-27`;
+    /// `§2.12` item 2-bis).** **THE RECEIVER IS THE STORE, THE CALL TAKES NO ARGUMENT (arity `0`) AND IT
+    /// THROWS NOTHING** — there is no outside argument for the class test to refuse, and the call makes no
+    /// store call, mints no code, appends no journal entry and changes no node. **It is NOT a named export of
+    /// the entry** (`package.md §1.3` item 3; `§2.9` item 1's `A127` clause, `11 → 1` ✓): it is reached
+    /// through the factory's own product alone.
+    constraints() {
+      return enumerateConstraints(state);
+    },
     /// `surface.md §2.4` item 5 (b): `register(handle, listener) -> undefined` — the OPAQUE handle a verb
     /// returned or the construction adopted, and ANY JS function. **It is NOT a named export of the entry**
     /// (`package.md §1.3` item 3): it is reached through the factory's own product alone.
@@ -3148,6 +3158,55 @@ function constraintToggle(enabled, instance, n, pair, constraint) {
     entry.enabled = enabled;
   }
   return undefined;
+}
+
+/// **THE REGISTERED-PAIR READ — `surface.md §2.4` item 9 (f)'s `constraints` clause of 2026-10-17, items 2–8,
+/// AND ITS REGISTER ROW `PAR-JS-27` (`parameter-semantics.md §2.27`).** `a.constraints() -> Array<{ address,
+/// id }>`: **a FRESH JS ARRAY on every call, whose every element is a FRESH PLAIN OBJECT carrying EXACTLY
+/// TWO MEMBERS** — `address`, a FRESH JS array of the store's own segments, and `id`, the constraint's own
+/// BARE `id`, a `string` — the same two data the kernel's own registry is keyed by.
+///
+/// **THE SOURCE IS THE ENTRY'S OWN `state.constraints`, AND ITS SHAPE IS ALREADY THE ANSWER'S**: a per-instance
+/// `Map` keyed by `constraintPairKey(address, id)` whose every value is the record `carryConstraint` writes —
+/// `{ address, addressKey, id, fn, enabled, identity }`. So the read is a CARRIAGE READ and no kernel item is
+/// touched or minted: `K-1`–`K-5` stand exactly as printed, the kernel's extent stays FIVE and no `K-6` is
+/// proposed (`§2.4` item 9 (f), item 8). **NO KERNEL MODULE IS EVEN LOADED HERE** — `constraintsKernel()` is
+/// not called, so a product that never carried and never asked for a constraint still reads `[]` on a tree
+/// that stages nothing beside it (`kernel-surface.md §1` item 1's lazy resolution).
+///
+/// **THE FOUR DECLARED EXCLUSIONS, EACH HONOURED AT THIS SITE AND NAMED HERE SO THE CODE CAN BE READ AGAINST
+/// THEM:**
+/// * **(1) NO CONSTRAINT FUNCTION IS RETURNED** (item 3, four grounds, the operative one for this frame being
+///   the anti-pattern rulings: *do not hand out a value whose later use the contract cannot bound*). The
+///   element is BUILT FRESH from `entry.address` and `entry.id`, so `entry.fn` is never read, referenced or
+///   copied — and a disabled pair's parked stub is not reachable either, because a function is never touched
+///   at all.
+/// * **(2) NO OPAQUE IDENTITY IS EXPOSED** (item 4; `PAR-JS-25`'s opacity would break the moment a consumer
+///   read one out of the array). `entry.identity` is not read and no element carries it.
+/// * **(3) NO ORDER IS PROMISED, AND NONE IS MANUFACTURED** (item 6): the enumeration is `Map` iteration order
+///   and nothing else — **this function does NOT sort, and deliberately does not** — so a drive compares the
+///   pairs as a SET and never as a sequence (`DD-22`; `§2.7` item 3). No registration order, address order or
+///   `seq`-like ordinal is minted here, and none is asserted of it.
+/// * **(4) A DISABLED PAIR DOES APPEAR** (item 5): `constraintOff` is a TOGGLE and NOT A REMOVAL, so a pair
+///   whose `entry.enabled` is `false` is STILL CARRIED and is enumerated — **the read does not consult
+///   `enabled` at all**, and it returns no `enabled` member either (a third member is a value no clause
+///   declares).
+///
+/// **AND THE TWO EXCLUSIONS ITEM 7 DECLARES ARE STRUCTURES AND NOT TESTS TAKEN HERE**: (i) a well-formed
+/// `cfg.constraints` element that carried no function never reached `carryConstraint` (`storeCreate`'s batch
+/// loop skips it), so it is no entry and cannot appear; and (ii) a refused registration wrote no entry
+/// (`carryConstraint`: *"THE ENTRY'S OWN RECORD IS WRITTEN ONLY WHERE THE REGISTRATION STOOD"*), so it
+/// cannot appear either. **THE SAME TWO MEMBERS ON EVERY ELEMENT AND NO THIRD**, and the `[]` arm is this
+/// member's declared value where the entry carries no pair at all (`PAR-JS-27`'s `domain` cell).
+function enumerateConstraints(state) {
+  const pairs = [];
+  for (const entry of state.constraints.values()) {
+    // A FRESH PLAIN OBJECT PER CALL AND A FRESH SEGMENT ARRAY WITHIN IT (`slice`): a caller that mutates a
+    // returned element, or an element's `address`, changes nothing the next call returns — and nothing of the
+    // entry's own record either, the two members being copies of the pair's own data.
+    pairs.push({ address: entry.address.slice(), id: entry.id });
+  }
+  return pairs;
 }
 
 /// **WHETHER THIS INSTANCE CARRIES A PAIR AT THIS WRITE'S ADDRESS** (`§2.12` item 1's preamble clause (a)) —

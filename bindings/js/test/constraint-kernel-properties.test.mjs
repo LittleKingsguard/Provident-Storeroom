@@ -615,9 +615,17 @@ test('ck_prop_P_SM_6_an_applied_repair_never_runs_twice_within_one_attempt', asy
       // this attempt — `ran` membership BEFORE this evaluation — and (ii) IS IN `appliedRepairs` before
       // it"; and "a pair in `ran` whose registered repair has NOT run is `KC-6`'s state and never this
       // one". c1 IS in `ran` and IS in `appliedRepairs`, so the limb is `KC-5`'s.
-      assert.equal(r.thrown.status, KC[5],
-        'the pair repeated AND its own repair had already been recorded as applied — limb (i), `KC-5`');
-      assert.equal(entries(r.thrown.log, 'outcome')[0].state, KC[5],
+      // ── **⟶ RE-DERIVED 2026-10-16: THE TOKEN MOVES `KC-5` → `KC-8`; THE ROW'S OWN SUBJECT IS KEPT.**
+      // The pair's own state still decides the LIMB — `c1` is in `ran` AND in `appliedRepairs`, and the
+      // repair-run count below still proves no repair ran twice — but the floor now GOVERNS the caller's
+      // token, because the composition MEETS it (`§2.6` item 6 (a): "THE FLOOR GOVERNS — this clause's
+      // rule is applied to EVERY path on which the attempt's own composition meets the floor"), the
+      // amended `M-5` leaving a compacted residue the next call meets.
+      assert.equal(r.thrown.status, KC[8],
+        'the pair repeated AND its own repair had already been recorded as applied — limb (i) — and the '
+        + 'carrier reads the floor the composition met (`§2.6` item 6 (a)): read '
+        + `${JSON.stringify(r.thrown.status)}`);
+      assert.equal(entries(r.thrown.log, 'outcome')[0].state, KC[8],
         'and the outcome entry carries the SAME token by identity (`fail-surface.md §1.1` item 1 (c))');
       assert.equal(entries(r.thrown.log, 'repair-run').filter((e) => e.id === 'c1').length, 1,
         'NO REPAIR EVER RUNS TWICE IN ONE ATTEMPT: c1\'s own count is exactly 1 and NEVER 2');
@@ -677,13 +685,14 @@ test('ck_prop_P_SM_6_the_two_repeat_limbs_are_distinguishable_by_the_pair_s_own_
       // `appliedRepairs`: the `(f)` limb, whose `observable` is the pair's own `constraint-check` count
       // of `2` and never `3` (`composition-and-states.md §2.7`'s fail-state list; `fail-surface.md §2`'s
       // `KC-6` row).
-      assert.equal(r.thrown.status, 'KC-6',
-        'a pair in ran whose repair is NOT recorded as applied reaches KC-6');
+      assert.equal(r.thrown.status, 'KC-8',
+        'a pair in ran whose repair is NOT recorded as applied decides limb (ii) — and the carrier reads '
+        + 'the floor the composition met (`§2.6` item 6 (a)): read ' + JSON.stringify(r.thrown.status));
       assert.equal(entries(r.thrown.log, 'constraint-check').filter((e) => e.id === 'x').length, 2,
         'and the pair\'s OWN check count is 2 and never 3 — the limb\'s own printed observation');
       assert.equal(entries(r.thrown.log, 'outcome').length, 1,
         'the terminal record carries ONE outcome entry');
-      assert.equal(entries(r.thrown.log, 'outcome')[0].state, 'KC-6',
+      assert.equal(entries(r.thrown.log, 'outcome')[0].state, 'KC-8',
         'the outcome entry carries the same token the form\'s status does (§1.1 item 3)');
       assert.equal(entries(r.thrown.log, 'repair-run').filter((e) => e.id === 'x').length, 0,
         'and its own repair-run count is 0, which is the limb\'s own observation');
@@ -765,7 +774,17 @@ test('ck_prop_P_TP_7_a_failed_attempt_ran_one_call_per_op_and_a_passed_one_rolle
         'the stop op is an op this attempt\'s own `ops` carries: every landing of this drive\'s window is '
         + `an op the attempt itself made, so a foreign \`checkpoint\` op is unreachable here — read `
         + `${JSON.stringify(stop)}`);
-      const owed = stop === null ? created.slice() : created.slice(created.indexOf(stop) + 1);
+      // ── **⟶ RE-DERIVED 2026-10-16 (`role_test_writer`) FOR THE TEMPORAL STOP: THE STILL-OWED LIST IS
+      // ITEM 2'S OWN ORDER, NOT CREATION ORDER.** The filed form built `owed` by `created.slice()`, which
+      // is the attempt's CREATION order; `§2.6` item 2 declares the call list is **"`ops` minus its first
+      // entry, REVERSED, then that first entry last"**, so the still-owed sequence this row reads is item
+      // 2's list — and the row's own order clause below ("NO CALL IS ISSUED OUT OF ITEM 2'S ORDER") was
+      // silently reading a different list. Under the amended scope the two-call window is the ordinary
+      // one, so the discrepancy is now reachable and the list is built where the clause puts it.
+      const item2 = [...created.slice(1).reverse(), created[0]];
+      const owed = stop === null
+        ? item2.slice()
+        : item2.slice(item2.indexOf(stop) + 1);
       // THE SKIP IS READ OVER THE LIST'S OWN MEMBERS ONLY: the ops the stop bounds — every op at or
       // before the `checkpoint` op — are left standing and are no members of item 2's list (`§2.6` item 5
       // (b)'s "still owes"; item 8 (ii) (5)), so an earlier call's `undoneOps` member naming one of them is
@@ -774,17 +793,24 @@ test('ck_prop_P_TP_7_a_failed_attempt_ran_one_call_per_op_and_a_passed_one_rolle
       const stepsByOp = new Map(closed.rollback.map((s) => [s.opId, s]));
       const reportedUndone = new Set();
       for (const step of closed.rollback) for (const undone of step.undoneOps) reportedUndone.add(undone);
-      // THE ONE READING OF A MISSING STEP: a still-owed member carries NO step where — and ONLY where —
-      // a call that WAS issued and returned already reports it undone in its own `undoneOps` member
-      // (item 5 (a)'s skip). A member with no step that no performed call reports undone is a call the
-      // composition owed and never issued, and the assertion below names it.
-      const expected = owed.filter((op) => stepsByOp.has(op) || !reportedUndone.has(op));
+      // THE DECLARED READINGS A LIST MEMBER CARRIES NO STEP UNDER, EACH ITS OWN CLAUSE:
+      //   (i) a call that WAS issued and RETURNED already reports it undone in its own `undoneOps` member
+      //       (item 5 (a)'s skip); OR
+      //   (ii) **the walk STOPPED at a call that met the floor — no call follows one that threw
+      //       (item 5 (b))**, and under `M-5` (a) (ii) the store no longer sweeps an older entry, so such
+      //       a member is never reported undone and its value STANDS.
+      const stopAt = closed.rollback.findIndex((s) => s.failed === true);
+      const afterFloor = stopAt === -1 ? new Set() : new Set(owed.slice(stopAt + 1));
+      const expected = owed.filter((op) => stepsByOp.has(op) || (!reportedUndone.has(op)
+        && !afterFloor.has(op)));
       assert.deepEqual(closed.rollback.map((s) => s.opId), expected,
         'AND THE CALLS ISSUED ARE ITEM 5 (a)\'S OWN LIST — the still-owed ops MINUS every op an earlier '
-        + 'step\'s own `undoneOps` member reports undone, in item 2\'s declared order — read '
+        + 'step\'s own `undoneOps` member reports undone, in ITEM 2\'S declared order, AND MINUS every op '
+        + 'standing beyond a call that met the floor — read '
         + `${JSON.stringify(closed.rollback.map((s) => s.opId))} against ${JSON.stringify(expected)}; a `
         + 'step standing for an op an earlier call already reversed is the second call the clause forbids, '
-        + 'and a step missing where an op was still owed is a call the composition never issued');
+        + 'a step after a call that threw is a call no clause authorises, and a step missing where an op '
+        + 'was still owed and the walk had not stopped is a call the composition never issued');
       assert.equal(closed.rollback.length <= owed.length, true,
         'THE STEP COUNT IS THE CALLS ISSUED AND MAY RUN BELOW THE LIST\'S SIZE (`§2.6` item 5 (a); '
         + '`contract.md §5.7`): read ' + `${closed.rollback.length} steps over a list of ${owed.length}`);
@@ -820,18 +846,48 @@ test('ck_prop_P_TP_7_a_failed_attempt_ran_one_call_per_op_and_a_passed_one_rolle
       }
       // (ii) `rollback.length <= ops.length` was a bound the composition's own construction holds by
       // definition. `S-ROLLBACK-ALL` fixes the STATE the store is left in, and that state is read
-      // through THE STORE'S OWN READ VERB (`§2.6` item 8 (iii)): this attempt's address stood at NO NODE
-      // before its own first write — every attempt of this file runs on a fresh store — so the whole
-      // attempt is undone and the address answers the store's own `AddressNotFound`.
+      // through THE STORE'S OWN READ VERB (`§2.6` item 8 (iii)). **⟶ RE-DERIVED 2026-10-16: the filed
+      // form asserted the address answers the store's own `AddressNotFound`, on the premise that the whole
+      // attempt is undone. Under the amended scope the walk STOPS at the first call that meets the floor
+      // and `M-6` undoes NOTHING, so the address's own node STANDS at whatever the last RETURNED call
+      // restored — and the row's subject, "the whole attempt is all-or-nothing", is read at that member
+      // and at the performed set, never at an absence no clause now produces.** The all-or-nothing claim
+      // is asserted exactly where `M-6` puts it: a floor call's own `undoneOps` is EMPTY.
+      const floorSteps = closed.rollback.filter((s) => s.failed === true);
+      for (const s of floorSteps) {
+        assert.deepEqual(s.undoneOps, [],
+          'ALL OR NOTHING: a call that met the floor undid NOTHING — the predicate is all-or-nothing and '
+          + 'never partial (`write-and-read.md §6.4` item 2\'s `M-6`) — read '
+          + JSON.stringify(s.undoneOps));
+      }
       const restored = capture(() => store.read(address));
-      assert.equal(restored.threw, true,
-        'ALL OR NOTHING: an attempt whose first landing already violated passed NO checkpoint, so its end '
-        + 'state is "the state the address stood at BEFORE THE ATTEMPT\'S OWN WRITE" — no node — and the '
-        + 'store\'s own read of that address refuses (`§2.6` item 8 (iii)); the address answered '
-        + `${JSON.stringify(restored.value)}`);
-      assert.equal(restored.thrown.status, 'AddressNotFound',
-        'and the refusal is the store\'s own code for an address that stands at no node — read '
-        + `${JSON.stringify(restored.thrown.status)}`);
+      const swept = closed.rollback.flatMap((s) => s.undoneOps);
+      // ── THE END STATE, READ AS THE DISJUNCTION THE CLAUSES ACTUALLY FIX, AND NEVER ASSUMED.
+      // `§2.6` item 8 (iii) makes the store's own `read` THE end state and says what it answers: **the
+      // state the addressed subtree ACTUALLY STANDS AT — present or absent.** Two declared arms reach:
+      //   (a) THE PERFORMED REVERSALS TOOK THE ONLY VALUE THE ADDRESS HELD AWAY — a reversal WAS performed
+      //       and nothing older stands there, so the address answers the store's own `AddressNotFound`
+      //       (`write-and-read.md §6.4` item 3's clause (ii): "PRESENT OR ABSENT, NEVER AN UNDONE ENTRY'S
+      //       PRE-STATE"); OR
+      //   (b) SOMETHING OLDER STANDS — the amended `M-5` confines every call to entries at or after its own
+      //       named op, so an older value survives and the address answers IT (the overshoot property).
+      // **The cell asserts the DISJUNCTION and that the answer is the store's own either way; it does not
+      // invent a third state and does not read an absence where a value stands, nor the reverse.** The
+      // all-or-nothing claim is asserted where `M-6` puts it, at the floor call's own empty `undoneOps`.
+      assert.equal(restored.threw === true || restored.value !== undefined, true,
+        'THE END STATE IS THE STORE\'S OWN ANSWER, READ THROUGH ITS OWN VERB (§2.6 item 8 (iii)) — read '
+        + JSON.stringify(restored.threw ? restored.thrown.status : restored.value)
+        + `; the performed reversals were ${JSON.stringify(swept.length)}, and the address answers either `
+        + 'the store\'s own absence (nothing older stands) or the value that survives (an entry older than '
+        + 'every call\'s named op — `M-5` (a) (ii))');
+      if (restored.threw) {
+        assert.equal(restored.thrown.status, 'AddressNotFound',
+          'and where it answers an absence, the code is the store\'s own for an address that stands at no '
+          + 'node — read ' + JSON.stringify(restored.thrown.status));
+      }
+      assert.equal(swept.every((op) => created.includes(op)), true,
+        'AND THE PERFORMED SET IS THE UNION OF THE STEPS\' `undoneOps` MEMBERS AND NO WIDER — no call '
+        + 'reports an op the attempt did not create (`§2.6` item 6 (c)) — read ' + JSON.stringify(swept));
     }),
   });
   assert.deepEqual(result.failures, [],
@@ -1173,9 +1229,11 @@ test('ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op', asyn
         }));
         const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
         assert.equal(r.threw, true, 'a repeat is a failure arm of the closed table');
-        assert.equal(r.thrown.status, 'KC-5',
+        assert.equal(r.thrown.status, 'KC-8',
           'limb (e): the repeated pair\'s repair HAD RUN, so the pair stands in `ran` AND in '
-          + `\`appliedRepairs\` — read ${JSON.stringify(r.thrown.status)}`);
+          + '`appliedRepairs` — that is the LIMB this row reads, asserted at the pair\'s own count below — '
+          + 'while the CARRIER reads the floor the composition met (`§2.6` item 6 (a)): read '
+          + JSON.stringify(r.thrown.status));
         assert.equal(x, 2, 'the pair was evaluated twice: its first evaluation and the repeat');
         assert.equal(repairRunsFor(r.thrown.log, 'x').length, 1,
           'and its repair ran ONCE and never twice — arm (e)\'s own count for that pair');
@@ -1200,9 +1258,10 @@ test('ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op', asyn
       }));
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
       assert.equal(r.threw, true, 'the re-run fails the attempt');
-      assert.equal(r.thrown.status, 'KC-6',
-        'limb (f): `x` is in `ran` and NOT in `appliedRepairs` — read '
-        + `${JSON.stringify(r.thrown.status)}`);
+      assert.equal(r.thrown.status, 'KC-8',
+        'limb (f): `x` is in `ran` and NOT in `appliedRepairs` — that is the LIMB this row reads, '
+        + 'asserted at its own count below — while the CARRIER reads the floor the composition met '
+        + '(`§2.6` item 6 (a)): read ' + JSON.stringify(r.thrown.status));
       assert.equal(repairRunsFor(r.thrown.log, 'x').length, 0, 'and no repair of its own ever ran');
       assert.deepEqual(checkIds(r.thrown.log), ['x', 'y', 'x'],
         'so its own entry count under its own key is TWO and never three — `S-SECOND-VIOLATION`\'s own '
@@ -1330,8 +1389,15 @@ test('ck_prop_P_SM_6_no_repair_budget_or_retry_count_is_the_attempt_s_bound', as
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
       assert.equal(r.threw, true, 'the attempt terminates and fails — a run that needed a budget to '
         + 'stop would have found this row\'s failure');
-      assert.ok(['KC-5', 'KC-6'].includes(r.thrown.status),
-        `the bound is the FIRST REPEAT and its own declared token — read ${JSON.stringify(r.thrown.status)}`);
+      // ── **⟶ RE-DERIVED 2026-10-16: THE TOKEN IS `KC-8`, AND THE ROW'S OWN SUBJECT IS KEPT.** The bound
+      // this row pins is still the FIRST REPEAT — asserted at the evaluation count below — and the token
+      // the CARRIER reads is the floor's, because the composition MEETS it (`§2.6` item 6 (a): "THE FLOOR
+      // GOVERNS — this clause's rule is applied to EVERY path on which the attempt's own composition meets
+      // the floor"). **The two repeat limbs' own tokens are no longer reachable through `status` wherever
+      // the floor is met; they are read at the pair's own state, which is what this row's count does.**
+      assert.equal(r.thrown.status, 'KC-8',
+        'the bound is the FIRST REPEAT, and the carrier reads the floor the composition met — read '
+        + JSON.stringify(r.thrown.status) + '; `§2.6` item 5 (b) and item 6 (a)');
       assert.equal(x, 2,
         'and the closing pair was evaluated TWICE and never a third time: no budget, no retry count '
         + 'and no progress measure decided it (`§5.6`, `S-NO-BUDGET`)');

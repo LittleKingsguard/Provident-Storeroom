@@ -162,7 +162,10 @@ test('round_trip_the_module_carries_one_name_and_the_product_the_twelve_members'
   assert.equal(typeof storeCreate, 'function');
   const inst = instance();
   const twelve = Object.keys(inst).sort();
-  assert.equal(twelve.length, 12, 'the product carries TWELVE own members');
+  // **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**, the thirteenth
+  // being `constraints()` (`surface.md §2.4` item 9 (f)'s `constraints` clause; `§2.12` item 2-bis).
+  assert.equal(twelve.length, 13,
+    'the product carries THIRTEEN own members — `10 + 1 + 1 + 1 = 13` ✓');
   for (const member of twelve) {
     assert.equal(typeof inst[member], 'function', `"${member}" is an own callable`);
   }

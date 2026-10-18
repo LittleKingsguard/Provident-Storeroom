@@ -86,8 +86,12 @@ const THE_TEN = [
   'constraintOn',
   'constraintOff',
 ];
-// The twelve, `10 + 1 + 1 = 12` ✓ (`surface.md §2.4` item 9 (f)'s `A127` clause).
-const THE_TWELVE = [...THE_TEN, 'register', 'settle'];
+// **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): THE SET MOVES `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**, the
+// thirteenth being `constraints()` on the architect's ruling VERBATIM *"Add surface methods for reading
+// registered constraints."* (`surface.md §2.4` item 9 (f)'s `constraints` clause of that date; `§2.12` item
+// 2-bis; its register row is `PAR-JS-27`). **The constant's NAME is kept so no citing cell is renamed by a
+// figure; the LIST and the COUNT move.**
+const THE_TWELVE = [...THE_TEN, 'register', 'settle', 'constraints'];
 // The store's closed set, at its amended size of `16` (`docs/specs/storeroom-native/contract.md §8.1`, read at
 // `surface.md §2.5` item 1 and at `test-cases.md` row 37's `16`).
 const THE_SIXTEEN = [
@@ -192,8 +196,11 @@ test('a127_the_ten_store_reaching_names_are_not_module_exports', () => {
 test('a127_the_products_own_member_set_is_exactly_twelve', () => {
   const a = mem();
   const own = Object.keys(a).sort();
-  assert.equal(own.length, 12, 'the product carries TWELVE own members');
-  assert.deepEqual(own, [...THE_TWELVE].sort(), 'and they are the ten methods plus register and settle');
+  assert.equal(own.length, 13,
+    'the product carries THIRTEEN own members — `10 + 1 + 1 + 1 = 13` ✓ (`surface.md §2.4` item 9 (f)\'s '
+    + '`constraints` clause of 2026-10-17)');
+  assert.deepEqual(own, [...THE_TWELVE].sort(),
+    'and they are the ten methods plus `register`, `settle` and `constraints`');
 });
 
 test('a127_each_of_the_twelve_members_is_an_own_callable', () => {
@@ -617,7 +624,8 @@ test('a127_no_store_reaching_verb_throws_the_class_test_form', () => {
   // raised by a MISSING member is indistinguishable from the class test's own `TypeError`, so the
   // twelve-member set is asserted HERE, by name and by class, BEFORE any call below is made.**
   assert.deepEqual(Object.getOwnPropertyNames(a).sort(), THE_TWELVE.slice().sort(),
-    'the product carries TWELVE own members, `10 + 1 + 1 = 12` — the ten methods, plus `register` and `settle`');
+    'the product carries THIRTEEN own members, `10 + 1 + 1 + 1 = 13` — the ten methods, plus `register`, '
+    + '`settle` and `constraints` (`surface.md §2.4` item 9 (f)\'s `constraints` clause of 2026-10-17)');
   for (const member of THE_TWELVE) {
     assert.equal(typeof a[member], 'function', `\`${member}\` IS a function — the cell below drives it and no absent member may stand in for it`);
   }

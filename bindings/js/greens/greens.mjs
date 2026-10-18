@@ -288,7 +288,16 @@ function kernelSaveFile(store, address, value) {
   // ELSE: `10 + 1 + 1 = 12` ✓"*, and *"`on` and `off` ARE MERGED AWAY AND ARE NOT MEMBERS"*. THE CELL'S SUBJECT
   // (the product's exact own member set, set equality, nothing else) IS KEPT WHOLE and the expected value alone
   // is re-derived. `.14` and `.15` remain the cells that assert `on`/`off`'s absence and its reason.
-  A('JSG-01.9', '§2.4 item 9 (f)\'s `A127` clause of 2026-10-16 (the twelve, `10 + 1 + 1 = 12`), read with §2.1\'s `A127` clause', "the store's own member set is exactly the TWELVE declared members ['addConstraint','constraintOff','constraintOn','delete','listen','read','readLiteral','register','rollback','settle','unlisten','write'] — `10 + 1 + 1 = 12`, and NOTHING ELSE (the superseded readings were four, five and seven own members)", membersAre(formOf(i1), 'addConstraint,constraintOff,constraintOn,delete,listen,read,readLiteral,register,rollback,settle,unlisten,write'), formOf(i1).members.join(','));
+  // ── **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): THE SET MOVES `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**,
+  // on the architect's ruling VERBATIM *"Add surface methods for reading registered constraints."*
+  // (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s `constraints` clause of that date, whose
+  // thirteen-name set is `{ read, readLiteral, write, delete, rollback, listen, unlisten, addConstraint,
+  // constraintOn, constraintOff, register, settle, constraints }`, read with `§2.12` item 2-bis and with
+  // `§2.9` item 1's ONE-name namespace, which is UNMOVED — the read took no module-namespace name).
+  // **THE CELL'S SUBJECT IS KEPT WHOLE — the product's exact own member set, by set equality, and NOTHING
+  // ELSE — and the expected value alone is re-derived**, exactly as this cell's own `20 → 12` clause above
+  // did. `.14` and `.15` remain the cells that assert `on`/`off`'s absence and its reason.
+  A('JSG-01.9', '§2.4 item 9 (f)\'s `constraints` clause of 2026-10-17 (the thirteen, `10 + 1 + 1 + 1 = 13`), read with §2.12 item 2-bis and §2.1\'s `A127` clause', "the store's own member set is exactly the THIRTEEN declared members ['addConstraint','constraintOff','constraintOn','constraints','delete','listen','read','readLiteral','register','rollback','settle','unlisten','write'] — `10 + 1 + 1 + 1 = 13`, and NOTHING ELSE (the superseded readings were four, five, seven and twelve own members)", membersAre(formOf(i1), 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,rollback,settle,unlisten,write'), formOf(i1).members.join(','));
   A('JSG-01.10', '§2.4 item 5', 'the one member is a function', typeof i1.register === 'function', typeof i1.register);
   // ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): **STALE GREENS DOC**,
   // `RCA-8(g)`. The `8 → 1` figure is the `Q1` pass's; `docs/specs/storeroom-js/surface.md §2.9` item 1's

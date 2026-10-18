@@ -1625,13 +1625,43 @@ function composeRollback(kernel, attempt) {
   callList.reverse();
   // THE REVERSALS EARLIER RETURNED CALLS PERFORMED — the store's own reports, the only member item 5's
   // "still owes" predicate (and item 5 (a)'s skip) is decided by.
+  //
+  // ⟶ AND THE PREDICATE IS THE MEMBER ALONE, READ AGAINST THE SET IT NAMES — CORRECTED 2026-10-17, AT THE
+  // TEMPORAL-STOP AMENDMENT, AND THE CORRECTION IS NAMED WITH WHAT IT WAS AND WHAT IT IS BECAUSE THIS IS
+  // THE ONE KERNEL EDIT THE AMENDMENT OWES. **WHAT IT WAS:** the guard below was
+  // `!performed.includes(op.opId)`, which is the same reading ONLY WHILE THE STORE'S PER-OP REACH WAS
+  // TOTAL OVER THE WHOLE ADDRESSED SUBTREE — under that reach an op's ABSENCE from every earlier
+  // `undoneOps` member proved a call still owed it, because a call's `undoneOps` was the whole of what lay
+  // under its own op. **WHAT IT IS:** under the amended scope an entry `E` is in scope iff `op.address` is
+  // a prefix of `E.address` **AND** `E.seq` >= the named op's own `seq` (`A: docs/specs/storeroom-native/
+  // write-and-read.md §6.4` item 1's `M-5` amendment and item 3's `M-7` amendment, both 2026-10-16;
+  // `A: docs/decisions.md` · the architect's rulings *"Add temporal stop to the rollback."* and
+  // *"Overshoot is a defect."*), so the store's own walk **STOPS AT THE NAMED OP** — this composition
+  // passes ops in reverse creation order, so an op it has already passed is OLDER than every op a later
+  // call names, is IN THE ADDRESSED SUBTREE AND OUT OF SCOPE, and the store does NOT report it undone by
+  // that later call. The skip's premise is therefore void exactly there, and a still-owed op whose `opId`
+  // stands in no earlier `undoneOps` member **GETS ITS OWN CALL.**
+  //
+  // **THE RULE ABOVE THIS LINE IS UNCHANGED AND SO IS ITS OBSERVABLE — WHICH IS WHAT THE AMENDED CLAUSE
+  // DECLARES AT ITS OWN SITE** (`composition-and-states.md §2.6` item 5 (a)'s 2026-10-16 mark: *"a call's
+  // totality is TOTAL OVER THE TEMPORALLY BOUNDED SET and never over the whole addressed subtree"*, and
+  // *"the kernel still reads only the returned `undoneOps` member and still reasons about no mark"*): the
+  // kernel derives NOTHING from a cross-call premise below. The guard reads the step index `i` instead of
+  // `op.opId` for the ONE reason the two differ and this file's own work loop needs them to: a composition
+  // may in principle receive one `opId` twice (every arm this unit drives holds unique ids), and step `i`
+  // is the step a call over the `i`-th member ISSUED — the op's own id is what the store was NAMED, never
+  // which member it was. **NO CLAUSE MOVES WITH IT: the step count stays the calls ISSUED, `failed` stays
+  // that call's own answer, no mark is consulted and the walk still stops at the failing call.**
   const performed = [];
+  const recorded = [];
   let floor = null;
-  for (const op of callList) {
-    const owed = !performed.includes(op.opId);
+  for (let i = 0; i < callList.length; i += 1) {
+    const op = callList[i];
     // (2) THE SKIP: an op an earlier returned call's own `undoneOps` already reports undone is not still
-    // owed, so NO call is issued over it and no step stands for it (item 5 (a)).
-    if (!owed) continue;
+    // owed, so NO call is issued over it and no step stands for it (item 5 (a)) — and under the amended
+    // scope that is the WHOLE of it: absence from the member is evidence of nothing beyond the store's own
+    // performed set, so an op the member does not name GETS ITS OWN CALL.
+    if (recorded.includes(i)) continue;
     let answer = 'ok';
     let failed = false;
     let record = null;
@@ -1661,6 +1691,11 @@ function composeRollback(kernel, attempt) {
     });
     for (const undone of undoneOps) {
       if (!performed.includes(undone)) performed.push(undone);
+      // THE STEPS THAT ARE ALREADY — RECORDED BY THE MEMBER'S OWN NAMES, WHICH IS THE PREDICATE'S ONE
+      // SOURCE (`item 5 (a)`, unmoved): an op this member names is one this composition has performed.
+      for (let at = i + 1; at < callList.length; at += 1) {
+        if (callList[at].opId === undone && !recorded.includes(at)) recorded.push(at);
+      }
     }
     // AND THE WALK STOPS AT THE FAILING CALL: a call that met either floor code is the composition's
     // LAST — "the walk STOPS at the failing call" (`§2.6` item 6 (a); `fail-surface.md §2`'s `KC-8`

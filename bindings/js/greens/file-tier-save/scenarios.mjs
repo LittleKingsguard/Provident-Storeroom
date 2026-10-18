@@ -974,12 +974,18 @@ scenario('FTS-12', 'the censuses clause 7 leaves unmoved',
     // figures are ONE named export, `storeCreate` ALONE, `11 → 1` ✓ (`§2.9` item 1's `A127` clause), and TWELVE
     // own members, `10 + 1 + 1 = 12` ✓ (`§2.4` item 9 (f)'s `A127` clause). EACH CELL KEEPS ITS SUBJECT AND ITS
     // EXACT SET-EQUALITY FORM; only the figures move, and `on`/`off`'s absence stays asserted BY that equality.
-    cell('FTS-12.1', 'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-16 MARK; the operative figure is §2.4 item 9 (f)\'s `A127` clause (`10 + 1 + 1 = 12`)',
-      'the instance exposes exactly the TWELVE declared members and no thirteenth — `on` and `off` among the absent',
+    // ── **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): THE SET MOVES `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**, on
+    // the architect's ruling VERBATIM *"Add surface methods for reading registered constraints."*
+    // (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s `constraints` clause of that date and `§2.12` item
+    // 2-bis; its register row is `PAR-JS-27`). **THE CELL KEEPS ITS SUBJECT AND ITS EXACT SET-EQUALITY FORM;
+    // only the figure moves, and `on`/`off`'s absence stays asserted BY that equality** — the same rule this
+    // scenario's own `20 → 12` clause above applied.
+    cell('FTS-12.1', 'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-17 MARK; the operative figure is §2.4 item 9 (f)\'s `constraints` clause (`10 + 1 + 1 + 1 = 13`)',
+      'the instance exposes exactly the THIRTEEN declared members and no fourteenth — `on` and `off` among the absent',
       () => {
         const members = Object.getOwnPropertyNames(s).sort();
-        const want = ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral',
-          'register', 'rollback', 'settle', 'unlisten', 'write'];
+        const want = ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
+          'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'];
         return C(JSON.stringify(members) === JSON.stringify(want), `members=${JSON.stringify(members)}`);
       });
     cell('FTS-12.2', 'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-16 MARK; the operative figure is §2.9 item 1\'s `A127` clause (`11 → 1`)',

@@ -425,8 +425,21 @@ test('ck_neg_dm_02_pass_exits_at_repair_unevaluated_handle', async () => {
   assert.equal(outcome.threw, true,
     'the attempt fails: `p2`\'s first evaluation meets a violation with no repair registered for its '
     + 'pair (arm (c)); `p1`\'s repair landed and `p1` passed on the re-run');
-  assert.equal(outcome.thrown.status, KC[3],
-    'and the token is arm (c)\'s own — read ' + JSON.stringify(outcome.thrown.status));
+  // ── **⟶ RE-DERIVED 2026-10-16 (`role_test_writer`) FOR THE TEMPORAL STOP: THE TOKEN MOVES `KC-3` →
+  // `KC-8`; THE CELL'S OWN SUBJECT IS KEPT.** The pass's own exit is UNMOVED and is read at the check
+  // list below (it still exits twice and still reaches `p2` only on its second evaluation), and the pair
+  // counts below are unchanged. **What moved is which clause governs the CALLER'S token: the composition
+  // now MEETS the store's floor**, because the first per-op call reverses only the newer op and leaves it
+  // compacted, so the second call over the still-owed older op fails `M-6` all-or-nothing —
+  // `write-and-read.md §6.4` item 1's `M-5` amendment (a) (ii) and item 3's `M-7` amendment, both
+  // 2026-10-16. **`composition-and-states.md §2.6` item 6 (a) rules the precedence once and by name:
+  // "THE FLOOR GOVERNS — this clause's rule is applied to EVERY path on which the attempt's own
+  // composition meets the floor", and "the attempt has ONE `outcome` ENTRY, ITS `state` IS THIS ITEM'S
+  // `KC-8` ... and NO SECOND ENTRY IS APPENDED".**
+  assert.equal(outcome.thrown.status, KC[8],
+    'the pass exits at arm (c) — asserted at the check list below, which is unmoved — and the CARRIER '
+    + 'reads the floor the composition met (`§2.6` item 6 (a)): read '
+    + JSON.stringify(outcome.thrown.status));
   assert.deepEqual(checkIds(outcome.thrown.log), ['p1', 'p1', 'p2'],
     'THE PASS EXITED TWICE AND REACHED `p2` ONLY ON ITS SECOND EVALUATION: `p1` was evaluated once on the '
     + 'committed op, its repair landed, and the pass returned to `EVALUATING` over that op\'s landing, '

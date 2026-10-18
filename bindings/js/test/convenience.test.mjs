@@ -1132,13 +1132,18 @@ test('the_instance_member_set_is_seven_own_members_and_the_module_namespace_is_a
   // **⟶ RESHAPED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause, whose operative figures are the
   // TWELVE own members, `10 + 1 + 1 = 12` ✓).** **THE SET'S CELL MOVES IN PLACE AND ITS SUBJECT IS UNMOVED:**
   // the ten store-reaching METHODS plus `register` and `settle`, the merged-away pair appearing NOWHERE.
+  // ── **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): THE SET MOVES `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**,
+  // the thirteenth being `constraints()` on the architect's ruling VERBATIM *"Add surface methods for
+  // reading registered constraints."* (`surface.md §2.4` item 9 (f)'s `constraints` clause of that date;
+  // `§2.12` item 2-bis; `PAR-JS-27`). **The cell's own subject — the member set is the TEN store-reaching
+  // methods plus the non-store-reaching ones, and the merged-away pair appears NOWHERE — is UNMOVED.**
   assert.deepEqual(
     memberSet(inst),
-    ['addConstraint', 'constraintOff', 'constraintOn', 'delete', 'listen', 'read', 'readLiteral',
-      'register', 'rollback', 'settle', 'unlisten', 'write'],
-    '`§2.4` item 9 (f)\'s `A127` clause of 2026-10-16: the member set is the TEN store-reaching methods '
-    + 'plus the registration site and the ordering seam — TWELVE own members, `10 + 1 + 1 = 12`, and '
-    + 'NOTHING ELSE',
+    ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
+      'readLiteral', 'register', 'rollback', 'settle', 'unlisten', 'write'],
+    '`§2.4` item 9 (f)\'s `constraints` clause of 2026-10-17: the member set is the TEN store-reaching '
+    + 'methods plus the registration site, the ordering seam and the registered-constraint read — '
+    + 'THIRTEEN own members, `10 + 1 + 1 + 1 = 13` ✓, and NOTHING ELSE',
   );
   for (const merged of ['on', 'off']) {
     assert.equal(memberSet(inst).includes(merged), false,

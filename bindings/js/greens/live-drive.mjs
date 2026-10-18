@@ -180,9 +180,15 @@ console.log(`layer          LIVE / ASSEMBLED PACKAGE (real artifact, real proces
   // *"TWELVE OWN MEMBERS, AND NOTHING ELSE: `10 + 1 + 1 = 12` ✓"*, *"`on` and `off` ARE MERGED AWAY AND ARE NOT
   // MEMBERS"*. THE CELL'S SUBJECT IS KEPT WHOLE — the product's exact own member set, asserted by set equality
   // and nothing else — and the expected value alone is re-derived.
-  A(`${sc}.3`, '§2.4 item 9 (f)\'s `A127` clause of 2026-10-16 (TWELVE own members, `10 + 1 + 1 = 12`)',
-    "the store's own member set is exactly the TWELVE declared members ['addConstraint','constraintOff','constraintOn','delete','listen','read','readLiteral','register','rollback','settle','unlisten','write'] — and NOTHING ELSE (the superseded readings were three, four, five and seven)",
-    inst !== null && Object.getOwnPropertyNames(inst).sort().join(',') === 'addConstraint,constraintOff,constraintOn,delete,listen,read,readLiteral,register,rollback,settle,unlisten,write',
+  // ── **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): THE SET MOVES `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**, on
+  // the architect's ruling VERBATIM *"Add surface methods for reading registered constraints."*
+  // (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s `constraints` clause of that date, read with
+  // `§2.12` item 2-bis). **THE CELL'S SUBJECT IS KEPT WHOLE — the product's exact own member set, by set
+  // equality and nothing else — and the expected value alone is re-derived**, exactly as this cell's own
+  // `7 → 12` clause above did.
+  A(`${sc}.3`, '§2.4 item 9 (f)\'s `constraints` clause of 2026-10-17 (THIRTEEN own members, `10 + 1 + 1 + 1 = 13`)',
+    "the store's own member set is exactly the THIRTEEN declared members ['addConstraint','constraintOff','constraintOn','constraints','delete','listen','read','readLiteral','register','rollback','settle','unlisten','write'] — and NOTHING ELSE (the superseded readings were three, four, five, seven and twelve)",
+    inst !== null && Object.getOwnPropertyNames(inst).sort().join(',') === 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,rollback,settle,unlisten,write',
     inst ? Object.getOwnPropertyNames(inst).sort().join(',') : 'no instance');
   A(`${sc}.4`, '§1.3 FilePathArg row 1', "the caller's filePath is a REAL path: its parent directory exists on disk",
     fs.existsSync(path.dirname(filePath)) && fs.statSync(path.dirname(filePath)).isDirectory(), path.dirname(filePath));
@@ -1148,10 +1154,14 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
       : `${constructionBad.length}/3 FAIL — ${constructionBad.map((x) => `${x.label} [${[['throws', !x.threw], ['single form', !x.single], ['requires limb', !x.requiresLimb], ['required limb', !x.requiredLimb], ['names listeners', !x.namesListeners], ['no address-segment form', x.addressSegmentForm], ["no in ''", x.containerEmpty], ['no borrowed address container', x.borrowedAddressContainer]].filter((p) => p[1]).map((p) => p[0]).join('+') || 'form'}] ${x.m || 'no throw'}`).join('; ')}`);
   const validListeners = thrown(() => ns.storeCreate({ filePath: fsPath('live13/valid-listeners.json'), journalLength: 4, listeners: [] }));
   const validMemberSet = validListeners.threw ? '' : Object.getOwnPropertyNames(validListeners.value).sort().join(',');
-  A(`${sc}.23`, 'crossing.md §1.3 ListenersArg row 1 (`[]` is "the ordinary no-listener store") read with parameter-semantics.md §2.4 PAR-JS-4 (the empty array is IN the domain); surface.md §2.1 (e) 1 and §2.4 item 9 (f)\'s A127 clause for the product\'s TWELVE own members (`10 + 1 + 1 = 12`)',
-    'the VALID form `listeners: []` returns an INSTANCE and does NOT throw, and that instance carries exactly the TWELVE own members the contract declares — so the refusal half above cannot be passing by refusing the lawful form too',
-    !validListeners.threw && Object.getOwnPropertyNames(validListeners.value).length === 12
-      && /^addConstraint,constraintOff,constraintOn,delete,listen,read,readLiteral,register,rollback,settle,unlisten,write$/.test(validMemberSet),
+  // **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): `12 → 13`, `10 + 1 + 1 + 1 = 13` ✓**, the thirteenth
+  // being `constraints()` (`surface.md §2.4` item 9 (f)'s `constraints` clause; `§2.12` item 2-bis). **The
+  // cell's subject — the VALID form returns an INSTANCE carrying the declared set, so the refusal half
+  // cannot be passing by refusing the lawful form too — is unmoved.**
+  A(`${sc}.23`, 'crossing.md §1.3 ListenersArg row 1 (`[]` is "the ordinary no-listener store") read with parameter-semantics.md §2.4 PAR-JS-4 (the empty array is IN the domain); surface.md §2.1 (e) 1 and §2.4 item 9 (f)\'s `constraints` clause of 2026-10-17 for the product\'s THIRTEEN own members (`10 + 1 + 1 + 1 = 13`)',
+    'the VALID form `listeners: []` returns an INSTANCE and does NOT throw, and that instance carries exactly the THIRTEEN own members the contract declares — so the refusal half above cannot be passing by refusing the lawful form too',
+    !validListeners.threw && Object.getOwnPropertyNames(validListeners.value).length === 13
+      && /^addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,rollback,settle,unlisten,write$/.test(validMemberSet),
     validListeners.threw ? `threw ${statusOf(validListeners)}` : `${Object.getOwnPropertyNames(validListeners.value).length} own members: ${validMemberSet}`);
 
   // ── ⟶ AND THE TWO RESIDUES THE FIX LEFT ON PURPOSE, ASSERTED AS THEY ACTUALLY STAND (`LIVE-13.24`) ────
@@ -1252,8 +1262,12 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
     saved13.threw ? `the arm threw ${statusOf(saved13)}` : (rb.threw ? statusOf(rb) : `${String(rb.value)} · ${fs.existsSync(filePath2) ? fs.statSync(filePath2).size : 0} bytes on disk · opId ${String(wD.op?.opId)}`));
   const w7 = B.write(['durable'], 'temp', 7);
   A(`${sc}.19`, '§2.4 rule 4 ("the registry is released with the instance and by nothing else"); DD-15; DD-17; store §7.2 item 6',
-    "THE HOME IS EMPTY IN THE NEW INSTANCE — the registrations are INSTANCE-SCOPED: the new instance's own member set is the declared TWELVE (`§2.12` item 1's `A127` figure, `10 + 1 + 1`), its write under the address the OLD instance registered carries NO triggered member and fires nothing there",
-    Object.getOwnPropertyNames(B).sort().join(',') === 'addConstraint,constraintOff,constraintOn,delete,listen,read,readLiteral,register,rollback,settle,unlisten,write' && w7.triggered.length === 0,
+    // **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`): the declared set is THIRTEEN, `10 + 1 + 1 + 1 = 13` ✓**
+    // (`§2.4` item 9 (f)'s `constraints` clause; `§2.12` item 2-bis). The cell's subject — the home is EMPTY
+    // in the new instance, the registrations being INSTANCE-SCOPED — is unmoved, and its `triggered` limb,
+    // which is the subject, moves no term.
+    "THE HOME IS EMPTY IN THE NEW INSTANCE — the registrations are INSTANCE-SCOPED: the new instance's own member set is the declared THIRTEEN (`§2.4` item 9 (f)'s `constraints` clause of 2026-10-17, `10 + 1 + 1 + 1 = 13`), its write under the address the OLD instance registered carries NO triggered member and fires nothing there",
+    Object.getOwnPropertyNames(B).sort().join(',') === 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,rollback,settle,unlisten,write' && w7.triggered.length === 0,
     `members ${Object.getOwnPropertyNames(B).sort().join(',')}; triggered ${w7.triggered.length} member(s)`);
 
   end(sc, `on returned ${onHandleForm} at ['ev'] and the write ran the function 1× with the address ["ev","child"]; a second on at the held address answered the SAME handle and replaced the function (first 1×, second 2×); a non-function listener and the malformed address 'ev.bad' each answered AddressMalformed in the single verbose form and left the register unchanged; off(${JSON.stringify(h)}) answered undefined and the address fired ${w4.triggered.length} member(s) afterwards; unlisten withdrew the store-side entry only, with the re-listen minting a DIFFERENT handle and the old function never firing; the file-tier save on the terminal arm at ${filePath2} stands and the FRESH instance read 'DURABLE-13' back with an EMPTY home`);
