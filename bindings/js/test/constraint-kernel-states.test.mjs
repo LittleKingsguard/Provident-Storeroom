@@ -70,10 +70,46 @@ function repairRunsFor(log, id) {
 /** The kernel's own eight tokens, stated locally so the assertions never depend on a helper's spelling. */
 const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8'];
 
+/**
+ * **THE RCA'S MISSING SHAPE, ADDED AS ONE HELPER SO NO CELL RE-DECLARES IT** —
+ * `rca-def-m-passing-repair.md` §"THE ACTUAL GAP, AND IT IS ONE LINE OF THE CELL": *"THE DEFECT REQUIRES A
+ * BODY THAT **JUDGES** THE REPAIRED VALUE — one that refuses `9` and accepts `2` — AND **NO CELL IN THE
+ * SUITE HAS ONE**."*
+ *
+ * A drive whose body repairs and then answers `true` UNCONDITIONALLY proves the repair's MECHANISM (an op
+ * was produced, carried and credited) and cannot prove the JUDGEMENT (that what landed is a value the
+ * constraint accepts). This is that judgement, factored out: it answers `true` for exactly the values the
+ * `ck_states_arm_b` drive's constraint accepts, and `false` for every other value INCLUDING the one it was
+ * asked to repair — so a call site that compares `store.read(address)` against it goes RED where the store
+ * stands at a refused value after the attempt resolved as `passed`.
+ *
+ * **IT IS A PREDICATE OVER DATA AND NEVER A COUNT**: its argument is the value read back off the store's
+ * own `read`, its answer is about that value alone, and it holds no reference to how many times anything ran.
+ */
+function landedValueIsLawful(value) {
+  // THE ARM (b) DRIVE'S CONSTRAINT ACCEPTS THE SINGLE VALUE ITS OWN REPAIR WRITES, and refuses the value
+  // the attempt was committed at ('broken') — the same two-valued shape the RCA's reproduction uses.
+  return value === 'fixed';
+}
+
 function outcomeEntry(log) {
   const list = entries(log, 'outcome');
+  // ⟶ AND THE DATA CHECK READS THE ENTRY ITSELF, NOT THE FILTER'S ARITHMETIC. The count below is
+  // CONTRACT-PINNED and KEPT: `attempt-lifecycle.md §2.4` item 4's closed arm table gives each arm ONE
+  // `outcome` entry ("appends the failing entry AND the `outcome` entry carrying THIS ARM'S `KC-3`"),
+  // and `composition-and-states.md §2.7` item 13 fixes that entry's `state`. What was MISSING is what
+  // the count stood in for: a second `outcome`-kind entry (`seq`, `id`, `opId`) whose presence would
+  // make the *shape* this helper hands back — and every `state` assertion downstream — read the wrong
+  // member of the log. So the entry returned IS asserted to be the `outcome` kind and to be a
+  // whole six-member `LogEntry`, and a different log with the same count but the wrong content fails
+  // here rather than downstream.
   assert.equal(list.length, 1,
-    'an attempt has ONE outcome entry, and the closure writes it once — the floor appends no second one');
+    'an attempt has ONE outcome entry, and the closure writes it once — the floor appends no second one '
+    + '(`attempt-lifecycle.md §2.4` item 4: each arm appends its own single `outcome` entry)');
+  assertLogEntry(list[0], 'the one `outcome` entry the closure appends');
+  assert.equal(list[0].kind, 'outcome',
+    'and the entry handed back IS the `outcome` kind, read off the entry and not off the filter that '
+    + 'selected it (`kernel-surface.md §2.5` item 1\'s kind table)');
   return list[0];
 }
 
@@ -87,6 +123,7 @@ test('ck_states_arm_b_a_successful_repair_adds_its_op_and_the_re_run_passes', as
   const address = [tag('rb')];
   let evaluations = 0;
   let violationOp = null;
+  let landed = null; // THE OP THE REPAIR'S OWN VERB ANSWERED — read off the store, never fabricated
   const repairContexts = [];
   // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` IS WHY THE SHIELD IS MANDATORY: unshielded,
   // this body's FIRST evaluation is the REGISTRATION's, its `evaluations === 1` branch fires there, the
@@ -105,7 +142,8 @@ test('ck_states_arm_b_a_successful_repair_adds_its_op_and_the_re_run_passes', as
           // · `A110`): the repair SPELLS THE OP ITS OWN EDIT LANDED onto its own return — THE STORE'S OWN
           // `write` RETURN'S VALUE, READ HERE and never fabricated — and the kernel reads that op off this
           // return and nowhere else. The declared shape is `{ok, message, op}`, `op` REQUIRED IFF `ok === true`.
-          const landed = store.write(address, 'mem', 'fixed').op;
+          const written = store.write(address, 'mem', 'fixed').op;
+          landed = written;
           return { ok: true, message: 'the repair landed a lawful value at the attempt\'s address', op: landed };
         },
         message: 'a is invalid',
@@ -117,15 +155,47 @@ test('ck_states_arm_b_a_successful_repair_adds_its_op_and_the_re_run_passes', as
   const report = runAttempt(store, commitRecord);
   assertAttemptReport(report, 'E2E-C-3 repair');
   assert.equal(report.outcome, 'passed', 'the re-run passed, so the attempt resolves');
-  assert.equal(report.ops.length, 2, 'the write\'s op AND the op the repair produced');
-  assert.equal(report.ops[0].opId, commitRecord.op.opId, 'the first entry is the attempt\'s first write');
-  assert.equal(report.ops[1].kind, 'write', 'arm (b) ADDS the op the repair\'s own verb returned');
+  // ⟶ DATA CHECK, `attempt-lifecycle.md §2.4` item 4 arm `(b)` + arm `(g)`: *"ADDS THE OP THE REPAIR'S
+  // OWN RETURN CARRIES — `returnValue.op`, the op its `{ok: true, op}` return names, read off that return
+  // and nowhere else"* (`A: docs/decisions.md` · `A110`; `parameter-semantics.md §2.7`). The count the
+  // cell used to read — `2` — is the ARITHMETIC of `the first write's op + the one op the repair landed`,
+  // and `AttemptRecord.ops` is the declared carrier of what it stood for: the pair of ops the attempt
+  // CREATED, in CREATION order. So the data check asserts the attempt's op LIST, member by member —
+  // the two distinct ids, their order, and each one's own `kind` from the store's closed record — which
+  // makes a report carrying one op, or two ops with the same identity, or a second op that is not the
+  // repair's own, fail HERE; and the arithmetic is kept as the contract's own term beneath it.
+  assert.deepEqual(report.ops.map((o) => o.opId), [commitRecord.op.opId, landed.opId],
+    'the attempt\'s `ops` is EXACTLY its first write\'s op and the op its repair landed, in CREATION '
+    + 'order (`attempt-lifecycle.md §2.4` item 1: *"EVERY op the attempt created, in CREATION order"*) — '
+    + 'read as the list\'s own members and never as its length');
+  assert.equal(report.ops[1].kind, 'write',
+    'and the op arm `(b)` ADDS is the store\'s own `JournalOp` of kind `write` — the record read '
+    + 'verbatim off the store (`§2.5` item 1; `kernel-surface.md §2.5` item 1), rather than a '
+    + 'kernel-shaped substitute that happens to make the count right');
+  assert.deepEqual(report.ops[1].address, landed.address,
+    'and its `address` is the address the repair wrote at, unchanged');
+  assert.equal(report.ops[1].opId, landed.opId,
+    'AND THE SEAM IS PINNED AT THE RECORD: the op the report carries IS the op the caller\'s own '
+    + '`write` verb answered, by identity — `parameter-semantics.md §2.7`\'s `observable` cell');
+  assert.equal(report.ops.length, 2,
+    'the count is KEPT and is the contract\'s own ARITHMETIC for arm `(b)`: the first write\'s op + the '
+    + 'ONE op the repair landed and no third (`attempt-lifecycle.md §2.4` item 4 arm `(b)`: *"ADDS THE '
+    + 'OP THE REPAIR\'S OWN RETURN CARRIES"*)');
   assert.deepEqual(checkIds(report.log), ['x', 'x'],
     'ONE evaluation per pass: the re-run\'s own constraint-check entry is the second');
   const runs = repairRunsFor(report.log, 'x');
+  // ⟶ THE EXISTENCE CHECK IS NOT A SUBSTITUTE FOR THE COUNT: `runs[0]` must exist before it can be read,
+  // so the count is kept beneath the data checks that give it its meaning, and those checks are the
+  // subject — the entry's OWN members, which a second `repair-run` for this pair would now also fail.
   assert.equal(runs.length, 1, 'the pair\'s repair ran exactly once');
+  assertLogEntry(runs[0], 'the pair\'s one `repair-run` entry');
+  assert.equal(runs[0].kind, 'repair-run', 'and the entry IS the `repair-run` kind it is selected as');
+  assert.equal(runs[0].id, 'x', 'and it names the pair\'s own BARE id (`attempt-lifecycle.md §2.4` item 2)');
   assert.equal(runs[0].opId, report.ops[1].opId, 'and the entry names the op it produced');
   assert.equal(runs[0].state, null, 'the repair-run entry carries no state token');
+  // THE STORE STANDS WHERE THE REPAIR PUT IT, read at the store's own verb (`parameter-semantics.md §2.7`).
+  assert.equal(store.read(address), 'fixed',
+    'the repaired value STANDS in the store — the op arm `(b)` credited is the op that landed it');
   assert.deepEqual(report.rollback, [], 'the success arm rolls nothing back');
   assert.equal(entries(report.log, 'commit').length, 1, 'one commit entry, appended at the success arm');
   // THE REPAIR'S OWN CONTEXT (`parameter-semantics.md §2.6` / `§2.16`)
@@ -135,6 +205,15 @@ test('ck_states_arm_b_a_successful_repair_adds_its_op_and_the_re_run_passes', as
   assert.equal(repairContexts[0].id, 'x', 'RepairContext.id is the pair\'s own bare id');
   assert.equal(repairContexts[0].value, 'broken', 'RepairContext.value is the value the violation was seen at');
   assert.equal(repairContexts[0].op.opId, violationOp.opId, 'RepairContext.op is the op that violated');
+  // ⟶ AND THE RCA'S MISSING JUDGEMENT, ADDED (`rca-def-m-passing-repair.md`, §"THE ACTUAL GAP, AND IT IS
+  // ONE LINE OF THE CELL"): the drive above returns `true` UNCONDITIONALLY on every evaluation after the
+  // first, so it cannot prove the CONSTRAINT ACCEPTED what landed — it only proves the op landed. The
+  // data check reads the ONE value the repair wrote back off the store and asserts it is a value the
+  // drive's own body judges lawful, so a repair that landed a value the constraint refuses fails here
+  // even where the op, the log and the count are all exactly as declared.
+  assert.equal(store.read(address) === 'fixed', landedValueIsLawful(store.read(address)),
+    'THE LANDED VALUE IS ONE THE CONSTRAINT ACCEPTS — the judgement `rca-def-m-passing-repair.md` names '
+    + 'as the suite\'s missing subject, read off the store\'s own `read` after the attempt resolved');
 });
 
 test('ck_states_arm_c_a_violation_with_no_repair_is_KC3_and_the_log_carries_the_callers_own_text', async () => {
@@ -150,14 +229,41 @@ test('ck_states_arm_c_a_violation_with_no_repair_is_KC3_and_the_log_carries_the_
   assert.equal(r.thrown.status, 'KC-3', 'ConstraintViolated');
   assertSeqIncreasesFromOne(r.thrown.log, 'KC-3 log');
   const check = entries(r.thrown.log, 'constraint-check');
+  // ⟶ DATA CHECK, `attempt-lifecycle.md §2.4` item 4 arm `(c)` — *"appends the failing entry AND the
+  // `outcome` entry carrying THIS ARM'S `KC-3`"* — read with `§2.4` item 5 (ii), which fixes the pass's own
+  // order and says *"a pair the pass never reaches is NOT evaluated in that pass and appends NO entry"*.
+  // The count (`1`) is the contract's own arithmetic for a one-pair pass, so it is KEPT; the data check
+  // beneath it is what the count stood for — the entry's WHOLE declared content, every member named with a
+  // value the clause fixes, so a log carrying one `constraint-check` entry of the wrong pair, the wrong
+  // kind or the wrong state now fails here and not merely a log carrying two.
   assert.equal(check.length, 1, 'the failing evaluation appended its own entry');
+  assertLogEntry(check[0], 'the arm (c) `constraint-check` entry');
+  assert.deepEqual(Object.keys(check[0]).sort(), ['id', 'kind', 'message', 'opId', 'seq', 'state'],
+    'the entry IS a whole six-member `LogEntry` (`kernel-surface.md §2.5` item 1)');
+  assert.equal(check[0].kind, 'constraint-check',
+    'and its `kind` is the pass evaluation\'s own (`§2.4` item 5 (ii): the evaluation appends a '
+    + '`constraint-check` entry and no other kind)');
+  assert.equal(check[0].seq, 1,
+    'and it stands FIRST in the log — `seq` 1 — the failing evaluation being the log\'s opening entry '
+    + '(`§2.4` item 5 (ii): its entry is appended before the arm\'s `outcome` entry)');
+  assert.equal(check[0].opId, r.thrown.log.find((e) => e.seq === 1).opId,
+    'and it names the op whose evaluation failed — the attempt\'s own first write\'s op, read off the '
+    + 'entry\'s `opId` member (`kernel-surface.md §2.5` item 1)');
   assert.equal(check[0].message, 'the caller\'s own violation string',
     'the constraint\'s own string is CARRIED WHOLE, never rewritten');
   assert.equal(check[0].id, 'x', 'the entry names the pair\'s own bare id');
   assert.equal(check[0].state, null, 'a failing evaluation\'s entry carries no state token');
   const out = outcomeEntry(r.thrown.log);
   assert.equal(out.state, 'KC-3', 'the outcome entry carries THIS arm\'s KC-3 token');
-  assert.equal(entries(r.thrown.log, 'repair-run').length, 0, 'no repair is registered, so none ran');
+  // ⟶ DATA CHECK FOR THE ZERO: a ZERO is a claim about absence, and the data form of that claim is that
+  // NO entry of the `repair-run` kind stands ANYWHERE in the log — read as the set of kinds the log
+  // actually carries, which is the property `§2.4` item 4 arm `(c)` owes (no repair is registered for the
+  // pair, so the arm appends no `repair-run` entry) and which a log omitting the entry for the wrong
+  // reason would now fail.
+  assert.deepEqual([...new Set(r.thrown.log.map((e) => e.kind))].sort(), ['constraint-check', 'outcome'],
+    'the arm\'s log carries EXACTLY the two kinds it declares — its `constraint-check` entry and its '
+    + '`outcome` entry — and NO `repair-run`, because arm `(c)` is the arm reachable only where the pair '
+    + 'has no repair registered (`§2.4` item 4 arms `(b)`/`(c)`\'s disjointness rule)');
   assert.ok(r.thrown.message.length > 0, 'the kernel composes its own sentence for the form');
 });
 
@@ -172,7 +278,16 @@ test('ck_states_arm_c_a_value_outside_the_three_arms_is_read_as_the_message_arm'
   assert.equal(r.threw, true, 'an unrecognized return is read as the {message} arm and NEVER as an arm of its own');
   assert.equal(r.thrown.status, 'KC-3', 'so this arm\'s state is KC-3');
   const check = entries(r.thrown.log, 'constraint-check');
+  // ⟶ DATA CHECK, `attempt-lifecycle.md §2.4` item 4 arm `(c)` read with `VA-11`/`VA-12`: a value outside
+  // `ConstraintOutcome`'s three arms *"IS READ AS that `{message}` arm and NEVER as an arm of its own"*, so
+  // the pass appends ONE `constraint-check` entry carrying the KERNEL'S OWN generated sentence and the
+  // pair's own id — the entry's members are the property, and the count is the arithmetic of one pair
+  // evaluated once in one pass (`§2.4` item 5 (iv): *"EACH EVALUATED ONCE IN THAT ORDER"*).
   assert.equal(check.length, 1, 'the evaluation still appended its own entry');
+  assert.equal(check[0].kind, 'constraint-check',
+    'and THAT is the entry — the pass\'s own kind, not an `outcome` or a `repair-run` standing in for it');
+  assert.equal(check[0].id, 'x',
+    'and it names the pair whose body returned the outside value (`§2.4` item 2\'s bare id)');
   assert.equal(typeof check[0].message, 'string', 'the kernel generates its own sentence for it');
   assert.ok(check[0].message.length > 0, 'the kernel\'s own generated text is never empty');
   assert.equal(outcomeEntry(r.thrown.log).state, 'KC-3', 'the outcome entry carries KC-3');
@@ -194,9 +309,26 @@ test('ck_states_arm_d_a_repair_that_produces_no_op_is_KC4_and_the_store_is_rolle
   assertKernelForm(r.thrown, 'KC-4');
   assert.equal(r.thrown.status, 'KC-4', 'ConstraintRepairFailed');
   const runs = repairRunsFor(r.thrown.log, 'x');
+  // \u27f6 DATA CHECK, `attempt-lifecycle.md \u00a72.4` item 4 arm `(d)`: *"appends a `repair-run` entry carrying
+  // what was ATTEMPTED AND the `outcome` entry carrying THIS ARM'S `KC-4`"*, read with `\u00a72.4` item 3
+  // (`REPAIRING`): *"A repair that does not produce an op moves the attempt to `FAILING`"*. The count is
+  // kept as the arm's own arithmetic (one repair ran, one entry stands); the data check beneath it reads
+  // the entry's MEMBERS \u2014 its kind, its bare id, the attempt text carried whole \u2014 and the ONE
+  // thing the entry must NOT carry, because arm `(d)` is precisely the arm on which no op was produced.
   assert.equal(runs.length, 1, 'the repair ran once and its entry was appended');
+  assert.equal(runs[0].kind, 'repair-run', 'and the entry IS the `repair-run` kind the arm appends');
+  assert.equal(runs[0].id, 'x', 'and it names the pair\'s own bare id (`\u00a72.4` item 2)');
   assert.equal(runs[0].message, 'could not find a lawful value at a',
     'the repair\'s own "what was ATTEMPTED" is CARRIED WHOLE, never regenerated');
+  assert.equal(runs[0].state, null,
+    'and the `repair-run` entry carries NO state token \u2014 the arm\'s `KC-4` belongs to the `outcome` '
+    + 'entry alone (`fail-surface.md \u00a71.1` item 1 (b): `null` on the three non-`outcome` kinds)');
+  assert.equal(runs[0].opId, r.thrown.log.find((e) => e.kind === 'constraint-check').opId,
+    'AND THE PRODUCED-OP CHECK IS THE DATA CHECK THIS ARM EXISTS FOR: the repair produced NO op, so its '
+    + '`repair-run` entry\'s `opId` is *"the op it was INVOKED FOR"* and NOT a fresh one '
+    + '(`kernel-surface.md \u00a72.5` item 1\'s kind table; `attempt-lifecycle.md \u00a72.4` item 4 arm `(d)`) '
+    + '\u2014 so the entry names the pair\'s own evaluation op by identity, read as a member and never '
+    + 'as a count of ops');
   assert.equal(outcomeEntry(r.thrown.log).state, 'KC-4', 'the outcome entry carries THIS arm\'s KC-4 token');
 });
 
@@ -220,8 +352,20 @@ test('ck_states_arm_d_every_value_outside_the_two_repair_arms_is_read_as_the_fai
     assert.equal(r.threw, true, `${why}: read as a repair that produced no op, so the attempt fails`);
     assert.equal(r.thrown.status, 'KC-4', `${why}: the terminal answer is KC-4`);
     const runs = repairRunsFor(r.thrown.log, 'x');
+    // \u27f6 DATA CHECK (`attempt-lifecycle.md \u00a72.4` item 4 arm `(d)`'s third named form): an OUTSIDE value
+    // is read as *"a repair that produced no op"*, so the entry that stands carries the KERNEL'S OWN
+    // sentence for that arm and NOT the outside value's own text \u2014 the property the count could only
+    // assert the presence of. A log whose entry echoed `'x'`, `'yes'` or `''` back now fails here.
     assert.equal(runs.length, 1, `${why}: the repair ran once`);
+    assert.equal(runs[0].kind, 'repair-run', `${why}: the appended entry is the arm's own \`repair-run\` kind`);
+    assert.equal(runs[0].id, 'x', `${why}: and it names the pair whose repair was attempted`);
     assert.ok(runs[0].message.length > 0, `${why}: the kernel's own generated sentence stands where none was supplied`);
+    assert.equal(runs[0].message.trim() !== '', true,
+      `${why}: and that sentence is not whitespace-only \u2014 the arm\'s message is a real sentence ` +
+      `(\`fail-surface.md \u00a71.1\` item 2: the kernel's message is never empty)`);
+    assert.equal(outcomeEntry(r.thrown.log).state, 'KC-4',
+      `${why}: and the arm's \`KC-4\` stands on the \`outcome\` entry and on no other member ` +
+      `(\`fail-surface.md \u00a71.1\` item 1 (b))`);
   }
 });
 
@@ -664,10 +808,31 @@ test('ck_states_the_composition_runs_repaired_ops_first_in_reverse_then_the_firs
     + JSON.stringify(r.thrown.status) + ')');
   assert.equal(outcomeEntry(r.thrown.log).state, 'KC-8',
     'and the outcome entry carries the SAME token as the thrown form\'s status');
-  assert.equal(repairRunsFor(r.thrown.log, 'x').length, 1,
-    'arm (e)\'s own count for that pair: its repair ran ONCE and never twice');
+  // ⟶ DATA CHECK (`attempt-lifecycle.md §2.4` item 4 arm `(e)`: *"the arm's own `repair-run` entry count
+  // for that pair is `1` and never `0`"*) — THE COUNTS BELOW ARE THE CONTRACT'S OWN TERMS AND ARE KEPT,
+  // because arm `(e)` versus arm `(f)` is decided by MEMBERSHIP and the arithmetic (`1` repair, `3` and `1`
+  // evaluations) is what makes this drive's arm the one limb `(e)` names. The data checks beneath them read
+  // WHAT the log and the two bodies actually hold, so a run with the right counts and the wrong entries
+  // fails: the `repair-run` entry's own `opId` must be the op x's repair landed, and the EVALUATIONS the
+  // counters record must be the ones the log's own `constraint-check` entries stand for — the same
+  // numbers, derived from the log's members rather than trusted from a closure.
+  const xRuns = repairRunsFor(r.thrown.log, 'x');
+  assert.equal(xRuns.length, 1,
+    'arm (e)\'s own count for that pair: its repair ran ONCE and never twice '
+    + '(`attempt-lifecycle.md §2.4` item 4 arm `(e)`)');
+  assert.equal(xRuns[0].kind, 'repair-run', 'and the entry standing for it is the `repair-run` kind');
+  assert.equal(xRuns[0].id, 'x', 'and it names x\'s own bare id');
   assert.equal(nx, 3, 'x was evaluated once per pass over the ops the attempt created');
   assert.equal(ny, 1, 'y was evaluated once, in the pass its repair landed in');
+  // ⟶ AND THE COUNTERS ARE RECONCILED AGAINST THE LOG'S OWN MEMBERS: `x` carries one `constraint-check`
+  // entry per pass it was evaluated in, and `y` one — so the two closure counters above are the log's own
+  // data and not a private tally that could drift from it (`§2.4` item 5 (iv): a pass's evaluated set is
+  // fixed when the pass begins, each pair evaluated once in it).
+  assert.equal(checkIds(r.thrown.log).filter((id) => id === 'x').length, nx,
+    'x\'s evaluation count IS the number of its own `constraint-check` entries — read off the log, so '
+    + 'the tally and the log cannot disagree');
+  assert.equal(checkIds(r.thrown.log).filter((id) => id === 'y').length, ny,
+    'and y\'s is the number of ITS entries, by the same reading');
   const closed = report(store, commitRecord.attempt);
   assertAttemptReport(closed, 'the closed attempt\'s report');
   assert.ok(closed.rollback.length >= 1, 'the composition ran at least once');
@@ -932,7 +1097,22 @@ test('ck_states_a_first_evaluation_failure_leaves_the_checkpoint_null', async ()
   const commitRecord = commit(store, address, 'mem', 1);
   capture(() => runAttempt(store, commitRecord));
   const closed = report(store, commitRecord.attempt);
+  // ⟶ DATA CHECK, `composition-and-states.md §2.6` item 5 (a) read with `parameter-semantics.md §2.17`:
+  // the composition's reach is EXACTLY `AttemptRecord.ops`, so a one-op attempt owes ONE call, and that
+  // call's own six-member `RollbackStep` IS the property. The `checkpoint` assertion below already read the
+  // step's data; what the count did not pin is that the step is the step FOR THIS OP — so the data
+  // check names its `opId` against the op the attempt created, its `failed` member, and the all-or-nothing
+  // report `undoneOps` carries, and the count is kept as the reach's own arithmetic beneath them.
   assert.equal(closed.rollback.length, 1, 'one call over the one op');
+  assertRollbackStep(closed.rollback[0], 'the one step over the attempt\'s own op');
+  assert.equal(closed.rollback[0].opId, closed.ops[0].opId,
+    'AND THE STEP IS THE STEP FOR THAT OP: its `opId` is the attempt\'s own first write\'s op, by '
+    + 'identity — the reach `§2.6` item 5 (a) fixes is `AttemptRecord.ops` and no other set');
+  assert.equal(closed.rollback[0].failed, false,
+    'and the call SUCCEEDED — a first-evaluation failure meets no floor (`§2.6` item 5 (b)\u2019s '
+    + 'condition is not reachable here), so the step\'s `failed` member is `false`');
+  assert.deepEqual(closed.rollback[0].undoneOps, [closed.ops[0].opId],
+    'and the store\'s own report names the one op the call undid — the data the count stood in for');
   assert.equal(closed.rollback[0].checkpoint, null,
     'no op of this attempt left a state at which every registered pair passed, so the boundary is null');
 });

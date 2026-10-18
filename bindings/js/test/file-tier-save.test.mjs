@@ -725,6 +725,11 @@ test('fts_S_JOIN_a_repairs_write_joins_the_same_commit_and_the_op_set_grows_by_e
   held = record;
   const report = runAttempt(f.store, record);
 
+  // ⟶ DATA CHECK, `surface.md §2.11` clause 6 read through `§10.9` row 5 (`P-SM-5`, `S-JOIN`): *"the
+  // commit's op set grew by EXACTLY ONE per repair write"* — the write's own op first, the repair's own
+  // op beside it, both in the SAME commit. The count (`2`) IS the contract's own arithmetic (`1 + 1`) and is
+  // KEPT; what the count could not say is WHICH two ops the commit holds and that they are two DIFFERENT
+  // entries of one commit, so the data check reads `ops` as identities and reads each op's own address.
   assert.equal(repairs, 1, 'S-JOIN: the repair returned by the constraint that triggered it ran once');
   assert.equal(report.ops.length, 2,
     'S-JOIN: the commit\'s op set grew by EXACTLY ONE per repair write — the write\'s own op first, the '
@@ -732,10 +737,23 @@ test('fts_S_JOIN_a_repairs_write_joins_the_same_commit_and_the_op_set_grows_by_e
     + 'more than one" (`§10.9` row 5; `surface.md §2.11` clause 6)');
   assert.equal(report.ops[0].opId, record.op.opId,
     'S-JOIN: the first op of the commit is the write\'s own, VERBATIM (`kernel-surface.md §2.1` item 2)');
+  assert.notEqual(report.ops[1].opId, record.op.opId,
+    'S-JOIN: and the repair\'s op is a DIFFERENT op from the write\'s — the data the uniqueness clause '
+    + '(`ops.length === new Set(opIds).size`) was standing in for, now read as the pair\'s own two ids');
+  assert.equal(new Set(report.ops.map((o) => o.opId)).size, report.ops.length,
+    'S-JOIN: the repair\'s write is a NEW ENTRY and not a second record identity (`§2.11` clause 6)');
+  assert.deepEqual(report.ops[1].address, report.ops[0].address,
+    'and both ops stand at the SAME address — the same commit, one address, two entries');
   assert.equal(report.outcome, 'passed',
     'S-JOIN: the repaired pair passes on the re-run, so no second commit and no repeat arm was reached');
-  assert.equal(report.ops.length === new Set(report.ops.map((o) => o.opId)).size, true,
-    'S-JOIN: the repair\'s write is a NEW ENTRY and not a second record identity');
+  // ⟶ AND THE RCA'S JUDGEMENT, ALREADY PRESENT IN THIS CELL'S BODY AND NOW READ AS DATA: the body above
+  // judges `ctx.value === 'fixed'`, so the store standing at `'fixed'` is a value THIS constraint accepted
+  // (`rca-def-m-passing-repair.md` §"THE ACTUAL GAP"); asserting it makes the cell's green a
+  // discrimination over the landed value rather than a statement about the op set alone.
+  assert.equal(f.store.read([key], 'file'), 'fixed',
+    'S-JOIN: THE LANDED VALUE IS THE ONE THE CONSTRAINT ACCEPTS — the judgement `rca-def-m-passing-repair.md` '
+    + 'names, read off the store after the attempt resolved (`surface.md §2.11` clause 6 read with the RCA\'s '
+    + 'class)');
 });
 
 test('fts_S_JOIN_a_repairs_write_is_an_ordinary_write_and_its_refusal_is_the_kernels_KC_4', async () => {

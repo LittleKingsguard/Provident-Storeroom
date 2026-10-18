@@ -52,7 +52,7 @@ import { dirname, join } from 'node:path';
 
 import {
   kernel, makeStore, tag, KC, assertKernelForm, assertRollbackStep, assertAttemptReport,
-  capture, entries,
+  capture, entries, assertLogEntry,
   passAtRegistration, atLandingOnly,
 } from './constraint-kernel-helpers.mjs';
 
@@ -66,6 +66,27 @@ const FIVE_ITEMS = ['commit', 'log', 'register', 'report', 'runAttempt'];
 /** Every `repair-run` entry whose `id` is the pair's own BARE id (`attempt-lifecycle.md §2.4` item 2). */
 function repairRunsFor(log, id) {
   return entries(log, 'repair-run').filter((e) => e.id === id);
+}
+
+/**
+ * **THE JUDGEMENT `rca-def-m-passing-repair.md` NAMES AS THE SUITE'S MISSING SUBJECT, DECLARED ONCE HERE.**
+ *
+ * The RCA's finding, verbatim: *"THE DEFECT REQUIRES A BODY THAT **JUDGES** THE REPAIRED VALUE — one that
+ * refuses `9` and accepts `2` — AND **NO CELL IN THE SUITE HAS ONE**."* Every passing-arm repair cell in
+ * this directory repairs and then answers `true` unconditionally, so each proves the MECHANISM (an op was
+ * produced, carried and credited) and none proves the JUDGEMENT (that what landed is a value the constraint
+ * accepts). This predicate is that judgement, factored out so no cell re-declares it: its argument is the
+ * value read back off the store's own `read`, its answer is about that value ALONE, and it holds no
+ * reference to how many times anything ran.
+ *
+ * **IT IS TWO-VALUED ON PURPOSE, AND THE NEGATIVE ARM IS HALF ITS VALUE** (the RCA's §"WHAT TO DO ABOUT
+ * IT" item 3: *"plus the negative arm: a repair whose landed value the constraint still refuses"*): §§1's
+ * drive has one constraint that refuses `'broken'` and accepts `'fixed'`, so this answers `true` for the
+ * repaired value and `false` for the refused one — which is what makes a call site's green a
+ * discrimination rather than a tautology.
+ */
+function landedValueJudgedLawful(value) {
+  return value === 'fixed';
 }
 
 /**
@@ -177,8 +198,18 @@ test('ck_repairop_arm_b_the_declared_success_arm_carries_the_op_the_callers_own_
   assert.equal(landed !== null && typeof landed === 'object' && typeof landed.opId === 'string', true,
     'and that value IS an op — the store\'s own `JournalOp`, carrying an `opId`');
   // THE KERNEL'S OWN CARRIAGE: the op it ADDS IS `returnValue.op`, and it is added ONCE
+  //
+  // ⟶ DATA CHECK (`attempt-lifecycle.md §2.4` item 1: `ops` is *"EVERY op the attempt created, in
+  // CREATION order"*; item 4 arm `(b)`). The count below is the contract's own ARITHMETIC for this arm —
+  // the first write's op + the ONE op the repair landed — so it is KEPT; what the count could not say
+  // is WHICH two ops the attempt holds, and that is the property. The data check reads `ops` as a LIST of
+  // identities: the first write's op first, the repair's landed op second, no third member of either.
+  assert.deepEqual(attempt.ops.map((o) => o.opId), [commitRecord.op.opId, landed.opId],
+    'the attempt\'s `ops` IS the first write\'s op followed by the one op the repair landed, in CREATION '
+    + 'order \u2014 read off the list\'s members and never off its length (`attempt-lifecycle.md §2.4` item 1)');
   assert.equal(attempt.ops.length, 2,
-    'the attempt\'s `ops` carries the first write\'s op and the one op the repair landed — TWO and no third');
+    'and the arithmetic is the contract\'s own: the first write\'s op + the one op the repair landed, '
+    + 'TWO and no third (`attempt-lifecycle.md §2.4` item 4 arm `(b)`)');
   assert.equal(attempt.ops[1].opId, returned.op.opId,
     'THE OP THE KERNEL APPENDS IS `returnValue.op` — read off the repair\'s own return and nowhere else '
     + '(`§2.7`\'s `observable` cell, the seam\'s ONE home)');
@@ -190,15 +221,58 @@ test('ck_repairop_arm_b_the_declared_success_arm_carries_the_op_the_callers_own_
     'and its `address` is the address the repair wrote at, unchanged');
   assert.equal(attempt.ops.filter((o) => o.opId === landed.opId).length, 1,
     'the op is credited EXACTLY ONCE — no second route contributes a second copy of it');
+  // ⟶ DATA CHECK ON THE `repair-run` ENTRY (`attempt-lifecycle.md §2.4` item 4 arm `(b)`: *"appends a
+  // `constraint-check` entry and a `repair-run` entry"*; `kernel-surface.md §2.5` item 1's kind table).
+  // The count is the arithmetic of ONE repair for ONE pair; its members are the property — the pair's
+  // own bare id, the arm's kind, the op it names, and the `null` state a non-`outcome` kind carries.
   const runs = repairRunsFor(attempt.log, 'x');
   assert.equal(runs.length, 1, 'the pair\'s repair ran once');
+  assertLogEntry(runs[0], 'the pair\'s one `repair-run` entry');
+  assert.equal(runs[0].kind, 'repair-run', 'and the entry IS the `repair-run` kind arm `(b)` appends');
+  assert.equal(runs[0].id, 'x', 'and it names the pair\'s own BARE id (`§2.4` item 2)');
+  assert.equal(runs[0].state, null, 'and a non-`outcome` kind carries `null` state (`fail-surface.md §1.1` item 1 (b))');
   assert.equal(runs[0].opId, landed.opId,
     'and its `repair-run` entry names the op the repair landed (`attempt-lifecycle.md §2.4` item 4 (b))');
   // THE STORE ITSELF STANDS WHERE THE CALLER'S OWN VERB PUT IT
   assert.equal(store.read(address), 'fixed',
     'the caller\'s own write verb landed the value, and the attempt resolved on it');
-  assert.equal(report(store, commitRecord.attempt).ops.length, 2,
-    'and the closed record `K-5` answers carries the same two ops');
+  // ⟶ AND THE CLOSED RECORD'S OWN DATA, not its length: `K-5` answers the SAME two ops, by identity, in
+  // the same order — the assertion the count (`2`) was standing in for (`kernel-surface.md §2.1` item 3).
+  const closedOps = report(store, commitRecord.attempt).ops;
+  assert.deepEqual(closedOps.map((o) => o.opId), attempt.ops.map((o) => o.opId),
+    'and the closed record `K-5` answers carries the SAME two ops, by identity and in the same order');
+  assert.equal(closedOps.length, 2,
+    'and the arithmetic holds on the closed record too — the two ops this attempt created and no third');
+  // ═════════════════════════════════════════════════════════════════
+  // ⟶ THE MISSING JUDGEMENT — `rca-def-m-passing-repair.md`'s CLASS, ADDED HERE AT ITS OWN CITED CELL.
+  // The RCA's finding, at this very cell's bytes: *"ITS SECOND EVALUATION RETURNS `true` UNCONDITIONALLY —
+  // IT DOES NOT READ THE REPAIRED VALUE ... SO THE CELL PROVES THE REPAIR'S OP LANDED AND THE STORE HOLDS
+  // `'fixed'`, WHICH IS TRUE — AND IT CANNOT PROVE THE CONSTRAINT ACCEPTED WHAT LANDED."* The body above
+  // is left EXACTLY as filed (it is the mechanism this file drives, and its `true` is arm `(g)`'s own
+  // trigger). What is added is the JUDGEMENT, read off the store after the attempt resolved: the one value
+  // that stands at the attempt's address IS a value this drive's constraint accepts, and the value the
+  // attempt was COMMITTED at — the one the constraint refused — does NOT stand there.
+  const standAfter = store.read(address);
+  assert.equal(standAfter, 'fixed',
+    'THE LANDED VALUE IS THE ONE THE CONSTRAINT ACCEPTS — the judgement `rca-def-m-passing-repair.md` '
+    + 'names as the property no cell of this suite had (`parameter-semantics.md §2.7` is the seam this '
+    + 'reads; the declaration the RCA asks for is `§2.7`\'s own passing-arm clause, owed at the spec)');
+  assert.equal(landedValueJudgedLawful(standAfter), true,
+    'AND THE JUDGEMENT IS A PREDICATE OVER THE VALUE, NOT A COUNT: the drive\'s own constraint refuses '
+    + 'the committed value and accepts the repaired one, so the store standing at the repaired value is '
+    + 'the property; a store standing at the REFUSED value after a `passed` attempt fails HERE even '
+    + 'where every op, entry and count above is exactly as declared');
+  assert.notEqual(standAfter, 'broken',
+    'and the REFUSED value does NOT stand — the specific state DEF-M left behind (a `passed` write with '
+    + 'the store holding the value the constraint refused) is refused by this cell');
+  // ⟶ AND THE NEGATIVE ARM THE RCA ASKS FOR (§"WHAT TO DO ABOUT IT" item 3: *"plus the negative arm: a
+  // repair whose landed value the constraint still refuses"*): the SAME judgement, applied to the value the
+  // repair was asked to replace, answers `false` — so the cell's judgement is two-valued and its GREEN is
+  // a discrimination and not a tautology.
+  assert.equal(landedValueJudgedLawful('broken'), false,
+    'AND THE JUDGEMENT IS FALSIFIABLE — the same predicate applied to the value the constraint REFUSED '
+    + 'answers `false`, so the check above discriminates rather than accepting anything '
+    + '(`rca-def-m-passing-repair.md` §"WHAT TO DO ABOUT IT" item 3)');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
