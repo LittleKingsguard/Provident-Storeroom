@@ -109,7 +109,7 @@ domain is per-argument; both are closed.** Every cell below names what the store
 | **`delete`** | **legal** — every tier at the target (`§4.3`) | **legal** | **`OutOfDomainTier`** | **`OutOfDomainTier`** | **`OutOfDomainTier`** | **`OutOfDomainTier`** | **`AddressMalformed`** (`PAR-4`) |
 | **`findAddress`** | as `read` | as `read` | as `read` | as `read` | as `read` | **`OutOfDomainTier`** | **`AddressMalformed`** (`PAR-2`) |
 | **`watch`** *(the STOPGAP row — **⟶ SUPERSEDED 2026-10-11 by the `listen` row below; the as-filed cells stand byte-for-byte and are read through this amendment**)* | **legal** — the registration is address-keyed, not tier-keyed (`§6.5`) | **legal** — **and this tier is the registration's TIER QUALIFIER, whose effect on the returned list is stated at `§6.5` item 7** | **legal** — **a zero-token set is the same as `tier` absent: the registration is unqualified, and `§6.5` item 7 states its effect** | **legal** — **a one-token set is the same qualifier as the single token** | **legal** — **the set is the registration's qualifier set** | **`OutOfDomainTier`** | **`AddressMalformed`** (`PAR-2`) |
-| **`listen`** (*added 2026-10-11*) | **legal** — the registration is address-keyed and carries NO tier (`DD-36`) | **`OutOfDomainTier`** — **the surface's arity is `listen(address)`, so a tier-shaped argument is an argument this verb's arity does not carry** | **`OutOfDomainTier`** | **`OutOfDomainTier`** | **`OutOfDomainTier`** | **`OutOfDomainTier`** | **`AddressMalformed`** (`PAR-13`) |
+| **`listen`** (*added 2026-10-11*) — **⟶ SUPERSEDED 2026-10-18: THIS ROW'S *"the surface's arity is `listen(address)`"* CLAUSE IS SUPERSEDED BY `Store::listen`'s TWO POSITIONS, AND THE ROW'S CELLS STAND BYTE-FOR-BYTE AND ARE READ THROUGH THIS MARK** (`docs/specs/storeroom-held-listener-identity/listen-verb.md §1` item 2; `docs/specs/storeroom-native/contract.md §0.4`'s amended `Store::listen` row — *"TWO PARAMETERS, ARITY `2` … THE VERB DOES NOT MINT AND RETURNS NO HANDLE"*) | **legal** — the registration is address-keyed and carries NO tier (`DD-36`) | **`OutOfDomainTier`** — **the surface's arity is `listen(address)`, so a tier-shaped argument is an argument this verb's arity does not carry** — **⟶ READ THROUGH THE 2026-10-18 MARK: the operative arity is `2`, the second position is the ADDRESS SET, and a tier-shaped argument there is `AddressMalformed` and not `OutOfDomainTier`** | **`OutOfDomainTier`** | **`OutOfDomainTier`** | **`OutOfDomainTier`** | **`OutOfDomainTier`** | **`AddressMalformed`** (`PAR-13`) |
 | **`unlisten`** (*added 2026-10-11*) | — (**the verb takes a `ListenerHandle` and no tier**) | — | — | — | — | — | — |
 | **`readLiteral`** | as `read` — **and the form's own success shape is `§4.1`'s literal-only row** | as `read` | as `read` | as `read` | as `read` | **`OutOfDomainTier`** | **`AddressMalformed`** |
 | **`storeCreate`** | — (no per-call tier) | — | — | — | — | — | — |
@@ -145,7 +145,16 @@ ANNOTATE-BESIDE; `DD-36`). **THE AMENDMENT, IN THREE CLAUSES AND NOTHING ELSE:**
 2. **THE `listen` ROW'S ARITY IS `one address, no tier`** — **so a tier-shaped second argument is an
    argument the verb's arity does not carry, and its answer is `OutOfDomainTier`; a `null`/`undefined`
    address is `AddressMalformed`, exactly as `PAR-1` states.** **The verb's own registration clause is
-   `write-and-read.md §6.5`'s listener items.**
+   `write-and-read.md §6.5`'s listener items.** — **⟶ SUPERSEDED 2026-10-18 (`RCA-8(d)` ANNOTATE-BESIDE:
+   **every byte of this item stands BYTE-FOR-BYTE and is read THROUGH this mark; the item is NOT withdrawn
+   and NOT rewritten**). **THE CLAIM THIS ITEM'S ARITY FIGURE `one address` MAKES IS SUPERSEDED, AND THE
+   OPERATIVE FIGURE IS `2`: `listen` TAKES THE CALLER'S HANDLE AT POSITION `1` AND A SET OF ADDRESSES AT
+   POSITION `2`, so the second position is the ADDRESS SET and not a second address, and a tier-shaped
+   argument is outside a POSITION whose class test is the set-position test rather than outside the verb's
+   arity.** **THE SUPERSEDING SITES, NAMED BY PATH AND `§n` SO NEITHER END IS LEFT IMPLICIT: `docs/specs/storeroom-held-listener-identity/listen-verb.md §1` item 2 (the arity figure `1 → 2` and its four declared
+   JS sites) and `docs/specs/storeroom-native/contract.md §0.4`'s amended `Store::listen` row and its
+   four-row clause of 2026-10-18** (`docs/specs/storeroom-held-listener-identity/contract.md §2.2` items 1–2;
+   `[T: the arity figure's supersession, marked at its own site with both ends named | CROSS-REF]`).
 3. **`storeCreate`'s ROW IS UNMOVED BY THIS TABLE and its own arity is stated at
    `seams-and-lifecycle.md §7.1`** — **the construction takes `filePath?`, `journalLength` and
    `listeners[]`, and NO per-call tier** (the ordered sequence is that section's amendment).
@@ -156,8 +165,26 @@ ANNOTATE-BESIDE; `DD-36`). **THE AMENDMENT, IN THREE CLAUSES AND NOTHING ELSE:**
    **`Store::listen(address: AddressArg) -> Result<ListenerHandle, StoreError>` carries ONE argument and NO
    tier slot, and `Listener`/`ListenerEntry` carry `{ address, handle }` and NO tier member**
    (`docs/specs/storeroom-native/contract.md §0.4`; `A57`; **`DD-36`: *"a listener's `address` is the WHOLE of
-   its key: NOTHING carries over from the superseded registration's tier qualifier"***). **A tier-shaped
-   second argument CANNOT BE PASSED to `listen` at all** — so the row's `tier`-column cells are **NOT
+   its key: NOTHING carries over from the superseded registration's tier qualifier"***). — **⟶ SUPERSEDED
+   2026-10-18 (`RCA-8(d)` ANNOTATE-BESIDE: **this quoted signature stands BYTE-FOR-BYTE and is read THROUGH
+   this mark; the item's own `Listener`/`ListenerEntry` two-member clause is UNMOVED and NOT superseded — what
+   moves is the VERB'S argument list, not either record**). **THE OPERATIVE SPELLING IS
+   `Store::listen(&mut self, handle: &ListenerHandle, addresses: &[Vec<Segment>]) -> Result<(), StoreError>`:
+   TWO parameters, NO tier slot on either, and the answer `()`. THE QUOTED FORM ABOVE CARRIES ONE ARGUMENT
+   AND RETURNS A HANDLE, AND NEITHER HALF IS THE CRATE'S SUBJECT ANY MORE.** **THE SUPERSEDING SITES:
+   `docs/specs/storeroom-held-listener-identity/listen-verb.md §1` item 2 and `docs/specs/storeroom-native/contract.md §0.4`'s
+   amended `Store::listen` row and its four-row clause of 2026-10-18** (`docs/specs/storeroom-held-listener-identity/contract.md §2.2` items 1 and 10;
+   `[T: the quoted signature's supersession, so a reader does not write a one-argument call from this item | CROSS-REF]`). **A tier-shaped
+   second argument CANNOT BE PASSED to `listen` at all** — **⟶ SUPERSEDED 2026-10-18 (`RCA-8(d)` ANNOTATE-BESIDE:
+   **the sentence stands BYTE-FOR-BYTE and is read THROUGH this mark; what follows IT in this item — the
+   `tier` column's `—` reading, the six other rows that reach the answer, the `F-4` reconciliation, and the
+   refusal of a tier-shaped parameter — STANDS WHOLE AND UNMOVED, because its subject is a TIER SLOT and
+   `listen` carries none on either position**). **THE CLAIM THAT IS SUPERSEDED IS THE ARITY HALF: a SECOND
+   ARGUMENT IS PASSED — the address set, at position `2`, and the caller's handle at position `1`.** **SO THE
+   CLEAN READING OF THE SENTENCE IS *"no TIER-SHAPED argument can be passed"*, and its *"a second argument
+   … at all"* phrasing is the arity figure `1` this mark supersedes** (`docs/specs/storeroom-held-listener-identity/listen-verb.md §1` items 1–2;
+   `docs/specs/storeroom-native/contract.md §0.4`'s amended `Store::listen` row and its four-row clause of 2026-10-18;
+   `[T: the arity half of the sentence superseded while its tier half stands, so no clause of this item is lost | CROSS-REF]`). — so the row's `tier`-column cells are **NOT
    REACHABLE STATES OF THIS VERB**, **while the ANSWER ITSELF (`OutOfDomainTier`) IS REACHED BY SIX OTHER ROWS
    OF THIS SAME TABLE** (`read` · `write` · `delete` · `findAddress` · `readLiteral` — each of which declares a
    `tier` slot — **and `watch`'s superseded row**), **each of them answering it for a tier-shaped argument, as

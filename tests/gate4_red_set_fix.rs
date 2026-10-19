@@ -98,19 +98,28 @@ fn ng_a_a_blank_handle_token_is_outside_the_construction_s_domain() {
 
     // (2) *"a rejected array admits NOTHING"* — driven, and not merely named: the VALID entry that stood
     // beside the refused one is not in the home of ANY instance, because NO instance was returned at all.
-    // The observable is `listen`'s own address-level idempotence: the address the rejected array had named
-    // (`b`) is STILL NEW to a fresh instance, so `listen` MINTS a fresh token for it rather than handing back
-    // the caller's (`§0.4` clause 2: *"a freshly minted token for a NEW registration … the EXISTING entry's
-    // handle where the address is ALREADY registered"*).
+    // **⟶ RE-DERIVED 2026-10-18: THE OBSERVABLE IS THE HOME'S EMPTINESS AND NOT A MINT** (`contract.md
+    // §0.4`'s amended `Store::listen` row, 2026-10-18: *"THE VERB DOES NOT MINT AND RETURNS NO HANDLE"*;
+    // `P: docs/pending.md · P-6`: *"You don't need to mint anything"*; and the address-level idempotence this
+    // clause once read is itself DELETED — `kernel-selection.md §2.3`'s `R-B1`, *"Purge wins — delete
+    // `first_at`'s idempotence"*). **So the drive asserts the state directly: a FRESH instance holds NO
+    // home entry at `b`, so a write there fires NOTHING.** That is *"a rejected array admits NOTHING"* at its
+    // own subject, and it no longer depends on a token the verb cannot produce.
     let mut fresh = new_store();
-    let minted = ok(
-        fresh.listen(AddressArg::List(key(&["b"]))),
-        "§6.5 item 12: the address the rejected array named",
+    let untouched = ok(
+        fresh.write(AddressArg::List(key(&["b"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3 at the address the rejected array named",
     );
     assert!(
-        !(minted == handle("ng-a-well-shaped")),
+        untouched.triggered.is_empty(),
         "§7.1's amended `cfg.listeners` row: a rejected array admits NOTHING — the entry that stood beside \
-         the blank-token one was not adopted, so this address is NEW and a fresh token is minted for it"
+         the blank-token one was not adopted, so the fresh instance's home holds NO entry at `b` and a write \
+         there fires nothing"
+    );
+    // AND THE CALLER'S TOKEN REALLY IS UNHELD: `unlisten` over it removes nothing (`PAR-13`'s no-op success).
+    ok(
+        fresh.unlisten(&handle("ng-a-well-shaped")),
+        "PAR-13: the token the refused array named is OUTSIDE the domain — a NO-OP SUCCESS and no code",
     );
 
     // (2') AND THE ADMITTED ARRAY IS THE CONTROL, so the refusals above are the BLANK TOKEN's and not the
@@ -136,8 +145,9 @@ fn ng_a_a_blank_handle_token_is_outside_the_construction_s_domain() {
 
     // (3) THE SAME BLANK TOKEN AT `unlisten` IS NOT A FAILURE (`§0.4` clause 3's second half; `§6.5`
     // item 6; `PAR-13`): the no-op success, with no other registration removed.
-    let bound = ok(
-        fresh.listen(AddressArg::List(key(&["keep"]))),
+    let bound = handle("ng-a-keep");
+    ok(
+        fresh.listen(&bound, &[key(&["keep"])]),
         "§6.5 item 12: a registration that must survive",
     );
     ok(
@@ -558,17 +568,28 @@ fn ng_c_a_handle_token_colliding_with_a_minted_one() {
         )),
         "DD-39: every entry is adopted verbatim",
     );
-    let fresh = ok(
-        store.listen(AddressArg::List(key(&["brand-new"]))),
-        "§6.5 item 12: a NEW address mints a token",
+    // **⟶ RE-DERIVED 2026-10-18 — THE MINT HAS NO SUBJECT, SO THIS STATE IS DRIVEN AT ITS OWN SUBJECT: THE
+    // CALLER-SPELLED TOKEN AND THE HOME'S ADOPTION** (`contract.md §0.4`'s amended `Store::listen` row,
+    // 2026-10-18: *"THE VERB DOES NOT MINT AND RETURNS NO HANDLE"*; `P: docs/pending.md · P-6`'s minting
+    // ruling; `kernel-selection.md §2.3`'s `R-B1` deletes `first_at` and the skip loop with `holds_token`).
+    // **`HL-DD-1` states the surviving requirement in the caller's own terms: *"the store holds AT MOST ONE
+    // LIVE ENTRY PER HANDLE STRING"*** (`docs/specs/storeroom-held-listener-identity/contract.md §2.1`
+    // item 1) — so the drive lands a CALLER token at a NEW address beside the adopted range, and asserts the
+    // range's own tokens are still each held exactly once by the entries that named them (the trigger set at
+    // each address is exactly its own entry's token).
+    let fresh_token = handle("ng-c-brand-new");
+    ok(
+        store.listen(&fresh_token, &[key(&["brand-new"])]),
+        "§2.2 item 1/§6.5 item 12: the caller spells the handle for a NEW address",
     );
-    let collided = caller_tokens.iter().any(|token| fresh == handle(token));
+    let collided = caller_tokens.iter().any(|token| fresh_token == handle(token));
     assert!(
         !collided,
-        "PAR-13: a handle is *\"unique PER STORE INSTANCE and PER SESSION\"* — the store's own mint must \
-         not equal a token its own home already carries (a collision makes `unlisten` mis-target and a \
-         returned list carry a duplicated member). The minted token collided with an adopted one: \
-         AM-4's undeclared state, SPEC-FIX routed; the cell is NOT weakened to accommodate it."
+        "PAR-13/HL-DD-1: the caller's own tokens are DISTINCT from the token this drive spelled — the \
+         uniqueness the retired mint rule once produced is now the CALLER's datum (`P: docs/pending.md · \
+         P-6`: *\"You don't need to mint anything\"*), so a drive supplies distinct tokens and the store \
+         holds AT MOST ONE LIVE ENTRY PER HANDLE STRING. The cell is not weakened: a caller-spelled \
+         collision is `DD-42` clause (2)'s OWN declared state and is driven at `NG-C`'s two-entry cells."
     );
     // And the caller's own address is still the entry it registered: the trigger returns ONE handle there.
     let w = ok(
@@ -651,7 +672,7 @@ fn ng_c_a_handle_token_colliding_with_a_minted_one() {
          forbids)"
     );
     assert!(
-        w3.triggered.iter().all(|h| *h == twice),
+        w3.triggered.iter().all(|t| t.handle == twice),
         "§0.4 clause 2 (b)/DD-42: every returned member is the CALLER'S token — the store mints nothing at \
          this state, so no third token appears in the list"
     );
@@ -683,7 +704,7 @@ fn ng_c_a_handle_token_colliding_with_a_minted_one() {
          construction mints no graph node (§7.1 steps 5–6; A48)",
     );
     assert!(
-        pair_parent.triggered.iter().any(|h| *h == nested),
+        triggered_handles(&pair_parent.triggered).contains(&nested),
         "§6.5 item 8 (d): the registration AT the parent address fires at the write at its own address — \
          the nested entry does NOT (the prefix test runs downward only, DD-18)"
     );
@@ -699,7 +720,7 @@ fn ng_c_a_handle_token_colliding_with_a_minted_one() {
          was minted, so the duplicated member is the declared answer here)"
     );
     assert!(
-        pair_nested.triggered.iter().all(|h| *h == nested),
+        pair_nested.triggered.iter().all(|t| t.handle == nested),
         "§0.4 clause 2 (b): the adoption is VERBATIM — no newly minted token appears beside the caller's \
          two entries"
     );
@@ -724,7 +745,7 @@ fn check_two_registrations_fire(store: &mut Store, token: &ListenerHandle) {
          — the construction mints no graph node (`§7.1` steps 5–6; `A48`)",
     );
     assert!(
-        parent.triggered.iter().any(|h| *h == *token),
+        triggered_handles(&parent.triggered).contains(token),
         "DD-39/§6.5 item 8 (d): the entry registered AT the parent address is fired by the write at its own \
          address — the first of the two registrations"
     );
@@ -733,7 +754,7 @@ fn check_two_registrations_fire(store: &mut Store, token: &ListenerHandle) {
         "§3.4 W-3: a write whose address both entries' addresses prefix",
     );
     assert!(
-        before.triggered.iter().any(|h| *h == *token),
+        triggered_handles(&before.triggered).contains(token),
         "DD-39: the collided token is in the home and fires — the pre-state `NG-C` withdraws from"
     );
 }

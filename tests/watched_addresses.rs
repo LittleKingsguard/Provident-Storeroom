@@ -70,8 +70,9 @@ use support::*;
 #[test]
 fn s6_5_listen_returns_a_handle_and_unlisten_removes_one_registration() {
     let mut store = new_store();
-    let handle = ok(
-        store.listen(AddressArg::List(key(&["a"]))),
+    let handle_tag = handle("wa-h1");
+    let handle = handle_tag.clone();
+    ok(store.listen(&handle, &[key(&["a"])]),
         "§6.5 item 12: `listen` mints the handle",
     );
     ok(
@@ -95,7 +96,9 @@ fn s6_5_listen_returns_a_handle_and_unlisten_removes_one_registration() {
 #[test]
 fn s6_5_a_listener_bound_at_the_write_s_own_address_is_triggered() {
     let mut store = new_store();
-    let h = ok(store.listen(AddressArg::List(key(&["a"]))), "§6.5 item 12");
+    let h_tag = handle("wa-h2");
+    let h = h_tag.clone();
+    ok(store.listen(&h, &[key(&["a"])]), "§6.5 item 12");
     let w = ok(
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
         "§3.4 W-3",
@@ -116,8 +119,9 @@ fn s6_5_a_listener_bound_at_the_write_s_own_address_is_triggered() {
 #[test]
 fn s6_5_a_listener_bound_at_an_ancestor_is_triggered_by_a_write_through_it() {
     let mut store = new_store();
-    let ancestor = ok(
-        store.listen(AddressArg::List(key(&["a"]))),
+    let ancestor_tag = handle("wa-h3");
+    let ancestor = ancestor_tag.clone();
+    ok(store.listen(&ancestor, &[key(&["a"])]),
         "§6.5 item 12 at the ancestor",
     );
     ok(
@@ -145,20 +149,24 @@ fn s5_8_s_watch_i_the_handle_set_is_exactly_own_and_ancestor() {
         store.write(AddressArg::List(key(&["root"])), w_mem(), v_obj(&[])),
         "§3.4 W-4: the ancestor exists",
     );
-    let own = ok(
-        store.listen(AddressArg::List(key(&["root", "own"]))),
+    let own_tag = handle("wa-h4");
+    let own = own_tag.clone();
+    ok(store.listen(&own, &[key(&["root", "own"])]),
         "§6.5 item 12: the write's own address",
     );
-    let ancestor = ok(
-        store.listen(AddressArg::List(key(&["root"]))),
+    let ancestor_tag = handle("wa-h5");
+    let ancestor = ancestor_tag.clone();
+    ok(store.listen(&ancestor, &[key(&["root"])]),
         "§6.5 item 12: a strict ancestor",
     );
-    let descendant = ok(
-        store.listen(AddressArg::List(key(&["root", "own", "deep"]))),
+    let descendant_tag = handle("wa-h6");
+    let descendant = descendant_tag.clone();
+    ok(store.listen(&descendant, &[key(&["root", "own", "deep"])]),
         "§6.5 item 12: a strict descendant",
     );
-    let unrelated = ok(
-        store.listen(AddressArg::List(key(&["unrelated"]))),
+    let unrelated_tag = handle("wa-h7");
+    let unrelated = unrelated_tag.clone();
+    ok(store.listen(&unrelated, &[key(&["unrelated"])]),
         "§6.5 item 12: an unrelated address",
     );
     let w = ok(
@@ -170,12 +178,12 @@ fn s5_8_s_watch_i_the_handle_set_is_exactly_own_and_ancestor() {
         "§5.8 (a): EXACTLY the prefix set's handles — no member added and none omitted"
     );
     assert!(
-        !w.triggered.iter().any(|h| *h == descendant),
+        !triggered_handles(&w.triggered).contains(&descendant),
         "§5.8's failure list: a strict DESCENDANT of the write's address is not triggered (the write \
          resolves to the address and passes through its ancestors, not through its descendants)"
     );
     assert!(
-        !w.triggered.iter().any(|h| *h == unrelated),
+        !triggered_handles(&w.triggered).contains(&unrelated),
         "§5.8's failure list: *\"a handle returned where no listener's address is a prefix\"*"
     );
 }
@@ -194,8 +202,9 @@ fn s5_8_both_lists_are_empty_iff_no_listener_s_address_is_a_prefix() {
         w.watched.is_empty() && w.triggered.is_empty(),
         "§5.8: nothing is registered, so both lists are empty"
     );
+    let wa_h8 = handle("wa-h8");
     ok(
-        store.listen(AddressArg::List(key(&["elsewhere"]))),
+        store.listen(&wa_h8, &[key(&["elsewhere"])]),
         "§6.5 item 12",
     );
     let w2 = ok(
@@ -208,75 +217,108 @@ fn s5_8_both_lists_are_empty_iff_no_listener_s_address_is_a_prefix() {
     );
 }
 
-// **⟶ RE-DERIVED 2026-10-11 (SECOND RE-DERIVATION, `CF-1`) — THE SHIPPED ADDRESS-LEVEL IDEMPOTENCE IS
-// CARRIED TO THE LISTENER SURFACE** (`§6.5` item 2's *"registering the same address twice is idempotent"*).
-// **THE OPERATIVE RULE FOR A SECOND `listen` AT AN ALREADY-REGISTERED ADDRESS IS THE CONTRACT'S OWN, IN ITS
-// TWO HOMES:** **`contract.md §0.4`'s construction-rule clause 2** — *"by `listen(address)`, which returns a
-// freshly minted token for a NEW registration and the EXISTING entry's handle where the address is ALREADY
-// registered (the shipped address-level idempotence, `§6.5` item 2, carried to the listener surface by
-// `A45`'s one home)"* — **and `write-and-read.md §6.5` item 12 (c)**, which states the same rule with its
-// consequence: *"a `listen(address)` whose address IS already registered returns the EXISTING entry's handle
-// rather than minting a second one — … which is why `unlisten` over the returned handle removes exactly one
-// entry."* **SO THE SECOND CALL RETURNS THE HANDLE THE HOME ALREADY HOLDS: the home holds ONE entry, the
-// trigger fires that ONE handle ONCE, and the ADDRESS list keeps its distinctness, which IS carried
-// unchanged** (`§6.5` item 2's KEPT half; item 13). **`DD-39`'s `alt` prices the OPPOSITE carry-over** (*"the
-// shipped idempotence rule belonged to a surface `A58` supersedes"*), **but that cell governs the
-// CONSTRUCTION's `listeners[]` population and not this verb** (`§6.5` item 12 (b) states the construction's
-// own rule; `tests/construction.rs`'s duplicate-address cell drives it): **the contract's operative clause 2
-// governs here, and this cell follows it.**
-// Drives: §6.5 items 2, 8 (a), 12 (b)/(c), 13; §5.8 (a), (e); §0.4 clause 2; PAR-13
+// **⟶ RE-DERIVED 2026-10-18 (THIRD RE-DERIVATION) — THE ADDRESS-LEVEL IDEMPOTENCE IS DELETED, AND THIS CELL
+// MOVES TO ITS CLAUSE'S REAL SUBJECT: ONE HANDLE ACTED ON TWICE.** **THE CELL WAS NAMED
+// `s6_5_listening_twice_at_one_address_is_idempotent_and_returns_the_existing_handle` AND IT ASSERTED
+// `h1 == h2`; BOTH THAT NAME AND THAT ASSERTION ARE RETIRED HERE AND NOT SILENTLY DROPPED.**
+//
+// **WHY THE OLD FORM CANNOT SURVIVE, STATED PRECISELY: the old cell's two calls were `listen(address)`, which
+// MINTED, so its `h1` and `h2` named the SAME registration observed twice and `h1 == h2` was the idempotent
+// return's claim. With the mint gone (`contract.md §0.4`'s amended `Store::listen` row, 2026-10-18: *"POSITION
+// `1` IS THE CALLER-SPELLED HANDLE, ADOPTED AND NOT MINTED … THE VERB DOES NOT MINT AND RETURNS NO HANDLE"*;
+// `P: docs/pending.md · P-6`: *"You don't need to mint anything"*), two `listen` calls carry two CALLER-CHOSEN
+// handles, and their equality is the CALLER's datum — a store cannot and need not assert it.**
+//
+// **THE OPERATIVE CLAUSES, EACH AT ITS OWN SUBJECT — AND EACH SCOPED TO ONE HANDLE IN BOTH POSITIONS:**
+// **`docs/specs/storeroom-held-listener-identity/contract.md §2.2` item 3** — *"THE SET IS AN ASSIGNMENT, NOT A
+// UNION. **`listen(h, S2)` after `listen(h, S1)`** DESTROYS `S1` WHOLLY AND INSTALLS `S2` … **`listen(h, S1)`
+// then `listen(h, S1)`** IS IDEMPOTENT ONLY IN EFFECT — purge then reinstall the same set — and never by a fast
+// path"*; **`§5.2` `P-HL-2`** — *"THE PURGE IS BY HANDLE and it never enumerates and never consults a count"*,
+// whose strategy `S-PURGE-SET` reads *"`listen(h, S1)` then `listen(h, S2)`: the standing set is `S2` alone and
+// never `S1 ∪ S2`"* and whose `test-cases.md` `V-4`/`V-5` rows carry the same single `h`; **and `LF-7`**
+// (`listen-verb.md §8`), the fail row about a boot path that did not go through `listen`. **THE RULING THAT
+// DELETED THE IDEMPOTENCE NAMES THE SAME SCOPE: `kernel-selection.md §2.3`'s `R-B1` — *"Purge wins — delete
+// `first_at`'s idempotence"*** — removes the *"already registered, so mint nothing"* arm and leaves the
+// per-handle assignment standing.
+//
+// **THE STATES THIS MODEL ENUMERATES, EACH WITH ITS DECLARED ANSWER:**
+//   (1) `listen(h, S1)` then `listen(h, S2)`, disjoint — **the standing set is `S2` ALONE: `S1`'s addresses
+//       fire NOTHING and `S2`'s fire `h`** (§2.2 item 3; `§5.2`'s `S-PURGE-SET`, the union refused);
+//   (2) `listen(h, S1)` then `listen(h, S1)` — **idempotent IN EFFECT: ONE entry and ONE fire, by purge then
+//       reinstall and never a fast path** (§2.2 item 3's closing sentence);
+//   (3) the address set's distinctness — **ONE distinct address per act, unmoved** (§6.5 item 2's kept half;
+//       item 13);
+//   (4) `unlisten(h)` after (1) — **removes ONE entry and no other registration** (§6.5 item 12).
+// Drives: held-listener `contract.md §2.2` item 3; `§5.2` `P-HL-2`'s `S-PURGE-SET`; `LF-7`; §5.8 (a), (e);
+// §6.5 items 2, 12, 13
 #[test]
-fn s6_5_listening_twice_at_one_address_is_idempotent_and_returns_the_existing_handle() {
+fn hl_2_2_a_repeated_listen_is_an_assignment_over_the_handles_own_set() {
+    // (1) THE SAME HANDLE AT A DIFFERENT SET: `S1` DESTROYED WHOLLY, `S2` INSTALLED — THE UNION IS REFUSED.
     let mut store = new_store();
-    let h1 = ok(
-        store.listen(AddressArg::List(key(&["a"]))),
-        "§6.5 item 12: the first registration mints the home's handle",
+    let h = handle("wa-h9-assigned");
+    ok(
+        store.listen(&h, &[key(&["a"])]),
+        "§2.2 item 3 / §5.2's `S-PURGE-SET`: `listen(h, S1)` — one handle at one address",
     );
-    let h2 = ok(
-        store.listen(AddressArg::List(key(&["a"]))),
-        "§6.5 item 12 (c): the same address again — the EXISTING entry's handle comes back",
+    ok(
+        store.listen(&h, &[key(&["b"])]),
+        "§2.2 item 3: `listen(h, S2)` — `S1` DESTROYED WHOLLY and `S2` installed; the standing set is `S2` \
+         ALONE and never `S1` ∪ `S2`",
+    );
+    let at_a = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3 at the RETIRED address",
     );
     assert!(
-        h1 == h2,
-        "§6.5 item 12 (c)/§0.4 clause 2: *\"a `listen(address)` whose address IS already registered returns \
-         the EXISTING entry's handle rather than minting a second one\"*"
+        at_a.triggered.is_empty() && at_a.watched.is_empty(),
+        "§5.2's `S-PURGE-SET`: *\"the standing set is `S2` alone and never `S1` ∪ `S2`\"* — the address the \
+         earlier act named fires NOTHING, because the second act purged it rather than uniting with it. \
+         (`R-B1`'s *\"Purge wins\"* is this assertion, and the retired `first_at` arm is what it deletes.)"
     );
-    let w = ok(
-        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+    let at_b = ok(
+        store.write(AddressArg::List(key(&["b"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3 at the installed address",
+    );
+    assert!(
+        same_handle_set(&at_b.triggered, &one_handle(&h)),
+        "§2.2 item 3/§5.8 (a): the installed set `S2` fires the ONE handle, and no member is added or omitted"
+    );
+
+    // (2) THE SAME HANDLE AT THE SAME SET AGAIN: idempotent IN EFFECT, never by a fast path.
+    ok(
+        store.listen(&h, &[key(&["b"])]),
+        "§2.2 item 3's closing sentence: *\"`listen(h, S1)` then `listen(h, S1)` IS IDEMPOTENT ONLY IN \
+         EFFECT — purge then reinstall the same set — and never by a fast path\"*",
+    );
+    let again = ok(
+        store.write(AddressArg::List(key(&["b"])), w_mem(), v_num(2.0)),
         "§3.4 W-3",
     );
-    assert_eq!(
-        w.triggered.len(),
-        1,
-        "§6.5 item 12 (c): the home holds ONE entry at the address, so the trigger fires ONE handle"
-    );
     assert!(
-        same_handle_set(&w.triggered, &one_handle(&h1)),
-        "§5.8 (a): the trigger's whole answer is that ONE home entry's handle — no member added, no member \
-         omitted"
+        same_handle_set(&again.triggered, &one_handle(&h)),
+        "§2.2 item 3: the purge ran and the reinstall restored ONE entry — so the trigger fires `h` ONCE \
+         and a DUPLICATED member (§5.8's failure list) is exactly what this act must not produce"
     );
-    assert_eq!(
-        w.watched.len(),
-        1,
-        "§5.8 (e)/§6.5 item 2's KEPT half: the returned ADDRESS list carries the address ONCE"
-    );
+
+    // (3) THE ADDRESS SET'S DISTINCTNESS IS UNMOVED BY EITHER ACT (§6.5 item 2 kept; item 13).
     assert!(
-        same_address_set(&w.watched, &[key(&["a"])]),
-        "§6.5 item 13: *\"the distinctness of the returned address set\"* is carried unchanged"
+        same_address_set(&again.watched, &[key(&["b"])]),
+        "§6.5 item 2's KEPT half/item 13: *\"the distinctness of the returned address set\"* is carried \
+         unchanged — ONE distinct address per act"
     );
-    // AND the ONE home entry is the ONE the returned handle removes — item 12 (c)'s own stated consequence.
+
+    // (4) `unlisten` DROPS ONE ENTRY AND NO OTHER REGISTRATION (§6.5 item 12).
     ok(
-        store.unlisten(&h2),
-        "§6.5 item 12 (c): ONE handle reaches ONE home entry",
+        store.unlisten(&h),
+        "§6.5 item 12: *\"it drops ONE home-map entry\"* — the entry this handle names",
     );
     let after = ok(
-        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        store.write(AddressArg::List(key(&["b"])), w_mem(), v_num(3.0)),
         "§3.4 W-3",
     );
     assert!(
         after.triggered.is_empty(),
-        "§6.5 item 12 (c): *\"`unlisten` over the returned handle removes exactly one entry\"* — the home \
-         held ONE entry, so nothing is left at the address to fire"
+        "§6.5 item 12: the withdrawn handle's entry is gone, so nothing fires at the address"
     );
 }
 
@@ -289,7 +331,9 @@ fn s6_5_listening_twice_at_one_address_is_idempotent_and_returns_the_existing_ha
 #[test]
 fn s6_5_a_read_never_fires_and_a_failed_write_returns_nothing() {
     let mut store = new_store();
-    let h = ok(store.listen(AddressArg::List(key(&["a"]))), "§6.5 item 12");
+    let h_tag = handle("wa-h11");
+    let h = h_tag.clone();
+    ok(store.listen(&h, &[key(&["a"])]), "§6.5 item 12");
     let first = ok(
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_str("v")),
         "§3.4 W-3",
@@ -353,18 +397,21 @@ fn s6_5_a_read_never_fires_and_a_failed_write_returns_nothing() {
 #[test]
 fn s6_5_unlistening_an_already_removed_handle_is_a_no_op_success() {
     let mut store = new_store();
-    let handle = ok(store.listen(AddressArg::List(key(&["a"]))), "§6.5 item 12");
-    ok(store.unlisten(&handle), "§6.5 item 12");
+    let handle_tag = handle("wa-h12");
+    let bound = handle_tag.clone();
+    ok(store.listen(&bound, &[key(&["a"])]), "§6.5 item 12");
+    ok(store.unlisten(&bound), "§6.5 item 12");
     ok(
-        store.unlisten(&handle),
+        store.unlisten(&bound),
         "§6.5 item 12: an unknown handle is a no-op success",
     );
-    let other = ok(
-        store.listen(AddressArg::List(key(&["b"]))),
+    let other_tag = handle("wa-h13");
+    let other = other_tag.clone();
+    ok(store.listen(&other, &[key(&["b"])]),
         "§6.5 item 12: a registration that must survive",
     );
     ok(
-        store.unlisten(&handle),
+        store.unlisten(&bound),
         "PAR-13: a second withdrawal of the same handle removes nothing else",
     );
     let w = ok(
@@ -386,8 +433,9 @@ fn s6_5_unlistening_an_already_removed_handle_is_a_no_op_success() {
 fn par_13_a_foreign_handle_is_a_no_op_success() {
     let mut a = new_store();
     let mut b = new_store();
-    let foreign = ok(
-        b.listen(AddressArg::List(key(&["a"]))),
+    let foreign_tag = handle("wa-h14");
+    let foreign = foreign_tag.clone();
+    ok(b.listen(&foreign, &[key(&["a"])]),
         "§6.5 item 12 in another instance",
     );
     ok(
@@ -404,25 +452,65 @@ fn par_13_a_foreign_handle_is_a_no_op_success() {
     );
 }
 
-// PAR-1 (`§1.5`) + PAR-13 — a listened address outside `PAR-1`'s domain fails `AddressMalformed`, and the
-// store mints no handle. **⟶ the drive is re-derived from the superseded `PAR-8` to `PAR-1`/PAR-13.**
-// Drives: PAR-1, PAR-13, §1.5, §8.1 #1
+// **⟶ RE-DERIVED 2026-10-18 — `LF-2`, THE SET POSITION'S OUTSIDE VALUES** (`listen-verb.md §8`'s `LF-2`
+// row: *"`listen`'s set position outside the domain | one of `§2.2` item 2's six classes | the same form,
+// `AddressMalformed` | the thrown object; the HOME's entry count unmoved"*; `§2.2` item 2's six classes:
+// *"ABSENT · `null` · `undefined` · a non-array · an array carrying a member outside the store's address
+// domain · an array carrying a nested array-of-arrays that is not itself an address"*).
+//
+// **THE SIGNATURE MOVED AND THE DRIVE'S SUBJECT MOVED WITH IT** (`contract.md §0.4`'s amended
+// `Store::listen` row, 2026-10-18: position `2` is `addresses: &[Vec<Segment>]` — THE SET). So the outside
+// values are the domain's OUTSIDE SEGMENTS carried INSIDE the set — the class this drive can spell — each
+// answered `AddressMalformed` with the generator's own message. **THE RUST SPELLING CANNOT EXPRESS the four
+// NON-ARRAY classes (`Absent`/`null`/`undefined`/a non-array) at this position**, because the parameter's
+// type admits only a slice of segment lists: **that is a TYPE-REPRESENTABILITY SKIP, reported and not
+// hidden** — those four classes are declared UNREPRESENTABLE at the Rust signature exactly as `§0.4`'s
+// permissive argument types make the equivalent classes REACHABLE at the permissive positions (`AddressArg`,
+// `ListenersArg`), and `listen`'s second position is declared as a plain `&[Vec<Segment>]` with no
+// permissive carrier of its own.
+//
+// **AND THE REFUSAL REACHES NO STORE ACT** (`listen-verb.md §2.2` item 3; the verb's own body validates the
+// whole set FIRST, so a malformed member refuses before the purge runs): the home's entry count is asserted
+// UNMOVED, which is `LF-2`'s declared observable.
+// Drives: `LF-2`, §2.2 item 2, §1.5, §8.1 #1
 #[test]
-fn par_13_a_malformed_listen_address_fails_address_malformed() {
+fn lf_2_a_malformed_listen_address_set_member_fails_address_malformed() {
+    // THE FOUR STATES THIS DRIVE ENUMERATES, each an OUTSIDE SEGMENT CLASS (`§1.5` item 1's outside list,
+    // spelled as `Segment`'s variants by `§0.4`): a negative index · a fractional index · `null` ·
+    // `undefined`. Every one is carried INSIDE the set's one address, so the refusal is the SET POSITION's.
     let mut store = new_store();
-    for arg in [
-        AddressArg::Absent,
-        AddressArg::Null,
-        AddressArg::Undefined,
-        AddressArg::Str("a.b".into()),
+    let bound = handle("wa-lf2-live");
+    ok(
+        store.listen(&bound, &[key(&["kept"])]),
+        "a lawful registration whose entry must SURVIVE the refusals",
+    );
+    for (class, segment) in [
+        ("a negative index", Segment::Negative(-1)),
+        ("a fractional index", Segment::Fractional(1.5)),
+        ("`null`", Segment::Null),
+        ("`undefined`", Segment::Undefined),
     ] {
-        let e = failure(store.listen(arg), "PAR-1's declared answer");
+        let h = handle(&format!("wa-lf2-{}", class.replace([' ', '`'], "-")));
+        let e = failure(
+            store.listen(&h, &[vec![Segment::Key("a".into()), segment.clone()]]),
+            "§2.2 item 2 / LF-2: an array carrying a member outside the store's address domain",
+        );
         assert_code(
             &e,
             "AddressMalformed",
-            "PAR-1: an address outside its domain → AddressMalformed",
+            &format!("LF-2 ({class}): the set position's outside member → AddressMalformed"),
         );
     }
+    // LF-2's declared observable: **the HOME's entry count unmoved** — the surviving registration still
+    // fires, and no refused call installed or purged anything.
+    let w = ok(
+        store.write(AddressArg::List(key(&["kept"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    assert!(
+        same_handle_set(&w.triggered, &one_handle(&bound)),
+        "LF-2: the home's entry count is UNMOVED by every refusal"
+    );
 }
 
 // PAR-13's outside-value list — **a value the store NEVER MINTED AT ALL (fabricated)** — answers the SAME
@@ -445,8 +533,9 @@ fn par_13_a_fabricated_handle_is_a_no_op_success() {
         store.unlisten(&fabricated),
         "PAR-13: *\"the foreign, the prior-session and the fabricated alike — is a NO-OP SUCCESS\"*",
     );
-    let bound = ok(
-        store.listen(AddressArg::List(key(&["a"]))),
+    let bound_tag = handle("wa-h16");
+    let bound = bound_tag.clone();
+    ok(store.listen(&bound, &[key(&["a"])]),
         "§6.5 item 12: a registration that must survive",
     );
     ok(
@@ -470,7 +559,9 @@ fn par_13_a_fabricated_handle_is_a_no_op_success() {
 #[test]
 fn s5_8_s_watch_vi_the_returned_op_id_is_accepted_by_rollback() {
     let mut store = new_store();
-    let h = ok(store.listen(AddressArg::List(key(&["a"]))), "§6.5 item 12");
+    let h_tag = handle("wa-h17");
+    let h = h_tag.clone();
+    ok(store.listen(&h, &[key(&["a"])]), "§6.5 item 12");
     let w = ok(
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
         "§3.4 W-3",
@@ -508,17 +599,20 @@ fn s5_8_s_watch_ii_the_delete_is_the_second_trigger_event() {
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_str("trial")),
         "§3.4 W-5: the `mem` literal is added alongside and shadows the `file` branch",
     );
-    let own = ok(
-        store.listen(AddressArg::List(key(&["a"]))),
+    let own_tag = handle("wa-h18");
+    let own = own_tag.clone();
+    ok(store.listen(&own, &[key(&["a"])]),
         "§6.5 item 12: the deleted address's own listener",
     );
-    let ancestor = ok(
-        store.listen(AddressArg::List(key(&["a", "b"]))),
+    let ancestor_tag = handle("wa-h19");
+    let ancestor = ancestor_tag.clone();
+    ok(store.listen(&ancestor, &[key(&["a", "b"])]),
         "§6.5 item 12: a strict DESCENDANT of the deleted address",
     );
     let mut store2 = new_store();
-    let top = ok(
-        store2.listen(AddressArg::List(key(&[]))),
+    let top_tag = handle("wa-h20");
+    let top = top_tag.clone();
+    ok(store2.listen(&top, &[key(&[])]),
         "§6.5 item 12: a listener at the empty address — a prefix of every address",
     );
     ok(
@@ -540,7 +634,7 @@ fn s5_8_s_watch_ii_the_delete_is_the_second_trigger_event() {
         "§4.4's amended member: the `delete` fires the listener bound AT the deleted address"
     );
     assert!(
-        !d1.triggered.iter().any(|h| *h == ancestor),
+        !triggered_handles(&d1.triggered).contains(&ancestor),
         "§4.3/§4.4: *\"a listener bound at a STRICT DESCENDANT of the deleted address does NOT fire\"*"
     );
 
@@ -583,8 +677,9 @@ fn s5_8_s_watch_iii_no_tier_test_runs_at_any_trigger() {
         storeCreate(&cfg_at(&path, 8)),
         "§7.1: a `file` register, so all three tiers stand at a register key (§5.6)",
     );
-    let h = ok(
-        store.listen(AddressArg::List(key(&["r"]))),
+    let h_tag = handle("wa-h21");
+    let h = h_tag.clone();
+    ok(store.listen(&h, &[key(&["r"])]),
         "§6.5 item 12: an address-keyed registration carrying no tier",
     );
     for tier in canonical_tiers() {
@@ -611,7 +706,9 @@ fn s5_8_s_watch_iii_no_tier_test_runs_at_any_trigger() {
 fn s5_8_s_watch_iv_the_borrows_are_dropped_with_the_node() {
     // W-1 — the equal-tier purge-then-mint replaces the node the borrow was taken through.
     let mut w1 = new_store();
-    let h1 = ok(w1.listen(AddressArg::List(key(&["a"]))), "§6.5 item 12");
+    let h1_tag = handle("wa-h22");
+    let h1 = h1_tag.clone();
+    ok(w1.listen(&h1, &[key(&["a"])]), "§6.5 item 12");
     ok(
         w1.write(AddressArg::List(key(&["a"])), w_mem(), v_str("one")),
         "§3.4 W-3",
@@ -637,7 +734,9 @@ fn s5_8_s_watch_iv_the_borrows_are_dropped_with_the_node() {
 
     // W-2 — the re-mint destroys the addressed leaf's pointing anchor and node.
     let mut w2 = new_store();
-    let h2 = ok(w2.listen(AddressArg::List(key(&["a"]))), "§6.5 item 12");
+    let h2_tag = handle("wa-h23");
+    let h2 = h2_tag.clone();
+    ok(w2.listen(&h2, &[key(&["a"])]), "§6.5 item 12");
     ok(
         w2.write(AddressArg::List(key(&["a"])), w_mem(), v_str("leaf")),
         "§3.4 W-3",
@@ -661,7 +760,9 @@ fn s5_8_s_watch_iv_the_borrows_are_dropped_with_the_node() {
 
     // W-6 — the purge at `rank ≤ the write's own` removes the less persistent version and mints in its place.
     let mut w6 = new_store();
-    let h6 = ok(w6.listen(AddressArg::List(key(&["a"]))), "§6.5 item 12");
+    let h6_tag = handle("wa-h24");
+    let h6 = h6_tag.clone();
+    ok(w6.listen(&h6, &[key(&["a"])]), "§6.5 item 12");
     ok(
         w6.write(AddressArg::List(key(&["a"])), w_temp(), v_str("trial")),
         "§3.4 W-3 at `temp`",
@@ -712,8 +813,9 @@ fn s5_8_s_watch_v_the_home_is_not_a_graph_structure() {
     );
     // The home is NOT ADDRESSABLE: binding a listener at an address mints no node, so no address reaches a
     // home entry — the listener's own address resolves to nothing until a write puts a node there.
-    let h = ok(
-        store.listen(AddressArg::List(key(&["never-written"]))),
+    let h_tag = handle("wa-h25");
+    let h = h_tag.clone();
+    ok(store.listen(&h, &[key(&["never-written"])]),
         "§6.5 item 12: a listener at an address no node stands at",
     );
     let e = failure(
@@ -798,12 +900,14 @@ fn par_13_a_foreign_instance_s_handle_is_a_no_op_success_and_the_other_instance_
     // (1a) TWO INDEPENDENT INSTANCES IN ONE PROCESS, EACH HOLDING ITS OWN REGISTRATION.
     let mut a = new_store();
     let mut b = new_store();
-    let ha = ok(
-        a.listen(AddressArg::List(key(&["ax"]))),
+    let ha_tag = handle("wa-h26");
+    let ha = ha_tag.clone();
+    ok(a.listen(&ha, &[key(&["ax"])]),
         "§6.5 item 12: instance A mints its own handle",
     );
-    let hb = ok(
-        b.listen(AddressArg::List(key(&["by"]))),
+    let hb_tag = handle("wa-h27");
+    let hb = hb_tag.clone();
+    ok(b.listen(&hb, &[key(&["by"])]),
         "§6.5 item 12: instance B mints its own handle",
     );
     let b_before = ok(
@@ -825,7 +929,7 @@ fn par_13_a_foreign_instance_s_handle_is_a_no_op_success_and_the_other_instance_
         "§3.4 W-3: B's own registration after the foreign withdrawal",
     );
     assert!(
-        same_handle_set(&b_after.triggered, &b_before.triggered),
+        same_trigger_set(&b_after.triggered, &b_before.triggered),
         "PAR-13: *\"removing NO other registration\"* — B's trigger set is EXACTLY what it was. A mint whose \
          tokens COINCIDE across two instances makes A's handle name B's OWN entry, so §0.4 clause 2's *\"a \
          store-minted handle is unique per instance and per session\"* would be FALSE of the mint (K7, A67) \
@@ -864,8 +968,9 @@ fn par_13_a_foreign_instance_s_handle_is_a_no_op_success_and_the_other_instance_
         storeCreate(&cfg_at(&path, 8)),
         "§7.1: the first instance over the path",
     );
-    let hp = ok(
-        p.listen(AddressArg::List(key(&["p1"]))),
+    let hp_tag = handle("wa-h28");
+    let hp = hp_tag.clone();
+    ok(p.listen(&hp, &[key(&["p1"])]),
         "§6.5 item 12: the first instance's registration",
     );
     let mut q = ok(
@@ -881,8 +986,9 @@ fn par_13_a_foreign_instance_s_handle_is_a_no_op_success_and_the_other_instance_
         "DD-38/§7.2 item 6: *\"a fresh instance over an equal `cfg.filePath` loads NO registration\"* — the \
          home is instance- and session-scoped and out of the `file` bytes"
     );
-    let hq = ok(
-        q.listen(AddressArg::List(key(&["q1"]))),
+    let hq_tag = handle("wa-h29");
+    let hq = hq_tag.clone();
+    ok(q.listen(&hq, &[key(&["q1"])]),
         "§6.5 item 12: the second instance's OWN registration",
     );
     ok(
@@ -920,15 +1026,16 @@ fn par_13_a_foreign_instance_s_handle_is_a_no_op_success_and_the_other_instance_
         "§3.4 W-3: B's own registration after the fabricated withdrawal",
     );
     assert!(
-        same_handle_set(&b_fab.triggered, &b_before.triggered),
+        same_trigger_set(&b_fab.triggered, &b_before.triggered),
         "PAR-13: and NO other registration is removed by the fabricated value"
     );
 
     // (1d) A HANDLE A THIRD INSTANCE MINTED AND WITHDREW IN ITS OWN HOME — a value a fourth instance never
     // minted and never held, which is the same outside case reached from the other side.
     let mut c = new_store();
-    let hc = ok(
-        c.listen(AddressArg::List(key(&["cx"]))),
+    let hc_tag = handle("wa-h30");
+    let hc = hc_tag.clone();
+    ok(c.listen(&hc, &[key(&["cx"])]),
         "§6.5 item 12 in a third instance",
     );
     ok(
@@ -936,8 +1043,9 @@ fn par_13_a_foreign_instance_s_handle_is_a_no_op_success_and_the_other_instance_
         "§6.5 item 12: withdrawn in its OWN instance — its home now holds no such value",
     );
     let mut d = new_store();
-    let hd = ok(
-        d.listen(AddressArg::List(key(&["dy"]))),
+    let hd_tag = handle("wa-h31");
+    let hd = hd_tag.clone();
+    ok(d.listen(&hd, &[key(&["dy"])]),
         "§6.5 item 12 in a fourth instance",
     );
     ok(
@@ -971,12 +1079,14 @@ fn par_13_two_instances_never_cross_name_each_other_s_registrations() {
     let mut b = new_store();
     let x = key(&["ax"]);
     let y = key(&["by"]);
-    let ha = ok(
-        a.listen(AddressArg::List(x.clone())),
+    let ha_tag = handle("wa-h32");
+    let ha = ha_tag.clone();
+    ok(a.listen(&ha, &[x.clone()]),
         "§6.5 item 12: A mints for its OWN address X",
     );
-    let hb = ok(
-        b.listen(AddressArg::List(y.clone())),
+    let hb_tag = handle("wa-h33");
+    let hb = hb_tag.clone();
+    ok(b.listen(&hb, &[y.clone()]),
         "§6.5 item 12: B mints for its OWN address Y",
     );
 
@@ -1062,89 +1172,65 @@ fn par_13_two_instances_never_cross_name_each_other_s_registrations() {
     );
 }
 
-// `DD-42` + `§0.4` clause 2 — **THE MINT'S NON-COLLISION RULE IN ITS PER-INSTANCE FORM: a token the home
-// ALREADY HOLDS is never minted, so the home never holds two entries under ONE store-minted token,
-// `unlisten` removes exactly the entry it names, and `triggered` carries no duplicated member.** **THE
-// COLLIDING CANDIDATE IS DERIVED WITHOUT ASSUMING THE MINT'S SPELLING, and this is how:** the token a FRESH
-// instance's first mint yields is observed from a sibling fresh instance; **where the mint is PER INSTANCE
-// the counter starts afresh in every instance, so that observed token is EXACTLY the candidate this
-// instance's OWN mint would produce** — the caller adopts it at construction (`§0.4` clause 2 (b): adopted
-// VERBATIM, `DD-39`), and the instance's own later mint must therefore SKIP it. **WHERE THE MINT IS
-// PROCESS-WIDE THE COUNTER NEVER REPEATS A VALUE**, so no candidate can collide and the non-collision
-// assertion holds trivially; **THE CELL BITES AT THE PER-INSTANCE MINT — which is exactly the change `A67`
-// directs** — and it is authored at the clause (`DD-42`) rather than at either counter's spelling. **The
-// cell asserts the behaviour `DD-42` declares and no spelling:** the minted token differs from the adopted
-// one, each entry fires its OWN token once, and the minted entry's withdrawal leaves the adopted entry
-// standing.
-// Drives: DD-42, §0.4 clause 2 (a)/(b), PAR-13, §6.5 items 8 (d)/10 (d)/12, §5.8 (a), §3.4 W-3
+// **⟶ RETIRED 2026-10-18 — THIS CELL HAS NO SUBJECT, AND ITS RETIREMENT IS RECORDED RATHER THAN SILENTLY
+// DELETED. THE CELL WAS `dd_42_the_mint_never_takes_a_token_the_instance_s_home_already_holds`.**
+//
+// **WHAT IT DROVE AND WHY EACH PIECE IS GONE:**
+//   (1) **THE MINT** — the cell's first act observed *"the token a fresh instance's FIRST mint yields"* from
+//       a sibling instance and asserted the instance's own later mint SKIPPED it. **`listen` DOES NOT MINT**
+//       (`contract.md §0.4`'s amended `Store::listen` row, 2026-10-18: *"POSITION `1` IS THE CALLER-SPELLED
+//       HANDLE, ADOPTED AND NOT MINTED … THE VERB DOES NOT MINT AND RETURNS NO HANDLE"*; `listen-verb.md §1`
+//       item 2; `P: docs/pending.md · P-6`, verbatim: *"You don't need to mint anything. The handle is
+//       already a unique identifier."*), so there is no token to observe and no candidate to collide with.
+//   (2) **THE SKIP LOOP** — the cell's assertion text quoted **`DD-42`: *"`listen` MUST NOT MINT A TOKEN EQUAL
+//       TO ANY TOKEN THE HOME ALREADY HOLDS — the mint that would collide SKIPS the colliding token and mints
+//       the next one"***. **THE SKIP LOOP IS DELETED WITH THE MINT:** `kernel-selection.md §2.3`'s `R-B1`
+//       ruling (*"Purge wins — delete `first_at`'s idempotence"*), its item (iii): *"`src/store.rs:406-411`'s
+//       mint skip loop already has no subject (nothing mints) and the `holds_token` guard goes with it"*;
+//       `held-listener contract.md §2.8` item 2 (3) names the same two spans for deletion.
+//   (3) **`holds_token`** — the guard the skip loop read (`src/store.rs:397-401`). **DELETED at the same
+//       ruling and the same spans** (`kernel-selection.md §2.3`, item (iii)); no surface name, no record and
+//       no observable ever carried it, so nothing in a red set can reach it.
+//
+// **THE RULINGS THAT RETIRE IT, NAMED AS THE FINDING REQUIRES: `P: docs/pending.md · P-6`'s minting ruling
+// (`HL-DD-1` at `docs/specs/storeroom-held-listener-identity/contract.md §2.1` item 1, whose `what it pins`
+// cell reads *"nothing mints — no counter, no UUID, no scalar, no skip loop"*) READ WITH `P: docs/pending.md ·
+// R-B1` (`kernel-selection.md §2.3`), `DD-42`'s own row at `contract.md §7` and `DD-51`'s — both of which
+// stand as dated history and are read THROUGH their `RCA-8(g)` pointers.**
+//
+// **AND WHAT IS *NOT* RETIRED, SO THE RETIREMENT IS NOT READ AS A GAP: `DD-42`'s CLAUSE (2) STATES A CLAIM
+// THAT SURVIVES AND IT IS DRIVEN ELSEWHERE IN THIS FILE** — *"the construction's ADOPTION is UNTOUCHED … TWO
+// CALLER-SPELLED entries … MAY carry the SAME token, and in THAT state `triggered` MAY carry that token twice
+// and `unlisten` over it removes the FIRST match"* (`contract.md §7`'s amended `DD-42` clause (2)–(3)).
+// **`s6_5_item_14_*` and the `DD-39` duplicate-token cell below drive the adopted-token states, the
+// duplicated-`triggered` member and the first-match `unlisten`**; the unique-token requirement itself is now
+// **the CALLER's datum, not a mint's product** (`HL-DD-1`: *"the store holds AT MOST ONE LIVE ENTRY PER
+// HANDLE STRING"*), which is `PAR-13`'s domain and is asserted at `par_13_a_fabricated_handle_is_a_no_op_success`
+// and its siblings.
+// Retired by: P-6 (minting) · R-B1 (first_at's idempotence); HL-DD-1; §0.4's amended `Store::listen` row;
+// kernel-selection.md §2.3 item (iii); held-listener contract.md §2.8 item 2 (3)
 #[test]
-fn dd_42_the_mint_never_takes_a_token_the_instance_s_home_already_holds() {
-    // THE CANDIDATE: the token a fresh instance's FIRST mint yields.
-    let mut probe = new_store();
-    let candidate = ok(
-        probe.listen(AddressArg::List(key(&["probe"]))),
-        "§6.5 item 12: the mint's own token, observed from a sibling fresh instance",
-    );
-    // THE ADOPTION: a caller-supplied token that the instance's OWN mint would otherwise produce.
+fn dd_42_retired_the_handle_mint_does_not_exist_so_its_collision_rule_has_no_subject() {
+    // **THE RETIREMENT'S ONE REMAINING, LAWFUL OBSERVABLE: a pathless construction adopts a caller-spelled
+    // token VERBATIM, and the verb installs an entry under it** — `§0.4` construction-rule clause 2 (adopted
+    // VERBATIM, `DD-39`), which is what survives of the retired cell's ADOPTION half. `DD-42`'s mint half has
+    // no subject and no drive: nothing mints (`HL-DD-1`), so no cell may assert a skip.
     let mut store = ok(
         storeCreate(&cfg_at_with_listeners(
-            &fresh_path("dd-42-per-instance"),
+            &fresh_path("dd-42-retired"),
             8,
-            listeners(vec![entry(key(&["adopted"]), candidate.clone())]),
+            listeners(vec![entry(key(&["adopted"]), handle("dd42-adopted"))]),
         )),
         "§0.4 clause 2 (b)/DD-39: the construction ADOPTS the caller's token VERBATIM",
     );
-    let minted = ok(
-        store.listen(AddressArg::List(key(&["fresh"]))),
-        "§6.5 item 12: a NEW address mints a token in this instance",
-    );
-    assert!(
-        minted != candidate,
-        "DD-42: *\"`listen` MUST NOT MINT A TOKEN EQUAL TO ANY TOKEN THE HOME ALREADY HOLDS\"* — the mint that \
-         would collide SKIPS the colliding token and mints the next one; `PAR-13`'s uniqueness domain is \
-         *\"unique PER STORE INSTANCE and PER SESSION\"*, and a collision puts two home entries under ONE \
-         token."
-    );
-    // EACH ENTRY FIRES ITS OWN TOKEN — ONE HOME ENTRY PER TOKEN, ONE MEMBER PER ENTRY.
     let at_adopted = ok(
         store.write(AddressArg::List(key(&["adopted"])), w_mem(), v_num(1.0)),
         "§3.4 W-3 at the construction's own address",
     );
     assert!(
-        same_handle_set(&at_adopted.triggered, &one_handle(&candidate)),
-        "§6.5 item 8 (d)/§0.4 clause 2 (b): the ADOPTED entry fires the CALLER'S token — the mint's own rule \
-         leaves the construction's adopted tokens untouched"
-    );
-    let at_fresh = ok(
-        store.write(AddressArg::List(key(&["fresh"])), w_mem(), v_num(1.0)),
-        "§3.4 W-3 at the minted entry's own address",
-    );
-    assert!(
-        same_handle_set(&at_fresh.triggered, &one_handle(&minted)),
-        "DD-42/§5.8 (a): the minted entry fires its OWN token — *\"`triggered` carries NO DUPLICATED MEMBER\"* \
-         where the store minted the token"
-    );
-    // `unlisten` REMOVES EXACTLY THE ENTRY IT NAMES — the minted one — AND THE ADOPTED ONE STANDS.
-    ok(
-        store.unlisten(&minted),
-        "DD-42/§6.5 item 12: `unlisten` removes exactly the entry it names",
-    );
-    let fresh_gone = ok(
-        store.write(AddressArg::List(key(&["fresh"])), w_mem(), v_num(2.0)),
-        "§3.4 W-3 at the withdrawn minted entry's address",
-    );
-    assert!(
-        fresh_gone.triggered.is_empty(),
-        "DD-42: the minted handle removed the MINTED entry and nothing else"
-    );
-    let adopted_survives = ok(
-        store.write(AddressArg::List(key(&["adopted"])), w_mem(), v_num(2.0)),
-        "§3.4 W-3 at the adopted entry's address",
-    );
-    assert!(
-        same_handle_set(&adopted_survives.triggered, &one_handle(&candidate)),
-        "DD-42: *\"the construction's adopted tokens are untouched by the mint's own rule\"* — the adopted \
-         registration stands after the minted token's withdrawal"
+        same_handle_set(&at_adopted.triggered, &one_handle(&handle("dd42-adopted"))),
+        "§6.5 item 8 (d)/§0.4 clause 2 (b): the ADOPTED entry fires the CALLER'S token — the surviving half \
+         of DD-42's rule, which needs no mint to hold"
     );
 }
 
@@ -1176,8 +1262,9 @@ fn dd_42_the_mint_never_takes_a_token_the_instance_s_home_already_holds() {
 #[test]
 fn s6_5_item_14_d_a_listen_landing_after_a_trigger_takes_effect_at_the_next_trigger_only() {
     let mut store = new_store();
-    let early = ok(
-        store.listen(AddressArg::List(key(&["a"]))),
+    let early_tag = handle("wa-h36");
+    let early = early_tag.clone();
+    ok(store.listen(&early, &[key(&["a"])]),
         "§6.5 item 12: the ONE entry the home holds at the FIRST trigger's computation",
     );
     ok(
@@ -1202,8 +1289,9 @@ fn s6_5_item_14_d_a_listen_landing_after_a_trigger_takes_effect_at_the_next_trig
     );
     let first_triggered = first.triggered.clone();
     // (1) THE `listen` THAT LANDS AFTER THAT COMPUTATION — a NEW address, so the home GAINS an entry.
-    let newcomer = ok(
-        store.listen(AddressArg::List(key(&["a", "b", "c"]))),
+    let newcomer_tag = handle("wa-h37");
+    let newcomer = newcomer_tag.clone();
+    ok(store.listen(&newcomer, &[key(&["a", "b", "c"])]),
         "§6.5 item 12: the newcomer's address was NOT in the home at the first trigger's computation",
     );
     assert!(
@@ -1212,7 +1300,7 @@ fn s6_5_item_14_d_a_listen_landing_after_a_trigger_takes_effect_at_the_next_trig
     );
     // (2) THE EARLIER SET STANDS AS RETURNED AND IS NOT RE-DERIVED, RE-READ OR AMENDED.
     assert!(
-        !first_triggered.contains(&newcomer),
+        !triggered_handles(&first_triggered).contains(&newcomer),
         "§6.5 item 14 (d): *\"a `listen` … that lands after a trigger has been computed CANNOT ALTER THAT \
          TRIGGER'S RETURNED SET\"* — the newcomer's handle is not in the set the first trigger returned"
     );
@@ -1235,7 +1323,7 @@ fn s6_5_item_14_d_a_listen_landing_after_a_trigger_takes_effect_at_the_next_trig
          satisfies\"* — the home now holds two entries whose addresses are prefixes of this write's"
     );
     assert!(
-        second.triggered.contains(&newcomer),
+        triggered_handles(&second.triggered).contains(&newcomer),
         "§6.5 item 14 (e) (i): the newcomer's handle IS returned by the next trigger"
     );
     assert!(
@@ -1271,12 +1359,14 @@ fn s6_5_item_14_d_a_listen_landing_after_a_trigger_takes_effect_at_the_next_trig
 #[test]
 fn s6_5_item_14_d_an_unlisten_landing_after_a_trigger_never_rewrites_the_set_it_returned() {
     let mut store = new_store();
-    let doomed = ok(
-        store.listen(AddressArg::List(key(&["a"]))),
+    let doomed_tag = handle("wa-h38");
+    let doomed = doomed_tag.clone();
+    ok(store.listen(&doomed, &[key(&["a"])]),
         "§6.5 item 12: the entry this drive WITHDRAWS after the first trigger",
     );
-    let standing = ok(
-        store.listen(AddressArg::List(key(&["a", "b"]))),
+    let standing_tag = handle("wa-h39");
+    let standing = standing_tag.clone();
+    ok(store.listen(&standing, &[key(&["a", "b"])]),
         "§6.5 item 12: the entry the withdrawal does NOT name — the kept half's control",
     );
     ok(
@@ -1312,7 +1402,7 @@ fn s6_5_item_14_d_an_unlisten_landing_after_a_trigger_never_rewrites_the_set_it_
     );
     // (2) THE EARLIER SET STILL CARRIES THE WITHDRAWN HANDLE: the withdrawal did not rewrite it.
     assert!(
-        first_triggered.contains(&doomed),
+        triggered_handles(&first_triggered).contains(&doomed),
         "§6.5 item 14 (e) (ii): *\"that set STILL CARRIES THE HANDLE, because it is what the home held when the \
          trigger was computed\"* — the withdrawal cannot reach back into a computed trigger"
     );
@@ -1327,7 +1417,7 @@ fn s6_5_item_14_d_an_unlisten_landing_after_a_trigger_never_rewrites_the_set_it_
         "§3.4 W-3: the SECOND trigger, computed over the home as it now stands",
     );
     assert!(
-        !second.triggered.contains(&doomed),
+        !triggered_handles(&second.triggered).contains(&doomed),
         "§6.5 item 14 (e) (ii): *\"a LATER trigger at an address the withdrawn listener's own address is a \
          prefix of NO LONGER CARRIES THAT HANDLE\"*"
     );

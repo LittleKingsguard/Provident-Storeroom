@@ -1060,10 +1060,14 @@ fn s8_1_the_complement_produces_no_code() {
         store.delete(AddressArg::List(key(&["fresh"])), t(Tier::Temp)),
         "§8.1: a delete that removes nothing",
     );
-    let handle = ok(store.listen(AddressArg::List(key(&["x"]))), "§6.5 item 12");
-    ok(store.unlisten(&handle), "§6.5 item 12");
+    let bound = handle("fc-x");
     ok(
-        store.unlisten(&handle),
+        store.listen(&bound, &[key(&["x"])]),
+        "§6.5 item 12",
+    );
+    ok(store.unlisten(&bound), "§6.5 item 12");
+    ok(
+        store.unlisten(&bound),
         "§8.1: an unlisten of an unknown handle",
     );
     ok(

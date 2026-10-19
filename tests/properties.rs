@@ -1535,7 +1535,8 @@ fn p_tp_7_the_construction_is_a_function_of_its_arguments() {
             .is_err(),
         "§5.7/DD-14: no state is shared",
     );
-    ok(a.listen(AddressArg::List(key(&["a"]))), "§6.5 item 12");
+    let shared = handle("pr-ind-1");
+    ok(a.listen(&shared, &[key(&["a"])]), "§6.5 item 12");
     match b.write(AddressArg::List(key(&["b"])), w_mem(), v_num(2.0)) {
         Ok(wb) => drive.check(
             wb.watched.is_empty() && wb.triggered.is_empty(),
@@ -1959,20 +1960,24 @@ fn p_tp_8_the_listener_surface_and_the_journal_are_total_functions() {
         store.write(AddressArg::List(key(&["root"])), w_mem(), v_obj(&[])),
         "§3.4 W-4: the ancestor exists",
     );
-    let own = ok(
-        store.listen(AddressArg::List(key(&["root", "own"]))),
+    let own = handle("pr-h1");
+        ok(
+        store.listen(&own, &[key(&["root", "own"])]),
         "§6.5 item 12: own",
     );
-    let ancestor = ok(
-        store.listen(AddressArg::List(key(&["root"]))),
+    let ancestor = handle("pr-h2");
+        ok(
+        store.listen(&ancestor, &[key(&["root"])]),
         "§6.5 item 12: ancestor",
     );
-    let desc = ok(
-        store.listen(AddressArg::List(key(&["root", "own", "deep"]))),
+    let desc = handle("pr-h3");
+        ok(
+        store.listen(&desc, &[key(&["root", "own", "deep"])]),
         "§6.5 item 12: descendant",
     );
-    let other = ok(
-        store.listen(AddressArg::List(key(&["unrelated"]))),
+    let other = handle("pr-h4");
+        ok(
+        store.listen(&other, &[key(&["unrelated"])]),
         "§6.5 item 12: unrelated",
     );
     let w = ok(
@@ -1984,7 +1989,8 @@ fn p_tp_8_the_listener_surface_and_the_journal_are_total_functions() {
         "§5.8 (a): `triggered` is EXACTLY the prefix set's handles — no member added, none omitted",
     );
     drive.check(
-        !w.triggered.iter().any(|h| *h == desc || *h == other),
+        !triggered_handles(&w.triggered).contains(&desc)
+            && !triggered_handles(&w.triggered).contains(&other),
         "§5.8's failure list: a strict descendant and an unrelated address are NOT triggered",
     );
     drive.check(
@@ -2011,20 +2017,24 @@ fn p_tp_8_the_listener_surface_and_the_journal_are_total_functions() {
         s2.write(AddressArg::List(key(&["root"])), w_file(), v_obj(&[])),
         "§3.4 W-4 at `file`: the parent anchor that bounds the nested write below (`§1.2`'s monotonic clause)",
     );
-    let own2 = ok(
-        s2.listen(AddressArg::List(key(&["root", "own"]))),
+    let own2 = handle("pr-h5");
+        ok(
+        s2.listen(&own2, &[key(&["root", "own"])]),
         "§6.5 item 12: own",
     );
-    let anc2 = ok(
-        s2.listen(AddressArg::List(key(&["root"]))),
+    let anc2 = handle("pr-h6");
+        ok(
+        s2.listen(&anc2, &[key(&["root"])]),
         "§6.5 item 12: ancestor",
     );
-    let desc2 = ok(
-        s2.listen(AddressArg::List(key(&["root", "own", "deep"]))),
+    let desc2 = handle("pr-h7");
+        ok(
+        s2.listen(&desc2, &[key(&["root", "own", "deep"])]),
         "§6.5 item 12: descendant",
     );
-    let other2 = ok(
-        s2.listen(AddressArg::List(key(&["unrelated"]))),
+    let other2 = handle("pr-h8");
+        ok(
+        s2.listen(&other2, &[key(&["unrelated"])]),
         "§6.5 item 12: unrelated",
     );
     ok(
@@ -2046,7 +2056,8 @@ fn p_tp_8_the_listener_surface_and_the_journal_are_total_functions() {
                 "§5.8 (b): the DELETE is the second trigger event and its receipt carries the prefix set's handles",
             );
             drive.check(
-                !d1.triggered.iter().any(|h| *h == desc2 || *h == other2),
+                !triggered_handles(&d1.triggered).contains(&desc2)
+                    && !triggered_handles(&d1.triggered).contains(&other2),
                 "§4.3/§4.4: a listener bound at a STRICT DESCENDANT of the deleted address does NOT fire, and an \
                  unrelated address never does",
             );
@@ -2077,7 +2088,8 @@ fn p_tp_8_the_listener_surface_and_the_journal_are_total_functions() {
     drive.attempt();
     {
         let mut s = new_store();
-        let h = ok(s.listen(AddressArg::List(key(&["r"]))), "§6.5 item 12");
+        let h = handle("pr-s1");
+    ok(s.listen(&h, &[key(&["r"])]), "§6.5 item 12");
         for tier in canonical_tiers() {
             match s.write(AddressArg::List(key(&["r"])), t(tier), v_num(1.0)) {
                 Ok(wt) => drive.check(
@@ -2102,7 +2114,8 @@ fn p_tp_8_the_listener_surface_and_the_journal_are_total_functions() {
     drive.attempt();
     for arm in ["W-1", "W-2", "W-6"] {
         let mut s = new_store();
-        let h = ok(s.listen(AddressArg::List(key(&["a"]))), "§6.5 item 12");
+        let h = handle("pr-s2");
+    ok(s.listen(&h, &[key(&["a"])]), "§6.5 item 12");
         ok(
             s.write(AddressArg::List(key(&["a"])), w_mem(), v_str("one")),
             "§3.4 W-3",
@@ -2174,8 +2187,9 @@ fn p_tp_8_the_listener_surface_and_the_journal_are_total_functions() {
                 read_at(&s, &empty_address())
             ),
         );
-        let h = ok(
-            s.listen(AddressArg::List(key(&["never-written"]))),
+        let h = handle("pr-h9");
+            ok(
+            s.listen(&h, &[key(&["never-written"])]),
             "§6.5 item 12",
         );
         drive.check(
@@ -2191,8 +2205,9 @@ fn p_tp_8_the_listener_surface_and_the_journal_are_total_functions() {
         );
         drive.check(
             !(h == handle("p-tp-8-hidden")),
-            "§6.5 item 12/PAR-13: the registration minted here and the construction's handle are \
-             store-unique tokens and never the same value",
+            "PAR-13/HL-DD-1: the caller spells the handle, so distinctness is the CALLER's datum — the \
+             registration's handle is not the construction's, and the store holds AT MOST ONE LIVE ENTRY PER \
+             HANDLE STRING (`P: docs/pending.md · P-6`: *\"You don't need to mint anything\"*)",
         );
         let mut fresh = ok(storeCreate(&cfg_at(&path, 8)), "§7.2 item 6: the boot");
         match fresh.write(AddressArg::List(key(&["g"])), w_mem(), v_str("again")) {
@@ -2211,22 +2226,38 @@ fn p_tp_8_the_listener_surface_and_the_journal_are_total_functions() {
     // accepts a tier, so no registration can be tier-qualified (`§5.8`'s `⟶ RE-DERIVED 2026-10-11 (F-3)`
     // clause; `A58`; `DD-26`; `DD-36`). **WHAT IS DRIVEN INSTEAD IS THE REACHABLE FORM OF THE CLAUSE: item 7
     // (c) — the address list carries the registration at EVERY tier, no tier test narrowing it — its
-    // DISTINCTNESS, and the ADDRESS-LEVEL IDEMPOTENCE of the registration verb itself, which is what keeps
-    // the `watched` list and the `triggered` list the same selection observed in two types** (`§6.5` item 12
-    // (c); `§0.4` clause 2). **No sequence is asserted** (`DD-37`).
+    // DISTINCTNESS, and the registration verb's own PER-HANDLE ASSIGNMENT, which is what keeps the `watched`
+    // list and the `triggered` list the same selection observed in two types.** **No sequence is asserted**
+    // (`DD-37`).
+    //
+    // **⟶ RE-DERIVED 2026-10-18 — THE ADDRESS-LEVEL IDEMPOTENCE THIS CELL ONCE ASSERTED IS DELETED, AND THE
+    // CELL MOVES TO ITS CLAUSE'S REAL SUBJECT: ONE HANDLE ACTED ON TWICE.** The retired form called `listen`
+    // twice at one address with NO handle to spend (the verb minted), so its two values were one registration
+    // observed twice and `h == repeated` was the idempotent return's claim. **With the mint gone
+    // (`contract.md §0.4`'s amended `Store::listen` row, 2026-10-18: *"THE VERB DOES NOT MINT AND RETURNS NO
+    // HANDLE"*; `P: docs/pending.md · P-6`), two calls carry two CALLER-CHOSEN handles and their equality is
+    // the caller's datum.** **The operative clause is `docs/specs/storeroom-held-listener-identity/contract.md
+    // §2.2` item 3** — *"`listen(h, S1)` then `listen(h, S1)` IS IDEMPOTENT ONLY IN EFFECT — purge then
+    // reinstall the same set — and never by a fast path"* — **scoped to ONE handle in both positions**, as
+    // `§5.2`'s `S-PURGE-SET` and `test-cases.md`'s `V-5` row are; and the ruling that deleted the idempotence
+    // is `kernel-selection.md §2.3`'s `R-B1` (*"Purge wins — delete `first_at`'s idempotence"*).
     drive.attempt();
     {
         let mut s = new_store();
-        let h = ok(s.listen(AddressArg::List(key(&["a"]))), "§6.5 item 12");
-        let repeated = ok(
-            s.listen(AddressArg::List(key(&["a"]))),
-            "§6.5 item 12 (c), the same address again",
+        let h = handle("pr-s3");
+        ok(s.listen(&h, &[key(&["a"])]), "§6.5 item 12");
+        // THE SAME HANDLE AT THE SAME SET AGAIN — idempotent IN EFFECT, never by a fast path.
+        ok(
+            s.listen(&h, &[key(&["a"])]),
+            "§2.2 item 3's closing sentence: purge then reinstall the same set — ONE entry stands after, and \
+             no fast path is claimed",
         );
         drive.check(
-            h == repeated,
-            "§6.5 item 12 (c)/§0.4 clause 2: *\"a `listen(address)` whose address IS already registered \
-             returns the EXISTING entry's handle rather than minting a second one\"* — so the home holds ONE \
-             entry at the address",
+            s.write(AddressArg::List(key(&["a"])), w_mem(), v_num(0.0))
+                .map(|w| w.triggered.len() == 1)
+                .unwrap_or(false),
+            "§2.2 item 3/§5.8 (a): the purge ran and the reinstall restored ONE entry — the home holds ONE \
+             entry at the address, so a repeated registration does not duplicate the handle",
         );
         for tier in canonical_tiers() {
             match s.write(AddressArg::List(key(&["a"])), t(tier), v_num(1.0)) {

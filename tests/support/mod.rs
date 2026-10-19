@@ -86,9 +86,9 @@
 pub use storeroom_native::{
     storeCreate, storeCreateWithConstraints, tier_token, AddressArg, BaseState, ChildAnchor,
     ConstraintEntry, ConstraintsArg, DeleteReceipt, FilePathArg, JournalLengthArg, JournalOp,
-    JournalOpKind, Listener, ListenerEntry, ListenerHandle, ListenersArg, NodeRef, OpIdArg,
-    RollbackResult, Segment, Store, StoreConfig, StoreError, StoreValue, Tier, TierArg, TierSetItem,
-    WriteResult,
+    JournalOpKind, Listener, ListenerEntry, ListenerHandle, ListenerTrigger, ListenersArg, NodeRef,
+    OpIdArg, RollbackResult, Segment, Store, StoreConfig, StoreError, StoreValue, Tier, TierArg,
+    TierSetItem, WriteResult,
 };
 
 use std::collections::BTreeMap;
@@ -337,6 +337,31 @@ pub fn new_mem_store_with_journal(n: u32) -> Store {
 /// `PAR-12`/`§7.1` step 5: one `listeners[]` entry — the closed `{ address, handle }` record (`A57`).
 pub fn entry(address: Vec<Segment>, handle: ListenerHandle) -> ListenerEntry {
     ListenerEntry::Entry { address, handle }
+}
+
+/// **⟶ ADDED 2026-10-18 — THE `listen` CALL SHAPE, SPELLED ONCE SO EVERY DRIVE READS THE DECLARED ARITY**
+/// (`contract.md §0.4`'s amended `Store::listen` row, dated clause 2026-10-18: *"`Store::listen(&mut self,
+/// handle: &ListenerHandle, addresses: &[Vec<Segment>]) -> Result<(), StoreError>` — TWO PARAMETERS, ARITY
+/// `2`, POSITION `1` THE CALLER'S HANDLE AND POSITION `2` THE ADDRESS SET, AND THE ANSWER `()`; THE VERB DOES
+/// NOT MINT AND RETURNS NO HANDLE"*; `listen-verb.md §1` items 1–2; declared at `src/store.rs:2223`).
+///
+/// **THE VERB MINTS NOTHING** — `P: docs/pending.md · P-6`, verbatim: *"You don't need to mint anything. The
+/// handle is already a unique identifier."* — **so a drive supplies the handle it will later assert on**, and
+/// the caller-spelled handle is ADOPTED (`A57`; `§0.4` construction-rule clause 2's *"adopted VERBATIM"*).
+/// **AND THE HOME-MAP POPULATION IS UNMOVED**: the verb still populates it, now ONE ENTRY PER ADDRESS OF THE
+/// SET, with the purge preceding the install (`listen-verb.md §3` item 1; `§2.2` item 4).
+///
+/// The tag a drive passes is the handle's own opaque token, so a test that asserts `h1 == h2` or `h1 != h2`
+/// reads its answer off `handle(...)`'s tokens with no store-side identity assumed.
+pub fn listen_at(store: &mut Store, h: &ListenerHandle, addresses: &[Vec<Segment>]) -> Result<(), StoreError> {
+    store.listen(h, addresses)
+}
+
+/// The one-address convenience over `listen_at`: `listen1(&mut s, &h, &key(&["a"]))` registers `h` at exactly
+/// that one address, which is the shape most drives take (`§2.2` item 2: the second position is a SET, and
+/// the EMPTY ARRAY is in the domain).
+pub fn listen1(store: &mut Store, h: &ListenerHandle, address: Vec<Segment>) -> Result<(), StoreError> {
+    store.listen(h, &[address])
 }
 
 /// **The caller-supplied `ListenerHandle` spelling this red set reaches — `contract.md §0.4`'s
@@ -637,13 +662,27 @@ pub fn same_address_set(a: &[Vec<Segment>], b: &[Vec<Segment>]) -> bool {
     sorted(a) == sorted(b)
 }
 
-/// §6.5 item 5 **EXTENDED to the handle lists by `DD-37`**: *"the order is unspecified for BOTH lists, and
-/// the drive compares SETS"* — so membership is compared as a set of handles, **with no sequence asserted
-/// and a DUPLICATED handle observed as a failure** (`§5.8`'s failure list: *"a listener's handle LOST or
-/// DUPLICATED by a change action"*). Written over `PartialEq` alone, so **the red set assumes no `Ord` on the
-/// handle — `§0.4`'s construction-rule clause 1 declares `Clone` + `PartialEq` + `Eq` + `Debug` and no
-/// ordering**, and the type stays opaque (`§0.4`; `write-and-read.md §6.5` item 12 (a)).
-pub fn same_handle_set(a: &[ListenerHandle], b: &[ListenerHandle]) -> bool {
+/// **⟶ RE-DERIVED 2026-10-18 — THE TRIGGER'S ELEMENT IS THE PAIR `{handle, address}`, SO THE SET
+/// COMPARISON IS OVER PAIRS** (`contract.md §0.4`'s `ListenerTrigger` row, ADDED 2026-10-18 at that table's
+/// own amendment clause item (2); the row's own words: *"`ListenerTrigger { handle: ListenerHandle, address:
+/// Vec<Segment> }` — the `{handle, address}` PAIR, a record of EXACTLY TWO MEMBERS … `handle` is the store's
+/// own listener identity and `address` is THE BINDING's OWN ADDRESS (`listener.address`), NEVER the written
+/// address"*; `docs/specs/storeroom-held-listener-identity/trigger-and-pair.md §2`).
+///
+/// **WHAT MOVED AND WHAT DID NOT, STATED SO NO ASSERTION IS READ AS WEAKENED.** **MOVED:** membership is now
+/// decided over `(handle, address)` pairs, so a drive that supplies a binding address distinguishes a
+/// listener bound at `['a']` from one bound at `['a','b']` — **the comparison is STRONGER than the handle-only
+/// form it replaces, because a `triggered` list carrying the right handle at the WRONG binding address now
+/// FAILS here where it passed before.** **UNMOVED:** `DD-37`'s NO-ORDER rule — *"`triggered` is a SET over
+/// membership and a drive compares sets, never sequences"* — reaches the pair
+/// (`contract.md §0.4`'s amended `WriteResult` row: *"AND `DD-37`'s NO-ORDER RULE IS UNMOVED AND NOW REACHES
+/// THE PAIR"*; `trigger-and-pair.md §5` item 3), so this is a multiset comparison and no sequence is asserted;
+/// and a DUPLICATED member is still observed as a failure (`§5.8`'s failure list: *"a listener's handle LOST
+/// or DUPLICATED by a change action"*). Written over `PartialEq` alone, so **the red set still assumes no
+/// `Ord` on the handle — `§0.4`'s construction-rule clause 1 declares `Clone` + `PartialEq` + `Eq` + `Debug`
+/// and no ordering, and the shipped `ListenerTrigger` derives exactly `Clone, Debug, PartialEq`
+/// (`src/records.rs:205`)** — and the handle type stays opaque.
+pub fn same_trigger_set(a: &[ListenerTrigger], b: &[ListenerTrigger]) -> bool {
     if a.len() != b.len() {
         return false;
     }
@@ -664,9 +703,90 @@ pub fn same_handle_set(a: &[ListenerHandle], b: &[ListenerHandle]) -> bool {
     true
 }
 
-/// One handle returned by a trigger, as a one-member set — the common shape of `P-TP-8`'s drives.
+/// **THE TRIGGER'S SET, COMPARED BY HANDLE ALONE — the form a drive takes where the BINDING ADDRESS is the
+/// write's own address and the pair's `address` half is therefore already pinned by a sibling assertion.**
+///
+/// **IT IS NOT A WEAKENING OF `same_trigger_set`: it is the same multiset rule read over the pair's `handle`
+/// member** (`contract.md §0.4`'s `ListenerTrigger` row), **and every call site that uses it stands beside a
+/// `same_address_set` assertion over the write's `watched` list or over the binding's own address, so the
+/// address half is never left unasserted.** A drive whose binding address DIFFERS from the write's address
+/// uses `same_trigger_set` and pins the address in the pair.
+pub fn same_handle_set(a: &[ListenerTrigger], b: &[ListenerHandle]) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+    let mut used = vec![false; b.len()];
+    for x in a {
+        let mut found = false;
+        for (i, y) in b.iter().enumerate() {
+            if !used[i] && &x.handle == y {
+                used[i] = true;
+                found = true;
+                break;
+            }
+        }
+        if !found {
+            return false;
+        }
+    }
+    true
+}
+
+/// One trigger's PAIR, as a one-member set — the common shape of `P-TP-8`'s drives.
+///
+/// **⟶ RE-DERIVED 2026-10-18: the one member is `ListenerTrigger { handle, address }`** — the handle BESIDE
+/// the address it bound at (`contract.md §0.4`'s `ListenerTrigger` row; `trigger-and-pair.md §2`). The
+/// caller supplies the binding address, because the pair's `address` is `listener.address` and **NEVER the
+/// written address** (`trigger-and-pair.md §1` item 7: *"`triggeringAddress` … is THE WRITE's"* — the pair's
+/// member is not).
+pub fn one_trigger(h: &ListenerHandle, address: Vec<Segment>) -> Vec<ListenerTrigger> {
+    vec![ListenerTrigger {
+        handle: h.clone(),
+        address,
+    }]
+}
+
+/// One trigger's PAIR at the write's OWN address — the shape a drive uses where the listener bound at the
+/// address the write resolved to. Delegates to `one_trigger`, so the pair's two members are always supplied.
+pub fn one_trigger_named(h: &ListenerHandle, address: Vec<Segment>) -> Vec<ListenerTrigger> {
+    one_trigger(h, address)
+}
+
+/// **One expected handle, as the one-member set a `P-TP-8`-style drive's DECLARED side names** — the form
+/// the `assert_triggered`-style helpers take as their `expected` argument, whose subject is the
+/// *handle* set.
+///
+/// **⟶ RE-DERIVED 2026-10-18: THIS IS THE `ListenerHandle` LIST, AND THE PAIR FORM IS `one_trigger`.**
+/// `contract.md §0.4`'s `ListenerTrigger` row makes the OBSERVED list a list of pairs, while a drive's
+/// DECLARED expectation for `§5.8` (a) is still *"the handle(s) whose listener's address is a prefix"* —
+/// the set `§5.8` (a) itself names. So the expectation stays a handle list and the comparison helper reads
+/// the observed pairs' `handle` member (`same_handle_set`), with the pairs' `address` half asserted
+/// separately wherever a drive's binding address differs from the write's (`assert_binding_addresses`;
+/// `one_trigger` for the pair itself). **NO ASSERTION IS WEAKENED: a drive that must pin the binding address
+/// in the SAME assertion uses `one_trigger` and `same_trigger_set`.**
 pub fn one_handle(h: &ListenerHandle) -> Vec<ListenerHandle> {
     vec![h.clone()]
+}
+
+/// A trigger's pair, spelled member by member — **the two members of `contract.md §0.4`'s row, in that row's
+/// own order**, so a drive reads as the record it asserts.
+pub fn trigger(h: &ListenerHandle, address: Vec<Segment>) -> ListenerTrigger {
+    ListenerTrigger {
+        handle: h.clone(),
+        address,
+    }
+}
+
+/// Every trigger's handle, in the list's own order — for the `!…any(…)` cells that exclude a handle from a
+/// fired set without asserting the set's whole membership (the exclusion is `§5.8`'s failure list's subject).
+pub fn triggered_handles(t: &[ListenerTrigger]) -> Vec<ListenerHandle> {
+    t.iter().map(|x| x.handle.clone()).collect()
+}
+
+/// Every trigger's BINDING ADDRESS, as a set — the pair's other half (`contract.md §0.4`'s `ListenerTrigger`
+/// row; `trigger-and-pair.md §5` item 3's no-order rule reaches it).
+pub fn triggered_addresses(t: &[ListenerTrigger]) -> Vec<Vec<Segment>> {
+    t.iter().map(|x| x.address.clone()).collect()
 }
 
 // ---------------------------------------------------------------------------------------------------

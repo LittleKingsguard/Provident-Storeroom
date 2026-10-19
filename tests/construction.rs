@@ -680,8 +680,9 @@ fn s5_7_two_instances_from_equal_arguments_are_independent() {
         "JournalOpUnknown",
         "§5.7: no journal entry is shared",
     );
+    let a_handle = handle("con-a-1");
     ok(
-        a.listen(AddressArg::List(key(&["a"]))),
+        a.listen(&a_handle, &[key(&["a"])]),
         "§6.5 item 12: a registration in instance a",
     );
     let wb = ok(

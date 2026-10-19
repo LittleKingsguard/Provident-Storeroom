@@ -152,15 +152,52 @@ fn fmt_handles(handles: &[ListenerHandle]) -> String {
 /// (*"a listener's handle LOST or DUPLICATED by a change action"*) while `DD-42`'s lawful caller-spelled
 /// duplicate remains observable — and **no index-into-index correspondence is ever asserted**
 /// (`§5.8` (f) (3b): *"NEVER as an index-into-index correspondence"*).
-fn assert_triggered(what: &str, observed: &[ListenerHandle], expected: &[ListenerHandle], clause: &str) {
+///
+/// **⟶ RE-DERIVED 2026-10-18 — THE OBSERVED LIST IS THE PAIR RECORD, SO THIS HELPER READS ITS `handle`
+/// MEMBER** (`contract.md §0.4`'s `ListenerTrigger` row, ADDED 2026-10-18: *"`ListenerTrigger { handle:
+/// ListenerHandle, address: Vec<Segment> }` — the `{handle, address}` PAIR, a record of EXACTLY TWO
+/// MEMBERS"*; the amended `WriteResult` row: *"`WriteResult.triggered` IS `Vec<ListenerTrigger>` … and NOT
+/// `Vec<ListenerHandle>`"*). **THE COMPARISON IS NOT WEAKENED: it is the same multiset rule, read over the
+/// pair's `handle` member (`same_handle_set`), and every drive using it pins the pair's OTHER half through
+/// `assert_binding_addresses` beside it** — the row's own words are that the pair's `address` is *"THE
+/// BINDING's OWN ADDRESS (`listener.address`), NEVER the written address"* (`trigger-and-pair.md §1`
+/// item 7), **so the address half cannot be inferred from the write's address and is asserted separately.**
+fn assert_triggered(what: &str, observed: &[ListenerTrigger], expected: &[ListenerHandle], clause: &str) {
+    let observed_handles = triggered_handles(observed);
     assert!(
         same_handle_set(observed, expected),
         "{what}: {clause} — the DECLARED `triggered` set is {{{}}} ({} member(s)) and the store returned \
-         {{{}}} ({} member(s)); no order is asserted (DD-37)",
+         {{{}}} ({} member(s)); no order is asserted (DD-37, carried to the pair by §0.4's amended \
+         `WriteResult` row)",
         fmt_handles(expected),
         expected.len(),
-        fmt_handles(observed),
-        observed.len()
+        fmt_handles(&observed_handles),
+        observed_handles.len()
+    );
+}
+
+/// **`§0.4`'s `ListenerTrigger` row asserted WHOLE: the `triggered` pairs' addresses are EXACTLY the
+/// bindings' own addresses** — *"`address` is THE BINDING's OWN ADDRESS (`listener.address`), NEVER the
+/// written address"* (`trigger-and-pair.md §1` item 7; the pair's second member tells the two apart because
+/// `triggeringAddress` is the WRITE's). Compared as a set, because `DD-37`'s no-order rule *"is UNMOVED AND
+/// NOW REACHES THE PAIR"* (`contract.md §0.4`'s amended `WriteResult` row; `trigger-and-pair.md §5`
+/// item 3).
+fn assert_binding_addresses(
+    what: &str,
+    observed: &[ListenerTrigger],
+    expected: &[Vec<Segment>],
+    clause: &str,
+) {
+    let observed_addresses = triggered_addresses(observed);
+    assert!(
+        same_address_set(&observed_addresses, expected),
+        "{what}: {clause} — the `triggered` pairs' BINDING addresses are [{}] ({} member(s)) and the store \
+         returned [{}] ({} member(s)); the pair's member is the BINDING's address and never the write's \
+         (`§0.4`'s `ListenerTrigger` row; `trigger-and-pair.md §1` item 7), and no order is asserted (DD-37)",
+        fmt_addresses(expected),
+        expected.len(),
+        fmt_addresses(&observed_addresses),
+        observed_addresses.len()
     );
 }
 
@@ -207,8 +244,34 @@ fn delete_at(
     ok(store.delete(AddressArg::List(address), tier), what)
 }
 
+/// **⟶ RE-DERIVED 2026-10-18 — `listen` TAKES THE CALLER'S HANDLE AT POSITION `1` AND THE ADDRESS SET AT
+/// POSITION `2`, AND RETURNS `()`** (`contract.md §0.4`'s amended `Store::listen` row, dated clause
+/// 2026-10-18: *"`Store::listen(&mut self, handle: &ListenerHandle, addresses: &[Vec<Segment>]) ->
+/// Result<(), StoreError>` — TWO PARAMETERS, ARITY `2`, POSITION `1` THE CALLER'S HANDLE AND POSITION `2`
+/// THE ADDRESS SET, AND THE ANSWER `()`; THE VERB DOES NOT MINT AND RETURNS NO HANDLE"*; `listen-verb.md
+/// §1` items 1–2; declared at `src/store.rs:2223`).
+///
+/// **THIS SHORTHAND SUPPLIES THE HANDLE THE DRIVE WOULD OTHERWISE SUPPLY ITSELF**, because the battery's
+/// 52 drives each want *a fresh store-unique handle bound at one address* and nothing else: the token is
+/// minted HERE, caller-side, from a per-store counter so every token is unique and no drive's assertion
+/// changes. **IT IS NOT THE STORE MINTING** — `P: docs/pending.md · P-6`, verbatim: *"You don't need to mint
+/// anything. The handle is already a unique identifier."* — **and the handle is ADOPTED VERBATIM by the verb
+/// (`A57`; `§0.4` construction-rule clause 2), so every assertion downstream reads the SAME token this
+/// shorthand returned.** A drive that must control the token spells `handle(tag)` and calls
+/// `store.listen(&h, &[address])` directly.
 fn listen_at(store: &mut Store, address: Vec<Segment>, what: &str) -> ListenerHandle {
-    ok(store.listen(AddressArg::List(address)), what)
+    let h = handle(&format!("lf-h-{}", next_listener_token(store)));
+    ok(store.listen(&h, &[address]), what);
+    h
+}
+
+/// The per-store token counter `listen_at` reads — one `AtomicUsize` per call, so two `listen_at` calls in
+/// one drive yield TWO DISTINCT handles and a drive's `h1 != h2` cells stay assertable (`§2.2` item 10: the
+/// handle is the caller's datum; a repeated `listen` at one address no longer answers the same handle —
+/// `§2.2` item 3, `kernel-selection.md`'s ruling *"Purge wins — delete first_at's idempotence"*).
+fn next_listener_token(_store: &mut Store) -> usize {
+    static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
 }
 
 /// **The residue observable: a read at the EMPTY address returns the whole register as an object and NEVER
@@ -330,45 +393,92 @@ fn lf_a3_the_two_registration_kinds_fire_side_by_side() {
     );
 }
 
-// SCENARIO A4 — the same address registered TWICE by `listen` is ONE home entry and ONE fire
-// (address-level idempotence carried to the listener surface).
-// Clauses: `§6.5` item 12 (c) (*"a `listen(address)` whose address IS already registered returns the
-//   EXISTING entry's handle rather than minting a second one"*) + item 2 (kept: the returned list carries
-//   DISTINCT addresses).
-// Drive: `listen(["a"])` twice; then `write(["a"], mem, 1)`.
-// Expected `triggered`: EXACTLY `{ h1 }` with `h1 == h2`; `watched` = `{ ["a"] }` ONCE.
-// Observable: handle equality (`§0.4` clause 1's `PartialEq`), the set's CARDINALITY, and `watched`.
+// SCENARIO A4 — **⟶ RE-DERIVED 2026-10-18: A REPEATED `listen` IS AN ASSIGNMENT OVER THE HANDLE'S OWN SET,
+// AND THE ADDRESS-LEVEL IDEMPOTENCE THIS CELL ONCE ASSERTED (`h1 == h2`) IS DELETED.** **THE CELL'S OLD FORM
+// LISTENED TWICE AT ONE ADDRESS WITH NO HANDLE TO SPEND** (`listen(address)` minted), **so its `h1` and `h2`
+// were the SAME registration seen twice. With the mint gone the clause's subject is THE SAME HANDLE ACTED ON
+// TWICE, and the cell is re-derived to exactly that.**
+//
+// **THE OPERATIVE CLAUSES, AT THEIR OWN BYTES.** `docs/specs/storeroom-held-listener-identity/contract.md
+// §2.2` item 3 — *"THE SET IS AN ASSIGNMENT, NOT A UNION. **`listen(h, S2)` after `listen(h, S1)`** DESTROYS
+// `S1` WHOLLY AND INSTALLS `S2` … **`listen(h, S1)` then `listen(h, S1)`** IS IDEMPOTENT ONLY IN EFFECT — purge
+// then reinstall the same set — and never by a fast path"* — **both halves of that clause are scoped to ONE
+// HANDLE `h` in both positions.** **AND THE PURGE'S OWN SCOPE IS THE HANDLE'S: `§5.2` `P-HL-2` — *"THE PURGE IS
+// BY HANDLE and it never enumerates and never consults a count"*, whose strategy `S-PURGE-SET` reads *"`listen(h,
+// S1)` then `listen(h, S2)`: the standing set is `S2` alone and never `S1 ∪ S2`"*, and whose `test-cases.md`
+// `V-4`/`V-5` rows carry the same single `h`.** **`LF-7`** (`listen-verb.md §8`) states the boot half of the
+// same rule and names no address-level arm. **AND THE RULING THAT DELETED THE IDEMPOTENCE: `kernel-selection.md
+// §2.3`'s `R-B1` — *"Purge wins — delete `first_at`'s idempotence"*** — removes the *"already registered, so
+// mint nothing"* arm (`first_at`) and leaves the per-handle assignment standing.
+//
+// **THE STATES THIS MODEL ENUMERATES, EACH WITH ITS DECLARED ANSWER:**
+//   (1) `listen(h, [a])` then `listen(h, [a])` — **idempotent IN EFFECT: ONE entry, ONE fire, by purge then
+//       reinstall and never a fast path** (§2.2 item 3's closing sentence);
+//   (2) `listen(h, [a])` then `listen(h, [b])` — **`[a]` purged wholesale, `[b]` installed: the standing set
+//       is `[b]` ALONE**, asserted through a later trigger (`§5.2`'s `S-PURGE-SET`);
+//   (3) the write at `[a]` after (2) — **fires NOTHING** (the union is refused: `§5.2`'s `S-PURGE-SET`);
+//   (4) `watched` — ONE distinct address at (1), `§6.5` item 2's kept half and item 13's distinctness.
+// Drive: (1) `listen(h, ["a"])` twice, `write(["a"], mem, 1)`; (2) a fresh store, `listen(h, ["a"])` then
+//   `listen(h, ["b"])`, then `write(["a"], mem, 1)` and `write(["b"], mem, 1)`.
+// Observable: the set's CARDINALITY and MEMBERSHIP, and `watched`.
 #[test]
-fn lf_a4_listen_twice_at_one_address_is_one_entry_and_one_fire() {
+fn lf_a4_a_repeated_listen_is_an_assignment_over_the_handles_own_set() {
+    // (1) THE SAME HANDLE AT THE SAME SET — idempotent IN EFFECT, never by a fast path.
     let mut store = new_store();
-    let h1 = listen_at(&mut store, key(&["a"]), "§6.5 item 12 (c)");
-    let h2 = listen_at(
-        &mut store,
-        key(&["a"]),
-        "§6.5 item 12 (c): an already-registered address returns the EXISTING entry's handle",
+    let h = handle("lf-a4-h");
+    ok(
+        store.listen(&h, &[key(&["a"])]),
+        "§2.2 item 3: the first act installs `h` at `[a]`",
     );
-    assert_eq!(
-        h1, h2,
-        "§6.5 item 12 (c): address-level idempotence carried to the listener surface — the SAME handle is \
-         returned, and no second entry is minted"
+    ok(
+        store.listen(&h, &[key(&["a"])]),
+        "§2.2 item 3's closing sentence: *\"`listen(h, S1)` then `listen(h, S1)` IS IDEMPOTENT ONLY IN \
+         EFFECT — purge then reinstall the same set — and never by a fast path\"*",
     );
     let r = write_at(&mut store, key(&["a"]), w_mem(), v_num(1.0), "§3.4 W-3");
     assert_triggered(
-        "A4",
+        "A4 (1)",
         &r.triggered,
-        &one_handle(&h1),
-        "§6.5 item 12 (c): ONE entry, ONE fire — a second member here would be a duplicated handle",
+        &one_handle(&h),
+        "§2.2 item 3: the purge ran and the reinstall restored ONE entry — so the trigger fires `h` ONCE. \
+         A second member would be a DUPLICATED member (§5.8's failure list), which the reinstall must not \
+         produce",
     );
     assert_eq!(
         r.triggered.len(),
         1,
-        "A4: *\"exactly once\"* — the set has ONE member (§5.8 (a): no member added, none omitted)"
+        "A4: *\"exactly once\"* — the SET has ONE member (§5.8 (a): no member added, none omitted)"
     );
     assert_watched(
-        "A4",
+        "A4 (1)",
         &r.watched,
         &[key(&["a"])],
         "§6.5 item 2 (kept): the returned list carries DISTINCT addresses — the address appears ONCE",
+    );
+
+    // (2) THE SAME HANDLE AT A DIFFERENT SET — `S1` purged WHOLLY, `S2` installed; the union is REFUSED.
+    let mut s2 = new_store();
+    let h2 = handle("lf-a4-h2");
+    ok(
+        s2.listen(&h2, &[key(&["a"])]),
+        "§2.2 item 3 / §5.2's `S-PURGE-SET`: `listen(h, S1)`",
+    );
+    ok(
+        s2.listen(&h2, &[key(&["b"])]),
+        "§2.2 item 3: `listen(h, S2)` — `S1` DESTROYED WHOLLY and `S2` installed",
+    );
+    let at_a = write_at(&mut s2, key(&["a"]), w_mem(), v_num(1.0), "§3.4 W-3");
+    assert!(
+        at_a.triggered.is_empty() && at_a.watched.is_empty(),
+        "§5.2's `S-PURGE-SET`: *\"the standing set is `S2` alone and never `S1` ∪ `S2`\"* — the retired \
+         address `[a]` fires NOTHING, because the second act purged it rather than uniting with it"
+    );
+    let at_b = write_at(&mut s2, key(&["b"]), w_mem(), v_num(1.0), "§3.4 W-3");
+    assert_triggered(
+        "A4 (2)",
+        &at_b.triggered,
+        &one_handle(&h2),
+        "§2.2 item 3: the installed set is `S2` alone and the handle is the caller's own",
     );
 }
 
@@ -636,7 +746,7 @@ fn lf_b3_a_write_at_an_unrelated_address_does_not_fire_it() {
         "§5.8 (f) (3a): the address projection of an empty handle set is empty",
     );
     assert!(
-        !r.triggered.contains(&h),
+        !triggered_handles(&r.triggered).contains(&h),
         "B3: the handle bound at [\"a\"] is absent from the returned set"
     );
 }
@@ -661,7 +771,7 @@ fn lf_b4_a_key_that_merely_starts_with_the_listeners_key_text_does_not_fire_it()
          a string-prefix test over key text",
     );
     assert!(
-        !r.triggered.contains(&h),
+        !triggered_handles(&r.triggered).contains(&h),
         "B4: `key([\"a2\"])` is not a descendant of `key([\"a\"])`"
     );
 }
@@ -1144,7 +1254,7 @@ fn lf_d4_a_d_3_no_op_delete_carries_an_empty_triggered() {
          occurred\"* — the `D-3` arm DOES NOT fire",
     );
     assert!(
-        !receipt.triggered.contains(&h),
+        !triggered_handles(&receipt.triggered).contains(&h),
         "D4: the handle bound at [\"a\"] is absent from a no-op delete's receipt"
     );
     assert_eq!(
@@ -2042,7 +2152,12 @@ fn lf_f4_watched_beside_triggered_the_ordinary_one_entry_per_address_case() {
         (ha.clone(), key(&["a"])),
         (hab.clone(), key(&["a", "b"])),
     ];
-    for h in &w.triggered {
+    // **⟶ RE-DERIVED 2026-10-18: `triggered` carries the PAIR, whose `handle` is read here** (`§0.4`'s
+    // `ListenerTrigger` row). The `pairs` table above is the drive's own home model, so the two members are
+    // compared member-wise and the assertion's subject — *"the home entry carrying `h` has an address that IS
+    // a member of `watched`"* — is unchanged.
+    for t in &w.triggered {
+        let h = &t.handle;
         let addr = pairs
             .iter()
             .find(|(ph, _)| ph == h)
@@ -2058,7 +2173,7 @@ fn lf_f4_watched_beside_triggered_the_ordinary_one_entry_per_address_case() {
         assert!(
             w.triggered
                 .iter()
-                .any(|h| pairs.iter().any(|(ph, pa)| ph == h && pa == addr)),
+                .any(|t| pairs.iter().any(|(ph, pa)| ph == &t.handle && pa == addr)),
             "§5.8 (f) (3b): for EVERY member `W` of `watched` there EXISTS at least one member of \
              `triggered` whose home entry is keyed at `W`"
         );
@@ -2124,7 +2239,7 @@ fn lf_f5_the_dd_39_duplicate_makes_the_counts_differ_by_declaration() {
              EXACT SCOPE and never as this lawful state"
         );
         assert!(
-            h == &h1 || h == &h2,
+            &h.handle == &h1 || &h.handle == &h2,
             "F5: every member of `triggered` is one of the two ADOPTED tokens — no re-minting (§0.4 \
              clause 2 (b): `ADOPTED VERBATIM`)"
         );
@@ -2333,7 +2448,12 @@ fn lf_g1_the_full_user_flow_to_the_final_resolved_state() {
         ),
     ];
 
-    let mut log: Vec<Vec<ListenerHandle>> = Vec::new();
+    // **⟶ RE-DERIVED 2026-10-18: the accumulated firing log holds the OBSERVED records, which are
+    // `ListenerTrigger` pairs** (`§0.4`'s `ListenerTrigger` row; the amended `WriteResult.triggered` row),
+    // **and the DECLARED expectation below stays a list of HANDLE sets**, because `§5.8` (a)'s subject is the
+    // handle set. `assert_triggered` reads the observed pairs' `handle` member, so each log entry is still
+    // compared as a SET and a lost, extra or duplicated handle still fails (`DD-37`).
+    let mut log: Vec<Vec<ListenerTrigger>> = Vec::new();
     for (i, (address, tier, value, want_handles, want_addresses, clause)) in
         expected.into_iter().enumerate()
     {

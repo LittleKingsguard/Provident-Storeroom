@@ -935,11 +935,22 @@ fn acp_a_valid_listener_array_is_admitted_beside_the_construction_s_own_file() {
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
         "§3.4 W-3",
     );
-    assert_eq!(
-        w.triggered,
-        one_handle(&h),
+    // **⟶ RE-DERIVED 2026-10-18: the observed list is the PAIR record** (`contract.md §0.4`'s
+    // `ListenerTrigger` row: *"the `{handle, address}` PAIR, a record of EXACTLY TWO MEMBERS"*; the amended
+    // `WriteResult` row: *"`WriteResult.triggered` IS `Vec<ListenerTrigger>`"*). **The assertion is not
+    // weakened: `one_handle(&h)` is `DD-37`'s SET form of the one expected handle, which is what `§5.8` (a)
+    // declares, and the pair's other member — the BINDING address, `["a"]` — is asserted BESIDE it so the
+    // pair is read whole** (`§0.4`'s `ListenerTrigger` row: *"`address` is THE BINDING's OWN ADDRESS
+    // (`listener.address`), NEVER the written address"*).
+    assert!(
+        same_handle_set(&w.triggered, &one_handle(&h)),
         "A56/§6.5 item 8 (d): the validated array was ADMITTED at step 3-bis and populated at step 5 — \
          a construction that validated and then discarded it would answer an empty `triggered`"
+    );
+    assert!(
+        same_address_set(&triggered_addresses(&w.triggered), &[key(&["a"])]),
+        "A56/§6.5 item 8 (d) + §0.4's `ListenerTrigger` row: the pair's `address` is the BINDING's own — \
+         the array entry named `[\"a\"]`, so that is the address the pair must carry"
     );
 
     let _ = std::fs::remove_file(&path);
