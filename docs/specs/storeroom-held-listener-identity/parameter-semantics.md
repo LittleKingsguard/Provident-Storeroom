@@ -264,7 +264,9 @@
 | `referent` | **the pair's disablement; the element the entry carries is KEPT and a parked passing stub, `constraintParked` (`bindings/js/index.mjs:3006-3008`), is the element added** |
 | `evaluator` | **as `PAR-HL-11`; the parked stub is a CALLER-SIDE function and is subject to the conflict test** |
 | `observable` | **`undefined` on success; the pair STILL CARRIED and STILL ENUMERATED by `constraints()`; the purge-then-add at the toggle** |
-| `the clause that declares it` | `contract.md §2.3` item 7 · `constraint-sites.md §5` item 3 |
+| `the clause that declares it` | `contract.md §2.3` item 7 · `constraint-sites.md §5` item 1 |
+
+**⟶ REPOINTED 2026-10-18 (`RCA-8(g)`, clean-up pass): the row's second citation read *"`constraint-sites.md §5` item 3"*, and `§5`'s item 3 is the `constraintOff`/`constraintParked` conflict-test clause — an entirely different subject from `constraintOff`'s own declaration. The declaration this row's subject rests on is `§5` item 1, *"THE CONFLICT IS ONE DIRECTION AND ITS SEAT IS `register`"*, which is the conflict-test clause the row's `evaluator` cell claims; and the pair's own purge-then-add declaration is `contract.md §2.3` item 7, already the row's first citation.** `[CONTRACT]`
 
 `[P: docs/pending.md · (O-3)` item (v) · `P: docs/pending.md · (C-2)` item (iii) · `docs/specs/storeroom-js/surface.md §2.12` item 3 | CONTRACT]`
 

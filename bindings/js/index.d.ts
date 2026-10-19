@@ -10,19 +10,29 @@
 // NAMED EXPORT SET — **ONE NAME, `storeCreate`, AND NOTHING ELSE** (`surface.md §2.9` item 1's `A127`
 // clause; `docs/decisions.md` · `A127`/`A128`, 2026-10-16: the module-level count is `11 → 1` ✓, the
 // deprecation window of `A128`'s fiat being declared away at that clause); (2) the instance's own member
-// set, **TWELVE OWN MEMBERS AND NOTHING ELSE — `10 + 1 + 1 = 12` ✓** (`distribution.md §5.2` item 2 read
+// set, **FOURTEEN OWN MEMBERS AND NOTHING ELSE — `10 + 1 + 1 + 2 = 14` ✓** (`distribution.md §5.2` item 2 read
 // with `surface.md §2.4` item 9 (f)'s `A127` clause): **THE TEN METHODS** `read(address, tier?)` ·
 // `readLiteral(address, tier?)` · `write(address, tier, value, commit?)` · `delete(address, tier?)` ·
-// `rollback(opId)` · `listen(address)` · `unlisten(handle)` · `addConstraint(pair, constraint)` ·
+// `rollback(opId)` · `listen(handle, addresses)` · `unlisten(handle)` · `addConstraint(pair, constraint)` ·
 // `constraintOn(pair, constraint)` · `constraintOff(pair, constraint)`, **PLUS `register(handle, listener)
-// -> undefined` AND `constraints() -> ConstraintPair[]`** — the two remaining singles, the first being the
-// listener registration and the second the registered-pair read; **`settle(record) -> undefined` STOOD HERE
+// -> undefined`, `constraints() -> ConstraintPair[]`, `removeListener(handle) -> undefined` AND
+// `removeConstraint(pair) -> undefined`** — the first two the singles the 2026-10-18 clause below names, the
+// last two the members `contract.md §2.7` item 9 adds — the first being the
+// listener registration, the second the registered-pair read; **`settle(record) -> undefined` STOOD HERE
 // AS THE ORDERING SEAM AND IS REMOVED WHOLE** (the clause below carries the mark and the ruling); and (3) the
 // failure surface, a thrown plain object with exactly
 // `{status, message, log}` — **THREE MEMBERS FROM 2026-10-16, `2 → 3`, on the architect's ruling *"Bubble
 // the message log to the client on failure, override any clauses that forbid this."*** (`surface.md §2.5`'s
 // clause of that date, the crossing form's ONE home; **the ONE figure that moves is the arity, and
 // `storeCreate` remains the namespace's one name and the product its twelve own members**).
+//
+// **⟶ AND THE METHOD LIST ABOVE CARRIES ONE STALE SPELLING AND ONE STALE ARITY, SUPERSEDED HERE, 2026-10-19:**
+// **`listen` IS `listen(handle, addresses)` AND NOT `listen(address)` — arity `2`, position `1` the
+// caller-spelled `handle` (a non-empty `string`) and position `2` `addresses`, a SET of addresses whose
+// member is an address and whose EMPTY ARRAY is in the domain** (`docs/specs/storeroom-held-listener-identity/
+// contract.md §2.2` item 1; `listen-verb.md §1` item 1 and `§2.2` items 1–2: the arity figure moves `1 → 2`
+// at four declared sites, each needing its own dated clause). **THE BYTES LISTING `listen(address)` STAND AS
+// THE PRE-2026-10-18 READING AND ARE READ THROUGH THIS CLAUSE** (`DEF-2026-10-02`: no whole-file rewrite).
 //
 // **⟶ AND THE MEMBER-SET FIGURE ABOVE IS SUPERSEDED AND IS READ THROUGH THIS CLAUSE, 2026-10-18: THE
 // OPERATIVE SET IS TWELVE OWN MEMBERS, `10 + 1 + 1 = 12` ✓ — THE TEN METHODS, `register` AND `constraints`** —
@@ -43,6 +53,28 @@
 // with the thirteen being the 2026-10-17 reading and not the operative one.** **THE TWO ROUTES THAT WOULD
 // HAVE MOVED THE SET EARLIER ARE STILL REFUSED BY NAME AND NEITHER IS ONE OF THESE** (`§2.5`'s clause of
 // 2026-10-16: a `constraintLog(commit)` reader and a second module-namespace name).
+//
+// **⟶ AND THE MEMBER-SET FIGURE ABOVE IS SUPERSEDED AND IS READ THROUGH THIS CLAUSE, 2026-10-19: THE
+// OPERATIVE SET IS FOURTEEN OWN MEMBERS, `10 + 1 + 1 + 2 = 14` ✓ — THE TEN METHODS, `register`, `constraints`
+// AND THE TWO REMOVE MEMBERS `removeListener(handle)` AND `removeConstraint(pair)`** — **WHICH SUPERSEDES THE
+// METHOD LIST'S OWN *"THE TWO REMAINING SINGLES ARE `register` AND `constraints`"* OF 2026-10-18: the singles
+// that remain are still those two, and the fourteen-member set carries them PLUS the two remove members, so
+// no reader counts the `+ 2` into the singles** — declared at
+// `docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9, THE MEMBER SET `14`, whose own list
+// is `{ read, readLiteral, write, delete, rollback, listen, unlisten, addConstraint, constraintOn,
+// constraintOff, register, constraints, removeListener, removeConstraint }`. **THE FIGURE MOVES `12 → 14`
+// and the two new members are reached through the factory's product ALONE — the module namespace keeps its
+// ONE name (`11 → 1` ✓), because the two new members are NOT module exports** (`contract.md §2.7` item 9's
+// `[CENSUS]` and its closing clause). **AND THE `12 → 13` FIGURE IS WITHDRAWN BY NAME: the thirteen-mark of
+// 2026-10-17 is a SUPERSEDED READING and was never the operative one** (`P: docs/pending.md · (AA-5)`,
+// verbatim: *"the member set is 14 and the `12 → 13` figure is withdrawn by name"*). **SO EVERY "twelve own
+// members" FIGURE BELOW — the `A127` pass's reading at its own bytes, the 2026-10-18 clause's operative
+// `TWELVE`, and `StoreInstance`'s `"THE TWELVE"` — IS READ THROUGH THIS CLAUSE AS FOURTEEN, and a
+// declaration file that declares twelve while the product ships fourteen is the FINDING `contract.md §2.7`
+// item 9 exists to prevent.** **THE TWO ROUTES THAT WOULD HAVE MOVED THE SET EARLIER ARE STILL REFUSED BY
+// NAME AND NEITHER IS ONE OF THESE** (`§2.5`'s clause of 2026-10-16: a `constraintLog(commit)` reader and a
+// second module-namespace name) — the 2026-10-18 paragraph's closing sentence above stands BYTE-FOR-BYTE and
+// is read through this clause.
 //
 // **THE TEN METHODS TAKE THE RECEIVER'S OWN POSITION AWAY: `8 → 1` ✓ AND `4 → 12` ✓** (`surface.md §2.9`
 // item 1's and `§2.4` item 9 (f)'s `A127` clauses). The seven verbs that reach the store are METHODS of the
@@ -98,7 +130,10 @@
 //    `AddressMalformed`. The narrowest lawful widening a declaration can make is `number`, and this file
 //    makes it.
 // 3. **THE INSTANCE'S *"TWELVE OWN MEMBERS AND NOTHING ELSE"* IS NOT STRUCTURALLY ENFORCEABLE HERE**
-//    (`§2.4` item 9 (f)'s `A127` clause; `§2.9` item 1's). An interface declares the members a value HAS
+//    (`§2.4` item 9 (f)'s `A127` clause; `§2.9` item 1's) — **AND THE COUNT IT NAMES IS THE SUPERSEDED ONE:
+//    THE OPERATIVE FIGURE IS FOURTEEN, read through the member-set clause of 2026-10-19 above**
+//    (`docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9). An interface declares the
+//    members a value HAS
 //    and constrains no excess member, so a product carrying a thirteenth own member still satisfies
 //    `StoreInstance`. The count is driven at the boundary instead (`a127-surface.test.mjs`'s
 //    `Object.getOwnPropertyNames` cell, which exists precisely because this declaration cannot fail on it).
@@ -433,10 +468,18 @@ export interface CommitRecord {
 }
 
 /**
- * **THE INSTANCE `storeCreate` RETURNS — THE TWELVE OWN MEMBERS OF `surface.md §2.4` item 9 (f)'s clause of
- * 2026-10-18, `10 + 1 + 1 = 12` ✓: THE TEN METHODS, `register` AND `constraints`.** Each is reached through the
+ * **THE INSTANCE `storeCreate` RETURNS — THE FOURTEEN OWN MEMBERS READ THROUGH `contract.md §2.7` ITEM 9,
+ * `10 + 1 + 1 + 2 = 14` ✓: THE TEN METHODS, `register`, `constraints` AND THE TWO REMOVE MEMBERS
+ * `removeListener(handle)` AND `removeConstraint(pair)`.** Each is reached through the
  * factory's own product alone (`package.md §1.3` item 3) — **NO member below is a named export**, because
  * the module namespace carries ONE name, `storeCreate` (`§2.9` item 1's `A127` clause; `11 → 1` ✓).
+ *
+ * **⟶ AND THE OPENING FIGURE ABOVE WAS *"THE TWELVE OWN MEMBERS OF `surface.md §2.4` item 9 (f)'s clause of
+ * 2026-10-18"*, SUPERSEDED HERE 2026-10-19: the operative set is the FOURTEEN of
+ * `docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9, the withdrawn `12 → 13` figure not
+ * among the readings** (`P: docs/pending.md · (AA-5)`: *"the member set is 14 and the `12 → 13` figure is
+ * withdrawn by name"*). **THE BYTES STAND AS THAT PASS'S READING AND ARE READ THROUGH THIS CLAUSE**
+ * (`DEF-2026-10-02`: no whole-file rewrite).
  *
  * **THE TEN METHODS ARE THE DECLARED POSITIONS OF `§2.2`, `§2.4`, `§2.10` AND `§2.12` WITH THE LEADING
  * `instance` POSITION DROPPED** (`A127`): `a.read(address, tier?)` is the declared `read`, `a.write(address,
@@ -451,6 +494,14 @@ export interface CommitRecord {
  * set read THIRTEEN from 2026-10-17 to that date, and `settle`'s removal brings it BACK TO TWELVE — the ten
  * methods, `register` and `constraints`** (this interface's own clause for the last one below; the file's
  * header carries the member-set mark, the architect's rulings and the two still-refused routes).
+ * **⟶ AND `"THE TWELVE"` IS SUPERSEDED IN TURN, 2026-10-19: THE OPERATIVE FIGURE IS `"THE FOURTEEN"` —
+ * `10 + 1 + 1 + 2 = 14` ✓, the ten methods, `register`, `constraints` AND the two remove members
+ * `removeListener(handle)` and `removeConstraint(pair)`** (`docs/specs/storeroom-held-listener-identity/
+ * contract.md §2.7` item 9; the file header's clause of this date names the two members and the arithmetic).
+ * **THIS SENTENCE'S ONWARD CLAIM IS UNMOVED AND IS THE POINT OF THE PASS: none of the fourteen is a RELEASE
+ * VERB** (`surface.md §2.1` (e) item 1; `A74`) — **the two remove members remove a LISTENER and a
+ * CONSTRAINT PAIR, never the instance's own state, and no `dispose()`, `close()` or finalizer stands beside
+ * them.**
  */
 export interface StoreInstance {
   /**
@@ -511,6 +562,16 @@ export interface StoreInstance {
    * RESERVED WORD, so under the superseded module-level spelling the function had to be declared as
    * `deleteOp` and re-exported (`export { deleteOp as delete }`). **A METHOD NAME IS NOT AN IDENTIFIER
    * BINDING, so the member is declared under the one name the surface publishes** (`A127`).
+   *
+   * **⟶ AND THE WORKAROUND THAT SENTENCE DESCRIBES IS HISTORICAL AND NO LONGER EXISTS, 2026-10-19: `deleteOp`
+   * HAS BEEN DELETED FROM THE CODEBASE ENTIRELY** — the `P-8` merge removed the module-level spelling, so
+   * `grep -n "deleteOp" bindings/js/index.mjs` now returns THAT NAME ONLY INSIDE MOVED-POINTER COMMENTS
+   * (the `delete` member's own doc block, whose body was `deleteOp`'s) **and no live binding by that name
+   * stands at any site** (`P: docs/pending.md · P-8`; `archive/p8-merge/2026-10-18/blocks/deleteOp.md`).
+   * **SO `export { deleteOp as delete }` IS NOT A SHAPE THIS PACKAGE ANY LONGER HAS AND MUST NOT BE READ AS
+   * ONE — the module namespace is ONE name, `storeCreate` (`11 → 1` ✓), and `delete` is reached as the
+   * instance's own method alone** (`§2.9` item 1's `A127` clause). **THE DECLARATION BELOW IS UNCHANGED AND
+   * WAS ALWAYS CORRECT: `delete(address, tier?): DeleteRecord`.**
    */
   delete(address: Address, tier?: Tier): DeleteRecord;
   /**
@@ -522,15 +583,35 @@ export interface StoreInstance {
    */
   rollback(opId: string): RollbackRecord;
   /**
-   * Begin watching an address, and answer the fresh opaque handle it is keyed by.
+   * Begin watching the addresses the caller names under the caller's own handle.
+   *
+   * **⟶ THIS BLOCK'S FEATURE SENTENCE READ *"Begin watching an address, and answer the fresh opaque handle
+   * it is keyed by"*, AND BOTH HALVES OF IT ARE SUPERSEDED, 2026-10-19** (`DEF-2026-10-02`: no whole-file
+   * rewrite — the bytes stand above and are read through this clause; `docs/specs/storeroom-held-listener-
+   * identity/contract.md §2.2` items 1, 2 and 10; `listen-verb.md §1` item 1). **THE CALLER SPELLS THE
+   * HANDLE AND `listen` ANSWERS `undefined`** — a DECLARED change of the return shape `Handle → undefined`,
+   * forced because returning the supplied handle would be a second spelling of the caller's own datum
+   * (`contract.md §2.2` item 10) — and **THE ADDRESS POSITION IS A SET**: position `2` is `addresses`, an
+   * ARRAY of addresses with the EMPTY ARRAY in the domain. **(The declaration below already carries both:
+   * `listen(handle: Handle, addresses: readonly Address[]): void` — `listen-verb.md §2.2` item 1's arity
+   * `2`, with no third position.)**
    *
    * **AND IT IS AN ADDRESS SITE THAT DECLARES ITS ARGUMENT POSITION** (`parameter-semantics.md §2.17`'s
    * dated clause; `surface.md §2.5` item 5 (b)'s position half): the address is `1` of `1`, so a CLASS
    * refusal here — a `Proxy` over an array included — carries `a Proxy` AND `first argument` inside the one
-   * failure form's message, and NO trap is run (`NG-JS-I`).
+   * failure form's message, and NO trap is run (`NG-JS-I`). **⟶ READ WITH THE CLAUSE ABOVE, the class test
+   * this sentence describes is the SET POSITION'S: the six outside classes are `listen-verb.md §2.2` item 2's
+   * and the declared answer for every one of them is the surface's one thrown form with the store's
+   * `AddressMalformed` (`§2.2` item 3; the position figure `1` of `1` above is the PRE-2026-10-18 reading —
+   * position `1` is `1` OF TWO, `listen-verb.md §1` item 1's arity `2`).**
    *
    * **A REPEATED CALL AT A HELD ADDRESS MINTS NOTHING AND ANSWERS THE ADDRESS'S EXISTING ENTRY'S HANDLE**
    * (`write-and-read.md §6.5` item 12 (c); `§0.4` clause 2), so the two calls answer ONE opaque value.
+   * **⟶ SUPERSEDED, 2026-10-19: `listen(h, S2)` AFTER `listen(h, S1)` IS SET-ASSIGNMENT AND NOT UNION —
+   * `S1` IS PURGED WHOLESALE AND `S2` INSTALLED, with no intermediate state observable — AND THE CALL
+   * ANSWERS NOTHING** (`contract.md §2.2` items 3 and 10; `listen-verb.md §3` item 1). **THE SURVIVING HALF
+   * IS THE MINTING HALF: the handle is the CALLER'S, so nothing mints one.** (`P: docs/pending.md · (R1)`,
+   * verbatim: *"`listen(h, S2)` AFTER `listen(h, S1)` IS SET-ASSIGNMENT, NOT UNION"*.)**
    */
   listen(handle: Handle, addresses: readonly Address[]): void;
   /**
@@ -580,11 +661,18 @@ export interface StoreInstance {
   /**
    * **THE REGISTERED-PAIR READ — `constraints() -> ConstraintPair[]`** (`surface.md §2.4` item 9 (f)'s
    * `constraints` clause of 2026-10-17, items 2–9; `§2.12` item 2-bis; `parameter-semantics.md §2.27` =
-   * `PAR-JS-27`) — **one of the TWELVE own members, `10 + 1 + 1 = 12` ✓, the SECOND of the two remaining
-   * singles** (`surface.md §2.4` item 9 (f)'s clause of 2026-10-18, `13 → 12`: the ten methods, `register`
-   * and this member, with `settle` the term that left). **AND THIS MEMBER'S OWN SIBLING AMONG THE
-   * NON-STORE-REACHING MEMBERS IS `register` ALONE FROM THAT DATE**: the sentence that read *"beside
-   * `register` and `settle`"* is re-spelled at its own bytes, and this is the operative reading.
+   * `PAR-JS-27`**) — **one of the FOURTEEN own members, `10 + 1 + 1 + 2 = 14` ✓, the SECOND of the two
+   * remaining singles** (`docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9 — the
+   * member-set clause of 2026-10-19, which moves the figure `12 → 14`). **⟶ AND THE FIGURE THAT STOOD HERE WAS
+   * *"THE TWELVE own members, `10 + 1 + 1 = 12`"*, read from `surface.md §2.4` item 9 (f)'s clause of
+   * 2026-10-18, `13 → 12`: THAT READING IS SUPERSEDED — the two remove members `removeListener(handle)` and
+   * `removeConstraint(pair)` are the `+ 2`** (`P: docs/pending.md · (AA-5)`, verbatim: *"the member set is 14
+   * and the `12 → 13` figure is withdrawn by name"*; `DEF-2026-10-02`: no whole-file rewrite). **AND THIS
+   * MEMBER'S OWN SIBLING AMONG THE NON-STORE-REACHING MEMBERS IS `register` ALONE FROM THAT DATE
+   * (2026-10-18)**: the sentence that read *"beside `register` and `settle`"* is re-spelled at its own bytes,
+   * and this is the operative reading — **and it is NOT read as a count of the fourteen-member set's
+   * classes, because no clause of this file asserts which members make up that class** (`contract.md §2.7`
+   * items 2–5 for the two new members' own clauses; `§2.7` item 9).
    *
    * **THE RECEIVER IS THE STORE, THE CALL TAKES NO ARGUMENT (arity `0`) AND IT THROWS NOTHING**: there is no
    * outside argument for the class test to refuse, and the call makes NO STORE CALL, MINTS NO CODE, APPENDS
