@@ -966,6 +966,19 @@ function closeRegistrationAttempt(attempt, outcome = 'failed') {
 function noopListener() {}
 
 /**
+ * **⟶ A PREDICATE IS NOT AN ITEM (`2026-10-18`): `isKernelHandle` IS DE-EXPORTED, AND THE SPELLING IT KEYED
+ * ON IS DECLARED ONCE HERE.** The kernel's surface is exactly the six `K-1`–`K-6` items
+ * (`remove-member.md §5` item 1: *"`6` items — `K-1` `register` · `K-2` `commit` · `K-3` `runAttempt` ·
+ * `K-4` `log` · `K-5` `report` · `K-6` `remove` — `5 + 1 = 6` ✓"*; `§7`'s `MF-6` row names **the module's own
+ * export set** as the searched set and *"any item beyond `K-6`"* as its falsifier, expected `NONE`).
+ * **`isKernelHandle` determined no behaviour of its own and was undeclared in `bindings/js/index.d.ts`, so it
+ * was never a kernel item — and its ONLY consumer reached it ACROSS the module boundary for a spelling it can
+ * state itself.** The prefix stands here, once, as the one home the kernel's own entry is spelled from; the
+ * consumer declares its own at the call site and nothing else crosses.
+ */
+const KERNEL_HANDLE_PREFIX = 'constraint@';
+
+/**
  * **THE KERNEL'S OWN HANDLE FOR ONE ADDRESS** — the string the kernel spells when it calls the app's own
  * `listen(handle, addresses)` (`contract.md §2.9` item 2; `remove-member.md §2` item 2: *"`K-6` REACHES
  * `removeListener`, THE PRODUCT'S OWN PUBLISHED MEMBER, exactly as `K-1` reaches `listen`/`register`"*).
@@ -982,22 +995,7 @@ function noopListener() {}
  * `listen-verb.md §5` item 2).
  */
 function noopHandleFor(address) {
-  return `constraint@${JSON.stringify(address)}`;
-}
-
-/**
- * **WHETHER A HANDLE IS THE KERNEL'S OWN** — the exclusion the conflict test keys on
- * (`P: docs/pending.md · (C-2)` item (ii), verbatim: *"the kernel registers `noopListener` … a conflict is
- * between a CALLER's listener and a CALLER's constraint — so the test keys on the REGISTRATION"*;
- * `PAR-HL-32`'s domain cell: *"the kernel's own `noopListener` is EXCLUDED BY IDENTITY"*).
- *
- * **THE TEST IS STRUCTURAL AND NOT A COMPARISON OF FUNCTIONS**: `noopListener` is a module-private function
- * and the package cannot see it, so the identity the two layers can both read is the HANDLE the kernel
- * spelled (`noopHandleFor`). **A CALLER THAT SPELLS THAT EXACT TEXT NAMES THE KERNEL'S OWN ENTRY** — the
- * declared consequence of one identity per string (`contract.md §2.1` item 3) and of *"the client is trusted"*.
- */
-export function isKernelHandle(handle) {
-  return typeof handle === 'string' && handle.startsWith('constraint@');
+  return `${KERNEL_HANDLE_PREFIX}${JSON.stringify(address)}`;
 }
 
 // ---------------------------------------------------------------------------------------------

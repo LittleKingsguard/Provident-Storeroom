@@ -2879,7 +2879,16 @@ function registerOn(state, handle, listener) {
   // **AND THE TEST IS TAKEN WHERE THE REGISTRATION IS A CALLER'S OWN**: the kernel's own `noopListener`
   // registration is EXCLUDED BY IDENTITY (`P: docs/pending.md · (C-2)` item (ii); `PAR-HL-32`), which is what
   // keeps `K-1`'s own overwrite arm and every `constraintOn` reachable at a pair-conflicted address.
-  const conflicted = constraintsKernel().isKernelHandle(handle)
+  //
+  // **⟶ THE EXCLUSION IS INLINED HERE, AND A PREDICATE IS NOT AN ITEM (`2026-10-18`)** — the kernel's surface
+  // is exactly the six `K-1`–`K-6` items (`remove-member.md §5` item 1; `§7`'s `MF-6` row), so the kernel no
+  // longer exports `isKernelHandle`. **THE PREDICATE DETERMINED NO BEHAVIOUR OF ITS OWN**, and the one
+  // behaviour its consumer wanted is the structural comparison below, stated AT THIS CALL SITE: the kernel's
+  // own entry is the handle it spelled (`constraint@<JSON address>`), and the identity the two layers can both
+  // read is that spelling (`contract.md §2.1` item 3 — one identity per string). The prefix is declared once,
+  // here, beside its one use, so no name crosses the module boundary on the predicate's account and the
+  // spelling is not duplicated across distances.
+  const conflicted = typeof handle === 'string' && handle.startsWith(KERNEL_HANDLE_PREFIX)
     ? null
     : constraintAtAnyAddress(state, handle);
   if (conflicted !== null) {
@@ -3125,6 +3134,19 @@ function terminalArm(state, record) {
 /// position of any declared signature; `§2.12` item 3's one-spelling rule).
 const ARGUMENT_POSITION_FIRST = 'first argument';
 const ARGUMENT_POSITION_SECOND = 'second argument';
+
+/// **THE KERNEL'S OWN HANDLE SPELLING, DECLARED ONCE AT ITS ONE CONSUMER** — the prefix the kernel's own
+/// `noopListener` entry is registered under (`constraint@<JSON address>`; `P: docs/pending.md · (C-2)` item
+/// (ii); `PAR-HL-32`'s domain cell: *"the kernel's own `noopListener` is EXCLUDED BY IDENTITY"*).
+/// **⟶ IT IS SPELLED HERE BECAUSE A PREDICATE IS NOT AN ITEM (`2026-10-18`)**: the conflict test's exclusion
+/// was reached through the kernel's exported `isKernelHandle`, and that name is off the kernel's surface
+/// (`remove-member.md §5` item 1's six items; `§7`'s `MF-6` row, expected `NONE`). **THE COMPARISON IS
+/// STRUCTURAL AND NOT A COMPARISON OF FUNCTIONS** — `noopListener` is module-private and unseeable here, so the
+/// identity both layers can read is the HANDLE the kernel spelled, and a caller that spells that exact text
+/// names the kernel's own entry (one identity per string, `contract.md §2.1` item 3). **NO NAME CROSSES THE
+/// MODULE BOUNDARY ON ITS ACCOUNT** — the spelling is a declared constant here, and `constraintsKernel()` is
+/// not reached at all for this test.
+const KERNEL_HANDLE_PREFIX = 'constraint@';
 
 /// **THE KERNEL, RESOLVED ON THE FIRST CONSTRAINT ACT AND NEVER AT LOAD** (`kernel-surface.md §1` item 1;
 /// `A121`, `A122`). **IT IS NOT AN EXPORT AND NOT A SUBPATH**: the module is reached as a FILE, at the path

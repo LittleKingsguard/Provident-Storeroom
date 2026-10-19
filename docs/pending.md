@@ -898,3 +898,18 @@ constraintOff(pair, constraint)     { return constraintToggle(false, instance, a
 **`npm test` `580` / `580` PASS · `0` FAIL. `npm run typecheck` CLEAN (`0` errors). `npm run build` CLEAN.** `cargo test` `395` passed, `0` failed, exit `0`. (`demo:smoke` does not exist in this repository.)
 
 **GATES: `1` discharged (~70 rulings, 10 review passes) · `2` `DELEGABLE` · `3` green · `4` `PASS`. THREE LIVE DEFECTS FOUND AND FIXED, ALL THREE BY EXECUTION RATHER THAN REVIEW:** a refused `addConstraint` silently destroying a standing constraint; the `cfg.constraints` batch route failing every caller; and `pairKey` colliding on `id` alone. **Three adversarial audits passed the first.**
+
+## GATE 5 GREEN — BLIND GREENS `174 / 174`, AND THE SEVENTH EXPORT RESOLVED
+
+**THE BLIND SET FOUND WHAT 580 IMPLEMENTATION-AWARE TESTS COULD NOT.** The kernel module exported **seven** names where the contract declares **exactly six**; `isKernelHandle` was named by no byte of the corpus. `kernel-surface.md §1` item 2 closes the extent at FIVE with *"no sixth name"*; `R-B2` minted `K-6`, making six lawful — **a seventh undeclared name is a finding, not an extension.**
+
+**THE IMPLEMENTER PROVED BOTH DIRECTIONS BEFORE PROCEEDING** (the correct stop): the red tripwire `constraint-kernel-repairop.test.mjs:473` pinned the seventh name as PRESENT, so de-exporting broke it while leaving it broke the greens. **The tripwire had snapshotted the defect instead of asserting the clause** — its own comment at `:86-91` conceded the corpus owed *"either a seventh row or a clause that states a predicate is not an item."*
+
+**THE RULING: A PREDICATE IS NOT AN ITEM.** `isKernelHandle` determines no behaviour of its own, is absent from `index.d.ts`, and reaches only `index.mjs:2882`. **`MF-6`'s searched set amended** (`remove-member.md §7`, `§5` item 4's four printing sites each checked; `contract.md §2.9` item 5; `§5.8`'s `S-K6-EXTENT`; `test-cases.md` row `I-11`). **No `K-7` minted; `MF-1`…`MF-10` and the `KC` eight UNMOVED; extent figures that moved: NONE — `5 + 1 = 6` stands at all four sites.**
+**AND THE TEST WAS CORRECTED BY REMOVING THE EXCLUSION, NOT BY ADDING AN ALLOWANCE:** the cell now asserts `SIX_ITEMS` with no filter plus a second arm pinning the predicate's ABSENCE — which is the difference between a test that pins a clause and one that pins a snapshot. Its sibling at `:583` moved the same way.
+
+**THE LANDING:** `isKernelHandle` became module-private `KERNEL_HANDLE_PREFIX = 'constraint@'`; the conflict test inlines `typeof handle === 'string' && handle.startsWith(KERNEL_HANDLE_PREFIX)`; **no name crosses the module boundary.** Export set: `["commit","log","register","remove","report","runAttempt"]`.
+
+**RUNS: `npm test` `580/580` · `npm run typecheck` CLEAN · `npm run build` exit `0` · BLIND GREENS `174` authored · `174` executed · `174` PASS · `0` FAIL.**
+
+**AND THE BLIND SET'S OWN FIRST RUN READ `170 PASS · 4 FAIL`, THREE OF WHICH WERE THE AUTHOR'S OWN DRIVING ERRORS** — named with their corrections at the document's `§2.1`, **drives fixed and no expectation weakened** — with that self-verification filed as finding `F-2` at the document's head. Two subjects were recorded rather than asserted, correctly: the conflict's direction (`contract.md §2.3` item 8 and `constraint-sites.md §5` item 2 print opposite arrows; the set asserts the identity-keyed one and takes no side) and a constraint-violating write's `FileCommitFailed` status where no clause fixes a code.

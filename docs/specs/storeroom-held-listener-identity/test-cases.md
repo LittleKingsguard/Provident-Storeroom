@@ -77,7 +77,7 @@
 | `I-8` | one invocation per distinct handle per window, and the argument is the written address | `P-HL-5` | `contract.md §5.5`; `trigger-and-pair.md §5` |
 | `I-9` | an identity is a store-side fact, deleted by exactly one act | `P-HL-6` | `contract.md §5.6`; `constraint-identity.md §3` |
 | `I-10` | the product's own member set is the fourteen names, and no remove member is a module export | `P-HL-7` | `contract.md §5.7`; `removal-members.md §7` |
-| `I-11` | the kernel's surface is six items, and `K-6` reaches the removal through the published member | `P-HL-8` | `contract.md §5.8`; `remove-member.md §2`, `§5` |
+| `I-11` | the kernel's surface is six items, and `K-6` reaches the removal through the published member — **AND THE SIX ARE AN ITEM COUNT: a predicate that determines no behaviour of its own and is not part of the declared surface is not an item, `isKernelHandle` being that predicate; a drive here fails on a SEVENTH ITEM and on no exported name** (`remove-member.md §7`'s `MF-6` amendment of 2026-10-19, `§5` items 4–5; `contract.md §2.9` item 5's dated clause; **the extent figure is UNMOVED at `6`**) | `P-HL-8` | `contract.md §5.8`; `remove-member.md §2`, `§5`, `§7` |
 | `I-12` | a purge consults no count and enumerates no addresses — the CLASS probe | `P-HL-2` | `contract.md §5.2`; `listen-verb.md §3` item 2; `P: docs/pending.md · (Y-1)` |
 | `I-13` | no bare handle stands in `pending` beside pairs — the CLASS probe for the retired union | `P-HL-3` | `contract.md §5.3`; `trigger-and-pair.md §3` item 3 |
 

@@ -72,24 +72,33 @@ const KERNEL_HOME = join(HERE, '..', 'src', 'constraint-kernel.mjs');
  * **AND THE AS-FILED CONSTANT'S SUBJECT — *"the kernel exports no route, no addon handle and no sixth
  * name"* — IS RE-DERIVED RATHER THAN WEAKENED:** the ruling names exactly ONE new name, so the set is
  * asserted WHOLE and any name beyond the six still fails this cell. **A SEVENTH NAME IS A FINDING AND IS
- * REPORTED, NOT ABSORBED — see `UNDECLARED_KERNEL_EXPORTS` below, which stands as its own assertion so this
- * cell cannot hide a name it does not declare.**
+ * REPORTED, NOT ABSORBED — see `NOT_A_KERNEL_ITEM` below, which stands as its own assertion so this cell
+ * cannot hide a name it does not declare.**
  */
 const FIVE_ITEMS = ['commit', 'log', 'register', 'report', 'runAttempt'];
 const SIX_ITEMS = [...FIVE_ITEMS, 'remove'].sort();
 
 /**
- * **THE NAMES THE MODULE EXPORTS THAT NO CLAUSE OF THE UNIT DECLARES.** The declared extent is the SIX
- * `K-1`–`K-6` items (`remove-member.md §1` item 1, §3` item 1). **`isKernelHandle` is the one name this
- * suite finds beyond them, and it is REPORTED to the supervisor rather than asserted away:** it is the
- * conflict test's exclusion predicate (`P: docs/pending.md · (C-2)` item (ii), *"the kernel's own
- * `noopListener` is EXCLUDED BY IDENTITY"*; `PAR-HL-32`'s domain cell) and **it is a PREDICATE, not a kernel
- * item — but no clause of `kernel-surface.md §1` item 2 or of `remove-member.md` names it, so the extent
- * declaration owes either a seventh row or a clause that states a predicate is not an item.** The cell below
- * pins the CURRENT set EXACTLY, so the day the contract answers, this list moves with it and nothing is
- * silently admitted.
+ * **THE RULING THAT SETTLES THIS SUITE'S OPEN FINDING: A PREDICATE IS NOT AN ITEM.** The declared extent is
+ * the SIX `K-1`–`K-6` items (`remove-member.md §1` item 1, `§3` item 1; `kernel-surface.md §1` item 2's
+ * extent sentence: *"`6` items — `K-1` `register` · `K-2` `commit` · `K-3` `runAttempt` · `K-4` `log` ·
+ * `K-5` `report` · `K-6` `remove` — `5 + 1 = 6`"*) and **`isKernelHandle` is NOT one of them.**
+ *
+ * THE RULING ANSWERS THE FINDING THIS CONSTANT ONCE RECORDED, AT ITS OWN TERMS: the module's seventh name is
+ * the conflict test's exclusion predicate (`P: docs/pending.md · (C-2)` item (ii), *"the kernel's own
+ * `noopListener` is EXCLUDED BY IDENTITY"*; `PAR-HL-32`'s domain cell) — a predicate that determines no
+ * behaviour of its own and is undeclared in `bindings/js/index.d.ts` — and **the extent declaration's debt
+ * (*"either a seventh row or a clause that states a predicate is not an item"*) IS PAID BY THE SECOND
+ * BRANCH: the clause states it, so no seventh `K` id is minted and the surface stays at six.** `MF-6`'s
+ * falsifier therefore reads the surface's extent through `SIX_ITEMS`, and the module's export set is
+ * asserted to BE those six — the extra name is a de-export owed by the implementation and NOT a licence to
+ * admit a seventh item here.
+ *
+ * **SO THIS CELL NOW READS THE CLAUSE AND NOT THE LIVE DRIFT:** a module that exports `isKernelHandle`
+ * beside the six FAILS this suite, and it passes only once the name is de-exported. **DO NOT RESTORE THIS
+ * TO A "PRESENT" PIN** — pinning the extra name as expected is what a blind green looks like here.
  */
-const UNDECLARED_KERNEL_EXPORTS = ['isKernelHandle'];
+const NOT_A_KERNEL_ITEM = ['isKernelHandle'];
 
 /** Every `repair-run` entry whose `id` is the pair's own BARE id (`attempt-lifecycle.md §2.4` item 2). */
 function repairRunsFor(log, id) {
@@ -464,17 +473,21 @@ test('ck_repairop_arm_d_an_ok_true_return_naming_an_op_the_repair_never_landed_i
 test('ck_repairop_the_kernel_reaches_the_store_only_through_the_callers_own_instance', async () => {
   const module = await kernel();
   // **⟶ `5 → 6`, 2026-10-18** (`remove-member.md §1` item 1; `P: docs/pending.md · R-B2`): the sixth
-  // name is `K-6 remove`. **The set is asserted WHOLE, so a name beyond the six still fails here.**
-  assert.deepEqual(Object.keys(module).filter((k) => !UNDECLARED_KERNEL_EXPORTS.includes(k)).sort(), SIX_ITEMS,
+  // name is `K-6 remove`. **THE SET IS NOW ASSERTED WHOLE WITH NO EXCLUSION AT ALL** — the ruling that a
+  // PREDICATE IS NOT AN ITEM means `isKernelHandle` is no more admissible here than an eighth name, so a
+  // module exporting it fails THIS assertion rather than being filtered out of it.
+  assert.deepEqual(Object.keys(module).sort(), SIX_ITEMS,
     'the module\'s export set is exactly the SIX `K-1`–`K-6` items — the kernel exports no route, no addon '
-    + 'handle and no seventh kernel item');
-  // **AND THE UNDECLARED NAME IS PINNED EXACTLY, SO IT IS REPORTED AND NOT ABSORBED** — a new name beyond
-  // these moves THIS assertion, which is the finding's own tripwire.
-  assert.deepEqual(Object.keys(module).filter((k) => UNDECLARED_KERNEL_EXPORTS.includes(k)).sort(),
-    UNDECLARED_KERNEL_EXPORTS,
-    'the names beyond the declared six are EXACTLY the ones this cell reports (`isKernelHandle`, the '
-    + 'conflict test\'s exclusion predicate) — a seventh name is a FINDING under `kernel-surface.md §1` '
-    + 'item 2\'s amended extent');
+    + 'handle, no seventh item and no predicate beside them (`isKernelHandle` is a predicate determining no '
+    + 'behaviour of its own and is undeclared in `index.d.ts`, so it is NOT a kernel item and is owed a '
+    + 'de-export)');
+  // **AND THE PREDICATE IS PINNED AS ABSENT, WHICH IS THE CLAUSE AND NOT A REPORT** — the direction of this
+  // assertion is the whole correction: `[]` is expected, so the live seventh name is a RED here until the
+  // implementation de-exports it. It never becomes green by the name staying where it is.
+  assert.deepEqual(Object.keys(module).filter((k) => NOT_A_KERNEL_ITEM.includes(k)), [],
+    'the names beyond the declared six are NONE — `isKernelHandle` is a PREDICATE, not a kernel item '
+    + '(`kernel-surface.md §1` item 2\'s amended extent; the ruling that a predicate is not an item), so '
+    + 'the module must not export it and a seventh name is a FINDING and a RED');
   const { register, commit, runAttempt, report } = module;
   const store = makeStore();
   const address = [tag('rop5')];
@@ -565,9 +578,11 @@ test('ck_repairop_the_module_holds_no_addon_load_path_and_loads_with_native_addo
   assert.notEqual(marker, -1,
     `the child reported its export set: read ${JSON.stringify(run.stdout)}`);
   const keys = JSON.parse(run.stdout.slice(marker + 'EXPORTS:'.length));
-  // **⟶ `5 → 6`, 2026-10-18** — and the UNDECLARED name is excluded here by the same list, so this cell
-  // and the one above cannot drift.
-  assert.deepEqual(keys.filter((k) => !UNDECLARED_KERNEL_EXPORTS.includes(k)), SIX_ITEMS,
+  // **⟶ `5 → 6`, 2026-10-18** — and, ⟶ the predicate ruling, **NO name is excluded here either**, so this
+  // cell and the one above assert the SAME whole set and cannot drift: a predicate beside the six is red in
+  // both places.
+  assert.deepEqual(keys, SIX_ITEMS,
     'and under that disabled-addon load the module\'s export set is still exactly the SIX `K-1`–`K-6` '
-    + 'items — one module, six kernel items, and no seventh');
+    + 'items — one module, six kernel items, no seventh name and no predicate beside them (`isKernelHandle` '
+    + 'is not an item)');
 });
