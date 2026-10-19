@@ -24,6 +24,33 @@ import { fileURLToPath } from 'node:url';
 
 import { storeCreate } from 'provident-storeroom';
 
+/**
+ * **⟶ THE LISTENER SPELLING, ADDED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY`
+ * legacy tail). `listen(address)` MOVES TO `listen(handle, addresses)`, ARITY `1 → 2`, AND IT ANSWERS
+ * `undefined`** (`contract.md §2.2` items 1 and 10; `listen-verb.md §1` item 1; `PAR-HL-3`). **THE AS-FILED
+ * `(register(listen(addr), fn) || listen(addr))` IDIOM DEPENDED ON THE RETURN THE MINT RULING REMOVED** — it
+ * took the handle `listen` answered, registered at it, and fell back to a second `listen` when the first
+ * answered a falsy value. **Under the new declaration the handle is SPELLED by the caller, so the idiom is
+ * replaced by the two acts it always meant: a `listen` that creates the RESERVED entry (`listen-verb.md
+ * §4` state `1`), then a `register` that ARMS it.** **NO ASSERTION IS WEAKENED** — every cell reads the same
+ * handle, the same call list and the same store-side entry.
+ */
+let listenerSpellingSeq = 0;
+function listenAndRegister(store, address, listener) {
+  listenerSpellingSeq += 1;
+  const handle = `listener@${JSON.stringify(address)}#${listenerSpellingSeq}`;
+  store.listen(handle, [address]);
+  store.register(handle, listener);
+  return handle;
+}
+function carriesHandle(set, handle) {
+  return set.some((element) => element !== null && typeof element === 'object' && element.handle === handle);
+}
+function setHandles(set) {
+  return set.map((element) => (element === null || typeof element !== 'object' ? element : element.handle));
+}
+
+
 // **⟶ ADDED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause): the combined `on(address,
 // listener)` is MERGED AWAY, so a home entry is minted by `listen(address)` and its function placed by
 // `register(handle, listener)`. This file takes both acts at the sites that need them and passes this
@@ -261,7 +288,7 @@ test('fts_prop_P_IM_1_S_ORDER_SAVE_ordinals_and_the_pre_save_image', async () =>
       // precedes the listener body"* — an ORDER of the WRITE's own acts, read off `log` — so the registration's
       // invocation must not mark one and must not read a pre-save image the cell then attributes to the pass.
       register(f.store, [key], 'p-ord', atLandingOnly(() => { log.push('c'); seen.constraint = bytesOf(f.filePath); return true; }));
-      (f.store.register(f.store.listen([key]), () => { log.push('l'); seen.listener = bytesOf(f.filePath); }) || f.store.listen([key]));
+      listenAndRegister(f.store, [key], () => { log.push('l'); seen.listener = bytesOf(f.filePath); });
       runAttempt(f.store, commit(f.store, [key], tier, `v${i}`));
       assert.deepEqual(log, ['c', 'l'],
         `P-IM-1: the constraint body precedes the listener body (tier ${tier})`);
@@ -331,10 +358,10 @@ test('fts_prop_P_IM_2_S_DURABLE_IMAGE_a_failing_pass_is_byte_identical', async (
       let atFirstBody = null;
       let bodies = 0;
       register(g.store, [passed], 'p-dur-pass', () => true);
-      (g.store.register(g.store.listen([passed]), () => {
+      listenAndRegister(g.store, [passed], () => {
         bodies += 1;
         if (bodies === 1) atFirstBody = bytesOf(g.filePath);
-      }) || g.store.listen([passed]));
+      });
       runAttempt(g.store, commit(g.store, [passed], 'file', `P${i}`));
       assert.equal(atFirstBody === gBefore, false,
         'P-IM-2: the passing arm\'s image is NOT the pre-save image at the first body\'s own instant — '
@@ -457,7 +484,7 @@ test('fts_prop_P_SM_4_S_REFUSAL_rollback_first_message_second_and_no_repair', as
       // evaluated and passed, so the pass reached the save"* — an act of the WRITE's attempt — so the
       // registration's invocation is answered by the shield and `evaluated` counts the landing's alone.
       register(f.store, [key], 'p-refuse', atLandingOnly(() => { evaluated += 1; return true; }));
-      (f.store.register(f.store.listen([key]), () => { listeners += 1; }) || f.store.listen([key]));
+      listenAndRegister(f.store, [key], () => { listeners += 1; });
       // THE COMMIT'S OWN ACT IS MADE TO FAIL BY REMOVING THE PARENT THE CONSTRUCTION'S OWN PREDICATE
       // ACCEPTED (`contract.md §7.1` step 3-bis: the path's parent stands at construction), never by a
       // mode-bit reading of it.
@@ -846,12 +873,17 @@ test('fts_prop_P_TP_8_S_CENSUS_the_set_the_keys_and_the_rows_are_single_valued',
       // date, item `1`, read with `§2.4` item 9's `REMOVED-WHOLE` pointer). **The row's own subject — the
       // drawn key set constructs a product whose member set is METHODS ONLY — is unmoved; `settle` alone
       // leaves and no term beside it moves.**
+      // **⟶ RE-DERIVED 2026-10-18 AGAIN (`role_test_writer`): `12 → 14`, `10 + 1 + 1 + 2 = 14` ✓**, the
+      // `2` being `removeListener` and `removeConstraint`
+      // (`docs/specs/storeroom-held-listener-identity/contract.md` §2.7 item 9; `removal-members.md` §2`).
+      // **The row's own subject — the drawn key set constructs a product whose member set is METHODS ONLY —
+      // is unmoved.**
       assert.deepEqual(Object.getOwnPropertyNames(store).sort(),
         ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-          'readLiteral', 'register', 'rollback', 'unlisten', 'write'],
-        'P-TP-8: the TEN store-reaching methods plus the TWO remaining singles `register` and `constraints` — '
-        + 'TWELVE own members, `10 + 1 + 1 = 12` ✓, and nothing else (`§2.4` item 9 (f)\'s clause '
-        + 'of 2026-10-18, `13 → 12`)');
+          'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'],
+        'P-TP-8: the TEN store-reaching methods plus `register`, `constraints`, `removeListener` and '
+        + '`removeConstraint` — FOURTEEN own members, `10 + 1 + 1 + 2 = 14` ✓, and nothing else '
+        + '(`docs/specs/storeroom-held-listener-identity/contract.md` §2.7 item 9)');
       assert.equal(register !== undefined && commit !== undefined && typeof runAttempt === 'function', true,
         'P-TP-8: the kernel\'s extent stays FIVE and no second register exists');
       // AND EVERY OP THE ATTEMPT CARRIES STANDS IN THE STORE'S OWN CLOSED SET AT ITS OWN RANK.

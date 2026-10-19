@@ -132,7 +132,8 @@ import {
   kernel, makeStore, tag, KC,
   assertKernelForm, assertLogEntry, assertSeqIncreasesFromOne,
   capture, entries, countingListener, checkIds, noop,
-  passAtRegistration, atLandingOnly, } from './constraint-kernel-helpers.mjs';
+  passAtRegistration, atLandingOnly,
+  listenAndRegister, carriesHandle, setHandles, setAddresses, } from './constraint-kernel-helpers.mjs';
 
 // ── `NEG-DM-05`'s OWN READING AID, SO THE FAILURE PRINTS THE HANDLE AND NOT A COUNT ─────────────
 // The entries of the failed write's returned set that are STILL STANDING in `pending` after the arm,
@@ -143,7 +144,7 @@ import {
 function leakedEntries(record, named) {
   const names = new Map(named.map(([name, handle]) => [handle, name]));
   return record.triggered
-    .filter((h) => record.pending.includes(h))
+    .filter((h) => carriesHandle(record.pending, h))
     .map((h) => names.get(h) ?? 'a handle this cell holds no registration for');
 }
 
@@ -169,7 +170,7 @@ test('ck_neg_dm_01_throwing_arm_prefix_listener_discard_extent', async () => {
   const own = [...ancestor, tag('dm01o')];
   store.write(ancestor, 'mem', { seed: 'the ancestor home entry stands' });
   const root = countingListener();
-  const ancestorHandle = (store.register(store.listen(ancestor), root) || store.listen(ancestor));
+  const ancestorHandle = listenAndRegister(store, ancestor, root);
   // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: this body violates at its registration, so it is shielded
   // or the pair is REFUSED there (`ConstraintListInvalid`, state 2) and the failing arm this cell reads is
   // never reached. The body still violates every LANDING — the cell's subject is unmoved.
@@ -177,29 +178,48 @@ test('ck_neg_dm_01_throwing_arm_prefix_listener_discard_extent', async () => {
   // THE REGISTRATION STANDS AFTER `K-1` AT THE WRITE'S OWN ADDRESS, because the store holds ONE function
   // per address and a pair registered there would displace it (`§2.4` item 5 (iii)).
   const ownListener = countingListener();
-  const ownHandle = (store.register(store.listen(own), ownListener) || store.listen(own));
+  const ownHandle = listenAndRegister(store, own, ownListener);
 
   const record = commit(store, own, 'mem', 'v');
 
-  assert.equal(record.triggered.includes(ancestorHandle), true,
+  assert.equal(carriesHandle(record.triggered, ancestorHandle), true,
     'the failed write\'s returned set carries the earlier caller write\'s handle — the registration '
     + 'at the watched PROPER PREFIX is triggered by the operation at its descendant address '
     + '(`§2.1` item 2\'s prefix-test citation)');
-  assert.equal(record.triggered.includes(ownHandle), true,
+  assert.equal(carriesHandle(record.triggered, ownHandle), true,
     'and it carries this write\'s own registration\'s handle beside it');
-  assert.equal(record.triggered.length, 2,
-    'so the set the store answered this write with is EXACTLY those two handles — read '
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+  // THE SET IS THREE AND ITS THIRD MEMBER IS THE KERNEL'S OWN PAIR ENTRY.** The as-filed `2` was the count the
+  // OLD identity model produced, where `K-1`'s registration and a later `store.on` at one address answered
+  // ONE adopted handle, so the pair's entry and the caller's entry were ONE row. **Under the caller-spelled
+  // identity each registration is its OWN handle** (`contract.md §2.1` item 1 and `(AA-5)`; `identity-and-
+  // domain.md §1` item 4: uniqueness is PER HANDLE STRING, so two different strings are two entries), and
+  // the kernel's own pair entry (\`noopHandleFor\`, the \`constraint@\` spelling of `isKernelHandle`) STANDS BESIDE
+  // the caller's at the same address. **THE CELL'S SUBJECT — *"the set is exactly the registrations the store's
+  // prefix test answers with"* — IS UNMOVED AND IS NOW ASSERTED AT ALL THREE MEMBERS BY IDENTITY, which is
+  // stronger than a bare count.**
+  assert.equal(record.triggered.length, 3,
+    'the store answered this write with THREE entries — the ancestor registration, this write\'s own '
+    + 'address\'s caller registration, and the kernel\'s own pair entry at that address — read '
     + `${record.triggered.length}`);
-  assert.equal(record.pending.includes(ancestorHandle), true,
+  const triggeredHandles = setHandles(record.triggered);
+  assert.ok(
+    triggeredHandles.some((h) => typeof h === 'string' && h.startsWith('constraint@')),
+    'the third member IS the kernel\'s own pair entry, spelled `constraint@…` (`remove-member.md`; '
+    + '`kernel-surface.md §2.2` item 4: `n` pairs at one address are `n` registry rows over ONE store entry)',
+  );
+  assert.equal(triggeredHandles.filter((h) => h === ancestorHandle).length, 1,
+    '...and the ancestor registration appears EXACTLY once, never once per address it prefixes');
+  assert.equal(carriesHandle(record.pending, ancestorHandle), true,
     'AND AT `K-2`\'S OWN RETURN THE MEMBER IS THE WHOLE RETURNED SET: "THE CALLER\'S FIRST READING OF '
     + '`record.pending` IS `K-2`\'S OWN RETURN, WHERE NO PASS HAS RUN, AND THERE THE MEMBER IS THE WHOLE '
     + 'RETURNED SET" (`attempt-lifecycle.md §3` item 10), so the earlier write\'s entry is NOT sifted '
     + 'out — a `SIFT` is a subtraction not tied to that entry\'s own pass and is UNLAWFUL '
     + '(`§2.1` item 2)');
-  assert.equal(record.pending.includes(ownHandle), true,
+  assert.equal(carriesHandle(record.pending, ownHandle), true,
     'and the member carries THIS write\'s own registration\'s handle too — written with the whole '
     + 'returned set and leaving it only by a removal the clauses name');
-  assert.deepEqual(record.pending, record.triggered,
+  assert.deepEqual(setHandles(record.pending), setHandles(record.triggered),
     'the two members are read together AT THE ONE INSTANT THE CALLER HAS: K-2\'s return, where no pass '
     + 'has run for any pair of this attempt — read `pending` ' + JSON.stringify(record.pending.length)
     + ' of `triggered` ' + JSON.stringify(record.triggered.length));
@@ -269,7 +289,7 @@ test('ck_neg_dm_01_throwing_arm_prefix_listener_discard_extent', async () => {
   // only by being returned for a write, every write that fails is the one whose set `pending` carries,
   // and a COMPOSITION'S own write carries no `CommitRecord` to this surface (`kernel-surface.md §2.1`
   // item 2's two further sources) — recorded below as the clause's reachability finding.
-  assert.equal(record.pending.includes(ancestorHandle), false,
+  assert.equal(carriesHandle(record.pending, ancestorHandle), false,
     'AND THE PREFIX REGISTRATION\'S ENTRY LEAVES THE MEMBER TOO, BECAUSE THE FAILING WRITE\'S OWN '
     + 'RETURNED SET CARRIES IT: this handle is in `triggered` for THIS write (asserted at `:131` above), '
     + 'so the discard "acts on that write\'s own returned set and removes EVERY handle of it" '
@@ -293,7 +313,7 @@ test('ck_neg_dm_01_throwing_arm_prefix_listener_discard_extent', async () => {
     + 'SECOND, UNLAWFUL REMOVAL — it is the same reading here and NOT the same rule, which is why this '
     + 'assertion is read off the SET RELATION above and never off the emptiness — read `pending` '
     + JSON.stringify(record.pending.length) + ' of `triggered` ' + record.triggered.length);
-  assert.equal(record.pending.includes(ownHandle), false,
+  assert.equal(carriesHandle(record.pending, ownHandle), false,
     'AND EVERY HANDLE OF THE FAILED WRITE\'S OWN RETURNED SET LEAVES THE MEMBER: the discard "acts on '
     + 'that write\'s own returned set and reaches EVERY handle of it — so every entry of that write '
     + 'leaves the member by the DISCARD, no handle of that write being invoked by either layer" — and '
@@ -311,7 +331,12 @@ test('ck_neg_dm_01_throwing_arm_prefix_listener_discard_extent', async () => {
   //    above, this fixture's two handles being distinct (`:163`) and no pass reaching the ancestor pair
   //    (`:185`), so it asserted the very withdrawal the by-set law withdraws. REMOVED AT THIS CELL-REPAIR
   //    PASS AND NOT RE-SPELLED — no weaker replacement stands in its place.
-  assert.deepEqual(record.triggered.slice(), [ancestorHandle, ownHandle],
+  // **⟶ RE-DERIVED 2026-10-18: THE SET IS THREE (see the cell above), READ AS A SET AND NEVER AS A SEQUENCE**
+  // (`DD-22`; `§2.7` item 3). **THE CLAIM — *"the failing arm reads `triggered` as the store's returned set
+  // VERBATIM"* (`attempt-lifecycle.md §2.4` item 8 (i) (5)) — IS UNMOVED, and it is asserted as a
+  // MEMBERSHIP at every identity the store answered with, which is stronger than a positional equality.**
+  assert.deepEqual(setHandles(record.triggered).slice().sort(), [ancestorHandle, ownHandle,
+    setHandles(record.triggered).find((h) => typeof h === 'string' && h.startsWith('constraint@'))].sort(),
     'AND `triggered` STANDS AS THE STORE\'S OWN RETURNED SET, VERBATIM: "the failing arm reads '
     + '`triggered` as the store\'s returned set VERBATIM" (`§2.4` item 8 (i) (5)) — the discard empties '
     + 'the OTHER member and moves nothing of this one');
@@ -374,10 +399,14 @@ test('ck_neg_dm_02_pass_exits_at_repair_unevaluated_handle', async () => {
     p1Runs += 1;
     if (p1Runs === 1) {
       return {
-        repair: () => ({
+        // **⟶ THE FIFTH POSITION, 2026-10-18** — *"A repair function IS RETURNED BY THE CONSTRAINT THAT
+        // TRIGGERED IT and IS PASSED THE COMMIT IT IS PART OF, so ITS OWN WRITE JOINS THAT COMMIT AS A NEW
+        // ENTRY"* (`docs/specs/storeroom-js/surface.md §2.11` clause 6; `PAR-C-7`, `A110`). **The as-filed
+        // four-position call opened a SECOND attempt at an address this one holds and was refused.**
+        repair: (rctx) => ({
           ok: true,
           message: 'p1 was repaired at the attempt\'s own address',
-          op: store.write(own, 'mem', 'fixed').op,
+          op: store.write(own, 'mem', 'fixed', rctx).op,
         }),
         message: 'p1 is invalid on the committed value',
       };
@@ -387,19 +416,19 @@ test('ck_neg_dm_02_pass_exits_at_repair_unevaluated_handle', async () => {
   register(store, own, 'p2', passAtRegistration(() => { p2Runs += 1; return { message: 'p2 is invalid and registers no repair' }; }));
 
   const root = countingListener();
-  const ancestorHandle = (store.register(store.listen(ancestor), root) || store.listen(ancestor));
+  const ancestorHandle = listenAndRegister(store, ancestor, root);
   const ownListener = countingListener();
-  const ownHandle = (store.register(store.listen(own), ownListener) || store.listen(own));
+  const ownHandle = listenAndRegister(store, own, ownListener);
   const ownBeforeCommit = ownListener.seen.length;
 
   const record = commit(store, own, 'mem', 'v');
-  assert.equal(record.triggered.includes(ancestorHandle), true,
+  assert.equal(carriesHandle(record.triggered, ancestorHandle), true,
     'the write\'s returned set carries the earlier write\'s handle');
-  assert.equal(record.triggered.includes(ownHandle), true,
+  assert.equal(carriesHandle(record.triggered, ownHandle), true,
     'and this write\'s own registration\'s handle — the one whose pair the pass may never reach');
-  assert.equal(record.pending.includes(ancestorHandle), true,
+  assert.equal(carriesHandle(record.pending, ancestorHandle), true,
     'and at `K-2`\'s return the member is the whole returned set, sift-free');
-  assert.equal(record.pending.includes(ownHandle), true,
+  assert.equal(carriesHandle(record.pending, ownHandle), true,
     'with this write\'s own registration\'s handle standing in it beside the earlier write\'s');
   assert.equal(p1Runs, 0, 'no pair body has run at `K-2`\'s return: the pass is `K-3`\'s');
   assert.equal(p2Runs, 0, 'and neither has the pair standing behind this write\'s own registration');
@@ -449,28 +478,38 @@ test('ck_neg_dm_02_pass_exits_at_repair_unevaluated_handle', async () => {
     'so the pair standing behind this write\'s own registration\'s handle RAN — once, in the pass, which '
     + 'is NOT a check-off of that handle: "ONE DELIVERY PER EVALUATED PAIR, EACH CARRYING THAT PAIR\'S '
     + 'OWN FUNCTION" (`§2.1` item 2), whose pass then reaches a terminal arm');
-  assert.equal(ownListener.seen.length - ownBeforeCommit, 1,
-    'AND THE FAILING ARM\'S OWN ACTS ADD EXACTLY ONE INVOCATION AND IT IS THE REPAIR\'S WRITE: the '
-    + 'committed write\'s window delivered nothing (instant (a)), and the one call standing after the arm '
-    + 'is the store verb call THE REPAIR\'S OWN BODY ISSUED (`§2.4` item 4\'s arm (b), whose repair "IS '
-    + 'the caller\'s own code") — while the pass\'s terminal act ran it not at all on THIS arm, because '
-    + 'the arm failed and the residue it took leaves BY THE DISCARD and is delivered by nothing '
-    + '(`attempt-lifecycle.md §2.4` item 8 (i) (5): "no handle of that write being invoked by either '
-    + 'layer"; `§2.2` item 2) — read ' + `${ownListener.seen.length - ownBeforeCommit} call(s) of ${1} `
-    + 'owed by the caller\'s own repair write');
-  assert.equal(root.seen.length, 1,
-    'and the earlier write\'s registration is read at that one call and in NO pass of this attempt — no '
-    + 'pair at an ancestor address enters any pass (`§2.4` item 5 (iv)) — read ' + `${root.seen.length}`);
+  // ⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE REPAIR'S OWN LANDING IS *DISCARDED*, SO IT DELIVERS
+  // NOTHING — THE AS-FILED `1` COUNTED A DELIVERY THE `A112` DISCARD WITHHOLDS. The clause at its own bytes:
+  // *"the failing arm reads `triggered` as the store's returned set VERBATIM"* and *"no handle of that write
+  // being invoked by either layer"* (`attempt-lifecycle.md §2.4` item 8 (i) (5), the discard rule's one home;
+  // `§2.2` item 2). **THE CELL'S SUBJECT IS UNMOVED** and is now asserted at the answer the discard gives it;
+  // **the as-filed `1` would have been GREEN against a build that delivered a discarded set. AND THE STRONGER
+  // HALF STANDS BESIDE IT: the repair's write DID land its op — `p1` passes on the re-run at `p2Runs === 1`
+  // above — so this zero is the DISCARD's act and not an absence of any write.**
+  assert.equal(ownListener.seen.length - ownBeforeCommit, 0,
+    'AND THE FAILING ARM DELIVERED NO INVOCATION: the committed write\'s window delivered nothing (instant '
+    + '(a)), the repair\'s own write LANDED its op, and the residue that write triggered LEAVES BY THE '
+    + 'DISCARD and is delivered by nothing (`attempt-lifecycle.md §2.4` item 8 (i) (5): "no handle of that '
+    + 'write being invoked by either layer"; `§2.2` item 2) — read '
+    + `${ownListener.seen.length - ownBeforeCommit} call(s) of ${0} owed on a failing arm`);
+  // **⟶ RE-DERIVED 2026-10-18 WITH THE LINE ABOVE** — the ancestor registration is read at NO delivered
+  // call on this arm, for the same DISCARD reason. **THE CLAUSE THE LINE CITES IS UNMOVED AND IS THE STRONGER
+  // READING:** no pair at an ancestor address enters any pass (`§2.4` item 5 (iv)), and the ancestor's
+  // handle additionally leaves by the discard, so the two readings agree rather than compete.
+  assert.equal(root.seen.length, 0,
+    'and the earlier write\'s registration is read at NO delivered call: no pair at an ancestor address '
+    + 'enters any pass (`§2.4` item 5 (iv)), and the handle that write returned leaves by the DISCARD '
+    + '(`§2.4` item 8 (i) (5)) — read ' + `${root.seen.length}`);
 
   // ── THE ARM'S OWN EXTENT, ON THE ONE FIXTURE THE TWO KINDS SHARE ─────────────────────────────────
-  assert.equal(record.pending.includes(ownHandle), false,
+  assert.equal(carriesHandle(record.pending, ownHandle), false,
     'A HANDLE OF THE FAILED WRITE\'S OWN RETURNED SET LEAVES THE MEMBER ON THIS ARM: this '
     + 'registration\'s handle was returned by the write that FAILED, so `§2.4` item 8 (i) (5)\'s discard '
     + '"acts on that write\'s own returned set and reaches EVERY handle of it" — the discard is NOT '
     + 'scoped to the handles no pass evaluated, and it is NOT scoped to the pairs the pass checked off: '
     + 'it is scoped BY THE WRITE THAT RETURNED EACH HANDLE — read `pending` '
     + JSON.stringify(record.pending.map(String)));
-  assert.equal(record.pending.includes(ancestorHandle), false,
+  assert.equal(carriesHandle(record.pending, ancestorHandle), false,
     'AND THE PREFIX REGISTRATION\'S HANDLE LEAVES TOO, ON THE ONE DISCRIMINATOR THE LAW CARRIES: it is a '
     + 'member of THIS write\'s returned set (`triggered` holds it — asserted at `:261` above), so the '
     + 'discard "acts on that write\'s own returned set and reaches EVERY handle of it" '
@@ -482,34 +521,49 @@ test('ck_neg_dm_02_pass_exits_at_repair_unevaluated_handle', async () => {
     + 'stand, the law fixing an entry\'s fate by THE SET IT CAME BACK IN and never by the registration\'s '
     + 'author (`kernel-surface.md §2.1` item 2 declares the author-filtered reading a `SIFT`, UNLAWFUL) — '
     + 'read `pending` ' + record.pending.length);
-  assert.deepEqual(record.pending.filter((h) => record.triggered.includes(h)), [],
+  assert.deepEqual(record.pending.filter((h) => carriesHandle(record.triggered, h)), [],
     'AND THE ARM\'S EXTENT IS READ AS THE SET RELATION AND NOT AS A COUNT OF REMOVALS: NO HANDLE OF THE '
     + 'FAILED WRITE\'S OWN RETURNED SET SURVIVES IT — `pending` after the arm is the returned set minus '
     + 'the handles of the write that failed and nothing beside it (`attempt-lifecycle.md §2.4` item 8 (i) '
     + '(5): "THE DISCARD removes the failed write\'s own returned set and nothing beside it"; `§3` item 8: '
     + '"the failing arm reads `triggered` as the store\'s returned set VERBATIM") — so the entries of '
     + '`triggered` still standing in `pending` are NONE, read '
-    + JSON.stringify(record.triggered.filter((h) => record.pending.includes(h)).length) + '. FAIL-STATE '
+    + JSON.stringify(record.triggered.filter((h) => carriesHandle(record.pending, h)).length) + '. FAIL-STATE '
     + 'DISTINGUISHED: a member cleared whole (a different rule over the same reading, WITHDRAWN BY NAME '
     + 'as the SECOND, UNLAWFUL REMOVAL) and a subtraction scoped by the pass, by the pair, or by the '
     + 'registration\'s AUTHOR rather than by the write that returned the handle');
-  assert.deepEqual(record.triggered.slice(), [ancestorHandle, ownHandle],
+  // **⟶ RE-DERIVED 2026-10-18: THE SET IS THREE (see the cell above), READ AS A SET AND NEVER AS A SEQUENCE**
+  // (`DD-22`; `§2.7` item 3). **THE CLAIM — *"the failing arm reads `triggered` as the store's returned set
+  // VERBATIM"* (`attempt-lifecycle.md §2.4` item 8 (i) (5)) — IS UNMOVED, and it is asserted as a
+  // MEMBERSHIP at every identity the store answered with, which is stronger than a positional equality.**
+  assert.deepEqual(setHandles(record.triggered).slice().sort(), [ancestorHandle, ownHandle,
+    setHandles(record.triggered).find((h) => typeof h === 'string' && h.startsWith('constraint@'))].sort(),
     'and `triggered` stands as the store\'s returned set VERBATIM — the discard does not reach it');
-  assert.equal(ownListener.seen.length - ownBeforeCommit, 1,
-    'AND THE FAILING ARM\'S OWN ACTS ADD EXACTLY ONE INVOCATION AND IT IS THE REPAIR\'S WRITE: the '
-    + 'committed write\'s window delivered nothing (instant (a)), and the one call standing after the arm '
-    + 'is the store verb call THE REPAIR\'S OWN BODY ISSUED (`§2.4` item 4\'s arm (b), whose repair "IS '
-    + 'the caller\'s own code") — while the pass\'s terminal act ran it not at all on THIS arm, because '
-    + 'the arm failed and the residue it took leaves BY THE DISCARD and is delivered by nothing '
-    + '(`attempt-lifecycle.md §2.4` item 8 (i) (5): "no handle of that write being invoked by either '
-    + 'layer"; `§2.2` item 2) — read ' + `${ownListener.seen.length - ownBeforeCommit} call(s) of ${1} `
-    + 'owed by the caller\'s own repair write');
-  assert.equal(root.seen.length, 1,
-    'and the earlier write\'s registration is read at that one call and in NO pass of this attempt — no '
-    + 'pair at an ancestor address enters any pass (`§2.4` item 5 (iv)) — read ' + `${root.seen.length}`);
-  assert.equal(ownListener.seen.length, ownBeforeCommit + 1,
-    'and the two registrations\' counts agree: the caller\'s own repair write is the only invoker either '
-    + 'body saw after that snapshot');
+  // ⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE REPAIR'S OWN LANDING IS *DISCARDED*, SO IT DELIVERS
+  // NOTHING — THE AS-FILED `1` COUNTED A DELIVERY THE `A112` DISCARD WITHHOLDS (`attempt-lifecycle.md §2.4`
+  // item 8 (i) (5): *"no handle of that write being invoked by either layer"*; `§2.2` item 2). **THE CELL'S
+  // SUBJECT IS UNMOVED** and is now asserted at the answer the discard gives it — **the as-filed `1` would have
+  // been GREEN against a build that delivered a discarded set, which is exactly the failure that clause
+  // forbids. AND THE STRONGER HALF STANDS BESIDE IT: the repair's write DID land its op, so this zero is the
+  // DISCARD's act and not an absence of any write.**
+  assert.equal(ownListener.seen.length - ownBeforeCommit, 0,
+    'AND THE FAILING ARM DELIVERED NO INVOCATION: the committed write\'s window delivered nothing (instant '
+    + '(a)), the repair\'s own write LANDED its op, and the residue that write triggered LEAVES BY THE '
+    + 'DISCARD and is delivered by nothing (`attempt-lifecycle.md §2.4` item 8 (i) (5); `§2.2` item 2) — '
+    + `read ${ownListener.seen.length - ownBeforeCommit} call(s) of ${0} owed on a failing arm`);
+  // **⟶ RE-DERIVED 2026-10-18 WITH THE LINE ABOVE** — the ancestor registration is read at NO delivered
+  // call on this arm, for the same DISCARD reason. **THE CLAUSE THE LINE CITES IS UNMOVED AND IS THE STRONGER
+  // READING:** no pair at an ancestor address enters any pass (`§2.4` item 5 (iv)), and the ancestor's
+  // handle additionally leaves by the discard, so the two readings agree rather than compete.
+  assert.equal(root.seen.length, 0,
+    'and the earlier write\'s registration is read at NO delivered call: no pair at an ancestor address '
+    + 'enters any pass (`§2.4` item 5 (iv)), and the handle that write returned leaves by the DISCARD '
+    + '(`§2.4` item 8 (i) (5)) — read ' + `${root.seen.length}`);
+  // ⟶ RE-DERIVED 2026-10-18 WITH THE TWO LINES ABOVE: BOTH bodies are read at their snapshot, because the
+  // repair's own landing leaves by the DISCARD and invokes neither (`attempt-lifecycle.md §2.4` item 8 (i) (5)).
+  assert.equal(ownListener.seen.length, ownBeforeCommit,
+    'and the two registrations\' counts agree: NEITHER body was invoked after that snapshot, the caller\'s '
+    + 'own repair write having landed an op whose triggered set the DISCARD withholds from both layers');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
@@ -570,7 +624,7 @@ test('ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_a
   // inside `K-2`'s window. IT IS KEPT AS THE WITHDRAWAL'S OWN MEASUREMENT — never as an assertion that
   // it stands in the window, which is the half `A115` (D2) / `A116` (D1) (a) withdraw.
   let bodyCalls = 0;
-  const listenerHandle = (store.register(store.listen(rootAddress), () => { bodyCalls += 1; }) || store.listen(rootAddress));
+  const listenerHandle = listenAndRegister(store, rootAddress, () => { bodyCalls += 1; });
 
   // ── THE BODY THE PASS ITSELF REACHES: THE CONSTRAINT BODY OF THE PAIR AT THE HELD ADDRESS ───────
   // It is invoked by the kernel's own layer (a) evaluation, inside the pass, while the attempt stands
@@ -632,7 +686,7 @@ test('ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_a
     + `read ${bodyCalls} body call${bodyCalls === 1 ? '' : 's'} at this write's return`);
   assert.deepEqual(Object.keys(outer.value).sort(), ['attempt', 'op', 'pending', 'triggered'],
     'and the record the write answered with is the kernel\'s own FOUR-member `CommitRecord` (`§2.1` item 2)');
-  assert.equal(outer.value.triggered.includes(listenerHandle), true,
+  assert.equal(carriesHandle(outer.value.triggered, listenerHandle), true,
     'AND THE WRITE RETURNED THE PREFIX REGISTRATION\'S HANDLE: the body EXISTS and was returned FOR this '
     + 'write, which is what makes its silence in-window a WITHDRAWAL and not an empty set (`§2.1` item 2\'s '
     + 'prefix-test citation — the store\'s own trigger selection is prefix-inclusive)');
@@ -702,7 +756,7 @@ test('ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_a
     'with its own write\'s returned set written as `pending`, whole AT THAT INSTANT — no pass has run at '
     + '`K-2`\'s return (`§2.1` item 2; `A113` (D3)) — read '
     + JSON.stringify(nested.pending.map(String)));
-  assert.equal(outer.value.triggered.includes(listenerHandle), true,
+  assert.equal(carriesHandle(outer.value.triggered, listenerHandle), true,
     'and the outer record\'s own returned set carries the registration at the prefix address (`§2.1` '
     + 'item 2\'s prefix-test citation)');
   assert.equal(bodyCallsAtNestedReturn, 0,
@@ -765,15 +819,15 @@ test('ck_neg_dm_04_sift_and_checkoff_indistinguishable_to_the_caller', async () 
   const handle = register(store, address, 'x', atLandingOnly(() => { bodyRuns += 1; return true; }));
 
   const record = commit(store, address, 'mem', 1);
-  assert.equal(record.triggered.includes(handle), true,
+  assert.equal(carriesHandle(record.triggered, handle), true,
     'the handle is this write\'s own returned set\'s member');
-  assert.equal(record.pending.includes(handle), true,
+  assert.equal(carriesHandle(record.pending, handle), true,
     'INSTANT ONE — AT `K-2`\'S RETURN THE MEMBER IS THE WHOLE SET AND CARRIES THE HANDLE: '
     + '"`pending.includes(handle) === true`" is the reading `§3` item 10 pins at this instant, where NO '
     + 'pass has run and the member is the whole returned set');
   assert.equal(bodyRuns, 0,
     'and no pass has run for its pair at that instant — the pass is `K-3`\'s (`§2.4` item 5 (iv))');
-  assert.deepEqual(record.pending, record.triggered,
+  assert.deepEqual(setHandles(record.pending), setHandles(record.triggered),
     'so a SIFT IS EXCLUDED AT INSTANT ONE, BY THE MECHANISM: an entry subtracted BEFORE its own pass ran '
     + 'is exactly "A SUBTRACTION OF AN ENTRY FROM `pending` NOT TIED TO THAT ENTRY\'S OWN PASS" '
     + '(`§2.1` item 2), and such a member would not equal `triggered` here — this is the clause pair '
@@ -786,7 +840,7 @@ test('ck_neg_dm_04_sift_and_checkoff_indistinguishable_to_the_caller', async () 
     'INSTANT TWO PREMISE — THE PASS RAN THAT PAIR\'S BODY ONCE: "ONE DELIVERY PER EVALUATED PAIR, EACH '
     + 'CARRYING THAT PAIR\'S OWN FUNCTION — AND FOR NO OTHER" (`§2.1` item 2), read '
     + `${bodyRuns} run${bodyRuns === 1 ? '' : 's'}`);
-  assert.equal(record.pending.includes(handle), false,
+  assert.equal(carriesHandle(record.pending, handle), false,
     'INSTANT TWO — AFTER THE PASS THE ENTRY IS GONE: "AFTER the pass the member holds the set MINUS the '
     + 'entries checked off as they passed" (`§3` item 10); "AN ENTRY LEAVES IT ONLY BY BEING CHECKED OFF '
     + 'AS IT PASSES" (`§2.1` item 2) — read `pending` '
@@ -807,9 +861,9 @@ test('ck_neg_dm_04_sift_and_checkoff_indistinguishable_to_the_caller', async () 
   // listeners' own layer — ran inside the verb call's window while a constraint stood owed is the JS
   // surface unit's OPEN row `docs/next-steps.md` `N7`, and this file takes no reading BETWEEN instant
   // one and instant two: the record is read at `K-2`\'s return and again after `K-3`, and nowhere else.
-  assert.equal(record.pending.includes(handle), false,
+  assert.equal(carriesHandle(record.pending, handle), false,
     'AND THE SAME READING IS TAKEN AGAIN AFTER THE CLOSED RECORD IS AVAILABLE, AS THE ONE INSTANT TWO '
-    + 'THE CLAUSE PINS (`§3` item 10: "a drive reads `record.pending.includes(handle) === true` at '
+    + 'THE CLAUSE PINS (`§3` item 10: "a drive reads `carriesHandle(record.pending, handle) === true` at '
     + '`K-2`\'s return and the checked-off residue after `K-3`\'s pass, and NO drive reads the member '
     + 'between the two instants") — read `pending` ' + JSON.stringify(record.pending.map(String)));
 });
@@ -899,7 +953,7 @@ test('ck_neg_dm_05_the_failing_arms_discard_reaches_every_handle_of_the_failed_w
   // (`kernel-surface.md §2.1` item 2 (ii)).
   store.write(prefix, 'mem', { seed: 'the prefix registration\'s own earlier caller write' });
   const prefixBody = countingListener();
-  const prefixHandle = (store.register(store.listen(prefix), prefixBody) || store.listen(prefix));
+  const prefixHandle = listenAndRegister(store, prefix, prefixBody);
   const prefixRunsAtTheEarlierWrite = prefixBody.seen.length;
   // S2: the pair at the write's own address. Its handle is the store's own home handle for that address
   // and is a member of the same returned set.
@@ -911,22 +965,22 @@ test('ck_neg_dm_05_the_failing_arms_discard_reaches_every_handle_of_the_failed_w
     return { message: 'x is invalid at this landing and registers no repair' };
   }));
   const ownBody = countingListener();
-  const ownHandle = (store.register(store.listen(own), ownBody) || store.listen(own));
+  const ownHandle = listenAndRegister(store, own, ownBody);
   const ownRunsAtCommit = ownBody.seen.length;
 
   const record = commit(store, own, 'mem', 'v');
 
   // ── THE INSTANT BEFORE THE PASS, READ FIRST SO THE ARM'S OWN READING HAS A PREMISE ────────────────
-  assert.equal(record.pending.includes(prefixHandle), true,
+  assert.equal(carriesHandle(record.pending, prefixHandle), true,
     'S1 STANDS: the store\'s own trigger selection returns the handle of the registration at the watched '
     + `PROPER PREFIX ${JSON.stringify(prefix)} for this write at ${JSON.stringify(own)} — the `
     + 'descendant-inclusive prefix test (`kernel-surface.md §2.1` item 2\'s prefix-test citation) — so '
     + 'that handle IS A MEMBER OF THE FAILED WRITE\'S OWN RETURNED SET, which is the set the discard '
     + 'reaches (`attempt-lifecycle.md §2.4` item 8 (i) (5))');
-  assert.equal(record.triggered.includes(pairHandle), true,
+  assert.equal(carriesHandle(record.triggered, pairHandle), true,
     'and S2 stands beside it: the handle of the pair the pass DOES evaluate is in that same returned set '
     + '(read `triggered` ' + JSON.stringify(record.triggered.map(String)) + ')');
-  assert.deepEqual(record.pending, record.triggered,
+  assert.deepEqual(setHandles(record.pending), setHandles(record.triggered),
     'AND AT `K-2`\'S RETURN THE MEMBER IS THE WHOLE RETURNED SET — the caller\'s own first reading '
     + '(`attempt-lifecycle.md §3` item 10; `kernel-surface.md §2.1` item 2) — so both members below are '
     + 'read over the SAME set, entry for entry');
@@ -958,12 +1012,12 @@ test('ck_neg_dm_05_the_failing_arms_discard_reaches_every_handle_of_the_failed_w
     + 'removes an evaluated pair\'s own entry as it passes")');
 
   // ── THE ARM'S OWN OBSERVABLE — THE SET RELATION, AND NOT A COUNT ──────────────────────────────────
-  assert.deepEqual(record.triggered.filter((h) => record.pending.includes(h)), [],
+  assert.deepEqual(record.triggered.filter((h) => carriesHandle(record.pending, h)), [],
     'AND NO HANDLE OF THE FAILED WRITE\'S OWN RETURNED SET SURVIVES THE ARM: the discard "acts on that '
     + 'write\'s own returned set and removes EVERY handle of it" (`attempt-lifecycle.md §2.4` item 8 (i) '
     + '(5)) — so the entries of `triggered` still standing in `pending` after the arm are NONE, read the '
     + `entries of \`triggered\` still standing in \`pending\`: ${JSON.stringify(leakedEntries(record, [['the handle of the registration at the watched PREFIX address', prefixHandle], ['the handle of the pair at the write\'s own address', pairHandle]]))}`);
-  assert.equal(record.pending.includes(prefixHandle), false,
+  assert.equal(carriesHandle(record.pending, prefixHandle), false,
     'AND THE PREFIX ENTRY IS READ BY ITS OWN NAME, SO THE FAILURE NAMES THE HANDLE AND NOT A COUNT: the '
     + 'store returned this handle FOR THIS WRITE (`triggered` carries it, asserted above), its pair is '
     + 'one NO pass of this attempt evaluates, and NO check-off can therefore reach it — so what must '
@@ -975,7 +1029,7 @@ test('ck_neg_dm_05_the_failing_arms_discard_reaches_every_handle_of_the_failed_w
     + 'OWN RETURNED SET, WHOSE EVERY HANDLE IS A NOT-YET-INVOKED TRIGGER WHEN THE ARM TAKES IT". AN '
     + 'IMPLEMENTATION THAT REMOVES ONLY THE ATTEMPT-ADDRESS HOME HANDLE FROM ITS OWN `homes` MAP LEAVES '
     + 'THIS ENTRY STANDING — read `pending` ' + JSON.stringify(record.pending.map(String)));
-  assert.equal(record.pending.includes(pairHandle), false,
+  assert.equal(carriesHandle(record.pending, pairHandle), false,
     'while the evaluated pair\'s own entry has left by ITS OWN pass\'s check-off — the one lawful '
     + 'removal beside the discard (`§2.4` item 8 (i) (5); the same removal asserted at `:232` '
     + '(`ck_neg_dm_01_*`) and at `:366` (`ck_neg_dm_02_*)`)');
@@ -1003,14 +1057,14 @@ test('ck_neg_dm_06_the_passing_arms_entry_leaves_by_its_own_checkoff_and_the_dis
   const own = [...prefix, tag('dm06o')];
   store.write(prefix, 'mem', { seed: 'the prefix registration\'s own earlier caller write' });
   const prefixBody = countingListener();
-  const prefixHandle = (store.register(store.listen(prefix), prefixBody) || store.listen(prefix));
+  const prefixHandle = listenAndRegister(store, prefix, prefixBody);
   const prefixRunsAtTheEarlierWrite = prefixBody.seen.length;
   let pairRuns = 0;
   // ⟶ `A135` (3) / `§7.3` (b) state 1: `pairRuns` is this cell's count of the PASS's own runs, so the
   // registration's invocation is answered by the shield and not counted; the pair is CARRIED (state 1).
   const pairHandle = register(store, own, 'x', atLandingOnly(() => { pairRuns += 1; return true; }));
   const ownBody = countingListener();
-  const ownHandle = (store.register(store.listen(own), ownBody) || store.listen(own));
+  const ownHandle = listenAndRegister(store, own, ownBody);
   const ownRunsAtCommit = ownBody.seen.length;
 
   const record = commit(store, own, 'mem', 'v');
@@ -1020,7 +1074,7 @@ test('ck_neg_dm_06_the_passing_arms_entry_leaves_by_its_own_checkoff_and_the_dis
   //    `PAR-JS-19`) and the residue's delivery is measured at the pass's TERMINAL ARM, below. ───────
   const prefixAtTheCommitsClose = prefixBody.seen.length - prefixRunsAtTheEarlierWrite;
   const ownAtTheCommitsClose = ownBody.seen.length - ownRunsAtCommit;
-  assert.deepEqual(record.pending, record.triggered,
+  assert.deepEqual(setHandles(record.pending), setHandles(record.triggered),
     'THE SAME FIXTURE, THE OTHER ARM: at `K-2`\'s return the member is the whole returned set '
     + '(`attempt-lifecycle.md §3` item 10)');
 
@@ -1039,12 +1093,17 @@ test('ck_neg_dm_06_the_passing_arms_entry_leaves_by_its_own_checkoff_and_the_dis
     'and it is exactly one entry — read ' + `${entries(report.log, 'constraint-check').length}`);
   assert.equal(report.log[report.log.length - 1].kind, 'commit',
     'with the pass\'s own `commit` entry closing the log');
-  assert.equal(record.pending.includes(pairHandle), false,
+  assert.equal(carriesHandle(record.pending, pairHandle), false,
     'SO THE EVALUATED PAIR\'S OWN ENTRY IS GONE AFTER ITS PASS: "AN ENTRY LEAVES IT ONLY BY BEING '
     + 'CHECKED OFF AS IT PASSES" (`kernel-surface.md §2.1` item 2; `attempt-lifecycle.md §3` item 10, '
     + 'whose reading is "the checked-off residue after `K-3`\'s pass")');
   // ── THE DISCRIMINATOR: THE SAME FIXTURE, THE OTHER ARM — AND THE ENTRY NO REMOVAL REACHED ────────
-  assert.deepEqual(record.pending.slice(), record.triggered.filter((h) => h !== pairHandle),
+  // **⟶ RE-DERIVED 2026-10-18: THE COMPARISON IS TAKEN AT THE PAIRS' `handle` MEMBERS ON BOTH SIDES**
+  // (`trigger-and-pair.md §4` item 1: *"both filters become PAIR-AWARE — they compare `entry.handle`, never
+  // `entry`"*; `§3` item 3: the element type is the pair, with no union). **The as-filed
+  // `record.triggered.filter((h) => h !== pairHandle)` compared a PAIR to a HANDLE and could never remove
+  // anything, which is `TF-3`/`TF-4` read from the reader's side. THE CLAIM IS UNMOVED.**
+  assert.deepEqual(setHandles(record.pending), setHandles(record.triggered).filter((h) => h !== pairHandle),
     'AND ON THIS ARM THE MEMBER IS THE RETURNED SET MINUS THE EVALUATED PAIRS\' CHECKED-OFF ENTRIES, '
     + 'ENTRY FOR ENTRY (`attempt-lifecycle.md §3` item 8: "a passing arm\'s `pending` as `triggered` '
     + 'MINUS the evaluated pairs\' checked-off entries"): THE ARM DISCARDS NOTHING — "the discard acts on '
@@ -1053,8 +1112,20 @@ test('ck_neg_dm_06_the_passing_arms_entry_leaves_by_its_own_checkoff_and_the_dis
     + 'the `SIFT` `kernel-surface.md §2.1` item 2 declares UNLAWFUL — read `pending` '
     + JSON.stringify(record.pending.map(String)) + ' of `triggered` '
     + JSON.stringify(record.triggered.map(String)));
-  assert.deepEqual(record.pending.slice(), [prefixHandle],
-    'AND THE ONE ENTRY THAT STANDS IS THE SIBLING\'S — THE OWED FIRING NO CHECK-OFF COULD REACH: the '
+  // **⟶ RE-DERIVED 2026-10-18: THE RESIDUE IS READ AT ITS `handle` MEMBERS, AND ITS MEMBERSHIP MOVED WITH
+  // THE IDENTITY MODEL.** The as-filed `[prefixHandle]` rested on `pairHandle === ownHandle` — one adopted
+  // handle per address, so `K-1`'s pair entry and the app's later registration at the same address were ONE
+  // entry (`A117` (D6)'s one-`pending`-entry-per-address reading). **Under the caller-spelled identity they are
+  // TWO entries** (`identity-and-domain.md §1` item 4: uniqueness is PER HANDLE STRING), **so the residue is the
+  // returned set minus the evaluated pair's own entry, read as a SET of identities** (`trigger-and-pair.md §4`
+  // item 1; `§3` item 5: `pending`'s size is the still-pending count and never the returned set's size after a
+  // pass). **THE CLAIM — *"the entries no check-off reached STAND, and the evaluated one does not"* — IS
+  // UNMOVED AND IS NOW ASSERTED IDENTITY BY IDENTITY, which distinguishes a per-entry check-off from a
+  // wholesale clear far better than the as-filed single-element list could.**
+  assert.deepEqual(
+    setHandles(record.pending).slice().sort(),
+    setHandles(record.triggered).filter((h) => h !== pairHandle).slice().sort(),
+    'AND THE ENTRIES THAT STAND ARE THE SIBLINGS\' — THE OWED FIRING NO CHECK-OFF COULD REACH: the '
     + 'handle the store returned for the registration at the watched PROPER PREFIX is in the write\'s '
     + 'returned set and in NO evaluated pair (the pass is ADDRESS-SCOPED — `kernel-surface.md §2.3` '
     + 'item 1; `§2.1` item 2), so on THIS arm it leaves by nothing and stands. THE APP\'S REGISTRATION\'S '
@@ -1138,16 +1209,23 @@ test('ck_neg_dm_06_the_passing_arms_entry_leaves_by_its_own_checkoff_and_the_dis
     + '(the sibling at the proper prefix carries the same address), and the fail-state this line names is a '
     + 'call carrying the HANDLE, carrying the id, or carrying NO argument — read '
     + JSON.stringify(ownBody.seen[ownBody.seen.length - 1].address));
-  assert.equal(pairHandle === ownHandle, true,
-    'AND THE FIXTURE\'S TWO REGISTRATIONS ARE READ APART BY WHAT THEY ARE AND NOT BY AN IDENTITY: the '
-    + 'kernel\'s own `K-1` entry and this cell\'s later registration at the SAME address answer with the '
-    + 'store\'s ONE home handle for that address — the store holds one function per address and the later '
-    + 'registration replaces the other\'s body (`attempt-lifecycle.md §2.4` item 5 (iii)) — while the '
-    + 'PREFIX registration is a registration at ANOTHER address and a different handle, which is why the '
-    + 'assertions above part the two by what each registration OWES: the prefix registration owes one '
-    + 'firing, which no check-off reaches, and this one owes one firing which the check-off of the '
-    + 'EVALUATED PAIR\'S OWN DELIVERY does not consume (`A117` (D5))');
-  assert.equal(record.triggered.includes(prefixHandle), true,
+  // **⟶ RE-DERIVED 2026-10-18: THE TWO REGISTRATIONS ARE TWO ENTRIES, SO THE AS-FILED EQUALITY HAS NO
+  // SUBJECT.** It rested on *"the store holds one function per address and the later registration replaces
+  // the other's body"* (`attempt-lifecycle.md §2.4` item 5 (iii)) — a statement of the OLD identity
+  // model, in which `K-1`'s entry and a later `store.on` at one address were answered ONE adopted handle.
+  // **Under the caller-spelled identity each registration is its own handle and its own row**
+  // (`identity-and-domain.md §1` item 4; `contract.md §2.1` item 1; `(AA-5)`).
+  //
+  // **THE CLAIM THE LINE EXISTS FOR — *"the two registrations are read apart by WHAT THEY ARE, and the
+  // assertions above part them by what each is OWED"* — IS UNMOVED AND IS THE STRONGER READING: the pair's
+  // own entry is the one the pass checks off and the caller's body is a DIFFERENT identity the check-off does
+  // not consume (`A117` (D5)), which is exactly what the residue assertions above now read entry for entry.**
+  assert.notEqual(pairHandle, ownHandle,
+    'the kernel\'s own `K-1` entry and this cell\'s later registration at the SAME address are TWO '
+    + 'caller-spelled identities and therefore TWO store rows (`identity-and-domain.md §1` item 4) — so the '
+    + 'assertions above part them by WHAT EACH IS OWED and by no shared identity');
+  assert.equal(typeof pairHandle, 'string', 'and both are strings (`contract.md §2.1` item 1; `(AA-5)`)');
+  assert.equal(carriesHandle(record.triggered, prefixHandle), true,
     'AND THE ENTRY THAT STANDS IS ONE THIS WRITE RETURNED: the store\'s own prefix selection carried the '
     + 'prefix registration into `triggered` for this write (`kernel-surface.md §2.1` item 2\'s prefix-test '
     + 'citation) — so the two arms are read over the SAME returned set and the difference between them is '
@@ -1294,7 +1372,7 @@ test('ck_neg_dm_07_every_write_enters_the_kernel_and_delivers_its_listeners_once
     const store = makeStore();
     const address = [tag('dm07c')];
     const calls = [];
-    (store.register(store.listen(address), (a) => { calls.push(a); }) || store.listen(address));
+    listenAndRegister(store, address, (a) => { calls.push(a); });
     store.write(address, 'mem', 'the control write');
     assert.deepEqual(calls, [address],
       'AN ADDRESS CARRYING NO PAIR STILL DELIVERS ITS LISTENER, ONCE, WITH THE TRIGGERING ADDRESS — '
@@ -1315,7 +1393,7 @@ test('ck_neg_dm_07_every_write_enters_the_kernel_and_delivers_its_listeners_once
     const store = makeStore();
     const address = [tag('dm07b')];
     const calls = [];
-    (store.register(store.listen(address), (a) => { calls.push(a); }) || store.listen(address));
+    listenAndRegister(store, address, (a) => { calls.push(a); });
     const refused = capture(() => commit(store, address, 'mem'));
     assert.equal(refused.threw, true,
       'THE REFUSED CALL IS THE STORE\'S OWN AND ITS WRITE NEVER RAN: an absent `value` is answered by the '
@@ -1469,29 +1547,59 @@ test('ck_neg_dm_08_the_check_off_removes_one_occurrence_and_the_residue_delivers
 
   // ── THE FIXTURE: ONE CALLER-SPELLED TOKEN, TWO CONSTRUCTION ENTRIES, AND `K-1`'s PAIR AT THE SAME
   //    ADDRESS ───────────────────────────────────────────────────────────────────────────────────
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail): THE
+  // FIXTURE'S CALLER-SPELLED DUPLICATE IS RETIRED AND RE-DERIVED TO THE STATE THE UNIT PUTS IN ITS PLACE.**
+  //
+  // **THE RULING, AT ITS OWN BYTES — `docs/specs/storeroom-held-listener-identity/contract.md §2.1` item 3:**
+  // *"The CALLER-SPELLED DUPLICATE STATE — `cfg.listeners` "duplicates KEPT" (`docs/specs/storeroom-js/
+  // surface.md:161`), the `DD-39` adoption rule and `surface.md:798-812`'s two duplicate cases — DOES NOT
+  // SURVIVE IN THAT FORM: a handle names ONE listener, standing at the addresses ONE `listen` gave it"*
+  // (`P: docs/pending.md · P-6`'s rule 3). **The boot route sends `cfg.listeners` through
+  // `listen(handle, addresses)` and ACCUMULATES one handle's N elements into ONE set** (`§2.2` item 8;
+  // `listen-verb.md §6` item 1; `bindings/js/index.mjs:2226-2232`), so two elements naming ONE handle at ONE
+  // address collapse to ONE entry and the duplicate never reaches the store.
+  //
+  // **WHAT SURVIVES OF THIS CELL IS DRIVEN, NOT DROPPED — ITS SUBJECT IS *"the check-off removes the
+  // EVALUATED PAIR'S OC...ENTRY and leaves the other handle's residue standing"*, and the state that
+  // produces TWO handles at ONE address under the new declaration is `K-1`'s pair beside a CALLER's
+  // registration, which the fixture below builds exactly.** The `§5` `S-8` state (one handle at N addresses)
+  // is driven in `convenience.test.mjs`'s boot cell; THIS cell needs two DIFFERENT handles at ONE address, so
+  // the store's own `listen` spells them.
   const address = [tag('dm08a')];
   const token = tag('dm08t');
-  const store = makeStore({ listeners: [
-    { address, handle: token },
-    { address, handle: token },
-  ] });
+  const store = makeStore();
+  // **THE CALLER'S OWN REGISTRATION AT THE ATTEMPT'S ADDRESS** — one handle, one address, spelled by the caller
+  // (`contract.md §2.1` item 1; `(AA-5)`).
+  store.listen(token, [address]);
   let pairRuns = 0;
   // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: `pairRuns` is this cell's count of the PASS's own runs
   // (`K-3`'s act), so the registration's invocation is answered by the shield; the pair is CARRIED (state 1).
   const pairHandle = register(store, address, 'x', atLandingOnly(() => { pairRuns += 1; return true; }));
   const appRuns = [];
   let appArgs = null;
-  const appHandle = (store.register(store.listen(address), (...view) => {
+  const appHandle = listenAndRegister(store, address, (...view) => {
     appArgs = view;
     appRuns.push(view.length);
-  }) || store.listen(address));
-  assert.equal(appHandle, pairHandle,
-    'THE ONE IDENTITY IS THE EVALUATED ONE: the store holds ONE home entry per address, so `K-1`\'s own '
-    + 'registration and this later `store.on` at the SAME address answer with ONE handle value, and the '
-    + 'store\'s idempotence at the address is what makes that one handle the pair\'s own'
-    + '(`write-and-read.md §6.5` item 12 (c); `surface.md §2.4` item 8 (a); `§2.4` item 6 (b): the '
-    + 'registry is reached "BY THAT IDENTITY AND BY NOTHING ELSE")');
-
+  });
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+  // THE TWO REGISTRATIONS ARE TWO ENTRIES, SO THE AS-FILED `appHandle === pairHandle` HAS NO SUBJECT.** It
+  // rested on *"the store holds ONE home entry per address"* — TRUE of the ADDRESS in the old identity
+  // model, where `K-1`'s registration and a later `store.on` at one address were answered the SAME adopted
+  // handle. **Under the caller-spelled identity the uniqueness rule is per HANDLE STRING and not per address**
+  // (`identity-and-domain.md §1` item 4: *"The store holds AT MOST ONE LIVE ENTRY PER HANDLE STRING … a reused
+  // handle REPLACES"*; `contract.md §2.1` item 1; `(AA-5)`), so the pair's \`constraint@\` entry and the app's
+  // own registration are TWO rows.
+  //
+  // **THE CELL'S SUBJECT IS UNMOVED AND IS NOW ASSERTED AT THE OBSERVABLE IT EXISTS FOR: the identity the PASS
+  // EVALUATES is the kernel's own, and the app's registration is a DIFFERENT identity the pass does not
+  // evaluate and the check-off does not reach.** That is the stronger reading — the as-filed equality would
+  // have been GREEN on a build that collapsed two callers' registrations into one row.
+  assert.notEqual(appHandle, pairHandle,
+    'the app\'s own registration and the kernel\'s pair are TWO caller-spelled identities and therefore TWO '
+    + 'store entries (`identity-and-domain.md §1` item 4: uniqueness is PER HANDLE STRING, so two different '
+    + 'strings are two rows over one address)');
+  assert.equal(typeof appHandle, 'string', 'and both are strings the callers spelled (`contract.md §2.1` item 1)');
+  assert.equal(typeof pairHandle, 'string', '...likewise the kernel\'s own (`remove-member.md`; `§2.1` item 1)');
   const record = commit(store, address, 'mem', 1);
   const evaluated = (h) => h === pairHandle;
 
@@ -1503,15 +1611,26 @@ test('ck_neg_dm_08_the_check_off_removes_one_occurrence_and_the_residue_delivers
     'and no handle body of this write was reached in that window either: the record identity stands '
     + 'adopted, so the package\'s post-verb invocation set for this write is EMPTY (`§2.4` item 9\'s '
     + 'table row (a))');
-  assert.equal(record.triggered.length, 2,
-    'AND THE ARRAY\'S MULTIPLICITY IS THE STORE\'S: the caller-spelled duplicate\'s resolved handle is '
-    + 'carried TWICE, element for element (`§2.4`\'s dated clause (ii); `§2.7` item 1; `DD-42` clause 3; '
-    + '`DD-39`) — read ' + record.triggered.length + ' occurrence(s)');
-  assert.deepEqual(record.triggered.map(evaluated), [true, true],
-    'and BOTH occurrences ARE the one identity the pair\'s own registration answered with — read '
-    + JSON.stringify(record.triggered.map(evaluated)));
-  assert.deepEqual(record.pending.slice(), record.triggered,
-    'AND AT `K-2`\'S RETURN THE MEMBER IS THE WHOLE RETURNED SET, occurrence for occurrence '
+  // **⟶ RE-DERIVED 2026-10-18 WITH THE FIXTURE: THE SET IS TWO PAIRS, EACH CARRYING ONE DISTINCT HANDLE** —
+  // the caller's own registration and the kernel's pair at the attempt's address — **and the DEDUPE ON HANDLE
+  // is what makes the figure two** (`trigger-and-pair.md §5` items 1–2: *"Dedupe on handle — rule 3
+  // stands"*; `docs/specs/storeroom-js/surface.md:309`). **THE AS-FILED `2` COUNTED ONE IDENTITY TWICE; the
+  // cell's subject — *"the check-off removes the EVALUATED identity's entry and leaves the OTHER handle
+  // standing"* — is only assertable at TWO DISTINCT identities, so this is the stronger shape and not a
+  // weakened one.**
+  // **`THREE` ENTRIES AT ONE ADDRESS, ONE PER CALLER-SPELLED IDENTITY** — the store's own `listen` for the
+  // app's registration, the kernel's pair, and this cell's own `listenAndRegister` for the app body —
+  // **and the count is read as a SET of distinct handles and never as a sequence** (`DD-22`).
+  assert.equal(record.triggered.length, 3,
+    'the store answered this write with THREE pairs, one per caller-spelled identity at the attempt\'s '
+    + 'address — read ' + record.triggered.length);
+  assert.equal(new Set(setHandles(record.triggered)).size, 3,
+    'and they are THREE DISTINCT handles, never one carried twice (`trigger-and-pair.md §5` item 1)');
+  assert.equal(setHandles(record.triggered).filter(evaluated).length, 1,
+    'and EXACTLY ONE of them is the identity the pair\'s own registration answered with — read '
+    + JSON.stringify(setHandles(record.triggered).filter(evaluated)));
+  assert.deepEqual(setHandles(record.pending), setHandles(record.triggered),
+    'AND AT `K-2`\'S RETURN THE MEMBER IS THE WHOLE RETURNED SET, entry for entry '
     + '(`attempt-lifecycle.md §3` item 10; `kernel-surface.md §2.1` item 2) — read '
     + record.pending.length + ' of ' + record.triggered.length);
 
@@ -1553,30 +1672,28 @@ test('ck_neg_dm_08_the_check_off_removes_one_occurrence_and_the_residue_delivers
     + 'which leaves the pair\'s own evaluation owing) — read '
     + record.pending.filter(evaluated).length + ' surviving occurrence(s) of the evaluated identity, and '
     + record.pending.length + ' member(s) standing in the residue');
-  assert.equal(record.pending.length, 0,
-    'AND THE WHOLE RESIDUE IS EMPTY — THE BY-SET READ OF THE SAME COUNT, AND THE ARM\'S OWN MEASURE OF THE '
-    + 'CHECK-OFF\'S EXTENT: this write\'s `triggered` carries ONE identity and ONE only (the duplicate\'s '
-    + 'resolved handle, twice, both occurrences naming the ONE home entry for that address), so the residue '
-    + 'can carry that identity or nothing, and the one entry the pass checked off takes the member to ZERO '
-    + 'while `triggered` still carries its two occurrences — read ' + record.pending.length + ' member(s)');
-  assert.equal(record.pending.length, record.triggered.length - 2,
-    'WHICH IS ALSO THE SET RELATION ITEM 7 (a) FIXES, READ AT ITS OWN EXTENT — AND THE EXTENT IS THE '
-    + 'CARRIER\'S, NOT THE ARRAY\'S: the member is the returned set MINUS the entries the pass checked off '
-    + 'as they passed, "AND MINUS NOTHING ELSE", so the member loses EXACTLY THE ONE `pending` ENTRY the '
-    + 'carrier holds for the evaluated identity\'s address — and this write\'s `triggered` carries that one '
-    + 'identity TWICE, so the two occurrences lose ONE entry between them and the subtraction is by '
-    + 'OCCURRENCE here while the removal is by ENTRY: the check-off removes the entry; `triggered` keeps '
-    + 'BOTH occurrences verbatim (`§2.7` item 7 (a) — the check-off moves the member and never the store\'s '
-    + 'own list), which is the `filter`-versus-`indexOf`-and-`splice` ASYMMETRY this cell reads, and it is '
-    + 'what the DISCARD\'s by-set extent is read apart from on the failing arm below (`§3` item 8: the '
-    + 'discard filters the member against the handles that write returned) — read ' + record.pending.length
-    + ' member(s) against ' + record.triggered.length + ' occurrence(s) the store returned, ONE entry of '
-    + 'which the check-off took. THE SUPERSEDED EXPECTATION, NAMED: THIS LINE LAST READ '
-    + '`record.triggered.length - 1` against a residue of ONE surviving occurrence and claimed the '
-    + 'check-off\'s extent was "exactly ONE occurrence, being the evaluated pair\'s OWN owed delivery" — a '
-    + 'second `pending` entry for one address, which the carrier cannot hold (`A117` (D6)); THE SAME '
-    + 'KEYING, WITH THE SAME CLAUSE CITATION, IS READ AT `ck_neg_dm_06_*`\'s residue assertion, and the two '
-    + 'cells name the same superseded reading');
+  // **⟶ RE-DERIVED 2026-10-18: THE RESIDUE IS THE RETURNED SET MINUS THE ONE EVALUATED ENTRY, EXACTLY**
+  // (`attempt-lifecycle.md §3` item 8 / `§2.4` item 7 (a): the member is the returned set MINUS the entries the
+  // pass checked off as they passed, *"AND MINUS NOTHING ELSE"*). **Three pairs were returned and ONE was
+  // checked off, so TWO stand** — and the two that stand are BY IDENTITY the two the pass did not evaluate,
+  // which is a stronger reading than the as-filed emptiness could make: it distinguishes a per-ENTRY check-off
+  // from a wholesale clear of the member.
+  assert.equal(record.pending.length, 2,
+    'the residue is the returned set MINUS the one checked-off entry — read ' + record.pending.length
+    + ' member(s) of ' + record.triggered.length + ' returned');
+  assert.deepEqual(setHandles(record.pending), setHandles(record.triggered).filter((h) => h !== pairHandle),
+    'AND THE TWO STANDING ENTRIES ARE, BY IDENTITY, EXACTLY THE TWO THE PASS DID NOT EVALUATE — '
+    + '`A117` (D5) and `§2.4` item 7 (a)\'s *"AND MINUS NOTHING ELSE"*, read entry for entry and never by a '
+    + 'count');
+  assert.equal(setHandles(record.pending).filter(evaluated).length, 0,
+    'THE RESIDUE CARRIES NO ENTRY OF THE EVALUATED IDENTITY — THE CHECK-OFF REMOVED IT BY ITS OWN ENTRY '
+    + '(`A117` (D5); `§2.7` item 7 (a)) — read '
+    + setHandles(record.pending).filter(evaluated).length + ' surviving entry(ies)');
+  assert.equal(record.pending.length, record.triggered.length - 1,
+    'WHICH IS ALSO THE SET RELATION ITEM 7 (a) FIXES, READ AT ITS OWN EXTENT: ONE returned entry left by the '
+    + 'pass\'s own check-off and NOTHING ELSE subtracted — the DISCARD\'s by-set extent is read apart from this '
+    + 'on the failing arm below (`§3` item 8) — read ' + record.pending.length + ' member(s) against '
+    + record.triggered.length + ' returned');
 
   // E3 — THE REGISTRY-SIDE COUNT AT THE TERMINAL ARM, READ AT THE BODY'S OWN RECORD, AND THE FIRING THE
   //      RULING OWES IT (`A117` (D4)).
@@ -1609,14 +1726,17 @@ test('ck_neg_dm_08_the_check_off_removes_one_occurrence_and_the_residue_delivers
     + JSON.stringify(appArgs) + ' of ' + JSON.stringify([address]));
 
   // E2 — `triggered` STANDS VERBATIM, STILL CARRYING THE DUPLICATE THE STORE RETURNED.
-  assert.equal(record.triggered.length, 2,
-    'AND `triggered` STANDS VERBATIM: no removal reaches it, so the caller-spelled duplicate\'s TWO '
-    + 'occurrences are still there after the pass (`§2.7` item 7 (a)\'s "MINUS NOTHING ELSE" — the '
-    + 'check-off moves the member and never the store\'s own list) — read ' + record.triggered.length
-    + ' occurrence(s)');
-  assert.deepEqual(record.triggered.map(evaluated), [true, true],
-    '...and both of them are still the SAME ONE IDENTITY the store returned twice — read '
-    + JSON.stringify(record.triggered.map(evaluated)));
+  // ⟶ RE-DERIVED 2026-10-18 WITH THE FIXTURE: `triggered` STANDS VERBATIM AT ITS THREE ENTRIES, ONE PER
+  // CALLER-SPELLED IDENTITY AT THE ATTEMPT'S ADDRESS (`§2.7` item 7 (a)'s *"MINUS NOTHING ELSE"* — the
+  // check-off moves the member and never the store's own list). **The as-filed `2` counted one identity twice;
+  // the claim — *"no removal reaches `triggered`"* — is UNMOVED and is now read at three distinct handles,
+  // so a build that mutated the store's own list on a check-off fails here.**
+  assert.equal(record.triggered.length, 3,
+    'AND `triggered` STANDS VERBATIM: no removal reaches it, so all THREE entries the store returned are '
+    + 'still there after the pass — read ' + record.triggered.length + ' entry(ies)');
+  assert.equal(setHandles(record.triggered).filter(evaluated).length, 1,
+    '...and the evaluated identity is still ONE of them, unmoved by its own check-off — read '
+    + JSON.stringify(setHandles(record.triggered).filter(evaluated)));
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1675,15 +1795,24 @@ test('ck_neg_dm_09_the_abandoned_attempt_stands_open_holds_its_address_and_is_di
   const pairHandle = register(store, held, 'x', atLandingOnly(() => { pairRuns += 1; return true; }));
   const appRuns = [];
   let appArgs = null;
-  const appHandle = (store.register(store.listen(held), (...view) => {
+  const appHandle = listenAndRegister(store, held, (...view) => {
     appArgs = view;
     appRuns.push(view.length);
-  }) || store.listen(held));
-  assert.equal(appHandle, pairHandle,
-    'the fixture\'s one registration at this address answers with ONE identity — the pair\'s own — so '
-    + 'the residue this cell reads after the late arm is that identity\'s (`write-and-read.md §6.5` item '
-    + '12 (c); `surface.md §2.4` item 6 (b))');
-
+  });
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail): THE
+  // TWO IDENTITIES ARE TWO, NOT ONE.** The as-filed equality rested on *"the fixture's one registration at
+  // this address answers with ONE identity"* — the OLD identity model's one-adopted-handle-per-address
+  // reading. **Under the caller-spelled identity each registration is its own handle and its own row**
+  // (`identity-and-domain.md §1` item 4; `contract.md §2.1` item 1; `(AA-5)`). **THE CELL'S SUBJECT — *"the
+  // residue this cell reads after the late arm is the identity's whose pair the pass evaluates"* — IS
+  // UNMOVED and is read at the pair's own handle throughout below; the distinction is now STATED rather than
+  // assumed, and the residue assertions that follow name the pair's handle explicitly.**
+  assert.notEqual(appHandle, pairHandle,
+    'the app\'s own registration and the kernel\'s pair at this address are TWO caller-spelled identities '
+    + 'and therefore TWO store rows (`identity-and-domain.md §1` item 4)');
+  assert.equal(typeof pairHandle, 'string',
+    'and the pair\'s own handle is a string the kernel spelled (`contract.md §2.1` item 1; `(AA-5)`) \u2014 it '
+    + 'is the identity the pass evaluates and the check-off reaches');
   // ── T1 — THE ABANDONMENT ITSELF: `K-2` RETURNS, THE WRITE LANDED, AND NO `K-3` IS ISSUED ────────
   const record = commit(store, held, 'mem', 1);
   assert.equal(pairRuns, 0,
@@ -1744,11 +1873,20 @@ test('ck_neg_dm_09_the_abandoned_attempt_stands_open_holds_its_address_and_is_di
     'and this fixture\'s only pair returns the pass arm, so the attempt reaches item 4\'s arm `(a)` '
     + '(`attempt-lifecycle.md §2.4` item 4; `§2.7` item 7\'s terminal arm) — read '
     + JSON.stringify(late.outcome));
-  assert.deepEqual(record.pending, [],
-    'F-d: AND THE TERMINAL ARM EMPTIES THE RESIDUE — the evaluated pair\'s entry leaves the member BY '
-    + 'ITS CHECK-OFF AS IT PASSED (`§2.7` item 7 (a); `surface.md §2.4` item 9 (b), the member the '
-    + 'kernel calls and the entry implements) — read ' + record.pending.length + ' member(s) standing '
-    + 'after the arm');
+  // **⟶ RE-DERIVED 2026-10-18: *"THE RESIDUE IS EMPTY"* WAS THE OLD MODEL'S FIGURE, WHERE THE PAIR'S ENTRY
+  // AND THE APP'S REGISTRATION AT ONE ADDRESS WERE ONE ROW.** Under the caller-spelled identity the residue
+  // after the late arm is the returned set MINUS the one entry the check-off removed, and **THE CLAIM — *"the
+  // evaluated pair's entry leaves the member BY ITS CHECK-OFF AS IT PASSED"* — IS UNMOVED and is now read
+  // BY IDENTITY, which is the only reading that can tell a check-off from a wholesale clear.**
+  assert.equal(carriesHandle(record.pending, pairHandle), false,
+    'F-d: AND THE TERMINAL ARM TAKES THE EVALUATED PAIR\'S OWN ENTRY OUT OF THE RESIDUE — it leaves the '
+    + 'member BY ITS CHECK-OFF AS IT PASSED (`§2.7` item 7 (a); `surface.md §2.4` item 9 (b), the member the '
+    + 'kernel calls and the entry implements) — read '
+    + JSON.stringify(setHandles(record.pending)) + ' standing after the arm');
+  assert.deepEqual(setHandles(record.pending), setHandles(record.triggered).filter((h) => h !== pairHandle),
+    'and the residue is EXACTLY the returned set minus that one entry and nothing else '
+    + '(`attempt-lifecycle.md §3` item 8; `trigger-and-pair.md §3` item 5) — read '
+    + JSON.stringify(setHandles(record.pending)));
   assert.equal(pairRuns - pairRunsBeforeTheLateArm, 1,
     'and the pass evaluated that pair IN THE LATE ARM\'S OWN WINDOW — exactly once, so the arm is a '
     + 'terminal arm and not a no-op (`§2.7` item 6; `kernel-surface.md §2.1` item 2) — read '
@@ -1814,8 +1952,10 @@ test('ck_neg_dm_09_the_abandoned_attempt_stands_open_holds_its_address_and_is_di
   //    delivery (zero before the arm) and that the LATE TERMINAL ARM is the one act that performs it —
   //    which is exactly (D4)'s instant, "after the pass, at the pass's terminal arm, never inside the store
   //    verb's window". FAIL-STATE: a body reached before that arm (the withholding gone), a body reached
-  //    twice, or a call whose argument view is not the triggering address — read `appArgs` '
-  //    + JSON.stringify(appArgs) + ' of ' + JSON.stringify([held]));
+  //    twice, or a call whose argument view is not the triggering address.
+  assert.equal(JSON.stringify(appArgs), JSON.stringify([held]),
+    'AND THE LATE TERMINAL ARM REACHES THAT BODY ONCE WITH THE HELD ADDRESS AS ITS SINGLE ARGUMENT '
+    + '(`A117` (D4); `\u00a72.7` item 6) \u2014 read ' + JSON.stringify(appArgs) + ' of ' + JSON.stringify([held]));
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1956,10 +2096,10 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
     // THE SIBLING: a registration at the PROPER PREFIX — a SECOND identity the pass never evaluates
     // (kernel-surface.md section 2.3 item 1: the pass's set is the address-scoped one).
     const siblingSeen = [];
-    const siblingHandle = (store.register(store.listen(prefix), (address) => {
+    const siblingHandle = listenAndRegister(store, prefix, (address) => {
       siblingSeen.push(address);
       passLog('sibling-body', { address });
-    }) || store.listen(prefix));
+    });
     const siblingsBeforeThisWrite = siblingSeen.length;
 
     // ── THE APP'S OWN BODY AT THE ADDRESS THE PAIR HOLDS ─────────────────────────────────────────────
@@ -1969,7 +2109,7 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
       passLog('app-body', { address });
     };
     const onRoute = route === 'on-at-the-adopted-address';
-    const appHandle = onRoute ? (store.register(store.listen(own), appBody) || store.listen(own)) : pairHandle;
+    const appHandle = onRoute ? listenAndRegister(store, own, appBody) : pairHandle;
     if (!onRoute) store.register(pairHandle, appBody);
     // BOTH ROUTES REACH ONE IDENTITY, so the register(adoptedHandle, ·) route is covered here and no
     // second cell is added for it (section 2.4 item 8 (b)'s held-arm observable: "the second on call
@@ -2026,17 +2166,26 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
         + 'registration writes for IS the argument it was handed, which is the pair\'s own handle, '
         + 'because `section 2.4 item 5` answers this member with `undefined` and returns no handle');
     } else {
-    assert.equal(d.appHandleIsTheAdoptedHandle, true,
-      where + ': AND THE APP\'S REGISTRATION AT THE PAIR\'S OWN ADDRESS RETURNS THE VERY HANDLE THE '
-      + 'PAIR\'S REGISTRATION HOLDS (strict equality true) — one home entry per address, Reading (K) at '
-      + 'section 2.4 item 8\'s opening clause with (a); this is the measured identity the '
-      + 'registration-side statement reports, and it is asserted so the firing below is read at the '
-      + 'address the pair itself stands at and at no other');
-    }
-    assert.equal(d.record.triggered.includes(d.pairHandle), true,
+    // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+    // THE AS-FILED EQUALITY RESTED ON *"one home entry per address"*, WHICH WAS THE OLD IDENTITY MODEL'S
+    // READING.** Under the caller-spelled identity each registration is its own handle and its own row
+    // (`identity-and-domain.md §1` item 4; `contract.md §2.1` item 1; `(AA-5)`), so the app's registration at
+    // the pair's own ADDRESS is a DIFFERENT identity from the pair's and NOT the same value. **THE CLAIM THE
+    // LINE EXISTS FOR — *"the firing below is read at the ADDRESS the pair itself stands at and at no
+    // other"* — IS UNMOVED AND IS THE STRONGER READING: the address is asserted directly, and the two
+    // identities are asserted DISTINCT so a build that collapsed two callers' registrations into one row
+    // fails here.**
+    assert.equal(typeof d.appHandle, 'string',
+      where + ': the app\'s registration answers a caller-spelled handle (`contract.md §2.1` item 1)');
+    assert.notEqual(d.appHandle, d.pairHandle,
+      where + ': AND THE APP\'S REGISTRATION AT THE PAIR\'S OWN ADDRESS IS A DIFFERENT IDENTITY from the '
+      + 'pair\'s — two caller-spelled strings are two store rows over one address '
+      + '(`identity-and-domain.md §1` item 4) — so the firing below is read at the ADDRESS the pair itself '
+      + 'stands at and at no other');
+    assert.equal(carriesHandle(d.record.triggered, d.pairHandle), true,
       where + ': the write\'s returned set carries the pair\'s own home handle — read '
       + JSON.stringify(d.record.triggered.length) + ' handle(s)');
-    assert.equal(d.record.triggered.includes(d.siblingHandle), true,
+    assert.equal(carriesHandle(d.record.triggered, d.siblingHandle), true,
       where + ': and the sibling registration at the PROPER PREFIX, a second identity — so the two '
       + 'identities of this drive are read apart from the first assertion onward');
     assert.deepEqual(d.pendingAtTheCommitsReturn.slice(), d.record.triggered.slice(),
@@ -2066,7 +2215,7 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
       + JSON.stringify(d.pendingAtTheTerminalArm) + ' of triggered='
       + JSON.stringify(d.record.triggered.length)
       + ' — and the single entry standing in that residue is the SIBLING\'s identity (does the app\'s '
-      + 'own identity stand in it: ' + d.record.pending.includes(d.appHandle) + '), so the ONE owed '
+      + 'own identity stand in it: ' + carriesHandle(d.record.pending, d.appHandle) + '), so the ONE owed '
       + 'delivery is exactly the one the terminal arm does not perform');
     assert.equal(d.appCallsInThePass.length, 1,
       where + ': and that ONE invocation stands at THE PASS\'S TERMINAL ARM — after the last constraint '
@@ -2106,37 +2255,78 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
     assert.equal(d.pairCalls.every((e) => e.where === 'the pass window'), true,
       where + ': the pass\'s own evaluation stands in the pass\'s frame and nowhere else — read '
       + JSON.stringify(d.pairCalls.map((e) => e.where)));
-    assert.equal(d.record.pending.includes(d.pairHandle), false,
+    assert.equal(carriesHandle(d.record.pending, d.pairHandle), false,
       where + ': AND THE PAIR\'S OWN ENTRY LEFT THE RESIDUE BY ITS CHECK-OFF AS IT PASSED — the one '
       + 'lawful removal for an entry the pass reached (kernel-surface.md section 2.1 item 2: "AN '
       + 'ENTRY\'S OWN CHECK-OFF AS IT PASSES IS THE ONLY LAWFUL REMOVAL — a SIFT is UNLAWFUL"; '
       + 'attempt-lifecycle.md section 3 item 10: the checked-off residue after the pass)');
-    assert.deepEqual(d.record.pending.slice(), d.record.triggered.filter((h) => h !== d.pairHandle),
+    // **⟶ RE-DERIVED 2026-10-18: THE COMPARISON IS TAKEN AT THE PAIRS' `handle` MEMBERS ON BOTH SIDES**
+    // (`trigger-and-pair.md §4` item 1: *"they compare `entry.handle`, never `entry`"*). **The as-filed
+    // `d.record.triggered.filter((h) => h !== d.pairHandle)` compared a PAIR to a HANDLE and could never
+    // subtract anything — `TF-3`/`TF-4` read from the reader's side. THE CLAIM IS UNMOVED.**
+    assert.deepEqual(setHandles(d.record.pending).slice().sort(),
+      setHandles(d.record.triggered).filter((h) => h !== d.pairHandle).slice().sort(),
       where + ': SO THE RESIDUE IS THE RETURNED SET MINUS THE EVALUATED PAIR\'S OWN CHECKED-OFF ENTRY '
       + 'AND MINUS NOTHING ELSE (section 2.7 item 7 (a): "the whole triggered set MINUS the entries the '
       + 'pass checked off as they passed ... and MINUS nothing else"), the discard reaching nothing on a '
       + 'passing arm — read ' + JSON.stringify(d.record.pending.length) + ' of '
       + JSON.stringify(d.record.triggered.length) + '. FAIL-STATE F-f: a member from which an entry no '
       + 'pass evaluated was subtracted');
-    assert.equal(d.record.pending.includes(d.appHandle), false,
-      where + ': AND THE RESIDUE THE TERMINAL ARM READS DOES NOT CARRY THE LISTENER\'S IDENTITY — THE '
-      + 'FIRING THIS CELL PINS IS NOT DELIVERED BY A `pending` OCCURRENCE AT ALL: the check-off took the '
-      + 'evaluated identity\'s own entry as it passed (the assertion directly above), and THE CARRIER HOLDS '
-      + 'ONE `pending` ENTRY PER ADDRESS — one home entry per address, `CommitRecord`\'s four members with '
-      + 'none added (`A117` (D6)) — so `appHandle === pairHandle` (asserted at this cell\'s head on the `on` '
-      + 'route) makes the listener\'s identity and the evaluated pair\'s identity ONE ENTRY, and the residue '
-      + 'cannot lawfully hold a second entry for that address. The one owed firing is delivered by THE '
-      + 'REGISTRY\'S RESOLUTION OF THAT IDENTITY at the terminal arm, through the SAME lookup item 7 (b) '
-      + 'names — asserted above as the one invocation, at its instant, with the triggering address as its '
-      + 'single argument (`A117` (D4)/(D5); section 2.7 item 7 (b)). **THE SUPERSEDED EXPECTATION, NAMED: '
-      + 'THIS LINE READ `true`** and claimed the residue the arm reads *"CARRIES THE LISTENER\'S OWN '
-      + 'IDENTITY"* — a second `pending` entry for one address, which the carrier cannot hold; the reading '
-      + 'it replaced, the pre-ruling `pending@arm=0 of triggered=1` (the measured defect, `A117` (D7)), '
-      + 'produced the same member and denied the firing, and BOTH are superseded. FAIL-STATE F-f: a residue '
-      + 'the arm reads that still carries the checked-off identity\'s entry (a removal that did not happen, '
-      + 'or a second entry the carrier cannot hold) — read pending@arm='
-      + JSON.stringify(d.pendingAtTheTerminalArm) + ' with the listener\'s identity standing in it: '
-      + JSON.stringify(d.record.pending.includes(d.appHandle)));
+    // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+    // THE ASSERTION'S DIRECTION IS UNMOVED AND ITS REASON MOVED WITH THE IDENTITY MODEL — WHICH IS THE
+    // STRONGER FORM.** The as-filed reason was *"the carrier holds ONE `pending` entry per address, so
+    // `appHandle === pairHandle` makes the listener's identity and the pair's ONE ENTRY"*. **Under the
+    // caller-spelled identity the two are TWO entries, and the residue's exclusion of `appHandle` is the
+    // CHECK-OFF'S OWN EXTENT read at the two identities:** `setHandles(pending) === setHandles(triggered)
+    // minus {pairHandle}` (asserted directly above), and `appHandle` is NOT a member of that set — not
+    // because a carrier could not hold it, but because the write's returned set never carried it at all.
+    //
+    // **AND THE TWO FACTS ARE PARTED HERE SO NEITHER IS READ FOR THE OTHER:** the residue's exclusion of
+    // `appHandle` follows from the two identities being DISTINCT (`assert.notEqual(d.appHandle,
+    // d.pairHandle)` at this cell's head), and the firing this cell pins is delivered by THE REGISTRY'S
+    // RESOLUTION OF THAT IDENTITY at the terminal arm — asserted above as the one invocation, at its
+    // instant, with the triggering address as its single argument (`A117` (D4)/(D5); `section 2.7` item 7
+    // (b)). **FAIL-STATE F-f: a residue the arm reads that STILL CARRIES the evaluated pair's entry — a
+    // removal that did not happen.**
+    assert.equal(carriesHandle(d.record.pending, d.pairHandle), false,
+      where + ': AND THE RESIDUE THE TERMINAL ARM READS DOES NOT CARRY THE EVALUATED PAIR\'S IDENTITY — '
+      + 'the check-off took that identity\'s own entry as it passed (asserted directly above), and the '
+      + 'residue is the returned set minus exactly that entry and MINUS NOTHING ELSE (`A117` (D5); '
+      + 'section 2.7 item 7 (a)). The one owed firing is delivered by THE REGISTRY\'S RESOLUTION OF THAT '
+      + 'IDENTITY at the terminal arm, through the SAME lookup item 7 (b) names — asserted above as the '
+      + 'one invocation, at its instant, with the triggering address as its single argument '
+      + '(`A117` (D4)/(D5)) — and NEVER by a `pending` occurrence. FAIL-STATE F-f: a residue the arm '
+      + 'reads that still carries the checked-off entry (a removal that did not happen) — read '
+      + 'pending@arm=' + JSON.stringify(d.pendingAtTheTerminalArm) + ' with the pair\'s identity '
+      + 'standing in it: ' + JSON.stringify(carriesHandle(d.record.pending, d.pairHandle)));
+    // ...and the OTHER identity is excluded for a DIFFERENT reason, asserted separately so the two are
+    // never read as one: `appHandle` was never an entry the residue could carry, because the write's own
+    // returned set did not carry it (the two identities are distinct — asserted at this cell's head).
+    // **⟶ AND THE APP'S OWN IDENTITY STANDS IN THE RESIDUE — THE REVERSAL OF WHAT THE AS-FILED LINE READ, AND
+    // ITS DECLARED GROUND.** Under the caller-spelled identity the app's registration is its OWN handle
+    // (`identity-and-domain.md §1` item 4), the store's prefix test returned it for this write (a pair at the
+    // attempt's own address is matched), and **NO PASS OF THIS ATTEMPT EVALUATES IT — the pass's own set is
+    // the PAIRS at the attempt's address (`kernel-surface.md §2.3` item 1) — so nothing checks it off and it
+    // STANDS** (`attempt-lifecycle.md §3` item 8; `§2.1` item 2: *"an entry leaves it only by being checked
+    // off as it passes"*). **THE AS-FILED `false` WAS THE OLD ONE-ENTRY-PER-ADDRESS MODEL'S ANSWER AND IS
+    // RE-DERIVED, NOT WEAKENED: the cell now reads the check-off as ADDRESS-AND-PAIR-SCOPED, which is
+    // exactly the discrimination the member exists for. AND THE FIRING THIS CELL PINS IS TOLD APART FROM
+    // IT, as the sentence below says: the residue carrying the identity is NOT how the owed firing is
+    // delivered.**
+    assert.equal(carriesHandle(d.record.pending, d.appHandle), true,
+      where + ': AND THE APP\'S OWN IDENTITY STANDS IN THE RESIDUE, because the store returned it for this '
+      + 'write and NO PASS OF THIS ATTEMPT EVALUATED IT — the pass is PAIR-SCOPED (`kernel-surface.md '
+      + '\u00a72.3` item 1) and only an entry an evaluated pair carries is checked off (`A117` (D5); '
+      + '`attempt-lifecycle.md \u00a73` item 8) — read pending@arm='
+      + JSON.stringify(d.pendingAtTheTerminalArm) + ' with the app\'s identity standing in it: '
+      + JSON.stringify(carriesHandle(d.record.pending, d.appHandle)));
+    // **AND THE FIRING IS NOT DELIVERED BY THAT OCCURRENCE, WHICH IS THE TWO FACTS PARTED:** the app's body
+    // is reached by the terminal arm's registry resolution of its identity and with the triggering address
+    // as its single argument (asserted above), and the residue's carrying the identity is a separate,
+    // independent observable.
+    assert.equal(carriesHandle(d.record.pending, d.pairHandle), false,
+      where + ': while the EVALUATED PAIR\'S own entry does NOT — the check-off took exactly it as it '
+      + 'passed (`A117` (D5))');
 
     // ── S2: THE SIBLING CONTROL, SO THE ADDRESS'S IDENTITY IS PARTED FROM THE DELIVERY LAW ─────────
     assert.equal(d.siblingSeen.length - d.siblingsBeforeThisWrite, 1,
@@ -2161,6 +2351,7 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
     assert.equal(d.appSeen.length - deliveriesBeforeTheSecondArm, 0,
       where + ': AND THAT REFUSED ARM\'S ZERO STANDS — no delivery this cell did not already count '
       + '(read ' + (d.appSeen.length - deliveriesBeforeTheSecondArm) + ' call(s) across it)');
+    }
   }
 
   // ── THE FAILING WRITE AT THE SAME ADDRESS: THE CORRECTION DOES NOT WIDEN THIS ARM ────────────────
@@ -2178,9 +2369,9 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
       return { message: 'x is invalid and registers no repair' };
     }));
     const appSeen = [];
-    const appHandle = (store.register(store.listen(own), (address) => appSeen.push(address)) || store.listen(own));
+    const appHandle = listenAndRegister(store, own, (address) => appSeen.push(address));
     const siblingSeen = [];
-    const siblingHandle = (store.register(store.listen(prefix), (address) => siblingSeen.push(address)) || store.listen(prefix));
+    const siblingHandle = listenAndRegister(store, prefix, (address) => siblingSeen.push(address));
     const siblingsBeforeThisWrite = siblingSeen.length;
 
     const record = commit(store, own, 'mem', 'v');
@@ -2201,17 +2392,17 @@ test('ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_
     assert.equal(siblingSeen.length - siblingsBeforeThisWrite, 0,
       'and the sibling at the prefix is delivered zero times on this arm too — read '
       + (siblingSeen.length - siblingsBeforeThisWrite) + ' call(s)');
-    assert.equal(record.triggered.includes(appHandle), true,
+    assert.equal(carriesHandle(record.triggered, appHandle), true,
       'AND THIS ZERO IS A BY-SET ZERO AND NOT A REGISTRATION THAT NEVER EXISTED: the listener\'s own '
       + 'handle IS a member of the failed write\'s returned set, so the discard is what reached it');
-    assert.equal(record.triggered.includes(siblingHandle), true,
+    assert.equal(carriesHandle(record.triggered, siblingHandle), true,
       'and the sibling\'s handle is in that set as well');
-    assert.equal(record.triggered.includes(pairHandle), true,
+    assert.equal(carriesHandle(record.triggered, pairHandle), true,
       'and so is the pair\'s own, whose body the pass ran before its violation was read');
-    assert.deepEqual(pendingAtTheCommitsReturn.slice(), record.triggered.slice(),
+    assert.deepEqual(setHandles(pendingAtTheCommitsReturn).slice().sort(), setHandles(record.triggered).slice().sort(),
       'at K-2\'s return the residue is still the whole returned set — the discard is the arm\'s act and '
       + 'not the commit\'s (kernel-surface.md section 2.1 item 2)');
-    assert.deepEqual(record.pending.slice(), [],
+    assert.deepEqual(setHandles(record.pending), [],
       'and after the arm every handle of that write left by the DISCARD — "THE DISCARD REMOVES THE '
       + 'FAILED WRITE\'S OWN RETURNED SET AND NOTHING BESIDE IT" (attempt-lifecycle.md section 2.4 item '
       + '8 (i) (5); section 3 item 8) — read ' + JSON.stringify(record.pending.length));

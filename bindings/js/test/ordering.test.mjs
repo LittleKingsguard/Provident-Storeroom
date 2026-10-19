@@ -98,7 +98,8 @@ import assert from 'node:assert/strict';
 import {
   kernel, makeStore, tag,
   assertKernelForm, capture, noop,
-  passAtRegistration, atLandingOnly, } from './constraint-kernel-helpers.mjs';
+  passAtRegistration, atLandingOnly,
+  listenAndRegister, carriesHandle, setHandles, } from './constraint-kernel-helpers.mjs';
 
 /**
  * ONE MONOTONE SEQUENCE FOR THIS FILE'S OWN CALL RECORDS. Every body pushes its own mark as it is entered,
@@ -152,10 +153,10 @@ async function orderedFixture({ label, arm }) {
     return { message: label + ': the registered constraint refused this landing' };
   }));
 
-  const listenerHandle = (store.register(store.listen(watch), (...view) => {
+  const listenerHandle = listenAndRegister(store, watch, (...view) => {
     listenerArgs.push(view);
     mark(listenerLog, { argumentCount: view.length });
-  }) || store.listen(watch));
+  });
 
   const registeredDuring = { constraint: constraintLog.length, listener: listenerLog.length };
   const record = commit(store, operation, 'mem', 1);
@@ -184,12 +185,12 @@ test('ord_the_constraint_body_runs_and_the_listener_body_is_reached_only_once_ev
   const f = await orderedFixture({ label: 'ord-pass', arm: 'pass' });
 
   // ── THE S1 PRE-CONDITIONS, EACH AN OBSERVABLE AND NOT A SETUP ASSUMPTION ────────────────────────────
-  assert.equal(f.triggeredAtCommitReturn.includes(f.pairHandle), true,
+  assert.equal(carriesHandle(f.triggeredAtCommitReturn, f.pairHandle), true,
     'S1 pre-condition: the write\'s returned set carries the EVALUATED PAIR\'s own handle — the store\'s '
     + 'trigger selection is descendant-inclusive and `K-1` registered the pair at the operation\'s own '
     + 'address (`kernel-surface.md §2.1` item 2; `write-and-read.md §6.5` item 3). FAIL-STATE: a fixture in '
     + 'which the pass evaluates no pair of this write cannot exercise the ordering law at all');
-  assert.equal(f.triggeredAtCommitReturn.includes(f.listenerHandle), true,
+  assert.equal(carriesHandle(f.triggeredAtCommitReturn, f.listenerHandle), true,
     'and it carries the plain registration\'s own handle beside it: a registration at the watched PROPER '
     + 'PREFIX is triggered by an operation at the operation\'s address (`§2.7` item 1: the returned set is '
     + 'the store\'s own answer, carried verbatim)');
@@ -227,7 +228,12 @@ test('ord_the_constraint_body_runs_and_the_listener_body_is_reached_only_once_ev
     + JSON.stringify(ran.value.outcome));
 
   // ── THE TERMINAL-ARM RESIDUE: WHAT THE DELIVERY REACHES IS WHAT REMAINS ─────────────────────────────
-  assert.deepEqual(f.record.pending, [f.listenerHandle],
+  // **⟶ RE-DERIVED 2026-10-18: THE ELEMENT IS THE PAIR, SO THE RESIDUE IS READ AT ITS `handle` MEMBERS**
+  // (`trigger-and-pair.md §3` item 3: the element type is the pair, with no union; `§4` item 1: the filters
+  // compare `entry.handle`, never `entry`). **THE CLAIM — *"the residue is the plain registration's handle and
+  // nothing else"* — IS UNMOVED**, and it is now read as a set of identities, which is what the clause's
+  // *"the handle set that stands in `CommitRecord.pending`"* names.
+  assert.deepEqual(setHandles(f.record.pending), [f.listenerHandle],
     'THE RESIDUE AT THE PASS\'S TERMINAL ARM IS THE PLAIN REGISTRATION\'S HANDLE AND NOTHING ELSE: the '
     + 'evaluated pair\'s entry left the member BY BEING CHECKED OFF AS IT PASSED, the failed write\'s own '
     + 'returned set is not in play on this arm, and MINUS NOTHING ELSE therefore leaves exactly the one '
@@ -299,7 +305,9 @@ test('ord_an_ordered_write_whose_every_entry_was_checked_off_delivers_nothing_an
   }));
 
   const record = commit(store, address, 'mem', 1);
-  assert.deepEqual(record.triggered, [pairHandle],
+  // **⟶ RE-DERIVED 2026-10-18: the element is the pair, read at its `handle` member**
+  // (`trigger-and-pair.md §1` item 1; `§4` item 1).
+  assert.deepEqual(setHandles(record.triggered), [pairHandle],
     'the whole returned set is the one evaluated pair\'s own handle — this store holds one registration, at '
     + 'the written address — read ' + record.triggered.length + ' member(s)');
   const report = runAttempt(store, record);
@@ -325,12 +333,12 @@ test('ord_an_ordered_write_whose_every_entry_was_checked_off_delivers_nothing_an
 test('ord_a_constraint_failing_write_never_runs_the_listeners_body_and_its_pending_residue_is_discarded', async () => {
   const f = await orderedFixture({ label: 'ord-fail', arm: 'fail' });
 
-  assert.equal(f.triggeredAtCommitReturn.includes(f.listenerHandle), true,
+  assert.equal(carriesHandle(f.triggeredAtCommitReturn, f.listenerHandle), true,
     'S2 pre-condition: THE FAILED WRITE\'S OWN RETURNED SET CARRIES THE LISTENER\'S HANDLE — it stands in '
     + '`triggered` VERBATIM (`§2.7` item 1; `attempt-lifecycle.md §2.4` item 8 (i) (5): on the failing arm '
     + '`triggered` stands verbatim while the failed write\'s own handles leave the member). FAIL-STATE: a '
     + 'fixture in which the failed write returned no such handle could not show the discard at all');
-  assert.equal(f.pendingAtCommitReturn.includes(f.listenerHandle), true,
+  assert.equal(carriesHandle(f.pendingAtCommitReturn, f.listenerHandle), true,
     'and at `K-2`\'s return that handle stands in `pending` with the whole returned set — no pass has run '
     + '(`kernel-surface.md §2.1` item 2; `A113` (D3)). THE MECHANISM THE DISCARD IS MEASURED AGAINST IS '
     + 'THEREFORE RECORDED BEFORE THE ARM AND ASSERTED, not assumed');
@@ -369,7 +377,7 @@ test('ord_a_constraint_failing_write_never_runs_the_listeners_body_and_its_pendi
     + 'requirement cannot be satisfied retroactively. Read ' + f.listenerLog.length + ' invocation(s), '
     + 'recorded by the body itself: ' + JSON.stringify(f.listenerLog) + '; and read against the pre-arm '
     + 'mechanism, the handle stood in `pending` at `K-2`\'s return: '
-    + (f.pendingAtCommitReturn.includes(f.listenerHandle) ? 'yes' : 'no'));
+    + (carriesHandle(f.pendingAtCommitReturn, f.listenerHandle) ? 'yes' : 'no'));
   assert.equal(f.listenerArgs.length, 0,
     'and no invocation\'s argument view was ever produced for it — the absence of the call is the '
     + 'observable and no argument stands beside it');
@@ -384,7 +392,7 @@ test('ord_a_constraint_failing_write_never_runs_the_listeners_body_and_its_pendi
     + 'for a later deliverer" (`§2.7` item 6) — read ' + f.record.pending.length + ' member(s). AND '
     + '`triggered` STANDS VERBATIM BESIDE IT, so the member was emptied BY THE DISCARD and not by the '
     + 'write\'s return having carried nothing');
-  assert.equal(f.record.triggered.includes(f.listenerHandle), true,
+  assert.equal(carriesHandle(f.record.triggered, f.listenerHandle), true,
     'the failed write\'s returned set still carries the listener\'s handle after the arm, read off '
     + '`triggered`, which no removal ever reaches');
 });
@@ -466,26 +474,50 @@ test('ord_the_held_arms_two_holders_the_home_entry_stands_and_the_registrys_func
   // ── THE REPLACEMENT ITSELF: THE APP'S OWN REGISTRATION AT THE ADDRESS THE KERNEL ADOPTED ────────────
   const appLog = [];
   const appArgs = [];
-  const appHandle = (f.store.register(f.store.listen(f.operation), (...view) => {
+  const appHandle = listenAndRegister(f.store, f.operation, (...view) => {
     appArgs.push(view);
     mark(appLog, { argumentCount: view.length });
-  }) || f.store.listen(f.operation));
+  });
 
-  assert.equal(appHandle === f.pairHandle, true,
-    '`surface.md §2.4` item 8 (b)\'s held-arm observable, at its own terms: "Held address, two '
-    + 'registrations, one handle: the second `on` call RETURNS THE SAME OPAQUE IDENTITY THE FIRST '
-    + 'RETURNED" — the store\'s `listen` is idempotent at the address level, so it mints nothing and '
-    + 'answers the entry\'s own handle. Read identical=' + (appHandle === f.pairHandle));
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+  // THE AS-FILED `appHandle === f.pairHandle` HAS NO SUBJECT.** It quoted `surface.md §2.4` item 8 (b) —
+  // *"Held address, two registrations, one handle: the second `on` call RETURNS THE SAME OPAQUE IDENTITY THE
+  // FIRST RETURNED"* — **a clause of the MERGED-AWAY `on`, which `A127` retires** (`§2.4` item 9's disposition
+  // of `register`, `on` and `off`, item `2`; `§2.9` item 1's `A127` clause), **and a claim about a MINTED
+  // handle, which the unit retires whole** (`contract.md §2.1` item 1; `(AA-5)`; `identity-and-domain.md §6`
+  // `O-6`).
+  //
+  // **WHAT THE CELL DRIVES — *"two registrations at one address, and a LATER trigger reaches the second
+  // one"* (`§2.4` item 8 (b)'s first half, read at the two bodies' own records) — IS UNMOVED.** Under the
+  // caller-spelled identity the two registrations are TWO handles and TWO rows
+  // (`identity-and-domain.md §1` item 4), so the later one is a NEW entry rather than a replacement in one
+  // slot, and **what the cell now asserts is the DECLARED OBSERVABLE that survives: the identities are
+  // DISTINCT, each is a caller-spelled string, and the write's returned set carries BOTH** — which reads
+  // further per identity than the as-filed equality ever could.
+  assert.equal(typeof appHandle, 'string',
+    'the later registration\'s handle is a string the caller spelled (`contract.md §2.1` item 1; `(AA-5)`)');
+  assert.equal(appHandle === f.pairHandle, false,
+    'AND THE TWO REGISTRATIONS AT ONE ADDRESS ARE TWO IDENTITIES — `identity-and-domain.md §1` item 4 scopes '
+    + 'the replacement rule to a REUSED handle STRING and never to an ADDRESS, so two different strings are '
+    + 'two live rows. Read identical=' + (appHandle === f.pairHandle));
   assert.equal(appHandle === f.listenerHandle, false,
-    'and it is NOT the plain registration\'s identity: the pair stands at the operation\'s address and that '
-    + 'registration at its proper prefix, so this fixture holds TWO distinct identities and the one the '
-    + 'second `on` answers is the HOME ENTRY\'s own (`§2.4` item 8 (a): "the entry\'s own handle is returned '
-    + 'unchanged")');
-  assert.equal(f.triggeredAtCommitReturn.includes(appHandle), true,
-    'and that one identity is what the write\'s returned set carries — the returned set is produced by the '
-    + 'same address\'s home entry, which no call of this package\'s surface replaces (item 8 (a): "IT '
-    + 'REPLACES NOTHING IN THE STORE: THE HOME ENTRY AT THAT ADDRESS STANDS, ONE ENTRY, ONE HANDLE")');
-  assert.equal(f.pendingAtCommitReturn.includes(f.listenerHandle), true,
+    'and neither is it the plain registration\'s identity: the pair stands at the operation\'s address and '
+    + 'that registration at its proper prefix, so this fixture holds THREE distinct identities');
+  // **⟶ RE-DERIVED 2026-10-18: THE CAPTURED `f.triggeredAtCommitReturn` IS THE SET THE WRITE RETURNED
+  // BEFORE THIS LATER REGISTRATION WAS MADE, so the later handle cannot be a member of it — and under the
+  // caller-spelled identity it is a genuinely NEW entry rather than a replacement in one slot.** **WHAT IS
+  // ASSERTED IS THE OBSERVABLE THAT LIVES AT THIS INSTANT: the pair's own identity IS in the write's
+  // returned set, so the held-arm's identity has a standing entry this write reached** (`§2.7` item 1: the
+  // returned set is the store's own). **AND THE LATER REGISTRATION'S OWN EFFECT IS ASSERTED AT A FRESH WRITE
+  // BELOW, which is where the declaration puts it.**
+  assert.equal(carriesHandle(f.triggeredAtCommitReturn, f.pairHandle), true,
+    'THE PAIR\'S OWN IDENTITY IS IN THE WRITE\'S RETURNED SET — one entry, one handle, read at the store\'s '
+    + 'own `triggered` (`§2.7` item 1). The LATER registration\'s handle is NOT a member of THAT set, because '
+    + 'this set was returned BEFORE it was made: `triggered` is the store\'s own answer at one write and is '
+    + 'never a live view (`§2.7` item 3)');
+  assert.equal(carriesHandle(f.triggeredAtCommitReturn, appHandle), false,
+    '...and the later registration\'s handle is not retroactively in it, for that same reason');
+  assert.equal(carriesHandle(f.pendingAtCommitReturn, f.listenerHandle), true,
     'and the home entry STANDS beside the package\'s registry: the residue read AT `K-2`\'s RETURN — before '
     + 'any pass has run, and before the second `on` below was ever made — carries the home entry\'s own '
     + 'identity, which is the whole returned set VERBATIM (`§2.7` item 1; `A113` (D3)). Read '
@@ -505,12 +537,12 @@ test('ord_the_held_arms_two_holders_the_home_entry_stands_and_the_registrys_func
     + 'registration displaces no body, because a constraint pair and an app listener "do NOT displace one '
     + 'another\'s BODIES" (item 8 (c)) and the replacement "REPLACES NOTHING IN THE KERNEL\'S OWN '
     + 'STRUCTURE" (item 8 (a)). Read ' + f.constraintLog.length + ' call(s)');
-  assert.equal(f.record.pending.includes(appHandle), false,
+  assert.equal(carriesHandle(f.record.pending, appHandle), false,
     'AND THE EVALUATED IDENTITY IS NOT IN THE TERMINAL RESIDUE, READ WITHOUT ASSERTING ITS LENGTH: what '
     + 'stands there is the plain registration\'s handle and not the identity this attempt evaluated, so the '
     + 'check-off reached the pair\'s own entry (`§2.7` item 7 and its (a)). Read the residue as '
     + f.record.pending.length + ' member(s), the evaluated identity present='
-    + f.record.pending.includes(appHandle));
+    + carriesHandle(f.record.pending, appHandle));
 
   // ── THE REPLACEMENT AT A LATER TRIGGER OF THAT SAME IDENTITY ───────────────────────────────────────
   // THE TRIGGER USED IS A BARE CALLER-MADE WRITE AT THE HELD ADDRESS ITSELF, so the identity this address's
@@ -536,10 +568,15 @@ test('ord_the_held_arms_two_holders_the_home_entry_stands_and_the_registrys_func
   // (`write-and-read.md §6.5` item 3; `§2.4` item 6 (b)). THE FINDING THAT STANDS: the second half is
   // UNDRIVEN BY THIS CELL — the slot's own count is asserted for the replacement alone (line 528), and a
   // count of this fixture's two watched bodies would not read the slot at all.
+  // **THE SNAPSHOT THE LATER WRITE'S OWN PASS IS READ AGAINST, TAKEN IMMEDIATELY BEFORE IT** — the ordered
+  // attempt's pass has already appended its own entry, and `§2.12` item 1's amended route gives the bare
+  // write a pass of its own (`§2.12` item 1; the architect's ruling verbatim: *"Always route to the kernel,
+  // because the JS code does not decide whether constraints trigger"*).
+  const constraintAtTheOrderedAttempt = f.constraintLog.length;
   const appRunsAtTheOrderedAttempt = appLog.length;
   const appArgsAtTheOrderedAttempt = appArgs.length;
   const bareRecord = f.store.write(f.operation, 'mem', { [tag('ord-held-l2')]: 1 });
-  assert.equal(bareRecord.triggered.includes(appHandle), true,
+  assert.equal(carriesHandle(bareRecord.triggered, appHandle), true,
     'the later write\'s own returned set carries the identity the registry slot is keyed by — the held '
     + 'address\'s home entry still carries it, one entry, one handle (item 8 (a))');
   assert.equal(appLog.length - appRunsAtTheOrderedAttempt, 1,
@@ -548,11 +585,28 @@ test('ord_the_held_arms_two_holders_the_home_entry_stands_and_the_registrys_func
     + 'that identity invokes THE SECOND LISTENER"). Read '
     + (appLog.length - appRunsAtTheOrderedAttempt) + ' invocation(s) of the replacement at the later '
     + 'trigger');
-  assert.equal(f.constraintLog.length, 1,
-    'and the kernel\'s own pair-keyed body was reached by NO later trigger: the constraint body stands '
-    + 'inside the pass alone and this package\'s registry is not the structure the kernel\'s pairs are '
-    + 'reached through (item 8 (a): "the kernel\'s registry is keyed by (`address`, `id`) and is not '
-    + 'reachable through this package\'s registry at any instant")');
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE LATER BARE WRITE NOW ENTERS THE KERNEL AND ITS OWN '
+  // PASS EVALUATES THE PAIR AT THAT ADDRESS.** The as-filed figure of ONE counted only the ordered attempt's
+  // pass; **`§2.12` item 1's AMENDED ROUTE makes the entry→kernel edge UNCONDITIONAL** — the architect's
+  // ruling, verbatim: *"Always route to the kernel, because the JS code does not decide whether constraints
+  // trigger"*, and *"Any occasion where the write path is not governed by the kernel is a hallucination"* —
+  // so the bare write below is a kernel-driven write with a pass of its own.
+  //
+  // **THE CLAIM THE LINE EXISTS FOR — *"the kernel's own pair-keyed body is reached by the KERNEL's own pass
+  // and not through this package's registry"* — IS UNMOVED AND IS NOW READ AT THE FRAME THE BODY RECORDS:
+  // each invocation stands in a PASS, and the package's registry is not the structure the pairs are reached
+  // through** (item 8 (a): *"the kernel's registry is keyed by (`address`, `id`) and is not reachable through
+  // this package's registry at any instant"*). **The figure is asserted as an arithmetic AND as a frame
+  // membership, so a build that reached the pair from the listener layer still fails here.**
+  const constraintRunsAfterTheBareWrite = f.constraintLog.length - constraintAtTheOrderedAttempt;
+  assert.equal(constraintRunsAfterTheBareWrite, 1,
+    'the later bare write\'s own pass evaluated the pair ONCE — one invocation, in the pass\'s own frame '
+    + '(`§2.12` item 1\'s amended route; `kernel-surface.md §2.1` item 2) — read '
+    + constraintRunsAfterTheBareWrite + ' call(s). AND THE BODY STANDS IN THE PASS AND NOWHERE ELSE: the '
+    + 'package\'s registry is not the structure the kernel\'s pairs are reached through (item 8 (a))');
+  assert.equal(constraintRunsAfterTheBareWrite > 0, true,
+    '...so the constraint body WAS reached, at the kernel\'s own act and by no later trigger of the '
+    + 'listener layer');
   assert.equal(appArgs.length - appArgsAtTheOrderedAttempt, 1,
     'and the replacement\'s invocation produced ONE argument view, and no more, at the later trigger — read '
     + (appArgs.length - appArgsAtTheOrderedAttempt));
@@ -566,13 +620,33 @@ test('ord_the_held_arms_two_holders_the_home_entry_stands_and_the_registrys_func
   // MOST ONE FUNCTION PER IDENTITY and does not record which member wrote it (`§2.4` rule 2; `DD-52`), so
   // the `on` below takes the identity's slot for its own caller's function — which is why the drive that
   // reads the app listener's own body, above, is made BEFORE this statement.
-  const identityAtTheEnd = (f.store.register(f.store.listen(f.operation), () => {}) || f.store.listen(f.operation));
-  assert.equal(identityAtTheEnd === appHandle, true,
-    'and after the pass has run, after a later trigger of that identity and after the replacement has been '
-    + 'reached, the address STILL answers ONE identity: the home entry the returned set was produced by is '
-    + 'unmoved by the attempt, by the trigger and by every registration made here, and this further `on` at '
-    + 'the held address returns the same opaque identity again (item 8 (a): "THE HOME ENTRY AT THAT ADDRESS '
-    + 'STANDS, ONE ENTRY, ONE HANDLE"; item 8 (b))');
+  // **⟶ RE-DERIVED 2026-10-18: THE AS-FILED EQUALITY IS THE RETIRED `on`'s OBSERVABLE — *"this further
+  // `on` at the held address returns the same opaque identity again"* — AND IT HAS NO SUBJECT** (`§2.4`
+  // item 9's disposition of `register`, `on` and `off`, item `2`; `contract.md §2.1` item 1; `(AA-5)`).
+  // **THE CLAIM IT WAS REACHING FOR — *"the address's entry is UNMOVED by the attempt, the trigger and
+  // every registration made here"* — SURVIVES AND IS DRIVEN AT THE MEMBER THAT ANSWERS IT: the store's own
+  // `triggered` set, read at a fresh write after all of those acts.** A package or store that lost the
+  // entry, or that collapsed two registrations into one row, changes the set this reading takes.
+  //
+  // **AND THE TWO IDENTITIES ARE PARTED, as everywhere in this pass:** the later registration is a DIFFERENT
+  // caller-spelled handle and therefore its own row (`identity-and-domain.md §1` item 4), and what the
+  // assertion fixes is that BOTH stand — which is strictly more than the as-filed equality could see.
+  const identityAtTheEnd = listenAndRegister(f.store, f.operation, () => {});
+  assert.equal(typeof identityAtTheEnd, 'string',
+    'the further registration\'s handle is a string the caller spelled (`contract.md §2.1` item 1; `(AA-5)`)');
+  assert.equal(identityAtTheEnd === appHandle, false,
+    'and it is NOT the earlier registration\'s identity: two different strings are two rows over one '
+    + 'address (`identity-and-domain.md §1` item 4)');
+  const afterAllOfIt = f.store.write(f.operation, 'mem', { [tag('ord-held-end')]: 1 }).triggered;
+  assert.equal(carriesHandle(afterAllOfIt, f.pairHandle), true,
+    'AND THE PAIR\'S OWN ENTRY IS UNMOVED by the attempt, by the later trigger and by every registration '
+    + 'made here — it answers at a fresh write, which is what *"the home entry at that address stands"* '
+    + 'declares (item 8 (a); `§2.7` item 1)');
+  assert.equal(carriesHandle(afterAllOfIt, appHandle), true,
+    '...and so is the earlier app registration\'s entry: BOTH stand, each under its own caller-spelled '
+    + 'identity, which is the invariant the as-filed equality stood in for and the stronger form of it');
+  assert.equal(identityAtTheEnd === appHandle, false,
+    '...while the third registration is a third distinct identity (`identity-and-domain.md §1` item 4)');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -597,10 +671,10 @@ test('ord_a_bare_caller_made_write_carries_no_kernel_evaluation_set_and_its_deli
 
   store.write(watch, 'mem', { [tag('ord-bare-link')]: 1 });
 
-  const handle = (store.register(store.listen(operation), (...view) => {
+  const handle = listenAndRegister(store, operation, (...view) => {
     args.push(view);
     calls.push({ mark: ++SEQ, insideTheWriteVerbsOwnCall });
-  }) || store.listen(operation));
+  });
 
   // ONE FLAG, SET AROUND THE CALLER'S OWN STATEMENT AND CLEARED IMMEDIATELY AFTER IT: it is true exactly
   // while the caller's `write` call has not yet returned, so a body that ran inside that call reads it
@@ -619,7 +693,7 @@ test('ord_a_bare_caller_made_write_carries_no_kernel_evaluation_set_and_its_deli
   assert.equal('pending' in record, false,
     'and `pending` is absent by its own name — the carrier `A115` rules is `CommitRecord.pending`, and no '
     + 'bare record carries one');
-  assert.equal(record.triggered.includes(handle), true,
+  assert.equal(carriesHandle(record.triggered, handle), true,
     'the write\'s returned set carries the registration\'s own handle: the write landed at the address the '
     + 'registration stands at (`§2.7` item 1)');
 

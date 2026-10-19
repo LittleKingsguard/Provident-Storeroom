@@ -4236,12 +4236,16 @@ cell('GUARD', 'the real entry still resolves IN PLACE at rung two', async () => 
   // constraints."* (`surface.md §2.4` item 9 (f)'s `constraints` clause of that date; `§2.12` item 2-bis;
   // `PAR-JS-27`). **The cell's own subject — read through the REAL rung-two load and not a stub — is
   // unmoved; the figure moves by one and the entry stays at its ONE name.**
+  // ── **⟶ RE-DERIVED 2026-10-18 AGAIN (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY`
+  // legacy tail): `12 → 14`, `10 + 1 + 1 + 2 = 14` ✓**, the `2` being `removeListener` and `removeConstraint`
+  // (`docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9; `removal-members.md §2`;
+  // `remove-member.md §2`). **The cell's own subject — read through the REAL rung-two load and not a stub
+  // — is unmoved; the figure moves by two and the entry stays at its ONE name.**
   assert.deepEqual(r.members,
     ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-      'readLiteral', 'register', 'rollback', 'unlisten', 'write'],
-    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s clause of 2026-10-18 '
-    + 'states it: the TEN store-reaching methods plus the TWO remaining singles `register` and '
-    + '`constraints` — TWELVE own members, `10 + 1 + 1 = 12` ✓ (`13 → 12`)');
+      'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'],
+    'the instance\'s own member set: the TEN store-reaching methods plus `register`, `constraints`, '
+    + '`removeListener` and `removeConstraint` — FOURTEEN own members, `10 + 1 + 1 + 2 = 14` ✓');
   for (const displaced of ['manageConstraints', 'on', 'off']) {
     assert.equal(r.members.includes(displaced), false,
       `and the displaced name \`${displaced}\` is NOT a member of that product (\`surface.md §2.9\` item 1's `
@@ -4276,13 +4280,15 @@ cell('GUARD', 'the in-place loop still resolves and works at rung two', async ()
   // singles are `register` and `constraints` (`surface.md §2.4` item 9 (f)'s clause of that date, item `1`,
   // read with `§2.4` item 9's `REMOVED-WHOLE` pointer). The self-reference this cell resolves through is
   // unmoved.
+  // **⟶ RE-DERIVED 2026-10-18 AGAIN (`role_test_writer`): `12 → 14`, `10 + 1 + 1 + 2 = 14` ✓**, the `2`
+  // being `removeListener` and `removeConstraint` (`docs/specs/storeroom-held-listener-identity/contract.md
+  // §2.7` item 9; `removal-members.md §2`; `remove-member.md §2`).
   assert.deepEqual(Object.keys(store).sort(),
     ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-      'readLiteral', 'register', 'rollback', 'unlisten', 'write'],
-    'the instance\'s own member set as `surface.md §2.4` item 9 (f)\'s clause of 2026-10-18 '
-    + 'states it — the TEN store-reaching methods plus the TWO remaining singles `register` and `constraints`, '
-    + 'TWELVE own members, `10 + 1 + 1 = 12` ✓ — the same set the in-place entry\'s own product carries, read at '
-    + 'the self-reference this cell resolves through');
+      'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'],
+    'the instance\'s own member set — the TEN store-reaching methods plus `register`, `constraints`, '
+    + '`removeListener` and `removeConstraint`, FOURTEEN own members, `10 + 1 + 1 + 2 = 14` ✓ — the same set '
+    + 'the in-place entry\'s own product carries, read at the self-reference this cell resolves through');
   store.write(['k'], 'mem', 'v');
   assert.equal(store.read(['k']), 'v', 'the store works in place at rung two');
   assert.equal(manifest.name, 'provident-storeroom',

@@ -281,10 +281,11 @@ function twoOpFailingWindow(register, store, address) {
     : true));
   register(store, address, 'y', (ctx) => (ctx.value === 'committed'
     ? {
-      repair: () => ({
+      // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6; `PAR-C-7`).
+      repair: (rctx) => ({
         ok: true,
         message: 'y was repaired by the op this repair landed',
-        op: store.write(address, 'mem', 'repaired').op,
+        op: store.write(address, 'mem', 'repaired', rctx).op,
       }),
       message: 'y is violated by the committed value',
     }

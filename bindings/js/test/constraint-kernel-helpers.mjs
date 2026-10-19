@@ -415,3 +415,56 @@ export function recordsAfterRegistration(record) {
  * the name its own comment uses and so the two cannot drift.
  */
 export const atLandingOnly = recordsAfterRegistration;
+
+/**
+ * **⟶ THE LISTENER SPELLING AND THE PAIR'S OWN READERS, ADDED 2026-10-18 (`role_test_writer`, the
+ * `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail). `listen(address)` MOVES TO `listen(handle, addresses)`,
+ * ARITY `1 → 2`, AND IT ANSWERS `undefined`.**
+ *
+ * `contract.md §2.2` items 1 and 10; `listen-verb.md §1` item 1 and `§2.2` item 1; `PAR-HL-3`: *"the caller
+ * supplied the handle, so returning it would be a second spelling of the caller's own datum"*. **THE AS-FILED
+ * IDIOM** `(store.register(store.listen(addr), fn) || store.listen(addr))` **DEPENDED ON THAT RETURN** — it
+ * took the handle `listen` answered, registered at it, and fell back to a second `listen` when the first
+ * answered a falsy value. **UNDER THE NEW DECLARATION BOTH HALVES VANISH: the handle is SPELLED by the caller
+ * and every `listen` answers the unit, so the idiom is replaced by the two acts it always meant — a `listen`
+ * that creates the RESERVED entry (`listen-verb.md §4` state `1`), then a `register` that ARMS it — and the
+ * handle is the spelling below.**
+ *
+ * **NO ASSERTION IS WEAKENED:** every cell that used the idiom still reads the same `listenerHandle`, the same
+ * call list and the same store-side entry. The spelling is unique per store and per call, so a cell driving
+ * two listeners at one address still gets two distinguishable handles (`DD-39`'s distinct-handles rule).
+ */
+export function listenAndRegister(store, address, listener) {
+  listenAndRegister.count += 1;
+  const handle = `listener@${JSON.stringify(address)}#${listenAndRegister.count}`;
+  // **THE SET POSITION IS `[address]` — ONE MEMBER, the address the as-filed call named**
+  // (`listen-verb.md §2.2` item 1: *"`addresses` is an ARRAY whose every member is an address in the store's
+  // own domain, … the empty array included"*).
+  store.listen(handle, [address]);
+  store.register(handle, listener);
+  return handle;
+}
+listenAndRegister.count = 0;
+
+/**
+ * **THE PAIR'S OWN READER, RE-DERIVED 2026-10-18 WITH IT.** `triggered` and `pending`'s element moved from a
+ * BARE HANDLE to the pair `{handle, address}` (`trigger-and-pair.md §2` item 1 and `§3` item 3; `§1` item 1),
+ * so every as-filed `triggered.includes(handle)` compared a pair to a string and was ALWAYS FALSE —
+ * **`TF-1`'s exact failure, *"a BARE HANDLE in `triggered` or in `pending`"*, read from the other side.**
+ * **THE REPLACEMENT READS THE PAIR'S `handle` MEMBER, which is the SAME identity the as-filed line meant**
+ * (`§5` item 1: *"Dedupe on handle — rule 3 stands"*; `§4` item 1: *"both filters become PAIR-AWARE — they
+ * compare `entry.handle`, never `entry`"*).
+ */
+export function carriesHandle(set, handle) {
+  return set.some((element) => element !== null && typeof element === 'object' && element.handle === handle);
+}
+
+/** The `handle` members of a returned set, in ITS OWN order — read as a SET by every citing cell (`DD-22`). */
+export function setHandles(set) {
+  return set.map((element) => (element === null || typeof element !== 'object' ? element : element.handle));
+}
+
+/** The `address` members of a returned set, in ITS OWN order — `trigger-and-pair.md §1.2`. */
+export function setAddresses(set) {
+  return set.map((element) => (element === null || typeof element !== 'object' ? undefined : element.address));
+}

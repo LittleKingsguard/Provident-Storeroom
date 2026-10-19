@@ -48,7 +48,8 @@ import {
   kernel, makeStore, tag, KC,
   assertKernelForm, assertAttemptReport, assertSeqIncreasesFromOne,
   capture, entries, checkIds, countingListener, noop,
-  passAtRegistration, atLandingOnly, } from './constraint-kernel-helpers.mjs';
+  passAtRegistration, atLandingOnly,
+  listenAndRegister, carriesHandle, setHandles, setAddresses, } from './constraint-kernel-helpers.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // `P-NEG-14` — THE DISCARD'S DISCRIMINATOR IS THE SET A HANDLE CAME BACK IN, NEVER THE ANCESTRY
@@ -145,7 +146,7 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
     const address = [ancestor[0], 'c'];
     store.write(ancestor, 'mem', { seed: 'the ancestor home entry stands' });
     const plain = countingListener();
-    const handlePlain = (store.register(store.listen(ancestor), plain) || store.listen(ancestor));
+    const handlePlain = listenAndRegister(store, ancestor, plain);
     let landed = null;
     let evaluations = 0;
     // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: this body carries a
@@ -155,8 +156,10 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
       evaluations += 1;
       if (evaluations === 1) {
         return {
-          repair: () => {
-            landed = store.write(address, 'mem', 'fixed').op;
+          // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6; `PAR-C-7`):
+          // the repair's own write JOINS the commit it is part of — `rctx` IS that record.
+          repair: (rctx) => {
+            landed = store.write(address, 'mem', 'fixed', rctx).op;
             return { ok: true, message: 'x was repaired at the attempt\'s own address', op: landed };
           },
           message: 'x is invalid on the committed value',
@@ -165,13 +168,13 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
       return true;
     }));
     const record = commit(store, address, 'mem', 'broken');
-    assert.equal(record.triggered.includes(handlePlain), true,
+    assert.equal(carriesHandle(record.triggered, handlePlain), true,
       'THE SAME ANCESTOR HANDLE IS A MEMBER OF THIS WRITE\'S RETURNED SET — the registration stands at a '
       + 'PROPER PREFIX of the attempt\'s address, so the store\'s own descendant-inclusive prefix test '
       + 'returns it FOR THIS WRITE (`kernel-surface.md §2.1` item 2) — and THE PASSING ARM THEREFORE OWES '
       + 'IT A READING FOR A REASON THE FAILING ARM DOES NOT: here nothing is discarded, so it stands in '
       + '`pending` because no removal reaches it, and NOT because it is another write\'s');
-    assert.equal(record.triggered.includes(handleX), true,
+    assert.equal(carriesHandle(record.triggered, handleX), true,
       'and the attempt-address pair\'s own handle is a member of that same returned set — read '
       + JSON.stringify(record.triggered.map(String)));
     assert.deepEqual(record.pending.slice(), record.triggered.slice(),
@@ -202,7 +205,7 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
       + '`ck_layer_b_the_plain_store_listener_carries_the_triggering_address_as_its_one_argument`), so '
       + 'this count is the store\'s — read ' + plain.seen.length + ' — and the DISCARD is read where the '
       + 'clauses read it: off the record\'s own `pending` member');
-    assert.equal(record.pending.includes(handlePlain), true,
+    assert.equal(carriesHandle(record.pending, handlePlain), true,
       'AND THE ANCESTOR HANDLE STILL STANDS, SO THE REMOVAL OBSERVED ON THE FAILING ARM IS THE DISCARD\'S '
       + 'OWN ACT AND NEVER A RULE ABOUT ANCESTOR REGISTRATIONS: no discard reaches a passing attempt — the '
       + 'discard rule is the FAILURE arm\'s own (`attempt-lifecycle.md §2.4` item 8 (i) (5)) — and the '
@@ -210,7 +213,12 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
       + 'registration\'s pair being at an ancestor address the ADDRESS-SCOPED pass never reaches '
       + '(`kernel-surface.md §2.3` item 1) — read '
       + `pending.length = ${record.pending.length}`);
-    assert.deepEqual(record.pending.slice(), record.triggered.filter((h) => h !== handleX),
+    // **⟶ RE-DERIVED 2026-10-18: THE COMPARISON IS TAKEN AT THE PAIRS' `handle` MEMBERS ON BOTH SIDES**
+    // (`trigger-and-pair.md §4` item 1: *"they compare `entry.handle`, never `entry`"*). The as-filed
+    // `record.triggered.filter((h) => h !== handleX)` compared a PAIR to a HANDLE and could subtract
+    // nothing — `TF-3`/`TF-4` read from the reader's side. **THE CLAIM IS UNMOVED.**
+    assert.deepEqual(setHandles(record.pending).slice().sort(),
+      setHandles(record.triggered).filter((h) => h !== handleX).slice().sort(),
       'AND THE ARM RULES THE TWO ENTRIES APART BY WHAT REACHED EACH, AND BY NOTHING ELSE: the member after '
       + 'a passing arm is "`triggered` MINUS the evaluated pairs\' checked-off entries" '
       + '(`attempt-lifecycle.md §3` item 8) — the attempt-address pair\'s own handle leaves BY ITS OWN '
@@ -221,7 +229,7 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
       + '`kernel-surface.md §2.1` item 2 declares UNLAWFUL — read `pending` '
       + JSON.stringify(record.pending.map(String)) + ' of `triggered` '
       + JSON.stringify(record.triggered.map(String)));
-    assert.equal(record.triggered.includes(handleX), true,
+    assert.equal(carriesHandle(record.triggered, handleX), true,
       'and `triggered` STANDS UNMOVED ON THIS ARM TOO: the check-off reaches the MEMBER and never the '
       + 'store\'s own returned set (`kernel-surface.md §2.1` item 2; `attempt-lifecycle.md §2.4` item 8 (i) '
       + `(5), its comment on the pair\'s own pass) — read triggered.length = ${record.triggered.length}`);
@@ -234,19 +242,19 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
     const address = [ancestor[0], 'c'];
     store.write(ancestor, 'mem', { seed: 'the ancestor home entry stands' });
     const plain = countingListener();
-    const handlePlain = (store.register(store.listen(ancestor), plain) || store.listen(ancestor));
+    const handlePlain = listenAndRegister(store, ancestor, plain);
     // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: this body violates at its registration, so it is shielded
     // or the pair is REFUSED there (`ConstraintListInvalid`, state 2) and the failing arm this cell reads is
     // never reached. The body still violates every LANDING — the cell's subject is unmoved.
     register(store, address, 'x', passAtRegistration(() => ({ message: 'x is invalid and registers no repair' })));
     const record = commit(store, address, 'mem', 'v');
-    assert.equal(record.triggered.includes(handlePlain), true,
+    assert.equal(carriesHandle(record.triggered, handlePlain), true,
       'the set the caller\'s own write returned carries the ancestor registration\'s handle — a '
       + 'registration at a PROPER PREFIX of the attempt\'s address, returned FOR THIS WRITE by the store\'s '
       + 'own descendant-inclusive prefix test (`kernel-surface.md §2.1` item 2) — so the discard below has '
       + 'a member to reach, and the membership is read at THE WRITE\'S OWN RETURNED SET and not at the '
       + 'ancestry of the registration');
-    assert.equal(record.pending.includes(handlePlain), true,
+    assert.equal(carriesHandle(record.pending, handlePlain), true,
       'and it stands in `pending` as `K-2` returns the record: at that instant the member IS the whole '
       + 'returned set, no pass having run (`attempt-lifecycle.md §3` item 10)');
     assert.deepEqual(record.pending.slice(), record.triggered.slice(),
@@ -288,7 +296,7 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
       + 'reads its work off, so an entry left standing here is the SECOND DELIVERY that loop would make '
       + '(`kernel-surface.md §2.1` item 2\'s throwing-arm clause; `A: docs/decisions.md` · `A112`) — read '
       + `pending.length = ${record.pending.length}`);
-    assert.deepEqual(record.triggered.filter((h) => record.pending.includes(h)), [],
+    assert.deepEqual(record.triggered.filter((h) => carriesHandle(record.pending, h)), [],
       'AND THE READING IS THE SET RELATION OVER EVERY HANDLE OF THAT SET AND NOT A COUNT: no entry of the '
       + 'failed write\'s own returned set survives the arm, WHATEVER THE SIZE OF THE SET — the two handles '
       + 'this fixture produces are read by their own names at the two assertions either side of this one, '
@@ -297,7 +305,7 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
       + 'OWN RETURNED SET, WHOSE EVERY HANDLE IS A NOT-YET-INVOKED TRIGGER WHEN THE ARM TAKES IT") — read '
       + `\`pending\` ${JSON.stringify(record.pending.map(String))} of \`triggered\` `
       + `${JSON.stringify(record.triggered.map(String))}`);
-    assert.equal(record.triggered.includes(handlePlain), true,
+    assert.equal(carriesHandle(record.triggered, handlePlain), true,
       'AND `triggered` STANDS VERBATIM AS THE STORE\'S OWN RETURNED SET THROUGH THE ARM: the clause prints '
       + 'the SAME state as "`triggered` then stands as the store\'s own returned set" — the DISCARD reaches '
       + 'the MEMBER and never the store\'s own answer'
@@ -430,9 +438,9 @@ test('ck_p_neg_16_the_outside_form_decides_at_the_first_violating_pair_whatever_
   register(store, address, 'b', passAtRegistration(() => {
     bRuns += 1;
     return {
-      repair: () => {
+      repair: (rctx) => {
         bRepairs += 1;
-        const landed = store.write(address, 'mem', 'fixed').op;
+        const landed = store.write(address, 'mem', 'fixed', rctx).op;
         return { ok: true, message: 'b was repaired', op: landed };
       },
       message: 'b is invalid on this value',
@@ -602,9 +610,9 @@ test('ck_p_neg_18_a_repair_naming_a_pre_attempt_op_credits_nothing_and_is_KC4', 
     evaluations += 1;
     if (evaluations === 1) {
       return {
-        repair: () => {
+        repair: (rctx) => {
           // (2) THE REPAIR'S OWN EDIT LANDS — and its own op is NOT the one it names below.
-          repairedOp = store.write(address, 'mem', 'fixed').op;
+          repairedOp = store.write(address, 'mem', 'fixed', rctx).op;
           // (3) THE IDENTITY IT NAMES IS THE PRE-ATTEMPT OP.
           return { ok: true, message: 'x was repaired', op: before };
         },
@@ -803,8 +811,9 @@ test('ck_p_neg_20_a_throwing_body_over_a_compacted_base_leaves_the_one_outcome_e
   let y = 0;
   register(store, address, 'y', passAtRegistration((ctx) => {
     y += 1;
-    if (y === 1) return { repair: () => {
-      const landed = store.write(address, 'mem', 'y-fixed').op;
+    if (y === 1) return { repair: (rctx) => {
+      // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6; `PAR-C-7`).
+      const landed = store.write(address, 'mem', 'y-fixed', rctx).op;
       return { ok: true, message: 'y was repaired by the op this repair landed', op: landed };
     }, message: 'y is violated by the committed value' };
     return true;
@@ -881,7 +890,7 @@ test('ck_p_neg_22_a_delete_shaped_repair_reaches_arm_d_KC4_because_the_delete_re
     evaluations += 1;
     if (evaluations === 1) {
       return {
-        repair: () => {
+        repair: (rctx) => {
           // THE EDIT LANDS — THE STORE'S OWN `delete` REMOVES THE VERSIONS THE ADDRESS NAMES.
           removed = store.delete(address);
           return { ok: true, message: 'x was repaired by removing the versions at the address' };

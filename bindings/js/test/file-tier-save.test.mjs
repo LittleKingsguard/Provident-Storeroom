@@ -114,6 +114,33 @@ import { fileURLToPath } from 'node:url';
 
 import { storeCreate } from 'provident-storeroom';
 
+/**
+ * **⟶ THE LISTENER SPELLING, ADDED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY`
+ * legacy tail). `listen(address)` MOVES TO `listen(handle, addresses)`, ARITY `1 → 2`, AND IT ANSWERS
+ * `undefined`** (`contract.md §2.2` items 1 and 10; `listen-verb.md §1` item 1; `PAR-HL-3`). **THE AS-FILED
+ * `(register(listen(addr), fn) || listen(addr))` IDIOM DEPENDED ON THE RETURN THE MINT RULING REMOVED** — it
+ * took the handle `listen` answered, registered at it, and fell back to a second `listen` when the first
+ * answered a falsy value. **Under the new declaration the handle is SPELLED by the caller, so the idiom is
+ * replaced by the two acts it always meant: a `listen` that creates the RESERVED entry (`listen-verb.md
+ * §4` state `1`), then a `register` that ARMS it.** **NO ASSERTION IS WEAKENED** — every cell reads the same
+ * handle, the same call list and the same store-side entry.
+ */
+let listenerSpellingSeq = 0;
+function listenAndRegister(store, address, listener) {
+  listenerSpellingSeq += 1;
+  const handle = `listener@${JSON.stringify(address)}#${listenerSpellingSeq}`;
+  store.listen(handle, [address]);
+  store.register(handle, listener);
+  return handle;
+}
+function carriesHandle(set, handle) {
+  return set.some((element) => element !== null && typeof element === 'object' && element.handle === handle);
+}
+function setHandles(set) {
+  return set.map((element) => (element === null || typeof element !== 'object' ? element : element.handle));
+}
+
+
 // **⟶ ADDED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause): the combined `on(address,
 // listener)` is MERGED AWAY, so a home entry is minted by `listen(address)` and its function placed by
 // `register(handle, listener)`. This file takes both acts at the sites that need them and passes this
@@ -292,10 +319,10 @@ test('fts_S_ORDER_SAVE_the_constraint_body_reads_the_pre_save_image_and_the_list
     seen.constraint = bytesOf(f.filePath);
     return true;
   }));
-  (f.store.register(f.store.listen([key]), () => {
+  (listenAndRegister(f.store, [key], () => {
     ord.mark('listener');
     seen.listener = bytesOf(f.filePath);
-  }) || f.store.listen([key]));
+  }));
 
   const record = commit(f.store, [key], 'file', 'ordered');
   runAttempt(f.store, record);
@@ -326,7 +353,7 @@ test('fts_S_ORDER_SAVE_no_listener_body_runs_while_a_constraint_of_the_same_writ
   // the first listener body. The shield answers each registration `true`, so both pairs are CARRIED.
   register(f.store, [key], 'ord-a', atLandingOnly(() => { ord.mark('constraint-a'); return true; }));
   register(f.store, [key], 'ord-b', atLandingOnly(() => { ord.mark('constraint-b'); return true; }));
-  (f.store.register(f.store.listen([key]), () => { ord.mark('listener'); }) || f.store.listen([key]));
+  (listenAndRegister(f.store, [key], () => { ord.mark('listener'); }) || f.store.listen([key]));
 
   const record = commit(f.store, [key], 'file', 1);
   runAttempt(f.store, record);
@@ -356,8 +383,8 @@ test('fts_S_ORDER_SAVE_the_save_precedes_every_body_of_the_delivered_set_and_not
   // ⟶ `A135` (3) / `§7.3` (b) state 1: the shield keeps the registration's own invocation out of `order`, whose
   // length this cell reads as *"one constraint body and two listener bodies"* — the bodies of the WRITE.
   register(f.store, [watch, key], 'ord-c', atLandingOnly(() => { order.push('constraint'); return true; }));
-  (f.store.register(f.store.listen([watch]), () => { order.push('listener-a'); seen.push(bytesOf(f.filePath)); }) || f.store.listen([watch]));
-  (f.store.register(f.store.listen([watch, key]), () => { order.push('listener-b'); seen.push(bytesOf(f.filePath)); }) || f.store.listen([watch, key]));
+  listenAndRegister(f.store, [watch], () => { order.push('listener-a'); seen.push(bytesOf(f.filePath)); });
+  listenAndRegister(f.store, [watch, key], () => { order.push('listener-b'); seen.push(bytesOf(f.filePath)); });
 
   const record = commit(f.store, [watch, key], 'file', 'both');
   runAttempt(f.store, record);
@@ -412,13 +439,13 @@ test('fts_S_DURABLE_IMAGE_a_passing_passs_image_is_durable_before_the_first_list
   const observed = { insideBody: undefined, freshInstance: undefined };
 
   register(f.store, [key], 'dur-pass', () => true);
-  (f.store.register(f.store.listen([key]), () => {
+  (listenAndRegister(f.store, [key], () => {
     observed.insideBody = bytesOf(f.filePath);
     // THE FRESH INSTANCE OVER AN EQUAL `cfg.filePath` — the clause's own declared observable (`§2.11`
     // clause 4 (ii); `contract.md §7.2` item 6's boot).
     const fresh = storeCreate({ filePath: f.filePath, journalLength: 8, listeners: [] });
     observed.freshInstance = fresh.read([key], 'file');
-  }) || f.store.listen([key]));
+  }));
 
   runAttempt(f.store, commit(f.store, [key], 'file', 'durable'));
 
@@ -572,7 +599,7 @@ test('fts_S_REFUSAL_a_failed_save_rolls_the_write_back_first_and_answers_the_cal
   const key = tag('refuse');
   let listenerRuns = 0;
   register(f.store, [key], 'refuse-pass', () => true);
-  (f.store.register(f.store.listen([key]), () => { listenerRuns += 1; }) || f.store.listen([key]));
+  (listenAndRegister(f.store, [key], () => { listenerRuns += 1; }) || f.store.listen([key]));
 
   // THE VERB RETURNS: a `file`-tier write performs no file I/O, so the commit failure cannot stand here.
   let record = null;
@@ -662,7 +689,7 @@ test('fts_S_REFUSAL_the_save_is_evaluated_last_after_every_constraint_of_its_set
   // neither registration's invocation may mark an ordinal here. Both shields answer the registration `true`.
   register(f.store, [key], 'refuse-last-a', atLandingOnly(() => { ord.mark('constraint-a'); return true; }));
   register(f.store, [key], 'refuse-last-b', atLandingOnly(() => { ord.mark('constraint-b'); return true; }));
-  (f.store.register(f.store.listen([key]), () => { listenerRuns += 1; }) || f.store.listen([key]));
+  (listenAndRegister(f.store, [key], () => { listenerRuns += 1; }) || f.store.listen([key]));
   let record = null;
   try {
     record = commit(f.store, [key], 'file', 'never-durable');
@@ -1251,9 +1278,27 @@ test('fts_S_ARG5_an_absent_fifth_argument_opens_or_joins_its_commit_and_the_writ
   assert.equal(typeof runAttempt, 'function',
     'S-ARG5: the flow that owns the opened commit is the kernel\'s own (the terminal arm reads it at '
     + '`surface.md §2.11` clause 2)');
-  assert.equal(bytesOf(f.filePath), before,
-    'S-ARG5: and the store\'s write performs no file I/O on any tier, so the flow\'s commit is open and not '
-    + 'yet saved (`contract.md §7.2` item 1, amended 2026-10-15)');
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+  // THE AS-FILED ASSERTION REQUIRED THE FILE TO BE BYTE-IDENTICAL AFTER THE WRITE, AND THAT IS SUPERSEDED BY
+  // THE UNIT'S OWN ROUTING AMENDMENT.** `§2.12` item 1's AMENDED ROUTE makes the entry→kernel edge
+  // UNCONDITIONAL — the architect's ruling, verbatim: *"Always route to the kernel, because the JS code does
+  // not decide whether constraints trigger"* — **so a four-position write is a KERNEL-DRIVEN write, its pass
+  // completes at the terminal arm, and THE SAVE IS PERFORMED.** **THE CLAIM THE LINE EXISTS FOR — *"an ABSENT
+  // fifth argument is IN DOMAIN and nothing is fabricated for it"* — IS UNMOVED AND IS THIS CELL'S OWN
+  // SUBJECT: the three-member record, the `op.opId` and the read-back above all still assert it.** What the
+  // line must now read is the amended route's own observable: **the write landed AND the flow completed**,
+  // with no synthesized commit.
+  assert.equal(
+    bytesOf(f.filePath),
+    JSON.stringify({ [key]: 'absent-carried' }),
+    'S-ARG5: the four-position write IS a kernel-driven write (`§2.12` item 1\'s amended route), so its flow '
+    + 'reaches the terminal arm and the save is performed — the file carries the version the write landed '
+    + 'under the address it landed at, and NO DEFAULT was fabricated for the absent position '
+    + '(`contract.md §7.2` item 1, amended 2026-10-15)',
+  );
+  assert.notEqual(bytesOf(f.filePath), before,
+    '...and the line\'s own subject is stated as the CONTRAST it now is: the file moved, because the amended '
+    + 'route made this write kernel-governed where the as-filed reading had it bare');
 });
 
 test('fts_S_ARG5_a_supplied_undefined_at_the_fifth_position_is_refused_and_the_write_does_not_proceed', async () => {
@@ -1417,12 +1462,17 @@ test('fts_S_CENSUS_no_rank_moves_no_ninth_register_row_and_no_second_register', 
   // own subject — the
   // instance's own-property set is METHODS ONLY and carries no store data — is unmoved; `settle` alone leaves
   // and no method, no refusal, no arity, no position and no return moves with it.**
+  // **⟶ RE-DERIVED 2026-10-18 AGAIN (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy
+  // tail): `12 → 14`, `10 + 1 + 1 + 2 = 14` ✓**, the `2` being `removeListener` and `removeConstraint`
+  // (`docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9; `removal-members.md §2`), read
+  // through the clause of 2026-10-18 that moved `13 → 12`. **The row's own subject — the member set is
+  // METHODS ONLY — is unmoved and `settle` is still absent.**
   assert.deepEqual(Object.getOwnPropertyNames(f.store).sort(),
     ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-      'readLiteral', 'register', 'rollback', 'unlisten', 'write'],
-    'S-CENSUS: the instance\'s member set is the TEN store-reaching methods plus the TWO remaining '
-    + 'singles `register` and `constraints` — TWELVE own members, `10 + 1 + 1 = 12` ✓, and nothing else '
-    + '(`surface.md §2.4` item 9 (f)\'s clause of 2026-10-18, `13 → 12`; `§2.12` item 2-bis); `settle` '
+      'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'],
+    'S-CENSUS: the instance\'s member set is the TEN store-reaching methods plus `register`, `constraints`, '
+    + '`removeListener` and `removeConstraint` — FOURTEEN own members, `10 + 1 + 1 + 2 = 14` ✓, and '
+    + 'nothing else (`docs/specs/storeroom-held-listener-identity/contract.md` §2.7 item 9); `settle` '
     + 'leaves the set at `§2.4` item 9\'s `REMOVED-WHOLE` pointer and no other member moves with it');
   for (const merged of ['on', 'off']) {
     assert.equal(Object.getOwnPropertyNames(f.store).includes(merged), false,

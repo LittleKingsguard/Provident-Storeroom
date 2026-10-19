@@ -154,22 +154,31 @@ test('round_trip_read_literal_returns_the_literal_at_a_leaf', () => {
   );
 });
 
-test('round_trip_the_module_carries_one_name_and_the_product_the_twelve_members', () => {
+test('round_trip_the_module_carries_one_name_and_the_product_the_fourteen_members', () => {
   // `surface.md §2.9` item 1's `A127` clause: the module namespace carries ONE name, `storeCreate` ALONE,
-  // `11 → 1` ✓. `surface.md §2.4` item 9 (f)'s `A127` clause: the product's declared member set is the TWELVE
-  // `10 + 1 + 1 = 12` ✓. **THIS CELL REPLACES the pre-`A127` cell that asserted *"the eight verbs"* at the
-  // namespace: that figure is superseded at its own clause and the round-trip property is unmoved by it.**
+  // `11 → 1` ✓. `surface.md §2.4` item 9 (f)'s `A127` clause: the product's declared member set is the TEN
+  // METHODS plus `register` and `constraints`. **THIS CELL REPLACES the pre-`A127` cell that asserted *"the
+  // eight verbs"* at the namespace: that figure is superseded at its own clause and the round-trip property
+  // is unmoved by it.**
   assert.equal(typeof storeCreate, 'function');
   const inst = instance();
-  const twelve = Object.keys(inst).sort();
-  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): `13 → 12`, `10 + 1 + 1 = 12` ✓**, the two remaining
-  // singles being `register` and `constraints` (`surface.md §2.4` item 9 (f)'s clause of that date, item `1`,
-  // read with `§2.4` item 9's `REMOVED-WHOLE` pointer: *"NO DRIVE MAY ASSERT A CALL OF `settle` FROM THIS
-  // DATE, ON ANY INSTANCE, FOR ANY ARGUMENT"*). **The cell's subject — every own member is an own callable and
-  // the property set is METHODS ONLY — is unmoved.**
-  assert.equal(twelve.length, 12,
-    'the product carries TWELVE own members — `10 + 1 + 1 = 12` ✓');
-  for (const member of twelve) {
+  const members = Object.keys(inst).sort();
+  // **⟶ RE-DERIVED TWICE, LAST ON 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY`
+  // legacy tail): `12 → 14`, `10 + 1 + 1 + 2 = 14` ✓.** The `2` are `removeListener` and `removeConstraint`
+  // (`docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9; `removal-members.md §2`;
+  // `remove-member.md §2`), read beside the earlier moves this cell already carried: `13 → 12` on
+  // `surface.md §2.4` item 9 (f)'s clause of 2026-10-18, item `1` (the `settle` removal, read through
+  // `§2.4` item 9's `REMOVED-WHOLE` pointer: *"NO DRIVE MAY ASSERT A CALL OF `settle` FROM THIS DATE, ON ANY
+  // INSTANCE, FOR ANY ARGUMENT"*), and `12 → 13` on that item's `constraints` clause of 2026-10-17.
+  // **The cell's subject — every own member is an own callable and the property set is METHODS ONLY — is
+  // unmoved.**
+  assert.equal(members.length, 14,
+    'the product carries FOURTEEN own members — `10 + 1 + 1 + 2 = 14` ✓');
+  assert.deepEqual(members, [
+    'addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
+    'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write',
+  ], 'the fourteen NAMES and not merely their count: `10 + 1 + 1 + 2 = 14` ✓');
+  for (const member of members) {
     assert.equal(typeof inst[member], 'function', `"${member}" is an own callable`);
   }
   assert.ok(!('settle' in inst),

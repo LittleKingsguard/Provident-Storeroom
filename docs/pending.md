@@ -882,3 +882,19 @@ constraintOff(pair, constraint)     { return constraintToggle(false, instance, a
 **AND ONE SCOPE FINDING THE WRITER CORRECTED IN ITSELF, NOT IN THE CODE: `§2.2` item 3 AND `§5.2`'s `S-PURGE-SET` ARE SCOPED TO ONE HANDLE IN BOTH POSITIONS — a DIFFERENT handle binding at the same address is NOT purged.** Its first two attempts over-asserted exactly there and failed; it corrected the cells and recorded that **the shipped code is right**. Three further cells carrying the same superseded `h1 == h2` were re-derived rather than flipped (`e2e:lf_a4`, `properties`' `S-WATCH` sub-cell (vi), `gate4`'s `NG-C`), each now asserting `§2.2` item 3's per-handle subject.
 
 **NEXT SWEEP, RECORDED AND NOT YET DONE: `write-and-read.md:1072` (the arity-1 `listen(address)` row) and `:1272–1274` (*"STORE-MINTED, STORE-UNIQUE"* — the `§6.5` item 12 (c) idempotence clause `R-B1` already superseded, so stale twice over) still carry the old shape UNMARKED.**
+
+## THIRD LIVE DEFECT — `pairKey` COLLIDED ON `id` ALONE; AND THE TRIO IS GREEN
+
+**THE DEFECT.** `pairKey` (`constraint-kernel.mjs:215`) **ignored its `address` argument and returned `id` alone**, so two distinct pairs sharing one `id` at different addresses were ONE kernel registry row — the second registration displaced the first and its function never ran. It falsified `contract.md §5.1`'s `S-KEY` (*"the pair key is unique over (address, id)"*). **Register `{[r,'p','q'], id:'x'}` then `{[r,'z'], id:'x'}` and the first pair's slot is taken by the second.** The JS-side `constraintPairKey` had already been fixed; **the two halves had drifted apart.**
+
+**IT WAS THE COUNTEREXAMPLE THE GATE-4 AUDIT NAMED AND PREDICTED WOULD SLIP THROUGH:** *"no drive varies `id` across two pairs, so an `id`-colliding key is unprobed."* It slipped through the audit; the legacy re-derivation caught it.
+
+**THE FIX: a STRUCTURAL KEY.** `pairKey(address, id)` returns an `[address, id]` tuple via a per-address-array `WeakMap` → `Map<id, tuple>` — **no spelled separator, and `addressToken` is NOT reintroduced** (per `(M-3)`, and per the ruling that the kernel must not regain an address-keyed string index). `register` and `withdrawRegistration` are keyed by the tuple; `K-6` and `registrationAttempt` find the row structurally; the repeat-arm messages read the pair's own members so no message observable moved. **Nine `pairKey` consumers were checked one by one** — `register`, `withdrawRegistration`, `kernel.pairs`/`pairsAtAddress`, `kernel.handles`, the `byAddress` successor, `registrationRerun`, `releasePending`, and `K-6` — and each is correct.
+
+**AND ONE OBSERVATION RECORDED, NOT A DEFECT: the minimal repro still shows pair `Z`'s body running at `[r,'p','q']`**, because both `id:'x'` pairs share the store's single address-keyed home entry and its `noopListener` fires for it. **That is the declared one-entry-per-address design** (`kernel-surface.md §2.2` item 4; `(Y-1)`), **identical at baseline and not introduced here**; the tripwire's own assertions — which function answers at which address — are green, because the REGISTRY is now correctly keyed.
+
+## THE TRIO IS GREEN
+
+**`npm test` `580` / `580` PASS · `0` FAIL. `npm run typecheck` CLEAN (`0` errors). `npm run build` CLEAN.** `cargo test` `395` passed, `0` failed, exit `0`. (`demo:smoke` does not exist in this repository.)
+
+**GATES: `1` discharged (~70 rulings, 10 review passes) · `2` `DELEGABLE` · `3` green · `4` `PASS`. THREE LIVE DEFECTS FOUND AND FIXED, ALL THREE BY EXECUTION RATHER THAN REVIEW:** a refused `addConstraint` silently destroying a standing constraint; the `cfg.constraints` batch route failing every caller; and `pairKey` colliding on `id` alone. **Three adversarial audits passed the first.**

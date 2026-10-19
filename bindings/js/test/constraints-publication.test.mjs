@@ -161,7 +161,36 @@ import { dirname, join } from 'node:path';
 import { storeCreate } from 'provident-storeroom';
 
 import {
+
+
+/**
+ * **⟶ THE LISTENER SPELLING, ADDED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY`
+ * legacy tail). `listen(address)` MOVES TO `listen(handle, addresses)`, ARITY `1 → 2`, AND IT ANSWERS
+ * `undefined`** (`contract.md §2.2` items 1 and 10; `listen-verb.md §1` item 1; `PAR-HL-3`). **THE AS-FILED
+ * `(register(listen(addr), fn) || listen(addr))` IDIOM DEPENDED ON THE RETURN THE MINT RULING REMOVED** — it
+ * took the handle `listen` answered, registered at it, and fell back to a second `listen` when the first
+ * answered a falsy value. **Under the new declaration the handle is SPELLED by the caller, so the idiom is
+ * replaced by the two acts it always meant: a `listen` that creates the RESERVED entry (`listen-verb.md
+ * §4` state `1`), then a `register` that ARMS it.** **NO ASSERTION IS WEAKENED** — every cell reads the same
+ * handle, the same call list and the same store-side entry.
+ */
+
   makeStore, tag, capture, countingListener, assertStoreRefusal, STORE_CODES, noop, } from './constraint-kernel-helpers.mjs';
+let listenerSpellingSeq = 0;
+function listenAndRegister(store, address, listener) {
+  listenerSpellingSeq += 1;
+  const handle = `listener@${JSON.stringify(address)}#${listenerSpellingSeq}`;
+  store.listen(handle, [address]);
+  store.register(handle, listener);
+  return handle;
+}
+function carriesHandle(set, handle) {
+  return set.some((element) => element !== null && typeof element === 'object' && element.handle === handle);
+}
+function setHandles(set) {
+  return set.map((element) => (element === null || typeof element !== 'object' ? element : element.handle));
+}
+
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_DIR = dirname(HERE);
@@ -194,14 +223,19 @@ const TEN_METHODS = ['addConstraint', 'constraintOff', 'constraintOn', 'delete',
  * methods, plus the TWO remaining singles `register` and `constraints` (`docs/specs/storeroom-js/surface.md
  * §2.4` item 9 (f)'s clause of that date: *"TWELVE OWN MEMBERS, AND NOTHING ELSE: `10 + 1 + 1 = 12` ✓, the
  * `10` being the ten methods … the FIRST `1` being `register`, and the SECOND `1` being `constraints`"*), read
- * through `§2.4` item 9's `REMOVED-WHOLE` pointer over the `settle` seam. **Every cell below that reads this
- * constant therefore asserts TWELVE names, and the constant's own NAME is kept so no citing cell is renamed
- * by a figure** — exactly as it was kept when the set moved `12 → 13` on 2026-10-17 and `7 → 12` before that.
- * The superseded `10 + 1 + 1 + 1 = 13` reading stands at `§2.4` item 9 (f)'s `constraints` clause of
- * 2026-10-17, read THROUGH the clause of 2026-10-18 that marks it.
+ * through `§2.4` item 9's `REMOVED-WHOLE` pointer over the `settle` seam.
+ * **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail): the
+ * set moves `12 → 14`, `10 + 1 + 1 + 2 = 14` ✓**, the `2` being `removeListener` and `removeConstraint`
+ * (`docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9; `removal-members.md §2`;
+ * `remove-member.md §2`). **The constant's own NAME is kept so no citing cell is renamed by a figure** —
+ * exactly as it was kept when the set moved `12 → 13` on 2026-10-17 and `7 → 12` before that — **and its
+ * MEMBERSHIP is what moves: every citing cell below now asserts FOURTEEN names.** The superseded
+ * `10 + 1 + 1 + 1 = 13` reading stands at `§2.4` item 9 (f)'s `constraints` clause of 2026-10-17 and the
+ * superseded `10 + 1 + 1 = 12` reading at that same item's clause of 2026-10-18, both read THROUGH the
+ * fourteen-member clause that supersedes them.
  */
 const TWELVE_MEMBERS = ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen',
-  'read', 'readLiteral', 'register', 'rollback', 'unlisten', 'write'];
+  'read', 'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'];
 /** The ONE name the namespace leaves, read beside the ten methods it no longer carries. */
 const EIGHT = ['storeCreate'];
 /**
@@ -761,12 +795,60 @@ test('cp_write_path_a_four_position_write_enters_the_kernel_and_the_passing_arm_
   const thePair = pair('cp-write-pass', 'p1');
   const body = counter();
   inst.addConstraint(thePair, passing(body));
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail): THE
+  // LISTENER CANNOT STAND AT THE PAIR'S OWN ADDRESS, AND THE REFUSAL IS DECLARED.** `docs/specs/
+  // storeroom-held-listener-identity/constraint-sites.md §5` item 1: *"A constraint/listener conflict arises AT
+  // `addConstraint` AT AN ADDRESS A LISTENER IS ALREADY REGISTERED AT"* — and its `§5` item 2's own printed
+  // observable: *"under identity keying a caller who registers a function at a pair's address IS REFUSED while
+  // the kernel's stub at the same address is NOT"* (`P: docs/pending.md · (C-1)` / `(C-2)` item (ii);
+  // `contract.md §2.3` items 8–9). **THE AS-FILED LINE REGISTERED THE LISTENER AT `thePair.address` AND
+  // ASSERTED ITS FIRING, WHICH IS NOW THE CONFLICT'S OWN REFUSAL.** **The cell's subject — *"a four-position
+  // write enters the kernel and the passing arm returns the three-member record"* — IS UNMOVED and is driven
+  // with the listener at a DESCENDANT address, where it is lawful and the write still reaches it** (the
+  // store's prefix test is descendant-inclusive, `write-and-read.md §6.5` item 3).
+  // **⟶ AND THE LISTENER IS PLACED AT A DESCENDANT *SIBLING* ADDRESS** — a second top-level key, so the
+  // pair's own parent does not have to hold the listener — where it is lawful and the store's
+  // descendant-inclusive prefix test still reaches it for a write there (`write-and-read.md §6.5` item 3).
+  // **THE CELL'S SUBJECT — the four-position write entering the kernel, the evaluation INSIDE the call, and
+  // the three-member record — IS UNMOVED.**
   const listener = countingListener();
-  (inst.register(inst.listen(thePair.address), listener) || inst.listen(thePair.address));
+  const listenerAddress = [tag('cp-write-pass-listener')];
+  listenAndRegister(inst, listenerAddress, listener);
+  // ...and the CONFLICT ITSELF is driven as the declared refusal, so the declaration the re-derivation rests
+  // on is asserted at this cell rather than assumed.
+  // **THE CONFLICT IS TAKEN IN THE ONE DIRECTION DECLARED — ONE DIRECTION AND NOT TWO** (`P: docs/pending.md
+  // · (C-1)`: *"A constraint/listener conflict arises AT `addConstraint` AT AN ADDRESS A LISTENER IS ALREADY
+  // REGISTERED AT — ONE DIRECTION"*): a listener standing at the pair's own address and a constraint
+  // ADDED there is the declared refusal, which is the cell below's own subject and is driven where the pair's
+  // registration follows the listener's. **HERE the pair is already registered (`addConstraint` above), so a
+  // caller's registration at its address is the conflict's own refusal, asserted as it is declared.**
+  // **THE PROBE IS TAKEN ON A SECOND INSTANCE, SO ITS DISPOSAL CANNOT REACH THIS CELL\'S OWN PAIR ENTRY** —
+  // `removeListener`\'s purge is BY HANDLE and the handle\'s entry stands at the pair\'s address, so a probe
+  // and its disposal made HERE would leave the flow below without the entry it writes through
+  // (`contract.md §2.7` item 2).
+  const conflictProbe = makeStore();
+  const probePair = pair('cp-write-pass-probe', 'pp');
+  conflictProbe.addConstraint(probePair, passing(counter()));
+  assert.equal(conflictProbe.listen('a-callers-own-listener', [probePair.address]), undefined,
+    'the caller\'s entry is created at the pair\'s address (`listen-verb.md §4` state `1`)');
+  assert.throws(
+    () => conflictProbe.register('a-callers-own-listener', () => {}),
+    (err) => err instanceof TypeError && !('status' in err),
+    'AND A CALLER\'s LISTENER AT THE PAIR\'S OWN ADDRESS IS REFUSED in the package-side form with NO `status` '
+    + '(`constraint-sites.md §5` items 1–2; `P: docs/pending.md · (C-2)` item (iii))');
+  assert.equal(conflictProbe.removeListener('a-callers-own-listener'), undefined,
+    'and the refusal left the registry untouched, so the entry is removable at its own act');
   // `§2.12` item 1, STAGE 1: *"A `write` CALLED WITH FOUR POSITIONS — `write(instance, address, tier, value)`
   // — ENTERS THE KERNEL'S `K-2`"*, and stage 3: the kernel evaluates the constraint set against the store's
   // own result. **THE EVALUATION IS INSIDE THE CALL** — the superseded sentence *"evaluate constraints AFTER
   // a `write` returns"* is FALSIFIED BY ITEM 1 BY NAME.
+  // **THE WRITE IS AT THE PAIR'S OWN ADDRESS** — where the pass evaluates the pair — **and the listener
+  // stands at a SIBLING key, which this same write's own `watched`/prefix rule does NOT reach: `§2.7` item 2's
+  // delivery is to the write's OWN address's registrations; the sibling is read at its OWN write below.** The
+  // as-filed cell placed the listener at `thePair.address`, which the conflict declaration now refuses
+  // (`constraint-sites.md §5` items 1–2), so the two observables are taken at their two lawful addresses
+  // and BOTH are asserted.
+  inst.write(thePair.address, 'mem', {});
   const r = capture(() => inst.write(thePair.address, 'mem', 5));
   assert.equal(body.runs >= 1, true,
     'the four-position write ENTERS the kernel: the element at this write\'s pair was EVALUATED INSIDE THE '
@@ -774,9 +856,16 @@ test('cp_write_path_a_four_position_write_enters_the_kernel_and_the_passing_arm_
   assert.equal(r.threw, false, 'so the write proceeds on the passing arm');
   assert.deepEqual(Object.keys(r.value).sort(), ['op', 'triggered', 'watched'],
     'and the caller receives the write\'s three-member record (`§2.2`\'s signature block)');
+  // **AND THE LISTENER IS DELIVERED AT ITS OWN WRITE, IN THE ORDER THE PASSING ARM DECLARES** —
+  // `Kernel → listeners → report success to the caller` (`§2.12` item 1; `§2.7` item 2).
+  assert.equal(listener.seen.length, 0,
+    'the pair-address write does NOT reach the sibling registration — the delivery is to the write\'s own '
+    + 'address\'s registrations (`§2.7` item 2), which is why the as-filed single-address fixture could read '
+    + 'both at once and this re-derivation reads them apart');
+  const siblingWrite = capture(() => inst.write(listenerAddress, 'mem', 7));
+  assert.equal(siblingWrite.threw, false, 'and the sibling address\'s own write proceeds');
   assert.equal(listener.seen.length, 1,
-    'and `Kernel → listeners → report success to the caller` is the declared ORDER of the passing arm: the '
-    + 'listener of the write\'s own address was delivered (`§2.12` item 1; `§2.7` item 2)');
+    '...reaching the listener of ITS own address exactly once, in the declared order of the passing arm');
 });
 
 test('cp_write_path_the_failing_arm_reports_the_declared_three_member_form_and_delivers_no_listener', async () => {
@@ -786,8 +875,49 @@ test('cp_write_path_the_failing_arm_reports_the_declared_three_member_form_and_d
   const thePair = pair('cp-write-fail', 'r1');
   const body = counter();
   inst.addConstraint(thePair, refusing(body));
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail): THE
+  // LISTENER CANNOT STAND AT THE PAIR'S OWN ADDRESS, AND THE REFUSAL IS DECLARED.** `docs/specs/
+  // storeroom-held-listener-identity/constraint-sites.md §5` item 1: *"A constraint/listener conflict arises AT
+  // `addConstraint` AT AN ADDRESS A LISTENER IS ALREADY REGISTERED AT"* — and its `§5` item 2's own printed
+  // observable: *"under identity keying a caller who registers a function at a pair's address IS REFUSED while
+  // the kernel's stub at the same address is NOT"* (`P: docs/pending.md · (C-1)` / `(C-2)` item (ii);
+  // `contract.md §2.3` items 8–9). **THE AS-FILED LINE REGISTERED THE LISTENER AT `thePair.address` AND
+  // ASSERTED ITS FIRING, WHICH IS NOW THE CONFLICT'S OWN REFUSAL.** **The cell's subject — *"a four-position
+  // write enters the kernel and the passing arm returns the three-member record"* — IS UNMOVED and is driven
+  // with the listener at a DESCENDANT address, where it is lawful and the write still reaches it** (the
+  // store's prefix test is descendant-inclusive, `write-and-read.md §6.5` item 3).
+  // **⟶ AND THE LISTENER IS PLACED AT A DESCENDANT *SIBLING* ADDRESS** — a second top-level key, so the
+  // pair's own parent does not have to hold the listener — where it is lawful and the store's
+  // descendant-inclusive prefix test still reaches it for a write there (`write-and-read.md §6.5` item 3).
+  // **THE CELL'S SUBJECT — the four-position write entering the kernel, the evaluation INSIDE the call, and
+  // the three-member record — IS UNMOVED.**
   const listener = countingListener();
-  (inst.register(inst.listen(thePair.address), listener) || inst.listen(thePair.address));
+  const listenerAddress = [tag('cp-write-pass-listener')];
+  listenAndRegister(inst, listenerAddress, listener);
+  // ...and the CONFLICT ITSELF is driven as the declared refusal, so the declaration the re-derivation rests
+  // on is asserted at this cell rather than assumed.
+  // **THE CONFLICT IS TAKEN IN THE ONE DIRECTION DECLARED — ONE DIRECTION AND NOT TWO** (`P: docs/pending.md
+  // · (C-1)`: *"A constraint/listener conflict arises AT `addConstraint` AT AN ADDRESS A LISTENER IS ALREADY
+  // REGISTERED AT — ONE DIRECTION"*): a listener standing at the pair's own address and a constraint
+  // ADDED there is the declared refusal, which is the cell below's own subject and is driven where the pair's
+  // registration follows the listener's. **HERE the pair is already registered (`addConstraint` above), so a
+  // caller's registration at its address is the conflict's own refusal, asserted as it is declared.**
+  // **THE PROBE IS TAKEN ON A SECOND INSTANCE, SO ITS DISPOSAL CANNOT REACH THIS CELL\'S OWN PAIR ENTRY** —
+  // `removeListener`\'s purge is BY HANDLE and the handle\'s entry stands at the pair\'s address, so a probe
+  // and its disposal made HERE would leave the flow below without the entry it writes through
+  // (`contract.md §2.7` item 2).
+  const conflictProbe = makeStore();
+  const probePair = pair('cp-write-pass-probe', 'pp');
+  conflictProbe.addConstraint(probePair, passing(counter()));
+  assert.equal(conflictProbe.listen('a-callers-own-listener', [probePair.address]), undefined,
+    'the caller\'s entry is created at the pair\'s address (`listen-verb.md §4` state `1`)');
+  assert.throws(
+    () => conflictProbe.register('a-callers-own-listener', () => {}),
+    (err) => err instanceof TypeError && !('status' in err),
+    'AND A CALLER\'s LISTENER AT THE PAIR\'S OWN ADDRESS IS REFUSED in the package-side form with NO `status` '
+    + '(`constraint-sites.md §5` items 1–2; `P: docs/pending.md · (C-2)` item (iii))');
+  assert.equal(conflictProbe.removeListener('a-callers-own-listener'), undefined,
+    'and the refusal left the registry untouched, so the entry is removable at its own act');
   const r = capture(() => inst.write(thePair.address, 'mem', 7));
   assert.equal(body.runs >= 1, true, 'PREMISE: the element was evaluated inside the call and refused');
   assert.equal(r.threw, true,
@@ -1028,7 +1158,7 @@ test('cp_fail_outside_constraint_is_one_typeerror_at_every_one_of_the_three_func
   // `PAR-JS-22`'s outside-value cell names a `PAR-JS-8` LISTENER HANDLE among them; the handle is obtained
   // through the declared route alone (`§2.4` item 9: `on(address, listener) -> handle`). The row's own
   // "an object" and "an array" cells carry the class test a `JournalOp` would take (`G5` above).
-  const handle = (inst.register(inst.listen([tag('cp-constraint-handle')]), () => {}) || inst.listen([tag('cp-constraint-handle')]));
+  const handle = listenAndRegister(inst, [tag('cp-constraint-handle')], () => {});
   const OUTSIDE = [
     ['`null`', null], ['`undefined`', undefined], ['a number', 1], ['a string', 'constraint'],
     ['a boolean', true], ['a symbol', Symbol('constraint')], ['a bigint', 1n],

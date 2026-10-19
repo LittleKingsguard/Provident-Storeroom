@@ -142,7 +142,14 @@ test('ck_states_arm_b_a_successful_repair_adds_its_op_and_the_re_run_passes', as
           // · `A110`): the repair SPELLS THE OP ITS OWN EDIT LANDED onto its own return — THE STORE'S OWN
           // `write` RETURN'S VALUE, READ HERE and never fabricated — and the kernel reads that op off this
           // return and nowhere else. The declared shape is `{ok, message, op}`, `op` REQUIRED IFF `ok === true`.
-          const written = store.write(address, 'mem', 'fixed').op;
+          // **⟶ THE FIFTH POSITION IS THE REPAIR'S OWN DECLARED CHANNEL, ADDED 2026-10-18.** *"A repair
+          // function IS RETURNED BY THE CONSTRAINT THAT TRIGGERED IT and IS PASSED THE COMMIT IT IS PART OF, so
+          // ITS OWN WRITE JOINS THAT COMMIT AS A NEW ENTRY"* (`docs/specs/storeroom-js/surface.md §2.11`
+          // clause 6, the ONE home of that ruling; `PAR-C-7`, `A110`). **THE AS-FILED CALL PASSED FOUR
+          // POSITIONS AND THEREFORE OPENED A SECOND ATTEMPT AT AN ADDRESS THIS ONE HOLDS — refused `KC-7`
+          // internal to the kernel and surfaced as `KC-4`. `rctx` IS the `RepairContext` (`§2.3` item 2's six
+          // members) and it IS the record its own write joins**, so the commit position carries it.
+          const written = store.write(address, 'mem', 'fixed', rctx).op;
           landed = written;
           return { ok: true, message: 'the repair landed a lawful value at the attempt\'s address', op: landed };
         },
@@ -453,7 +460,9 @@ test('ck_states_arm_f_a_repeat_by_a_pair_whose_repair_is_not_recorded_reaches_th
   register(store, address, 'y', passAtRegistration(() => {
     y += 1;
     return y === 1
-      ? { repair: () => { const landed = store.write(address, 'mem', 'y-fixed').op; return { ok: true, message: 'y was repaired at the same address', op: landed }; }, message: 'y is invalid' }
+      // **⟶ THE FIFTH POSITION, 2026-10-18:** the repair's own write JOINS the commit it is part of
+      // (`docs/specs/storeroom-js/surface.md §2.11` clause 6; `PAR-C-7`).
+      ? { repair: (rctx) => { const landed = store.write(address, 'mem', 'y-fixed', rctx).op; return { ok: true, message: 'y was repaired at the same address', op: landed }; }, message: 'y is invalid' }
       : true;
   }));
   // pass 1: x PASSES on v, y violates there and its repair lands a new op ⇒ the re-run breaks x.
@@ -499,12 +508,14 @@ test('ck_states_arm_e_a_repeat_by_a_pair_already_recorded_as_applied_reaches_the
   // ⟶ `A135` (3) / `§7.3` (b) state 1 — AND `3-bis` IS THE REASON THE SHIELD IS MANDATORY for a body carrying a
   // `repair`: without it the registration ATTEMPTS this repair immediately and the pair's own first evaluation
   // is consumed by the registration, which is not the pass order this cell asserts.
-  register(store, address, 'x', passAtRegistration(() => ({ repair: () => {
-    const landed = store.write(address, 'mem', 'x-fixed').op;
+  register(store, address, 'x', passAtRegistration(() => ({ repair: (rctx) => {
+    // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6; `PAR-C-7`).
+    const landed = store.write(address, 'mem', 'x-fixed', rctx).op;
     return { ok: true, message: 'x was repaired at the same address', op: landed };
   }, message: 'x is invalid' })));
-  register(store, address, 'y', passAtRegistration(() => ({ repair: () => {
-    const landed = store.write(address, 'mem', 'y-fixed').op;
+  register(store, address, 'y', passAtRegistration(() => ({ repair: (rctx) => {
+    // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6; `PAR-C-7`).
+    const landed = store.write(address, 'mem', 'y-fixed', rctx).op;
     return { ok: true, message: 'y was repaired at the same address', op: landed };
   }, message: 'y is invalid' })));
   const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
@@ -560,8 +571,9 @@ test('ck_states_the_two_repeat_limbs_are_disjoint_by_the_appliedRepairs_member_a
       x += 1;
       return x === 1 ? true : { message: 'x is invalid at the re-run and registers no repair' };
     }));
-    register(store, address, 'y', passAtRegistration(() => ({ repair: () => {
-      const landed = store.write(address, 'mem', 'y2').op;
+    register(store, address, 'y', passAtRegistration(() => ({ repair: (rctx) => {
+      // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6).
+      const landed = store.write(address, 'mem', 'y2', rctx).op;
       return { ok: true, message: 'y was repaired by the op this repair landed', op: landed };
     }, message: 'y is invalid on the committed value' })));
     limbs.push(['KC-6', 'OUT', capture(() => runAttempt(store, commit(store, address, 'mem', 'v')))]);
@@ -569,8 +581,9 @@ test('ck_states_the_two_repeat_limbs_are_disjoint_by_the_appliedRepairs_member_a
   {
     const store = makeStore();
     const address = [tag('re2b')];
-    register(store, address, 'x', passAtRegistration(() => ({ repair: () => {
-      const landed = store.write(address, 'mem', 'x2').op;
+    register(store, address, 'x', passAtRegistration(() => ({ repair: (rctx) => {
+      // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6).
+      const landed = store.write(address, 'mem', 'x2', rctx).op;
       return { ok: true, message: 'x was repaired by the op this repair landed', op: landed };
     }, message: 'x is invalid at every evaluation' })));
     limbs.push(['KC-5', 'IN', capture(() => runAttempt(store, commit(store, address, 'mem', 'v')))]);
@@ -662,8 +675,9 @@ test('ck_states_each_refused_repeat_token_is_one_of_the_eight_and_is_never_a_sto
   // a `repair`: unshielded, the registration ATTEMPTS this repair and y's first evaluation is spent there.
   register(store, address, 'y', passAtRegistration(() => {
     ny += 1;
-    if (ny === 1) return { repair: () => {
-      const landed = store.write(address, 'mem', `ry${ny}`).op;
+    if (ny === 1) return { repair: (rctx) => {
+      // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6).
+      const landed = store.write(address, 'mem', `ry${ny}`, rctx).op;
       return { ok: true, message: 'y was repaired by the op this repair landed', op: landed };
     }, message: 'y is invalid on the committed value' };
     return true; // passes at its own repair's landing, so the pass carries on to x and closes there
@@ -780,8 +794,9 @@ test('ck_states_the_composition_runs_repaired_ops_first_in_reverse_then_the_firs
   // registration, and the THIRD-evaluation state this cell reads is never reached.
   register(store, address, 'x', passAtRegistration(() => {
     nx += 1;
-    if (nx === 1) return { repair: () => {
-      const landed = store.write(address, 'mem', `rx${nx}`).op;
+    if (nx === 1) return { repair: (rctx) => {
+      // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6).
+      const landed = store.write(address, 'mem', `rx${nx}`, rctx).op;
       return { ok: true, message: 'x was repaired by the op this repair landed', op: landed };
     }, message: 'x is invalid on the committed value' };
     if (nx === 2) return true; // passes on x's own repair's landing — no repeat, the pass continues
@@ -789,8 +804,9 @@ test('ck_states_the_composition_runs_repaired_ops_first_in_reverse_then_the_firs
   }));
   register(store, address, 'y', passAtRegistration(() => {
     ny += 1;
-    if (ny === 1) return { repair: () => {
-      const landed = store.write(address, 'mem', `ry${ny}`).op;
+    if (ny === 1) return { repair: (rctx) => {
+      // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6).
+      const landed = store.write(address, 'mem', `ry${ny}`, rctx).op;
       return { ok: true, message: 'y was repaired by the op this repair landed', op: landed };
     }, message: 'y is invalid at the first repair\'s landing' };
     return { message: 'y fails for good' };
@@ -957,8 +973,9 @@ test('ck_states_every_step_carries_the_six_declared_members_and_the_arm_s_own_ch
   // arm-(e) order this cell asserts at `nx === 1`/`nx === 3` is never reached.
   register(store, address, 'x', passAtRegistration(() => {
     nx += 1;
-    if (nx === 1) return { repair: () => {
-      const landed = store.write(address, 'mem', `rx${nx}`).op;
+    if (nx === 1) return { repair: (rctx) => {
+      // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6).
+      const landed = store.write(address, 'mem', `rx${nx}`, rctx).op;
       return { ok: true, message: 'x was repaired by the op this repair landed', op: landed };
     }, message: 'x is invalid on the committed value' };
     if (nx === 2) return true; // passes at its own repair's landing: the pass continues
@@ -969,8 +986,9 @@ test('ck_states_every_step_carries_the_six_declared_members_and_the_arm_s_own_ch
   let ny = 0;
   register(store, address, 'y', passAtRegistration(() => {
     ny += 1;
-    if (ny === 1) return { repair: () => {
-      const landed = store.write(address, 'mem', `ry${ny}`).op;
+    if (ny === 1) return { repair: (rctx) => {
+      // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6).
+      const landed = store.write(address, 'mem', `ry${ny}`, rctx).op;
       return { ok: true, message: 'y was repaired by the op this repair landed', op: landed };
     }, message: 'y is invalid at the first repair\'s landing' };
     return { message: 'y fails for good' };
@@ -1197,10 +1215,11 @@ test('ck_states_a_throwing_per_op_call_leaves_the_attempt_s_own_registry_entry_s
     : true)));
   register(store, address, 'y', passAtRegistration((ctx) => (ctx.value === 'committed'
     ? {
-      repair: () => ({
+      repair: (rctx) => ({
         ok: true,
         message: 'y was repaired by the op this repair landed',
-        op: store.write(address, 'mem', 'repaired').op,
+        // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6).
+        op: store.write(address, 'mem', 'repaired', rctx).op,
       }),
       message: 'y is violated by the committed value',
     }
@@ -1617,10 +1636,11 @@ test('ck_neg_3_a_still_owed_call_meeting_a_compacted_base_is_KC8_with_one_outcom
     : true)));
   register(store, address, 'y', passAtRegistration((ctx) => (ctx.value === 'committed'
     ? {
-      repair: () => ({
+      repair: (rctx) => ({
         ok: true,
         message: 'y was repaired by the op this repair landed',
-        op: store.write(address, 'mem', 'repaired').op,
+        // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6).
+        op: store.write(address, 'mem', 'repaired', rctx).op,
       }),
       message: 'y is violated by the committed value',
     }

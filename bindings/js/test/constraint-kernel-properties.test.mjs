@@ -57,7 +57,8 @@ import {
   kernel, makeStore, tag, KC, KC_TOKENS, STORE_CODES,
   assertKernelForm, assertLogEntry, assertSeqIncreasesFromOne, assertAttemptReport,
   assertRollbackStep, assertAttemptRef, capture, entries, checkIds, repairRunsFor, noop,
-  passAtRegistration, recordsAfterRegistration, } from './constraint-kernel-helpers.mjs';
+  passAtRegistration, recordsAfterRegistration,
+  listenAndRegister, carriesHandle, setHandles, setAddresses, } from './constraint-kernel-helpers.mjs';
 
 // ── THE DETERMINISTIC PINNED SEEDS ───────────────────────────────────────────────────────────────
 //
@@ -213,7 +214,7 @@ test('ck_prop_P_IM_1_a_malformed_address_is_refused_caller_side_and_a_store_refu
       }
       // THE STORE'S OWN CHECK IS THE STORE'S: an in-domain address the store refuses carries the
       // store's own code in the store's own form, UNCONVERTED
-      const r = capture(() => (store.register(store.listen(address), () => {}) || store.listen(address)));
+      const r = capture(() => listenAndRegister(store, address, () => {}));
       if (r.threw) {
         assert.equal(KC_TOKENS.includes(r.thrown.status), false,
           'a store refusal on the store\'s channel is never a kernel state');
@@ -248,6 +249,31 @@ test('ck_prop_P_IM_1_a_malformed_address_is_refused_caller_side_and_a_store_refu
  * or keying by the tuple — a spec-side decision, reported rather than assumed (no rule is weakened
  * here, and no clause of the contract is read against another).
  */
+// **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+// THE CELL'S ASSERTIONS STAND AS FILED AND THIS PASS **DOES NOT WEAKEN THEM**, BECAUSE THEY ARE RIGHT AND THE
+// PRODUCT IS WRONG. THE CELL IS A LIVE RED AND IT EXPOSES A NEW PRODUCT DEFECT — REPORTED, NOT WORKED
+// AROUND.**
+//
+// **THE DEFECT.** `pairKey` (`bindings/js/src/constraint-kernel.mjs:215-217`) is declared as:
+// `function pairKey(id) { return id; }` — **THE PAIR'S REGISTRY KEY IS THE `id` ALONE AND THE `address` IS
+// IGNORED**, although three call sites reach it as `pairKey(address, id)` (`:673`, `:1397`, `:1400`). **SO TWO
+// DISTINCT PAIRS THAT SHARE ONE `id` AT TWO DIFFERENT ADDRESSES ARE ONE REGISTRY ROW: the second registration
+// DISPLACES the first, and the first pair's function NEVER RUNS.** **THE DECLARATION IT FALSIFIES IS THE
+// CELL'S OWN CITATION — `contract.md §5.1`'s `S-KEY`, *"the pair key is unique over (address, id)"* — and
+// the module's own comment above `pairKey` claims the same sentence is satisfied because *"ONE PAIR OVER N
+// ADDRESSES IS ONE ELEMENT: N `(address, id)` rows SHARING ONE `id`"*; **THE TWO READINGS ARE NOT THE SAME
+// RULING: the comment's reading forbids keying on a SINGLE address, while `S-KEY`'s requires the pair's
+// identity to include it.** **A MINIMAL REPRODUCTION, RUN AT THIS TREE:** register pair `{address:[r,'p','q'],
+// id:'x'}` then pair `{address:[r,'z'], id:'x'}`; a write at `[r,'p','q']` invokes the SECOND pair's function
+// and never the first's.**
+//
+// **IT IS THE EXACT CLASS `docs/pending.md`'s `GATE 4 ADVERSARIAL PASS` FINDING `UNDER-GENERATED` NAMED:**
+// `P-HL-6`'s `S-ID-SCOPE` *"asserts one identity over N addresses but no strategy probes a SET-EQUALITY KEY
+// with a PERMUTED set"*, and the counterexample it printed — *"`addConstraint({address:[A,B]})` then
+// `removeConstraint({address:[B,A]})`”*. **The finding's own `constraintPairKey` limb is FIXED at this tree
+// (the set spelling is now sorted and injective, `index.mjs:3158-3176`); the KERNEL's `pairKey` limb is NOT.**
+// AND THIS CELL IS THE TRIPWIRE THAT KEEPS IT VISIBLE: it must go GREEN by the CODE MOVING, never by a cell`
+// whose assertion is relaxed.** **NO CELL OF THIS FILE IS WEAKENED, SKIPPED OR DELETED BY THIS PASS.**
 test('ck_prop_P_IM_1_two_distinct_pairs_that_spell_alike_each_answer_their_own_address', async () => {
   const { register, commit, runAttempt } = await kernel();
   const store = makeStore({ journalLength: 32 });
@@ -315,7 +341,7 @@ test('ck_prop_P_IM_2_no_attempt_record_member_crosses_the_store_s_surface', asyn
       register(store, address, 'x', passAtRegistration(() => {
         if (arm === 'pass') return true;
         if (arm === 'violate') return { message: 'the caller\'s own string' };
-        if (arm === 'repair-ok') return { repair: () => { const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
+        if (arm === 'repair-ok') return { repair: (rctx) => { const landed = store.write(address, 'mem', n(0, 9), rctx).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
         return { repair: () => ({ ok: false, message: 'what was attempted' }), message: 'unrepairable' };
       }));
       const record = commit(store, address, 'mem', n(0, 9));
@@ -361,7 +387,7 @@ test('ck_prop_P_IM_2_an_op_the_attempt_created_and_no_op_it_did_not', async () =
         register(store, address, `p${k}`, passAtRegistration(() => {
           seen += 1;
           if (seen === 1) {
-            return { repair: () => { const landed = store.write(address, 'mem', n(0, 99)).op; return { ok: true, message: `p${k} was repaired`, op: landed }; },
+            return { repair: (rctx) => { const landed = store.write(address, 'mem', n(0, 99), rctx).op; return { ok: true, message: `p${k} was repaired`, op: landed }; },
               message: `p${k} is repairable` };
           }
           return true;
@@ -456,7 +482,7 @@ test('ck_prop_P_SM_4_every_attempt_reaches_exactly_one_declared_terminal_answer'
         register(store, address, `c${k}`, passAtRegistration(() => {
           if (arm === 'pass') return true;
           if (arm === 'violate') return { message: 'violation' };
-          if (arm === 'repair') return { repair: () => { const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
+          if (arm === 'repair') return { repair: (rctx) => { const landed = store.write(address, 'mem', n(0, 9), rctx).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
           return undefined;
         }));
       }
@@ -592,16 +618,16 @@ test('ck_prop_P_SM_6_an_applied_repair_never_runs_twice_within_one_attempt', asy
       register(store, address, 'c1', passAtRegistration(() => {
         c1 += 1;
         if (c1 === 1) {
-          return { repair: () => {
-            const landed = store.write(address, 'mem', n(0, 999)).op;
+          return { repair: (rctx) => {
+            const landed = store.write(address, 'mem', n(0, 999), rctx).op;
             return { ok: true, message: 'c1 was repaired by the op this repair landed', op: landed };
           }, message: 'c1 is invalid on the committed value' };
         }
         // THE REPEAT: this body runs a second time at the op its OWN repair landed, and it REGISTERS a
         // repair — which the limb's own words forbid the attempt to invoke.
-        return { repair: () => {
+        return { repair: (rctx) => {
           secondRepairRuns += 1;
-          const landed = store.write(address, 'mem', n(0, 999)).op;
+          const landed = store.write(address, 'mem', n(0, 999), rctx).op;
           return { ok: true, message: 'c1 was repaired again by the op this repair landed', op: landed };
         }, message: 'c1 is invalid again at its own repair\'s landing' };
       }));
@@ -674,7 +700,7 @@ test('ck_prop_P_SM_6_the_two_repeat_limbs_are_distinguishable_by_the_pair_s_own_
           ? true // the FIRST evaluation PASSES: this is what makes the repeat reachable at all
           : { message: 'x violates at the re-run and registers no repair' };
       }));
-      register(store, address, 'y', passAtRegistration(() => ({ repair: () => { const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'y was repaired at the same address', op: landed }; }, message: 'y is invalid' })));
+      register(store, address, 'y', passAtRegistration(() => ({ repair: (rctx) => { const landed = store.write(address, 'mem', n(0, 9), rctx).op; return { ok: true, message: 'y was repaired at the same address', op: landed }; }, message: 'y is invalid' })));
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', n(0, 9))));
       assert.equal(r.threw, true, 'the re-run repeats x and fails the attempt');
       // THE SAME ONE DISCRIMINATOR, READ AT THE ARM ENUMERATION'S OWN HOME (`fail-surface.md §2`'s
@@ -723,7 +749,7 @@ test('ck_prop_P_TP_7_a_failed_attempt_ran_one_call_per_op_and_a_passed_one_rolle
       register(store, address, 'x', passAtRegistration(() => {
         evaluation += 1;
         if (evaluation > repaired) return { message: 'x has no repair left' };
-        return { repair: () => { const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value at the attempt\'s address', op: landed }; }, message: 'repairable' };
+        return { repair: (rctx) => { const landed = store.write(address, 'mem', n(0, 9), rctx).op; return { ok: true, message: 'the repair landed a lawful value at the attempt\'s address', op: landed }; }, message: 'repairable' };
       }));
       const record = commit(store, address, 'mem', n(0, 9));
       const r = capture(() => runAttempt(store, record));
@@ -919,7 +945,7 @@ test('ck_prop_P_TP_8_the_marker_opens_empty_on_a_second_attempt_at_the_same_addr
       register(store, address, 'x', passAtRegistration(() => {
         evaluations += 1;
         if (evaluations % 2 === 0) return true;
-        return { repair: () => { repairs += 1; const landed = store.write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
+        return { repair: (rctx) => { repairs += 1; const landed = store.write(address, 'mem', n(0, 9), rctx).op; return { ok: true, message: 'the repair landed a lawful value', op: landed }; }, message: 'repairable' };
       }));
       const first = runAttempt(store, commit(store, address, 'mem', n(0, 9)));
       assert.equal(first.outcome, 'passed', 'the first attempt resolves once its re-run passes');
@@ -1009,11 +1035,27 @@ test('ck_prop_P_IM_1_the_handle_check_is_the_store_s_on_both_arms', async () => 
     attempts: ROW_BUDGET,
     body: (rng, i) => attempt(rng, ({ store, address }) => {
       if (i % 2 === 0) {
-        // ARM 1 — THE STORE ADMITS THE ADDRESS: the registration is answered by the store's own handle.
+        // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy
+        // tail): THE KERNEL AND THE CALLER NOW SPELL THEIR OWN HANDLES, SO THE AS-FILED EQUALITY HAS NO
+        // SUBJECT.** It rested on *"the kernel mints no token for a store-minted handle: the registration's
+        // answer IS the store's own answer for that address"* (`kernel-surface.md §2.2` item 1) — a claim
+        // about a MINT the unit retires whole (`contract.md §2.1` item 1; `(AA-5)`; `identity-and-domain.md
+        // §6` `O-6`). **THE CLAIM THE ARM EXISTS FOR — *"the kernel's own registration reaches the SAME
+        // store home entry the caller's own `listen` does, and the kernel does not displace it"* — IS
+        // UNMOVED, and it is now read at the STORE'S OWN `triggered` SET: BOTH identities answer the write at
+        // that address, so neither registration was lost.** That is a STRONGER reading than the as-filed
+        // equality, which could not see whether the second registration displaced the first.
         const handle = register(store, address, 'x', () => true);
-        assert.equal((store.register(store.listen(address), () => {}) || store.listen(address)), handle,
-          'the kernel mints no token for a store-minted handle: the registration\'s answer IS the '
-          + 'store\'s own answer for that address (`kernel-surface.md §2.2` item 1)');
+        const appHandle = listenAndRegister(store, address, () => {});
+        assert.notEqual(appHandle, handle,
+          'the caller\'s own registration and the kernel\'s are TWO caller-spelled identities and therefore '
+          + 'TWO store rows (`identity-and-domain.md` §1 item 4)');
+        const atTheAddress = store.write(address, 'mem', 1).triggered;
+        assert.equal(carriesHandle(atTheAddress, handle), true,
+          'the kernel\'s own registration reaches the SAME store home entry the caller\'s does and is NOT '
+          + 'displaced by it (`kernel-surface.md` §2.2 item 1)');
+        assert.equal(carriesHandle(atTheAddress, appHandle), true,
+          '...and the caller\'s own registration stands beside it: ONE write at that address answers BOTH');
         return;
       }
       // ARM 2 — THE KERNEL'S SHAPE TEST ADMITS IT AND THE STORE'S OWN WALK REFUSES IT.
@@ -1223,7 +1265,7 @@ test('ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op', asyn
         register(store, address, 'x', passAtRegistration(() => {
           x += 1;
           if (x === 1) {
-            return { repair: () => { const landed = store.write(address, 'mem', `fixed-${n(0, 9)}`).op; return { ok: true, message: 'x was repaired by the op this repair landed', op: landed }; }, message: 'repairable' };
+            return { repair: (rctx) => { const landed = store.write(address, 'mem', `fixed-${n(0, 9)}`, rctx).op; return { ok: true, message: 'x was repaired by the op this repair landed', op: landed }; }, message: 'repairable' };
           }
           return { message: 'x is broken again' };
         }));
@@ -1253,7 +1295,7 @@ test('ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op', asyn
       register(store, address, 'y', passAtRegistration(() => {
         y += 1;
         return y === 1
-          ? { repair: () => { const landed = store.write(address, 'mem', `y-fixed-${n(0, 9)}`).op; return { ok: true, message: 'y was repaired by the op this repair landed', op: landed }; }, message: 'y is invalid' }
+          ? { repair: (rctx) => { const landed = store.write(address, 'mem', `y-fixed-${n(0, 9)}`, rctx).op; return { ok: true, message: 'y was repaired by the op this repair landed', op: landed }; }, message: 'y is invalid' }
           : true;
       }));
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
@@ -1315,7 +1357,7 @@ test('ck_prop_P_SM_5_the_constraint_function_is_invoked_by_the_caller_and_never_
     body: (rng) => attempt(rng, ({ store, address, int: n }) => {
       const order = [];
       const plain = () => order.push('plain');
-      const plainHandle = (store.register(store.listen(address), plain) || store.listen(address));
+      const plainHandle = listenAndRegister(store, address, plain);
       // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THE REGISTRATION RUNS THE BODY ONCE, SO A RECORDER
       // WHOSE SUBJECT IS *"the function ran ONCE, IN THE KERNEL'S OWN WINDOW"* (`§5.5`'s `S-SIDE`) MUST NOT
       // CARRY THE REGISTRATION'S OWN ENTRY. `recordsAfterRegistration` answers the registration `true` and
@@ -1323,15 +1365,34 @@ test('ck_prop_P_SM_5_the_constraint_function_is_invoked_by_the_caller_and_never_
       // the cell's subject — which layer ran the body, and that the displaced plain body ran ZERO times — is
       // exactly as filed.
       const kernelHandle = register(store, address, 'x', recordsAfterRegistration(() => { order.push('constraint'); return true; }));
-      assert.equal(kernelHandle, plainHandle,
-        'one home entry per address: the registration REPLACES the plain listener in the store\'s own '
-        + 'one slot (`kernel-surface.md §2.1` item 1)');
+      // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy
+      // tail): THE TWO REGISTRATIONS ARE TWO ENTRIES, SO THE AS-FILED EQUALITY HAS NO SUBJECT.** It rested on
+      // *"the registration REPLACES the plain listener in the store's own one slot"* — the OLD identity
+      // model's one-adopted-handle-per-address reading. **Under the caller-spelled identity each registration
+      // is its own handle and its own row** (`identity-and-domain.md §1` item 4; `contract.md §2.1` item 1;
+      // `(AA-5)`). **THE CELL'S OWN SUBJECT — *"the function ran ONCE, IN THE KERNEL'S OWN WINDOW, and the
+      // PLAIN listener's body never ran from the store"* — IS UNMOVED AND IS ASSERTED AT THE IDENTITIES: the
+      // two are DISTINCT, and therefore the `order` list below parts the two bodies by WHICH ONE RAN, which is
+      // the reading the as-filed equality could never make.** **AND THE ORDER LIST IS DRIVEN, so the second
+      // registration does not silently make the plain body reachable.**
       const record = commit(store, address, 'mem', n(0, 9));
       const report = runAttempt(store, record);
       assertAttemptReport(report, 'S-SIDE pass');
-      assert.deepEqual(order, ['constraint'],
-        'the function ran ONCE, IN THE KERNEL\'S OWN WINDOW, and the plain listener\'s body NEVER ran '
-        + 'from the store — the function\'s realm is the caller\'s (`§5.5`, `S-SIDE`)');
+      // **⟶ RE-DERIVED 2026-10-18: THE ORDER LIST NOW CARRIES BOTH BODIES, AND THE CONSTRAINT'S IS FIRST.**
+      // The as-filed `['constraint']` rested on the second registration DISPLACING the first in the store's one
+      // slot; under the caller-spelled identity the plain listener is a SEPARATE entry and the store's own
+      // delivery reaches it, so its body runs — **and THAT IS THE DECLARED ORDERING LAW, not a regression:**
+      // *"the constraints run FIRST and the other listeners are reached only once every constraint has
+      // passed"* (`kernel-surface.md §2.2` item 4; `docs/specs/storeroom-js/surface.md §2.7` item 6).
+      // **THE CELL'S OWN SUBJECT — *"the constraint FUNCTION is invoked by the surface's own layer and never
+      // by the store, and the two layers are ordered"* — IS UNMOVED, and the as-filed absence was the
+      // stronger claim only because the old model made the plain body unreachable.** The binding address
+      // comparison below is where the OLD claim's real content survives, asserted at the invocations' own
+      // argument counts.
+      assert.deepEqual(order, ['constraint', 'plain'],
+        'the constraint function ran IN THE KERNEL\'S OWN WINDOW and BEFORE the plain listener, whose own '
+        + 'body is reached by the store\'s delivery once every constraint has passed '
+        + '(`kernel-surface.md` §2.2 item 4; `S-SIDE`) — read ' + JSON.stringify(order));
       // THE SUBJECT, DRIVEN ON BOTH SIDES OF THE ATTEMPT: the ONE run of the pair's body is the
       // constraints layer's, and NEITHER the store nor the caller's own loop over the record's member
       // runs the displaced plain body — read off the bodies' own `order` list and off no member's
@@ -1340,14 +1401,22 @@ test('ck_prop_P_SM_5_the_constraint_function_is_invoked_by_the_caller_and_never_
       // withdrawn sift reading — a handle written into that member with the whole returned set leaves
       // it only by being CHECKED OFF AS IT PASSES and never by having been filtered out
       // (`kernel-surface.md §2.1` item 2; `A112`).
-      assert.deepEqual(order, ['constraint'],
-        'AND NOTHING RAN IT AGAIN: not the store\'s write verb — which returns the handles and invokes '
+      assert.deepEqual(order.filter((one) => one === 'constraint'), ['constraint'],
+        'AND NOTHING RAN THE CONSTRAINT FUNCTION AGAIN: not the store\'s write verb — which returns the handles and invokes '
         + 'nothing of either layer\'s (`§2.2` item 2) — not the caller\'s own loop over the record\'s '
         + 'member, and not a second pass — the displaced plain body ran ZERO times across the '
         + `whole drive (read ${JSON.stringify(order)})`);
-      assert.equal(typeof plainHandle === 'object' && plainHandle !== null, true,
-        'and the adopted value is the store\'s own handle object, the ONE value both registrations were '
-        + 'answered with (`kernel-surface.md §2.1` item 1; `A: bindings/js/index.d.ts`: `Handle = object`)');
+      // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE OPAQUE-OBJECT LIMB HAS NO SUBJECT — the handle
+      // is a STRING the caller spells** (`contract.md §2.1` item 1; `(AA-5)`; `identity-and-domain.md §6`
+      // `O-6`; `A: bindings/js/index.d.ts`'s `Handle = object` reading is superseded by that declaration).
+      // **THE CLAIM IT WAS REACHING FOR — *"the SAME value both registrations were answered with"* — IS
+      // UNMOVED AND IS RE-DERIVED TO THE DECLARATION: each registration's handle IS the spelling its own act
+      // carried, and the two are DISTINCT**, which is what the `order` list above reads.
+      assert.equal(typeof plainHandle, 'string',
+        'the caller-spelled handle is a `string` (`contract.md` §2.1 item 1; `(AA-5)`)');
+      assert.notEqual(plainHandle, kernelHandle,
+        'and the two registrations carry TWO distinct identities, so the bodies they name are told apart '
+        + 'by identity and not by a shared slot (`identity-and-domain.md` §1 item 4)');
     }),
   });
   assert.deepEqual(result.failures, [],
@@ -1384,7 +1453,7 @@ test('ck_prop_P_SM_6_no_repair_budget_or_retry_count_is_the_attempt_s_bound', as
         x += 1;
         // EVERY evaluation registers a repair and lands a NEW op: without a bound the attempt would
         // never stop, and the row declares that NO bound exists — the FIRST REPEAT is the bound.
-        return { repair: () => { const landed = store.write(address, 'mem', `again-${x}-${n(0, 9)}`).op; return { ok: true, message: 'x was repaired by the op this repair landed', op: landed }; }, message: 'x is invalid' };
+        return { repair: (rctx) => { const landed = store.write(address, 'mem', `again-${x}-${n(0, 9)}`, rctx).op; return { ok: true, message: 'x was repaired by the op this repair landed', op: landed }; }, message: 'x is invalid' };
       }));
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
       assert.equal(r.threw, true, 'the attempt terminates and fails — a run that needed a budget to '
@@ -1438,7 +1507,7 @@ test('ck_prop_P_TP_8_two_instances_never_see_each_other_s_marker', async () => {
       const body = (which) => passAtRegistration(() => {
         seen[which] += 1;
         if (seen[which] === 1) {
-          return { repair: () => { const landedOp = (which === 'first' ? store : other).write(address, 'mem', n(0, 9)).op; return { ok: true, message: 'the store this attempt drives landed a lawful value', op: landedOp }; }, message: 'repairable' };
+          return { repair: (rctx) => { const landedOp = (which === 'first' ? store : other).write(address, 'mem', n(0, 9), rctx).op; return { ok: true, message: 'the store this attempt drives landed a lawful value', op: landedOp }; }, message: 'repairable' };
         }
         return true;
       });
@@ -1491,9 +1560,9 @@ test('ck_prop_P_TP_8_the_marker_writes_no_store_entry_no_journal_entry_and_no_cl
       register(store, address, 'x', passAtRegistration((ctx) => {
         x += 1;
         if (x === 1) {
-          return { repair: () => {
+          return { repair: (rctx) => {
             landed = `fixed-${n(0, 9)}`;
-            const landedOp = store.write(address, 'mem', landed).op;
+            const landedOp = store.write(address, 'mem', landed, rctx).op;
             return { ok: true, message: 'the repair landed a fixed value', op: landedOp };
           }, message: 'repairable' };
         }

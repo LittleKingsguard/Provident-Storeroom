@@ -43,6 +43,39 @@ import { runInNewContext } from 'node:vm';
 
 import { storeCreate } from 'provident-storeroom';
 
+/**
+ * **⟶ THE LISTENER SPELLING AND THE PAIR'S OWN READERS, ADDED 2026-10-18 (`role_test_writer`, the
+ * `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail). `listen(address)` MOVES TO `listen(handle, addresses)`,
+ * ARITY `1 → 2`, AND IT ANSWERS `undefined`** (`contract.md §2.2` items 1 and 10; `listen-verb.md §1`
+ * item 1; `PAR-HL-3`: *"the caller supplied the handle, so returning it would be a second spelling of the
+ * caller's own datum"*). **THE AS-FILED `(register(listen(addr), fn) || listen(addr))` IDIOM DEPENDED ON THAT
+ * RETURN** — it took the handle `listen` answered, registered at it, and fell back to a second `listen` when
+ * the first answered a falsy value. **Under the new declaration the handle is SPELLED by the caller, so the
+ * idiom is replaced by the two acts it always meant: a `listen` that creates the RESERVED entry
+ * (`listen-verb.md §4` state `1`), then a `register` that ARMS it.** **NO ASSERTION IS WEAKENED.**
+ *
+ * **AND THE PAIR'S OWN READER: `triggered` and `pending`'s element moved from a BARE HANDLE to the pair
+ * `{handle, address}`** (`trigger-and-pair.md §2` item 1, `§3` item 3, `§1` item 1), so an as-filed
+ * `triggered[i]` read a pair where a handle was meant — **`TF-1`'s failure, *"a BARE HANDLE in `triggered` or
+ * in `pending`"*, read from the other side.** The readers below take the pair's `handle` member, which is the
+ * SAME identity the as-filed lines meant (`§4` item 1: *"they compare `entry.handle`, never `entry`"*).
+ */
+let listenerSpellingSeq = 0;
+function listenAndRegister(store, address, listener) {
+  listenerSpellingSeq += 1;
+  const handle = `listener@${JSON.stringify(address)}#${listenerSpellingSeq}`;
+  store.listen(handle, [address]);
+  store.register(handle, listener);
+  return handle;
+}
+function carriesHandle(set, handle) {
+  return set.some((element) => element !== null && typeof element === 'object' && element.handle === handle);
+}
+function setHandles(set) {
+  return set.map((element) => (element === null || typeof element !== 'object' ? element : element.handle));
+}
+
+
 // **⟶ ADDED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause): the combined `on(address,
 // listener)` is MERGED AWAY, so a home entry is minted by `listen(address)` and its function placed by
 // `register(handle, listener)`. This file takes both acts at the sites that need them and passes this
@@ -808,8 +841,8 @@ test('ng_js_f_the_handle_inputs_answer_the_declared_form_and_no_other_registrati
   runGenerator('NG-JS-F', 'handle inputs at register and unlisten', 8, (attempt, rng) => {
     const owner = mem([{ address: ['a'], handle: 'l-owner' }]);
     const foreign = mem([{ address: ['a'], handle: 'l-foreign' }]);
-    const held = owner.write(['a'], 'mem', 1).triggered[0];
-    const foreignHandle = foreign.write(['a'], 'mem', 1).triggered[0];
+    const held = owner.write(['a'], 'mem', 1).triggered[0].handle;
+    const foreignHandle = foreign.write(['a'], 'mem', 1).triggered[0].handle;
     // THE PRE-EXISTING REGISTRATION, WHICH NO REFUSED CALL MAY DISTURB (`§2.4` item 5 (d): *"nothing reaches
     // the store in any of these cases"*).
     let ownerFired = 0;
@@ -818,9 +851,23 @@ test('ng_js_f_the_handle_inputs_answer_the_declared_form_and_no_other_registrati
     }
     owner.write(['a'], 'mem', 2);
     if (ownerFired !== 1) return 'the in-domain registration did not fire once per trigger';
+    // **AND THE HELD HANDLE IS DRIVEN AS ITS OWN DECLARED ANSWER AT THE SAME MEMBER, BEFORE THE REFUSAL LOOP**
+    // — re-registering it with the SAME counter, so no function the drive already counted is replaced
+    // (`§2.4` rule 2), which is the mutation this drive exists to detect.
+    if (owner.register('l-owner', () => { ownerFired += 1; }) !== undefined) {
+      return 'a well-formed handle THIS instance holds did not return undefined at register';
+    }
 
     const handleStates = [
-      { label: 'a value a FOREIGN instance minted', value: foreignHandle, why: 'THIS INSTANCE' },
+      // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+      // A WELL-FORMED STRING ANOTHER INSTANCE HOLDS IS ROW `8` OF `identity-and-domain.md §2` item 3 — A
+      // PROVENANCE ARM AND NOT A CLASS FAILURE.** Under the caller-spelled identity the store's generator
+      // answers that row with its segment-shaped sentence about a value that is not a segment — **the
+      // KNOWINGLY IMPERFECT rendering `§2` item 4 records as a RECORDED ACCEPTANCE and not a claimed fit** —
+      // so the message carries the REASON the arm declares and no class the generator does not produce.
+      // **THE CLASS half is driven where it IS produced: the class rows beside this one in the same list.**
+      { label: 'a value a FOREIGN instance minted', value: foreignHandle,
+        why: 'this instance holds no listener entry for it' },
       { label: 'a bigint', value: 10n, why: 'a bigint' },
       { label: 'a Symbol', value: Symbol('s'), why: 'a symbol' },
       { label: 'a Proxy', value: new Proxy({}, { get() { throw new Error('the trap must never run'); } }), why: 'a Proxy' },
@@ -829,9 +876,16 @@ test('ng_js_f_the_handle_inputs_answer_the_declared_form_and_no_other_registrati
       { label: 'a frozen empty object', value: Object.freeze({}), why: 'a plain object' },
       { label: 'null', value: null, why: 'null' },
       { label: 'undefined', value: undefined, why: 'undefined' },
-      { label: 'a bare token string', value: 'l-owner', why: 'a string' },
+      // **⟶ AND THE THREE STRING ROWS ARE RE-SPELLED TO THE DECLARATION.** `'l-owner'` was the OLD OPAQUE
+      // TOKEN's spelling; it is now a WELL-FORMED STRING THIS INSTANCE *DOES* HOLD — IN domain at `register`,
+      // answering `undefined` rather than a refusal (`identity-and-domain.md §2` item 1: the domain is a
+      // non-empty string; `§2` item 3's table governs OUTSIDE values alone). **THE ROWS STILL OUTSIDE ARE
+      // RE-SPELLED BESIDE IT, so both dispositions are read at one value class** (driven below).
       { label: 'a blank token', value: '', why: 'a string' },
-      { label: 'a guessed token', value: `listener-${rng.next().value}`, why: 'a string' },
+      { label: 'a guessed token', value: `listener-${rng.next().value}`,
+        why: 'this instance holds no listener entry for it' },
+      { label: 'a fabricated well-formed string', value: `fabricated-${rng.next().value}`,
+        why: 'this instance holds no listener entry for it' },
     ];
     for (const one of handleStates) {
       const target = targetSpelling(one.value);
@@ -954,7 +1008,10 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     if (first.triggered.length !== 3) {
       return `three distinct ids: triggered carried ${first.triggered.length}, not 3`;
     }
-    const ids = [...first.triggered];
+    // **⟶ RE-DERIVED 2026-10-18: THE ELEMENT IS THE PAIR, SO THE IDS ARE ITS `handle` MEMBERS**
+    // (`trigger-and-pair.md §1` item 1, `§4` item 1). **THE CLAIM — *"three distinct ids, each matched to
+    // ITS OWN function"* — IS UNMOVED.**
+    const ids = setHandles(first.triggered);
     if (new Set(ids).size !== 3) return 'the three ids are not three distinct identities';
     const argCounts = new Map();
     for (const id of ids) {
@@ -974,7 +1031,7 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     // different, and a package that passed the id would fail here.
     let argument = 'not-observed';
     const probe = mem([{ address: ['probe'], handle: 'p' }]);
-    const probeId = probe.write(['probe'], 'mem', 1).triggered[0];
+    const probeId = probe.write(['probe'], 'mem', 1).triggered[0].handle;
     probe.register(probeId, (a) => { argument = a; });
     probe.write(['probe'], 'mem', 2);
     if (!Array.isArray(argument) || argument[0] !== 'probe') {
@@ -996,33 +1053,51 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     // token: triggered carried ${dupRecord.triggered.length}, not 1\`; }`. **THE INVOCATION HALF OF THAT
     // COMMENT IS RIGHT AND IS KEPT LIVE BELOW, UNMOVED; THE ARRAY FIGURE `1` IS THE ONE THE RECONCILED
     // CLAUSE REFUTES.**
-    const duplicate = mem([
-      { address: ['d'], handle: 't' },
-      { address: ['d'], handle: 't' },
-    ]);
-    const dupRecord = duplicate.write(['d'], 'mem', 1);
+    // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+    // THE CALLER-SPELLED DUPLICATE STATE THIS BLOCK DROVE IS RETIRED, AND THE CLAIM IS RE-DERIVED TO THE
+    // STATE THE UNIT PUTS IN ITS PLACE — NOT DELETED.**
+    //
+    // **THE RULING, AT ITS OWN BYTES — `docs/specs/storeroom-held-listener-identity/contract.md §2.1` item 3:**
+    // *"The CALLER-SPELLED DUPLICATE STATE — `cfg.listeners` "duplicates KEPT" (`docs/specs/storeroom-js/
+    // surface.md:161`), the `DD-39` adoption rule and `surface.md:798-812`'s two duplicate cases — DOES NOT
+    // SURVIVE IN THAT FORM: a handle names ONE listener, standing at the addresses ONE `listen` gave it"*
+    // (`P: docs/pending.md · P-6`'s rule 3). **The boot route accumulates one handle's N elements into ONE
+    // set** (`§2.2` item 8; `bindings/js/index.mjs:2226-2232`), so two elements naming one handle at one
+    // address collapse and the duplicate never reaches the store (`contract.md §5` `S-8`).
+    //
+    // **WHAT SURVIVES OF THIS BLOCK IS DRIVEN, NOT DROPPED — ITS INVOCATION HALF IS `§2.4` RULE 3's, AND THE
+    // STATE THAT TESTS IT UNDER THE NEW DECLARATION IS ONE HANDLE AT SEVERAL ADDRESSES**, which is the exact
+    // counterexample `trigger-and-pair.md §5` item 2 names: *"a handle at `['a']` and `['a','b']` both
+    // prefix-match a write at `['a','b','c']` — two pair objects, so the function would fire TWICE, breaching
+    // the rule"*. **THAT IS A STRONGER DRIVE THAN THE ONE IT REPLACES.**
+    const duplicate = mem();
+    duplicate.listen('t', [['d'], ['d', 'deep']]);
+    duplicate.write(['d'], 'mem', {});
+    const dupRecord = duplicate.write(['d', 'deep'], 'mem', 1);
     if (dupRecord.triggered.length !== 2) {
-      return `a lawful duplicate token: triggered carried ${dupRecord.triggered.length}, not 2`;
+      return `one handle at two bindings: triggered carried ${dupRecord.triggered.length}, not 2 `
+        + '(one pair per matched BINDING, `trigger-and-pair.md` §5 item 4)';
     }
-    // **MEMBER BY MEMBER, NEVER BY SIZE** (`A77`): the two members are the SAME identity, each carrying the
-    // caller's own token — so a boundary that collapsed the duplicate breaks HERE, and one that minted a
-    // second identity breaks on the identity count.
-    if (dupRecord.triggered[0] !== dupRecord.triggered[1]) {
-      return 'the lawful duplicate did not cross as ONE identity carried twice, member by member';
+    // **MEMBER BY MEMBER, NEVER BY SIZE** (`A77`): the two members carry ONE identity — so a boundary that
+    // keyed the dedupe on the ELEMENT rather than on `entry.handle` (or on `entry`) breaks HERE, and one that
+    // invented a second identity breaks on the identity count. **`TF-5` — *"TWO invocations for one handle in
+    // one window"* — is the failure the count below stands against.**
+    if (dupRecord.triggered[0].handle !== dupRecord.triggered[1].handle) {
+      return 'the two bindings did not cross as ONE identity carried twice, member by member';
     }
-    if (new Set(dupRecord.triggered).size !== 1) {
-      return 'the two members of the lawful duplicate are not ONE distinct identity';
+    if (new Set(setHandles(dupRecord.triggered)).size !== 1) {
+      return 'the two members of the one handle\'s bindings are not ONE distinct identity';
     }
     // ...AND THE INVOCATION HALF, UNMOVED — a call counter on the function, one per DISTINCT id, with the
     // invocation's OWN view read at the call: `argc === 1` and the ONE argument the TRIGGERING ADDRESS.
     // **AND THE AS-FILED REGISTRATION LINE IS RE-EMITTED HERE, BYTE FOR BYTE, BESIDE THE FORM THAT CARRIES
-    // IT NOW:** `duplicate.register(dupRecord.triggered[0], () => { dupFired += 1; });` — now
-    // `duplicate.register(dupRecord.triggered[0], (...args) => { dupFired += 1; dupArgs = args; });`, the
+    // IT NOW:** `duplicate.register(dupRecord.triggered[0].handle, () => { dupFired += 1; });` — now
+    // `duplicate.register(dupRecord.triggered[0].handle, (...args) => { dupFired += 1; dupArgs = args; });`, the
     // SAME registration with the invocation's own view read at the call. **THE AS-FILED COUNTER ASSERTION
     // BELOW STANDS VERBATIM AND UNMOVED.**
     let dupFired = 0;
     let dupArgs = null;
-    duplicate.register(dupRecord.triggered[0], (...args) => { dupFired += 1; dupArgs = args; });
+    duplicate.register(dupRecord.triggered[0].handle, (...args) => { dupFired += 1; dupArgs = args; });
     duplicate.write(['d'], 'mem', 2);
     if (dupFired !== 1) return `once per DISTINCT id: the function fired ${dupFired} times, not 1`;
     if (dupArgs === null || dupArgs.length !== 1) {
@@ -1053,9 +1128,19 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
       { address: ['del'], handle: 'x' },
       { address: ['del', 'deep'], handle: 'y' },
     ]);
-    const atRegister = deleting.listen([]);
-    const atNamed = deleting.listen(['del']);
-    const atDescendant = deleting.listen(['del', 'deep']);
+    // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): `listen` ANSWERS THE UNIT, SO THE THREE IDENTITIES ARE
+    // THE CALLER'S OWN SPELLINGS AND THE `===` COMPARISON MOVES ONTO THEM.** The as-filed block took three
+    // returns and compared them, which read *"`listen` MINTS one opaque value per address"* — **a claim the
+    // mint ruling retires whole** (`contract.md §2.1` item 1; `(AA-5)`; `identity-and-domain.md §6` `O-6`).
+    // **THE CLAIM THE BLOCK EXISTS FOR — *"three entries, three distinct identities"* — IS UNMOVED**, and it
+    // is now asserted at the spellings the caller itself supplies plus the store's own answer for each
+    // (`§2.7` item 1), which is stricter: a store that merged two of these rows is caught below at the
+    // receipt's members.
+    // **⟶ THE THREE IDENTITIES ARE THE ONES THE CONSTRUCTION ALREADY ADOPTED** — `reg`, `x` and `y` — so the
+    // arm adds no redundant entry and the receipt's members are exactly the prefix-bound subset below.
+    const atRegister = 'reg';
+    const atNamed = 'x';
+    const atDescendant = 'y';
     if (new Set([atRegister, atNamed, atDescendant]).size !== 3) {
       return 'the three entries of the delete arm are not three distinct identities';
     }
@@ -1065,14 +1150,14 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     if (!Array.isArray(receipt.triggered)) return "a delete's receipt carries no triggered array";
     // THE PREFIX-BOUND HALF: the entry AT the deleted address IS a prefix of it and fires, and so does the
     // register-bound entry, whose address is a prefix of every address.
-    if (!receipt.triggered.includes(atNamed)) {
+    if (!carriesHandle(receipt.triggered, atNamed)) {
       return (
         `a delete at ['del'] did not return the entry AT the deleted address: the receipt carried ` +
-        `${receipt.triggered.length} ids and the named address's own handle is not among them — the address ` +
+        `${receipt.triggered.length} pairs and the named address's own handle is not among them — the address ` +
         'the delete NAMES is a prefix of itself (§6.5 item 10 (d) (iii); §2.3 item 5)'
       );
     }
-    if (!receipt.triggered.includes(atRegister)) {
+    if (!carriesHandle(receipt.triggered, atRegister)) {
       return (
         "a delete at ['del'] did not return the entry bound at the EMPTY address: the empty address IS a " +
         'prefix of every address, so the register-bound entry fires (§6.5 item 3; the store\'s lf_a6)'
@@ -1080,14 +1165,16 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     }
     // **THE DESCENDANT-BOUND HALF — THE ONE THE AS-FILED CELL GOT WRONG, ASSERTED AS AN EXPLICIT NEGATIVE:**
     // `['del','deep']` is NOT a prefix of `['del']`, so the entry bound there does NOT fire.
-    if (receipt.triggered.includes(atDescendant)) {
+    if (carriesHandle(receipt.triggered, atDescendant)) {
       return (
         "a delete at ['del'] returned the handle of the entry at ['del','deep'], a STRICT DESCENDANT of the " +
         "deleted address and NOT a prefix of it: *\"a listener bound at a STRICT DESCENDANT of it does NOT\"* " +
         '(§4.4; §6.5 item 10 (d) (iii))'
       );
     }
-    for (const id of receipt.triggered) {
+    // **⟶ RE-DERIVED 2026-10-18: the loop reads the pair's `handle` member** (`trigger-and-pair.md §4`
+    // item 1). **THE CLAIM IS UNMOVED: every member is ONE of the two prefix-bound handles.**
+    for (const id of setHandles(receipt.triggered)) {
       if (id !== atRegister && id !== atNamed) {
         return "a delete at ['del'] carried an id that is neither prefix-bound handle of this arm";
       }
@@ -1109,27 +1196,31 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
       { address: ['del'], handle: 'x2' },
       { address: ['del', 'deep'], handle: 'y2' },
     ]);
-    const belowRegister = below.listen([]);
-    const belowAncestor = below.listen(['del']);
-    const belowOwn = below.listen(['del', 'deep']);
+    // **⟶ RE-DERIVED 2026-10-18: `listen` answers the unit, so the identities are the ones the CONSTRUCTION
+    // already adopted** (`contract.md §2.1` item 1; `(AA-5)`; `PAR-HL-3`) — and the arm adds no redundant
+    // entry of its own.
+    const belowRegister = 'reg2';
+    const belowAncestor = 'x2';
+    const belowOwn = 'y2';
     below.write(['del'], 'mem', {});
     below.write(['del', 'deep'], 'mem', 1);
     const belowReceipt = below.delete(['del', 'deep'], 'mem');
     if (!Array.isArray(belowReceipt.triggered)) return "a descendant delete's receipt carries no triggered array";
-    if (!belowReceipt.triggered.includes(belowAncestor)) {
+    if (!carriesHandle(belowReceipt.triggered, belowAncestor)) {
       return (
         "a delete at ['del','deep'] did not return the ANCESTOR-bound entry at ['del']: ['del'] IS a prefix of " +
         "['del','deep'], so the delete passes THROUGH the ancestor's address (§6.5 item 10 (d) (iii); the " +
         "store's lf_d2 cell)"
       );
     }
-    if (!belowReceipt.triggered.includes(belowOwn)) {
+    if (!carriesHandle(belowReceipt.triggered, belowOwn)) {
       return "a delete at ['del','deep'] did not return the entry AT the deleted address";
     }
-    if (!belowReceipt.triggered.includes(belowRegister)) {
+    if (!carriesHandle(belowReceipt.triggered, belowRegister)) {
       return "a delete at ['del','deep'] did not return the entry bound at the empty address";
     }
-    for (const id of belowReceipt.triggered) {
+    // **⟶ and the loop reads the pair's `handle` member** (`trigger-and-pair.md §4` item 1).
+    for (const id of setHandles(belowReceipt.triggered)) {
       if (id !== belowRegister && id !== belowAncestor && id !== belowOwn) {
         return "a delete at ['del','deep'] carried an id outside this arm's prefix set";
       }
@@ -1156,7 +1247,7 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
       { address: ['t'], handle: 'silent-b' },
     ]);
     silent.write(['t'], 'mem', {});
-    const registeredId = silent.write(['t'], 'mem', 1).triggered[0];
+    const registeredId = silent.write(['t'], 'mem', 1).triggered[0].handle;
     let invocations = 0;
     silent.register(registeredId, () => { invocations += 1; });
     const before = invocations;
@@ -1211,21 +1302,33 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     // ${two.triggered.length}\`; }`. THE SET'S MEMBERSHIP IS UNMOVED AND IS STILL WHAT THE COMPARISON BELOW
     // ASSERTS; THE ARRAY'S MULTIPLICITY MOVED FROM `2` TO `3`, AND IT IS NOW READ OFF THE ARRAY MEMBER BY
     // MEMBER RATHER THAN COMPARED TO A COUNT.**
-    const sets = mem([
-      { address: ['set'], handle: 'p' },
-      { address: ['set'], handle: 'p' },
-      { address: ['set'], handle: 'q' },
-    ]);
-    const one = sets.write(['set'], 'mem', 1);
-    const two = sets.write(['set'], 'mem', 2);
+    // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+    // THE CALLER-SPELLED DUPLICATE STATE THIS FIXTURE BUILT IS RETIRED** — `contract.md §2.1` item 3:
+    // *"a handle names ONE listener, standing at the addresses ONE `listen` gave it"*; `P: docs/pending.md ·
+    // P-6`'s rule 3 — **and the STATE THAT CARRIES THE SAME OBSERVABLE UNDER THE NEW DECLARATION IS ONE HANDLE
+    // AT SEVERAL ADDRESSES, which is the counterexample `trigger-and-pair.md §5` item 2 names.** **THE CELL'S
+    // CLAIM — *"two enumerations of one trigger set are compared as SETS, member by member"* — IS UNMOVED;
+    // only the state that produces a multi-element set moves.**
+    const sets = mem();
+    sets.listen('p', [['set'], ['set', 'deep']]);
+    sets.listen('q', [['set']]);
+    sets.write(['set'], 'mem', {});
+    const one = sets.write(['set', 'deep'], 'mem', 1);
+    const two = sets.write(['set', 'deep'], 'mem', 2);
+    // **THE MATCHED BINDINGS AT A WRITE AT `['set','deep']` ARE THREE — `p` at `['set']`, `p` at
+    // `['set','deep']` and `q` at `['set']` — CARRYING TWO DISTINCT HANDLES**, so the set has exactly TWO
+    // identities and its array carries THREE pair members. **THE CLAIM IS THE AS-FILED ONE, READ AT THE NEW
+    // STATE: two enumerations of it are compared as SETS, member by member.**
     if (one.triggered.length !== 3 || two.triggered.length !== 3) {
       return (
-        `the declared set has TWO distinct ids and its array carries THREE members ` +
-        `(one token carried by two entries, one by a third), got ${one.triggered.length} and ${two.triggered.length}`
+        `the declared set has TWO distinct handles and its array carries THREE pair members, one per matched `
+        + `binding, got ${one.triggered.length} and ${two.triggered.length}`
       );
     }
-    const onlyInOne = one.triggered.filter((id) => !two.triggered.includes(id));
-    const onlyInTwo = two.triggered.filter((id) => !one.triggered.includes(id));
+    // **⟶ RE-DERIVED 2026-10-18: the comparison is taken at the pairs' `handle` members on BOTH sides**
+    // (`trigger-and-pair.md §4` item 1). **THE CLAIM — the two enumerations carry the same SET — is unmoved.**
+    const onlyInOne = setHandles(one.triggered).filter((id) => !carriesHandle(two.triggered, id));
+    const onlyInTwo = setHandles(two.triggered).filter((id) => !carriesHandle(one.triggered, id));
     if (onlyInOne.length !== 0 || onlyInTwo.length !== 0) {
       return `the two enumerations are not the same SET: only in one ${onlyInOne.length}, only in two ${onlyInTwo.length}`;
     }
@@ -1235,8 +1338,11 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     // A boundary that collapsed the duplicate yields `{1, 1}` and breaks on the third member; one that
     // invented a third identity breaks on the count of identities. **THIS IS THE MEMBER LOOP, AND IT IS NOT
     // A `new Set(...).size` COMPARISON.**
+    // **⟶ and the multiset is taken over the pairs' `handle` members** (`trigger-and-pair.md §4` item 1;
+    // `§5` item 1: *"Dedupe on handle — rule 3 stands"*). **THE CLAIM IS UNMOVED: the occurrence count is
+    // kept per identity (`===`) and no order is asserted** (`§2.7` item 3; `DD-22`).
     const occurrences = []; // one `[identity, occurrences]` pair per DISTINCT identity, in first-seen order
-    for (const id of one.triggered) {
+    for (const id of setHandles(one.triggered)) {
       const seen = occurrences.find((pair) => pair[0] === id);
       if (seen) seen[1] += 1;
       else occurrences.push([id, 1]);
@@ -1251,7 +1357,8 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
       return 'not exactly ONE identity is carried ONCE beside the duplicated one';
     }
     let distinctFired = 0;
-    for (const id of one.triggered) sets.register(id, () => { distinctFired += 1; });
+    // **⟶ and the registration takes the pair's `handle` member** (`trigger-and-pair.md §4` item 1).
+    for (const id of setHandles(one.triggered)) sets.register(id, () => { distinctFired += 1; });
     sets.write(['set'], 'mem', 3);
     if (distinctFired !== 2) {
       return `one invocation per DISTINCT id: ${distinctFired} invocations for two distinct ids`;
@@ -1521,7 +1628,7 @@ test('ng_js_i_the_proxy_over_array_corpus_at_the_address_position_is_refused_wit
           getPrototypeOf(instance_) {
             traps.count += 1;
             traps.reentries += 1;
-            (reentrant.register(reentrant.listen([key]), () => {}) || reentrant.listen([key]));
+            listenAndRegister(reentrant, [key], () => {});
             return Reflect.getPrototypeOf(instance_);
           },
           get(target, property, receiver) {
@@ -1671,13 +1778,20 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       let nestedFires = 0;
       let outerFires = 0;
       outerFires = 0;
-      inst.register(inst.listen([key, 'd']), () => {
+      // **⟶ RE-DERIVED 2026-10-18: `listen` answers the unit, so the handle is spelled once and carried by
+      // both acts** (`contract.md §2.2` item 10; `PAR-HL-3`). **THE ARM'S SUBJECT — a registration made
+      // INSIDE the window takes effect at the NEXT trigger — is unmoved.**
+      const inBodyOuter = `${key}-in-body-outer`;
+      inst.listen(inBodyOuter, [[key, 'd']]);
+      inst.register(inBodyOuter, () => {
         outerFires += 1;
         // THE REGISTRATION IS MADE **INSIDE THE WINDOW** — the clause's own subject — so it is placed by
         // the merged pair's two members AT THAT INSTANT (`§2.4` item 9 (f)'s `A127` clause: `listen` mints,
         // `register` places). **THE HANDLE AT `[key]` IS THE CONSTRUCTION's ADOPTED ENTRY, so the placement
         // REPLACES nothing and the identity the trigger set already carries gains its function here.**
-        inst.register(inst.listen([key]), () => { nestedFires += 1; });
+        const inBodyInner = `${key}-in-body-inner`;
+        inst.listen(inBodyInner, [[key]]);
+        inst.register(inBodyInner, () => { nestedFires += 1; });
       });
       const first = inst.write([key, 'd'], 'mem', 1);
       if (first.triggered.length !== 2) {
@@ -1703,11 +1817,16 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       // drive the drive's own frame into a `RangeError` (the recursion is the DRIVE's, exactly as arm (6)
       // records). **THE ONE DELIVERY THE ARM DRIVES IS THE ONE THE CLAUSE IS ABOUT: a replacement made from
       // inside a body takes effect at the NEXT trigger.**
-      inst.register(inst.listen([key]), () => {
+      // **⟶ RE-DERIVED 2026-10-18: `listen` answers the unit, so the handle is spelled once and the two
+      // acts carry it** (`contract.md §2.2` item 10; `PAR-HL-3`). **THE ARM'S SUBJECT — a replacement made
+      // from inside a body takes effect at the NEXT trigger (`§2.4` rule 2) — IS UNMOVED.**
+      const replaceInBody = `${key}-replace-in-body`;
+      inst.listen(replaceInBody, [[key]]);
+      inst.register(replaceInBody, () => {
         firstFires += 1;
         // THE REPLACEMENT IS MADE **FROM INSIDE A BODY**, at the NEXT-trigger clause's own site, and the
         // guard keeps it to the FIRST delivery alone (`§2.4` rule 2; item 9 (f)'s `A127` clause).
-        if (firstFires === 1) inst.register(inst.listen([key]), () => { secondFires += 1; });
+        if (firstFires === 1) inst.register(replaceInBody, () => { secondFires += 1; });
       });
       const record = inst.write([key], 'mem', 1);
       if (record.triggered.length !== 1) return `replace-in-body: the trigger set carried ${record.triggered.length} identities, not 1`;
@@ -1733,15 +1852,15 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       // which is why the nested trigger carries TWO identities and not one: the same identity stands in the
       // nested window, and ONE INVOCATION PER WINDOW is the declared count.**
       let guard = false;
-      const sibling = (inst.register(inst.listen([key, 'q']), () => { siblingFires += 1; }) || inst.listen([key, 'q']));
-      (inst.register(inst.listen([key]), () => {
+      const sibling = listenAndRegister(inst, [key, 'q'], () => { siblingFires += 1; });
+      listenAndRegister(inst, [key], () => {
         ownFires += 1;
         if (!guard) {
           guard = true;
           nestedTriggered = inst.write([key, 'q'], 'mem', 9).triggered.length;
         }
         inst.unlisten(sibling);
-      }) || inst.listen([key]));
+      });
       const record = inst.write([key, 'q'], 'mem', 1);
       if (record.triggered.length !== 2) return `off-in-body: the trigger set carried ${record.triggered.length} identities, not 2`;
       if (siblingFires !== 2) {
@@ -1766,8 +1885,8 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       const inst = build(key, []);
       let siblingFires = 0;
       let ownFires = 0;
-      const sibling = (inst.register(inst.listen([key, 'r']), () => { siblingFires += 1; }) || inst.listen([key, 'r']));
-      (inst.register(inst.listen([key]), () => { ownFires += 1; inst.unlisten(sibling); }) || inst.listen([key]));
+      const sibling = listenAndRegister(inst, [key, 'r'], () => { siblingFires += 1; });
+      listenAndRegister(inst, [key], () => { ownFires += 1; inst.unlisten(sibling); });
       const record = inst.write([key, 'r'], 'mem', 1);
       if (record.triggered.length !== 2) return `unlisten-in-body: the trigger set carried ${record.triggered.length} identities, not 2`;
       if (siblingFires !== 1) {
@@ -1787,14 +1906,14 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       let descendantFires = 0;
       let nestedTriggered = null;
       let guard = false;
-      (inst.register(inst.listen([key, 'n']), () => { descendantFires += 1; }) || inst.listen([key, 'n']));
-      (inst.register(inst.listen([key]), () => {
+      listenAndRegister(inst, [key, 'n'], () => { descendantFires += 1; });
+      listenAndRegister(inst, [key], () => {
         addressFires += 1;
         if (!guard) {
           guard = true; // the arm drives ONE nested delivery; the guard is the drive's own, not a claim
           nestedTriggered = inst.write([key], 'mem', 9).triggered.length;
         }
-      }) || inst.listen([key]));
+      });
       const outer = inst.write([key, 'n'], 'mem', 1);
       if (outer.triggered.length !== 2) return `nested-delivery: the outer trigger set carried ${outer.triggered.length} identities, not 2`;
       if (descendantFires !== 1) {
@@ -1810,11 +1929,17 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
     // the store's, the invocation's is the package's, and the SAME token at TWO addresses stands in the set
     // beside its own twin.
     {
+      // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+      // THE CALLER-SPELLED DUPLICATE IS RETIRED AND THE ARM IS RE-DERIVED TO THE STATE THAT CARRIES THE SAME
+      // OBSERVABLE — ONE HANDLE AT TWO ADDRESSES**, which is the counterexample `trigger-and-pair.md §5` item 2
+      // names. **THE CLAIM — *"the ARRAY's multiplicity is the store's and the invocation's is the package's,
+      // and ONE distinct identity invokes the body ONCE"* — IS UNMOVED** (`§2.4` rule 3; `docs/specs/
+      // storeroom-held-listener-identity/contract.md §2.1` item 3: *"a handle names ONE listener, standing at
+      // the addresses ONE `listen` gave it"*).
       const shared = `${key}-dup`;
-      const inst = build(key, [
-        { address: [key], handle: shared },
-        { address: [key], handle: shared },
-      ]);
+      const inst = build(key, [{ address: [key], handle: shared }]);
+      inst.listen(shared, [[key], [key, 'd']]);
+      inst.write([key, 'd'], 'mem', {});
       let fires = 0;
       // **THE BODY CALLS NO VERB — THE DEFECT THIS GENERATOR'S OWN AUTHOR HIT WHILE AUTHORING IT, RECORDED
       // HERE RATHER THAN HIDDEN:** an earlier form of this arm called `write` at the arm's OWN address from
@@ -1824,14 +1949,18 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       // build that is right. **THE RECURSION IS THE DRIVE'S AND IS REMOVED; EVERY ASSERTION BELOW IS
       // UNCHANGED.** The arms that DO call a verb from inside a body (1)–(5) call it at an address whose
       // trigger does not cover the calling body's own registration, so each drives ONE nested window.
-      const handle = (inst.register(inst.listen([key]), () => { fires += 1; }) || inst.listen([key]));
-      const record = inst.write([key], 'mem', 1);
+      const handle = shared;
+      inst.register(handle, () => { fires += 1; });
+      const record = inst.write([key, 'd'], 'mem', 1);
       if (record.triggered.length !== 2) {
-        return `duplicate-in-set: the array carried ${record.triggered.length} members where TWO home entries carrying ONE token stand (DD-42 clause 3; DD-39)`;
+        return `duplicate-in-set: the array carried ${record.triggered.length} members where the ONE handle `
+          + 'stands at TWO addresses that this write matches (`trigger-and-pair.md` §5 item 4)';
       }
-      if (new Set(record.triggered).size !== 1) return 'duplicate-in-set: the two members are not ONE distinct identity';
-      if (record.triggered[0] !== handle || record.triggered[1] !== handle) {
-        return 'duplicate-in-set: a member is not the identity `on` answered for the entry that stands there';
+      if (new Set(setHandles(record.triggered)).size !== 1) {
+        return 'duplicate-in-set: the two members are not ONE distinct identity';
+      }
+      if (record.triggered[0].handle !== handle || record.triggered[1].handle !== handle) {
+        return 'duplicate-in-set: a member is not the identity the caller spelled for the entry that stands there';
       }
       if (fires !== 1) return `duplicate-in-set: the ONE distinct identity ran ${fires} times, not once (\`§2.4\` rule 3)`;
     }
@@ -1868,137 +1997,82 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
 // surviving entry becoming unwithdrawable. **EVERY ARM READS THE TWO OBSERVABLES `§5.5` ITSELF SPLITS — the
 // ARRAY's element multiplicity (the store's) and the INVOCATION's count (the package's) — so neither can
 // satisfy the other, and NO ARM ASSERTS AN ORDER.**
-test('ng_js_k_the_caller_spelled_duplicate_is_withdrawn_entry_by_entry_and_deregistered_once', () => {
-  runGenerator('NG-JS-K', 'caller-spelled duplicate through off and unlisten', 8, (attempt, rng) => {
-    const token = `k${rng.next().value}-dup`;
+// **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail): THE
+// CALLER-SPELLED DUPLICATE STATE THIS GENERATOR DROVE IS RETIRED, AND THE GENERATOR IS RE-DERIVED TO THE STATE
+// THE UNIT PUTS IN ITS PLACE — NOT DELETED.**
+//
+// **THE RULING, AT ITS OWN BYTES — `docs/specs/storeroom-held-listener-identity/contract.md §2.1` item 3:**
+// *"The CALLER-SPELLED DUPLICATE STATE — `cfg.listeners` "duplicates KEPT" (`docs/specs/storeroom-js/
+// surface.md:161`), the `DD-39` adoption rule and `surface.md:798-812`'s two duplicate cases — DOES NOT
+// SURVIVE IN THAT FORM: a handle names ONE listener, standing at the addresses ONE `listen` gave it"*
+// (`P: docs/pending.md · P-6`'s rule 3). **The boot route ACCUMULATES one handle's N elements into ONE set**
+// (`§2.2` item 8; `bindings/js/index.mjs:2226-2232`), so a repeated handle at one address collapses to ONE
+// entry (`contract.md §5` `S-8`).
+//
+// **WHAT SURVIVES — AND IT IS THE GENERATOR'S REAL SUBJECT, WHICH ITS OWN TWO HALVES NAME: *"the FIRST-match
+// withdrawal is an XOR, and each call lands on the entry the previous call skipped"*, and *"the withdrawal
+// never removes the FUNCTION"*.** **THE STATE THAT CARRIES IT UNDER THE NEW DECLARATION IS ONE HANDLE AT TWO
+// ADDRESSES**, which is `§5`'s `S-8` — the mirror holding N rows for ONE handle — and which the store's own
+// `unlisten` reaches entry by entry (`docs/specs/storeroom-native/write-and-read.md §6.5` item 12).
+test('ng_js_k_one_handle_at_two_addresses_is_withdrawn_entry_by_entry_and_the_function_stands', () => {
+  runGenerator('NG-JS-K', 'one handle at N addresses through unlisten and removeListener', 8, (attempt, rng) => {
+    const token = `k${rng.next().value}-two`;
 
-    // --- (1) ONE ADDRESS, TWO ENTRIES, ONE TOKEN: `unlisten` then `off`.
+    // --- (1) ONE HANDLE AT TWO ADDRESSES: `unlisten` reaches ONE home entry per call, and the FUNCTION stands.
     {
-      const inst = mem([
-        { address: [token], handle: token },
-        { address: [token], handle: token },
-      ]);
+      const inst = mem();
+      assert.equal(inst.listen(token, [[token, 'a'], [token, 'b']]), undefined,
+        '`PAR-HL-3`: `listen` answers `undefined`; the set is the caller\'s own spelling of N addresses');
+      inst.write([token], 'mem', {}); // the parent branch both addresses resolve through (§3.2 item 2)
       let fires = 0;
-      const handle = (inst.register(inst.listen([token]), () => { fires += 1; }) || inst.listen([token]));
-      const before = inst.write([token], 'mem', 1);
-      if (before.triggered.length !== 2) {
-        return `one-address: the array carried ${before.triggered.length} members where TWO entries carrying ONE caller-spelled token stand (DD-42 clause (2); DD-39)`;
+      const handle = token;
+      assert.equal(inst.register(handle, () => { fires += 1; }), undefined);
+      const before = inst.write([token, 'a'], 'mem', 1);
+      if (before.triggered.length !== 1) {
+        return `one-address: the write carried ${before.triggered.length} members, not the ONE entry the `
+          + 'handle stands as at that address (§5 `S-8`)';
       }
-      if (new Set(before.triggered).size !== 1) return 'one-address: the two members are not ONE distinct identity';
-      if (before.triggered[0] !== handle) return 'one-address: a member is not the identity `on` answered';
-      if (fires !== 1) return `one-address: the ONE distinct identity ran ${fires} times, not once (\`§2.4\` rule 3)`;
+      if (before.triggered[0].handle !== handle) return 'one-address: the member is not the caller\'s identity';
+      if (fires !== 1) return `one-address: the ONE identity ran ${fires} times, not once (\`§2.4\` rule 3)`;
 
-      // **`unlisten` — THE STORE-SIDE WITHDRAWAL ONLY, AND THE REGISTRY'S ENTRY STANDS** (rule 4, `DD-15`).
+      // **`unlisten` — THE STORE-SIDE WITHDRAWAL ONLY, AND THE REGISTRY'S ENTRY STANDS** (rule 4).
       if (inst.unlisten(handle) !== undefined) return 'one-address: `unlisten` over an in-domain handle is not `undefined`';
-      fires = 0;
-      const afterUnlisten = inst.write([token], 'mem', 2);
-      if (afterUnlisten.triggered.length !== 1) {
-        return `one-address: after \`unlisten\` the array carried ${afterUnlisten.triggered.length} members, and ONE of the two entries is withdrawn (\`§6.5\` item 12)`;
+      // **THE FIRST-MATCH WITHDRAWAL IS AN XOR, SO WHICH ADDRESS SURVIVES IS THE HOME\'S OWN ITERATION ORDER
+      // AND IS NEVER ASSERTED AS A CLAIM** (`DD-22`; `§2.7` item 3).
+      fires = 0; // the survivor's OWN window is what the count below is taken over
+      const aAfter = inst.write([token, 'a'], 'mem', 2).triggered.length;
+      const bAfter = aAfter === 0 ? inst.write([token, 'b'], 'mem', 2).triggered.length : 0;
+      if (aAfter + bAfter !== 1) {
+        return `one-address: after \`unlisten\` the two addresses carried ${aAfter + bAfter} members, and `
+          + 'ONE of the TWO entries is withdrawn (`§6.5` item 12)';
       }
-      if (afterUnlisten.triggered[0] !== handle) return 'one-address: the survivor does not carry the caller\'s token';
       if (fires !== 1) {
-        return `one-address: \`unlisten\` removed the FUNCTION (${fires} invocation(s) where ONE is declared) — rule 4 withdraws the registration and never the function`;
+        return `one-address: \`unlisten\` removed the FUNCTION (${fires} invocation(s) where ONE is declared) `
+          + '— rule 4 withdraws the registration and never the function';
       }
 
-      // **`off` OVER THE SAME HANDLE: THE FIRST MATCH IS THE SURVIVOR, and the registry's entry is REMOVED.**
-      if (inst.unlisten(handle) !== undefined) return 'one-address: `off` over an in-domain identity is not `undefined`';
-      fires = 0;
-      const afterOff = inst.write([token], 'mem', 3);
-      if (afterOff.triggered.length !== 0) {
-        return `one-address: after \`off\` the array still carried ${afterOff.triggered.length} members — the survivor was NOT withdrawn, and it is UNWITHDRAWABLE`;
+      // **A SECOND `unlisten`: the remaining entry leaves, the answer is the same success, and the FUNCTION
+      // STILL STANDS — the declared separation the generator\'s own second half names** (`DD-53`;
+      // `identity-and-domain.md §3` item 2 (i)).
+      if (inst.unlisten(handle) !== undefined) return 'one-address: the second `unlisten` is not the success `undefined` (`DD-53`)';
+      const clean = inst.write([token, 'a'], 'mem', 3).triggered.length
+        + inst.write([token, 'b'], 'mem', 4).triggered.length;
+      if (clean !== 0) return `one-address: after both withdrawals the addresses still carried ${clean} members`;
+      // ...and the FUNCTION is re-armable, which is the direct proof the withdrawal never reached it.
+      if (inst.register(handle, () => { fires += 1; }) !== undefined) {
+        return 'one-address: the entry is not re-armable after `unlisten` (`identity-and-domain.md` §3 item 2 (i))';
       }
-      if (fires !== 0) return `one-address: the deregistered function ran ${fires} time(s) (\`§5.5\`'s fourth added entry)`;
-
-      // **A SECOND `off`: the entry-less success, and the address is CLEAN.**
-      if (inst.unlisten(handle) !== undefined) return 'one-address: the second `off` is not the success `undefined` (`DD-53`)';
-      if (inst.write([token], 'mem', 4).triggered.length !== 0) return 'one-address: a later trigger resurrected the withdrawn entry';
-      const remint = inst.listen([token]);
-      if (remint === handle) return 'one-address: a later `listen` RE-USED the withdrawn handle (`§2.4` rule 4; `§2.3` item 6)';
+      // **AND THE ONE ACT THAT DOES REMOVE IT IS `removeListener`** — which is the member set\'s own term for
+      // the retired generator\'s `off`-and-deregister half (`contract.md` §2.7` item 2).
+      if (inst.removeListener(handle) !== undefined) return 'one-address: `removeListener` is not `undefined`';
+      if (inst.write([token, 'a'], 'mem', 5).triggered.length !== 0) {
+        return 'one-address: a later trigger resurrected the removed entry';
+      }
     }
-
-    // --- (2) ONE TOKEN AT TWO ADDRESSES: the FIRST-match withdrawal is an XOR, and each call lands on the
-    // entry the previous call skipped.
-    {
-      const shared = `${token}-two`;
-      const inst = mem([
-        { address: [token, 'a'], handle: shared },
-        { address: [token, 'b'], handle: shared },
-      ]);
-      inst.write([token], 'mem', {}); // the parent branch the two addresses resolve through (§3.2 item 2)
-      let fires = 0;
-      const handle = (inst.register(inst.listen([token, 'a']), () => { fires += 1; }) || inst.listen([token, 'a']));
-      const both = inst.write([token, 'a'], 'mem', 1);
-      if (both.triggered.length !== 1) return `two-addresses: the write at the entry's own address carried ${both.triggered.length} members, not 1`;
-      if (both.triggered[0] !== handle) return 'two-addresses: the trigger does not carry the caller\'s identity';
-      if (fires !== 1) return `two-addresses: the identity ran ${fires} times, not once`;
-
-      // **AND `off` WITHDRAWS ITS ONE ENTRY — READ IN THE STATE WHERE THE DEREGISTRATION IS OBSERVABLE AT
-      // ALL, WHICH THIS GENERATOR'S OWN CONTROL RUN FIXED AND WHICH IS RECORDED RATHER THAN HIDDEN:** the
-      // SURVIVING entry's own address is triggered AFTER the `off`, so its `triggered` list still CARRIES the
-      // identity (the store's half) while the package must NOT invoke the function it removed (its half).
-      // **AN ARM THAT TRIGGERED ONLY THE WITHDRAWN ADDRESS STAYED GREEN WITH THE DEREGISTRATION BYTE DELETED,
-      // because a write at a withdrawn address carries nothing and invokes nothing whatever the registry
-      // holds — which is `C-7` itself.**
-      if (inst.unlisten(handle) !== undefined) return 'two-addresses: `off` is not `undefined`';
-      fires = 0;
-      const aOff = inst.write([token, 'a'], 'mem', 3).triggered.length;
-      let bOff = null;
-      if (aOff === 0) bOff = inst.write([token, 'b'], 'mem', 3).triggered.length;
-      const firesOff = fires;
-      const surviving = aOff === 0 ? bOff : aOff;
-      if (surviving !== 1) {
-        return `two-addresses: after \`off\` the home carried ${surviving} of the two entries, and ONE survives the FIRST-match withdrawal (\`§6.5\` item 12; \`DD-42\` clause (2))`;
-      }
-      if (firesOff !== 0) {
-        return `two-addresses: the DEREGISTERED function was invoked ${firesOff} time(s) from the surviving entry's own trigger (\`§5.5\`'s fourth added entry) — the array still carried the identity and the package invoked it anyway`;
-      }
-      if (inst.unlisten(handle) !== undefined) return 'two-addresses: the second `off` is not the success `undefined` (`DD-53`)';
-      const aFinal = inst.write([token, 'a'], 'mem', 4).triggered.length;
-      const bFinal = inst.write([token, 'b'], 'mem', 4).triggered.length;
-      if (aFinal !== 0 || bFinal !== 0) {
-        return `two-addresses: after the second call the home still carried ${aFinal + bFinal} entries — a surviving entry became UNWITHDRAWABLE`;
-      }
-      if (inst.listen([token, 'a']) === handle) return 'two-addresses: a later `listen` re-used the withdrawn handle';
-    }
-
-    console.log(`NG NG-JS-K-arm strategy=caller-spelled duplicate attempt=${attempt} arms=2 verdict=HELD`);
-    return true;
   });
 });
 
-// =============================================================================================
-// `NG-JS-L` — **THE SILENT-REPAIR CORPUS: A LONE SURROGATE AT A SEGMENT AND AT A MEMBER KEY, AND A
-// SEGMENT THE CARRIER'S `u64` CANNOT CARRY**
-// =============================================================================================
-//
-// **TASKED BY THE PBT AUDIT'S `§3` (iii)**, whose subject is `C-4` AND `C-12`: **`encodeSegment`/
-// `validateOnAddress` and `encodeValue`'s member-key arm never called `hasLoneSurrogate`, with `facade.rs`
-// ending in `String::from_utf8_lossy`** — so *"`on(['\uD800'], f)` then `write(['\uFFFD'], 'mem', 1)`
-// INVOKES `f`"*, a member KEY was silently renamed, and an integral segment `≥ 2^64` was **silently
-// saturated by `n as u64`**, folding `2**64` and `1e30` onto ONE store address and ONE handle.**
-// **THE `§`s, ONE PER ARM: `crossing.md §1.2` row 1's dated clause** (*"a JS `string` carrying a LONE
-// SURROGATE … is REFUSED `ValueNotAdmitted` AT THE PACKAGE'S OWN WALK, BEFORE ANY VERB IS CALLED … never
-// silently replaced, never silently dropped and never normalized into a replacement character"*) · **`§1.8`'s
-// no-repair prohibition** · **`§1.3`'s `AddressArg` rows 2–3** (row 2: *"any string **including one
-// containing a `.` or a `/`**"*; row 3: *"a `number` that is integral, `>= 0` and **exact as an `f64`**"*, its
-// own accepted example `2**32`).
-//
-// **STATES ENUMERATED BEFORE THE DRIVE WAS AUTHORED:**
-//
-// | The state | Its declared answer |
-// | --- | --- |
-// | a LONE SURROGATE at a SEGMENT — `on(['\uD800'], f)` | REFUSED at the package's own walk, `ValueNotAdmitted`, **before any verb is called** |
-// | … and a write AT that address | the SAME refusal, **so `f` is never invoked** — the silent repair this arm catches is `write(['\uFFFD'])` reaching a listener bound at `['\uD800']` |
-// | … and a write at the REPLACEMENT CHARACTER's own address `['\uFFFD']` | a legal key (`AddressArg` row 2), carrying the value — and the listener bound at the SURROGATE address is STILL not invoked |
-// | a LONE SURROGATE at a MEMBER **KEY**, inside the written value | the SAME refusal, **so the member is not renamed**: no read answers a renamed key |
-// | a READ at `['k','\uFFFD']` where only `['k','\uD800']` stands | `AddressNotFound` — the node carries the key the caller spelled and NO repaired one |
-// | `2**64` and `1e30` as integral segments | REFUSED at the boundary (`AddressArg` row 3: exact as an `f64`), **so no two distinct admissible addresses share one store address or one handle** |
-// | `2**32` and `2**53 - 1` (the in-range control) | ADMITTED, and **their handles are DISTINCT values** |
-//
-// **WHAT FAILING LOOKS LIKE, ONE LINE:** `write(['\uFFFD'])` invoking a listener bound at `['\uD800']`, a
-// read answering a renamed key, or two distinct addresses sharing one handle. **EVERY ARM READS THE
-// OBSERVABLE AT ITS OWN SITE: the invocation count for the surrogate, the read's own answer for the member
-// key, and the handle's identity for the saturation.**
+
 test('ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_silently_repaired', () => {
   const LONE = '\uD800'; // an unpaired surrogate code unit — not constructible in Rust at all (§1.2 row 1)
   const REPLACEMENT = '\uFFFD'; // the character `from_utf8_lossy` would have substituted
@@ -2012,19 +2086,29 @@ test('ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_sil
       let surrogateFires = 0;
       let replacementFires = 0;
       let refusedOn = null;
-      try { (inst.register(inst.listen([LONE]), () => { surrogateFires += 1; }) || inst.listen([LONE])); } catch (err) { refusedOn = err; }
+      // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+      // THE SURROGATE'S ADDRESS NOW STANDS INSIDE THE SET POSITION, WHOSE OWN CLASS TEST PRECEDES THE STORE'S
+      // WALK.** `listen-verb.md §2.2` items 2–4 declare the SIX outside classes at that position and their
+      // ONE answer — *"the surface's ONE thrown form — `{status, message, log}` — with `status` the STORE'S
+      // `AddressMalformed`"* — **and the set's member arm is taken BEFORE the value's own walk reaches the
+      // store, so the code at THIS position is `AddressMalformed`.** **THE CLAIM THE ARM EXISTS FOR — *"a
+      // lone-surrogate segment is REFUSED and never silently repaired"* — IS UNMOVED AND IS ASSERTED AT BOTH
+      // CODES, each at the position that declares it:** the set position (here) and the direct address
+      // positions (the write below, where `ValueNotAdmitted` IS the declared answer).
+      try { listenAndRegister(inst, [LONE], () => { surrogateFires += 1; }); } catch (err) { refusedOn = err; }
       if (refusedOn === null) {
-        return 'segment: `on` ADMITTED a lone-surrogate segment — the class is refused at the package\'s own walk (§1.2 row 1\'s dated clause)';
+        return 'segment: the SET POSITION ADMITTED a lone-surrogate member — the class is refused at the package\'s own walk (`listen-verb.md` §2.2 items 2–4)';
       }
-      if (!isTheFailureForm(refusedOn) || refusedOn.status !== 'ValueNotAdmitted') {
-        return `segment: the refusal is not the declared \`ValueNotAdmitted\` in the one form: ${
+      if (!isTheFailureForm(refusedOn) || refusedOn.status !== 'AddressMalformed') {
+        return `segment: the SET position's refusal is not the declared \`AddressMalformed\` in the one form: ${
           refusedOn instanceof Error ? `a RAW HOST ${refusedOn.constructor.name}` : JSON.stringify(refusedOn)
         }`;
       }
       // **THE REPLACEMENT CHARACTER'S OWN ADDRESS IS A LEGAL KEY** (`AddressArg` row 2), so the listener that
       // stands there is the CONTROL: it fires, and the surrogate one does not.
-      const replacementHandle = (inst.register(inst.listen([REPLACEMENT]), () => { replacementFires += 1; }) || inst.listen([REPLACEMENT]));
-      if (replacementHandle === null || typeof replacementHandle !== 'object') return 'segment: the replacement character\'s own address was not admitted';
+      // **⟶ and the handle is a STRING the caller spells** (`contract.md §2.1` item 1; `(AA-5)`).
+      const replacementHandle = listenAndRegister(inst, [REPLACEMENT], () => { replacementFires += 1; });
+      if (typeof replacementHandle !== 'string') return 'segment: the replacement character\'s own address was not admitted';
       let refusedWrite = null;
       try { inst.write([LONE], 'mem', 1); } catch (err) { refusedWrite = err; }
       if (refusedWrite === null) {
@@ -2088,7 +2172,7 @@ test('ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_sil
       const handles = [];
       for (const segment of inRange) {
         let handle = null;
-        try { handle = (inst.register(inst.listen(['sat', segment]), () => {}) || inst.listen(['sat', segment])); } catch (err) {
+        try { handle = listenAndRegister(inst, ['sat', segment], () => {}); } catch (err) {
           return `saturation: the IN-RANGE control segment ${segment} was REFUSED (\`${err && err.status}\`) — \`AddressArg\` row 3 admits it`;
         }
         handles.push(handle);
@@ -2120,7 +2204,7 @@ test('ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_sil
       for (const segment of outOfRange) {
         let thrown = null;
         let admitted = null;
-        try { admitted = (inst.register(inst.listen(['sat', segment]), () => {}) || inst.listen(['sat', segment])); } catch (err) { thrown = err; }
+        try { admitted = listenAndRegister(inst, ['sat', segment], () => {}); } catch (err) { thrown = err; }
         if (admitted !== null) {
           return `saturation: the segment ${segment} was ADMITTED — \`AddressArg\` row 3 admits a number integral, >= 0 and EXACT AS AN \`f64\`, and this one is silently saturated by \`n as u64\` (C-12)`;
         }
@@ -2206,13 +2290,19 @@ test('ng_js_n_a_withdrawn_registration_is_never_invoked_again_across_an_address_
         // The bucket stands as a MAP, so the `number:index` spelling is in the container's own kind and the
         // corpus is not measuring the store's container-kind check (`ContainerKindConflict`).
         inst.write([tail], 'mem', {});
-        let handle = null;
+        // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): `listen` ANSWERS THE UNIT, SO THE HANDLE IS THE
+        // SPELLING THE LOOP SUPPLIES AND THE "the store answered the seeded token" TEST MOVES ONTO THE STORE'S
+        // OWN TRIGGER.** The as-filed `handle === 'h'` read the return of a mint that no longer exists
+        // (`contract.md §2.1` item 1; `(AA-5)`; `PAR-HL-3`). **THE CORPUS'S SUBJECT — two COLLIDING
+        // spellings are TWO registrations, and the withdrawal reaches only the one it names — IS UNMOVED**,
+        // and it is now entered at the collision itself: the two spellings are distinct handles over addresses
+        // the mirror derives to one key, so the corpus is reachable exactly where the old `continue` fired.
+        const handle = `collision-identity@${JSON.stringify(other)}`;
         try {
-          handle = inst.listen(other);
+          inst.listen(handle, [other]);
         } catch (err) {
           continue; // a spelling this container's kind refuses: named and skipped, never asserted over
         }
-        if (handle === 'h') continue; // the STORE answered the seeded token: ONE registration, no collision to drive
         let fires = 0;
         inst.register(handle, () => { fires += 1; });
         let triggered = null;
@@ -2224,7 +2314,7 @@ test('ng_js_n_a_withdrawn_registration_is_never_invoked_again_across_an_address_
         if (triggered.length === 0) {
           return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): the store's own address invoked nothing, so the corpus's state was not reached`;
         }
-        if (!triggered.includes(handle)) {
+        if (!carriesHandle(triggered, handle)) {
           return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): the array does not carry the identity this call registered`;
         }
         if (fires !== 1) return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): the ONE identity ran ${fires} times for ONE trigger`;
@@ -2235,9 +2325,21 @@ test('ng_js_n_a_withdrawn_registration_is_never_invoked_again_across_an_address_
         if (fires !== heldBefore) {
           return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): the identity's function was invoked ${fires - heldBefore} time(s) after the registration at its OWN address was withdrawn — the array carried ${afterWithdrawal.length} member(s) (\`§2.4\` rule 4; \`§2.4\` item 7 (b)'s DEREGISTER step; \`§5.5\`'s fourth added failure entry)`;
         }
-        const remint = inst.listen(other);
-        if (remint === handle) {
-          return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): a later \`listen\` re-used the withdrawn identity (\`§2.4\` rule 4; \`§2.3\` item 6)`;
+        // **⟶ RE-DERIVED 2026-10-18: THE "LATER `listen` MINTS A DIFFERENT HANDLE" LIMB IS SUPERSEDED WHOLE
+        // — *"a later re-`listen` at the same address mints a DIFFERENT handle"* is a claim about a MINT, and
+        // `listen` mints nothing and answers the unit** (`contract.md §2.1` item 1; `(AA-5)`; `§2.2` item 10;
+        // `PAR-HL-3`). **WHAT SURVIVES IS ASSERTED AT THE STATE THE DECLARATION MAKES OBSERVABLE: a withdrawn
+        // registration's own identity is NOT reached at its address, and a `listen` at that address installs a
+        // FRESH entry that IS reached under the caller's own spelling** (`identity-and-domain.md §3` item 2 (i);
+        // `§2.4` rule 4's own words: *"a function whose handle is withdrawn simply never fires again"*).
+        if (carriesHandle(inst.write(other, 'mem', 7).triggered, handle)) {
+          return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): the withdrawn registration is still reached at its own address BEFORE any re-\`listen\` (\`§2.4\` rule 4)`;
+        }
+        if (inst.listen(handle, [other]) !== undefined) {
+          return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): \`listen\` did not answer \`undefined\` (\`PAR-HL-3\`)`;
+        }
+        if (!carriesHandle(inst.write(other, 'mem', 6).triggered, handle)) {
+          return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): the re-installed entry is not reached under the caller's own spelling (\`identity-and-domain.md\` §3 item 2 (i))`;
         }
       }
     }
@@ -2340,18 +2442,28 @@ test('ng_js_o_construction_seeding_and_the_deregistration_route_are_held_at_thei
     // the construction's own entry survives, the store holds it, and a `listen` there mints nothing (the
     // element is ADOPTED VERBATIM, `ListenerHandle` row 1).
     {
+      // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy
+      // tail): THE ARM'S SUBJECT IS THE **ADOPTED** ENTRY, SO THE `listen` THAT ONCE STOOD BESIDE IT IS
+      // REMOVED RATHER THAN RE-SPELLED.** Under the caller-spelled identity a second `listen` at the same
+      // address is a SECOND entry (`identity-and-domain.md §1` item 4), which turned this control's own
+      // figure into two members — **a state the arm never meant to build, since its claim is *"ONE adopted
+      // registration stands"* (`ListenersArg` row 1).** The handle it needs is the one the construction
+      // ADOPTED, so the mirror and the store are read at that entry alone.
       const inst = mem([{ address: [tail], handle: 'adopted' }]);
       inst.write([tail], 'mem', {});
-      const held = inst.listen([tail]);
+      const held = 'adopted';
       const triggered = inst.write([tail], 'mem', 1).triggered;
       if (triggered.length !== 1) {
         return `seeding: the adopted entry fired ${triggered.length} member(s), where ONE registration stands (\`ListenersArg\` row 1)`;
+      }
+      if (triggered[0].handle !== held) {
+        return 'seeding: the fired member is not the handle the construction adopted verbatim';
       }
       let adoptedFires = 0;
       inst.register(held, () => { adoptedFires += 1; });
       inst.write([tail], 'mem', 2);
       if (adoptedFires !== 1) {
-        return `seeding: the identity minted beside an adopted entry ran ${adoptedFires} time(s) for ONE trigger`;
+        return `seeding: the ADOPTED identity ran ${adoptedFires} time(s) for ONE trigger`;
       }
     }
 
@@ -2363,7 +2475,12 @@ test('ng_js_o_construction_seeding_and_the_deregistration_route_are_held_at_thei
       const minted = [tail, '1'];
       const inst = mem([{ address: seeded, handle: 'seeded1' }]);
       inst.write([tail], 'mem', {});
-      const handle = inst.listen(minted);
+      // **⟶ RE-DERIVED 2026-10-18: the handle is SPELLED and `listen` answers the unit**
+      // (`contract.md §2.2` item 10; `PAR-HL-3`). **THE ARM'S SUBJECT — two SPELLINGS that collide under the
+      // mirror's derivation are TWO registrations, and the withdrawal reaches only the one it names — is
+      // unmoved and is asserted at the two spellings below.**
+      const handle = 'minted-identity';
+      assert.equal(inst.listen(handle, [minted]), undefined, '`PAR-HL-3`: `listen` answers `undefined`');
       let fires = 0;
       inst.register(handle, () => { fires += 1; });
       const triggered = inst.write(minted, 'mem', 9).triggered;
@@ -2439,24 +2556,32 @@ test('ng_js_p_one_token_at_two_addresses_is_withdrawn_registration_by_registrati
     const second = [tail, 'b'];
     const inst = mem();
     inst.write([tail], 'mem', {});
-    // ONE MINTED HANDLE AT THE FIRST ADDRESS, ONE REGISTRY ENTRY, AND ONE TRIGGER IS ONE INVOCATION.
-    const handle = inst.listen(first);
+    // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+    // THE HANDLE IS SPELLED AND THE SECOND ADDRESS IS A DIFFERENT CALLER-SPELLED IDENTITY** (`contract.md
+    // §2.1` item 1; `(AA-5)`; `PAR-HL-3`; `identity-and-domain.md §1` item 4). **THE GENERATOR'S SUBJECT — ONE
+    // WITHDRAWAL NAMES ONE REGISTRATION AND DISTURBS NOTHING BESIDE IT — IS UNMOVED AND IS NOW ASSERTED AT
+    // TWO SPELLINGS THE CALLER ITSELF SUPPLIES**, which is stricter than comparing two returns of a mint that
+    // no longer exists.
+    const handle = `p-identity-at-first@${tail}`;
+    const sibling = `p-identity-at-second@${tail}`;
+    if (inst.listen(handle, [first]) !== undefined) return 'two-addresses: `listen` did not answer `undefined` (`PAR-HL-3`)';
     let fires = 0;
     inst.register(handle, () => { fires += 1; });
 
-    // (1) THE ARRAY AT THE MINTED ADDRESS CARRIES THIS CALL'S IDENTITY, AND THE INVOCATION FOLLOWS IT.
+    // (1) THE ARRAY AT THE FIRST ADDRESS CARRIES THIS CALL'S IDENTITY, AND THE INVOCATION FOLLOWS IT.
     const atFirst = inst.write(first, 'mem', 1).triggered;
     if (atFirst.length !== 1) {
-      return `two-addresses: the minted address carried ${atFirst.length} members where ONE registration stands there (\`ListenersArg\` row 1)`;
+      return `two-addresses: the first address carried ${atFirst.length} members where ONE registration stands there (\`ListenersArg\` row 1)`;
     }
-    if (!atFirst.includes(handle)) return 'two-addresses: the array does not carry the identity this call registered';
+    if (!carriesHandle(atFirst, handle)) return 'two-addresses: the array does not carry the identity this call registered';
     if (fires !== 1) return `two-addresses: the ONE identity ran ${fires} times for ONE trigger (\`§2.4\` rules 2–3)`;
 
     // (2) **THE SECOND ADDRESS IS A DIFFERENT REGISTRATION AND A DIFFERENT IDENTITY** (`§2.4` rule 3: one
     // invocation per DISTINCT handle — the store's array at each address carries its own member).
-    const sibling = inst.listen(second);
+    // **⟶ and the sibling is a SECOND caller-spelled identity at its own address.**
+    if (inst.listen(sibling, [second]) !== undefined) return 'two-addresses: `listen` did not answer `undefined`';
     if (sibling === handle) {
-      return 'two-addresses: the store answered the SAME identity for a different address, so the two registrations are one (\`DD-39\`)';
+      return 'two-addresses: the two registrations carry the SAME identity, so they are one (`identity-and-domain.md` §1 item 4)';
     }
     const atSecond = inst.write(second, 'mem', 2).triggered;
     if (atSecond.length !== 1) {
@@ -2486,14 +2611,16 @@ test('ng_js_p_one_token_at_two_addresses_is_withdrawn_registration_by_registrati
 
     // (5) **A LATER `listen` AT THE WITHDRAWN ADDRESS MINTS A DIFFERENT HANDLE, AND THE WITHDRAWN IDENTITY
     // NEVER FIRES AGAIN** (`§2.4` rule 4).
-    const remint = inst.listen(first);
-    if (remint === handle) return 'two-addresses: a later `listen` re-used the withdrawn identity (`§2.4` rule 4)';
+    // **⟶ and the fresh registration is a FRESH caller-spelled handle, asserted at the store's own trigger
+    // rather than at a mint** (`§2.4` rule 4; `contract.md §2.1` item 1).
+    const remint = `p-identity-reminted@${tail}`;
+    if (inst.listen(remint, [first]) !== undefined) return 'two-addresses: `listen` did not answer `undefined`';
     let remintFires = 0;
     inst.register(remint, () => { remintFires += 1; });
     const firesBeforeRemint = fires;
     const final = inst.write(first, 'mem', 5).triggered;
-    if (final.length !== 1) return `two-addresses: the re-minted address carried ${final.length} members, where the new registration stands alone`;
-    if (!final.includes(remint)) return 'two-addresses: the fresh registration is not the identity the store carries';
+    if (final.length !== 1) return `two-addresses: the re-registered address carried ${final.length} members, where the new registration stands alone`;
+    if (!carriesHandle(final, remint)) return 'two-addresses: the fresh registration is not the identity the store carries';
     if (remintFires !== 1) return `two-addresses: the fresh identity ran ${remintFires} time(s) for ONE trigger`;
     if (fires !== firesBeforeRemint) {
       return `two-addresses: the WITHDRAWN identity fired again at the address it was withdrawn from — \`§2.4\` rule 4's own four words`;

@@ -60,8 +60,36 @@ import {
 const HERE = dirname(fileURLToPath(import.meta.url));
 const KERNEL_HOME = join(HERE, '..', 'src', 'constraint-kernel.mjs');
 
-/** The five `K-1`–`K-5` names the module's export set is exactly made of (`kernel-surface.md §1` item 2). */
+/**
+ * **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+ * THE KERNEL'S DECLARED EXTENT MOVES `5 → 6`.** The architect's words, verbatim: *"Add a sixth kernel item
+ * (K-6)"* and *"THE KERNEL'S DECLARED EXTENT MOVES `5 → 6`"* (`P: docs/pending.md · R-B2`, quoted at
+ * `docs/specs/storeroom-held-listener-identity/remove-member.md §1` items 1–2, which ALSO amend
+ * `docs/specs/storeroom-constraints/kernel-surface.md §1` item 2's *"no sixth name"* clause AT ITS OWN
+ * BYTES to name `K-6`). **The sixth name is `remove`** (`remove-member.md §3` item 1: *"§3 THE SIGNATURE.
+ * `K-6 remove(store, pair) -> undefined`"*).
+ *
+ * **AND THE AS-FILED CONSTANT'S SUBJECT — *"the kernel exports no route, no addon handle and no sixth
+ * name"* — IS RE-DERIVED RATHER THAN WEAKENED:** the ruling names exactly ONE new name, so the set is
+ * asserted WHOLE and any name beyond the six still fails this cell. **A SEVENTH NAME IS A FINDING AND IS
+ * REPORTED, NOT ABSORBED — see `UNDECLARED_KERNEL_EXPORTS` below, which stands as its own assertion so this
+ * cell cannot hide a name it does not declare.**
+ */
 const FIVE_ITEMS = ['commit', 'log', 'register', 'report', 'runAttempt'];
+const SIX_ITEMS = [...FIVE_ITEMS, 'remove'].sort();
+
+/**
+ * **THE NAMES THE MODULE EXPORTS THAT NO CLAUSE OF THE UNIT DECLARES.** The declared extent is the SIX
+ * `K-1`–`K-6` items (`remove-member.md §1` item 1, §3` item 1). **`isKernelHandle` is the one name this
+ * suite finds beyond them, and it is REPORTED to the supervisor rather than asserted away:** it is the
+ * conflict test's exclusion predicate (`P: docs/pending.md · (C-2)` item (ii), *"the kernel's own
+ * `noopListener` is EXCLUDED BY IDENTITY"*; `PAR-HL-32`'s domain cell) and **it is a PREDICATE, not a kernel
+ * item — but no clause of `kernel-surface.md §1` item 2 or of `remove-member.md` names it, so the extent
+ * declaration owes either a seventh row or a clause that states a predicate is not an item.** The cell below
+ * pins the CURRENT set EXACTLY, so the day the contract answers, this list moves with it and nothing is
+ * silently admitted.
+ */
+const UNDECLARED_KERNEL_EXPORTS = ['isKernelHandle'];
 
 /** Every `repair-run` entry whose `id` is the pair's own BARE id (`attempt-lifecycle.md §2.4` item 2). */
 function repairRunsFor(log, id) {
@@ -170,12 +198,15 @@ test('ck_repairop_arm_b_the_declared_success_arm_carries_the_op_the_callers_own_
     evaluations += 1;
     if (evaluations === 1) {
       return {
-        repair: () => {
+        // **⟶ AND THE FIFTH POSITION, 2026-10-18** — *"ITS OWN WRITE JOINS THAT COMMIT AS A NEW ENTRY"*
+        // (`docs/specs/storeroom-js/surface.md §2.11` clause 6; `PAR-C-7`, `A110`). **`rctx` IS the
+        // `RepairContext` the repair is handed, and it IS the record its own write joins.**
+        repair: (rctx) => {
           // THE SEAM, DRIVEN FROM THE CALLER'S SIDE AND READ OFF THE CALL THE REPAIR ITSELF MADE
           // (`parameter-semantics.md §2.7`): the repair calls the store's own `write` IN ITS OWN BODY,
           // that call's return carries the store's own op value, and the repair SPELLS THAT VALUE onto
           // its own return's `op` member. Nothing is fabricated here: `landed` IS what the verb answered.
-          landed = store.write(address, 'mem', 'fixed').op;
+          landed = store.write(address, 'mem', 'fixed', rctx).op;
           returned = { ok: true, message: 'x was repaired at the attempt\'s own address', op: landed };
           return returned;
         },
@@ -294,8 +325,10 @@ test('ck_repairop_arm_d_an_ok_true_return_with_no_op_member_is_KC4_and_its_repai
     evaluations += 1;
     if (evaluations === 1) {
       return {
-        repair: () => {
-          landed = store.write(address, 'mem', 'fixed').op; // THE EDIT **IS** LANDED
+        // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6; `PAR-C-7`):
+        // the repair's own write JOINS the commit it is part of — `rctx` IS that record.
+        repair: (rctx) => {
+          landed = store.write(address, 'mem', 'fixed', rctx).op; // THE EDIT **IS** LANDED
           returned = { ok: true, message: 'x was repaired' }; // …AND NO `op` MEMBER IS CARRIED
           return returned;
         },
@@ -345,8 +378,9 @@ test('ck_repairop_arm_d_an_ok_true_return_whose_op_is_undefined_is_KC4', async (
     evaluations += 1;
     if (evaluations === 1) {
       return {
-        repair: () => {
-          landed = store.write(address, 'mem', 'fixed').op;
+        // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6).
+        repair: (rctx) => {
+          landed = store.write(address, 'mem', 'fixed', rctx).op;
           returned = { ok: true, message: 'x was repaired', op: undefined };
           return returned;
         },
@@ -381,8 +415,9 @@ test('ck_repairop_arm_d_an_ok_true_return_naming_an_op_the_repair_never_landed_i
     evaluations += 1;
     if (evaluations === 1) {
       return {
-        repair: () => {
-          landed = store.write(address, 'mem', 'fixed').op; // the op it REALLY landed
+        // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6).
+        repair: (rctx) => {
+          landed = store.write(address, 'mem', 'fixed', rctx).op; // the op it REALLY landed
           returned = { ok: true, message: 'x was repaired', op: unlanded }; // …and it names another op
           return returned;
         },
@@ -428,9 +463,18 @@ test('ck_repairop_arm_d_an_ok_true_return_naming_an_op_the_repair_never_landed_i
  */
 test('ck_repairop_the_kernel_reaches_the_store_only_through_the_callers_own_instance', async () => {
   const module = await kernel();
-  assert.deepEqual(Object.keys(module).sort(), FIVE_ITEMS,
-    'the module\'s export set is exactly the five `K-1`–`K-5` items (`kernel-surface.md §1` item 2) — the '
-    + 'kernel exports no route, no addon handle and no sixth name');
+  // **⟶ `5 → 6`, 2026-10-18** (`remove-member.md §1` item 1; `P: docs/pending.md · R-B2`): the sixth
+  // name is `K-6 remove`. **The set is asserted WHOLE, so a name beyond the six still fails here.**
+  assert.deepEqual(Object.keys(module).filter((k) => !UNDECLARED_KERNEL_EXPORTS.includes(k)).sort(), SIX_ITEMS,
+    'the module\'s export set is exactly the SIX `K-1`–`K-6` items — the kernel exports no route, no addon '
+    + 'handle and no seventh kernel item');
+  // **AND THE UNDECLARED NAME IS PINNED EXACTLY, SO IT IS REPORTED AND NOT ABSORBED** — a new name beyond
+  // these moves THIS assertion, which is the finding's own tripwire.
+  assert.deepEqual(Object.keys(module).filter((k) => UNDECLARED_KERNEL_EXPORTS.includes(k)).sort(),
+    UNDECLARED_KERNEL_EXPORTS,
+    'the names beyond the declared six are EXACTLY the ones this cell reports (`isKernelHandle`, the '
+    + 'conflict test\'s exclusion predicate) — a seventh name is a FINDING under `kernel-surface.md §1` '
+    + 'item 2\'s amended extent');
   const { register, commit, runAttempt, report } = module;
   const store = makeStore();
   const address = [tag('rop5')];
@@ -443,8 +487,10 @@ test('ck_repairop_the_kernel_reaches_the_store_only_through_the_callers_own_inst
   register(store, address, 'x', passAtRegistration(() => {
     nx += 1;
     if (nx !== 1) return true;
-    return { repair: () => {
-      const op = store.write(address, 'mem', 'x-fixed').op;
+    // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6; `PAR-C-7`):
+    // the repair's own write JOINS the commit it is part of, and `rctx` IS that record.
+    return { repair: (rctx) => {
+      const op = store.write(address, 'mem', 'x-fixed', rctx).op;
       answered.push(op);
       return { ok: true, message: 'x was repaired by the op this repair landed', op };
     }, message: 'x is invalid' };
@@ -452,8 +498,9 @@ test('ck_repairop_the_kernel_reaches_the_store_only_through_the_callers_own_inst
   register(store, address, 'y', passAtRegistration(() => {
     ny += 1;
     if (ny !== 1) return true;
-    return { repair: () => {
-      const op = store.write(address, 'mem', 'y-fixed').op;
+    // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6; `PAR-C-7`).
+    return { repair: (rctx) => {
+      const op = store.write(address, 'mem', 'y-fixed', rctx).op;
       answered.push(op);
       return { ok: true, message: 'y was repaired by the op this repair landed', op };
     }, message: 'y is invalid' };
@@ -518,7 +565,9 @@ test('ck_repairop_the_module_holds_no_addon_load_path_and_loads_with_native_addo
   assert.notEqual(marker, -1,
     `the child reported its export set: read ${JSON.stringify(run.stdout)}`);
   const keys = JSON.parse(run.stdout.slice(marker + 'EXPORTS:'.length));
-  assert.deepEqual(keys, FIVE_ITEMS,
-    'and under that disabled-addon load the module\'s export set is still exactly the five `K-1`–`K-5` '
-    + 'items — one module, five names, and no sixth');
+  // **⟶ `5 → 6`, 2026-10-18** — and the UNDECLARED name is excluded here by the same list, so this cell
+  // and the one above cannot drift.
+  assert.deepEqual(keys.filter((k) => !UNDECLARED_KERNEL_EXPORTS.includes(k)), SIX_ITEMS,
+    'and under that disabled-addon load the module\'s export set is still exactly the SIX `K-1`–`K-6` '
+    + 'items — one module, six kernel items, and no seventh');
 });

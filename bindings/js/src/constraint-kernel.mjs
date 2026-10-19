@@ -207,13 +207,94 @@ function inDomainId(id) {
  */
 
 /**
- * **THE PAIR'S KEY IS ITS `id` ALONE** (`P: docs/pending.md · (M-3)` item (i); `P: docs/pending.md · P-7`'s
- * answer clause: *"One pair, N registry rows, removal clears all N"*). **ONE PAIR OVER N ADDRESSES IS ONE
- * ELEMENT: N `(address, id)` rows SHARING ONE `id`, and the identity is the `id`, NEVER the key**
- * (`contract.md §2.6` item 4). **SO `pairs` IS ONE ROW PER PAIR, CARRYING EVERY ADDRESS IT STANDS AT.**
+ * **THE PAIR'S KEY IS THE PAIR — `(address, id)` — AND IT IS UNIQUE OVER THAT TUPLE**
+ * (`contract.md §5.1`'s `S-KEY`, verbatim: *"the pair key is unique over (address, id)"*;
+ * `constraint-identity.md §5` `IF-2`: *"two `addConstraint` calls at two DIFFERENT pairs → TWO identities"*).
+ *
+ * **⟶ THE DEFECT THIS REPLACES, NAMED AT ITS OWN BYTES: THE KEY WAS `id` ALONE AND THE `address` ARGUMENT
+ * WAS IGNORED**, so two DISTINCT pairs sharing one `id` at two addresses became ONE registry row, the second
+ * registration displaced the first, and the first pair's function NEVER RAN. **That is the kernel-side limb
+ * of the gate-4 `UNDER-GENERATED` finding** (`docs/pending.md`; the JS-side `constraintPairKey` limb is fixed
+ * at `index.mjs`'s `(id, address-set)` key, whose set spelling is canonical and injective).
+ *
+ * **AND IT IS A STRUCTURAL KEY, NOT AN ADDRESS-KEYED STRING INDEX** (`P: docs/pending.md · M-3`: *"Address
+ * token doesn't need to exist because it doesn't need to be a map key"* — the kernel must not regain the
+ * string index `addressToken` was deleted with). **THE KEY IS `[address, id]` AND COMPARISON IS THE LANGUAGE'S
+ * OWN**: two keys are the same key exactly when the address arrays are the same `Array` REFERENCE and the ids
+ * are equal strings, and `seedContainers`' every registration at a `constraintSite`'s addresses hands the one
+ * array `constraintSite` normalised. **NO SEGMENT IS ENUMERATED, ESCAPED OR SPELLED** — there is no separator
+ * to collide and therefore no family of distinct pairs that can spell alike.
+ *
+ * **AND ONE PAIR OVER N ADDRESSES STAYS ONE ROW CARRYING EVERY ADDRESS IT STANDS AT** (`contract.md §2.6`
+ * item 4: *"one pair, N registry rows, removal clears all N"*): the ROW is the thing that accumulates its
+ * address set, and the KEY names the pair it was first registered at. **SO A LATER `register` AT ANOTHER OF
+ * THE PAIR'S ADDRESSES JOINS THAT ROW** — by the tuple when the caller hands the same address array, and by
+ * the FUNCTION IDENTITY the pair's own `K-1` calls share when it does not (`pairRowCarrying` below).
  */
-function pairKey(id) {
-  return id;
+const PAIR_KEYS = new WeakMap();
+function pairKey(address, id) {
+  let byId = PAIR_KEYS.get(address);
+  if (byId === undefined) {
+    byId = new Map();
+    PAIR_KEYS.set(address, byId);
+  }
+  let key = byId.get(id);
+  if (key === undefined) {
+    key = [address, id];
+    byId.set(id, key);
+  }
+  return key;
+}
+
+/**
+ * **THE PAIR, SPELLED FOR THE KERNEL'S OWN SENTENCE** — the address's segments joined by `/`, then `#`, then
+ * the `id`: the spelling `attempt-lifecycle.md §2.4` item 2 declares for the SENTENCE it labels and the one
+ * the four repeat-arm messages carried while the registry key WAS that spelling. **THE KEY IS NO LONGER A
+ * STRING** (`pairKey` above), so the sentence reads the pair's own members rather than interpolating a
+ * registry key: **NO OBSERVABLE OF THE MESSAGE MOVES** — the same slots, the same separator and the same `id`
+ * — and no reading of the joining as injective is asserted anywhere, that demand being the KEY's and the key
+ * being the tuple.
+ */
+function pairSpelling(pair, address) {
+  return `${(address === undefined ? pair.addresses[0] : address).map((segment) => String(segment)).join('/')}`
+    + `#${pair.id}`;
+}
+
+/// **THE ROW A PAIR STANDS UNDER, FOUND BY THE FUNCTION IDENTITY THE PAIR'S OWN CALLS SHARE** — `carryConstraint`
+/// registers ONE pair over N addresses as N `K-1` calls and hands the SAME function to all of them, so a row
+/// under this `id` carrying that very function IS the pair this call extends (`contract.md §2.6` item 4:
+/// *"one pair, N registry rows, removal clears all N"* — one row here, N at the store). **TWO DISTINCT PAIRS
+/// THAT SHARE ONE `id` CARRY TWO DIFFERENT FUNCTIONS and are therefore never confused** — which is the defect
+/// this key closes (`S-KEY`).
+function pairRowCarrying(kernel, id, constraint) {
+  for (const pair of kernel.pairs.values()) {
+    if (pair.id === id && pair.constraint === constraint) return pair;
+  }
+  return undefined;
+}
+
+/// **THE REGISTRY KEY A ROW IS HELD UNDER**, read back so a standing row answers its own `kernel.handles` slot.
+function pairKeyOf(kernel, row) {
+  for (const [key, pair] of kernel.pairs) {
+    if (pair === row) return key;
+  }
+  return undefined;
+}
+
+/**
+ * **THE ROW A PAIR STANDS UNDER, FOUND STRUCTURALLY OVER ITS OWN ADDRESS SET** — the pairs whose `id` is this
+ * one and whose `addresses` carries this address, by a scan over `kernel.pairs` (`contract.md §2.8` items 1
+ * and 6). **IT REPLACES THE `id`-ONLY KEY LOOKUP AND NOTHING ELSE**: `K-6` names a pair by a caller-spelled
+ * `address` SET and `registrationAttempt` names it by the attempt's own address, neither of which is
+ * necessarily the array a registration was keyed by, so the row's own `addresses` member is what the match
+ * reads — exactly as `pairsAtAddress` reads it for the pass.
+ */
+function pairRowAt(kernel, address, id) {
+  for (const [key, pair] of kernel.pairs) {
+    if (pair.id !== id) continue;
+    if (pair.addresses.some((standing) => sameAddress(standing, address))) return { key, pair };
+  }
+  return null;
 }
 
 /**
@@ -251,10 +332,13 @@ function kernelFor(store) {
   let kernel = KERNELS.get(store);
   if (kernel === undefined) {
     kernel = {
-      // **THE REGISTRATION REGISTRY, KEYED BY THE PAIR'S `id` ALONE, in first-registration order per address**
-      // (`kernel-surface.md §2.1` item 1, `CC-7`; `P: docs/pending.md · (M-3)` item (i)). **ONE ROW PER PAIR,
-      // CARRYING EVERY ADDRESS IT STANDS AT** — `{ addresses, id, constraint }` — so *"one pair, N registry
-      // rows, removal clears all N"* is one row here and N at the store (`contract.md §2.6` item 4).
+      // **THE REGISTRATION REGISTRY, KEYED BY THE PAIR — `(address, id)` — AND UNIQUE OVER THAT TUPLE**
+      // (`contract.md §5.1`'s `S-KEY`; `kernel-surface.md §2.1` item 1, `CC-7`), in first-registration order.
+      // **ONE ROW PER PAIR, CARRYING EVERY ADDRESS IT STANDS AT** — `{ addresses, id, constraint }` — so *"one
+      // pair, N registry rows, removal clears all N"* is one row here and N at the store (`contract.md §2.6`
+      // item 4). **THE KEY IS A STRUCTURAL `[address, id]` TUPLE AND NOT A SPELLED STRING** (`pairKey` above):
+      // no separator exists to collide, `addressToken` is not reintroduced, and a pair at a different address
+      // is a DIFFERENT row however the two pairs would spell.
       pairs: new Map(),
       // **⟶ `byAddress` IS DELETED** (`P: docs/pending.md · R-B3`, the operative ruling, verbatim: *"Delete
       // byAddress — attempt.address already carries it"*; `contract.md §2.8` item 2 item (1)): `evaluate` and
@@ -437,16 +521,41 @@ export function register(store, address, id, constraint) {
   // REMOVES EVERY ENTRY THAT HANDLE NAMES, WHEREVER IT STANDS"*; `contract.md §2.9` item 7). **`kernel.handles`
   // HOLDS ONE HANDLE PER PAIR AND NOT ONE PER ADDRESS**, so `K-6` hands that handle to the published
   // `removeListener` ONCE and consults no count of addresses.
-  const key = pairKey(id);
-  const standing = kernel.pairs.get(key);
-  // **A PAIR WHOSE SET IS EXTENDED BY A LATER `K-1` AT ANOTHER OF ITS ADDRESSES JOINS THAT ROW** — one id,
-  // N addresses, ONE handle (`contract.md §2.6` item 4).
+  // **⟶ THE KEY IS THE PAIR — `(address, id)` — AND THE LOOKUP IS THE SAME TUPLE** (`contract.md §5.1`'s
+  // `S-KEY`; `pairKey` above). **SO THE TWO ARMS ARE TOLD APART BY THE ADDRESS THE CALL NAMES AND NOT BY THE
+  // `id` ALONE**: a registration at a DIFFERENT address with ONE PAIR's `id` is a DIFFERENT pair and takes the
+  // FRESH arm — it does not displace the pair standing at another address, and its function never answers that
+  // other address. **THAT IS THE DEFECT THIS KEY CLOSES.**
+  const key = pairKey(address, id);
+  // **AND A PAIR WHOSE SET EXTENDS BY A LATER `K-1` AT ANOTHER OF ITS ADDRESSES JOINS THAT ONE ROW** — one id,
+  // N addresses, ONE handle (`contract.md §2.6` item 4; *"one pair, N registry rows, removal clears all N"*) —
+  // **so the standing row is found STRUCTURALLY, at the address the call names AND at the pair's own set**: a
+  // `K-1` at an address the pair already stands at is THE SAME PAIR (its row's `addresses` carries it) and
+  // joins it, while a `K-1` at an address the pair does NOT stand at begins a pair of its own. **THE TWO
+  // READINGS ARE THE CONTRACT'S AND THEY DO NOT COLLIDE**: `§2.6` item 4 makes one `id` over N addresses ONE
+  // element, and `§5.1`/`S-KEY` makes `(address, id)` the key that tells two DIFFERENT elements apart.
+  // **AND A ROW THE KERNEL ALREADY CARRIES UNDER THIS `id` IS THE PAIR THE CALL EXTENDS WHEN THE CALL'S
+  // ADDRESS IS ONE THE PAIR'S OWN SET NAMES** — `pairRowAt` above — **WHICH IS THE READING `carryConstraint`
+  // DEPENDS ON**: the entry registers ONE PAIR OVER N ADDRESSES as N `K-1` calls (`contract.md §2.6` item 4;
+  // `P: docs/pending.md · P-7`'s *"One pair, N registry rows, removal clears all N"*), and each of those calls
+  // must join the one row, so the row's own `addresses` — not the tuple that keyed it — is what tells a
+  // LATER address OF THIS PAIR from a DIFFERENT pair's address.
+  // **THE STANDING ROW IS THE ONE ROW THIS PAIR STANDS UNDER** — found by the tuple this call names
+  // (`S-KEY`), and, for the N `K-1` calls `carryConstraint` makes for ONE pair over N addresses, by the
+  // FUNCTION IDENTITY those calls share: the entry hands the SAME function to all N, so a row under this `id`
+  // carrying that very function IS the pair this call extends (`contract.md §2.6` item 4: *"one pair, N
+  // registry rows, removal clears all N"* — ONE row here, N at the store).
+  const direct = kernel.pairs.get(key);
+  const standing = direct === undefined ? pairRowCarrying(kernel, id, constraint) : direct;
+  // **THE SET IS THE PAIR'S, NOT THE CALL'S** — this call's address joined to every address the pair already
+  // stands at — so the ONE handle is given all N in the single `listen` below and `K-6`'s purge is total in
+  // one call (`contract.md §2.2` item 3; `§2.9` item 7; `P: docs/pending.md · (Y-1)`).
   const set = standing === undefined
     ? [address.slice()]
     : (standing.addresses.some((held) => sameAddress(held, address))
       ? standing.addresses
       : [...standing.addresses, address.slice()]);
-  const home = standing === undefined ? noopHandleFor(address) : kernel.handles.get(key);
+  const home = standing === undefined ? noopHandleFor(address) : kernel.handles.get(standing === direct ? key : pairKeyOf(kernel, standing));
   // **`listen` IS THE SET ASSIGNMENT** (`contract.md §2.2` item 3): the pair's ONE handle is given the whole
   // accumulated set, so the pair's registration stands at every one of its addresses under THAT handle.
   store.listen(home, set);
@@ -461,9 +570,13 @@ export function register(store, address, id, constraint) {
     kernel.pairs.set(key, { addresses: set, id, constraint });
     kernel.handles.set(key, home);
   } else {
+    // **THE ROW STANDS UNDER ITS OWN KEY AND THE KEY DOES NOT MOVE** (`contract.md §5.1`: the pair's key is
+    // exactly the pair it was registered at), so a re-registration at a pair already held replaces the row's
+    // FUNCTION and extends its set, and the identity the row answers by is the one it was keyed with.
     standing.constraint = constraint;
     standing.addresses = set;
   }
+
 
 
   // ═══════════════════════════════════════════════════════════════════════════════════════════════
@@ -517,7 +630,10 @@ function withdrawRegistration(kernel, address, id, fresh, home) {
   // **⟶ THE KERNEL'S OWN ROWS GO WITH THE HANDLE — `U-STOREROOM-HELD-LISTENER-IDENTITY`.** The `byAddress`
   // reads and its delete that stood here are DELETED WITH THE INDEX (`P: docs/pending.md · R-B3`), and the
   // address's row is now one of the pair's own N addresses.
-  const key = pairKey(id);
+  // **⟶ THE KEY IS THE PAIR THIS CALL NAMED — `(address, id)`** (`contract.md §5.1`'s `S-KEY`), so a refused
+  // registration withdraws THIS call's own row and never the row of a pair standing at another address under
+  // the same `id`. `remove`, below, matches the row by its own `addresses` member, so the two spellings agree.
+  const key = pairKey(address, id);
   kernel.pairs.delete(key);
   kernel.handles.delete(key);
   // **⟶ AND THE SENTENCE THAT STOOD HERE — *"no clause of this unit declares a kernel-side withdrawal of
@@ -670,7 +786,14 @@ function registrationRepairContext(store, address, id, commitRecord) {
  */
 function registrationAttempt(kernel, store, pair) {
   const address = pair.address;
-  const key = pairKey(address, pair.id);
+  // **THE SYNTHETIC ATTEMPT'S OWN ROW IDENTITY IS THE PAIR — `(address, id)`** (`contract.md §5.1`'s
+  // `S-KEY`). **IT IS READ OFF THE REGISTRY, NOT MINTED HERE**: the key values stand in `kernel.pairs` and in
+  // `attempt.ran`/`appliedRepairs`, and every reader below compares them BY IDENTITY (`includes`), so the
+  // token this attempt carries must be THE ROW'S OWN KEY OBJECT and a second, equal-looking tuple would be a
+  // different identity. The pair standing at this address IS registered (the caller's `K-1` completed), and
+  // where it is not, the freshly derived key is the one the next `K-1` at the same array will answer.
+  const row = pairRowAt(kernel, address, pair.id);
+  const key = row === null ? pairKey(address, pair.id) : row.key;
   ATTEMPTS += 1;
   const attempt = {
     ref: { id: `attempt-${ATTEMPTS}` },
@@ -1394,10 +1517,10 @@ function evaluate(kernel, attempt, landing) {
         if (ran) {
           return { terminal: attempt.appliedRepairs.includes(key)
             ? { status: KC.repairRepeat,
-              message: `the pair ${pairKey(pair.address, pair.id)} violated a re-run and its repair had `
+              message: `the pair ${pairSpelling(pair)} violated a re-run and its repair had `
                 + 'already been applied' }
             : { status: KC.repeat,
-              message: `the pair ${pairKey(pair.address, pair.id)} violated a re-run and no repair had `
+              message: `the pair ${pairSpelling(pair)} violated a re-run and no repair had `
                 + 'been applied to it' },
             rerun: false };
         }
@@ -1408,7 +1531,7 @@ function evaluate(kernel, attempt, landing) {
       // pair's own registry membership and never a repair-run count being the discriminator.
       if (ran && !attempt.appliedRepairs.includes(key)) {
         return { terminal: { status: KC.repeat,
-          message: `the pair ${pairKey(pair.address, pair.id)} violated a re-run and no repair had `
+          message: `the pair ${pairSpelling(pair)} violated a re-run and no repair had `
             + 'been applied to it' },
           rerun: false };
       }
@@ -1416,7 +1539,7 @@ function evaluate(kernel, attempt, landing) {
       // never invoked and the repeat is `KC-5`.
       if (ran) {
         return { terminal: { status: KC.repairRepeat,
-          message: `the pair ${pairKey(pair.address, pair.id)} violated a re-run and its repair had `
+          message: `the pair ${pairSpelling(pair)} violated a re-run and its repair had `
             + 'already been applied' },
           rerun: false };
       }
@@ -2006,11 +2129,26 @@ export function remove(store, pair) {
 
   // CHANNEL (ii) — A PAIR THE KERNEL HOLDS NO ROW FOR IS `KC-2` AND NO STATE MOVES (`remove-member.md §4`
   // item 2 (ii); `contract.md §4` `F-12`). **THE REGISTRY IS UNMOVED BY THAT REFUSAL.**
-  const key = pairKey(pair.id);
-  const standing = kernel.pairs.get(key);
-  if (standing === undefined) {
+  //
+  // **⟶ AND THE ROW IS FOUND STRUCTURALLY, BECAUSE THE KEY IS THE PAIR — `(address, id)`** (`contract.md §5.1`'s
+  // `S-KEY`; `pairKey` above). **A CALLER NAMES A PAIR BY ONE ADDRESS OR BY THE SET IT STANDS OVER, and neither
+  // spelling is the array the registration was keyed by**, so the `id`-only lookup that stood here is replaced
+  // by the row's OWN `addresses` member, the same member `pairsAtAddress` matches for the pass
+  // (`contract.md §2.8` items 1 and 6). **NOTHING IS ENUMERATED BY `K-6` ITSELF AND NO COUNT IS CONSULTED** —
+  // this scan answers WHICH row the caller named and reads no address of the pair's set for a store act
+  // (`P: docs/pending.md · (Y-1)`; `contract.md §2.9` item 7).
+  //
+  // **AND WHERE TWO ROWS SHARE ONE `id` AT TWO DIFFERENT ADDRESSES, EACH NAMES ITSELF**: the pairs this tree's
+  // callers register are the ones a `K-6` is handed (the entry spells its own removal from the row's own
+  // `addresses`), and the first row whose address set carries one of the caller's addresses answers. **THE
+  // PURGE'S REACH IS THAT ROW'S OWN HANDLE'S AND NOTHING WIDER** (`§2.2` item 3's `S-PURGE-SET`): a different
+  // handle bound at the same address is NOT purged, and a pair at another address under the same `id` is a
+  // DIFFERENT pair.
+  const row = pairRowAt(kernel, set[0], pair.id);
+  if (row === null) {
     refuse(KC.arg, `no constraint pair answers to '${pair.id}'`, []);
   }
+  const { key } = row;
 
   // **THE SUCCESS ARM: THE KERNEL'S ROW AND ITS ADDRESS ROWS GO, AND THE STORE'S HOME ENTRIES ARE WITHDRAWN
   // THROUGH THE APP'S OWN PUBLISHED MEMBER** (`contract.md §2.9` items 3–4; `remove-member.md §4` item 1).

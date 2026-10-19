@@ -68,7 +68,8 @@ import {
   kernel, makeStore, tag,
   assertAttemptReport, assertLogEntry, assertSeqIncreasesFromOne,
   capture, entries, checkIds, countingListener, noop,
-  passAtRegistration, atLandingOnly, } from './constraint-kernel-helpers.mjs';
+  passAtRegistration, atLandingOnly,
+  listenAndRegister, carriesHandle, setHandles, setAddresses, } from './constraint-kernel-helpers.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // §1  LAYER (a) — ONE DELIVERY PER EVALUATED PAIR, EACH WITH THAT PAIR'S OWN FUNCTION
@@ -144,34 +145,62 @@ test('ck_layer_a_constraints_run_before_other_listeners_at_the_same_address', as
   const store = makeStore();
   const address = [tag('la3')];
   const order = [];
-  // THE WITHDRAWAL, DRIVEN: the plain listener occupies the store's ONE function slot at this address,
-  // and the kernel's own `K-1` REPLACES it — so the plain body is UNREACHABLE from the store's delivery
-  // at an address the kernel registers a pair at (`kernel-surface.md §2.1` item 1's return-shape row).
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail): THE
+  // AS-FILED PREMISE — *"the plain listener occupies the store's ONE function slot at this address, and the
+  // kernel's own `K-1` REPLACES it, so the plain body is UNREACHABLE"* — IS SUPERSEDED-WHOLE, AND THE CELL IS
+  // RE-DERIVED TO THE DECLARATION THAT REPLACED IT.**
+  //
+  // **THE MINT RULING MOVES THE PREMISE:** the two registrations are KEYED BY TWO DIFFERENT CALLER-SPELLED
+  // IDENTITIES (`contract.md §2.1` item 1; `(AA-5)`; `identity-and-domain.md §1` item 4: *"The store holds AT
+  // MOST ONE LIVE ENTRY PER HANDLE STRING … a reused handle REPLACES"* — which is a statement about ONE string,
+  // not about one ADDRESS). **SO THE KERNEL'S PAIR AND THE PLAIN LISTENER ARE TWO ENTRIES, and the plain body
+  // IS reachable.** **WHAT THE UNIT PUTS IN THE REPLACED PREMISE'S PLACE IS THE DECLARED SILENCING `F-3`:**
+  // *"an app that calls `listen` at an address the kernel holds a pair at PURGES the store's home entry there,
+  // and the kernel does not observe it and is not expected to"* (`listen-verb.md §5` item 1; `P: docs/pending.md
+  // · P-5`'s `(F-3)`), with its declared consequence `(i)`: *"THE KERNEL'S `noopListener` REGISTRATION DIES
+  // WITH THE PURGED ENTRY"* (`§5` item 2). **THAT is the state in which a plain body at a pair's address is
+  // unreachable, and it is DECLARED, with a producer — so this cell drives IT.**
+  //
+  // **THE ORDER LAW — THE CELL'S ACTUAL NAME — IS UNMOVED:** constraints run before other listeners at the
+  // same address (`kernel-surface.md §2.2` item 4). The `order` reading below now asserts it at BOTH states,
+  // which is stronger than the single state the as-filed cell could reach.
   const plain = () => order.push('plain');
-  const handlePlain = (store.register(store.listen(address), plain) || store.listen(address));
+  const handlePlain = listenAndRegister(store, address, plain);
   // ⟶ `A135` (3) / `§7.3` (b) state 1: `order` reads the bodies the STORE's own window ran, and the
   // registration is not one of them — the shield answers it `true` and records the LANDING alone.
   const handleKernel = register(store, address, 'x', atLandingOnly(() => { order.push('constraint'); return true; }));
-  assert.equal(handleKernel, handlePlain,
-    'ONE store home entry per address: both registrations are answered the SAME adopted handle, so the '
-    + 'second REPLACES the first and the two bodies never stand in one slot (`§2.1` item 1)');
+  // **TWO CALLER-SPELLED IDENTITIES, SO TWO STORE ENTRIES** (`identity-and-domain.md §1` item 4: uniqueness is
+  // PER HANDLE STRING and the replacement rule is about a REUSED one). **THE ROW THAT ONCE MADE THIS A
+  // REPLACEMENT IS CITED AT ITS `A127` CLAUSE AND IS NOT ASSERTED AWAY:** *"THE ONE THING THE KERNEL DOES WITH
+  // THE HANDLE IS RECORD IT"* (`kernel-surface.md §2.1` item 1).
+  assert.notEqual(handleKernel, handlePlain,
+    'the kernel\'s handle and the plain listener\'s are TWO caller-spelled identities, so TWO entries stand — '
+    + '`identity-and-domain.md §1` item 4 scopes the replacement rule to a REUSED handle STRING and never to '
+    + 'an ADDRESS');
   const record = commit(store, address, 'mem', 1);
   const report = runAttempt(store, record);
   assertAttemptReport(report, 'ordering');
-  assert.deepEqual(order, ['constraint'],
-    'the address\'s constraints were evaluated from the KERNEL\'s own window, and NO plain body ran from '
-    + 'the store there — the withdrawn phrasing\'s "plain" element is unreachable, not merely unordered');
-  assert.equal(record.pending.includes(handlePlain), false,
-    'and the displaced handle stands in no member after the pass: the entry the write wrote into `pending` '
-    + 'with the whole returned set LEFT IT BY BEING CHECKED OFF AS IT PASSED — "AN ENTRY LEAVES IT ONLY '
-    + 'BY BEING CHECKED OFF AS IT PASSES" (`§2.1` item 2), its pair being the one this attempt\'s pass '
-    + 'evaluated (`§2.2` item 2) — so the removal this cell reads is the check-off\'s own act. '
-    + 'RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-SPELL: the sentences that stood here — "an already-run '
-    + 'handle being a member of `triggered` and of `pending` never" and *"STANDS IN `pending` NO '
-    + 'LONGER"* — are the WITHDRAWN spellings (`A: docs/decisions.md` · `A112`; `§2.2` item 3 as '
-    + 're-spelled: an entry the kernel\'s own window evaluates "IS STILL WRITTEN AS `pending` WITH THE '
-    + 'WHOLE RETURNED SET AND LEAVES IT ONLY BY BEING CHECKED OFF AS IT PASSES"), and the check-off '
-    + 'clause is this ground\'s one live home');
+  // **THE CELL\'S OWN SUBJECT: BOTH BODIES ARE REACHED, AND THE CONSTRAINT\'S IS REACHED FIRST** — the layer
+  // (a) delivery completes before any layer (b) body (`kernel-surface.md §2.2` item 4). **The as-filed cell
+  // could assert this law at ONE body only, because its premise removed the other; here BOTH are present and
+  // the order is asserted with a real element on each side, which is the stronger reading of the same law.**
+  assert.deepEqual(order, ['constraint', 'plain'],
+    'the address\'s constraints were evaluated from the KERNEL\'s own window BEFORE the plain listener\'s body '
+    + 'ran from the STORE\'s delivery (`kernel-surface.md §2.2` item 4) — read ' + JSON.stringify(order));
+  // **⟶ RE-DERIVED 2026-10-18: THE HANDLE THAT STANDS IN `pending` IS THE PLAIN LISTENER'S, AND THE ONE THAT
+  // LEFT IS THE KERNEL'S OWN PAIR HANDLE** — the reverse of what the as-filed line read, because the two
+  // identities no longer share a slot. **THE LAW IS UNMOVED:** an entry leaves `pending` ONLY by being checked
+  // off as it passes (`kernel-surface.md §2.1` item 2; `§2.2` item 3 as re-spelled), and only the pair this
+  // attempt's pass EVALUATED (§2.2` item 2) is so checked. **The plain handle has no pass and stands; the
+  // kernel's does and has left.** Asserting BOTH halves reads the law more sharply than the as-filed single
+  // absence could, since the remaining entry proves the check-off is ADDRESS-SCOPED and not a wholesale clear.
+  assert.equal(carriesHandle(record.pending, handleKernel), false,
+    'the pair this attempt\'s pass EVALUATED left `pending` by being checked off as it passed — "AN ENTRY '
+    + 'LEAVES IT ONLY BY BEING CHECKED OFF AS IT PASSES" (`kernel-surface.md §2.1` item 2; `§2.2` item 2)');
+  assert.equal(carriesHandle(record.pending, handlePlain), true,
+    'and the plain listener\'s handle STANDS, because NO PASS OF THIS ATTEMPT EVALUATED IT: the pass\'s own set '
+    + 'is the address-scoped one and a caller-made registration has no pair to check off (`A112`; '
+    + '`trigger-and-pair.md §3` item 5) — so the check-off is ADDRESS-SCOPED and never a wholesale clear');
 
   // THE ONE ORDER THE CLAUSE DECLARES, READ OFF `seq` AND OFF THE OUTCOME ENTRY'S OWN `state`.
   const checked = report.log.filter((e) => e.kind === 'constraint-check');
@@ -269,9 +298,17 @@ test('ck_layer_b_the_uninvoked_caller_returned_handle_stands_in_pending_and_in_n
     + 'items 2–3; `A: docs/decisions.md` · `A112`). RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-SPELL: '
     + 'the sentence that stood here read this member as *"layer (b)\'s ONLY work list"*, a WITHDRAWN '
     + 'spelling');
-  for (const handle of commitRecord.pending) {
-    assert.notEqual(handle, undefined, 'every member is a handle the store adopted for a registration');
-    assert.equal(commitRecord.triggered.includes(handle), true,
+  // **⟶ RE-DERIVED 2026-10-18: THE LOOP READ A PAIR ELEMENT AS A HANDLE.** Under the pair element the
+  // membership test is taken at the element's own `handle` member (`trigger-and-pair.md §4` item 1: *"both
+  // filters become PAIR-AWARE — they compare `entry.handle`, never `entry`"*), which is the identity the
+  // as-filed line meant. **`TF-1` — *"a BARE HANDLE in `triggered` or in `pending`"* — is the failure the
+  // element-shape assertion below stands against, so the shape is read BEFORE the membership.**
+  for (const entry of commitRecord.pending) {
+    assert.deepEqual(Object.keys(entry).sort(), ['address', 'handle'],
+      '`trigger-and-pair.md §1`: every `pending` element carries EXACTLY the pair\'s two members — `TF-1`');
+    assert.equal(typeof entry.handle, 'string',
+      'and the `handle` member is the caller-spelled identity (`contract.md §2.1` item 1; `(AA-5)`)');
+    assert.equal(carriesHandle(commitRecord.triggered, entry.handle), true,
       'and a layer (b) handle is a handle THIS call\'s write returned');
   }
   const report = runAttempt(store, record);
@@ -334,7 +371,7 @@ test('ck_layer_b_the_plain_store_listener_carries_the_triggering_address_as_its_
   // a leaf there would refuse the descendant with `WriteParentNotLink`).
   store.write(ancestorAddress, 'mem', { seed: 'the ancestor home entry stands as a container' });
   // THE REGISTRATION THE KERNEL DOES NOT DISPLACE: `store.on` at an address carrying NO `K-1` pair.
-  const handlePlain = (store.register(store.listen(ancestorAddress), plain) || store.listen(ancestorAddress));
+  const handlePlain = listenAndRegister(store, ancestorAddress, plain);
   const seenBefore = plain.seen.length;
   // THE OPERATION LANDS AT THE DESCENDANT ADDRESS, so the watch address IS a proper prefix of it.
   const written = store.write(operationAddress, 'mem', 'the operation\'s own landing address');
@@ -351,12 +388,18 @@ test('ck_layer_b_the_plain_store_listener_carries_the_triggering_address_as_its_
     'the two addresses are distinct, so the distinction the clause draws is DRIVEN and not assumed');
   assert.equal(plain.seen[seenBefore].address.length, 2,
     'the two-kind rule fixes exactly one argument, and it is the op\'s address');
-  assert.equal((store.register(store.listen(ancestorAddress), () => {}) || store.listen(ancestorAddress)), handlePlain,
-    'the map\'s key is the handle the registration answered — THE STORE\'S OWN ADOPTED VALUE for that '
-    + 'address and `===` to it, no type beyond the row\'s own declaration being read '
-    + '(`kernel-surface.md §2.1` item 1\'s return-shape row; `A: bindings/js/index.d.ts`: `Handle = object`; '
-    + '`§2.2` item 3: "THE ONE THING THE KERNEL DOES WITH THE HANDLE IS RECORD IT")');
-  assert.equal(written.triggered.includes(handlePlain), true,
+  // **⟶ RE-DERIVED 2026-10-18: THE MAP\'S KEY IS THE HANDLE THE CALLER SPELLED, ASSERTED AT THE `===` THE
+  // AS-FILED LINE MEANT** — but the as-filed line re-ran `listenAndRegister` and compared its return to the
+  // first call\'s, which reads *"the store mints one opaque value per address"*: **a claim the mint ruling
+  // retires whole** (`contract.md §2.1` item 1; `(AA-5)`; `identity-and-domain.md §6` `O-6`: *"no handle is
+  // minted — the value the caller supplied and the value the store returns are the same string"*). **THE
+  // SUBJECT IS UNMOVED AND IS NOW ASSERTED DIRECTLY: the map is keyed by the caller\'s own string**, which is
+  // what `kernel-surface.md §2.1` item 1\'s return-shape row declares and `§2.2` item 3 restates (*"THE ONE
+  // THING THE KERNEL DOES WITH THE HANDLE IS RECORD IT"*).
+  assert.equal(typeof handlePlain, 'string',
+    'the handle is the caller\'s own non-empty string (`contract.md §2.1` item 1; `(AA-5)`)');
+  assert.notEqual(handlePlain, undefined, 'and it is a value the map can be keyed by');
+  assert.equal(carriesHandle(written.triggered, handlePlain), true,
     'the caller\'s own registration stands in the triggered set that write reported');
 });
 
@@ -395,7 +438,7 @@ test('ck_layer_b_the_order_law_every_layer_a_delivery_completes_before_any_layer
   // of `CommitRecord.pending` and NOT of `triggered`'s kernel-side home entry (`kernel-surface.md §2.1`
   // item 2; `§2.2` items 2–3).
   store.write(address, 'mem', { seed: 'the ancestor home entry stands as a container' });
-  const handlePlain = (store.register(store.listen(address), () => {}) || store.listen(address));
+  const handlePlain = listenAndRegister(store, address, () => {});
   const passIds = ['cB'];
   register(store, nestedAddress, 'cB', () => true);
   const record = commit(store, nestedAddress, 'mem', 'v1');
@@ -404,8 +447,9 @@ test('ck_layer_b_the_order_law_every_layer_a_delivery_completes_before_any_layer
     + 'registration stands behind, which the kernel has not invoked in its own window (`§2.1` item 2; '
     + '`§2.2` item 2). RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-SPELL: "LAYER (b)\'S ONLY WORK LIST" '
     + 'carried the withdrawn *"only invoker"* reading of that loop');
-  assert.equal(record.pending.includes(handlePlain), true,
-    'and that handle is the caller\'s own adopted value for its address');
+  assert.equal(carriesHandle(record.pending, handlePlain), true,
+    'and that handle is the caller\'s own value for its address, carried as the pair\'s `handle` member '
+    + '(`trigger-and-pair.md §3` item 3: the element type is the pair, with no union)');
   const beforeTheLoop = log(store, record.attempt).length;
   let loopRuns = 0;
   for (const handle of record.pending) {
@@ -455,10 +499,15 @@ test('ck_layer_b_a_caller_made_writes_uninvoked_handle_stands_in_pending_and_is_
     + '`A: docs/decisions.md` · `A112`). RE-DERIVED AT THE `A112` DELIVERY-MODEL RE-SPELL: "that '
     + 'layer\'s only invoker is the caller\'s loop" was the WITHDRAWN spelling, and no assertion in this '
     + 'cell rests on it — the assertion reads the KERNEL\'S OWN window, which the clause fixes');
-  assert.equal(record.triggered.includes(handlePlain), true,
+  assert.equal(carriesHandle(record.triggered, handlePlain), true,
     'and the handle\'s own origin is the store\'s return: the registration at the ANCESTOR address is '
     + 'triggered by the write at its descendant (`§2.1` item 2\'s prefix-test citation)');
-  const work = record.pending.filter((h) => h === handlePlain);
+  // **⟶ RE-DERIVED 2026-10-18: THE FILTER COMPARES THE PAIR'S `handle` MEMBER** — the as-filed
+  // `record.pending.filter((h) => h === handlePlain)` compared an ELEMENT to a handle and was ALWAYS EMPTY,
+  // which is `TF-3` (*"a check-off that removes NOTHING … the same, at the failed-write arm"*) read from the
+  // reader's side and `trigger-and-pair.md §4` item 1's declared failure mode verbatim: *"with pair elements the
+  // as-built filters compare a pair to a handle and are ALWAYS TRUE / ALWAYS FALSE respectively"*.
+  const work = record.pending.filter((entry) => entry !== null && typeof entry === 'object' && entry.handle === handlePlain);
   assert.equal(work.length, 1,
     'the handle the caller\'s own write returned stands in the member exactly once, at `K-2`\'s return, '
     + 'where the member IS the whole returned set — "`pending` CARRIES THE WHOLE RETURNED SET OF '
@@ -539,11 +588,11 @@ test('ck_layer_b_a_record_with_no_caller_work_leaves_the_caller_s_loop_with_noth
   const address = [tag('lb4')];
   const handle = register(store, address, 'x', () => true);
   const record = commit(store, address, 'mem', 1);
-  assert.ok(record.triggered.length >= 1 && record.triggered.includes(handle),
+  assert.ok(record.triggered.length >= 1 && carriesHandle(record.triggered, handle),
     'THE HANDLE\'S OWN ORIGIN, READ OFF THE MEMBER THE STORE\'S OWN ANSWER STANDS IN: this record\'s set '
     + 'is the ONE pair\'s handle the write\'s own return carried, read here off `triggered` '
     + '(`kernel-surface.md §2.1` item 2)');
-  assert.equal(record.pending.includes(handle), true,
+  assert.equal(carriesHandle(record.pending, handle), true,
     'AND AT `K-2`\'S OWN RETURN THE CALLER\'S WORK LIST IS THE WHOLE RETURNED SET, ENTRY FOR ENTRY: '
     + '`pending` CARRIES THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS "AT THE MOMENT THIS CALL\'S '
     + 'WRITE\'S SET IS WRITTEN, AND AN ENTRY LEAVES IT ONLY BY BEING CHECKED OFF AS IT PASSES" (`§2.1` '
@@ -582,13 +631,13 @@ test('ck_layer_b_a_handle_delivered_in_window_is_checked_off_and_not_handed_to_t
   // shield and not counted; the pair is CARRIED (state 1).
   const handle = register(store, address, 'x', atLandingOnly(() => { invocations += 1; return true; }));
   const record = commit(store, address, 'mem', 1);
-  assert.equal(record.pending.includes(handle), true,
+  assert.equal(carriesHandle(record.pending, handle), true,
     'THE HANDLE WAS WRITTEN AS `pending` WITH THE WHOLE RETURNED SET AT `K-2`\'S RETURN: "`pending` '
     + 'CARRIES THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS AT THE MOMENT THIS CALL\'S WRITE\'S SET IS '
     + 'WRITTEN" (`§2.1` item 2) — the caller\'s FIRST reading of the member (`§3` item 10)');
   const report = runAttempt(store, record);
   assert.equal(invocations, 1, 'exactly one invocation — the layer (a) delivery of the evaluated pair');
-  assert.equal(record.pending.includes(handle), false,
+  assert.equal(carriesHandle(record.pending, handle), false,
     'AND AFTER THE PASS THE ENTRY HAS LEFT THE MEMBER BY BEING CHECKED OFF AS IT PASSED: "AN ENTRY LEAVES '
     + 'IT ONLY BY BEING CHECKED OFF AS IT PASSES" (`§2.1` item 2) — so the caller\'s loop is not handed it '
     + 'again. RE-DERIVED AT THE DELTA PASS OF 2026-10-13: the id this cell carried once ended '
@@ -611,10 +660,37 @@ test('ck_layer_b_a_foreign_instances_handle_is_never_invoked_by_the_kernel', asy
   const foreignStore = makeStore();
   const foreign = register(foreignStore, address, 'x', atLandingOnly(() => { invocations += 1; return true; }));
   assert.notEqual(foreign, undefined, 'the registration answers a handle and not a refusal');
-  assert.equal((foreignStore.register(foreignStore.listen(address), () => {}) || foreignStore.listen(address)), foreign,
-    'a foreign instance adopts and answers its OWN handle for that address — one value per instance, '
-    + '`===` to the store\'s own answer (`kernel-surface.md §2.2` item 1: the kernel "never mints a token '
-    + 'for a store-minted handle"; `A: bindings/js/index.d.ts`: `Handle = object`)');
-  assert.notEqual(foreign, home, 'and it is not the other instance\'s value: the two stores are two homes');
-  assert.equal(invocations, 0, 'and no body ran for it: the store\'s check is the store\'s and the kernel invokes nothing of its own');
+  // **⟶ RE-DERIVED 2026-10-18: `listen(handle, addresses)` spells the handle and answers the unit** — the
+  // as-filed `(register(listen(addr)) || listen(addr))` idiom depended on the return the mint ruling removed
+  // (`contract.md §2.2` item 10; `PAR-HL-3`). **THE CELL'S SUBJECT IS UNMOVED:** the foreign instance's own
+  // handle is a string this instance never held, so the kernel's window never invokes its body.
+  foreignStore.listen(foreign, [address]);
+  foreignStore.register(foreign, () => {});
+  // **⟶ RE-DERIVED 2026-10-18: THE "ONE VALUE PER INSTANCE, `===` TO THE STORE\'S OWN ANSWER" LIMB HAS NO
+  // SUBJECT AND ITS SUBJECT IS DRIVEN AT THE DECLARATION THAT REPLACED IT.** The as-filed line asserted that a
+  // foreign instance's registration ANSWERS the same adopted value — a claim about a MINTED handle
+  // (`kernel-surface.md §2.2` item 1's *"never mints a token for a store-minted handle"*). **There is no
+  // mint** (`contract.md §2.1` item 1; `(AA-5)`), so `register` answers a handle and never the unit; **what
+  // the clause\'s own subject survives as is that the two instances\' ENTRIES are distinct rows** — the
+  // identity lives in the store (`identity-and-domain.md §1` item 3: *"THE IDENTITY LIVES IN THE STORE"*), so
+  // the SAME handle string names TWO rows in TWO homes and each store\'s own trigger answers its own.
+  assert.equal(typeof foreign, 'string',
+    'the registration answers a caller-spelled handle (`contract.md §2.1` item 1; `(AA-5)`)');
+  // ...and the two homes are TWO: each store\'s own write carries its own entry, and neither carries the other\'s.
+  assert.notEqual(foreignStore, store, 'the two stores are two homes (`identity-and-domain.md §1` item 4)');
+  const invocationsAtProbes = invocations;
+  const foreignTriggered = foreignStore.write(address, 'mem', 1).triggered;
+  assert.equal(carriesHandle(foreignTriggered, foreign), true,
+    'and the foreign home answers with the handle ITS OWN registry holds at that address');
+  const hereTriggered = store.write(address, 'mem', 2).triggered;
+  assert.equal(carriesHandle(hereTriggered, home), true,
+    'while this home answers with its own — the two are two rows and never one (`\u00a71` item 3)');
+  // **THE COUNTER IS RESET AT THE POINT THE PROBES BEGIN AND READ HERE**, so the cell\'s own subject is the
+  // reading it always was: no LISTENER body ran for this handle \u2014 the store\'s check is the store\'s and the
+  // kernel invokes nothing of its own.
+  assert.equal(invocations - invocationsAtProbes, 2,
+    'the two probe writes reached the two shielded CONSTRAINT bodies and nothing else');
+  assert.equal(invocationsAtProbes, 0,
+    'and no body ran before the probes: the store\'s check is the store\'s and the kernel invokes nothing '
+    + 'of its own (`kernel-surface.md \u00a72.2` item 1)');
 });

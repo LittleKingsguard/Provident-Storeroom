@@ -110,6 +110,48 @@ const wholeSetLaw =
   + 'docs/decisions.md` · `A112`)';
 
 /**
+ * **⟶ THE LISTENER-HANDLE SPELLING, RE-DERIVED 2026-10-18 (`role_test_writer`, the
+ * `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail): `listen(address)` MOVES TO `listen(handle, addresses)`,
+ * ARITY `1 → 2`, AND IT ANSWERS `undefined`.** (`contract.md §2.2` items 1 and 10; `listen-verb.md §1`
+ * item 1 and `§2.2` item 1; `PAR-HL-3`: *"the caller supplied the handle, so returning it would be a second
+ * spelling of the caller's own datum"*.) **THE AS-FILED IDIOM**
+ * `(store.register(store.listen(addr), fn) || store.listen(addr))`
+ * **DEPENDED ON THAT RETURN** — it took the handle `listen` answered, registered at it, and fell back to a
+ * second `listen` when the first answered a falsy value. **UNDER THE NEW DECLARATION BOTH HALVES VANISH: the
+ * handle is SPELLED by the caller and every `listen` answers the unit, so the idiom is replaced by the two
+ * acts it always meant — a `listen` that creates the RESERVED entry, then a `register` that ARMS it — and the
+ * handle is the spelling below.** **NO ASSERTION IS WEAKENED:** every cell that used the idiom still reads the
+ * same `listenerHandle`, the same `listenerCalls` and the same store-side entry.
+ */
+let listenSpellingSeq = 0;
+function listenAndRegister(store, address, listener) {
+  listenSpellingSeq += 1;
+  const handle = `${tag('dm-listener')}-${listenSpellingSeq}`;
+  // **THE SET POSITION IS `[address]` — ONE MEMBER, the address the as-filed call named** (`listen-verb.md §2.2`
+  // item 1: *"`addresses` is an ARRAY whose every member is an address in the store's own domain"*).
+  store.listen(handle, [address]);
+  store.register(handle, listener);
+  return handle;
+}
+
+/**
+ * **⟶ AND THE PAIR'S OWN READER, RE-DERIVED 2026-10-18 WITH IT.** `triggered`'s element moved from a BARE
+ * HANDLE to the pair `{handle, address}` (`trigger-and-pair.md §2` item 1; `§1` item 1), so every as-filed
+ * `triggered.includes(handle)` read a pair against a string and was ALWAYS FALSE — **`TF-1`'s exact failure,
+ * *"a BARE HANDLE in `triggered` or in `pending`"*, read from the other side.** **THE REPLACEMENT READS THE
+ * PAIR'S `handle` MEMBER, which is the SAME identity the as-filed line meant** (`trigger-and-pair.md §5` item 1:
+ * *"Dedupe on handle — rule 3 stands"*; `§4` item 1: the filters compare `entry.handle`, never `entry`).
+ */
+function carriesHandle(set, handle) {
+  return set.some((element) => element !== null && typeof element === 'object' && element.handle === handle);
+}
+
+/** The \`handle\` members of a returned set, in ITS OWN order — read as a SET by every citing cell (`DD-22`). */
+function setHandles(set) {
+  return set.map((element) => element && element.handle);
+}
+
+/**
  * THE `S1`/`S2` FIXTURE, ONE ACT PER STEP, so each cell reads a state and not a coincidence:
  * the caller's own minting write at `watch` (which leaves the link tier `operation` needs), the plain
  * registration at `watch`, the kernel's pair at `pairAddress`, and the caller's own `K-2`-composed write
@@ -118,7 +160,7 @@ const wholeSetLaw =
 function twoHandleFixture({ watch, operation, pairAddress }) {
   const store = makeStore();
   const listenerCalls = [];
-  const listenerHandle = (store.register(store.listen(watch), (address) => { listenerCalls.push(address); }) || store.listen(watch));
+  const listenerHandle = listenAndRegister(store, watch, (address) => { listenerCalls.push(address); });
   const pairCalls = [];
   // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1: THIS CELL'S SUBJECT IS *"NO PAIR BODY RUNS AT `K-2`"*, read
   // off `pairCalls` before `K-3` — AND THE REGISTRATION IS AN INVOCATION THE CELL DID NOT DRIVE. The shield
@@ -151,7 +193,7 @@ test('ck_dm_the_callers_own_write_returns_the_handle_the_adopted_registration_an
   assert.equal(written.triggered.length, 1,
     'the store\'s own prefix selection answers this write with the ONE registration standing at its own '
     + `address — read ${written.triggered.length}`);
-  assert.equal(written.triggered[0], pairHandle,
+  assert.equal(written.triggered[0].handle, pairHandle,
     'FAIL-STATE DISTINGUISHED: a store whose write returned a handle the registration did not answer '
     + 'with — the adopted handle IS the one registration entry the store holds for that address '
     + '(`§2.2` item 3; `A: docs/specs/storeroom-native/write-and-read.md §6.5` item 10 (a))');
@@ -163,13 +205,13 @@ test('ck_dm_the_triggering_address_is_the_operations_own_address_and_never_the_w
   const watch = [tag('dm-w')];
   const operation = [...watch, tag('dm-wo')];
   const listenerCalls = [];
-  const listenerHandle = (store.register(store.listen(watch), (address) => { listenerCalls.push(address); }) || store.listen(watch));
+  const listenerHandle = listenAndRegister(store, watch, (address) => { listenerCalls.push(address); });
   register(store, operation, 'y', () => true);
   store.write(watch, 'mem', { [tag('dm-wl')]: 1 }); // the caller's own minting act
   listenerCalls.length = 0;
 
   const written = store.write(operation, 'mem', 1);
-  assert.equal(written.triggered.includes(listenerHandle), true,
+  assert.equal(carriesHandle(written.triggered, listenerHandle), true,
     'the proper-prefix registration is triggered by the operation at its descendant address '
     + '(`§2.1` item 2\'s prefix-test citation: a watched address `W` is triggered by an operation at `X` '
     + 'iff `W` IS A PREFIX OF `X`)');
@@ -365,7 +407,7 @@ test('ck_dm_on_a_throwing_arm_the_callers_loop_performs_no_invocation_for_a_hand
   // §2.4` item 8 (ii) (e)), while `K-1`'s return is the store's own home handle for the address it
   // registered at — the handle the write at that address returns (`kernel-surface.md §2.1` item 2).
   const listenerBody = (address) => { listenerCalls.push(address); };
-  const listenerHandle = (store.register(store.listen(watch), listenerBody) || store.listen(watch));
+  const listenerHandle = listenAndRegister(store, watch, listenerBody);
   let pairRuns = 0;
   const pairBody = () => { pairRuns += 1; return false; };
   const pairHandle = register(store, operation, 'x', atLandingOnly(pairBody));
@@ -373,7 +415,7 @@ test('ck_dm_on_a_throwing_arm_the_callers_loop_performs_no_invocation_for_a_hand
   listenerCalls.length = 0; // the minting write is the caller's own act and not this arm's window
 
   const record = commit(store, operation, 'mem', 1);
-  assert.equal(record.triggered.includes(listenerHandle), true,
+  assert.equal(carriesHandle(record.triggered, listenerHandle), true,
     'the returned set this drive meets carries an un-run listener\'s handle — the registration at the '
     + 'proper prefix is triggered by the operation at its descendant address, and NO CONSTRAINT OF THIS '
     + 'CALL HAS PASSED, so `A112` leaves its body un-run (`§2.1` item 2; `A: docs/decisions.md` · `A112`)');
@@ -461,14 +503,14 @@ test('ck_dm_on_a_throwing_arm_the_callers_loop_performs_no_invocation_for_a_hand
   //    DISCHARGED AT THAT CELL, whose failing arm is taken by the settled by-set law (its member
   //    `[]`, the discard reaching every handle that write returned, the ancestry of a registration
   //    no discriminator) and whose citation is RE-POINTED here. ─────────────────────────────────────
-  assert.equal(record.triggered.includes(pairHandle), true,
+  assert.equal(carriesHandle(record.triggered, pairHandle), true,
     'AND `triggered` STANDS AS THE STORE\'S OWN RETURNED SET VERBATIM, THIS WRITE\'S OWN HANDLE IN IT '
     + 'BESIDE THE UN-RUN LISTENER\'S: `K-1`\'s return is the store\'s own home handle for the address it '
     + 'registered at, and the write at that address returns it (`kernel-surface.md §2.1` item 2\'s '
     + 'prefix-test citation; `attempt-lifecycle.md §3` item 8: "the failing arm reads `triggered` as the '
     + 'store\'s returned set VERBATIM") — the discard empties the OTHER member and moves nothing of this '
     + 'one');
-  assert.equal(record.pending.includes(pairHandle), false,
+  assert.equal(carriesHandle(record.pending, pairHandle), false,
     'AND THE FAILED WRITE\'S OWN ENTRY IS GONE FROM THE MEMBER: the ONE lawful removal beside a check-off '
     + 'is the DISCARD — "THE DISCARD ACTS ON THAT WRITE\'S OWN RETURNED SET AND REACHES EVERY HANDLE OF '
     + 'IT ... WHILE AN ENTRY FOR A HANDLE OF ANY OTHER WRITE STANDS" (`attempt-lifecycle.md §3` item 8) — '
@@ -650,29 +692,29 @@ test('ck_dm_a_writes_whole_returned_set_stands_in_pending_at_the_moment_the_reco
   const watch = [tag('dm-i')];
   const operation = [...watch, tag('dm-io')];
   const listenerCalls = [];
-  const listenerHandle = (store.register(store.listen(watch), (address) => { listenerCalls.push(address); }) || store.listen(watch));
+  const listenerHandle = listenAndRegister(store, watch, (address) => { listenerCalls.push(address); });
   const pairHandle = register(store, operation, 'x', () => true); // passes every context, the registration's included
   store.write(watch, 'mem', { [tag('dm-il')]: 1 }); // the caller's own minting act for the watcher
   listenerCalls.length = 0;
 
   const record = commit(store, operation, 'mem', 1);
-  assert.equal(record.triggered.includes(listenerHandle), true,
+  assert.equal(carriesHandle(record.triggered, listenerHandle), true,
     'THE UN-RUN HANDLE\'S OWN ORIGIN IS THE STORE\'S RETURN: the write at the operation\'s address is '
     + 'triggered by the registration at its proper prefix, so the returned set carries it '
     + '(`§2.1` item 2\'s prefix-test citation)');
-  assert.equal(record.triggered.includes(pairHandle), true,
+  assert.equal(carriesHandle(record.triggered, pairHandle), true,
     'and the returned set carries the evaluated pair\'s own handle beside it — two handles at the one '
     + 'write, read off `triggered`, the member the store\'s own answer stands in VERBATIM');
 
   const report = runAttempt(store, record);
   assert.equal(report.outcome, 'passed', 'the evaluated pair returned the pass arm, so the attempt resolves');
-  assert.equal(record.pending.includes(pairHandle), false,
+  assert.equal(carriesHandle(record.pending, pairHandle), false,
     'THE CHECK-OFF EDGE, AT THE ONE INSTANT THE CALLER CAN READ IT: the pair THIS ATTEMPT\'S OWN PASS '
     + 'EVALUATED stands in the member no longer — "AN ENTRY LEAVES IT ONLY BY BEING CHECKED OFF AS IT '
     + 'PASSES" (`§2.1` item 2), and this entry passed (`§2.2` item 3). FAIL-STATE DISTINGUISHED: a build '
     + 'that leaves the checked-off entry for the caller\'s loop to invoke as though no pass had reached '
     + 'it — read `pending` ' + JSON.stringify(record.pending.length) + ' after the window');
-  assert.equal(record.pending.includes(listenerHandle), true,
+  assert.equal(carriesHandle(record.pending, listenerHandle), true,
     'AND THE HANDLE WHOSE PAIR NO PASS OF THIS ATTEMPT EVALUATED STILL STANDS: the pass\'s own set is '
     + 'the address-scoped one — "the pairs registered at the landing\'s own address and NOT THOSE OF ANY '
     + 'ANCESTOR ADDRESS" (`§2.1` item 2\'s layer-(a) extent clause; `§2.3` item 1) — so this entry has no '
@@ -680,7 +722,7 @@ test('ck_dm_a_writes_whole_returned_set_stands_in_pending_at_the_moment_the_reco
     + 'docs/decisions.md` · `A112`). FAIL-STATE DISTINGUISHED: the SIFT — a `pending` from which an '
     + 'entry was subtracted WITHOUT that entry\'s own pass, which `A112` declares UNNECESSARY AND '
     + 'UNLAWFUL, and which would empty this member at the write itself');
-  assert.deepEqual(record.pending.slice(), record.triggered.filter((h) => h !== pairHandle),
+  assert.deepEqual(setHandles(record.pending), setHandles(record.triggered).filter((h) => h !== pairHandle),
     'AND THE MEMBER IS THE RETURNED SET MINUS THE ONE ENTRY THAT WAS CHECKED OFF AS IT PASSED, ENTRY FOR '
     + 'ENTRY: no returned handle the pass did not check off is absent from it, and no handle it carries '
     + 'stands outside the returned set — so the sift is asserted ABSENT BY THE MECHANISM (`A: '
@@ -750,7 +792,7 @@ test('ck_dm_no_sifted_subset_is_produced_and_no_listener_is_absent_from_the_writ
   // write's `pending` — and the pair-handle assertion is REPAIRED to the handle this write returned.
   // AND THE PAIR-HANDLE ASSERTION IS REPAIRED TO THE HANDLE THIS WRITE RETURNED (`writePairHandle`), whose
   // registration stands at the write's own address and is therefore in the set the store answered with.
-  assert.equal(record.triggered.includes(f.listenerHandle), true,
+  assert.equal(carriesHandle(record.triggered, f.listenerHandle), true,
     'the listener\'s handle stands in the set the write returned');
   assert.equal(record.triggered.length, 2,
     'and the returned set is EXACTLY the two handles the store\'s own prefix test answered with: the '
@@ -758,11 +800,11 @@ test('ck_dm_no_sifted_subset_is_produced_and_no_listener_is_absent_from_the_writ
     + `${record.triggered.length} for the write at ${JSON.stringify(operation)}. A HANDLE OF A `
     + 'DESCENDANT REGISTRATION IS NOT IN IT, the trigger selection running a prefix test and never a '
     + 'descendant one (`§2.1` item 2\'s prefix-test citation)');
-  assert.equal(record.pending.includes(f.listenerHandle), true,
+  assert.equal(carriesHandle(record.pending, f.listenerHandle), true,
     'EVERY LISTENER IS `pending` ON EVERY WRITE, so a listener the constraints have not yet passed cannot '
     + 'be absent from this member (`§2.1` item 2) — the re-derived falsifier of `e2e-scenarios.md` '
     + '`E2E-C-8` cell 6: a `pending` read as carrying a listener the constraints have not yet passed');
-  assert.equal(record.pending.includes(writePairHandle), true,
+  assert.equal(carriesHandle(record.pending, writePairHandle), true,
     'AND THE EVALUATED PAIR\'S OWN HANDLE — the one THIS WRITE returned at its own address, adopted by '
     + 'the kernel at `K-1` — STANDS IN THE MEMBER TOO: `pending` CARRIES THE WHOLE RETURNED SET and '
     + '"sifting a subset out of the returned set is UNNECESSARY AND UNLAWFUL" (`§2.1` item 2): a record '
@@ -770,7 +812,7 @@ test('ck_dm_no_sifted_subset_is_produced_and_no_listener_is_absent_from_the_writ
     + 'sift `A112` withdraws by name, and this cell is driven at that negative arm. FAIL-STATE '
     + 'DISTINGUISHED: a member written as `triggered \\ {the kernel\'s own pairs}`, which is the sift and '
     + 'not the whole set');
-  assert.deepEqual(record.pending, record.triggered,
+  assert.deepEqual(setHandles(record.pending), setHandles(record.triggered),
     'and the two members are read together AT THE ONE INSTANT THE CALLER HAS — `K-2`\'s return, where NO '
     + 'pass of this attempt has yet evaluated an entry off, so the set MINUS the entries checked off as '
     + 'they passed IS the whole returned set entry for entry — read `pending` '
@@ -779,7 +821,7 @@ test('ck_dm_no_sifted_subset_is_produced_and_no_listener_is_absent_from_the_writ
     + 'surface returns');
   const report = runAttempt(f.store, record);
   assert.equal(report.outcome, 'passed', 'the attempt resolves (no pair runs at its own address)');
-  assert.equal(record.pending.includes(f.listenerHandle), true,
+  assert.equal(carriesHandle(record.pending, f.listenerHandle), true,
     'AND THE ENTRY SURVIVES THE WINDOW THAT CHECKED THE OTHER ONE OFF: no pass of this attempt evaluates '
     + 'the prefix registration\'s pair, so nothing checked it off and nothing may subtract it — the set '
     + 'the discard rule reaches is "THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS AND NOT A SIFTED SUBSET '
@@ -824,12 +866,12 @@ test('ck_dm_the_callers_loop_is_one_invoker_and_the_kernel_runs_a_pair_body_in_i
   // registration's own invocation — which is no window's — is answered by the shield and not recorded.
   register(store, attemptAddress, 'x', atLandingOnly((ctx) => { kernelRuns.push(ctx.address); return true; }));
   const storeDeliveries = [];
-  const listenerHandle = (store.register(store.listen(watch), (arg) => { storeDeliveries.push(arg); }) || store.listen(watch));
+  const listenerHandle = listenAndRegister(store, watch, (arg) => { storeDeliveries.push(arg); });
   store.write(watch, 'mem', { [tag('dm-ml')]: 1 }); // the caller's own minting act
   storeDeliveries.length = 0;
   const record = commit(store, attemptAddress, 'mem', 1);
 
-  assert.equal(record.triggered.includes(listenerHandle), true,
+  assert.equal(carriesHandle(record.triggered, listenerHandle), true,
     'the store registration\'s own handle is in this write\'s returned set');
   assert.deepEqual(kernelRuns, [],
     'NO PAIR BODY RUNS AT `K-2`: the kernel\'s ONE DELIVERY PER EVALUATED PAIR is the CONSTRAINTS '
@@ -871,8 +913,17 @@ test('ck_dm_the_callers_loop_is_one_invoker_and_the_kernel_runs_a_pair_body_in_i
 
   // THE LOOP, TAKEN BY THIS DRIVE OFF THE RECORD'S OWN `pending` MEMBER AND AFTER THE PASS THAT CHECKS
   // ENTRIES OFF AS THEY PASS: ONE INVOKER AMONG THE SURFACE'S LAYERS AND NEVER THE ONLY ONE.
-  for (const handle of record.pending) {
-    if (handle === listenerHandle) loopRuns.push(['LOOP', attemptAddress]);
+  // **⟶ RE-DERIVED 2026-10-18: `pending`'S ELEMENT IS THE PAIR, SO THE LOOP READS ITS `handle` MEMBER**
+  // (`trigger-and-pair.md §3` item 3: the element type is TOTAL and there is no union; `§4` item 1: the
+  // filters compare `entry.handle`, never `entry`). **A loop comparing the ELEMENT to a handle would run for
+  // NO entry at all — the as-filed line's own `TF-1`/`TF-3` failure — so the re-run below is the fix the
+  // declaration requires and not a rewrite of the claim.** **AND THE OWED FIRING IS UNMOVED** (`§3` item 4:
+  // *"after a check-off pops an identity from `pending`, the delivery still resolves that identity against the
+  // package's `registry`"*; `docs/specs/storeroom-js/surface.md §2.7` item 7 (a)).
+  for (const entry of record.pending) {
+    if (entry !== null && typeof entry === 'object' && entry.handle === listenerHandle) {
+      loopRuns.push(['LOOP', attemptAddress]);
+    }
   }
   assert.deepEqual(loopRuns, [['LOOP', attemptAddress]],
     'THE CALLER\'S OWN LOOP IS ONE INVOKER: it resolves each `pending` handle in the caller\'s own map '

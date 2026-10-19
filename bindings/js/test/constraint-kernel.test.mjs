@@ -72,25 +72,39 @@ test('ck_surface_K1_a_lawful_registration_returns_the_store_s_own_adopted_handle
   // the FRESH opaque handle it is keyed by"). NOTHING DECLARES A STRING, so no type outside that row is
   // asserted; what the row DOES declare is IDENTITY — one adopted value per address, minted by the
   // store's own verb — and that is what is read below.
-  assert.notEqual(handle, undefined, 'K-1 answers the store\'s own handle and never undefined');
+  // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`, the `U-STOREROOM-HELD-LISTENER-IDENTITY` legacy tail):
+  // THE KERNEL'S RETURNED HANDLE IS NOW A STRING THE CALLER-SPELLED IDENTITY CARRIES, AND THE AS-FILED
+  // "OPAQUE OBJECT" LIMBS HAVE NO SUBJECT.** The store mints nothing (`contract.md §2.1` item 1; `(AA-5)`;
+  // `identity-and-domain.md §1` item 1: *"nothing mints it"*, and `§6` `O-6`), so `A: bindings/js/index.d.ts`'s
+  // `Handle = object` reading the as-filed comment cited is superseded by that declaration. **THE CELL'S OWN
+  // SUBJECT — *"the handle is the store's own, ADOPTED and never minted by the kernel, and one value stands
+  // per address"* — IS UNMOVED, and it is now assertable MORE DIRECTLY: `register` answers a `string`, and a
+  // second registration at the same address answers THE SAME string.**
+  assert.equal(typeof handle, 'string',
+    '`contract.md §2.1` item 1 / `(AA-5)`: the handle is a caller-spelled `string`, never a wrapper');
+  assert.ok(handle.length > 0, 'and it is a non-empty string (`identity-and-domain.md §2` item 1)');
   const again = register(store, address, 'x', () => true);
   assert.equal(again, handle,
-    'a second registration at the SAME address answers the SAME adopted handle: the store\'s `listen` '
-    + 'is idempotent at the address level and returns the existing entry\'s handle (`§2.1` item 1)');
-  const same = (store.register(store.listen(address), () => {}) || store.listen(address));
-  assert.equal(same, handle,
-    'the kernel ADOPTS the store\'s own home entry for the address and mints no token of its own: the '
-    + 'store\'s own verb answers the kernel\'s own value, so the two are the ONE value');
-  // AND THE KERNEL EXPOSES NO MEMBER OF THE HANDLE BEYOND THAT VALUE — the store\'s module namespace is
-  // CLOSED at its EIGHT verbs and the instance at its THREE members `register` · `on` · `off`, so no
-  // invocation member exists anywhere for a handle to be reached through (`§2.2` item 2, whose bare-call
-  // reading is withdrawn by name; `A: docs/specs/storeroom-js/contract.md §2.9` item 1).
-  assert.deepEqual(Object.keys(handle), [],
-    'the handle is OPAQUE: it carries no member the kernel could read a state off');
-  for (const member of ['on', 'off', 'register', 'invoke', 'call', 'fn', 'constraint']) {
-    assert.equal(member in handle, false,
-      `no member of the handle is declared — ${member} stands on neither the store's surface nor the kernel's`);
-  }
+    'a second registration at the SAME address answers the SAME adopted handle: one value stands per '
+    + 'address (`kernel-surface.md §2.1` item 1)');
+  // **AND THE STORE ADOPTED IT AND MINTS NOTHING** — the two-call spelling at the address the kernel holds
+  // reaches the SAME entry, asserted at the store's own answer rather than at a wrapper's identity.
+  store.register(handle, () => {});
+  const pair = store.write(address, 'mem', 1).triggered;
+  assert.ok(pair.some((one) => one.handle === handle),
+    'the kernel ADOPTS the store\'s own home entry for the address and mints no handle of its own: the '
+    + 'store\'s own write carries the kernel\'s own value in the pair\'s `handle` member');
+  // **AND THE HANDLE IS A STRING, SO THE AS-FILED OPAQUE-MEMBER LIMB IS RE-DERIVED TO WHAT IT WAS REACHING
+  // FOR — no member of the handle carries a state the kernel could read.** A string carries no own
+  // property at all, so the assertion is the same claim at the new subject and is not weakened.
+  // **A STRING'S OWN KEYS ARRAY THE CHARACTER INDEXES, so the reading is taken at the MEMBER SET the kernel
+  // could read a state off: the handle carries no PROPERTY a state could live in** (`kernel-surface.md §2.1`
+  // item 1's return-shape row names the handle and nothing beside it).
+  assert.deepEqual(Object.getOwnPropertyNames(handle).filter((k) => !/^(\d+|length)$/.test(k)), [],
+    'the handle is OPAQUE to the kernel: it carries no own member a state could be read off');
+  assert.equal(typeof handle, 'string',
+    'and it is reached at no member: `on`, `off` and `register` stand on the STORE\'s instance and never on '
+    + 'the identity (`A127`: the merged pair is a member of no product)');
 });
 
 test('ck_surface_K1_two_ids_at_one_address_leave_two_entries_and_one_store_home', async () => {
@@ -146,10 +160,14 @@ test('ck_surface_K1_the_empty_address_is_in_the_store_s_domain', async () => {
   // THE EMPTY ARRAY IS IN THE STORE'S OWN DOMAIN (`PAR-C-1`'s domain cell: "the empty array included"),
   // so the row this cell reads is `§2.1` item 1's RETURN SHAPE and not a type: the value the store's own
   // verb adopted for that address, `===` to it (`A: bindings/js/index.d.ts`: `Handle = object`).
-  assert.notEqual(handle, undefined,
-    'the empty array is inside the address domain (§2.1: "the empty array included"), so it is admitted and not KC-1');
-  assert.equal((store.register(store.listen([]), () => {}) || store.listen([])), handle,
-    'and the admitted address answers the store\'s own adopted handle — one value, adopted and never minted');
+  assert.equal(typeof handle, 'string',
+    'the empty array is inside the address domain (`PAR-C-1`: "the empty array included"), so it is '
+    + 'admitted and not KC-1, and the handle is the caller-spelled string (`contract.md §2.1` item 1)');
+  assert.ok(handle.length > 0, 'and it is a non-empty string');
+  // **AND THE ADMITTED ADDRESS ANSWERS THE SAME ADOPTED VALUE ON A REPEAT REGISTRATION** — one value per
+  // address, adopted and never minted (`kernel-surface.md §2.1` item 1).
+  assert.equal(register(store, [], 'x', () => true), handle,
+    'the admitted address answers the store\'s own adopted handle — one value, adopted and never minted');
 });
 
 test('ck_surface_K1_every_id_outside_its_domain_is_refused_with_KC2', async () => {
