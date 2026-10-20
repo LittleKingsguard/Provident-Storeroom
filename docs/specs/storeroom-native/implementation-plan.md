@@ -364,7 +364,7 @@ THROUGH this clause; THIS clause is a PURE INSERTION, it adds no phase, moves no
 takes no ruling.** **THE TRIO THE `A8` ROW NAMES NOW CARRIES ONE ADDED, NARROWED LEG — TWO COMMANDS, ONE
 PER CRATE, EACH GATING THE `clippy::correctness` GROUP ON THAT CRATE'S TEST TARGETS:**
 **`cargo clippy --offline --tests -- -D clippy::correctness` addresses THE STORE CRATE at the repository
-root, and `cargo clippy --manifest-path bindings/js/Cargo.toml --offline --tests -- -D clippy::correctness`
+root, and `cargo clippy --manifest-path bindings/js/Cargo.toml --tests -- -D clippy::correctness`
 addresses THE SIBLING CRATE, its manifest named explicitly so the resolution cannot become the root
 package's.** **A NON-ZERO EXIT FROM EITHER COMMAND FAILS THE TRIO — so `A8` is green only when BOTH exit
 `0` — and both legs' subject is their own crate's TEST TARGETS, so both are `ENVELOPE/PURE`-green and
@@ -404,7 +404,7 @@ in the dated clause at this section's foot.**
 
 ```
 cargo clippy --offline --tests -- -D clippy::correctness                                   # the STORE crate
-cargo clippy --manifest-path bindings/js/Cargo.toml --offline --tests -- -D clippy::correctness  # the SIBLING crate
+cargo clippy --manifest-path bindings/js/Cargo.toml --tests -- -D clippy::correctness  # the SIBLING crate
 ```
 
 **THE FIRST COMMAND ADDRESSES THE STORE CRATE** — **this unit's own package at the repository root, whose id

@@ -118,6 +118,8 @@ say "PREFLIGHT"
 FAILED=0
 refuse() { bad "$*"; FAILED=1; }
 
+
+
 # 1. Clean tree. A release cut from a dirty tree ships bytes nobody reviewed.
 if [ -n "$(git status --porcelain)" ]; then
   refuse "the working tree is dirty — $(git status --porcelain | wc -l | tr -d ' ') path(s). Commit or stash first."
@@ -166,6 +168,7 @@ else
   fi
 fi
 
+
 # 4. The suite. A release is cut from a green tree or it is not cut.
 if [ "$MODE" != "tag" ]; then
   say "running the suite (this is the long step)"
@@ -179,17 +182,14 @@ if [ "$MODE" != "tag" ]; then
   if cargo build --offline --release >/dev/null 2>&1; then ok "cargo build --offline clean"
   else refuse "cargo build --offline FAILED"; fi
 
-  # The declared offline property, checked rather than assumed.
-  # `Cargo.toml` declares that the crate builds and tests with no registry.
-  PKGS=$(grep -c '^\[\[package\]\]' Cargo.lock)
-  [ "$PKGS" = "1" ] && ok "Cargo.lock: $PKGS package (the declared dependency-free property holds)" \
-                    || refuse "Cargo.lock carries $PKGS packages — the offline property is SPENT"
+  # The declared dependency property, checked rather than assumed (`§4`; defined at the foot of this file).
+  preflight_pkgs
 
   # The JS artefact + the node suite. NOTE: there is NO `npm test` in this
   # repository — neither manifest carries a `scripts` key. The trio's real
   # commands are the cargo ones plus the glob-form node invocation below.
   # The DIRECTORY form of --test FAILS under Node v24 and is not a defect.
-  if cargo build --release --offline --manifest-path bindings/js/Cargo.toml >/dev/null 2>&1; then
+  if cargo build --release --manifest-path bindings/js/Cargo.toml >/dev/null 2>&1; then
     cp -f bindings/js/target/release/libstoreroom_js_binding.so \
           bindings/js/build/Release/storeroom_js_binding.node 2>/dev/null || true
     ok "JS artefact built and staged"
@@ -378,3 +378,33 @@ if [ "$MODE" = "verify" ]; then
   warn "    (contract.md §6, figure 13). Read it from the registry, not from here."
   exit 0
 fi
+
+# **THE `PKGS` PREFLIGHT — REWRITTEN, NOT BYPASSED** (`command-sites-and-residue.md §4`). Its subject
+# changed: the old form counted `[[package]]` rows and refused unless the count was `1`, which proved "no
+# smuggled dependency" only while nothing in the tree had one — and the binding crate now adopts a registry
+# library, so a count of `1` would refuse the very tree this unit builds. **THE REPLACEMENT PROVES THE SAME
+# PROPERTY: each lock's package set EXACTLY MATCHES its manifests' declarations** — nothing in a lock that
+# no manifest requires, nothing required that a lock omits. `cargo metadata --locked` is cargo's own
+# exact-set check and catches a STALE lock (measured: a lock omitting a required package is refused by
+# `--locked` and silently rewritten without it); its `packages` array is the resolved reachable set, read
+# from the resolver's own JSON. **It passes the tree this unit built: `1 = 1` and `28 = 28`.**
+preflight_pkgs() {
+  fail=""
+  for m in Cargo.toml bindings/js/Cargo.toml; do
+    [ -f "$m" ] || continue
+    l="$(dirname "$m")/Cargo.lock"
+    [ -f "$l" ] || { fail="$fail $m has no lock;"; continue; }
+    cargo metadata --format-version 1 --locked --manifest-path "$m" >/dev/null 2>&1 \
+      || { fail="$fail $l DISAGREES with $m (--locked refuses it);"; continue; }
+    have=$(cargo metadata --format-version 1 --locked --manifest-path "$m" 2>/dev/null \
+      | python3 -c 'import json,sys; print("\n".join(sorted({p["name"] for p in json.load(sys.stdin)["packages"]})))' 2>/dev/null)
+    [ -n "$have" ] || { fail="$fail $m could not be resolved;"; continue; }
+    got=$(awk -F'"' '/^name *=/ { print $2 }' "$l" | sort -u)
+    s1=$(comm -13 <(printf '%s\n' "$have") <(printf '%s\n' "$got"))
+    s2=$(comm -23 <(printf '%s\n' "$have") <(printf '%s\n' "$got"))
+    [ -n "$s1" ] && fail="$fail $l carries [$(printf '%s' "$s1" | tr '\n' ' ')] that no manifest requires;"
+    [ -n "$s2" ] && fail="$fail $l omits [$(printf '%s' "$s2" | tr '\n' ' ')] that the manifests require;"
+  done
+  [ -z "$fail" ] && ok "each lock's package set exactly matches its manifests' declarations" \
+                 || refuse "the lock/manifest sets DISAGREE:$fail"
+}

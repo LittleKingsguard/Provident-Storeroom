@@ -8,7 +8,7 @@
 //! **EVERY RULE IS CITED AT ITS OWN CLAUSE**, and the refusal's ONE form is `§4.5` item 4: a `Refusal`
 //! carrying EXACTLY `{status, message}` and not one member beside them. **NO CODE IS MINTED HERE**: an
 //! outside carrier variant is carried onto the store's own argument type as a VALUE and the STORE produces
-//! the code (`DD-1`, `crossing.md §1.3`'s closing clause), so the store's closed `15`-member set stays the
+//! the code (`DD-1`, `crossing.md §1.3`'s closing clause), so the store's closed `16`-member set stays the
 //! only producer of a status (`DD-40`).
 
 use std::collections::BTreeMap;

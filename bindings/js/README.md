@@ -185,7 +185,7 @@ THE CHECKOUT-ONLY RUNG**: it is the in-place developer loop and every battery th
 building it is a step of a checkout rather than of an install:
 
 ```sh
-cargo build --release --manifest-path bindings/js/Cargo.toml --offline
+cargo build --release --manifest-path bindings/js/Cargo.toml
 mkdir -p bindings/js/build/Release
 cp bindings/js/target/release/libstoreroom_js_binding.so bindings/js/build/Release/storeroom_js_binding.node
 ```
@@ -218,7 +218,7 @@ distribution.md §2.2`; `PUB-DD-1`, `PUB-DD-2`):
 ## Tests
 
 ```sh
-cargo test  --manifest-path bindings/js/Cargo.toml --offline --no-fail-fast   # the sibling crate's Rust tests
+cargo test  --manifest-path bindings/js/Cargo.toml --no-fail-fast   # the sibling crate's Rust tests
 node --test bindings/js/test/*.test.mjs                                       # this package's JS tests
 ```
 
@@ -231,7 +231,7 @@ route — `JS -> facade -> core -> store` — is what they exercise, and that ro
 
 ```sh
 # 1. THE BUILD STEP, AT THE REPOSITORY ROOT, BEFORE ANY JS CELL RUNS:
-cargo build --release --manifest-path bindings/js/Cargo.toml --offline
+cargo build --release --manifest-path bindings/js/Cargo.toml
 mkdir -p bindings/js/build/Release
 cp bindings/js/target/release/libstoreroom_js_binding.so bindings/js/build/Release/storeroom_js_binding.node
 # 2. THE JS LEG, AFTER IT:

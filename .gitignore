@@ -151,6 +151,23 @@ vite.config.ts.timestamp-*
 # Rust build output
 /target
 
+# The vendored Rust registry — the CARGO_HOME this machine's builds are pointed at.
+# `export CARGO_HOME="$(pwd)/.cargo-home"` is MANDATORY here, because the default `~/.cargo` fails EACCES
+# (a permission fault in the environment, not a project defect); the directory is the crates.io cache and
+# the extracted crate SOURCES that path resolves against.
+#
+# IT IS NEVER A DELIVERABLE AND NEVER A SOURCE: 24 MB and 1,589 files of third-party Rust imports
+# (`registry/cache`, `registry/src`, `registry/index`), rebuilt by any fetch. A `git add -A` would sweep all
+# of it in -- the same defect the `archive/` and backup-tree rules below exist to prevent, and the reason
+# the rule is written HERE beside the other Rust build output rather than at the top of the file.
+#
+# NOTHING HERE IS OWED TO A FRESH CLONE: `Cargo.lock` STAYS UNCOMMITTED by decision
+# (`binding-crate-and-abi.md §1` — pinning a consumer's transitive versions is a consuming-application
+# decision), so a cold build FETCHES (`command-sites-and-residue.md §2`: the binding crate's commands fetch;
+# the store's carry `--offline`). An ignored registry is therefore consistent with the declared model rather
+# than a cache a consumer needs.
+.cargo-home/
+
 # Archival (the process rule: archive/ is GITIGNORED)
 archive/
 

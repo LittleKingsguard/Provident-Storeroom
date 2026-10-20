@@ -38,3 +38,33 @@
 
 pub mod crossing;
 pub mod facade;
+
+// =================================================================================================
+// THE EXPORT TABLE IS THE LIBRARY'S OWN AND THIS MODULE BUILDS NONE —
+// `U-STOREROOM-ADDON-ADOPTION`, `binding-crate-and-abi.md §2`'s deletion table, rows 4–5
+//
+// **WHAT STOOD HERE AND IS GONE: the hand-built `entry_table()` naming the five callbacks, the
+// `declare_exports(env, exports)` frame that ran the manual registration inside the library's hook, the
+// `#[no_mangle] pub extern "C" fn storeroom_js_binding_declare_exports()` loader, the extern-linkage
+// `STOREROOM_JS_BINDING_DECLARE_EXPORTS` static, and the `.init_array` / `__DATA,__mod_init_func` /
+// `.CRT$XCU` initialiser-array slot that carried it — together with every `::napi::sys` mention this
+// module made. THE LIBRARY'S OWN REGISTRATION TAKES THEIR PLACE** (`contract.md §2` items 2–3).
+//
+// **AND THE MECHANISM WAS THERE ONLY BECAUSE THE ANNOTATION WAS ABSENT, WHICH IS THE WHOLE OF WHY IT WAS
+// DELETABLE.** The initialiser array existed to run a *user-supplied* registration hook BEFORE the
+// runtime's registration symbol fired, because a table built by hand has to be declared into the hook by
+// hand. `#[napi]` does not work that way: the derive emits its own `ctor`-registered collector and its own
+// `napi_register_module_v1`, so the five names are collected from the annotated functions themselves and
+// the ordering the initialiser array was engineering is the library's business rather than this crate's.
+// **Measured after the deletion, not assumed: the rebuilt artefact still exports exactly the five, and a
+// live `require` of it still answers all of them** (`binding-crate-and-abi.md §4`).
+//
+// **THE FIVE ENTRY FUNCTIONS KEEP THEIR NAMES AND ARITIES** — `version` · `errorMessage` · `storeCreate` ·
+// `call` · `register` — and their annotations stand at their own declarations in `facade.rs`. **A name no
+// annotation registers is not exported**, which is what makes `P-ADA-6`'s symbol read a check of the
+// artefact rather than of a list.
+//
+// **`napi_register_module_v1` REMAINS, AND IT IS THE LIBRARY'S** (`binding-crate-and-abi.md §4` item 1):
+// it is the unavoidable runtime registration symbol, now emitted by `napi-derive` in place of the
+// hand-declared one this module's deleted block used to reach through its hook.
+// =================================================================================================

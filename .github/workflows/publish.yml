@@ -168,10 +168,10 @@ jobs:
       # HOST TARGET** — run from the repository root, at the crate's own manifest, offline as every leg of
       # this project is (`contract.md §4.5` item 2).
       - name: '1. cargo test the sibling crate (host target)'
-        run: cargo test --manifest-path bindings/js/Cargo.toml --offline --no-fail-fast
+        run: cargo test --manifest-path bindings/js/Cargo.toml --no-fail-fast
 
       - name: '1. build the sibling crate for this target'
-        run: cargo build --release --manifest-path bindings/js/Cargo.toml --offline --target ${{ matrix.target }}
+        run: cargo build --release --manifest-path bindings/js/Cargo.toml --target ${{ matrix.target }}
 
       # `release.md §1.4` step 2 — **ASSEMBLE** each platform artefact's published content: its manifest
       # (the tracked one below, whose `version` equals the main package's, character for character), its

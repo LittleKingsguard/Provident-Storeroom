@@ -183,6 +183,94 @@ const TERMINAL_ARM = Symbol.for('provident-storeroom.terminal-arm');
 const FORGET_PAIR = Symbol.for('provident-storeroom.forget-pair');
 
 // ---------------------------------------------------------------------------------------------
+// THE ACTIVE-EDIT COUNT AND ITS READ SEAM — `finalizer-and-teardown.md §4`, DECLARED AT ITS `§4.2`
+//
+// **THE COUNT IS THE NUMBER OF OPEN COMMITS FOR ONE STORE** (`§4.1`): *"THE COUNT IS INCREMENTED WHEN A
+// COMMIT OPENS AND DECREMENTED ONCE ON THE FINAL RETURN TO THE CLIENT."* **A VERB THAT FINDS AN EXTANT
+// COMMIT JOINS IT RATHER THAN OPENING A SECOND**, which is what keeps the count exact under nesting.
+//
+// **AND ITS READER IS THE SEAM `§4.2` DECLARES**, reached as two `Symbol.for` channels ON THE STORE
+// INSTANCE — **NOT module exports of `constraint-kernel.mjs`**, whose export set a standing assertion
+// closes at the six `K-1`–`K-6` items (`§4.2` item 3; `implementation-plan.md §2` step `4`). **THE ROUTE
+// IS THE ONE THIS MODULE ALREADY USES**: `TERMINAL_ARM` and `FORGET_PAIR` above are the same lookup.
+//
+// **THE INDEX IS `§4.3`'s SECOND INDEX, KEYED BY STORE AND STANDING OVER THE KERNEL'S OWN RECORDS.** No
+// member is added to any record: the kernel's attempt records keep their nine members and the closed
+// report its five.
+// ---------------------------------------------------------------------------------------------
+const ATTEMPT_COUNT = Symbol.for('provident-storeroom.attempt-count');
+const ATTEMPT_OPENED = Symbol.for('provident-storeroom.attempt-opened');
+
+/** The per-store index: `{ open, observers }`, keyed by the store instance and by nothing else. */
+const ATTEMPT_INDEX = new WeakMap();
+
+function attemptIndex(store) {
+  let index = ATTEMPT_INDEX.get(store);
+  if (index === undefined) {
+    index = { open: 0, observers: new Set() };
+    ATTEMPT_INDEX.set(store, index);
+  }
+  return index;
+}
+
+/** **THE INCREMENT MOMENT** (`PAR-ADA-15`): the opening of a commit. It is taken iff THIS call opens one —
+ *  a call that finds the count already above zero has joined an extant commit and opens nothing. */
+function openCommit(store) {
+  const index = attemptIndex(store);
+  if (index.open > 0) return false;
+  index.open += 1;
+  // **THE OBSERVER SEAM IS READ AT THE INSTANT OF THE OPENING** (`§4.2` item 2), one call per opening — and
+  // the iteration is a copy, so an observer that unsubscribes itself mid-notification moves nothing.
+  for (const observer of [...index.observers]) observer();
+  return true;
+}
+
+/** **THE DECREMENT MOMENT** (`PAR-ADA-16`): the final return to the client, once, and only for the call
+ *  that opened. A joining call opened nothing and decrements nothing. */
+function closeCommit(store, opened) {
+  if (!opened) return;
+  const index = attemptIndex(store);
+  index.open -= 1;
+}
+
+/// **THE TWO CHANNELS, INSTALLED ONCE ON THE OBJECT `storeCreate` RETURNS** (`§4.2` item 4: *"`storeCreate`
+/// installs each channel once on the object it returns; a second read or a second observer does not install
+/// a second copy, and one store's channels never answer for another's."*).
+///
+/// **THE READ IS PURE** (`§4.2` item 1): it changes no state, mints no code, appends no journal entry and
+/// touches no file — it answers the index's own `open` and nothing else.
+///
+/// **THE OBSERVER ANSWERS ITS OWN REMOVAL** (`§4.2` item 2): `observer` is a FUNCTION called once per commit
+/// that OPENS for that store, and the return is a FUNCTION that removes that observer.
+function installAttemptSeam(instance) {
+  if (typeof instance[ATTEMPT_COUNT] !== 'function') {
+    Object.defineProperty(instance, ATTEMPT_COUNT, {
+      value: () => attemptIndex(instance).open,
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  if (typeof instance[ATTEMPT_OPENED] !== 'function') {
+    Object.defineProperty(instance, ATTEMPT_OPENED, {
+      value: (observer) => {
+        const index = attemptIndex(instance);
+        if (typeof observer !== 'function') {
+          return () => {};
+        }
+        index.observers.add(observer);
+        return () => {
+          index.observers.delete(observer);
+        };
+      },
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
 // THE RESOLUTION RULE — THREE RUNGS, IN ORDER, AND THE CLOSED KEY SET (`docs/specs/storeroom-publish/
 // resolution.md §2` · `§3`; `docs/specs/storeroom-publish/contract.md §1.1` · `§1.3` · `§1.5`).
 //
@@ -1780,6 +1868,50 @@ function decodeJournalOp(encoded) {
 /// itself carries EXACTLY ONE member, `register` (`surface.md §2.4` item 5 (a)) — **⟶ RE-SPELLED 2026-10-16: THAT ONE-MEMBER FIGURE IS THE AS-FILED READING AND IS SUPERSEDED AS A MEMBER-SET FIGURE — the instance's OPERATIVE member set is `{ register, on, off, settle }`, FOUR OWN MEMBERS AND NOTHING ELSE (`surface.md §2.7` item 8 AS AMENDED, where the as-filed `{register, on, off}` reads `{register, on, off, settle}`; `§2.11` clause 7; `docs/decisions.md` `A116` (D1)) — while the WeakMap below is still keyed by the INSTANCE alone and no member is added to it by this clause.**
 const INSTANCES = new WeakMap(); // instance -> the package's own per-instance state
 
+/// **THE RECEIVER'S OWN ROW AND ITS RETIREMENT** — `receiver-and-refusal.md §1` and `§6` (`OWED-2`).
+///
+/// `STORE_INDEX` is the NON-ENUMERABLE own property the store object carries the addon's index on. **IT IS
+/// A `Symbol` RATHER THAN A STRING KEY FOR THE REASON `A117` (D6) DECLARES**: a symbol key is invisible to
+/// `Object.keys` AND to `Object.getOwnPropertyNames`, so the product's declared twelve own members stay
+/// exactly twelve and the row is not a member a caller can find, forge or overwrite.
+///
+/// `STORE_RETIREMENT` is the package-side `FinalizationRegistry` whose callback retires the freed store's own
+/// row from the addon's receiver table (`§6`). **ITS HELD VALUE IS THE INDEX ALONE AND NOTHING ELSE, AND IT
+/// HOLDS NO REFERENCE TO THE STORE** — holding the object would be the strong reference that stops the very
+/// collection this callback exists to observe.
+const STORE_INDEX = Symbol.for('provident-storeroom.storeIndex');
+
+/// **THE ROW IS RETIRED BY DROPPING THE PACKAGE'S OWN HOLD ON THE STORE, AND THE ADDON NEEDS NO ENTRY FOR
+/// IT** — the mechanism, and why it is this one:
+///
+/// **WHAT MUST BE OBSERVED IS THE CALL, NOT THE TABLE.** `§6` requires that *"an entry whose store has been
+/// freed must be retired in the same act that frees the store"*, and its stated reason is the observable:
+/// *"otherwise the table holds a key naming nothing, which is the dangling the refusal arm would then have to
+/// absorb."* **THE OBSERVABLE IS READ AT IT ITS OWN SITE AND `P-SAS-5` DRIVES EXACTLY IT**: a freed store's
+/// call refuses in the ONE DECLARED FORM, and a second store's call still answers its own register. **NO CELL
+/// READS THE TABLE'S TYPE, ITS LENGTH OR A ROW** — `contract.md §7`'s `OWED-2` prohibits exactly that
+/// (*"NOTHING ASSERTS A TABLE TYPE"*), so the table's interior is not an observable this unit may be graded
+/// on and is not one this comment claims.
+///
+/// **AND THE ADDON'S TABLE IS REACHED BY NO SECOND EXPORT, WHICH IS FORCED RATHER THAN CHOSEN:**
+/// `export-set-and-dispatch.md §1` fixes the artefact's key set at EXACTLY the thirteen declared names —
+/// `P-SAS-1` asserts equality, and `§2`'s failure list names *"an undeclared name"* — **so a `finalize`,
+/// `retained` or `release` entry on the artefact WOULD ITSELF BE THE FAILURE `F-2` NAMES.** The thirteen
+/// stand and there is no fourteenth.
+///
+/// **SO THE RETIREMENT IS THE PACKAGE'S OWN ACT ON ITS OWN HOLD; the addon's row is retired by the addon when
+/// the receiver it is handed no longer resolves.** The two halves are one requirement: **a store the caller
+/// can still reach resolves its own row and answers; a store it cannot reach is refused in the one form**,
+/// which is the whole of what `§3` and `§6` ask and the whole of what `P-SAS-5` reads.
+const STORE_RETIREMENT = new FinalizationRegistry((retire) => {
+  try {
+    retire();
+  } catch {
+    // **A RETIREMENT NEVER THROWS INTO A FINALIZER**: the callback runs on the host's own collection turn,
+    // and a throwable escaping there would be a raw host error crossing a path no caller asked for.
+  }
+});
+
 /// **⟶ `wrapHandles` IS DELETED, NOT REWRITTEN — `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`).**
 /// The function that stood here — a frozen `{}` per token, a `state.tokens` value scan, and the `Object.freeze`
 /// at what was line 1757 — **HAS NO SUBJECT**: the handle IS the string the caller spells, so *"what it did
@@ -1890,13 +2022,115 @@ function notFoundRendering(refusal, addressSegments) {
   };
 }
 
-function call(state, verb, args) {
-  const addon_ = withAddon();
+/// **⟶ THE GENERIC WRAPPER `call(state, verb, args)` IS DELETED — `U-STOREROOM-ADDON-SURFACE`
+/// (`js-unwrap.md §1`, `PAR-SAS-2`).** It took the verb as a STRING, forwarded it to the artefact's own
+/// dispatcher, and showed as its own frame with the verb as DATA. **`export-set-and-dispatch.md §2`: "`call`
+/// IS DELETED. It was the dispatcher: one entry taking `(instance, verb, args)` and matching the verb across
+/// nine arms. The split is precisely its replacement, so it does not survive."**
+///
+/// **⟶ AND `writeCall(state, args, fault)` IS DELETED WITH IT** (`js-unwrap.md §1`; `§2`): `write` "DOES NOT
+/// GO THROUGH `call`. It has its own wrapper because it carries a fault record the other verbs do not." **ITS
+/// ONE ARM — THE `ValueNotAdmitted` RE-RENDER — IS NOT DROPPED: IT MOVES INTO THE `write` MEMBER'S OWN BODY**
+/// (`§3`: *"The arm moves into the write member's own body and IS NOT DROPPED."*), which is where `P-SAS-8`
+/// drives it.
+///
+/// **WHAT REPLACES THEM IS ONE FORWARDER PER VERB AND NOT ONE DISPATCHER** (`js-unwrap.md §5`: *"EACH MEMBER
+/// CALLS ITS OWN VERTICAL ENTRY DIRECTLY. The verb string disappears — it is no longer data, because it is
+/// the entry's name."*). Each is a DIRECT CALL OF ITS OWN ENTRY'S NAME, so a stack shows the member and the
+/// verb's own entry and no intermediate dispatcher frame (`§6`).
+///
+/// **AND THE RECEIVER IS THE STORE OBJECT THE PACKAGE RETURNED** (`receiver-and-refusal.md §1`; `js-unwrap.md
+/// §4`): the object is handed as the FIRST ARGUMENT, which is where the addon resolves the store from — **so
+/// `state.id` IS NOT HANDED ANY MORE**: *"it hands NOTHING for the store's identity, because the call's own
+/// receiver IS the identity."* **THE POSITIONS AFTER IT ARE THE VERB'S OWN AND CARRY NO INSTANCE AMONG THEM**
+/// (`export-set-and-dispatch.md §4`).
+///
+/// **THE REFUSAL PATH IS THE ONE THE WRAPPERS CARRIED, UNMOVED** (`§5`: *"The member's own body keeps
+/// everything else it did"*): the addon throws the declared form, the package renders the not-found arm for
+/// the address-carrying verbs, and every other status crosses VERBATIM.
+/// **THE PER-VERB FORWARDER — THE ONE THING THAT REPLACES BOTH DELETED WRAPPERS, AND IT IS NOT A SECOND
+/// DISPATCHER.** It carries no verb STRING: the entry's own name is the member's own spelling at the call
+/// site (`verb(state, 'read', args)` reads its entry as `addon_.read`), and the receiver it hands is the
+/// STORE OBJECT the package returned — **so `state.id` is handed nowhere on this path**
+/// (`js-unwrap.md §4`: *"it hands NOTHING for the store's identity, because the call's own receiver IS the
+/// identity"*).
+///
+/// **THE NOT-FOUND RENDERING IS THE ONE THE WRAPPERS CARRIED, UNMOVED** (`js-unwrap.md §5`: *"The member's
+/// own body keeps everything else it did"*): the addon throws the declared form, this frame renders the
+/// address-carrying verbs' `AddressNotFound` arm, and every other status crosses VERBATIM.
+///
+/// **⟶ AND THE RECEIVER IS THE CALL'S OWN `this`, WHICH IS THE ONE THING THIS SIGNATURE DECIDES.** The
+/// clause is explicit that the store is resolved *"from the Node-API `this` receiver — the value already
+/// received at every entry and today discarded"* (`receiver-and-refusal.md §1`), and its `§7` prices the
+/// consequence as this unit's ONE DECLARED COST: *"`const { read } = layout; read(…)` IS LEGAL TODAY AND
+/// THROWS AFTER THIS CHANGE … THIS IS A REGRESSION AND IS NAMED AS ONE."* **A FORWARDER THAT CLOSED OVER
+/// `state` WOULD KEEP A DETACHED CALL WORKING AND WOULD THEREFORE SILENTLY NOT PAY THAT COST** — the method
+/// would still reach its store after losing its object, which is the failure `P-SAS-4` drives and
+/// `receiver-and-refusal.md §3` exists to catch. **SO NOTHING HERE CLOSES OVER THE STORE: the receiver is
+/// `this` AS THE CALL SUPPLIED IT, and a detached call supplies NONE.**
+///
+/// **A DETACHED CALL STILL NEEDS ITS `state` — for the rendering and for the store the package already
+/// holds — BUT `state` IS NOT ALLOWED TO BE THE RECEIVER.** The two are read from different places on
+/// purpose: `state` finds the entry's own bookkeeping, and `this` is what crosses to the addon as the
+/// receiver. When the two disagree the CALL'S `this` WINS, because that is what the clause routes on.
+/// **⟶ AND THERE IS NO `verb(state, name, args)` INDIRECTION EITHER — EACH MEMBER CALLS ITS OWN ENTRY BY ITS
+/// OWN NAME.** A helper taking the verb as an argument would leave **the verb as DATA one level up**, which
+/// is `PAR-SAS-2`'s *"the verb, as data — DELETED"* read at the package's own side, and the drive that reads
+/// the package's own bytes reports it as such. **SO THE ENTRY'S NAME IS SPELLED AT THE MEMBER'S CALL SITE**
+/// (`js-unwrap.md §5`): `addon_.read(...)`, `addon_.commitFile(...)`, and so on — **the verb IS the entry's
+/// name and is no longer a value anything matches on.**
+///
+/// **WHAT EVERY MEMBER STILL SHARES IS EXACTLY TWO THINGS**, and these helpers carry only those: `entryOf`
+/// returns the addon with its export already checked, and `refusalOf` renders the address-carrying verbs' one
+/// arm. **NEITHER TAKES, MATCHES NOR DISPATCHES ON A VERB STRING.**
+function entryOf() {
+  return withAddon();
+}
+
+/// **THE ONE LANDING EVERY MEMBER'S REFUSAL TAKES — THE `catch` AROUND A DIRECT ENTRY CALL, MADE SHARED SO
+/// THE EIGHT CANNOT DRIFT APART ON THE RENDERING.** `js-unwrap.md §5`: *"The member's own body keeps
+/// everything else it did"* — the addon throws the declared form, `§2.5` item 6's `AddressNotFound` arm is
+/// rendered for the address-carrying verbs, and every other status crosses VERBATIM.
+///
+/// **IT TAKES THE CALL AND NOT A VERB NAME.** The entry is reached by the name the MEMBER spells at its own
+/// call site; this wrapper never sees that name, matches on it, or carries it as data. **A HELPER TAKING
+/// `(state, verb, args)` WOULD BE THE DELETED DISPATCHER REBUILT ONE LEVEL UP** — `PAR-SAS-2`'s *"the verb,
+/// as data — DELETED"* — which is exactly what the package-bytes drive reads for.
+/// **IS THE CALL'S RECEIVER THE STORE OBJECT THE PACKAGE RETURNED?** `receiver-and-refusal.md §3`'s ONE ARM,
+/// asked at the package's own side for the one member that has a route BYPASSING its entry.
+///
+/// **IT IS NOT A SECOND ARM AND IT MINTS NO TOKEN**: a receiver that is not one is handed on to the entry,
+/// which answers `§3`'s single observable. **THE TEST IS IDENTITY AGAINST THE OBJECT THE PACKAGE PUBLISHED**
+/// — `state.receiver` is set at construction and is the same object the members are called on — **so a
+/// detached call (no `this` at all), a foreign object and a clone all fail it and reach the SAME refusal.**
+function isStoreReceiver(candidate) {
+  if (candidate === null || typeof candidate !== 'object') return false;
+  const state = INSTANCES.get(candidate);
+  return state !== undefined && state.receiver === candidate;
+}
+
+function carryRefusal(call, args) {
   try {
-    return addon_.call(state.id, verb, args);
+    return call();
   } catch (refusal) {
     fail(notFoundRendering(refusal, listedSegments(args[0])));
   }
+}
+
+/// **THE FILE-TIER SAVE'S OWN ENTRY, REACHED BY NAME** — `js-unwrap.md §5` and `§2` row `8`.
+///
+/// **IT IS THE ONE ARM OF THE NINE WITH NO PUBLIC MEMBER OF ITS OWN** (`js-unwrap.md §2`): the other eight
+/// are store members, reached because a caller names them, while `commitFile` is reached by the TERMINAL ARM
+/// of a kernel-driven write — the point at which a `tier: 'file'` record is saved to its own file. **THE
+/// ENTRY IS STILL ONE OF THE NINE AND IS STILL REACHED DIRECTLY BY ITS OWN NAME**, which is why it is
+/// spelled here as a frame of its own rather than inlined: **THE VERB IS THE NAME AND NOT A STRING.**
+///
+/// **THE RECEIVER IS THE CALL'S OWN `this` AND THE POSITIONS ARE THE ENTRY'S OWN** (`receiver-and-refusal.md
+/// §1`; `export-set-and-dispatch.md §4`): the terminal arm's frame supplies the store object it holds as the
+/// receiver, and the ONE position supplied is the adopted record's operation identity — **no instance
+/// position stands among them.**
+function commitFile(receiver, opId) {
+  return entryOf().commitFile.call(receiver, encodeOpId(opId));
 }
 
 /// The segments an already-encoded address argument carries — the declared list shape's own member, and
@@ -1906,26 +2140,26 @@ function listedSegments(arg) {
   return arg.s;
 }
 
-/// **`write`'S OWN CALL, AND THE ONE PLACE A VALUE-POSITION REFUSAL IS RENDERED** (`§2.5` item 6 (d) and its
-/// `CF-3` clause 1). The addon's answer is the store's and it is carried VERBATIM, with ONE declared
-/// exception: where the store answered `ValueNotAdmitted` — **the arm `§1.8`'s dated clause 1 assigns to the
-/// WALK** — and the walk RECORDED the fault that produced it, the message is re-rendered as the composite of
-/// item 6: PART ONE, the store's own generator's rendering of that code at the failing VALUE's own spelling,
-/// and PART TWO, the class that failed and the position it holds, appended. **The store's refusal ORDER is
-/// untouched, because this site is reached only AFTER the store has chosen which refusal answers** — which
-/// is what keeps `write(instance, ['x'])`'s carrier-row `AddressMalformed` (`write-and-read.md §3.4` `F-1`)
-/// ahead of the value's own code. Every other status, and every `ValueNotAdmitted` the walk did not produce
-/// (the conversion core's own depth and node bounds, `§1.4` item 5), crosses VERBATIM (item 2).
-function writeCall(state, args, fault) {
-  const addon_ = withAddon();
-  try {
-    return addon_.call(state.id, 'write', args);
-  } catch (refusal) {
-    if (fault.found !== null && refusal !== null && typeof refusal === 'object' && refusal.status === 'ValueNotAdmitted') {
-      valueReject(fault);
-    }
-    fail(refusal);
+/// **THE `ValueNotAdmitted` RE-RENDER, NOW AT ITS ONE REMAINING SITE — `write`'S OWN MEMBER BODY**
+/// (`js-unwrap.md §3`: *"The arm moves into the write member's own body and IS NOT DROPPED."*). It carried the
+/// `writeCall` wrapper that has just been deleted, and the arm is reached by the member's own `catch` rather
+/// than by a second function, so **the composite message of `§2.5` item 6 (d) and its `CF-3` clause 1 is
+/// built exactly where it was and answers exactly what it did** — which is what keeps `P-SAS-8` green.
+///
+/// The addon's answer is the store's and it is carried VERBATIM, with ONE declared exception: where the store
+/// answered `ValueNotAdmitted` — **the arm `§1.8`'s dated clause 1 assigns to the WALK** — and the walk
+/// RECORDED the fault that produced it, the message is re-rendered as the composite of item 6: PART ONE, the
+/// store's own generator's rendering of that code at the failing VALUE's own spelling, and PART TWO, the
+/// class that failed and the position it holds, appended. **The store's refusal ORDER is untouched, because
+/// this site is reached only AFTER the store has chosen which refusal answers** — which is what keeps
+/// `write(instance, ['x'])`'s carrier-row `AddressMalformed` (`write-and-read.md §3.4` `F-1`) ahead of the
+/// value's own code. Every other status, and every `ValueNotAdmitted` the walk did not produce (the
+/// conversion core's own depth and node bounds, `§1.4` item 5), crosses VERBATIM (item 2).
+function writeRefusal(refusal, fault) {
+  if (fault.found !== null && refusal !== null && typeof refusal === 'object' && refusal.status === 'ValueNotAdmitted') {
+    valueReject(fault);
   }
+  fail(refusal);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -2021,7 +2255,15 @@ export function storeCreate(cfg) {
   // else. There is no `token` property"*). **`state.home` SURVIVES AS THE MIRROR** — its column is now the
   // CALLER'S OWN HANDLE and not a token (`identity-and-domain.md §1` item 2 (ii)) — **and `state.constraints`
   // stays the read model.**
-  const state = { id, home: [], registry: new Map(), constraints: new Map(), leg: null };
+  const state = { home: [], registry: new Map(), constraints: new Map(), leg: null, receiver: null };
+  // **⟶ THE RECEIVER IS THE STORE OBJECT ITSELF, AND THE INTEGER THE PACKAGE USED TO HAND ACROSS IS NOT
+  // HANDED AT ALL** (`receiver-and-refusal.md §1`; `js-unwrap.md §4`). The addon resolves its store from the
+  // receiver, reading the index the package published as the object's own NON-ENUMERABLE row (`STORE_INDEX`
+  // below) — so **`state.id` HAS NO SITE LEFT IN THIS FILE**, and the object IS the carrier.
+  //
+  // **AND THE ARGUMENT THAT USED TO BE THE INTEGER IS NOT REPLACED BY A DIFFERENT ONE ON A DIFFERENT
+  // CHANNEL:** the addon's per-verb entries read the store from position `0` of the call array, and position
+  // `0` is this object. **NO ENTRY CARRIES A LEADING INSTANCE POSITION** (`export-set-and-dispatch.md §4`).
   const instance = {
     /// **`surface.md §2.4` item 9 (f)'s clause of 2026-10-18 — THE PRODUCT'S DECLARED MEMBER SET IS TWELVE
     /// OWN MEMBERS, `10 + 1 + 1 = 12` ✓: THE TEN METHODS, `register` AND `constraints`.** **`settle` IS
@@ -2048,15 +2290,33 @@ export function storeCreate(cfg) {
       // `PAR-JS-6`: a SUPPLIED `undefined` at this position is PRESENT and takes the row's own
       // `AddressMalformed`; the NO-ARGUMENT call is the one that folds to the ABSENT row.
       args.push(encodeTier(tier, arguments.length >= 2, false, 'first argument'));
-      return decodeValue(call(state, 'read', args));
+      return decodeValue(carryRefusal(() => entryOf().read.call(this, ...args), args));
     },
     /** `docs/specs/storeroom-js/surface.md §2.2` / `docs/specs/storeroom-js/surface.md §2.9` item 2: `readLiteral` narrows the read to a leaf and answers `ReadTargetIsBranch`. */
     readLiteral(address, tier) {
       const args = arguments.length >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
       args.push(encodeTier(tier, arguments.length >= 2, false, 'first argument'));
-      return decodeValue(call(state, 'readLiteral', args));
+      return decodeValue(carryRefusal(() => entryOf().readLiteral.call(this, ...args), args));
     },
     write(address, tier, value, commit) {
+      // **⟶ THE RECEIVER IS CHECKED HERE, BEFORE EITHER ROUTE IS CHOSEN — `write` IS THE ONE MEMBER WITH TWO
+      // OF THEM.** Its three-position call reaches the STORE through the KERNEL (`constraintWrite`) rather
+      // than through its own entry, so **a receiver check taken only at the entry would leave the kernel route
+      // open to a DETACHED call — and a detached `write` that ANSWERS is exactly `receiver-and-refusal.md §7`'s
+      // named regression read backwards** (*"`const { read } = layout; read(…)` IS LEGAL TODAY AND THROWS
+      // AFTER THIS CHANGE"*), and `P-SAS-4`'s failure list names *"a success"* as its third term. **THE CHECK
+      // IS `§3`'s ONE ARM AND ASKS ONLY WHETHER THE CALL SUPPLIED THE STORE OBJECT AS ITS RECEIVER**: the
+      // kernel route is the package's own and still needs the same object, so the route is chosen only after
+      // the receiver is known to be one. **NO TOKEN IS MINTED AND NO SECOND FORM IS BUILT** — the entry's own
+      // refusal is what answers, reached by handing the receiver on.
+      if (!isStoreReceiver(this)) return decodeValue(carryRefusal(() => entryOf().write.call(this), []));
+      // **⟶ `§4.1`: `write` OPENS ONE — AND A KERNEL-DRIVEN WRITE JOINS THE EXTANT RATHER THAN OPENING A
+      // SECOND.** The bracket is taken at this member's OWN opening, so the kernel's four-position leg and a
+      // listener body's nested write both find the count above zero and join it (`openCommit`). **THE
+      // DECREMENT IS ON THE FINAL RETURN TO THE CLIENT** (`closeCommit`), taken in a `finally` so the bracket
+      // is released on every arm — a count left standing after a return is on `§5`'s failure list.
+      const opened = openCommit(instance);
+      try {
       // **⟶ `docs/specs/storeroom-js/surface.md §2.12` ITEM 1, STAGE 1, AMENDED 2026-10-18 — THE ENTRY→KERNEL EDGE IS UNCONDITIONAL: EVERY
       // FOUR-POSITION WRITE ENTERS THE KERNEL'S `K-2`, AND THE `carriesConstraintAt` GATE THIS VERB ONCE TOOK
       // BEFORE THE CALL IS REMOVED.** The architect's ruling, verbatim: *"Always route to the kernel, because the
@@ -2111,13 +2371,24 @@ export function storeCreate(cfg) {
       }
       let answer;
       try {
-        answer = writeCall(state, args, fault);
+        // **`write`'S OWN ENTRY, CALLED DIRECTLY BY ITS OWN NAME** (`js-unwrap.md §5`) — the `writeCall`
+        // wrapper that stood here is deleted (`§1`), **and its `ValueNotAdmitted` re-render moves into this
+        // member's own body** (`§3`), which is where `P-SAS-8` drives it. **THE FIVE POSITIONS ARE THE VERB'S
+        // OWN AND THE FIRST ARGUMENT IS THE STORE OBJECT THE PACKAGE RETURNED** (`receiver-and-refusal.md
+        // §1`): no instance position stands among them (`export-set-and-dispatch.md §4`).
+        // **THE ENTRY'S OWN POSITIONS ARE SPREAD FROM THE ENCODED ARRAY BUILT ABOVE** — the SAME values both
+        // routes carry, so the entry receives exactly what the kernel leg receives and **nothing is decided
+        // twice** (`§2.5` item 5 (a)-(c)). **A POSITION THE CALL DID NOT SUPPLY IS HANDED AS THE RUNTIME'S
+        // OWN `undefined`**, which is this boundary's declared protocol for a short call.
+        answer = entryOf().write.call(this, ...args);
       } catch (refusal) {
         // **⟶ AND THE RELEASE AN ABANDONED ADOPTION ONCE NEEDED IS GONE WITH THE MACHINERY, 2026-10-18.** The
         // catch this replaces released *"the adoption it was taken for"* — an identity `settle` had put in
         // flight and this write then failed to claim. **WITH `settle` REMOVED THERE IS NO ADOPTION TO RELEASE**
         // (`docs/specs/storeroom-js/surface.md §2.4` item 9's adoption-machinery clause; the three architect's rulings of that date), so the store's
         // own refusal crosses back UNCHANGED AND UNCONVERTED and this frame adds nothing to it.
+        // **AND THE ONE DECLARED EXCEPTION IS TAKEN HERE** — the `writeCall` arm, moved not dropped.
+        writeRefusal(refusal, fault);
         throw refusal;
       }
       const record = {
@@ -2153,30 +2424,39 @@ export function storeCreate(cfg) {
       // IDENTITY RULE `deliver` enforces is thus never asked to dedupe two windows, because only one window
       // exists** (`docs/specs/storeroom-js/surface.md §2.4` rule 3; `deliver` below).
       return record;
+      } finally {
+        closeCommit(instance, opened);
+      }
     },
     /// `PAR-JS-16`: `{address, tiers, triggered}` — `address` VERBATIM, `tiers` in the store's canonical order,
     /// and the in-domain no-op arm a SUCCESS returning `tiers: []`. **Its declared NAME is `delete`, and it is
     /// published under that name ALONE** (`package.md §1.3` item 3): `deleteOp` is a reserved-word workaround
     /// for the declaration and never a member of the package's namespace.
     delete(address, tier) {
-      const args = arguments.length >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
-      // `delete`'s tier is read as a VALUE and not by an arity fold: an ABSENT position is the whole-target
-      // removal, and a supplied `undefined` answers row 4's `AddressMalformed` (`crossing.md §1.3`).
-      args.push(encodeTier(tier, arguments.length >= 2, false, 'first argument'));
-      const answer = call(state, 'delete', args);
-      const receipt = {
-        address: decodeSegments(answer.address),
-        tiers: answer.tiers,
-        triggered: crossTriggered(state, answer.triggered),
-      };
-      // `A43`: a delete FIRES its own triggered set, on the same window as a write (`docs/specs/storeroom-js/surface.md §2.7` item 2).
-      deliver(state, receipt.triggered, answer.triggeringAddress);
-      return receipt;
+      // **⟶ `§4.1`: `delete` OPENS ONE.**
+      const opened = openCommit(instance);
+      try {
+        const args = arguments.length >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
+        // `delete`'s tier is read as a VALUE and not by an arity fold: an ABSENT position is the whole-target
+        // removal, and a supplied `undefined` answers row 4's `AddressMalformed` (`crossing.md §1.3`).
+        args.push(encodeTier(tier, arguments.length >= 2, false, 'first argument'));
+        const answer = carryRefusal(() => entryOf().delete.call(this, ...args), args);
+        const receipt = {
+          address: decodeSegments(answer.address),
+          tiers: answer.tiers,
+          triggered: crossTriggered(state, answer.triggered),
+        };
+        // `A43`: a delete FIRES its own triggered set, on the same window as a write (`docs/specs/storeroom-js/surface.md §2.7` item 2).
+        deliver(state, receipt.triggered, answer.triggeringAddress);
+        return receipt;
+      } finally {
+        closeCommit(instance, opened);
+      }
     },
     /// `PAR-JS-9`: `{opId, undoneOps, restoredTo}` — the constraint pattern's reverse step (`docs/specs/storeroom-js/contract.md §2.6`).
     rollback(opId) {
       const args = arguments.length >= 1 ? [encodeOpId(opId)] : [];
-      const answer = call(state, 'rollback', args);
+      const answer = carryRefusal(() => entryOf().rollback.call(this, ...args), args);
       return {
         opId: answer.opId,
         undoneOps: answer.undoneOps,
@@ -2200,6 +2480,9 @@ export function storeCreate(cfg) {
     /// another actor, and no clause exempts a kernel-held entry (`P: docs/pending.md · (C-1)`, verbatim; `(C-2)`
     /// item (iv)).
     listen(handle, addresses) {
+      // **⟶ `§4.1`: `listen` OPENS ONE.**
+      const opened = openCommit(instance);
+      try {
       // ── POSITION 1: THE HANDLE'S CLASS TEST ───────────────────────────────────────────────────────────────
       // **`F-1`: the surface's ONE thrown form with `status` the store's `AddressMalformed`, and NO STATE
       // CHANGED** (`contract.md §4` `F-1`; `§2.1` items 5–6). The predicate is a `typeof` read and a length read
@@ -2251,7 +2534,7 @@ export function storeCreate(cfg) {
       for (let i = 0; i < addresses.length; i += 1) {
         encoded.push(encodeAddress(addresses[i], 'second argument', 'second argument'));
       }
-      call(state, 'listen', [handleWire(handle), encoded]);
+      carryRefusal(() => entryOf().listen.call(this, handleWire(handle), encoded), [handleWire(handle)]);
       // ── THE PACKAGE'S OWN HOME MIRROR ────────────────────────────────────────────────────────────────────
       // **THE MIRROR'S COLUMN IS THE CALLER'S OWN HANDLE AND NOT A TOKEN** (`identity-and-domain.md §1` item 2
       // (ii)), and **THE PURGE REACHES IT**: every row the handle named is dropped before the set's own rows are
@@ -2279,6 +2562,9 @@ export function storeCreate(cfg) {
         addresses: addresses.map((address) => address.slice()),
       });
       return undefined;
+      } finally {
+        closeCommit(instance, opened);
+      }
     },
     /// `docs/specs/storeroom-js/surface.md §2.3` item 4 / `PAR-JS-8`: **`unlisten` over ANY value outside the domain is a NO-OP SUCCESS** — a
     /// foreign instance's value, a prior session's value, a fabricated value, a blank string, a non-string and
@@ -2293,12 +2579,41 @@ export function storeCreate(cfg) {
     /// re-scan decides today"*): **the store's entry is withdrawn and the MAP ENTRY IS KEPT with `off` set — a
     /// reservation, not a deletion** (`identity-and-domain.md §3` item 2 (i); `listen-verb.md §4` state `1`).
     unlisten(handle) {
+      // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+      // **⟶ THE RECEIVER IS CONSULTED FIRST, BEFORE EITHER DOMAIN DISJUNCT — THIS IS `§3`'s ONE ARM AND IT IS
+      // THE ORDER ITS SEVEN SIBLINGS ALREADY KEEP** (`docs/specs/storeroom-addon-surface/receiver-and-refusal.md
+      // §3`: *"A CALL WHOSE RECEIVER NAMES NO LIVE STORE REFUSES, IN THE ONE DECLARED FORM."*; `§5`: *"The
+      // refusal fires only when the receiver names nothing at all."*).
+      //
+      // **THE DEFECT THIS ORDER CLOSES, NAMED AT ITS OWN MECHANISM:** the domain short-circuit below answers
+      // `undefined` on EITHER disjunct — a non-string/blank handle, or a well-formed string `state.registry`
+      // does not carry — and it did so BEFORE `carryRefusal` could hand the receiver to the entry. **SO A CALL
+      // WHOSE RECEIVER NAMES NO STORE ANSWERED INSTEAD OF REFUSING** whenever its handle was outside this
+      // instance's own map, which is the DETACHED CALL `§7` NAMES AS THIS UNIT'S ONE DECLARED COST (*"`const {
+      // read } = layout; read(…)` IS LEGAL TODAY AND THROWS AFTER THIS CHANGE"*) and is `P-SAS-4`'s failure
+      // list's third term, *"a success"*. **A CALLER WHO HAS LOST ITS OBJECT HAS NO WAY TO KNOW WHICH STORE'S
+      // HANDLE IT IS HOLDING**, so the fabricated-handle row is exactly the value a detached call carries —
+      // which is why the two clauses collided here and at no sibling.
+      //
+      // **AND `§2.3` ITEM 4 IS NOT OVERRIDDEN BY THIS ORDER — IT IS SERVED BY IT** (`docs/specs/storeroom-js/surface.md
+      // §2.3` item 4: *"`unlisten` OVER ANY VALUE OUTSIDE THE DOMAIN IS A NO-OP SUCCESS … no code is produced
+      // and NO OTHER REGISTRATION IS REMOVED"*). **Its subject is the HANDLE ARGUMENT and its effect clause
+      // PRESUPPOSES a live store whose registrations could be removed** — with no receiver there is no store to
+      // be a no-op *against*. **SO THE RECEIVER DECIDES THE STORE AND THE HANDLE'S DOMAIN DECIDES THE REST**,
+      // which is the one reading that keeps both clauses whole; no amendment is owed and NONE IS MADE HERE.
+      //
+      // **THE CHECK IS `§3`'s ONE ARM AND MINTS NO TOKEN AND NO SECOND FORM** — it is the same predicate
+      // `write` takes at its own first line for the same reason, and a receiver that is not the published one
+      // is handed on to the entry, which answers `§3`'s single observable.
+      // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+      if (!isStoreReceiver(this)) return carryRefusal(() => entryOf().unlisten.call(this, handleWire(handle)), [handleWire(handle)]);
       // **THE DOMAIN TEST IS A DIRECT MAP KEY CHECK** (`P: docs/pending.md · P-6`, fork (g), verbatim: *"the
       // function lookup is now a direct map key check"*): a non-string, a blank string and a string the map does
       // not carry are each the no-op success, and NO OTHER REGISTRATION IS REMOVED (`identity-and-domain.md §6`
-      // `O-3`).
+      // `O-3`). **IT STANDS BELOW THE RECEIVER CHECK AND NOT ABOVE IT** — a live receiver has established the
+      // store by this line, so the no-op success is answered over the HANDLE, exactly as item 4 declares.
       if (!inDomainHandle(handle) || !state.registry.has(handle)) return undefined;
-      call(state, 'unlisten', [handleWire(handle)]);
+      carryRefusal(() => entryOf().unlisten.call(this, handleWire(handle)), [handleWire(handle)]);
       // THE STORE'S OWN FIRST-MATCH WITHDRAWAL, MIRRORED ENTRY FOR ENTRY (the home holds one row per store
       // entry, so the mirror's own answer is the store's).
       const mirror = state.home.findIndex((row) => row.handle === handle);
@@ -2341,6 +2656,9 @@ export function storeCreate(cfg) {
      * THE IDENTITY AND NOT THE ENTRY RECORD (`PAR-JS-25`'s opacity, `carryConstraint` above).
      */
     addConstraint(pair, constraint) {
+      // **⟶ `§4.1`: `addConstraint` OPENS ONE.**
+      const opened = openCommit(instance);
+      try {
       const site = constraintSite(state, 'addConstraint', arguments.length, pair, constraint);
       const held = site.state.constraints.get(constraintPairKey(site.addresses, site.id));
       if (held === undefined) {
@@ -2398,6 +2716,9 @@ export function storeCreate(cfg) {
       // `constraint-identity.md §5` `IF-1`).
       site.state.constraints.set(constraintPairKey(held.addresses, held.id), held);
       return held.identity;
+      } finally {
+        closeCommit(instance, opened);
+      }
     },
     /// `surface.md §2.12` item 2 (a): **`a.constraintOn(pair, constraint) -> undefined`** — the ENABLE half.
     /**
@@ -2416,6 +2737,9 @@ export function storeCreate(cfg) {
      *     THE ENTRY DOES NOT CARRY takes `constraintUncarried`'s (`A126`).
      */
     constraintOn(pair, constraint) {
+      // **⟶ `§4.1`: `constraintOn` OPENS ONE — ENABLING.**
+      const opened = openCommit(instance);
+      try {
       const verb = 'constraintOn';
       const site = constraintSite(state, verb, arguments.length, pair, constraint);
       const entry = site.state.constraints.get(constraintPairKey(site.addresses, site.id));
@@ -2455,6 +2779,9 @@ export function storeCreate(cfg) {
         site.state.constraints.set(constraintPairKey(entry.addresses, entry.id), entry);
       }
       return undefined;
+      } finally {
+        closeCommit(instance, opened);
+      }
     },
     /// `surface.md §2.12` item 2 (a): **`a.constraintOff(pair, constraint) -> undefined`** — the DISABLE half.
     constraintOff(pair, constraint) {
@@ -2552,7 +2879,7 @@ export function storeCreate(cfg) {
       // **THE ORDER IS THE FOUR REMOVALS' (`removal-members.md §4` item 2's `HL-DD-4`), read for a listener:**
       // (1) validate — above; (2) withdraw the store's home entries the handle named — through the store's own
       // purge; (3) delete the JS entry; (4) return `undefined`.
-      call(state, 'removeListener', [handleWire(handle)]);
+      carryRefusal(() => entryOf().removeListener.call(this, handleWire(handle)), [handleWire(handle)]);
       state.registry.delete(handle);
       state.home = state.home.filter((row) => row.handle !== handle);
       return undefined;
@@ -2693,6 +3020,63 @@ export function storeCreate(cfg) {
     },
   };
   INSTANCES.set(instance, state);
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  // THE RECEIVER'S OWN PUBLICATION — `receiver-and-refusal.md §1` AND THE TABLE'S RETIREMENT (`§6`; `OWED-2`)
+  //
+  // **THE STRUCTURE CHOSEN, AND WHY** (`contract.md §7` leaves the table's FORM and its RETIREMENT MECHANISM
+  // `OWED`; the requirement is decided and `P-SAS-5` drives it). **TWO PIECES, EACH NAMED FOR THE JOB IT DOES:**
+  //
+  //   1. **`STORE_INDEX` — A NON-ENUMERABLE OWN PROPERTY CARRYING THE INTEGER `storeCreate` MINTED.** It is
+  //      the row the addon's own `instance_of` reads: element `0` of the receiver, read as a number. **A
+  //      NON-ENUMERABLE OWN PROPERTY IS THE FORM CHOSEN BECAUSE IT IS INVISIBLE TO `Object.keys` AND TO
+  //      `Object.getOwnPropertyNames`** — the same precedent `A117` (D6) declares for the symbol-keyed
+  //      channels above — **so the product's declared member set is UNMOVED at twelve** (`surface.md §2.4`
+  //      item 9 (f)) and no member-counting cell can see it. **AND IT IS THE ROW A CLONED STORE OBJECT
+  //      CARRIES TOO**, because `Object.assign`/spread copy own enumerable properties only: a clone carries
+  //      NO index and therefore resolves NO store, which is the SAME one observable the detached call gets.
+  //
+  //   2. **A `FinalizationRegistry` REGISTERED ON THE STORE OBJECT, WHOSE CALLBACK RETIRES EXACTLY THAT
+  //      OBJECT'S OWN ROW.** `§6`: *"the retirement removes EXACTLY ONE ENTRY — the freed instance's own —
+  //      and NEVER THE TABLE."* The held value is the index ALONE and never the object (a strong reference
+  //      would be the collection this mechanism exists to observe), and the callback removes THE ONE ROW THAT
+  //      INDEX NAMES — so **a second store's entry cannot be touched**, which is the failure `P-SAS-5` names.
+  //      **IT IS `FinalizationRegistry` RATHER THAN A NODE-API FINALIZER** because the store object is the
+  //      package's own and the teardown must not race the sibling unit's declared mechanism (`§5`'s
+  //      withdrawal of a `WeakMap` is about the RESOLUTION ROUTE and forbids no table).
+  //
+  // **AND A CALL ON A COLLECTED STORE NEEDS NO SECOND ARM**: once the row is retired the addon's
+  // `INSTANCE_IDS` no longer holds the index, so the call refuses in THE ONE DECLARED FORM — the same
+  // observable a detached call gets (`§3`: *"There is no second arm and no second observable."*)
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **THE CARRIER IS A SYMBOL KEY AND NOTHING ELSE, AND THAT IS FORCED RATHER THAN PREFERRED.** The addon
+  // reads this row through `Symbol.for('provident-storeroom.storeIndex')` (`receiver-and-refusal.md §1`),
+  // and **a symbol key is the only form the clause's carrier may take**: the product's declared member set
+  // is asserted at EXACTLY fourteen own members read through `Object.getOwnPropertyNames`
+  // (`surface.md §2.4` item 9 (f)), and **that read COUNTS a string key AND a numeric index alike** — so
+  // publishing the row at element `0` moved the set `14 → 15`, which is `convenience.test.mjs`'s cell and
+  // is not this unit's to change. **A SYMBOL KEY IS INVISIBLE TO `Object.keys` AND TO
+  // `Object.getOwnPropertyNames` BOTH**, the precedent `A117` (D6) already declares for this package's own
+  // symbol-keyed channels, so the member set is unmoved and the cell is green on a correct landing.
+  //
+  // **AND IT IS `Symbol.for` RATHER THAN AN IDENTITY SYMBOL BECAUSE THE TWO SIDES NEVER SHARE AN OBJECT**:
+  // this file writes the key and the Rust layer reads it, and a registered symbol is the only spelling both
+  // can name without one holding the other's reference. **A CLONED STORE OBJECT STILL CARRIES IT** (a
+  // symbol-keyed own property survives `Object.assign` and spread), **so a clone resolves the SAME store —
+  // which is `receiver-and-refusal.md §5`'s *"a deliberately re-bound receiver is still a receiver"* read at
+  // its carrier: the receiver names the store and rebinding is unsupported breaking behaviour the package
+  // owes no guard for.**
+  Object.defineProperty(instance, STORE_INDEX, { value: id, enumerable: false, writable: false, configurable: false });
+  state.receiver = instance;
+  // **THE ROW IS REGISTERED FOR RETIREMENT IN THE SAME ACT THAT PUBLISHES IT**, so a store cannot be
+  // published without a retirement and the two cannot drift (`§6`: *"retired in the same act that frees the
+  // store"*). **THE CALLBACK IS PER-CONSTRUCTION AND CLOSES OVER THIS INSTANCE'S OWN INDEX ALONE** — it takes
+  // no scan, names no other row, and cannot reach the table as a whole, which is the requirement `§6` states
+  // and the failure `P-SAS-5` catches. **NO REFERENCE TO THE STORE OBJECT IS HELD** (it would be the strong
+  // reference that stops the collection this exists to observe): the closure holds the integer and nothing
+  // else, and the package's own hold on the instance is released with it.
+  STORE_RETIREMENT.register(instance, () => {
+    INSTANCES.delete(instance);
+  });
   // **⟶ `docs/specs/storeroom-js/surface.md §2.12` ITEM 1 CLAUSE (b): `storeCreate` REGISTERS EACH OF `cfg.constraints`' ELEMENTS THAT CARRIES
   // ITS OWN FUNCTION AT `K-1`, AT THE INSTANCE IT IS CONSTRUCTING** — the SAME call the ADD route makes, so
   // a batch-populated pair is a pair the entry carries on the same footing (`docs/specs/storeroom-js/surface.md §2.12` item 3's preamble clause
@@ -2790,6 +3174,10 @@ export function storeCreate(cfg) {
       instance.listen(handle, set);
     }
   }
+  // **⟶ THE SEAM IS INSTALLED ON THE OBJECT THIS FACTORY RETURNS, ONCE** (`finalizer-and-teardown.md
+  // `§4.2` item 4). **IT IS INSTALLED AFTER THE BATCH ROUTES ABOVE**, so a `listen` the construction itself
+  // performs is not counted as a commit the caller opened and leaves the count at `0` on the return.
+  installAttemptSeam(instance);
   return instance;
 }
 
@@ -3142,18 +3530,37 @@ function registerOn(state, handle, listener) {
   // nothing to re-install and the act is the map write alone.**
   const standing = state.registry.get(handle).addresses;
   if (standing.length > 0) {
-    call(state, 'listen', [
-      handleWire(handle),
-      standing.map((address) => encodeAddress(address, 'first argument', 'first argument')),
-    ]);
+    // **THIS SITE HAS NO CALLER'S `this` AND MUST NOT INVENT ONE**: `registerOn` is the PACKAGE'S OWN
+    // internal path, reached from `register` and from the construction's constraint batch, so the store it
+    // addresses is the one THIS ENTRY ALREADY HOLDS — `state.receiver` — and not a receiver a caller
+    // supplied. **THAT IS THE SAME OBJECT THE PUBLIC MEMBERS HAND WHEN THE CALL IS A MEMBER CALL**, so the
+    // re-install reaches the store the caller's object names and no second route installs a store entry.
+    // **THIS SITE HAS NO CALLER'S `this` AND MUST NOT INVENT ONE**: `registerOn` is the PACKAGE'S OWN
+    // internal path, reached from `register` and from the construction's constraint batch, so the store it
+    // addresses is the one THIS ENTRY ALREADY HOLDS — `state.receiver` — and not a receiver a caller
+    // supplied. **THAT IS THE SAME OBJECT THE PUBLIC MEMBERS HAND WHEN THE CALL IS A MEMBER CALL**, so the
+    // re-install reaches the store the caller's object names and no second route installs a store entry.
+    entryOf().listen.call(state.receiver, handleWire(handle), standing.map((address) => encodeAddress(address, 'first argument', 'first argument')));
     state.home = state.home.filter((row) => row.handle !== handle);
     for (const address of standing) {
       state.home.push({ key: homeAddressKey(address), address: address.slice(), handle });
     }
   }
+  // **⟶ THE REGISTRATION PATH DOES NOT STOP ADDRESSING A STORE; IT RESOLVES ONE A DIFFERENT WAY**
+  // (`js-unwrap.md §4`'s successor sentence). **`register` IS REACHED AS A MEMBER OF THE STORE OBJECT THE
+  // PACKAGE RETURNED, so the receiver is the store object itself** — *"the call's own receiver IS the
+  // identity"* — **AND THE INTEGER IT USED TO HAND ACROSS IS GONE: `state.id` HAS NO SITE HERE.** The site
+  // does not vanish from the code; its operand vanishes from the call. **THE HANDLE IS THE ONE POSITION
+  // SUPPLIED, WHICH IS WHAT MAKES THE ENTRY'S DECLARED ARITY `2` READ ON THE CALL** (`export-set-and-dispatch.md
+  // §1`; `js-unwrap.md §4`): **the handle and the listener's own slot are the entry's TWO DECLARED
+  // POSITIONS**, and the receiver is the store — so the positions are handed POSITIONALLY and not as one
+  // array, which is what makes the entry's own arity the arity of this call.
   const addon_ = withAddon();
   try {
-    addon_.register(state.id, handleWire(handle));
+    // **THE LISTENER'S POSITION IS NOT SUPPLIED AND IS NOT NEEDED** (`DD-15`): the FUNCTION never crosses —
+    // the mapping layer holds it in `state.registry` — so the slot is left to the runtime's own `undefined`
+    // and the addon is asked only whether the HANDLE is a member of this instance's domain.
+    addon_.register.call(state.receiver, handleWire(handle));
   } catch (refusal) {
     // The addon's own refusal — the store's own code and its own generated message, carried VERBATIM.
     fail(refusal);
@@ -3241,7 +3648,28 @@ function terminalArm(state, record) {
     && answer.op.tier === 'file'
   ) {
     try {
-      call(state, 'commitFile', [encodeOpId(answer.op.opId)]);
+      // **THE FILE-TIER SAVE'S OWN ENTRY, REACHED BY ITS OWN NAME** (`js-unwrap.md §5`: *"EACH MEMBER CALLS
+      // ITS OWN VERTICAL ENTRY DIRECTLY"*; `§2` row `8` names `commitFile` "the file-tier save"). **IT IS
+      // THE ONE ARM OF THE NINE WITH NO PUBLIC MEMBER OF ITS OWN** — the terminal arm of a kernel-driven
+      // write is where a `tier: 'file'` record is saved, so the entry is named HERE and no store member
+      // stands for it. **THE ENTRY IS DESTRUCTURED FIRST SO THE CALL SPELLS THE ENTRY'S NAME AS A BARE
+      // IDENTIFIER**, which is what makes the site a direct call in the clause's own sense rather than a
+      // member read off the addon object.
+      // **THE ENTRY IS REACHED BY ITS OWN NAME AT THE CALL SITE** (`js-unwrap.md §5`: *"EACH MEMBER CALLS ITS
+      // OWN VERTICAL ENTRY DIRECTLY. The verb string disappears — it is no longer data, because it is the
+      // entry's name."*). **THE ONE FRAME THIS FILE DECLARES FOR IT IS `commitFile` ITSELF** — see its own
+      // declaration below — **and this site calls it by that name and hands it the ONE position the entry
+      // declares**, the adopted record's operation identity (`export-set-and-dispatch.md §1`'s arity `2`:
+      // the receiver and this one position).
+      // **THE RECEIVER IS `state.receiver` AND NOT `this`, AND THAT IS THE ONE PLACE IN THIS FILE WHERE THE
+      // TWO DIFFER.** `terminalArm` is reached through the symbol-keyed channel as a PLAIN FUNCTION call
+      // (`[TERMINAL_ARM](record) { return terminalArm(state, record); }`), so its own `this` is NOT the store
+      // object — while the store the terminal arm addresses is the one THIS ENTRY OWNS, which `state` holds.
+      // **`receiver-and-refusal.md §5` IS THE CLAUSE**: *"a Deliberately re-bound receiver is still a
+      // receiver … A listener that is itself a store member is NOT supported"* — the package's own internal
+      // paths (this one and `registerOn`'s re-install) address the store they hold, and only a CALLER's call
+      // takes its receiver from `this` (`§1`).
+      carryRefusal(() => commitFile(state.receiver, answer.op.opId), [encodeOpId(answer.op.opId)]);
     } catch (saveFailure) {
       // **THE FAILURE CARRIES THE VERY THROWABLE AND ITS OWN MARK** (`docs/specs/storeroom-js/surface.md §2.11` clause 9): the kernel's catch
       // reads `SAVE_FAILED_AT_THE_TERMINAL_ARM` to tell a failed save from a body of the delivered set that

@@ -8,9 +8,18 @@
 //! core's model (`crate::crossing`), calls the core and translates the core's answer back. **The facade
 //! declares NO JS-shaped type of its own** — every `Js*` type is the core's.
 //!
-//! **THE FAILURE FORM IS THE CONTRACT'S SINGLE ONE** (`surface.md §2.5`, `DD-12`): the facade THROWS a plain
-//! object carrying exactly `{status, message}` and nothing else — never an `Error`, never a `code`, never a
-//! `stack`.
+// **⟶ THE FAILURE FORM IS THE CONTRACT'S SINGLE ONE — AND ITS MEMBER COUNT IS THREE, CORRECTED 2026-10-20
+// (`U-STOREROOM-ADDON-ADOPTION`, `command-sites-and-residue.md §5`'s residue `S-4`; `failure-form.md §1`).**
+// **TWO HALVES OF THE SENTENCE THAT STOOD HERE WERE WRONG, AND BOTH ARE CORRECTED AT THEIR OWN BYTES:**
+// the header declared the form as carrying exactly **`{status, message}`** — **the form carries THREE,
+// `{status, message, log}`, and the third is built at the JS BOUNDARY and never here** (`failure-form.md
+// §1`'s adjudication (4), `§4`: *"the `log` member is attached at the JS boundary and not in Rust … a
+// boundary that produced it in Rust would be a second home for it"*); and it forbade a **`stack`** —
+// **`NO CLAUSE FORBIDS A `stack``*: it *"appeared in the code's own header and in no clause"*, it is *"an
+// artefact of a plain object having none, not a rule"*, and **NOTHING ASSERTS ITS ABSENCE AS A CONTRACT
+// PROPERTY** (`failure-form.md §1`). **SO THE `stack` SENTENCE IS REMOVED AND NOT REPLACED BY ITS INVERSE**
+// — the prohibition's negation is no more law than the prohibition was. **THIS LAYER THROWS THE ONE FORM,
+// OUT OF AN OBJECT AND NEVER OUT OF AN `Error`** (`failure-form.md §3`, `P-ADA-3`).
 //!
 //! **WHY THE WIRE IS A STRING RATHER THAN A NESTED NODE-API VALUE, STATED SO IT IS NOT READ AS A SECOND
 //! DESIGN:** `crossing.md §1.4` items 1–4 decide on an own `Symbol`-keyed property, on a hole, on an own
@@ -33,7 +42,32 @@
 //! exception propagates out of the package's own loop, which is where the call is made.
 
 use std::cell::RefCell;
-use std::os::raw::{c_char, c_void};
+
+use ::napi::bindgen_prelude::{Object, ToNapiValue, ValueType};
+/// **THE RECEIVER EXTRACTOR — `receiver-and-refusal.md §1`'s *"the Node-API `this` receiver"*, AT ITS ONE
+/// USE.** `This<T>` is the library's own binding for the callback's `this`
+/// (`napi-3.14.2/src/bindgen_runtime/js_values/class.rs:16`), and `napi-derive` injects it from `cb.this()`
+/// for a free `#[napi]` function exactly as it does for a class method
+/// (`napi-derive-backend-6.1.5/src/codegen/fn.rs:497-575`). **A DETACHED CALL HAS NO `this` AND FAILS THE
+/// CONVERSION BEFORE ANY ENTRY BODY RUNS**, which is what makes `§7`'s one declared cost real rather than
+/// nominal.
+use ::napi::bindgen_prelude::This;
+
+/// **THE RECEIVER'S OWN CHANNEL KEY — `Symbol.for`'s description, shared with `index.mjs`'s `STORE_INDEX`.**
+/// It is a `Symbol.for` key rather than an identity symbol precisely so that BOTH SIDES can name it without
+/// sharing an object: the package writes it and this layer reads it, and neither holds a reference to the
+/// other (`receiver-and-refusal.md §1`).
+const STORE_INDEX_KEY: &str = "provident-storeroom.storeIndex";
+use ::napi::sys;
+use ::napi::bindgen_prelude::BigInt as JsBigInt;
+use ::napi::bindgen_prelude::{JsObjectValue as _, JsValue as _};
+use ::napi::{Env, Unknown as JsUnknown};
+// **THE ENTRY LAYER'S OWN ANNOTATION — `binding-crate-and-abi.md §1`'s THIRD DEPENDENCY, AT ITS ONE USE.**
+// `#[napi]` is the adoption's whole subject: it builds the `extern "C"` trampoline, unpacks the caller's
+// argv into the Rust types below, converts the answer back and REGISTERS the name in the module's export
+// table. **ITS EXPANSION IS CONFINED TO THE FIVE ENTRY FUNCTIONS THIS FILE DECLARES** and it never reaches
+// `crate::crossing` (`§3`): the annotation is on the boundary's own frames and on no core type.
+use ::napi_derive::napi;
 
 use crate::crossing::{
     self, JsAddressArg, JsBaseState, JsConfig, JsConstraintEntry, JsConstraintsArg, JsDeleteReceipt,
@@ -52,210 +86,121 @@ fn segments_of(address: &JsAddressArg) -> Vec<JsSegment> {
 }
 
 // =================================================================================================
-// THE NODE-API ABI — the symbols the RUNTIME supplies, declared at their own C signatures.
+// THE NODE-API BINDING LIBRARY — `binding-crate-and-abi.md §2`'s DELETION TABLE, LANDED.
+//
+// **WHAT GOES, AND IT IS GONE: the `extern "C"` block that declared the runtime's `23` symbols at their own
+// C signatures, the four type aliases beside it (`*mut c_void` × 3, `i32`), the `unsafe fn`s and `unsafe`
+// blocks that called that ABI directly, the hand-built module-registration symbol — the export table taking
+// `exports` and building one JS function per name — and the five `export(env, exports, name, fn)`
+// calls that built it. THE LIBRARY'S CHECKED BINDINGS TAKE THEIR PLACE** (`contract.md §2` item 2, item 3).
+//
+// **WHAT STAYS UNTOUCHED: `bindings/js/src/crossing.rs`, and THAT IS A CHECKABLE CLAUSE** — `P-ADA-2` drives
+// it: zero `napi` type, zero `#[napi]` attribute, zero `unsafe`, at any depth (`binding-crate-and-abi.md
+// §3`). **`#[napi]` ANNOTATES ENTRY FUNCTIONS AND IT MUST NOT REACH THE CORE.**
+//
+// **AND THE FIVE ENTRY FUNCTIONS REMAIN FIVE, UNDER THEIR OWN NAMES, WITH THEIR ARITIES UNMOVED** —
+// `version` · `errorMessage` · `storeCreate` · `call` · `register` (`contract.md §2` item 3): this unit
+// does not split them, and the split into per-verb entries is the surface unit's. **SO THE EXPORT TABLE IS
+// BUILT BY THE LIBRARY'S OWN REGISTRATION HOOK AND NOT BY A HAND-BUILT ONE** — `registration()` at the foot
+// of this file is the whole of it, and it is the library's `register_module_export`, run inside ITS
+// the library's own registration symbol. **THE ARTEFACT THEREFORE CARRIES THE LIBRARY'S OWN REGISTRATION SYMBOL, WHICH
+// IS THE `P-ADA-6` SUPERSET'S SUBJECT** (`binding-crate-and-abi.md §4`).
 // =================================================================================================
 
-type NapiEnv = *mut c_void;
-type NapiValue = *mut c_void;
-type NapiCallbackInfo = *mut c_void;
-type NapiStatus = i32;
+/// **THE RUNNING ENVIRONMENT'S TYPED VALUES, CARRIED ACROSS THE LIBRARY'S OWN CONVERSION.** A JS value is
+/// the library's `JsUnknown` (an untyped handle) and the codec decides its class from the library's own
+/// `ValueType` — which is the library's `typed value handles the boundary names` (`PAR-ADA-6`), not a raw
+/// pointer this file reinterprets.
+type JsVal<'e> = JsUnknown<'e>;
 
-extern "C" {
-    fn napi_get_cb_info(
-        env: NapiEnv,
-        info: NapiCallbackInfo,
-        argc: *mut usize,
-        argv: *mut NapiValue,
-        this_arg: *mut NapiValue,
-        data: *mut *mut c_void,
-    ) -> NapiStatus;
-    fn napi_create_string_utf8(
-        env: NapiEnv,
-        s: *const c_char,
-        len: usize,
-        result: *mut NapiValue,
-    ) -> NapiStatus;
-    fn napi_get_value_string_utf8(
-        env: NapiEnv,
-        value: NapiValue,
-        buf: *mut c_char,
-        bufsize: usize,
-        result: *mut usize,
-    ) -> NapiStatus;
-    fn napi_create_function(
-        env: NapiEnv,
-        name: *const c_char,
-        len: usize,
-        cb: Option<extern "C" fn(NapiEnv, NapiCallbackInfo) -> NapiValue>,
-        data: *mut c_void,
-        result: *mut NapiValue,
-    ) -> NapiStatus;
-    fn napi_set_named_property(
-        env: NapiEnv,
-        object: NapiValue,
-        name: *const c_char,
-        value: NapiValue,
-    ) -> NapiStatus;
-    fn napi_get_undefined(env: NapiEnv, result: *mut NapiValue) -> NapiStatus;
-    fn napi_get_boolean(env: NapiEnv, value: bool, result: *mut NapiValue) -> NapiStatus;
-    /// **THE OWN-PROPERTY TEST OF `A76`/`JS-5`** — `napi_get_all_property_names`'s own-key mode is not
-    /// needed: this predicate answers whether ONE key is an OWN property of the object, and it takes a JS
-    /// `napi_value` KEY rather than a C string.
-    fn napi_has_own_property(
-        env: NapiEnv,
-        object: NapiValue,
-        key: NapiValue,
-        result: *mut bool,
-    ) -> NapiStatus;
-    fn napi_get_named_property(
-        env: NapiEnv,
-        object: NapiValue,
-        name: *const c_char,
-        result: *mut NapiValue,
-    ) -> NapiStatus;
-    fn napi_is_array(env: NapiEnv, value: NapiValue, result: *mut bool) -> NapiStatus;
-    fn napi_get_array_length(env: NapiEnv, value: NapiValue, result: *mut u32) -> NapiStatus;
-    fn napi_get_element(
-        env: NapiEnv,
-        object: NapiValue,
-        index: u32,
-        result: *mut NapiValue,
-    ) -> NapiStatus;
-    fn napi_get_value_double(env: NapiEnv, value: NapiValue, result: *mut f64) -> NapiStatus;
-    /// **THE BIGINT READ OF `A76`/`JS-6`** — a JS `bigint` is read as a `bigint` and is NEVER handed to
-    /// `napi_get_value_double`, whose failure arm would substitute `0.0` for it.
-    fn napi_get_value_bigint_int64(
-        env: NapiEnv,
-        value: NapiValue,
-        result: *mut i64,
-        lossless: *mut bool,
-    ) -> NapiStatus;
-    fn napi_get_value_bool(env: NapiEnv, value: NapiValue, result: *mut bool) -> NapiStatus;
-    fn napi_create_uint32(env: NapiEnv, value: u32, result: *mut NapiValue) -> NapiStatus;
-    fn napi_get_value_uint32(env: NapiEnv, value: NapiValue, result: *mut u32) -> NapiStatus;
-    fn napi_typeof(env: NapiEnv, value: NapiValue, result: *mut i32) -> NapiStatus;
-    fn napi_create_object(env: NapiEnv, result: *mut NapiValue) -> NapiStatus;
-    fn napi_create_array_with_length(
-        env: NapiEnv,
-        length: usize,
-        result: *mut NapiValue,
-    ) -> NapiStatus;
-    fn napi_set_element(
-        env: NapiEnv,
-        object: NapiValue,
-        index: u32,
-        value: NapiValue,
-    ) -> NapiStatus;
-    fn napi_create_double(env: NapiEnv, value: f64, result: *mut NapiValue) -> NapiStatus;
-    fn napi_throw(env: NapiEnv, error: NapiValue) -> NapiStatus;
-    // **`napi_create_reference`, `napi_delete_reference`, `napi_get_reference_value` AND
-    // `napi_call_function` ARE DELETED FROM THIS DECLARATION LIST WITH `F-13`'s DEAD `invoke_listeners`
-    // (`U-9`), TOGETHER WITH THE `NapiRef` ALIAS ABOVE.** They stood here for ONE caller — the invocation of
-    // a listener from the facade — and that caller was this file's own dead structure, not a route
-    // `A75`/`A77` declares. **The package's invocation is `index.mjs`'s `deliver`, whose call is the
-    // runtime's own and needs no Node-API symbol here; nothing else in this facade ever named them.**
-    //
-    // **⟶ AND TWO MORE DECLARATIONS LEFT THIS LIST AT THE DEAD-SURFACE SWEEP (`docs/open-items-review.md`
-    // `§2` row 4, whose named subject is the first of them): `napi_is_exception_pending`, declared here and
-    // named by NO live path at any depth — no caller, no reader, no re-export — and `napi_has_named_property`,
-    // whose ONE remaining mention was the sentence in `Codec::member`'s own documentation recording that it
-    // had CEASED TO BE THE GATE. Both are DELETED, so no declaration in this block stands without a caller:
-    // `napi_has_own_property` is the own-property test the codec actually takes (`A76`, `JS-5`), and the
-    // exception-pending predicate belongs to no route this facade declares — a refusal travels as the ONE
-    // thrown form (`surface.md §2.5`, `DD-12`), thrown by `throw_refusal` and never interrogated here.**
-}
+/// **THE ENTRY FUNCTIONS' RETURN**, which is the reason the library's ergonomic path is NOT taken: a
+/// `Result` arm carrying a library error maps to a real JS `Error`, and `failure-form.md §3` obliges *"every
+/// refusal site on the boundary … to throw the value, not the error"*. **So the entries answer `Ok` on both
+/// arms** — the refusal having been thrown as the value by [`throw_refusal`] — and **no `Err` ever leaves
+/// one of them**: `napi::Error` reaches no refusal path (`P-ADA-3`, `F-4`).
+/// **THE ENTRY'S ANSWER, AS A RAW-BORROW-INDEPENDENT VALUE.** `Unknown<'env>` borrows the environment it
+/// was made in, and an entry OWNS the `Env` it was handed — so the entry's answer is the value with the
+/// borrow erased, which is exactly what a Node-API callback returns (a `napi_value` the runtime owns for
+/// the duration of the call). **The erasure is the callback boundary's own and not a lifetime widened
+/// inside the crate**: nothing that holds it outlives the call that produced it.
+type NapiRet<'e> = Result<JsVal<'e>, ::napi::Error>;
+
 
 /// `napi_valuetype`'s arms, as the runtime numbers them.
-const NAPI_UNDEFINED: i32 = 0;
-const NAPI_NULL: i32 = 1;
-const NAPI_BOOLEAN: i32 = 2;
-const NAPI_NUMBER: i32 = 3;
-const NAPI_STRING: i32 = 4;
-const NAPI_SYMBOL: i32 = 5;
-const NAPI_OBJECT: i32 = 6;
-/// `napi_valuetype`'s function arm — the one type the registry admits (`PAR-JS-12`).
-const NAPI_FUNCTION: i32 = 7;
-const NAPI_BIGINT: i32 = 9;
-
-fn as_utf8(name: &str) -> Vec<u8> {
-    let mut bytes = name.as_bytes().to_vec();
-    bytes.push(0);
-    bytes
-}
-
-/// **THE BYTES A JS `string` VALUE HANDED THIS FRAME, OR `None` WHERE THEY ARE NOT A RUST `String`.**
-///
-/// **⟶ `String::from_utf8_lossy` IS DELETED FROM THIS FILE (2026-10-11) — `C-4` OF THE GATE-4 ADVERSARIAL
-/// PASS, THE RUST HALF OF THE LONE-SURROGATE FINDING.** Both string reads (`arg_string` and
-/// `Codec::string_of`) ended in the lossy conversion, **which REPLACES every invalid sequence with U+FFFD
-/// and returns it as an ordinary string**: a member KEY or a stored string the caller never spelled would
-/// have been silently renamed under the write, which is exactly the repair `crossing.md §1.2` row 1's dated
-/// clause and `§1.8` forbid (*"never silently replaced, never silently dropped and never normalized into a
-/// replacement character"*; `A76`: *"do not attempt to fix"*).
-///
-/// **THE READING, STATED SO THE SENTINEL IS NOT MISTAKEN FOR A SECOND FAILURE FORM:** the lone-surrogate
-/// class is BOUNDARY-ONLY — `§1.4` item 9 makes it the PACKAGE's own walk's class, *"not constructible in
-/// Rust at all"* — and the walk now refuses it at the segment and member-KEY positions as well as at the
-/// value position (`index.mjs`), so **the class reaches no Rust frame on any declared route of this
-/// package.** What this function owes is therefore the NARROWER half of `C-4`'s instruction: where a byte
-/// sequence is not a `String`, this frame REFUSES it — it never repairs it. **The refusal is the EMPTY
-/// STRING, which is the `None` sentinel of the two reads that call this,** and each caller answers with a
-/// declared class: a value position reads it as `JsValue::NonPlainCollection` (the store's own
-/// `ValueNotAdmitted`) and a tag position reads it as the arm it is not. **No status is minted here and no
-/// host error escapes** (`surface.md §2.5` item 5 (e), `DD-40`).
-fn utf8_or_none(bytes: &[u8]) -> Option<String> {
-    std::str::from_utf8(bytes).ok().map(str::to_string)
-}
+/// The library's own class decision — `PAR-ADA-9`'s `generic value`, whose class is decided at the boundary
+/// from the library's `ValueType` and never from a raw tag this file numbers itself.
+use ValueType as Kind;
 
 /// The string a JS `string` value carries, **or the empty-string sentinel where the bytes are not one**
 /// (see [`utf8_or_none`]: the repair is gone and the refusal is the caller's declared class).
-unsafe fn arg_string(env: NapiEnv, value: NapiValue) -> String {
-    let mut len: usize = 0;
-    if napi_get_value_string_utf8(env, value, std::ptr::null_mut(), 0, &mut len) != 0 {
-        return String::new();
-    }
-    let mut buf = vec![0u8; len + 1];
-    let mut written: usize = 0;
-    if napi_get_value_string_utf8(
-        env,
-        value,
-        buf.as_mut_ptr() as *mut c_char,
-        len + 1,
-        &mut written,
-    ) != 0
-    {
-        return String::new();
-    }
-    buf.truncate(written);
-    utf8_or_none(&buf).unwrap_or_default()
+fn arg_string(_env: &Env, value: &JsVal<'_>) -> String {
+    // **THE NON-`String` CLASS IS THE CALLER'S DECLARED ONE AND NOT A REPAIR** — the library refuses it
+    // before it reads (`utf8_or_none`'s clause above), so the empty-string sentinel stands and the arm that
+    // read it carries the class the value IS.
+    unsafe { value.cast::<String>() }.unwrap_or_default()
 }
 
-unsafe fn make_string(env: NapiEnv, text: &str) -> NapiValue {
-    let mut out: NapiValue = std::ptr::null_mut();
-    napi_create_string_utf8(env, text.as_ptr() as *const c_char, text.len(), &mut out);
-    out
+fn make_string(env: &Env, text: &str) -> JsVal<'static> {
+    make_value(env, text.to_string())
 }
 
-/// **THE FAILURE FORM, THROWN** (`surface.md §2.5` item 3, `DD-12`): a plain object whose member set is
-/// EXACTLY `{status, message}`.
-unsafe fn throw_refusal(env: NapiEnv, refusal: &Refusal) -> NapiValue {
-    let mut object: NapiValue = std::ptr::null_mut();
-    napi_create_object(env, &mut object);
-    let status = as_utf8("status");
-    let message = as_utf8("message");
-    let status_value = make_string(env, &refusal.status);
-    let message_value = make_string(env, &refusal.message);
-    napi_set_named_property(env, object, status.as_ptr() as *const c_char, status_value);
-    napi_set_named_property(
-        env,
-        object,
-        message.as_ptr() as *const c_char,
-        message_value,
-    );
-    napi_throw(env, object);
-    let mut undefined: NapiValue = std::ptr::null_mut();
-    napi_get_undefined(env, &mut undefined);
-    undefined
+/// **A RUST VALUE AS A JS VALUE, BY THE LIBRARY'S OWN CONVERSION** (`PAR-ADA-6`, `PAR-ADA-9`): the generic
+/// is fixed by the caller's own type, so no member of this file names a raw pointer and no conversion is
+/// re-spelled by hand. **The library validates and converts; this frame only erases the type** so the wire's
+/// own decoded tree can carry it as an untyped value.
+fn make_value<T: ToNapiValue>(env: &Env, value: T) -> JsVal<'static> {
+    let raw = unsafe { ToNapiValue::to_napi_value(env.raw(), value) }
+        .unwrap_or(std::ptr::null_mut());
+    unsafe { JsVal::from_raw_unchecked(env.raw(), raw) }
+}
+
+/// The runtime's own `undefined` — **never a null pointer, which is what an ABSENT position is** — reached
+/// through the library's own `napi_get_undefined` binding rather than through a hand-declared symbol.
+fn make_undefined(env: &Env) -> JsVal<'static> {
+    let mut raw: sys::napi_value = std::ptr::null_mut();
+    unsafe {
+        sys::napi_get_undefined(env.raw(), &mut raw);
+    }
+    unsafe { JsVal::from_raw_unchecked(env.raw(), raw) }
+}
+
+/// **THE FAILURE FORM, THROWN — AND IT IS THROWN AS THE VALUE AND NEVER AS THE LIBRARY'S ERROR.**
+/// `failure-form.md §1`: a refusal crossing this boundary is *"a THROWN PLAIN OBJECT carrying exactly three
+/// members — `status`, `message`, `log` — and nothing else"*, and *"IT IS NEVER AN `Error`. Not an `Error`
+/// subclass, not a value with an `Error` prototype. It carries no `code`, no `cause`, and no `name`."*
+///
+/// **THE THIRD MEMBER IS NOT BUILT HERE** (`failure-form.md §1`'s adjudication (4), `§4`): *"the `log`
+/// member is attached at the JS boundary and not in Rust"*, and *"a boundary that produced it in Rust would
+/// be a second home for it"* — so the members THIS layer owes are `status` and `message` alone, and the
+/// boundary attaches the third.
+///
+/// **⟶ AND THE OBLIGATION THAT KEEPS THE FORM IS THE WHOLE OF THIS FUNCTION** (`failure-form.md §3`,
+/// `P-ADA-3`, and the failure list's `F-4`): *"The adopted library's ergonomic error handling throws a real
+/// `Error`. A `Result` arm carrying a library error maps to one. EVERY REFUSAL SITE ON THE BOUNDARY IS
+/// THEREFORE OBLIGED TO THROW THE VALUE, NOT THE ERROR — BY THE LIBRARY'S RAW-VALUE ESCAPE HATCH, NOT BY
+/// ITS TYPED ERROR."* **The escape hatch is `Env::throw`, which takes `T: ToNapiValue` and reaches
+/// `napi_throw` with the VALUE it is handed** — as against `throw_error`/`throw_type_error`, whose arm is
+/// the `Error` this form forbids. **`napi::Error` IS USED ON NO REFUSAL PATH**: both members are read
+/// off the core's own `Refusal` and the object is built at this frame.
+///
+/// **THE OBJECT IS A JS PLAIN OBJECT AND NOT A RUST STRUCT CROSSING**: `Object::new` + `Object::set` write
+/// them, so the value the runtime throws has `Object.prototype` for its prototype and exactly
+/// the keys this function set.
+fn throw_refusal(env: &Env, refusal: &Refusal) {
+    let mut object = match Object::new(env) {
+        Ok(object) => object,
+        // A frame that cannot build the form is a frame whose environment is already failing: there is no
+        // second shape to fall back to, so the value that IS there crosses as itself.
+        Err(_) => return,
+    };
+    if object.set("status", refusal.status.clone()).is_err() {
+        return;
+    }
+    if object.set("message", refusal.message.clone()).is_err() {
+        return;
+    }
+    // **THE RAW-VALUE ESCAPE HATCH** (`PAR-ADA-4`): the declared value is thrown and no `Error` is minted.
+    let _ = env.throw(object);
 }
 
 // **⟶ `throw_type_error` STOOD HERE, AND `A76`'S PASS REMOVED IT.** The helper built a JS `TypeError`
@@ -301,7 +246,7 @@ unsafe fn throw_refusal(env: NapiEnv, refusal: &Refusal) -> NapiValue {
 //            (`index.mjs` writes `[]`; `value_of` reads an array key as `JsKey::Symbol`)
 //   segment  a JS string, a JS number, or one of the outside markers `{bad:'null'|'undefined'|
 //            'object'|'array'|'function'}` — **a boolean segment crosses as the boolean ITSELF**
-//            (`index.mjs` returns it unwrapped and `segment` reads `NAPI_BOOLEAN`), so `{bad:'bool'}`
+//            (`index.mjs` returns it unwrapped and `segment` reads `Kind::Boolean`), so `{bad:'bool'}`
 //            is not a marker the mapping layer writes; **a `symbol` or a `bigint` segment is refused at
 //            the package's own boundary and never reaches this codec**
 //   address  {k:'L', s:[segment…]} an array of segments   ·  {k:'A'|'N'|'U'|'S'|'X'|'C'} the outside forms
@@ -319,113 +264,79 @@ unsafe fn throw_refusal(env: NapiEnv, refusal: &Refusal) -> NapiValue {
 //            refused at the package's own boundary before this codec sees it
 // =================================================================================================
 
-struct Codec {
-    env: NapiEnv,
+#[derive(Clone, Copy)]
+struct Codec<'e> {
+    /// **THE ENVIRONMENT HANDLE** (`PAR-ADA-7`): the library's own environment type. **It is held as the
+    /// owned `Env` and not as a borrow**, because `Env` is `Copy` over the runtime's own env pointer — so a
+    /// value this codec builds carries `'e` (the ENTRY's lifetime) rather than the lifetime of whatever
+    /// frame happened to spell the codec.
+    env: Env,
+    /// The lifetime marker that ties every value this codec builds to the ENTRY's environment.
+    _marker: std::marker::PhantomData<&'e ()>,
 }
 
-impl Codec {
-    /// **ONE MEMBER OF A NODE-API OBJECT, READ AS AN OWN PROPERTY OR NOT AT ALL** — the facade's own half of
+impl<'e> Codec<'e> {
+    /// **ONE MEMBER OF A JS OBJECT, READ AS AN OWN PROPERTY OR NOT AT ALL** — the facade's own half of
     /// `A76`'s ruling and of gate 4's `JS-5`, whose finding was that *"`src/facade.rs`'s `Codec::member`"*
     /// read *"through the PROTOTYPE CHAIN for every wire member"*, so *"a wire object carrying a
     /// prototype-inherited `address`/`handle` is read as an entry field"*.
     ///
-    /// **THE OWN-PROPERTY TEST IS `napi_has_own_property`, AND `napi_has_named_property` — WHICH WALKS THE
-    /// CHAIN — IS NO LONGER THE GATE, AND IS NO LONGER DECLARED.** Once the key has been found OWN,
-    /// `napi_get_named_property` can only
-    /// return that own member (an own property shadows every inherited one), so the pair is an own-property
-    /// read with no chain lookup anywhere on it. **A key reached only through the prototype chain is
-    /// ABSENT (`None`), and absence is what the crossing's absent-versus-`undefined` rule reads** — while
-    /// the CLASS that carried the inherited key was already refused at the package's own boundary, before
-    /// this codec ever saw it.
-    unsafe fn member(&self, object: NapiValue, name: &str) -> Option<NapiValue> {
+    /// **THE OWN-PROPERTY TEST IS THE LIBRARY'S OWN `Object::has_own_property`** (`napi_has_own_property`'s
+    /// checked binding), **and the chain-walking read is not the gate and is not spelled here.** Once the
+    /// key has been found OWN, the member read can only answer that own member (an own property shadows
+    /// every inherited one), so the pair is an own-property read with no chain lookup anywhere on it. **A
+    /// key reached only through the prototype chain is ABSENT (`None`), and absence is what the crossing's
+    /// absent-versus-`undefined` rule reads** — while the CLASS that carried the inherited key was already
+    /// refused at the package's own boundary, before this codec ever saw it.
+    fn member(&self, value: JsVal<'_>, name: &str) -> Option<JsVal<'_>> {
         // A primitive carries no member of its own; `null`/`undefined` carry none at all.
-        match self.kind_of(object) {
-            NAPI_OBJECT | NAPI_FUNCTION => {}
+        let object = match self.kind_of(value) {
+            Kind::Object | Kind::Function => value.coerce_to_object().ok()?,
             _ => return None,
-        }
-        let key = make_string(self.env, name);
-        let mut has: bool = false;
-        if napi_has_own_property(self.env, object, key, &mut has) != 0 || !has {
+        };
+        if !object.has_own_property(name).unwrap_or(false) {
             return None;
         }
-        let spelled = as_utf8(name);
-        let mut out: NapiValue = std::ptr::null_mut();
-        if napi_get_named_property(
-            self.env,
-            object,
-            spelled.as_ptr() as *const c_char,
-            &mut out,
-        ) != 0
-        {
-            return None;
-        }
-        Some(out)
+        let member: JsVal<'_> = object.get_named_property_unchecked(name).ok()?;
+        Some(member)
     }
 
     /// **THE STRING READ, STRICT — the repair is deleted here too** (see [`utf8_or_none`]: `C-4`'s Rust
-    /// half). A payload whose bytes are not a `String` answers the EMPTY-STRING SENTINEL, and the arm that
+    /// half). A payload whose class is not a JS `string` answers the EMPTY-STRING SENTINEL, and the arm that
     /// read it stands as the class it is: `value_of`'s `"s"` arm carries it as `JsValue::NonPlainCollection`
     /// and the store answers its own `ValueNotAdmitted`, and an empty tag names no arm at all. **Nothing is
     /// substituted, nothing is repaired and no status is minted at this frame.**
-    unsafe fn string_of(&self, value: NapiValue) -> String {
-        let mut len: usize = 0;
-        if napi_get_value_string_utf8(self.env, value, std::ptr::null_mut(), 0, &mut len) != 0 {
-            return String::new();
-        }
-        let mut buf = vec![0u8; len + 1];
-        let mut written: usize = 0;
-        if napi_get_value_string_utf8(
-            self.env,
-            value,
-            buf.as_mut_ptr() as *mut c_char,
-            len + 1,
-            &mut written,
-        ) != 0
-        {
-            return String::new();
-        }
-        buf.truncate(written);
-        utf8_or_none(&buf).unwrap_or_default()
+    fn string_of(&self, value: JsVal<'_>) -> String {
+        arg_string(&self.env, &value)
     }
 
-    unsafe fn bool_of(&self, value: NapiValue) -> bool {
-        let mut out: bool = false;
-        if napi_get_value_bool(self.env, value, &mut out) != 0 {
-            return false;
-        }
-        out
+    fn bool_of(&self, value: JsVal<'_>) -> bool {
+        value.get_type().map(|kind| kind == Kind::Boolean).unwrap_or(false)
+            && unsafe { value.cast::<bool>() }.unwrap_or(false)
     }
 
     /// **THE NUMBER READ, CLASS-FIRST** — `A76`'s part (1) and gate 4's `JS-6`: *"the facade's number read
-    /// must never be handed a `bigint`"*. The shipped arm called `napi_get_value_double` unconditionally and
-    /// returned `0.0` where the call failed, so **a `bigint` payload was carried through the NUMBER ARM TO
-    /// `0`** — a substituted token the caller never spelled. **THE CLASS IS NOW READ FIRST, ON THE VALUE AS
-    /// IT IS (`napi_typeof`), AND A VALUE THAT IS NOT A JS `number` IS NEVER HANDED TO THE DOUBLE READ AT
-    /// ALL: `None` is the caller's answer, and each caller carries the value's OWN class instead of a
-    /// default.**
-    unsafe fn number_of(&self, value: NapiValue) -> Option<f64> {
-        if self.kind_of(value) != NAPI_NUMBER {
+    /// must never be handed a `bigint`"*. **THE CLASS IS READ FIRST, ON THE VALUE AS IT IS, AND A VALUE
+    /// THAT IS NOT A JS `number` IS NEVER HANDED TO THE NUMERIC CONVERSION AT ALL: `None` is the caller's
+    /// answer, and each caller carries the value's OWN class instead of a default.**
+    fn number_of(&self, value: JsVal<'_>) -> Option<f64> {
+        if self.kind_of(value) != Kind::Number {
             return None;
         }
-        let mut out: f64 = 0.0;
-        if napi_get_value_double(self.env, value, &mut out) != 0 {
-            return None;
-        }
-        Some(out)
+        unsafe { value.cast::<f64>() }.ok()
     }
 
     /// **THE BIGINT READ, CLASS-FIRST** — a JS `bigint` read AS a `bigint`, never through the numeric arm
-    /// (`A76`, `JS-6`). `lossless` reports whether the value fits the store's own carried `i64`; **the class
-    /// alone decides the refusal** (`JsJournalLengthArg::BigInt` → `JournalLengthArg::Object` →
-    /// `AddressMalformed`, and `JsValue::BigInt` → `StoreValue::BigInt` → `ValueNotAdmitted`), so a value
-    /// beyond the carrier's range changes no answer and is never substituted for by a number.
-    unsafe fn bigint_of(&self, value: NapiValue) -> i64 {
-        let mut out: i64 = 0;
-        let mut lossless: bool = false;
-        if napi_get_value_bigint_int64(self.env, value, &mut out, &mut lossless) != 0 {
-            return 0;
+    /// (`A76`, `JS-6`). The library's `BigInt` conversion reports whether the value fits the store's own
+    /// carried `i64`; **the class alone decides the refusal** (`JsJournalLengthArg::BigInt` →
+    /// `JournalLengthArg::Object` → `AddressMalformed`, and `JsValue::BigInt` → `StoreValue::BigInt` →
+    /// `ValueNotAdmitted`), so a value beyond the carrier's range changes no answer and is never substituted
+    /// for by a number.
+    fn bigint_of(&self, value: JsVal<'_>) -> i64 {
+        match unsafe { value.cast::<JsBigInt>() } {
+            Ok(big) => big.get_i64().0,
+            Err(_) => 0,
         }
-        out
     }
 
     /// **THE CLASS OF A PAYLOAD THE ARM IT ARRIVED IN DID NOT NAME** (`A76`'s class-first reading, at the
@@ -433,55 +344,50 @@ impl Codec {
     /// and nothing is coerced into the arm's. **It is unreachable from the shipped package** — the mapping
     /// layer encodes each arm with a payload of that arm's own class — and it exists so that a
     /// hand-built wire cannot smuggle a `bigint` through the number arm.
-    unsafe fn classed_value(&self, payload: NapiValue) -> JsValue {
+    fn classed_value(&self, payload: JsVal<'_>) -> JsValue {
         match self.kind_of(payload) {
-            NAPI_STRING => JsValue::Str(self.string_of(payload)),
-            NAPI_BOOLEAN => JsValue::Bool(self.bool_of(payload)),
-            NAPI_NUMBER => JsValue::Num(self.number_of(payload).unwrap_or(f64::NAN)),
-            NAPI_BIGINT => JsValue::BigInt(self.bigint_of(payload)),
-            NAPI_UNDEFINED => JsValue::Undefined,
-            NAPI_NULL => JsValue::Null,
-            NAPI_FUNCTION => JsValue::Function,
-            NAPI_SYMBOL => JsValue::Symbol,
+            Kind::String => JsValue::Str(self.string_of(payload)),
+            Kind::Boolean => JsValue::Bool(self.bool_of(payload)),
+            Kind::Number => JsValue::Num(self.number_of(payload).unwrap_or(f64::NAN)),
+            Kind::BigInt => JsValue::BigInt(self.bigint_of(payload)),
+            Kind::Undefined => JsValue::Undefined,
+            Kind::Null => JsValue::Null,
+            Kind::Function => JsValue::Function,
+            Kind::Symbol => JsValue::Symbol,
             // An object payload is NOT read (no member is taken from it): its class is the outside one.
             _ => JsValue::NonPlainCollection,
         }
     }
 
-    unsafe fn kind_of(&self, value: NapiValue) -> i32 {
-        let mut kind: i32 = 0;
-        napi_typeof(self.env, value, &mut kind);
-        kind
+    /// **THE CLASS OF A VALUE, BY THE LIBRARY'S OWN `ValueType`** — the adopted generic value's class
+    /// decision (`PAR-ADA-9`), which the hand-written boundary took from a numbered `napi_typeof` result.
+    fn kind_of(&self, value: JsVal<'_>) -> Kind {
+        value.get_type().unwrap_or(Kind::Unknown)
     }
 
-    unsafe fn is_array(&self, value: NapiValue) -> bool {
-        let mut out: bool = false;
-        if napi_is_array(self.env, value, &mut out) != 0 {
-            return false;
-        }
-        out
+    fn is_array(&self, value: JsVal<'_>) -> bool {
+        self.kind_of(value) == Kind::Object && value.is_array().unwrap_or(false)
     }
 
     /// The elements of a JS array, in index order — **a DENSE walk, because a hole is a decision the JS
     /// boundary has already taken and carried as `{k:'H'}` (`crossing.md §1.4` item 2, `DD-8`).**
-    unsafe fn elements(&self, array: NapiValue) -> Vec<NapiValue> {
-        let mut len: u32 = 0;
-        if napi_get_array_length(self.env, array, &mut len) != 0 {
+    fn elements(&self, array: JsVal<'_>) -> Vec<JsVal<'_>> {
+        let Ok(array) = array.coerce_to_object() else {
             return Vec::new();
-        }
-        let mut out = Vec::with_capacity(len as usize);
-        for index in 0..len {
-            let mut element: NapiValue = std::ptr::null_mut();
-            if napi_get_element(self.env, array, index, &mut element) == 0 {
+        };
+        let Ok(length) = array.get_array_length() else {
+            return Vec::new();
+        };
+        let mut out = Vec::with_capacity(length as usize);
+        for index in 0..length {
+            if let Ok(element) = array.get_element(index) {
                 out.push(element);
             }
         }
         out
     }
 
-    /// **THE COPY IN** (`crossing.md §1.1` clause 1): the JS side's own encoded value, translated into the
-    /// core's model — read ONCE, member by member, and never retained.
-    unsafe fn value_of(&self, v: NapiValue) -> JsValue {
+    fn value_of(&self, v: JsVal<'_>) -> JsValue {
         let tag = match self.member(v, "k") {
             Some(tag) => self.string_of(tag),
             None => return JsValue::NonPlainCollection,
@@ -592,12 +498,12 @@ impl Codec {
 
     /// `crossing.md §1.3`'s `Segment`: a JS `string` or a non-negative integer `number` is admitted, and
     /// every outside class is carried as its own variant — the package mints no code (`DD-1`).
-    unsafe fn segment(&self, v: NapiValue) -> JsSegment {
+    fn segment(&self, v: JsVal<'_>) -> JsSegment {
         match self.kind_of(v) {
-            NAPI_STRING => JsSegment::Key(self.string_of(v)),
+            Kind::String => JsSegment::Key(self.string_of(v)),
             // The class was just read as `number`, so the read below cannot fail; where it somehow did, the
             // value is carried as the outside class `Object` rather than substituted by `0` (`A76`).
-            NAPI_NUMBER => match self.number_of(v) {
+            Kind::Number => match self.number_of(v) {
                 Some(n) => {
                     if n.is_nan() || n.is_infinite() {
                         JsSegment::Fractional(n)
@@ -611,8 +517,8 @@ impl Codec {
                 }
                 None => JsSegment::Object,
             },
-            NAPI_BOOLEAN => JsSegment::Bool(self.bool_of(v)),
-            NAPI_FUNCTION => JsSegment::Function,
+            Kind::Boolean => JsSegment::Bool(self.bool_of(v)),
+            Kind::Function => JsSegment::Function,
             _ => {
                 match self
                     .member(v, "bad")
@@ -633,7 +539,7 @@ impl Codec {
     }
 
     /// `crossing.md §1.3`'s `AddressArg` table, rows 1–14.
-    unsafe fn address_of(&self, a: NapiValue) -> JsAddressArg {
+    fn address_of(&self, a: JsVal<'_>) -> JsAddressArg {
         let tag = match self.member(a, "k") {
             Some(tag) => self.string_of(tag),
             None => return JsAddressArg::Absent,
@@ -685,15 +591,15 @@ impl Codec {
     }
 
     /// `crossing.md §1.3`'s `TierSetItem` table, `4` rows.
-    unsafe fn tier_set_item(&self, item: NapiValue) -> JsTierSetItem {
+    fn tier_set_item(&self, item: JsVal<'_>) -> JsTierSetItem {
         match self.kind_of(item) {
-            NAPI_STRING => JsTierSetItem::Token(self.string_of(item)),
-            NAPI_NUMBER => match self.number_of(item) {
+            Kind::String => JsTierSetItem::Token(self.string_of(item)),
+            Kind::Number => match self.number_of(item) {
                 Some(n) => JsTierSetItem::Number(n),
                 None => JsTierSetItem::Object, // the class was already read as `number` (`A76`)
             },
-            NAPI_BOOLEAN => JsTierSetItem::Bool(self.bool_of(item)),
-            NAPI_FUNCTION => JsTierSetItem::Function,
+            Kind::Boolean => JsTierSetItem::Bool(self.bool_of(item)),
+            Kind::Function => JsTierSetItem::Function,
             _ => match self
                 .member(item, "bad")
                 .map(|x| self.string_of(x))
@@ -710,7 +616,7 @@ impl Codec {
 
     /// `crossing.md §1.3`'s `TierArg` table, `7` rows. **The JS boundary reads the call's own ARITY and
     /// folds a supplied `undefined` to the ABSENT row** (`§1.3`'s absent-versus-`undefined` rule, rule 1).
-    unsafe fn tier_of(&self, t: NapiValue) -> JsTierArg {
+    fn tier_of(&self, t: JsVal<'_>) -> JsTierArg {
         let tag = match self.member(t, "k") {
             Some(tag) => self.string_of(tag),
             None => return JsTierArg::Absent,
@@ -750,7 +656,7 @@ impl Codec {
     }
 
     /// `crossing.md §1.3`'s `OpIdArg` table, `6` rows.
-    unsafe fn op_id_of(&self, o: NapiValue) -> JsOpIdArg {
+    fn op_id_of(&self, o: JsVal<'_>) -> JsOpIdArg {
         let tag = match self.member(o, "k") {
             Some(tag) => self.string_of(tag),
             None => return JsOpIdArg::Absent,
@@ -777,7 +683,7 @@ impl Codec {
     }
 
     /// `crossing.md §1.3`'s `ListenerHandle` row 2 and `JsHandleArg`.
-    unsafe fn handle_arg_of(&self, h: NapiValue) -> JsHandleArg {
+    fn handle_arg_of(&self, h: JsVal<'_>) -> JsHandleArg {
         let tag = match self.member(h, "k") {
             Some(tag) => self.string_of(tag),
             None => return JsHandleArg::NonOpaque,
@@ -802,9 +708,9 @@ impl Codec {
     /// `surface.md §2.1` / `DD-36`: `cfg` carries the store's THREE declared keys and no fourth. **Each
     /// key's ABSENCE is the member's own absence** — `crossing.md §1.3`'s absent-versus-`undefined` rule
     /// reads a `cfg` key by `in`-MEMBERSHIP, and `None` IS that absence (`§4.5` item 2's `Option` row).
-    unsafe fn config(&self, cfg: NapiValue) -> JsConfig {
+    fn config(&self, cfg: JsVal<'_>) -> JsConfig {
         let file_path = self.member(cfg, "filePath").map(|v| match self.kind_of(v) {
-            NAPI_STRING => {
+            Kind::String => {
                 let text = self.string_of(v);
                 if text.is_empty() {
                     JsFilePathArg::Empty
@@ -812,14 +718,14 @@ impl Codec {
                     JsFilePathArg::Str(text)
                 }
             }
-            NAPI_NULL => JsFilePathArg::Null,
-            NAPI_UNDEFINED => JsFilePathArg::Undefined,
+            Kind::Null => JsFilePathArg::Null,
+            Kind::Undefined => JsFilePathArg::Undefined,
             _ => JsFilePathArg::NonString,
         });
         let journal_length = self
             .member(cfg, "journalLength")
             .map(|v| match self.kind_of(v) {
-                NAPI_NUMBER => match self.number_of(v) {
+                Kind::Number => match self.number_of(v) {
                     Some(n) => {
                         if n.is_nan() {
                             JsJournalLengthArg::NaN
@@ -841,23 +747,23 @@ impl Codec {
                     // substitution: a value whose class is not a number is carried as row 10's `Object`.
                     None => JsJournalLengthArg::Object,
                 },
-                NAPI_STRING => JsJournalLengthArg::NumericString(self.string_of(v)),
-                NAPI_BOOLEAN => JsJournalLengthArg::Bool(self.bool_of(v)),
+                Kind::String => JsJournalLengthArg::NumericString(self.string_of(v)),
+                Kind::Boolean => JsJournalLengthArg::Bool(self.bool_of(v)),
                 // **`A76`/`JS-6`: A `bigint` ARRIVES AS A `bigint`** — it is read as its own class by
                 // `napi_get_value_bigint_int64` and is NEVER handed to the number read, where the failure arm
                 // would have substituted `0` for the caller's `10n`. The declared answer is unchanged: row 11's
                 // `AddressMalformed`, reached through the class and not through a coerced token.
-                NAPI_BIGINT => JsJournalLengthArg::BigInt(self.bigint_of(v)),
-                NAPI_NULL => JsJournalLengthArg::Null,
-                NAPI_UNDEFINED => JsJournalLengthArg::Undefined,
-                NAPI_FUNCTION => JsJournalLengthArg::Function,
+                Kind::BigInt => JsJournalLengthArg::BigInt(self.bigint_of(v)),
+                Kind::Null => JsJournalLengthArg::Null,
+                Kind::Undefined => JsJournalLengthArg::Undefined,
+                Kind::Function => JsJournalLengthArg::Function,
                 _ => JsJournalLengthArg::Object,
             });
         let listeners = self.member(cfg, "listeners").map(|v| {
             if !self.is_array(v) {
                 return match self.kind_of(v) {
-                    NAPI_NULL => JsListenersArg::Null,
-                    NAPI_UNDEFINED => JsListenersArg::Undefined,
+                    Kind::Null => JsListenersArg::Null,
+                    Kind::Undefined => JsListenersArg::Undefined,
                     _ => JsListenersArg::NonArray,
                 };
             }
@@ -865,7 +771,7 @@ impl Codec {
                 .elements(v)
                 .iter()
                 .map(|entry| {
-                    if self.is_array(*entry) || self.kind_of(*entry) != NAPI_OBJECT {
+                    if self.is_array(*entry) || self.kind_of(*entry) != Kind::Object {
                         return JsListenerEntry::Other;
                     }
                     let (Some(address), Some(handle)) = (
@@ -874,7 +780,7 @@ impl Codec {
                     ) else {
                         return JsListenerEntry::Other;
                     };
-                    if self.kind_of(handle) != NAPI_STRING {
+                    if self.kind_of(handle) != Kind::String {
                         return JsListenerEntry::Other;
                     }
                     let handle = self.string_of(handle);
@@ -906,10 +812,10 @@ impl Codec {
     /// list's own outside form, and one element outside the `{ address, id }` pair's shape crosses as **the
     /// failing ENTRY's own `<SEGMENT>` spelling** (`§8.2`'s row) — and this reader is MECHANICAL over that
     /// encoding, exactly as `address_of` is over `encodeAddress`'s (`§1.3`'s two-layer split).
-    unsafe fn constraints_arg(&self, value: NapiValue) -> JsConstraintsArg {
+    fn constraints_arg(&self, value: JsVal<'_>) -> JsConstraintsArg {
         match self.kind_of(value) {
-            NAPI_NULL => return JsConstraintsArg::Null,
-            NAPI_UNDEFINED => return JsConstraintsArg::Undefined,
+            Kind::Null => return JsConstraintsArg::Null,
+            Kind::Undefined => return JsConstraintsArg::Undefined,
             _ => {}
         }
         if !self.is_array(value) {
@@ -925,7 +831,7 @@ impl Codec {
 
     /// One `constraints[]` element: the closed `{ address, id }` pair, or the element outside it with its
     /// own `<SEGMENT>` spelling, read off the boundary's own encoding and nowhere else.
-    unsafe fn constraint_entry(&self, entry: NapiValue) -> JsConstraintEntry {
+    fn constraint_entry(&self, entry: JsVal<'_>) -> JsConstraintEntry {
         if self.member(entry, "bad").is_some() {
             let subject = self
                 .member(entry, "subject")
@@ -949,69 +855,65 @@ impl Codec {
 // The copy OUT — the core's own records and values, written as fresh Node-API values.
 // -------------------------------------------------------------------------------------------------
 
-impl Codec {
-    unsafe fn object(&self, members: Vec<(&str, NapiValue)>) -> NapiValue {
-        let mut out: NapiValue = std::ptr::null_mut();
-        napi_create_object(self.env, &mut out);
+impl<'e> Codec<'e> {
+    fn object(self, members: Vec<(&str, JsVal<'_>)>) -> JsVal<'static> {
+        let mut out = Object::new(&self.env)
+            .unwrap_or_else(|_| unreachable!("the environment builds an object"));
         for (name, value) in members {
-            let spelled = as_utf8(name);
-            napi_set_named_property(self.env, out, spelled.as_ptr() as *const c_char, value);
+            let _ = out.set(name, value);
         }
-        out
+        // The object crosses OUT as the untyped value the wire's reader receives.
+        let raw = unsafe { ToNapiValue::to_napi_value(self.env.raw(), out) }
+            .unwrap_or(std::ptr::null_mut());
+        unsafe { JsVal::from_raw_unchecked(self.env.raw(), raw) }
     }
 
-    unsafe fn array(&self, items: Vec<NapiValue>) -> NapiValue {
-        let mut out: NapiValue = std::ptr::null_mut();
-        napi_create_array_with_length(self.env, items.len(), &mut out);
-        for (index, item) in items.into_iter().enumerate() {
-            napi_set_element(self.env, out, index as u32, item);
-        }
-        out
+    fn array(self, items: Vec<JsVal<'_>>) -> JsVal<'static> {
+        // **A REAL JS ARRAY AND NOT AN OBJECT WITH INDEXED MEMBERS** — the wire's `i:[…]` and `s:[…]` are
+        // read by the mapping layer with `Array.prototype.map`, so an object carrying `0`, `1`, … would
+        // cross as a value whose shape is the wrong one. The library's `Vec<T>` conversion builds an array
+        // through `napi_create_array_with_length` and `napi_set_element`, which is the pair the hand-written
+        // copy OUT used.
+        let owned: Vec<JsVal<'_>> = items;
+        let raw = unsafe { ToNapiValue::to_napi_value(self.env.raw(), owned) }
+            .unwrap_or(std::ptr::null_mut());
+        unsafe { JsVal::from_raw_unchecked(self.env.raw(), raw) }
     }
 
     /// A value's own tag member beside the payload the JS side reads it by.
-    unsafe fn tagged(&self, tag: &str, payload: NapiValue) -> NapiValue {
-        self.object(vec![("k", self.string_value(tag)), ("v", payload)])
+    fn tagged(self, tag: &str, payload: JsVal<'_>) -> JsVal<'static> {
+        let tag = self.string_value(tag);
+        self.object(vec![("k", tag), ("v", payload)])
     }
 
     /// One member set on an object this codec built — the record's own triggering address (`§2.7` item 2).
-    unsafe fn set_member(&self, object: NapiValue, name: &str, value: NapiValue) {
-        let spelled = as_utf8(name);
-        napi_set_named_property(self.env, object, spelled.as_ptr() as *const c_char, value);
+    fn set_member(self, object: JsVal<'_>, name: &str, value: JsVal<'_>) {
+        let mut object = match object.coerce_to_object() {
+            Ok(object) => object,
+            Err(_) => return,
+        };
+        let _ = object.set(name, value);
     }
 
-    unsafe fn string_value(&self, text: &str) -> NapiValue {
-        let mut out: NapiValue = std::ptr::null_mut();
-        napi_create_string_utf8(
-            self.env,
-            text.as_ptr() as *const c_char,
-            text.len(),
-            &mut out,
-        );
-        out
+    fn string_value(self, text: &str) -> JsVal<'_> {
+        make_string(&self.env, text)
     }
 
-    unsafe fn number_value(&self, n: f64) -> NapiValue {
-        let mut out: NapiValue = std::ptr::null_mut();
-        napi_create_double(self.env, n, &mut out);
-        out
+    fn number_value(self, n: f64) -> JsVal<'static> {
+        make_value(&self.env, n)
     }
 
-    unsafe fn bool_value(&self, b: bool) -> NapiValue {
-        let mut out: NapiValue = std::ptr::null_mut();
-        napi_get_boolean(self.env, b, &mut out);
-        out
+    fn bool_value(self, b: bool) -> JsVal<'static> {
+        make_value(&self.env, b)
     }
 
-    unsafe fn undefined_value(&self) -> NapiValue {
-        let mut out: NapiValue = std::ptr::null_mut();
-        napi_get_undefined(self.env, &mut out);
-        out
+    fn undefined_value(self) -> JsVal<'static> {
+        make_undefined(&self.env)
     }
 
     /// **THE COPY OUT** (`crossing.md §1.1` clause 2): a store value converted into FRESH JS-owned data,
     /// at `crossing.md §1.2`'s own classes — so the JS side holds no reference into store-owned data.
-    unsafe fn to_js_value(&self, v: &JsValue) -> NapiValue {
+    fn to_js_value(self, v: &JsValue) -> JsVal<'static> {
         match v {
             JsValue::Str(s) => self.tagged("s", self.string_value(s)),
             JsValue::Bool(b) => self.tagged("b", self.bool_value(*b)),
@@ -1063,7 +965,7 @@ impl Codec {
         }
     }
 
-    unsafe fn to_js_segments(&self, segments: &[JsSegment]) -> NapiValue {
+    fn to_js_segments(self, segments: &[JsSegment]) -> JsVal<'static> {
         self.array(
             segments
                 .iter()
@@ -1087,14 +989,14 @@ impl Codec {
         )
     }
 
-    unsafe fn to_js_base_state(&self, state: &JsBaseState) -> NapiValue {
+    fn to_js_base_state(self, state: &JsBaseState) -> JsVal<'static> {
         self.object(vec![
             ("present", self.bool_value(state.present)),
             ("value", self.to_js_value(&state.value)),
         ])
     }
 
-    unsafe fn to_js_journal_op(&self, op: &JsJournalOp) -> NapiValue {
+    fn to_js_journal_op(self, op: &JsJournalOp) -> JsVal<'static> {
         let tier = match &op.tier {
             Some(token) => self.string_value(token),
             None => self.undefined_value(),
@@ -1121,7 +1023,7 @@ impl Codec {
     ///
     /// **NO PARALLEL `triggeredAddresses` ARRAY EXISTS AND NONE MAY BE ADDED** — the aligned form is an i-th
     /// correspondence, and it reverses `DD-37` (`contract.md §2.4` item 1; `trigger-and-pair.md §2` item 4).
-    unsafe fn to_js_trigger_pairs(&self, triggered: &[JsListenerTrigger]) -> NapiValue {
+    fn to_js_trigger_pairs(self, triggered: &[JsListenerTrigger]) -> JsVal<'static> {
         let pairs = triggered
             .iter()
             .map(|pair| {
@@ -1133,7 +1035,7 @@ impl Codec {
         self.array(pairs)
     }
 
-    unsafe fn to_js_write_result(&self, r: &JsWriteResult) -> NapiValue {
+    fn to_js_write_result(self, r: &JsWriteResult) -> JsVal<'static> {
         let watched = r
             .watched
             .iter()
@@ -1146,7 +1048,7 @@ impl Codec {
         ])
     }
 
-    unsafe fn to_js_delete_receipt(&self, r: &JsDeleteReceipt) -> NapiValue {
+    fn to_js_delete_receipt(self, r: &JsDeleteReceipt) -> JsVal<'static> {
         self.object(vec![
             ("address", self.to_js_segments(&r.address)),
             (
@@ -1157,7 +1059,7 @@ impl Codec {
         ])
     }
 
-    unsafe fn to_js_rollback_result(&self, r: &JsRollbackResult) -> NapiValue {
+    fn to_js_rollback_result(self, r: &JsRollbackResult) -> JsVal<'static> {
         self.object(vec![
             ("opId", self.string_value(&r.opId)),
             (
@@ -1176,6 +1078,22 @@ impl Codec {
 
 thread_local! {
     static INSTANCES: RefCell<Vec<crossing::Instance>> = const { RefCell::new(Vec::new()) };
+    /// **THE RECEIVER TABLE** — `receiver-and-refusal.md §6`'s subject, and this unit's second `OWED` item.
+    ///
+    /// **IT REMAINS — SOMETHING MUST HOLD THE STORE — AND ITS FORM IS `Vec<usize>`, THE LIVE INDICES OF
+    /// [`INSTANCES`] IN ASCENDING ORDER.** *Why this shape*: the index `storeCreate` mints IS the store's
+    /// address on the Node-API side — the package's non-enumerable own member carries it and the receiver
+    /// hands it back — so a table of anything richer would hold a SECOND copy of a store the first table
+    /// already owns, and `receiver-and-refusal.md §5` withdraws exactly that ("it resolves through the same
+    /// `this` and so buys only legibility"). **A SET OF INDICES IS THE MAPPING AND NOTHING BESIDE IT.**
+    ///
+    /// **AND IT GAINS THE RETIREMENT PATH `§6` REQUIRES, FIRING IN THE SAME ACT THAT FREES A STORE.** The
+    /// store is freed by the package's own GC finalizer (`docs/decisions.md`: *"THE STORE IS TORN DOWN BY A
+    /// GC FINALIZER"*), which reaches this addon through the standing `storeRelease` entry below; that entry
+    /// DROPS the instance AND removes ITS OWN index from this table, **IN ONE ACT**, so **THE RETIREMENT
+    /// REMOVES EXACTLY ONE ENTRY — the freed instance's own — AND NEVER THE TABLE** (`§6`) and an entry whose
+    /// store has been freed can never survive to name nothing.
+    static INSTANCE_IDS: RefCell<Vec<usize>> = const { RefCell::new(Vec::new()) };
 }
 
 // **⟶ THE CORE-SIDE INVOCATION STRUCTURE IS GONE FROM THIS FILE (`F-13`; `U-9`): THE `LISTENERS`
@@ -1192,206 +1110,467 @@ thread_local! {
 // copied out before the package's invocation loop opens (`§2.7` item 2), and the triggering address crosses
 // as the record's own `triggeringAddress` member rather than through a builder here.
 
-/// The addon's `create(cfgWire) -> uint32`: the store's construction, through the core.
-extern "C" fn addon_create(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
-    let mut argc: usize = 2;
-    let mut argv: [NapiValue; 2] = [std::ptr::null_mut(); 2];
-    let mut this: NapiValue = std::ptr::null_mut();
-    unsafe {
-        napi_get_cb_info(
-            env,
-            info,
-            &mut argc,
-            argv.as_mut_ptr(),
-            &mut this,
-            std::ptr::null_mut(),
-        );
-    }
-    let codec = Codec { env };
-    let config = unsafe { codec.config(argv[0]) };
+/// The addon's `storeCreate(cfgWire) -> uint32`: the store's construction, through the core.
+///
+/// **THE ENTRY'S NAME AND ARITY ARE UNMOVED** (`contract.md §2` item 3): `storeCreate` is the second of the
+/// five, it takes ONE argument, and it answers the instance id. **AND IT IS ANNOTATED RATHER THAN
+/// HAND-EXPORTED** — the annotation replaces the `export(env, exports, name, fn)` call that built the old
+/// table (`binding-crate-and-abi.md §2`'s deletion row 5), and its edit-time argument list IS the arity the
+/// runtime reads.
+///
+/// **THE REFUSAL PATH THROWS THE VALUE** (`failure-form.md §3`): `throw_refusal` is called and the frame
+/// answers `undefined` behind the pending exception — **no `Result` arm carrying a library error is
+/// returned from this function, which is the obligation that keeps the form** (`P-ADA-3`, `F-4`).
+/// **THE ENTRY IS ANNOTATED AND ITS ONE-POSITION ARITY IS UNMOVED** (`contract.md §2` item 3). **THE
+/// REFUSAL ARM STILL ANSWERS `Ok`** — a refusal has ALREADY been thrown as the VALUE by [`throw_refusal`],
+/// so no `Err` is returned here and no library error reaches a refusal path (`P-ADA-3`, `F-4`).
+#[napi]
+pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let config = codec.config(cfg);
     // **⟶ THE FOURTH DECLARED KEY IS READ HERE, BESIDE THE STRUCT** (`parameter-semantics.md §2.21`;
     // `surface.md §2.1`'s `cfg` block dated 2026-10-15): read by OWNERSHIP exactly as the three above are,
     // so its ABSENCE is `None` — no default is fabricated for it — and **a PRESENT `undefined` is the
     // key's own outside form and not its absence**. **THE CODE AND THE MESSAGE STAY THE STORE'S** (`§8.1`
     // #16, `§8.2`; `DD-40`), which is why the list crosses as its own carrier and not as a `JsConfig`
     // field the store could not tell from an absence.
-    let constraints = unsafe {
-        codec
-            .member(argv[0], "constraints")
-            .map(|value| codec.constraints_arg(value))
-    };
+    let constraints = codec
+        .member(cfg, "constraints")
+        .map(|value| codec.constraints_arg(value));
     match crossing::create_with_constraints(&config, constraints.as_ref()) {
-        Err(refusal) => unsafe { throw_refusal(env, &refusal) },
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            Ok(make_undefined(&env))
+        }
         Ok(instance) => {
+            // **THE MINT AND THE TABLE'S OWN ROW, IN ONE ACT** (`receiver-and-refusal.md §6`): the index the
+            // store object is published with is EXACTLY the row [`INSTANCE_IDS`] holds, so the receiver's
+            // resolution and the store's own construction cannot disagree about which store an index names.
             let index = INSTANCES.with(|all| {
                 let mut all = all.borrow_mut();
                 all.push(instance);
                 all.len() - 1
             });
-            let mut out: NapiValue = std::ptr::null_mut();
-            unsafe {
-                napi_create_uint32(env, index as u32, &mut out);
-            }
-            out
+            INSTANCE_IDS.with(|ids| ids.borrow_mut().push(index));
+            Ok(make_value(&env, index as u32))
         }
     }
 }
 
-/// The addon's `call(instance, verb, args) -> any`: every crossing verb, THIN (`§4.5` item 6) — each
-/// converts the JS side's own argument into the core's model, calls the core and translates the core's
-/// answer back. **The core is what does the work** (`A75`: the route is `JS -> facade -> core -> store`).
+// =================================================================================================
+// THE NINE PER-VERB ENTRIES — `U-STOREROOM-ADDON-SURFACE`, `export-set-and-dispatch.md §1`
+//
+// **THE DISPATCHER'S STRING INDIRECTION GOES** (`contract.md §2` item 2; `§3`): `call(instance, verb, args)`
+// matched the verb as a JS string across nine arms and showed as its own frame with the verb as DATA. **THE
+// SPLIT IS PRECISELY ITS REPLACEMENT, SO `call` DOES NOT SURVIVE** (`export-set-and-dispatch.md §2`), and
+// each arm now stands at its own `#[napi]` entry: **the verb IS the frame's name.**
+//
+// **EACH ENTRY TAKES ITS VERB'S OWN ARGUMENTS AND NOTHING ELSE** (`§4`). The instance position that once
+// preceded them is GONE and is not reintroduced; **the store arrives by the receiver** — the Node-API `this`
+// the package hands as the FIRST CALL ARGUMENT and the first element of the call array
+// (`receiver-and-refusal.md §1`), which this layer reads at [`instance_of`] and nowhere else.
+//
+// **THE ARITIES ARE THE CLAUSE'S OWN TABLE, UNMOVED FROM THE VERB'S** (`§1`; `§4`):
+// `read`(3) · `readLiteral`(3) · `write`(**5**) · `delete`(3) · `rollback`(2) · `listen`(3) ·
+// `unlisten`(2) · `removeListener`(2) · `commitFile`(2).
+//
+// **`commit` IS NOT AN ENTRY AND NEVER WAS AN ARM**: it is `write`'s FOURTH POSITION, whose class test the
+// package takes before this frame is entered (`§2`; `commitPositionRefusal`). **`constraints` IS NOT AN
+// ADDON ENTRY EITHER** — the addon is never reached for it (`§2`).
+// =================================================================================================
+
+/// **THE ARGUMENT-READING PROTOCOL, STATED ONCE FOR THE NINE** (`crossing.md §1.3`'s absent-versus-
+/// `undefined` rule): a position the call did NOT supply is ABSENT (`None`) and a SUPPLIED `undefined` is
+/// `Some` — **and `undefined` IS A VALUE THAT CROSSES IN AND IS REFUSED BY THE STORE'S OWN TAXONOMY**
+/// (`DD-46`: `JsValue::Undefined` reaches the store as its own outside member), never read here as an
+/// absence. **THIS DISTINCTION IS WHY THE POSITIONS ARE HANDED AS THE RUNTIME'S `undefined` RATHER THAN
+/// DROPPED**: an absent position is a SHORT call, and shortening is exactly what `S-ARITY` calls one-fewer.
 ///
-/// **THE INVOCATION WINDOW IS HERE AND NOWHERE ELSE** (`§2.7` item 2, `DD-22`): the record is complete and
-/// copied out BEFORE the listeners run, the invocation is synchronous, **its ONE argument is the
-/// TRIGGERING ADDRESS** (`PAR-JS-12`), and a throwing body is NOT caught, NOT retried and NOT reported
-/// (`DD-23`).
-extern "C" fn addon_call(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
-    let mut argc: usize = 3;
-    let mut argv: [NapiValue; 3] = [std::ptr::null_mut(); 3];
-    let mut this: NapiValue = std::ptr::null_mut();
-    unsafe {
-        napi_get_cb_info(
-            env,
-            info,
-            &mut argc,
-            argv.as_mut_ptr(),
-            &mut this,
-            std::ptr::null_mut(),
-        );
-    }
-    let mut index: u32 = 0;
-    unsafe {
-        napi_get_value_uint32(env, argv[0], &mut index);
-    }
-    let verb = unsafe { arg_string(env, argv[1]) };
-    let args = unsafe { codec_argv(env, argv[2]) };
-    let codec = Codec { env };
-    let index = index as usize;
-    // **THE INSTANCE BORROW IS RELEASED BEFORE ANY LISTENER RUNS** (`§2.7` item 4 / `DD-22`): the record is
-    // complete and copied out, the borrow ends with the `with` block, and only THEN does the package's
-    // invocation loop open — so a listener body that calls a verb of the same instance re-enters freely and
-    // a throwing body leaves the store's own result standing and unmoved (`DD-23`).
-    let answer: Result<NapiValue, Refusal> = INSTANCES.with(|all| {
+/// **AND A POSITION THE PACKAGE DID NOT SUPPLY AT THE TAIL IS READ AS THE RUNTIME'S OWN `undefined`,
+/// WHICH IS THE PACKAGE'S PROTOCOL ITSELF** (`index.mjs`'s own comment at `read`: *"A position the call
+/// supplied no value for is handed as the runtime's own `undefined` — NEVER as an absent array slot"*).
+/// **THE READ LIVES HERE SO THE NINE ENTRIES CANNOT DRIFT APART ON IT.**
+fn position<'a, 'e>(args: &'a [JsVal<'e>], index: usize) -> Option<&'a JsVal<'e>> {
+    args.get(index)
+}
+
+/// **THE STORE'S INDEX, RESOLVED FROM THE RECEIVER** (`receiver-and-refusal.md §1`).
+///
+/// **THE RECEIVER IS A ROUTING CARRIER AND NOT AN AUTHORITY CARRIER** (`§1`), and the index it names is the
+/// integer `storeCreate` minted and returned — **the addon's own integer, never a caller's**. The package
+/// reads it off the store object it published as its own non-enumerable row and hands it across; a caller
+/// who has only the entry function has nothing to hand, which is the DETACHED CALL
+/// (`§3`: *"the method lost its object; there is no receiver"*).
+///
+/// **THE TABLE IS DECLARED AT [`INSTANCE_IDS`] BESIDE `INSTANCES` AND HOLDS NOTHING BUT THE MAPPING**: the
+/// entries it maps are the live constructions themselves, so its retirement path is the store's own
+/// (`receiver-and-refusal.md §6`).
+///
+/// **AND A CALL NAMING NO LIVE STORE REFUSES IN THE ONE DECLARED FORM** (`§3`): an ABSENT receiver argument,
+/// one that is not an object, one that carries no readable first element, one whose first element is not a
+/// number, and one whose index the table does not hold all answer THE ONE REFUSAL — a THROWN PLAIN OBJECT
+/// `{status, message}` and never an `Error`, never a `TypeError`, and never a library error
+/// (`failure-form.md §1`; `P-ADA-3`, `F-4`).
+///
+/// **⟶ AND THE RECEIVER IS RESOLVED WITHOUT AN ARRAY CLASS GATE, WHICH IS A CORRECTION AND NOT A
+/// LOOSENING.** The spec's own words are *"one arm, one observable"* (`§3`): what the clause requires is
+/// that **a call whose receiver names no live store refuses in the ONE declared form** — not that a class
+/// **THE RECEIVER ARRIVES AS THE NODE-API `this` AND IS ALREADY AN OBJECT** (`receiver-and-refusal.md §1`:
+/// *"each entry resolves its store from the Node-API `this` receiver — the value already received at every
+/// entry and today discarded"*). **ITS FIRST ELEMENT IS READ AS THE NUMBER `storeCreate` MINTED**, which the
+/// package publishes on the store object; **if that read fails, or the number names no row in
+/// [`INSTANCE_IDS`], THE ONE REFUSAL ANSWERS** (`§3`: *"There is no second arm and no second observable."*).
+///
+/// **NO CLASS GATE IS TAKEN ON THE RECEIVER, AND THAT IS A CORRECTION RATHER THAN A LOOSENING.** The clause
+/// requires that a call whose receiver names no live store refuses in the ONE declared form — not that a
+/// class test stand first. **THE GATE THAT STOOD HERE WAS ALSO THE FRAGILE ONE**: `is_array()` calls raw
+/// `napi_is_array` on the handle's own raw pointer and consults no `value_type`
+/// (`napi-3.14.2/src/js_values/mod.rs:249`), and `Object::get_array_length()` is no better — it re-tests
+/// `is_array()` internally and answers `ArrayExpected` (`object.rs:515-523`). **BOTH ANSWER ABOUT A POINTER
+/// RATHER THAN ABOUT THE VALUE, so neither is a gate this resolution may depend on.**
+///
+/// **THE TOKEN IS BORROWED AND NOT MINTED** (`DD-40`; `failure-form.md §4`: *"the boundary does not mint a
+/// member for it"*): `AddressNotFound` is the store's own member for *"a handle that names nothing"*, with
+/// `AddressMalformed` for the argument that is not a receiver at all.
+fn instance_of(env: &Env, receiver: Option<&Object<'_>>) -> Result<usize, Refusal> {
+    let Some(object) = receiver else {
+        return Err(not_a_receiver());
+    };
+    // **THE INDEX IS READ OFF THE RECEIVER'S OWN `Symbol.for`-KEYED PROPERTY** — the value `storeCreate`
+    // minted and the package published as the store object's own channel. **A SYMBOL KEY IS THE FORM CHOSEN
+    // BECAUSE IT IS INVISIBLE TO BOTH ENUMERATIONS**: the product's declared fourteen own members stay
+    // exactly fourteen (`surface.md §2.4` item 9 (f)) and no member-counting cell can see the carrier, which
+    // is the same precedent `A117` (D6) declares for this package's other symbol-keyed channels. **AN
+    // INDEXED OWN PROPERTY WAS TRIED FIRST AND REJECTED AT ITS OWN MEASUREMENT**: `Object.getOwnPropertyNames`
+    // COUNTS a numeric index, so publishing the row at element `0` moved the member set `14 → 15` and failed
+    // a cell that is not this unit's to change.
+    //
+    // **THE READ IS `get_property` WITH A `Symbol.for` KEY, WHICH RESOLVES THROUGH THE ENV**, so it consults
+    // no raw-handle predicate — the property this whole shape exists to avoid depending on.
+    let try_key = ::napi::bindgen_prelude::Symbol::for_desc(STORE_INDEX_KEY).into_js_symbol(env);
+    let Ok(key) = try_key else {
+        return Err(not_a_receiver());
+    };
+    let Ok(head) = object.get_property::<_, JsVal<'_>>(key) else {
+        return Err(not_a_receiver());
+    };
+    // **AND IT IS READ AS A NUMBER.** A value of any other class names no index and refuses in the same form.
+    let Ok(raw) = (unsafe { head.cast::<f64>() }) else {
+        return Err(not_a_receiver());
+    };
+    let index = raw as usize;
+    // **A RECEIVER NAMING NOTHING LIVE RETIRES NOTHING**: an index beyond the table answers the SAME one
+    // form, so a detached call, a never-issued value and a released store are one observable
+    // (`receiver-and-refusal.md §3`: *"There is no second arm and no second observable"*).
+    INSTANCE_IDS
+        .with(|ids| ids.borrow().contains(&index))
+        .then_some(index)
+        .ok_or(Refusal {
+            status: "AddressNotFound".to_string(),
+            message: "the receiver names no store this addon holds".to_string(),
+        })
+}
+
+
+/// **THE NINE ENTRIES, ONE PER ARM, EACH ON ITS OWN FRAME** (`contract.md §2` item 2).
+///
+/// **THE BODY OF EACH IS THE ARM IT REPLACES, UNMOVED**: the same encoder, the same core call, the same
+/// translator back, and the same `triggeringAddress` member the write and delete arms set (`§2.7` item 2).
+/// What moved is HOW THE STORE IS FOUND: `args` is the call's own argument array — **its FIRST element is
+/// the receiver the package handed across** (`receiver-and-refusal.md §1`) — so each entry's declared
+/// positions begin at element ONE and carry the verb's own arguments with no instance among them (`§4`).
+#[napi(js_name = "read")]
+fn verb_read(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>, a2: JsVal<'_>) -> NapiRet<'static> {
+    // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
+    // arity `3`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
+    // tail-position protocol turns on.
+    let args: Vec<JsVal<'_>> = vec![a0, a1, a2];
+    let index = match instance_of(&env, Some(&receiver)) {
+        Ok(index) => index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
         let mut all = all.borrow_mut();
-        let Some(instance) = all.get_mut(index) else {
+        let instance = all.get_mut(index).ok_or(Refusal {
+            status: "AddressNotFound".to_string(),
+            message: "the package holds no instance at that id".to_string(),
+        })?;
+        let address = codec.address(position(&args, 0));
+        let tier = codec.tier(position(&args, 1));
+        let value = instance.read(&address, &tier)?;
+        Ok(codec.to_js_value(&value))
+    });
+    answer_or_throw(env, answer)
+}
+
+#[napi(js_name = "readLiteral")]
+fn verb_read_literal(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>, a2: JsVal<'_>) -> NapiRet<'static> {
+    // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
+    // arity `3`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
+    // tail-position protocol turns on.
+    let args: Vec<JsVal<'_>> = vec![a0, a1, a2];
+    let index = match instance_of(&env, Some(&receiver)) {
+        Ok(index) => index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
+        let mut all = all.borrow_mut();
+        let instance = all.get_mut(index).ok_or(Refusal {
+            status: "AddressNotFound".to_string(),
+            message: "the package holds no instance at that id".to_string(),
+        })?;
+        let address = codec.address(position(&args, 0));
+        let tier = codec.tier(position(&args, 1));
+        let value = instance.read_literal(&address, &tier)?;
+        Ok(codec.to_js_value(&value))
+    });
+    answer_or_throw(env, answer)
+}
+
+/// **`write` CARRIES A FIFTH POSITION THE OTHERS DO NOT** (`export-set-and-dispatch.md §1`; `§4`): its
+/// fourth declared position is the ADOPTED RECORD IDENTITY a repair write's join key names (`PAR-SAS-4`,
+/// preserved unmoved), and **a caller supply of it is an unsupported anti-pattern that is neither refused
+/// by arity nor detected by a test** (`§4`) — which is why this entry reads four positions and no more.
+///
+/// **AND THE TRIGGERING ADDRESS CROSSES BESIDE THE RECORD** (`§2.7` item 2, `PAR-JS-12`): the invocation
+/// window opens AFTER this frame returns, in the mapping layer that holds the caller's functions.
+#[napi(js_name = "write")]
+fn verb_write(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>, a2: JsVal<'_>, a3: JsVal<'_>, a4: JsVal<'_>) -> NapiRet<'static> {
+    // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
+    // arity `5`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
+    // tail-position protocol turns on.
+    let args: Vec<JsVal<'_>> = vec![a0, a1, a2, a3, a4];
+    let index = match instance_of(&env, Some(&receiver)) {
+        Ok(index) => index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
+        let mut all = all.borrow_mut();
+        let instance = all.get_mut(index).ok_or(Refusal {
+            status: "AddressNotFound".to_string(),
+            message: "the package holds no instance at that id".to_string(),
+        })?;
+        let address = codec.address(position(&args, 0));
+        let tier = codec.tier(position(&args, 1));
+        let value = codec.value(position(&args, 2));
+        let result = instance.write(&address, &tier, &value)?;
+        let answer = codec.to_js_write_result(&result);
+        let triggering = codec.to_js_segments(&segments_of(&address));
+        codec.set_member(answer, "triggeringAddress", triggering);
+        Ok(answer)
+    });
+    answer_or_throw(env, answer)
+}
+
+#[napi(js_name = "delete")]
+fn verb_delete(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>, a2: JsVal<'_>) -> NapiRet<'static> {
+    // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
+    // arity `3`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
+    // tail-position protocol turns on.
+    let args: Vec<JsVal<'_>> = vec![a0, a1, a2];
+    let index = match instance_of(&env, Some(&receiver)) {
+        Ok(index) => index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
+        let mut all = all.borrow_mut();
+        let instance = all.get_mut(index).ok_or(Refusal {
+            status: "AddressNotFound".to_string(),
+            message: "the package holds no instance at that id".to_string(),
+        })?;
+        let address = codec.address(position(&args, 0));
+        let tier = codec.tier(position(&args, 1));
+        let receipt = instance.delete(&address, &tier)?;
+        let answer = codec.to_js_delete_receipt(&receipt);
+        let triggering = codec.to_js_segments(&segments_of(&address));
+        codec.set_member(answer, "triggeringAddress", triggering);
+        Ok(answer)
+    });
+    answer_or_throw(env, answer)
+}
+
+#[napi(js_name = "rollback")]
+fn verb_rollback(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>) -> NapiRet<'static> {
+    // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
+    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
+    // tail-position protocol turns on.
+    let args: Vec<JsVal<'_>> = vec![a0, a1];
+    let index = match instance_of(&env, Some(&receiver)) {
+        Ok(index) => index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
+        let mut all = all.borrow_mut();
+        let instance = all.get_mut(index).ok_or(Refusal {
+            status: "AddressNotFound".to_string(),
+            message: "the package holds no instance at that id".to_string(),
+        })?;
+        let op_id = codec.op_id(position(&args, 0));
+        let result = instance.rollback(&op_id)?;
+        Ok(codec.to_js_rollback_result(&result))
+    });
+    answer_or_throw(env, answer)
+}
+
+/// **`listen(handle, addresses)` — THE TWO POSITIONS REACH THE CORE AS THE TWO THE STORE DECLARES**
+/// (`contract.md §2.2`; `listen-verb.md §1` item 1). **POSITION `1` IS THE CALLER-SPELLED HANDLE; POSITION
+/// `2` IS THE SET** — an ARRAY OF ADDRESSES, each member already inside the store's address domain, refused
+/// otherwise by the package's own set-position class test before this frame is entered (`F-2`). **AND THE
+/// ANSWER IS `undefined`** — the caller supplied the identity, so there is no datum to return (`PAR-HL-3`).
+#[napi(js_name = "listen")]
+fn verb_listen(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>, a2: JsVal<'_>) -> NapiRet<'static> {
+    // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
+    // arity `3`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
+    // tail-position protocol turns on.
+    let args: Vec<JsVal<'_>> = vec![a0, a1, a2];
+    let index = match instance_of(&env, Some(&receiver)) {
+        Ok(index) => index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
+        let mut all = all.borrow_mut();
+        let instance = all.get_mut(index).ok_or(Refusal {
+            status: "AddressNotFound".to_string(),
+            message: "the package holds no instance at that id".to_string(),
+        })?;
+        let handle = codec.handle_arg(position(&args, 0));
+        let addresses = codec.address_set(position(&args, 1));
+        instance.listen(&handle, &addresses)?;
+        Ok(codec.undefined_value())
+    });
+    answer_or_throw(env, answer)
+}
+
+#[napi(js_name = "unlisten")]
+fn verb_unlisten(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>) -> NapiRet<'static> {
+    // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
+    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
+    // tail-position protocol turns on.
+    let args: Vec<JsVal<'_>> = vec![a0, a1];
+    let index = match instance_of(&env, Some(&receiver)) {
+        Ok(index) => index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
+        let mut all = all.borrow_mut();
+        let instance = all.get_mut(index).ok_or(Refusal {
+            status: "AddressNotFound".to_string(),
+            message: "the package holds no instance at that id".to_string(),
+        })?;
+        let handle = codec.handle_arg(position(&args, 0));
+        instance.unlisten(&handle)?;
+        Ok(codec.undefined_value())
+    });
+    answer_or_throw(env, answer)
+}
+
+/// **`removeListener(handle)`'s STORE HALF** (`U-STOREROOM-HELD-LISTENER-IDENTITY`, `D-GP-SHLI`). **THE
+/// REMOVAL *IS* THE PURGE** (`removal-members.md §2` item 3), so this verb reaches the store's own wholesale
+/// `Home::purge` and answers `undefined`. **It is NOT a crossing verb of the eight the store's declared
+/// namespace carries** — it is the package's own member reaching the store's own operation, exactly as
+/// `listen` does (`contract.md §2.7` item 2).
+#[napi(js_name = "removeListener")]
+fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>) -> NapiRet<'static> {
+    // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
+    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
+    // tail-position protocol turns on.
+    let args: Vec<JsVal<'_>> = vec![a0, a1];
+    let index = match instance_of(&env, Some(&receiver)) {
+        Ok(index) => index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
+        let mut all = all.borrow_mut();
+        let instance = all.get_mut(index).ok_or(Refusal {
+            status: "AddressNotFound".to_string(),
+            message: "the package holds no instance at that id".to_string(),
+        })?;
+        let handle = codec.handle_arg(position(&args, 0));
+        instance.remove_listener(&handle)?;
+        Ok(codec.undefined_value())
+    });
+    answer_or_throw(env, answer)
+}
+
+/// **THE TERMINAL ARM'S OWN ACT, AND NOT A VERB** (`surface.md §2.11` clause 2; `contract.md §7.2` item 2 as
+/// amended): the package's seam performs the store's `file`-tier commit as the FIRST act of its passing arm,
+/// keyed by the settled record's own `op` identity. **IT IS NOT ONE OF THE CROSSING'S EIGHT VERBS**: the
+/// store's declared namespace stays at `8` and no member of either census moves (`§2.11` clause 7;
+/// `implementation-plan.md §10.9` row 8). Its one argument is an op id and its answer is `undefined`.
+#[napi(js_name = "commitFile")]
+fn verb_commit_file(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>) -> NapiRet<'static> {
+    // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
+    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
+    // tail-position protocol turns on.
+    let args: Vec<JsVal<'_>> = vec![a0, a1];
+    let index = match instance_of(&env, Some(&receiver)) {
+        Ok(index) => index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
+        let mut all = all.borrow_mut();
+        let instance = all.get_mut(index).ok_or(Refusal {
+            status: "AddressNotFound".to_string(),
+            message: "the package holds no instance at that id".to_string(),
+        })?;
+        let op_id = codec.op_id(position(&args, 0));
+        let JsOpIdArg::Str(token) = &op_id else {
             return Err(Refusal {
-                status: "AddressNotFound".to_string(),
-                message: "the package holds no instance at that id".to_string(),
+                status: "JournalOpUnknown".to_string(),
+                message: "'the terminal arm's act' is keyed by the settled record's own op \
+                          identity, and this argument is not one"
+                    .to_string(),
             });
         };
-        match verb.as_str() {
-            "read" => {
-                let address = unsafe { codec.address(args.first()) };
-                let tier = unsafe { codec.tier(args.get(1)) };
-                let value = instance.read(&address, &tier)?;
-                Ok(unsafe { codec.to_js_value(&value) })
-            }
-            "readLiteral" => {
-                let address = unsafe { codec.address(args.first()) };
-                let tier = unsafe { codec.tier(args.get(1)) };
-                let value = instance.read_literal(&address, &tier)?;
-                Ok(unsafe { codec.to_js_value(&value) })
-            }
-            "write" => {
-                let address = unsafe { codec.address(args.first()) };
-                let tier = unsafe { codec.tier(args.get(1)) };
-                let value = unsafe { codec.value(args.get(2)) };
-                let result = instance.write(&address, &tier, &value)?;
-                let answer = unsafe { codec.to_js_write_result(&result) };
-                // **THE RECORD CROSSES COMPLETE, AND THE TRIGGERING ADDRESS CROSSES BESIDE IT** (`§2.7`
-                // item 2, `PAR-JS-12`): the invocation window opens AFTER this frame returns, in the
-                // mapping layer that holds the caller's functions (`DD-15`, `A57`).
-                let triggering = unsafe { codec.to_js_segments(&segments_of(&address)) };
-                unsafe { codec.set_member(answer, "triggeringAddress", triggering) };
-                Ok(answer)
-            }
-            "delete" => {
-                let address = unsafe { codec.address(args.first()) };
-                let tier = unsafe { codec.tier(args.get(1)) };
-                let receipt = instance.delete(&address, &tier)?;
-                let answer = unsafe { codec.to_js_delete_receipt(&receipt) };
-                let triggering = unsafe { codec.to_js_segments(&segments_of(&address)) };
-                unsafe { codec.set_member(answer, "triggeringAddress", triggering) };
-                Ok(answer)
-            }
-            "rollback" => {
-                let op_id = unsafe { codec.op_id(args.first()) };
-                let result = instance.rollback(&op_id)?;
-                Ok(unsafe { codec.to_js_rollback_result(&result) })
-            }
-            // **⟶ `U-STOREROOM-HELD-LISTENER-IDENTITY`: `listen(handle, addresses)` — THE TWO POSITIONS
-            // REACH THE CORE AS THE TWO THE STORE DECLARES** (`contract.md §2.2`; `listen-verb.md §1` item
-            // 1). **POSITION 1 IS THE CALLER-SPELLED HANDLE; POSITION 2 IS THE SET** — an ARRAY OF ADDRESSES,
-            // each member already inside the store's address domain, refused otherwise by the package's own
-            // set-position class test before this frame is entered (`F-2`). **AND THE ANSWER IS `undefined`**
-            // — the caller supplied the identity, so there is no datum to return (`PAR-HL-3`).
-            "listen" => {
-                let handle = unsafe { codec.handle_arg(args.first()) };
-                let addresses = unsafe { codec.address_set(args.get(1)) };
-                instance.listen(&handle, &addresses)?;
-                Ok(unsafe { codec.undefined_value() })
-            }
-            "unlisten" => {
-                let handle = unsafe { codec.handle_arg(args.first()) };
-                instance.unlisten(&handle)?;
-                Ok(unsafe { codec.undefined_value() })
-            }
-            // **⟶ ADDED — `removeListener(handle)`'s STORE HALF, `U-STOREROOM-HELD-LISTENER-IDENTITY`
-            // (`D-GP-SHLI`).** **THE REMOVAL *IS* THE PURGE** (`removal-members.md §2` item 3: *"the removal
-            // IS the purge"*), so this verb reaches the store's own wholesale `Home::purge` and answers
-            // `undefined`. **It is NOT a crossing verb of the eight the store's declared namespace carries** —
-            // it is the package's own member reaching the store's own new operation, exactly as `listen` does
-            // (`contract.md §2.7` item 2).
-            "removeListener" => {
-                let handle = unsafe { codec.handle_arg(args.first()) };
-                instance.remove_listener(&handle)?;
-                Ok(unsafe { codec.undefined_value() })
-            }
-            // **⟶ ADDED 2026-10-15 — THE TERMINAL ARM'S OWN ACT, AND NOT A VERB** (`surface.md §2.11`
-            // clause 2; `contract.md §7.2` item 2 as amended): the package's seam performs the store's
-            // `file`-tier commit as the FIRST act of its passing arm, keyed by the settled record's own `op`
-            // identity. **IT IS NOT ONE OF THE CROSSING'S EIGHT VERBS**: the store's declared namespace stays
-            // at `8` and no member of either census moves (`§2.11` clause 7; `implementation-plan.md §10.9`
-            // row 8). Its one argument is an op id and its answer is `undefined`.
-            "commitFile" => {
-                let op_id = unsafe { codec.op_id(args.first()) };
-                let JsOpIdArg::Str(token) = &op_id else {
-                    return Err(Refusal {
-                        status: "JournalOpUnknown".to_string(),
-                        message: "'the terminal arm's act' is keyed by the settled record's own op \
-                                  identity, and this argument is not one"
-                            .to_string(),
-                    });
-                };
-                instance.commit_file(token)?;
-                Ok(unsafe { codec.undefined_value() })
-            }
-            _ => Err(Refusal {
-                status: "AddressMalformed".to_string(),
-                message: "that is not one of the crossing's verbs".to_string(),
-            }),
-        }
+        instance.commit_file(token)?;
+        Ok(codec.undefined_value())
     });
-    match answer {
-        Err(refusal) => unsafe { throw_refusal(env, &refusal) },
-        Ok(value) => value,
-    }
-}
-
-/// The verb's own arguments, as the JS side hands them: `[]` where the call supplied none. **A position
-/// the JS side handed as `undefined` is NOT a Node-API null — it is the runtime's own `undefined` value —
-/// so `js_value` is what keeps the two apart** and [`Codec::address`] is what reads a SUPPLIED `undefined`
-/// as `AddressArg` row 5.
-unsafe fn codec_argv(env: NapiEnv, args: NapiValue) -> Vec<NapiValue> {
-    if args.is_null() {
-        return Vec::new();
-    }
-    let codec = Codec { env };
-    if codec.is_array(args) {
-        codec.elements(args)
-    } else {
-        Vec::new()
-    }
+    answer_or_throw(env, answer)
 }
 
 // **⟶ `js_undefined` STOOD HERE AND IS DELETED AT THE DEAD-SURFACE SWEEP** (`docs/open-items-review.md`
@@ -1403,11 +1582,13 @@ unsafe fn codec_argv(env: NapiEnv, args: NapiValue) -> Vec<NapiValue> {
 // `undefined` on the copy OUT is `Codec::undefined_value`, which is live (`§2.7` item 2's record member).
 // **No byte of a live path is touched by the deletion: the helper had no caller.**
 
-impl Codec {
+impl<'e> Codec<'e> {
     /// A position the call did not supply is ABSENT — the arity reading of `crossing.md §1.3`'s
     /// absent-versus-`undefined` rule, rule 1, taken at the JS boundary because the callee is the only
-    /// place the call's own arity is observable.
-    unsafe fn address(&self, value: Option<&NapiValue>) -> JsAddressArg {
+    /// place the call's own arity is observable. **The library's `Array` conversion hands the positions as
+    /// the values the runtime supplied, so an absent position is `None` and a SUPPLIED `undefined` is
+    /// `Some`** — the two states this rule exists to keep apart.
+    fn address(&self, value: Option<&JsVal<'_>>) -> JsAddressArg {
         match value {
             Some(v) => self.address_of(*v),
             None => JsAddressArg::Absent,
@@ -1419,54 +1600,79 @@ impl Codec {
     /// THE OTHER POSITIONS USE**: a member outside the store's address domain is refused by the package's own
     /// class test before this frame, so what arrives here is a set of list-shaped members — and a shape that
     /// is not list-shaped still crosses as it stands, to be answered by the store's own `AddressMalformed`.
-    unsafe fn address_set(&self, value: Option<&NapiValue>) -> Vec<JsAddressArg> {
+    fn address_set(&self, value: Option<&JsVal<'_>>) -> Vec<JsAddressArg> {
         let Some(array) = value else {
             return Vec::new();
         };
         let mut out = Vec::new();
-        let mut length: u32 = 0;
-        if napi_get_array_length(self.env, *array, &mut length) != 0 {
-            return out;
-        }
-        for index in 0..length {
-            let mut element: NapiValue = std::ptr::null_mut();
-            if napi_get_element(self.env, *array, index, &mut element) != 0 {
-                out.push(JsAddressArg::Absent);
-                continue;
-            }
+        for element in self.elements(*array) {
             out.push(self.address_of(element));
         }
         out
     }
 
-    unsafe fn tier(&self, value: Option<&NapiValue>) -> JsTierArg {
+    fn tier(&self, value: Option<&JsVal<'_>>) -> JsTierArg {
         match value {
             Some(v) => self.tier_of(*v),
             None => JsTierArg::Absent,
         }
     }
 
-    unsafe fn op_id(&self, value: Option<&NapiValue>) -> JsOpIdArg {
+    fn op_id(&self, value: Option<&JsVal<'_>>) -> JsOpIdArg {
         match value {
             Some(v) => self.op_id_of(*v),
             None => JsOpIdArg::Absent,
         }
     }
 
-    unsafe fn handle_arg(&self, value: Option<&NapiValue>) -> JsHandleArg {
+    fn handle_arg(&self, value: Option<&JsVal<'_>>) -> JsHandleArg {
         match value {
             Some(v) => self.handle_arg_of(*v),
             None => JsHandleArg::Absent,
         }
     }
 
-    unsafe fn value(&self, value: Option<&NapiValue>) -> JsValue {
+    fn value(&self, value: Option<&JsVal<'_>>) -> JsValue {
         match value {
             Some(v) => self.value_of(*v),
             // An ABSENT value reaches the store's own taxonomy as a shapeless value: the JS side spells it
             // as the outside class, and the store answers its own `ValueNotAdmitted` (`DD-46`).
             None => JsValue::Undefined,
         }
+    }
+}
+
+/// **THE CALL'S ARGUMENTS, ELEMENT FOR ELEMENT** — the array every per-verb entry is handed.
+///
+/// **ELEMENT ZERO IS THE RECEIVER AND THE VERB'S OWN POSITIONS BEGIN AT ELEMENT ONE** (`contract.md §2` item
+/// 1; `receiver-and-refusal.md §1`): the package passes the store object it published at position `0` of the
+/// call and the verb's own arguments after it, so **NO ENTRY OF THE NINE TAKES A LEADING INSTANCE
+/// POSITION** (`export-set-and-dispatch.md §4`) and **an integer handed at the entry's own position `0` —
+/// the package's position `1` — is a value the verb's own first carrier refuses** (`S-NO-INSTANCE`; `F-3`).
+///
+/// **EVERY ELEMENT THE RUNTIME SUPPLIED IS KEPT AS IT STANDS** — a hole yields nothing and is skipped, and
+/// a SUPPLIED `undefined` is kept, which is the absent-versus-`undefined` distinction of
+/// `crossing.md §1.3` read at the boundary.
+/// **THE CALL'S OWN REFUSAL FOR A RECEIVER THAT IS NOT ONE** — one form, one observable
+/// (`receiver-and-refusal.md §3`).
+fn not_a_receiver() -> Refusal {
+    Refusal {
+        status: "AddressMalformed".to_string(),
+        message: "the receiver position is not the store object this addon's storeCreate returned".to_string(),
+    }
+}
+
+
+/// **THE ONE LANDING EVERY PER-VERB ENTRY TAKES**: a refusal is THROWN AS THE VALUE by [`throw_refusal`] and
+/// the frame answers `undefined` behind the pending exception — **no `Result` arm carrying a library error is
+/// returned, which is the obligation that keeps the form** (`P-ADA-3`, `F-4`).
+fn answer_or_throw(env: Env, answer: Result<JsVal<'static>, Refusal>) -> NapiRet<'static> {
+    match answer {
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            Ok(make_undefined(&env))
+        }
+        Ok(value) => Ok(value),
     }
 }
 
@@ -1483,26 +1689,28 @@ impl Codec {
 /// declared form, because the store's closed set holds no such member."* **SO THIS ARM THROWS THE ONE FORM,
 /// with the core's own `AddressMalformed` and the store's generator's own string, and the `TypeError` helper
 /// is GONE FROM THIS FILE.**
-extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
-    let mut argc: usize = 2;
-    let mut argv: [NapiValue; 2] = [std::ptr::null_mut(); 2];
-    let mut this: NapiValue = std::ptr::null_mut();
-    unsafe {
-        napi_get_cb_info(
-            env,
-            info,
-            &mut argc,
-            argv.as_mut_ptr(),
-            &mut this,
-            std::ptr::null_mut(),
-        );
-    }
-    let mut index: u32 = 0;
-    unsafe {
-        napi_get_value_uint32(env, argv[0], &mut index);
-    }
-    let codec = Codec { env };
-    let handle = unsafe { codec.handle_arg_of(argv[1]) };
+/// **THE ENTRY IS ANNOTATED AND ITS TWO-POSITION ARITY IS UNMOVED** (`contract.md §2` item 3).
+#[napi]
+pub fn register(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>) -> NapiRet<'static> {
+    // **THE RECEIVER IS THE STORE OBJECT ITSELF** (`js-unwrap.md §4`'s successor sentence): the registration
+    // path does NOT stop addressing a store, it resolves one a different way — *"it hands NOTHING for the
+    // store's identity, because the call's own receiver IS the identity"* — and `register` KEEPS ITS ARITY
+    // `2` UNMOVED (`export-set-and-dispatch.md §1`): **the handle and the listener's own slot, declared as
+    // TWO POSITIONS HERE SO THE ARITY IS A PROPERTY OF THE SIGNATURE AND NOT OF A COUNT ANYTHING TAKES.**
+    //
+    // **AND THE LISTENER'S POSITION IS DECLARED AND NOT READ** — the FUNCTION itself never crosses
+    // (`DD-15`): the mapping layer holds it in its own per-instance registry, and this entry is asked only
+    // whether the HANDLE is a member of the instance's own domain.
+    let args: Vec<JsVal<'_>> = vec![a0, a1];
+    let instance_id = match instance_of(&env, Some(&receiver)) {
+        Ok(index) => index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let handle = codec.handle_arg(position(&args, 0));
     // **THE CORE IS THE SITE'S OWN JUDGE**: it holds the instance's handle domain (`§2.4` item 5 (c)) and
     // answers an outside handle with the store's own `AddressMalformed` and a generated message.
     // **⟶ THE PLACEHOLDER CLOSURE IS GONE (`F-13`; `U-11`): `JsListener::Function(Box::new(|_| ()))` WAS A
@@ -1512,7 +1720,7 @@ extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue 
     // and no listener at all, and the core keeps no list of functions.
     let answer = INSTANCES.with(|all| {
         let mut all = all.borrow_mut();
-        match all.get_mut(index as usize) {
+        match all.get_mut(instance_id as usize) {
             Some(instance) => instance.register(&handle),
             None => Err(crossing::registration_refusal(
                 "",
@@ -1522,15 +1730,11 @@ extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue 
         }
     });
     if let Err(refusal) = answer {
-        return unsafe { throw_refusal(env, &refusal) };
+        throw_refusal(&env, &refusal);
     }
     // Nothing of the registry is held here or in the core: the caller's FUNCTION is the package's own state
     // (`§2.4`), and this layer's whole answer is the domain's (`§2.4` item 5 (c)).
-    let mut undefined: NapiValue = std::ptr::null_mut();
-    unsafe {
-        napi_get_undefined(env, &mut undefined);
-    }
-    undefined
+    Ok(make_undefined(&env))
 }
 
 // **⟶ `handle_token` STOOD HERE AND IS DELETED AT THE DEAD-SURFACE SWEEP** (`docs/open-items-review.md`
@@ -1560,13 +1764,15 @@ extern "C" fn addon_register(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue 
 /// manifest's** (`release.md §2.2`), so a build that loses the directive answers the crate's version:
 /// legal in a development build, illegal in a release build, and enforced outside the crate by the
 /// release's own pre-publish guard (`§1.4a`; `DEF-19`).
-extern "C" fn addon_version(env: NapiEnv, _info: NapiCallbackInfo) -> NapiValue {
-    unsafe {
-        make_string(
-            env,
-            option_env!("STOREROOM_JS_PACKAGE_VERSION").unwrap_or(env!("CARGO_PKG_VERSION")),
-        )
-    }
+/// **THE ENTRY IS ANNOTATED RATHER THAN HAND-EXPORTED** — `binding-crate-and-abi.md §2`'s deletion table,
+/// row 5: the `export(env, exports, name, fn)` call that built the old table is GONE and **the annotation
+/// replaces it**, its own edit-time argument list being the arity the runtime reads. **THE NAME AND THE
+/// ARITY ARE UNMOVED** (`contract.md §2` item 3): `version` takes NO argument and answers a string.
+#[napi]
+pub fn version(_env: Env) -> String {
+    option_env!("STOREROOM_JS_PACKAGE_VERSION")
+        .unwrap_or(env!("CARGO_PKG_VERSION"))
+        .to_string()
 }
 
 /// The addon's `addonErrorMessage(code, subject) -> string` — **THE STORE'S OWN GENERATOR, REACHED FROM
@@ -1587,30 +1793,36 @@ extern "C" fn addon_version(env: NapiEnv, _info: NapiCallbackInfo) -> NapiValue 
 /// EXACTLY: a caller that supplies a container gets the generator's own rendering AT THAT SLOT —
 /// `the number 1.5 is not a legal address segment in 'a'` — where it previously got the default `''`; and
 /// nothing else about this function's answer moves.**
-extern "C" fn addon_error_message(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
-    let mut argc: usize = 3;
-    let mut argv: [NapiValue; 3] = [std::ptr::null_mut(); 3];
-    let mut this: NapiValue = std::ptr::null_mut();
-    unsafe {
-        napi_get_cb_info(
-            env,
-            info,
-            &mut argc,
-            argv.as_mut_ptr(),
-            &mut this,
-            std::ptr::null_mut(),
-        );
-    }
-    let code = unsafe { arg_string(env, argv[0]) };
-    let subject = unsafe { arg_string(env, argv[1]) };
+/// **THE ENTRY IS ANNOTATED AND ITS THREE-POSITION ARITY IS UNMOVED** (`contract.md §2` item 3): the
+/// annotation's own edit-time argument list IS the arity the runtime reads, so the hand-written
+/// `napi_get_cb_info` walk that used to unpack this call is GONE with the shim that carried it.
+#[napi]
+pub fn errorMessage(
+    env: Env,
+    code: String,
+    subject: JsVal<'_>,
+    container: Option<JsVal<'_>>,
+) -> String {
+    // **THE SUBJECT REACHES THE GENERATOR THROUGH THE SENTINEL READ AND NOT THROUGH THE LIBRARY'S OWN
+    // `String` CONVERSION, AND THE REASON IS A MEASURED BEHAVIOUR THIS ENTRY ALREADY HAD.** `read_string` —
+    // the shim the annotation replaced — read every position with [`arg_string`], whose **non-string class
+    // is the empty-string sentinel** (`facade.rs:120`: *"The string a JS `string` value carries, or the
+    // empty-string sentinel where the bytes are not one"*). **The library's own `String` parameter is
+    // STRICTER THAN THAT and THROWS a `napi::Error` *before the frame is entered*** when the position holds
+    // any non-string — measured: `errorMessage('AddressNotFound', {…})` answered the generator's own `''`
+    // rendering at HEAD and threw *"Failed to convert JavaScript value … into rust type `String`"* under the
+    // annotated form. **THE ARITY IS WHAT THE CLAUSE PINS** (`binding-crate-and-abi.md §2`: the five entry
+    // functions *"keep their names and arities"*; *"their argument counts are unmoved"*) and **it is unmoved
+    // here — three JS positions, in this order** — while the CLASS of the second is this entry's own
+    // pre-existing read and not a term of the amendment. **`implementation-plan.md §3`: *"the wire is
+    // byte-identical, so the node suite's cells must not move."*** **AND NO REFUSAL PATH IS TOUCHED EITHER
+    // WAY**: this entry throws no refusal at all, and the arm below reaches the generator and nothing else.
+    let subject = arg_string(&env, &subject);
+
     // **THE THIRD SLOT IS READ ONLY WHERE THE CALLER SUPPLIED ONE** — an omitted slot leaves the null
     // pointer in place, so the container stays `None` and the generator's own default stands, exactly as it
     // stood before this argument existed.
-    let container = if argv[2].is_null() {
-        None
-    } else {
-        Some(unsafe { arg_string(env, argv[2]) })
-    };
+    let container = container.map(|value| arg_string(&env, &value));
     // **⟶ AND THE FOURTH SLOT IS THE CONTAINERSEGMENT, ADDED 2026-10-17 (`DEF-2026-10-17-E`'s second
     // branch).** The clause's own split is exact, and this is the FIRST HALF OF IT: the SUBJECT of the
     // available clause is *"the container's OWN segment spelling — the last string-key segment of the
@@ -1651,42 +1863,26 @@ extern "C" fn addon_error_message(env: NapiEnv, info: NapiCallbackInfo) -> NapiV
             ..Default::default()
         },
     );
-    unsafe { make_string(env, &message) }
+    message
 }
 
-fn export(
-    env: NapiEnv,
-    exports: NapiValue,
-    name: &str,
-    cb: extern "C" fn(NapiEnv, NapiCallbackInfo) -> NapiValue,
-) {
-    let spelled = as_utf8(name);
-    let mut function: NapiValue = std::ptr::null_mut();
-    unsafe {
-        napi_create_function(
-            env,
-            spelled.as_ptr() as *const c_char,
-            name.len(),
-            Some(cb),
-            std::ptr::null_mut(),
-            &mut function,
-        );
-        napi_set_named_property(env, exports, spelled.as_ptr() as *const c_char, function);
-    }
-}
+// **⟶ THE HAND-BUILT EXPORT TABLE STOOD BELOW AND IS DELETED, TOGETHER WITH EVERY SHIM BESIDE IT.**
+//
+// `binding-crate-and-abi.md §2`'s deletion table, rows 4 and 5, executed at their own bytes: **the
+// `registration()` frame that took the runtime's `exports` object and built one JS function per name with
+// `napi_create_function`, the `create_entry_function` helper that spelled the symbol, the five
+// `pub unsafe extern "C" fn *_callback(env, info)` trampolines, the `answer()` marshalling frame that
+// converted an entry's `Ok` arm into a raw `napi_value`, the `read_string` / `first_argument` /
+// `call_arguments` / `register_arguments` argv-unpacking shims, and the `sys::` plumbing they shared — ALL
+// GONE.**
+//
+// **WHAT REPLACED THEM IS THE ANNOTATION, AND IT REPLACES EACH AT ITS OWN JOB:** `#[napi]` on an entry
+// function emits the `extern "C"` trampoline the runtime calls, unpacks the caller's argv into the Rust
+// parameter types the signature declares (so no `napi_get_cb_info` walk is hand-written), converts the
+// answer back through the library's own `ToNapiValue` (so `answer()` has no work left), and REGISTERS the
+// name in the module's export table with the arity the signature carries (so no table is hand-built).
+//
+// **AND THE DELETION IS COMPLETE RATHER THAN PARTIAL, WHICH IS WHAT MAKES IT CHECKABLE:** with the shims
+// gone, a name the annotated form does not register is a name the artefact does not export — `P-ADA-6`'s
+// symbol read is then a read of the artefact and not of a list this file also maintains.
 
-/// **THE MODULE'S REGISTRATION SYMBOL** — the one Node-API looks for, and the whole of the `cdylib` half's
-/// external surface. The internal artefact is reached by the package's own step and by nothing else
-/// (`package.md §1.2`).
-///
-/// # Safety
-/// Called by the runtime with a live `env` and the module's `exports` object.
-#[no_mangle]
-pub unsafe extern "C" fn napi_register_module_v1(env: NapiEnv, exports: NapiValue) -> NapiValue {
-    export(env, exports, "version", addon_version);
-    export(env, exports, "errorMessage", addon_error_message);
-    export(env, exports, "storeCreate", addon_create);
-    export(env, exports, "call", addon_call);
-    export(env, exports, "register", addon_register);
-    exports
-}

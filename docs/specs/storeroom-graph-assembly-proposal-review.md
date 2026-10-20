@@ -54,7 +54,7 @@
 
 ## §4. MEMBER vs MODULE vs SEPARATE UNIT — with the twelve-member clause confronted
 
-**The clause, at its own bytes:** the product's declared member set is **`{ read, readLiteral, write, delete, rollback, listen, unlisten, addConstraint, constraintOn, constraintOff, register, settle }` — TWELVE own members, `10 + 1 + 1 = 12` ✓**, the `10` being the ten names `A127` moved off the module namespace into method form, the first `1` `register`, the second `1` `settle` (`surface.md §2.4` item 9 (f)'s `A127` clause; `next-steps.md:338`); the module namespace is **ONE** name, `storeCreate` (`surface.md §2.9` item 1's `A127` clause).
+**The clause, at its own bytes:** the product's declared member set is **`{ read, readLiteral, write, delete, rollback, listen, unlisten, addConstraint, constraintOn, constraintOff, register, settle }` — TWELVE own members, `10 + 1 + 1 = 12` ✓**, the `10` being the ten names `A127` moved off the module namespace into method form, the first `1` `register`, the second `1` `settle` (`surface.md §2.4` item 9 (f)'s `A127` clause; `archive/next-steps/2026-10-19-closed-cycle-records-2026-10-15-to-10-16.md:174`); the module namespace is **ONE** name, `storeCreate` (`surface.md §2.9` item 1's `A127` clause).
 
 | Route | What it costs | Verdict |
 |---|---|---|
@@ -97,7 +97,7 @@
 2. **`A127`'s PRIVATE-state ruling** — `surface.md §2.1` (e) item 1. **The subject must be derived from addresses and pairs the caller already holds, never by enumerating the store.**
 3. **The closed `16`-status refusal set** — `native/contract.md:3900`; `A120`; `A129` (4). **No new refusal word; a refusal must reuse an existing status or be the kernel's own form (`P-IM-3`).**
 4. **`A120`'s crossing** — the wider fifth-position class and the token/throw split (`decisions.md:112`). **A relation carried at an address must cross the boundary under the declared class rules; it may not be a new value class.**
-5. **The two refusal rules and no third** — seven store-reaching methods answer `{status, message}`; the three constraint methods throw the one `TypeError` (`next-steps.md:338`). **A new surface name would have to pick a side; the accepted subject needs no surface name at all.**
+5. **The two refusal rules and no third** — seven store-reaching methods answer `{status, message}`; the three constraint methods throw the one `TypeError` (`archive/next-steps/2026-10-19-closed-cycle-records-2026-10-15-to-10-16.md:174`). **A new surface name would have to pick a side; the accepted subject needs no surface name at all.**
 6. **The property register's `≤ 8`-row cap, PER UNIT** — `contract.md:395`, `:27`. **Respected by the separate-unit route and only by it.**
 7. **`A121`'s reachability duty and `A122`'s behind-the-surface rule** — `decisions.md:146`, `:150`; and `A125`'s commit-log rationale (`:162`). **Why the graph must not become a second door.**
 8. **`A102`'s `D4` and `RC-18`** — `contract.md:334`, `:649`–`:669`. **The subject's own home, and the row it would close.**

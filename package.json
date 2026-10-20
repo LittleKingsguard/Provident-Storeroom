@@ -8,7 +8,7 @@
     "typecheck:stage": "node -e \"const fs=require('node:fs');fs.rmSync('typecheck/node_modules/provident-storeroom',{recursive:true,force:true});fs.mkdirSync('typecheck/node_modules/provident-storeroom',{recursive:true});for(const f of ['package.json','index.d.ts'])fs.copyFileSync('bindings/js/'+f,'typecheck/node_modules/provident-storeroom/'+f)\"",
     "typecheck": "npm run typecheck:stage && tsc -p tsconfig.typecheck.json && npm run typecheck:nodenext",
     "typecheck:nodenext": "tsc -p tsconfig.typecheck.nodenext.json",
-    "build": "cargo build --offline --release && cargo build --release --offline --manifest-path bindings/js/Cargo.toml",
+    "build": "cargo build --offline --release && cargo build --release --manifest-path bindings/js/Cargo.toml",
     "greens": "node bindings/js/greens/greens.mjs && node bindings/js/greens/live-drive.mjs && node bindings/js/greens/file-tier-save/scenarios.mjs"
   },
   "devDependencies": {

@@ -209,13 +209,35 @@ function assertHeld(result) {
   if (broken !== null) assert.fail(broken);
 }
 
-// ── THE CROSSING'S OWN ACT, AND THE ADDON THAT REACHES IT (`DEF-2026-10-15-Z`, `P-SM-3`) ───────────────
+// ── THE CROSSING'S OWN ACT, AND THE PER-VERB ENTRIES THAT REACH IT (`DEF-2026-10-15-Z`, `P-SM-3`) ──────
 // `bindings/js/src/facade.rs`'s dispatcher carries `"commitFile"` — **THE TERMINAL ARM'S OWN ACT AND NOT
 // ONE OF THE CROSSING'S EIGHT VERBS** (`surface.md §2.11` clause 2; clause 7; `DEF-2026-10-15-X`) — and the
-// addon's own five exports reach it (`call(instance, verb, args)`; `package.md §1.2`). **A drive that must
-// RE-DRIVE ONE OP'S ACT TAKES THIS ROUTE AND NO OTHER**: the act is addressable nowhere else, because the
-// package's `settle` member takes it only at the two instants `PAR-JS-19` declares (the first call is the
-// adoption and the second is the delivery, and a third is a no-op). NOTHING UNDER `src/**` IS READ HERE.
+// addon reaches it through its own per-verb entry. **A drive that must RE-DRIVE ONE OP'S ACT TAKES THIS
+// ROUTE AND NO OTHER**: the act is addressable nowhere else, because the package's `settle` member takes it
+// only at the two instants `PAR-JS-19` declares (the first call is the adoption and the second is the
+// delivery, and a third is a no-op). NOTHING UNDER `src/**` IS READ HERE.
+//
+// ── **RE-CUT 2026-10-21: `addon().call(index, verb, args)` IS DELETED AND THE PER-VERB ENTRIES REPLACE IT.**
+//
+// THE OLD HELPERS CALLED THE PRE-SPLIT DISPATCHER — `addon().call(instance, verb, args)` — WHICH NO LONGER
+// EXISTS. **`docs/specs/storeroom-addon-surface/export-set-and-dispatch.md §2` is the pin and it is
+// MANDATED:** ***"`call` IS DELETED. It **was** the dispatcher: one entry taking `(instance, verb, args)` and
+// matching the verb across nine arms. The split is precisely its replacement, so it does not survive."***
+// **MEASURED: the built artefact's key set is exactly the thirteen `export-set-and-dispatch.md §1` declares,
+// and `call` is not among them.** So the artefact is CORRECT and these helpers were STALE.
+//
+// **AND THE `index` ARGUMENT IS GONE WITH IT, NOT MERELY RENAMED** — `contract.md §3`: *"THE INTEGER INDEX
+// DIES, AND THE RECEIVER REPLACES IT. Today the store is found by a `u32` the package minted; after the
+// split each entry resolves its store from the Node-API `this` receiver."* **THE RECEIVER MUST BE THE STORE
+// OBJECT**, and the object is the package's own (`storeCreate` from `provident-storeroom`), while the RAW
+// ARTEFACT's `storeCreate` answers a bare integer — **so a per-verb entry called with that integer refuses
+// *"the receiver position is not the store object this addon's `storeCreate` returned"*, MEASURED.** The
+// helpers therefore take the PACKAGE'S STORE OBJECT and call the artefact's own entry with it as receiver.
+//
+// **THE ACT IS ADDRESSED AT THE ENTRY NAMED FOR ITS VERB** (`export-set-and-dispatch.md §1`'s nine:
+// `read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` · `removeListener` ·
+// `commitFile`) — *"ONE ENTRY PER VERB, EACH NAMED FOR ITS VERB"* (`contract.md §2` item 1) — and **no verb
+// STRING crosses any more**: *"THE DISPATCHER'S STRING INDIRECTION GOES."*
 let ADDON = null;
 function addon() {
   if (ADDON === null) {
@@ -230,17 +252,31 @@ function crossingAddress(segments) {
   return { k: 'L', s: segments };
 }
 
-function crossingWrite(index, address, tier, value) {
-  return addon().call(index, 'write', [crossingAddress(address), { k: 'T', v: tier }, { k: 's', v: value }]);
+/** **THE STORE OBJECT THE ENTRY'S RECEIVER MUST BE** — the object the package's own `storeCreate` answers,
+ *  which is the form `receiver-and-refusal.md §1` describes: *"each entry resolves its store from the
+ *  Node-API `this` receiver."* **The raw artefact's `storeCreate` is NOT used for this**: it answers the
+ *  integer the pre-split ABI took and cannot serve as a receiver (measured refusal quoted above). */
+function storeAt(cfg) {
+  return storeCreate(cfg);
 }
 
-function crossingDelete(index, address, tier) {
-  return addon().call(index, 'delete', [crossingAddress(address), { k: 'T', v: tier }]);
+/** THE READ CROSSING — `read`'s own entry, at the verb's own arguments and no instance position
+ *  (`export-set-and-dispatch.md §4`: *"EACH ENTRY TAKES ITS VERB'S OWN ARGUMENTS AND NOTHING ELSE."*) */
+function crossingRead(store, address, tier) {
+  return addon().read.call(store, crossingAddress(address), { k: 'T', v: tier });
+}
+
+function crossingWrite(store, address, tier, value) {
+  return addon().write.call(store, crossingAddress(address), { k: 'T', v: tier }, { k: 's', v: value });
+}
+
+function crossingDelete(store, address, tier) {
+  return addon().delete.call(store, crossingAddress(address), { k: 'T', v: tier });
 }
 
 /** THE TERMINAL ARM'S OWN ACT, driven directly for the op the settled record carries (`§2.11` clause 2). */
-function commitFileAct(index, opId) {
-  return addon().call(index, 'commitFile', [{ k: 's', v: opId }]);
+function commitFileAct(store, opId) {
+  return addon().commitFile.call(store, { k: 's', v: opId });
 }
 
 // ── `contract.md §8.1`'s CLOSED SET AT ITS AMENDED RANKS `1`…`16`, EACH WITH ITS OWN `§8.2`
@@ -425,14 +461,20 @@ test('fts_prop_P_SM_3_S_ARM_SAVE_the_arm_table_is_total_over_tier_and_arm', asyn
       // one addressable route — and asserts the image it leaves.
       const d = mkdtempSync(join(tmpdir(), 'fts-prop-arm-'));
       const filePath = join(d, 'store.json');
-      const index = addon().storeCreate({ filePath, journalLength: 8, listeners: [] });
+      // **RE-CUT 2026-10-21: THE STORE IS THE PACKAGE'S OWN OBJECT AND NOT THE ARTEFACT'S INTEGER.** The
+      // pre-split line read `addon().storeCreate({...})`, which answers the `u32` the DELETED dispatcher took
+      // as its `instance` position. `contract.md §3`: *"THE INTEGER INDEX DIES, AND THE RECEIVER REPLACES
+      // IT"* — so the object below is what each per-verb entry resolves its store from at `this`
+      // (`receiver-and-refusal.md §1`). The cfg passed is IDENTICAL, so the store under test is the same
+      // store as before the split.
+      const store = storeAt({ filePath, journalLength: 8, listeners: [] });
       const aKey = tag(`prop-arm-a-${i}`);
       const bKey = tag(`prop-arm-b-${i}`);
-      const writeA = crossingWrite(index, [aKey], 'file', `A${i}`);
-      commitFileAct(index, writeA.op.opId);
+      const writeA = crossingWrite(store, [aKey], 'file', `A${i}`);
+      commitFileAct(store, writeA.op.opId);
       const afterA = bytesOf(filePath);
-      const writeB = crossingWrite(index, [bKey], 'file', `B${i}`);
-      commitFileAct(index, writeB.op.opId);
+      const writeB = crossingWrite(store, [bKey], 'file', `B${i}`);
+      commitFileAct(store, writeB.op.opId);
       const afterB = bytesOf(filePath);
       assert.equal(afterA, `{"${aKey}":"A${i}"}`, 'P-SM-3: A\'s own act leaves A\'s own image');
       assert.equal(afterB, `{"${aKey}":"A${i}","${bKey}":"B${i}"}`, 'P-SM-3: and B\'s act adds B beside it');
@@ -441,7 +483,7 @@ test('fts_prop_P_SM_3_S_ARM_SAVE_the_arm_table_is_total_over_tier_and_arm', asyn
       // image standing. **THE READ-ONLY PASS'S OWN COUNTEREXAMPLE FOR THIS ROW — *"the image reverts to A's
       // snapshot"* — IS FALSIFIED AT THE BYTES: the act serializes the CURRENT register, so both records
       // survive.** This is the cell the row was missing, and it passes on the built artefact.
-      commitFileAct(index, writeA.op.opId);
+      commitFileAct(store, writeA.op.opId);
       assert.equal(bytesOf(filePath), afterB,
         'P-SM-3: A\'s act driven a second time around B\'s commit does NOT revert the image to A\'s snapshot '
         + '— the last successful write\'s image stands');
@@ -449,13 +491,13 @@ test('fts_prop_P_SM_3_S_ARM_SAVE_the_arm_table_is_total_over_tier_and_arm', asyn
       // (b) AROUND A LATER **NON-COMMITTING** ACT: a `delete` performs NO file I/O (`§7.2` item 5), so the
       // bytes are still the last successful `file`-tier write's. **A SECOND SAVE OF ONE RECORD MOVES THEM
       // — and that is the observable the row's FAILS-it cell needs.**
-      crossingDelete(index, [aKey], 'file');
+      crossingDelete(store, [aKey], 'file');
       const afterDelete = bytesOf(filePath);
       assert.equal(afterDelete, afterB,
         'P-SM-3: a `delete` performs NO file I/O — the bytes stand as the last successful write left them '
         + '(`§7.2` item 5 as amended: "the bytes at `cfg.filePath` are therefore the bytes of the LAST '
         + 'SUCCESSFUL `file`-TIER WRITE")');
-      commitFileAct(index, writeA.op.opId);
+      commitFileAct(store, writeA.op.opId);
       assert.equal(bytesOf(filePath), afterDelete,
         'P-SM-3: AND ONE RECORD\'S SECOND SAVE IS NOT A NEW WRITE — the act re-driven here must leave '
         + `§7.2 item 5's declared state standing, and it does not: read ${bytesOf(filePath)}`);

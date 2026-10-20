@@ -13,8 +13,16 @@ license = "AGPL-3.0-or-later"
 # `rlib` is LOAD-BEARING (`§4.1` item 3): it is what lets this crate's own integration tests link
 # `storeroom_js_binding::crossing` and drive the crossing's per-class table with NO Node runtime present.
 #
-# `§4.2` item 1: `edition = "2021"` (`DD-27`). `§4.2` item 3: the only dependency is the single path
-# dependency on the store — no second path dependency, no vendored copy, no registry fetch at all.
+# `§4.2` item 1: `edition = "2021"` (`DD-27`). `§4.2` item 3: the only non-registry dependency is the
+# single path dependency on the store — no second path dependency and no vendored copy.
+#
+# **⟶ `S-1` CORRECTED 2026-10-20 (`U-STOREROOM-ADDON-ADOPTION`, `command-sites-and-residue.md §5`): the
+# sentence this cell carried DENIED THAT THIS CRATE EVER REACHES THE REGISTRY, and that denial is FALSE THE
+# MOMENT THE LIBRARY LANDS — so it is corrected rather than left standing, and THE CRATE FETCHES WHAT IT
+# NEEDS AT BUILD TIME**: the store is
+# dependency-free and offline, THE BINDING CRATE FETCHES, and the asymmetry is the ruling
+# (`command-sites-and-residue.md §1`, `§3`) — the same ruling that drops `--offline` from every one of this
+# crate's declared commands at the eleven sites of `§2`.
 [lib]
 name = "storeroom_js_binding"
 path = "src/lib.rs"
@@ -22,3 +30,37 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 storeroom-native = { path = "../.." }
+# **THE CARET FLOOR IS THE DECLARED FORM AND THE FEATURE SELECTION IS THE ADOPTION'S OWN**
+# (`binding-crate-and-abi.md §1`: *"the bare `"3.14"` form, whose caret is implicit"*; `P-ADA-1`'s
+# `S-DEP-TABLE` asserts the KEY and the requirement STRING and no feature list). `napi6` is the N-API
+# version whose surface this boundary already reaches: the hand-declared block carried
+# `napi_get_value_bigint_int64`, which IS a `napi6` symbol, and the store's own value model carries
+# `JsValue::BigInt` — so the feature names the version the boundary was ALREADY built against and does not
+# widen it. **A `bigint` is read AS a `bigint` and never through the numeric arm** (`A76`, `JS-6`).
+#
+# **⟶ AND `napi9` IS ADDED BESIDE IT BY `U-STOREROOM-ADDON-SURFACE`, FOR ONE SYMBOL AND NO OTHER, AND THE
+# WIDENING IS RECORDED BECAUSE IT IS A WIDENING.** The receiver's index is published as the store object's
+# own **`Symbol.for`-keyed** channel (`receiver-and-refusal.md §1`), and **a symbol key is the ONLY form the
+# clause's carrier may take**: the product's declared member set is asserted at EXACTLY fourteen own members
+# read through `Object.getOwnPropertyNames` (`surface.md §2.4` item 9 (f); `convenience.test.mjs`'s
+# `memberSet`), and that read COUNTS a string key AND a numeric index alike — so publishing the row at
+# element `0` moved the set `14 → 15` and failed a cell that is not this unit's to change, while a symbol
+# key is invisible to `Object.keys` and to `Object.getOwnPropertyNames` both (the precedent `A117` (D6)
+# already declares for this package's other symbol-keyed channels). **THE SYMBOL IS OBTAINED THROUGH
+# `Symbol::for_desc`, WHICH IS `node_api_symbol_for` — a `napi9` symbol** — and it must be `Symbol.for`
+# rather than an identity symbol because the PACKAGE writes the key and THIS LAYER reads it, and neither
+# holds a reference to the other's symbol object. **NOTHING ELSE ON THIS SURFACE REACHES A `napi9` SYMBOL**:
+# the boundary's own read of the receiver is `napi_get_property` on a `napi6`-era call, so this feature
+# selection widens the SYMBOL NAMESPACE the crate may reference and adds no second capability.
+napi = { version = "3.14", features = ["napi6", "napi9", "compat-mode"] }
+# **THE THIRD ENTRY, AND IT IS THE ADOPTION'S OWN — `binding-crate-and-abi.md §1`, AMENDED 2026-10-21 ON
+# THE ARCHITECT'S RULING, VERBATIM: *"Lift the dependency constraint, it doesn't apply to the rust side."***
+# The clause's table is THREE entries and **NO FOURTH ENTRY IS LAWFUL** (`P-ADA-1`, re-derived in place at
+# `contract.md §5`). **THE DERIVE IS NOT OPTIONAL AND IT IS NOT IN THE `napi` CRATE**: `#[napi]` — the
+# annotation this whole adoption is defined by — lives in `napi-derive`, a separate proc-macro crate, and
+# `napi-3.14.2` carries no dependency on it and no re-export of it. **THE FLOOR `"3"` IS READ FROM THE
+# LIBRARY'S OWN DOCUMENTED FORM AND NOT GUESSED**: `napi-3.14.2/README.md` §*Building* prints the dependency
+# table every napi-based add-on should carry, and it reads `napi = "3"` beside `napi-derive = "3"`. **NO
+# FEATURE LIST IS DECLARED HERE** — this is the one row whose feature selection the contract does not name,
+# and the bare caret is the whole of the requirement.
+napi-derive = { version = "3" }

@@ -500,8 +500,8 @@ store's own green, `0` of this unit's `219` Rust cells executed.** **The red-set
 run at `§3` of `archive/gate3/storeroom-js-red-set.md`.**
 **THE DECLARED COMMAND, AND WHY THIS FORM RATHER THAN ANOTHER — ONE SITE, ONE FORM:**
 ```
-cargo test  --manifest-path bindings/js/Cargo.toml --offline --no-fail-fast
-cargo build --manifest-path bindings/js/Cargo.toml --offline
+cargo test  --manifest-path bindings/js/Cargo.toml --no-fail-fast
+cargo build --manifest-path bindings/js/Cargo.toml
 ```
   **(i) THE MANIFEST IS NAMED EXPLICITLY, AND THE PATH IS THE CRATE'S OWN (`bindings/js/Cargo.toml`), relative
   to THE REPOSITORY ROOT — so the command's SITE is `the repository root` and its LAYER is
