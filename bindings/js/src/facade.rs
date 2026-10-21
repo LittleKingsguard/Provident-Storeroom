@@ -1146,13 +1146,13 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
             // **THE MINT AND THE TABLE'S OWN ROW, IN ONE ACT** (`receiver-and-refusal.md §6`): the index the
             // store object is published with is EXACTLY the row [`INSTANCE_IDS`] holds, so the receiver's
             // resolution and the store's own construction cannot disagree about which store an index names.
-            let index = INSTANCES.with(|all| {
-                let mut all = all.borrow_mut();
-                all.push(instance);
-                all.len() - 1
+            let store_index = INSTANCES.with(|instances| {
+                let mut instances = instances.borrow_mut();
+                instances.push(instance);
+                instances.len() - 1
             });
-            INSTANCE_IDS.with(|ids| ids.borrow_mut().push(index));
-            Ok(make_value(&env, index as u32))
+            INSTANCE_IDS.with(|ids| ids.borrow_mut().push(store_index));
+            Ok(make_value(&env, store_index as u32))
         }
     }
 }
@@ -1168,7 +1168,7 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 // **EACH ENTRY TAKES ITS VERB'S OWN ARGUMENTS AND NOTHING ELSE** (`§4`). The instance position that once
 // preceded them is GONE and is not reintroduced; **the store arrives by the receiver** — the Node-API `this`
 // the package hands as the FIRST CALL ARGUMENT and the first element of the call array
-// (`receiver-and-refusal.md §1`), which this layer reads at [`instance_of`] and nowhere else.
+// (`receiver-and-refusal.md §1`), which this layer reads at [`store_index_of`] and nowhere else.
 //
 // **THE ARITIES ARE THE CLAUSE'S OWN TABLE, UNMOVED FROM THE VERB'S** (`§1`; `§4`):
 // `read`(3) · `readLiteral`(3) · `write`(**5**) · `delete`(3) · `rollback`(2) · `listen`(3) ·
@@ -1190,8 +1190,12 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 /// WHICH IS THE PACKAGE'S PROTOCOL ITSELF** (`index.mjs`'s own comment at `read`: *"A position the call
 /// supplied no value for is handed as the runtime's own `undefined` — NEVER as an absent array slot"*).
 /// **THE READ LIVES HERE SO THE NINE ENTRIES CANNOT DRIFT APART ON IT.**
-fn position<'a, 'e>(args: &'a [JsVal<'e>], index: usize) -> Option<&'a JsVal<'e>> {
-    args.get(index)
+///
+/// `positions` is the call's own argument array — **the verb's positions and nothing else** — and
+/// `position_index` is the ZERO-BASED ordinal of the declared position being read, `0` being the verb's own
+/// first argument.
+fn position<'a, 'e>(positions: &'a [JsVal<'e>], position_index: usize) -> Option<&'a JsVal<'e>> {
+    positions.get(position_index)
 }
 
 /// **THE STORE'S INDEX, RESOLVED FROM THE RECEIVER** (`receiver-and-refusal.md §1`).
@@ -1207,9 +1211,9 @@ fn position<'a, 'e>(args: &'a [JsVal<'e>], index: usize) -> Option<&'a JsVal<'e>
 /// (`receiver-and-refusal.md §6`).
 ///
 /// **AND A CALL NAMING NO LIVE STORE REFUSES IN THE ONE DECLARED FORM** (`§3`): an ABSENT receiver argument,
-/// one that is not an object, one that carries no readable first element, one whose first element is not a
-/// number, and one whose index the table does not hold all answer THE ONE REFUSAL — a THROWN PLAIN OBJECT
-/// `{status, message}` and never an `Error`, never a `TypeError`, and never a library error
+/// one that is not an object, one that carries no readable `Symbol.for`-keyed channel, one whose channel is
+/// not a number, and one whose index the table does not hold all answer THE ONE REFUSAL — a THROWN PLAIN
+/// OBJECT `{status, message}` and never an `Error`, never a `TypeError`, and never a library error
 /// (`failure-form.md §1`; `P-ADA-3`, `F-4`).
 ///
 /// **⟶ AND THE RECEIVER IS RESOLVED WITHOUT AN ARRAY CLASS GATE, WHICH IS A CORRECTION AND NOT A
@@ -1217,9 +1221,10 @@ fn position<'a, 'e>(args: &'a [JsVal<'e>], index: usize) -> Option<&'a JsVal<'e>
 /// that **a call whose receiver names no live store refuses in the ONE declared form** — not that a class
 /// **THE RECEIVER ARRIVES AS THE NODE-API `this` AND IS ALREADY AN OBJECT** (`receiver-and-refusal.md §1`:
 /// *"each entry resolves its store from the Node-API `this` receiver — the value already received at every
-/// entry and today discarded"*). **ITS FIRST ELEMENT IS READ AS THE NUMBER `storeCreate` MINTED**, which the
-/// package publishes on the store object; **if that read fails, or the number names no row in
-/// [`INSTANCE_IDS`], THE ONE REFUSAL ANSWERS** (`§3`: *"There is no second arm and no second observable."*).
+/// entry and today discarded"*). **ITS `Symbol.for`-KEYED CHANNEL IS READ AS THE NUMBER `storeCreate`
+/// MINTED**, which the package publishes on the store object; **if that read fails, or the number names no
+/// row in [`INSTANCE_IDS`], THE ONE REFUSAL ANSWERS** (`§3`: *"There is no second arm and no second
+/// observable."*).
 ///
 /// **NO CLASS GATE IS TAKEN ON THE RECEIVER, AND THAT IS A CORRECTION RATHER THAN A LOOSENING.** The clause
 /// requires that a call whose receiver names no live store refuses in the ONE declared form — not that a
@@ -1232,8 +1237,8 @@ fn position<'a, 'e>(args: &'a [JsVal<'e>], index: usize) -> Option<&'a JsVal<'e>
 /// **THE TOKEN IS BORROWED AND NOT MINTED** (`DD-40`; `failure-form.md §4`: *"the boundary does not mint a
 /// member for it"*): `AddressNotFound` is the store's own member for *"a handle that names nothing"*, with
 /// `AddressMalformed` for the argument that is not a receiver at all.
-fn instance_of(env: &Env, receiver: Option<&Object<'_>>) -> Result<usize, Refusal> {
-    let Some(object) = receiver else {
+fn store_index_of(env: &Env, receiver: Option<&Object<'_>>) -> Result<usize, Refusal> {
+    let Some(store_object) = receiver else {
         return Err(not_a_receiver());
     };
     // **THE INDEX IS READ OFF THE RECEIVER'S OWN `Symbol.for`-KEYED PROPERTY** — the value `storeCreate`
@@ -1247,24 +1252,24 @@ fn instance_of(env: &Env, receiver: Option<&Object<'_>>) -> Result<usize, Refusa
     //
     // **THE READ IS `get_property` WITH A `Symbol.for` KEY, WHICH RESOLVES THROUGH THE ENV**, so it consults
     // no raw-handle predicate — the property this whole shape exists to avoid depending on.
-    let try_key = ::napi::bindgen_prelude::Symbol::for_desc(STORE_INDEX_KEY).into_js_symbol(env);
-    let Ok(key) = try_key else {
+    let try_channel_key = ::napi::bindgen_prelude::Symbol::for_desc(STORE_INDEX_KEY).into_js_symbol(env);
+    let Ok(channel_key) = try_channel_key else {
         return Err(not_a_receiver());
     };
-    let Ok(head) = object.get_property::<_, JsVal<'_>>(key) else {
+    let Ok(carried_index) = store_object.get_property::<_, JsVal<'_>>(channel_key) else {
         return Err(not_a_receiver());
     };
     // **AND IT IS READ AS A NUMBER.** A value of any other class names no index and refuses in the same form.
-    let Ok(raw) = (unsafe { head.cast::<f64>() }) else {
+    let Ok(raw_index) = (unsafe { carried_index.cast::<f64>() }) else {
         return Err(not_a_receiver());
     };
-    let index = raw as usize;
+    let store_index = raw_index as usize;
     // **A RECEIVER NAMING NOTHING LIVE RETIRES NOTHING**: an index beyond the table answers the SAME one
     // form, so a detached call, a never-issued value and a released store are one observable
     // (`receiver-and-refusal.md §3`: *"There is no second arm and no second observable"*).
     INSTANCE_IDS
-        .with(|ids| ids.borrow().contains(&index))
-        .then_some(index)
+        .with(|ids| ids.borrow().contains(&store_index))
+        .then_some(store_index)
         .ok_or(Refusal {
             status: "AddressNotFound".to_string(),
             message: "the receiver names no store this addon holds".to_string(),
@@ -1272,66 +1277,87 @@ fn instance_of(env: &Env, receiver: Option<&Object<'_>>) -> Result<usize, Refusa
 }
 
 
+/// **THE TABLE HOLDS NO ROW AT THIS INDEX — THE ONE REFUSAL EVERY PER-VERB ENTRY ANSWERS IT WITH.** The
+/// receiver resolved to a live row a moment ago and the table no longer holds it, so this is the OTHER half
+/// of the detached/released observable [`store_index_of`] closes: the token is `AddressNotFound`, BORROWED
+/// AND NOT MINTED (`DD-40`; `failure-form.md §4`), and the message text is unchanged.
+fn no_instance_at(_store_index: usize) -> Refusal {
+    Refusal {
+        status: "AddressNotFound".to_string(),
+        message: "the package holds no instance at that id".to_string(),
+    }
+}
+
+
 /// **THE NINE ENTRIES, ONE PER ARM, EACH ON ITS OWN FRAME** (`contract.md §2` item 2).
 ///
 /// **THE BODY OF EACH IS THE ARM IT REPLACES, UNMOVED**: the same encoder, the same core call, the same
 /// translator back, and the same `triggeringAddress` member the write and delete arms set (`§2.7` item 2).
-/// What moved is HOW THE STORE IS FOUND: `args` is the call's own argument array — **its FIRST element is
-/// the receiver the package handed across** (`receiver-and-refusal.md §1`) — so each entry's declared
-/// positions begin at element ONE and carry the verb's own arguments with no instance among them (`§4`).
+/// What moved is HOW THE STORE IS FOUND: **the receiver arrives as the Node-API `this`**, injected by
+/// `napi-derive` from `cb.this()` into the `receiver: This<Object<'_>>` parameter (`receiver-and-refusal.md
+/// §1`), and each entry resolves its store from it via [`store_index_of`]. **`positions` therefore holds the
+/// VERB'S OWN ARGUMENTS ALONE — the receiver is NOT in it at all, and `position(&positions, 0)` reads the
+/// verb's OWN FIRST argument, at element ZERO**, with no instance among them (`§4`).
+///
+/// **⟶ THE ELEMENT-ZERO DESIGN WAS ABANDONED, AND THE REASON IS RECORDED RATHER THAN LEFT AS A TRACE**: an
+/// earlier shape took the receiver as the call array's FIRST element and began each entry's declared
+/// positions at element ONE. It was withdrawn with the whole element-0 scheme — the receiver ruling is
+/// `receiver-and-refusal.md §1` (*"each entry resolves its store from the Node-API `this` receiver — the
+/// value already received at every entry and today discarded"*), and the rejected alternatives that had
+/// gathered around the array shape are named and refused at `§5` (binding the members to the instance, and a
+/// `WeakMap` from receiver to store). **THE ABANDONED SPELLING SURVIVES ONLY IN THE TWO COMMENTS THAT STILL
+/// DESCRIBE IT — [`register`]'s own interior comment and the block comment above [`store_index_of`] — and in
+/// no byte of any entry's declared positions.**
 #[napi(js_name = "read")]
-fn verb_read(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>, a2: JsVal<'_>) -> NapiRet<'static> {
+fn verb_read(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
     // arity `3`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on.
-    let args: Vec<JsVal<'_>> = vec![a0, a1, a2];
-    let index = match instance_of(&env, Some(&receiver)) {
-        Ok(index) => index,
+    // tail-position protocol turns on. **THE THIRD DECLARED POSITION IS DECLARED AND NOT READ** — the
+    // store's own `read` takes the address and the tier and no more — and it stands so the declared arity
+    // is a property of the signature (`S-ARITY` drives this entry at `3` and at ±1).
+    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos, _tail];
+    let store_index = match store_index_of(&env, Some(&receiver)) {
+        Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
             return Ok(make_undefined(&env));
         }
     };
     let codec = Codec { env, _marker: std::marker::PhantomData };
-    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
-        let mut all = all.borrow_mut();
-        let instance = all.get_mut(index).ok_or(Refusal {
-            status: "AddressNotFound".to_string(),
-            message: "the package holds no instance at that id".to_string(),
-        })?;
-        let address = codec.address(position(&args, 0));
-        let tier = codec.tier(position(&args, 1));
-        let value = instance.read(&address, &tier)?;
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
+        let address = codec.address(position(&positions, 0));
+        let tier = codec.tier(position(&positions, 1));
+        let value = store.read(&address, &tier)?;
         Ok(codec.to_js_value(&value))
     });
     answer_or_throw(env, answer)
 }
 
 #[napi(js_name = "readLiteral")]
-fn verb_read_literal(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>, a2: JsVal<'_>) -> NapiRet<'static> {
+fn verb_read_literal(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
     // arity `3`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on.
-    let args: Vec<JsVal<'_>> = vec![a0, a1, a2];
-    let index = match instance_of(&env, Some(&receiver)) {
-        Ok(index) => index,
+    // tail-position protocol turns on. **THE THIRD DECLARED POSITION IS DECLARED AND NOT READ**, exactly as
+    // `read`'s is — the literal read is `read` narrowed at the target and takes no position `read` lacks.
+    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos, _tail];
+    let store_index = match store_index_of(&env, Some(&receiver)) {
+        Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
             return Ok(make_undefined(&env));
         }
     };
     let codec = Codec { env, _marker: std::marker::PhantomData };
-    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
-        let mut all = all.borrow_mut();
-        let instance = all.get_mut(index).ok_or(Refusal {
-            status: "AddressNotFound".to_string(),
-            message: "the package holds no instance at that id".to_string(),
-        })?;
-        let address = codec.address(position(&args, 0));
-        let tier = codec.tier(position(&args, 1));
-        let value = instance.read_literal(&address, &tier)?;
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
+        let address = codec.address(position(&positions, 0));
+        let tier = codec.tier(position(&positions, 1));
+        let value = store.read_literal(&address, &tier)?;
         Ok(codec.to_js_value(&value))
     });
     answer_or_throw(env, answer)
@@ -1345,30 +1371,32 @@ fn verb_read_literal(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: Js
 /// **AND THE TRIGGERING ADDRESS CROSSES BESIDE THE RECORD** (`§2.7` item 2, `PAR-JS-12`): the invocation
 /// window opens AFTER this frame returns, in the mapping layer that holds the caller's functions.
 #[napi(js_name = "write")]
-fn verb_write(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>, a2: JsVal<'_>, a3: JsVal<'_>, a4: JsVal<'_>) -> NapiRet<'static> {
+fn verb_write(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>, value_pos: JsVal<'_>, commit_identity: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
     // arity `5`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on.
-    let args: Vec<JsVal<'_>> = vec![a0, a1, a2, a3, a4];
-    let index = match instance_of(&env, Some(&receiver)) {
-        Ok(index) => index,
+    // tail-position protocol turns on. **THE FOURTH DECLARED POSITION IS THE COMMIT IDENTITY** — the
+    // adopted record identity a kernel-driven write carries (`§1`: *"it carries a fifth position the others
+    // do not"*; `surface.md §2.2`'s `commit?` clause) — **and it is CONSUMED WITHOUT BEING READ HERE**: the
+    // class test on it is the PACKAGE's, taken before this frame is entered (`§2`, `commitPositionRefusal`),
+    // and this entry reads the three positions above and no more. **THE FIFTH IS DECLARED AND NOT READ**: it
+    // carries the arity and nothing else.
+    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos, value_pos, commit_identity, _tail];
+    let store_index = match store_index_of(&env, Some(&receiver)) {
+        Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
             return Ok(make_undefined(&env));
         }
     };
     let codec = Codec { env, _marker: std::marker::PhantomData };
-    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
-        let mut all = all.borrow_mut();
-        let instance = all.get_mut(index).ok_or(Refusal {
-            status: "AddressNotFound".to_string(),
-            message: "the package holds no instance at that id".to_string(),
-        })?;
-        let address = codec.address(position(&args, 0));
-        let tier = codec.tier(position(&args, 1));
-        let value = codec.value(position(&args, 2));
-        let result = instance.write(&address, &tier, &value)?;
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
+        let address = codec.address(position(&positions, 0));
+        let tier = codec.tier(position(&positions, 1));
+        let value = codec.value(position(&positions, 2));
+        let result = store.write(&address, &tier, &value)?;
         let answer = codec.to_js_write_result(&result);
         let triggering = codec.to_js_segments(&segments_of(&address));
         codec.set_member(answer, "triggeringAddress", triggering);
@@ -1378,29 +1406,27 @@ fn verb_write(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>
 }
 
 #[napi(js_name = "delete")]
-fn verb_delete(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>, a2: JsVal<'_>) -> NapiRet<'static> {
+fn verb_delete(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
     // arity `3`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on.
-    let args: Vec<JsVal<'_>> = vec![a0, a1, a2];
-    let index = match instance_of(&env, Some(&receiver)) {
-        Ok(index) => index,
+    // tail-position protocol turns on. **THE THIRD DECLARED POSITION IS DECLARED AND NOT READ** — the
+    // store's own `delete` takes the address and the tier and no more.
+    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos, _tail];
+    let store_index = match store_index_of(&env, Some(&receiver)) {
+        Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
             return Ok(make_undefined(&env));
         }
     };
     let codec = Codec { env, _marker: std::marker::PhantomData };
-    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
-        let mut all = all.borrow_mut();
-        let instance = all.get_mut(index).ok_or(Refusal {
-            status: "AddressNotFound".to_string(),
-            message: "the package holds no instance at that id".to_string(),
-        })?;
-        let address = codec.address(position(&args, 0));
-        let tier = codec.tier(position(&args, 1));
-        let receipt = instance.delete(&address, &tier)?;
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
+        let address = codec.address(position(&positions, 0));
+        let tier = codec.tier(position(&positions, 1));
+        let receipt = store.delete(&address, &tier)?;
         let answer = codec.to_js_delete_receipt(&receipt);
         let triggering = codec.to_js_segments(&segments_of(&address));
         codec.set_member(answer, "triggeringAddress", triggering);
@@ -1410,28 +1436,26 @@ fn verb_delete(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_
 }
 
 #[napi(js_name = "rollback")]
-fn verb_rollback(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>) -> NapiRet<'static> {
+fn verb_rollback(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
     // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on.
-    let args: Vec<JsVal<'_>> = vec![a0, a1];
-    let index = match instance_of(&env, Some(&receiver)) {
-        Ok(index) => index,
+    // tail-position protocol turns on. **THE SECOND DECLARED POSITION IS DECLARED AND NOT READ** — the
+    // store's own `rollback` takes the op id and no more.
+    let positions: Vec<JsVal<'_>> = vec![op_id_pos, _tail];
+    let store_index = match store_index_of(&env, Some(&receiver)) {
+        Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
             return Ok(make_undefined(&env));
         }
     };
     let codec = Codec { env, _marker: std::marker::PhantomData };
-    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
-        let mut all = all.borrow_mut();
-        let instance = all.get_mut(index).ok_or(Refusal {
-            status: "AddressNotFound".to_string(),
-            message: "the package holds no instance at that id".to_string(),
-        })?;
-        let op_id = codec.op_id(position(&args, 0));
-        let result = instance.rollback(&op_id)?;
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
+        let op_id = codec.op_id(position(&positions, 0));
+        let result = store.rollback(&op_id)?;
         Ok(codec.to_js_rollback_result(&result))
     });
     answer_or_throw(env, answer)
@@ -1443,57 +1467,53 @@ fn verb_rollback(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<
 /// otherwise by the package's own set-position class test before this frame is entered (`F-2`). **AND THE
 /// ANSWER IS `undefined`** — the caller supplied the identity, so there is no datum to return (`PAR-HL-3`).
 #[napi(js_name = "listen")]
-fn verb_listen(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>, a2: JsVal<'_>) -> NapiRet<'static> {
+fn verb_listen(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, addresses_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
     // arity `3`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on.
-    let args: Vec<JsVal<'_>> = vec![a0, a1, a2];
-    let index = match instance_of(&env, Some(&receiver)) {
-        Ok(index) => index,
+    // tail-position protocol turns on. **THE THIRD DECLARED POSITION IS DECLARED AND NOT READ** — the two
+    // positions the store declares are the handle and the set, and the doc block above says so.
+    let positions: Vec<JsVal<'_>> = vec![handle_pos, addresses_pos, _tail];
+    let store_index = match store_index_of(&env, Some(&receiver)) {
+        Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
             return Ok(make_undefined(&env));
         }
     };
     let codec = Codec { env, _marker: std::marker::PhantomData };
-    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
-        let mut all = all.borrow_mut();
-        let instance = all.get_mut(index).ok_or(Refusal {
-            status: "AddressNotFound".to_string(),
-            message: "the package holds no instance at that id".to_string(),
-        })?;
-        let handle = codec.handle_arg(position(&args, 0));
-        let addresses = codec.address_set(position(&args, 1));
-        instance.listen(&handle, &addresses)?;
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
+        let handle = codec.handle_arg(position(&positions, 0));
+        let addresses = codec.address_set(position(&positions, 1));
+        store.listen(&handle, &addresses)?;
         Ok(codec.undefined_value())
     });
     answer_or_throw(env, answer)
 }
 
 #[napi(js_name = "unlisten")]
-fn verb_unlisten(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>) -> NapiRet<'static> {
+fn verb_unlisten(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
     // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on.
-    let args: Vec<JsVal<'_>> = vec![a0, a1];
-    let index = match instance_of(&env, Some(&receiver)) {
-        Ok(index) => index,
+    // tail-position protocol turns on. **THE SECOND DECLARED POSITION IS DECLARED AND NOT READ** — the
+    // withdrawal's store half takes the handle and no more.
+    let positions: Vec<JsVal<'_>> = vec![handle_pos, _tail];
+    let store_index = match store_index_of(&env, Some(&receiver)) {
+        Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
             return Ok(make_undefined(&env));
         }
     };
     let codec = Codec { env, _marker: std::marker::PhantomData };
-    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
-        let mut all = all.borrow_mut();
-        let instance = all.get_mut(index).ok_or(Refusal {
-            status: "AddressNotFound".to_string(),
-            message: "the package holds no instance at that id".to_string(),
-        })?;
-        let handle = codec.handle_arg(position(&args, 0));
-        instance.unlisten(&handle)?;
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
+        let handle = codec.handle_arg(position(&positions, 0));
+        store.unlisten(&handle)?;
         Ok(codec.undefined_value())
     });
     answer_or_throw(env, answer)
@@ -1505,28 +1525,26 @@ fn verb_unlisten(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<
 /// namespace carries** — it is the package's own member reaching the store's own operation, exactly as
 /// `listen` does (`contract.md §2.7` item 2).
 #[napi(js_name = "removeListener")]
-fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>) -> NapiRet<'static> {
+fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
     // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on.
-    let args: Vec<JsVal<'_>> = vec![a0, a1];
-    let index = match instance_of(&env, Some(&receiver)) {
-        Ok(index) => index,
+    // tail-position protocol turns on. **THE SECOND DECLARED POSITION IS DECLARED AND NOT READ** — the
+    // removal reaches the store's own wholesale `Home::purge` with the handle and no more.
+    let positions: Vec<JsVal<'_>> = vec![handle_pos, _tail];
+    let store_index = match store_index_of(&env, Some(&receiver)) {
+        Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
             return Ok(make_undefined(&env));
         }
     };
     let codec = Codec { env, _marker: std::marker::PhantomData };
-    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
-        let mut all = all.borrow_mut();
-        let instance = all.get_mut(index).ok_or(Refusal {
-            status: "AddressNotFound".to_string(),
-            message: "the package holds no instance at that id".to_string(),
-        })?;
-        let handle = codec.handle_arg(position(&args, 0));
-        instance.remove_listener(&handle)?;
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
+        let handle = codec.handle_arg(position(&positions, 0));
+        store.remove_listener(&handle)?;
         Ok(codec.undefined_value())
     });
     answer_or_throw(env, answer)
@@ -1538,27 +1556,25 @@ fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1:
 /// store's declared namespace stays at `8` and no member of either census moves (`§2.11` clause 7;
 /// `implementation-plan.md §10.9` row 8). Its one argument is an op id and its answer is `undefined`.
 #[napi(js_name = "commitFile")]
-fn verb_commit_file(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>) -> NapiRet<'static> {
+fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
     // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on.
-    let args: Vec<JsVal<'_>> = vec![a0, a1];
-    let index = match instance_of(&env, Some(&receiver)) {
-        Ok(index) => index,
+    // tail-position protocol turns on. **ITS ONE ARGUMENT IS AN OP ID** (the doc block above says so) and
+    // **THE SECOND DECLARED POSITION IS DECLARED AND NOT READ**.
+    let positions: Vec<JsVal<'_>> = vec![op_id_pos, _tail];
+    let store_index = match store_index_of(&env, Some(&receiver)) {
+        Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
             return Ok(make_undefined(&env));
         }
     };
     let codec = Codec { env, _marker: std::marker::PhantomData };
-    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|all| {
-        let mut all = all.borrow_mut();
-        let instance = all.get_mut(index).ok_or(Refusal {
-            status: "AddressNotFound".to_string(),
-            message: "the package holds no instance at that id".to_string(),
-        })?;
-        let op_id = codec.op_id(position(&args, 0));
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
+        let op_id = codec.op_id(position(&positions, 0));
         let JsOpIdArg::Str(token) = &op_id else {
             return Err(Refusal {
                 status: "JournalOpUnknown".to_string(),
@@ -1567,7 +1583,7 @@ fn verb_commit_file(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsV
                     .to_string(),
             });
         };
-        instance.commit_file(token)?;
+        store.commit_file(token)?;
         Ok(codec.undefined_value())
     });
     answer_or_throw(env, answer)
@@ -1691,7 +1707,7 @@ fn answer_or_throw(env: Env, answer: Result<JsVal<'static>, Refusal>) -> NapiRet
 /// is GONE FROM THIS FILE.**
 /// **THE ENTRY IS ANNOTATED AND ITS TWO-POSITION ARITY IS UNMOVED** (`contract.md §2` item 3).
 #[napi]
-pub fn register(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'_>) -> NapiRet<'static> {
+pub fn register(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, listener_slot: JsVal<'_>) -> NapiRet<'static> {
     // **THE RECEIVER IS THE STORE OBJECT ITSELF** (`js-unwrap.md §4`'s successor sentence): the registration
     // path does NOT stop addressing a store, it resolves one a different way — *"it hands NOTHING for the
     // store's identity, because the call's own receiver IS the identity"* — and `register` KEEPS ITS ARITY
@@ -1701,16 +1717,16 @@ pub fn register(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'
     // **AND THE LISTENER'S POSITION IS DECLARED AND NOT READ** — the FUNCTION itself never crosses
     // (`DD-15`): the mapping layer holds it in its own per-instance registry, and this entry is asked only
     // whether the HANDLE is a member of the instance's own domain.
-    let args: Vec<JsVal<'_>> = vec![a0, a1];
-    let instance_id = match instance_of(&env, Some(&receiver)) {
-        Ok(index) => index,
+    let positions: Vec<JsVal<'_>> = vec![handle_pos, listener_slot];
+    let store_index = match store_index_of(&env, Some(&receiver)) {
+        Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
             return Ok(make_undefined(&env));
         }
     };
     let codec = Codec { env, _marker: std::marker::PhantomData };
-    let handle = codec.handle_arg(position(&args, 0));
+    let handle = codec.handle_arg(position(&positions, 0));
     // **THE CORE IS THE SITE'S OWN JUDGE**: it holds the instance's handle domain (`§2.4` item 5 (c)) and
     // answers an outside handle with the store's own `AddressMalformed` and a generated message.
     // **⟶ THE PLACEHOLDER CLOSURE IS GONE (`F-13`; `U-11`): `JsListener::Function(Box::new(|_| ()))` WAS A
@@ -1718,10 +1734,10 @@ pub fn register(env: Env, receiver: This<Object<'_>>, a0: JsVal<'_>, a1: JsVal<'
     // it in its own per-instance registry (`index.mjs`'s `state.registry`, `U-12`), and the addon is asked
     // only whether the HANDLE is a member of this instance's own domain — so it hands the core the HANDLE
     // and no listener at all, and the core keeps no list of functions.
-    let answer = INSTANCES.with(|all| {
-        let mut all = all.borrow_mut();
-        match all.get_mut(instance_id as usize) {
-            Some(instance) => instance.register(&handle),
+    let answer = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        match instances.get_mut(store_index as usize) {
+            Some(store) => store.register(&handle),
             None => Err(crossing::registration_refusal(
                 "",
                 "the addon's first argument",
