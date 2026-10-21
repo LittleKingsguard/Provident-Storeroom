@@ -25,7 +25,11 @@
 // `'provident-storeroom'` — is REMOVED WITH THE TEN NAMES IT NAMED (`11 → 1` ✓): **the module namespace
 // carries ONE name, `storeCreate`, and every store-reaching act is a METHOD of the object it returned**, so
 // this module reaches the store through the caller's own instance's members and through nothing else (the
-// fifth position's record included — `store.write(address, tier, value, record)`). **THE KERNEL'S OWN
+// fourth position's record included — `store.write(address, tier, value, record)`). **ORDINAL CORRECTED
+// 2026-10-21: the old "fifth" was the retired `call(instance, verb, args)` dispatcher's ARRAY frame (that
+// dispatcher deleted at `export-set-and-dispatch.md §2`), and the per-verb entries' surplus trailing
+// parameter has since been removed, so `write`'s commit position is the FOURTH of the method's four
+// positions — `surface.md §2.2`: `a.write(address, tier, value, commit?)`.** **THE KERNEL'S OWN
 // IMPORT FOOTPRINT IS THEREFORE EMPTY, WHICH IS WHAT THIS HEADER HAS DECLARED ALL ALONG** (`§1` item 1;
 // the paragraph at `THE REPAIR'S OWN OP` below, whose *"the caller's own instance is the only way it ever
 // reaches the store"* is now the code and no longer only the sentence).
@@ -1102,9 +1106,13 @@ export function commit(store, address, tier, value) {
 
   let written;
   try {
-    // **THE FIFTH POSITION** (`kernel-surface.md §1` item 5's dated spelling; `surface.md §2.12` item 1
+    // **THE FOURTH POSITION** (`kernel-surface.md §1` item 5's dated spelling; `surface.md §2.12` item 1
     // stage 2): the kernel drives the Rust store with the record identity `K-2` opened or joined, so the
     // kernel's own store leg IS the entry's own write and its delivery is withheld for the terminal arm.
+    // **ORDINAL CORRECTED 2026-10-21**: the old "fifth" was the retired `call(instance, verb, args)`
+    // dispatcher's ARRAY frame (that dispatcher deleted at `export-set-and-dispatch.md §2`), the per-verb
+    // entries' surplus trailing parameter since removed, so the commit position is the FOURTH of `write`'s
+    // four positions — `surface.md §2.2`: `a.write(address, tier, value, commit?)`.
     written = store.write(address, tier, value, record);
   } catch (refusal) {
     throw refusal;
@@ -1563,8 +1571,12 @@ function evaluate(kernel, attempt, landing) {
           // own write call use that commit"*: *"Repair functions are returned by the constraint that they
           // are triggered by. As externally-provided code, they should be using the package surface
           // functions, which means they will need to be passed the commit they are part of so that they can
-          // make their own write call use that commit."* **THE FORM IS THE ONE `write`'s FIFTH POSITION
-          // ADMITS**: its class test is *"an object position is a record position only where it CARRIES A
+          // make their own write call use that commit."* **THE FORM IS THE ONE `write`'s FOURTH POSITION
+          // ADMITS** (`ORDINAL CORRECTED 2026-10-21`: the old `"fifth"` was the retired
+          // `call(instance, verb, args)` dispatcher's ARRAY frame, deleted at
+          // `export-set-and-dispatch.md §2`; `write`'s commit position is the FOURTH of the method's four,
+          // `surface.md §2.2`'s `a.write(address, tier, value, commit?)`): **its class test is *"an object
+          // position is a record position only where it CARRIES A
           // `pending` MEMBER whose value is present and not `undefined`"* (`§2.4` item 9 (g) item 1), and the
           // member this context carries is THE COMMIT'S OWN `pending`, VERBATIM — the record `K-2` returned,
           // the one `attempt.record` names, so the repair's write passes THE CONTEXT and the position reads

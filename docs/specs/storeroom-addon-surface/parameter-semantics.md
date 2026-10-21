@@ -15,7 +15,7 @@
 | `PAR-SAS-1` | the receiver, at every entry | `parameter` | the Node-API `this` — **an object the package itself returned, or nothing** | **the store the call is for** | `P-SAS-2` (the receiver is driven by that row's own strategies) |
 | `PAR-SAS-2` | the verb, as data | `parameter` | **DELETED** — it was a string matched across nine arms | — (it becomes the entry's own name) | `P-SAS-1`; `export-set-and-dispatch.md §3` |
 | `PAR-SAS-3` | the instance integer | `parameter` | **DELETED** — it was a `u32` slot in a lookup table, never a store identity | — (the receiver replaces it) | `P-SAS-6`; `receiver-and-refusal.md §1` |
-| `PAR-SAS-4` | `write`'s fifth position | `parameter` | an adopted record identity | **a repair write's join key** | `export-set-and-dispatch.md §4` — **preserved unmoved** |
+| `PAR-SAS-4` | `write`'s fourth position | `parameter` | an adopted record identity | **a repair write's join key** | `export-set-and-dispatch.md §4` — **preserved unmoved**; **re-cut 2026-10-21: the position is `write`'s FOURTH and the entry declares four — the surplus fifth `_tail` the abandoned element-0 design left is removed, and it was never this position's home (`§4`)** |
 | `PAR-SAS-5` | the `fault` record the write path threads | `parameter` | the boundary walk's own record | **the `ValueNotAdmitted` re-render** | `P-SAS-8`; `js-unwrap.md §3` |
 
 ---

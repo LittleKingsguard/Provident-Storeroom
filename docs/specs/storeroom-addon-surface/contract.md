@@ -67,7 +67,7 @@
 
 4. **THE FAILURE FORM IS UNCHANGED AND IS NOT THIS UNIT'S TO MOVE.** See the sibling unit's part, **three members `{status, message, log}`, never an `Error`.** **`stack` is not part of the form and is NOT forbidden** — *added 2026-10-19 (`role_spec_writer`): the `stack` half of a *"never an `Error`, never a `stack`"* rule once stood here as LIVE and is STRUCK, as it has already been struck in `failure-form.md`, `parameter-semantics.md`, `test-cases.md` and this file's own `§7` `OWED` line; the prohibition is VOID, and `P-ADA-3` excludes `stack` from its failure list.* **The idiomatic library error path would breach it and is therefore forbidden on every refusal path.**
 
-5. **THE WRITE PATH KEEPS ITS OWN ENTRY.** `write` carries a fifth position the others do not, so it is not a uniform case; its entry is stated with its arity like every other.
+5. **THE WRITE PATH KEEPS ITS OWN ENTRY.** `write` carries a fourth position the others do not, so it is not a uniform case; its entry is stated with its arity like every other. **⟶ RE-CUT 2026-10-21: it was a FIFTH and the entry declared `5` when this item was written — the surplus trailing position beyond the verb's own four is removed, so the entry now declares `4` and this item's figure moves with it (`export-set-and-dispatch.md §1`/`§4`).**
 
 ---
 

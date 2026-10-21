@@ -23,15 +23,15 @@
 
 | Name | Its arity | The verb |
 | --- | --- | --- |
-| `read` | `3` | the read |
-| `readLiteral` | `3` | the literal read |
-| `write` | `5` | the write — **it carries a fifth position the others do not** |
-| `delete` | `3` | the version removal |
-| `rollback` | `2` | the journal rollback |
-| `listen` | `3` | the listener registration verb |
-| `unlisten` | `2` | the withdrawal |
-| `removeListener` | `2` | the whole removal |
-| `commitFile` | `2` | the file-tier save |
+| `read` | `2` | the read |
+| `readLiteral` | `2` | the literal read |
+| `write` | `4` | the write — **it carries a fourth position the others do not** |
+| `delete` | `2` | the version removal |
+| `rollback` | `1` | the journal rollback |
+| `listen` | `2` | the listener registration verb |
+| `unlisten` | `1` | the withdrawal |
+| `removeListener` | `1` | the whole removal |
+| `commitFile` | `1` | the file-tier save |
 
 **`9 + 4 = 13 ✓`.** `[CENSUS]`
 
@@ -72,4 +72,8 @@
 
 **THE ARITY FIGURES ABOVE COUNT ONLY THE ARGUMENTS A CALLER SUPPLIES.** They are the verb's declared positions, and **`P-SAS-2` drives each at its declared arity and at ±1.**
 
-**AND ONE ARITY IS NON-UNIFORM BY DESIGN: `write`'s five.** Its fifth position exists so that a repair write made by the kernel's own flow carries the record identity it joins, **and a caller supply is an unsupported anti-pattern that is neither refused by arity nor detected by a test.** The split preserves that exactly. `[CONTRACT]`
+**⟶ RE-CUT 2026-10-21: BOTH SENTENCES ABOVE WERE FALSE OF THE CODE THAT STOOD, AND THIS EDIT IS WHAT MAKES THEM TRUE.** Measured before the cut, **every one of the nine per-verb entries declared ONE MORE POSITION THAN ITS CALL SHAPE CARRIES** — `read` `3` against a two-argument member, `readLiteral` `3` against two, `write` `5` against four, `delete` `3` against two, `rollback` `2` against one, `listen` `3` against two, `unlisten` `2` against one, `removeListener` `2` against one, `commitFile` `2` against one. **The surplus was uniform — exactly one per entry, the trailing parameter `_tail`** — and it was read by nothing and supplied by nothing: no entry's body called `position(&positions, n)` at the tail index, and the package's members build their argument arrays from `arguments.length` checks and `args.push` calls, so a trailing element was never constructed. **THE SURPLUS WAS THE RESIDUE OF THE ABANDONED ELEMENT-0 RECEIVER DESIGN** — the design whose withdrawal is recorded at `facade.rs`'s own entry-block comment and at `receiver-and-refusal.md §1`/`§5`, where an earlier shape took the receiver as the call array's first element and began each entry's declared positions at element ONE. **IT IS NOW REMOVED FROM ALL NINE, so the table equals the call shape.** **THE FOUR THAT STAND, AND THE FOUR STANDING ARITIES, ARE UNMOVED.**
+
+**AND ONE ARITY IS NON-UNIFORM BY DESIGN: `write`'s four.** Its fourth position is the adopted record identity a kernel-driven write carries, **and a caller supply beyond the declared four is an unsupported anti-pattern that is neither refused by arity nor detected by a test.** The split preserves that exactly.
+
+**⟶ AND `write`'s FOURTH POSITION IS DECLARED AND NOT READ — MEASURED, NOT ASSUMED.** `write`'s entry declares four positions, `address`, `tier`, `value` and `commit_identity`; **its body reads the first three and no more — no `position(&positions, 3)` call exists anywhere in `facade.rs`.** **THE RECORD IS CONSUMED IN THE MEMBER AND NOT IN THE ENTRY**: the kernel passes it to the **package** (`constraint-kernel.mjs`'s `store.write(address, tier, value, record)`), whose `write` member refuses a bad one at `commitPositionRefusal` and then spreads **three** encoded args — `address`, `tier`, `value` — to this entry. **THE FOURTH POSITION THEREFORE CARRIES THE VERB'S OWN DECLARED CALL SHAPE AND NOT A READ VALUE**: it stands because `§1` and this section declare the four-position call as the verb's own — `surface.md §2.2`'s `commit?` clause, `PAR-SAS-4` — so it is left in place while the surplus fifth alone was removed. **THE FIFTH, WHICH `§1` ONCE CALLED *"the position the others do not carry"*, WAS NOT THE RECORD'S: IT CARRIED NOTHING AT ALL.** `[CONTRACT]`

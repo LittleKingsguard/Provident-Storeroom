@@ -1309,14 +1309,14 @@ fn no_instance_at(_store_index: usize) -> Refusal {
 /// DESCRIBE IT — [`register`]'s own interior comment and the block comment above [`store_index_of`] — and in
 /// no byte of any entry's declared positions.**
 #[napi(js_name = "read")]
-fn verb_read(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
+fn verb_read(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `3`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE THIRD DECLARED POSITION IS DECLARED AND NOT READ** — the
-    // store's own `read` takes the address and the tier and no more — and it stands so the declared arity
-    // is a property of the signature (`S-ARITY` drives this entry at `3` and at ±1).
-    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos, _tail];
+    // tail-position protocol turns on. **THE TWO DECLARED POSITIONS ARE THE TWO THE STORE'S OWN `read`
+    // TAKES, AND THERE IS NO THIRD**: the surplus tail the abandoned element-0 receiver design left here
+    // is removed, so the declared arity now equals the call shape (`§4`).
+    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1337,13 +1337,14 @@ fn verb_read(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_
 }
 
 #[napi(js_name = "readLiteral")]
-fn verb_read_literal(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
+fn verb_read_literal(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `3`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE THIRD DECLARED POSITION IS DECLARED AND NOT READ**, exactly as
-    // `read`'s is — the literal read is `read` narrowed at the target and takes no position `read` lacks.
-    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos, _tail];
+    // tail-position protocol turns on. **THE TWO DECLARED POSITIONS ARE THE TWO THE LITERAL READ TAKES**,
+    // exactly as `read`'s are — the literal read is `read` narrowed at the target and takes no position
+    // `read` lacks, and the surplus tail is removed from this entry as it is from `read`.
+    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1363,25 +1364,33 @@ fn verb_read_literal(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_
     answer_or_throw(env, answer)
 }
 
-/// **`write` CARRIES A FIFTH POSITION THE OTHERS DO NOT** (`export-set-and-dispatch.md §1`; `§4`): its
+/// **`write` CARRIES A FOURTH POSITION THE OTHERS DO NOT** (`export-set-and-dispatch.md §1`; `§4`): its
 /// fourth declared position is the ADOPTED RECORD IDENTITY a repair write's join key names (`PAR-SAS-4`,
 /// preserved unmoved), and **a caller supply of it is an unsupported anti-pattern that is neither refused
-/// by arity nor detected by a test** (`§4`) — which is why this entry reads four positions and no more.
+/// by arity nor detected by a test** (`§4`) — which is why this entry reads three positions and no more.
+///
+/// **AND THE FOURTH POSITION IS THE LAST ONE — THE SURPLUS FIFTH `_tail` IS REMOVED.** **THE RECORD IS NOT
+/// CONSUMED HERE AND WAS NEVER READ BY THIS BODY**: no `position(&positions, 3)` call stands anywhere in
+/// this file, so the fourth position is DECLARED AND NOT READ, exactly as [`verb_write`]'s own comment
+/// records. **THE RECORD IS CONSUMED IN THE MEMBER, NOT HERE**: the kernel hands it to the PACKAGE
+/// (`constraint-kernel.mjs`'s `store.write(address, tier, value, record)`), whose `write` member refuses a
+/// bad one at `commitPositionRefusal` and then spreads **three** encoded args to this entry. The four
+/// positions `§1`/`§4` declare stand as the verb's own call shape, and the fifth did not.
 ///
 /// **AND THE TRIGGERING ADDRESS CROSSES BESIDE THE RECORD** (`§2.7` item 2, `PAR-JS-12`): the invocation
 /// window opens AFTER this frame returns, in the mapping layer that holds the caller's functions.
 #[napi(js_name = "write")]
-fn verb_write(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>, value_pos: JsVal<'_>, commit_identity: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
+fn verb_write(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>, value_pos: JsVal<'_>, commit_identity: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `5`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // arity `4`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
     // tail-position protocol turns on. **THE FOURTH DECLARED POSITION IS THE COMMIT IDENTITY** — the
-    // adopted record identity a kernel-driven write carries (`§1`: *"it carries a fifth position the others
+    // adopted record identity a kernel-driven write carries (`§1`: *"it carries a fourth position the others
     // do not"*; `surface.md §2.2`'s `commit?` clause) — **and it is CONSUMED WITHOUT BEING READ HERE**: the
     // class test on it is the PACKAGE's, taken before this frame is entered (`§2`, `commitPositionRefusal`),
-    // and this entry reads the three positions above and no more. **THE FIFTH IS DECLARED AND NOT READ**: it
-    // carries the arity and nothing else.
-    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos, value_pos, commit_identity, _tail];
+    // and this entry reads the three positions above and no more. **THE FOURTH CARRIES THE DECLARED CALL
+    // SHAPE; THE SURPLUS FIFTH IS REMOVED.**
+    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos, value_pos, commit_identity];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1406,13 +1415,13 @@ fn verb_write(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier
 }
 
 #[napi(js_name = "delete")]
-fn verb_delete(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
+fn verb_delete(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `3`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE THIRD DECLARED POSITION IS DECLARED AND NOT READ** — the
-    // store's own `delete` takes the address and the tier and no more.
-    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos, _tail];
+    // tail-position protocol turns on. **THE TWO DECLARED POSITIONS ARE THE TWO THE STORE'S OWN `delete`
+    // TAKES** — the surplus tail is removed.
+    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1436,13 +1445,13 @@ fn verb_delete(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tie
 }
 
 #[napi(js_name = "rollback")]
-fn verb_rollback(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
+fn verb_rollback(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // arity `1`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE SECOND DECLARED POSITION IS DECLARED AND NOT READ** — the
-    // store's own `rollback` takes the op id and no more.
-    let positions: Vec<JsVal<'_>> = vec![op_id_pos, _tail];
+    // tail-position protocol turns on. **THE ONE DECLARED POSITION IS THE ONE THE STORE'S OWN `rollback`
+    // TAKES** — the surplus tail is removed.
+    let positions: Vec<JsVal<'_>> = vec![op_id_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1467,13 +1476,13 @@ fn verb_rollback(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>, _ta
 /// otherwise by the package's own set-position class test before this frame is entered (`F-2`). **AND THE
 /// ANSWER IS `undefined`** — the caller supplied the identity, so there is no datum to return (`PAR-HL-3`).
 #[napi(js_name = "listen")]
-fn verb_listen(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, addresses_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
+fn verb_listen(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, addresses_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `3`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE THIRD DECLARED POSITION IS DECLARED AND NOT READ** — the two
-    // positions the store declares are the handle and the set, and the doc block above says so.
-    let positions: Vec<JsVal<'_>> = vec![handle_pos, addresses_pos, _tail];
+    // tail-position protocol turns on. **THE TWO DECLARED POSITIONS ARE THE ONLY TWO — THE HANDLE AND THE
+    // SET** — which is exactly what the doc block above says, and the surplus tail is removed.
+    let positions: Vec<JsVal<'_>> = vec![handle_pos, addresses_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1494,13 +1503,13 @@ fn verb_listen(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, addr
 }
 
 #[napi(js_name = "unlisten")]
-fn verb_unlisten(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
+fn verb_unlisten(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // arity `1`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE SECOND DECLARED POSITION IS DECLARED AND NOT READ** — the
-    // withdrawal's store half takes the handle and no more.
-    let positions: Vec<JsVal<'_>> = vec![handle_pos, _tail];
+    // tail-position protocol turns on. **THE ONE DECLARED POSITION IS THE HANDLE** — the withdrawal's
+    // store half takes the handle and no more — and the surplus tail is removed.
+    let positions: Vec<JsVal<'_>> = vec![handle_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1525,13 +1534,13 @@ fn verb_unlisten(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, _t
 /// namespace carries** — it is the package's own member reaching the store's own operation, exactly as
 /// `listen` does (`contract.md §2.7` item 2).
 #[napi(js_name = "removeListener")]
-fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
+fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // arity `1`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE SECOND DECLARED POSITION IS DECLARED AND NOT READ** — the
-    // removal reaches the store's own wholesale `Home::purge` with the handle and no more.
-    let positions: Vec<JsVal<'_>> = vec![handle_pos, _tail];
+    // tail-position protocol turns on. **THE ONE DECLARED POSITION IS THE HANDLE** — the removal reaches
+    // the store's own wholesale `Home::purge` with the handle and no more — and the surplus tail is removed.
+    let positions: Vec<JsVal<'_>> = vec![handle_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1556,13 +1565,13 @@ fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<
 /// store's declared namespace stays at `8` and no member of either census moves (`§2.11` clause 7;
 /// `implementation-plan.md §10.9` row 8). Its one argument is an op id and its answer is `undefined`.
 #[napi(js_name = "commitFile")]
-fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>, _tail: JsVal<'_>) -> NapiRet<'static> {
+fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
+    // arity `1`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
     // tail-position protocol turns on. **ITS ONE ARGUMENT IS AN OP ID** (the doc block above says so) and
-    // **THE SECOND DECLARED POSITION IS DECLARED AND NOT READ**.
-    let positions: Vec<JsVal<'_>> = vec![op_id_pos, _tail];
+    // **THERE IS NO SECOND DECLARED POSITION** — the surplus tail is removed.
+    let positions: Vec<JsVal<'_>> = vec![op_id_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
