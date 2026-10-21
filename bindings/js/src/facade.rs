@@ -1203,6 +1203,18 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 /// declared parameter — and every call site's index was strictly inside its own vec's length, so the
 /// `Option` was ALWAYS `Some` and the `None` arm UNREACHABLE from the entries. The entries now pass their
 /// parameters directly, which is the same value each index read, reached without the indirection.
+///
+/// **⟶ AND THE RECEIVER'S OWN `Option` HAS NOW GONE THE SAME WAY — THE FOURTH RESIDUE OF THE SAME
+/// ABANDONED DESIGN, AND THE LAST.** `store_index_of` took `Option<&Object<'_>>` and opened with a
+/// `let Some(…) else { return Err(not_a_receiver()) }` guard. **THAT ARM WAS UNREACHABLE**: `napi-derive`
+/// injects the receiver into every entry's `receiver: This<Object<'_>>` from `cb.this()`, so the host
+/// supplies it or the entry is not entered, and **all ten call sites passed `Some(&receiver)` — ten `Some`s,
+/// no `None`, ever.** The `Some(…)` wrap was not redundant for the COMPILER (`&This<Object>` does not coerce
+/// to `Option<&Object>`), but it WAS redundant for the design: it wrapped a case no caller can produce. The
+/// parameter is now `&Object<'_>` and the ten call sites hand `&receiver` directly. **`not_a_receiver()`
+/// SURVIVES THE DELETION AND ITS THREE REMAINING CALL SITES ARE REACHABLE** — a `Symbol.for` read that fails,
+/// a channel that is not a number, and the table miss — so the token it answers and the observable it names
+/// are unmoved.
 
 /// **THE STORE'S INDEX, RESOLVED FROM THE RECEIVER** (`receiver-and-refusal.md §1`).
 ///
@@ -1216,11 +1228,18 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 /// entries it maps are the live constructions themselves, so its retirement path is the store's own
 /// (`receiver-and-refusal.md §6`).
 ///
-/// **AND A CALL NAMING NO LIVE STORE REFUSES IN THE ONE DECLARED FORM** (`§3`): an ABSENT receiver argument,
-/// one that is not an object, one that carries no readable `Symbol.for`-keyed channel, one whose channel is
+/// **AND A CALL NAMING NO LIVE STORE REFUSES IN THE ONE DECLARED FORM** (`§3`): a receiver that is not an
+/// object, one that carries no readable `Symbol.for`-keyed channel, one whose channel is
 /// not a number, and one whose index the table does not hold all answer THE ONE REFUSAL — a THROWN PLAIN
 /// OBJECT `{status, message}` and never an `Error`, never a `TypeError`, and never a library error
 /// (`failure-form.md §1`; `P-ADA-3`, `F-4`).
+///
+/// **⟶ AND THE "ABSENT RECEIVER ARGUMENT" THIS LINE ONCE LISTED IS DELETED, BECAUSE THE RECEIVER IS
+/// STRUCTURAL AND CAN NO LONGER BE ABSENT.** The parameter is `&Object<'_>` and not an `Option`, and every
+/// caller hands the Node-API `this` (`receiver-and-refusal.md §1`): the host supplies it or the entry is not
+/// entered, so *"there is no receiver"* is not a state this function can be asked about. **THE FOUR CASES
+/// THAT REMAIN ARE THE ONES A RECEIVER THAT IS PRESENT BUT NAMES NO LIVE STORE CAN PRODUCE** — a detached
+/// call, a never-issued value and a released store, which `§3` declares as ONE observable.
 ///
 /// **⟶ AND THE RECEIVER IS RESOLVED WITHOUT AN ARRAY CLASS GATE, WHICH IS A CORRECTION AND NOT A
 /// LOOSENING.** The spec's own words are *"one arm, one observable"* (`§3`): what the clause requires is
@@ -1243,10 +1262,7 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 /// **THE TOKEN IS BORROWED AND NOT MINTED** (`DD-40`; `failure-form.md §4`: *"the boundary does not mint a
 /// member for it"*): `AddressNotFound` is the store's own member for *"a handle that names nothing"*, with
 /// `AddressMalformed` for the argument that is not a receiver at all.
-fn store_index_of(env: &Env, receiver: Option<&Object<'_>>) -> Result<usize, Refusal> {
-    let Some(store_object) = receiver else {
-        return Err(not_a_receiver());
-    };
+fn store_index_of(env: &Env, receiver: &Object<'_>) -> Result<usize, Refusal> {
     // **THE INDEX IS READ OFF THE RECEIVER'S OWN `Symbol.for`-KEYED PROPERTY** — the value `storeCreate`
     // minted and the package published as the store object's own channel. **A SYMBOL KEY IS THE FORM CHOSEN
     // BECAUSE IT IS INVISIBLE TO BOTH ENUMERATIONS**: the product's declared fourteen own members stay
@@ -1262,7 +1278,7 @@ fn store_index_of(env: &Env, receiver: Option<&Object<'_>>) -> Result<usize, Ref
     let Ok(channel_key) = try_channel_key else {
         return Err(not_a_receiver());
     };
-    let Ok(carried_index) = store_object.get_property::<_, JsVal<'_>>(channel_key) else {
+    let Ok(carried_index) = receiver.get_property::<_, JsVal<'_>>(channel_key) else {
         return Err(not_a_receiver());
     };
     // **AND IT IS READ AS A NUMBER.** A value of any other class names no index and refuses in the same form.
@@ -1330,7 +1346,7 @@ fn verb_read(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_
     // apart by the CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the
     // ONE call that folds is the one that supplied nothing). **THE DECLARED ARITY EQUALS THE CALL SHAPE,
     // WITH NO SURPLUS TAIL** (`§4`).
-    let store_index = match store_index_of(&env, Some(&receiver)) {
+    let store_index = match store_index_of(&env, &receiver) {
         Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
@@ -1362,7 +1378,7 @@ fn verb_read_literal(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_
     // that folds is the one that supplied nothing). **THE TWO DECLARED POSITIONS ARE THE TWO THE LITERAL READ TAKES**,
     // exactly as `read`'s are — the literal read is `read` narrowed at the target and takes no position
     // `read` lacks, and the surplus tail is removed from this entry as it is from `read`.
-    let store_index = match store_index_of(&env, Some(&receiver)) {
+    let store_index = match store_index_of(&env, &receiver) {
         Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
@@ -1412,7 +1428,7 @@ fn verb_write(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier
     // class test on it is the PACKAGE's, taken before this frame is entered (`§2`, `commitPositionRefusal`),
     // and this entry reads the three positions above and no more. **THE FOURTH CARRIES THE DECLARED CALL
     // SHAPE; THE SURPLUS FIFTH IS REMOVED.**
-    let store_index = match store_index_of(&env, Some(&receiver)) {
+    let store_index = match store_index_of(&env, &receiver) {
         Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
@@ -1447,7 +1463,7 @@ fn verb_delete(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tie
     // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
     // that folds is the one that supplied nothing). **THE TWO DECLARED POSITIONS ARE THE TWO THE STORE'S OWN `delete`
     // TAKES** — the surplus tail is removed.
-    let store_index = match store_index_of(&env, Some(&receiver)) {
+    let store_index = match store_index_of(&env, &receiver) {
         Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
@@ -1481,7 +1497,7 @@ fn verb_rollback(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) -> 
     // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
     // that folds is the one that supplied nothing). **THE ONE DECLARED POSITION IS THE ONE THE STORE'S OWN `rollback`
     // TAKES** — the surplus tail is removed.
-    let store_index = match store_index_of(&env, Some(&receiver)) {
+    let store_index = match store_index_of(&env, &receiver) {
         Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
@@ -1516,7 +1532,7 @@ fn verb_listen(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, addr
     // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
     // that folds is the one that supplied nothing). **THE TWO DECLARED POSITIONS ARE THE ONLY TWO — THE HANDLE AND THE
     // SET** — which is exactly what the doc block above says, and the surplus tail is removed.
-    let store_index = match store_index_of(&env, Some(&receiver)) {
+    let store_index = match store_index_of(&env, &receiver) {
         Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
@@ -1547,7 +1563,7 @@ fn verb_unlisten(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>) ->
     // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
     // that folds is the one that supplied nothing). **THE ONE DECLARED POSITION IS THE HANDLE** — the withdrawal's
     // store half takes the handle and no more — and the surplus tail is removed.
-    let store_index = match store_index_of(&env, Some(&receiver)) {
+    let store_index = match store_index_of(&env, &receiver) {
         Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
@@ -1582,7 +1598,7 @@ fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<
     // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
     // that folds is the one that supplied nothing). **THE ONE DECLARED POSITION IS THE HANDLE** — the removal reaches
     // the store's own wholesale `Home::purge` with the handle and no more — and the surplus tail is removed.
-    let store_index = match store_index_of(&env, Some(&receiver)) {
+    let store_index = match store_index_of(&env, &receiver) {
         Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
@@ -1617,7 +1633,7 @@ fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) 
     // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
     // that folds is the one that supplied nothing). **ITS ONE ARGUMENT IS AN OP ID** (the doc block above says so) and
     // **THERE IS NO SECOND DECLARED POSITION** — the surplus tail is removed.
-    let store_index = match store_index_of(&env, Some(&receiver)) {
+    let store_index = match store_index_of(&env, &receiver) {
         Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
@@ -1757,7 +1773,7 @@ pub fn register(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, lis
     // **AND THE LISTENER'S POSITION IS DECLARED AND NOT READ** — the FUNCTION itself never crosses
     // (`DD-15`): the mapping layer holds it in its own per-instance registry, and this entry is asked only
     // whether the HANDLE is a member of the instance's own domain.
-    let store_index = match store_index_of(&env, Some(&receiver)) {
+    let store_index = match store_index_of(&env, &receiver) {
         Ok(store_index) => store_index,
         Err(refusal) => {
             throw_refusal(&env, &refusal);
