@@ -1,9 +1,19 @@
 //! `codec` — **THE WIRE'S DECIDED TREE, CONVERTED IN BOTH DIRECTIONS.**
 //!
+//! **THIS FILE'S SHAPE, STATED ONCE SO IT IS NOT RE-DERIVED FROM THE SCROLL: ONE STRUCT AND THREE
+//! `impl<'e> Codec<'e>` BLOCKS, AND EACH BLOCK IS ONE JOB.** **BLOCK 1 IS THE COPY IN** — the wire's JS
+//! values read INTO the store's own Rust types. **BLOCK 2 IS THE COPY OUT** — the core's own records and
+//! values written OUT as fresh Node-API values. **BLOCK 3 IS THE ACCESSOR ADAPTER** — the thin
+//! facade-facing layer the entries call, each accessor handed a declared `#[napi]` parameter directly and
+//! each one wrapping the inner `*_of` reader of the block the direction belongs to. **EACH BLOCK CARRIES A
+//! BANNER STATING THAT JOB AT ITS OWN HEAD, and this paragraph ORIENTS rather than duplicates**: the
+//! direction of a single method, its signature and its fail-states are its OWN doc comment's subject, and
+//! no claim of theirs is re-spelled here.
+//!
 //! **THIS MODULE WAS LIFTED OUT OF `bindings/js/src/facade.rs` AS A PURE MOVE AND IT CHANGES NO BEHAVIOUR.**
-//! The `Codec` struct, both of its `impl` blocks, the wire-protocol header block that documents the tree it
-//! reads and writes, and the accessor block that binds the entries' positions to its readers all crossed here
-//! **byte-for-byte**; every `fn` body below is the body that stood in `facade.rs`.
+//! The `Codec` struct, all three of its `impl` blocks, the wire-protocol header block that documents the tree
+//! it reads and writes, and the accessor adapter that binds the entries' positions to its readers all crossed
+//! here **byte-for-byte**; every `fn` body below is the body that stood in `facade.rs`.
 //!
 //! **⟶ WHAT CAME WITH IT AND WHAT DID NOT IS THE SPLIT'S OWN DECISION, STATED SO IT IS NOT RE-DERIVED.** The
 //! FOUR free helpers the codec's bodies call — [`arg_string`] · [`make_string`] · [`make_value`] ·
@@ -47,8 +57,21 @@
 // in, which the accessor block's signatures name.
 //
 // **`unsafe` APPEARS IN THIS FILE AND IT IS THE COPY OUT'S OWN FRAME** (`PAR-ADA-4`): the erasure of the
-// library's typed value to the untyped handle the wire crosses as. **IT IS UNMOVED** — the split relocated
-// the bytes and did not audit them.
+// library's typed value to the untyped handle the wire crosses as. **AND IT HAS SINCE BEEN AUDITED — THE
+// EARLIER SENTENCE HERE SAID THE SPLIT "RELOCATED THE BYTES AND DID NOT AUDIT THEM", AND THAT IS NO LONGER
+// TRUE.** **ALL `12` SITES WERE READ AT THEIR OWN LINES AND ALL `12` ARE JUSTIFIED: `8` are the raw-erasure
+// pair** ([`make_value`]'s `to_napi_value`/`from_raw_unchecked`, `object`'s and `array`'s, and
+// [`make_undefined`]'s `from_raw_unchecked`) — **`3` are `cast::<T>()` taken ONLY AFTER an explicit class
+// check has already named the class** ([`string_of`]'s through [`arg_string`], [`bool_of`]'s behind its
+// `Kind::Boolean` test, [`number_of`]'s behind its `Kind::Number` test, [`bigint_of`]'s behind its match) —
+// **and `1` is the raw `sys::napi_get_undefined` call itself.** **THE FINDING IS THAT THE FILE IS CONFINED
+// TO THE BOUNDARY BY DESIGN: every one of the `12` is a crossing-or-erasure act and no `unsafe` here reaches
+// a store rule — `crossing.rs`, the crate's declared pure half, carries ZERO `unsafe` at any byte**
+// (`binding-crate-and-abi.md §3`). **THE AUDIT ALSO RAISED TWO OBSERVATIONS THAT ARE RECORDED AND NOT
+// REPAIRED BY THIS PASS**: [`arg_string`] and [`bigint_of`] rely on their CALLERS having tested the class
+// before the cast (the cast itself does not re-test it), and [`make_undefined`] discards
+// `napi_get_undefined`'s status. **Both are observations at their own sites, both stand as written, and
+// neither is this header's to change.**
 //
 // **⟶ NO `std::collections` IMPORT TRAVELLED, AND THE FIRST DRAFT OF THIS HEADER ASSERTED ONE THAT DOES
 // NOT BELONG: the moved bodies store a record's members in a `Vec<(&str, JsVal)>` and never in a `BTreeMap`,
@@ -189,6 +212,10 @@ pub(crate) struct Codec<'e> {
     /// The lifetime marker that ties every value this codec builds to the ENTRY's environment.
     pub(crate) _marker: std::marker::PhantomData<&'e ()>,
 }
+
+// -------------------------------------------------------------------------------------------------
+// The copy IN — the wire's JS values, read INTO the store's own Rust types.
+// -------------------------------------------------------------------------------------------------
 
 impl<'e> Codec<'e> {
     /// **ONE MEMBER OF A JS OBJECT, READ AS AN OWN PROPERTY OR NOT AT ALL** — the facade's own half of
@@ -984,6 +1011,13 @@ impl<'e> Codec<'e> {
         ])
     }
 }
+// -------------------------------------------------------------------------------------------------
+// THE ACCESSOR ADAPTER — the thin facade-facing layer the entries call. Each accessor is handed a declared
+// `#[napi]` parameter DIRECTLY (`facade.rs` unpacks the caller's argv into these signatures) and wraps the
+// inner `*_of` reader, so an entry says `codec.address(&address_pos)` and the absent-position folding the
+// inner reader already carries happens once, there, rather than being re-decided at every call site.
+// -------------------------------------------------------------------------------------------------
+
 impl<'e> Codec<'e> {
     /// **A POSITION IS THE `#[napi]` PARAMETER THE ENTRY'S OWN SIGNATURE DECLARES** (`export-set-and-
     /// dispatch.md §1`), so this accessor is handed the value ITSELF and there is no absent arm left to
