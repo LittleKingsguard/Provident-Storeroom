@@ -7,15 +7,22 @@
 //!
 //! **⟶ WHAT CAME WITH IT AND WHAT DID NOT IS THE SPLIT'S OWN DECISION, STATED SO IT IS NOT RE-DERIVED.** The
 //! FOUR free helpers the codec's bodies call — [`arg_string`] · [`make_string`] · [`make_value`] ·
-//! [`make_undefined`] — and the TWO type aliases its signatures are spelled in — [`JsVal`] · [`NapiRet`] —
-//! **STAYED IN `facade.rs` AND ARE IMPORTED HERE.** **THEY DID NOT MOVE BECAUSE THE FACADE USES EVERY ONE OF
-//! THEM**: `arg_string` is the `errorMessage` entry's own argument reader, `make_undefined` lands the answer of
-//! every per-verb entry through [`answer_or_throw`], `make_value` mints the store index `storeCreate` returns,
-//! and the two aliases are the declared type of every entry's parameters and every entry's answer. **MOVING
-//! THEM WOULD HAVE TURNED ONE PURE MOVE INTO TWO COUPLED ONES** — `facade` would then import from `codec` and
-//! `codec` from `facade`, and the pair would be a cycle rather than a direction. **THAT THEY ARE THE CODEC'S
-//! OWN DEPENDENCIES AND NOT PUBLIC HELPERS IS WHY THEY ARE `pub(crate)` IN THEIR OWN FILE AND NOT `pub`
-//! HERE.**
+//! [`make_undefined`] — and the ONE type alias its signatures are spelled in — [`JsVal`] — **ARE DEFINED
+//! HERE, AND `facade.rs` IMPORTS THEM FROM THIS MODULE.** **THEY MOVED IN THE SECOND HALF OF THE SAME PURE
+//! MOVE, AND THE CYCLE THE FIRST HALF FEARED DID NOT ARISE**: the revert being that `codec` imported them
+//! from `facade` while `facade` imported [`Codec`] from `codec`, so the pair was a cycle rather than a
+//! direction. **THE WAY OUT WAS TO CARRY THEM TO THE CODE, NOT TO COPY THEM**: the codec's bodies call all
+//! four, `facade` calls them at its own sites, so the primitives cross the seam ONCE — home here, readers
+//! there — and `crate::facade` is named on no line of this file.
+//!
+//! **THE SECOND ALIAS DID NOT MOVE AND THE EARLIER VERSION OF THIS HEADER SAID IT HAD BEEN IMPORTED, WHICH
+//! WAS WRONG AND IS CORRECTED HERE:** [`NapiRet`] has NO reader in this file — the codec's bodies answer the
+//! wire's own types — while `facade.rs` spells it at every entry signature, so it stays declared in
+//! `facade.rs`. **It was never imported, and no import of it is deleted here because none was ever used.**
+//!
+//! **THAT THEY ARE THE CODEC'S OWN DEPENDENCIES AND NOT PUBLIC HELPERS IS WHY THEY ARE `pub(crate)` HERE
+//! AND NOT `pub`: A CRATE-VISIBLE HELPER IS STILL NOT A SURFACE** — the visibility crosses the module seam
+//! and stops at the crate's edge, so the artefact's export set is untouched by the move.
 //!
 //! **THE MODULE IS `pub(crate)`, AND THE VISIBILITY IS PART OF THE MOVE'S OWN RULING** (`lib.rs`): the
 //! `Codec` is an implementation detail of the facade's conversion and **nothing outside this crate may name
@@ -31,9 +38,13 @@
 // over any line here and a name that no live path names FAILS THE BUILD rather than passing it).
 //
 // **THE LIBRARY'S OWN CHECKED BINDINGS, AT THEIR OWN USES:** `Object` builds the wire records and reads an
-// own property; `ToNapiValue` mints a fresh Node-API value from a Rust one; `ValueType` is the class decision
-// the codec takes at the boundary (`PAR-ADA-9`) rather than a raw tag this file numbers; `sys` reaches
-// `napi_get_undefined` for the copy OUT's own `undefined`.
+// own property; `ToNapiValue` mints a fresh Node-API value from a Rust one — **and it is named below by the
+// moved [`make_value`] as well as by the copy OUT, so the import serves both**; `ValueType` is the class
+// decision the codec takes at the boundary (`PAR-ADA-9`) rather than a raw tag this file numbers; `sys`
+// reaches `napi_get_undefined` — **for the copy OUT's own `undefined` AND for the moved [`make_undefined`],
+// which is the library binding that replaced the hand-declared symbol**; `Env` is the environment every
+// moved helper is handed; and `Unknown as JsUnknown` is the untyped handle the [`JsVal`] alias is spelled
+// in, which the accessor block's signatures name.
 //
 // **`unsafe` APPEARS IN THIS FILE AND IT IS THE COPY OUT'S OWN FRAME** (`PAR-ADA-4`): the erasure of the
 // library's typed value to the untyped handle the wire crosses as. **IT IS UNMOVED** — the split relocated
@@ -45,14 +56,65 @@
 // =================================================================================================
 use ::napi::bindgen_prelude::BigInt as JsBigInt;
 use ::napi::bindgen_prelude::{JsObjectValue as _, JsValue as _, Object, ToNapiValue, ValueType};
-use ::napi::Env;
+use ::napi::{sys, Env, Unknown as JsUnknown};
 use crate::crossing::{
     JsAddressArg, JsBaseState, JsConfig, JsConstraintEntry, JsConstraintsArg, JsDeleteReceipt,
     JsFilePathArg, JsHandle, JsHandleArg, JsJournalLengthArg, JsJournalOp, JsKey, JsListenerEntry,
     JsListenerTrigger, JsListenersArg, JsNonArray, JsObject, JsOpIdArg, JsProto, JsRollbackResult,
     JsSegment, JsTierArg, JsTierSetItem, JsValue, JsWriteResult,
 };
-use crate::facade::{arg_string, make_string, make_undefined, make_value, JsVal};
+
+/// **THE RUNNING ENVIRONMENT'S TYPED VALUES, CARRIED ACROSS THE LIBRARY'S OWN CONVERSION.** A JS value is
+/// the library's `JsUnknown` (an untyped handle) and the codec decides its class from the library's own
+/// `ValueType` — which is the library's `typed value handles the boundary names` (`PAR-ADA-6`), not a raw
+/// pointer this file reinterprets.
+///
+/// **⟶ `pub(crate)`, BECAUSE `facade.rs` IS ITS SECOND READER AND THE ALIAS MOVED WITH THE CODE THAT
+/// SPELLS IT.** The facade's own entry signatures name this type at every parameter and every answer, and
+/// the two halves are the same crate's — so the alias widens to the crate and no further: **it is not
+/// `pub`, because no item outside this crate may name the boundary's untyped handle.**
+pub(crate) type JsVal<'e> = JsUnknown<'e>;
+
+/// The string a JS `string` value carries, **or the empty-string sentinel where the bytes are not one**
+/// (see [`utf8_or_none`]: the repair is gone and the refusal is the caller's declared class).
+///
+/// **⟶ `pub(crate)`, AND THE THREE HELPERS BELOW WITH IT, BECAUSE `facade.rs` CALLS ALL FOUR AND THEY ARE
+/// THE CODEC'S OWN BODIES' PRIMITIVES.** They are the boundary's own conversion primitives — the facade's
+/// `errorMessage` entry reads its arguments through [`arg_string`], every per-verb entry lands its answer
+/// through [`make_undefined`], and `storeCreate` mints the index it returns through [`make_value`] — so
+/// their home is the module whose bodies call them and the facade imports them rather than the reverse.
+/// **A CRATE-VISIBLE HELPER IS STILL NOT A SURFACE**: `pub(crate)` reaches the module that needs it and
+/// stops at the crate's edge, so the artefact's export set is untouched by the move.
+pub(crate) fn arg_string(_env: &Env, value: &JsVal<'_>) -> String {
+    // **THE NON-`String` CLASS IS THE CALLER'S DECLARED ONE AND NOT A REPAIR** — the library refuses it
+    // before it reads (`utf8_or_none`'s clause above), so the empty-string sentinel stands and the arm that
+    // read it carries the class the value IS.
+    unsafe { value.cast::<String>() }.unwrap_or_default()
+}
+
+pub(crate) fn make_string(env: &Env, text: &str) -> JsVal<'static> {
+    make_value(env, text.to_string())
+}
+
+/// **A RUST VALUE AS A JS VALUE, BY THE LIBRARY'S OWN CONVERSION** (`PAR-ADA-6`, `PAR-ADA-9`): the generic
+/// is fixed by the caller's own type, so no member of this file names a raw pointer and no conversion is
+/// re-spelled by hand. **The library validates and converts; this frame only erases the type** so the wire's
+/// own decoded tree can carry it as an untyped value.
+pub(crate) fn make_value<T: ToNapiValue>(env: &Env, value: T) -> JsVal<'static> {
+    let raw = unsafe { ToNapiValue::to_napi_value(env.raw(), value) }
+        .unwrap_or(std::ptr::null_mut());
+    unsafe { JsVal::from_raw_unchecked(env.raw(), raw) }
+}
+
+/// The runtime's own `undefined` — **never a null pointer, which is what an ABSENT position is** — reached
+/// through the library's own `napi_get_undefined` binding rather than through a hand-declared symbol.
+pub(crate) fn make_undefined(env: &Env) -> JsVal<'static> {
+    let mut raw: sys::napi_value = std::ptr::null_mut();
+    unsafe {
+        sys::napi_get_undefined(env.raw(), &mut raw);
+    }
+    unsafe { JsVal::from_raw_unchecked(env.raw(), raw) }
+}
 
 /// `napi_valuetype`'s arms, as the runtime numbers them. **THIS DECLARATION MOVED WITH THE CODEC AND IS
 /// NOT THIS MODULE'S ALIAS OF THE FACADE'S**: `ValueType` is the library's own class decision (`PAR-ADA-9`),

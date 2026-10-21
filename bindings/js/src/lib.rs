@@ -51,10 +51,11 @@ pub mod facade;
 // and to no consumer of the crate.**
 //
 // **THE SPLIT IS A PURE MOVE AND THIS LINE IS THE WHOLE OF ITS DECLARATION** (`bindings/js/src/codec.rs`):
-// the `Codec`, both `impl` blocks and their own documentation blocks crossed byte-for-byte, the four
-// conversion helpers and the two type aliases stayed in `facade.rs` and are imported by `codec`, and
-// `crossing.rs` was not touched at all — it is still the pure half, and this crate's dependency on it runs
-// one way.
+// the `Codec`, both `impl` blocks and their own documentation blocks crossed byte-for-byte; **the four
+// conversion helpers and the `JsVal` alias crossed with them, so `facade.rs` imports the primitives from
+// `codec` and `codec` imports NOTHING from `facade`** — `NapiRet` alone stayed behind, because the codec
+// never named it; and `crossing.rs` was not touched at all — it is still the pure half, and this crate's
+// dependency on it runs one way.
 // =================================================================================================
 pub(crate) mod codec;
 

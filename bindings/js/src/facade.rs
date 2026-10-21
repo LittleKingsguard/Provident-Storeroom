@@ -43,7 +43,7 @@
 
 use std::cell::RefCell;
 
-use ::napi::bindgen_prelude::{JsObjectValue as _, Object, ToNapiValue};
+use ::napi::bindgen_prelude::{JsObjectValue as _, Object};
 /// **THE RECEIVER EXTRACTOR — `receiver-and-refusal.md §1`'s *"the Node-API `this` receiver"*, AT ITS ONE
 /// USE.** `This<T>` is the library's own binding for the callback's `this`
 /// (`napi-3.14.2/src/bindgen_runtime/js_values/class.rs:16`), and `napi-derive` injects it from `cb.this()`
@@ -58,8 +58,11 @@ use ::napi::bindgen_prelude::This;
 /// sharing an object: the package writes it and this layer reads it, and neither holds a reference to the
 /// other (`receiver-and-refusal.md §1`).
 const STORE_INDEX_KEY: &str = "provident-storeroom.storeIndex";
-use ::napi::sys;
-use ::napi::{Env, Unknown as JsUnknown};
+// **THE `sys` IMPORT AND THE `Unknown as JsUnknown` ALIAS BOTH LEFT THIS LIST WITH THE MOVE, DELETED RATHER
+// THAN SUPPRESSED** (this crate's doctrine): `sys::napi_get_undefined` is now called by `codec.rs`'s
+// [`make_undefined`] and the untyped handle is spelled by `codec.rs`'s [`JsVal`], so neither has a reader
+// here — and a name no live path names is a warning this file may not carry.
+use ::napi::Env;
 // **THE ENTRY LAYER'S OWN ANNOTATION — `binding-crate-and-abi.md §1`'s THIRD DEPENDENCY, AT ITS ONE USE.**
 // `#[napi]` is the adoption's whole subject: it builds the `extern "C"` trampoline, unpacks the caller's
 // argv into the Rust types below, converts the answer back and REGISTERS the name in the module's export
@@ -72,7 +75,19 @@ use ::napi_derive::napi;
 // allow, so a name no live path names is a warning this file may not carry). **THE TWENTY-TWO `Js*` NAMES
 // THAT CROSSED TO `codec.rs` WERE DELETED FROM THIS LIST, NOT SUPPRESSED** — the codec is their only
 // reader and it imports them from `crate::crossing` itself.
-use crate::codec::Codec;
+//
+// **AND THE FIVE CONVERSION PRIMITIVES ARE IMPORTED FROM `codec.rs` RATHER THAN DECLARED HERE** — the
+// `JsVal` alias and the four free helpers. **THIS FILE IS NOW THEIR READER AND NO LONGER THEIR HOME**: the
+// codec DEFINES them, because its own bodies call every one of them, and the facade names them at the uses
+// listed above. **SO THE DEPENDENCY RUNS ONE WAY AND THERE IS NO CYCLE TO BREAK**: `codec` imports nothing
+// from this file, and this file imports these five from `codec`. **A CRATE-VISIBLE HELPER IS STILL NOT A
+// SURFACE**, which is why the five cross the module seam as `pub(crate)` and stop at the crate's edge.
+//
+// **`make_string` IS THE ONE OF THE FOUR THIS FILE DOES NOT NAME, SO IT IS NOT IMPORTED** — the entries
+// mint their strings through the codec's accessors, which is where it is read. It is deleted from this list
+// rather than suppressed, on the same ruling as the `Js*` names above; the other four have live readers
+// here and stay.
+use crate::codec::{arg_string, make_undefined, make_value, Codec, JsVal};
 use crate::crossing::{self, JsAddressArg, JsOpIdArg, JsSegment, Refusal};
 
 /// The address's own segments, where the argument IS the declared list shape — the triggering address a
@@ -106,17 +121,6 @@ fn segments_of(address: &JsAddressArg) -> Vec<JsSegment> {
 // IS THE `P-ADA-6` SUPERSET'S SUBJECT** (`binding-crate-and-abi.md §4`).
 // =================================================================================================
 
-/// **THE RUNNING ENVIRONMENT'S TYPED VALUES, CARRIED ACROSS THE LIBRARY'S OWN CONVERSION.** A JS value is
-/// the library's `JsUnknown` (an untyped handle) and the codec decides its class from the library's own
-/// `ValueType` — which is the library's `typed value handles the boundary names` (`PAR-ADA-6`), not a raw
-/// pointer this file reinterprets.
-///
-/// **⟶ `pub(crate)`, BECAUSE `bindings/js/src/codec.rs` IS NOW ITS SECOND READER AND THE ALIAS DID NOT
-/// MOVE WITH THE CODE THAT SPELLS IT.** The codec's own signatures name this type at every parameter and
-/// every answer, and the two halves are the same crate's — so the alias widens to the crate and no further:
-/// **it is not `pub`, because no item outside this crate may name the boundary's untyped handle.**
-pub(crate) type JsVal<'e> = JsUnknown<'e>;
-
 /// **THE ENTRY FUNCTIONS' RETURN**, which is the reason the library's ergonomic path is NOT taken: a
 /// `Result` arm carrying a library error maps to a real JS `Error`, and `failure-form.md §3` obliges *"every
 /// refusal site on the boundary … to throw the value, not the error"*. **So the entries answer `Ok` on both
@@ -128,52 +132,11 @@ pub(crate) type JsVal<'e> = JsUnknown<'e>;
 /// the duration of the call). **The erasure is the callback boundary's own and not a lifetime widened
 /// inside the crate**: nothing that holds it outlives the call that produced it.
 ///
-/// **⟶ `pub(crate)`, ON THE SAME RULING AS [`JsVal`] ABOVE:** the codec's accessor block is typed in it and
-/// `codec.rs` is a sibling module, so the crate must be able to name it — and nothing beyond the crate,
-/// because the entries' answer is the callback boundary's own type.
+/// **⟶ `pub(crate)`, ON THE SAME RULING AS [`JsVal`] — WHICH IS NOW DECLARED IN `codec.rs` AND IMPORTED
+/// HERE:** the codec's accessor block is typed in it and `codec.rs` is a sibling module, so the crate must
+/// be able to name it — and nothing beyond the crate, because the entries' answer is the callback
+/// boundary's own type.
 pub(crate) type NapiRet<'e> = Result<JsVal<'e>, ::napi::Error>;
-
-
-/// The string a JS `string` value carries, **or the empty-string sentinel where the bytes are not one**
-/// (see [`utf8_or_none`]: the repair is gone and the refusal is the caller's declared class).
-///
-/// **⟶ `pub(crate)`, AND THE FOUR HELPERS BELOW WITH IT, BECAUSE `codec.rs` CALLS ALL FOUR AND NONE OF THEM
-/// MOVED.** They are the boundary's own conversion primitives — this file's `errorMessage` entry reads its
-/// arguments through [`arg_string`], every per-verb entry lands its answer through [`make_undefined`], and
-/// `storeCreate` mints the index it returns through [`make_value`] — so the codec importing them is one
-/// direction across the seam rather than a second copy of any of them. **A CRATE-VISIBLE HELPER IS STILL NOT
-/// A SURFACE**: `pub(crate)` reaches the module that needs it and stops at the crate's edge, so the
-/// artefact's export set is untouched by the widening.
-pub(crate) fn arg_string(_env: &Env, value: &JsVal<'_>) -> String {
-    // **THE NON-`String` CLASS IS THE CALLER'S DECLARED ONE AND NOT A REPAIR** — the library refuses it
-    // before it reads (`utf8_or_none`'s clause above), so the empty-string sentinel stands and the arm that
-    // read it carries the class the value IS.
-    unsafe { value.cast::<String>() }.unwrap_or_default()
-}
-
-pub(crate) fn make_string(env: &Env, text: &str) -> JsVal<'static> {
-    make_value(env, text.to_string())
-}
-
-/// **A RUST VALUE AS A JS VALUE, BY THE LIBRARY'S OWN CONVERSION** (`PAR-ADA-6`, `PAR-ADA-9`): the generic
-/// is fixed by the caller's own type, so no member of this file names a raw pointer and no conversion is
-/// re-spelled by hand. **The library validates and converts; this frame only erases the type** so the wire's
-/// own decoded tree can carry it as an untyped value.
-pub(crate) fn make_value<T: ToNapiValue>(env: &Env, value: T) -> JsVal<'static> {
-    let raw = unsafe { ToNapiValue::to_napi_value(env.raw(), value) }
-        .unwrap_or(std::ptr::null_mut());
-    unsafe { JsVal::from_raw_unchecked(env.raw(), raw) }
-}
-
-/// The runtime's own `undefined` — **never a null pointer, which is what an ABSENT position is** — reached
-/// through the library's own `napi_get_undefined` binding rather than through a hand-declared symbol.
-pub(crate) fn make_undefined(env: &Env) -> JsVal<'static> {
-    let mut raw: sys::napi_value = std::ptr::null_mut();
-    unsafe {
-        sys::napi_get_undefined(env.raw(), &mut raw);
-    }
-    unsafe { JsVal::from_raw_unchecked(env.raw(), raw) }
-}
 
 /// **THE FAILURE FORM, THROWN — AND IT IS THROWN AS THE VALUE AND NEVER AS THE LIBRARY'S ERROR.**
 /// `failure-form.md §1`: a refusal crossing this boundary is *"a THROWN PLAIN OBJECT carrying exactly three
@@ -232,10 +195,17 @@ fn throw_refusal(env: &Env, refusal: &Refusal) {
 // **WHAT STOOD HERE AND IS NOW THERE, BYTE FOR BYTE: this header block; the `#[derive(Clone, Copy)]
 // struct Codec<'e>` with its own doc block; its first `impl<'e> Codec<'e>` block, carrying the copy IN;
 // its second `impl` block, carrying the copy OUT; and the accessor block that binds the entries' own
-// positions to the codec's readers.** Its four helpers — [`arg_string`] · [`make_string`] ·
-// [`make_value`] · [`make_undefined`] — and its two type aliases — [`JsVal`] · [`NapiRet`] — STAYED HERE,
-// because the entries of this file name every one of them; `codec.rs` imports them from this module, and
-// no second copy of any conversion exists.
+// positions to the codec's readers.** Its FOUR helpers — [`arg_string`] · [`make_string`] ·
+// [`make_value`] · [`make_undefined`] — and its type alias [`JsVal`] went with it, because the codec's own
+// bodies call all four and spell the alias at every signature; **this file imports those five from
+// `codec.rs`, and no second copy of any conversion exists.** The other alias, [`NapiRet`], has its only
+// readers here — the entries' own signatures — and stays declared in this file: **it is the one of the
+// pair the codec never named.**
+//
+// **⟶ SO THE DEPENDENCY BETWEEN THE TWO HALVES RUNS ONE WAY AND THAT IS THE POINT OF THE SECOND MOVE**:
+// `codec.rs` names `crate::facade` on NO line, while this file imports [`Codec`], the four helpers and
+// [`JsVal`] from `codec`. **THE PRIMITIVES CROSSED TO THE MODULE THAT CALLS THEM MOST, RATHER THAN BEING
+// COPIED OR CROSS-IMPORTED** — which is what keeps the pair a direction instead of a cycle.
 //
 // **⟶ NOTHING OF THE CODE THAT MOVED WAS EDITED, AND THE ARGUMENT IS THE MOVE'S OWN**: the artefact
 // still exports the thirteen names with every declared arity unmoved, `crossing.rs` is untouched and
