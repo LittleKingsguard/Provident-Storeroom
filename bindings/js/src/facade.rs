@@ -1072,8 +1072,31 @@ impl<'e> Codec<'e> {
 }
 
 // =================================================================================================
-// THE INSTANCES AND THE REGISTRY'S FUNCTION SLOTS — thread-local, because the addon is reached from the
-// runtime's own thread and a `Store` is not required to be `Send`.
+// THE INSTANCES AND THE REGISTRY'S FUNCTION SLOTS — thread-local, and THE BOUND THAT PUTS THEM THERE IS
+// `Sync`, NOT `Send`.
+//
+// **`Store` AND `Instance` ARE BOTH `Send`, SO THE REASON ONCE GIVEN HERE — *"a `Store` is not required
+// to be `Send`"* — IS FALSE AND IS CORRECTED AT ITS OWN BYTES.** `assert_send::<storeroom_native::Store>()`
+// and `assert_send::<crossing::Instance>()` both compile, `src/store.rs` holds no `Rc`, no raw-pointer
+// field and no `Cell`, and there is no `impl !Send` and no `unsafe impl Send` anywhere in `src/` or in this
+// crate's `src/`. **WHAT WOULD ACTUALLY BE REJECTED IS A `static`, AND IT IS REJECTED ON `Sync` ALONE.**
+// `static INSTANCES: RefCell<Vec<crossing::Instance>>` fails to compile with E0277 — *"`RefCell<Vec<…>>`
+// cannot be shared between threads safely"*, *"the trait `Sync` is not implemented for `RefCell<Vec<…>>`"*,
+// *"shared static variables must have a type that implements `Sync`"* — **AND `RefCell` IS PRECISELY WHAT
+// DISQUALIFIES IT**: its runtime-checked interior mutability is the property that buys the cheap
+// `borrow_mut`, and it is bought by declining `Sync`. The `Send` half is satisfied and is not the bound that
+// bites: `RefCell<Vec<…>>` IS `Send` whenever its contents are.
+//
+// **SO THE `thread_local!` IS A CHOICE ABOUT A BOUND AND NOT ABOUT THREAD AFFINITY, AND THE AFFINITY CLAIM IS
+// THE ONE THAT DOES NOT HOLD.** The addon IS reached from the runtime's own thread — `#[napi]` entries run
+// on whichever thread called in, and in this package that is the runtime's own — but **nothing here enforces
+// it**: `Env` is the genuine thread-bound handle (`napi-3.14.2/src/env.rs:70` wraps `sys::napi_env`, which
+// `napi-sys-3.4.0/src/types.rs:15` declares as `*mut napi_env__`, a raw pointer, so `Env` is neither `Send`
+// nor `Sync`), and **`Env` is passed BY VALUE into every entry and never stored in this cell** — so it
+// constrains the entries' own signatures and does not reach this storage at all. A `static` would be honest
+// about the affinity fact and still refuse to compile; the `thread_local!` is what the `Sync` bound leaves,
+// and a store reached from a second thread would be a defect of the CALLERS rather than a state this file
+// could guard against.
 // =================================================================================================
 
 thread_local! {
@@ -1167,12 +1190,18 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 //
 // **EACH ENTRY TAKES ITS VERB'S OWN ARGUMENTS AND NOTHING ELSE** (`§4`). The instance position that once
 // preceded them is GONE and is not reintroduced; **the store arrives by the receiver** — the Node-API `this`
-// the package hands as the FIRST CALL ARGUMENT and the first element of the call array
-// (`receiver-and-refusal.md §1`), which this layer reads at [`store_index_of`] and nowhere else.
+// that `napi-derive` injects from `cb.this()` into the entry's `receiver: This<Object<'_>>` parameter
+// (`receiver-and-refusal.md §1`), which this layer reads at [`store_index_of`] and nowhere else. **AN
+// ELEMENT-ZERO RECEIVER WAS TRIED AND ABANDONED, SO IT IS NOT THE RECEIVER'S POSITION**: *"the first call
+// argument and the first element of the call array"* is the WITHDRAWN spelling, and `§1`'s ruling is the
+// Node-API `this`. The receiver holds no position in any entry's declared parameters.
 //
-// **THE ARITIES ARE THE CLAUSE'S OWN TABLE, UNMOVED FROM THE VERB'S** (`§1`; `§4`):
-// `read`(3) · `readLiteral`(3) · `write`(**5**) · `delete`(3) · `rollback`(2) · `listen`(3) ·
-// `unlisten`(2) · `removeListener`(2) · `commitFile`(2).
+// **THE ARITIES ARE THE CLAUSE'S OWN TABLE, COUNTED FROM THE VERB'S OWN POSITIONS** (`§1`; `§4`), and they
+// were corrected here: the five- and three-position readings this cell carried were the PRE-REMOVAL ones and
+// included the instance position, which is gone. The live table is
+// `read`(2) · `readLiteral`(2) · `write`(4) · `delete`(2) · `rollback`(1) · `listen`(2) ·
+// `unlisten`(1) · `removeListener`(1) · `commitFile`(1) — and each equals its entry's declared `#[napi]`
+// parameter count below, the receiver excluded because it is not a declared parameter.
 //
 // **`commit` IS NOT AN ENTRY AND NEVER WAS AN ARM**: it is `write`'s FOURTH POSITION, whose class test the
 // package takes before this frame is entered (`§2`; `commitPositionRefusal`). **`constraints` IS NOT AN
@@ -1354,6 +1383,21 @@ fn verb_read(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_
         }
     };
     let codec = Codec { env, _marker: std::marker::PhantomData };
+    // **THE `&mut` BORROW IS DELIBERATELY UNIFORM ACROSS THE ENTRIES, AND THE ONE SHARED-BORROW CASE IS
+    // LEFT UNTILTED ON PURPOSE** — so this entry and `readLiteral`, the only two that COULD take a shared
+    // borrow, take the exclusive one anyway. **OF THE TEN STORE-REACHING METHODS ON `Instance`, EIGHT MUTATE
+    // AND ONLY TWO — `read` and `read_literal` — TAKE `&self`**: `write`, `delete`, `rollback`, `listen`,
+    // `unlisten`, `remove_listener`, `commit_file` and `register` all take `&mut self`, so `get_mut` is the
+    // correct DEFAULT and the shared borrow is the exception rather than the rule.
+    // **AND THE DISTINCTION IS NOT READABLE OFF THE VERB**: `delete` LOOKS read-only and takes `&mut self` —
+    // it returns a receipt and mutates the store — so a per-entry judgement would have to be RE-DERIVED
+    // CORRECTLY EACH TIME, against a name that does not carry the answer, and **A MIS-CLASSIFICATION HERE IS
+    // SILENT UNTIL IT IS A COMPILE ERROR AT BEST OR A WIDENED BORROW AT WORST.** **THE STRONGER BORROW COSTS
+    // NOTHING TODAY BECAUSE IT IS CONFINED TO THIS CLOSURE AND RELEASED BEFORE ANYTHING ELSE RUNS**, which is
+    // exactly what the closure boundary is for; the cost it WOULD have is a WIDENED BORROW SCOPE — an
+    // `INSTANCES` borrow held live across the encoder, the core call and the translation back — and that is
+    // the one thing the closure exists to prevent. See the block above the nine for the note on `register`
+    // and `storeCreate`, which take the same borrow for the same reason.
     let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
         let mut instances = instances.borrow_mut();
         let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
