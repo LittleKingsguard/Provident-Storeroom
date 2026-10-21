@@ -1321,11 +1321,15 @@ fn no_instance_at(_store_index: usize) -> Refusal {
 #[napi(js_name = "read")]
 fn verb_read(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
-    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE TWO DECLARED POSITIONS ARE THE TWO THE STORE'S OWN `read`
-    // TAKES, AND THERE IS NO THIRD**: the surplus tail the abandoned element-0 receiver design left here
-    // is removed, so the declared arity now equals the call shape (`§4`).
+    // arity `2`, `§4`: the verb's arguments and no instance among them). **THERE IS NO ABSENT-POSITION
+    // CARRIER AT THIS BOUNDARY, AND THE OLD SENTENCE SAYING SO IS CORRECTED HERE**: a declared `#[napi]`
+    // parameter is ALWAYS supplied by the host, so the `Option`/`None` path the abandoned element-0 design
+    // left (and `position(&positions, n)` read through) no longer exists. **THE DISTINCTION THAT REMAINS IS
+    // THE ONE THE PACKAGE DRAWS BEFORE THE CALL**: `index.mjs` hands a position the call did not supply as
+    // the RUNTIME'S OWN `undefined`, and a supplied `undefined` as that same value, so the two are told
+    // apart by the CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the
+    // ONE call that folds is the one that supplied nothing). **THE DECLARED ARITY EQUALS THE CALL SHAPE,
+    // WITH NO SURPLUS TAIL** (`§4`).
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1348,9 +1352,14 @@ fn verb_read(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_
 #[napi(js_name = "readLiteral")]
 fn verb_read_literal(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
-    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE TWO DECLARED POSITIONS ARE THE TWO THE LITERAL READ TAKES**,
+    // arity `2`, `§4`: the verb's arguments and no instance among them). **THERE IS NO ABSENT-POSITION CARRIER AT THIS
+    // BOUNDARY, AND THE OLD SENTENCE SAYING SO IS CORRECTED HERE**: a declared `#[napi]` parameter is
+    // ALWAYS supplied by the host, so the `Option`/`None` path the abandoned element-0 design left (and
+    // that `position(&positions, n)` read through) no longer exists. **THE DISTINCTION THAT REMAINS IS THE
+    // ONE THE PACKAGE DRAWS BEFORE THE CALL**: `index.mjs` hands a position the call did not supply as the
+    // RUNTIME'S OWN `undefined`, so "not supplied" and "supplied as `undefined`" are told apart by the
+    // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
+    // that folds is the one that supplied nothing). **THE TWO DECLARED POSITIONS ARE THE TWO THE LITERAL READ TAKES**,
     // exactly as `read`'s are — the literal read is `read` narrowed at the target and takes no position
     // `read` lacks, and the surplus tail is removed from this entry as it is from `read`.
     let store_index = match store_index_of(&env, Some(&receiver)) {
@@ -1390,9 +1399,14 @@ fn verb_read_literal(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_
 #[napi(js_name = "write")]
 fn verb_write(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>, value_pos: JsVal<'_>, commit_identity: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `4`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
-    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE FOURTH DECLARED POSITION IS THE COMMIT IDENTITY** — the
+    // arity `4`, `§4`: the verb's arguments and no instance among them). **THERE IS NO ABSENT-POSITION CARRIER AT THIS
+    // BOUNDARY, AND THE OLD SENTENCE SAYING SO IS CORRECTED HERE**: a declared `#[napi]` parameter is
+    // ALWAYS supplied by the host, so the `Option`/`None` path the abandoned element-0 design left (and
+    // that `position(&positions, n)` read through) no longer exists. **THE DISTINCTION THAT REMAINS IS THE
+    // ONE THE PACKAGE DRAWS BEFORE THE CALL**: `index.mjs` hands a position the call did not supply as the
+    // RUNTIME'S OWN `undefined`, so "not supplied" and "supplied as `undefined`" are told apart by the
+    // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
+    // that folds is the one that supplied nothing). **THE FOURTH DECLARED POSITION IS THE COMMIT IDENTITY** — the
     // adopted record identity a kernel-driven write carries (`§1`: *"it carries a fourth position the others
     // do not"*; `surface.md §2.2`'s `commit?` clause) — **and it is CONSUMED WITHOUT BEING READ HERE**: the
     // class test on it is the PACKAGE's, taken before this frame is entered (`§2`, `commitPositionRefusal`),
@@ -1424,9 +1438,14 @@ fn verb_write(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier
 #[napi(js_name = "delete")]
 fn verb_delete(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
-    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE TWO DECLARED POSITIONS ARE THE TWO THE STORE'S OWN `delete`
+    // arity `2`, `§4`: the verb's arguments and no instance among them). **THERE IS NO ABSENT-POSITION CARRIER AT THIS
+    // BOUNDARY, AND THE OLD SENTENCE SAYING SO IS CORRECTED HERE**: a declared `#[napi]` parameter is
+    // ALWAYS supplied by the host, so the `Option`/`None` path the abandoned element-0 design left (and
+    // that `position(&positions, n)` read through) no longer exists. **THE DISTINCTION THAT REMAINS IS THE
+    // ONE THE PACKAGE DRAWS BEFORE THE CALL**: `index.mjs` hands a position the call did not supply as the
+    // RUNTIME'S OWN `undefined`, so "not supplied" and "supplied as `undefined`" are told apart by the
+    // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
+    // that folds is the one that supplied nothing). **THE TWO DECLARED POSITIONS ARE THE TWO THE STORE'S OWN `delete`
     // TAKES** — the surplus tail is removed.
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
@@ -1453,9 +1472,14 @@ fn verb_delete(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tie
 #[napi(js_name = "rollback")]
 fn verb_rollback(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `1`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
-    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE ONE DECLARED POSITION IS THE ONE THE STORE'S OWN `rollback`
+    // arity `1`, `§4`: the verb's arguments and no instance among them). **THERE IS NO ABSENT-POSITION CARRIER AT THIS
+    // BOUNDARY, AND THE OLD SENTENCE SAYING SO IS CORRECTED HERE**: a declared `#[napi]` parameter is
+    // ALWAYS supplied by the host, so the `Option`/`None` path the abandoned element-0 design left (and
+    // that `position(&positions, n)` read through) no longer exists. **THE DISTINCTION THAT REMAINS IS THE
+    // ONE THE PACKAGE DRAWS BEFORE THE CALL**: `index.mjs` hands a position the call did not supply as the
+    // RUNTIME'S OWN `undefined`, so "not supplied" and "supplied as `undefined`" are told apart by the
+    // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
+    // that folds is the one that supplied nothing). **THE ONE DECLARED POSITION IS THE ONE THE STORE'S OWN `rollback`
     // TAKES** — the surplus tail is removed.
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
@@ -1483,9 +1507,14 @@ fn verb_rollback(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) -> 
 #[napi(js_name = "listen")]
 fn verb_listen(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, addresses_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `2`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
-    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE TWO DECLARED POSITIONS ARE THE ONLY TWO — THE HANDLE AND THE
+    // arity `2`, `§4`: the verb's arguments and no instance among them). **THERE IS NO ABSENT-POSITION CARRIER AT THIS
+    // BOUNDARY, AND THE OLD SENTENCE SAYING SO IS CORRECTED HERE**: a declared `#[napi]` parameter is
+    // ALWAYS supplied by the host, so the `Option`/`None` path the abandoned element-0 design left (and
+    // that `position(&positions, n)` read through) no longer exists. **THE DISTINCTION THAT REMAINS IS THE
+    // ONE THE PACKAGE DRAWS BEFORE THE CALL**: `index.mjs` hands a position the call did not supply as the
+    // RUNTIME'S OWN `undefined`, so "not supplied" and "supplied as `undefined`" are told apart by the
+    // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
+    // that folds is the one that supplied nothing). **THE TWO DECLARED POSITIONS ARE THE ONLY TWO — THE HANDLE AND THE
     // SET** — which is exactly what the doc block above says, and the surplus tail is removed.
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
@@ -1509,9 +1538,14 @@ fn verb_listen(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, addr
 #[napi(js_name = "unlisten")]
 fn verb_unlisten(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `1`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
-    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE ONE DECLARED POSITION IS THE HANDLE** — the withdrawal's
+    // arity `1`, `§4`: the verb's arguments and no instance among them). **THERE IS NO ABSENT-POSITION CARRIER AT THIS
+    // BOUNDARY, AND THE OLD SENTENCE SAYING SO IS CORRECTED HERE**: a declared `#[napi]` parameter is
+    // ALWAYS supplied by the host, so the `Option`/`None` path the abandoned element-0 design left (and
+    // that `position(&positions, n)` read through) no longer exists. **THE DISTINCTION THAT REMAINS IS THE
+    // ONE THE PACKAGE DRAWS BEFORE THE CALL**: `index.mjs` hands a position the call did not supply as the
+    // RUNTIME'S OWN `undefined`, so "not supplied" and "supplied as `undefined`" are told apart by the
+    // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
+    // that folds is the one that supplied nothing). **THE ONE DECLARED POSITION IS THE HANDLE** — the withdrawal's
     // store half takes the handle and no more — and the surplus tail is removed.
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
@@ -1539,9 +1573,14 @@ fn verb_unlisten(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>) ->
 #[napi(js_name = "removeListener")]
 fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `1`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
-    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **THE ONE DECLARED POSITION IS THE HANDLE** — the removal reaches
+    // arity `1`, `§4`: the verb's arguments and no instance among them). **THERE IS NO ABSENT-POSITION CARRIER AT THIS
+    // BOUNDARY, AND THE OLD SENTENCE SAYING SO IS CORRECTED HERE**: a declared `#[napi]` parameter is
+    // ALWAYS supplied by the host, so the `Option`/`None` path the abandoned element-0 design left (and
+    // that `position(&positions, n)` read through) no longer exists. **THE DISTINCTION THAT REMAINS IS THE
+    // ONE THE PACKAGE DRAWS BEFORE THE CALL**: `index.mjs` hands a position the call did not supply as the
+    // RUNTIME'S OWN `undefined`, so "not supplied" and "supplied as `undefined`" are told apart by the
+    // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
+    // that folds is the one that supplied nothing). **THE ONE DECLARED POSITION IS THE HANDLE** — the removal reaches
     // the store's own wholesale `Home::purge` with the handle and no more — and the surplus tail is removed.
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
@@ -1569,9 +1608,14 @@ fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<
 #[napi(js_name = "commitFile")]
 fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
-    // arity `1`, `§4`: the verb's arguments and no instance among them). **AN ABSENT POSITION IS `None`
-    // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
-    // tail-position protocol turns on. **ITS ONE ARGUMENT IS AN OP ID** (the doc block above says so) and
+    // arity `1`, `§4`: the verb's arguments and no instance among them). **THERE IS NO ABSENT-POSITION CARRIER AT THIS
+    // BOUNDARY, AND THE OLD SENTENCE SAYING SO IS CORRECTED HERE**: a declared `#[napi]` parameter is
+    // ALWAYS supplied by the host, so the `Option`/`None` path the abandoned element-0 design left (and
+    // that `position(&positions, n)` read through) no longer exists. **THE DISTINCTION THAT REMAINS IS THE
+    // ONE THE PACKAGE DRAWS BEFORE THE CALL**: `index.mjs` hands a position the call did not supply as the
+    // RUNTIME'S OWN `undefined`, so "not supplied" and "supplied as `undefined`" are told apart by the
+    // CALLER's own `arguments.length` test and NOT here (`crossing.md §1.3`; `PAR-JS-6`: the ONE call
+    // that folds is the one that supplied nothing). **ITS ONE ARGUMENT IS AN OP ID** (the doc block above says so) and
     // **THERE IS NO SECOND DECLARED POSITION** — the surplus tail is removed.
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
