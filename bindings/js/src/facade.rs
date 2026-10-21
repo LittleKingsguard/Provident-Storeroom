@@ -1180,23 +1180,29 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 // =================================================================================================
 
 /// **THE ARGUMENT-READING PROTOCOL, STATED ONCE FOR THE NINE** (`crossing.md §1.3`'s absent-versus-
-/// `undefined` rule): a position the call did NOT supply is ABSENT (`None`) and a SUPPLIED `undefined` is
-/// `Some` — **and `undefined` IS A VALUE THAT CROSSES IN AND IS REFUSED BY THE STORE'S OWN TAXONOMY**
+/// `undefined` rule): an UNSOUPPLIED position folds to ABSENT and a SUPPLIED `undefined` is a VALUE —
+/// **and `undefined` IS A VALUE THAT CROSSES IN AND IS REFUSED BY THE STORE'S OWN TAXONOMY**
 /// (`DD-46`: `JsValue::Undefined` reaches the store as its own outside member), never read here as an
 /// absence. **THIS DISTINCTION IS WHY THE POSITIONS ARE HANDED AS THE RUNTIME'S `undefined` RATHER THAN
 /// DROPPED**: an absent position is a SHORT call, and shortening is exactly what `S-ARITY` calls one-fewer.
 ///
-/// **AND A POSITION THE PACKAGE DID NOT SUPPLY AT THE TAIL IS READ AS THE RUNTIME'S OWN `undefined`,
-/// WHICH IS THE PACKAGE'S PROTOCOL ITSELF** (`index.mjs`'s own comment at `read`: *"A position the call
-/// supplied no value for is handed as the runtime's own `undefined` — NEVER as an absent array slot"*).
-/// **THE READ LIVES HERE SO THE NINE ENTRIES CANNOT DRIFT APART ON IT.**
+/// **AND EACH VERB'S POSITIONS ARE THE `#[napi]` PARAMETERS ITS OWN SIGNATURE DECLARES**, so the boundary
+/// supplies a value for every one of them and the entries hand them to [`Codec`]'s accessors DIRECTLY.
+/// **THE ABSENT ROW IS REACHED, AND IT IS REACHED THROUGH `index.mjs`**: a position the caller did not
+/// supply is handed as the runtime's own `undefined`, which `index.mjs` encodes as the carrier's OWN
+/// ABSENT spelling (`AddressArg` row 4's `{k:'A'}`, `TierArg` row 3's, `OpIdArg` row 2's) and refuses
+/// verbosely where a position is outside its domain — *"A position the call supplied no value for is
+/// handed as the runtime's own `undefined` — NEVER as an absent array slot"* (`index.mjs`'s own comment
+/// at `read`).
 ///
-/// `positions` is the call's own argument array — **the verb's positions and nothing else** — and
-/// `position_index` is the ZERO-BASED ordinal of the declared position being read, `0` being the verb's own
-/// first argument.
-fn position<'a, 'e>(positions: &'a [JsVal<'e>], position_index: usize) -> Option<&'a JsVal<'e>> {
-    positions.get(position_index)
-}
+/// **⟶ AND THE VEC AND ITS `position()` READER STOOD HERE AND ARE DELETED, AS RESIDUE OF THE ABANDONED
+/// ELEMENT-0 RECEIVER DESIGN** (whose receiver ruling is `receiver-and-refusal.md §1`/`§5`, and whose
+/// surplus `_tail` parameter the previous pass removed). Under that design `args` WAS the JS `Array` a
+/// caller passed, so an index could genuinely fall off the end and `None` was a real case. **WHEN THE
+/// NINE MOVED TO FIXED `#[napi]` PARAMETERS THE ARITY BECAME STRUCTURAL** — the boundary supplies every
+/// declared parameter — and every call site's index was strictly inside its own vec's length, so the
+/// `Option` was ALWAYS `Some` and the `None` arm UNREACHABLE from the entries. The entries now pass their
+/// parameters directly, which is the same value each index read, reached without the indirection.
 
 /// **THE STORE'S INDEX, RESOLVED FROM THE RECEIVER** (`receiver-and-refusal.md §1`).
 ///
@@ -1295,9 +1301,10 @@ fn no_instance_at(_store_index: usize) -> Refusal {
 /// translator back, and the same `triggeringAddress` member the write and delete arms set (`§2.7` item 2).
 /// What moved is HOW THE STORE IS FOUND: **the receiver arrives as the Node-API `this`**, injected by
 /// `napi-derive` from `cb.this()` into the `receiver: This<Object<'_>>` parameter (`receiver-and-refusal.md
-/// §1`), and each entry resolves its store from it via [`store_index_of`]. **`positions` therefore holds the
-/// VERB'S OWN ARGUMENTS ALONE — the receiver is NOT in it at all, and `position(&positions, 0)` reads the
-/// verb's OWN FIRST argument, at element ZERO**, with no instance among them (`§4`).
+/// §1`), and each entry resolves its store from it via [`store_index_of`]. **EACH ENTRY THEREFORE TAKES
+/// THE VERB'S OWN POSITIONS AS ITS DECLARED `#[napi]` PARAMETERS AND PASSES THEM DIRECTLY** — the verb's
+/// OWN FIRST argument is the entry's own first parameter, with no instance among them and no array beside
+/// them (`§4`).
 ///
 /// **⟶ THE ELEMENT-ZERO DESIGN WAS ABANDONED, AND THE REASON IS RECORDED RATHER THAN LEFT AS A TRACE**: an
 /// earlier shape took the receiver as the call array's FIRST element and began each entry's declared
@@ -1305,9 +1312,12 @@ fn no_instance_at(_store_index: usize) -> Refusal {
 /// `receiver-and-refusal.md §1` (*"each entry resolves its store from the Node-API `this` receiver — the
 /// value already received at every entry and today discarded"*), and the rejected alternatives that had
 /// gathered around the array shape are named and refused at `§5` (binding the members to the instance, and a
-/// `WeakMap` from receiver to store). **THE ABANDONED SPELLING SURVIVES ONLY IN THE TWO COMMENTS THAT STILL
-/// DESCRIBE IT — [`register`]'s own interior comment and the block comment above [`store_index_of`] — and in
-/// no byte of any entry's declared positions.**
+/// `WeakMap` from receiver to store). **THE RECEIVER'S POSITION IN THE CALL IS NOT THE ONLY RESIDUE THE
+/// DESIGN LEFT**: the call array itself, and the `position(&positions, n)` reader every entry used to read
+/// it back through, were the other half and are DELETED at the note above [`store_index_of`]. **WHAT
+/// SURVIVES OF THE ABANDONED SPELLING IS THE PROSE THAT RECORDS IT — this clause, the note above
+/// [`store_index_of`], and [`register`]'s own interior comment — and it survives in NO byte of any entry's
+/// declared positions.**
 #[napi(js_name = "read")]
 fn verb_read(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
@@ -1316,7 +1326,6 @@ fn verb_read(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_
     // tail-position protocol turns on. **THE TWO DECLARED POSITIONS ARE THE TWO THE STORE'S OWN `read`
     // TAKES, AND THERE IS NO THIRD**: the surplus tail the abandoned element-0 receiver design left here
     // is removed, so the declared arity now equals the call shape (`§4`).
-    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1328,8 +1337,8 @@ fn verb_read(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_
     let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
         let mut instances = instances.borrow_mut();
         let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
-        let address = codec.address(position(&positions, 0));
-        let tier = codec.tier(position(&positions, 1));
+        let address = codec.address(&address_pos);
+        let tier = codec.tier(&tier_pos);
         let value = store.read(&address, &tier)?;
         Ok(codec.to_js_value(&value))
     });
@@ -1344,7 +1353,6 @@ fn verb_read_literal(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_
     // tail-position protocol turns on. **THE TWO DECLARED POSITIONS ARE THE TWO THE LITERAL READ TAKES**,
     // exactly as `read`'s are — the literal read is `read` narrowed at the target and takes no position
     // `read` lacks, and the surplus tail is removed from this entry as it is from `read`.
-    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1356,8 +1364,8 @@ fn verb_read_literal(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_
     let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
         let mut instances = instances.borrow_mut();
         let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
-        let address = codec.address(position(&positions, 0));
-        let tier = codec.tier(position(&positions, 1));
+        let address = codec.address(&address_pos);
+        let tier = codec.tier(&tier_pos);
         let value = store.read_literal(&address, &tier)?;
         Ok(codec.to_js_value(&value))
     });
@@ -1370,8 +1378,8 @@ fn verb_read_literal(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_
 /// by arity nor detected by a test** (`§4`) — which is why this entry reads three positions and no more.
 ///
 /// **AND THE FOURTH POSITION IS THE LAST ONE — THE SURPLUS FIFTH `_tail` IS REMOVED.** **THE RECORD IS NOT
-/// CONSUMED HERE AND WAS NEVER READ BY THIS BODY**: no `position(&positions, 3)` call stands anywhere in
-/// this file, so the fourth position is DECLARED AND NOT READ, exactly as [`verb_write`]'s own comment
+/// CONSUMED HERE AND WAS NEVER READ BY THIS BODY**: no read of `commit_identity` stands anywhere in this
+/// file, so the fourth position is DECLARED AND NOT READ, exactly as [`verb_write`]'s own comment
 /// records. **THE RECORD IS CONSUMED IN THE MEMBER, NOT HERE**: the kernel hands it to the PACKAGE
 /// (`constraint-kernel.mjs`'s `store.write(address, tier, value, record)`), whose `write` member refuses a
 /// bad one at `commitPositionRefusal` and then spreads **three** encoded args to this entry. The four
@@ -1390,7 +1398,6 @@ fn verb_write(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier
     // class test on it is the PACKAGE's, taken before this frame is entered (`§2`, `commitPositionRefusal`),
     // and this entry reads the three positions above and no more. **THE FOURTH CARRIES THE DECLARED CALL
     // SHAPE; THE SURPLUS FIFTH IS REMOVED.**
-    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos, value_pos, commit_identity];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1402,9 +1409,9 @@ fn verb_write(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier
     let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
         let mut instances = instances.borrow_mut();
         let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
-        let address = codec.address(position(&positions, 0));
-        let tier = codec.tier(position(&positions, 1));
-        let value = codec.value(position(&positions, 2));
+        let address = codec.address(&address_pos);
+        let tier = codec.tier(&tier_pos);
+        let value = codec.value(&value_pos);
         let result = store.write(&address, &tier, &value)?;
         let answer = codec.to_js_write_result(&result);
         let triggering = codec.to_js_segments(&segments_of(&address));
@@ -1421,7 +1428,6 @@ fn verb_delete(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tie
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
     // tail-position protocol turns on. **THE TWO DECLARED POSITIONS ARE THE TWO THE STORE'S OWN `delete`
     // TAKES** — the surplus tail is removed.
-    let positions: Vec<JsVal<'_>> = vec![address_pos, tier_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1433,8 +1439,8 @@ fn verb_delete(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tie
     let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
         let mut instances = instances.borrow_mut();
         let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
-        let address = codec.address(position(&positions, 0));
-        let tier = codec.tier(position(&positions, 1));
+        let address = codec.address(&address_pos);
+        let tier = codec.tier(&tier_pos);
         let receipt = store.delete(&address, &tier)?;
         let answer = codec.to_js_delete_receipt(&receipt);
         let triggering = codec.to_js_segments(&segments_of(&address));
@@ -1451,7 +1457,6 @@ fn verb_rollback(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) -> 
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
     // tail-position protocol turns on. **THE ONE DECLARED POSITION IS THE ONE THE STORE'S OWN `rollback`
     // TAKES** — the surplus tail is removed.
-    let positions: Vec<JsVal<'_>> = vec![op_id_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1463,7 +1468,7 @@ fn verb_rollback(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) -> 
     let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
         let mut instances = instances.borrow_mut();
         let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
-        let op_id = codec.op_id(position(&positions, 0));
+        let op_id = codec.op_id(&op_id_pos);
         let result = store.rollback(&op_id)?;
         Ok(codec.to_js_rollback_result(&result))
     });
@@ -1482,7 +1487,6 @@ fn verb_listen(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, addr
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
     // tail-position protocol turns on. **THE TWO DECLARED POSITIONS ARE THE ONLY TWO — THE HANDLE AND THE
     // SET** — which is exactly what the doc block above says, and the surplus tail is removed.
-    let positions: Vec<JsVal<'_>> = vec![handle_pos, addresses_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1494,8 +1498,8 @@ fn verb_listen(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, addr
     let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
         let mut instances = instances.borrow_mut();
         let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
-        let handle = codec.handle_arg(position(&positions, 0));
-        let addresses = codec.address_set(position(&positions, 1));
+        let handle = codec.handle_arg(&handle_pos);
+        let addresses = codec.address_set(&addresses_pos);
         store.listen(&handle, &addresses)?;
         Ok(codec.undefined_value())
     });
@@ -1509,7 +1513,6 @@ fn verb_unlisten(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>) ->
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
     // tail-position protocol turns on. **THE ONE DECLARED POSITION IS THE HANDLE** — the withdrawal's
     // store half takes the handle and no more — and the surplus tail is removed.
-    let positions: Vec<JsVal<'_>> = vec![handle_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1521,7 +1524,7 @@ fn verb_unlisten(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>) ->
     let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
         let mut instances = instances.borrow_mut();
         let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
-        let handle = codec.handle_arg(position(&positions, 0));
+        let handle = codec.handle_arg(&handle_pos);
         store.unlisten(&handle)?;
         Ok(codec.undefined_value())
     });
@@ -1540,7 +1543,6 @@ fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
     // tail-position protocol turns on. **THE ONE DECLARED POSITION IS THE HANDLE** — the removal reaches
     // the store's own wholesale `Home::purge` with the handle and no more — and the surplus tail is removed.
-    let positions: Vec<JsVal<'_>> = vec![handle_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1552,7 +1554,7 @@ fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<
     let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
         let mut instances = instances.borrow_mut();
         let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
-        let handle = codec.handle_arg(position(&positions, 0));
+        let handle = codec.handle_arg(&handle_pos);
         store.remove_listener(&handle)?;
         Ok(codec.undefined_value())
     });
@@ -1571,7 +1573,6 @@ fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) 
     // AND A SUPPLIED `undefined` IS `Some`** (`crossing.md §1.3`), which is the distinction the
     // tail-position protocol turns on. **ITS ONE ARGUMENT IS AN OP ID** (the doc block above says so) and
     // **THERE IS NO SECOND DECLARED POSITION** — the surplus tail is removed.
-    let positions: Vec<JsVal<'_>> = vec![op_id_pos];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1583,7 +1584,7 @@ fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) 
     let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
         let mut instances = instances.borrow_mut();
         let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
-        let op_id = codec.op_id(position(&positions, 0));
+        let op_id = codec.op_id(&op_id_pos);
         let JsOpIdArg::Str(token) = &op_id else {
             return Err(Refusal {
                 status: "JournalOpUnknown".to_string(),
@@ -1608,16 +1609,17 @@ fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) 
 // **No byte of a live path is touched by the deletion: the helper had no caller.**
 
 impl<'e> Codec<'e> {
-    /// A position the call did not supply is ABSENT — the arity reading of `crossing.md §1.3`'s
-    /// absent-versus-`undefined` rule, rule 1, taken at the JS boundary because the callee is the only
-    /// place the call's own arity is observable. **The library's `Array` conversion hands the positions as
-    /// the values the runtime supplied, so an absent position is `None` and a SUPPLIED `undefined` is
-    /// `Some`** — the two states this rule exists to keep apart.
-    fn address(&self, value: Option<&JsVal<'_>>) -> JsAddressArg {
-        match value {
-            Some(v) => self.address_of(*v),
-            None => JsAddressArg::Absent,
-        }
+    /// **A POSITION IS THE `#[napi]` PARAMETER THE ENTRY'S OWN SIGNATURE DECLARES** (`export-set-and-
+    /// dispatch.md §1`), so this accessor is handed the value ITSELF and there is no absent arm left to
+    /// fold. **AN UNSOUPPLIED POSITION IS STILL ABSENT AND THE DISTINCTION IS STILL HONOURED** (`crossing.md
+    /// §1.3`'s absent-versus-`undefined` rule, rule 1): it is folded where the call's own arity is still
+    /// observable — `index.mjs`, which hands an unsupplied position as the runtime's own `undefined` and
+    /// encodes it as the carrier's OWN ABSENT spelling (`AddressArg` row 4's `{k:'A'}`) — so one carrier
+    /// shape stands for one state and this layer reads it. **A SUPPLIED `undefined` IS A VALUE AND IS NEVER
+    /// FOLDED** (`DD-46`): the package refuses it at the boundary where the position declares one, and where
+    /// it does not, it crosses and the store answers its own outside member.
+    fn address(&self, value: &JsVal<'_>) -> JsAddressArg {
+        self.address_of(*value)
     }
 
     /// **THE SET POSITION — `listen`'s SECOND argument, an ARRAY OF ADDRESSES** (`contract.md §2.2` item 2;
@@ -1625,45 +1627,30 @@ impl<'e> Codec<'e> {
     /// THE OTHER POSITIONS USE**: a member outside the store's address domain is refused by the package's own
     /// class test before this frame, so what arrives here is a set of list-shaped members — and a shape that
     /// is not list-shaped still crosses as it stands, to be answered by the store's own `AddressMalformed`.
-    fn address_set(&self, value: Option<&JsVal<'_>>) -> Vec<JsAddressArg> {
-        let Some(array) = value else {
-            return Vec::new();
-        };
+    /// **AN ABSENT SET'S EMPTY VEC IS [`elements`]' OWN ANSWER** for a value the runtime's object coercion
+    /// refuses, so the deleted `None` arm's result survives its deletion unchanged.
+    fn address_set(&self, value: &JsVal<'_>) -> Vec<JsAddressArg> {
         let mut out = Vec::new();
-        for element in self.elements(*array) {
+        for element in self.elements(*value) {
             out.push(self.address_of(element));
         }
         out
     }
 
-    fn tier(&self, value: Option<&JsVal<'_>>) -> JsTierArg {
-        match value {
-            Some(v) => self.tier_of(*v),
-            None => JsTierArg::Absent,
-        }
+    fn tier(&self, value: &JsVal<'_>) -> JsTierArg {
+        self.tier_of(*value)
     }
 
-    fn op_id(&self, value: Option<&JsVal<'_>>) -> JsOpIdArg {
-        match value {
-            Some(v) => self.op_id_of(*v),
-            None => JsOpIdArg::Absent,
-        }
+    fn op_id(&self, value: &JsVal<'_>) -> JsOpIdArg {
+        self.op_id_of(*value)
     }
 
-    fn handle_arg(&self, value: Option<&JsVal<'_>>) -> JsHandleArg {
-        match value {
-            Some(v) => self.handle_arg_of(*v),
-            None => JsHandleArg::Absent,
-        }
+    fn handle_arg(&self, value: &JsVal<'_>) -> JsHandleArg {
+        self.handle_arg_of(*value)
     }
 
-    fn value(&self, value: Option<&JsVal<'_>>) -> JsValue {
-        match value {
-            Some(v) => self.value_of(*v),
-            // An ABSENT value reaches the store's own taxonomy as a shapeless value: the JS side spells it
-            // as the outside class, and the store answers its own `ValueNotAdmitted` (`DD-46`).
-            None => JsValue::Undefined,
-        }
+    fn value(&self, value: &JsVal<'_>) -> JsValue {
+        self.value_of(*value)
     }
 }
 
@@ -1726,7 +1713,6 @@ pub fn register(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, lis
     // **AND THE LISTENER'S POSITION IS DECLARED AND NOT READ** — the FUNCTION itself never crosses
     // (`DD-15`): the mapping layer holds it in its own per-instance registry, and this entry is asked only
     // whether the HANDLE is a member of the instance's own domain.
-    let positions: Vec<JsVal<'_>> = vec![handle_pos, listener_slot];
     let store_index = match store_index_of(&env, Some(&receiver)) {
         Ok(store_index) => store_index,
         Err(refusal) => {
@@ -1735,7 +1721,7 @@ pub fn register(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<'_>, lis
         }
     };
     let codec = Codec { env, _marker: std::marker::PhantomData };
-    let handle = codec.handle_arg(position(&positions, 0));
+    let handle = codec.handle_arg(&handle_pos);
     // **THE CORE IS THE SITE'S OWN JUDGE**: it holds the instance's handle domain (`§2.4` item 5 (c)) and
     // answers an outside handle with the store's own `AddressMalformed` and a generated message.
     // **⟶ THE PLACEHOLDER CLOSURE IS GONE (`F-13`; `U-11`): `JsListener::Function(Box::new(|_| ()))` WAS A
