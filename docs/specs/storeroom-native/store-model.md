@@ -234,6 +234,98 @@ the part map and the closure arithmetic are unmoved.** **`contract.md §1.2`'s c
 pre-amendment layer and is read through this clause, exactly as `contract.md §1.1`'s as-filed rows are read
 through `§1.1`'s `⟶ AMENDED` clause.**
 
+**⟶ AMENDED 2026-10-21 (`role_spec_writer`) ON THE ARCHITECT'S RULING — `key` LEAVES THE `ChildAnchor`
+MEMBER SET, AND THE MEMBER COUNT MOVES `4 → 3`** (`A129` (3)'s classifying instrument read at this site: **a
+clause that at its own bytes bears its superseding date and the ruling it reads is QUOTED-AS-SUPERSEDED
+HISTORY and not a live ordering** — so the table's row above, the `⟶ AMENDED 2026-10-11` clause above it and
+`contract.md §1.2`'s copy of the row are all read THROUGH this clause, and **NOT ONE BYTE OF ANY OF THEM IS
+REWRITTEN, DELETED OR RE-SPELLED**; `DEF-2026-10-02` bars a whole-file rewrite and `A131` bars `replace_all`;
+the ruling is recorded at `docs/decisions.md`; `[T: the anchor's member set, so no clause reads a member the
+declared shape does not carry | CONTRACT]`):
+
+**THE ARCHITECT'S TWO DIRECTIVES, VERBATIM: *"Remove key and derive it during read while compiling vec -->
+JS array"* and *"Key isn't needed locally on the node. The use case for it is in assembling arrays during the
+JS conversion, but the codec can infer the key from the vec index directly"*.**
+
+**THE OPERATIVE MEMBER SET, STATED AS THE `⟶ AMENDED 2026-10-11` CLAUSE ABOVE STATED ITS OWN — the table's
+row stands byte-for-byte and THIS clause is the operative statement of the row's member SET: `ChildAnchor`'s
+members are `tier` · `node` · `register_marker`, and `key` IS NOT AMONG THEM.** **THE COUNT MOVES WITH IT:
+the set is `3` members where the `⟶ AMENDED 2026-10-11` clause above printed `4` — `4 − 1 = 3`, the one
+subtracted term being `key` — and the three standing terms are `tier` (the tier property, `§5.1`), `node` (the
+`NodeRef` it points to) and `register_marker` (the register's own identity carrier, `§0.4`'s marker clause;
+`DD-44`).** **NO OTHER COUNT OF THIS PART MOVES: the part map, the closure predicate's `5 = 5` arithmetic
+(`§0.1` item 10(c)) and every `DD`/`PAR`/`P-*` census are UNMOVED, because this clause authors no row and
+removes no row — it removes ONE MEMBER from ONE ROW's declared set.** **NO NEW `DD` ROW, NO FAIL-STATE, NO
+`PAR` ROW, NO `P-*` ROW AND NO `§`-NUMBER IS AUTHORED BY THIS CLAUSE** (the same licence the `⟶ AMENDED
+2026-10-11` clause above states, and it holds here for the same reason: `§1.5` item 1's closed segment domain
+and `§1.7`'s five-component closure are untouched, since this member was never a `Segment` variant and never
+a graph component).
+
+**THE GROUND, AT THE MEASUREMENT AND NOT IN THE ABSTRACT: the member was a CACHE of something derivable —
+the container's position — kept in sync by ONE write and read by NOTHING.** **Measured at `src/`'s own bytes:
+the ONLY write in the whole crate is `src/store.rs:990` — `self.refs[reference].anchor.key =
+Segment::Index(index);`, inside `renumber_vec` — and THERE IS NO READ of it anywhere in `src/`.** **The
+field's removal from the shape and the retirement of the one test that asserts its VALUE are the
+implementer's and the test-writer's acts, in their own passes; THIS clause declares the member set those
+passes will make true and touches no `src/**`, `tests/**` or `bindings/**` byte.**
+
+**THE DERIVATION'S EXACTNESS, STATED AT ITS GATE SO A LATER READER CAN VERIFY IT RATHER THAN TRUST IT.** **The
+gate is the crate's own predicate, `src/store.rs:2341`:**
+
+```rust
+fn key_fits(container: Kind, key: &Segment) -> bool {
+    Kind::Map => matches!(key, Segment::Key(_)),
+    Kind::Vec => matches!(key, Segment::Index(_)),
+}
+```
+
+**A `Vec` container admits ONLY `Segment::Index` keys and a `Map` container ONLY `Segment::Key` keys, so the
+key a container holds is a FUNCTION OF THE CONTAINER KIND AND THE POSITION AND OF NOTHING ELSE:** **for a
+`Vec`, `Segment::Index(position)` REPRODUCES THE STORED VALUE EXACTLY** (the container's positions ARE its
+contiguous indices, `§1.3`/`R-3`, so no second reading can disagree); **for a `Map`, the key is the
+`HashMap`'s own key**, which the container already holds and which no derived value could improve on. **The
+crate ALREADY performs the `Vec` half of this derivation in three places, which is the derivation's own
+corroboration rather than this clause's inference: `Children::renumber` (`src/store.rs:262–275`) computes
+`position as u64` per surviving reference; and BOTH assembler `Kind::Vec` arms (`src/store.rs:1166` and
+`:1234`) loop `Segment::Index(index as u64)` off the loop index, the first carrying at its own site the
+comment that the walk *"needs no key test to know it holds one"*.** **The JS codec never sees a key at all:
+`StoreValue::Array(items)` is a plain `Vec<StoreValue>` and `bindings/js/src/facade.rs:949–950` converts it
+positionally — `items.iter().map(…).collect()` — so the array's indices ARE the positions, exactly as the
+architect's second directive says.** **AND `findAddress`'s boundary is unmoved by the derivation, because it
+returns `&NodeRef` (`src/store.rs:1817`) and a derived key is still answerable at that boundary: the
+reference's position within its container is what a derivation reads, and no caller receives a key the
+container cannot hold.**
+
+**AND THIS CLAUSE DOES NOT WEAKEN `register_marker` — THE REGISTER'S IDENTITY WAS NEVER CARRIED BY THE KEY.**
+**`§0.4`'s marker clause and `DD-44`'s dated clause already declare the marker's `key` spelling to be *"a
+MARKER and not a key"* (`src/records.rs:67–68`), the non-confusability carrier being
+`register_marker` ALONE — `true` on exactly one reference in a store and `false` on every reference a
+segment reaches.** **The member's departure REMOVES the collision those clauses declared rather than
+disturbing the carrier:** the register's reference and a reference reached by the legal `""` key COINCIDE in
+their `tier` and in their `node` shape, and they were ALREADY distinguished by `register_marker` and by
+nothing else, so the property that carries the distinction is exactly the property this clause keeps.**
+
+**WHAT READS THROUGH THIS CLAUSE, NAMED ONE SITE AT A TIME, SO NO LIVE STATEMENT IS LEFT ASSERTING A MEMBER
+NO CODE CARRIES.** **`store-model.md`'s own sites:** **the table's `ChildAnchor` row above and the `⟶
+AMENDED 2026-10-11` clause above it** stand byte-for-byte and are read through THIS clause — `key` is theirs
+and is not the type's; **`§1.6` item 4 (c)'s dated clause** (its `NodeRef.anchor = ChildAnchor { key, tier,
+register_marker }` spelling and its two `anchor.key` observables) is a QUOTATION of the 2026-10-11 filing and
+is read through this clause, the operative carrier of the register's reference being `register_marker` and the
+reference's `tier` (item (d)); and **`§2.1`'s *"THE REFERENCE'S OWN DRIVABLE OBSERVABLE"* clause**, which
+spells `NodeRef.anchor.key` (the segment it is held at), is a LIVE OPERATIVE STATEMENT and is amended AT ITS
+OWN SITE below. **`store-model.md`'s third site: `§2.1`'s fifth-correction clause** (the `⟶ AMENDED
+2026-10-11` clause that reads the as-filed *"EMPTY segment marker"* as a `NodeRef.anchor.key` spelling) is
+likewise a LIVE OPERATIVE STATEMENT — it declares itself *"the operative statement of the reference's
+MARKER"* — and is amended AT ITS OWN SITE below, its non-confusability sentences standing as the whole of it.
+**`contract.md`'s sites:** `§1.2`'s copy of the row and its dated clause (the pre-amendment
+layer, read through this clause, which that clause itself declares); `§0.4`'s spelling-table `NodeRef` row and
+its `⟶ AMENDED 2026-10-11` clause; `§0.4`'s marker clause and its second dated clause — all QUOTATIONS of
+as-filed clauses, each read through this clause; `§5.7`'s `⟶ AMENDED 2026-10-11` clause; and `DD-44`'s and
+`DD-53`'s `alt`/`what it REFUSES` cells, which are QUOTATIONS standing at their own rows. **(The sites in
+this part that are NOT quotations — `§2.1`'s observable clause and `§2.1`'s fifth-correction clause — each
+carry their own dated clause immediately below this one; the companion sites at `contract.md` are
+dispositioned there at their own bytes.)**
+
 **THE MONOTONIC CLAUSE, STATED OVER ANCHORS** (`P: §14 · A27`): **`rank(childAnchor.tier) ≤
 rank(parentAnchor.tier)`**, read with `M-1` of **`contract.md §5.1`** — **⟶ REPOINTED 2026-10-11: this
 citation's as-filed form was a bare `§5.1`; the tier clause is NOT a relocated span of this part (`§5` stays
@@ -633,6 +725,21 @@ and **it is not addressable, not enumerable and not serializable** — its bound
 answers a reference whose `anchor.tier` is `t` in exactly the states **`§5.4`'s `P-SM-4` row (a)** declares**
 (**⟶ REPOINTED 2026-10-11: the as-filed form was the bare `§5.4` (a); `§5.4` is printed twice in the contract
 document and this citation names the ROW's half, so the row id is named — `§5.2`'s dual-mapping disclosure**).
+**⟶ AMENDED 2026-10-21 (`role_spec_writer`) ON THE ARCHITECT'S RULING: `NodeRef.anchor.key` IS RE-SPELLED
+`NodeRef.anchor.tier` BESIDE `NodeRef.anchor.register_marker`, AND THE REFERENCE'S DRIVABLE OBSERVABLES ARE
+THOSE TWO.** **This is a LIVE OPERATIVE STATEMENT and not a quotation, so it is amended rather than merely
+read through: `key` having LEFT the `ChildAnchor` member set (`§1.2`'s dated clause of this date), an
+observable spelled `NodeRef.anchor.key` would assert a member the declared shape does not carry.** **THE
+CLAUSE'S SUBSTANCE IS UNMOVED: the reference still carries the anchor's OWN properties, `findAddress(address,
+t)` still answers a reference whose `anchor.tier` is `t` in exactly `P-SM-4` row (a)'s states, and the
+mutation half below stands whole.** **WHAT REPLACES THE KEY AS THE REFERENCE'S SECOND DRIVABLE OBSERVABLE IS
+THE TIER'S OWN COMPANION, `register_marker` — the property `§1.2`'s dated clause and `§0.4`'s marker clause
+declare TRUE on the register's own reference alone and FALSE on every reference a segment reaches** — **so
+every state this clause makes drivable stays drivable, and the address-derived identity a caller might have
+read from a key is derived from the ADDRESS the caller supplied and not from a member the shape carries**
+(`§1.2`'s dated clause of 2026-10-21; `§1.6` item 4 (c)'s dated clause, read through it; `DD-44`;
+`[T: the reference's drivable observables, re-spelled so no clause reads a member the declared shape does not
+carry | CONTRACT]`).
 **THE CLAUSE'S
 MUTATION HALF — *"mutating through it mutates the store"* — HAS NO DRIVE IN THIS UNIT'S SURFACE, because
 the contract declares NO mutating API taking a `NodeRef`; it is carried as an `OWED` item with its owner and
@@ -703,6 +810,26 @@ in a store whose register holds a `""` key, with the pair `(register_marker, tie
 a drive FAILS them on.** **The reference's `tier` half stands exactly as the FOUR corrections state it (the
 register's own creation-fixed tier, whatever `t` the caller passed), the register is still the walk's start and
 is reached by NO segment, and no member of this clause is readable off the carrier NODE (`§1.6` item 4 (c)).**
+
+**⟶ AMENDED 2026-10-21 (`role_spec_writer`) ON THE ARCHITECT'S RULING — THIS CLAUSE'S SPELLING SENTENCE IS
+WITHDRAWN WITH THE MEMBER IT SPELLED, AND ITS NON-CONFUSABILITY SENTENCES STAND AS THE WHOLE OF IT**
+(`§1.2`'s dated clause of this date; the architect's two directives, verbatim, stand there; `A129` (3)'s
+classifying instrument). **THIS SITE IS A LIVE OPERATIVE STATEMENT AND NOT A QUOTATION — it declares itself
+*"the operative statement of the reference's MARKER"* — so it is amended HERE rather than merely cited,
+because a sentence spelling `NodeRef.anchor.key` would assert a member the declared shape does not carry.**
+**EVERY BYTE OF THE CLAUSE ABOVE STANDS AND IS READ THROUGH THIS ONE; NOT ONE WORD IS DELETED.** **WHAT
+MOVES: the as-filed clause *"its reference carries the EMPTY segment marker"* no longer READS AS a
+`NodeRef.anchor.key = Segment::Key(String::new())` SPELLING, because the register's own reference carries NO
+`key` member — so the declared COINCIDENCE of two `anchor.key` values does not arise and needs no
+declaration.** **THE CLAUSE'S OWN CONCLUDING SENTENCES ALREADY STOOD WITHOUT IT — *"The reference's
+non-confusability is carried by the `register_marker` member ALONE"* — which is this amendment's whole
+content read at the clause's own words, and the surviving observable, repeated here so no reader must reach
+for the withdrawn half, is `findAddress([], t).anchor.register_marker == true` against
+`findAddress([""], t).anchor.register_marker == false` in a store whose register holds a `""` key.** **THE
+CLAUSE'S OTHER HALVES ARE UNMOVED: the `tier` half, the register's standing as the walk's start reached by NO
+segment, the four corrections above, and item 4 (c)'s rule that no member is readable off the carrier NODE**
+(`§1.2`'s dated clause of 2026-10-21; `DD-44`'s dated clause; `[T: the fifth correction's spelling half
+withdrawn with the member it spelled, its non-confusability carrier unmoved | CONTRACT]`).
 **`tests/gate4_red_set_fix.rs`'s `ng_l_the_register_marker_against_the_legal_empty_key` — the drive that
 carries this state — is the TEST's to re-author: it asserts the MARKER pair above and the DECLARED key-value
 collision, and it asserts NO anchor-key inequality (`DD-44`'s dated clause; `src/**` untouched).**

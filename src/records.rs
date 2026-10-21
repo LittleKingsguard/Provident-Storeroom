@@ -6,6 +6,7 @@
 //! `A58`), and the two returned records gain the `triggered` member (`DD-35`).
 
 use crate::value::Segment;
+use std::cell::RefCell;
 use std::cmp::Ordering;
 
 /// `§5.1`: exactly three tokens, ranked `file > mem > temp` — `M-1`'s total and strict order.
@@ -54,7 +55,19 @@ impl PartialOrd for Tier {
     }
 }
 
-/// `§1.2`: the child side of an anchor — the key it is held at and the TIER PROPERTY it carries.
+/// `§1.2`: the child side of an anchor — **the TIER PROPERTY it carries and the register's identity marker,
+/// and NOTHING ELSE.** **⟶ AMENDED 2026-10-21 (`store-model.md §1.2`'s dated clause, on the architect's
+/// ruling): `key` LEAVES THE `ChildAnchor` MEMBER SET AND THE COUNT MOVES `4 → 3` — `tier` · `node` ·
+/// `register_marker`, `key` NOT AMONG THEM.** **The ruling's two directives, verbatim: *"Remove key and
+/// derive it during read while compiling vec --> JS array"* and *"Key isn't needed locally on the node. The
+/// use case for it is in assembling arrays during the JS conversion, but the codec can infer the key from
+/// the vec index directly"*.** **The member was a CACHE of something derivable — the container's POSITION —
+/// kept in sync by ONE write and read by NOTHING; the derivation is EXACT because `key_fits` (`src/store.rs`)
+/// lets a `Vec` container admit ONLY `Segment::Index` and a `Map` container ONLY `Segment::Key`, so the key
+/// a container holds is a FUNCTION OF THE CONTAINER KIND AND THE POSITION.** **The derivation's HOME is
+/// `Store::derived_key`, and the reference's key stays ANSWERABLE at `findAddress`'s boundary through
+/// [`ChildAnchor::key`] — the member below is NOT a stored key: it is the cell the read fills with the
+/// value the store derived for the reference it is about to hand back, and `None` off that path.**
 ///
 /// **⟶ AMENDED 2026-10-11 (`DD-44`; `store-model.md §1.6` item 4 (c)/(d); `contract.md §0.4`'s `NodeRef`
 /// spelling row and its added marker clause): `ChildAnchor` ALSO CARRIES `register_marker: bool`** — **TRUE on
@@ -66,13 +79,45 @@ impl PartialOrd for Tier {
 /// `findAddress([""], t).anchor.register_marker == false` in a store whose register holds a `""` key — so
 /// the two references are DISTINGUISHED by a DECLARED observable and the *"EMPTY segment marker"* is a
 /// MARKER and not a key** (`§2.1`'s amended empty-address clause is unmoved).
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct ChildAnchor {
-    pub key: Segment,
     pub tier: Tier,
     /// `DD-44`: TRUE on the register's own reference ALONE — never on a reference a segment reaches, and it
     /// never moves with a tier or with a caller's `t` (`§1.6` item 4 (d); `A42`).
     pub register_marker: bool,
+    /// **THE DERIVED KEY'S ANSWER CELL — NOT A STORED MEMBER OF THE ANCHOR'S DECLARED SET.** `§1.2`'s dated
+    /// clause of 2026-10-21 removed `key` from the member set, so this field is **NOT** a `ChildAnchor`
+    /// member and carries no value the store maintains: **it is written ONLY by `Store::findAddress` at its
+    /// own boundary, with the key `Store::derived_key` computes for the reference being returned, and it
+    /// stays `None` everywhere else.** It answers the same question the withdrawn member did — *the segment
+    /// this reference is held at* (`§2.1`) — from a value DERIVED AT THE READ rather than a value STORED on
+    /// the node. `RefCell` rather than `Cell` because `Segment` is not `Copy`; the interior mutability is
+    /// what lets `findAddress` keep its `&NodeRef` return type while filling the answer.
+    pub(crate) derived_key: RefCell<Option<Segment>>,
+}
+
+impl ChildAnchor {
+    /// `§2.1`: **the segment this reference is held at, as the store derived it — `Option` because the
+    /// REGISTER'S OWN REFERENCE has no key at all.** **The register is the walk's start and is reached by NO
+    /// segment** (`§1.6` item 4; `§2.1`'s empty-address reference clause), **so its reference stands at no
+    /// key and THIS IS THE ONE CASE WHERE THE ANSWER IS `None`** — and `records.rs`'s own `§0.4` marker
+    /// clause already declared the marker's spelling *"a MARKER and not a key"*, which is exactly why the
+    /// register's identity is carried by `register_marker` and by nothing this accessor returns. A reference
+    /// a segment reaches answers `Some`: `Segment::Index(position)` for a `Vec` container and the `HashMap`'s
+    /// own key for a `Map` one.
+    pub fn key(&self) -> Option<Segment> {
+        self.derived_key.borrow().clone()
+    }
+}
+
+/// **`Clone` and `PartialEq` for the anchor's DECLARED members ALONE (`§1.2`'s `3`-member set).** The cell
+/// above is not a declared member, so it must not enter either: a clone carries no answer across, and two
+/// anchors are equal exactly when their `tier` and `register_marker` are — which is the pair `§0.4`'s marker
+/// clause and `DD-44` declare the register's reference and the legal `""` key's reference DISTINCT at.
+impl PartialEq for ChildAnchor {
+    fn eq(&self, other: &Self) -> bool {
+        self.tier == other.tier && self.register_marker == other.register_marker
+    }
 }
 
 /// `§2.1`: the resolver's RETURNED REFERENCE — the store's own handle to a node, not a copy of it.

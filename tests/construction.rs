@@ -84,6 +84,19 @@ fn s7_1_an_absent_file_path_is_legal_and_creates_a_mem_register() {
     // store-model.md §2.1's four corrections, read at the block's own conclusion: the two empty-address
     // probes answer the SAME reference, and that one reference's `anchor.tier` is THE REGISTER'S OWN TIER —
     // never the caller's `t`.
+    //
+    // **⟶ RE-CUT 2026-10-21 (role_test_writer) ON THE ARCHITECT'S RULING — THE IDENTITY TUPLE'S KEY LEG IS
+    // READ THROUGH `ChildAnchor::key()`.** `§1.2`'s dated clause of 2026-10-21 (`store-model.md:237`) removed
+    // `key` from the `ChildAnchor` member set, so the field access `a.anchor.key.clone()` no longer compiles
+    // and the leg is re-cut to the derived-key ACCESSOR. **THE LEG'S VALUE IS NEVER ASSERTED — this tuple is
+    // an IDENTITY component and the assertion below needs the two probes to AGREE, not to equal any literal**
+    // (this file spells no `Segment::Key` literal for the register at all). **Both probes take the empty
+    // address and so both resolve to the REGISTER'S OWN REFERENCE, whose `register_marker` is `true` and
+    // whose derived key is therefore `None` by construction** (`§1.2`'s clause: the register *"is reached by
+    // NO segment"*, and `src/records.rs`'s accessor doc: that is the ONE case where the answer is `None`;
+    // `§0.4`'s marker clause: *"a MARKER and not a key"*). **`None == None`, so the identity assertion holds
+    // BY DERIVATION AND IS ALSO MEASURED by this test's own run — the assertion below passes only if the two
+    // legs agree.** **The tier leg and every assertion below are UNTOUCHED.**
     let (at_file, at_temp) = {
         let a = ok(
             store.findAddress(AddressArg::List(empty_address()), w_file()),
@@ -94,8 +107,8 @@ fn s7_1_an_absent_file_path_is_legal_and_creates_a_mem_register() {
             "§2.1: the same address, the other `t`",
         );
         (
-            (a.anchor.key.clone(), a.anchor.tier),
-            (b.anchor.key.clone(), b.anchor.tier),
+            (a.anchor.key(), a.anchor.tier),
+            (b.anchor.key(), b.anchor.tier),
         )
     };
     assert_eq!(

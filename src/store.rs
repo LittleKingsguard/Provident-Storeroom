@@ -10,6 +10,7 @@ use crate::args::{
     AddressArg, ConstraintEntry, ConstraintsArg, FilePathArg, JournalLengthArg, OpIdArg, StoreConfig,
     TierArg, TierSel,
 };
+use std::cell::RefCell;
 use crate::error::{
     address_not_found, constraint_list_invalid, container_kind_conflict,
     container_kind_conflict_for_key, file_commit_failed, file_path_unreachable, journal_op_unknown,
@@ -151,7 +152,33 @@ impl Children {
         }
     }
 
-    /// **THE INSTALL** — the one site a child anchor is added, **and the composite key does the work in
+    /// **⟶ ADDED 2026-10-21 (`§1.2`'s dated clause, on the architect's ruling): THE POSITION A REFERENCE IS
+    /// HELD AT, DERIVED FROM THIS STRUCTURE AND NOT CACHED ON ANY ANCHOR.**
+    ///
+    /// **The derivation is EXACT and the structure is why:** a `MAP` container's key IS the hashmap's own key,
+    /// and a `VEC` container's position IS its index (`§1.3`/`R-3`, *"contiguous from `0`"*) — so the position
+    /// is `Segment::Index(position)` off the container's own arena, and the crate's `key_fits` is the gate
+    /// (`Kind::Vec` admits ONLY `Segment::Index`, `Kind::Map` ONLY `Segment::Key`) that makes the kind and the
+    /// position the key's whole function.
+    ///
+    /// **The search stops at the FIRST key holding this reference**, which is sound because a reference
+    /// stands at ONE `(key, tier)` pair of one container (`A34` bounds a pair to one anchor; a reference is
+    /// minted once, `Store::mint`, and installed once). It walks the structure directly and allocates
+    /// nothing — the answer's `Segment` is the only allocation, and only when one is found.
+    fn position_of(&self, reference: usize) -> Option<Segment> {
+        match self {
+            Children::Map(keys) => keys
+                .iter()
+                .find(|(_, slots)| slots.values().any(|held| *held == reference))
+                .map(|(key, _)| key.clone()),
+            Children::Vec(positions) => positions
+                .iter()
+                .position(|slots| slots.values().any(|held| *held == reference))
+                .map(|position| Segment::Index(position as u64)),
+        }
+    }
+
+    /// **THE ONE INSTALL** — the one site a child anchor is added, **and the composite key does the work in
     /// BOTH kinds: one anchor per `(key, tier)` pair** (`A34`, `DD-10`). A keyed container files the
     /// anchor under its own key and the pair's tier. An array container files it at its index's POSITION —
     /// the position IS the index (`§1.3`) — where `i = len` is the append the container's own contiguous
@@ -254,26 +281,13 @@ impl Children {
         }
     }
 
-    /// `§1.3`/`§4.2` `R-3`: **a `VEC`'s index keys are *"non-negative integers, contiguous from `0`"`** —
-    /// **the positions ARE the indices**, so the structure is renumbered by re-keying each surviving
-    /// anchor to the position it now stands at. Each anchor keeps its own tier and points to the same
-    /// node; only the index it stands at moves, so no node is minted, none is dropped and every surviving
-    /// node stays reachable from the container's own (dense, from `0`) read (`§5.5`).
-    fn renumber(&self) -> Vec<(usize, u64)> {
-        match self {
-            Children::Map(_) => Vec::new(),
-            Children::Vec(positions) => positions
-                .iter()
-                .enumerate()
-                .flat_map(|(position, slots)| {
-                    slots
-                        .values()
-                        .copied()
-                        .map(move |reference| (reference, position as u64))
-                })
-                .collect(),
-        }
-    }
+    // **⟶ DELETED 2026-10-21 (`§1.2`'s dated clause, on the architect's ruling): `Children::renumber` is
+    // GONE.** Its only caller was `Store::renumber_vec`, deleted in the same pass, and its whole output was
+    // the `(reference, position)` pairs that pass wrote into `ChildAnchor.key`. **The `§1.3`/`R-3` property it
+    // served is a property of THIS structure and is untouched by its departure: positions ARE indices,
+    // `remove(position)` closes the gap, and `key_set` still answers `0..len`** — so a reader that needs a
+    // reference's position reads it from `Children::key_set`/`pair` as `Store::derived_key` does. **DELETED
+    // RATHER THAN LEFT DEAD** (this codebase's doctrine), since a dead renumbering would read as a live one.
 }
 
 /// One key's own anchors, rank DESCENDING — so the store's canonical order (`§5.1`: `file`, `mem`, `temp`)
@@ -854,13 +868,17 @@ impl Store {
                 // own reference carries the register's OWN identity marker (the EMPTY segment marker) and THE
                 // REGISTER'S OWN CONDITIONAL TIER — `file` where the path was provided and passed, `mem`
                 // otherwise — and never a caller-passed tier (`§2.1`'s empty-address reference clause, `A42`).
+                // **`§1.2`'s dated clause of 2026-10-21: the register's reference stands at NO key, so this
+                // cell opens `None`** — the register is the walk's START and is reached by no segment, and
+                // nothing here stores a key for it. (`§2.1`'s withdrawn `NodeRef.anchor.key =
+                // Segment::Key(String::new())` spelling is gone with the member it spelled.)
                 anchor: ChildAnchor {
-                    key: Segment::Key(String::new()),
                     tier: register_tier,
                     // **`DD-44` (`§1.6` item 4 (c)): `register_marker` is TRUE on THIS reference and on no
                     // other — the register's own, whose address is the empty set. Every reference a segment
                     // reaches is minted through `Store::mint`, which carries `false`.**
                     register_marker: true,
+                    derived_key: RefCell::new(None),
                 },
                 node: 0,
             }],
@@ -962,9 +980,11 @@ impl Store {
     ///
     /// `close_up` is the CALLER'S own distinction between the two states a removal serves, and it is the
     /// store's, not this helper's: **the WRITE arms (`W-1`'s replacement, `W-6`'s purge, the re-mint) and
-    /// every rebuild clear a pair whose INDEX stays occupied, so no gap is opened and no renumbering is
-    /// owed; a DELETE removes the index itself, so its position closes up and `renumber_vec` re-keys the
-    /// survivors (`§1.3`/`R-3`).**
+    /// every rebuild clear a pair whose INDEX stays occupied, so no gap is opened and nothing is owed; a
+    /// DELETE removes the index itself, so its position closes up IN THE ARENA (`§1.3`/`R-3`) — and that
+    /// closing IS the whole of it, `close_up: true` reaching `Children::remove`'s `Vec::remove(position)`.
+    /// NO RE-KEYING PASS FOLLOWS: `§1.2`'s dated clause of 2026-10-21 removed `ChildAnchor.key`, so a
+    /// survivor's key is DERIVED from the position it stands at rather than written into it.**
     fn remove_refs(&mut self, link: usize, doomed: &[usize], close_up: bool) {
         if doomed.is_empty() {
             return;
@@ -977,19 +997,16 @@ impl Store {
         }
     }
 
-    /// `§1.3`/`§4.2` `R-3`: **a `VEC`'s index keys are *"non-negative integers, contiguous from `0`"`** —
-    /// **the positions ARE the indices, so a removal closes the gap by construction and this pass only
-    /// re-keys each surviving anchor to the position it now stands at.** Each anchor keeps its own tier and
-    /// points to the same node; only the index it stands at moves, so no node is minted, none is dropped
-    /// and every surviving node stays reachable from the container's own (dense, from `0`) read (`§5.5`).
-    fn renumber_vec(&mut self, link: usize) {
-        if self.links[link].kind() != Kind::Vec {
-            return;
-        }
-        for (reference, index) in self.links[link].children.renumber() {
-            self.refs[reference].anchor.key = Segment::Index(index);
-        }
-    }
+    // **⟶ DELETED 2026-10-21 (`§1.2`'s dated clause, on the architect's ruling): `renumber_vec` IS GONE.**
+    // Its single body statement re-keyed each surviving anchor to the position it now stands at — a write to
+    // the `ChildAnchor.key` member, which has LEFT the member set. **The pass's other work is not lost,
+    // because it was never the pass's:** `remove_refs`' `close_up` already closes the gap IN THE STRUCTURE
+    // (`Children::remove` → `Vec::remove(position)`), so after a DELETE removing index `i` the survivors ARE
+    // at positions `0..len` — the `§1.3`/`R-3` contiguity is a property of the ARENA, not of any anchor — and
+    // `Store::derived_key` reads each position back off that arena at the read. **The deleted pass had no
+    // reader and no other effect: `Children::renumber` was its only caller and it too is deleted.**
+    // **DELETED RATHER THAN LEFT AS A NO-OP** (this codebase's doctrine): an emptied `renumber_vec` would
+    // still be called on the delete path and would still tell a later reader that a re-keying happens there.
 
     // -----------------------------------------------------------------------------------------------
     // §2 — the shared resolver and the walk.
@@ -1441,11 +1458,15 @@ impl Store {
         // **`DD-44`: a reference a SEGMENT reaches carries `register_marker: false`** — the marker is TRUE on
         // the register's own reference ALONE (`§1.6` item 4 (c)), and this is the one mint every other
         // reference in the store passes through.
+        // **`§1.2`'s dated clause of 2026-10-21: the anchor NO LONGER CARRIES `key`, and the `key` argument
+        // above is NOT copied into it** — the container's own position IS the key and `Store::derived_key`
+        // reads it back off the structure, so no anchor caches a key any more and the cell opens `None` for
+        // every reference this mint builds.
         let reference = self.new_ref(
             ChildAnchor {
-                key: key.clone(),
                 tier,
                 register_marker: false,
+                derived_key: RefCell::new(None),
             },
             node,
         );
@@ -1810,10 +1831,51 @@ impl Store {
     // The verbs.
     // -----------------------------------------------------------------------------------------------
 
+    /// **`§1.2`'s dated clause of 2026-10-21: THE DERIVED KEY — the segment `reference` is held at, computed
+    /// AT THE READ from the container's own structure and from the position it stands at.**
+    ///
+    /// **THE DERIVATION IS EXACT, and `key_fits` is the gate that makes it so** (`src/store.rs`, the crate's
+    /// own predicate): **a `VEC` container admits ONLY `Segment::Index` keys and a `MAP` container ONLY
+    /// `Segment::Key` keys**, so **the key a container holds is a FUNCTION OF THE CONTAINER KIND AND THE
+    /// POSITION AND OF NOTHING ELSE** — for a `Vec`, `Segment::Index(position)` REPRODUCES the value the
+    /// withdrawn member cached exactly (the positions ARE its contiguous indices, `§1.3`/`R-3`), and for a
+    /// `Map` the key is the `HashMap`'s OWN key, which the container already holds.
+    ///
+    /// **THE SEARCH.** The reference's own record names no container (`NodeRef` is a node handle, `§2.1`), so
+    /// the derivation walks the store's LINKS — a `MAP`'s own key set directly, a `VEC`'s `0..len` positions —
+    /// and asks each whether this reference stands at it. **`A34` bounds the answer: at most ONE anchor per
+    /// `(key, tier)` pair, but the SAME reference may stand at a key under ONE tier only, so the first pair
+    /// whose slot holds this reference IS the answer** and the search stops there.
+    ///
+    /// **THE REGISTER'S OWN REFERENCE IS THE ONE CASE WITH NO ANSWER** (`§1.6` item 4; `§2.1`'s empty-address
+    /// reference clause): **it stands on no link at all** — it is the walk's start, reached by NO segment —
+    /// so no container holds it and this returns `None`. **That is the register's whole distinction from a
+    /// reference reached by the legal `""` key, and it is carried by `register_marker`, not by a key**
+    /// (`§0.4`'s marker clause: the marker's old spelling was *"a MARKER and not a key"*).
+    fn derived_key(&self, reference: usize) -> Option<Segment> {
+        // The register's own reference is the marker's ONE `true` (`DD-44`) and is held by no container: it
+        // stands at no key, and this is the one state in which the answer is absent.
+        if self.refs[reference].anchor.register_marker {
+            return None;
+        }
+        // The structure that holds it names the key: the walk is over the store's links and the derivation
+        // itself is `Children::position_of`'s (`§1.2`'s dated clause — *"the codec can infer the key from the
+        // vec index directly"*).
+        self.links
+            .iter()
+            .find_map(|link| link.children.position_of(reference))
+    }
+
     /// `§2.1`: the ONE shared resolution function — **the AMENDED consumer set, `read` · `write` · `delete` ·
     /// `listen` · `unlisten`, each reaching its target through it and through no second resolver.** The
     /// as-filed sentence named `watch`, which `A58` SUPERSEDES as a stopgap for the listener surface
     /// (`write-and-read.md §6.5`), so `§2.1`'s restatement of this consumer set replaces it.
+    ///
+    /// **⟶ AMENDED 2026-10-21 (`§1.2`'s dated clause, on the architect's ruling): the boundary DERIVES the
+    /// reference's key and hands it back on the anchor it returns.** The return type is UNMOVED — still
+    /// `&NodeRef` — so `§2.1`'s `findAddress(address, t).anchor.tier == t` observable and every caller of
+    /// this function read exactly as before; what moved is that the key is no longer a member the anchor
+    /// STORED but a value the read DERIVES (`Store::derived_key`) and files in the anchor's answer cell.
     pub fn findAddress(&self, address: AddressArg, tier: TierArg) -> Result<&NodeRef, StoreError> {
         let sel = read_tier_sel(&tier)?;
         let segments = address_segments(&address)?;
@@ -1822,6 +1884,11 @@ impl Store {
         } else {
             self.walk(&segments, &sel)?.0
         };
+        // **The derivation, taken once at the boundary the caller reads the answer from** (`§1.2`'s dated
+        // clause: *"a derived key is still answerable at that boundary"*). The cell is the one the answer
+        // carries out; it holds no value the store maintains, and a reference the store holds under no
+        // container — the register's — answers `None`.
+        *self.refs[reference].anchor.derived_key.borrow_mut() = self.derived_key(reference);
         Ok(&self.refs[reference])
     }
 
@@ -1959,7 +2026,10 @@ impl Store {
                 // The container's contiguous index count: its DISTINCT index keys (`§1.3`'s *"contiguous
                 // from `0`"*, read with `§4.2` `R-3`'s *"the container's contiguous index count"*). No
                 // renumbering is owed here — a refused write mints no key and removes none, so no gap can
-                // stand: the delete path's `renumber_vec` (`DD-30`) is the only state that closes one.
+                // stand: the DELETE path's `close_up: true` (`DD-30`) is the only state that closes one, and
+                // it closes it in the ARENA (`Children::remove`'s `Vec::remove(position)`) rather than by any
+                // re-keying pass — the `renumber_vec` this comment once named was deleted on 2026-10-21 with
+                // the `ChildAnchor.key` member it wrote (`§1.2`'s dated clause).
                 let contiguous = self.keys_at(parent_link).len() as u64;
                 if index > contiguous {
                     return Err(container_kind_conflict_for_key(
@@ -2142,22 +2212,22 @@ impl Store {
                 tiers.push(tier);
             }
         }
-        // **A DELETE removes the index itself**: an array container's position closes up and the
-        // survivors are renumbered (`§1.3`/`R-3`, `renumber_vec` below).
+        // **A DELETE removes the index itself**: an array container's position closes up **in the arena**
+        // (`§1.3`/`R-3`; `Children::remove`'s `close_up: true`, which is the whole of the closing).
         match &key {
             Some(_) => self.remove_refs(link, &removed, true),
             None => self.remove_refs(self.register, &removed, true),
         }
-        if matches!(key, Some(Segment::Index(_))) {
-            // `§1.3`: a `VEC`'s key domain is *"index keys — non-negative integers, contiguous from
-            // `0`"*, and `§4.2` `R-3` reads the container's *"contiguous index count"* from `0`. A removal
-            // that left a gap would leave the surviving anchor at index `i` reachable by an address the
-            // `VEC`'s own read — whose loop stops at the first absent index — cannot contain it, and `§5.5`'s
-            // reachability (*"a minted node no address resolves to"*) forbids exactly that. The surviving
-            // anchors are therefore renumbered so the indices stay contiguous from `0`, and the surviving
-            // nodes are DENSE from `0` in the container's own read.
-            self.renumber_vec(link);
-        }
+        // **⟶ DELETED 2026-10-21 (`§1.2`'s dated clause): the `renumber_vec(link)` call that stood here is
+        // GONE with the pass itself** — it re-keyed survivors to their new positions, which the structure
+        // already is. **`§1.3`'s domain (*"index keys — non-negative integers, contiguous from `0`"`) and
+        // `§4.2` `R-3`'s *"contiguous index count"* STILL HOLD, and hold for the same reason they always
+        // did: `close_up: true` above applies `Vec::remove(position)` to the ARENA, so the survivors ARE at
+        // `0..len` with no gap** — a removal that left one would still leave a minted node unreachable
+        // (`§5.5`) and is exactly what `close_up` prevents. **The write path's `close_up: false` is UNMOVED
+        // and is not this clause's business: `remove_refs` runs moments before `install` puts the new anchor
+        // at that same `(index, tier)`, so closing the gap there would shift later positions** (`remove_refs`'
+        // own clause).
         let after = self.state_now(&segments);
         let op = JournalOp {
             opId: next_op_id(),

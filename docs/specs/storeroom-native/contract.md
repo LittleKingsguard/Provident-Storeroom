@@ -655,6 +655,20 @@ spelling a `VEC` element's child anchor LEGITIMATELY carries, so the register's 
 with a legal `VEC` element's `key` and the two references would be no more separable than they are now — and
 `§2.1`'s *"the segment it is held at"* would read false of the register's reference besides, which needs
 `§1.2`'s `ChildAnchor` row and `§1.5` re-read.** **Available only with that re-read, and DECLINED here.**
+**⟶ NOTE 2026-10-21 (`role_spec_writer`): THE RE-READ THIS REFUSAL NAMED AS ITS CONDITION HAS NOW HAPPENED,
+AND THE DECLINED OPTION IS MOOT RATHER THAN REVIVED — `key` HAS LEFT THE `ChildAnchor` MEMBER SET**
+(`store-model.md §1.2`'s dated clause of this date, on the architect's ruling; the option's own words above
+stand BYTE-FOR-BYTE and are read through this note). **THE REFUSAL IS NOT WITHDRAWN AND IS NOT REVERSED, AND
+ITS GROUND SURVIVES THE RE-READ INTACT: this row refused a RE-TYPED `ChildAnchor.key` — an absent-key
+spelling or a sentinel INSIDE the existing two-class domain — because EITHER MOVES THE COLLISION RATHER THAN
+REMOVING IT, *"`Segment::Index` is a spelling a `VEC` element's child anchor LEGITIMATELY carries, so the
+register's marker key would then coincide with a legal `VEC` element's `key`"*.** **A member REMOVED is
+neither a re-typing nor a sentinel: the collision this row priced does not arise, because there is no longer
+a `key` member on the register's reference for a legal `VEC` element's key to coincide with.** **SO THE
+RECORD OF THE REFUSAL STANDS AS A DECISION — it is kept, not deleted, because a declined option that a later
+ruling makes moot is still the evidence that the alternative was priced — and the operative member set is
+`store-model.md §1.2`'s dated clause of this date.** **The same reading reaches this row's `alt` cell above,
+whose `anchor.key` price is now moot on the same ground while its own words stand byte-for-byte.**
 **NO NEW `DD` ROW IS AUTHORED BY THIS BLOCK: the refused species is carried by the row's existing
 `what it REFUSES` cell, the row's `alt` cell already prices the alternative it priced (*"KEEPING the bare
 `Segment::Key(String::new())` spelling with NO marker"*, whose price *"the declared observable (`anchor.key`)
@@ -909,7 +923,7 @@ significant"* FAILS the row).
 | `TierArg::{Absent, Token(Tier), Set(Vec<TierSetItem>), OtherToken(String), Null, Undefined, Object, NonString}` — and `TierSetItem::{Token(Tier), Other(String), Null, Undefined, Object}` | **`§3.1.1`'s ARITY TABLE cell by cell, per verb** — the permissive type is REQUIRED, or the write's and delete's absent/array answers are unreachable | `§3.1.1`; `parameter-semantics.md §2.2`–§2.4 |
 | `OpIdArg::{Id(String), Absent, Null, Undefined, NonString(i64)}` | `PAR-10`'s domain and outside list (including the blank-string case) | `parameter-semantics.md §2.10` |
 | `FilePathArg::{Path(String), Absent, Null, Undefined, Empty, NonString}` · `JournalLengthArg::{Count(u32), Absent, Zero, Negative(i64), Fractional(f64), NaN, Infinity, NonNumberString, NonNumberBool, Null, Undefined, Object}` | `PAR-6`/`PAR-7`'s domains and their outside lists | `§7.1`; `parameter-semantics.md §2.6`, §2.7 |
-| `NodeRef` with `NodeRef.anchor: ChildAnchor` and `ChildAnchor.{key, tier}` **⟶ AMENDED 2026-10-11: `ChildAnchor` also carries `register_marker: bool`, TRUE on the register's own reference alone (`DD-44`; the clause above)** | the resolver's RETURNED REFERENCE and the anchor's own properties, **with the empty address's non-colliding marker** | `§2.1`, `§1.2`; `§1.6` item 4 (a)/(b); `DD-44` **⟶ AMENDED 2026-10-11: this row's *"non-colliding marker"* is the `register_marker` member ALONE, and the marker's `key` spelling STAYS `Segment::Key(String::new())` — the SAME value the LEGAL `""` register key carries (`§1.5` item 1), so the collision of the two `key` values is DECLARED and the property is the carrier (`DD-44`'s dated clause; `§0.4`'s marker clause above; `[T: the row's own marker carrier, stated so the spelling table reads no unholdable key | CONTRACT]`)** |
+| `NodeRef` with `NodeRef.anchor: ChildAnchor` and `ChildAnchor.{key, tier}` **⟶ AMENDED 2026-10-11: `ChildAnchor` also carries `register_marker: bool`, TRUE on the register's own reference alone (`DD-44`; the clause above)** **⟶ AMENDED 2026-10-21 (`role_spec_writer`) ON THE ARCHITECT'S RULING: THE CELL'S `ChildAnchor.{key, tier}` IS RE-SPELLED `ChildAnchor.{tier, register_marker, node}` — `key` HAS LEFT THE MEMBER SET, SO THE SPELLING TABLE DECLARES ONLY MEMBERS THE SHAPE CARRIES** (`store-model.md §1.2`'s dated clause of this date, which is the ONE home of the member set and its `4 − 1 = 3` arithmetic; `A129` (3) — **this cell now bears its own date and the ruling it reads, so the re-spelling is a live operative statement correctly amended rather than a quotation**; `[T: the spelling table reads no member the declared shape does not carry | CONTRACT]`) | the resolver's RETURNED REFERENCE and the anchor's own properties, **with the empty address's non-colliding marker** | `§2.1`, `§1.2`; `§1.6` item 4 (a)/(b); `DD-44` **⟶ AMENDED 2026-10-11: this row's *"non-colliding marker"* is the `register_marker` member ALONE, and the marker's `key` spelling STAYS `Segment::Key(String::new())` — the SAME value the LEGAL `""` register key carries (`§1.5` item 1), so the collision of the two `key` values is DECLARED and the property is the carrier (`DD-44`'s dated clause; `§0.4`'s marker clause above; `[T: the row's own marker carrier, stated so the spelling table reads no unholdable key | CONTRACT]`)** |
 | `StoreError { status: String, message: String }` | `StoreError`'s closed two-member record (**exactly these two members and no third**; `status` is the member's **exact** `§8.1` spelling) | `§8.3` |
 | `WriteResult { op: JournalOp, watched: Vec<Vec<Segment>> }` | `§3.6`'s two members; **`watched` is the watched ADDRESSES** (`P-TP-8`, `§6.5`) — **NOT a `string[]`** | `§3.6`, `§6.5` |
 | `JournalOp { opId: String, kind: JournalOpKind, address: Vec<Segment>, tier: Option<Tier>, before: BaseState, after: BaseState, seq: u64, compacted: bool }` · `JournalOpKind::{Write, Delete}` | `§6.2`'s closed record shape and `kind`'s closed two-value domain | `§6.2` |
@@ -1001,7 +1015,15 @@ reference carries BESIDE those two**; `A41`; `DD-44`; the gate-4 adversarial pas
 CONTRACT]`): **`ChildAnchor::register_marker: bool` — TRUE on EXACTLY ONE reference in a store, the
 register's (whose address is the empty set, `§1.6` item 4 (a)/(b)), and FALSE on every reference a segment
 reaches; it is a property of the ANCHOR and NOT a `Segment` variant, so `§1.5` item 1's closed segment domain
-(`string` · non-negative integer) is UNWIDENED and `§1.7`'s five-component closure is UNMOVED.**
+(`string` · non-negative integer) is UNWIDENED and `§1.7`'s five-component closure is UNMOVED.** **⟶ AND THE
+QUOTATION AT `:1012` — *"`ChildAnchor.{key, tier}`"* — IS READ THROUGH `store-model.md §1.2`'s DATED CLAUSE OF
+2026-10-21, WHICH REMOVES `key` FROM THE MEMBER SET** (`role_spec_writer`; `A129` (3)'s classifying
+instrument: **the quoted words sit inside a clause that at its own bytes declares its source row stands
+byte-for-byte, so they are QUOTED-AS-SUPERSEDED HISTORY and are LEFT BYTE-EXACT rather than re-spelled — a
+re-spell of a quotation would corrupt the record of what was filed**; `DEF-2026-10-02`). **NOTHING ELSE OF
+THIS CLAUSE MOVES: its own declarations — the marker's type, its TRUE-on-exactly-one and FALSE-elsewhere
+domain, and its observables — are stated over `register_marker` and NEVER over a `key`, so the member's
+departure leaves every one of them whole and this clause needs no second member.**
 **`findAddress([], t).anchor.register_marker == true` and `findAddress([""], t).anchor.register_marker ==
 false` in a store whose register holds a `""` key — so the two references are DISTINGUISHED by a declared
 observable, and the *"EMPTY segment marker"* is a MARKER and not a key** (`§5.7`'s register-reference cell
@@ -1028,6 +1050,32 @@ references' own values, in one line: **the two `anchor.key` values are EQUAL —
 REFUSES` cell the refused species and its `alt` cell the price — so the table's census stands at `45`, the
 typed register at `8` (`8 ≤ 8` ✓) and the fail set at `16` (`11 + 2 + 1 + 1 + 1 = 16` ✓ — **⟶ RE-SPELLED 2026-10-15 BY THE GATE-4 FINDINGS PASS: this cell read `15` and `11 + 2 + 1 + 1 = 15`, BYTE-FOR-BYTE above and read THROUGH this reading**; `§8.1`'s dated clause of 2026-10-15), and NO `src/**` byte
 moves.**
+
+**⟶ AMENDED 2026-10-21 (`role_spec_writer`) ON THE ARCHITECT'S RULING — THIS CLAUSE'S SECOND MEMBER, THE
+MARKER'S `key` SPELLING, IS WITHDRAWN AS A MEMBER AND ITS ONE CARRYING SENTENCE IS RE-READ, BECAUSE `key` HAS
+LEFT THE `ChildAnchor` MEMBER SET** (`store-model.md §1.2`'s dated clause of this date; the architect's two
+directives, verbatim, stand there; `A129` (3)'s classifying instrument). **THIS SITE IS A LIVE OPERATIVE
+STATEMENT AND NOT A QUOTATION, WHICH IS WHY IT IS AMENDED HERE RATHER THAN MERELY CITED: the clause above
+declares ITSELF *"the operative statement of the marker's `key` spelling"*, and a `key` spelling can no longer
+be a member of the anchor it spelled.** **THE CLAUSE'S EVERY SENTENCE ABOVE STANDS BYTE-FOR-BYTE AND IS READ
+THROUGH THIS ONE — NOT ONE WORD IS DELETED — AND WHAT MOVES IS ONLY ITS SECOND MEMBER'S STATUS: where it read
+*"the register's own reference ALSO carries `ChildAnchor.key = Segment::Key(String::new())`"*, the register's
+own reference carries NO `key` member at all.** **THE CLAUSE'S OWN WORDS ALREADY IDENTIFY THAT VALUE AS
+SOMETHING OTHER THAN A KEY — *"the EMPTY segment marker"*, and *"THAT VALUE IS NOT A KEY THE REGISTER CAN NEVER
+HOLD"* — which is the reading `src/records.rs:67–68` states when it calls the same thing *"a MARKER and not a
+key"*.** **SO THIS AMENDMENT TAKES THE CLAUSE AT ITS OWN WORDS: the value was NEVER a key, and it leaves with
+the member that carried it.** **THE DECLARED COLLISION THE CLAUSE EXISTS TO DECLARE IS THEREBY REMOVED AND NOT
+DENIED:** `findAddress([], t)` and `findAddress([""], t)` no longer *"spell the SAME `anchor.key`"*, because
+neither reference spells an `anchor.key` — **the two-line assertion the clause prints is re-read at its
+surviving half, which is the half that always carried the distinction:** **the register's own reference is
+distinguished by `register_marker` ALONE — `findAddress([], t).anchor.register_marker == true` against
+`findAddress([""], t).anchor.register_marker == false` in a store whose register holds a `""` key — exactly as
+the clause's own sentence already concluded** (`§0.4`'s marker clause above, read through `store-model.md
+§1.2`'s dated clause; `DD-44`'s dated clause). **NOTHING ELSE MOVES: NO NEW `DD` ROW is authored, the row's
+`what it REFUSES` and `alt` cells stand, and the census, the typed register and the fail set stand at `45`,
+`8` (`8 ≤ 8` ✓) and `16` (`11 + 2 + 1 + 1 + 1 = 16` ✓) exactly as the clause above printed them, and NO
+`src/**` byte moves** (`[T: the marker's second member withdrawn with the member that carried it, the
+non-confusability carrier unmoved | CONTRACT]`).
 
 **⟶ AMENDED 2026-10-11 — THE `ListenerHandle` ROW'S CONSTRUCTION RULE, ITS DOMAIN AND EVERY OUTSIDE VALUE,
 STATED HERE BECAUSE THIS SUBSECTION IS THE SPELLING TABLE'S ONE HOME** (`RCA-8(d)` ANNOTATE-BESIDE: **the
@@ -1292,6 +1340,21 @@ register's own reference alone and FALSE on every reference a segment reaches �
 the row's member SET is `store-model.md §1.2`'s dated clause, exactly as `§1.1`'s as-filed rows are read
 through that section's own dated clause.**
 
+**⟶ AMENDED 2026-10-21 (`role_spec_writer`) ON THE ARCHITECT'S RULING: THIS DOCUMENT'S COPY OF THE ROW IS
+READ THROUGH `store-model.md §1.2`'s LATER DATED CLAUSE, WHICH REMOVES `key` FROM THAT SET — AND THE POINTER
+ROUTE IS TAKEN HERE RATHER THAN A MIRRORED AMENDMENT** (the two sentences above stand byte-for-byte and are
+read through this clause, and so does the row at `:1281`; `store-model.md §1.2`'s dated clause of this date;
+`A129` (3)'s classifying instrument — this clause bears its own date and the ruling it reads, so it is
+quoted-as-superseded history and not a live ordering; `DEF-2026-10-02` bars a whole-file rewrite and `A131`
+bars `replace_all`). **WHY THE POINTER AND NOT A MIRROR, STATED BECAUSE THE CHOICE IS THIS PASS'S OWN:** **the
+`⟶ AMENDED 2026-10-11` clause above ALREADY DECLARES `store-model.md §1.2`'s dated clause to be *"the
+operative statement of the row's member SET"*, so this document carries no second home for that set and a
+mirrored amendment would MINT ONE — the shadow-home defect `§0.1` item 10(a) and 10(c) forbid, and exactly
+what this directory's part map is for.** **So the member set is `tier` · `node` · `register_marker`, `3`
+members where the clause above printed `4` (`4 − 1 = 3`), and the count is DERIVED at its one home and not
+restated here.** **NO NEW `DD` ROW, NO FAIL-STATE, NO `PAR` ROW, NO `P-*` ROW AND NO `§`-NUMBER IS AUTHORED
+BY THIS CLAUSE, and the part map, the closure predicate and every census of this document are UNMOVED.**
+
 **THE MONOTONIC CLAUSE, STATED OVER ANCHORS** (`P: §14 · A27`): **`rank(childAnchor.tier) ≤
 rank(parentAnchor.tier)`**, read with `M-1` of `§5.1`. **A child anchor whose tier outranks its parent's
 fails: `ParentAnchorMonotonicityViolation` (`§8.1`).** **The register has no parent anchor and therefore
@@ -1532,7 +1595,21 @@ and **it is not addressable, not enumerable and not serializable** — its bound
 **THE REFERENCE'S OWN DRIVABLE OBSERVABLE, STATED SO THE CLAUSE IS NOT READ AS UNCHECKED:** **the returned
 `NodeRef` carries the anchor's OWN properties — `NodeRef.anchor.key` (the segment it is held at) and
 `NodeRef.anchor.tier`** (`§1.2`'s `ChildAnchor`; `§0.4`'s spelling) — **and `findAddress(address, t)`
-answers a reference whose `anchor.tier` is `t` in exactly the states `§5.4` (a) declares.** **THE CLAUSE'S
+answers a reference whose `anchor.tier` is `t` in exactly the states `§5.4` (a) declares.** **⟶ AMENDED
+2026-10-21 (`role_spec_writer`) ON THE ARCHITECT'S RULING: `NodeRef.anchor.key` IS RE-SPELLED
+`NodeRef.anchor.tier` BESIDE `NodeRef.anchor.register_marker`, AND THE REFERENCE'S DRIVABLE OBSERVABLES ARE
+THOSE TWO** (`store-model.md §1.2`'s dated clause of this date, which removes `key` from the `ChildAnchor`
+member set; the architect's two directives, verbatim, stand there). **THIS IS A LIVE OPERATIVE STATEMENT AND
+NOT A QUOTATION: an observable spelled `NodeRef.anchor.key` would assert a member the declared shape does not
+carry, so the clause is amended AT ITS OWN SITE rather than merely cited.** **THE CLAUSE'S SUBSTANCE IS
+UNMOVED: the reference still carries the anchor's OWN properties, `findAddress(address, t)` still answers a
+reference whose `anchor.tier` is `t` in exactly `§5.4` (a)'s states, and the mutation half below stands
+whole.** **WHAT REPLACES THE KEY AS THE REFERENCE'S SECOND DRIVABLE OBSERVABLE IS THE TIER'S OWN COMPANION,
+`register_marker` — TRUE on the register's own reference alone and FALSE on every reference a segment
+reaches** — **so every state this clause makes drivable stays drivable, and the address-derived identity a
+caller might have read from a key is derived from the ADDRESS the caller supplied and not from a member the
+shape carries** (`§1.2`'s dated clause of 2026-10-21; `DD-44`; `[T: the reference's drivable observables,
+re-spelled so no clause reads a member the declared shape does not carry | CONTRACT]`). **THE CLAUSE'S
 MUTATION HALF — *"mutating through it mutates the store"* — HAS NO DRIVE IN THIS UNIT'S SURFACE, because
 the contract declares NO mutating API taking a `NodeRef`; it is carried as an `OWED` item with its owner and
 its positive revisit condition at `§0.2 · O-1`, NOT dropped and NOT weakened.** (`[T: the reference
@@ -1565,6 +1642,26 @@ ALONE: `findAddress([], t).anchor.register_marker == true` and
 block's own conclusions stand unmoved: the reference is the store's handle to the REGISTER, and NO anchor of a
 caller-named key and NO caller-passed tier is read into it; and this clause re-declares no spelling — `§0.4`'s
 marker clause is the ONE home of the marker's spelling and of the collision's declaration.**
+
+**⟶ AMENDED 2026-10-21 (`role_spec_writer`) ON THE ARCHITECT'S RULING — THIS CLAUSE'S SPELLING SENTENCE IS
+WITHDRAWN WITH THE MEMBER IT SPELLED, AND ITS CONCLUDING SENTENCE STANDS AS THE WHOLE OF IT** (`store-model.md
+§1.2`'s dated clause of this date; the architect's two directives, verbatim, stand there; `A129` (3)'s
+classifying instrument). **THIS SITE IS A LIVE OPERATIVE STATEMENT AND NOT A QUOTATION — it declares the
+spelling AND the observable — so it is amended HERE rather than merely cited, because a sentence spelling a
+`ChildAnchor.key` would assert a member the declared shape does not carry.** **EVERY BYTE OF THE CLAUSE ABOVE
+STANDS AND IS READ THROUGH THIS ONE; NOT ONE WORD IS DELETED.** **WHAT MOVES: the block's *"EMPTY segment
+marker"* no longer HAS a `ChildAnchor.key = Segment::Key(String::new())` SPELLING, because the register's own
+reference carries NO `key` member — so the declared COINCIDENCE of two `anchor.key` values does not arise and
+needs no declaration.** **AND THE CLAUSE'S OWN LAST SENTENCE ALREADY STOOD WITHOUT IT — *"the register's own
+is distinguished by the `register_marker` member ALONE"* — which is this amendment's whole content read at the
+clause's own words: the surviving observable, unchanged and repeated here so no reader must reach for the
+withdrawn half, is `findAddress([], t).anchor.register_marker == true` against
+`findAddress([""], t).anchor.register_marker == false` in a store whose register holds a `""` key.** **THE
+BLOCK'S CONCLUSIONS ARE UNMOVED AND ARE RE-AFFIRMED WHOLE: the reference is the store's handle to the REGISTER,
+no anchor of a caller-named key and no caller-passed tier is read into it, and `§0.4`'s marker clause remains
+the ONE home of the marker's spelling** (`§0.4`'s marker clause, read through `store-model.md §1.2`'s dated
+clause; `DD-44`'s dated clause; `[T: the empty-address reference's distinction, carried by the marker alone
+now that the spelling half is withdrawn | CONTRACT]`).
 
 **⟶ THE AS-BUILT REGISTER REFERENCE, RECORDED AT THIS PASS OF THE PROOFREADING GATE WITHOUT RE-DECIDING THE
 CLAUSE ABOVE** (`[T: an audit finding's carriage, not a ruling and not a `DD` row; the clause above stands

@@ -1272,6 +1272,14 @@ fn ng_k_the_kind_test_with_a_shadow_standing_at_the_addressed_key() {
 // (`AM-11`'s finding, unmoved), `§0.4`'s clause declares the `register_marker` observable as what separates
 // the two references, and the cell asserts THAT (so the cell is failable for a wrong implementation and
 // rests on no undeclared key distinction).
+//
+// **⟶ NOTE 2026-10-21 (role_test_writer): `anchor.key` IS A HISTORICAL SPELLING IN THIS FILE, AND NOTHING
+// HERE MOVES.** The prose above is a DATED RECORD of `DD-44`/`AM-11`'s finding as it stood and stays
+// byte-for-byte. Since then `§1.2`'s dated clause of 2026-10-21 (`store-model.md:237`) has removed `key`
+// from the `ChildAnchor` member set, so `DD-44`'s *"retains the register's `anchor.key` spelling"* is no
+// longer a member the shape carries — **the COINCIDENCE that clause records is what made this cell rest on
+// no key, and the removal only WIDENS that: the cell drove `register_marker` then and drives it now.** No
+// assertion in this file reads `anchor.key`, so no assertion moves.
 // Drives: §0.4 (the added marker clause; `AMENDED 2026-10-11`), `DD-44`, store-model.md §1.6 item 4 (c)/(d),
 // §1.5 item 1, §2.1 (amended empty-address clause), A49/A50/DD-34
 #[test]

@@ -13,6 +13,14 @@ use support::*;
 // §2.1 (P: §13 · A26) — `findAddress(address, tier?) → NodeRef` succeeds at a resolved address, and the
 // reference's own anchor carries the tier `P-SM-4` (a) reads (`findAddress(address, t).anchor.tier === t`).
 // Drives: §2.1 (P, §13 · A26)
+//
+// **⟶ RE-CUT 2026-10-21 (role_test_writer) ON THE ARCHITECT'S RULING — THE KEY-VALUE ASSERTION BELOW IS
+// DELETED AND THE TIER DRIVE STANDING BESIDE IT IS UNMOVED.** The cell formerly asserted
+// `r.anchor.key == Segment::Key("a")`; `§1.2`'s dated clause of 2026-10-21 left `key` out of the
+// `ChildAnchor` member set (`store-model.md:237`), so the assertion had no subject and the architect
+// ordered it deleted. **The `anchor.tier` drive this test's name promises is intact and is what this file's
+// `§2.1` coverage now rests on** (`§5.4`'s `P-SM-4` row (a); `store-model.md:728` re-spells the returned
+// reference's observables as `anchor.tier` beside `anchor.register_marker`).
 #[test]
 fn s2_1_find_address_resolves_a_minted_address_to_a_node_ref() {
     let mut store = new_store();
@@ -24,11 +32,18 @@ fn s2_1_find_address_resolves_a_minted_address_to_a_node_ref() {
         store.findAddress(AddressArg::List(key(&["a"])), t(Tier::Mem)),
         "§2.1: the resolver returns a reference to the store's own node",
     );
-    assert_eq!(
-        r.anchor.key,
-        Segment::Key("a".into()),
-        "§1.2: a ChildAnchor carries its key"
-    );
+    // **⟶ DELETED 2026-10-21 (role_test_writer) ON THE ARCHITECT'S RULING — *"Delete the assertion."*** **The
+    // cell that stood here asserted `r.anchor.key == Segment::Key("a")` under the clause *"§1.2: a ChildAnchor
+    // carries its key"*, and it is the ONLY site in this workspace that asserted a key VALUE.** **`§1.2`'s
+    // dated clause of 2026-10-21 (`store-model.md:237`; `contract.md §1.2` read through it) removed `key`
+    // from the `ChildAnchor` member set — `tier` · `node` · `register_marker`, `4 − 1 = 3` — so the
+    // assertion's SUBJECT no longer exists and it is deleted rather than re-spelled.** **The clause it cited
+    // is the one that moved: the anchor's member set is now read from `§1.2`'s operative statement, which
+    // names no key member, and a key VALUE is no longer a declared observable of the returned reference**
+    // (`§2.1`'s re-spelled observables, `store-model.md:728`: the reference's drivable observables are
+    // `NodeRef.anchor.tier` and `NodeRef.anchor.register_marker`). **THE ENCLOSING TEST SURVIVES WHOLE: parts
+    // 1 and 3 above and below are UNTOUCHED, so `§2.1`'s resolver return and the `§5.4`/`P-SM-4` (a) tier
+    // drive are still delivered by this cell.**
     assert_eq!(
         r.anchor.tier,
         Tier::Mem,
