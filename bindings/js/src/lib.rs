@@ -40,6 +40,25 @@ pub mod crossing;
 pub mod facade;
 
 // =================================================================================================
+// `codec` — THE FACADE'S CONVERSION CORE, DECLARED `pub(crate)` AND NOT `pub`
+// (`U-STOREROOM-ADDON-ADOPTION`'s facade split).
+//
+// **THE TWO HALVES ABOVE KEEP THE VISIBILITY THEY WERE DECLARED WITH AND THIS DECLARATION DOES NOT TOUCH
+// THEM**: `crossing` is the crate's pure-Rust surface (`package.md §4.5` item 1) and `facade` is the `cdylib`
+// half, and both are reached as such. **THE THIRD MODULE IS NEITHER.** `codec` holds the wire's decided tree
+// and the `Codec` that converts it in both directions — an implementation detail of the facade's own thin
+// methods (`§4.5` item 6) — so its declaration is `pub(crate)`: **it is visible to the sibling that uses it
+// and to no consumer of the crate.**
+//
+// **THE SPLIT IS A PURE MOVE AND THIS LINE IS THE WHOLE OF ITS DECLARATION** (`bindings/js/src/codec.rs`):
+// the `Codec`, both `impl` blocks and their own documentation blocks crossed byte-for-byte, the four
+// conversion helpers and the two type aliases stayed in `facade.rs` and are imported by `codec`, and
+// `crossing.rs` was not touched at all — it is still the pure half, and this crate's dependency on it runs
+// one way.
+// =================================================================================================
+pub(crate) mod codec;
+
+// =================================================================================================
 // THE EXPORT TABLE IS THE LIBRARY'S OWN AND THIS MODULE BUILDS NONE —
 // `U-STOREROOM-ADDON-ADOPTION`, `binding-crate-and-abi.md §2`'s deletion table, rows 4–5
 //
