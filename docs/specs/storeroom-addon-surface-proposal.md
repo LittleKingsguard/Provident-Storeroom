@@ -310,11 +310,11 @@ re-derive it: (i) `this` AS THE NODE-API RECEIVER — the meaning of the JavaScr
 is Node-API's, declared by `napi_get_cb_info` and by no byte of this project; and (ii) the ELEVEN EXPORT NAMES
 at `§2.1`, which are the architect's own minted surface and appear in no corpus this project writes.** **By the
 project's own binding rule, a `STEP 0` dossier is owed for a unit *"whose contract names, parameters or
-vocabulary originate outside this project"* (`docs/pending.md:61`), with **one row per adopted identifier**, its
+vocabulary originate outside this project"* (`docs/pending.md:38`), with **one row per adopted identifier**, its
 source citation and its status, and **NO OPEN ROW at the point a unit is reported green**.** **WHETHER THE
 TRIGGER FIRES — and, if it does, whether the dossier is a populated one-row-per-identifier file or the ZERO-ROW
 FORM WITH A WRITTEN RATIONALE — IS `role_change_analysis`'s DETERMINATION, FOLDED INTO STEP 4. THIS FILING TAKES
-NEITHER.** **The `≤ 8` figure is a BUDGET and not a cap (`docs/pending.md:61`), so an eleven-name export set is
+NEITHER.** **The `≤ 8` figure is a BUDGET and not a cap (`docs/pending.md:38`), so an eleven-name export set is
 eleven rows if the trigger fires, and no pass may route a name to an overflow list on count grounds.**
 
 **4. THE LAYER CLAUSE.** **EVERY OBSERVABLE NAMED IN THIS FILE IS `ENVELOPE/PURE` (`RCA-12`): the addon's export
@@ -332,7 +332,7 @@ assembled/`APP` layer's status does not move by this filing.**
    `bindings/js/index.mjs:524`–`:539`, `:1820`–`:1844`, `:1875`–`:1934`, `:1950`–`:2024`, `:3145`–`:3174`;
    `bindings/js/index.d.ts:230`–`:269`, `:742`; `bindings/js/package.json` in full (50 lines);
    `docs/specs/storeroom-listeners-proposal.md:1`–`:60` (the FORM this file matches) and `:60`–`:489`;
-   `docs/pending.md:30`–`:134`, `:760`–`:840`, `:896`–`:935`, and a search of the whole file for `P-9`/`P-10`;
+   `docs/pending.md:30`–`:134` (now `docs/pending.md:27`, the `## §1` heading, and `archive/pending/2026-10-22-discharged-parks-and-dated-records.md:149`), `docs/pending.md:760`–`:840` (now `archive/pending/2026-10-22-discharged-parks-and-dated-records.md:632`–`:712`), `docs/pending.md:896`–`:935` (now `archive/pending/2026-10-22-discharged-parks-and-dated-records.md:753` and `docs/pending.md:231`), and a search of the whole file for `P-9`/`P-10`;
    `docs/next-steps.md`'s live-ledger clauses; `docs/specs/storeroom-js/surface.md:1148`–`:1165`,
    `:1214`–`:1253`, `:1643`–`:1647`, `:1746`, `:1813`–`:1814`; `docs/specs/storeroom-js/contract.md:588`–`:589`;
    `docs/specs/storeroom-native/contract.md`: the `§8.1` arithmetic region and the set's operative count;

@@ -309,10 +309,10 @@ determination and this filing records it as TAKEN: THE TRIGGER FIRES.** **The un
 OUTSIDE this project — `this` as the Node-API receiver (a meaning declared by `napi_get_cb_info` and by no byte
 of this project) and EACH NEW EXPORT NAME (the architect's own minted surface).** **BY THE PROJECT'S BINDING
 RULE, A FIRED TRIGGER BLOCKS THE DELEGABLE VERDICT WHILE ANY DOSSIER ROW IS OPEN — not merely the spec pass**
-(`docs/pending.md:61`: the dossier's existence, one row per adopted identifier with its source citation and
+(`docs/pending.md:38`: the dossier's existence, one row per adopted identifier with its source citation and
 status, a populated collision block where the trigger fires, and **no open row at the point a unit is reported
 green**). **THE DOSSIER IS OWED AND IS NOT WRITTEN BY THIS ROLE.** **The `≤ 8` figure is a BUDGET and not a cap
-(`docs/pending.md:59`–`:61`, the architect's own ruling that it *"is a suggestion"*), so an eleven-name export
+(`docs/pending.md:36`–`:38`, the architect's own ruling that it *"is a suggestion"*), so an eleven-name export
 set is eleven rows and **no pass may route a name to an overflow list on count grounds.**
 
 **4. THE LAYER CLAUSE.** **EVERY OBSERVABLE NAMED IN THIS FILE IS `ENVELOPE/PURE` (`RCA-12`): the export table,

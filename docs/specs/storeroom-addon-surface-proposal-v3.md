@@ -222,7 +222,7 @@ carried and left.**
 
 **THE LABEL, AND WHY IT IS `P-12` RATHER THAN `P-8b`.** **`P-8` IS ALREADY TAKEN** — it is *"THE TEN
 PURE-PASSTHROUGH METHOD WRAPPERS COLLAPSE INTO THE FUNCTIONS THEY CALL"*, filed by the architect at code review
-2026-10-18 and **LANDED** (`docs/pending.md:764`, `:820`) — **so a `P-8b` spelling would attach a new item to a
+2026-10-18 and **LANDED** (`archive/pending/2026-10-22-discharged-parks-and-dated-records.md:667`, `:692`) — **so a `P-8b` spelling would attach a new item to a
 closed one's letter, and the next free integer in the sequence `P-9`/`P-10`/`P-11` (which `v2` minted and this
 file carries, `§11` item 1) is `P-12`.**
 
@@ -668,7 +668,7 @@ filing records it as TAKEN: THE TRIGGER FIRES.** **The unit adopts identifiers o
 project — `this` as the Node-API receiver (a meaning declared by `napi_get_cb_info` and by no byte of this
 project) and EACH NEW EXPORT NAME (the architect's own minted surface).** **BY THE PROJECT'S BINDING RULE, A FIRED
 TRIGGER BLOCKS THE DELEGABLE VERDICT WHILE ANY DOSSIER ROW IS OPEN — not merely the spec pass**
-(`docs/pending.md:61`: the dossier's existence, one row per adopted identifier with its source citation and
+(`docs/pending.md:38`: the dossier's existence, one row per adopted identifier with its source citation and
 status, a populated collision block where the trigger fires, and **no open row at the point a unit is reported
 green**). **THE DOSSIER IS OWED AND IS NOT WRITTEN BY THIS ROLE.**
 
@@ -697,7 +697,7 @@ family's name at `§4.3` item 1 even as `§4.3` item 3 disclaims doing so.**
 - **`#[napi]`** — the attribute `package.md §4.5` item 1 already forbids inside `crossing.rs` by name
   (`:576`–`:577`) and `§2.0.1`'s sixth row makes the facade's own instrument.
 
-**AND THE `≤ 8` FIGURE IS A BUDGET AND NOT A CAP** (`docs/pending.md:59`–`:61`, the architect's own ruling that it
+**AND THE `≤ 8` FIGURE IS A BUDGET AND NOT A CAP** (`docs/pending.md:36`–`:38`, the architect's own ruling that it
 *"is a suggestion"*), **so an eleven-name export set plus `P-12`'s rows is many rows and no pass may route one to
 an overflow list on count grounds.** **NO ROW IS WRITTEN HERE; each is OWED.**
 

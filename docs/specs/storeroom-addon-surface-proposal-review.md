@@ -36,7 +36,7 @@
 ## Semantics (STEP 0)
 
 - **STEP 0 run:** **yes** — **twice, once per unit.** **The trigger FIRES on both, by DIFFERENT LIMBS, and the limb is named for each.**
-- **Dossier — `U-STOREROOM-ADDON-ADOPTION`:** `docs/specs/storeroom-addon-adoption-adoption-dossier.md` — **`8` identifier rows, `8` `defined`, `0` `undefined-until-answered`.** **The `≤ 8` figure is a BUDGET and not a cap** (`docs/pending.md:61`; the architect verbatim: *"The <=8 rows is a suggestion, stop treating it as a hard rule"*): an expansion pass adds a row and **routes nothing to overflow on count grounds.**
+- **Dossier — `U-STOREROOM-ADDON-ADOPTION`:** `docs/specs/storeroom-addon-adoption-adoption-dossier.md` — **`8` identifier rows, `8` `defined`, `0` `undefined-until-answered`.** **The `≤ 8` figure is a BUDGET and not a cap** (`docs/pending.md:38`; the architect verbatim: *"The <=8 rows is a suggestion, stop treating it as a hard rule"*): an expansion pass adds a row and **routes nothing to overflow on count grounds.**
 - **Dossier — `U-STOREROOM-ADDON-SURFACE`:** `docs/specs/storeroom-addon-surface-adoption-dossier.md` — **`0` identifier rows, ZERO-ROW-EXEMPT, on a WRITTEN RATIONALE** (`§1`, `§2`, `§3` of that file), not by silence.
 - **Dossier snapshot:** **`OWED` TO THE LANDING PASS, FOR BOTH FILES** — **this role's wall carries no shell and no hashing verb.** **(a)** the sha256 of each dossier as authored, with byte count and line count; **(b)** the same figures written into this record's `Dossier snapshot:` cells, as the operative snapshots for gate 10; **(c)** the adoption contract's own limitation (`§10.2` item 1): **a record-integrity check, not a runtime wall, and it does not mechanically detect a dossier authored and hashed inside the same session after the pass began — which is this pass's case, and is stated rather than implied.**
 - **Open rows:** **`0`** across both dossiers.
@@ -155,4 +155,4 @@
 3. **Whether the built `.node` artefact exists** — and therefore whether `FTS-10.2` executes at all. `…-v5.md` `§8` item 4 carries the same disclosure.
 4. **The `napi 3.14.2` compile results** — carried as settled, not re-tested.
 5. **Whether a fresh runner can complete the binding crate's build** — a run this wall cannot take.
-6. **`../Agent Harness/docs/specs/adoption-semantics-gate/contract.md` is not readable from this root.** The rule is therefore cited **through this repository's own quotation of it — `docs/pending.md:61` — which is the ACTIVE form the architect's amendments left, and never as a direct read.**
+6. **`../Agent Harness/docs/specs/adoption-semantics-gate/contract.md` is not readable from this root.** The rule is therefore cited **through this repository's own quotation of it — `docs/pending.md:38` — which is the ACTIVE form the architect's amendments left, and never as a direct read.**
