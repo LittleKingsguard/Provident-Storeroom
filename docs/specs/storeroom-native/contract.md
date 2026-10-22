@@ -3836,7 +3836,11 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
      boot.**
    - **(c) THE OBSERVABLE.** **The canonical form is OBSERVABLE ONLY THROUGH THE `file` BYTES** — and
      through what those bytes carry after a boot; **no verb returns JSON text** (`§0.4` closes the surface,
-     and no clause of this directory hands a caller the file's text as a value). **AND THE ONE DECLARED
+     and no clause of this directory hands a caller the file's text as a value). **THIS ITEM GOVERNS THE
+     STORE'S DECLARED VERBS AND SURFACE, AND IT DOES NOT GOVERN A BINDING'S OWN INTERNAL REPRESENTATION:
+     a binding MAY translate its own value copy through JSON text, provided no store verb accepts,
+     returns or exposes that text and the store's `StoreValue` boundary is unchanged** (`A140`,
+     2026-10-21). **AND THE ONE DECLARED
      NORMALIZATION IS OBSERVED IN TWO HALVES, WHICH ARE NOT THE SAME HALF:** **IN MEMORY (`mem` and
      `temp`) THE SIGN IS NOT TOUCHED — a `mem`/`temp` `-0` reads back `-0`; the committed bytes of a
      `file`-tier write of `-0` carry `0`, and a `file`-tier `-0` therefore READS BACK `0` after a boot —

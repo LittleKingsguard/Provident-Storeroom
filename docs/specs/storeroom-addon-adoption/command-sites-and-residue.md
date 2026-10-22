@@ -1,6 +1,6 @@
 # Part — `command-sites-and-residue` (`U-STOREROOM-ADDON-ADOPTION`): the declared commands and the false comments
 
-- **Status:** CARRIER PART of `docs/specs/storeroom-addon-adoption/contract.md`. **REGENERATED 2026-10-18.** **AMENDED 2026-10-21 (`role_spec_writer`) ON THE ARCHITECT'S RULING: *"Lift the dependency constraint, it doesn't apply to the rust side."*** **`§4`'s preflight input is re-noted for the THREE-entry table; NO SITE MOVED, no flag changed, and `§1`–`§3` are unmoved — the lift is about a manifest and this part is about commands.** **NO WHOLE-FILE REWRITE WAS TAKEN** (`DEF-2026-10-02`; `docs/decisions.md` · `A131`).
+- **Status:** CARRIER PART of `docs/specs/storeroom-addon-adoption/contract.md`. **REGENERATED 2026-10-18.** **AMENDED 2026-10-21 (`role_spec_writer`) ON THE ARCHITECT'S RULING: *"Lift the dependency constraint, it doesn't apply to the rust side."*** **`§4`'s preflight input is re-noted for the THREE-entry table; NO SITE MOVED, no flag changed, and `§1`–`§2` are unmoved — the lift is about a manifest and this part is about commands.** **AMENDED AGAIN 2026-10-21 (`role_spec_writer`) ON THE SECOND DIRECTIVE, WHOSE TEXT IS VERBATIM: *"I have explicitly clarified that it was a hallucination based on a specific constraint that was only on the JS side."*** **`§3`'s old heading and its root-`Cargo.toml` bullet are MOVED OUT BYTE-EXACTLY TO THE ARCHIVE (`RCA-8(g)`) — the dependency prohibition they carried is retired while the ASYMMETRY THEY GOVERN STANDS; `§2`'s eleven sites still MOVE and still lose `--offline`.** **NO WHOLE-FILE REWRITE WAS TAKEN** (`DEF-2026-10-02`; `docs/decisions.md` · `A131`). **`A129` RETIRES THE `RCA-8(d)` ANNOTATE-BESIDE SPELLING CORPUS-WIDE, so this pass cites `A129`(3)'s classifying instrument and NOT `RCA-8(d)`.**
 - **Scope boundary.** No manifest clause (`binding-crate-and-abi.md`), no teardown (`finalizer-and-teardown.md`).
 - **The layer.** `ENVELOPE/PURE`. `[CONTRACT]`
 
@@ -44,15 +44,21 @@
 
 ## §3. THE COMMANDS THAT DO NOT MOVE
 
-**The store is dependency-free and offline; the binding crate fetches. THE ASYMMETRY IS THE RULING AND NOT AN OVERSIGHT** — a reader who finds the divergence must find this clause with it.
+**The binding crate fetches; the store's declared commands carry `--offline`. THE ASYMMETRY IS THE RULING AND NOT AN OVERSIGHT** — a reader who finds the divergence must find this clause with it.
+
+**⟶ 2026-10-21 — THE OLD "THE STORE IS DEPENDENCY-FREE AND OFFLINE" HEADING IS ARCHIVED** — see `archive/spec-history/2026-10-21-dependency-restriction-notes-move-out.md` §8 (`RCA-8(g)`). **THE STORE CRATE MAY CARRY A REGISTRY DEPENDENCY** — `serde`/`serde_json` are declared in the root manifest — **while the asymmetry itself STANDS and is UNMOVED:** the store's commands carry `--offline`, and the binding crate's fetch.
+
+**WHAT `--offline` NOW MEANS AT THE STORE'S SITES, STATED SO THE UNMOVED LIST BELOW IS NOT READ AS A DEPENDENCY CLAIM: the store's declared commands keep `--offline` as their BUILD FORM, satisfied from the populated `CARGO_HOME` cache; a COLD store build must fetch once, exactly as the sibling crate's does.**
+
+**THE STORE'S `--offline` IS A COMMAND PROPERTY AND NO LONGER A DEPENDENCY PROHIBITION — which is the one reading under which this heading's surviving half and the store crate's new `[dependencies]` table are one state and not a contradiction.** `[CONTRACT]`
 
 **Unmoved, each keeping `--offline`:**
-- **root `Cargo.toml`'s comment** — *"No dependencies: `cargo test --offline` and `cargo build --offline` must work with no registry."* **This describes the STORE crate, is true of it, and STANDS EXACTLY AS WRITTEN.**
+- **root `Cargo.toml`'s store build form** — the store's declared commands keep `--offline`, and the old dependency-free note is ARCHIVED — see `archive/spec-history/2026-10-21-dependency-restriction-notes-move-out.md` §9 (`RCA-8(g)`). **The store crate's `[dependencies]` table carries `serde` and `serde_json`; `--offline` remains a COMMAND property and is not a dependency prohibition.**
 - the root `package.json:11` `build` script's **FIRST** half — `cargo build --offline --release`, **the store's build, THE OTHER HALF OF THE SAME SCRIPT `§2` ROW 5 IS THE SECOND HALF OF, and UNMOVED: it keeps `--offline` and carries no `--manifest-path`**;
 - `scripts/publish.sh`'s store-suite and store-build legs;
 - the store's root suite.
 
-**AND THE STORE'S `--offline` IS NOT A POLICY ABOUT THE BINDING CRATE.** A policy restricting dependencies to control JS-side development version conflicts does not reach the Rust crate; the crate's own dependency clause **pins by caret requirement and prohibits PATH dependencies and vendored copies**, and says nothing against a registry dependency. `R: the FOUR CLAUSES row`, adjudication (3). `[CONTRACT]`
+**AND THE STORE'S `--offline` IS NOT A POLICY ABOUT THE BINDING CRATE.** A policy restricting dependencies to control JS-side development version conflicts does not reach the Rust crate; the crate's own dependency clause **pins by caret requirement and prohibits PATH dependencies and vendored copies**, and says nothing against a registry dependency. `R: the FOUR CLAUSES row`, adjudication (3). **⟶ AND THE SAME GROUND IS WHAT THE ARCHITECT HAS NOW RULED, IN HIS OWN WORDS — EXTENDED 2026-10-21 (`role_spec_writer`): *"I have explicitly clarified that it was a hallucination based on a specific constraint that was only on the JS side."*** **THE SENTENCE ABOVE IS THE READING AND THE RULING IS ITS AUTHORITY: a JS-side constraint reaches NO Rust crate, this one included.** **IT WAS WRITTEN HERE ABOUT THE BINDING CRATE ONLY, AND THE RULING CARRIES IT TO THE STORE CRATE — which is why the store crate's `[dependencies]` table now carries registry entries and why the residue is at the STORE's manifest and not only at the sibling's.** **WHAT DOES NOT MOVE: the PATH-dependency and vendored-copy prohibition is the crate's own clause and is not this policy, so it is not lifted with it** (`binding-crate-and-abi.md §1`; `docs/decisions.md` · `A132`). `[CONTRACT]`
 
 ---
 

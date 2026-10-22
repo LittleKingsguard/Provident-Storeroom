@@ -2,6 +2,7 @@
 //! `file`-tier state (`§7.2` `M-12`).
 
 use crate::records::Kind;
+use serde::Deserialize;
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::hash::{Hash, Hasher};
@@ -156,6 +157,104 @@ impl Segment {
             Segment::Array => 8,
             Segment::Function => 9,
         }
+    }
+}
+
+/// **THE DECODER'S HALF OF `§1.4`'s WIRE IMAGE** — the exact inverse of the `Serialize` impl in
+/// `crate::json`, kept beside the type for the same reason that impl is: the mapping IS the taxonomy's.
+///
+/// **A HAND-WRITTEN `Visitor` RATHER THAN A DERIVE, AND THE REASON IS THE `Object` ARM.** A derive would
+/// deserialize `Object` into a `BTreeMap` by way of the same map access this visitor performs, but it would
+/// also give the SEPARATE variants `Null`, `Undefined`, `Function`, `Symbol`, `BigInt`, `NonFinite`,
+/// `Cyclic` and `NonPlainCollection` an ACCEPTING arm each — so the JSON text `{"a":null}` could decode into
+/// a `StoreValue::Null` member where the boot's `DD-29` clause expects the value to be UNREPRESENTABLE and
+/// only ever dropped by `is_admitted`. **Writing the visitor keeps the outside classes UNREACHABLE FROM
+/// TEXT, which is their whole point: they are write-time triggers, never decoded states.** The single
+/// exception is JSON's own `null`, which decodes to `StoreValue::Null` so that `§7.2` item 6's drop and
+/// `DD-29` remain reachable exactly as before.
+///
+/// **THE NUMBER ARM IS `visit_f64` AND THE INTEGRAL SPELLING IS PRESERVED BY THE DECODER'S OWN PARSE:** a
+/// text carrying `1` and a text carrying `1.0` both arrive as `Num(1.0)`, which is what `§1.4`'s carrier
+/// declares (the exponent form is a SPELLING and not a value, `A59` (c) (b)).
+impl<'de> serde::Deserialize<'de> for StoreValue {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct ValueVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for ValueVisitor {
+            type Value = StoreValue;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                f.write_str("a JSON value the admitted taxonomy can carry")
+            }
+
+            fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<StoreValue, E> {
+                Ok(StoreValue::Bool(v))
+            }
+
+            fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<StoreValue, E> {
+                Ok(StoreValue::Num(v as f64))
+            }
+
+            fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<StoreValue, E> {
+                Ok(StoreValue::Num(v as f64))
+            }
+
+            fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<StoreValue, E> {
+                Ok(StoreValue::Num(v))
+            }
+
+            fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<StoreValue, E> {
+                Ok(StoreValue::Str(v.to_string()))
+            }
+
+            fn visit_string<E: serde::de::Error>(self, v: String) -> Result<StoreValue, E> {
+                Ok(StoreValue::Str(v))
+            }
+
+            /// JSON's own `null` — the ONE outside class a text can carry.
+            fn visit_unit<E: serde::de::Error>(self) -> Result<StoreValue, E> {
+                Ok(StoreValue::Null)
+            }
+
+            /// `serde_json` reaches this for JSON `null` on the default (non-`Option`) route.
+            fn visit_none<E: serde::de::Error>(self) -> Result<StoreValue, E> {
+                Ok(StoreValue::Null)
+            }
+
+            fn visit_some<D: serde::Deserializer<'de>>(
+                self,
+                deserializer: D,
+            ) -> Result<StoreValue, D::Error> {
+                StoreValue::deserialize(deserializer)
+            }
+
+            fn visit_seq<A: serde::de::SeqAccess<'de>>(
+                self,
+                mut seq: A,
+            ) -> Result<StoreValue, A::Error> {
+                let mut items = Vec::with_capacity(seq.size_hint().unwrap_or(0));
+                while let Some(v) = seq.next_element()? {
+                    items.push(v);
+                }
+                Ok(StoreValue::Array(items))
+            }
+
+            fn visit_map<A: serde::de::MapAccess<'de>>(
+                self,
+                mut map: A,
+            ) -> Result<StoreValue, A::Error> {
+                // A `BTreeMap` INSERTS LAST-WINS ON A REPEATED KEY, which is the rule the hand-rolled
+                // decoder's `members.insert` carried (`§7.2` item 6 reads whatever content stands at the
+                // path, and a duplicate key is not itself an error there).
+                let mut members = BTreeMap::new();
+                while let Some((k, v)) = map.next_entry::<String, StoreValue>()? {
+                    members.insert(k, v);
+                }
+                Ok(StoreValue::Object(members))
+            }
+        }
+
+        deserializer.deserialize_any(ValueVisitor)
     }
 }
 

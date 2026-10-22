@@ -1942,17 +1942,17 @@ test('ada_the_eleven_named_sites_lose_offline_and_keep_manifest_path', () => {
 });
 
 test('ada_the_stores_commands_keep_offline_and_the_asymmetry_is_the_ruling', () => {
-  // `command-sites-and-residue.md §3` — **THE COMMANDS THAT DO NOT MOVE**: *"The store is dependency-free and
-  // offline; the binding crate fetches. THE ASYMMETRY IS THE RULING AND NOT AN OVERSIGHT."*
+  // `command-sites-and-residue.md §3` — **THE COMMANDS THAT DO NOT MOVE**: the store's commands carry
+  // `--offline`, the binding crate fetches, and THE ASYMMETRY IS THE RULING. The store's `--offline` is a
+  // COMMAND property now, not a dependency prohibition; the old "store is dependency-free" note is archived.
   const rootManifest = textAt(join(REPO_ROOT, 'package.json'));
   const buildScript = JSON.parse(rootManifest).scripts.build;
   const halves = buildScript.split('&&').map((half) => half.trim());
   assert.equal(halves.length >= 2, true, 'the root `build` script is two halves');
   const [storeBuild, crateBuild] = halves;
   assert.match(storeBuild, /--offline/,
-    'the FIRST half is the STORE\'s build, and it KEEPS `--offline` — the store is the crate root '
-    + '`Cargo.toml`\'s *"No dependencies: `cargo test --offline` and `cargo build --offline` must work with '
-    + 'no registry"*');
+    'the FIRST half is the STORE\'s build, and it KEEPS `--offline` as its declared build form — a '
+    + 'COMMAND property, not a dependency prohibition');
   assert.doesNotMatch(storeBuild, /bindings\/js/,
     'and the first half is the store\'s: it must not name the binding crate\'s manifest');
   assert.equal(/bindings\/js\/Cargo\.toml/.test(crateBuild), true,
@@ -2018,17 +2018,21 @@ test('ada_the_three_residue_sites_s_1_s_4_and_s_6_are_corrected', () => {
     + `Read: ${stale === null ? '(no such figure)' : stale[1]}`);
 });
 
-test('ada_the_root_manifests_no_dependencies_comment_is_not_a_residue_and_stands_as_written', () => {
-  // `command-sites-and-residue.md §3`'s first bullet and `contract.md §3` item 5: **THE ROOT `Cargo.toml`'S
-  // "No dependencies" COMMENT IS NOT A RESIDUE.** *"It describes the STORE crate, is true of it, and STANDS
-  // EXACTLY AS WRITTEN."* — a cell that "corrected" it would be the same class of error the S-1 cell closes.
+test('ada_the_root_manifests_old_no_dependencies_comment_is_archived', () => {
+  // `command-sites-and-residue.md §3`'s first bullet and `contract.md §3` item 5: the root `Cargo.toml`'s
+  // old "No dependencies" sentence was a JS-side constraint on imports and runtime data retrieval, not a
+  // rule reaching a compiled Rust crate. It is moved out byte-exactly to the archive, and the source
+  // points there; the store's declared commands still keep `--offline` as their build form.
   const root = textAt(join(REPO_ROOT, 'Cargo.toml'));
-  assert.match(root, /No dependencies: `cargo test --offline` and `cargo build --offline` must work with no registry\./,
-    'the sentence stands exactly as written');
+  assert.doesNotMatch(root,
+    /No dependencies: `cargo test --offline` and `cargo build --offline` must work with no registry\./,
+    'the old dependency-free sentence is NOT left standing in the manifest');
+  assert.match(root, /archive\/spec-history\/2026-10-21-dependency-restriction-notes-move-out\.md/,
+    'the manifest points at the archive that holds the moved-out sentence');
   const table = dependencyTable(root);
-  assert.equal(table.length, 0,
-    'and it is true of the crate it describes: the ROOT crate is dependency-free. The adopted library and '
-    + 'the store\'s path dependency live in the BINDING crate\'s manifest, which is a different layer');
+  assert.deepEqual(table.map((row) => row.key).sort(), ['serde', 'serde_json'],
+    'the ROOT crate MAY carry registry dependencies, and it declares `serde` and `serde_json` under its '
+    + 'own dated clause');
 });
 
 test('ada_the_hand_declared_abi_is_deleted_and_the_core_is_untouched', () => {

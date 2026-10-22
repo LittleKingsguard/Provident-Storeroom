@@ -16,13 +16,12 @@ license = "AGPL-3.0-or-later"
 # `§4.2` item 1: `edition = "2021"` (`DD-27`). `§4.2` item 3: the only non-registry dependency is the
 # single path dependency on the store — no second path dependency and no vendored copy.
 #
-# **⟶ `S-1` CORRECTED 2026-10-20 (`U-STOREROOM-ADDON-ADOPTION`, `command-sites-and-residue.md §5`): the
-# sentence this cell carried DENIED THAT THIS CRATE EVER REACHES THE REGISTRY, and that denial is FALSE THE
-# MOMENT THE LIBRARY LANDS — so it is corrected rather than left standing, and THE CRATE FETCHES WHAT IT
-# NEEDS AT BUILD TIME**: the store is
-# dependency-free and offline, THE BINDING CRATE FETCHES, and the asymmetry is the ruling
+# ⟶ 2026-10-21 — THE BINDING CRATE FETCHES WHAT IT NEEDS AT BUILD TIME, and the asymmetry is the ruling
 # (`command-sites-and-residue.md §1`, `§3`) — the same ruling that drops `--offline` from every one of this
-# crate's declared commands at the eleven sites of `§2`.
+# crate's declared commands at the eleven sites of `§2`. The old store dependency-free clause is ARCHIVED —
+# see `archive/spec-history/2026-10-21-dependency-restriction-notes-move-out.md` §2. The store
+# may carry registry dependencies; its `--offline` remains a command property. The `[dependencies]` table
+# below is still exactly THREE entries and `P-ADA-1` still pins it.
 [lib]
 name = "storeroom_js_binding"
 path = "src/lib.rs"

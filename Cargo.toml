@@ -9,8 +9,28 @@ license = "GPL-3.0-or-later"
 # library target's name is the package name with `-` mapped to `_`, so `use storeroom_native::...`
 # reaches every surface item re-exported from the crate root.
 #
-# No dependencies: `cargo test --offline` and `cargo build --offline` must work with no registry.
+# ⟶ 2026-10-21 — THIS CRATE MAY CARRY REGISTRY DEPENDENCIES. The JS-side-only "no dependency"
+# constraint that stood here is ARCHIVED — see
+# `archive/spec-history/2026-10-21-dependency-restriction-notes-move-out.md` §1. `--offline` remains
+# the store's declared build form (a command property), and a cold build must fetch once.
 [dependencies]
+# `serde` carries the two trait impls — `Serialize` in `src/json.rs`, `Deserialize` in `src/value.rs` — and
+# `serde_json` is the codec itself. Neither is derived: both impls are hand-written, because the declared
+# image needs control the derives do not give (the canonical number spelling, and keeping the `§1.4`
+# outside classes unreachable from text).
+#
+# **`float_roundtrip` IS NOT OPTIONAL AND IS NOT A PERFORMANCE CHOICE — IT IS A CORRECTNESS ONE.** The
+# canonical spelling of `seams-and-lifecycle.md §7.2` item 7(a) is the SHORTEST DECIMAL THAT PARSES BACK TO
+# THE SAME `f64`, and that rule is the READ side as well as the write side (item 7(b): *"any finite JSON
+# number spelling a parser admits is ACCEPTED at the boot"*). Without this feature `serde_json`'s fast float
+# path REFUSES a long decimal expansion as `NumberOutOfRange` once it overflows to infinity — `f64::MAX`'s
+# own canonical spelling is 309 digits and is one such expansion — so a `file`-tier state holding
+# `f64::MAX` WROTE bytes the decoder could not read back, and `boot_load`'s no-load fall-through SILENTLY
+# DISCARDED THE WHOLE FILE. With the feature every canonical spelling round-trips to the identical `f64`,
+# `f64::MAX` and `f64::MIN_POSITIVE` included. Measured: `cargo test` at the root is `395` pass / `0` fail
+# both ways, so this feature is what makes the swap byte- and state-preserving rather than a silent loss.
+serde = "1"
+serde_json = { version = "1", features = ["float_roundtrip"] }
 
 [lib]
 name = "storeroom_native"

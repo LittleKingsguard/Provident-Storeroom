@@ -1,228 +1,134 @@
 //! The JSON image of the `file` tier's state (`§7.2` `M-12`, `DD-2`): a compact encoder and a matching
-//! decoder, with no dependency (the crate builds and tests offline).
+//! decoder over `serde_json`.
+//!
+//! **⟶ AMENDED 2026-10-21 — THE CLAUSE THAT STOOD HERE IS CORRECTED, NOT DELETED.** **AS FILED IT READ:**
+//! *"a compact encoder and a matching decoder, **with no dependency (the crate builds and tests offline)**."*
+//! **THAT SENTENCE WAS THE RESIDUE OF THE 'NO DEPENDENCY' HALLUCINATION, and the architect has ruled it so,
+//! verbatim:** *"Replace the hand-roll JSON with the crate, it's another legacy of the 'no dependency'
+//! hallucination"*; and on the rule itself: *"I have explicitly clarified that it was a hallucination based
+//! on a specific constraint that was only on the JS side."* **The clause was a JS-side constraint written
+//! into this crate's manifest as prose and then read as though it governed this crate — the misreading this
+//! project's own v4-delta flags at `S-2`.** **THIS MODULE NOW DEPENDS ON `serde_json`, declared in the root
+//! `Cargo.toml`, whose own `:12` comment is corrected in the same pass.** **WHAT DOES NOT MOVE:** the module
+//! stays its OWN module rather than being inlined into its call sites — the seam is what keeps the three
+//! call sites unchanged — and its public API stays exactly the two `pub(crate)` functions below.
+//!
+//! **THE BYTES ARE A PERSISTENCE CONTRACT, SO `serde_json` IS USED WITH ITS DEFAULTS OVERRIDDEN WHERE THEY
+//! DISAGREE WITH THE DECLARED IMAGE.** A store saved by this build must be readable by the build that
+//! preceded it, and vice versa, for the same state. Three points are pinned:
+//!
+//! 1. **THE NUMBER SPELLING IS DECLARED, AND `serde_json`'S OWN FLOAT FORMATTER DOES NOT PRODUCE IT.**
+//!    `seams-and-lifecycle.md §7.2` item 7(a) declares the rule: *"its canonical spelling is THE SHORTEST
+//!    DECIMAL SPELLING THAT PARSES BACK TO THE SAME `f64` — Rust's `f64` `Display` form: an integral carrier
+//!    value takes no fractional part (`100`, never `1e2` and never `100.0`), a signed zero is written `0`,
+//!    and a value whose shortest spelling needs an exponent takes it (`1e300`, `5e-324`)"* (`A59`;
+//!    `DD-46` (a); `contract.md §5.2` `P-IM-1`'s scoped equality relation). **`serde_json`'s default
+//!    formatter writes `1.0` as `1.0` and `1e16` as `1e+16`, where the declared form is `1` and
+//!    `10000000000000000` — so the formatter is overridden, and `canonical_number` below is the ONE home of
+//!    the rule.**
+//! 2. **KEY ORDER IS DETERMINISTIC AND SORTED.** `StoreValue::Object` is a `BTreeMap` (`§0.4`), so a derive
+//!    serialises it in sorted key order and the bytes are deterministic — the property `encode`'s own doc has
+//!    always carried and the file tier's bytes depend on. **A `serde_json::Value::Object` would NOT be a
+//!    safe substitute (its `Map` is `preserve_order`-dependent), so `StoreValue` is serialised DIRECTLY and
+//!    no intermediate `Value` is ever built.**
+//! 3. **AN OUTSIDE CLASS WRITES `null`.** `§1.4`'s outside classes are never stored, but `json_spelling` is
+//!    reachable on them, so the `Serialize` impl's catch-all arm emits `null`.
 //!
 //! Only `§1.4`'s admitted classes are ever encoded — a `file`-tier state is built from admitted values
 //! only — and the decoder is the exact inverse of the encoder.
 
 use crate::value::StoreValue;
-use std::collections::BTreeMap;
+use serde::ser::{SerializeMap, SerializeSeq};
+use serde::Serialize;
+use serde_json::ser::Formatter;
+use std::io::{self, Write};
 
 /// Encodes an admitted value as compact JSON (objects in sorted key order, so the bytes are deterministic).
 pub(crate) fn encode(value: &StoreValue) -> String {
-    let mut out = String::new();
-    write_value(value, &mut out);
-    out
-}
-
-fn write_value(value: &StoreValue, out: &mut String) {
-    match value {
-        StoreValue::Str(s) => write_string(s, out),
-        StoreValue::Bool(b) => out.push_str(if *b { "true" } else { "false" }),
-        StoreValue::Num(n) => write_number(*n, out),
-        StoreValue::Object(members) => {
-            out.push('{');
-            let mut first = true;
-            for (k, v) in members {
-                if !first {
-                    out.push(',');
-                }
-                first = false;
-                write_string(k, out);
-                out.push(':');
-                write_value(v, out);
-            }
-            out.push('}');
-        }
-        StoreValue::Array(items) => {
-            out.push('[');
-            let mut first = true;
-            for v in items {
-                if !first {
-                    out.push(',');
-                }
-                first = false;
-                write_value(v, out);
-            }
-            out.push(']');
-        }
-        // An outside class is never stored; `null` is its JSON image.
-        _ => out.push_str("null"),
+    let mut out = Vec::new();
+    let mut serializer = serde_json::Serializer::with_formatter(&mut out, Canonical);
+    // The `Serialize` impl below is total over `StoreValue`: it either writes a value or reports a write
+    // error from the sink. The sink is a `Vec<u8>`, whose `write_all` never fails, so an error here is not
+    // a reachable class — but it is not `unwrap`ped away either: the `null` image is the honest answer for
+    // "no value could be written", and it is the same answer the outside classes get.
+    if value.serialize(&mut serializer).is_err() {
+        return String::from("null");
     }
-}
-
-fn write_number(n: f64, out: &mut String) {
-    if n.is_finite() && n.fract() == 0.0 && n.abs() < 1.0e15 {
-        out.push_str(&format!("{}", n as i64));
-    } else {
-        out.push_str(&format!("{n}"));
-    }
-}
-
-fn write_string(s: &str, out: &mut String) {
-    out.push('"');
-    for c in s.chars() {
-        match c {
-            '"' => out.push_str("\\\""),
-            '\\' => out.push_str("\\\\"),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
-            c => out.push(c),
-        }
-    }
-    out.push('"');
+    String::from_utf8(out).unwrap_or_else(|_| String::from("null"))
 }
 
 /// Decodes the JSON this module encoded. Any malformed input is an error: the caller boots an empty store
 /// from a file it cannot read (`§7.2` item 6 loads `cfg.filePath` *if the file exists*).
+///
+/// **THE UNIT ERROR TYPE IS PART OF THE SEAM AND IS KEPT.** `serde_json::Error` is mapped to `()`, so
+/// `src/store.rs`'s boot arm — `if let Ok(StoreValue::Object(members)) = json::decode(&text)` — keeps
+/// falling through to the no-load path on ANY failure, a non-object top level included.
 pub(crate) fn decode(text: &str) -> Result<StoreValue, ()> {
-    let bytes: Vec<char> = text.chars().collect();
-    let mut pos = 0usize;
-    let value = parse_value(&bytes, &mut pos)?;
-    skip_ws(&bytes, &mut pos);
-    if pos != bytes.len() {
-        return Err(());
-    }
-    Ok(value)
+    serde_json::from_str(text).map_err(|_| ())
 }
 
-fn skip_ws(b: &[char], pos: &mut usize) {
-    while *pos < b.len() && b[*pos].is_whitespace() {
-        *pos += 1;
+/// **The declared canonical spelling of a finite `f64`** (`§7.2` item 7(a); `A59`; `DD-46` (a)): the
+/// shortest decimal spelling that parses back to the same `f64`, with a signed zero written `0`.
+///
+/// Rust's `f64` `Display` IS that form — it emits the shortest round-tripping decimal and takes an exponent
+/// only where the shortest spelling needs one — with exactly ONE declared exception: it writes a signed
+/// zero as `-0`, while item 7(a) declares that *"a signed zero is written `0`"*. So `0.0` (which is the same
+/// comparison as `-0.0`) is spelled `0` and every other finite value is the `Display` form verbatim.
+///
+/// **A NON-FINITE VALUE NEVER REACHES HERE:** it is an outside class (`NonFinite`), is never stored, and its
+/// JSON image is `null` — the `Serialize` impl's catch-all arm emits that, not this function.
+fn canonical_number(n: f64) -> String {
+    if n == 0.0 {
+        // `-0.0 == 0.0` is true, so this arm is the ONE declared normalization (`A59` (c) (b): a `file`-tier
+        // `-0` reads back `0`, because only the committed bytes carry the spelling, while a `mem`/`temp`
+        // `-0` keeps its sign by never being routed through this image).
+        return String::from("0");
     }
+    format!("{n}")
 }
 
-fn parse_value(b: &[char], pos: &mut usize) -> Result<StoreValue, ()> {
-    skip_ws(b, pos);
-    match b.get(*pos) {
-        Some('{') => parse_object(b, pos),
-        Some('[') => parse_array(b, pos),
-        Some('"') => Ok(StoreValue::Str(parse_string(b, pos)?)),
-        Some('t') => expect(b, pos, "true").map(|_| StoreValue::Bool(true)),
-        Some('f') => expect(b, pos, "false").map(|_| StoreValue::Bool(false)),
-        Some('n') => expect(b, pos, "null").map(|_| StoreValue::Null),
-        Some(_) => parse_number(b, pos),
-        None => Err(()),
-    }
-}
+/// **The `serde_json` formatter this module installs, overriding exactly ONE method.** Every other method
+/// keeps `serde_json`'s own behaviour — compact separators, `\u00XX` control escapes, raw UTF-8 for other
+/// non-ASCII, and `"`/`\` escaped — which is what the bytes this module has always produced. **Only
+/// `write_f64` moves, and it moves because the declared rule is not `serde_json`'s default.**
+struct Canonical;
 
-fn expect(b: &[char], pos: &mut usize, word: &str) -> Result<(), ()> {
-    for c in word.chars() {
-        if b.get(*pos) != Some(&c) {
-            return Err(());
-        }
-        *pos += 1;
-    }
-    Ok(())
-}
-
-fn parse_object(b: &[char], pos: &mut usize) -> Result<StoreValue, ()> {
-    *pos += 1; // '{'
-    let mut members = BTreeMap::new();
-    skip_ws(b, pos);
-    if b.get(*pos) == Some(&'}') {
-        *pos += 1;
-        return Ok(StoreValue::Object(members));
-    }
-    loop {
-        skip_ws(b, pos);
-        let key = parse_string(b, pos)?;
-        skip_ws(b, pos);
-        if b.get(*pos) != Some(&':') {
-            return Err(());
-        }
-        *pos += 1;
-        let value = parse_value(b, pos)?;
-        members.insert(key, value);
-        skip_ws(b, pos);
-        match b.get(*pos) {
-            Some(',') => *pos += 1,
-            Some('}') => {
-                *pos += 1;
-                return Ok(StoreValue::Object(members));
-            }
-            _ => return Err(()),
-        }
-    }
-}
-
-fn parse_array(b: &[char], pos: &mut usize) -> Result<StoreValue, ()> {
-    *pos += 1; // '['
-    let mut items = Vec::new();
-    skip_ws(b, pos);
-    if b.get(*pos) == Some(&']') {
-        *pos += 1;
-        return Ok(StoreValue::Array(items));
-    }
-    loop {
-        items.push(parse_value(b, pos)?);
-        skip_ws(b, pos);
-        match b.get(*pos) {
-            Some(',') => *pos += 1,
-            Some(']') => {
-                *pos += 1;
-                return Ok(StoreValue::Array(items));
-            }
-            _ => return Err(()),
-        }
-    }
-}
-
-fn parse_string(b: &[char], pos: &mut usize) -> Result<String, ()> {
-    if b.get(*pos) != Some(&'"') {
-        return Err(());
-    }
-    *pos += 1;
-    let mut out = String::new();
-    loop {
-        match b.get(*pos) {
-            None => return Err(()),
-            Some('"') => {
-                *pos += 1;
-                return Ok(out);
-            }
-            Some('\\') => {
-                *pos += 1;
-                match b.get(*pos) {
-                    Some('"') => out.push('"'),
-                    Some('\\') => out.push('\\'),
-                    Some('/') => out.push('/'),
-                    Some('n') => out.push('\n'),
-                    Some('r') => out.push('\r'),
-                    Some('t') => out.push('\t'),
-                    Some('b') => out.push('\u{8}'),
-                    Some('f') => out.push('\u{c}'),
-                    Some('u') => {
-                        let mut code = 0u32;
-                        for _ in 0..4 {
-                            *pos += 1;
-                            let digit = b.get(*pos).and_then(|c| c.to_digit(16)).ok_or(())?;
-                            code = code * 16 + digit;
-                        }
-                        out.push(char::from_u32(code).ok_or(())?);
-                    }
-                    _ => return Err(()),
-                }
-                *pos += 1;
-            }
-            Some(c) => {
-                out.push(*c);
-                *pos += 1;
-            }
-        }
-    }
-}
-
-fn parse_number(b: &[char], pos: &mut usize) -> Result<StoreValue, ()> {
-    let start = *pos;
-    if b.get(*pos) == Some(&'-') {
-        *pos += 1;
-    }
-    while matches!(b.get(*pos), Some(c) if c.is_ascii_digit() || *c == '.' || *c == 'e' || *c == 'E' || *c == '+' || *c == '-')
+impl Formatter for Canonical {
+    fn write_f64<W>(&mut self, writer: &mut W, value: f64) -> io::Result<()>
+    where
+        W: ?Sized + Write,
     {
-        *pos += 1;
+        writer.write_all(canonical_number(value).as_bytes())
     }
-    let text: String = b[start..*pos].iter().collect();
-    text.parse::<f64>().map(StoreValue::Num).map_err(|_| ())
+}
+
+/// **`§1.4`'s wire image** — the declared JSON spelling of every class: the five admitted ones and the
+/// outside classes that are never stored but may reach `json_spelling` through `§8.2`'s
+/// `ContainerKindConflict` message.
+impl serde::Serialize for StoreValue {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            StoreValue::Str(s) => serializer.serialize_str(s),
+            StoreValue::Bool(b) => serializer.serialize_bool(*b),
+            StoreValue::Num(n) => serializer.serialize_f64(*n),
+            StoreValue::Object(members) => {
+                // A `BTreeMap` iterates in sorted key order, so the emitted bytes are deterministic (this
+                // module's `encode` doc) — the declared property the file tier's bytes depend on.
+                let mut map = serializer.serialize_map(Some(members.len()))?;
+                for (k, v) in members {
+                    map.serialize_entry(k, v)?;
+                }
+                map.end()
+            }
+            StoreValue::Array(items) => {
+                let mut seq = serializer.serialize_seq(Some(items.len()))?;
+                for v in items {
+                    seq.serialize_element(v)?;
+                }
+                seq.end()
+            }
+            // An outside class is never stored; `null` is its JSON image.
+            _ => serializer.serialize_unit(),
+        }
+    }
 }

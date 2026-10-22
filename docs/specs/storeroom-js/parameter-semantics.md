@@ -533,6 +533,8 @@ docs/specs/storeroom-native/parameter-semantics.md §2.10 · PAR-10 | declared p
 `[A1 docs/specs/storeroom-js-proposal.md §10 · A65; A1 docs/specs/storeroom-js-proposal.md §8 · A62; A3
 docs/specs/storeroom-native/parameter-semantics.md §2.5 · PAR-5 | declared parameter semantics]`
 
+**⟶ AMENDED 2026-10-21 BY `A140`: THIS ROW'S `alt` CELL IS READ WITH THE BINDING-INTERNAL ROUTE NOW TAKEN.** **The *"impossible as the store stands"* half is still true of a STORE-SURFACE carrier; it is no longer true of the binding's own copy, which MAY pass through JSON text over the walk's sanitized clone. `null` and the other excluded classes remain refused, and the domain is exactly `StoreValue::is_admitted()`** (`A140`).
+
 ### §2.11 `PAR-JS-11` — `tier` on `delete`: optional, exactly one when present
 
 | Cell | Its value |

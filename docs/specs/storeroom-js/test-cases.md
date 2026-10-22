@@ -35,7 +35,7 @@ table | numeric or census claim]`).
 | --- | --- | --- | --- |
 | 1 | **A `string` crosses in and out, and `''` is a legal value** | `docs/specs/storeroom-js/contract.md` §1.2 row 1 | §1.2's row 1; `docs/specs/storeroom-js/crossing.md` §1.2 — **read with that row's LONE-SURROGATE clause, whose drive belongs to the JS layer (2026-10-11)** |
 | 2 | **A `boolean` crosses in and out** | §1.2 row 2 | §1.2's row 2 |
-| 3 | **A finite `number` crosses in and out, fractional and integral alike, and both `0` and `-0` are admitted IN MEMORY** | §1.2 row 3 | §1.2's row 3; `docs/specs/storeroom-js/crossing.md` §1.5 clause 3 |
+| 3 | **A finite `number` crosses in and out, fractional and integral alike, and both `0` and `-0` are admitted — `-0` CROSSING AS `0` at the binding boundary** (**⟶ 2026-10-21 on `A140`; the as-filed *"IN MEMORY"* is read through the binding normalization**) | §1.2 row 3 | §1.2's row 3; `docs/specs/storeroom-js/crossing.md` §1.5 clause 3; `A140` |
 | 4 | **A plain object crosses in and out, INCLUDING a cross-realm plain object and `Object.create(null)`** | §1.2 row 4 and §1.4 item 4 | §1.4 item 4 (e); `docs/specs/storeroom-js/crossing.md` §1.4 |
 | 5 | **A dense array crosses in and out, index order preserved** | §1.2 row 5 and §1.5 clause 2 | §1.5's clause 2 |
 | 6 | **`null` is refused `ValueNotAdmitted` at any depth** | §1.2 row 6 | §1.2's row 6; `docs/specs/storeroom-native/contract.md` §1.4 |

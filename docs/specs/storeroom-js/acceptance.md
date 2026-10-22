@@ -226,6 +226,8 @@ declared, and a third exclusion is a finding**
 (`[A1 docs/specs/storeroom-js-proposal-review.md §5.4 — `AR-14`'s round-trip property; A3
 docs/specs/storeroom-native/contract.md §5.2 · P-IM-1 — **THE STORE UNIT'S OWN `P-IM-1`, NOT THIS UNIT'S REGISTER ROW: the re-mint of 2026-10-17 (`DEF-2026-10-16-S`) renamed THIS unit's eight ids to `P-SR-1`…`P-SR-8` and reaches no id of `docs/specs/storeroom-native/`, so this citation is UNMOVED AND UNTOUCHED** | requirement]`).
 
+**⟶ AMENDED 2026-10-21 BY `A140`: EXCLUSION (i) IS READ AT THE PACKAGE BOUNDARY, NOT ONLY THE FILE TIER.** **A `-0` written at `mem`, `temp` or `file` reads back `0`, because the binding's conversion core normalizes it; the store's native `mem`/`temp` sign rule is unmoved, and the file tier's own normalization is still the store's. The exclusion count remains `2`, and a third is still a finding** (`A140`; `DD-5`).
+
 **AND THE ONE THING THIS PROPERTY DOES NOT CLAIM, STATED SO THE LAYER'S HONESTY IS CHECKABLE:** **the
 FILE-IMAGE CANONICAL NUMBER SPELLING IS OUTSIDE THIS UNIT'S ACCEPTANCE LAYER.** **`docs/specs/storeroom-native/contract.md
 §7.2` item 7 (c) says no verb returns JSON text, so a JS test can reach the canonical image only by reading

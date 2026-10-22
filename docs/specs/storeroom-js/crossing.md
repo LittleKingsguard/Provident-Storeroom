@@ -56,6 +56,8 @@ has been visited is not observed, and a mutation that lands on a member the walk
 observed — a single call is therefore a sequence of read-once observations and never a snapshot**
 (`crossing.md §1.4`, `DD-34`).
 
+**⟶ AMENDED 2026-10-21 BY `A140`: THE *"no JSON-text carrier"* HALF ABOVE IS READ AS *"no JSON-text carrier ON THE STORE'S DECLARED SURFACE"*.** **The input copy is still the structural walk, and it MAY use a binding-internal JSON-text step over the walk's own sanitized clone; the walk decides every class before any text. No store verb accepts, returns or exposes text** (`A140`; `contract.md` · `DD-6 — RE-DECIDED 2026-10-21`).
+
 ### §1.2 The crossing table's own closure — what a JS value can become
 
 **THE TAXONOMY IS THE STORE'S AND IT IS UNMOVED.** **A JS value crosses into `StoreValue`, whose admitted
@@ -69,7 +71,7 @@ docs/specs/storeroom-native/contract.md §1.4 — the admitted taxonomy and its 
 | --- | --- | --- | --- | --- |
 | **1** | `StoreValue::Str` | **a JS `string`**, primitive and `String` object alike? **— no: the OBJECT wrapper is refused** | `'a'`, `''`, a multi-byte string, a lone surrogate | a `new String('a')` **object wrapper** → `ValueNotAdmitted` (it is a `NonPlainCollection`, not a primitive) |
 | **2** | `StoreValue::Bool` | **a JS `boolean`** | `true`, `false` | a `Boolean` object wrapper → `ValueNotAdmitted` |
-| **3** | `StoreValue::Num` | **a JS `number`** | every finite `number`, integral or fractional, **positive and negative**, and both `0` and `-0` **in memory** | `NaN`, `Infinity`, `-Infinity` → `ValueNotAdmitted` (`NonFinite`); a `Number` object wrapper → `ValueNotAdmitted` |
+| **3** | `StoreValue::Num` | **a JS `number`** | every finite `number`, integral or fractional, **positive and negative**, and both `0` and `-0` **in memory** — **⟶ 2026-10-21: `-0` CROSSES AS `0` AT THE BINDING BOUNDARY** (`A140`) | `NaN`, `Infinity`, `-Infinity` → `ValueNotAdmitted` (`NonFinite`); a `Number` object wrapper → `ValueNotAdmitted` |
 | **4** | `StoreValue::Object` | **a plain JS object** | `{}`, `{a: 1}`, `Object.create(null)`, **a plain object from ANY realm**, an object with **non-integer-like** keys in any order | an object with a **`Symbol`-keyed own property** → `ValueNotAdmitted`; an object holding an **accessor** (`get`/`set`) own property → `ValueNotAdmitted`; a **class instance** (`new Foo()`) → `ValueNotAdmitted`; a `Map`/`Set`/typed array/`Date`/`RegExp` → `ValueNotAdmitted`; **a `Proxy` whose target is a plain object** → `ValueNotAdmitted` (`NonPlainCollection`, `DD-34`) |
 | **5** | `StoreValue::Array` | **a plain JS array** | `[]`, `[1, 2, 3]`, a **dense** array of any admitted members, a cross-realm array? **— no: a cross-realm array IS accepted (it is an `Array`), a class extending `Array` is not** | a **sparse** array (`[1, , 3]`) → `ValueNotAdmitted` (`DD-8`); an array with an own **`Symbol`-keyed** property → `ValueNotAdmitted`; a class extending `Array` → `ValueNotAdmitted` |
 | **6** | `StoreValue::Null` | **a JS `null`** | — | **ALWAYS REFUSED**: `ValueNotAdmitted`, at any depth |
@@ -634,6 +636,7 @@ JS values are EQUAL under this unit's relation iff all three of the following ho
    **`-0` and `0` are therefore NOT equal under this relation, while JS `===` says they are** — and the
    store's own `mem`/`temp` behaviour keeps the sign, so a `mem`-tier `-0` round trip is
    **`Object.is`-equal** (`DD-9`).
+**⟶ AMENDED 2026-10-21 BY `A140`: CLAUSE 3'S `-0` HALF IS READ THROUGH THE BINDING NORMALIZATION.** **`Object.is` remains the relation, but a binding `-0` write reads back `0`; the store's own `mem`/`temp` sign rule is not amended, because the package boundary normalizes it** (`A140`).
 **AND THE TWO THINGS THIS RELATION DOES NOT DO, STATED SO IT IS NOT OVER-READ:** **a caller comparing two
 objects with `===` is comparing REFERENCES and not values** — the relation above is the only value
 comparison this unit declares; and **the relation is a property of the PACKAGE's own helper and of this
