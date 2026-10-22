@@ -192,7 +192,7 @@
   | **the contract document** (this file; **not a part**, and not an entry of the closure predicate's left side) | — | `docs/specs/storeroom-native/contract.md` | the index region (`§0`), the claim ledger and the defaults table (`§0.1`–`§0.3`), and the store's own clauses — the record shapes and the address grammar (`§1`), the resolver and the walk (`§2`), the write arms (`§3`), the read and delete arms (`§4`), the tiers and the purge chain with the typed register (`§5`), the journal and rollback (`§6`), the persistence and the construction inputs with the closed fail-code set (`§7`–`§8`), and the parameter-semantics index (`§9`) |
   | `store-model` | **`carrier`** | `docs/specs/storeroom-native/store-model.md` | **relocated:** the record shapes in their expanded form (`§1`) — the two node kinds, the parent and child anchors, the link and its container, the register, the address grammar, the tier rank, and the walk — *a relocation is not a re-derivation*: every `§`-number, every authority citation and every rule's text is unchanged by the move |
   | `write-and-read` | **`carrier`** | `docs/specs/storeroom-native/write-and-read.md` | **relocated:** the verbs (`§3`–`§4`) — the write arms table, the read arms table, the delete arms table, and the journal and rollback (`§6`), with their authority citations unchanged |
-  | `seams-and-lifecycle` | **`carrier`** | `docs/specs/storeroom-native/seams-and-lifecycle.md` | **relocated:** the construction inputs (`§7`), the boot and lifetime clauses, the constraint-evaluation seam, the fail-code set with its generated-message rule (`§8`), and the boundary clauses of the two parks — **⟶ AMENDED 2026-10-11: `§7.2` now carries an added item `7` as well, the `file` tier's JSON text's canonical number spelling with its own rule, its side and its observable (`P: §21 · A59`), and the narrowed numeric domain's reach together with the boot's answer for an out-of-range spelling (`P: §21 · A60`; `DD-46`); the item is authored in that part AND at this document's own `§7.2`, byte-for-byte, in the same pass, because the span has two copies and neither is left stale** |
+  | `seams-and-lifecycle` | **`carrier`** | `docs/specs/storeroom-native/seams-and-lifecycle.md` | **relocated:** the construction inputs (`§7`), the boot and lifetime clauses, the constraint-evaluation seam, the fail-code set with its generated-message rule (`§8`), and the boundary clauses of the two parks — **⟶ AMENDED 2026-10-11: `§7.2` now carries an added item `7` as well, the `file` tier's JSON text's canonical number spelling with its own rule, its side and its observable (`P: §21 · A59`), and the narrowed numeric domain's reach together with the boot's answer for an out-of-range spelling (`P: §21 · A60`; `DD-46`).** **⟶ AND THIS ROW'S OWN CLAUSE IS RE-SPELLED 2026-10-21 — THE AS-FILED CLAUSE IS RE-EMITTED AND MARKED SUPERSEDED, AND THE RELATIONSHIP BETWEEN THE TWO COPIES IS STATED AS IT IS: THE AS-FILED CLAUSE READ *the as-filed clause's own text — moved out byte-exactly to `archive/spec-history/2026-10-21-section-7-2-mirror-drift-move-out.md §2` (`RCA-8(g)`), and no longer carried here*, AND **THAT CLAUSE IS FALSE OF THE BYTES AND IS SUPERSEDED — THE TWO COPIES ARE NOT BYTE-IDENTICAL AND ARE NOT ASSERTED TO BE.** THE ACCURATE RELATIONSHIP IS: **THE SAME RULE, IN BOTH COPIES, RESTING ON THE SAME AUTHORITIES; EVERY CROSS-REFERENCE BETWEEN THE TWO IS DOCUMENT-QUALIFIED, SO A READER OF EITHER DOCUMENT KNOWS WHICH COPY IS BEING READ; AND EACH DOCUMENT'S OWN DATED CLAUSES ARE READ IN THAT DOCUMENT.** AND THE `file` TIER'S ESCAPE IMAGE HAS **ONE HOME** — THE CARRIER'S `§7.2` ITEM 7 (e) — AND IS NOT DUPLICATED IN THIS DOCUMENT** (`docs/decisions.md` · `A142` (2) — the architect's ruling of 2026-10-21, verbatim: *"Take it now"*, on `docs/defects.md` · `DEF-2026-10-21-G`; this document's own `§7.2` item 7 and `docs/specs/storeroom-native/seams-and-lifecycle.md §7.2` item 7; `[T: the two copies' relationship, so this map's row is not read as asserting byte-identity between two documents | CROSS-REF]`) |
   | `parameter-semantics` | **`carrier`** (its own authored rows are this part's admissible content; the `§9` index relocates here) | `docs/specs/storeroom-native/parameter-semantics.md` | **relocated:** the `§9` index; **and authored:** one row per declared parameter — **`PAR-1`…`PAR-11`** — carrying the parameter's unit, its domain **and the values outside it**, the declared answer for **each** outside value, its supplier, its evaluator and its observable |
   | `implementation-plan` | **`carrier`** | `docs/specs/storeroom-native/implementation-plan.md` | the unit's ordered landing/verification plan **and its acceptance criterion**, **reconciled to this contract and dated** — carrying **no pinnable claim this contract does not already carry**; the pre-contract plan's own body stands at `docs/specs/storeroom-native-implementation-plan.md`, reconciled, never overwritten |
   **AND ONE POINTER THIS REGION RECONCILES RATHER THAN LEAVES AT AN AS-FILED RANGE** (`RCA-8(d)`
@@ -3751,7 +3751,7 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
 
 ### §7.2 The `file` tier's persistence — what a commit guarantees, and its failure arm
 
-**⟶ AMENDED 2026-10-15 — THE `RCA-9` FILE-TIER-SAVE PASS: THE COMMIT'S OWN ACT MOVES OUT OF THE WRITE VERB AND ONTO THE TERMINAL ARM, AND THE VERB'S `file`-TIER ARM RETURNS AS IT DOES TODAY** (`RCA-9` = the change request at `docs/specs/storeroom-native-proposal-review.md §18.1`, its store-side re-spell ruled at that record's `§22.5` item 2 — *"the commit is the terminal arm's act and the verb's file-tier arm returns as it does today"*; `RCA-8(d)` ANNOTATE-BESIDE: **every item below stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause is a PURE INSERTION and it moves no other claim of this section**).
+**⟶ AMENDED 2026-10-15 — THE `RCA-9` FILE-TIER-SAVE PASS: THE COMMIT'S OWN ACT MOVES OUT OF THE WRITE VERB AND ONTO THE TERMINAL ARM, AND THE VERB'S `file`-TIER ARM RETURNS AS IT DOES TODAY** (`RCA-9` = the change request at `docs/specs/storeroom-native-proposal-review.md §18.1`, its store-side re-spell ruled at that record's `§22.5` item 2 — *"the commit is the terminal arm's act and the verb's file-tier arm returns as it does today"*; `RCA-8(d)` ANNOTATE-BESIDE: **every item below is read THROUGH this clause, EXCEPT the ranks the 2026-10-21 pass re-points — the as-filed *"every item below stands BYTE-FOR-BYTE"* half moved out byte-exactly to `archive/spec-history/2026-10-21-section-7-2-mirror-drift-move-out.md §3` (`RCA-8(g)`); THIS clause is a PURE INSERTION and it moves no other claim of this section**).
 1. **WHAT THE VERB STILL DOES, AND ALL IT STILL DOES.** **`Store::write(address, tier, value)` — **RE-SPELLED 2026-10-16: this item's as-filed spelling was `Store::write(address, tier, value, commit)` and stands above byte-for-byte; THE VERB'S DECLARED ARITY IS THREE PARAMETERS AND HAS NO FOURTH OF ANY KIND, and the spelling's ONE home is `§0.4`'s `Store::write` row AS AMENDED 2026-10-15, read at `src/store.rs:1767–1772` (`pub fn write(&mut self, address: AddressArg, tier: TierArg, value: StoreValue) -> Result<WriteResult, StoreError>`) — no `commit` parameter, no optional spelling and no `Absent` variant, and no `CommitArg` type anywhere in the crate (`DEF-2026-10-15-X`). THE COMMIT ACT IS NOT A POSITION OF THIS VERB: it is the terminal arm's own `file`-tier save, `Instance::commit_file(op_id) -> Result<(), StoreError>` at `src/store.rs:1221`, and the JS surface's FOURTH argument `commit?` is the PACKAGE's declared position and not this verb's** (`§0.4`'s amendment of 2026-10-15; `§3.1.1`'s own arity cell as re-spelled by the clause at `§3.1.1`'s foot; `docs/specs/storeroom-js/surface.md §2.2` clauses 3–4 and `§2.11` clause 2; `docs/decisions.md` · `A118`) — **RECORDS THE WRITE IN THE JOURNAL, INSTALLS THE NODE, APPENDS THE ENTRY AND RETURNS ITS `WriteResult` — INCLUDING FOR A `file`-TIER WRITE — AND IT PERFORMS NO FILE I/O ON ANY OF ITS ARMS.** **The verb's `file`-tier arm is therefore INDISTINGUISHABLE AT ITS OWN RETURN from its `mem`-tier arm but for the tier the anchor carries** (`§3.3`'s install stage and `§3.6`'s return shape, both UNMOVED; `docs/specs/storeroom-js/surface.md §2.11` clause 1).
 2. **WHAT THE SAVE IS, WHERE IT LIVES, AND WHAT KEYS IT.** **THE `file`-TIER COMMIT IS THE TERMINAL ARM'S OWN ACT: after every constraint of that write's triggered set has passed, and before ANY listener body of the delivered set runs, the surface performs the commit for the record the kernel settled — keyed by **THE SETTLED RECORD'S OWN `op`** and never by an address, a handle or a record identity** (`docs/specs/storeroom-js/surface.md §2.11` clauses 2–3; `docs/specs/storeroom-constraints/kernel-surface.md §2.1` item 3's instant (b)). **THE SAVE'S OWN MECHANISM — the sibling write and the rename of item 2 below — IS UNMOVED IN EVERY RESPECT: what moves is WHICH INSTANT OF WHICH ACT calls it, and NOTHING about how it commits.** **AND THERE IS NO SECOND ARM OF IT: a write that did not reach the pass's passing arm performs no commit, and a record whose own `op` is not a `file`-tier write's performs none.**
 3. **THE ATOMICITY, THE FAILURE ARM AND THE ROLLBACK ARE THE ITEMS BELOW, READ AT THEIR NEW INSTANT.** **Items 2–5's own sentences — the sibling-and-rename atomicity, the two-step failure arm (the rollback first and the caller answered the failure second), the ONE-failure clause and the `FileCommitFailed` code, and the `file`-tier-write-is-the-only-file-I/O clause — STAND EXACTLY AS PRINTED and are read at the terminal arm from this date; NOT ONE OF THEM IS RE-SPELLED HERE** (`docs/specs/storeroom-js/surface.md §2.11` clauses 4–5).
@@ -3765,7 +3765,7 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
    observable: after a failed `file`-tier commit, the bytes at `cfg.filePath` are BYTE-IDENTICAL to the
    bytes that stood there before the attempt, so **re-reading the path answers the pre-attempt content, not
    a truncated or partially rewritten file** — and **the store's `file` state is what the journal restores
-   it to** (`§6.4` `M-11`). **The failure's CODE is `FileCommitFailed`** (`§8.1` #14)
+   it to** (`§6.4` `M-11`). **The failure's CODE is `FileCommitFailed`** (`§8.1` #15 — **RE-POINTED 2026-10-16: this cell's as-filed rank was `#14`, which `ValueNotAdmitted` took when the `file`-tier save's pass added the store's sixteenth closed-set member; the rank's ONE home is `docs/specs/storeroom-native/contract.md §8.1`, whose own row prints `FileCommitFailed` at `15` and `ValueNotAdmitted` at `14`** — **AND THIS COPY'S OWN CELL IS RE-POINTED BY THE BOUNDED PASS OF 2026-10-21, THE `#14` ABOVE STANDING AS THE SUPERSEDED AS-FILED RANK (`docs/decisions.md` · `A142` (2) — the architect's ruling of 2026-10-21, verbatim: *"Take it now"*, on `docs/defects.md` · `DEF-2026-10-21-G`)**)
    (`[T: the atomicity's observable, stated at this contract's second bounded amendment | CONTRACT]`).
 3. **A FAILED `file`-TIER WRITE'S FAILURE ARM IS EXACTLY TWO STEPS, IN THIS ORDER** (`P: §11 · A16`):
    **(i)** **the file rolls back the change in the journal automatically; (ii)** **then the failure is
@@ -3774,7 +3774,7 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
 4. **WHAT "FAILURE" COMPRISES** — `A16`'s printed silence is *"what 'failure' comprises (the file write
    alone, the journal's own append, or both)"*. **THIS CONTRACT DECLARES IT COMPRISES BOTH: every failure of
    the `file`-tier write path — the serialization, the file write, and the journal append — is ONE
-   failure** (`[T | DECLARED-DEFAULT]`), **and its ONE code is `FileCommitFailed` (`§8.1` #14; `DD-25`),
+   failure** (`[T | DECLARED-DEFAULT]`), **and its ONE code is `FileCommitFailed` (`§8.1` #15 — **RE-POINTED 2026-10-16: this cell's as-filed rank was `#14`; the store's sixteenth member took `15` and `ValueNotAdmitted` holds `14`** — **AND THIS COPY'S OWN CELL IS RE-POINTED BY THE BOUNDED PASS OF 2026-10-21, THE `#14` ABOVE STANDING AS THE SUPERSEDED AS-FILED RANK (`docs/decisions.md` · `A142` (2) — the architect's ruling of 2026-10-21, verbatim: *"Take it now"*, on `docs/defects.md` · `DEF-2026-10-21-G`)**; `DD-25`),
    whose generated message is `§8.2`'s `FileCommitFailed` row**; the alternative (the file write alone) is
    priced: a journal-append
    failure would leave the file's bytes committed and the journal short an entry, so no walk-back could
@@ -3792,7 +3792,7 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
    clause, NOT a defect.** **The priced alternative and the reversal instrument are `DD-28`'s** — **the
    alternative (a `file`-committing delete and rollback) would give two verbs a second failure arm whose
    only available member is `FileCommitFailed`, whose trigger column is *"a `file`-TIER WRITE'S failure
-   path"* (`§8.1` #14), and would require `A16`'s automatic journal rollback — a write's arm — to be
+   path"* (`§8.1` #15 — **RE-POINTED 2026-10-16: this cell's as-filed rank was `#14`; `FileCommitFailed` stands at `15` and `ValueNotAdmitted` holds `14`** — **AND THIS COPY'S OWN CELL IS RE-POINTED BY THE BOUNDED PASS OF 2026-10-21, THE `#14` ABOVE STANDING AS THE SUPERSEDED AS-FILED RANK (`docs/decisions.md` · `A142` (2) — the architect's ruling of 2026-10-21, verbatim: *"Take it now"*, on `docs/defects.md` · `DEF-2026-10-21-G`)**), and would require `A16`'s automatic journal rollback — a write's arm — to be
    re-stated for two verbs `A16` does not name.**
 6. **`mem` IS LOST ON PROCESS EXIT**, and **`temp` with it** (`P: §12 · A19`; `P: §11 · A15`); **`file`
    survives process exit** (`P: §1`). **THE STORE'S BOOT IS: on `storeCreate`, the `file` tier's content at
@@ -3806,10 +3806,11 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
    `null`, a non-finite number, a class no leaf may hold) is DROPPED from the boot's register — the rest of
    the content loads, the instance IS returned, and NO code is produced for the dropped key**; **the store's
    register therefore begins with exactly the keys whose values the taxonomy admits, and a boot-time
-   `ValueNotAdmitted` is NOT declared, because `§8.1` #13's trigger is a WRITE's value.** **`DD-29`'s `alt`
+   `ValueNotAdmitted` is NOT declared, because `§8.1` #14's trigger is a WRITE's value.** (**RE-POINTED 2026-10-21: this cell's as-filed rank was `#13`, which `FilePathUnreachable` took when the construction group gained its member; the rank's ONE home is `docs/specs/storeroom-native/contract.md §8.1`, whose own row prints `ValueNotAdmitted` at `14`; the authority is `docs/decisions.md` · `A142` (2) — the architect's ruling of 2026-10-21, verbatim: *"Take it now"*, on `docs/defects.md` · `DEF-2026-10-21-G`**) **`DD-29`'s `alt`
    cell prices the boot-failure alternative.**
    `[P: §1, §11 · A15 · A16, §12 · A19 | CONTRACT + the boot's and the file-durability DECLARED-DEFAULT
    sub-clauses, priced at `DD-28` and `DD-29`]`
+   **⟶ AND ONE STATE ITEM 6 NOW REACHES THAT IT COULD NOT REACH BEFORE, STATED AT THE BOOT BECAUSE THE BOOT IS WHAT READS IT (2026-10-13, `§10.4`) — CARRIED INTO THIS COPY BY THE BOUNDED PASS OF 2026-10-21 (`docs/decisions.md` · `A142` (2) — the architect's ruling of 2026-10-21, verbatim: *"Take it now"*, on `docs/defects.md` · `DEF-2026-10-21-G`):** **WITH THE CONSTRUCTION'S OWN EXCLUSIVE CREATE LANDED (step `4b` above — `seams-and-lifecycle.md §7.1`'s step `4b`), a `storeCreate` over a PROVIDED, ABSENT path now REACHES THIS ITEM WITH A FILE THAT EXISTS AND CARRIES `0` BYTES — so item 6's *"loaded if the file exists"* is read on a ZERO-LENGTH FILE: the content is the empty text, `0` register keys load, `0` registrations load, and NO code is produced.** **THE INSTANCE IS STATE-IDENTICAL TO THE ONE A CONSTRUCTION OVER AN ABSENT FILE PRODUCED BEFORE THIS AMENDMENT, which is why no clause of this item moves and why `DD-38`'s *"a fresh `storeCreate` over an equal path loads NO registration"* stands whole** (`DD-38`; `DD-28`'s amended cell at `§0.2`; `§10.4` part 3; `[T: the boot's new reachable state, so a zero-length file is not read as an unadmitted or a malformed content | CONTRACT]`).
 7. **⟶ ADDED 2026-10-11 — THE `file` TIER'S JSON TEXT CARRIES A CANONICAL NUMBER SPELLING, AND THE
    NORMALIZATION IS A PROPERTY OF THE FILE'S IMAGE AND NOT OF THE VALUE THE STORE HOLDS** (`RCA-8(d)`
    ANNOTATE-BESIDE: **every item above stands BYTE-FOR-BYTE and THIS item is the operative statement of
@@ -3817,18 +3818,73 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
    `A59` at the FILED proposal `docs/specs/storeroom-listeners-proposal.md` `§21`, whose resolving citation
    form is `P: §21 · A59`**; `store-model.md §1.4`'s narrowed class 3 and `P: §21 · A60`;
    `§5.2`'s `P-IM-1` scope clause; `DD-46`; **AND THIS ITEM IS CARRIED IN TWO COPIES BECAUSE THIS SPAN HAS
-   TWO — this document's `§7.2` and `seams-and-lifecycle.md §7.2`, whose own map row declares it, are the
-   same span and this item is authored in BOTH in the same pass, byte-for-byte, so neither copy is left
-   stale**; `[T: the `file` image's spelling and the narrowing's own reach, so neither is inferred from a
-   value's equality | DECLARED-DEFAULT]`).
+   TWO — this document's `§7.2` and `seams-and-lifecycle.md §7.2`, WHICH THIS DOCUMENT'S OWN
+   `seams-and-lifecycle` PART-MAP ROW DECLARES (that row's `⟶ AMENDED 2026-10-11` clause reads *"`§7.2` now
+   carries an added item `7` as well, the `file` tier's JSON text's canonical number spelling with its own
+   rule…"*) — AND THE AS-FILED CLAUSE THAT STOOD HERE MOVED OUT BYTE-EXACTLY TO
+   `archive/spec-history/2026-10-21-section-7-2-mirror-drift-move-out.md §1` (`RCA-8(g)`) AND IS NOT CARRIED
+   HERE, THE POINTER IN THE DATED CLAUSE BELOW NAMING IT**; `[T: the `file` image's spelling and the narrowing's
+   own reach, so neither is inferred from a value's equality | DECLARED-DEFAULT]`).
+   **⟶ AND THE TWO COPIES' RELATIONSHIP, RE-SPELLED 2026-10-21 — THE AS-FILED CLAUSE IS RE-EMITTED AND MARKED
+   SUPERSEDED, AND THE 2026-10-21 ESCAPE-IMAGE POINTER'S OWN BYTE-FOR-BYTE HALF IS SUPERSEDED BY NAME:**
+   **THE AS-FILED CLAUSE READ *the as-filed clause's own text — moved out byte-exactly to `archive/spec-history/2026-10-21-section-7-2-mirror-drift-move-out.md §1` (`RCA-8(g)`), and no longer carried here*, AND THAT CLAUSE IS FALSE OF THE BYTES AND IS SUPERSEDED: THE TWO COPIES ARE NOT BYTE-IDENTICAL AND ARE NOT ASSERTED TO BE.** THE ACCURATE RELATIONSHIP IS: **THE SAME RULE, IN BOTH COPIES, RESTING ON THE SAME AUTHORITIES; EVERY CROSS-REFERENCE BETWEEN THE TWO IS DOCUMENT-QUALIFIED, SO A READER OF EITHER DOCUMENT KNOWS WHICH COPY IS BEING READ; AND EACH DOCUMENT'S OWN DATED CLAUSES ARE READ IN THAT DOCUMENT.** AND THE `file` TIER'S ESCAPE IMAGE HAS **ONE HOME** — THE CARRIER'S `§7.2` ITEM 7 (e) — AND IS NOT DUPLICATED IN THIS DOCUMENT (`docs/decisions.md` · `A142` (2) — the architect's ruling of 2026-10-21, verbatim: *"Take it now"*, on `docs/defects.md` · `DEF-2026-10-21-G`); **AND THE 2026-10-21 ESCAPE-IMAGE POINTER'S OWN HALF — *"THIS DOCUMENT'S COPY OF ITEM 7 (a)–(d) STANDS BYTE-FOR-BYTE"* — IS SUPERSEDED BY NAME HERE, THAT HALF BEING FALSE OF THE BYTES FOR THE SAME REASON, WHILE THAT POINTER'S ESCAPE-IMAGE ONE-HOME HALF STANDS AND IS NOT TOUCHED BY THIS CLAUSE** (this `§7.2`'s own 2026-10-21 escape-image clause, below; this document's own `§7.2` item 7 and `docs/specs/storeroom-native/seams-and-lifecycle.md §7.2` item 7; `[T: the two copies' relationship, so no reader reads this item as asserting byte-identity between two documents | CROSS-REF]`).
    **THE CLAUSE, IN FOUR PARTS:**
    - **(a) THE RULE.** **A NUMBER IS NORMALIZED ON THE WAY INTO THE FILE, and its canonical spelling is
-     THE SHORTEST DECIMAL SPELLING THAT PARSES BACK TO THE SAME `f64`** — Rust's `f64` `Display` form: an
-     integral carrier value takes no fractional part (`100`, never `1e2` and never `100.0`), a signed zero
-     is written `0`, and a value whose shortest spelling needs an exponent takes it (`1e300`, `5e-324`).
+     THE SHORTEST DECIMAL SPELLING THAT PARSES BACK TO THE SAME `f64`, WRITTEN IN POSITIONAL NOTATION** —
+     Rust's `f64` `Display` form, **AND `Display` NEVER USES EXPONENT NOTATION**: an integral carrier
+     value takes no fractional part (`100`, never `1e2` and never `100.0`), a signed zero is written `0`, **and
+     a value whose shortest spelling WOULD need an exponent takes the POSITIONAL form instead** — `1e300` is
+     written as its 301-digit decimal, `5e-324` as its 326-character decimal, and `f64::MAX` as its 309 digits.
      **So `-0` is written `0`, and `1e2`, `1.0` and `1E+2` are each written in the canonical form of the
-     value they denote** (`P: §21 · A59`'s own examples) — **`DD-46` (a)'s rule, stated here where the
-     file's bytes are the subject.**
+     value they denote** (`P: §21 · A59`'s own examples) — **`DD-46` (a)'s rule, stated here where the file's
+     bytes are the subject.**
+
+     **⟶ RE-SPELLED 2026-10-21 — THE EXPONENT HALF THAT STOOD IN THIS CLAUSE IS WITHDRAWN, AND THE RE-SPELLED
+     RULE ABOVE IS THE ONE THE FILE TIER'S COMMITTED BYTES ALREADY CARRY** (`docs/decisions.md` · `A142` (1) —
+     the architect's ruling of 2026-10-21, verbatim: *"Re-spell the clause"* (on `docs/defects.md` ·
+     `DEF-2026-10-21-F`), AND THE AUTHORITY FOR THE RE-SPELLED RULE ABOVE; `RCA-8(d)` ANNOTATE-BESIDE: **the
+     as-filed half is re-emitted below and marked WITHDRAWN rather than silently re-worded, the re-spell is IN
+     PLACE in the rule above, and parts (b)–(d) below stand BYTE-FOR-BYTE**; `P: §21 · A59` — the RULE's own
+     authority, unmoved; `DD-46` (a); `[T: the `file` image's number spelling, so the committed bytes' form is
+     declared at this clause and not inferred from the formatter's own name | DECLARED-DEFAULT]`).
+
+     **⟶ AND RE-SPELLED 2026-10-21 (`role_spec_writer`) — THE DEFINING HALF IS RE-SPELLED SO THAT THE
+     QUALIFIER BINDS THE DEFINITION, AND THE OBSERVABLE DOES NOT MOVE** (`docs/decisions.md` · `A142` (1) —
+     the architect's ruling of 2026-10-21, verbatim: *"Re-spell the clause"* (on `docs/defects.md` ·
+     `DEF-2026-10-21-F`) — the ruling whose OWN FORMULATION THIS RESTORES: *"THE FILE TIER'S CANONICAL SPELLING
+     IS THE SHORTEST ROUND-TRIPPING DECIMAL IN POSITIONAL NOTATION"*, shortest referring to the DIGITS and the
+     NOTATION being FIXED; and `src/json.rs`'s `canonical_number` doc, which already carries that form).
+     **THE AS-FILED DEFINING HALF, RE-EMITTED AND MARKED SUPERSEDED, NEVER REPLACED: *"its canonical spelling
+     is THE SHORTEST DECIMAL SPELLING THAT PARSES BACK TO THE SAME `f64`** — Rust's `f64` `Display` form, **AND
+     `Display` NEVER USES EXPONENT NOTATION, so the canonical spelling is POSITIONAL**"*.** **IT WAS FALSE AS A
+     DEFINITION: THE SHORTEST PARSING-BACK SPELLING OF `1e300` IS `1e300` (`5` CHARACTERS) AND OF `5e-324` IS
+     `5e-324` (`6` CHARACTERS), WHEREAS THIS CLAUSE'S OWN FIGURES ARE A `301`-DIGIT AND A `326`-CHARACTER
+     DECIMAL — SO THE AS-FILED HALF SAID, IN ONE SENTENCE, BOTH THAT THE CANONICAL SPELLING IS THE SHORTEST
+     PARSING-BACK SPELLING AND THAT A VALUE WHOSE SHORTEST SPELLING WOULD NEED AN EXPONENT TAKES THE POSITIONAL
+     FORM INSTEAD, AND THOSE TWO HALVES CANNOT BOTH STAND.** **THE RE-SPELL IS THE QUALIFIER MOVED INTO THE
+     DEFINITION AND NOTHING ELSE — THE SHORTEST IS TAKEN OVER POSITIONAL SPELLINGS, AND THE NOTATION IS FIXED
+     BY THE DECLARATION AND NOT BY THE SHORTNESS — AND THE COMMITTED BYTES DO NOT MOVE: THIS CORRECTS THE
+     CLAUSE'S DESCRIPTION OF THE OBSERVABLE AND NOT THE OBSERVABLE, AND EVERY OTHER HALF OF THIS CLAUSE STANDS
+     BYTE-FOR-BYTE** (`P: §21 · A59`; `DD-46` (a); `[T: the rule's defining half, so the notation is bound to
+     the definition and not left to a rider that contradicts it | DECLARED-DEFAULT]`).
+
+     **THE AS-FILED WORDING, RE-EMITTED BECAUSE THIS CLAUSE RE-SPELLS IT AND NEVER REPLACES IT:** *"a value
+     whose shortest spelling needs an exponent takes it (`1e300`, `5e-324`)"* — **THAT HALF IS WITHDRAWN, BECAUSE
+     IT IS FALSE OF THE OBSERVABLE: RUST'S `f64` `Display` NEVER USES EXPONENT NOTATION (measured: `1e300` → a
+     301-digit decimal, `5e-324` → 326 characters, `f64::MAX` → 309 digits), so each of them is written
+     POSITIONALLY and NONE of them takes an exponent.** **AND THE WITHDRAWAL IS A CORRECTION OF THE CLAUSE'S
+     DESCRIPTION OF THE OBSERVABLE, NOT A CHANGE OF THE OBSERVABLE: THE FILE TIER'S COMMITTED BYTES DO NOT MOVE —
+     `src/json.rs`'s `canonical_number` has always written `format!("{n}")`, the `Display` form, and the
+     alternative that WOULD have moved them was declined on the same day (`A141`) — SO THE RE-SPELLED RULE ABOVE IS
+     THE RULE THE BYTES ALREADY CARRY.**
+
+     **AND THE CORRECTED CLAIM'S OWN EVALUATOR, WITH ITS OWNER: ONE FILE-TIER BYTE CELL ASSERTS THE COMMITTED
+     BYTES OF A VALUE WHOSE SHORTEST SPELLING WOULD NEED AN EXPONENT — `1e300` AND `5e-324` — THROUGH THE
+     STORE'S EXISTING FILE-TIER BYTE HARNESS (`tests/e2e_json_round_trip.rs`'s `spelling_drive`), so the
+     POSITIONAL form is pinned AT THE BYTES AND NOT INFERRED FROM THE FORMATTER'S OWN NAME; THE CELL IS A
+     PINNING CELL AND IS EXPECTED TO PASS ON ARRIVAL, the behaviour it pins being the IMPLEMENTATION'S OWN; OWNER
+     `role_test_writer`, whose pass mints the cell's own id and writes the `tests/**` byte this clause does not**
+     (`[T: the corrected claim's own evaluator, so the positional spelling is driven at the bytes | OWED]`).
    - **(b) THE SIDE.** **The rule binds the WRITE-TO-FILE side ONLY.** **It is NOT required on the read
      side: any finite JSON number spelling a parser admits is ACCEPTED at the boot of item 6 and converted
      to the carrier it denotes, canonical or not** (`DD-46` (b)) — **so a file whose content carries `1E+2`
@@ -3871,7 +3927,7 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
      alternatives, its `(b)` cell prices the second candidate predicate and the wider-carrier alternative,
      and its reversal cell names the instrument.**
 
-**⟶ AND 2026-10-21 — THE CLAUSE'S FIFTH PART — (e), THE `file` TIER'S ESCAPE IMAGE — IS AUTHORED IN THE CARRIER PART ALONE, ITS ONE HOME BEING `docs/specs/storeroom-native/seams-and-lifecycle.md §7.2` item 7 (e), SO THIS DOCUMENT'S COPY OF ITEM 7 (a)–(d) STANDS BYTE-FOR-BYTE AND IS READ THROUGH THAT PART, AND ITEM 7's OWN *"AUTHORED IN BOTH IN THE SAME PASS, byte-for-byte, so NEITHER COPY IS LEFT STALE"* SENTENCE IS READ AS THE FILING-TIME AUTHORING NOTE IT IS — THE FIFTH PART IS NOT DUPLICATED HERE** (`docs/decisions.md` · `A141`; `src/json.rs`'s `Canonical` formatter clause, which names that part as the CORPUS HOME of the escape image).
+**⟶ AND 2026-10-21 — THE CLAUSE'S FIFTH PART — (e), THE `file` TIER'S ESCAPE IMAGE — IS AUTHORED IN THE CARRIER PART ALONE, ITS ONE HOME BEING `docs/specs/storeroom-native/seams-and-lifecycle.md §7.2` item 7 (e), AND THIS DOCUMENT'S COPY OF ITEM 7 (a)–(d) IS READ THROUGH THAT PART — ITS OWN *"byte-for-byte"* HALF MOVED OUT BYTE-EXACTLY TO `archive/spec-history/2026-10-21-section-7-2-mirror-drift-move-out.md §4` (`RCA-8(g)`), AND ITEM 7's *"AUTHORED IN BOTH IN THE SAME PASS"* SENTENCE'S OWN BYTES — THE CLAUSE THIS POINTER QUOTED — WERE MOVED OUT WITH IT, AND STAND IN THAT FILE'S `§1` — THE FIFTH PART IS NOT DUPLICATED HERE** (`docs/decisions.md` · `A141`; `src/json.rs`'s `Canonical` formatter clause, which names that part as the CORPUS HOME of the escape image).
 
 **⟶ ADDED 2026-10-16 — THE LOAD-SIDE PREDICATE ITEM 6'S SENTENCE LEAVES UNSPELLED (`role_spec_writer`; the gate-5 blind set's own two non-drivable clauses, `bindings/js/greens/file-tier-save/file-tier-save-greens.md` `§3` items `2`–`3`).** `RCA-8(d)` ANNOTATE-BESIDE: **items `1`–`7` above — item 6 and its `[P: …]` citation block included — stand BYTE-FOR-BYTE and are read THROUGH this clause; THIS clause is a PURE INSERTION, it re-numbers nothing, mints no member, moves no code and re-spells no sentence of any item above it.**
 

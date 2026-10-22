@@ -18,14 +18,30 @@
 //! preceded it, and vice versa, for the same state. Three points are pinned:
 //!
 //! 1. **THE NUMBER SPELLING IS DECLARED, AND `serde_json`'S OWN FLOAT FORMATTER DOES NOT PRODUCE IT.**
-//!    `seams-and-lifecycle.md §7.2` item 7(a) declares the rule: *"its canonical spelling is THE SHORTEST
-//!    DECIMAL SPELLING THAT PARSES BACK TO THE SAME `f64` — Rust's `f64` `Display` form: an integral carrier
-//!    value takes no fractional part (`100`, never `1e2` and never `100.0`), a signed zero is written `0`,
-//!    and a value whose shortest spelling needs an exponent takes it (`1e300`, `5e-324`)"* (`A59`;
-//!    `DD-46` (a); `contract.md §5.2` `P-IM-1`'s scoped equality relation). **`serde_json`'s default
-//!    formatter writes `1.0` as `1.0` and `1e16` as `1e+16`, where the declared form is `1` and
-//!    `10000000000000000` — so the formatter is overridden, and `canonical_number` below is the ONE home of
-//!    the rule.**
+//!    `seams-and-lifecycle.md §7.2` item 7(a) declares the rule: *"A NUMBER IS NORMALIZED ON THE WAY INTO THE
+//!    FILE, and its canonical spelling is THE SHORTEST DECIMAL SPELLING THAT PARSES BACK TO THE SAME `f64`,
+//!    WRITTEN IN POSITIONAL NOTATION — Rust's `f64` `Display` form, AND `Display` NEVER USES EXPONENT
+//!    NOTATION: an integral carrier value takes no fractional part (`100`, never `1e2` and never `100.0`), a
+//!    signed zero is written `0`, and a value whose shortest spelling WOULD need an exponent takes the
+//!    POSITIONAL form instead — `1e300` is written as its 301-digit decimal, `5e-324` as its 326-character
+//!    decimal, and `f64::MAX` as its 309 digits."*
+//!    (`A59`; `DD-46` (a); `contract.md §5.2` `P-IM-1`'s scoped equality relation).
+//!
+//!    **⟶ AMENDED 2026-10-21 — THE CLAUSE'S EXPONENT HALF IS WITHDRAWN AND RE-SPELLED, NOT DELETED, AND
+//!    THE FILE TIER'S COMMITTED BYTES DO NOT MOVE** (`docs/decisions.md` · `A142` (1); the architect's
+//!    ruling, verbatim: *"Re-spell the clause"*). **AS FILED IT READ:** *"and a value whose shortest spelling
+//!    needs an exponent takes it (`1e300`, `5e-324`)"*. **THAT HALF WAS FALSE AT THE BYTES: RUST'S `f64`
+//!    `Display` NEVER USES EXPONENT NOTATION** — measured, `format!("{}", 1e300f64)` is a 301-digit decimal,
+//!    `format!("{}", 5e-324f64)` is 326 characters and `format!("{}", f64::MAX)` is 309 digits — **and
+//!    `canonical_number` HAS ALWAYS WRITTEN THE `Display` FORM VERBATIM, so the committed bytes never moved
+//!    and do not move.** **WHAT STANDS UNMOVED: THE CLAUSE'S OWN AUTHORITY (`A59`; `DD-46` (a)), THE REST OF
+//!    THE RULE AS QUOTED ABOVE, AND THE `serde_json` CONSEQUENCE BELOW** — the alternative the same ruling
+//!    declined is the one that would have moved the bytes, exactly as the `write_str` alternative was
+//!    declined the same day (`A141`).
+//!
+//!    **`serde_json`'s default formatter writes `1.0` as `1.0` and `1e16` as `1e+16`, where the declared
+//!    form is `1` and `10000000000000000` — so the formatter is overridden, and `canonical_number` below is
+//!    the ONE home of the rule.**
 //! 2. **KEY ORDER IS DETERMINISTIC AND SORTED.** `StoreValue::Object` is a `BTreeMap` (`§0.4`), so a derive
 //!    serialises it in sorted key order and the bytes are deterministic — the property `encode`'s own doc has
 //!    always carried and the file tier's bytes depend on. **A `serde_json::Value::Object` would NOT be a
@@ -68,12 +84,25 @@ pub(crate) fn decode(text: &str) -> Result<StoreValue, ()> {
 }
 
 /// **The declared canonical spelling of a finite `f64`** (`§7.2` item 7(a); `A59`; `DD-46` (a)): the
-/// shortest decimal spelling that parses back to the same `f64`, with a signed zero written `0`.
+/// shortest decimal spelling that parses back to the same `f64`, **WRITTEN IN POSITIONAL NOTATION**, with
+/// a signed zero written `0`.
 ///
-/// Rust's `f64` `Display` IS that form — it emits the shortest round-tripping decimal and takes an exponent
-/// only where the shortest spelling needs one — with exactly ONE declared exception: it writes a signed
-/// zero as `-0`, while item 7(a) declares that *"a signed zero is written `0`"*. So `0.0` (which is the same
-/// comparison as `-0.0`) is spelled `0` and every other finite value is the `Display` form verbatim.
+/// **Rust's `f64` `Display` IS that form — it emits the shortest round-tripping decimal IN POSITIONAL
+/// NOTATION, AND `Display` NEVER USES EXPONENT NOTATION** — with exactly ONE declared exception: it writes
+/// a signed zero as `-0`, while item 7(a) declares that *"a signed zero is written `0`"*. So `0.0` (which is
+/// the same comparison as `-0.0`) is spelled `0` and every other finite value is the `Display` form
+/// verbatim.
+///
+/// **⟶ AMENDED 2026-10-21 — THE EXPONENT HALF OF THE SENTENCE ABOVE IS WITHDRAWN AND RE-SPELLED, NOT
+/// DELETED, AND NO BYTE MOVES** (`docs/decisions.md` · `A142` (1); the architect's ruling, verbatim:
+/// *"Re-spell the clause"*). **AS FILED IT READ:** *"it emits the shortest round-tripping decimal and takes
+/// an exponent only where the shortest spelling needs one"*. **THAT HALF WAS FALSE AT THE BYTES: `Display`
+/// NEVER TAKES AN EXPONENT** — measured, `format!("{}", 1e300f64)` is a 301-digit decimal,
+/// `format!("{}", 5e-324f64)` is 326 characters and `format!("{}", f64::MAX)` is 309 digits, so a value
+/// whose shortest spelling WOULD need an exponent takes the POSITIONAL form instead (`1e300` as its
+/// 301-digit decimal, `5e-324` as its 326-character decimal, `f64::MAX` as its 309 digits). **THE
+/// SIGNED-ZERO HALF STANDS UNMOVED, AND SO DOES THE ONE-HOME RULE: EVERY OTHER FINITE VALUE IS THE
+/// `Display` FORM VERBATIM.**
 ///
 /// **A NON-FINITE VALUE NEVER REACHES HERE:** it is an outside class (`NonFinite`), is never stored, and its
 /// JSON image is `null` — the `Serialize` impl's catch-all arm emits that, not this function.

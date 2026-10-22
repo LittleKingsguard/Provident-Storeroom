@@ -295,7 +295,7 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
    `null`, a non-finite number, a class no leaf may hold) is DROPPED from the boot's register — the rest of
    the content loads, the instance IS returned, and NO code is produced for the dropped key**; **the store's
    register therefore begins with exactly the keys whose values the taxonomy admits, and a boot-time
-   `ValueNotAdmitted` is NOT declared, because `§8.1` #13's trigger is a WRITE's value.** **`DD-29`'s `alt`
+   `ValueNotAdmitted` is NOT declared, because `§8.1` #14's trigger is a WRITE's value.** (**RE-POINTED 2026-10-21: this cell's as-filed rank was `#13`, which `FilePathUnreachable` took when the construction group gained its member; the rank's ONE home is `docs/specs/storeroom-native/contract.md §8.1`, whose own row prints `ValueNotAdmitted` at `14`; the authority is `docs/decisions.md` · `A142` (2) — the architect's ruling of 2026-10-21, verbatim: *"Take it now"*, on `docs/defects.md` · `DEF-2026-10-21-G`**) **`DD-29`'s `alt`
    cell prices the boot-failure alternative.**
    `[P: §1, §11 · A15 · A16, §12 · A19 | CONTRACT + the boot's and the file-durability DECLARED-DEFAULT
    sub-clauses, priced at `DD-28` and `DD-29`]`
@@ -310,12 +310,61 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
    own reach, so neither is inferred from a value's equality | DECLARED-DEFAULT]`).
    **THE CLAUSE, IN FOUR PARTS:**
    - **(a) THE RULE.** **A NUMBER IS NORMALIZED ON THE WAY INTO THE FILE, and its canonical spelling is
-     THE SHORTEST DECIMAL SPELLING THAT PARSES BACK TO THE SAME `f64`** — Rust's `f64` `Display` form: an
-     integral carrier value takes no fractional part (`100`, never `1e2` and never `100.0`), a signed zero
-     is written `0`, and a value whose shortest spelling needs an exponent takes it (`1e300`, `5e-324`).
+     THE SHORTEST DECIMAL SPELLING THAT PARSES BACK TO THE SAME `f64`, WRITTEN IN POSITIONAL NOTATION** —
+     Rust's `f64` `Display` form, **AND `Display` NEVER USES EXPONENT NOTATION**: an integral carrier
+     value takes no fractional part (`100`, never `1e2` and never `100.0`), a signed zero is written `0`, **and
+     a value whose shortest spelling WOULD need an exponent takes the POSITIONAL form instead** — `1e300` is
+     written as its 301-digit decimal, `5e-324` as its 326-character decimal, and `f64::MAX` as its 309 digits.
      **So `-0` is written `0`, and `1e2`, `1.0` and `1E+2` are each written in the canonical form of the
      value they denote** (`P: §21 · A59`'s own examples) — **`DD-46` (a)'s rule, stated here where the file's
      bytes are the subject.**
+
+     **⟶ RE-SPELLED 2026-10-21 — THE EXPONENT HALF THAT STOOD IN THIS CLAUSE IS WITHDRAWN, AND THE RE-SPELLED
+     RULE ABOVE IS THE ONE THE FILE TIER'S COMMITTED BYTES ALREADY CARRY** (`docs/decisions.md` · `A142` (1) —
+     the architect's ruling of 2026-10-21, verbatim: *"Re-spell the clause"* (on `docs/defects.md` ·
+     `DEF-2026-10-21-F`), AND THE AUTHORITY FOR THE RE-SPELLED RULE ABOVE; `RCA-8(d)` ANNOTATE-BESIDE: **the
+     as-filed half is re-emitted below and marked WITHDRAWN rather than silently re-worded, the re-spell is IN
+     PLACE in the rule above, and parts (b)–(d) below stand BYTE-FOR-BYTE**; `P: §21 · A59` — the RULE's own
+     authority, unmoved; `DD-46` (a); `[T: the `file` image's number spelling, so the committed bytes' form is
+     declared at this clause and not inferred from the formatter's own name | DECLARED-DEFAULT]`).
+
+     **⟶ AND RE-SPELLED 2026-10-21 (`role_spec_writer`) — THE DEFINING HALF IS RE-SPELLED SO THAT THE
+     QUALIFIER BINDS THE DEFINITION, AND THE OBSERVABLE DOES NOT MOVE** (`docs/decisions.md` · `A142` (1) —
+     the architect's ruling of 2026-10-21, verbatim: *"Re-spell the clause"* (on `docs/defects.md` ·
+     `DEF-2026-10-21-F`) — the ruling whose OWN FORMULATION THIS RESTORES: *"THE FILE TIER'S CANONICAL SPELLING
+     IS THE SHORTEST ROUND-TRIPPING DECIMAL IN POSITIONAL NOTATION"*, shortest referring to the DIGITS and the
+     NOTATION being FIXED; and `src/json.rs`'s `canonical_number` doc, which already carries that form).
+     **THE AS-FILED DEFINING HALF, RE-EMITTED AND MARKED SUPERSEDED, NEVER REPLACED: *"its canonical spelling
+     is THE SHORTEST DECIMAL SPELLING THAT PARSES BACK TO THE SAME `f64`** — Rust's `f64` `Display` form, **AND
+     `Display` NEVER USES EXPONENT NOTATION, so the canonical spelling is POSITIONAL**"*.** **IT WAS FALSE AS A
+     DEFINITION: THE SHORTEST PARSING-BACK SPELLING OF `1e300` IS `1e300` (`5` CHARACTERS) AND OF `5e-324` IS
+     `5e-324` (`6` CHARACTERS), WHEREAS THIS CLAUSE'S OWN FIGURES ARE A `301`-DIGIT AND A `326`-CHARACTER
+     DECIMAL — SO THE AS-FILED HALF SAID, IN ONE SENTENCE, BOTH THAT THE CANONICAL SPELLING IS THE SHORTEST
+     PARSING-BACK SPELLING AND THAT A VALUE WHOSE SHORTEST SPELLING WOULD NEED AN EXPONENT TAKES THE POSITIONAL
+     FORM INSTEAD, AND THOSE TWO HALVES CANNOT BOTH STAND.** **THE RE-SPELL IS THE QUALIFIER MOVED INTO THE
+     DEFINITION AND NOTHING ELSE — THE SHORTEST IS TAKEN OVER POSITIONAL SPELLINGS, AND THE NOTATION IS FIXED
+     BY THE DECLARATION AND NOT BY THE SHORTNESS — AND THE COMMITTED BYTES DO NOT MOVE: THIS CORRECTS THE
+     CLAUSE'S DESCRIPTION OF THE OBSERVABLE AND NOT THE OBSERVABLE, AND EVERY OTHER HALF OF THIS CLAUSE STANDS
+     BYTE-FOR-BYTE** (`P: §21 · A59`; `DD-46` (a); `[T: the rule's defining half, so the notation is bound to
+     the definition and not left to a rider that contradicts it | DECLARED-DEFAULT]`).
+
+     **THE AS-FILED WORDING, RE-EMITTED BECAUSE THIS CLAUSE RE-SPELLS IT AND NEVER REPLACES IT:** *"a value
+     whose shortest spelling needs an exponent takes it (`1e300`, `5e-324`)"* — **THAT HALF IS WITHDRAWN, BECAUSE
+     IT IS FALSE OF THE OBSERVABLE: RUST'S `f64` `Display` NEVER USES EXPONENT NOTATION (measured: `1e300` → a
+     301-digit decimal, `5e-324` → 326 characters, `f64::MAX` → 309 digits), so each of them is written
+     POSITIONALLY and NONE of them takes an exponent.** **AND THE WITHDRAWAL IS A CORRECTION OF THE CLAUSE'S
+     DESCRIPTION OF THE OBSERVABLE, NOT A CHANGE OF THE OBSERVABLE: THE FILE TIER'S COMMITTED BYTES DO NOT MOVE —
+     `src/json.rs`'s `canonical_number` has always written `format!("{n}")`, the `Display` form, and the
+     alternative that WOULD have moved them was declined on the same day (`A141`) — SO THE RE-SPELLED RULE ABOVE IS
+     THE RULE THE BYTES ALREADY CARRY.**
+
+     **AND THE CORRECTED CLAIM'S OWN EVALUATOR, WITH ITS OWNER: ONE FILE-TIER BYTE CELL ASSERTS THE COMMITTED
+     BYTES OF A VALUE WHOSE SHORTEST SPELLING WOULD NEED AN EXPONENT — `1e300` AND `5e-324` — THROUGH THE
+     STORE'S EXISTING FILE-TIER BYTE HARNESS (`tests/e2e_json_round_trip.rs`'s `spelling_drive`), so the
+     POSITIONAL form is pinned AT THE BYTES AND NOT INFERRED FROM THE FORMATTER'S OWN NAME; THE CELL IS A
+     PINNING CELL AND IS EXPECTED TO PASS ON ARRIVAL, the behaviour it pins being the IMPLEMENTATION'S OWN; OWNER
+     `role_test_writer`, whose pass mints the cell's own id and writes the `tests/**` byte this clause does not**
+     (`[T: the corrected claim's own evaluator, so the positional spelling is driven at the bytes | OWED]`).
    - **(b) THE SIDE.** **The rule binds the WRITE-TO-FILE side ONLY.** **It is NOT required on the read
      side: any finite JSON number spelling a parser admits is ACCEPTED at the boot of item 6 and converted
      to the carrier it denotes, canonical or not** (`DD-46` (b)) — **so a file whose content carries `1E+2`

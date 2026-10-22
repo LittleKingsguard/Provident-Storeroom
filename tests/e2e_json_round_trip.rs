@@ -1980,7 +1980,7 @@ fn e2e_num_spelling_zero_point_1_in_the_file_image() {
     // EXACTLY at the carrier (their spellings in the image are the shortest round-trip forms, which is the
     // only rule `A59` does not name).
     for (i, v) in [1.0 / 3.0, 3.141592653589793, 5e-324, 1e-300].into_iter().enumerate() {
-        // the tag is an INDEX and not the value: `5e-324`'s own spelling is a 300-digit decimal, which is no
+        // the tag is an INDEX and not the value: `5e-324`'s own spelling is a 326-character decimal, which is no
         // lawful filename — the drive's input is the value and never its text.
         let (live, _bytes, booted) = file_image_drive(&format!("spell-frac-{i}"), v_num(v));
         assert_eq!(
@@ -1994,6 +1994,195 @@ fn e2e_num_spelling_zero_point_1_in_the_file_image() {
             "A59 (a): the round trip through the file tier and a boot is exact-modulo the declared \
              normalization, and for a non-integral value the canonical spelling carries the same f64 \
              (v = {v})"
+        );
+    }
+}
+
+// **THE RE-SPELLED CLAUSE'S OWN EVALUATOR — `§7.2` item 7 (a) AS RE-SPELLED (`A142` (1)) — THE POSITIONAL
+// SPELLING OF A VALUE WHOSE SHORTEST SPELLING WOULD NEED AN EXPONENT, PINNED AT THE COMMITTED BYTES — AND ALL
+// THREE OF THE CLAUSE'S OWN NAMED FIGURES ARE DRIVEN HERE (`1e300` → 301 digits, `5e-324` → 326 characters,
+// `f64::MAX` → 309 digits), so no figure the rule text states stands without a drive behind it.**
+//
+// **THE CLAUSE (in substance, `docs/specs/storeroom-native/seams-and-lifecycle.md §7.2` item 7 (a); its mirror
+// at `docs/specs/storeroom-native/contract.md §7.2` item 7 (a) is byte-identical for this item):** *"A NUMBER
+// IS NORMALIZED ON THE WAY INTO THE FILE, and its canonical spelling is THE SHORTEST DECIMAL SPELLING THAT
+// PARSES BACK TO THE SAME `f64`, WRITTEN IN POSITIONAL NOTATION — Rust's `f64` `Display` form, AND `Display`
+// NEVER USES EXPONENT NOTATION: an integral carrier value takes no fractional part (`100`, never `1e2` and
+// never `100.0`), a signed zero is written `0`, and a value whose shortest spelling WOULD need an exponent
+// takes the POSITIONAL form instead — `1e300` is written as its 301-digit decimal, `5e-324` as its
+// 326-character decimal, and `f64::MAX` as its 309 digits."*
+//
+// **AND THE CLAUSE'S OWN NAMED OBLIGATION — WHICH IS THIS CELL, VERBATIM:** *"ONE FILE-TIER BYTE CELL ASSERTS
+// THE COMMITTED BYTES OF A VALUE WHOSE SHORTEST SPELLING WOULD NEED AN EXPONENT — `1e300` AND `5e-324` —
+// THROUGH THE STORE'S EXISTING FILE-TIER BYTE HARNESS (`tests/e2e_json_round_trip.rs`'s `spelling_drive`), so
+// the POSITIONAL form is pinned AT THE BYTES AND NOT INFERRED FROM THE FORMATTER'S OWN NAME; THE CELL IS A
+// PINNING CELL AND IS EXPECTED TO PASS ON ARRIVAL, the behaviour it pins being the IMPLEMENTATION'S OWN."*
+//
+// **AUTHORITY:** `docs/specs/storeroom-native/seams-and-lifecycle.md §7.2` item 7 (a) (the rule as re-spelled on
+// 2026-10-21) · `docs/decisions.md` · `A142` (1) — the architect's ruling, verbatim: *"Re-spell the clause"*.
+// **THE BEHAVIOUR PINNED HERE IS THE IMPLEMENTATION'S OWN AND IS NOT CHANGING:** `src/json.rs`'s
+// `canonical_number` writes `format!("{n}")` — the `Display` form — and always has, so the committed bytes
+// ALREADY carry the POSITIONAL spelling and this cell is EXPECTED TO PASS ON ARRIVAL. **IF IT FAILS, THAT IS
+// A FINDING TO REPORT — NOT A THING TO SOFTEN, AND NOT A REASON TO TOUCH `src/**`.**
+//
+// **THE GAP THIS CELL CLOSES:** the cell above (`e2e_num_spelling_zero_point_1_in_the_file_image`) DOES drive
+// `5e-324` and `1e-300`, but it **DISCARDS the committed bytes** — it reads the value back and asserts the
+// IN-MEMORY value only — so **no committed cell asserted the bytes of an exponent-shaped value before this
+// one. THIS CELL ASSERTS THE BYTES.**
+//
+// **THE STATES ENUMERATED FOR THIS CELL (each one driven, each one pinned at the committed bytes):**
+//   1. **A VALUE WHOSE SHORTEST SPELLING WOULD NEED A POSITIVE EXPONENT** — `1e300`, whose positional spelling
+//      is the **301-DIGIT** decimal `1` followed by 300 zeros (an integral carrier value, so it takes no
+//      fractional part either);
+//   2. **A VALUE WHOSE SHORTEST SPELLING WOULD NEED A NEGATIVE EXPONENT** — `5e-324`, the smallest positive
+//      subnormal, whose positional spelling is the **326-CHARACTER** decimal `0.` followed by 323 zeros and a
+//      final `5` (one fractional part, and the smallest one the carrier has);
+//   3. **THE CARRIER'S LARGEST FINITE VALUE** — `f64::MAX`, whose positional spelling is the **309-DIGIT**
+//      decimal `17976931348623157` followed by 292 zeros (an integral carrier value, so it takes no
+//      fractional part either — and the widest integral magnitude the carrier has). **THAT IS THE CLAUSE'S
+//      OWN DEFINING HALF AT WORK: the shortest decimal that parses back to the same `f64` is the carrier's
+//      own `17`-digit `Display` digit string, and the POSITIONAL form of it is padded with zeros to the
+//      value's magnitude — the same shape as states 1 and 2 (`1` padded to 301 digits, `5` padded to 326
+//      characters). THE DOUBLE'S EXACT 309-DIGIT EXPANSION IS A LONGER SPELLING OF THE SAME VALUE AND IS
+//      NOT THE CANONICAL ONE.**
+// **THE CLAUSE'S OWN RULE TEXT NAMES THREE MEASURED FIGURES, AND THIS CELL NOW DRIVES ALL THREE OF THEM —
+// `1e300` AS ITS 301-DIGIT DECIMAL, `5e-324` AS ITS 326-CHARACTER DECIMAL, AND `f64::MAX` AS ITS 309 DIGITS —
+// so no figure the rule states is left without a drive behind it. (The clause's own evaluator clause above
+// names the first two; the third figure is the RULE TEXT's own, and it is driven here on the same terms as
+// the other two — the same harness, the same four assertions, the same literal-spelled expectation.)**
+//
+// **THE FOUR ASSERTIONS THIS CELL MAKES AT THE COMMITTED BYTES, FOR EACH STATE:**
+//   * **THE BYTES ARE THE POSITIONAL DECIMAL, byte for byte** — the expectation is spelled out in the
+//     `const`s below and is NOT `format!("{n}")`, so the cell pins the RULE'S OUTPUT and not the formatter's
+//     own name (which is the whole point of the clause's own obligation);
+//   * **THE IMAGE CARRIES NO EXPONENT ANYWHERE** — neither `e` nor `E` appears anywhere in it — so the
+//     spelling cannot go back to the exponent form without this cell failing;
+//   * **THE EXPONENT SPELLING ITSELF IS ABSENT** — the image is neither `{"root":1e300}` nor `{"root":5e-324}`
+//     nor `{"root":1.7976931348623157e308}`;
+//   * **AND THE VALUE SURVIVES** — the booted read-back is the same `f64` (`§7.2` item 6), so the positional
+//     form costs the value nothing.
+//
+// **THE TAG IS AN INDEX AND NOT THE VALUE** — a 326-character decimal is no lawful filename, so the drive's
+// tag is a short index and its input is the VALUE and never its text.
+
+/// **`1e300`'s POSITIONAL CANONICAL SPELLING — THE 301-DIGIT DECIMAL, WRITTEN OUT HERE** (`§7.2` item 7 (a)
+/// as re-spelled, `A142` (1)): `1` followed by 300 zeros. **THE EXPECTATION IS SPELLED IN THE SOURCE AND IS
+/// NOT `format!("{n}")`**, so the cell pins the BYTES the rule produces and not the formatter's own name.
+const ONE_E300_POSITIONAL: &str = "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\
+    0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\
+    0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\
+    0";
+
+/// **`5e-324`'s POSITIONAL CANONICAL SPELLING — THE 326-CHARACTER DECIMAL, WRITTEN OUT HERE** (`§7.2` item 7
+/// (a) as re-spelled, `A142` (1)): `0.` followed by 323 zeros and a final `5`. **THE EXPECTATION IS SPELLED IN
+/// THE SOURCE AND IS NOT `format!("{n}")`**, so the cell pins the BYTES the rule produces and not the
+/// formatter's own name.
+const FIVE_E_NEG_324_POSITIONAL: &str = "0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\
+    0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\
+    0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\
+    00000000000000000000000005";
+
+/// **`f64::MAX`'s POSITIONAL CANONICAL SPELLING — THE 309-DIGIT DECIMAL, WRITTEN OUT HERE** (`§7.2` item 7
+/// (a) as re-spelled, `A142` (1)): the carrier's largest finite value, spelled as the `309`-digit decimal the
+/// clause's own rule text names (*"`f64::MAX` as its 309 digits"*). **THE EXPECTATION IS SPELLED IN THE SOURCE
+/// AND IS NOT `format!("{n}")`**, so the cell pins the BYTES the rule produces and not the formatter's own
+/// name. **THE DIGIT COUNT IS ASSERTED AT THIS LITERAL, so a mistyped digit count here is a FAILURE of the
+/// cell and not a silent slackening of it.**
+///
+/// **AND THE 309 DIGITS ARE `17976931348623157` FOLLOWED BY 292 ZEROS — THE CLAUSE'S OWN DEFINING HALF IS
+/// WHAT SAYS SO, AND IT IS THE HALF THAT WAS RE-SPELLED ON 2026-10-21.** The canonical spelling is **THE
+/// SHORTEST DECIMAL SPELLING THAT PARSES BACK TO THE SAME `f64`**, so the digit string is the SHORTEST one
+/// that round-trips (here `17976931348623157`, the carrier's own `f64` `Display` digits) rendered in POSITIONAL
+/// NOTATION and therefore padded with zeros to the value's magnitude — **THE SAME SHAPE AS THE OTHER TWO
+/// FIGURES THE CLAUSE NAMES: `1e300`'s shortest round-tripping digit string is `1`, padded to its 301 digits,
+/// and `5e-324`'s is `5`, padded to its 326 characters.** **THE DOUBLE'S EXACT 309-DIGIT EXPANSION IS A
+/// DIFFERENT AND LONGER SPELLING OF THE SAME VALUE AND IS NOT THE CANONICAL ONE** — it spells the value in
+/// full, where the clause's shortest half takes the `17`-digit string that parses back to the same `f64` —
+/// **so the committed bytes are the shortest-half's own and not the expansion's.**
+const F64_MAX_POSITIONAL: &str = "1797693134862315700000000000000000000000000000000000000000000000000000000000000000000000000000000000\
+    0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\
+    0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\
+    000000000";
+
+#[test]
+fn e2e_num_spelling_exponent_shaped_values_take_the_positional_form_in_the_file_image() {
+    for (tag, label, value, canonical, exponent_form, digits) in [
+        (
+            "spell-exp-0",
+            "num.spelling.1e300",
+            1e300f64,
+            ONE_E300_POSITIONAL,
+            "1e300",
+            301usize,
+        ),
+        (
+            "spell-exp-1",
+            "num.spelling.5e-324",
+            5e-324f64,
+            FIVE_E_NEG_324_POSITIONAL,
+            "5e-324",
+            326usize,
+        ),
+        (
+            "spell-exp-2",
+            "num.spelling.f64::MAX",
+            f64::MAX,
+            F64_MAX_POSITIONAL,
+            "1.7976931348623157e308",
+            309usize,
+        ),
+    ] {
+        // **THE FIGURE THE CLAUSE NAMES, ASSERTED AT THE LITERAL THAT IS THE EXPECTATION** — so a mistyped
+        // digit count in the source above is a failure of the cell and not a silent slackening of it.
+        assert_eq!(
+            canonical.chars().count(),
+            digits,
+            "case `{label}`: §7.2 item 7 (a) as re-spelled (`A142` (1)) — the POSITIONAL spelling this case \
+             pins is the figure the clause names for it ({digits} characters), and the literal in the source \
+             must be that long"
+        );
+
+        // **THE STORE'S EXISTING FILE-TIER BYTE HARNESS** — the three halves of `A59`, with the BYTES pinned
+        // against the POSITIONAL spelling spelled out above.
+        spelling_drive(
+            tag,
+            label,
+            v_num(value),
+            canonical,
+            v_num(value),
+            "§7.2 item 7 (a) AS RE-SPELLED (`A142` (1)) — the POSITIONAL canonical spelling of a value whose \
+             shortest spelling would need an exponent; A59 (a)/(c); §7.2 item 1 M-12 + item 6; §1.4 class 3; \
+             §5.2 P-IM-1",
+        );
+
+        // **AND THE SAME COMMITTED BYTES, READ BACK FOR THE EXPLICIT ABSENCE ASSERTIONS** — the byte-level
+        // half of this cell, stated on the image the drive actually committed.
+        let (_live, bytes, _booted) = file_image_drive(tag, v_num(value));
+        assert_eq!(
+            bytes,
+            format!("{{\"root\":{canonical}}}"),
+            "case `{label}`: §7.2 item 7 (a) AS RE-SPELLED (`A142` (1)) — the `file` tier's COMMITTED BYTES \
+             carry the POSITIONAL spelling of a value whose shortest spelling would need an exponent: the \
+             {digits}-character decimal spelled out in the source, and NOT the exponent form"
+        );
+        assert!(
+            !bytes.contains('e') && !bytes.contains('E'),
+            "case `{label}`: §7.2 item 7 (a) AS RE-SPELLED (`A142` (1)) — THE COMMITTED IMAGE CARRIES NO \
+             EXPONENT ANYWHERE: neither `e` nor `E` appears in it, so the value is written POSITIONALLY (the \
+             committed image is {bytes})"
+        );
+        assert_ne!(
+            bytes,
+            format!("{{\"root\":{exponent_form}}}"),
+            "case `{label}`: §7.2 item 7 (a) AS RE-SPELLED (`A142` (1)) — the committed image is NOT the \
+             exponent spelling `{exponent_form}`: a value whose shortest spelling would need an exponent takes \
+             the POSITIONAL form instead"
+        );
+        assert_eq!(
+            bytes.len(),
+            digits + 9,
+            "case `{label}`: §7.2 item 7 (a) AS RE-SPELLED (`A142` (1)) — the committed image is `{{\"root\":` \
+             (8 characters) + the {digits}-character positional decimal + `}}` (1 character), and no more"
         );
     }
 }

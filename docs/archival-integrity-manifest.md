@@ -265,3 +265,5 @@
 **Amendment post-`§107`: `archive/reviews/2026-10-16-constraints-publication-gate1.md` = `087d8d65befeaaf81c39e00e60fde94537e7f650ec2641041476fa19d24ff838`.**
 
 **Amendment post-`§107` (dependency-restriction move-out, 2026-10-21): `archive/spec-history/2026-10-21-dependency-restriction-notes-move-out.md` = `b3d4530dc1cf651436f6a6c919b37e031ccbae168141c66c4e66619d237f7ab7`, `24177` bytes.**
+
+**Amendment post-`§108` (`§7.2` mirror-drift move-out, 2026-10-21): `archive/spec-history/2026-10-21-section-7-2-mirror-drift-move-out.md` = `d22ae534ee44d0c9b44da6b6ccd610f1fa0df8f7b63c72224b2cec956c5e26f6`, `6486` bytes.**
