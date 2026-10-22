@@ -88,9 +88,49 @@ fn canonical_number(n: f64) -> String {
 }
 
 /// **The `serde_json` formatter this module installs, overriding exactly ONE method.** Every other method
-/// keeps `serde_json`'s own behaviour — compact separators, `\u00XX` control escapes, raw UTF-8 for other
-/// non-ASCII, and `"`/`\` escaped — which is what the bytes this module has always produced. **Only
-/// `write_f64` moves, and it moves because the declared rule is not `serde_json`'s default.**
+/// keeps `serde_json`'s own behaviour — compact separators, `"` and `\` escaped, raw UTF-8 for other
+/// non-ASCII, and the control characters escaped (`\b` · `\t` · `\n` · `\f` · `\r` as short escapes, every
+/// other control character `< 0x20` as `\u00XX`) — **and only `write_f64` moves, and it moves because the
+/// declared rule is not `serde_json`'s default.**
+///
+/// **⟶ AMENDED 2026-10-21 — THE BYTE CLAUSE THAT STOOD HERE IS CORRECTED, NOT DELETED** (`A141`). **AS
+/// FILED IT READ:** *"compact separators, `\u00XX` control escapes, raw UTF-8 for other non-ASCII, and
+/// `"`/`\` escaped — which is what the bytes this module has always produced."* **THE TRAILING CLAUSE WAS
+/// FALSE, AND TWO CHARACTERS DISPROVE IT: THE PRE-SWAP CODEC'S OWN ENCODER ARMS WERE (CHARACTER → ITS
+/// ESCAPE SPELLING) `"` → `\"` · `\` → `\\` · `\n` → `\n` · `\r` → `\r` · `\t` → `\t` · THEN
+/// `c if (c as u32) < 0x20 => \u{:04x}` · ELSE THE CHARACTER ITSELF, RAW (`write_string`, at
+/// `fc5f915^:src/json.rs`) — SO `U+0008` WENT OUT AS `\u0008` AND `U+000C` AS `\u000c`, WHILE `serde_json`
+/// WRITES `\b` AND `\f` FOR THEM.** **AND THOSE ARMS ARE THE GROUND OF THE TWO-CHARACTER CLAIM, NOT THE
+/// MEASUREMENT: THE PRE-SWAP CODEC ALSO WROTE `\n`, `\r` AND `\t` AS SHORT ESCAPES, EXACTLY AS `serde_json`
+/// DOES, SO THE DEPARTURE FROM THE PRE-SWAP CODEC'S BYTES IS EXACTLY TWO CHARACTERS — `U+0008` AND
+/// `U+000C`.**
+///
+/// **THE ESCAPE IMAGE, SPELLED OUT: `serde_json`'s OWN FIVE SHORT ESCAPES ARE `\b` (`U+0008`), `\t`
+/// (`U+0009`), `\n` (`U+000A`), `\f` (`U+000C`) AND `\r` (`U+000D`); EVERY OTHER CONTROL CHARACTER (`< 0x20`)
+/// IS WRITTEN `\u00XX`; `"` AND `\` ARE ESCAPED; AND EVERY OTHER NON-ASCII CHARACTER IS RAW UTF-8.** **THE
+/// REST OF THE AS-FILED SENTENCE STANDS UNMOVED: THE ONE-METHOD COUNT, THE COMPACT SEPARATORS, THE ESCAPED
+/// `"` AND `\`, THE RAW UTF-8 FOR OTHER NON-ASCII, AND THE `write_f64` MOVE.**
+///
+/// **AND THE CROSS-READ COMPATIBILITY, WHICH IS WHAT MAKES THE DEPARTURE SAFE, IS DECLARED AND NOT
+/// ASSUMED: BOTH PARSERS ACCEPT BOTH SPELLINGS** — the pre-swap parser's own `parse_string` took `\b`/`\f`
+/// and `\u0008`/`\u000c` alike, and this module's decoder takes both — **SO A FILE WRITTEN BY EITHER BUILD
+/// LOADS ON EITHER BUILD, AND THE MODULE HEADER'S STANDING CLAIM — *"a store saved by this build must be
+/// readable by the build that preceded it, and vice versa"* — IS TRUE AND IS NOT NARROWED BY THIS CLAUSE.**
+///
+/// **THE FILE FORMAT IS NOT BIT-STABLE ACROSS THE CODEC SWAP, AND THE TWO ESCAPE SPELLINGS ARE THE WHOLE
+/// OF THE DIFFERENCE BETWEEN THE TWO ENCODERS' BYTES — AND THAT CLAIM IS ATTRIBUTED AND BOUNDED, ITS
+/// GROUND BEING THE PRE-SWAP ARMS QUOTED ABOVE RATHER THAN THE MEASUREMENT ALONE.** **THE MEASUREMENT IS
+/// THE COMPLIANCE REVIEW'S OWN AND ITS CORPUS RECORD IS `docs/defects.md` · `DEF-2026-10-21-E`: the review
+/// rebuilt the pre-swap codec in a scratch worktree and byte-diffed it against this build at commit
+/// `fc5f915`, and found `33` of `34` parity cases byte-identical, the one difference being these two
+/// characters.** **WHAT HOLDS IS THE DECLARED PROPERTY, AND IT IS DETERMINISM: the file tier's bytes are a
+/// DETERMINISTIC FUNCTION OF THE STATE.** **THE PRICED ALTERNATIVE — A `write_str` OVERRIDE, WHICH WOULD
+/// HAVE RESTORED THE PRE-SWAP BYTES EXACTLY — WAS DECLINED, SO THE FORMATTER'S BEHAVIOUR IS EXACTLY AS IT
+/// STANDS.**
+///
+/// **THE CORPUS HOME:** `docs/specs/storeroom-native/seams-and-lifecycle.md §7.2` item 7 (e) — the file
+/// tier's escape image; **THE DECISION:** `docs/decisions.md` · `A141`; **THE DEFECT REGISTER:**
+/// `docs/defects.md` · `DEF-2026-10-21-D` · `DEF-2026-10-21-E`; **THE CODE HOME:** this doc.
 struct Canonical;
 
 impl Formatter for Canonical {

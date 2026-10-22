@@ -355,6 +355,91 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
      spelling alternatives, its `(b)` cell prices the second candidate predicate and the wider-carrier
      alternative, and its reversal cell names the instrument.
 
+    **⟶ AMENDED 2026-10-21 — THE `file` TIER'S ESCAPE IMAGE IS THE FIFTH PART OF THIS CLAUSE, AND IT IS A
+    PURE INSERTION: PARTS (a)–(d) ABOVE STAND BYTE-FOR-BYTE AND ARE READ THROUGH THIS CLAUSE, AND THE
+    AS-FILED COUNT *"THE CLAUSE, IN FOUR PARTS"* IS NOT CONTRADICTED — THIS IS THE FIFTH PART AND NOT A
+    RE-SPELLING OF ANY OF THE FOUR** (`RCA-8(d)` ANNOTATE-BESIDE: **the four parts above stand byte-for-byte,
+    their count line included; THIS clause mints no member, no code, no rank, no parameter and no `§`-number,
+    it moves no word of any part above it, and it re-decides nothing the four parts decide**;
+    `docs/decisions.md` · `A141` — the architect's ruling of 2026-10-21, verbatim: *"Proceed with the
+    amendment."*; `src/json.rs`'s `Canonical` formatter clause, which names this part as the CORPUS HOME of
+    the escape image; `[T: the file tier's escape image, so the committed bytes' string spelling is declared
+    at this clause and not inferred from the codec's library | DECLARED-DEFAULT]`).
+    **⟶ AND RE-SPELLED 2026-10-21 — THE GATE-4 ADVERSARIAL REVIEW'S VERDICT WAS `FAIL` AND THE SUPERVISOR
+    ADJUDICATED IT AT THE BYTES: TWO FINDINGS UPHELD AND REPAIRED BELOW (THE FALSE *"EVERY OTHER CONTROL
+    CHARACTER IS STILL WRITTEN `\u00XX`"* SENTENCE, AND THE UNATTRIBUTED *"THE TWO ESCAPE SPELLINGS ARE THE
+    WHOLE OF THE DIFFERENCE"* CLAIM), ONE PARTLY UPHELD AND REPAIRED (THE READ SIDE'S OWN STANDING, WHICH IS
+    NOT UNIFORMLY *"STRICTER"*), AND TWO REFUTED AND NOT APPLIED (THE *"FIVE, NOT TWO"* DEPARTURE, REFUTED BY
+    THE PRE-SWAP ARMS `\"` · `\\` · `\n` · `\r` · `\t` BEFORE `c if (c as u32) < 0x20 => \u{:04x}`; AND THE
+    *"CROSS-READ CLAIM UNSUPPORTED"* FINDING, REFUTED BY BOTH PARSERS' OWN `parse_string`s).**
+    - **(e) THE ESCAPE IMAGE, THE SWAP'S PRICE, THE CROSS-READ COMPATIBILITY, THE READ SIDE'S OWN STANDING,
+      AND THE REVERSAL INSTRUMENT.**
+      **THE `file` TIER'S STRING ESCAPING IS `serde_json`'S OWN, AND THE ESCAPE IMAGE IS `serde_json`'S OWN
+      ESCAPE TABLE: `\b` (`U+0008`), `\t` (`U+0009`), `\n` (`U+000A`), `\f` (`U+000C`) AND `\r` (`U+000D`) ARE
+      THE FIVE SHORT ESCAPES; EVERY OTHER CONTROL CHARACTER (`< 0x20`) IS WRITTEN `\u00XX`; `"` AND `\` ARE
+      ESCAPED; AND EVERY OTHER NON-ASCII CHARACTER IS RAW UTF-8** (`docs/decisions.md` · `A141` (1) — the
+      image; `serde_json`'s own `ESCAPE` table, at the vendored
+      `.cargo-home/registry/src/*/serde_json-1.0.154/src/ser.rs`; `src/json.rs`'s `Canonical` formatter
+      clause, the CODE HOME of the escape image).
+      **AND THE DEPARTURE FROM THE PRE-SWAP HAND-ROLLED CODEC IS EXACTLY TWO CHARACTERS — `U+0008` (BACKSPACE)
+      AND `U+000C` (FORM FEED) — AND ITS GROUND IS THE PRE-SWAP ENCODER'S OWN ARMS, NOT A MEASUREMENT: the
+      pre-swap `write_string` (at `fc5f915^:src/json.rs`) WROTE `\"` FOR `"`, `\\` FOR `\`, `\n` FOR A LINE
+      FEED, `\r` FOR A CARRIAGE RETURN AND `\t` FOR A TAB, AND THEN FELL THROUGH TO `c if (c as u32) < 0x20 =>
+      \u{:04x}` — so it wrote `\u0008` AND `\u000c` where `serde_json` writes `\b` AND `\f`, AND IT WROTE THE
+      OTHER THREE SHORT ESCAPES EXACTLY AS `serde_json` DOES** (`docs/decisions.md` · `A141` (1) — the image and
+      the pre-swap arms; the pre-swap `write_string`, at `fc5f915^:src/json.rs`; `serde_json`'s own `ESCAPE`
+      table).
+      **AND THE NUMBER SPELLING IS NOT TOUCHED BY THIS PART: it is item 7 (a)'s, and it stands exactly as
+      filed** (item 7 (a) above; `docs/decisions.md` · `A141` (4) — what that row does NOT pin, which names the
+      file tier's number spelling as UNMOVED).
+      **AND THE FORMAT IS NOT BIT-STABLE ACROSS THE SWAP — STATED PLAINLY SO THAT NO READER INFERS
+      BYTE-IDENTITY BETWEEN A PRE-SWAP FILE AND A POST-SWAP FILE.** **THE TWO ESCAPE SPELLINGS ARE THE
+      WHOLE OF THE DIFFERENCE, AND THAT CLAIM RESTS ON THE PRE-SWAP ENCODER'S OWN ARMS, NOT ON THE
+      MEASUREMENT: those arms write `\n`, `\r` AND `\t` EXACTLY AS `serde_json` DOES, so THE ONLY BYTES THAT
+      DIFFER ARE `U+0008` AND `U+000C`** (the pre-swap `write_string`, at `fc5f915^:src/json.rs`; the
+      pre-swap arms, as printed above). **AND THE CORROBORATING MEASUREMENT IS THE COMPLIANCE REVIEW'S OWN
+      AND IS THE CORPUS'S RECORD OF IT: `33` OF `34` PARITY CASES BYTE-IDENTICAL, THE ONE DIFFERENCE BEING
+      THESE TWO CHARACTERS** (`docs/defects.md` · `DEF-2026-10-21-E` — the corpus's record of that
+      measurement; `docs/decisions.md` · `A141` (2) — the decision that records it). **WHAT HOLDS IS THE
+      DECLARED PROPERTY, AND IT IS DETERMINISM: the `file` tier's bytes are a DETERMINISTIC FUNCTION OF THE
+      STATE** — sorted key order, compact separators, and one canonical number spelling — **and this part
+      does not move it** (`src/json.rs`'s module header and `encode`'s own doc; item 7 (a) above). **SO A READER
+      MUST NOT READ "THE BYTES ARE DETERMINISTIC" AS "THE BYTES ARE THE SAME ACROSS THE SWAP": the first is this
+      clause's property and it holds, and the second is no property this contract declares at all.**
+      **AND THE CROSS-READ COMPATIBILITY IS DECLARED, NOT ASSUMED — BOTH PARSERS ACCEPT BOTH SPELLINGS:**
+      the pre-swap parser's own `parse_string` took `\b`/`\f` and `\u0008`/`\u000c` alike, and the current
+      decoder takes both (`docs/decisions.md` · `A141` (3); `src/json.rs`'s `Canonical` formatter clause),
+      **SO A FILE WRITTEN BY EITHER BUILD LOADS ON EITHER BUILD.** **THIS IS WHAT MAKES THE DEPARTURE SAFE,
+      and it does NOT NARROW the module header's standing claim — *"a store saved by this build must be
+      readable by the build that preceded it, and vice versa"* — WHICH IS TRUE AND IS READ THROUGH THIS
+      CLAUSE** (`src/json.rs`'s module header; `docs/decisions.md` · `A141` (3)).
+      **AND THE READ SIDE IS NOT A WRITE-SIDE FACT.** **THE CURRENT DECODER'S OWN STANDING IS A READ-SIDE
+      FACT AND MOVES NO WRITE-SIDE CLAUSE: it refuses `01`, `+1`, `.5`, `1.` and `1e400`, IT REFUSES RAW
+      CONTROL CHARACTERS — WHICH THE PRE-SWAP CODEC ALSO REFUSED, SO THAT ITEM IS NOT A *"STRICTER"* ARM — AND
+      IT ACCEPTS A VALID SURROGATE PAIR, WHICH THE PRE-SWAP CODEC REFUSED** (`docs/decisions.md` · `A141` (4) —
+      what that row does NOT pin; `docs/defects.md` · `DEF-2026-10-21-E` — the read side's standing in the
+      corpus's own record; the current decoder's own refusal of a raw control character, `serde_json`'s
+      `ControlCharacterWhileParsingString`).
+      **NONE OF THAT NARROWS item 7 (b)'s own sentence — *"any finite JSON number spelling a parser admits
+      is ACCEPTED at the boot of item 6"* — and none of it is a second write-side rule: a parser's refusals AND
+      ITS ACCEPTANCES ARE THE READ SIDE'S OWN, and the write side's image is the escape image above and the
+      number spelling of item 7 (a)** (item 7 (b) above).
+      **AND THE AUTHORITY IS THE ARCHITECT'S RULING OF 2026-10-21, VERBATIM: *"Proceed with the
+      amendment."*** — **RECORDED AS `A141`, AN ACTIVE ROW OF `docs/decisions.md`** (`docs/decisions.md` ·
+      `A141`; `src/json.rs`'s `Canonical` formatter clause — the CORPUS HOME is this part, the DECISION is
+      `A141`, the CODE HOME is `src/json.rs`). **THE PRICED ALTERNATIVE WAS OVERRIDING `write_str` TO RESTORE
+      THE PRE-SWAP BYTES EXACTLY — which would have made the file format BIT-STABLE ACROSS THE SWAP — AND THE
+      ARCHITECT DECLINED IT, so the formatter's behaviour is exactly as it stands** (`docs/decisions.md` ·
+      `A141` — the row's own REVERSAL sentence, which names the priced alternative as overriding `write_str`
+      to restore the pre-swap bytes exactly; `docs/defects.md` · `DEF-2026-10-21-D` — the record that the
+      architect declined that alternative and no `write_str` override was added). **THE REVERSAL
+      INSTRUMENT: A FRESH RULING RECORDED AS AN ACTIVE `docs/decisions.md` ROW,
+      FOLLOWED BY A BOUNDED AMENDMENT OF THIS CLAUSE** (`docs/decisions.md` · `A141`; the instrument this
+      directory's own clauses use at `§7.1` step 3 and `§7.2` item 4).
+      `[T: the file tier's escape image, its stability across the swap, the cross-read compatibility, the
+      read side's own standing and the instrument that reverses the whole, so a TestWriter can drive the
+      committed bytes without inferring a bit-stability the format does not have | DECLARED-DEFAULT]`
+
 ### §7.3 The constraint-and-repair evaluation seam
 
 1. **CONSTRAINTS AND REPAIRS ARE EVALUATED NODE-SIDE** (`P: §9 · A6`: *"Constraints/repairs are evaluated
