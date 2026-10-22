@@ -54,6 +54,15 @@
 //!   `DD-43`; a tier outside `§5.1`'s domain → `OutOfDomainTier`; a segment outside `§1.5` item 1
 //!   → `AddressMalformed`).
 //!
+//! **AND THE TWO CLASSES SECTION 12 ADDS, SO A READER SEES EXACTLY WHAT ITS CELLS COMPARE** — they are
+//! not round trips at all, and each is stated by a clause of its own:
+//!
+//! * **`WholeFileRefused`** — the loader REFUSES the file: **the WHOLE file does not load, the boot falls
+//!   through, the store's register begins EMPTY, and NO error reaches the caller** — `storeCreate` still
+//!   returns an instance (`§7.2` item 7 (f)'s declared answer for a file the loader refuses);
+//! * **`WholeFileLoaded`** — the loader ACCEPTS the file: **the boot loads the content and the value reads
+//!   back EQUAL to the value the text spells** (`§7.2` item 7 (f)'s acceptances).
+//!
 //! **NO ASSERTION IN THIS FILE IS WEAKENED TO MAKE A CASE PASS.** A case that comes back different is
 //! reported, not adjusted: **a precision loss, a key-order change, an empty-container change or an
 //! added/removed member is a FINDING.**
@@ -99,7 +108,18 @@
 //!    range · a tier outside the domain · a malformed address · a kind contradiction in both directions ·
 //!    the empty-address write · a leaf parent · a leaf in mid-walk;
 //! 8. **re-write fidelity** — write A, read it, write that read-back value at a FRESH address, read again,
-//!    all three equal.
+//!    all three equal;
+//! 9. **the loader's acceptance set and the commit's own verification** — the `file` tier's JSON TEXT
+//!    written **BY HAND** at a real path and booted (`§7.2` item 7 (f)): a **RAW CONTROL CHARACTER**
+//!    inside a string (a literal `LF`, a literal `TAB`, a literal `NUL`) is REFUSED and its **ESCAPED**
+//!    form (`\u0000`) is ACCEPTED · the **SIX NUMBER SPELLINGS JSON DOES NOT ADMIT** (`01`, `+1`, `.5`,
+//!    `1.`, `1e400`, `1e999999999`) are REFUSED · a **UNICODE WHITESPACE CHARACTER as a token separator**
+//!    (`U+00A0`) is REFUSED and EXACTLY FOUR separators (space, tab, `LF`, `CR`) are ADMITTED · an image of
+//!    **`128` NESTED CONTAINERS** is REFUSED and the last accepted image carries `127` · an **ESCAPED
+//!    SURROGATE PAIR** (`\uD83D\uDE00`) is ACCEPTED · and the **COMMIT'S OWN VERIFICATION** of the image
+//!    it is about to write (`§7.2` item 2's 2026-10-21 clause): a value of walk-depth `126` COMMITS and
+//!    survives a boot, and a value of walk-depth `127` is REFUSED with the EXISTING `FileCommitFailed`
+//!    while the prior bytes stand.
 
 mod support;
 use support::*;
@@ -2398,5 +2418,905 @@ fn e2e_num_the_literal_2_pow_53_plus_1_through_the_f64_carrier_is_in_bounds() {
         v_num(9007199254740992.0),
         "§7.2 item 6: the booted value is the same 2^53 (the round trip through the file is exact here — \
          `A59`'s normalization moves a spelling, and 2^53's is already canonical)"
+    );
+}
+
+// ===================================================================================================
+// 12. THE LOADER'S ACCEPTANCE SET — THE JSON GRAMMAR'S OWN — AND THE COMMIT'S VERIFICATION OF THE IMAGE
+//     IT IS ABOUT TO WRITE. (`docs/specs/storeroom-native/seams-and-lifecycle.md §7.2` item 7 (f) and
+//     `§7.2` item 2's 2026-10-21 clause; the refusal's own code is `contract.md §8.1`'s row `15`.)
+//
+// **THE TWO CLAUSES THIS SECTION DRIVES, IN SUBSTANCE, SO NO CELL BELOW IS READ AS AN ASSERTION THE
+// CONTRACT DOES NOT MAKE.**
+//
+// * **`§7.2` item 7 (f) — "THE LOADER'S ACCEPTANCE SET — THE JSON GRAMMAR'S OWN — AND THE ANSWER FOR A
+//   FILE THE LOADER REFUSES."** *"THE CODEC IS JSON-CONFORMANT IN BOTH DIRECTIONS, AND THE LOADER'S
+//   ACCEPTANCE SET IS THE JSON GRAMMAR'S. THE FOUR CLASSES THE `serde_json` SWAP NARROWED ARE THE
+//   DECLARED BEHAVIOUR AND NOT DEFECTS, EACH NAMED WITH ITS EXACT EXAMPLE. (1) A RAW CONTROL CHARACTER
+//   INSIDE A STRING IS REFUSED — a literal `LF`, a literal `TAB` or a literal `NUL` inside a string — AND
+//   THE ESCAPED FORM (`\u0000`) IS ACCEPTED. (2) A NUMBER SPELLING JSON DOES NOT ADMIT IS REFUSED — `01`,
+//   `+1`, `.5`, `1.`, `1e400` and `1e999999999` are each refused. (3) A UNICODE WHITESPACE CHARACTER AS A
+//   TOKEN SEPARATOR IS REFUSED — EXACTLY FOUR SEPARATORS ARE ADMITTED (space, tab, `LF`, `CR`), AND
+//   `U+00A0` IS NOT ONE OF THEM. (4) A NESTING DEPTH OF `128` OR MORE IS REFUSED … AND ONE WIDENING CLASS
+//   STANDS BESIDE THE FOUR: THE LOADER ACCEPTS AN ESCAPED SURROGATE PAIR (`\uD83D\uDE00`), WHICH THE
+//   PRE-SWAP CODEC REFUSED OUTRIGHT."* **AND THE ANSWER FOR A FILE THE LOADER REFUSES: *"THE WHOLE FILE
+//   DOES NOT LOAD: THE BOOT FALLS THROUGH, THE STORE'S REGISTER BEGINS EMPTY, AND NO ERROR REACHES THE
+//   CALLER — `storeCreate` STILL RETURNS AN INSTANCE."***
+// * **`§7.2` item 2's 2026-10-21 clause — "THE COMMIT VERIFIES THE IMAGE IT IS ABOUT TO WRITE: IT
+//   RE-DECODES IT AND REFUSES, WITH THE EXISTING `FileCommitFailed`, WHEN IT DOES NOT LOAD."** *"THE COMMIT
+//   RE-DECODES THE IMAGE IT IS ABOUT TO RENAME OVER THE PATH AND REFUSES IF IT DOES NOT LOAD — the answer
+//   is the EXISTING `FileCommitFailed` (`contract.md §8.1` #15): NO NEW FAIL CODE, NO NEW `§8.1` ROW, NO NEW
+//   VOCABULARY. THE COMMIT'S OWN FAILURE ARM IS UNCHANGED: ROLLBACK FIRST … AND THE CALLER IS ANSWERED
+//   `FileCommitFailed` SECOND … the prior bytes stand … and the refused value NEVER PERSISTS. THE LOADER'S
+//   CEILING IS NOT LIFTED: it is a STACK-OVERFLOW GUARD … THE WRITER RESPECTS IT; THE CEILING STANDS."*
+//
+// **THE STATES ENUMERATED FOR THIS SECTION (one cell per case, one line per group):**
+//
+//   1. **THE CONTROL-CHARACTER CLASS** — a RAW `LF`, a RAW `TAB` and a RAW `NUL` inside a string are each
+//      REFUSED, and the ESCAPED form (`\u0000`, `\u0009`, `\u000a`) is ACCEPTED;
+//   2. **THE NUMBER-SPELLING CLASS** — the SIX spellings JSON does not admit (`01`, `+1`, `.5`, `1.`,
+//      `1e400`, `1e999999999`) are each REFUSED;
+//   3. **THE SEPARATOR CLASS** — EXACTLY FOUR separators are ADMITTED (space, tab, `LF`, `CR`) and `U+00A0`
+//      is REFUSED;
+//   4. **THE DEPTH CLASS** — an image of `127` NESTED CONTAINERS is the LAST ACCEPTED one and an image of
+//      `128` is REFUSED;
+//   5. **THE WIDENING CLASS** — an ESCAPED SURROGATE PAIR (`\uD83D\uDE00`) is ACCEPTED;
+//   6. **THE READ-SIDE NUMERIC CELL** — the file's TEXT carries `f64::MAX`'s canonical POSITIONAL spelling
+//      and the value read back is BIT-IDENTICAL to `f64::MAX`;
+//   7. **THE CONTRASTING ANSWER** — a PARSEABLE file with ONE NON-ADMITTED MEMBER loses THAT MEMBER and
+//      the rest of the content loads (the `DD-29` clause at `§7.2` item 6) — a DIFFERENT answer from the
+//      one a REFUSED file gets, and both are declared;
+//   8. **THE COMMIT'S OWN VERIFICATION** — a value of walk-depth `126` COMMITS and survives a boot, and a
+//      value of walk-depth `127` is REFUSED with the EXISTING `FileCommitFailed`, the prior bytes stand and
+//      the refused value never persists;
+//   9. **THE CONSTRAINED ARM OF THE REFUSED FILE'S ANSWER** — the refused file's answer has TWO arms and
+//      BOTH are declared: **the PLAIN construction (no constraint list) returns an instance whose register
+//      is EMPTY and reaches the caller with NO error** (the cell above), **and a construction that SUPPLIES
+//      a constraint list answers `ConstraintListInvalid` and returns NO INSTANCE**;
+//  10. **THE NUMBER SWEEP — the number class's own NEGATIVE GENERATOR** — `01`, `+1`, `.5`, `1.`, `1e`,
+//      `Infinity`, `NaN`, `0x1`, `1_0`, `--1`, `1.2.3` and the OVERFLOWING `1e309` are each REFUSED, and
+//      the UNDERFLOWING `1e-400` and `1e-324` are ACCEPTED and read back as the number `0`;
+//  11. **THE SEPARATOR SWEEP — the separator class's own NEGATIVE GENERATOR** — `U+000B`, `U+000C`, `U+0085`,
+//      `U+2000`…`U+200A`, `U+2028`, `U+2029` and `U+3000` are each REFUSED as a token separator (**the FOUR
+//      ADMITTED separators are pinned by the cell above and are NOT re-pinned here**);
+//  12. **THE SIBLING RESIDUE** — a REFUSED commit writes NO SIBLING FILE: the sibling the commit writes is
+//      named `{path}.snst-commit-{pid}` and the verification runs BEFORE the sibling is written.
+//
+// **EVERY LOADER CELL WRITES THE FILE'S TEXT BY HAND AT A REAL PATH, AND NO STORE WROTE IT** — so what
+// the loader is observed on is a FOREIGN file, and the refusal observed is the LOADER'S OWN.
+//
+// **THE DEPTH IS COUNTED IN THE TEXT AND IN THE IMAGE, AND THE TWO COUNTS ARE NOT THE SAME NUMBER**: the
+// image wraps the register's own keys in ONE MORE OBJECT, so a VALUE of walk-depth `d` produces an image
+// of `d + 1` containers. **THE MEASURED BOUNDARY IS EXACT — the last ACCEPTED image carries `127`
+// containers and the first REFUSED carries `128`** — so a value of walk-depth `126` (an image of `127`)
+// is ACCEPTED and a value of walk-depth `127` (an image of `128`) is REFUSED.
+//
+// **NO ASSERTION IN THIS SECTION IS WEAKENED TO MAKE A CASE PASS.** A case that comes back different is
+// a FINDING, reported with its own label — and the commit's verification cell is GREEN against the current
+// `src/`, because the commit DOES verify the image it is about to write: it RE-DECODES that image and
+// REFUSES IT with the EXISTING `FileCommitFailed` (`docs/specs/storeroom-native/contract.md §8.1` row `15`)
+// BEFORE the sibling is written, so the path is never touched, and the commit's own failure arm ROLLS THE
+// WRITE BACK FIRST and ANSWERS THE CALLER SECOND, so the refused value never persists
+// (`docs/decisions.md` · `A144` (2); `docs/specs/storeroom-native/seams-and-lifecycle.md §7.2` item 2, parts
+// (1) and (2)). **AND THE QUANTIFIER IS THE ONE `A144` (2) DECLARES — the `file` tier's round trip is exact
+// for every admitted value whose committed image the loader admits; for an admitted value whose image the
+// loader refuses, the commit refuses, the value never persists, and no round trip exists.** **AND THE BOUNDARY
+// IS STATED IN THE CORPUS'S WALK-DEPTH SPELLING (THE ROOT AT `0`): the last admitted value is walk-depth `126`
+// and the first refused is walk-depth `127`** — the commit's walk-depth `126` cell is the ADMITTED case and its
+// walk-depth `127` cell is the REFUSAL case.
+// ===================================================================================================
+
+/// **THE LOADER'S ANSWER FOR A FILE IT REFUSES — THE WHOLE FILE DOES NOT LOAD** (`§7.2` item 7 (f)):
+/// the boot falls through, the store's register begins EMPTY, and NO ERROR REACHES THE CALLER — the
+/// construction still returns an instance.
+///
+/// The file's TEXT is written BY HAND at a real path, the instance is booted at that path, and the
+/// DECLARED ANSWER is asserted in its three parts: **(1)** the instance IS returned; **(2)** the register
+/// begins EMPTY; **(3)** the key the refused file carried resolves to NOTHING — the store's own
+/// `AddressNotFound` (`§2.2`'s `L-3`).
+fn loader_refuses_the_whole_file(tag: &str, text: &str, label: &str, clause: &str) {
+    let path = fresh_path(tag);
+    std::fs::write(&path, text.as_bytes())
+        .unwrap_or_else(|e| panic!("case `{label}`: the file's TEXT is written BY HAND at a real path; got {e}"));
+
+    // (1) NO ERROR REACHES THE CALLER — `storeCreate` STILL RETURNS AN INSTANCE.
+    let booted = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        &format!(
+            "case `{label}`: §7.2 item 7 (f) — the boot FALLS THROUGH and NO ERROR REACHES THE CALLER: \
+             `storeCreate` STILL RETURNS AN INSTANCE [{clause}]"
+        ),
+    );
+
+    // (2) THE STORE'S REGISTER BEGINS EMPTY.
+    assert_eq!(
+        read_at(&booted, &empty_address()),
+        v_obj(&[]),
+        "case `{label}`: §7.2 item 7 (f) — THE WHOLE FILE DOES NOT LOAD: the boot falls through and the \
+         store's register begins EMPTY [{clause}]"
+    );
+
+    // (3) THE KEY THE REFUSED FILE CARRIED RESOLVES TO NOTHING.
+    let absent = failure(
+        booted.read(AddressArg::List(key(&["root"])), TierArg::Absent),
+        &format!(
+            "case `{label}`: §7.2 item 7 (f) — the key the refused file carried is NOT in the register, so \
+             the address resolves to nothing"
+        ),
+    );
+    assert_code(
+        &absent,
+        "AddressNotFound",
+        &format!(
+            "case `{label}`: §2.2 L-3 / §8.1 #2 — the register holds no key, so the read answers the \
+             store's own `AddressNotFound` [{clause}]"
+        ),
+    );
+}
+
+/// **THE LOADER'S ANSWER FOR A FILE IT ACCEPTS** (`§7.2` item 7 (f)): the boot loads the content and the
+/// value reads back EQUAL to the value the text spells. **THE FILE'S TEXT IS WRITTEN BY HAND**, so the
+/// value compared here is the TEXT's own and not a store's re-serialization of it.
+fn loader_accepts_the_whole_file(tag: &str, text: &str, expected: &StoreValue, label: &str, clause: &str) {
+    let path = fresh_path(tag);
+    std::fs::write(&path, text.as_bytes())
+        .unwrap_or_else(|e| panic!("case `{label}`: the file's TEXT is written BY HAND at a real path; got {e}"));
+    let booted = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        &format!(
+            "case `{label}`: §7.2 item 6 — the boot loads the file's content and the instance IS returned \
+             [{clause}]"
+        ),
+    );
+    assert_eq!(
+        read_at(&booted, &key(&["root"])),
+        *expected,
+        "case `{label}`: §7.2 item 7 (f) — the file LOADS and the value reads back EQUAL to the value the \
+         text spells [{clause}]"
+    );
+}
+
+/// **A JSON TEXT CARRYING `containers` NESTED CONTAINERS AROUND THE LEAF `0`** — `{"a":{"a":{… 0 …}}}`.
+/// **THE COUNT IS THE COUNT OF CONTAINERS IN THE TEXT ITSELF**, so a file text of `{"root": <this>}` is
+/// an image of `containers + 1` — the register's own wrapper is a container too.
+fn nested_containers_text(containers: usize) -> String {
+    let mut text = String::from("0");
+    for _ in 0..containers {
+        text = format!("{{\"a\":{text}}}");
+    }
+    text
+}
+
+/// **THE WALK-DEPTH OF A VALUE** — the number of nested containers around its leaf; a leaf's own depth is
+/// `0`. **THE STORE'S OWN WALK COUNTS THE ROOT AS DEPTH `0`**, so this is the depth the store's own
+/// vocabulary uses, and it is the measure the clause's boundary is stated in.
+fn value_walk_depth(value: &StoreValue) -> usize {
+    match value {
+        StoreValue::Object(members) => 1 + members.values().map(value_walk_depth).max().unwrap_or(0),
+        StoreValue::Array(items) => 1 + items.iter().map(value_walk_depth).max().unwrap_or(0),
+        _ => 0,
+    }
+}
+
+// **CLASS (1) — THE CONTROL-CHARACTER CLASS. THE RAW FORM IS REFUSED; THE ESCAPED FORM IS ACCEPTED.**
+
+// **A RAW `LF` INSIDE A STRING IS REFUSED** — `§7.2` item 7 (f), class (1): *"A RAW CONTROL CHARACTER
+// INSIDE A STRING IS REFUSED — a literal `LF`, a literal `TAB` or a literal `NUL` inside a string"*. **THE
+// FILE'S TEXT CARRIES THE LITERAL CHARACTER ITSELF**, spelled `'\n'` in the source and written to the
+// path byte for byte — so what the loader is shown is the raw form and not an escaped spelling of it.
+#[test]
+fn e2e_loader_refuses_a_raw_lf_inside_a_string() {
+    loader_refuses_the_whole_file(
+        "loader-raw-lf",
+        &format!("{{\"root\":\"a{}b\"}}", '\n'),
+        "loader.raw-control-character.LF",
+        "§7.2 item 7 (f), class (1)",
+    );
+}
+
+// **A RAW `TAB` INSIDE A STRING IS REFUSED** — the same class (1), the second of its three named
+// instances.
+#[test]
+fn e2e_loader_refuses_a_raw_tab_inside_a_string() {
+    loader_refuses_the_whole_file(
+        "loader-raw-tab",
+        &format!("{{\"root\":\"a{}b\"}}", '\t'),
+        "loader.raw-control-character.TAB",
+        "§7.2 item 7 (f), class (1)",
+    );
+}
+
+// **A RAW `NUL` INSIDE A STRING IS REFUSED** — the same class (1), the third of its three named instances.
+#[test]
+fn e2e_loader_refuses_a_raw_nul_inside_a_string() {
+    loader_refuses_the_whole_file(
+        "loader-raw-nul",
+        &format!("{{\"root\":\"a{}b\"}}", '\u{0000}'),
+        "loader.raw-control-character.NUL",
+        "§7.2 item 7 (f), class (1)",
+    );
+}
+
+// **THE ESCAPED FORM IS ACCEPTED** — `§7.2` item 7 (f), class (1): *"AND THE ESCAPED FORM (`\u0000`) IS
+// ACCEPTED"*. **THE CLAUSE NAMES `\u0000`; ITS SIBLINGS `\u0009` (the escaped `TAB`) AND `\u000a` (the
+// escaped `LF`) ARE THE SAME CLASS AND ARE DRIVEN BESIDE IT**, so the class is driven as a class and not
+// at one instance of it. **THE TEXT CARRIES THE SIX CHARACTERS `\`, `u`, `0`, `0`, `0`, `0` AND NOT THE
+// CHARACTER THEY NAME** — that is the whole difference between the two halves of this class.
+#[test]
+fn e2e_loader_accepts_the_escaped_form_of_a_control_character() {
+    for (escape, spelled, label) in [
+        ("\\u0000", "\u{0000}", "loader.escaped-control-character.NUL"),
+        ("\\u0009", "\u{0009}", "loader.escaped-control-character.TAB"),
+        ("\\u000a", "\u{000a}", "loader.escaped-control-character.LF"),
+    ] {
+        loader_accepts_the_whole_file(
+            &format!("loader-esc-{}", label.rsplit('.').next().unwrap_or("x")),
+            &format!("{{\"root\":\"a{escape}b\"}}"),
+            &v_str(&format!("a{spelled}b")),
+            label,
+            "§7.2 item 7 (f), class (1) — the ESCAPED form is ACCEPTED",
+        );
+    }
+}
+
+// **CLASS (2) — THE NUMBER-SPELLING CLASS. THE SIX SPELLINGS JSON DOES NOT ADMIT ARE EACH REFUSED.**
+// `§7.2` item 7 (f), class (2): *"A NUMBER SPELLING JSON DOES NOT ADMIT IS REFUSED — `01`, `+1`, `.5`,
+// `1.`, `1e400` and `1e999999999` are each refused."* **THE TWO OVER-RANGE SPELLINGS ARE REFUSED AS OUT OF
+// RANGE AND NOT AS A SYNTAX ERROR, AND THE LOADER'S ANSWER IS THE SAME EITHER WAY** — the whole file
+// does not load — so the cell does not distinguish the two reasons, which the clause does not either.
+#[test]
+fn e2e_loader_refuses_a_number_spelling_json_does_not_admit() {
+    for (spelling, label) in [
+        ("01", "loader.number-spelling.01"),
+        ("+1", "loader.number-spelling.+1"),
+        (".5", "loader.number-spelling..5"),
+        ("1.", "loader.number-spelling.1."),
+        ("1e400", "loader.number-spelling.1e400"),
+        ("1e999999999", "loader.number-spelling.1e999999999"),
+    ] {
+        loader_refuses_the_whole_file(
+            &format!("loader-num-{}", label.replace('.', "-")),
+            &format!("{{\"root\":{spelling}}}"),
+            label,
+            "§7.2 item 7 (f), class (2)",
+        );
+    }
+}
+
+// **THE NUMBER SWEEP — THE NEGATIVE GENERATOR FOR THE NUMBER CLASS.** `§7.2` item 7 (f), class (2): *"A
+// NUMBER SPELLING JSON DOES NOT ADMIT IS REFUSED"*. **THE CLAUSE NAMES SIX SPELLINGS; THE SWEEP BELOW IS
+// THE CLASS'S OWN NEGATIVE GENERATOR AND IT IS WIDER — EVERY SPELLING IN IT IS A SPELLING THE JSON GRAMMAR
+// DOES NOT ADMIT, AND THE DECLARED ANSWER FOR EACH IS THE SAME: THE WHOLE FILE DOES NOT LOAD, THE REGISTER
+// BEGINS EMPTY, NO ERROR REACHES THE CALLER AND THE INSTANCE IS RETURNED.** **THE FIRST FOUR ARE THE
+// GRAMMAR VIOLATIONS THE CLASS ITSELF NAMES (`01`, `+1`, `.5`, `1.`), AND THE REST ARE THE SWEEP'S OWN
+// ADDITIONS** — `1e` (an exponent with no digits) · `Infinity` and `NaN` (the two non-finite spellings, which
+// are not numbers at all) · `0x1` (a hexadecimal literal) · `1_0` (a digit separator) · `--1` (a second sign)
+// · `1.2.3` (a second decimal point).
+//
+// **AND THE SWEEP CARRIES THE OVERFLOW HALF TOO — `1e309`: THE GRAMMAR ADMITS THE SPELLING AND THE VALUE
+// DOES NOT FIT.** **THAT IS A DIFFERENT GROUND FROM THE GRAMMAR VIOLATIONS ABOVE, AND THE DECLARED ANSWER IS
+// THE SAME ONE** — the whole file does not load — **so the cell does not distinguish the two reasons, which
+// the clause does not either** (`docs/decisions.md` · `A143`: *"the shipped decoder refuses the four as a
+// grammar violation and the two as out of range"*; `docs/defects.md` · `DEF-2026-10-21-U`).
+#[test]
+fn e2e_loader_refuses_the_number_sweep_outside_the_json_grammar() {
+    for (spelling, label) in [
+        ("01", "loader.number-sweep.01"),
+        ("+1", "loader.number-sweep.+1"),
+        (".5", "loader.number-sweep..5"),
+        ("1.", "loader.number-sweep.1."),
+        ("1e", "loader.number-sweep.1e"),
+        ("Infinity", "loader.number-sweep.Infinity"),
+        ("NaN", "loader.number-sweep.NaN"),
+        ("0x1", "loader.number-sweep.0x1"),
+        ("1_0", "loader.number-sweep.1_0"),
+        ("--1", "loader.number-sweep.--1"),
+        ("1.2.3", "loader.number-sweep.1.2.3"),
+        // THE OVERFLOWING SPELLING — THE GRAMMAR ADMITS IT AND THE VALUE DOES NOT FIT.
+        ("1e309", "loader.number-sweep.1e309"),
+    ] {
+        loader_refuses_the_whole_file(
+            &format!("loader-num-sweep-{}", label.replace('.', "-")),
+            &format!("{{\"root\":{spelling}}}"),
+            label,
+            "§7.2 item 7 (f), class (2) — the number class's negative generator",
+        );
+    }
+}
+
+// **THE UNDERFLOWING HALF OF THE SAME SWEEP — THE SPELLING IS ADMITTED AND THE VALUE BECOMES `0`.**
+// `§7.2` item 7 (b): *"any finite JSON number spelling a parser admits is ACCEPTED at the boot"* — **AND
+// `1e-400` AND `1e-324` ARE SPELLINGS A PARSER ADMITS: THE GRAMMAR ADMITS THEM, THE VALUE UNDERFLOWS THE
+// CARRIER, AND THE CARRIER'S ANSWER IS `0` — NOT A REFUSAL.** **THE UNDERFLOW IS NOT A DIVERGENCE: THE
+// PRE-SWAP CODEC AND THE SHIPPED ONE AGREE HERE, SO THIS HALF IS NOT A PARITY FINDING AND IS DRIVEN AS AN
+// ACCEPTANCE.** **THE VALUE MUST READ BACK AS THE NUMBER `0`** — and the cell says `0` and not "a number
+// equal to `0`": **the sign bit is asserted at the bit, because `-0.0 == 0.0` under `§0.4`'s `Num(f64)` and
+// an equality is blind to the very state this half pins** (the same reason
+// `e2e_boot_neg_zero_sign_is_declared_nowhere` reads the sign bit).
+#[test]
+fn e2e_loader_accepts_the_underflowing_number_spellings_and_they_read_back_as_zero() {
+    for (spelling, label) in [
+        ("1e-400", "loader.number-underflow.1e-400"),
+        ("1e-324", "loader.number-underflow.1e-324"),
+    ] {
+        let path = fresh_path(&format!("loader-num-underflow-{}", label.replace('.', "-")));
+        std::fs::write(&path, format!("{{\"root\":{spelling}}}").as_bytes())
+            .unwrap_or_else(|e| panic!("case `{label}`: the file's TEXT is written BY HAND at a real path; got {e}"));
+        let booted = ok(
+            storeCreate(&cfg_at(&path, 8)),
+            &format!(
+                "case `{label}`: §7.2 item 7 (b) — the boot LOADS the file's content and the instance IS \
+                 returned: the grammar admits the spelling and the value underflows to `0`"
+            ),
+        );
+        let back = read_at(&booted, &key(&["root"]));
+        assert_eq!(
+            back,
+            v_num(0.0),
+            "case `{label}`: §7.2 item 7 (b) — the UNDERFLOWING spelling is ACCEPTED and the value reads back \
+             as the number `0`"
+        );
+        match back {
+            StoreValue::Num(n) => assert_eq!(
+                n.to_bits(),
+                0.0f64.to_bits(),
+                "case `{label}`: §7.2 item 7 (b) — the value reads back as the number `0` AND NOT `-0`: the \
+                 sign bit is asserted at the bit, because `-0.0 == 0.0` under §0.4's `Num(f64)`"
+            ),
+            other => panic!(
+                "case `{label}`: §1.4 class 3 — the underflowing spelling reads back as a NUMBER; got {other:?}"
+            ),
+        }
+    }
+}
+
+// **CLASS (3) — THE SEPARATOR CLASS. EXACTLY FOUR SEPARATORS ARE ADMITTED.** `§7.2` item 7 (f), class
+// (3): *"A UNICODE WHITESPACE CHARACTER AS A TOKEN SEPARATOR IS REFUSED — EXACTLY FOUR SEPARATORS ARE
+// ADMITTED (space, tab, `LF`, `CR`)"*. **THE SEPARATOR STANDS WHERE A SEPARATOR STANDS** — between the
+// key's colon and the number — so each of the four is exercised in the position the grammar admits it.
+#[test]
+fn e2e_loader_admits_exactly_four_token_separators() {
+    for (separator, label) in [
+        (' ', "loader.separator.space"),
+        ('\t', "loader.separator.tab"),
+        ('\n', "loader.separator.LF"),
+        ('\r', "loader.separator.CR"),
+    ] {
+        loader_accepts_the_whole_file(
+            &format!("loader-sep-{}", label.rsplit('.').next().unwrap_or("x")),
+            &format!("{{\"root\":{separator}1}}"),
+            &v_num(1.0),
+            label,
+            "§7.2 item 7 (f), class (3) — EXACTLY FOUR SEPARATORS ARE ADMITTED",
+        );
+    }
+}
+
+// **AND THE FIFTH IS NOT ONE OF THEM** — `§7.2` item 7 (f), class (3): *"`U+00A0` IS NOT ONE OF THEM"*.
+// **THE CHARACTER IS THE NON-BREAKING SPACE**, and it stands in the same position the four admitted
+// separators stand in, so the only difference between this text and an admitted one is the character.
+#[test]
+fn e2e_loader_refuses_a_unicode_whitespace_token_separator() {
+    loader_refuses_the_whole_file(
+        "loader-sep-nbsp",
+        &format!("{{\"root\":\u{00A0}1}}"),
+        "loader.separator.U+00A0",
+        "§7.2 item 7 (f), class (3)",
+    );
+}
+
+// **THE SEPARATOR SWEEP — THE NEGATIVE GENERATOR FOR THE SEPARATOR CLASS.** `§7.2` item 7 (f), class (3):
+// *"A UNICODE WHITESPACE CHARACTER AS A TOKEN SEPARATOR IS REFUSED — EXACTLY FOUR SEPARATORS ARE ADMITTED
+// (space, tab, `LF`, `CR`)"*. **THE SWEEP IS THE CLASS'S OWN NEGATIVE GENERATOR: EVERY CHARACTER IN IT
+// STANDS WHERE A SEPARATOR STANDS — BETWEEN TWO TOKENS — AND EVERY ONE OF THEM IS REFUSED, WITH THE
+// DECLARED ANSWER: THE WHOLE FILE DOES NOT LOAD, THE REGISTER BEGINS EMPTY, NO ERROR REACHES THE CALLER
+// AND THE INSTANCE IS RETURNED.** **THE FOUR ADMITTED SEPARATORS (space, tab, `LF`, `CR`) ARE PINNED BY THE
+// CELL ABOVE AND ARE NOT RE-PINNED HERE — THE SWEEP CARRIES THE REFUSED SIDE ONLY.**
+//
+// **THE CHARACTERS, EACH NAMED BY ITS OWN CODE POINT:** `U+000B` (the vertical tab) · `U+000C` (the form
+// feed) · `U+0085` (the next line) · `U+2000` (the en quad) through `U+200A` (the hair space) · `U+2028` (the
+// line separator) · `U+2029` (the paragraph separator) · `U+3000` (the ideographic space).
+#[test]
+fn e2e_loader_refuses_the_separator_sweep_outside_the_four_admitted() {
+    for (separator, label) in [
+        ('\u{000B}', "loader.separator-sweep.U+000B"),
+        ('\u{000C}', "loader.separator-sweep.U+000C"),
+        ('\u{0085}', "loader.separator-sweep.U+0085"),
+        ('\u{2000}', "loader.separator-sweep.U+2000"),
+        ('\u{2001}', "loader.separator-sweep.U+2001"),
+        ('\u{2002}', "loader.separator-sweep.U+2002"),
+        ('\u{2003}', "loader.separator-sweep.U+2003"),
+        ('\u{2004}', "loader.separator-sweep.U+2004"),
+        ('\u{2005}', "loader.separator-sweep.U+2005"),
+        ('\u{2006}', "loader.separator-sweep.U+2006"),
+        ('\u{2007}', "loader.separator-sweep.U+2007"),
+        ('\u{2008}', "loader.separator-sweep.U+2008"),
+        ('\u{2009}', "loader.separator-sweep.U+2009"),
+        ('\u{200A}', "loader.separator-sweep.U+200A"),
+        ('\u{2028}', "loader.separator-sweep.U+2028"),
+        ('\u{2029}', "loader.separator-sweep.U+2029"),
+        ('\u{3000}', "loader.separator-sweep.U+3000"),
+    ] {
+        loader_refuses_the_whole_file(
+            &format!("loader-sep-sweep-{}", label.rsplit('.').next().unwrap_or("x")),
+            &format!("{{\"root\":{separator}1}}"),
+            label,
+            "§7.2 item 7 (f), class (3) — the separator class's negative generator",
+        );
+    }
+}
+
+// **THE WIDENING CLASS — AN ESCAPED SURROGATE PAIR IS ACCEPTED.** `§7.2` item 7 (f): *"ONE WIDENING CLASS
+// STANDS BESIDE THE FOUR: THE LOADER ACCEPTS AN ESCAPED SURROGATE PAIR (`\uD83D\uDE00`), WHICH THE
+// PRE-SWAP CODEC REFUSED OUTRIGHT."* **THE TEXT CARRIES THE TWO ESCAPE SPELLINGS AND NOT THE CHARACTER
+// THEY NAME**, and the value the boot reads back is the CHARACTER — `U+1F600` — so the cell asserts the
+// ESCAPED SPELLING's own subject and not a spelling of its own.
+#[test]
+fn e2e_loader_accepts_an_escaped_surrogate_pair() {
+    loader_accepts_the_whole_file(
+        "loader-surrogate",
+        "{\"root\":\"\\uD83D\\uDE00\"}",
+        &v_str("\u{1F600}"),
+        "loader.escaped-surrogate-pair",
+        "§7.2 item 7 (f) — the widening class: an ESCAPED SURROGATE PAIR is ACCEPTED",
+    );
+}
+
+// **CLASS (4) — THE DEPTH CLASS. THE LAST ACCEPTED IMAGE CARRIES `127` NESTED CONTAINERS.** `§7.2` item
+// 7 (f), class (4): *"A NESTING DEPTH OF `128` OR MORE IS REFUSED"*. **THE TEXT IS WRITTEN BY HAND** and
+// carries `127` containers — the register's own `{"root": …}` wrapper plus `126` nested containers — so it
+// is ONE container short of the refusal. **THE VALUE THE BOOT READS BACK KEEPS ITS OWN DEPTH**, which is
+// the half of the class the refusal does not reach.
+#[test]
+fn e2e_loader_accepts_the_last_image_its_own_ceiling_admits() {
+    let text = format!("{{\"root\":{}}}", nested_containers_text(126));
+    let path = fresh_path("loader-depth-127");
+    std::fs::write(&path, text.as_bytes())
+        .unwrap_or_else(|e| panic!("the image's TEXT is written BY HAND at a real path; got {e}"));
+    let booted = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.2 item 6: the boot loads the file's content and the instance IS returned",
+    );
+    let back = read_at(&booted, &key(&["root"]));
+    assert_eq!(
+        value_walk_depth(&back),
+        126,
+        "§7.2 item 7 (f), class (4) — the LAST ACCEPTED image carries `127` nested containers (the \
+         register's own wrapper plus `126`), so the value it carries has a walk-depth of `126` and the boot \
+         loads it whole"
+    );
+    assert_eq!(
+        back,
+        {
+            let mut v = v_num(0.0);
+            for _ in 0..126 {
+                v = v_obj(&[("a", v)]);
+            }
+            v
+        },
+        "§5.2 P-IM-1 + §7.2 item 6 — the value the last accepted image carries reads back EXACTLY"
+    );
+}
+
+// **AND THE FIRST REFUSED IMAGE CARRIES `128`.** `§7.2` item 7 (f), class (4): *"A NESTING DEPTH OF `128`
+// OR MORE IS REFUSED"*. **THE TEXT IS WRITTEN BY HAND** and carries `128` containers — the register's own
+// wrapper plus `127` nested containers — and the loader REFUSES the whole file, so the register begins
+// EMPTY and the instance is still returned.
+#[test]
+fn e2e_loader_refuses_an_image_of_128_nested_containers() {
+    loader_refuses_the_whole_file(
+        "loader-depth-128",
+        &format!("{{\"root\":{}}}", nested_containers_text(127)),
+        "loader.depth.128",
+        "§7.2 item 7 (f), class (4)",
+    );
+}
+
+// **THE READ-SIDE NUMERIC CELL — `f64::MAX` READS BACK BIT-IDENTICALLY.** **THE FILE'S TEXT CARRIES
+// `F64_MAX_POSITIONAL` — THE CLAUSE'S OWN 309-DIGIT POSITIONAL SPELLING, REUSED FROM SECTION 11 ABOVE AND
+// NOT RETYPED HERE** — and the value the boot reads back must be BIT-IDENTICAL to `f64::MAX`. **THE
+// COMPARISON IS AT THE BIT AND NOT AT THE DECIMAL**, because `-0.0 == 0.0` under `§0.4`'s `Num(f64)` and
+// an equality is blind to the very state this cell is about. **THE `float_roundtrip` FEATURE IS
+// LOAD-BEARING HERE** — without it the decoder's fast float path refuses a long decimal expansion once
+// it overflows — so the cell pins the carrier's own widest value through the loader's own text.
+#[test]
+fn e2e_loader_reads_the_carriers_largest_finite_value_bit_identically() {
+    let path = fresh_path("loader-f64-max");
+    std::fs::write(
+        &path,
+        format!("{{\"root\":{F64_MAX_POSITIONAL}}}").as_bytes(),
+    )
+    .unwrap_or_else(|e| panic!("the image's TEXT is written BY HAND at a real path; got {e}"));
+    let booted = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.2 item 6: the boot loads the file's content and the instance IS returned",
+    );
+    let back = read_at(&booted, &key(&["root"]));
+    match back {
+        StoreValue::Num(n) => assert_eq!(
+            n.to_bits(),
+            f64::MAX.to_bits(),
+            "§7.2 item 7 (a) + item 7 (b) — the file's TEXT carries `f64::MAX`'s canonical POSITIONAL \
+             spelling (the 309-digit decimal) and the value read back is BIT-IDENTICAL to `f64::MAX`"
+        ),
+        other => panic!("§4.1 R-1: a leaf's number reads as a number; got {other:?}"),
+    }
+}
+
+// **THE CONTRASTING ANSWER — A PARSEABLE FILE WITH ONE NON-ADMITTED MEMBER LOSES THAT MEMBER AND THE REST
+// LOADS.** **THE CLAUSE THAT STANDS BESIDE THE REFUSAL'S OWN ANSWER** (`§7.2` item 7 (f): *"AND THE
+// CORPUS'S OWN BOOT CLAUSE FOR A *PARSEABLE* FILE STANDS UNMOVED, AND THE TWO ANSWERS ARE DIFFERENT AND
+// EACH IS DECLARED: A PARSEABLE FILE WITH ONE NON-ADMITTED MEMBER LOSES THAT MEMBER, AND A FILE THE LOADER
+// REFUSES LOSES EVERYTHING."* — the `DD-29` clause at `§7.2` item 6). **THE MEMBER DROPPED HERE IS A
+// `null`**, which `§1.4` puts outside the admitted set, and the member that loads is a number beside it —
+// so the cell shows BOTH halves of the contrast: the dropped member resolves to nothing and the other
+// member is there, and the instance IS returned.
+#[test]
+fn e2e_loader_drops_one_non_admitted_member_and_loads_the_rest() {
+    let path = fresh_path("loader-drop-one");
+    std::fs::write(&path, b"{\"a\":null,\"b\":1}").unwrap_or_else(|e| {
+        panic!("the file's TEXT is written BY HAND at a real path; got {e}")
+    });
+    let booted = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.2 item 6: the boot loads the file's content and the instance IS returned",
+    );
+    let dropped = failure(
+        booted.read(AddressArg::List(key(&["a"])), TierArg::Absent),
+        "§7.2 item 6 / DD-29: the register key whose value lies outside §1.4's admitted set is DROPPED",
+    );
+    assert_code(
+        &dropped,
+        "AddressNotFound",
+        "§7.2 item 6 / DD-29 — the ONE non-admitted member is dropped, and NO code is produced for it",
+    );
+    assert_eq!(
+        read_at(&booted, &key(&["b"])),
+        v_num(1.0),
+        "§7.2 item 6 / DD-29 — the REST of the content loads: the file is PARSEABLE, so only the \
+         non-admitted member is lost"
+    );
+}
+
+// **THE CONSTRAINED ARM OF THE REFUSED FILE'S ANSWER — A CONSTRUCTION THAT SUPPLIES A CONSTRAINT LIST
+// ANSWERS `ConstraintListInvalid` AND RETURNS NO INSTANCE.** **THE REFUSED FILE'S ANSWER HAS TWO ARMS AND
+// BOTH ARE DECLARED, AND THIS CELL DRIVES THE PAIR BESIDE EACH OTHER OVER THE SAME FILE:**
+//
+// * **THE PLAIN ARM (NO CONSTRAINT LIST SUPPLIED) — THE INSTANCE IS RETURNED, THE REGISTER IS EMPTY AND NO
+//   ERROR REACHES THE CALLER** (`§7.2` item 7 (f)'s own answer for a file the loader refuses; the cells
+//   above pin it, and it is driven here once more so the two arms stand in one place);
+// * **THE CONSTRAINED ARM (A CONSTRAINT LIST SUPPLIED) — THE CONSTRUCTION ANSWERS `ConstraintListInvalid`
+//   AND RETURNS NO INSTANCE** (`docs/specs/storeroom-native/seams-and-lifecycle.md §7.1` step 4-bis:
+//   *"PRESENT, EVERY ELEMENT IS CHECKED AND THE VALIDATION IS ALL-OR-NOTHING … answers THE SIXTEENTH MEMBER
+//   `ConstraintListInvalid` (`§8.1` #16), and NO INSTANCE IS RETURNED"*; the load-side half, `contract.md
+//   §7.2` item 1: *"THE LOADED STATE 'SATISFIES' THE SUPPLIED LIST IFF EVERY SUPPLIED PAIR'S OWN `address`
+//   RESOLVES IN THE LOADED STATE"*).
+//
+// **THE MEASURED GROUND, STATED SO THE CELL IS NOT READ AS A GUESS:** **A FILE THE LOADER REFUSES ANSWERS
+// THE BOOT WITH `Some(0)` — THE BOOT FELL THROUGH AND THE REGISTER IS EMPTY — SO THE LOAD-SIDE VALIDATION
+// RUNS OVER THE EMPTY REGISTER, EVERY SUPPLIED PAIR FAILS TO RESOLVE, AND THE CONSTRUCTION FAILS.** **THE
+// CONSTRAINT LIST SUPPLIED HERE IS A LEGAL ONE** — ONE `{ address, id }` pair whose `address` lies inside
+// `store-model.md §1.5`'s segment array and whose `id` is a NON-EMPTY string (`docs/specs/storeroom-js/
+// parameter-semantics.md §2.21`'s `domain` cell — *"an ARRAY of PAIRS, each pair carrying an `address` that
+// lies inside `§1.5`'s segment array and an `id`"*; `contract.md`'s 2026-10-16 clause (a) — the `id` is a
+// NON-EMPTY string) — **SO THE REFUSAL BELOW IS THE LOAD-SIDE ARM AND NOT THE CONSTRUCTION-SIDE SHAPE
+// CHECK**, which is the arm the list's own shape would have failed.
+//
+// **THE PAIR'S ADDRESS IS THE REFUSED FILE'S OWN KEY AND IT RESOLVES IN NO REGISTER** — the refused file
+// loaded NOTHING, so there is no `root` to resolve.
+//
+// **AND THE CONTROL ARM — THE SAME LEGAL LIST OVER A FILE THE LOADER ACCEPTS, WHOSE REGISTER DOES CARRY
+// THE PAIR'S ADDRESS, ANSWERS AN INSTANCE** — so the refusal above is THE LOAD-SIDE ARM and not the
+// construction-side shape check: the list is ADMITTED at `§7.1` step 4-bis in both, and the two
+// constructions differ ONLY in whether the loaded state satisfies the list.
+#[test]
+fn e2e_loader_refused_file_with_a_constraint_list_answers_constraint_list_invalid_and_returns_no_instance() {
+    let path = fresh_path("loader-refused-with-constraints");
+    // THE REFUSED FILE — ITS TEXT IS WRITTEN BY HAND AT A REAL PATH: a number spelling JSON does not admit.
+    std::fs::write(&path, br#"{"root":01}"#).unwrap_or_else(|e| {
+        panic!("the file's TEXT is written BY HAND at a real path; got {e}")
+    });
+
+    // **ARM (1) — THE PLAIN CONSTRUCTION: NO CONSTRAINT LIST SUPPLIED.**
+    let plain = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.2 item 7 (f) — the boot FALLS THROUGH and NO ERROR REACHES THE CALLER: `storeCreate` STILL \
+         RETURNS AN INSTANCE",
+    );
+    assert_eq!(
+        read_at(&plain, &empty_address()),
+        v_obj(&[]),
+        "§7.2 item 7 (f) — THE WHOLE FILE DOES NOT LOAD: the boot falls through and the store's register \
+         begins EMPTY"
+    );
+
+    // **ARM (2) — THE CONSTRUCTION THAT SUPPLIES A CONSTRAINT LIST.**
+    let constraints = ConstraintsArg::List(vec![ConstraintEntry::Pair {
+        address: key(&["root"]),
+        id: "c1".to_string(),
+    }]);
+    match storeCreateWithConstraints(&cfg_at(&path, 8), &constraints) {
+        Ok(_) => panic!(
+            "§7.1 step 4-bis + contract.md §7.2 item 1: the construction that SUPPLIES a constraint list over \
+             a file the loader REFUSES answers `ConstraintListInvalid` and returns NO INSTANCE — the refused \
+             file's boot answers `Some(0)`, the register is EMPTY, the supplied pair's `address` resolves in \
+             NO register, and the construction FAILS. An instance was returned."
+        ),
+        Err(e) => assert_code(
+            &e,
+            "ConstraintListInvalid",
+            "§7.1 step 4-bis + contract.md §8.1 #16 + contract.md §7.2 item 1 — the load-side validation \
+             failure answers the store's own SIXTEENTH MEMBER `ConstraintListInvalid`",
+        ),
+    }
+
+    // **THE CONTROL ARM — THE SAME LEGAL LIST OVER A FILE THE LOADER ACCEPTS.**
+    let accepted_path = fresh_path("loader-accepted-with-constraints");
+    std::fs::write(&accepted_path, br#"{"root":1}"#).unwrap_or_else(|e| {
+        panic!("the control's TEXT is written BY HAND at a real path; got {e}")
+    });
+    let accepted = ok(
+        storeCreateWithConstraints(&cfg_at(&accepted_path, 8), &constraints),
+        "§7.1 step 4-bis + contract.md §7.2 item 1 — the SAME legal list over a file the loader ACCEPTS is \
+         ADMITTED: the loaded state carries the pair's own address, so the state SATISFIES the list and the \
+         construction returns an instance",
+    );
+    assert_eq!(
+        read_at(&accepted, &key(&["root"])),
+        v_num(1.0),
+        "§7.2 item 6 + contract.md §7.2 item 1 — the control's file LOADS and the loaded state carries the \
+         pair's own address, so the list is satisfied and the construction returns an instance"
+    );
+}
+
+// ===================================================================================================
+// 12 (b). THE COMMIT'S OWN VERIFICATION OF THE IMAGE IT IS ABOUT TO WRITE (`§7.2` item 2's 2026-10-21
+//      clause). THE PRICE IS ONE RE-DECODE PER COMMIT; THE CEILING IS NOT LIFTED; THE WRITER RESPECTS IT.
+// ===================================================================================================
+
+// **THE ACCEPTED SIDE OF THE BOUNDARY — A VALUE OF WALK-DEPTH `126` COMMITS.** `§7.2` item 2's 2026-10-21
+// clause, part (1): *"THE COMMIT RE-DECODES THE IMAGE IT IS ABOUT TO RENAME OVER THE PATH AND REFUSES IF
+// IT DOES NOT LOAD"*, and part (3): *"THE LOADER'S CEILING IS NOT LIFTED … THE WRITER RESPECTS IT"*.
+// **A VALUE OF WALK-DEPTH `126` PRODUCES AN IMAGE OF `127` CONTAINERS, WHICH IS THE LAST IMAGE THE LOADER
+// ADMITS** — so the commit's re-decode succeeds, the commit SUCCEEDS, the file's bytes ARE the image, and
+// a fresh boot reads the value back.
+//
+// **THE BYTES ARE THE IMAGE, AND THE CELL SAYS SO BY COUNTING THE IMAGE'S OWN CONTAINERS** — the register's
+// own wrapper plus the value's `126` — because a byte-count assertion alone would not say WHICH image the
+// bytes carry.
+#[test]
+fn e2e_commit_verifies_the_image_it_is_about_to_write_at_walk_depth_126() {
+    let path = fresh_path("commit-verify-126");
+    let value = nest_obj(126, v_str("bottom"));
+    let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1: the construction's arguments are valid");
+    let landed = ok(
+        store.write(AddressArg::List(key(&["root"])), w_file(), value.clone()),
+        "§7.2 item 1 as amended: the verb RECORDS the write and performs NO FILE I/O",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &landed.op.opId),
+        "§7.2 item 2's 2026-10-21 clause, parts (1) and (3) — the commit RE-DECODES the image it is about \
+         to rename over the path, the image LOADS (its `127` containers are inside the loader's ceiling), \
+         and the commit SUCCEEDS",
+    );
+
+    // THE FILE'S BYTES ARE THE IMAGE.
+    let bytes = std::fs::read_to_string(&path)
+        .expect("§7.2 item 2: the whole image stands at cfg.filePath after the commit");
+    assert_eq!(
+        bytes.matches('{').count(),
+        127,
+        "§7.2 item 2's 2026-10-21 clause, part (4) — the file's bytes ARE the image, and the image of a \
+         value of walk-depth `126` carries `127` nested containers (the register's own wrapper plus the \
+         value's `126`)"
+    );
+    assert_eq!(
+        bytes.matches('}').count(),
+        127,
+        "§7.2 item 2's 2026-10-21 clause, part (4) — the image's containers are closed as many times as \
+         they are opened"
+    );
+
+    // AND A FRESH BOOT READS THE VALUE BACK.
+    let booted = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.2 item 6: the boot loads the file's content and the instance IS returned",
+    );
+    assert_eq!(
+        read_at(&booted, &key(&["root"])),
+        value,
+        "§5.2 P-IM-1 + §7.2 item 2's 2026-10-21 clause, part (4) — the `file` tier's round trip IS EXACT \
+         FOR EVERY ADMITTED VALUE WHOSE COMMITTED IMAGE THE LOADER ADMITS; for an admitted value whose \
+         image the loader refuses, the COMMIT REFUSES, the value never persists, and NO ROUND TRIP EXISTS: \
+         the value survives the commit and the boot"
+    );
+}
+
+// **THE REFUSED SIDE OF THE BOUNDARY — A VALUE OF WALK-DEPTH `127` IS REFUSED BY THE COMMIT, WITH THE
+// EXISTING `FileCommitFailed`, AND THE PRIOR BYTES STAND.** `§7.2` item 2's 2026-10-21 clause, part (1):
+// *"THE COMMIT RE-DECODES THE IMAGE IT IS ABOUT TO RENAME OVER THE PATH AND REFUSES IF IT DOES NOT LOAD —
+// the answer is the EXISTING `FileCommitFailed` (`contract.md §8.1` #15): NO NEW FAIL CODE"*; part (2):
+// *"THE COMMIT'S OWN FAILURE ARM IS UNCHANGED: ROLLBACK FIRST … AND THE CALLER IS ANSWERED
+// `FileCommitFailed` SECOND … the prior bytes stand … and the refused value NEVER PERSISTS."*
+//
+// **A VALUE OF WALK-DEPTH `127` PRODUCES AN IMAGE OF `128` CONTAINERS — THE FIRST IMAGE THE LOADER
+// REFUSES** (`§7.2` item 7 (f), class (4)) — so the commit's re-decode fails and the commit refuses.
+//
+// **THE PRIOR BYTES ARE PUT AT THE PATH FIRST, BY A FIRST SUCCESSFUL COMMIT**, so that "the prior bytes
+// stand" has SOMETHING to stand over: the cell measures the clause's observable, not an empty file.
+//
+// **⟶ THIS CELL IS GREEN AGAINST THE CURRENT `src/`: THE COMMIT VERIFIES THE IMAGE IT IS ABOUT TO WRITE.**
+// The `file`-tier commit RE-DECODES the image it is about to rename over the path and REFUSES IT with the
+// EXISTING `FileCommitFailed` (`docs/specs/storeroom-native/contract.md §8.1` row `15`) BEFORE the sibling is
+// written, so the path is never touched; and the commit's own failure arm ROLLS THE WRITE BACK FIRST and
+// ANSWERS THE CALLER SECOND, so the refused value never persists (`docs/decisions.md` · `A144` (2);
+// `docs/specs/storeroom-native/seams-and-lifecycle.md §7.2` item 2, parts (1) and (2)). **A VALUE OF
+// WALK-DEPTH `127` IS ADMITTED BY THE STORE — THE WRITER HAS NO DEPTH CEILING OF ITS OWN — AND THE REFUSAL IS
+// THE COMMIT'S OWN, NOT THE WRITER'S.** **THE MEASURED BEHAVIOUR AT WALK-DEPTH `127`: the commit is REFUSED
+// with `FileCommitFailed`, the prior bytes stand unchanged, and the next boot does not see the refused
+// value.** **AND THE BOUNDARY IS STATED IN THE CORPUS'S WALK-DEPTH SPELLING (THE ROOT AT `0`): the last
+// admitted value is walk-depth `126` and the first refused is walk-depth `127`** — the cell above is the
+// ADMITTED case and this cell is the REFUSAL case. **AND THE QUANTIFIER IS THE ONE `A144` (2) DECLARES — the
+// `file` tier's round trip is exact for every admitted value whose committed image the loader admits; for an
+// admitted value whose image the loader refuses, the commit refuses, the value never persists, and no round
+// trip exists.** **THE ASSERTION BELOW IS THE DECLARED ANSWER AND IS NOT WEAKENED TO MATCH A DIFFERENT
+// BEHAVIOUR** — a case that comes back different is a FINDING, reported with its own label.
+#[test]
+fn e2e_commit_refuses_the_image_its_own_loader_would_refuse() {
+    let path = fresh_path("commit-verify-127");
+    let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1: the construction's arguments are valid");
+
+    // THE PRIOR BYTES — put at the path by a first, successful commit.
+    let prior = ok(
+        store.write(AddressArg::List(key(&["root"])), w_file(), v_str("prior")),
+        "§7.2 item 1 as amended: the verb RECORDS the write and performs NO FILE I/O",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &prior.op.opId),
+        "§7.2 item 2 as amended: the terminal arm's own act lands the prior image at cfg.filePath",
+    );
+    let bytes_before = std::fs::read(&path).expect("the first commit wrote the file");
+
+    // THE REFUSED VALUE — a value of walk-depth `127`, whose image carries `128` containers.
+    let refused_value = nest_obj(127, v_str("bottom"));
+    let landed = ok(
+        store.write(AddressArg::List(key(&["root"])), w_file(), refused_value.clone()),
+        "§3.4 W-3: the store ADMITS the value — the writer has no depth ceiling of its own, and the \
+         commit's own verification is what refuses the image",
+    );
+
+    // THE DECLARED ANSWER: the EXISTING `FileCommitFailed` — NO NEW FAIL CODE.
+    match commit_at_the_terminal_arm(&mut store, &landed.op.opId) {
+        Ok(()) => panic!(
+            "§7.2 item 2's 2026-10-21 clause, part (1) + contract.md §8.1 #15: the commit RE-DECODES the \
+             image it is about to rename over the path and REFUSES IT, with the EXISTING `FileCommitFailed`, \
+             when the image does not load. The image of a value of walk-depth `127` carries `128` nested \
+             containers, which the loader REFUSES (§7.2 item 7 (f), class (4)) — so the commit reported \
+             SUCCESS, and the file tier now holds an image the store's own loader refuses."
+        ),
+        Err(e) => assert_code(
+            &e,
+            "FileCommitFailed",
+            "§7.2 item 2's 2026-10-21 clause, part (1) + contract.md §8.1 #15 — the refusal's code is the \
+             EXISTING `FileCommitFailed`: NO NEW FAIL CODE, NO NEW `§8.1` ROW, NO NEW VOCABULARY",
+        ),
+    }
+
+    // THE PRIOR BYTES STAND — the commit is atomic: the whole image is written to a sibling and renamed
+    // over the path, and a REFUSED image never reaches the path at all.
+    assert_eq!(
+        std::fs::read(&path).expect("the file at cfg.filePath is still readable"),
+        bytes_before,
+        "§7.2 item 2's 2026-10-21 clause, part (2) + `§7.2` item 2 — the prior bytes stand BYTE-IDENTICAL: \
+         the refused image never reached the path"
+    );
+
+    // AND THE REFUSED VALUE NEVER PERSISTS — neither in the file nor in the store.
+    assert_eq!(
+        read_at(&store, &key(&["root"])),
+        v_str("prior"),
+        "§7.2 item 2's 2026-10-21 clause, part (2) — THE WRITE IS ROLLED BACK FIRST: the caller is never \
+         handed the rolled-back state, and the refused value never persists in the store"
+    );
+    let booted = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.2 item 6: the boot loads the file's content and the instance IS returned",
+    );
+    assert_eq!(
+        read_at(&booted, &key(&["root"])),
+        v_str("prior"),
+        "§7.2 item 2's 2026-10-21 clause, part (2) — the refused value NEVER PERSISTS: a fresh boot reads \
+         the PRIOR image, not the refused one"
+    );
+}
+
+// **THE SIBLING RESIDUE — A REFUSED COMMIT LEAVES NO SIBLING FILE BEHIND.** `§7.2` item 2's 2026-10-21
+// clause, part (2) — *"THE COMMIT'S OWN FAILURE ARM IS UNCHANGED: ROLLBACK FIRST … AND THE CALLER IS
+// ANSWERED `FileCommitFailed` SECOND … the prior bytes stand"* — and the clause's own ground for the
+// PRIOR BYTES STANDING: **THE COMMIT IS ATOMIC AT THE FILE — THE WHOLE IMAGE IS WRITTEN TO A SIBLING AND
+// RENAMED OVER THE PATH** (`§7.2` item 2's own wording, `DD-2`).
+//
+// **THE SIBLING IS NAMED, AND THE NAME IS PART OF THE OBSERVABLE: `{path}.snst-commit-{pid}`** — the
+// process id is the store's own, so the sibling's name is a function of the path and the process. **AND THE
+// VERIFICATION RUNS BEFORE THE SIBLING IS WRITTEN** — the commit re-decodes the image it is about to rename
+// over the path, and a refused image is refused THERE, before a byte of the sibling exists. **SO A REFUSED
+// COMMIT TOUCHES NEITHER THE PATH NOR THE SIBLING'S PATH, AND NO SIBLING FILE SURVIVES THE REFUSAL.**
+//
+// **THE PRIOR BYTES' HALF IS NOT ASSERTED HERE — THE CELL ABOVE ASSERTS IT, AND IT IS NOT DUPLICATED.**
+// **WHAT THIS CELL ADDS IS THE ONE OBSERVABLE THE CELL ABOVE DOES NOT TAKE: THE SIBLING'S ABSENCE.**
+#[test]
+fn e2e_commit_leaves_no_sibling_file_after_a_refused_commit() {
+    let path = fresh_path("commit-verify-127-sibling");
+    let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1: the construction's arguments are valid");
+
+    // THE PRIOR IMAGE — put at the path by a first, successful commit, so the refused commit is a refusal of
+    // a real commit over a path that carries bytes.
+    let prior = ok(
+        store.write(AddressArg::List(key(&["root"])), w_file(), v_str("prior")),
+        "§7.2 item 1 as amended: the verb RECORDS the write and performs NO FILE I/O",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &prior.op.opId),
+        "§7.2 item 2 as amended: the terminal arm's own act lands the prior image at cfg.filePath",
+    );
+
+    // THE REFUSED VALUE — a value of walk-depth `127`, whose image carries `128` containers and is the
+    // FIRST image the loader refuses.
+    let refused_value = nest_obj(127, v_str("bottom"));
+    let landed = ok(
+        store.write(AddressArg::List(key(&["root"])), w_file(), refused_value),
+        "§3.4 W-3: the store ADMITS the value — the writer has no depth ceiling of its own, and the \
+         commit's own verification is what refuses the image",
+    );
+
+    // THE REFUSAL — the EXISTING `FileCommitFailed`, NO NEW FAIL CODE.
+    match commit_at_the_terminal_arm(&mut store, &landed.op.opId) {
+        Ok(()) => panic!(
+            "§7.2 item 2's 2026-10-21 clause, part (1) + contract.md §8.1 #15: the commit RE-DECODES the \
+             image it is about to rename over the path and REFUSES IT, with the EXISTING `FileCommitFailed`, \
+             when the image does not load. The image of a value of walk-depth `127` carries `128` nested \
+             containers, which the loader REFUSES (§7.2 item 7 (f), class (4)) — so the commit reported \
+             SUCCESS, and the file tier now holds an image the store's own loader refuses."
+        ),
+        Err(e) => assert_code(
+            &e,
+            "FileCommitFailed",
+            "§7.2 item 2's 2026-10-21 clause, part (1) + contract.md §8.1 #15 — the refusal's code is the \
+             EXISTING `FileCommitFailed`: NO NEW FAIL CODE, NO NEW `§8.1` ROW, NO NEW VOCABULARY",
+        ),
+    }
+
+    // **AND NO SIBLING FILE SURVIVES** — the sibling the commit writes is named `{path}.snst-commit-{pid}`,
+    // and the verification ran BEFORE the sibling was written, so that path was never touched.
+    let sibling = format!("{path}.snst-commit-{}", std::process::id());
+    assert!(
+        !std::path::Path::new(&sibling).exists(),
+        "§7.2 item 2's 2026-10-21 clause, part (2) + §7.2 item 2's own atomicity clause — the commit \
+         RE-DECODES the image BEFORE the sibling is written, so a REFUSED commit leaves NO SIBLING FILE: \
+         the sibling `{sibling}` does not exist"
+    );
+
+    // **AND NO FILE IN THE PATH'S OWN DIRECTORY CARRIES THE SIBLING PREFIX** — so the cell above cannot go
+    // green by naming a sibling that the commit does not write. **THE PREFIX IS THE DECLARED ONE AND THE
+    // SCOPE IS THE PATH'S OWN DIRECTORY**, in which the sibling would stand.
+    let prefix = format!(
+        "{}.snst-commit-",
+        std::path::Path::new(&path)
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default()
+    );
+    let leftovers: Vec<String> = std::fs::read_dir(std::path::Path::new(&path).parent().unwrap_or_else(
+        || std::path::Path::new("."),
+    ))
+    .unwrap_or_else(|e| panic!("the path's own directory is readable; got {e}"))
+    .filter_map(|entry| entry.ok())
+    .map(|entry| entry.file_name().to_string_lossy().into_owned())
+    .filter(|name| name.starts_with(&prefix))
+    .collect();
+    assert!(
+        leftovers.is_empty(),
+        "§7.2 item 2's 2026-10-21 clause, part (2) — a REFUSED commit leaves NO SIBLING FILE, and NO FILE \
+         in the path's own directory carries the sibling prefix `{prefix}`; found {leftovers:?}"
     );
 }

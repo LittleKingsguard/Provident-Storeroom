@@ -22,6 +22,14 @@
   declares NO new claim, NO new parameter, NO new fail-state, NO new code, NO new `§`-number, no `DD` row, no
   `PAR` row and no `P-*` register row.** `[T: this part's own scope boundary | CONTRACT]`
 
+  **⟶ AMENDED 2026-10-22 — THE SCOPE CLAUSE ABOVE IS AMENDED IN ITS OPERATIVE HALF, AND THE THREE INSERTIONS ARE NAMED** (`docs/decisions.md` · `A141`, `A143` and `A144` — the three rulings of 2026-10-21; this part's `§7.2` item 7 (e), item 7 (f) and item 2 — the three insertions' homes; the instrument: `docs/decisions.md` · `A129` (3) — the corpus's lawful forms for superseded content, of which this pass takes the `RCA-8(g)` form, a one-line archive pointer, because this record stands within `2 KB` of the per-path line `131,072`; `docs/defects.md` · `DEF-2026-10-08` — the retired `RCA-8(d)` spelling is not used here; `[T: this part's own scope boundary, so the three named insertions stand inside the boundary this clause states | CONTRACT]`).
+  **⟶ MOVED → `archive/spec-history/2026-10-22-adversarial-findings-move-out.md` §1 head `12` (the 2026-10-21 scope-amendment clause) AND §1 head `13` (the as-filed pure-insertion test and operative boundary); THE AS-FILED HALF *"This part declares NO new claim"* STANDS POINTERED AT `archive/spec-history/2026-10-21-section-7-2-acceptance-set-and-commit-verification-move-out.md` §1 head `1`.**
+  **AND THE THREE INSERTIONS ARE NAMED, AND EACH IS A PURE INSERTION BY THE CORPUS'S OWN TEST — A PURE INSERTION MINTS NO MEMBER, NO CODE, NO RANK, NO PARAMETER AND NO `§`-NUMBER, MOVES NO WORD OF ANY PART ABOVE IT, AND RE-DECIDES NOTHING THE EARLIER PARTS DECIDE:** **(1)** THE `file` TIER'S ESCAPE IMAGE, at `§7.2` item 7 (e) (`A141`); **(2)** THE `file` TIER'S LOADER ACCEPTANCE SET AND ITS REFUSED-FILE ANSWER, at `§7.2` item 7 (f) (`A143`); **(3)** THE COMMIT'S OWN IMAGE VERIFICATION, at `§7.2` item 2's clause of 2026-10-21 (`A144`) — it mints no member: the answer it answers is the EXISTING `FileCommitFailed`. **EACH STANDS BESIDE THE TEXT IT IS NAMED AGAINST WITHOUT TOUCHING ONE WORD OF IT, AND ITEM 7's OWN COUNT LINE, *"THE CLAUSE, IN FOUR PARTS"*, IS NOT CONTRADICTED.**
+  **AND THE OPERATIVE BOUNDARY IS THEREFORE: THE RELOCATED TEXT ADDS NO CLAIM, AND THE THREE NAMED INSERTIONS ARE THE ONLY CLAUSES OF THIS PART THAT ADD ONE — each a DECLARATION OF BEHAVIOUR, not a member of any closed set, and each dated, priced and reversible by the instrument it names.**
+  **AND THIS PART'S OWN CLOSING STATEMENT AT THE FOOT OF THIS FILE IS READ THROUGH THIS CLAUSE: ITS *"adds no
+  claim"* HALF IS THE SAME HALF THAT MOVES HERE, ITS *"no code, no input, no `§`-number"* HALVES STAND, AND ITS
+  *"no citation"* AND *"no cell"* HALVES ARE READ OF THE RELOCATED TEXT — WHICH ADDED NONE.**
+
 ## Scope boundary — the regions this part carries
 
 **The relocated spans, named by their contract `§`-numbers:**
@@ -29,7 +37,7 @@
 | Relocated section | Its home in the contract document | What it carries |
 | --- | --- | --- |
 | **`§7`** (with `§7.1`–`§7.3`) | `docs/specs/storeroom-native/contract.md §7` | **the construction inputs** — `storeCreate(cfg)` with its REQUIRED `filePath` and `journalLength` **⟶ AMENDED 2026-10-11: `journalLength` is the ONE required argument, `filePath` is OPTIONAL (`A49`) and `listeners[]` is a THIRD input (`A56`)** — each input's domain, the values outside it, and the declared answer for each; **the `file` tier's persistence** — the JSON file at `cfg.filePath`, the commit's atomicity, and `A16`'s two-step failure arm; **the boot and lifetime clause**; **the node-side constraint-and-repair evaluation seam** with its three OWED residual rows |
-| **`§8`** (with `§8.1`–`§8.3`) | `docs/specs/storeroom-native/contract.md §8` | **the CLOSED fail-code set — `14` members, each with its trigger and its rank** **⟶ AMENDED 2026-10-11: `15` members (`FilePathUnreachable` at rank `13`, `A53`/`A54`)** **⟶ RE-SPELLED 2026-10-15 BY THE GATE-4 FINDINGS PASS: the operative figure is `16` members, `ConstraintListInvalid` appended at rank `16` (`contract.md §8.1`'s dated clause of 2026-10-15), and the `14`→`15` readings above stand BYTE-FOR-BYTE and are read THROUGH this reading**; the complement block and the two deliberately absent codes; **the generated-message rule `storeErrorMessage(code, args)` with its `MessageArgs` shape, its clause table and three worked examples, the first being the architect's own**; **the `StoreError` record shape** and the `secure` instance's indistinguishable blindness |
+| **`§8`** (with `§8.1`–`§8.3`) | `docs/specs/storeroom-native/contract.md §8` | **the CLOSED fail-code set — `14` members, each with its trigger and its rank** **⟶ AMENDED 2026-10-11: `15` members (`FilePathUnreachable` at rank `13`, `A53`/`A54`)** **⟶ RE-SPELLED 2026-10-15 BY THE GATE-4 FINDINGS PASS: the operative figure is `16` members, `ConstraintListInvalid` appended at rank `16` (`contract.md §8.1`'s dated clause of 2026-10-15), and the `14`→`15` readings above stand BYTE-FOR-BYTE and are read THROUGH this reading** **⟶ MOVED 2026-10-21: THE AS-FILED MEMBER TABLE HAS MOVED OUT TO `archive/spec-history/2026-10-21-section-7-2-acceptance-set-and-commit-verification-move-out.md` §1 HEAD `11` AND IS READ THROUGH `§8.1`'s CLAUSE OF 2026-10-21; THE LIVE MEMBER TABLE IS AT `contract.md §8.1`**; the complement block and the two deliberately absent codes; **the generated-message rule `storeErrorMessage(code, args)` with its `MessageArgs` shape, its clause table and three worked examples, the first being the architect's own**; **the `StoreError` record shape** and the `secure` instance's indistinguishable blindness |
 | **`§10`** (with `§10.1`–`§10.3`) | `docs/specs/storeroom-native/contract.md §10` | **the two parks, each with its one-line boundary clause**; **the `HO-` handoff rule and the `7`-row prohibited set**; **the candidate-property dispositions (`AR-9`, `F12`) with the id-level mapping recorded as OWED** |
 
 **THE TWO UNNUMBERED TOP-LEVEL BLOCKS THIS PART DECLARES.** **Both are unnumbered headings that stand
@@ -191,7 +199,7 @@ input from a later step FAILS** (`AR-47`; `implementation-plan.md §8.6`'s stop 
    **AND `contract.md §10.4`'S PARTS (A)–(E) ARE THE SAME CLAUSE STATED AT THAT DOCUMENT'S OWN HOME, WITH ITS OWN DATED CLAUSES BESIDE STEP `3`'S AND STEP `4`'S TWIN CELLS THERE: this part is a `carrier` and its `§7.1` span IS that document's `§7.1`, so the two homes are reconciled BY POINTER and neither is left stale** (`contract.md §0.1` item 10(a)'s relocation rule; `[T: the two homes' pointer, so a reader of either is sent to both | CROSS-REF]`).
 
 **⟶ THE ARM `(b)` CLAUSE IS RE-READ, DATED `2026-10-13` — step `3`'s *"the probe still creates NO FILE, NO DIRECTORY AND NO BYTE"* STANDS OF THE PROBE AND IS NOT THE DECIDING INSTRUMENT FOR AN ABSENT PATH.** `RCA-8(d)` ANNOTATE-BESIDE: **every byte of step `3` above — the as-filed sentence, parts `(1)`–`(3)`, its *"the probe still creates NO FILE, NO DIRECTORY AND NO BYTE"* clause, its `alt` cell and its reversal point — stands BYTE-FOR-BYTE and is read THROUGH this clause and through the store's-own-act clause above; THIS clause moves no numbered step and adds no arm.**
-**THE WITHDRAWN READING, QUOTED SO IT IS NOT READ AS OPERATIVE: *"An ABSENT path is REACHABLE iff its PARENT DIRECTORY exists, IS a directory, and its write bits permit the process to create an entry in it"*, and *"THIS ARM APPROXIMATES *"the application can write it successfully"*"*.** **IT IS WITHDRAWN AND IS NOT THE INSTRUMENT THIS TREE PERFORMS: the mode bits decide NOTHING about an absent path here, and the three states this part's own part `(3)` named as a LATER `FileCommitFailed` are DECIDED AT CONSTRUCTION by the store's exclusive `create_new` — `EROFS`, `EACCES`, `ENOENT` each answering `FilePathUnreachable`** (part `(C)` above; `contract.md §8.1` #13's amended trigger clause).
+**⟶ MOVED → `archive/spec-history/2026-10-21-section-7-2-acceptance-set-and-commit-verification-move-out.md` §1 head 2 (the withdrawn reading).** **IT IS WITHDRAWN AND IS NOT THE INSTRUMENT THIS TREE PERFORMS: the mode bits decide NOTHING about an absent path here, and the three states this part's own part `(3)` named as a LATER `FileCommitFailed` are DECIDED AT CONSTRUCTION by the store's exclusive `create_new` — `EROFS`, `EACCES`, `ENOENT` each answering `FilePathUnreachable`** (part `(C)` above; `contract.md §8.1` #13's amended trigger clause).
 **WHAT ARM `(b)` NOW DECIDES, AND WHAT IT DOES NOT: it is a SCREEN and NOT the decision — for an ABSENT path the binding verdict is STEP `4b`'s exclusive create, and this step's own outcome is the kernel's answer at that act: the create SUCCEEDING is step `4b`'s reachability answer and its failure is the refusal.** **AND WHAT THIS STEP STILL DECIDES ALONE AND HONESTLY, UNMOVED: ARM `(a)` (the write-mode open of an EXISTING path, part `(1)` above), THE SHAPE CASES (`null`/`undefined`/`""`/a non-string answering `AddressMalformed`; a path that IS a directory answering UNREACHABLE), and THE PROBE'S OWN INNOCENCE — THE PROBE CREATES NOTHING AND NO BYTE, at every path it is given** (`contract.md §10.4` parts 1–3 and 5; `DD-45`'s amended clause; `seams-and-lifecycle.md §7.2` items 3–4; the `docs/decisions.md` rows of `2026-10-13` | CONTRACT + 1 DECLARED-DEFAULT]).
 
 **AND THE AMENDED `filePath` ROW OF THE TABLE BELOW, PRINTED IN FULL SO THE AS-FILED ROW IS NOT READ AS
@@ -203,9 +211,9 @@ non-string → `AddressMalformed`, no instance**; **a string that FAILS the two-
 unnamed states the dry run leaves: an absent parent directory is UNREACHABLE, and a path that IS a directory
 is UNREACHABLE at construction while the same state reached later by a `file`-tier write remains
 `FileCommitFailed`).
-**AND THE `ConstructionArgumentMissing` TRIGGER IS NARROWED, NOT DELETED — `DD-17` MOVES:** **the as-filed
-`DD-17` row read *"`storeCreate` with a missing or invalid `filePath` or `journalLength` fails at construction
-with `ConstructionArgumentMissing`"*; the OPERATIVE form is *"`storeCreate` with a missing `journalLength`
+**AND THE `ConstructionArgumentMissing` TRIGGER IS NARROWED, NOT DELETED — `DD-17` MOVES:**
+**⟶ MOVED → `archive/spec-history/2026-10-21-section-7-2-acceptance-set-and-commit-verification-move-out.md` §1 head 3 (the as-filed `DD-17` cell) — and the OPERATIVE form is
+*"`storeCreate` with a missing `journalLength`
 fails at construction with `ConstructionArgumentMissing`, and a present-but-out-of-domain `filePath` or
 `journalLength` answers `AddressMalformed`"* — so the missing-argument arm now has ONE argument and the
 member's own trigger column at `§8.1` #12 names exactly that one** (`DD-17`'s as-filed cell stands
@@ -256,13 +264,37 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
    truncated or partially rewritten file** — and **the store's `file` state is what the journal restores it
    to** (`§6.4` `M-11`). **The failure's CODE is `FileCommitFailed`** (`§8.1` #15 — **RE-POINTED 2026-10-16: this cell's as-filed rank was `#14`, which `ValueNotAdmitted` took when the `file`-tier save's pass added the store's sixteenth closed-set member; the rank's ONE home is `docs/specs/storeroom-native/contract.md §8.1`, whose own row prints `FileCommitFailed` at `15` and `ValueNotAdmitted` at `14`**)
    (`[T: the atomicity's observable, stated at this contract's second bounded amendment | CONTRACT]`).
+   **⟶ AMENDED 2026-10-21 — THE COMMIT VERIFIES THE IMAGE IT IS ABOUT TO WRITE: IT RE-DECODES IT AND REFUSES,
+   WITH THE EXISTING `FileCommitFailed`, WHEN IT DOES NOT LOAD** (`docs/decisions.md` · `A144` —
+   the architect's ruling, verbatim: *"(B) The commit verifies the image"*; `[T: the commit's image verification |
+   DECLARED-DEFAULT]`). **THE CLAUSE, IN FIVE PARTS:**
+      - **(1) THE COMMIT RE-DECODES THE IMAGE IT IS ABOUT TO RENAME OVER THE PATH AND REFUSES IF IT DOES NOT
+         LOAD** — **the answer is the EXISTING `FileCommitFailed` (`contract.md §8.1` #15): NO NEW FAIL CODE, NO NEW `§8.1`
+         ROW, NO NEW VOCABULARY.**
+      - **(2) THE COMMIT'S OWN FAILURE ARM IS UNCHANGED: ROLLBACK FIRST (the pre-state restored, the marks undone,
+         the sequence stepped back) AND THE CALLER IS ANSWERED `FileCommitFailed` SECOND**
+         (`docs/specs/storeroom-js/surface.md §2.11` clause 5) ⇒ **the prior bytes stand — the commit is atomic: the
+         whole image is written to a sibling and renamed over the path — and the refused value NEVER PERSISTS.**
+      - **(3) THE LOADER'S CEILING IS NOT LIFTED: it is a STACK-OVERFLOW GUARD, and the pre-swap parser's unbounded
+         recursion was a latent overflow. THE WRITER RESPECTS IT; THE CEILING STANDS.**
+      - **(4) THE CONSEQUENCE: the `file` tier's round trip (`contract.md §5.2`'s row `P-IM-1`) IS EXACT FOR EVERY
+         ADMITTED VALUE WHOSE COMMITTED IMAGE THE LOADER ADMITS; FOR AN ADMITTED VALUE WHOSE IMAGE THE LOADER
+         REFUSES, THE COMMIT REFUSES, THE VALUE NEVER PERSISTS, AND NO ROUND TRIP EXISTS; THE FILE TIER CAN NO
+         LONGER HOLD A FILE ITS OWN LOADER REFUSES.**
+         **⟶ MOVED → `archive/spec-history/2026-10-22-adversarial-findings-move-out.md` §1 head `14` (the as-filed quantifier).**
+         `([A: docs/decisions.md · A144 (2) — the round trip's quantifier | CONTRACT]`)
+      - **(5) THE PRICE: one re-decode per commit. THE REVERSAL INSTRUMENT: THE AMENDMENT THAT LIFTS THE
+         VERIFICATION OR CHANGES THE LOADER'S CEILING.**
+      **AND EVERY OTHER ENUMERATION OF THE COMMIT FAILURE'S PARTS — IN THIS CARRIER AND IN `contract.md` — IS READ
+      WITH THIS FOURTH PART ADDED.**
 3. **A FAILED `file`-TIER WRITE'S FAILURE ARM IS EXACTLY TWO STEPS, IN THIS ORDER** (`P: §11 · A16`):
    **(i)** **the file rolls back the change in the journal automatically; (ii)** **then the failure is
    passed back to the caller** — i.e. the called verb throws the `StoreError` for the failure that caused
    it, and **the caller receives the failure, not the rolled-back state.**
 4. **WHAT "FAILURE" COMPRISES** — `A16`'s printed silence is *"what 'failure' comprises (the file write
    alone, the journal's own append, or both)"*. **THIS CONTRACT DECLARES IT COMPRISES BOTH: every failure of
-   the `file`-tier write path — the serialization, the file write, and the journal append — is ONE
+   the `file`-tier write path — the serialization, the file write, the journal append, and the commit's own
+   re-decode verification (`docs/decisions.md` · `A144`, 2026-10-21) — is ONE
    failure** (`[T | DECLARED-DEFAULT]`), **and its ONE code is `FileCommitFailed` (`§8.1` #15 — **RE-POINTED 2026-10-16: this cell's as-filed rank was `#14`; the store's sixteenth member took `15` and `ValueNotAdmitted` holds `14`**; `DD-25`),
    whose generated message is `§8.2`'s `FileCommitFailed` row**; the alternative (the file write alone) is
    priced: a journal-append
@@ -322,9 +354,11 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
      **⟶ RE-SPELLED 2026-10-21 — THE EXPONENT HALF THAT STOOD IN THIS CLAUSE IS WITHDRAWN, AND THE RE-SPELLED
      RULE ABOVE IS THE ONE THE FILE TIER'S COMMITTED BYTES ALREADY CARRY** (`docs/decisions.md` · `A142` (1) —
      the architect's ruling of 2026-10-21, verbatim: *"Re-spell the clause"* (on `docs/defects.md` ·
-     `DEF-2026-10-21-F`), AND THE AUTHORITY FOR THE RE-SPELLED RULE ABOVE; `RCA-8(d)` ANNOTATE-BESIDE: **the
-     as-filed half is re-emitted below and marked WITHDRAWN rather than silently re-worded, the re-spell is IN
-     PLACE in the rule above, and parts (b)–(d) below stand BYTE-FOR-BYTE**; `P: §21 · A59` — the RULE's own
+     `DEF-2026-10-21-F`), AND THE AUTHORITY FOR THE RE-SPELLED RULE ABOVE; the instrument: `docs/decisions.md` ·
+     `A129` (3), whose THIRD lawful form this clause now takes — *a one-line archive pointer* (`RCA-8(g)`): **the
+     as-filed halves are moved out byte-exactly to the archive and marked WITHDRAWN rather than silently
+     re-worded, the re-spell is IN PLACE in the rule above, and every STANDING half of parts (b)–(d) below stands
+     BYTE-FOR-BYTE**; `P: §21 · A59` — the RULE's own
      authority, unmoved; `DD-46` (a); `[T: the `file` image's number spelling, so the committed bytes' form is
      declared at this clause and not inferred from the formatter's own name | DECLARED-DEFAULT]`).
 
@@ -334,25 +368,14 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
      `DEF-2026-10-21-F`) — the ruling whose OWN FORMULATION THIS RESTORES: *"THE FILE TIER'S CANONICAL SPELLING
      IS THE SHORTEST ROUND-TRIPPING DECIMAL IN POSITIONAL NOTATION"*, shortest referring to the DIGITS and the
      NOTATION being FIXED; and `src/json.rs`'s `canonical_number` doc, which already carries that form).
-     **THE AS-FILED DEFINING HALF, RE-EMITTED AND MARKED SUPERSEDED, NEVER REPLACED: *"its canonical spelling
-     is THE SHORTEST DECIMAL SPELLING THAT PARSES BACK TO THE SAME `f64`** — Rust's `f64` `Display` form, **AND
-     `Display` NEVER USES EXPONENT NOTATION, so the canonical spelling is POSITIONAL**"*.** **IT WAS FALSE AS A
-     DEFINITION: THE SHORTEST PARSING-BACK SPELLING OF `1e300` IS `1e300` (`5` CHARACTERS) AND OF `5e-324` IS
-     `5e-324` (`6` CHARACTERS), WHEREAS THIS CLAUSE'S OWN FIGURES ARE A `301`-DIGIT AND A `326`-CHARACTER
-     DECIMAL — SO THE AS-FILED HALF SAID, IN ONE SENTENCE, BOTH THAT THE CANONICAL SPELLING IS THE SHORTEST
-     PARSING-BACK SPELLING AND THAT A VALUE WHOSE SHORTEST SPELLING WOULD NEED AN EXPONENT TAKES THE POSITIONAL
-     FORM INSTEAD, AND THOSE TWO HALVES CANNOT BOTH STAND.** **THE RE-SPELL IS THE QUALIFIER MOVED INTO THE
+     **⟶ MOVED → `archive/spec-history/2026-10-21-section-7-2-acceptance-set-and-commit-verification-move-out.md` §1 head 4 (the as-filed defining half).** **THE RE-SPELL IS THE QUALIFIER MOVED INTO THE
      DEFINITION AND NOTHING ELSE — THE SHORTEST IS TAKEN OVER POSITIONAL SPELLINGS, AND THE NOTATION IS FIXED
      BY THE DECLARATION AND NOT BY THE SHORTNESS — AND THE COMMITTED BYTES DO NOT MOVE: THIS CORRECTS THE
      CLAUSE'S DESCRIPTION OF THE OBSERVABLE AND NOT THE OBSERVABLE, AND EVERY OTHER HALF OF THIS CLAUSE STANDS
      BYTE-FOR-BYTE** (`P: §21 · A59`; `DD-46` (a); `[T: the rule's defining half, so the notation is bound to
      the definition and not left to a rider that contradicts it | DECLARED-DEFAULT]`).
 
-     **THE AS-FILED WORDING, RE-EMITTED BECAUSE THIS CLAUSE RE-SPELLS IT AND NEVER REPLACES IT:** *"a value
-     whose shortest spelling needs an exponent takes it (`1e300`, `5e-324`)"* — **THAT HALF IS WITHDRAWN, BECAUSE
-     IT IS FALSE OF THE OBSERVABLE: RUST'S `f64` `Display` NEVER USES EXPONENT NOTATION (measured: `1e300` → a
-     301-digit decimal, `5e-324` → 326 characters, `f64::MAX` → 309 digits), so each of them is written
-     POSITIONALLY and NONE of them takes an exponent.** **AND THE WITHDRAWAL IS A CORRECTION OF THE CLAUSE'S
+     **⟶ MOVED → `archive/spec-history/2026-10-21-section-7-2-acceptance-set-and-commit-verification-move-out.md` §1 head 5 (the as-filed exponent wording).** **AND THE WITHDRAWAL IS A CORRECTION OF THE CLAUSE'S
      DESCRIPTION OF THE OBSERVABLE, NOT A CHANGE OF THE OBSERVABLE: THE FILE TIER'S COMMITTED BYTES DO NOT MOVE —
      `src/json.rs`'s `canonical_number` has always written `format!("{n}")`, the `Display` form, and the
      alternative that WOULD have moved them was declined on the same day (`A141`) — SO THE RE-SPELLED RULE ABOVE IS
@@ -464,11 +487,35 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
       CLAUSE** (`src/json.rs`'s module header; `docs/decisions.md` · `A141` (3)).
       **AND THE READ SIDE IS NOT A WRITE-SIDE FACT.** **THE CURRENT DECODER'S OWN STANDING IS A READ-SIDE
       FACT AND MOVES NO WRITE-SIDE CLAUSE: it refuses `01`, `+1`, `.5`, `1.` and `1e400`, IT REFUSES RAW
-      CONTROL CHARACTERS — WHICH THE PRE-SWAP CODEC ALSO REFUSED, SO THAT ITEM IS NOT A *"STRICTER"* ARM — AND
+      CONTROL CHARACTERS AND
       IT ACCEPTS A VALID SURROGATE PAIR, WHICH THE PRE-SWAP CODEC REFUSED** (`docs/decisions.md` · `A141` (4) —
       what that row does NOT pin; `docs/defects.md` · `DEF-2026-10-21-E` — the read side's standing in the
       corpus's own record; the current decoder's own refusal of a raw control character, `serde_json`'s
       `ControlCharacterWhileParsingString`).
+      **⟶ CORRECTED 2026-10-21 — THE AS-FILED HALF *"WHICH THE PRE-SWAP CODEC ALSO REFUSED, SO THAT ITEM IS NOT A
+      *"STRICTER"* ARM"* IS SUPERSEDED BY NAME, AND IT IS THE ONLY HALF OF THAT SENTENCE THAT MOVES** (`docs/decisions.md` ·
+      `A143` — the architect's ruling of 2026-10-21, verbatim: *"Make the codec JSON-compliant - again, it already has to
+      translate to a JSON-saveable format"*; `docs/defects.md` · `DEF-2026-10-21-U` — the corpus's own record of the measured
+      parity; the instrument: `docs/decisions.md` · `A129` (3) — the corpus's own lawful forms for superseded content, of
+      which this clause takes the FIRST, *quoted-as-superseded history inside a clause that at its own bytes bears its
+      superseding date and ruling*).
+      **⟶ MOVED → `archive/spec-history/2026-10-21-section-7-2-acceptance-set-and-commit-verification-move-out.md` §1 head 6 (the as-filed half and its measurement).**
+      **AND THE EARLIER CORPUS RECORD IS GOVERNED BY THE LATER MEASURED ONE, NOT THE OTHER WAY ROUND: the sentence above
+      cites `docs/defects.md` · `DEF-2026-10-21-E` — the read side's standing in the corpus's own record — AND THAT ROW'S
+      OWN RAW-CONTROL-CHARACTER HALF IS SUPERSEDED BY `DEF-2026-10-21-U`, WHICH IS THE ROW THAT GOVERNS THE CLASS.**
+      **AND WHAT IS NOT MOVED, NAMED HALF BY HALF: the refusals of `01`, `+1`, `.5`, `1.` and `1e400` stand; the acceptance
+      of a valid surrogate pair — which the pre-swap codec refused — stands; the framing — *"THE READ SIDE IS NOT A
+      WRITE-SIDE FACT"* and *"THE CURRENT DECODER'S OWN STANDING IS A READ-SIDE FACT AND MOVES NO WRITE-SIDE CLAUSE"* —
+      stands; the paragraph that follows this one, and item 7 (b)'s own sentence, stand; AND THE WHOLE OF PART (e) STANDS,
+      THE ESCAPE IMAGE, THE CROSS-READ COMPATIBILITY AND THE REVERSAL INSTRUMENT INCLUDED. ONLY THE ONE QUOTED HALF IS
+      SUPERSEDED, AND IT IS READ THROUGH THIS CLAUSE.**
+      **AND THE ALTERNATIVE IS PRICED, NOT LEFT OPEN: THE AS-FILED HALF'S OWN READING — that the pre-swap refused a raw
+      control character in EVERY position — IS PRICED BY THE PRE-SWAP'S OWN ARM, WHICH PUSHED ANY CHARACTER, CONTROL OR
+      NOT, INSIDE A STRING; the alternative this clause takes is the measured one, and its price is the narrowing of the
+      in-string case that part (f) declares.**
+      `[A: docs/decisions.md · A143 — the architect's ruling of 2026-10-21, verbatim: *"Make the codec JSON-compliant -
+      again, it already has to translate to a JSON-saveable format"*, on the measured parity at `docs/defects.md` ·
+      `DEF-2026-10-21-U` | DECLARED-DEFAULT]`
       **NONE OF THAT NARROWS item 7 (b)'s own sentence — *"any finite JSON number spelling a parser admits
       is ACCEPTED at the boot of item 6"* — and none of it is a second write-side rule: a parser's refusals AND
       ITS ACCEPTANCES ARE THE READ SIDE'S OWN, and the write side's image is the escape image above and the
@@ -488,6 +535,92 @@ configuration)"* — is carried as `P-1`'s, and no clause here reaches it** (`[R
       `[T: the file tier's escape image, its stability across the swap, the cross-read compatibility, the
       read side's own standing and the instrument that reverses the whole, so a TestWriter can drive the
       committed bytes without inferring a bit-stability the format does not have | DECLARED-DEFAULT]`
+
+    **⟶ AMENDED 2026-10-21 — THE `file` TIER'S LOADER ACCEPTANCE SET IS THE SIXTH PART OF THIS CLAUSE, AND IT IS A
+    PURE INSERTION: PARTS (a)–(e) ABOVE STAND BYTE-FOR-BYTE AND ARE READ THROUGH THIS CLAUSE, AND THE AS-FILED COUNT
+    *"THE CLAUSE, IN FOUR PARTS"* IS NOT CONTRADICTED — THIS IS THE SIXTH PART AND NOT A RE-SPELLING OF ANY OF THE FIVE
+    ABOVE** (`docs/decisions.md` · `A143` — the architect's ruling of 2026-10-21, answering `docs/defects.md` ·
+    `DEF-2026-10-21-U`'s open question; `[T: the file tier's loader acceptance set, so the loader's refusals and its
+    acceptances are declared at this clause and not left to the codec's library | DECLARED-DEFAULT]`).
+    - **(f) THE LOADER'S ACCEPTANCE SET — THE JSON GRAMMAR'S OWN — AND THE ANSWER FOR A FILE THE LOADER REFUSES.**
+      **THE CODEC IS JSON-CONFORMANT IN BOTH DIRECTIONS, AND THE LOADER'S ACCEPTANCE SET IS THE JSON GRAMMAR'S.**
+      **THE FOUR CLASSES THE `serde_json` SWAP NARROWED ARE THE DECLARED BEHAVIOUR AND NOT DEFECTS, EACH NAMED WITH
+      ITS EXACT EXAMPLE. (1) A RAW CONTROL CHARACTER INSIDE A STRING IS REFUSED — a literal `LF`, a literal `TAB` or a
+      literal `NUL` inside a string — AND THE ESCAPED FORM (`\u0000`) IS ACCEPTED. (2) A NUMBER SPELLING IS REFUSED, AND THE CLASS IS THREE CLASSES: **A GRAMMAR VIOLATION — a spelling the JSON grammar does not admit — IS REFUSED: `01`, `+1`, `.5`, `1.`, `1e`, `Infinity`, `NaN`, `0x1`, `1_0`, `--1`, `1.2.3`; AN OVERFLOW — a spelling the grammar admits whose value does not fit — IS REFUSED: `1e400`, `1e999999999`, `1e309`; AND THE UNDERFLOW HALF IS ACCEPTED AND IS NOT A DIVERGENCE: `1e-400` and `1e-324` BECOME `0`, and the pre-swap's own `f64::from_str` gave the same zero, so THE TWO BUILDS AGREE THERE.** (3) A UNICODE WHITESPACE
+      CHARACTER AS A TOKEN SEPARATOR IS REFUSED — EXACTLY FOUR SEPARATORS ARE ADMITTED (space, tab, `LF`, `CR`), AND
+      `U+00A0` IS NOT ONE OF THEM. (4) A NESTING DEPTH OF `128` OR MORE IS REFUSED — **AND THE COUNTING CONVENTION IS NAMED: THE LOADER'S COUNT IS `serde_json`'S OWN RECURSION COUNT, IN WHICH THE ROOT OBJECT IS THE FIRST LEVEL ⇒ `127` CONTAINERS (THE ROOT COUNTED) ARE ACCEPTED AND `128` CONTAINERS ARE REFUSED; IN THE CORPUS'S WALK-DEPTH CONVENTION (THE ROOT AT `0`) THE LAST ACCEPTED VALUE IS WALK-DEPTH `126` AND THE FIRST REFUSED IS WALK-DEPTH `127` — THE LOADER'S LEVEL IS THE WALK-DEPTH PLUS ONE — AND THE `64` THAT CROWNS THE CROSSING IS THE JS PACKAGE'S OWN WALK CEILING AND NOT THE STORE'S: THE NATIVE STORE'S TAXONOMY HAS NO DEPTH CLASS AND NO DEPTH GUARD, SO THE STORE ADMITS A VALUE OF ANY DEPTH, AND THE LOADER'S `128` IS THE ONLY CEILING IN THE PATH — WHICH IS WHY THE COMMIT MUST VERIFY** (`docs/specs/storeroom-js/crossing.md §1.4` item 5 — the PACKAGE's own walk's ceiling, which disclaims a store-side bound; `A143` (1) and `A144` (1)). AND ONE WIDENING CLASS STANDS BESIDE THE FOUR: THE LOADER ACCEPTS AN ESCAPED SURROGATE PAIR (`\uD83D\uDE00`),
+      WHICH THE PRE-SWAP CODEC REFUSED OUTRIGHT.**
+      **⟶ MOVED → `archive/spec-history/2026-10-22-adversarial-findings-move-out.md` §1 head `15` (the as-filed number class) AND §1 head `16` (the as-filed depth class).**
+      `([A: docs/decisions.md · A143 (1) — the acceptance set's re-spelled classes | DECLARED-DEFAULT])`
+      **AND CLASS (4)'S OWN SCOPE IS MADE EXPLICIT, AND ITS REACH IS DECLARED: THE FOREIGN-FILE ROUTE IS OPEN
+      — A HAND-WRITTEN FILE IS AN EXTERNAL EVENT, AND THE LOADER'S REFUSAL OF IT IS A PLAIN OBSERVABLE — SO THE
+      CLASS IS OBSERVABLE FROM THE JAVASCRIPT LAYER; AND THE JAVASCRIPT LAYER'S OWN CEILING IS A SECOND AND SEPARATE
+      FIGURE — THE PACKAGE'S OWN WALK REFUSES A VALUE OF DEPTH `65` BEFORE ANY VERB IS CALLED, SO THE JAVASCRIPT LAYER
+      CANNOT HAND THE STORE A `128`-DEEP VALUE, AND THE LOADER'S `128` AND THAT WALK'S `65` ARE NOT THE SAME FIGURE
+      AND NEITHER BOUNDS THE OTHER; AND THE COMMIT'S VERIFICATION REMAINS UNREACHABLE FROM THE JAVASCRIPT LAYER
+      (`A144` (1)) — AND THIS IS CLASS (4)'S OWN CLAIM AND SCOPE RE-SPELLED, NOT A FOURTH INSERTION.**
+      `([A: docs/decisions.md · A144 (1) — the class's reach; docs/specs/storeroom-js/crossing.md §1.4 item 5 | DECLARED-DEFAULT])`
+      **THE GROUND IS THREE KINDS OF GROUND, AND EACH IS NAMED. THE RULING: `docs/decisions.md` · `A143` (ACTIVE), of
+      2026-10-21, answering `docs/defects.md` · `DEF-2026-10-21-U`'s open question — whether the swap's narrowed
+      acceptance set is accepted as the price of the swap or widened back toward the pre-swap's. THE MEASUREMENT:
+      `docs/defects.md` · `DEF-2026-10-21-U` — the corpus's own record of the measured parity: ONE CORPUS OF `57` INPUTS
+      RUN THROUGH BOTH DECODERS SIDE BY SIDE (the pre-swap codec, at `fc5f915^:src/json.rs`, and the shipped
+      `serde_json` codec, at `src/json.rs` at HEAD) OVER THE SHIPPED `StoreValue` (`src/value.rs`), AND `15` DIVERGENCES
+      IN `57` CASES, ALL OF THEM IN WHAT THE LOADER ACCEPTS. AND THE PRE-SWAP CODEC'S OWN ARMS, WHICH ARE THE PRE-SWAP'S
+      STANDING: at `fc5f915^:src/json.rs`, its `parse_string` catch-all arm PUSHED ANY CHARACTER, CONTROL OR NOT, so it
+      ACCEPTED a raw control character inside a string; its `parse_number` COLLECTED THE RUN AND HANDED IT TO RUST'S
+      `f64::from_str`, WHICH ACCEPTS **THE SIX SPELLINGS OF THE DIVERGENCE SET** (the over-range ones as `inf`) — **⟶ MOVED
+      → `archive/spec-history/2026-10-22-adversarial-findings-move-out.md` §1 head `18` (the as-filed five-of-six half) — AND
+      THE RE-SPELLED TRUTH STANDS: `A143` (1) NAMES ALL SIX — `01`, `+1`, `.5`, `1.`, `1e400` AND `1e999999999` — AND THE
+      MEASURED RECORD NAMES THE SAME SIX**; its
+      `skip_ws` USED `char::is_whitespace`, THE WHOLE UNICODE PROPERTY; AND ITS PARSER RECURSED WITH NO DEPTH LIMIT. THE
+      SHIPPED DECODER'S OWN REFUSALS ARE `serde_json`'s OWN — a character below `0x20` inside a string
+      (`serde_json`'s `ControlCharacterWhileParsingString`), its JSON number grammar, its four separators and its
+      recursion limit of `128`.** **AND THE CLASS'S OWN SET IS WIDER THAN THE DIVERGENCE SET: the class names the
+      SHIPPED decoder's grammar, and a spelling BOTH builds refuse is not a divergence.**
+      **⟶ MOVED → `archive/spec-history/2026-10-22-adversarial-findings-move-out.md` §1 head `19` (the 2026-10-21 count-half re-spell clause) — AND ITS RE-SPELL STANDS IN THE GROUND PARAGRAPH ABOVE.**
+      **THE ANSWER FOR A FILE THE LOADER REFUSES HAS TWO ARMS, AND THE ARM THAT ANSWERS IS DECIDED BY THE CONSTRUCTION'S OWN SHAPE. (a) NO CONSTRAINT LIST ⇒ THE INSTANCE IS RETURNED, THE REGISTER BEGINS EMPTY, AND NO ERROR REACHES THE CALLER: the whole file does not load, the boot falls through, and `storeCreate` still returns an instance. (b) A CONSTRAINT LIST SUPPLIED ⇒ THE CONSTRUCTION ANSWERS `ConstraintListInvalid` (`§8.1` #16) AND NO INSTANCE IS RETURNED: the boot's load arm answers `Some(0)` and NOT `None` for a refused file, so the load-side validation RUNS over the empty register, every supplied pair's address fails to resolve, and the construction refuses. **AND THE PLAIN CONSTRUCTION NEVER REACHES ARM (b)**, AND **ARM (b)'s OWN REACH IS A LIST THAT NAMES AT LEAST ONE ADDRESS** — a list carrying NO PAIR validates nothing, and the instance IS returned. (`src/json.rs`'s `decode` doc; `src/store.rs`'s boot arm and its load-side validation loop; `A143` (2).)
+      **⟶ MOVED → `archive/spec-history/2026-10-22-adversarial-findings-move-out.md` §1 head `17` (the as-filed single-arm answer).**
+      **AND THE CORPUS'S OWN BOOT CLAUSE FOR A *PARSEABLE* FILE STANDS UNMOVED, AND THE TWO ANSWERS ARE DIFFERENT AND
+      EACH IS DECLARED: A PARSEABLE FILE WITH ONE NON-ADMITTED MEMBER LOSES THAT MEMBER, AND A FILE THE LOADER REFUSES
+      LOSES EVERYTHING.** (the `DD-29` clause, at `§7.2` item 6 — a register KEY whose value lies outside `§1.4`'s admitted
+      set is DROPPED, the rest of the content loads, the instance IS returned, and NO code is produced for the dropped key —
+      against this part's own answer above, under which NOTHING loads and the instance is STILL returned **on that answer's arm (a)**; `docs/decisions.md`
+      · `A143` (2).)
+      **⟶ MOVED → `archive/spec-history/2026-10-21-section-7-2-acceptance-set-and-commit-verification-move-out.md` §1 head 8 (the as-filed writer half).**
+      **THE AUTHORITY IS `docs/decisions.md` · `A143`, AND THE ARCHITECT'S RULING IS QUOTED VERBATIM: *"Make the codec
+      JSON-compliant - again, it already has to translate to a JSON-saveable format"*.**
+      **THE CORPUS HOME OF THE LOADER'S ACCEPTANCE SET IS THIS PART AND THIS PART ALONE** — the same arrangement as the
+      escape image, whose one home is part (e) above — **and it is declared here and not in a code doc: `src/json.rs`'s own
+      `decode` doc names the boot's answer for a file it cannot read and says nothing about the acceptance set.**
+      **THE REVERSAL INSTRUMENT: A FRESH RULING RECORDED AS AN ACTIVE `docs/decisions.md` ROW, FOLLOWED BY A BOUNDED
+      AMENDMENT OF THIS CLAUSE** (`docs/decisions.md` · `A143`; the instrument this directory's own clauses use at `§7.1`
+      step 3 and `§7.2` item 4) — **and the amendment it would carry is either the one that WIDENS THE ACCEPTANCE SET BACK
+      TOWARD THE PRE-SWAP'S, WHOSE PRICE IS A DECODER THAT ADMITS NON-JSON, or the one that CHANGES THE FILE TIER'S IMAGE.**
+      **AND NO PROPERTY-REGISTER ROW IS MINTED FOR THIS PART, AND THE CAP HOLDS: the register carries its `8` rows (`P-IM-1`
+      · `P-IM-2` · `P-IM-3` · `P-SM-4` · `P-TP-6` · `P-TP-7` · `P-TP-8` · `P-TP-9`) and no row is added, dropped or renumbered
+      (`contract.md §5.2`).** **THE REASON IS THE CLAUSE'S OWN KIND: THIS CLAUSE DECLARES A GRAMMAR, AND NO REGISTER ROW
+      STATES A GRAMMAR.** **THE STORE-SIDE CONSEQUENCE OF THE ACCEPTANCE SET IS ALREADY CARRIED BY `P-IM-1`'s OWN WRITE→READ
+      ROUND TRIP'S VALUE EQUALITY (`contract.md §5.2`, whose `contract.md §5.9` table carries it as *"the write→read round
+      trip / isolation"*), AND THAT ROW'S EXTENDED DRIVE COVERS THE ADMITTED VALUES THE IMAGE MUST CARRY.**
+      `[A: docs/decisions.md · A143 — the architect's ruling of 2026-10-21, verbatim: *"Make the codec JSON-compliant -
+      again, it already has to translate to a JSON-saveable format"*, and what it pins: the codec's JSON standing in both
+      directions, the acceptance set as the JSON grammar's own, the answer for a file the loader refuses, and the store-side
+      writer's own non-production (SUPERSEDED 2026-10-21 BY THE RE-SPELL BELOW) — with the measured parity it
+      rests on at `docs/defects.md` · `DEF-2026-10-21-U` |
+      DECLARED-DEFAULT]`
+
+      **⟶ RE-SPELLED 2026-10-21 — THE WRITER'S OWN CEILING HALF IS SUPERSEDED, AND THE COMMIT ENFORCES THE
+      LOADER'S CEILING** (`docs/decisions.md` · `A144` — the architect's ruling, verbatim: *"(B) The commit verifies
+      the image"*; `docs/defects.md` · `DEF-2026-10-21-W`; the instrument: `docs/decisions.md` · `A129` (3), whose
+      THIRD lawful form this clause now takes — *a one-line archive pointer* (`RCA-8(g)`); `[T: the writer's ceiling,
+      so the `file` tier cannot hold an image its own loader refuses |
+      DECLARED-DEFAULT]`). **⟶ MOVED → `archive/spec-history/2026-10-22-adversarial-findings-move-out.md` §1 head `22` (the as-filed half and the measurement that found the hole — the substance now at `A144` (1)).** **AND WHAT IS NOT MOVED, HALF BY HALF: the control characters'
+      escaping, the JSON-admissible number spelling, the ASCII space separator, `A141` (3)'s cross-read claim, the
+      crossing's depth-`64` ceiling and the four classes part (f) declares ALL STAND.** **AND THE STANDING TRUTH: THE
+      WRITER'S CEILING IS THE LOADER'S CEILING, ENFORCED BY THE COMMIT — a `file`-tier commit writes an image the
+      loader ACCEPTS; a value the store admits whose image the loader would refuse is REFUSED BY THE COMMIT; and the
+      refusal class — a file the loader refuses and the store did not write — is a FOREIGN file.**
 
 ### §7.3 The constraint-and-repair evaluation seam
 
@@ -532,22 +665,8 @@ is this contract's to close** (`P: §11 · A14` prints the FORM and names one ex
 assigns the membership to the contract; `DD-3`). **A failure whose code is outside this set is a contract
 violation, not an extension of the set.**
 
-| # | `code` | `rank` | The triggering state — the ONLY state that produces it |
-| --- | --- | --- | --- |
-| 1 | **`AddressMalformed`** | `1` | a segment outside `§1.5`'s domain (`L-1`); **an absent required argument** (`write` with no `tier`, `storeCreate` with `cfg.filePath` or `cfg.journalLength` absent, `rollback` with an absent `opId`); **an argument whose SHAPE is not the argument's shape at all — `null` or `undefined` for a `tier`, an `address`, an `opId`, a `filePath` or a `journalLength`** (`PAR-1`–`PAR-4`, `PAR-6`, `PAR-7`, `PAR-10`); **a blank (empty-string) `opId`** (`PAR-10`); a present construction argument outside its domain (`§7.1`) |
-| 2 | **`AddressNotFound`** | `2` | the walk found no anchor at the segment's key (`L-3`); an integer segment aimed at the register (`L-INT-REG`); **a sub-floor address reaching the `secure` instance** (`DD-13`, which is `AddressNotFound` and not a floor-specific code) — **whose declared ANSWER SHAPE is stated and drivable at `§8.3`'s blindness clause: the same `status`, the same generated template, no floor-specific member and no distinguishing record** |
-| 3 | **`LeafHasNoDownstream`** | `3` | the walk stood on a `leaf` with segments remaining (`L-4`) |
-| 4 | **`TierNotFound`** | `4` | the walk found an anchor at the key but **no passed tier matches its tier** (`L-TIER`); a read whose passed tier set matches no version at an existing address (`DD-12`) |
-| 5 | **`OutOfDomainTier`** | `5` | a tier argument outside `{file, mem, temp}` (`P: §14 · A29`); a write or delete whose tier is an array (any length); a non-string tier |
-| 6 | **`ParentAnchorMonotonicityViolation`** | `6` | a write whose minted child anchor's tier would outrank its parent anchor's (`rank(child) > rank(parent)`; `F-6`) |
-| 7 | **`ContainerKindConflict`** | `7` | a write whose value's kind contradicts the target container's kind (`F-4`; `P: §13 · A22`); **AND a write whose LAST SEGMENT's class contradicts the parent container's KEY DOMAIN — a `string` segment aimed at a `VEC`, or an integer segment aimed at a `MAP`** (`store-model.md §1.3`'s key-domain arm; `store-model.md §1.5` items 2–3's NO-COERCION rule; `F-4`) — **both arms share this ONE member, exactly as the two DIRECTIONS of a value-kind conflict do (`DD-19`)** (`[T: the member's extended trigger, at this contract's third bounded amendment; no new member is minted for it | CONTRACT]`) |
-| 8 | **`ReadTargetIsBranch`** | `8` | `readLiteral(address, tier?)` — the literal-only read form — resolves its target to a `branch` (`[T | DECLARED-DEFAULT]`: this contract's `read` returns the assembled JSON of a branch and **never** raises this code; the code exists because `read` also exposes the literal-only form `readLiteral`, which demands a leaf; its alternative — no literal-only form, and therefore one fewer reachable code — is priced at `DD-24`) |
-| 9 | **`WriteParentNotLink`** | `9` | the resolved parent cannot hold children — the `leaf`-parent state (`F-5`); a write whose target is the empty address and therefore has no key to install under (`§3.2` item 4) |
-| 10 | **`JournalOpUnknown`** | `10` | `rollback` called with an `opId` the instance's journal does not hold (`§6.4` `M-11`) |
-| 11 | **`RollbackCompacted`** | `11` | a rollback whose scope includes at least one `compacted` entry (`§6.4` `M-6`) |
-| 12 | **`ConstructionArgumentMissing`** | `12` | `storeCreate` called with `cfg.filePath` absent, or with `cfg.journalLength` absent (`§7.1`; `DD-17`) — **the construction-time failure, delivered before any instance exists** |
-| 13 | **`ValueNotAdmitted`** | `13` | a write whose `value` is outside `§1.4`'s admitted set (`F-2`) — `null`, `undefined`, a function, a symbol, a `BigInt`, a non-finite number, a cyclic object, or a non-plain collection (`§1.4`) |
-| 14 | **`FileCommitFailed`** | `14` | **a `file`-TIER WRITE'S FAILURE PATH** — **whichever of its three parts fails: the serialization of the `file` state, the file write at `cfg.filePath`, or the journal's own append** (`§7.2` item 4, which declares the three parts ONE failure, and `§7.2` item 3, which declares the two-step arm); **the caller receives THIS code after `A16`'s automatic journal rollback has run** (`P: §11 · A16`; `§6.4` `M-11`'s automatic-rollback clause). **A `mem`- or `temp`-tier write never produces it** (`§7.2` item 5: they perform no file I/O). **It is the member `§7.2` items 3–4 and `§5.9`'s interaction map require and that no earlier member carried** (`[T: the member's authoring at this contract's second bounded amendment, so the register's `file`-failure drive has a code to observe | CONTRACT]`) |
+**⟶ MOVED → `archive/spec-history/2026-10-21-section-7-2-acceptance-set-and-commit-verification-move-out.md` §1 head 11 (the as-filed set's own table — its header, its separator and its `14` rows).**
+**⟶ AMENDED 2026-10-21 — THE TABLE'S BYTES HAVE MOVED OUT, AND THE 2026-10-11 CLAUSE'S OWN *"NO OTHER BYTE OF THIS SECTION MOVES"* HALF IS READ AS THAT CLAUSE'S OWN STANDING FORM OF 2026-10-11: the table was the as-filed set's own text, it is read through this clause, and it is read at `archive/spec-history/2026-10-21-section-7-2-acceptance-set-and-commit-verification-move-out.md` §1 head 11; AND EVERY REFERENCE TO *"THE TABLE BELOW"* OR *"THIS TABLE"* IN THE CLAUSES ABOVE IS READ AS THE AS-FILED SET'S OWN TEXT SO POINTERED; AND THE AS-FILED HEADING'S OWN *"each with its trigger"* IS READ AS THE AS-FILED SET'S OWN TABLE, WHOSE TRIGGERS ARE NOW AT `contract.md §8.1` AND AT THIS FILE'S HEAD `11`** (`docs/decisions.md` · `A129` (3) — the corpus's own lawful forms for superseded content, of which this clause takes the THIRD, *a one-line archive pointer*; `docs/defects.md` · `DEF-2026-10-16-P` — the corpus's own rule that a pass adding a delta to a record within `2 KB` of the ceiling moves the superseded cells out in the SAME pass; `[T: the as-filed set's own table, so the carrier carries no superseded cell of the closed set | CONTRACT]`).
 
 **THE COMPLEMENT, STATED SO THE SET'S CLOSURE IS NOT READ AS AN OMISSION** (`[T | NEGATIVE]`): **the
 following are NOT failures and produce NO code** — an unoccupied key **on a write** (it mints,
@@ -564,17 +683,15 @@ and there is **no `PairOccupied`** (`DD-11`: the pair is purged and re-minted, `
 *whether the serialization, the file write or the journal append is the part that failed*; **and a
 `mem`/`temp`-tier write cannot produce it** (`§7.2` item 5). **A `file`-tier write that succeeds produces no
 code at all** — committing the bytes is the arm's own success.
-**ARITHMETIC, PRINTED WITH ITS TERMS:** **the set carries `14` members, ranked `1`…`14` (`14 = 14` ✓)**;
-**`11` are reachable from the walk and the three address verbs, `1` (`ConstructionArgumentMissing`) from
-construction, `1` (`ValueNotAdmitted`) from the value taxonomy, and `1` (`FileCommitFailed`) from the
-`file` tier's commit path — `11 + 1 + 1 + 1 = 14` ✓** — and **every member has a trigger and every named
+**ARITHMETIC, PRINTED WITH ITS TERMS — AND ITS AS-FILED `14`-MEMBER FIGURES STAND AT `archive/spec-history/2026-10-22-adversarial-findings-move-out.md` §1 HEAD `21`,
+WHILE THE CLOSURE STANDS: **every member has a trigger and every named
 failure in this contract has a member**
 (`[P: §11 · A14, §13 · A22, §14 · A29; T: the set's closure | CONTRACT + 1 CENSUS]`). **⟶ AMENDED
 2026-10-11 — THE OPERATIVE ARITHMETIC, PRINTED WITH ITS TERMS (**⟶ RE-SPELLED 2026-10-15 BY THE GATE-4 FINDINGS PASS: the `15` and the `11 + 2 + 1 + 1 = 15` below stand BYTE-FOR-BYTE and are read THROUGH this reading; the OPERATIVE ARITHMETIC is `16` members ranked `1`…`16` (`16 = 16` ✓), closing as `11 + 2 + 1 + 1 + 1 = 16` ✓ with `ConstraintListInvalid` the appended fifth term at rank `16` — `contract.md §8.1`'s dated clause of 2026-10-15**): `15` members ranked `1`…`15`
 (`15 = 15` ✓), closing as `11 + 2 + 1 + 1 = 15` ✓ — `11` from the walk and the three address verbs
 (UNMOVED) + `2` from CONSTRUCTION (`ConstructionArgumentMissing` `12`, `FilePathUnreachable` `13`) + `1`
 (`ValueNotAdmitted`, now `14`) from the value taxonomy + `1` (`FileCommitFailed`, now `15`) from the `file`
-tier's commit path — and the as-filed figures above stand byte-for-byte and are read through this clause
+tier's commit path — and the as-filed figures stand byte-for-byte at the archive head `21` named above
 (`A53`; the contract document's `§8.1` carries the member table and `§8.2` its generator row;
 `[T: the arithmetic's restatement, with every moved figure named | CENSUS]`).
 **AND THE ONE MEMBER THE FIRST AMENDMENT'S SET DID NOT CARRY, STATED SO THE ADDITION IS NOT READ AS A
@@ -751,7 +868,7 @@ while either stands, a park read as a closure is a finding, and a pass that lift
 
 **⟶ AMENDED 2026-10-11 — THE TWO BOUNDARY ROWS ABOVE AND THE CLAUSE UNDER THEM ARE RECONCILED TO THE AMENDMENT'S OPERATIVE STATE, AND NOT ONE OF THEIR SHIPPED SENTENCES IS DELETED** (`RCA-8(d)` ANNOTATE-BESIDE: **the table's two rows and the clause beneath them stand byte-for-byte, and THIS clause is the operative statement of each park's state**; `A44`; `A57`; `A58`; `docs/specs/storeroom-listeners-proposal.md` `§10`, `§18`, `§20`; `docs/pending.md`'s dated state of `P-1`/`P-3`; `[T: the two parks' operative state and the boundary between them | CONTRACT]`). **THE STATE THIS DECIDES, IN THREE PARTS:**
 
-1. **`P-3` IS LIFTED, SO THE `P-3` ROW ABOVE PRINTS A PARK THAT NO LONGER STANDS.** **THE ROW READS** *"the alerted list's ORDER · the attachment rule … · the firing mechanism · the callback invocation · the JS-facing listener surface · a throwing body's disposition"* **with the boundary cell** *"the listener's order, attachment rule, firing, invocation surface and throw behaviour are NOT specified by this contract"*. **THE OPERATIVE STATE: the architect LIFTED `P-3` (`A44` — *"Yes, this is the listener unpark"*, filed at the proposal's `§10`), and the amendment SPECIFIED those subjects — `A57`'s listener record `{ address, handle }` bound BY ADDRESS, `A57`'s firing model (the store RETURNS the triggered handles and INVOKES NOTHING, so a throwing body has no subject inside this unit), `DD-37`'s declared order-insignificance, and `A58`'s supersession of the stopgap `watch` — so the `P-3` row's *"NOT specified by this contract"* is superseded by the amendment's `§6.5` items 8–13** (`write-and-read.md §6.5`; `docs/pending.md`'s `P-3`, whose record stands and is LIFTED, never deleted).
+1. **`P-3` IS LIFTED, SO THE `P-3` ROW ABOVE PRINTS A PARK THAT NO LONGER STANDS.** **⟶ MOVED → `archive/spec-history/2026-10-21-section-7-2-acceptance-set-and-commit-verification-move-out.md` §1 head 9 (the `P-3` row's text).** **THE OPERATIVE STATE: the architect LIFTED `P-3` (`A44` — *"Yes, this is the listener unpark"*, filed at the proposal's `§10`), and the amendment SPECIFIED those subjects — `A57`'s listener record `{ address, handle }` bound BY ADDRESS, `A57`'s firing model (the store RETURNS the triggered handles and INVOKES NOTHING, so a throwing body has no subject inside this unit), `DD-37`'s declared order-insignificance, and `A58`'s supersession of the stopgap `watch` — so the `P-3` row's *"NOT specified by this contract"* is superseded by the amendment's `§6.5` items 8–13** (`write-and-read.md §6.5`; `docs/pending.md`'s `P-3`, whose record stands and is LIFTED, never deleted).
 2. **`P-1` STANDS `OPEN` AND UNMOVED, AND THE ONE THING ITS ROW ABOVE NAMES THAT HAS MOVED IS THE WATCHED-ADDRESS SURFACE'S SPELLING: the row lists *"the watched-address list"* among the crossings `P-1` holds — which stands as a CROSSING — while `A58` supersedes the shipped `watch` surface and `WriteResult` now carries `op · watched · triggered` with `DeleteReceipt` gaining `triggered`, so what `P-1` holds is the CROSSING of a returned handle list and never a listener implementation** (`write-and-read.md §3.6`, `§4.4`, `§6.5`; the proposal's `§18` (2)).
 3. **AND THE CONSTRAINT BELOW IS READ THROUGH BOTH PARTS, SO NO READING RUNS THE PARKS TOGETHER: *"no integration or listener question is put while either stands"* is DISCHARGED FOR THE LISTENER — the amendment put the listener questions and answered them — and STANDS FOR `P-1`, whose crossing is still deferred by `A8`/`A42`; *"a park read as a closure is a finding"* stands for both; and *"a pass that lifts a park fails"* is unmoved — `P-3`'s lift is the ARCHITECT'S ACT and not a pass's, and no pass may read this clause as a licence to lift `P-1`.** **NO ROW OF THIS SECTION IS DELETED, NO PARK IS LIFTED BY THIS CLAUSE, AND NO `APP`-GREEN IS CLAIMED** (`docs/pending.md` `P-2`; `R: §17.1`).
 
@@ -776,8 +893,8 @@ unit's later gates, each a prohibition with its citation** (`R: §17.4` conditio
 `§10.2` ITEM `2`, AND THIS RELOCATED COPY NOW CARRIES THE SAME DATED CLAUSE ITS ORIGINAL CARRIES — IT WAS
 THE SECOND COPY** (`RCA-8(d)` ANNOTATE-BESIDE: **every row of the prohibited-set table above, item `2`
 included, stands byte-for-byte, and THIS clause is the operative statement of what THIS copy of item `2`
-resolves to; the as-filed item's own words are re-emitted inside it, so nothing it read is lost and
-`git diff` recovers the pre-pass bytes**; `P: §11 · A66`; `docs/specs/storeroom-js-proposal.md` `§11`, the
+resolves to; the as-filed item's own words are moved out byte-exactly and pointed at, so nothing it
+read is lost**; `P: §11 · A66`; `docs/specs/storeroom-js-proposal.md` `§11`, the
 ruling's row; `docs/specs/storeroom-native/contract.md §10.2`'s own dated reconciliation clause;
 `contract.md §0.1` item 10(a)'s relocation rule and `§3.6`'s cross-document citation form;
 `[T: the relocated twin's reconciliation, so the two copies of item `2` agree and neither is left stale |
@@ -790,9 +907,7 @@ unchanged"*), **so the prohibition table above and the contract document's table
 two addresses, and `contract.md §10.2` is the ORIGINAL.** **THE CONTRACT DOCUMENT'S COPY CARRIES A DATED
 `⟶ RECONCILED 2026-10-11` CLAUSE THAT SCOPES ITEM `2` TO THIS UNIT'S OWN BUILD AND SUPERSEDES IT FOR THE
 SUCCESSOR JS UNIT (`P: §11 · A66` — the architect's own unpark, *"this is the unpark of the
-integration"*).** **THE AS-FILED ITEM THIS CLAUSE RECONCILES READS** *"**any question about the JS
-integration put to the architect**"*, cited to `P: §10 · A8`: *"Stop asking questions about the JS
-integration"*. **THE OPERATIVE READING, CARRIED HERE ITEM FOR ITEM: THAT PROHIBITION IS SCOPED TO THIS
+integration"*).** **⟶ MOVED → `archive/spec-history/2026-10-21-section-7-2-acceptance-set-and-commit-verification-move-out.md` §1 head 10 (the as-filed item).** **THE OPERATIVE READING, CARRIED HERE ITEM FOR ITEM: THAT PROHIBITION IS SCOPED TO THIS
 UNIT'S OWN BUILD — the deferral `A8` made (*"This is to build the store. Defer the integration until the
 store passes testing"*) — AND IS SUPERSEDED FOR THE SUCCESSOR JS UNIT BY THE ARCHITECT'S OWN UNPARK
 (`A66`), so `U-STOREROOM-JS`'s gate MAY PUT INTEGRATION QUESTIONS TO HIM.** **FOR NO OTHER PASS DOES THE

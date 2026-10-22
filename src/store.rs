@@ -1278,8 +1278,33 @@ impl Store {
 
     /// `§7.2` `M-12` + `DD-2`: the commit is atomic at the file — the whole serialized state is written to
     /// a sibling and renamed over the path, so a failure leaves the prior bytes intact.
+    ///
+    /// **⟶ AMENDED 2026-10-21 — THE COMMIT VERIFIES THE IMAGE IT IS ABOUT TO WRITE: IT RE-DECODES IT AND
+    /// REFUSES, WITH THE EXISTING `FileCommitFailed`, WHEN IT DOES NOT LOAD** (`seams-and-lifecycle.md §7.2`
+    /// item 2 — the clause, in five parts; `docs/decisions.md` · `A144` — the architect's ruling, verbatim:
+    /// *"(B) The commit verifies the image"*). **THE WRITER HAS NO CEILING OF ITS OWN — NO DEPTH CLASS IN
+    /// `§1.4`'s ADMITTED TAXONOMY AND NO DEPTH GUARD IN THIS CRATE — WHILE THE LOADER'S CEILING IS
+    /// `serde_json`'s RECURSION GUARD AT `128` NESTED CONTAINERS, A STACK-OVERFLOW GUARD THAT STANDS AND IS
+    /// NOT LIFTED** (`§7.2` item 7 (f), class (4); `docs/defects.md` · `DEF-2026-10-21-W`) — **SO A VALUE OF
+    /// WALK-DEPTH `127` OR MORE WAS ADMITTED, WAS COMMITTED AS SUCCESS, AND WAS LOST AT THE NEXT BOOT, THE
+    /// WHOLE FILE SILENTLY.** **THE VERIFICATION BELOW IS THE WRITER'S HALF OF THAT CEILING: THE IMAGE IS
+    /// RE-DECODED BEFORE A BYTE IS WRITTEN, AND AN IMAGE THE LOADER WOULD REFUSE IS REFUSED HERE WITH THE
+    /// EXISTING `FileCommitFailed` (`contract.md §8.1` #15 — NO NEW FAIL CODE, NO NEW ROW, NO NEW
+    /// VOCABULARY), SO THE `file` TIER'S ROUND TRIP (`contract.md §5.2`'s ROW `P-IM-1`) IS EXACT FOR EVERY
+    /// ADMITTED VALUE WHOSE COMMITTED IMAGE THE LOADER ADMITS; FOR AN ADMITTED VALUE WHOSE IMAGE THE LOADER
+    /// REFUSES, THE COMMIT REFUSES, THE VALUE NEVER PERSISTS, AND NO ROUND TRIP EXISTS — AND THE FILE TIER
+    /// CAN NO LONGER HOLD A FILE ITS OWN LOADER REFUSES.** **THE PRICE: ONE RE-DECODE PER COMMIT.** **THE
+    /// PRIOR BYTES STAND: THE REFUSAL IS BEFORE THE SIBLING IS
+    /// WRITTEN, SO THE PATH IS NEVER TOUCHED, AND THE CALLER'S OWN FAILURE ARM ROLLS THE WRITE BACK FIRST
+    /// AND ANSWERS SECOND (`surface.md §2.11` clause 5).**
     fn write_file(&self, address: &[Segment]) -> Result<(), StoreError> {
         let text = json::encode(&self.file_snapshot());
+        // THE LOADER'S OWN ACCEPTANCE, APPLIED TO THE IMAGE BEFORE IT IS WRITTEN: the boot arm's
+        // `if let Ok(StoreValue::Object(members)) = json::decode(&text)` IS THE LOADER, so this is the
+        // loader's own arm, asked of the image the commit is about to rename over the path.
+        if !matches!(json::decode(&text), Ok(StoreValue::Object(_))) {
+            return Err(file_commit_failed(address, &self.file_path));
+        }
         let temp = format!("{}.snst-commit-{}", self.file_path, std::process::id());
         let committed = std::fs::write(&temp, text.as_bytes())
             .and_then(|_| std::fs::rename(&temp, &self.file_path));

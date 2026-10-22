@@ -153,7 +153,7 @@
 
 ## §7. WHAT THIS UNIT DOES NOT SETTLE
 
-- **`DISCHARGED 2026-10-21` — the freeze's three figures, TAKEN.** *Was:* `OWED` — the `.node`'s `sha256`, the export name set and `facade.rs`'s byte count, produced by **step `2`, THE LIBRARY AND THE ABI**; owner `role_implementer`; **REVISIT CONDITION: the first build of step `2` that emits both artefact kinds.** **THE CONDITION IS MET: step `2`'s FULL ADOPTION LANDED 2026-10-21 (`A132`; the `#[napi]` entry layer replaced the hand-built table and its initialiser array), the build emits both artefact kinds, and THE THREE FIGURES ARE TAKEN AND MEASURED — NOT REPORTED — BY THE SUPERVISOR.**
+- **`DISCHARGED 2026-10-21` — the freeze's three figures, TAKEN.** *Was:* `OWED` — the `.node`'s `sha256`, the export name set and `facade.rs`'s byte count, produced by **step `2`, THE LIBRARY AND THE ABI**; owner `role_implementer`; **REVISIT CONDITION: the first build of step `2` that emits both artefact kinds.** **THE CONDITION IS MET: step `2`'s FULL ADOPTION LANDED 2026-10-21 (`A145`; the `#[napi]` entry layer replaced the hand-built table and its initialiser array), the build emits both artefact kinds, and THE THREE FIGURES ARE TAKEN AND MEASURED — NOT REPORTED — BY THE SUPERVISOR.**
 
   | # | The figure | Its value, as measured |
   | --- | --- | --- |

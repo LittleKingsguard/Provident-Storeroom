@@ -23,6 +23,93 @@ const REGISTER_ROWS: [&str; 8] = [
 // §5.2 `P-IM-1` — the write→read round trip is EXACT. Strategy id `S-RT`.
 // ---------------------------------------------------------------------------------------------------
 
+/// **THE FILE-ROUTE ARM'S OWN SHARE OF THE ROW'S PER-ROW CAP** — the number of attempts the arm below
+/// takes. **THE ROW'S CAP IS `≤ 100` ATTEMPTS (`support::MAX_ATTEMPTS_PER_ROW`) AND THE LOOP BELOW
+/// SPENT `MAX_ATTEMPTS_PER_ROW - 2` OF IT**, leaving exactly `2` for the two carry-over arms further
+/// down (`NG-1` and `NG-3`). **THE FILE-ROUTE ARM TAKES `8` MORE — TWO FOR THE LOADER'S BOUNDARY (ONE ON
+/// EACH SIDE OF IT) AND SIX FOR THE VALUES THE IMAGE MUST CARRY — SO THE LOOP'S OWN CEILING IS LOWERED BY
+/// THOSE `8`**: the row's TOTAL is unchanged at the cap, no other row is touched, and the file suite's
+/// total (≤ 400) does not move.
+const FILE_ROUTE_ARM_ATTEMPTS: usize = 8;
+
+/// **THE NUMBER OF VALUES ONE (TIER, DEPTH) CELL OF THE LOOP DRIVES** — the window's own size. **THE ROW
+/// DRIVES `3` TIERS × `3` DEPTHS = `9` CELLS, AND `9 × 10 = 90` IS THE LOOP'S WHOLE BUDGET UNDER THE
+/// CEILING ABOVE.**
+const VALUES_PER_CELL: usize = 10;
+
+/// **`depth` NESTED CONTAINERS AROUND A LEAF** — the walk-depth the row's file-route arm drives, built
+/// once so the depth is a NUMBER and not a hand-counted structure. **THE STORE'S OWN WALK COUNTS THE
+/// ROOT AS DEPTH `0`** (`§4.2`'s recursion), so a value of walk-depth `d` is `d` nested containers
+/// around a leaf, and its IMAGE at the `file` tier carries `d + 1` — the register's own wrapper is a
+/// container too.
+fn nested_value(depth: usize) -> StoreValue {
+    let mut v = v_str("bottom");
+    for i in (1..=depth).rev() {
+        let member: &'static str = Box::leak(format!("d{i}").into_boxed_str());
+        v = v_obj(&[(member, v)]);
+    }
+    v
+}
+
+/// **THE FILE-ROUTE ARM'S ONE DRIVE** — write the value at the `file` tier, drive the terminal arm's own
+/// commit, boot a FRESH instance at the same `cfg.filePath` and read the value back (`§7.2` items 1, 2
+/// and 6). **THE ROW IS THE WRITE→READ ROUND TRIP'S VALUE EQUALITY, AND THE `file` TIER IS THE ONE TIER
+/// WHERE THAT ROUND TRIP CROSSES A JSON TEXT** — so the arm drives the row's own property over the tier
+/// that can lose it.
+///
+/// **EVERY STEP HERE IS A `drive.check` AND NEVER A PANIC**: **the arm's failures are the ROW's failures**,
+/// so a break is reported as `HELD`/`BROKEN` with the strategy id, and it is NEVER counted as a
+/// conflict — a break is the implementation's or the drive's, not a contract conflict's.
+fn file_route_once(drive: &mut Drive, label: &str, path: &str, value: &StoreValue) -> Option<StoreValue> {
+    let mut store = match storeCreate(&cfg_at(path, 8)) {
+        Ok(s) => s,
+        Err(e) => {
+            drive.check(
+                false,
+                &format!("§7.1: the construction at `{path}` returns an instance (got {})", e.status),
+            );
+            return None;
+        }
+    };
+    let landed = match store.write(AddressArg::List(key(&["root"])), w_file(), value.clone()) {
+        Ok(w) => w,
+        Err(e) => {
+            drive.check(
+                false,
+                &format!("§3.4 W-3: the `file`-tier write of `{label}` is admitted (got {})", e.status),
+            );
+            return None;
+        }
+    };
+    if let Err(e) = commit_at_the_terminal_arm(&mut store, &landed.op.opId) {
+        drive.check(
+            false,
+            &format!("§7.2 item 2: the commit of `{label}` SUCCEEDS (got {})", e.status),
+        );
+        return None;
+    }
+    let booted = match storeCreate(&cfg_at(path, 8)) {
+        Ok(s) => s,
+        Err(e) => {
+            drive.check(
+                false,
+                &format!("§7.2 item 6: the fresh boot at `{path}` returns an instance (got {})", e.status),
+            );
+            return None;
+        }
+    };
+    match booted.read(AddressArg::List(key(&["root"])), TierArg::Absent) {
+        Ok(v) => Some(v),
+        Err(e) => {
+            drive.check(
+                false,
+                &format!("§7.2 item 6: the fresh boot READS the value back (got {})", e.status),
+            );
+            None
+        }
+    }
+}
+
 /// §5.2 `P-IM-1`, strategy `S-RT`: drive `write` then `read` over a generated `(address, tier, value)`
 /// triple; compare with a structural-equality predicate. The row's third and fourth assertions are
 /// `§5.9`'s second assertion of `S-RT` (the read's copy discipline) and `DD-6`'s reachability.
@@ -47,12 +134,46 @@ fn p_im_1_round_trip_is_exact() {
         v_arr(vec![]),
         v_arr(vec![v_num(1.0), v_str("x"), v_bool(false)]),
         v_arr(vec![v_obj(&[("z", v_num(2.0))])]),
+        // **⟶ THE VALUES THE IMAGE MUST CARRY** — the four the row's own file-route arm below drives over
+        // the `file` tier, added to the round trip's OWN admitted-value list so that the IN-MEMORY half and
+        // the IMAGE half of the row are driven over the same values (`§7.2` item 7 (f) and item 7 (e);
+        // the commit's own verification, `§7.2` item 2's 2026-10-21 clause):
+        //   * **A STRING HOLDING A CONTROL CHARACTER** — the raw form the loader REFUSES and the ESCAPED
+        //     form it ACCEPTS, so the value the store holds is one the IMAGE can carry;
+        //   * **A STRING HOLDING AN ASTRAL CHARACTER** (a `char` outside the BMP) — the one class the
+        //     ESCAPED SURROGATE PAIR carries;
+        //   * **`f64::MAX`** — the carrier's widest finite value, whose canonical POSITIONAL spelling is the
+        //     309-digit decimal the loader reads back BIT-IDENTICALLY;
+        //   * **`-0.0`** — the ONE declared normalization (`A59`): the value the store holds keeps its sign
+        //     in memory and the image spells it `0`.
+        v_str("a\u{0000}b\u{0007}c\u{001f}"),
+        v_str("an astral character: \u{1F600}"),
+        v_num(f64::MAX),
+        v_num(-0.0),
     ];
 
+    let mut cell = 0usize;
     for tier in canonical_tiers() {
         for depth in 1..=3usize {
-            for value in &values {
-                if drive.stopped() || drive.attempts() >= MAX_ATTEMPTS_PER_ROW - 2 {
+            // **THE CELL'S OWN WINDOW OF THE VALUE LIST — A ROTATION, SO THE ROW'S PER-ROW CAP CANNOT
+            // STARVE A TIER, A DEPTH OR A VALUE OF ITS SHARE.** **THE AS-FILED LOOP Drove every value at
+            // every (tier, depth) cell UNTIL THE CAP, and the cap then cut the LAST cells off whole** — so
+            // the `temp` tier's deepest cell was never driven at all. **THE WINDOW BELOW GIVES EACH OF THE
+            // `9` CELLS ITS OWN ROTATION OF THE LIST, AND THE ROTATIONS ARE TAKEN OVER THE WHOLE LIST
+            // (offsets `0, 10, 3, 13, 6, 16, 9, 2, 12` over `17` values), SO EVERY VALUE IS DRIVEN IN AT
+            // LEAST ONE CELL AND EVERY TIER AND EVERY DEPTH IS DRIVEN AT ALL** — the cap now truncates
+            // NOTHING, and the row's coverage is WIDER than the as-filed loop's on the tier and depth
+            // axes. **THE ROTATION IS DETERMINISTIC AND TAKES NOTHING FROM THE SEED**, so the drive stays
+            // reproducible attempt for attempt.
+            let offset = (cell * VALUES_PER_CELL) % values.len();
+            let window: Vec<&StoreValue> = (0..VALUES_PER_CELL)
+                .map(|i| &values[(offset + i) % values.len()])
+                .collect();
+            cell += 1;
+            for value in window {
+                if drive.stopped()
+                    || drive.attempts() >= MAX_ATTEMPTS_PER_ROW - 2 - FILE_ROUTE_ARM_ATTEMPTS
+                {
                     break;
                 }
                 drive.attempt();
@@ -163,6 +284,159 @@ fn p_im_1_round_trip_is_exact() {
                     }
                 }
             }
+        }
+    }
+
+    // -----------------------------------------------------------------------------------------------
+    // **THE FILE-ROUTE ARM** — THE ROW'S OWN PROPERTY OVER THE TIER WHERE THE ROUND TRIP CROSSES A JSON
+    // TEXT. `§5.2` `P-IM-1` is *"for every admitted value `v` … `read(a, t)` after `write(a, t, v)`
+    // returns a value structurally equal to `v`"*, and **THE `file` TIER IS THE ONE TIER WHERE THAT ROUND
+    // TRIP CROSSES A JSON TEXT** (`§7.2` item 1 `M-12`): the value is written, the terminal arm's own
+    // commit lands the image, a FRESH instance boots at the same `cfg.filePath` and reads the value back
+    // (`§7.2` item 6). **THE ARM IS THE ROW'S OWN ARM AND NOT A NINTH ROW** — the register still carries
+    // its `8` rows (`§5.2`; `§5.9`'s arithmetic), and no row is added, dropped or renumbered.
+    //
+    // **THE ARM'S FAILURES ARE THE ROW'S FAILURES**: every step is a `drive.check` and never a panic, so a
+    // break is reported as `HELD`/`BROKEN` with the strategy id — **and it is NEVER counted as a
+    // conflict**, because a break is the implementation's or the drive's and not a contract conflict's.
+    // -----------------------------------------------------------------------------------------------
+
+    // (1) THE ACCEPTED SIDE OF THE LOADER'S CEILING — a value of walk-depth `126`, whose image carries
+    // `127` nested containers, which is the LAST image the loader admits (`§7.2` item 7 (f), class (4)).
+    // **THE COMMIT SUCCEEDS AND THE VALUE SURVIVES THE BOOT** — the row's own property, over the tier
+    // that can lose it.
+    drive.attempt();
+    {
+        let path = fresh_path("pim1-file-126");
+        let value = nested_value(126);
+        if let Some(back) = file_route_once(&mut drive, "file-depth-126", &path, &value) {
+            drive.check(
+                structurally_equal(&back, &value),
+                "§5.2 P-IM-1: the `file` tier's round trip is EXACT — write → commit → fresh boot → read — \
+                 over a value of walk-depth `126` (an image of `127` containers, the last the loader admits)",
+            );
+        }
+    }
+
+    // (2) THE REFUSED SIDE OF THE LOADER'S CEILING — a value of walk-depth `127`, whose image carries
+    // `128` nested containers, which is the FIRST image the loader refuses (`§7.2` item 7 (f), class (4)).
+    // **THE COMMIT MUST REFUSE THE IMAGE IT IS ABOUT TO WRITE, WITH THE EXISTING `FileCommitFailed`**
+    // (`§7.2` item 2's 2026-10-21 clause, part (1) — NO NEW FAIL CODE), **THE PRIOR BYTES MUST STAND**
+    // (part (2)) **AND THE REFUSED VALUE MUST NEVER PERSIST** (part (2)). **THE PRIOR BYTES ARE PUT AT THE
+    // PATH FIRST, BY A FIRST SUCCESSFUL COMMIT**, so that "the prior bytes stand" has something to stand
+    // over.
+    drive.attempt();
+    {
+        let path = fresh_path("pim1-file-127");
+        let store = match storeCreate(&cfg_at(&path, 8)) {
+            Ok(s) => Some(s),
+            Err(e) => {
+                drive.check(
+                    false,
+                    &format!("§7.1: the construction at `{path}` returns an instance (got {})", e.status),
+                );
+                None
+            }
+        };
+        if let Some(mut store) = store {
+            // THE PRIOR IMAGE — put at the path by a first, successful commit.
+            if let Ok(prior) = store.write(AddressArg::List(key(&["root"])), w_file(), v_str("prior")) {
+                if let Err(e) = commit_at_the_terminal_arm(&mut store, &prior.op.opId) {
+                    drive.check(
+                        false,
+                        &format!("§7.2 item 2: the first commit lands the prior image (got {})", e.status),
+                    );
+                }
+            }
+            let bytes_before = std::fs::read(&path).ok();
+
+            // THE REFUSED VALUE.
+            let refused = nested_value(127);
+            let landed = store.write(AddressArg::List(key(&["root"])), w_file(), refused.clone());
+            match landed {
+                Ok(landed) => match commit_at_the_terminal_arm(&mut store, &landed.op.opId) {
+                    Ok(()) => drive.check(
+                        false,
+                        "§7.2 item 2's 2026-10-21 clause, part (1) + contract.md §8.1 #15: the commit \
+                         RE-DECODES the image it is about to rename over the path and REFUSES IT with the \
+                         EXISTING `FileCommitFailed` — the commit reported SUCCESS for an image of `128` \
+                         containers, which the loader REFUSES (§7.2 item 7 (f), class (4))",
+                    ),
+                    Err(e) => {
+                        drive.check(
+                            e.status == "FileCommitFailed",
+                            &format!(
+                                "§7.2 item 2's 2026-10-21 clause, part (1) + contract.md §8.1 #15 — the \
+                                 refusal's code is the EXISTING `FileCommitFailed`: NO NEW FAIL CODE (got {})",
+                                e.status
+                            ),
+                        );
+                        // THE PRIOR BYTES STAND — the refused image never reached the path.
+                        drive.check(
+                            std::fs::read(&path).ok() == bytes_before,
+                            "§7.2 item 2's 2026-10-21 clause, part (2) — the prior bytes stand \
+                             BYTE-IDENTICAL: the refused image never reached the path",
+                        );
+                        // AND THE REFUSED VALUE NEVER PERSISTS.
+                        let booted = storeCreate(&cfg_at(&path, 8));
+                        match booted {
+                            Ok(booted) => {
+                                let back =
+                                    booted.read(AddressArg::List(key(&["root"])), TierArg::Absent);
+                                drive.check(
+                                    matches!(&back, Ok(v) if v == &v_str("prior")),
+                                    "§7.2 item 2's 2026-10-21 clause, part (2) — the refused value NEVER \
+                                     PERSISTS: a fresh boot reads the PRIOR image, not the refused one",
+                                );
+                            }
+                            Err(e) => drive.check(
+                                false,
+                                &format!(
+                                    "§7.2 item 6: the fresh boot at `{path}` returns an instance (got {})",
+                                    e.status
+                                ),
+                            ),
+                        }
+                    }
+                },
+                Err(e) => drive.check(
+                    false,
+                    &format!(
+                        "§3.4 W-3: the `file`-tier write of the refused value is admitted (got {})",
+                        e.status
+                    ),
+                ),
+            }
+        }
+    }
+
+    // (3) THE VALUES THE IMAGE MUST CARRY — each of them over the `file` tier's own round trip, so the
+    // row's own property is driven over the values the JSON image has to carry (`§7.2` item 7 (f) and
+    // item 7 (e); the commit's own verification, `§7.2` item 2's 2026-10-21 clause, part (4): *"the
+    // `file` tier's round trip IS EXACT FOR EVERY ADMITTED VALUE WHOSE COMMITTED IMAGE THE LOADER ADMITS;
+    // for an admitted value whose image the loader refuses, the COMMIT REFUSES, the value never persists,
+    // and NO ROUND TRIP EXISTS"*).
+    for (label, value) in [
+        ("file.control-character", v_str("a\u{0000}b\u{0007}c")),
+        ("file.astral-character", v_str("an astral character: \u{1F600}")),
+        ("file.f64::MAX", v_num(f64::MAX)),
+        ("file.-0.0", v_num(-0.0)),
+        ("file.object", v_obj(&[("k", v_str("v"))])),
+        ("file.array", v_arr(vec![v_num(1.0), v_str("x")])),
+    ] {
+        if drive.stopped() || drive.attempts() >= MAX_ATTEMPTS_PER_ROW - 2 {
+            break;
+        }
+        drive.attempt();
+        let path = fresh_path(&format!("pim1-{}", label.replace(['.', ':'], "-")));
+        if let Some(back) = file_route_once(&mut drive, label, &path, &value) {
+            drive.check(
+                structurally_equal(&back, &value),
+                &format!(
+                    "§5.2 P-IM-1: the `file` tier's round trip is EXACT over `{label}` — the value the \
+                     IMAGE must carry survives the commit and the boot"
+                ),
+            );
         }
     }
 
@@ -1466,6 +1740,16 @@ fn p_tp_7_the_construction_is_a_function_of_its_arguments() {
                 landing_tier(&s, &empty_address()) == Tier::Mem,
                 "A50/§1.6 item 4 (d): the register's tier is FIXED AT CREATION at `mem`",
             );
+            // **⟶ RE-DERIVED 2026-10-22 — THE `ABSENT` SIDE OF THE ROW'S OWN `IFF`:** *"the register holds
+            // `0` keys where the `file` tier's content at `cfg.filePath` is ABSENT, is ZERO-LENGTH, or
+            // carries no admitted member, and holds EXACTLY THE BOOTED ADMITTED KEYS where it does"*. **THE
+            // PATH IS ABSENT HERE, SO THE `file` TIER'S CONTENT IS ABSENT AND THE REGISTER IS THE EMPTY
+            // REGISTER** — the first of the row's own three `0`-key states.
+            drive.check(
+                structurally_equal(&read_at(&s, &empty_address()), &v_obj(&[])),
+                "§5.7 (iv) as re-derived 2026-10-22: the `file` tier's content is ABSENT (the path was not \
+                 provided), so the register holds `0` keys",
+            );
             match s.write(AddressArg::List(key(&["r"])), w_file(), v_num(1.0)) {
                 Ok(_) => drive.check(
                     false,
@@ -1662,6 +1946,106 @@ fn p_tp_7_the_construction_is_a_function_of_its_arguments() {
         }
         let _ = std::fs::remove_file(&path);
         let _ = std::fs::remove_dir_all(&parent);
+    }
+
+    // -----------------------------------------------------------------------------------------------
+    // **⟶ RE-DERIVED 2026-10-22 — THE BOOT HALF OF THE ROW'S OWN PROPERTY, AT ITS SECOND SIDE: THE
+    // REGISTER IS EMPTY IFF THE BOOT LOADS NO ADMITTED KEY.** `contract.md §5.7`'s `P-TP-7` row, property
+    // (iv), as re-derived: *"it returns an instance that is EMPTY OF BOOTED CONTENT — AND THE REGISTER IS
+    // EMPTY IFF THE BOOT LOADS NO ADMITTED KEY … the register holds `0` keys where the `file` tier's content
+    // at `cfg.filePath` is ABSENT, is ZERO-LENGTH, or carries no admitted member, and holds EXACTLY THE
+    // BOOTED ADMITTED KEYS where it does (`§7.2` item 6's boot-load; `DD-29`)"*.
+    //
+    // **THE ROW'S OWN STRATEGY CELL (5) IS THE BOOT CELL, AND `DD-29`'s OWN ROW NAMES THIS ROW AS THE
+    // OBSERVABLE** — *"the register the instance begins with holds exactly the keys whose values the taxonomy
+    // admits"* and *"NO code is produced for the dropped key"* (`DD-29`'s `observable` cell: *"`P-TP-7`'s boot
+    // half (`0` register keys before any write, and the keys the file's admitted content carries after
+    // one)"*). **THE DRIVE ABOVE REACHES THE `0`-KEY SIDE AT ITS TWO ZERO-KEY STATES (the fresh path and the
+    // ZERO-LENGTH file); THE TWO STATES BELOW ARE THE OTHER SIDE OF THE `IFF` AND THE DROP HALF**, and they
+    // are this row's own boot cell:
+    //
+    // * **(a) THE FILE CARRIES ADMITTED CONTENT ⇒ THE REGISTER HOLDS EXACTLY THE BOOTED ADMITTED KEYS**;
+    // * **(b) THE FILE CARRIES A MEMBER WHOSE VALUE IS OUTSIDE `§1.4`'s ADMITTED SET ⇒ THE REGISTER HOLDS
+    //   EXACTLY THE KEYS WHOSE VALUES THE TAXONOMY ADMITS, THE DROPPED KEY IS NOT IN THE REGISTER, AND NO
+    //   CODE IS PRODUCED FOR IT** (`DD-29`).
+    //
+    // **THE FILE'S CONTENT IS WRITTEN BY HAND** — the state is a FOREIGN file's, and the boot is observed
+    // on it and not on a store's own re-serialization (`§7.2` item 6's own boot).
+    // -----------------------------------------------------------------------------------------------
+    drive.attempt();
+    {
+        // (a) THE FILE CARRIES ADMITTED CONTENT.
+        let path = fresh_path("s-construct-boot-content");
+        std::fs::write(&path, br#"{"alpha":1,"beta":"two"}"#)
+            .expect("the file's content is written BY HAND at a real path");
+        match storeCreate(&cfg_at(&path, 4)) {
+            Ok(booted) => {
+                drive.check(
+                    structurally_equal(
+                        &read_at(&booted, &empty_address()),
+                        &v_obj(&[("alpha", v_num(1.0)), ("beta", v_str("two"))]),
+                    ),
+                    "§5.7 (iv) as re-derived 2026-10-22 + §7.2 item 6: the register holds EXACTLY THE BOOTED \
+                     ADMITTED KEYS — the file's content loaded whole, and the register is NOT empty",
+                );
+                drive.check(
+                    structurally_equal(&read_at(&booted, &key(&["beta"])), &v_str("two")),
+                    "§7.2 item 6: the booted key resolves to the value the file's own text spells",
+                );
+                drive.check(
+                    landing_tier(&booted, &empty_address()) == Tier::File,
+                    "A49/A50/§1.6 item 4 (d): the register's tier is FIXED AT CREATION at `file` — the boot's \
+                     own content does not move it",
+                );
+            }
+            Err(e) => drive.check(
+                false,
+                &format!(
+                    "§7.2 item 6: the boot over a file carrying ADMITTED content returns an instance (got {})",
+                    e.status
+                ),
+            ),
+        }
+
+        // (b) THE FILE CARRIES A MEMBER WHOSE VALUE IS OUTSIDE `§1.4`'s ADMITTED SET.
+        let path = fresh_path("s-construct-boot-dropped");
+        std::fs::write(&path, br#"{"admitted":1,"dropped":null}"#)
+            .expect("the file's content is written BY HAND at a real path");
+        match storeCreate(&cfg_at(&path, 4)) {
+            Ok(booted) => {
+                drive.check(
+                    structurally_equal(
+                        &read_at(&booted, &empty_address()),
+                        &v_obj(&[("admitted", v_num(1.0))]),
+                    ),
+                    "DD-29 + §5.7 (iv) as re-derived 2026-10-22: the register the instance begins with holds \
+                     EXACTLY the keys whose values the taxonomy admits — the NON-ADMITTED member is dropped \
+                     and the admitted one loads",
+                );
+                match booted.read(AddressArg::List(key(&["dropped"])), TierArg::Absent) {
+                    Ok(_) => drive.check(
+                        false,
+                        "DD-29: the dropped key is NOT in the register — its read must fail",
+                    ),
+                    Err(e) => drive.check(
+                        e.status == "AddressNotFound",
+                        &format!(
+                            "DD-29 + §2.2 L-3: the dropped key's read answers the store's own \
+                             `AddressNotFound` (got {})",
+                            e.status
+                        ),
+                    ),
+                }
+            }
+            Err(e) => drive.check(
+                false,
+                &format!(
+                    "DD-29: the boot over a file carrying a NON-ADMITTED member returns an instance and \
+                     produces NO code for the dropped key (got {})",
+                    e.status
+                ),
+            ),
+        }
     }
 
     // The reachability arm — `DD-40`'s three forms, each answering the NEW member (`§8.1` #13).
