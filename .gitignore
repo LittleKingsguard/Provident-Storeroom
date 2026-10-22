@@ -190,6 +190,11 @@ archive/
 scratch/live/install-0.2.0/drive/
 scratch/probe-shape-a/
 
+# The codec wave's depth/number measurement probe (a scratch byproduct, never a deliverable).
+# `docs/defects.md` . `DEF-2026-10-21-W` names it as gitignored; it was NOT, so a `git add -A`
+# in a later pass would have swept it in. The same rule as the entries above: never a source.
+scratch/depth-probe/
+
 # Gate-6/10 archival staging (scratch verification byproducts, never deliverables)
 scratch/g7-cache/
 scratch/g7-consumer/
