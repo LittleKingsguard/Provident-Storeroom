@@ -1377,14 +1377,15 @@ const STORE_CLOSED_SET = [
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch',
   'WriteParentNotLink', 'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing',
   'FilePathUnreachable', 'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
+  'ValueRefusedAtBoundary',
 ];
 
 test('fts_S_CENSUS_the_sixteenth_member_is_reachable_and_the_terms_of_the_algebra_stand', () => {
   // THE TERMS, READ OFF THE TABLE'S OWN ROWS AND NOT ASSERTED AS A TOTAL ALONE: `11` (§8.1 #1–#11) `+ 2`
   // (the construction group #12/#13) `+ 1` (#14) `+ 1` (#15) `+ 1` (#16) `= 16` ✓.
-  assert.equal(STORE_CLOSED_SET.length, 16, 'S-CENSUS: the closed set is SIXTEEN members. FAIL-STATE: "a set '
+  assert.equal(STORE_CLOSED_SET.length, 17, 'S-CENSUS: the closed set is SEVENTEEN members. FAIL-STATE: "a set '
     + 'of `15` or `17`" (`contract.md §8.1`, amended heading; `implementation-plan.md §10.9` row 8)');
-  assert.equal(11 + 2 + 1 + 1 + 1, 16, 'S-CENSUS: and its own terms sum it');
+  assert.equal(11 + 2 + 1 + 1 + 1 + 1, 17, 'S-CENSUS: and its own terms sum it');
   assert.deepEqual(STORE_CLOSED_SET.slice(11, 13), ['ConstructionArgumentMissing', 'FilePathUnreachable'],
     'S-CENSUS: the construction group\'s TWO members hold ranks 12 and 13');
   assert.equal(STORE_CLOSED_SET[15], 'ConstraintListInvalid',
@@ -1414,8 +1415,8 @@ test('fts_S_CENSUS_no_existing_trigger_is_widened_to_reach_the_new_member', asyn
   const key = tag('census');
   assert.throws(() => f.store.write([key], 'disk', 1), storeFailure('OutOfDomainTier', '#5 tier'),
     'S-CENSUS: `OutOfDomainTier` is not widened and does not move');
-  assert.throws(() => f.store.write([key], 'mem', undefined), storeFailure('ValueNotAdmitted', '#14 value'),
-    'S-CENSUS: `ValueNotAdmitted` is not widened and does not move');
+  assert.throws(() => f.store.write([key], 'mem', undefined), storeFailure('ValueRefusedAtBoundary', '#17 value'),
+    'S-CENSUS: the boundary refusal is the new last member and no existing member is widened');
   assert.equal(typeof commit, 'function', 'S-CENSUS: the kernel\'s extent stays FIVE');
   runAttempt(f.store, commit(f.store, [key], 'mem', 'ok'));
 });

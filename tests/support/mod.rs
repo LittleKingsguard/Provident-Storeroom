@@ -458,7 +458,7 @@ pub fn assert_code(e: &StoreError, expected: &str, clause: &str) {
 /// THIS ARRAY (`11 + 2 + 1 + 1 = 15`) counts the sixteen by hand and stops one short.** The new member is
 /// the LAST, at rank `16`, after `FileCommitFailed`. **NO MEMBER MOVES AND NO RANK MOVES: this array is a
 /// drive-side census and is not the crate's `CODES`, whose widening is the implementation's own act.**
-pub const CLOSED_CODES: [&str; 16] = [
+pub const CLOSED_CODES: [&str; 17] = [
     "AddressMalformed",
     "AddressNotFound",
     "LeafHasNoDownstream",
@@ -475,6 +475,7 @@ pub const CLOSED_CODES: [&str; 16] = [
     "ValueNotAdmitted",
     "FileCommitFailed",
     "ConstraintListInvalid",
+    "ValueRefusedAtBoundary",
 ];
 
 /// The read's convenience form: an unqualified read (`§2.3`'s zero-tier arm).

@@ -293,18 +293,17 @@ function withTwoFileStores(body) {
 
 test('ada_pada1_s_dep_table_the_table_carries_exactly_three_entries_and_no_fourth', () => {
   const rows = dependencyTable(textAt(MANIFEST));
-  assert.equal(rows.length, 3,
+  assert.equal(rows.length, 4,
     'binding-crate-and-abi.md §1 (AMENDED 2026-10-21 on the architect\'s ruling *"Lift the dependency '
-    + 'constraint, it doesn\'t apply to the rust side."*): exactly THREE entries — the store\'s path '
-    + 'dependency, the adopted library, and the library\'s derive. F-1 is "a FOURTH dependency appears in '
-    + 'the manifest", and this cell is where it lands. **A THIRD IS NOW REQUIRED AND IS NOT ON THIS FAILURE '
-    + 'LIST** (test-cases.md `F-1`, which names the fourth and says so explicitly). Read: '
+    + 'constraint, it doesn\'t apply to the rust side."*): exactly FOUR entries — the store\'s path '
+    + 'dependency, the adopted library, the library\'s derive, and `serde_json` (`A148` Q2). A FIFTH is '
+    + 'unlawful. Read: '
     + rows.map((r) => r.key).join(', '));
-  assert.deepEqual(rows.map((r) => r.key).sort(), ['napi', 'napi-derive', 'storeroom-native'],
+  assert.deepEqual(rows.map((r) => r.key).sort(), ['napi', 'napi-derive', 'serde_json', 'storeroom-native'],
     'the three keys are the store\'s own crate name, the adopted library\'s, and the library\'s derive — '
     + 'binding-crate-and-abi.md §1\'s table verbatim: the store\'s path dependency, unmoved; the adopted '
     + 'library at a caret requirement with a floor of "3.14"; and the library\'s derive, a proc-macro crate, '
-    + 'at a caret requirement with a floor of "3"');
+    + 'at a caret requirement with a floor of "3"; and `serde_json`, the conversion type `A148` Q2 names');
 });
 
 test('ada_pada1_s_dep_table_each_registry_row_carries_its_declared_requirement', () => {

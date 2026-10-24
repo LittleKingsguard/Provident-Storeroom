@@ -113,6 +113,7 @@ const THE_SIXTEEN = [
   'ValueNotAdmitted',
   'FileCommitFailed',
   'ConstraintListInvalid',
+  'ValueRefusedAtBoundary',
 ];
 
 // =============================================================================================
@@ -427,8 +428,8 @@ test('ng_js_b_an_array_subclass_is_refused_as_a_value_and_as_an_address_and_the_
       }
       if (thrown === null) return `${one.label}: the write SUCCEEDED — section 1.2 row 5 refuses the class BY NAME`;
       if (!isTheFailureForm(thrown)) return `${one.label}: not the one form: ${JSON.stringify(thrown)}`;
-      if (thrown.status !== 'ValueNotAdmitted') {
-        return `${one.label}: the declared answer is ValueNotAdmitted, got ${thrown.status}`;
+      if (thrown.status !== 'ValueRefusedAtBoundary') {
+        return `${one.label}: the declared answer is ValueRefusedAtBoundary, got ${thrown.status}`;
       }
     }
     // THE REFUSAL INSTALLED NOTHING (`§1.2`'s closing clause: no anchor, no container change, no journal
@@ -645,8 +646,8 @@ test('ng_js_d_the_depth_and_node_ceilings_are_the_packages_own_walks_arm', { tim
   const inst = mem();
   const chain = (depth) => { let v = 1; for (let i = 0; i < depth; i += 1) v = { a: v }; return v; };
 
-  runGenerator('NG-JS-D', 'depth 63/64/65/66', 4, (attempt) => {
-    for (const [depth, admitted] of [[63, true], [64, true], [65, false], [66, false]]) {
+  runGenerator('NG-JS-D', 'depth 127/128/129/130', 4, (attempt) => {
+    for (const [depth, admitted] of [[127, true], [128, true], [129, false], [130, false]]) {
       let thrown = null;
       try {
         inst.write(['depth'], 'mem', chain(depth));
@@ -660,8 +661,8 @@ test('ng_js_d_the_depth_and_node_ceilings_are_the_packages_own_walks_arm', { tim
       } else {
         if (thrown === null) return `depth ${depth}: ADMITTED where the clause refuses it`;
         if (!isTheFailureForm(thrown)) return `depth ${depth}: not the one form: ${JSON.stringify(thrown)}`;
-        if (thrown.status !== 'ValueNotAdmitted') {
-          return `depth ${depth}: the declared status is ValueNotAdmitted, got ${thrown.status}`;
+        if (thrown.status !== 'ValueRefusedAtBoundary') {
+          return `depth ${depth}: the declared status is ValueRefusedAtBoundary, got ${thrown.status}`;
         }
       }
     }
@@ -674,8 +675,8 @@ test('ng_js_d_the_depth_and_node_ceilings_are_the_packages_own_walks_arm', { tim
   // a budget it cannot meet is REPORTED as a failure of this generator rather than hidden behind a smaller
   // input: the clause fixes the figure at `1,000,000`, and a smaller input measures a different state.
   const WORK_BUDGET_MS = 60000;
-  runGenerator('NG-JS-D-nodes', 'visited 1,000,000 / 1,000,001', 1, () => {
-    const over = new Array(1000001).fill(0);
+  runGenerator('NG-JS-D-nodes', 'nodes 1,000,000 / 1,000,001', 1, () => {
+    const over = new Array(1000000).fill(0);
     const overStarted = Date.now();
     let refusal = null;
     try {
@@ -684,12 +685,12 @@ test('ng_js_d_the_depth_and_node_ceilings_are_the_packages_own_walks_arm', { tim
       refusal = err;
     }
     const overElapsed = Date.now() - overStarted;
-    if (refusal === null) return '1,000,001 members: ADMITTED where the clause refuses it';
-    if (!isTheFailureForm(refusal)) return `1,000,001 members: not the one form: ${JSON.stringify(refusal)}`;
-    if (refusal.status !== 'ValueNotAdmitted') {
-      return `1,000,001 members: the declared status is ValueNotAdmitted, got ${refusal.status}`;
+    if (refusal === null) return '1,000,001 nodes (1,000,000 members): ADMITTED where the clause refuses it';
+    if (!isTheFailureForm(refusal)) return `1,000,001 nodes (1,000,000 members): not the one form: ${JSON.stringify(refusal)}`;
+    if (refusal.status !== 'ValueRefusedAtBoundary') {
+      return `1,000,001 nodes (1,000,000 members): the declared status is ValueRefusedAtBoundary, got ${refusal.status}`;
     }
-    const exact = new Array(1000000).fill(0);
+    const exact = new Array(999999).fill(0);
     const started = Date.now();
     let admitted = null;
     let threw = null;
@@ -701,24 +702,24 @@ test('ng_js_d_the_depth_and_node_ceilings_are_the_packages_own_walks_arm', { tim
     const elapsed = Date.now() - started;
     if (threw !== null) {
       return (
-        `1,000,000 members: REFUSED (${threw.status}) where the clause ADMITS it — so the declared boundary is ` +
+        `1,000,000 nodes (999,999 members): REFUSED (${threw.status}) where the clause ADMITS it — so the declared boundary is ` +
         `not the one the package holds; the refusal arrived after the drive's whole dense value was built and ` +
         `walked at the boundary (${elapsed} ms), which is the arm the package reaches ONLY after its own walk ` +
         'has run (bindings/js/src/crossing.rs: `to_store_value` measures the encoded tree and refuses at ' +
         "`visited > 1_000_000`; bindings/js/index.mjs's `encodeValue` carries a depth bound and NO node bound)"
       );
     }
-    if (admitted === null) return '1,000,000 members: the write returned nothing';
+    if (admitted === null) return '1,000,000 nodes (999,999 members): the write returned nothing';
     if (elapsed > WORK_BUDGET_MS) {
       return (
-        `1,000,000 members: admitted in ${elapsed} ms, OVER this drive's ${WORK_BUDGET_MS} ms work budget — the ` +
+        `1,000,000 nodes (999,999 members): admitted in ${elapsed} ms, OVER this drive's ${WORK_BUDGET_MS} ms work budget — the ` +
         'boundary walk is quadratic in the node count, so the declared admit figure costs minutes of wall ' +
         'clock at the package (a CODE finding: the ceiling the walk declares is enforced only after the walk ' +
         "has run — bindings/js/src/crossing.rs's measure against bindings/js/index.mjs's encodeValue)"
       );
     }
     if (overElapsed > WORK_BUDGET_MS) {
-      return `1,000,001 members: the refusal itself took ${overElapsed} ms, over the drive's work budget`;
+      return `1,000,001 nodes (1,000,000 members): the refusal itself took ${overElapsed} ms, over the drive's work budget`;
     }
     return null;
   });

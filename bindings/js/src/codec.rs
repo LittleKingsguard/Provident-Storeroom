@@ -78,12 +78,15 @@
 // so importing the map would have been a warning this crate may not carry** (delete-rather-than-allow).
 // =================================================================================================
 use ::napi::bindgen_prelude::BigInt as JsBigInt;
-use ::napi::bindgen_prelude::{JsObjectValue as _, JsValue as _, Object, ToNapiValue, ValueType};
+use ::napi::bindgen_prelude::{
+    JsObjectValue as _, JsValue as _, Object, Property, ToNapiValue, ValueType,
+};
 use ::napi::{sys, Env, Unknown as JsUnknown};
+use serde_json::Value as JsonValue;
 use crate::crossing::{
     JsAddressArg, JsBaseState, JsConfig, JsConstraintEntry, JsConstraintsArg, JsDeleteReceipt,
     JsFilePathArg, JsHandle, JsHandleArg, JsJournalLengthArg, JsJournalOp, JsKey, JsListenerEntry,
-    JsListenerTrigger, JsListenersArg, JsNonArray, JsObject, JsOpIdArg, JsProto, JsRollbackResult,
+    JsListenerTrigger, JsListenersArg, JsNonArray, JsObject, JsOpIdArg, JsRollbackResult,
     JsSegment, JsTierArg, JsTierSetItem, JsValue, JsWriteResult,
 };
 
@@ -217,6 +220,25 @@ pub(crate) struct Codec<'e> {
 // The copy IN — the wire's JS values, read INTO the store's own Rust types.
 // -------------------------------------------------------------------------------------------------
 
+
+/// **A `serde_json::Value` AS THE CROSSING'S OWN VALUE MODEL** — the bare tree, with no tag, no envelope and
+/// no object-shape metadata. The package has already decided `p`/`acc`/`proxy`; this reader does not need
+/// them (`contract.md §3`), so every object is the plain object it is.
+fn json_to_js_value(value: JsonValue) -> JsValue {
+    match value {
+        JsonValue::Null => JsValue::Null,
+        JsonValue::Bool(b) => JsValue::Bool(b),
+        JsonValue::Number(n) => JsValue::Num(n.as_f64().unwrap_or(f64::NAN)),
+        JsonValue::String(s) => JsValue::Str(s),
+        JsonValue::Array(items) => JsValue::Array(items.into_iter().map(json_to_js_value).collect()),
+        JsonValue::Object(map) => JsValue::Object(JsObject::plain(
+            map.into_iter()
+                .map(|(key, member)| (JsKey::Key(key), json_to_js_value(member)))
+                .collect(),
+        )),
+    }
+}
+
 impl<'e> Codec<'e> {
     /// **ONE MEMBER OF A JS OBJECT, READ AS AN OWN PROPERTY OR NOT AT ALL** — the facade's own half of
     /// `A76`'s ruling and of gate 4's `JS-5`, whose finding was that *"`src/facade.rs`'s `Codec::member`"*
@@ -281,26 +303,6 @@ impl<'e> Codec<'e> {
         }
     }
 
-    /// **THE CLASS OF A PAYLOAD THE ARM IT ARRIVED IN DID NOT NAME** (`A76`'s class-first reading, at the
-    /// only site where a wire member's own class can contradict its tag): the payload's OWN class decides
-    /// and nothing is coerced into the arm's. **It is unreachable from the shipped package** — the mapping
-    /// layer encodes each arm with a payload of that arm's own class — and it exists so that a
-    /// hand-built wire cannot smuggle a `bigint` through the number arm.
-    fn classed_value(&self, payload: JsVal<'_>) -> JsValue {
-        match self.kind_of(payload) {
-            Kind::String => JsValue::Str(self.string_of(payload)),
-            Kind::Boolean => JsValue::Bool(self.bool_of(payload)),
-            Kind::Number => JsValue::Num(self.number_of(payload).unwrap_or(f64::NAN)),
-            Kind::BigInt => JsValue::BigInt(self.bigint_of(payload)),
-            Kind::Undefined => JsValue::Undefined,
-            Kind::Null => JsValue::Null,
-            Kind::Function => JsValue::Function,
-            Kind::Symbol => JsValue::Symbol,
-            // An object payload is NOT read (no member is taken from it): its class is the outside one.
-            _ => JsValue::NonPlainCollection,
-        }
-    }
-
     /// **THE CLASS OF A VALUE, BY THE LIBRARY'S OWN `ValueType`** — the adopted generic value's class
     /// decision (`PAR-ADA-9`), which the hand-written boundary took from a numbered `napi_typeof` result.
     fn kind_of(&self, value: JsVal<'_>) -> Kind {
@@ -330,111 +332,13 @@ impl<'e> Codec<'e> {
     }
 
     fn value_of(&self, v: JsVal<'_>) -> JsValue {
-        let tag = match self.member(v, "k") {
-            Some(tag) => self.string_of(tag),
-            None => return JsValue::NonPlainCollection,
-        };
-        match tag.as_str() {
-            "s" => JsValue::Str(
-                self.member(v, "v")
-                    .map(|x| self.string_of(x))
-                    .unwrap_or_default(),
-            ),
-            "b" => JsValue::Bool(
-                self.member(v, "v")
-                    .map(|x| self.bool_of(x))
-                    .unwrap_or(false),
-            ),
-            // **THE CLASS TEST PRECEDES THE NUMERIC ARM (`A76`, `JS-6`): a payload that is not a JS `number`
-            // is never read as one — its OWN class decides (`classed_value`), so a `bigint` arrives as
-            // `JsValue::BigInt` and is refused as a `BigInt` rather than carried through the number arm to
-            // a substituted `0`.
-            "n" => match self.member(v, "v") {
-                Some(payload) => match self.number_of(payload) {
-                    Some(n) => JsValue::Num(n),
-                    None => self.classed_value(payload),
-                },
-                None => JsValue::NonPlainCollection,
-            },
-            "g" => JsValue::BigInt(
-                self.member(v, "v")
-                    .and_then(|x| self.string_of(x).parse::<i64>().ok())
-                    .unwrap_or(0),
-            ),
-            "F" => match self.member(v, "v") {
-                Some(payload) => match self.number_of(payload) {
-                    Some(n) => JsValue::NonFinite(n),
-                    None => self.classed_value(payload),
-                },
-                None => JsValue::NonPlainCollection,
-            },
-            "z" => JsValue::Null,
-            "u" => JsValue::Undefined,
-            "f" => JsValue::Function,
-            "y" => JsValue::Symbol,
-            "c" => JsValue::Cyclic,
-            "P" => JsValue::NonPlainCollection,
-            "H" => JsValue::SparseArray,
-            "o" => {
-                let members = self
-                    .member(v, "m")
-                    .map(|list| self.elements(list))
-                    .unwrap_or_default()
-                    .iter()
-                    .map(|pair| {
-                        let pair = self.elements(*pair);
-                        let key = match pair.first() {
-                            Some(key) => {
-                                if self.is_array(*key) {
-                                    JsKey::Symbol
-                                } else {
-                                    JsKey::Key(self.string_of(*key))
-                                }
-                            }
-                            None => JsKey::Symbol,
-                        };
-                        let held = match pair.get(1) {
-                            Some(held) => self.value_of(*held),
-                            None => JsValue::Undefined,
-                        };
-                        (key, held)
-                    })
-                    .collect();
-                let proto = match self
-                    .member(v, "p")
-                    .map(|x| self.string_of(x))
-                    .unwrap_or_default()
-                    .as_str()
-                {
-                    "null" => JsProto::Null,
-                    "foreign" => JsProto::ForeignPlain,
-                    "class" => JsProto::Class,
-                    _ => JsProto::Plain,
-                };
-                let has_accessor = self
-                    .member(v, "acc")
-                    .map(|x| self.bool_of(x))
-                    .unwrap_or(false);
-                let proxied = self
-                    .member(v, "proxy")
-                    .map(|x| self.bool_of(x))
-                    .unwrap_or(false);
-                JsValue::Object(JsObject {
-                    members,
-                    proto,
-                    has_accessor,
-                    proxied,
-                })
-            }
-            "a" => JsValue::Array(
-                self.member(v, "i")
-                    .map(|list| self.elements(list))
-                    .unwrap_or_default()
-                    .iter()
-                    .map(|item| self.value_of(*item))
-                    .collect(),
-            ),
-            _ => JsValue::NonPlainCollection,
+        // **THE BARE JSON TREE, READ BY THE LIBRARY'S OWN `serde-json` CONVERSION** (`A148` Q2/Q4): the
+        // package has already classified the value, so this frame reads data and never a tag. A conversion
+        // failure (the crate's own depth/node ceiling, or a non-data class on a direct artefact call) is
+        // carried as the outside class; the package's own walk refuses it before this frame on its route.
+        match unsafe { v.cast::<JsonValue>() } {
+            Ok(json) => json_to_js_value(json),
+            Err(_) => JsValue::NonPlainCollection,
         }
     }
 
@@ -801,7 +705,21 @@ impl<'e> Codec<'e> {
         let mut out = Object::new(&self.env)
             .unwrap_or_else(|_| unreachable!("the environment builds an object"));
         for (name, value) in members {
-            let _ = out.set(name, value);
+            // **⟶ AN OWN DATA PROPERTY IS DEFINED, NEVER SET — CLOSED 2026-10-23 BY THE GATE-4 ADVERSARIAL
+            // BATTERY (`json-crossing-gate4-adversarial.test.mjs`'s `ADV-12`).** `Object::set` reaches
+            // `napi_set_property`, whose `[[Set]]` step runs the `__proto__` ACCESSOR on `Object.prototype`:
+            // a stored member genuinely named `__proto__` was silently turned into the returned object's
+            // PROTOTYPE instead of an own member (`A76`: *"do not attempt to fix"*; `contract.md §5`'s bare
+            // tree), and an attacker-supplied member could shadow the returned object's methods. **THE
+            // DEFINITION ARM TAKES `napi_define_properties`, which creates the OWN data property the tree
+            // declares.** Nothing else about the member's attributes moves: `Property`'s default attributes
+            // are writable/enumerable/configurable, exactly what `set` produced on a fresh object.
+            let property = Property::new()
+                .with_name(&self.env, name)
+                .and_then(|property| property.with_napi_value(&self.env, value));
+            if let Ok(property) = property {
+                let _ = out.define_properties(&[property]);
+            }
         }
         // The object crosses OUT as the untyped value the wire's reader receives.
         let raw = unsafe { ToNapiValue::to_napi_value(self.env.raw(), out) }
@@ -836,7 +754,7 @@ impl<'e> Codec<'e> {
         let _ = object.set(name, value);
     }
 
-    fn string_value(self, text: &str) -> JsVal<'_> {
+    fn string_value(self, text: &str) -> JsVal<'static> {
         make_string(&self.env, text)
     }
 
@@ -856,46 +774,29 @@ impl<'e> Codec<'e> {
     /// at `crossing.md §1.2`'s own classes — so the JS side holds no reference into store-owned data.
     pub(crate) fn to_js_value(self, v: &JsValue) -> JsVal<'static> {
         match v {
-            JsValue::Str(s) => self.tagged("s", self.string_value(s)),
-            JsValue::Bool(b) => self.tagged("b", self.bool_value(*b)),
-            JsValue::Num(n) => self.tagged("n", self.number_value(*n)),
+            JsValue::Str(s) => self.string_value(s),
+            JsValue::Bool(b) => self.bool_value(*b),
+            // `-0` DOES NOT CROSS AS A SIGN (`contract.md §4`; `A140`).
+            JsValue::Num(n) => self.number_value(if *n == 0.0 { 0.0 } else { *n }),
             JsValue::Object(o) => {
+                // **THE BARE OBJECT, MEMBER FOR MEMBER** (`contract.md §5`): no `k`, no `m`, no `p`, no
+                // `acc`, no `proxy`. A Symbol-keyed member refused the whole value, so it is unproduced.
                 let members = o
                     .members
                     .iter()
-                    .map(|(key, member)| {
-                        let key = match key {
-                            JsKey::Key(name) => self.string_value(name),
-                            // A `Symbol`-keyed member refused the whole value, so it never crosses OUT as
-                            // a member; it is carried as the marker the reader recognises.
-                            JsKey::Symbol => self.array(vec![]),
-                        };
-                        self.array(vec![key, self.to_js_value(member)])
+                    .filter_map(|(key, member)| match key {
+                        JsKey::Key(name) => Some((name.as_str(), self.to_js_value(member))),
+                        JsKey::Symbol => None,
                     })
                     .collect();
-                let proto = match o.proto {
-                    JsProto::Plain => "plain",
-                    JsProto::Null => "null",
-                    JsProto::ForeignPlain => "foreign",
-                    JsProto::Class => "class",
-                };
-                self.object(vec![
-                    ("k", self.string_value("o")),
-                    ("m", self.array(members)),
-                    ("p", self.string_value(proto)),
-                    ("acc", self.bool_value(o.has_accessor)),
-                    ("proxy", self.bool_value(o.proxied)),
-                ])
+                self.object(members)
             }
             JsValue::Array(items) => {
-                let items = items.iter().map(|item| self.to_js_value(item)).collect();
-                self.object(vec![
-                    ("k", self.string_value("a")),
-                    ("i", self.array(items)),
-                ])
+                self.array(items.iter().map(|item| self.to_js_value(item)).collect())
             }
+            // The outside variants remain declared and unproduced on this route (`contract.md §5`).
             JsValue::Null => self.object(vec![("k", self.string_value("z"))]),
-            JsValue::Undefined => self.object(vec![("k", self.string_value("u"))]),
+            JsValue::Undefined => self.undefined_value(),
             JsValue::Function => self.object(vec![("k", self.string_value("f"))]),
             JsValue::Symbol => self.object(vec![("k", self.string_value("y"))]),
             JsValue::BigInt(n) => self.tagged("g", self.string_value(&n.to_string())),

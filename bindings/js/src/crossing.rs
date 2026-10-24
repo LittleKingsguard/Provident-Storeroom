@@ -662,7 +662,7 @@ fn is_plain(o: &JsObject) -> bool {
 /// address (`§2.5` items 1–2, `DD-40`) — exactly the refusal the same value would draw one class deeper.
 pub fn to_store_value(v: &JsValue) -> Result<StoreValue, Refusal> {
     let (depth, visited) = measure(v);
-    if depth > 64 || visited > 1_000_000 {
+    if depth > 128 || visited > 1_000_000 {
         // The walk reads no further: the two bounds are what the package ships and there is NO
         // configuration knob for either (`DD-10`).
         return Ok(StoreValue::Cyclic);

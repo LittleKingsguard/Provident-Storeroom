@@ -945,7 +945,7 @@ const REFUSED_VALUES = [
   { value: Symbol('sv'), spelling: 'Symbol()' },
 ];
 
-test('sas_prop_P_SAS_8_S_FAULT_ARM_the_ValueNotAdmitted_re_render_appears_and_the_arm_is_not_dropped', () => {
+test('sas_prop_P_SAS_8_S_FAULT_ARM_the_ValueRefusedAtBoundary_re_render_appears_and_the_arm_is_not_dropped', () => {
   const result = row({
     id: 'P-SAS-8',
     strategies: ['S-FAULT-ARM'],
@@ -962,12 +962,12 @@ test('sas_prop_P_SAS_8_S_FAULT_ARM_the_ValueNotAdmitted_re_render_appears_and_th
         `attempt ${i}: the arm "throws; it is not a fault sink" (\`js-unwrap.md §3\`), so what reaches the `
         + 'caller is the declared three-member form and never a raw host error — the failure list\'s first term');
       // (i) THE CODE THE WALK'S OWN RECORD CARRIES IS CARRIED, NOT MINTED — `PAR-SAS-5`'s fault record.
-      assert.equal(thrownValue.thrown.status, 'ValueNotAdmitted',
+      assert.equal(thrownValue.thrown.status, 'ValueRefusedAtBoundary',
         `attempt ${i}: the arm EXISTS AT ALL — a dropped arm could not answer this code after the store `
         + 'already refused (`PAR-SAS-5`: "the `fault` record the write path threads — the boundary walk\'s own '
         + 'record — the `ValueNotAdmitted` re-render")');
       // (ii) PART ONE IS THE STORE'S GENERATOR'S OWN BYTES, COMPOSED BY CALLING THE STANDING ENTRY.
-      const partOne = generated('ValueNotAdmitted', refused.spelling);
+      const partOne = generated('ValueRefusedAtBoundary', refused.spelling);
       assert.equal(typeof partOne, 'string',
         `attempt ${i}: the generator answers a string — \`errorMessage\` is a standing entry of arity 2–3 `
         + '(`export-set-and-dispatch.md §1`) and this is its 2-position call');
@@ -1080,8 +1080,8 @@ test('sas_prop_census_the_register_s_closure_the_budget_and_every_row_s_verdict_
   // (`failure-form.md §4`: *"the boundary does not mint a member for it"*).
   const ownBytes = readFileSync(new URL(import.meta.url), 'utf8');
   const assertedTokens = [...new Set([...ownBytes.matchAll(/thrown\.status\s*,\s*'([A-Za-z]+)'/g)].map((h) => h[1]))];
-  assert.deepEqual(assertedTokens, ['ValueNotAdmitted'],
-    'the ONLY status token asserted by this whole property layer is `ValueNotAdmitted`, the walk\'s own code '
+  assert.deepEqual(assertedTokens, ['ValueRefusedAtBoundary'],
+    'the ONLY status token asserted by this whole property layer is `ValueRefusedAtBoundary`, the boundary\'s code '
     + 'carried by the store at `PAR-SAS-5` — and the receiver arm\'s token is asserted NOWHERE, because it is '
     + `\`OWED\` (\`failure-form.md §3\`). Found: ${JSON.stringify(assertedTokens)}`);
 });

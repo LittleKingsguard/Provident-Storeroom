@@ -88,6 +88,7 @@ const CLOSED_SET = [
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
   'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
   'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
+  'ValueRefusedAtBoundary',
 ];
 const ARM_STATUS = 'FilePathUnreachable';
 const GEN_TAIL = 'is not reachable at construction, the path must exist or the application must be able to write it';

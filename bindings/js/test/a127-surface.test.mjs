@@ -116,6 +116,7 @@ const THE_SIXTEEN = [
   'ValueNotAdmitted',
   'FileCommitFailed',
   'ConstraintListInvalid',
+  'ValueRefusedAtBoundary',
 ];
 
 /** A `mem`-register store — `cfg.filePath` ABSENT is IN DOMAIN (`PAR-JS-2`, `surface.md §2.1`). */
@@ -520,12 +521,12 @@ test('a127_write_with_an_array_tier_is_refused_as_OutOfDomainTier', () => {
   }
 });
 
-test('a127_write_refuses_an_outside_value_with_ValueNotAdmitted', () => {
+test('a127_write_refuses_an_outside_value_with_ValueRefusedAtBoundary', () => {
   const a = mem();
   for (const outside of [null, undefined, () => {}, Symbol('s'), 1n, NaN, Infinity, new Map(), new Date()]) {
     const err = thrown(() => a.write(['a'], 'mem', outside));
     assert.ok(isTheSingleForm(err), 'an outside value answers the store`s own form');
-    assert.equal(err.status, 'ValueNotAdmitted', 'and the code is ValueNotAdmitted');
+    assert.equal(err.status, 'ValueRefusedAtBoundary', 'and the code is ValueRefusedAtBoundary');
   }
 });
 

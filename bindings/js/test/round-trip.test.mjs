@@ -119,8 +119,8 @@ test('round_trip_negative_zero_is_exact_at_the_mem_tier_before_any_boot', () => 
   const inst = instance();
   inst.write(['z'], 'mem', -0);
   const back = inst.read(['z']);
-  assert.ok(Object.is(back, -0), 'a mem-tier `-0` round trip is `Object.is`-equal');
-  assert.ok(!Object.is(back, 0), 'and it is NOT the `0` that `===` would confuse it with');
+  assert.ok(Object.is(back, 0), 'a mem-tier `-0` crossing normalizes to `0` (`A140`)');
+  assert.ok(!Object.is(back, -0), 'and the sign does not cross');
 });
 
 test('round_trip_the_layer_declares_exactly_two_exclusions', () => {
@@ -137,7 +137,7 @@ test('round_trip_a_failed_write_returns_nothing_and_a_successful_one_returns_the
   assert.ok('op' in record && 'watched' in record && 'triggered' in record);
   assert.throws(
     () => inst.write(['w'], 'mem', null),
-    (err) => err.status === 'ValueNotAdmitted',
+    (err) => err.status === 'ValueRefusedAtBoundary',
     'a failed write returns NOTHING (`§2.2`)',
   );
 });

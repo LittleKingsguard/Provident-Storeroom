@@ -14,6 +14,12 @@ citation to a relocated section names THIS part's path plus the `§`-number** �
 §1.2`, and so on — **because a bare `§n` across two documents is not an edge**
 (`[A3 docs/specs/spec-scope-and-structure/contract.md §C.11.9 | requirement]`).
 
+**⟶ AMENDED 2026-10-23 — THE VALUE CROSSING CARRIES THE BARE JSON TREE AND REFUSES ITS OUTSIDE CLASSES AT THE PACKAGE'S OWN BOUNDARY** (`A148`; the operative contract is `docs/specs/storeroom-json-crossing/contract.md`). **`RCA-8(d)` ANNOTATE-BESIDE: every clause of this part stands at its own bytes and is read THROUGH this amendment.**
+- **ADMITTED VALUES ARE THE BARE TREE:** a JS `string`, `boolean`, finite `number`, dense genuine array, or plain object — with `-0` crossing as `0` (`A140`). The `{"v":…}` envelope and the `{"e":…}` side-channel are retired for this route; the four carrier tags (`L`, `T`, `v`, handle) are untouched.
+- **THE SIXTEEN OUTSIDE VALUE CLASSES ANSWER `ValueRefusedAtBoundary` — the store's rank-`17` member —** at the package's own walk, with the store's generated message carrying the class and the position (`contract.md §2.1`). Where `§1.2` rows `1`–`13` or `§1.3` prints `ValueNotAdmitted` for a VALUE position, read `ValueRefusedAtBoundary`. **`ValueNotAdmitted` remains rank `14` and still answers its own address/carrier positions; the lone-surrogate address refusal is not re-spelled by this clause.** `null` and `undefined` remain refused, now by the boundary code.
+- **THE CEILINGS ARE THE CRATE'S:** depth `128` and nodes `1,000,000`, counted by the `napi` `serde-json` conversion with the root included. Where this part prints `64`, read `128`; `65`, read `129`; `66`, read `130`; the older two-arm depth explanation is superseded by the one conversion bound.
+- **THE COPY DISCIPLINE IS UNMOVED:** copy-in no longer produces the `JsValue` outside variants on this route; copy-out emits the bare tree; no shared ownership, no second form and no package-minted message (`contract.md §2.2`–`§4`).
+
 ---
 
 ## §1. The value crossing — deep copy in, deep copy out, and no shared ownership either way

@@ -267,7 +267,7 @@ function crossingRead(store, address, tier) {
 }
 
 function crossingWrite(store, address, tier, value) {
-  return addon().write.call(store, crossingAddress(address), { k: 'T', v: tier }, { k: 's', v: value });
+  return addon().write.call(store, crossingAddress(address), { k: 'T', v: tier }, value);
 }
 
 function crossingDelete(store, address, tier) {
@@ -300,6 +300,7 @@ const DECLARED_CLOSED_SET = [
   ['ValueNotAdmitted', 'is not an admitted value'],
   ['FileCommitFailed', 'could not be committed to'],
   ['ConstraintListInvalid', 'is not a valid constraint entry in'],
+  ['ValueRefusedAtBoundary', 'is not a value the JavaScript crossing admits'],
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -886,7 +887,7 @@ test('fts_prop_P_TP_8_S_CENSUS_the_set_the_keys_and_the_rows_are_single_valued',
       assert.throws(() => f.store.write([key], 'disk', 1),
         (err) => err.status === 'OutOfDomainTier', 'P-TP-8: rank 5 is unmoved');
       assert.throws(() => f.store.write([key], 'mem', undefined),
-        (err) => err.status === 'ValueNotAdmitted', 'P-TP-8: rank 14 is unmoved');
+        (err) => err.status === 'ValueRefusedAtBoundary', 'P-TP-8: rank 17 is the boundary refusal');
       assert.throws(() => storeCreate({ filePath: null, journalLength: 4, listeners: [] }),
         (err) => err.status === 'AddressMalformed', 'P-TP-8: rank 1 is unmoved');
       // THE CONSTRUCTION'S OWN KEY COUNT, driven key by key: the drawn key is the draw.
@@ -963,8 +964,8 @@ test('fts_prop_P_TP_8_S_CENSUS_the_set_the_keys_and_the_rows_are_single_valued',
       assert.equal(answered.length, DECLARED_CLOSED_SET.length,
         'P-TP-8: and the addon\'s OWN census is the closed set\'s size — a set of `15` fails here, because '
         + 'the sixteenth member\'s round trip answers the outside-set sentence');
-      assert.equal(DECLARED_CLOSED_SET.length, 16,
-        'P-TP-8: §8.1\'s own terms sum it: `11 + 2 + 1 + 1 + 1 = 16` ✓ (the amended heading)');
+      assert.equal(DECLARED_CLOSED_SET.length, 17,
+        'P-TP-8: §8.1\'s own terms sum it: `11 + 2 + 1 + 1 + 1 + 1 = 17` ✓ (the amended heading)');
     }),
   });
   assertHeld(result);

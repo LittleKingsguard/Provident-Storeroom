@@ -36,6 +36,7 @@ export const STORE_CODES = [
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch',
   'WriteParentNotLink', 'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing',
   'FilePathUnreachable', 'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
+  'ValueRefusedAtBoundary',
 ];
 
 /** The eight kernel `KC` tokens — read so a drive can assert a store code is NEVER one of them. */

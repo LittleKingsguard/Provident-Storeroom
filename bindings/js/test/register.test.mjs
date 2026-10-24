@@ -1030,6 +1030,7 @@ test('register_js_side_three_rows_are_executed_with_strategy_ids_and_verdicts', 
     'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
     'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
     'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
+  'ValueRefusedAtBoundary',
   ];
   const formSites = [
     ['a VERB', () => mem().read(['gone'])],

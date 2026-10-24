@@ -915,6 +915,16 @@ function valueTargetSpelling(value) {
   try {
     if (typeof value === 'bigint') return `${value}n`;
     if (typeof value === 'symbol') return 'Symbol()';
+    // **⟶ AND A PROXY IS NEVER COERCED HERE EITHER — `C-1`'s THIRD HALF, CLOSED AT THIS ARM 2026-10-23 BY
+    // THE GATE-4 ADVERSARIAL BATTERY (`json-crossing-gate4-adversarial.test.mjs`'s `ADV-03`/`ADV-05`/`ADV-06`).**
+    // The `targetSpelling` guard stood at the CARRIER arm; this VALUE arm lacked it, so a refused `Proxy`
+    // reached `String(value)` and its `Symbol.toPrimitive`/`toString` GET TRAP RAN — the very trap the walk's
+    // `util.types.isProxy` refusal exists to avoid — even though a throwing trap was caught by the `catch`
+    // below. **THE CLASS IS READ WITH `util.types.isProxy` ALONE AND NO TRAP RUNS**, exactly as
+    // `targetSpelling` does at its own arm.
+    if ((typeof value === 'object' || typeof value === 'function') && value !== null && types.isProxy(value)) {
+      return classSpelling(value);
+    }
     // **AND A TARGET THE MESSAGE MAY NOT CARRY IS NAMED AS ITS OWN CLASS RATHER THAN AS ITS BYTES**: a string
     // carrying a LONE SURROGATE is the one value this pass refuses whose code unit has no `String` form at
     // all, so printing it would REQUIRE the repair `§1.8` forbids (`A76`: *"do not attempt to fix"*). **The
@@ -937,7 +947,7 @@ function valueTargetSpelling(value) {
 /// calls it at the ONE site where the store answered `ValueNotAdmitted` for a value the walk had refused.
 function valueReject(fault) {
   boundaryReject(
-    'ValueNotAdmitted', // `§1.2`'s outside rows 6–13's ONE code, carried and never minted (`DD-40`)
+    'ValueRefusedAtBoundary', // A148 Q3's rank-17 member, carried and never minted (`DD-40`)
     valueTargetSpelling(fault.value),
     `the value at ${valuePosition(fault.path)} is ${fault.found}`,
   );
@@ -989,7 +999,8 @@ function shapeArmClass(refusal) {
 /// dated table assigns to THIS BOUNDARY — `66` and beyond, *"carrying the store's outside class
 /// `Cyclic`"* — is refused HERE, verbosely, with the same code and no second rule.** `ENCODER_CEILING` is
 /// therefore `65` and the arm's own site is the first `if` below.
-const ENCODER_CEILING = 65;
+const ENCODER_CEILING = 128;
+const NODE_CEILING = 1_000_000;
 
 /// **THE WALK'S FIRST VALUE FAULT, RECORDED — AND THE CORE'S OWN MARKER FOR THAT ARM RETURNED.**
 ///
@@ -1014,6 +1025,16 @@ function refusedValue(fault, value, failedClass, path, marker) {
 }
 
 function encodeValue(value, ancestors, depth, path, fault) {
+  // **THE WALK STOPS AT ITS FIRST FAULT** — the refusal is recorded once and the remaining members are not
+  // read, so a refused tree costs the members already visited and no more.
+  if (fault.found !== null) return { k: 'c' };
+  // **THE NODE CEILING IS THE CRATE'S `1,000,000`, COUNTED ON THIS ONE WALK** (`contract.md §4`; `A148` Q6).
+  // The crate's conversion counts the root as its first node; the `1,000,001`st node is row `8`'s class at
+  // the root `value` position.
+  fault.nodes += 1;
+  if (fault.nodes > NODE_CEILING) {
+    return refusedValue(fault, 'a value over the walk ceiling', 'a value over the walk ceiling', [], { k: 'c' });
+  }
   // **EVERY REFUSAL BELOW IS THE WALK'S OWN** (`§1.8`'s dated clause 1; `A76`: *"Test JS data for compliance
   // with permitted shape before admitting and do not attempt to fix. reject with verbose error to client"*):
   // the failing target's own spelling is PART ONE (the store's generator's bytes), the class that failed and
@@ -1024,7 +1045,7 @@ function encodeValue(value, ancestors, depth, path, fault) {
   // store's outside class `Cyclic`"* — the encoder's bound is one PAST the declared `64`, so `65` is still
   // encoded and refused by the conversion core's own bound, whose message is the store's own (item 6 (d)).
   if (depth > ENCODER_CEILING) {
-    return refusedValue(fault, value, 'a value nested deeper than the walk admits', path, { k: 'c' });
+    return refusedValue(fault, value, 'a value over the walk ceiling', path, { k: 'c' });
   }
   if (value === null) return refusedValue(fault, value, 'null', path, { k: 'z' }); // `§1.2` row 6, any depth
   const kind = typeof value;
@@ -1035,9 +1056,9 @@ function encodeValue(value, ancestors, depth, path, fault) {
     if (hasLoneSurrogate(value)) {
       return refusedValue(fault, value, 'a string carrying a lone surrogate', path, { k: 'c' });
     }
-    return { k: 's', v: value };
+    return value;
   }
-  if (kind === 'boolean') return { k: 'b', v: value };
+  if (kind === 'boolean') return value;
   // THE CLASS TEST PRECEDES THE NUMERIC ARM (`JS-6`): `bigint` is refused here, as its own outside class,
   // and is NEVER converted through the numeric arm (`Number(10n)` is the shipped `JS-6` substitution).
   if (kind === 'bigint') return refusedValue(fault, value, 'a bigint', path, { k: 'g', v: value.toString() });
@@ -1045,7 +1066,8 @@ function encodeValue(value, ancestors, depth, path, fault) {
     if (!Number.isFinite(value)) {
       return refusedValue(fault, value, 'a non-finite number', path, { k: 'F', v: value }); // `§1.2` row 11
     }
-    return { k: 'n', v: value };
+    // `-0` DOES NOT CROSS AS A SIGN (`A140`; `contract.md §4`).
+    return Object.is(value, -0) ? 0 : value;
   }
   if (kind === 'function') return refusedValue(fault, value, 'a function', path, { k: 'f' }); // row 8
   if (kind === 'symbol') return refusedValue(fault, value, 'a symbol', path, { k: 'y' }); // row 9
@@ -1077,8 +1099,9 @@ function encodeValue(value, ancestors, depth, path, fault) {
       // segment. Every index is present and is a data property by the two rules above, so the read below is
       // the read `for … of` performed.
       members.push(encodeValue(value[i], next, depth + 1, [...path, i], fault));
+      if (fault.found !== null) break;
     }
-    return { k: 'a', i: members };
+    return members;
   }
   const proto = protoClass(value);
   // `§1.4` item 4 (f): a prototype-carrying object is REFUSED — never read through its chain (`JS-5`).
@@ -1108,8 +1131,12 @@ function encodeValue(value, ancestors, depth, path, fault) {
       return refusedValue(fault, VALUE_ARGUMENT_POSITION, 'a string carrying a lone surrogate', [...path, name], { k: 'c' });
     }
     members.push([name, encodeValue(value[name], next, depth + 1, [...path, name], fault)]);
+    if (fault.found !== null) break;
   }
-  return { k: 'o', m: members, p: proto, acc: false, proxy: false };
+  // **THE BARE PLAIN OBJECT** (`contract.md §3`, `§5`; `A148` Q4): the members are data and the shape is
+  // the object's own, so no `k`, no `m`, no `p`, no `acc` and no `proxy` is carried. `Object.fromEntries`
+  // defines OWN data properties, so a member genuinely named `__proto__` stays a member.
+  return Object.fromEntries(members);
 }
 
 /// `crossing.md §1.3`'s `Segment`: a string or a non-negative integer is admitted, and EVERY outside class
@@ -1799,31 +1826,23 @@ function encodeConfig(cfg) {
 // (`crossing.md §1.1` clause 2: no returned value is a view into store memory).
 // ---------------------------------------------------------------------------------------------
 function decodeValue(encoded) {
-  switch (encoded.k) {
-    case 's':
-      return encoded.v;
-    case 'b':
-      return encoded.v;
-    case 'n':
-      return encoded.v;
-    case 'g':
-      return BigInt(encoded.v);
-    case 'F':
-      return encoded.v;
-    case 'z':
-      return null;
-    case 'u':
-      return undefined;
-    case 'a':
-      return encoded.i.map(decodeValue);
-    case 'o': {
-      const out = {};
-      for (const [name, member] of encoded.m) out[name] = decodeValue(member);
-      return out;
-    }
-    default:
-      return undefined;
+  // **THE COPY-OUT IS THE SAME BARE TREE** (`contract.md §5`; `A148` Q4/Q5): the native writer already
+  // builds fresh plain objects and dense arrays, so this frame only normalizes `-0` and keeps the tree fresh.
+  if (typeof encoded === 'number') return Object.is(encoded, -0) ? 0 : encoded;
+  if (Array.isArray(encoded)) return encoded.map(decodeValue);
+  if (encoded !== null && typeof encoded === 'object') {
+    // **⟶ AN OWN DATA PROPERTY IS DEFINED, NEVER SET — CLOSED 2026-10-23 BY THE GATE-4 ADVERSARIAL BATTERY
+    // (`json-crossing-gate4-adversarial.test.mjs`'s `ADV-12`).** `out[name] = member` runs `[[Set]]`, whose
+    // `__proto__` step reaches the `Object.prototype` accessor: a stored member genuinely named `__proto__`
+    // became the returned object's PROTOTYPE instead of an own member (and an attacker-supplied member could
+    // shadow the returned object's methods). **`Object.fromEntries` defines OWN data properties**, so the
+    // bare tree the contract declares crosses back member for member (`contract.md §5`; `A76`: *"do not
+    // attempt to fix"*).
+    const members = [];
+    for (const [name, member] of Object.entries(encoded)) members.push([name, decodeValue(member)]);
+    return Object.fromEntries(members);
   }
+  return encoded;
 }
 
 /// `crossing.md §1.3`'s segment spellings, mapped back: a string or a non-negative integer is what the JS
@@ -2358,7 +2377,7 @@ export function storeCreate(cfg) {
       // `AddressArg` rows drive exactly this), **and a route to the kernel can never be a route AROUND the
       // boundary's own class tests.** **NOTHING IS DECIDED TWICE: the encoders are total over the positions and
       // their answers are the store's own, so the kernel receives the same values the bare path always built.**
-      const fault = { found: null, value: undefined, path: [] };
+      const fault = { found: null, value: undefined, path: [], nodes: 0 };
       const args = arguments.length >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
       // `PAR-JS-7`: `write`'s tier is REQUIRED — an ABSENT position and a SUPPLIED `undefined` both answer
       // `AddressMalformed`, and neither folds.
@@ -2366,6 +2385,10 @@ export function storeCreate(cfg) {
       // THE WALK'S OWN FAULT RECORD — see `refusedValue`: the walk CLASSIFIES and RECORDS, and the record is
       // read at the one site where the store answered `ValueNotAdmitted` for a value the walk refused.
       args.push(encodeValue(value, [], 0, [], fault));
+      // **THE VALUE REFUSAL IS ANSWERED BEFORE ANY VERB** (`parameter-semantics.md §3`): the carrier positions
+      // above have already answered in their own order, so this keeps `write(undefined, 'mem', null)` on the
+      // carrier row and never lets a refused tree reach the store.
+      if (fault.found !== null) valueReject(fault);
       if (arguments.length <= 3) {
         return constraintWrite(state, instance, address, tier, value);
       }

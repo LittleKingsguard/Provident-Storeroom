@@ -161,6 +161,7 @@ const CLOSED_SET = [
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
   'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
   'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
+  'ValueRefusedAtBoundary',
 ];
 // `§1.4` item 1 — the arm's status, carried VERBATIM, and the ONE member this unit's arm may carry.
 const ARM_STATUS = 'FilePathUnreachable';

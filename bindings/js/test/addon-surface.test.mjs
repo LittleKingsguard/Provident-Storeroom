@@ -612,7 +612,7 @@ test('sas_d3_s_parity_the_golden_captures_the_two_shapes_record_for_record_and_e
     // the instant `contract.md §6` item `1` names — *"BEFORE the split, against the FROZEN artefact."*
     const addon2 = oldDispatcherShape();
     const index = addon2.storeCreate({ journalLength: 8, listeners: [] });
-    const byDispatcher = addon2.call(index, 'write', [{ k: 'L', s: address }, { k: 'T', v: 'mem' }, { k: 's', v: row.value }]);
+    const byDispatcher = addon2.call(index, 'write', [{ k: 'L', s: address }, { k: 'T', v: 'mem' }, row.value]);
     GOLDEN.records.push({
       case: `the write of ${row.label}`,
       receiverMembers: Object.keys(byReceiver).sort(),
@@ -692,10 +692,10 @@ test('sas_d3_s_parity_each_verbs_answer_is_byte_identical_to_the_same_verb_throu
   // the one relation the clauses make between the two: THE SAME UNDERLYING VALUE, spelled at each layer's own
   // declared form — the carrier's `{k, s}` segments decoding to the address the package reports.
   const index = addon.storeCreate({ journalLength: 8, listeners: [] });
-  addon.call(index, 'write', [{ k: 'L', s: address }, { k: 'T', v: 'mem' }, { k: 's', v: 'v' }]);
+  addon.call(index, 'write', [{ k: 'L', s: address }, { k: 'T', v: 'mem' }, 'v']);
   const dispatcherRead = addon.call(index, 'read', [{ k: 'L', s: address }, { k: 'T', v: 'mem' }]);
   GOLDEN.records.push({ case: 'the read through the old dispatcher', carrier: dispatcherRead });
-  assert.equal(dispatcherRead && dispatcherRead.v, 'v',
+  assert.equal(dispatcherRead, 'v',
     'P-SAS-3 — and the old dispatcher\'s shape reaches the SAME value in the same store: `contract.md §5`\'s '
     + '`S-PARITY` comparison is "the same verb\'s result", and the result is this store\'s leaf value at either '
     + 'route. **THE CARRIER SPELLING IS THE CROSSING\'S AND IS NOT COMPARED TO THE DECODED VALUE** — that '
@@ -707,8 +707,8 @@ test('sas_d3_s_parity_each_verbs_answer_is_byte_identical_to_the_same_verb_throu
   assert.equal(other.read(['parity-d'], 'mem'), 4,
     'P-SAS-3 — a second store\'s answer is its own, through the receiver shape');
   const otherIndex = addon.storeCreate({ journalLength: 8, listeners: [] });
-  addon.call(otherIndex, 'write', [{ k: 'L', s: ['parity-d'] }, { k: 'T', v: 'mem' }, { k: 'n', v: 4 }]);
-  assert.equal(addon.call(otherIndex, 'read', [{ k: 'L', s: ['parity-d'] }, { k: 'T', v: 'mem' }]).v, 4,
+  addon.call(otherIndex, 'write', [{ k: 'L', s: ['parity-d'] }, { k: 'T', v: 'mem' }, 4]);
+  assert.equal(addon.call(otherIndex, 'read', [{ k: 'L', s: ['parity-d'] }, { k: 'T', v: 'mem' }]), 4,
     'and through the old dispatcher shape, on that second store');
 });
 
@@ -1368,7 +1368,7 @@ test('sas_d7_s_unwrap_parity_a_refusal_is_the_same_failure_before_and_after_the_
 // and it is observable whatever the arm's author finally renders.**
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
-test('sas_d8_s_fault_arm_a_value_the_walk_refuses_still_answers_ValueNotAdmitted_after_the_unwrap', () => {
+test('sas_d8_s_fault_arm_a_value_the_walk_refuses_answers_ValueRefusedAtBoundary_after_the_unwrap', () => {
   const layout = mem();
   // **A VALUE THE WALK REFUSES** — `docs/specs/storeroom-js/surface.md §2.4` item 9 (g) item 1's class test
   // and `§1.2`'s outside rows: `1n` is refused AS ITS OWN OUTSIDE CLASS and *"is NEVER converted through the
@@ -1377,7 +1377,7 @@ test('sas_d8_s_fault_arm_a_value_the_walk_refuses_still_answers_ValueNotAdmitted
   assert.equal(isTheDeclaredForm(refusal), true,
     'P-SAS-8 — the arm throws and is "not a fault sink" (`js-unwrap.md §3`), so what reaches the caller is '
     + 'the declared three-member form and never a raw host error');
-  assert.equal(refusal.status, 'ValueNotAdmitted',
+  assert.equal(refusal.status, 'ValueRefusedAtBoundary',
     'PAR-SAS-5 / `js-unwrap.md §3` — the code the walk\'s own fault record carries is the store\'s own '
     + '`ValueNotAdmitted` and the re-render MINTED nothing: the boundary\'s own recorded rule is that the '
     + 'status "is a member of the store\'s closed set and is carried, never minted" (`DD-40`). **THIS IS THE '
@@ -1393,7 +1393,7 @@ test('sas_d8_s_fault_arm_the_render_is_the_composite_and_the_store_generators_ow
   // renderer the package calls"* — so the expected bytes are the generator's answer at the failing target's
   // own spelling and are composed HERE rather than typed.
   const refused = { value: 1n, spelling: '1n' };
-  const partOne = generated('ValueNotAdmitted', refused.spelling);
+  const partOne = generated('ValueRefusedAtBoundary', refused.spelling);
   assert.equal(typeof partOne, 'string',
     'the generator answers a string for the code the walk\'s record carries — `errorMessage` is a standing '
     + 'entry of arity `2`–`3` (`export-set-and-dispatch.md §1`) and this is its `2`-position call');

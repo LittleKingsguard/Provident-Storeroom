@@ -47,6 +47,7 @@ const THE_SIXTEEN = [
   'ValueNotAdmitted',
   'FileCommitFailed',
   'ConstraintListInvalid',
+  'ValueRefusedAtBoundary',
 ];
 
 function mem(listeners = []) {
@@ -404,7 +405,7 @@ test('crossing_a_lone_surrogate_is_refused_at_the_packages_own_walk', () => {
   for (const bad of lone) {
     assert.throws(
       () => inst.write(['s'], 'mem', bad),
-      (err) => isTheFailureForm(err) && err.status === 'ValueNotAdmitted',
+      (err) => isTheFailureForm(err) && err.status === 'ValueRefusedAtBoundary',
       `a lone surrogate as a VALUE is refused: ${JSON.stringify(bad)}`,
     );
   }
@@ -522,8 +523,8 @@ test('address_the_package_performs_no_arity_check_of_its_own', () => {
   );
   assert.throws(
     () => inst.write(['a'], 'mem'),
-    (err) => isTheFailureForm(err) && err.status === 'ValueNotAdmitted',
-    'an absent value is the store\'s own answer',
+    (err) => isTheFailureForm(err) && err.status === 'ValueRefusedAtBoundary',
+    'an absent value is the boundary\'s own answer',
   );
   assert.throws(
     () => inst.read(['a'], 'mem', 'an extra argument'),
@@ -659,7 +660,7 @@ test('failure_form_the_crossing_reaches_its_own_codes_and_a_failed_read_is_the_p
     'LeafHasNoDownstream',
     'TierNotFound',
     'OutOfDomainTier',
-    'ValueNotAdmitted',
+    'ValueRefusedAtBoundary',
     'WriteParentNotLink',
     'JournalOpUnknown',
     'ConstructionArgumentMissing',
@@ -715,7 +716,7 @@ test('constraint_pattern_no_constraint_verb_parameter_or_record_exists', () => {
   // And no function crosses at any position: the store's own surface takes no function (`A73`).
   assert.throws(
     () => inst.write(['a'], 'mem', () => {}),
-    (err) => isTheFailureForm(err) && err.status === 'ValueNotAdmitted',
+    (err) => isTheFailureForm(err) && err.status === 'ValueRefusedAtBoundary',
   );
 });
 

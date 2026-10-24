@@ -709,10 +709,10 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
     distinct.dedup();
     assert_eq!(
         distinct.len(),
-        16,
-        "§8.1: the set carries 16 members, ranked 1…16 (`11 + 2 + 1 + 1 + 1 = 16` ✓ — the as-filed \
+        17,
+        "§8.1: the set carries 17 members, ranked 1…17 (`11 + 2 + 1 + 1 + 1 + 1 = 17` ✓ — the as-filed \
          `11 + 2 + 1 + 1 = 15` counted the amended heading's own members one short; AMENDED 2026-10-15, \
-         `DEF-2026-10-15-Y`)"
+         `DEF-2026-10-15-Y`; WIDENED 2026-10-23 by `A148` Q3 with `ValueRefusedAtBoundary` at rank 17)"
     );
     assert!(
         distinct.contains(&"FilePathUnreachable"),
@@ -728,6 +728,11 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
          closes at the `file`-commit member\"*, and that sentence described the `15`-member set the \
          amendment's own heading had already superseded (`§8.1`'s amended heading; `§7.1` step 4-bis; \
          `parameter-semantics.md §2.21`; AMENDED 2026-10-15, `DEF-2026-10-15-Y`)"
+    );
+    assert!(
+        distinct.contains(&"ValueRefusedAtBoundary"),
+        "§8.1 #17: THE SEVENTEENTH MEMBER IS IN THE CLOSED SET — the package's own boundary refusal for \
+         the sixteen classes outside the crossing's admitted tree (`A148` Q3; 2026-10-23)"
     );
     let expected_ranks = [
         "AddressMalformed",
@@ -746,13 +751,15 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
         "ValueNotAdmitted",
         "FileCommitFailed",
         "ConstraintListInvalid",
+        "ValueRefusedAtBoundary",
     ];
     assert_eq!(
         CLOSED_CODES.to_vec(),
         expected_ranks.to_vec(),
         "§8.1's own rank order: `FilePathUnreachable` at `13`, `ValueNotAdmitted` at `14`, \
-         `FileCommitFailed` at `15`, and the SIXTEENTH member LAST at `16` — no existing rank moves \
-         (AMENDED 2026-10-15, `DEF-2026-10-15-Y`)"
+         `FileCommitFailed` at `15`, `ConstraintListInvalid` at `16`, and `ValueRefusedAtBoundary` LAST \
+         at `17` — no existing rank moves (AMENDED 2026-10-15, `DEF-2026-10-15-Y`; WIDENED 2026-10-23, \
+         `A148` Q3)"
     );
 }
 

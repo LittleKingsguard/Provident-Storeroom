@@ -21,7 +21,7 @@ license = "AGPL-3.0-or-later"
 # crate's declared commands at the eleven sites of `§2`. The old store dependency-free clause is ARCHIVED —
 # see `archive/spec-history/2026-10-21-dependency-restriction-notes-move-out.md` §2. The store
 # may carry registry dependencies; its `--offline` remains a command property. The `[dependencies]` table
-# below is still exactly THREE entries and `P-ADA-1` still pins it.
+# below is exactly FOUR entries after `A148` Q2 and `P-ADA-1`, as re-derived, pins it.
 [lib]
 name = "storeroom_js_binding"
 path = "src/lib.rs"
@@ -51,11 +51,11 @@ storeroom-native = { path = "../.." }
 # holds a reference to the other's symbol object. **NOTHING ELSE ON THIS SURFACE REACHES A `napi9` SYMBOL**:
 # the boundary's own read of the receiver is `napi_get_property` on a `napi6`-era call, so this feature
 # selection widens the SYMBOL NAMESPACE the crate may reference and adds no second capability.
-napi = { version = "3.14", features = ["napi6", "napi9", "compat-mode"] }
+napi = { version = "3.14", features = ["napi6", "napi9", "compat-mode", "serde-json"] }
 # **THE THIRD ENTRY, AND IT IS THE ADOPTION'S OWN — `binding-crate-and-abi.md §1`, AMENDED 2026-10-21 ON
 # THE ARCHITECT'S RULING, VERBATIM: *"Lift the dependency constraint, it doesn't apply to the rust side."***
-# The clause's table is THREE entries and **NO FOURTH ENTRY IS LAWFUL** (`P-ADA-1`, re-derived in place at
-# `contract.md §5`). **THE DERIVE IS NOT OPTIONAL AND IT IS NOT IN THE `napi` CRATE**: `#[napi]` — the
+# The clause's table was THREE entries; **`A148` Q2 AMENDS IT TO FOUR** (`P-ADA-1`, re-derived), and a FIFTH
+# remains unlawful. **THE DERIVE IS NOT OPTIONAL AND IT IS NOT IN THE `napi` CRATE**: `#[napi]` — the
 # annotation this whole adoption is defined by — lives in `napi-derive`, a separate proc-macro crate, and
 # `napi-3.14.2` carries no dependency on it and no re-export of it. **THE FLOOR `"3"` IS READ FROM THE
 # LIBRARY'S OWN DOCUMENTED FORM AND NOT GUESSED**: `napi-3.14.2/README.md` §*Building* prints the dependency
@@ -63,3 +63,7 @@ napi = { version = "3.14", features = ["napi6", "napi9", "compat-mode"] }
 # FEATURE LIST IS DECLARED HERE** — this is the one row whose feature selection the contract does not name,
 # and the bare caret is the whole of the requirement.
 napi-derive = { version = "3" }
+# **THE FOURTH DIRECT ENTRY, LAWFUL BY `A148` Q2 AND `A145` AS RE-DERIVED, AND IRREDUCIBLE**: the bare
+# JSON tree crosses through `napi`'s `serde-json` conversion, whose API is typed in `serde_json::Value`;
+# the crate therefore names the type directly. A FIFTH ENTRY REMAINS UNLAWFUL.
+serde_json = "1"

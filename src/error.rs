@@ -40,7 +40,7 @@ pub struct StoreError {
 /// RE-DERIVED BY THEIR OWN AUTHOR ROLE FROM THE AMENDED CLAUSE** (`implementation-plan.md §10.9` row 8:
 /// *"a set of `15` or `17` FAILS it"*): **the artefact is widened and the superseded census is the losing
 /// side, so no drive that counts this array may assert `15`.**
-pub const CODES: [&str; 16] = [
+pub const CODES: [&str; 17] = [
     "AddressMalformed",
     "AddressNotFound",
     "LeafHasNoDownstream",
@@ -57,6 +57,7 @@ pub const CODES: [&str; 16] = [
     "ValueNotAdmitted",
     "FileCommitFailed",
     "ConstraintListInvalid",
+    "ValueRefusedAtBoundary",
 ];
 
 /// `§8.2`: the generator's `args` record — five OPTIONAL members, each present only when the trigger
@@ -270,6 +271,14 @@ pub(crate) fn build(m: &Msg) -> String {
         // and an id, and the address is a segment array`.**
         "ConstraintListInvalid" => format!(
             "{} is not a valid constraint entry in '{container}', a constraint entry is an address and an id, and the address is a segment array",
+            m.subject
+        ),
+        // `§8.1` #17 and `§8.2`'s seventeenth row (`A148` Q3, 2026-10-23): the package's own boundary
+        // refusal for the sixteen classes outside the crossing's admitted value tree. The store never
+        // receives those values on the JavaScript route; the package passes this member and the failing
+        // target's spelling, and appends its own class-and-position clause beside the generated text.
+        "ValueRefusedAtBoundary" => format!(
+            "{} is not a value the JavaScript crossing admits, the crossing carries strings, booleans, finite numbers, plain objects and arrays",
             m.subject
         ),
         other => format!("{} is a failure of the code {other}, no clause is declared here", m.subject),
