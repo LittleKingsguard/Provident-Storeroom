@@ -2210,3 +2210,49 @@ packed"*** — **the reachability rule `D-4` declared, with no instrument.** **T
 the invariant gets its own cell** — which must resolve a **directory row through the packlist rather than by path
 equality**, and must allow `package.json`, which npm always packs. **That cell is the one that would have caught this
 defect on the commit that made it.**
+
+---
+
+### FINDING — the stratification's RUST half is not executable as declared, and it needs the architect
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, taking the last migration piece.
+**This is the one item L0 is pausing on: it is a design decision, not an information gap.**
+
+**WHAT IS TRUE.** The stratification assigns **22 Rust files** to the preset's scopes: the store crate's fifteen to
+`tests/integration/store-core/…` and `store-fail-set`/`store-args`, and the binding crate's seven to
+`tests/integration/binding-crossing/…` and `tests/unit/binding-crossing/…`.
+
+**AND THE TWO CRATES ARE NOT ONE PACKAGE.** **`bindings/js/Cargo.toml` states it in its own words:** *"It is NOT a
+workspace member … the root `Cargo.toml` carries no `[workspace]` and this manifest declares none."* **L0 confirmed
+that at both manifests.** **So `bindings/js/` is a STANDALONE Cargo package with a path dependency on the root crate,
+and Cargo's integration tests must live INSIDE their package's directory.**
+
+**THE CONSEQUENCE, SPLIT BY CRATE.**
+- **THE STORE CRATE`S FIFTEEN ARE MOVABLE** — `tests/integration/store-core/…` is inside the root package, reachable by
+  `[[test]] name = … path = …` entries plus the `mod support;` resolution the move disturbs. **Mechanical.**
+- **THE BINDING CRATE'S SEVEN ARE NOT.** `tests/integration/binding-crossing/…` at the **repository root** is
+  **outside the binding package**, so those files cannot be that package's test targets. **Three routes exist and
+  every one of them is a decision rather than a mechanism:**
+
+**(A) THE PRESET BENDS FOR A RUST CRATE — the crate's battery lives at the crate.** `bindings/js/tests/**` stays, and
+the preset's scopes cover the batteries a crate can host: the 47 JS files and the store crate's 15. **Cost:** `D-5`
+(*"keep the preset's choice"*) is narrowed and must say so. **Cost of the alternative:** none in code, none in Cargo,
+and the seven files' green is untouched. **L0's reading — the least invasive and the most honest**, because the preset
+was written for a project with one `tests/` tree and this repository has two standalone packages; a scope convention
+cannot outrank a language's packaging rule, and saying that plainly is better than a `[[test]]` path that escapes its
+own package.**
+
+**(B) A WORKSPACE RESTRUCTURE.** The root gains `[workspace]` and the binding crate becomes a member, so one `tests/`
+tree at the root can host both crates' batteries. **Cost:** it **reverses the packaging decision the binding
+manifest states in as many words**, it changes the release's build topology (the workflow builds the binding with its
+own `--manifest-path`), and it puts a workspace layer under a package that ships a native artefact. **The largest of
+the three and the only one that moves a build.**
+
+**(C) CARGO TARGET PATHS THAT ESCAPE THE PACKAGE.**
+`[[test]] name = "crossing_copy" path = "../../tests/integration/binding-crossing/crossing_copy.rs"` in
+`bindings/js/Cargo.toml`. **Cost:** unverified — Cargo's tolerance for a path outside the package root must be
+measured before it is relied on, and even if it works the files would sit **outside the package while remaining its
+targets**, which every tool that walks a package directory would then mis-read.
+
+**L0 HAS NOT CHOSEN.** The JS migration is complete and green; **this is the last piece, and the choice between (A),
+(B) and (C) is the architect's.**
