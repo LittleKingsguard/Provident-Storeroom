@@ -1616,3 +1616,72 @@ member is** — the declaration names `{ address, id }` and no function, while t
 `id` domain**: an `id` is a non-empty string and so is a handle, so the domains already agree, but a name that is now
 an instance-scoped handle is a stronger thing than a pair-local id was, and a pass must say whether any further
 rule (length, characters) is owed.
+
+---
+
+### `D-25` — a cross-KIND overwrite is REJECTED; the overwrite rule is same-kind only
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, reconciling the
+contradiction `D-24` created.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Attempting to overwrite a listener with a constraint or vice versa is rejected
+
+**WHAT IT SETTLES, AND IT IS THE RECONCILIATION `D-24` OWED.**
+
+- **THE OVERWRITE RULE IS SCOPED BY KIND.** A duplicate handle **of the same kind** is an overwrite (`D-24`). **A
+  duplicate handle ACROSS kinds — a listener where a constraint stands, or a constraint where a listener stands — is
+  REJECTED.**
+- **`register`'s CONFLICT TEST THEREFORE KEEPS ITS SUBJECT, and gets a better one.** It is no longer a rule that
+  needed a reserved-namespace exemption to be survivable — **it is the cross-kind rule itself**, and **the prefix
+  exemption stays dead for an independent reason: under `D-22` the kernel registers nothing, so nothing needs to
+  get past the test.**
+- **AND THE RULE IS SYMMETRIC, WHICH IS WHERE AN ARM IS OWED.** The built surface tests **only one direction** —
+  `register(handle, listener)` refuses when a constraint stands at that handle/address. **The other direction —
+  setting a constraint whose `id` equals a live listener's handle at one of the pair's addresses — has no test at
+  either population route**, and `D-25`'s *"or vice versa"* requires one. **That arm is owed and it is L1's and L2's
+  to declare: which act refuses, at which instant, and with which status.**
+- **ONE OBSERVATION ON THE REFUSAL'S FORM, NOT A RULING.** The built conflict refusal is
+  `throw withEmptyLog(new TypeError(…))` — **a `TypeError` carrying a `log` member**, which is neither the one plain
+  `{status, message}` form the surface declares for every refusal nor a bare `TypeError`. **The surface's own
+  comment calls a `TypeError` from a store-reaching verb a finding while exempting the registration site; the
+  conflict arm sits between those two readings.** **L1 declares which form the cross-kind rejection takes**; L0 does
+  not choose it here.
+
+---
+
+### FINDING — the "batch element" carries `{address, id}` only, and the FUNCTION a caller puts on it is DROPPED
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, asked to clarify what "batch
+element" means; the answer required reading both ends.
+
+**WHAT "BATCH ELEMENT" MEANS — THE TWO POPULATION ROUTES, NAMED.** A constraint can be populated at **exactly two**
+sites, and the surface declares that neither substitutes for the other:
+
+1. **THE BATCH AT CONSTRUCTION** — `cfg.constraints`, the **fourth declared key** of `StoreConfig`, *"an array of
+   `{ address, id }` pairs"*. **One "batch element" is one element of that array.**
+2. **THE POST-CREATION ADD ROUTE** — `addConstraint(pair, constraint)`, whose **second argument is the function**.
+
+**AND THE BATCH ELEMENT IS VERIFIED, AT BOTH ENDS, TO CARRY TWO MEMBERS AND NO FUNCTION.**
+
+- **THE DECLARATION:** `readonly constraints?: readonly { readonly address: Address; readonly id: string }[]`.
+- **THE JS ENCODER:** `constraintEntry(entry, position)` reads `entry.address` and `entry.id` **and returns
+  `{ address, id: entry.id }`** — **nothing else is forwarded, so a `constraint` member a caller attaches to an
+  element is DROPPED at the crossing, silently** (`index.mjs`, the element encoder).
+- **THE STORE:** the batch's Rust carrier is **`ConstraintEntry::Pair { address, id }`** (`src/args.rs`), with a
+  `ConstraintEntry::Invalid(subject)` arm for a malformed element — **two fields, no function.**
+
+**★ SO THE FINDING IS THIS, AND IT CONTRADICTS THE RECORDED SURFACE:** the use-case record states, dated
+2026-10-16, that **the element is `{ address, id, constraint }`, that *"the pair is its addressing and THE FUNCTION
+IS ITS SUBSTANCE"*, and that *"the list you supply carries the constraint function at each element"*.** **The code
+carries no such thing.** A caller who supplies `{ address, id, constraint }` today gets **a pair with no function**
+— and the surface's own rule then applies: *"a well-formed element that carried no function IS admitted by the
+store's list rule and is NOT a CARRIED pair, which is why the toggles refuse at it."* **The batch can therefore
+register an IDENTITY but cannot arm a constraint, and the function arrives only through `addConstraint`.**
+
+**WHAT THIS MEANS FOR THE RULINGS NOW STANDING.** `D-23`/`D-24` make the `id` the handle; **the batch is therefore
+the route that names a handle under which nothing is armed yet** — legitimate, but a state the surface must declare,
+because it is exactly the state `D-24`'s overwrite rule will act on when the function later arrives. **Whether the
+batch SHOULD carry the function — and so whether this is a code gap or a documentation error — is the architect's
+call and L1's to declare; L0 records that the two disagree and that the code is the looser one.**
