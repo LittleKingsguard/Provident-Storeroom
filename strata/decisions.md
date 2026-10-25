@@ -2511,3 +2511,38 @@ one file.
 **AND THE CELLS ARE HONEST.** Every new family was mutated in a `/tmp` copy and went red: instance-independence
 (module-scope kernel), both prototype cells, status-census, address-extension, and **all six blind instances** by one
 targeted mutation each. **The one exception is the family that has no cell: the kernel slot.**
+
+---
+
+### `D-35` — JS is CLIENT SCOPE; the defence is PARAMETER ACCESS and the RUST BOUNDARY
+
+**DATE:** 2026-10-25. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the examiner's three
+"regressions".
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The client will be able to break the JS code if they want to, the node_modules import is still in client scope
+> Guard against parameter access and at the Rust boundary
+
+**WHAT IT SETTLES, AND IT RECLASSIFIES FIVE FINDINGS.**
+
+- **THE THREE `cdd2467` "REGRESSIONS" ARE NOT DEFECTS.** A client who **freezes** their own store, who reaches
+  `Object.getOwnPropertySymbols(store)` and mutates the record, or who plants a getter on `Object.prototype` for a
+  registered symbol, **is breaking their own code inside their own realm** — **the package lives in `node_modules` and
+  is entirely client-scope.** **`cdd2467` STANDS; the recommended revert is DECLINED by this ruling.** The examiner's
+  findings were true and the classification was L0's error: **client-scope breakage is not a defect of the package.
+  **
+- **THE DEFENCE MOVES TO TWO PLACES, AND THEY ARE THE ONLY TWO:**
+  1. **PARAMETER ACCESS.** What the package **reads off a value the caller supplied** must not be decided by a
+     mutable prototype. **The `F8-2` class is this, and it is the right class** — `appendOwn`, the index loops and the
+     native `define_properties` all serve it. **`fail()`'s re-read of `refusal.status` through the prototype and
+     `facade.rs:170/173`'s dropped own `status` are PARAMETER-ACCESS holes and are therefore still defects** — a
+     caller gets a status outside the closed set and a caller-authored message, not because they broke anything but
+     because **the package read a supplied object through a chain it should not consult.**
+  2. **THE RUST BOUNDARY.** **Nothing crossing into Rust may be trusted.** Every JS-supplied value must be validated
+     by the crate's own carriers, whose *"outside-value arms make each refusal reachable"* — **so the boundary is
+     designed to validate, and any site that assumes instead is a defect.**
+
+**WHAT IT DOES NOT SETTLE.** **The frozen-store TypeError's FORM** — accepted as client-scope breakage, but a raw host
+`TypeError` where a lawful call used to answer is still worth a note, not a fix. **And the boundary audit itself** —
+which sites assume rather than validate is a measurement, not a ruling.
