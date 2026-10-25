@@ -1343,3 +1343,65 @@ its cells never ran is broken in the one direction a red cannot be — but the e
 declare.** **`Q6` is answered by `D-8` itself**: the three functional prohibitions stand and the reachability
 assertion the review declared is consistent with it; **L0 confirms it as already-recorded rather than as a new
 ruling.**
+
+---
+
+### `D-21` — a reporting runner's exit code MUST carry its red
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, taking L0's
+recommendation on `Q7` of the battery review.
+
+**WHAT IT SETTLES.** **A greens/live runner that reports a `FAIL` exits NON-ZERO.** A runner whose cells are red, or
+whose cells **never ran**, may not exit `0`. **The exit code is part of the instrument**, and a reporting runner
+that exits zero while its cells failed is broken in the one direction a red cannot be seen from.
+**WHAT IT OBLIGATES, MEASURED:** `blind-constraints-v2.mjs` **exits `0` with `21` `FAIL`**; and
+`json-acceptance-set-live.mjs` **exits `0`** while one cell's guard `return`s before it runs and two record
+`AMENDMENT-PENDING` and `GAP`. **Both are owed a non-zero exit, and the "cell never ran" case is owed an explicit
+third state — neither `PASS` nor `FAIL` may be printed for a cell that did not execute.**
+**WHO EXECUTES IT:** the test writers, in `D-20`'s execution pass (`D-19`'s grant). **Not L0, and not by editing a
+cell** — a runner's exit contract is the runner's, which is the leg owner's under `D-11`.
+
+---
+
+### `R-4` — what the `register`/`listen` asymmetry actually is (elaboration of `Q2`, for the architect's call)
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, reading the three members at the
+code. **A reading, not a ruling; `Q2` remains the architect's.**
+
+**THE THREE PARTS, AND WHAT EACH OWNS.**
+1. **`listen(handle, addresses)`** — the store-facing half. **The CALLER spells the handle**, the address position
+   is a **set**, and the store's home entry is keyed by that spelling. It answers `undefined`.
+2. **`register(handle, listener)`** — the package's own registry, a **handle → listener-function** map. It answers
+   `undefined` and **performs no deliverability check**: it accepts any handle it is handed.
+3. **`K.register(store, address, id, constraint)`** — the **kernel's** registration. It registers a constraint pair
+   and **returns `home`**, the store-side handle **the kernel itself spelled** — `constraint@<JSON address>`, the
+   spelling `index.mjs:4916`–`4918` names as *"the identity the two layers can both read"*.
+
+**HOW DELIVERY IS SUPPOSED TO WORK.** A write returns `triggered` — the **handles** whose home entry prefix-matches
+the write's address. `deliver` then snapshots `registry.get(handle)` **per distinct identity, at the window's
+opening**, and invokes each known function **once**. **An identity the registry holds no function for fires NOTHING,
+SILENTLY** (`surface.md §2.4` rule 1) — no warning, no log, no code.
+
+**★ AND THE DOOR THAT LETS THE MEASURED CALL THROUGH IS NAMED IN THE CODE.** `registerOn` refuses a listener at a
+handle where a **constraint** stands — *"a listener and a constraint do not share one"* — **but the refusal is
+SKIPPED for any handle that starts with `constraint@`** (`index.mjs:4916`–`4924`, the `conflicted = null` arm).
+**The exemption exists for exactly one consumer**: the kernel arming **its own noop** at **its own handle** without
+tripping the rule, and its comment says so — *"the predicate determined no behaviour of its own"*, the one behaviour
+its consumer wanted being that structural comparison. **It was never written for an application caller, and nothing
+distinguishes the two.**
+
+**THE TWO READINGS `Q2` PUTS.**
+- **(A) THE ASYMMETRY IS DELIBERATE.** The kernel's handle is the **constraint layer's** identity; an application
+  listener belongs in the **listener layer** under **its own** handle. `register` accepting it is harmless — the map
+  is keyed by handle and delivery needs the handle in `triggered`. **Under (A) the four cells are REWRITE: the app
+  arms its own handle (`listen(h, …)` + `register(h, fn)`), which the review measured DOES deliver on the same route.**
+- **(B) IT IS A DEFECT.** A `register` that **accepts** a handle it can never deliver to is a silent no-op that looks
+  like success — the one shape this project keeps filing against. **Under (B) the four cells are KEEP-and-RED and the
+  code owes a refusal** (or a delivery), not a doc note.
+
+**L0'S READING, MARKED AS INFERENCE: (A) FOR THE CELLS, (B) FOR A DEFECT ROW.** The exemption's provenance makes the
+*acceptance* deliberate and its *purpose* the kernel's; **an application caller reaching it is an unintended use of
+a deliberate door, which makes the four cells REWRITE (they are testing the app's route through the kernel's handle)
+and the undeliverable-acceptance a HAZARD worth a defect row** — the narrowest honest repair being to exempt **only
+the kernel's own call**, not every kernel-prefixed handle. **That is a code change in `js-registry-delivery`'s
+subject, not a battery change, and it is the architect's to order or refuse.**
