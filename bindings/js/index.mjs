@@ -945,6 +945,24 @@ function valueTargetSpelling(value) {
 /// store's generator's bytes at the failing target's own spelling; PART TWO — the class that failed and the
 /// position the contract declares for it — is appended (`CF-3`). `write` is this helper's ONE caller, and it
 /// calls it at the ONE site where the store answered `ValueNotAdmitted` for a value the walk had refused.
+///
+/// **⟶ AMENDED 2026-10-23 (THE GATE-3 PROOFREADING PASS, `role_proofreader`; `RCA-8(g)`): THE CODE IS
+/// `ValueRefusedAtBoundary` AND IT IS ANSWERED BEFORE ANY STORE VERB IS CALLED.** The block above stands
+/// byte-for-byte and is read THROUGH this clause, on exactly two of its terms: *"the code is that class's own
+/// `ValueNotAdmitted`"* is read as the boundary refusal's status **`ValueRefusedAtBoundary`** — the store's
+/// rank-`17` member, minted by the store's closed set (`docs/specs/storeroom-native/contract.md` `§8.1`, its
+/// amendment of 2026-10-23) and SELECTED by the package, which mints neither the status nor its code — and
+/// *"it calls it at the ONE site where the store answered `ValueNotAdmitted` for a value the walk had
+/// refused"* is read as **the PRE-VERB site**: `write` checks the walk's recorded fault — the statement
+/// `if (fault.found !== null) valueReject(fault);` — and this helper throws THERE, ahead of the entry call
+/// `entryOf().write.call(this, …)`, so THE STORE ANSWERS NOTHING HERE AND NEVER RECEIVES THE REFUSED TREE.
+/// **THE TWO SITES' POSITIONS IN THIS FILE: the fault check at `:2439` and the entry call at `:2454`** —
+/// `:2391` and `:2406` are where the gate-4 audit read them, the difference being this pass's own inserted
+/// comment lines and nothing else. PART ONE (the store generator's bytes at the failing target's own spelling),
+/// PART TWO (class and position appended, `CF-3`) and `DD-40` stand unmoved.
+/// `[A2 docs/decisions.md · `A148` (Q3); docs/specs/storeroom-native/contract.md §8.1 — its 2026-10-23
+/// amendment, rank `17`, *"the store never receives those values on the JavaScript route"*; A1
+/// bindings/js/index.mjs:2439 · :2454 | requirement]`
 function valueReject(fault) {
   boundaryReject(
     'ValueRefusedAtBoundary', // A148 Q3's rank-17 member, carried and never minted (`DD-40`)
@@ -999,7 +1017,42 @@ function shapeArmClass(refusal) {
 /// dated table assigns to THIS BOUNDARY — `66` and beyond, *"carrying the store's outside class
 /// `Cyclic`"* — is refused HERE, verbosely, with the same code and no second rule.** `ENCODER_CEILING` is
 /// therefore `65` and the arm's own site is the first `if` below.
-const ENCODER_CEILING = 128;
+///
+/// **⟶ AMENDED 2026-10-23 (`A149`; `RCA-8(g)`): THE OPERATIVE ADMISSION CEILING IS THE STORE'S PERSISTENT
+/// `126` — NOT THE CORE'S DECLARATION, AND NEITHER THE `64` NOR THE `65` THIS BLOCK PRINTS.** The block
+/// above stands byte-for-byte and is read THROUGH this clause: its `64`/`65`/`66` figures are the retired
+/// era's, and its sentence *"`ENCODER_CEILING` is therefore `65`"* is read as **`126`**. **WHAT IS OPERATIVE
+/// FROM THIS DATE: depth `126` is the highest ADMITTED value ON BOTH ROUTES, because the root enters at
+/// `0`; `127` and beyond is the depth class — refused HERE, at this walk, BEFORE ANY STORE VERB, as `a value
+/// over the walk ceiling` with the status `ValueRefusedAtBoundary` and the refused value's own `127`-segment
+/// position; and the crate's `128` remains the CRATE-SIDE CONVERSION's OWN bound (`bindings/js/src/
+/// crossing.rs`'s `depth > 128`, untouched by this clause), never the crossing's admission bound.** **THE
+/// GROUND, AS MEASURED (`A149`): depths `125`/`126` commit and reopen intact, while `127`/`128` were ADMITTED
+/// and round-tripped IN MEMORY but their commit threw `FileCommitFailed`, the store file stayed `0` bytes and
+/// a fresh boot answered `AddressNotFound` — cause `serde_json::from_str` at `src/json.rs:83` with its
+/// recursion limit `128`, plus the register root, plus the commit's re-load of the image it wrote
+/// (`src/store.rs:1283`–`:1292`) — so a value the file tier cannot commit is never admitted in the first
+/// place.** **`NODE_CEILING` IS UNMOVED AT `1,000,000`** (`A149` (3)): the walk counts its root as its first
+/// node, so the admitted node range is `0…999,999` and a dense `1,000,000`-element top-level array is
+/// `1,000,001` nodes and is refused as the same class. **THE ARM'S OWN SITE IS STILL THE FIRST `if` BELOW,
+/// and no other behaviour of this file moves.**
+/// `[A2 docs/decisions.md · `A149`; docs/specs/storeroom-json-crossing/contract.md §4 — its 2026-10-23
+/// clause | the operative ceiling and the refusal's place; A1 bindings/js/index.mjs | `ENCODER_CEILING`,
+/// cited by symbol | numeric claim]`
+///
+/// **⟶ RECONCILED 2026-10-24 (`DEF-2026-10-24-A`; `RCA-8(g)`): THE CLAUSE ABOVE CARRIES A `2026-10-23` MARKER
+/// FOR A `2026-10-24` LANDING, AND NOTHING ELSE OF IT MOVES.** The clause above stands byte-for-byte and is
+/// read THROUGH this one: its `126` on both routes, its `127`-and-beyond refusal with the
+/// `ValueRefusedAtBoundary` status, its node range `0…999,999` and every authority tag it carries are unmoved.
+/// **THE DATE ALONE IS RECONCILED: the landing that clause records is `2026-10-24`, one day after its
+/// marker** — the source edit `bindings/js/index.mjs`'s `const ENCODER_CEILING = 126` landed
+/// `2026-10-24 19:09:06`, and the native addon the live battery drove was built `19:09:49` and restaged
+/// `19:09:51` (`docs/specs/storeroom-json-crossing-live-report.md §11`) — **and the marker stands as filed,
+/// because `A149`, the `docs/next-steps.md` `N8` delta and the review record already cite it; re-pointing it
+/// would break resolving citations rather than repair anything.** No behaviour byte of this file moved.
+/// `[A2 docs/decisions.md · `A149`; docs/defects.md · `DEF-2026-10-24-A` | the marker's resolution of record;
+/// A2 docs/specs/storeroom-json-crossing-live-report.md §11 | the landing's own timestamps | cross-reference]`
+const ENCODER_CEILING = 126;
 const NODE_CEILING = 1_000_000;
 
 /// **THE WALK'S FIRST VALUE FAULT, RECORDED — AND THE CORE'S OWN MARKER FOR THAT ARM RETURNED.**
@@ -1031,6 +1084,16 @@ function encodeValue(value, ancestors, depth, path, fault) {
   // **THE NODE CEILING IS THE CRATE'S `1,000,000`, COUNTED ON THIS ONE WALK** (`contract.md §4`; `A148` Q6).
   // The crate's conversion counts the root as its first node; the `1,000,001`st node is row `8`'s class at
   // the root `value` position.
+  // **⟶ AMENDED 2026-10-23 (THE GATE-3 PROOFREADING PASS, `role_proofreader`; `RCA-8(g)`): THE CITE ABOVE IS
+  // RE-SPELLED, BECAUSE `A148` CARRIES NO `Q6`.** The comment above stands byte-for-byte and is read THROUGH
+  // this clause; the ceiling and both counting conventions are unmoved. **`docs/decisions.md` · `A148` records
+  // `Q1`–`Q5` and TWO follow-ups — there is no `Q6`** — so `A148` Q6 is read as the gate-1 record's own THIRD
+  // `Follow-up` row: *"Crate `128` governs"* → *"Depth `128` and nodes `1,000,000`"*
+  // (`docs/specs/storeroom-json-crossing-proposal-review.md §4`'s answers cell, `§4.1`, the last of its three
+  // `Follow-up` rows). The same re-spelling is already carried at `contract.md §4` and
+  // `parameter-semantics.md §4`; this site follows their form.
+  // `[A2 docs/decisions.md · `A148` (its two follow-ups); docs/specs/storeroom-json-crossing-proposal-review.md
+  // §4.1 — its third `Follow-up` row | cross-reference]`
   fault.nodes += 1;
   if (fault.nodes > NODE_CEILING) {
     return refusedValue(fault, 'a value over the walk ceiling', 'a value over the walk ceiling', [], { k: 'c' });
@@ -1044,6 +1107,31 @@ function encodeValue(value, ancestors, depth, path, fault) {
   // `§1.4` item 5's dated two-arm table: *"`66` and beyond REFUSED by the boundary's own encoder carrying the
   // store's outside class `Cyclic`"* — the encoder's bound is one PAST the declared `64`, so `65` is still
   // encoded and refused by the conversion core's own bound, whose message is the store's own (item 6 (d)).
+  // **⟶ AMENDED 2026-10-23 (`A149`; `RCA-8(g)`): THIS NARRATION'S `64`/`65`/`66` TWO-ARM SPLIT IS THE
+  // RETIRED ERA'S AND IS READ THROUGH THIS CLAUSE.** The three lines above stand byte-for-byte; their `64`
+  // and `65` are read as the operative `126` and the `127` it refuses, and the arm that was "still encoded and
+  // refused by the conversion core's own bound" no longer exists on this route. **WHAT IS OPERATIVE: depth
+  // `126` is the highest admitted value ON BOTH ROUTES, so `127` and beyond is refused HERE, at the walk,
+  // BEFORE ANY STORE VERB, as `a value over the walk ceiling` with the status `ValueRefusedAtBoundary` at the
+  // refused value's own `127`-segment position; the crate's `128` is the CRATE-SIDE CONVERSION's bound ONLY
+  // (`bindings/js/src/crossing.rs`'s `depth > 128`, untouched).** **THE GROUND, AS MEASURED (`A149`):
+  // `125`/`126` commit and reopen; `127`/`128` threw `FileCommitFailed` with a `0`-byte store file and a
+  // fresh boot answering `AddressNotFound`, from `serde_json::from_str` at `src/json.rs:83` (recursion limit
+  // `128`), the register root and the commit's re-load of the image it wrote (`src/store.rs:1283`–`:1292`).**
+  // The node ceiling above (`1,000,000`, root counted) is unmoved.
+  // `[A2 docs/decisions.md · `A149`; docs/specs/storeroom-json-crossing/contract.md §4 — its 2026-10-23
+  // clause; A1 bindings/js/src/crossing.rs | the conversion's own guard, cited by symbol | numeric claim]`
+  // **⟶ RECONCILED 2026-10-24 (`DEF-2026-10-24-A`; `RCA-8(g)`): THIS CLAUSE'S `2026-10-23` MARKER DENOTES A
+  // `2026-10-24` LANDING, AND NOTHING ELSE OF IT MOVES.** The clause above stands byte-for-byte and is read
+  // THROUGH this one: its reading of the retired figures (`64` read `126`, `65` read `127`), its one-arm
+  // re-derivation, the retired core-bound arm it closes and the unmoved node ceiling are all unmoved.
+  // **THE DATE ALONE IS RECONCILED: the landing it records is `2026-10-24`, one day after its marker** — the
+  // source edit landed `2026-10-24 19:09:06`, and the native addon the live battery drove was built `19:09:49`
+  // and restaged `19:09:51` (`docs/specs/storeroom-json-crossing-live-report.md §11`) — **and the marker stands
+  // as filed, because `A149` and the review record already cite it; re-pointing it would break resolving
+  // citations rather than repair anything.** No behaviour byte of this file moved.
+  // `[A2 docs/decisions.md · `A149`; docs/defects.md · `DEF-2026-10-24-A` | the marker's resolution of record;
+  // A2 docs/specs/storeroom-json-crossing-live-report.md §11 | the landing's own timestamps | cross-reference]`
   if (depth > ENCODER_CEILING) {
     return refusedValue(fault, value, 'a value over the walk ceiling', path, { k: 'c' });
   }
@@ -2174,6 +2262,26 @@ function listedSegments(arg) {
 /// `write(instance, ['x'])`'s carrier-row `AddressMalformed` (`write-and-read.md §3.4` `F-1`) ahead of the
 /// value's own code. Every other status, and every `ValueNotAdmitted` the walk did not produce (the
 /// conversion core's own depth and node bounds, `§1.4` item 5), crosses VERBATIM (item 2).
+///
+/// **⟶ AMENDED 2026-10-23 (THE GATE-3 PROOFREADING PASS, `role_proofreader`; `RCA-8(g)`): THIS ARM IS
+/// RETAINED AND NOT LIVE — IT IS UNREACHABLE AT THIS SITE, AND IT STAYS BY DECLARATION.** The block above
+/// stands byte-for-byte and is read THROUGH this clause; its *"which is what keeps `P-SAS-8` green"* and its
+/// *"this site is reached only AFTER the store has chosen which refusal answers"* are the arm's HISTORY, not
+/// its present reach. **THE MEASURED FACT: the value refusal now answers at the PRE-VERB site (`:2439`, ahead
+/// of the entry call at `:2454`), so a tree the walk refused never reaches the store and this branch's
+/// `fault.found !== null` test can never be true when it runs — the arm below is UNREACHABLE.** **IT IS
+/// NEVERTHELESS RETAINED AND NOT DELETED**, which is the declared disposition of
+/// `docs/specs/storeroom-json-crossing/contract.md §6` row 4 (owner `U-STOREROOM-ADDON-SURFACE`: *"Retain it
+/// for the conversion core's own bounds; drop the class-set trigger from this route"*) and of
+/// `docs/specs/storeroom-addon-surface/js-unwrap.md §3` (*"The arm moves into the write member's own body and
+/// IS NOT DROPPED."*). **AND THE STORE'S OWN REFUSAL ORDER IS UNTOUCHED BY THE PRE-VERB ANSWER:** a call such
+/// as `write(instance, ['x'])` still answers its carrier row's `AddressMalformed` AHEAD of the value's code
+/// (`write-and-read.md §3.4` `F-1`), because the carrier positions are converted and answered in their OWN
+/// DECLARED ORDER (`:2429` the address, `:2432` the tier) BEFORE the walk's fault is consulted at `:2439` —
+/// so the fault check never pre-empts a carrier row and the two orders cannot cross.
+/// `[A1 bindings/js/index.mjs:2439 · :2454 · :2429 · :2432; docs/specs/storeroom-json-crossing/contract.md §6
+/// row 4; docs/specs/storeroom-addon-surface/js-unwrap.md §3; docs/specs/storeroom-native/write-and-read.md
+/// §3.4 `F-1` | requirement]`
 function writeRefusal(refusal, fault) {
   if (fault.found !== null && refusal !== null && typeof refusal === 'object' && refusal.status === 'ValueNotAdmitted') {
     valueReject(fault);

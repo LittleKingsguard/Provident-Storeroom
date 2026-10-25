@@ -458,6 +458,40 @@ pub fn assert_code(e: &StoreError, expected: &str, clause: &str) {
 /// THIS ARRAY (`11 + 2 + 1 + 1 = 15`) counts the sixteen by hand and stops one short.** The new member is
 /// the LAST, at rank `16`, after `FileCommitFailed`. **NO MEMBER MOVES AND NO RANK MOVES: this array is a
 /// drive-side census and is not the crate's `CODES`, whose widening is the implementation's own act.**
+///
+/// **⟶ AMENDED 2026-10-23 (`A148` Q3; `U-STOREROOM-JSON-CROSSING`; `RCA-8(g)`): THE CENSUS IS `17`
+/// MEMBERS, AND THE SEVENTEENTH IS `ValueRefusedAtBoundary` AT RANK `17`.**
+///
+/// **THE `16` AND THE `15` PRINTED ABOVE STAND BYTE-FOR-BYTE AS THE PRE-AMENDMENT READING AND ARE READ
+/// THROUGH THIS CLAUSE.** The heading's *"the `16` members"*, the 2026-10-11 clause's hand-count
+/// `11 + 2 + 1 + 1 = 15` with its *"`ValueNotAdmitted` and `FileCommitFailed` move by ONE rank each
+/// (`14`, `15`)"*, and the 2026-10-15 widening's `11 + 2 + 1 + 1 + 1 = 16` with its closing *"The new
+/// member is the LAST, at rank `16`, after `FileCommitFailed`"* are every one of them the PRE-2026-10-23
+/// reading, and NONE of them is a statement about the array beneath this block from this date.
+///
+/// **THE OPERATIVE CENSUS, TAKEN FROM THE STORE CONTRACT'S OWN AMENDMENT OF THIS SAME DATE: the set is
+/// `17` members ranked `1`…`17`, its arithmetic is `11 + 2 + 1 + 1 + 1 + 1 = 17` ✓, and the new member is
+/// the LAST, at rank `17`, after `ConstraintListInvalid`, WHICH STAYS AT RANK `16`.** **NO RANK `1`…`16`
+/// MOVES: `FilePathUnreachable` keeps `13`, `ValueNotAdmitted` keeps `14`, `FileCommitFailed` keeps `15`
+/// and `ConstraintListInvalid` keeps `16`** (`docs/specs/storeroom-native/contract.md §8.1`'s 2026-10-23
+/// amendment and its rank-`17` row; `docs/decisions.md` · `A148` (3), *"Widen to 17"*).
+///
+/// **AND WHY A CENSUS MAY CARRY A MEMBER THIS CRATE'S OWN `Store` NEVER PRODUCES: `ValueRefusedAtBoundary`
+/// is the PACKAGE's boundary refusal for the sixteen classes outside the crossing's admitted value tree —
+/// the store never receives those values on the JavaScript route, the package's walk decides the class
+/// before any verb is called, and the package appends the class-and-position clause beside the generator's
+/// text.** **SO the member is the SET's closure and not a new failure arm a Rust-side drive can stage;
+/// `ValueNotAdmitted` remains the store's own answer on the native route at rank `14`, and the two members'
+/// triggers do not overlap** (`contract.md §8.1` #17 and `§8.2`'s `ValueRefusedAtBoundary` row, both
+/// 2026-10-23; `docs/decisions.md` · `A148` (3) and (7)).
+///
+/// **AND THE STANDING SENTENCE *"this array is a drive-side census and is not the crate's `CODES`, whose
+/// widening is the implementation's own act"* IS READ THROUGH THIS CLAUSE TOO: its subject is WHICH ACT
+/// WIDENS WHICH ARRAY — this array follows `§8.1`'s membership as a drive-side census, and the crate's
+/// `CODES` is widened by the implementation's own act — and from 2026-10-23 both carry `17` members in this
+/// same rank order, so a crate printing `16` or `18` is the violation and not this census**
+/// (`src/error.rs`'s `CODES`; `contract.md`'s `P-TP-8` row as amended 2026-10-23, which re-spells the list
+/// to `[&'static str; 17]`).
 pub const CLOSED_CODES: [&str; 17] = [
     "AddressMalformed",
     "AddressNotFound",

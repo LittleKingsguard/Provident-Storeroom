@@ -6,16 +6,34 @@
 // answers `ValueNotAdmitted` for the sixteen classes, refuses depth `66`, or preserves `-0`.**
 //
 // The package is reached through its declared ESM entry, never the `.node` addon directly.
+//
+// **⟶ RE-DERIVED 2026-10-23 (`docs/decisions.md` · `A149`; `docs/specs/storeroom-json-crossing/contract.md §4`
+// and `§8` rows `7`/`8`, `parameter-semantics.md §1` rows `7`/`8` and `§4`, `test-cases.md` `JC-TC-09`,
+// `JC-TC-27`, `JC-TC-42`): THE THREE BOUNDARY CELLS ARE RE-DERIVED TO THE OPERATIVE ADMISSION CEILINGS AND NO
+// OTHER CELL MOVES.** The ceilings are the STORE'S PERSISTENT ones and not the crate's conversion bounds: depth
+// `126` on both routes and nodes `0…999,999`, with depth `127`+ refused AT THE WALK, BEFORE ANY STORE VERB, with
+// the depth class `a value over the walk ceiling` and the status `ValueRefusedAtBoundary`. So `JC-TC-09` moves
+// depth `128` → `126` and is driven on the PERSISTENT route (committed, then reopened); `JC-TC-27` moves depth
+// `129` → `127` and now asserts the walk's refusal and its ordering, not merely a class; and `JC-TC-42` states
+// the node boundary at BOTH sides, `999,999` ADMITTED and `1,000,000` REFUSED. **The cell census is unmoved at
+// `48`** (`test-cases.md §6`'s clause of the same date: no cell added, none removed, `JC-TC-10`'s `65`/`66`
+// admissions unmoved because those remain admitted depth values under the operative `126`).
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { runInNewContext } from 'node:vm';
 
 import { storeCreate } from 'provident-storeroom';
+import { commit as kernelCommit, runAttempt } from '../src/constraint-kernel.mjs';
 
 const VALUE_POSITION = "the write's value argument";
 const STATUS = 'ValueRefusedAtBoundary';
+// THE WALK'S NODE CEILING, THE ROOT COUNTED: a top-level dense array of `999,999` elements is ADMITTED and
+// `1,000,000` is REFUSED (`contract.md §8` row `8` · `parameter-semantics.md §1` row `8`, both re-derived
+// 2026-10-23 by `A149`).
 const NODE_CEILING = 1_000_000;
 
 function instance() {
@@ -114,11 +132,22 @@ test('JC-TC-08 -0 normalizes to 0 at the binding boundary', () => {
   assert.ok(Object.is(back, 0), `the binding boundary returns 0, not -0; got ${Object.is(back, -0) ? '-0' : back}`);
 });
 
-test('JC-TC-09 depth 128 is admitted', () => {
-  const inst = instance();
-  const value = nested(128);
-  inst.write(['v'], 'mem', value);
-  assert.deepEqual(inst.read(['v']), value);
+test('JC-TC-09 depth 126 is admitted and commits and reopens intact', async () => {
+  // `test-cases.md` `JC-TC-09`, re-derived 2026-10-23 (`A149`): *"depth `126` | admitted; the store's
+  // persistent depth ceiling is operative, and the value commits and reopens intact"*. `126` is the highest
+  // admitted depth (`contract.md §8` row `7`: integer `0…126`), so the cell is driven on the PERSISTENT route
+  // — a real store over a real `cfg.filePath`, committed through the package's own commit route, then
+  // reopened — because the ceiling being asserted is the store's persistent one and not the conversion's.
+  const dir = mkdtempSync(join(tmpdir(), 'jc-tc-09-'));
+  const filePath = join(dir, 'store.json');
+  const inst = storeCreate({ filePath, journalLength: 8, listeners: [] });
+  const value = nested(126);
+  runAttempt(inst, kernelCommit(inst, ['v'], 'file', value));
+  assert.deepEqual(inst.read(['v'], 'file'), value,
+    'depth 126 is the highest admitted depth: the walk admits it and the read returns the same tree');
+  const fresh = storeCreate({ filePath, journalLength: 8, listeners: [] });
+  assert.deepEqual(fresh.read(['v'], 'file'), value,
+    'the store\'s persistent depth ceiling is operative: the value commits and reopens intact');
 });
 
 test('JC-TC-10 depth 65 and 66 are admitted', () => {
@@ -241,10 +270,32 @@ test('JC-TC-26 a non-finite number is refused', () => {
   }
 });
 
-test('JC-TC-27 depth 129 is refused', () => {
-  const { err } = refused(nested(129));
-  const position = `member ${Array(129).fill('0').join('/')} of ${VALUE_POSITION}`;
+test('JC-TC-27 depth 127 is refused at the walk, before any store verb', async () => {
+  // `test-cases.md` `JC-TC-27`, re-derived 2026-10-23 (`A149`): *"nested depth `127` | `a value over the walk
+  // ceiling`, at the walk before any store verb, with `ValueRefusedAtBoundary`"*. The value is driven on the
+  // PERSISTENT route precisely so the ordering is observable: an implementation that admitted depth `127` and
+  // then failed at the store's commit would answer `FileCommitFailed` here, which is the answer `A149` (2)
+  // forbids — so the cell reads the status, the class, the file's untouched bytes and the fresh boot.
+  const dir = mkdtempSync(join(tmpdir(), 'jc-tc-27-'));
+  const filePath = join(dir, 'store.json');
+  const inst = storeCreate({ filePath, journalLength: 8, listeners: [] });
+  const before = existsSync(filePath) ? readFileSync(filePath, 'utf8') : null;
+  const position = `member ${Array(127).fill('0').join('/')} of ${VALUE_POSITION}`;
+  let err = null;
+  try {
+    runAttempt(inst, kernelCommit(inst, ['v'], 'file', nested(127)));
+  } catch (caught) {
+    err = caught;
+  }
+  assert.ok(err, 'the contract refuses depth 127 at the walk; the value was admitted and reached the commit');
   assertClass(err, 'a value over the walk ceiling', position);
+  assert.notEqual(err.status, 'FileCommitFailed',
+    `the depth class is the walk's answer and never the store's commit; got ${JSON.stringify(err.status)}`);
+  const after = existsSync(filePath) ? readFileSync(filePath, 'utf8') : null;
+  assert.equal(after, before, 'the refusal precedes every store verb: no byte of the store file moved');
+  const fresh = storeCreate({ filePath, journalLength: 8, listeners: [] });
+  assert.throws(() => fresh.read(['v'], 'file'), (caught) => caught.status === 'AddressNotFound',
+    'nothing was admitted: a fresh instance over the same path holds no value at the address');
 });
 
 test('JC-TC-28 a lone surrogate at a value position is refused', () => {
@@ -329,8 +380,21 @@ test('JC-TC-41 the carrier row precedes the value row', () => {
   );
 });
 
-test('JC-TC-42 the node ceiling is refused with the walk-ceiling class', () => {
-  const { err } = refused(new Array(NODE_CEILING + 1).fill(0));
+test('JC-TC-42 the node boundary is stated at both sides', () => {
+  // `test-cases.md` `JC-TC-42`, re-derived 2026-10-23 (`A149`): *"a dense top-level array of `999,999`
+  // elements, and of `1,000,000` elements | `999,999` is admitted (the root consumes the crate's first node);
+  // `1,000,000` is `a value over the walk ceiling` at the root `value` position, with
+  // `ValueRefusedAtBoundary` — same class and status as depth row 8, not `ValueNotAdmitted`"*. The admitted
+  // side is carried INSIDE this cell, not as a separate id (`test-cases.md §6`'s clause of the same date).
+  const admitted = instance();
+  admitted.write(['v'], 'mem', new Array(NODE_CEILING - 1).fill(0));
+  const back = admitted.read(['v']);
+  assert.ok(Array.isArray(back), 'the admitted side crosses as a dense array');
+  assert.equal(back.length, NODE_CEILING - 1,
+    '999,999 nodes are admitted: the root consumes the crate\'s first node');
+  assert.equal(back[back.length - 1], 0, 'the last element crosses intact');
+
+  const { err } = refused(new Array(NODE_CEILING).fill(0));
   assertClass(err, 'a value over the walk ceiling');
 });
 

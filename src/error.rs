@@ -40,6 +40,21 @@ pub struct StoreError {
 /// RE-DERIVED BY THEIR OWN AUTHOR ROLE FROM THE AMENDED CLAUSE** (`implementation-plan.md §10.9` row 8:
 /// *"a set of `15` or `17` FAILS it"*): **the artefact is widened and the superseded census is the losing
 /// side, so no drive that counts this array may assert `15`.**
+///
+/// **⟶ AMENDED 2026-10-23 (`docs/decisions.md` · `A148` (Q3); `docs/specs/storeroom-native/contract.md §8.1`'s
+/// amendment of 2026-10-23; `RCA-8(g)`): THE OPERATIVE CENSUS IS `17`, RANKED `1`…`17`, AND THE SEVENTEENTH
+/// MEMBER IS `ValueRefusedAtBoundary` AT RANK `17`.** The clauses above stand byte-for-byte and are read
+/// THROUGH this one: their *"the CLOSED set, ranked `1`…`16`"*, their `11 + 2 + 1 + 1 + 1 = 16` and their
+/// *"THE SET IS COMPLETE AT ITS OWN CENSUS"* are the figures of those clauses' OWN dates and not the operative
+/// census. **THE OPERATIVE ARITHMETIC IS `11 + 2 + 1 + 1 + 1 + 1 = 17` ✓ — the five terms those clauses sum
+/// stand exactly as filed and the sixth is appended last — NO RANK OF `1`…`16` MOVES, and the array on the
+/// `pub const` below is `[&str; 17]` with `ValueRefusedAtBoundary` in its last position.** **AND THE `P-TP-8`
+/// FAILURE LIST IS RE-DERIVED WITH THE SET: A SET OF `15` OR `16` FAILS IT, AND `17` IS OPERATIVE** — so the
+/// clause above's *"a set of `15` or `17`"* is read through this sentence (that register row's own
+/// re-derivation of the same date, at `docs/specs/storeroom-native/implementation-plan.md` `P-TP-8`), a set
+/// printing `17` being the operative set and not a failure, and no drive that counts this array may assert
+/// `15` OR `16`. THE ARRAY REMAINS THE SET'S OWN CENSUS AND NOT A SECOND STATEMENT OF IT, and
+/// [`storeErrorMessage`] still resolves its clause by lookup in it (`§8.2`).
 pub const CODES: [&str; 17] = [
     "AddressMalformed",
     "AddressNotFound",

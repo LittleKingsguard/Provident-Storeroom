@@ -642,12 +642,57 @@ test('ng_js_c_the_cfg_shapes_are_decided_by_class_first_and_an_absent_key_is_nev
 // So this row drives the DECLARED FIGURES through the claimed entry and reports the arm as a CODE finding;
 // a reader who took *"driven through the package's entry"* as *"the package's own walk answers"* would read
 // a stronger claim than the bytes support.
+// **⟶ RE-DERIVED 2026-10-23 — THE AUTHORITY IS `docs/decisions.md` · `A149`, AND THE CROSSING CLAUSE IS READ
+// THROUGH ITS DATED CLAUSE OF THAT DATE AND NOT THROUGH THE STALE HEAD INSTRUCTION.** `crossing.md §1.4` item
+// 5 is cited here THROUGH the dated clause the `A149` pass lands at that item; **the head instruction it sits
+// under — *"THE CEILINGS ARE THE CRATE'S: depth `128` … Where this part prints `64`, read `128`; `65`, read
+// `129`; `66`, read `130`"* — is the `128`-ERA MAPPING AND IS SUPERSEDED: the crate's `128` is the CONVERSION's
+// own bound and is NOT the crossing's admission bound from this date** (`A149` (4)). **WHAT `A149` PINS, AND
+// THEREFORE WHAT THIS DRIVE NOW ENUMERATES: `ENCODER_CEILING` is `126` on BOTH routes; `126` is the highest
+// ADMITTED depth, because the root enters at `0` AND because the store's persistent path cannot commit a
+// `127`-deep value; and `127` AND BEYOND IS REFUSED AT THE PACKAGE'S WALK, BEFORE ANY STORE VERB, with the
+// depth class `a value over the walk ceiling` and the status `ValueRefusedAtBoundary` — never admitted and then
+// failed at commit** (`A149` (1)–(2); `docs/specs/storeroom-json-crossing/contract.md §4`'s clause of
+// 2026-10-23). **THE ROWS THE DRIVE CARRIES, RE-DERIVED (the enumerated-state table above stands at its own
+// bytes and is read THROUGH this clause):**
+//
+// | The state (one `{a: …}` chain, root at `0`) | Its declared answer |
+// | --- | --- |
+// | nesting depth `126` | **ADMITTED** — the last admitted depth on both routes |
+// | nesting depth `127` | **REFUSED at the walk**, class `a value over the walk ceiling`, status `ValueRefusedAtBoundary` |
+// | nesting depth `128` | refused, the same answer (the crate's `128` is the conversion's own bound and not this boundary's) |
+// | nesting depth `129` | refused, the same answer |
+// | the ARM of each refusal | **the PACKAGE'S OWN WALK'S** — so the drive reads the one form and the boundary status and never a store-side or commit-side answer (`A149` (2)) |
+//
+// **THE STALE ROWS ABOVE, NAMED SO THEY ARE NOT READ AS LAW:** the `63`/`64`/`65`/`66` depth rows and the
+// `999,999`/`1,000,000`/`1,000,001` *node* rows print the 2026-10-11 era's figures and its `ValueNotAdmitted`
+// answers; the depth rows are read as the four rows just above, and **the node half is UNMOVED by this re-cut
+// and is green as authored** — its two figures, spelled there in MEMBERS (`999,999` admitted, `1,000,000`
+// refused), are the root-counted range `A149` (3) declares (`999,999` members + the root = `1,000,000` nodes
+// admitted; `1,000,000` members + the root = `1,000,001` nodes refused, the same class and status).
+// **THE MEASURED-ARM FINDING ABOVE IS CLOSED BY THIS RULING, NOT IGNORED:** the arm it reported was an
+// addon-side ceiling one class later, and `A149` (2) moves the refusal to the package's own walk —
+// `ENCODER_CEILING = 126` in `bindings/js/index.mjs` — so the drive's `ValueRefusedAtBoundary` reading now
+// measures the arm the row's first dated clause declares.
+// `[A2 docs/decisions.md · `A149` (1)–(4) | the operative depth ceiling, the refusing site, the class, the
+// status and the node range; A2 docs/specs/storeroom-json-crossing/contract.md §4 — its 2026-10-23 clause |
+// numeric and site claim; A1 bindings/js/index.mjs | ENCODER_CEILING · NODE_CEILING, cited by symbol |
+// numeric claim]`
+//
+// ⟶ **RECONCILED 2026-10-24 — THE `2026-10-23` MARKER CARRIED BY THIS CLAUSE DENOTES A `2026-10-24` LANDING, AND
+// THE CLAUSE STANDS AS FILED.** The marker is one day early: the landing it records is this unit's own of
+// 2026-10-24 (the ground — source edit `2026-10-24 19:09:06`, addon built `19:09:49`, restaged `19:09:51`). The
+// marker digits are NOT re-pointed in place and no sentence above is rewritten: the clause is cited elsewhere BY
+// THAT DATE, so moving it would break the resolving citations rather than repair anything. `ENCODER_CEILING` `126`
+// on both routes, the refusing site at the package's own walk, the class `a value over the walk ceiling`, the
+// status `ValueRefusedAtBoundary` and the node range above are unmoved, byte-for-byte, and are the figures driven
+// below.
 test('ng_js_d_the_depth_and_node_ceilings_are_the_packages_own_walks_arm', { timeout: 300000 }, () => {
   const inst = mem();
   const chain = (depth) => { let v = 1; for (let i = 0; i < depth; i += 1) v = { a: v }; return v; };
 
-  runGenerator('NG-JS-D', 'depth 127/128/129/130', 4, (attempt) => {
-    for (const [depth, admitted] of [[127, true], [128, true], [129, false], [130, false]]) {
+  runGenerator('NG-JS-D', 'depth 126/127/128/129', 4, (attempt) => {
+    for (const [depth, admitted] of [[126, true], [127, false], [128, false], [129, false]]) {
       let thrown = null;
       try {
         inst.write(['depth'], 'mem', chain(depth));

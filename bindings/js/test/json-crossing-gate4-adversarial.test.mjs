@@ -351,14 +351,54 @@ test('ADV-27 an absent value argument is refused as undefined', () => {
   );
 });
 
-test('ADV-28 depth 128 is admitted and depth 129 is refused at the leaf position', () => {
-  const admitted = instance();
-  admitted.write(['v'], 'mem', nestedArray(128));
-  assert.ok(admitted.read(['v']));
+// **STATES ENUMERATED BEFORE THIS CELL WAS RE-DERIVED** (`docs/decisions.md` · `A149` (1)–(2), (4) — the
+// operative admission ceiling is the STORE'S PERSISTENT one and not the conversion's bound: `ENCODER_CEILING`
+// is `126` on BOTH routes, `126` is the highest ADMITTED depth because the root enters at `0`, and `127` and
+// beyond is the depth class refused AT THE PACKAGE'S WALK, BEFORE ANY STORE VERB, with the status
+// `ValueRefusedAtBoundary` — never admitted and then failed at commit; `docs/specs/storeroom-json-crossing/
+// contract.md §4`'s clause of 2026-10-23 carries the same four terms at the contract):
+//
+// | The state (the `mem` route, a plain `write`) | Its declared answer |
+// | --- | --- |
+// | nesting depth `125` | admitted — one below the ceiling, driven so the ceiling is read at both sides of its edge |
+// | nesting depth `126` | ADMITTED — the last admitted depth, and the tree crosses INTACT (read back deep-equal) |
+// | nesting depth `127` | REFUSED at the walk: `ValueRefusedAtBoundary`, class `a value over the walk ceiling`, at the refused value's own `127`-segment position |
+// | every other store byte | UNTOUCHED by the refusal — the refusal precedes every store verb, so no node, anchor or journal entry exists afterwards |
+//
+// **WHAT AN ADMIT-THEN-FAIL-AT-COMMIT BUILD ANSWERS HERE, WHICH IS WHY THE CELL IS NOT SHAPE-ONLY:** a build
+// that admitted depth `127` and lost it later would answer `refused()`'s own `assert.fail` on this route
+// (there is no commit to fail at, so the value would simply be admitted), and a build that refused it after a
+// store verb would leave the register root non-empty below — while a refusal that is the STORE'S or the
+// COMMIT'S answer never carries the walk's class `a value over the walk ceiling` beside a `127`-segment
+// member position at all. `A149` (2) is a statement about the SITE, so the cell reads all three limbs.
+// `[A2 docs/decisions.md · `A149` (1)–(2), (4) | the operative depth ceiling, the refusing site, the class and
+// the declared position; A2 docs/specs/storeroom-json-crossing/contract.md §4 — its 2026-10-23 clause |
+// numeric and site claim]`
+//
+// ⟶ **RECONCILED 2026-10-24 — THE `2026-10-23` MARKER CARRIED BY THIS CLAUSE DENOTES A `2026-10-24` LANDING, AND
+// THE CLAUSE STANDS AS FILED.** The marker is one day early: the landing it records is this unit's own of
+// 2026-10-24 (the ground — source edit `2026-10-24 19:09:06`, addon built `19:09:49`, restaged `19:09:51`). The
+// marker digits are NOT re-pointed in place and no sentence above is rewritten: the clause is cited elsewhere BY
+// THAT DATE, so moving it would break the resolving citations rather than repair anything. Every numeric, site and
+// position claim above is unmoved, byte-for-byte, and is the claim this cell drives below.
+test('ADV-28 depth 126 is admitted and depth 127 is refused at the walk', () => {
+  for (const depth of [125, 126]) {
+    const admitted = instance();
+    admitted.write(['v'], 'mem', nestedArray(depth));
+    assert.deepEqual(admitted.read(['v']), nestedArray(depth),
+      `depth ${depth} is admitted: the walk admits it and the tree crosses intact`);
+  }
 
-  const { err } = refused(nestedArray(129));
-  const position = `member ${Array(129).fill('0').join('/')} of ${VALUE_POSITION}`;
+  // THE REFUSED SIDE IS ONE PATH SEGMENT PER NESTING LEVEL: the walk counts past its ceiling on entering the
+  // value at depth `127`, so the declared position names that value at the `127`-segment path below the root
+  // `value` position (`contract.md §4`'s clause (4); `parameter-semantics.md §2`).
+  const { err, inst } = refused(nestedArray(127));
+  const position = `member ${Array(127).fill('0').join('/')} of ${VALUE_POSITION}`;
   assertClass(err, 'a value over the walk ceiling', position);
+  assert.deepEqual(err.log, [],
+    'no attempt was opened: the refusal is reached before any store verb, so the failure form carries no log entry');
+  assert.deepEqual(inst.read([]), {},
+    'the refusal precedes every store verb: a refused depth-127 write creates no node, anchor or journal entry');
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
