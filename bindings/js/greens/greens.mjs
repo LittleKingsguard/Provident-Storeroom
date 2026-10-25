@@ -66,6 +66,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const LAYER = 'ENVELOPE/PURE';
 const APP_LAYER = 'NONE';
@@ -1190,6 +1191,121 @@ const g10 = { all: [] };
     !w2.threw && w2.value?.op?.seq === 2, w2.threw ? `threw ${fmt(w2.err)}` : fmt(w2.value?.op?.seq));
 }
 
+// ── ⟶ ADDED 2026-10-24 (`role_l1_test_writer`; `strata/decisions.md` `D-3`, `D-4`): THE ALLOWLIST MEASURED BY
+// REACHABILITY, AND THE MEASUREMENT IS THIS RUN'S OWN.
+//
+// **WHY THIS CODE IS HERE AND NOT IMPORTED.** The invariant has a home in the battery
+// (`bindings/js/test/pack-reachability.mjs`) and a cell that drives it in both directions. **A blind runner may
+// not import that module**: a greens instance exists to be an INDEPENDENT reading of the same law, so a defect in
+// one instrument must not report the same green in both. **The RULE is shared — this is `D-4`'s law and not a
+// convention — and the CODE is deliberately not.**
+//
+// **THE TWO RULES, EACH FORCED BY THE MANIFEST AS IT STANDS.**
+//   (1) THE PACKED SET IS EXPANDED, NOT COMPARED. The allowlist's fourth row is `src/entry/` — a DIRECTORY — so
+//       no equality against names can be written at all. A row is resolved by npm's own rule: a directory row
+//       carries every non-dot file beneath it, a file row that file, a row naming nothing is LOUD; and two facts
+//       of npm's behaviour are carried because forgetting either would report a false miss: **`package.json` is
+//       always packed whatever `files` says**, and a root `README*` / `LICEN[CS]E*` is always included.
+//   (2) THE REACHABLE SET IS THE CLOSURE OF THE RELATIVE SPECIFIERS OF THE HUB (`index.mjs`) AND THE BARREL
+//       (`src/constraint-kernel.mjs`), each resolved FROM THE FILE THAT CARRIES IT — with the one exception the
+//       code itself makes: `require_(…)` is the HUB's own `createRequire(import.meta.url)`, so
+//       `require_('./src/constraint-kernel.mjs')` sits inside a part and still resolves against the hub's
+//       directory. The same base rule the battery's instrument carries, arrived at independently.
+const GREENS_PKG_ROOT = path.dirname(fileURLToPath(new URL('../package.json', import.meta.url)));
+const GREENS_HUB = 'index.mjs';
+const GREENS_BARREL = 'src/constraint-kernel.mjs';
+const GREENS_NEVER_PACKED = new Set(['.git', '.hg', '.svn', 'CVS', 'node_modules', 'web_modules', '.npmrc',
+  'package-lock.json', '.DS_Store']);
+const GREENS_ALWAYS_INCLUDED = [/^readme(\..*)?$/i, /^licen[cs]e(\..*)?$/i];
+function greensChildren(absoluteDirectory) {
+  return fs.readdirSync(absoluteDirectory, { withFileTypes: true })
+    .map((entry) => ({ name: entry.name, isDir: entry.isDirectory() }))
+    .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+}
+function greensWalk(relativeDirectory, accumulated = []) {
+  const absolute = relativeDirectory === ''
+    ? GREENS_PKG_ROOT
+    : path.join(GREENS_PKG_ROOT, ...relativeDirectory.split('/'));
+  for (const child of greensChildren(absolute)) {
+    if (GREENS_NEVER_PACKED.has(child.name) || child.name.startsWith('.')) continue;
+    const relative = relativeDirectory === '' ? child.name : `${relativeDirectory}/${child.name}`;
+    if (child.isDir) greensWalk(relative, accumulated);
+    else accumulated.push(relative);
+  }
+  return accumulated;
+}
+function greensGlob(pattern) {
+  let source = '';
+  for (let index = 0; index < pattern.length; index += 1) {
+    const character = pattern[index];
+    if (character === '*' && pattern[index + 1] === '*') {
+      source += '.*'; index += 1;
+      if (pattern[index + 1] === '/') index += 1;
+    } else if (character === '*') source += '[^/]*';
+    else if ('\\^$.|?+()[]{}'.includes(character)) source += `\\${character}`;
+    else source += character;
+  }
+  return new RegExp(`^${source}$`);
+}
+function greensPackedSet(files) {
+  if (!Array.isArray(files)) return null;
+  const members = new Set(['package.json']);          // npm always packs it
+  for (const row of files) {
+    if (typeof row !== 'string' || row.trim() === '') return null;
+    const entry = row.replace(/^\.\//, '').replace(/\/+$/, '');
+    if (entry === '' || entry.startsWith('..')) return null;
+    const absolute = path.join(GREENS_PKG_ROOT, ...entry.split('/'));
+    if (fs.existsSync(absolute) && fs.statSync(absolute).isDirectory()) {
+      for (const member of greensWalk(entry)) members.add(member);
+    } else if (fs.existsSync(absolute) && fs.statSync(absolute).isFile()) {
+      members.add(entry);
+    } else if (/[*?[\]]/.test(entry)) {
+      const matched = greensWalk('').filter((member) => greensGlob(entry).test(member));
+      if (matched.length === 0) return null;
+      for (const member of matched) members.add(member);
+    } else return null;                                // a row naming nothing is a manifest defect
+  }
+  for (const child of greensChildren(GREENS_PKG_ROOT)) {
+    if (child.isDir || child.name === 'package.json') continue;
+    if (GREENS_ALWAYS_INCLUDED.some((pattern) => pattern.test(child.name))) members.add(child.name);
+  }
+  return [...members].sort();
+}
+function greensNonCodeMembers(manifest) {
+  const allowed = new Set(['package.json']);
+  for (const child of greensChildren(GREENS_PKG_ROOT)) {
+    if (child.isDir) continue;
+    if (GREENS_ALWAYS_INCLUDED.some((pattern) => pattern.test(child.name))) allowed.add(child.name);
+  }
+  for (const field of ['main', 'types', 'typings']) {
+    const value = manifest && manifest[field];
+    if (typeof value === 'string' && value !== '') allowed.add(value.replace(/^\.\//, ''));
+  }
+  return allowed;
+}
+const GREENS_RELATIVE_SPECIFIER = /(?:^|[^\w$.])(from|import|require_?)\s*\(?\s*(['"])(\.\.?\/[^'"\n]+)\2/g;
+function greensReachable() {
+  const queue = [GREENS_HUB, GREENS_BARREL];
+  const members = new Set();
+  let specifiers = 0;
+  while (queue.length > 0) {
+    const relative = queue.shift();
+    if (members.has(relative)) continue;
+    members.add(relative);
+    const bytes = fs.readFileSync(path.join(GREENS_PKG_ROOT, ...relative.split('/')), 'utf8');
+    GREENS_RELATIVE_SPECIFIER.lastIndex = 0;
+    let match = null;
+    while ((match = GREENS_RELATIVE_SPECIFIER.exec(bytes)) !== null) {
+      specifiers += 1;
+      const base = match[1].startsWith('require') ? path.posix.dirname(GREENS_HUB) : path.posix.dirname(relative);
+      const target = path.posix.normalize(path.posix.join(base, match[3]));
+      if (target.startsWith('..') || !fs.existsSync(path.join(GREENS_PKG_ROOT, ...target.split('/')))) return null;
+      if (!members.has(target)) queue.push(target);
+    }
+  }
+  return { members: [...members].sort(), specifiers };
+}
+
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 // JSG-12 — THE PACKAGE AND THE LAYER                                     18 assertions
 // ⟶ RE-DERIVED 2026-10-11 (U-STOREROOM-PUBLISH, `A82` + `A84`'s `A-1`): ONE identity cell moves to the
@@ -1380,16 +1496,54 @@ const g10 = { all: [] };
   // SET EQUALITY, `build/Release` excluded, and no `.node` at any entry. NO LOOSER FORM IS TAKEN: the fourth
   // path is asserted BY NAME, and the row additionally refuses a fifth entry and a `LICENSE` row (item 5's
   // standing prohibition: *"a `LICENSE` ROW ADDED TO THE MAIN PACKAGE'S `files` ARRAY IS A FINDING"*).
-  const FILES = ['index.mjs', 'README.md', 'index.d.ts', 'src/constraint-kernel.mjs'];
+  //
+  // **⟶ RE-DERIVED AGAIN 2026-10-24 (`role_l1_test_writer`; `strata/decisions.md` `D-3`, `D-4`, `D-8`): THE
+  // COUNT LIMB IS GONE AND A REACHABILITY LIMB STANDS IN ITS PLACE — AND THE AS-FILED READING ABOVE IS
+  // RE-EMITTED VERBATIM SO ITS SITE IS NOT LOST.** `D-3` obsoleted *"exactly four"* and `D-4` lifted the strict
+  // count whole (*"No declared arity and no declared exclusivity binds the `files` allowlist"*), so **the exact
+  // set equality against four name strings encodes a constraint this project no longer holds itself to — and it
+  // is not merely stale, it is UNSATISFIABLE BESIDE THE MANIFEST AS IT STANDS**, which is what made this the
+  // fifth red of the wave. **WHAT REPLACES IT IS `D-4`'S OWN READING: whatever the module requires by path must
+  // ship, and nothing it does not require may ride along.**
+  //
+  // **THE LIMBS ARE KEPT WHOLE, EVERY ONE OF THEM, AND EACH IS NAMED SO A LATER PASS CANNOT TAKE ONE WITH THE
+  // COUNT** (`D-3`'s own caution): `build/Release` is excluded · no `.node` at any entry · the `LICENSE` row is
+  // refused, read as `D-8` leaves it — **evidence-conditional**: `delivery` adds the row *"only if an e2e/install
+  // scenario shows a consumer or a scanner needs the row"*, and no scenario of this run has produced such a
+  // consumer, so the row stays out and its absence is asserted as the state the evidence leaves. **AND THE FIFTH
+  // LIMB — "a fifth entry refused" — IS NOT DROPPED; it is GENERALISED**: a fifth entry that nothing imports is
+  // now the `over` set below, which refuses ANY packed member that is neither reachable nor a declared non-code
+  // artefact. **THE NEW LIMB IS STRONGER THAN THE ONE IT REPLACES, NOT LOOSER**: four names is a shape; a packed
+  // set closed under import is the fact about whether the tarball can load at all.
   const filesList = Array.isArray(pkg?.files) ? pkg.files : null;
-  const filesSorted = filesList ? [...filesList].sort() : null;
   const filesBinaryFree = filesList
     ? filesList.every((f) => typeof f !== 'string' || (!f.includes('build/Release') && !f.endsWith('.node')))
     : false;
-  A('JSG-12.18', 'distribution.md §2.1 ITEM 6, LANDED 2026-10-16 on A121/A122 (the allowlist\'s FOURTH entry), read with item 1 (unmoved) and item 5 (the licence-row prohibition); PUB-DD-1; A85(1); PAR-PUB-3; contract.md §2.1 item 1; distribution.md §6.1 item 8', "the manifest's files allowlist is EXACTLY ['src/constraint-kernel.mjs','README.md','index.d.ts','index.mjs'] — the kernel's own module as the FOURTH entry, a fifth entry refused, no LICENSE row, no build/Release path and no .node entry",
-    filesSorted !== null && filesSorted.join(',') === [...FILES].sort().join(',') && filesBinaryFree
-      && !filesList.some((f) => typeof f === 'string' && /(^|\/)LICEN[CS]E$/i.test(f)),
-    filesList ? `${filesList.join(',')} (binary-free: ${filesBinaryFree})` : 'no files array');
+  const noLicenceRow = filesList
+    ? !filesList.some((f) => typeof f === 'string' && /(^|\/)LICEN[CS]E$/i.test(f))
+    : false;
+  // **(a) THE PACKED SET, EXPANDED BY npm'S RULE — the directory row resolved by a walk and not by equality.**
+  const packed = greensPackedSet(filesList);
+  // **(b) THE REACHABLE SET, THE CLOSURE OF THE HUB'S AND THE BARREL'S RELATIVE SPECIFIERS.**
+  const reachable = greensReachable();
+  // **(c) BOTH DIRECTIONS.** `missing` is the load-blocker — a file the published module imports and the tarball
+  // does not carry, which is the defect the entry's partition created while every leg of this battery was green.
+  // `over` is `D-4`'s other half, and the measured example is the co-tenant crate: `bindings/js/src/` carries
+  // `codec.rs` · `crossing.rs` · `facade.rs` · `lib.rs` beside the parts, so an allowlist naming `src/`
+  // wholesale would pack four files nothing imports.
+  const missing = (packed === null || reachable === null) ? null
+    : reachable.members.filter((member) => !packed.includes(member));
+  const over = (packed === null || reachable === null) ? null
+    : packed.filter((member) => !reachable.members.includes(member)
+      && !greensNonCodeMembers(pkg).has(member));
+  A('JSG-12.18', 'distribution.md §2.1 (`D-3`\'s retirement of the declared arity, `D-4`\'s reachability substitution, `D-8`\'s evidence-conditional `LICENSE` row; item 2\'s no-`.node` rule and item 5 as amended); PUB-DD-1; A85(1); PAR-PUB-3; contract.md §2.1 item 1; distribution.md §6.1 item 8', 'the manifest\'s `files` allowlist PACKS WHAT THE MODULE REACHES and nothing else: every file reachable from the hub `index.mjs` and the barrel `src/constraint-kernel.mjs` is in the packed set (0 missing), no packed member is unreachable and undeclared (0 over), no `LICENSE` row, no `build/Release` path and no `.node` entry',
+    missing !== null && over !== null
+      && missing.length === 0 && over.length === 0 && filesBinaryFree && noLicenceRow,
+    packed === null ? `the allowlist could not be expanded: ${filesList ? filesList.join(',') : 'no files array'}`
+      : reachable === null ? `the module graph is not closed on disk: ${packed.join(',')}`
+        : `${packed.join(',')} (binary-free: ${filesBinaryFree}, licence-row-free: ${noLicenceRow}) `
+          + `· missing=[${missing.join(',')}] · over=[${over.join(',')}] `
+          + `· reachable ${reachable.members.length} files over ${reachable.specifiers} specifiers`);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

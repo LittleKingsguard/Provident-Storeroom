@@ -158,6 +158,10 @@ import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
+import {
+  BARREL_RELATIVE_PATH, describeClosure, measurePackedClosure,
+} from './pack-reachability.mjs';
+
 import { storeCreate } from 'provident-storeroom';
 
 import {
@@ -1213,22 +1217,51 @@ test('cp_fail_outside_constraint_is_one_typeerror_at_every_one_of_the_three_func
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
-// §8  THE ALLOWLIST — `distribution.md §2.1` item 6 (landed 2026-10-16) and item 5 (in force), UNMOVED
+// §8  THE ALLOWLIST — `distribution.md §2.1` item 6 (landed 2026-10-16) and item 5 (in force)
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+// **⟶ RE-DERIVED 2026-10-24 (THE REACHABILITY PASS, `role_l1_test_writer`; `strata/decisions.md` `D-3`,
+// `D-4`, `D-8`): THE COUNT LIMB IS RETIRED AND A REACHABILITY LIMB STANDS IN ITS PLACE.** `D-3` obsoleted
+// *"exactly four"* on `files` and `D-4` lifted the strict count whole — *"No declared arity and no declared
+// exclusivity binds the `files` allowlist"* — so **an equality against four name strings encodes a constraint
+// this project no longer holds itself to**. **WHAT REPLACES IT IS THE PROPERTY THE COUNT WAS STANDING IN FOR
+// AND THE ONE THAT DECIDES WHETHER A TARBALL LOADS**: every file reachable from the hub (`index.mjs`) and from
+// the barrel (`src/constraint-kernel.mjs`) is in the packed set, and nothing unreachable rides along. **THE
+// INVARIANT HAS ONE HOME AND IT IS NOT HERE**: `bindings/js/test/publish.test.mjs`'s `P-PUB-7`
+// `S-MANIFEST the packed set is CLOSED UNDER IMPORT` cell asserts it in both directions AND drives the same
+// instrument against two mutated manifests so it is shown to fail. **This section reads the same measurement
+// for its own subject — the allowlist as the constraints unit publishes it — and neither copy is the weaker
+// one.** **NO OTHER LIMB IS TOUCHED**: the `LICENSE`-row refusal stays (read as `D-8` leaves
+// it, evidence-conditional) and the `.node` refusal stays, because `D-3`'s own caution says a pass that drops
+// the prohibitions with the count *"has destroyed the load-bearing half of the cell"*.
 
-test('cp_allowlist_the_main_packages_files_array_is_the_four_declared_entries', () => {
+test('cp_allowlist_the_packed_set_is_closed_under_import_and_no_licence_row_ships', () => {
   const manifest = JSON.parse(readFileSync(join(PACKAGE_DIR, 'package.json'), 'utf8'));
-  // `§2.1` item 6: "THE CONSTRAINT KERNEL'S OWN MODULE IS THE MAIN PACKAGE'S `files` ALLOWLIST's FOURTH
-  // ENTRY, AND THE SAME FOUR ENTRIES ARE THE WHOLE OF WHAT THE TARBALL SHIPS" — the entry STATED BY PATH as
-  // `src/constraint-kernel.mjs` RELATIVE TO THE MAIN PACKAGE'S ROOT, which is `bindings/js/`.
-  assert.deepEqual([...(manifest.files ?? [])].sort(),
-    ['README.md', 'index.d.ts', 'index.mjs', 'src/constraint-kernel.mjs'],
-    '`§2.1` item 6: the allowlist is FOUR entries — `index.mjs` · `README.md` · `index.d.ts` · the kernel\'s '
-    + 'own module — and the fourth is the kernel\'s, so the kernel\'s FILE TRAVELS with the surface that '
-    + 'drives it (`A122`). Read ' + JSON.stringify(manifest.files));
+  // **THE SHAPE IS A CONSEQUENCE OF REACHABILITY NOW** (`D-3`: *"the entry requires `./src/constraint-kernel.mjs`
+  // by path today, so that path must ship today … The count follows the code"*). **AND THE DIRECTORY ROW IS
+  // RESOLVED THROUGH THE PACKLIST AND NOT BY PATH EQUALITY** — the shipped allowlist names `src/entry/`, a
+  // DIRECTORY, so the packed set is the expansion npm itself applies (a walk of that directory, plus
+  // `package.json`, which npm always packs) and never a name-list comparison.
+  const measured = measurePackedClosure(PACKAGE_DIR, manifest);
+  assert.deepEqual(measured.missing, [],
+    '`D-4`: THE ALLOWLIST COVERS WHAT THE MODULE IMPORTS — every file reachable from the hub and the barrel is '
+    + 'packed, so a tarball built from this manifest loads. This limb replaced the retired four-entry count. '
+    + describeClosure(measured));
+  // **AND THE KERNEL'S PATH IS NAMED, EVEN THOUGH THE COUNT IS NOT**: `A122`'s fact survives its arity — the
+  // kernel travels with the surface that drives it, at `src/constraint-kernel.mjs` package-root-relative.
+  assert.ok(measured.packed.includes(BARREL_RELATIVE_PATH),
+    'the constraint kernel\'s own module is IN the packed set: it is reached by `require_` from the parts, never '
+    + 'exported and never a subpath, so its file must travel rather than its name be published');
+  assert.equal(measured.overPacked.length, 0,
+    'and NOTHING BESIDE THE REACHABLE SET travels (`D-4`\'s second half): `bindings/js/src/` is co-tenanted by '
+    + 'the Rust crate, so an allowlist that named `src/` wholesale would pack four `.rs` files nothing imports. '
+    + describeClosure(measured));
+  // `§2.1` item 5, read as `D-8` leaves it (EVIDENCE-CONDITIONAL): no scenario of this corpus has produced the
+  // consumer or scanner that needs the row, so the row stays OUT and its absence is asserted rather than
+  // assumed. `D-8`'s own words: *"`delivery` adds it only if an e2e/install scenario shows a consumer or a
+  // scanner needs the row, and otherwise it stays out."*
   assert.equal((manifest.files ?? []).includes('LICENSE'), false,
-    '`§2.1` item 5, STILL IN FORCE: a `LICENSE` row added to this array is a FINDING, the copy being the '
-    + 'release assembly step\'s and not the allowlist\'s');
+    '`§2.1` item 5 / `D-8`: no `LICENSE` row is in the allowlist — the copy is the release assembly step\'s '
+    + '(`§4.3` item 2), and no scenario of this corpus requires the row');
   assert.ok(!(manifest.files ?? []).some((f) => f.endsWith('.node')),
     '`§2.1` item 2 stands UNMOVED: no binary ships at any key on any target');
 });

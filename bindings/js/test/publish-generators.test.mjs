@@ -43,6 +43,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 import { moduleFiles, stageModuleTree } from './module-set.mjs';
+import {
+  BARREL_RELATIVE_PATH, HUB_RELATIVE_PATH, describeClosure, measurePackedClosure,
+} from './pack-reachability.mjs';
 
 // ---------------------------------------------------------------------------------------------
 // the contract's own constants, at the contract's own bytes (the red set's, read again here)
@@ -1307,13 +1310,21 @@ generator('NG-PUB-I', 'the shipped value type-checks against the declaration, an
   const shipped = measureAgainst('NG-PUB-I', null, () => {
     assertOpIsTheJournalRecord(dts);
     // THE SIX-ARTEFACT NOTICE CLAIM, AS THE DECLARED MECHANISM — the assembly step — NOT as a `files`
-    // entry: `§2.1` item 6 fixes the main package's `files` array as FOUR entries and NOTHING ELSE, so the
-    // copy cannot be a `files` entry and the claim is about the release's own assembly step (`§4.3` item 2).
+    // entry: the main package's allowlist cannot carry the copy (`§2.1` item 5, read as `D-8` leaves it), so
+    // the copy cannot be a `files` entry and the claim is about the release's own assembly step (`§4.3` item 2).
     assertSixNotices(readme);
-    assertAllowlistIsFour(mainManifest.files ?? []);
+    // **⟶ RE-DERIVED 2026-10-24 (THE REACHABILITY PASS, `role_l1_test_writer`; `strata/decisions.md` `D-3`,
+    // `D-4`): THE COUNT LIMB GOES AND A REACHABILITY LIMB STANDS IN ITS PLACE.** `D-3` obsoleted *"exactly
+    // four"* and `D-4` lifted the strict count whole, so `assertAllowlistIsFour`'s `deepEqual` against four
+    // name strings encoded a retired constraint. **WHAT REPLACES IT IS `D-4`'S OWN READING — *whatever the
+    // entry requires by path must ship*** — measured in both directions: the reachable set is packed, and
+    // nothing unreachable rides along (`bindings/js/src/`'s four `.rs` files are the measured example of the
+    // second). **THE `LICENSE` LIMB BESIDE IT IS KEPT, NOT TAKEN WITH THE COUNT** (`D-3`'s own caution), and it
+    // is read as `D-8` leaves it: the row is evidence-conditional and no scenario of this corpus requires it.
+    assertPackedSetIsClosedUnderImport(mainManifest.files ?? []);
     assert.equal((mainManifest.files ?? []).includes('LICENSE'), false,
-      'and the copy is NOT a `files` entry — the four-entry allowlist refuses the notice copy '
-      + '(`§2.1` item 6, read with item 5\'s prohibition)');
+      'and the copy is NOT a `files` entry — the allowlist refuses the notice copy '
+      + '(`§2.1` item 5, read with item 6\'s subject and `D-8`\'s evidence-conditional reading)');
     assert.equal(mainManifest.license, 'AGPL-3.0', 'site (i) reads the declared spelling');
   });
   assert.equal(shipped.verdict, 'PASS', `NG-PUB-I: THE PROPERTY DOES NOT HOLD AT THE SHIPPED BYTES — ${shipped.why}`);
@@ -1324,7 +1335,18 @@ generator('NG-PUB-I', 'the shipped value type-checks against the declaration, an
     'control-readme-states-the-copy-is-not-carried': () =>
       assertSixNotices('/** THE LICENCE OF RECORD IS `AGPL-3.0`.** the licence copy does NOT travel with every artefact'),
     'control-manifest-lists-license-in-files': () =>
-      assertAllowlistIsFour(['index.mjs', 'README.md', 'index.d.ts', 'LICENSE']),
+      assertPackedSetIsClosedUnderImport(['index.mjs', 'README.md', 'index.d.ts', 'LICENSE']),
+    // **★ AND THE CONTROL THIS PASS ADDS: THE MANIFEST THE PARTITION ACTUALLY LEFT BEHIND.** A control that
+    // only refuses a `LICENSE` row would leave the invariant itself unproven, since dropping the notice row is
+    // a prohibition this generator already carried: **this one drops the PARTS DIRECTORY and requires the
+    // reachability limb to report the thirteen files the hub and the barrel import and the tarball would not
+    // carry** — the defect that shipped while every leg of this battery was green.
+    'control-manifest-drops-the-parts-directory': () =>
+      assertPackedSetIsClosedUnderImport((mainManifest.files ?? []).filter((row) => row !== 'src/entry/')),
+    // and the second half of `D-4`, driven: a wholesale `src/` is CLOSED under import and still wrong, because
+    // it packs the co-tenant crate's four `.rs` files — the limb an equality on names could never see.
+    'control-manifest-names-the-whole-src-directory': () =>
+      assertPackedSetIsClosedUnderImport(['index.mjs', 'README.md', 'index.d.ts', 'src/']),
   };
   for (const [name, control] of Object.entries(controls)) {
     const result = measureAgainst('NG-PUB-I', name, control);
@@ -1341,12 +1363,33 @@ function assertSixNotices(readme) {
     '§2.3 item 2 / distribution.md §4.2 item 1: the shipped README declares that EACH OF THE SIX artefacts carries a copy');
   assert.ok(/assembly step/.test(normalized), 'and names the assembly step that lands the copy (`§4.3` item 2; `Q3-5`)');
 }
-function assertAllowlistIsFour(files) {
-  assert.deepEqual([...files].sort(),
-    ['README.md', 'index.d.ts', 'index.mjs', 'src/constraint-kernel.mjs'],
-    '§2.1 item 6: the main package\'s `files` array is FOUR entries — `index.mjs` · `README.md` · '
-    + '`index.d.ts` plus the kernel\'s own package-root-relative path `src/constraint-kernel.mjs` — and '
-    + 'NOTHING BESIDE THEM');
+/**
+ * **THE MAIN PACKAGE'S ALLOWLIST, ASSERTED AS THE ONE PROPERTY `D-4` LEFT BINDING — NOT AS A COUNT.**
+ *
+ * As filed this helper was `assertAllowlistIsFour`, and it compared `files` against four name strings. `D-3`
+ * obsoleted *"exactly four"* and `D-4` lifted the strict count whole (*"No declared arity and no declared
+ * exclusivity binds the `files` allowlist"*), **so that equality encoded a retired constraint and its own
+ * successor is `D-4`'s reading: whatever the module requires by path must ship.** The limb is measured by the
+ * same instrument the `P-PUB-7` invariant cell drives — `./pack-reachability.mjs` — and it is BOTH directions:
+ * the reachable set is packed (`missing`), and nothing nothing-imports rides along (`overPacked`).
+ *
+ * **THE DIRECTORY ROW IS RESOLVED THROUGH THE PACKLIST AND NOT BY PATH EQUALITY**, which is the mechanism this
+ * assertion cannot do without: the shipped allowlist names `src/entry/`, a directory, so a member list is a
+ * WALK of that directory plus `package.json` (npm packs it always) — never a comparison against names.
+ *
+ * **THE CONTROL SIDE IS UNCHANGED IN FORM**: every caller that hands this helper a mutated allowlist expects a
+ * THROW, so the verdict is turned into an `assert` rather than returned as data.
+ */
+function assertPackedSetIsClosedUnderImport(files) {
+  // **THE SHIPPED MANIFEST WITH ONLY ITS `files` ROW SET REPLACED**, so a control measures the allowlist and
+  // nothing beside it: the declaration the `.` arm's `types` condition names stays declared, and therefore stays
+  // a lawful packed member, in every control.
+  const manifest = JSON.parse(readFileSync(MAIN_MANIFEST, 'utf8'));
+  const measured = measurePackedClosure(PKG_DIR, { ...manifest, files });
+  assert.equal(measured.verdict, 'PASS',
+    '`D-4`: the allowlist and the module it publishes do not disagree — every file reachable from the hub '
+    + `(\`${HUB_RELATIVE_PATH}\`) and the barrel (\`${BARREL_RELATIVE_PATH}\`) is in the packed set, and nothing `
+    + 'unreachable rides along. ' + describeClosure(measured));
 }
 
 // =============================================================================================

@@ -63,6 +63,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 import { locateCarrier, moduleText, stageModuleTree } from './module-set.mjs';
+import {
+  BARREL_RELATIVE_PATH, HUB_RELATIVE_PATH, describeClosure, measurePackedClosure,
+} from './pack-reachability.mjs';
 
 // ---------------------------------------------------------------------------------------------
 // the contract's own constants, at the contract's own bytes
@@ -2360,6 +2363,16 @@ cell('P-PUB-6', 'S-SCOPE the five spellings agree across every home the contract
 //   `bugs` — STILL TRUE, STILL UNMET, and now MET BY THE SHIPPED VALUES rather than by their absence** ·
 //   **a PLACEHOLDER URL (`PAR-PUB-13`–`15`, refused and driven below) — STILL UNMET** · a secret written
 //   into a tracked byte (`contract.md §5.7`)
+// **⟶ RE-DERIVED 2026-10-24 (`role_l1_test_writer`; `strata/decisions.md` `D-3`, `D-4`, `D-8`): THE SHAPE'S
+// AUTHORITY IS REACHABILITY NOW, AND THE `files` LINE ABOVE IS READ THROUGH IT.** The retired constraint is the
+// ARITY (`§2.1` item `6`'s *"exactly FOUR"*, obsoleted by `D-3` and lifted whole by `D-4`), so **no cell of this
+// block compares `files` against a name list any more**: each reads the PACKED SET against the module's own
+// import closure instead, which is the property the arity was standing in for and the one that decides whether a
+// tarball loads at all. **AND ONE CELL IS ADDED FOR THAT INVARIANT ITSELF** (`S-MANIFEST the packed set is
+// CLOSED UNDER IMPORT`), because `D-4` declared it and no cell asserted it — and that gap is exactly what let
+// the entry's partition ship a package that could not load while this whole battery stayed green.
+// **★ AND ONE FAIL-STATE THE RETIRED ARITY COULD NEVER SEE IS ADDED BELOW: a file the module imports that the
+// tarball does not carry, and a packed member nothing imports.**
 // **THE AS-FILED STATE LINE READ** *"the three declared-absent metadata fields"* **AND ITS FAIL-STATE READ**
 // *"an unresolving `repository`/`homepage`/`bugs`"* — **BOTH RE-EMITTED HERE VERBATIM SO `git diff` HAS
 // NOTHING TO RECOVER. THE FIRST IS DISPOSED OF: `PUB-DD-7`'s reversal column writes the three fields *"the
@@ -2367,17 +2380,39 @@ cell('P-PUB-6', 'S-SCOPE the five spellings agree across every home the contract
 // AND IS NOW THE CELL'S OWN BITE** — see the scratch control inside the `S-MANIFEST` cell below.
 
 cell('P-PUB-7', 'S-MANIFEST `build/Release` leaves `files`, and no binary ships', async () => {
-  // `§2.1` item 1 / `PUB-DD-1` / `PAR-PUB-3`: the allowlist is `index.mjs` · `README.md` · `index.d.ts` and
-  // NOTHING ELSE; NO binary ships, at any key, on any target. **⟶ MOVED 2026-10-16 BY THE `A122` PASS, AND
-  // ONLY THIS EQUALITY MOVES: item `1`'s three names are THE RULE AS THAT ITEM AUTHORED IT and `§2.1` ITEM
-  // `6`, landed that date, is THE OPERATIVE READING — THE CONSTRAINT KERNEL'S OWN MODULE IS THE ARRAY'S
-  // FOURTH ENTRY (`A122`; `A121`), "the SAME FOUR ENTRIES are the whole of what the tarball ships", the
-  // entry stated by path as `src/constraint-kernel.mjs` RELATIVE TO THIS PACKAGE'S ROOT, `bindings/js/`.**
-  // The binary prohibition, the `postinstall` prohibition and the tracked-tree walk stand beside it.
+  // `§2.1` item 1 / `PUB-DD-1` / `PAR-PUB-3`: NO binary ships, at any key, on any target. **TWO EDITS HAVE
+  // LANDED ON THIS CELL AND BOTH ARE NAMEABLE, because what each one moved is not what the other did.**
+  //
+  // **⟶ EDIT ONE, 2026-10-16 (`A122`; `A121`): the allowlist's fourth entry.** `§2.1` item `6` landed that date
+  // and fixed the constraint kernel's own module as the array's fourth entry, stated by path as
+  // `src/constraint-kernel.mjs` relative to this package's root. **THE EQUALITY MOVED; THE PROHIBITIONS BESIDE
+  // IT DID NOT** — the binary prohibition, the `postinstall` prohibition and the tracked-tree walk are
+  // functional and security rules and no count touches them.
+  //
+  // **⟶ EDIT TWO, 2026-10-24 (THE REACHABILITY PASS, `role_l1_test_writer`; `strata/decisions.md` `D-3`,
+  // `D-4`): THE COUNT LIMB IS GONE AND A REACHABILITY LIMB STANDS IN ITS PLACE.** `D-3` obsoleted *"exactly
+  // four"* and `D-4` lifted the strict count whole (*"No declared arity and no declared exclusivity binds the
+  // `files` allowlist"*), **so a `deepEqual` against four name strings encodes a constraint the project no
+  // longer holds itself to — and it would fail the moment the fourth entry is honestly retired.** **THE
+  // REPLACEMENT IS `D-4`'s OWN READING — whatever the entry requires by path must ship — and it is STRICTLY
+  // STRONGER than the equality it replaces at the question the equality was standing in for**: four names is a
+  // shape; the closedness of the packed set under import is a fact about whether the tarball CAN LOAD. **The
+  // invariant itself lives in its own cell above (`S-MANIFEST the packed set is CLOSED UNDER IMPORT`), where it
+  // is asserted in both directions and made to fail against two mutated manifests; this cell reads the same
+  // instrument for the one direction the `files` array is here to carry.**
+  //
+  // **AND EVERY LIMB `D-3`'s OWN CAUTION NAMES IS KEPT, UNMOVED AND UNWEAKENED** — *"a pass that deletes the
+  // equality and takes the prohibitions with it has destroyed the load-bearing half of the cell"*.
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
-  assert.deepEqual([...(manifest.files ?? [])].sort(),
-    ['README.md', 'index.d.ts', 'index.mjs', 'src/constraint-kernel.mjs'],
-    '`§2.1` item 6: exactly FOUR entries, the fourth being the constraint kernel\'s own module');
+  const measured = measurePackedClosure(PKG_DIR, manifest);
+  assert.deepEqual(measured.missing, [],
+    '`D-4` (`strata/decisions.md`): the allowlist COVERS what the module imports — every file the entry requires by '
+    + 'path ships. This is the limb that replaced the retired four-name equality, and it is a fact about loading '
+    + 'rather than about arity. ' + describeClosure(measured));
+  assert.ok(measured.packed.includes(BARREL_RELATIVE_PATH),
+    '`A122` STANDS AS A FACT ABOUT WHAT SHIPS even with its arity retired: the constraint kernel\'s own module is in '
+    + 'the packed set, so the kernel travels with the surface that drives it — reached at `require_` from the entry, '
+    + 'never exported and never a subpath');
   assert.ok(!(manifest.files ?? []).includes('build/Release'), '`build/Release` LEAVES `files`');
   assert.ok(!(manifest.files ?? []).some((f) => f.endsWith('.node')), 'no `.node` is published');
   assert.equal(manifest.scripts?.postinstall, undefined, '`PUB-DD-1`: no `postinstall` build-on-install route');
@@ -2392,6 +2427,123 @@ cell('P-PUB-7', 'S-MANIFEST `build/Release` leaves `files`, and no binary ships'
     return acc;
   };
   assert.deepEqual(walk(PKG_DIR), [], 'NO binary is committed to the tracked tree');
+});
+
+// ---------------------------------------------------------------------------------------------
+// ★ P-PUB-7 — THE INVARIANT `D-4` DECLARED AND NO CELL ASSERTED
+// ---------------------------------------------------------------------------------------------
+// **ADDED 2026-10-24 BY THE REACHABILITY PASS (`role_l1_test_writer`), AND IT IS THE CELL THAT WOULD HAVE
+// CAUGHT THE DEFECT THE PARTITION CREATED.** `D-3` retired the declared arity on `files` and `D-4` replaced it
+// with **reachability** — *whatever the entry requires by path must ship in the tarball* — **and the authority
+// log's own `FINDING` records that nothing asserted it**: the entry was cut into a hub plus thirteen parts under
+// `src/entry/`, the allowlist still named four entries, **and every leg of this battery stayed green while a
+// tarball built from that manifest carried the hub, the barrel and NONE of the parts they import.** The
+// published package could not load — `ERR_MODULE_NOT_FOUND` on the first `import`, on every platform — and the
+// reason no instrument saw it is structural rather than accidental: **every drive in this corpus runs against
+// the CHECKOUT, where the parts sit beside the hub. The parts being on disk is what hid their absence from the
+// tarball.**
+//
+// **SO THIS CELL READS THE PACKED SET RATHER THAN THE CHECKOUT'S DIRECTORY**, which is the one reading no other
+// cell in this file takes. **AND IT RESOLVES THE DIRECTORY ROW THROUGH THE PACKLIST AND NOT BY PATH
+// EQUALITY**: the shipped allowlist's fourth row is `src/entry/`, a DIRECTORY, so an equality test against the
+// packed members cannot even be written — the row is expanded by npm's own rule (a walk of the directory, plus
+// `package.json` which npm always packs, plus the root `README*` / `LICEN[CS]E*` that npm always includes), and
+// the expansion is the eighteen members `npm pack --dry-run` reports for this manifest today.
+//
+// **BOTH DIRECTIONS ARE ASSERTED, BECAUSE `D-4` HAS TWO HALVES AND THEY CATCH DIFFERENT DEFECTS.** The first is
+// the load-blocker (`missing`): a file the module imports that the tarball does not carry. The second is the
+// limb that refuses a wholesale `src/`: `bindings/js/src/` is CO-TENANTED by the Rust crate — four `.rs` files
+// sit beside `entry/` and the barrel — so an allowlist that named `src/` would pack four files nothing imports
+// (`overPacked`). **The two controls at the end of this cell drive the SAME instrument against two mutated
+// manifests and REQUIRE it to report each defect**, so the cell cannot pass by being unable to fail
+// (`PUB-R-5`'s standing rule, which `NG-PUB-I`'s control ledger states for the generators).
+cell('P-PUB-7', 'S-MANIFEST the packed set is CLOSED UNDER IMPORT: every reachable file ships, and no unreachable one does', async () => {
+  const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
+  const measured = measurePackedClosure(PKG_DIR, manifest);
+  // THE MEASUREMENT, PRINTED, SO A READER JUDGES THE SETS AND NOT THIS CELL'S INTENTION.
+  console.log(`\n[P-PUB-7/S-MANIFEST] the packed set against the module's own reachability — ` +
+    `\`D-3\`/\`D-4\` (\`strata/decisions.md\`), measured at the shipped manifest:\n  ${describeClosure(measured)}`);
+
+  // ---- (1) THE VERDICT, IN BOTH DIRECTIONS ----
+  assert.equal(measured.verdict, 'PASS',
+    '`D-4`: THE PACKED SET IS NOT CLOSED UNDER IMPORT — the allowlist and the module it publishes disagree, and '
+    + 'the published package\'s first `import` fails where they do. ' + describeClosure(measured));
+  // ---- (2) THE LOAD-BLOCKER, ASSERTED AS ITS OWN DIRECTION ----
+  assert.deepEqual(measured.missing, [],
+    '`D-4` / the `FINDING` of 2026-10-24: EVERY file reachable from the hub and from the barrel is in the PACKED '
+    + 'set. A member here is imported by the published module and absent from the tarball, which is the exact '
+    + 'defect the partition created while this battery was green');
+  // ---- (3) THE OTHER HALF OF `D-4` — NOTHING UNREACHABLE RIDES ALONG ----
+  assert.deepEqual(measured.overPacked, [],
+    '`D-4`: and NOTHING BESIDE THE REACHABLE SET travels. A member here is packed by an allowlist row, imported '
+    + 'by nothing and not a declared non-code artefact — the limb that refuses a wholesale `src/`, whose four '
+    + '`.rs` files sit in the co-tenanted `bindings/js/src/` beside the parts directory');
+  // ---- (4) THE REACHABLE SET IS DERIVED BY IMPORT AND IS NOT THE DIRECTORY WALK ----
+  // **THE DISTINCTION THIS ASSERTION KEEPS ALIVE:** a walk of `src/entry/` would answer "fifteen" whatever the
+  // hub imports, so it cannot see an orphan part. The reachable set is the CLOSURE OF THE SPECIFIERS, so a
+  // fourteenth part that nothing imports is an ORPHAN and this assertion names it as one.
+  const partsOnDisk = readdirSync(join(PKG_DIR, 'src', 'entry'))
+    .filter((name) => name.endsWith('.mjs')).sort().map((name) => `src/entry/${name}`);
+  assert.ok(partsOnDisk.length > 0, 'the parts directory carries its parts — a control that walked nothing would be vacuous');
+  assert.deepEqual(measured.reachable.filter((member) => member.startsWith('src/entry/')), partsOnDisk,
+    `\`D-14\`/\`D-4\`: every part on disk is reached BY AN IMPORT from the hub or the barrel, so the reachable set `
+    + 'and the parts directory are the same set. A part on disk and absent from this list is an ORPHAN: packed '
+    + 'by the directory row and imported by nothing');
+  assert.deepEqual([measured.reachable.includes(HUB_RELATIVE_PATH), measured.packed.includes(HUB_RELATIVE_PATH)],
+    [true, true], 'both ROOTS are named: the hub `index.mjs` is reachable and packed');
+  assert.deepEqual([measured.reachable.includes(BARREL_RELATIVE_PATH), measured.packed.includes(BARREL_RELATIVE_PATH)],
+    [true, true], 'and the barrel `src/constraint-kernel.mjs` is reachable and packed — the explicit path the '
+    + 'manifest names beside the directory row, which no glob of the parts can express');
+  // ---- (4b) THE MEMBERS OUTSIDE THE REACHABLE SET ARE EXACTLY THE DECLARED NON-CODE ONES ----
+  // **AND IT IS ASSERTED AS A SET EQUALITY AND NOT AS A FIGURE, DELIBERATELY** (`D-3`/`D-4`'s own lesson): the
+  // measured sizes — eighteen packed, fifteen reachable, forty-one relative specifiers, the numbers `npm pack
+  // --dry-run` reports for this manifest today — are PRINTED above so a reader can see them, and **no cell pins
+  // them**, because a fourteenth part or a twelfth specifier is a LAWFUL change and a pinned figure would go red
+  // on the commit that lands it. **What is pinned is the relation**: everything the tarball carries that the
+  // module does not import is one of `package.json`, the root `README*`/`LICEN[CS]E*` npm always includes, or the
+  // path the manifest's own resolution fields name.
+  const packedOutsideReachable = measured.packed.filter((member) => !measured.reachable.includes(member));
+  assert.deepEqual(packedOutsideReachable,
+    measured.allowedNonCode.filter((member) => measured.packed.includes(member)),
+    '`D-4`: the packed set is the reachable set PLUS the declared non-code artefacts and nothing else — '
+    + `${JSON.stringify(packedOutsideReachable)} is what travels beyond the module graph, and the declaration `
+    + `admits ${JSON.stringify(measured.allowedNonCode)}`);
+
+  // ---- (5) THE TWO CONTROLS: THE SAME LOGIC, DRIVEN AGAINST MANIFESTS THAT ARE WRONG ----
+  // **A CELL THAT CANNOT FAIL IS NOT AN INSTRUMENT.** Each control mutates the SHIPPED manifest IN MEMORY (no
+  // byte of the tree is written) and requires the instrument to report the defect it just created.
+  const withoutParts = {
+    ...manifest,
+    files: (manifest.files ?? []).filter((row) => row !== 'src/entry/'),
+  };
+  const dropped = measurePackedClosure(PKG_DIR, withoutParts);
+  assert.equal(dropped.verdict, 'FAIL',
+    'control-allowlist-drops-the-parts-directory: removing `src/entry/` from `files` must FAIL this instrument '
+    + '— this is the manifest the partition left behind, and it is the state every leg of this battery called green');
+  assert.deepEqual(dropped.missing, partsOnDisk,
+    'control-allowlist-drops-the-parts-directory: and it must report EVERY ONE of the thirteen parts as MISSING '
+    + 'from the tarball, named file by file — a control that reported a set smaller than the parts would leave '
+    + 'the instrument blind to the rest');
+  const wholesale = measurePackedClosure(PKG_DIR, {
+    ...manifest,
+    files: ['index.mjs', 'README.md', 'index.d.ts', 'src/'],
+  });
+  assert.equal(wholesale.verdict, 'FAIL',
+    'control-allowlist-names-the-whole-src-directory: a `src/` row packs the co-tenant crate\'s bytes, so it '
+    + 'must FAIL this instrument — and it is a control on the SECOND direction only, since a wholesale `src/` '
+    + 'carries every part and therefore reports NOTHING missing');
+  assert.deepEqual(wholesale.missing, [],
+    'control-allowlist-names-the-whole-src-directory: the wholesale row is closed under import (0 missing), '
+    + 'which is exactly why the over-pack direction has to exist');
+  const crateFiles = readdirSync(join(PKG_DIR, 'src'))
+    .filter((name) => name.endsWith('.rs')).sort().map((name) => `src/${name}`);
+  assert.ok(crateFiles.length > 0, 'the co-tenant crate\'s files are on disk — the over-pack control is not vacuous');
+  assert.deepEqual(wholesale.overPacked, crateFiles,
+    'control-allowlist-names-the-whole-src-directory: and it must name the four `.rs` files the wholesale row '
+    + 'would pack — the measured example `D-4`\'s second half exists for');
+  console.log(`[P-PUB-7/S-MANIFEST] the two controls, measured: dropping \`src/entry/\` → ${dropped.missing.length} `
+    + `MISSING (${JSON.stringify(dropped.missing)}); naming \`src/\` → ${wholesale.overPacked.length} PACKED BUT `
+    + `UNREACHABLE (${JSON.stringify(wholesale.overPacked)})`);
 });
 
 cell('P-PUB-7', 'S-TYPES `index.d.ts` is present, authored, and listed', async () => {
@@ -2602,18 +2754,40 @@ cell('P-PUB-7', 'S-MANIFEST the licence notice travels with all six artefacts', 
   const noticeBearing = ['provident-storeroom', ...FIVE_NAMES];
   assert.equal(noticeBearing.length, 6, '`distribution.md §6.3`: SIX artefacts carry a notice');
   // **(1) THE MAIN PACKAGE'S OWN HALF, ASSERTED AS THE CONTRADICTION-FREE PAIR IT IS.** `§2.1` ITEM `6`,
-  // LANDED 2026-10-16, fixes the allowlist at FOUR entries — the three above plus THE CONSTRAINT KERNEL'S
-  // OWN MODULE — while ITEM `5`, STILL IN FORCE, keeps the LICENCE COPY OUT OF IT. **SO THE TWO CLAUSES ARE
-  // READ TOGETHER AND THE PROHIBITION IS THE `LICENSE` ROW'S AND NOT "A FOURTH ENTRY"'S:** the copy is an
-  // ARTEFACT-LEVEL fact and no `files` entry may carry it, and the fourth entry the array DOES carry is the
-  // kernel's (`A122`; `A121`). ⟶ THE EQUALITY MOVES TO THE FOUR; THE `LICENSE` PROHIBITION BESIDE IT DOES NOT.
-  assert.deepEqual([...(mainManifest.files ?? [])].sort(),
-    ['README.md', 'index.d.ts', 'index.mjs', 'src/constraint-kernel.mjs'],
-    '`§2.1` item 6: the main package\'s allowlist is FOUR entries — `index.mjs` · `README.md` · `index.d.ts` · '
-    + 'the constraint kernel\'s `src/constraint-kernel.mjs` — and the kernel travels because it is behind the '
-    + 'surface, not beside it');
+  // LANDED 2026-10-16, fixed the allowlist at FOUR entries — the three above plus THE CONSTRAINT KERNEL'S
+  // OWN MODULE — while ITEM `5` keeps the LICENCE COPY OUT OF IT. **SO THE TWO CLAUSES ARE READ TOGETHER AND
+  // THE PROHIBITION IS THE `LICENSE` ROW'S AND NOT "A FOURTH ENTRY"'S:** the copy is an ARTEFACT-LEVEL fact and
+  // no `files` entry may carry it, and the entry the array carries beside the three names is the kernel's
+  // (`A122`; `A121`).
+  //
+  // **⟶ RE-DERIVED 2026-10-24 (THE REACHABILITY PASS, `role_l1_test_writer`; `strata/decisions.md` `D-3`,
+  // `D-4`, `D-8`): THE EQUALITY GOES AND A REACHABILITY LIMB TAKES ITS PLACE; THE `LICENSE` PROHIBITION BESIDE
+  // IT IS READ AS `D-8` LEAVES IT.** `D-3` obsoleted *"exactly four"* and `D-4` lifted the strict count whole,
+  // so the four-name `deepEqual` encoded a constraint the project no longer holds itself to. **THE SUBSTITUTE IS
+  // `D-4`'S OWN READING READ AT THIS CELL'S SUBJECT** — *"whatever the entry requires by path must ship"* — and
+  // it belongs HERE rather than only in the invariant's own cell because THIS cell is where the two clauses were
+  // read together: the copy stays out of `files` **while the reachable set travels**, and that pair is what makes
+  // the prohibition contradiction-free instead of an accident of arity. **IT IS STRICTLY STRONGER THAN THE
+  // EQUALITY IT REPLACES AT THE QUESTION THE EQUALITY WAS ASKED**: four names is a shape, and a closed packed set
+  // is the fact about whether the tarball loads.
+  //
+  // **AND THE PROHIBITION ITSELF IS KEPT, WITH `D-8`'S MEASURED STATUS RECORDED RATHER THAN GLOSSED.** `D-8`
+  // makes the `LICENSE` row **evidence-conditional** — *"`delivery` adds it only if an e2e/install scenario shows
+  // a consumer or a scanner needs the row, and otherwise it stays out"* — so the refusal below is no longer a
+  // rule about arity and is asserted as the state the evidence leaves: **no scenario of this corpus has produced
+  // the consumer that needs the row**, the six notices being the release's own assembly step's work (`§4.3` item
+  // 2), so the row stays out and its absence is asserted here. **`D-8` also names what does NOT move with the
+  // arity: the carriage mechanism, `PUB-DD-11`'s *not a fifth declaration site*, and `DD-43`'s no persisting
+  // `LICENSE` byte under `bindings/js/`.**
+  const measured = measurePackedClosure(PKG_DIR, mainManifest);
+  assert.deepEqual(measured.missing, [],
+    '`D-4` (`strata/decisions.md`): the main package\'s packed set COVERS what its module imports — every file '
+    + 'the entry requires by path ships. This is the limb that replaced the retired four-name equality, and it is '
+    + 'read here because this is the cell that reads the allowlist and the licence copy together. '
+    + describeClosure(measured));
   assert.equal((mainManifest.files ?? []).includes('LICENSE'), false,
-    'and therefore no `LICENSE` `files` entry exists — the copy is the assembly step\'s, not the allowlist\'s');
+    'and therefore no `LICENSE` `files` entry exists — the copy is the assembly step\'s, not the allowlist\'s '
+    + '(`D-8` leaves the row evidence-conditional and no scenario of this corpus requires it)');
   assert.equal(mainManifest.license, 'AGPL-3.0', '`§2.3` item 1 site (i): the manifest\'s own field reads the declared spelling');
   // **(2) THE DECLARED MECHANISM, READ AT THE HOME THAT CARRIES IT** — the shipped `README.md`, which `§2.1`
   // item 3 makes the consumer-facing home of the distribution's answers, asserts the six-artefact claim AND
