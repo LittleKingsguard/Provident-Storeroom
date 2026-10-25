@@ -66,10 +66,12 @@ import { storeCreate } from 'provident-storeroom';
 import {
   DECLARED_SURFACE, DECLARED_SURFACE_NAMES_SORTED, STANDING_FOUR, PER_VERB_NINE,
   THE_THREE_THAT_ARE_NOT_ENTRIES, THE_FROZEN_FIVE, OPEN_OWED,
-  ADDON_ARTEFACT, PACKAGE_ENTRY, DELETED_WRAPPER_NAMES,
+  ADDON_ARTEFACT, PACKAGE_ENTRY, PKG_DIR, DELETED_WRAPPER_NAMES,
   OWED_STRUCTURE_TOKENS, OWED1_TOKEN_ASSERTION_SHAPES,
   require_, addonKeySet, generated, isTheDeclaredForm, isTheArtefactForm, callAndClassify,
+  deletedWrapperCallSites,
 } from './addon-surface-support.mjs';
+import { moduleCodeFiles, moduleCodeLines } from './module-set.mjs';
 
 // ── THE STORE, BUILT THROUGH THE PACKAGE'S ONE DECLARED FACTORY ────────────────────────────────────────
 // `export-set-and-dispatch.md §1`'s `storeCreate` row: arity `1`, *"the construction"*. **THE MEMORY TIER IS
@@ -1077,23 +1079,25 @@ test('sas_d5_s_table_remove_the_retirement_never_removes_the_table_and_the_secon
 // ONE-PASS EDIT THAT SWEEPS ONLY THE WRAPPERS WILL MISS IT."*
 //
 // **THE INSTRUMENT IS A TEXT READ OF THE ENTRY, WHICH IS THE CLAUSE'S OWN INSTRUMENT** (`S-UNWRAP-SITES`:
-// *"grep"*). **AND IT IS THE ONE PLACE THIS FILE READS `index.mjs` — FOR THE DELETED NAMES AND NOTHING ELSE.
-// No cell derives a behaviour from that file's bytes: the counts below are the clause's and the cell asserts
-// their ABSENCE, which is a claim about what the split deletes and no claim about what it adds.**
+// *"grep"*). **AND IT READS THE MODULE'S OWN CLOSED SET — THE HUB, THE GLOB OF `src/entry/*.mjs` AND THE
+// BARREL — BECAUSE THAT IS WHAT "THE ENTRY" NOW IS** (`strata/decisions.md`'s FINDING class (3), 2026-10-24).
+// The scan used to read `bindings/js/index.mjs` alone, which was the whole module until the entry was cut; the
+// hub now carries 1,409 of the module's 6,350 lines, so a scan of it alone answers "no live site" because it
+// **no longer carries the code the clause is about** — a green manufactured by reading the wrong file. The
+// reader is `moduleCodeLines`, which blanks comments and LABELS every line with the file it stands in, so a
+// surviving site is reported as `src/entry/delivery.mjs:535`, not as a bare `:1151`.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
 
-/** **A LINE THAT CARRIES A DELETED WRAPPER NAME AS A CALL.** **THE COUNT THE CLAUSE STATES IS A COUNT OF
- *  CALL SITES AND NOT OF WORDS** (`js-unwrap.md §1`–`§2`): a documentary mention of the name inside a comment
- *  is not a call site, and the red set must not fail on the prose that RECORDS the deletion. **So comments are
- *  stripped first and the call shape is matched second** — the same two-step the sibling unit's `P-ADA-2`
- *  drive uses for its own three forbidden strings (`S-CORE-PURE`: *"in the STRIPPED code"*). */
+/** **EVERY CODE LINE OF THE MODULE, COMMENTS BLANKED AND LABELLED WITH ITS FILE.** **THE COUNT THE CLAUSE
+ *  STATES IS A COUNT OF CALL SITES AND NOT OF WORDS** (`js-unwrap.md §1`–`§2`): a documentary mention of the
+ *  name inside a comment is not a call site, and the red set must not fail on the prose that RECORDS the
+ *  deletion — the same two-step the sibling unit's `P-ADA-2` drive uses for its own three forbidden strings
+ *  (`S-CORE-PURE`: *"in the STRIPPED code"*). **The blanking is LEXICAL** (`module-set.mjs`): the two-step
+ *  regex this file used before paired an OPEN-COMMENT marker standing inside a line comment with the first
+ *  CLOSE-COMMENT marker 700 lines later, and blanked LIVE CODE with it — the one failure mode a text instrument
+ *  must not have. */
 function strippedEntryLines() {
-  const source = readFileSync(PACKAGE_ENTRY, 'utf8');
-  const withoutBlockComments = source.replace(/\/\*[\s\S]*?\*\//g, (block) => block.replace(/[^\n]/g, ' '));
-  return withoutBlockComments.split('\n').map((line, index) => {
-    const lineComment = line.indexOf('//');
-    return { number: index + 1, text: lineComment === -1 ? line : line.slice(0, lineComment) };
-  });
+  return moduleCodeLines(PKG_DIR);
 }
 
 test('sas_d6_s_unwrap_sites_the_two_deleted_wrappers_have_zero_live_call_sites', () => {
@@ -1102,20 +1106,15 @@ test('sas_d6_s_unwrap_sites_the_two_deleted_wrappers_have_zero_live_call_sites',
     + 'carry eight distinct verb strings — and `writeCall(state, args, fault)`, which "`write`, and only '
     + '`write`" reaches. "A pass that reads only the generic wrapper will miscount the sites, which is why '
     + 'both are named here"');
-  const lines = strippedEntryLines();
-  const live = [];
-  for (const line of lines) {
-    for (const wrapper of DELETED_WRAPPER_NAMES) {
-      // THE CALL SHAPE, at the entry's own spelling: a bare `wrapper(` or an `addon_.wrapper(`.
-      if (new RegExp(`(^|[^.\\w$])${wrapper}\\s*\\(`).test(line.text)) {
-        live.push(`${wrapper} at :${line.number}`);
-      }
-    }
-  }
+  // THE CALL SHAPE IS THE SUPPORT FILE'S (`deletedWrapperCallSites`), because the shape needs ONE limb the raw
+  // regex cannot carry: the two wrappers are 3-ary and every one of their sites passed the store's state, so a
+  // NO-ARGUMENT call — `carryRefusal`'s own callback parameter, called as `return call();` — names a different
+  // binding and is not a wrapper site. Every other occurrence still counts.
+  const live = deletedWrapperCallSites(moduleCodeFiles(PKG_DIR), DELETED_WRAPPER_NAMES);
   assert.deepEqual(live, [],
     'P-SAS-6 · S-UNWRAP-SITES — "grep for the deleted wrapper names; zero live call sites" (`contract.md §5`); '
     + 'failure list: "a surviving wrapper call". `js-unwrap.md §5`: "EACH MEMBER CALLS ITS OWN VERTICAL ENTRY '
-    + `DIRECTLY. The verb string disappears." Live sites in the stripped entry: ${JSON.stringify(live)}`);
+    + `DIRECTLY. The verb string disappears." Live sites in the stripped module: ${JSON.stringify(live)}`);
 });
 
 test('sas_d6_s_unwrap_sites_each_member_reaches_its_own_entry_and_no_members_entry_belongs_to_another_verb', () => {
@@ -1175,7 +1174,7 @@ test('sas_d6_s_state_id_gone_no_state_id_survives_at_any_of_its_three_sites', ()
   const lines = strippedEntryLines();
   const occurrences = lines
     .filter((line) => /state\s*\.\s*id\b/.test(line.text))
-    .map((line) => `:${line.number}`);
+    .map((line) => line.where);
   assert.deepEqual(occurrences, [],
     'P-SAS-6 · S-STATE-ID-GONE — "grep for `state.id`; zero occurrences" (`contract.md §5`); failure list: '
     + '"a surviving `state.id`". `js-unwrap.md §4` names THREE sites and says why: "THE STORE\'S INTEGER '

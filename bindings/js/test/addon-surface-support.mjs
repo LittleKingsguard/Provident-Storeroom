@@ -263,6 +263,55 @@ export function generated(status, subject, container) {
  *  grep-shaped property (`S-UNWRAP-SITES`, `S-STATE-ID-GONE`) reads the declaration rather than executing it. */
 export const DELETED_WRAPPER_NAMES = ['call', 'writeCall'];
 
+/**
+ * **A LIVE SITE OF A DELETED WRAPPER NAME, READ OVER THE MODULE'S OWN CLOSED SET.**
+ *
+ * **⟶ WHY THIS HELPER EXISTS AT ALL (2026-10-24, `strata/decisions.md`'s FINDING class (3)).** The two cells
+ * that assert `S-UNWRAP-SITES` used to read `bindings/js/index.mjs` — which WAS the whole module. After the
+ * entry's cut the hub is 1,409 lines of the module's 6,350, so a scan of it alone answers *"no live site"*
+ * because it no longer carries the code the clause is about: **a green that is really a scan of the wrong
+ * file.** The subject is therefore the module's own closed set — the hub, the GLOB of `src/entry/*.mjs` and the
+ * barrel — read through `module-set.mjs`, which is the same set every staged tree carries.
+ *
+ * **AND THE SHAPE IS SHARPENED BY ONE DOCUMENTED LIMB, BECAUSE A NAME IS NOT A BINDING.** `js-unwrap.md §1`
+ * deletes two WRAPPERS — `call(state, verb, args)` and `writeCall(state, args, fault)`, both 3-ary, whose
+ * thirteen call sites each passed the store's state and the verb. **A call with NO ARGUMENTS cannot be one of
+ * them**, and this module has such a call: `src/entry/state.mjs`'s `carryRefusal(call, args)` calls its own
+ * CALLBACK PARAMETER as `return call();`. A predicate that could not tell a parameter from the deleted wrapper
+ * would go red on a correct landing the moment its subject widened — so an occurrence is a LIVE SITE only where
+ * the parenthesised argument list that follows the name is NON-EMPTY. **Nothing is forgiven beyond that**: a
+ * one-argument call still counts, every argument shape the wrappers ever took counts, and the assertion the
+ * cells make stays *"zero live sites"*.
+ */
+export function deletedWrapperCallSites(codeFiles, names) {
+  const live = [];
+  for (const file of codeFiles) {
+    const text = file.text;
+    for (const name of names) {
+      const pattern = new RegExp(`(^|[^.\\w$])${name}\\s*\\(`, 'g');
+      let match = null;
+      while ((match = pattern.exec(text)) !== null) {
+        const open = match.index + match[0].length - 1; // the `(` itself
+        let depth = 0;
+        let close = open;
+        for (let i = open; i < text.length; i += 1) {
+          if (text[i] === '(') depth += 1;
+          else if (text[i] === ')') {
+            depth -= 1;
+            if (depth === 0) { close = i; break; }
+          }
+        }
+        const args = text.slice(open + 1, close).trim();
+        if (args.length === 0) continue; // a no-argument call names some OTHER binding (a callback parameter)
+        const line = text.slice(0, match.index).split('\n').length;
+        live.push(`${file.relativePath}:${line} ${name}(${args.split('\n')[0].trim()}`);
+      }
+    }
+  }
+  return live;
+}
+
+
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
 // 5. THE FORM, READ AT ITS OWN SHAPE — and WHY NO TOKEN IS ASSERTED HERE
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════

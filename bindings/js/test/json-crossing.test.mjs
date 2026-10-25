@@ -3972,6 +3972,48 @@ function crossingIsKernelFile(file) {
   return CROSSING_KERNEL_PART_NAME.test(file.slice(at + CROSSING_KERNEL_PARTS_PREFIX.length));
 }
 
+/// **THE MODULE'S OWN PARTS' DIRECTORY — EVERY PART, NOT ONLY THE KERNEL'S** (`strata/decisions.md` `D-33` and
+/// the entry cut it authorised; `docs/L1/entry-subdivision.md` §1). The kernel's five parts and the entry's
+/// eight share `bindings/js/src/entry/`, so a take whose frame names `state.mjs`, `constraints.mjs`,
+/// `delivery.mjs` or `carrier.mjs` names **the crossing's own file** just as an `index.mjs` frame does — the
+/// file was one file until this cut and the rows did not move with it.
+///
+/// **⟶ AND THIS IS THE CLASS THE LAST REPAIR DID NOT GENERALISE (`strata/decisions.md`'s FINDING of 2026-10-24,
+/// class (2)).** The classifier was widened for the KERNEL cut by naming a PREFIX (`entry/kernel-`), which is a
+/// property of the kernel's parts and not of the module's; the entry's cut then put frames at `state.mjs:386`,
+/// `state.mjs:593`, `constraints.mjs:95` and `constraints.mjs:96` in front of the same reader and item
+/// `(2d)(iv)` classified them `UNATTRIBUTED` — a violation by this cell's own design, so `JC-TC-65` went red for
+/// the reason the classifier exists to catch.
+///
+/// **SO THE IDENTITY IS THE DIRECTORY AND THE HUB, AND THE `kernel-` PREFIX IS ONLY WHAT TELLS ROW 66 FROM THE
+/// CROSSING'S OWN ROWS.** The pattern stays ANCHORED at `/bindings/js/src/entry/` and CLOSED at ONE `.mjs` name
+/// segment, so nothing else can match it: no test file (they live in `bindings/js/test/`, and `*.test.mjs` is a
+/// second `.` besides), no `bindings/js/index.d.ts` (a `.ts`, and it is not under the parts' directory), no
+/// `bindings/js/src/store.rs` (a `.rs`), and no nested path (`<name>` carries no `/`).
+const CROSSING_ENTRY_PARTS_PREFIX = '/bindings/js/src/entry/';
+const CROSSING_ENTRY_PART_NAME = /^[A-Za-z0-9_-]+\.mjs$/;
+
+/// **IS THIS FRAME'S FILE ONE OF THE MODULE'S OWN PARTS?** — any `.mjs` directly under `src/entry/`, the
+/// KERNEL'S INCLUDED (the caller tests `crossingIsKernelFile` first, so row `66` keeps its own arm).
+function crossingIsEntryPart(file) {
+  if (typeof file !== 'string') return false;
+  if (file.endsWith('.mjs') !== true) return false;
+  const at = file.lastIndexOf(CROSSING_ENTRY_PARTS_PREFIX);
+  if (at < 0) return false;
+  return CROSSING_ENTRY_PART_NAME.test(file.slice(at + CROSSING_ENTRY_PARTS_PREFIX.length));
+}
+
+/// **IS THIS FRAME'S FILE THE CROSSING'S OWN?** — the HUB at its unchanged path, OR any part under `src/entry/`.
+/// **The barrel is NOT one of them**: it is the kernel's re-export surface and row `66`'s, and it is tested
+/// before this one. A frame this predicate places is then classified BY SYMBOL — `ROUTED_ROW` where the symbol
+/// is one of item `(2c)`'s routed rows and `GOVERNED` otherwise, which is exactly the reading `index.mjs`
+/// frames got while the crossing was one file.
+function crossingIsCrossingFile(file) {
+  if (typeof file !== 'string') return false;
+  if (file.endsWith(CROSSING_INDEX_FILE_SUFFIX)) return true;
+  return crossingIsEntryPart(file);
+}
+
 /// **THE `ROUTED` ROWS WHOSE SITES LIVE IN THE CROSSING'S OWN FILE** (item `(2c)`), BY THE SYMBOL THE FRAME
 /// NAMES — `bindings/js/index.mjs`'s rows `49` (`inDomainAddress`), `50` (`encodeAddress`, `constraintAddress`),
 /// `51` (`absentSubject`), `52` (`notFoundRendering`), `53` (`homeAddressKey`, `addressSetKey`) and `65` (the
@@ -4035,7 +4077,7 @@ function crossingAttributeTake(stackText) {
     if (crossingIsKernelFile(frame.file)) {
       return { kind: 'ROUTED_KERNEL', file: frame.file, line: frame.line, symbol: frame.symbol, where };
     }
-    if (frame.file.endsWith(CROSSING_INDEX_FILE_SUFFIX)) {
+    if (crossingIsCrossingFile(frame.file)) {
       const named = crossingFrameSymbol(frame.symbol);
       let routed = false;
       for (let s = 0; s < CROSSING_ROUTED_ROW_SYMBOLS.length; s += 1) {

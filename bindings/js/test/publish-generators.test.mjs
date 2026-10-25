@@ -42,6 +42,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, sep } from 'node:path';
 import { tmpdir } from 'node:os';
+import { moduleFiles, stageModuleTree } from './module-set.mjs';
 
 // ---------------------------------------------------------------------------------------------
 // the contract's own constants, at the contract's own bytes (the red set's, read again here)
@@ -359,32 +360,41 @@ function writeArtefact(dir, opts = {}) {
   return join(dir, 'index.js');
 }
 
-/** **THE CONTROL LEVER'S OWN CONTRACT (`F-14`)**: a control record is the STAGED CONTROL'S PATH beside the
- *  BYTES that were staged there, and nothing else is ever read as one. */
+/** **THE CONTROL LEVER'S OWN CONTRACT (`F-14`)**: a control record is a SET of per-file overrides — the STAGED
+ *  CONTROL'S PATH beside the BYTES that were staged there, for the one module file the control mutated — and
+ *  nothing else is ever read as one.
+ *
+ *  **⟶ AND THE RECORD GAINS ONE DIMENSION, 2026-10-24 (`strata/decisions.md` `D-14`, `D-33`;
+ *  `docs/L1/drive-restaging.md` §3.2): WHICH FILE THE BYTES ARE STAGED AS.** Every control in this file is cut
+ *  by `.replace()` on the SHIPPED module's own bytes, and after the entry's cut each cut's anchor lives in the
+ *  part that carries it (`src/entry/artefact.mjs` for the walk, `src/entry/refusal.mjs` for the arm-building
+ *  throw). **So a control is now a MUTATION OF THE MODULE, APPLIED TO THE PART THAT CARRIES ITS SITE**, and the
+ *  record carries `relativePath` beside the path and bytes `F-14` already required. The `F-14` byte-equality
+ *  assertion carries over PER FILE and is unchanged in kind: the staged control IS the bytes the lever hands on. */
 function isControlLever(entrySource) {
-  return entrySource !== null && typeof entrySource === 'object'
-    && typeof entrySource.controlPath === 'string' && typeof entrySource.controlSource === 'string';
+  return entrySource !== null && entrySource !== undefined && typeof entrySource === 'object'
+    && Array.isArray(entrySource.overrides) && entrySource.overrides.length > 0
+    && entrySource.overrides.every((o) => typeof o.relativePath === 'string'
+      && typeof o.controlPath === 'string' && typeof o.controlSource === 'string');
 }
 
 /**
- * **THE LEVER'S READER — THE `F-14` REPAIR.** `null` is the SHIPPED entry's bytes (what a drive measures);
- * a CONTROL RECORD is read at the staged file's own bytes, and the file is asserted to BE those bytes, so a
- * control can never be measured against a copy, a path or a stale image of itself; a bare string is a drive's
- * own source text. **THE READ IS ASSERTED AND NOT ASSUMED**: before the repair the path string was written
- * into the scratch entry as if it were source, and the failure that produced was attributed to the control's
- * mutation for a whole pass.
+ * **THE LEVER'S READER — THE `F-14` REPAIR, NOW PER FILE.** `null` is the SHIPPED module's own bytes (what a
+ * drive measures); a CONTROL RECORD is read at each staged file's own bytes, and each file is asserted to BE
+ * those bytes, so a control can never be measured against a copy, a path or a stale image of itself. **THE READ
+ * IS ASSERTED AND NOT ASSUMED**: before the repair the path string was written into the scratch entry as if it
+ * were source, and the failure that produced was attributed to the control's mutation for a whole pass.
  */
-function entryText(entrySource) {
-  if (entrySource === null || entrySource === undefined) return readFileSync(ENTRY);
-  if (isControlLever(entrySource)) {
-    assert.equal(readFileSync(entrySource.controlPath, 'utf8'), entrySource.controlSource,
-      'F-14: the control\'s staged entry IS the bytes the lever hands on, so no control is measured against a '
-      + `copy of itself (\`${entrySource.controlPath}\`)`);
-    return entrySource.controlSource;
-  }
-  assert.equal(typeof entrySource, 'string',
-    'F-14: the lever carries the shipped bytes (`null`), a control record, or a source string — and nothing else');
-  return entrySource;
+function stagedOverrides(entrySource) {
+  if (entrySource === null || entrySource === undefined) return [];
+  assert.ok(isControlLever(entrySource),
+    'F-14: the lever carries the shipped bytes (`null`) or a control record of per-file overrides — and nothing else');
+  return entrySource.overrides.map((override) => {
+    assert.equal(readFileSync(override.controlPath, 'utf8'), override.controlSource,
+      'F-14: the control\'s staged file IS the bytes the lever hands on, so no control is measured against a '
+      + `copy of itself (\`${override.controlPath}\`)`);
+    return { relativePath: override.relativePath, bytes: override.controlSource };
+  });
 }
 
 /** **THE STAGED TREES OF THE CONTROLS** (`F-14`), so a drive can be attributed to the control that staged it. */
@@ -408,16 +418,23 @@ function noteControlDrive(env, report) {
  * ITSELF into the scratch entry, so the drive imported a module whose whole content was a
  * path, the import died at the parse, the report came back with an EMPTY attempt set, and the control failed
  * at its own probe's FIRST "the state was reached" assertion rather than at the clause it had mutated. **THE
- * READER `entryText` BELOW IS THE REPAIR: a `null` lever is the shipped bytes, a CONTROL RECORD is read at
- * its own bytes, and a bare string is a drive's source text — so `entrySource` can no longer be misread, and
- * `withControls` additionally requires every entry control's bytes to have REACHED a drive AND WALKED.**
+ * READER `stagedOverrides` ABOVE IS THE REPAIR: a `null` lever is the shipped bytes and a CONTROL RECORD is
+ * read at its own bytes — so `entrySource` can no longer be misread, and
+ * `withControls` additionally requires every control's bytes to have REACHED a drive AND WALKED.**
+ *
+ * **⟶ AND THE TREE IS STAGED AS THE MODULE'S OWN CLOSED SET, 2026-10-24 (`D-14`, `D-33`;
+ * `docs/L1/drive-restaging.md` §2).** This tree used to carry `index.mjs` alone, which after the entry's cut
+ * cannot be constructed as a module graph at all — `index.mjs` imports eight parts and requires the barrel. The
+ * tree now carries the hub, the GLOB of `src/entry/*.mjs` and the barrel, the CLOSURE of the staged bytes is
+ * asserted before any child is spawned, and a zero or degraded match THROWS (module-set.mjs), so a control's
+ * verdict can never be produced by a staging fault (`§3.1.1` rules 1 and 3).
  */
 function makeScratch({
   label, rungOne = null, rungTwo = 'absent', entrySource = null, manifestVersion = '0.1.0',
   preloadBody = null, driverTail = '',
 }) {
   const dir = mkdtempSync(join(SCRATCH_ROOT, `${label.replace(/[^a-zA-Z0-9-]/g, '_')}-`));
-  writeFileSync(join(dir, 'index.mjs'), entryText(entrySource));
+  stageModuleTree(PKG_DIR, dir, stagedOverrides(entrySource));
   // **THE STAGED TREE OF A CONTROL IS RECORDED WHERE THE AUDIT CAN SEE IT** (`F-14`): only a tree built from
   // a control record is a control's tree, so a drive that ran elsewhere can never be counted as evidence.
   if (isControlLever(entrySource)) CONTROL_DIRS.add(dir);
@@ -527,29 +544,82 @@ function coveredEnv(key, opts = {}) {
 const isRungTwo = (r) => String(r).includes('storeroom_js_binding.node');
 
 /**
- * **A CONTROL: THE SHIPPED ENTRY'S OWN BYTES, MUTATED AT ONE SITE, STAGED OUTSIDE THE REPOSITORY.**
- * `mutate` is a function from the entry's text to the mutated text and it MUST change the text — a
- * control that mutates nothing is a second copy of the shipped bytes and would "pass" the generator for
- * the wrong reason, so the no-op is refused here rather than measured later.
+ * **A CONTROL'S CARRIER — THE MODULE'S OWN FILES, MUTATED AT THE SITE THE CONTROL NAMES.**
+ *
+ * `mutate` receives this object instead of one file's text, and its three operations are the ones the controls
+ * below use: `includes(anchor)` (a precondition, read over the SHIPPED bytes), `test(anchor)` (the same for a
+ * `RegExp` anchor), and `replace(anchor, replacement)` (chainable: it records the mutation against **the one
+ * file whose shipped bytes contain the anchor**). **THE CONTROL STILL NAMES THE SITE AND NEVER THE FILE** — that
+ * is what makes it survive the next partition: before this repair every control's `text` WAS `index.mjs`, so
+ * each of the nine cuts broke at once when the walk moved into `src/entry/artefact.mjs` and the arm-building
+ * throw into `src/entry/refusal.mjs` (`NG-PUB-A` failed at LOAD with *"the rung-one success site moved"*).
+ * **A SITE THAT IS IN NO FILE, OR IN TWO, IS LOUD**: an anchor matching nothing is how a control becomes inert
+ * without saying so (the `F-14` class), and an anchor matching two files leaves the mutant's home undecidable.
+ */
+function controlCarrier(id) {
+  const files = moduleFiles(PKG_DIR);
+  const mutated = new Map();
+  const matches = (anchor) => (anchor instanceof RegExp ? anchor.test.bind(anchor) : (bytes) => bytes.includes(anchor));
+  const hitsOf = (anchor) => files.filter((file) => matches(anchor)(file.bytes));
+  return {
+    test(anchor) {
+      return hitsOf(anchor).length > 0;
+    },
+    includes(anchor) {
+      return hitsOf(anchor).length > 0;
+    },
+    replace(anchor, replacement) {
+      const hits = hitsOf(anchor);
+      assert.equal(hits.length, 1,
+        `${id}: the anchor ${anchor instanceof RegExp ? String(anchor) : JSON.stringify(String(anchor).slice(0, 140))} `
+        + `must name ONE file of the module's own set — it matched ${hits.length} `
+        + `(${JSON.stringify(hits.map((file) => file.relativePath))} of ${JSON.stringify(files.map((file) => file.relativePath))}); `
+        + 'the site moved and the control must be re-cut');
+      const carrier = hits[0];
+      const before = mutated.has(carrier.relativePath) ? mutated.get(carrier.relativePath) : carrier.bytes;
+      const after = before.replace(anchor, replacement);
+      assert.notEqual(after, before,
+        `${id}: the substitution changed no byte of '${carrier.relativePath}' — a control that mutates nothing is not a control`);
+      mutated.set(carrier.relativePath, after);
+      return this;
+    },
+    overrides() {
+      return [...mutated.entries()].map(([relativePath, bytes]) => ({ relativePath, bytes }));
+    },
+  };
+}
+
+/**
+ * **A CONTROL: THE SHIPPED MODULE'S OWN BYTES, MUTATED AT ONE SITE, STAGED OUTSIDE THE REPOSITORY.**
+ * `mutate` receives the control's carrier and MUST change a byte — a control that mutates nothing is a second
+ * copy of the shipped bytes and would "pass" the generator for the wrong reason, so the no-op is refused here
+ * rather than measured later.
  *
  * **⟶ REPAIRED (`F-14`, `§13`): THE CONTROL NOW HANDS ON BOTH HALVES OF ITSELF — THE STAGED PATH **AND**
  * THE BYTES STAGED THERE.** The as-filed form returned the PATH ALONE while `makeScratch` wrote whatever it
  * was handed as the scratch entry's CONTENT, so the scratch entry was a FILE CONTAINING A PATH STRING: the
  * drive's `import` died at the parse, the report carried `attempts: []`, and the control was scored as
  * failing at its own probe's "the state was reached" guard — a verdict attributable to the LEVER and not to
- * the mutation. **NOTHING IS WEAKENED**: the control is still the shipped entry's bytes mutated at one site,
- * the mutation is still required to have changed a byte, the tree is still staged OUTSIDE the repository,
+ * the mutation. **NOTHING IS WEAKENED**: the control is still the shipped bytes mutated at one site,
+ * the mutation is still required to have changed a byte, the trees are still staged OUTSIDE the repository,
  * and the audit in `withControls` now REQUIRES the staged bytes to have reached a drive and walked there.
+ *
+ * **⟶ AND THE RECORD IS PER FILE (`D-14`'s lever dimension):** each mutated module file is written under
+ * `CONTROL_ROOT` at a name derived from its relative path, so the staged control's bytes can be read back and
+ * asserted byte-for-byte against what the tree receives.
  */
 function controlEntry(id, mutate) {
-  const shipped = readFileSync(ENTRY, 'utf8');
-  const mutated = mutate(shipped);
-  assert.notEqual(mutated, shipped,
-    `${id}: the control's mutation changed no byte of the entry — a control that mutates nothing is not a control`);
+  const carrier = controlCarrier(id);
+  mutate(carrier);
+  const overrides = carrier.overrides();
+  assert.ok(overrides.length > 0, `${id}: the control's mutation changed no byte of any module file`);
   const dir = mkdtempSync(join(CONTROL_ROOT, `${id}-`));
-  const file = join(dir, 'index.mjs');
-  writeFileSync(file, mutated);
-  return { controlPath: file, controlSource: mutated };
+  const staged = overrides.map((override) => {
+    const file = join(dir, override.relativePath.split('/').join('__'));
+    writeFileSync(file, override.bytes);
+    return { relativePath: override.relativePath, controlPath: file, controlSource: override.bytes };
+  });
+  return { overrides: staged };
 }
 
 /**
@@ -746,8 +816,11 @@ Object.defineProperty(process, 'arch', { value: ${token.arch()}, configurable: t
     'control-a-name-assembled-from-the-runtime-tokens': controlEntry('NG-PUB-B', (text) => {
       // THE ANCHOR IS REGEX-BUILT BECAUSE THE SITE ITSELF CONTAINS A TEMPLATE LITERAL, so a literal anchor
       // would have to re-escape it and a wrong escape would silently mutate nothing.
+      // **AND `text` IS THE CONTROL'S CARRIER** (`D-14`'s lever): the precondition is asked OF THE CARRIER, so
+      // the anchor is tested against the module's own shipped bytes and the mutation lands in the file that
+      // carries the platform table — `src/entry/artefact.mjs` after the entry's cut.
       const anchor = /function platformNameFor\(platform, arch\) \{\n/;
-      assert.equal(anchor.test(text), true, 'NG-PUB-B: the table site moved; the control must be re-cut');
+      assert.equal(text.test(anchor), true, 'NG-PUB-B: the table site moved; the control must be re-cut');
       return text.replace(anchor,
         "function platformNameFor(platform, arch) {\n"
         + "  if (arch !== 'arm64' || platform !== 'darwin') return '@auspicion/provident-storeroom-js-' + platform + '-' + arch + '-gnu';\n");

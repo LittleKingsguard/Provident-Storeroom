@@ -55,9 +55,11 @@ import { join } from 'node:path';
 import { storeCreate } from 'provident-storeroom';
 import {
   DECLARED_SURFACE, DECLARED_SURFACE_NAMES_SORTED, STANDING_FOUR, PER_VERB_NINE,
-  OPEN_OWED, ADDON_ARTEFACT, PACKAGE_ENTRY, DELETED_WRAPPER_NAMES, REPO_ROOT,
+  OPEN_OWED, ADDON_ARTEFACT, PACKAGE_ENTRY, PKG_DIR, DELETED_WRAPPER_NAMES, REPO_ROOT,
   require_, addonKeySet, generated, isTheDeclaredForm, isTheArtefactForm, callAndClassify,
+  deletedWrapperCallSites,
 } from './addon-surface-support.mjs';
+import { moduleCodeFiles, moduleCodeText } from './module-set.mjs';
 
 // ── THE DETERMINISTIC PINNED SEEDS — ONE PER ROW, A LITERAL EACH ───────────────────────────────────────
 const SEEDS = {
@@ -204,15 +206,19 @@ function mem() {
   return storeCreate({ journalLength: 8, listeners: [] });
 }
 
-/** **THE ENTRY'S BYTES, STRIPPED OF COMMENTS** — the instrument `S-UNWRAP-SITES` and `S-STATE-ID-GONE` name.
- *  A documentary mention of a deleted name inside a comment is not a call site and not a `state.id`. */
+/** **THE MODULE'S OWN CODE, STRIPPED OF COMMENTS** — the instrument `S-UNWRAP-SITES` and `S-STATE-ID-GONE`
+ *  name. A documentary mention of a deleted name inside a comment is not a call site and not a `state.id`.
+ *
+ *  **⟶ AND THE SUBJECT IS THE MODULE'S OWN CLOSED SET, NOT ONE FILE (2026-10-24; `strata/decisions.md`'s
+ *  FINDING class (3)).** This reader used to open `bindings/js/index.mjs`, which WAS the whole module. After the
+ *  entry's cut the hub carries 1,409 of the module's 6,350 lines, so a grep of it alone answers "zero" because
+ *  the code the clause names is in `src/entry/` — **a green manufactured by reading the wrong file, and the
+ *  cell's own third limb went red on `commitFile` for exactly that reason.** The reader is `moduleCodeText`'s,
+ *  the same closed set every staged tree carries (the hub, the GLOB of `src/entry/*.mjs`, the barrel), and the
+ *  blanking is LEXICAL: the two-step regex it used before paired an open-comment marker standing inside a line
+ *  comment with the first close-comment marker hundreds of lines later, and blanked live code with it. */
 function strippedEntryText() {
-  const source = readFileSync(PACKAGE_ENTRY, 'utf8');
-  const withoutBlockComments = source.replace(/\/\*[\s\S]*?\*\//g, (block) => block.replace(/[^\n]/g, ' '));
-  return withoutBlockComments.split('\n').map((line) => {
-    const lineComment = line.indexOf('//');
-    return lineComment === -1 ? line : line.slice(0, lineComment);
-  }).join('\n');
+  return moduleCodeText(PKG_DIR);
 }
 
 /** **ONE DECLARED CALL PER ENTRY** — the arguments a caller supplies, with no instance among them
@@ -795,11 +801,13 @@ test('sas_prop_P_SAS_6_S_UNWRAP_SITES_S_STATE_ID_GONE_no_deleted_wrapper_and_no_
     body: (rng, i) => attempt(rng, ({ pick: choose }) => {
       const text = strippedEntryText();
       // ── `S-UNWRAP-SITES`: A DELETED WRAPPER NAME, DRAWN FROM THE SEED, HAS ZERO LIVE CALL SITES.
+      // **THE SHAPE IS THE SUPPORT FILE'S** (`deletedWrapperCallSites`), because it carries ONE limb the raw
+      // regex cannot: both deleted wrappers were 3-ary and every one of their thirteen sites passed the store's
+      // state, so a NO-ARGUMENT call — `carryRefusal`'s own callback parameter, called as `return call();` in
+      // `src/entry/state.mjs` — names a different binding and is not a wrapper site. Every other occurrence
+      // still counts, and the assertion is still ZERO.
       const wrapper = choose(DELETED_WRAPPER_NAMES);
-      const liveSites = text.split('\n')
-        .map((line, index) => ({ line, number: index + 1 }))
-        .filter((entry) => new RegExp(`(^|[^.\\w$])${wrapper}\\s*\\(`).test(entry.line))
-        .map((entry) => `:${entry.number}`);
+      const liveSites = deletedWrapperCallSites(moduleCodeFiles(PKG_DIR), [wrapper]);
       assert.deepEqual(liveSites, [],
         `attempt ${i}: S-UNWRAP-SITES — "grep for the deleted wrapper names; zero live call sites"; the row's `
         + `first failure is "a surviving wrapper call". \`${wrapper}\` is deleted by \`js-unwrap.md §1\` and `

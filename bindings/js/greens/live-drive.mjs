@@ -116,6 +116,71 @@ function isAttemptLessForm(e) {
 function statusOf(r) { return r.threw ? (r.err && r.err.status) : 'ok'; }
 function fsPath(name) { return path.join(ROOT, name); }
 
+// ── ⟶ ADDED 2026-10-24 (`strata/decisions.md` `D-14`, `D-33`; `docs/L1/drive-restaging.md` §2), `role_l1_test_writer`:
+// **THE STAGING MECHANISM `LIVE-8` NEEDS, AND WHY IT IS WRITTEN HERE RATHER THAN IMPORTED.**
+//
+// `LIVE-8` copies the package to a scratch tree WITHOUT `build/Release`, so the addon is absent at the copy's own
+// declared path and `storeCreate` answers the declared arm. **THE COPY USED TO CARRY `index.mjs` AND
+// `package.json` ALONE, AND THAT STOPPED BEING A COPY WHEN THE ENTRY WAS CUT**: `index.mjs` is the HUB now and it
+// imports eight parts from `src/entry/` plus the kernel's barrel one directory up, so the copy's `import` died at
+// `ERR_MODULE_NOT_FOUND … absent-pkg/src/entry/refusal.mjs` and five cells (`LIVE-8.2`–`.5`, `.7`) reported the
+// resolution failure instead of the absent-addon arm they are written for.
+//
+// **THE MECHANISM IS `D-14`'s, VERBATIM: THE GLOB OF THE PARTS DIRECTORY PLUS THE BARREL AT ITS EXPLICIT PATH**
+// (a glob cannot express the barrel, which sits one level up). **A ZERO MATCH THROWS**, naming the directory and
+// the rule — an empty match is a LOUD failure and never a silently smaller tree — and a CLOSURE CHECK over the
+// copied bytes requires every relative specifier the copy carries to resolve inside the copy, so a degraded
+// match is a named missing file at the copy, not a module-resolution failure two layers down.
+//
+// **IT IS DUPLICATED FROM `bindings/js/test/module-set.mjs` ON PURPOSE**: a greens runner is standalone in this
+// battery — not one `greens/*.mjs` imports another, and none imports a test helper — so this file carries the
+// mechanism rather than depending on the red set's directory. **THE TWO HOMES MUST MOVE TOGETHER, AND EACH ONE
+// FAILS LOUDLY AND IN THE VOCABULARY OF FILES IF THEY DO NOT**, which is the property `D-14` asks for.
+function copyModuleSet(pkgDir, destDir) {
+  const partsDir = path.join(pkgDir, 'src', 'entry');
+  const names = fs.readdirSync(partsDir, { withFileTypes: true })
+    .filter((entry) => entry.name.endsWith('.mjs'))
+    .map((entry) => entry.name)
+    .sort();
+  if (names.length === 0) {
+    throw new Error(`live-drive staging (D-14): the glob 'src/entry/*.mjs' matched NOTHING under ${partsDir} — a zero `
+      + 'match is a LOUD failure and never a silently smaller tree');
+  }
+  const files = [['index.mjs', path.join(pkgDir, 'index.mjs')]];
+  for (const name of names) files.push([`src/entry/${name}`, path.join(partsDir, name)]);
+  files.push(['src/constraint-kernel.mjs', path.join(pkgDir, 'src', 'constraint-kernel.mjs')]);
+  const staged = new Set();
+  for (const [relativePath, absolutePath] of files) {
+    const stat = fs.statSync(absolutePath);
+    const bytes = fs.readFileSync(absolutePath, 'utf8');
+    if (!stat.isFile() || bytes.length === 0) {
+      throw new Error(`live-drive staging (D-14): '${relativePath}' is not a non-empty regular file (${absolutePath})`);
+    }
+    const target = path.join(destDir, ...relativePath.split('/'));
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, bytes);
+    staged.add(relativePath);
+  }
+  // THE CLOSURE CHECK: an ESM specifier resolves from the file that carries it, while `require_` is the HUB's own
+  // CJS require, so a `require_(…)` in a part resolves against `index.mjs`'s directory and not the part's.
+  const specifier = /(?:^|[^\w$.])(from|import|require_?)\s*\(?\s*(['"])(\.\.?\/[^'"\n]+)\2/g;
+  for (const relativePath of staged) {
+    const bytes = fs.readFileSync(path.join(destDir, ...relativePath.split('/')), 'utf8');
+    specifier.lastIndex = 0;
+    let match = null;
+    while ((match = specifier.exec(bytes)) !== null) {
+      const base = match[1].startsWith('require') ? path.posix.dirname('index.mjs') : path.posix.dirname(relativePath);
+      const target = path.posix.normalize(path.posix.join(base, match[3]));
+      if (!staged.has(target)) {
+        throw new Error(`live-drive staging (D-14): the copied tree is NOT CLOSED — '${relativePath}' carries `
+          + `${match[1]} '${match[3]}', which resolves to '${target}', a path this copy did not stage `
+          + `(staged: ${JSON.stringify([...staged].sort())})`);
+      }
+    }
+  }
+  return [...staged];
+}
+
 // ── ⟶ ADDED 2026-10-24 (`D-19`/`D-20`, THE CRASH FIX, `role_l1_test_writer`): THE LISTENER-HANDLE SPELLING.
 // **THE CRASH THIS FIXES IN THIS FILE**: `LIVE-2`'s drive called the SUPERSEDED `listen(address)` — arity `1`,
 // an ADDRESS at position `1` — which the code refuses with a thrown `AddressMalformed` (`bindings/js/index.d.ts`:
@@ -577,7 +642,9 @@ console.log(JSON.stringify({ pid: process.pid, value: i.read(${JSON.stringify(['
   const absentDir = path.join(ROOT, 'absent-pkg');
   fs.mkdirSync(absentDir, { recursive: true });
   const pkgDir = path.resolve(HERE, '..');
-  fs.copyFileSync(path.join(pkgDir, 'index.mjs'), path.join(absentDir, 'index.mjs'));
+  // **THE COPY IS THE MODULE'S OWN CLOSED SET** (`D-14`'s glob plus the barrel's explicit path), so the copy's
+  // entry loads exactly as the repository's does and the ONLY thing missing from it is `build/Release`.
+  copyModuleSet(pkgDir, absentDir);
   fs.copyFileSync(path.join(pkgDir, 'package.json'), path.join(absentDir, 'package.json'));
   const absentAddon = path.join(absentDir, 'build', 'Release', 'storeroom_js_binding.node');
   start(sc, `the package is copied to '${absentDir}' WITHOUT its build/Release directory, so the addon is ABSENT at the copy's own declared path; a caller then imports the copy's entry and calls storeCreate with a legal cfg`);

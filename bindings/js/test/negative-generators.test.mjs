@@ -47,6 +47,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, rmSync, copyFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { stageModuleTree } from './module-set.mjs';
 // **⟶ ADDED 2026-10-17 (`role_test_writer`; `contract.md §5.7`'s `S-HO` arm): `NG-JS-M` reads the SHIPPED
 // bytes — the manifest the package would publish and the documentation the allowlist carries — rather than a
 // restatement of them inside this file, so the realm claim's own corpus has the filesystem's reading to take.**
@@ -1534,17 +1535,28 @@ test('ng_js_h_the_absent_addon_state_answers_the_one_form_and_the_two_arms_messa
   if (inst === null || typeof inst !== 'object') assert.fail('the addon-present arm returned no instance');
 
   // THE ABSENT-ADDON ARM, IN A SCRATCH COPY OF THE PACKAGE **OUTSIDE THE REPOSITORY**: nothing under
-  // `bindings/js/**` is renamed, removed or written — the copy carries `index.mjs` and `package.json`, and
-  // its own `build/Release` is empty, so the copy's OWN resolution of the artefact fails. A bare specifier
-  // resolved from a file UNDER the copy resolves to the copy through its `package.json`, so the absent arm
-  // is measured at the copy's own entry and never at the repository's.
+  // `bindings/js/**` is renamed, removed or written — the copy carries the module's own closed set (the hub,
+  // the parts and the barrel) and `package.json`, and its own `build/Release` is empty, so the copy's OWN
+  // resolution of the artefact fails. A bare specifier resolved from a file UNDER the copy resolves to the copy
+  // through its `package.json`, so the absent arm is measured at the copy's own entry and never at the
+  // repository's.
+  //
+  // **⟶ AND THE COPY IS STAGED BY GLOB 2026-10-24 (`strata/decisions.md` `D-14`; `docs/L1/drive-restaging.md`
+  // §2 and §3.4.1).** A copy carrying `index.mjs` alone can no longer be constructed as a module graph at all:
+  // the child's static `import` died at `ERR_MODULE_NOT_FOUND … /src/entry/refusal.mjs`, wrote NO report line,
+  // and the parent's `JSON.parse` threw on an empty string — the loud-but-wrong-vocabulary outcome §3.4.1 names
+  // as this drive's trap. **The repair is the staging-time CLOSURE check and not a new cell**: `stageModuleTree`
+  // enumerates the set, asserts every file non-empty, and requires every relative specifier in the copied bytes
+  // to resolve INSIDE the copy, so a staging fault is now a named missing file in the parent rather than a
+  // parse error at the assertion. The embedded specifier below stays a BARE NAME (`:1550`'s successor): there
+  // the name is the assertion.
   const scratch = join(tmpdir(), `storeroom-js-ng-h-${process.pid}-${Date.now()}`);
   const scratchEntry = join(scratch, 'index.mjs');
   const scratchAddon = join(scratch, 'build', 'Release', 'storeroom_js_binding.node');
   const driver = join(scratch, 'absent-drive.mjs');
   try {
     mkdirSync(join(scratch, 'build', 'Release'), { recursive: true });
-    copyFileSync(join(PACKAGE_DIR, 'index.mjs'), scratchEntry);
+    stageModuleTree(PACKAGE_DIR, scratch);
     copyFileSync(join(PACKAGE_DIR, 'package.json'), join(scratch, 'package.json'));
     const drive = [
       "import { storeCreate } from 'provident-storeroom';",

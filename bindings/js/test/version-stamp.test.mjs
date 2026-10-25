@@ -92,6 +92,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { stageModuleTree } from './module-set.mjs';
 
 // ---------------------------------------------------------------------------------------------
 // the declared constants, read at their own bytes
@@ -653,7 +654,14 @@ writeFileSync(join(SCRATCH_ROOT, 'driver.mjs'), DRIVER);
 function makeEnv({ label, versionValue = 'null', versionExpr = null, memberPresent = true, manifestVersion = MANIFEST_VERSION, rungOne = true }) {
   const dir = mkdtempSync(join(SCRATCH_ROOT, label + '-'));
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: MANIFEST.name, version: manifestVersion }, null, 2) + '\n');
-  writeFileSync(join(dir, 'index.mjs'), readFileSync(join(PKG_DIR, 'index.mjs')));
+  // **⟶ RE-STAGED 2026-10-24 (`strata/decisions.md` `D-14`; `docs/L1/drive-restaging.md` §2 and §3.3).** This
+  // tree used to copy `index.mjs` ALONE, which after the entry's cut cannot be constructed as a module graph at
+  // all — the hub imports eight parts and the barrel stands one directory up. **It now carries the module's own
+  // closed set**: the hub, the GLOB of `src/entry/*.mjs` and the barrel, staged at the same relative layout,
+  // with the tree's CLOSURE asserted over the staged bytes before any child process is spawned. **THE COPY IS A
+  // FIXTURE AND NOT A SUBJECT** (`§3.3`): no cell of this drive asserts that the staged tree is one file, so the
+  // cells' assertions do not move — the nine that were red here were red for the staging reason alone.
+  stageModuleTree(PKG_DIR, dir);
   // **THE DRIVER STANDS BESIDE THE ENTRY, AND THAT IS LOAD-BEARING**: the observer's own
   // `require(<the rung-one name>)` resolves through NODE'S MODULE PATHS, which are relative to the
   // REQUIRING FILE and never to the subprocess's cwd — so a driver in the scratch root would resolve

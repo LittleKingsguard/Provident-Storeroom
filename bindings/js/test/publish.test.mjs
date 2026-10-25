@@ -62,6 +62,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, sep } from 'node:path';
 import { tmpdir } from 'node:os';
+import { locateCarrier, moduleText, stageModuleTree } from './module-set.mjs';
 
 // ---------------------------------------------------------------------------------------------
 // the contract's own constants, at the contract's own bytes
@@ -700,15 +701,28 @@ function writeStub(dir, variant, opts = {}) {
  * writes the candidate rung two, `rungTwoDecoy` marks the `PAR-PUB-30` outside-value drive, and
  * `manifestVersion` fixes the version the SCRATCH PACKAGE'S OWN MANIFEST declares — which `§1.5` item 1
  * makes the ONE source the read may take it from.
+ *
+ * **⟶ RE-STAGED 2026-10-24 (`strata/decisions.md` `D-14`, `D-33`; `docs/L1/drive-restaging.md` §2).** This tree
+ * used to carry `index.mjs` ALONE. After the entry's cut the hub imports its parts, **so that tree cannot be
+ * constructed as a module graph at all**: a static relative import is resolved before evaluation, so the drive
+ * died at `ERR_MODULE_NOT_FOUND … /src/entry/refusal.mjs` and 42 of this red set's cells failed for a STAGING
+ * reason rather than for their own clauses. **The tree now stages the module's own closed set** — the hub, the
+ * GLOB of `src/entry/*.mjs` and the barrel at its explicit path — through `module-set.mjs`, which also asserts
+ * the tree's CLOSURE over the staged bytes and fails LOUDLY in the vocabulary of files (§2.2). **THE CLAIM
+ * THIS DRIVE USED TO RELY ON — "a tree carrying the entry by itself loads" — IS WITHDRAWN, not repaired**
+ * (`D-14`), and its replacement is that staging-time assertion rather than a new cell.
+ *
+ * **`entrySource` IS THE CONTROL'S ONE LEVER, AND IT IS NOW A PER-FILE OVERRIDE** (`drive-restaging.md`
+ * §3.1.1): `null` for every drive that observes the SHIPPED module, and `{ relativePath, bytes }` for a control
+ * — the mutated bytes are staged AS THE PART THAT CARRIES THE MUTATED SITE (`src/entry/artefact.mjs` for the
+ * mismatch arm, `src/entry/refusal.mjs` for the one arm-building throw), never as the hub. **NOTHING OF THE
+ * REPOSITORY IS WRITTEN BY A CONTROL**: the mutant stands under the operating system's temporary area, beside
+ * the scratch manifest and the fake artefact, and `module-set.mjs` refuses an override that names a file the
+ * staged set does not carry.
  */
 function makeScratch({ label, rungOne, rungTwo = 'absent', rungTwoDecoy = null, parentDecoy = false, env = {}, manifestVersion = '0.1.0', entrySource = null }) {
   const dir = mkdtempSync(join(SCRATCH_ROOT, `${label.replace(/[^a-zA-Z0-9-]/g, '_')}-`));
-  // **`entrySource` IS THE CONTROL'S ONE LEVER** and it is `null` for every drive that observes the SHIPPED
-  // entry: a scratch copy of `bindings/js/index.mjs` carrying a deliberate fault — the `§1.4` item 7
-  // finding, or the second failure shape — is staged in its place, so a cell's own assertion is MEASURED
-  // against bytes that must fail it. **NOTHING OF THE REPOSITORY IS WRITTEN BY A CONTROL**: the mutant
-  // stands under the operating system's temporary area, beside the scratch manifest and the fake artefact.
-  writeFileSync(join(dir, 'index.mjs'), entrySource ?? readFileSync(join(PKG_DIR, 'index.mjs')));
+  stageModuleTree(PKG_DIR, dir, entrySource === null ? [] : [entrySource]);
   writeFileSync(join(dir, 'package.json'), JSON.stringify({
     name: 'provident-storeroom', version: manifestVersion, type: 'module',
     exports: { '.': { import: './index.mjs' } },
@@ -1426,7 +1440,12 @@ cell('P-PUB-3', 'S-PLATFORM no `libc` mechanism, value set or measured domain is
   // and NEVER a sixth key. The observables: the ENTRY carries no libc/musl token at all (a mechanism there
   // would be the detection the clause forbids), no sixth name exists anywhere, and the musl state's own
   // answer is the one arm rather than a distinct libc answer.
-  const entry = readFileSync(join(PKG_DIR, 'index.mjs'), 'utf8');
+  // **⟶ AND "THE ENTRY" IS THE MODULE'S OWN CLOSED SET, NOT ONE FILE (2026-10-24, `strata/decisions.md`'s
+  // FINDING class (3)).** The platform table this clause is about lives in `src/entry/artefact.mjs` after the
+  // cut, so a scan of `index.mjs` alone would have been a scan of the wrong file — green because the tokens
+  // were never there, and blind to a mechanism added to the part that builds the key. `moduleText` reads the
+  // hub, the GLOB of `src/entry/*.mjs` and the barrel, which is the same closed set every staged tree carries.
+  const entry = moduleText(PKG_DIR);
   for (const token of ['musl', 'libc', 'glibc', 'getconf', 'process.report', 'ldd']) {
     assert.ok(!entry.includes(token), `the entry declares no \`${token}\` mechanism`);
   }
@@ -1928,9 +1947,17 @@ cell('P-PUB-5', 'S-ONEARM the artefact that LOADED and carries no usable generat
   assert.equal(driveThirdCondition({ env: thirdConditionEnv('third-condition-agreement', 'absent'), generatorShape: 'absent' }).A.message, authored,
     'and the state this cell was added for reaches that same string: arm (b)\'s message IS arm (a)\'s, byte for byte');
   // ---- (3) THE TWO CONTROLS, EACH DISABLING ONE HALF OF THE CLAUSE AND EACH REQUIRED TO FAIL THE INSTRUMENT ----
-  const shippedEntry = readFileSync(join(PKG_DIR, 'index.mjs'), 'utf8');
-  assert.ok(shippedEntry.includes(MUTATION_SITE),
-    'the entry\'s mismatch-arm site is present, so both controls are cut at the shipped bytes and not at a guess');
+  // **⟶ AND EACH CONTROL'S SITE IS FOUND IN THE PART THAT CARRIES IT, 2026-10-24.** The two anchors below stood
+  // in `index.mjs` while the file was whole. After the cut they stand in `src/entry/artefact.mjs` (the mismatch
+  // arm) and `src/entry/refusal.mjs` (the one arm-building throw). **The control names the SITE and asks
+  // `module-set.mjs` which file carries it**, so the mutant is staged AS THAT PART (`D-14`'s per-file lever,
+  // `docs/L1/drive-restaging.md` §3.1.1) — and the NEXT partition re-points the control by itself instead of
+  // breaking it at `includes(...) === false`.
+  const mutationCarrier = locateCarrier(PKG_DIR, MUTATION_SITE);
+  assert.ok(mutationCarrier.bytes.includes(MUTATION_SITE),
+    `the module's mismatch-arm site is present, in '${mutationCarrier.relativePath}', so both controls are cut at `
+    + 'the shipped bytes and not at a guess');
+  const shippedEntry = mutationCarrier.bytes;
   const controlVerdict = (entrySource) => {
     const env = thirdConditionEnv('third-condition-control', 'absent', entrySource);
     try { driveThirdCondition({ env, generatorShape: 'absent' }); return null; } catch (err) { return err; }
@@ -1939,8 +1966,8 @@ cell('P-PUB-5', 'S-ONEARM the artefact that LOADED and carries no usable generat
     `        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name) + "', '" + join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node') + "'" };`);
   assert.ok(joinedEntry !== shippedEntry && joinedEntry.includes("', '\""),
     'THE FIRST CONTROL really appends the BOTH-PATHS JOIN at this state — the `§1.4` item 7 finding verbatim');
-  assert.equal(shippedEntry.includes("', '\" + join(dirOf"), false, 'and the shipped entry carries no such append');
-  const joinVerdict = controlVerdict(joinedEntry);
+  assert.equal(shippedEntry.includes("', '\" + join(dirOf"), false, 'and the shipped bytes carry no such append');
+  const joinVerdict = controlVerdict({ relativePath: mutationCarrier.relativePath, bytes: joinedEntry });
   assert.ok(joinVerdict !== null,
     'THE FIRST CONTROL MUST FAIL: a message that appends the rung-two path at a state where only rung one was tried is caught');
   assert.ok(joinVerdict.message.includes(RUNG_TWO_TAIL),
@@ -1963,14 +1990,20 @@ cell('P-PUB-5', 'S-ONEARM the artefact that LOADED and carries no usable generat
   // OUTSIDE the declared set — so the property this control has always tested is untouched: a fourth member
   // must not reach a consumer and must surface as an absorbed state rather than as the one arm.**
   const FAIL_SITE = `  throw { status: refusal.status, message: refusal.message, log: refusalLog(log) };`;
-  assert.ok(shippedEntry.includes(FAIL_SITE), 'the entry\'s one arm-building site is present');
-  const secondShapeEntry = shippedEntry.replace(FAIL_SITE,
+  // **THE SECOND CONTROL'S SITE IS IN ANOTHER PART AND IS FOUND THE SAME WAY**: `fail` lives in
+  // `src/entry/refusal.mjs`, so the mutant that mints the fourth member is staged AS THAT PART while the first
+  // control's mutant is staged as `src/entry/artefact.mjs`. **The two controls therefore never share a file**,
+  // which is also what keeps their verdicts attributable.
+  const refusalCarrier = locateCarrier(PKG_DIR, FAIL_SITE);
+  assert.ok(refusalCarrier.bytes.includes(FAIL_SITE),
+    `the module's one arm-building site is present, in '${refusalCarrier.relativePath}'`);
+  const secondShapeEntry = refusalCarrier.bytes.replace(FAIL_SITE,
     `  throw { status: refusal.status, message: refusal.message, log: refusalLog(log), code: 'AddonVersionMismatch' };`);
-  assert.ok(secondShapeEntry !== shippedEntry && secondShapeEntry.includes('AddonVersionMismatch'),
+  assert.ok(secondShapeEntry !== refusalCarrier.bytes && secondShapeEntry.includes('AddonVersionMismatch'),
     'THE SECOND CONTROL really MINTS A SECOND FAILURE SHAPE — the `alt` `§1.4` item 7 prices and REFUSES');
-  assert.equal(shippedEntry.includes('AddonVersionMismatch'), false,
-    'and the shipped entry mints no code of its own: the status stays the store\'s closed member, carried verbatim');
-  const shapeVerdict = controlVerdict(secondShapeEntry);
+  assert.equal(refusalCarrier.bytes.includes('AddonVersionMismatch'), false,
+    'and the shipped bytes mint no code of their own: the status stays the store\'s closed member, carried verbatim');
+  const shapeVerdict = controlVerdict({ relativePath: refusalCarrier.relativePath, bytes: secondShapeEntry });
   assert.ok(shapeVerdict !== null,
     'THE SECOND CONTROL MUST FAIL: a member outside `{log, message, status}` — or any shape but the declared '
     + 'one (`surface.md §2.5` items 4 and 9) — is caught at this state too');
@@ -2052,8 +2085,19 @@ cell('P-PUB-6', 'S-SCOPE the five names, name for name, in the manifest and the 
   // the main's, which is read against the declared release (`A89` · `§15` item 1). **NO CONJUNCT OF THE
   // SHIPPED CELL WAS DROPPED:** the pin is still asserted present, still asserted exact (never a range),
   // and the entry's five spellings are still read name for name.
+  //
+  // **⟶ AND THE TEXT SUBJECT IS THE MODULE'S OWN CLOSED SET (2026-10-24, `strata/decisions.md`'s FINDING class
+  // (3)): REPOINTED, NOT RE-DERIVED FROM AN OBSERVABLE — and the reason is that this conjunct is a claim about
+  // SPELLINGS, not about behaviour.** `AV-2` reads the five homes *together*, so the claim is that the names the
+  // manifest pins and the names the construction carries agree CHARACTER FOR CHARACTER. **The observable twin of
+  // that claim already exists and is `P-PUB-3`'s `S-PLATFORM` cell** (*"one drive per covered key, each landing
+  // on its declared name"*), which drives the five covered keys and reads which name the load path actually
+  // required; re-deriving THIS cell onto the same drives would be a second copy of another cell's instrument and
+  // would measure nothing new. What was broken was not the instrument but the FILE it read: the five spellings
+  // moved to `src/entry/artefact.mjs`'s `PLATFORM_NAMES` when the entry was cut, so `index.mjs` alone no longer
+  // contains one of them and this cell failed with `[]` against the declared five.
   const { main, pins, platformVersions } = mainVersionCoupling();
-  const entry = readFileSync(join(PKG_DIR, 'index.mjs'), 'utf8');
+  const entry = moduleText(PKG_DIR);
   assert.deepEqual(Object.keys(pins).sort(), [...FIVE_NAMES].sort(),
     '`§1.3` item 4 / `PAR-PUB-8`: the manifest\'s five keys ARE the five declared names');
   const release = declaredReleaseVersion(REPO_ROOT);
@@ -2093,7 +2137,10 @@ cell('P-PUB-6', 'S-SCOPE every name is scoped, and the scope is `@auspicion`', a
   // entry and the manifest must carry no unscoped name, and the main package's own identity is unscoped
   // because it is a DIFFERENT identity (`PAR-PUB-1`) — **`A86` CHANGES AN ORG AND NOT THAT IDENTITY**.
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
-  const entry = readFileSync(join(PKG_DIR, 'index.mjs'), 'utf8');
+  // **AND THIS CELL'S `entry` IS THE MODULE'S OWN CLOSED SET TOO** (`strata/decisions.md`'s FINDING class (3),
+  // 2026-10-24): the five spellings' construction home is `src/entry/artefact.mjs`, so a scan of the hub alone
+  // would answer "no unscoped name" because it carried NO name at all — a vacuous green.
+  const entry = moduleText(PKG_DIR);
   for (const name of Object.keys(manifest.optionalDependencies ?? {})) {
     assert.ok(name.includes('/'), `${name} must be scoped`);
   }
@@ -2206,7 +2253,11 @@ cell('P-PUB-6', 'S-SCOPE the alternative literal reading is written nowhere', as
   };
   const shipped = [
     ['the main manifest', readFileSync(join(PKG_DIR, 'package.json'), 'utf8')],
-    ['the entry', readFileSync(join(PKG_DIR, 'index.mjs'), 'utf8')],
+    // **"THE ENTRY" IS THE MODULE'S OWN CLOSED SET** (`strata/decisions.md`'s FINDING class (3), 2026-10-24):
+    // the five spellings live in `src/entry/artefact.mjs`, so a sweep of the hub alone was a sweep of a file
+    // that carries none of them — the cell stayed green by having nothing to catch, which is the vacuous-green
+    // failure mode this pass exists to close. The sweep's own count assertion below is unmoved.
+    ['the entry', moduleText(PKG_DIR)],
     ['the shipped README', readFileSync(join(PKG_DIR, 'README.md'), 'utf8')],
   ];
   const checks = sweepAlternativeReadings(shipped);
