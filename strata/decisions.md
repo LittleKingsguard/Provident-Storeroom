@@ -1961,3 +1961,41 @@ only"* — and the store's own Rust battery is **green** while asserting it.
 
 **L0 has ordered no fix.** The architect said *"Proceed"* to a fix whose target turned out to be two contracts in
 conflict, and **a pass that picked one side would be inventing the ruling it was asked to implement.**
+
+---
+
+### `D-32` — a bare `file`-tier write PERSISTS: `DD-28` governs, and `§2.11` clause 1 is read through it
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the contradiction
+`R-5` put to him.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> a
+
+**WHAT IT SETTLES, AND THE PRECEDENT IT USES.** **(A): the NATIVE contract governs the act a bare `file`-tier write
+performs.** **`DD-28`'s sentence is law: *"`file`-TIER DURABILITY IS PRODUCED BY A SUCCESSFUL `file`-TIER `write`
+ONLY."*** **So `write(addr, 'file', v)` commits, with no kernel attempt and no terminal arm in the path, and a fresh
+`storeCreate` over the same `filePath` resolves the address.**
+
+**WHAT IT SUPERSEDES, AND WHAT IT DOES NOT.** **`docs/specs/storeroom-js/surface.md` §2.11 CLAUSE `1` IS READ THROUGH
+THIS RULING**: its *"the verb performs no file I/O on any of its arms"* becomes **"the write verb performs no file
+I/O OF ITS OWN beyond the store's declared write"** — **the clause still governs the PACKAGE's layer (it adds no
+second write path, no scratch copy and no package-authored image), and it no longer denies the store's own declared
+act.** **CLAUSE `2` IS UNTOUCHED AND STILL BINDS**: **the terminal arm performs `commit_file` as its first act on
+the passing arm, before any delivered body** — **and that is now the KERNEL path's save of a whole attempt, which is
+exactly what it was for.** **Both acts stand; the bare write's and the terminal arm's are different saves of
+different scopes, and the same bytes may lawfully be committed by both.**
+**AND THE CLAUSE IS NOT EDITED.** The spec corpus is unowned (`D-11`'s narrow rule); **this log is what supersedes
+it, exactly as `D-3` superseded `§2.1` item `6` without touching the file.**
+
+**WHAT IT OBLIGATES — THREE CELLS, AND NOTHING ELSE.** `LIVE-4.8`, `FTS-05.1` and `FTS-05.2` asserted the opposite
+reading and are now **REWRITE (`D-17`)**, not KEEP-and-red: **`R-3`'s *"the code owes the fix"* is dead, and `R-5`
+had already withdrawn it.** **Each cell re-derives to the native reading: the bare write persists, and its boot
+resolves.** **NO CODE MOVES — `src/**` is untouched, the store keeps `write_file` and `commit_file`, and the Rust
+battery keeps asserting `DD-28` and stays green.**
+
+**AND THE CONSEQUENCE FOR THE BRIEF'S OWN HISTORY, RECORDED BECAUSE IT IS THE LESSON.** **`strata/brief.md`'s UC-6
+already said *"durability is a property of `file`-tier WRITES only"*** — **the brief was right the whole time, and the
+cells were written from the other contract.** **A contradiction between two kept contracts is not resolvable by the
+corpus; it needs the architect, and this one took a direct question to surface.**
