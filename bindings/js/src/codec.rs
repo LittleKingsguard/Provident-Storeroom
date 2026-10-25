@@ -59,12 +59,14 @@
 // **`unsafe` APPEARS IN THIS FILE AND IT IS THE COPY OUT'S OWN FRAME** (`PAR-ADA-4`): the erasure of the
 // library's typed value to the untyped handle the wire crosses as. **AND IT HAS SINCE BEEN AUDITED — THE
 // EARLIER SENTENCE HERE SAID THE SPLIT "RELOCATED THE BYTES AND DID NOT AUDIT THEM", AND THAT IS NO LONGER
-// TRUE.** **ALL `12` SITES WERE READ AT THEIR OWN LINES AND ALL `12` ARE JUSTIFIED: `8` are the raw-erasure
-// pair** ([`make_value`]'s `to_napi_value`/`from_raw_unchecked`, `object`'s and `array`'s, and
-// [`make_undefined`]'s `from_raw_unchecked`) — **`3` are `cast::<T>()` taken ONLY AFTER an explicit class
-// check has already named the class** ([`string_of`]'s through [`arg_string`], [`bool_of`]'s behind its
-// `Kind::Boolean` test, [`number_of`]'s behind its `Kind::Number` test, [`bigint_of`]'s behind its match) —
-// **and `1` is the raw `sys::napi_get_undefined` call itself.** **THE FINDING IS THAT THE FILE IS CONFINED
+// TRUE.** **ALL `12` SITES WERE READ AT THEIR OWN LINES AND ALL `12` ARE JUSTIFIED: `7` are the raw-erasure
+// sites** ([`make_value`]'s `to_napi_value`/`from_raw_unchecked`, [`make_undefined`]'s raw
+// `sys::napi_get_undefined` call and its `from_raw_unchecked`, `object`'s pair, and **`array`'s single
+// `from_raw_unchecked` — its `to_napi_value` left on 2026-10-25 with the `[[Set]]`-based `Vec` conversion
+// that pair was** (see [`array`])) — **`5` are `cast::<T>()`** ([`string_of`]'s through [`arg_string`],
+// [`bool_of`]'s behind its `Kind::Boolean` test, [`number_of`]'s behind its `Kind::Number` test,
+// [`bigint_of`]'s behind its match, **and [`value_of`]'s `serde-json` cast, taken on a value the package's own
+// walk has already classified**). **THE FINDING IS THAT THE FILE IS CONFINED
 // TO THE BOUNDARY BY DESIGN: every one of the `12` is a crossing-or-erasure act and no `unsafe` here reaches
 // a store rule — `crossing.rs`, the crate's declared pure half, carries ZERO `unsafe` at any byte**
 // (`binding-crate-and-abi.md §3`). **THE AUDIT ALSO RAISED TWO OBSERVATIONS THAT ARE RECORDED AND NOT
@@ -730,12 +732,61 @@ impl<'e> Codec<'e> {
     fn array(self, items: Vec<JsVal<'_>>) -> JsVal<'static> {
         // **A REAL JS ARRAY AND NOT AN OBJECT WITH INDEXED MEMBERS** — the wire's `i:[…]` and `s:[…]` are
         // read by the mapping layer with `Array.prototype.map`, so an object carrying `0`, `1`, … would
-        // cross as a value whose shape is the wrong one. The library's `Vec<T>` conversion builds an array
-        // through `napi_create_array_with_length` and `napi_set_element`, which is the pair the hand-written
-        // copy OUT used.
-        let owned: Vec<JsVal<'_>> = items;
-        let raw = unsafe { ToNapiValue::to_napi_value(self.env.raw(), owned) }
-            .unwrap_or(std::ptr::null_mut());
+        // cross as a value whose shape is the wrong one.
+        //
+        // **⟶ AND ITS INDICES ARE DEFINED, NEVER SET — CLOSED 2026-10-25 (`F8-2`'s OUT vector).** The
+        // library's `Vec<T>` conversion built this array through `napi_create_array_with_length` and
+        // `napi_set_element`, and `napi_set_element` is a `[[Set]]` that WALKS THE PROTOTYPE CHAIN: under an
+        // own getter-only accessor at `Array.prototype[0]` the write answered `false`, the slot stayed a
+        // HOLE, and every array this codec built crossed OUT holed — a lawful
+        // `write(['list'], 'mem', ['x','y'])` answered `after.value: ["P0","P1"]` and `op.address: ["P0"]`,
+        // the prototype's accessor answering at each index (`tests/e2e/prototype-index-array-out.test.mjs`
+        // drives it). **THE LAWFUL NODE-API FORM IS `napi_define_properties` WITH ONE
+        // `napi_property_descriptor` PER INDEX**, which performs `DefineOwnProperty` and consults no chain;
+        // the array is created at its own `length` FIRST, so the descriptors define indices `0…n−1` on an
+        // array whose `length` is already `n` — nothing assigns `length` and no hole is created. **It is
+        // [`object`]'s own member form and its own attributes**, and the creation is still the library's
+        // `Env::create_array`, whose `Array` carries the same `JsObjectValue` this file's [`object`] uses, so
+        // no raw symbol is hand-declared here.
+        //
+        // **WHY NOT THE OTHER TWO CANDIDATES, PRICED.** A JS ARRAY LITERAL OR `Array.of` would have to be
+        // reached through the caller's realm — `napi_call_function` on a global binding the caller may have
+        // replaced — which is user code run on a copy path, and no clause of `contract.md §1` or `§2.1`
+        // admits that here. **REFUSING INSTEAD OF DEFINING IS NOT AVAILABLE EITHER**: no clause names a
+        // refusal for this state, and the copy OUT is not a boundary decision, so a refusal would mint a
+        // class the contract does not declare. **THE COST OF THE FORM CHOSEN IS ONE DESCRIPTOR AND ONE
+        // `utf8` NAME PER ELEMENT AND ONE `napi_define_properties` CALL PER ARRAY**, which is what the
+        // `[[Set]]` pair cost and is paid only on values crossing OUT.
+        let raw = match self.env.create_array(items.len() as u32) {
+            Ok(mut out) => {
+                let mut properties: Vec<Property> = Vec::with_capacity(items.len());
+                let mut complete = true;
+                for (index, item) in items.iter().enumerate() {
+                    // **THE NAME IS THE INDEX'S OWN DECIMAL SPELLING** — the canonical array-index key — and
+                    // it is `utf8`, so no JS `string` value is minted for it.
+                    let name = index.to_string();
+                    match Property::new()
+                        .with_utf8_name(&name)
+                        .and_then(|property| property.with_napi_value(&self.env, *item))
+                    {
+                        Ok(property) => properties.push(property),
+                        // An element that cannot be minted leaves no half-built array behind: the answer is
+                        // the same null the failed conversion answered with before this arm existed.
+                        Err(_) => {
+                            complete = false;
+                            break;
+                        }
+                    }
+                }
+                // **AN EMPTY ARRAY OWES NO DESCRIPTOR AND IS ALREADY THE VALUE IT DECLARES.**
+                if complete && (properties.is_empty() || out.define_properties(&properties).is_ok()) {
+                    out.raw()
+                } else {
+                    std::ptr::null_mut()
+                }
+            }
+            Err(_) => std::ptr::null_mut(),
+        };
         unsafe { JsVal::from_raw_unchecked(self.env.raw(), raw) }
     }
 
@@ -746,12 +797,25 @@ impl<'e> Codec<'e> {
     }
 
     /// One member set on an object this codec built — the record's own triggering address (`§2.7` item 2).
+    ///
+    /// **⟶ AND IT IS DEFINED, NEVER SET — THE SAME CLASS, CLOSED BESIDE [`array`] 2026-10-25.** `Object::set`
+    /// reaches `napi_set_property`, a `[[Set]]` that walks the chain: a getter-only accessor of the same name on
+    /// `Object.prototype` would answer `false` and the member would be MISSING from a record the caller reads —
+    /// the same defect [`object`] was closed against for `__proto__` on 2026-10-23, and the same one
+    /// [`array`]'s indices were closed against here. `napi_define_properties` performs `DefineOwnProperty`,
+    /// consults no chain and creates the OWN data property the record declares; the attributes are identical
+    /// to what `set` produced on a fresh object (writable/enumerable/configurable).
     pub(crate) fn set_member(self, object: JsVal<'_>, name: &str, value: JsVal<'_>) {
         let mut object = match object.coerce_to_object() {
             Ok(object) => object,
             Err(_) => return,
         };
-        let _ = object.set(name, value);
+        let property = Property::new()
+            .with_name(&self.env, name)
+            .and_then(|property| property.with_napi_value(&self.env, value));
+        if let Ok(property) = property {
+            let _ = object.define_properties(&[property]);
+        }
     }
 
     fn string_value(self, text: &str) -> JsVal<'static> {
