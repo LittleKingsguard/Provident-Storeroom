@@ -1911,3 +1911,53 @@ can observe it**, so the absence is legible rather than a gap.
 **WHAT IT DOES NOT SETTLE.** **Which cells are untestable** — that is the test layer's determination, cell by cell,
 with the instrument named and its absence argued. **And `D-31` does not reach a cell whose subject is gone** — that
 is `D-17`'s DISCARD class; **`D-31` is for a subject that EXISTS and cannot be SEEN.**
+
+---
+
+### `R-5` — the last red is a CONTRADICTION BETWEEN TWO KEPT CONTRACTS, and `R-3`'s disposition of it is withdrawn
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, gathering facts to brief the
+fix the architect ordered with *"Proceed"* — and finding that the fix's direction is not L0's to choose.
+
+**WHAT THE TWO CELLS ASSERT.** `LIVE-4.8` and `FTS-05.1` (and `FTS-05.2` in the same family) assert that **a `file`-tier
+`write` does NOT persist**: *"the write VERB performs NO file commit: the write succeeds and the address does NOT
+resolve after a fresh boot — the save being §2.11 clause 2's terminal-arm act."* **They drive a BARE write** — no
+`K-2`, no `K-3`, no kernel attempt at all — and measured on this tree, **that bare write leaves the image at 13
+bytes**, so the cell is red.
+
+**★ AND THE TWO KEPT CONTRACTS SAY OPPOSITE THINGS ABOUT THAT EXACT ACT.**
+
+| contract | its declaration |
+|---|---|
+| **`docs/specs/storeroom-native/contract.md` `DD-28`** | **"`file`-TIER DURABILITY IS PRODUCED BY A SUCCESSFUL `file`-TIER `write` ONLY"** — *"the `delete` and the `rollback` DO NOT COMMIT THE FILE, and the `file` tier's durability is a WRITE's act alone"* |
+| **`docs/specs/storeroom-js/surface.md` §2.11 clause 1** | **"THE LIFT IS FOR THE `file` TIER, THE TERMINAL ARM AND THE PASSING ARM ALONE, AND FOR NOTHING ELSE"** — with clause 2 putting the save on the **terminal arm**, as `commit_file`, before any delivered body |
+
+**THE STORE IMPLEMENTS BOTH ACTS**, which is why nothing in the code looks wrong from either side alone:
+`src/store.rs` has a private **`write_file` (`:1300`)** that a file-tier `write` reaches, **and** a public
+**`commit_file` (`:1343`)** that the terminal arm calls through the addon's `commitFile` dispatch. **So the bare
+write commits under `DD-28`, and the terminal arm also commits via `commit_file` — the cells test the second and
+the store implements the first.**
+
+**SO `R-3`'S DISPOSITION IS WITHDRAWN, AND THE WITHDRAWAL IS L0'S OWN ERROR.** `R-3` recorded *"`LIVE-4.8`,
+`FTS-05.1` and `FTS-05.2` are RIGHT and stay KEEP-AND-RED; the code owes the fix"* — **and it reached that from
+`surface.md` ALONE, without reading `DD-28`, whose subject is the same act.** **A cell cannot be adjudicated against
+one of two contracts that disagree**, and the battery's authors wrote theirs from the JS side.
+
+**AND THE EVIDENCE TILTS, WHICH IS WORTH KNOWING EVEN THOUGH THE CHOICE IS THE ARCHITECT'S.**
+**`strata/brief.md`'s UC-6 already states the native reading**: *"durability is a property of `file`-tier WRITES
+only"* — and the store's own Rust battery is **green** while asserting it.
+
+**THE TWO BRANCHES, PRICED.**
+
+- **(A) THE NATIVE READING GOVERNS — no code change, two cells move.** A bare file-tier write persists; `§2.11`
+  clause 1 is read as *"the write verb performs no file I/O **of its own** beyond the store's declared write"*, and
+  the terminal arm's `commit_file` is the **kernel path's** save of a whole attempt. **Cost: the three cells are
+  REWRITE (`D-17`), and a JS-side clause re-spelling. Nothing in `src/**` moves.**
+- **(B) THE JS READING GOVERNS — a Rust change, a `DD-28` amendment, and a consumer-visible semantic.**
+  `src/store.rs`'s file-tier `write` must stop reaching `write_file`, **`DD-28` must be amended**, **the Rust
+  battery must be re-derived** (`cargo test` is green today asserting the opposite), and **a bare JS file-tier write
+  would then never persist** — which contradicts the brief's UC-6 and the consumer guide's whole durability story.
+  **Cost: the largest of any single decision on this branch, and it moves a published semantic.**
+
+**L0 has ordered no fix.** The architect said *"Proceed"* to a fix whose target turned out to be two contracts in
+conflict, and **a pass that picked one side would be inventing the ruling it was asked to implement.**
