@@ -219,7 +219,11 @@ construction and at a boot over an existing file, both answering `ConstraintList
 Toggles enable and disable and are idempotent; a toggle naming an uncarried pair throws. **A registered pair
 stays registered until `removeConstraint` — `constraintOff` is not a removal, and a disabled pair still
 appears in `constraints()`.** `docs/specs/storeroom-native/contract.md §8.1` #16, `§7.2` item 6,
-`docs/specs/storeroom-js/surface.md §2.12`, `parameter-semantics.md §2.21`.
+`docs/specs/storeroom-js/surface.md §2.12`, `parameter-semantics.md §2.21`. **★ AND READS CHECK NO CONSTRAINT —
+settled by the architect** (`strata/decisions.md` `D-1-bis`, reading (a)): the mechanism is unconditional on
+the **write/commit** path over the triggered handle set, and a `read`, a `readLiteral` and a branch's assembly
+**consult no constraint, refuse nothing on a constraint's verdict and filter nothing on one.** A read-side
+constraint arm is not declared, is not owed, and is **refused as a reading** — so no design may introduce one.
 
 **UC-10 · Refuse in one form.** Every refusal is **thrown synchronously as a plain object** carrying
 `{status, message}` — never an `Error` subclass, never a rejection, never `{ok: false}`, so `try/catch` is the
@@ -273,7 +277,9 @@ registry*, and a green on one layer does not retire a red on another.
   was the architect's to take: `CommitRecord.pending` versus a store-surface signal. **This pass did not
   re-measure it.** All that is verified here is that the entry does call the kernel: `index.mjs` reaches
   `kernel.commit(instance, address, tier, value)` and then `kernel.runAttempt(instance, record)`. **Whether
-  delivery now follows the pass is `OWED` a measurement, not a claim either way.**
+  delivery now follows the pass is `OWED` a measurement, not a claim either way** — and **`D-1-bis` settles what
+  the law IS without touching this: it confirms the mechanism is unconditional on the write/commit path and
+  refuses a read-side arm, and it does not turn the conformance measurement green.**
 - **The constraint kernel DOES ship — corrected, and the archived tracker says otherwise.** `bindings/js/package.json`'s
   `files` carries **four** entries — `index.mjs`, `README.md`, `index.d.ts`, `src/constraint-kernel.mjs` — so
   the *"`src/**` reaches no consumer today"* limitation the tracker recorded is superseded. **And the kernel's

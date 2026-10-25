@@ -71,3 +71,47 @@ carries it at four sites, each of which this ruling names:
 at `e2fcbef` **before** this ruling and still carry the superseded configuration. They are owed a revision,
 and the map's own honesty conventions require the revision to say what it replaced rather than to present the
 new reading as though it had always been there.
+
+---
+
+### `D-1-bis` — the reading of *"automatically on read"* is settled: **(a)**
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, answering a
+question L0 put to him rather than interpreting the clause itself.
+
+**THE QUESTION L0 ASKED, IN FULL — the two readings put to him, neither taken:**
+
+> - **(a) The triggered set is what gets checked automatically** — i.e. the mechanism is unconditional on the
+>   write/commit path, which is the `A112` law as it stands. This is how I read it, and it's what makes the
+>   lazy import pointless.
+> - **(b) Reads check constraints** — a `read` would consult registered constraints and refuse or filter. **No
+>   clause in any kept contract declares this**, and it would be new law: it changes `read`, `readLiteral` and
+>   the assembly's omission rules.
+
+**THE ARCHITECT'S ANSWER, VERBATIM:**
+
+> a is correct
+
+**WHAT IT SETTLES.**
+
+- **The constraint mechanism is unconditional on the write/commit path**, over the triggered handle set. There
+  is nothing conditional to defer, which is the ground under `D-1`: the lazy-and-separable reach has no
+  subject because the mechanism is always present.
+- **★ READS CHECK NO CONSTRAINT — (b) is REFUSED BY THE ARCHITECT.** `read`, `readLiteral` and a branch's
+  assembly **consult no constraint**, **refuse nothing on a constraint's verdict**, and **filter nothing** on
+  one. **There is no read-side enforcement arm, none is declared, and none is owed** — this is stated as a
+  refusal of a candidate reading rather than as an absence, so that no later pass "helpfully" adds one.
+
+**WHAT IT DOES NOT SETTLE — AND THIS IS THE CLAUSE THAT WILL BE MISREAD IF IT IS NOT PRINTED.**
+
+- **It confirms what the law IS; it does not confirm that the implementation CONFORMS.** The `A112`
+  conformance question — *does delivery actually follow the constraint pass?* — **remains unmeasured on this
+  branch.** The archived tracker (`docs/next-steps.md` `N7`) measured it **red** on 2026-10-15, and no pass
+  since has re-measured it. **`D-1-bis` does not turn that measurement green, and no layer may report it green
+  on the strength of this ruling.** The brief marks it `OWED` a measurement and that marking stands.
+- **It adds no status to the closed failure set** (sixteen, plus the open escape arm) and moves no member.
+- **It orders no code move and opens no unit.** It settles a reading; it schedules nothing.
+
+**WHAT IT CHANGED BELOW ME: nothing but a prohibition.** The L1 map needs no revision for it — the module
+merge, the endpoint counts and the ownership arithmetic are all `D-1`'s and are unmoved by which reading of
+"on read" is true. **What it changes is what a designer may NOT build: a read-path constraint arm.**
