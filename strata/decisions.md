@@ -547,3 +547,118 @@ and `6` — so it never depended on item `1`'s exclusivity, and lifting item `1`
 
 **`R-2` — the packaged-resolution claim lives exclusively in the `O3` set.** Already recorded as `D-6`'s open
 item. **Restated here only to keep it visible: it remains UNCONFIRMED, and no pass may build on it as settled.**
+
+---
+
+### `D-7` — the packaged-resolution claim is `O3`'s alone; `O3` is surface-facing/install only, with its own helpers
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, closing `D-6`'s open
+item and the route-tagging pass's helper finding.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> 2. Put in 03
+> 3. 03 is for surface-facing/install tests only and will have/need its own test helpers for the import/install regardless
+
+**WHAT IT SETTLES.**
+
+- **`R-2` IS CONFIRMED.** The packaged-resolution claim — *the name resolves through the `exports` map* — lives
+  **exclusively in the `O3` set.** The earlier set claims **nothing about `exports`**: its cells reach the entry
+  by path and say so. **No packaged-resolution cell is owed in the `O4` set, and a migration that adds one has
+  invented work.**
+- **`O3`'s membership rule is now narrower than "assembles a tree":** it is **surface-facing and install tests
+  only.** A cell that assembles a tree but whose subject is a *behaviour* is not an `O3` cell — which confirms the
+  tagging pass's call on `negative-generators` (an arm's subject, not the file's route) and confirms that the
+  `O3`-shaped *limbs* found inside `O4` files stay limbs, not routes.
+- **`O3` OWNS ITS OWN HELPERS, FOR THE IMPORT/INSTALL MECHANISM, AND WILL NEED THEM REGARDLESS.** This dissolves
+  the helper constraint the tagging pass reported: an `O3` cell must **not** consume an `O4` helper, because one
+  `import` statement cannot be both a name reach and a path reach. **So the shared-helper question has no
+  subject: `O3`'s helpers are `O3`'s.** `O4` keeps the existing helpers, and no helper becomes a
+  two-mechanism file.
+
+**WHAT IT DOES NOT SETTLE.**
+
+- **Which helpers `O3` needs and what they contain** — the staging helper, the install helper, the
+  name-resolution assertion helper. **L1's to declare**, and `D-6` already declares the staged tree's contents.
+- **The two shared helpers' fate** (`constraint-kernel-helpers.mjs`, consumed by 12 files across three scopes;
+  `held-listener-identity-helpers.mjs`, by e2e + integration). Since no `O3` cell may consume them, **their
+  consumption set shrinks to `O4` + integration + unit**, and the re-check at migration is a bookkeeping task,
+  not a design question.
+- **It orders no file move.**
+
+---
+
+### Correction to `R-1` — withdrawn: the `LICENSE`-row refusal is grounded in item 1, not item 5
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, reading the contract's own
+carriage clause; **a correction to L0's reading, not a ruling.**
+
+**WHAT `R-1` SAID.** *"The `LICENSE`-row prohibition has its OWN home — `§2.1` item `5` — so it never depended on
+item `1`'s exclusivity, and lifting item `1` does not lift item `5`."*
+
+**WHAT THE CONTRACT ACTUALLY SAYS, READ AT ITS BYTES.** `§2.1` item `1`'s carriage clause
+(`docs/specs/storeroom-publish/contract.md`, the paragraph following item `1`) states the refusal's ground in
+terms this reading cannot survive: **"adding a `LICENSE` entry to the main package's `files` is REFUSED because it
+would contradict `§2.1` item 1 on its own face."** **So the prohibition IS grounded in item 1's *"and NOTHING
+ELSE"*, and `D-4` lifted exactly that.** `R-1` is **withdrawn by name.**
+
+**WHAT SURVIVES INDEPENDENTLY — and this is why the question is live rather than settled.** Three things are not
+item 1:
+1. **The CARRIAGE MECHANISM.** The main package's licence copy is landed by **the release's own assembly step**,
+   which copies the repository's `LICENSE` byte-for-byte into **each of the six artefacts' tarballs**
+   (`§2.3` item 2; `distribution.md §4.3` item 2; the `Q3-5` duty; `PUB-DD-11`). **A consumer who unpacks reads
+   FOUR published paths while the tracked manifest names THREE, and the contract says that difference "is the
+   mechanism rather than a defect".**
+2. **`PUB-DD-11`** — a per-artefact copy is *"the licence's TEXT travelling with an artefact"* and **not a fifth
+   declaration site**.
+3. **`PUB-DD-12` / `DD-43`** — a `LICENSE` byte **written under `bindings/js/`** is refused as a *tracked or
+   persisting* file; the pack-time transient copy is reconciled separately and is lawful.
+
+**AND THE FACT THAT DECIDES WHAT THE CHOICE IS WORTH: A `files` ROW CHANGES NO BYTE OF THE TARBALL HERE.** The
+licence copy is landed by the assembly step **regardless of the allowlist**, and npm includes a `LICENSE` file
+when one is present **regardless of `files`** (npm's own always-included set — general npm behaviour, **not
+measured on this branch**). **So the row is PURELY DECLARATIVE: it changes what the manifest says, never what
+publishes.** The project has met the neighbouring hazard and has the scar: `publish.yml`'s pre-publish `test -e`
+guards exist because **npm omits a missing `files` entry silently** — a declared path that no tarball carries
+packs green.
+
+**THE THREE READINGS, PUT TO THE ARCHITECT RATHER THAN DECIDED.**
+
+- **(i) The row stays refused** — on the carriage ground: a row would be **redundant with the assembly step** and
+  would make the manifest a second declaration of how the licence travels. `JSG-12.18`'s `LICENSE` subject then
+  **stands**, and only its exact-set equality is obsolete.
+- **(ii) The row is now LAWFUL** — because its only stated ground is lifted, and a declarative row that cannot
+  change the tarball costs nothing.
+- **(iii) The row is lawful ONLY IF EVIDENCE REQUIRES IT** — `D-4`'s own criterion: if an e2e/install scenario
+  shows a consumer or a scanner needs the row, `delivery` adds it; otherwise it stays out. **L0's reading is
+  (iii)**, because it is the only one that does not re-introduce a fixed manifest rule in the place of the one
+  `D-4` lifted. **It is marked as inference and nothing is built on it.**
+
+**WHAT THIS CHANGES BELOW ME: one cell's editability.** `JSG-12.18` is the second pin on the retired count
+(`D-3`'s correction), and **whether its `LICENSE` subject survives is now an architect's call rather than a
+restatement of an existing clause.** Until it is answered, that cell cannot be edited safely.
+
+---
+
+### The path move owes two amendments, and one of them names the move itself
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0's reading of the publish
+contract while elaborating `F3`; **a finding, not a ruling.**
+
+**`PUB-DD-24` is the clause that pins the red set's home, its command AND its layer**, and `D-5`'s relocation of
+the batteries collides with all three: it declares that **the red set is `bindings/js/test/publish.test.mjs`,
+inside the directory the landed JS leg's command globs (`node --test bindings/js/test/*.test.mjs`, taken at the
+repository root)**, because *"a red set under `docs/specs/**` would be executed by NO COMMAND THIS PROJECT
+RUNS"*, and that **"the unit's own node legs are that same command at that same site, at `ENVELOPE/PURE`"**
+
+**AND ITS OWN `alt` IS THE MOVE, ALREADY PRICED:** *"A SEPARATE COMMAND AND DIRECTORY FOR THE PUBLISH CELLS —
+priced: the project's landed legs both run at the repository root, so a third command would need its own tracker
+leg, its own record cell and its own layer statement, while the existing command already globs the file; available
+with a fresh ruling"*, **followed by a bounded amendment of `docs/specs/storeroom-publish/` together with
+`docs/specs/storeroom-js/implementation-plan.md`'s leg declaration, which names the command.**
+
+**SO THE MOVE'S REAL COST IS NOW NAMED, AND IT IS NOT THE FILES:** `tests/e2e/` needs **a third command, its own
+tracker leg, its own record cell and its own layer statement**, and two spec directories owe bounded amendments.
+**The spec corpus is unowned, so who performs those amendments remains the open question the route pass put to
+the architect — this clause is the thing they must amend.** And its finding list also carries **"a rewritten
+existing test file"**, which a re-spelling pass must be reconciled against rather than ignored.
