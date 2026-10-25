@@ -1019,3 +1019,42 @@ SURFACES and SIGNATURES, and a move designs neither: the cut lines, the DAG, the
 already declared at L1, and L2/L3 would be re-deriving an existing surface.** **So stage 1 is delegated to L4
 directly, on the declared design, with the command it must keep green** — and this deviation is stated rather than
 hidden, because the first real test of this workflow on this project is worth recording as such.
+
+---
+
+### FINDING — the archival pass broke the batteries, and the wave's baseline is red because of it
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0's own baseline run, taken before
+opening the implementation wave. **Not a ruling: an error of L0's, recorded at the size it actually is.**
+
+**WHAT THE BASELINE SAYS.** `npm test` (the repository's own leg, `node --test bindings/js/test/*.test.mjs`) exits
+**`1`** with **21 failing cells** — all in `publish.test.mjs` (`P-PUB-2`, `-3`, `-6` ×2, `-7`, `-8` ×2) and in
+`version-stamp-r2.test.mjs` — and **every one is an `ENOENT` on a document this branch moved to the archive**:
+`storeroom-publish/{acceptance,parameter-semantics,release,resolution,implementation-plan}.md`,
+`storeroom-js/package.md`, `storeroom-native/implementation-plan.md`, and others.
+
+**THE SIZE OF IT.** The batteries read **52** `docs/**` paths. **44 of them were in the archived set.** **42 have
+archive copies and are restorable — 4,293,789 bytes.**
+
+**THE MISTAKE, STATED SO IT IS NOT REPEATED.** When the archival's keep-set was proposed, **L0 measured what
+`src/`, `bindings/` and `tests/` CITE in code, and did not measure what the `.mjs` batteries READ at runtime.** The
+citations were the wrong population. **A battery that opens a document is not citing it — it is using it as an
+oracle**, and the difference is the whole of this failure. **And the pass committed a 201-file documentation move
+without running the suite, which was the one check that would have caught it.** The exit walkthrough asks for
+exactly that check and it was not taken.
+
+**WHY RE-POINTING AT THE ARCHIVE IS NOT AN OPTION.** `archive/` is **gitignored by this project's own rule**
+(`.gitignore:172`), which the architect chose to keep. **A battery reading `archive/...` fails on every fresh
+checkout and in any CI** — it would replace a documentary dependency with a local-only one. **That route is closed
+by a decision already taken, not by preference.**
+
+**WHY THE KEEP-SET WAS MIS-SPECIFIED RATHER THAN THE INSTRUCTION MIS-READ.** The instruction was to keep *"the
+project surface behavior"*. **These batteries are blind instances off documentary bytes** — `D-8`'s own ground for
+retiring the `LICENSE` limb says so in as many words — **so the documents they read ARE behavior-defining, and
+they fall inside the exception rather than outside it.** **Restoring them honours the instruction; the earlier
+keep-set was L0's misreading of where "surface behavior" stops.**
+
+**AND THE SECOND BASELINE, NAMED BECAUSE IT IS A DIFFERENT LEG.** The stale blind cell `D-16` fixes
+(`blind-constraints-v2.mjs:1139`) lives in **`bindings/js/greens/`**, which `npm test` does not run — it belongs to
+**`npm run greens`**, whose baseline **L0 has not taken**. **So this branch has two oracles and only one has been
+measured**, and a wave verified against `npm test` alone would leave the greens unmeasured.
