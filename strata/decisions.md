@@ -416,3 +416,88 @@ recorded and unscheduled: the **subdivision + kernel integration** (`D-1`, `D-2`
 what the e2e/blind scenarios prove, so **the scenarios' placement is upstream of delivery's manifest decision** —
 which means the battery stratification is arguably the first of the two, not the second. **That ordering is L0's
 own reading and is marked as such; it is not a ruling and the architect has not said it.**
+
+---
+
+### `D-6` — the specifier blocker is resolved: O3 for e2e publish-readiness, O4 for earlier tests
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, choosing from the
+option space L0 put to him after the stratification declaration raised the blocker.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Use O3 for e2e publish-readiness, O4 for earlier tests
+
+**THE TWO OPTIONS, RESTATED SO THIS RECORD STANDS ALONE.**
+
+- **`O3` — STAGED INSTALL.** The cell assembles a package tree into a scratch `node_modules` — the package's own
+  files as the allowlist carries them, plus a reachable addon — and imports the package **by its name from
+  inside that tree**. It passes through the package's **`exports` map** *and* through an **install-shaped**
+  tree. It is the project's own idiom: `publish.test.mjs`'s `coveredEnv`/`makeScratch` already assemble trees
+  to drive, and `typecheck/` already stages `node_modules/provident-storeroom`.
+- **`O4` — PATH ENTRY.** The cell reaches the entry by **path** (`bindings/js/index.mjs`), which resolves the
+  addon ladder from the **entry's own directory** and so exercises rung 2 exactly as a name-route does, and
+  which **bypasses the `exports` map** — so it cannot catch an `exports` error.
+
+**WHAT IT SETTLES.**
+
+- **The blocker is closed.** No cell needs a bare specifier to reach a package it cannot self-reference from
+  `tests/e2e/`, because no cell is left in that position: the publish-readiness cells **stage**, and every other
+  cell **reaches by path**.
+- **The split criterion is PURPOSE, not layer.** It cuts across the preset's three scopes: a publish-readiness
+  cell is one whose subject is *whether the package as shipped resolves and runs*, and it takes **`O3`**; every
+  earlier cell takes **`O4`**. **The `exports` map is therefore asserted where the install shape is assembled,
+  and nowhere else** — which is also where `D-4`'s publish-shape evidence lives.
+- **The 19 files that carry the bare specifier today are all re-spelled**: 17 `*.test.mjs` plus the two shared
+  helpers (`constraint-kernel-helpers.mjs`, `held-listener-identity-helpers.mjs`). **Verified list, by path:**
+  `a127-surface`, `addon-adoption`, `addon-surface-properties`, `addon-surface`, `constraints-publication`,
+  `convenience`, `file-tier-save-properties`, `file-tier-save`, `held-listener-identity-gate4-regressions`,
+  `held-listener-identity-surface`, `json-crossing-blinded`, `json-crossing-gate4-adversarial`, `json-crossing`,
+  `negative-generators`, `registry`, `round-trip`, `surface` — plus the two helpers.
+- **Every greens runner is ALREADY `O4`-shaped, verified:** `greens.mjs:196` is `await import('../index.mjs')`,
+  `live-drive.mjs:35` is `path.resolve(HERE,'..','index.mjs')`, and `json-crossing-live.mjs:132` is
+  `process.env.JC_ENTRY ?? path.join(HERE,'..','index.mjs')`. **So the move costs the greens nothing but their
+  directory** — the one part of the battery `D-5` relocates most easily.
+
+**WHAT IT DOES NOT SETTLE.**
+
+- **Which cells are "publish-readiness".** That is the assignment the stratification declaration owes: each of
+  the **33** e2e files takes a route tag, `O3` or `O4`, and **L1 declares it** — L0 does not, and this ruling
+  does not list them.
+- **What the staged tree contains** (`O3`'s own design): which files it copies, whether the addon is staged as
+  the checkout's `build/Release` or as a platform package, and whether one tree serves several cells. **L1's to
+  declare.**
+- **★ WHETHER THE EARLIER SET KEEPS A PACKAGED-RESOLUTION CELL.** `O4` as L0 defined it carried *"one cell
+  asserting the packaged name resolves"*. **With `O3` asserting resolution through a real staged install, a
+  second such assertion in the earlier set would be a second home for one claim** — which this project treats as
+  a finding rather than a redundancy. **L0's reading, marked as inference and not as the ruling: the packaged
+  claim lives EXCLUSIVELY in the `O3` set, and the earlier cells use paths and claim nothing about `exports`.**
+  **The architect should confirm or correct that reading.**
+- **It does not answer `F3` (the labels).** Route and label are different questions: a cell can reach the entry
+  by path and *still* be labelled for the layer it drives. **Whether the checkout's `.node` makes a cell
+  `assembled` or leaves it `envelope` is unmoved by this ruling.**
+- **It does not answer `F4`.** No route here produces an **installed-from-the-registry** green; `O3` is
+  install-*shaped*, not installed. `D-4`'s installed-shape evidence still needs its own driver.
+- **It orders no file move.** Like every ruling before it, it settles a mechanism and schedules nothing.
+
+---
+
+### Correction to `D-3` — the count was pinned in **two** cells, not one
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0's own verification while
+preparing `D-6`; **a correction to `D-3`, not a ruling.**
+
+**WHAT `D-3` SAID.** *"`bindings/js/test/publish.test.mjs`, cell `P-PUB-7`"* — named as **the** test that encodes
+the retired four-entry count.
+
+**WHAT IS ALSO TRUE, VERIFIED.** **`bindings/js/greens/greens.mjs` cell `JSG-12.18` asserts the same thing, and
+more:** an **exact set equality** on `['index.mjs', 'README.md', 'index.d.ts', 'src/constraint-kernel.mjs']`
+(line 1205), **the fourth entry refused any looser form**, **a fifth entry refused**, and **a `LICENSE` row
+refused** (line 1211). **So retiring the count honestly fails TWO cells in TWO different batteries** —
+`P-PUB-7` in `js-battery` and `JSG-12.18` in `greens-harness` — and `greens-harness` is the battery whose whole
+purpose is to *report* rather than assert.
+
+**AND THE CAUTION `D-3` STATED FOR `P-PUB-7` APPLIES HERE TOO, CELL FOR CELL.** `JSG-12.18`'s other subjects —
+**no `build/Release` path, no `.node` at any entry, and no `LICENSE` row** — are **functional and licensing
+rules, not shape rules**, and they survive the count's lifting exactly as `P-PUB-7`'s four do. **A pass that
+retires the fourth entry must edit both cells and take neither's prohibitions with it.**
