@@ -801,3 +801,64 @@ ruling. **`Q18`:** `D-8` (iii) makes the `LICENSE` row's antecedent *"does a con
 as a **positive** observable, where a refusal used to stand) and `INSTALL-12` (the conditional, citing its
 evidence). **A greens cell is a blind instance off documentary bytes and cannot carry an install observation,
 which is why the disposal is retire-here / re-derive-there and not a rewrite of `JSG-12.18`.**
+
+---
+
+### `D-11` — the third leg, its tracker entry and its layer statement are owned by the battery/greens module
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, answering the
+ownership question `D-9`'s amendment note left open.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> 1. Owned by battery/greens module
+
+**WHAT IT SETTLES.** **The `tests/e2e/` command, its tracker leg and its own layer statement are owned by the
+battery/greens modules** — `js-battery` and `greens-harness`, the two modules that own the batteries being moved
+(map §2.4). **The e2e set spans both batteries, so the leg follows the battery that carries it rather than a
+project-level harness.**
+
+**AND THE SPEC-CORPUS GAP IS CLOSED FOR THIS CLAUSE BY ITS OWN SUBJECT, which is why the earlier
+"unowned corpus" objection does not block this move.** `PUB-DD-24` declares **exactly those three things** — the
+red set's *site*, the *command* that globs it, and the *layer* it reports — **so the module that owns the
+battery owns the clause's subject**, and the amendment is read through that module's declaration rather than
+through an unowned corpus. **This is a narrow resolution and it does not make the corpus owned in general**: it
+says that a clause whose entire subject is a module's site, command and layer follows that module. **L0's reading
+of the architect's words, recorded as such.**
+
+**WHAT IT DOES NOT SETTLE.** **Where the split falls between `js-battery` and `greens-harness`** when one leg
+spans both — L1 declares it if a single owner is needed. **Who amends
+`docs/specs/storeroom-js/implementation-plan.md`'s leg declaration** — the second amendment `PUB-DD-24`'s `alt`
+names, whose subject is a *command* the sibling unit declares rather than a battery's own site. **And the root
+manifest's `scripts`** (the private harness manifest, unowned by design): the leg's *declaration* is the battery
+module's, while the root `package.json` byte that spells it is still harness — **a pass that adds the script edits
+an unowned file, and that is declared rather than glossed.**
+
+---
+
+### `D-12` — the installed battery MAY pack a local platform tarball
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect: *"2. Yes"*, to the
+question whether the battery may pack a local platform tarball.
+
+**WHAT IT SETTLES.** **The installed battery is SELF-CONTAINED: it packs the main package AND the host platform
+package and installs both, so RUNG ONE FIRES WITHOUT A REGISTRY.** `D-10`'s local-env-compatible arm is therefore
+fully drivable off-line, and `INSTALL-08` (this host's name as a **load**) becomes a green the battery can reach
+rather than a claim it can only restate.
+
+**AND IT BUYS A FALSIFIER THE PROJECT HAS PAID FOR ONCE ALREADY.** Packing the platform artefact locally puts
+**that artefact's own `files` allowlist** under the battery's observation — the exact surface whose defect made
+`0.1.0`'s five platform tarballs **publish green while each carried `README.md` and `package.json` alone**, its
+`files` naming a `.node` and a `LICENSE` that were *"NAMED BUT ABSENT"* (`docs/specs/storeroom-publish/contract.md`
+§3's failure list; the reason `publish.yml` grew its pre-publish `test -e` guards). **A local pack + install sees
+that defect at the artefact rather than at the registry.**
+
+**THE MECHANICAL RISK, DECLARED SO IT IS NOT DISCOVERED IN THE CELL.** The main package's five
+`optionalDependencies` are **pinned exactly**, so a plain `npm install` of the packed main tarball will attempt to
+**resolve the platform package from the registry** unless the pin is satisfied locally. **Which route solves that
+— install order, `--omit=optional` then a manual placement, a local resolution route, or a rewritten dependency —
+is L1's and L2's to declare; the permission this ruling gives is to pack and install locally, not a mechanism.**
+
+**WHAT IT DOES NOT SETTLE.** Whether the battery packs **all five** platform artefacts or **the host's alone**;
+whether a **registry-named** install is also driven to show the pinned-dependency route; the platform artefact's
+own cells; and how the local install is isolated from the repository ancestry `§4.2` item 1 requires absent.
