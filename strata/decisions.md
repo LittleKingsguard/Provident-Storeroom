@@ -1507,3 +1507,57 @@ and item `7`'s *"no conflict test"* for `listen` is unaffected.**
 the kernel loses its three symbols (`js-constraints`); the `listen → undefined` cells across the batteries move to
 REWRITE; and `PUB-DD-9`'s semantics are satisfied additively — a caller that ignores the return is unaffected by
 widening `void → Handle`. **No unit is open and no code is moved by this ruling.**
+
+---
+
+### `D-23` — setting a constraint expects a handle NAME, used as the handle and for process/error logging
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the question `D-22`
+left open (what handle the kernel passes now that it may not mint a prefix).
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Setting a constraint should expect a handle name to be used for handle and process/error logging purposes
+
+**WHAT IT SETTLES.**
+
+- **THE CALLER NAMES THE CONSTRAINT'S HANDLE, exactly as the caller already names a listener's.**
+  `cfg.listeners`' elements are `{ address, handle }` records today — **the caller spells those** — and this ruling
+  gives constraints the same footing: **the set-a-constraint act expects a handle name, that name IS the store-side
+  handle for the pair, and it is what process and error logging identifies the constraint by.**
+- **IT ANSWERS `D-22`'S QUESTION `1`, AND IN THE CALLER'S FAVOUR:** the kernel neither mints a spelling nor derives
+  one from the address. **There is no kernel-authored identity left to reserve, so the prefix is not merely
+  discarded — it has nothing left to name.**
+- **IT CARRIES A LOGGING SUBJECT, which is a real surface move and not a courtesy.** A name that appears in process
+  and error logging is an **observable**, so it is declared, not incidental.
+
+**WHAT IT DOES NOT SETTLE — FIVE, EACH WITH THE EVIDENCE THAT BEARS ON IT, AND ALL OF THEM L1'S.**
+
+1. **A NEW MEMBER, OR THE EXISTING `id` PROMOTED?** **The evidence points one way but does not decide it for you:**
+   **`id` is scoped WITHIN A PAIR** — the pair is `(address, id)`, and two pairs at different addresses may lawfully
+   reuse one `id` — **while a HANDLE is INSTANCE-SCOPED.** **A bare `id` therefore cannot lawfully be the handle the
+   moment two addresses share one id.** A separate member survives that fact; `id`-as-handle does not.
+2. **WHAT THE BATCH ELEMENT BECOMES.** The published declaration's element is **TWO members** —
+   `readonly constraints?: readonly { readonly address: Address; readonly id: string }[]` — and its own comment says
+   the element type is **"the caller's own shape and not a narrowed record here"**, validated by the store.
+   **Note the divergence this sits on: the `D-8` era's record and the use-case record both describe the element as
+   `{ address, id, constraint }` with the function as the substance, while this declaration names no function at
+   all.** The name member lands on a shape whose functional member is already disputed, and L1 must say what the
+   element is before adding to it.
+3. **WHETHER THE NAME FLOWS INTO `constraints()`.** That read returns **`{address, id}`** and declares **four
+   exclusions** — no function, no opaque identity, no order, no `enabled`. **A name is a fifth candidate and one of
+   the four exclusions does not cover it**, so its exclusion or inclusion is a declaration rather than an omission.
+4. **WHETHER IT FLOWS INTO `LogEntry`.** The kernel's entry has **EXACTLY SIX members** — `seq` · `kind` · `id` ·
+   `message` · `opId` · `state` — **and already carries `id`.** **So the name's logging role must say whether `id`
+   is already the name it means, or whether the entry's member set moves.** A member-set move is a declared count;
+   an undeclared seventh member is exactly what this project files as a finding.
+5. **THE DOMAIN RULE AND THE COLLISION ARM.** A handle is a **non-empty string**; a pair is unique by
+   `(address, id)`. **A caller-supplied name is INSTANCE-SCOPED, so a collision across two pairs becomes possible
+   for the first time** — and no clause declares what a repeated name answers. **That arm is owed before the name
+   ships.**
+
+**AND ONE THING IT MAKES BETTER THAN IT FOUND IT.** With the caller naming the handle, **the kernel's occupancy of
+the pair's home entry stops being an anonymous intrusion**: the name it occupies under is the application's own
+word for that constraint, so `D-22`'s surfaced question (a kernel occupancy purging an app's entry, §2.2 item 7)
+becomes **visible in the caller's own vocabulary** rather than hidden behind a reserved prefix. **It does not
+resolve that question; it makes it legible.**
