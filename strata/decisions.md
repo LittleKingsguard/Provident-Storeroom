@@ -2136,3 +2136,41 @@ SAYS couples to where the file IS.** **All three are test-side repairs, and all 
 3. **THE LAZY KERNEL REACH STAYS.** `§4.2`'s retirement is **not a move** — it is a behaviour change — so the hub
    still reaches the kernel lazily, and **the retirement belongs with the drives' re-staging, where the trees that
    needed it stop existing.**
+
+---
+
+### FINDING — the subdivision broke the PACKAGE, and every test is green anyway
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the coupling-repair pass, which
+reported the gap; **L0 verified it and it is a shipping blocker.**
+
+**WHAT IS TRUE RIGHT NOW.** `bindings/js/package.json`'s `files` names **four entries** —
+`index.mjs` · `README.md` · `index.d.ts` · `src/constraint-kernel.mjs` — and **the hub imports EIGHT parts from
+`./src/entry/`** while **the barrel imports five more from `./entry/`.** **So a tarball built from this manifest
+carries the hub and the barrel and NONE of the thirteen parts they import: THE PUBLISHED PACKAGE CANNOT LOAD.**
+**`ERR_MODULE_NOT_FOUND` at import time, on every platform, for every consumer.**
+
+**AND IT IS THE EXACT SHAPE OF THE PROJECT'S OWN OLDEST SCAR.** **`0.1.0`'s five platform tarballs published GREEN
+while each carried `README.md` and `package.json` alone**, their `files` naming a `.node` and a `LICENSE` that were
+*"NAMED BUT ABSENT"* — **the reason `publish.yml` grew its pre-publish `test -e` guards.** **The lesson was applied to
+the platform artefacts and never to the main package's own import graph**, so this is the same defect one level up.
+
+**WHY EVERY LEG IS GREEN WHILE IT IS BROKEN.** **Every battery drives the CHECKOUT, where all thirteen parts sit on
+disk beside the hub** — the parts are simply there, so nothing notices. **The only instrument that would see this is
+one that installs what the manifest actually packs**, and **that is `D-10`'s installed battery, which is declared and
+not built.** **So the defect is invisible to the whole current apparatus by construction.**
+
+**AND THREE CELLS ARE STILL ENFORCING THE CONSTRAINT THAT WOULD PREVENT THE FIX.** `constraints-publication`'s
+`cp_allowlist_…`, `greens.mjs`'s `JSG-12.18` and `publish-generators`' `NG-PUB-I` (`assertAllowlistIsFour`) **all pin
+the four-entry allowlist** — **the very constraint `D-3` retired and `D-4` replaced with reachability.** **They were
+kept in the re-derivations because their *other* limbs (no `.node`, no `build/Release`, no `LICENSE` row) are
+functional rules that stand — and the count limb went with them.**
+
+**AND THE INVARIANT THAT MATTERS HAS NO CELL AT ALL: *every file reachable from the hub and the barrel must be
+packed*.** **`D-4` handed the shape to reachability and evidence, and nothing asserts reachability.** **A cell for it
+would have caught this on the commit that made it.**
+
+**THE FIX IS TWO SUBJECTS, AND NEITHER IS L0'S.** **`delivery`'s manifest** gains the parts — **as a consequence of
+reachability, which is what `D-4` says the shape is** — and **the three count-limb cells re-derive to the reachability
+invariant**, with a cell added for the invariant itself. **`D-14`'s declared re-staging is not the fix**: a staged tree
+is not a packed one.
