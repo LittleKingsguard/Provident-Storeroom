@@ -19,8 +19,31 @@ scopes, the two cross-scope helpers, the layer column, the five files that span 
 and question. **No route tag implies a label** — **`F3` and `F4` are NOT answered here** (§2.6.7, §3). **This
 pass moved no file, edited no test and started no L2**: `D-6` orders no file move.
 
-**INPUTS, AND HOW EACH WAS USED.** `strata/decisions.md` read whole (`D-1`…`D-6`; `D-5` orders the
-stratification, **`D-6` orders this route pass and `D-5`, `D-4` and `D-3`'s correction are its context**,
+**⟶ AMENDED IN PLACE, SAME BRANCH, AT `D-8`, `D-9` AND `D-10` — THE THREE DECLARATIONS, AND WHAT EACH
+REPLACED.** This pass answers three rulings and moves nothing. **`D-9`'s `F3` relabel** — *the `O3` cells
+labelled `assembled`, the `O4` cells kept at `ENVELOPE/PURE`* — is **declared at §2.7**, with the structural
+move chosen **on evidence read at the five sites the ruling names**, not on preference. **`D-10`'s installed-layer
+battery** is **declared at §2.8**: its **15** cells and their subjects, its scope and target path, **its own
+label string**, its command, its own helpers, and the two prohibitions it must not break. **`D-8`'s disposal of
+`JSG-12.18`'s `LICENSE` limb** is **declared at §2.9**. **What this pass replaced, named rather than absorbed:**
+§2.1's four `O3` rows carried `layer: envelope` and a flat `tests/e2e/` target (**now `assembled` and
+`tests/e2e/staged-install/`**, §2.1 rows 18, 20, 22, 23); §3's `tests/e2e/` census read **envelope 29 ·
+assembled 4** (**now 25 · 8**, §3); **F3 read as an open label question** (**closed by `D-9` here**), **F4 read
+as "the `installed` layer has no battery at all"** (**now: a battery is declared and runs nothing yet**, §2.8,
+F4 amended at §3); **`JSG-12.18`'s two edits stood unnamed** (**now named, §2.9**). **`Q13` — the `LICENSE` row —
+is CLOSED by `D-8`** and keeps its wording so a reader sees what was asked. **The vocabulary is CITED, never
+re-labelled and never minted:** the labels §2.7 and §2.8 assign are existing members of the sibling unit's set
+(`ENVELOPE/PURE` · `LIVE / ASSEMBLED PACKAGE` · `LIVE/INSTALL` · `APP`), whose definitional home is
+`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/acceptance.md §4.2` — **the ARCHIVED path, because
+the keep-set took one `contract.md` per module and the citing clause
+(`docs/specs/storeroom-publish/contract.md §4.2` item `3`) still writes `docs/specs/storeroom-js/acceptance.md`,
+a path the kept corpus does not carry.** **This pass moved no file, edited no test, ran nothing and started no
+L2.**
+
+**INPUTS, AND HOW EACH WAS USED.** `strata/decisions.md` read whole (`D-1`…`D-10`; `D-5` orders the
+stratification, **`D-6` orders the route pass and `D-5`, `D-4` and `D-3`'s correction are its context**,
+`D-7` narrows `O3`'s membership and gives it its own helpers, **`D-8`, `D-9` and `D-10` order the three
+declarations of this pass** and `D-3`'s correction, `D-4` and `D-7` are theirs,
 `D-4` makes the scenarios' placement upstream of the manifest decision, `D-1` and `D-3` are why the kernel's
 cells have one module and no declared export set to test against); `strata/brief.md` read whole (§5 item 8 — *a green
 is always reported with its layer* — and §6's open limits are the layer-preservation clause's ground); the
@@ -83,7 +106,10 @@ the four battery modules are the present-state owners, not the model's homes); *
 in the preset's vocabulary, mapped from this project's own labels: `ENVELOPE/PURE` → **envelope**,
 `LIVE / ASSEMBLED PACKAGE` (and *loaded in dev*) → **assembled**, `LIVE/INSTALL` (an installed-from-the-registry
 reach) → **installed**, and the `APP` layer → **app**. **No file in the inventory reports `installed` or `app`;
-that is a finding, not an omission (§4).**
+that is a finding, not an omission (§4).** **⟶ RE-READ AT `D-9`:** **four rows' `layer` moved from `envelope` to
+`assembled`** (rows 18, 20, 22, 23 — the `O3` set) **and no other row's label moved**; the four now target
+`tests/e2e/staged-install/` so that their run can carry its own label (§2.7). **The denominator and the route
+tags are unmoved — 33 e2e rows, `O3` 5 · `O4` 28.**
 
 ### §2.1 `tests/e2e/` — 33 files
 
@@ -114,12 +140,12 @@ criterion of **purpose**, and declared at **§2.6**, whose calls this column is 
 | 15 | `bindings/js/test/held-listener-identity-surface.test.mjs` | `tests/e2e/held-listener-identity-surface.test.mjs` | `js-surface` | envelope | `O4` | the 14-member set and the listener surface's states |
 | 16 | `bindings/js/test/held-listener-identity-properties.test.mjs` | `tests/e2e/held-listener-identity-properties.test.mjs` | `js-surface` | envelope | `O4` | **spans surface and kernel (`P-HL-*`)** — assigned by dominant; split owed (§4 Q1); its name reach is **dynamic-only** (`:1096`), §2.6.5 |
 | 17 | `bindings/js/test/constraints-publication.test.mjs` | `tests/e2e/constraints-publication.test.mjs` | `js-constraints` | envelope | `O4` | the two population routes at the surface; **also asserts `delivery`'s `files` allowlist** — split owed; that limb is **`O3`-shaped inside an `O4` file** (§2.6.1 call 6) |
-| 18 | `bindings/js/test/package-entry.test.mjs` | `tests/e2e/package-entry.test.mjs` | `delivery` | envelope | **`O3`** | the package at its boundary: `exports` map, engines, licence, `HO-*` realms, `.node` load count — **its subject IS the packaged resolution; it stages nothing today and adopts the tree's manifest** (§2.6.1 call 1) |
+| 18 | `bindings/js/test/package-entry.test.mjs` | `tests/e2e/staged-install/package-entry.test.mjs` | `delivery` | assembled | **`O3`** | the package at its boundary: `exports` map, engines, licence, `HO-*` realms, `.node` load count — **its subject IS the packaged resolution; it stages nothing today and adopts the tree's manifest** (§2.6.1 call 1) |
 | 19 | `bindings/js/test/register.test.mjs` | `tests/e2e/register.test.mjs` | `js-registry-delivery` | envelope | `O4` | the register layer's JS half; **`S-LAYER` reads its label off `greens/greens.mjs`** (§3 F1); name reach **dynamic-only** (`:91`), §2.6.5 |
-| 20 | `bindings/js/test/version-stamp.test.mjs` | `tests/e2e/version-stamp.test.mjs` | `delivery` | envelope | **`O3`** | the stamp's homes, the pre-publish guard, `P-PUB-9`/`P-PUB-10`; **assembles a full scratch tree** (manifest + entry copy + `node_modules/<platform name>` + a `build/Release` candidate) — §2.6.1 call 2 |
+| 20 | `bindings/js/test/version-stamp.test.mjs` | `tests/e2e/staged-install/version-stamp.test.mjs` | `delivery` | assembled | **`O3`** | the stamp's homes, the pre-publish guard, `P-PUB-9`/`P-PUB-10`; **assembles a full scratch tree** (manifest + entry copy + `node_modules/<platform name>` + a `build/Release` candidate) — §2.6.1 call 2 |
 | 21 | `bindings/js/test/version-stamp-r2.test.mjs` | `tests/e2e/version-stamp-r2.test.mjs` | `delivery` | envelope | `O4` | the `R2` source-assertion set under the architect's `(a)`; **no entry reach at all — byte assertions of the stamp's source sites** (§2.6.1 call 4) |
-| 22 | `bindings/js/test/publish.test.mjs` | `tests/e2e/publish.test.mjs` | `delivery` | envelope | **`O3`** | the 62-cell publish red set; **declares its own home (`PUB-DD-24`)** — see §4 Q5; **`makeScratch`/`coveredEnv` is the precedent `D-6` cites** |
-| 23 | `bindings/js/test/publish-generators.test.mjs` | `tests/e2e/publish-generators.test.mjs` | `delivery` | envelope | **`O3`** | `NG-PUB-A`…`J`, each with a staged control copy outside the repo |
+| 22 | `bindings/js/test/publish.test.mjs` | `tests/e2e/staged-install/publish.test.mjs` | `delivery` | assembled | **`O3`** | the 62-cell publish red set; **declares its own home (`PUB-DD-24`)** — see §4 Q5; **`makeScratch`/`coveredEnv` is the precedent `D-6` cites** |
+| 23 | `bindings/js/test/publish-generators.test.mjs` | `tests/e2e/staged-install/publish-generators.test.mjs` | `delivery` | assembled | **`O3`** | `NG-PUB-A`…`J`, each with a staged control copy outside the repo |
 | 24 | `bindings/js/greens/greens.mjs` | `tests/e2e/greens.mjs` | `js-surface` | envelope | `O4` | **BLIND** (`JSG`), 16 scenarios; reaches by path (`:196`); **its `JSG-12.18` allowlist cell is `O3`-shaped inside an `O4` file** (§2.6.1 call 6) |
 | 25 | `bindings/js/greens/live-drive.mjs` | `tests/e2e/live-drive.mjs` | `js-surface` | assembled | `O4` | `LIVE / ASSEMBLED PACKAGE`, real process, real file I/O; `ENTRY = path.resolve(HERE,'..','index.mjs')` (`:35`) |
 | 26 | `bindings/js/greens/blind-constraints-v2.mjs` | `tests/e2e/blind-constraints-v2.mjs` | `js-constraints` | envelope | `O4` | **BLIND** (`E2E-C-*`), reached through the kernel's declared caller-side path; `new URL('../index.mjs', …)` (`:28`) |
@@ -133,7 +159,9 @@ criterion of **purpose**, and declared at **§2.6**, whose calls this column is 
 
 *(**33 rows, 33 files**: 23 from `bindings/js/test/` + 10 from `bindings/js/greens/`; the arithmetic is §2.4.
 **Routes: `O3` 5 · `O4` 28 ✓** — by battery, `bindings/js/test/` 23 → **4 `O3` + 19 `O4`** and
-`bindings/js/greens/` 10 → **1 `O3` + 9 `O4`**.)*
+`bindings/js/greens/` 10 → **1 `O3` + 9 `O4`**. **Layers at `D-9`: `assembled` 8 · `envelope` 25 ✓** — the four
+`O3` node rows moved to `assembled` and joined the four `assembled` `O4` runners; **the four `O3` rows are the
+only rows whose `target` changed at this pass** (`tests/e2e/staged-install/`), and no other `target` moved.)*
 
 ### §2.2 `tests/integration/<module>/` — 29 files
 
@@ -200,6 +228,14 @@ By directory: `tests/` 15 → 14 integration + 1 helper · `bindings/js/tests/` 
 1 helper · `bindings/js/test/` 42 → 23 e2e + 11 integration + 3 unit + 4 helpers + 1 record ·
 `bindings/js/greens/` 11 → 10 e2e + 1 set document. **No path is assigned twice and none is omitted**; the
 machine-readable form is `docs/L1/test-stratification.json`.
+
+**⟶ AND THE DENOMINATOR IS UNMOVED AT `D-8`/`D-9`/`D-10`, which moved no assignment in or out of the 75.**
+**Layers: `assembled` 8 · `envelope` 25 within the e2e scope** (four rows moved at `D-9`, §2.7) — and **the
+targets: four rows now name `tests/e2e/staged-install/`**, which is the only `target` change this pass makes.
+**A NEW artifact is declared, not assigned:** the installed battery (§2.8) is **not one of the 75**, so it adds no
+row here and changes no count; it appears in §2.8 as a declaration in the same way a runner appears in §2.5 as a
+helper rather than a test. **The 67+8 = 75 reconciliation, the 33/29/5 split and the `O3` 5 · `O4` 33 · none 37
+route census all stand exactly as committed.**
 
 ### §2.5 Helpers and non-tests — declared separately, and deliberately not tests
 
@@ -422,7 +458,13 @@ them out. Of the 22: **19 are e2e, 1 integration, 2 unit.**
 
 ### §2.6.7 The route is not the label, and one reading stays open
 
-- **`D-6` answers no label question, and this pass answers none either.** **`F3`** — whether a `.node`-loading
+**⟶ SUPERSEDED IN PART AT `D-9`, AND READ THROUGH §2.7:** the bullets below stand as the route pass filed them
+and the first one's *"`F3` and `F4` are NOT answered here"* was true of that pass. **`D-9` now answers `F3`'s
+label question and `D-10` supplies `F4`'s battery (declared, unrun)**; what survives is the *distinction* — a
+route records **how** a cell reaches the package and a label records **what it reports** — which §2.7 keeps by
+giving the `O3` set its own run with its own label rather than by reading a tag as a label.
+
+- **`D-6` answers no label question, and the route pass answers none either.** **`F3`** — whether a `.node`-loading
   checkout cell is labelled `assembled` or `envelope` — and **`F4`** — the absence of an installed-from-the-
   registry green — **stand exactly as §3 records them, unanswered.** A route records **how a cell reaches the
   package**; §2's layer column records **what it reports**. They are independent and must not collapse: an `O4`
@@ -439,28 +481,281 @@ them out. Of the 22: **19 are e2e, 1 integration, 2 unit.**
 
 ---
 
+## §2.7 · `D-9` / `F3` — the relabel, and the structural move chosen on evidence
+
+**`D-9`'s words are *"the `O3` cells labelled `assembled` and the `O4` cells kept at `ENVELOPE/PURE`"*, and it
+records the finding that the label is declared PER RUN, not per cell** — each greens runner carrying one
+`const LAYER`, with `greens.mjs` stating the coupling in its own words (*"a cell of
+`bindings/js/test/register.test.mjs` reads them, and a change there would manufacture a false green"*). **This
+section declares the move: (b) — THE `O3` CELLS SEPARATED INTO THEIR OWN RUN, CARRYING ITS OWN LABEL.**
+
+### §2.7.1 The five sites, read at the bytes, and what each decides
+
+**Site 1 — `greens.mjs:70` `const LAYER = 'ENVELOPE/PURE'` with its asserting cells `JSG-12.15`/`JSG-12.16`
+(`:1178`–`:1179`).** `JSG-12.15` asserts `LAYER === 'ENVELOPE/PURE'` and its declared expectation reads *"this
+set's own layer is ENVELOPE/PURE **and the label travels with every figure of this run**"*; `JSG-12.16` asserts
+`APP_LAYER === 'NONE'`. **Measured: `JSG-12.15` is a constant compared against its own literal — the shape
+`register.test.mjs`'s `S-LAYER` was corrected out of on 2026-10-17 — so it can be re-spelled but it cannot be
+satisfied by a run whose cells carry two labels.** Its expectation sentence is the load-bearing part: **one
+label per run is what makes "every figure of this run" true.**
+
+**Site 2 — `register.test.mjs`'s extraction, at two cells.** `LAYER_ARTIFACT = join(PACKAGE_DIR, 'greens',
+'greens.mjs')` (`:129`); `layerLabelHomes()` (`:133`–`:148`) reads the artifact's `const LAYER` **and** the
+`LAYER:` line of its head comment and requires them to agree; cell `S-LAYER` (`:749`–`:774`) requires
+`homes.declared === 'ENVELOPE/PURE'` (`:762`) plus `homes.commented === homes.declared` (`:763`); the
+printed-record cell (`:1085`–`:1107`) asserts the same two things again (`:1102`, `:1104`). **The cell's own
+declared falsifier** (`:118`–`:122`): *change the label the artifact carries → `ASSEMBLED/RENDERER` — and
+`S-LAYER` FAILS at the extraction … delete the artifact and it FAILS rather than passing over a literal.*
+**This is the fact that decides the move: `register.test.mjs` is an `O4` cell that `D-9` keeps at
+`ENVELOPE/PURE`, and it is pinned by path and by value to `greens.mjs`'s run-level label. Any per-cell
+relabel of `greens.mjs` either deletes the constant — failing an `O4` cell the ruling says must stand — or
+leaves it standing while no longer describing every figure, which falsifies `JSG-12.15`'s own text.**
+
+**Site 3 — `package-entry.test.mjs:345`'s pin against `DD-20`.** `const layer = 'ENVELOPE/PURE'; // DD-20:
+this unit's JS-side green, and NOTHING MORE` and `assert.ok(site.length > 0 && layer === 'ENVELOPE/PURE')`
+(`:346`). **Two defects at one site, and they are different edits: the VALUE must become the `O3` run's label,
+and the assertion cannot fail as written** — a literal compared to itself, the same `RCA-12` class the
+`S-LAYER` repair named. **It is also the evidence that a `node --test` file already carries its label per file
+with no run-level constant and no other cell reading it** — so the `O3` set can take a run of its own without
+touching any `O4` cell's label.
+
+**Site 4 — `json-acceptance-set-live.mjs:54`'s own glossed label.**
+`const LAYER = 'ENVELOPE/PURE (the JavaScript package layer, in-process)'`. **Measured: this run-level constant
+carries a QUALIFIER**, so it is not a bare vocabulary token — and a per-cell label vocabulary would have to
+invent a qualifier per cell. It also shows the pre-existing disagreement §3 records: this file is `O4` and
+`D-9` keeps it at `ENVELOPE/PURE`, yet §2.1's layer column calls it `assembled` (its re-drive is against the
+built package). **Under (b) the constant is untouched and the disagreement stays where §3 records it (Q15).**
+
+**Site 5 — the four runners' constants, plus the fifth that carries none.** Measured: exactly four files carry
+`const LAYER` — `greens.mjs:70` · `held-listener-identity-greens.mjs:20` · `json-acceptance-set-greens.mjs:58` ·
+`json-acceptance-set-live.mjs:54` — which is `D-9`'s own list; `live-drive.mjs` prints its label as a literal
+(`:1296`) and `file-tier-save/scenarios.mjs` and `consumer-fix/scenarios.mjs` carry no label line at all
+(`REMEASURE-2026-10-18.md:229` records the same: *"`live-drive.mjs` and `scenarios.mjs` carry none of these
+lines"*). **And the O3 population, re-measured against those four: NONE of the five `O3` cells is inside any
+run carrying a `const LAYER`** — four are `bindings/js/test/*.test.mjs` files (no constant in any of them) and
+the fifth is `consumer-fix/scenarios.mjs` (its own file, its own exit rule, no constant). **So (b) relabels the
+`O3` set without editing one byte of any existing run-level constant, and (a) would edit at least one to no
+purpose and break an `O4` cell.**
+
+### §2.7.2 The move, the labels, and why (a) is refused
+
+**The `O3` family becomes three runs, each with its own label — which is `D-9`'s finding applied consistently,
+and not three labels by preference:**
+
+| run | cells | label | why that label |
+|---|---|---|---|
+| **A — the `O3` node leg**, `tests/e2e/staged-install/` | `publish` · `publish-generators` · `version-stamp` · `package-entry` | **`LIVE / ASSEMBLED PACKAGE`** (preset: `assembled`) | it stages a package tree **and** a platform package and must not lean on rung two (`D-9`'s ground) |
+| **B — `consumer-fix/scenarios.mjs`**, its own run | one runner | **`LIVE / ASSEMBLED PACKAGE`** | `D-9` assigns it on route; **its cells are all `SOURCE-PINNED` today and it has no staged subject yet (Q12), so the label is DECLARED and not yet evidenced** — printed with that marking rather than left blank |
+| **C — the installed battery**, `tests/e2e/installed/` | **15** (§2.8) | **`LIVE/INSTALL`** (preset: `installed`) | its own label, declared by `docs/specs/storeroom-publish/contract.md §4.2` item `3` |
+
+**No vocabulary is minted.** `LIVE / ASSEMBLED PACKAGE` is the spelling the tree already prints
+(`live-drive.mjs:1296`) and `LIVE/INSTALL` is the contract's own; both are members of the sibling unit's set,
+whose definitional home is the **archived** `archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/
+acceptance.md §4.2`. **The publish contract's prohibition is obeyed rather than dodged: the vocabulary is
+CITED AND NEVER RE-LABELLED** — this pass changes **which label a cell reports**, from within the declared set,
+and writes no byte of the vocabulary.
+
+**(a) is refused on site 2's evidence, not on taste.** Per-cell labels require `greens.mjs`'s `const LAYER` to
+either disappear or stop describing its run; the first fires the falsifier `register.test.mjs` wrote into
+itself and fails a cell `D-9` keeps at `ENVELOPE/PURE`, the second falsifies `JSG-12.15`'s own sentence. **And
+(a) buys nothing (b) does not: the `O3` set is already disjoint from every `const LAYER`.**
+
+**WHAT WOULD FALSIFY (b), stated so the choice is checkable:** (i) an `O3` route found inside `greens.mjs`,
+`held-listener-identity-greens.mjs`, `json-acceptance-set-greens.mjs` or `json-acceptance-set-live.mjs` — the
+`O3`-shaped limbs at §2.6.1 call 6 (`JSG-12.18`, `constraints-publication`'s allowlist assertion) would do it
+**if the test layer promotes either limb to a route**; (ii) the test layer deciding Q12 that `consumer-fix`
+joins an existing runner instead of keeping its own; (iii) the four `O3` node files being unable to form their
+own leg because the root `package.json` cannot name a third command (Q16).
+
+### §2.7.3 The files the plan touches, and what each edit changes — **stated in the battery's NEW home**
+
+**`D-9`'s placement clause governs this: `bindings/js/test/` and `bindings/js/greens/` are present-state paths
+no strata role may write (`D-5`), so every edit below is declared against its target path and lands with the
+migration wave, never before.** Each present-state path appears only to identify the cell.
+
+| file (target path) | the edit | what it changes |
+|---|---|---|
+| `tests/e2e/staged-install/staged-install-support.mjs` **(new, `D-7`'s own helper)** | carries `export const LAYER = 'LIVE / ASSEMBLED PACKAGE'` and `APP_LAYER = 'NONE'`, beside the staging and name-reach mechanism | **the label's single home for run A**, so no cell re-types it. It consumes **no `O4` helper** (`D-7`), and the four files' today-measured helper imports are empty, so no helper becomes two-mechanism (§2.6.6's negative is preserved) |
+| `tests/e2e/staged-install/package-entry.test.mjs` | `:345`'s literal and `:346`'s self-comparing assertion | the label becomes **read** from the run's carrier, not typed; the assertion becomes able to fail (the `S-LAYER` repair's own precedent) — **two limbs at one site** |
+| `tests/e2e/staged-install/publish.test.mjs` | header `:15`'s prose label; `P-PUB-8`'s figure row `:4164` and its assertion `:4167`; the `SITE` literal (F2) | the figure's layer becomes the run's label and the site becomes the new path — **a `{site, layer}` PAIR re-derived, which F2 records as not a rename** |
+| `tests/e2e/staged-install/publish-generators.test.mjs` | `NG-PUB-J`'s two figure rows `:1305`–`:1306`, the pair assertion `:1315`, the site literals (F2); the `LAYERS` set `:1308` needs no change (it already admits the assembled spelling); the deliberate wrong-pair control `:1457` **keeps its literal** | the same pair re-derivation, and one control stated so a sweep does not "fix" it |
+| `tests/e2e/staged-install/version-stamp.test.mjs` | **NO EDIT — measured** | a `grep` for `ENVELOPE` over the four `O3` files returns no site in this file; it takes the run's label from the command's own declaration. **The absence is stated so it is not read as an omission** |
+| `tests/e2e/consumer-fix/scenarios.mjs` | **gains** a head-comment `LAYER:`/`APP LAYER:` line and a label constant | run B has **no label line at all today** (measured); the label is declared and its `SOURCE-PINNED` cells are not upgraded by it |
+| `tests/e2e/installed/**` | **new files** | run C's own label, its own helpers (§2.8) |
+| `package.json` (root, the instrument harness) | the new legs' commands | **owned by no module** (§5); the legs are named at §2.7.4 and §2.8 |
+| `docs/specs/storeroom-publish/contract.md` `PUB-DD-24` · `docs/specs/storeroom-js/implementation-plan.md §2` | read through this ruling | both declare the legs **by command, site AND layer** and `PUB-DD-24` prices a separate command for the publish cells as needing *"a fresh ruling"* — **`D-9` is that ruling's ground and `D-5` is the directory's.** The corpus is unowned: the clause **stands as text and is read through `D-9`** (`D-3`'s ANNOTATE-BESIDE precedent). **No role here amends it (Q16)** |
+
+**NOT EDITED, and this is the evidence for (b) rather than an omission:** `greens.mjs`'s `const LAYER` (`:70`),
+its head-comment home (`:9`) and its print (`:1532`); `JSG-12.15`/`JSG-12.16`; the three other runners'
+constants; and `register.test.mjs` — whose `LAYER_ARTIFACT` join is re-pointed **by F1's path sweep because the
+directory moves**, while **both of its label cells keep their assertions whole because the artifact they read
+keeps its label.** `greens.mjs`'s only edits in the wave are `JSG-12.18`'s two (§2.9).
+
+### §2.7.4 Commands, and the adaptation the new home implies
+
+- **The `O3` node leg:** `node --test tests/e2e/staged-install/*.test.mjs`, taken at the repository root — **its
+  own glob, which a top-level `tests/e2e/*.test.mjs` leg does not match**, so the two runs cannot discover each
+  other's cells. Its layer statement is run A's, printed per §2.7.2.
+- **Adaptation 1 — the label's carrier moves.** Today the label's home is a constant inside a runner; after the
+  move it is a constant inside **the run's own support helper** (run A) or the runner's own head (run B, run C).
+  §2.7.3's table is what that implies file by file.
+- **Adaptation 2 — the label's readers.** `register.test.mjs`'s extraction survives only if `greens.mjs`'s two
+  label homes stay byte-identical (§2.7.3) **and** the `LAYER_ARTIFACT` join is re-pointed in the same wave
+  (F1). **A wave that moves `greens.mjs` without re-pointing that join fails an `O4` cell at extraction** —
+  exactly the damage F1 names.
+- **Adaptation 3 — the command's owner.** The root `package.json` names the legs and is owned by no module
+  (§5); with run A and run C added, the harness needs **three** `node` legs plus the greens command. **Who
+  re-points it is Q16 and is not decided here.**
+- **Adaptation 4 — the `O3` set's helpers are `O3`'s** (`D-7`): each of the three runs carries its own; no
+  `O4` helper is consumed by any of them, and §2.6.6's cross-route negative is re-checked at the wave rather
+  than trusted.
+
+---
+
+## §2.8 · `D-10` — the installed-layer battery, declared
+
+**What it is.** The **`LIVE/INSTALL`** layer's battery, driven by **a LOCALLY PACKED TARBALL** — the instrument's
+own *"packed or released tarball"* arm (`docs/specs/storeroom-publish/contract.md §4.2` item `1`): a real
+package manager, in a **directory with no repository in its ancestry and no `build/Release` beside the entry**,
+with **one real Node process**. **A registry release is not required and nothing here authorises one**
+(`D-10`). **It answers F4** — not by turning `json-crossing-live.mjs`'s `JC_ENTRY` flag into a cell, but by
+being the cell set the flag never was.
+
+**Placement, label, command.** **Scope `tests/e2e/`** (surface-facing/install, `D-7`'s narrowed membership for
+`O3`; the preset's scope per `D-5`). **Target path `tests/e2e/installed/`**, its own directory and its own run.
+**Label string `LIVE/INSTALL`** (preset: `installed`), **`APP` LAYER `NONE`**. **Command
+`node tests/e2e/installed/live-install.mjs`, taken at the repository root**; it is a **runner, not a
+`node --test` file**, for three measured reasons: every drive must import **by name from inside the installed
+tree**, so each is a subprocess (§2.6.2's composition); its verdict vocabulary needs `LAYER-LIMIT`, which
+`node --test` has no form for; and the tree's own precedent for a layer that presumes external state is a runner
+with its own exit rule (`json-crossing-live.mjs`). **Exit: non-zero on any `FAIL` or `FINDING`; `LAYER-LIMIT`
+is neither.**
+
+**Its helpers, under `D-7`:** `tests/e2e/installed/install-support.mjs` — the clean-directory minting, the
+`npm pack` + `npm install` calls, the driver/preload staging that puts the import site inside the installed
+tree, and the label constant. **It consumes no `O4` helper**, and neither does run A's.
+
+**Its 15 cells, each with its subject.** *(Ids are this declaration's; the report's figure home is the
+contract's own `§6` row `13` — the `LIVE/INSTALL` figure, a POST-RELEASE row — so no contract id is minted
+here.)*
+
+| id | subject |
+|---|---|
+| `INSTALL-01` | `npm pack` of `bindings/js` produces a tarball, and its **member set is read** (the installed shape's own bytes) |
+| `INSTALL-02` | **the allowlist falsifier:** every path the entry requires **by path** is present in the tarball's member set — **this is `D-3`/`D-4`'s successor to the retired count: reachability, not arity** |
+| `INSTALL-03` | `npm install <tarball>` **succeeds** in a clean directory whose ancestry names no repository |
+| `INSTALL-04` | the instrument's own topology: **no `build/Release` beside the entry**, none in the tarball, and no `.node` in the main package's member set (`PUB-DD`'s prohibitions, carried to the installed layer) |
+| `INSTALL-05` | the packaged name **resolves through `exports`** from inside the installed tree — by name, one real Node process |
+| `INSTALL-06` | the **version read does not refuse** the packed version (rung one's compare) |
+| `INSTALL-07` | **the five declared names, as declarations:** `optionalDependencies` carries exactly five, each **pinned exactly** to the packed version, each spelled identically to the entry's own table — `@auspicion/provident-storeroom-js-linux-x64-gnu` · `-linux-arm64-gnu` · `-darwin-x64` · `-darwin-arm64` · `-win32-x64-msvc` |
+| `INSTALL-08` | **the host's own name is the rung-one subject:** rung one **fires**, the artefact it loads is the one the host platform package carries, and its stamp equals the packed version |
+| `INSTALL-09` | **the four non-host declared names, one arm each: `LAYER-LIMIT` — driven, reported, NEVER a pass.** The cell fails if any of the four is claimed green |
+| `INSTALL-10` | an uncovered target meets the **declared absent-addon refusal**, with the two-subject join `PUB-DD-26` fixes (`rung one, rung two`, `', '`) |
+| `INSTALL-11` | **the licence text travels although the manifest names no `LICENSE` row** — the carriage mechanism (`PUB-DD-11`: four published paths against three declared names, *"the mechanism rather than a defect"*). **A positive observable where a refusal used to stand** (§2.9) |
+| `INSTALL-12` | **a `LICENSE` row, if present, cites its evidence** — `D-8` (iii)'s conditional, read where its evidence lives (§2.9) |
+| `INSTALL-13` | **no digest figure is minted** (`PUB-DD-13`: a local tarball's digest is **not** the released artefact's tie; a consumer verifying against it meets a mismatch on a correct package) |
+| `INSTALL-14` | **no consumer-loaded claim** (`PUB-DD-14`: *"a consumer has loaded this package"* is a universal negative this topology cannot falsify — `LIVE/INSTALL` drives a clean directory and one Node process, **not an application**) |
+| `INSTALL-15` | **`APP` stays `NONE`** in the label and in the report, and it re-measures **none** of another unit's figures (`contract.md §4.3` item `2`) |
+
+**WHICH CELLS FALSIFY THE FIVE PLATFORM NAMES — stated because rung one is what this battery alone reaches:**
+**`INSTALL-07` falsifies the five as NAMES** (count, exact pins, and the entry's table agreeing — a misspelling,
+a fourth spelling, a floating pin or a sixth name all fail it); **`INSTALL-08` falsifies THIS HOST'S name as a
+LOAD** (rung one firing is the claim no in-place battery can make); **`INSTALL-09` falsifies the other FOUR as
+CLAIMS** — it fires if any of them is reported green on evidence that cannot be taken here. **So all five names
+are falsified across `07`–`09`, and exactly one of them can fail by a load.**
+
+**The two prohibitions, carried whole and not as footnotes.** **`PUB-DD-13`:** the battery takes **shape**
+evidence and **mints no digest figure** — the tarball is locally packed, so its digest ties nothing a registry
+ever held (`INSTALL-13`). **`PUB-DD-14`:** the battery is **not** *"a consumer has loaded this package"*, and no
+clause of it reports a consumer-loading figure (`INSTALL-14`). **And `APP` stays `NONE`** — an installed green
+is not an `APP`-green (`INSTALL-15`).
+
+**THE ADAPTATION THIS DECLARATION OWES, STATED RATHER THAN ASSUMED — the host platform package.** A local pack
+of `bindings/js` carries **no addon** (the tarball's member set is the allowlist, and the prohibitions forbid a
+`.node` in it), so **rung one cannot fire from the main tarball alone.** The declaration therefore takes the
+one arm that keeps a real package manager: **a second locally packed tarball for the host platform name**,
+composed from `bindings/js/platforms/<host name>/package.json` plus the built artefact, installed beside the
+main tarball. **This is the release assembly's own act performed locally** (that step is what copies the
+artefact into each platform package), and it is **declared here as a composition of the tree's own idiom, not
+as a measured result — no instrument in this tree does it today** (§2.6.2's `O3` gap has the same shape).
+**Its falsifier: if a locally packed platform tarball is not lawful, `INSTALL-08` falls to `LAYER-LIMIT` and
+`D-10`'s "it reaches rung one" is unmet locally — the battery would then report the five names as declarations
+(`07`) and four arms of `09`, and the rung-one claim would wait for a registry release. Put to the architect as
+Q17 rather than decided by preference.**
+
+---
+
+## §2.9 · `D-8` — `JSG-12.18`'s `LICENSE` limb: retired here, re-derived there
+
+**The cell, read at its bytes.** `greens.mjs:1205`–`:1214` — `A('JSG-12.18', …)` with `FILES = ['index.mjs',
+'README.md', 'index.d.ts', 'src/constraint-kernel.mjs']`, asserting **exact set equality** (`:1212`), a
+binary-free allowlist (`:1209` — no `build/Release` path, no `.node`), **and** the refusal of a `LICENSE` row
+(`:1213`, the regex `/(^|\/)LICEN[CS]E$/i`). **It owes two edits, and they are separate findings:** the
+equality is obsolete under `D-3`'s correction; **the `LICENSE` limb is obsolete under `D-8`, because an
+unconditional refusal has no subject left** — the row is lawful exactly when evidence requires it.
+
+**THE DISPOSAL: RETIRE the `LICENSE` limb in `JSG-12.18`, and RE-DERIVE its subject as a pair of
+evidence-conditional cells in the installed battery (`INSTALL-11`, `INSTALL-12`).** Not one or the other, and
+the split is the point:
+
+- **Why RETIRE rather than re-derive in place.** A greens cell is a **blind instance authored from the
+  documentation alone**, and its assertions are read off documented bytes and the tree. **`D-8` (iii)'s
+  antecedent — does a consumer or a scanner need the row? — is not a documentary fact; it is an install
+  observation**, and no greps of the manifest can decide it. A conditional whose antecedent no greens cell can
+  evaluate is **not a greens assertion at all**: re-deriving it in place would leave a cell asserting a rule
+  whose ground it cannot see. **So the answer to "does that assertion belong in a greens cell?" is NO.**
+- **Why RE-DERIVE at all, rather than delete the limb and stop.** The row is not unassertable — it is
+  assertable **where the evidence lives**, which is the installed layer. `D-4`'s criterion names that instrument
+  (`delivery` **+ the e2e/blind scenario testing**), and `D-10` is the battery that carries it. **Retiring the
+  limb with nothing in its place would leave the manifest row unobserved and would let a later pass add a
+  `LICENSE` row silently.**
+- **What the re-derivation asserts instead — two subjects, not one:**
+  `INSTALL-11` asserts the **carriage** as a positive: **the licence text arrives in the installed tree
+  although the manifest names no `LICENSE` row** (`PUB-DD-11`; `§2.3` item `2`; `PUB-DD-12`/`DD-43` unmoved).
+  `INSTALL-12` asserts the **conditional**: **a `LICENSE` row present in the manifest is lawful only with a
+  recorded evidence item naming a consumer or scanner requirement** — the evidence's home being this battery's
+  own record (§4 Q18), which is **the only place `D-4`'s criterion can produce it**. **A row without its
+  evidence fails; a row with it passes; no row passes.** That is `D-8` (iii) as a failable assertion, and it
+  re-creates no fixed manifest rule — the thing `D-4` lifted.
+- **What `JSG-12.18` keeps, and the wave must not take with the limb:** **no `build/Release` path and no
+  `.node` at any entry** (`:1209`, the binary-free conjunct) — **functional and security prohibitions, not
+  shape rules** — and its **equality edit** is `D-3`'s, a separate change to the same cell. **A pass that
+  deletes the equality and takes the prohibitions with it has destroyed the load-bearing half of the cell**
+  (`D-3`'s correction says so by name). **So the cell's wave edits are exactly two: the equality (`D-3`) and
+  the `LICENSE` conjunct (`D-8`), and its citation line (`:1211`, which cites items `6`, `1` and `5` — all
+  retired or re-read) is re-derived with them.**
+
+---
+
 ## §3 · The layer-preservation clause
 
 **The project's rule (`strata/brief.md` §5 item 8, `docs/guides/electron-integration.md`'s ladder): a green is
 always reported with its layer, the ladder is *envelope* → *loaded in dev* → *loaded in the packaged app* →
 *installed from the registry*, and a green on one layer does not retire a red on another.** The move changes no
-file's label, and this section states what each scope's battery reports **and what the move would cost if the
-labels were not carried with the files.**
+file's label **except where `D-9` orders one** (§2.7: the four `O3` rows move from `envelope` to `assembled`),
+and this section states what each scope's battery reports **and what the move would cost if the labels were not
+carried with the files.**
+
+**⟶ THE CENSUS IS RE-COUNTED AT `D-9`:** `tests/e2e/` read **envelope 29 · assembled 4** and now reads
+**envelope 25 · assembled 8** — `+4` from §2.1 rows 18, 20, 22 and 23, and **no other row moved**. The
+`installed` column of the 75 stays **0**, because run C is **not one of the 75** (§2.8): it is a battery this
+declaration creates, and its cells are declared, not measured.
 
 | scope | the layers its battery reports | evidence read off the files |
 |---|---|---|
-| `tests/e2e/` | **envelope** (29 files), **assembled** (4: `live-drive`, `json-acceptance-set-live`, `json-crossing-live`, `json-crossing-live-s17`); **installed** is *declared but unexercised* (`json-crossing-live.mjs`'s `LIVE/INSTALLED` reach via `JC_ENTRY`); **app** — never, by declaration (`APP LAYER: NONE` in every runner, `DD-20`) | the `LAYER:`/`const LAYER` heads of `greens.mjs`, `held-listener-identity-greens.mjs`, `live-drive.mjs`, `json-acceptance-set-greens.mjs`, `json-acceptance-set-live.mjs`, `json-crossing-live.mjs`; `publish.test.mjs`'s `P-PUB-8` (`ENVELOPE/PURE`); `register.test.mjs`'s `S-LAYER`; `package-entry.test.mjs`'s `S-LAYER` |
+| `tests/e2e/` | **envelope** (25 files), **assembled** (8: `live-drive`, `json-acceptance-set-live`, `json-crossing-live`, `json-crossing-live-s17`, and at `D-9` the four `O3` rows `staged-install/{publish, publish-generators, version-stamp, package-entry}`); **installed** — *within the 75, declared but unexercised* (`json-crossing-live.mjs`'s `LIVE/INSTALLED` reach via `JC_ENTRY`, which is a flag and not a cell), **and outside the 75, declared by §2.8 and run by nothing yet**; **app** — never, by declaration (`APP LAYER: NONE` in every runner, `DD-20`) | the `LAYER:`/`const LAYER` heads of `greens.mjs`, `held-listener-identity-greens.mjs`, `live-drive.mjs`, `json-acceptance-set-greens.mjs`, `json-acceptance-set-live.mjs`, `json-crossing-live.mjs`; `publish.test.mjs`'s `P-PUB-8`, `package-entry.test.mjs`'s `S-LAYER` and `publish-generators.test.mjs`'s `NG-PUB-J` rows (**all three re-derived at `D-9`**, §2.7.3); `register.test.mjs`'s `S-LAYER` (**unchanged — it reads the `O4` run's constant**) |
 | `tests/integration/<module>/` | **envelope only**, and *by construction*: no `.node`, no entry, no process boundary — the Rust legs (`cargo test`) and the kernel legs (in-process) | `docs/specs/storeroom-publish/contract.md` §4.5 item 2 declares both Rust legs `ENVELOPE/PURE`; the kernel's files print no `LIVE` label |
 | `tests/unit/<module>/` | **envelope only**, at the signature level: no state machine crosses a boundary, so no higher layer can be claimed | `a126`/`a127`'s own headers (specification-only, no artifact read); `crossing_*`'s `rlib`-only reach |
 
 **FINDINGS — reporting that the move would *lose*, surfaced rather than absorbed:**
 
-**⟶ AND THE ROUTE DOES NOT TOUCH ANY OF IT.** `D-6` settles **how a cell reaches the package**, not **what it
-reports**: **no route tag in §2.1 upgrades, downgrades or re-labels a file**, and **`F3` and `F4` below are
-answered by neither `D-6` nor this pass.** `O3` is install-**shaped** and not installed, so it mints **no
-`installed` green**; an `O4` cell that loads the built `.node` is `assembled`/`envelope` by the same open question
-it was before. **A reader who takes the route tag as a layer answer has collapsed two questions this declaration
-keeps apart on purpose (§2.6.7).**
+**⟶ AND THE ROUTE DOES NOT TOUCH ANY OF IT — BUT `D-9` AND `D-10` NOW DO.** `D-6` settles **how a cell reaches
+the package**, not **what it reports**: **no route tag in §2.1 upgrades, downgrades or re-labels a file**, and
+that distinction survives in §2.7, which gives the `O3` set a **run of its own with a label of its own** rather
+than reading a tag as a label. **What changed at `D-8`/`D-9`/`D-10`:** `F3`'s label question is **answered for
+the `O3` set by `D-9`** (§2.7) and **deliberately left as it stood for the `O4` set** (Q15); `F4`'s absent
+`installed` battery is **supplied by `D-10`** as a declared, unrun cell set (§2.8). **A reader who takes the
+route tag as a layer answer still collapses two questions this declaration keeps apart on purpose (§2.6.7).**
 
 - **F1 · `register.test.mjs`'s `S-LAYER` reads its label by *path*.** `LAYER_ARTIFACT =
   join(PACKAGE_DIR, 'greens', 'greens.mjs')` (`:129`) — a green whose subject is *"the layer label READ OFF the
@@ -472,24 +767,60 @@ keeps apart on purpose (§2.6.7).**
   with `site` a literal `'bindings/js/test/publish.test.mjs'`.** The move falsifies the site half of a *layer
   assertion* (`acceptance.md §2.3`: *"a wrong pair is void"*). Either the literal is re-derived at the move or the
   row is void — and re-deriving a *layer* row is not a path rename.
-- **F3 · The node leg's own label and the preset's scope disagree.** Every JS `*.test.mjs` in this tree is
-  labelled **`ENVELOPE/PURE`** by the declarations that govern it (`acceptance.md §5.2` row 1, `PUB-DD-24`,
-  `implementation-plan.md §2`), yet each one **loads the built `storeroom_js_binding.node` through the package
-  entry** — which the preset's own words make *"drives the built artifact"*, i.e. **assembled**. **This pass
-  preserves the files' declared labels** (§2's `layer` column is `envelope` for them) and **does not upgrade
-  them**: whether `ENVELOPE/PURE` means *the layer of the package's envelope* (and is therefore unchanged by the
-  addon being loaded) or *the layer at which the claim is measured* (and is therefore `assembled` once a `.node`
-  is in the process) is **the architect's question, put below as Q4** — and it is the single finding that matters
-  most, because if the answer is "assembled" then 24 files' reported layer changes with their directory and the
-  project has been reporting one layer higher than its evidence for two waves.
-- **F4 · `app` and `installed` have no battery at all.** The `APP` layer is `NONE` everywhere by declaration and
-  `LIVE / INSTALL` is `OPEN` (brief §6). A stratification that reports nothing at `installed` and `app` is honest
-  but **incomplete against `D-4`**, which hands the publish shape to *"the e2e/blind scenario testing"*: the
-  evidence `delivery` needs is `installed` evidence, and the only declared route to it (`json-crossing-live.mjs`'s
-  `JC_ENTRY=LIVE/INSTALLED`) is a runner flag, not a cell. Named, not repaired.
+- **F3 · CLOSED FOR THE `O3` SET AT `D-9`, AND KEPT OPEN FOR THE `O4` SET (Q15) — the finding keeps its wording
+  so a reader sees what was answered.** It read: *every JS `*.test.mjs` in this tree is labelled `ENVELOPE/PURE`
+  by the declarations that govern it (`acceptance.md §5.2` row 1, `PUB-DD-24`, `implementation-plan.md §2`), yet
+  each one loads the built `storeroom_js_binding.node` through the package entry — which the preset's own words
+  make "drives the built artifact", i.e. `assembled`; if the answer is "assembled" then 24 files' reported layer
+  changes with their directory.* **`D-9` answers it for the cells whose subject is the packaged resolution (the
+  `O3` set) and for no others** — the ground it gives is that an `O3` cell stages a tree and a platform package
+  and must not lean on rung two, while an `O4` cell is the *"package layer, in-process"* that rung two carries.
+  **So the four `O3` rows are `assembled` (§2.1, §2.7) and the 21 remaining `O4` node cells keep `envelope`.**
+  **★ BUT `D-9`'s blanket second half collides with four `O4` files this declaration itself labels `assembled`**
+  — `live-drive`, `json-acceptance-set-live`, `json-crossing-live`, `json-crossing-live-s17`, each of which
+  prints `LIVE / ASSEMBLED PACKAGE` off its own bytes — and with `json-acceptance-set-live.mjs:54`'s glossed
+  `ENVELOPE/PURE (…)`. **This pass reads `D-9`'s second half as *the route does not move an `O4` label*, not as
+  *every `O4` cell is re-labelled to envelope***, because flattening four runners would re-label a green on
+  evidence the ruling did not weigh — **and it puts the reading to the architect rather than deciding it
+  (Q15).**
+- **F4 · AMENDED AT `D-10` — `installed` now has a battery; `app` still has none.** It read: *`app` and
+  `installed` have no battery at all … the evidence `delivery` needs is `installed` evidence, and the only
+  declared route to it (`json-crossing-live.mjs`'s `JC_ENTRY=LIVE/INSTALLED`) is a runner flag, not a cell.*
+  **`D-10` supplies that battery and `§2.8` declares it** — 15 cells, its own label, its own command, its own
+  helpers — **and it runs nothing yet: it is declared before it runs, like every unit here.** `APP` stays `NONE`
+  and no `APP`-battery is owed; `json-crossing-live.mjs`'s `JC_ENTRY` arm **remains a flag and is not promoted
+  into the battery** (its own run is `O4`/`assembled` and its label is its own).
 - **F5 · `file-tier-save.test.mjs` reads the greens set by name** (`file-tier-save-greens.md`, cited at `:2271`
   as the source of a claim it refuses to assert). The runner and its set document move together in this
   declaration (`tests/e2e/file-tier-save/`), which is why the set's directory is preserved rather than flattened.
+
+**⟶ FINDINGS OF THIS PASS (`D-8`, `D-9`, `D-10`), numbered on from the route pass's F11.**
+
+- **F12 · The per-run label is a real coupling and it decides the structural move.** Measured: exactly **four**
+  files carry `const LAYER` (`greens.mjs:70`, `held-listener-identity-greens.mjs:20`,
+  `json-acceptance-set-greens.mjs:58`, `json-acceptance-set-live.mjs:54`); **`register.test.mjs` reads
+  `greens.mjs`'s two label homes by path and asserts them against `ENVELOPE/PURE` at two cells** (`:762`,
+  `:1104`), and its declared falsifier is a label change. **No `O3` cell is inside any of the four runs**
+  (§2.7.1). That is why the move is **(b)** and not **(a)** (§2.7.2).
+- **F13 · `package-entry.test.mjs`'s label cell cannot fail, and the same defect has a precedent.** `:346` is a
+  literal compared to itself (`layer === 'ENVELOPE/PURE'`), the `RCA-12` class `register.test.mjs`'s `S-LAYER`
+  was corrected out of on 2026-10-17. **The relabel's second edit there is not the value but the assertion's
+  ability to fail** (§2.7.3).
+- **F14 · Two `O3` label-literal sites are not named in `D-9` and the wave must still reach them.**
+  `publish.test.mjs` `:15`/`:4164`/`:4167` (`P-PUB-8`) and `publish-generators.test.mjs`
+  `:1305`/`:1306`/`:1315` (`NG-PUB-J`) both pin `ENVELOPE/PURE` **citing `PUB-DD-24` and `acceptance.md §5.2`
+  row 1** — so the two `O3` files *do* carry label literals, and their relabel is a `{site, layer}` **pair**
+  re-derivation rather than the four-site list's scope. **Whether `D-9`'s order reaches them is Q14.**
+  (`version-stamp.test.mjs` carries none, measured; the deliberate wrong-pair control at
+  `publish-generators.test.mjs:1457` keeps its literal.)
+- **F15 · `D-9`'s second half collides with four `O4` files this declaration calls `assembled`.** They print
+  `LIVE / ASSEMBLED PACKAGE` off their own bytes; a literal reading of *"the `O4` cells kept at
+  `ENVELOPE/PURE`"* would re-label them and change `json-acceptance-set-live.mjs:54`'s constant. **Read as
+  *the route moves no `O4` label* here; put to the architect as Q15.**
+- **F16 · The installed battery cannot fire rung one from the main tarball alone, and the composition is
+  declared, not measured.** A local pack carries no addon, so a **second locally packed platform tarball** is
+  the arm that keeps a real package manager (§2.8). **Its falsifier is stated: refuse that arm and `INSTALL-08`
+  falls to `LAYER-LIMIT` while `07` and `09` stand** (Q17).
 
 ---
 
@@ -516,8 +847,12 @@ answer is e2e (it reaches the entry's product), but **its subject is superseded*
 must not be read as renewing its claim. Whether it is retired, re-derived, or kept as a record is the architect's
 or the test layer's, not this pass's.
 
-**Q4 · `ENVELOPE/PURE` for a drive that loads the built addon** — see **F3**. This is the biggest open question
-this pass raises.
+**Q4 · `ENVELOPE/PURE` for a drive that loads the built addon — CLOSED FOR THE `O3` SET BY `D-9`, STILL OPEN FOR
+THE `O4` SET (now Q15).** It read: *whether `ENVELOPE/PURE` means the layer of the package's envelope or the layer
+at which the claim is measured.* **`D-9` answers it for the cells whose subject is the packaged resolution** —
+the `O3` set is `assembled`, on the ground that it stages a tree and a platform package and must not lean on rung
+two — **and answers it by run, not per cell** (§2.7). **The `O4` reading is carried forward as Q15, not decided
+here.**
 
 **Q5 · Five declared homes contradict the preset, and the contracts are unowned.** `docs/specs/storeroom-publish/
 contract.md` **`PUB-DD-24`** fixes the publish red set's home at `bindings/js/test/publish.test.mjs` *"INSIDE THE
@@ -581,9 +916,51 @@ published platform package exists to install."* It is tagged `O3` on purpose; **
 instrument that could give it a subject, and whether it should take one is the test layer's to declare — not this
 pass's** (§2.6.1 call 5).
 
-**Q13 · `D-4` lifts "NOTHING ELSE" while `D-3`'s correction keeps `JSG-12.18`'s `LICENSE`-row refusal.** The two
-clauses meet at one manifest row: a `LICENSE` row is *"something else"* under `D-4` and a refusal under the
-correction. **It blocks that cell's edit and is the architect's to separate** (§5).
+**Q13 · `D-4` lifts "NOTHING ELSE" while `D-3`'s correction keeps `JSG-12.18`'s `LICENSE`-row refusal — CLOSED
+BY `D-8`.** The two clauses meet at one manifest row: a `LICENSE` row is *"something else"* under `D-4` and a
+refusal under the correction. **`D-8` settles it as reading (iii): the row is lawful only if evidence requires
+it**, so the unconditional refusal has **no subject**. **The disposal is declared at §2.9** — retired in
+`JSG-12.18`, re-derived as `INSTALL-11`/`INSTALL-12` — **and the cell's edit is no longer blocked.**
+
+**⟶ QUESTIONS RAISED BY THIS PASS (`D-8`, `D-9`, `D-10`).**
+
+**Q14 · Does `D-9`'s relabel reach the two `O3` files that carry label literals but are not in its four-site
+list?** `publish.test.mjs` (`:15`, `:4164`, `:4167`) and `publish-generators.test.mjs` (`:1305`, `:1306`,
+`:1315`) pin `ENVELOPE/PURE` **citing `PUB-DD-24` and `acceptance.md §5.2` row 1**, and `PUB-DD-24` declares the
+publish cells' leg *"at `ENVELOPE/PURE`"* by name. **This pass reads `D-9` as reaching them** — an `O3` cell
+labelled `envelope` would leave the ruling half-applied and would make `P-PUB-8`/`NG-PUB-J` assert a layer their
+own run does not report — **and that reading contradicts a declared contract clause, which is the architect's to
+supersede or to confirm** (§2.7.3, F14).
+
+**Q15 · Is `D-9`'s *"the `O4` cells kept at `ENVELOPE/PURE`"* a floor or a re-label?** Four `O4` files are
+labelled **`assembled`** by this declaration and print `LIVE / ASSEMBLED PACKAGE` off their own bytes
+(`live-drive`, `json-acceptance-set-live`, `json-crossing-live`, `json-crossing-live-s17`), and
+`json-acceptance-set-live.mjs:54` carries a **glossed** constant (`ENVELOPE/PURE (the JavaScript package layer,
+in-process)`). **This pass reads the ruling's second half as *the route moves no `O4` label*** and leaves all
+four plus the glossed constant byte-identical (F15). **The other reading — every `O4` cell is envelope — would
+re-label four runners and edit one constant, and it is the architect's to choose.**
+
+**Q16 · Who declares the new legs, now that there are three `node` legs and the greens command?** The relabel
+splits `O3` into runs A, B and C (§2.7.2), so the harness must name `node --test tests/e2e/staged-install/
+*.test.mjs` · `node --test tests/e2e/*.test.mjs` · `node tests/e2e/installed/live-install.mjs` · the greens
+command, and **`tests/e2e/` needs its own layer statement per leg** — which is exactly the cost `PUB-DD-24`'s
+`alt` prices as needing *"a fresh ruling"*, and exactly the clause `D-5` relocates the files away from. **The
+root `package.json` is owned by no module** (map §5.3) and the spec corpus is unowned, so **the leg declarations
+and the `PUB-DD-24`/`implementation-plan.md §2` amendments have no owner this declaration can name.** This is
+Q5 restated with three legs rather than one, and it is a blocker for the wave, not for this declaration.
+
+**Q17 · May the installed battery pack a local platform tarball, or does rung one wait for a release?** A local
+pack of `bindings/js` carries no addon, so `INSTALL-08` (rung one fires) needs a **second locally packed
+tarball** composed from the platform package's manifest plus the built artefact — the release assembly's own copy
+performed locally (§2.8). **This pass declares that arm**; the alternative is that `INSTALL-08` falls to
+`LAYER-LIMIT` and all five platform names are falsified as *declarations* only (`INSTALL-07`, `INSTALL-09`).
+**`D-10` says the battery reaches rung one, which is why the arm is declared rather than assumed.**
+
+**Q18 · Where does the `LICENSE`-row evidence live, so `INSTALL-12` can read it?** `D-8` (iii) makes the row
+conditional on *"an e2e/install scenario shows a consumer or a scanner needs the row"*. **A conditional needs a
+home for its antecedent**, and this pass declares it as **the installed battery's own record** — the only place
+`D-4`'s criterion produces it. **If the architect means a separate register instead, `INSTALL-12` reads that
+register and this declaration's home moves with it; nothing else in §2.9 depends on the choice.**
 
 
 ---
@@ -646,11 +1023,28 @@ prohibitions with it has destroyed the load-bearing half of both cells** — and
 cell and one `O4` cell**, which is the sharpest illustration that **the route tag is no help at this migration**:
 both cells read the manifest **as bytes**, neither goes through its route, and **neither tag makes the edit
 mechanical**.
-- **★ AND ONE COLLISION THIS PASS RECORDS WITHOUT RESOLVING.** `D-4` lifts the strict count **and** `§2.1` item
-  `1`'s *"NOTHING ELSE"* exclusivity, while the `D-3` correction carries `JSG-12.18`'s **`LICENSE`-row refusal**
-  as a *licensing* prohibition that survives. **A `LICENSE` row would be "something else" under `D-4` and a
-  refusal under the correction, and the two clauses meet at one byte of one manifest.** Whether the `LICENSE` row
-  is lawful after `D-4` is the architect's to separate — it blocks `JSG-12.18`'s edit (**§4 Q13**).
+- **★ AND ONE COLLISION THIS PASS DOES NOT RESOLVE — IT RECORDS THE RULING THAT SETTLED PART OF IT.** `D-4` lifts
+  the strict count **and** `§2.1` item `1`'s *"NOTHING ELSE"* exclusivity, while the `D-3` correction carries
+  `JSG-12.18`'s **`LICENSE`-row refusal** as a *licensing* prohibition that survives. **`D-8` settles that
+  collision (reading (iii): the row is lawful only if evidence requires it) and moves the refusal out of the
+  cell** — so **`JSG-12.18` now owes exactly two edits and its `LICENSE` subject is no longer among the things it
+  keeps** (§2.9). **What stays unresolved is where the evidence's home is (Q18) and whether the relabel reaches
+  the two `O3` cells `D-9` does not name (Q14).**
+- **★ THE RELABEL'S OWN WAVE, NAMED AS CONSEQUENCES (`D-9`, §2.7.3).** The wave **creates
+  `tests/e2e/staged-install/`** and moves the four `O3` files into it; **adds `staged-install-support.mjs`** as
+  run A's label carrier and import/install helper; **re-derives three label sites and one `{site, layer}` pair**
+  (`package-entry` `:345`–`:346`; `publish` `:15`/`:4164`/`:4167`; `publish-generators`
+  `:1305`/`:1306`/`:1315`) **and edits no byte of any existing `const LAYER`**; **adds a `LAYER:` line to
+  `consumer-fix/scenarios.mjs`**; **re-points `register.test.mjs`'s `LAYER_ARTIFACT` join** (F1's path sweep,
+  in the same wave, or an `O4` cell fails at extraction); and **names three `node` legs plus the greens command
+  in a root `package.json` that no module owns** (Q16). **It also owes the bounded spec read-through of
+  `PUB-DD-24` and `implementation-plan.md §2` — clauses that declare the legs by command, site and layer and
+  that `D-5`/`D-9` leave behind — which no role in this workflow may perform (Q16).**
+- **★ AND THE INSTALLED BATTERY'S WAVE (`D-10`, §2.8).** The wave **creates `tests/e2e/installed/`** —
+  `live-install.mjs` and `install-support.mjs` — **and no file moves**: the battery is new, so it changes no
+  present-state path and no entry of the 75. **Its `INSTALL-08` arm is the one piece that needs a second locally
+  packed tarball for the host platform package** (Q17), and its record is where `D-8`'s evidence must be written
+  if a `LICENSE` row is ever added (`INSTALL-12`, Q18).
 - **Relative reaches to the kernel and to the artifact.** `../src/constraint-kernel.mjs` (five files import it,
   `:124`/`:156`/`:79`/`:161` and the helpers' `:33`/`:157`), `HERE/../index.mjs` and
   `HERE/../build/Release/storeroom_js_binding.node` (the greens), `ROOT` computed four levels up
@@ -693,6 +1087,27 @@ mechanical**.
   *re-spelling* moves the `exports` reach out of the `O4` cells, not that any earlier-set claim changed. **It
   ordered no migration**: `D-6` orders no file move, and §5's costs are consequences, not a schedule. **It
   decided none of Q9–Q13.** **It started no L2.**
+
+**⟶ AND THIS PASS DECIDED NONE OF THE FOLLOWING (`D-8`, `D-9`, `D-10`).**
+
+- **It moved nothing, edited no test, ran nothing and started no L2.** Every edit in §2.7.3, §2.8 and §2.9 is
+  declared against a **target** path — the battery's new home — and lands with the migration wave, because
+  `bindings/js/test/` and `bindings/js/greens/` are present-state paths no strata role may write (`D-5`, `D-9`).
+- **It ran no `npm pack`, no `npm install` and no `node` process.** **`INSTALL-01`…`INSTALL-15` are declared, not
+  measured** — the battery is declared before it runs, like every unit here (`D-10`'s own closing clause).
+- **It decided no question in §4's new block** — not whether `D-9` reaches the two `O3` cell sets it does not
+  name (Q14), not whether *"the `O4` cells kept at `ENVELOPE/PURE`"* re-labels four runners (Q15), not who
+  declares the three legs and amends `PUB-DD-24` (Q16), not whether a locally packed platform tarball is lawful
+  (Q17), not where the `LICENSE` row's evidence lives (Q18).
+- **It did not amend the spec corpus** — `PUB-DD-24`, `acceptance.md §5.2`, `implementation-plan.md §2` and the
+  sibling layer vocabulary stand as text and are read through `D-9`/`D-5`/`D-8`. **No role in this workflow owns
+  a contract** (map §5.3).
+- **It did not add a module or an endpoint, and did not re-count the map.** 19 modules and 61 endpoints stand
+  (Q16's owner question and §2.8's new battery change neither); the four battery modules keep their ids and
+  their `owns` lists stay at their present-state paths until the post-migration revision §5 names.
+- **It did not touch `modules.json`'s endpoint list except for one reading** — `delivery`'s allowlist endpoint,
+  whose *"exactly four entries … no `LICENSE` row"* is now read through `D-3`, `D-4` and `D-8` (annotated at its
+  own site, with the count unmoved).
 
 
 ---
@@ -759,4 +1174,35 @@ passes through it is Node's documented resolution rule read off the map, not a d
 `bindings/js/index.mjs` reached by a **relative path from `tests/e2e/`** still resolves the addon ladder from the
 entry's own directory **is likewise stated from the entry's own resolution code and not driven** — that is the
 single most load-bearing unmeasured claim in `O4`, and the first thing the migration wave should drive.
+
+**⟶ THIS PASS (`D-8`, `D-9`, `D-10`) — WHAT WAS READ AT THE BYTES, WHAT WAS CONCLUDED, WHAT COULD NOT BE
+VERIFIED.**
+
+**Read at the bytes (measured).** `greens.mjs` `:9` · `:62`–`:71` · `:1178`–`:1179` · `:1205`–`:1214` · `:1532`;
+`register.test.mjs` `:106`–`:148`, `:749`–`:774`, `:1085`–`:1107`; `package-entry.test.mjs` `:340`–`:354`;
+`json-acceptance-set-live.mjs` `:46`–`:56` and `:656`–`:660`; `json-crossing-live.mjs` `:37`–`:44`;
+`consumer-fix/scenarios.mjs`'s header and its verdict vocabulary (`PASS|FAIL|SOURCE-PINNED|UNRUNNABLE`);
+`REMEASURE-2026-10-18.md` `:223`–`:229`; a `grep` for `LAYER` over all `bindings/js/greens/**/*.mjs` (**four
+files carry `const LAYER`, exactly the four `D-9` names**); a `grep` for `ENVELOPE` over `bindings/js/test/**`
+(**four files, 19 hits — `register` 8, `publish` 3, `publish-generators` 5, `package-entry` 2, `REMEASURE` 1;
+`version-stamp` carries none**); `bindings/js/package.json` whole (the five exact `optionalDependencies` names,
+quoted at §2.8); `docs/specs/storeroom-publish/contract.md` §4.1–§4.5 whole, the `PUB-DD-13`/`PUB-DD-14`/
+`PUB-DD-24` rows, and `§6`'s census rows `12`–`13`; and
+`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/acceptance.md` §4.1–§4.3 — **the archived vocabulary
+home, cited at §2.7.2 because the kept corpus does not carry it.**
+
+**Concluded, not read.** **The structural move (b)** — chosen on site 2's declared falsifier and on the measured
+disjointness at §2.7.1, and falsifiable as stated at §2.7.2. That a greens cell cannot carry an
+evidence-conditional assertion at all (§2.9) — a judgement about what a blind instance is, not a reading. That
+the installed battery's shape follows `json-crossing-live.mjs`'s runner rather than `node --test` (§2.8). That
+the five platform names are falsified across `INSTALL-07`–`INSTALL-09` in that partition — **the partition is
+mine; the contract names the verifications, not the cells.**
+
+**Could not verify.** **No shell and no run**: no `npm pack`, no `npm install`, no `node --test`, no greens run.
+So **the `O3` label's carrier** (`staged-install-support.mjs`) is **declared, not built**; **the locally packed
+platform tarball (Q17) is a composition of the release assembly's own act and is nowhere driven in this tree**;
+`npm`'s always-included `LICENSE` behaviour — the half of `D-8`'s fact that makes the row purely declarative —
+**is general npm behaviour read from the ruling and expressly not measured on this branch**; and **whether `D-9`'s
+relabel leaves `PUB-DD-24`'s declared label honest** is a question for the architect (Q14, Q16), not a
+measurement.
 

@@ -21,6 +21,14 @@ claim; and the fourth `files` allowlist entry has no subject. **`D-1` orders no 
 map records about the tree is a fact of the tree as it stands, and each changed reading is marked where it
 stands rather than presented as though it had always read that way.
 
+**STATE AT `D-8`, `D-9` AND `D-10` — THREE READINGS BELOW ARE ANNOTATED, AND NOTHING IS REDRAWN.** `D-3`, `D-4`
+and `D-8` lift the `files` allowlist's count family (§4 E4, I-23 — annotated as pointers there); `D-9` and `D-10`
+are **declared in the sibling file** `docs/L1/test-stratification.md` (§2.7 the `O3` relabel and its structural
+move, §2.8 the installed-layer battery, §2.9 the `LICENSE` limb's disposal) **because both are test-layer cuts
+this map's path inventory cannot carry** — a battery that does not exist yet owns no path, and a label is not an
+ownership boundary. **The map's figures are therefore unmoved: 19 modules, 61 endpoints, 105 + 1 + 20 = 126
+paths**, and §2.4 carries the pointer that says where the cut now lives.
+
 **MEASUREMENT LIMIT — READ BEFORE TRUSTING THE COUNTS.** The first pass over this map had no shell. Its
 inventory was built from the file tools' glob enumeration of the workspace (a complete 11,930-path listing of
 everything under the repository root, filtered against the project's own `.gitignore` rules), **not** from
@@ -214,6 +222,14 @@ project's batteries are organised **by unit and wave**, and the re-cut of 75 fil
 declare. **⟶ THE ORDER THIS IMPLIES, RECORDED AS CONSEQUENCE AND NOT AS A RULING:** `D-4` makes the publish shape
 a consequence of what the e2e/blind scenarios prove, so the scenarios' placement is **upstream** of `delivery`'s
 manifest decision.
+**⟶ AND THE CUT IS NOW DRAWN ELSEWHERE, IN THE SIBLING DECLARATION (`D-5`'s own delegation):**
+`docs/L1/test-stratification.md` carries the 75-file re-cut across the three scopes, **and at `D-9`/`D-10` it
+also declares two things this section's path lists cannot carry:** **the `O3` cells' own run and label** (§2.7)
+and **a NEW installed-layer battery under `tests/e2e/installed/`** (§2.8) which **owns no present-state path and
+therefore appears in no module's `owns` list** — 19 modules and 61 endpoints stand, and the four battery modules
+keep their ids and their present-state paths until the post-migration revision the stratification's §5 names.
+**A reader looking for the installed layer's owner will not find one here, and that absence is the accurate
+statement: the battery is declared before it exists.**
 
 ---
 
@@ -346,6 +362,17 @@ const store = storeCreate(cfg);
   separately-reachable module. So the shipped set the ruling intends is three entries plus one row the ruling
   leaves in place. **This map records the ruling and does not pretend the code has moved**; no manifest edit is
   ordered here, and the fourth-row removal is an implementation pass's act.
+  **⟶ AND THE ROW FAMILY IS LIFTED AT `D-3`, `D-4` AND `D-8`: this subsection is read THROUGH them and its
+  arithmetic binds nothing.** `D-3` retires the *"exactly four"* count, `D-4` lifts the whole strict-count family
+  (`§2.1` item `1`'s *"and NOTHING ELSE"* with it) and makes the publish shape **empirical** — decided by
+  `delivery` together with the e2e/blind scenario testing — and `D-8` settles the **`LICENSE` row** as *lawful
+  only if evidence requires it*, neither refused nor granted by rule. **So the four names above are a FACT OF THE
+  TREE and not a rule**, the `files` output in `modules.json` is annotated to that reading, and **the prohibitions
+  are unmoved** (no `.node`, no `build/Release`, no `postinstall` route, the tracked-tree walk). **The evidence
+  that now determines the shape is declared at `docs/L1/test-stratification.md §2.8`** — the `LIVE/INSTALL`
+  battery's installed-layer cell set, whose `INSTALL-02` carries reachability in place of the retired count.
+  **⟶ ANNOTATED AS A POINTER, on the same ground as §2.3's and I-23's annotations: the ruling is `D-3`/`D-4`/
+  `D-8`'s and no boundary is redrawn here.**
 
 ### E5 · The repository's instrument surface (not the product's)
 

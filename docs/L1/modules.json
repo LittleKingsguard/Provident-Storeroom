@@ -427,7 +427,7 @@
         {
           "name": "the files allowlist",
           "input": "the shipped set the manifest names",
-          "output": "exactly four entries: index.mjs, README.md, index.d.ts, src/constraint-kernel.mjs; no LICENSE row, no build path, no .node entry"
+          "output": "four entries in the tree today — index.mjs, README.md, index.d.ts, src/constraint-kernel.mjs — and NOTHING BINDS THAT COUNT: read through strata/decisions.md D-3 (the 'exactly four' constraint is OBSOLETE), D-4 (the strict count is lifted; the shape is determined empirically by delivery together with the e2e/blind scenario testing) and D-8 (the LICENSE row is lawful ONLY IF EVIDENCE REQUIRES IT — neither refused nor granted by rule). What remains binding is the FUNCTION: whatever the entry requires by path must ship. The prohibitions are unmoved: no build path, no .node entry, no postinstall route. The four names are a FACT OF THE TREE and not a rule (docs/L1/module-map.md I-23, E4)"
         },
         {
           "name": "the release pipeline",

@@ -766,3 +766,38 @@ installed green is not an `APP`-green.
 
 **WHAT IT DOES NOT SETTLE.** Its cells, their count, its own label string, its helpers' contents, and its command —
 **L1 declares all of it.** And it orders no build: the battery is declared before it runs, like every unit here.
+
+---
+
+### Correction to `D-9` — the `O4` set is LEFT UNTOUCHED, not "kept at `ENVELOPE/PURE`"
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, against the tree, after the
+declaration pass reported its four-site reading.
+
+**WHAT `D-9` SAID.** *"The `O3` cells are to be labelled `assembled`, and the `O4` cells keep `ENVELOPE/PURE`."*
+
+**WHAT THE TREE SHOWS.** **`live-drive.mjs` already declares `LIVE / ASSEMBLED PACKAGE`** — its head comment
+reads *"this run is a LIVE run of the ASSEMBLED PACKAGE — the real artifact, a real process, real file I/O, real
+caller"* and it prints the same at `:1296` — **and it is an `O4` cell** (`O4` = path entry, which says nothing
+about the layer). **So `D-9`'s second half, read literally, would have DOWNGRADED a run that already reports the
+stronger layer.** That was L0's over-specification, not the architect's instruction, and it is corrected here.
+
+**THE OPERATIVE READING.** **`D-9` moves the `O3` cells to `assembled` and LEAVES THE `O4` SET ALONE** — whatever
+each `O4` run already declares stays declared, `ENVELOPE/PURE` where it says so and `LIVE / ASSEMBLED PACKAGE`
+where `live-drive.mjs` says so. **Route and label are independent axes (`D-6`), and `D-9` moves one of them.**
+
+**AND THE DECLARATION PASS'S STRUCTURAL CHOICE IS THEREBY CONFIRMED ON EVIDENCE, NOT ON PREFERENCE.** It measured
+that **no `O3` cell sits inside any of the four files that carry a run-level `const LAYER`**, so the relabel is
+**not** an edit to any existing runner: the `O3` label gets its home in the new `O3` helper
+(`tests/e2e/staged-install/staged-install-support.mjs`), and **`greens.mjs`'s constant, `JSG-12.15`/`12.16`, and
+`register.test.mjs`'s two extraction cells are not edited at all** — which is what keeps the trap the code warns
+about (`"a change there would manufacture a false green"`) from ever being approached.
+
+**`Q14` AND `Q18`, ANSWERED AS CONSEQUENCES RATHER THAN PUT TO THE ARCHITECT.** **`Q14`:** yes — `publish` and
+`publish-generators` are `O3` cells, so `D-9` reaches them; **what they conflict with is `PUB-DD-24`'s text, and
+that clause's amendment is already recorded as owed**, so the relabel waits on the amendment rather than on a
+ruling. **`Q18`:** `D-8` (iii) makes the `LICENSE` row's antecedent *"does a consumer or a scanner need it?"* an
+**install observation**, so its evidence lives in the installed battery — declared as `INSTALL-11` (the carriage
+as a **positive** observable, where a refusal used to stand) and `INSTALL-12` (the conditional, citing its
+evidence). **A greens cell is a blind instance off documentary bytes and cannot carry an install observation,
+which is why the disposal is retire-here / re-derive-there and not a rewrite of `JSG-12.18`.**
