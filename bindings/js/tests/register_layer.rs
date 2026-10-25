@@ -371,14 +371,23 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
             //
             // **AND THE SIZE HALF OF THE CEILING (`1,000,000` visited nodes) stays in `crossing_values.rs`,
             // where the corpus can afford it.**
-            let depth = 126 + rng.below(5); // 126, 127, 128, 129, 130
+            //
+            // **⟶ RE-DERIVED AGAIN 2026-10-25, AND THIS TIME THE LINE MOVED WITH THE BOUND IT MEASURES**
+            // (`A149` items `1`–`2`; `RCA-8(d)` ANNOTATE-BESIDE). The paragraph above straddled `126…130`
+            // against `depth <= 128` and the superseded pair is named rather than rewritten away: **the
+            // conversion's guard is `depth > 126` now, because `126` is the deepest depth that is ADMITTED,
+            // COMMITTED and RE-BOOTED** — a depth-`127`/`128` value used to be admitted here and then lost at
+            // `commit_file`, and it is refused at the conversion instead. So the straddle is `124…128` and the
+            // RHS is the bound itself: three draws admitted, two refused, the arm still measured from both
+            // sides. **THE `10` ATTEMPTS, THE ROW'S TOTAL `100` AND THE CRATE'S COUNT ARE UNMOVED.**
+            let depth = 124 + rng.below(5); // 124, 125, 126, 127, 128
             let mut value = JsValue::Num(1.0);
             for _ in 0..depth {
                 value = object_of(vec![(JsKey::Key("n".into()), value)]);
             }
             let mut inst = mem_instance();
             let admitted = write_at(&mut inst, &[key("deep")], &value).is_ok();
-            admitted == (depth <= 128)
+            admitted == (depth <= 126) // ⟶ `128` until 2026-10-25 (`A149` items `1`–`2`)
         });
         row.strategy("S-CYCLE", 20, |attempt| {
             let rng = &mut Rng::for_attempt(attempt);

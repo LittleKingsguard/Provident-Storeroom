@@ -22,8 +22,13 @@
 //!
 //! **AND THE WALK'S OWN SEVEN RULES OF `§1.4`:** (1) a `Symbol`-keyed own property refuses the WHOLE value ·
 //! (2) a sparse array refuses the WHOLE value · (3) an `{a: undefined}` member refuses the whole value and
-//! the key is never dropped · (4) the plain-object test's items (a)–(g) · (5) the depth-`64`/size-`1e6`
+//! the key is never dropped · (4) the plain-object test's items (a)–(g) · (5) the depth-`126`/size-`1e6`
 //! ceiling · (6) the ancestor-stack cycle guard and the admitted diamond · (7) the read-once rule.
+//!
+//! **⟶ THE FIGURE ROW (5) PRINTS WAS `64` UNTIL 2026-10-25 AND IS `126` NOW, MEASURED AT THE THREE ACTS**
+//! (`A149` items `1`–`2`): `64` is the superseded reading, named here rather than rewritten away. The
+//! operative bound is the deepest depth that is ADMITTED, COMMITTED and RE-BOOTED, and the ceiling section
+//! below drives all three rather than the walk alone.
 
 mod support;
 
@@ -794,22 +799,28 @@ fn item_g_a_proxy_is_refused_at_any_depth() {
 // =============================================================================================
 // `crossing.md §1.4` item 5 — THE DEPTH / SIZE CEILING (`DD-10`, RE-DERIVED BY `A149`)
 //
-// **⟶ RE-DERIVED 2026-10-25 AGAINST THE CODE AND `A149`, BECAUSE THESE CELLS ASSERTED A FIGURE NEITHER
-// HOLDS.** They printed `DD-10`'s `64`/`65`, which was the ceiling before `A149`; **the conversion core's
-// ACTUAL bound is `128` and it is measured below rather than cited**: `bindings/js/src/crossing.rs:665`
-// reads `if depth > 128 || visited > 1_000_000`, so the walk admits depth `128` and refuses `129`
-// (`ValueNotAdmitted`; measured on this tree: `63`…`128` admitted and round-tripped at the `mem` tier,
-// `129` and `130` refused). **`A149` item `4` names that figure and keeps it**: *"the crate's `128` and
-// `1,000,000` remain the CONVERSION's own bounds"*, while *"the OPERATIVE admission ceiling is the store's
-// persistent one"* — `126` — is the JS encoder's (`ENCODER_CEILING`), enforced on the JS route before the
-// crate is ever reached. **This battery drives the crate's route, so it pins the crate's bound.**
+// **⟶ RE-DERIVED 2026-10-25 TO THE FIGURE `A149` ITEMS `1`–`2` DECLARE, BECAUSE THIS BLOCK'S `128`/`129`
+// WAS A BOUND A VALUE COULD BE ADMITTED AT AND THEN LOST AT.** The block stood at `64`/`65` (pre-`A149`),
+// was re-derived to `128`/`129` (the conversion guard as it then read), and is re-derived here to
+// `126`/`127` — **and the figure is MEASURED at the three acts rather than cited from a neighbour**, on
+// this tree, by the cells below:
+//   * ADMITTED — `bindings/js/src/crossing.rs`'s `to_store_value` reads `if depth > 126`, so the walk admits
+//     depth `126` and refuses `127` as `ValueNotAdmitted`;
+//   * COMMITTED — a `file`-tier write of depth `126` is committed by `commit_file`, and the file carries it;
+//   * RE-BOOTED — a fresh `create` over that path reads the `126`-deep value back under `js_equal`.
+// **MEASURED BEFORE THE BOUND MOVED, WHICH IS WHY IT MOVED:** under the old `depth > 128` guard, `126` and
+// every shallower depth cleared all three acts, while `127` and `128` were ADMITTED and then answered
+// `FileCommitFailed` at `commit_file` with the store file left at `0` bytes — the file tier's re-decode
+// (`serde_json`'s recursion limit) refusing the image the writer had just built. **That is `A149` item `2`'s
+// forbidden state — *"never admitted and then failed at commit"* — so `128` was not a bound of the whole verb
+// at all.** `129` was already refused at the conversion, so the admitted-and-lost window was exactly
+// `127`/`128`.
 //
-// **AND THE TWO FIGURES ARE NOT THE SAME NUMBER, WHICH IS REPORTED RATHER THAN GLOSSED:** the store's
-// persistent image holds `126` and no deeper (`127` and `128` are admitted here and then answer
-// `FileCommitFailed` at `commit_file`, measured on this tree; the cause is `serde_json`'s recursion limit
-// at the file tier). **That window is `A149` item `2`'s defect on THIS route** — *"never admitted and then
-// failed at commit"* — and it is unfixable from a battery: it is a `src/**` question. It is measured and
-// reported, not carried as a red cell, because the crossing leg's bar is GREEN.
+// **AND THE CELL THAT WAS MISSING ON EVERY ROUTE IS HERE NOW.** No cell anywhere owned *"a value at the
+// admitted bound COMMITS and RE-BOOTS"*: the JS route refuses first (the package's own walk holds
+// `ENCODER_CEILING = 126`) and the greens leg pins `126` without driving the crate's commit. So the
+// invariant `A149` item `2` states gets its own cell below, at the crate's route, with its mirror — one past
+// the bound is refused AT THE CONVERSION and never reaches a commit at all.
 // =============================================================================================
 
 fn nested(depth: usize) -> JsValue {
@@ -820,24 +831,27 @@ fn nested(depth: usize) -> JsValue {
     v
 }
 
-/// **THE CONVERSION CORE'S OWN DEPTH BOUND, MEASURED: `128` is ADMITTED** (`crossing.rs:665`; `A149`
-/// item `4`). The value is written AND read back, so the cell asserts the bound is a bound of the whole
-/// verb and not of the walk alone.
+/// **THE CONVERSION'S OWN DEPTH BOUND, MEASURED: `126` is ADMITTED** (`to_store_value`'s `depth > 126`;
+/// `A149` items `1`–`2`). The value is written AND read back, so the cell asserts the bound is a bound of the
+/// whole verb and not of the walk alone. **THE FIGURE IS `126` BECAUSE THAT IS THE DEEPEST DEPTH THAT
+/// COMMITS**, not because a neighbouring constant prints it — the measurement is the sibling cell
+/// `ceiling_the_admitted_bound_commits_and_re_boots`, and the two together are `A149` item `2`.
 #[test]
-fn ceiling_depth_128_is_admitted() {
+fn ceiling_depth_126_is_admitted() {
     let mut inst = mem_instance();
-    let v = nested(128);
-    write_at(&mut inst, &[key("deep")], &v).expect("a value at the core's own bound is admitted");
+    let v = nested(126);
+    write_at(&mut inst, &[key("deep")], &v).expect("a value at the conversion's own bound is admitted");
     assert!(js_equal(&read_at(&inst, &[key("deep")]).unwrap(), &v));
 }
 
-/// **THE CONVERSION CORE'S OWN DEPTH BOUND, MEASURED: `129` is REFUSED `ValueNotAdmitted`**
-/// (`crossing.rs:665`; `crossing.md §1.4` item 5's answer for the over-ceiling class).
+/// **THE CONVERSION'S OWN DEPTH BOUND, MEASURED: `127` is REFUSED `ValueNotAdmitted`** (`to_store_value`'s
+/// `depth > 126`; `crossing.md §1.4` item 5's answer for the over-ceiling class) — **and it is refused AT THE
+/// CONVERSION, never admitted and then failed at commit** (`A149` item `2`).
 #[test]
-fn ceiling_depth_129_is_refused_value_not_admitted() {
+fn ceiling_depth_127_is_refused_value_not_admitted() {
     let mut inst = mem_instance();
-    let v = nested(129);
-    let err = write_at(&mut inst, &[key("deep")], &v).expect_err("beyond the core's own bound");
+    let v = nested(127);
+    let err = write_at(&mut inst, &[key("deep")], &v).expect_err("beyond the conversion's own bound");
     assert_value_refusal(&err, &[key("deep")]);
 }
 
@@ -864,9 +878,11 @@ fn ceiling_visited_nodes_beyond_one_million_is_refused() {
 }
 
 /// `DD-10`: **the package ships no configuration knob for either bound** — and the drive is the SAME two
-/// depths the bound admits and refuses (`128`/`129`, `crossing.rs:665`), **taken over a `cfg` that carries a
-/// fourth key**: the knob's absence is a property of `cfg` (`surface.md §2.1`'s keys and no fourth, `DD-36`),
-/// so a fourth key does not reach the walk and the bound is unmoved by it.
+/// depths the bound admits and refuses (`126`/`127`, `to_store_value`'s `depth > 126`), **taken over a `cfg`
+/// that carries a fourth key**: the knob's absence is a property of `cfg` (`surface.md §2.1`'s keys and no
+/// fourth, `DD-36`), so a fourth key does not reach the walk and the bound is unmoved by it.
+/// **⟶ THE TWO DEPTHS THIS CELL DROVE WERE `128`/`129` UNTIL 2026-10-25** (`A149` items `1`–`2`): the
+/// superseded figures are named here and the cell's subject — *the bound is not configurable* — is unmoved.
 #[test]
 fn ceiling_has_no_configuration_knob() {
     let cfg = JsConfig {
@@ -876,13 +892,106 @@ fn ceiling_has_no_configuration_knob() {
         fourth_key: Some("maxDepth".to_string()),
     };
     let mut inst = create(&cfg).expect("a fourth key does not reach the store's closed member set");
-    let at_the_bound = nested(128);
+    let at_the_bound = nested(126);
     write_at(&mut inst, &[key("deep")], &at_the_bound)
-        .expect("the fourth key does not lower the bound: 128 is still admitted");
-    let over = nested(129);
+        .expect("the fourth key does not lower the bound: 126 is still admitted");
+    let over = nested(127);
     let err = write_at(&mut inst, &[key("over")], &over).expect_err("the ceiling is not configurable");
     assert_value_refusal(&err, &[key("over")]);
 }
+
+// =============================================================================================
+// `A149` ITEM `2` — *"never admitted and then failed at commit"* — THE INVARIANT THAT HAD NO CELL.
+//
+// The two cells below are the invariant, driven as the THREE acts the bound must satisfy together: the
+// crossing admits, `commit_file` writes, and a FRESH BOOT reads back. Neither act is interesting alone —
+// which is precisely how the earlier `128` survived a green battery while a depth-`127`/`128` file-tier
+// write was admitted and then lost.
+// =============================================================================================
+
+/// **A VALUE AT THE ADMITTED BOUND COMMITS AND RE-BOOTS** — `A149` items `1`–`2`, and the cell no route
+/// owned before this one:
+/// 1. a `file`-tier `write` of depth `126` is ADMITTED by the conversion (act one);
+/// 2. `commit_file`, keyed by the op the write returned, WRITES the image (act two) — **and a
+///    `FileCommitFailed` here is the defect this cell exists to catch**;
+/// 3. a fresh `create` over the same path READS THE VALUE BACK under `js_equal` (act three), which is the
+///    only observation that shows the bytes the commit wrote are bytes the loader admits.
+#[test]
+fn ceiling_the_admitted_bound_commits_and_re_boots() {
+    let scratch = DrivePath::unique("storeroom-js-ceiling-commit", "store.json");
+    let v = nested(126);
+    {
+        let mut inst = create(&cfg_at(scratch.as_str(), 8)).expect("a reachable path");
+        let written = inst
+            .write(
+                &JsAddressArg::List(vec![key("deep")]),
+                &JsTierArg::Token("file".to_string()),
+                &v,
+            )
+            .expect("ACT 1 — a value at the admitted bound is ADMITTED at the conversion");
+        inst.commit_file(&written.op.opId).expect(
+            "ACT 2 — the commit WRITES the image of a value the conversion admitted. `A149` item `2`: a value \
+             is never admitted and then failed at commit, and `FileCommitFailed` at the admitted bound is that \
+             defect standing",
+        );
+        assert!(
+            std::fs::read(scratch.as_str()).map(|b| !b.is_empty()).unwrap_or(false),
+            "ACT 2 — the commit leaves BYTES at the path; an empty file is the shape the lost value took"
+        );
+    }
+    // ACT 3 — a FRESH boot over an equal path: the loader reads what the writer committed.
+    let fresh = create(&cfg_at(scratch.as_str(), 8)).expect("a fresh boot");
+    let back = fresh
+        .read(
+            &JsAddressArg::List(vec![key("deep")]),
+            &JsTierArg::Token("file".to_string()),
+        )
+        .expect("ACT 3 — the admitted bound's committed image is READ BACK by a fresh boot");
+    assert!(
+        js_equal(&back, &v),
+        "ACT 3 — the value a fresh boot reads is the value that was written, at the bound and not merely \
+         under it"
+    );
+}
+
+/// **ONE PAST THE ADMITTED BOUND IS REFUSED AT THE CONVERSION AND NEVER REACHES A COMMIT** — the mirror of
+/// `A149` item `2`, and the half a cell that only measured the walk would miss:
+/// * the `file`-tier `write` answers the depth class's own `ValueNotAdmitted` **before any commit exists**;
+/// * the file is left at ZERO bytes (no act wrote it) and a fresh boot answers no address — so the refused
+///   value is refused at the boundary and is not silently a durable-`0`-byte store.
+#[test]
+fn ceiling_one_past_the_admitted_bound_is_refused_and_never_committed() {
+    let scratch = DrivePath::unique("storeroom-js-ceiling-refused", "store.json");
+    let over = nested(127);
+    {
+        let mut inst = create(&cfg_at(scratch.as_str(), 8)).expect("a reachable path");
+        let err = inst
+            .write(
+                &JsAddressArg::List(vec![key("deep")]),
+                &JsTierArg::Token("file".to_string()),
+                &over,
+            )
+            .expect_err("one past the admitted bound is REFUSED at the conversion, not admitted");
+        assert_value_refusal(&err, &[key("deep")]);
+        assert_eq!(
+            std::fs::read(scratch.as_str()).map(|b| b.len()).unwrap_or(0),
+            0,
+            "no commit exists for a refused write: the file the construction created is still ZERO-LENGTH, \
+             which is what tells *refused at the boundary* from *admitted and then lost*"
+        );
+    }
+    let fresh = create(&cfg_at(scratch.as_str(), 8)).expect("a fresh boot");
+    assert!(
+        fresh
+            .read(
+                &JsAddressArg::List(vec![key("deep")]),
+                &JsTierArg::Token("file".to_string())
+            )
+            .is_err(),
+        "a refused value wrote no byte, so a fresh boot resolves nothing — the refusal never became a state"
+    );
+}
+
 
 // =============================================================================================
 // `crossing.md §1.4` item 7 — THE READ-ONCE RULE

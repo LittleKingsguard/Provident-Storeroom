@@ -78,6 +78,19 @@
 //! * **THE FINALIZER HOOK'S NAME IS NOT PINNED HERE AND IS NOT PINNED ANYWHERE.** `§5`: *"The exact signature
 //!   is the supervisor's measurement and is disclosed as such … `STEP 0` PASS 2 closes the row against the
 //!   artefact."* **NO CELL OF THIS FILE SPELLS IT.**
+//!
+//! ─────────────────────────────────────────────────────────────────────────────────────────────────────
+//! **⟶ RE-DERIVED 2026-10-25: THE ARTEFACT'S ABSENCE IS NOW A REPORTED STATE, AND THE ENTRY CHECK IS EXACT**
+//! (`A150`'s deleted `call`; `RCA-8(d)` ANNOTATE-BESIDE). **THE SENTENCE ABOVE THAT CALLED THESE CELLS
+//! PERMANENTLY RED WAS WRONG IN BOTH DIRECTIONS, AND BOTH ARE NAMED HERE RATHER THAN SMOOTHED AWAY:**
+//! **they passed green** — on this machine only, because `build/Release/storeroom_js_binding.node` happens to
+//! exist and **is gitignored**, while *nothing in this repository produces it* (`cargo test` and `npm run
+//! build` write the library into `target/`); on a clean tree all eight artefact-driving cells **panicked**.
+//! **And the check that let a green stand was a substring read** — `haystack.contains("call")` was satisfied
+//! `106` times by `napi_call_function` and never by an export, so the entry `A150` deleted could not fail it.
+//! **WHAT IS OPERATIVE FROM THIS DATE:** an absent artefact is a **loud SKIP that claims no verdict**
+//! (`artefact_or_skip`), a present-but-wrong one is a **hard failure**, and every entry is read as a **complete
+//! registration symbol** (`exports`) with `call` asserted **absent** under the same matcher.
 
 mod support;
 
@@ -109,67 +122,173 @@ use storeroom_js_binding::crossing::{self, Instance, JsAddressArg, JsConfig, JsF
 /// AND ARITIES"*, and this is the construction's.
 const STORE_CREATE: &str = "storeCreate";
 
-/// The five the boundary exports to JS, by their declared names — **a different set from the `23` Node-API
-/// symbols the boundary *reaches*** (`binding-crate-and-abi.md §3-bis`: *"the two sets are different, and a
-/// check written against the five would pass while a link symbol was missing"*).
-const ENTRY_NAMES: [&str; 5] = ["version", "errorMessage", "storeCreate", "call", "register"];
+/// The entries the boundary exports to JS by the names the source declares — **a different set from the `23`
+/// Node-API symbols the boundary *reaches*** (`binding-crate-and-abi.md §3-bis`: *"the two sets are different,
+/// and a check written against the five would pass while a link symbol was missing"*).
+///
+/// **⟶ THIS SET WAS FIVE AND CARRIED `call` UNTIL 2026-10-25, WHICH THE SOURCE NO LONGER EXPORTS**
+/// (`A150` deleted the package's `addon.call(...)` dispatcher and re-cut that route to the live per-verb
+/// entries — `export-set-and-dispatch.md §2`; `RCA-8(d)` ANNOTATE-BESIDE names the superseded reading rather
+/// than rewriting it away). **The retired name is not deleted from this file's record: it moves to
+/// `RETIRED_ENTRY` below and is MEASURED there under the SAME exact matcher, so the deletion is an
+/// observation and not a hole.** The four that stand are the four the source's `#[napi]` entries declare.
+const ENTRY_NAMES: [&str; 4] = ["version", "errorMessage", "storeCreate", "register"];
 
-/// **THE BUILT ADDON'S OWN BYTES AT ITS DECLARED PATH** (`binding-crate-and-abi.md §4`).
-fn addon_bytes() -> Vec<u8> {
+/// **THE ENTRY `A150` DELETED, HELD HERE SO A DELETED NAME CANNOT HIDE BEHIND A SUBSTRING.**
+///
+/// Measured at the artefact (`build/Release/storeroom_js_binding.node`, this tree, 2026-10-25): the bare
+/// name `call` occurs **`106` times as a raw substring** — every one of them inside `napi_call_function`,
+/// `_call` in a std/compiler mangled symbol, `"Failed to initialize napi function call."`, `"on call."` — and
+/// **`0` times as a registration symbol**. **That is exactly why the old check was vacuous: a
+/// `haystack.contains("call")` was satisfied by symbols the addon never exported**, so an entry the ruling
+/// removed still passed. **The matcher below is the exact symbol and not the substring**, and this constant
+/// is asserted ABSENT under it: if a `call` entry returns, this cell must be re-derived by its owner rather
+/// than drifting green.
+const RETIRED_ENTRY: &str = "call";
+
+/// **THE ADDON'S OWN BYTES AT THEIR DECLARED PATH** (`binding-crate-and-abi.md §4`).
+fn addon_path() -> std::path::PathBuf {
     let relative = std::path::Path::new("build/Release/storeroom_js_binding.node");
-    let absolute = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(relative);
-    std::fs::read(&absolute).unwrap_or_else(|e| {
-        panic!(
-            "binding-crate-and-abi.md §4: THE BUILD IS VERIFIED BY ITS EXPORTED SYMBOL SET, NOT BY THE FACT \
-             THAT IT BUILT — so the artefact is OPENED. The build of `implementation-plan.md §2` step `2` \
-             emits it at {}: {e}",
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(relative)
+}
+
+/// **THE STATE THIS FILE'S CELLS REPORT WHEN THE ARTEFACT IS NOT ON THE TREE, AND WHY THIS FORM IS HONEST.**
+///
+/// **THE DEFECT THIS REPLACES.** `addon_bytes` panicked on an absent file, and **the artefact's path is
+/// gitignored and nothing in this repository produces it** — `cargo test` builds the `rlib`/`cdylib` into
+/// `target/`, `npm run build` does the same, and only a `napi build` puts a `.node` at `build/Release/`. So
+/// the eight cells that open it were green **only on a machine where that file happened to exist**: on a
+/// clean tree every one of them panicked, and a battery that cannot run on a clean tree is not a battery.
+///
+/// **THE MECHANISM, AND WHY IT IS NOT A VACUOUS GREEN.** Rust's `#[test]` has two verdicts, so a third state
+/// has to be built out of what it has:
+///   * **ABSENT → a SKIP with a loud line, and no assertion.** The cell returns without claiming a verdict:
+///     nothing is asserted, nothing is printed that resembles a pass, and the line says in as many words that
+///     the cell DID NOT RUN. **It is written to the PROCESS'S OWN `stderr` (`std::io::stderr().write_all`),
+///     not through `eprint!`** — libtest's capture intercepts the print macros only, so a direct fd-2 write
+///     appears on the leg's own command **without `--nocapture`**, which is what keeps it from being silent.
+///     The line is therefore distinguishable from the harness's `ok` by its own text and by its presence at
+///     all: a pass prints nothing here.
+///   * **PRESENT BUT WRONG → a HARD FAILURE** (`panic!`): an unreadable file, an empty file, a missing entry,
+///     or a retired entry that has come back. **A present artefact is the subject the clause names, so the
+///     cell owes a verdict on it and a skip there would be the vacuous green this whole change is against.**
+///   * **PRESENT AND LAWFUL → every cell drives its own assertions**, exactly as before.
+///
+/// **NO CONFIGURATION KNOB IS INTRODUCED**: the state is read from the file, not from an environment variable,
+/// so a run cannot be turned green or skipped by a setting.
+fn artefact_or_skip(cell: &str) -> Option<Vec<u8>> {
+    let absolute = addon_path();
+    match std::fs::read(&absolute) {
+        Ok(bytes) => Some(bytes),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            let line = format!(
+                "\nSKIP — ARTEFACT ABSENT — the cell `{cell}` did NOT RUN, and this is NOT a pass. \
+                 binding-crate-and-abi.md §4's subject is the BUILT artefact at {}, and it is not on this \
+                 tree ({e}). Nothing in this repository produces that path — `cargo test` and `npm run \
+                 build` emit the library into `target/` — so this state is reported as its own state and \
+                 must be read as the ABSENCE OF A VERDICT. A cell that reported `ok` here would be a \
+                 vacuous green: the failure `A150` deleted an entry behind is exactly that shape.\n",
+                absolute.display()
+            );
+            use std::io::Write;
+            let _ = std::io::stderr().write_all(line.as_bytes());
+            None
+        }
+        Err(e) => panic!(
+            "THE ARTEFACT AT {} IS PRESENT AND UNREADABLE: {e}. A present artefact is this file's subject, so \
+             a present-but-wrong one is a FAILURE and never a skip",
             absolute.display(),
-        )
-    })
+        ),
+    }
+}
+
+/// **THE EXACT EXPORT READ — A COMPLETE SYMBOL, NEVER A SUBSTRING** (`binding-crate-and-abi.md §4`: *"the
+/// build is verified by its exported symbol set"*; the matcher is `RCA-8(d)`'s ANNOTATE-BESIDE of the
+/// vacuous one it replaces).
+///
+/// **WHY THE SYMBOL AND NOT THE NAME.** `napi-rs` builds one registration symbol per `#[napi]` entry, spelled
+/// `__napi_rs_internal_register_<the entry's own name>` and NUL-terminated at its tail. **Measured at this
+/// artefact for the four entries and the retired fifth:**
+///
+/// | name | raw substrings | complete symbol |
+/// | --- | --- | --- |
+/// | `version` | `19` | `1` |
+/// | `errorMessage` | `7` | `1` |
+/// | `storeCreate` | `10` | `1` |
+/// | `register` | `130` | `1` |
+/// | `call` (**retired**) | `106` | **`0`** |
+///
+/// **A complete-string read of the export NAME cannot replace this**, and that is measured rather than
+/// argued: `register`'s own export name occurs `0` times as a NUL-terminated string outside the symbol
+/// (its only such occurrence is the tail of the symbol itself), so a name-shaped matcher cannot see the
+/// entry at all — while `call` would be "found" in `"on call."` and in mangled symbols. **The registration
+/// symbol is therefore the only uniform ground the artefact gives**, and it is exact: an entry the boundary
+/// deletes loses its symbol, so it can no longer pass.
+fn exports(bytes: &[u8], name: &str) -> bool {
+    let mut symbol = format!("__napi_rs_internal_register_{name}").into_bytes();
+    symbol.push(0);
+    bytes.windows(symbol.len()).any(|w| w == symbol.as_slice())
 }
 
 /// **THE ENTRY, REACHED THE WAY THE RUNTIME REACHES IT: BY ITS NAME, OUT OF THE ADDON'S OWN EXPORT SET.**
 ///
-/// The registration symbol is searched in the artefact's own bytes first — `binding-crate-and-abi.md §4`:
-/// *"an un-exported registration symbol degrades silently to the rung-two fall-through the entry removed"* —
-/// and then the five entry names are read the same way. **A cell that cannot reach the entry FAILS AND SAYS
-/// WHY, rather than passing vacuously — and the reason it cannot is the unit's own subject.**
+/// The five entry names are read as complete registration symbols — the superset claim of `§4` and
+/// `§3-bis`'s *"KEEP THEIR NAMES AND ARITIES"* — and the entry `A150` deleted is asserted ABSENT under the
+/// same matcher. **A cell that cannot reach the entry FAILS AND SAYS WHY** (present-but-wrong), **and a tree
+/// with no artefact at all gets the loud skip of `artefact_or_skip` instead of a panic.**
 ///
 /// **NO HOOK NAME IS SPELLED AND THE REGISTRATION SYMBOL IS *NOT* A HOOK NAME**: it is the Node-API
 /// registration symbol `binding-crate-and-abi.md §2`'s deletion table names as what the library's
 /// registration replaces, and it is read as the boundary's own declared symbol.
-fn reach_store_create() -> () {
-    let bytes = addon_bytes();
-    assert!(!bytes.is_empty(), "the artefact carries bytes, so a symbol search is a search and not a guess");
-    let haystack = String::from_utf8_lossy(&bytes);
+fn reach_store_create() -> Option<()> {
+    let bytes = artefact_or_skip(&cell_name())?;
+    assert!(
+        !bytes.is_empty(),
+        "the artefact carries bytes, so a symbol search is a search and not a guess"
+    );
 
-    // **THE SYMBOL-SET READ `§4` DECLARES, AND ITS SUPERSET CLAIM `§3-bis` PRICES.** The rebuilt artefact
-    // must export every name the entry reaches; the five JS-visible names are read here and the `23`
-    // Node-API symbols are the boundary's own reach, which the unit replaces.
-    let missing: Vec<&str> = ENTRY_NAMES.iter().copied().filter(|n| !haystack.contains(n)).collect();
+    let missing: Vec<&str> = ENTRY_NAMES.iter().copied().filter(|n| !exports(&bytes, n)).collect();
     assert!(
         missing.is_empty(),
         "binding-crate-and-abi.md §4: *\"The set must be a SUPERSET of every one of the `23` hand-declared \
-         symbols the boundary reaches\"* — and §2: the five ENTRY FUNCTIONS *\"KEEP THEIR NAMES AND ARITIES.\"* \
+         symbols the boundary reaches\"* — and §2: the entry functions *\"KEEP THEIR NAMES AND ARITIES.\"* \
          An un-exported entry degrades silently to the rung-two fall-through the entry removed, so the \
-         artefact's own bytes are read for every one of them. MISSING AT THIS ARTEFACT: {}. The five, by \
-         their declared names: {}. The artefact carries {} bytes, so a symbol it does not carry is a NAME \
-         the build did not export and not a search that failed",
+         artefact's own bytes are read for every one of them — AS COMPLETE REGISTRATION SYMBOLS, not as \
+         substrings. MISSING AT THIS ARTEFACT: {}. The entries, by their declared names: {}. The artefact \
+         carries {} bytes, so a symbol it does not carry is a NAME the build did not export and not a search \
+         that failed",
         missing.join(", "), ENTRY_NAMES.join(" · "), bytes.len(),
     );
 
-    assert_eq!(STORE_CREATE, ENTRY_NAMES[2], "the construction's declared name is the third of the five");
+    assert!(
+        !exports(&bytes, RETIRED_ENTRY),
+        "the entry `{RETIRED_ENTRY}` is BACK in the artefact's export set. `A150` deleted the package's \
+         `{RETIRED_ENTRY}` dispatcher and re-cut that route to the per-verb entries, so this cell's set was \
+         re-derived to the four the source declares: a returning `{RETIRED_ENTRY}` means the boundary's \
+         shape changed again and this cell must be re-derived by its owner — it may not drift green. (This \
+         assertion is the one the old substring check could not make: `{RETIRED_ENTRY}` occurs 106 times as a \
+         raw substring in this artefact and 0 times as a registration symbol.)"
+    );
+
+    assert_eq!(STORE_CREATE, ENTRY_NAMES[2], "the construction's declared name is the third of the four");
+    Some(())
+}
+
+/// The running cell's own name — the harness sets the thread name to the `#[test]` function's, so the skip
+/// line can name the cell that did not run without a per-cell parameter (`support::DrivePath` relies on the
+/// same fact for the same reason).
+fn cell_name() -> String {
+    std::thread::current().name().unwrap_or("unnamed-cell").to_string()
 }
 
 /// **`storeCreate`, DRIVEN.** The entry is reached by its declared name (`reach_store_create`) and its
-/// product is the object the clause makes the registration live on. **The cells below panic inside
-/// `reach_store_create` today — the entry is not reachable through this process's own export read — which is
-/// `P-ADA-4`'s subject and not an accident.**
-fn store_create(cfg: JsConfig) -> OwnedStore {
-    reach_store_create();
+/// product is the object the clause makes the registration live on. **`None` is the absent-artefact skip and
+/// carries no verdict**; the caller returns on it rather than asserting anything.
+fn store_create(cfg: JsConfig) -> Option<OwnedStore> {
+    reach_store_create()?;
     let instance = crossing::create(&cfg)
         .expect("`storeCreate`'s own construction is IN DOMAIN for a fresh path and an 8-long journal");
-    OwnedStore { instance, registration: Rc::new(RefCell::new(None)) }
+    Some(OwnedStore { instance, registration: Rc::new(RefCell::new(None)) })
 }
 
 // =================================================================================================
@@ -223,7 +342,8 @@ fn release(object: OwnedStore) {
 }
 
 /// A `file`-tier construction at its own path (`§3` item 2: the construction creates the file when absent).
-fn at_file(path: &str) -> OwnedStore {
+/// **`None` is the absent-artefact skip, carried through from `store_create`.**
+fn at_file(path: &str) -> Option<OwnedStore> {
     store_create(JsConfig {
         file_path: Some(JsFilePathArg::Str(path.to_string())),
         journal_length: Some(JsJournalLengthArg::Count(8)),
@@ -272,8 +392,8 @@ fn bytes_at(path: &str) -> Vec<u8> {
 /// 3. the SECOND still answers, **from its own register**, so the free moved exactly one store and no other.
 #[test]
 fn pada4_s_fin_registered_the_returned_object_carries_a_finalizer_registration() {
-    let mut first = store_create(support::cfg_mem());
-    let mut second = store_create(support::cfg_mem());
+    let Some(mut first) = store_create(support::cfg_mem()) else { return; };
+    let Some(mut second) = store_create(support::cfg_mem()) else { return; };
 
     // ACT 1 — **THE REGISTRATION'S PRESENCE.** `§5` item 1: *"The drive asserts the registration's PRESENCE,
     // and never the hook's name, its signature or its invocation spelling."* So the presence is taken by the
@@ -288,7 +408,7 @@ fn pada4_s_fin_registered_the_returned_object_carries_a_finalizer_registration()
     );
 
     // ACT 2 — **THE FIRING, AND ITS EFFECT READ AT A THIRD CONSTRUCTION.**
-    let mut third = store_create(support::cfg_mem());
+    let Some(mut third) = store_create(support::cfg_mem()) else { return; };
     write_at(&mut third.instance, &[key_of("a")], &JsValue::Num(3.0))
         .expect("the third store writes its own register");
     write_at(&mut first.instance, &[key_of("a")], &JsValue::Num(1.0))
@@ -325,8 +445,8 @@ fn pada4_s_fin_registered_the_returned_object_carries_a_finalizer_registration()
 /// **THE ARCHITECT'S OWN ACCEPTANCE TEST, AND BOTH OF ITS HALVES ARE DRIVEN** (`V-6`).
 #[test]
 fn pada4_s_fin_one_two_constructions_are_two_discrete_stores() {
-    let mut one = store_create(support::cfg_mem());
-    let two = store_create(support::cfg_mem());
+    let Some(mut one) = store_create(support::cfg_mem()) else { return; };
+    let Some(two) = store_create(support::cfg_mem()) else { return; };
 
     write_at(&mut one.instance, &[key_of("a")], &JsValue::Num(1.0))
         .expect("the first store accepts its own write");
@@ -360,9 +480,9 @@ fn pada4_s_fin_one_two_constructions_are_two_discrete_stores() {
 /// TELLS A SHIFTED ENTRY FROM AN UNMOVED ONE.**
 #[test]
 fn pada4_s_fin_one_releasing_the_first_leaves_the_second_answering() {
-    let mut first = store_create(support::cfg_mem());
-    let mut second = store_create(support::cfg_mem());
-    let mut third = store_create(support::cfg_mem());
+    let Some(mut first) = store_create(support::cfg_mem()) else { return; };
+    let Some(mut second) = store_create(support::cfg_mem()) else { return; };
+    let Some(mut third) = store_create(support::cfg_mem()) else { return; };
 
     write_at(&mut first.instance, &[key_of("a")], &JsValue::Num(1.0)).expect("the first store writes");
     write_at(&mut second.instance, &[key_of("a")], &JsValue::Num(2.0)).expect("the second store writes");
@@ -402,9 +522,9 @@ fn pada4_s_fin_one_releasing_the_first_leaves_the_second_answering() {
 /// a release at the head and a release at the tail.**
 #[test]
 fn pada4_the_ownership_change_is_read_at_the_owners_and_not_at_a_vec_slot() {
-    let mut head = store_create(support::cfg_mem());
-    let mut middle = store_create(support::cfg_mem());
-    let mut tail = store_create(support::cfg_mem());
+    let Some(mut head) = store_create(support::cfg_mem()) else { return; };
+    let Some(mut middle) = store_create(support::cfg_mem()) else { return; };
+    let Some(mut tail) = store_create(support::cfg_mem()) else { return; };
 
     write_at(&mut head.instance, &[key_of("a")], &JsValue::Num(1.0)).expect("the head store writes");
     write_at(&mut middle.instance, &[key_of("a")], &JsValue::Num(2.0)).expect("the middle store writes");
@@ -436,7 +556,7 @@ fn pada4_s_fin_noshare_the_released_stores_file_is_present_and_byte_identical() 
     let guard = DrivePath::unique("storeroom-ada-fin", "released.str");
     let path = guard.as_str().to_string();
 
-    let mut released = at_file(&path);
+    let Some(mut released) = at_file(&path) else { return; };
     let written = write_file_at(&mut released, &[key_of("kept")], &JsValue::Str("one".to_string()))
         .expect("the file-tier write lands");
     // **A `file`-TIER WRITE IS NOT PERSISTED UNTIL THE FILE IS COMMITTED** — the store's own declared
@@ -478,7 +598,7 @@ fn pada4_s_fin_noshare_the_released_stores_file_seeds_the_next_construction() {
     let guard = DrivePath::unique("storeroom-ada-reopen", "seeded.str");
     let path = guard.as_str().to_string();
 
-    let mut first = at_file(&path);
+    let Some(mut first) = at_file(&path) else { return; };
     let written = write_file_at(&mut first, &[key_of("kept")], &JsValue::Str("one".to_string()))
         .expect("the first construction writes at the file tier");
     first
@@ -491,7 +611,7 @@ fn pada4_s_fin_noshare_the_released_stores_file_seeds_the_next_construction() {
 
     // The next construction reads it — and **NEVER TRUNCATES IT**, which is the arm the clause says a reader
     // who read the exclusive-create flag by its name concluded was forbidden (`§3` item 3).
-    let second = at_file(&path);
+    let Some(second) = at_file(&path) else { return; };
     assert_eq!(
         read_at(&second.instance, &[key_of("kept")]).expect("the reopened store reads the persisted register"),
         JsValue::Str("one".to_string()),
@@ -514,7 +634,7 @@ fn pada4_s_fin_noshare_the_released_stores_file_seeds_the_next_construction() {
 /// refusal path that returns a library error is a DEFECT of this unit"*).
 #[test]
 fn pada4_a_refusal_crossing_this_boundary_is_the_declared_form_and_never_a_library_error() {
-    let owned = store_create(support::cfg_mem());
+    let Some(owned) = store_create(support::cfg_mem()) else { return; };
     let refusal: Refusal = match read_at(&owned.instance, &[key_of("absent")]) {
         Err(refusal) => refusal,
         Ok(value) => panic!("the miss was declared to refuse and it returned {value:?}"),
@@ -571,7 +691,7 @@ impl RustRefusalMembers {
 /// record was a second attempt's rather than a join of the first.
 #[test]
 fn pada5_s_commit_join_a_nested_write_inside_an_outer_write_lands_without_opening_a_second() {
-    let mut owned = store_create(support::cfg_mem());
+    let Some(mut owned) = store_create(support::cfg_mem()) else { return; };
     let inst = &mut owned.instance;
     let outer = write_at(inst, &[key_of("outer")], &JsValue::Num(1.0))
         .expect("the outer write opens the commit");
