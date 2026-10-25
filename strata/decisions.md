@@ -2453,3 +2453,61 @@ is exactly the `D-30` class the defect belonged to.** **A skip is not a green: `
 the legs, and the examiner has now shown that two of them cannot catch what they exist for, one instrument with 52
 cells runs in no leg, and a third of that instrument is broken in a way that hides its own subject.** **The code is in
 good shape. The VERIFICATION is not, and it was never examined until now.**
+
+---
+
+### THE SECOND REVIEW — the instance-owned kernel REGRESSED three things, and my agreement with it was wrong
+
+**DATE:** 2026-10-25. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** `role_l1_examiner`, read-only, against
+the tree as it stood after `cdd2467`. **L0's own error, recorded at its size.**
+
+**THE HEADLINE, WHICH IS THE REASON THIS ENTRY COMES FIRST:** **`cdd2467` — deleting `KERNELS` and moving the kernel
+record onto the store object — introduced THREE regressions, one of which defeats the `F8-2` class this branch had just
+spent two passes closing and another of which lets a caller bypass a constraint.** **The examiner measured all three
+against a `/tmp` copy of `HEAD~1` with the `WeakMap` restored.**
+
+1. **A FROZEN, SEALED OR NON-EXTENSIBLE STORE NOW THROWS A RAW HOST `TypeError`.** `Object.freeze(store)` **before**
+   the store's first kernel act, then a lawful `write` or `addConstraint` → **`TypeError: Cannot define property
+   Symbol(provident-storeroom.kernel), object is not extensible`** — `status` absent, not one of the seventeen, not
+   the one form. **Order-dependent**: freeze *after* any kernel act and the same write succeeds. **`WeakMap.set` on a
+   non-extensible object cannot fail; `defineProperty` on one always does.** **No clause forbids freezing a store, and
+   nothing in the tree freezes one — so no cell tried it, and none does now.**
+2. **THE KERNEL RECORD IS NOW REACHABLE *AND MUTABLE* FROM THE STORE.** `Object.getOwnPropertySymbols(store)` yields
+   the slot; the record carries `pairs`, `handles`, `live`, `closed`, `store`. **`store[SYM].pairs.clear()` makes an
+   armed constraint stop refusing — the value lands — while `constraints()` still reports the pair.** Unreachable
+   under the `WeakMap`; new in `cdd2467`. **That is a constraint bypass, not a tidiness regression.**
+3. **PROTOTYPE FORGERY: A GETTER AT `Object.prototype[SYM]` SUPPLIES ONE RECORD TO EVERY STORE.** Measured
+   `a[SYM] === b[SYM]`, shared `attempts` = 2 after one write each. **`Symbol.for` is a REGISTERED symbol, so the key
+   is guessable; and `store[SLOT]` is a plain read that walks the chain.** **This is the `F8-2` class by a third
+   vector — and `appendOwn` cannot help, because it is a read, not an append.** **Ownership held for writes only.**
+
+**WHY THE PROPOSAL LOOKED RIGHT AND WASN'T.** **`KERNELS` was not indirection-for-nothing: it was PRIVATE STATE.** A
+`WeakMap` is not enumerable, is not inherited, and works on a frozen object. **An own property of a caller-visible
+object is none of those three** — and the three regressions are exactly those three properties, lost. **The kernel's
+own clause (*"holds no instance handle … carries no module-level store"*) is about not *holding* a store strongly, and
+a `WeakMap` key is weak — so the clause was already satisfied.** **L0 read "the instance should own it" as "the
+instance should carry it", and those are different claims.**
+
+**RECOMMENDATION, AND L0 DOES NOT ACT ON IT WITHOUT THE ARCHITECT: REVERT `cdd2467`.** The change bought a conceptual
+tidy-up and cost a raw host error on a lawful call, a reachable mutable record, and a forged shared kernel. **Restoring
+the `WeakMap` restores all three protections and no test changes** — the nine call sites never moved, so the revert is
+one file.
+
+**AND FIVE MORE FINDINGS NO EARLIER PASS MADE, EACH MEASURED.**
+- **`facade.rs:170`/`:173` is worse than reported**: at the addon the own `status` IS dropped, and at the surface
+  `fail()` **re-reads `refusal.status` through the prototype and rebuilds the form** — so the caller gets three own
+  keys whose `status` and `message` are **prototype strings**: a status outside the closed set and a caller-authored
+  message. No cell installs those accessors.
+- **`index.mjs:1261`'s clone claim is falsified** — a spread clone carries no index and no slot, and the file's own
+  message contradicts it.
+- **`strata/brief.md` still says `index.d.ts` declares sixteen and calls its census claims false** — the declaration
+  carries all seventeen. **L0's own file, stale since the surface pass.**
+- **Two of the five document corrections left their superseded prints at four other normative sites** (the
+  `Object.keys` order at `surface.md:1213` and `json-crossing contract:477`; the sixteen-algebra at four lines of the
+  native contract), **and correction 4's own "one other site" census is false.**
+- **The kernel slot has NO CELL AT ALL** — its descriptor, its own-symbol census: `enumerable: true` left six census
+  files green.
+
+**AND THE CELLS ARE HONEST.** Every new family was mutated in a `/tmp` copy and went red: instance-independence
+(module-scope kernel), both prototype cells, status-census, address-extension, and **all six blind instances** by one
+targeted mutation each. **The one exception is the family that has no cell: the kernel slot.**
