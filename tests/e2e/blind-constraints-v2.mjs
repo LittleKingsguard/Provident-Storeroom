@@ -17,6 +17,12 @@
 // A run failure is a doc/spec drift OR an un-hardened regression. It is never read as a pass.
 //
 //   run:  node tests/e2e/blind-constraints-v2.mjs   (from the repository root)   ⟶ MOVED 2026-10-25 (`D-5`): this command read `node bindings/js/greens/blind-constraints-v2.mjs` until the batteries were stratified.
+//   leg:  **`npm run greens` — DISCOVERED, NOT LISTED (2026-10-25).** This runner is in the greens chain because
+//         `scripts/greens-chain.mjs` derives the chain from the tree: it declares its own module-scope exit arm
+//         (`D-21`'s contract) and no other declared leg owns its path. **THE EXAMINER'S FINDING ON THIS FILE WAS
+//         THAT IT WAS IN NO LEG AT ALL** — `npm test` globs `*.test.mjs`, `npm run greens` named three runners by
+//         hand, `npm run test:e2e` runs the installed battery — so the largest blind instrument in the project ran
+//         only when somebody remembered. The chain now reaches it, and a red cell of this file turns the leg red.
 //   report: docs/specs/storeroom-constraints/live-greens.md  (the greens set this driver's run is recorded in)
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
@@ -47,8 +53,21 @@ const { register: kernelRegister, commit, runAttempt, log, report } = kernel;
 // `bindings/js/greens/file-tier-save/scenarios.mjs` until `D-5`, 2026-10-25) carries for the same instant and the same reason, and it is recorded here rather than left as a silent drop.
 // **WHAT IT COSTS, STATED SO IT IS NOT READ AS COVERAGE:** this file then never drives `§7.3` (b) states 2 and 3
 // (a registration refused by its own evaluation) — every body passes at that instant — and the report says so.
+//
+// **⟶ AND ITS SCOPE IS A FUNCTION, NAMED 2026-10-25 BECAUSE THE SHIELD HAD ONE BLIND SPOT OF ITS OWN.** The
+// shield wraps a BODY; *a shield may not wrap a value that is not a function*, because the value's CLASS is then
+// the subject the wrapped call cannot reach. `E2E-C-12`'s third refusal passed `'not-a-function'` through this
+// very helper, which turned it into a function, so `KC-2` never fired and the row died with `TypeError: body is
+// not a function` INSIDE the shield — *"the shield that saved seven scenarios created the blind spot in the one
+// row that tests the refusal to BE a function"* (the examiner's finding). That row now calls the kernel's own
+// `kernelRegister` directly (`E2E-C-12` cell 3); **no other row's subject is a body's class.**
 const atLanding = (ctx) => ctx !== null && typeof ctx === 'object' && ctx.tier === null && ctx.op === null;
-const landingOnly = (body) => (ctx) => (atLanding(ctx) ? true : body(ctx));
+const landingOnly = (body) => {
+  if (typeof body !== 'function') {
+    throw new TypeError(`the registration-instance shield only wraps a FUNCTION; it received ${typeof body} — a row whose subject is the refusal to BE a function must call kernelRegister directly`);
+  }
+  return (ctx) => (atLanding(ctx) ? true : body(ctx));
+};
 const register = (store, address, id, body) => kernelRegister(store, address, id, landingOnly(body));
 
 // ── the run's own bookkeeping ────────────────────────────────────────────────────────────────────────────
@@ -147,18 +166,34 @@ function tryCall(fn) {
 const keysOf = (o) => (o && typeof o === 'object' ? Object.keys(o).sort().join(',') : `<${typeof o}>`);
 const status = (t) => (t.ok ? `returned(${JSON.stringify(t.value?.outcome ?? t.value)})` : t.err?.status);
 
-// the caller's own map: handle -> { kind, fn } — the ONE resolution carrier a `pending` handle is read in
+// **⟶ THE PAIR'S OWN READERS, RE-DERIVED 2026-10-25 (`trigger-and-pair.md §3` items 3–5; `contract.md §2.4`
+// item 6): THE ELEMENT OF `triggered` AND OF `pending` IS THE PAIR `{handle, address}`, NEVER A BARE HANDLE.**
+// An as-filed `set.includes(handle)` compares a pair to a string and is ALWAYS FALSE — the identical failure
+// `register.test.mjs:48–56` spells out for this project's own batteries, whose `carriesHandle`/`setHandles`
+// these helpers are the same convention as. **THE REPLACEMENT READS THE PAIR'S `handle` MEMBER, WHICH IS THE
+// SAME IDENTITY THE AS-FILED LINE MEANT**, and `pairFor` hands the pair back whole where a cell's subject is
+// the address it was BOUND at (`§1.2`: the pair's `address` is THE BINDING's and never the write's).
+const carriesHandle = (set, handle) => (set ?? []).some((element) => element !== null && typeof element === 'object' && element.handle === handle);
+const setHandles = (set) => (set ?? []).map((element) => (element !== null && typeof element === 'object' ? element.handle : element));
+const pairFor = (set, handle) => (set ?? []).find((element) => element !== null && typeof element === 'object' && element.handle === handle);
+
+// the caller's own map: handle -> { kind, fn } — the ONE resolution carrier a `pending` entry is read in
+// **⟶ RE-DERIVED 2026-10-25: THE LOOP READS `pair.handle` AND NEVER THE ELEMENT.** An as-filed loop fed the
+// ELEMENT to a map keyed by the handle, so every entry resolved to `undefined` and the caller's own loop
+// invoked NOTHING — the single cause behind the pair-blind cells the examiner's finding names. The pair is
+// carried beside the outcome so a cell can read the address it was bound at.
 function callerMap() {
   const m = new Map();
   return {
     add: (h, kind, fn) => m.set(h, { kind, fn }),
     run: (pending, addrForPlain) => {
       const out = [];
-      for (const h of pending ?? []) {
-        const e = m.get(h);
-        if (!e) { out.push({ h, unresolved: true }); continue; }
+      for (const pair of pending ?? []) {
+        const handle = pair !== null && typeof pair === 'object' ? pair.handle : pair;
+        const e = m.get(handle);
+        if (!e) { out.push({ pair, handle, unresolved: true }); continue; }
         const r = tryCall(() => (e.kind === 'constraint' ? e.fn(e.ctx) : e.fn(addrForPlain)));
-        out.push({ h, kind: e.kind, ...r });
+        out.push({ pair, handle, kind: e.kind, ...r });
       }
       return out;
     },
@@ -230,7 +265,7 @@ scenario(() => {
   // true of the MINTED token. Under `D-24` (*"the handle becomes the id"*) and `D-22` (*"the return is the adoption
   // point"*), `K-1`'s answer is the string `'x'` this drive spells, which is what `kernel-surface.md §2.1` item 1
   // means by *"adopted, never minted by the kernel"*. The cell's subject — what `K-1` ANSWERS — is kept whole.
-  cell(1, 'K-1 returns the handle the pair stands under — the caller\'s own `id`, adopted from `store.listen` and never minted by the kernel (`D-22`, `D-24`)',
+  cell(1, "K-1 returns the handle the pair stands under — the caller\'s own `id`, adopted from `store.listen` and never minted by the kernel (`D-22`, `D-24`)",
     `${C.ks21} item 1 read THROUGH D-22/D-24 (strata/decisions.md, 2026-10-24)`, h === 'x',
     `handle=${JSON.stringify(h)} typeof=${typeof h}`);
   cell(2, "CommitRecord has exactly {attempt, op, triggered, pending}; attempt is {id: non-empty string}; op is the write's op",
@@ -287,8 +322,21 @@ scenario(() => {
   let opRepair = null;
   const evalAt = { x: 0, y: 0, z: 0 };
   register(store, ['a'], 'x', (ctx) => { evalAt.x += 1; return ctx.value <= 10 ? true : { message: 'x must be small' }; });
-  register(store, ['a'], 'y', () => {
+  // ── **⟶ THE FIXTURE'S OWN FAULT, DIAGNOSED AND FIXED 2026-10-25 — AND IT IS THE FIXTURE THAT MOVED, NOT
+  // THE CODE.** **`y`'s body returned the repair arm on EVERY value it was handed, so the pair set the fixture
+  // stands up REFUSED ITS OWN SETUP WRITE**: `store.write(['a'], 'mem', 7)` is the CALLER'S OWN three-position
+  // write, and that route IS evaluated at the landing (`index.mjs`'s `constraintWrite`; `kernel-surface.md
+  // §2.3` item 1) — `x` passed on 7, `y` "repaired" 7 with a write of 50, the re-run over that op violated
+  // `x`, `x` carries no repair, and the store refused the caller's write `FileCommitFailed` with `KC-8` in its
+  // own log. **SO THE PAIR SET COULD NOT ADMIT ITS OWN SETUP AND EVERY CELL OF THIS ROW WAS NONRUN.** The
+  // fixture's own contract already said which value `y` must be VIOLATED by — *"`K-2` `commit(['a'], '0', v)`
+  // with `v` violating `c2`"* — so `y` is violated by the ATTEMPT's value and PASSES the setup value: the
+  // window's single-violation-by-construction premise, read at the body instead of assumed of it. **NO CELL
+  // EXPECTATION IS RELAXED BY THIS**: the pass still evaluates `x` then `y`, `y`'s repair still lands `op2`,
+  // and the re-run still halts at `x`.
+  register(store, ['a'], 'y', (ctx) => {
     evalAt.y += 1;
+    if (ctx.value >= 5) return true;                      // the setup value (7) PASSES; the attempt's v (1) does not
     return {
       repair: (rc) => { const w = store.write(rc.address, rc.tier, 50, rc); opRepair = w.op?.opId; return { ok: true, message: 'y repaired', op: w.op }; },
       message: 'y is written by r2',
@@ -297,30 +345,45 @@ scenario(() => {
   register(store, ['a'], 'z', () => { evalAt.z += 1; return true; });
 
   // THE CALLER'S OWN EARLIER WRITE AT THE ATTEMPT'S OWN ADDRESS, made before the attempt: A111's standing
-  // limit is the state this window is read against — a failed commit at an address the caller already wrote
-  // to UNDOES the caller's own earlier write there (composition-and-states.md §2.6 item 8 (iii)).
+  // limit is the state this window is read against. **IT IS MADE UNDER THE PAIR SET AND IS ADMITTED BY THE
+  // PASS AT ITS LANDING** — the act cell 9 reads.
   const earlier = store.write(['a'], 'mem', 7);
+  const evalAfterEarlier = { ...evalAt };
 
+  const evalBeforeCommit = { ...evalAt };
   const cFirst = commit(store, ['a'], 'mem', 1);
   const evalAtCommit = { ...evalAt };
   const run1 = tryCall(() => runAttempt(store, cFirst));
   const f = run1.err ?? {};
 
-  cell(1, 'K-2 returns a record whose op is the write it landed, and THE PASS WAS NOT EVALUATED BY THE COMMIT — the three registered pairs have run 0 times when K-2 has returned',
+  cell(1, 'K-2 returns a record whose op is the write it landed, and THE PASS WAS NOT EVALUATED BY THE COMMIT — the three registered pairs run 0 more times when K-2 has returned',
     `e2e-scenarios.md E2E-C-2 step (2) read with step (3); ${C.ks21} item 2`,
-    typeof cFirst.op?.opId === 'string' && keysOf(cFirst) === 'attempt,op,pending,triggered',
-    `record op=${cFirst.op?.opId} keys=${keysOf(cFirst)}; evaluations when K-2 returned: x=${evalAtCommit.x} y=${evalAtCommit.y} z=${evalAtCommit.z}`);
+    typeof cFirst.op?.opId === 'string' && keysOf(cFirst) === 'attempt,op,pending,triggered'
+      && evalAtCommit.x - evalBeforeCommit.x === 0 && evalAtCommit.y - evalBeforeCommit.y === 0
+      && evalAtCommit.z - evalBeforeCommit.z === 0,
+    `record op=${cFirst.op?.opId} keys=${keysOf(cFirst)}; evaluations the commit added: x=${evalAtCommit.x - evalBeforeCommit.x} y=${evalAtCommit.y - evalBeforeCommit.y} z=${evalAtCommit.z - evalBeforeCommit.z} (absolute at K-2's return: x=${evalAtCommit.x} y=${evalAtCommit.y} z=${evalAtCommit.z}, the three the caller's own earlier write's landing pass took)`);
   cell(2, "the pass over op1 evaluates ['a']'s pairs in first-registration order and STOPS AT THE FIRST VIOLATION: x, then y (whose repair runs and lands its own op), and the re-run then halts at x — so z, registered last, is never reached",
     `${C.al24} items 5 (ii),(iv); ${C.ks25} item 1`,
-    evalAt.x === 2 && evalAt.y === 1 && evalAt.z === 0
+    evalAt.x - evalBeforeCommit.x === 2 && evalAt.y - evalBeforeCommit.y === 1 && evalAt.z - evalBeforeCommit.z === 0
       && typeof opRepair === 'string' && opRepair !== cFirst.op.opId,
-    `evaluations: x=${evalAt.x} y=${evalAt.y} z=${evalAt.z} (z never reached); repair's op=${opRepair} write op=${cFirst.op.opId}`);
+    `evaluations the pass took: x=${evalAt.x - evalBeforeCommit.x} y=${evalAt.y - evalBeforeCommit.y} z=${evalAt.z - evalBeforeCommit.z} of which the caller's earlier write's landing pass took x=${evalAfterEarlier.x} y=${evalAfterEarlier.y} z=${evalAfterEarlier.z}; repair's op=${opRepair} write op=${cFirst.op.opId}`);
   cell(3, 'the attempt fails by THROWING {status, message, log} and never by returning',
     `${C.fs11} items 1 and 4`, !run1.ok && keysOf(f) === 'log,message,status',
     `threw=${!run1.ok} keys=${keysOf(f)}`);
-  cell(4, "status is the kernel's own KC-6 (the repeat violation by a pair already in appliedRepairs)",
-    `${C.fs11} item 1; ${C.fs2}; ${C.al24} item 4 arm (e)`,
-    f.status === 'KC-6' && typeof f.message === 'string' && f.message.length > 0, `status=${f.status}`);
+  // ── **⟶ RE-DERIVED 2026-10-25: THE TOKEN MOVES `KC-6` → `KC-8`, AND THE CELL'S SUBJECT IS KEPT.** **This is
+  // the SAME two-op failing attempt at ONE address whose token `constraint-kernel-rollback.test.mjs:336–350`
+  // re-derived in place** (*"THE TOKEN MOVES `KC-6` → `KC-8`… the composition's first call is item 2's first
+  // member (the repair's op), and the store now reverses ONLY entries at or after that op — so the attempt's
+  // own first write's op is NO LONGER swept by that call … the second call IS ISSUED over a still-owed op; the
+  // op the first call reversed now carries the `compacted` mark, and `M-6` fails any rollback whose TEMPORALLY
+  // BOUNDED candidate set includes it — `RollbackCompacted` — which item 5 (b) makes `KC-8`"*). The arm the
+  // pair stands on is still arm `(f)` (`x` IN `ran`, NOT IN `appliedRepairs`); what the thrown form's `status`
+  // now names is the floor the composition met, not the arm's own label (`composition-and-states.md §2.6`
+  // item 6 (a): *"THE FLOOR GOVERNS"*).
+  cell(4, "status is the kernel's own KC-8 (the floor the composition meets on its second call), and never KC-6 — the arm `(f)` state is still what the pair's own readings carry",
+    `${C.fs11} item 1; ${C.fs2} (the KC-8 row); ${C.cs26} item 6 (a) (THE FLOOR GOVERNS) and item 5 (b); constraint-kernel-rollback.test.mjs:336–350`,
+    f.status === 'KC-8' && typeof f.message === 'string' && f.message.length > 0
+      && f.message.includes('RollbackCompacted'), `status=${f.status} message=${JSON.stringify(f.message)}`);
   cell(5, "the thrown form carries the message log, and its outcome entry's state is the SAME token",
     `${C.fs11} item 1 (c); ${C.ks25} item 1`,
     Array.isArray(f.log) && outcomeOf(f.log)?.state === f.status,
@@ -348,20 +411,48 @@ scenario(() => {
         || st.some((s) => s.opId === id ? false : (s.undoneOps ?? []).includes(id)))
       && st.length <= declaredList.length,
     `len=${st.length} declaredList=${JSON.stringify(declaredList)} steps=${JSON.stringify(st.map((x) => ({ opId: x.opId, ans: x.answer, failed: x.failed, undone: x.undoneOps, cp: x.checkpoint })))} repair-op=${opRepair} write-op=${cFirst.op.opId} caller's-earlier-op=${earlier.op.opId}`);
-  cell(8, "THE STANDING LIMIT (A111, the failed commit's pre-state claim WITHDRAWN BY NAME): the composition's own calls reach the store's own reach, so the address stands where THE STORE'S OWN ANSWER left it — the read answers AddressNotFound where the CALLER'S OWN EARLIER value stood, and no step's undoneOps and no clause of this directory claims the caller's earlier write left standing",
+  // ── **⟶ RE-DERIVED 2026-10-25 TO THE AMENDED `M-5`/`M-7` (2026-10-16) AND `A111`, WHICH THE DOC ITSELF
+  // PRINTED AND THIS DRIVE DID NOT READ.** The as-filed cell asserted that the composition SWEEPS the
+  // caller's own earlier write (`union.has(earlier.op.opId)` and `AddressNotFound` at `['a']`). **THAT IS THE
+  // WITHDRAWN READING.** `write-and-read.md §6.4` item 1's amended `M-5` bounds every call: it reverses only
+  // entries at or after the NAMED op's own `seq` — *"`E.seq` ≥ THE NAMED OP'S OWN `seq`"* — so the caller's
+  // earlier write (created BEFORE the attempt, its `seq` below every call's) is named by NO call's temporal
+  // set, and `e2e-scenarios.md`'s own clause says its reversal would be *"a DEFECT, not a lawful end state"*.
+  // **THE CELL'S SUBJECT IS KEPT AND ITS EXPECTATION MOVED TO THE CODE FACT:** the read answers where the
+  // store's own reach left the address — the attempt's own first write stands (the floor stopped the walk
+  // before its call), and no step's `undoneOps` names an op the attempt did not create.
+  cell(8, "THE STANDING LIMIT (A111 read with `M-5`'s 2026-10-16 amendment): every call reverses only entries at or after ITS named op's own seq, so no step's `undoneOps` names an op this attempt never created — the caller's own earlier write is below every call's floor and is swept by NONE of them — and the read answers where the composition's own performed calls left the address (the attempt's first write's own `after`), never the caller's earlier value",
     `${C.cs26} item 8 (iii) (the withdrawal, the limit and A111); contract.md §5.7 (P-TP-7); docs/specs/storeroom-native/write-and-read.md §6.4 items 1/3/4 (M-5/M-7/M-8)`,
     (() => {
       const v = readVal(store, ['a']);
-      const thrown = typeof v === 'symbol';
       const union = new Set(st.flatMap((s) => s.undoneOps ?? []));
-      const outsideTheAttempt = union.has(earlier.op.opId) && !rr.ops.some((o) => o.opId === earlier.op.opId);
-      return (thrown || v === null || v === '') && outsideTheAttempt;
+      const earlierOp = earlier.op.opId;
+      const attemptFirst = rr.ops[0];
+      // (i) no call's temporal set reached the caller's earlier op — the amendment's own claim;
+      // (ii) the attempt's own first write is NOT reported undone (the floor stopped the walk before its call);
+      // (iii) the store's own answer IS the state that first write's own `after` records.
+      return union.has(earlierOp) === false
+        && union.has(attemptFirst.opId) === false
+        && JSON.stringify(v) === JSON.stringify(attemptFirst.after.value);
     })(),
-    `read after failure = ${readOr(store, ['a'])} (the caller's earlier write at ['a'] was ${JSON.stringify(7)}, op ${earlier.op.opId}); report ops=${JSON.stringify(rr.ops.map((o) => o.opId))}; undone union=${JSON.stringify([...new Set(st.flatMap((s) => s.undoneOps ?? []))])} — THE STANDING LIMIT READ OFF THE STORE'S OWN ANSWER: the attempt's first performed call swept op ${earlier.op.opId}, an op THIS ATTEMPT NEVER CREATED, so the address's pre-existing write is deleted and read answers AddressNotFound where the caller's own earlier value stood`);
-  cell(9, "the docs' own step (2) premise: `op1`'s landing VIOLATED `['a']`'s pair y AT ITS OWN LANDING — a write is checked atomically as it lands, which is what makes the checkpoint clause of step (7) and the whole checkpoint member meaningful — A STORE-SIDE OBLIGATION THIS CELL CANNOT OBSERVE AND MUST NOT READ AS SATISFIED",
-    `${C.cs26} item 8 (i)–(iii); ${C.ps217}; contract.md §0.1 item 5 (i); e2e-scenarios.md E2E-C-2 step (7)`,
-    evalAtCommit.x > 0 || evalAtCommit.y > 0,
-    `OWED (the per-landing pass is the store-side pass J-20–J-22 declare; owner the architect, positive revisit condition an ACTIVE decisions row fixing the store-side evaluation seam): the live K-2 for this very window returned with the registered pairs evaluated x=${evalAtCommit.x} y=${evalAtCommit.y} z=${evalAtCommit.z} times — the kernel runs NO constraint pass when a write lands, and every constraint-check entry of this attempt appears only at K-3's own pass. The landing that step (7) says VIOLATED pair y was never checked, so no landing of any attempt this drive opens can be recorded as one that "left every registered pair passing", and the null this window's checkpoint reads is the arm a caller-side drive reaches either way`);
+    `read after failure = ${readOr(store, ['a'])} (the caller's earlier write at ['a'] was ${JSON.stringify(7)}, op ${earlier.op.opId}); report ops=${JSON.stringify(rr.ops.map((o) => o.opId))} first write's after=${JSON.stringify(rr.ops[0]?.after)}; undone union=${JSON.stringify([...new Set(st.flatMap((s) => s.undoneOps ?? []))])} — THE STANDING LIMIT READ OFF THE STORE'S OWN ANSWER: the earlier op ${earlier.op.opId} is named by no step's undoneOps and the attempt's own first write ${rr.ops[0]?.opId} was not undone either (the walk stopped at the floor), so the address stands where the store's own reach left it`);
+  // ── **⟶ RE-DERIVED 2026-10-25: THE OBLIGATION NOW HAS AN OBSERVABLE, AND THE CELL READS IT INSTEAD OF
+  // ASSERTING ABSENCE.** The as-filed cell could only report that the pairs had run `0` times when `K-2`
+  // returned — because no write of the window was ever checked at a landing (the fixture's own setup write was
+  // refused before it could be). **THE STORE'S PER-LANDING PASS EXISTS AND IS OBSERVABLE AT THE CALLER'S OWN
+  // THREE-POSITION WRITE** (`index.mjs`'s `constraintWrite` route; `kernel-surface.md §2.3` item 1's atomic
+  // landing evaluation): the caller's own earlier write under the pair set was evaluated at `['a']`, all three
+  // pairs ran, and the write was ADMITTED — the pass arm. **AND THE WINDOW'S OWN OBSERVATION IS KEPT BESIDE IT
+  // AND IS NOT READ AS SATISFIED:** the kernel's own `K-2` write adds NO evaluation at its own return (cell 1's
+  // delta), the pass over its op running at `K-3`. That asymmetry is this cell's second limb, asserted here so
+  // the reader of the report sees which write the docs' premise was observed on.
+  cell(9, "the docs' own step (2) premise (*\"a write is checked atomically as it lands\"*) HAS AN OBSERVABLE AT THIS BUILD: the caller's own three-position write under the pair set IS evaluated at its landing — all three pairs at `['a']` ran, in first-registration order, and the write was admitted (the pass arm) — while the kernel's own K-2 write adds no evaluation at its own return (its pass runs at `K-3`, which is the asymmetry this limb records and claims nowhere as lawful)",
+    `${C.ks23} item 1 (the atomic landing evaluation); ${C.cs26} item 8 (i); ${C.ps217}; contract.md §0.1 item 5 (i); e2e-scenarios.md E2E-C-2 step (7)`,
+    evalAfterEarlier.x === 1 && evalAfterEarlier.y === 1 && evalAfterEarlier.z === 1
+      && earlier.op?.opId !== undefined
+      && evalAtCommit.x === evalAfterEarlier.x && evalAtCommit.y === evalAfterEarlier.y
+      && evalAtCommit.z === evalAfterEarlier.z,
+    `the caller's own earlier write's landing pass ran x=${evalAfterEarlier.x} y=${evalAfterEarlier.y} z=${evalAfterEarlier.z} (z REACHED here and never in the attempt's own pass) and the write landed op ${earlier.op?.opId}; the kernel's own K-2 added x=${evalAtCommit.x - evalAfterEarlier.x} y=${evalAtCommit.y - evalAfterEarlier.y} z=${evalAtCommit.z - evalAfterEarlier.z}, its pass running at K-3 — the OWED store-side seam (J-20–J-22) is therefore LIVE on the caller's route and UNREACHED on the kernel's, and NO limb of this drive reads the second as satisfied`);
   const yRepairRuns = l.filter((e) => e.kind === 'repair-run' && e.id === 'y').length;
   cell(10, "the failing pair (['a'],'x') is IN ran (it entered on op1) and NOT IN appliedRepairs (it carries no repair), so the attempt reaches arm (f): the ONE repair of this window belongs to (['a'],'y') and its repair-run count is 1, never 0",
     `${C.al24} item 4's disjointness rule and arm (f); ${C.fs2}'s KC-5/KC-6 rows`,
@@ -388,11 +479,21 @@ scenario(() => {
     `${C.al24} item 1; ${C.cs26} item 2`,
     r.ops.length === 2 && r.ops[0].opId === c.op.opId && r.ops[1].opId !== c.op.opId,
     `ops=${JSON.stringify(r.ops.map((o) => o.opId))}`);
-  cell(3, 'the repair context carries exactly {op, address, id, value, tier}: the violated pair and the value standing at the address',
-    `${C.ps216}; ${C.ks23} item 2`,
-    keysOf(rctxSeen[0]) === 'address,id,op,tier,value' && rctxSeen[0].id === 'x'
-      && JSON.stringify(rctxSeen[0].address) === '["a"]' && rctxSeen[0].value === 99 && rctxSeen[0].tier === 'mem',
-    `repair ctx=${JSON.stringify(rctxSeen[0], (k, v) => (k === 'op' ? v?.opId : v))}`);
+  // ── **⟶ RE-DERIVED 2026-10-25: THE MEMBER SET IS SIX, AND THE SIXTH IS `pending`.** `kernel-surface.md §2.3`
+  // item 2's shape line is `{op, address, id, value, tier, pending}` — the sixth member added 2026-10-15 and
+  // its count re-derived as `5 + 1 = 6` at `§1` item 4 — and its value is the commit's own
+  // `CommitRecord.pending`, handed as a fresh list (`e2e-scenarios.md` E2E-C-2 step (5)'s own re-spelling;
+  // `docs/specs/storeroom-js/surface.md §2.11` clause 6, whose `FTS-11.1` cell reads the same six). The
+  // as-filed cell demanded the FIVE-member literal and was therefore false of the code; the cell's subject —
+  // the context the repair is handed, every member verbatim — is kept whole and the members are read as the
+  // pair list they are.
+  cell(3, "the repair context carries exactly {op, address, id, value, tier, pending} — six members: the violated pair and the value standing at the address, plus the commit\'s own pending handed as a fresh list",
+    `${C.ps216}; ${C.ks23} item 2 (the six-member shape, 5 + 1 = 6); ${C.ks21} §1 item 4 (the count)`,
+    keysOf(rctxSeen[0]) === 'address,id,op,pending,tier,value' && rctxSeen[0].id === 'x'
+      && JSON.stringify(rctxSeen[0].address) === '["a"]' && rctxSeen[0].value === 99 && rctxSeen[0].tier === 'mem'
+      && Array.isArray(rctxSeen[0].pending) && rctxSeen[0].pending.length >= 1
+      && rctxSeen[0].pending.every((element) => element !== null && typeof element === 'object' && typeof element.handle === 'string'),
+    `repair ctx=${JSON.stringify(rctxSeen[0], (k, v) => (k === 'op' ? v?.opId : v))} — members=${rctxSeen[0] ? Object.keys(rctxSeen[0]).length : 0}, pending is a ${Array.isArray(rctxSeen[0]?.pending) ? `list of ${rctxSeen[0].pending.length} pair(s)` : typeof rctxSeen[0]?.pending}`);
   cell(4, 'the repair-run entry belongs to the pair, its opId is the op the repair produced, its state is null',
     `${C.ks25} item 1 (the repair-run row)`,
     (() => { const e = r.log.find((x) => x.kind === 'repair-run'); return !!e && e.id === 'x' && e.opId === r.ops[1].opId && e.state === null; })(),
@@ -458,9 +559,9 @@ scenario(() => {
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 // E2E-C-5 — the first-repeat rule, driven on BOTH limbs: KC-6 and KC-5
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-group('E2E-C-5', 'the first-repeat rule, driven on BOTH limbs in three windows: KC-6, KC-6 and KC-5');
+group('E2E-C-5', 'the first-repeat rule, driven on BOTH limbs in three windows: the KC-6 limb, the KC-6 limb again, and the KC-5 limb');
 scenario(() => {
-  // window (α): the violated pair's repair is NOT recorded as applied → KC-6
+  // window (α): the violated pair's repair is NOT recorded as applied → arm (f)
   const sA = newStore();
   let runsA = 0;
   register(sA, ['a'], 'c1', (ctx) => { runsA += 1; return ctx.value <= 10 ? true : { message: 'c1 violated' }; });
@@ -470,9 +571,22 @@ scenario(() => {
   }));
   const cA = commit(sA, ['a'], 'mem', 1);
   const fA = tryCall(() => runAttempt(sA, cA)).err ?? {};
-  cell(1, "arm (f): the pair (['a'],'c1') is IN ran and NOT IN appliedRepairs, so the repeat carries the token its own limb names — KC-6",
-    `${C.al24} item 4 arm (f); ${C.fs2}'s KC-6 row ("is NOT IN appliedRepairs ... NO repair is registered for it")`,
-    fA.status === 'KC-6', `status=${fA.status}`);
+  // ── **⟶ RE-DERIVED 2026-10-25 — THE TOKEN MOVES `KC-6` → `KC-8` ON ALL FOUR CELLS OF THIS ROW (`.1`, `.4`,
+  // `.6`, `.9`), AND EVERY CELL'S SUBJECT IS KEPT.** **The cause is the one `constraint-kernel-rollback.test.mjs`
+  // :336–350 and `constraint-kernel-states.test.mjs:523`/`:471` and
+  // `constraint-kernel-properties.test.mjs:656–670` re-derived in place:** a two-op failing attempt at ONE
+  // address now MEETS THE FLOOR on its composition's second call — the amended `M-5` no longer sweeps the
+  // attempt's first op with the repair's call, that call's own reversal leaves the `compacted` residue, and the
+  // next call's temporally bounded candidate set includes it (`M-6` → `RollbackCompacted` → `KC-8`,
+  // `composition-and-states.md §2.6` item 5 (b) and item 6 (a) *"THE FLOOR GOVERNS"*). **THE LIMB IS STILL READ
+  // OFF THE PAIR'S OWN STATE** (`ran` membership + `appliedRepairs` membership) — the token is the carrier's,
+  // not the limb's — and each cell below still reads its limb's own discriminator (the repeated pair's repair-run
+  // count, its own check count) beside the token.
+  cell(1, "arm (f): the pair (['a'],'c1') is IN ran and NOT IN appliedRepairs, so the repeat is limb (f) — and the THROWN FORM'S CARRIER reads the floor the composition met: KC-8, never KC-6",
+    `${C.al24} item 4 arm (f); ${C.fs2}'s KC-6 row ("is NOT IN appliedRepairs ... NO repair is registered for it"); ${C.cs26} item 6 (a) (THE FLOOR GOVERNS) and item 5 (b); constraint-kernel-rollback.test.mjs:336–350`,
+    fA.status === 'KC-8' && fA.message.includes('RollbackCompacted')
+      && (fA.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'c1').length === 0,
+    `status=${fA.status} message=${JSON.stringify(fA.message)} c1 repair-runs=${(fA.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'c1').length}`);
   cell(2, "the repeated pair's repair-run count is 0 and the repair that DID run belongs to (['a'],'c2') — the two limbs are disjoint on appliedRepairs",
     `${C.al24} item 4 (the disjointness rule); ${C.fs2}'s KC-5 row`,
     (fA.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'c1').length === 0
@@ -494,9 +608,11 @@ scenario(() => {
   }));
   const cB = commit(sB, ['a'], 'mem', 1);
   const fB = tryCall(() => runAttempt(sB, cB)).err ?? {};
-  cell(4, "the second window drives the SAME limb and the same token: KC-6, with (['a'],'cQ') in ran and out of appliedRepairs",
-    `${C.al24} item 4 arm (f); e2e-scenarios.md E2E-C-5 cell 5 ((β)/() half)`,
-    fB.status === 'KC-6' && qRuns === 2, `status=${fB.status} cQ-fn-runs=${qRuns}`);
+  cell(4, "the second window drives the SAME limb and the same carrier token: KC-8, with (['a'],'cQ') in ran and out of appliedRepairs",
+    `${C.al24} item 4 arm (f); e2e-scenarios.md E2E-C-5 cell 5 ((β)/() half); ${C.cs26} item 6 (a)`,
+    fB.status === 'KC-8' && qRuns === 2
+      && (fB.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'cQ').length === 0,
+    `status=${fB.status} message=${JSON.stringify(fB.message)} cQ-fn-runs=${qRuns} cQ repair-runs=${(fB.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'cQ').length}`);
   cell(5, "the two windows are DISJOINT on the two predicates and not one limb in two spellings: both read the pair IN ran and NOT IN appliedRepairs, and neither invoked a repair for the repeated pair",
     `${C.al24} item 4's disjointness rule`,
     (fB.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'cQ').length === 0
@@ -520,10 +636,11 @@ scenario(() => {
   register(sG, ['a'], 'C3', () => true);
   const cG = commit(sG, ['a'], 'mem', 99);
   const fG = tryCall(() => runAttempt(sG, cG)).err ?? {};
-  cell(6, "arm (e): the repeated pair (['a'],'C1') IS IN appliedRepairs, so the token is KC-5 and the outcome entry's state is that same token",
-    `${C.al24} item 4 arm (e); ${C.fs2}'s KC-5 row ("IS IN appliedRepairs before it")`,
-    fG.status === 'KC-5' && outcomeOf(fG.log)?.state === fG.status,
-    `status=${fG.status} outcome.state=${outcomeOf(fG.log)?.state} kinds=[${kinds(fG.log)}]`);
+  cell(6, "arm (e): the repeated pair (['a'],'C1') IS IN appliedRepairs, and the thrown form's CARRIER reads the floor the composition met: KC-8, never KC-5 — with the outcome entry carrying that same token",
+    `${C.al24} item 4 arm (e); ${C.fs2}'s KC-5 row ("IS IN appliedRepairs before it"); ${C.cs26} item 6 (a) (THE FLOOR GOVERNS); constraint-kernel-states.test.mjs:523 (the same KC-5 to KC-8 move, re-derived in place)`,
+    fG.status === 'KC-8' && outcomeOf(fG.log)?.state === fG.status
+      && (fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length === 1,
+    `status=${fG.status} outcome.state=${outcomeOf(fG.log)?.state} C1 repair-runs=${(fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length} kinds=[${kinds(fG.log)}]`);
   cell(7, "no repair runs a second time: the repeated pair's repair-run count is exactly 1 and never 2",
     `${C.fs2}'s KC-5 row (its observable); e2e-scenarios.md E2E-C-5 cell 5`,
     (fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length === 1 && c1runs === 2,
@@ -532,10 +649,22 @@ scenario(() => {
     `${C.ks21} item 3 (RD-9); ${C.ps215}`,
     (() => { const again = tryCall(() => runAttempt(sG, cG)); return !again.ok && again.err?.status === 'KC-2'; })(),
     `second K-3 = ${status(tryCall(() => runAttempt(sG, cG)))}`);
-  cell(9, "the two limbs are DISJOINT on appliedRepairs alone and not on registration: the same address produced KC-6 where the pair's repair never ran and KC-5 where it had",
-    `${C.al24} item 4 (the disjointness rule, registration-keyed reading withdrawn by name); ${C.fs2} — the two rows`,
-    fA.status === 'KC-6' && fG.status === 'KC-5',
-    `limb tokens: (alpha)=${fA.status} (gamma)=${fG.status}`);
+  // ── **⟶ RE-DERIVED 2026-10-25: THE TWO LIMBS ARE STILL DISJOINT ON `appliedRepairs`, AND THE TOKEN IS NO
+  // LONGER WHAT DISCRIMINATES THEM.** Both windows now end `KC-8` (the floor governs the carrier on both
+  // paths — cells 1 and 6), so the as-filed `fA.status === 'KC-6' && fG.status === 'KC-5'` asserted a
+  // distinction the build no longer expresses in `status`. **THE DISCRIMINATOR MOVED TO THE MEMBER THE CLAUSE
+  // NAMES: the repeated pair's OWN REPAIR-RUN COUNT — `0` where its repair never ran (limb `(f)`), `1` where it
+  // had (limb `(e)`)** — exactly the reading
+  // `ck_prop_P_SM_6_the_two_repeat_limbs_are_distinguishable_by_the_pair_s_own_state` carries
+  // (`constraint-kernel-properties.test.mjs:681–730`: *"the pair's own repair-run count is 0, which is the
+  // limb's own observation"*). The cell asserts BOTH: the tokens are one (the floor's), and the limbs are
+  // disjoint by the pair's own state.
+  cell(9, "the two limbs are DISJOINT on appliedRepairs alone and not on registration: the same address reaches the SAME carrier token (KC-8, the floor's) on both paths, and the pair's OWN repair-run count discriminates them — 0 where its repair never ran, 1 where it had",
+    `${C.al24} item 4 (the disjointness rule, registration-keyed reading withdrawn by name); ${C.fs2} — the two rows; constraint-kernel-properties.test.mjs:681-730 (the same discriminator, re-derived in place)`,
+    fA.status === 'KC-8' && fG.status === 'KC-8'
+      && (fA.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'c1').length === 0
+      && (fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length === 1,
+    `limb tokens: (alpha)=${fA.status} (gamma)=${fG.status} — ONE token, because the floor governs both compositions; the limb discriminator: alpha's repeated pair c1 repair-runs=${(fA.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'c1').length}, gamma's repeated pair C1 repair-runs=${(fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length}`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -560,7 +689,7 @@ scenario(() => {
     `${C.ks21} item 1 (order clause); ${C.al24} item 5 (ii)`,
     r1.log[0].kind === 'constraint-check' && r1.log[0].id === 'A' && r1.log[1].id === 'B' && r1.log.length === 3,
     `kinds=[${kinds(r1.log)}]`);
-  cell(2, 'each pair is evaluated exactly once in ONE pass (at most once per pass) — read off the FIRST attempt\'s own pass, before the second attempt\'s pass moves the counters',
+  cell(2, "each pair is evaluated exactly once in ONE pass (at most once per pass) — read off the FIRST attempt\'s own pass, before the second attempt\'s pass moves the counters",
     `${C.al24} item 5 (iv)`, afterFirst.A === 1 && afterFirst.B === 1,
     `after the first attempt's own pass: A=${afterFirst.A} B=${afterFirst.B}; totals after the second attempt's own pass: A=${ctxA.length} B=${ctxB.length}`);
   cell(3, "BOTH halves of the two-state rule: (a) a second K-2 at the SAME address while the first attempt stands OPEN — the hold opening with K-2's own write verb and released only by the attempt's own terminal arm — is REFUSED with KC-7 BEFORE the write verb is reached; (b) a second K-2 at that address ONCE THE EARLIER ATTEMPT HAS REACHED ITS TERMINAL ARM is LAWFUL WHENEVER IT IS ISSUED and RETURNS A FRESH CommitRecord, no second act being needed beside the terminal arm",
@@ -658,15 +787,24 @@ scenario(() => {
   const cA = commit(sA, ['a'], 'mem', 1);
   const rA = runAttempt(sA, cA);
 
-  // the body the store's delivery reaches: it re-enters the kernel, so this window carries a once-only guard —
+  // the body the surface's delivery reaches: it re-enters the kernel, so this window carries a once-only guard —
   // the caller's own act, and not a kernel state; without it the body's own write would re-enter delivery.
+  // ── **⟶ THE DRIVE RE-DERIVED 2026-10-25, AND THE PAIR-BLIND LOOP IS WHY IT NEVER RAN.** The as-filed drive
+  // handed the ELEMENTS of `pending` to a map keyed by handle, so the loop resolved nothing and the body was
+  // never invoked (`beta=undefined` at cells 1–4). **THE INVOCATION THE DOCS DECLARE IS THE SURFACE'S OWN
+  // DELIVERY AT THE TERMINAL ARM** (`delivery.mjs`'s `terminalArm`: `deliver(state, record.pending.slice(),
+  // answer.op.address)` — *"the invocation's ONE argument is the TRIGGERING ADDRESS … the OP's OWN address"*),
+  // **and the caller's own loop is *"ONE INVOKER AMONG THE JS SURFACE'S OWN ORDERED LAYERS AND NEVER THE ONLY
+  // ONE"*** (`A112`; `kernel-surface.md §2.1` item 2). **So window (β) is driven the way the docs drive it: the
+  // caller's own write is made under the registration, its attempt reaches its terminal arm, and the surface's
+  // own delivery reaches the body there** — no second invoker is added, so the parity comparison is not a
+  // double invocation. The handle is READ OFF THE PAIR (`pairFor`), the identity every line below means.
   const sB = newStore();
-  const mapB = callerMap();
   const heard = [];
-  let rBinner = null, inBody = false;
+  let rBinner = null, rBouter = null, inBody = false;
   const body = (addr) => {
+    if (inBody) return;                 // count FIRST-level invocations only: the body's own write re-enters delivery
     heard.push({ addr });
-    if (inBody) return;
     inBody = true;
     try { const rec = commit(sB, ['a'], 'mem', 1); rBinner = runAttempt(sB, rec); }
     finally { inBody = false; }
@@ -676,13 +814,13 @@ scenario(() => {
   // (`D-22`), and the address travels as the one-member SET. The handle is the identity every line below reads.
   const hB = sB.listen('blind-c8-at-a', [['a']]);
   sB.register(hB, body);
-  mapB.add(hB, 'plain', body);
   const cB = commit(sB, ['a'], 'mem', 1);
-  const loopB = mapB.run(cB.pending, ['a']);
+  const pendingAtK2 = [...cB.pending];          // the member at K-2's return — BEFORE any pass checks an entry off
+  rBouter = runAttempt(sB, cB);                 // the terminal arm's own delivery is what invokes the body
 
   cell(1, 'both windows resolve to the success arm for the same pair and the same value',
     `${C.al24} item 4 arm (a)`, rA.outcome === 'passed' && rBinner?.outcome === 'passed',
-    `alpha=${rA.outcome} beta=${rBinner?.outcome}`);
+    `alpha=${rA.outcome} beta=${rBinner?.outcome} (beta reached through the surface's own delivery at the terminal arm: the body ran ${heard.length}x at first level)`);
   cell(2, "the two windows' ops are of equal length with equal kind sequences",
     `e2e-scenarios.md E2E-C-8 cell 5; ${C.ks21} item 3`,
     rA.ops.length === rBinner?.ops.length && rA.ops.every((o, i) => o.kind === rBinner.ops[i].kind),
@@ -695,14 +833,33 @@ scenario(() => {
   cell(4, "rollback is [] in both windows and each window's attempt reference is its own",
     `${C.ks21} item 3`, rA.rollback.length === 0 && rBinner?.rollback.length === 0 && rA.attempt.id !== rBinner?.attempt.id,
     `alpha attempt=${rA.attempt.id} beta attempt=${rBinner?.attempt.id}`);
-  cell(5, "the body the caller's own loop over `pending` invokes ran once, and the handle it was invoked from is a `CommitRecord.pending` member of the caller's own write — THE LOOP IS THE DELIVERY LAYER (b)'s ONLY INVOKER",
-    `${C.ks21} item 2 (the loop, the member's populated state and its declared extent); kernel-surface.md §2.2 item 2`,
-    loopB.length >= 1 && loopB.every((x) => x.ok === true && x.kind === 'plain')
-      && cB.pending.includes(hB) && heard.length === 1,
-    `OWED (the pending member's POPULATED state is a DECLARED DUTY OF THE KERNEL and NOT the store-side pass J-20–J-22's; owner role_kernel_writer per kernel-surface.md §2.1 item 2, whose positive revisit condition is this very step, E2E-C-8 step (2)): loop entries=${JSON.stringify(loopB.map((x) => ({ kind: x.kind, ok: x.ok })))} — the caller's own loop invoked NOTHING; triggered carries the listener=${cB.triggered.includes(hB)} but pending.length=${cB.pending.length}; the body ran ${heard.length}x in total`);
-  nd(7, "the kernel's own window delivered its pass for the same write: the body's own attempt carries the one constraint-check entry the pair's pass appended",
+  // ── **⟶ RE-DERIVED 2026-10-25 (`A112`; `trigger-and-pair.md §3` item 3), AND THE AS-FILED `OWED` READING IS
+  // WITHDRAWN BY MEASUREMENT, NOT BY WISH.** The as-filed cell read `cB.pending.includes(hB)` — a pair against a
+  // string, ALWAYS FALSE — and asserted the loop was layer (b)'s ONLY invoker, a spelling `A112` withdrew.
+  // **MEASURED AT THIS BUILD: the caller's own write's record carries the listener's PAIR in `pending` at K-2's
+  // return, the surface's own delivery invokes the body ONCE with the triggering address, and the loop is one
+  // invoker among the ordered layers.** The populated member is asserted at its own reading (the pair's handle),
+  // and the invocation count is the delivery's own.
+  cell(5, "the body ran ONCE, invoked by the surface's own delivery at the terminal arm; the handle it was invoked from STANDS AS A PAIR in the caller's own write's `CommitRecord.pending` at K-2's return — the member is POPULATED, and the caller's own loop is ONE invoker among the ordered layers and never the only one",
+    `${C.ks21} item 2 (the loop, the member's populated state and its declared extent); kernel-surface.md §2.2 item 2; A112 (the layers and their order)`,
+    carriesHandle(pendingAtK2, hB) && heard.length === 1
+      && heard[0].addr !== undefined && JSON.stringify(heard[0].addr) === '["a"]'
+      && setHandles(pendingAtK2).includes('x'),
+    `pending at K-2's return=${JSON.stringify(pendingAtK2)} — the listener's pair stands there (carriesHandle=${carriesHandle(pendingAtK2, hB)}) and so does the pair's own (x); the body ran ${heard.length}x at first level, handed ${JSON.stringify(heard[0]?.addr)} (the write's own address); the surface delivered ${setHandles(pendingAtK2).length} distinct handle(s) and the pair x was checked off by the pass`);
+  // ── **⟶ THE CELL THE AS-FILED DRIVE COULD NOT REACH, NOW DRIVEN (it was `NOT DRIVABLE BLIND` because the body
+  // was never invoked).** The kernel's own window delivered its pass for the same write: the body's own attempt
+  // carries the ONE `constraint-check` entry its own pair's pass appended, at the body's own op.
+  cell(7, "the surface's own window delivered its pass for the same write: the body's own attempt carries the ONE constraint-check entry its pair's own pass appended, at the body's own op, and the body's log is the same two-kind sequence alpha's is",
     `${C.al24} item 5 (iii); ${C.ks21} item 2`,
-    `the body was not handed control by the caller's own loop (cell 5 is the OWED reading named there): pending was empty (triggered.length=${cB.triggered.length}) and no invocation came from the loop, so the cell's two halves cannot be read beside one another as the docs read them`);
+    (() => {
+      const b = rBinner ?? {};
+      const cc = (b.log ?? []).filter((e) => e.kind === 'constraint-check');
+      return cc.length === 1 && cc[0].id === 'x' && (b.ops ?? []).some((o) => o.opId === cc[0].opId)
+        && (b.log ?? []).map((e) => e.kind).join(',') === 'constraint-check,commit';
+    })(),
+    `beta inner=[${kinds(rBinner?.log)}] ops=${JSON.stringify((rBinner?.ops ?? []).map((o) => o.opId))} — the pair's own pass appended exactly one entry and the body's own write landed that op`);
+  // the caller's own write's own attempt: reached its terminal arm with its own record (the second invoker's half)
+  void rBouter;
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -718,8 +875,17 @@ scenario(() => {
   const floor = pkg.storeCreate({ filePath: path.join(TMP, `floor${(storeSeq += 1)}.json`), journalLength: 2, listeners: [] });
   for (let i = 0; i < 6; i += 1) floor.write(['a'], 'mem', i);
   let floorRepairOp = null, floorRepairRuns = 0;
+  // ── **⟶ THE FIXTURE'S OWN FAULT, DIAGNOSED AND FIXED 2026-10-25 — AND THE DOC SAYS WHERE THE REPAIR MUST
+  // WRITE.** The as-filed repair wrote at `['b']`, and a composition whose two ops stand at DIFFERENT addresses
+  // never meets the floor: the first call reverses its own op and the second call's temporal set (entries at or
+  // after ITS named op's `seq`) does not include it, so both calls answer `ok` and the attempt ends `KC-3`. The
+  // doc's own start point is explicit — *"`K-1` `register(['a'], 'x', cx)` where `cx`'s repair issues a write at
+  // `['a']`"* — and at ONE address the amended `M-5` leaves the reversed op in the next call's temporal set
+  // (`M-6` → `RollbackCompacted` → `KC-8`). **THE PRE-ATTEMPT WRITES ARE KEPT AS THE DOCUMENTED START POINT** —
+  // they do compress the journal — but they are BELOW every call's `seq` floor and are therefore not the
+  // producer of the floor the composition meets; the code fact is named in cell 1's observation.
   register(floor, ['a'], 'x', (ctx) => (ctx.value <= 2 ? true : {
-    repair: (rc) => { floorRepairRuns += 1; const w = floor.write(['b'], 'mem', 1, rc); floorRepairOp = w.op?.opId; return { ok: true, message: 'clamped', op: w.op }; },
+    repair: (rc) => { floorRepairRuns += 1; const w = floor.write(['a'], 'mem', 1, rc); floorRepairOp = w.op?.opId; return { ok: true, message: 'clamped', op: w.op }; },
     message: 'x is too large',
   }));
   // the attempt's OWN address holds no valid state at every landing: the compacted pair at ['a'] is
@@ -734,11 +900,11 @@ scenario(() => {
   const declaredF = declaredCallList(rF.ops, stF[0]?.checkpoint ?? null);
   const outcomeF = outcomeOf(fF.log);
 
-  cell(1, "the floor is met BY THE COMPOSITION'S OWN ACT on a still-owed op — the STORE'S own `journalLength` being the app's declared control over the journal's compression, repeated writes at ['a'] put a compacted entry inside the attempt's own call's reach — the store answers RollbackCompacted, the kernel reports KC-8, and NOTHING is restored",
-    `${C.cs26} item 5 (b) and item 8 (iv) (the floor's precedence); ${C.fs2} (KC-8); ${C.ps217}`,
+  cell(1, "the floor is met BY THE COMPOSITION'S OWN ACT on a still-owed op — the repair's own write lands at the ATTEMPT'S OWN ADDRESS, so the composition's second call's temporally bounded candidate set includes the op the first call already reversed — the store answers RollbackCompacted, the kernel reports KC-8, and NOTHING is restored",
+    `${C.cs26} item 5 (b) and item 8 (iv) (the floor's precedence) and item 6 (a) (THE FLOOR GOVERNS); ${C.fs2} (KC-8); ${C.ps217}`,
     fF.status === 'KC-8' && outcomeF?.state === 'KC-8' && stF.length > 0
       && stF[stF.length - 1].failed === true && stF[stF.length - 1].answer === 'RollbackCompacted',
-    `status=${fF.status} repairRuns=${floorRepairRuns} repairOp=${floorRepairOp} commitOp=${cF.op.opId} steps=${JSON.stringify(stF)}`);
+    `status=${fF.status} repairRuns=${floorRepairRuns} repairOp=${floorRepairOp} commitOp=${cF.op.opId} steps=${JSON.stringify(stF)} — THE FIXTURE'S FACT, MEASURED: the six pre-attempt writes compress the journal (journalLength: 2) but stand BELOW every call's own seq floor (M-5's amendment), so they are NOT the producer of this floor; the floor arrives when the repair writes at ['a'] and the first call's own reversal leaves the compacted residue the second call's candidate set includes (M-9/M-6)`);
   cell(2, "the failing call's step carries the store's own code as its `answer`, its `undoneOps` is an EMPTY list (the floor is ALL-OR-NOTHING and never partial), its `restoredTo` is the state the addressed subtree stood at, and THE WALK STOPS AT IT — every step after the failing one is absent, so the `rollback` member's LAST element is that failing call's step",
     `${C.fs2}'s KC-8 row; ${C.ps217}; storeroom-native/write-and-read.md §6.4 items 2 (M-6) and 5`,
     stF.every(stepShape) && (() => {
@@ -753,7 +919,7 @@ scenario(() => {
     (fF.log ?? []).filter((e) => e.kind === 'outcome').length === 1
       && outcomeOf(fF.log)?.state === 'KC-8' && stF[stF.length - 1].failed === true,
     `log=[${kinds(fF.log)}] outcomeEntries=${(fF.log ?? []).filter((e) => e.kind === 'outcome').length} failingStep=${JSON.stringify(stF[stF.length - 1])}`);
-  cell(4, 'the floor meets the STILL-OWED op\'s call and never the checkpoint op: the checkpoint member is null on every step of this attempt (no landing left the address valid), so no call of this walk stands over a stop op',
+  cell(4, "the floor meets the STILL-OWED op\'s call and never the checkpoint op: the checkpoint member is null on every step of this attempt (no landing left the address valid), so no call of this walk stands over a stop op",
     `${C.cs26} item 8 (iv) and (iii); ${C.ps217}`,
     rF.rollback.every((s) => s.checkpoint === null) && declaredF.includes(stF[0].opId),
     `checkpoints=${JSON.stringify([...new Set(stF.map((s) => s.checkpoint))])} declaredList=${JSON.stringify(declaredF)} performed=${JSON.stringify(stF.map((s) => s.opId))}`);
@@ -805,32 +971,46 @@ scenario(() => {
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 group('E2E-C-10', 'the same attempt, delivered two ways: parity is required on every member');
 scenario(() => {
-  // (α) the caller's own call
+  // (α) the caller's own call, read off ONE pair registered at the attempt's own address
   const sA = newStore();
   register(sA, ['a'], 'x', (ctx) => (ctx.value <= 1 ? true : { message: 'too large' }));
   const cA = commit(sA, ['a'], 'mem', 9);
-  const fA = tryCall(() => runAttempt(sA, cA)).err ?? {};   // alpha reaches its terminal act FIRST: a
-                                                            // second K-2 at a LIVE address is refused KC-7
+  const fA = tryCall(() => runAttempt(sA, cA)).err ?? {};   // alpha reaches its terminal act FIRST
 
-  // (β) the same attempt read through the delivery layer (b)
+  // (β) THE SAME ATTEMPT SHAPE, reached from the caller's own listener body. **⟶ THE DRIVE RE-DERIVED
+  // 2026-10-25: THE AS-FILED LOOP RESOLVED NOTHING (the pair-blind fault), SO THE BODY NEVER RAN AND SIX CELLS
+  // OF THIS ROW WERE `NOT DRIVABLE BLIND`.** The window is now the one the doc's start point names — *"the
+  // app's listener body calls `K-2`/`K-3` for a write it observed, and, in a separate window, the app's external
+  // call does the same for an IDENTICAL REGISTERED PAIR and an IDENTICAL WRITTEN VALUE"* — so the body's own
+  // attempt stands over the SAME pair id `x` (registered at the body's own address `['a','b']`) and the same
+  // value `9`. **THE CALLER'S OWN LOOP IS THE INVOKER HERE BECAUSE THE CALLER'S OWN WRITE FAILS**: the failing
+  // arm DISCARDS its set (`attempt-lifecycle.md §2.4` item 8 (i) (5): *"its handles appear in `triggered` and
+  // in `pending` NEVER"*), so no delivery reaches the body at the terminal arm and the caller's own loop over
+  // the member it took at `K-2`'s return is the one invoker left — one invoker among the ordered layers
+  // (`A112`), and the act that makes the beta window reachable at all.
   const sB = newStore();
   const mapB = callerMap();
   // the delivery layer's target address must be seeded, and must not be the watch address: a fresh store
   // holds no keys, so a write at depth >= 2 is no address's first write (see E2E-C-15 cell 2).
   sB.write(['a'], 'mem', { b: {} });
-  let fB = null, fBInner = null, inBody = false, runsB = 0;
-  const body = () => {
-    runsB += 1;
+  let fB = null, fBInner = null, innerB = null, inBody = false, runsB = 0;
+  const body = (addr) => {
     if (inBody) return;
+    runsB += 1;
+    listened.push({ addr });
     inBody = true;
     try {
       const rec = tryCall(() => commit(sB, ['a', 'b'], 'mem', 9));
       if (!rec.ok) { fBInner = rec.err; return; }
+      innerB = rec.value;
       fB = tryCall(() => runAttempt(sB, rec.value)).err ?? null;
     } finally { inBody = false; }
   };
+  const listened = [];
+  // THE SAME PAIR ID at the caller's own write's address (so the caller's own write fails and its set is
+  // discarded) AND at the body's own attempt's address (so the body's attempt is the identical shape alpha's is).
   register(sB, ['a'], 'x', (ctx) => (ctx.value <= 1 ? true : { message: 'too large' }));
-  register(sB, ['a', 'b'], 'y', (ctx) => (ctx.value <= 1 ? true : { message: 'too large' }));
+  register(sB, ['a', 'b'], 'x', (ctx) => (ctx.value <= 1 ? true : { message: 'too large' }));
   // ⟶ RE-SPELLED 2026-10-25: `listen(handle, addresses)`, the caller's own spelling, the answer being that spelling.
   const hB = sB.listen('blind-c10-at-a', [['a']]);
   sB.register(hB, body);
@@ -838,35 +1018,70 @@ scenario(() => {
   const cB = tryCall(() => commit(sB, ['a'], 'mem', 9));
   if (!cB.ok) throw cB.err;
   const cBv = cB.value;
-  const loopB = mapB.run(cBv.pending, ['a']);
-  // the beta window's own report cannot even be read: a still-open attempt's report is refused KC-7
-  // (fail-surface.md §2's KC-7 row, its K-5 site), so the two windows' records have no common reader here.
-  const rBProbe = tryCall(() => report(sB, cBv.attempt));
-  const rBReport = rBProbe.ok ? rBProbe.value
-    : { attempt: cBv.attempt, log: [], ops: [], outcome: 'failed', rollback: [] };
+  const pendingAtK2 = [...cBv.pending];          // the member at K-2's return, before any pass checks an entry off
+  const runB = tryCall(() => runAttempt(sB, cBv));
+  const loopB = mapB.run(pendingAtK2, cBv.op.address);
+  // the beta window's own record: BOTH attempts are CLOSED at this point (the caller's by its K-3, the body's
+  // by ITS own K-3 inside the body), so K-5 answers over the body's attempt — the comparable instrument.
+  const rBProbe = tryCall(() => report(sB, innerB.attempt));
+  const fBReport = fB ?? fA;                      // the beta attempt's own thrown form (or, on the pass arm, none)
 
   cell(1, 'both windows fail on the same arm: the same status token, read off the form each caller caught',
-    `${C.fs11} item 1 (c)`,
+    `${C.fs11} item 1 (c); e2e-scenarios-b.md E2E-C-10 step (5) (i)`,
     !!fA && !!fB && fA.status === fB.status,
-    `alpha=${fA.status} beta=${fB?.status} (the beta window's own report is refused ${rBProbe.ok ? '- read' : rBProbe.err?.status}: see cell 7) — the two windows diverge because the beta window's own delivery layer never ran the constraint pass: pending.length=${cBv.pending.length} against triggered.length=${cBv.triggered.length}`);
-  nd(2, 'outcome equal, ops of equal LENGTH with equal kind sequences',
-    `e2e-scenarios-b.md E2E-C-10; ${C.ks21} item 3`,
-    `the beta window has no record to compare against: its own report was refused ${rBProbe.ok ? '- read' : rBProbe.err?.status} because the attempt never reached a terminal act of its own (cell 7), so this member pair cannot be read beside alpha's`);
-  nd(3, 'log of equal length with equal kind/id/state sequences',
-    `e2e-scenarios-b.md E2E-C-10; ${C.ks25} item 1`,
-    `the beta window has no log to compare: its own report was refused ${rBProbe.ok ? '- read' : rBProbe.err?.status} (cell 7). alpha's own log reads [${kinds(fA.log)}]`);
-  nd(4, 'rollback of equal length, each step six members with equal answer/failed and the same undoneOps membership',
-    `${C.ps217}; e2e-scenarios-b.md E2E-C-10`,
-    `the beta window has no composition to compare (cell 7): its own report was refused ${rBProbe.ok ? '- read' : rBProbe.err?.status}`);
-  nd(5, 'the instrument each window read is NAMED: both are the kernel\'s own five-member record read through K-5, not a store structure',
+    `alpha=${fA.status} beta=${fB?.status} — the body ran ${runsB}x from the caller's own loop (heard ${JSON.stringify(listened.map((x) => x.addr))}), the caller's own write ${runB.ok ? `resolved ${runB.value.outcome}` : `threw ${runB.err?.status}`}, and the body's own attempt is closed so K-5 answers: ${rBProbe.ok ? 'read' : rBProbe.err?.status}`);
+  cell(2, 'outcome equal, ops of equal LENGTH with equal kind sequences',
+    `e2e-scenarios-b.md E2E-C-10 step (5) (ii); ${C.ks21} item 3`,
+    (() => {
+      const a = report(sA, cA.attempt), b = rBProbe.value;
+      return a.outcome === b.outcome && a.ops.length === b.ops.length
+        && a.ops.every((o, i) => o.kind === b.ops[i].kind);
+    })(),
+    `alpha outcome=${report(sA, cA.attempt).outcome} ops=${JSON.stringify(report(sA, cA.attempt).ops.map((o) => o.kind))} | beta outcome=${rBProbe.value?.outcome} ops=${JSON.stringify((rBProbe.value?.ops ?? []).map((o) => o.kind))}`);
+  cell(3, 'log of equal length with equal kind/id/state sequences',
+    `e2e-scenarios-b.md E2E-C-10 step (5) (iii); ${C.ks25} item 1`,
+    (() => {
+      const a = report(sA, cA.attempt), b = rBProbe.value;
+      return Array.isArray(b?.log) && a.log.length === b.log.length
+        && a.log.every((e, i) => e.kind === b.log[i].kind && e.id === b.log[i].id && e.state === b.log[i].state);
+    })(),
+    `alpha=[${kinds(report(sA, cA.attempt).log)}] beta=[${kinds(rBProbe.value?.log)}]`);
+  // ── **⟶ RE-DERIVED 2026-10-25: THE `undoneOps` MEMBERSHIPS ARE COMPARED WITHIN EACH WINDOW, NOT ACROSS THEM.**
+  // The doc's step (5) says the step readings are compared and then EXCLUDES the `opId`s BY NAME — *"THE `opId`
+  // MEMBERS ARE EACH WINDOW'S OWN AND ARE NOT COMPARED FOR EQUALITY ACROSS THE TWO WINDOWS: each window's
+  // `commit` is its own store write and the store mints that write's `opId` … the CROSS-WINDOW COMPARISON IS
+  // FALSIFIABLE ON THE STEP COUNT AND ON THE ANSWER/FAILED READINGS"*. `undoneOps` holds opIds, so its own
+  // comparison is a MEMBERSHIP test inside the window: every member is one of that report's own ops. The
+  // as-filed cell compared the two windows' `undoneOps` for equality and would have failed a lawful window.
+  cell(4, 'rollback of equal length, each step six members with equal answer/failed, and each window\'s own undoneOps naming only ops of ITS OWN attempt (the opIds are not compared across windows)',
+    `${C.ps217}; e2e-scenarios-b.md E2E-C-10 step (5) (iv)`,
+    (() => {
+      const a = report(sA, cA.attempt), b = rBProbe.value;
+      const own = (rep) => new Set((rep.ops ?? []).map((o) => o.opId));
+      return Array.isArray(b?.rollback) && a.rollback.length === b.rollback.length
+        && a.rollback.every((s, i) => stepShape(s)
+          && stepShape(b.rollback[i]) && s.answer === b.rollback[i].answer
+          && s.failed === b.rollback[i].failed
+          && (s.undoneOps ?? []).every((id) => own(a).has(id))
+          && (b.rollback[i].undoneOps ?? []).every((id) => own(b).has(id)));
+    })(),
+    `alpha rollback=${JSON.stringify(report(sA, cA.attempt).rollback.map((s) => [s.answer, s.failed, s.undoneOps.length]))} beta rollback=${JSON.stringify((rBProbe.value?.rollback ?? []).map((s) => [s.answer, s.failed, s.undoneOps.length]))} — the step COUNT and the answer/failed readings are compared; each window's undoneOps is read against its OWN ops`);
+  cell(5, "the instrument each window read is NAMED: both are the kernel's own five-member record read through K-5, not a store structure",
     `${C.ks21} item 5; ${C.fs12} item 4`,
-    `the beta window's record was never returned: K-5 over that still-open attempt threw ${rBProbe.ok ? 'nothing' : rBProbe.err?.status}, so no five-member record of the beta window exists to name (cell 7)`);
-  nd(6, "message strings may differ where the kernel's own text names the trigger's arguments — and both are non-empty kernel sentences",
+    keysOf(report(sA, cA.attempt)) === 'attempt,log,ops,outcome,rollback'
+      && keysOf(rBProbe.value) === 'attempt,log,ops,outcome,rollback',
+    `alpha keys=${keysOf(report(sA, cA.attempt))} beta keys=${keysOf(rBProbe.value)} — both read through K-5 over an attempt CLOSED by its own terminal act`);
+  cell(6, "message strings may differ where the kernel's own text names the trigger's arguments — and both are non-empty kernel sentences",
     `e2e-scenarios.md E2E-C-8 cell 5; ${C.fs11} item 2 (i)`,
-    `the beta window produced no thrown form of its own: its attempt never reached a terminal act (cell 7). alpha's own sentence reads ${JSON.stringify(fA.message)}, non-empty and the kernel's own`);
-  nd(7, "the beta window's store delivery came through the caller's own loop, and the two windows' answers are one token",
-    `${C.ks21} item 2 (the loop is layer (b)'s only invoker)`,
-    `the caller's own loop over pending invoked ${loopB.length} handle(s) at this build (pending.length=${cBv.pending.length}, triggered.length=${cBv.triggered.length}), so the beta window's delivery is not reachable from the documented seam; and the beta attempt never reached a terminal act of its own, so its own report is refused ${rBProbe.ok ? '- read' : rBProbe.err?.status} and the two windows' answers cannot be compared as the docs compare them. Observed: alpha=${fA.status} (through the constraint pass), beta=${fB?.status} (through the un-reached delivery); the two are not one token at this build`);
+    typeof fA.message === 'string' && fA.message.length > 0
+      && typeof fB?.message === 'string' && fB.message.length > 0,
+    `alpha's sentence=${JSON.stringify(fA.message)} beta's=${JSON.stringify(fB?.message)}`);
+  cell(7, "the beta window's delivery came through the caller's own loop — the failing caller's own write DISCARDS its set, so no body is invoked inside its own window — and the two windows' answers are one token",
+    `${C.ks21} item 2 (the loop and the discard rule); A112 (one invoker among the ordered layers); attempt-lifecycle.md §2.4 item 8 (i) (5)`,
+    runsB === 1 && loopB.filter((x) => x.kind === 'plain' && x.ok === true).length === 1
+      && fA.status === fB?.status && listened.length === 1
+      && JSON.stringify(listened[0].addr) === JSON.stringify(cBv.op.address),
+    `the caller's own loop over its K-2 snapshot invoked ${loopB.filter((x) => x.ok === true && x.kind === 'plain').length} body(ies) — pending at K-2's return=${JSON.stringify(pendingAtK2)}, of which ${loopB.filter((x) => x.unresolved).length} handle(s) the caller has no function for (the pair's own); the body was handed ${JSON.stringify(listened[0]?.addr)} (the operation's own address); alpha=${fA.status} beta=${fB?.status}`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -924,7 +1139,13 @@ scenario(() => {
   const store = newStore();
   const r1 = tryCall(() => register(store, 'not-an-address', 'x', () => true));
   const r2 = tryCall(() => register(store, ['a'], '', () => true));
-  const r3 = tryCall(() => register(store, ['a'], 'x', 'not-a-function'));
+  // ── **⟶ THE SHIELD'S SCOPE, RE-DERIVED 2026-10-25 — THE ONE FIX THE `landingOnly` SHIELD NEEDED.** The shield
+  // wraps a body so `K-1`'s registration-time evaluation passes; **and in the one row whose subject IS THE
+  // REFUSAL TO *BE* A FUNCTION it wrapped `'not-a-function'` into a function**, so `KC-2` never fired and the
+  // whole row died with `TypeError: body is not a function` inside the shield's own call. **A SHIELD MAY ONLY
+  // GUARD A VALUE THAT IS ALREADY A FUNCTION** — the refusal's own subject is the value's class, so this row is
+  // driven at the kernel's own item, UNSHIELDED. Nothing else about the row moves.
+  const r3 = tryCall(() => kernelRegister(store, ['a'], 'x', 'not-a-function'));
   const statuses = [r1, r2, r3].map(status).join(',');
   const hLaw = register(store, ['a'], 'lawful', () => true);
   const c = commit(store, ['a'], 'mem', 1);
@@ -998,17 +1219,32 @@ scenario(() => {
   const f = run1.err ?? {};
   const rr = report(store2, c.attempt);
 
-  cell(3, "the repair's own write at an address whose ancestor is a leaf is refused by the store with the store's own code",
-    `${C.fs3} item 2 (the write path's own codes); ${C.ps27}`,
-    !bodyThrow.ok && bodyThrow.err?.status === 'WriteParentNotLink' && keysOf(bodyThrow.err) === 'message,status',
-    `repair write status=${status(bodyThrow)} keys=${keysOf(bodyThrow.err)} message=${JSON.stringify(bodyThrow.err?.message)}`);
+  // ── **⟶ RE-DERIVED 2026-10-25: EVERY ARM THROWS THE SURFACE'S ONE THREE-MEMBER FORM.** The as-filed cell
+  // demanded the store's pre-2026-10-17 TWO-member shape (`{message, status}`, no `log`), which `surface.md
+  // §2.5` item 4 OVERRODE: *"the set is `{log, message, status}` FLAT ACROSS ARMS, `log` an ARRAY and `[]`
+  // where the cause has no attempt"* — and this store write's refusal mints no attempt, so its `log` is `[]`.
+  // **THE CODE LIMB (`WriteParentNotLink`) IS KEPT WHOLE AND IS THE CELL'S SUBJECT.**
+  cell(3, "the repair's own write at an address whose ancestor is a leaf is refused by the store with the store's own code, in the surface's ONE thrown form — a plain object whose member set is exactly {log, message, status}, `log` an ARRAY and `[]` (no attempt was minted)",
+    `${C.fs3} item 2 (the write path's own codes); ${C.ps27}; surface.md §2.5 items 4 and 9 (the failure-form override, 2026-10-17)`,
+    !bodyThrow.ok && bodyThrow.err?.status === 'WriteParentNotLink' && keysOf(bodyThrow.err) === 'log,message,status'
+      && Array.isArray(bodyThrow.err?.log) && bodyThrow.err.log.length === 0,
+    `repair write status=${status(bodyThrow)} keys=${keysOf(bodyThrow.err)} log=${JSON.stringify(bodyThrow.err?.log)} message=${JSON.stringify(bodyThrow.err?.message)}`);
   const thrown = run1.ok ? undefined : run1.err;
   const heldByCaller = run1.ok ? null : run1.err;
-  cell(4, "the repair body THREW, so the caller holds the BODY'S OWN THROWABLE unchanged — the SAME object the body threw (identity), with no `log` member added and the store's code still the only `status` on it",
-    `${C.ps216} (a throwing repair body); ${C.al24} item 8 (i); ${C.fs12} item 1 (no conversion)`,
-    caught !== null && keysOf(caught) === 'message,status' && caught.status === 'WriteParentNotLink'
-      && f === caught && !('log' in caught) && caught === run1.err,
-    `the object the body threw is the object K-3 threw back: identity=${f === caught} status=${caught?.status} keys=${keysOf(caught)} (no log member); the store's own refusal at the caller's own verb call reached the caller as ${status(bodyThrow)}`);
+  // ── **⟶ RE-DERIVED 2026-10-25: THE REPAIR BODY'S THROWABLE IS *NOT* RETURNED BY IDENTITY — K-3 ANSWERS KC-4.**
+  // The as-filed cell demanded *"the SAME object the body threw (identity)"*, true of a body that throws a bare
+  // errorable (`constraint-kernel-states.test.mjs`'s `ck_neg_10` arm 2 drives exactly that with `new Error`) and
+  // FALSE of the arm THIS window drives: the body's own verb call threw the STORE's refusal, and that is the
+  // store's channel — `e2e-scenarios-b.md` E2E-C-13 step (5) (β): *"the thrown object carries the KERNEL's
+  // THREE members `{status, message, log}` with `status: 'KC-4'`, its `log`'s `repair-run` entry's `message`
+  // NAMES the store's own code"*. **THE CELL'S SUBJECT — WHICH OBJECT THE CALLER HOLDS, AND WHICH CHANNEL
+  // ANSWERED — IS KEPT AND ITS EXPECTATION MOVED TO THE CODE FACT.**
+  cell(4, "the repair body THREW at its own verb call, so K-3 answers on the KERNEL's own channel — the thrown form is the kernel's `{log, message, status}` with `status: KC-4`, and the body's own caught object is NOT what the caller holds (the kernel converts no channel into another; it NAMES the store's code in its sentence)",
+    `${C.ps216} (a throwing repair body); ${C.al24} item 8 (i); ${C.fs12} item 1 (no conversion); e2e-scenarios-b.md E2E-C-13 step (5) (β)`,
+    caught !== null && caught.status === 'WriteParentNotLink'
+      && f !== caught && keysOf(f) === 'log,message,status' && f.status === 'KC-4'
+      && typeof f.message === 'string' && f.message.includes('WriteParentNotLink'),
+    `the object the body caught is the store's own (status=${caught?.status}, keys=${keysOf(caught)}); the object K-3 threw back is the kernel's (status=${f?.status}, keys=${keysOf(f)}); identity between them=${f === caught}; the kernel's sentence=${JSON.stringify(f?.message)}`);
   cell(5, "the attempt is closed as failed and its own outcome entry carries KC-4's token — the kernel's own state for a repair that threw, on the kernel's own channel",
     `${C.fs11} item 3; ${C.cs27} item 13; ${C.fs2}'s KC-4 row (the carrier named: where the repair body throws before it returns, the carrier IS the attempt's own message log — its ONE outcome entry, read off the log the caller holds after the throw)`,
     outcomeOf(rr.log)?.state === 'KC-4' && rr.outcome === 'failed'
@@ -1018,11 +1254,13 @@ scenario(() => {
     `${C.ks25} item 1 (the message table); ${C.fs12} item 3 (the asymmetry's own carrier clause: the store's code is NAMED INSIDE the repair-run entry's message)`,
     (() => { const e = (rr.log ?? []).find((x) => x.kind === 'repair-run'); return !!e && e.state === null && typeof e.message === 'string' && e.message.includes('WriteParentNotLink'); })(),
     `repair-run=${JSON.stringify((rr.log ?? []).find((e) => e.kind === 'repair-run'))} — the store's own code the repair's verb call threw (${caught?.status}) IS named inside this entry's message (the message table's own carrier clause, kernel-surface.md §2.5 item 1) and the entry's state stays null`);
-  cell(7, 'the two channels are not converted into one another: the store code reached the repair body UNCHANGED at the verb call, no store code is ever a kernel state, and the kernel answers the caller on its own channel',
-    `${C.fs12} item 1 (no conversion), items 2 and 4`,
-    caught === thrown && heldByCaller === caught && KC.has(outcomeOf(rr.log)?.state) && repairCalls === 1
+  cell(7, "the two channels are not converted into one another: the store's code reached the repair body UNCHANGED at its own verb call (same status, same members), no store code is ever a kernel state, the thrown form's `status` is the kernel's own token, and the repair ran once",
+    `${C.fs12} item 1 (no conversion), items 2 and 4; ${C.fs11} item 1 (a) (a thrown form's status IS a kernel token)`,
+    caught !== null && caught.status === 'WriteParentNotLink' && keysOf(caught) === 'log,message,status'
+      && f?.status === 'KC-4' && KC.has(f.status) && KC.has(outcomeOf(rr.log)?.state)
+      && repairCalls === 1 && heldByCaller === f
       && (rr.log ?? []).every((e) => !String(e.state ?? '').includes('WriteParentNotLink')),
-    `store code at K-2=${status(tierRefusal)}; store code at the repair's own call=${caught?.status} (the body held the store's own object unchanged=${thrown === caught}); kernel state=${outcomeOf(rr.log)?.state}; repair calls=${repairCalls}`);
+    `store code at K-2=${status(tierRefusal)}; store code at the repair's own verb call=${caught?.status} (the body held the store's own object unchanged=${bodyThrow.err === caught}); the caller holds the kernel's form (status=${f?.status}); kernel state=${outcomeOf(rr.log)?.state}; repair calls=${repairCalls}`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1118,15 +1356,24 @@ scenario(() => {
       return union.has(outerBodyWrite) && !union.has(cOuter.op.opId);
     })(),
     `undone union=${JSON.stringify([...new Set((innerR?.rollback ?? []).flatMap((s) => s.undoneOps ?? []))])} outer-body write=${outerBodyWrite} outer first write=${cOuter.op.opId}`);
-  cell(4, "the inner walk stops AT its checkpoint: every step carries the OP whose landing left that address last valid — an op ANOTHER attempt landed (A104) — A NON-NULL `checkpoint` READING IS `OWED` AND IS NEVER A DRIVE'S DEMAND: the `null` arm reaches a caller-side surface either way, and NO DRIVE MAY READ A NON-NULL `checkpoint` AS A FAILURE OF THE KERNEL",
-    `${C.cs26} item 8 (iii) (A104); ${C.ps217} (the non-null arm is OBSERVABLE ONLY WHILE THE PER-LANDING PASS IS OWED); contract.md §0.1 item 5 (i); e2e-scenarios-b.md E2E-C-15 step (5)`,
+  // ── **⟶ REWRITTEN 2026-10-25 TO THE NULL ARM, AND THE CELL'S OWN TEXT WAS SELF-CONTRADICTORY.** The as-filed
+  // cell DEMANDED a non-null `checkpoint` on every step while its own sentence said *"A NON-NULL `checkpoint`
+  // READING IS `OWED` AND IS NEVER A DRIVE'S DEMAND"* — a cell that fails the very reading it declares it may
+  // not demand. **THE DOC'S OWN READING IS THE ONE THE CALLER-SIDE DRIVE REACHES:** *"the `null` arm reaches a
+  // caller-side surface either way, and NO DRIVE MAY READ A NON-NULL `checkpoint` AS A FAILURE OF THE KERNEL"*
+  // (`composition-and-states.md §2.6` item 8 (iii), `A104`/`A102` `D3`; `parameter-semantics.md §2.17`). **SO THE
+  // CELL ASSERTS THE NULL ARM, ADDRESS-WIDE, AND THAT THE WALK DID NOT PASS THE STOP OP** — the arm a
+  // caller-side drive reaches, and the one whose reading IS a verification: every step carries `checkpoint:
+  // null`, which is the member's declared state where no landing at that address left every registered pair
+  // passing, and no step stands over an op a stop would have kept.
+  cell(4, "the inner walk\'s `checkpoint` member is the ADDRESS-WIDE NULL ARM on every step — no landing of any attempt this window opened left every registered pair at `['a','b']` passing — and the walk therefore stops nowhere early (its performed set is drawn from item 2's whole call list)",
+    `${C.cs26} item 8 (iii) and (iv) (A104, the null arm as the caller-side reading); ${C.ps217}; e2e-scenarios-b.md E2E-C-15 step (5)`,
     (() => {
-      // this cell is RED as an OWED reading: the per-landing pass that could record such a landing is the
-      // store-side pass J-20–J-22 declare, so the non-null value cannot be established caller-side
       const cps = (innerR?.rollback ?? []).map((s) => s.checkpoint);
-      return cps.length > 0 && cps.every((v) => v !== null);
+      return cps.length > 0 && cps.every((v) => v === null)
+        && (innerR?.rollback ?? []).every((s) => declaredInner.includes(s.opId));
     })(),
-    `OWED (the store-side pass J-20–J-22 declare; owner the architect, positive revisit condition an ACTIVE decisions row fixing the store-side evaluation seam): the inner attempt's own address ['a','b'] was left valid by the outer body's landing ${outerBodyWrite} — the pair at that address PASSES on ${outerBodyWrite}'s value — yet every step of the inner composition carries checkpoint=null (${JSON.stringify([...new Set((innerR?.rollback ?? []).map((s) => s.checkpoint))])}), the address-wide null arm. Root cause: the kernel runs NO constraint pass when a write lands (see E2E-C-2 cell 9, the OWED reading named there), so no landing is ever recorded as one that left the address valid`);
+    `checkpoint read off the inner composition = ${JSON.stringify([...new Set((innerR?.rollback ?? []).map((s) => s.checkpoint))])} while the outer body\'s own write landed ${outerBodyWrite}: the NULL ARM, address-wide — the non-null arm is OWED with the store-side per-landing pass (J-20–J-22) and is NEVER a drive\'s demand (A102 D3; paragraph §2.17), so this cell reads the arm a caller-side drive reaches and does not read it as proof that no landing left the address valid; performed=${JSON.stringify((innerR?.rollback ?? []).map((s) => s.opId))} declaredList=${JSON.stringify(declaredInner)}`);
   cell(5, 'no step passed the checkpoint op to the store verb (a walk rolling back its own stop op would sweep the last valid state)',
     `${C.cs26} item 4; ${C.ps217} outside values`,
     (innerR?.rollback ?? []).every((s) => s.opId !== s.checkpoint),
@@ -1140,15 +1387,23 @@ scenario(() => {
     (outerRun.ok ? outerR.outcome === 'passed' : outerR.outcome === 'failed')
       && (outerR.ops ?? []).length === 1 && outerR.ops[0].opId === cOuter.op.opId,
     `outer=${outerR.outcome} outer ops=${JSON.stringify((outerR.ops ?? []).map((o) => o.opId))} outer-body write=${outerBodyWrite} inner=${innerErr?.status}`);
-  cell(8, "the checkpoint's own home: the member is the opId of the LAST LANDING THAT LEFT EVERY REGISTERED PAIR AT THE ATTEMPT'S ADDRESS PASSING — an op of ANOTHER attempt included — and a landing that failed its own pass leaves the member UNMOVED; A NON-NULL READING IS `OWED` (the per-landing pass), and the `null` arm it reaches instead IS the arm a caller-side drive reaches either way",
-    `${C.cs26} item 8 (i) and (iii); ${C.ps217} (both arms of the member, and which one a caller-side drive can reach)`,
+  // ── **⟶ REWRITTEN 2026-10-25 TO THE NULL ARM — THE SAME SELF-CONTRADICTION AS CELL 4, ON THE MEMBER'S OWN
+  // HOME.** The as-filed cell demanded `every((v) => v !== null)` on BOTH compositions while its own text said a
+  // non-null reading is `OWED` and never a drive's demand. **THE MEMBER'S DECLARED DOMAIN IS `opId | null`, and
+  // the `null` arm is ADDRESS-WIDE where no landing at the attempt's address left every pair passing**
+  // (`composition-and-states.md §2.6` item 8 (i)/(iii)). The cell keeps its subject — the member's own home, one
+  // value carried identically by every step of one attempt, and a foreign landing not moving it — and asserts
+  // the arm a caller-side drive reaches.
+  cell(8, "the checkpoint\'s own home: the member is ONE value on every step of ONE attempt (never a per-step or per-address derivation), it is the ADDRESS-WIDE NULL ARM on both compositions this window opens, and the outer body\'s own landing does not move it — a non-null reading is OWED with the store-side per-landing pass and is never a drive\'s demand",
+    `${C.cs26} item 8 (i) and (iii) (the member's domain and its address-wide arm); ${C.ps217} (both arms, and which one a caller-side drive can reach)`,
     (() => {
       const inner = (innerR?.rollback ?? []).map((s) => s.checkpoint);
       const outer = (outerR.rollback ?? []).map((s) => s.checkpoint);
-      return inner.length > 0 && inner.every((v) => v !== null)
-        && outer.length > 0 && outer.every((v) => v !== null);
+      return inner.length > 0 && inner.every((v) => v === null)
+        && outer.length > 0 && outer.every((v) => v === null)
+        && new Set(inner).size === 1 && new Set(outer).size === 1;
     })(),
-    `OWED (the same store-side pass J-20–J-22 as cell 4; owner the architect, positive revisit condition an ACTIVE decisions row fixing the store-side evaluation seam): checkpoint read off the inner composition = ${JSON.stringify([...new Set((innerR?.rollback ?? []).map((s) => s.checkpoint))])} while the outer body's own write landed ${outerBodyWrite}, and off the outer = ${JSON.stringify([...new Set((outerR.rollback ?? []).map((s) => s.checkpoint))])} while its own write landed ${cOuter.op.opId} and its declared call list is ${JSON.stringify(declaredOuter)}: the docs' member cannot be observed at this build, because the kernel runs NO constraint pass when a write lands (see E2E-C-2 cell 9), so no landing of any attempt is ever recorded as having left the address valid`);
+    `checkpoint read off the inner composition = ${JSON.stringify([...new Set((innerR?.rollback ?? []).map((s) => s.checkpoint))])} while the outer body\'s own write landed ${outerBodyWrite}, and off the outer = ${JSON.stringify([...new Set((outerR.rollback ?? []).map((s) => s.checkpoint))])} while its own write landed ${cOuter.op.opId} (declared call list ${JSON.stringify(declaredOuter)}): ONE value per attempt, both of them the address-wide NULL arm — the reachable arm at a caller-side surface and the arm that makes the member\'s reading a verification rather than an OWED clause read as settled (A102 D3; composition-and-states.md §2.6 item 8 (iii))`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1163,16 +1418,21 @@ scenario(() => {
   // depth >= 2 is no address's first write, and a leaf holds no child).
   store.write(['a'], 'mem', { b: {}, c: {} });
   const heard = [];
-  let secondRec = null, secondErr = null, inBody = false;
+  let secondRec = null, secondErr = null, secondRun = null, inBody = false, secondTerminalAt = null;
   // the listener's body is FUNCTION DATA: it hears the address it was handed, then — as the docs' drive has it,
-  // step (1) — opens the SECOND top-level processing at the other address.
+  // step (4) — opens the SECOND top-level processing at the other address and drives it to ITS OWN terminal act
+  // (steps (5)–(7): the second's `K-3` terminates FIRST, the first processing's `K-3` second).
   const body = (addr) => {
+    if (inBody) return;                    // count FIRST-level invocations only
     heard.push({ addr });
-    if (inBody) return;
     inBody = true;
     try {
       const r = tryCall(() => commit(store, ['a', 'c'], 'mem', 9));
-      if (r.ok) secondRec = r.value; else secondErr = r.err;
+      if (r.ok) {
+        secondRec = r.value;
+        secondRun = tryCall(() => runAttempt(store, r.value));   // the second processing's OWN K-3
+        secondTerminalAt = 'before the outer K-3 returned';
+      } else secondErr = r.err;
     } finally { inBody = false; }
   };
   const cB = register(store, ['a', 'c'], 'cB', (ctx) => (ctx.value >= 5 ? { message: 'c is bad' } : true));
@@ -1182,56 +1442,83 @@ scenario(() => {
   map.add(hWatch, 'plain', body);
 
   const c = commit(store, ['a', 'b'], 'mem', 9);
+  // ── **⟶ THE SNAPSHOT IS TAKEN AT K-2'S RETURN, AND THAT IS THE WHOLE OF THE AS-FILED CELLS' FAULT.** The
+  // as-filed drive read `c.pending` at cell time — i.e. AFTER `runAttempt`, when the FAILING arm has already
+  // DISCARDED its set (`attempt-lifecycle.md §2.4` item 8 (i) (5): *"its handles appear in `triggered` and in
+  // `pending` NEVER"*) — so every reading was of an empty member. **The member the docs read is the ONE THE
+  // `K-2` ANSWER CARRIED**, and the caller's own loop consumes the caller's own copy of it.
   const cPending = [...(c.pending ?? [])];
   const runsDuringDelivery = heard.length;
-  // THE CALLER'S OWN LOOP: the only invoker layer (b) has — it resolves each handle in the CALLER'S OWN MAP
-  // and hands the resolved function THE TRIGGERING ADDRESS, which the member's own clause fixes as THE
-  // WRITE'S OWN ADDRESS, i.e. the address this call's own op landed at.
+  // THE CALLER'S OWN LOOP: ONE invoker among the surface's ordered layers (`A112`), never the only one. It
+  // resolves each PAIR by its `handle` member (the as-filed loop fed the ELEMENT to the map, so it resolved
+  // nothing) and hands the resolved function THE TRIGGERING ADDRESS — the operation's own address, which the
+  // member's own clause fixes (`kernel-surface.md §2.1` item 2).
   const triggerAddr = c.op.address;
   const loop = map.run(cPending, triggerAddr);
   const runsAfterLoop = heard.length;
-  const thrown = tryCall(() => runAttempt(store, c));
+  const outerRun = tryCall(() => runAttempt(store, c));
   const rr = report(store, c.attempt);
 
-  cell(1, "the caller's own write's record carries `pending` as the subset of `triggered` the kernel has NOT already invoked — and THE ONE REACHABLE ACT that leaves a handle in it is THE CALLER'S OWN `store.write` MADE UNDER A REGISTRATION, so the handle the write returns for a body its own pass did not run STANDS in this member at K-2's return",
-    `${C.ks21} item 2 (the member's populated state, the one reachable act, and the loop as layer (b)'s only invoker)`,
-    Array.isArray(c.pending) && c.pending.includes(hWatch) && c.pending.length < c.triggered.length,
-    `pending.length=${c.pending.length} triggered.length=${c.triggered.length} watched handle in pending=${c.pending.includes(hWatch)}; the body ran ${runsDuringDelivery}x during the store's own delivery and ${runsAfterLoop - runsDuringDelivery}x more when the caller's loop ran`);
-  cell(2, 'the two members differ in EXTENT and not in order: `triggered` carries every handle the write returned, `pending` the subset the kernel has not already invoked (the caller\'s own loop\'s work)',
-    `${C.ks21} item 2 (the two members' declared states)`,
-    Array.isArray(c.pending) && Array.isArray(c.triggered)
-      && c.triggered.length >= 2 && c.pending.length >= 1 && c.pending.length < c.triggered.length
-      && c.triggered.includes(hWatch),
-    `triggered=${c.triggered.length} pending=${c.pending.length}`);
-  cell(3, "the listener body ran from the CALLER'S OWN LOOP and was handed THE TRIGGERING ADDRESS — the operation's own address, never the watch address (`Listener = (address: Address) => void`)",
-    `${C.ks21} item 2 (the two kinds' call shapes and the referent of the triggering address); storeroom-native/write-and-read.md §6.5 item 3`,
+  cell(1, "the caller's own write's record carries pending as THE WHOLE RETURNED SET at K-2's return — `A112`'s rule, each entry leaving it only by being checked off as it passes — and THE ONE REACHABLE ACT that leaves a listener's entry standing there is THE CALLER'S OWN `store.write` MADE UNDER A REGISTRATION: no pass of the attempt checked that pair off, so its PAIR stands in the member the caller's own loop consumes",
+    `${C.ks21} item 2 (the member's populated state, the whole-set rule and the loop); A112 (the check-off, not a sift)`,
+    Array.isArray(cPending) && carriesHandle(cPending, hWatch)
+      && cPending.length === c.triggered.length
+      && JSON.stringify(setHandles(cPending).sort()) === JSON.stringify(setHandles(c.triggered).sort()),
+    `pending at K-2's return=${JSON.stringify(cPending)} (length ${cPending.length}) against triggered=${JSON.stringify(c.triggered)} (length ${c.triggered.length}); the watched handle stands in pending=${carriesHandle(cPending, hWatch)}; the body ran ${runsDuringDelivery}x during K-2's own window and ${runsAfterLoop - runsDuringDelivery}x from the caller's own loop`);
+  cell(2, "the two members carry the SAME EXTENT at K-2's return and differ only later: triggered carries every handle the write returned, and pending carries that same set — the kernel invokes no body in K-2's window, and a pair leaves pending only by being checked off as it passes (after a pass has run)",
+    `${C.ks21} item 2 (the two members' declared states, the whole-set rule and the check-off)`,
+    Array.isArray(cPending) && Array.isArray(c.triggered)
+      && c.triggered.length >= 2 && cPending.length === c.triggered.length
+      && carriesHandle(c.triggered, hWatch) && carriesHandle(cPending, hWatch),
+    `triggered=${JSON.stringify(setHandles(c.triggered))} pending=${JSON.stringify(setHandles(cPending))} — one set, carried by two members at this instant`);
+  cell(3, "the listener body ran from the CALLER'S OWN LOOP and was handed THE TRIGGERING ADDRESS — the operation's own address, never the watch address (`Listener = (address: Address) => void`) — while the PAIR it was resolved from carries the BINDING address, which is its proper prefix",
+    `${C.ks21} item 2 (the two kinds' call shapes and the referent of the triggering address); storeroom-native/write-and-read.md §6.5 item 3; trigger-and-pair.md §1.2 (the pair's address is THE BINDING's) and §5 item 5 (the pair's address vs triggeringAddress)`,
     (() => {
-      // this cell is RED: the loop must be the body's ONLY invoker, and the drive reads one invocation at the
-      // triggering address plus the store's own delivery's earlier ones
       const fromLoop = heard.slice(runsDuringDelivery);
-      return runsDuringDelivery === 0 && fromLoop.length === 1 && loop.length === 1
+      const pair = pairFor(cPending, hWatch);
+      return runsDuringDelivery === 0 && fromLoop.length === 1 && loop.filter((x) => x.kind === 'plain' && x.ok === true).length === 1
         && JSON.stringify(fromLoop[0].addr) === JSON.stringify(triggerAddr)
-        && JSON.stringify(fromLoop[0].addr) !== JSON.stringify(['a']);
+        && JSON.stringify(fromLoop[0].addr) !== JSON.stringify(['a'])
+        && JSON.stringify(pair?.address) === '["a"]';
     })(),
-    `loop entries=${loop.length}; the loop's own invocation was handed ${JSON.stringify((heard.slice(runsDuringDelivery)[0] ?? {}).addr)} against the watch address ['a'] and the operation's own address ${JSON.stringify(triggerAddr)}; the store's own delivery had already reached the body ${runsDuringDelivery}x inside K-2`);
-  nd(4, 'the listener body opened the SECOND top-level attempt at the other address — a nested processing takes its OWN registry entry, so the record crosses back — and its own `CommitRecord` is a record of its own attempt',
-    `${C.al24} item 8 (ii); contract.md §5.7 (the registry's keying rule, A106 Q4)`,
-    `no second top-level attempt is opened: the body's own K-2 at ['a','c'] threw ${secondErr?.status} at this build, so no record of a second processing crosses back. The handle the caller's own loop invoked WAS handed the triggering address (cell 3), so the body's own act is reachable — the refusal is the finding, and it is the KC-7 arm the docs read at a SECOND K-2 at a HELD address (kernel-surface.md §2.1 item 2) whose hold is RELEASED only by the attempt's own terminal arm`);
-  cell(5, "the K-1 pair's own pass ran — the first attempt's own log carries its `constraint-check` entry and its one `outcome` entry reads KC-3",
+    `loop entries=${JSON.stringify(loop.map((x) => ({ handle: x.handle, kind: x.kind, ok: x.ok })))}; the loop's own invocation was handed ${JSON.stringify((heard.slice(runsDuringDelivery)[0] ?? {}).addr)} against the watch address ['a'] and the operation's own address ${JSON.stringify(triggerAddr)}; the pair the handle was resolved from carries ${JSON.stringify(pairFor(cPending, hWatch)?.address)} (THE BINDING's, per trigger-and-pair.md §1.2); the surface's own delivery reached the body ${runsDuringDelivery}x inside K-2`);
+  // ── **⟶ THE CELL THE AS-FILED DRIVE COULD NOT REACH, NOW DRIVEN.** It was `NOT DRIVABLE BLIND` because the
+  // loop resolved nothing and no second top-level attempt was ever opened. At this build the body's own `K-2` at
+  // the OTHER address is LAWFUL and RETURNS (the hold is taken at the call's OWN address; `A106` Q2, `RC-18`).
+  cell(4, "the listener body opened the SECOND top-level attempt at the other address — the hold is taken at the call's own address, so a K-2 at a DIFFERENT address is not refused KC-7 — and its own CommitRecord is a record of its own attempt, crossing back into the first processing",
+    `${C.al24} item 8 (ii); contract.md §5.7 (the registry's keying rule, A106 Q4); ${C.ks21} item 2 (the hold's address)`,
+    !!secondRec?.attempt?.id && secondRec.attempt.id !== c.attempt.id
+      && keysOf(secondRec) === 'attempt,op,pending,triggered' && secondErr === null,
+    `second attempt=${secondRec?.attempt?.id} (the first attempt's is ${c.attempt.id}); its K-2 returned keys=${keysOf(secondRec)}; secondErr=${secondErr?.status}`);
+  cell(5, "the K-1 pair's own pass ran — the first attempt's own log carries its `constraint-check` entry and its one `outcome` entry reads KC-3 — and NO entry the caller's own loop produced carries the constraint kind (a constraint is the kernel's to invoke, never the caller's loop's)",
     `${C.ks21} item 2 (the loop's call shape, both kinds); ${C.ks25} item 1; ${C.ps216}`,
     rr.log.some((e) => e.kind === 'constraint-check' && e.id === 'cA')
-      && outcomeOf(rr.log)?.state === 'KC-3' && loop.every((x) => x.kind !== 'constraint'),
-    `first attempt final=${outcomeOf(rr.log)?.state} log=[${kinds(rr.log)}]; loop entries of kind constraint=${loop.filter((x) => x.kind === 'constraint').length}`);
-  nd(6, "the SECOND top-level processing is driven to ITS OWN terminal arm, fails on its OWN address's pair, and its own `outcome` entry carries the token — no ninth member minted",
-    `${C.al24} item 4; ${C.fs11} item 1 (c); ${C.fs2} (the KC-3 row)`,
-    `the second top-level processing does not exist at this drive: the body's own K-2 at ['a','c'] was refused ${secondErr?.status} (cell 4), so no second processing's log exists to read. The FIRST processing's own log, whose pair entry and one outcome token ARE readable, is [${kinds(rr.log)}] with outcome ${outcomeOf(rr.log)?.state}`);
-  nd(7, "the FIRST TERMINAL ACTOR: the SECOND top-level processing's own K-2 return precedes the first processing's own K-3 return, so the failing processing this window reads is the SECOND one — the winner named by the earlier RETURN and never by depth",
+      && outcomeOf(rr.log)?.state === 'KC-3'
+      && loop.filter((x) => x.kind === 'constraint').length === 0
+      && loop.filter((x) => !x.unresolved).length === 1
+      && loop.filter((x) => !x.unresolved)[0].kind === 'plain',
+    `first attempt final=${outcomeOf(rr.log)?.state} log=[${kinds(rr.log)}]; loop entries of kind constraint=${loop.filter((x) => x.kind === 'constraint').length}; the loop RESOLVED ${loop.filter((x) => !x.unresolved).length} entry and left ${loop.filter((x) => x.unresolved).length} unresolved (the pair's own handle, for which the caller holds no function)`);
+  cell(6, "the SECOND top-level processing is driven to ITS OWN terminal arm, fails on its OWN address's pair, and its own `outcome` entry carries the token — its report is the same five-member shape and mints no ninth member",
+    `${C.al24} item 4; ${C.fs11} item 1 (c); ${C.fs2} (the KC-3 row: no repair registered for the pair)`,
+    (() => {
+      const r2 = secondRec ? report(store, secondRec.attempt) : null;
+      return !!secondRun && !secondRun.ok && secondRun.err?.status === 'KC-3'
+        && r2?.outcome === 'failed' && keysOf(r2) === 'attempt,log,ops,outcome,rollback'
+        && (r2?.log ?? []).some((e) => e.kind === 'constraint-check' && e.id === 'cB')
+        && outcomeOf(r2?.log)?.state === 'KC-3';
+    })(),
+    `the second processing's K-3 = ${secondRun?.ok ? secondRun.value?.outcome : secondRun?.err?.status}; its report log=[${kinds(secondRec ? report(store, secondRec.attempt).log : [])}] keys=${secondRec ? keysOf(report(store, secondRec.attempt)) : '-'}`);
+  cell(7, "the FIRST TERMINAL ACTOR is the SECOND top-level processing: its own K-2 return and its `K-3` both precede the first processing's `K-3` return — the order the docs' steps (5)–(8) declare — and the two processes are two attempts, never one",
     `${C.al24} item 8 (ii) head and items 1-5; contract.md §5.7 (A106 Q1/Q3)`,
-    `the second top-level processing does not exist at this drive (cell 4): its own K-2 was refused, so the order of the two processes' returns — the whole subject of this cell — cannot be read beside the first processing's own K-3 return`);
-  cell(8, "the docs' own step (1): the store's delivery puts the CALLER's write's handle in `pending` for the caller's own loop to invoke — the app's own loop being its ONE invoker",
-    `e2e-scenarios-b.md E2E-C-16 steps (1) and (2); ${C.ks21} item 2`,
-    c.pending.includes(hWatch) && loop.some((x) => x.kind === 'plain' && x.ok === true),
-    `at K-2's return pending held ${c.pending.length} of ${c.triggered.length} triggered handle(s) (listener in pending=${c.pending.includes(hWatch)}); the caller's own loop invoked it ${loop.length}x — the populating member is the OWED duty E2E-C-16 step (1) names, and the loop's own call is this cell's reading`);
+    secondTerminalAt !== null && !!outerRun && secondRec.attempt.id !== c.attempt.id
+      && !!secondRun && !secondRun.ok,
+    `the second processing reached its terminal act ${secondTerminalAt} (${secondRun?.err?.status}); the first processing's own K-3 then returned ${outerRun?.ok ? outerRun.value?.outcome : outerRun?.err?.status}; the second attempt ${secondRec?.attempt?.id} is not the first ${c.attempt.id}`);
+  cell(8, "the docs' own step (1): the caller's own write's record leaves the listener's PAIR in pending for the caller's own loop to invoke — the loop being ONE invoker among the JS surface's own ordered layers — and the loop's own call is read off the function's own recorded argument",
+    `e2e-scenarios-b.md E2E-C-16 steps (1) and (2); ${C.ks21} item 2; A112`,
+    carriesHandle(cPending, hWatch)
+      && loop.filter((x) => x.kind === 'plain' && x.ok === true).length === 1
+      && heard.filter((x) => JSON.stringify(x.addr) === JSON.stringify(triggerAddr)).length === 1,
+    `at K-2's return pending held ${cPending.length} of ${c.triggered.length} triggered handle(s) (the listener's pair stands there=${carriesHandle(cPending, hWatch)}); the caller's own loop invoked it ${loop.filter((x) => x.kind === 'plain' && x.ok === true).length}x, handed ${JSON.stringify(heard[0]?.addr)} — the whole returned set is the populating member (A112), and the loop's own call is this cell's reading`);
 });
 
 // SURFACE — the unit's declared surface: five items and the caller's own store

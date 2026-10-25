@@ -9,7 +9,7 @@
     "typecheck": "npm run typecheck:stage && tsc -p tsconfig.typecheck.json && npm run typecheck:nodenext",
     "typecheck:nodenext": "tsc -p tsconfig.typecheck.nodenext.json",
     "build": "cargo build --offline --release -p storeroom-native && cargo build --release --manifest-path bindings/js/Cargo.toml && node scripts/stage-addon.mjs",
-    "greens": "node tests/e2e/greens.mjs && node tests/e2e/live-drive.mjs && node tests/e2e/file-tier-save/scenarios.mjs",
+    "greens": "node scripts/greens-chain.mjs",
     "test:e2e": "node tests/e2e/installed/live-install.mjs",
     "test:store": "cargo test --offline -p storeroom-native",
     "test:battery": "cargo test -p storeroom-tests",
