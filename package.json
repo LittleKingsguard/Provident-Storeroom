@@ -4,7 +4,7 @@
   "type": "module",
   "description": "INSTRUMENT HARNESS ONLY — the root manifest gives this repository the gate-9 trio (`test` / `typecheck` / `build`) against WHAT EXISTS HERE. It is PRIVATE and it is NOT a publishable package: the deliverable is `bindings/js` (`provident-storeroom`), whose version this file does not carry and must never be mistaken for (DEF-2026-10-16-R, DEF-2026-10-16-Q).",
   "scripts": {
-    "test": "node --test bindings/js/test/*.test.mjs",
+    "test": "node --test \"tests/**/*.test.mjs\"",
     "typecheck:stage": "node -e \"const fs=require('node:fs');fs.rmSync('typecheck/node_modules/provident-storeroom',{recursive:true,force:true});fs.mkdirSync('typecheck/node_modules/provident-storeroom',{recursive:true});for(const f of ['package.json','index.d.ts'])fs.copyFileSync('bindings/js/'+f,'typecheck/node_modules/provident-storeroom/'+f)\"",
     "typecheck": "npm run typecheck:stage && tsc -p tsconfig.typecheck.json && npm run typecheck:nodenext",
     "typecheck:nodenext": "tsc -p tsconfig.typecheck.nodenext.json",
