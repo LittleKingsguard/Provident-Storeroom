@@ -341,13 +341,13 @@
           "output": "the addon's commit answer, or the refusal carried unchanged"
         }
       ],
-      "interactions": ["js-surface", "js-crossing", "js-constraints", "constraint-kernel", "binding-facade", "js-battery", "greens-harness"]
+      "interactions": ["js-surface", "js-crossing", "js-constraints", "binding-facade", "js-battery", "greens-harness"]
     },
     {
       "id": "js-constraints",
-      "name": "The constraint members' glue",
-      "owns": ["bindings/js/index.mjs#L5202-L5903"],
-      "responsibility": "Carry the five constraint members and the write path's constraint evaluation, and reach the kernel lazily without importing it at load.",
+      "name": "The constraint members and the integrated kernel",
+      "owns": ["bindings/js/index.mjs#L5202-L5903", "bindings/js/src/constraint-kernel.mjs"],
+      "responsibility": "Carry the five constraint members and the write path's constraint evaluation, and evaluate a write against registered pairs — composing and repairing the attempt and answering its log and report — as one integrated mechanism rather than an external import (strata/decisions.md D-1).",
       "endpoints": [
         {
           "name": "addConstraint",
@@ -373,53 +373,9 @@
           "name": "constraintWrite",
           "input": "an address, a tier and a value on the write path",
           "output": "the evaluated pair set before the durable save, or the refusal"
-        },
-        {
-          "name": "constraintsKernel",
-          "input": "nothing — a lazy require_ of the kernel's checkout home",
-          "output": "the kernel namespace, loaded on first constraint use and never at entry load"
         }
       ],
-      "interactions": ["js-surface", "js-registry-delivery", "constraint-kernel", "js-battery", "greens-harness"]
-    },
-    {
-      "id": "constraint-kernel",
-      "name": "The constraint kernel",
-      "owns": ["bindings/js/src/constraint-kernel.mjs"],
-      "responsibility": "Evaluate a write against registered pairs, compose and repair an attempt, and answer the attempt's log and report.",
-      "endpoints": [
-        {
-          "name": "register",
-          "input": "a store, an address, an id and a constraint function",
-          "output": "the registered pair's kernel-side entry"
-        },
-        {
-          "name": "commit",
-          "input": "a store, an address, a tier and a value",
-          "output": "the commit record the caller then runs as an attempt"
-        },
-        {
-          "name": "runAttempt",
-          "input": "a store and a commit record",
-          "output": "the attempt's answer — its verdict, its composed repairs and the operations it undid"
-        },
-        {
-          "name": "log",
-          "input": "a store and an attempt reference",
-          "output": "the attempt's LogEntry list — six members, the kernel's own records, carried verbatim"
-        },
-        {
-          "name": "report",
-          "input": "a store and an attempt reference",
-          "output": "the attempt's report"
-        },
-        {
-          "name": "remove",
-          "input": "a store and a pair",
-          "output": "void — the kernel-side withdrawal of a registration"
-        }
-      ],
-      "interactions": ["js-constraints", "js-registry-delivery", "js-battery", "greens-harness"]
+      "interactions": ["js-surface", "js-registry-delivery", "js-battery", "greens-harness"]
     },
     {
       "id": "js-declaration",
@@ -588,7 +544,7 @@
           "output": "a per-file pass/red row set over the surface, the kernel, the held listener identity, the JSON crossing, the file-tier save, the publication and the version stamp"
         }
       ],
-      "interactions": ["js-surface", "js-crossing", "js-registry-delivery", "js-constraints", "constraint-kernel", "js-resolution", "js-declaration", "delivery"]
+      "interactions": ["js-surface", "js-crossing", "js-registry-delivery", "js-constraints", "js-resolution", "js-declaration", "delivery"]
     },
     {
       "id": "greens-harness",
@@ -619,7 +575,7 @@
           "output": "cell-by-cell observations for the constraints, the held listener identity, the JSON crossing and the JSON acceptance set, each read as a finding and never as a pass"
         }
       ],
-      "interactions": ["js-surface", "js-registry-delivery", "js-constraints", "constraint-kernel", "js-resolution", "delivery"]
+      "interactions": ["js-surface", "js-registry-delivery", "js-constraints", "js-resolution", "delivery"]
     }
   ]
 }

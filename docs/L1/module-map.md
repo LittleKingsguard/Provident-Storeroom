@@ -9,8 +9,17 @@ declares the ownership split it recommends and says so as an ownership boundary,
 
 **INPUTS.** `strata/brief.md` (read whole), the nine kept contracts under `docs/specs/` (read selectively by
 section heading and by `grep` — the sections actually read are listed in the return envelope), and the tree
-itself, surveyed file by file. `strata/decisions.md` **does not exist on this branch**; no decision file was
-available to this pass other than what the brief and the contracts quote.
+itself, surveyed file by file. The first pass had no decision file: `strata/decisions.md` did not exist on this
+branch then, and the only rulings available were what the brief and the contracts quote. **It exists now, and
+its entry `D-1` is the authority this revision applies.**
+
+**REVISION AT `D-1` — WHAT THIS MAP REPLACED.** `D-1` rules the constraint kernel **tightly integrated, not an
+external import**, and on that ruling the boundary this map drew between module **13 `js-constraints`** and
+module **14 `constraint-kernel`** is *not a boundary the architect recognises*. The two are **one module**
+below; interaction **I-11** ceases to be a boundary interaction; the kernel's export set stops being a boundary
+claim; and the fourth `files` allowlist entry has no subject. **`D-1` orders no code move**, so every fact this
+map records about the tree is a fact of the tree as it stands, and each changed reading is marked where it
+stands rather than presented as though it had always read that way.
 
 **MEASUREMENT LIMIT — READ BEFORE TRUSTING THE COUNTS.** The first pass over this map had no shell. Its
 inventory was built from the file tools' glob enumeration of the workspace (a complete 11,930-path listing of
@@ -42,17 +51,31 @@ carried openly:
   *"`Cargo.lock` STAYS UNCOMMITTED by decision"*, which the repository's own index contradicts. The
   contradiction is recorded, not resolved; both are listed in §5.3.
 
+**THE REVISION AT `D-1` HAD NO SHELL EITHER**, so it measures nothing: it re-reads the map's own figures
+against the module merge and moves two of them (**20 → 19 modules**, **68 → 61 endpoints**), re-reads the four
+tree facts it restates (`package.json`'s four `files` entries, `constraint-kernel.mjs`'s six `export` sites, the
+`constraintsKernel()` call sites, and the `kernel.commit` / `kernel.runAttempt` calls), and changes no path
+ownership at all — **105 + 1 + 20 = 126 stands untouched**. Everything it could not check is named where it
+stands (§5.3, §7).
+
 **FIGURES.** 126 paths in the denominator — the corrected figure, reconciled to `git ls-files`'s 126 tracked
 non-`scratch/` paths. **105 are owned by exactly one module**, **1 is co-owned by five modules over
 declared line regions** (`bindings/js/index.mjs`), and **20 are unowned with a reason** (§5). The
 reconciliation by ownership is exact: **105 owned + 1 co-owned + 20 unowned = 126**, with no path
-unaccounted for. 20 modules are declared, **68 endpoints**. The arithmetic by tree: `src/` 7 owned ·
+unaccounted for. **19 modules** are declared, **61 endpoints** — **revised at `D-1` from the 20 modules and 68
+endpoints this line carried at `e2fcbef`, and the movement is shown rather than absorbed:** folding 13 and 14
+into one module removes one module and **dissolves seven endpoints** — the six kernel exports, whose subject is
+the export set `D-1` rules away, and `constraintsKernel`, the lazy reach that *was* the boundary (§3, §4 E6).
+The five member-facing constraint endpoints stay. **61 + 7 = 68**, and 19 + 1 = 20. The arithmetic by tree:
+`src/` 7 owned ·
 `tests/` 15 owned · `bindings/js/` root 7 (5 owned, `index.mjs` co-owned, `.gitignore` unowned) ·
 `bindings/js/src/` 5 owned · `bindings/js/test/` 42 owned · `bindings/js/tests/` 7 owned ·
 `bindings/js/greens/` 11 owned · `bindings/js/platforms/` 10 owned · `docs/specs/` 9 unowned ·
 `typecheck/` 1 unowned · `.github/workflows/` 1 owned · `scripts/` 1 owned (`scripts/publish.sh`, the release
 runbook, given to `delivery` by this correction pass — §2.3, §5) · root 9 (1 owned, 8 unowned) · `strata/`
-1 unowned. The 477 tracked files under `scratch/` are **outside** this denominator by convention, not by rule
+1 unowned (`strata/brief.md`; **`strata/decisions.md` now stands beside it and this pass could not verify
+whether it is tracked**, so whether the tracked denominator is now 127 is owed a shell check — the 126 is left
+as measured). The 477 tracked files under `scratch/` are **outside** this denominator by convention, not by rule
 (§5.4); the whole tracked tree is **603 = 477 + 126**.
 
 ---
@@ -73,14 +96,23 @@ runbook, given to `delivery` by this correction pass — §2.3, §5) · root 9 (
 | 10 | `js-surface` | The entry and its members | Publish the module's one export, define the instance's fourteen members, admit each call's arguments at its site, and render the single failure form. |
 | 11 | `js-crossing` | The JS-side walk | Decide each value's class, guard the walk's ceilings and caller-code arms, and encode arguments in and decode answers out. |
 | 12 | `js-registry-delivery` | The registry and the delivery path | Hold the package's per-instance state, the handle and its registry, deliver the triggered set to the caller's functions, and perform the terminal arm's `file`-tier save. |
-| 13 | `js-constraints` | The constraint members' glue | Carry the five constraint members and the write path's constraint evaluation, and reach the kernel lazily without importing it at load. |
-| 14 | `constraint-kernel` | The constraint kernel | Evaluate a write against registered pairs, compose and repair an attempt, and answer the attempt's log and report. |
-| 15 | `js-declaration` | The published declaration | Declare the whole published surface — the config, the statuses, the records and the fourteen members — as the hand-authored `index.d.ts`. |
-| 16 | `delivery` | What ships and how it is built | Own the package manifest, the five per-platform packages, both crate manifests, the shipped README and the release pipeline. |
-| 17 | `store-battery` | The store-side battery | Drive the native crate's declared behaviour through its own integration battery. |
-| 18 | `binding-battery` | The binding crate's battery | Drive the conversion core's per-class table in Rust, with no Node runtime present. |
-| 19 | `js-battery` | The JS battery | Drive the assembled package through the entry: surface, kernel, listeners, codec, properties, publication. |
-| 20 | `greens-harness` | The greens runners | Drive the assembled package as a caller from outside, per wave, and report each green with its layer. |
+| 13 | `js-constraints` | The constraint members and the integrated kernel | Carry the five constraint members and the write path's constraint evaluation, and evaluate a write against registered pairs — composing and repairing the attempt and answering its log and report — as **one integrated mechanism rather than an external import**. |
+| 14 | `js-declaration` | The published declaration | Declare the whole published surface — the config, the statuses, the records and the fourteen members — as the hand-authored `index.d.ts`. |
+| 15 | `delivery` | What ships and how it is built | Own the package manifest, the five per-platform packages, both crate manifests, the shipped README and the release pipeline. |
+| 16 | `store-battery` | The store-side battery | Drive the native crate's declared behaviour through its own integration battery. |
+| 17 | `binding-battery` | The binding crate's battery | Drive the conversion core's per-class table in Rust, with no Node runtime present. |
+| 18 | `js-battery` | The JS battery | Drive the assembled package through the entry: surface, kernel, listeners, codec, properties, publication. |
+| 19 | `greens-harness` | The greens runners | Drive the assembled package as a caller from outside, per wave, and report each green with its layer. |
+
+**Row 13 is a supersession, not an original reading.** At `e2fcbef` this table carried two rows here — **13
+`js-constraints`** (*"reach the kernel lazily without importing it at load"*) and **14 `constraint-kernel`**
+(*"evaluate a write against registered pairs…"*) — and `D-1` folds them into one: the mechanism is a strict
+requirement with nothing to defer, so the boundary between the members' glue and the evaluation machinery is
+not an ownership boundary. **The merged row keeps the id `js-constraints`** rather than taking a new one, so
+that every consumer-facing relation keeps its key and `D-1`'s own citations keep resolving; the separate
+`constraint-kernel` key is dropped from every module's list (§3, `modules.json`). The
+fourteen-member instance and the single failure form are unmoved by `D-1` and are still stated at row 10 and
+§4 E1.
 
 ---
 
@@ -124,10 +156,18 @@ Node-API symbols link, and it emits the version stamp that the facade's `addon_v
 | `js-surface` | `bindings/js/index.mjs` — **regions** `L1–L78` (file header and route statement), `L618–L746` (the failure form), `L3425–L4593` (`storeCreate` and the fourteen members) |
 | `js-crossing` | `bindings/js/index.mjs` — **region** `L747–L3070` |
 | `js-registry-delivery` | `bindings/js/index.mjs` — **regions** `L88–L200` (the symbol-key registry), `L201–L331` (the attempt seam), `L3072–L3424` (instance state and carriers), `L4594–L5200` (commit refusal, delivery, registration, terminal arm) |
-| `js-constraints` | `bindings/js/index.mjs` — **region** `L5202–L5903` |
-| `constraint-kernel` | `bindings/js/src/constraint-kernel.mjs` (2,203) |
+| `js-constraints` | `bindings/js/index.mjs` — **region** `L5202–L5903`; and `bindings/js/src/constraint-kernel.mjs` (2,203) |
 | `js-declaration` | `bindings/js/index.d.ts` (788) |
 | `delivery` | `bindings/js/package.json`, `bindings/js/README.md`, `bindings/js/Cargo.toml`, `Cargo.toml`, `bindings/js/platforms/{linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64}/package.json` (5), the same five `README.md` (5), `.github/workflows/publish.yml`, `scripts/publish.sh` |
+
+**`js-constraints` owns both paths, and the line between them is internal to it.** At `e2fcbef` this table gave
+`bindings/js/src/constraint-kernel.mjs` to its own module **14**; under `D-1` the kernel is tightly integrated,
+so the module owns the entry's constraint region `L5202–L5903` **and** the kernel file, at one ownership. The
+two paths and the `require_` that joins them are therefore **inside one module's boundary, not across it** —
+their separation is a fact of how the code is laid out, not an ownership claim. **Dissolving it physically
+(moving the kernel's content into the entry, or folding the two files) is an implementation pass's act, and
+neither this map nor `D-1` orders it**: `D-1` rules what the mechanism *is*, and says in as many words that it
+orders no code move. The file still exists and is still owned here; nothing in this map presumes it has moved.
 
 `scripts/publish.sh` (410 lines) is the release runbook, and it is owned here because it and
 `.github/workflows/publish.yml` are **one pipeline under one owner**: the script's own header says its tag push
@@ -139,10 +179,12 @@ declaration sites (measured by grep on function declarations, not read line by l
 table and the resolution ladder (`L332–L617`), the failure form (`L618–L746`), the JS-side walk, class
 decisions and all encoders and decoders (`L747–L3070`), the per-instance registry, the state carriers and the
 `finalization` retirement (`L3072–L3424`), the fourteen members as one 1,169-line `storeCreate`
-(`L3425–L4593`), delivery and the terminal arm (`L4594–L5200`), and the constraint glue (`L5202–L5903`). The
-five regions above are declared **as ownership boundaries only**. The path itself is therefore listed in §5 as
-co-owned: *no single module can own `index.mjs` until the regions are physically separable*, and this map
-does not order that separation.
+(`L3425–L4593`), delivery and the terminal arm (`L4594–L5200`), and the constraint glue (`L5202–L5903` — the
+one region whose owner also owns a second file, `src/constraint-kernel.mjs`, under `D-1`). The five regions
+above are declared **as ownership boundaries only**, and the count of owning modules is unchanged at **five**:
+the merge folds two file-owners into one module, it does not free a region. The path itself is therefore listed
+in §5 as co-owned: *no single module can own `index.mjs` until the regions are physically separable*, and this
+map does not order that separation.
 
 ### §2.4 The batteries and the greens
 
@@ -181,8 +223,8 @@ consumer → provident-storeroom entry (index.mjs) → addon artefact (.node, fa
 | I-8 | `js-registry-delivery` | the addon artefact | `commitFile(opId)` — the terminal arm's only store call, on the passing arm alone | runtime crossing |
 | I-9 | `js-registry-delivery` | the caller's own functions | `deliver` invokes each registered function with the triggering ADDRESS as its one argument | the package's own act |
 | I-10 | `js-registry-delivery` | `js-crossing` | the `triggered` set's addresses, decoded, and the handle tokens | call |
-| I-11 | `js-constraints` | `constraint-kernel` | `require_('./src/constraint-kernel.mjs')` **lazily**, inside `constraintsKernel()` — never at load | call |
-| I-12 | `constraint-kernel` | the instance | the kernel drives the instance's own public members (`write`, `read`, `rollback`, `listen`, `unlisten`, `removeListener`) through the object it is handed | call, consumer-shaped |
+| I-11 | — **vacated at `D-1`** — | — | stood for `js-constraints → constraint-kernel` as a lazy `require_`; the relation it named is **internal** to `js-constraints` now, and the number is retained rather than reused (see below) | internal, not a boundary |
+| I-12 | `js-constraints` (its integrated kernel half) | the instance (an object `js-surface` defines) | the kernel drives the instance's own public members (`write`, `read`, `rollback`, `listen`, `unlisten`, `removeListener`) through the object it is handed | call, consumer-shaped |
 | I-13 | `js-surface`, `js-crossing`, `js-declaration` | the store's fail set | the statuses are the store's and are carried, never minted; `index.mjs`'s header states this at `L18–L25` | carried value |
 | I-14 | addon artefact (`binding-facade`) | `binding-codec` | each entry's Node-API arguments and its return value | call |
 | I-15 | `binding-codec` | `binding-crossing` | the carrier model (`JsConfig`, `JsAddressArg`, `JsValue`, …) | call |
@@ -193,18 +235,30 @@ consumer → provident-storeroom entry (index.mjs) → addon artefact (.node, fa
 | I-20 | `store-core` | `store-records` | the returned record shapes, the tier token and the resolver's reference | call |
 | I-21 | `store-core`, `binding-crossing` | `store-fail-set` | `StoreError` / `Refusal` construction and the generated messages | call |
 | I-22 | `binding-crossing` | `store-value` + `store-records` | `StoreValue` conversion and the `Js*` record wrappers over the store's records | call |
-| I-23 | `delivery` | every published module | the `files` allowlist names exactly four entries; the `exports` map publishes `"."` only; five `optionalDependencies` pinned exactly | declared, not called |
+| I-23 | `delivery` | every published module | the `files` allowlist **carries four entries in the tree today** — `index.mjs`, `README.md`, `index.d.ts`, `src/constraint-kernel.mjs` — and `D-1` rules the **fourth has no subject**, so the intended shipped set is three entries plus one the ruling leaves standing in the manifest; the `exports` map publishes `"."` only; five `optionalDependencies` pinned exactly | declared, not called |
 | I-24 | `store-battery` | `store-core`, `store-value`, `store-args`, `store-records`, `store-fail-set` | the crate's own integration battery | test drive |
 | I-25 | `binding-battery` | `binding-crossing` | the per-class table driven with no Node runtime | test drive |
-| I-26 | `js-battery` | `js-surface`, `js-crossing`, `js-registry-delivery`, `js-constraints`, `constraint-kernel`, `delivery`, `js-resolution` | `node --test` through the entry (`import { storeCreate } from 'provident-storeroom'`) and, for the kernel's cells, `../src/constraint-kernel.mjs` | test drive |
+| I-26 | `js-battery` | `js-surface`, `js-crossing`, `js-registry-delivery`, `js-constraints`, `delivery`, `js-resolution` | `node --test` through the entry (`import { storeCreate } from 'provident-storeroom'`) and, for the kernel's cells, `../src/constraint-kernel.mjs` — a fact of the tree; `D-1`'s consequence is that those cells reach a file internal to one module, not a peer module's published export | test drive |
 | I-27 | `greens-harness` | the assembled package (all JS modules) | the entry and the built `.node` as a caller would reach them, per wave | live drive |
 | I-28 | `js-declaration` | nothing at runtime | it declares the same surface the entry publishes; no module imports it | declaration |
 
+**I-11 is vacated, and its number is retained rather than reassigned.** At `e2fcbef` that row declared
+`js-constraints → constraint-kernel` over `require_('./src/constraint-kernel.mjs')` — **lazily**, inside
+`constraintsKernel()`, never at load. `D-1` rules the kernel **not an external import but tightly integrated**,
+so the reach it described is **internal to one module** and nothing crosses a boundary there; what stood in the
+row was a module boundary, and there is none. The number stays with the row it named because
+`strata/decisions.md`'s `D-1` cites `I-11` by number — renumbering would make the ruling's own citation resolve
+to a different relation — so **27 boundary interactions stand in this table and no id shifted**. I-12, I-23 and
+I-26 are likewise kept at their numbers and restated where `D-1` moved them.
+
 **Two interactions the map states explicitly because they are the ones a reader gets wrong.** The store
 invokes no callback: I-9 is the *package's* act, performed after the addon's call has returned, and the addon
-only ever returns the triggered handle set (`A57`, brief §5 item 5). And the kernel is **not** loaded by the
-entry at load: I-11 is a lazy `require_` inside a function, which is what keeps the entry's zero-dependency
-rule intact while the kernel still ships in the package's `files` allowlist.
+only ever returns the triggered handle set (`A57`, brief §5 item 5). And the constraint mechanism is **not an
+external import**. The sentence that stood here at `e2fcbef` — I-11's lazy `require_` keeps the entry's
+zero-dependency rule intact *"while the kernel still ships in the package's `files` allowlist"* — is
+**superseded**: the mechanism is a strict requirement, so there is nothing to defer and nothing separate to
+ship, and the fourth allowlist entry's subject is gone (I-23). The `require_` is still in the tree and `D-1`
+orders no code move; what changes is that its two ends are one module's ends.
 
 ---
 
@@ -267,10 +321,17 @@ const store = storeCreate(cfg);
 
 - **IN:** `npm install provident-storeroom` for a consumer; a registry install for the five platform packages;
   the release workflow's run.
-- **OUT:** the `provident-storeroom@0.5.0` package with a four-entry `files` allowlist and one `exports` arm
-  (`"."`), and five `@auspicion/provident-storeroom-js-*` packages pinned **exactly** at `0.5.0`.
+- **OUT:** the `provident-storeroom@0.5.0` package, one `exports` arm (`"."`), and five
+  `@auspicion/provident-storeroom-js-*` packages pinned **exactly** at `0.5.0`.
 - **Verified:** `bindings/js/package.json` — `version` `0.5.0`, `files` = `index.mjs` · `README.md` ·
-  `index.d.ts` · `src/constraint-kernel.mjs`, `engines.node` `>=18.0.0`, five exact `optionalDependencies`.
+  `index.d.ts` · `src/constraint-kernel.mjs` (four entries), `engines.node` `>=18.0.0`, five exact
+  `optionalDependencies`.
+- **The allowlist is what `D-1` corrects, and both halves are stated.** The tree **does** carry four entries
+  today — that is a fact of the manifest, not a reading — and `D-1` rules that the **fourth
+  (`src/constraint-kernel.mjs`) has no subject**, because a tightly integrated kernel is not published as a
+  separately-reachable module. So the shipped set the ruling intends is three entries plus one row the ruling
+  leaves in place. **This map records the ruling and does not pretend the code has moved**; no manifest edit is
+  ordered here, and the fourth-row removal is an implementation pass's act.
 
 ### E5 · The repository's instrument surface (not the product's)
 
@@ -279,13 +340,24 @@ const store = storeCreate(cfg);
 projects), `npm run build` (two `cargo build`s), `npm run greens` (three runners). Nothing here is a consumer
 entry point; it is how the batteries in §2.4 are driven.
 
-### E6 · The kernel's caller loop — declared, and deliberately outside the package
+### E6 · The kernel's loop — inside the module, no longer a package surface
 
-`constraint-kernel.mjs` exports six functions (`register` · `commit` · `runAttempt` · `log` · `report` ·
-`remove`, read at its `export` sites). A consumer that wants constraint evaluation drives that loop itself; the
-entry never invokes it (I-11 is a lazy load of the module, not a call to it). **This is the surface the A112
-ordering gate is red on** (brief §6): where the listener sits relative to the constraint pass is a question
-about this loop's carrier, and it is open.
+`constraint-kernel.mjs` carries six `export` sites (`register` · `commit` · `runAttempt` · `log` · `report` ·
+`remove`, read at L486, L1008, L1158, L2063, L2075, L2111). At `e2fcbef` this subsection declared those six
+**a caller loop deliberately outside the package**, on the ground that the kernel was a separately-reachable
+published module (`files` entry four) with its own consumer-facing entry points. **`D-1` supersedes that
+reading:** a tightly integrated kernel **publishes no export set at all**, so the six are not a surface anything
+outside the module crosses, and the pin that once governed them — an archived unit's *"exactly five"*, widened
+to six, with a seventh refused by name — **governs nothing outside the code**. The six functions remain a fact
+of the file (`D-1` orders no code move); they are internal to `js-constraints` (§2.3), and their endpoints are
+among the seven the revision dissolves (FIGURES, §1).
+
+**A divergence is recorded, not resolved.** This subsection also said the entry never invokes the loop. The tree
+says otherwise: `constraintsKernel()` is called at `L3995`, `L4089`, `L4156`, `L5426`, `L5542`, `L5599`, and
+`constraintWrite` runs `kernel.commit(instance, address, tier, value)` at `L5723` then
+`kernel.runAttempt(instance, record)` at `L5729` — the brief's account, verified at the bytes. **Nor is that the
+`A112` question:** whether delivery follows the constraint pass is still `OWED` a measurement (brief §6, §7
+below), and this map takes no position on it.
 
 ---
 
@@ -332,7 +404,7 @@ though it were. See §5.4.
 | `README.md` (root) | repository documentation | Product-level prose; the brief cites it, but no module's behaviour depends on it. (The *shipped* README at `bindings/js/README.md` **is** owned, by `delivery`.) |
 | `LICENSE` | licence of record | *"Carried into every artefact at assembly time"* (brief §1). It is an input to the assembly, not an artefact any module produces; the package's `files` allowlist deliberately carries **no** `LICENSE` row. |
 | `docs/specs/**` — 9 contracts | specification corpus | The authoritative kept contracts (`storeroom-native`, `storeroom-js` + `surface.md`, `storeroom-publish`, `storeroom-json-crossing`, `storeroom-held-listener-identity`, `storeroom-constraints`, `storeroom-addon-surface`, `storeroom-addon-adoption`). They are this workflow's *inputs*, and no code module owns its own specification: a module that owned its contract could amend what it is measured against. |
-| `strata/brief.md` | L1 input | The brief itself. `strata/decisions.md` is **absent on this branch**. |
+| `strata/brief.md` | L1 input | The brief itself. `strata/decisions.md` was **absent when this map was written** and is **present now**, carrying `D-1` — it is the authority this revision applies. Neither file is owned by a code module: a ruling is not a module's to hold. **Whether `strata/decisions.md` is tracked is not verified by this pass** (no shell), so it is neither owned nor counted; see FIGURES. |
 
 ### §5.4 `scratch/` — excluded from ownership by convention, never by an ignore rule, and git disagrees
 
@@ -391,12 +463,15 @@ PERFORMANCE CHOICE — IT IS A CORRECTNESS ONE"*: without it a `file`-tier state
 the decoder cannot read back. Should that feature selection be owned by `store-value` and the manifest split,
 or does a manifest's whole content belong to delivery?
 
-**Q5 — are the kernel and the declaration peers or dependants?** (a) `constraint-kernel.mjs` is declared here
-as a peer module that `js-constraints` loads lazily, which matches the fact that it is a separate published
-file (`files` entry four) with its own six exports and its own battery. Should it instead be owned by
-`js-constraints`, since every one of its entry points is reached from that region of the entry? (b)
-`index.d.ts` is declared here as a peer (`js-declaration`) because it is hand-authored and shipped and the
-brief lists it as its own layer. But it declares shapes no runtime member of the entry carries (`BaseState`,
+**Q5 — are the kernel and the declaration peers or dependants?** **(a) is answered by `D-1`, and the question is
+kept so a reader sees what was asked.** It read: *"`constraint-kernel.mjs` is declared here as a peer module
+that `js-constraints` loads lazily, which matches the fact that it is a separate published file (`files` entry
+four) with its own six exports and its own battery. Should it instead be owned by `js-constraints`…?"* — **yes,
+and `D-1` is the ground:** the kernel is not an external import, so it is not a peer, and one integrated module
+owns both paths (§1 row 13, §2.3). The question is **closed, not re-decided here**; what `D-1` leaves open is
+the *physical* merge, which is an implementation pass's act and which the ruling does not order. **(b) is still
+open.** `index.d.ts` is declared here as a peer (`js-declaration`) because it is hand-authored and shipped and
+the brief lists it as its own layer. But it declares shapes no runtime member of the entry carries (`BaseState`,
 `AttemptRef`, `CommitRecord`, `LogEntry`) and it is the surface the type check measures — should the
 declaration be owned by `js-surface` as *the surface's own declaration*, or stay a peer so that a divergence
 between the two is visible as an interaction rather than hidden inside one module?
@@ -409,12 +484,17 @@ between the two is visible as an interaction rather than hidden inside one modul
 list; `bindings/js/src/lib.rs`'s three-module declaration; the `Store` public method list and `storeCreate`'s
 two entry points (`src/store.rs`); `facade.rs`'s thirteen **line-initial** `#[napi]` sites (§4 E2 says which
 measurement that is); `crossing.rs`'s `Instance` methods
-and its 45 public items; `codec.rs`'s `Codec` methods; `constraint-kernel.mjs`'s six exports;
+and its 45 public items; `codec.rs`'s `Codec` methods; `constraint-kernel.mjs`'s six `export` sites (L486,
+L1008, L1158, L2063, L2075, L2111) — **read as exports of a file, not as a published export set, since `D-1`
+rules a tightly integrated kernel publishes none**;
 `index.d.ts`'s fourteen `StoreInstance` members and sixteen-plus-open `StoreStatus`; `index.mjs`'s single
-export and its function-declaration line map; `bindings/js/package.json`'s version, `files`, `exports`,
+export and its function-declaration line map, and — added by this revision — the `constraintsKernel()` call
+sites and the `kernel.commit` / `kernel.runAttempt` calls at `L5720–L5729` (§4 E6);
+`bindings/js/package.json`'s version, `files`, `exports`,
 `engines` and five exact pins; the root `package.json`'s scripts and `private`; root `Cargo.toml`'s
 `float_roundtrip` clause; both `.gitignore` files; the nine `docs/specs/**` paths and the section headings of
-`storeroom-native/contract.md` and `storeroom-js/contract.md`.
+`storeroom-native/contract.md` and `storeroom-js/contract.md`; and, for the revision, all of
+`strata/decisions.md`.
 
 **Concluded, not read:** that the five `index.mjs` regions correspond to five coherent responsibilities
 (the boundaries are the declaration sites, which I measured; the *coherence* is my judgement); that the
@@ -424,13 +504,17 @@ responsibility is one thing rather than two; and every count in this file's head
 disk measurement *by method*, and the aggregate denominator plus the three figures the measurement limit names
 have since been reconciled to the tracked set by a supervisor-run shell pass, not by this one.
 
-**Divergences between the brief and the tree, verified at the bytes** — recorded so no reader inherits the
-brief's stale figure:
+**Divergences verified at the bytes** — between the brief and the tree, or between an earlier reading in this
+map and the tree — recorded so no reader inherits a stale figure:
 
-1. **The kernel DOES ship.** Brief §6 says *"The constraint kernel does not ship … `bindings/js/package.json`'s
-   `files` still has three entries; `src/**` reaches no consumer today"*. The bytes read four entries —
-   `index.mjs`, `README.md`, `index.d.ts`, `src/constraint-kernel.mjs` — and the corpus's own clause agrees
-   (`greens.mjs:1211` quotes `distribution.md §2.1` item 6, *"the kernel's own module as the FOURTH entry"*).
+1. **The kernel DOES ship — and `D-1` rules its allowlist row has no subject.** Brief §6 says *"The constraint
+   kernel does not ship … `bindings/js/package.json`'s `files` still has three entries; `src/**` reaches no
+   consumer today"*. The bytes read four entries — `index.mjs`, `README.md`, `index.d.ts`,
+   `src/constraint-kernel.mjs` — and the corpus's own clause agrees (`greens.mjs:1211` quotes
+   `distribution.md §2.1` item 6, *"the kernel's own module as the FOURTH entry"*). **The tree fact stands
+   unchanged by this revision** (the manifest is not edited here); what `D-1` adds is that the fourth entry has
+   no subject under an integrated kernel, so the *shipping* reading and the *ruling* are both carried and
+   neither is used to erase the other (§4 E4, I-23).
 2. **`index.mjs` is at the package root, not under `src/`.** The brief's §2 table and the task statement both
    list it as `bindings/js/src/index.mjs`; the tree has it at `bindings/js/index.mjs` (5,903 lines, confirmed
    at the file's own end-of-file marker) and `bindings/js/src/` holds no `index.mjs` at all.
@@ -442,10 +526,16 @@ brief's stale figure:
 5. **The store crate's manifest declares `license = "GPL-3.0-or-later"`** while the package and the brief
    carry `AGPL-3.0` / `AGPL-3.0-or-later` (`bindings/js/Cargo.toml`). Not an ownership question; recorded
    because ownership puts `delivery` in front of both files.
+6. **`E6`'s old claim that the entry never invokes the kernel loop was wrong, and the brief was right.**
+   `index.mjs` calls `constraintsKernel()` at `L3995`, `L4089`, `L4156`, `L5426`, `L5542`, `L5599` and runs
+   `kernel.commit` / `kernel.runAttempt` at `L5723` / `L5729`. Recorded because the sentence this revision
+   replaced asserted the opposite, and `D-1` does not depend on either reading (§4 E6).
 
 **Not verified:** the tracked status of this map's owned entries **path by path** — a supervisor-run shell
 pass settled the aggregate (603 tracked, 477 of them under `scratch/`, 126 outside it), the `#[napi]` figure
-and the two root lock files, but it did not walk §2's ownership table line by line; whether the five platform
-package names resolve on any registry (`LIVE / INSTALL` is OPEN, brief §6); the A112 ordering gate's state
-(the brief carries it as RED; this map takes no position); and the tier-eviction reading, which the brief
-itself declines to settle.
+and the two root lock files, but it did not walk §2's ownership table line by line; **whether
+`strata/decisions.md` is tracked, which this revision could not check** (it had no shell either), so whether the
+tracked denominator is now 127 rather than 126 is owed a check and FIGURES keeps the 126 as measured; whether
+the five platform package names resolve on any registry (`LIVE / INSTALL` is OPEN, brief §6); the A112 ordering
+gate's state (the brief carries it as RED; this map takes no position); and the tier-eviction reading, which the
+brief itself declines to settle.

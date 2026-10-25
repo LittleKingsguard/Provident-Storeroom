@@ -32,6 +32,11 @@ are declared in the kept contracts, not in the guides:
 **THE RULE THIS BRIEF APPLIES:** where the guides and the tree disagree, the tree wins and the kept contract
 part is cited; where neither decides a question, this file says **`OWED`** rather than choosing.
 
+**ITS AUTHORITY AND ITS COMPANION.** This file states **what is**. `strata/decisions.md` holds **the
+architect's rulings** and overrides this file wherever the two meet — it already does on the constraint kernel
+(`D-1`). A design question this file marks `OWED` may be answered there; a question neither answers is taken to
+the user and to nobody else.
+
 ---
 
 ## §1 · What the product is
@@ -274,6 +279,14 @@ registry*, and a green on one layer does not retire a red on another.
   the *"`src/**` reaches no consumer today"* limitation the tracker recorded is superseded. **And the kernel's
   export set is SIX** (`register` · `commit` · `runAttempt` · `log` · `report` · `remove`), where the tracker
   pinned *"exactly five"*; that pin is superseded by the sixth member.
+- **★ THE ARCHITECT HAS RULED THAT CONFIGURATION OUT — `D-1`, and it outranks the two paragraphs above.**
+  The constraint mechanism is a **strict requirement** and is checked for triggered handles automatically, so
+  **the kernel does not need to be an external import and can be tightly integrated**
+  (`strata/decisions.md` `D-1`, quoting the architect). **So the lazy reach at `index.mjs:5227` and the fourth
+  `files` entry are a superseded *configuration*, not the design** — while both remain facts of the code as it
+  stands, because `D-1` rules what the mechanism is and orders no code move. **No layer below may read the
+  tree's lazy-and-separable shape as the architect's intent, and no layer may read `D-1` as a mandate to
+  evaluate constraints in the Rust store, or as a re-decision of the `A112` ordering law.**
 - **`LIVE / INSTALL` is OPEN and the `APP` layer is `NONE`.** No store has ever been loaded inside an Electron
   app, and the five platform names are declarations copied into several files that only a registry install
   falsifies.
