@@ -1117,3 +1117,59 @@ standing, and a brief that omits it is incomplete.**
 **WHY IT EXISTS:** this branch's archival moved 201 files and committed, and **the suite was the one check that
 would have caught the 21 cells it broke.** The exit walkthrough asks for the check; the check was not taken; the
 duty is now written down so that the asking is not the only thing standing between a pass and that failure.
+
+---
+
+### FINDING — the greens leg is RED AND CRASHES on the pre-existing tree, and this is not L0's damage
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0's baseline of the second leg,
+`npm run greens`, taken under `D-18`. **A finding, not a ruling — and the most consequential one on this branch.**
+
+**WHAT THE SECOND BASELINE SAYS.** `npm run greens` (`greens.mjs` → `live-drive.mjs` → `file-tier-save/scenarios.mjs`)
+exits **`1`** after **40 `FAIL` cells**, and **crashes before reaching its second and third legs** — the process dies
+on an **uncaught `{status:'AddressMalformed', …}`** thrown out of `greens.mjs`. **So two of the three runners the
+project's own `greens` script names were not executed at all.**
+
+**AND NONE OF IT IS THE ARCHIVAL'S DOING. Verified by cause, not by absence:** the failures are **member-set and
+signature** failures with **no `ENOENT` and no documentary read anywhere in the log**, and `greens.mjs` is **not one
+of the four files that open a document** (`D-17`'s measured 12 sites).
+
+**THE TWO STALE SUBJECTS, EACH NAMED FROM THE LOG'S OWN OBSERVED LINE.**
+1. **`JSG-01.9` expects TWELVE own members and the code carries FOURTEEN.** Its observed list is
+   `addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,removeConstraint,removeListener,rollback,unlisten,write`.
+   **`removeListener` and `removeConstraint` are the `+ 2` the held-listener-identity unit landed on 2026-10-19**
+   (`contract.md §2.7` item 9's `12 → 14`), **and the greens were never re-derived.**
+2. **`JSG-01.16`/`JSG-01.17` drive the SUPERSEDED `listen(address)` signature.** The code's `listen` takes
+   `(handle, addresses)` with the handle spelled by the caller, so the greens' call throws
+   `AddressMalformed … listen's first argument is an Array, and a listener's handle is a non-empty string this
+   caller spells`. **The same wave that moved the member count moved this signature, and the greens still drive
+   the old one.**
+
+**WHY THIS MATTERS MORE THAN ITS OWN SIZE.**
+
+- **`D-4` hands the publish shape to "the e2e/blind scenario testing". Those instruments are currently STALE AND
+  RED.** `F4` established that no green reports an installed layer; this establishes that the existing greens do not
+  run green at all. **The evidence base `D-4` names does not merely have a gap — it has a failing instrument.**
+- **`D-17`'s scope was understated by L0 twice, and both times in the same direction.** First as 52 documentary
+  citations (measured down to 12 open-sites), and now again: **`D-17` says a cell's subject must be code, which
+  makes every stale greens cell — 40 of them and counting — part of the same rewrite-or-retire work**, not just the
+  twelve that read documents. **The greens' staleness and the documentaries are one problem wearing two costumes:
+  cells whose expectation no longer comes from the code.**
+- **A crashed runner is worse than a failing cell.** `greens.mjs`'s uncaught refusal means `live-drive.mjs` and
+  `file-tier-save/scenarios.mjs` never ran, **so a reader of the exit code learns "red" and not "two thirds of this
+  leg did not execute".**
+
+**THE BASELINE THIS BRANCH NOW CARRIES, STATED AS ONE LEDGER.**
+
+| leg | result at HEAD | cause |
+|---|---|---|
+| `npm test` | **21 red cells** | **L0's archival** — 12 documentary open-sites, `D-17` retires or rewrites them |
+| `npm run greens` | **40 red cells, then a CRASH** | **pre-existing staleness** — a 12-member expectation against a 14-member surface, and a superseded `listen` signature |
+| `npm run typecheck` | **not taken** | owed under `D-18` |
+| `cargo test` | **not taken** | owed under `D-18` |
+
+**AND THE CONSEQUENCE FOR THE WAVE, WHICH IS THE POINT OF TAKING A BASELINE.** **The implementation wave cannot be
+verified against a green oracle, because there is no green oracle.** Its bar is therefore **"no new red, every red
+accounted for"** — and **the first item in it is not the entry cut**: it is **re-deriving the batteries that are
+supposed to judge the entry cut** (`D-17`), because using a stale instrument to judge a refactor produces two
+findings and no information.
