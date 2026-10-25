@@ -2256,3 +2256,44 @@ targets**, which every tool that walks a package directory would then mis-read.
 
 **L0 HAS NOT CHOSEN.** The JS migration is complete and green; **this is the last piece, and the choice between (A),
 (B) and (C) is the architect's.**
+
+---
+
+### `D-34` — the separate-crate requirement is LIFTED, and the technical assessment behind that
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect: *"Lift the separate crate
+requirement unless a technical reason for keeping it is present."*
+
+**THE ASSESSMENT, MADE BEFORE THE LIFT, BECAUSE THE INSTRUCTION MAKES THE LIFT CONDITIONAL.** **L0 measured what a
+workspace would actually collide with, and there is NO BLOCKING TECHNICAL REASON.** The three claims that could have
+been technical, each tested:
+
+| the claim | is it technical? |
+|---|---|
+| *"a root `cargo test` keeps its single-package meaning"* | **NO — a convention.** `-p storeroom-native` restores exactly that meaning inside a workspace. |
+| *"the `rlib` half is load-bearing so this crate's own tests link the crossing"* | **NO — and it is not a reason to stay separate at all.** `rlib` and workspace membership are independent; a member may be `["cdylib","rlib"]` and host its own tests. |
+| *"the store builds `--offline`, the binding fetches at build time"* | **A CONSEQUENCE, NOT A BLOCKER.** `cargo build --offline --release` at a workspace root builds **every member** — including the binding's `napi`/`napi-build` registry deps — so the `build` script would need `-p storeroom-native` on its offline half. **One flag.** |
+
+**AND TWO FACTS CONFIRMED AT THE MANIFESTS.** The `build` script is
+**`cargo build --offline --release && cargo build --release --manifest-path bindings/js/Cargo.toml`** — **the asymmetry
+is already in the commands, so scoping is a command property and not a crate property.** And **`bindings/js/Cargo.lock`
+exists but is UNTRACKED** (`DD-27`: *"its OWN `Cargo.lock` is NOT committed"*), so a workspace's single committed lock
+**changes a declared property and blocks nothing.**
+
+**SO `§3.4` ITEM `2` IS LIFTED** — *"IT IS NOT A WORKSPACE MEMBER"* — **as a requirement.** **The clause survives as
+history and is read through this ruling**, exactly as `D-3` superseded `§2.1` item 6 without editing the file; **the
+spec corpus is unowned and this log is what supersedes it.** **`§3.4` item `1`'s layout stands** (an independent
+crate, its own manifest, `crate-type = ["cdylib","rlib"]`, one path dependency) — **what is lifted is the
+NOT-A-MEMBER requirement, not the crate's existence.** And **item `3`'s `rlib` finding is untouched**, because
+nothing in this ruling changes how the crate is built.
+
+**WHAT IT UNLOCKS, WHICH IS WHY IT WAS ASKED FOR.** The binding's seven Rust test files could not reach
+`tests/integration/binding-crossing/…` while the crate was outside every workspace, because **Cargo requires a
+package's integration tests to live inside that package.** **With membership available, a THIRD PACKAGE can host
+them** — a tests package at the repository root that depends on both crates and owns `tests/integration/<module>/…`
+and `tests/unit/<module>/…` as its own targets. **That is the only shape that puts the Rust batteries at the
+preset's scopes without contradicting a language rule, and it is what this ruling makes possible.**
+
+**WHAT IT DOES NOT DECIDE.** **Whether to take that restructure at all** — the architect lifted the requirement; L0
+proposes the tests package as the shape that serves `D-5`'s goal, and **the next pass stops rather than accept a red
+Rust battery.**
