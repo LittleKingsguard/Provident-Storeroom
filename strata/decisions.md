@@ -1455,3 +1455,55 @@ fn)`** — the **adoption** observable, by reference equality. **`listen` return
 stale about a figure; it is unsatisfiable by the API.** **It belongs to the REWRITE class with a subject that has
 moved, and its clause's own sentence (*"adopted, never minted"*) is a documentary statement the code has
 contradicted since the caller-spelled-handle move.**
+
+---
+
+### `D-22` — `listen` returns the handle on success, and the `constraint@` noop prefix is discarded
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, ruling on the root
+`FINDING` above.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Listen should return the handle on success, or error message on fail. Discard the noop prefix
+
+**WHAT IT SETTLES.**
+
+- **`listen`'s return shape moves `undefined → Handle` on success**, and **failure stays the ONE thrown form**
+  (`{status, message}` — the project has exactly one failure channel and this ruling mints no second one).
+- **THE NOOP PREFIX IS DISCARDED.** The kernel's `constraint@<JSON address>` spelling, its `noopHandleFor` and its
+  `noopListener` (`constraint-kernel.mjs:970`, `:983`, `:1001`) all go, **and with them the entry's blanket
+  exemption for kernel-prefixed handles** (`index.mjs:4916`–`4924`). **`Q2`'s hazard dissolves with its cause: no
+  reserved namespace means no door for an application caller to walk through into a silently undeliverable
+  registration.**
+- **AND THE KERNEL'S HANDLE BECOMES ADOPTED AGAIN, which is what `kernel-surface.md` declared all along** —
+  *"adopted, never minted by the kernel"* — **and what `FTS-12.4`'s adoption observable (`store.listen(addr) ===
+  kernel.register(...)`) has been unable to assert since `listen` stopped returning anything.** **That cell moves
+  from unsatisfiable to assertable.**
+
+**WHAT IT SUPERSEDES, NAMED AT ITS OWN BYTES.** `docs/specs/storeroom-held-listener-identity/contract.md` **§2.2
+item `10`**, verbatim: *"`listen(handle, addresses) -> undefined`. **This is a DECLARED CHANGE of the return shape
+(`Handle` → `undefined`) and it is FORCED: the caller supplied the handle, so returning it would be a second
+spelling of the caller's own datum**"* — **the architect now overrules exactly that ground, so the return is a
+success signal that CARRIES the identity rather than an echo to be suppressed.** The clause stands as text and is
+read through this ruling; **the four clause sites item `1` declares for the `1 → 2` arity figure are not touched,
+and item `7`'s *"no conflict test"* for `listen` is unaffected.**
+
+**WHAT IT DOES NOT SETTLE — TWO, AND THE FIRST IS LOAD-BEARING.**
+
+1. **WHAT HANDLE THE KERNEL PASSES TO `listen` NOW THAT IT MAY NOT MINT A PREFIX.** It must still spell *something*
+   to occupy the pair's home entry, and it must still learn the standing identity. **The candidates are L1's to
+   declare against the code, not L0's:** the address spelled plainly; the handle the store already answers at that
+   address; or the returned value treated as the adoption point whatever the caller supplied.
+2. **★ AND THE CLAUSE THE PREFIX WAS QUIETLY PAPERING OVER: §2.2 ITEM `7`'s UNCONDITIONAL PURGE.** *"`listen` does not
+   test whether the entry it destroys belongs to another actor, and no clause exempts a kernel-held entry."* **So
+   a kernel occupancy at an address destroys whatever entry stood there**, and once the kernel has no reserved
+   namespace it is, at the store's own rule, **an ordinary actor with an unconditional purge.** Whether that is
+   acceptable — the pair's home entry replacing an app listener's — **is the design question the prefix hid, and
+   discarding the prefix surfaces it rather than creating it.**
+
+**THE SURFACE CONSEQUENCES, ALL DECLARED AND NONE OF THEM EXECUTED.** `bindings/js/index.d.ts`'s `listen` gains its
+`Handle` return (`js-declaration`); the entry loses its prefix exemption (`js-surface` / `js-registry-delivery`);
+the kernel loses its three symbols (`js-constraints`); the `listen → undefined` cells across the batteries move to
+REWRITE; and `PUB-DD-9`'s semantics are satisfied additively — a caller that ignores the return is unaffected by
+widening `void → Handle`. **No unit is open and no code is moved by this ruling.**
