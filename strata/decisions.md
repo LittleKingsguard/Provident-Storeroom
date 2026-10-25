@@ -1781,3 +1781,29 @@ theirs to move.**
 constraints above). **Whether the boot route's list is held to the same strictness** — it is the same route by the
 surface's own word (*"the list is supplied at every startup"*), so it should be, and a pass must say so. **And whether
 a duplicate inside the batch is reported per element or per pair** — a receipt shape, not a rule.
+
+---
+
+### `D-28` — the remaining work's order, recorded as L0's sequencing and not as a ruling
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, on the architect's *"Proceed"*.
+
+**THE ORDER, AND WHY IT IS THIS ORDER.**
+
+1. **THE SURFACE'S DECLARATIONS, THEN THE SURFACE'S CODE** (`D-22`…`D-27`). **The seven rulings interlock and one of
+   them resolves a contradiction inside the code** (`D-25` against the built conflict refusal), so **they must land
+   as one coherent change or the tree is left holding two rules that cannot both be true.** An L1 declaration of the
+   refusal arms, codes, forms and the construction order comes first, so the implementer invents nothing.
+2. **THE BATTERIES' RE-DERIVATION** (`D-17`, `D-19`, `D-20`), against the **post-ruling** shape. **This reverses L0's
+   earlier plan, and on purpose:** re-deriving the 25 REWRITE groups before the rulings land would have written
+   cells against a surface that is about to move a second time — the exact rework the review's classification exists
+   to prevent.
+3. **THE ENTRY AND KERNEL SUBDIVISION** (`D-1`, `D-2`, `D-13`, `D-14`). A pure move, verified by an oracle that is
+   finally trustworthy because step 2 made it so.
+4. **THE MIGRATION** — the 75 files to their strata homes, with the route re-spellings, the relabel (`D-9`) and the
+   installed battery (`D-10`).
+
+**AND THE VERIFICATION BAR FOR EVERY STEP, STATED ONCE.** **`npm run typecheck` and `cargo test --offline` are green
+today** and must stay green. **`npm test` and `npm run greens` are red for catalogued reasons** — so their bar is
+**"no new red, every red accounted for"**, with every red attributable to `REVIEW-2026-10-24.md`'s classification or
+to a ruling that has not landed yet. **A red that is neither is the finding.**
