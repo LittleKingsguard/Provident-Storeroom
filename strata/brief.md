@@ -26,8 +26,14 @@ are declared in the kept contracts, not in the guides:
   superseded (`docs/specs/storeroom-held-listener-identity/contract.md §2.2`, `listen-verb.md §1`–`§3`).
 - **Two removal members exist**, `removeListener(handle)` and `removeConstraint(pair)` — the guides' repeated
   claim *"no removal route exists"* is superseded. `constraints()` is the registered-pair read.
-- **The published package is `0.5.0`** (`bindings/js/package.json`), and the closed failure set is **sixteen**
-  statuses plus the open escape arm `(string & {})` (`index.d.ts`, the `StoreStatus` declaration).
+- **The published package is `0.5.0`** (`bindings/js/package.json`), and the closed failure set is **SEVENTEEN**
+  statuses — `ValueRefusedAtBoundary` at rank `17`, appended by the native contract's 2026-10-23 amendment
+  (`A148` Q3; `docs/specs/storeroom-native/contract.md` §8.1, *"the operative set is `17` members ranked `1`…`17`"*)
+  — plus the open escape arm `(string & {})`. **★ AND THE DECLARATION IS BEHIND IT: `bindings/js/index.d.ts`
+  declares SIXTEEN, and `src/error.rs`'s `CODES` carries seventeen.** So the published type file omits a status the
+  store emits and the contract declares; the escape arm keeps a consumer from being mis-typed fatally, but **every
+  census claim in that file is false as written** and this is a defect for `delivery`/`js-declaration`, not a
+  battery question. **This brief said "sixteen" until the batteries' review measured it — corrected here.**
 
 **THE RULE THIS BRIEF APPLIES:** where the guides and the tree disagree, the tree wins and the kept contract
 part is cited; where neither decides a question, this file says **`OWED`** rather than choosing.
