@@ -2399,3 +2399,57 @@ session was either **L0's own shell check** or **a test writer re-deriving a bat
 CAUGHT the defect.** **That question was asked by nobody, and this branch found nine defects — several of which a
 battery existed for and did not catch.** **A green battery validated by its own author is the weakest evidence this
 model has, and it is the evidence most of this session rested on.**
+
+---
+
+### THE EXAMINER'S FINDINGS — the first examiner pass on this branch, and it overturns the reading of "green"
+
+**DATE:** 2026-10-25. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** `role_l1_examiner`, read-only, the model's
+own procedure applied for the first time. **Nothing written; its findings are recorded here because they are
+perishable and they are the most consequential of the session.**
+
+**1 · THE BLIND INSTRUMENT'S 52 CELLS: `0` REAL DEFECT · `20` STALE · `0` UNTESTABLE · `32` BATTERY FAULT.**
+**The 25 FAIL are not the code failing.** **Twenty are stale against four rulings already re-derived in KEPT files and
+never in this one** — and **one cause sits behind twelve of them**: `triggered`/`pending` elements are the pair
+`{handle, address}`, so `includes(handle)` is *always* false (`register.test.mjs:48–56` spells that out). **The other
+32 are the INSTRUMENT breaking**: `E2E-C-2`'s fixture write is itself refused `FileCommitFailed`, so its own setup
+cannot be admitted and `2.9` — cited by three other cells — never runs; and **`E2E-C-12`'s `landingOnly` shield wraps
+`'not-a-function'` into a function, so `KC-2` never fires — the shield that saved seven scenarios in `D-20` created the
+blind spot in the one row that tests the refusal to *be* a function.** **And one cell — `16.5` — is green no drive
+earned: `loop.every(kind !== 'constraint')` is vacuous because every loop entry is unresolved.**
+
+**2 · LEG BY LEG, THE DEFECT EACH LEG MISSED — AND TWO GAPS THAT ARE STILL OPEN.**
+
+| leg | the history defect it missed | closed? |
+|---|---|---|
+| `test` 851 | the partition broke the package, 851 green | **in another leg** (`INSTALL-02`), not this one |
+| `greens` 254 | exited `0` with 21 FAIL | by `D-21`'s contract |
+| `test:e2e` 15 | a tarball that could not load | **by a cell with a control** |
+| **`typecheck`** | `index.d.ts` missing rank 17 | **NOT CLOSED HERE — the fixture names zero status literals**, and the gap is caught in `greens` by a HAND-TRANSCRIBED array, not a derivation from `src/error.rs`'s `CODES` |
+| `test:store` 29 | 127/128 admit-then-fail | by a cell |
+| **`test:battery` 235** | **the address set replacing instead of extending** | **NO CELL EXISTS** |
+
+**3 · THE BLIND INSTRUMENT BELONGS IN THE `greens` CHAIN — ONE TOKEN — AND `greens` GOES RED WHEN IT DOES.**
+**That is the point, not the cost.** Renaming it to `.test.mjs` would drag it onto `node:test` and lose `D-21`'s
+four-state report; **a reporting runner outside every leg is a document that fails when read.**
+
+**4 · FOUR DEFECTS NO PASS FOUND, EACH MEASURED BY THE EXAMINER.**
+1. **The constraint pass runs at landing on the bare-write route but NOT on `K-2`'s** — `store.write` evaluated the
+   pair and then refused the caller's own write; `commit(...)` left the counter unchanged. **An asymmetry claimed
+   nowhere.**
+2. **The pair carries the REGISTERED address, not the written one** (`{address:['a']}` for a write at `['a','b']`), so
+   an ancestor listener is handed its watch address as the trigger.
+3. **`E2E-C-2`'s own title names an unreachable behaviour** — a successful rollback marks the entry `compacted`, so the
+   second same-address call meets `M-6` and never `C-2`.
+4. **`greens`'s status census is hand-written**, so the declaration-shortfall direction is caught only because someone
+   widened it by hand.
+
+**5 · ADDED TO `D-10`'S CEILING, WHICH IS THE EXAMINER'S MOST USEFUL LINE.** **`scripts/publish.sh` — 22 KB, the
+release's whole assembly — runs in NO leg and NO workflow.** **No leg runs `build`**, so `stage-addon.mjs` guards only
+when invoked. **No leg drives concurrency or interleaving** — every battery is synchronous and single-process, **which
+is exactly the `D-30` class the defect belonged to.** **A skip is not a green: `skipped 1` is a cell that did not run.**
+
+**L0's SUMMARY, AND IT BELONGS IN THE RECORD RATHER THAN IN A REPORT:** **this branch's "all legs green" was true of
+the legs, and the examiner has now shown that two of them cannot catch what they exist for, one instrument with 52
+cells runs in no leg, and a third of that instrument is broken in a way that hides its own subject.** **The code is in
+good shape. The VERIFICATION is not, and it was never examined until now.**
