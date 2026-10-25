@@ -125,7 +125,7 @@
       "id": "store-fail-set",
       "name": "The closed fail set",
       "owns": ["src/error.rs"],
-      "responsibility": "Hold the sixteen statuses as one closed set and generate every message from the code and the failing trigger's arguments.",
+      "responsibility": "Hold the SEVENTEEN statuses as one closed set and generate every message from the code and the failing trigger's arguments.",
       "endpoints": [
         {
           "name": "the refusal's construction",
@@ -135,7 +135,7 @@
         {
           "name": "CODES / storeErrorMessage",
           "input": "nothing, or a status",
-          "output": "the closed sixteen-member set (as a [&'static str; 16]) and the generated message for one member; read by the declaration and by the entry, never minted there"
+          "output": "the closed SEVENTEEN-member set (as a [&'static str; 17]) and the generated message for one member; read by the declaration and by the entry, never minted there"
         }
       ],
       "interactions": ["store-core", "store-args", "binding-crossing", "js-surface", "js-declaration", "store-battery"]
@@ -406,7 +406,7 @@
         {
           "name": "StoreStatus and the record interfaces",
           "input": "the store's closed fail set and the record shapes the verbs return",
-          "output": "the sixteen statuses plus the open escape arm (string & {}), and the record, config, pair and identity interfaces"
+          "output": "the SEVENTEEN statuses plus the open escape arm (string & {}), and the record, config, pair and identity interfaces"
         }
       ],
       "interactions": ["js-surface", "store-fail-set", "js-battery", "delivery"]

@@ -627,8 +627,7 @@ all.
 changes its SUBJECT**: the 21 non-`scratch/` files that reach `bindings/js/src/constraint-kernel.mjs` in code now reach
 **a six-name re-export barrel**, not a file that carries the machinery — so the reach is still a path reach, still needs
 no re-spelling, and `json-crossing.test.mjs:3936`/`:4140` still use the path as an identity. **Two greens cells pin that
-barrel's namespace by exact string** (`blind-constraints-v2.mjs:1139` pins the five names it had before `K-6`;
-`held-listener-identity-greens.mjs:909` compares a sorted key list to an unsorted declared one): **both are false on
+barrel's namespace by exact string** (**MEASURED 2026-10-25: both of these are GREEN now and the citations below are corrected at their own sites** — `blind-constraints-v2.mjs:1251` pins the SIX names and passes; `held-listener-identity-greens.mjs:951` compares a sorted key list to the sorted declared one and passes): **as filed both were false on
 this tree today, and the cut neither fixes nor worsens them** (`kernel-subdivision.md` §4.2) — which is why the barrel
 must reproduce **exactly six enumerable names and no seventh**. **⟶ AND THIS SENTENCE IS THE MOST MISLEADING ON THIS
 PAGE AS OF 2026-10-25, BECAUSE *"BOTH ARE FALSE ON THIS TREE TODAY"* IS FALSE OF BOTH.** `HLI-13.1` was measured
@@ -792,7 +791,7 @@ against `D-1`'s phrase that the kernel's export set *"publishes no export set at
 runners census is a surface of some kind even when no `exports` arm publishes it; and a re-point of 21 files would be
 *"a test that must change for a reason other than a path"*, which the entry declaration's own §8 names as a falsifier of
 the cut. **The barrel exports exactly six enumerable names — no `default`, no seventh** (`kernel-subdivision.md` §3.3
-item 4), because the one thing `held-listener-identity-greens.mjs:909` still gets right is *"no seventh name is
+item 4), because the one thing `held-listener-identity-greens.mjs:951` still gets right is *"no seventh name is
 reachable"*.
 
 ---
@@ -1073,13 +1072,13 @@ The findings it adds:
     op reading** cannot join the attempt engine without making **`K-1` depend on `K-3`**. Both are recorded as
     **refused candidate cuts** in `kernel-subdivision.md` §3.2, which is the mirror of the entry declaration's own
     §3.2.
-14. **`blind-constraints-v2.mjs:1139` pins the kernel's namespace to FIVE names** (`commit,log,register,report,
+14. **`blind-constraints-v2.mjs:1251` pins the kernel's namespace to SIX names** (`commit,log,register,remove,report,
     runAttempt`) and is **red on this tree today**, `K-6` having landed. **⟶ BOTH OF THOSE CLAUSES ARE STALE AND
     ARE CORRECTED HERE, 2026-10-25 ON MEASUREMENT: the cell stands at `tests/e2e/blind-constraints-v2.mjs:1249` and
     it is GREEN, asserting SIX names** (`commit,log,register,remove,report,runAttempt`) — the battery's `D-20`
     execution pass re-derived it, and its own comment records the move. **The "red" this item carried was true of an
     earlier tree and has not been true since.**
-15. **`held-listener-identity-greens.mjs:909` compares a SORTED key list against an UNSORTED declared one**, so
+15. **`held-listener-identity-greens.mjs:951` compares a SORTED key list against a SORTED declared one** — re-derived 2026-10-24, GREEN — so
     `HLI-13.1` is **false today for an ordering reason** — not because a seventh name exists, which is the half the
     barrel must keep true. **⟶ AND THIS ONE IS WITHDRAWN BY `D-15`, WHICH MEASURED IT: the cell is GREEN**, because
     the greens file declares its **own** `KERNEL_ITEMS` **sorted** at its own `:31` and that constant shadows the
