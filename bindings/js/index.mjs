@@ -4047,13 +4047,26 @@ export function storeCreate(cfg) {
       // which is exactly what the ruling provides. **AND A REPEATED `listen` RE-RESERVES THE ENTRY**: it is a
       // purge then a fresh reservation, never a fast path (`P: docs/pending.md · (R1)`, its own closing
       // sentence; `contract.md §2.2` item 3).
+      // **⟶ AND THE SET'S COPY IS A LOCAL INDEX LOOP, NOT `Array.prototype.map` — 2026-10-24 (`contract.md §2.1`'s
+      // clause of that date on `F8-2`, items `(2a)`–`(2c)`, arm `(xix)`, cell `JC-TC-65`).** This position is the
+      // one `store.listen(id, set)` reaches from `carryConstraint`'s arming walk, so the `.map` that stood here
+      // threw `TypeError: addresses.map is not a function` OUT OF A LAWFUL `storeCreate` under a caller's
+      // `delete Array.prototype.map` — a raw host object crossing the boundary, which `§2.5` item `5 (e)` files as
+      // a FINDING. **IT IS THE SAME PRECEDENT `encodeConstraints` ALREADY FOLLOWS** (the fourth key's own walk:
+      // *"a LOCAL INDEX LOOP, NOT `Array.prototype.map`"*), and the bytes, the order and the fresh-array-per-member
+      // copy are unmoved. **THE `slice` IS THE ELEMENT'S AND NOT THE SET'S**: it copies one ADDRESS's segments, so
+      // the registry row's set is the fresh list this loop builds.
+      const standingSet = [];
+      for (let i = 0; i < addresses.length; i += 1) {
+        standingSet[standingSet.length] = addresses[i].slice();
+      }
       state.registry.set(handle, {
         fn: undefined,
         off: true,
         // **THE SET THE LAST `listen` GAVE THE HANDLE** — the referent `PAR-HL-2` names (*"the set of addresses the
         // handle stands at after this act — the whole set, never a delta"*), and the one datum `register` reads to
         // re-install a reserved entry's store side.
-        addresses: addresses.map((address) => address.slice()),
+        addresses: standingSet,
       });
       // **⟶ AND IT ANSWERS THE HANDLE IT WATCHES UNDER — `D-22`'s `void → Handle`, 2026-10-24.** *"Listen should
       // return the handle on success, or error message on fail."* **A SUCCESS SIGNAL THAT CARRIES THE
@@ -4221,6 +4234,31 @@ export function storeCreate(cfg) {
       // survives a refused registration's wake (`kernel-surface.md §2.1` item 1; `CC-7`). **A DISABLED PAIR IS
       // STILL A HELD PAIR, so this arm is still the overwrite arm and still answers the pair's own identity.**
       withdrawStanding(instance, held);
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+      // **⟶ STEP 3 IS AN *EXTENSION PLUS AN OVERWRITE*, 2026-10-24 — AND THE EXTENSION HALF IS THE DEFECT
+      // THIS ARM SHIPPED WITHOUT.** The declaration is `docs/L1/surface-deltas.md` `Q-2`'s repair `(i)`, landed
+      // by `D-29`'s pair-key ruling (*"the pair's identity key becomes the `id` alone … it makes a second
+      // `addConstraint` at a new address an **extension plus an overwrite**"*), over
+      // `docs/specs/storeroom-held-listener-identity/contract.md §2.6` item 4 (*"one pair, N registry rows,
+      // removal clears all N"*). **ONLY THE OVERWRITE SHIPPED**: the bytes below replaced the pair's address set
+      // with the CALL's set (`held.addresses = site.addresses`), so a pair extended from `['a']` to `['b']`
+      // stopped existing at `['a']` — **its function was replaced, as `D-24` declares, and its ADDRESSES WERE
+      // DESTROYED, which no clause declares.** **AND THE TWO SIDES OF THAT ONE BUG ARE NAMED HERE BECAUSE THEY
+      // ARE ONE CHANGE:** the kernel's row and the store's home entry lost `['a']` (the pair no longer evaluated
+      // there), **and `constraints()` answered `address: [["b"]]` because it reads this very entry's
+      // `addresses`** — the read and the behaviour disagreed, and the read is the surface's own enumeration.
+      //
+      // **THE MECHANISM IS THE UNION, AND IT IS FORCED BY THE STORE'S OWN SET POSITION.**
+      // `docs/specs/storeroom-held-listener-identity/contract.md §2.2` item 3 makes `listen(h, S2)` after
+      // `listen(h, S1)` an ASSIGNMENT that *"destroys `S1` wholly and installs `S2`"*, **so the kernel cannot
+      // get an extension by passing only the new set — the set that must reach `store.listen(id, ·)` is
+      // `oldSet ∪ newSet`, and the store's assignment then installs exactly that** (`unionAddressSets` above,
+      // which states the rule once). **THE PURGE, ITS ORDER AND ITS GUARD ARE UNMOVED** — `CHECK → PURGE → ADD`
+      // stands, the purge is still `K-6` at every address the old pair stood at, and the pair's FUNCTION is
+      // still OVERWRITTEN and not merged (`D-24`). **WHAT MOVES IS WHICH MEMBERS THE ADD WALKS: the merged set,
+      // at the old set's order first**, so `K-1`'s own accumulated-set answer at its last call is the union and
+      // the store's assignment installs it whole.
+      const extended = unionAddressSets(held.addresses, site.addresses);
       // **STEP 3 — ADD.** The supplied element is installed under **THE SAME IDENTITY**, because the identity now
       // lives in the STORE and is returned with the pair, so the mechanism's change does not move the observable
       // (`(O-3)` item (iv)'s obligation; `(AA-2)`; `contract.md §2.6` item 2).
@@ -4228,17 +4266,23 @@ export function storeCreate(cfg) {
       // cannot reach the registration-time evaluation, so this is `docs/specs/storeroom-held-listener-identity/contract.md §2.3` item 4's own declared split — **and both
       // are put back BEFORE the refusal crosses, because the second of that clause's two facts is the kernel's to
       // keep: the pair still evaluates and `constraints()` is unmoved** (`restoreHeldPair` above;
-      // `constraint-sites.md §4` item 2; `§2.1` item 1).
+      // `constraint-sites.md §4` item 2; `§2.1` item 1). **`restoreHeldPair` READS `held`, WHICH IS UNMOVED ON
+      // EVERY REFUSING ARM**: the extension below is written to the entry only after this loop has passed.
       try {
-        for (const address of site.addresses) {
-          constraintsKernel().register(instance, address, site.id, constraint);
+        for (let position = 0; position < extended.length; position += 1) {
+          constraintsKernel().register(instance, extended[position], site.id, constraint);
         }
       } catch (refusal) {
         restoreHeldPair(site.state, instance, held);
         registrationCrossing(refusal);
       }
-      held.addresses = site.addresses;
-      held.addressKey = addressSetKey(site.addresses);
+      // **AND THE READ MODEL CARRIES THE UNION, NOT THE CALL'S SET** — this is defect 2's whole fix and it is
+      // the other side of the same change: `enumerateConstraints` answers one row per carried pair with this
+      // entry's `addresses`, so a pair that evaluates at N addresses must be *reported* at N addresses
+      // (`contract.md §2.6` item 5; `PAR-HL-13`). **NO ROW IS ADDED AND NONE IS REMOVED**: the count is still
+      // one row per `id` (`D-29` item 2), and the member's type is unmoved.
+      held.addresses = extended;
+      held.addressKey = addressSetKey(extended);
       held.fn = constraint;
       held.enabled = true;
       // **⟶ AND STEP 3 IS THE RE-ADD: THE SAME PAIR IDENTITY IS WRITTEN BACK UNDER ITS OWN KEY** (`(O-3)`
@@ -5607,6 +5651,47 @@ function addressSetKey(addresses) {
   return spells.join('\u0001');
 }
 
+/// **⟶ ADDED 2026-10-24 — THE PAIR'S EXTENDED ADDRESS SET: `oldSet ∪ newSet`, MEMBERSHIP DECIDED BY THE
+/// INJECTIVE SPELLING AND BY NOTHING ELSE** (`docs/L1/surface-deltas.md` `Q-2`'s repair `(i)`, which `D-29`'s
+/// pair-key ruling lands: *"it makes a second `addConstraint` at a new address an **extension plus an
+/// overwrite**"*; `docs/specs/storeroom-held-listener-identity/contract.md §2.6` item 4, *"one pair, N registry
+/// rows, removal clears all N"*).
+///
+/// **THIS FUNCTION IS THE *EXTENSION* HALF AND IT EXISTS BECAUSE THE STORE'S OWN SET POSITION IS AN ASSIGNMENT
+/// AND NOT A UNION** (`docs/specs/storeroom-held-listener-identity/contract.md §2.2` item 3: `listen(h, S2)`
+/// after `listen(h, S1)` *"destroys `S1` wholly and installs `S2`"*). **So the kernel cannot get an extension by
+/// passing only the new set — what reaches `store.listen(id, ·)` must be the UNION, and the store's assignment
+/// then installs exactly that.** The *overwrite* half is unmoved: the pair's FUNCTION is replaced at its own site
+/// in `addConstraint` and is never a member here (`D-24`).
+///
+/// **THE ORDER IS THE OLD SET'S, THEN THE MEMBERS OF THE NEW ONE IT DOES NOT ALREADY CARRY**, so a repeated
+/// spelling answers the set that stood (an extension by nothing is no extension) and two new addresses answer
+/// both. **MEMBERSHIP IS `homeAddressKey`'S INJECTIVE SPELLING** — the key `addressSetKey` and the mirror already
+/// decide set equality with, so `['a', 1]` and `['a', '1']` are two addresses here exactly as they are there
+/// (`contract.md §2.6` item 6's `HL-DD-3`; `AB-6`). **NO MEMBER OF A MUTABLE PROTOTYPE IS TAKEN**: the loop is by
+/// index, the list is built by index assignment and nothing is `map`ped, `pushed`, spread or iterated
+/// (`contract.md §2.1` `F8-2`; the same shape `encodeConstraints`' walk and `carryConstraint`'s own loop take).
+function unionAddressSets(standing, supplied) {
+  const merged = [];
+  const keys = [];
+  for (let pass = 0; pass < 2; pass += 1) {
+    const source = pass === 0 ? standing : supplied;
+    for (let i = 0; i < source.length; i += 1) {
+      const address = source[i];
+      const key = homeAddressKey(address);
+      let carried = false;
+      for (let k = 0; k < keys.length; k += 1) {
+        if (keys[k] === key) carried = true;
+      }
+      if (carried === false) {
+        merged[merged.length] = address;
+        keys[keys.length] = key;
+      }
+    }
+  }
+  return merged;
+}
+
 /// **THE ONE REFUSAL `docs/specs/storeroom-js/surface.md §2.12` ITEM 4 DECLARES, TAKEN BEFORE ANY ACT AND LEAVING NOTHING CHANGED** — a JS
 /// `TypeError`, its `status` member ABSENT, no `message` member of this unit's own, **the store's closed
 /// `16`-member set neither minted nor widened, and the store reached by no call this refusal makes.**
@@ -5767,12 +5852,22 @@ function carryConstraint(state, instance, addresses, id, constraint) {
   // called by the KERNEL for the pair whose `id` is `id`, so the act is a CONSTRAINT's own registration and
   // the cross-kind test has no subject. It is cleared on every arm, so a caller's later `listen` at a
   // constraint's address is tested with no marker standing.
+  // **⟶ AND THE PAIR'S N REGISTRATIONS ARE A LOCAL INDEX LOOP, NOT `for … of` — 2026-10-24**
+  // (`contract.md §2.1`'s clause of that date on `F8-2`, items `(2a)`–`(2c)`, arm `(xix)`, cell `JC-TC-65`;
+  // `F8-8`'s items `(2a)`/`(2e)`, which count a GOVERNED site's take of `Array.prototype[Symbol.iterator]` as
+  // one the crossing's own file may not make). **THE BYTES THIS LOOP REPLACED WERE `for (const address of
+  // addresses)`, AND THE CENSUS NAMED THEM: *"GOVERNED index.mjs:5773 carryConstraint"*, one take per arming
+  // construction under a forged iterator — a caller's override deciding how many registrations the batch
+  // performs.** **IT IS THE SAME PRECEDENT `encodeConstraints` ALREADY FOLLOWS** (the fourth key's own walk:
+  // *"a LOCAL INDEX LOOP, NOT `Array.prototype.map`"*, arm `(xix)`), and it is the same shape `storeCreate`'s own
+  // batch-arming walk takes. **ONE MEMBER PER ITERATION, IN THE SET'S OWN ORDER, AND NOTHING ELSE MOVES**: the
+  // three-state act, the one refusal crossing per arm, and the `B-6` marker's bracket are unchanged.
   const outerEstablishing = state.establishing;
   state.establishing = id;
   try {
-    for (const address of addresses) {
+    for (let position = 0; position < addresses.length; position += 1) {
       try {
-        constraintsKernel().register(instance, address, id, constraint);
+        constraintsKernel().register(instance, addresses[position], id, constraint);
       } catch (refusal) {
         registrationCrossing(refusal);
       }
