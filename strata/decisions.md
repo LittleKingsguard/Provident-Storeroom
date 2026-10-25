@@ -1807,3 +1807,53 @@ a duplicate inside the batch is reported per element or per pair** — a receipt
 today** and must stay green. **`npm test` and `npm run greens` are red for catalogued reasons** — so their bar is
 **"no new red, every red accounted for"**, with every red attributable to `REVIEW-2026-10-24.md`'s classification or
 to a ruling that has not landed yet. **A red that is neither is the finding.**
+
+---
+
+### `D-29` — `listen` may overwrite only listeners; the HANDLE becomes the INTERNAL ID; the boot is held to the same strictness
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the four questions
+`docs/L1/surface-deltas.md` raised.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Listen cannot overwrite constraint, only other listeners
+> Handle becomes the internal ID
+> Q3 - no
+> Q4 - Yes
+
+**WHAT EACH SETTLES.**
+
+1. **`listen` GAINS EXACTLY ONE CROSS-KIND TEST, AND IT SUPERSEDES A KEPT CLAUSE.**
+   `docs/specs/storeroom-held-listener-identity/contract.md` **§2.2 item `7`** declares *"`listen` GAINS NO CONFLICT
+   TEST AT ALL"*. **`D-29` narrows that to: `listen` gains no conflict test against ANOTHER LISTENER, and gains one
+   against a CONSTRAINT.** **Overwriting a listener with a listener stays lawful — that is `D-24`'s same-kind rule —
+   and overwriting a constraint with a listener is now REJECTED.** **The kept clause stands as text and is read
+   through this ruling; its sentence is narrowed and not withdrawn.**
+2. **★ "HANDLE BECOMES THE INTERNAL ID" — THE PAIR'S IDENTITY KEY IS THE `id`, OUTRIGHT.** This supersedes two
+   things at once: the `(id, address-set)` keying (`index.mjs:5237`, `contract.md §2.6` item 4's *"one id, N
+   addresses"*) **is now simply "one id, ONE PAIR"**, and **`K-1`'s *"a second `register` at the same `id` begins a
+   pair of its own"* is superseded — it does not, because there is only ever one pair per `id`.** **The agent's
+   collision (`D-29`'s own question `Q-2`: a later `removeConstraint` deleting the other pair) is thereby not
+   refused but made IMPOSSIBLE.**
+3. **`Q3` — no: the prefix removal may not ship before the pair-key question is answered. IT IS NOW ANSWERED, so the
+   gate `Q3` set is satisfied and the prefix removal ships with the pair-key change as one act.**
+4. **`Q4` — yes: the boot route's list is held to `D-27`'s strictness in full** — functions required, handles unique
+   within the list and against the adopted listeners, cross-kind rejected.
+
+**THE SIXTH ARM THIS CREATES, AND ITS MEMBER IS DERIVED RATHER THAN CHOSEN.** **`listen`'s cross-kind rejection is a
+SIXTH refusal arm** (`B-6`). **Its `StoreStatus` member follows the principle `surface-deltas.md` already declared —
+*the member follows the act's subject*: `listen` is a SINGLE REGISTRATION, so it takes the handle domain's member,
+`AddressMalformed`, exactly as `B-5` (`register`) does.** **Its instant: after the handle's class test and the set's
+domain test, and BEFORE the purge — the act must not destroy what it may not overwrite.** **No state moves.**
+
+**WHAT REMAINS OPEN, AND IT IS ONE MECHANISM QUESTION.** **Is `listen`'s cross-kind test IDENTITY-based (the handle
+equals a constraint's `id`), ADDRESS-based (the set names an address a constraint's home entry occupies, so the
+purge would reach it), or BOTH?** **The ruling's intent is settled — no cross-kind overwrite — and the address
+dimension is NECESSARY, because §2.2 item `7`'s purge is address-reaching; whether the identity dimension is also
+tested is L1/L2's to declare against `Home::purge`.** **L0's reading: both, because under `D-29` the handle and the id
+are one string and an identity collision names the same entry an address collision does.**
+
+**AND ONE CONSEQUENCE FOR THE DECLARATION'S OWN TEXT.** `surface-deltas.md` was committed with five arms; **it is owed
+`B-6`'s row and the pair-key restatement.** **The implementer implements `B-6` from this ruling and reports its exact
+shape**; L1 adds the row when it next touches the file.
