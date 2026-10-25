@@ -1999,3 +1999,37 @@ battery keeps asserting `DD-28` and stays green.**
 already said *"durability is a property of `file`-tier WRITES only"*** — **the brief was right the whole time, and the
 cells were written from the other contract.** **A contradiction between two kept contracts is not resolvable by the
 corpus; it needs the architect, and this one took a direct question to surface.**
+
+---
+
+### FINDING — both subdivision declarations went STALE before they were executed, and the cause is the sequencing L0 chose
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the L4 pass refused to execute the
+kernel cut, reporting the declared regions false at HEAD; **L0 verified every claim and the refusal is correct.**
+
+**WHAT THE PASS MEASURED, AND WHAT L0 CONFIRMED.**
+
+| declared (at `D-15`, commit `fe66387`) | at HEAD |
+|---|---|
+| the file is **2,203** lines | **2,213** |
+| **8 blank separators** at `482 · 1154 · 1363 · 1418 · 1776 · 1803 · 2059 · 2090` | **all eight NON-BLANK** — `482` is `if (!inDomainId(id) …`, `1418` is `return false;`, `2059` is `return { present: false …` |
+| `export function register` at `486` | **`472`** — so the declared boundary at `481`/`482`/`483` falls **inside `register`** |
+| the six export sites at `486 · 1008 · 1158 · 2063 · 2075 · 2111` | **`472 · 1001 · 1155 · 2066 · 2082 · 2121`** |
+| `9a` owns `pairKey` · `PAIR_KEYS` · `pairKeyOf` · `pairRowCarrying` | **`D-29` deleted all four** |
+| `9a` owns a module-scope `LIVE`/`CLOSED`/`ATTEMPTS` block | **`D-30` moved all three into the per-store record** |
+
+**★ THE CAUSE, STATED PLAINLY BECAUSE IT IS L0'S OWN SEQUENCING.** `D-28` ordered **the surface work first and the
+subdivision last** — correct for the oracle, and **wrong for the declaration's shelf life**: **twenty-four commits
+touched that file after `D-15` accepted the cut**, so every line region in `docs/L1/kernel-subdivision.md` describes
+a file that no longer exists. **A declaration of LINE REGIONS has a shelf life, and it expires with the next commit
+that touches the file it measures.** **`docs/L1/entry-subdivision.md` is stale by the same cause and to the same
+degree**: `index.mjs` was the file the seven rulings rewrote most heavily.
+
+**AND TWO OF THE STALEHOODS ARE SUBSTANTIVE RATHER THAN NUMERICAL.** The cut's premise for `9a` — *"shared writes to
+one home, not edges"* — **no longer describes the file**, because `D-30` moved the attempt state out of module scope.
+And **the one carve the declaration added to break a cycle (`9a` taking `attemptHeldAt`) was justified against a
+function whose signature and consumers `D-30` then changed.**
+
+**THE CORRECT RESPONSE IS THE ONE `D-13` ITSELF NAMES AS ITS PRECONDITION:** *"its cut must be declared against a
+MEASUREMENT of that file, not guessed from its length."* **The declarations are re-issued against HEAD; no code
+moves until they are.** **The L4 pass was right to stop, and it is recorded as having been right.**
