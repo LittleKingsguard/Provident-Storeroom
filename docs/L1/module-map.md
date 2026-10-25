@@ -183,8 +183,13 @@ decisions and all encoders and decoders (`L747–L3070`), the per-instance regis
 one region whose owner also owns a second file, `src/constraint-kernel.mjs`, under `D-1`). The five regions
 above are declared **as ownership boundaries only**, and the count of owning modules is unchanged at **five**:
 the merge folds two file-owners into one module, it does not free a region. The path itself is therefore listed
-in §5 as co-owned: *no single module can own `index.mjs` until the regions are physically separable*, and this
-map does not order that separation.
+in §5 as co-owned: *no single module can own `index.mjs` until the regions are physically separable* — **and the
+clause that followed it here at the `D-1` revision, *"and this map does not order that separation"*, is
+SUPERSEDED AT `D-2`: §5.1 is its operative home and this is a pointer to it, not a second site for the ruling.**
+`D-2` orders the subdivision **for readability**, and **this map still draws no cut** (§6 Q2's first half stays
+open). **⟶ ANNOTATED AT THE `D-2` REVISION, BY THE SUPERVISOR, ON THE CORRECTION PASS'S OWN QUESTION** — the echo
+stood here unannotated while §5.1 carried the ruling, which left one map printing both readings; the ruling
+itself is `D-2`'s and no boundary is redrawn here.
 
 ### §2.4 The batteries and the greens
 
@@ -238,7 +243,7 @@ consumer → provident-storeroom entry (index.mjs) → addon artefact (.node, fa
 | I-23 | `delivery` | every published module | the `files` allowlist **carries four entries in the tree today** — `index.mjs`, `README.md`, `index.d.ts`, `src/constraint-kernel.mjs` — and `D-1` rules the **fourth has no subject**, so the intended shipped set is three entries plus one the ruling leaves standing in the manifest; the `exports` map publishes `"."` only; five `optionalDependencies` pinned exactly | declared, not called |
 | I-24 | `store-battery` | `store-core`, `store-value`, `store-args`, `store-records`, `store-fail-set` | the crate's own integration battery | test drive |
 | I-25 | `binding-battery` | `binding-crossing` | the per-class table driven with no Node runtime | test drive |
-| I-26 | `js-battery` | `js-surface`, `js-crossing`, `js-registry-delivery`, `js-constraints`, `delivery`, `js-resolution` | `node --test` through the entry (`import { storeCreate } from 'provident-storeroom'`) and, for the kernel's cells, `../src/constraint-kernel.mjs` — a fact of the tree; `D-1`'s consequence is that those cells reach a file internal to one module, not a peer module's published export | test drive |
+| I-26 | `js-battery` | `js-surface`, `js-crossing`, `js-registry-delivery`, `js-constraints`, `delivery`, `js-resolution` | `node --test` through the entry (`import { storeCreate } from 'provident-storeroom'`) and, for the kernel's cells, `../src/constraint-kernel.mjs` — a fact of the tree; `D-1`'s consequence is that those cells reach a file internal to one module, not a peer module's published export. **`D-1-ter` names why that reach is lazy, and it bears on this row:** the entry must load where nothing is staged beside it, because **the publish and negative drives assemble trees carrying `index.mjs` alone** — so a wave dissolving the lazy reach would have to touch those drive fixtures. No unit is open and this row orders no such wave. | test drive |
 | I-27 | `greens-harness` | the assembled package (all JS modules) | the entry and the built `.node` as a caller would reach them, per wave | live drive |
 | I-28 | `js-declaration` | nothing at runtime | it declares the same surface the entry publishes; no module imports it | declaration |
 
@@ -376,7 +381,7 @@ files are outside that 126 altogether, and §5.4 is why.
 
 | path | why it is not owned once |
 |---|---|
-| `bindings/js/index.mjs` | 5,903 lines carrying five plainly distinct responsibilities (resolution, failure form, walk/codec, registry/delivery, constraints). §2.3 declares the regions and which module owns each; the physical file cannot be owned by exactly one module until the regions are separable. **This map does not order the separation** — the split is an ownership declaration, and §6 Q2 asks whether it should be taken. |
+| `bindings/js/index.mjs` | 5,903 lines carrying five plainly distinct responsibilities (resolution, failure form, walk/codec, registry/delivery, constraints). §2.3 declares the regions and which module owns each. **The co-ownership is the present state of the tree:** it is one file today, and the five regions *are* the ownership declaration — a declaration the file has yet to be separated to satisfy. **The separation is now sanctioned by the architect** (`D-2`: *"Index.mjs is already too long and should be subdivided anyway for readability"*), and it is owed as **legibility work on its own ground** — not as a consequence of `D-1`, and owed even had the kernel question never arisen; the two rulings compose by landing the tight integration *inside* a subdivided entry. **This map still does not draw the cut** — how many parts, where the boundaries fall and what they are called are L1's to declare and an implementation wave's to land (§6 Q2, first half, stays open). **What stood here at the `D-1` revision:** *"the physical file cannot be owned by exactly one module until the regions are separable"* together with **"this map does not order the separation"** — the first clause stands as the tree's state, and the **second is superseded by `D-2`**, which orders the separation for readability and orders no pass, no unit and no code move today. The arithmetic is unmoved: still one co-owned path, still five owning modules. |
 
 ### §5.2 Generated, vendored or built — present on disk, excluded by the project's own rules
 
@@ -440,13 +445,20 @@ journal, rollback and watched-address list (§6), the file image and constructio
 whole. Should ownership follow the file (as declared), or should the six contract regions each be owned
 separately, which would make `src/store.rs` a second co-owned path?
 
-**Q2 — are the five declared regions of `index.mjs` the right boundaries, and specifically: (a) the symbol-key
-block at `L88–L200`, where `FORGET_PAIR` and `KERNEL_REFUSAL` are written for `js-constraints` to read while
-the block itself is declared under `js-registry-delivery`; (b) the failure form at `L618–L746`, owned by
-`js-surface` but called from inside `js-crossing`'s encoders; (c) the 1,169-line `storeCreate` at
+**Q2 — are the five declared regions of `index.mjs` the right boundaries — and, as it also asked, is the split
+to be taken at all?** **The second half is CLOSED by `D-2`, and the question keeps its wording so a reader sees
+what was asked:** it read *"Is the split to be taken at all, or is `index.mjs` to remain one module and the size
+accepted?"*, and the architect answered it — **yes, taken, for readability** (`D-2`, *"already too long and
+should be subdivided anyway for readability"*), superseding this map's *"does not order the separation"* (§5.1).
+**The first half is OPEN, and `D-2` explicitly leaves it so:** the regions that exist are the ones the current
+file implies, and nothing in the ruling blesses them as the cuts to take. Specifically open: **(a)** the
+symbol-key block at `L88–L200`, where `FORGET_PAIR` and `KERNEL_REFUSAL` are written for `js-constraints` to
+read while the block itself is declared under `js-registry-delivery`; **(b)** the failure form at `L618–L746`,
+owned by `js-surface` but called from inside `js-crossing`'s encoders; **(c)** the 1,169-line `storeCreate` at
 `L3425–L4593`, which both defines the fourteen members and constructs the instance state, so the surface and
-the registry cannot be separated without a code change?** Is the split to be taken at all, or is `index.mjs`
-to remain one module and the size accepted?
+the registry cannot be separated without a code change. **No cut is drawn here** — how many parts, where the
+boundaries fall and what they are named remain L1's to declare and an implementation wave's to land, and `D-2`
+orders no pass.
 
 **Q3 — batteries as modules, or tests owned by the module they drive?** This map declares four harness
 modules (`store-battery`, `binding-battery`, `js-battery`, `greens-harness`) because each battery is a real,
