@@ -1058,3 +1058,62 @@ keep-set was L0's misreading of where "surface behavior" stops.**
 (`blind-constraints-v2.mjs:1139`) lives in **`bindings/js/greens/`**, which `npm test` does not run — it belongs to
 **`npm run greens`**, whose baseline **L0 has not taken**. **So this branch has two oracles and only one has been
 measured**, and a wave verified against `npm test` alone would leave the greens unmeasured.
+
+---
+
+### `D-17` — tests are for code: the documentary-read assertions are rewritten or retired
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, answering the
+restore question with a different disposition entirely.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Rewrite or retire the tests that point at docs. Tests are for code.
+
+**WHAT IT SETTLES.**
+
+- **The archival STANDS.** `D-17` is the opposite disposition to the restore L0 proposed: **the documents stay
+  archived, and the cells that read them are the thing that changes.**
+- **A battery cell's subject must be CODE.** A cell whose expectation is produced by opening a document is
+  **either rewritten to assert a code fact, or retired.** **Which of the two, per cell, is the test layer's
+  declaration** — L0 does not choose between rewrite and retire, and a cell is not retired merely because
+  rewriting is harder.
+- **It also retires a stated ground, and that is recorded rather than glossed.** `D-8`'s disposal of
+  `JSG-12.18`'s `LICENSE` limb reasoned that *"a greens cell is a blind instance off documentary bytes and cannot
+  carry an install observation."* **Under `D-17` the premise still holds for the retirement — a greens cell
+  cannot carry an install observation — but its REASON changes: a greens cell asserts code, not that the
+  documentary bytes it used to read are archived.** The disposal stands; the sentence that justified it is read
+  through `D-17`.
+
+**THE SCOPE, MEASURED, SO NOBODY GUESSES AT IT.** **12 direct open-sites across four files** — `publish.test.mjs`
+(6), `version-stamp-r2.test.mjs` (3), `file-tier-save.test.mjs` (2), `greens/json-acceptance-set-live.mjs` (1) —
+**plus three swallowed reads behind a helper** at `json-acceptance-set-live.mjs:175–178`
+(`readDoc` with `catch → return ''`). **That helper is the dangerous one and `D-17` must reach it first: it turns
+an `ENOENT` into an EMPTY STRING, so its cells assert against nothing and may be reporting FALSE GREENS on this
+tree right now.** **A read that cannot fail cannot be trusted to have passed.**
+- **The 52 `docs/**` paths the batteries MENTION are not the scope.** A path inside a cell's name or clause
+  string is a **citation**, and citations are how this project records provenance; **only a call that OPENS a file
+  is a documentary read.** L0's first count conflated the two and would have overstated the work fourfold.
+
+**WHAT IT DOES NOT SETTLE.** Per cell: rewrite or retire. **And where a rewrite's code fact comes from** — a
+declared surface, an observable behaviour, a property — **is the test layer's to declare, with one standing
+constraint from `D-18`: the rewrite may not read a document to obtain it.**
+
+---
+
+### `D-18` — L0's standing duty: baseline before any archival move
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on L0's own process
+failure.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Add to my duties: baseline before any archival move
+
+**WHAT IT ESTABLISHES.** **A documentation move of any size runs the project's own verification legs FIRST — `npm
+test` and `npm run greens` where they apply — and records the pass/fail counts BEFORE it commits.** **The counts go
+into the move's own record, so the move can be judged against the tree it changed.** **This duty is L0's, it is
+standing, and a brief that omits it is incomplete.**
+**WHY IT EXISTS:** this branch's archival moved 201 files and committed, and **the suite was the one check that
+would have caught the 21 cells it broke.** The exit walkthrough asks for the check; the check was not taken; the
+duty is now written down so that the asking is not the only thing standing between a pass and that failure.
