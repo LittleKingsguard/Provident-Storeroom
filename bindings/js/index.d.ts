@@ -203,8 +203,45 @@ export interface StoreConfig {
    * no-constraint store, and no default is declared for it"* — **and every element and every shape outside
    * the list is refused at the store's own construction with ITS OWN code and ITS OWN message**, which is
    * why the element type is the caller's own shape and not a narrowed record here.
+   *
+   * **⟶ AMENDED 2026-10-24 (`D-26`, verbatim: *"The batch in cfg.constraints must supply functions"*): THE
+   * ELEMENT IS THREE MEMBERS AND THE FUNCTION IS REQUIRED. The pair is the element's ADDRESSING and the
+   * function is its SUBSTANCE — the reading the use-case record has carried since 2026-10-16, now the
+   * declaration's own. THE STORE NEVER SEES THE FUNCTION**: a JavaScript function cannot cross into Rust at
+   * any depth, so the crossing carries the pair and **the PACKAGE arms the substance** at construction
+   * through the same act the add route performs (`D-26` items 3–4). The state this key's earlier prose named
+   * — *"a well-formed element that carried no function … is NOT a carried pair"* — therefore **HAS NO
+   * PRODUCER ON THIS ROUTE**: a batch element is always carried.
+   *
+   * **AND THE ELEMENT'S `id` IS THE PAIR'S HANDLE, A HANDLE IS INSTANCE-SCOPED AND UNIQUE, AND TWO RULES
+   * FOLLOW THAT ARE DIFFERENT RULES FOR DIFFERENT ACTS — a declaration that conflates them gets both wrong**
+   * (`D-23`, verbatim: *"Setting a constraint should expect a handle name to be used for handle and
+   * process/error logging purposes"*; `D-24`, verbatim: *"The handle becomes the id - the handle needs to be
+   * unique regardless, and setting a duplicate handle is an overwrite"*; `D-27`'s own table):
+   *
+   * | act | a repeated handle |
+   * |---|---|
+   * | **this key, `cfg.constraints`** | **REJECTED** — the list is ONE supplied act, so an internal ambiguity is malformed input and not a second write |
+   * | **`addConstraint(pair, constraint)`** | **OVERWRITE** — acts are separate in time, so a later one replaces the earlier |
+   *
+   * **SO, AT CONSTRUCTION, TWO REFUSALS THAT THE STORE CANNOT TAKE AND THE PACKAGE OWNS** (`D-27`): **no two
+   * elements of one `cfg.constraints` may name one `id`; and no element's `id` may equal a `handle` this
+   * construction's `listeners` adopts** — a cross-KIND collision, rejected regardless of kind (`D-27`:
+   * *"Reject duplicate handles in batch - regardless of listener/constraint type"*). **The second is not an
+   * overwrite and the first is not a second registration.** Both are refused **before any filesystem act**,
+   * in the surface's one thrown form `{status, message, log}`, under the store's existing
+   * `ConstraintListInvalid` — **the package mints no code**.
+   *
+   * **AND THE NAME'S OTHER TWO READERS NEED NOTHING** (`D-24` items 2–3, both recorded so no pass adds a
+   * member): `constraints()` already returns the bare `id`, so its four exclusions stand exactly as written;
+   * and `LogEntry` already carries `id`, so **the name's logging role moves no member-set** and no undeclared
+   * seventh member exists.
    */
-  readonly constraints?: readonly { readonly address: Address; readonly id: string }[];
+  readonly constraints?: readonly {
+    readonly address: Address;
+    readonly id: string;
+    readonly constraint: Constraint;
+  }[];
 }
 
 /**
@@ -233,6 +270,24 @@ export interface StoreConfig {
  * construction/startup, or of the LOADED state against that list at load — **and the store writes no byte of
  * that list into the file and holds no register key for it** (`contract.md §7.1` step 4 and `§7.2` item 6 as
  * amended 2026-10-15; `seams-and-lifecycle.md §8.1`).
+ *
+ * **⟶ AMENDED 2026-10-24 (`docs/specs/storeroom-native/contract.md §8.1`'s 2026-10-23 amendment (`A148` Q3,
+ * folded into `U-STOREROOM-JSON-CROSSING`); `strata/decisions.md`'s `FINDING` of this date; `R-3`'s `Q4`;
+ * `REVIEW-2026-10-24.md`'s `Q4`) — THE SET IS SEVENTEEN AND THE DECLARATION WAS ONE BEHIND THE STORE.** The
+ * amendment widens the closed set `16 → 17` with **`ValueRefusedAtBoundary` at rank `17`**, and *"the
+ * operative set is `17` members ranked `1`…`17`"* with the spelling moved to `[&'static str; 17]`; the store
+ * implements seventeen (`src/error.rs`'s `CODES`). **So `ValueRefusedAtBoundary` is written among the
+ * literals at rank `17`, LAST of the seventeen and BEFORE the escape — the position `ConstraintListInvalid`
+ * held, because the amendment APPENDS and moves no rank of `1`…`16`.** **THE ALGEBRA NOW READS
+ * `11 + 2 + 1 + 1 + 1 + 1 = 17` ✓, and the four figures this paragraph carries are read through this clause:
+ * *"THE SIXTEEN MEMBERS BELOW"* reads SEVENTEEN; *"its set has already moved twice … and 2026-10-15 to
+ * SIXTEEN"* reads THREE times, the third being this amendment, **which is the escape arm's own evidence and
+ * therefore reinforces §the arm rather than weakening it**; *"THE SIXTEENTH MEMBER … LAST of the sixteen"*
+ * reads `ValueRefusedAtBoundary` as the SEVENTEENTH and last of the seventeen, with `ConstraintListInvalid`
+ * at rank `16`; and `constraints()`' *"the store's closed `16`-member set is not reached"* keeps its
+ * statement about THAT READ while its FIGURE moves to `17`. **`ValueNotAdmitted` STAYS AT RANK `14` AND IS
+ * NOT REMOVED** — it remains the store's own answer on the native route — **so a pass that reads rank `17`
+ * as a RENAME of rank `14` has destroyed a member** (`DEF-2026-10-02`: no whole-file rewrite).
  */
 export type StoreStatus =
   | 'AddressMalformed'
@@ -251,6 +306,7 @@ export type StoreStatus =
   | 'ValueNotAdmitted'
   | 'FileCommitFailed'
   | 'ConstraintListInvalid'
+  | 'ValueRefusedAtBoundary'
   | (string & {});
 
 /**
@@ -612,8 +668,21 @@ export interface StoreInstance {
    * ANSWERS NOTHING** (`contract.md §2.2` items 3 and 10; `listen-verb.md §3` item 1). **THE SURVIVING HALF
    * IS THE MINTING HALF: the handle is the CALLER'S, so nothing mints one.** (`P: docs/pending.md · (R1)`,
    * verbatim: *"`listen(h, S2)` AFTER `listen(h, S1)` IS SET-ASSIGNMENT, NOT UNION"*.)**
+   *
+   * **⟶ AMENDED 2026-10-24 (`strata/decisions.md` `D-22`, verbatim: *"Listen should return the handle on
+   * success, or error message on fail. Discard the noop prefix"*): `listen` ANSWERS THE HANDLE IT WATCHES
+   * UNDER ON SUCCESS — the caller's own spelling, returned as THE IDENTITY THE STORE HOLDS FOR THAT ENTRY —
+   * and EVERY FAILURE REMAINS THE SURFACE'S ONE THROWN FORM (`{status, message, log}`), because this ruling
+   * mints no second failure channel. THE RETURN IS A SUCCESS SIGNAL THAT CARRIES THE IDENTITY AND NOT AN ECHO
+   * TO BE SUPPRESSED**: the ground this block states above — *"returning the supplied handle would be a
+   * second spelling of the caller's own datum"* — is OVERRULED BY NAME, and the sentence stands as text read
+   * THROUGH this clause (`RCA-8(d)` ANNOTATE-BESIDE; `DEF-2026-10-02`: no whole-file rewrite). **What it is
+   * FOR, declared because the return has one consumer:** `K-1` ADOPTS the value, which is what
+   * `kernel-surface.md` declared all along (*"adopted, never minted by the kernel"*) and what the discarded
+   * `constraint@<JSON address>` prefix had replaced. **A caller that ignores the return is unaffected by
+   * widening `void → Handle`.**
    */
-  listen(handle: Handle, addresses: readonly Address[]): void;
+  listen(handle: Handle, addresses: readonly Address[]): Handle;
   /**
    * Withdraw a watching, and answer `undefined` — a no-op success for every value outside the domain.
    *
@@ -639,6 +708,17 @@ export interface StoreInstance {
    *
    * **Every outside form of either position throws ONE `TypeError`, whose `status` member is ABSENT, and
    * nothing is added, enabled, disabled or otherwise changed.**
+   *
+   * **⟶ AMENDED 2026-10-24 (`D-25`, verbatim: *"Attempting to overwrite a listener with a constraint or vice
+   * versa is rejected"*; `D-29`, verbatim: *"Handle becomes the internal ID"*): THE OVERWRITE IS
+   * SAME-KIND ONLY.** The sentence above — *"throws nothing for the mere fact that the pair was held"* — is
+   * TRUE AND UNAFFECTED and is now read **SCOPED BY KIND**: a repeated handle of the SAME kind at this act is
+   * an overwrite (`D-24`), while **a pair whose `id` equals a LIVE LISTENER'S HANDLE is REJECTED** — it does
+   * not overwrite the listener and it does not throw nothing. **The rejection is the surface's one thrown
+   * form `{status, message, log}` with the store's `AddressMalformed`**, its `message` naming BOTH SIDES and
+   * carrying the shared rule sentence *"a listener and a constraint do not share one"*, and it is taken
+   * **after the two positions' class tests and before the held-pair purge and before any store call**, so
+   * **no state moves**. `register`'s own direction of the same rule stands at that member (§its own clause).
    */
   addConstraint(pair: ConstraintPair, constraint: Constraint): ConstraintIdentity;
   /** **THE ENABLE HALF** (`§2.12` item 2 (a) and item 3's `constraintOn` row): `undefined`. **The
@@ -652,7 +732,16 @@ export interface StoreInstance {
    *  refused is ACCEPTED**. The `constraint` position's rule is `constraintOn`'s, clause for clause.
    *  **Idempotent success where the pair already stands DISABLED.** */
   constraintOff(pair: ConstraintPair, constraint: Constraint): void;
-  /** Register `listener` under the opaque `handle`, and answer `undefined` (`surface.md §2.4` item 5 (b)). */
+  /** Register `listener` under the opaque `handle`, and answer `undefined` (`surface.md §2.4` item 5 (b)).
+   *
+   *  **⟶ AND IT REFUSES WHERE A CONSTRAINT'S `id` STANDS AT THE ADDRESS** (`D-25`'s *"vice versa"*; `D-29`):
+   *  the cross-kind rule's register-side direction, in the surface's **own** thrown form
+   *  `{status, message, log}` with the store's `AddressMalformed` — **not** the `TypeError` this member's
+   *  conflict arm carried while a reserved `constraint@` prefix existed to be exempted — taken after the
+   *  handle's domain and registry tests and **before the registry write and before the re-install `listen`**,
+   *  so **no state moves**. **The exemption for kernel-prefixed handles is DELETED, not moved**: under `D-22`
+   *  the kernel's handle is no longer a reserved spelling and under `D-25` **the kernel registers nothing**, so
+   *  nothing needs to get past the test. */
   register(handle: Handle, listener: Listener): void;
   /** **`removeListener(handle) -> undefined`** — the entry removed WHOLE and its store entries withdrawn; every arm that is not a real removal THROWS (`contract.md §2.7` item 2; `PAR-HL-14`, `PAR-HL-15`). */
   removeListener(handle: Handle): void;
@@ -712,6 +801,12 @@ export interface StoreInstance {
    * registration — at the batch loop or at `addConstraint` — leaves the entry exactly as it stood and does not
    * appear. **An overwrite changes no membership**: a second `addConstraint` at a held pair replaces the
    * function at the SAME pair and returns the SAME identity, so the pair is carried ONCE before and after.
+   * **⟶ AMENDED 2026-10-24 (`D-26` item 4; `D-27` item 1): THE BATCH HALF OF THAT EXCLUSION HAS NO PRODUCER
+   * AND IS READ THROUGH THIS CLAUSE.** A `cfg.constraints` element **must** carry its function, and the batch
+   * **arms** it (`D-27`: *"Functions are armed"*), so *"a well-formed `cfg.constraints` element that carried no
+   * function"* is an element the construction now REFUSES under `ConstraintListInvalid` **before any
+   * filesystem act** — and the exclusion above stands for **the add route's refused registration alone**, and
+   * for a pair whose function was never supplied by any route.
    *
    * **IT ADDS NO POPULATION ROUTE** (`§2.12` item 2-bis): the two routes stand at TWO, and a read closes none
    * and opens none. **It is NOT a `pending()` reader, NOT an `attempts()` enumerator and NOT a live view of a
@@ -720,7 +815,7 @@ export interface StoreInstance {
    * **AND IT MOVES NO OTHER FIGURE**: the module namespace keeps its ONE name `storeCreate` (`§2.9` item 1's
    * `A127` clause, `11 → 1` ✓), the kernel's extent stays FIVE with no `K-6` proposed (`§2.4` item 9 (f),
    * item 8 — the pairs are read from the entry's OWN registry, which is keyed exactly as the kernel's is), the
-   * store's closed `16`-member set is not reached, the kernel's `KC` set stands closed at `8`, and the register
+   * store's closed `17`-member set is not reached, the kernel's `KC` set stands closed at `8`, and the register
    * keeps its `8` rows.
    *
    * **It is NOT a named export of this entry** (`package.md §1.3` item 3): it is reached through
@@ -765,6 +860,14 @@ export interface ConstraintPair {
    * `contract.md §2.6` item 5; `PAR-HL-13`).
    */
   readonly address: Address | readonly Address[];
+  /**
+   * **THE PAIR'S `id` — WHICH IS ITS HANDLE, ONE `id` NAMING ONE PAIR, ONE IDENTITY AND ONE HANDLE**
+   * (`D-23`/`D-24`, and `D-29`'s *"Handle becomes the internal ID"*, verbatim). **⟶ AND THE SENTENCE THE PAIR
+   * HAS CARRIED SINCE 2026-10-17 — *"two pairs at two addresses are TWO pairs"* — IS READ THROUGH THIS
+   * CLAUSE: the pair-local reuse of one `id` at two addresses is NO LONGER LAWFUL**, because a handle is
+   * INSTANCE-SCOPED and a repeated handle is REJECTED in one supplied list (`cfg.constraints`, `D-27`) and an
+   * OVERWRITE at the add route (`D-24`). **THE SHAPE IS UNCHANGED — NO FIELD IS ADDED** (`D-24` item 1).
+   */
   readonly id: string;
 }
 
