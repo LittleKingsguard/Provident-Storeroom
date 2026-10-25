@@ -3909,7 +3909,9 @@ function crossingAssertRestoredStructurally(prior, target, key, label) {
 // it is invoked, its IMMEDIATE INVOKER — the frame outside the wrapper — and answers that frame's SOURCE FILE
 // and its ENCLOSING SYMBOL"*, and classifies FOUR ways —
 //
-//   (i)   the kernel's file (`bindings/js/src/constraint-kernel.mjs`) → **row `66`**, EXCLUDED and counted on
+//   (i)   the kernel's HOME — **its barrel's own path** (`bindings/js/src/constraint-kernel.mjs`, which the
+//         subdivision does not move) **or one of its parts** (`bindings/js/src/entry/kernel-<name>.mjs`,
+//         `strata/decisions.md` `D-13`) → **row `66`**, EXCLUDED and counted on
 //         the cell's routed counter, which is RECORDED and NEVER asserted as `0` (item `(3d)`: this row is no
 //         claim that the process takes no member, and no claim that a kernel take is present either);
 //   (ii)  the crossing's own file (`bindings/js/index.mjs`) at a `ROUTED` row's symbol — rows `49`–`53` and
@@ -3939,6 +3941,36 @@ function crossingAssertRestoredStructurally(prior, target, key, label) {
 const CROSSING_TEST_FILE_SUFFIX = '/bindings/js/test/json-crossing.test.mjs';
 const CROSSING_INDEX_FILE_SUFFIX = '/bindings/js/index.mjs';
 const CROSSING_KERNEL_FILE_SUFFIX = '/bindings/js/src/constraint-kernel.mjs';
+
+/// **THE KERNEL'S PARTS' DIRECTORY** (`strata/decisions.md` `D-13` and `D-33`; `docs/L1/kernel-subdivision.md`
+/// §1): the kernel is cut into FIVE PARTS the barrel re-exports — `kernel-foundations`, `kernel-registration`,
+/// `kernel-commit`, `kernel-attempt`, `kernel-terminal` — and its own path above is reduced to a SIX-NAME
+/// RE-EXPORT BARREL that the cut does not move.
+///
+/// **⟶ SO THE IDENTITY THIS CLASSIFIER READS IS THE MODULE'S HOME AND NOT ONE FILE'S PATH.** Limb `(i)` is row
+/// `66`'s, and row `66` is a claim about WHICH MODULE took the member — the kernel — so a take that names a
+/// kernel frame is row `66`'s whether the bytes that took it stand in the barrel or in a part the barrel
+/// re-exports. **THE PATTERN IS THE DIRECTORY AND THE PREFIX AND NOT AN ENUMERATED NAME**, so a sixth part needs
+/// no edit here; and it is ANCHORED at `entry/kernel-` and CLOSED at ONE `.mjs` name segment, so no frame of
+/// `index.mjs`, of `src/store.rs`'s crossing or of any test file can match it: `<name>` may carry letters,
+/// digits, `_` and `-`, and carries no `/` and no second `.` — which is exactly what keeps a `*.test.mjs` and a
+/// nested path out.
+const CROSSING_KERNEL_PARTS_PREFIX = '/bindings/js/src/entry/kernel-';
+const CROSSING_KERNEL_PART_NAME = /^[A-Za-z0-9_-]+\.mjs$/;
+
+/// **IS THIS FRAME'S FILE THE KERNEL'S?** — its BARREL by the whole suffix the cut leaves unchanged, OR one of
+/// its PARTS by the parts' directory. **IT TAKES NO MEMBER OF `Array.prototype`** (this runs inside a drive
+/// whose instrument has replaced `push`, `map`, `join` and the iterator), and it reads a `RegExp` with no `g`
+/// flag, so no call carries state from one take to the next. A frame whose file is not a string — the parser
+/// above never produces one, and this guard answers `false` rather than throwing — is not the kernel's.
+function crossingIsKernelFile(file) {
+  if (typeof file !== 'string') return false;
+  if (file.endsWith(CROSSING_KERNEL_FILE_SUFFIX)) return true; // the barrel: the cut does not move it
+  if (file.endsWith('.mjs') !== true) return false; // a `.rs`, a `.ts` and every extensionless frame
+  const at = file.lastIndexOf(CROSSING_KERNEL_PARTS_PREFIX);
+  if (at < 0) return false; // some other file: the crossing's, this test's, the Rust source's
+  return CROSSING_KERNEL_PART_NAME.test(file.slice(at + CROSSING_KERNEL_PARTS_PREFIX.length));
+}
 
 /// **THE `ROUTED` ROWS WHOSE SITES LIVE IN THE CROSSING'S OWN FILE** (item `(2c)`), BY THE SYMBOL THE FRAME
 /// NAMES — `bindings/js/index.mjs`'s rows `49` (`inDomainAddress`), `50` (`encodeAddress`, `constraintAddress`),
@@ -4000,7 +4032,7 @@ function crossingAttributeTake(stackText) {
     const frame = frames[i];
     if (frame.file.endsWith(CROSSING_TEST_FILE_SUFFIX)) continue; // the instrument's own frames
     const where = `${frame.file.slice(frame.file.lastIndexOf('/') + 1)}:${frame.line} ${frame.symbol}`;
-    if (frame.file.endsWith(CROSSING_KERNEL_FILE_SUFFIX)) {
+    if (crossingIsKernelFile(frame.file)) {
       return { kind: 'ROUTED_KERNEL', file: frame.file, line: frame.line, symbol: frame.symbol, where };
     }
     if (frame.file.endsWith(CROSSING_INDEX_FILE_SUFFIX)) {
@@ -4127,8 +4159,11 @@ function crossingCensusRecord(census) {
 ///   (2) **A GOVERNED TAKE IS DETECTABLE AND FAILS THE CELL — THIS IS THE DELIBERATE PROBE.** A forged stack
 ///       naming the crossing's own file at a governed symbol (`encodeValue`, row `22`'s `members.push` site,
 ///       `bindings/js/index.mjs:1851`) classifies `GOVERNED` and turns `crossingCounterViolations` non-empty;
-///       the same forged stack at a routed row's symbol classifies `ROUTED_ROW` and answers NO violation; and a
-///       stack naming the kernel's file classifies `ROUTED_KERNEL` and answers NO violation. **SO THE `0` THE
+///       the same forged stack at a routed row's symbol classifies `ROUTED_ROW` and answers NO violation; a
+///       stack naming the kernel's BARREL classifies `ROUTED_KERNEL` and answers NO violation; **AND SO DOES A
+///       STACK NAMING ONE OF THE KERNEL'S PARTS** (`bindings/js/src/entry/kernel-<name>.mjs`, `D-13`) — forged
+///       on a tree whose parts' directory does not exist yet, so the second limb of limb `(i)` is proved before
+///       the cut lands and not after. **SO THE `0` THE
 ///       CELL THEN ASSERTS IS A CLAIM ABOUT THE GOVERNED SITES AND NOT ABOUT THE PROCESS: if one of the
 ///       crossing's own sites took the member, this helper's own answer would report it.**
 ///       **NOTHING IS MUTATED AND NOTHING IS REVERTED BY THE PROBE** — the classified stacks are strings, and
@@ -4143,13 +4178,25 @@ function crossingProveCounterAttribution(label, instrument) {
   const testFile = fileURLToPath(import.meta.url);
   const indexFile = fileURLToPath(new URL('../index.mjs', import.meta.url));
   const kernelFile = fileURLToPath(new URL('../src/constraint-kernel.mjs', import.meta.url));
+  // THE PARTS' OWN DIRECTORY, SPELLED RATHER THAN DISCOVERED: `fileURLToPath` reads no filesystem, so this
+  // answers on the tree whose bytes have NOT moved as well as on the tree whose bytes have (`D-13`).
+  const kernelPartFile = fileURLToPath(new URL('../src/entry/kernel-foundations.mjs', import.meta.url));
   const forgedStack = (site) => `Error: crossing take\n    at take (${testFile}:1:1)\n`
     + `    at Array.probeWrapper (${testFile}:1:1)\n    at ${site}\n`;
   const probes = [
     // A GOVERNED SITE OF THE CROSSING'S OWN FILE: row `22`'s `members.push`, `bindings/js/index.mjs:1851`.
     { id: 'governed', site: `encodeValue (${indexFile}:1851:7)`, wantKind: 'GOVERNED', wantViolations: 1 },
-    // THE KERNEL'S `append`'s `attempt.log.push`, row `66`'s `:383` — EXCLUDED, and never asserted present.
+    // THE KERNEL'S BARREL — `append`'s `attempt.log.push`, row `66`'s `:383` — EXCLUDED, and never asserted
+    // present. **THE BARREL'S PATH IS THE ONE FORGED HERE ON PURPOSE**: the subdivision moves `append`'s bytes
+    // into `src/entry/kernel-foundations.mjs` and leaves the barrel's PATH alone (`D-13`), so a forged take
+    // naming the barrel is the one spelling that is the same site before the cut and after it.
     { id: 'kernel', site: `append (${kernelFile}:383:15)`, wantKind: 'ROUTED_KERNEL', wantViolations: 0 },
+    // AND ONE OF THE KERNEL'S PARTS — THE SAME MODULE AND THE SAME ROW, IN A DIFFERENT FILE: before the cut the
+    // parts' directory does not exist and nothing in the tree names it; after the cut every kernel take names one
+    // of these files, and `kernel-foundations.mjs:179 inDomainAddress` is the first of the four the cut named.
+    // **THE LIMB IS FORGED HERE SO IT IS PROVED ON THE TREE WHOSE BYTES HAVE NOT MOVED YET** — an identity read
+    // off ONE path would answer UNATTRIBUTED for this take and fail the cell it feeds.
+    { id: 'kernel-part', site: `inDomainAddress (${kernelPartFile}:179:7)`, wantKind: 'ROUTED_KERNEL', wantViolations: 0 },
     // A `ROUTED` ROW OF THE CROSSING'S FILE: row `53`'s `homeAddressKey`.
     { id: 'crossing-row', site: `homeAddressKey (${indexFile}:4708:9)`, wantKind: 'ROUTED_ROW', wantViolations: 0 },
     // NO SITE THIS READING CAN PLACE: a file that is neither the crossing's, the kernel's nor this one.
@@ -4341,7 +4388,8 @@ test('JC-TC-64 the record copy and the delivery are the governed copy path\'s, s
   t.diagnostic(`JC-TC-64 (ii) no-op push — ${crossingCensusRecord(pushState.census)}`);
   t.diagnostic(`JC-TC-64 classifier proof — governed ${iteratorProof.probe.governed.kind}/`
     + `${iteratorProof.probe.governed.violations} violation(s) · kernel ${iteratorProof.probe.kernel.kind}/`
-    + `${iteratorProof.probe.kernel.violations} · crossing-file row ${iteratorProof.probe['crossing-row'].kind}/`
+    + `${iteratorProof.probe.kernel.violations} · kernel part ${iteratorProof.probe['kernel-part'].kind}/`
+    + `${iteratorProof.probe['kernel-part'].violations} · crossing-file row ${iteratorProof.probe['crossing-row'].kind}/`
     + `${iteratorProof.probe['crossing-row'].violations} · foreign ${iteratorProof.probe.foreign.kind}/`
     + `${iteratorProof.probe.foreign.violations} · liveness take read as ${pushProof.liveKind}`);
 
@@ -4757,7 +4805,8 @@ test('JC-TC-65 the construction\'s arguments and its own seeding are not decided
   t.diagnostic(`JC-TC-65 (iii) no-op push — ${crossingCensusRecord(runs[3].census)}`);
   t.diagnostic(`JC-TC-65 classifier proof — governed ${iteratorProof.probe.governed.kind}/`
     + `${iteratorProof.probe.governed.violations} violation(s) · kernel ${iteratorProof.probe.kernel.kind}/`
-    + `${iteratorProof.probe.kernel.violations} · crossing-file row ${iteratorProof.probe['crossing-row'].kind}/`
+    + `${iteratorProof.probe.kernel.violations} · kernel part ${iteratorProof.probe['kernel-part'].kind}/`
+    + `${iteratorProof.probe['kernel-part'].violations} · crossing-file row ${iteratorProof.probe['crossing-row'].kind}/`
     + `${iteratorProof.probe['crossing-row'].violations} · foreign ${iteratorProof.probe.foreign.kind}/`
     + `${iteratorProof.probe.foreign.violations} · liveness take read as ${pushProof.liveKind}`);
 
@@ -4985,7 +5034,8 @@ test('JC-TC-66 an admitted crossing crosses byte-identically under a forged arra
   t.diagnostic(`JC-TC-66 forged iterator — ${crossingCensusRecord(armed.census)}`);
   t.diagnostic(`JC-TC-66 classifier proof — governed ${proof.probe.governed.kind}/`
     + `${proof.probe.governed.violations} violation(s) · kernel ${proof.probe.kernel.kind}/`
-    + `${proof.probe.kernel.violations} · crossing-file row ${proof.probe['crossing-row'].kind}/`
+    + `${proof.probe.kernel.violations} · kernel part ${proof.probe['kernel-part'].kind}/`
+    + `${proof.probe['kernel-part'].violations} · crossing-file row ${proof.probe['crossing-row'].kind}/`
     + `${proof.probe['crossing-row'].violations} · foreign ${proof.probe.foreign.kind}/`
     + `${proof.probe.foreign.violations} · liveness take read as ${proof.liveKind}`);
 
