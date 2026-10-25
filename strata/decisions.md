@@ -1173,3 +1173,27 @@ verified against a green oracle, because there is no green oracle.** Its bar is 
 accounted for"** — and **the first item in it is not the entry cut**: it is **re-deriving the batteries that are
 supposed to judge the entry cut** (`D-17`), because using a stale instrument to judge a refactor produces two
 findings and no information.
+
+---
+
+### Addendum — the remaining two legs are GREEN, and the baseline ledger is now complete
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, completing the baselines `D-18`
+requires. **A measurement, not a ruling.**
+
+| leg | result at HEAD | cause |
+|---|---|---|
+| `npm test` | **21 red cells** | **L0's archival** — the 12 documentary open-sites `D-17` retires or rewrites |
+| `npm run greens` | **40 red cells, then a CRASH** | **pre-existing staleness** — a 12-member expectation against a 14-member surface, and a superseded `listen` signature |
+| `npm run typecheck` | **GREEN** (exit `0`) | — |
+| `cargo test --offline` | **GREEN** (exit `0`) | — |
+
+**WHAT THIS LEDGER BUYS, AND IT IS NOT SYMMETRICAL.** **The Rust side and the type declarations are green; the
+JavaScript battery carries L0's 21 and the greens carry 40 of their own.** **So the damage is confined to two legs
+and neither of them is the compiled side** — which is why the entry cut, a JavaScript restructure, **cannot be
+verified by the leg it most needs, and can be verified by the one it needs least.**
+
+**AND ONE CONSEQUENCE FOR `D-17` THAT THE LEDGER MAKES UNAVOIDABLE.** The stale greens cells and the documentary
+cells are **one class**: cells whose expectation no longer comes from the code. **`D-17`'s rewrite-or-retire work
+is therefore 21 + 40 and not 12**, and the greens' crash means **two of that leg's three runners have never been
+measured on this tree at all** — so the 40 is a floor, not a total.
