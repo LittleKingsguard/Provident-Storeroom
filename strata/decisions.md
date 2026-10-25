@@ -308,3 +308,59 @@ architect below rather than decided here.
   a separate question, and **nothing here licenses one.**
 - **It moves no module, no endpoint and no boundary.** The map's I-23 statement of the tree stays true — the
   manifest carries four entries today — and only its *binding force* is retired; the map carries the pointer.
+
+---
+
+### `D-4` — the strict count is lifted, and the publish shape is determined by `delivery` and the e2e/blind scenarios
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, in session,
+answering the question `D-3` left open rather than deciding it.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The strict count is lifted, the delivery module and the e2e/blind scenario testing will determine the required
+> publish shape
+
+**WHAT IT SETTLES.**
+
+- **`D-3`'s stranded ancestor is closed, and on the wider side: the STRICT COUNT IS LIFTED — the whole family.**
+  `§2.1` **item `1`**'s *"`index.mjs` · `README.md` · `index.d.ts` and **NOTHING ELSE**"* retires with item `6`'s
+  *"exactly FOUR entries"*. **No declared arity and no declared exclusivity binds the `files` allowlist.** The
+  question `D-3` put to the architect — *does "NOTHING ELSE" survive as a separate prohibition?* — is answered:
+  **it does not survive.**
+- **The publish shape has a named authority, and it is empirical.** **`delivery` — the manifest's owner — and
+  the e2e/blind scenario testing together determine the required publish shape.** So the shape is a
+  **consequence of what the scenarios prove is required**, and **no allowlist question needs to be put to the
+  architect again**: a pass that needs to know the shape runs the instruments that determine it, and `delivery`
+  declares the answer in the manifest.
+- **This is the replacement for the clause, and it is not another clause.** The count was a *declared* surface;
+  its successor is **an evidence-derived one**. A pass that keeps a hand-maintained list in a specification has
+  re-created the constraint this ruling lifted.
+
+**WHAT IT DOES NOT SETTLE.**
+
+- **It names no scenario** and does not say that a new one must be written. Which cells carry the evidence, and
+  whether the existing e2e/blind set is sufficient to determine the shape, is a test-layer question.
+- **It orders no wave and schedules nothing.** `D-1`, `D-2` and `D-3` each order no code move, and this ruling
+  assigns authority rather than opening work. **Retiring the fourth entry still requires the code to stop
+  requiring it by path** (`D-1-ter`).
+- **It changes no prohibition.** `P-PUB-7`'s four surviving assertions — no `.node`, no `build/Release`, no
+  `postinstall` route, and the tracked-tree walk — are **functional and security rules, not shape rules**, and
+  the lifted count does not touch them.
+- **It does not reach the `exports` map or the five exact `optionalDependencies` pins.** Those are not the
+  allowlist's shape: `exports` is the resolution surface and the pins are the dedupe guard.
+
+**THE CROSS-WALK THIS RULING OWES THE MODEL, RECORDED BECAUSE IT IS A LIVE COLLISION.** The ruling hands the
+shape to *"the delivery module and the e2e/blind scenario testing"*, and **in this tree those are not one layer's
+artifacts:**
+
+| the ruling's instrument | the module that owns it today | the strata role that would own it |
+|---|---|---|
+| the manifest | **`delivery`** | L2 `delivery` |
+| the e2e/blind scenarios | **`js-battery`** (`bindings/js/test/*.test.mjs`, incl. `json-crossing-blinded.test.mjs`) and **`greens-harness`** (`bindings/js/greens/blind-constraints-v2.mjs`) | **`role_l1_test_writer`**, whose declared write scope is **`tests/e2e/`**, and `role_l2_test_writer` (`tests/integration/<module>/`) |
+
+**So the authority the architect has named spans two modules and one strata role that do not yet share a path
+convention:** this project keeps its batteries at `bindings/js/test/` and `bindings/js/greens/`, while the strata
+preset's test roles are declared to write under `tests/e2e/`, `tests/integration/<module>/` and
+`tests/unit/<module>/`. **That is a real open question for the model — not for the publish shape** — and it is
+put to the architect below rather than resolved here.

@@ -284,7 +284,11 @@ registry*, and a green on one layer does not retire a red on another.
   `files` carries **four** entries — `index.mjs`, `README.md`, `index.d.ts`, `src/constraint-kernel.mjs` — so
   the *"`src/**` reaches no consumer today"* limitation the tracker recorded is superseded. **And the kernel's
   export set is SIX** (`register` · `commit` · `runAttempt` · `log` · `report` · `remove`), where the tracker
-  pinned *"exactly five"*; that pin is superseded by the sixth member.
+  pinned *"exactly five"*; that pin is superseded by the sixth member. **⟶ AND NO COUNT BINDS THAT ALLOWLIST ANY
+  MORE** (`D-3`, `D-4`): the strict count is lifted, `§2.1` items 1 and 6 both retire, and **the required publish
+  shape is determined empirically — by `delivery` together with the e2e/blind scenario testing.** So the four
+  names above are **a fact of the tree and not a rule**, and no design may restore a hand-maintained allowlist in
+  place of that evidence. **The prohibitions are unmoved:** no `.node`, no `build/Release`, no `postinstall` route.
 - **★ THE ARCHITECT HAS RULED THAT CONFIGURATION OUT — `D-1`, and it outranks the two paragraphs above.**
   The constraint mechanism is a **strict requirement** and is checked for triggered handles automatically, so
   **the kernel does not need to be an external import and can be tightly integrated**
