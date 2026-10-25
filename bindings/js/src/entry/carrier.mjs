@@ -75,6 +75,21 @@ import { NODE_CEILING, VALUE_ARGUMENT_POSITION, accessorOrSymbolArm, arrayClass,
 /// would break resolving citations rather than repair anything.** No behaviour byte of this file moved.
 /// `[A2 docs/decisions.md · `A149`; docs/defects.md · `DEF-2026-10-24-A` | the marker's resolution of record;
 /// A2 docs/specs/storeroom-json-crossing-live-report.md §11 | the landing's own timestamps | cross-reference]`
+///
+/// **⟶ AND ONE SENTENCE OF THE `2026-10-23` CLAUSE ABOVE IS NOW FALSE AT THE BYTES — CORRECTED BESIDE IT RATHER
+/// THAN REWRITTEN, 2026-10-25 (`RCA-8(g)`).** Its phrase *"the crate's `128` remains the CRATE-SIDE
+/// CONVERSION's OWN bound (`bindings/js/src/crossing.rs`'s `depth > 128`, untouched by this clause)"* **names a
+/// guard that no longer reads `128`.** The conversion's guard is **`if depth > 126 || visited > 1_000_000`**
+/// (`bindings/js/src/crossing.rs:696`, measured on this tree), so **the conversion's admitted bound and this
+/// part's `ENCODER_CEILING` are ONE FIGURE — `126` — and not two.** `128` is what that guard read until
+/// 2026-10-25, and it was the bound that ADMITTED a depth the `file` tier's commit then could not write; the
+/// guard moved when the three acts (admitted · committed · re-booted) were measured together (`crossing.rs:691`
+/// –`:702`'s own dated clause; `tests/unit/binding-crossing/crossing_values.rs`'s `ceiling_depth_126_is_admitted`
+/// cell). **Nothing else of the clause above moves:** its `126` on both routes, its `127`-and-beyond refusal, its
+/// `ValueRefusedAtBoundary` status and its node ceiling are exactly as it prints them, and no behaviour byte of
+/// this file is touched by this clause.
+/// `[A2 docs/decisions.md · `A149`; A1 bindings/js/src/crossing.rs:696 | the conversion's own guard, read at its
+/// bytes | numeric claim]`
 const ENCODER_CEILING = 126;
 
 // ⟶ CARVED UP 2026-10-24 (`D-2`/`D-33`): `NODE_CEILING` now stands with the guard machinery in the
@@ -189,6 +204,17 @@ export function encodeValue(value, ancestors, depth, path, fault) {
   // citations rather than repair anything.** No behaviour byte of this file moved.
   // `[A2 docs/decisions.md · `A149`; docs/defects.md · `DEF-2026-10-24-A` | the marker's resolution of record;
   // A2 docs/specs/storeroom-json-crossing-live-report.md §11 | the landing's own timestamps | cross-reference]`
+  // **⟶ AND THE SAME ONE SENTENCE IS FALSE HERE AS AT `ENCODER_CEILING`'S BLOCK ABOVE — CORRECTED BESIDE IT,
+  // 2026-10-25 (`RCA-8(g)`).** This narration's *"the crate's `128` is the CRATE-SIDE CONVERSION's bound ONLY
+  // (`bindings/js/src/crossing.rs`'s `depth > 128`, untouched)"* names a guard that reads **`depth > 126`** on
+  // this tree (`crossing.rs:696`), so **there is no longer a second, larger bound behind the walk's: the
+  // conversion admits exactly what this part admits, `126`, and refuses `127` at the same figure.** The retired
+  // `128` is named here once and is not re-spelled anywhere else in this file. **Every other reading of the
+  // clause above stands**: the operative `126` on both routes, the `127`-and-beyond refusal at the walk before
+  // any store verb, the `ValueRefusedAtBoundary` status at the refused value's own `127`-segment position, and
+  // the unmoved `1,000,000` node ceiling.
+  // `[A2 docs/decisions.md · `A149`; A1 bindings/js/src/crossing.rs:696 | the conversion's own guard, read at its
+  // bytes | numeric claim]`
   if (depth > ENCODER_CEILING) {
     return refusedValue(fault, value, 'a value over the walk ceiling', path, { k: 'c' });
   }

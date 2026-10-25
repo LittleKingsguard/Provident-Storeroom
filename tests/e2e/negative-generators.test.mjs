@@ -728,11 +728,11 @@ test('ng_js_c_the_cfg_shapes_are_decided_by_class_first_and_an_absent_key_is_nev
 // admitted; `1,000,000` members + the root = `1,000,001` nodes refused, the same class and status).
 // **THE MEASURED-ARM FINDING ABOVE IS CLOSED BY THIS RULING, NOT IGNORED:** the arm it reported was an
 // addon-side ceiling one class later, and `A149` (2) moves the refusal to the package's own walk —
-// `ENCODER_CEILING = 126` in `bindings/js/index.mjs` — so the drive's `ValueRefusedAtBoundary` reading now
+// `ENCODER_CEILING = 126` in `bindings/js/src/entry/carrier.mjs` (⟶ MOVED 2026-10-25: this clause read `bindings/js/index.mjs` until the entry's cut moved the constant, and `NODE_CEILING` with it, into its own part) — so the drive's `ValueRefusedAtBoundary` reading now
 // measures the arm the row's first dated clause declares.
 // `[A2 docs/decisions.md · `A149` (1)–(4) | the operative depth ceiling, the refusing site, the class, the
 // status and the node range; A2 docs/specs/storeroom-json-crossing/contract.md §4 — its 2026-10-23 clause |
-// numeric and site claim; A1 bindings/js/index.mjs | ENCODER_CEILING · NODE_CEILING, cited by symbol |
+// numeric and site claim; A1 bindings/js/src/entry/carrier.mjs (⟶ MOVED 2026-10-25, this tag read `bindings/js/index.mjs`) | ENCODER_CEILING · NODE_CEILING, cited by symbol |
 // numeric claim]`
 //
 // ⟶ **RECONCILED 2026-10-24 — THE `2026-10-23` MARKER CARRIED BY THIS CLAUSE DENOTES A `2026-10-24` LANDING, AND

@@ -54,7 +54,7 @@ concrete shape is more specific than the sentence:
 |---|---|---|
 | the store | a native **Rust** register: record shapes, the walk, the verbs, tiers, journal and rollback, persistence | `src/` — crate `storeroom-native` |
 | the JS crossing | a **Node-API addon** binding the store into JS, plus the value crossing, the codec and the constraint kernel | `bindings/js/src/` |
-| the entry | a thin **ES-module facade** — one module name, the instance's members, the registry and the failure form | `bindings/js/index.mjs` |
+| the entry | a thin **ES-module facade** — one module name and the instance's members at the hub, with the registry, the failure form, the walk, the artefact meeting and the constraint glue in the parts beside it (**it was one file until the cut; re-read 2026-10-25**) | `bindings/js/index.mjs` — the hub — **plus `bindings/js/src/entry/` (13 files)** |
 | the declaration | a **hand-authored** `index.d.ts`, not a generated one | `bindings/js/index.d.ts` |
 | the delivery | the `provident-storeroom` package plus **five** per-platform binary packages, pinned exactly | `bindings/js/package.json` |
 
@@ -78,30 +78,51 @@ concrete shape is more specific than the sentence:
 
 **This is the inventory the ownership plan has to divide. Figures are measured on this branch.**
 
-| unit | files | size | what it is |
-|---|---|---|---|
-| `src/` | `lib.rs` 41 · `store.rs` 2,472 · `error.rs` 795 · `args.rs` 329 · `value.rs` 330 · `records.rs` 268 · `json.rs` 203 | 252 KB | the native store crate |
-| `bindings/js/` (package root) | **`index.mjs` 5,903** · `index.d.ts` 788 · `package.json` · `build.rs` · `README.md` · `.gitignore` | 458 KB for the entry | the shipped package: the entry, the declaration, the manifest |
-| `bindings/js/src/` | `constraint-kernel.mjs` 2,203 · `crossing.rs` 1,178 · `facade.rs` 1,105 · `codec.rs` 966 · `lib.rs` 90 | — | the addon crate's Rust and the constraint kernel |
-| `bindings/js/platforms/` | 5 platform packages × (`package.json` + `README.md`) | — | the per-platform binary carriers |
-| `tests/` | 15 Rust integration files | 1.1 MB | store-side battery |
-| `bindings/js/test/` | 42 `*.test.mjs` | — | JS battery: surface, kernel, listeners, codec, properties |
-| `bindings/js/tests/` | 7 Rust files | — | the binding crate's own battery |
-| `bindings/js/greens/` | 11 drivers — `greens.mjs`, `live-drive.mjs`, per-wave scenario drivers | — | the project's own greens runners |
-| `typecheck/`, `tsconfig.*.json` | a consumer-shaped fixture plus two `tsc` projects | — | the type-check harness |
-| root manifests | `Cargo.toml`, `package.json`, `Cargo.lock`, `package-lock.json`, `scripts/publish.sh` | — | private instrument harness; **not** a publishable package |
-| `scratch/` | **477 tracked files** | — | probes, byproducts, logs and one-off drivers — **tracked in git**, and excluded from ownership by the project's convention that *a scratch is never a source*, not by an ignore rule |
+**⟶ RE-MEASURED 2026-10-25 AND REPLACED ROW FOR ROW, WITH EVERY SUPERSEDED FIGURE NAMED RATHER THAN ABSORBED
+(`RCA-8(d)` ANNOTATE-BESIDE).** The tree moved under this table twice and the table did not move with it: **the
+entry was subdivided into a hub plus twelve parts under `bindings/js/src/entry/`** (`D-2`, `D-13`, `D-33`), **the
+constraint kernel was cut into five parts behind a re-export barrel** (`D-13`), **the two JS batteries were
+stratified out of `bindings/js/test/` and `bindings/js/greens/` into the preset's three scopes under `tests/`**
+(`D-5`, `D-6`, `D-7`), **a third package (`storeroom-tests`) now hosts the Rust batteries**, and **the three crates
+are one workspace with one committed lock** (`D-34`). **What each row used to say is quoted in the row it
+replaced** — `bindings/js/index.mjs` **5,903 → 1,409**, `bindings/js/src/constraint-kernel.mjs` **2,203 → a 4-line
+barrel**, `index.d.ts` **788 → 891**, `bindings/js/test/` **42 files → 0** (its files are under `tests/`),
+`bindings/js/greens/` **11 files → 0** (likewise), `bindings/js/tests/` **7 files → 0** (likewise), `tests/`
+**15 Rust files → 83 files in three scopes**. **The `size` column is dropped rather than re-guessed**: the `458 KB`
+and `1.1 MB` were one-passes' disk readings, no command in this pass measured bytes, and a column that cannot be
+re-measured is better named as retired than reprinted.
+
+| unit | files | what it is |
+|---|---|---|
+| `src/` | `lib.rs` 41 · `store.rs` 2,472 · `error.rs` 795 · `args.rs` 329 · `value.rs` 330 · `records.rs` 268 · `json.rs` 203 | the native store crate — **all seven figures unmoved**, re-measured at each file's own last line |
+| `bindings/js/` (package root) | **`index.mjs` 1,409** (was **5,903**) · **`index.d.ts` 891** (was **788**) · `package.json` · `build.rs` · `README.md` · `.gitignore` | the shipped package: **the HUB** — the entry's one export, the surface it publishes — plus the declaration and the manifest. **`bindings/js/Cargo.lock` is DELETED**: a workspace member has no lock of its own (`D-34`) |
+| `bindings/js/src/` | **`entry/` — 13 files**: `refusal.mjs` 82 · `artefact.mjs` 355 · `state.mjs` 600 · `class-decision.mjs` 1,204 · `carrier.mjs` 960 · `frame.mjs` 416 · `delivery.mjs` 639 · `constraints.mjs` 795 (the entry's eight parts) and `kernel-foundations.mjs` 529 · `kernel-registration.mjs` 644 · `kernel-commit.mjs` 156 · `kernel-attempt.mjs` 570 · `kernel-terminal.mjs` 324 (the kernel's five) · **`constraint-kernel.mjs` 4 — the barrel** (was **2,203**) · `crossing.rs` 1,216 (was **1,178**) · `codec.rs` 966 · `facade.rs` 1,105 · `lib.rs` 90 | the addon crate's Rust, **the entry's parts and the kernel's parts**, and the four-line barrel that keeps the kernel's six names reachable at its old path |
+| `bindings/js/platforms/` | 5 platform packages × (`package.json` + `README.md`) | the per-platform binary carriers |
+| `tests/` | **83 files in three scopes plus the packages' manifest** — `e2e/` **44** · `integration/` **33** (19 Rust · 13 `js-constraints` · `support/mod.rs`) · `unit/` **5** · `tests/Cargo.toml` (**was: `tests/` 15 Rust files · `bindings/js/tests/` 7 · `bindings/js/test/` 42 · `bindings/js/greens/` 11 = 75**) | the four batteries now sit at the preset's three scopes: **`e2e/` carries 23 `*.test.mjs`, 11 runners (including the new `installed/live-install.mjs`), 6 support modules, 1 evidence JSON and 3 documents; the second Rust battery is the `storeroom-tests` package's 22 files** |
+| `typecheck/`, `tsconfig.*.json` | a consumer-shaped fixture plus two `tsc` projects | the type-check harness |
+| root manifests | `Cargo.toml` (**now a `[workspace]`**: `members = [".", "bindings/js", "tests"]`, `default-members = [".", "tests"]`) · `tests/Cargo.toml` · `package.json` · `Cargo.lock` (**one workspace lock, 41 packages: 3 members + 38 registry**) · `package-lock.json` · `scripts/publish.sh` | private instrument harness; **not** a publishable package |
+| `scratch/` | **477 tracked files** | probes, byproducts, logs and one-off drivers — **tracked in git**, and excluded from ownership by the project's convention that *a scratch is never a source*, not by an ignore rule |
 
 **Three facts about this tree that the ownership plan must respect:**
 
-1. **`bindings/js/index.mjs` is one 5,903-line file** and is the only shipped entry. It carries the instance's
-   fourteen members, the registry, the refusal mapper and the delivery path in one unit — the single largest
-   undivided ownership question on the board.
+1. **`bindings/js/index.mjs` is a 1,409-line HUB, not the entry whole** (it was **one 5,903-line file**). The
+   entry is **nine parts across thirteen files**: the hub keeps its path, its one `export`, the module-context
+   derivation and the fourteen members, and imports the other eight parts from `./src/entry/`; the kernel's five
+   parts sit in the same directory behind a barrel. **The single largest undivided ownership question on the
+   board is now answered rather than open** — the cut is executed (`docs/L1/entry-subdivision.md` §1,
+   `docs/L1/kernel-subdivision.md` §1) — and what a plan must respect instead is that **the hub alone cannot
+   load**: a tree carrying `index.mjs` without `src/entry/` fails at its first import.
 2. **The root `package.json` is deliberately private** and gives the repository its gate-9 trio
    (`test`/`typecheck`/`build`) against what exists here; the deliverable is `bindings/js`
-   (`package.json`, its own description field).
-3. **The store-side and JS-side batteries are separate and neither is redundant:** `tests/` drives the Rust
-   crate, `bindings/js/test/` drives the addon through the entry.
+   (`package.json`, its own description field). **Its `test` script is `node --test "tests/**/*.test.mjs"`** —
+   the three scopes at once — and the three Rust legs are `cargo test --offline -p storeroom-native` (**415**),
+   `cargo test -p storeroom-tests` (**235**) and a plain `cargo test` (**650**).
+3. **The store-side and JS-side batteries are separate and neither is redundant:** `tests/integration/store-*` and
+   `tests/unit/binding-crossing/` drive the two Rust crates, and `tests/e2e/`, `tests/integration/js-constraints/`
+   and `tests/unit/js-*` drive the addon through the entry — **the same 75 files the stratification declared, at
+   the scopes it declared for them, plus the eight paths the move added**: seven battery artifacts (the installed
+   battery's three, the cut's three staging/measurement helpers and `REVIEW-2026-10-24.md`) and
+   `tests/Cargo.toml`, the third package's manifest.
 
 ---
 
@@ -235,9 +256,13 @@ constraint arm is not declared, is not owed, and is **refused as a reading** —
 `{status, message}` — never an `Error` subclass, never a rejection, never `{ok: false}`, so `try/catch` is the
 whole error model. The `message` is generated from the code and the failing trigger's arguments, never
 hand-authored at a call site, and its general shape carries the address, the domain and what was found
-instead. **The set is sixteen and OPEN by design** (the declaration carries an escape arm), so a consumer
+instead. **The set is SEVENTEEN and OPEN by design** (the declaration carries an escape arm), so a consumer
 never treats an unknown `status` as success (`docs/specs/storeroom-native/seams-and-lifecycle.md §8.1`,
-`§8.2`; `index.d.ts`).
+`§8.2`; `index.d.ts`). **⟶ CORRECTED 2026-10-25: this line read *"sixteen"*, which was the figure before the
+native contract's 2026-10-23 amendment (`A148` Q3) ranked `ValueRefusedAtBoundary` at `17`** — the amendment
+that this file's own head records, so the two halves of one file disagreed and this half was the stale one. **The
+store implements seventeen** (`src/error.rs`'s `CODES`), and **`bindings/js/index.d.ts` still declares sixteen** —
+that gap is a code defect this brief names at its head and it is unaffected by this correction.
 
 **UC-11 · Run it under Electron.** The store is a native addon and runs **in the main process only**; the
 renderer reaches it through a small, closed, data-only preload bridge and never through `nodeIntegration`.
@@ -259,6 +284,12 @@ registry*, and a green on one layer does not retire a red on another.
    **If it cannot cross IPC it cannot be stored** — that single rule unifies the value domain with Electron's
    own boundary. Refused values answer `ValueNotAdmitted`, and the walk refuses nesting past `64` or more
    than `1,000,000` visited nodes with no configuration knob (`crossing.md §1.2`, `§1.4`).
+   **⟶ CORRECTED 2026-10-25 (`A149`; `RCA-8(d)`): THE DEPTH FIGURE IN THAT SENTENCE IS `126`, NOT `64`.** The
+   operative admission ceiling is **`126` on both routes** — `bindings/js/src/entry/carrier.mjs`'s
+   `ENCODER_CEILING = 126` at the package's walk and `bindings/js/src/crossing.rs:696`'s `depth > 126` at the
+   conversion — and **`127` and beyond is refused at the walk, before any store verb, as
+   `ValueRefusedAtBoundary`**. The `64` this sentence printed is the retired declaration's figure, and the `128`
+   that stood behind it was the conversion's bound until 2026-10-25; **the `1,000,000` node half is unmoved.**
 3. **No own member of the instance is data.** The only route to state is a read.
 4. **The failure set is closed by the store and open by declaration.** The package mints no member, widens no
    set and renames none.
@@ -285,22 +316,34 @@ registry*, and a green on one layer does not retire a red on another.
   `kernel.commit(instance, address, tier, value)` and then `kernel.runAttempt(instance, record)`. **Whether
   delivery now follows the pass is `OWED` a measurement, not a claim either way** — and **`D-1-bis` settles what
   the law IS without touching this: it confirms the mechanism is unconditional on the write/commit path and
-  refuses a read-side arm, and it does not turn the conformance measurement green.**
+  refuses a read-side arm, and it does not turn the conformance measurement green.** **⟶ RE-POINTED 2026-10-25,
+  AND THE CALL IS UNMOVED: those two calls stand in `bindings/js/src/entry/constraints.mjs`'s `constraintWrite`
+  now, not in the hub** — `index.mjs` imports the part and the part reaches the kernel, which is the same call in
+  a file that is no longer the entry by itself. **The reach is still lazy** (`constraints.mjs`'s
+  `let KERNEL` + `constraintsKernel()`), because retiring the laziness is a behaviour change and not a move.
+
 - **The constraint kernel DOES ship — corrected, and the archived tracker says otherwise.** `bindings/js/package.json`'s
-  `files` carries **four** entries — `index.mjs`, `README.md`, `index.d.ts`, `src/constraint-kernel.mjs` — so
+  `files` carries **FIVE** rows today — `index.mjs`, `README.md`, `index.d.ts`, **`src/entry/`**, **`src/constraint-kernel.mjs`**
+  (**it carried FOUR** — `index.mjs`, `README.md`, `index.d.ts`, `src/constraint-kernel.mjs` — until the entry's
+  cut put thirteen parts on disk: the hub imports them, so the packlist must carry them, which is `D-4`'s
+  reachability rule and not a new declaration — re-measured 2026-10-25) — so
   the *"`src/**` reaches no consumer today"* limitation the tracker recorded is superseded. **And the kernel's
   export set is SIX** (`register` · `commit` · `runAttempt` · `log` · `report` · `remove`), where the tracker
-  pinned *"exactly five"*; that pin is superseded by the sixth member. **⟶ AND NO COUNT BINDS THAT ALLOWLIST ANY
+  pinned *"exactly five"*; that pin is superseded by the sixth member — **and the six are now `export` SITES in
+  four of the kernel's parts, re-exported by a four-line barrel at the unchanged path.** **⟶ AND NO COUNT BINDS THAT ALLOWLIST ANY
   MORE** (`D-3`, `D-4`): the strict count is lifted, `§2.1` items 1 and 6 both retire, and **the required publish
-  shape is determined empirically — by `delivery` together with the e2e/blind scenario testing.** So the four
-  names above are **a fact of the tree and not a rule**, and no design may restore a hand-maintained allowlist in
+  shape is determined empirically — by `delivery` together with the e2e/blind scenario testing.** So the **five**
+  rows above are **a fact of the tree and not a rule**, and no design may restore a hand-maintained allowlist in
   place of that evidence. **The prohibitions are unmoved:** no `.node`, no `build/Release`, no `postinstall` route.
 - **★ THE ARCHITECT HAS RULED THAT CONFIGURATION OUT — `D-1`, and it outranks the two paragraphs above.**
   The constraint mechanism is a **strict requirement** and is checked for triggered handles automatically, so
   **the kernel does not need to be an external import and can be tightly integrated**
-  (`strata/decisions.md` `D-1`, quoting the architect). **So the lazy reach at `index.mjs:5227` and the fourth
-  `files` entry are a superseded *configuration*, not the design** — while both remain facts of the code as it
-  stands, because `D-1` rules what the mechanism is and orders no code move. **No layer below may read the
+  (`strata/decisions.md` `D-1`, quoting the architect). **So the lazy reach and the kernel's own `files` row are a
+  superseded *configuration*, not the design** — while both remain facts of the code as it stands, because `D-1`
+  rules what the mechanism is and orders no code move. **⟶ RE-POINTED 2026-10-25: the lazy reach stood at
+  `index.mjs:5227` and stands in `bindings/js/src/entry/constraints.mjs`'s `constraintsKernel()` today**, the hub
+  having been cut and the glue having moved out of it; **and the kernel's row is the FIFTH of five, not the
+  fourth of four**, `src/entry/` having joined the allowlist when the parts did. **No layer below may read the
   tree's lazy-and-separable shape as the architect's intent, and no layer may read `D-1` as a mandate to
   evaluate constraints in the Rust store, or as a re-decision of the `A112` ordering law.**
 - **`LIVE / INSTALL` is OPEN and the `APP` layer is `NONE`.** No store has ever been loaded inside an Electron

@@ -6,7 +6,7 @@
 //       store's own image round trip, as REACHABLE FROM THE JAVASCRIPT PACKAGE.
 //
 // ARTIFACT:  docs/specs/storeroom-json-acceptance-set-greens.md   (the set)
-// RUNNER:    bindings/js/greens/json-acceptance-set-greens.mjs   (this file)
+// RUNNER:    tests/e2e/json-acceptance-set-greens.mjs   (this file)   ⟶ MOVED 2026-10-25 (`D-5`), FROM `bindings/js/greens/json-acceptance-set-greens.mjs`.
 //
 // AUTHORED FROM THE DOCUMENTATION ONLY:
 //   docs/specs/storeroom-native/seams-and-lifecycle.md §7.2 item 2 (the commit's own
@@ -45,7 +45,7 @@
 //                   the cell is a documentary one and is neither a pass nor a
 //                   failure.
 //
-// RUN:  node bindings/js/greens/json-acceptance-set-greens.mjs   (from the repository root)
+// RUN:  node tests/e2e/json-acceptance-set-greens.mjs   (from the repository root)   ⟶ MOVED 2026-10-25 (`D-5`): this command read `node bindings/js/greens/json-acceptance-set-greens.mjs` until the batteries were stratified.
 // EXIT: 0 iff no cell FAILed.  A LAYER-LIMIT is not a failure and does not move the exit.
 // ============================================================================
 import fs from 'node:fs';

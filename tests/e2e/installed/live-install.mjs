@@ -34,7 +34,7 @@
 //   1. every drive imports **by name from inside the installed tree**, so each drive is a SUBPROCESS;
 //   2. its verdict vocabulary needs `LAYER-LIMIT`, which `node --test` has no form for;
 //   3. the tree's precedent for a layer that presumes external state is a runner with its own exit rule
-//      (`bindings/js/greens/json-crossing-live.mjs`).
+//      (`tests/e2e/json-crossing-live.mjs` — that path read `bindings/js/greens/json-crossing-live.mjs` until `D-5`'s stratification, 2026-10-25).
 //
 // **THE EXIT CONTRACT (`D-21`, §2.8): the runner exits NON-ZERO on any `FAIL` or `FINDING`; `LAYER-LIMIT` is
 // neither.** **AND A CELL THAT DID NOT RUN HAS ITS OWN STATE — `NONRUN`, never `PASS` and never silently

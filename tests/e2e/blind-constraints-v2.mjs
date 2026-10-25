@@ -16,7 +16,7 @@
 //
 // A run failure is a doc/spec drift OR an un-hardened regression. It is never read as a pass.
 //
-//   run:  node bindings/js/greens/blind-constraints-v2.mjs   (from the repository root)
+//   run:  node tests/e2e/blind-constraints-v2.mjs   (from the repository root)   ⟶ MOVED 2026-10-25 (`D-5`): this command read `node bindings/js/greens/blind-constraints-v2.mjs` until the batteries were stratified.
 //   report: docs/specs/storeroom-constraints/live-greens.md  (the greens set this driver's run is recorded in)
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
@@ -43,8 +43,8 @@ const { register: kernelRegister, commit, runAttempt, log, report } = kernel;
 // scenarios of this file did (they threw `ConstraintListInvalid` before a single cell could be judged: the
 // review's §3.2 row 26 and §6 item 5). **THE SHIELD ANSWERS `true` AT THAT ONE INSTANT AND HANDS THE LANDING'S OWN
 // CONTEXT TO THE BODY UNCHANGED** — `§7.3` (b) state 1, the PASSING arm, so the registration is lawful and nothing
-// is bypassed. It is the same convention `bindings/js/greens/file-tier-save/scenarios.mjs`'s `atLandingOnly`
-// carries for the same instant and the same reason, and it is recorded here rather than left as a silent drop.
+// is bypassed. It is the same convention `tests/e2e/file-tier-save/scenarios.mjs`'s `atLandingOnly` (that path read
+// `bindings/js/greens/file-tier-save/scenarios.mjs` until `D-5`, 2026-10-25) carries for the same instant and the same reason, and it is recorded here rather than left as a silent drop.
 // **WHAT IT COSTS, STATED SO IT IS NOT READ AS COVERAGE:** this file then never drives `§7.3` (b) states 2 and 3
 // (a registration refused by its own evaluation) — every body passes at that instant — and the report says so.
 const atLanding = (ctx) => ctx !== null && typeof ctx === 'object' && ctx.tier === null && ctx.op === null;

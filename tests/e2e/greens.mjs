@@ -1,4 +1,4 @@
-// bindings/js/greens/greens.mjs
+// tests/e2e/greens.mjs   ⟶ MOVED 2026-10-25 (`D-5`), FROM `bindings/js/greens/greens.mjs`.
 // THE BLIND GREENS DRIVER for `U-STOREROOM-JS` (`D-GP-SRJS`), gate 5 (`P5`).
 //
 // AUTHORED FROM THE DOCUMENTATION ALONE: docs/specs/storeroom-js-greens.md — the scenario set this file
@@ -8,7 +8,7 @@
 //
 // LAYER: ENVELOPE/PURE.   APP LAYER: NONE.   NO `APP`-GREEN IS CLAIMED HERE OR ANYWHERE IN THIS RUN.
 //
-// RUN:  node bindings/js/greens/greens.mjs        (from the repository root)
+// RUN:  node tests/e2e/greens.mjs        (from the repository root)   ⟶ MOVED 2026-10-25 (`D-5`): this command read `node bindings/js/greens/greens.mjs` until the batteries were stratified.
 //
 // ⟶ RE-DERIVED 2026-10-15 — THE `A116` ORDERING-SEAM RE-DERIVATION PASS (`role_blind_test_writer`), ON THE
 // RE-SPELLED CLAUSES: `JSG-14.4`, `JSG-14.5` and `JSG-15.1` are re-derived against the clauses as they now
@@ -750,7 +750,7 @@ const g04 = { caught: [], readAfter: [] };
   // The as-filed pair asserted that depth `65` and depth `66` are REFUSED, on `crossing.md §1.4 item 5`'s dated
   // two-arm table (`65` = the conversion core's bound, `66` = the boundary encoder's). **Measured on this tree over
   // `[63, 64, 65, 66, 100, 126, 127, 128]`: `63`…`126` are ADMITTED and `127`, `128` are REFUSED** — the package's
-  // own encoder carries `ENCODER_CEILING = 126` (`index.mjs:1944`). **So the table's FIGURES moved and its SHAPE
+  // own encoder carries `ENCODER_CEILING = 126` (`src/entry/carrier.mjs:78` — ⟶ MOVED 2026-10-25 by the entry's cut: this clause cited `index.mjs:1944` until the constant left the hub for its own part). **So the table's FIGURES moved and its SHAPE
   // did not**: there is still a last admitted depth and a first refused one, and that is exactly what these two
   // cells assert. `.3` becomes the LAST ADMITTED depth (`126`, the conversion core's own bound) and `.4` the FIRST
   // REFUSED (`127`, the boundary encoder's), and the code the refusal answers is rank `17`'s, not rank `14`'s.

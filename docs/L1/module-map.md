@@ -81,6 +81,55 @@ difference between this cut and the entry's, whose parts span five modules and t
 **What moves is the TARGET path count** (FIGURES) and the `files` reachability consequence (§4 E4, I-23). **No code
 moved, no manifest was edited, and the wave is not open.**
 
+**⟶ THE POST-WAVE REVISION, 2026-10-25 — `THE WAVE IS NOT OPEN` ABOVE IS NOW FALSE, BOTH CUTS ARE EXECUTED, AND
+THE BATTERIES HAVE MOVED. THIS BLOCK NAMES EVERY FIGURE THE MAP STILL PRINTS THAT THE TREE NO LONGER CARRIES, AND
+THE SITES BELOW IT CARRY THEIR OWN CLAUSES.** This is the map's third honesty revision and it is the largest,
+because three of the four things it declared as *targets* are now the tree:
+
+- **THE ENTRY IS CUT.** `bindings/js/index.mjs` is **1,409 lines** (the map prints **5,903**, and the re-issued
+  declaration measured **6,350** at its own HEAD; both are past readings now) and is **a hub**, not the entry
+  whole. **`bindings/js/src/entry/` holds THIRTEEN files**, measured one by one at their own last lines:
+  `refusal.mjs` 82 · `artefact.mjs` 355 · `state.mjs` 600 · `class-decision.mjs` 1,204 · `carrier.mjs` 960 ·
+  `frame.mjs` 416 · `delivery.mjs` 639 · `constraints.mjs` 795 (the entry's eight parts) and
+  `kernel-foundations.mjs` 529 · `kernel-registration.mjs` 644 · `kernel-commit.mjs` 156 · `kernel-attempt.mjs`
+  570 · `kernel-terminal.mjs` 324 (the kernel's five). **So §2.3's region rows are PAST STATE and its declared
+  target table IS the tree**, and §5.1's one co-owned path no longer exists: `index.mjs` is a single owner's.
+- **THE KERNEL IS CUT AND THE BARREL IS AT ITS OLD PATH.** `bindings/js/src/constraint-kernel.mjs` is **4 lines**
+  — six names in four re-export specifiers — where the map prints **2,203** and the re-issue measured **2,213**.
+  **The five parts and the barrel are thirteen of the thirteen files above; there is no separate kernel file
+  left to own.**
+- **THE BATTERIES MOVED, AND `D-5`'s PRESENT-STATE PATHS ARE NOW THE PAST.** `bindings/js/test/` (**42** files),
+  `bindings/js/greens/` (**11**), `bindings/js/tests/` (**7**) and `tests/`'s **15** Rust files **no longer exist**;
+  their content is **83 files** under the preset's three scopes — `tests/e2e/` **44**, `tests/integration/` **33**,
+  `tests/unit/` **5** — plus **`tests/Cargo.toml`**, the manifest of the third workspace member
+  (`storeroom-tests`) that hosts the Rust targets. **`75 → 83` is not a growth: one path of the 75 was
+  `tests/support/mod.rs` and the 83 carries the same 75 artifacts plus the eight new ones the stratification
+  declared** (`installed/install-support.mjs`, `installed/live-install.mjs`,
+  `installed/license-row-evidence.json`, `staged-install/staged-install-support.mjs`, `module-set.mjs`,
+  `pack-reachability.mjs`, `REVIEW-2026-10-24.md`, `tests/Cargo.toml`).
+- **`bindings/js/Cargo.lock` IS DELETED AND `bindings/js/.gitignore` NO LONGER CARRIES A `/Cargo.lock` LINE.**
+  The map's prose below cites that line twice (§"MEASUREMENT LIMIT", §5.2) and both citations are superseded here
+  rather than rewritten there: a workspace member has no lock of its own (`D-34`), and the one lock at
+  `./Cargo.lock` is the workspace's, committed. **Neither citation was ever in the 126-path denominator** — the
+  file was untracked — so the deletion moves no figure of the map's own arithmetic.
+
+**THE ARITHMETIC, STATED WITH ITS TERMS AND MARKED AS OWED A `git ls-files` CHECK THIS PASS COULD NOT TAKE (no
+shell).** The denominator the map reconciles to is **126**. This pass's measured deltas are **+13** paths under
+`bindings/js/src/entry/`, **−75 + 83 = +8** in the battery tree, and **−0** for `bindings/js/Cargo.lock` (never
+counted). **So the arithmetic denominator is `126 + 13 + 8 = 147`** — a figure this pass did **not** verify against
+the index, and it is printed as arithmetic on measured deltas rather than as a measurement.
+**⟶ MEASURED 2026-10-25 BY THE SUPERVISOR, WHICH SUPERSEDES THAT ARITHMETIC: `git ls-files | grep -v '^scratch/'`
+returns `156`.** **The `147` is short by `9`, and the reason is that this pass counted only the paths the two CUTS
+created and the battery tree's net; the migration's own additions — the installed battery's three files, the O3
+staged-install helper, `tests/Cargo.toml`, and the two Rust `support` helpers that moved into `tests/` — are outside
+that count.** **The measured figure is `156`; treat every `147` below as that arithmetic and not as the tree.** **The module count
+(19) and the endpoint count (61) are unmoved by all of it**: a part is a file, not an ownership unit, and every
+new edge in both cuts is intra-module (§3.2's own ground, restated for the entry by §3.1). **What has genuinely
+moved is the ownership split, and it moves by the same three deltas: `105 owned + 1 co-owned + 20 unowned = 126`
+becomes `127 owned + 0 co-owned + 20 unowned = 147`** — `105 + 13` (the parts, all single-owned) `+ 8` (the
+battery tree's net) `+ 1` (the co-owned hub, which gains an owner) `= 127`, and the co-owned column empties.
+**Everyone who needs one of those three numbers should re-derive it rather than read it here.**
+
 **MEASUREMENT LIMIT — READ BEFORE TRUSTING THE COUNTS.** The first pass over this map had no shell. Its
 inventory was built from the file tools' glob enumeration of the workspace (a complete 11,930-path listing of
 everything under the repository root, filtered against the project's own `.gitignore` rules), **not** from
@@ -92,10 +141,16 @@ attribute sites** (§4 E2), and both root lock files are confirmed tracked (§5.
 carried openly:
 
 - the paths below are present on disk but **excluded by the project's own ignore rules**, so they are neither
-  owned nor listed as unowned: `bindings/js/Cargo.lock` (`bindings/js/.gitignore` line 6),
-  `bindings/js/target/` and `bindings/js/build/` (`bindings/js/.gitignore` lines 4–5), and the trees
-  `.cargo-home/`, `target/`, `archive/`, `.impl-rc8-backup/`, `.tracker-reflow-backup/`,
-  `.npm-cache/`, `typecheck/node_modules/` (root `.gitignore`);
+  owned nor listed as unowned: `bindings/js/target/` and `bindings/js/build/` (`bindings/js/.gitignore` lines
+  **9–10** — ⟶ CORRECTED 2026-10-25: the map printed *"lines 4–5"*, and the crate's ignore file grew a
+  dated clause at its head, so the two rules moved down five lines; the rules themselves are unchanged), and the
+  trees `.cargo-home/`, `target/`, `archive/`, `.impl-rc8-backup/`, `.tracker-reflow-backup/`,
+  `.npm-cache/`, `typecheck/node_modules/` (root `.gitignore`). **⟶ AND ONE PATH LEAVES THIS LIST ENTIRELY,
+  CORRECTED 2026-10-25: `bindings/js/Cargo.lock` (`bindings/js/.gitignore` line 6) IS DELETED AND ITS IGNORE LINE
+  WITH IT** — after `D-34` the crate is a member of the one workspace at the repository root, a member has no
+  lock of its own, and the workspace's `./Cargo.lock` is the only one that exists (`bindings/js/.gitignore`'s own
+  dated head clause records the deletion). **It was never in the 126-path denominator — untracked then, gone
+  now — so no figure of this map moves with it.**
 - **`scratch/` is NOT in that class, and the first pass put it there wrongly.** **477 files under `scratch/`
   are tracked in git.** They are excluded from ownership by the project's own *convention* and never by an
   ignore rule: the root `.gitignore`'s own prose states the rule it applies — *"a scratch is never a source"*
@@ -259,7 +314,7 @@ Node-API symbols link, and it emits the version stamp that the facade's `addon_v
 | `js-registry-delivery` | `bindings/js/index.mjs` — **regions** `L88–L200` (the symbol-key registry), `L201–L331` (the attempt seam), `L3072–L3424` (instance state and carriers), `L4594–L5200` (commit refusal, delivery, registration, terminal arm) |
 | `js-constraints` | `bindings/js/index.mjs` — **region** `L5202–L5903`; and `bindings/js/src/constraint-kernel.mjs` (2,203) |
 | `js-declaration` | `bindings/js/index.d.ts` (788) |
-| `delivery` | `bindings/js/package.json`, `bindings/js/README.md`, `bindings/js/Cargo.toml`, `Cargo.toml`, `bindings/js/platforms/{linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64}/package.json` (5), the same five `README.md` (5), `.github/workflows/publish.yml`, `scripts/publish.sh` |
+| `delivery` | `bindings/js/package.json`, `bindings/js/README.md`, `bindings/js/Cargo.toml`, `Cargo.toml`, **`tests/Cargo.toml`** (the third package's manifest — ⟶ ADDED 2026-10-25: `D-34` put a `storeroom-tests` package at the root to host the Rust batteries, and a manifest is `delivery`'s kind of artifact; the map's "both crate manifests" is now three), `bindings/js/platforms/{linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64}/package.json` (5), the same five `README.md` (5), `.github/workflows/publish.yml`, `scripts/publish.sh` |
 
 **⟶ THE REGIONS ABOVE ARE AUDITED AT `D-2`, AND THE CUT IS DECLARED IN `docs/L1/entry-subdivision.md` §1–§2.**
 `D-2` says in as many words that the five regions *"are the ones the current file implies, and nothing in `D-2`
@@ -281,8 +336,16 @@ blesses them as the cuts to take."* **The audit found three things and the decla
    ENCODED FOR THE CORE"*), because the class decisions are consumed by the encoders and produce nothing the class
    half reads.
 
-**THE MAPPING, REGION BY REGION — a declared target, with no path on disk today except the two the file already
-has:**
+**THE MAPPING, REGION BY REGION — a declared target ⟶ AND, AS OF 2026-10-25, THE TREE ITSELF.** The caption as
+filed read *"a declared target, with no path on disk today except the two the file already has"*; **every `target
+path` in the table below now exists on disk and carries the bytes it was assigned, so the right-hand column IS the
+tree and the `present region` column beside it is a PAST STATE** — `index.mjs` is 1,409 lines, so the ranges
+`L1–L78`, `L618–L746`, `L3425–L4593`, `L5202–L5903` and every other address a reader may still find in this
+section no longer point at the code they name. **No row is rewritten and no boundary is redrawn**: the declaration
+and the landed tree agree, which is what the table was for, and the stale half is the half that described the
+world before the wave (`D-2`, `D-33`; the head revision block names each of the thirteen files and its measured
+size). **A reader who needs a present line number must read `docs/L1/entry-subdivision.md` — and even that file's
+regions are pre-cut, as its own head now says.**
 
 | module | present region | declared part (§1 of the subdivision) | target path |
 |---|---|---|---|
@@ -347,7 +410,10 @@ and nothing else** — no node builtin, no entry part, no third-party dependency
 is what fires the workflow, and `delivery`'s responsibility already carries *the release pipeline*. The first
 pass left the path out of the map altogether; §5 carries the reconciliation that puts it back.
 
-**`bindings/js/index.mjs` is the one file this map splits.** It is 5,903 lines and carries, by its own
+**`bindings/js/index.mjs` is the one file this map splits.** ⟶ **AND IT IS NO LONGER SPLIT ONLY ON PAPER,
+2026-10-25: the file is 1,409 lines, the seven regions below are past state, and the eight parts this paragraph
+declares are eight files under `bindings/js/src/entry/`.** The paragraph is kept whole because it is the audit
+that justified the cut, and it is read through the head revision block. As filed it was 5,903 lines and carried, by its own
 declaration sites (measured by grep on function declarations, not read line by line): the platform and version
 table and the resolution ladder (`L332–L617`), the failure form (`L618–L746`), the JS-side walk, class
 decisions and all encoders and decoders (`L747–L3070`), the per-instance registry, the state carriers and the
@@ -368,10 +434,10 @@ itself is `D-2`'s and no boundary is redrawn here.
 
 | module | paths |
 |---|---|
-| `store-battery` | `tests/` — 15 files: `construction.rs`, `construction_access_probe.rs`, `e2e_json_round_trip.rs`, `e2e_listener_firing.rs`, `fail_codes.rs`, `gate4_red_set_fix.rs`, `journal_and_rollback.rs`, `properties.rs`, `read_and_delete.rs`, `record_shapes.rs`, `tiers_and_purge.rs`, `walk_and_resolver.rs`, `watched_addresses.rs`, `write_arms.rs`, `support/mod.rs` |
-| `binding-battery` | `bindings/js/tests/` — 7 files: `addon_adoption.rs`, `crossing_carriers.rs`, `crossing_copy.rs`, `crossing_values.rs`, `register_layer.rs`, `surface_verbs.rs`, `support/mod.rs` |
-| `js-battery` | `bindings/js/test/` — 42 files: 37 `*.test.mjs`, 4 shared helpers (`addon-adoption-support.mjs`, `addon-surface-support.mjs`, `constraint-kernel-helpers.mjs`, `held-listener-identity-helpers.mjs`), and `REMEASURE-2026-10-18.md` |
-| `greens-harness` | `bindings/js/greens/` — 11 files: `greens.mjs`, `live-drive.mjs`, `blind-constraints-v2.mjs`, `held-listener-identity-greens.mjs`, `json-acceptance-set-greens.mjs`, `json-acceptance-set-live.mjs`, `json-crossing-live.mjs`, `json-crossing-live-s17.mjs`, `consumer-fix/scenarios.mjs`, `file-tier-save/scenarios.mjs`, `file-tier-save/file-tier-save-greens.md` |
+| `store-battery` | **NOW `tests/integration/store-core/` (12), `tests/integration/store-fail-set/` (1), `tests/integration/store-args/` (1) and `tests/integration/support/mod.rs` (1)** — the same fifteen files the row below names, at the stratified paths. **WAS `tests/` — 15 files:** `construction.rs`, `construction_access_probe.rs`, `e2e_json_round_trip.rs`, `e2e_listener_firing.rs`, `fail_codes.rs`, `gate4_red_set_fix.rs`, `journal_and_rollback.rs`, `properties.rs`, `read_and_delete.rs`, `record_shapes.rs`, `tiers_and_purge.rs`, `walk_and_resolver.rs`, `watched_addresses.rs`, `write_arms.rs`, `support/mod.rs`. **`tests/` holds no `.rs` file at its top level today** (⟶ MOVED 2026-10-25, `D-5`; `docs/L1/test-stratification.md` §2.2/§2.5) |
+| `binding-battery` | **NOW `tests/integration/binding-crossing/` (`crossing_copy.rs`, `addon_adoption.rs`, `surface_verbs.rs`, `register_layer.rs`, `support/mod.rs`) and `tests/unit/binding-crossing/` (`crossing_carriers.rs`, `crossing_values.rs`)** — the same seven files. **WAS `bindings/js/tests/` — 7 files:** `addon_adoption.rs`, `crossing_carriers.rs`, `crossing_copy.rs`, `crossing_values.rs`, `register_layer.rs`, `surface_verbs.rs`, `support/mod.rs`. **These seven are targets of the third package, `storeroom-tests` (`tests/Cargo.toml`), not of the binding crate** — a Cargo package's integration tests must live inside it, and this crate's no longer do (⟶ MOVED 2026-10-25, `D-34`) |
+| `js-battery` | **NOW `tests/e2e/` (23 `*.test.mjs`), `tests/integration/js-constraints/` (11 `*.test.mjs`) and `tests/unit/js-{surface,constraints}/` (3 `*.test.mjs`), plus four helpers and two records at the scopes §2.5 of the stratification assigns** — the same 42 files. **WAS `bindings/js/test/` — 42 files:** 37 `*.test.mjs`, 4 shared helpers (`addon-adoption-support.mjs`, `addon-surface-support.mjs`, `constraint-kernel-helpers.mjs`, `held-listener-identity-helpers.mjs`), and `REMEASURE-2026-10-18.md` (⟶ MOVED 2026-10-25, `D-5`) |
+| `greens-harness` | **NOW `tests/e2e/` — the ten runners (`greens.mjs`, `live-drive.mjs`, `blind-constraints-v2.mjs`, `held-listener-identity-greens.mjs`, `json-acceptance-set-greens.mjs`, `json-acceptance-set-live.mjs`, `json-crossing-live.mjs`, `json-crossing-live-s17.mjs`, `consumer-fix/scenarios.mjs`, `file-tier-save/scenarios.mjs`), the set document `file-tier-save/file-tier-save-greens.md`, and — declared new after the move — `installed/live-install.mjs` with `installed/install-support.mjs`, `module-set.mjs` and `pack-reachability.mjs`.** **WAS `bindings/js/greens/` — 11 files** as the row below names them (⟶ MOVED 2026-10-25, `D-5`; the four new artifacts are the stratification's §2.8 installed battery and the cut's own staging helpers) |
 
 The two Rust batteries are separate modules by the project's own ruling (`docs/specs/storeroom-js/contract.md`
 §3.4 item 2: an independent sibling crate means *"the store's … `tests/**` and its measured green are NOT
@@ -430,7 +496,7 @@ consumer → provident-storeroom entry (index.mjs) → addon artefact (.node, fa
 | I-20 | `store-core` | `store-records` | the returned record shapes, the tier token and the resolver's reference | call |
 | I-21 | `store-core`, `binding-crossing` | `store-fail-set` | `StoreError` / `Refusal` construction and the generated messages | call |
 | I-22 | `binding-crossing` | `store-value` + `store-records` | `StoreValue` conversion and the `Js*` record wrappers over the store's records | call |
-| I-23 | `delivery` | every published module | the `files` allowlist **carries four entries in the tree today** — `index.mjs`, `README.md`, `index.d.ts`, `src/constraint-kernel.mjs` — and `D-1` rules the **fourth has no subject**, so the intended shipped set is three entries plus one the ruling leaves standing in the manifest; the `exports` map publishes `"."` only; five `optionalDependencies` pinned exactly. **⟶ THE COUNT'S BINDING FORCE IS RETIRED AT `D-3`** (*"Obsolete the constraint on 'exactly four'"*): the four entries **stand as a fact of the tree and no longer as a rule**, and the allowlist is now a consequence of **reachability** — what the entry requires by path must ship — with the `exports` arm and the five exact pins untouched by it. **⟶ ANNOTATED BY THE SUPERVISOR, on the same ground as §2.3's annotation: propagation of a ruling already given, not a boundary redrawn.** **⟶ AND THE WHOLE COUNT FAMILY IS LIFTED AT `D-4`** (*"The strict count is lifted, the delivery module and the e2e/blind scenario testing will determine the required publish shape"*): **no declared arity and no declared exclusivity binds this allowlist**, `§2.1` item 1's *"NOTHING ELSE"* retiring with item 6's four. **The shape is now decided EMPIRICALLY — `delivery` together with the e2e/blind scenarios (`js-battery`, `greens-harness`) determine it** — so this row's four names are **a fact of the tree and nothing more**, and a pass that restores a hand-maintained allowlist inside a specification has re-created the constraint `D-4` lifted. **The prohibitions are unmoved:** no `.node`, no `build/Release`, no `postinstall` route, and the tracked-tree walk are functional and security rules, not shape rules. | declared, not called |
+| I-23 | `delivery` | every published module | the `files` allowlist **carries FIVE rows in the tree today** — `index.mjs`, `README.md`, `index.d.ts`, **`src/entry/`**, `src/constraint-kernel.mjs` — and `D-1` rules the **kernel's own row has no subject**, so the intended shipped set is four entries plus one the ruling leaves standing in the manifest; **⟶ RE-MEASURED 2026-10-25: this row read four entries, and the fourth was the kernel's; the directory row is new and is the reachability consequence of the entry's cut, not a declared arity** (`D-13`: the parts live under `src/`, so a tarball must carry them); the `exports` map publishes `"."` only; five `optionalDependencies` pinned exactly. **⟶ THE COUNT'S BINDING FORCE IS RETIRED AT `D-3`** (*"Obsolete the constraint on 'exactly four'"*): the four entries **stand as a fact of the tree and no longer as a rule**, and the allowlist is now a consequence of **reachability** — what the entry requires by path must ship — with the `exports` arm and the five exact pins untouched by it. **⟶ ANNOTATED BY THE SUPERVISOR, on the same ground as §2.3's annotation: propagation of a ruling already given, not a boundary redrawn.** **⟶ AND THE WHOLE COUNT FAMILY IS LIFTED AT `D-4`** (*"The strict count is lifted, the delivery module and the e2e/blind scenario testing will determine the required publish shape"*): **no declared arity and no declared exclusivity binds this allowlist**, `§2.1` item 1's *"NOTHING ELSE"* retiring with item 6's four. **The shape is now decided EMPIRICALLY — `delivery` together with the e2e/blind scenarios (`js-battery`, `greens-harness`) determine it** — so this row's four names are **a fact of the tree and nothing more**, and a pass that restores a hand-maintained allowlist inside a specification has re-created the constraint `D-4` lifted. **The prohibitions are unmoved:** no `.node`, no `build/Release`, no `postinstall` route, and the tracked-tree walk are functional and security rules, not shape rules. | declared, not called |
 | I-24 | `store-battery` | `store-core`, `store-value`, `store-args`, `store-records`, `store-fail-set` | the crate's own integration battery | test drive |
 | I-25 | `binding-battery` | `binding-crossing` | the per-class table driven with no Node runtime | test drive |
 | I-26 | `js-battery` | `js-surface`, `js-crossing`, `js-registry-delivery`, `js-constraints`, `delivery`, `js-resolution` | `node --test` through the entry (`import { storeCreate } from 'provident-storeroom'`) and, for the kernel's cells, `../src/constraint-kernel.mjs` — a fact of the tree; `D-1`'s consequence is that those cells reach a file internal to one module, not a peer module's published export. **`D-1-ter` names why that reach is lazy, and it bears on this row:** the entry must load where nothing is staged beside it, because **the publish and negative drives assemble trees carrying `index.mjs` alone** — so a wave dissolving the lazy reach would have to touch those drive fixtures. No unit is open and this row orders no such wave. **⟶ AND AT `D-2` THE REACH'S PATH IS DECLARED UNCHANGED: the kernel stays at `bindings/js/src/constraint-kernel.mjs`, so no cell re-points because of the subdivision** (`docs/L1/entry-subdivision.md` §4.1; 21 non-`scratch/` files reach that path in code today — 11 under `bindings/js/test/`, 9 under `bindings/js/greens/`, and `index.mjs:5227`; 27 name it in all). **What the subdivision does change for this row is the DRIVES' STAGING, not their reach:** once the entry statically imports eight parts, a tree carrying `index.mjs` alone cannot load, so the publish, publish-generators, version-stamp and negative-generators copy arms must stage the part set (`D-1-ter`'s *"they must either stage the integrated set or drop their kernel-only limbs"*, now generalised: the kernel was one file and the part set is eight). §4.2 of the subdivision declaration lists every drive and which one is unaffected. | test drive |
@@ -506,7 +572,13 @@ no re-spelling, and `json-crossing.test.mjs:3936`/`:4140` still use the path as 
 barrel's namespace by exact string** (`blind-constraints-v2.mjs:1139` pins the five names it had before `K-6`;
 `held-listener-identity-greens.mjs:909` compares a sorted key list to an unsorted declared one): **both are false on
 this tree today, and the cut neither fixes nor worsens them** (`kernel-subdivision.md` §4.2) — which is why the barrel
-must reproduce **exactly six enumerable names and no seventh**.
+must reproduce **exactly six enumerable names and no seventh**. **⟶ AND THIS SENTENCE IS THE MOST MISLEADING ON THIS
+PAGE AS OF 2026-10-25, BECAUSE *"BOTH ARE FALSE ON THIS TREE TODAY"* IS FALSE OF BOTH.** `HLI-13.1` was measured
+**green** by `D-15` (the greens file declares its own sorted `KERNEL_ITEMS`, which shadows the helper's unsorted
+one), and `blind-constraints-v2.mjs`'s SURFACE cell has stood at **`:1249`, green on SIX**, since the battery's own
+`D-20` execution pass — **both before the cut, so neither was ever the cut's to fix.** **The operative half is the last
+clause only: the barrel reproduces exactly six enumerable names and no seventh, and it does.** `kernel-subdivision.md`
+§4.2 and §7 items 14–15 carry the same correction at their own sites.
 
 ---
 
@@ -571,9 +643,11 @@ const store = storeCreate(cfg);
   the release workflow's run.
 - **OUT:** the `provident-storeroom@0.5.0` package, one `exports` arm (`"."`), and five
   `@auspicion/provident-storeroom-js-*` packages pinned **exactly** at `0.5.0`.
-- **Verified:** `bindings/js/package.json` — `version` `0.5.0`, `files` = `index.mjs` · `README.md` ·
-  `index.d.ts` · `src/constraint-kernel.mjs` (four entries), `engines.node` `>=18.0.0`, five exact
-  `optionalDependencies`.
+- **Verified:** `bindings/js/package.json` — `version` `0.5.0`, `files` = **FIVE rows — `index.mjs` · `README.md` ·
+  `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs`** (⟶ RE-MEASURED 2026-10-25; this line read **four**
+  entries, `index.mjs` · `README.md` · `index.d.ts` · `src/constraint-kernel.mjs`, until the entry's cut put
+  thirteen parts on disk and the packlist had to carry the directory they live in), `engines.node` `>=18.0.0`,
+  five exact `optionalDependencies`.
 - **The allowlist is what `D-1` corrects, and both halves are stated.** The tree **does** carry four entries
   today — that is a fact of the manifest, not a reading — and `D-1` rules that the **fourth
   (`src/constraint-kernel.mjs`) has no subject**, because a tightly integrated kernel is not published as a
@@ -595,8 +669,17 @@ const store = storeCreate(cfg);
 ### E5 · The repository's instrument surface (not the product's)
 
 `package.json` at the root is **private** and declares the gate-9 trio plus the greens:
-`npm test` (`node --test bindings/js/test/*.test.mjs`), `npm run typecheck` (staged copy + two `tsc`
-projects), `npm run build` (two `cargo build`s), `npm run greens` (three runners). Nothing here is a consumer
+`npm test` (**NOW** `node --test "tests/**/*.test.mjs"` — ⟶ RE-POINTED 2026-10-25: this read `node --test
+bindings/js/test/*.test.mjs`, and that directory no longer exists, so the old command would have exited `0` having
+run NOTHING), `npm run typecheck` (staged copy + two `tsc` projects), `npm run build` (**NOW**
+`cargo build --offline --release -p storeroom-native && cargo build --release --manifest-path
+bindings/js/Cargo.toml` — the store's half gained `-p` when `D-34` made the root a workspace and a bare root
+`--offline` build would reach the sibling crate's registry crates), `npm run greens` (**NOW** the three runners at
+their stratified paths: `node tests/e2e/greens.mjs && node tests/e2e/live-drive.mjs && node
+tests/e2e/file-tier-save/scenarios.mjs`), and **three Rust legs plus the installed battery** the trio did not
+have: `test:store` (`cargo test --offline -p storeroom-native`, 415), `test:battery` (`cargo test -p
+storeroom-tests`, 235), `test:both` (plain `cargo test`, 650) and `test:e2e`
+(`node tests/e2e/installed/live-install.mjs`). Nothing here is a consumer
 entry point; it is how the batteries in §2.4 are driven.
 
 ### E6 · The kernel's loop — inside the module, no longer a package surface
@@ -673,6 +756,21 @@ files are outside that 126 altogether, and §5.4 is why.
 |---|---|
 | `bindings/js/index.mjs` | 5,903 lines carrying five plainly distinct responsibilities (resolution, failure form, walk/codec, registry/delivery, constraints). §2.3 declares the regions and which module owns each. **The co-ownership is the present state of the tree:** it is one file today, and the five regions *are* the ownership declaration — a declaration the file has yet to be separated to satisfy. **The separation is sanctioned by the architect** (`D-2`: *"Index.mjs is already too long and should be subdivided anyway for readability"*), and it is owed as **legibility work on its own ground** — not as a consequence of `D-1`, and owed even had the kernel question never arisen; the two rulings compose by landing the tight integration *inside* a subdivided entry. **⟶ SUPERSEDED AT `D-2`'s DECLARATION: THE CUT IS NOW DRAWN.** *"This map still does not draw the cut … §6 Q2's first half stays open"* was true of the `D-1` revision and is no longer: **`docs/L1/entry-subdivision.md` §1–§2 draws it — nine parts, eight of them out of this file, each owned by exactly one module** — and §2.3's target table maps every present region to its part. **What is NOT superseded is this row's present-state claim:** the tree is one file today, no code has moved, and the arithmetic stands at **one co-owned path, five owning modules**. **What the declaration changes is the END of the co-ownership, marked as target:** `index.mjs` becomes `js-surface`'s alone and the eight part paths — seven new files plus the kernel — become single-owned, so the *target* is **zero co-owned paths** and **114 owned + 0 + 20 = 134** (FIGURES). **The second clause that stood here at the `D-1` revision — *"this map does not order the separation"* — is superseded by `D-2`; the clause this revision adds is that the declaration orders nothing either**: it draws the target and no wave is open. |
 
+**⟶ AND THE CO-OWNERSHIP THIS ROW DECLARES IS ENDED, 2026-10-25 — NO PATH OF THIS MAP IS CO-OWNED ANY MORE.**
+`bindings/js/index.mjs` is **1,409 lines** and is `js-surface`'s alone; **the eight parts the row declares as "the
+END of the co-ownership, marked as target" are thirteen files on disk** under `bindings/js/src/entry/`, each
+single-owned by the module its row assigns it. **The row above is kept whole because its reasoning is the map's
+own record of why the file was co-owned at all**, and it is read through this clause: *"the tree is one file
+today"* is a **past-tense** statement now, `index.mjs` carries the hub and eight imports, and **the co-owned
+column of the FIGURES arithmetic is `0`.** **What the row's last clause promised is also settled and in the
+direction it named:** the declaration ordered nothing, **and `D-33` and the implementation wave landed the cut
+anyway** — the count is a fact rather than a target, and a reader who needs the present ownership should read §2.3's
+right-hand column. **`114 + 0 + 20 = 134` / `113 + 0 + 20 = 133` / `118 + 0 + 20 = 138` are all superseded
+arithmetic on a denominator that has since moved by the battery tree as well**: the head revision block prints
+`127 owned + 0 co-owned + 20 unowned = 147` as arithmetic on measured deltas, owed its own `git ls-files` check —
+**and that check has now been taken: the tracked non-`scratch/` set is `156`, not `147` (see the head revision block),
+so the ownership split is owed a re-derivation against `156` rather than reprinted here.**
+
 **⟶ AND THE TARGET FIGURE THIS ROW CARRIES IS CORRECTED BY ONE AT `D-13`/`D-14` (FIGURES).** The co-owned path's end
 is unchanged — `index.mjs` becomes `js-surface`'s alone and the co-ownership goes to zero — but **the entry cut creates
 seven part files, not eight** (the eight-part count includes `index.mjs`, which already exists), so the entry cut's
@@ -684,7 +782,10 @@ on a miscount and is superseded; `113 + 0 + 20 = 133` and `118 + 0 + 20 = 138` a
 `.cargo-home/` (the vendored crates.io cache, which its own ignore entry describes in those words: *"24 MB and
 1,589 files … NEVER A DELIVERABLE AND NEVER A SOURCE"* — root `.gitignore` lines 154–169); `target/` and
 `bindings/js/target/` (Rust build output); `bindings/js/build/`
-(the built `.node`); `bindings/js/Cargo.lock`; `typecheck/node_modules/` (a staged copy of the shipped
+(the built `.node`); **`bindings/js/Cargo.lock` — ⟶ DELETED 2026-10-25, AND IT LEAVES THIS CLASS BY CEASING TO
+EXIST RATHER THAN BY BEING REPRIEVED** (a workspace member has no lock of its own, `D-34`; the workspace's
+`./Cargo.lock` is listed as *tracked* at §5.3 and is the only lock in the tree);
+`typecheck/node_modules/` (a staged copy of the shipped
 manifest and declaration, rebuilt by `npm run typecheck`); `archive/` (the historical corpus — gitignored by
 the project's own process rule, so the `archive/pre-strata-docs-2026-10-24/` tree the task describes is
 **present but untracked**); `.impl-rc8-backup/`; `.tracker-reflow-backup/`; `.npm-cache/`.
@@ -698,7 +799,7 @@ though it were. See §5.4.
 |---|---|---|
 | `package.json` (root) | harness | The private instrument manifest; *"INSTRUMENT HARNESS ONLY … NOT a publishable package"* (its own description). It carries no version of the deliverable. |
 | `package-lock.json` (root) | harness lock | Produced by the harness's own `typescript` devDependency. **No ignore rule names it, and it is tracked** — verified: `git ls-files` lists it. |
-| `Cargo.lock` (root) | store lock | **Present on disk and tracked** — verified: `git ls-files` lists it. Root `.gitignore` prose says it *"STAYS UNCOMMITTED by decision"* (`binding-crate-and-abi.md §1`) **and neither an ignore rule nor the index implements that** — the contradiction is the repository's own, and it is recorded here rather than resolved. |
+| `Cargo.lock` (root) | store lock | **Present on disk and tracked** — verified: `git ls-files` lists it. **⟶ AND THE CONTRADICTION THIS ROW RECORDED IS NOW CORRECTED AT ITS OWN SITE, 2026-10-25: the root `.gitignore`'s prose no longer says *"`Cargo.lock` STAYS UNCOMMITTED by decision"*.** That sentence is superseded by a dated clause in the ignore file itself, because it never described the rule the repository follows — `git ls-files` has always carried the file, and since `D-34` it is **the one WORKSPACE lock: 41 packages, 3 members plus 38 registry crates**. **So this row's `class` column is now the whole truth and the parenthetical contradiction it carried is retired**: the lock is a **workspace lock**, tracked and committed, and `binding-crate-and-abi.md §1`'s *"pinning a consumer's transitive versions is a consuming-application decision"* is read as a decision this project took the other way. |
 | `tsconfig.typecheck.json`, `tsconfig.typecheck.nodenext.json` | configuration | The two `tsc` projects the harness runs; they describe a staged copy, not the product. |
 | `typecheck/consumer-fixture.ts` | harness fixture | The consumer-shaped fixture the type check compiles against. |
 | `.gitignore` (root), `bindings/js/.gitignore` | configuration | Repository hygiene rules. `bindings/js/.gitignore` is the crate's own ignore set and is deliberately **not** owned by `delivery`, because it is a rule about what never ships. |
@@ -910,10 +1011,18 @@ The findings it adds:
     **refused candidate cuts** in `kernel-subdivision.md` §3.2, which is the mirror of the entry declaration's own
     §3.2.
 14. **`blind-constraints-v2.mjs:1139` pins the kernel's namespace to FIVE names** (`commit,log,register,report,
-    runAttempt`) and is **red on this tree today**, `K-6` having landed.
+    runAttempt`) and is **red on this tree today**, `K-6` having landed. **⟶ BOTH OF THOSE CLAUSES ARE STALE AND
+    ARE CORRECTED HERE, 2026-10-25 ON MEASUREMENT: the cell stands at `tests/e2e/blind-constraints-v2.mjs:1249` and
+    it is GREEN, asserting SIX names** (`commit,log,register,remove,report,runAttempt`) — the battery's `D-20`
+    execution pass re-derived it, and its own comment records the move. **The "red" this item carried was true of an
+    earlier tree and has not been true since.**
 15. **`held-listener-identity-greens.mjs:909` compares a SORTED key list against an UNSORTED declared one**, so
     `HLI-13.1` is **false today for an ordering reason** — not because a seventh name exists, which is the half the
-    barrel must keep true.
+    barrel must keep true. **⟶ AND THIS ONE IS WITHDRAWN BY `D-15`, WHICH MEASURED IT: the cell is GREEN**, because
+    the greens file declares its **own** `KERNEL_ITEMS` **sorted** at its own `:31` and that constant shadows the
+    helper's unsorted one the pass attributed to it. **A fixer sent to "the ordering bug" would have edited a file
+    with no bug** (`strata/decisions.md` `D-15`'s second corrected finding). **The half the barrel must keep true —
+    "no seventh name is reachable" — is the half that was ever real.**
 16. **The two shared helpers disagree about the kernel's extent:** `constraint-kernel-helpers.mjs:48` declares five
     names, `held-listener-identity-helpers.mjs:163` declares six.
 17. **`publish`'s two fault-injection anchors land in TWO DIFFERENT ENTRY PARTS.** `MUTATION_SITE`

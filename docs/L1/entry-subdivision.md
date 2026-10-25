@@ -23,6 +23,21 @@ region to `L3567`, the constraint section moved from `L5187` to `L5561`, the laz
 the whole file, `L1–L2203`"* — describes a file that **`D-13` ordered cut** and that
 `docs/L1/kernel-subdivision.md` now cuts into five parts.
 
+**⟶ ★ THE CUT THIS FILE DECLARES HAS BEEN EXECUTED — 2026-10-25 — AND EVERY LINE REGION BELOW IS THEREFORE
+PRE-CUT. THE DECLARATION IS KEPT AS THE RECORD OF WHAT LANDED, AND IT IS NO LONGER A DESCRIPTION OF ANY FILE
+ON DISK.** **`bindings/js/index.mjs` is 1,409 lines**, not the 6,350 this file measured; **the eight parts of §1
+are eight files** under `bindings/js/src/entry/`, measured one by one at their own last lines: `refusal.mjs` 82 ·
+`artefact.mjs` 355 · `state.mjs` 600 · `class-decision.mjs` 1,204 · `carrier.mjs` 960 · `frame.mjs` 416 ·
+`delivery.mjs` 639 · `constraints.mjs` 795 — **and `D-33`'s split of part 6 is in them** (`carrier.mjs` and
+`frame.mjs`). **So §1's `lines` column, §2's seam-by-seam addresses, §3.1's DAG and §4's lazy-reach call sites
+all describe the file BEFORE the cut**, and a reader who needs a present line number has no line number to read:
+the parts are the units now, and `docs/L1/drive-restaging.md` §2 is where the landed set is counted (thirteen).
+**This is the second expiry of the same kind and it is recorded rather than presented as though the regions had
+always been historical** — the first was the re-issue this file already documents, and its own sentence applies
+verbatim to this one: *"a declaration of line regions expires with the next commit that touches the file it
+measures."* **Nothing in the file is edited to the new figures: the declaration landed as written, the tree no
+longer has regions, and the `D-2`/`D-33` cuts are the only thing left to measure.**
+
 **MEASUREMENT — WHAT WAS READ, AND HOW.** No shell, no run. `bindings/js/index.mjs` (**6,350 lines**) and
 `bindings/js/src/constraint-kernel.mjs` (**2,213 lines**) were **surveyed by structure, not read end to end**: a
 declaration-site grep (`^(import|export|function|const|let|class|async function|export const)`) returned **151** sites

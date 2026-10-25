@@ -1,4 +1,4 @@
-// bindings/js/greens/live-drive.mjs
+// tests/e2e/live-drive.mjs   ⟶ MOVED 2026-10-25 (`D-5`), FROM `bindings/js/greens/live-drive.mjs`.
 // GATE 6 — THE LIVE DRIVER for `U-STOREROOM-JS` (`D-GP-SRJS`), authored by `role_live_scenario_runner`.
 //
 // WHAT THIS FILE IS. The unit's live surface is THE BUILT ARTEFACT reached through the package's claimed
@@ -20,7 +20,7 @@
 // I/O, a real caller. It is ADDITIVE to the gate-5 `ENVELOPE/PURE` set: it retires no envelope row and no
 // node row, and NO `APP`-GREEN IS CLAIMED (the unit delivers a LIBRARY; `APP` layer = NONE, `DD-20`).
 //
-// RUN:  node bindings/js/greens/live-drive.mjs        (from the repository root)
+// RUN:  node tests/e2e/live-drive.mjs        (from the repository root)   ⟶ MOVED 2026-10-25 (`D-5`): this command read `node bindings/js/greens/live-drive.mjs` until the batteries were stratified.
 
 import fs from 'node:fs';
 import os from 'node:os';

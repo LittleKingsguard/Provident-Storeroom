@@ -9,7 +9,7 @@
 //                 slot), `F5-4` (the position spelling invokes nothing from a mutable prototype) and
 //                 `F6-2` (`hasLoneSurrogate` invokes nothing from a mutable prototype)
 //   the cases:    docs/specs/storeroom-json-crossing/test-cases.md §3/§4 — `JC-TC-55`…`JC-TC-61`
-//   this harness: bindings/js/greens/json-crossing-live-s17.mjs
+//   this harness: tests/e2e/json-crossing-live-s17.mjs   ⟶ MOVED 2026-10-25 (`D-5`), FROM `bindings/js/greens/json-crossing-live-s17.mjs`.
 //   the report:   docs/specs/storeroom-json-crossing-live-report.md §17
 //
 // WHY A SECOND FILE AND NOT A NEW SECTION OF THE 144-CELL BATTERY. `§16` appended its `18` boundary cells

@@ -22,6 +22,20 @@ here: twenty-four commits touched this file after `D-15`** (the seven surface ru
 **A declaration of line regions expires with the next commit that touches the file it measures.** An L4 pass refused
 to execute this cut and **was right**; the refusal is the reason this file exists in this form.
 
+**⟶ ★ AND THE CUT THIS FILE DECLARES HAS BEEN EXECUTED — 2026-10-25 — SO EVERY LINE REGION BELOW IS PRE-CUT AND
+`bindings/js/src/constraint-kernel.mjs` IS NO LONGER THE FILE THEY ADDRESS.** It is **4 lines**: six names in four
+re-export specifiers (`register`, `remove` from `./entry/kernel-registration.mjs`; `commit` from
+`./entry/kernel-commit.mjs`; `runAttempt` from `./entry/kernel-attempt.mjs`; `log`, `report` from
+`./entry/kernel-terminal.mjs`). **The five parts exist, under the paths §1 declares, measured at their own last
+lines: `kernel-foundations.mjs` 529 · `kernel-registration.mjs` 644 · `kernel-commit.mjs` 156 ·
+`kernel-attempt.mjs` 570 · `kernel-terminal.mjs` 324** — `528/642/154/567/322` plus the one-line provenance header
+and the import block each part carries. **So §1's regions, §3.1's DAG, §4's export sites and §5's ownership
+sentences all describe the pre-cut file**; the declaration landed as written, which is why the barrel reproduces
+**exactly six enumerable names and no seventh** on this tree, and **a reader who needs a present line number must
+treat the parts as the units — there are no regions left to cite.** **This is the second expiry of this file's own
+subject, and the first is the one it was re-issued to repair:** both are the same lesson, printed here rather than
+absorbed.
+
 ---
 
 ## §0 · The supersession record — what stood at each site, and why it was stale
@@ -348,7 +362,11 @@ Three measured facts, and each alone would settle it:
    landed); `held-listener-identity-greens.mjs:909` (`HLI-13.1`) compares `Object.keys(kernel).sort()` against that
    file's **own** six-name `KERNEL_ITEMS` (`:31`) and is **green**. **Only one of the two is red, and the barrel must
    keep both states exactly as they are** — this is `D-15`'s correction of the previous pass's finding, restated so it
-   is not mis-corrected again.
+   is not mis-corrected again. **⟶ AND ONE OF THOSE TWO STATES IS NO LONGER THE TREE'S, CORRECTED 2026-10-25 ON
+   MEASUREMENT: `blind-constraints-v2.mjs`'s cell stands at `:1249` and is GREEN on SIX**, the battery's `D-20`
+   execution pass having re-derived it (its own comment at `:1242` records the move). **So BOTH cells are green and
+   the barrel must KEEP SIX ENUMERABLE NAMES — the "exactly as red after the wave as before" reading below is
+   superseded by the battery's re-derivation, not by the cut.**
 3. **A test that must change for a reason other than a path is a falsifier of the cut.** Re-pointing the reaches is
    exactly that edit.
 
@@ -508,6 +526,9 @@ the strictest reading of `kernel-surface.md §1` item 1 forbids five relative im
 
 **Measured and recorded because they contradict a document:**
 - **`blind-constraints-v2.mjs:1139` pins the kernel's namespace to FIVE names** and is **red at HEAD** (`K-6` landed).
+  **⟶ CORRECTED 2026-10-25 ON MEASUREMENT: the cell is at `:1249`, it asserts SIX, and it is GREEN** — the battery's
+  `D-20` execution pass re-derived it. **So the only surviving item of this list's first bullet is the fact that the
+  cell censuses the namespace by exact string, which is what makes SIX the figure the barrel must reproduce.**
 - **`constraint-kernel-helpers.mjs:48` declares `KERNEL_ITEMS` with five names** while
   `held-listener-identity-helpers.mjs:163` declares six — **two shared helpers disagree about the kernel's extent.**
 - **`closeRegistrationAttempt` and `close` are the same closer written twice** (§2).
@@ -559,7 +580,10 @@ the entry requires by path**, which is the one rule `D-3` leaves binding (measur
   `ReferenceError` at import.
 - **A greens or battery cell that must change for a reason other than a path.** The two namespace cells of §4.2 are
   the ones to watch: **`blind-constraints-v2.mjs:1139` must be exactly as red after the wave as it is now, for the
-  same reason, and `HLI-13.1` must stay green.**
+  same reason, and `HLI-13.1` must stay green.** **⟶ AND THE WAVE LANDED WITH BOTH GREEN, 2026-10-25: the first cell
+  was re-derived to SIX by the battery's own `D-20` pass before the cut, so the falsifier's antecedent — a red that
+  the cut neither fixes nor worsens — no longer exists for it. The remaining subject is the one stated above it: six
+  names and no seventh.**
 - **The installed battery failing on a missing kernel part** — that would mean §9's reachability consequence was
   declared right and landed wrong.
 

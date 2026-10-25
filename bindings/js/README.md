@@ -187,7 +187,7 @@ building it is a step of a checkout rather than of an install:
 ```sh
 cargo build --release --manifest-path bindings/js/Cargo.toml
 mkdir -p bindings/js/build/Release
-cp bindings/js/target/release/libstoreroom_js_binding.so bindings/js/build/Release/storeroom_js_binding.node
+cp target/release/libstoreroom_js_binding.so bindings/js/build/Release/storeroom_js_binding.node
 ```
 
 **No binary is ever committed** (`package.md §3.2`): `build/` and `target/` are ignored, and the artefacts
@@ -287,4 +287,27 @@ the generator is the thing that failed to load. **A consumer that runs the JS ce
 failure and not a silently degraded run.** **The Rust leg needs no addon at all**: the conversion core is the
 crate's `rlib` half, so `cargo test --manifest-path tests/Cargo.toml -p storeroom-tests` is drivable with no
 Node runtime present (`package.md §4.1` item 3, `§4.5` item 7).
+
+---
+
+**⟶ CORRECTED 2026-10-25 (`D-34`, `strata/decisions.md`; `RCA-8(d)` ANNOTATE-BESIDE: the superseded figure is
+named once, here, and the clause stands at the file's end so that no line of the shipped text above it moves).**
+
+**1. THE `cp` SOURCE IN THE `Building the addon` BLOCK, ABOVE, WAS `bindings/js/target/release/libstoreroom_js_binding.so`
+AND IS `target/release/libstoreroom_js_binding.so`.** `D-34` made this crate a **member of the one workspace at the
+repository root** (`members = [".", "bindings/js", "tests"]`), and **a member's target directory IS the workspace
+root's**, so `bindings/js/target/` is no longer produced by any command this repository runs. **Nothing else in
+that block moved**: the `cargo build` above it, the `mkdir -p` between them and the destination are the same
+bytes. **The `Tests` section's step 1 already read `cp target/release/…` and did not need the correction** — the
+two homes of the build form disagreed until this clause; they agree now.
+
+**2. ONE SENTENCE ABOVE IS STALE AND IS LEFT AS TEXT BECAUSE ITS CORRECTION IS `delivery`'s, NOT THIS PASS's.**
+The uncovered-target bullet reads *"this package's allowlist, whose whole content is `index.mjs` · `README.md` ·
+`index.d.ts`"*. **The allowlist carries FIVE rows today** — those three plus **`src/entry/`** (the entry's
+thirteen parts) and **`src/constraint-kernel.mjs`** (the barrel), measured at `bindings/js/package.json` — because
+the entry now imports its parts by path and a tarball carrying the hub alone cannot load (`D-13`, `D-14`). **The
+sentence's SUBJECT survives**: the Rust store crate's own `src/**` is still outside the allowlist and an
+uncovered consumer still needs a Rust toolchain. **Its parenthetical figure does not**, and it is named here
+rather than edited, because the shipped manifest's own description is `delivery`'s declaration and a documentation
+pass does not amend a manifest's prose in the manifest's own voice.
 

@@ -1544,8 +1544,8 @@ test('fts_S_CENSUS_no_rank_moves_and_no_second_register', async () => {
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 // ⟶ RED SET, ADDED 2026-10-15 — THE TWO `CONFLICT` CELLS AND THE ONE `FAIL` CELL OF THE GATE-5 BLIND SET
-// (`bindings/js/greens/file-tier-save/file-tier-save-greens.md` §1's table, §5 items (i)–(iii); its runner
-// `bindings/js/greens/file-tier-save/scenarios.mjs`'s cells `FTS-04.9`, `FTS-09.5`/`FTS-09.6`, `FTS-11.5`).
+// (`tests/e2e/file-tier-save/file-tier-save-greens.md` §1's table, §5 items (i)–(iii); both paths below read
+// `bindings/js/greens/file-tier-save/...` until `D-5`, 2026-10-25); its runner `tests/e2e/file-tier-save/scenarios.mjs`'s cells `FTS-04.9`, `FTS-09.5`/`FTS-09.6`, `FTS-11.5`).
 // THESE DRIVES PIN THE CLAUSES AS WRITTEN AND ARE EXPECTED TO BE RED: nothing here is a re-statement of the
 // blind set's own observation — each cell is DERIVED FROM ITS CLAUSE and asserts the clause's own observable.
 //
@@ -1766,7 +1766,7 @@ test('fts_FTS_04_9_THE_DISCRIMINATE_a_succeeding_save_still_reports_passed_with_
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 // ⟶ RED SET, ADDED 2026-10-16 — `FTS-04.10`: THE TWO ONE-SHOT ARMS DO NOT COEXIST IN ONE ATTEMPT'S LOG
-// (`DEF-2026-10-16-B`; `bindings/js/greens/file-tier-save/file-tier-save-greens.md`'s `FTS-04.10`)
+// (`DEF-2026-10-16-B`; `tests/e2e/file-tier-save/file-tier-save-greens.md`'s `FTS-04.10` — that path read `bindings/js/greens/file-tier-save/file-tier-save-greens.md` until `D-5`, 2026-10-25)
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
 test('fts_FTS_04_10_a_failing_saves_log_carries_the_outcome_entry_and_no_commit_entry', async () => {

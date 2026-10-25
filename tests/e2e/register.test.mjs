@@ -112,7 +112,7 @@ function * draw(attempt) {
 /// **⟶ CORRECTED 2026-10-17 (`role_test_writer`, GATE 4's ADVERSARIAL PASS): THE AS-FILED REPAIR THAT MOVED
 /// THE LABEL FROM THE CELL'S OWN ARRAY TO THIS MODULE-SCOPE RECORD MOVED A LITERAL AND NOT A READING, SO
 /// `S-LAYER` STILL COMPARED A CONSTANT TO ITSELF AND COULD NOT FAIL.** The two literals it needs are TYPED
-/// NOWHERE IN THIS FILE: they are EXTRACTED FROM `bindings/js/greens/greens.mjs` — the battery artifact this
+/// NOWHERE IN THIS FILE: they are EXTRACTED FROM `tests/e2e/greens.mjs` (that path read `bindings/js/greens/greens.mjs` until `D-5`'s stratification, 2026-10-25) — the battery artifact this
 /// unit's figures come from, which is the file that must carry the label for the figure to travel with it —
 /// and the two homes the artifact itself prints (its `const` declaration and its head comment) are read
 /// against each other, so a reader who meets either one first meets the same label. **THE FALSIFIER: change

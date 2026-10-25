@@ -60,6 +60,37 @@ same 75 `D-5` calls *"a redistribution of 75 files across three layers"*.
 
 ---
 
+**⟶ ★ THE MOVE IS DONE. IT WAS EXECUTED ON 2026-10-25, AND EVERY `present path` COLUMN IN THIS FILE IS NOW A PATH
+THAT DOES NOT EXIST.** **This block is the one thing a reader must take from this file before any table in it, and
+it is placed here because the sections that follow were written before the move and their captions still read as
+though it had not happened.** **`bindings/js/test/`, `bindings/js/greens/`, `bindings/js/tests/` and `tests/`'s own
+top level are EMPTY OR GONE** — measured on this tree, a glob of each returns nothing — and **the `target` column of
+§2.1, §2.2, §2.3 and §2.5 is the tree**:
+
+| what the tables call it | what is on disk today |
+|---|---|
+| `tests/e2e/` | **44 files** — the 33 assignments of §2.1, plus the installed battery's three (`installed/live-install.mjs`, `installed/install-support.mjs`, `installed/license-row-evidence.json`), the cut's three helpers (`staged-install/staged-install-support.mjs`, `module-set.mjs`, `pack-reachability.mjs`), and `REVIEW-2026-10-24.md` |
+| `tests/integration/` | **33 files** — the 29 assignments of §2.2, the two helpers of §2.5 (`constraint-kernel-helpers.mjs`, `held-listener-identity-helpers.mjs`) and `support/mod.rs` (the store crate's) and `binding-crossing/support/mod.rs` (the binding crate's) |
+| `tests/unit/` | **5 files**, exactly §2.3's five |
+| `tests/Cargo.toml` | **1 file** — the manifest of the third workspace member (`storeroom-tests`) that hosts the Rust targets; it was not in the 75 because it did not exist |
+
+**THE COMMANDS MOVED WITH THE FILES, AND THIS IS THE OTHER THING THE TABLES CANNOT SAY.** `npm test` is **`node
+--test "tests/**/*.test.mjs"`**, taken at the repository root — it reaches all 37 `*.test.mjs` files in one run
+across the three scopes; the three Rust legs are `cargo test --offline -p storeroom-native` (**415**), `cargo test
+-p storeroom-tests` (**235**) and a plain `cargo test` (**650**); and `npm run greens` is the three runners **at
+their new paths** (`tests/e2e/greens.mjs`, `tests/e2e/live-drive.mjs`, `tests/e2e/file-tier-save/scenarios.mjs`).
+**`D-11`'s owner for the leg is unchanged — the battery/greens modules own the command, the tracker leg and the
+layer statement — and only the strings moved.**
+
+**WHAT DID NOT MOVE, AND IT IS THE ASSERTION THIS FILE EXISTS TO MAKE:** the classification itself. **No file's
+`scope`, `driver`, `layer` or `route` changed with its path**; the `O3` five, the `O4` thirty-three, the
+`none-by-design` thirty-seven, the `assembled` eight and the `envelope` twenty-five are the same censuses at the
+same cells, and §2.4's arithmetic (`33 · 29 · 5 · 8 = 75`) still closes over the 75 artifacts the four retired
+directories carried. **The move was a redistribution of paths, not a re-cut of assignments, and a reader who wants
+the present state of a row should replace its `present path` cell with its `target` cell and read on.**
+
+---
+
 ## §1 · The rule applied, in one paragraph
 
 **A file's scope is decided by what its assertions are evidence about, not by the wave, unit or directory it was
@@ -113,6 +144,12 @@ tags are unmoved — 33 e2e rows, `O3` 5 · `O4` 28.**
 
 ### §2.1 `tests/e2e/` — 33 files
 
+**⟶ MOVED, 2026-10-25: every `present path` cell below is a path that no longer exists and every `target` cell is
+a file on disk.** The 33 rows are read by their `target` column; the `tests/e2e/` directory itself carries **44**
+files, the extra eleven being the installed battery's three, the cut's three staging/measurement helpers,
+`REVIEW-2026-10-24.md`, and the four files §2.7/§2.8 declare. **No row's scope, driver, layer or route changed with
+its path.**
+
 **The ten `bindings/js/greens/` entries below are declared `is_test: false` in the JSON, and they still take a
 scope**: they *report* rather than assert (§4 Q6), and the preset's e2e scope is the one that holds a battery
 plus its blind and live instances. A scope assignment does not turn an instrument into a test.
@@ -165,6 +202,14 @@ only rows whose `target` changed at this pass** (`tests/e2e/staged-install/`), a
 
 ### §2.2 `tests/integration/<module>/` — 29 files
 
+**⟶ MOVED, 2026-10-25: every `present path` cell below is a path that no longer exists and every `target` cell is
+a file on disk.** `tests/integration/` carries **33** files — these 29, the two §2.5 helpers and the two
+`support/mod.rs` modules. **The Rust half's move needed a THIRD CARGO PACKAGE**: `crossing_copy.rs`,
+`addon_adoption.rs`, `surface_verbs.rs`, `register_layer.rs`, `crossing_carriers.rs` and `crossing_values.rs` were
+`bindings/js/tests/`'s, and a Cargo package's integration tests must live inside it, so `tests/Cargo.toml` hosts
+them as the `storeroom-tests` package's own targets (`D-34`). **The store crate's fifteen stayed inside the root
+package and are named as `[[test]]` entries in the root manifest.**
+
 **`route`: `none, by design` for 28 of these**, and `O4` for one — **they reach a module by that module's own
 declared path** (the store crate, the binding crate's `rlib`, the kernel at `../src/constraint-kernel.mjs`) with
 no `.node`, no entry and no package in the process. **The exception is `held-listener-identity-gate4-regressions`**,
@@ -205,6 +250,10 @@ per-scope answer would hide.
 
 ### §2.3 `tests/unit/<module>/` — 5 files
 
+**⟶ MOVED, 2026-10-25: every `present path` cell below is a path that no longer exists and every `target` cell is
+a file on disk. The five are exactly the five files `tests/unit/` carries — this scope was the only one the move
+filled exactly.**
+
 **`route`: `none, by design` for 3 of these** (`constraint-kernel.test.mjs` reaches the kernel through the
 helper; both `crossing_*` files reach the `rlib`), and **`O4` for 2** — `a127-surface.test.mjs:72` and
 `a126-constraint-methods.test.mjs:46` both import the package **by name**, so both must be re-spelled by a route
@@ -238,6 +287,12 @@ helper rather than a test. **The 67+8 = 75 reconciliation, the 33/29/5 split and
 route census all stand exactly as committed.**
 
 ### §2.5 Helpers and non-tests — declared separately, and deliberately not tests
+
+**⟶ MOVED, 2026-10-25: the eight rows below are at their `target` paths and nowhere else**, so
+`tests/integration/js-constraints/` now holds both cross-scope helpers and `tests/e2e/` holds the two per-battery
+support modules and the two records. **The cross-scope consumption the paragraph under the table declares still
+holds at the new paths — a scope that imports across a directory is lawful and `node --test` follows imports — and
+the two-consumer/two-scope count is unmoved.**
 
 | present path | target | consumed by | route | what it is |
 |---|---|---|---|---|
@@ -969,7 +1024,20 @@ register and this declaration's home moves with it; nothing else in §2.9 depend
 
 **Nothing in this section has been done.** It states what the wave that executes §2 will meet.
 
-**Paths.** **None of the three scopes exists today**: `tests/` holds only the store crate's 15 files,
+**⟶ ★ AND IT HAS NOW BEEN DONE — 2026-10-25. THE WHOLE OF THIS SECTION IS READ AS THE WAVE'S OWN PLAN, CHECKED
+OFF AFTER THE FACT.** **`tests/e2e/`, `tests/integration/` (with every subdirectory it names), `tests/unit/` (with
+every subdirectory it names) exist and carry the files; the four present-state directories are empty or gone;
+`tests/Cargo.toml` exists as the third workspace member; the root `package.json`'s `test` script globs
+`tests/**/*.test.mjs`; and every route re-spelling §2.6.4 declares has landed.** **What a reader must not do is
+read the future tense below as outstanding work** — it is a record of a prediction that held, and **the two
+discoveries it priced were both real**: the `[[test]]` entries and the `#[path = "../support/mod.rs"]` resolution
+are in the tree exactly where this section said they would be needed, and the root `package.json`'s script *was*
+re-pointed by a pass that owns no module (`D-11`, `D-34`). **One discovery this section did NOT anticipate is named
+so the record is honest: the Rust half needed a THIRD PACKAGE rather than a `[[test]]` path escaping its crate**,
+which is `D-34`'s lift and `storeroom-tests`' whole reason to exist.
+
+**Paths.** **None of the three scopes exists today** — *this sentence was true when written and is false now; the
+three exist and this paragraph is the plan they were built from*: `tests/` holds only the store crate's 15 files,
 `bindings/js/test/`, `bindings/js/tests/` and `bindings/js/greens/` hold the rest. The wave **creates**
 `tests/e2e/` (with `file-tier-save/` and `consumer-fix/` subdirectories), `tests/integration/` (with
 `store-core/`, `store-fail-set/`, `store-args/`, `binding-crossing/`, `js-constraints/`, `support/`),

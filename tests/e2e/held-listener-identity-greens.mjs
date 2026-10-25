@@ -1,4 +1,4 @@
-// bindings/js/greens/held-listener-identity-greens.mjs
+// tests/e2e/held-listener-identity-greens.mjs   ⟶ MOVED 2026-10-25 (`D-5`), FROM `bindings/js/greens/held-listener-identity-greens.mjs`.
 // THE BLIND GREENS DRIVER for `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`), gate 5 (`P5`).
 //
 // AUTHORED FROM THE DOCUMENTATION ALONE: docs/specs/storeroom-held-listener-identity-greens.md — the
@@ -11,7 +11,7 @@
 //
 // LAYER: ENVELOPE/PURE.   APP LAYER: NONE.   NO `APP`-GREEN IS CLAIMED HERE OR ANYWHERE IN THIS RUN.
 //
-// RUN:  node bindings/js/greens/held-listener-identity-greens.mjs        (from the repository root)
+// RUN:  node tests/e2e/held-listener-identity-greens.mjs        (from the repository root)   ⟶ MOVED 2026-10-25 (`D-5`): this command read `node bindings/js/greens/held-listener-identity-greens.mjs` until the batteries were stratified.
 
 import fs from 'node:fs';
 import os from 'node:os';

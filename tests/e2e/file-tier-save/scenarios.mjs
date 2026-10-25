@@ -2,7 +2,7 @@
 // ============================================================================
 // GATE 5 — THE BLIND GREENS SET FOR THE `file`-TIER SAVE
 // unit: the file-tier durable commit as the `settle` seam's terminal-arm act
-// artifact id: FTS (file-tier-save)   runner: bindings/js/greens/file-tier-save/scenarios.mjs
+// artifact id: FTS (file-tier-save)   runner: tests/e2e/file-tier-save/scenarios.mjs   ⟶ MOVED 2026-10-25 (`D-5`), FROM `bindings/js/greens/file-tier-save/scenarios.mjs`.
 //
 // AUTHORED FROM THE DOCUMENTATION ONLY (docs/specs/**, the *-greens.md set).
 // The package and the kernel entry are IMPORTED and DRIVEN; no src/**, no

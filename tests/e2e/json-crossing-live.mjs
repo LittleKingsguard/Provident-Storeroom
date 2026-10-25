@@ -6,7 +6,7 @@
 //
 //   the set:      docs/specs/storeroom-json-crossing-greens.md
 //   the contract: docs/specs/storeroom-json-crossing/contract.md §1–§9
-//   this runner:  bindings/js/greens/json-crossing-live.mjs
+//   this runner:  tests/e2e/json-crossing-live.mjs   ⟶ MOVED 2026-10-25 (`D-5`), FROM `bindings/js/greens/json-crossing-live.mjs`.
 //   the report:   docs/specs/storeroom-json-crossing-live-report.md
 //
 // WHAT THIS RUNNER IS. An INDEPENDENT live re-drive of the set's `67` cells, plus (from 2026-10-24) the
@@ -117,7 +117,7 @@
 // and assert the counters are `0` AND the subject is the declared class spelling.** No cell of the first two
 // re-drives was weakened or re-expressed.
 //
-// RUN:  node bindings/js/greens/json-crossing-live.mjs
+// RUN:  node tests/e2e/json-crossing-live.mjs   ⟶ MOVED 2026-10-25 (`D-5`): this command read `node bindings/js/greens/json-crossing-live.mjs` until the batteries were stratified.
 // EXIT: 0 iff no cell FAILed and no cell was a FINDING.
 // ============================================================================
 

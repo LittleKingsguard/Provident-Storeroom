@@ -3,7 +3,7 @@
 // THE LIVE RUN FOR THE BLIND GREENS SET `JAS` — the `file` tier's JSON CODEC
 // as a declared contract, driven against the RUNNING PACKAGE.
 // artifact: docs/specs/storeroom-json-acceptance-set-greens.md   (the set)
-// runner:   bindings/js/greens/json-acceptance-set-live.mjs       (this file)
+// runner:   tests/e2e/json-acceptance-set-live.mjs       (this file)   ⟶ MOVED 2026-10-25 (`D-5`), FROM `bindings/js/greens/json-acceptance-set-live.mjs`.
 // report:   docs/specs/storeroom-json-acceptance-set-live-report.md
 //
 // WHAT THIS RUNNER IS. An INDEPENDENT live re-drive of the set's twelve
@@ -42,7 +42,7 @@
 //                        failure, and — per D-21 — not an exit 0 either.
 //   FINDING            — the live run CONTRADICTS a declared verdict.
 //
-// RUN:  node bindings/js/greens/json-acceptance-set-live.mjs   (from the repo root)
+// RUN:  node tests/e2e/json-acceptance-set-live.mjs   (from the repo root)   ⟶ MOVED 2026-10-25 (`D-5`): this command read `node bindings/js/greens/json-acceptance-set-live.mjs` until the batteries were stratified.
 // EXIT: 0 iff no cell FAILed, none was a FINDING, and NONE WAS NON-EXECUTED.
 //       `D-21` (strata/decisions.md, 2026-10-24): *"A runner whose cells are red,
 //       or whose cells never ran, may not exit 0."*  So a GAP, an
