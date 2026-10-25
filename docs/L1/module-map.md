@@ -204,7 +204,16 @@ The two Rust batteries are separate modules by the project's own ruling (`docs/s
 §3.4 item 2: an independent sibling crate means *"the store's … `tests/**` and its measured green are NOT
 TOUCHED"*), and the two JS-side drivers are separate because they differ in kind: `bindings/js/test/` is a
 `node --test` battery over the entry, while `bindings/js/greens/` is a set of caller-shaped live runners that
-report each green with its layer. **This is an ownership choice, not an observation** — see §6 Q3.
+report each green with its layer. **This is an ownership choice, not an observation** — see §6 Q3. **⟶ AND EVERY PATH IN THIS SECTION IS A
+PRESENT-STATE PATH, NOT THE MODEL'S HOME (`D-5`: *"Keep the preset's choice"*):** the strata preset's test roles
+are kept as configured — `role_l1_test_writer` → `tests/e2e/`, `role_l2_test_writer` →
+`tests/integration/<module>/`, `role_l3_test_writer` → `tests/unit/<module>/` — **so the tree adapts and the
+preset is not amended.** When the model takes these batteries over, their content is **stratified into those three
+scopes**, and **which file goes to which scope is NOT drawn here**: the preset decomposes **by layer**, this
+project's batteries are organised **by unit and wave**, and the re-cut of 75 files across three layers is L1's to
+declare. **⟶ THE ORDER THIS IMPLIES, RECORDED AS CONSEQUENCE AND NOT AS A RULING:** `D-4` makes the publish shape
+a consequence of what the e2e/blind scenarios prove, so the scenarios' placement is **upstream** of `delivery`'s
+manifest decision.
 
 ---
 

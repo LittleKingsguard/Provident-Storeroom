@@ -364,3 +364,55 @@ convention:** this project keeps its batteries at `bindings/js/test/` and `bindi
 preset's test roles are declared to write under `tests/e2e/`, `tests/integration/<module>/` and
 `tests/unit/<module>/`. **That is a real open question for the model — not for the publish shape** — and it is
 put to the architect below rather than resolved here.
+
+---
+
+### `D-5` — the strata preset's test-role write scopes are kept; the project's batteries adapt
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, answering the
+model question `D-4` left open.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Keep the preset's choice
+
+**THE QUESTION IT ANSWERS, SO THE ANSWER'S SCOPE IS NOT GUESSED.** `D-4` hands the publish shape to *"the
+e2e/blind scenario testing"*, and `D-4` recorded that the project's batteries and the preset's test roles do not
+share a path convention. The question put to the architect was: **does the e2e/blind battery keep
+`bindings/js/test/` and `bindings/js/greens/`, with the preset's test-role scopes bending to it — or do the
+batteries move under the preset's scopes?** **The answer is the second: the preset is not amended.**
+
+**WHAT IT SETTLES.**
+
+- **The strata preset's three test-role write scopes stand as configured and are not edited for this project:**
+  `role_l1_test_writer` → **`tests/e2e/`**, `role_l2_test_writer` → **`tests/integration/<module>/`**,
+  `role_l3_test_writer` → **`tests/unit/<module>/`**. **The preset is the constraint; the tree adapts to it**,
+  and every alternative that bent a role's declared scope to a path this project already uses is refused by this
+  ruling.
+- **The battery modules' current paths are therefore PRESENT-STATE paths, not the model's homes.** The map's
+  `store-battery` (`tests/`), `binding-battery` (`bindings/js/tests/`), `js-battery` (`bindings/js/test/`) and
+  `greens-harness` (`bindings/js/greens/`) own what exists **today**; **when the strata model takes the batteries
+  over, their content is stratified into the preset's three scopes.**
+
+**WHAT IT DOES NOT SETTLE, AND THIS IS THE WHOLE OF THE REMAINING WORK.**
+
+- **It does not say which file goes to which scope.** The preset's decomposition is **by layer** — e2e drives the
+  built artefact through its declared entry points; integration drives one module's I/O surface; unit pins one
+  module's signatures — while **this project's batteries are organised by unit and wave** (`json-crossing`,
+  `held-listener-identity`, `constraints`, `file-tier-save`, `publish`, the `gate4_*` sets). **A re-cut from one
+  organisation to the other is a redistribution of 75 files across three layers, and it is not a path rename.**
+  **That decomposition is L1's to declare, not L0's**, and no clause here draws it.
+- **It orders no migration and schedules nothing.** `D-1`…`D-4` each order no code move, and this ruling settles
+  a convention rather than opening work.
+- **It does not change any battery's content, coverage, or the layer each green is reported against.** The
+  project's rule that *"a green on one layer does not retire a red on another"* (`strata/brief.md` §5 item 8)
+  survives the move of the files that report it.
+- **It does not touch `role_l1_examiner`, `role_l2_examiner` or `role_l3_examiner`**, whose scopes are reads and
+  whose procedures are unchanged by where the battery lives.
+
+**WHAT IT MEANS FOR THE TWO OPEN PIECES OF WORK, STATED SO THE ORDER IS VISIBLE.** Two pieces now stand
+recorded and unscheduled: the **subdivision + kernel integration** (`D-1`, `D-2`, `D-3`, `D-4`) and the
+**battery stratification** (`D-5`). **They are not independent:** `D-4` makes the publish shape a consequence of
+what the e2e/blind scenarios prove, so **the scenarios' placement is upstream of delivery's manifest decision** —
+which means the battery stratification is arguably the first of the two, not the second. **That ordering is L0's
+own reading and is marked as such; it is not a ruling and the architect has not said it.**
