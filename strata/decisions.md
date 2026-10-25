@@ -1685,3 +1685,44 @@ the route that names a handle under which nothing is armed yet** — legitimate,
 because it is exactly the state `D-24`'s overwrite rule will act on when the function later arrives. **Whether the
 batch SHOULD carry the function — and so whether this is a code gap or a documentation error — is the architect's
 call and L1's to declare; L0 records that the two disagree and that the code is the looser one.**
+
+---
+
+### `D-26` — the batch in `cfg.constraints` MUST supply functions
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the question the
+`FINDING` above put to him (is the batch's dropped function a code gap or a documentation error).
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The batch in cfg.constraints must supply functions
+
+**WHAT IT SETTLES.**
+
+1. **THE BATCH ELEMENT IS THREE MEMBERS — `{ address, id, constraint }` — AND THE FUNCTION IS REQUIRED.** **This
+   confirms the recorded surface over the code:** the use-case record's dated clause said *"the pair is its
+   addressing and THE FUNCTION IS ITS SUBSTANCE … the list you supply carries the constraint function at each
+   element"*, and **the encoder's silent drop is therefore a DEFECT and not a design.** **`strata/brief.md`'s UC-9
+   already reads this way** — **so this is a rare direction: the declaration of record is right and the
+   implementation is the thing that moves.**
+2. **`bindings/js/index.d.ts`'s element type gains the member** — `constraint: Constraint` — where `Constraint` is
+   already declared as `(context: unknown) => unknown`. That is `js-declaration`'s edit.
+3. **THE STORE'S CARRIER DOES NOT GAIN IT, AND THAT IS NOT A GAP.** `ConstraintEntry::Pair { address, id }` stays two
+   fields in `src/args.rs` **because a JavaScript function cannot cross into Rust at all.** **So the boundary carries
+   the PAIR and the package arms the SUBSTANCE**, through the same act the add route performs, at construction.
+4. **★ THE "IDENTITY WITHOUT ARMING" STATE DISAPPEARS FROM THE BATCH ROUTE.** The surface's rule *"a well-formed
+   element that carried no function … is NOT a CARRIED pair, which is why the toggles refuse at it"* **had the batch
+   as its only source of an uncarried pair. Under `D-26` every batch element is carried**, so that rule's subject
+   moves to pairs whose function was never supplied — **which the batch can no longer produce.**
+5. **AND IT OWES A REFUSAL THE PACKAGE MUST OWN.** A missing, `undefined` or non-function `constraint` member cannot
+   be seen by the store, **so the PACKAGE refuses it** — and it may mint no new code, so it must use an existing set
+   member (`ConstraintListInvalid` is the natural one, being the list's own validation code at rank `16`), **in the
+   one thrown form, at construction, and BEFORE ANY FILESYSTEM ACT** — the order `contract.md §10.4` part `4`
+   already fixed for the other construction arguments.
+
+**WHAT IT DOES NOT SETTLE.** **Where in the construction's argument order the function check joins** (it must precede
+the create; `D-26` does not place it relative to `journalLength`, `listeners` or the list's own shape walk). **Whether
+the boot route arms functions the same way** — the list is supplied at every startup, so it should, and a pass must
+say so. **And how it composes with `D-25` at construction**: if the boot's adopted listeners are in place before the
+list arms, **a batch `id` colliding with an adopted listener's handle is a cross-kind overwrite and must be
+REJECTED** — **which makes the construction's argument order a correctness matter rather than a tidiness one.**
