@@ -1561,3 +1561,58 @@ the pair's home entry stops being an anonymous intrusion**: the name it occupies
 word for that constraint, so `D-22`'s surfaced question (a kernel occupancy purging an app's entry, §2.2 item 7)
 becomes **visible in the caller's own vocabulary** rather than hidden behind a reserved prefix. **It does not
 resolve that question; it makes it legible.**
+
+---
+
+### `D-24` — the handle IS the `id`; handles are unique; a duplicate handle is an overwrite
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the two questions
+`D-23` left open (a new member or `id` promoted, and the collision arm).
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The handle becomes the id - the handle needs to be unique regardless, and setting a duplicate handle is an
+> overwrite
+
+**WHAT IT SETTLES, AND IT SETTLES FOUR OF `D-23`'S FIVE.**
+
+1. **NO NEW MEMBER.** The constraint's `id` **is** the handle. `ConstraintPair`'s shape is unchanged, the batch
+   element gains no third field from this ruling, and the kernel's spelling problem is gone by identity rather than
+   by derivation: **the handle the pair occupies under is the caller's own word for the constraint.**
+2. **`constraints()` NEEDS NOTHING NEW.** That read already returns `{ address, id }`, and **the `id` is now the
+   handle**, so the four declared exclusions (no function · no identity · no order · no `enabled`) stand exactly as
+   written.
+3. **`LogEntry` NEEDS NO SEVENTH MEMBER — the sharpest of `D-23`'s questions answers itself.** The kernel's entry
+   already carries **`id`**, and `D-23` made the name the logging subject; **with the name and the `id` the same
+   datum, the entry's six members already carry it.** **No member-set move is owed and no undeclared seventh
+   member exists to file.**
+4. **THE COLLISION ARM IS `OVERWRITE`, and it is the rule `addConstraint` already declares** — *"adding an id that
+   already exists OVERWRITES: it does not refuse and it throws nothing for the mere fact that the id was held."*
+   **So a repeated name is a replacement, uniformly, and not a new refusal to mint.**
+
+**AND THE RULING IS COHERENT WITH THE MODEL ALREADY DECLARED, which is why it needs no new vocabulary:** the pair's
+own key is **`(id, address-set)`** — `contract.md §2.6` item 4, *"a pair standing over N addresses occupies N
+registry rows and **ONE identity**"*, the keying ruling *"one id, N addresses"* — **so one `id` already names one
+pair, one identity and one handle. The handle and the pair's key become the same string, which is the whole of the
+ruling.**
+
+**WHAT IT LEAVES — TWO, AND THE FIRST IS A CONTRADICTION THAT MUST NOW BE RECONCILED RATHER THAN DECIDED.**
+
+- **★ `register`'s CONFLICT TEST LOSES ITS SUBJECT.** `registerOn` currently REFUSES a listener at a handle where a
+  constraint stands — *"a listener and a constraint do not share one"* — and the kernel-prefix exemption existed
+  only to get the kernel past it. **`D-24` says the two DO share one: a duplicate handle is an OVERWRITE.** **So the
+  refusal and the overwrite rule cannot both hold**, and the refusal is the one the architect's words contradict.
+  **L1 declares the reconciliation** (the exemption already died in `D-22`; this may take the refusal with it), and
+  L0 does not.
+- **`D-22`'s SURFACED QUESTION IS NOW UNIFORM, WHICH IS BETTER THAN IT WAS.** An app listener's handle and a
+  constraint's `id` at one address are **one handle**, and the later set overwrites the earlier — **so `§2.2` item
+  7's unconditional purge is no longer a kernel-shaped special case; it is the ordinary handle rule applied to one
+  namespace.** **The behaviour is still a silent loss for whoever is overwritten, and that remains the architect's
+  to accept or refuse — but it is now one rule rather than two.**
+
+**WHAT IT DOES NOT SETTLE.** `D-23`'s remaining question stands untouched: **what the batch element's functional
+member is** — the declaration names `{ address, id }` and no function, while the use-case record describes
+`{ address, id, constraint }` with the function as the substance. **And whether `id`-as-handle forces a stricter
+`id` domain**: an `id` is a non-empty string and so is a handle, so the domains already agree, but a name that is now
+an instance-scoped handle is a stronger thing than a pair-local id was, and a pass must say whether any further
+rule (length, characters) is owed.
