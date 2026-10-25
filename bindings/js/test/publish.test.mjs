@@ -4463,7 +4463,7 @@ cell('P-PUB-8', 'S-LAYER every figure this unit reports carries its SITE and its
   // UNTESTABLE arm). **WHAT SURVIVES IS THE FIGURE'S OWN LABEL, WHICH IS A CODE FACT WITH ITS OWN HOMES**:
   // the greens harness declares `LAYER`/`APP_LAYER` as constants, and this cell reads them so the figure
   // below cannot drift from the instrument that prints it.
-  const greensBytes = readFileSync(join(PKG_DIR, 'greens', 'greens.mjs'), 'utf8');
+  const greensBytes = readFileSync(join(PKG_DIR, '..', '..', 'tests', 'e2e', 'greens.mjs'), 'utf8');
   const layerConst = /^const LAYER = '([^']*)';$/m.exec(greensBytes);
   const appLayerConst = /^const APP_LAYER = '([^']*)';$/m.exec(greensBytes);
   assert.ok(layerConst !== null && appLayerConst !== null,

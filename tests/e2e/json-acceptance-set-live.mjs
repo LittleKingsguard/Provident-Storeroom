@@ -55,12 +55,12 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const PKG = await import('../index.mjs');
-const K = await import('../src/constraint-kernel.mjs');
+const PKG = await import('../../bindings/js/index.mjs');
+const K = await import('../../bindings/js/src/constraint-kernel.mjs');
 
 const LAYER = 'ENVELOPE/PURE (the JavaScript package layer, in-process)';
 const APP_LAYER = 'NONE';
-const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 // THE CHARACTERS THE CLASSES NAME, BUILT PROGRAMMATICALLY so that no literal
 // control byte is ever written into this file.

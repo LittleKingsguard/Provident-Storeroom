@@ -32,8 +32,8 @@ import vm from 'node:vm';
 import { createRequire } from 'node:module';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const ENTRY = path.resolve(HERE, '..', 'index.mjs');
-const ADDON = path.resolve(HERE, '..', 'build', 'Release', 'storeroom_js_binding.node');
+const ENTRY = path.resolve(HERE, '..', '..', 'bindings', 'js', 'index.mjs');
+const ADDON = path.resolve(HERE, '..', '..', 'bindings', 'js', 'build', 'Release', 'storeroom_js_binding.node');
 const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'sr-js-live-'));
 
 let authored = 0, executed = 0, pass = 0, fail = 0;
@@ -210,7 +210,7 @@ const V = { name: 'alpha', flag: true, count: 3, ratio: 0.5, nest: { z: 1, arr: 
 // being the caller's own instance from `§1` item 5. Imported as DATA (its call shapes are the doc's), never
 // read as source; where it does not resolve, each re-pointed cell says so instead of driving.
 let kernelLive = null, KERNEL_LIVE_ERROR = null;
-try { kernelLive = await import('../src/constraint-kernel.mjs'); } catch (e) { KERNEL_LIVE_ERROR = e; }
+try { kernelLive = await import('../../bindings/js/src/constraint-kernel.mjs'); } catch (e) { KERNEL_LIVE_ERROR = e; }
 function kernelSaveFileLive(store, address, value) {
   if (kernelLive === null) return { threw: true, err: `KERNEL ABSENT: ${String(KERNEL_LIVE_ERROR && KERNEL_LIVE_ERROR.message)}` };
   const rec = thrown(() => kernelLive.commit(store, address, 'file', value));
@@ -641,7 +641,7 @@ console.log(JSON.stringify({ pid: process.pid, value: i.read(${JSON.stringify(['
   const sc = 'LIVE-8';
   const absentDir = path.join(ROOT, 'absent-pkg');
   fs.mkdirSync(absentDir, { recursive: true });
-  const pkgDir = path.resolve(HERE, '..');
+  const pkgDir = path.resolve(HERE, '..', '..', 'bindings', 'js');
   // **THE COPY IS THE MODULE'S OWN CLOSED SET** (`D-14`'s glob plus the barrel's explicit path), so the copy's
   // entry loads exactly as the repository's does and the ONLY thing missing from it is `build/Release`.
   copyModuleSet(pkgDir, absentDir);
@@ -836,7 +836,7 @@ console.log(JSON.stringify({ pid: process.pid, value: i.read(${JSON.stringify(['
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const sc = 'LIVE-11';
-  const pkgDir = path.resolve(HERE, '..');
+  const pkgDir = path.resolve(HERE, '..', '..', 'bindings', 'js');
   const manifest = JSON.parse(fs.readFileSync(path.join(pkgDir, 'package.json'), 'utf8'));
   const ex = manifest.exports || {};
   const dot = ex['.'] || {};

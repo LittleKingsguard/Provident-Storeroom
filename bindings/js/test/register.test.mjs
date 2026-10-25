@@ -126,7 +126,7 @@ const FIGURE = {
 };
 /// The battery artifact that carries the layer label (`acceptance.md §4.2` item 1; `DD-31`/`DD-33`: this
 /// unit's green is `ENVELOPE/PURE` and the store's own suite is not re-labelled as this unit's).
-const LAYER_ARTIFACT = join(PACKAGE_DIR, 'greens', 'greens.mjs');
+const LAYER_ARTIFACT = join(PACKAGE_DIR, '..', '..', 'tests', 'e2e', 'greens.mjs');
 /// The artifact's own two homes of the label, read as bytes: its `const LAYER = '<label>'` declaration and
 /// the `LAYER: <label>` line of its head comment. `null` where a home is absent, so a missing home is a
 /// FAILURE of the line rather than a reading that quietly disappears.

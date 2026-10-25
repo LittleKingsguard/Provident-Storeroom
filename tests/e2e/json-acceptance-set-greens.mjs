@@ -52,8 +52,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const PKG = await import('../index.mjs');
-const K = await import('../src/constraint-kernel.mjs');
+const PKG = await import('../../bindings/js/index.mjs');
+const K = await import('../../bindings/js/src/constraint-kernel.mjs');
 
 const LAYER = 'ENVELOPE/PURE';
 const APP_LAYER = 'NONE';

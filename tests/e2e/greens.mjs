@@ -240,7 +240,7 @@ const mk = (name, extra = {}) => ({ ...cfgFor(name).c, ...extra });
 
 // ── the claimed ESM entry: THE ONE import of this run ───────────────────────────────────────────────────
 let ns = null, IMPORT_ERROR = null;
-try { ns = await import('../index.mjs'); } catch (e) { IMPORT_ERROR = e; }
+try { ns = await import('../../bindings/js/index.mjs'); } catch (e) { IMPORT_ERROR = e; }
 
 if (ns === null) {
   console.log(`FATAL — the claimed ESM entry did not resolve, so NO cell of this set can run: ${IMPORT_ERROR}`);
@@ -257,7 +257,7 @@ if (ns === null) {
 // pass on the package's own surface. Imported as DATA (its call shapes are the doc's), never read as source;
 // where it does not resolve, `JSG-16.1` says so and drives nothing else differently.
 let kernel = null, KERNEL_ERROR = null;
-try { kernel = await import('../src/constraint-kernel.mjs'); } catch (e) { KERNEL_ERROR = e; }
+try { kernel = await import('../../bindings/js/src/constraint-kernel.mjs'); } catch (e) { KERNEL_ERROR = e; }
 function K1(store, address, id, fn) { return kernel.register(store, address, id, fn); }
 function K2(store, address, tier, value) { return kernel.commit(store, address, tier, value); }
 function K3(store, attempt) { return kernel.runAttempt(store, attempt); }
@@ -1211,7 +1211,7 @@ const g10 = { all: [] };
 //       code itself makes: `require_(…)` is the HUB's own `createRequire(import.meta.url)`, so
 //       `require_('./src/constraint-kernel.mjs')` sits inside a part and still resolves against the hub's
 //       directory. The same base rule the battery's instrument carries, arrived at independently.
-const GREENS_PKG_ROOT = path.dirname(fileURLToPath(new URL('../package.json', import.meta.url)));
+const GREENS_PKG_ROOT = path.dirname(fileURLToPath(new URL('../../bindings/js/package.json', import.meta.url)));
 const GREENS_HUB = 'index.mjs';
 const GREENS_BARREL = 'src/constraint-kernel.mjs';
 const GREENS_NEVER_PACKED = new Set(['.git', '.hg', '.svn', 'CVS', 'node_modules', 'web_modules', '.npmrc',
@@ -1371,7 +1371,7 @@ function greensReachable() {
   A('JSG-12.2', 'package.md §1.3 item 3; §2.9 item 1\'s `A127` clause; §2.9\'s removal-versus-deprecation clause of 2026-10-16', "the entry's named exports are exactly `storeCreate` and NOTHING ELSE — the ten store-reaching names are the product's methods, not module names",
     Object.keys(ns).length === 1 && Object.prototype.hasOwnProperty.call(ns, 'storeCreate') && typeof ns.storeCreate === 'function', Object.keys(ns).join(','));
   let pkg = null, pkgErr = null;
-  try { pkg = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')); } catch (e) { pkgErr = e; }
+  try { pkg = JSON.parse(fs.readFileSync(new URL('../../bindings/js/package.json', import.meta.url), 'utf8')); } catch (e) { pkgErr = e; }
   const ex = (pkg && pkg.exports) || {};
   A('JSG-12.3', 'package.md §1.3 item 1; DD-24', 'the exports map publishes exactly ONE arms-bearing entry (the "." key)', Object.keys(ex).length === 1 && Object.prototype.hasOwnProperty.call(ex, '.'), pkgErr ? `manifest unreadable: ${pkgErr.message}` : Object.keys(ex).join(','));
   const arm = ex['.'];
@@ -1895,8 +1895,8 @@ for (const line of RETIRED) console.log(`  ${line}`);
 console.log('');
 console.log('── THE RUN ─────────────────────────────────────────────────────────────────────────');
 console.log(`SITE:  node bindings/js/greens/greens.mjs   (cwd: ${process.cwd()})`);
-console.log(`ENTRY: ${new URL('../index.mjs', import.meta.url).pathname}`);
-console.log(`ENTRY 2 (JSG-16.1 only): ${new URL('../src/constraint-kernel.mjs', import.meta.url).pathname}`);
+console.log(`ENTRY: ${new URL('../../bindings/js/index.mjs', import.meta.url).pathname}`);
+console.log(`ENTRY 2 (JSG-16.1 only): ${new URL('../../bindings/js/src/constraint-kernel.mjs', import.meta.url).pathname}`);
 console.log(`LAYER: ${LAYER}   APP LAYER: ${APP_LAYER}   (no APP-green is claimed)`);
 console.log(`SCRATCH: ${ROOT}`);
 for (const [sc, rec] of perScenario) console.log(`  ${sc}: ${rec.pass} PASS · ${rec.fail} FAIL   (${rec.pass + rec.fail} assertions)`);

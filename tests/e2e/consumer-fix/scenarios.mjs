@@ -10,7 +10,7 @@ import { join, dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const req = createRequire(import.meta.url);
 const M = join(ROOT, 'bindings/js/package.json');
 const ART = join(ROOT, 'bindings/js/build/Release/storeroom_js_binding.node');

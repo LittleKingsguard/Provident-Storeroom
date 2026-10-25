@@ -47,8 +47,8 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const ENTRY = process.env.JC_ENTRY ?? path.join(HERE, '..', 'index.mjs');
-const KERNEL = process.env.JC_KERNEL ?? path.join(HERE, '..', 'src', 'constraint-kernel.mjs');
+const ENTRY = process.env.JC_ENTRY ?? path.join(HERE, '..', '..', 'bindings', 'js', 'index.mjs');
+const KERNEL = process.env.JC_KERNEL ?? path.join(HERE, '..', '..', 'bindings', 'js', 'src', 'constraint-kernel.mjs');
 const REACH = process.env.JC_ENTRY === undefined ? 'LIVE/CHECKOUT' : 'LIVE/ENTRY-FROM-ENV';
 
 const PKG = await import(pathToFileURL(ENTRY).href);

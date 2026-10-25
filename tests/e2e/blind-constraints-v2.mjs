@@ -24,8 +24,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const KERNEL_URL = new URL('../src/constraint-kernel.mjs', import.meta.url);
-const PKG_URL = new URL('../index.mjs', import.meta.url);
+const KERNEL_URL = new URL('../../bindings/js/src/constraint-kernel.mjs', import.meta.url);
+const PKG_URL = new URL('../../bindings/js/index.mjs', import.meta.url);
 
 const kernel = await import(KERNEL_URL);
 const pkg = await import(PKG_URL);

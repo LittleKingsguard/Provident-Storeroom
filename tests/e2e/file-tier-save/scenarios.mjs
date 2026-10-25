@@ -29,10 +29,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 
-const PKG = await import('../../index.mjs');
-const K = await import('../../src/constraint-kernel.mjs');
+const PKG = await import('../../../bindings/js/index.mjs');
+const K = await import('../../../bindings/js/src/constraint-kernel.mjs');
 const require = createRequire(import.meta.url);
-const ADDON = require('../../build/Release/storeroom_js_binding.node');
+const ADDON = require('../../../bindings/js/build/Release/storeroom_js_binding.node');
 
 // ---------------------------------------------------------------- harness ---
 const CELLS = [];

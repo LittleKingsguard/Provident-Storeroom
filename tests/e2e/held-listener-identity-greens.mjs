@@ -107,14 +107,14 @@ function cfgFor(name) {
 
 // ── the TWO consumer modules: the package's claimed ESM entry, and the kernel's declared home ───────────
 let ns = null, IMPORT_ERROR = null;
-try { ns = await import('../index.mjs'); } catch (e) { IMPORT_ERROR = e; }
+try { ns = await import('../../bindings/js/index.mjs'); } catch (e) { IMPORT_ERROR = e; }
 if (ns === null) {
   console.log(`FATAL — the claimed ESM entry did not resolve, so NO cell of this set can run: ${IMPORT_ERROR}`);
   console.log(`AUTHORED ${authored} · EXECUTED 0 · PASS 0 · FAIL 0 · UNABLE-TO-RUN`);
   process.exit(2);
 }
 let kernel = null, KERNEL_ERROR = null;
-try { kernel = await import('../src/constraint-kernel.mjs'); } catch (e) { KERNEL_ERROR = e; }
+try { kernel = await import('../../bindings/js/src/constraint-kernel.mjs'); } catch (e) { KERNEL_ERROR = e; }
 const K1 = (store, address, id, fn) => kernel.register(store, address, id, fn);
 const K2 = (store, address, tier, value) => kernel.commit(store, address, tier, value);
 const K3 = (store, attempt) => kernel.runAttempt(store, attempt);
@@ -1063,8 +1063,8 @@ const K6 = (store, pair) => kernel.remove(store, pair);
 console.log('');
 console.log('── THE FIGURE CENSUS ────────────────────────────────────────────────────────────────');
 console.log(`SITE:  node bindings/js/greens/held-listener-identity-greens.mjs   (cwd: ${process.cwd()})`);
-console.log(`ENTRY (the package's claimed ESM entry): ${new URL('../index.mjs', import.meta.url).pathname}`);
-console.log(`ENTRY 2 (the kernel module's declared checkout home): ${new URL('../src/constraint-kernel.mjs', import.meta.url).pathname}` +
+console.log(`ENTRY (the package's claimed ESM entry): ${new URL('../../bindings/js/index.mjs', import.meta.url).pathname}`);
+console.log(`ENTRY 2 (the kernel module's declared checkout home): ${new URL('../../bindings/js/src/constraint-kernel.mjs', import.meta.url).pathname}` +
   (kernel === null ? `  — DID NOT RESOLVE: ${KERNEL_ERROR}` : ''));
 console.log(`LAYER: ${LAYER}   APP LAYER: ${APP_LAYER}   (no APP-green is claimed)`);
 console.log(`SCRATCH: ${ROOT}`);
