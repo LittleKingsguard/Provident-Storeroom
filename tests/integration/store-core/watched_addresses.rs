@@ -60,6 +60,10 @@
 //! `listen` cell and the `unlisten` cell each assert BOTH of their halves (`§6.5` item 14 (d); item 14 (e)
 //! (i)–(ii); `A78`; `DD-37`).
 
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands one level below
+// `tests/integration/`, so the store's one scaffolding module is named by `#[path]` rather than by a
+// `mod support;` beside it (2026-10-25).
+#[path = "../support/mod.rs"]
 mod support;
 use support::*;
 

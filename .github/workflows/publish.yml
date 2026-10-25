@@ -164,11 +164,11 @@ jobs:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
 
-      # `release.md §1.4` step 1's second half — **THE SIBLING CRATE'S OWN `cargo test`, ON AT LEAST THE
-      # HOST TARGET** — run from the repository root, at the crate's own manifest, offline as every leg of
-      # this project is (`contract.md §4.5` item 2).
+      # `release.md §1.4` step 1's second half — **THE SIBLING CRATE'S OWN `cargo test`, ON AT LEAST THE HOST TARGET** — run from the repository root, at the battery's manifest, offline as every leg of this project is (`contract.md §4.5` item 2). **⟶ REPOINTED 2026-10-25 (`D-34`, `D-5`): THE OLD SPELLING `--manifest-path bindings/js/Cargo.toml` RUNS `0` TESTS AND EXITS `0`, so a DECLARED CI LEG had gone SILENTLY VACUOUS** — this crate's six test targets left `bindings/js/tests/` with the stratification's move and a workspace member carries no test targets of its own.
+      # It names the package that hosts those six targets now (`storeroom-tests`, 235 cells), and its `--manifest-path` conjunct is KEPT because `tests/e2e/addon-adoption.test.mjs`'s site table reads this
+      # command's body at this line (`--manifest-path` present, `--offline` absent); the three legs and their counts are declared at `bindings/js/README.md`'s `Tests` section.
       - name: '1. cargo test the sibling crate (host target)'
-        run: cargo test --manifest-path bindings/js/Cargo.toml --no-fail-fast
+        run: cargo test --manifest-path tests/Cargo.toml -p storeroom-tests --no-fail-fast
 
       - name: '1. build the sibling crate for this target'
         run: cargo build --release --manifest-path bindings/js/Cargo.toml --target ${{ matrix.target }}
@@ -185,9 +185,9 @@ jobs:
           label='${{ matrix.label }}'
           dir="bindings/js/platforms/$label"
           case '${{ runner.os }}' in
-            Windows) built="bindings/js/target/${{ matrix.target }}/release/storeroom_js_binding.dll" ;;
-            macOS)   built="bindings/js/target/${{ matrix.target }}/release/libstoreroom_js_binding.dylib" ;;
-            *)       built="bindings/js/target/${{ matrix.target }}/release/libstoreroom_js_binding.so" ;;
+            Windows) built="target/${{ matrix.target }}/release/storeroom_js_binding.dll" ;;
+            macOS)   built="target/${{ matrix.target }}/release/libstoreroom_js_binding.dylib" ;;
+            *)       built="target/${{ matrix.target }}/release/libstoreroom_js_binding.so" ;;
           esac
           cp "$built" "$dir/storeroom_js_binding.node"
           cp LICENSE "$dir/LICENSE"

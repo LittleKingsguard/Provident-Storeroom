@@ -147,8 +147,15 @@ const ENTRY_NAMES: [&str; 4] = ["version", "errorMessage", "storeCreate", "regis
 const RETIRED_ENTRY: &str = "call";
 
 /// **THE ADDON'S OWN BYTES AT THEIR DECLARED PATH** (`binding-crate-and-abi.md §4`).
+///
+/// **⟶ REPOINTED 2026-10-25 BY `D-5`'S MOVE (`docs/L1/test-stratification.json`): `CARGO_MANIFEST_DIR` IS NO
+/// LONGER `bindings/js/` — this target now belongs to the `storeroom-tests` package at `tests/` — SO THE
+/// DECLARED PATH IS SPELLED FROM THERE.** The artefact itself is UNMOVED: it is the checkout's own
+/// `bindings/js/build/Release/storeroom_js_binding.node`, and the nine cells that open it assert against it
+/// exactly as before. A relative left un-repointed would read as ABSENT and every one of them would decay to
+/// the loud SKIP below, which claims no verdict and is exactly the silent loss this file is written against.
 fn addon_path() -> std::path::PathBuf {
-    let relative = std::path::Path::new("build/Release/storeroom_js_binding.node");
+    let relative = std::path::Path::new("../bindings/js/build/Release/storeroom_js_binding.node");
     std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(relative)
 }
 

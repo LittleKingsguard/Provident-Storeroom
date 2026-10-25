@@ -8,6 +8,10 @@
 //! compacted entry; an unknown op id; a foreign instance's op id; a blank/non-string op id; a rollback
 //! that is total over its scope; a rollback's own residue; the journal's non-addressability.
 
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands one level below
+// `tests/integration/`, so the store's one scaffolding module is named by `#[path]` rather than by a
+// `mod support;` beside it (2026-10-25).
+#[path = "../support/mod.rs"]
 mod support;
 use support::*;
 

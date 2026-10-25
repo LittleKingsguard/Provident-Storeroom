@@ -218,7 +218,7 @@ distribution.md §2.2`; `PUB-DD-1`, `PUB-DD-2`):
 ## Tests
 
 ```sh
-cargo test  --manifest-path bindings/js/Cargo.toml --no-fail-fast   # the sibling crate's Rust tests
+cargo test  --manifest-path tests/Cargo.toml -p storeroom-tests --no-fail-fast   # THE BATTERY'S LEG — this crate's six Rust targets, 235 cells
 npm test   # THE REPOSITORY'S JS BATTERY — a REPOSITORY instruction, NOT a consumer one; see the note below
 ```
 
@@ -233,10 +233,33 @@ route — `JS -> facade -> core -> store` — is what they exercise, and that ro
 # 1. THE BUILD STEP, AT THE REPOSITORY ROOT, BEFORE ANY JS CELL RUNS:
 cargo build --release --manifest-path bindings/js/Cargo.toml
 mkdir -p bindings/js/build/Release
-cp bindings/js/target/release/libstoreroom_js_binding.so bindings/js/build/Release/storeroom_js_binding.node
+cp target/release/libstoreroom_js_binding.so bindings/js/build/Release/storeroom_js_binding.node
 # 2. THE JS LEG, AFTER IT — the repository's own battery, from the REPOSITORY ROOT:
 npm test
 ```
+
+**AND THE THREE RUST LEGS, EACH WITH THE COUNT IT CARRIES** (`D-34`: one workspace at the repository root,
+`members = [".", "bindings/js", "tests"]`, `default-members = [".", "tests"]`; and the architect's `★ A`:
+**THE LEGS ARE PACKAGE-SCOPED**). **THE THREE, AT THE REPOSITORY ROOT:**
+
+```sh
+cargo test --offline -p storeroom-native   # THE STORE'S LEG — 415 cells, 0 fail
+cargo test -p storeroom-tests              # THE BATTERY'S LEG — 235 cells, 0 fail
+cargo test                                 # BOTH OF THEM — 650 cells, 0 fail
+```
+
+**AND THE THIRD COMMAND IS NOT A FOURTH LEG: a bare `cargo test` runs `default-members = [".", "tests"]`, so
+it is EXACTLY the store's `415` plus the battery's `235` — `415 + 235 = 650` ✓ — in one run.** The two `-p`
+forms are what measures one crate's own red/green; the bare form is what a release runbook reaches for.
+**`-p` IS NOT DECORATION ON THE BUILD SIDE EITHER:** the store's leg keeps `--offline`, and a workspace-root
+`cargo build --offline` would pull this crate's `napi` crates and `--offline` would refuse them — which is
+why the root manifest's `build` script names the store by package as well.
+
+**AND WHAT NO LONGER RUNS ANYTHING IS NAMED HERE RATHER THAN LEFT TO BE DISCOVERED: `cargo test
+--manifest-path bindings/js/Cargo.toml` USED to be this crate's Rust leg and NOW EXITS `0` HAVING RUN
+NOTHING** (`tests 0 · pass 0 · fail 0`), because this crate's six test targets LEAVE `bindings/js/tests/` with
+the stratification's move and a member carries no test targets of its own. **The leg is the battery's
+command above, which reaches the same six targets through the package that hosts them.**
 
 **AND THE JS COMMAND ABOVE IS A *REPOSITORY* INSTRUCTION, NOT A CONSUMER ONE — SAID PLAINLY BECAUSE THIS
 FILE SHIPS INSIDE THE PACKAGE** (it is in the allowlist, `docs/specs/storeroom-publish/contract.md §2.1`
@@ -262,6 +285,6 @@ through the addon's `errorMessage` where the artefact loaded far enough to carry
 reproduced BYTE-FOR-BYTE from the generator's own clause (`src/error.rs`'s `FilePathUnreachable` arm) where
 the generator is the thing that failed to load. **A consumer that runs the JS cells without step 1 sees that
 failure and not a silently degraded run.** **The Rust leg needs no addon at all**: the conversion core is the
-crate's `rlib` half, so `cargo test --manifest-path bindings/js/Cargo.toml` is drivable with no Node runtime
-present (`package.md §4.1` item 3, `§4.5` item 7).
+crate's `rlib` half, so `cargo test --manifest-path tests/Cargo.toml -p storeroom-tests` is drivable with no
+Node runtime present (`package.md §4.1` item 3, `§4.5` item 7).
 

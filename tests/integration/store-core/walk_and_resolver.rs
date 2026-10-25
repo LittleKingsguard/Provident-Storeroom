@@ -7,6 +7,10 @@
 //! segments remaining); the zero-tier selection (lowest persistence); a passed any-match set of one and of
 //! two; the tier-domain failure that precedes the walk.
 
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands one level below
+// `tests/integration/`, so the store's one scaffolding module is named by `#[path]` rather than by a
+// `mod support;` beside it (2026-10-25).
+#[path = "../support/mod.rs"]
 mod support;
 use support::*;
 

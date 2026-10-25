@@ -25,7 +25,7 @@
 // | id | the state / failure | its property | its cell |
 // | --- | --- | --- | --- |
 // | `V-1` | the manifest's dependency table carries exactly two entries | `P-ADA-1` | `ada_pada1_s_dep_table_*` (5 cells) |
-// | `V-2` | the crate builds to both artefact kinds | `P-ADA-1` | `ada_pada1_the_crate_declares_both_artefact_kinds_and_the_lock_stays_uncommitted` |
+// | `V-2` | the crate builds to both artefact kinds | `P-ADA-1` | `ada_pada1_the_crate_declares_both_artefact_kinds_and_the_workspace_carries_the_one_lock` |
 // | `V-3` | the core file carries no `napi` byte but its purity declaration | `P-ADA-2` | `ada_pada2_s_core_pure_*` (3 cells) |
 // | `V-4` | a refusal thrown across the boundary carries the three members | `P-ADA-3` | `ada_pada3_s_ff_keys_*` (3) + `S-FF-PROTO` (4) |
 // | `V-5` | the artefact's symbol set is a superset of the names the JS side reaches | `P-ADA-6` | `ada_pada6_s_sym_superset_*` (4 cells) |
@@ -131,6 +131,11 @@ const REPO_ROOT = dirname(dirname(PKG_DIR));
 const MANIFEST = join(PKG_DIR, 'Cargo.toml');
 const CORE_FILE = join(PKG_DIR, 'src', 'crossing.rs');
 const BOUNDARY_FILE = join(PKG_DIR, 'src', 'facade.rs');
+// **`D-34`'s ONE WORKSPACE: THE ROOT LOCK IS THE ONLY LOCK, AND THE CRATE'S OWN PATH IS KEPT BESIDE IT AS
+// THE PATH THIS FILE ASSERTED FOR FOUR PASSES AND NOW ASSERTS ABSENT** — a member of a workspace has no
+// `Cargo.lock` of its own, so the only way to keep the retired subject falsifiable is to name its old path
+// and require nothing at it. See the cell at `ada_pada1_the_crate_declares_both_artefact_kinds_…`.
+const ROOT_LOCK = join(REPO_ROOT, 'Cargo.lock');
 const CRATE_LOCK = join(PKG_DIR, 'Cargo.lock');
 const CRATE_GITIGNORE = join(PKG_DIR, '.gitignore');
 const PKG_MANIFEST = join(PKG_DIR, 'package.json');
@@ -379,21 +384,164 @@ test('ada_pada1_s_dep_table_the_adopted_library_is_a_caret_requirement_with_a_fl
     'an exact pin is on the failure list: the floor is a caret requirement');
 });
 
-test('ada_pada1_the_crate_declares_both_artefact_kinds_and_the_lock_stays_uncommitted', () => {
+// ---------------------------------------------------------------------------------------------
+// **THE ONE LOCK, READ AT ITS OWN BYTES.** `D-34`'s workspace means the root `Cargo.lock` is the LOCK OF ALL
+// THREE PACKAGES, and this helper reads it as a FILE — every `[[package]]` block split out, each block's
+// `name`, `version` and `source` read by field, and each block's `dependencies = [ … ]` list parsed — so
+// that nothing in the cell below rests on a number written in a comment, in a manifest, or in this file.
+//
+// **THE BLOCK BETWEEN THE TWO MARKERS IS ALSO THE EXTRACTION WINDOW FOR THE FAILURE DEMONSTRATION** recorded
+// in that cell's note: the demonstration takes these exact lines and runs them against a COPY of the lock in
+// `/tmp` with a member or a dependency deleted, so the thing shown failing there is this code and not a
+// paraphrase of it.
+//
+// **IT THROWS ON AN ABSENT LOCK RATHER THAN RETURNING AN EMPTY FACT SET**, and that is the point of it: the
+// old cell's pair — a `.gitignore` rule matching `^/Cargo\.lock$`, beside a `stat` of the file — was a PROXY
+// FOR "THE LOCK SITUATION IS FALSIFIABLE AT ALL" (a rule that ignores a lock is worth asserting only if the
+// lock exists). A read that turned `ENOENT` into `[]` would make every assertion below true against nothing,
+// which is exactly the false-green shape `D-17` names: *"a read that cannot fail cannot be trusted to have
+// passed."*
+// ---- LOCK-FACTS BEGIN -------------------------------------------------------------------------
+function readWorkspaceLock(lockPath) {
+  if (!existsSync(lockPath)) {
+    throw new Error(`THE ONE LOCK IS ABSENT at \`${lockPath}\`: the three workspace members (\`D-34\`) `
+      + 'have no lock of their own, so an absent root lock is not "no lock is needed" — it is every package '
+      + 'in the tree unpinned, and every assertion the cell below makes would be vacuous against it. '
+      + 'Falsifiable by construction: delete the file and this cell throws here.');
+  }
+  const text = readFileSync(lockPath, 'utf8');
+  const packages = text.split(/^\[\[package\]\]\s*$/m).slice(1).map((block) => {
+    const field = (key) => (block.match(new RegExp(`^${key} = "([^"]*)"$`, 'm')) || [])[1];
+    const dependencies = block.match(/^dependencies = \[([\s\S]*?)^\]$/m);
+    return {
+      name: field('name'),
+      version: field('version'),
+      // cargo writes `source` on a REGISTRY (or git) package and OMITS it on a PATH package — which is what
+      // a workspace member is. That absence is the whole of how membership is read below.
+      source: field('source'),
+      dependencies: dependencies ? [...dependencies[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]) : [],
+    };
+  });
+  const names = new Set(packages.map((p) => p.name));
+  return {
+    packages,
+    names,
+    members: packages.filter((p) => p.source === undefined).map((p) => p.name).sort(),
+    registry: packages.filter((p) => typeof p.source === 'string').map((p) => p.name).sort(),
+    // every edge the lock names must land on a package the lock carries; an entry is `name` or `name
+    // version` (or `name version (source)`), so the name is the text before the first space.
+    unresolved: packages.flatMap((p) => p.dependencies
+      .filter((dep) => !names.has(dep.split(' ')[0]))
+      .map((dep) => `${p.name} -> ${dep}`)),
+  };
+}
+// ---- LOCK-FACTS END ---------------------------------------------------------------------------
+
+test('ada_pada1_the_crate_declares_both_artefact_kinds_and_the_workspace_carries_the_one_lock', () => {
+  // **⟶ RE-DERIVED 2026-10-25. THE SUBJECT MOVED AND THIS CELL FOLLOWS IT — IT IS NEITHER RETIRED NOR LEFT
+  // RED.** What it asserted until this pass: (a) the crate declares `crate-type = ["cdylib", "rlib"]`;
+  // (b) `bindings/js/.gitignore` matches `^/Cargo\.lock$` — *"the lock stays uncommitted"* (`contract.md §2`
+  // item `1`); (c) `bindings/js/Cargo.lock` EXISTS. **(a) IS KEPT UNTOUCHED. (b) AND (c) ARE GONE WITH THEIR
+  // SUBJECT.**
+  //
+  // **WHY THE SUBJECT MOVED:** `D-34` lifted the separate-crate requirement and the relocation put `.`,
+  // `bindings/js` and `tests` in ONE workspace, **so there is one lock and it is at the repository root** —
+  // **a member has no `Cargo.lock` of its own, and the file plus its `.gitignore` line were deleted.**
+  // `strata/decisions.md`'s `FINDING` of 2026-10-24 records it as its blocker `★ C` (*"`bindings/js/.gitignore`
+  // :6 goes dead"*). **The clause lost its subject exactly as `D-3`'s count and `§2.2` item 7's sentence
+  // did — moot rather than overruled.** `D-3` also names the reason the clause's retirement does not retire
+  // THIS: *"A test cannot be superseded by a ruling — it passes or it fails."* Under `D-17` (*"tests are for
+  // code"*) the cell's expectation comes from the artefact the build produces, so it is re-derived onto the
+  // arrangement that now exists rather than deleted wholesale.
+  //
+  // **WHAT IT NOW RESTS ON — FOUR FACTS READ FROM THE FILE ITSELF, AND ONE NEGATIVE ONE:** the root lock
+  // carries **41 `[[package]]` blocks**; **exactly three carry no `source` line** and are the three members
+  // (`storeroom-native`, `storeroom-js-binding`, `storeroom-tests`); the remaining **38** are registry
+  // packages, and the binding's own declared registry closure is among them **by name**; and **every
+  // dependency edge inside the lock lands on a package the lock carries** (nothing dangles). Then the
+  // negative: **no `bindings/js/Cargo.lock` and no `/Cargo.lock` line survive** — the retired subject is
+  // asserted ABSENT, so a second lock appearing is RED here and not dormant.
+  //
+  // **THE INVARIANT THAT MATTERS, AND IT IS THE ONE THE OLD PAIR WAS A PROXY FOR: THE LOCK SITUATION IS
+  // FALSIFIABLE.** A `.gitignore` rule ignoring a lock, beside an existence `stat`, said nothing about
+  // WHOSE lock it was or WHAT IT PINNED. The re-derived cell says all three: **absent lock → the read
+  // throws; a member dropped from the lock → the member set and the count both red; a dependency of a member
+  // dropped from the lock → the closure-by-name and the edge-resolution red; a second lock reappearing in
+  // `bindings/js` → red.** Each is demonstrated at a COPY of the lock in `/tmp` (the extraction window above
+  // is the code the demonstration runs), so the cell's red is not claimed but shown.
+  //
+  // **AND THE TRACKING QUESTION IS NOT THIS CELL'S.** `FINDING ★ C` puts both branches to the architect — a
+  // tracked root lock pins the binding's 38 registry crates, while untracking breaks `--locked` on a fresh
+  // clone, which `preflight_pkgs` depends on. **This cell asserts neither direction and reads the lock from
+  // the working tree**, so it stays true under either ruling.
   const manifest = textAt(MANIFEST);
   assert.match(manifest, /crate-type\s*=\s*\[\s*"cdylib"\s*,\s*"rlib"\s*\]/,
     'binding-crate-and-abi.md §1: `crate-type = ["cdylib", "rlib"]` IS UNMOVED, and the `rlib` half is '
     + 'LOAD-BEARING — it is what lets this crate\'s own Rust tests drive the conversion core with no Node '
-    + 'runtime present (V-2, the crate builds to both artefact kinds)');
-  const ignored = textAt(CRATE_GITIGNORE);
-  assert.match(ignored, /^\/Cargo\.lock\s*$/m,
-    'contract.md §2 item 1: `bindings/js/Cargo.lock` STAYS UNCOMMITTED — the lock is ignored at the '
-    + 'crate\'s own `.gitignore`, which is the clause\'s own consequence (nothing in this repository pins '
-    + 'the library\'s closure, so the caret floor is the whole pin)');
-  assert.equal(existsSync(CRATE_LOCK), true,
-    'and the lock the clause speaks about exists at its declared path — a cell reading a `.gitignore` '
-    + 'rule for a file that is not there would prove nothing. Present: '
-    + (existsSync(CRATE_LOCK) ? basename(CRATE_LOCK) : 'ABSENT'));
+    + 'runtime present (V-2, the crate builds to both artefact kinds). **`D-34` LIFTED THE SEPARATE-CRATE '
+    + 'REQUIREMENT AND NOT THIS**: the crate is a workspace MEMBER now, which is a statement about the tree '
+    + 'and not about the crate, and its two artefact kinds and its one path dependency stand');
+
+  const lock = readWorkspaceLock(ROOT_LOCK);
+
+  assert.deepEqual(lock.members, ['storeroom-js-binding', 'storeroom-native', 'storeroom-tests'],
+    'the three workspace members are IN the lock, and they are read as the blocks that carry no `source` '
+    + 'line — cargo writes a source only for a registry or git package, so a PATH package\'s block has none, '
+    + 'and that absence is membership at the lock\'s own bytes rather than an echo of `[workspace] members` '
+    + 'in the root manifest. **A MEMBER MISSING FROM THE LOCK IS THE FAILURE THIS HALF EXISTS FOR**: the '
+    + 'binding\'s `storeroom-js-binding` is the one the old assertions were about — its lock is this entry '
+    + 'now — and `storeroom-tests` is the battery package the relocation created. Read: '
+    + JSON.stringify(lock.members));
+
+  assert.equal(lock.packages.length, 41,
+    'THE ONE LOCK IS THE WHOLE CLOSURE AND ITS SIZE IS READ, NOT TRUSTED: the root `Cargo.lock` is the lock '
+    + 'of all three packages (`D-34`), and it carries `41` `[[package]]` blocks — `3` workspace members + '
+    + '`38` registry packages. **THIS FIGURE IS A READ OF THE FILE AND NOT A CONSTRAINT ON THE DESIGN**: it '
+    + 'is the fingerprint that makes "the lock is the binding\'s lock too" falsifiable — while the crate was '
+    + 'its own package its lock was IGNORED (`contract.md §2` item `1`), so nothing pinned the library\'s '
+    + 'closure; under one workspace lock the `38` ARE pinned, and the count is the evidence. A figure that '
+    + 'moved means the closure moved and this cell\'s note must be re-read with it. Read: '
+    + `${lock.packages.length} — ${lock.packages.map((p) => p.name).join(', ')}`);
+
+  assert.equal(lock.registry.length, 38,
+    'and the rest of the lock is the registry: `38` blocks carrying a `source`, which is the arithmetic of '
+    + '`41 = 3 + 38` checked on the far side rather than assumed after the member count was fixed. **THE '
+    + 'REGISTRY HALF IS WHAT THE RETIRED CLAUSE PAID FOR**: `DD-27`\'s alt cell priced *"a committed '
+    + '`Cargo.lock` … available with a bounded amendment"*, and this is that amendment\'s content. Read: '
+    + lock.registry.length);
+
+  // **THE BINDING'S DECLARED REGISTRY CLOSURE, BY NAME** — the four `[dependencies]` entries of
+  // `bindings/js/Cargo.toml` that are not the path dependency (`P-ADA-1`'s four-entry table, `A148` Q2) and
+  // the crates those names resolve to. A lock that dropped any of them would leave the crate unpinned while
+  // still carrying three member blocks, so the member-set assertion alone would not catch it.
+  for (const name of ['napi', 'napi-derive', 'napi-sys', 'napi-build', 'napi-derive-backend', 'serde_json']) {
+    assert.ok(lock.names.has(name),
+      "the binding's registry closure is IN the one lock: `bindings/js/Cargo.toml` declares `napi = "
+      + '{ version = "3.14", … }`, `napi-derive = { version = "3" }` and `serde_json = "1"`, and those '
+      + 'resolve through `napi-sys`, `napi-derive-backend` and `napi-build`. **A DIRECT ENTRY PRESENT IN THE '
+      + 'MANIFEST AND ABSENT FROM THE LOCK IS NOT A PINNED CLOSURE** — it is a manifest the lock does not '
+      + `agree with. Missing: \`${name}\`. Carried: ${[...lock.names].sort().join(', ')}`);
+  }
+
+  assert.deepEqual(lock.unresolved, [],
+    'and NOTHING DANGLES: every entry of every `dependencies = [ … ]` list inside the lock lands on a '
+    + 'package the lock carries. This is the closure read as a GRAPH rather than as a count — a member '
+    + 'whose own dependency was deleted from the lock keeps its block and its name, so the count and the '
+    + 'member set both survive while the build does not. **THE CELL FAILS HERE FIRST WHEN A MEMBER\'S EDGE '
+    + 'IS MISSING.** Unresolved: ' + (lock.unresolved.length ? lock.unresolved.join('; ') : 'none'));
+
+  // **THE RETIRED SUBJECT, ASSERTED ABSENT SO ITS REAPPEARANCE IS RED.** A member has no lock of its own;
+  // if one appears, two locks describe one closure and nobody has said which is the pin.
+  assert.equal(existsSync(CRATE_LOCK), false,
+    '`D-34`: a workspace member has NO `Cargo.lock` of its own — the root lock IS its lock — so nothing is '
+    + `at \`bindings/js/Cargo.lock\`. This is the path the cell asserted PRESENT until 2026-10-25, and it is `
+    + 'asserted ABSENT now: a second lock in the tree is two answers to one question and must be red. '
+    + `Found: ${existsSync(CRATE_LOCK) ? 'PRESENT' : 'absent'}`);
+  assert.doesNotMatch(textAt(CRATE_GITIGNORE), /^\/?Cargo\.lock\s*$/m,
+    'and the crate\'s own `.gitignore` no longer ignores a lock, because there is none to ignore: '
+    + '`contract.md §2` item `1`\'s *"stays uncommitted"* is MOOT after `D-34` — the sentence lost its '
+    + 'subject as `D-3`\'s count did, and the line was deleted with the file. **A LINE RE-ADDED HERE WOULD '
+    + 'BE A RULE ABOUT NOTHING**, which is the shape this whole cell was re-derived to stop asserting');
 });
 
 // =============================================================================================
@@ -1971,11 +2119,19 @@ test('ada_the_named_sites_lose_offline_and_keep_manifest_path', () => {
     + `Commands read at that line: ${site5.occurrences.length}`);
   const storeHalf = commandHalvesAt(textAt(join(REPO_ROOT, 'package.json')), site5.anchors[0])
     .filter((command) => !/--manifest-path/.test(command));
-  assert.deepEqual(storeHalf, ['cargo build --offline --release'],
-    '`§3`\'s second bullet: the FIRST half of the same script is `cargo build --offline --release`, THE '
-    + "STORE'S AND UNMOVED — it KEEPS `--offline` and carries no `--manifest-path`, and it does not appear "
-    + 'in the site table at all. A reader that treated the script as one occurrence merged a moving command '
-    + 'with a standing one');
+  // **⟶ RE-DERIVED 2026-10-25, AND THE SPELLING MOVED BECAUSE THE LEGS MOVED — NOT THE CELL'S SUBJECT.**
+  // `D-34`'s workspace (one root, `members = [".", "bindings/js", "tests"]`) makes a bare root
+  // `cargo build --offline` reach EVERY member — the sibling crate's `napi`/`napi-build` registry crates
+  // included — and `--offline` refuses them. So the store's half is PACKAGE-SCOPED, under the architect's
+  // `★ B` (*"the `-p` scoping the build needs, and its pinned cell follows it"*). **THE HALF IS STILL THE
+  // STORE'S AND THE PROPERTY IS STILL THE ONE ASSERTED: it KEEPS `--offline` and carries no
+  // `--manifest-path`, which is what `§3`'s second bullet says of it and all this cell ever read.**
+  assert.deepEqual(storeHalf, ['cargo build --offline --release -p storeroom-native'],
+    '`§3`\'s second bullet: the FIRST half of the same script is the STORE\'S OWN BUILD — `cargo build '
+    + '--offline --release -p storeroom-native` since `D-34`\'s workspace re-derived it on 2026-10-25 (a '
+    + 'bare root build would pull the binding\'s registry crates under `--offline`) — and it KEEPS '
+    + '`--offline` and carries no `--manifest-path`, and it does not appear in the site table at all. A '
+    + 'reader that treated the script as one occurrence merged a moving command with a standing one');
 });
 
 test('ada_the_stores_commands_keep_offline_and_the_asymmetry_is_the_ruling', () => {

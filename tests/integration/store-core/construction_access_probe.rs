@@ -69,6 +69,10 @@
 //! §10.4`'s blast-radius clause; `implementation-plan.md §9.5` item 2). **No `src/**` byte was read to
 //! decide an assertion.** **No assertion here is weakened to force a green.**
 
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands one level below
+// `tests/integration/`, so the store's one scaffolding module is named by `#[path]` rather than by a
+// `mod support;` beside it (2026-10-25).
+#[path = "../support/mod.rs"]
 mod support;
 use support::*;
 

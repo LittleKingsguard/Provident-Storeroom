@@ -123,6 +123,10 @@
 //!
 //! **NO ASSERTION IN THIS FILE IS WEAKENED TO MAKE A SCENARIO PASS, AND NO DRIVE IS ADJUSTED TO AVOID ONE.**
 
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands one level below
+// `tests/integration/`, so the store's one scaffolding module is named by `#[path]` rather than by a
+// `mod support;` beside it (2026-10-25).
+#[path = "../support/mod.rs"]
 mod support;
 use support::*;
 

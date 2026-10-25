@@ -8,6 +8,10 @@
 //! (`R-5`); the two empty-container forms (`DD-1`); the copy discipline; each delete arm `D-1`…`D-5`; the
 //! delete's arity cells; the receipt's two members.
 
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands one level below
+// `tests/integration/`, so the store's one scaffolding module is named by `#[path]` rather than by a
+// `mod support;` beside it (2026-10-25).
+#[path = "../support/mod.rs"]
 mod support;
 use support::*;
 

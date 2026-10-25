@@ -8,6 +8,10 @@
 //! address; the empty-string key; a string segment against a `VEC` and an integer segment against the
 //! register (`L-INT-REG`).
 
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands one level below
+// `tests/integration/`, so the store's one scaffolding module is named by `#[path]` rather than by a
+// `mod support;` beside it (2026-10-25).
+#[path = "../support/mod.rs"]
 mod support;
 use support::*;
 

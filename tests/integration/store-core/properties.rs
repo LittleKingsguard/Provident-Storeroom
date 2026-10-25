@@ -10,6 +10,10 @@
 //! TIER-AGNOSTIC, which makes `F-6`/`S-MONO` reachable — so the `conflicted` counter is carried but no
 //! drive below counts a break as conflicted: `8 / 8` rows drive on the contract's own terms.
 
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands one level below
+// `tests/integration/`, so the store's one scaffolding module is named by `#[path]` rather than by a
+// `mod support;` beside it (2026-10-25).
+#[path = "../support/mod.rs"]
 mod support;
 use support::*;
 

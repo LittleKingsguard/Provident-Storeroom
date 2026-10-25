@@ -26,6 +26,10 @@
 //! arguments, its completeness and its no-placeholder property; the error record's two members and the
 //! exact spelling of `status`; the eight non-failures of the complement block; the two absent codes.
 
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands one level below
+// `tests/integration/`, so the store's one scaffolding module is named by `#[path]` rather than by a
+// `mod support;` beside it (2026-10-25).
+#[path = "../support/mod.rs"]
 mod support;
 use support::*;
 

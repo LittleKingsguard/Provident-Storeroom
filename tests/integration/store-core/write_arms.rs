@@ -6,6 +6,10 @@
 //! `write`; each success arm `W-1`…`W-6`; each fail-closed arm `F-1`…`F-6`; the empty-address write; the
 //! descendant anchors' tier; the pair-set change per arm; the journal's append and its `seq`.
 
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands one level below
+// `tests/integration/`, so the store's one scaffolding module is named by `#[path]` rather than by a
+// `mod support;` beside it (2026-10-25).
+#[path = "../support/mod.rs"]
 mod support;
 use support::*;
 

@@ -30,6 +30,9 @@
 //! operative bound is the deepest depth that is ADMITTED, COMMITTED and RE-BOOTED, and the ceiling section
 //! below drives all three rather than the walk alone.
 
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands under `tests/unit/`, so the
+// binding crate's shared harness is named across the extra level by `#[path]` (2026-10-25).
+#[path = "../../integration/binding-crossing/support/mod.rs"]
 mod support;
 
 use support::*;

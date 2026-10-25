@@ -190,9 +190,18 @@ if [ "$MODE" != "tag" ]; then
   # command this repository uses: the release leg asks the project rather than
   # keeping a second copy. (`bindings/js/test/*.test.mjs` was the pre-move home.)
   if cargo build --release --manifest-path bindings/js/Cargo.toml >/dev/null 2>&1; then
-    cp -f bindings/js/target/release/libstoreroom_js_binding.so \
-          bindings/js/build/Release/storeroom_js_binding.node 2>/dev/null || true
-    ok "JS artefact built and staged"
+    # **⟶ REPOINTED 2026-10-25 (`D-34`, `D-5`): A WORKSPACE MEMBER'S TARGET DIRECTORY IS THE WORKSPACE
+    # ROOT'S**, so the sibling crate's library now lands at `target/release/`, NOT at
+    # `bindings/js/target/release/`. **AND THE `|| true` THAT STOOD HERE IS GONE, WITH ITS `2>/dev/null`:**
+    # it was what made a stale SOURCE silent — the copy failed, the failure was swallowed, and the next line
+    # printed `ok` over an artefact that had not been restaged, which is the same silent-loss shape the `D-5`
+    # move was caught by. The step is a refusal now, like every other refusal in this preflight.
+    if cp -f target/release/libstoreroom_js_binding.so \
+             bindings/js/build/Release/storeroom_js_binding.node; then
+      ok "JS artefact built and staged"
+    else
+      refuse "the JS artefact could not be staged: target/release/libstoreroom_js_binding.so is not on the tree"
+    fi
   else refuse "the JS artefact build FAILED"; fi
   if npm test >/tmp/pub-node.log 2>&1; then
     ok "npm test (the manifest's own battery): $(grep -E '^. (pass|fail) ' /tmp/pub-node.log | tr -d '\n')"
@@ -390,7 +399,14 @@ fi
 # from the resolver's own JSON. **It passes the tree this unit built: `1 = 1` and `28 = 28`.**
 preflight_pkgs() {
   fail=""
-  for m in Cargo.toml bindings/js/Cargo.toml; do
+  # **⟶ RE-DERIVED 2026-10-25 (`D-34`, `D-5`, `★ C`): THERE IS ONE LOCK NOW, AND THIS LOOP READ TWO.**
+  # It iterated `Cargo.toml bindings/js/Cargo.toml`, each with "its own" lock beside it; a workspace member
+  # has no lock of its own, so the second iteration now refuses whether or not that file exists (absent:
+  # *"has no lock"*; present and stale: *"omits … that the manifests require"* — measured, the old crate lock
+  # carried `40` packages and the workspace resolver requires `41`). **`cargo metadata --locked` at the
+  # workspace root resolves EVERY member**, so the one exact-set check below covers all three manifests —
+  # the property is the same and its subject has moved, which is the whole of `★ C`.
+  for m in Cargo.toml; do
     [ -f "$m" ] || continue
     l="$(dirname "$m")/Cargo.lock"
     [ -f "$l" ] || { fail="$fail $m has no lock;"; continue; }

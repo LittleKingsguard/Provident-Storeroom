@@ -27,6 +27,10 @@
 //! arguments; a boot from an existing file; a boot with no file; a boot that must load NO registration; a
 //! `file`-tier commit; a failed `file`-tier commit.
 
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands one level below
+// `tests/integration/`, so the store's one scaffolding module is named by `#[path]` rather than by a
+// `mod support;` beside it (2026-10-25).
+#[path = "../support/mod.rs"]
 mod support;
 use support::*;
 

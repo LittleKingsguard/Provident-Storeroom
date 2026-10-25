@@ -22,6 +22,9 @@
 //! surface exists"* — so every drive below goes through a VERB, and every answer asserted is a member of
 //! the store's closed set.
 
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands under `tests/unit/`, so the
+// binding crate's shared harness is named across the extra level by `#[path]` (2026-10-25).
+#[path = "../../integration/binding-crossing/support/mod.rs"]
 mod support;
 
 use support::*;

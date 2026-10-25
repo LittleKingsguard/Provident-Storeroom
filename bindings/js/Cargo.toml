@@ -6,9 +6,18 @@ description = "U-STOREROOM-JS: the pure-Rust conversion core (storeroom_js_bindi
 license = "AGPL-3.0-or-later"
 
 # `package.md §4.1` item 1 (`A68`): an INDEPENDENT SIBLING CRATE at `bindings/js/`, its own manifest,
-# `crate-type = ["cdylib", "rlib"]` and ONE path dependency on the store. It is NOT a workspace member
-# (`§4.1` item 2): the root `Cargo.toml` carries no `[workspace]` and this manifest declares none, so
-# `cargo test` at the repository root keeps the store's single-package meaning.
+# `crate-type = ["cdylib", "rlib"]` and ONE path dependency on the store.
+#
+# **⟶ 2026-10-25 — IT *IS* A WORKSPACE MEMBER NOW, AND ONLY THAT SENTENCE MOVED.** `§4.1` item 2 read
+# *"It is NOT a workspace member: the root `Cargo.toml` carries no `[workspace]` and this manifest declares
+# none, so `cargo test` at the repository root keeps the store's single-package meaning."* **`D-34` LIFTED
+# THAT REQUIREMENT** (it lifted a requirement and NOT this crate's design: the package, the `crate-type` and
+# the single path dependency all stand), so the root manifest declares the one workspace whose members are
+# `.`, `bindings/js` and `tests`, and this crate is a member of it. **THE CONSEQUENCE IS DECLARED RATHER
+# THAN DISCOVERED:** a member's target directory is the WORKSPACE ROOT's (`./target/`, not
+# `bindings/js/target/`), a member has no `Cargo.lock` of its own (the workspace's root lock IS its lock),
+# and the two Rust legs are therefore package-scoped — `cargo test --offline -p storeroom-native` for the
+# store and `cargo test -p storeroom-tests` for the battery, with a bare root `cargo test` running both.
 #
 # `rlib` is LOAD-BEARING (`§4.1` item 3): it is what lets this crate's own integration tests link
 # `storeroom_js_binding::crossing` and drive the crossing's per-class table with NO Node runtime present.

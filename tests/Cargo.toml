@@ -1,0 +1,60 @@
+[package]
+name = "storeroom-tests"
+version = "0.1.0"
+edition = "2021"
+description = "THE BATTERY: the binding crate's six Rust targets, at the paths `docs/L1/test-stratification.json` declares for them — one non-published workspace member, driven with no Node runtime present"
+license = "GPL-3.0-or-later"
+# **THIS PACKAGE IS AN INSTRUMENT AND NOT A DELIVERABLE.** It carries no library and no binary, it is never
+# packaged and never published, and its whole content is the six `[[test]]` targets below.
+publish = false
+
+# **WHY THIS PACKAGE EXISTS AT ALL, AND WHY IT IS A PACKAGE AND NOT A DIRECTORY OF FILES** (`D-5`'s move,
+# `docs/L1/test-stratification.json`): the binding crate's cells moved OUT of `bindings/js/tests/` into the
+# one tree the stratification declares, and a Rust target under an extra directory level is not found by
+# cargo's test auto-discovery (`tests/*.rs` and `tests/*/main.rs` only). So every target below is EXPLICIT —
+# a name and a path — and there are exactly SIX of them: FOUR under `integration/binding-crossing/` and TWO
+# under `unit/binding-crossing/`. `4 + 2 = 6` ✓. The store's fourteen targets are named at the ROOT
+# manifest's `[[test]]` table, where the package that carries them lives, so the two declared legs stay
+# package-scoped: `cargo test --offline -p storeroom-native` is `415` cells and `cargo test -p
+# storeroom-tests` is `235`, exactly as the architect's `★ A` rules them. `14 + 6 = 20` targets in all.
+# `tests/e2e/`, `tests/integration/js-constraints/`, `tests/unit/js-constraints/` and `tests/unit/js-surface/`
+# carry `.mjs` batteries that cargo never looks at.
+#
+# **THE TWO DEPENDENCIES ARE THE TWO CRATES THE TREE REACHES, AND NOTHING ELSE.** `storeroom-js-binding` is
+# the sibling crate: its six targets reach `use storeroom_js_binding::crossing::…` through the crate's `rlib`
+# half, with no Node runtime present (`package.md §4.1` item 3). `storeroom-native` is the store the sibling
+# depends on — declared here because the battery stands at the store's own root and reads it as the tree's
+# subject, and because the store's `-p` leg and the battery's are two faces of the one workspace lock.
+[dependencies]
+storeroom-native = { path = ".." }
+storeroom-js-binding = { path = "../bindings/js" }
+
+# =====================================================================================================
+# THE SIX TARGETS, GROUPED AS THE DECLARATION GROUPS THEM
+# =====================================================================================================
+
+# ---- `tests/integration/binding-crossing/` — 4 — the binding crate, driven with no Node runtime ---------
+[[test]]
+name = "crossing_copy"
+path = "integration/binding-crossing/crossing_copy.rs"
+
+[[test]]
+name = "register_layer"
+path = "integration/binding-crossing/register_layer.rs"
+
+[[test]]
+name = "surface_verbs"
+path = "integration/binding-crossing/surface_verbs.rs"
+
+[[test]]
+name = "addon_adoption"
+path = "integration/binding-crossing/addon_adoption.rs"
+
+# ---- `tests/unit/binding-crossing/` — 2 — the per-signature domains ------------------------------------
+[[test]]
+name = "crossing_carriers"
+path = "unit/binding-crossing/crossing_carriers.rs"
+
+[[test]]
+name = "crossing_values"
+path = "unit/binding-crossing/crossing_values.rs"

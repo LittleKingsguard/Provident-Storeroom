@@ -1,6 +1,10 @@
 # `package.md §3.2`: **NO BINARY IS EVER COMMITTED TO THE TRACKED TREE** — the artefacts are BUILT AND
-# PUBLISHED, never stored in the tree. The sibling crate's own build outputs are ignored here, and so is
-# its `Cargo.lock` (`§4.2` item 2: it is a library, and its lock is not committed).
+# PUBLISHED, never stored in the tree. The sibling crate's own build outputs are ignored here.
+#
+# **⟶ THE `/Cargo.lock` LINE IS GONE, 2026-10-25, AND ITS CLAUSE IS MOOT RATHER THAN OVERRULED.**
+# `§4.2` item 2 read *"it is a library, and its lock is not committed"*. After `D-34` and `D-5` this crate
+# is a member of the one workspace at the repository root, and **a workspace member has no lock of its own:
+# the workspace's `Cargo.lock` at `./Cargo.lock` IS its lock** — so the clause lost its subject exactly as
+# `D-3`'s count and `§2.2` item 7's sentence did, and there is nothing left for a line here to ignore.
 /target/
 /build/
-/Cargo.lock
