@@ -2095,3 +2095,44 @@ green throughout.
 still says `blind-constraints-v2.mjs:1139` **pins five kernel names and is red**. **At HEAD that cell is at `:1251`
 and it is GREEN on six** — the battery's re-derivation moved it. **A declaration that inherits a claim without
 re-measuring it is how the last stale declaration happened; this one is small and is named rather than repeated.**
+
+---
+
+### FINDING — a subdivision meets THREE coupling classes, and the declaration named ONE
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the entry cut, measured by L0.
+**A finding about what a partition costs, not about a mistake.**
+
+**WHAT LANDED.** `index.mjs` went from **6,350 to 1,409 lines**, with **eight new parts** in `src/entry/` — so the
+directory now holds **thirteen files** (8 entry + 5 kernel), exactly `D-33`'s target. **Byte-identity held**: the
+reassembled bodies are the same sha256 as `git show HEAD:…index.mjs`, with 73 `export ` prefixes and exactly one
+enumerated edit. **`D-33`'s split was taken** as `carrier.mjs` (927, the carrier tree's encoders) and `frame.mjs`
+(410, the construction's frame and answers), with the edge `frame → carrier` derived from the seam: above `L2799`
+nothing calls anything declared below it.
+
+**★ AND THE RED IS WIDER THAN `D-33` DECLARED, IN A WAY THAT GENERALISES.** `npm test` is **842 · 785 · 56** and
+`live-drive` is **95/100**. **The four drives `D-33` named are only one class:**
+
+| class | the coupling | what broke |
+|---|---|---|
+| **(1) STAGED-TREE COPIES** | a tree that copies `index.mjs` **alone** and drives it there | the four declared drives **and `live-drive.mjs`** — a GREENS runner that copies `index.mjs` + `package.json` alone (`LIVE-8.2/.3/.4/.5/.7`) |
+| **(2) PATH-IDENTITY PREDICATES** | a cell that classifies a take by the file its stack frame names | `json-crossing.test.mjs`'s `JC-TC-65`: the classifier was widened to the barrel **and the kernel parts**, and entry-part frames — `state.mjs:386`, `constraints.mjs:95` — are `UNATTRIBUTED` |
+| **(3) SOURCE-TEXT COUPLINGS** | a cell that greps **the file's text** | `addon-surface.test.mjs`'s `sas_d6_` and `addon-surface-properties.test.mjs`'s `sas_prop_P_SAS_6_` (both grep `index.mjs` for `commitFile`), and `publish-generators.test.mjs`'s control, which fails **at load** because *"the rung-one success site moved"* — `tried.push(ADDON_PATH)` now lives in `artefact.mjs` |
+
+**SO A PARTITION COSTS THREE KINDS OF REPAIR, AND ONLY THE FIRST IS OBVIOUS.** **Class (2) had already bitten once
+(before the kernel cut) and was repaired for the KERNEL's parts — and that repair did not generalise, because it
+named a prefix rather than the directory.** **Class (3) is the one nobody predicts: a test that asserts what a file
+SAYS couples to where the file IS.** **All three are test-side repairs, and all three are the next pass's.**
+
+**AND THE MOVE NEEDED THREE THINGS THE DECLARATION DID NOT HAVE, EACH REPORTED RATHER THAN ABSORBED.**
+
+1. **TWO CYCLE-FORMING EDGES the DAG lacked**, each closed by a **pure-move carve**: `class-decision → walk` through
+   a **constant reference** (`NODE_CEILING`, invisible to a `name(`-shaped scan) and `walk → delivery` through a plain
+   call (`isLawfulListenerElement`), so a one-line declaration and a 35-line block moved into `class-decision.mjs`.
+2. **THE HUB HANDS ITS CONTEXT IN.** `artefact.mjs` cannot derive `ADDON_PATH`, `require_` or the manifest path from
+   its own URL, so the hub passes them: `adoptModuleContext(import.meta.url, require_, ADDON_PATH)`. **One expression
+   had to follow** — `packageVersion`'s `import.meta.url` became `entryUrl` — **and the pass reports that its own
+   first build carried a silent defect this closed.** That is the shape of a finding worth having.
+3. **THE LAZY KERNEL REACH STAYS.** `§4.2`'s retirement is **not a move** — it is a behaviour change — so the hub
+   still reaches the kernel lazily, and **the retirement belongs with the drives' re-staging, where the trees that
+   needed it stop existing.**
