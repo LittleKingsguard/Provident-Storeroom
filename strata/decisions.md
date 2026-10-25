@@ -199,3 +199,44 @@ indefinitely, or whether the kernel was intended eventually to be inlined into `
 **WHAT IT CHANGED BELOW ME.** The map is owed a revision at two sites (`§5.1` and `§6` question 2) so that it
 stops saying the separation is unordered. That revision is delegated; the map's module count, endpoint count
 and ownership arithmetic are unmoved by it, because `D-2` reclassifies a standoff and draws no boundary.
+
+---
+
+### `D-1-quater` — the `files` question was L0's mis-framing: `delivery` already owns it
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect's challenge —
+*"Wouldn't this already be handled by the delivery module?"* — and it is, so this entry records a **correction to
+L0's own framing, not a ruling of the architect's.**
+
+**WHAT L0 GOT WRONG.** `D-1-ter` closed with *"whoever owns a wave that spans the entry, the drives, the
+assertion and the clause — which is a unit, and no unit is open."* **That sentence implies an ownership gap, and
+there is none.** The map already assigns every one of those artifacts:
+
+| artifact | owner |
+|---|---|
+| `bindings/js/package.json` — **the `files` allowlist itself** | **`delivery`**, whose declared responsibility is *"Own the package manifest, the five per-platform packages, both crate manifests, the shipped README and the release pipeline"* |
+| `bindings/js/index.mjs` region `L5202–L5903` and `src/constraint-kernel.mjs` | `js-constraints` |
+| `bindings/js/test/publish.test.mjs` (cell `P-PUB-7`) and `publish-generators.test.mjs` — the `index.mjs`-alone drive fixtures | `js-battery` |
+
+**So the answer to "who lands the fourth entry's removal" is: `delivery`. It always was.** No module needed
+declaring, no boundary needed drawing, and **no separate unit is owed for it.**
+
+**WHAT IS STILL TRUE FROM `D-1-ter`, AND THE DISTINCTION THAT MAKES BOTH CORRECT.** Ownership and sequencing are
+different questions.
+- **Ownership is complete and was never in doubt.** `delivery` owns the artifact and performs the edit.
+- **What `delivery` cannot do is decide the count alone.** The allowlist's *value* — **exactly four, the fourth
+  being the kernel** — is declared at `docs/specs/storeroom-publish/contract.md §2.1` item **6** and asserted at
+  `P-PUB-7`. **A contract is deliberately owned by no module** (map §5.3: *"no code module owns its own
+  specification: a module that owned its contract could amend what it is measured against"*), so **moving that
+  declared surface is a spec act**, not an implementer's edit.
+- **The order is a property of the dependency, not a negotiation:** the file the allowlist names must exist and
+  be reachable, so `js-constraints` integrates, `js-battery` re-points its fixtures and its assertion, and
+  **`delivery` retires the entry last**.
+
+**THE PRACTICAL UPSHIFT, WHICH IS WHAT THE CHALLENGE WAS POINTING AT.** The `files` step is **not a question
+standing on its own** — it is **`delivery`'s step in an integration wave**, and it needs no separate open item,
+no separate unit and no separate owner. **`D-1-ter`'s facts stand** (four pins, forced ordering, no release cut
+mid-way); **its closing question does not, and is withdrawn here by name.**
+
+**WHAT THIS ENTRY CHANGES BELOW ME: nothing.** No map revision, no module, no endpoint, no boundary — and that
+no-change is itself the answer: when the integration wave is opened, `delivery` already owns its part of it.
