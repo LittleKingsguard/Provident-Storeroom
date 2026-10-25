@@ -10,7 +10,7 @@
     "typecheck:nodenext": "tsc -p tsconfig.typecheck.nodenext.json",
     "build": "cargo build --offline --release -p storeroom-native && cargo build --release --manifest-path bindings/js/Cargo.toml && node scripts/stage-addon.mjs",
     "greens": "node scripts/greens-chain.mjs",
-    "test:e2e": "node tests/e2e/installed/live-install.mjs",
+    "test:e2e": "npm run build && node tests/e2e/installed/live-install.mjs",
     "test:store": "cargo test --offline -p storeroom-native",
     "test:battery": "cargo test -p storeroom-tests",
     "test:both": "cargo test"
