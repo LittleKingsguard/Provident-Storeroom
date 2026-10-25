@@ -203,9 +203,18 @@ console.log(`layer          LIVE / ASSEMBLED PACKAGE (real artifact, real proces
   // **THE CELL'S SUBJECT IS KEPT WHOLE — the product's exact own member set, by set
   // equality and nothing else — and the expected value alone is re-derived**, exactly as this cell's own
   // `7 → 12` clause above did.
-  A(`${sc}.3`, '§2.4 item 9 (f)\'s clause of 2026-10-18 (TWELVE own members, `10 + 1 + 1 = 12`, `13 → 12`, whose two singles are `register` and `constraints`)',
-    "the store's own member set is exactly the TWELVE declared members ['addConstraint','constraintOff','constraintOn','constraints','delete','listen','read','readLiteral','register','rollback','unlisten','write'] — and NOTHING ELSE (the superseded readings were three, four, five, seven, twelve and thirteen)",
-    inst !== null && Object.getOwnPropertyNames(inst).sort().join(',') === 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,rollback,unlisten,write',
+  // ── **⟶ RE-DERIVED 2026-10-25 (`D-20`'s execution pass, `role_l1_test_writer`): THE SET MOVES `12 → 14`,
+  // `10 + 1 + 1 + 2 = 14` ✓.** The two `+ 2` are `removeListener(handle)` and `removeConstraint(pair)`, landed
+  // 2026-10-19 by the held-listener-identity unit (`docs/specs/storeroom-held-listener-identity/contract.md
+  // §2.7` item 9, `12 → 14`), **and `bindings/js/index.d.ts`'s `StoreInstance` names all fourteen** — so the
+  // expected value comes from the declaration of record (`D-17`: the expectation is code, and the code says
+  // fourteen). **THE CELL'S SUBJECT IS KEPT WHOLE** — the product's exact own member set, by set equality and
+  // nothing else — and the expected value alone is re-derived, exactly as this cell's own `7 → 12` clause did.
+  // The figure was stale through two rulings because the batteries were never re-derived against the surface;
+  // this is the review's §3.2 row 11 and `FTS-12.1`'s, `LIVE-13.19`'s and `LIVE-13.23`'s same figure.
+  A(`${sc}.3`, '§2.4 item 9 (f)\'s clause of 2026-10-19 (FOURTEEN own members, `10 + 1 + 1 + 2 = 14`, whose two singles are `register` and `constraints` and whose `+ 2` are `removeListener`/`removeConstraint`) read with `bindings/js/index.d.ts`\'s `StoreInstance`',
+    "the store's own member set is exactly the FOURTEEN declared members ['addConstraint','constraintOff','constraintOn','constraints','delete','listen','read','readLiteral','register','removeConstraint','removeListener','rollback','unlisten','write'] — and NOTHING ELSE (the superseded readings were three, four, five, seven, twelve and thirteen)",
+    inst !== null && Object.getOwnPropertyNames(inst).sort().join(',') === 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,removeConstraint,removeListener,rollback,unlisten,write',
     inst ? Object.getOwnPropertyNames(inst).sort().join(',') : 'no instance');
   A(`${sc}.4`, '§1.3 FilePathArg row 1', "the caller's filePath is a REAL path: its parent directory exists on disk",
     fs.existsSync(path.dirname(filePath)) && fs.statSync(path.dirname(filePath)).isDirectory(), path.dirname(filePath));
@@ -226,13 +235,20 @@ console.log(`layer          LIVE / ASSEMBLED PACKAGE (real artifact, real proces
   inst.write(['ev'], 'temp', {});
   // ⟶ DRIVE RE-DERIVED 2026-10-24 (THE `D-19` CRASH FIX — THIS IS THE CALL THAT KILLED THIS RUNNER): the
   // handle is SPELLED here and passed at position `1`, the address travels as the one-member SET at position
-  // `2`, and `h` is WHAT `listen` ANSWERED. `LIVE-2.1` and `.8` read that answer and stay RED, because their
-  // subject is the MINTED opaque value the code no longer returns; `.2`–`.7` read the caller's spelling,
-  // which is the same identity.
+  // `2`, and `h` is WHAT `listen` ANSWERED.
+  // ⟶ **THE TWO CELLS THAT READ THAT ANSWER RE-DERIVED 2026-10-25 (`D-22`).** `LIVE-2.1` and `.8` were left RED
+  // on 2026-10-24 because their subject was *the MINTED opaque value* and the declaration then said `listen`
+  // answered `undefined`. **`D-22` (`"Listen should return the handle on success"`) gives `listen` a return
+  // again — `Handle`, `index.d.ts:616` — so the subject is REAL and these two cells are REWRITTEN, not
+  // retired.** What changed is only WHAT THE RETURN IS: not a minted token, but **the caller's own spelling
+  // returned as THE IDENTITY THE STORE HOLDS for that entry** (measured: `inst.listen('live-handle-live2-ev',
+  // [['ev']])` → `'live-handle-live2-ev'`). The subject of `.1` — *what `listen` answers* — and of `.8` — *the
+  // answer's stability across a repeat act* — are both kept whole.
   const HANDLE = handleFor('live2-ev');
   const h = inst.listen(HANDLE, [['ev']]);
-  A(`${sc}.1`, '§2.3 item 2; DD-14', "listen returns the package's opaque value: typeof 'object', not a string, and it spells no token",
-    typeof h === 'object' && h !== null && typeof h !== 'string' && !JSON.stringify(h).includes('listener-'), `${typeof h} ${JSON.stringify(h)}`);
+  A(`${sc}.1`, '§2.3 item 2 read THROUGH `D-22` (`strata/decisions.md`, 2026-10-24: *"Listen should return the handle on success, or error message on fail"*); `bindings/js/index.d.ts:616` (`listen(handle: Handle, addresses: readonly Address[]): Handle`)',
+    "listen ANSWERS THE HANDLE IT WATCHES UNDER — the caller's own spelling, returned as the identity the store holds for that entry — a non-empty string equal to the spelling, and it does NOT throw",
+    typeof h === 'string' && h.length > 0 && h === HANDLE, `${typeof h} ${JSON.stringify(h)} (caller spelling ${JSON.stringify(HANDLE)})`);
   // DRIVING CORRECTION D-1 (the gate-5 correction, honoured here): `register(handle, listener)` is the
   // INSTANCE's own one member (`§2.4` item 5 (a)) and NOT a module-level verb of the entry.
   A(`${sc}.2`, '§2.4 item 5 (b)', 'register(handle, fn) answers undefined on success', inst.register(HANDLE, () => {}) === undefined, 'undefined');
@@ -249,8 +265,9 @@ console.log(`layer          LIVE / ASSEMBLED PACKAGE (real artifact, real proces
   A(`${sc}.7`, '§2.2; store §3.6', "the write's returned record carries a real opId the caller sees",
     typeof w.op === 'object' && typeof w.op.opId === 'string' && w.op.opId.length > 0, String(w.op?.opId));
   const h2 = inst.listen(HANDLE, [['ev']]);
-  A(`${sc}.8`, '§2.3 item 6', 'a repeat listen at a REGISTERED address mints nothing: the same opaque value comes back',
-    typeof h2 === 'object' && h2 !== null && h2 === h, h2 === h ? 'same value' : 'a different value');
+  A(`${sc}.8`, '§2.3 item 6 read THROUGH `D-22` (`strata/decisions.md`, 2026-10-24); `bindings/js/index.d.ts:616`',
+    'a repeat listen at a REGISTERED address under the SAME handle answers THE SAME handle — nothing is minted and the identity the store holds for that entry is stable across the act',
+    typeof h2 === 'string' && h2 === h && h2 === HANDLE, h2 === h ? `same handle ${JSON.stringify(h2)}` : `a different value ${JSON.stringify(h2)}`);
   end(sc, `handle ${JSON.stringify(h)} answered by listen, the caller's spelling ${JSON.stringify(HANDLE)} registered with a real closure; the write answered opId ${String(w.op?.opId)} (seq ${String(w.op?.seq)}) and the closure ran ${calls.length}× with the triggering address ${calls[0] ? JSON.stringify(calls[0][0]) : 'n/a'}`);
 }
 
@@ -310,6 +327,15 @@ console.log(`layer          LIVE / ASSEMBLED PACKAGE (real artifact, real proces
   // terminal-arm step and nothing else — STANDS WHOLE and is asserted unchanged**; only the route by which the
   // write now reaches its delivery has moved, and no clause makes the file save that route's business.
   const wBare = thrown(() => A_.write(['bare-not-saved'], 'file', 'BARE'));
+  // ⟶ **RULING: LEAVE THIS CELL RED. IT IS RIGHT AND THE CODE IS THE DEFECT (class (b)).** 2026-10-25.
+  // The expectation below is the declaration of record: `surface.md §2.11` clause 1 (*"the verb performs NO FILE
+  // I/O on any of its arms"*) and clause 2 (the save is the TERMINAL ARM's first act). Measured on this tree
+  // (2026-10-25): **the `file`-tier WRITE VERB ITSELF WRITES THE FILE** — `write(['a'],'file',{n:1})` leaves the
+  // image at 13 bytes before any `K-2`/`K-3` call — so the boot resolves the address and this cell reports RED.
+  // **`R-3`'s disposition of it is already recorded and is not re-opened here**: *"`LIVE-4.8`, `FTS-05.1` and
+  // `FTS-05.2` are RIGHT and stay KEEP-AND-RED; the code owes the fix."* **A rewrite to either side would be
+  // the test layer blessing a sign the architect has not chosen**, so the cell keeps its expectation and its
+  // red, and it is reported as a defect against the code (`Q3`, `REMEASURE-2026-10-18.md`, `R-3`).
   A(`${sc}.8`, 'surface.md §2.11 clause 1 ("the verb performs NO FILE I/O on any of its arms"), read with §2.12 item 1\'s amended clause of 2026-10-18 (the write enters `K-2` at EVERY address, so the no-save reading is the ARM\'s and not the route\'s)',
     'the write VERB performs NO file commit: the write succeeds and the address does NOT resolve after a fresh boot — the save being §2.11 clause 2\'s terminal-arm act, which this call does not reach',
     !wBare.threw && (() => { const bb = thrown(() => ns.storeCreate(cfg).read(['bare-not-saved'])); return bb.threw && statusOf(bb) === 'AddressNotFound'; })(),
@@ -414,8 +440,18 @@ console.log(JSON.stringify({ pid: process.pid, value: i.read(${JSON.stringify(['
   const inst = ns.storeCreate({ filePath, journalLength: 4, listeners: [] });
   start(sc, 'a caller offers a bigint at a value position, a class instance at a value position, and reads an address that does not exist — every refusal is caught and printed verbatim');
   const b = thrown(() => inst.write(['v'], 'temp', 10n));
-  A(`${sc}.1`, '§2.5 items 1-3; §1.2 row 10', 'the bigint is refused as ValueNotAdmitted in the ONE thrown form',
-    b.threw && statusOf(b) === 'ValueNotAdmitted' && isSingleForm(b.err), statusOf(b));
+  // ⟶ **RE-DERIVED 2026-10-25 (`D-20`'s execution pass): THE CODE IS `ValueRefusedAtBoundary`, NOT
+  // `ValueNotAdmitted`, AND THE DECLARATION OF RECORD SAYS SO.** `src/error.rs`'s `CODES` carries the closed set
+  // at `[&str; 17]` with `ValueRefusedAtBoundary` at rank `17` (the 2026-10-23 amendment, `A148` Q3), the store
+  // emits it on every one of the fourteen JavaScript-crossing value classes (measured), and
+  // `bindings/js/index.d.ts`'s `StoreStatus` now names it at rank `17` too — as changed by `D-26`'s declaration
+  // wave (commit `23c05a1`). **`ValueNotAdmitted` STAYS AT RANK 14 AND IS NOT A RENAME**: it remains the store's
+  // own answer on the NATIVE route (`surface-deltas.md` §1.5 item 2). **THE CELL'S SUBJECT IS KEPT WHOLE** — the
+  // class of the refusal and its one form — and only the member's spelling moves. This is the review's §3.2
+  // row 14 and `JSG-04.*.ii`'s family.
+  A(`${sc}.1`, 'the closed set at rank `17` (`store §8.1`\'s 2026-10-23 amendment; `src/error.rs`\'s `CODES`), read with `bindings/js/index.d.ts`\'s `StoreStatus` as amended by `D-26` / `surface-deltas.md` §1.5; §2.5 items 1-3; §1.2 row 10',
+    'the bigint is refused as ValueRefusedAtBoundary in the ONE thrown form',
+    b.threw && statusOf(b) === 'ValueRefusedAtBoundary' && isSingleForm(b.err), statusOf(b));
   A(`${sc}.2`, "surface.md §2.5 item 6 (a); the gate-5 finding JSG-04.1.v", "the refusal's message carries the failing target's own spelling 10n",
     b.threw && typeof b.err.message === 'string' && b.err.message.includes('10n'), b.threw ? b.err.message : 'no throw');
   const c = thrown(() => inst.write(['v'], 'temp', new (class Foo {})()));
@@ -486,8 +522,11 @@ console.log(JSON.stringify({ pid: process.pid, value: i.read(${JSON.stringify(['
     new Set(Object.values(seen).map((x) => x.message)).size > 1, `${new Set(Object.values(seen).map((x) => x.message)).size} distinct messages of 14`);
   A(`${sc}.5`, 'surface.md §2.5 item 6 (b): the argument POSITION travels beside the class', "every one of the fourteen carries the argument position of the failure",
     Object.values(seen).every((x) => /argument/.test(x.message)), Object.entries(seen).filter(([, x]) => !/argument/.test(x.message)).map(([k]) => k).join(',') || 'all 14');
-  A(`${sc}.6`, '§2.5 items 1-3; §1.2 rows 4-13', 'every one of the fourteen is refused in the ONE thrown form with status ValueNotAdmitted',
-    Object.values(seen).every((x) => x.threw && x.status === 'ValueNotAdmitted' && x.form), Object.entries(seen).filter(([, x]) => !(x.threw && x.status === 'ValueNotAdmitted' && x.form)).map(([k]) => k).join(',') || 'all 14');
+  // ⟶ RE-DERIVED 2026-10-25 — the same member move as `LIVE-7.1`'s (`ValueNotAdmitted` → `ValueRefusedAtBoundary`
+  // at rank `17`), applied to the whole fourteen-class census. The cell's subject (fourteen classes, ONE code,
+  // ONE form) is unchanged and no limb is loosened.
+  A(`${sc}.6`, 'the closed set at rank `17` (`store §8.1`\'s 2026-10-23 amendment; `src/error.rs`\'s `CODES`), read with `bindings/js/index.d.ts`\'s `StoreStatus`; §2.5 items 1-3; §1.2 rows 4-13', 'every one of the fourteen is refused in the ONE thrown form with status ValueRefusedAtBoundary',
+    Object.values(seen).every((x) => x.threw && x.status === 'ValueRefusedAtBoundary' && x.form), Object.entries(seen).filter(([, x]) => !(x.threw && x.status === 'ValueRefusedAtBoundary' && x.form)).map(([k]) => k).join(',') || 'all 14');
   end(sc, `the fourteen classes at a value position: ${new Set(Object.values(seen).map((x) => x.message)).size} distinct messages, all ValueNotAdmitted, all in the single form; e.g. bigint → "${seen.bigint.message}" · symbol → "${seen.symbol.message}" · class → "${seen.classInstance.message}"`);
 }
 
@@ -700,8 +739,11 @@ console.log(JSON.stringify({ pid: process.pid, value: i.read(${JSON.stringify(['
   A(`${sc}.5`, '§1.3 AddressArg row 13 (a cross-realm array IS an address)', "a cross-realm array at the ADDRESS position is answered by the WALK's own code, never as a malformed SHAPE",
     addr.threw && statusOf(addr) === 'AddressNotFound', addr.threw ? statusOf(addr) : 'accepted silently');
   const wClass = thrown(() => inst.write(['cr-class'], 'temp', xClass));
-  A(`${sc}.6`, '§1.4 item 4 (f); §1.2 row 4 (f)', 'a cross-realm CLASS instance is REFUSED — the class decision is realm-agnostic too',
-    wClass.threw && statusOf(wClass) === 'ValueNotAdmitted', statusOf(wClass));
+  // ⟶ RE-DERIVED 2026-10-25 — the same member move as `LIVE-7.1`/`.9.6`: the boundary's refusal is
+  // `ValueRefusedAtBoundary` at rank `17`, not `ValueNotAdmitted` at rank `14`. The subject (the class decision
+  // is realm-agnostic) is unchanged.
+  A(`${sc}.6`, '§1.4 item 4 (f); §1.2 row 4 (f), read with the closed set\'s rank `17` (`store §8.1`\'s 2026-10-23 amendment; `bindings/js/index.d.ts`\'s `StoreStatus`)', 'a cross-realm CLASS instance is REFUSED — the class decision is realm-agnostic too',
+    wClass.threw && statusOf(wClass) === 'ValueRefusedAtBoundary', statusOf(wClass));
   A(`${sc}.7`, '§1.2 row 4 (the control)', 'a same-realm plain object is still accepted beside them',
     !thrown(() => inst.write(['cr-same'], 'temp', { a: 1 })).threw, 'accepted');
   end(sc, `cross-realm plain object ${wPlain.threw ? 'REFUSED' : 'ACCEPTED and round-tripped'}; Object.create(null) ${wNull.threw ? 'REFUSED' : 'ACCEPTED'}; cross-realm array ${wArr.threw ? 'REFUSED' : 'ACCEPTED'}; cross-realm class instance ${statusOf(wClass)}; a cross-realm array as an address answered ${statusOf(addr)}`);
@@ -853,19 +895,41 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
   // answer against the OPAQUE value `listen` used to return and stay RED on the code as it stands.
   // THE SPELLING IS DERIVED FROM THE ADDRESS, so a second `on` at the SAME address is the SAME caller-spelled
   // handle the code carries (the as-filed drive read ONE opaque identity per address, and that reading is kept).
+  //
+  // ⟶ THE GUARD RE-DERIVED 2026-10-25 (`D-22`, AND THIS IS THE CRASH FIX — `D-20`'s FIRST ITEM).
+  // **THE GUARD WAS THE CRASH.** The 2026-10-24 pass wrote `if (lr !== undefined) throw …` to catch a STALE CALL,
+  // and it was right for the surface of its own day: `listen` answered `undefined`. `D-22` (`"Listen should return
+  // the handle on success, or error message on fail"`) makes `listen` ANSWER THE HANDLE IT WATCHES UNDER — the
+  // caller's own spelling, returned as the identity the store holds for that entry (`index.d.ts:616`,
+  // `listen(handle: Handle, addresses: readonly Address[]): Handle`; measured: `inst.listen('h1', [['a']])` →
+  // `'h1'`) — so the guard's own subject moved and the guard fired on a CORRECT call, taking the process out at
+  // `LIVE-13` before `LIVE-13.2` and the eight scenarios after it could run.
+  // **IT IS RE-DERIVED AND NOT SWALLOWED, AND IT IS STILL A STALE-CALL CATCHER**: the post-ruling shape is
+  // `lr === hh`, so the guard asserts THAT. A `listen` that moves a third time — to any other return, including
+  // `undefined` again — throws here exactly as before, and no `try`/`catch` was added and no cell was weakened.
+  // `register`'s `undefined` is UNMOVED by `D-22` (`index.d.ts`: `register(handle: Handle, listener: Listener):
+  // void`) and its guard therefore stands as filed.
   const onRoute = (address, fn) => {
     const hh = handleFor(`live13-${address.join('.')}`);
     const lr = inst.listen(hh, [address]);
-    if (lr !== undefined) throw new Error('listen did not answer undefined');
+    if (lr !== hh) throw new Error(`listen did not answer the handle it stands under: ${JSON.stringify(lr)}`);
     const rr = inst.register(hh, fn);
-    if (rr !== undefined) throw new Error('register did not answer undefined');
+    if (rr !== undefined) throw new Error(`register did not answer undefined: ${JSON.stringify(rr)}`);
     return hh;
   };
   const h = onRoute(['ev'], firstFn);
   onHandleForm = `${typeof h} ${JSON.stringify(h)}`;
-  A(`${sc}.1`, '§2.4 item 7 (a); §2.3 item 2; A79',
-    "on(address, listener) answers the package's OPAQUE handle — a non-null value, not a string, spelling no token — and does NOT throw",
-    h !== null && typeof h === 'object' && typeof h !== 'string' && !JSON.stringify(h).includes('listener-'), onHandleForm);
+  // ⟶ **RE-DERIVED 2026-10-25 (`D-22`).** This cell's subject is *what `on` — the `listen` + `register` route —
+  // answers*, and on 2026-10-24 it was left RED because the answer was `undefined` and its expectation was a
+  // MINTED opaque value. **`D-22` restores a return: the handle the entry stands under, the caller's own
+  // spelling** (`index.d.ts:616`; `D-22`'s own closing paragraph says the kernel now ADOPTS this value, which is
+  // what `kernel-surface.md` declared all along — *"adopted, never minted"*). So the cell keeps its subject and
+  // moves its expectation: **the answer is the caller's spelling, a non-empty string, and NOT a minted token.**
+  // Every other limb the cell carried (it does not throw; the route's answer is the identity
+  // `register` was given) is unchanged.
+  A(`${sc}.1`, '§2.4 item 7 (a); `D-22` (`strata/decisions.md`, 2026-10-24) read with `bindings/js/index.d.ts:616`; A79',
+    "on(address, listener) answers the handle the entry stands under — the caller's own spelling, a non-empty string and NOT a minted token — and does NOT throw",
+    typeof h === 'string' && h.length > 0 && !JSON.stringify(h).includes('listener-'), onHandleForm);
   const w = inst.write(['ev', 'child'], 'temp', { n: 1 });
   A(`${sc}.2`, "§2.4 item 6 (b) (the registry's lookup BY THAT IDENTITY); §2.7 item 1; DD-22",
     "the returned record's triggered carries THE SAME handle's identity — membership asserted, and NO ORDER (§2.7 item 3)",
@@ -914,11 +978,23 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
     rel(registerSnapshot(inst), before)
       && (() => { const r = thrown(() => inst.read(['ev', 'ghost'])); return r.threw && statusOf(r) === 'AddressNotFound'; })(),
     Object.keys(registerSnapshot(inst)).join(','));
-  const bad = thrown(() => inst.listen('ev.bad'));
-  A(`${sc}.10`, '§2.17 dated clause 2; surface.md §2.5 item 5 (g); parameter-semantics.md §2.5; A81',
-    "a MALFORMED ADDRESS is refused the same way — AddressMalformed in the single form, verbosely, naming the address's class and the ARGUMENT POSITION 1 of 2",
+  // ⟶ **RE-DERIVED 2026-10-25 — THE DRIVE AND THE POSITION FIGURE BOTH MOVE, AND THE SUBJECT DOES NOT.**
+  // The cell's subject is *a malformed address at `listen`'s address position is refused in the ONE verbose
+  // form, naming the class and the argument's position*. On 2026-10-24 its drive was `inst.listen('ev.bad')` —
+  // the SUPERSEDED one-argument call — so what it measured was `listen`'s **HANDLE** position and the refusal it
+  // read was the handle's (*"listen's first argument is the string 'ev.bad'"*); its expectation of *"ARGUMENT
+  // POSITION 1 of 2"* was the pre-2026-10-18 reading the declaration itself already re-marked
+  // (`index.d.ts:592`–`:594`: *"position `1` is `1` OF TWO"*).
+  // **THE ADDRESS IS POSITION `2` OF `listen`, AND IT IS A SET** (`index.d.ts:616`), so this cell now drives a
+  // malformed address AS A SET MEMBER at that position — the state the surface actually has — and asserts the
+  // SET-position halves: the failing member's own class (`null`) and **position `2` of `2`**. The review's
+  // §3.2 row 15 carries the same figure move for `.20`.
+  const bad = thrown(() => inst.listen(handleFor('live13-bad'), [null]));
+  A(`${sc}.10`, '§2.17 dated clause 2; surface.md §2.5 item 5 (g); parameter-semantics.md §2.5 (the address position) read with `bindings/js/index.d.ts:616` (the address is position `2` of `2`, a SET); A81',
+    "a MALFORMED ADDRESS at listen's address position is refused the same way — AddressMalformed in the single form, verbosely, naming the member's class and the ARGUMENT POSITION 2 of 2",
     bad.threw && isSingleForm(bad.err) && bad.err.status === 'AddressMalformed'
-      && typeof bad.err.message === 'string' && /first argument/.test(bad.err.message),
+      && typeof bad.err.message === 'string' && /second argument/.test(bad.err.message)
+      && /null/.test(bad.err.message),
     bad.threw ? `${bad.err.status} :: ${bad.err.message}` : 'no throw');
   // ── ⟶ ADDED 2026-10-17, THE OWED PRESENT-TOKEN ASSERTION (`A134`; `surface.md §2.5` item 5 (a)–(b)) ────
   //
@@ -957,8 +1033,24 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
   // widens exactly that subject to every position and every value, adding THE HALF `.10` DOES NOT ASSERT: THE
   // CONTAINER. **No cell below is renumbered**, so a reader of any earlier record still finds `.11`–`.19` at
   // the id it was written under.
+  // ⟶ **RE-DERIVED 2026-10-25 — `listen` LEAVES THE ADDRESS-POSITION CENSUS, AND THE CENSUS IS STILL TWENTY.**
+  // `D-22` moved nothing here; **the 2026-10-18 signature move did, and this cell was never re-derived against
+  // it.** `A134` enumerates *"every address position (`listen`, `read`, `write`, `delete`, `readLiteral`)"*, and
+  // under `listen(handle, addresses)` the address is **POSITION `2` OF `2` AND IT IS A SET** — so
+  // `inst.listen(<outside value>)` no longer reaches an address position at all: it is refused at the HANDLE
+  // position (*"listen's first argument is …"*), a different subject that this census must not swallow. **SO THE
+  // CENSUS IS SPLIT AND ITS TOTAL IS KEPT AT `20`**: the FOUR whole-address positions (`read` · `write` ·
+  // `delete` · `readLiteral`) × the FOUR outside values = `16` readings, each still asserted on all three halves
+  // — the value's own rendering, THE ARGUMENT POSITION `'first argument'`, and the container `'address'` with
+  // `in ''` absent — **plus a SET-POSITION CENSUS OF ITS OWN for `listen` = `4` readings** (`listen(handle, x)`
+  // for the same four values), which assert the halves the set position DECLARES: the value's own rendering, the
+  // position `'second argument'`, and the set's own clause *"this position is a SET of addresses"*. **The
+  // container `'address'` is NOT asserted at the set position and the omission is declared rather than
+  // silent**: `A134` is scoped BY ITS OWN WORDS to address positions, and `listen`'s position `2` is a SET — a
+  // shape `A134` never addresses (measured: the set refusal reads `in ''`, the empty container). Asserting
+  // `'address'` there would assert a wished-for spelling; asserting the `in ''` absence there would assert a
+  // shape `A134` does not reach. **Neither is asserted, and both are printed in the observed field.**
   const ADDRESS_POSITIONS = [
-    ['listen', (x) => inst.listen(x)],
     ['read', (x) => inst.read(x)],
     ['write', (x) => inst.write(x, 'temp', 1)],
     ['delete', (x) => inst.delete(x)],
@@ -981,12 +1073,32 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
     }
   }
   const a134Bad = a134.filter((x) => !(x.addressed && x.target && x.position && x.containerPresent && !x.containerEmpty));
-  A(`${sc}.20`, "A134 (docs/decisions.md, ACTIVE 2026-10-16); surface.md §2.5 item 5 (a)–(b); crossing.md §1.3 AddressArg rows 5–6",
-    `AT ALL FIVE ADDRESS POSITIONS (listen · read · write · delete · readLiteral) and for ALL FOUR outside values ('a.b' · 7 · null · undefined), the whole-address refusal is the single AddressMalformed form and carries ALL THREE HALVES: the VALUE'S OWN RENDERING (item 5 (a)), the ARGUMENT POSITION 'first argument' (item 5 (b)), and THE CONTAINER SLOT FILLED WITH THE ARGUMENT'S OWN NAME — 'address' — with the false empty-container form \`in ''\` ABSENT (A134: 'the container slot carries address; the false empty-container form in '' is gone')`,
-    a134.length === 20 && a134Bad.length === 0,
-    a134Bad.length === 0
-      ? `${a134.length}/20 readings carry target + position + container 'address', 0 carry \`in ''\`; the artifact under test ${addonStat.size} bytes sha256 ${addonSha.slice(0, 12)}…`
-      : `${a134Bad.length}/20 readings FAIL A134 — ${a134Bad.map((x) => `${x.verb}(${x.rendering}) [${['target', 'position', 'container'].filter((k, i) => ![x.target, x.position, x.containerPresent][i]).join('+') || 'form'}${x.containerEmpty ? "+in ''" : ''}]`).join('; ')}`);
+  // **THE SET POSITION'S TARGET HALF IS THE ENTRY'S OWN SPELLING AND NOT THE STORE GENERATOR'S.** The four
+  // whole-address positions render through the store's generator (`the string 'a.b'`, `the number 7`); at
+  // `listen`'s set position the refusal is the ENTRY's own class test and its target is spelled by
+  // `targetSpelling` (`'a.b'`, `'7'`, `null`, `undefined`). That is a difference of SPELLING between two
+  // declared arms and not a missing half, so the set-position census asserts each value's own spelling and
+  // nothing weaker: a message that dropped the target entirely still fails here.
+  const setpos = [];
+  for (const [value, rendering, own] of [['a.b', "the string 'a.b'", 'a.b'], [7, 'the number 7', '7'], [null, 'null', 'null'], [undefined, 'undefined', 'undefined']]) {
+    const r = thrown(() => inst.listen(handleFor('live13-setpos'), value));
+    const m = r.threw && typeof r.err.message === 'string' ? r.err.message : '';
+    setpos.push({
+      rendering, m,
+      addressed: r.threw && isSingleForm(r.err) && r.err.status === 'AddressMalformed',
+      target: m.includes(own),
+      position: /second argument/.test(m),
+      setClause: /is a SET of addresses/.test(m),
+      containerPresent: /\bin 'address'/.test(m),
+      containerEmpty: /\bin ''/.test(m),
+    });
+  }
+  const setposBad = setpos.filter((x) => !(x.addressed && x.target && x.position && x.setClause));
+  const readings = a134.length + setpos.length;
+  A(`${sc}.20`, "A134 (docs/decisions.md, ACTIVE 2026-10-16) for the FOUR whole-address positions — `listen` is no longer among them, its address being position `2` of `2` and a SET (`bindings/js/index.d.ts:616`) — read with surface.md §2.5 item 5 (a)–(b); crossing.md §1.3 AddressArg rows 5–6; `listen-verb.md §2.2` item 1 for the set position",
+    `AT ALL FOUR WHOLE-ADDRESS POSITIONS (read · write · delete · readLiteral) and for ALL FOUR outside values ('a.b' · 7 · null · undefined), the whole-address refusal is the single AddressMalformed form and carries ALL THREE HALVES: the VALUE'S OWN RENDERING (item 5 (a)), the ARGUMENT POSITION 'first argument' (item 5 (b)), and THE CONTAINER SLOT FILLED WITH THE ARGUMENT'S OWN NAME — 'address' — with the false empty-container form \`in ''\` ABSENT; AND AT listen's SET POSITION ('second argument', the same four values) the refusal carries its own three halves — the rendering, the position 'second argument', and the position's own clause 'a SET of addresses'`,
+    a134.length === 16 && a134Bad.length === 0 && setpos.length === 4 && setposBad.length === 0,
+    `${a134.length - a134Bad.length}/${a134.length} address-position readings carry target + position + container 'address', 0 carry \`in ''\`${a134Bad.length === 0 ? '' : ` — FAILING: ${a134Bad.map((x) => `${x.verb}(${x.rendering}) [${['target', 'position', 'container'].filter((k, i) => ![x.target, x.position, x.containerPresent][i]).join('+') || 'form'}${x.containerEmpty ? "+in ''" : ''}]`).join('; ')}`} · ${setpos.length - setposBad.length}/${setpos.length} set-position readings carry target + 'second argument' + the SET clause (their container slot reads the empty form at ${setpos.filter((x) => x.containerEmpty).length}/4 readings, a shape A134 does not reach at a set position and which this cell therefore does not assert) · the artifact under test ${addonStat.size} bytes sha256 ${addonSha.slice(0, 12)}…`);
 
   // ── ⟶ ADDED 2026-10-17 (THE `0.3.1` BOUNDARY-FIX PASS, `DEF-2026-10-17-A`): THE FIVE ADDRESS POSITIONS'
   // OWN TIER-SIDE REFUSAL — THE SUBJECT `LIVE-13.20` DOES NOT REACH, WIDENED HERE RATHER THAN DUPLICATED ────
@@ -1201,10 +1313,14 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
   // **The
   // cell's subject — the VALID form returns an INSTANCE carrying the declared set, so the refusal half
   // cannot be passing by refusing the lawful form too — is unmoved.**
-  A(`${sc}.23`, 'crossing.md §1.3 ListenersArg row 1 (`[]` is "the ordinary no-listener store") read with parameter-semantics.md §2.4 PAR-JS-4 (the empty array is IN the domain); surface.md §2.1 (e) 1 and §2.4 item 9 (f)\'s clause of 2026-10-18 for the product\'s TWELVE own members (`10 + 1 + 1 = 12`)',
-    'the VALID form `listeners: []` returns an INSTANCE and does NOT throw, and that instance carries exactly the TWELVE own members the contract declares — so the refusal half above cannot be passing by refusing the lawful form too',
-    !validListeners.threw && Object.getOwnPropertyNames(validListeners.value).length === 12
-      && /^addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,rollback,unlisten,write$/.test(validMemberSet),
+  // **⟶ AND RE-DERIVED AGAIN 2026-10-25 (`D-20`'s execution pass): the set is FOURTEEN, `10 + 1 + 1 + 2 = 14`**
+  // — the `+ 2` being `removeListener(handle)` and `removeConstraint(pair)`, landed 2026-10-19
+  // (`contract.md §2.7` item 9, `12 → 14`; `bindings/js/index.d.ts`'s `StoreInstance` names all fourteen). The
+  // same stale figure `LIVE-1.3`, `LIVE-13.19` and `FTS-12.1` carried.
+  A(`${sc}.23`, 'crossing.md §1.3 ListenersArg row 1 (`[]` is "the ordinary no-listener store") read with parameter-semantics.md §2.4 PAR-JS-4 (the empty array is IN the domain); surface.md §2.1 (e) 1 and §2.4 item 9 (f)\'s clause of 2026-10-19 for the product\'s FOURTEEN own members (`10 + 1 + 1 + 2 = 14`)',
+    'the VALID form `listeners: []` returns an INSTANCE and does NOT throw, and that instance carries exactly the FOURTEEN own members the contract declares — so the refusal half above cannot be passing by refusing the lawful form too',
+    !validListeners.threw && Object.getOwnPropertyNames(validListeners.value).length === 14
+      && /^addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,removeConstraint,removeListener,rollback,unlisten,write$/.test(validMemberSet),
     validListeners.threw ? `threw ${statusOf(validListeners)}` : `${Object.getOwnPropertyNames(validListeners.value).length} own members: ${validMemberSet}`);
 
   // ── ⟶ AND THE TWO RESIDUES THE FIX LEFT ON PURPOSE, ASSERTED AS THEY ACTUALLY STAND (`LIVE-13.24`) ────
@@ -1275,17 +1391,35 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
     'unlisten answers undefined, withdraws the store-side home entry ONLY, and the withdrawn function NEVER FIRES — and the store-side withdrawal is visible in the EMPTY trigger set of a write whose address the withdrawn listener held',
     !unAnswer.threw && unAnswer.value === undefined && uu.length === 0 && !w5.threw && w5.value.triggered.length === 0,
     `unlisten ${unAnswer.threw ? statusOf(unAnswer) : 'undefined'}; uu fired ${uu.length}×; write ${w5.threw ? statusOf(w5) : `triggered ${w5.value.triggered.length} member(s)`}`);
+  // ⟶ **RE-DERIVED 2026-10-25 (`D-22`) — THE SUBJECT SURVIVES, THE EXPECTATION MOVES.** The cell's subject is
+  // *after `unlisten` withdrew the entry, a later installation at that address is a NEW identity — the old one
+  // does not come back and the old function never fires*. On 2026-10-24 the drive re-spelled the re-listen under
+  // the SAME caller-supplied handle, so `hU2 !== hU` was **the caller's own datum compared with itself** and the
+  // cell could only ever measure a falsehood. **Under `D-22` the identity is the caller's spelling, so the
+  // honest drive for "a later installation is a new identity" is a SECOND caller spelling** — and then the
+  // cell's original words hold: the write carries the NEW identity, the OLD one is not it, and the withdrawn
+  // function never fires.
+  // **AND THE OLD ENTRY IS NOT RE-INSTALLED.** The pre-2026-10-25 shape re-listed the same spelling here to give
+  // `.16` two caller spellings to compare, which left TWO entries standing at ['uu'] (`listen`'s purge is BY
+  // HANDLE, so a second handle at one address does not clear the first) — and the write's `triggered` then
+  // carried both, so the cell's "not the old identity" limb could not hold. **The re-listing is dropped and the
+  // subject is unchanged**: after a withdrawal, a fresh installation at that address under a new spelling is the
+  // new identity, and the withdrawn one is not in the trigger set.
   const H_UU = handleFor('live13-uu');
-  inst.listen(H_UU, [['uu']]);
-  const hU2 = H_UU;   // ⟶ 2026-10-24: the caller's spelling is the identity; `.16` reads it as such.
+  const H_UU2 = handleFor('live13-uu-second');
+  const hU2 = inst.listen(H_UU2, [['uu']]);
   const w6 = inst.write(['uu', 'c2'], 'temp', { n: 6 });
-  A(`${sc}.16`, '§2.4 rule 4; §2.3 item 2; contract.md §5.5 dated clause (clause 3, `S-WITHDRAW`)',
-    'a later re-listen at that address mints a DIFFERENT handle, that write carries the NEW identity, and the OLD function still does not fire',
-    hU2 !== hU && carriesHandle(w6.triggered, hU2) && uu.length === 0,
-    `new identity differs: ${hU2 !== hU}; triggered carries it: ${carriesHandle(w6.triggered, hU2)}; old fn fired ${uu.length}×`);
-  A(`${sc}.17`, '§2.4 rule 4; §2.4 item 6 (b); §2.7 item 3; DD-22',
-    'the SAME handle comes back for the SAME token — the identity is stable — and the trigger set is asserted by MEMBERSHIP, never by order or position',
-    inst.listen(handleFor('live13-uu'), [['uu']]) === undefined && carriesHandle(w6.triggered, hU2), 'identity stable');
+  A(`${sc}.16`, '§2.4 rule 4; §2.3 item 2 read THROUGH `D-22` (`bindings/js/index.d.ts:616`); contract.md §5.5 dated clause (clause 3, `S-WITHDRAW`)',
+    'a later re-listen at that address under a SECOND caller spelling answers THAT spelling as the new identity, the write carries the NEW identity and not the withdrawn one, and the OLD function still does not fire',
+    hU2 === H_UU2 && hU2 !== hU && carriesHandle(w6.triggered, hU2) && !carriesHandle(w6.triggered, hU) && uu.length === 0,
+    `the answer is the new spelling: ${hU2 === H_UU2}; differs from the withdrawn identity: ${hU2 !== hU}; the write carries the new one: ${carriesHandle(w6.triggered, hU2)} and not the old: ${!carriesHandle(w6.triggered, hU)}; old fn fired ${uu.length}×`);
+  // ⟶ RE-DERIVED 2026-10-25 (`D-22`): the drive's `=== undefined` was the pre-ruling return shape; the answer is
+  // the caller's spelling. The subject — the identity is STABLE across a repeat act — is unchanged.
+  const again17 = thrown(() => inst.listen(handleFor('live13-uu-second'), [['uu']]));
+  A(`${sc}.17`, '§2.4 rule 4; §2.4 item 6 (b); §2.7 item 3; DD-22; `bindings/js/index.d.ts:616`',
+    'the SAME handle comes back for the SAME spelling — the identity is stable — and the trigger set is asserted by MEMBERSHIP, never by order or position',
+    !again17.threw && again17.value === hU2 && carriesHandle(w6.triggered, hU2),
+    `identity stable: ${!again17.threw && again17.value === hU2} (${again17.threw ? statusOf(again17) : JSON.stringify(again17.value)})`);
 
   // ── (6) A REAL `file`-TIER SAVE ON THE TERMINAL ARM, AND A FRESH INSTANCE BOOTED ON THE SAME PATH ─────
   const dir2 = fsPath('live13/boot');
@@ -1311,8 +1445,11 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
     // (`§2.4` item 9 (f)'s clause of that date, item `1`, `13 → 12`). The cell's subject — the home is EMPTY
     // in the new instance, the registrations being INSTANCE-SCOPED — is unmoved, and its `triggered` limb,
     // which is the subject, moves no term.
-    "THE HOME IS EMPTY IN THE NEW INSTANCE — the registrations are INSTANCE-SCOPED: the new instance's own member set is the declared TWELVE (`§2.4` item 9 (f)'s clause of 2026-10-18, `10 + 1 + 1 = 12`), its write under the address the OLD instance registered carries NO triggered member and fires nothing there",
-    Object.getOwnPropertyNames(B).sort().join(',') === 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,rollback,unlisten,write' && w7.triggered.length === 0,
+    // **⟶ AND RE-DERIVED AGAIN 2026-10-25 (`D-20`'s execution pass): the set is FOURTEEN, `10 + 1 + 1 + 2 = 14`**
+    // (the `+ 2` being `removeListener`/`removeConstraint`, `contract.md §2.7` item 9; `index.d.ts`'s
+    // `StoreInstance`). The figure is the same stale one `LIVE-1.3`/`.13.23` and `FTS-12.1` carried.
+    "THE HOME IS EMPTY IN THE NEW INSTANCE — the registrations are INSTANCE-SCOPED: the new instance's own member set is the declared FOURTEEN (`§2.4` item 9 (f)'s clause of 2026-10-19, `10 + 1 + 1 + 2 = 14`), its write under the address the OLD instance registered carries NO triggered member and fires nothing there",
+    Object.getOwnPropertyNames(B).sort().join(',') === 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,removeConstraint,removeListener,rollback,unlisten,write' && w7.triggered.length === 0,
     `members ${Object.getOwnPropertyNames(B).sort().join(',')}; triggered ${w7.triggered.length} member(s)`);
 
   end(sc, `on returned ${onHandleForm} at ['ev'] and the write ran the function 1× with the address ["ev","child"]; a second on at the held address answered the SAME handle and replaced the function (first 1×, second 2×); a non-function listener and the malformed address 'ev.bad' each answered AddressMalformed in the single verbose form and left the register unchanged; off(${JSON.stringify(h)}) answered undefined and the address fired ${w4.triggered.length} member(s) afterwards; unlisten withdrew the store-side entry only, with the re-listen minting a DIFFERENT handle and the old function never firing; the file-tier save on the terminal arm at ${filePath2} stands and the FRESH instance read 'DURABLE-13' back with an EMPTY home`);

@@ -31,10 +31,80 @@ const kernel = await import(KERNEL_URL);
 const pkg = await import(PKG_URL);
 const KERNEL_EXPORTS = Object.keys(kernel).sort().join(',');
 const PKG_EXPORTS = Object.keys(pkg).sort().join(',');
-const { register, commit, runAttempt, log, report } = kernel;
+const { register: kernelRegister, commit, runAttempt, log, report } = kernel;
+
+// ── ⟶ ADDED 2026-10-25 (`D-20`'s execution pass, `role_l1_test_writer`): THE REGISTRATION-INSTANT SHIELD, AND
+// THE REASON IT IS A DRIVE CONVENTION AND NOT A WEAKENING.
+//
+// **`K-1`'s THIRD STEP EVALUATES THE CONSTRAINT ONCE AT REGISTRATION** (`docs/specs/storeroom-native/contract.md
+// §7.3` (b) states 1–3 and its `3-bis`; `A135` (3)): after the pair stands, the kernel hands the body ONE context
+// whose `tier` and `op` are `null` and whose `value` carries no write. **A blind drive whose body reads
+// `ctx.op.opId` or answers `{message: …}` there is refusing its own registration** — which is exactly what seven
+// scenarios of this file did (they threw `ConstraintListInvalid` before a single cell could be judged: the
+// review's §3.2 row 26 and §6 item 5). **THE SHIELD ANSWERS `true` AT THAT ONE INSTANT AND HANDS THE LANDING'S OWN
+// CONTEXT TO THE BODY UNCHANGED** — `§7.3` (b) state 1, the PASSING arm, so the registration is lawful and nothing
+// is bypassed. It is the same convention `bindings/js/greens/file-tier-save/scenarios.mjs`'s `atLandingOnly`
+// carries for the same instant and the same reason, and it is recorded here rather than left as a silent drop.
+// **WHAT IT COSTS, STATED SO IT IS NOT READ AS COVERAGE:** this file then never drives `§7.3` (b) states 2 and 3
+// (a registration refused by its own evaluation) — every body passes at that instant — and the report says so.
+const atLanding = (ctx) => ctx !== null && typeof ctx === 'object' && ctx.tier === null && ctx.op === null;
+const landingOnly = (body) => (ctx) => (atLanding(ctx) ? true : body(ctx));
+const register = (store, address, id, body) => kernelRegister(store, address, id, landingOnly(body));
 
 // ── the run's own bookkeeping ────────────────────────────────────────────────────────────────────────────
-let cells = 0, pass = 0, notDrivable = 0;
+// ⟶ **`D-21` (2026-10-24) IS IMPLEMENTED HERE: THE EXIT CODE CARRIES THE RED, AND A CELL THAT NEVER RAN HAS ITS
+// OWN STATE.**  *"A runner whose cells are red, or whose cells never ran, may not exit `0`. … the 'cell never
+// ran' case is owed an explicit third state — neither `PASS` nor `FAIL` may be printed for a cell that did not
+// execute."*  So this runner now prints, per cell, one of FOUR tags — `PASS` · `FAIL` · `NONRUN` ·
+// `NOT DRIVABLE BLIND` — and exits `1` when any of the last three stands. `NONRUN` is the case this file could
+// not previously show at all: a scenario whose drive throws stops creating cells, and the cells it never
+// reached were simply ABSENT, so the row's population shrank silently. **A `DECLARED` table now pins each row's
+// authored population** (read off the row's own cell numbers), and every number the row did not reach is
+// recorded `NONRUN` with its own id. A `NOT DRIVABLE BLIND` cell is an AUTHORED non-execution — it is declared
+// as such by the driver and is neither a pass nor a failure — and it also makes the exit non-zero, because a
+// leg whose cells never ran may not read as green at the exit either.
+let cells = 0, pass = 0, notDrivable = 0, nonrun = 0;
+// **THE AUTHORED POPULATION, PER ROW — read off this file's own cell ids and nothing else.** A row's ids are
+// literal and are never renumbered; a gap in one (`E2E-C-8` carries no `6`, its `.7` having been authored as a
+// later addition) is declared here as the gap it is rather than smoothed into a count.
+const DECLARED = {
+  'E2E-C-1': [1, 2, 3, 4, 5, 6, 7, 8],
+  'E2E-C-2': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  'E2E-C-3': [1, 2, 3, 4, 5, 6, 7],
+  'E2E-C-4': [1, 2, 3, 4, 5, 6, 7],
+  'E2E-C-5': [1, 2, 3, 4, 5, 6, 7, 8, 9],
+  'E2E-C-6': [1, 2, 3, 4, 5, 6, 7, 8],
+  'E2E-C-7': [1, 2, 3, 4, 5, 6, 7],
+  'E2E-C-8': [1, 2, 3, 4, 5, 7],
+  'E2E-C-9': [1, 2, 3, 4, 5, 6, 7, 8, 9],
+  'E2E-C-10': [1, 2, 3, 4, 5, 6, 7],
+  'E2E-C-11': [1, 2, 3, 4, 5, 6, 7],
+  'E2E-C-12': [1, 2, 3, 4, 5, 6, 7],
+  'E2E-C-13': [1, 2, 3, 4, 5, 6, 7],
+  'E2E-C-14': [1, 2, 3, 4, 5, 6, 7],
+  'E2E-C-15': [1, 2, 3, 4, 5, 6, 7, 8],
+  'E2E-C-16': [1, 2, 3, 4, 5, 6, 7, 8],
+  SURFACE: [1, 2, 3],
+};
+// **THE THIRD STATE.** A declared cell the row never reached is recorded here, with its own id, and neither
+// `PASS` nor `FAIL` is printed for it (`D-21`).
+function markUnrun(row) {
+  const declared = DECLARED[row.id];
+  if (!declared) return;
+  const seen = new Set(row.cells.map((c) => c.n));
+  for (const n of declared) {
+    if (seen.has(n)) continue;
+    nonrun += 1;
+    cells += 1;
+    row.cells.push({
+      n,
+      expected: 'THE CELL DID NOT EXECUTE — its row\'s drive stopped before reaching it',
+      cites: 'the row\'s own declared population (this file\'s `DECLARED` table)',
+      ok: 'nonrun',
+      observed: `NONRUN — declared for this row and never created: the drive threw earlier in the row, so this cell was neither passed nor failed and no expectation of it was read`,
+    });
+  }
+}
 const rows = [];
 let current = null;
 
@@ -58,10 +128,14 @@ function scenario(fn) {
   try { fn(); } catch (e) {
     const st = (e && typeof e === 'object' && 'status' in e)
       ? e.status : (e && typeof e === 'object' && e.constructor ? e.constructor.name : 'throwable');
-    const n = current.cells.length;
-    cell(n + 1, 'the scenario runs to its declared final resolved state without an undeclared throw at a step',
+    // **THE THROW IS RECORDED UNDER AN ID OF ITS OWN (`x0`) AND NEVER UNDER A CELL'S NUMBER.** The pre-2026-10-25
+    // shape numbered it `cells.length + 1`, which could land on a declared id and MASK the cell that never ran —
+    // the evaporation `D-21` names, hidden inside the instrument that was supposed to report it.
+    cell('x0', 'the scenario runs to its declared final resolved state without an undeclared throw at a step',
       'the scenario\'s own start point and steps',
       false, `the drive threw ${st}: ${e?.message ?? String(e)} :: ${String(e?.stack ?? '').split('\n').slice(0, 4).join(' | ')}`);
+  } finally {
+    markUnrun(current);
   }
 }
 
@@ -131,8 +205,14 @@ function newStore() {
   storeSeq += 1;
   return pkg.storeCreate({ filePath: path.join(TMP, `s${storeSeq}.json`), journalLength: 64, listeners: [] });
 }
-const readVal = (s, addr) => { try { return pkg.read(s, addr, []); } catch (e) { return Symbol.for(e.status ?? 'threw'); } };
-const readOr = (s, addr) => { try { const v = pkg.read(s, addr, []); return JSON.stringify(v); } catch (e) { return `threw ${e.status}`; } };
+// **⟶ RE-SPELLED 2026-10-25 (`D-20`'s execution pass) — THE MODULE-LEVEL VERB FORM DOES NOT EXIST.** The package's
+// module namespace has carried ONE name, `storeCreate`, since 2026-10-16 (`A127`; `surface.md §2.9` item 1,
+// `11 → 1`), and the ten store-reaching names moved onto the PRODUCT as its own methods. `pkg.read(store, addr)`
+// therefore answers `TypeError: pkg.read is not a function` — the review's §3.2 row 25 measured exactly that at five
+// cells. **The re-spelling is mechanical and moves no subject**: `pkg.read(s, addr)` IS `s.read(addr)`. The `[]`
+// tier set the old form passed is the reader's arity and is kept as it was on each call site.
+const readVal = (s, addr) => { try { return s.read(addr, []); } catch (e) { return Symbol.for(e.status ?? 'threw'); } };
+const readOr = (s, addr) => { try { const v = s.read(addr, []); return JSON.stringify(v); } catch (e) { return `threw ${e.status}`; } };
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 // E2E-C-1 — the happy path: one constraint passes and the attempt resolves
@@ -145,9 +225,14 @@ scenario(() => {
   const c = commit(store, ['a'], 'mem', 1);
   const r = runAttempt(store, c);
 
-  cell(1, 'K-1 returns the store-machinery handle (a non-null opaque value)',
-    `${C.ks21} item 1`, h !== null && h !== undefined && typeof h === 'object',
-    `handle typeof=${typeof h}`);
+  // ⟶ **RE-DERIVED 2026-10-25 (`D-22`): THE HANDLE IS THE CALLER'S OWN `id`, ANSWERED BY `store.listen` AND
+  // ADOPTED BY `K-1`.** The as-filed cell expected *"a non-null opaque value"* — `typeof 'object'` — which was
+  // true of the MINTED token. Under `D-24` (*"the handle becomes the id"*) and `D-22` (*"the return is the adoption
+  // point"*), `K-1`'s answer is the string `'x'` this drive spells, which is what `kernel-surface.md §2.1` item 1
+  // means by *"adopted, never minted by the kernel"*. The cell's subject — what `K-1` ANSWERS — is kept whole.
+  cell(1, 'K-1 returns the handle the pair stands under — the caller\'s own `id`, adopted from `store.listen` and never minted by the kernel (`D-22`, `D-24`)',
+    `${C.ks21} item 1 read THROUGH D-22/D-24 (strata/decisions.md, 2026-10-24)`, h === 'x',
+    `handle=${JSON.stringify(h)} typeof=${typeof h}`);
   cell(2, "CommitRecord has exactly {attempt, op, triggered, pending}; attempt is {id: non-empty string}; op is the write's op",
     `${C.ks21} item 2`,
     keysOf(c) === 'attempt,op,pending,triggered' && typeof c.attempt?.id === 'string' && c.attempt.id.length > 0
@@ -171,12 +256,21 @@ scenario(() => {
       && r.log[0].kind === 'constraint-check' && r.log[0].id === 'x' && r.log[0].opId === c.op.opId
       && r.log[0].state === null && r.log[1].kind === 'commit' && r.log[1].id === null,
     `shape=${logShape(r.log)} kinds=[${kinds(r.log)}]`);
+  // ── **⟶ DRIVE RE-DERIVED 2026-10-25: THE CELL READS THE PASS'S OWN CONTEXT, NOT THE REGISTRATION'S.**
+  // The body is invoked TWICE: once at `K-1`'s third step — the REGISTRATION-time evaluation (`§7.3` (b) state 1,
+  // `A135` (3)), whose context carries `tier: null` and `op: null` because no write stands — and once per pass,
+  // which is the context this cell's words describe. `seen[0]` was therefore the registration's, and the cell
+  // reported `{address, tier:null, attempt:null}`. **THE FIX IS TO SELECT THE LANDING'S OWN INVOCATION** (the one
+  // whose `tier` is the write's tier), which is what `atLanding` above names; the expectation and every one of its
+  // limbs are unchanged, and the cell asserts that exactly ONE such invocation stands.
+  const landings = seen.filter((x) => !atLanding(x));
+  const ctx7 = landings[0];
   cell(7, "the attempt context carries exactly {address, tier, value, attempt, op}, all verbatim: address [a], tier mem, value 1, the attempt id, the evaluated op",
     `${C.ps216}; ${C.ks23} item 1`,
-    keysOf(seen[0]) === 'address,attempt,op,tier,value'
-      && JSON.stringify(seen[0].address) === '["a"]' && seen[0].tier === 'mem' && seen[0].value === 1
-      && seen[0].attempt?.id === c.attempt.id && seen[0].op?.opId === c.op.opId,
-    `ctx=${JSON.stringify(seen[0], (k, v) => (k === 'op' ? v?.opId : v))}`);
+    landings.length === 1 && keysOf(ctx7) === 'address,attempt,op,tier,value'
+      && JSON.stringify(ctx7.address) === '["a"]' && ctx7.tier === 'mem' && ctx7.value === 1
+      && ctx7.attempt?.id === c.attempt.id && ctx7.op?.opId === c.op.opId,
+    `landing contexts=${landings.length} of ${seen.length} invocation(s); ctx=${JSON.stringify(ctx7, (k, v) => (k === 'op' ? v?.opId : v))}`);
   cell(8, "K-4 returns the closed attempt's final log and K-5 its final report — the SAME list and the same five-member report",
     `${C.ks21} items 4–5; ${C.ps25} observable`,
     JSON.stringify(log(store, c.attempt)) === JSON.stringify(r.log)
@@ -196,7 +290,7 @@ scenario(() => {
   register(store, ['a'], 'y', () => {
     evalAt.y += 1;
     return {
-      repair: () => { const w = pkg.write(store, ['a'], 'mem', 50); opRepair = w.op?.opId; return { ok: true, message: 'y repaired', op: w.op }; },
+      repair: (rc) => { const w = store.write(rc.address, rc.tier, 50, rc); opRepair = w.op?.opId; return { ok: true, message: 'y repaired', op: w.op }; },
       message: 'y is written by r2',
     };
   });
@@ -205,7 +299,7 @@ scenario(() => {
   // THE CALLER'S OWN EARLIER WRITE AT THE ATTEMPT'S OWN ADDRESS, made before the attempt: A111's standing
   // limit is the state this window is read against — a failed commit at an address the caller already wrote
   // to UNDOES the caller's own earlier write there (composition-and-states.md §2.6 item 8 (iii)).
-  const earlier = pkg.write(store, ['a'], 'mem', 7);
+  const earlier = store.write(['a'], 'mem', 7);
 
   const cFirst = commit(store, ['a'], 'mem', 1);
   const evalAtCommit = { ...evalAt };
@@ -283,7 +377,7 @@ scenario(() => {
   const store = newStore();
   const rctxSeen = [];
   register(store, ['a'], 'x', (ctx) => (ctx.value > 10
-    ? { repair: (rc) => { rctxSeen.push(rc); const w = pkg.write(store, rc.address, rc.tier, 5); return { ok: true, message: 'clamped', op: w.op }; }, message: 'value too large' }
+    ? { repair: (rc) => { rctxSeen.push(rc); const w = store.write(rc.address, rc.tier, 5, rc); return { ok: true, message: 'clamped', op: w.op }; }, message: 'value too large' }
     : true));
   const c = commit(store, ['a'], 'mem', 99);
   const r = runAttempt(store, c);
@@ -371,7 +465,7 @@ scenario(() => {
   let runsA = 0;
   register(sA, ['a'], 'c1', (ctx) => { runsA += 1; return ctx.value <= 10 ? true : { message: 'c1 violated' }; });
   register(sA, ['a'], 'c2', () => ({
-    repair: () => { const w = pkg.write(sA, ['a'], 'mem', 50); return { ok: true, message: 'c2 repaired', op: w.op }; },
+    repair: (rc) => { const w = sA.write(rc.address, rc.tier, 50, rc); return { ok: true, message: 'c2 repaired', op: w.op }; },
     message: 'c2 needs fixing',
   }));
   const cA = commit(sA, ['a'], 'mem', 1);
@@ -395,7 +489,7 @@ scenario(() => {
   let qRuns = 0;
   register(sB, ['a'], 'cQ', (ctx) => { qRuns += 1; return ctx.value <= 10 ? true : { message: 'q is invalid' }; });
   register(sB, ['a'], 'cP', () => ({
-    repair: () => { const w = pkg.write(sB, ['a'], 'mem', 40); return { ok: true, message: 'p fixed', op: w.op }; },
+    repair: (rc) => { const w = sB.write(rc.address, rc.tier, 40, rc); return { ok: true, message: 'p fixed', op: w.op }; },
     message: 'p needs fixing',
   }));
   const cB = commit(sB, ['a'], 'mem', 1);
@@ -415,12 +509,12 @@ scenario(() => {
   register(sG, ['a'], 'C1', () => {
     c1runs += 1;
     if (c1runs === 1) {
-      return { repair: () => { const w = pkg.write(sG, ['a'], 'mem', 4); return { ok: true, message: 'C1 fixed', op: w.op }; }, message: 'C1 violated' };
+      return { repair: (rc) => { const w = sG.write(rc.address, rc.tier, 4, rc); return { ok: true, message: 'C1 fixed', op: w.op }; }, message: 'C1 violated' };
     }
     return { message: 'C1 violated after the repair' };
   });
   register(sG, ['a'], 'C2', (ctx) => (ctx.value <= 3 ? true : {
-    repair: () => { const w = pkg.write(sG, ['a'], 'mem', 99); return { ok: true, message: 'C2 fixed', op: w.op }; },
+    repair: (rc) => { const w = sG.write(rc.address, rc.tier, 99, rc); return { ok: true, message: 'C2 fixed', op: w.op }; },
     message: 'C2 violated',
   }));
   register(sG, ['a'], 'C3', () => true);
@@ -578,7 +672,9 @@ scenario(() => {
     finally { inBody = false; }
   };
   register(sB, ['a'], 'x', (ctx) => (ctx.value === 1 ? true : { message: 'bad' }));
-  const hB = pkg.listen(sB, ['a']);
+  // ⟶ RE-SPELLED 2026-10-25: `listen(handle, addresses)` — the caller spells the handle and the call ANSWERS it
+  // (`D-22`), and the address travels as the one-member SET. The handle is the identity every line below reads.
+  const hB = sB.listen('blind-c8-at-a', [['a']]);
   sB.register(hB, body);
   mapB.add(hB, 'plain', body);
   const cB = commit(sB, ['a'], 'mem', 1);
@@ -620,10 +716,10 @@ scenario(() => {
   // `cfg.journalLength` is a caller-supplied positive integer of ENTRIES, storeroom-js/parameter-semantics.md
   // §2.3), so repeated writes at ['a'] put a compacted entry inside the attempt's own call's reach.
   const floor = pkg.storeCreate({ filePath: path.join(TMP, `floor${(storeSeq += 1)}.json`), journalLength: 2, listeners: [] });
-  for (let i = 0; i < 6; i += 1) pkg.write(floor, ['a'], 'mem', i);
+  for (let i = 0; i < 6; i += 1) floor.write(['a'], 'mem', i);
   let floorRepairOp = null, floorRepairRuns = 0;
   register(floor, ['a'], 'x', (ctx) => (ctx.value <= 2 ? true : {
-    repair: () => { floorRepairRuns += 1; const w = pkg.write(floor, ['b'], 'mem', 1); floorRepairOp = w.op?.opId; return { ok: true, message: 'clamped', op: w.op }; },
+    repair: (rc) => { floorRepairRuns += 1; const w = floor.write(['b'], 'mem', 1, rc); floorRepairOp = w.op?.opId; return { ok: true, message: 'clamped', op: w.op }; },
     message: 'x is too large',
   }));
   // the attempt's OWN address holds no valid state at every landing: the compacted pair at ['a'] is
@@ -666,7 +762,7 @@ scenario(() => {
   const store2 = newStore();
   register(store2, ['a'], 'A', (ctx) => (ctx.value <= 10
     ? true
-    : { repair: () => { const w = pkg.write(store2, ['b'], 'mem', 7); return { ok: true, message: 'repaired at b', op: w.op }; }, message: 'A violated' }));
+    : { repair: (rc) => { const w = store2.write(['b'], 'mem', 7, rc); return { ok: true, message: 'repaired at b', op: w.op }; }, message: 'A violated' }));
   register(store2, ['a'], 'B', (ctx) => (ctx.value <= 5 ? true : { message: 'B unrepaired' }));
   const c2 = commit(store2, ['a'], 'mem', 99);
   const run2 = tryCall(() => runAttempt(store2, c2));
@@ -721,7 +817,7 @@ scenario(() => {
   const mapB = callerMap();
   // the delivery layer's target address must be seeded, and must not be the watch address: a fresh store
   // holds no keys, so a write at depth >= 2 is no address's first write (see E2E-C-15 cell 2).
-  pkg.write(sB, ['a'], 'mem', { b: {} });
+  sB.write(['a'], 'mem', { b: {} });
   let fB = null, fBInner = null, inBody = false, runsB = 0;
   const body = () => {
     runsB += 1;
@@ -735,7 +831,8 @@ scenario(() => {
   };
   register(sB, ['a'], 'x', (ctx) => (ctx.value <= 1 ? true : { message: 'too large' }));
   register(sB, ['a', 'b'], 'y', (ctx) => (ctx.value <= 1 ? true : { message: 'too large' }));
-  const hB = pkg.listen(sB, ['a']);
+  // ⟶ RE-SPELLED 2026-10-25: `listen(handle, addresses)`, the caller's own spelling, the answer being that spelling.
+  const hB = sB.listen('blind-c10-at-a', [['a']]);
   sB.register(hB, body);
   mapB.add(hB, 'plain', body);
   const cB = tryCall(() => commit(sB, ['a'], 'mem', 9));
@@ -780,7 +877,7 @@ scenario(() => {
   const store = newStore();
   let runs = 0;
   register(store, ['a'], 'A', (ctx) => (ctx.value <= 1 ? true : {
-    repair: () => { runs += 1; const w = pkg.write(store, ['a'], 'mem', 1); return { ok: true, message: 'clamped', op: w.op }; },
+    repair: (rc) => { runs += 1; const w = store.write(rc.address, rc.tier, 1, rc); return { ok: true, message: 'clamped', op: w.op }; },
     message: 'A too large',
   }));
   const c1 = commit(store, ['a'], 'mem', 9);
@@ -867,10 +964,17 @@ scenario(() => {
   const tierRefusal = tryCall(() => commit(store, ['a'], 'not-a-tier', 1));
   const tierRefusal2 = tryCall(() => commit(store, ['a'], 'not-a-tier', 1));
 
-  cell(1, "a tier the store refuses throws the STORE's own code OutOfDomainTier at the verb call, in the store's own two-member form (no log member)",
-    `${C.ks21} item 2 (the tier refusal); ${C.fs3} item 2; ${C.fs12} item 2`,
-    !tierRefusal.ok && tierRefusal.err?.status === 'OutOfDomainTier' && keysOf(tierRefusal.err) === 'message,status',
-    `status=${status(tierRefusal)} keys=${keysOf(tierRefusal.err)}`);
+  // ⟶ **RE-DERIVED 2026-10-25: THE FORM IS THE SURFACE'S ONE THREE-MEMBER FORM, NOT THE STORE'S TWO.** The
+  // as-filed expectation (*"the store's own two-member form (no log member)"*) is the pre-2026-10-17 reading that
+  // the architect OVERRODE (*"Override the failure form limit"*, read with *"Bubble the message log to the client
+  // on failure"*): `surface.md §2.5` item 4 makes the set `{log, message, status}` FLAT ACROSS ARMS, `log` an
+  // ARRAY and `[]` where the cause has no attempt — and a tier refusal mints no attempt. **The CODE limb
+  // (`OutOfDomainTier`) is kept whole and is the cell's subject.**
+  cell(1, "a tier the store refuses throws the STORE's own code OutOfDomainTier at the verb call, in the surface's ONE thrown form — a plain object whose member set is exactly {log, message, status}, `log` an ARRAY",
+    `${C.ks21} item 2 (the tier refusal); ${C.fs3} item 2; ${C.fs12} item 2; surface.md §2.5 items 4 and 9 (the failure-form override, 2026-10-17)`,
+    !tierRefusal.ok && tierRefusal.err?.status === 'OutOfDomainTier' && keysOf(tierRefusal.err) === 'log,message,status'
+      && Array.isArray(tierRefusal.err?.log),
+    `status=${status(tierRefusal)} keys=${keysOf(tierRefusal.err)} log=${JSON.stringify(tierRefusal.err?.log)}`);
   cell(2, 'it opens NO attempt: a second refused commit at the same address is refused the same way and never KC-7',
     `${C.ks21} item 2 (the tier refusal); ${C.ps211} (ii)`,
     !tierRefusal2.ok && tierRefusal2.err?.status === 'OutOfDomainTier',
@@ -878,13 +982,13 @@ scenario(() => {
 
   // the repair's own write at an address whose ancestor is a leaf
   const store2 = newStore();
-  pkg.write(store2, ['a'], 'mem', 1);                 // ['a'] stands as a LEAF
-  const bodyThrow = tryCall(() => pkg.write(store2, ['a', 'b'], 'mem', 2));
+  store2.write(['a'], 'mem', 1);                 // ['a'] stands as a LEAF
+  const bodyThrow = tryCall(() => store2.write(['a', 'b'], 'mem', 2));
   let caught = null, repairCalls = 0;
   register(store2, ['a'], 'x', (ctx) => (ctx.value <= 5 ? true : {
     repair: () => {
       repairCalls += 1;
-      try { pkg.write(store2, ['a', 'b'], 'mem', 2); return { ok: true, op: null }; }
+      try { store2.write(['a', 'b'], 'mem', 2); return { ok: true, op: null }; }
       catch (e) { caught = e; throw e; }
     },
     message: 'x violated',
@@ -975,7 +1079,7 @@ scenario(() => {
   // holds no keys at all, so no write at depth >= 2 can be an address's first write (AddressNotFound). The
   // drive below therefore stands the documented shape up with ONE structured seed write — the doc drift this
   // scenario's cell 3 records. See storeroom-native/write-and-read.md §3.4 (W-2/W-3/W-4), contract.md DD-5.
-  pkg.write(store, ['a'], 'mem', { b: { c: {} } });        // ['a'] and ['a','b'] become BRANCHes; ['a','b'] is writable
+  store.write(['a'], 'mem', { b: { c: {} } });        // ['a'] and ['a','b'] become BRANCHes; ['a','b'] is writable
   let innerRec = null, innerErr = null, outerBodyWrite = null;
   let aRuns = 0, bRuns = 0;
   register(store, ['a', 'b'], 'b1', () => { aRuns += 1; return true; });
@@ -1057,7 +1161,7 @@ scenario(() => {
   // A structured seed, so the descendant addresses this window's drives need exist as the store's own
   // branches (storeroom-native/write-and-read.md §3.4 W-2/W-3/W-4: a fresh store holds no keys, so a write at
   // depth >= 2 is no address's first write, and a leaf holds no child).
-  pkg.write(store, ['a'], 'mem', { b: {}, c: {} });
+  store.write(['a'], 'mem', { b: {}, c: {} });
   const heard = [];
   let secondRec = null, secondErr = null, inBody = false;
   // the listener's body is FUNCTION DATA: it hears the address it was handed, then — as the docs' drive has it,
@@ -1073,7 +1177,7 @@ scenario(() => {
   };
   const cB = register(store, ['a', 'c'], 'cB', (ctx) => (ctx.value >= 5 ? { message: 'c is bad' } : true));
   const cA = register(store, ['a', 'b'], 'cA', (ctx) => (ctx.value >= 5 ? { message: 'a is bad' } : true));
-  const hWatch = pkg.listen(store, ['a']);
+  const hWatch = store.listen('blind-c16-watch', [['a']]);
   store.register(hWatch, body);
   map.add(hWatch, 'plain', body);
 
@@ -1134,13 +1238,21 @@ scenario(() => {
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 group('SURFACE', "the unit's declared surface: five items and the caller's own store");
 scenario(() => {
-  cell(1, 'the kernel module at the declared checkout home exports exactly the five items K-1 to K-5, and no sixth',
-    `${C.ks21} (five items); kernel-surface.md §1 items 1-2; ${C.ps216}`,
-    KERNEL_EXPORTS === 'commit,log,register,report,runAttempt',
+  // ── **⟶ BOTH FIGURES RE-DERIVED 2026-10-25 (`D-20`'s execution pass) — READ OFF THE MODULES, WHICH IS WHAT
+  // THESE CELLS ALWAYS DID.** `.1`'s FIVE was the kernel's extent before `K-6` (`remove`) landed; measured, the
+  // module exports SIX — `commit, log, register, remove, report, runAttempt` — and `strata/brief.md` §3 and
+  // `hli_kernel_the_kernel_surface_is_exactly_six_items` already read six. **`D-22` moves this figure not at
+  // all**: the three symbols it discards are module-private (`surface-deltas.md` §4.1). `.2`'s EIGHT VERBS is the
+  // namespace the package had BEFORE `A127`; measured, it carries ONE name, `storeCreate` (`surface.md §2.9`
+  // item 1, `11 → 1`), and the ten store-reaching names are the product's own methods. **Both cells keep their
+  // subject — the declared extent, by set equality — and their drives are untouched.**
+  cell(1, 'the kernel module at the declared checkout home exports exactly the six items K-1 to K-6, and no seventh (`docs/L1/surface-deltas.md` §4.1)',
+    `${C.ks21} (the five signatures) read WITH the sixth, K-6 (remove), which the held-listener-identity unit landed; kernel-surface.md §1 items 1-2; ${C.ps216}`,
+    KERNEL_EXPORTS === 'commit,log,register,remove,report,runAttempt',
     `exports=${KERNEL_EXPORTS}`);
-  cell(2, "the store's own package namespace stands at its own 8 verbs, unmoved by this unit",
-    `${C.jsSurf}; ${C.ps216} observable`,
-    PKG_EXPORTS === 'delete,listen,read,readLiteral,rollback,storeCreate,unlisten,write',
+  cell(2, "the store's own package namespace stands at its ONE remaining name, `storeCreate`, and none of the ten store-reaching verbs is a module-level name any longer",
+    `${C.jsSurf}; surface.md §2.9 item 1's A127 clause (11 -> 1); ${C.ps216} observable`,
+    PKG_EXPORTS === 'storeCreate',
     `package exports=${PKG_EXPORTS}`);
   cell(3, "the fixture is the package's own storeCreate(cfg) over the three declared keys, and the kernel's items take it in the FIRST position",
     `${C.ks21} (the five signatures); kernel-surface.md §1 item 5; ${C.jsSurf}`,
@@ -1158,18 +1270,34 @@ console.log('');
 for (const row of rows) {
   const f = row.cells.filter((c) => c.ok === false).length;
   const n = row.cells.filter((c) => c.ok === null).length;
+  const nr = row.cells.filter((c) => c.ok === 'nonrun').length;
   console.log(`${row.id} — ${row.name}`);
-  console.log(`   cells=${row.cells.length} PASS=${row.cells.length - f - n} FAIL=${f} NOT-DRIVABLE-BLIND=${n}`);
+  console.log(`   cells=${row.cells.length} PASS=${row.cells.length - f - n - nr} FAIL=${f} NOT-DRIVABLE-BLIND=${n} NONRUN=${nr} (declared population ${(DECLARED[row.id] ?? []).length})`);
   for (const c of row.cells) {
-    const tag = c.ok === null ? 'NOT DRIVABLE BLIND' : (c.ok ? 'PASS' : 'FAIL');
+    const tag = c.ok === null ? 'NOT DRIVABLE BLIND' : (c.ok === 'nonrun' ? 'NONRUN' : (c.ok ? 'PASS' : 'FAIL'));
     console.log(`   ${tag.padEnd(19)} [${row.id}.${c.n}] ${c.expected}`);
     console.log(`        cites: ${c.cites}`);
     console.log(`        observed: ${c.observed}`);
   }
 }
 const failedCells = rows.flatMap((r) => r.cells.filter((c) => c.ok === false).map((c) => `  - ${r.id}.${c.n}: ${c.observed}`));
+const unrunCells = rows.flatMap((r) => r.cells.filter((c) => c.ok === 'nonrun' || c.ok === null)
+  .map((c) => `  - ${r.id}.${c.n}: ${c.ok === null ? 'NOT DRIVABLE BLIND' : 'NONRUN'}`));
+const declaredTotal = Object.values(DECLARED).reduce((a, d) => a + d.length, 0);
 console.log('');
-console.log(`TOTALS: rows=${rows.length} cells=${cells} PASS=${pass} FAIL=${cells - pass - notDrivable} NOT-DRIVABLE-BLIND=${notDrivable}`);
+console.log(`TOTALS: rows=${rows.length} cells=${cells} PASS=${pass} FAIL=${cells - pass - notDrivable - nonrun} NOT-DRIVABLE-BLIND=${notDrivable} NONRUN=${nonrun} DECLARED=${declaredTotal}`);
 console.log('');
 console.log('FAILED CELLS:');
 for (const line of failedCells) console.log(line);
+console.log('');
+console.log('CELLS THAT DID NOT EXECUTE (neither PASS nor FAIL — `D-21`):');
+if (unrunCells.length === 0) console.log('  none');
+for (const line of unrunCells) console.log(line);
+// ── **`D-21`'S EXIT CONTRACT** (`strata/decisions.md`, 2026-10-24): *"A runner whose cells are red, or whose cells
+// never ran, may not exit `0`."* The exit carries the red AND the un-run population; the two are named on the
+// exit line so a reader of the code alone can tell which it read.
+const red = cells - pass - notDrivable - nonrun;
+const unexecuted = notDrivable + nonrun;
+console.log('');
+console.log(`EXIT ${red > 0 || unexecuted > 0 ? 1 : 0} (exit 0 iff no cell FAILed, none was NOT-DRIVABLE-BLIND and none was NONRUN) :: FAIL=${red} NONRUN=${nonrun} NOT-DRIVABLE-BLIND=${notDrivable}`);
+process.exit(red > 0 || unexecuted > 0 ? 1 : 0);

@@ -264,10 +264,17 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   ['HLI-03.2', 'a set of ONE address `[[\'a\']]`', [['a']], 'listen-verb.md §2.2 item 1'],
   ['HLI-03.3', 'a set of TWO addresses', [['a'], ['b']], 'listen-verb.md §2.2 item 1']];
   for (const [id, what, v, clause] of inDomain) {
-    const r = thrown(() => i.listen(`set-${id}`, v));
-    A(id, `${clause}; contract.md §2.2 item 10 (the return is \`undefined\`)`,
-      `${what} is IN the domain: the call succeeds and returns \`undefined\``,
-      !r.threw && r.value === undefined, r.threw ? fmt(statusOf(r)) : fmt(r.value));
+    // ⟶ **RE-DERIVED 2026-10-25 (`D-20`'s execution pass, `D-22`): THE RETURN MOVES `undefined → Handle`.**
+    // `contract.md §2.2` item 10 declared `listen -> undefined` and `D-22` (`"Listen should return the handle on
+    // success"`) overrules it by name: the call ANSWERS THE HANDLE IT WATCHES UNDER — the caller's own spelling —
+    // and `bindings/js/index.d.ts:616` declares `(handle: Handle, addresses: readonly Address[]): Handle`.
+    // **The cell's subject is kept whole** — *is this SET in the domain, and what does the call answer* — and the
+    // expected answer moves to the one the declaration carries. A refused call would still report its status here.
+    const spelling = `set-${id}`;
+    const r = thrown(() => i.listen(spelling, v));
+    A(id, `${clause}; contract.md §2.2 item 10 READ THROUGH \`D-22\` (\`bindings/js/index.d.ts:616\`)`,
+      `${what} is IN the domain: the call succeeds and answers THE HANDLE it watches under — the caller's own spelling`,
+      !r.threw && r.value === spelling, r.threw ? fmt(statusOf(r)) : fmt(r.value));
   }
   const outside = [
     ['HLI-03.4', 'ABSENT', undefined],
@@ -306,9 +313,10 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   let fired = [];
   const listen1 = thrown(() => i.listen('ph', [['p1'], ['p2']]));
   i.register('ph', (addr) => fired.push(JSON.stringify(addr)));
-  A('HLI-04.1', 'contract.md §2.2 item 10; parameter-semantics.md `PAR-HL-3`',
-    '`listen(handle, addresses)` returns `undefined`',
-    !listen1.threw && listen1.value === undefined, listen1.threw ? fmt(statusOf(listen1)) : fmt(listen1.value));
+  // ⟶ RE-DERIVED 2026-10-25 (`D-22`): the return is the handle it watches under, not `undefined`.
+  A('HLI-04.1', 'contract.md §2.2 item 10 read THROUGH `D-22` (`bindings/js/index.d.ts:616`); parameter-semantics.md `PAR-HL-3`',
+    '`listen(handle, addresses)` answers THE HANDLE it watches under — `\'ph\'`, the caller\'s own spelling',
+    !listen1.threw && listen1.value === 'ph', listen1.threw ? fmt(statusOf(listen1)) : fmt(listen1.value));
   const w1 = thrown(() => i.write(['p1'], 'temp', 1));
   const w2 = thrown(() => i.write(['p2'], 'temp', 2));
   const handlesAt = (r) => (r.threw ? [] : r.value.triggered.filter((e) => e.handle === 'ph').map((e) => e.address));
@@ -320,9 +328,10 @@ const K6 = (store, pair) => kernel.remove(store, pair);
     'the armed body ran once per write at each address',
     fired.length === 2, `body ran ${fired.length} time(s): ${fmt(fired)}`);
   const f1 = thrown(() => i.listen('ph', [['p3']]));
-  A('HLI-04.4', 'contract.md §2.2 item 3 (S1 purged wholesale) — `listen-verb.md §3` item 1',
-    'a second `listen` at a disjoint set succeeds and returns `undefined`',
-    !f1.threw && f1.value === undefined, f1.threw ? fmt(statusOf(f1)) : fmt(f1.value));
+  // ⟶ RE-DERIVED 2026-10-25 (`D-22`): the second `listen` answers its own spelling, not `undefined`.
+  A('HLI-04.4', 'contract.md §2.2 item 3 (S1 purged wholesale) — `listen-verb.md §3` item 1 — read with `D-22` (`bindings/js/index.d.ts:616`)',
+    'a second `listen` at a disjoint set succeeds and answers the handle it watches under (`\'ph\'`)',
+    !f1.threw && f1.value === 'ph', f1.threw ? fmt(statusOf(f1)) : fmt(f1.value));
   const firedBefore = fired.length;
   const a1 = thrown(() => i.write(['p1'], 'temp', 3));
   const a2 = thrown(() => i.write(['p2'], 'temp', 4));
@@ -362,10 +371,12 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   let calls = 0;
   const l = thrown(() => i.listen('sh', [['s1']]));
   const r0 = thrown(() => i.register('sh', () => { calls += 1; }));
-  A('HLI-05.1', 'listen-verb.md §4 state 2 (`register` CLEARS `off` and installs the function)',
-    '`listen` then `register` arms the entry; both return `undefined`',
-    !l.threw && l.value === undefined && !r0.threw && r0.value === undefined,
-    `listen:${l.threw ? statusOf(l) : 'undefined'} register:${r0.threw ? statusOf(r0) : 'undefined'}`);
+  // ⟶ RE-DERIVED 2026-10-25 (`D-22`): `listen` answers the handle (`'sh'`) while `register` STILL answers
+  // `undefined` — `D-22` moved `listen`'s return and nothing else (`index.d.ts`: `register(...): void`).
+  A('HLI-05.1', 'listen-verb.md §4 state 2 (`register` CLEARS `off` and installs the function) read with `D-22` (`bindings/js/index.d.ts:616`)',
+    '`listen` then `register` arms the entry; `listen` answers the handle it watches under (`\'sh\'`) and `register` answers `undefined`',
+    !l.threw && l.value === 'sh' && !r0.threw && r0.value === undefined,
+    `listen:${l.threw ? statusOf(l) : fmt(l.value)} register:${r0.threw ? statusOf(r0) : 'undefined'}`);
   const w1 = thrown(() => i.write(['s1'], 'temp', 1));
   A('HLI-05.2', 'listen-verb.md §4 state 2 ("the entry invokes `fn` once per distinct handle")',
     'the armed entry invokes the body exactly once at a write at its address',
@@ -796,21 +807,50 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   A('HLI-11.2', 'constraint-sites.md §5 item 2 ("the kernel\'s stub at the same address is NOT refused")',
     'the KERNEL\'s own stub registration at an address a caller\'s pair stands at is NOT refused (identity keying, not address keying)',
     !id2.threw, id2.threw ? fmt(`${statusOf(id2)} / ${String(msgOf(id2)).slice(0, 70)}`) : fmt(id2.value));
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ RE-DERIVED 2026-10-25 (`D-20`'s execution pass, `D-25`/`D-29` + `B-5`/`B-6`).** This row drove the state
+  // *"a listener and a constraint at one address"*, which the kept clause (`held-listener contract §2.2` item 7:
+  // *"`listen` GAINS NO CONFLICT TEST AT ALL"*) declared LAWFUL. **`D-29` NARROWS THAT CLAUSE AND THIS ROW MOVES
+  // WITH IT**: *"Listen cannot overwrite constraint, only other listeners"* — so a `listen` at a pair's address
+  // under an APP handle is now REFUSED `AddressMalformed` before the purge (`B-6`), and the register-side
+  // direction the rest of this row reads (`B-5`) is reachable through the ONE state the surface now offers: a
+  // `register` under the CONSTRAINT'S OWN `id`, which is the pair's handle under `D-24`/`D-29`.
+  // **NO CELL IS RETIRED**: `.3` asserts the refusal's existence and its no-state-moved reach (a REWRITE of
+  // *"nothing throws there"* to the narrowed sign), and `.4`–`.11` re-aim their drive at the reachable arm — the
+  // subject of every one of them (does the register-side cross-kind refusal stand, in which form, naming what,
+  // moving nothing) is unchanged.
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
   const l = thrown(() => i.listen('appH', [['c']]));
-  A('HLI-11.3', 'listen-verb.md §7 item 1 and §8 `LF-8` (the test does NOT stand at `listen`)',
-    '`listen` at a pair\'s address PURGES AND SUCCEEDS: nothing throws there',
-    !l.threw, l.threw ? fmt(`${statusOf(l)} / ${String(msgOf(l)).slice(0, 70)}`) : 'returned');
-  const reg = thrown(() => i.register('appH', () => { }));
+  A('HLI-11.3', 'held-listener contract §2.2 item 7 AS NARROWED BY `D-29` (`strata/decisions.md`, 2026-10-24: *"Listen cannot overwrite constraint, only other listeners"*); `B-6` in `docs/L1/surface-deltas.md` §2',
+    '`listen` at a pair\'s address under an APP handle is REFUSED — AddressMalformed, in the one thrown form, BEFORE the purge, so nothing is destroyed — and the pair still stands',
+    l.threw && statusOf(l) === 'AddressMalformed', l.threw ? fmt(`${statusOf(l)} / ${String(msgOf(l)).slice(0, 90)}`) : 'returned (the pre-ruling reading)');
+  const consAfterListen = thrown(() => i.constraints());
+  A('HLI-11.3.a', 'held-listener contract §2.2 item 3 (a refused `listen` changes nothing) read with `D-29`',
+    'NOTHING MOVED by that refusal: the pair is still carried by the enumeration, at both of its addresses',
+    !consAfterListen.threw && consAfterListen.value.length === 2,
+    consAfterListen.threw ? statusOf(consAfterListen) : fmt(consAfterListen.value));
+  const reg = thrown(() => i.register('k1', () => { }));
   A('HLI-11.4', 'constraint-sites.md §5 item 2, §7 `CF-7`; contract.md §4 `F-9`',
     'a CALLER\'s registration at an address a CALLER\'s constraint pair stands at is REFUSED',
     reg.threw, reg.threw ? 'threw' : 'the registration was admitted');
-  A('HLI-11.5', 'constraint-sites.md §6 item 2, §4 item 5 (rule (ii): the constraint methods\' own form)',
-    "the refusal is a `TypeError`",
-    reg.threw && reg.err instanceof TypeError, reg.threw ? String(reg.err?.constructor?.name) : 'returned');
-  A('HLI-11.6', 'constraint-sites.md §6 item 1 (rule (i) has a `status`; rule (ii) has NONE)',
-    "the thrown value carries NO `status` member",
-    reg.threw && !Object.prototype.hasOwnProperty.call(reg.err, 'status'),
-    reg.threw ? fmt(ownNames(reg.err)) : 'returned');
+  // ── **⟶ `.5` AND `.6` RE-DERIVED 2026-10-25: THE FORM MOVED FROM `TypeError` TO THE SURFACE'S ONE PLAIN
+  // OBJECT.** The as-filed pair asserted the registration site's conflict arm as *"a `TypeError` with NO `status`
+  // member"*. **`D-25` handed the form to L1 and `surface-deltas.md` §2.5 declared the reconciliation**: the arm is
+  // `{status: 'AddressMalformed', message, log: []}` — *"one member function cannot print two failure forms"* —
+  // and `index.d.ts`'s `register` block carries the same sentence (*"NOT the `TypeError` this member's conflict
+  // arm carried while a reserved `constraint@` prefix existed to be exempted"*). **`index.d.ts` also declares that
+  // a `TypeError` thrown by any STORE-REACHING VERB is a FINDING** (`a127_no_store_reaching_verb_throws_the_class_test_form`),
+  // which the old expectation would have violated. The two cells' subject — WHICH FORM this arm answers, and
+  // whether it carries a `status` — is kept whole; the answer moves to the declared one.
+  A('HLI-11.5', '`docs/L1/surface-deltas.md` §2.5 (the declared reconciliation of `register`\'s cross-kind arm: the surface\'s ONE thrown form, `D-25`) read with `bindings/js/index.d.ts`\'s `register` block',
+    "the refusal is NOT a `TypeError`: it is the surface's one thrown plain object, whose prototype is `Object.prototype`",
+    reg.threw && !(reg.err instanceof TypeError) && reg.err !== null && typeof reg.err === 'object'
+      && Object.getPrototypeOf(reg.err) === Object.prototype,
+    reg.threw ? `${String(reg.err?.constructor?.name)} keys=${fmt(ownNames(reg.err))}` : 'returned');
+  A('HLI-11.6', '`docs/L1/surface-deltas.md` §2.5 item 2 (the status is `AddressMalformed`) read with `surface.md §2.5` item 4 (the member set is `{log, message, status}`)',
+    "the thrown value carries a `status` member and it is the store's `AddressMalformed` (the member the act's own subject takes)",
+    reg.threw && Object.prototype.hasOwnProperty.call(reg.err, 'status') && reg.err.status === 'AddressMalformed',
+    reg.threw ? fmt(`${ownNames(reg.err)} status=${String(reg.err?.status)}`) : 'returned');
   A('HLI-11.7', 'js corpus surface.md §2.5 item 4 (rule (ii) gains `log: []`)',
     "the thrown value's `log` member is an array",
     reg.threw && Array.isArray(reg.err.log), reg.threw ? fmt(reg.err?.log) : 'returned');
@@ -818,9 +858,11 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   A('HLI-11.8', 'constraint-sites.md §5 item 5 (i)–(ii) (the message is the package\'s own, non-empty)',
     'the refusal carries a non-empty string message authored by the package',
     typeof m === 'string' && m.length > 0, fmt(String(m).slice(0, 100)));
-  A('HLI-11.9', 'constraint-sites.md §5 item 5 (iii) ("the message names BOTH SIDES")',
-    "the message names both sides — the listener's address and the constraint that stands there",
-    typeof m === 'string' && m.includes('appH') && m.includes('k1'), fmt(String(m).slice(0, 140)));
+  // ⟶ RE-DERIVED 2026-10-25 with the drive: the two sides are now the HANDLE (`'k1'`) and the STANDING
+  // CONSTRAINT's `id` and ADDRESS, and `surface-deltas.md` §2.5 item 2 requires the text to name both.
+  A('HLI-11.9', 'constraint-sites.md §5 item 5 (iii) ("the message names BOTH SIDES") read with `docs/L1/surface-deltas.md` §2.5 item 2',
+    "the message names both sides — the handle the caller tried to register and the constraint (its `id` AND its address) that stands there",
+    typeof m === 'string' && m.includes('k1') && m.includes('["c"]'), fmt(String(m).slice(0, 160)));
   const cons = thrown(() => i.constraints());
   A('HLI-11.10', 'constraint-sites.md §5 item 1 (the seat is BEFORE `state.registry.set`, so "a refusal leaves the registry untouched")',
     "the refusal changed nothing: the pair is still carried by the enumeration",

@@ -144,7 +144,21 @@ scenario('FTS-01', 'the terminal arm: constraint first, save second, listener th
     // instant, which is the pre-save image `FTS-01.1` asserts.** The shield answers the registration `true`
     // (`§7.3` (b) state 1 — the pair is CARRIED) and hands the LANDING's context to this body unchanged.
     const h = K.register(s, ['c'], 'c1', atLandingOnly((ctx) => { ord.push(['constraint', imageAt()]); return true; }));
-    s.register(h, (addr) => { ord.push(['listener', imageAt()]); seen.push(addr); });
+    // ── **⟶ DRIVE RE-DERIVED 2026-10-25 (`D-25`/`D-29`; the review's §3.2 row 17 and §6 item 2).** These three
+    // cells armed the app's body by handing `register` THE KERNEL'S OWN HANDLE (`s.register(h, …)`, `h` being what
+    // `K-1` returned). On this tree that is an **accepted-but-never-delivered** registration — measured:
+    // `ordinals=[["constraint",""]]`, no listener body at all — so the cells were red on their DELIVERY limb and
+    // not on their subjects. **AND UNDER `D-25`/`D-29` THAT STATE IS NO LONGER ONE THE SURFACE OFFERS AT ALL**: a
+    // listener and a constraint do not share one handle, so `register` where a constraint's `id` stands is REFUSED
+    // `AddressMalformed` (`B-5`) and a `listen` at that pair's address under an app handle is REFUSED before the
+    // purge (`B-6`). **THE APP'S DECLARED ROUTE IS ITS OWN HANDLE** (`§2.4` item 9 (f)'s `A127` clause: `listen` +
+    // `register`), which is the route `binding/js/test/constraint-kernel-deliverymodel.test.mjs`'s `listenAndRegister`
+    // carries and the one the review's own re-derivation names (*"the app arms its own handle"*). **NO CELL IS
+    // WEAKENED AND NONE IS RETIRED**: each keeps its subject (the ordinal order, the save's instant between the two
+    // bodies, and the single invocation), and the drive now stands on a handler the surface LAWFULLY makes.
+    const APP_H = 'app-c-fts01';
+    s.listen(APP_H, [['c']]);
+    s.register(APP_H, (addr) => { ord.push(['listener', imageAt()]); seen.push(addr); });
     const rec = K.commit(s, ['c'], 'file', 42);
     const rep = K.runAttempt(s, rec);
     const image = bytes(P);
@@ -246,8 +260,13 @@ scenario('FTS-03', 'a passing pass\'s image is durable before any listener body 
     const d = tmp(); const P = path.join(d, 'store.json');
     const s = PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [] });
     let freshRead = 'NO BODY RAN';
-    const h = K.register(s, ['c'], 'c1', () => true);
-    s.register(h, () => {
+    K.register(s, ['c'], 'c1', () => true);
+    // ⟶ RE-DERIVED 2026-10-25 — the same drive move as `FTS-01`'s (see its note): the app's body is armed at
+    // THE APP'S OWN HANDLE, which is the route `§2.4` item 9 (f)'s `A127` clause declares and the only one
+    // `D-25`/`D-29` leaves lawful at a pair's address. The cell's subject (the fresh instance reads the installed
+    // version AT THE INSTANT THE FIRST BODY RUNS) is unchanged.
+    s.listen('app-c-fts03', [['c']]);
+    s.register('app-c-fts03', () => {
       const fresh = PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [] });
       const r = tryCall(() => fresh.read(['c']));
       freshRead = r.ok ? JSON.stringify(r.v) : describe(r.v);
@@ -439,6 +458,16 @@ scenario('FTS-05', 'the save\'s arm table is closed and total (bare write, mem t
     const d1 = tmp(); const P1 = path.join(d1, 'a.json');
     const s1 = PKG.storeCreate({ filePath: P1, journalLength: 8, listeners: [] });
     const w1 = tryCall(() => s1.write(['a'], 'file', 1));
+    // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+    // **⟶ RULING: THIS CELL STAYS RED AND IT IS RIGHT — THE CODE IS THE DEFECT (class (b)).** 2026-10-25.
+    // Measured on this tree: `s.write(['a'],'file',1)` leaves the image carrying `{"a":1}` BEFORE any `K-2`/`K-3`
+    // call, so the `file`-tier WRITE VERB ITSELF performs the save that `surface.md §2.11` clause 2 puts on the
+    // TERMINAL ARM alone (clause 1: *"the verb performs NO FILE I/O on any of its arms"*). **`R-3`'s disposition is
+    // already recorded and is not re-opened here**: *"`LIVE-4.8`, `FTS-05.1` and `FTS-05.2` are RIGHT and stay
+    // KEEP-AND-RED; the code owes the fix"* — the 2026-10-18 SPEC-CONFLICT (`REMEASURE-2026-10-18.md`) is the
+    // architect's to close and **a rewrite to either side would bless a sign he has not chosen.** So the cell keeps
+    // its expectation, its drive and its red, and it is REPORTED rather than weakened.
+    // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
     cell('FTS-05.1', 'surface.md §2.11 clause 2 (the act is the terminal arm\'s, and there is no second arm of it), read with §2.12 item 1\'s amended clause of 2026-10-18',
       'a file-tier write whose attempt is never run through `K-3` performs NO save: the verb returns its own result and the file keeps the construction\'s zero-byte image',
       () => C(w1.ok && !!w1.v.op && (bytes(P1) || Buffer.from('')).length === 0, `write=${w1.ok ? JSON.stringify(w1.v.op.opId) : describe(w1.v)} image=${imgStr(bytes(P1))}`));
@@ -448,8 +477,13 @@ scenario('FTS-05', 'the save\'s arm table is closed and total (bare write, mem t
         const d = tmp(); const P = path.join(d, 'm.json');
         const s = PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [] });
         let n = 0;
-        const h = K.register(s, ['m'], 'cM', () => true);
-        s.register(h, () => { n++; });
+        K.register(s, ['m'], 'cM', () => true);
+        // ⟶ RE-DERIVED 2026-10-25 — the same drive move as `FTS-01`'s and `FTS-03`'s: the app's body is armed at
+        // the APP'S OWN handle (`§2.4` item 9 (f)'s `A127` clause), which is what `D-25`/`D-29` leaves lawful. The
+        // cell's subject — a mem-tier record performs NO SAVE and still DELIVERS its listener — is unchanged, and
+        // its two limbs are both still asserted.
+        s.listen('app-m-fts05', [['m']]);
+        s.register('app-m-fts05', () => { n++; });
         const rec = K.commit(s, ['m'], 'mem', 3);
         const rep = K.runAttempt(s, rec);
         return C(rep.outcome === 'passed' && n === 1 && (bytes(P) || Buffer.from('')).length === 0,
@@ -585,11 +619,22 @@ scenario('FTS-07', 'the fifth position\'s class test: every outside value refuse
 // =============================================================== FTS-08 =====
 scenario('FTS-08', 'the fourth cfg key at construction: the legal forms make an instance, every outside form answers #16 and leaves nothing behind',
   'surface.md §2.1 (the dated four-key clause); contract.md §7.1 step 4-bis; §8.1 #16; parameter-semantics.md §2.21', () => {
+    // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+    // **⟶ RE-DERIVED 2026-10-25 (`D-26`/`D-27`, THE EXECUTION PASS): THE BATCH ELEMENT IS THREE-MEMBER AND ITS
+    // FUNCTION IS REQUIRED.** These four legal forms handed `storeCreate` the TWO-member element
+    // `{ address, id }` that was the declaration until 2026-10-24. Under `D-26` (*"The batch in cfg.constraints must
+    // supply functions"*) the element is `{ address, id, constraint }` and a functionless element is refused
+    // `ConstraintListInvalid` BEFORE ANY FILESYSTEM ACT (`B-1`) — so `FTS-08.3`/`.4` were reporting a legal-form
+    // cell red on `B-1`'s arm, which is not their subject. **THE FUNCTION IS SUPPLIED AND NOTHING ELSE MOVES**:
+    // each form's subject (the construction returns an instance, produces no code, and holds no register key of the
+    // list) is kept whole, and `D-27` item 1 (*"Functions are armed"*) makes the supplied function the pair's
+    // substance at construction, which is the state the surface now declares.
+    // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
     const legal = [
       ['absent (no list is declared)', 'ABSENT', []],
       ['the empty list', [], []],
-      ['one valid pair', [{ address: ['a'], id: 'c1' }], []],
-      ['two valid pairs, with an integer segment', [{ address: ['a'], id: 'c1' }, { address: ['b', 0], id: 'c2' }], []],
+      ['one valid pair', [{ address: ['a'], id: 'c1', constraint: () => true }], []],
+      ['two valid pairs, with an integer segment', [{ address: ['a'], id: 'c1', constraint: () => true }, { address: ['b', 0], id: 'c2', constraint: () => true }], []],
     ];
     legal.forEach(([label, value], i) => {
       cell(`FTS-08.${i + 1}`, 'surface.md §2.1 (dated) + parameter-semantics.md §2.21 (the legal forms; `constraints` alone is optional)',
@@ -644,7 +689,7 @@ scenario('FTS-08', 'the fourth cfg key at construction: the legal forms make an 
       'the pair `[{ address: [\'c\'], id: \'\' }]` answers the store\'s own #16 — `ConstraintListInvalid`, no instance, the file not created — the empty-string id being outside the entry\'s domain although §2.21\'s outside-value list names only "absent or not a string"',
       () => {
         const d = tmp(); const P = path.join(d, 'empty-id.json');
-        const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['c'], id: '' }] }));
+        const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['c'], id: '', constraint: () => true }] }));
         const e = r.ok ? null : r.v;
         return C(!r.ok && e && e.status === 'ConstraintListInvalid' && typeof e.message === 'string' && e.message.length > 0 && !fs.existsSync(P),
           `${r.ok ? 'AN INSTANCE WAS RETURNED' : describe(e)} ; path created?=${fs.existsSync(P)} ; message=${JSON.stringify(e && e.message)}`);
@@ -655,7 +700,10 @@ scenario('FTS-08', 'the fourth cfg key at construction: the legal forms make an 
         const d = tmp();
         const out = [[], [0]].map((a) => {
           const P = path.join(d, `addr-${JSON.stringify(a).replace(/[^0-9a-z]/gi, '')}.json`);
-          const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: a, id: 'c1' }] }));
+          // ⟶ 2026-10-25 (`D-26`): the element carries its function; the SUBJECT (an empty and a `[0]` address are
+          // INSIDE the segment array and the pair is ADMITTED) is unchanged, and the functionless element it used
+          // to hand over is now refused before any filesystem act (`B-1`), which is not this cell's subject.
+          const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: a, id: 'c1', constraint: () => true }] }));
           if (!r.ok) return `address ${JSON.stringify(a)} -> THREW ${describe(r.v)}`;
           const reg = tryCall(() => r.v.read([]));
           const keys = reg.ok ? Object.keys(reg.v) : null;
@@ -667,7 +715,10 @@ scenario('FTS-08', 'the fourth cfg key at construction: the legal forms make an 
       'the pair `[{ address: [\'c\'], id: \'c1\', note: \'x\' }]` returns AN INSTANCE and produces NO code — the extra member lying outside the SPELLING and not outside the domain',
       () => {
         const d = tmp(); const P = path.join(d, 'third-member.json');
-        const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['c'], id: 'c1', note: 'x' }] }));
+        // ⟶ 2026-10-25 (`D-26`): the element is THREE-member and carries its function; the FIFTH member (`note`)
+        // is the one this cell is about, and it stays exactly where it was — a member outside the element's own
+        // SPELLING is ignored and is not outside the domain.
+        const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['c'], id: 'c1', constraint: () => true, note: 'x' }] }));
         if (!r.ok) return C(false, `THREW ${describe(r.v)} — the extra member was read as outside the domain`);
         const reg = tryCall(() => r.v.read([]));
         const keys = reg.ok ? Object.keys(reg.v) : null;
@@ -716,7 +767,7 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
     cell('FTS-09.1', 'contract.md §7.2 item 6 as amended + surface.md §2.1 (dated: "the loaded state is validated against the supplied list")',
       'an existing image whose state carries every supplied pair\'s address boots into an instance, and the register reads the loaded keys',
       () => {
-        const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1' }, { address: ['b'], id: 'c2' }] }));
+        const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1', constraint: () => true }, { address: ['b'], id: 'c2', constraint: () => true }] }));
         if (!r.ok) return C(false, `THREW ${describe(r.v)}`);
         const reg = tryCall(() => r.v.read([]));
         return C(reg.ok && reg.v.a === 5 && reg.v.b === 6, `register=${reg.ok ? JSON.stringify(reg.v) : describe(reg.v)}`);
@@ -724,7 +775,7 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
     cell('FTS-09.2', 'contract.md §8.1 #16 (the load-side trigger: "the loaded state no longer satisfies the supplied list")',
       'the same image with a supplied pair naming an address the loaded state does not carry answers #16 and returns no instance',
       () => {
-        const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1' }, { address: ['zz'], id: 'c2' }] }));
+        const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1', constraint: () => true }, { address: ['zz'], id: 'c2', constraint: () => true }] }));
         return C(!r.ok && r.v.status === 'ConstraintListInvalid', `${r.ok ? 'AN INSTANCE WAS RETURNED' : describe(r.v)}`);
       });
     cell('FTS-09.3', 'contract.md §7.1 step 4-bis (the list itself is validated at load too)',
@@ -749,7 +800,7 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
         const dd = tmp(); const PP = path.join(dd, 'empty.json');
         PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [] }); // the construction's own create leaves 0 bytes
         const size = fs.statSync(PP).size;
-        const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1' }] }));
+        const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1', constraint: () => true }] }));
         const reg = r.ok ? tryCall(() => r.v.read([])) : null;
         return C(r.ok && size === 0 && fs.statSync(PP).size === 0 && reg && reg.ok && Object.keys(reg.v).length === 0,
           `image is ${size} bytes ; the run answers: ${r.ok ? `INSTANCE — read([]) -> ${reg && reg.ok ? JSON.stringify(reg.v) : describe(reg && reg.v)}` : `THREW ${describe(r.v)}`}`);
@@ -759,7 +810,7 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
       () => {
         const dd = tmp(); const PP = path.join(dd, 'zero-state.json');
         fs.writeFileSync(PP, '{}');
-        const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1' }] }));
+        const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1', constraint: () => true }] }));
         return C(!r.ok && r.v.status === 'ConstraintListInvalid', `${r.ok ? 'AN INSTANCE WAS RETURNED' : describe(r.v)}`);
       });
     // ⟶ THE PARK THIS CELL CARRIED IS LIFTED 2026-10-16 (THIS PASS, `role_blind_test_writer`) — ON THE CLAUSE
@@ -780,7 +831,7 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
       'the predicate is ADDRESS-PRESENCE, NOT KEY-COVERAGE: an image carrying a key the supplied list does NOT name still satisfies it (every supplied pair\'s address resolving) — the boot returns AN INSTANCE whose register carries BOTH the named and the UNNAMED key, produces NO code for the unnamed key, and leaves the image byte-identical',
       () => {
         const before = bytes(P);
-        const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1' }] }));
+        const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1', constraint: () => true }] }));
         if (!r.ok) return C(false, `THREW ${describe(r.v)} — an image carrying the key 'b', which the supplied list does not name, was REFUSED; that is the KEY-COVERAGE reading, which §7.2 item 1 refuses by name`);
         const reg = tryCall(() => r.v.read([]));
         const v = reg.ok ? reg.v : null;
@@ -797,7 +848,7 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
         const dd = tmp(); const PP = path.join(dd, 'present-empty-state.json');
         fs.writeFileSync(PP, '{}');
         const before = bytes(PP);
-        const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1' }] }));
+        const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1', constraint: () => true }] }));
         return C(!r.ok && r.v.status === 'ConstraintListInvalid' && bytesEq(bytes(PP), before),
           `image is ${before.length} bytes (a PRESENT image, so no zero-length exemption is available to it) ; ${r.ok ? 'AN INSTANCE WAS RETURNED — the empty STATE was exempted, which §7.2 item 1 part 3 refuses' : `THREW ${describe(r.v)}`} ; image after=${imgStr(bytes(PP))} byte-identical=${bytesEq(bytes(PP), before)}`);
       });
@@ -807,7 +858,7 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
         const dd = tmp(); const PP = path.join(dd, 'zero-length.json');
         const c = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [] }));
         const size = fs.existsSync(PP) ? fs.statSync(PP).size : null;
-        const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1' }] }));
+        const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1', constraint: () => true }] }));
         if (!r.ok) return C(false, `a zero-byte file (${size} bytes) under a non-empty supplied list THREW ${describe(r.v)} — the exemption is the FILE'S emptiness and the file IS empty`);
         const reg = tryCall(() => r.v.read([]));
         return C(c.ok && size === 0 && reg.ok && Object.keys(reg.v).length === 0 && fs.statSync(PP).size === 0,
@@ -825,11 +876,19 @@ scenario('FTS-10', 'the sixteenth member\'s own clause and its template row; the
     cell('FTS-10.1', 'contract.md §8.1 (the set is closed at 16 members) + §2.2 clause 7',
       'the closed set this artifact drives against is the sixteen named ranks, #16 last',
       () => C(set16.length === 16 && set16[15] === 'ConstraintListInvalid', `set=${set16.length} members, #16=${JSON.stringify(set16[15])}`));
-    cell('FTS-10.2', 'package.md §1.3 item 4 (the internal addon\'s export set is exactly five names and no sixth)',
-      'the addon\'s own exports are the five declared names, `errorMessage` among them',
+    // ── **⟶ RE-DERIVED 2026-10-25: THE ADDON'S EXPORT SET IS THIRTEEN, AND THE EXPECTATION NOW COMES FROM THE
+    // ARTEFACT'S OWN BYTES — WHICH IS WHAT THE CELL ALWAYS READ.** The as-filed figure was `package.md §1.3`
+    // item 4's *"exactly five names"*; measured on the built artefact, `Object.keys(ADDON)` reads **thirteen**:
+    // `commitFile, delete, errorMessage, listen, read, readLiteral, register, removeListener, rollback,
+    // storeCreate, unlisten, version, write`. **The review's §3.2 row 19 classes this REWRITE and says it plainly:**
+    // *"Rests on: the code's own addon export set — a property the cell already reads; only the figure moves."* The
+    // cell's subject (the addon's own export set IS the declared one, by set equality, and `errorMessage` is among
+    // them) is kept whole, and the drive is unchanged.
+    cell('FTS-10.2', 'the built artefact\'s own export set (`bindings/js/build/Release/storeroom_js_binding.node`, read live), superseding `package.md §1.3` item 4\'s five-name figure — the review\'s §3.2 row 19',
+      'the addon\'s own exports are the thirteen the artefact carries — `commitFile`, `delete`, `errorMessage`, `listen`, `read`, `readLiteral`, `register`, `removeListener`, `rollback`, `storeCreate`, `unlisten`, `version`, `write` — by SET EQUALITY, `errorMessage` among them',
       () => {
         const keys = Object.keys(ADDON).sort();
-        return C(JSON.stringify(keys) === JSON.stringify(['call', 'errorMessage', 'register', 'storeCreate', 'version']), `addon exports=${JSON.stringify(keys)}`);
+        return C(JSON.stringify(keys) === JSON.stringify(['commitFile', 'delete', 'errorMessage', 'listen', 'read', 'readLiteral', 'register', 'removeListener', 'rollback', 'storeCreate', 'unlisten', 'version', 'write']), `addon exports=${JSON.stringify(keys)}`);
       });
     cell('FTS-10.3', 'contract.md §8.2 (completeness: every code of §8.1 generates a non-empty, placeholder-free message)',
       'every one of the sixteen codes renders its row through the generator reachable from JS',
@@ -996,12 +1055,16 @@ scenario('FTS-12', 'the censuses clause 7 leaves unmoved',
     // **THE CELL KEEPS ITS SUBJECT AND ITS EXACT SET-EQUALITY FORM;
     // only the figure moves, and `on`/`off`'s absence stays asserted BY that equality** — the same rule this
     // scenario's own `20 → 12` clause above applied.
-    cell('FTS-12.1', 'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-18 MARK; the operative figure is §2.4 item 9 (f)\'s clause (`10 + 1 + 1 = 12`, `13 → 12`)',
-      'the instance exposes exactly the TWELVE declared members and no thirteenth — `on`, `off` and the removed `settle` among the absent',
+    // ── **⟶ RE-DERIVED 2026-10-25 (`D-20`'s execution pass): `12 → 14`, `10 + 1 + 1 + 2 = 14` ✓.** The `+ 2` are
+    // `removeListener`/`removeConstraint`, landed 2026-10-19 (`contract.md §2.7` item 9; `index.d.ts`'s
+    // `StoreInstance`). The cell's subject and its EXACT SET-EQUALITY form are kept whole, so `on`, `off` and the
+    // removed `settle` remain excluded BY that equality rather than by a weakened predicate.
+    cell('FTS-12.1', 'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-19 MARK; the operative figure is §2.4 item 9 (f)\'s clause (`10 + 1 + 1 + 2 = 14`, whose `+ 2` are `removeListener`/`removeConstraint`) read with `bindings/js/index.d.ts`\'s `StoreInstance`',
+      'the instance exposes exactly the FOURTEEN declared members and no fifteenth — `on`, `off` and the removed `settle` among the absent',
       () => {
         const members = Object.getOwnPropertyNames(s).sort();
         const want = ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-          'readLiteral', 'register', 'rollback', 'unlisten', 'write'];
+          'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'];
         return C(JSON.stringify(members) === JSON.stringify(want), `members=${JSON.stringify(members)}`);
       });
     cell('FTS-12.2', 'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-16 MARK; the operative figure is §2.9 item 1\'s `A127` clause (`11 → 1`)',
@@ -1010,17 +1073,35 @@ scenario('FTS-12', 'the censuses clause 7 leaves unmoved',
         const keys = Object.keys(PKG).sort();
         return C(keys.length === 1 && JSON.stringify(keys) === JSON.stringify(['storeCreate']), `namespace=${JSON.stringify(keys)}`);
       });
-    cell('FTS-12.3', 'surface.md §2.11 clause 7 (the kernel\'s extent stays FIVE)',
-      'the kernel entry carries exactly its five declared items',
+    // ── **⟶ RE-DERIVED 2026-10-25: THE KERNEL'S EXTENT IS SIX, AND THE CENSUS WAS STALE BY ONE.** Measured on the
+    // module this drive reaches (`bindings/js/src/constraint-kernel.mjs`): `commit, log, register, remove, report,
+    // runAttempt` — the sixth being `remove` (`K-6`, the withdrawal route the held-listener-identity unit landed).
+    // `surface.md §2.11` clause 7's FIVE is its superseded figure; `strata/brief.md` §3 and
+    // `hli_kernel_the_kernel_surface_is_exactly_six_items` already read six. **The cell's subject is kept whole** —
+    // the kernel's extent, by set equality — and `D-22` moves it not at all (the three symbols it discards,
+    // `noopListener`/`KERNEL_HANDLE_PREFIX`/`noopHandleFor`, are module-private: `surface-deltas.md` §4.1).
+    cell('FTS-12.3', 'the kernel module\'s own export set (`bindings/js/src/constraint-kernel.mjs`, read live), superseding `surface.md §2.11` clause 7\'s five-item figure; `docs/L1/surface-deltas.md` §4.1 (the removals are module-private and move no export)',
+      'the kernel entry carries exactly its six declared items — `commit`, `log`, `register`, `remove`, `report`, `runAttempt`',
       () => {
         const keys = Object.keys(K).sort();
-        return C(keys.length === 5 && JSON.stringify(keys) === JSON.stringify(['commit', 'log', 'register', 'report', 'runAttempt']), `kernel extent=${JSON.stringify(keys)}`);
+        return C(keys.length === 6 && JSON.stringify(keys) === JSON.stringify(['commit', 'log', 'register', 'remove', 'report', 'runAttempt']), `kernel extent=${JSON.stringify(keys)}`);
       });
-    observed('FTS-12.4', 'surface.md §2.1 item 1 (an app\'s own `listen` and the kernel\'s `register` at one address return the same adopted handle)',
-      'the two handles\' identity at one address', () => {
+    // ── **⟶ RE-CLASSIFIED AND EXECUTED 2026-10-25 (`D-20`): `DISCARD/REPLACE` BECOMES AN ASSERTED CELL.**
+    // The review classed this `OBSERVED` cell DISCARD because *"its subject — an app's `listen` and the kernel's
+    // `register` at one address return the SAME adopted handle — is gone: `listen` returns `undefined`"*, and
+    // proposed that the observation *"belongs in a note, not a cell"*. **`D-22` names this very cell as the one that
+    // "moves from unsatisfiable to assertable"**: `listen` answers the handle it stands under, and `K-1` ADOPTS that
+    // answer (`adopted = store.listen(id, set)`), so `store.listen(pairId, set) === kernel.register(...)` is now a
+    // real proposition of two strings. **The drive is re-pointed accordingly**: the app's `listen` is spelled with
+    // the PAIR'S OWN `id` at the pair's own address — `D-29`'s lawful re-listing, and the exact act the kernel
+    // performs — because a listener's handle at a pair's address is now REFUSED (`B-6`). **A cell that asserted
+    // nothing now asserts D-22's adoption observable**, which is a strengthening and not a weakening.
+    cell('FTS-12.4', 'surface.md §2.1 item 1 read THROUGH `D-22` (`strata/decisions.md`, 2026-10-24: *"the return is the adoption point"*) and `bindings/js/index.d.ts:616`; `D-24`/`D-29` (the handle IS the `id`); `kernel-surface.md §2.1` item 1',
+      'the ADOPTION OBSERVABLE: `K-1` returns the value `store.listen(id, set)` answered, so the package\'s own `listen` under the pair\'s `id` at the pair\'s address answers EXACTLY the identity `kernel.register` returned (`===`)',
+      () => {
         const h1 = K.register(s, ['x'], 'cx', () => true);
-        const h2 = s.listen('fts-handle-x', [['x']]);   // ⟶ 2026-10-24: the caller spells the handle
-        return `kernel.register === PKG.listen ? ${h1 === h2} (PKG.listen answered ${JSON.stringify(h2)})`;
+        const h2 = s.listen('cx', [['x']]);   // the pair's own id over the pair's own address: D-29's lawful re-listing
+        return C(typeof h1 === 'string' && h1 === h2, `kernel.register === PKG.listen ? ${h1 === h2} (kernel ${JSON.stringify(h1)}, listen ${JSON.stringify(h2)})`);
       });
   });
 

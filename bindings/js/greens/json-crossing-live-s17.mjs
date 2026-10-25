@@ -589,7 +589,14 @@ cell({
   const live = String(address);
   const liveReads = reads;
   reads = 0;
-  const carrier = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address, id: 'k' }] }));
+  // ⟶ **DRIVE RE-DERIVED 2026-10-25 (`D-26`): THE BATCH ELEMENT IS THREE-MEMBER AND ITS FUNCTION IS REQUIRED.**
+  // Every construction in this row supplied the two-member `{ address, id }` element the declaration named until
+  // 2026-10-24. Under `D-26` a functionless element is refused `ConstraintListInvalid` **before any filesystem
+  // act** (`B-1`) — and `LIVE-G04`'s *admitted* control (`{ address: ['a'], id: 'k' }`, an in-domain segment list)
+  // was therefore REFUSED, making the control report the opposite of its subject. **The function is supplied at
+  // every site and NOTHING ELSE MOVES**: each cell's subject is the ADDRESS's own class spelling, which the
+  // entry's encoder decides before `B-1`'s walk ever sees the element, so no refusal under test is masked.
+  const carrier = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address, id: 'k', constraint: () => true }] }));
   const check = carrierObjectCheck(carrier, {
     expectedMessage: `'${CLASS.plain}' is not a valid constraint entry in 'constraints'${PROSE}`,
     marker: MARKER,
@@ -625,7 +632,7 @@ cell({
 
   const dataAddress = { [Symbol.toStringTag]: DATA_TAG };
   const dataLive = String(dataAddress);
-  const dataCarrier = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: dataAddress, id: 'k' }] }));
+  const dataCarrier = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: dataAddress, id: 'k', constraint: () => true }] }));
   const dataCheck = carrierObjectCheck(dataCarrier, { expectedMessage: EXPECTED });
   if (dataLive !== `[object ${DATA_TAG}]`) problems.push(`the data-tag instrument is DEAD: String(address) answered ${JSON.stringify(dataLive)}`);
   if (!dataCheck.ok) problems.push(`data: ${dataCheck.detail}`);
@@ -641,7 +648,7 @@ cell({
   const accessorLive = String(accessorAddress);
   const accessorLiveRuns = getterRuns;
   getterRuns = 0;
-  const accessorCarrier = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: accessorAddress, id: 'k' }] }));
+  const accessorCarrier = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: accessorAddress, id: 'k', constraint: () => true }] }));
   const accessorCheck = carrierObjectCheck(accessorCarrier, { expectedMessage: EXPECTED, marker: MARKER });
   if (accessorLive !== `[object ${MARKER}]` || accessorLiveRuns === 0) problems.push('the tag-accessor instrument is DEAD: String(address) did not run the getter');
   if (getterRuns !== 0) problems.push(`the tag ACCESSOR ran at the carrier position (count ${getterRuns})`);
@@ -739,12 +746,12 @@ cell({
   const problems = [];
   const lines = [];
 
-  const plain = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: {}, id: 'k' }] }));
+  const plain = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: {}, id: 'k', constraint: () => true }] }));
   const plainCheck = carrierObjectCheck(plain, { expectedMessage: `'[object Object]' is not a valid constraint entry in 'constraints'${PROSE}` });
   if (!plainCheck.ok) problems.push(`plain: ${plainCheck.detail}`);
   lines.push(`plain={${JSON.stringify('[object Object]')}}`);
 
-  const stringy = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: 'a', id: 'k' }] }));
+  const stringy = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: 'a', id: 'k', constraint: () => true }] }));
   const stringCheck = carrierObjectCheck(stringy, { expectedMessage: `'a' is not a valid constraint entry in 'constraints'${PROSE}` });
   if (!stringCheck.ok) problems.push(`string: ${stringCheck.detail}`);
   lines.push(`string=${JSON.stringify('a')}`);
@@ -758,7 +765,7 @@ cell({
   const proxyLive = String(proxied);
   const proxyLiveRuns = getRuns;
   getRuns = 0;
-  const proxy = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: proxied, id: 'k' }] }));
+  const proxy = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: proxied, id: 'k', constraint: () => true }] }));
   const proxyCarrierTraps = getRuns;
   const proxyCheck = carrierObjectCheck(proxy, { expectedMessage: `'${CLASS.proxy}' is not a valid constraint entry in 'constraints'${PROSE}` });
   if (proxyLive !== `[object ${CLASS.proxy}]` && proxyLive !== '[object Object]') problems.push(`the Proxy liveness read is unexpected: ${JSON.stringify(proxyLive)}`);
@@ -767,12 +774,12 @@ cell({
   lines.push(`proxy=${JSON.stringify(CLASS.proxy)} traps=${proxyCarrierTraps}`);
 
   const nullProto = Object.create(null);
-  const nullAttempt = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: nullProto, id: 'k' }] }));
+  const nullAttempt = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: nullProto, id: 'k', constraint: () => true }] }));
   const nullCheck = carrierObjectCheck(nullAttempt, { expectedMessage: `'${CLASS.plain}' is not a valid constraint entry in 'constraints'${PROSE}` });
   if (!nullCheck.ok) problems.push(`null-proto: ${nullCheck.detail}`);
   lines.push(`null-proto=${JSON.stringify(CLASS.plain)}`);
 
-  const admitted = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'k' }] }));
+  const admitted = attempt(() => PKG.storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'k', constraint: () => true }] }));
   if (!admitted.ok) problems.push(`the in-domain segment list was REFUSED: ${describe(admitted.error)}`);
   lines.push('segments=ADMITTED');
 

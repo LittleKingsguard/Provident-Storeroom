@@ -482,15 +482,23 @@ scenario('JAS-07', 'class 4: the nesting depth — the loader\'s boundary on the
     };
 
     cell('JAS-07.2', CW,
-      'THE SECOND ROUTE — THE PACKAGE\'S OWN WALK: a value of walk-depth `64` is ADMITTED (the write succeeds and the value round-trips); a value of walk-depth `65` is REFUSED `ValueNotAdmitted`; a value of walk-depth `66` is REFUSED `ValueNotAdmitted` — the same code and the same form, by the other arm. AND WHAT THIS ROUTE DOES NOT SHOW: the LOADER\'S boundary — the refused value never reaches the store, so no image is written and the loader never reads one',
+      // **⟶ RE-DERIVED 2026-10-25 (`D-20`'s execution pass): THE WALK\'S CEILING IS `126`/`127`, NOT `64`/`65`,
+      // AND THE CODE IS `ValueRefusedAtBoundary`.** Measured on this tree over `[63,64,65,66,100,126,127,128]`:
+      // `63`…`126` are ADMITTED and `127`, `128` are REFUSED — the package\'s own encoder carries
+      // `ENCODER_CEILING = 126` (`index.mjs`), and the refusal answers rank `17`\'s member, not rank `14`\'s
+      // (`src/error.rs`\'s `CODES`; `bindings/js/index.d.ts`\'s `StoreStatus` as amended 2026-10-24).
+      // **THE CELL\'S SUBJECT IS KEPT WHOLE — THE TWO-ARM SHAPE, a last admitted walk-depth beside a first
+      // refused one, in ONE code and ONE form — and only the FIGURES and the MEMBER move.** The review\'s §3.2
+      // row 30 classes this REWRITE.
+      'THE SECOND ROUTE — THE PACKAGE\'S OWN WALK: a value of walk-depth `126` is ADMITTED (the write succeeds and the value round-trips); a value of walk-depth `127` is REFUSED `ValueRefusedAtBoundary`; a value of walk-depth `128` is REFUSED with the SAME code and the SAME form — the two arms of one ceiling, measured at this tree. AND WHAT THIS ROUTE DOES NOT SHOW: the LOADER\'S boundary — the refused value never reaches the store, so no image is written and the loader never reads one',
       () => {
         const notes = [];
         let ok = true;
-        // arm (a): walk-depth `64` — ADMITTED: the write succeeds and the value round-trips
+        // arm (a): walk-depth `126` — the LAST ADMITTED: the write succeeds and the value round-trips
         {
           const d = tmp();
           const P = path.join(d, 'store.json');
-          const value = writeValue(65); // 65 containers ⇒ walk-depth 64
+          const value = writeValue(127); // 127 containers ⇒ walk-depth 126
           const s = PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [] });
           const w = tryCall(() => s.write(['a'], 'file', value));
           if (!w.ok) {
@@ -500,14 +508,14 @@ scenario('JAS-07', 'class 4: the nesting depth — the loader\'s boundary on the
             const bytes = bytesOf(P);
             const fresh = PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [] });
             const a = keyOf(fresh, 'a');
-            const good = bytes !== null && containersIn(bytes.toString('utf8')) === 65 && a.ok && same(a.v, value);
+            const good = bytes !== null && containersIn(bytes.toString('utf8')) === 127 && a.ok && same(a.v, value);
             if (!good) ok = false;
-            notes.push(`walk-depth 64 (65 containers): ${good ? 'ADMITTED — the write succeeded and the value round-tripped' : `NOT ADMITTED (image bytes=${bytes === null ? 'none' : bytes.length}, read(a)=${a.ok ? 'a value' : describe(a.v)})`}`);
+            notes.push(`walk-depth 126 (127 containers): ${good ? 'ADMITTED — the write succeeded and the value round-tripped' : `NOT ADMITTED (image bytes=${bytes === null ? 'none' : bytes.length}, read(a)=${a.ok ? 'a value' : describe(a.v)})`}`);
           }
         }
-        // arm (b): walk-depth `65` and `66` — REFUSED `ValueNotAdmitted`, and the
+        // arm (b): walk-depth `127` and `128` — REFUSED `ValueRefusedAtBoundary` in ONE form, and the
         // store is never reached (no image is written, no node is installed).
-        for (const depth of [65, 66]) {
+        for (const depth of [127, 128]) {
           const d = tmp();
           const P = path.join(d, 'store.json');
           const value = writeValue(depth + 1); // walk-depth `depth`
@@ -517,7 +525,7 @@ scenario('JAS-07', 'class 4: the nesting depth — the loader\'s boundary on the
           const reg = w.ok ? null : registerOf(s);
           const bytes = bytesOf(P);
           const noImage = bytes === null || bytes.length === 0;
-          const good = !w.ok && st === 'ValueNotAdmitted' && noImage && reg !== null && same(reg, {});
+          const good = !w.ok && st === 'ValueRefusedAtBoundary' && noImage && reg !== null && same(reg, {});
           if (!good) ok = false;
           notes.push(`walk-depth ${depth} (${depth + 1} containers): ${good ? `REFUSED ${st} — the store was never reached (no image on the path, the register carries no key)` : `NOT REFUSED AS DECLARED (threw=${w.ok ? 'nothing' : describe(w.v)}, image bytes=${bytes === null ? 'none' : bytes.length}, register=${brief(reg)})`}`);
         }
@@ -586,7 +594,10 @@ scenario('JAS-09', 'the answer for a file the loader refuses, arm (b): a supplie
     cell('JAS-09.1', C9,
       'over a file the loader REFUSES, with a supplied constraint list that NAMES AT LEAST ONE ADDRESS, the construction answers `ConstraintListInvalid` and NO INSTANCE IS RETURNED',
       () => {
-        const b = boot(REFUSED, { constraints: [{ address: ['x'], id: 'c1' }] });
+        // ⟶ 2026-10-25 (`D-26`): the element is THREE-member and its function is REQUIRED — a functionless
+        // element is refused `ConstraintListInvalid` BEFORE ANY FILESYSTEM ACT (`B-1`), which would make this
+        // cell pass on the package's list check instead of on the load-side answer it has for its subject.
+        const b = boot(REFUSED, { constraints: [{ address: ['x'], id: 'c1', constraint: () => true }] });
         if (b.r.ok) return C(false, `the construction returned an INSTANCE (register=${show(registerOf(b.store))}) where the clause answers ${'ConstraintListInvalid'}`);
         const st = b.r.v && b.r.v.status;
         return C(st === 'ConstraintListInvalid', `thrown=${describe(b.r.v)}`);
@@ -602,7 +613,7 @@ scenario('JAS-09', 'the answer for a file the loader refuses, arm (b): a supplie
     cell('JAS-09.3', `${C9}; contract.md §7.2 item 1 ("THE LOADED STATE 'SATISFIES' THE SUPPLIED LIST IFF EVERY SUPPLIED PAIR'S OWN 'address' RESOLVES IN THE LOADED STATE")`,
       'CONTROL: the SAME supplied list over a PARSEABLE image that DOES carry the named address yields an INSTANCE — so the pair is a well-formed entry and the refusal at JAS-09.1 is the LOAD-SIDE validation over the empty register, not a refusal of the list\'s own shape',
       () => {
-        const b = boot('{"x":1}', { constraints: [{ address: ['x'], id: 'c1' }] });
+        const b = boot('{"x":1}', { constraints: [{ address: ['x'], id: 'c1', constraint: () => true }] });
         if (!b.r.ok) return C(false, `the construction threw: ${describe(b.r.v)}`);
         const reg = registerOf(b.store);
         return C(reg !== null && same(reg, { x: 1 }), `construction=INSTANCE register=${show(reg)}`);

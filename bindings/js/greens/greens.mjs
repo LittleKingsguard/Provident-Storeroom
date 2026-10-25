@@ -85,8 +85,13 @@ const APP_LAYER = 'NONE';
 // one occurrence in the file), so the move is a census duty and not a live expectation — it is corrected here
 // so the declared set printed at the head of this driver is not stale beside the cells that assert it.
 const NAMESPACE = ['storeCreate'];
+// **⟶ CORRECTED 2026-10-25 (`D-20`'s execution pass): `12 → 14`.** The held-listener-identity unit landed
+// `removeListener`/`removeConstraint` on 2026-10-19 (`contract.md §2.7` item 9, `12 → 14`), and
+// `bindings/js/index.d.ts`'s `StoreInstance` names all fourteen. Like `PRODUCT_MEMBERS`' own earlier notes, this
+// constant has no reader — it is the DECLARED SET printed at the head of the driver, and it is corrected here so
+// the declaration it states is not stale beside `JSG-01.9`, `LIVE-1.3` and `FTS-12.1`, which assert it.
 const PRODUCT_MEMBERS = ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen',
-  'read', 'readLiteral', 'register', 'rollback', 'unlisten', 'write'];
+  'read', 'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'];
 const CLOSED_SET = [
   'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
@@ -96,6 +101,17 @@ const CLOSED_SET = [
   // member, appended at rank `16` by `store §8.1`'s dated clause of 2026-10-15. The census this array feeds is
   // `JSG-10.19`'s, and the count it printed was the SUPERSEDED FIFTEEN (`DEF-2026-10-15-Y`'s class).
   'ConstraintListInvalid',
+  // ⟶ **WIDENED 2026-10-25 (`D-20`'s execution pass): THE SEVENTEENTH MEMBER, AT RANK `17`.**
+  // `store §8.1`'s 2026-10-23 amendment (`A148` Q3) widens the closed set `16 → 17` with
+  // `ValueRefusedAtBoundary` at rank `17`, *"the operative set is `17` members ranked `1`…`17`"*, with the
+  // spelling moved to `[&'static str; 17]`; `src/error.rs`'s `CODES` implements seventeen; and
+  // `bindings/js/index.d.ts`'s `StoreStatus` now names it at rank `17` (the `D-26` declaration wave, commit
+  // `23c05a1`). **NO RANK OF `1`…`16` MOVES AND `ValueNotAdmitted` STAYS AT RANK `14` AND IS NOT REMOVED** — it
+  // remains the store's own answer on the native route — so this is an APPEND and not a rename
+  // (`surface-deltas.md` §1.5 items 1–2). **The census this array feeds is `JSG-10.19`'s**, which asserts that no
+  // code the package answers falls outside the store's closed set; the array is the DECLARATION OF RECORD read
+  // into code, and the run's observed list is printed beside it so the two can be compared.
+  'ValueRefusedAtBoundary',
 ];
 const INTERNAL_FIVE = ['version', 'errorMessage', 'storeCreate', 'call', 'register'];
 const PLACEHOLDER_TOKENS = ['<SEGMENT>', '<CONTAINER>', '<mismatch clause>', '<available clause>',
@@ -107,6 +123,10 @@ const fails = [];
 // ⟶ ADDED 2026-10-16: the observables of the ten cells re-derived by this pass plus the two it adds, printed
 // in the report so each re-derived verdict is readable AT ITS BYTES and not only as a PASS count.
 const REDERIVED = [];
+// ⟶ ADDED 2026-10-25 (`D-20`'s execution pass): THE RETIREMENTS, PRINTED SO A RETIRED CELL IS VISIBLE AT ITS OWN
+// ID AND IS NOT MISTAKEN FOR A CELL THAT VANISHED. `D-19` allows retirement ONLY where the subject is gone
+// (`DISCARD/REPLACE`), and every line here names what went and whether anything replaces it.
+const RETIRED = [];
 const perScenario = new Map();
 
 function A(id, clause, expectation, cond, observed) {
@@ -330,7 +350,14 @@ function kernelSaveFile(store, address, value) {
   // **THE CELL'S SUBJECT IS KEPT WHOLE — the product's exact own member set, by set equality, and NOTHING
   // ELSE — and the expected value alone is re-derived**, exactly as this cell's own `20 → 12` clause above
   // did. `.14` and `.15` remain the cells that assert `on`/`off`'s absence and its reason.
-  A('JSG-01.9', '§2.4 item 9 (f)\'s clause of 2026-10-18 (the twelve, `10 + 1 + 1 = 12`, `13 → 12`), read with §2.12 item 2-bis and §2.1\'s `A127` clause', "the store's own member set is exactly the TWELVE declared members ['addConstraint','constraintOff','constraintOn','constraints','delete','listen','read','readLiteral','register','rollback','unlisten','write'] — `10 + 1 + 1 = 12`, and NOTHING ELSE (the superseded readings were four, five, seven, twelve and thirteen own members)", membersAre(formOf(i1), 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,rollback,unlisten,write'), formOf(i1).members.join(','));
+  // ── **⟶ RE-DERIVED 2026-10-25 (`D-20`'s execution pass): THE SET MOVES `12 → 14`, `10 + 1 + 1 + 2 = 14` ✓.**
+  // The two `+ 2` are `removeListener(handle)` and `removeConstraint(pair)`, landed 2026-10-19
+  // (`docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9, `12 → 14`), and
+  // `bindings/js/index.d.ts`'s `StoreInstance` names all fourteen. **THE CELL'S SUBJECT IS KEPT WHOLE** — the
+  // product's exact own member set, by set equality and nothing else — and the expected value alone is
+  // re-derived, exactly as this cell's own `7 → 12` and `13 → 12` clauses did before it. This is the review's
+  // §3.2 row 2, the first of the two stale subjects that produced the pre-ruling 40 reds.
+  A('JSG-01.9', '§2.4 item 9 (f)\'s clause of 2026-10-19 (the fourteen, `10 + 1 + 1 + 2 = 14`, whose two singles are `register` and `constraints` and whose `+ 2` are `removeListener`/`removeConstraint`), read with §2.12 item 2-bis, §2.1\'s `A127` clause and `bindings/js/index.d.ts`\'s `StoreInstance`', "the store's own member set is exactly the FOURTEEN declared members ['addConstraint','constraintOff','constraintOn','constraints','delete','listen','read','readLiteral','register','removeConstraint','removeListener','rollback','unlisten','write'] — `10 + 1 + 1 + 2 = 14`, and NOTHING ELSE (the superseded readings were four, five, seven, twelve and thirteen own members)", membersAre(formOf(i1), 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,removeConstraint,removeListener,rollback,unlisten,write'), formOf(i1).members.join(','));
   A('JSG-01.10', '§2.4 item 5', 'the one member is a function', typeof i1.register === 'function', typeof i1.register);
   // ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): **STALE GREENS DOC**,
   // `RCA-8(g)`. The `8 → 1` figure is the `Q1` pass's; `docs/specs/storeroom-js/surface.md §2.9` item 1's
@@ -374,7 +401,18 @@ function kernelSaveFile(store, address, value) {
   const rLs = wLs.threw ? { threw: true, err: wLs.err } : thrown(() => i1.listen(H_LS, [['surf-ls']]));
   const onH = rOn.threw ? undefined : rOn.value;
   const lsH = rLs.threw ? undefined : rLs.value;
-  A('JSG-01.16', '§2.4 item 9 (f)\'s `A127` clause (the route is `listen` + `register`); §2.3 dated clause 1; §2.3 item 2', "the combined route `listen(address)` then `register(handle, listener)` answers the package's OPAQUE handle from `listen` — a non-null object, neither a function nor an array — and it is the SAME output spelling the bare `listen` returns, with `register` answering `undefined`: the two-spelling rule gains NO third", !rOn.threw && onH !== null && typeof onH === 'object' && !Array.isArray(onH) && !rLs.threw && lsH !== null && typeof lsH === 'object' && !Array.isArray(lsH), rOn.threw ? `the combined route threw ${fmt(rOn.err)}` : `register:${fmt(onH)} listen:${rLs.threw ? `listen threw ${fmt(rLs.err)}` : fmt(lsH)}`);
+  // ── **⟶ RE-CLASSIFIED AND EXECUTED 2026-10-25 (`D-20`): THIS CELL WAS `DISCARD/REPLACE` AND IT IS NOW A
+  // `REWRITE`.** The review (§3.2 row 3) retired it because *"its subject is the OPAQUE handle `listen`
+  // answers — gone: `listen` answers `undefined`"*, and proposed the surviving half be left to `JSG-01.17`,
+  // `JSG-08.4` and `JSG-09.1`. **`D-22` restored a return, so the subject is not gone — it MOVED, and the move
+  // is exactly the ruling's**: *"`listen` ANSWERS THE HANDLE IT WATCHES UNDER ON SUCCESS — the caller's own
+  // spelling, returned as THE IDENTITY THE STORE HOLDS FOR THAT ENTRY"*, and *"THE RETURN IS A SUCCESS SIGNAL
+  // THAT CARRIES THE IDENTITY AND NOT AN ECHO TO BE SUPPRESSED"*. **So the cell asserts the post-ruling shape of
+  // the two-spelling rule**: the combined route's `listen` answers the caller's spelling, the bare `listen`
+  // answers its own, the two answers are the SAME KIND of value (one string each, no third spelling minted), and
+  // `register` still answers `undefined`. **No limb the cell had is dropped** — what it asserted was *there is one
+  // spelling of the identity and no third*, which is what it still asserts.
+  A('JSG-01.16', '§2.4 item 9 (f)\'s `A127` clause (the route is `listen` + `register`) read THROUGH `D-22` (`strata/decisions.md`, 2026-10-24; `bindings/js/index.d.ts:616`); §2.3 dated clause 1; §2.3 item 2', "the combined route `listen` then `register(handle, listener)` answers THE CALLER'S OWN SPELLING from `listen` — a non-empty string, the same KIND of value the bare `listen` answers, and each equal to the spelling that call was given — with `register` answering `undefined`: the two-spelling rule gains NO third", !rOn.threw && typeof onH === 'string' && onH === H_ON && !rLs.threw && typeof lsH === 'string' && lsH === H_LS, rOn.threw ? `the combined route threw ${fmt(rOn.err)}` : `register:${fmt(onH)} listen:${rLs.threw ? `listen threw ${fmt(rLs.err)}` : fmt(lsH)}`);
   // ⟶ DRIVE RE-DERIVED 2026-10-24 (THE `D-19` CRASH FIX): the withdrawal is driven over THE CALLER'S OWN
   // HANDLE — which is the in-domain handle the code carries — instead of over an object `listen` no longer
   // returns. The cell's subject (a withdrawal answering `undefined`) is unchanged.
@@ -402,7 +440,15 @@ function kernelSaveFile(store, address, value) {
   A('JSG-02.6', '§1.1 item 2', 'the returned value is NOT the caller\'s own object', r && !r.threw && r.value !== V, `same=${r && r.value === V}`);
   A('JSG-02.7', '§1.1; §2.2', 'two reads of one address are not the same object (a FRESH JS value each call)', r && r2 && !r.threw && !r2.threw && r.value !== r2.value, `same=${r && r2 && r.value === r2.value}`);
   const rm = thrown(() => { A2.write(['negmem'], 'mem', { neg: -0 }); return A2.read(['negmem']); });
-  A('JSG-02.8', '§1.5 item 3; store §7.2 item 7 (c)', 'a mem-tier -0 member reads back Object.is -0', rm && !rm.threw && Object.is(rm.value?.neg, -0), rm && rm.threw ? `threw ${fmt(rm.err)}` : `neg=${fmt(rm && rm.value && rm.value.neg)}`);
+  // ⟶ **RE-DERIVED 2026-10-25 — `-0` DOES NOT CROSS AS A SIGN, AND THE CODE IS RIGHT.** Measured on this tree at
+  // every non-file tier: `write(['negmem'],'mem',{neg:-0})` reads back `+0`, so `Object.is(v,-0)` is FALSE. The
+  // as-filed expectation (`Object.is -0` at the mem and temp tiers) was the pre-`A140` reading; `index.mjs`
+  // normalizes at the crossing (`:2089`, and again at `:2984`) under `A140` / `contract.md §4`, and `§1.5 item 3`
+  // as it now reads makes `Object.is 0` the ONE declared answer for every zero, the file tier included (`.14`/`.15`
+  // below already assert exactly that after a boot). **The cell's subject is kept whole** — what a `-0` READS BACK
+  // AS at this tier, asserted with `Object.is` and by no weaker predicate — and the expected sign moves. The
+  // review's §3.2 row 4 classes this family REWRITE, and this is that rewrite.
+  A('JSG-02.8', '§1.5 item 3 as amended (the ONE declared number normalization: every zero is `+0`, `Object.is 0` true) read with `A140` / `contract.md §4` (`-0` does not cross as a sign) and store §7.2 item 7 (c)', 'a mem-tier -0 member reads back as +0 — Object.is(neg, -0) is FALSE and Object.is(neg, 0) is TRUE', rm && !rm.threw && Object.is(rm.value?.neg, 0) && !Object.is(rm.value?.neg, -0), rm && rm.threw ? `threw ${fmt(rm.err)}` : `neg=${fmt(rm && rm.value && rm.value.neg)}`);
   const whole = thrown(() => A2.read([]));
   A('JSG-02.9', 'store §4.1; §4.2 R-5; A25', 'the empty address answers the whole register: an object whose key set contains the written key', whole && !whole.threw && whole.value && typeof whole.value === 'object' && !Array.isArray(whole.value) && Object.prototype.hasOwnProperty.call(whole.value, 'rt'), whole && whole.threw ? `threw ${fmt(whole.err)}` : fmt(whole && whole.value));
   // ⟶ RE-DERIVED 2026-10-16 (THE `DEF-2026-10-16-A` PASS, `role_blind_test_writer`) — THE FIVE CELLS `.10`,
@@ -424,10 +470,11 @@ function kernelSaveFile(store, address, value) {
   A('JSG-02.11', '§1.5 item 1; store §7.2 item 6 — RE-POINTED 2026-10-16 (same ground as `.10`)', "the booted value's member set is the written one", kb.join(',') === Object.keys(V).sort().join(','), kb.join(','));
   const wMem = thrown(() => A2.write(['neg-mem'], 'mem', -0));
   const rMem = wMem.threw ? wMem : thrown(() => A2.read(['neg-mem']));
-  A('JSG-02.12', 'store §7.2 item 7 (c)', 'a mem-tier -0 reads back Object.is -0', !rMem.threw && Object.is(rMem.value, -0), rMem.threw ? `threw ${fmt(rMem.err)}` : fmt(rMem.value));
+  // ⟶ RE-DERIVED 2026-10-25: the same sign move as `.8`'s (see its note). The zero crosses as `+0`.
+  A('JSG-02.12', '§1.5 item 3 as amended (`-0` does not cross) read with store §7.2 item 7 (c)', 'a mem-tier -0 reads back as +0 — Object.is(v,-0) is FALSE', !rMem.threw && Object.is(rMem.value, 0) && !Object.is(rMem.value, -0), rMem.threw ? `threw ${fmt(rMem.err)}` : fmt(rMem.value));
   const wTmp = thrown(() => A2.write(['neg-temp'], 'temp', -0));
   const rTmp = wTmp.threw ? wTmp : thrown(() => A2.read(['neg-temp']));
-  A('JSG-02.13', 'store §7.2 item 7 (c)', 'a temp-tier -0 reads back Object.is -0', !rTmp.threw && Object.is(rTmp.value, -0), rTmp.threw ? `threw ${fmt(rTmp.err)}` : fmt(rTmp.value));
+  A('JSG-02.13', '§1.5 item 3 as amended (`-0` does not cross) read with store §7.2 item 7 (c)', 'a temp-tier -0 reads back as +0 — Object.is(v,-0) is FALSE', !rTmp.threw && Object.is(rTmp.value, 0) && !Object.is(rTmp.value, -0), rTmp.threw ? `threw ${fmt(rTmp.err)}` : fmt(rTmp.value));
   // ⟶ RE-POINTED 2026-10-16 for the same two grounds as `.10`: the `-0` at the `file` tier is committed by
   // the terminal arm (`surface.md §2.11` clause 2) and read back from a boot over the file's own bytes.
   const wFile = kernelSaveFile(A2, ['neg-file'], -0);
@@ -445,7 +492,16 @@ function kernelSaveFile(store, address, value) {
   const zeroCfg = cfgFor('g02zero');
   ns.storeCreate(zeroCfg.c); // the construction's own exclusive create leaves the file at 0 bytes
   const zeroBytes = fs.statSync(zeroCfg.c.filePath).size;
-  const zb = thrown(() => ns.storeCreate({ ...zeroCfg.c, constraints: [{ address: ['rt'], id: 'c1' }] }));
+  // **⟶ DRIVE RE-DERIVED 2026-10-25 (`D-26`/`D-27`) — THE BATCH ELEMENT IS THREE- MEMBER AND ITS FUNCTION IS
+  // REQUIRED.** Both drives in this pair handed `storeCreate` a FUNCTIONLESS element, `{ address, id }`. That was
+  // the element the declaration named until 2026-10-24; under `D-26` (*"The batch in cfg.constraints must supply
+  // functions"*) a functionless element is refused `ConstraintListInvalid` **BEFORE ANY FILESYSTEM ACT** (`B-1`),
+  // so the pair was measuring `B-1` and not the load-side law it has for its subject — `.18` had even gone GREEN
+  // for `B-1`'s reason, which is exactly the false green this re-derivation removes. **The function is supplied
+  // and nothing else moves**: the subject of `.17` (a ZERO-BYTE file boots an instance under a non-empty list) and
+  // of `.18` (a PRESENT short image whose state satisfies no supplied pair is VALIDATED and refused) are kept
+  // whole, and `D-26` item 4 makes the element CARRIED, so the pair's arming at construction is the ordinary state.
+  const zb = thrown(() => ns.storeCreate({ ...zeroCfg.c, constraints: [{ address: ['rt'], id: 'c1', constraint: () => true }] }));
   const zbRead = zb.threw ? null : thrown(() => zb.value.read([]));
   A('JSG-02.17', 'A: docs/decisions.md · A119 (2026-10-16); store §7.2 item 6 (the zero-length clause, dated 2026-10-16); surface.md §2.1 (dated: "the loaded state is validated against the supplied list")',
     'a ZERO-BYTE file boots an INSTANCE under a supplied NON-EMPTY list — the exemption keys on the FILE\'s bytes — and its register reads ZERO keys, the file standing at 0 bytes after the boot',
@@ -454,7 +510,7 @@ function kernelSaveFile(store, address, value) {
   const shortCfg = cfgFor('g02short');
   const shortPath = shortCfg.c.filePath;
   fs.writeFileSync(shortPath, '{}'); // a PRESENT two-byte image: the state is empty, the FILE is not
-  const sh = thrown(() => ns.storeCreate({ ...shortCfg.c, constraints: [{ address: ['rt'], id: 'c1' }] }));
+  const sh = thrown(() => ns.storeCreate({ ...shortCfg.c, constraints: [{ address: ['rt'], id: 'c1', constraint: () => true }] }));
   A('JSG-02.18', 'A: docs/decisions.md · A119 (2026-10-16); store §7.1 step 4-bis; §8.1 #16; §7.2 item 6 as amended 2026-10-15',
     'a PRESENT short image whose loaded state satisfies no supplied pair is VALIDATED and refused with ConstraintListInvalid, no instance returned, the image byte-identical',
     sh.threw && sh.err && sh.err.status === 'ConstraintListInvalid' && fs.readFileSync(shortPath, 'utf8') === '{}',
@@ -497,7 +553,15 @@ const g04 = { caught: [], readAfter: [] };
     const w = thrown(() => i4.write(['v'], 'temp', makeValue()));
     const form = formOf(w.err);
     A(`${id}.i`, clause, `the write of ${label} is REFUSED (a value is thrown)`, w.threw, w.threw ? 'threw' : `returned ${fmt(w.value)}`);
-    A(`${id}.ii`, clause, `the status is exactly 'ValueNotAdmitted'`, statusOf(w) === 'ValueNotAdmitted', String(statusOf(w)));
+    // ⟶ **RE-DERIVED 2026-10-25 (`D-20`'s execution pass): THE CODE IS `ValueRefusedAtBoundary`, AND THE
+    // DECLARATION OF RECORD NOW SAYS SO.** `src/error.rs`'s `CODES` closes the set at `[&str; 17]` with
+    // `ValueRefusedAtBoundary` at rank `17` (the 2026-10-23 amendment, `A148` Q3); the store emits it on every one
+    // of these fourteen JavaScript-crossing classes (measured); and `bindings/js/index.d.ts`'s `StoreStatus` names
+    // it at rank `17` as changed by the `D-26` declaration wave (commit `23c05a1`). **`ValueNotAdmitted` STAYS AT
+    // RANK `14` AND IS NOT A RENAME** — it is the store's own answer on the NATIVE route
+    // (`surface-deltas.md` §1.5 item 2) — so this is a member MOVE and not a substitution. **The cell's subject is
+    // kept whole**: the status the boundary answers, at every class, in one code.
+    A(`${id}.ii`, `${clause}; the closed set at rank \`17\` (\`src/error.rs\`'s \`CODES\`; \`bindings/js/index.d.ts\`'s \`StoreStatus\` as amended 2026-10-24)`, `the status is exactly 'ValueRefusedAtBoundary'`, statusOf(w) === 'ValueRefusedAtBoundary', String(statusOf(w)));
     // ⟶ RE-DERIVED 2026-10-17 (THE FAILURE-FORM OVERRIDE RE-DERIVATION PASS, `role_test_writer`), ON THE
     // ARCHITECT'S RULING *"Override the failure form limit"* READ WITH HIS EARLIER *"Bubble the message log to the
     // client on failure, override any clauses that forbid this."*: THIS CELL'S FORM LIMB WAS THE SUPERSEDED
@@ -510,8 +574,12 @@ const g04 = { caught: [], readAfter: [] };
     A(`${id}.iii`, `${clause}; surface.md §2.5 items 4 and 9 (the three-member set, FLAT ACROSS ARMS: \`log\` PRESENT and \`[]\` where the cause has no attempt — this value refusal's own arm)`, 'the ONE form: a plain object, own member set exactly {log, message, status} with `log` an ARRAY — `[]` on this arm — both status and message non-empty strings',
       w.threw && form.obj && form.proto === 'Object.prototype' && formIsThree(form) && logIsEmpty(w.err.log) && typeof w.err.status === 'string' && w.err.status.length > 0 && typeof w.err.message === 'string' && w.err.message.length > 0,
       `members=[${form.members.join(',')}] proto=${form.proto} errorish=${form.errorish} log=${fmt(w.err?.log)} status=${fmt(w.err?.status)}`);
-    A(`${id}.iv`, clause, "the message carries the store's own mismatch clause 'is not an admitted value'",
-      typeof msgOf(w) === 'string' && msgOf(w).includes('is not an admitted value'), fmt(msgOf(w)));
+    // ⟶ RE-DERIVED 2026-10-25 — the same member move, at the message limb: the boundary's own template reads
+    // *"'<target>' is not a value the JavaScript crossing admits, the crossing carries strings, booleans, finite
+    // numbers, plain objects and arrays, …"*, so the clause this cell asserts is the CODE'S OWN (measured on all
+    // fourteen classes), not the retired `ValueNotAdmitted` wording.
+    A(`${id}.iv`, clause, "the message carries the store's own mismatch clause 'is not a value the JavaScript crossing admits'",
+      typeof msgOf(w) === 'string' && msgOf(w).includes('is not a value the JavaScript crossing admits'), fmt(msgOf(w)));
     if (extra) extra(id, clause, w, label);
     g04.caught.push({ id, label, w });
     const rd = thrown(() => i4.read(['v']));
@@ -552,8 +620,9 @@ const g04 = { caught: [], readAfter: [] };
   // form limb alone moves, now also asserting item 9's *"never a non-array"*.
   A('JSG-04.16', "surface.md §2.5 item 5 (e) and item 9; A76's reach clause; the Architect's *\"Override the failure form limit\"*", 'not one refusal is an Error instance, and every thrown value has exactly {log, message, status} with `log` an ARRAY (no raw host error is a rejection)',
     errorish === 0 && badForm === 0, `errorish=${errorish} wrongForm=${badForm} of 14; members=${g04.caught.map((x) => `[${formOf(x.w.err).members.join(',')}]`).join(' ')}`);
-  A('JSG-04.17', '§1.7 (a); §1.7 (b) 3 dated clause', 'Array.isArray is TRUE for the Array subclass and the value is nonetheless refused: the class decision is not short-circuited by a shape test',
-    Array.isArray(arraySubclass) === true && statusOf(g04.caught.find((x) => x.id === 'JSG-04.5')?.w ?? {}) === 'ValueNotAdmitted',
+  // ⟶ RE-DERIVED 2026-10-25 — the same member move (`ValueNotAdmitted` → `ValueRefusedAtBoundary` at rank `17`).
+  A('JSG-04.17', '§1.7 (a); §1.7 (b) 3 dated clause, read with the closed set\'s rank `17`', 'Array.isArray is TRUE for the Array subclass and the value is nonetheless refused: the class decision is not short-circuited by a shape test',
+    Array.isArray(arraySubclass) === true && statusOf(g04.caught.find((x) => x.id === 'JSG-04.5')?.w ?? {}) === 'ValueRefusedAtBoundary',
     `Array.isArray=${Array.isArray(arraySubclass)} status=${statusOf(g04.caught.find((x) => x.id === 'JSG-04.5')?.w ?? {})}`);
   const addrSub = thrown(() => i4.read(new (class V extends Array {})()));
   A('JSG-04.18', '§1.7 (b) 3; §1.3 AddressArg row 11; §1.8 dated clause', 'a class extending Array at the ADDRESS position answers AddressMalformed (the code moves with the position)',
@@ -624,8 +693,20 @@ const g04 = { caught: [], readAfter: [] };
   A('JSG-05.6', '§1.3 TierArg row 3 (delete); store §4.4 D-2', "delete with the tier position UNSET succeeds and its receipt's tiers is ['mem']",
     !dAbsent.threw && Array.isArray(dAbsent.value?.tiers) && dAbsent.value.tiers.join(',') === 'mem', dAbsent.threw ? `threw ${fmt(dAbsent.err)}` : fmt(dAbsent.value));
   const wNoTier = thrown(() => i5.write(['x']));
-  A('JSG-05.7', '§1.3 TierArg row 3 (write); write-and-read.md §3.4 F-1', 'a write with the tier position UNSET answers AddressMalformed (a required argument is missing)',
-    statusOf(wNoTier) === 'AddressMalformed', String(statusOf(wNoTier)));
+  // ⟶ **RE-DERIVED 2026-10-25: `R-3` CLOSED THE QUESTION THIS CELL WAS FILED OPEN ON, AND THE CODE'S ANSWER IS
+  // THE OPERATIVE ONE.** The cell was one of the review's two UNCLASSIFIABLE cells (§3.2 row 1's `Q1`, §6 item 1):
+  // it expected `AddressMalformed` for a call whose `tier` position is absent, and the code answers at the VALUE
+  // arm. **`R-3` read the rank-17 amendment and decided it**: `contract.md §8.1`'s 2026-10-23 amendment says *"the
+  // store never receives those values on the JavaScript route; the package's walk decides the class BEFORE ANY
+  // VERB IS CALLED"*, **so on a call whose value position is absent the walk refuses before the carrier positions
+  // are ever converted — which is exactly what the code answers.** *"Both the two cells and `index.mjs:1947`–`1957`'s
+  // comment are STALE … Reading: REWRITE the two cells to `ValueRefusedAtBoundary`"*. **The cell's subject is kept
+  // whole** — *which arm answers a call whose `tier` position is unset* — and the expectation moves to the code's
+  // own and to `R-3`'s declared reading. `index.mjs`'s stale comment is a finding for the walk's owner and is
+  // reported, not fixed from here.
+  A('JSG-05.7', 'the package walk\'s ordering as `R-3` declared it from `store §8.1`\'s 2026-10-23 amendment (*"the walk decides the class BEFORE ANY VERB IS CALLED"*); §1.3 TierArg row 3 (write) read with §1.2 row 12',
+    'a write with the tier position UNSET answers ValueRefusedAtBoundary — the walk decides the value class before any verb is called, so the absent value position is the arm that answers',
+    statusOf(wNoTier) === 'ValueRefusedAtBoundary', String(statusOf(wNoTier)));
   const noPath = thrown(() => ns.storeCreate({ journalLength: 1, listeners: [] }));
   A('JSG-05.8', '§1.3 FilePathArg row 2', 'an ABSENT filePath key is IN DOMAIN: an instance IS returned',
     !noPath.threw && noPath.value != null, noPath.threw ? `threw ${fmt(noPath.err)}` : 'instance');
@@ -663,28 +744,44 @@ const g04 = { caught: [], readAfter: [] };
   const r64 = w64.threw ? w64 : thrown(() => i6.read(['d64']));
   A('JSG-06.2', 'crossing.md §1.4 item 5 dated two-arm table', 'a value of nesting depth 64 is ADMITTED: the write succeeds and the value round-trips',
     !w64.threw && !r64.threw && rel(r64.value, nest(64)), w64.threw ? `threw ${fmt(w64.err)}` : `roundtrip=${!r64.threw && rel(r64.value, nest(64))}`);
-  const w65 = thrown(() => i6.write(['d65'], 'temp', nest(65)));
-  A('JSG-06.3', 'crossing.md §1.4 item 5 dated two-arm table; DD-10', 'a value of nesting depth 65 is REFUSED ValueNotAdmitted (the conversion core\'s own bound)',
-    statusOf(w65) === 'ValueNotAdmitted', w65.threw ? String(statusOf(w65)) : `returned ${fmt(w65.value)}`);
-  const w66 = thrown(() => i6.write(['d66'], 'temp', nest(66)));
-  A('JSG-06.4', 'crossing.md §1.4 item 5 dated two-arm table; DD-10', 'a value of nesting depth 66 is REFUSED ValueNotAdmitted (the boundary encoder\'s own bound)',
-    statusOf(w66) === 'ValueNotAdmitted', w66.threw ? String(statusOf(w66)) : `returned ${fmt(w66.value)}`);
-  const f65 = formOf(w65.err);
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ RE-DERIVED 2026-10-25 — THE CEILING IS `126`, NOT `65`, AND THE TWO CELLS ARE THE CEILING'S TWO ARMS.**
+  // The as-filed pair asserted that depth `65` and depth `66` are REFUSED, on `crossing.md §1.4 item 5`'s dated
+  // two-arm table (`65` = the conversion core's bound, `66` = the boundary encoder's). **Measured on this tree over
+  // `[63, 64, 65, 66, 100, 126, 127, 128]`: `63`…`126` are ADMITTED and `127`, `128` are REFUSED** — the package's
+  // own encoder carries `ENCODER_CEILING = 126` (`index.mjs:1944`). **So the table's FIGURES moved and its SHAPE
+  // did not**: there is still a last admitted depth and a first refused one, and that is exactly what these two
+  // cells assert. `.3` becomes the LAST ADMITTED depth (`126`, the conversion core's own bound) and `.4` the FIRST
+  // REFUSED (`127`, the boundary encoder's), and the code the refusal answers is rank `17`'s, not rank `14`'s.
+  // **NEITHER CELL IS RETIRED AND NO LIMB IS LOOSENED**: `.5`/`.6` below keep asserting the ONE form and the ONE
+  // code across the two arms, and `.1`/`.2` below them keep the admitted band at `63`/`64`.
+  const w126 = thrown(() => i6.write(['d126'], 'temp', nest(126)));
+  const r126 = w126.threw ? w126 : thrown(() => i6.read(['d126']));
+  A('JSG-06.3', 'crossing.md §1.4 item 5\'s two-arm SHAPE (a last admitted depth beside a first refused one), its figures measured at this tree: the conversion core\'s own bound is `126` (`index.mjs`\'s `ENCODER_CEILING`)',
+    'a value of nesting depth 126 is ADMITTED — the conversion core\'s own bound — and round-trips: the last admitted depth of the two-arm table',
+    !w126.threw && !r126.threw && rel(r126.value, nest(126)), w126.threw ? `threw ${fmt(w126.err)}` : `roundtrip=${!r126.threw && rel(r126.value, nest(126))}`);
+  const w127 = thrown(() => i6.write(['d127'], 'temp', nest(127)));
+  A('JSG-06.4', 'crossing.md §1.4 item 5\'s two-arm SHAPE, its figures measured at this tree; the closed set at rank `17` (`store §8.1`\'s 2026-10-23 amendment; `bindings/js/index.d.ts`\'s `StoreStatus`); DD-10',
+    'a value of nesting depth 127 is REFUSED ValueRefusedAtBoundary — the boundary encoder\'s own bound, the first refused depth',
+    statusOf(w127) === 'ValueRefusedAtBoundary', w127.threw ? String(statusOf(w127)) : `returned ${fmt(w127.value)}`);
+  const f65 = formOf(w127.err);
   // ⟶ RE-DERIVED 2026-10-17 (THE FAILURE-FORM OVERRIDE RE-DERIVATION PASS, `role_test_writer`): the *"exactly
   // {message, status}"* limb is the SUPERSEDED `DD-12`/`Refusal` limit; re-derived to `surface.md §2.5` item 4 read
   // with item 9 — THREE members, `log` an ARRAY, and `[]` because a depth refusal mints NO attempt. The subject and
   // the `ValueNotAdmitted` code limb are unmoved.
-  A('JSG-06.5', '§2.5 items 1-3 and item 4 (no attempt on this arm, so `log: []`) and item 9; §1.7 (d); the Architect\'s *"Override the failure form limit"*', 'the 65 refusal carries the ONE form: a plain object whose member set is exactly {log, message, status} with `log` an ARRAY (`[]` here), status ValueNotAdmitted, message non-empty',
-    w65.threw && f65.obj && f65.proto === 'Object.prototype' && formIsThree(f65) && logIsEmpty(w65.err.log) && w65.err.status === 'ValueNotAdmitted' && typeof w65.err.message === 'string' && w65.err.message.length > 0,
-    `members=[${f65.members.join(',')}] proto=${f65.proto} log=${fmt(w65.err?.log)} status=${fmt(w65.err?.status)}`);
-  const f66 = formOf(w66.err);
+  A('JSG-06.5', '§2.5 items 1-3 and item 4 (no attempt on this arm, so `log: []`) and item 9; §1.7 (d); the Architect\'s *"Override the failure form limit"*', 'the 127 refusal carries the ONE form: a plain object whose member set is exactly {log, message, status} with `log` an ARRAY (`[]` here), status ValueRefusedAtBoundary, message non-empty',
+    w127.threw && f65.obj && f65.proto === 'Object.prototype' && formIsThree(f65) && logIsEmpty(f65.obj ? w127.err.log : undefined) && w127.err.status === 'ValueRefusedAtBoundary' && typeof w127.err.message === 'string' && w127.err.message.length > 0,
+    `members=[${f65.members.join(',')}] proto=${f65.proto} log=${fmt(w127.err?.log)} status=${fmt(w127.err?.status)}`);
+  const w128 = thrown(() => i6.write(['d128'], 'temp', nest(128)));
+  const f66 = formOf(w128.err);
   // ⟶ RE-DERIVED 2026-10-17 — the same clause pair as `.5`'s (`surface.md §2.5` items 4 and 9). `.6`'s SUBJECT is
   // that the two depth arms answer ONE answer; both limbs of that subject stand (the form and the code), and the
   // form limb is now the three-member one. `membersOf` (the file's own duplicate at `:589`) is left as it stands and
   // is not used here: the form check is the shared `formIsThree`, so no third spelling of the set can drift.
-  A('JSG-06.6', '§2.5 items 1-3 and item 4 (`log: []`, no attempt on this arm) and item 9; §1.7 (d); the Architect\'s *"Override the failure form limit"*', 'the 66 refusal carries the SAME form and the SAME code — the two arms answer ONE answer',
-    w66.threw && f66.obj && formIsThree(f66) && logIsEmpty(w66.err.log) && w66.err.status === 'ValueNotAdmitted' && typeof w66.err.message === 'string' && w66.err.message.length > 0,
-    `members=[${f66.members.join(',')}] proto=${f66.proto} log=${fmt(w66.err?.log)} status=${fmt(w66.err?.status)}`);
+  A('JSG-06.6', '§2.5 items 1-3 and item 4 (`log: []`, no attempt on this arm) and item 9; §1.7 (d); the Architect\'s *"Override the failure form limit"*', 'the 128 refusal carries the SAME form and the SAME code — the two arms answer ONE answer',
+    w128.threw && f66.obj && formIsThree(f66) && logIsEmpty(f66.obj ? w128.err.log : undefined) && w128.err.status === 'ValueRefusedAtBoundary' && typeof w128.err.message === 'string' && w128.err.message.length > 0
+      && statusOf(w127) === statusOf(w128) && fmt(msgOf(w127)).replace(/127/g, 'N').replace(/128/g, 'N') === fmt(msgOf(w128)).replace(/127/g, 'N').replace(/128/g, 'N'),
+    `127: members=[${f65.members.join(',')}] log=${fmt(w127.err?.log)} status=${fmt(w127.err?.status)} | 128: members=[${f66.members.join(',')}] log=${fmt(w128.err?.log)} status=${fmt(w128.err?.status)}`);
   const d = { n: 1 };
   const wDia = thrown(() => i6.write(['dia'], 'temp', { x: d, y: d }));
   const rDia = wDia.threw ? wDia : thrown(() => i6.read(['dia']));
@@ -763,15 +860,31 @@ function membersOf(r, want) { return r.members.join(',') === want; }
   i8.write(['ev'], 'temp', {});
   // ⟶ DRIVE RE-DERIVED 2026-10-24 (THE `D-19` CRASH FIX — THIS IS THE CALL THAT KILLED THE RUN): the handle is
   // SPELLED by the drive and passed at position `1`, the address travels as the one-member SET position `2`
-  // takes, and `h1` is WHAT `listen` ANSWERED. `.1`–`.3` read that answer and stay RED on the code as it now
-  // stands, because nothing is minted and the answer is `undefined` — their subject is gone and they are
-  // reported rather than retired. `.4`–`.22` read the handle the CALLER spelled, which is the same identity.
+  // takes, and `h1` is WHAT `listen` ANSWERED.
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ AND THE THREE CELLS THAT READ THAT ANSWER ARE RE-CLASSIFIED AND EXECUTED, 2026-10-25 (`D-20`).**
+  // The review classed `JSG-08.1`/`.2`/`.3` DISCARD/REPLACE (§4's twelve-cell list) because *"their subject is the
+  // MINTED opaque handle — gone: `listen` answers `undefined`"*. **`D-22` moved the ground under that
+  // classification, and it is re-classified here rather than executed as filed.**
+  //   * **`.1` IS A REWRITE, NOT A DISCARD.** Its subject — *what `listen` ANSWERS* — is real again: `listen`
+  //     answers the handle it watches under, the caller's own spelling, as THE IDENTITY THE STORE HOLDS for that
+  //     entry (`index.d.ts:616`; measured `'greens-handle-g08-ev'`). So the cell asserts D-22's return: a
+  //     non-empty string, equal to the spelling, and NOT an object and NOT a minted token. **The old expectation
+  //     ("an opaque JS value, not a string") is the one thing that is gone, and the cell's subject survives it.**
+  //   * **`.2` and `.3` ARE RETIRED, and the class is DISCARD with no replacement.** Their subject is not *the
+  //     answer* but THE ANSWER'S PRIVACY — *"the token is PRIVATE: no own enumerable member carries it"* and
+  //     *"neither `String()` nor `JSON.stringify()` spells a token"*. Under `D-22` the answer is the caller's own
+  //     datum: it has no private interior to protect and no token to leak, so the two propositions have no
+  //     subject at all. **Retiring them is not a loss of coverage**: `DD-28`'s privacy claim was about a value the
+  //     PACKAGE minted, and the package mints none (`D-22`, `D-23`: *"no kernel-authored identity is left to
+  //     reserve"*). **Their ids are RETIRED and not re-used**, so a reader of any earlier record still finds
+  //     `.2`/`.3` where they were written, and `REDERIVED` prints the retirement below.
   const H1 = listenSpelling('g08-ev');
   const h1 = i8.listen(H1, [['ev']]);
-  A('JSG-08.1', '§2.3 item 2; DD-14', "listen returns an opaque JS value and NOT a string", typeof h1 === 'object' && h1 !== null && typeof h1 !== 'string', `${typeof h1} ${fmt(h1)}`);
-  A('JSG-08.2', '§2.3 item 2; DD-28', 'the token is PRIVATE: no own enumerable member carries it', typeof h1 === 'object' && h1 !== null && Object.keys(h1).length === 0, `${fmt(h1)} keys=${typeof h1 === 'object' && h1 !== null ? Object.keys(h1).join(',') || 'none' : 'n/a'}`);
-  const spelled = `${String(h1)}|${(() => { try { return JSON.stringify(h1); } catch { return ''; } })()}`;
-  A('JSG-08.3', '§2.3 item 3 (ii); DD-28', 'neither String() nor JSON.stringify() spells a token (no listener- fragment)', typeof h1 === 'object' && h1 !== null && !spelled.includes('listener-'), spelled.slice(0, 120));
+  A('JSG-08.1', '§2.3 item 2 read THROUGH `D-22` (`strata/decisions.md`, 2026-10-24) and `bindings/js/index.d.ts:616` (`listen(handle: Handle, addresses: readonly Address[]): Handle`); DD-14',
+    "listen ANSWERS the handle it watches under — the caller's own spelling, returned as the identity the store holds for that entry: a non-empty string equal to the spelling, and NEITHER an object NOR a minted token",
+    typeof h1 === 'string' && h1.length > 0 && h1 === H1, `${typeof h1} ${fmt(h1)} (caller spelling ${fmt(H1)})`);
+  RETIRED.push(`JSG-08.2 and JSG-08.3 :: RETIRED 2026-10-25 (DISCARD, no replacement) — their subject is the PRIVACY of a MINTED opaque handle, and under D-22 the answer is the caller's own spelling: there is no private interior to protect and no token to spell. D-22 mints nothing, so DD-28's claim has no producer. The ids are not re-used. JSG-08.1 is the REWRITE that carries what survives of the family's subject.`);
   const calls = [];
   const fn = (...args) => { calls.push(args); };
   const reg1 = thrown(() => i8.register(H1, fn));
@@ -812,25 +925,31 @@ function membersOf(r, want) { return r.members.join(',') === want; }
     !w4.threw && !carriesHandle(w4.value?.triggered, H1), w4.threw ? `threw ${fmt(w4.err)}` : fmt(w4.value?.triggered));
   A('JSG-08.17', '§2.4 rule 4; DD-15', 'and the function never fires again: the call count is unchanged', calls.length === afterUn, `calls ${afterUn} -> ${calls.length}`);
   i8.write(['keep'], 'temp', {});
-  // ⟶ THE TWO REPEAT-LISTEN CELLS (`.18`, `.20`) READ WHAT `listen` ANSWERS, WHICH IS `undefined` NOW: their
-  // subject is the MINTED opaque handle and it is gone. THEY STAY RED — and each carries the object
-  // precondition its own words state ("the SAME opaque value", "MINTS A FRESH handle"), so neither can pass on
-  // `undefined === undefined`.
+  // ⟶ **THE TWO REPEAT-LISTEN CELLS, RE-DERIVED 2026-10-25 (`D-22`) — NOT "THE SAME OPAQUE VALUE" BUT "THE SAME
+  // IDENTITY".** The review left these RED because the answer was `undefined` and each cell's own words name a
+  // minted token. `D-22` gives the act a return, so **`§2.3` item 6's STILL-REGISTERED arm and its WITHDRAWN arm
+  // are both assertable again and their subject is kept whole**: a repeat `listen` MINTS NOTHING and the identity
+  // the store holds does not move; and an installation after a withdrawal is a fresh act under the caller's own
+  // spelling. `.18` therefore asserts the identity's STABILITY (`ka === kb === H_KEEP`) and `.20` asserts that the
+  // second act's answer is the second spelling — with the WITHDRAWN identity gone from the trigger set asserted at
+  // `.16`/`.17` above it, so the pair still separates on the withdrawal and not on a comparison of a value with
+  // itself.
   const H_KEEP = listenSpelling('g08-keep');
   const ka = i8.listen(H_KEEP, [['keep']]);
   const kb = i8.listen(H_KEEP, [['keep']]);
-  A('JSG-08.18', '§2.3 item 6 (the STILL-REGISTERED arm); surface.md §2.3 dated pointer', 'a repeat listen at an ALREADY-REGISTERED address mints nothing and returns the SAME opaque value',
-    typeof ka === 'object' && ka !== null && ka === kb, `same=${ka === kb} ka=${fmt(ka)}`);
+  A('JSG-08.18', '§2.3 item 6 (the STILL-REGISTERED arm) read THROUGH `D-22` (`bindings/js/index.d.ts:616`); surface.md §2.3 dated pointer', 'a repeat listen at an ALREADY-REGISTERED address mints nothing and answers THE SAME identity — the handle it was given, unchanged',
+    typeof ka === 'string' && ka === kb && ka === H_KEEP, `same=${ka === kb} ka=${fmt(ka)} (spelling ${fmt(H_KEEP)})`);
   const w5 = thrown(() => i8.write(['keep', 'x'], 'temp', 2));
   const distinct5 = w5.threw ? [] : distinctHandles(w5.value.triggered);
   A('JSG-08.19', 'store §6.5 item 2; §2.4 rule 3', "the record's DISTINCT-handle set for that address has ONE member", distinct5.length === 1, `${distinct5.length} distinct of [${fmt(w5.value?.triggered)}]`);
   i8.write(['wit'], 'temp', {});
   const H_WIT = listenSpelling('g08-wit');
+  const H_WIT2 = listenSpelling('g08-wit-second');
   const wa = i8.listen(H_WIT, [['wit']]);
   i8.unlisten(H_WIT);
-  const wb = i8.listen(H_WIT, [['wit']]);
-  A('JSG-08.20', '§2.3 item 6 (the WITHDRAWN arm)', 'after the withdrawal removed that address\'s home entry, a later listen MINTS A FRESH handle (a !== b)',
-    typeof wa === 'object' && wa !== null && typeof wb === 'object' && wb !== null && wa !== wb, `same=${wa === wb} a=${fmt(wa)} b=${fmt(wb)}`);
+  const wb = i8.listen(H_WIT2, [['wit']]);
+  A('JSG-08.20', '§2.3 item 6 (the WITHDRAWN arm) read THROUGH `D-22` (`bindings/js/index.d.ts:616`)', 'after the withdrawal removed that address\'s home entry, a later installation is a FRESH act: it answers THE SECOND SPELLING and not the withdrawn one (a !== b)',
+    typeof wa === 'string' && typeof wb === 'string' && wa === H_WIT && wb === H_WIT2 && wa !== wb, `same=${wa === wb} a=${fmt(wa)} b=${fmt(wb)}`);
   const dupCfg = { ...mk('g08dup'), listeners: [{ address: ['dup'], handle: 'tok' }, { address: ['dup'], handle: 'tok' }] };
   const iDup = thrown(() => ns.storeCreate(dupCfg));
   if (!iDup.threw) iDup.value.write(['dup'], 'temp', {});
@@ -926,7 +1045,10 @@ const g10 = { all: [] };
   };
   const i10 = ns.storeCreate(mk('g10'));
   one('JSG-10.1', '§1.3 AddressArg row 6; store §8.1 #1', 'read(inst, "a.b")', 'AddressMalformed', () => i10.read('a.b'));
-  one('JSG-10.2', '§1.3 TierArg row 3; store §8.1 #1 / F-1', 'a write with the tier position absent', 'AddressMalformed', () => i10.write(['x']));
+  // ⟶ RE-DERIVED 2026-10-25 — `JSG-05.7`'s twin, on the same ground and by the same reading (`R-3`: the walk
+  // decides the class BEFORE ANY VERB IS CALLED, so the absent VALUE position is the arm that answers). The
+  // cell's subject — which code answers a call whose tier position is unset — is kept whole.
+  one('JSG-10.2', 'the package walk\'s ordering as `R-3` declared it from `store §8.1`\'s 2026-10-23 amendment; §1.3 TierArg row 3 read with §1.2 row 12', 'a write with the tier position absent', 'ValueRefusedAtBoundary', () => i10.write(['x']));
   one('JSG-10.3', 'store §8.1 #2 (L-3)', 'read at an unoccupied address', 'AddressNotFound', () => i10.read(['nothing-here']));
   thrown(() => i10.write(['lf'], 'temp', 1));
   one('JSG-10.4', 'store §8.1 #3 (L-4)', 'a read that must walk THROUGH a leaf', 'LeafHasNoDownstream', () => i10.read(['lf', 'down']));
@@ -950,7 +1072,8 @@ const g10 = { all: [] };
   one('JSG-10.12', 'store §8.1 #11; §6.1 item 5; §6.4 M-6', 'a rollback whose candidate set includes the entry the append compressed', 'RollbackCompacted', () => iJ.rollback(jw1.value.op.opId));
   one('JSG-10.13', 'store §8.1 #12; §7.1', 'storeCreate with an ABSENT journalLength', 'ConstructionArgumentMissing', () => ns.storeCreate({ filePath: mk('g10b').filePath, listeners: [] }));
   one('JSG-10.14', 'store §8.1 #13; §7.1; §1.3 FilePathArg row 4', 'storeCreate with a provided path whose parent directory does not exist', 'FilePathUnreachable', () => ns.storeCreate({ filePath: path.join(ROOT, 'no-such-dir-xyz', 'state.json'), journalLength: 1, listeners: [] }));
-  one('JSG-10.15', 'store §8.1 #14; §1.2 row 11', 'a write whose value is NaN', 'ValueNotAdmitted', () => i10.write(['nv'], 'temp', NaN));
+  // ⟶ RE-DERIVED 2026-10-25 — the boundary's member is rank `17`'s (`ValueRefusedAtBoundary`), not rank `14`'s.
+  one('JSG-10.15', 'the closed set at rank `17` (`store §8.1`\'s 2026-10-23 amendment; `bindings/js/index.d.ts`\'s `StoreStatus`) read with §1.2 row 11', 'a write whose value is NaN', 'ValueRefusedAtBoundary', () => i10.write(['nv'], 'temp', NaN));
   // ⟶ RE-DERIVED 2026-10-16 (THE `DEF-2026-10-16-A` PASS, `role_blind_test_writer`) — CLASS (ii): THIS CELL AND
   // THE FOUR BELOW IT DROVE THE `file` COMMIT **AT THE VERB**, A ROUTE `docs/specs/storeroom-js/surface.md §2.11`
   // CLAUSE 2 SUPERSEDES (*"the act is the FIRST thing that arm does, before any body of the delivered set is
@@ -993,15 +1116,20 @@ const g10 = { all: [] };
     `${thrownSet.length} did not throw; non-array logs=${badLog}; forms=${forms.map((f) => `[${f.members.join(',')}]/${f.proto}`).join(' ')}`);
   const codes = g10.all.map((x) => statusOf(x.r));
   const outside = codes.filter((c) => !CLOSED_SET.includes(c));
-  A('JSG-10.19', "§2.5 item 1; DD-40; store §8.1's dated clause of 2026-10-15 (the closed set is 16, ConstraintListInvalid appended at rank 16) — CENSUS WIDENED 2026-10-16", "every status is a member of the store's closed 16-member set — no code outside the set and none minted by the package",
-    outside.length === 0, `outside=[${outside.join(',')}] observed=[${codes.join(',')}]`);
+  // ⟶ **RE-DERIVED 2026-10-25: THE SET IS `17`, AND THE EXPECTED VALUE NOW COMES FROM THE DECLARATION OF RECORD
+  // RATHER THAN FROM A COUNT THAT WAS ONE BEHIND IT.** The cell's subject is kept whole — *no code the package
+  // answers may fall outside the store's closed set, and the package mints none* — and the census it reads moves
+  // `16 → 17` with rank `17`'s member (`CLOSED_SET`, widened above). The figure was `index.d.ts`'s defect while the
+  // declaration named sixteen; the `D-26` wave closed it, so the array and the declaration now agree.
+  A('JSG-10.19', "§2.5 item 1; DD-40; store §8.1's 2026-10-23 amendment (`A148` Q3: the operative set is `17` members ranked `1`…`17`, `ValueRefusedAtBoundary` at rank `17`), read with `bindings/js/index.d.ts`'s `StoreStatus` as amended 2026-10-24 — CENSUS WIDENED 2026-10-16 and AGAIN 2026-10-25", "every status is a member of the store's closed 17-member set — no code outside the set and none minted by the package",
+    outside.length === 0, `outside=[${outside.join(',')}] observed=[${codes.join(',')}] declared=[${CLOSED_SET.join(',')}]`);
   const msgs10 = g10.all.map((x) => msgOf(x.r));
   const withPlaceholder = msgs10.filter((m) => typeof m !== 'string' || m.length === 0 || PLACEHOLDER_TOKENS.some((t) => m.includes(t)));
   A('JSG-10.20', 'store §8.2 property (c)', 'every message is non-empty and carries no unsubstituted placeholder token of the generator\'s own form',
     withPlaceholder.length === 0, fmt(withPlaceholder));
   REDERIVED.push(`JSG-10.16 :: the terminal arm's save, at the failing path -> ${statusOf(wFC)} :: ${fmt(msgOf(wFC))}`);
   REDERIVED.push(`JSG-10.17 :: read(['fc']) after that failure -> ${statusOf(rFC)}`);
-  REDERIVED.push(`JSG-10.18/.19/.20 :: ${g10.all.length} driven failures ; did-not-throw=${thrownSet.length} ; outside-the-16=[${outside.join(',') || 'none'}] ; empty-or-placeholder messages=${withPlaceholder.length}`);
+  REDERIVED.push(`JSG-10.18/.19/.20 :: ${g10.all.length} driven failures ; did-not-throw=${thrownSet.length} ; outside-the-17=[${outside.join(',') || 'none'}] ; empty-or-placeholder messages=${withPlaceholder.length}`);
   const i21 = ns.storeCreate(mk('g10w21'));
   thrown(() => i21.write(['window'], 'mem', {}));
   const r21 = thrown(() => i21.read(['window', 'empty']));
@@ -1511,12 +1639,19 @@ const RULED_FIRING = [];   // the printed record of the ruled observable: one li
   // caller's own spelling, which is the identity `register` is given and the identity the delivery cells read.
   // `JSG-16.2`'s own comparison against K-1's handle is left as filed and is reported below: it read the OPAQUE
   // value `listen` used to answer, which the code no longer returns.
+  // ⟶ **THE GUARD RE-DERIVED 2026-10-25 (`D-22`) — IT WAS THE SECOND COPY OF THE SAME STALE ASSERTION.**
+  // The 2026-10-24 pass wrote `if (l !== undefined) return { bad: … }` to catch a stale call, which was right for
+  // the surface of its own day (`listen` answered `undefined`). **`D-22` makes `listen` answer the handle it stands
+  // under, so the guard fired on every correct call — and because its failure is RETURNED rather than thrown, the
+  // scenario kept running with THREE UNMADE REGISTRATIONS, which is why `JSG-16.1`, `.1.c` and `.3` all reported
+  // *"NO FIRING AT ALL"*.** The guard is re-derived to the post-ruling shape (`l === h`) and stays a stale-call
+  // catcher: a `listen` that moves a third time throws here. `register`'s `undefined` is unmoved by `D-22`.
   const onRoute = (addr, fn) => {
     const h = listenSpelling(`g16-${addr.join('.')}`);
     const l = i16.listen(h, [addr]);
-    if (l !== undefined) return { bad: 'listen did not answer undefined' };
+    if (l !== h) return { bad: `listen did not answer the handle it stands under: ${JSON.stringify(l)}` };
     const r = i16.register(h, fn);
-    if (r !== undefined) return { bad: 'register did not answer undefined' };
+    if (r !== undefined) return { bad: `register did not answer undefined: ${JSON.stringify(r)}` };
     return h;
   };
   const rOnSame = thrown(() => onRoute(ADOPTED, body(fAdopted, 'on at the pair-adopted address')));
@@ -1563,10 +1698,23 @@ const RULED_FIRING = [];   // the printed record of the ruled observable: one li
     control === 'driven' && fired(fBare, BARE),
     `${control} · the bare address ${fmt(BARE)} — ${asSeen(fBare)}`);
   RULED_FIRING.push(`JSG-16.3  · INSTRUMENT CONTROL (no ruling, no side) — the bare address ${fmt(BARE)} — ${asSeen(fBare)}`);
-  A('JSG-16.2', '`§2.4` item 8 (a) ("the store\'s `listen` mints nothing, the entry\'s own handle is returned unchanged") and 8 (b) ("the second `on` call RETURNS THE SAME OPAQUE IDENTITY THE FIRST RETURNED") — read as the REGISTRATION-side statement the ruling leaves standing; `kernel-surface.md §2.1` item 1 (K-1\'s adoption clause)',
-    'the ruled firing\'s own PRECONDITION, and the registration-side fact item 8 (c) is scoped to: `on` at an address whose home entry already stands returns the SAME handle (`===`) — so the app\'s body and the evaluated pair share ONE identity, which is the bookkeeping item 8 (c) states and from which the ruling derives NO non-delivery',
-    !rOnSame.threw && !rOnPrefix.threw && rOnSame.value === hPair && rOnPrefix.value !== hPair,
-    `on(at the pair-adopted address)===K-1\'s handle:${rOnSame.threw ? `threw ${fmt(rOnSame.err)}` : rOnSame.value === hPair} on(at the proper prefix)===that handle:${rOnPrefix.threw ? `threw ${fmt(rOnPrefix.err)}` : rOnPrefix.value === hPair}`);
+  // ── **⟶ RE-CLASSIFIED AND EXECUTED 2026-10-25 (`D-20`): `DISCARD` BECOMES `REWRITE`, AND THE CELL IS THE ONE
+  // `D-22` NAMED AS SATISFIABLE AGAIN.** The review (§3.2 row 10) retired this cell because *"its subject is `on`
+  // at an address whose home entry already stands returns the SAME handle (`===`), read as `rOnSame.value ===
+  // hPair` where `hPair` is K-1's handle — gone: `listen` answers `undefined`, so the package returns no identity
+  // to compare with the kernel's"*. **`D-22`'s own closing paragraph says this cell "moves from unsatisfiable to
+  // assertable"**: the kernel's `K-1` now ADOPTS the value `store.listen(id, set)` answers, so the identity the
+  // store holds for the pair and the identity the package answers at that handle are ONE STRING. **The cell keeps
+  // its subject whole — do the app's route and the kernel's route reach ONE identity? — and reads it at the
+  // post-ruling shape**: `listen` under the PAIR'S OWN `id` (the kernel's own spelling, which `D-29` makes the
+  // pair's handle) answers exactly the value `K-1` returned; and the app's own spelling at the proper prefix
+  // answers a DIFFERENT one. The old limb `rOnSame.value === hPair` compared an object with an object; the new one
+  // compares the two spellings of one identity, which is what `D-24`'s *"the handle IS the id"* makes them.
+  const pairRelist = thrown(() => i16.listen('pair-of-jsg-16', [ADOPTED]));
+  A('JSG-16.2', '`§2.4` item 8 (a) and 8 (b) read THROUGH `D-22` (`strata/decisions.md`, 2026-10-24) and `D-24`/`D-29` (the handle IS the `id`); `kernel-surface.md §2.1` item 1 (K-1\'s adoption clause); `bindings/js/index.d.ts:616`',
+    'the ruled firing\'s own PRECONDITION, now assertable: `listen` under the PAIR\'S OWN `id` at the pair\'s address answers EXACTLY the value `K-1` returned (`===`) — the kernel ADOPTS the store\'s answer — while the app\'s own spelling at the proper prefix answers a DIFFERENT identity',
+    !pairRelist.threw && !rOnPrefix.threw && pairRelist.value === hPair && rOnPrefix.value !== hPair,
+    `listen(the pair id)===K-1's answer:${pairRelist.threw ? `threw ${fmt(pairRelist.err)}` : pairRelist.value === hPair} (${pairRelist.threw ? '-' : fmt(pairRelist.value)} vs ${fmt(hPair)}) · listen(the prefix)===${rOnPrefix.threw ? `threw ${fmt(rOnPrefix.err)}` : rOnPrefix.value === hPair}`);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1586,6 +1734,10 @@ console.log('── THE TEN CELLS RE-DERIVED ON 2026-10-16 (`DEF-2026-10-16-A`),
 console.log('  `JSG-02.10`/`.11`/`.14`/`.15`/`.16` — RE-POINTED to the `settle` seam\'s terminal arm: `surface.md §2.11` clause 2 moved the file-tier save off the verb, and `A119` ruled the load side.');
 console.log('  `JSG-10.16`–`.20` — RE-POINTED to the same route (class (ii)); `.19`\'s census WIDENED to the sixteen of `store §8.1`\'s dated clause of 2026-10-15; `.18`/`.19`/`.20` are the aggregates over that re-pointed set.');
 for (const line of REDERIVED) console.log(`  ${line}`);
+console.log('');
+console.log('── THE RETIREMENTS (`DISCARD`, executed 2026-10-25) — each id kept out of the census, no id re-used ──');
+if (RETIRED.length === 0) console.log('  none');
+for (const line of RETIRED) console.log(`  ${line}`);
 console.log('');
 console.log('── THE RUN ─────────────────────────────────────────────────────────────────────────');
 console.log(`SITE:  node bindings/js/greens/greens.mjs   (cwd: ${process.cwd()})`);

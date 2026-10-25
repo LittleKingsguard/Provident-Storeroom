@@ -29,7 +29,7 @@
 // House form (the corpus's own):
 //   RESULT <id> <verdict> :: <detail> :: <clause>
 //   verdicts: PASS | FAIL | LAYER-LIMIT | OBSERVED | GAP | AMENDMENT-PENDING
-//             | FINDING
+//             | NONRUN | FINDING
 //   PASS               — the clause's own observable was produced by the run.
 //   FAIL               — the run answered something the clause does not declare.
 //   LAYER-LIMIT        — the clause's expectation is NOT reachable from THIS
@@ -37,11 +37,18 @@
 //   OBSERVED           — the run's value is RECORDED and NOT asserted.
 //   GAP                — no cell could be derived from the clause.
 //   AMENDMENT-PENDING  — the clause is mid-amendment; the cell is not a pass.
+//   NONRUN             — the cell was DECLARED and NEVER EXECUTED (a scenario's
+//                        early return, or its own throw). Neither a pass nor a
+//                        failure, and — per D-21 — not an exit 0 either.
 //   FINDING            — the live run CONTRADICTS a declared verdict.
 //
 // RUN:  node bindings/js/greens/json-acceptance-set-live.mjs   (from the repo root)
-// EXIT: 0 iff no cell FAILed and no cell was a FINDING.  A LAYER-LIMIT, an
-//       OBSERVED, a GAP and an AMENDMENT-PENDING are not failures.
+// EXIT: 0 iff no cell FAILed, none was a FINDING, and NONE WAS NON-EXECUTED.
+//       `D-21` (strata/decisions.md, 2026-10-24): *"A runner whose cells are red,
+//       or whose cells never ran, may not exit 0."*  So a GAP, an
+//       AMENDMENT-PENDING and a NONRUN each force exit 1, and the three are named
+//       on the exit line.  A LAYER-LIMIT and an OBSERVED cell EXECUTED and stay
+//       non-failing.
 // ============================================================================
 import fs from 'node:fs';
 import os from 'node:os';
@@ -92,7 +99,16 @@ const describe = (e) => {
   return `${typeof e} ${JSON.stringify(e)}`;
 };
 
-const RANK = { PASS: 0, OBSERVED: 0, GAP: 0, 'LAYER-LIMIT': 0, 'AMENDMENT-PENDING': 0, FAIL: 2, FINDING: 2 };
+// ⟶ **`D-21` (2026-10-24) IMPLEMENTED HERE, 2026-10-25.** *"A runner whose cells are red, or whose cells never
+// ran, may not exit `0`. … the 'cell never ran' case is owed an explicit third state — neither `PASS` nor `FAIL`
+// may be printed for a cell that did not execute."*  This runner's own vocabulary already carried two such states
+// — `GAP` (*"no cell could be derived"*) and `AMENDMENT-PENDING` (*"the clause is mid-amendment; the cell is not a
+// pass"*) — and a third is added now: **`NONRUN`**, for a declared cell that a scenario's early `return` or its
+// own throw kept from executing. **`NONRUN` RANKS AS HIGH AS `FAIL` FOR THE EXIT AND IS NEVER A PASS**, and the
+// three non-execution states are named on the exit line so a reader of the code alone can tell what it read.
+// `LAYER-LIMIT` and `OBSERVED` stay at rank `0` on `D-21`'s own test: both cells EXECUTED — the layer's reach was
+// driven and reported, and the observed value was recorded — and neither is a red.
+const RANK = { PASS: 0, OBSERVED: 0, 'LAYER-LIMIT': 0, GAP: 2, 'AMENDMENT-PENDING': 2, NONRUN: 2, FAIL: 2, FINDING: 2 };
 function record(id, verdict, detail, clause) {
   CELLS.push({ id, verdict, detail, clause });
   console.log(`RESULT ${id} ${verdict} :: ${detail} :: ${clause}`);
@@ -126,6 +142,8 @@ function observed(id, clause, observable, body) {
   record(id, 'OBSERVED', `${observable} :: ${value}`, clause);
 }
 function gap(id, clause, reason) { record(id, 'GAP', reason, clause); }
+// the third state: a cell this run DECLARED and never executed (`D-21`)
+function nonrun(id, clause, reason) { record(id, 'NONRUN', `${reason} :: THE CELL DID NOT EXECUTE — neither PASS nor FAIL is printed for it`, clause); }
 
 function scenario(id, title, start, steps, body) {
   SCENARIO = id;
@@ -172,24 +190,24 @@ const keyOf = (store, key) => tryCall(() => store.read([key]));
 
 // THE DOCS AS THEY STAND NOW — the depth class's counting convention is being
 // amended, so the EXPECTATION IS READ FROM THE DOCUMENTS, NOT HARD-CODED.
-const readDoc = (p) => { try { return fs.readFileSync(path.join(REPO, p), 'utf8'); } catch (e) { return ''; } };
-const CARRIER = readDoc('docs/specs/storeroom-native/seams-and-lifecycle.md');
-const DECISIONS = readDoc('docs/decisions.md');
-const SET = readDoc('docs/specs/storeroom-json-acceptance-set-greens.md');
-
-// A144 (1): "an image of `127` CONTAINERS (the root counted) IS ACCEPTED and an
-// image of `128` CONTAINERS IS REFUSED".
-const ACCEPT_FIG = DECISIONS.match(/an image of `(\d+)` CONTAINERS \(the root counted\) IS ACCEPTED/);
-const REFUSE_FIG = DECISIONS.match(/an image of `(\d+)` CONTAINERS IS REFUSED/);
-const DECLARED_ACCEPT = ACCEPT_FIG ? Number(ACCEPT_FIG[1]) : null;   // containers, the root counted
-const DECLARED_REFUSE = REFUSE_FIG ? Number(REFUSE_FIG[1]) : null;   // containers, the root counted
-const CONVENTION_DECLARED = /COUNTING CONVENTION IS (NAMED|DECLARED)/.test(DECISIONS)
-  || /THE ROOT OBJECT IS THE FIRST LEVEL/.test(DECISIONS);
-const CARRIER_HAS_CONVENTION = /ROOT OBJECT IS THE FIRST LEVEL|COUNTING CONVENTION IS (NAMED|DECLARED)/.test(CARRIER);
-const setRow = (id) => {
-  const m = SET.match(new RegExp(`\\| \\*\*\`${id}\`\\*\\* \\|([^\\n]*)`));
-  return m ? m[1].trim() : '(the set file has no row for this id)';
-};
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+// **⟶ `D-17` EXECUTED HERE, 2026-10-25 (`D-20`'s pass): THE DOCUMENTARY READS ARE GONE, NOT MADE LOUDER.**
+// `D-17` (`strata/decisions.md`, 2026-10-24: *"Rewrite or retire the tests that point at docs. Tests are for
+// code."*) names **this very helper** as its most dangerous site: *"`readDoc` with `catch → return ''` … turns an
+// `ENOENT` into an EMPTY STRING, so its cells assert against nothing and may be reporting FALSE GREENS on this
+// tree right now. **A read that cannot fail cannot be trusted to have passed.**"* Three reads fed `JAS-07`'s two
+// boundary cells and `JAS-12`'s gap cell with figures PARSED OUT OF `docs/**` — and because the archival moved
+// those paths, all three came out empty and the cells evaporated (`JAS-07.1` recorded `AMENDMENT-PENDING`,
+// `JAS-07.2` NEVER RAN, `JAS-12.1` recorded `GAP`, and both scenarios still printed `PASS`).
+// **WHAT REPLACES THEM IS BEHAVIOUR, WHICH IS CODE:** `probeDepth` below derives the loader's boundary from the
+// artifact under test — the deepest foreign image that LOADS and the shallowest that does not, with monotonicity
+// asserted on both sides — and the boundary cells assert that MEASURED bracket. **This file opens no document any
+// longer, and nothing in it can pass on a file it could not read.**
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+// THE BRACKET THE PROBE SEARCHES: wide enough that the whole admitted band is inside it, and finite so the run
+// terminates. `PROBE_HI` is the first container count this probe will not ask about.
+const PROBE_LO = 1;
+const PROBE_HI = 140;
 
 // THE IMAGE OF n CONTAINERS (the root object counted as the first level):
 // `{"a": [[[ ... 0 ... ]]]}` — the root object plus (n-1) nested arrays.
@@ -409,19 +427,16 @@ scenario('JAS-06', 'the widening class: the loader accepts an escaped surrogate 
   });
 
 // =============================================================== JAS-07 =====
-// CLASS 4, THE NESTING DEPTH — RE-DRIVEN AGAINST THE FINAL WORDING.
-// The expectation is READ FROM THE DOCUMENTS (A143 (1) / A144 (1)), not
-// hard-coded here, and the image is a FOREIGN FILE HAND-WRITTEN ON DISK.
-scenario('JAS-07', 'class 4: the nesting depth — the refused boundary and the last accepted one',
+// CLASS 4, THE NESTING DEPTH — RE-DRIVEN 2026-10-25 AGAINST BEHAVIOUR INSTEAD OF A DOCUMENT (`D-17`; the review's
+// §3.2 row 33). Two of this file's three documentary reads fed this scenario; with them gone the boundary is
+// DERIVED FROM THE ARTIFACT UNDER TEST, which is the only oracle `D-17` leaves a cell: the deepest foreign image
+// that LOADS and the shallowest that does not, plus monotonicity on both sides of that boundary.
+scenario('JAS-07', 'class 4: the nesting depth — the loader\'s boundary, derived from the run itself',
   "A FOREIGN IMAGE HAND-WRITTEN BY HAND at a fresh path in a real temporary directory, carrying N nested containers (the root object counted as the first level), booted by the package's own `storeCreate`.",
-  'write the bytes at the path; boot the store over them; read the whole register and the key; settle on the register the caller sees.',
+  'write the bytes at the path; boot the store over them; read the whole register and the key; the probe finds the LAST ADMITTED and the FIRST REFUSED container count and asserts the bracket on both sides.',
   () => {
-    const C7 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (4) ("A NESTING DEPTH OF 128 OR MORE IS REFUSED") + the counting convention declared at docs/decisions.md · A143 (1) and A144 (1); A143 (3) (the refusal class is a FOREIGN file)';
-    console.log(`  DOCS  the counting convention declared in docs/decisions.md: ${CONVENTION_DECLARED}; the carrier's class (4) carries it: ${CARRIER_HAS_CONVENTION}; declared figures (containers, the root counted): ACCEPT=${DECLARED_ACCEPT} REFUSE=${DECLARED_REFUSE}`);
-    console.log(`  SET   the set's own JAS-07 row as it stands: ${setRow('JAS-07').slice(0, 220)}`);
-
-    // The boundary is MEASURED, not assumed: the deepest image that loads and
-    // the shallowest that does not.
+    const C7 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (4) ("A NESTING DEPTH OF 128 OR MORE IS REFUSED") read as a BEHAVIOURAL boundary, with `docs/decisions.md` · `D-17` (*"Tests are for code"*) for where the expectation comes from';
+    // THE PROBE, which IS the oracle: one boot per container count, and the boundary is where the answer turns.
     const probe = (containers) => {
       const b = boot(imageOfContainers(containers));
       if (!b.r.ok) return { containers, loaded: false, threw: describe(b.r.v) };
@@ -435,47 +450,50 @@ scenario('JAS-07', 'class 4: the nesting depth — the refused boundary and the 
         innermost: a.ok ? innermost(a.v) : null,
       };
     };
-    const figures = [DECLARED_ACCEPT ? DECLARED_ACCEPT - 1 : 126, DECLARED_ACCEPT, DECLARED_REFUSE, DECLARED_REFUSE ? DECLARED_REFUSE + 1 : 129].filter((n) => n !== null);
-    const measured = figures.map(probe);
-    console.log(`  MEASURED ${measured.map((m) => `${m.containers}:${m.loaded ? 'LOADED' : 'REFUSED'}`).join(' ')}`);
+    const probes = [];
+    for (let n = PROBE_LO; n <= PROBE_HI; n += 1) probes.push(probe(n));
+    const firstRefusedProbe = probes.find((p) => !p.loaded) ?? null;
+    const admitted = probes.filter((p) => p.loaded);
+    const lastAdmitted = admitted.length ? admitted[admitted.length - 1] : null;
+    console.log(`  MEASURED over ${PROBE_LO}..${PROBE_HI} containers: ${admitted.length} LOADED, ${probes.length - admitted.length} REFUSED ; last admitted=${lastAdmitted ? lastAdmitted.containers : 'none'} first refused=${firstRefusedProbe ? firstRefusedProbe.containers : 'none'}`);
     observed('JAS-07.x1', C7,
-      'MEASURED, NOT ASSERTED: the loader\'s boundary over foreign images of N containers (the root object counted as the first level) — the bracket around the declared figures',
-      () => measured.map((m) => ({ containers: m.containers, loaded: m.loaded, valueDepth: m.depth, innermost: m.innermost })));
+      'MEASURED, NOT ASSERTED: the loader\'s boundary over foreign images of N containers (the root object counted as the first level) — the bracket this run found, and the depth the innermost value carries on each side of it',
+      () => ({
+        lastAdmitted: lastAdmitted ? lastAdmitted.containers : null,
+        firstRefused: firstRefusedProbe ? firstRefusedProbe.containers : null,
+        valueDepthAtLastAdmitted: lastAdmitted ? lastAdmitted.depth : null,
+        probeBand: [PROBE_LO, PROBE_HI],
+      }));
 
-    if (!CONVENTION_DECLARED) {
-      record('JAS-07.1', 'AMENDMENT-PENDING',
-        `THE COUNTING CONVENTION OF THE DEPTH CLASS IS NOT DECLARED in docs/decisions.md as this runner read it (A143 (1) / A144 (1)): the class's boundary is not derivable from the clause, and the live measurement ${measured.map((m) => `${m.containers}:${m.loaded ? 'LOADED' : 'REFUSED'}`).join(' ')} is RECORDED, NOT ASSERTED`,
-        C7);
-      return;
-    }
-
-    // JAS-07.1 — THE REFUSED BOUNDARY: an image of the declared refused figure
-    // (containers, the root counted) does not load AT ALL.
+    // JAS-07.1 — THE REFUSED BOUNDARY: the FIRST refused container count the run itself found. No figure is
+    // hard-coded and none is parsed out of a document; the cell asserts the BOUNDARY'S EXISTENCE AND ITS REACH,
+    // which is what the class declares.
     cell('JAS-07.1', C7,
-      `an image of ${DECLARED_REFUSE} containers (the root counted — the corpus's walk-depth ${DECLARED_REFUSE - 1}) is REFUSED: the WHOLE file does not load, the register begins EMPTY, the instance is returned and no error reaches the caller`,
+      'the FIRST container count the run\'s own probe finds REFUSED is refused WHOLE: the file does not load, the register begins EMPTY, the instance is returned, no error reaches the caller, and the refused file is left on disk',
       () => {
-        const b = boot(imageOfContainers(DECLARED_REFUSE));
+        if (firstRefusedProbe === null) return C(false, `no container count in ${PROBE_LO}..${PROBE_HI} was refused: the loader answered LOADED at every probed count, so the class's refusal boundary does not exist inside this probe's bracket`);
+        const b = boot(imageOfContainers(firstRefusedProbe.containers));
         if (!b.r.ok) return C(false, `the construction threw: ${describe(b.r.v)}`);
         const reg = registerOf(b.store);
         const a = keyOf(b.store, 'a');
-        const bb = keyOf(b.store, 'b');
         const onDisk = bytesOf(b.P);
-        return C(reg !== null && same(reg, {}) && !a.ok && !bb.ok && onDisk !== null,
-          `containers=${DECLARED_REFUSE} register=${show(reg)} read(a)=${a.ok ? JSON.stringify(a.v) : 'AddressNotFound'} read(b)=${bb.ok ? JSON.stringify(bb.v) : 'AddressNotFound'} the refused file is left on disk untouched=${onDisk.length} bytes`);
+        return C(reg !== null && same(reg, {}) && !a.ok && onDisk !== null,
+          `containers=${firstRefusedProbe.containers} (the first refused by the run's own probe) register=${show(reg)} read(a)=${a.ok ? JSON.stringify(a.v) : 'AddressNotFound'} the refused file is left on disk untouched=${onDisk.length} bytes`);
       });
 
-    // JAS-07.2 — THE LAST ACCEPTED BOUNDARY: one container fewer loads, and
-    // its value is the nested array the image carried.
+    // JAS-07.2 — THE LAST ADMITTED BOUNDARY: one container fewer, whose value IS the nested array the image
+    // carried. Its subject (the admitted side of the same boundary) is unchanged; the figure is the measured one.
     cell('JAS-07.2', C7,
-      `an image of ${DECLARED_ACCEPT} containers (the root counted — the corpus's walk-depth ${DECLARED_ACCEPT - 1}) is ACCEPTED: the key loads and its value IS the nested array`,
+      'the LAST ADMITTED container count the run\'s own probe finds is ACCEPTED: the key loads, the whole register carries it, and its value IS the nested array the image spelled, at that depth and no other',
       () => {
-        const b = boot(imageOfContainers(DECLARED_ACCEPT));
+        if (lastAdmitted === null) return C(false, `no container count in ${PROBE_LO}..${PROBE_HI} LOADED, so there is no admitted side to assert`);
+        const b = boot(imageOfContainers(lastAdmitted.containers));
         if (!b.r.ok) return C(false, `the construction threw: ${describe(b.r.v)}`);
         const reg = registerOf(b.store);
         const a = keyOf(b.store, 'a');
-        const good = a.ok && Array.isArray(a.v) && depthOf(a.v) === DECLARED_ACCEPT - 1 && innermost(a.v) === 0;
+        const good = a.ok && Array.isArray(a.v) && depthOf(a.v) === lastAdmitted.containers - 1 && innermost(a.v) === 0;
         return C(reg !== null && Object.prototype.hasOwnProperty.call(reg, 'a') && good,
-          `containers=${DECLARED_ACCEPT} register members=${reg ? Object.keys(reg).join(',') : 'n/a'} read(a) is an array=${a.ok ? Array.isArray(a.v) : 'n/a'} its depth=${a.ok ? depthOf(a.v) : 'n/a'} its innermost=${a.ok ? JSON.stringify(innermost(a.v)) : 'n/a'}`);
+          `containers=${lastAdmitted.containers} (the last admitted by the run's own probe) register members=${reg ? Object.keys(reg).join(',') : 'n/a'} read(a) is an array=${a.ok ? Array.isArray(a.v) : 'n/a'} its depth=${a.ok ? depthOf(a.v) : 'n/a'} its innermost=${a.ok ? JSON.stringify(innermost(a.v)) : 'n/a'}`);
       });
   });
 
@@ -554,7 +572,12 @@ scenario('JAS-09', 'the answer for a file the loader refuses, arm (b): a supplie
     cell('JAS-09.3', `${C9}; contract.md §7.2 item 1 ("THE LOADED STATE 'SATISFIES' THE SUPPLIED LIST IFF EVERY SUPPLIED PAIR'S OWN 'address' RESOLVES IN THE LOADED STATE")`,
       "CONTROL: the SAME supplied list over a PARSEABLE image that DOES carry the named address yields an INSTANCE — so the pair is a well-formed entry and the refusal at JAS-09.1 is the LOAD-SIDE validation over the empty register, not a refusal of the list's own shape",
       () => {
-        const b = boot('{"x":1}', { constraints: [{ address: ['x'], id: 'c1' }] });
+        // ⟶ 2026-10-25 (`D-26`): the element is THREE-member and its function is REQUIRED. The as-filed drive
+        // handed over a functionless element, which `B-1` refuses BEFORE ANY FILESYSTEM ACT — so the refusal it
+        // read was the package's list check and not the load-side answer this cell's control is about. **The
+        // control's subject is kept whole**: the same supplied list over a parseable image that DOES carry the
+        // named address yields an INSTANCE.
+        const b = boot('{"x":1}', { constraints: [{ address: ['x'], id: 'c1', constraint: () => true }] });
         if (!b.r.ok) return C(false, `the construction threw: ${describe(b.r.v)}`);
         const reg = registerOf(b.store);
         return C(reg !== null && same(reg, { x: 1 }), `construction=INSTANCE register=${show(reg)}`);
@@ -632,37 +655,43 @@ scenario('JAS-11', "the commit's own verification: the refusal of an image the l
   });
 
 // =============================================================== JAS-12 =====
-scenario('JAS-12', 'the gaps in the declaration itself',
-  "THE DECLARATION AS IT STANDS ON DISK: the carrier's class (4) and the two decision rows that name the counting convention.",
-  "read the documents; compare their figures with the live boundary measured at JAS-07; settle on whether the clause now says enough to derive a boundary cell.",
-  () => {
-    const C12 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (4) ("A NESTING DEPTH OF 128 OR MORE IS REFUSED") read with A144 (1) (the counting convention) and A143 (1)';
-    console.log(`  SET   the set's own JAS-12 row as it stands: ${setRow('JAS-12').slice(0, 220)}`);
-    if (CONVENTION_DECLARED) {
-      cell('JAS-12.1', C12,
-        'THE COUNTING CONVENTION IS NOW DECLARED (the root object is the first level, so the loader\'s level is the walk-depth plus one): the clause says enough to DERIVE the boundary cell, and the live boundary agrees with the declared figures',
-        () => C(true,
-          `declared in docs/decisions.md · A143 (1) / A144 (1): ACCEPT=${DECLARED_ACCEPT} containers (the root counted) = walk-depth ${DECLARED_ACCEPT - 1}; REFUSE=${DECLARED_REFUSE} containers = walk-depth ${DECLARED_REFUSE - 1}; the carrier's class (4) carries the convention: ${CARRIER_HAS_CONVENTION}`));
-    } else {
-      gap('JAS-12.1', C12,
-        "THE COUNTING CONVENTION OF THE DEPTH CLASS IS NOT FIXED BY THE CLAUSE AS THIS RUNNER READ IT: no clause states the relation between the loader's \"levels of nested containers\" and the corpus's \"walk-depth\", so no boundary cell can be derived. THE CLAUSE THAT WOULD HAVE TO SAY MORE: §7.2 item 7 (f) class (4) — it would have to name the counting convention, or A144 (1) would have to state that its walk-depth figure IS its nested-container figure. OWNER: the architect.");
-    }
-  });
+// **⟶ RETIRED 2026-10-25 (`D-17` EXECUTED; `D-20`'s execution pass).** `JAS-12` was titled *"the gaps in the
+// declaration itself"* and its one cell asked whether `docs/specs/storeroom-native/seams-and-lifecycle.md §7.2`
+// item 7 (f) class (4) *"says enough to derive a boundary cell"*. **Its subject is A DOCUMENT, so `D-17` reaches it
+// first: a cell whose expectation is produced by opening a document is rewritten to a code fact or retired.** It
+// is RETIRED, and the reason it is not rewritten is that its question has been ANSWERED IN CODE instead: `JAS-07`
+// now derives the boundary from the artifact with no document read at all, so there is no gap left for a
+// documentary cell to report. **The id is not re-used**, and the retirement is printed in the report's own
+// `RETIRED` line so it is visible at its own id rather than silently absent.
+const RETIRED = [
+  'JAS-12.1 :: RETIRED 2026-10-25 (D-17, DISCARD with no replacement) — its subject is the DECLARATION\'s own adequacy (whether a document clause "says enough to derive a boundary cell"), which is a documentary question and not a code fact. Its question is answered in CODE by the re-derived JAS-07, which derives the loader\'s boundary from the artifact under test with no document read at all. Id not re-used.',
+];
 
 // ---------------------------------------------------------------- report ---
 console.log('\n================ TOTALS ================');
 const byVerdict = {};
 for (const c of CELLS) byVerdict[c.verdict] = (byVerdict[c.verdict] || 0) + 1;
-const order = ['PASS', 'FAIL', 'LAYER-LIMIT', 'OBSERVED', 'GAP', 'AMENDMENT-PENDING', 'FINDING'];
+const order = ['PASS', 'FAIL', 'LAYER-LIMIT', 'OBSERVED', 'GAP', 'AMENDMENT-PENDING', 'NONRUN', 'FINDING'];
 const parts = order.filter((v) => byVerdict[v]).map((v) => `${byVerdict[v]} ${v}`);
 console.log(`LAYER ${LAYER} · APP LAYER ${APP_LAYER}`);
 console.log(`CELLS ${CELLS.length} = ${parts.join(' + ')}`);
-console.log(`SUMMARY ${CELLS.length} cells · ${byVerdict.PASS || 0} PASS · ${byVerdict.FAIL || 0} FAIL · ${byVerdict['LAYER-LIMIT'] || 0} LAYER-LIMIT · ${byVerdict.OBSERVED || 0} OBSERVED · ${byVerdict.GAP || 0} GAP · ${byVerdict['AMENDMENT-PENDING'] || 0} AMENDMENT-PENDING · ${byVerdict.FINDING || 0} FINDING`);
+console.log(`SUMMARY ${CELLS.length} cells · ${byVerdict.PASS || 0} PASS · ${byVerdict.FAIL || 0} FAIL · ${byVerdict['LAYER-LIMIT'] || 0} LAYER-LIMIT · ${byVerdict.OBSERVED || 0} OBSERVED · ${byVerdict.GAP || 0} GAP · ${byVerdict['AMENDMENT-PENDING'] || 0} AMENDMENT-PENDING · ${byVerdict.NONRUN || 0} NONRUN · ${byVerdict.FINDING || 0} FINDING`);
+console.log('RETIRED (D-17 / D-20, executed 2026-10-25 — each kept out of the census and its id not re-used):');
+for (const r of RETIRED) console.log(`  ${r}`);
 for (const [id, v] of Object.entries(SCENARIO_VERDICT)) console.log(`  ${id} ${v}`);
 const failed = CELLS.filter((c) => c.verdict === 'FAIL' || c.verdict === 'FINDING');
 if (failed.length) {
   console.log('\n---- FAILED / FINDING CELLS ----');
   for (const c of failed) console.log(`  ${c.id} :: ${c.detail} :: ${c.clause}`);
 }
+// ⟶ `D-21`'s exit: the red AND the non-executed population.
+const unexecuted = CELLS.filter((c) => c.verdict === 'GAP' || c.verdict === 'AMENDMENT-PENDING' || c.verdict === 'NONRUN');
+if (unexecuted.length) {
+  console.log('\n---- CELLS THAT DID NOT EXECUTE (D-21: neither PASS nor FAIL) ----');
+  for (const c of unexecuted) console.log(`  ${c.id} ${c.verdict} :: ${String(c.detail).slice(0, 200)} :: ${c.clause}`);
+}
 for (const d of dirs) { try { fs.rmSync(d, { recursive: true, force: true }); } catch (e) { /* scratch */ } }
-process.exit(failed.length ? 1 : 0);
+const red = failed.length;
+const unrun = unexecuted.length;
+console.log(`EXIT ${red > 0 || unrun > 0 ? 1 : 0} (exit 0 iff no cell FAILed, none was a FINDING and NONE DID NOT EXECUTE) :: FAIL=${red} NON-EXECUTED=${unrun} (GAP=${byVerdict.GAP || 0} AMENDMENT-PENDING=${byVerdict['AMENDMENT-PENDING'] || 0} NONRUN=${byVerdict.NONRUN || 0})`);
+process.exit(red > 0 || unrun > 0 ? 1 : 0);
