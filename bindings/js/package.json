@@ -35,6 +35,7 @@
     "index.mjs",
     "README.md",
     "index.d.ts",
+    "src/entry/",
     "src/constraint-kernel.mjs"
   ],
   "optionalDependencies": {

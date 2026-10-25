@@ -2174,3 +2174,39 @@ would have caught this on the commit that made it.**
 reachability, which is what `D-4` says the shape is** — and **the three count-limb cells re-derive to the reachability
 invariant**, with a cell added for the invariant itself. **`D-14`'s declared re-staging is not the fix**: a staged tree
 is not a packed one.
+
+---
+
+### FINDING — the allowlist is by reachability now, and FIVE cells pinned the count, not three
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the manifest pass; **L0 verified the
+form, the co-tenancy fact and the packed arithmetic.**
+
+**THE FORM CHOSEN, AND ITS REASON IS A MEASUREMENT RATHER THAN A PREFERENCE.** `files` is now
+**`index.mjs` · `README.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs`** — **a DIRECTORY entry for
+the parts' home plus the barrel's EXPLICIT path**, which is **`D-14`'s recorded mechanism** (a glob cannot express a
+path one level up) applied to the manifest. **A bare `"src/"` was refused ON EVIDENCE: `bindings/js/src/` is
+CO-TENANTED by the Rust crate** — `codec.rs` · `crossing.rs` · `facade.rs` · `lib.rs` sit beside `entry/` and the
+barrel — **so `"src/"` would pack four files nothing imports** (22 members / 934,346 B against **18 members /
+739,304 B**). **L0 confirmed the co-tenancy at the directory listing.** **A directory entry also cannot drift when a
+fourteenth part arrives, which is why the enumerated alternative was refused.**
+
+**AND THE PACKED SET IS CLOSED UNDER IMPORT — PROVEN, NOT ARGUED.** **40 relative specifiers** taken from the hub,
+the barrel and all thirteen parts resolve against the packed list, **13 distinct part targets, 0 MISSING**; and **the
+18 packed members staged into a scratch tree load**: the hub's namespace is `['storeCreate']`, the barrel answers its
+six names, and `storeCreate()` refuses in the **declared absent-addon form** (`FilePathUnreachable`) because the
+platform package is not packed. **That last detail is the one that distinguishes "the packed set is closed" from
+"the package is complete" — and only an installed battery can tell them apart (`D-10`, still unbuilt).**
+
+**★ AND THE RED IS FIVE CELLS, WHERE `D-3`'s CORRECTION NAMED ONE AND L0 EXPECTED THREE.** `D-3`'s correction said
+*"`P-PUB-7`"*; **`publish.test.mjs` holds TWO equalities that pin the four-entry allowlist**, and they are
+`P-PUB-7::S-MANIFEST \`build/Release\` leaves \`files\`…` **and** `P-PUB-7::S-MANIFEST the licence notice travels with
+all six artefacts`. **So the count was enforced in FIVE places across THREE batteries** — `constraints-publication`'s
+`cp_allowlist_…`, `publish-generators`' `NG-PUB-I`, **two** `P-PUB-7` cells, and greens' `JSG-12.18`. **A retired
+constraint had five homes, and every earlier count of its homes was short.**
+
+**WHAT REMAINS IS THE INVARIANT ITSELF.** **No cell asserts *"every file reachable from the hub and the barrel is
+packed"*** — **the reachability rule `D-4` declared, with no instrument.** **The five count cells re-derive to it, and
+the invariant gets its own cell** — which must resolve a **directory row through the packlist rather than by path
+equality**, and must allow `package.json`, which npm always packs. **That cell is the one that would have caught this
+defect on the commit that made it.**
