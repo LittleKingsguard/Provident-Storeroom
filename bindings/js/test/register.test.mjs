@@ -617,7 +617,13 @@ line(P_SM_5, 'S-OPAQUE', 10, (attempt) => {
   // refuse the descendant with `WriteParentNotLink`. This pre-write is an ordinary caller write.
   const freshAddress = ['x', 0];
   fresh.write(['x'], 'mem', [{}]);
-  if (fresh.listen('minted?', [freshAddress]) !== undefined) { globalThis.__TRACE.push('OPQ:1'); return false; }
+  // **⟶ RE-DERIVED 2026-10-24 (`D-22`, verbatim: *"Listen should return the handle on success, or error
+  // message on fail"*): THE ANSWER IS THE HANDLE, NOT `undefined`.** The bytes read
+  // `fresh.listen('minted?', [freshAddress]) !== undefined` — the `Handle → undefined` return the 2026-10-19
+  // pass declared and `D-22` OVERRULES BY NAME. **THE LINE'S SUBJECT IS UNMOVED AND IS NOW ASSERTED MORE
+  // STRONGLY**: the value the store answers and the value the caller spelled are ONE value, which is the
+  // *"ARE ONE VALUE AND NOT FIVE SPELLINGS OF ONE"* clause this line exists for.
+  if (fresh.listen('minted?', [freshAddress]) !== 'minted?') { globalThis.__TRACE.push('OPQ:1'); return false; }
   if (fresh.register('minted?', () => {}) !== undefined) { globalThis.__TRACE.push('OPQ:2'); return false; }
   const minted = fresh.write(freshAddress, 'mem', 1).triggered[0].handle;
   const adopted = mem([{ address: ['a'], handle: token }]).write(['a'], 'mem', 1).triggered[0].handle;
@@ -707,7 +713,11 @@ line(P_SM_5, 'S-WITHDRAW', 10, () => {
   //     **THE ROW'S OWN TWO ARMS ARE KEPT AND BOTH ARE STILL READ AT THE STORE:** the ENTRY the repeat names is
   //     unmoved (one home row, one identity), while its FUNCTION is the caller's to place again — which is
   //     exactly what `register` is for (`§2.2` item 5 (a)).
-  if (held.listen(standing, [['a']]) !== undefined) { globalThis.__TRACE.push('WD:9'); return false; } // `PAR-HL-3`: the answer is `undefined`
+  // **⟶ RE-DERIVED 2026-10-24 (`D-22`): THE REPEAT ANSWERS THE HANDLE.** The bytes read
+  // `!== undefined` on the `PAR-HL-3` ground *"the caller supplied the identity, so there is no datum to
+  // return"* — the ground `D-22` OVERRULES BY NAME (`docs/L1/surface-deltas.md` §1.1). **The return is a
+  // success signal that CARRIES the identity**, so the repeat answers the caller's own spelling.
+  if (held.listen(standing, [['a']]) !== standing) { globalThis.__TRACE.push('WD:9'); return false; } // `D-22`: the handle comes back
   if (held.register(standing, () => { fires += 1; }) !== undefined) { globalThis.__TRACE.push('WD:9b'); return false; }
   // (c) AND THE NO-SECOND-ENTRY HALF, OBSERVED AT THE STORE: ONE home entry still stands, so the trigger
   //     carries that ONE handle ONCE.
@@ -798,13 +808,15 @@ line(P_TP_8, 'S-NOOP', 10, (attempt) => {
   const rng = draw(attempt);
   const owner = mem();
   const stranger = mem();
-  // **⟶ RE-DERIVED 2026-10-18: `listen` SPELLS the handle and answers the UNIT** (`contract.md §2.2` items 1
-  // and 10; `PAR-HL-3`). **THE LINE'S SUBJECT — every outside value at `unlisten` is a NO-OP SUCCESS that
-  // removes NO OTHER REGISTRATION — IS UNMOVED.**
+  // **⟶ RE-DERIVED 2026-10-24 (`D-22`, verbatim: *"Listen should return the handle on success, or error
+  // message on fail"*): `listen` ANSWERS THE HANDLE, NOT THE UNIT.** The bytes above read `!== undefined` on the
+  // `PAR-HL-3` ground *"the caller supplied the identity, so there is no datum to return"*, which `D-22`
+  // OVERRULES BY NAME (`docs/L1/surface-deltas.md` §1.1). **THE LINE'S SUBJECT — every outside value at
+  // `unlisten` is a NO-OP SUCCESS that removes NO OTHER REGISTRATION — IS UNMOVED.**
   const kept = 'kept-identity';
   const foreign = 'foreign-identity';
-  if (owner.listen(kept, [['a']]) !== undefined) return false;
-  if (stranger.listen(foreign, [['a']]) !== undefined) return false;
+  if (owner.listen(kept, [['a']]) !== kept) return false;
+  if (stranger.listen(foreign, [['a']]) !== foreign) return false;
   const noops = [
     owner.unlisten(foreign) === undefined,
     owner.unlisten(`listener-${rng.next().value}`) === undefined,

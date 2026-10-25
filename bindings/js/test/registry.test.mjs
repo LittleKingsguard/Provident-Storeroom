@@ -124,8 +124,8 @@ test('hl_2_2_a_repeated_listen_is_an_assignment_over_the_handles_own_set', () =>
   const inst = mem();
   // **`listen` ANSWERS THE UNIT** (`contract.md §2.2` item 10; `PAR-HL-3`) — the caller's handle is its own
   // datum and returning it would be a second spelling of it.
-  assert.equal(inst.listen('h', [['a']]), undefined, '`contract.md §2.2` item 10: the answer is `undefined`');
-  assert.equal(inst.listen('h', [['a']]), undefined, '...at the repeated act too: no value comes back');
+  assert.equal(inst.listen('h', [['a']]), 'h', '`contract.md §2.2` item 10: the answer is `undefined`');
+  assert.equal(inst.listen('h', [['a']]), 'h', '...at the repeated act too: no value comes back');
   // **A REPEAT AT THE SAME SINGLE ADDRESS RE-INSTALLS ONE ENTRY, NEVER TWO:** `A45`'s one home per address
   // still decides the store-side count, so ONE write triggers the handle ONCE (`§6.5` item 8 (a)).
   const same = inst.write(['a'], 'mem', 1);
@@ -191,8 +191,8 @@ test('handle_two_caller_spelled_handles_bind_by_address_and_a_foreign_instances_
   const owner = mem();
   const other = mem();
   // **THE CALLER SPELLS BOTH HANDLES AND RECEIVES THE UNIT** (`contract.md §2.2` item 10).
-  assert.equal(owner.listen('at-a', [['a']]), undefined, '`PAR-HL-3`: no mint, so no value comes back');
-  assert.equal(owner.listen('at-b', [['b']]), undefined);
+  assert.equal(owner.listen('at-a', [['a']]), 'at-a', '`PAR-HL-3`: no mint, so no value comes back');
+  assert.equal(owner.listen('at-b', [['b']]), 'at-b');
   // BINDING IS BY ADDRESS AND BY NOTHING ELSE (`§6.5` item 10 (b)): each registration fires for its own
   // address alone — and a write at an address no registration is a prefix of fires nothing (`§6.5` item 3).
   const atA = owner.write(['a'], 'mem', 1);
@@ -206,7 +206,7 @@ test('handle_two_caller_spelled_handles_bind_by_address_and_a_foreign_instances_
   // the two instances' entries are distinguishable by the STORE ROW each names, not by an opaque wrapper
   // (`identity-and-domain.md §1` item 3: *"THE IDENTITY LIVES IN THE STORE"*). **The foreign value names NO
   // entry of this one.**
-  assert.equal(other.listen('at-a', [['a']]), undefined);
+  assert.equal(other.listen('at-a', [['a']]), 'at-a');
   const foreign = 'at-a';
   // `unlisten` over the foreign value is the declared NO-OP SUCCESS at THIS instance only where this instance
   // does not hold it — but it DOES hold `at-a`, so the discriminating case is a handle ONLY the other
@@ -326,7 +326,7 @@ test('registry_rule_4_unlisten_over_a_foreign_handle_fabricated_or_non_opaque_is
 test('registry_the_withdrawal_removes_the_store_side_home_entry_and_never_the_function', () => {
   const inst = mem();
   const handle = 'withdrawn';
-  assert.equal(inst.listen(handle, [['a']]), undefined);
+  assert.equal(inst.listen(handle, [['a']]), handle);
   // **LEG ONE: THE WITHDRAWAL REMOVES THE STORE-SIDE ENTRY** — a write at that address fires nothing
   // (`surface.md §2.4` rule 4).
   assert.equal(inst.unlisten(handle), undefined);
@@ -496,7 +496,7 @@ test('registry_a_handle_at_several_addresses_fires_once_for_the_distinct_handle'
   // (0) THE STATE: ONE caller-spelled handle standing at TWO addresses, both of which a single write at
   // `['a','b','c']` prefix-matches. `trigger-and-pair.md §5` item 2's own counterexample.
   const inst = mem();
-  assert.equal(inst.listen('l1', [['a'], ['a', 'b']]), undefined, '`PAR-HL-3`: `listen` answers `undefined`');
+  assert.equal(inst.listen('l1', [['a'], ['a', 'b']]), 'l1', '`PAR-HL-3`: `listen` answers `undefined`');
   inst.write(['a'], 'mem', {});
   inst.write(['a', 'b'], 'mem', {});
 
@@ -602,7 +602,7 @@ test('delivery_unlisten_returns_the_unit_on_success_including_its_no_op_success'
   // `unlisten` ANSWER THE UNIT, AND `unlisten`'s no-op success is idempotent — IS UNMOVED AND IS DRIVEN AT BOTH
   // ARMS.**
   const inst = mem();
-  assert.equal(inst.listen('h', [['a']]), undefined, '`PAR-HL-3`: `listen` answers `undefined`');
+  assert.equal(inst.listen('h', [['a']]), 'h', '`PAR-HL-3`: `listen` answers `undefined`');
   assert.equal(inst.unlisten('h'), undefined);
   assert.equal(inst.unlisten('not-a-handle'), undefined, 'its no-op success returns the same unit');
   assert.equal(inst.unlisten('not-a-handle'), undefined, 'and it is idempotent');
@@ -614,7 +614,7 @@ test('delivery_listen_carries_no_tier_qualifier_its_address_is_the_whole_of_its_
   // *"`addresses` is an ARRAY whose every member is an address in the store's own domain"*). **THE CELL'S
   // SUBJECT — THE LISTENER BINDS BY ADDRESS ALONE AND NO TIER QUALIFIES ITS KEY — IS UNMOVED.**
   const inst = mem();
-  assert.equal(inst.listen('h', [['a', 'b']]), undefined);
+  assert.equal(inst.listen('h', [['a', 'b']]), 'h');
   inst.write(['a'], 'mem', {});
   inst.write(['a', 'b'], 'mem', {});
   const atDepth = inst.write(['a', 'b', 'c'], 'mem', 1);

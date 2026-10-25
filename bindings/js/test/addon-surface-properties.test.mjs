@@ -45,10 +45,12 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+// **⟶ `fileURLToPath` AND `dirname` ARE GONE WITH THE CONTRACT READ — 2026-10-24 (`D-17`).**
+// `readFileSync` and `join` keep their own-bytes and manifest consumers; the other two had the removed
+// `CONTRACT_PATH` as their only one.
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 
 import { storeCreate } from 'provident-storeroom';
 import {
@@ -106,42 +108,41 @@ function tag(label) {
   return `${label}-s${process.pid.toString(36)}-${UID}`;
 }
 
-// ── `contract.md §5`'S OWN STRATEGY IDS, EXTRACTED FROM THE DOCUMENT THAT DECLARES THEM ────────────────
+// ── **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-17`, verbatim: *"Rewrite or retire the tests that
+// point at docs. Tests are for code."*) — THE ELEVEN STRATEGY IDS ARE NOW A DECLARATION OF THIS FILE'S OWN
+// AND ARE NO LONGER PARSED OUT OF A DOCUMENT.**
 //
-// **THE EXTRACTION IS THE SIBLING LAYER'S INSTRUMENT, RE-CUT TO THIS REGISTER'S OWN MARKUP.** The addon
-// surface register spells each row's ids on a *"Strategies:"* line — `**Strategies: `S-ARITY` … · `S-NO-INSTANCE` …**`
-// — where the constraints register used a *"**Strategy ids.**"* label, **so the same two-directional closure
-// is read off THIS document's own bytes rather than borrowed from a label this one does not carry.** A read
-// that found nothing would make every closure cell below vacuous, so the extraction is asserted to have found
-// the right IDS PER ROW before anything else uses it.
-const CONTRACT_PATH = join(REPO_ROOT, 'docs', 'specs', 'storeroom-addon-surface', 'contract.md');
-
-function declaredRowsFromContract(bytes) {
-  const rows = [];
-  // Each row OPENS at its own bolded id and closes at the next one (or at the section's end). The row id is
-  // read from its own heading and never from a position, so a row that MOVED would be read where it stands.
-  const opener = /^\*\*`(P-SAS-\d)`\*\*/gm;
-  const starts = [];
-  let hit;
-  while ((hit = opener.exec(bytes)) !== null) starts.push({ id: hit[1], start: hit.index });
-  for (let i = 0; i < starts.length; i += 1) {
-    const end = i + 1 < starts.length ? starts[i + 1].start : bytes.length;
-    const body = bytes.slice(starts[i].start, end);
-    // The row's own list runs from its `Strategies:` label to the clause's own `Failure list:` label — the
-    // two labels the register fixes for every row — so the ids are read off THE ROW and never off the text
-    // beside it or off a neighbouring row's ids. **THE LABELS ARE NOT BOLDED IN THIS REGISTER** (it prints
-    // `Strategies: **`S-EXPORT-SET`**`, where the constraints register used a bolded `**Strategy ids.**`
-    // label), **so the pattern matches the words and not a markup this document does not carry.**
-    const list = /Strategies:([\s\S]*?)Failure list:/.exec(body);
-    starts[i].ids = list === null ? [] : [...list[1].matchAll(/\*\*`(S-[A-Z][A-Z-]*)`\*\*/g)].map((x) => x[1]);
-    rows.push(starts[i]);
-  }
-  return rows;
-}
-
-const CONTRACT_STRATEGY_ROWS = declaredRowsFromContract(readFileSync(CONTRACT_PATH, 'utf8'));
+// **WHAT STOOD HERE, NAMED SO ITS ABSENCE IS LEGIBLE.** `CONTRACT_PATH` pointed at
+// `docs/specs/storeroom-addon-surface/contract.md`; `declaredRowsFromContract(bytes)` parsed its eight
+// `P-SAS-*` row headings and their `Strategies:` lines into `CONTRACT_STRATEGY_ROWS`, and
+// `DECLARED_STRATEGY_IDS` was that parse flattened. **A CELL'S EXPECTATION MUST COME FROM CODE** (`D-17`),
+// and this one's came from OPENING A DOCUMENT — so the document was the ORACLE, and the battery would fail
+// on any checkout whose keep-set moved, exactly as this branch's archival proved for the eleven reads
+// `D-17` retires. **The document survives today, which is why the read was GREEN and still wrong.**
+//
+// **WHAT REPLACES IT, AND WHY THE PROPERTY SURVIVES INTACT.** The CLOSURE was always the real subject:
+// every strategy id a `row()` cell of THIS FILE cites must be one of the declared ids, and every declared
+// id must have a generator here. **That property is between the DECLARATION and the CELLS, both of which
+// are code in this file** — so the declaration is a constant below and the closure is asserted against the
+// cells exactly as it was (both directions, with the named undrivable list EMPTY).
+//
+// **RETIRED WITH THE READ, AND NAMED AT ITS OWN SITE BELOW:** the assertions that the DOCUMENT's bytes
+// carry eight rows and `[1, 2, 1, 2, 1, 2, 1, 1]` ids per row. **Those are sentences about a document and no
+// observable behaviour carries them** (`D-31`'s UNTESTABLE arm — a subject that exists and cannot be
+// SEEN) — while the eleven ids below are the declaration of record, which is the test layer's to make
+// (`D-19`).
+const CONTRACT_STRATEGY_ROWS = [
+  { id: 'P-SAS-1', ids: ['S-EXPORT-SET'] },
+  { id: 'P-SAS-2', ids: ['S-ARITY', 'S-NO-INSTANCE'] },
+  { id: 'P-SAS-3', ids: ['S-PARITY'] },
+  { id: 'P-SAS-4', ids: ['S-REFUSE-FORM', 'S-REFUSE-KEYS'] },
+  { id: 'P-SAS-5', ids: ['S-TABLE-REMOVE'] },
+  { id: 'P-SAS-6', ids: ['S-UNWRAP-SITES', 'S-STATE-ID-GONE'] },
+  { id: 'P-SAS-7', ids: ['S-UNWRAP-PARITY'] },
+  { id: 'P-SAS-8', ids: ['S-FAULT-ARM'] },
+];
 const DECLARED_STRATEGY_IDS = CONTRACT_STRATEGY_ROWS.flatMap((row) => row.ids);
-/** **THE PROPERTY LAYER'S `1` FACET.** The register's eight rows: `P-SAS-1`…`P-SAS-8`. */
+/** **THE PROPERTY LAYER'S `1` FACET.** The eight rows: `P-SAS-1`…`P-SAS-8`. */
 const IDS_PER_ROW = [1, 2, 1, 2, 1, 2, 1, 1];
 
 /**
@@ -1003,15 +1004,20 @@ test('sas_prop_P_SAS_8_S_FAULT_ARM_the_ValueRefusedAtBoundary_re_render_appears_
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 test('sas_prop_census_the_register_s_closure_the_budget_and_every_row_s_verdict_are_printed', () => {
-  // THE `8` ROWS, READ AT THEIR OWN SECTIONS AND IN THE REGISTER'S OWN ORDER.
+  // **⟶ RE-DERIVED 2026-10-24 (`D-17`): THE DECLARED SET IS THIS FILE'S OWN DECLARATION, AND THE TWO LIMBS
+  // THAT ASSERTED THE *DOCUMENT'S* ROW COUNT AND IDS-PER-ROW FIGURES ARE RETIRED.** Their expectation came
+  // from opening `docs/specs/storeroom-addon-surface/contract.md`; **no observable behaviour carries a
+  // document's row count** (`D-17`; `D-31`'s UNTESTABLE arm). **WHAT IS KEPT IS THE DECLARED SET'S OWN SHAPE
+  // AND THE CLOSURE BELOW** — every cited id is declared, every declared id is cited, and the undrivable list
+  // is empty — a property between this file's cells and this file's declaration, both of which are code.
   assert.deepEqual(CONTRACT_STRATEGY_ROWS.map((r) => r.id),
     ['P-SAS-1', 'P-SAS-2', 'P-SAS-3', 'P-SAS-4', 'P-SAS-5', 'P-SAS-6', 'P-SAS-7', 'P-SAS-8'],
-    'contract.md §5 declares the eight rows `P-SAS-1`…`P-SAS-8`, and they are read at their own ids');
+    'the declared set carries the eight rows `P-SAS-1`…`P-SAS-8`, in their own order');
   assert.deepEqual(CONTRACT_STRATEGY_ROWS.map((r) => r.ids.length), IDS_PER_ROW,
-    'and the ids PER ROW are the register\'s own terms: '
+    'and the ids PER ROW are the declared set\'s own terms: '
     + `\`${IDS_PER_ROW.join(' + ')} = ${IDS_PER_ROW.reduce((a, b) => a + b, 0)}\` ✓`);
   assert.equal(DECLARED_STRATEGY_IDS.length, IDS_PER_ROW.reduce((a, b) => a + b, 0),
-    'the declared id set is the register\'s own arithmetic and not a literal typed here');
+    'the declared id set is the declared rows\' own arithmetic and not a second literal');
   assert.deepEqual(DECLARED_STRATEGY_IDS, [
     'S-EXPORT-SET',
     'S-ARITY', 'S-NO-INSTANCE',
@@ -1042,7 +1048,7 @@ test('sas_prop_census_the_register_s_closure_the_budget_and_every_row_s_verdict_
     for (const id of cell.strategies) {
       assert.equal(DECLARED_STRATEGY_IDS.includes(id), true,
         `${cell.id} cites the strategy id ${JSON.stringify(id)}: every id a cell cites is one of the eleven `
-        + 'ids `contract.md §5` declares');
+        + 'ids this file declares');
       cited.add(id);
     }
   }
@@ -1058,7 +1064,7 @@ test('sas_prop_census_the_register_s_closure_the_budget_and_every_row_s_verdict_
   const undrivable = UNDRIVABLE_BY_A_ROW_CELL.map((entry) => entry.id);
   const uncovered = DECLARED_STRATEGY_IDS.filter((id) => !cited.has(id) && !undrivable.includes(id));
   assert.deepEqual(uncovered, [],
-    'EVERY declared id of `contract.md §5` either cites a `row()` cell or stands in the named undrivable '
+    'EVERY declared id either cites a `row()` cell or stands in the named undrivable '
     + `list — ${uncovered.length} stand in NEITHER: ${uncovered.join(', ')}`);
   assert.deepEqual(UNDRIVABLE_BY_A_ROW_CELL, [],
     'and the named undrivable list is EMPTY, which is a claim: all eleven ids this register declares have '

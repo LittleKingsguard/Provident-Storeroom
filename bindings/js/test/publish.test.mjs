@@ -978,13 +978,46 @@ function assertTagCoupling(repo, { version, label }) {
  * reader is deliberately NARROW: it anchors on the ONE phrase the ruling uses for the release act, so a
  * clause naming some other version of some other thing cannot be mistaken for it.
  */
+// **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-17`, verbatim: *"Rewrite or retire the tests that point
+// at docs. Tests are for code."*) — THE DECLARED RELEASE VERSION IS NOW READ FROM THE SHIPPED ARTEFACT AND
+// NOT FROM THE PROPOSAL DOCUMENT.**
+//
+// **WHAT STOOD HERE, NAMED SO ITS ABSENCE IS LEGIBLE.** The function opened
+// `docs/specs/storeroom-publish-proposal.md` and parsed its `§15` item 1 phrase (*"the six manifests move to
+// `X.Y.Z` TOGETHER"*) for the version. **That path was MOVED BY THIS BRANCH'S ARCHIVAL**, so every cell that
+// called the reader was RED with `ENOENT` — and even on a checkout that still carried it, **the document
+// would be the ORACLE, which `D-17` forbids: a cell's expectation must come from CODE.**
+//
+// **WHAT REPLACES IT, AND WHY IT IS STILL THE SAME PROPERTY.** The property the cells drive is *"the version
+// these manifests declare IS the version the release ships"* — and **the shipped artefact declares that
+// version itself**: `bindings/js/build/Release/storeroom_js_binding.node` answers `version()`, and
+// `bindings/js/Cargo.toml` carries the crate's own `version`. **So the release version is read at the
+// ARTEFACT**, and the caller's manifests are read against it — six artefacts, one version, which is exactly
+// what `PAR-PUB-2`'s coupling rule says and exactly what the cells assert. **NO ASSERTION IS WEAKENED**: the
+// exact-equality comparison survives and its right-hand side is now a shipped byte instead of a clause.
+const BUILT_ARTEFACT = join(PKG_DIR, 'build', 'Release', 'storeroom_js_binding.node');
+const CRATE_MANIFEST_PATH = join(PKG_DIR, 'Cargo.toml');
+
 function declaredReleaseVersion(repo) {
-  const proposal = readFileSync(join(repo, 'docs', 'specs', 'storeroom-publish-proposal.md'), 'utf8');
-  const clause = /the six manifests move to \*\*`(\d+\.\d+\.\d+)` TOGETHER/.exec(proposal);
-  assert.ok(clause !== null,
-    '`A89` / `docs/specs/storeroom-publish-proposal.md §15` item 1 must declare the release version at its '
-    + 'own phrase ("the six manifests move to `X.Y.Z` TOGETHER"); an absent clause is a finding, not a skip');
-  return clause[1];
+  assert.equal(existsSync(BUILT_ARTEFACT), true,
+    'the built addon must exist for the release version to be READ at it — `bindings/js/build/Release/'
+    + 'storeroom_js_binding.node`. An absent artefact is a FINDING and not a skip');
+  const addon = createRequire(import.meta.url)(BUILT_ARTEFACT);
+  assert.equal(typeof addon.version, 'function',
+    'the artefact declares its own `version()` — the ONE shipped byte that carries the release version');
+  const shipped = addon.version();
+  assert.match(shipped, /^\d+\.\d+\.\d+$/,
+    `the artefact's \`version()\` answers a semantic version; got ${JSON.stringify(shipped)}`);
+  // **AND THE CRATE'S OWN VERSION IS NOT THE RELEASE VERSION** — `Cargo.toml` carries the CRATE's `0.1.0`
+  // while the package and the artefact carry the release's. The reader asserts the two are DISTINCT so a
+  // pass that conflated them is caught here rather than by six manifests agreeing on the wrong string.
+  const crate = /^version\s*=\s*"([^"]*)"/m.exec(readFileSync(CRATE_MANIFEST_PATH, 'utf8'));
+  assert.ok(crate !== null, 'the binding crate\'s manifest declares a `version`');
+  assert.notEqual(crate[1], shipped,
+    'the CRATE\'s version and the PACKAGE\'s version are different figures (`bindings/js/Cargo.toml` vs '
+    + 'the artefact\'s `version()`): a reader that took the crate\'s would read the wrong one silently');
+  assert.equal(join(repo, 'bindings', 'js') === PKG_DIR, true, 'the repo the cells name is this package\'s');
+  return shipped;
 }
 
 /**
@@ -1401,8 +1434,15 @@ cell('P-PUB-3', 'S-PLATFORM no `libc` mechanism, value set or measured domain is
   for (const name of FIVE_NAMES) {
     assert.ok(!/musl/.test(name), '`resolution.md §4.2` (i): no sixth name, and no musl name at all');
   }
-  const resolution = readFileSync(join(REPO_ROOT, 'docs', 'specs', 'storeroom-publish', 'resolution.md'), 'utf8');
-  assert.ok(!/js-linux-(x64|arm64)-musl/.test(resolution), 'the part names no musl artefact');
+  // **⟶ RETIRED 2026-10-24 (`D-17`): THE ONE DOCUMENTARY LIMB OF THIS CELL IS GONE, AND ITS SUBJECT IS
+  // CARRIED BY THE CODE LIMBS ABOVE.** The bytes stood here as
+  // `assert.ok(!/js-linux-(x64|arm64)-musl/.test(readFileSync(docs/specs/storeroom-publish/resolution.md)))` —
+  // *"the part names no musl artefact"*. **That is a sentence about a DOCUMENT, and this branch's archival
+  // moved the path, so the read threw `ENOENT`.** No observable behaviour carries a clause's own prose
+  // (`D-31`'s UNTESTABLE arm) — **and the SUBSTANCE it guarded is asserted at the code, three limbs above
+  // and one below**: the entry declares no `musl`/`libc` mechanism, no musl name is computed in it, none of
+  // the five names carries one, and no `libc`-derived value reaches the key or the attempt set. **A sixth
+  // name cannot exist without failing those, so nothing is lost by dropping the document's echo.**
   // and a `libc`-derived value in the key is refused (`PAR-PUB-31`): a `libc` token in the pair's selection
   // would show up as an attempt the pair cannot produce
   const key = COVERED[0];
@@ -2239,8 +2279,12 @@ cell('P-PUB-6', 'S-SCOPE the five spellings agree across every home the contract
   const workflowBytes = readFileSync(join(REPO_ROOT, '.github', 'workflows', 'publish.yml'), 'utf8');
   const homes = {
     'the manifest\'s five keys': Object.keys(manifest.optionalDependencies ?? {}),
-    'the contract\'s own table (`resolution.md §3.1`)': FIVE_NAMES.filter((n) =>
-      readFileSync(join(REPO_ROOT, 'docs', 'specs', 'storeroom-publish', 'resolution.md'), 'utf8').includes(n)),
+    // **⟶ RETIRED 2026-10-24 (`D-17`): THE DOCUMENTARY HOME IS GONE, AND IT IS NAMED SO ITS ABSENCE IS
+    // LEGIBLE.** The key *"the contract's own table (`resolution.md §3.1`)"* filtered `FIVE_NAMES` by
+    // `docs/specs/storeroom-publish/resolution.md`'s bytes — a DOCUMENT as the ORACLE, on a path this
+    // branch's archival moved (the cell was RED with `ENOENT`), and no observable behaviour carries a
+    // clause's own table (`D-31`'s UNTESTABLE arm). **THE THREE CODE HOMES STAND UNCHANGED**, so the
+    // property — *"every home reads the same five spellings"* — is asserted at every home that exists in code.
     'the declared set (`PUB-DD-15`)': [...FIVE_NAMES],
     'the release workflow\'s own matrix (`release.md §1.2`)': FIVE_NAMES.filter((n) => workflowBytes.includes(n)),
   };
@@ -4142,10 +4186,27 @@ cell('P-PUB-8', 'S-TAG the partial-publish arm is declared, both windows', async
   // `§3.3` / `PUB-DD-5` / `release.md §3`: ONE clause covering BOTH windows — a failure BEFORE the main
   // package is recovered IN PLACE on the same version, a failure AFTER it is DEPRECATE-AND-RE-PUBLISH at
   // the next patch; a release attempted with NO declared arm is a STOP CONDITION (`J`).
-  const release = readFileSync(join(REPO_ROOT, 'docs', 'specs', 'storeroom-publish', 'release.md'), 'utf8');
-  assert.ok(/RECOVER IN PLACE ON THE SAME VERSION/.test(release), 'the before-window arm is declared');
-  assert.ok(/DEPRECATE-AND-RE-PUBLISH AT THE NEXT PATCH/.test(release), 'the after-window arm is declared');
-  assert.ok(/A RELEASE ATTEMPTED WITH NO DECLARED ARM/.test(release), 'the no-arm STOP CONDITION is declared');
+  // **⟶ RE-DERIVED 2026-10-24 (`D-17`): THE THREE DOCUMENTARY LIMBS ARE RETIRED AND THE ARM IS NOW ASSERTED AT
+  // ITS ONE SHIPPED CARRIER — THE RELEASE WORKFLOW'S OWN STEP ORDER.** The bytes stood here as three
+  // `assert.ok(/…/.test(readFileSync(docs/specs/storeroom-publish/release.md)))` limbs, and **that path was
+  // MOVED by this branch's archival, so the cell was RED with `ENOENT`; and a document's prose is carried by
+  // no observable behaviour** (`D-31`'s UNTESTABLE arm). **WHAT THE ARM ACTUALLY NEEDS IS AN ORDER, AND THE
+  // ORDER IS IN CODE**: `.github/workflows/publish.yml` publishes the five platform artefacts in a job the
+  // main-package job `needs`, and the main package's own publish step follows theirs. **The before-window
+  // arm's premise — *"a failure before the main package leaves nothing a consumer can install incomplete"* —
+  // is exactly that order, read at the workflow's bytes.**
+  const workflow = readFileSync(join(REPO_ROOT, '.github', 'workflows', 'publish.yml'), 'utf8');
+  assert.match(workflow, /^\s{4}needs: platform$/m,
+    'the main-package job DEPENDS on the platform job (`needs: platform`): the five land before the main '
+    + 'package can begin, which is the partial-publish arm\'s whole premise');
+  const platformPublish = workflow.indexOf("- name: '4. publish the platform artefact'");
+  const mainPublish = workflow.indexOf("- name: '5. publish the main package'");
+  assert.equal(platformPublish !== -1 && mainPublish !== -1, true,
+    'both publish steps exist in the workflow at their own declared numbers');
+  assert.equal(platformPublish < mainPublish, true,
+    'THE MAIN PACKAGE PUBLISHES LAST, ALWAYS — the platform artefact\'s publish step precedes the main '
+    + 'package\'s, so a stage that fails before the main package is recoverable IN PLACE on the same version '
+    + 'and one that fails after it is not');
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
   // the order that MAKES the arm safe is the main package's LAST place, and it is a property of the
   // release, so no manifest byte may contradict it: the five pins resolve only once the five are published.
@@ -4169,19 +4230,36 @@ cell('P-PUB-8', 'S-LAYER every figure this unit reports carries its SITE and its
   assert.ok(existsSync(join(REPO_ROOT, figure.site)), 'the figure\'s SITE is this file, at `PUB-DD-24`\'s path');
   assert.equal(manifest.name !== undefined, true, 'the figure\'s site is a real home');
   // an install-time figure is NOT this layer\'s, and `LIVE/INSTALL` may not be reported at gates 1–4
-  const acceptance = readFileSync(join(REPO_ROOT, 'docs', 'specs', 'storeroom-publish', 'acceptance.md'), 'utf8');
-  assert.ok(/CANNOT RUN BEFORE THE RELEASE ACT/.test(acceptance),
-    '`§4.4`: running it early is a STOP CONDITION (`I`), so no install-time figure is claimed here');
-  assert.ok(/NOT AN `APP` FIGURE/.test(acceptance), 'and an install-time figure is never an `APP`-green');
+  // **⟶ RE-DERIVED 2026-10-24 (`D-17`): THE TWO DOCUMENTARY LIMBS ARE RETIRED AND THE LAYER LABEL IS READ AT
+  // ITS CODE CARRIERS.** The bytes stood here as
+  // `assert.ok(/CANNOT RUN BEFORE THE RELEASE ACT/.test(readFileSync(docs/specs/storeroom-publish/acceptance.md)))`
+  // and its *"NOT AN `APP` FIGURE"* sibling — **a document on a path this branch's archival MOVED, so the
+  // cell was RED with `ENOENT`, and a clause's prose is carried by no observable behaviour** (`D-31`'s
+  // UNTESTABLE arm). **WHAT SURVIVES IS THE FIGURE'S OWN LABEL, WHICH IS A CODE FACT WITH ITS OWN HOMES**:
+  // the greens harness declares `LAYER`/`APP_LAYER` as constants, and this cell reads them so the figure
+  // below cannot drift from the instrument that prints it.
+  const greensBytes = readFileSync(join(PKG_DIR, 'greens', 'greens.mjs'), 'utf8');
+  const layerConst = /^const LAYER = '([^']*)';$/m.exec(greensBytes);
+  const appLayerConst = /^const APP_LAYER = '([^']*)';$/m.exec(greensBytes);
+  assert.ok(layerConst !== null && appLayerConst !== null,
+    'the greens harness declares both labels as constants of its own — `const LAYER` and `const APP_LAYER`');
+  assert.equal(layerConst[1], figure.layer,
+    'the figure\'s `layer` IS the harness\'s own declared `LAYER`, so the label this unit reports is the '
+    + 'label its instrument prints — RE-DERIVED 2026-10-24 (`D-17`)');
+  assert.equal(appLayerConst[1], figure.app,
+    'and the figure\'s `app` IS the harness\'s own declared `APP_LAYER`: a NODE green is never an `APP`-green');
 });
 
 cell('P-PUB-8', 'S-LAYER no released-bytes digest is claimed by this pass', async () => {
   // `PUB-DD-13` / `§6`\'s `RECORDED-GAP`: THE PUBLISHED BYTES ARE TIED TO NO FIGURE AT THIS UNIT\'S GATES,
   // and the absence of the tie is DECLARED. A digest invented here, or a released-bytes digest claimed as
   // measured by a pre-release pass, is a failure.
-  const contract = readFileSync(join(REPO_ROOT, 'docs', 'specs', 'storeroom-publish', 'contract.md'), 'utf8');
-  assert.ok(/RECORDED-GAP/.test(contract), 'the absence is DECLARED as a `RECORDED-GAP`');
-  assert.ok(/a digest invented here/.test(contract), 'and an invented digest is named as a failure');
+  // **⟶ RETIRED 2026-10-24 (`D-17`): THE TWO DOCUMENTARY LIMBS ARE GONE, AND THE ONE CODE LIMB STANDS.** The
+  // bytes stood here as `assert.ok(/RECORDED-GAP/.test(readFileSync(docs/specs/storeroom-publish/contract.md)))`
+  // and its *"a digest invented here"* sibling — **sentences about a DOCUMENT, carried by no observable
+  // behaviour** (`D-31`'s UNTESTABLE arm). **The cell's real subject survives at the code**: no tracked byte
+  // of this package carries a digest or an integrity field, so a pass that invented one is caught by the
+  // assertion below rather than by a clause's echo.
   const packageBytes = readFileSync(join(PKG_DIR, 'package.json'), 'utf8');
   assert.ok(!/sha512|integrity/.test(packageBytes), 'no integrity field is invented in a tracked byte');
 });

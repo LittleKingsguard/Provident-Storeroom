@@ -36,9 +36,12 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+// **⟶ `dirname` IS GONE FROM THIS LINE WITH THE CONTRACT READ IT SERVED — 2026-10-24 (`D-17`).**
+// `readFileSync`/`fileURLToPath` still have their two own-bytes consumers below; `dirname` had one, and it was
+// the removed `contractPath`.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 
 import {
   THE_FOURTEEN, handleOutsideValues, setOutsideValues, capture, tag, newHandle, makeStore,
@@ -153,8 +156,13 @@ test('hli_prop_P_HL_1_the_identity_is_one_caller_spelled_string_and_the_entry_is
         // ── `S-ID-TYPE`: the ADMITTED class is a non-empty string, and it is admitted at all three sites.
         const handle = newHandle(label);
         const address = [[label, 'a']];
-        assert.equal(store.listen(handle, address), undefined,
-          'a non-empty string is ADMITTED at `listen` and the answer is undefined (`PAR-HL-3`)');
+        // **⟶ RE-DERIVED 2026-10-24 (`D-22`): `listen` ANSWERS THE HANDLE IT WATCHES UNDER.** The bytes
+        // read `assert.equal(store.listen(handle, address), undefined, …)` — the `Handle → undefined` return
+        // the 2026-10-19 pass declared and `D-22` OVERRULES BY NAME (*"Listen should return the handle on
+        // success, or error message on fail"*). **The success signal now CARRIES the identity**, and the
+        // assertion is the stronger one: the value the store answers IS the caller's own spelling.
+        assert.equal(store.listen(handle, address), handle,
+          'a non-empty string is ADMITTED at `listen` and the answer IS that handle (`D-22`; `PAR-HL-3`)');
         const used = [newHandle(label + 'u1'), newHandle(label + 'u2')][intBetween(rng, 0, 1)];
         assert.equal(store.register(handle, () => {}), undefined,
           'and `register` on the handle `listen` wrote is ADMITTED (`PAR-HL-6`)');
@@ -432,9 +440,12 @@ test('hli_prop_P_HL_2_an_overlap_set_and_the_empty_set_both_install_whole', () =
 
       if (mode === 2) {
         // ── STATE 3: the EMPTY SET as `S2` over a handle that already stands.
-        assert.equal(store.listen(handle, []), undefined,
-          '`listen(h, [])` is ADMITTED and answers `undefined` — THE EMPTY ARRAY IS IN THE DOMAIN, the '
-          + 'ordinary "listen at no address" act (`listen-verb.md §2.2` item 1; `§2.2` item 10)');
+        // **⟶ RE-DERIVED 2026-10-24 (`D-22`): THE EMPTY SET ANSWERS THE HANDLE.** The bytes read `undefined`;
+        // the return moved `void → Handle`, so an admitted `listen` answers the identity it watches under —
+        // **including at the empty set, which is the ordinary "listen at no address" act**.
+        assert.equal(store.listen(handle, []), handle,
+          '`listen(h, [])` is ADMITTED and answers `h` — THE EMPTY ARRAY IS IN THE DOMAIN, the ordinary '
+          + '"listen at no address" act (`listen-verb.md §2.2` item 1; `D-22`)');
         for (const address of s1) {
           assert.deepEqual(handlesOf(store.write(address, 'mem', 2).triggered), [],
             'AND IT PURGES EVERYTHING THE HANDLE NAMED — a write at ' + JSON.stringify(address)
@@ -444,7 +455,7 @@ test('hli_prop_P_HL_2_an_overlap_set_and_the_empty_set_both_install_whole', () =
         assert.equal(fired.length, firedBefore,
           'and nothing of the old element fires again (`S-PURGE-ALL`)');
         // The handle is still the caller's: `listen`'s class test admits it and creates a fresh reservation.
-        assert.equal(store.listen(handle, [onlyNew[0]]), undefined,
+        assert.equal(store.listen(handle, [onlyNew[0]]), handle,
           'while the handle itself survives the empty set — it is a RESERVATION at no address, not a '
           + 'deletion (`§2.2` item 5 (a); `removal-members.md §2.7` item 2)');
         return;
@@ -453,8 +464,9 @@ test('hli_prop_P_HL_2_an_overlap_set_and_the_empty_set_both_install_whole', () =
       // ── STATES 1 AND 2: `S2` is an OVERLAP of `S1` (mode 0) or the DISJOINT set (mode 1, the canonical
       //    drive's own state, retained here as the control that keeps the overlap reading honest).
       const s2 = mode === 0 ? [shared, ...onlyNew] : [...onlyNew];
-      assert.equal(store.listen(handle, s2), undefined,
-        'the second act is admitted and answers `undefined` (`§2.2` item 10)');
+      assert.equal(store.listen(handle, s2), handle,
+        'the second act is admitted and answers ITS OWN handle — the return moved `Handle → undefined` to '
+        + '`void → Handle` (`D-22`), so every admitted `listen` answers the identity it watches under');
 
       if (mode === 0) {
         // THE SHARED ADDRESS STANDS — because `S2` NAMES IT, not because `S1` named it. This is the ONE
@@ -1578,29 +1590,36 @@ test('hli_prop_P_HL_6_two_pairs_of_one_address_family_with_different_ids_are_two
 test('hli_prop_the_register_is_eight_rows_and_every_declared_strategy_id_has_a_generator', () => {
   // **THE REGISTER IS THIS CHANGE'S OWN: `8` ROWS, CAP `≤ 8` AND HOLDS AT `8 ≤ 8` ✓, `2 + 3 + 3 = 8` ✓, and
   // the id family is DISJOINT from the three landed registers** (`contract.md §5.0`).
-  // **THIS CELL READS THE CONTRACT'S BYTES SO THE CLOSURE CANNOT CLOSE OVER THIS FILE'S OWN LITERALS:** the
-  // declared ids are EXTRACTED FROM THE DOCUMENT that declares them, and every one is asserted to have a
-  // generator in this file.
-  const here = dirname(fileURLToPath(import.meta.url));
-  const contractPath = join(here, '..', '..', '..', 'docs', 'specs',
-    'storeroom-held-listener-identity', 'contract.md');
-  const bytes = readFileSync(contractPath, 'utf8');
-
-  // THE ROWS LIVE AS `### §5.n` HEADINGS, each naming its own id (`contract.md §5.1`–`§5.8`).
-  const rowIds = [...bytes.matchAll(/^### §5\.\d+ `P-HL-(\d)`/gm)].map((m) => 'P-HL-' + m[1]);
-  const uniqueRowIds = [...new Set(rowIds)].sort();
+  // **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-17`, verbatim: *"Rewrite or retire the tests that
+  // point at docs. Tests are for code."*) — THE DECLARED SET IS THIS FILE'S OWN DECLARATION AND IS NO LONGER
+  // PARSED OUT OF A DOCUMENT.**
+  //
+  // **WHAT STOOD HERE, NAMED SO ITS ABSENCE IS LEGIBLE.** The cell built `contractPath` under
+  // `docs/specs/storeroom-held-listener-identity/`, read its bytes, and extracted two things: the eight
+  // `### §5.n` row headings into `uniqueRowIds`, and every backtick-quoted `S-…` token on each row's
+  // `**Strategy ids.**` line into `declared`. **The document was the ORACLE** — a cell's expectation must
+  // come from CODE (`D-17`), and this one's came from OPENING A DOCUMENT, so the battery would fail on any
+  // checkout whose keep-set moved. **The document survives today, which is why the read was GREEN and still
+  // wrong** — the same mechanism this branch's archival proved on the eleven reads `D-17` retires.
+  //
+  // **WHAT SURVIVES IS THE PROPERTY THE CELL EXISTS FOR** — *every declared strategy id has a generator in
+  // this file* — and it is now asserted between this file's DECLARATION (below) and this file's own cells.
+  // **THE DECLARATION IS THE TEST LAYER'S TO MAKE** (`D-19`), and the closure is checked against the file's
+  // own bytes exactly as it was.
+  const uniqueRowIds = ['P-HL-1', 'P-HL-2', 'P-HL-3', 'P-HL-4', 'P-HL-5', 'P-HL-6', 'P-HL-7', 'P-HL-8'];
   assert.deepEqual(uniqueRowIds,
     ['P-HL-1', 'P-HL-2', 'P-HL-3', 'P-HL-4', 'P-HL-5', 'P-HL-6', 'P-HL-7', 'P-HL-8'],
-    'the register declares EIGHT rows, `P-HL-1` … `P-HL-8` — read ' + JSON.stringify(uniqueRowIds)
-    + ' (`contract.md §5.0`; `2 + 3 + 3 = 8` ✓)');
-  assert.equal(uniqueRowIds.length <= 8, true, 'and the cap holds at `8 ≤ 8` ✓ (`§5.0`)');
-
-  // EVERY DECLARED STRATEGY ID IS ONE THIS FILE USES. The ids are read as backtick-quoted `S-...` tokens
-  // inside the `Strategy ids.` line of each row.
-  const strategyLines = [...bytes.matchAll(/^\*\*Strategy ids\.\*\*(.+)$/gm)].map((m) => m[1]).join('\n');
-  const declared = [...new Set([...strategyLines.matchAll(/`(S-[A-Z0-9-]+)`/g)].map((m) => m[1]))].sort();
+    'the declared set carries EIGHT rows, `P-HL-1` … `P-HL-8` (`2 + 3 + 3 = 8` ✓); RE-DERIVED 2026-10-24 (`D-17`)');
+  assert.equal(uniqueRowIds.length <= 8, true, 'and the cap holds at `8 ≤ 8` ✓');
+  const declared = [
+    'S-DEDUPE-ARG', 'S-DEDUPE-HANDLE', 'S-DEDUPE-WINDOW', 'S-ID-DELETE', 'S-ID-MONO', 'S-ID-SCOPE',
+    'S-ID-STORE', 'S-ID-TYPE', 'S-ID-UNIQ', 'S-K6-ANSWER', 'S-K6-EXTENT', 'S-K6-ROUTE',
+    'S-MEMBER-COUNT', 'S-PAIR-DISTINCT', 'S-PAIR-SHAPE', 'S-PAIR-TOTAL', 'S-PURGE-ALL',
+    'S-PURGE-ORDER', 'S-PURGE-SET', 'S-REMOVE-ATOMIC', 'S-REMOVE-WHOLE', 'S-SEL-DEDUPE',
+    'S-SEL-EXACT', 'S-SEL-SNAPSHOT',
+  ];
   assert.equal(declared.length > 0, true,
-    'the register\'s strategy ids are readable from its own bytes — read ' + JSON.stringify(declared));
+    'the declared strategy ids are this file\'s own declaration — read ' + JSON.stringify(declared));
 
   const fileBytes = readFileSync(fileURLToPath(import.meta.url), 'utf8');
   const missing = declared.filter((id) => !fileBytes.includes("'" + id + "'"));

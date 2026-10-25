@@ -312,7 +312,7 @@ test('combined_call_a_write_fires_the_function_once_with_the_triggering_address_
   // `register` places the function. **`on`'s whole subject was these two admissions IN THAT ORDER**, and their
   // order IS the cell's: the entry exists before the function stands at it.
   const handle = 'on-replacement';
-  assert.equal(inst.listen(handle, [address]), undefined, '`PAR-HL-3`: `listen` answers `undefined`');
+  assert.equal(inst.listen(handle, [address]), handle, '`PAR-HL-3`: `listen` answers `undefined`');
   assert.equal(inst.register(handle, (...args) => {
     calls += 1;
     seenArgs = args;
@@ -446,7 +446,7 @@ test('validation_first_and_atomicity_a_non_function_listener_and_a_malformed_add
   // the refused address's home BEFORE this cell's own install, and a pre-mint at `fresh` would be the very
   // residue that half exists to rule out (`C-6`).
   const mintedForListener = 'minted-for-listener';
-  assert.equal(inst.listen(mintedForListener, [['listener-probe']]), undefined);
+  assert.equal(inst.listen(mintedForListener, [['listener-probe']]), mintedForListener);
   for (const one of nonFunctions) {
     const trouble = isRefusal(() => inst.register(mintedForListener, one.value), {
       target: targetSpelling(one.value),
@@ -540,7 +540,7 @@ test('validation_first_and_atomicity_a_non_function_listener_and_a_malformed_add
   for (const one of malformedAddresses) {
     probeCount += 1;
     const probe = `probe-${probeCount}`;
-    assert.equal(inst.listen(probe, [['held']]), undefined, 'the probe handle is admitted at a lawful set first');
+    assert.equal(inst.listen(probe, [['held']]), probe, 'the probe handle is admitted at a lawful set first');
     inst.removeListener(probe);
     const trouble = isRefusal(() => inst.listen(probe, [one.value]), {
       target: null, // the measured rendering is taken per arm in the block below and never assumed here
@@ -817,7 +817,7 @@ test('validation_first_and_atomicity_a_non_function_listener_and_a_malformed_add
   // entry the address carries afterwards is the handle THIS call spelled — never a handle a refused act
   // had left there.
   const mintedAfter = 'fresh-after-refusals';
-  assert.equal(inst.listen(mintedAfter, [['fresh']]), undefined,
+  assert.equal(inst.listen(mintedAfter, [['fresh']]), mintedAfter,
     '`PAR-HL-3`: `listen` answers `undefined` — no value is minted and none comes back');
   assert.equal(
     triggerSet(inst, ['fresh'], 'mem', 2).length,
@@ -882,13 +882,13 @@ test('held_address_arm_a_repeat_listen_is_a_re_reservation_and_register_is_a_rep
 
   // --- (i) THE HELD ARM, over an entry `listen` placed.
   const handle = 'held';
-  assert.equal(inst.listen(handle, [['held']]), undefined, '`PAR-HL-3`: `listen` answers `undefined`');
+  assert.equal(inst.listen(handle, [['held']]), handle, '`PAR-HL-3`: `listen` answers `undefined`');
   let firstFired = 0;
   let secondFired = 0;
   // **THE REPEAT `listen` RE-RESERVES AND ANSWERS THE UNIT; the FUNCTION is placed by `register` alone.**
-  assert.equal(inst.listen(handle, [['held']]), undefined, 'the repeat `listen` re-reserves the entry');
+  assert.equal(inst.listen(handle, [['held']]), handle, 'the repeat `listen` re-reserves the entry');
   assert.equal(inst.register(handle, () => { firstFired += 1; }), undefined);
-  assert.equal(inst.listen(handle, [['held']]), undefined, 'and a third call answers the unit too');
+  assert.equal(inst.listen(handle, [['held']]), handle, 'and a third call answers the unit too');
   assert.equal(inst.register(handle, () => { secondFired += 1; }), undefined, 'the second function REPLACES the first');
   assert.equal(triggerSet(inst, ['held'], 'mem', 1).length, 1, '`A45`: ONE home entry per address, never two');
 
@@ -910,7 +910,7 @@ test('held_address_arm_a_repeat_listen_is_a_re_reservation_and_register_is_a_rep
   let adoptedFirst = 0;
   let adoptedSecond = 0;
   assert.equal(inst.register('l-adopted', () => { adoptedFirst += 1; }), undefined);
-  assert.equal(inst.listen('l-adopted', [['adopted']]), undefined);
+  assert.equal(inst.listen('l-adopted', [['adopted']]), 'l-adopted');
   assert.equal(inst.register('l-adopted', () => { adoptedSecond += 1; }), undefined);
   triggerSet(inst, ['adopted'], 'mem', 2);
   assert.equal(adoptedSecond, 1, 'the replacement fires once');
@@ -920,11 +920,11 @@ test('held_address_arm_a_repeat_listen_is_a_re_reservation_and_register_is_a_rep
   // REGISTRY DOES NOT RECORD WHICH MEMBER WROTE AN ENTRY, and `register` has ONE map with ONE replacement arm
   // (`§2.4` rule 2)."* **A refusal here would be the `DD-52` alt, and would be caught by this cell.**
   const twoCall = 'by-register';
-  assert.equal(inst.listen(twoCall, [['by-register']]), undefined);
+  assert.equal(inst.listen(twoCall, [['by-register']]), twoCall);
   let registeredFirst = 0;
   let registeredSecond = 0;
   assert.equal(inst.register(twoCall, () => { registeredFirst += 1; }), undefined);
-  assert.equal(inst.listen(twoCall, [['by-register']]), undefined);
+  assert.equal(inst.listen(twoCall, [['by-register']]), twoCall);
   assert.equal(inst.register(twoCall, () => { registeredSecond += 1; }), undefined);
   triggerSet(inst, ['by-register'], 'mem', 1);
   assert.equal(registeredSecond, 1, 'the function placed second is the one the identity now carries');
@@ -978,9 +978,9 @@ test('the_two_removal_halves_are_separable_unlisten_withdraws_only_the_store_sid
   let siblingFired = 0;
   let stoodFired = 0;
   let keeperFired = 0;
-  assert.equal(inst.listen('target', [['x']]), undefined);
+  assert.equal(inst.listen('target', [['x']]), 'target');
   assert.equal(inst.register('target', () => { targetFired += 1; }), undefined);
-  assert.equal(inst.listen('sibling', [['y']]), undefined);
+  assert.equal(inst.listen('sibling', [['y']]), 'sibling');
   assert.equal(inst.register('sibling', () => { siblingFired += 1; }), undefined);
   assert.equal(triggerSet(inst, ['x'], 'mem', 1).length, 1);
   assert.equal(triggerSet(inst, ['y'], 'mem', 2).length, 1);
@@ -1027,9 +1027,9 @@ test('the_two_removal_halves_are_separable_unlisten_withdraws_only_the_store_sid
   // --- (iii) **AN ENTRY-LESS IN-DOMAIN IDENTITY IS A SUCCESS THAT DISTURBS NOTHING** (`contract.md §2.7` item
   // 5; `§2.1` item 5's fourth column). **A SUCCESS IS DRIVEN AS A SUCCESS AND NEVER THROUGH THE REFUSAL'S
   // PREDICATE.** A NEVER-REGISTERED handle and an ALREADY-DELETED one are the two arms of this state.
-  assert.equal(inst.listen('keeper', [['keeper']]), undefined);
+  assert.equal(inst.listen('keeper', [['keeper']]), 'keeper');
   assert.equal(inst.register('keeper', () => { keeperFired += 1; }), undefined);
-  assert.equal(inst.listen('never', [['never']]), undefined);
+  assert.equal(inst.listen('never', [['never']]), 'never');
   const neverArms = reachedOrRaised(() => inst.unlisten('never'));
   assert.equal(neverArms.thrown, null, 'an in-domain handle holding no function is a SUCCESS: NOTHING IS THROWN');
   assert.equal(neverArms.raised, undefined, 'and its answer is `undefined`, the same success every `unlisten` arm answers');
@@ -1042,7 +1042,7 @@ test('the_two_removal_halves_are_separable_unlisten_withdraws_only_the_store_sid
   // SUCCESS, the `remove` members answer them as FAILURES carrying a verbose message"*; `contract.md §2.1` item
   // 5's closing clause). **THE DIFFERENCE IS ASSERTED AS A DIFFERENCE AND NOT AS TWO ISOLATED READINGS.**
   const stranger = mem();
-  assert.equal(stranger.listen('foreign-only', [['f']]), undefined);
+  assert.equal(stranger.listen('foreign-only', [['f']]), 'foreign-only');
   assert.equal(inst.unlisten('foreign-only'), undefined, '`§2.3` item 4: the foreign value is a NO-OP SUCCESS at `unlisten`');
   assert.equal(inst.unlisten('foreign-only'), undefined, 'and its second answer is the same no-op success');
   assert.equal(inst.unlisten(0), undefined, 'and a NUMBER at the position is the same no-op success (`PAR-JS-8`)');
@@ -1101,9 +1101,9 @@ test('the_removal_validates_first_and_any_throw_leaves_both_entries_exactly_as_t
   // measurable at two places. **THE HANDLES ARE SPELLED** (`contract.md §2.1` item 1; `(AA-5)`).
   let heldFired = 0;
   let otherFired = 0;
-  assert.equal(inst.listen('order', [['order']]), undefined);
+  assert.equal(inst.listen('order', [['order']]), 'order');
   assert.equal(inst.register('order', () => { heldFired += 1; }), undefined);
-  assert.equal(inst.listen('other', [['other']]), undefined);
+  assert.equal(inst.listen('other', [['other']]), 'other');
   assert.equal(inst.register('other', () => { otherFired += 1; }), undefined);
 
   const beforeSet = triggerSet(inst, ['order'], 'mem', 1);
@@ -1119,7 +1119,7 @@ test('the_removal_validates_first_and_any_throw_leaves_both_entries_exactly_as_t
   // --- (i) A REFUSED REMOVAL: THE OUTSIDE HANDLE. **BOTH CLASS TESTS PRECEDE EVERY STORE ACT** (`contract.md
   // §2.7` item 5; `removal-members.md §6` item 1), so NEITHER half is performed.
   const stranger = mem();
-  assert.equal(stranger.listen('foreign-handle', [['f']]), undefined);
+  assert.equal(stranger.listen('foreign-handle', [['f']]), 'foreign-handle');
   assert.throws(
     () => inst.removeListener('foreign-handle'),
     (err) => err.status === 'AddressMalformed',
@@ -1295,10 +1295,13 @@ test('the_instance_member_set_is_the_fourteen_declared_members_and_the_namespace
   let smuggled = 0;
   assert.equal(over.listen.length, 2, '`listen` declares TWO positions and no more (`listen-verb.md §1` item 1)');
   assert.equal(over.unlisten.length, 1, 'and `unlisten` declares ONE');
-  assert.equal(over.listen('u', [['u']]), undefined, '`listen(handle, addresses)` answers `undefined` (`PAR-HL-3`)');
+  assert.equal(over.listen('u', [['u']]), 'u',
+    '`listen(handle, addresses)` ANSWERS THE HANDLE IT WATCHES UNDER (`D-22`: the return moved `void → '
+    + 'Handle`; the `PAR-HL-3` reading that said `undefined` is superseded by name)');
   // **THE THIRD POSITION IS NOT A POSITION:** a function passed there is IGNORED and registers nothing.
-  assert.equal(over.listen('u', [['u']], () => { smuggled += 1; }), undefined,
-    'no third position exists, so a listener supplied there reaches no site');
+  assert.equal(over.listen('u', [['u']], () => { smuggled += 1; }), 'u',
+    'no third position exists, so a listener supplied there reaches no site — and the answer is still the '
+    + 'handle, because the ignored position changes nothing about the return (`D-22`)');
   const registered = over.register('u', () => { smuggled += 1; });
   assert.equal(registered, undefined, 'and the function is placed by `register` alone, which answers `undefined`');
   triggerSet(over, ['u'], 'mem', 1);
@@ -1339,10 +1342,10 @@ test('the_two_removal_members_answer_every_outside_handle_class_by_the_declared_
   assert.equal(typeof inst.unlisten, 'function', 'and `unlisten(handle)` is the store-facing withdrawal');
   assert.equal(typeof inst.removeListener, 'function', 'and `removeListener(handle)` is the removal');
   let fired = 0;
-  assert.equal(inst.listen('standing', [['standing']]), undefined);
+  assert.equal(inst.listen('standing', [['standing']]), 'standing');
   assert.equal(inst.register('standing', () => { fired += 1; }), undefined);
   const stranger = mem();
-  assert.equal(stranger.listen('foreign-handle', [['f']]), undefined);
+  assert.equal(stranger.listen('foreign-handle', [['f']]), 'foreign-handle');
   // **A `Proxy` IS DRIVEN WITH ITS TRAP COUNTED, so the class test is PROVED not to invoke one**
   // (`identity-and-domain.md §2` item 1: *"THE TEST IS A `typeof` READ AND A LENGTH READ AND NOTHING MORE — no
   // object inspection, no `Proxy` trap invocation, no property read"*; row `7`).

@@ -148,7 +148,7 @@ test('hli_surface_a_fresh_store_is_the_declared_empty_state', () => {
   const h = newHandle('empty');
   // The set position's EMPTY ARRAY is in the domain and is the ordinary "listen at no address" act.
   assertListenAnswer(inst.listen(h, []),
-    'listen(h, []) — the empty set is IN the domain (`listen-verb.md §2.2` item 1)');
+    'listen(h, []) — the empty set is IN the domain (`listen-verb.md §2.2` item 1)', h);
 });
 
 test('hli_surface_listen_then_register_arms_the_handle_and_it_fires_once', () => {
@@ -158,7 +158,7 @@ test('hli_surface_listen_then_register_arms_the_handle_and_it_fires_once', () =>
   const inst = makeStore();
   const h = newHandle('armed');
   const address = [tag('addr')];
-  assertListenAnswer(inst.listen(h, [address]), 'listen(h, [A])');
+  assertListenAnswer(inst.listen(h, [address]), 'listen(h, [A])', h);
 
   const body = counting();
   assert.equal(inst.register(h, body), undefined,
@@ -207,7 +207,7 @@ test('hli_surface_one_handle_at_two_addresses_is_one_entry_and_two_mirror_rows',
   const h = newHandle('two');
   const a = [tag('a')];
   const b = [tag('b')];
-  assertListenAnswer(inst.listen(h, [a, b]), 'listen(h, [A, B])');
+  assertListenAnswer(inst.listen(h, [a, b]), 'listen(h, [A, B])', h);
 
   const body = counting();
   inst.register(h, body);
@@ -236,7 +236,7 @@ test('hli_surface_a_second_listen_is_a_set_assignment_and_purges_the_old_set', (
   const s1 = [tag('s1a'), tag('s1b')].map((k) => [k]);
   const s2 = [[tag('s2a')]];
   inst.listen(h, s1);
-  assertListenAnswer(inst.listen(h, s2), 'listen(h, S2) over a standing `S1`');
+  assertListenAnswer(inst.listen(h, s2), 'listen(h, S2) over a standing `S1`', h);
 
   const body = counting();
   inst.register(h, body);
@@ -266,10 +266,10 @@ test('hli_surface_a_repeated_listen_is_idempotent_in_effect_only', () => {
   const inst = makeStore();
   const h = newHandle('repeat');
   const a = [tag('r')];
-  assertListenAnswer(inst.listen(h, [a]), 'the first listen');
+  assertListenAnswer(inst.listen(h, [a]), 'the first listen', h);
   const body = counting();
   inst.register(h, body);
-  assertListenAnswer(inst.listen(h, [a]), 'the SECOND listen at the same address and handle');
+  assertListenAnswer(inst.listen(h, [a]), 'the SECOND listen at the same address and handle', h);
   const at = inst.write(a, 'mem', 1);
   assert.deepEqual(handlesOf(at.triggered), [h],
     'one entry and one set survive: the repeat purged and reinstalled the same set, so the handle still '
@@ -425,9 +425,23 @@ test('hli_surface_addConstraint_at_a_held_pair_answers_the_same_identity', () =>
     'a second `addConstraint` at the SAME pair answers THE SAME identity, BY VALUE — the identity lives in '
     + 'the STORE and is returned with the pair (`contract.md §2.6` item 2; `constraint-identity.md §5` '
     + '`IF-1`; `P: docs/pending.md · (AA-2)`)');
+  // **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-29`, verbatim: *"Handle becomes the internal ID"*):
+  // A SECOND `id` IS NOT A SECOND PAIR.**
+  //
+  // **WHAT STOOD HERE, NAMED SO ITS ABSENCE IS LEGIBLE.** `assert.notEqual(other, first, 'while two pairs
+  // answer TWO identities that are NOT equal')` — a drive adding a pair at a DIFFERENT address under the SAME
+  // `id` and asserting a DIFFERENT identity, on `constraint-identity.md §5` `IF-2`. **`D-29` item 2 supersedes
+  // exactly that**: *"the `(id, address-set)` keying … is now simply 'one id, ONE PAIR'"*, and *"`K-1`'s 'a
+  // second `register` at the same `id` begins a pair of its own' is SUPERSEDED — it does not, because there is
+  // only ever one pair per `id`"*. **So the same `id` at a second address answers the SAME identity**: one
+  // `id`, one pair, one identity, one handle (`D-24`, `D-29`).
   const other = inst.addConstraint({ address: [tag('other')], id: 'k' }, passing);
-  assert.notEqual(other, first,
-    'while two pairs answer TWO identities that are NOT equal (`constraint-identity.md §5` `IF-2`)');
+  assert.equal(other, first,
+    'a second `addConstraint` naming the SAME `id` at ANOTHER address answers THE SAME identity — one `id` '
+    + 'names one pair, one identity and one handle (`D-29` item 2; `D-24` item 1)');
+  assert.equal(inst.constraints().length, 1,
+    'and the enumeration carries ONE row per `id` — the drive named exactly one `id` (`k`), so `k`\'s second '
+    + 'address adds NO second row (`D-29`: one `id`, one pair, one identity, one handle)');
 });
 
 test('hli_surface_the_two_toggles_answer_undefined_and_leave_the_enumeration_standing', () => {
@@ -812,7 +826,7 @@ test('hli_surface_removeConstraint_throws_over_a_pair_the_entry_does_not_carry',
     + 'obligation (iii); `§4` item 4)');
 });
 
-test('hli_surface_the_constraint_listener_conflict_throws_the_type_error_naming_both_sides', () => {
+test('hli_surface_the_constraint_listener_conflict_throws_the_one_plain_form_naming_both_sides', () => {
   // `F-9` / `CF-7` — **A CONSTRAINT/LISTENER CONFLICT ARISES AT `addConstraint` AT AN ADDRESS A LISTENER IS
   // ALREADY REGISTERED AT — ONE DIRECTION, NOT TWO** (`contract.md §2.3` item 8; `P: docs/pending.md ·
   // (C-1)`, verbatim). **The test's SEAT is `register`** (`§2.3` item 8; `constraint-sites.md §5` item 1),
@@ -825,6 +839,13 @@ test('hli_surface_the_constraint_listener_conflict_throws_the_type_error_naming_
   const inst = makeStore();
   const address = [tag('conflict')];
   const pair = { address: [address], id: 'cx' };
+  // **⟶ THE DRIVE'S ORDER IS REVERSED 2026-10-24, AND THE REVERSAL IS `D-29`'s.** The listener must be
+  // installed BEFORE the pair stands at its address: `B-6` rejects a `listen` at an address a STANDING
+  // constraint pair occupies, so the as-filed order (pair first, then `listen`) is no longer reachable. **The
+  // other order is**: the pair is added over a standing listener, which `B-4` allows because the pair's `id`
+  // is not the listener's handle.
+  const h = newHandle('conflict-caller');
+  inst.listen(h, [address]);
   inst.addConstraint(pair, passing);
 
   // **THE PREAMBLE'S ONE RULING, PRINTED BECAUSE THIS CELL ONCE CARRIED IT BACKWARDS: A HANDLE `listen`
@@ -869,23 +890,44 @@ test('hli_surface_the_constraint_listener_conflict_throws_the_type_error_naming_
     + '`contract.md §2.1` item 6)');
 
   // THE CONFLICTING ARM: a caller's own function registered at an address the caller's own pair stands at.
-  const h = newHandle('conflict-caller');
-  inst.listen(h, [address]);
+  //
+  // **⟶ RE-DERIVED 2026-10-24 — TWO THINGS MOVED AND BOTH ARE THE ARCHITECT'S.**
+  //   * **THE FORM: `TypeError` → THE SURFACE'S ONE PLAIN THROWN OBJECT** `{status, message, log}` with the
+  //     store's `AddressMalformed` (`D-25`, verbatim: *"Attempting to overwrite a listener with a constraint or
+  //     vice versa is rejected"*; the reconciliation is `docs/L1/surface-deltas.md` §2.5 — *"one member
+  //     function cannot print two failure forms"*, and the surface's own header calls a `TypeError` thrown by
+  //     any store-reaching verb A FINDING). **So `assertRuleTwo` — the class-test form — no longer has a
+  //     subject here and `assertRuleOne` takes its place.**
+  //   * **THE ORDER OF THE DRIVE: `listen` MAY NOT BE INSTALLED AT A CONSTRAINT'S ADDRESS ANY MORE.** The
+  //     as-filed drive called `inst.listen(h, [address])` AFTER the pair stood, and `D-29`'s sixth arm (`B-6`,
+  //     *"Listen cannot overwrite constraint, only other listeners"*) now REFUSES that act. **So the listener
+  //     is installed FIRST and the pair is added over it** — which `B-4` allows because the pair's `id` is not
+  //     the listener's handle — and the registration is then refused at `register`, the ONE direction this cell
+  //     has always driven.
+  assert.equal(inst.constraints().length, 1,
+    'the pair stands at the address the listener already stands at: two handles, two kinds, ONE address');
   const conflict = capture(() => inst.register(h, function callerOwnedListener() {}));
   assert.equal(conflict.threw, true,
     'A CALLER\'S FUNCTION AT A CALLER\'S CONSTRAINT-PAIR ADDRESS IS REFUSED — the conflict fires at '
     + '`register`, in ONE direction (`contract.md §2.3` item 8; `§4` `F-9`; `constraint-sites.md §7` `CF-7`)');
-  assertRuleTwo(conflict.thrown, 'the constraint/listener conflict');
+  assertRuleOne(conflict.thrown, 'the constraint/listener conflict');
+  assert.equal(conflict.thrown.status, 'AddressMalformed',
+    'and its `status` IS the store\'s `AddressMalformed` in the surface\'s one thrown form (`D-25`; '
+    + '`docs/L1/surface-deltas.md` §2.5: the `TypeError` the arm carried *"is neither the one plain '
+    + '{status, message} form the surface declares for every refusal nor a bare TypeError"*)');
+  assert.deepEqual(Object.keys(conflict.thrown).sort(), ['log', 'message', 'status'],
+    'and the refusal carries exactly the three declared members, `log` present and EMPTY — the census '
+    + '`index.d.ts` fixes for every arm (`surface.md §2.5` item 9)');
   assert.ok(conflict.thrown.message.length > 0,
     'and the message is the package\'s own text (`contract.md §2.3` item 9: "the message is the '
-    + '`TypeError`\'s own text, authored BY THE PACKAGE")');
+    + 'package\'s own text, authored BY THE PACKAGE")');
   // THE MESSAGE NAMES BOTH SIDES — a prose obligation, asserted on the only channel it is carried on.
   assert.equal(typeof conflict.thrown.message, 'string',
     'and it NAMES BOTH SIDES — the listener\'s address and the constraint that stands there '
     + '(`contract.md §2.3` item 9 item (iii); `constraint-sites.md §5` item 5 (ii))');
 });
 
-test('hli_surface_listen_at_a_constraint_pairs_address_purges_and_succeeds_with_no_conflict_test', () => {
+test('hli_surface_listen_at_a_constraint_pairs_address_is_rejected_and_overwriting_a_listener_stays_lawful', () => {
   // `LF-8` — **`listen` GAINS NO CONFLICT TEST AT ALL, AND ITS PURGE REACH STAYS UNCONDITIONAL: a `listen`
   // at a kernel-held pair's address PURGES AND SUCCEEDS and NOTHING throws** (`listen-verb.md §7` item 1;
   // `§8` `LF-8`; `contract.md §2.2` item 7; `P: docs/pending.md · (C-1)`/`(C-2)` item (iv)).
@@ -905,18 +947,55 @@ test('hli_surface_listen_at_a_constraint_pairs_address_purges_and_succeeds_with_
       : refusal()
   ));
 
-  // THE APP'S OWN `listen` AT THE PAIR'S ADDRESS — no exception for a handle the caller did not mint.
+  // **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-29`, verbatim: *"Listen cannot overwrite constraint,
+  // only other listeners"*) — THE CELL'S SUBJECT HAS INVERTED, AND THE INVERSION IS `B-6`.**
+  //
+  // **WHAT STOOD HERE, NAMED SO ITS ABSENCE IS LEGIBLE.** This cell asserted *"`listen` GAINS NO CONFLICT TEST
+  // AT ALL, AND ITS PURGE REACH STAYS UNCONDITIONAL"* — a `listen` at a constraint pair's address *"PURGES AND
+  // SUCCEEDS and NOTHING throws"* — on `listen-verb.md §7` item 1, `§8` `LF-8` and `contract.md §2.2` item 7.
+  // **`D-29` NARROWS THAT CLAUSE AND DOES NOT WITHDRAW IT**: *"`listen` gains no conflict test against ANOTHER
+  // LISTENER, and gains one against a CONSTRAINT"*. **The kept clause stands as text and is read THROUGH the
+  // ruling**, so this cell's expectation is the RULING's and not the clause's.
+  //
+  // **THE ARM'S MEMBER IS `AddressMalformed`, ITS FORM THE ONE PLAIN OBJECT, AND ITS INSTANT IS BEFORE THE
+  // PURGE** — *"the act must not destroy what it may not overwrite"* (`docs/L1/surface-deltas.md` §2.9's
+  // member-follows-the-act's-subject principle; `D-29`: *"Its instant: after the handle's class test and the
+  // set's domain test, and BEFORE the purge"*). **NO STATE MOVES**, which is the assertion that gives the
+  // instant its teeth: the pair still enumerates and is still ENFORCED.
+  //
+  // **AND WHAT THE SAME-KIND HALF STILL LAWFULLY DOES IS ASSERTED BESIDE IT**: overwriting a LISTENER with a
+  // listener stays lawful — `D-24`'s same-kind rule — which is the half `§2.2` item 7 keeps.
   const h = newHandle('purger');
-  const listened = capture(() => inst.listen(h, [address]));
-  assert.equal(listened.threw, false,
-    '`listen` at a kernel-held pair\'s address THROWS NOTHING: there is no conflict test at `listen` and '
-    + 'its purge reach stays unconditional (`listen-verb.md §7` item 1; `§8` `LF-8`)');
-  assertListenAnswer(listened.value, 'the successful purging `listen`');
-  // AND THE PAIR IS STILL ENFORCED: the write is refused although its store entry was purged.
+  const refused = capture(() => inst.listen(h, [address]));
+  assert.equal(refused.threw, true,
+    'a `listen` at an address a STANDING CONSTRAINT pair occupies is REJECTED — `D-29`\'s sixth arm, `B-6` '
+    + '(`D-29`: *"Listen cannot overwrite constraint, only other listeners"*; `docs/L1/surface-deltas.md` '
+    + '§2.9)');
+  assertRuleOne(refused.thrown, 'listen over a standing constraint pair');
+  assert.equal(refused.thrown.status, 'AddressMalformed',
+    'and its member follows the act\'s own subject: `listen` is a SINGLE REGISTRATION, so it takes the '
+    + 'handle domain\'s `AddressMalformed`, exactly as `B-5` (`register`) does (`docs/L1/surface-deltas.md` '
+    + '§2.9; `D-29`)');
+  assert.deepEqual(Object.keys(refused.thrown).sort(), ['log', 'message', 'status'],
+    'and it is the surface\'s ONE thrown form with `log: []` — no attempt was opened (`surface.md §2.5` '
+    + 'item 4)');
+  // NO STATE MOVED: the pair is still enumerated, still enforced, and the refused handle names nothing.
+  assert.equal(inst.constraints().length, 1,
+    'and NO STATE MOVED — the refusal precedes the purge, so the pair still enumerates (`D-29`: *"the act must '
+    + 'not destroy what it may not overwrite"*)');
   const write = capture(() => inst.write(address, 'mem', 'a violating value'));
   assert.equal(write.threw, true,
-    'THE PAIR STILL EVALUATES AFTER THE PURGE — the write is REFUSED, so the constraint is ENFORCED '
-    + '(`contract.md §2.8` item 5; `listen-verb.md §5` item 2 (ii); `§3` `S-18`)');
+    'THE PAIR STILL EVALUATES — the write is REFUSED, so the constraint is ENFORCED and the refused `listen` '
+    + 'left it untouched (`contract.md §2.8` item 5)');
+  // THE KEPT HALF OF THE CLAUSE: a listener DOES overwrite another listener.
+  const first = newHandle('purger-a');
+  const second = newHandle('purger-b');
+  const spare = [tag('purger-spare')];
+  assertListenAnswer(inst.listen(first, [spare]), 'the first listener', first);
+  assertListenAnswer(inst.listen(second, [spare]), 'the second listener at the same address', second);
+  assert.equal(inst.constraints().length, 1,
+    'AND OVERWRITING A LISTENER WITH A LISTENER STAYS LAWFUL — `D-24`\'s same-kind rule, the half of '
+    + '`§2.2` item 7 that `D-29` KEEPS (`D-29` item 1: *"Overwriting a listener with a listener stays lawful"*)');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════

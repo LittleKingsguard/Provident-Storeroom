@@ -674,9 +674,24 @@ test('fts_prop_P_SM_5_S_JOIN_the_op_set_grows_by_exactly_one_per_repair_write', 
 // `P-TP-6` · `S-CONSTRAINTS-KEY` — the fourth key at its two instants; an instance iff the list is legal.
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
+// **⟶ AMENDED 2026-10-24 (`D-26` item 1, verbatim: *"The batch in cfg.constraints must supply functions"*):
+// EVERY LEGAL BATCH ELEMENT CARRIES ITS FUNCTION, AND THE LEGAL SET GAINS THE TWO ARMS THE RULING CREATES.**
+// The bytes above named `{ address, id }` only — the element `D-26` calls *"a DEFECT and not a design"* — so
+// a functionless element is now OUTSIDE the key's domain (`B-1`, `ConstraintListInvalid`, refused BEFORE ANY
+// FILESYSTEM ACT) and it moves from this list to the illegal one below. **AND THE TWO NEW REFUSALS JOIN THE
+// ILLEGAL SIDE, because they are the ruling's own and a property layer that never draws them cannot hold
+// `S-CONSTRAINTS-KEY`'s "instance IFF inside the domain":** a duplicate `id` WITHIN ONE BATCH (`B-2`) and a
+// batch `id` equal to an adopted listener's `handle` (`B-3`) — the two arms `D-27` declares and
+// `docs/L1/surface-deltas.md` §2.2–§2.3 fixes.
 const LEGAL_LIST_FORMS = [
-  { name: 'one pair', make: (tag_) => [{ address: [tag_], id: 'c' }] },
-  { name: 'two pairs', make: (tag_) => [{ address: [tag_], id: 'a' }, { address: [tag_, 'x'], id: 'b' }] },
+  { name: 'one pair', make: (tag_) => [{ address: [tag_], id: 'c', constraint: () => true }] },
+  {
+    name: 'two pairs',
+    make: (tag_) => [
+      { address: [tag_], id: 'a', constraint: () => true },
+      { address: [tag_, 'x'], id: 'b', constraint: () => true },
+    ],
+  },
   { name: 'empty', make: () => [] },
 ];
 
@@ -692,6 +707,22 @@ const ILLEGAL_LIST_FORMS = [
   { name: 'an address outside the segment array', make: (tag_) => [{ address: tag_, id: 'c' }] },
   { name: 'an integer address outside the domain', make: () => [{ address: [-1], id: 'c' }] },
   { name: 'an id that is not a string', make: (tag_) => [{ address: [tag_], id: 7 }] },
+  // ── `D-26`/`D-27`'s THREE ARMS, ADDED 2026-10-24 ─────────────────────────────────────────────────────
+  {
+    name: 'a pair whose constraint member is absent (B-1)',
+    make: (tag_) => [{ address: [tag_], id: 'c' }],
+  },
+  {
+    name: 'a pair whose constraint member is not a function (B-1)',
+    make: (tag_) => [{ address: [tag_], id: 'c', constraint: 'not a function' }],
+  },
+  {
+    name: 'two elements naming one handle (B-2)',
+    make: (tag_) => [
+      { address: [tag_], id: 'dup', constraint: () => true },
+      { address: [tag_, 'x'], id: 'dup', constraint: () => true },
+    ],
+  },
 ];
 
 test('fts_prop_P_TP_6_S_CONSTRAINTS_KEY_instance_iff_the_list_lies_inside_its_domain', async () => {
@@ -743,7 +774,10 @@ test('fts_prop_P_TP_6_S_CONSTRAINTS_KEY_instance_iff_the_list_lies_inside_its_do
       const loadDir = mkdtempSync(join(tmpdir(), 'fts-prop-ck-'));
       const loadPath = join(loadDir, 'store.json');
       const held = tag(`prop-ck-held-${i}`);
-      const first = storeCreate({ filePath: loadPath, journalLength: 8, listeners: [], constraints: [{ address: [held], id: 'c' }] });
+      // **⟶ AMENDED 2026-10-24 (`D-26`): every batch element carries its own function.** A functionless
+      // element is refused `ConstraintListInvalid` BEFORE ANY FILESYSTEM ACT, so the property's arm would
+      // never reach the load-side state it draws.
+      const first = storeCreate({ filePath: loadPath, journalLength: 8, listeners: [], constraints: [{ address: [held], id: 'c', constraint: () => true }] });
       runAttempt(first, commit(first, [held], 'file', `L${i}`));
       const image = bytesOf(loadPath);
       assert.equal(image, `{"${held}":"L${i}"}`,
@@ -754,7 +788,10 @@ test('fts_prop_P_TP_6_S_CONSTRAINTS_KEY_instance_iff_the_list_lies_inside_its_do
         filePath: loadPath,
         journalLength: 8,
         listeners: [],
-        constraints: [{ address: [held], id: 'c' }, { address: [absent], id: 'd' }],
+        constraints: [
+          { address: [held], id: 'c', constraint: () => true },
+          { address: [absent], id: 'd', constraint: () => true },
+        ],
       }), (err) => {
         assert.equal(err.status, 'ConstraintListInvalid',
           'P-TP-6: an EXISTING FILE whose loaded state does not satisfy the SUPPLIED list answers the '
@@ -763,7 +800,7 @@ test('fts_prop_P_TP_6_S_CONSTRAINTS_KEY_instance_iff_the_list_lies_inside_its_do
       }, 'P-TP-6: the LOAD-side instant is validated and NO instance is returned');
       assert.equal(bytesOf(loadPath), image,
         'P-TP-6: and the refused LOAD construction writes no byte at `cfg.filePath`');
-      const boot = storeCreate({ filePath: loadPath, journalLength: 8, listeners: [], constraints: [{ address: [held], id: 'c' }] });
+      const boot = storeCreate({ filePath: loadPath, journalLength: 8, listeners: [], constraints: [{ address: [held], id: 'c', constraint: () => true }] });
       assert.equal(boot.read([held], 'file'), `L${i}`,
         'P-TP-6: while the SAME file boots under a list its loaded state satisfies — the discriminator that '
         + 'makes the load-side arm single-valued');
@@ -784,7 +821,7 @@ test('fts_prop_P_TP_6_S_CONSTRAINTS_KEY_instance_iff_the_list_lies_inside_its_do
         filePath: emptyPath,
         journalLength: 8,
         listeners: [],
-        constraints: [{ address: [unreachable], id: 'c' }],
+        constraints: [{ address: [unreachable], id: 'c', constraint: () => true }],
       }), (err) => {
         assert.equal(err.status, 'ConstraintListInvalid',
           'P-TP-6: a `{}` image is an EXISTING FILE whose loaded state satisfies no supplied pair, and it '

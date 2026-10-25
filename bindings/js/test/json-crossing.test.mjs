@@ -1347,7 +1347,10 @@ test('JC-TC-55 a carrier position\'s subject is its own declared descriptor and 
   const withAddress = (address) => refusedAtCreate({
     journalLength: 8,
     listeners: [],
-    constraints: [{ address, id: 'k' }],
+    // **⟶ AMENDED 2026-10-24 (`D-26` item 1): the element carries its own function.** A functionless element
+    // is a `B-1` refusal BEFORE ANY FILESYSTEM ACT, whose message is the FUNCTION's fault and not the
+    // address-carrier subject this cell drives — so without the member the cell would measure the wrong arm.
+    constraints: [{ address, id: 'k', constraint: () => true }],
   });
   // ONE ASSERTION FOR EVERY CARRIER DRIVE: the subject is the declared one, the prose is unmoved, the word
   // `undefined` appears nowhere, and the refusal is the one three-member form.
@@ -1439,7 +1442,9 @@ test('JC-TC-55 a carrier position\'s subject is its own declared descriptor and 
   assertCarrierSubject('the Proxy-address control', withAddress(proxyAddress), 'a Proxy');
   assertCarrierSubject('the null-prototype control (the guarded catch\'s own fallback)',
     withAddress(Object.create(null)), PLAIN);
-  const admitted = refusedAtCreate({ journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'k' }] });
+  const admitted = refusedAtCreate({
+    journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'k', constraint: () => true }],
+  });
   assert.equal(admitted, null,
     `an in-domain segment list is ADMITTED at this slot; it was refused (${admitted && admitted.message})`);
 
@@ -4493,12 +4498,15 @@ test('JC-TC-65 the construction\'s arguments and its own seeding are not decided
   //     no dropped item and no emptied set can produce. **The cell asserts THAT spelling, and nothing about
   //     the tier domain moves here** (`contract.md §2.1`'s item `(2c)`: this clause re-decides no row of
   //     `TierArg`).
-  //   * **THE ROW'S OWN CONSTRUCTION (D2) CARRIES NO `constraint` FUNCTION**, and `surface.md §2.12` item 1
-  //     clause (b) registers an element at `K-1` only where it *"carries its own function"* — so that
-  //     construction's *"declared seeding"* has NO observable state of its own beyond the instance and the read
-  //     model, **and item `(7c)` WITHDRAWS the registration assertion entirely**. The fourth key's list crossing
-  //     WHOLE stays asserted at the CONTROL'S OWN malformed-pair construction, where the encoder's list is
-  //     observable at the store's declared bytes.**
+  //   * **⟶ AMENDED 2026-10-24 (`D-26` item 1, verbatim: *"The batch in cfg.constraints must supply
+  //     functions"*) — THE ROW'S OWN CONSTRUCTION (D2) NOW CARRIES ITS `constraint` FUNCTION.** The bytes above
+  //     recorded that it *"CARRIES NO `constraint` FUNCTION … so that construction's declared seeding has NO
+  //     observable state of its own"* — and that state **HAS NO PRODUCER ON THIS ROUTE ANY MORE**: a
+  //     functionless batch element is refused `ConstraintListInvalid` BEFORE ANY FILESYSTEM ACT (`B-1`), so the
+  //    `(D2)` drive answered a refusal where the row's own table declares *"an INSTANCE and NO RAW HOST ERROR"*.
+  //     **The function is supplied, `D-27` arms it, and the construction is an instance again** — item `(7c)`
+  //     still withdraws the REGISTRATION assertion (the pair's delivery is not this cell's subject), and the
+  //     fourth key's list crossing WHOLE stays asserted at the CONTROL'S OWN malformed-pair construction.**
   //
   // **WHAT THE SHIPPED TREE NOW ANSWERS, MEASURED AFTER ARMS `(xvii)`–`(xix)` AND THE KERNEL'S REVERT** (items
   // `(1a)`–`(1c)` of the clause): the three encoders' and the seeding walk's bytes stand, so the three drives
@@ -4513,7 +4521,26 @@ test('JC-TC-65 the construction\'s arguments and its own seeding are not decided
   // cell's to green** (item `(7c)`).
   const EMPTY_CFG = { journalLength: 8, listeners: [] };
   const LISTENERS_CFG = { journalLength: 8, listeners: [{ handle: 'h', address: ['a'] }] };
-  const CONSTRAINTS_CFG = { journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'k' }] };
+  // **⟶ `D-26`: the element carries its own function, because the element is THREE members.**
+  //
+  // **★ AND THAT MAKES THIS CELL RED ON TWO COUNTS THAT ARE THE CODE'S AND NOT THE CELL'S — REPORTED, NOT
+  // DELETED (`D-31`'s OBSERVABLE-BUT-WRONG arm: *"KEEP IT RED and the code owes the fix"*).**
+  //   1. **A RAW HOST ERROR ESCAPES A LAWFUL CONSTRUCTION UNDER `delete Array.prototype.map`.** With the
+  //      function present, the construction ARMS the batch (`D-27`: *"Functions are armed"*), which reaches
+  //      `carryConstraint` → `K-1` → `store.listen(id, set)` and the arming walk's own `.map` sites, so
+  //      `storeCreate` throws `TypeError: addresses.map is not a function` — a HOST OBJECT out of a lawful
+  //      construction, which `contract.md §2.1` `F8-2` items `(2a)`–`(2d)` and `§2.5` item `5 (e)` forbid.
+  //   2. **A GOVERNED CROSSING SITE TAKES A MEMBER OF A MUTABLE PROTOTYPE.** Under a forged
+  //      `Array.prototype[Symbol.iterator]` the census reports `GOVERNED index.mjs:5773 carryConstraint` — one
+  //      take at a site the crossing's own governed set names, where `F8-8`'s items `(2a)`/`(2e)` allow zero.
+  // **THE STATE HAD NO DRIVE BEFORE THIS PASS** because the as-filed `(D2)` fixture carried NO function, so
+  // the arming loop never ran. **The latent defect is the batch route's, and `D-27` is what makes it
+  // reachable: every `cfg.constraints` element is armed now, so every construction with a constraint list is
+  // subject to both.** **NEITHER IS THIS CELL'S TO GREEN AND NEITHER MAY BE REMOVED** — the cell is right and
+  // the code owes the fix.
+  const CONSTRAINTS_CFG = {
+    journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'k', constraint: () => true }],
+  };
   const INVALID_PAIR_CFG = { journalLength: 8, listeners: [], constraints: [{ address: ['a', 0], id: 5 }] };
   const TIER_SET_ADDRESS = ['a'];
   const TIER_SET = ['mem', 'top'];
@@ -4551,7 +4578,7 @@ test('JC-TC-65 the construction\'s arguments and its own seeding are not decided
     // asserted here (item `(7c)` withdraws it); the declared state read below is the CONTROL's.
     const constrainedMade = crossingCall(() => storeCreate(CONSTRAINTS_CFG));
     if (constrainedMade.raised) {
-      drives.d2 = refusalOr('(D2) storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: [\'a\'], id: \'k\' }] })', constrainedMade.failure);
+      drives.d2 = refusalOr('(D2) storeCreate({ journalLength: 8, listeners: [], constraints: [{ address: [\'a\'], id: \'k\', constraint: () => true }] })', constrainedMade.failure);
     } else {
       instances.d2 = constrainedMade.answer;
       drives.d2 = 'instance';

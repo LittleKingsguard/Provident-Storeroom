@@ -35,7 +35,7 @@
 // | `V-9` | a later construction at that path reads the file | `P-ADA-4` | `ada_pada4_s_fin_noshare_a_later_construction_at_that_path_reads_the_file` |
 // | `V-10` | a write brackets the count, and the count is zero after the call returns | `P-ADA-5` | the `write` walk row + `S-COMMIT-ONCE` |
 // | `V-11` | a constraint modification brackets the count for a repair's duration | `P-ADA-5` | the `addConstraint` / `constraintOn` walk rows + `S-COMMIT-JOIN` + `S-COMMIT-ONCE` |
-// | `V-12` | the binding crate's commands carry no `--offline`, and the store's do | — (a read of the declared commands) | `ada_the_eleven_named_sites_lose_offline_and_keep_manifest_path` |
+// | `V-12` | the binding crate's commands carry no `--offline`, and the store's do | — (a read of the declared commands) | `ada_the_named_sites_lose_offline_and_keep_manifest_path` |
 // | `V-13` | the count is read by a declared seam — the store-keyed `Symbol.for('provident-storeroom.attempt-count')` before, during and after a call, and `Symbol.for('provident-storeroom.attempt-opened')` at the increment's instant | `P-ADA-5` | every `S-COMMIT-*` cell; the seam's own cell is `ada_pada5_s_commit_open_the_walk_covers_thirteen_calls` |
 // | `F-1` | a third dependency appears in the manifest | `P-ADA-1` | the walk's completeness cell (exactly two entries) |
 // | `F-2` | a `napi` type or an `#[napi]` attribute reaches the core | `P-ADA-2` | `ada_pada2_s_core_pure_*` (3) |
@@ -203,18 +203,34 @@ const NOT_REACHED = [
  *  the file carries. **THIS CELL THEREFORE READS THE ANCHOR THE BYTES CARRY**, and the conflict is reported
  *  to the supervisor rather than papered over: **a drive anchored at `:12` finds NO occurrence, and `:39`'s
  *  `[NEGATIVE]` forbids the vacuous pass — so the two clauses cannot both be satisfied at `:12`.** */
+// **⟶ AMENDED 2026-10-24 (`strata/decisions.md` `D-17`, verbatim: *"Rewrite or retire the tests that point
+// at docs. Tests are for code."*) — THE TABLE IS THE SIX CODE SITES AND THE FIVE DOCUMENTARY ROWS ARE
+// RETIRED, EACH NAMED SO ITS ABSENCE IS LEGIBLE.**
+//
+// **WHAT THE ELEVEN WERE, AND WHICH HALF SURVIVES.** The as-filed table carried ELEVEN rows: SIX of them
+// (`package.json:11`, `bindings/js/README.md:188`/`:234`/`:221`, `.github/workflows/publish.yml:171`/`:174`,
+// `scripts/publish.sh:192`) are COMMANDS IN SHIPPED BYTES — code, and each is driven below. FIVE of them
+// (ids `1`–`4` and `11`) were rows of TWO DOCUMENTS — `docs/specs/storeroom-js/package.md`,
+// `docs/specs/storeroom-js/acceptance.md` and `docs/specs/storeroom-native/implementation-plan.md` — and
+// **every one of the three paths was moved by this branch's archival**, so `textAt()` threw `ENOENT` at
+// site 1 and the cell died.
+//
+// **WHY THOSE FIVE ARE RETIRED AND NOT REWRITTEN.** A documentary row's whole content is *"this document's
+// line 503 still carries this command"*. **A cell's expectation must come from CODE** (`D-17`), and these
+// five rows have no code carrier: the command they quote is a TRANSCRIPTION of a command that already
+// stands in `package.json`, `README.md`, `publish.yml` and `publish.sh` — which are sites 5–10, kept and
+// still driven. **No assertion about a command was dropped: five transcriptions of commands were dropped,
+// and every command itself is still read at its shipped home.** The one row a ruling's own enumeration
+// missed (site 11, *"a DECLARED LEG and not a copy"*) was a document's claim about a leg that no shipped
+// byte carries; `ada_the_stores_commands_keep_offline_and_the_asymmetry_is_the_ruling` below still drives
+// the two-leg asymmetry itself, at the root manifest's own `build` script.
 const OFFLINE_SITES_THAT_MOVE = [
-  { id: 1, file: 'docs/specs/storeroom-js/package.md', anchors: [503], subject: 'THE DECLARED TEST FORM' },
-  { id: 2, file: 'docs/specs/storeroom-js/package.md', anchors: [504], subject: 'THE DECLARED BUILD FORM' },
-  { id: 3, file: 'docs/specs/storeroom-js/acceptance.md', anchors: [80], subject: 'the declared test command, quoted' },
-  { id: 4, file: 'docs/specs/storeroom-js/acceptance.md', anchors: [108], subject: 'the clippy leg, I' },
   { id: 5, file: 'package.json', anchors: [11], halves: 'second', subject: "the `build` script's SECOND half" },
   { id: 6, file: 'bindings/js/README.md', anchors: [188, 234], twice: true, subject: 'the build form, twice' },
   { id: 7, file: 'bindings/js/README.md', anchors: [221], subject: 'the test form' },
   { id: 8, file: '.github/workflows/publish.yml', anchors: [171], subject: 'the test leg' },
   { id: 9, file: '.github/workflows/publish.yml', anchors: [174], subject: 'the build leg' },
   { id: 10, file: 'scripts/publish.sh', anchors: [192], subject: 'the artefact build' },
-  { id: 11, file: 'docs/specs/storeroom-native/implementation-plan.md', anchors: [367, 407], twice: true, subject: "THE DECLARED TRIO'S NARROWED LEG" },
 ];
 
 function textAt(path) {
@@ -1910,7 +1926,7 @@ function commandsAt(source, line, half) {
   return halves;
 }
 
-test('ada_the_eleven_named_sites_lose_offline_and_keep_manifest_path', () => {
+test('ada_the_named_sites_lose_offline_and_keep_manifest_path', () => {
   const rows = [];
   for (const site of OFFLINE_SITES_THAT_MOVE) {
     const source = textAt(join(REPO_ROOT, site.file));
@@ -1941,8 +1957,10 @@ test('ada_the_eleven_named_sites_lose_offline_and_keep_manifest_path', () => {
     }
   }
   assert.equal(rows.filter((r) => r.occurrences.length > 0).length, rows.length,
-    'and not one of the eleven sites lost its command to this pass\'s absence — the count is OF COMMANDS '
-    + 'and not of flags, so a site whose `--offline` left still reads here: '
+    'and not one of the six CODE sites lost its command to this pass\'s absence — the count is OF '
+    + 'COMMANDS and not of flags, so a site whose `--offline` left still reads here ' +
+    '(the five DOCUMENTARY rows are RETIRED under `D-17`, and every command they transcribed is driven at '
+    + 'its own shipped home above): '
     + rows.map((r) => `${r.id}:${r.occurrences.length}`).join(' '));
   // **AND SITE 5 IS TWO COMMANDS AND THIS CELL READS BOTH** — the merged reading is the defect this pass
   // corrects, so the split is asserted rather than trusted: the moved half carries `--manifest-path` and

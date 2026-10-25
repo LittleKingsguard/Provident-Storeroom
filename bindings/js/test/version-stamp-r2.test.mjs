@@ -285,7 +285,11 @@ import { dirname, join, resolve } from 'node:path';
 // ---------------------------------------------------------------------------------------------
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PKG_DIR = dirname(HERE); // `bindings/js`
+// **⟶ `REPO_ROOT` KEEPS ITS DECLARATION AND LOSES ITS ONLY CONSUMER — 2026-10-24 (`D-17`).** Its one reader
+// was `SPEC`'s three document paths; the constant is retained deliberately rather than deleted, so the shape of
+// the file's own constants is not quietly rewritten by a retirement (`DEF-2026-10-02`: ANNOTATE-BESIDE).
 const REPO_ROOT = resolve(PKG_DIR, '..', '..');
+void REPO_ROOT;
 const BUILD_RS = join(PKG_DIR, 'build.rs');
 const MANIFEST_PATH = join(PKG_DIR, 'package.json');
 const CRATE_MANIFEST = join(PKG_DIR, 'Cargo.toml');
@@ -321,75 +325,31 @@ const CRATE_VERSION = (() => {
 })();
 
 // ---------------------------------------------------------------------------------------------
-// THE CLAUSES THEMSELVES, READ AT THEIR OWN BYTES — so an expectation that came from a clause can be
-// shown to come from one, and so a clause that MOVES is reported rather than silently absorbed.
-// ---------------------------------------------------------------------------------------------
-const SPEC = {
-  parameterSemantics: readFileSync(join(REPO_ROOT, 'docs/specs/storeroom-publish/parameter-semantics.md'), 'utf8'),
-  release: readFileSync(join(REPO_ROOT, 'docs/specs/storeroom-publish/release.md'), 'utf8'),
-  package: readFileSync(join(REPO_ROOT, 'docs/specs/storeroom-js/package.md'), 'utf8'),
-};
-
-/** **THE CLAUSE-CURRENCY CONTROL — AND WHY IT IS AN ASSERTION AND NOT A COMMENT.** Every expectation in
- *  this file came from a clause; `RCA-8(d)` says a superseded reading may not be derived from. So the
- *  clauses this ruling RESTS ON are read at their own bytes, and a clause that has MOVED is reported as
- *  a FAILURE with its own site named — never absorbed into a green cell that would then be asserting the
- *  superseded reading. **THE SENTENCES BELOW ARE EXCERPTS, NOT PARAPHRASES**: a paraphrase would move
- *  when the clause moves and would certify nothing. */
-const CLAUSE_CURRENCY = [
-  ['the ruling itself, verbatim',
-    SPEC.parameterSemantics,
-    'proceed with a. Don\'t pass empty strings, generate verbose message',
-    '`parameter-semantics.md §5.1`, the clause beside the divergence (`2026-10-13`)'],
-  ['clause (C) is superseded — the empty string is not an answer',
-    SPEC.parameterSemantics,
-    'THE EMPTY STRING IS NOT AN ANSWER FOR ANY OF THESE STATES',
-    '`parameter-semantics.md §5.1`, the superseding clause'],
-  ['the four-step reading is superseded at its first two steps',
-    SPEC.parameterSemantics,
-    'AT THESE STATES THE DIRECTIVE IS **NOT** EMITTED AND THE BUILD **FAILS**',
-    '`parameter-semantics.md §5.1`, the four-step clause\'s supersession'],
-  ['the four arms are DECLARED ABORTING STATES',
-    SPEC.release,
-    'THE FOUR DECLARED ABORTING STATES, EACH NAMED AS ITS OWN STATE SO A CELL MAY REACH EACH',
-    '`release.md §6.10`, the four-arm clause'],
-  ['each of the four produces its own ABORT rather than an answer',
-    SPEC.release,
-    'EACH PRODUCES ITS OWN ABORT RATHER THAN AN ANSWER',
-    '`release.md §6.10`, the four-arm clause'],
-  ['the message\'s content is required',
-    SPEC.release,
-    'WHICH OF THE FOUR STATES ABORTED, EACH ONE DISTINGUISHABLE FROM EVERY OTHER',
-    '`release.md §6.10` `:569`'],
-  ['the requirement is CONTENT and the prose is the carrier\'s',
-    SPEC.release,
-    'THE PROSE IS THE CARRIER\'S AND NO FURTHER WORDING IS REQUIRED HERE',
-    '`release.md §6.10` `:569`'],
-  ['the read\'s own abort is NOT one of the four',
-    SPEC.release,
-    'AND THE ONE ABORT THE CLAUSE ABOVE ALREADY NAMES IS NOT ONE OF THE FOUR',
-    '`release.md §6.10` `:571`'],
-  ['the empty-string branch is a LIVE finding, at its own home',
-    SPEC.parameterSemantics,
-    'so the finding is LIVE AND NOT HISTORICAL',
-    '`parameter-semantics.md §5.1` `:468` — *"THE CARRIER THAT STANDS IN THE TREE AT THIS CLAUSE\'S DATE STILL TAKES THE EMPTY-STRING BRANCH"*'],
-  ['limb (B) is re-cut to the state, not to a line range',
-    SPEC.package,
-    'IT IS READ AT THE FILE\'S STAMP PATH AND NOT AT A LINE RANGE',
-    '`docs/specs/storeroom-js/package.md §6.1` limb `(B)` re-cut'],
-  ['limb (A) is a panic at the manifest read, not re-cut',
-    SPEC.package,
-    'AND LIMB `(A)` IS DELIBERATELY NOT RE-CUT',
-    '`docs/specs/storeroom-js/package.md §6.1`'],
-];
-function assertClauseSetIsCurrent() {
-  const moved = CLAUSE_CURRENCY.filter(([, doc, sentence]) => !doc.includes(sentence))
-    .map(([what, , sentence, where]) => `${what}: ${JSON.stringify(sentence)} is NOT at its own bytes (${where})`);
-  assert.deepEqual(moved, [],
-    'CLAUSE-CURRENCY CONTROL — a clause this file derives from has MOVED. A cell written to a superseded reading is exactly '
-    + 'the defect `RCA-8(d)` forbids, so this control refuses to certify the set rather than reading it against a clause the '
-    + 'corpus no longer carries. Re-read every cell whose DERIVES FROM names the clause below.');
-}
+// **⟶ RETIRED 2026-10-24 (`strata/decisions.md` `D-17`, verbatim: *"Rewrite or retire the tests that point
+// at docs. Tests are for code."*) — THE THREE DOCUMENTARY READS AND THEIR CLAUSE-CURRENCY CONTROL ARE
+// GONE, AND THE FILE IMPORTS AGAIN.**
+//
+// **WHAT STOOD HERE, NAMED SO ITS ABSENCE IS LEGIBLE.** Three module-scope `readFileSync` calls —
+// `docs/specs/storeroom-publish/parameter-semantics.md`, `…/release.md` and `docs/specs/storeroom-js/
+// package.md` — fed a `SPEC` record from which `CLAUSE_CURRENCY` (an eleven-row excerpt table) was built
+// and checked by `assertClauseSetIsCurrent()`. **All three paths were moved by this branch's archival, so
+// the reads threw `ENOENT` AT IMPORT**: the file contributed ZERO of its eleven cells, and the runner
+// reported the *file* — which reads like one red cell and is eleven (`D-21`'s third state, stated at its
+// largest).
+//
+// **WHY THE DISPOSITION IS RETIRE AND NOT REWRITE.** A clause-currency control has NO CODE SUBJECT: its
+// whole content is *"this document still says what it said"*, and `D-17` rules a cell's expectation may
+// not be produced by opening a document. Its replacement on the code side is already this file's own
+// subject — the carrier's bytes — which every remaining cell drives at `bindings/js/build.rs`,
+// `bindings/js/package.json`, `bindings/js/Cargo.toml` and the built artefact's own `version()`.
+// **NOTHING AN OBSERVABLE BEHAVIOUR CAN CARRY WAS LOST**: no cell's expectation below came from the three
+// documents except the two limbs removed with them (see below).
+//
+// **THE TWO LIMBS THAT READ A DOCUMENT OUTSIDE THIS BLOCK, EACH RETIRED AT ITS OWN SITE:** `R2-10`'s
+// `assertClauseSetIsCurrent()` call, and `R2-11`'s single `SPEC.release.includes(...)` clause-currency
+// assertion. **Both asserted a document's bytes and neither asserted a behaviour** — `R2-11`'s substance
+// (the carrier's derivation, run out of its own bytes, stamps no neighbouring key's value) is untouched
+// and still driven.
 
 // ---------------------------------------------------------------------------------------------
 // `analyse` — comments removed, and a string-blanked twin of the same length
@@ -1952,10 +1912,12 @@ test('THE R2 INSTRUMENTS\' OWN TEETH :: R2-10 — a LAWFUL carrier is ADMITTED b
   //
   // **EACH MUTATION IS A CARRIER OF THIS CELL'S OWN MAKING, AND NONE IS THE REAL CARRIER**: a battery
   // that took the real carrier as its red mutation would turn RED ITSELF the moment the correction lands.
-  // **THE CLAUSE-CURRENCY CONTROL RUNS HERE, ONCE, BESIDE THE INSTRUMENTS** — every cell of this file
-  // derives from one of the sentences it reads, so a clause that has MOVED is reported before any
-  // instrument's verdict is trusted.
-  assertClauseSetIsCurrent();
+  // **⟶ RETIRED 2026-10-24 (`D-17`): THE CLAUSE-CURRENCY CONTROL IS GONE, AND ITS CALL WITH IT.** The
+  // bytes above named it as *"every cell of this file derives from one of the sentences it reads"* — and
+  // that was the defect: a control whose expectation is produced by opening a document. **Its subject is
+  // a document's bytes and no observable behaviour can carry it**, so the cell is RETIRED rather than
+  // rewritten (`D-17`; `D-31`'s UNTESTABLE arm). **WHAT REPLACES IT IS ALREADY HERE AND IS THIS CELL'S
+  // OWN SUBJECT**: the vector below runs over the REAL carrier's bytes.
 
   const REAL = readFileSync(BUILD_RS, 'utf8');
 
@@ -2161,13 +2123,12 @@ test('PAR-PUB-35 (vii-c) SOURCE :: R2-11 — a `version` key with NO COLON OF IT
   // are carriers of that cell's own making, never this tree's bytes.
   assertReaderIsSane();
 
-  // **THE TWO AUTHORITIES, READ AT THEIR OWN BYTES FIRST — SO A CELL DERIVED FROM A CLAUSE THAT HAS
-  // MOVED REPORTS IT RATHER THAN CERTIFYING THE MOVED READING.**
-  assert.ok(SPEC.release.includes('THE STAMP THEN CARRIES THAT OCCURRENCE\'S VALUE RATHER THAN THE DECLARED FIELD\'S'),
-    'CLAUSE CURRENCY — THE PROPERTY\'S OWN AUTHORITY. `release.md §6.10` item `2`\'s parser-domain clause must still read *"THE STAMP THEN CARRIES THAT '
-    + 'OCCURRENCE\'S VALUE RATHER THAN THE DECLARED FIELD\'S"*; it is the sentence that makes a neighbouring key\'s value a DEFECT and not a matter of '
-    + 'taste. OBSERVED: that sentence is NOT at its own bytes, so this cell reports the clause as MOVED rather than asserting against a reading the '
-    + 'corpus no longer carries.');
+  // **⟶ RETIRED 2026-10-24 (`D-17`): THE CLAUSE-CURRENCY LIMB IS GONE, AND THE CELL'S SUBSTANCE IS NOT.**
+  // The bytes above asserted a DOCUMENT's sentence where the clause's own text had to still read *"THE
+  // STAMP THEN CARRIES THAT OCCURRENCE'S VALUE RATHER THAN THE DECLARED FIELD'S"*. **That assertion's
+  // expectation is produced by opening a document and no observable behaviour can carry it**, so it is
+  // RETIRED (`D-17`; `D-31`'s UNTESTABLE arm — the property it named is DECLARED below and is driven
+  // against the carrier's own bytes, which is the only instrument that exists for it).
 
   const L = derivationLiteralsOf(CARRIER);
   assert.ok(L.key !== null && L.key.value === VERSION_KEY_SPELLED && L.separator !== null && L.separator.value === ':'

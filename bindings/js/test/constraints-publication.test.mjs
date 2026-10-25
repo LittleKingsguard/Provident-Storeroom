@@ -826,16 +826,29 @@ test('cp_write_path_a_four_position_write_enters_the_kernel_and_the_passing_arm_
   // `removeListener`\'s purge is BY HANDLE and the handle\'s entry stands at the pair\'s address, so a probe
   // and its disposal made HERE would leave the flow below without the entry it writes through
   // (`contract.md §2.7` item 2).
+  // **⟶ RE-DERIVED 2026-10-24 — TWO THINGS MOVED AND BOTH ARE THE ARCHITECT'S:**
+  //   * **THE DRIVE'S ORDER.** `B-6` (`D-29`, verbatim: *"Listen cannot overwrite constraint, only other
+  //     listeners"*) now REFUSES a `listen` at an address a STANDING constraint pair occupies, so the
+  //     as-filed order (pair first, then `listen`) is unreachable. **The listener is installed FIRST and the
+  //     pair is added over it** — lawful, because `B-4` keys on the pair's `id` and `'pp'` names no listener.
+  //   * **THE REFUSAL'S FORM.** `register`'s cross-kind arm moved from `withEmptyLog(new TypeError(…))` to the
+  //     surface's ONE plain thrown object with the store's `AddressMalformed` (`D-25`; `docs/L1/
+  //     surface-deltas.md` §2.5 — *"one member function cannot print two failure forms"*). **So the
+  //     `err instanceof TypeError && !('status' in err)` predicate has lost its subject and the declared form
+  //     is asserted instead.**
   const conflictProbe = makeStore();
   const probePair = pair('cp-write-pass-probe', 'pp');
+  assert.equal(conflictProbe.listen('a-callers-own-listener', [probePair.address]), 'a-callers-own-listener',
+    'the caller\'s entry is created at the address the pair will stand at (`listen-verb.md §4` state `1`; '
+    + '`D-22` for the answer)');
   conflictProbe.addConstraint(probePair, passing(counter()));
-  assert.equal(conflictProbe.listen('a-callers-own-listener', [probePair.address]), undefined,
-    'the caller\'s entry is created at the pair\'s address (`listen-verb.md §4` state `1`)');
   assert.throws(
     () => conflictProbe.register('a-callers-own-listener', () => {}),
-    (err) => err instanceof TypeError && !('status' in err),
-    'AND A CALLER\'s LISTENER AT THE PAIR\'S OWN ADDRESS IS REFUSED in the package-side form with NO `status` '
-    + '(`constraint-sites.md §5` items 1–2; `P: docs/pending.md · (C-2)` item (iii))');
+    (err) => err.status === 'AddressMalformed' && !(err instanceof TypeError)
+      && JSON.stringify(Object.keys(err).sort()) === '["log","message","status"]',
+    'AND A CALLER\'s LISTENER AT THE PAIR\'S OWN ADDRESS IS REFUSED in the surface\'s ONE plain thrown form '
+    + 'with the store\'s `AddressMalformed` — never the `TypeError` this arm carried while a reserved '
+    + '`constraint@` prefix existed to be exempted (`D-25`; `docs/L1/surface-deltas.md` §2.5)');
   assert.equal(conflictProbe.removeListener('a-callers-own-listener'), undefined,
     'and the refusal left the registry untouched, so the entry is removable at its own act');
   // `§2.12` item 1, STAGE 1: *"A `write` CALLED WITH FOUR POSITIONS — `write(instance, address, tier, value)`
@@ -906,16 +919,29 @@ test('cp_write_path_the_failing_arm_reports_the_declared_three_member_form_and_d
   // `removeListener`\'s purge is BY HANDLE and the handle\'s entry stands at the pair\'s address, so a probe
   // and its disposal made HERE would leave the flow below without the entry it writes through
   // (`contract.md §2.7` item 2).
+  // **⟶ RE-DERIVED 2026-10-24 — TWO THINGS MOVED AND BOTH ARE THE ARCHITECT'S:**
+  //   * **THE DRIVE'S ORDER.** `B-6` (`D-29`, verbatim: *"Listen cannot overwrite constraint, only other
+  //     listeners"*) now REFUSES a `listen` at an address a STANDING constraint pair occupies, so the
+  //     as-filed order (pair first, then `listen`) is unreachable. **The listener is installed FIRST and the
+  //     pair is added over it** — lawful, because `B-4` keys on the pair's `id` and `'pp'` names no listener.
+  //   * **THE REFUSAL'S FORM.** `register`'s cross-kind arm moved from `withEmptyLog(new TypeError(…))` to the
+  //     surface's ONE plain thrown object with the store's `AddressMalformed` (`D-25`; `docs/L1/
+  //     surface-deltas.md` §2.5 — *"one member function cannot print two failure forms"*). **So the
+  //     `err instanceof TypeError && !('status' in err)` predicate has lost its subject and the declared form
+  //     is asserted instead.**
   const conflictProbe = makeStore();
   const probePair = pair('cp-write-pass-probe', 'pp');
+  assert.equal(conflictProbe.listen('a-callers-own-listener', [probePair.address]), 'a-callers-own-listener',
+    'the caller\'s entry is created at the address the pair will stand at (`listen-verb.md §4` state `1`; '
+    + '`D-22` for the answer)');
   conflictProbe.addConstraint(probePair, passing(counter()));
-  assert.equal(conflictProbe.listen('a-callers-own-listener', [probePair.address]), undefined,
-    'the caller\'s entry is created at the pair\'s address (`listen-verb.md §4` state `1`)');
   assert.throws(
     () => conflictProbe.register('a-callers-own-listener', () => {}),
-    (err) => err instanceof TypeError && !('status' in err),
-    'AND A CALLER\'s LISTENER AT THE PAIR\'S OWN ADDRESS IS REFUSED in the package-side form with NO `status` '
-    + '(`constraint-sites.md §5` items 1–2; `P: docs/pending.md · (C-2)` item (iii))');
+    (err) => err.status === 'AddressMalformed' && !(err instanceof TypeError)
+      && JSON.stringify(Object.keys(err).sort()) === '["log","message","status"]',
+    'AND A CALLER\'s LISTENER AT THE PAIR\'S OWN ADDRESS IS REFUSED in the surface\'s ONE plain thrown form '
+    + 'with the store\'s `AddressMalformed` — never the `TypeError` this arm carried while a reserved '
+    + '`constraint@` prefix existed to be exempted (`D-25`; `docs/L1/surface-deltas.md` §2.5)');
   assert.equal(conflictProbe.removeListener('a-callers-own-listener'), undefined,
     'and the refusal left the registry untouched, so the entry is removable at its own act');
   const r = capture(() => inst.write(thePair.address, 'mem', 7));

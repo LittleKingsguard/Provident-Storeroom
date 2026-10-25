@@ -342,17 +342,36 @@ test('a127_rollback_returns_the_three_member_record', () => {
 // `undefined` because THE CALLER SUPPLIED THE IDENTITY and there is no datum to give back (`§2.2` item 10;
 // `listen-verb.md §2.4`). **THE OLD CELL'S SUBJECT — "the package's opaque handle" — IS RETIRED WITH THE
 // MINT**: nothing mints, and the handle is the caller's own non-empty string (`§2.1` item 1).
-test('a127_listen_takes_a_handle_and_a_set_of_addresses_and_answers_undefined', () => {
+// **⟶ RE-DERIVED AGAIN 2026-10-24 (`strata/decisions.md` `D-22`, verbatim: *"Listen should return the handle on
+// success, or error message on fail. Discard the noop prefix"*): `listen` ANSWERS THE HANDLE, NOT `undefined`.**
+//
+// **WHAT THE 2026-10-18 BYTES ABOVE RECORDED IS SUPERSEDED BY NAME, NOT WITHDRAWN.** They read *"the answer is
+// `undefined` because THE CALLER SUPPLIED THE IDENTITY and there is no datum to give back (`§2.2` item 10;
+// `listen-verb.md §2.4`)"* — and `D-22` overrules exactly that ground (`docs/L1/surface-deltas.md` §1.1: *"the
+// ground this block states above … is OVERRULED BY NAME"*). **The return is a SUCCESS SIGNAL THAT CARRIES THE
+// IDENTITY**, the caller's own spelling returned as the identity the store holds for that entry; its one
+// declared consumer is `K-1`'s adoption (*"adopted, never minted by the kernel"*), and failure remains the
+// surface's one thrown form. **THE ARITY FIGURE AND THE SET POSITION ARE UNTOUCHED** — `D-22` moves the return
+// and nothing else.
+test('a127_listen_takes_a_handle_and_a_set_of_addresses_and_answers_the_handle', () => {
   const a = mem();
   const answer = a.listen('h-a', [['a']]);
-  assert.equal(answer, undefined,
-    '`listen(handle, addresses)` answers `undefined` — the caller spelled the identity, so there is no datum '
-    + 'to return (`contract.md §2.2` item 10; `listen-verb.md §2.4`)');
+  assert.equal(answer, 'h-a',
+    '`listen(handle, addresses)` ANSWERS THE HANDLE IT WATCHES UNDER — the caller`s own spelling, returned as '
+    + 'the identity the store holds for that entry (`D-22`; `docs/L1/surface-deltas.md` §1.1)');
+  assert.equal(typeof answer, 'string',
+    'and the declared return type is `Handle` — the declaration moved `void → Handle` (`index.d.ts:685`), so '
+    + 'the value is a `Handle` and not an opaque object');
   assert.equal(a.listen.length, 2,
     'and the declared arity is TWO, the second position a SET (`contract.md §2.2` item 1: the arity figure '
-    + 'moves `1 → 2` at four declared sites and at the shipped signature)');
-  assert.equal(a.listen('h-b', [['b']]), undefined,
-    'a different handle at a different address is a second lawful call, and its answer is the same `undefined`');
+    + 'moves `1 → 2` at four declared sites and at the shipped signature; `D-22` moves the RETURN only)');
+  assert.equal(a.listen('h-b', [['b']]), 'h-b',
+    'a different handle at a different address is a second lawful call, and its answer is THAT handle');
+  // AND THE RETURN IS NOT AN ECHO THE STORE COULD DISAGREE WITH: a repeated call at a held handle answers the
+  // SAME value, because the identity is the string the caller spelled and the store holds it by that string.
+  assert.equal(a.listen('h-a', [['a']]), 'h-a',
+    'a repeated `listen` answers the same handle — the identity is the caller`s datum and the store holds the '
+    + 'entry under it (`D-22`; `identity-and-domain.md §2` item 1)');
 });
 
 test('a127_unlisten_answers_undefined_for_a_handle_the_caller_spelled', () => {

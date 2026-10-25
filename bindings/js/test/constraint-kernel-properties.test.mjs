@@ -44,12 +44,15 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-// **THE CONTRACT'S OWN BYTES ARE READ BY THE REGISTER'S CLOSURE CELL** (`contract.md §5.1`–`§5.8`; the
-// re-derivation of 2026-10-17): the declared strategy ids are EXTRACTED FROM THE DOCUMENT that declares
-// them, so the closure cannot close over this file's own literal.
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+// **⟶ THE CONTRACT'S OWN BYTES ARE NO LONGER READ AT ALL — AMENDED 2026-10-24 (`D-17`).** The re-derivation
+// of 2026-10-17 EXTRACTED the declared strategy ids FROM THE DOCUMENT that declares them, *"so the closure
+// cannot close over this file's own literal"* — and that was the defect: **the document was the ORACLE, and
+// a cell's expectation must come from CODE** (`D-17`, verbatim: *"Rewrite or retire the tests that point at
+// docs. Tests are for code."*). **THE DECLARATION IS NOW THIS FILE'S OWN** and the closure is asserted
+// between the declaration and the cells, which is the same property read at two code sites.
+// **⟶ THE THREE IMPORTS THIS MODULE NEEDED FOR THE CONTRACT READ ARE GONE WITH IT — 2026-10-24 (`D-17`).**
+// `readFileSync`, `fileURLToPath` and `dirname` had one consumer between them: the extraction below that no
+// longer exists. **An import left behind by a removed read is how a battery looks like it still reads.**
 
 // ⟶ RESHAPED: the package namespace carries ONE name (`surface.md §2.9` item 1's `A127` clause; `11 → 1`).
 
@@ -285,7 +288,16 @@ test('ck_prop_P_IM_1_two_distinct_pairs_that_spell_alike_each_answer_their_own_a
     store.write(node, 'mem', {});
   }
   const families = [
-    { first: [root, 'a', 'b'], firstId: 'x', second: [root, 'a/b'], secondId: 'x', why: 'F1: a `/` inside a segment against two segments — both pairs spell `' + root + '/a/b#x`' },
+    // **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-29`, verbatim: *"Handle becomes the internal ID"*):
+    // THE TWO IDS ARE NOW DISTINCT.** The as-filed row read `firstId: 'x', secondId: 'x'` — two pairs whose
+    // SPELLINGS collide — and under `D-29` the kernel's registry is keyed by the **`id` alone**, so two
+    // registrations naming one `id` are **ONE pair** (`D-29` item 2: *"`K-1`'s 'a second `register` at the same
+    // `id` begins a pair of its own' is SUPERSEDED — it does not, because there is only ever one pair per
+    // `id`"*). **The cell's subject — *"two DISTINCT pairs that spell alike each answer their own address"* —
+    // therefore needs two distinct `id`s, and with them the spelling collision is still real and still
+    // harmless**: the key is the `id`, and the diagnostic spelling the kernel prints for a pair must never be
+    // the thing two pairs are told apart by.
+    { first: [root, 'a', 'b'], firstId: 'x', second: [root, 'a/b'], secondId: 'y', why: 'F1: a `/` inside a segment against two segments — both pairs spell `' + root + '/a/b#…`' },
     { first: [root, 'a#b'], firstId: 'c', second: [root, 'a'], secondId: 'b#c', why: 'F2: a `#` inside a segment against a `#` inside the id — both pairs spell `' + root + '/a#b#c`' },
   ];
   const observed = [];
@@ -980,8 +992,11 @@ test('ck_prop_P_TP_8_the_marker_opens_empty_on_a_second_attempt_at_the_same_addr
  * STATES ENUMERATED FIRST. For one attempt: (1) TWO ids registered at ONE address, both functions
  * standing; (2) the address's store home entry — ONE, read off the adopted handle the two `register`
  * calls answer; (3) the pass's evaluated set — BOTH pairs, in first-registration order. FAIL STATES:
- * a second id at one address that adds a second store home entry; a registration that loses the
- * first pair; an address-keyed registry that makes two ids one registration.
+ * a registration that loses the first pair; an ID-KEYED registry that makes two ids one registration; a
+ * handle that is not the caller's own `id`. **⟶ RE-DERIVED 2026-10-24 (`D-23`/`D-24`): the as-filed fail
+ * state *"a second id at one address that adds a second store home entry"* is WITHDRAWN BY NAME** — under the
+ * caller-spelled handle two ids at one address are two handles BY DESIGN, and the second entry is the
+ * ruling's own outcome, not a failure.
  */
 test('ck_prop_P_IM_1_a_second_id_at_one_address_stands_and_the_store_holds_one_home_entry', async () => {
   const { register, commit, runAttempt } = await kernel();
@@ -997,11 +1012,26 @@ test('ck_prop_P_IM_1_a_second_id_at_one_address_stands_and_the_store_holds_one_h
       // the two pairs the pass evaluates, so both registrations must STAND and the recorder must hold the
       // PASS's invocations alone. Both bodies pass every context; the recorder is shielded so the two
       // registration invocations are not read as the one pass this row counts.
+      // **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-23`/`D-24`, verbatim: *"The handle becomes the
+      // id"*): TWO IDS AT ONE ADDRESS ARE TWO HANDLES AND TWO STORE HOME ENTRIES.**
+      //
+      // **WHAT STOOD HERE.** `assert.equal(secondHandle, firstHandle, 'ONE store home entry at the address:
+      // both registrations are answered the SAME adopted handle … listen is idempotent at the address level')`
+      // — the `(Y-1)` consequence of the kernel's `constraint@<JSON address>` spelling, where the handle was a
+      // function of the ADDRESS. **`D-22` DISCARDS that spelling and `D-23`/`D-24` make the caller's own `id`
+      // the handle**, so the address no longer decides the identity and the two registrations answer two
+      // DIFFERENT handles: one id, one pair, one identity, one handle (`D-29`). **THE ROW'S OWN SUBJECT —
+      // *"a second id at one address STANDS and the pass evaluates BOTH pairs in first-registration order"* —
+      // is unmoved**, and both assertions below it still assert exactly that.
       const firstHandle = register(store, address, 'x', recordsAfterRegistration(() => { invoked.push('x'); return true; }));
       const secondHandle = register(store, address, second, recordsAfterRegistration(() => { invoked.push(second); return true; }));
-      assert.equal(secondHandle, firstHandle,
-        'ONE store home entry at the address: both registrations are answered the SAME adopted handle '
-        + '(`kernel-surface.md §2.2` item 4 — `listen` is idempotent at the address level)');
+      assert.equal(firstHandle, 'x',
+        'the first registration answers ITS OWN `id` as the handle — adopted from `listen`\'s return '
+        + '(`D-22`; `D-23`)');
+      assert.equal(secondHandle, second,
+        'and the second answers ITS OWN `id`: two ids at one address are TWO handles and TWO store home '
+        + 'entries (`D-24`: the handle is instance-scoped and unique). The as-filed equality asserted the '
+        + 'per-address spelling `D-22` discarded');
       const report = runAttempt(store, commit(store, address, 'mem', n(0, 9)));
       assert.deepEqual(checkIds(report.log), ['x', second],
         'and BOTH pairs stand and are evaluated, in the registry\'s own first-registration order: a '
@@ -1593,42 +1623,45 @@ test('ck_prop_P_TP_8_the_marker_writes_no_store_entry_no_journal_entry_and_no_cl
 // THE REGISTER'S OWN DECLARED IDS, `contract.md §5.1`–`§5.8`, in the rows' own order — the ONE home of
 // the list, read by the budget cell's two-direction closure and by `P-NEG-21`.
 //
-// **⟶ RE-DERIVED 2026-10-17 (`role_test_writer`; GATE 4's ADVERSARIAL PASS): THE SET IS NO LONGER A
-// LITERAL TYPED IN THIS FILE.** It was one — and so was the `24`/`27` arithmetic below — so a `28`th id
-// landing in `contract.md §5` would have moved NOTHING: the closure read compared this file's own list
-// against this file's own list's consumers. **THE DECLARED SET IS NOW EXTRACTED FROM THE CONTRACT BYTES IT
-// CLAIMS TO CHECK** — the eight `### §5.n` headings and, inside each, the bolded ids of that row's own
-// *"**Strategy ids.**"* line — and the extraction is asserted to have found the same number of ids the
-// contract's own counts print (`3 + 4 + 3 + 3 + 4 + 3 + 4 + 3 = 27`) and to be a set of DISTINCT ids.
-const CONTRACT_PATH = join(
-  dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'docs', 'specs', 'storeroom-constraints', 'contract.md',
-);
-/// The eight `§5.n` sections of the register, each with the ids ITS OWN `Strategy ids` line carries. The
-/// reading is the heading's own `§n`, never a position: a row that MOVED would be read at its new section
-/// rather than silently re-slotted.
-function declaredStrategyIdsFromContract(bytes) {
-  const headings = [];
-  const heading = /^### §5\.([1-8]) [^\n]*$/gm;
-  let hit;
-  while ((hit = heading.exec(bytes)) !== null) headings.push({ section: `§5.${hit[1]}`, start: hit.index });
-  for (let i = 0; i < headings.length; i += 1) {
-    const end = i + 1 < headings.length ? headings[i + 1].start : bytes.length;
-    const body = bytes.slice(headings[i].start, end);
-    // The row's own list, from its `**Strategy ids.**` label to its `**FAILURE LIST.**` label — the two
-    // labels the register fixes for every row — so the ids are read off the ROW and never off a neighbouring
-    // row's ids or off the text beside them.
-    const list = /\*\*Strategy ids\.\*\*([\s\S]*?)\*\*FAILURE LIST\.\*\*/.exec(body);
-    headings[i].ids = list === null ? [] : [...list[1].matchAll(/\*\*`(S-[A-Z][A-Z-]*)`\*\*/g)].map((x) => x[1]);
-  }
-  return headings;
-}
-const CONTRACT_STRATEGY_ROWS = declaredStrategyIdsFromContract(
-  readFileSync(CONTRACT_PATH, 'utf8'),
-);
+// **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-17`, verbatim: *"Rewrite or retire the tests that
+// point at docs. Tests are for code."*) — THE DECLARED SET IS THIS FILE'S OWN DECLARATION AND IS NO LONGER
+// PARSED OUT OF A DOCUMENT.**
+//
+// **WHAT STOOD HERE, NAMED SO ITS ABSENCE IS LEGIBLE.** `CONTRACT_PATH` pointed at
+// `docs/specs/storeroom-constraints/contract.md`; `declaredStrategyIdsFromContract(bytes)` parsed its eight
+// `§5.n` headings and each row's `**Strategy ids.**` line into `CONTRACT_STRATEGY_ROWS`. **A cell's
+// expectation must come from CODE** (`D-17`) and this one's came from OPENING A DOCUMENT: the register was
+// the ORACLE, so the battery would fail on any checkout whose keep-set moved — the mechanism this branch's
+// archival proved on the eleven reads `D-17` retires. **The document survives today, which is why the read
+// was GREEN and still wrong.**
+//
+// **WHAT REPLACES IT, AND WHY THE PROPERTY SURVIVES INTACT.** The CLOSURE was always the real subject:
+// every strategy id a `row()` cell of THIS FILE cites must be one of the declared ids, and every declared id
+// must either be cited or stand in the named undrivable list with its reason. **That property is between the
+// DECLARATION and the CELLS, both of which are code in this file** — so the declaration is a constant below
+// and the closure is asserted exactly as it was, in both directions (`DR-10`).
+// **AND THE DECLARATION IS THE TEST LAYER'S TO MAKE** (`D-19`: *"whether a REWRITE's new expectation comes
+// from a declared surface, an observable behaviour or a property — the test writer's declaration"*).
+//
+// **RETIRED WITH THE READ, AND NAMED AT ITS SITE BELOW:** the three assertions whose subject was *"the
+// DOCUMENT's `§5.n` headings carry these per-row id counts"* and *"the declared set is the document's own
+// `3 + 4 + 3 + 3 + 4 + 3 + 4 + 3 = 27`"*. **A document's row count is carried by no observable behaviour**
+// (`D-17`; `D-31`'s UNTESTABLE arm). The per-row figures are KEPT as the declaration's own shape, read at
+// the constant rather than at a clause.
+const CONTRACT_STRATEGY_ROWS = [
+  { section: '§5.1', ids: ['S-KEY', 'S-KEY-ADDR', 'S-CHECK'] },
+  { section: '§5.2', ids: ['S-REC', 'S-REC-SURFACE', 'S-REC-DISPOSE', 'S-REC-RETAIN'] },
+  { section: '§5.3', ids: ['S-CHAN', 'S-CHAN-CONV', 'S-CHAN-FORM'] },
+  { section: '§5.4', ids: ['S-ATT-ARM', 'S-ATT-OUT', 'S-ATT-SHAPE'] },
+  { section: '§5.5', ids: ['S-SIDE', 'S-WINDOW', 'S-LOG-ORDER', 'S-NO-STORE-ORDER'] },
+  { section: '§5.6', ids: ['S-FIRST-REPEAT', 'S-SECOND-VIOLATION', 'S-NO-BUDGET'] },
+  { section: '§5.7', ids: ['S-ROLLBACK-ALL', 'S-ROLLBACK-PER-OP', 'S-ROLLBACK-FLOOR', 'S-ROLLBACK-TARGET'] },
+  { section: '§5.8', ids: ['S-MARK-ATTEMPT', 'S-MARK-SCOPE', 'S-MARK-NO-HOME'] },
+];
 const DECLARED_STRATEGY_IDS = CONTRACT_STRATEGY_ROWS.flatMap((row) => row.ids);
-/// The contract's own arithmetic for the eight rows' ids, printed at the register's census and at this
-/// file's own header (`§5.1`–`§5.8`: `3 + 4 + 3 + 3 + 4 + 3 + 4 + 3 = 27`). **AN EMPTY OR TRUNCATED READ IS
-/// BELOW IT, SO THE READING FAILS LOUDLY INSTEAD OF CLOSING OVER NOTHING.**
+/// The declared set's own arithmetic for the eight rows' ids (`3 + 4 + 3 + 3 + 4 + 3 + 4 + 3 = 27`).
+/// **AN EMPTY OR TRUNCATED DECLARATION IS BELOW IT, SO THE READING FAILS LOUDLY INSTEAD OF CLOSING OVER
+/// NOTHING.**
 const IDS_PER_SECTION = [3, 4, 3, 3, 4, 3, 4, 3];
 
 /**
@@ -1729,7 +1762,8 @@ test('ck_prop_the_register_ran_at_most_four_hundred_attempts_and_stopped_after_f
   // CONTRACT'S OWN FIGURES, so the closure can never close over an EMPTY reading.**
   const readCounts = CONTRACT_STRATEGY_ROWS.map((row) => `${row.section}:${row.ids.length}`).join(' · ');
   assert.deepEqual(CONTRACT_STRATEGY_ROWS.map((row) => row.ids.length), IDS_PER_SECTION,
-    `the eight rows' own id counts, READ FROM \`contract.md\` BY THE ROW'S SECTION (${readCounts})`);
+    `the eight rows' own id counts, read off THIS FILE'S DECLARED SET by the row's section `
+    + `(${readCounts}) — RE-DERIVED 2026-10-24 (\`D-17\`): the figure was the document's and is now the declaration's`);
   assert.equal(new Set(DECLARED_STRATEGY_IDS).size, DECLARED_STRATEGY_IDS.length,
     'and every declared id is DISTINCT across the eight rows, so the closure is a set and not a multiset');
   assert.equal(DECLARED_STRATEGY_IDS.length, IDS_PER_SECTION.reduce((a, b) => a + b, 0),
@@ -1777,11 +1811,11 @@ test('ck_p_neg_21_every_declared_strategy_id_cites_a_row_cell_or_stands_in_the_n
   // ROWS' OWN `Strategy ids` LINES, so a `28`th id landing in the contract makes BOTH closure cells fail
   // instead of moving nothing.**
   assert.deepEqual(CONTRACT_STRATEGY_ROWS.map((row) => row.section), ['§5.1', '§5.2', '§5.3', '§5.4', '§5.5', '§5.6', '§5.7', '§5.8'],
-    'the eight rows are read at their own sections, in the register\'s own order');
+    'the declared set carries the eight sections in their own order — RE-DERIVED 2026-10-24 (`D-17`): read at the declaration, not at a document');
   assert.deepEqual(CONTRACT_STRATEGY_ROWS.map((row) => row.ids.length), IDS_PER_SECTION,
-    'and each row\'s own `Strategy ids` line carries the count the register\'s census prints for it');
+    'and each row\'s ids are the count the declaration carries for it');
   assert.equal(DECLARED_STRATEGY_IDS.length, IDS_PER_SECTION.reduce((a, b) => a + b, 0),
-    'the declared set read from the contract bytes: 3 + 4 + 3 + 3 + 4 + 3 + 4 + 3 = 27');
+    'the declared set\'s own arithmetic: 3 + 4 + 3 + 3 + 4 + 3 + 4 + 3 = 27');
   for (const entry of UNDRIVABLE_BY_A_ROW_CELL) {
     assert.equal(typeof entry.reason === 'string' && entry.reason.length >= 60, true,
       `every undrivable id carries the reason it is undrivable by: ${entry.id} carries `

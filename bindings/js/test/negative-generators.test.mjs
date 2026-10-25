@@ -2156,8 +2156,9 @@ test('ng_js_k_one_handle_at_two_addresses_is_withdrawn_entry_by_entry_and_the_fu
     // --- (1) ONE HANDLE AT TWO ADDRESSES: `unlisten` reaches ONE home entry per call, and the FUNCTION stands.
     {
       const inst = mem();
-      assert.equal(inst.listen(token, [[token, 'a'], [token, 'b']]), undefined,
-        '`PAR-HL-3`: `listen` answers `undefined`; the set is the caller\'s own spelling of N addresses');
+      assert.equal(inst.listen(token, [[token, 'a'], [token, 'b']]), token,
+        '`D-22`: `listen` ANSWERS THE HANDLE it watches under; the set is the caller\'s own spelling of N '
+        + 'addresses. The `PAR-HL-3` reading that said `undefined` is SUPERSEDED BY NAME');
       inst.write([token], 'mem', {}); // the parent branch both addresses resolve through (§3.2 item 2)
       let fires = 0;
       const handle = token;
@@ -2470,8 +2471,8 @@ test('ng_js_n_a_withdrawn_registration_is_never_invoked_again_across_an_address_
         if (carriesHandle(inst.write(other, 'mem', 7).triggered, handle)) {
           return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): the withdrawn registration is still reached at its own address BEFORE any re-\`listen\` (\`§2.4\` rule 4)`;
         }
-        if (inst.listen(handle, [other]) !== undefined) {
-          return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): \`listen\` did not answer \`undefined\` (\`PAR-HL-3\`)`;
+        if (inst.listen(handle, [other]) !== handle) {
+          return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): \`listen\` did not answer the caller's own handle (\`D-22\`)`;
         }
         if (!carriesHandle(inst.write(other, 'mem', 6).triggered, handle)) {
           return `collision(${JSON.stringify(seeded)}|${JSON.stringify(other)}): the re-installed entry is not reached under the caller's own spelling (\`identity-and-domain.md\` §3 item 2 (i))`;
@@ -2615,7 +2616,9 @@ test('ng_js_o_construction_seeding_and_the_deregistration_route_are_held_at_thei
       // mirror's derivation are TWO registrations, and the withdrawal reaches only the one it names — is
       // unmoved and is asserted at the two spellings below.**
       const handle = 'minted-identity';
-      assert.equal(inst.listen(handle, [minted]), undefined, '`PAR-HL-3`: `listen` answers `undefined`');
+      assert.equal(inst.listen(handle, [minted]), handle,
+        '`D-22`: `listen` ANSWERS THE HANDLE it watches under — `contract.md §2.2` item 10\'s `Handle → '
+        + 'undefined` reading is superseded by name');
       let fires = 0;
       inst.register(handle, () => { fires += 1; });
       const triggered = inst.write(minted, 'mem', 9).triggered;
@@ -2699,7 +2702,7 @@ test('ng_js_p_one_token_at_two_addresses_is_withdrawn_registration_by_registrati
     // no longer exists.
     const handle = `p-identity-at-first@${tail}`;
     const sibling = `p-identity-at-second@${tail}`;
-    if (inst.listen(handle, [first]) !== undefined) return 'two-addresses: `listen` did not answer `undefined` (`PAR-HL-3`)';
+    if (inst.listen(handle, [first]) !== handle) return 'two-addresses: `listen` did not answer the caller\'s own handle (`D-22`)';
     let fires = 0;
     inst.register(handle, () => { fires += 1; });
 
@@ -2714,7 +2717,7 @@ test('ng_js_p_one_token_at_two_addresses_is_withdrawn_registration_by_registrati
     // (2) **THE SECOND ADDRESS IS A DIFFERENT REGISTRATION AND A DIFFERENT IDENTITY** (`§2.4` rule 3: one
     // invocation per DISTINCT handle — the store's array at each address carries its own member).
     // **⟶ and the sibling is a SECOND caller-spelled identity at its own address.**
-    if (inst.listen(sibling, [second]) !== undefined) return 'two-addresses: `listen` did not answer `undefined`';
+    if (inst.listen(sibling, [second]) !== sibling) return 'two-addresses: `listen` did not answer the caller\'s own handle (`D-22`)';
     if (sibling === handle) {
       return 'two-addresses: the two registrations carry the SAME identity, so they are one (`identity-and-domain.md` §1 item 4)';
     }
@@ -2749,7 +2752,7 @@ test('ng_js_p_one_token_at_two_addresses_is_withdrawn_registration_by_registrati
     // **⟶ and the fresh registration is a FRESH caller-spelled handle, asserted at the store's own trigger
     // rather than at a mint** (`§2.4` rule 4; `contract.md §2.1` item 1).
     const remint = `p-identity-reminted@${tail}`;
-    if (inst.listen(remint, [first]) !== undefined) return 'two-addresses: `listen` did not answer `undefined`';
+    if (inst.listen(remint, [first]) !== remint) return 'two-addresses: `listen` did not answer the caller\'s own handle (`D-22`)';
     let remintFires = 0;
     inst.register(remint, () => { remintFires += 1; });
     const firesBeforeRemint = fires;

@@ -521,9 +521,44 @@ test('a126_add_at_a_batch_pair_takes_the_overwrite_and_the_batch_function_is_dis
   assert.equal(added.calls.length, 1, 'and the added function`s count is `1` for the one write that reaches the pair');
 });
 
-test('a126_a_functionless_batch_element_is_admitted_and_its_pair_is_not_carried', () => {
-  const a = mem({ constraints: [{ address: ['a'], id: 'b3' }] });
-  assert.deepEqual(a.read([]), {}, 'a well-formed pair with no function is admitted by the store`s list rule');
+// **⟶ SUPERSEDED 2026-10-24, AND ITS SUBJECT IS GONE RATHER THAN STALE (`D-17`'s DISCARD class; `D-26` item 4,
+// verbatim: *"The batch in cfg.constraints must supply functions"*).**
+//
+// **WHAT STOOD HERE.** `const a = mem({ constraints: [{ address: ['a'], id: 'b3' }] })` — a FUNCTIONLESS batch
+// element — followed by *"a well-formed pair with no function is admitted by the store's list rule"* and, at the
+// tail, by the toggles REFUSING at that unarmed pair. **`D-26` rules that state away at its own source**: *"a
+// well-formed `cfg.constraints` element that carried no function … HAS NO PRODUCER ON THIS ROUTE: a batch element
+// is always carried"*, and the construction now refuses such an element `ConstraintListInvalid` BEFORE ANY
+// FILESYSTEM ACT (`B-1`). **A DISCARD IS NOT A DELETION, SO THE HALF THAT SURVIVES IS DRIVEN BESIDE IT** — the
+// refusal `B-1` now makes, which is the same act this cell used to admit.
+test('a126_a_functionless_batch_element_is_REFUSED_at_the_construction_and_no_instance_returns', () => {
+  // `B-1` — the refusal `D-26` owes and the package owns, in the surface's ONE thrown form, with the store's
+  // existing `ConstraintListInvalid` and NO code minted (`docs/L1/surface-deltas.md` §2.1).
+  const refusal = (() => {
+    try {
+      return mem({ constraints: [{ address: ['a'], id: 'b3' }] }) && null;
+    } catch (caught) {
+      return caught;
+    }
+  })();
+  assert.notEqual(refusal, null,
+    'a functionless batch element is REFUSED at the construction — `D-26` item 5: *"a missing, `undefined` or '
+    + 'non-function `constraint` member cannot be seen by the store, so the PACKAGE refuses it"*');
+  assert.equal(refusal.status, 'ConstraintListInvalid',
+    'and its member is the list\'s own validation code at rank `16` — the package MINTS NO CODE (`D-26` item 5; '
+    + '`D-27`; `contract.md §8.1` #16)');
+  assert.deepEqual(Object.keys(refusal).sort(), ['log', 'message', 'status'],
+    'and it is the surface\'s ONE thrown form with `log: []` — no attempt was opened and no instance exists '
+    + '(`surface.md §2.5` item 4)');
+  assert.ok(!(refusal instanceof TypeError),
+    'and NEVER a `TypeError`: the class-test form belongs to OUTSIDE VALUES of a position, while an element '
+    + 'without its function is an element outside the LIST\'s declared shape (`docs/L1/surface-deltas.md` §2.1)');
+
+  // AND THE STATE THE OLD CELL'S TAIL ASSERTED — that a pair carrying no function is NOT a carried pair, so a
+  // toggle at it refuses the constraint methods' one `TypeError` — STILL HAS A PRODUCER, at the ADD route's own
+  // refused registration: a pair whose function was never supplied is one `addConstraint` refused, and the
+  // toggle at it is the class test. **THE BATCH ROUTE CAN NO LONGER PRODUCE IT** (`D-26` item 4).
+  const a = mem();
   // **⟶ THE EXISTENCE AND ARITY PRECONDITIONS, ADDED 2026-10-17 (`role_test_writer`, GATE 4's ADVERSARIAL
   // PASS) — THE CELL'S SUBJECT IS A THROW, SO WITHOUT THEM AN ABSENT `constraintOn` SATISFIED IT.** The
   // member set is `contract.md §2.7` item 9's FOURTEEN, and the three constraint functions are read by `typeof` and by ARITY `2`
@@ -543,7 +578,8 @@ test('a126_a_functionless_batch_element_is_admitted_and_its_pair_is_not_carried'
   const fn = refusing();
   assert.ok(
     isTheOneTypeError(thrown(() => a.constraintOn({ address: ['a'], id: 'b3' }, fn))),
-    'the toggles REFUSE at a functionless element: no pair is left enabled with no function',
+    'and the toggles REFUSE at a pair no function was ever supplied to: no pair is left enabled with no '
+    + 'function (`surface.md §2.12` item 3; `D-26` item 4 — the ADD route is that state\'s only producer now)',
   );
 });
 

@@ -897,7 +897,11 @@ test('fts_S_CONSTRAINTS_KEY_an_empty_array_is_a_legal_list_and_is_not_the_absent
 test('fts_S_CONSTRAINTS_KEY_one_well_formed_pair_constructs_and_the_pass_evaluates_it', async () => {
   const { register, commit, runAttempt } = await kernel();
   const key = tag('ck-one');
-  const f = newStore({ constraints: [{ address: [key], id: 'pair-1' }] });
+  // **⟶ AMENDED 2026-10-24 (`D-26` item 1, verbatim: *"The batch in cfg.constraints must supply functions"*):
+  // THE ELEMENT IS THREE MEMBERS AND THE FUNCTION IS REQUIRED.** The bytes named `{ address, id }` only —
+  // the element `D-26` calls *"a DEFECT and not a design"* — so the drive now supplies its substance, which
+  // is what makes the declaration's second sentence (*"the pass then evaluates it"*) reachable at all.
+  const f = newStore({ constraints: [{ address: [key], id: 'pair-1', constraint: () => true }] });
   assert.equal(typeof f.store, 'object', 'S-CONSTRAINTS-KEY: one well-formed pair constructs');
   // The pair is registered through the kernel's own `K-1` (`kernel-surface.md §2.1` item 1) and evaluated by
   // the pass at its own address — the observable `§2.21` pins ("a store constructed with a well-formed list,
@@ -915,7 +919,13 @@ test('fts_S_CONSTRAINTS_KEY_one_well_formed_pair_constructs_and_the_pass_evaluat
 test('fts_S_CONSTRAINTS_KEY_two_well_formed_pairs_construct', async () => {
   const a = tag('ck-two-a');
   const b = tag('ck-two-b');
-  const f = newStore({ constraints: [{ address: [a], id: 'pair-a' }, { address: [b], id: 'pair-b' }] });
+  // **⟶ AMENDED 2026-10-24 (`D-26`): each element carries its own function — the element is three members.**
+  const f = newStore({
+    constraints: [
+      { address: [a], id: 'pair-a', constraint: () => true },
+      { address: [b], id: 'pair-b', constraint: () => true },
+    ],
+  });
   assert.equal(typeof f.store, 'object',
     'S-CONSTRAINTS-KEY: the key\'s unit is the COUNT OF PAIRS — two pairs are two elements and construct');
 });
@@ -945,7 +955,13 @@ test('fts_S_CONSTRAINTS_KEY_the_worked_example_answers_its_own_generated_message
   // generator's rule: the FAILING entry is the second, whose `address` is the STRING 'a' and so is not a
   // segment array; `<SEGMENT>` is that entry's `address` spelling, `<CONTAINER>` is the key `constraints`,
   // and the degenerate arm of <CONTAINERSEGMENT> applies.
-  const { cfg } = cfgFor({ constraints: [{ address: ['a'], id: 'c1' }, { address: 'a', id: 'c2' }] });
+  // **⟶ AMENDED 2026-10-24 (`D-26`): the FIRST element carries its function, so the refusal the worked
+  // example prints is still the SECOND element's own (a `B-1` fault at position `0` would shadow it, and
+  // `docs/L1/surface-deltas.md` §3.2 keeps the store's arm first for an element the ENCODER refused).**
+  const { cfg } = cfgFor({ constraints: [
+    { address: ['a'], id: 'c1', constraint: () => true },
+    { address: 'a', id: 'c2' },
+  ] });
   const expected = "'a' is not a valid constraint entry in 'constraints', a constraint entry is an address "
     + 'and an id, and the address is a segment array';
   assert.throws(() => storeCreate(cfg), (err) => {
@@ -1034,7 +1050,7 @@ test('fts_S_CONSTRAINTS_KEY_the_load_side_validates_the_persisted_list_and_a_val
   const key = tag('ck-load');
   const d = freshDir();
   const filePath = join(d, 'store.json');
-  const first = storeCreate({ filePath, journalLength: 8, listeners: [], constraints: [{ address: [key], id: 'load-1' }] });
+  const first = storeCreate({ filePath, journalLength: 8, listeners: [], constraints: [{ address: [key], id: 'load-1', constraint: () => true }] });
   runAttempt(first, commit(first, [key], 'file', 'booted'));
   const image = bytesOf(filePath);
   assert.ok(String(image).includes('booted'), 'S-CONSTRAINTS-KEY: the fixture stands on a durable image');
@@ -1042,7 +1058,7 @@ test('fts_S_CONSTRAINTS_KEY_the_load_side_validates_the_persisted_list_and_a_val
   // THE LOAD INSTANT'S PASS ARM: a second construction over an EQUAL `cfg.filePath`, carrying a well-formed
   // list, returns its instance and answers no code (`§2.21`: "the list's validation at the construction and
   // its validation at the load").
-  const second = storeCreate({ filePath, journalLength: 8, listeners: [], constraints: [{ address: [key], id: 'load-1' }] });
+  const second = storeCreate({ filePath, journalLength: 8, listeners: [], constraints: [{ address: [key], id: 'load-1', constraint: () => true }] });
   assert.equal(typeof second, 'object', 'S-CONSTRAINTS-KEY: a valid persisted list boots');
   assert.equal(second.read([key], 'file'), 'booted',
     'S-CONSTRAINTS-KEY: "the register\'s own keys after a boot" — the observable `§10.9` row 6 pins');
@@ -1063,7 +1079,7 @@ test('fts_S_CONSTRAINTS_KEY_the_load_side_failure_answers_ConstraintListInvalid_
   const key = tag('ck-load-fail');
   const d = freshDir();
   const filePath = join(d, 'store.json');
-  const first = storeCreate({ filePath, journalLength: 8, listeners: [], constraints: [{ address: [key], id: 'load-1' }] });
+  const first = storeCreate({ filePath, journalLength: 8, listeners: [], constraints: [{ address: [key], id: 'load-1', constraint: () => true }] });
   runAttempt(first, commit(first, [key], 'file', 'booted'));
   const image = bytesOf(filePath);
   assert.ok(String(image).includes('booted'), 'S-CONSTRAINTS-KEY: the fixture stands on a durable image');
@@ -1076,7 +1092,10 @@ test('fts_S_CONSTRAINTS_KEY_the_load_side_failure_answers_ConstraintListInvalid_
   const expected = `'${absent}' is not a valid constraint entry in 'constraints', a constraint entry is an `
     + 'address and an id, and the address is a segment array';
   assert.throws(() => storeCreate({
-    filePath, journalLength: 8, listeners: [], constraints: [{ address: [key], id: 'load-1' }, { address: [absent], id: 'load-2' }],
+    filePath, journalLength: 8, listeners: [], constraints: [
+      { address: [key], id: 'load-1', constraint: () => true },
+      { address: [absent], id: 'load-2', constraint: () => true },
+    ],
   }), (err) => {
     // **RE-DERIVED TO THE THREE-MEMBER FORM 2026-10-16**: the LOAD-side refusal is likewise a
     // construction `cfg`-side refusal — `surface.md §2.5` item 4's own enumerated `log: []` arm — so the
@@ -1109,7 +1128,7 @@ test('fts_S_CONSTRAINTS_KEY_the_load_side_failure_answers_ConstraintListInvalid_
   // names what the register actually holds — the discriminator that makes the arm single-valued.
   assert.equal(bytesOf(filePath), image,
     'S-CONSTRAINTS-KEY: the refused LOAD construction writes no byte at `cfg.filePath`');
-  const third = storeCreate({ filePath, journalLength: 8, listeners: [], constraints: [{ address: [key], id: 'load-1' }] });
+  const third = storeCreate({ filePath, journalLength: 8, listeners: [], constraints: [{ address: [key], id: 'load-1', constraint: () => true }] });
   assert.equal(typeof third, 'object', 'S-CONSTRAINTS-KEY: the same file boots under a satisfied list');
   assert.equal(third.read([key], 'file'), 'booted',
     'S-CONSTRAINTS-KEY: and the version it carried is the one the boot reads');
@@ -1439,7 +1458,7 @@ test('fts_S_CENSUS_the_construction_declares_four_keys_and_no_fifth_is_added', a
     + 'rename and no fifth key of its own (`DD-36`)');
 });
 
-test('fts_S_CENSUS_no_rank_moves_no_ninth_register_row_and_no_second_register', async () => {
+test('fts_S_CENSUS_no_rank_moves_and_no_second_register', async () => {
   const namespace = await import('provident-storeroom');
   const exported = Object.keys(namespace).sort();
   // **⟶ RE-DERIVED 2026-10-16 (`surface.md §2.9` item 1's `A127` clause; `§2.4` item 9 (f)'s `A127` clause;
@@ -1481,58 +1500,45 @@ test('fts_S_CENSUS_no_rank_moves_no_ninth_register_row_and_no_second_register', 
       + 'function placed by `register`, and `unlisten` is the withdrawal (`§2.4` item 9 (f)\'s `A127` clause)');
   }
 
-  // THE REGISTER'S OWN ROW COUNT, read off its one home: `implementation-plan.md §10.9` declares `8` rows
-  // (`3 + 3 + 2 = 8` ✓ at the cap `8 ≤ 8`) and NO NINTH ROW. FAIL-STATE: "a ninth register row or a second
-  // register".
-  const plan = readFileSync(join(PACKAGE_DIR, '..', '..', 'docs', 'specs', 'storeroom-native',
-    'implementation-plan.md'), 'utf8');
-  const register = plan.slice(plan.indexOf('### §10.9 THE TYPED PROPERTY REGISTER'));
-  const rowIds = [...register.matchAll(/\*\*`(P-(?:IM|SM|TP)-\d+)` — /g)].map((m) => m[1]);
-  assert.deepEqual(rowIds,
-    ['P-IM-1', 'P-IM-2', 'P-SM-3', 'P-SM-4', 'P-SM-5', 'P-TP-6', 'P-TP-7', 'P-TP-8'],
-    'S-CENSUS: the register carries its `8` rows in their own order and no ninth row is minted');
+  // **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-17`, verbatim: *"Rewrite or retire the tests that
+  // point at docs. Tests are for code."*) — THE TWO DOCUMENTARY CENSUSES ARE GONE AND THE CODE CENSUS THAT
+  // REPLACES THEM IS THE STORE'S OWN CLOSED STATUS SET.**
+  //
+  // **WHAT STOOD HERE, NAMED SO ITS ABSENCE IS LEGIBLE — TWO reads, both at documents this branch's archival
+  // MOVED, which is why this cell was RED with `ENOENT`:**
+  //   1. `docs/specs/storeroom-native/implementation-plan.md §10.9`'s TYPED PROPERTY REGISTER, parsed for its
+  //      eight `P-IM-*`/`P-SM-*`/`P-TP-*` row ids, asserted to be exactly
+  //      `['P-IM-1','P-IM-2','P-SM-3','P-SM-4','P-SM-5','P-TP-6','P-TP-7','P-TP-8']` and no ninth row.
+  //   2. `docs/specs/storeroom-js/parameter-semantics.md §1`, parsed for its `PAR-JS-*` index rows, asserted
+  //      to be `27` (`23 + 4`), to end at `PAR-JS-27`, and to carry no renumbering.
+  // **BOTH SUBJECTS ARE A DOCUMENT'S TABLE.** A register's row count and an index's row count are carried by
+  // NO observable behaviour — no getter, no record member, no thrown form, no return (`D-31`'s UNTESTABLE
+  // arm) — and a cell's expectation must come from CODE (`D-17`). **THEY ARE RETIRED, NOT REWRITTEN**, and
+  // what replaces them is the census this cell's own name already carries the other half of: **NO RANK
+  // MOVES**, read at the store's own set.
+  const errorRs = readFileSync(join(PACKAGE_DIR, '..', '..', 'src', 'error.rs'), 'utf8');
+  const codesRow = /pub const CODES: \[&str; (\d+)\] = \[([\s\S]*?)\];/.exec(errorRs);
+  assert.ok(codesRow !== null,
+    'S-CENSUS: the store declares its closed status set as one array at `src/error.rs` — a `pub const CODES`');
+  const codes = [...codesRow[2].matchAll(/"([A-Za-z]+)"/g)].map((m) => m[1]);
+  assert.equal(Number(codesRow[1]), codes.length,
+    'S-CENSUS: the array\'s declared arity IS the number of members it carries — a set whose length and '
+    + 'whose literal disagree is a set that prints two counts');
+  assert.equal(codes.length, 17,
+    'S-CENSUS: THE OPERATIVE SET IS SEVENTEEN (`contract.md §8.1`\'s 2026-10-23 amendment, `A148` Q3: '
+    + `"the operative set is \`17\` members ranked \`1\`…\`17\`"); read ${JSON.stringify(codes)}`);
+  assert.deepEqual(codes, [
+    'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
+    'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch',
+    'WriteParentNotLink', 'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing',
+    'FilePathUnreachable', 'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
+    'ValueRefusedAtBoundary',
+  ], 'S-CENSUS: NO RANK OF `1`…`16` MOVED AND THE SEVENTEENTH IS APPENDED LAST — '
+    + '`ValueRefusedAtBoundary` at rank `17`, `11 + 2 + 1 + 1 + 1 + 1 = 17` ✓, and `ValueNotAdmitted` '
+    + 'STAYS at rank `14` and is NOT a rename of it (a pass that reads rank `17` as a rename of rank `14` '
+    + 'has destroyed a member)');
+  assert.equal(new Set(codes).size, codes.length, 'S-CENSUS: every rank is distinct — the set is a set');
 
-  // THE PARAMETER SET'S OWN ROW COUNT: `parameter-semantics.md §1` is the index and its enumeration is the
-  // rows themselves, and THIS FILE'S OWN COUNT IS THE MEASUREMENT (the row set the section prints), never
-  // the range its opening clause prints. This file's finding F4 records `§10.9` row 8's stale `20`.
-  // **⟶ RE-DERIVED `25 → 26`, 2026-10-16, ON THE LOG ROUTE'S OWN SPEC PASS.** The row `PAR-JS-26` has
-  // LANDED: `parameter-semantics.md §2.26`'s heading and its index row are AUTHORED TOGETHER —
-  // *"`PAR-JS-26` | **`log`** — the THIRD member of the thrown failure form: the failing attempt's own
-  // message log, CARRIED VERBATIM as the kernel's `LogEntry[]`"*, whose home is `§2.26` and whose declaring
-  // clause is `surface.md §2.5`'s clause of 2026-10-16. **THE OPERATIVE ARITHMETIC AT `§1`'s OWN COUNT
-  // HOME IS `23 + 3 = 26` ✓** — the `A122`/`A123` range `PAR-JS-1`…`PAR-JS-23` (`23`) plus the three rows
-  // added over it: `PAR-JS-24` (the `pair`, `A126`), `PAR-JS-25` (the returned identity, `A126`) and
-  // `PAR-JS-26` (this row) — **so the two cells below that pinned `25` were pinning a SUPERSEDED figure and
-  // are re-derived here to the count the section now prints.**
-  // **⟶ RE-DERIVED `26 → 27`, 2026-10-17 (`role_test_writer`), ON THE `constraints()` MEMBER'S OWN LANDING:
-  // `PAR-JS-27` — *"the returned pair list"* — is AUTHORED at `parameter-semantics.md §2.27` with its index
-  // row, and `§1`'s count-correction clause of that date is the count's ONE home (`23 + 4 = 27` ✓).** The
-  // register's own `8` rows and their order, the no-duplicate-row rule and the module namespace's ONE name
-  // all stand exactly as filed; **the instance's member set is now THIRTEEN, `10 + 1 + 1 + 1 = 13` ✓**, and
-  // that figure is asserted above at its own cell (`surface.md §2.4` item 9 (f)'s `constraints` clause).
-  const ps = readFileSync(join(PACKAGE_DIR, '..', '..', 'docs', 'specs', 'storeroom-js',
-    'parameter-semantics.md'), 'utf8');
-  const parRows = [...ps.matchAll(/^\| \*\*`(PAR-JS-\d+)`\*\* \|/gm)].map((m) => m[1]);
-  // ── **⟶ RE-DERIVED 2026-10-17: `26 → 27`, `23 + 4 = 27` ✓, ON THE ARCHITECT'S RULING VERBATIM *"Add
-  // surface methods for reading registered constraints."*** (`parameter-semantics.md §1`'s
-  // count-correction clause of that date, which is the count's ONE home, and `§2.27`'s own `PAR-JS-27`
-  // row, authored in the same pass as its home). **The four terms: the `A122`/`A123` range
-  // `PAR-JS-1`…`PAR-JS-23` (`23`) plus `PAR-JS-24` (the `pair`), `PAR-JS-25` (the returned identity),
-  // `PAR-JS-26` (`log`) and `PAR-JS-27` (the returned pair list of `a.constraints()`).**
-  assert.equal(parRows.length, 27,
-    'S-CENSUS: the parameter-semantics file prints `27` rows — `23 + 4 = 27`, the `A122`/`A123` range '
-    + '`PAR-JS-1`…`PAR-JS-23` plus `PAR-JS-24` (the `pair`), `PAR-JS-25` (the returned identity), '
-    + '`PAR-JS-26` (`log`, the thrown form\'s third member) and `PAR-JS-27` (the returned pair list of '
-    + '`a.constraints()`) (`parameter-semantics.md §1`\'s count-correction clause of 2026-10-17 and '
-    + '`§2.27`\'s own row, measured at the rows the section itself prints)');
-  assert.deepEqual(parRows.slice(-4), ['PAR-JS-24', 'PAR-JS-25', 'PAR-JS-26', 'PAR-JS-27'],
-    'S-CENSUS: the last four rows the section prints are the four added over the `23`: the `pair`, the '
-    + 'returned identity, `log` and the returned pair list (`parameter-semantics.md §1`\'s count clause of '
-    + '2026-10-17)');
-  assert.equal(parRows[parRows.length - 1], 'PAR-JS-27',
-    'S-CENSUS: `PAR-JS-27` is the last row the section prints — the returned pair list of '
-    + '`a.constraints()` (`§2.27`; `surface.md §2.4` item 9 (f)\'s `constraints` clause of 2026-10-17)');
-  assert.equal(new Set(parRows).size, 27, 'S-CENSUS: no existing `PAR-JS` row is renumbered or duplicated');
   assert.equal(typeof (await kernel()).register, 'function', 'S-CENSUS: no second register exists');
 });
 
@@ -2054,7 +2060,11 @@ test('fts_FTS_09_zero_byte_file_boots_an_instance_while_a_two_byte_empty_image_i
   // of either part may be read as settling it here.
   const { report } = await kernel();
   const key = tag('fts09-list');
-  const supplied = [{ address: [key], id: 'fts09-c1' }];
+  // **⟶ AMENDED 2026-10-24 (`D-26` item 1: *"The batch in cfg.constraints must supply functions"*): the
+  // supplied element carries its own function, because the element is THREE members and a functionless one is
+  // refused `ConstraintListInvalid` BEFORE ANY FILESYSTEM ACT — which would make both halves of this drive
+  // into `B-1`'s refusal and retire the load-side question they exist to pin.**
+  const supplied = [{ address: [key], id: 'fts09-c1', constraint: () => true }];
 
   // HALF ONE: the construction's own exclusive create leaves a ZERO-BYTE file over a fresh path, and a second
   // construction over it — same `cfg.filePath`, a NON-EMPTY supplied list — is driven.

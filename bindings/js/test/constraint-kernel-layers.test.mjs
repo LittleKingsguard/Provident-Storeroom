@@ -97,19 +97,32 @@ test('ck_layer_a_a_kernel_made_writes_returned_handle_is_invoked_in_the_kernel_s
   assert.deepEqual(contexts[0].op, commitRecord.op, 'the context carries the op being evaluated');
 });
 
-test('ck_layer_a_two_ids_at_one_address_each_get_their_own_function_and_one_store_home', async () => {
+// **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-23`/`D-24`, verbatim: *"The handle becomes the id"*):
+// TWO IDS AT ONE ADDRESS STAND BEHIND TWO STORE HOME ENTRIES, one per handle.**
+//
+// **WHAT STOOD HERE.** *"ONE store home entry: the second registration at the same address adopts the SAME
+// handle"* and `assert.equal(h1, h2, 'two pairs at ONE address stand behind ONE store home entry')` — the
+// `(Y-1)` consequence the kernel's `constraint@<JSON address>` spelling carried, where the handle was a function
+// of the ADDRESS. **`D-22` discards that spelling and `D-23`/`D-24` make the caller's own `id` the handle**, so
+// two ids name two handles and occupy two entries. **THE CELL'S SUBJECT — each pair gets ITS OWN FUNCTION and
+// the pass evaluates BOTH in the registry's own order — is unmoved**, and both assertions below still hold.
+test('ck_layer_a_two_ids_at_one_address_each_get_their_own_function_and_two_store_homes', async () => {
   const { register, commit, runAttempt } = await kernel();
   const store = makeStore();
   const address = [tag('la2')];
-  // ONE store home entry: the second registration at the same address adopts the SAME handle, and
-  // the store holds one entry while the kernel's registry holds TWO pairs.
+  // TWO store home entries: each pair's own `id` is its handle (`D-23`, `D-24`), and the kernel's registry
+  // holds TWO pairs, each delivered its own function.
   const seen = [];
   // ⟶ `A135` (3) / `§7.3` (b) state 1: `seen` IS THIS CELL'S LIST OF THE PASS'S OWN DELIVERIES *"in the
   // registry's own first-registration order"*, so neither registration's invocation may appear. Both shields
   // answer their registration `true` — both pairs are CARRIED — and let the LANDING's context through.
   const h1 = register(store, address, 'x', atLandingOnly(() => { seen.push(['x']); return true; }));
   const h2 = register(store, address, 'y', atLandingOnly(() => { seen.push(['y']); return true; }));
-  assert.equal(h1, h2, 'two pairs at ONE address stand behind ONE store home entry');
+  assert.equal(h1, 'x',
+    'the first pair\'s handle IS its own `id`, adopted from `listen`\'s return (`D-22`; `D-23`)');
+  assert.equal(h2, 'y',
+    'and the second pair\'s is ITS OWN `id` — two pairs at one address are TWO home entries, one per handle '
+    + '(`D-24`: the handle is instance-scoped and unique; `D-22` discarded the per-address spelling)');
   const report = runAttempt(store, commit(store, address, 'mem', 'v'));
   assertAttemptReport(report, 'two ids at one address');
   assert.deepEqual(checkIds(report.log), ['x', 'y'],

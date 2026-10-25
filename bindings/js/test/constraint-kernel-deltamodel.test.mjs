@@ -202,11 +202,25 @@ test('ck_neg_dm_01_throwing_arm_prefix_listener_discard_extent', async () => {
     'the store answered this write with THREE entries — the ancestor registration, this write\'s own '
     + 'address\'s caller registration, and the kernel\'s own pair entry at that address — read '
     + `${record.triggered.length}`);
+  // **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-22`, verbatim: *"Discard the noop prefix"*; `D-23`:
+  // *"it has nothing left to name"*): THE THIRD MEMBER IS STILL A PAIR ENTRY, AND IT IS SPELLED WITH THE
+  // CALLER'S OWN `id`.**
+  //
+  // **WHAT STOOD HERE.** `assert.ok(triggeredHandles.some((h) => h.startsWith('constraint@')), 'the third
+  // member IS the kernel\'s own pair entry, spelled `constraint@…`')` — **no `constraint@` spelling exists any
+  // more**: `D-22` discards the prefix, `noopHandleFor` and `noopListener`, and `D-23`/`D-24` make the pair's
+  // `id` its handle. **The CELL'S SUBJECT — the set is exactly the registrations the store's prefix test
+  // answers with, and the pair's own entry stands BESIDE the caller's at that address — is unmoved**, and it
+  // is now asserted at the pair's own `id`, which is the identity a caller can read.
   const triggeredHandles = setHandles(record.triggered);
-  assert.ok(
-    triggeredHandles.some((h) => typeof h === 'string' && h.startsWith('constraint@')),
-    'the third member IS the kernel\'s own pair entry, spelled `constraint@…` (`remove-member.md`; '
-    + '`kernel-surface.md §2.2` item 4: `n` pairs at one address are `n` registry rows over ONE store entry)',
+  assert.equal(triggeredHandles.includes('x'), true,
+    'the third member IS the kernel\'s own pair entry, and its handle is THE PAIR\'S OWN `id` (`D-23`, '
+    + '`D-24`; `docs/L1/surface-deltas.md` §4.2: *"the caller\'s own word IS the handle"*). A pass that '
+    + 'searches this set for a `constraint@` spelling has lost its subject (`D-22`)');
+  assert.equal(
+    triggeredHandles.some((h) => typeof h === 'string' && h.startsWith('constraint@')), false,
+    'and NO `constraint@` spelling exists anywhere — the noop prefix is DISCARDED, not moved (`D-22`; `D-23`: '
+    + '*"There is no kernel-authored identity left to reserve"*)',
   );
   assert.equal(triggeredHandles.filter((h) => h === ancestorHandle).length, 1,
     '...and the ancestor registration appears EXACTLY once, never once per address it prefixes');
@@ -335,8 +349,11 @@ test('ck_neg_dm_01_throwing_arm_prefix_listener_discard_extent', async () => {
   // (`DD-22`; `§2.7` item 3). **THE CLAIM — *"the failing arm reads `triggered` as the store's returned set
   // VERBATIM"* (`attempt-lifecycle.md §2.4` item 8 (i) (5)) — IS UNMOVED, and it is asserted as a
   // MEMBERSHIP at every identity the store answered with, which is stronger than a positional equality.**
-  assert.deepEqual(setHandles(record.triggered).slice().sort(), [ancestorHandle, ownHandle,
-    setHandles(record.triggered).find((h) => typeof h === 'string' && h.startsWith('constraint@'))].sort(),
+  // **⟶ AND THE THIRD MEMBER IS NAMED BY THE PAIR'S OWN `id` 2026-10-24 (`D-22`/`D-23`/`D-24`), not by a
+  // `constraint@` spelling — the prefix is DISCARDED and the handle the kernel occupies with is the
+  // caller's own `id`.** A `find((h) => h.startsWith('constraint@'))` answers `undefined` on this tree, and
+  // `undefined` in a sorted equality is exactly the vacuous survivor the cell's own comment forbids.
+  assert.deepEqual(setHandles(record.triggered).slice().sort(), [ancestorHandle, ownHandle, 'x'].sort(),
     'AND `triggered` STANDS AS THE STORE\'S OWN RETURNED SET, VERBATIM: "the failing arm reads '
     + '`triggered` as the store\'s returned set VERBATIM" (`§2.4` item 8 (i) (5)) — the discard empties '
     + 'the OTHER member and moves nothing of this one');
@@ -536,8 +553,16 @@ test('ck_neg_dm_02_pass_exits_at_repair_unevaluated_handle', async () => {
   // (`DD-22`; `§2.7` item 3). **THE CLAIM — *"the failing arm reads `triggered` as the store's returned set
   // VERBATIM"* (`attempt-lifecycle.md §2.4` item 8 (i) (5)) — IS UNMOVED, and it is asserted as a
   // MEMBERSHIP at every identity the store answered with, which is stronger than a positional equality.**
-  assert.deepEqual(setHandles(record.triggered).slice().sort(), [ancestorHandle, ownHandle,
-    setHandles(record.triggered).find((h) => typeof h === 'string' && h.startsWith('constraint@'))].sort(),
+  // **⟶ AND THE THIRD MEMBER IS NAMED BY THE PAIR'S OWN `id` 2026-10-24 (`D-22`/`D-23`/`D-24`), not by a
+  // `constraint@` spelling — the prefix is DISCARDED and the handle the kernel occupies with is the
+  // caller's own `id`.** A `find((h) => h.startsWith('constraint@'))` answers `undefined` on this tree, and
+  // `undefined` in a sorted equality is exactly the vacuous survivor the cell's own comment forbids.
+  // **⟶ AND THE PAIR ENTRIES ARE THE `id`s THIS FIXTURE REGISTERED — `p1` AND `p2` — NOT A `constraint@`
+  // SPELLING, 2026-10-24 (`D-22`/`D-23`/`D-24`).** The cell registers TWO pairs at the write's own address, so
+  // the returned set carries TWO pair entries beside the two caller-spelled listener entries: `D-24`'s
+  // instance-scoped handle means one `id` per pair, and the prefix's per-address spelling — which made the two
+  // pairs ONE entry — is DISCARDED.
+  assert.deepEqual(setHandles(record.triggered).slice().sort(), [ancestorHandle, ownHandle, 'p1', 'p2'].sort(),
     'and `triggered` stands as the store\'s returned set VERBATIM — the discard does not reach it');
   // ⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): THE REPAIR'S OWN LANDING IS *DISCARDED*, SO IT DELIVERS
   // NOTHING — THE AS-FILED `1` COUNTED A DELIVERY THE `A112` DISCARD WITHHOLDS (`attempt-lifecycle.md §2.4`

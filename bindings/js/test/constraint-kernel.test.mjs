@@ -107,13 +107,36 @@ test('ck_surface_K1_a_lawful_registration_returns_the_store_s_own_adopted_handle
     + 'the identity (`A127`: the merged pair is a member of no product)');
 });
 
-test('ck_surface_K1_two_ids_at_one_address_leave_two_entries_and_one_store_home', async () => {
+// **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-23`/`D-24`, verbatim: *"Setting a constraint should expect
+// a handle name to be used for handle and process/error logging purposes"* and *"The handle becomes the id"*):
+// TWO IDS AT ONE ADDRESS LEAVE TWO STORE HOME ENTRIES, ONE PER ID — AND STILL TWO EVALUATED PAIRS.**
+//
+// **WHAT STOOD HERE.** `assert.equal(h1, h2, 'ONE store home entry stands for the one address (§2.1 item 1)')`,
+// and before it `register` answered the kernel's own `constraint@<JSON address>` spelling — **one spelling per
+// ADDRESS, so two pairs at one address shared ONE entry** (the `(Y-1)` consequence the prefix carried). **`D-22`
+// discards the prefix and `D-23`/`D-24` make the CALLER'S OWN `id` the handle**, so two ids at one address name
+// TWO handles and occupy TWO store entries: *"no kernel-authored identity is left to reserve"* (`D-23`).
+// **THE PAIR LIST IS UNMOVED** — two ids at one address are two pairs (`contract.md §2.6` item 4's *"one pair, N
+// registry rows and ONE identity"*), and the pass evaluates both, which the cell's own second half asserts and
+// has always asserted.
+test('ck_surface_K1_two_ids_at_one_address_leave_two_entries_and_two_store_homes', async () => {
   const { register, commit, runAttempt } = await kernel();
   const store = makeStore();
   const address = [tag('k1b')];
   const h1 = register(store, address, 'x', () => true);
   const h2 = register(store, address, 'y', () => true);
-  assert.equal(h1, h2, 'ONE store home entry stands for the one address (§2.1 item 1)');
+  assert.equal(h1, 'x',
+    'the handle `K-1` answers IS the caller\'s own `id`, adopted from `listen`\'s return — *"adopted, never '
+    + 'minted by the kernel"* (`D-22`; `D-23`; `docs/L1/surface-deltas.md` §4.2)');
+  assert.equal(h2, 'y',
+    'and a second pair\'s handle is ITS OWN id — there is no per-address spelling left to share (`D-22`: the '
+    + 'noop prefix is DISCARDED)');
+  assert.notEqual(h1, h2,
+    'so TWO ids at ONE address occupy TWO store home entries: the handle is instance-scoped and unique '
+    + '(`D-24`), and one id names one pair, one identity and one handle (`D-29`)');
+  assert.ok(!String(h1).startsWith('constraint@'),
+    'and NO `constraint@` spelling exists anywhere — a pass that reads the prefix as a live surface has lost '
+    + 'its subject (`D-22`: *"Discard the noop prefix"*; `D-23`: *"it has nothing left to name"*)');
   const commitRecord = commit(store, address, 'mem', 1);
   const report = runAttempt(store, commitRecord);
   assertAttemptReport(report, 'K-1 two-id pass');
@@ -450,14 +473,36 @@ test('ck_surface_K5_an_unknown_attempt_reference_is_KC2_and_never_KC7', async ()
   assert.equal(l.thrown.status, 'KC-2', 'K-4\'s unknown-reference refusal is KC-2 too');
 });
 
+// **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-30`, verbatim: *"Make it instance-scoped - Creating a new
+// store should create a new stack"*): A REFERENCE MINTED BY ONE INSTANCE DOES NOT RESOLVE ON ANOTHER.**
+//
+// **WHAT STOOD HERE, AND WHY ITS SUBJECT MOVED RATHER THAN STALE.** The cell asserted `log(other, ref)` answering
+// the SAME log as `report.log` — **the pre-`D-30` MODULE-GLOBAL attempt scope**, where `LIVE`/`CLOSED` were
+// module-level `Map`s and every instance read one stack. `D-30` scopes both to the store (`kernelFor(store)`),
+// **so the cross-instance read is the SUPERSEDED behaviour by name**, and the declared one is that the second
+// instance does not know the reference at all. **THE CELL'S SUBJECT — *"the readers answer from the RECORD and
+// not from the store instance"* — SURVIVES AND IS DRIVEN INSIDE THE ONE INSTANCE**: the same reader, with no
+// store read, answers the record it closed.
 test('ck_surface_K4_the_readers_answer_from_the_record_and_not_from_the_store_instance', async () => {
-  const { register, commit, runAttempt, log } = await kernel();
+  const { register, commit, runAttempt, log, report: reportOf } = await kernel();
   const store = makeStore();
   const other = makeStore();
   const address = [tag('k4b')];
   register(store, address, 'x', () => true);
   const report = runAttempt(store, commit(store, address, 'mem', 1));
-  const viaOther = log(other, report.attempt);
-  assert.deepEqual(viaOther, report.log,
-    'the closed attempt\'s record is the kernel\'s own caller-side shape and carries its own log');
+  // (a) THE SURVIVING HALF: the reader answers the closed record inside the instance that closed it.
+  const sameInstance = log(store, report.attempt);
+  assert.deepEqual(sameInstance, report.log,
+    'the closed attempt\'s record is the kernel\'s own caller-side shape and carries its own log, and the '
+    + 'reader answers it from the RECORD and not from the store (`kernel-surface.md §2.1` item 4)');
+  assert.deepEqual(reportOf(store, report.attempt), report,
+    'and `K-5` answers the same FINAL record — the two readers are one record, read twice');
+  // (b) THE MOVED HALF: a reference minted by instance A does not resolve on a fresh instance B (`D-30`).
+  const foreign = capture(() => log(other, report.attempt));
+  assert.equal(foreign.threw, true,
+    'a reference minted by ANOTHER store instance does not resolve here — the attempt registry is '
+    + 'INSTANCE-SCOPED (`D-30`: *"Creating a new store should create a new stack"*)');
+  assert.equal(foreign.thrown.status, 'KC-2',
+    'and the refusal is the declared `KC-2` (`ConstraintArgRefused`) — the arm the readers already carry for a '
+    + 'reference no attempt answers to (`kernel-surface.md §2.1` item 4)');
 });

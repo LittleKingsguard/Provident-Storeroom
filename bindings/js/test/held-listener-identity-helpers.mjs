@@ -217,11 +217,38 @@ export function assertRuleTwo(err, where) {
   return err;
 }
 
-/** listen answers undefined and nothing else (contract.md §2.2 item 10; PAR-HL-3). */
-export function assertListenAnswer(value, where) {
-  assert.equal(value, undefined,
-    where + ': listen(h, S) === undefined — the caller supplied the identity, so there is no datum to '
-    + 'return (contract.md §2.2 item 10; PAR-HL-3). Read ' + JSON.stringify(value));
+/**
+ * **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-22`, verbatim: *"Listen should return the handle on
+ * success, or error message on fail. Discard the noop prefix"*) — `listen` ANSWERS THE HANDLE IT WATCHES
+ * UNDER, AND THIS HELPER ASSERTS THAT INSTEAD OF `undefined`.**
+ *
+ * **WHAT STOOD HERE, NAMED SO ITS ABSENCE IS LEGIBLE.** `assert.equal(value, undefined, …)` with the ground
+ * `contract.md §2.2 item 10`'s *"the caller supplied the identity, so there is no datum to return"* — the
+ * `Handle → undefined` return the 2026-10-19 pass declared and `D-22` OVERRULES BY NAME (`docs/L1/
+ * surface-deltas.md` §1.1: *"the ground this block states above … is OVERRULED BY NAME"*). **The success
+ * signal now CARRIES the identity — the caller's own spelling, returned as the identity the store holds for
+ * that entry** — and `K-1` ADOPTS the value (that is what makes the kernel's occupancy *adopted, never
+ * minted*, and what `FTS-12.4`'s adoption observable asserts). **The failure channel is untouched**: it stays
+ * the surface's one thrown form, and `assertStoreFailure` is what a refusing call must pass.
+ *
+ * **`handle` IS OPTIONAL AND IS THE STRONGER READING WHERE THE CELL HAS IT**: with the caller's own spelling
+ * in scope the assertion is `value === handle`, which is the whole of `D-22`; without it (a `listen` reached
+ * through another act) the assertion is the weaker but still real *"a non-empty string came back"*, which is
+ * `Handle`'s declared domain and nothing else.
+ */
+export function assertListenAnswer(value, where, handle) {
+  if (handle !== undefined) {
+    assert.equal(value, handle,
+      where + ': listen(h, S) ANSWERS THE HANDLE IT WATCHES UNDER — the caller\'s own spelling, returned as '
+      + 'the identity the store holds for that entry (`D-22`; `docs/L1/surface-deltas.md` §1.1). Read '
+      + JSON.stringify(value) + ' against ' + JSON.stringify(handle));
+    return value;
+  }
+  assert.equal(typeof value, 'string',
+    where + ': listen(h, S) answers a `Handle` and nothing else — the return moved `void → Handle` (`D-22`). '
+    + 'Read ' + JSON.stringify(value));
+  assert.ok(value.length > 0, where + ': and a `Handle` is a NON-EMPTY string (`identity-and-domain.md §2`)');
+  return value;
 }
 
 /** removeListener answers undefined on success (contract.md §2.7 item 2; PAR-HL-15). */
