@@ -1302,3 +1302,44 @@ moved six times and was never re-derived does not verify the code — it verifie
 exits zero while its cells never executed is a broken instrument in the one direction a red cannot be.** (`Q7`:
 `blind-constraints-v2.mjs` exits `0` with **21** FAIL for the same reason — a reporting runner whose exit code does
 not carry its red.)
+
+---
+
+### `R-3` — three of the review's seven questions are answered by the kept corpus; recorded as L0 readings
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, reading
+`bindings/js/test/REVIEW-2026-10-24.md §7` against `docs/specs/**`. **READINGS, NOT RULINGS — each awaits the
+architect's confirm or correct, and nothing is built on one.**
+
+**`Q1` — THE TWO "UNCLASSIFIABLE" CELLS ARE CLASSIFIABLE, AND THE CODE IS RIGHT.** The review asked whether
+`JSG-05.7`/`JSG-10.2` are stale or the code is out of order. **The rank-17 amendment answers it:** the native
+contract's `ValueRefusedAtBoundary` row says **"the store never receives those values on the JavaScript route; the
+package's walk decides the class BEFORE ANY VERB IS CALLED"** (`docs/specs/storeroom-native/contract.md` §8.1, the
+2026-10-23 amendment). **So on a call whose value position is absent, the walk refuses before the carrier positions
+are ever converted — which is exactly what the code answers.** **Both the two cells and `index.mjs:1947`–`1957`'s
+comment are STALE, and the comment names `ValueNotAdmitted`, a status that has not existed since rank 17 landed.**
+**Reading: REWRITE the two cells to `ValueRefusedAtBoundary`; the comment is a finding for whoever owns the
+walk.** `Q1` therefore stops blocking the determination — **the two unclassified cells become REWRITE.**
+
+**`Q3` — THE DECLARATION IS LAW AND THE CODE IS THE DEFECT.** The review found three cells red on whether a
+`file`-tier write's **verb** or its **terminal arm** performs the save. **`docs/specs/storeroom-js/surface.md §2.11`
+clause 2 declares it without ambiguity**: *"ON THE PASSING ARM … THE TERMINAL ARM PERFORMS THE STORE'S
+`commit_file` ACT AS ITS OWN STEP, AND THE ACT IS THE FIRST THING THAT ARM DOES, before any body of the delivered
+set is invoked."* **Reading: `LIVE-4.8`, `FTS-05.1` and `FTS-05.2` are RIGHT and stay KEEP-AND-RED; the code owes
+the fix, and `REMEASURE-2026-10-18.md`'s conflict is a defect that has stood for six days rather than a
+question.**
+
+**`Q4` — ALREADY SETTLED AND ALREADY RECORDED (`FINDING`, above).** The set is **`17`**, the store implements
+seventeen, and **`index.d.ts` declaring sixteen is the defect.** `Q4` needs no answer; it needs an edit `delivery`
+and `js-declaration` owe.
+
+**WHAT REMAINS GENUINELY THE ARCHITECT'S.** **`Q2`** — is a `register` accepted at a handle it will never deliver
+to a defect, or is it the caller's spelling to get right? **No clause L0 could find decides it**, the measured
+asymmetry is real, and four cells turn on it. **`Q5`** — may the greens leg stay chained with `&&` and be measured
+runner by runner, or must the manifest change? **`D-11` gives the leg to the battery/greens module, so this is
+theirs to declare unless the architect rules otherwise.** **`Q7`** — must a reporting runner's exit code carry its
+red, given `blind-constraints-v2.mjs` exits `0` with 21 FAIL? **L0's reading: yes — a runner that exits zero while
+its cells never ran is broken in the one direction a red cannot be — but the exit contract is the leg owner's to
+declare.** **`Q6` is answered by `D-8` itself**: the three functional prohibitions stand and the reachability
+assertion the review declared is consistent with it; **L0 confirms it as already-recorded rather than as a new
+ruling.**
