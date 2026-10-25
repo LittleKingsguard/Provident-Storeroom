@@ -48,6 +48,39 @@ tree's endpoint count at **61** and the module count at **19**;
 **Nothing in this revision is a work order.** `D-1`, `D-2` and `D-3` each order no code move; the wave that lands
 the cut is not open, and this map draws no code.
 
+**REVISION AT `D-13` AND `D-14` — THE KERNEL'S CUT AND THE FOUR DRIVES' RE-STAGING, DECLARED IN TWO SIBLING FILES, AND
+THIS MAP'S ARITHMETIC IS THE ONLY THING THEY MOVE.** `D-13` (*"Kernel can be cut"*; *"That works"*) orders the
+constraint kernel's internal cut **and** confirms `bindings/js/src/entry/` as the parts' home; `D-14` fixes the four
+drives' re-staging mechanism as **a glob of the parts directory paired with an explicit kernel path**, and establishes
+that **the cut and the four drives are one wave.** Both are declared, and the declarations live outside this file
+because neither is a path inventory this map can carry:
+
+- **`docs/L1/kernel-subdivision.md`** — the kernel's cut: **five parts** (`kernel-foundations`, `-registration`,
+  `-commit`, `-attempt`, `-terminal.mjs`), declared against a **measurement of the file's internal call graph** that
+  `D-13` required and the entry pass had not taken; the **DAG** and the two candidate cuts that would have closed a
+  cycle; the **barrel** at the kernel's unchanged path and the six exports' fate — **the names stay module-level, the
+  six `export` SITES move to four files, and that is a named correction of `docs/L1/entry-subdivision.md` §4.1, which
+  said the sites stay "unchanged"**; and the **home decision** `D-13` left open (the kernel's parts under `src/entry/`,
+  with a `kernel-` prefix, on `D-14`'s own mechanism).
+- **`docs/L1/drive-restaging.md`** — the four drives (`publish`, `publish-generators`, `version-stamp`,
+  `negative-generators`) re-staged by glob + explicit path, the **zero-match-is-loud** rule and the closure check, the
+  **orthogonality** of `publish`'s injected faults from a shape fault, and **what each drive's claim becomes** now that
+  `D-14` withdraws the entry-only-tree claim — including **`version-stamp.test.mjs:1457`–`:1458`'s quoted *"`index.mjs`
+  and no `.node` at all"***, which survives on its `.node`-free half and is restated on its other, and
+  **`negative-generators`' bare specifier at `:1550`**, which must stay a name because there the name is the assertion.
+
+**WHAT DOES *NOT* MOVE, STATED FIRST BECAUSE IT IS THE ANSWER THIS MAP EXISTS TO GIVE: 19 modules and 61 endpoints
+stand.** The kernel's five parts are **files inside one module's ownership** (`js-constraints`), not five modules: `D-1`
+ruled the boundary between the constraint members' glue and the kernel *"not a boundary the architect recognises"*, and
+a part is a file where a module is an ownership unit — so adding five modules would re-create four boundaries the
+ruling dissolved. **No endpoint moves either:** the six exports were dissolved as endpoints at `D-1` (the export set is
+no longer a surface anything outside the code crosses), and not one of the five parts is an I/O surface any other
+module reaches. **And no interaction row is added:** every edge the kernel's cut crosses is **inside `js-constraints`**,
+so it is the part DAG's business (`kernel-subdivision.md` §3.1) and not this map's §3 — which is the structural
+difference between this cut and the entry's, whose parts span five modules and therefore owe four rows (§3.1).
+**What moves is the TARGET path count** (FIGURES) and the `files` reachability consequence (§4 E4, I-23). **No code
+moved, no manifest was edited, and the wave is not open.**
+
 **MEASUREMENT LIMIT — READ BEFORE TRUSTING THE COUNTS.** The first pass over this map had no shell. Its
 inventory was built from the file tools' glob enumeration of the workspace (a complete 11,930-path listing of
 everything under the repository root, filtered against the project's own `.gitignore` rules), **not** from
@@ -114,6 +147,19 @@ co-owned path of §5.1 becomes `js-surface`'s alone. **The 134 is arithmetic on 
 shell pass reconciled to `git ls-files`) and is owed its own `git ls-files` check**; if `strata/decisions.md` proves
 tracked, which §5.3 marks unverified, the figure is 135. **No path, module or endpoint in the 126 moves today.**
 
+**⟶ AND THE `D-13`/`D-14` REVISION CORRECTS THE TARGET ARITHMETIC IT ADDS TO, BY ONE, AND PRINTS ITS OWN TERMS.** The
+entry's cut creates **seven** part files — `src/entry/{refusal,artefact,state,class-decision,walk,delivery,constraints}
+.mjs`; `docs/L1/entry-subdivision.md` §6.1 and the paragraph above both say **"eight new part files"** while listing
+seven names, because the eight-part count includes **part 1 (`index.mjs`)**, which already exists. **So the entry cut's
+own target is `126 + 7 = 133`, with `113 owned + 0 co-owned + 20 unowned = 133`** (`105` single-owned today **+**
+`index.mjs`, which stops being co-owned, **+** the seven parts). **The kernel's cut then adds five more** —
+`src/entry/kernel-{foundations,registration,commit,attempt,terminal}.mjs` — and **keeps every path it already owns**
+(the barrel stays at `bindings/js/src/constraint-kernel.mjs`), so **the two cuts together put the target at
+`126 + 12 = 138`, with `118 owned + 0 co-owned + 20 unowned = 138`**; `138 − 5 = 133` is the entry cut alone. **These
+are arithmetic on the measured 126 and on each declaration's own file list — not `git ls-files` figures** — and they
+are owed their own check after the wave, like the 134 before them. **The module count (19) and the endpoint count (61)
+are unmoved by both cuts; only these path figures move.**
+
 ---
 
 ## §1 · The modules
@@ -158,6 +204,16 @@ declared change marked at `modules.json` and at §2.3**: *"render the single fai
 (`js-surface`) to row 9 (`js-resolution`), because the form's file must sit below the artefact gate that throws
 through it. **That is the only responsibility that moves**, and it moves *within* JS — it does not touch `A75`'s
 three JS-resident things (the registry, the opaque handle, the single failure form), all of which stay in JS.
+
+**⟶ AND AT `D-13` ROW 13 GAINS THE KERNEL'S OWN PARTS, WITHOUT GAINING A FILE COUNT OF ITS OWN IN THIS TABLE.**
+`docs/L1/kernel-subdivision.md` cuts `bindings/js/src/constraint-kernel.mjs` into **five parts — `kernel-foundations.mjs`,
+`kernel-registration.mjs`, `kernel-commit.mjs`, `kernel-attempt.mjs`, `kernel-terminal.mjs` — under
+`bindings/js/src/entry/`**, and reduces the kernel's own path to **a six-name re-export barrel**. **All five parts are
+files inside row 13's ownership and none is a module** (`kernel-subdivision.md` §1, and the revision block above says
+why: a part is a file, a module is an ownership unit, and `D-1` dissolved the boundary between the glue and the
+kernel). **The row's responsibility line therefore gains one clause rather than a row: *"and hold the kernel as five
+parts beneath a six-name barrel whose export sites are its parts' and whose export NAMES are the module's."*** The
+other fourteen rows are untouched by both cuts.
 
 ---
 
@@ -237,7 +293,33 @@ has:**
 | `js-crossing` | `L747–L3070` | **parts 5 and 6**: `L717–L1871` / `L1872–L3066` | `…/class-decision.mjs` · `…/walk.mjs` |
 | `js-registry-delivery` | `L4594–L5200` | **part 7**: `L4578–L5186` minus `homeAddressKey` | `bindings/js/src/entry/delivery.mjs` |
 | `js-constraints` | `L5202–L5903` | **part 8**: `L5187–L5900` (the module-namespace statement `L5901–L5903` travels to part 1) | `bindings/js/src/entry/constraints.mjs` |
-| `js-constraints` | `src/constraint-kernel.mjs` | **part 9**: the whole file, unchanged | `bindings/js/src/constraint-kernel.mjs` (**unchanged**) |
+| `js-constraints` | `src/constraint-kernel.mjs` | **part 9**: the whole file, unchanged | `bindings/js/src/constraint-kernel.mjs` (**unchanged**) **⟶ SUPERSEDED AS TO THE FILE'S INTERNAL STATE AT `D-13`: see the kernel table below** |
+
+**⟶ THE KERNEL'S OWN CUT AT `D-13`, REGION BY REGION — a declared target, and no path on disk under `src/entry/` at
+all.** The entry pass declined this cut and said why (`entry-subdivision.md` §9 Q1: *"a cut drawn on this evidence
+would be a guess dressed as a boundary"*); **`D-13` ordered the measurement, and `docs/L1/kernel-subdivision.md` draws
+the cut from it.** The row above is right about the **region** (`L1–L2203`) and superseded about the **file**:
+
+| module | present path | declared part (§1 of `kernel-subdivision.md`) | target path |
+|---|---|---|---|
+| `js-constraints` | `src/constraint-kernel.mjs` `L1–L481`, `L1364–L1417`, `L1777–L1802` | **9a** the foundations — the closed tokens, the five symbols, the refusal form, the pair machinery, the state, the appenders, the repair-op reading, the two scans | `bindings/js/src/entry/kernel-foundations.mjs` |
+| `js-constraints` | `src/constraint-kernel.mjs` `L483–L1003`, `L2091–L2203` | **9b** `K-1` and `K-6` with the registration-time evaluation | `bindings/js/src/entry/kernel-registration.mjs` |
+| `js-constraints` | `src/constraint-kernel.mjs` `L1004–L1153` | **9c** `K-2` | `bindings/js/src/entry/kernel-commit.mjs` |
+| `js-constraints` | `src/constraint-kernel.mjs` `L1155–L1362`, `L1419–L1775` | **9d** `K-3` and the pass | `bindings/js/src/entry/kernel-attempt.mjs` |
+| `js-constraints` | `src/constraint-kernel.mjs` `L1804–L2058`, `L2060–L2089` | **9e** the terminal act and `K-4`/`K-5` | `bindings/js/src/entry/kernel-terminal.mjs` |
+| `js-constraints` | `src/constraint-kernel.mjs` — the rest | **the barrel**: six re-exports and nothing else | `bindings/js/src/constraint-kernel.mjs` (**unchanged**) |
+
+**The partition is exact: 2,195 assigned lines + 8 blank separators = 2,203, the file's own last line**
+(`kernel-subdivision.md` §1). **Four of the five parts take more than one range**, because four declaration groups are
+carved out of a region whose subject they do not share — and **the two kinds of carve are told apart rather than lumped
+together**: `pairsAtAddress`/`attemptHeldAt` out of the pass **removes two edges** (`9b → 9d` and `9c → 9d`, i.e. two
+act parts depending on a third) and is the same device the entry's cut used once for `homeAddressKey`;
+`attemptIdOf`/`commitAttemptIdOf` out of the terminal region **removes no edge at all** (`9d` already reaches `9e`) and
+is carved because two parts read the reference's normalisation; and `K-6` `remove` is carved out of the file's tail
+because its one in-family caller is inside 9b. **The six exports' `export` SITES move to four files and their
+module-level NAMES stay reachable at the same path** (`kernel-subdivision.md` §4) — the correction of
+`entry-subdivision.md` §4.1's *"the same six `export` sites, unchanged"* that this map carries, and the reason its own
+§4 E6 paragraph is rewritten below.
 
 **So of the five declared regions: three are kept with their boundaries moved by a few lines (constraints,
 registry-delivery's delivery half, surface's member region), one is split in two (crossing), and one is re-cut into
@@ -253,6 +335,12 @@ their separation is a fact of how the code is laid out, not an ownership claim. 
 (moving the kernel's content into the entry, or folding the two files) is an implementation pass's act, and
 neither this map nor `D-1` orders it**: `D-1` rules what the mechanism *is*, and says in as many words that it
 orders no code move. The file still exists and is still owned here; nothing in this map presumes it has moved.
+**⟶ AND AT `D-13` THE "ONE OWNERSHIP" IS NOW SEVEN PATHS UNDER ONE MODULE: the entry's constraint glue
+(`src/entry/constraints.mjs`) plus the five kernel parts plus the barrel, all `js-constraints`'.** The two-path sentence
+above stands for the tree; what the kernel's cut adds is that **the family's internal edges are five relative imports
+and nothing else** — no node builtin, no entry part, no third-party dependency — which is the shape
+`kernel-surface.md §1` item 1's *"an import footprint of NOTHING"* becomes once the file is cut
+(`kernel-subdivision.md` §4.4 puts that reading to the architect rather than taking it).
 
 `scripts/publish.sh` (410 lines) is the release runbook, and it is owned here because it and
 `.github/workflows/publish.yml` are **one pipeline under one owner**: the script's own header says its tag push
@@ -396,6 +484,30 @@ the form), so the module that owns them is the **bottom** of the JS stack and ev
 case 4 of the declaration refuses, and the reason the failure form's *module* changes: the form is its own file, and
 that file must be owned below the gate that throws through it.
 
+### §3.2 The kernel's cut adds **no** interaction row — and that is a measured difference from the entry's cut
+
+**`D-13`'s five parts cross no module line.** `js-constraints` owns the entry's constraint glue and every kernel part,
+so **each edge the kernel's cut creates is an edge inside one module's ownership**, which §3.1 of the entry's
+declaration already declares to be *"the part DAG's own business"* and not this table's. **So the arithmetic here is
+not four more rows; it is four rows and nothing:** `I-29`…`I-32` stand as declared targets, **`I-33` is not minted**,
+and the kernel's DAG is carried in `docs/L1/kernel-subdivision.md` §3.1 where a reader can check it against the call
+sites.
+
+**Stated as the shape rather than as an absence, because the shape is the claim:**
+`kernel-foundations → (nothing)`; `kernel-registration → foundations`; `kernel-commit → foundations`;
+`kernel-attempt → foundations, kernel-terminal`; `kernel-terminal → foundations`. **One part reaches a second part, and
+it reaches downward**; there is exactly one edge that is not `→ foundations`, and the foundations import nothing at
+all.
+
+**And one consequence lands on an existing row rather than on a new one.** **`I-26`'s kernel reach keeps its path and
+changes its SUBJECT**: the 21 non-`scratch/` files that reach `bindings/js/src/constraint-kernel.mjs` in code now reach
+**a six-name re-export barrel**, not a file that carries the machinery — so the reach is still a path reach, still needs
+no re-spelling, and `json-crossing.test.mjs:3936`/`:4140` still use the path as an identity. **Two greens cells pin that
+barrel's namespace by exact string** (`blind-constraints-v2.mjs:1139` pins the five names it had before `K-6`;
+`held-listener-identity-greens.mjs:909` compares a sorted key list to an unsorted declared one): **both are false on
+this tree today, and the cut neither fixes nor worsens them** (`kernel-subdivision.md` §4.2) — which is why the barrel
+must reproduce **exactly six enumerable names and no seventh**.
+
 ---
 
 ## §4 · The e2e I/O surface
@@ -525,6 +637,23 @@ caller to reach. **The kernel keeps an empty import footprint** (`kernel-surface
 so the doubled `Symbol.for` spellings are **mechanism, not duplication**, and a tidying pass that collapses them
 would break the clause that keeps this module dependency-free.
 
+**⟶ CORRECTED AT `D-13`: "ITS SIX EXPORTS STAY EXACTLY WHERE THEY ARE" IS RIGHT ABOUT THE NAMES AND WRONG ABOUT THE
+SITES.** The paragraph above was written before the architect ordered the kernel's own cut, and the only world in which
+its sentence is literally true is the world where the file stays whole. **`docs/L1/kernel-subdivision.md` §4 declares
+what happens instead:** the **six `export` sites move to four parts** (`register`/`remove` → `kernel-registration.mjs`;
+`commit` → `kernel-commit.mjs`; `runAttempt` → `kernel-attempt.mjs`; `log`/`report` → `kernel-terminal.mjs`) and the
+**six module-level names stay reachable at the unchanged path** through **a re-export barrel** at
+`bindings/js/src/constraint-kernel.mjs`. **Re-exported rather than re-pointed, on three measured facts:** 21
+non-`scratch/` files reach that path in code in four different forms (named, namespace, dynamic and path-constant) and
+two of them use it **as an identity**; **two greens cells assert the module namespace's key set by exact string**, so
+the namespace's shape is a measured subject outside the code — **which is itself the divergence this map records
+against `D-1`'s phrase that the kernel's export set *"publishes no export set at all"***, since a namespace that two
+runners census is a surface of some kind even when no `exports` arm publishes it; and a re-point of 21 files would be
+*"a test that must change for a reason other than a path"*, which the entry declaration's own §8 names as a falsifier of
+the cut. **The barrel exports exactly six enumerable names — no `default`, no seventh** (`kernel-subdivision.md` §3.3
+item 4), because the one thing `held-listener-identity-greens.mjs:909` still gets right is *"no seventh name is
+reachable"*.
+
 ---
 
 ## §5 · Paths not owned by exactly one module
@@ -543,6 +672,12 @@ files are outside that 126 altogether, and §5.4 is why.
 | path | why it is not owned once |
 |---|---|
 | `bindings/js/index.mjs` | 5,903 lines carrying five plainly distinct responsibilities (resolution, failure form, walk/codec, registry/delivery, constraints). §2.3 declares the regions and which module owns each. **The co-ownership is the present state of the tree:** it is one file today, and the five regions *are* the ownership declaration — a declaration the file has yet to be separated to satisfy. **The separation is sanctioned by the architect** (`D-2`: *"Index.mjs is already too long and should be subdivided anyway for readability"*), and it is owed as **legibility work on its own ground** — not as a consequence of `D-1`, and owed even had the kernel question never arisen; the two rulings compose by landing the tight integration *inside* a subdivided entry. **⟶ SUPERSEDED AT `D-2`'s DECLARATION: THE CUT IS NOW DRAWN.** *"This map still does not draw the cut … §6 Q2's first half stays open"* was true of the `D-1` revision and is no longer: **`docs/L1/entry-subdivision.md` §1–§2 draws it — nine parts, eight of them out of this file, each owned by exactly one module** — and §2.3's target table maps every present region to its part. **What is NOT superseded is this row's present-state claim:** the tree is one file today, no code has moved, and the arithmetic stands at **one co-owned path, five owning modules**. **What the declaration changes is the END of the co-ownership, marked as target:** `index.mjs` becomes `js-surface`'s alone and the eight part paths — seven new files plus the kernel — become single-owned, so the *target* is **zero co-owned paths** and **114 owned + 0 + 20 = 134** (FIGURES). **The second clause that stood here at the `D-1` revision — *"this map does not order the separation"* — is superseded by `D-2`; the clause this revision adds is that the declaration orders nothing either**: it draws the target and no wave is open. |
+
+**⟶ AND THE TARGET FIGURE THIS ROW CARRIES IS CORRECTED BY ONE AT `D-13`/`D-14` (FIGURES).** The co-owned path's end
+is unchanged — `index.mjs` becomes `js-surface`'s alone and the co-ownership goes to zero — but **the entry cut creates
+seven part files, not eight** (the eight-part count includes `index.mjs`, which already exists), so the entry cut's
+target is **133**, and the kernel's five parts take it to **138**. **`114 + 0 + 20 = 134` in the row above is arithmetic
+on a miscount and is superseded; `113 + 0 + 20 = 133` and `118 + 0 + 20 = 138` are the figures.**
 
 ### §5.2 Generated, vendored or built — present on disk, excluded by the project's own rules
 
@@ -647,23 +782,30 @@ the brief lists it as its own layer. But it declares shapes no runtime member of
 declaration be owned by `js-surface` as *the surface's own declaration*, or stay a peer so that a divergence
 between the two is visible as an interaction rather than hidden inside one module?
 
-**Q6 — is the constraint kernel to be subdivided as well?** The declared cut leaves
-`bindings/js/src/constraint-kernel.mjs` at **2,203 lines** — larger than every part but one — and `D-2`'s ground
-(*"already too long and should be subdivided anyway for readability"*) reaches it on its face. Its own seams are
-visible: the foundations (`KC`, the pair keying, `kernelFor`, the log appenders), the `K-1`/`K-6` registration and
-withdrawal machinery, the `K-2`/`K-3` attempt engine, and the `K-4`/`K-5` readers. **`docs/L1/entry-subdivision.md`
-§9 Q1 declines to draw that cut and says why** — the candidate halves share the foundations and the pair rows, and
-a cut drawn from a declaration-site survey would be a guess dressed as a boundary. **Put to the architect: is the
-kernel one part because `kernel-surface.md §1`'s five items are one subject, or is it to be cut by a pass that reads
-it?**
+**Q6 — is the constraint kernel to be subdivided as well?** **CLOSED BY `D-13` (*"Kernel can be cut"*), AND THE CUT IS
+DRAWN.** The question is kept whole so a reader sees what was asked: the declared cut left
+`bindings/js/src/constraint-kernel.mjs` at **2,203 lines** — larger than every part — and `D-2`'s ground reached it on
+its face, while `docs/L1/entry-subdivision.md` §9 Q1 **declined to draw the cut** on the honest ground that the
+candidate halves shared the foundations and the pair rows and that *"a cut drawn on this evidence would be a guess
+dressed as a boundary."* **`D-13` made that measurement a precondition** (*"its cut must be declared against a
+measurement of that file, not guessed from its length"*), **and `docs/L1/kernel-subdivision.md` takes it and draws
+five parts.** Two things the answer carries that the question did not anticipate: **the measurement moves two of the
+four candidate halves** (the pair machinery cannot travel with the registry without closing a two-part cycle, and the
+repair's op reading cannot travel with the attempt engine without making `K-1` depend on `K-3`), and **the cut forces
+the six exports' sites apart from their names** (§4 E6's correction).
 
-**Q7 — where do the entry's parts live?** The declared paths are `bindings/js/src/entry/*.mjs`
-(`docs/L1/entry-subdivision.md` §9 Q2 sets out the alternatives and their costs). `bindings/js/src/` today holds the
-addon crate's **Rust** and exactly one `.mjs` (the kernel); a sibling `bindings/js/parts/` is unambiguous but puts
-the kernel one directory away from its own family, and the package root keeps `import.meta.url`-derived facts
-trivially right at the cost of nine `.mjs` files beside `index.mjs`. **The choice is a tree convention and it is the
-architect's in the same sense the battery's paths were (`D-5`), so it is asked rather than taken:** this map records
-`src/entry/` as the declared target and **no path exists on disk under it**.
+**Q7 — where do the entry's parts live?** **ANSWERED TWICE, AND THE SECOND ANSWER IS THE ONE `D-13` LEFT OPEN.**
+`D-13` (*"That works"*) confirms **`bindings/js/src/entry/`** as the parts' home, so the entry's eight parts ship inside
+`src/` — and the ruling states the consequence this map inherits: *"with the parts under `src/`, a published tarball
+must carry `src/entry/**`, which is the third time this branch has found the allowlist to be a consequence of the code
+rather than a declaration."* **For the kernel's five parts, `D-13` left the question open by name** — *"the kernel is
+not part of the entry's I/O surface, so 'the parts' home' answers the entry's question and not necessarily the
+kernel's"* — and **`kernel-subdivision.md` §5 decides it: the same directory, with a `kernel-` prefix, the barrel left
+at its own path.** The decisive evidence is not the kernel's nature but **`D-14`'s mechanism**: the sanctioned
+staging rule is **one glob plus one explicit path**, and only a shared directory makes that pair stage a loadable tree
+(the barrel, one directory up, is what the explicit path is *for*). **`src/entry/kernel/` with a recursive glob is the
+arguable alternative and is refused on the ground that a recursive glob is a weaker "closed set by construction" than a
+loud zero-match rule.**
 
 ---
 
@@ -754,7 +896,42 @@ L374–423, L1000–1013), read `bindings/js/package.json` whole, and grepped th
     became unconditional. It travels with the constraint part unchanged; its disposition is no decision of this
     map's.
 
-**WHAT WOULD FALSIFY THE DECLARED CUT — the map's share of it.** The declaration carries its own list
+**⟶ READ AT THE BYTES BY THE `D-13`/`D-14` REVISION, AND RECORDED HERE BECAUSE EACH ONE MOVED A FIGURE, A BOUNDARY OR
+A CLAIM.** This revision surveyed the kernel by structure — its **62 top-level declaration sites** (48 functions of
+which 6 are `export function`, and 14 top-level `const`/`let`), its **call graph** by grep for `name(` mapped to the
+enclosing declaration, its **zero `import`/`require`** footprint (`^import` and `require(` both return nothing), and
+its boundary zones — and read the four drives' **staging code and levers only**. **It ran nothing and moved nothing.**
+The findings it adds:
+
+13. **The kernel's cut is five parts, not the four the entry pass sketched.** The measurement moves two boundaries:
+    the **pair machinery** cannot join the registry without a **two-part cycle** (the pass's `pairsAtAddress` and
+    `commit`'s `attemptHeldAt` both read `sameAddress`, which the registry's row scan also reads), and the **repair's
+    op reading** cannot join the attempt engine without making **`K-1` depend on `K-3`**. Both are recorded as
+    **refused candidate cuts** in `kernel-subdivision.md` §3.2, which is the mirror of the entry declaration's own
+    §3.2.
+14. **`blind-constraints-v2.mjs:1139` pins the kernel's namespace to FIVE names** (`commit,log,register,report,
+    runAttempt`) and is **red on this tree today**, `K-6` having landed.
+15. **`held-listener-identity-greens.mjs:909` compares a SORTED key list against an UNSORTED declared one**, so
+    `HLI-13.1` is **false today for an ordering reason** — not because a seventh name exists, which is the half the
+    barrel must keep true.
+16. **The two shared helpers disagree about the kernel's extent:** `constraint-kernel-helpers.mjs:48` declares five
+    names, `held-listener-identity-helpers.mjs:163` declares six.
+17. **`publish`'s two fault-injection anchors land in TWO DIFFERENT ENTRY PARTS.** `MUTATION_SITE`
+    (`publish.test.mjs:1795`) is `addonArm = { … mismatchArmMessage(candidate, name) }` at `index.mjs:481`, inside
+    `loadAddon` (`:434`) — **part 3's region**; `FAIL_SITE` (`:1925`) is `throw { status: refusal.status, … }` at
+    `index.mjs:623`, inside `fail` (`:618`) — **part 2's region**. **So the entry's cut forces `publish`'s anchors to
+    re-point, and the drive's staging lever must widen from "the entry's bytes" to a per-file override**
+    (`docs/L1/drive-restaging.md` §3.1.1). This is the fact that makes the cut and the four drives **one wave** on a
+    third axis.
+18. **`closeRegistrationAttempt` (`:953`) and `close` (`:1892`) are the same closer written twice** — same report
+    shape, same `CLOSED.set`, same `LIVE.delete`. The kernel's cut **does not resolve it**, because unifying them would
+    create the edge `kernel-registration → kernel-terminal` that its DAG does not have.
+19. **The four drives' staging is one copy of `index.mjs` each and nothing else:**
+    `publish.test.mjs:711`, `publish-generators.test.mjs:420` (through `entryText` `:377`), `version-stamp.test.mjs:656`
+    and `negative-generators.test.mjs:1547` — verified by grep as the only staging sites of their kind in the battery,
+    and each an `index.mjs`-only tree.
+
+ The declaration carries its own list
 (`docs/L1/entry-subdivision.md` §8); the four that bear on *ownership* rather than on code layout are: **a part
 that cannot be read without a sibling's comments** (then two parts are one and the boundary is false); **any
 part-boundary edge pointing upward in the declaration's §3.1 DAG** — a cycle, and the first symptom would be a
@@ -763,14 +940,26 @@ more than lines, and the stratification's own reaches are the evidence); and **a
 battery that fails on a missing part** — which would mean the `files` consequence was declared right and landed
 wrong, and is exactly the falsifier `D-10`/`D-12` built that battery for.
 
+**The kernel's cut carries its own list too (`docs/L1/kernel-subdivision.md` §8), and its one ownership-shaped
+falsifier is worth stating here because it is the whole of this map's exposure: a kernel part that turns out to be an
+I/O surface some other module reaches, or an edge that points UP into `kernel-foundations`.** Either would make the
+part a boundary, and a boundary moves **19 modules / 61 endpoints** — the two figures this revision declares unmoved.
+**The one place it could happen is the barrel**: if the six names stop being a re-export and become a seventh surface,
+the six dissolved endpoints of `D-1` come back.
+
 **Not verified:** the tracked status of this map's owned entries **path by path** — a supervisor-run shell
 pass settled the aggregate (603 tracked, 477 of them under `scratch/`, 126 outside it), the `#[napi]` figure
 and the two root lock files, but it did not walk §2's ownership table line by line; **whether
 `strata/decisions.md` is tracked, which this revision could not check** (it had no shell either), so whether the
 tracked denominator is now 127 rather than 126 is owed a check and FIGURES keeps the 126 as measured; **the target
-denominator of 134** (FIGURES: arithmetic on the 126, owed its own `git ls-files` check after the wave); **the
-completeness of the declared part DAG** — its edges were found by grep for named calls, so an aliased,
-destructured, computed or `Reflect.apply`-reached call across a part boundary would be invisible to it; and the
-three items above that were already open: whether the five platform package names resolve on any registry
+denominator** (FIGURES: `133` for the entry cut and `138` for both cuts, arithmetic owed a `git ls-files` check after
+the wave); **the completeness of either part DAG** — their edges were found by grep for named calls, so an aliased,
+destructured, computed or `Reflect.apply`-reached call across a part boundary would be invisible to it, and the
+kernel's DAG is unusually exposed to that class because the kernel reaches the store through method calls on a handed
+object; **the kernel cut's line arithmetic** (2,195 assigned + 8 blank separators = 2,203, owed a `wc -l`-class check);
+**whether `src/entry/` stays a closed set of `.mjs` parts**, which is the glob's premise and a convention nothing
+enforces; **whether `kernel-surface.md §1` item 1 forbids five relative imports among the kernel's own parts**
+(`kernel-subdivision.md` §4.4 — a contract reading no role here owns); and
+the three items above that were already open: whether the five platform package names resolve on any registry
 (`LIVE / INSTALL` is OPEN, brief §6), the A112 ordering gate's state (the brief carries it as RED; this map takes
 no position), and the tier-eviction reading, which the brief itself declines to settle.

@@ -937,3 +937,58 @@ three re-staging mechanisms L0 put to him.
   fault and an injected fault be read as one another** — a finding to declare, not to discover at the assertion.
 - **It orders no code move.** The cut and these four drives land as one wave (`D-14`'s own ordering fact), and no
   wave is opened by this ruling.
+
+---
+
+### `D-15` — the kernel cut is accepted (five parts + a barrel), and three of its findings corrected
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the kernel-cut declaration pass,
+validated by L0 against the tree; **the rulings it needed resolved are L0's readings, marked as such.**
+
+**THE CUT, VERIFIED RATHER THAN ACCEPTED.** Five parts and a barrel, tiling `constraint-kernel.mjs` exactly:
+**2,195 lines in assigned regions + 8 separator lines, and L0 measured all eight of those separators to be BLANK**
+(`482 · 1154 · 1363 · 1418 · 1776 · 1803 · 2059 · 2090`) — so `2,195 + 8 = 2,203` closes with no gap and no
+overlap. The DAG is `9a→∅ · 9b→9a · 9c→9a · 9d→9a,9e · 9e→9a`: **the root has no out-edge, exactly one part reaches a
+second part, depth is three** — no cycle, and two candidate cuts were refused with the cycle that would have
+followed. **The file's measured zero-import footprint is what let the cut avoid the usual hazard.**
+
+**★ THE BARREL IS NOT A CONVENIENCE — THE ARCHIVED CLAUSE REQUIRES IT. L0's reading of `kernel-surface.md §1`
+item 1** (now at `archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-constraints/kernel-surface.md`):
+**"the kernel module's ONE checkout home is the ESM SOURCE FILE `bindings/js/src/constraint-kernel.mjs`, and the
+import spelling a red set at `bindings/js/test/**` uses is `import { register, commit, runAttempt, log, report }
+from '../src/constraint-kernel.mjs'`."** **A barrel at that path preserves BOTH the one home and that spelling, so
+the five parts sit *behind* the home rather than becoming five new homes.** **That answers the pass's questions 2
+and 4 at once: the barrel is required, and five internal relative imports do not violate the clause — it governs
+where the surface is REACHED from a red set, not the edges inside the package.** **Marked as L0's reading of an
+archived clause; the architect may overrule it.**
+
+**`src/entry/` with a `kernel-` prefix is confirmed BY `D-14`, not by taste:** one glob plus one explicit path
+stages a loadable tree **only if the parts share the globbed directory**, so a nested `src/entry/kernel/` would
+need a recursive glob or a second one. **The barrel stays at its old path one level up, which is precisely why
+`D-14` pairs the glob with an explicit kernel path — the glob cannot express the barrel.**
+
+**THE PASS'S QUESTION 1 IS ANSWERED BY ITS OWN ARITHMETIC: `9a` at 561 lines is NOT the largest part.** `9b` is
+`634`; `9a` is second and comparable to `9d`'s `565`. **The premise "9a is too large" does not survive the
+figures, so no further cut is owed on that ground.**
+
+**★ AND TWO OF THE PASS'S FINDINGS ARE WRONG, CORRECTED HERE ON MEASUREMENT.**
+
+- **It reported `held-listener-identity-greens.mjs:909`'s cell `HLI-13.1` as FALSE on this tree, "for an ordering
+  reason". IT IS GREEN.** The cell compares `Object.keys(kernel).sort()` to `KERNEL_ITEMS`, and **the greens file
+  declares its OWN `KERNEL_ITEMS` at `:31` — sorted, six names** — which **shadows** the helper's unsorted constant
+  the pass attributed to it. **A fixer sent to "the ordering bug" would have edited a file that has no bug.**
+- **So exactly ONE cell is red, not two: `blind-constraints-v2.mjs:1139`'s `SURFACE` cell 1**, which pins the
+  kernel's namespace to **five** names (`commit,log,register,report,runAttempt`) and is **false at HEAD** because
+  `K-6` (`remove`) landed. **That is a stale blind cell, red before this branch's rulings touched anything.**
+
+**AND THE INCONSISTENCY THE PASS FOUND IS REAL AND IS NOT THE SAME FINDING: TWO SHARED HELPERS DISAGREE ABOUT THE
+KERNEL'S EXTENT.** `bindings/js/test/constraint-kernel-helpers.mjs:48` declares **five** names;
+`bindings/js/test/held-listener-identity-helpers.mjs:163` declares **six**. **Both are consumed across scopes, so
+the disagreement is a live hazard for the migration** — and under `D-7` the `O3` set will carry its own helpers,
+which is where this must be settled rather than copied forward.
+
+**ARITHMETIC, WITH THE PASS'S OWN CORRECTION APPLIED.** **19 modules / 61 endpoints, unmoved** — the kernel's parts
+are files inside `js-constraints` and every new edge is intra-module, so no interaction is minted. **Tracked paths:
+`126 → 133` after the entry cut** (the pass corrected `entry-subdivision.md`'s `134`, which had counted part 1 as
+new) **and `138` after both cuts.** **The allowlist by reachability becomes 16 rows** — the barrel, the five kernel
+parts, the entry's own file, and the entry's parts.
