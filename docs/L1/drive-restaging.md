@@ -14,11 +14,32 @@ and `bindings/js/test/negative-generators.test.mjs` (the copy arm `:1536`–`:15
 the only four staging sites of their kind in the battery** — a grep for `makeScratch`/`makeEnv` and for a literal copy
 of `index.mjs` returns these files and no others.
 
+**⟶ AND THE FOUR PATHS IN THE PARAGRAPH ABOVE ARE SUPERSEDED, MEASURED 2026-10-25: THE DRIVES STAND AT THE PRESET'S
+SCOPE UNDER `tests/e2e/`, AND THEIR STAGING CODE IS A CALL TO `stageModuleTree` RATHER THAN A LITERAL COPY OF
+`index.mjs`.** Present paths and present sites: **`tests/e2e/staged-install/publish.test.mjs`** (`makeScratch` `:774`,
+the staging call `:776`); **`tests/e2e/staged-install/publish-generators.test.mjs`** (`makeScratch` `:438`, the staging
+call `:443` — the lever's reader is `stagedOverrides`, and the name `entryText` that stood in this paragraph is **not a
+name in the tree** any more); **`tests/e2e/staged-install/version-stamp.test.mjs`** (`makeEnv` `:654`, the staging call
+`:664`); and **`tests/e2e/negative-generators.test.mjs`** (the copy arm `:1537`–`:1584`, the staging call `:1559`, the
+`package.json` copy at `:1560`). **The fourth is not under `staged-install/`, and is named where it stands rather than
+moved for the look of it.** The pre-move addresses this paragraph prints — `:704`/`:711`, `:415`/`:377`, `:653`/`:656`,
+`:1536`–`:1572`/`:1547` — were `bindings/js/test/` addresses and are kept here beside their correction. **A
+`makeScratch`/`makeEnv` grep over `tests/e2e/` still returns exactly these four files, so the count of FOUR DRIVES is
+unmoved**; the thirteen an earlier pass corrected (§1) is the TARGET SET's file count under `bindings/js/src/entry/`,
+a different list. **AND THE SAME IS TRUE OF THE ADDRESSES §3 PRINTS: every `:nnn` in §3.1.1, §3.2, §3.3 and §3.4 is a
+`bindings/js/test/` address, and the measured present equivalents for the four staging sites are the ones given
+above** — including the quoted clause, which stands at **`tests/e2e/staged-install/version-stamp.test.mjs:1466`** where
+§3.3 and §3.4 print `:1457`–`:1458`. **The addresses for the four staging sites are measured; the remaining `:nnn`
+inside §3 are not re-measured by this pass and are read as pre-move.**
+
 **THIS PASS MOVES NO CODE, EDITS NO TEST, WRITES NO FIXTURE, STARTS NO L2, AND COMMITS NOTHING.** `D-14` orders no
 code move (*"It orders no code move. The cut and these four drives land as one wave … and no wave is opened by this
 ruling"*). Every edit below is declared against a file that exists today, because these four drives are
 `bindings/js/test/` paths — present-state paths **no strata role may write** (`D-5`, `D-9`): the edits land with the
 migration wave, in the batteries' new home, and each present-state path appears below only to identify the site.
+**⟶ AND THAT WAVE HAS LANDED, 2026-10-25: the four drives are at `tests/e2e/` — `D-5`'s preset scope, which a strata
+test role MAY write — so the freeze this paragraph records is a past state of the declaration and the paths below are
+present-state paths in the ordinary sense.**
 
 **WHAT THIS FILE SUPERSEDES.** `docs/L1/entry-subdivision.md` §4.2's table is the **consequence** this file declares
 the **mechanism** for; its row for `negative-generators` — *"the copy must carry the parts, or the subject is
@@ -80,12 +101,16 @@ than silently short by one.
 - `bindings/js/src/constraint-kernel.mjs` — keeps its path; its 2,203 lines leave it and it becomes the six-name
   barrel (`kernel-subdivision.md` §4).
 
-**The four drives — changed in place (4):**
+**The four drives — changed in place (4), at their PRESENT paths** (⟶ CORRECTED 2026-10-25: this list read
+`bindings/js/test/publish.test.mjs`, `bindings/js/test/publish-generators.test.mjs`,
+`bindings/js/test/version-stamp.test.mjs` and `bindings/js/test/negative-generators.test.mjs`; the first three are
+under `tests/e2e/staged-install/` now and the fourth stands directly under `tests/e2e/`, which is `D-5`'s preset
+scope and not a `staged-install/` one):
 
-- `bindings/js/test/publish.test.mjs`
-- `bindings/js/test/publish-generators.test.mjs`
-- `bindings/js/test/version-stamp.test.mjs`
-- `bindings/js/test/negative-generators.test.mjs`
+- `tests/e2e/staged-install/publish.test.mjs`
+- `tests/e2e/staged-install/publish-generators.test.mjs`
+- `tests/e2e/staged-install/version-stamp.test.mjs`
+- `tests/e2e/negative-generators.test.mjs`
 
 **Consequences the wave owes and this file does not own (declared, not decided):** `bindings/js/package.json`'s `files`
 allowlist is `delivery`'s (`kernel-subdivision.md` §6: reachability puts **16 rows** in it, arithmetic, not a measured

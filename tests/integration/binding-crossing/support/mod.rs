@@ -799,6 +799,17 @@ pub fn fail_code_drive(code: &'static str) -> bool {
         // that the core does NOT mint the package's boundary status**: were it to, this arm returns `false` and
         // both the `S-FAILSET` line and the census below go red. The depth is the core's own bound plus one
         // (`crossing.rs:665`: `depth > 128`), so the drive is the same one `crossing_values.rs` drives positively.
+        // **⟶ SUPERSEDED 2026-10-25 (`A149` items `1`–`2`; `RCA-8(d)` ANNOTATE-BESIDE): THE GUARD IS
+        // `depth > 126` AT `crossing.rs:696`, AND THE CITATION ON THE LINE ABOVE — `crossing.rs:665`, `depth >
+        // 128` — NO LONGER DESCRIBES IT.** The figure moved because `126` is the deepest depth a `file`-tier value
+        // ADMITS, COMMITS and RE-BOOTS; `127` and `128` were admitted by the `128` guard and then lost at
+        // `commit_file`, which is the state `A149` item `2` forbids (`bindings/js/src/crossing.rs`'s own clause,
+        // `:595`–`:703`). **SO THE `129` WRAPPERS BELOW ARE THE CORE'S BOUND PLUS THREE AND NOT PLUS ONE, AND THE
+        // COUNT IS LEFT AS IT STANDS**: the arm's subject is a value OVER the bound, the crossing still answers
+        // with the store's own `ValueNotAdmitted`, and this cell's answer is unmoved by the figure — which is why
+        // this is a comment correction and not a code change. The sibling cells that measure the bound itself are
+        // `crossing_values.rs`'s `ceiling_depth_126_is_admitted` and
+        // `ceiling_depth_127_is_refused_value_not_admitted` (`:843`, `:854`).
         "ValueRefusedAtBoundary" => {
             let mut deep = JsValue::Num(1.0);
             for _ in 0..129 {

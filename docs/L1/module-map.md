@@ -127,7 +127,7 @@ that count.** **The measured figure is `156`; treat every `147` below as that ar
 new edge in both cuts is intra-module (§3.2's own ground, restated for the entry by §3.1). **What has genuinely
 moved is the ownership split, and it moves by the same three deltas: `105 owned + 1 co-owned + 20 unowned = 126`
 becomes `127 owned + 0 co-owned + 20 unowned = 147`** — `105 + 13` (the parts, all single-owned) `+ 8` (the
-battery tree's net) `+ 1` (the co-owned hub, which gains an owner) `= 127`, and the co-owned column empties.
+battery tree's net) `+ 1` (the co-owned hub, which gains an owner) `= 127`, and the co-owned column empties. **⟶ AND THE UNOWNED COLUMN IS THE ONE THIS ARITHMETIC GETS WRONG, CORRECTED HERE 2026-10-25: the `147` was arithmetic and its terms counted only what the two cuts and the battery move, so the split at the MEASURED denominator is `127 owned + 0 co-owned + 29 unowned = 156` — the owned and co-owned columns above stand, and the unowned column is 29, not 20 (FIGURES, and `modules.json`'s `ownership_arithmetic_against_156` for the itemisation).**
 **Everyone who needs one of those three numbers should re-derive it rather than read it here.**
 
 **MEASUREMENT LIMIT — READ BEFORE TRUSTING THE COUNTS.** The first pass over this map had no shell. Its
@@ -173,15 +173,43 @@ tree facts it restates (`package.json`'s four `files` entries, `constraint-kerne
 ownership at all — **105 + 1 + 20 = 126 stands untouched**. Everything it could not check is named where it
 stands (§5.3, §7).
 
-**FIGURES.** 126 paths in the denominator — the corrected figure, reconciled to `git ls-files`'s 126 tracked
-non-`scratch/` paths. **105 are owned by exactly one module**, **1 is co-owned by five modules over
-declared line regions** (`bindings/js/index.mjs`), and **20 are unowned with a reason** (§5). The
-reconciliation by ownership is exact: **105 owned + 1 co-owned + 20 unowned = 126**, with no path
-unaccounted for. **19 modules** are declared, **61 endpoints** — **revised at `D-1` from the 20 modules and 68
+**FIGURES.** **⟶ MEASURED 2026-10-25, AND THIS BLOCK NOW PRINTS THE TREE: `156` paths in the denominator —
+`git ls-files | grep -v '^scratch/'` returns `156` — reconciled by ownership as
+`127 owned + 0 co-owned + 29 unowned = 156`.** **127 are owned by exactly one module** (§2); **no path is
+co-owned** (§5.1: the co-ownership ended with the entry's cut, `bindings/js/index.mjs` being `js-surface`'s
+hub alone — 1,409 lines, measured at the file's own last line); and **29 are unowned with a reason**,
+itemised in §5.3: the `docs/specs/` nine,
+**`docs/L1/`'s eight** (`module-map.md`, `modules.json`, `test-stratification.md`,
+`test-stratification.json`, `entry-subdivision.md`, `kernel-subdivision.md`, `drive-restaging.md`,
+`surface-deltas.md`), the root's eight unowned, `bindings/js/.gitignore`, one `typecheck/` fixture, and
+**`strata/brief.md` with `strata/decisions.md`'s two**. **THE ENTIRE DELTA LANDED IN THE UNOWNED COLUMN:
+`126 → 156` is `docs/L1`'s 8 + `strata/decisions.md`'s 1, and not one of the nine is owned** — which is why
+the owned column reads 127 where the earlier passes read 105 (the `+1` is `index.mjs` leaving the co-owned
+column, not a new path) while the unowned column went 20 → 29. **The arithmetic by tree closes at the same
+figure in twelve terms, no path counted twice:** `src/` 7 · `tests/` 83 · `bindings/js/` root 7 ·
+`bindings/js/src/` 18 · `bindings/js/platforms/` 10 · `docs/specs/` 9 · `docs/L1/` 8 · `typecheck/` 1 ·
+`.github/workflows/` 1 · `scripts/` 1 · `strata/` 2 · root 9 = **156**. The 477 tracked files under
+`scratch/` are outside this denominator by convention, not by rule (§5.4), and `git ls-files` measures the whole
+index at **633**, so **633 = 477 + 156** is a measurement and not arithmetic.
+
+**THE READING THIS BLOCK CARRIED BEFORE THAT MEASUREMENT IS NAMED HERE AND NOT REWRITTEN AWAY: `126` paths,
+`105 owned + 1 co-owned + 20 unowned`, and the `147` the head revision block printed as arithmetic on
+measured deltas.** The `126` was reconciled to `git ls-files` for the tree it was struck against, and the
+`126`'s own by-tree list itemised **no `docs/L1` path at all** — the directory is the migration's, not the
+first pass's; the `147` was arithmetic its own pass said it could not check. **The `156` above supersedes
+both**, and the by-tree list that stood here — `src/` 7 · `tests/` 15 · `bindings/js/` root 7 ·
+`bindings/js/src/` 5 · `bindings/js/test/` 42 · `bindings/js/tests/` 7 · `bindings/js/greens/` 11 ·
+`bindings/js/platforms/` 10 · `docs/specs/` 9 · `typecheck/` 1 · `.github/workflows/` 1 · `scripts/` 1 ·
+root 9 · `strata/` 1 = `126` — **is kept as that past reading so a reader can see which trees moved rather
+than only where they landed.** **19 modules** are declared, **61 endpoints** — **revised at `D-1` from the 20 modules and 68
 endpoints this line carried at `e2fcbef`, and the movement is shown rather than absorbed:** folding 13 and 14
 into one module removes one module and **dissolves seven endpoints** — the six kernel exports, whose subject is
 the export set `D-1` rules away, and `constraintsKernel`, the lazy reach that *was* the boundary (§3, §4 E6).
-The five member-facing constraint endpoints stay. **61 + 7 = 68**, and 19 + 1 = 20. The arithmetic by tree:
+The five member-facing constraint endpoints stay. **61 + 7 = 68**, and 19 + 1 = 20.
+**⟶ AND THE ARITHMETIC BY TREE THAT FOLLOWS IS THE `126`'S OWN LIST, SUPERSEDED BY THE TWELVE-TERM LIST ABOVE AND
+READ THROUGH IT** — `tests/`'s 15 owned are 83 paths at the preset's three scopes, `bindings/js/test/`'s 42,
+`bindings/js/tests/`'s 7 and `bindings/js/greens/`'s 11 are 0 each, `bindings/js/src/`'s 5 are 18, and `strata/`'s 1
+is 2 (the second file is `decisions.md`, which that list said this pass could not verify). The arithmetic by tree:
 `src/` 7 owned ·
 `tests/` 15 owned · `bindings/js/` root 7 (5 owned, `index.mjs` co-owned, `.gitignore` unowned) ·
 `bindings/js/src/` 5 owned · `bindings/js/test/` 42 owned · `bindings/js/tests/` 7 owned ·
@@ -191,7 +219,9 @@ runbook, given to `delivery` by this correction pass — §2.3, §5) · root 9 (
 1 unowned (`strata/brief.md`; **`strata/decisions.md` now stands beside it and this pass could not verify
 whether it is tracked**, so whether the tracked denominator is now 127 is owed a shell check — the 126 is left
 as measured). The 477 tracked files under `scratch/` are **outside** this denominator by convention, not by rule
-(§5.4); the whole tracked tree is **603 = 477 + 126**.
+(§5.4); the whole tracked tree is **603 = 477 + 126**. **⟶ SUPERSEDED 2026-10-25 BY THE MEASUREMENT ABOVE:
+`git ls-files` returns `633` for the whole index and `156` outside `scratch/`, so the tracked tree is
+`633 = 477 + 156`** — and the `603` is named rather than overwritten.
 
 **⟶ THE `D-2` REVISION ADDS NO FIGURE TO THAT DENOMINATOR AND DECLARES ONE BESIDE IT, MARKED AS TARGET AND AS
 ARITHMETIC.** The map's counts stand as **19 modules · 61 endpoints · 105 owned + 1 co-owned + 20 unowned = 126**,
@@ -316,7 +346,23 @@ Node-API symbols link, and it emits the version stamp that the facade's `addon_v
 | `js-declaration` | `bindings/js/index.d.ts` (788) |
 | `delivery` | `bindings/js/package.json`, `bindings/js/README.md`, `bindings/js/Cargo.toml`, `Cargo.toml`, **`tests/Cargo.toml`** (the third package's manifest — ⟶ ADDED 2026-10-25: `D-34` put a `storeroom-tests` package at the root to host the Rust batteries, and a manifest is `delivery`'s kind of artifact; the map's "both crate manifests" is now three), `bindings/js/platforms/{linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64}/package.json` (5), the same five `README.md` (5), `.github/workflows/publish.yml`, `scripts/publish.sh` |
 
-**⟶ THE REGIONS ABOVE ARE AUDITED AT `D-2`, AND THE CUT IS DECLARED IN `docs/L1/entry-subdivision.md` §1–§2.**
+**⟶ THE TABLE ABOVE IS THE PRE-CUT REGION MAP AND STANDS AS FILED; THE TREE IT AUDITS IS A HUB PLUS THIRTEEN
+FILES, MEASURED 2026-10-25.** The rows above name line regions of a 5,903-line file, and no such file exists: the
+present ownership is **`bindings/js/index.mjs` — 1,409 lines, `js-surface`'s alone**, carrying the file header and
+route statement, the module-context derivation, `storeCreate` and the fourteen members, the eight static imports of
+`./src/entry/` and the module-namespace statement; **`bindings/js/src/entry/` — thirteen `.mjs` files, each owned by
+exactly one module** — `js-resolution` 2 (`refusal.mjs` 82 · `artefact.mjs` 355), `js-crossing` 3
+(`class-decision.mjs` 1,204 · `carrier.mjs` 960 · `frame.mjs` 416), `js-registry-delivery` 2 (`state.mjs` 600 ·
+`delivery.mjs` 639), `js-constraints` 6 (`constraints.mjs` 795 plus the kernel's `kernel-foundations.mjs` 529 ·
+`kernel-registration.mjs` 644 · `kernel-commit.mjs` 156 · `kernel-attempt.mjs` 570 · `kernel-terminal.mjs` 324);
+**`bindings/js/src/constraint-kernel.mjs` — 4 lines, where this table's `js-constraints` row prints 2,203** (six
+names in four re-export specifiers, `owns_note`); and **`bindings/js/index.d.ts` — 891 lines, where the
+`js-declaration` row prints 788**. **One name in the target column is not a path on disk and is named rather than
+looked for: `walk.mjs`** — `D-33` took part 6's seam at `index.mjs:2799` and the halves landed as `carrier.mjs` and
+`frame.mjs`. The thirteen sizes and the by-module split are `modules.json`'s `entry_owns_reconciled`; the hub's
+1,409, the barrel's 4 and the declaration's 891 are read at each file's own last line in this pass.
+
+**⟶ AND THE REGIONS ABOVE WERE AUDITED AT `D-2`, WHOSE CUT IS DECLARED IN `docs/L1/entry-subdivision.md` §1–§2.**
 `D-2` says in as many words that the five regions *"are the ones the current file implies, and nothing in `D-2`
 blesses them as the cuts to take."* **The audit found three things and the declaration acts on all three:**
 
@@ -436,8 +482,20 @@ itself is `D-2`'s and no boundary is redrawn here.
 |---|---|
 | `store-battery` | **NOW `tests/integration/store-core/` (12), `tests/integration/store-fail-set/` (1), `tests/integration/store-args/` (1) and `tests/integration/support/mod.rs` (1)** — the same fifteen files the row below names, at the stratified paths. **WAS `tests/` — 15 files:** `construction.rs`, `construction_access_probe.rs`, `e2e_json_round_trip.rs`, `e2e_listener_firing.rs`, `fail_codes.rs`, `gate4_red_set_fix.rs`, `journal_and_rollback.rs`, `properties.rs`, `read_and_delete.rs`, `record_shapes.rs`, `tiers_and_purge.rs`, `walk_and_resolver.rs`, `watched_addresses.rs`, `write_arms.rs`, `support/mod.rs`. **`tests/` holds no `.rs` file at its top level today** (⟶ MOVED 2026-10-25, `D-5`; `docs/L1/test-stratification.md` §2.2/§2.5) |
 | `binding-battery` | **NOW `tests/integration/binding-crossing/` (`crossing_copy.rs`, `addon_adoption.rs`, `surface_verbs.rs`, `register_layer.rs`, `support/mod.rs`) and `tests/unit/binding-crossing/` (`crossing_carriers.rs`, `crossing_values.rs`)** — the same seven files. **WAS `bindings/js/tests/` — 7 files:** `addon_adoption.rs`, `crossing_carriers.rs`, `crossing_copy.rs`, `crossing_values.rs`, `register_layer.rs`, `surface_verbs.rs`, `support/mod.rs`. **These seven are targets of the third package, `storeroom-tests` (`tests/Cargo.toml`), not of the binding crate** — a Cargo package's integration tests must live inside it, and this crate's no longer do (⟶ MOVED 2026-10-25, `D-34`) |
-| `js-battery` | **NOW `tests/e2e/` (23 `*.test.mjs`), `tests/integration/js-constraints/` (11 `*.test.mjs`) and `tests/unit/js-{surface,constraints}/` (3 `*.test.mjs`), plus four helpers and two records at the scopes §2.5 of the stratification assigns** — the same 42 files. **WAS `bindings/js/test/` — 42 files:** 37 `*.test.mjs`, 4 shared helpers (`addon-adoption-support.mjs`, `addon-surface-support.mjs`, `constraint-kernel-helpers.mjs`, `held-listener-identity-helpers.mjs`), and `REMEASURE-2026-10-18.md` (⟶ MOVED 2026-10-25, `D-5`) |
-| `greens-harness` | **NOW `tests/e2e/` — the ten runners (`greens.mjs`, `live-drive.mjs`, `blind-constraints-v2.mjs`, `held-listener-identity-greens.mjs`, `json-acceptance-set-greens.mjs`, `json-acceptance-set-live.mjs`, `json-crossing-live.mjs`, `json-crossing-live-s17.mjs`, `consumer-fix/scenarios.mjs`, `file-tier-save/scenarios.mjs`), the set document `file-tier-save/file-tier-save-greens.md`, and — declared new after the move — `installed/live-install.mjs` with `installed/install-support.mjs`, `module-set.mjs` and `pack-reachability.mjs`.** **WAS `bindings/js/greens/` — 11 files** as the row below names them (⟶ MOVED 2026-10-25, `D-5`; the four new artifacts are the stratification's §2.8 installed battery and the cut's own staging helpers) |
+| `js-battery` | **NOW `tests/e2e/` (23 `*.test.mjs`), `tests/integration/js-constraints/` (11 `*.test.mjs`) and `tests/unit/js-{surface,constraints}/` (3 `*.test.mjs`), plus four helpers and two records at the scopes §2.5 of the stratification assigns** — the same 42 files. **⟶ CORRECTED 2026-10-25: FORTY-SIX paths, not 42** — the 37 `*.test.mjs` plus the four shared helpers plus the two records are 43, and the migration's three helpers (`module-set.mjs`, `pack-reachability.mjs`, `staged-install/staged-install-support.mjs`) are the rest; `modules.json`'s `js-battery` `owns` array lists all forty-six. **WAS `bindings/js/test/` — 42 files:** 37 `*.test.mjs`, 4 shared helpers (`addon-adoption-support.mjs`, `addon-surface-support.mjs`, `constraint-kernel-helpers.mjs`, `held-listener-identity-helpers.mjs`), and `REMEASURE-2026-10-18.md` (⟶ MOVED 2026-10-25, `D-5`) |
+| `greens-harness` | **NOW `tests/e2e/` — the ten runners (`greens.mjs`, `live-drive.mjs`, `blind-constraints-v2.mjs`, `held-listener-identity-greens.mjs`, `json-acceptance-set-greens.mjs`, `json-acceptance-set-live.mjs`, `json-crossing-live.mjs`, `json-crossing-live-s17.mjs`, `consumer-fix/scenarios.mjs`, `file-tier-save/scenarios.mjs`), the set document `file-tier-save/file-tier-save-greens.md`, and — declared new after the move — `installed/live-install.mjs` with `installed/install-support.mjs`, `module-set.mjs` and `pack-reachability.mjs`.** **WAS `bindings/js/greens/` — 11 files** as the row below names them (⟶ MOVED 2026-10-25, `D-5`; the four new artifacts are the stratification's §2.8 installed battery and the cut's own staging helpers). **⟶ AND THOSE FOUR ARE TWO MODULES' AND NOT THIS ONE'S, CORRECTED 2026-10-25: `module-set.mjs` and `pack-reachability.mjs` are `js-battery`'s (its `owns` array names both), and this module's added three are `installed/live-install.mjs`, `installed/install-support.mjs` and `installed/license-row-evidence.json` — the record `D-8`'s conditional reads, `INSTALL-12`'s home. Eleven + three = FOURTEEN, which is `modules.json`'s figure and the one the caption below restates.** |
+
+**⟶ AND THE BATTERY ROWS ABOVE ARE THE TREE NOW, MEASURED 2026-10-25: `tests/**` IS 83 PATHS IN THE PRESET'S THREE
+SCOPES PLUS THE PACKAGE'S MANIFEST — `tests/e2e/` 44 · `tests/integration/` 33 · `tests/unit/` 5 ·
+`tests/Cargo.toml` 1 — AND THE OWNERSHIP SPLIT CLOSES OVER THEM EXACTLY: `store-battery` 15 · `binding-battery` 7 ·
+`js-battery` 46 · `greens-harness` 14 · `delivery`'s `tests/Cargo.toml` 1 = 83, with no path owned twice and none
+left unowned (`modules.json`'s `battery_owns_reconciled`).** The scopes are the preset's own (`D-5`, `D-6`), the
+re-cut is `docs/L1/test-stratification.md`'s, and **it has landed** — so the sentences below that read the two JS
+drivers as `bindings/js/test/` and `bindings/js/greens/`, and the clause that has the four battery modules keeping
+"their present-state paths until the post-migration revision", are **past state read through this caption**:
+`node --test "tests/**/*.test.mjs"` runs the first across all three scopes at once, and the second is the ten
+runners plus their set document under `tests/e2e/`, with the installed battery's three files beside them. The
+75-to-83 difference is the eight paths the migration added and not a growth of tests (head revision block).
 
 The two Rust batteries are separate modules by the project's own ruling (`docs/specs/storeroom-js/contract.md`
 §3.4 item 2: an independent sibling crate means *"the store's … `tests/**` and its measured green are NOT
@@ -743,7 +801,12 @@ reachable"*.
 
 **THE ARITHMETIC OF §5, RECONCILED.** 105 paths owned by exactly one module (`§2`) + 1 co-owned (`§5.1`) + 20
 unowned with a reason (`§5.3`) = **126**, which is the number of tracked non-`scratch/` paths in
-`git ls-files`. No path is unaccounted for. The one path that accounts for the difference between the first
+`git ls-files`. **⟶ CORRECTED 2026-10-25 BY MEASUREMENT — the reconciled arithmetic is
+`127 owned + 0 co-owned + 29 unowned = 156`:** the co-owned column emptied when the entry was cut and
+`index.mjs` became `js-surface`'s hub, and the nine paths that were never in the `126` — `docs/L1`'s eight
+files and `strata/decisions.md` — are unowned and itemised at FIGURES (`modules.json`'s
+`ownership_arithmetic_against_156` carries the same terms). **The three figures above are the `126`'s own
+reading and stand beside the correction, not in place of it.** No path is unaccounted for. The one path that accounts for the difference between the first
 pass's 125 and the tracked 126 is **`scripts/publish.sh`** — tracked, at the repository root's `scripts/`, and
 the release runbook — which that pass neither owned nor listed; this correction pass **gives it an owner**:
 `delivery`, whose declared responsibility already carries *the release pipeline* and which already owns
@@ -754,7 +817,7 @@ files are outside that 126 altogether, and §5.4 is why.
 
 | path | why it is not owned once |
 |---|---|
-| `bindings/js/index.mjs` | 5,903 lines carrying five plainly distinct responsibilities (resolution, failure form, walk/codec, registry/delivery, constraints). §2.3 declares the regions and which module owns each. **The co-ownership is the present state of the tree:** it is one file today, and the five regions *are* the ownership declaration — a declaration the file has yet to be separated to satisfy. **The separation is sanctioned by the architect** (`D-2`: *"Index.mjs is already too long and should be subdivided anyway for readability"*), and it is owed as **legibility work on its own ground** — not as a consequence of `D-1`, and owed even had the kernel question never arisen; the two rulings compose by landing the tight integration *inside* a subdivided entry. **⟶ SUPERSEDED AT `D-2`'s DECLARATION: THE CUT IS NOW DRAWN.** *"This map still does not draw the cut … §6 Q2's first half stays open"* was true of the `D-1` revision and is no longer: **`docs/L1/entry-subdivision.md` §1–§2 draws it — nine parts, eight of them out of this file, each owned by exactly one module** — and §2.3's target table maps every present region to its part. **What is NOT superseded is this row's present-state claim:** the tree is one file today, no code has moved, and the arithmetic stands at **one co-owned path, five owning modules**. **What the declaration changes is the END of the co-ownership, marked as target:** `index.mjs` becomes `js-surface`'s alone and the eight part paths — seven new files plus the kernel — become single-owned, so the *target* is **zero co-owned paths** and **114 owned + 0 + 20 = 134** (FIGURES). **The second clause that stood here at the `D-1` revision — *"this map does not order the separation"* — is superseded by `D-2`; the clause this revision adds is that the declaration orders nothing either**: it draws the target and no wave is open. |
+| `bindings/js/index.mjs` | **⟶ PAST STATE, 2026-10-25: THE FILE IS NOW THE HUB — 1,409 lines — AND THE FIVE REGIONS BELOW ARE THIRTEEN FILES UNDER `bindings/js/src/entry/`, EACH OWNED BY EXACTLY ONE MODULE; this cell is kept because it is the map's own record of *why* the file was co-owned at all, not because any of it stands.** As filed: 5,903 lines carrying five plainly distinct responsibilities (resolution, failure form, walk/codec, registry/delivery, constraints). §2.3 declares the regions and which module owns each. **The co-ownership is the present state of the tree:** it is one file today, and the five regions *are* the ownership declaration — a declaration the file has yet to be separated to satisfy. **The separation is sanctioned by the architect** (`D-2`: *"Index.mjs is already too long and should be subdivided anyway for readability"*), and it is owed as **legibility work on its own ground** — not as a consequence of `D-1`, and owed even had the kernel question never arisen; the two rulings compose by landing the tight integration *inside* a subdivided entry. **⟶ SUPERSEDED AT `D-2`'s DECLARATION: THE CUT IS NOW DRAWN.** *"This map still does not draw the cut … §6 Q2's first half stays open"* was true of the `D-1` revision and is no longer: **`docs/L1/entry-subdivision.md` §1–§2 draws it — nine parts, eight of them out of this file, each owned by exactly one module** — and §2.3's target table maps every present region to its part. **What is NOT superseded is this row's present-state claim:** the tree is one file today, no code has moved, and the arithmetic stands at **one co-owned path, five owning modules**. **What the declaration changes is the END of the co-ownership, marked as target:** `index.mjs` becomes `js-surface`'s alone and the eight part paths — seven new files plus the kernel — become single-owned, so the *target* is **zero co-owned paths** and **114 owned + 0 + 20 = 134** (FIGURES). **The second clause that stood here at the `D-1` revision — *"this map does not order the separation"* — is superseded by `D-2`; the clause this revision adds is that the declaration orders nothing either**: it draws the target and no wave is open. |
 
 **⟶ AND THE CO-OWNERSHIP THIS ROW DECLARES IS ENDED, 2026-10-25 — NO PATH OF THIS MAP IS CO-OWNED ANY MORE.**
 `bindings/js/index.mjs` is **1,409 lines** and is `js-surface`'s alone; **the eight parts the row declares as "the
@@ -769,7 +832,7 @@ right-hand column. **`114 + 0 + 20 = 134` / `113 + 0 + 20 = 133` / `118 + 0 + 20
 arithmetic on a denominator that has since moved by the battery tree as well**: the head revision block prints
 `127 owned + 0 co-owned + 20 unowned = 147` as arithmetic on measured deltas, owed its own `git ls-files` check —
 **and that check has now been taken: the tracked non-`scratch/` set is `156`, not `147` (see the head revision block),
-so the ownership split is owed a re-derivation against `156` rather than reprinted here.**
+so the ownership split is owed a re-derivation against `156` rather than reprinted here. **⟶ AND THAT RE-DERIVATION IS NO LONGER OWED, 2026-10-25: FIGURES now prints it — `127 owned + 0 co-owned + 29 unowned = 156`, with the nine that the `147` missed (`docs/L1`'s 8 and `strata/decisions.md`) standing in the unowned column — and `modules.json`'s `ownership_arithmetic_against_156` itemises every term.**
 
 **⟶ AND THE TARGET FIGURE THIS ROW CARRIES IS CORRECTED BY ONE AT `D-13`/`D-14` (FIGURES).** The co-owned path's end
 is unchanged — `index.mjs` becomes `js-surface`'s alone and the co-ownership goes to zero — but **the entry cut creates
@@ -806,7 +869,7 @@ though it were. See §5.4.
 | `README.md` (root) | repository documentation | Product-level prose; the brief cites it, but no module's behaviour depends on it. (The *shipped* README at `bindings/js/README.md` **is** owned, by `delivery`.) |
 | `LICENSE` | licence of record | *"Carried into every artefact at assembly time"* (brief §1). It is an input to the assembly, not an artefact any module produces; the package's `files` allowlist deliberately carries **no** `LICENSE` row. |
 | `docs/specs/**` — 9 contracts | specification corpus | The authoritative kept contracts (`storeroom-native`, `storeroom-js` + `surface.md`, `storeroom-publish`, `storeroom-json-crossing`, `storeroom-held-listener-identity`, `storeroom-constraints`, `storeroom-addon-surface`, `storeroom-addon-adoption`). They are this workflow's *inputs*, and no code module owns its own specification: a module that owned its contract could amend what it is measured against. |
-| `strata/brief.md` | L1 input | The brief itself. `strata/decisions.md` was **absent when this map was written** and is **present now**, carrying `D-1` — it is the authority this revision applies. Neither file is owned by a code module: a ruling is not a module's to hold. **Whether `strata/decisions.md` is tracked is not verified by this pass** (no shell), so it is neither owned nor counted; see FIGURES. |
+| `strata/brief.md` | L1 input | The brief itself. `strata/decisions.md` was **absent when this map was written** and is **present now**, carrying `D-1` — it is the authority this revision applies. Neither file is owned by a code module: a ruling is not a module's to hold. **Whether `strata/decisions.md` is tracked is not verified by this pass** (no shell), so it is neither owned nor counted; see FIGURES. **⟶ RESOLVED 2026-10-25 ON MEASUREMENT: `strata/decisions.md` IS TRACKED and it IS counted — as unowned, beside `docs/L1`'s eight files, and those are the two classes that take this section's unowned column from 20 to 29 (FIGURES).** |
 
 ### §5.4 `scratch/` — excluded from ownership by convention, never by an ignore rule, and git disagrees
 
@@ -826,7 +889,7 @@ anywhere in it.
 reader who runs `git ls-files` will see all 477 of those files; a reader who trusts the first pass's claim
 that `scratch/` was *"excluded by the project's own ignore rules"* would not, and that claim was false.
 Nothing under `scratch/` is owned, co-owned or listed as unowned, and none of it enters the 126-path
-denominator. The whole tracked tree is **603 = 477 + 126**, which accounts for every path git carries.
+denominator. The whole tracked tree is **603 = 477 + 126**, which accounts for every path git carries. **⟶ SUPERSEDED 2026-10-25 BY MEASUREMENT: the denominator is `156` and `git ls-files` puts the whole index at `633`, so `633 = 477 + 156` (FIGURES).**
 
 ---
 

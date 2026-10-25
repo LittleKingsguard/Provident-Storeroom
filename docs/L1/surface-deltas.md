@@ -515,7 +515,16 @@ loop: a check placed at step 5 would leave the colliding state reachable at step
 (`:2075`), `remove` (`:2111`). **So the two greens cells that census the module namespace by exact string
 (`blind-constraints-v2.mjs:1139`'s five names; `held-listener-identity-greens.mjs:909`'s sorted-vs-unsorted
 comparison) are neither fixed nor worsened by this delta, and their reds stay attributable elsewhere** — which
-matters for §5.4's bar.
+matters for §5.4's bar. **⟶ AND THIS PARAGRAPH'S LINE NUMBERS AND ITS COLOUR ARE BOTH SUPERSEDED, MEASURED
+2026-10-25:** the blind cell's six-name assertion stands at **`tests/e2e/blind-constraints-v2.mjs:1251`** (the cell
+opens at `:1249`) and it is **GREEN**, pinning `commit,log,register,remove,report,runAttempt`; **`HLI-13.1`** stands
+at **`tests/e2e/held-listener-identity-greens.mjs:951`** and is **GREEN**, because the greens file declares its own
+sorted `KERNEL_ITEMS` at `:31` (`strata/decisions.md` `D-15`). **So neither cell is red and nothing here is
+attributable** — the two pre-move addresses this sentence cites (`:1139`, `:909`) were `bindings/js/greens/`
+addresses before the batteries were stratified into `tests/e2e/`. **The six `export` sites listed above are stale by
+the same cause and to the same degree:** `:486`/`:1008`/`:1158`/`:2063`/`:2075`/`:2111` are addresses in a file that
+no longer carries them, the kernel being a **4-line barrel** at `bindings/js/src/constraint-kernel.mjs` whose six
+names are re-exported from four of its five parts (`docs/L1/kernel-subdivision.md` §4).
 
 ### 4.2 What replaces the pair's occupancy of its home entry — the call and the return
 
