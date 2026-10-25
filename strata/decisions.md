@@ -501,3 +501,49 @@ purpose is to *report* rather than assert.
 **no `build/Release` path, no `.node` at any entry, and no `LICENSE` row** — are **functional and licensing
 rules, not shape rules**, and they survive the count's lifting exactly as `P-PUB-7`'s four do. **A pass that
 retires the fourth entry must edit both cells and take neither's prohibitions with it.**
+
+---
+
+### Correction to `D-6` — 24 files carry the bare specifier, not 19
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the L1 route-tagging pass,
+which measured the population and challenged L0's figure; **L0 verified it and was wrong.**
+
+**WHAT `D-6` SAID.** *"The 19 files that carry the bare specifier today are all re-spelled"*, with a
+seventeen-test list plus the two helpers.
+
+**WHAT IS TRUE, VERIFIED TWO WAYS.** **24 test files carry the bare specifier as a module id.**
+- **19 by static import** — the list `D-6` already prints, unchanged.
+- **5 by DYNAMIC import, which `D-6` missed entirely**: `a126-constraint-methods.test.mjs`,
+  `held-listener-identity-properties.test.mjs`, `package-entry.test.mjs`, `publish.test.mjs`,
+  `register.test.mjs`.
+- **The cause is L0's measurement, stated so it is not repeated: the grep was `from 'provident-storeroom'`,
+  which finds static import declarations only, and the count was reported as though it were the population.**
+
+**THE CONSEQUENCE, WHICH IS NOT COSMETIC.** Two of the five were already `O3`-bound (`publish`,
+`package-entry`), so `O3`'s staged-name mechanism covers them. **Three were `O4`-bound and were absent from
+`D-6`'s list entirely** — `a126-constraint-methods`, `held-listener-identity-properties`, `register` — **and each
+carries a dynamic `import()` of the bare name that a path re-spelling must therefore rewrite.** A migration that
+worked `D-6`'s list literally would have left three cells importing a name that no longer resolves, which fails
+at the cell's own `import()` rather than at load — **the failure mode that reads like a red test instead of a
+broken import.**
+
+**THE RULE THIS LEAVES:** **a specifier census must count every form — static `from`, dynamic `import()`,
+`require()` and `createRequire` — and must say which forms it counted.** `D-6`'s criterion is unchanged; only its
+population was short.
+
+---
+
+### Two readings L0 puts on the record, awaiting the architect's confirmation
+
+**Not rulings. Marked as inference, and nothing is built on either.**
+
+**`R-1` — the `LICENSE`-row prohibition survives the lifted count.** The route-tagging pass flagged that `D-4`
+lifts `§2.1` item `1`'s *"and NOTHING ELSE"* while `D-3`'s correction keeps `JSG-12.18`'s **`LICENSE`-row
+refusal**, and read the two as colliding on one manifest row. **L0's reading: they do not collide. The
+`LICENSE`-row prohibition has its OWN home — `§2.1` item `5`, which `JSG-12.18` cites separately from items `1`
+and `6` — so it never depended on item `1`'s exclusivity, and lifting item `1` does not lift item `5`.** The cell's
+`LICENSE` subject therefore stands, and the cell is editable: only its exact-set equality is obsolete.
+
+**`R-2` — the packaged-resolution claim lives exclusively in the `O3` set.** Already recorded as `D-6`'s open
+item. **Restated here only to keep it visible: it remains UNCONFIRMED, and no pass may build on it as settled.**
