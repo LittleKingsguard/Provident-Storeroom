@@ -1726,3 +1726,58 @@ the boot route arms functions the same way** — the list is supplied at every s
 say so. **And how it composes with `D-25` at construction**: if the boot's adopted listeners are in place before the
 list arms, **a batch `id` colliding with an adopted listener's handle is a cross-kind overwrite and must be
 REJECTED** — **which makes the construction's argument order a correctness matter rather than a tidiness one.**
+
+---
+
+### `D-27` — the batch arms its functions, REJECTS duplicate handles regardless of kind, and the check placement is delegated
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the three questions
+`D-26` left open.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Functions are armed
+> Reject duplicate handles in batch - regardless of listener/constraint type
+> Leave function check placement to agent decision
+
+**WHAT EACH SETTLES.**
+
+1. **"FUNCTIONS ARE ARMED."** At construction, **each batch element's `constraint` is registered as the pair's
+   substance** — not merely validated and deferred to a later add call. **So the batch is a population route in the
+   full sense the surface always claimed:** it delivers a pair that is *carried*, and `D-26`'s "identity without
+   arming" state is not merely narrowed but **absent from this route entirely.**
+2. **★ "REJECT DUPLICATE HANDLES IN BATCH — REGARDLESS OF LISTENER/CONSTRAINT TYPE."** **The batch's uniqueness rule is
+   STRICTER than the add route's, and by design:**
+   - **within the batch**, two elements naming one handle → **REJECTED**;
+   - **against the construction's adopted listeners**, a batch `id` equal to an adopted `handle` → **REJECTED**,
+     cross-kind included — **which is `D-25`'s cross-kind rejection applied at the one instant it can be checked
+     wholesale.**
+   **★ AND THIS MAKES THE TWO RULES EXPLICIT, BECAUSE A PASS THAT CONFLATES THEM WILL GET BOTH WRONG:**
+
+   | act | a repeated handle |
+   |---|---|
+   | **the batch, `cfg.constraints`** | **REJECTED** — the list is ONE supplied act, so an internal ambiguity is malformed input and not a second write |
+   | **the add route, `addConstraint(pair, constraint)`** | **OVERWRITE** (`D-24`) — acts are separate in time, so a later one replaces the earlier |
+
+   **The distinction is whether the two namings arrive in ONE act or in two, and that is why both rules can be right
+   at once.**
+3. **"LEAVE FUNCTION CHECK PLACEMENT TO AGENT DECISION."** Where the function check sits in the construction's
+   argument order is **delegated to L1/L2** — **with `D-27`'s own two constraints surviving the delegation: the
+   check precedes any filesystem act, and it precedes the uniqueness check that must see the adopted listeners.**
+
+**WHAT FOLLOWS FROM THESE THREE, AND IT IS PACKAGE-SIDE WORK.** **Neither the function check nor the uniqueness check
+can be performed by the store**: a JavaScript function cannot cross to Rust, and the store cannot see the package's
+adopted listener handles. **So both arms are the PACKAGE's**, refusing in the one thrown form with an existing set
+member (`ConstraintListInvalid` remains the natural one). **The store's own list validation keeps its subject — shape,
+address domain, `id` domain — and gains no arm.**
+
+**AND ONE ORDERING FACT THIS SETTLES THAT `D-26` COULD NOT.** A batch `id` colliding with an adopted listener's handle
+must be **rejected**, so **the construction must know its adopted listeners before the list's collision check runs**
+— **the correctness question `D-26` raised is thereby answered, and it is answered by requiring the information
+rather than by fixing a sequence.** **L1/L2 may still choose where the check sits; the information dependency is not
+theirs to move.**
+
+**WHAT IT DOES NOT SETTLE.** **The refusal's code, its form and its exact instant** (the agent's, within the two
+constraints above). **Whether the boot route's list is held to the same strictness** — it is the same route by the
+surface's own word (*"the list is supplied at every startup"*), so it should be, and a pass must say so. **And whether
+a duplicate inside the batch is reported per element or per pair** — a receipt shape, not a rule.
