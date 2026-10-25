@@ -999,12 +999,21 @@ const THE_THIRTEEN = [
     // OPENED — which `§4.1` table 1 declares BRACKETS (*"`write` … opens one"*) — while the row was filed
     // under a NAME table 2 declares does NOT. **THE ROW MEASURED ONE VERB AND NAMED ANOTHER**, and that is the
     // same attribution defect the whole table was re-cut for, one row further on.
-    // **THE ACT IS ADDRESSABLE AT THE CROSSING AND NOWHERE ELSE**, and the route is the one the standing unit
-    // itself takes: `file-tier-save-properties.test.mjs:242`'s `commitFileAct(index, opId)` —
-    // `addon().call(index, 'commitFile', [{ k: 's', v: opId }])` — driven at `:432` as
-    // `commitFileAct(index, writeA.op.opId)` over an op a `file`-tier write already produced. **THE PACKAGE'S
-    // OWN `settle` MEMBER TAKES IT ONLY AT THE TWO INSTANTS `PAR-JS-19` DECLARES, so re-driving one op's act
-    // is reachable at no other route** (`surface.md §2.11` clause 2; `DEF-2026-10-15-X`).
+    // **THE ACT IS ADDRESSABLE AT THE PER-VERB ENTRY AND NOWHERE ELSE**, and the route is the one the standing
+    // unit itself takes: `file-tier-save-properties.test.mjs:278`'s `commitFileAct(store, opId)` —
+    // `addon().commitFile.call(store, { k: 's', v: opId })` — driven at `:475` as
+    // `commitFileAct(store, writeA.op.opId)` over an op a `file`-tier write already produced. **⟶ RE-CUT
+    // 2026-10-20 (`role_test_writer`): THIS ROW'S ROUTE WAS STALE, NOT ITS ASSERTION.** It spelled
+    // `addon().call(store, 'commitFile', [{ k: 's', v: opId }])`, and **that entry does not exist** —
+    // `export-set-and-dispatch.md §2`: *"`call` IS DELETED. It **was** the dispatcher: one entry taking
+    // `(instance, verb, args)` … The split is precisely its replacement, so it does not survive."* **THE ACT
+    // NOW CROSSES AT THE ENTRY NAMED FOR ITS VERB** — `§1`'s ninth row, `commitFile`, arity `1`, *"the
+    // file-tier save"* — and `§4`: *"EACH ENTRY TAKES ITS VERB'S OWN ARGUMENTS AND NOTHING ELSE,"* with the
+    // package's `storeCreate` object as the receiver (`contract.md §3`: *"THE INTEGER INDEX DIES, AND THE
+    // RECEIVER REPLACES IT"*). **MEASURED: the built artefact's key set is EXACTLY `§1`'s thirteen and `call`
+    // is not among them.** **THE PACKAGE'S OWN `settle` MEMBER TAKES IT ONLY AT THE TWO INSTANTS `PAR-JS-19`
+    // DECLARES, so re-driving one op's act is reachable at no other route** (`surface.md §2.11` clause 2;
+    // `DEF-2026-10-15-X`).
     // **AND THE SETUP IS THE `file`-TIER WRITE ITSELF** — it opens the commit whose op the act carries, it
     // runs BEFORE the observer is registered, and it therefore contributes nothing to this row's window.
     // **WHOLE ROW IS DRIVEN AT AN INSTANCE CARRYING A `filePath`**, because a `file`-tier write whose parent
@@ -1060,8 +1069,19 @@ function instanceForRow(row) {
  *  `surface.md §2.4` item 8: *"`"commitFile"` IS THE EIGHTH VERB OF THIS SET AND NOT A VERB OF THE MODULE
  *  NAMESPACE: it is the terminal arm's own act crossing, its one argument is an op id and its answer is
  *  `undefined`."* **So the act is a member of NO instance** — the member table carries no row for it — **and
- *  the crossing is where it is addressable**, which is the route the standing unit takes
- *  (`file-tier-save-properties.test.mjs:242` and `:432`).
+ *  the addon's per-verb entry is where it is addressable**, which is the route the standing unit takes
+ *  (`file-tier-save-properties.test.mjs:278`'s helper, driven at `:475` and `:487`).
+ *
+ *  **⟶ RE-CUT 2026-10-20: `addon().call(index, verb, args)` IS DELETED AND THE PER-VERB ENTRY REPLACES IT.**
+ *  `docs/specs/storeroom-addon-surface/export-set-and-dispatch.md §2` is the pin and it is MANDATED:
+ *  *"`call` IS DELETED. It **was** the dispatcher: one entry taking `(instance, verb, args)` and matching the
+ *  verb across nine arms. The split is precisely its replacement, so it does not survive."* **MEASURED: the
+ *  built artefact's key set is exactly the thirteen `§1` declares, and `call` is not among them** — so the
+ *  artefact is CORRECT and this helper was STALE. **AND THE `index` ARGUMENT IS GONE WITH IT, NOT MERELY
+ *  RENAMED** (`contract.md §3`: *"THE INTEGER INDEX DIES, AND THE RECEIVER REPLACES IT … each entry resolves
+ *  its store from the Node-API `this` receiver"*), **so the receiver is the PACKAGE's store object** — the
+ *  one `storeCreate` in this file's import answers and `instanceForRow` hands the row — and not a bare
+ *  integer. **NO VERB STRING CROSSES ANY MORE:** *"THE DISPATCHER'S STRING INDIRECTION GOES."*
  *
  *  The addon handle is `require`d from the BUILT ARTEFACT and never imported from `src/**`, exactly as that
  *  unit does it. **A ROW THAT MUST DRIVE THE ACT TAKES THIS ROUTE AND NO OTHER**: the package's own `settle`
@@ -1075,7 +1095,7 @@ function walkAddon() {
   return WALK_ADDON;
 }
 function commitFileAct(store, opId) {
-  return walkAddon().call(store, 'commitFile', [{ k: 's', v: opId }]);
+  return walkAddon().commitFile.call(store, { k: 's', v: opId });
 }
 
 /** **THE TWO CHANNEL KEYS `finalizer-and-teardown.md §4.2` INVENTED AND THE CONTRACT NOW OWNS** — *"THE

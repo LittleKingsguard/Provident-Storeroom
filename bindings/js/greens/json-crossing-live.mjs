@@ -71,9 +71,51 @@
 //     OBSERVED  — a live observation of this runner's own, recorded not
 //                 asserted; not one of the greens' `67` cells.
 //
-// THE CENSUS (re-drive). `70` cells = the `67` greens cells + ONE `A149` cell of this runner's own
-// (`LIVE-R1`, depth `128` — the crate's CONVERSION bound, refused at this walk) + `2` observations
-// (`LIVE-X1`, `LIVE-X2`).
+// THE CENSUS. `144` cells = the `67` greens cells + ONE `A149` cell of this runner's own (`LIVE-R1`, depth
+// `128` — the crate's CONVERSION bound, refused at this walk) + `2` observations of the first re-drive
+// (`LIVE-X1`, `LIVE-X2`) + `28` cells of the `DEF-2026-10-24-C` re-drive (`LIVE-C01`–`LIVE-C28`: the three
+// cross-realm shapes and four controls across the four mutation states) + `10` cells of the
+// `DEF-2026-10-24-D` re-drive (`LIVE-D01`–`LIVE-D10`: the six re-derived arms and the two conditional arms'
+// two branches) + `3` observations of that re-drive (`LIVE-X3`–`LIVE-X5`) + `14` cells and ONE observation
+// of the 2026-10-24 re-drive (the second of the day) (`LIVE-E01`–`LIVE-E15`: the conversion guard's chain walk at both conditional
+// arms in both variants, the three sanctioned standard renderings, row `17` and its controls, and the
+// caller-side deletion, with `LIVE-E15` the deletion's construction boundary) + `14` cells and `4`
+// observations of the 2026-10-24 re-drive after `DEF-2026-10-24-E` (`LIVE-F01`–`LIVE-F18`: the four boundary
+// laws `F-RA-11` / `F-RA-12` / `F-RA-13` at their own states and controls, and the residual override the
+// defect declares NOT closed, recorded as `LIVE-F16`–`LIVE-F18`).
+//
+// THE 2026-10-24 RE-DRIVE AFTER `DEF-2026-10-24-E` (the THIRD of the day). Four boundary laws landed red-first
+// at the node layer and are re-driven here at the assembled surface, each over a REAL store that ALREADY
+// CARRIES A COMMITTED SEED — so "the store file is byte-unchanged" and "the register is unmoved" are asserted
+// over a NON-EMPTY store, and a fresh instance proves the seed still reads back: **(a) `F-RA-11`** — the array
+// density test is `Object.hasOwn`, so a PROTOTYPE-CARRIED index is a hole (`Array.prototype[0] = 'x'` and the
+// inherited-ACCESSOR carrier, both refused as row `16` with the getter counted at `0`), and the DENSE CONTROL
+// under the same mutation is still admitted; **(b) `F-RA-12`** — a `Proxy` standing as the value's PROTOTYPE
+// answers rows `14`/`13` with NO TRAP RUN, a LYING handler buys no admission and a REVOKED link escapes no
+// host error; **(c) `F-RA-13`** (three limbs) — an ADDED `Symbol.toPrimitive`, an own or added
+// `Symbol.toStringTag` accessor, and an array's ELEMENT conversions each leave the arm's CLASS SPELLING as the
+// subject with every counter `0`, while the three sanctioned renderings survive; and **(d) the residual** — an
+// OVERRIDDEN `toString`/`valueOf`/`join` on a shape-standard prototype is DECLARED, NOT CLOSED, so it is
+// driven and recorded as an OBSERVED declaration conformance, never as a pass.
+//
+// THE 2026-10-24 RE-DRIVE (THE SECOND OF THE DAY). The conversion guard now walks the value's PROTOTYPE CHAIN (stopping at a
+// prototype judged language-standard by shape), so a prototype-supplied `toString` no longer runs on the
+// refusal path; row `17` (`an array carrying a non-index own member`) refuses at the walk; and the array
+// census reads take no method from a mutable prototype, so a caller-side `delete Array.prototype.map` is
+// admission-preserving. `LIVE-E01`–`LIVE-E04` re-drive the `LIVE-X4`/`LIVE-X5` shapes ASSERTED (both
+// variants, counted), `LIVE-E06`–`LIVE-E12` drive row `17` and its controls, and `LIVE-E13`–`LIVE-E15` drive
+// the deletion. No cell of the earlier re-drives was weakened or re-expressed.
+//
+// THE 2026-10-24 RE-DRIVE AFTER `DEF-2026-10-24-C` AND `DEF-2026-10-24-D`. The crossing's plain-prototype
+// predicate is now STRUCTURAL (`contract.md §1`'s clause of 2026-10-24: a prototype that is terminal and
+// CARRIES the standard member set, with extra own members on either realm irrelevant), and the six arms that
+// rendered the refused value now answer the ROW'S CLASS SPELLING, with the two conditional arms answering it
+// only where the refused value carries an OWN conversion member (`§2.1`'s clause of the same date). **The
+// `LIVE-C*` cells drive the admission surface across the defect's four mutation states — pristine, this realm
+// mutated, the value's realm mutated, both mutated — with every prototype restored in a `finally` and the
+// restoration measured; the `LIVE-D*` cells drive a refused value carrying its own counting conversion traps
+// and assert the counters are `0` AND the subject is the declared class spelling.** No cell of the first two
+// re-drives was weakened or re-expressed.
 //
 // RUN:  node bindings/js/greens/json-crossing-live.mjs
 // EXIT: 0 iff no cell FAILed and no cell was a FINDING.
@@ -83,7 +125,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { runInNewContext } from 'node:vm';
+import { createContext, runInContext, runInNewContext } from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -107,7 +149,8 @@ const PART_ONE =
 const ROOT_POSITION = "the write's value argument";
 const partTwo = (position, cls) => `, the value at ${position} is ${cls}`;
 
-// THE SIXTEEN CLASS SPELLINGS — `contract.md §2`'s table, verbatim.
+// THE SEVENTEEN CLASS SPELLINGS (`contract.md §2`'s table, verbatim; row `17` added in place 2026-10-24,
+// `F-RA-5`). Rows `9`/`10` share one spelling, so seventeen rows carry sixteen distinct strings.
 const CLASS = {
   null: 'null',
   undefined: 'undefined',
@@ -124,6 +167,8 @@ const CLASS = {
   nonPlain: 'a class instance or another prototype-carrying non-plain object',
   accessor: 'a value carrying an own accessor member',
   sparse: 'a sparse array',
+  // `contract.md §2`'s row `17`, added in place 2026-10-24 (`F-RA-5`): the seventeenth class.
+  arrayNonIndex: 'an array carrying a non-index own member',
 };
 const STATUS = 'ValueRefusedAtBoundary';
 
@@ -172,7 +217,7 @@ function cell(spec, body) {
     verdict = 'FAIL';
     detail = `UNDECLARED THROW: ${describe(error)}`;
   }
-  RESULTS.push({ id: spec.id, verdict, detail });
+  RESULTS.push({ id: spec.id, verdict, detail, coverage: spec.coverage ?? null });
   console.log(`RESULT ${spec.id} ${verdict} :: ${spec.scenario} :: green=${spec.green} :: ${detail}`);
   CURRENT = null;
   return verdict;
@@ -183,10 +228,10 @@ function observedCell(spec, body) {
   let value;
   try {
     value = body();
-    RESULTS.push({ id: spec.id, verdict: 'OBSERVED', detail: value });
+    RESULTS.push({ id: spec.id, verdict: 'OBSERVED', detail: value, coverage: spec.coverage ?? null });
     console.log(`RESULT ${spec.id} OBSERVED :: ${spec.scenario} :: green=${spec.green} :: ${value}`);
   } catch (error) {
-    RESULTS.push({ id: spec.id, verdict: 'OBSERVED', detail: `observation threw: ${describe(error)}` });
+    RESULTS.push({ id: spec.id, verdict: 'OBSERVED', detail: `observation threw: ${describe(error)}`, coverage: spec.coverage ?? null });
     console.log(`RESULT ${spec.id} OBSERVED :: ${spec.scenario} :: green=${spec.green} :: observation threw: ${describe(error)}`);
   }
   CURRENT = null;
@@ -403,7 +448,7 @@ function refusalChecks(run, { cls, position, exactMessage = null, form = false, 
     ok: problems.length === 0,
     detail: problems.length === 0
       ? `status=${answer.status}${notStatus ? ` (not ${notStatus})` : ''} class=${JSON.stringify(declaredClass)} position=${JSON.stringify(
-        tail.slice(0, tail.length - ` is ${declaredClass}`.length))} fileUnchanged=true register={}`
+        tail.slice(0, tail.length - ` is ${declaredClass}`.length))} file=${run.after.length}B unchanged register={}`
       : problems.join('; '),
     answer,
     run,
@@ -457,6 +502,147 @@ function nesting(depth) {
   for (let i = 0; i < depth; i += 1) value = [value];
   return value;
 }
+
+/** Wrap a leaf in `depth` arrays, so the LEAF itself stands at that depth (the depth arm's target). */
+function wrap(leaf, depth) {
+  let value = leaf;
+  for (let i = 0; i < depth; i += 1) value = [value];
+  return value;
+}
+
+/** PART ONE's `<subject>`, read back out of a refusal message without touching the refused value. */
+function partOneSubject(message) {
+  if (typeof message !== 'string') return null;
+  const at = message.indexOf(PART_ONE);
+  if (at < 0) return null;
+  const head = message.slice(0, at);
+  const open = head.indexOf("'");
+  const close = head.lastIndexOf("'");
+  if (open !== 0 || close <= open) return null;
+  return head.slice(open + 1, close);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// §1A. THE REALM-MUTATION HARNESS — `DEF-2026-10-24-C`'s four mutation states
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// **EVERY MUTATION IS RESTORED IN A `finally`, AND THE RESTORATION IS MEASURED, NOT ASSUMED.** The harness
+// takes a baseline census of all four prototypes (this realm's and the value's realm's `Object.prototype`
+// and `Array.prototype`), applies the state's injections, runs the cell's body, and restores in `finally`
+// — then RE-READS the four censuses and records whether they match the baseline (`RESTORE_LOG`). A restore
+// that did not take is printed as a violation in the summary.
+//
+// **THE INJECTED MEMBER IS A NON-ENUMERABLE OWN DATA PROPERTY**, exactly as `DEF-2026-10-24-C`'s own
+// reproduction spells it (`Object.defineProperty(Object.prototype, 'x', { value: 1, configurable: true })`):
+// it is invisible to `for … in` and to `Object.keys`, so it cannot perturb the package's own member walks,
+// while `Object.getOwnPropertyNames` — the census the predicate reads — sees it. That is the mutation the
+// defect measured and the one the clause of 2026-10-24 freezes the verdict against.
+const MUTANT = '__jcx_mutation_probe_2026_10_24';
+const RESTORE_LOG = [];
+
+const MUTATION_STATES = [
+  { id: '(i)', label: 'pristine — neither realm mutated', thisRealm: false, foreignRealm: false },
+  { id: '(ii)', label: "this realm's Object.prototype and Array.prototype mutated", thisRealm: true, foreignRealm: false },
+  { id: '(iii)', label: "the value's own realm's Object.prototype and Array.prototype mutated", thisRealm: false, foreignRealm: true },
+  { id: '(iv)', label: 'both realms mutated (the same injected member in each — the defect\'s own causal control)', thisRealm: true, foreignRealm: true },
+];
+
+const injectOn = (proto, name) => {
+  Object.defineProperty(proto, name, { value: 1, writable: true, configurable: true });
+};
+const removeFrom = (proto, name) => {
+  Reflect.deleteProperty(proto, name);
+};
+const injectOnRealm = (ctx, name) => runInContext(
+  `Object.defineProperty(Object.prototype, ${JSON.stringify(name)}, { value: 1, writable: true, configurable: true });`
+  + `Object.defineProperty(Array.prototype, ${JSON.stringify(name)}, { value: 1, writable: true, configurable: true });`,
+  ctx,
+);
+const removeFromRealm = (ctx, name) => runInContext(
+  `Reflect.deleteProperty(Object.prototype, ${JSON.stringify(name)});`
+  + `Reflect.deleteProperty(Array.prototype, ${JSON.stringify(name)});`,
+  ctx,
+);
+const realmCensus = (ctx) => ({
+  thisObject: Object.getOwnPropertyNames(Object.prototype).length,
+  thisArray: Object.getOwnPropertyNames(Array.prototype).length,
+  foreignObject: runInContext('Object.getOwnPropertyNames(Object.prototype).length', ctx),
+  foreignArray: runInContext('Object.getOwnPropertyNames(Array.prototype).length', ctx),
+});
+
+/**
+ * Run `body` with the mutation state in force over a fresh foreign realm, and restore every prototype in a
+ * `finally` — then prove the restoration by re-reading the four censuses against the baseline.
+ */
+function withRealmState(state, body, names = {}) {
+  const thisName = names.thisName ?? MUTANT;
+  const foreignName = names.foreignName ?? MUTANT;
+  const ctx = createContext({});
+  const baseline = realmCensus(ctx);
+  const mutated = { thisRealm: false, foreignRealm: false };
+  try {
+    if (state.thisRealm) {
+      injectOn(Object.prototype, thisName);
+      injectOn(Array.prototype, thisName);
+      mutated.thisRealm = true;
+    }
+    if (state.foreignRealm) {
+      injectOnRealm(ctx, foreignName);
+      mutated.foreignRealm = true;
+    }
+    return body({ ctx, state });
+  } finally {
+    if (mutated.foreignRealm) removeFromRealm(ctx, foreignName);
+    if (mutated.thisRealm) {
+      removeFrom(Object.prototype, thisName);
+      removeFrom(Array.prototype, thisName);
+    }
+    const after = realmCensus(ctx);
+    RESTORE_LOG.push({
+      state: state.id,
+      thisName,
+      foreignName,
+      mutated,
+      baseline,
+      after,
+      restored: JSON.stringify(baseline) === JSON.stringify(after),
+    });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// §1B. THE CONVERSION-TRAP INSTRUMENT — `DEF-2026-10-24-D`'s measurement
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// **A TRAP IS PROVED NOT TO HAVE RUN BY A COUNTER, NOT BY A THROWING TRAP.** A throwing trap is caught by the
+// guarded `catch` and a RETURNING trap is not: `C-1`'s precedent and `contract.md §2.1`'s clause of
+// 2026-10-24 exist because *"a guarded `catch` cannot un-run a trap that RETURNS"*. So every trapped value
+// below carries own conversion members that COUNT and RETURN a recognisable string, and the cell asserts the
+// counters are `0` — a counter of `1` is the defect, measured.
+//
+// The members are defined NON-ENUMERABLE own data properties, so the walk's member domain (`Object.keys`) is
+// untouched and the arm driven is the one the cell names.
+function installTraps(value, keys) {
+  const counters = {};
+  for (const key of keys) {
+    const label = key === Symbol.toPrimitive ? 'Symbol.toPrimitive' : key;
+    counters[label === 'Symbol.toPrimitive' ? 'toPrimitive' : label] = 0;
+    const trap = () => {
+      counters[label === 'Symbol.toPrimitive' ? 'toPrimitive' : label] += 1;
+      return `<<${label} ran>>`;
+    };
+    Object.defineProperty(value, key, { value: trap, configurable: true });
+  }
+  return counters;
+}
+
+const trapText = (counters) => {
+  const entries = Object.entries(counters);
+  if (entries.length === 0) return 'none';
+  return entries
+    .map(([key, count]) => `${key === 'toPrimitive' ? 'Symbol.toPrimitive' : key}:${count}`)
+    .join(',');
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // §2. THE RUN'S OWN IDENTITY — the reach, the entry, the kernel, the run's root
@@ -1073,7 +1259,7 @@ function walkRefusalSettled(id, value, address = ['a'], position = 'declared-val
   return {
     ok: problems.length === 0,
     detail: problems.length === 0
-      ? `${walkCheck.detail}; commit route THREW ${STATUS} (not FileCommitFailed), fileUnchanged=true, fresh boot AddressNotFound`
+      ? `${walkCheck.detail}; commit route THREW ${STATUS} (not FileCommitFailed), file=${commit.after.length}B unchanged, fresh boot AddressNotFound`
       : problems.join('; '),
   };
 }
@@ -1433,7 +1619,351 @@ cell({
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// §10. THIS RUNNER'S OWN LIVE OBSERVATIONS — recorded, never asserted
+// §10. GROUP §H — THE CROSS-REALM ADMISSION SURFACE (`DEF-2026-10-24-C`'s fix)
+//
+// `contract.md §1`'s clause of 2026-10-24 makes the plain-prototype predicate STRUCTURAL: the value carries a
+// prototype, that prototype is terminal, and that prototype CARRIES the standard member set — with any FURTHER
+// own member on either realm's prototype IRRELEVANT (items `(1)`–`(3)`), while the census is still read per
+// call and intersected with the standard set so `C-11` stays closed (item `(4)`).
+//
+// **EVERY CELL BELOW IS DRIVEN THROUGH THE PACKAGE'S PUBLIC SURFACE, OVER A REAL STORE ON REAL DISK, AND ENDS
+// AT THE SETTLED STATE** (write → `K.commit` → `K.runAttempt` → a FRESH instance over the same `store.json`
+// reading the value back) — not at an in-memory answer. The four mutation states are the defect's own:
+// **(i)** pristine; **(ii)** THIS realm's `Object.prototype`/`Array.prototype` mutated; **(iii)** the VALUE's
+// own realm mutated; **(iv)** both mutated identically (the defect's causal control). The three admitted
+// SHAPES are the defect's three (`test-cases.md` `JC-TC-07` cells (a)–(c)); the controls are the two classes
+// the clause must still refuse and this realm's own values, which must stay admitted. **EVERY PROTOTYPE IS
+// RESTORED IN A `finally` AND THE RESTORATION IS MEASURED** (`§1A`; the run's `PROTOTYPES-RESTORED` line).
+// ═════════════════════════════════════════════════════════════════════════════
+
+const CROSS_REALM_DRIVES = [
+  {
+    key: 'foreign-object',
+    admitted: true,
+    label: 'a `vm`-realm plain object `({ a: 1 })`',
+    matrixRow: 'contract.md §1\'s clause of 2026-10-24, items (1)(a)–(1)(c) and (3) · test-cases.md JC-TC-07 cell (a)',
+    make: (ctx) => ({ value: runInContext('({ a: 1 })', ctx), expected: { a: 1 } }),
+  },
+  {
+    key: 'foreign-array',
+    admitted: true,
+    label: 'a `vm`-realm array `[1, 2, 3]`',
+    matrixRow: 'contract.md §1\'s clause of 2026-10-24, item (2) · docs/specs/storeroom-js/crossing.md §1.2 row 5 · test-cases.md JC-TC-07 cell (b)',
+    make: (ctx) => ({ value: runInContext('[1, 2, 3]', ctx), expected: [1, 2, 3] }),
+  },
+  {
+    key: 'foreign-nested',
+    admitted: true,
+    label: 'a nested `{ outer: <vm-realm plain object> }` (the foreign value at a MEMBER position)',
+    matrixRow: 'contract.md §1\'s clause of 2026-10-24, item (1) at a member position (the member-position item, (3), of §2\'s clause of the same date) · test-cases.md JC-TC-07 cell (c)',
+    make: (ctx) => ({ value: { outer: runInContext('({ a: 1 })', ctx) }, expected: { outer: { a: 1 } } }),
+  },
+  {
+    key: 'class-instance',
+    admitted: false,
+    cls: 'nonPlain',
+    label: 'a class INSTANCE (the control the clause must still refuse)',
+    matrixRow: 'contract.md §2 row 14 · §2\'s clause of 2026-10-24, items (2) and (5)',
+    make: () => ({ value: new (class C {})() }),
+  },
+  {
+    key: 'array-subclass',
+    admitted: false,
+    cls: 'arraySubclass',
+    label: 'a class EXTENDING `Array` (the control the clause must still refuse)',
+    matrixRow: 'contract.md §2 row 13 · §2\'s clause of 2026-10-24, items (1) and (5)',
+    make: () => ({ value: new (class V extends Array {})() }),
+  },
+  {
+    key: 'same-realm-object',
+    admitted: true,
+    label: "this realm's own plain object `{ a: 1 }`",
+    matrixRow: 'DEF-2026-10-24-C\'s own causal control — a same-realm object under the same mutation is ADMITTED (test-cases.md JC-TC-07 item (3))',
+    make: () => ({ value: { a: 1 }, expected: { a: 1 } }),
+  },
+  {
+    key: 'same-realm-array',
+    admitted: true,
+    label: "this realm's own array `[1, 2, 3]`",
+    matrixRow: 'DEF-2026-10-24-C\'s own causal control, array limb — a same-realm array under the same mutation is ADMITTED',
+    make: () => ({ value: [1, 2, 3], expected: [1, 2, 3] }),
+  },
+];
+
+let crossRealmIndex = 0;
+
+for (const state of MUTATION_STATES) {
+  for (const drive of CROSS_REALM_DRIVES) {
+    crossRealmIndex += 1;
+    const id = `LIVE-C${String(crossRealmIndex).padStart(2, '0')}`;
+    const coverage = {
+      matrixRow: drive.matrixRow,
+      scenario: `${drive.label}, mutation state ${state.id} (${state.label})`,
+      start: `${drive.label} → \`K.commit(store, ['a'], 'file', value)\` → \`K.runAttempt\` on a REAL store, with mutation state ${state.id} in force`,
+      state: state.id,
+      shape: drive.key,
+    };
+    if (drive.admitted) {
+      cell({
+        id,
+        green: 'DEF-2026-10-24-C · contract.md §1 (2026-10-24)',
+        scenario: `${drive.label} under mutation state ${state.id} (${state.label}) — ADMITTED and round-tripped to its settled state`,
+        coverage,
+      }, () => withRealmState(state, ({ ctx }) => {
+        const { value, expected } = drive.make(ctx);
+        const trip = roundTrip(id, value);
+        const green = {
+          ok: Boolean(trip.record && trip.record.outcome === 'passed'),
+          detail: `commit=${trip.record && trip.record.outcome} read-back=${short(trip.back, 70)}`,
+        };
+        return { green, settled: settledChecks(trip, expected) };
+      }));
+    } else {
+      cell({
+        id,
+        green: 'DEF-2026-10-24-C · contract.md §2 (2026-10-24)',
+        scenario: `${drive.label} under mutation state ${state.id} (${state.label}) — still REFUSED with its declared class at the declared value position`,
+        coverage,
+      }, () => withRealmState(state, ({ ctx }) => {
+        const { value } = drive.make(ctx);
+        const run = refusalRun(id, value);
+        return { green: refusalChecks(run, { cls: drive.cls, position: 'declared-value' }) };
+      }));
+    }
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// §11. GROUP §I — THE NO-USER-CODE SURFACE (`DEF-2026-10-24-D`'s fix)
+//
+// `contract.md §2.1`'s clause of 2026-10-24: **NO USER CODE RUNS ON A REFUSAL PATH** — item `(1)` states the
+// rule, item `(2)` re-derives the six arms that rendered the refused value (rows `5`, `11`, `13`, `14`, `15`,
+// `16`) to the ROW'S OWN CLASS SPELLING, and item `(4)` re-derives the two conditional arms (row `3`'s arm and
+// row `8`'s DEPTH arm) to answer the class spelling only where the refused value CARRIES AN OWN conversion
+// member, keeping the value's own spelling where it does not.
+//
+// **EVERY CELL DRIVES A REFUSED VALUE THAT CARRIES ITS OWN CONVERSION TRAP, INSTRUMENTED BY COUNTER**, and
+// asserts BOTH halves: **(a)** the counters are `0` — the trap did not run, though a pre-fix `String(value)`
+// would have run it and a RETURNING trap is not something the guarded `catch` can undo — and **(b)** PART
+// ONE's subject IS the row's class spelling (rows `5`, `11`, `13`, `14`, `15`, `16`) or, at the two
+// conditional arms, the declared branch's subject. The settled state (the store file byte-identical, a fresh
+// boot's register `{}`, `AddressNotFound` at the address) is asserted beside them.
+// ═════════════════════════════════════════════════════════════════════════════
+
+/**
+ * One no-user-code drive: hand the value to a real store's `write`, assert the declared refusal AND the
+ * subject AND the trap counters, and return the settled-state check with them. `counters` is the
+ * instrumented object the value's own conversion members increment; an absent counter is not asserted.
+ */
+function noUserCodeDrive(id, { value, cls, position = 'declared-value', expectedSubject, counters }) {
+  const run = refusalRun(id, value);
+  const check = refusalChecks(run, { cls, position });
+  const problems = [];
+  let subject = null;
+  if (run.r.ok) {
+    problems.push('the value was ADMITTED (no refusal to inspect)');
+  } else {
+    subject = partOneSubject(run.r.error.message);
+    if (subject !== expectedSubject) {
+      problems.push(`PART ONE's subject is ${short(subject, 110)} (declared ${short(expectedSubject, 110)})`);
+    }
+  }
+  for (const [key, label] of [['toPrimitive', 'Symbol.toPrimitive'], ['toString', 'toString'], ['valueOf', 'valueOf'], ['protoSupplied', "the class's own (prototype-supplied) toString"]]) {
+    // **AN OWN-KEY TEST, NOT `in`**: `toString` and `valueOf` are on `Object.prototype`, so `'valueOf' in
+    // counters` is true for EVERY object and would read the inherited native function as a count.
+    if (Object.hasOwn(counters, key) && counters[key] !== 0) problems.push(`${label} RAN on the refusal path (count=${counters[key]})`);
+  }
+  const traps = trapText(counters);
+  const ok = check.ok && problems.length === 0;
+  return {
+    ok,
+    detail: ok
+      ? `status=${STATUS} class=${JSON.stringify(CLASS[cls])} subject=${JSON.stringify(subject)} trap=${traps}; ${check.detail}`
+      : [...problems, ...(check.ok ? [] : [check.detail])].join('; '),
+    subject,
+    counters,
+  };
+}
+
+const noUserCodeCell = (id, spec, build) => cell({ id, green: spec.green, scenario: spec.scenario, coverage: spec.coverage }, () => {
+  const { value, counters, expectedSubject } = build();
+  return { green: noUserCodeDrive(id, { value, cls: spec.cls, position: spec.position, expectedSubject, counters }) };
+});
+
+noUserCodeCell('LIVE-D01', {
+  green: 'DEF-2026-10-24-D · contract.md §2 row 5 (clause of 2026-10-24, items (1), (2), (3))',
+  scenario: 'row 5 — a plain object carrying own `Symbol.toPrimitive`/`toString` traps AND its own Symbol-keyed member: subject is the row\'s class spelling and NEITHER trap ran',
+  cls: 'symbolKey',
+  coverage: {
+    matrixRow: 'contract.md §2 row 5 (its `<subject>` cell, re-derived by the clause of 2026-10-24, item (2))',
+    scenario: 'a Symbol-keyed own member on a plain object that also carries own conversion traps',
+    start: "the caller's plain object (own traps + own Symbol member) → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const value = { a: 1 };
+  const counters = installTraps(value, [Symbol.toPrimitive, 'toString']);
+  return { value, counters, expectedSubject: CLASS.symbolKey };
+});
+
+noUserCodeCell('LIVE-D02', {
+  green: 'DEF-2026-10-24-D · contract.md §2 row 11 (clause of 2026-10-24, items (1), (2), (3))',
+  scenario: 'row 11 — a value that contains itself, whose repeated ancestor carries own `toString`/`valueOf` traps (string-keyed, so the cycle arm is the one reached): subject is the class spelling and NEITHER trap ran',
+  cls: 'cyclic',
+  coverage: {
+    matrixRow: 'contract.md §2 row 11 (its `<subject>` cell, re-derived by the clause of 2026-10-24, item (2))',
+    scenario: 'a repeated ancestor carrying own toString/valueOf traps',
+    start: "the caller's `{ child: <self-containing object> }` → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const counters = { toString: 0, valueOf: 0 };
+  const child = {};
+  Object.defineProperty(child, 'toString', { value: () => { counters.toString += 1; return '<<toString ran>>'; }, configurable: true });
+  Object.defineProperty(child, 'valueOf', { value: () => { counters.valueOf += 1; return '<<valueOf ran>>'; }, configurable: true });
+  child.self = child;
+  return { value: { child }, counters, expectedSubject: CLASS.cyclic };
+});
+
+noUserCodeCell('LIVE-D03', {
+  green: 'DEF-2026-10-24-D · contract.md §2 row 13 (clause of 2026-10-24, items (1), (2), (3))',
+  scenario: 'row 13 — an instance of a class extending `Array`, carrying own conversion traps: subject is the class spelling (the retired empty subject is not answered) and NEITHER trap ran',
+  cls: 'arraySubclass',
+  coverage: {
+    matrixRow: 'contract.md §2 row 13 (its `<subject>` cell, re-derived by the clause of 2026-10-24, item (2))',
+    scenario: 'an Array-subclass instance carrying own conversion traps',
+    start: "the caller's `new (class extends Array {})()` with own traps → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const value = new (class V extends Array {})();
+  const counters = installTraps(value, [Symbol.toPrimitive, 'toString']);
+  return { value, counters, expectedSubject: CLASS.arraySubclass };
+});
+
+noUserCodeCell('LIVE-D04', {
+  green: 'DEF-2026-10-24-D · contract.md §2 row 14 (clause of 2026-10-24, items (1), (2), (3))',
+  scenario: 'row 14 — a class instance whose own prototype supplies a THROWING `toString` and which carries own conversion traps: subject is the row\'s class spelling, neither own trap ran, and the class\'s own `toString` was not reached',
+  cls: 'nonPlain',
+  coverage: {
+    matrixRow: 'contract.md §2 row 14 (its `<subject>` cell, re-derived by the clause of 2026-10-24, item (2))',
+    scenario: 'a class instance with own traps and a prototype-supplied throwing toString',
+    start: "the caller's `new (class C {})()` with own traps → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const counters = { protoSupplied: 0 };
+  const proto = { toString() { counters.protoSupplied += 1; throw new Error("the class's own toString was reached"); } };
+  class C {}
+  Object.setPrototypeOf(C.prototype, proto);
+  const value = new C();
+  Object.assign(counters, installTraps(value, [Symbol.toPrimitive, 'toString']));
+  return { value, counters, expectedSubject: CLASS.nonPlain };
+});
+
+noUserCodeCell('LIVE-D05', {
+  green: 'DEF-2026-10-24-D · contract.md §2 row 15 (clause of 2026-10-24, items (1), (2), (3))',
+  scenario: 'row 15 — a plain object carrying an own ACCESSOR member beside own conversion traps: subject is the class spelling and NEITHER trap ran',
+  cls: 'accessor',
+  coverage: {
+    matrixRow: 'contract.md §2 row 15 (its `<subject>` cell, re-derived by the clause of 2026-10-24, item (2))',
+    scenario: 'an own accessor member on a value that also carries own conversion traps',
+    start: "the caller's object (own getter + own traps) → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const value = { a: 1 };
+  Object.defineProperty(value, 'g', { get() { return 1; }, configurable: true });
+  const counters = installTraps(value, [Symbol.toPrimitive, 'toString']);
+  return { value, counters, expectedSubject: CLASS.accessor };
+});
+
+noUserCodeCell('LIVE-D06', {
+  green: 'DEF-2026-10-24-D · contract.md §2 row 16 (clause of 2026-10-24, items (1), (2), (3))',
+  scenario: 'row 16 — a sparse array carrying own conversion traps: subject is the class spelling (the retired `\'1,,3\'` join is not answered) and NEITHER trap ran',
+  cls: 'sparse',
+  coverage: {
+    matrixRow: 'contract.md §2 row 16 (its `<subject>` cell, re-derived by the clause of 2026-10-24, item (2))',
+    scenario: 'a sparse array carrying own conversion traps',
+    start: "the caller's `[1, , 3]` with own traps → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const value = [1, , 3];
+  const counters = installTraps(value, [Symbol.toPrimitive, 'toString']);
+  return { value, counters, expectedSubject: CLASS.sparse };
+});
+
+// **THE TWO CONDITIONAL ARMS — `contract.md §2.1`'s clause of 2026-10-24, item `(4)`: BOTH BRANCHES DRIVEN.**
+noUserCodeCell('LIVE-D07', {
+  green: 'DEF-2026-10-24-D · contract.md §2.1 row 3 (clause of 2026-10-24, item (4)) — the WITH branch',
+  scenario: 'row 3 WITH an own conversion member — a function carrying own `Symbol.toPrimitive`/`toString` traps: subject is the class spelling `a function` and NEITHER trap ran',
+  cls: 'function',
+  coverage: {
+    matrixRow: 'contract.md §2.1 row 3\'s `<subject>` cell (re-derived by the clause of 2026-10-24, item (4)) — WITH branch',
+    scenario: 'a function carrying own conversion traps',
+    start: "the caller's `function g(){...}` with own traps → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const value = function g() { return 1; };
+  const counters = installTraps(value, [Symbol.toPrimitive, 'toString']);
+  return { value, counters, expectedSubject: CLASS.function };
+});
+
+noUserCodeCell('LIVE-D08', {
+  green: 'DEF-2026-10-24-D · contract.md §2.1 row 3 (clause of 2026-10-24, item (4)) — the WITHOUT branch',
+  scenario: 'row 3 WITHOUT an own conversion member — the function\'s own source text is the subject, read through the standard `Function.prototype.toString` machinery (no trap exists to run)',
+  cls: 'function',
+  coverage: {
+    matrixRow: 'contract.md §2.1 row 3\'s `<subject>` cell (re-derived by the clause of 2026-10-24, item (4)) — WITHOUT branch',
+    scenario: 'a function carrying no own conversion member',
+    start: "the caller's `function g(){...}` with no own conversion member → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const value = function g() { return 1; };
+  return { value, counters: {}, expectedSubject: String(value) };
+});
+
+noUserCodeCell('LIVE-D09', {
+  green: 'DEF-2026-10-24-D · contract.md §2.1 row 8 (clause of 2026-10-24, item (4)) — the depth arm, WITH branch',
+  scenario: 'row 8\'s DEPTH arm WITH an own conversion member — the value refused at depth 127 carries own traps: subject is the class spelling `a value over the walk ceiling` and NEITHER trap ran',
+  cls: 'ceiling',
+  coverage: {
+    matrixRow: 'contract.md §2.1 row 8\'s depth arm `<subject>` cell (re-derived by the clause of 2026-10-24, item (4)) — WITH branch',
+    scenario: 'a value refused at depth 127 that carries own conversion traps',
+    start: "a nesting of 127 around a trapped plain object → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const leaf = { a: 1 };
+  const counters = installTraps(leaf, [Symbol.toPrimitive, 'toString']);
+  return { value: wrap(leaf, 127), counters, expectedSubject: CLASS.ceiling };
+});
+
+cell({
+  id: 'LIVE-D10',
+  green: 'DEF-2026-10-24-D · contract.md §2.1 row 8 (clause of 2026-10-24, item (4)) — the depth arm, WITHOUT branch',
+  scenario: "row 8's DEPTH arm WITHOUT an own conversion member — the refused value's own spelling is the subject, driven at two leaves (`'0'` and `'[object Object]'`)",
+  coverage: {
+    matrixRow: 'contract.md §2.1 row 8\'s depth arm `<subject>` cell (re-derived by the clause of 2026-10-24, item (4)) — WITHOUT branch',
+    scenario: 'a value refused at depth 127 that carries no own conversion member (number leaf and object leaf)',
+    start: 'a nesting of 127 around a number leaf and around a plain-object leaf → `write([\'a\'], \'file\', value)` on a REAL store',
+  },
+}, () => {
+  const number = noUserCodeDrive('LIVE-D10-number', {
+    value: wrap(0, 127), cls: 'ceiling', expectedSubject: '0', counters: {},
+  });
+  const object = noUserCodeDrive('LIVE-D10-object', {
+    value: wrap({ a: 1 }, 127), cls: 'ceiling', expectedSubject: '[object Object]', counters: {},
+  });
+  const problems = [];
+  if (!number.ok) problems.push(`number leaf: ${number.detail}`);
+  if (!object.ok) problems.push(`object leaf: ${object.detail}`);
+  return {
+    green: {
+      ok: problems.length === 0,
+      detail: problems.length === 0
+        ? `number leaf subject=${JSON.stringify(number.subject)} · object leaf subject=${JSON.stringify(object.subject)} · trap=none (no own conversion member to run)`
+        : problems.join(' | '),
+    },
+  };
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// §12. THIS RUNNER'S OWN LIVE OBSERVATIONS — recorded, never asserted
 // ═════════════════════════════════════════════════════════════════════════════
 
 observedCell({
@@ -1468,8 +1998,1317 @@ observedCell({
   return `999,998=${probe(999_998)}; 999,999=${probe(999_999)}; 1,000,000=${probe(1_000_000)}; 1,000,001=${probe(1_000_001)} (root counted: the admitted node range is 0…999,999, the boundary driven to its settled state at LIVE-B56)`;
 });
 
+// **⟶ `LIVE-X3` — THE STRONGER MUTATION STATE, RECORDED NOT ASSERTED.** `DEF-2026-10-24-C`'s causal control
+// mutates both realms IDENTICALLY (`(iv)` above). This observation mutates both realms with DIFFERENT injected
+// names, so the two censuses diverge by TWO names and no equality against either realm can hold — the state in
+// which a census-equality predicate must refuse both and a structural one must admit both. Recorded beside the
+// asserted `(iv)` cells so the supervisor can read the stronger state without it being asserted as a declaration.
+observedCell({
+  id: 'LIVE-X3', green: '(none — this runner\'s own observation)', scenario: "both realms mutated with DIFFERENT injected names — the state no census-equality predicate can survive; the three foreign shapes driven to their settled state",
+  coverage: {
+    matrixRow: 'runner observation — a stronger instance of contract.md §1\'s clause of 2026-10-24, item (3)',
+    scenario: 'both realms mutated with different member names',
+    start: 'the three `vm`-realm shapes → `K.commit` → `K.runAttempt` → a fresh instance over the same `store.json`, with a different injected name in each realm',
+  },
+}, () => {
+  const state = { id: '(iv-different-names)', label: 'both realms mutated with different names', thisRealm: true, foreignRealm: true };
+  return withRealmState(state, ({ ctx }) => {
+    const parts = [];
+    const drives = [
+      ['object', () => runInContext('({ a: 1 })', ctx), { a: 1 }],
+      ['array', () => runInContext('[1, 2, 3]', ctx), [1, 2, 3]],
+      ['nested', () => ({ outer: runInContext('({ a: 1 })', ctx) }), { outer: { a: 1 } }],
+    ];
+    for (const [key, make, expected] of drives) {
+      const trip = roundTrip(`LIVE-X3-${key}`, make());
+      const ok = trip.record && trip.record.outcome === 'passed' && sameTree(trip.back, expected);
+      parts.push(`${key}: ${ok ? `ADMITTED outcome=${JSON.stringify(trip.record.outcome)} file=${trip.bytes.length}B read-back=${short(trip.back, 45)}` : 'REFUSED/DIFFERENT'}`);
+    }
+    return parts.join(' | ');
+  }, { thisName: `${MUTANT}_this`, foreignName: `${MUTANT}_foreign` });
+});
+
+// **⟶ `LIVE-X4` — THE RESIDUAL READING OF `contract.md §2.1` ITEM `(1)` AT ROW `8`'s DEPTH ARM, RECORDED NOT
+// ASSERTED.** Items `(2)`/`(4)` scope the fix to an OWN conversion member; item `(1)` states the rule generally
+// (*"whether that member is OWN on the value or reached through a prototype the value supplies"*). This
+// observation drives a value refused at depth `127` that carries NO own conversion member but whose PROTOTYPE
+// supplies one, and records whether that member ran. It is an OBSERVATION: no greens cell and no item `(2)`/`(4)`
+// sub-item declares this corner, so it is reported to the supervisor rather than scored.
+observedCell({
+  id: 'LIVE-X4', green: '(none — this runner\'s own observation)', scenario: 'row 8 depth arm — a value at depth 127 whose PROTOTYPE (not the value) supplies a counting `toString`: does user code run on the refusal path, and what subject is answered?',
+  coverage: {
+    matrixRow: 'runner observation — contract.md §2.1 item (1)\'s general rule read against items (2)/(4) at row 8\'s depth arm',
+    scenario: 'a prototype-supplied conversion member on the value refused at depth 127',
+    start: 'a nesting of 127 whose leaf inherits a counting `toString` from its prototype → `write([\'a\'], \'file\', value)` on a REAL store',
+  },
+}, () => {
+  const drive = (label, trapFactory) => {
+    const counter = { n: 0 };
+    const leaf = Object.create({ toString: trapFactory(counter) });
+    leaf.a = 1;
+    const dir = dirFor(`LIVE-X4-${label}`);
+    const filePath = path.join(dir, 'store.json');
+    PATHS.set(`LIVE-X4-${label}`, filePath);
+    const store = bootStore(filePath);
+    const r = attempt(() => store.write(['a'], 'file', wrap(leaf, 127)));
+    if (r.ok) return `${label}: ADMITTED (!!)`;
+    const subject = partOneSubject(r.error.message);
+    return `${label}: status=${r.error.status} subject=${JSON.stringify(subject)} PART-TWO-class=${JSON.stringify(CLASS.ceiling)} trapRan=${counter.n}`;
+  };
+  const throwing = drive('throwing', (counter) => () => { counter.n += 1; throw new Error('prototype-supplied toString ran'); });
+  const returning = drive('returning', (counter) => () => { counter.n += 1; return 'CALLER-CONTROLLED SUBJECT'; });
+  return `${throwing} | ${returning}`;
+});
+
+// **⟶ `LIVE-X5` — THE SAME RESIDUAL AT ROW `3`'s ARM, RECORDED NOT ASSERTED.** A function whose PROTOTYPE (not
+// the function) supplies the conversion member: `String(fn)` reaches it, so the guarded `catch` answers the
+// class spelling only if it throws, and a RETURNING member's text becomes the subject. Observation only.
+observedCell({
+  id: 'LIVE-X5', green: '(none — this runner\'s own observation)', scenario: 'row 3 — a function whose PROTOTYPE supplies a counting `toString`: does user code run on the refusal path?',
+  coverage: {
+    matrixRow: 'runner observation — contract.md §2.1 item (1)\'s general rule read against item (4) at row 3\'s arm',
+    scenario: 'a prototype-supplied conversion member on a refused function',
+    start: 'the caller\'s function whose prototype supplies a counting `toString` → `write([\'a\'], \'file\', value)` on a REAL store',
+  },
+}, () => {
+  const drive = (label, trapFactory) => {
+    const counter = { n: 0 };
+    const fn = function h() { return 2; };
+    Object.setPrototypeOf(fn, { toString: trapFactory(counter) });
+    const dir = dirFor(`LIVE-X5-${label}`);
+    const filePath = path.join(dir, 'store.json');
+    PATHS.set(`LIVE-X5-${label}`, filePath);
+    const store = bootStore(filePath);
+    const r = attempt(() => store.write(['a'], 'file', fn));
+    if (r.ok) return `${label}: ADMITTED (!!)`;
+    return `${label}: status=${r.error.status} subject=${JSON.stringify(partOneSubject(r.error.message))} trapRan=${counter.n}`;
+  };
+  const throwing = drive('throwing', (counter) => () => { counter.n += 1; throw new Error('prototype-supplied toString ran'); });
+  const returning = drive('returning', (counter) => () => { counter.n += 1; return 'CALLER-CONTROLLED SUBJECT'; });
+  return `${throwing} | ${returning}`;
+});
+
 // ═════════════════════════════════════════════════════════════════════════════
-// §11. THE SUMMARY, THE STORE PATHS AND THE CLEANUP
+// §12A. THE 2026-10-24 RE-DRIVE (THE SECOND OF THE DAY) — THE CONVERSION GUARD'S CHAIN WALK (`LIVE-E01`–`LIVE-E05`), ROW `17`
+// (`LIVE-E06`–`LIVE-E12`) AND THE CALLER-SIDE DELETION (`LIVE-E13`–`LIVE-E15`)
+//
+// **THE THREE LAWS THIS SECTION DRIVES, EACH AT ITS OWN BYTES.**
+//
+// `(1)` **THE CONVERSION GUARD NOW WALKS THE PROTOTYPE CHAIN** (`contract.md §2.1`'s clause of 2026-10-24,
+// items `(1)` and `(11)`): a conversion member the refused value CARRIES — own on it, or owned by a prototype
+// its chain reaches before `isLanguageStandardPrototype` stops the walk (`bindings/js/index.mjs:1152` ·
+// `:1138`) — answers the row's class spelling and is not invoked. `LIVE-E01`–`LIVE-E04` drive the two
+// conditional arms with a PROTOTYPE-supplied member (RETURNING and THROWING, counted), which is the state
+// the OLD guard let run; `LIVE-E05` drives the three SANCTIONED STANDARD renderings that the chain walk must
+// preserve (`'[object Object]'` · `'1,2'` · a function's source text).
+//
+// `(2)` **ROW `17`** (`contract.md §2`'s clause of 2026-10-24 on `F-RA-5`, items `(3)`, `(5)`, `(6)`, `(8)`;
+// `test-cases.md`'s `JC-TC-49`): an array carrying a non-index own member is REFUSED at the walk, at the
+// ARRAY's own value position, class and subject the row's spelling, the status `ValueRefusedAtBoundary`, the
+// store's file unchanged and a fresh boot over the same `store.json` reading the empty register. A
+// NON-ENUMERABLE extra member stays ADMITTED (the row's predicate is `Object.keys`' own ENUMERABLE string
+// keys), and a plain array is admitted with its `13 B` register image.
+//
+// `(3)` **CALLER-SIDE DELETION IS ADMISSION-PRESERVING** (`contract.md §1`'s clause of 2026-10-24 on
+// `F-RA-3`, items `(3)`–`(6)`): the array census reads take no method from a mutable prototype
+// (`arrayProtoSymbols` `:815`, `arrayClass` `:944`–`:946`, `decodeValue` `:2286`–`:2289`, `decodeSegments`
+// `:2326`–`:2329`), so `delete Array.prototype.map` in THIS realm must not turn an admitted write into a
+// refusal or into a raw host error. `LIVE-E13`/`LIVE-E14` drive a foreign-realm array and a foreign-realm
+// plain object through `K.commit` → `K.runAttempt` with the deletion in force, then restore in a `finally`
+// and REOPEN a fresh instance over the same `store.json` — **the deletion harness records the descriptor it
+// removed and proves the restored `map` is the SAME function object with the same flags.** `LIVE-E15` is the
+// boundary OBSERVATION: a store CONSTRUCTED while the deletion is in force.
+// ═════════════════════════════════════════════════════════════════════════════
+
+/** The exact position spelling of the depth arm's path: `segments` index segments under the root. */
+const depthPosition = (segments) => `member ${new Array(segments).fill(0).join('/')} of ${ROOT_POSITION}`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// §12A.1 — THE CONVERSION GUARD'S CHAIN WALK, ASSERTED (`LIVE-E01`–`LIVE-E05`)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Row `3`'s arm: a function whose PROTOTYPE (not the function) supplies the conversion member.
+const row3PrototypeCell = (id, variant) => noUserCodeCell(id, {
+  green: 'contract.md §2.1\'s clause of 2026-10-24, items (1), (4) and (11) — the chain walk, WITH branch',
+  scenario: `row 3 — the function's PROTOTYPE supplies a ${variant === 'returning' ? 'RETURNING' : 'THROWING'} \`toString\`: the subject is the class spelling \`a function\` and the member did NOT run`,
+  cls: 'function',
+  position: ROOT_POSITION,
+  coverage: {
+    matrixRow: 'contract.md §2.1\'s clause of 2026-10-24, items (1), (4) and (11) — item (4)\'s row-3 WITH branch, the member reached through the value\'s chain',
+    scenario: `a function whose prototype supplies a ${variant} conversion member`,
+    start: `the caller's function (its [[Prototype]] is a custom object supplying a counting ${variant} \`toString\`) → \`write(['a'], 'file', value)\` on a REAL store`,
+  },
+}, () => {
+  const counters = { toString: 0 };
+  const value = function h() { return 2; };
+  Object.setPrototypeOf(value, {
+    toString() {
+      counters.toString += 1;
+      if (variant === 'throwing') throw new Error('prototype-supplied toString ran');
+      return 'CALLER-CONTROLLED SUBJECT';
+    },
+  });
+  return { value, counters, expectedSubject: CLASS.function };
+});
+
+row3PrototypeCell('LIVE-E01', 'returning');
+row3PrototypeCell('LIVE-E02', 'throwing');
+
+// Row `8`'s DEPTH arm: a leaf refused at depth `127` whose PROTOTYPE supplies the conversion member.
+const depthPrototypeCell = (id, variant) => noUserCodeCell(id, {
+  green: 'contract.md §2.1\'s clause of 2026-10-24, items (1), (4) and (11) — the chain walk, WITH branch',
+  scenario: `row 8's DEPTH arm — the leaf refused at depth 127 has a PROTOTYPE-supplied ${variant === 'returning' ? 'RETURNING' : 'THROWING'} \`toString\`: the subject is the class spelling \`a value over the walk ceiling\` and the member did NOT run`,
+  cls: 'ceiling',
+  position: depthPosition(127),
+  coverage: {
+    matrixRow: 'contract.md §2.1\'s clause of 2026-10-24, items (1), (4) and (11) — item (4)\'s depth-arm WITH branch, the member reached through the value\'s chain',
+    scenario: `a leaf refused at depth 127 whose prototype supplies a ${variant} conversion member`,
+    start: `a nesting of 127 around \`Object.create({ toString: <counting> })\` → \`write(['a'], 'file', value)\` on a REAL store`,
+  },
+}, () => {
+  const counters = { toString: 0 };
+  const leaf = Object.create({
+    toString() {
+      counters.toString += 1;
+      if (variant === 'throwing') throw new Error('prototype-supplied toString ran');
+      return 'CALLER-CONTROLLED SUBJECT';
+    },
+  });
+  leaf.a = 1;
+  return { value: wrap(leaf, 127), counters, expectedSubject: CLASS.ceiling };
+});
+
+depthPrototypeCell('LIVE-E03', 'returning');
+depthPrototypeCell('LIVE-E04', 'throwing');
+
+// **THE THREE SANCTIONED STANDARD RENDERINGS ARE PRESERVED AT BOTH CONDITIONAL ARMS.**
+cell({
+  id: 'LIVE-E05',
+  green: 'contract.md §2.1\'s clause of 2026-10-24, items (2) and (4) — the three standard renderings',
+  scenario: "the chain walk preserves the three SANCTIONED renderings: an ordinary `{}` answers `'[object Object]'`, an ordinary `[1,2]` answers `'1,2'`, and a plain function answers its source text",
+  coverage: {
+    matrixRow: 'contract.md §2.1\'s clause of 2026-10-24, item (2) — the three sanctioned renderings the exemption buys at the two conditional arms',
+    scenario: 'the three standard renderings at the two conditional arms',
+    start: 'an ordinary `{}` and `[1,2]` at depth 127, and a plain function at the root, each → `write([\'a\'], \'file\', value)` on a REAL store',
+  },
+}, () => {
+  const problems = [];
+  const arrayLeaf = noUserCodeDrive('LIVE-E05-array', {
+    value: wrap([1, 2], 127), cls: 'ceiling', position: depthPosition(127), expectedSubject: '1,2', counters: {},
+  });
+  const objectLeaf = noUserCodeDrive('LIVE-E05-object', {
+    value: wrap({ a: 1 }, 127), cls: 'ceiling', position: depthPosition(127), expectedSubject: '[object Object]', counters: {},
+  });
+  const plainFunction = function g() { return 1; };
+  const functionArm = noUserCodeDrive('LIVE-E05-function', {
+    value: plainFunction, cls: 'function', position: ROOT_POSITION, expectedSubject: String(plainFunction), counters: {},
+  });
+  if (!arrayLeaf.ok) problems.push(`array leaf: ${arrayLeaf.detail}`);
+  if (!objectLeaf.ok) problems.push(`object leaf: ${objectLeaf.detail}`);
+  if (!functionArm.ok) problems.push(`function arm: ${functionArm.detail}`);
+  return {
+    green: {
+      ok: problems.length === 0,
+      detail: problems.length === 0
+        ? `array leaf subject=${JSON.stringify(arrayLeaf.subject)} · object leaf subject=${JSON.stringify(objectLeaf.subject)} · function subject=${JSON.stringify(functionArm.subject)} · trap=none at all three`
+        : problems.join(' | '),
+    },
+  };
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// §12A.2 — ROW `17`, ASSERTED (`LIVE-E06`–`LIVE-E12`)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * One row-`17` drive: the array is handed to a REAL store's `write`; the refusal's status, class, position
+ * and PART ONE subject are asserted, beside the settled state (`refusalChecks`: file bytes unchanged, a
+ * fresh boot's empty register, `AddressNotFound` at the address).
+ */
+function row17Drive(id, value, position, address = ['a']) {
+  const run = refusalRun(id, value, address);
+  const check = refusalChecks(run, { cls: 'arrayNonIndex', position });
+  const problems = check.ok ? [] : [check.detail];
+  let subject = null;
+  if (run.r.ok) {
+    problems.push('the array was ADMITTED (row 17 declares the refusal)');
+  } else if (check.answer) {
+    subject = partOneSubject(run.r.error.message);
+    if (subject !== CLASS.arrayNonIndex) {
+      problems.push(`PART ONE's subject is ${short(subject, 110)} (declared ${CLASS.arrayNonIndex})`);
+    }
+    const named = run.r.error.message.split(CLASS.arrayNonIndex).length - 1;
+    if (named !== 2) problems.push(`the message names the row's class ${named} times (declared twice)`);
+  }
+  const ok = problems.length === 0;
+  return {
+    ok,
+    subject,
+    detail: ok
+      ? `${check.detail} subject=${JSON.stringify(subject)} (the class named twice)`
+      : problems.join('; '),
+  };
+}
+
+cell({
+  id: 'LIVE-E06',
+  green: 'contract.md §2 row 17 (its clause of 2026-10-24, items (3), (5), (6)) · test-cases.md JC-TC-49 (drive a)',
+  scenario: 'row 17 — `const a = [1]; a.foo = 3` at the root: REFUSED at the walk, at the ARRAY\'s own value position, with the row\'s class spelling as the subject and the store untouched',
+  coverage: {
+    matrixRow: 'contract.md §2 row 17 (its clause of 2026-10-24, items (3), (5), (6)) · test-cases.md JC-TC-49',
+    scenario: 'an own enumerable non-index data member on a dense array, at the root',
+    start: "the caller's `const a = [1]; a.foo = 3` → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const a = [1];
+  a.foo = 3;
+  return { green: row17Drive('LIVE-E06', a, ROOT_POSITION) };
+});
+
+cell({
+  id: 'LIVE-E07',
+  green: 'contract.md §2 row 17 (its clause of 2026-10-24, items (3), (5), (6)) · test-cases.md JC-TC-49 (the member-position drive)',
+  scenario: "row 17 at a MEMBER position — the same array inside `{ x: a }`: the position is `member 'x' of the write's value argument`, never the extra member's own spelling",
+  coverage: {
+    matrixRow: 'contract.md §2 row 17 (its clause of 2026-10-24, item (5) — the position) · test-cases.md JC-TC-49',
+    scenario: 'the row-17 shape at a member position',
+    start: "the caller's `{ x: <[1] carrying a.foo = 3> }` → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const a = [1];
+  a.foo = 3;
+  return { green: row17Drive('LIVE-E07', { x: a }, "member 'x' of the write's value argument") };
+});
+
+cell({
+  id: 'LIVE-E08',
+  green: 'contract.md §2 row 17 (its clause of 2026-10-24, items (3), (5), (6)) · test-cases.md JC-TC-49 (drive b)',
+  scenario: 'row 17 — the second spelling `Object.assign([1, 2], { note: \'x\' })` at the root: the same refusal, the same position, the same subject',
+  coverage: {
+    matrixRow: 'contract.md §2 row 17 (its clause of 2026-10-24, item (3)) · test-cases.md JC-TC-49',
+    scenario: 'an own enumerable non-index data member assigned onto a dense array',
+    start: "the caller's `Object.assign([1, 2], { note: 'x' })` → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const value = Object.assign([1, 2], { note: 'x' });
+  return { green: row17Drive('LIVE-E08', value, ROOT_POSITION) };
+});
+
+cell({
+  id: 'LIVE-E09',
+  green: 'contract.md §2 row 17 (its clause of 2026-10-24, items (3), (5), (6)) · test-cases.md JC-TC-49 (drive c)',
+  scenario: "row 17 — an own enumerable key that LOOKS like an index and is not a canonical one (`'01'`) at the root: the same refusal",
+  coverage: {
+    matrixRow: 'contract.md §2 row 17 (its clause of 2026-10-24, item (3) — the canonical-index predicate) · test-cases.md JC-TC-49',
+    scenario: "an own enumerable key `'01'` on a dense array",
+    start: "the caller's `const a = [1]; Object.defineProperty(a, '01', { value: 2, enumerable: true })` → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const a = [1];
+  Object.defineProperty(a, '01', { value: 2, enumerable: true, configurable: true });
+  return { green: row17Drive('LIVE-E09', a, ROOT_POSITION) };
+});
+
+cell({
+  id: 'LIVE-E10',
+  green: 'contract.md §2 row 17 (its clause of 2026-10-24, item (3) — the predicate\'s scope, a dense array carries no non-index member — and item (9) — nothing else moves) · test-cases.md JC-TC-49',
+  scenario: 'the row-17 CONTROL — a plain dense array `[1, 2, 3]` is ADMITTED, committed and reopened, its register image the `13 B` `{"a":[1,2,3]}`',
+  coverage: {
+    matrixRow: 'contract.md §2 row 17 (its clause of 2026-10-24, items (3) and (9)) — the admitted control: a dense array carries no non-index member and rows 1–16 stand',
+    scenario: 'a plain dense array',
+    start: "the caller's `[1, 2, 3]` → `K.commit` → `K.runAttempt` → a fresh instance over the same `store.json`",
+  },
+}, () => {
+  const trip = roundTrip('LIVE-E10', [1, 2, 3]);
+  const settled = settledChecks(trip, [1, 2, 3]);
+  const problems = settled.ok ? [] : [settled.detail];
+  if (trip.bytes.length !== 13) problems.push(`the register image is ${trip.bytes.length}B (declared 13B: {"a":[1,2,3]})`);
+  return {
+    green: {
+      ok: problems.length === 0,
+      detail: problems.length === 0 ? settled.detail : problems.join('; '),
+    },
+  };
+});
+
+cell({
+  id: 'LIVE-E11',
+  green: 'contract.md §2 row 17 (its clause of 2026-10-24, item (3) — `Object.keys`\' own ENUMERABLE keys: a non-enumerable member is outside the predicate and a non-enumerable index is still an index — and item (9) — nothing else moves) · test-cases.md JC-TC-49',
+  scenario: 'the row-17 CONTROLS — a NON-ENUMERABLE extra member stays ADMITTED and round-trips to the indexed tree, and so does an element whose own index property is non-enumerable',
+  coverage: {
+    matrixRow: 'contract.md §2 row 17 (its clause of 2026-10-24, items (3) and (9)) — the non-enumerable controls: the predicate reads own ENUMERABLE string keys only',
+    scenario: 'a non-enumerable extra member and a non-enumerable element',
+    start: "the caller's `[1, 2, 3]` with `Object.defineProperty(a, 'note', { value: 'x', enumerable: false })`, and `[1, 2]` with a non-enumerable element at index 2, each → `K.commit` → `K.runAttempt` → a fresh instance over the same `store.json`",
+  },
+}, () => {
+  const problems = [];
+  const parts = [];
+  const drives = [
+    ['extra-member', () => {
+      const a = [1, 2, 3];
+      Object.defineProperty(a, 'note', { value: 'x', enumerable: false, configurable: true });
+      return a;
+    }],
+    ['non-enumerable-element', () => {
+      const a = [1, 2];
+      Object.defineProperty(a, 2, { value: 3, enumerable: false, configurable: true, writable: true });
+      return a;
+    }],
+  ];
+  for (const [label, make] of drives) {
+    const trip = roundTrip(`LIVE-E11-${label}`, make());
+    const settled = settledChecks(trip, [1, 2, 3]);
+    if (!settled.ok) problems.push(`${label}: ${settled.detail}`);
+    if (trip.bytes.length !== 13) problems.push(`${label}: the register image is ${trip.bytes.length}B (declared 13B)`);
+    parts.push(`${label}: ${settled.ok ? `ADMITTED outcome=${JSON.stringify(trip.record.outcome)} file=${trip.bytes.length}B image=${short(imageAt(trip.image, ['a']), 40)} read-back=${short(trip.back, 40)}` : 'FAILED'}`);
+  }
+  return {
+    green: { ok: problems.length === 0, detail: problems.length === 0 ? parts.join(' | ') : problems.join(' | ') },
+  };
+});
+
+cell({
+  id: 'LIVE-E12',
+  green: 'contract.md §2 row 17 (its clause of 2026-10-24, item (6) — THE ORDER) · §2 rows 13, 16, 5',
+  scenario: "the row-17 ORDER CONTROLS — an `Array` subclass carrying the member still answers row 13, a sparse array carrying it still answers row 16, and a Symbol-keyed member beside it still answers row 5",
+  coverage: {
+    matrixRow: 'contract.md §2 row 17 (its clause of 2026-10-24, item (6) — rows 13, 16 and 15/5 precede it)',
+    scenario: 'the three arms that precede row 17, each carrying a non-index own member',
+    start: "an `Array`-subclass instance, `[1, , 3]`, and `[1]` with an own Symbol-keyed member, each also carrying `a.foo = 3` → `write(['a'], 'file', value)` on a REAL store",
+  },
+}, () => {
+  const problems = [];
+  const parts = [];
+  const drives = [
+    ['row-13', () => {
+      const a = new (class V extends Array {})();
+      a.foo = 3;
+      return a;
+    }, 'arraySubclass'],
+    ['row-16', () => {
+      const a = [1, , 3];
+      a.foo = 3;
+      return a;
+    }, 'sparse'],
+    ['row-5', () => {
+      const a = [1];
+      a[Symbol('s')] = 2;
+      a.foo = 3;
+      return a;
+    }, 'symbolKey'],
+  ];
+  for (const [label, make, cls] of drives) {
+    const check = refusalChecks(refusalRun(`LIVE-E12-${label}`, make()), { cls, position: ROOT_POSITION });
+    if (!check.ok) problems.push(`${label}: ${check.detail}`);
+    parts.push(`${label}: ${check.ok ? `${CLASS[cls]} (not row 17)` : 'FAILED'}`);
+  }
+  return {
+    green: { ok: problems.length === 0, detail: problems.length === 0 ? parts.join(' | ') : problems.join(' | ') },
+  };
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// §12A.3 — THE CALLER-SIDE DELETION (`LIVE-E13`–`LIVE-E15`)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const DELETION_LOG = [];
+
+/**
+ * **THE CALLER-SIDE DELETION HARNESS**: `delete Array.prototype.map` in THIS realm, `body` runs with the
+ * deletion in force, and the member is restored in a `finally` and the RESTORATION MEASURED — the restored
+ * `map` is the SAME function object, with the same `writable`/`enumerable`/`configurable` flags, as the
+ * descriptor read before the deletion.
+ */
+function withDeletedArrayMap(id, body) {
+  const before = Object.getOwnPropertyDescriptor(Array.prototype, 'map');
+  const entry = { id, presentBefore: before !== undefined, presentUnderDeletion: false, restored: false, identityRestored: false };
+  delete Array.prototype.map;
+  entry.presentUnderDeletion = Object.getOwnPropertyDescriptor(Array.prototype, 'map') === undefined;
+  try {
+    return body(entry);
+  } finally {
+    if (before !== undefined) Object.defineProperty(Array.prototype, 'map', before);
+    const after = Object.getOwnPropertyDescriptor(Array.prototype, 'map');
+    entry.restored = after !== undefined;
+    entry.identityRestored = after !== undefined
+      && after.value === before.value
+      && after.writable === before.writable
+      && after.enumerable === before.enumerable
+      && after.configurable === before.configurable;
+    DELETION_LOG.push(entry);
+  }
+}
+
+/**
+ * The deletion drive: the store is CONSTRUCTED BEFORE the deletion (construction is not one of the reads the
+ * deletion law names — `LIVE-E15` measures what construction answers under it), the deletion is in force for
+ * the WRITE and the COMMIT, the member is restored in the harness's `finally`, and a FRESH instance over the
+ * same `store.json` reads the value back.
+ */
+function deletionRoundTrip(id, make, address = ['a']) {
+  const dir = dirFor(id);
+  const filePath = path.join(dir, 'store.json');
+  PATHS.set(id, filePath);
+  const store = bootStore(filePath);
+  const before = fs.readFileSync(filePath, 'utf8');
+  let entry = null;
+  const under = withDeletedArrayMap(id, (window) => {
+    entry = window;
+    let record = null;
+    let error = null;
+    try {
+      record = writeAndCommit(store, address, make());
+    } catch (caught) {
+      error = caught;
+    }
+    const bytes = fs.readFileSync(filePath, 'utf8');
+    return { record, error, bytes };
+  });
+  const fresh = bootStore(filePath);
+  const back = attempt(() => fresh.read(address, 'file'));
+  const register = attempt(() => fresh.read([]));
+  return {
+    dir,
+    filePath,
+    before,
+    under,
+    bytes: under.bytes,
+    image: under.bytes.length > 0 ? JSON.parse(under.bytes) : null,
+    fresh,
+    back,
+    register,
+    deletion: entry,
+  };
+}
+
+const deletionCell = (id, spec, make, expected) => cell({ id, green: spec.green, scenario: spec.scenario, coverage: spec.coverage }, () => {
+  const drive = deletionRoundTrip(id, make);
+  const problems = [];
+  const { deletion } = drive;
+  if (!deletion || deletion.presentBefore !== true) problems.push('the harness found no own `Array.prototype.map` to delete');
+  if (!deletion || deletion.presentUnderDeletion !== true) problems.push('`Array.prototype.map` was still present while the deletion was in force');
+  if (drive.under.error !== null) problems.push(`the write/commit THREW under the deletion: ${describe(drive.under.error)}`);
+  else if (!drive.under.record || drive.under.record.outcome !== 'passed') {
+    problems.push(`the commit's outcome is ${JSON.stringify(drive.under.record && drive.under.record.outcome)} (declared "passed")`);
+  }
+  if (drive.bytes.length === 0) problems.push('the store file on disk is EMPTY — nothing was written');
+  else if (!sameTree(imageAt(drive.image, ['a']), expected)) problems.push(`the image's value is not the bare tree: ${short(imageAt(drive.image, ['a']))}`);
+  if (!drive.back.ok) problems.push(`a fresh instance's read THREW: ${describe(drive.back.error)}`);
+  else if (!sameTree(drive.back.value, expected)) problems.push(`the read-back is not the bare tree: ${short(drive.back.value)}`);
+  const expectedRegister = {};
+  expectedRegister['a'] = expected;
+  if (!drive.register.ok) problems.push(`a fresh boot's register read THREW: ${describe(drive.register.error)}`);
+  else if (!sameTree(drive.register.value, expectedRegister)) problems.push(`a fresh boot's register is not the bare tree: ${short(drive.register.value)}`);
+  if (!deletion || !deletion.restored) problems.push('`Array.prototype.map` was NOT restored in the finally');
+  else if (!deletion.identityRestored) problems.push('the restored `Array.prototype.map` is not the same function object with the same flags');
+  const ok = problems.length === 0;
+  return {
+    green: {
+      ok,
+      detail: ok
+        ? `map deleted=(own descriptor absent=${deletion.presentUnderDeletion}) write under the deletion=ADMITTED outcome=${JSON.stringify(drive.under.record.outcome)} file=${drive.bytes.length}B image=${short(imageAt(drive.image, ['a']), 60)}; restored in a finally=(same function, same flags=true); fresh instance read-back=${short(drive.back.value, 60)} register=${short(drive.register.value, 60)}`
+        : problems.join('; '),
+    },
+  };
+});
+
+deletionCell('LIVE-E13', {
+  green: 'contract.md §1\'s clause of 2026-10-24 on F-RA-3, items (3)–(6) · the array census reads · test-cases.md JC-TC-07 state (v), the caller\'s realm',
+  scenario: 'caller-side deletion — `delete Array.prototype.map` in THIS realm, then a FOREIGN-REALM array written and committed WITH THE DELETION IN FORCE and read back through a fresh instance opened AFTER the `finally` restore: ADMITTED and settled, no raw TypeError on the write path',
+  coverage: {
+    matrixRow: 'contract.md §1\'s clause of 2026-10-24 on F-RA-3, item (3) — the caller\'s-realm deletion, admission-preserving',
+    scenario: '`delete Array.prototype.map` in this realm; a foreign-realm array driven through the commit route',
+    start: 'a `vm`-realm `[1, 2, 3]` → `K.commit` → `K.runAttempt` on a REAL store with `Array.prototype.map` deleted in this realm → restore in a `finally` → a fresh instance over the same `store.json`',
+  },
+}, () => runInContext('[1, 2, 3]', createContext({})), [1, 2, 3]);
+
+deletionCell('LIVE-E14', {
+  green: 'contract.md §1\'s clause of 2026-10-24 on F-RA-3, items (3)–(6) · the array census reads · test-cases.md JC-TC-07 state (v), the caller\'s realm',
+  scenario: 'caller-side deletion — `delete Array.prototype.map` in THIS realm, then a FOREIGN-REALM plain object written and committed WITH THE DELETION IN FORCE and read back through a fresh instance opened AFTER the `finally` restore: ADMITTED and settled, no raw TypeError on the write path',
+  coverage: {
+    matrixRow: 'contract.md §1\'s clause of 2026-10-24 on F-RA-3, item (3) — the caller\'s-realm deletion, admission-preserving (the object limb)',
+    scenario: '`delete Array.prototype.map` in this realm; a foreign-realm plain object driven through the commit route',
+    start: 'a `vm`-realm `({ a: 1 })` → `K.commit` → `K.runAttempt` on a REAL store with `Array.prototype.map` deleted in this realm → restore in a `finally` → a fresh instance over the same `store.json`',
+  },
+}, () => runInContext('({ a: 1 })', createContext({})), { a: 1 });
+
+// **⟶ `LIVE-E15` — THE DELETION'S OWN BOUNDARY, RECORDED NOT ASSERTED.** The two cells above delete the
+// member for the WRITE, restore it in a `finally`, and take their fresh instance AFTER the restore. **What a
+// store CONSTRUCTED while the deletion is in force answers is a different read** — `encodeListeners`' own
+// `listeners.map` (`bindings/js/index.mjs:2135`) is not one of the census reads the deletion law names — and
+// this observation measures it rather than assuming it. Recorded beside the asserted cells; not scored.
+observedCell({
+  id: 'LIVE-E15',
+  green: '(none — this runner\'s own observation)',
+  scenario: 'the caller-side deletion\'s boundary — a store CONSTRUCTED while `Array.prototype.map` is deleted in this realm: what `storeCreate` answers, and what its cfg with `listeners` omitted answers',
+  coverage: {
+    matrixRow: 'runner observation — the construction path\'s own read, outside the census reads `contract.md §1`\'s clause on F-RA-3 names',
+    scenario: 'store construction under the caller-side deletion',
+    start: '`storeCreate({ filePath, journalLength: 8, listeners: [] })`, then `storeCreate({ filePath, journalLength: 8 })`, each with `Array.prototype.map` deleted in this realm; the member restored in a `finally`',
+  },
+}, () => {
+  const dir = dirFor('LIVE-E15');
+  const filePath = path.join(dir, 'store.json');
+  PATHS.set('LIVE-E15', filePath);
+  let entry = null;
+  const answer = withDeletedArrayMap('LIVE-E15-boot', (window) => {
+    entry = window;
+    let standard;
+    let omitted;
+    try {
+      PKG.storeCreate({ filePath, journalLength: 8, listeners: [] });
+      standard = 'BOOTED';
+    } catch (error) {
+      standard = `${error && error.name}: ${error && error.message}`;
+    }
+    try {
+      const fresh = PKG.storeCreate({ filePath, journalLength: 8 });
+      omitted = `BOOTED register=${JSON.stringify(fresh.read([]))}`;
+    } catch (error) {
+      omitted = `${error && error.name}: ${error && error.message}`;
+    }
+    return { standard, omitted };
+  });
+  return `deletion-in-force=${entry.presentUnderDeletion} | standard cfg (listeners: []): ${answer.standard} | cfg with listeners omitted: ${answer.omitted} | restored in a finally=${entry.restored} same-function-same-flags=${entry.identityRestored}`;
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// §12B. THE 2026-10-24 RE-DRIVE AFTER `DEF-2026-10-24-E` — THE FOUR BOUNDARY LAWS AT THE ASSEMBLED LAYER
+// (`LIVE-F01`–`LIVE-F18`)
+//
+// `docs/defects.md` · `DEF-2026-10-24-E` records four states in which the refusal boundary "admitted what it
+// declared refused, or ran code it declared it never runs", each closed red-first at the node layer: **(a)
+// `F-RA-11`** — the array density test is `Object.hasOwn`, so an index carried only by `Array.prototype` is a
+// HOLE (row `16`) and an inherited ACCESSOR at an index is never read; **(b) `F-RA-12`** — a `Proxy` standing
+// as the value's PROTOTYPE answers `'class'` with NO TRAP RUN, revoked links included; **(c) `F-RA-13`** —
+// three residual states became closable with descriptor-only per-call reads: an ADDED `Symbol.toPrimitive` on
+// a shape-standard prototype, an own or added `Symbol.toStringTag` accessor, and an array's ELEMENT
+// conversions (each driven at row `8`'s DEPTH arm, the first also at row `3`); and **(d) the residual that
+// REMAINS** — an OVERRIDDEN `toString`/`valueOf`/`join` on a shape-standard prototype, which alone needs an
+// identity `C-11` forbids, is DECLARED and NOT CLOSED.
+//
+// **EVERY CELL BELOW DRIVES THE PUBLIC SURFACE OVER A REAL STORE ON REAL DISK THAT ALREADY CARRIES A
+// COMMITTED SEED** (`['seed'] = 'kept'`, committed through the package's own `K.commit` → `K.runAttempt`
+// route), because the supervisor's own words for these states are *"the store's file bytes unchanged; the
+// register unmoved"* — a claim about a NON-EMPTY store. **Each refusal cell therefore asserts, at its settled
+// end point: the refusal's status, class, position and PART ONE subject; the file's bytes BYTE-IDENTICAL to
+// the seeded image; the register unmoved (`{"seed":"kept"}`); `AddressNotFound` at the refused address on a
+// FRESH instance over the same `store.json`; and the seed still reading back as `'kept'`.** **EVERY
+// CALLER-SIDE PROTOTYPE STATE IS INSTALLED BY A HARNESS THAT RESTORES THE EXACT PRIOR DESCRIPTOR IN A
+// `finally` AND MEASURES THE RESTORE — the same function/getter object and the same flags, or absence where
+// the member was absent — and the run prints `BOUNDARY-PROTOTYPES-RESTORED` beside the two earlier restore
+// lines.** A cell the run could NOT drive is reported as such and never silently dropped.
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ─────────────────────────────────────────────────────────────────────────────
+// §12B.0 — THE HARNESS: THE SEEDED STORE, THE CALLER-SIDE STATE, THE MEASURED RESTORE
+// ─────────────────────────────────────────────────────────────────────────────
+
+const BOUNDARY_RESTORE_LOG = [];
+
+/**
+ * **THE CALLER-SIDE PROTOTYPE HARNESS.** `mutate` names the prototype, the member and the descriptor to
+ * install; `body` runs with the state in force; the EXACT prior descriptor is restored in a `finally` and the
+ * restore is MEASURED (the same `value`/`get`/`set` object identity and the same `writable`/`enumerable`/
+ * `configurable` flags, or the member absent where it was absent before). Every install is logged, so the
+ * summary can prove it, not assume it.
+ */
+function withBoundaryPrototype(id, mutate, body) {
+  const before = Object.getOwnPropertyDescriptor(mutate.proto, mutate.name);
+  const entry = { id, member: String(mutate.name), hadMember: before !== undefined, presentWhileInstalled: false, restored: false };
+  Object.defineProperty(mutate.proto, mutate.name, mutate.descriptor);
+  entry.presentWhileInstalled = Object.getOwnPropertyDescriptor(mutate.proto, mutate.name) !== undefined;
+  try {
+    return body(entry);
+  } finally {
+    if (before === undefined) Reflect.deleteProperty(mutate.proto, mutate.name);
+    else Object.defineProperty(mutate.proto, mutate.name, before);
+    const after = Object.getOwnPropertyDescriptor(mutate.proto, mutate.name);
+    entry.restored = before === undefined
+      ? after === undefined
+      : after !== undefined
+        && after.value === before.value
+        && after.get === before.get
+        && after.set === before.set
+        && after.writable === before.writable
+        && after.enumerable === before.enumerable
+        && after.configurable === before.configurable;
+    BOUNDARY_RESTORE_LOG.push(entry);
+  }
+}
+
+/**
+ * **ONE SEEDED BOUNDARY DRIVE.** A real store over a real `store.json` is created, a seed is COMMITTED through
+ * the package's own commit route, the file's bytes and the register are read, the caller-side state (if any)
+ * is installed, the value is handed to the public `write`, the file's bytes are read again, the prototype is
+ * restored by the harness's `finally`, and the SETTLED state is taken off a FRESH instance over the same path
+ * AFTER the restore — the store's register, the refused address's own answer, and the seed's read-back.
+ */
+function boundaryDrive(id, { mutate, value, address = ['a'] }) {
+  const dir = dirFor(id);
+  const filePath = path.join(dir, 'store.json');
+  PATHS.set(id, filePath);
+  const store = bootStore(filePath);
+  const seed = writeAndCommit(store, ['seed'], 'kept');
+  const before = fs.readFileSync(filePath, 'utf8');
+  const registerBefore = attempt(() => store.read([]));
+  let answer = null;
+  let after = before;
+  const run = () => {
+    answer = attempt(() => store.write(address, 'file', value));
+    after = fs.readFileSync(filePath, 'utf8');
+  };
+  if (mutate) withBoundaryPrototype(id, mutate, run);
+  else run();
+  const fresh = bootStore(filePath);
+  const register = attempt(() => fresh.read([]));
+  const readAt = attempt(() => fresh.read(address, 'file'));
+  const seeded = attempt(() => fresh.read(['seed'], 'file'));
+  return { dir, filePath, store, seed, before, after, registerBefore, answer, fresh, register, readAt, seeded };
+}
+
+/**
+ * **THE SEEDED REFUSAL'S SETTLED END POINT, ASSERTED.** The refusal is the declared one (status, class,
+ * position, PART ONE's subject, the class named twice); the file's bytes are unchanged; the register is
+ * UNMOVED from its seeded state; the refused address answers `AddressNotFound`; and the seed still reads back.
+ * `position` is either an exact spelling or the token `'declared-value'`.
+ */
+function seededRefusalChecks(drive, { cls, position, subject = undefined }) {
+  const problems = [];
+  const { answer } = drive;
+  if (answer === null) problems.push('the drive recorded no answer');
+  else if (answer.ok) problems.push(`the write was ADMITTED (returned ${short(answer.value)})`);
+  else {
+    const parsed = refusalAnswer(answer.error);
+    if (!parsed.ok) problems.push(parsed.why);
+    else {
+      if (parsed.status !== STATUS) problems.push(`status=${JSON.stringify(parsed.status)} (declared ${STATUS})`);
+      if (!parsed.message.includes(PART_ONE)) problems.push(`PART ONE absent: ${short(parsed.message, 200)}`);
+      const declaredClass = CLASS[cls];
+      const marker = ` is ${declaredClass}`;
+      const tail = parsed.positionAndClass;
+      if (!tail.endsWith(marker)) {
+        problems.push(`PART TWO does not name the class ${JSON.stringify(declaredClass)}: ${short(tail, 220)}`);
+      } else {
+        const observed = tail.slice(0, tail.length - marker.length);
+        if (position === 'declared-value') {
+          if (!isDeclaredValuePosition(observed)) problems.push(`position ${JSON.stringify(observed)} is not a declared value position`);
+        } else if (observed !== position) {
+          problems.push(`position ${short(observed, 220)} (declared ${short(position, 220)})`);
+        }
+      }
+      const got = partOneSubject(parsed.message);
+      if (subject !== undefined && got !== subject) problems.push(`PART ONE's subject is ${JSON.stringify(got)} (declared ${JSON.stringify(subject)})`);
+      const named = parsed.message.split(declaredClass).length - 1;
+      if (subject === declaredClass && named !== 2) problems.push(`the message names the class ${named} times (declared twice)`);
+    }
+  }
+  if (!drive.seed || drive.seed.outcome !== 'passed') problems.push(`the seed did not commit (outcome=${JSON.stringify(drive.seed && drive.seed.outcome)})`);
+  if (drive.after !== drive.before) problems.push('the store file CHANGED on the refused write');
+  if (!drive.registerBefore.ok) problems.push(`the seeded register read threw: ${short(drive.registerBefore.error)}`);
+  else if (!sameTree(drive.registerBefore.value, { seed: 'kept' })) problems.push(`the seeded register is not {"seed":"kept"}: ${short(JSON.stringify(drive.registerBefore.value))}`);
+  if (!drive.register.ok) problems.push(`the fresh boot threw: ${short(drive.register.error)}`);
+  else if (!sameTree(drive.register.value, drive.registerBefore.value)) problems.push(`the fresh boot's register moved: ${short(JSON.stringify(drive.register.value))}`);
+  if (!isAddressNotFound(drive.readAt)) problems.push(`the refused address does not answer AddressNotFound: ${short(drive.readAt.ok ? drive.readAt.value : drive.readAt.error)}`);
+  if (!drive.seeded.ok || drive.seeded.value !== 'kept') problems.push(`the committed seed no longer reads back: ${short(drive.seeded.ok ? drive.seeded.value : drive.seeded.error)}`);
+  const ok = problems.length === 0;
+  return {
+    ok,
+    detail: ok
+      ? `status=${STATUS} class=${JSON.stringify(CLASS[cls])} position=${short(position, 240)} file=${drive.after.length}B unchanged register={"seed":"kept"} unmoved readAt=AddressNotFound seed=kept`
+      : problems.join('; '),
+  };
+}
+
+/** A cell whose body returns the seeded settled-state check plus whatever counters its drive measured. */
+const seededRefusalCell = (id, spec, make) => cell({ id, green: spec.green, scenario: spec.scenario, coverage: spec.coverage }, () => {
+  const built = make();
+  // **A COMPOSITE CELL MAY ANSWER ITS OWN `green`.** The five multi-drive cells of `§12B.3` run two or three
+  // seeded drives and assert them together (each arm's settled state included, through
+  // `seededRefusalChecks`), so their bodies return `{ green }` whole; a single-drive cell returns its drive,
+  // its counters and the subject this harness asserts.
+  if (built && built.green) return { green: built.green };
+  const { drive, counters, extraProblems = [] } = built;
+  const check = seededRefusalChecks(drive, { cls: spec.cls, position: spec.position, subject: built.subject });
+  const problems = check.ok ? [] : [check.detail];
+  problems.push(...extraProblems);
+  for (const [label, count] of Object.entries(counters ?? {})) {
+    if (count !== 0) problems.push(`${label} RAN on the refusal path (count=${count})`);
+  }
+  const traps = counters && Object.keys(counters).length > 0 ? Object.entries(counters).map(([k, v]) => `${k}:${v}`).join(',') : null;
+  const ok = problems.length === 0;
+  return {
+    green: {
+      ok,
+      detail: ok ? `${check.detail}${traps ? ` trap=${traps}` : ''}` : problems.join('; '),
+    },
+  };
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// §12B.1 — `F-RA-11`: THE OWN-PROPERTY DENSITY TEST (`LIVE-F01`–`LIVE-F04`)
+//
+// `contract.md §2`'s clause of 2026-10-24 on `F-RA-11`, items `(1)`–`(7)`; `test-cases.md` `JC-TC-50`.
+// The as-built test was `i in value` (`[[HasProperty]]`, which walks the chain), so
+// `Array.prototype[0] = 'x'; const a = new Array(2); a[1] = 'y'` was ADMITTED and the tree that crossed was
+// `['x', 'y']` — an element the caller's array never owned — and an inherited ACCESSOR at an index RAN on the
+// admission path. The test is now `Object.hasOwn(value, i)`, and the element loop below it reaches only
+// indices that scan has proved OWN.
+// ─────────────────────────────────────────────────────────────────────────────
+
+seededRefusalCell('LIVE-F01', {
+  green: 'contract.md §2\'s clause of 2026-10-24 on F-RA-11, items (1), (3), (4), (5), (6) · test-cases.md JC-TC-50 (the DATA carrier)',
+  scenario: 'F-RA-11a — `Array.prototype[0] = \'x\'; const a = new Array(2); a[1] = \'y\'`: REFUSED as row 16 `a sparse array` at the array\'s own value position, the subject the class spelling, the seeded store untouched',
+  cls: 'sparse',
+  position: ROOT_POSITION,
+  coverage: {
+    matrixRow: 'contract.md §2 row 16, its clause of 2026-10-24 on F-RA-11 (items (1), (3), (5)) · test-cases.md JC-TC-50',
+    scenario: 'an index whose only carrier is `Array.prototype`, as a DATA member',
+    start: '`Array.prototype[0] = \'x\'` (installed, restored in a `finally`, measured) → `const a = new Array(2); a[1] = \'y\'` → `write([\'a\'], \'file\', a)` on a REAL store that already carries the committed seed `[\'seed\'] = \'kept\'` → a FRESH instance over the same `store.json`',
+  },
+}, () => {
+  const value = new Array(2);
+  value[1] = 'y';
+  const drive = boundaryDrive('LIVE-F01', {
+    mutate: { proto: Array.prototype, name: '0', descriptor: { value: 'x', writable: true, configurable: true } },
+    value,
+  });
+  return { drive, subject: CLASS.sparse, extraProblems: Object.hasOwn(value, 0) ? ['the caller\'s array OWNS index 0 — the shape under test is not the one driven'] : [] };
+});
+
+// **⟶ `LIVE-F02` IS THE `F-RA-11` CONTROL, AND IT IS DRIVEN BY A BODY OF ITS OWN, NOT AS A REFUSAL:** it
+// asserts an ADMISSION and its settled state — the register image, the read-back and the fresh register — so
+// it is a `cell` beside the refusal cells and never a `seededRefusalCell`.
+cell({
+  id: 'LIVE-F02',
+  green: 'DENSE CONTROL of F-RA-11 · contract.md §2\'s clause of 2026-10-24 on F-RA-11, item (3)',
+  scenario: 'F-RA-11a CONTROL — a genuinely DENSE `[1, 2, 3]` under the SAME `Array.prototype[0]` mutation is ADMITTED, committed and read back through a fresh instance',
+  coverage: {
+    matrixRow: 'contract.md §2\'s clause of 2026-10-24 on F-RA-11, item (3) — the control the clause must not over-refuse · test-cases.md JC-TC-50 (its CONTROL half)',
+    scenario: 'a dense array whose every index is own, under the prototype-carried DATA index',
+    start: '`Array.prototype[0] = \'x\'` in force → `[1, 2, 3]` → `write([\'a\'], \'file\', value)` on a REAL seeded store → a FRESH instance over the same `store.json`',
+  },
+}, () => {
+  const drive = boundaryDrive('LIVE-F02', {
+    mutate: { proto: Array.prototype, name: '0', descriptor: { value: 'x', writable: true, configurable: true } },
+    value: [1, 2, 3],
+  });
+  const problems = [];
+  if (!drive.answer.ok) problems.push(`the dense array was REFUSED: ${short(drive.answer.error && drive.answer.error.message)}`);
+  if (!drive.seed || drive.seed.outcome !== 'passed') problems.push('the seed did not commit');
+  const image = drive.after.length > 0 ? JSON.parse(drive.after) : null;
+  if (!image || !sameTree(imageAt(image, ['a']), [1, 2, 3])) problems.push(`the image's value at ['a'] is ${short(image && image.a)}`);
+  if (!image || image.seed !== 'kept') problems.push(`the seeded member is not in the image: ${short(drive.after)}`);
+  if (drive.after.length !== 27) problems.push(`the register image is ${drive.after.length}B (declared 27B — the seed's 15B and the array's own member in one image)`);
+  const back = attempt(() => drive.fresh.read(['a'], 'file'));
+  if (!back.ok || !sameTree(back.value, [1, 2, 3])) problems.push(`read-back is not [1,2,3]: ${short(back.ok ? back.value : back.error)}`);
+  if (!drive.register.ok || !sameTree(drive.register.value, { seed: 'kept', a: [1, 2, 3] })) problems.push(`the fresh register is ${short(drive.register.ok ? JSON.stringify(drive.register.value) : drive.register.error)}`);
+  return {
+    green: {
+      ok: problems.length === 0,
+      detail: problems.length === 0
+        ? `ADMITTED outcome=${JSON.stringify(drive.answer.value && drive.answer.value.op && drive.answer.value.op.kind)} file=${drive.after.length}B image=${drive.after} read-back=[1,2,3]`
+        : problems.join('; '),
+    },
+  };
+});
+
+seededRefusalCell('LIVE-F03', {
+  green: 'contract.md §2\'s clause of 2026-10-24 on F-RA-11, items (4), (5) and (6) · test-cases.md JC-TC-50 (the ACCESSOR carrier)',
+  scenario: 'F-RA-11b — the same shape with the carrier an inherited ACCESSOR at the index (installed as the node cell\'s own GET/SET pair): the SAME row-16 refusal, the subject the class spelling, and the inherited getter counted at `0`',
+  cls: 'sparse',
+  position: ROOT_POSITION,
+  coverage: {
+    matrixRow: 'contract.md §2 row 16, its clause of 2026-10-24 on F-RA-11 (items (4), (5)) · test-cases.md JC-TC-50',
+    scenario: 'an index whose only carrier is `Array.prototype`, as an ACCESSOR',
+    start: '`Object.defineProperty(Array.prototype, \'0\', { get, set })` (installed, restored in a `finally`, measured) → `const a = new Array(2); a[1] = \'y\'` → `write([\'a\'], \'file\', a)` on a REAL seeded store → a FRESH instance over the same `store.json`',
+  },
+}, () => {
+  const counters = { 'inherited-getter': 0 };
+  const value = new Array(2);
+  value[1] = 'y';
+  const drive = boundaryDrive('LIVE-F03', {
+    mutate: {
+      proto: Array.prototype,
+      name: '0',
+      descriptor: {
+        get() { counters['inherited-getter'] += 1; return 'x'; },
+        set(element) {
+          Object.defineProperty(this, '0', { value: element, writable: true, enumerable: true, configurable: true });
+        },
+        enumerable: false,
+        configurable: true,
+      },
+    },
+    value,
+  });
+  return { drive, subject: CLASS.sparse, counters };
+});
+
+// **⟶ `LIVE-F04` — THE GETTER-ONLY CARRIER: THE BOUNDARY ITSELF, RECORDED NOT SCORED.** A getter-only member
+// at `Array.prototype`'s index `0` makes EVERY `push` on a fresh array throw, so the package's own carrier
+// encoding (`encodeAddress`'s segments, `encodeValue`'s members) raises a raw host `TypeError` BEFORE the value
+// walk is reached. **The node cell declares exactly this and drives the clause with a GET/SET pair instead**
+// (`bindings/js/test/json-crossing.test.mjs`'s `JC-TC-50` driving accommodation `(a)`), so this is not a
+// contradiction of the clause — it is the boundary the clause names, measured at the assembled layer and
+// reported for the architect.
+observedCell({
+  id: 'LIVE-F04',
+  green: '(none — this runner\'s own observation; the node cell\'s recorded driving accommodation)',
+  scenario: 'F-RA-11b\'s GETTER-ONLY variant — a getter-only accessor at `Array.prototype[0]`: what a write, the dense control and the address carrier each answer, with the getter counted and the prototype restored',
+  coverage: {
+    matrixRow: 'runner observation — the getter-only carrier the node cell records as measured and "NOT this clause\'s subject" (test-cases.md JC-TC-50 / test/json-crossing.test.mjs JC-TC-50 accommodation (a))',
+    scenario: 'a getter-only inherited accessor at an array index, measured at the assembled layer',
+    start: '`Object.defineProperty(Array.prototype, \'0\', { get })` (restored in a `finally`, measured) → `write([\'a\'], \'file\', <new Array(2) with a[1]=\'y\'>)`, `write([], \'file\', [1,2,3])` and `write([\'a\'], \'file\', 1)` on REAL seeded stores',
+  },
+}, () => {
+  const getter = { reads: 0 };
+  const descriptor = { get() { getter.reads += 1; return 'x'; }, configurable: true };
+  const text = (x) => (x.ok
+    ? `ADMITTED (returned ${short(x.value, 60)})`
+    : `${x.error && x.error.name}: ${x.error && x.error.message} (status=${JSON.stringify(x.error && x.error.status)})`);
+  const parts = [];
+  const sparse = new Array(2);
+  sparse[1] = 'y';
+  const a = boundaryDrive('LIVE-F04a', { mutate: { proto: Array.prototype, name: '0', descriptor }, value: sparse });
+  parts.push(`sparse write(['a'],'file',<new Array(2); a[1]='y'>): ${text(a.answer)}; file=${a.after.length}B unchanged=${a.after === a.before}`);
+  const b = boundaryDrive('LIVE-F04b', { mutate: { proto: Array.prototype, name: '0', descriptor }, value: [1, 2, 3] });
+  parts.push(`dense control write(['a'],'file',[1,2,3]): ${text(b.answer)}; file=${b.after.length}B unchanged=${b.after === b.before}`);
+  const c = boundaryDrive('LIVE-F04c', { mutate: { proto: Array.prototype, name: '0', descriptor }, value: 1 });
+  parts.push(`address carrier write(['a'],'file',1): ${text(c.answer)}; file=${c.after.length}B unchanged=${c.after === c.before}`);
+  parts.push(`inherited-getter=${getter.reads}`);
+  parts.push(`restored in a finally=${BOUNDARY_RESTORE_LOG.filter((entry) => entry.id.startsWith('LIVE-F04')).every((entry) => entry.restored)}`);
+  return parts.join(' | ');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// §12B.2 — `F-RA-12`: A `Proxy` STANDING AS THE VALUE'S PROTOTYPE (`LIVE-F05`–`LIVE-F09`)
+//
+// `contract.md §2`'s clause of 2026-10-24 on `F-RA-12`, items `(1)`–`(7)`; `test-cases.md` `JC-TC-51`. The
+// three census reads (`isStandardObjectPrototype`, `arrayClass`, `isLanguageStandardPrototype`) now test
+// `util.types.isProxy(link)` BEFORE any read of the link, so a LYING `ownKeys`/`getPrototypeOf` handler buys no
+// admission, no trap runs, and a revoked link answers `'class'` with no host error escaping.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** The LYING handler `F-RA-12` measured: it reports a standard-shaped prototype over a `null`-prototype target. */
+function lyingProxy(counters) {
+  const target = Object.create(null);
+  return new Proxy(target, {
+    getPrototypeOf() { counters.getPrototypeOf += 1; return Object.prototype; },
+    ownKeys() { counters.ownKeys += 1; return [...Object.getOwnPropertyNames(Object.prototype), '__proto__']; },
+    getOwnPropertyDescriptor(t, key) {
+      counters.getOwnPropertyDescriptor += 1;
+      return { value: Object.prototype[key], writable: true, enumerable: false, configurable: true };
+    },
+    get(t, key) { counters.get += 1; return Object.prototype[key]; },
+    has(t, key) { counters.has += 1; return key in Object.prototype; },
+  });
+}
+const trapCounters = () => ({ getPrototypeOf: 0, ownKeys: 0, getOwnPropertyDescriptor: 0, get: 0, has: 0 });
+
+seededRefusalCell('LIVE-F05', {
+  green: 'contract.md §2\'s clause of 2026-10-24 on F-RA-12, items (1), (2), (4), (6)(a) · test-cases.md JC-TC-51 (the non-array limb)',
+  scenario: 'F-RA-12 — a value whose PROTOTYPE is a LYING `Proxy` (its traps report a standard-shaped prototype over an `Object.create(null)` target): REFUSED as row 14 with NO TRAP RUN',
+  cls: 'nonPlain',
+  position: ROOT_POSITION,
+  coverage: {
+    matrixRow: 'contract.md §2 row 14, its clause of 2026-10-24 on F-RA-12 (items (1), (2), (4)) · test-cases.md JC-TC-51',
+    scenario: 'a LYING `Proxy` standing as a non-array value\'s prototype',
+    start: '`Object.create(<lying Proxy>)` with an own `a` member → `write([\'a\'], \'file\', value)` on a REAL seeded store → a FRESH instance over the same `store.json`',
+  },
+}, () => {
+  const counters = trapCounters();
+  const value = Object.create(lyingProxy(counters));
+  Object.defineProperty(value, 'a', { value: 1, enumerable: true, writable: true, configurable: true });
+  const drive = boundaryDrive('LIVE-F05', { mutate: null, value });
+  return { drive, subject: CLASS.nonPlain, counters };
+});
+
+seededRefusalCell('LIVE-F06', {
+  green: 'contract.md §2\'s clause of 2026-10-24 on F-RA-12, items (1), (2), (4), (6)(b) · test-cases.md JC-TC-51 (the array limb)',
+  scenario: 'F-RA-12 — the same LYING `Proxy` standing as an ARRAY value\'s prototype: REFUSED as row 13 with NO TRAP RUN',
+  cls: 'arraySubclass',
+  position: ROOT_POSITION,
+  coverage: {
+    matrixRow: 'contract.md §2 row 13, its clause of 2026-10-24 on F-RA-12 (items (1), (2), (4), (6)(b)) · test-cases.md JC-TC-51',
+    scenario: 'a LYING `Proxy` standing as an array value\'s prototype',
+    start: '`Object.setPrototypeOf([1, 2], <lying Proxy>)` → `write([\'a\'], \'file\', value)` on a REAL seeded store → a FRESH instance over the same `store.json`',
+  },
+}, () => {
+  const counters = trapCounters();
+  const value = Object.setPrototypeOf([1, 2], lyingProxy(counters));
+  const drive = boundaryDrive('LIVE-F06', { mutate: null, value });
+  return { drive, subject: CLASS.arraySubclass, counters };
+});
+
+seededRefusalCell('LIVE-F07', {
+  green: 'contract.md §2\'s clause of 2026-10-24 on F-RA-12, items (4) and (6)(a) — a REVOKED `Proxy` link, no host error escaping · test-cases.md JC-TC-51',
+  scenario: 'F-RA-12 — a value whose PROTOTYPE is a REVOKED `Proxy`: REFUSED as row 14, with no host error escaping',
+  cls: 'nonPlain',
+  position: ROOT_POSITION,
+  coverage: {
+    matrixRow: 'contract.md §2 row 14, its clause of 2026-10-24 on F-RA-12 (items (4), (6)(a)) · test-cases.md JC-TC-51 (the revoked link)',
+    scenario: 'a REVOKED `Proxy` standing as a non-array value\'s prototype',
+    start: '`Object.create(<Proxy>)` with an own `a` member, then `revoke()` → `write([\'a\'], \'file\', value)` on a REAL seeded store → a FRESH instance over the same `store.json`',
+  },
+}, () => {
+  const { proxy, revoke } = Proxy.revocable({}, {});
+  const value = Object.create(proxy);
+  Object.defineProperty(value, 'a', { value: 1, enumerable: true, writable: true, configurable: true });
+  revoke();
+  const drive = boundaryDrive('LIVE-F07', { mutate: null, value });
+  return { drive, subject: CLASS.nonPlain };
+});
+
+seededRefusalCell('LIVE-F08', {
+  green: 'contract.md §2\'s clause of 2026-10-24 on F-RA-12, items (4) and (6)(b) — a REVOKED `Proxy` link at the ARRAY limb, no host error escaping · test-cases.md JC-TC-51',
+  scenario: 'F-RA-12 — a REVOKED `Proxy` standing as an ARRAY value\'s prototype: REFUSED as row 13, with no host error escaping',
+  cls: 'arraySubclass',
+  position: ROOT_POSITION,
+  coverage: {
+    matrixRow: 'contract.md §2 row 13, its clause of 2026-10-24 on F-RA-12 (items (4), (6)(b)) · test-cases.md JC-TC-51 (the revoked link at the array limb)',
+    scenario: 'a REVOKED `Proxy` standing as an array value\'s prototype',
+    start: '`Object.setPrototypeOf([1, 2], <Proxy>)`, then `revoke()` → `write([\'a\'], \'file\', value)` on a REAL seeded store → a FRESH instance over the same `store.json`',
+  },
+}, () => {
+  const { proxy, revoke } = Proxy.revocable({}, {});
+  const value = Object.setPrototypeOf([1, 2], proxy);
+  revoke();
+  const drive = boundaryDrive('LIVE-F08', { mutate: null, value });
+  return { drive, subject: CLASS.arraySubclass };
+});
+
+// **⟶ `LIVE-F09` — THE `F-RA-12` CONTROL: THE GUARD MUST NOT OVER-REFUSE AN ORDINARY PROTOTYPE.** An ordinary
+// `{}` and an ordinary `[1, 2]` are driven through the same seeded store and the same fresh boot, so the
+// `types.isProxy` guard's cost is measured on the values it must never touch.
+cell({
+  id: 'LIVE-F09',
+  green: 'CONTROL of F-RA-12 · contract.md §1 · §2 — an ordinary `{}` and an ordinary `[1, 2]` are still ADMITTED and round-tripped',
+  scenario: 'F-RA-12 CONTROL — an ordinary `{}` and an ordinary `[1, 2]` under the same seeded route: ADMITTED, committed and read back through a fresh instance',
+  coverage: {
+    matrixRow: 'the F-RA-12 clause\'s own control — the ordinary prototypes the guard must not touch (contract.md §1\'s plain-object and array limbs)',
+    scenario: 'an ordinary plain object and an ordinary array',
+    start: '`{ a: 1 }` and `[1, 2]`, each → `write([\'a\'], \'file\', value)` on a REAL seeded store → a FRESH instance over the same `store.json`',
+  },
+}, () => {
+  const problems = [];
+  const parts = [];
+  for (const [label, value] of [['object', { a: 1 }], ['array', [1, 2]]]) {
+    const drive = boundaryDrive(`LIVE-F09-${label}`, { mutate: null, value });
+    if (!drive.answer.ok) problems.push(`${label}: the write THREW ${short(drive.answer.error && drive.answer.error.message)}`);
+    const image = drive.after.length > 0 ? JSON.parse(drive.after) : null;
+    if (!image || !sameTree(imageAt(image, ['a']), value)) problems.push(`${label}: the image's value at ['a'] is ${short(image && image.a)}`);
+    if (!image || image.seed !== 'kept') problems.push(`${label}: the seed is not in the image`);
+    const back = attempt(() => drive.fresh.read(['a'], 'file'));
+    if (!back.ok || !sameTree(back.value, value)) problems.push(`${label}: read-back is not the bare tree: ${short(back.ok ? back.value : back.error)}`);
+    if (!drive.register.ok || !sameTree(drive.register.value, { seed: 'kept', a: value })) problems.push(`${label}: the fresh register is ${short(drive.register.ok ? JSON.stringify(drive.register.value) : drive.register.error)}`);
+    if (problems.length === 0) parts.push(`${label}: ADMITTED file=${drive.after.length}B image=${short(drive.after, 60)} read-back=${short(JSON.stringify(back.value), 40)}`);
+  }
+  return { green: { ok: problems.length === 0, detail: problems.length === 0 ? parts.join(' | ') : problems.join(' | ') } };
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// §12B.3 — `F-RA-13`'s THREE LIMBS (`LIVE-F10`–`LIVE-F15`)
+//
+// `contract.md §2.1`'s clause of 2026-10-24 on `F-RA-13`, items `(1a)`, `(1b)`, `(1c)` and `(6)`, with
+// `test-cases.md` `JC-TC-52`, `JC-TC-53` and `JC-TC-54`. The render guard's three tests are per-call
+// descriptor reads — one `@@toPrimitive` descriptor read per link, the `@@toStringTag` descriptor read, and the
+// element reads — so `C-11` is untouched and no identity is captured. **Where an arm's subject is the refused
+// value's own rendering and any of the three answers "caller code is reachable", the arm answers the ROW'S
+// CLASS SPELLING and renders nothing.**
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** The counted `Symbol.toPrimitive` member the two added-member cells install on a shape-standard prototype. */
+const addedToPrimitive = (counter) => ({
+  value() { counter.count += 1; return 'CALLER-CONTROLLED SUBJECT'; },
+  writable: true,
+  enumerable: false,
+  configurable: true,
+});
+
+seededRefusalCell('LIVE-F10', {
+  green: 'contract.md §2.1\'s clause of 2026-10-24 on F-RA-13, item (1a) · test-cases.md JC-TC-52 (the Object.prototype limb)',
+  scenario: 'F-RA-13(1a) — an ADDED `Symbol.toPrimitive` on `Object.prototype`: row 8\'s DEPTH arm answers `a value over the walk ceiling` and row 3 answers `a function`, the added member counted at `0`',
+  cls: 'ceiling',
+  position: depthPosition(127),
+  coverage: {
+    matrixRow: 'contract.md §2.1\'s clause of 2026-10-24 on F-RA-13, items (1a) and (6) — the added-`Symbol.toPrimitive` read · test-cases.md JC-TC-52',
+    scenario: 'an ADDED `Symbol.toPrimitive` on `Object.prototype`, at row 8\'s depth arm and at row 3',
+    start: '`Object.defineProperty(Object.prototype, Symbol.toPrimitive, { value() { … }, configurable: true })` (installed, restored in a `finally`, measured) → a `{}` at depth 127 and a plain function at the root → `write([\'a\'], \'file\', value)` on REAL seeded stores → FRESH instances over the same `store.json`',
+  },
+}, () => {
+  const counter = { count: 0 };
+  const depthDrive = boundaryDrive('LIVE-F10a', {
+    mutate: { proto: Object.prototype, name: Symbol.toPrimitive, descriptor: addedToPrimitive(counter) },
+    value: wrap({ a: 1 }, 127),
+  });
+  const depthCheck = seededRefusalChecks(depthDrive, { cls: 'ceiling', position: depthPosition(127), subject: CLASS.ceiling });
+  const fnDrive = boundaryDrive('LIVE-F10b', {
+    mutate: { proto: Object.prototype, name: Symbol.toPrimitive, descriptor: addedToPrimitive(counter) },
+    value: function h() { return 2; },
+  });
+  const fnCheck = seededRefusalChecks(fnDrive, { cls: 'function', position: ROOT_POSITION, subject: CLASS.function });
+  const problems = [];
+  if (!depthCheck.ok) problems.push(`depth arm: ${depthCheck.detail}`);
+  if (!fnCheck.ok) problems.push(`row 3: ${fnCheck.detail}`);
+  if (counter.count !== 0) problems.push(`the added Symbol.toPrimitive RAN on the refusal path (count=${counter.count})`);
+  return {
+    green: {
+      ok: problems.length === 0,
+      detail: problems.length === 0
+        ? `depth arm subject="a value over the walk ceiling" · row 3 subject="a function" · added-member counter=0; ${depthCheck.detail}`
+        : problems.join('; '),
+    },
+  };
+});
+
+seededRefusalCell('LIVE-F11', {
+  green: 'contract.md §2.1\'s clause of 2026-10-24 on F-RA-13, item (1a) · test-cases.md JC-TC-52 (the Function.prototype limb and the CONTROL)',
+  scenario: 'F-RA-13(1a) — the same ADDED `Symbol.toPrimitive` on `Function.prototype`: row 3 answers `a function` with the member counted at `0`, and the CONTROL (the member is not on an ordinary `{}`\'s chain) leaves `[object Object]` unmoved',
+  cls: 'function',
+  position: ROOT_POSITION,
+  coverage: {
+    matrixRow: 'contract.md §2.1\'s clause of 2026-10-24 on F-RA-13, items (1a), (2) and (6) — the added member on `Function.prototype`, and the off-chain CONTROL · test-cases.md JC-TC-52',
+    scenario: 'an ADDED `Symbol.toPrimitive` on `Function.prototype`, driven at row 3, with the off-chain control',
+    start: '`Object.defineProperty(Function.prototype, Symbol.toPrimitive, { value() { … }, configurable: true })` (installed, restored in a `finally`, measured) → a plain function at the root and a `{}` at depth 127 → `write([\'a\'], \'file\', value)` on REAL seeded stores → FRESH instances over the same `store.json`',
+  },
+}, () => {
+  const counter = { count: 0 };
+  const fnDrive = boundaryDrive('LIVE-F11a', {
+    mutate: { proto: Function.prototype, name: Symbol.toPrimitive, descriptor: addedToPrimitive(counter) },
+    value: function h() { return 2; },
+  });
+  const fnCheck = seededRefusalChecks(fnDrive, { cls: 'function', position: ROOT_POSITION, subject: CLASS.function });
+  const leafDrive = boundaryDrive('LIVE-F11b', {
+    mutate: { proto: Function.prototype, name: Symbol.toPrimitive, descriptor: addedToPrimitive(counter) },
+    value: wrap({ a: 1 }, 127),
+  });
+  const leafCheck = seededRefusalChecks(leafDrive, { cls: 'ceiling', position: depthPosition(127), subject: '[object Object]' });
+  const problems = [];
+  if (!fnCheck.ok) problems.push(`row 3: ${fnCheck.detail}`);
+  if (!leafCheck.ok) problems.push(`off-chain control: ${leafCheck.detail}`);
+  if (counter.count !== 0) problems.push(`the added Symbol.toPrimitive RAN on the refusal path (count=${counter.count})`);
+  return {
+    green: {
+      ok: problems.length === 0,
+      detail: problems.length === 0
+        ? `row 3 subject="a function" · off-chain control subject="[object Object]" · added-member counter=0; ${fnCheck.detail}`
+        : problems.join('; '),
+    },
+  };
+});
+
+seededRefusalCell('LIVE-F12', {
+  green: 'contract.md §2.1\'s clause of 2026-10-24 on F-RA-13, item (1b) · test-cases.md JC-TC-53 (the own accessor)',
+  scenario: 'F-RA-13(1b) — an OWN `Symbol.toStringTag` ACCESSOR: row 8\'s DEPTH arm answers `a value over the walk ceiling` and its own value position answers row 5\'s `a value carrying a Symbol-keyed own member`, the getter counted at `0`',
+  cls: 'ceiling',
+  position: depthPosition(127),
+  coverage: {
+    matrixRow: 'contract.md §2.1\'s clause of 2026-10-24 on F-RA-13, items (1b) and (6) — the own `@@toStringTag` accessor · test-cases.md JC-TC-53',
+    scenario: 'an OWN `Symbol.toStringTag` accessor, at row 8\'s depth arm and at its own value position',
+    start: '`Object.defineProperty(<{}>, Symbol.toStringTag, { get() { counter += 1; return \'TAGGED\'; } })` → the value at depth 127 and at the root → `write([\'a\'], \'file\', value)` on REAL seeded stores → FRESH instances over the same `store.json`',
+  },
+}, () => {
+  const counters = { 'toStringTag-getter': 0 };
+  const leaf = { a: 1 };
+  Object.defineProperty(leaf, Symbol.toStringTag, { get() { counters['toStringTag-getter'] += 1; return 'TAGGED'; }, configurable: true });
+  const depthDrive = boundaryDrive('LIVE-F12a', { mutate: null, value: wrap(leaf, 127) });
+  const depthCheck = seededRefusalChecks(depthDrive, { cls: 'ceiling', position: depthPosition(127), subject: CLASS.ceiling });
+  const ownDrive = boundaryDrive('LIVE-F12b', { mutate: null, value: leaf });
+  const ownCheck = seededRefusalChecks(ownDrive, { cls: 'symbolKey', position: ROOT_POSITION, subject: CLASS.symbolKey });
+  const problems = [];
+  if (!depthCheck.ok) problems.push(`depth arm: ${depthCheck.detail}`);
+  if (!ownCheck.ok) problems.push(`own position: ${ownCheck.detail}`);
+  if (counters['toStringTag-getter'] !== 0) problems.push(`the own tag getter RAN on the refusal path (count=${counters['toStringTag-getter']})`);
+  return {
+    green: {
+      ok: problems.length === 0,
+      detail: problems.length === 0
+        ? `depth arm subject="a value over the walk ceiling" · own position subject="a value carrying a Symbol-keyed own member" · getter=0; ${depthCheck.detail}`
+        : problems.join('; '),
+    },
+  };
+});
+
+seededRefusalCell('LIVE-F13', {
+  green: 'contract.md §2.1\'s clause of 2026-10-24 on F-RA-13, item (1b) · test-cases.md JC-TC-53 (the added accessor)',
+  scenario: 'F-RA-13(1b) — an ADDED `Symbol.toStringTag` ACCESSOR on `Object.prototype`: row 8\'s DEPTH arm answers `a value over the walk ceiling`, the getter counted at `0`',
+  cls: 'ceiling',
+  position: depthPosition(127),
+  coverage: {
+    matrixRow: 'contract.md §2.1\'s clause of 2026-10-24 on F-RA-13, items (1b) and (6) — the added `@@toStringTag` accessor · test-cases.md JC-TC-53',
+    scenario: 'an ADDED `Symbol.toStringTag` accessor on `Object.prototype`, at row 8\'s depth arm',
+    start: '`Object.defineProperty(Object.prototype, Symbol.toStringTag, { get() { counter += 1; return \'TAGGED\'; }, configurable: true })` (installed, restored in a `finally`, measured) → a `{}` at depth 127 → `write([\'a\'], \'file\', value)` on a REAL seeded store → a FRESH instance over the same `store.json`',
+  },
+}, () => {
+  const counters = { 'toStringTag-getter': 0 };
+  const drive = boundaryDrive('LIVE-F13', {
+    mutate: {
+      proto: Object.prototype,
+      name: Symbol.toStringTag,
+      descriptor: { get() { counters['toStringTag-getter'] += 1; return 'TAGGED'; }, configurable: true },
+    },
+    value: wrap({ a: 1 }, 127),
+  });
+  return { drive, subject: CLASS.ceiling, counters };
+});
+
+seededRefusalCell('LIVE-F14', {
+  green: 'contract.md §2.1\'s clause of 2026-10-24 on F-RA-13, item (1c) · test-cases.md JC-TC-54 (the element limb)',
+  scenario: 'F-RA-13(1c) — an ARRAY at row 8\'s DEPTH arm whose ELEMENT carries a conversion member (own, prototype-supplied, and an own ACCESSOR at an index beside it): `a value over the walk ceiling`, every counter `0`',
+  cls: 'ceiling',
+  position: depthPosition(127),
+  coverage: {
+    matrixRow: 'contract.md §2.1\'s clause of 2026-10-24 on F-RA-13, items (1c) and (6) — the array-element reads · test-cases.md JC-TC-54',
+    scenario: 'an array at row 8\'s depth arm whose elements carry conversion members',
+    start: '`[<element owning toString>]`, `[<element whose toString sits on a custom prototype>]` and `[<element whose index 0 is an own accessor>]`, each wrapped to depth 127 → `write([\'a\'], \'file\', value)` on REAL seeded stores → FRESH instances over the same `store.json`',
+  },
+}, () => {
+  const counters = { 'element-own-toString': 0, 'element-prototype-toString': 0, 'element-index-getter': 0 };
+  const owned = { v: 1 };
+  Object.defineProperty(owned, 'toString', { value() { counters['element-own-toString'] += 1; return 'ELEMENT-RAN'; }, configurable: true });
+  const aDrive = boundaryDrive('LIVE-F14a', { mutate: null, value: wrap([owned], 127) });
+  const aCheck = seededRefusalChecks(aDrive, { cls: 'ceiling', position: depthPosition(127), subject: CLASS.ceiling });
+  const protoSupplied = Object.create({ toString() { counters['element-prototype-toString'] += 1; return 'PROTO-ELEMENT-RAN'; } });
+  protoSupplied.v = 1;
+  const bDrive = boundaryDrive('LIVE-F14b', { mutate: null, value: wrap([protoSupplied], 127) });
+  const bCheck = seededRefusalChecks(bDrive, { cls: 'ceiling', position: depthPosition(127), subject: CLASS.ceiling });
+  const accessor = [1, 2];
+  Object.defineProperty(accessor, 0, { get() { counters['element-index-getter'] += 1; return 1; }, configurable: true });
+  const cDrive = boundaryDrive('LIVE-F14c', { mutate: null, value: wrap([accessor], 127) });
+  const cCheck = seededRefusalChecks(cDrive, { cls: 'ceiling', position: depthPosition(127), subject: CLASS.ceiling });
+  const problems = [];
+  if (!aCheck.ok) problems.push(`own element: ${aCheck.detail}`);
+  if (!bCheck.ok) problems.push(`prototype element: ${bCheck.detail}`);
+  if (!cCheck.ok) problems.push(`accessor element: ${cCheck.detail}`);
+  for (const [label, count] of Object.entries(counters)) if (count !== 0) problems.push(`${label} RAN on the refusal path (count=${count})`);
+  return {
+    green: {
+      ok: problems.length === 0,
+      detail: problems.length === 0
+        ? `own element subject="a value over the walk ceiling" · prototype element the same · accessor element the same · trap=element-own-toString:0,element-prototype-toString:0,element-index-getter:0; ${aCheck.detail}`
+        : problems.join('; '),
+    },
+  };
+});
+
+seededRefusalCell('LIVE-F15', {
+  green: 'CONTROL of F-RA-13 · contract.md §2.1\'s clause of 2026-10-24, item (2) — the three sanctioned renderings stand',
+  scenario: 'F-RA-13 CONTROL — on the UNMUTATED intrinsic chains the three sanctioned renderings stand: an ordinary `{}` at depth 127 answers `[object Object]`, an ordinary `[1, 2]` answers `1,2`, and a plain function answers its own source text',
+  cls: 'ceiling',
+  position: depthPosition(127),
+  coverage: {
+    matrixRow: 'contract.md §2.1\'s clause of 2026-10-24, item (2) — the three sanctioned renderings the exemption buys at the two conditional arms · test-cases.md JC-TC-52 (its CONTROL half)',
+    scenario: 'the three sanctioned renderings on the unmutated intrinsic chains',
+    start: 'an ordinary `{}` and `[1, 2]` at depth 127, and a plain function at the root, each → `write([\'a\'], \'file\', value)` on REAL seeded stores → FRESH instances over the same `store.json`',
+  },
+}, () => {
+  const objDrive = boundaryDrive('LIVE-F15a', { mutate: null, value: wrap({ a: 1 }, 127) });
+  const objCheck = seededRefusalChecks(objDrive, { cls: 'ceiling', position: depthPosition(127), subject: '[object Object]' });
+  const arrDrive = boundaryDrive('LIVE-F15b', { mutate: null, value: wrap([1, 2], 127) });
+  const arrCheck = seededRefusalChecks(arrDrive, { cls: 'ceiling', position: depthPosition(127), subject: '1,2' });
+  const plainFunction = function g() { return 1; };
+  const fnDrive = boundaryDrive('LIVE-F15c', { mutate: null, value: plainFunction });
+  const fnCheck = seededRefusalChecks(fnDrive, { cls: 'function', position: ROOT_POSITION, subject: String(plainFunction) });
+  const problems = [];
+  if (!objCheck.ok) problems.push(`ordinary object: ${objCheck.detail}`);
+  if (!arrCheck.ok) problems.push(`ordinary array: ${arrCheck.detail}`);
+  if (!fnCheck.ok) problems.push(`plain function: ${fnCheck.detail}`);
+  return {
+    green: {
+      ok: problems.length === 0,
+      detail: problems.length === 0
+        ? `object subject="[object Object]" · array subject="1,2" · function subject=${JSON.stringify(String(plainFunction))} · trap=none at all three; ${objCheck.detail}`
+        : problems.join('; '),
+    },
+  };
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// §12B.4 — THE RESIDUAL THAT REMAINS: AN OVERRIDDEN MEMBER ON A SHAPE-STANDARD PROTOTYPE (`LIVE-F16`–`LIVE-F18`)
+//
+// `contract.md §2.1`'s residual clause (items `(3)`, `(9)(d)` and `(10)`) and `DEF-2026-10-24-E`'s disposition:
+// an **OVERRIDDEN** `toString`/`valueOf` (or `join`) on a shape-standard prototype is **declared, not closed** —
+// closing it needs an identity `C-11` forbids. **These three cells are OBSERVED DECLARATION CONFORMANCE, never
+// passes:** each measures that the caller's overridden member DOES run and what the subject becomes, so the
+// record states the residual as the documents state it.
+// ─────────────────────────────────────────────────────────────────────────────
+
+observedCell({
+  id: 'LIVE-F16',
+  green: '(none — OBSERVED declaration conformance to contract.md §2.1\'s residual clause; DEF-2026-10-24-E (d))',
+  scenario: 'THE RESIDUAL — an OVERRIDDEN `Object.prototype.toString` on a shape-standard prototype: the caller\'s member RUNS at row 8\'s DEPTH arm and becomes PART ONE\'s subject',
+  coverage: {
+    matrixRow: 'contract.md §2.1\'s residual clause (items (3), (9)(d), (10)) — an OVERRIDDEN conversion member on a shape-standard prototype, declared NOT closed',
+    scenario: 'an OVERRIDDEN `Object.prototype.toString`, at row 8\'s depth arm',
+    start: '`Object.prototype.toString = function () { counter += 1; return \'OVERRIDDEN-SUBJECT\'; }` (installed, restored in a `finally`, measured) → a `{}` at depth 127 → `write([\'a\'], \'file\', value)` on a REAL seeded store',
+  },
+}, () => {
+  const counters = { 'overridden-toString': 0 };
+  const drive = boundaryDrive('LIVE-F16', {
+    mutate: {
+      proto: Object.prototype,
+      name: 'toString',
+      descriptor: { value() { counters['overridden-toString'] += 1; return 'OVERRIDDEN-SUBJECT'; }, writable: true, configurable: true },
+    },
+    value: wrap({ a: 1 }, 127),
+  });
+  const subject = drive.answer.ok ? null : partOneSubject(drive.answer.error.message);
+  const status = drive.answer.ok ? 'ADMITTED' : drive.answer.error.status;
+  return `subject=${JSON.stringify(subject)} overridden-toString-runs=${counters['overridden-toString']} status=${JSON.stringify(status)} file=${drive.after.length}B unchanged=${drive.after === drive.before} restored=${BOUNDARY_RESTORE_LOG.filter((entry) => entry.id === 'LIVE-F16').every((entry) => entry.restored)} — the DECLARED residual, conforming: the caller's member ran and its string is PART ONE's subject`;
+});
+
+observedCell({
+  id: 'LIVE-F17',
+  green: '(none — OBSERVED declaration conformance to contract.md §2.1\'s residual clause; DEF-2026-10-24-E (d))',
+  scenario: 'THE RESIDUAL — an OVERRIDDEN `Object.prototype.valueOf` on a shape-standard prototype: `valueOf` is NOT reached (the language\'s `String` consults `toString` first), so the subject stays `[object Object]` and the override is counted at `0`',
+  coverage: {
+    matrixRow: 'contract.md §2.1\'s residual clause (items (3), (9)(d), (10)) — an OVERRIDDEN `valueOf` on a shape-standard prototype, declared NOT closed',
+    scenario: 'an OVERRIDDEN `Object.prototype.valueOf`, at row 8\'s depth arm',
+    start: '`Object.prototype.valueOf = function () { counter += 1; return 7; }` (installed, restored in a `finally`, measured) → a `{}` at depth 127 → `write([\'a\'], \'file\', value)` on a REAL seeded store',
+  },
+}, () => {
+  const counters = { 'overridden-valueOf': 0 };
+  const drive = boundaryDrive('LIVE-F17', {
+    mutate: {
+      proto: Object.prototype,
+      name: 'valueOf',
+      descriptor: { value() { counters['overridden-valueOf'] += 1; return 7; }, writable: true, configurable: true },
+    },
+    value: wrap({ a: 1 }, 127),
+  });
+  const subject = drive.answer.ok ? null : partOneSubject(drive.answer.error.message);
+  return `subject=${JSON.stringify(subject)} overridden-valueOf-runs=${counters['overridden-valueOf']} status=${JSON.stringify(drive.answer.ok ? 'ADMITTED' : drive.answer.error.status)} — the DECLARED residual, conforming: the override alone does not move the subject, because ToPrimitive prefers toString on this value`;
+});
+
+observedCell({
+  id: 'LIVE-F18',
+  green: '(none — OBSERVED declaration conformance to contract.md §2.1\'s residual clause; DEF-2026-10-24-E (d))',
+  scenario: 'THE RESIDUAL — an OVERRIDDEN `Array.prototype.join` on a shape-standard prototype at row 8\'s DEPTH arm: the caller\'s `join` RUNS TWICE (the subject by `String(value)`, and the POSITION spelling by `valuePosition`\'s own `.join`), and the position part becomes `member JOIN-RAN of …`',
+  coverage: {
+    matrixRow: 'contract.md §2.1\'s residual clause (items (3), (9)(d), (10)) — an OVERRIDDEN `join` on a shape-standard prototype, declared NOT closed, measured at BOTH the subject and the position',
+    scenario: 'an OVERRIDDEN `Array.prototype.join`, at row 8\'s depth arm',
+    start: '`Array.prototype.join = function () { counter += 1; return \'JOIN-RAN\'; }` (installed, restored in a `finally`, measured) → `[1, 2]` at depth 127 → `write([\'a\'], \'file\', value)` on a REAL seeded store',
+  },
+}, () => {
+  const counters = { 'overridden-join': 0 };
+  const drive = boundaryDrive('LIVE-F18', {
+    mutate: {
+      proto: Array.prototype,
+      name: 'join',
+      descriptor: { value() { counters['overridden-join'] += 1; return 'JOIN-RAN'; }, writable: true, configurable: true },
+    },
+    value: wrap([1, 2], 127),
+  });
+  const message = drive.answer.ok ? '' : drive.answer.error.message;
+  const subject = drive.answer.ok ? null : partOneSubject(message);
+  const marker = ', the value at ';
+  const positionPart = message.length > 0 ? message.slice(message.lastIndexOf(marker) + marker.length) : '';
+  return `subject=${JSON.stringify(subject)} overridden-join-runs=${counters['overridden-join']} position-part=${JSON.stringify(short(positionPart, 160))} status=${JSON.stringify(drive.answer.ok ? 'ADMITTED' : drive.answer.error.status)} — the DECLARED residual, conforming, and a SECOND caller-code path named: the position spelling itself takes .join off the mutable prototype`;
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// §13. THE SUMMARY, THE STORE PATHS AND THE CLEANUP
 // ═════════════════════════════════════════════════════════════════════════════
 
 // **THE ADDON THAT THE RUNNING PROCESS ACTUALLY MAPPED** — read from `/proc/self/maps` HERE, after the
@@ -1491,6 +3330,41 @@ const addonMd5 = addonPath && fs.existsSync(addonPath)
   ? crypto.createHash('md5').update(fs.readFileSync(addonPath)).digest('hex')
   : null;
 console.log(`ADDON ${addonPath ?? 'NOT MAPPED'} bytes=${addonBytes} md5=${addonMd5}`);
+const entrySha256 = crypto.createHash('sha256').update(fs.readFileSync(ENTRY)).digest('hex');
+const kernelSha256 = crypto.createHash('sha256').update(fs.readFileSync(KERNEL)).digest('hex');
+console.log(`ENTRY-SHA256 ${entrySha256}`);
+console.log(`KERNEL-SHA256 ${kernelSha256}`);
+
+// **THE PROTOTYPES, RESTORED AND MEASURED** — `§1A`: every mutation state is undone in a `finally`, and the
+// four censuses are re-read afterwards and compared with the baseline taken before the state was applied.
+const restoreAll = RESTORE_LOG.every((row) => row.restored);
+console.log(`PROTOTYPES-RESTORED state-instances=${RESTORE_LOG.length} all=${restoreAll} baseline=${JSON.stringify(RESTORE_LOG[0] ? RESTORE_LOG[0].baseline : null)}`);
+for (const row of RESTORE_LOG) if (!row.restored) console.log(`RESTORE-FAIL ${row.state} :: ${JSON.stringify(row)}`);
+
+// **THE CALLER-SIDE DELETIONS, RESTORED AND MEASURED** — `§12A.3`: `delete Array.prototype.map` is taken for
+// the body's duration only, the descriptor is restored in a `finally`, and the entry proves the restored
+// member is the SAME function object with the same flags.
+const deletionsRestored = DELETION_LOG.every((row) => row.presentBefore && row.presentUnderDeletion && row.restored && row.identityRestored);
+console.log(`DELETION-RESTORED state-instances=${DELETION_LOG.length} all=${deletionsRestored} entries=${JSON.stringify(DELETION_LOG)}`);
+for (const row of DELETION_LOG) if (!(row.restored && row.identityRestored)) console.log(`RESTORE-FAIL deletion ${row.id} :: ${JSON.stringify(row)}`);
+
+// **THE `DEF-2026-10-24-E` BOUNDARY STATES, RESTORED AND MEASURED** — `§12B`: every caller-side prototype state
+// (`Array.prototype[0]`, `Object.prototype`/`Function.prototype`'s added `Symbol.toPrimitive`, the two
+// `Symbol.toStringTag` accessors, and the three residual overrides) is installed for one body's duration only,
+// the EXACT prior descriptor is restored in the harness's `finally`, and the entry proves the restored member
+// is the SAME function/getter object with the same flags (or absent, where it was absent).
+const boundaryRestored = BOUNDARY_RESTORE_LOG.every((row) => row.presentWhileInstalled && row.restored);
+console.log(`BOUNDARY-PROTOTYPES-RESTORED state-instances=${BOUNDARY_RESTORE_LOG.length} all=${boundaryRestored} entries=${JSON.stringify(BOUNDARY_RESTORE_LOG)}`);
+for (const row of BOUNDARY_RESTORE_LOG) if (!row.restored) console.log(`RESTORE-FAIL boundary ${row.id} :: ${JSON.stringify(row)}`);
+
+// **THE MUTATION MATRIX, READ OFF THE RESULTS** — one line per state, one token per drive: the measured verdict.
+const matrixLine = MUTATION_STATES.map((state) => {
+  const rows = RESULTS.filter((row) => row.coverage && row.coverage.state === state.id);
+  const cells = rows.map((row) => `${row.coverage.shape}=${row.verdict}`);
+  const passed = rows.filter((row) => row.verdict === 'PASS').length;
+  return `${state.id}(${passed}/${rows.length}) ${cells.join(' ')}`;
+}).join(' | ');
+console.log(`MUTATION-MATRIX ${matrixLine}`);
 
 const tally = (verdict) => RESULTS.filter((r) => r.verdict === verdict).length;
 console.log('---');
@@ -1498,6 +3372,72 @@ console.log(`SUMMARY reach=${REACH} cells=${RESULTS.length} pass=${tally('PASS')
 for (const row of RESULTS) {
   if (row.verdict === 'FAIL' || row.verdict === 'FINDING') console.log(`VIOLATION ${row.id} ${row.verdict} :: ${row.detail}`);
 }
+
+// **THE STRUCTURED COVERAGE EVIDENCE (the `D-GP-UFA` §6.1 duty, applied to this re-drive).** This unit has no
+// `§5.U` user-flow-audit matrix (no `docs/specs/user-flow-audit.md` in this repository), so the matrix rows this
+// section binds to are the clauses named in each row. **`summary.total` IS the row count — built from the row
+// array itself, so it cannot drift from it** — and every row was driven by a real input through the live
+// surface named beside it, every end point is the SETTLED state, and `proxy_pass` is `false` throughout.
+const coverageRows = RESULTS.filter((row) => row.coverage).map((row) => ({
+  cell: row.id,
+  matrix_row: row.coverage.matrixRow,
+  scenario: row.coverage.scenario,
+  start: row.coverage.start,
+  end: row.detail,
+  verdict: row.verdict,
+  real_input: true,
+  proxy_pass: false,
+  surface: {
+    // **THE LIVE SURFACE, PER ROW: the reach label plus the claim that it was PRESENT.** The exact paths and
+    // hashes of the entry, kernel and addon every row ran against are carried ONCE, in `live_surface` below,
+    // because all rows of this section share the one mapped surface — the per-row field is the claim, and it
+    // is the same claim on every row.
+    target: REACH,
+    live_surface_present: true,
+  },
+}));
+const countVerdict = (verdict) => coverageRows.filter((row) => row.verdict === verdict).length;
+const coverage = {
+  unit: 'U-STOREROOM-JSON-CROSSING',
+  drive: 're-drive-2026-10-24-c-after-the-four-boundary-laws-F-RA-11-F-RA-12-F-RA-13-and-the-residual-override',
+  clauses: [
+    'docs/specs/storeroom-json-crossing/contract.md §1 — its clause of 2026-10-24 (items (1)–(9)) and its clause of 2026-10-24 on F-RA-3 (items (3)–(6), the caller-side deletion)',
+    // **§2's clause is named here because it is the HOME of the two class decisions the controls drive
+    // (`LIVE-C04`/`LIVE-C05` at rows `14`/`13`) and of the member-position admission `LIVE-C03` drives
+    // (item `(3)`); it is ALSO the home of row `17` (`F-RA-5`, its clause of 2026-10-24) and — from this pass —
+    // of `F-RA-11`'s own-property hole test and of `F-RA-12`'s `Proxy` prototype link; `§2.1`'s clause is
+    // named beside it as the home of the `<subject>` cells, of the conversion guard's chain walk and of the
+    // `F-RA-13` render guard's three tests.**
+    'docs/specs/storeroom-json-crossing/contract.md §2 — its clause of 2026-10-24 (items (1)–(6)), its clause of 2026-10-24 on F-RA-5 (row 17, items (3), (5), (6), (8)), its clause of 2026-10-24 on F-RA-11 (the own-property density test, items (1)–(7)) and its clause of 2026-10-24 on F-RA-12 (a `Proxy` prototype link, items (1)–(7))',
+    'docs/specs/storeroom-json-crossing/contract.md §2.1 — its clause of 2026-10-24 (items (1)–(7)), its clause of 2026-10-24 (items (1)–(12), the exemption at its exact boundary and the chain walk), and its clause of 2026-10-24 on F-RA-13 (items (1a), (1b), (1c) and (6), the render guard\'s three tests) with the residual clause those items narrow',
+    'docs/specs/storeroom-json-crossing/test-cases.md §3 — JC-TC-49, the seventeenth class; and JC-TC-50, JC-TC-51, JC-TC-52, JC-TC-53 and JC-TC-54, the five cells of 2026-10-24',
+    'docs/defects.md · DEF-2026-10-24-C',
+    'docs/defects.md · DEF-2026-10-24-D',
+    'docs/defects.md · DEF-2026-10-24-E',
+  ],
+  live_surface: {
+    reach: REACH,
+    entry: ENTRY,
+    entry_sha256: entrySha256,
+    kernel: KERNEL,
+    kernel_sha256: kernelSha256,
+    addon: addonPath,
+    addon_bytes: addonBytes,
+    addon_md5: addonMd5,
+    node: process.version,
+  },
+  rows: coverageRows,
+  summary: {
+    total: coverageRows.length,
+    pass: countVerdict('PASS'),
+    fail: countVerdict('FAIL'),
+    finding: countVerdict('FINDING'),
+    observed: countVerdict('OBSERVED'),
+    proxy_pass: 0,
+    parked: 0,
+  },
+};
+console.log(`COVERAGE ${JSON.stringify(coverage)}`);
 
 // THE EXACT STORE PATHS, printed before the cleanup removes them.
 for (const [id, filePath] of PATHS) console.log(`STORE ${id} ${filePath}`);

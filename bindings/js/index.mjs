@@ -207,7 +207,16 @@ const ATTEMPT_INDEX = new WeakMap();
 function attemptIndex(store) {
   let index = ATTEMPT_INDEX.get(store);
   if (index === undefined) {
-    index = { open: 0, observers: new Set() };
+    // **⟶ THE OBSERVER LIST IS A PLAIN ARRAY, READ BY INDEX** (`contract.md §2.1`'s clause of 2026-10-24 on
+    // `F7-1`, item `(1b)` and `(1d)(iv)`): a `Set` is reached through `Set.prototype.add`/`delete` and its
+    // ITERATION (the opening's copy) through `Set.prototype[Symbol.iterator]`, and the copy was an ARRAY
+    // SPREAD whose `for … of` took `Array.prototype[Symbol.iterator]`. **That is the off-inventory site the
+    // battery names at its row `(a)`: every `write` reaches the opening BEFORE the walk, so a forged array
+    // iterator answered a raw host `TypeError` (`observer is not a function`) instead of the declared
+    // refusal.** The list preserves the Set's own two facts — insertion order and uniqueness — and the copy
+    // is taken before any notification, so an observer that removes itself mid-notification still moves
+    // nothing.
+    index = { open: 0, observers: [] };
     ATTEMPT_INDEX.set(store, index);
   }
   return index;
@@ -220,8 +229,12 @@ function openCommit(store) {
   if (index.open > 0) return false;
   index.open += 1;
   // **THE OBSERVER SEAM IS READ AT THE INSTANT OF THE OPENING** (`§4.2` item 2), one call per opening — and
-  // the iteration is a copy, so an observer that unsubscribes itself mid-notification moves nothing.
-  for (const observer of [...index.observers]) observer();
+  // the iteration is a copy, so an observer that unsubscribes itself mid-notification moves nothing. **The
+  // copy and the notification are LOCAL INDEX LOOPS** (item `(1c)(i)`): no spread, no iterator.
+  const observers = index.observers;
+  const copied = [];
+  for (let i = 0; i < observers.length; i += 1) copied[i] = observers[i];
+  for (let i = 0; i < copied.length; i += 1) copied[i]();
   return true;
 }
 
@@ -258,9 +271,24 @@ function installAttemptSeam(instance) {
         if (typeof observer !== 'function') {
           return () => {};
         }
-        index.observers.add(observer);
+        // **REGISTRATION AND ITS WITHDRAWAL ARE LOCAL INDEX LOOPS** (`contract.md §2.1`'s clause of 2026-10-24
+        // on `F7-1`, item `(1b)`): neither `Set.prototype.add` nor `Set.prototype.delete` is taken from a
+        // mutable prototype, and the list keeps the Set's own uniqueness and insertion order.
+        const observers = index.observers;
+        let known = false;
+        for (let i = 0; i < observers.length; i += 1) {
+          if (observers[i] === observer) {
+            known = true;
+            break;
+          }
+        }
+        if (!known) observers[observers.length] = observer;
         return () => {
-          index.observers.delete(observer);
+          const kept = [];
+          for (let i = 0; i < observers.length; i += 1) {
+            if (observers[i] !== observer) kept[kept.length] = observers[i];
+          }
+          index.observers = kept;
         };
       },
       writable: true,
@@ -652,6 +680,23 @@ function withAddon() {
 /// segment's OWN PREFIX — the store's own `dotted_address` spelling of it — and `undefined` at every site
 /// that declares none, where the slot is left at its default and THE GENERATOR'S OWN BYTES ARE UNMOVED**
 /// (the two-argument `errorMessage(code, subject)` call included).
+///
+/// **⟶ AND THE DOTTED SPELLING TAKES NOTHING FROM A MUTABLE PROTOTYPE FROM 2026-10-24** (`contract.md §2.1`'s
+/// clause of this date on `F7-1`, items `(2b)`'s row `40` and `(10d)`): the as-built limb was
+/// `container.map((segment) => String(segment)).join('.')` — `Array.prototype.map` and `Array.prototype.join`
+/// taken off a MUTABLE PROTOTYPE on a REFUSAL path — so a caller's `map` answering a string made the next
+/// `.join` throw a raw host `TypeError` out of a refusal (`§2.5` item 5 (e) allows no second form), and a
+/// caller's `join` answering a marker wrote that marker into the store's own `<container>` slot as
+/// `in 'OPMARK'`. **`spellDottedContainer` below is item `(1c)(i)`'s local loop**; the separator, the bare
+/// spellings and the absent-container default are unmoved.
+function spellDottedContainer(container) {
+  let spelled = '';
+  for (let i = 0; i < container.length; i += 1) {
+    spelled += i === 0 ? String(container[i]) : `.${String(container[i])}`;
+  }
+  return spelled;
+}
+
 function boundaryReject(status, subject, clause, container) {
   const addon_ = withAddon();
   if (typeof addon_.errorMessage !== 'function') {
@@ -662,7 +707,7 @@ function boundaryReject(status, subject, clause, container) {
   // **THE CONTAINER IS THE PREFIX'S OWN DOTTED SPELLING AND NOTHING ELSE** (`src/error.rs`'s
   // `dotted_address`: a key bare, an index bare, joined by `.`) — the same reading the store's own
   // `malformed_segment` triggers take, where the container is the segment the mismatch was found in.
-  const where = container === undefined ? undefined : container.map((segment) => String(segment)).join('.');
+  const where = container === undefined ? undefined : spellDottedContainer(container);
   const generated = where === undefined
     ? addon_.errorMessage(status, subject)
     : addon_.errorMessage(status, subject, where);
@@ -680,22 +725,123 @@ function boundaryReject(status, subject, clause, container) {
 /// LONE SURROGATE is REFUSED `ValueNotAdmitted` AT THE PACKAGE'S OWN WALK, BEFORE ANY VERB IS CALLED** —
 /// no Rust `String` can carry one, and the value is never silently replaced, dropped or normalized into a
 /// replacement character. **The class is BOUNDARY-ONLY and this is its one site.**
+///
+/// **⟶ AMENDED 2026-10-24 (`contract.md §2.1`'s clause of this date on `F6-2`, items `(2a)`–`(2d)`): THE
+/// PREDICATE INVOKES NOTHING TAKEN FROM A MUTABLE PROTOTYPE — it reads the string's own code units by a LOCAL
+/// INDEX READ.** The block above stands byte-for-byte and is read THROUGH this clause; **the class, its one
+/// site, its four other readings and every admission stand unmoved.** **THE DEFECT, AT ITS BYTES:** the shipped
+/// read was `text.charCodeAt(i)` and `text.charCodeAt(i + 1)` — A MEMBER READ OFF `String.prototype` AT THE
+/// MOMENT OF THE CALL — and this predicate is the SOLE gate on `§2` rows `9` and `10` with NO downstream
+/// refuser, so an override answering `0x41` at every index made `a string carrying a lone surrogate`
+/// UNREACHABLE at both positions and a lone-surrogate value and key crossed, repaired to U+FFFD on the far
+/// side. **THE FORM IS THE CLAUSE'S FIRST LAWFUL ONE AND IT IS TAKEN FOR THE REASON `C-11` GIVES:** `text[i]`
+/// is a string's OWN EXOTIC INDEX PROPERTY — answered by the string wrapper and by no link of any prototype
+/// chain — and `text.length` is the wrapper's own property, so no method is invoked and no intrinsic is
+/// captured at load (a captured `String.prototype.charCodeAt` is the frozen prototype fact `C-11` forbids, so
+/// the clause's second form, `String.prototype.charCodeAt.call(...)`, is NAMED THERE AND NOT TAKEN HERE).
+/// **AND THE PAIR READ CARRIES ITS OWN BOUND, WHICH IS PART OF THE FORM AND NOT AN OPTIMISATION:**
+/// `text[i + 1]` is read ONLY WHERE `i + 1 < text.length`, because an out-of-range canonical index is NOT the
+/// wrapper's own property — an unguarded read would reach a caller's `String.prototype[i + 1]` and PAIR a high
+/// surrogate the caller never paired. Where that index does not exist the answer is LONE, the same answer the
+/// shipped `NaN` comparison gave.
 function hasLoneSurrogate(text) {
   for (let i = 0; i < text.length; i += 1) {
-    const code = text.charCodeAt(i);
-    if (code >= 0xd800 && code <= 0xdbff) {
-      const next = text.charCodeAt(i + 1);
-      if (!(next >= 0xdc00 && next <= 0xdfff)) return true;
+    const unit = text[i];
+    if (unit >= '\uD800' && unit <= '\uDBFF') {
+      // THE PAIR READ IS BOUNDED (item `(2b)`): an out-of-range canonical index is not the wrapper's own
+      // property, so it is never asked of the chain.
+      if (i + 1 >= text.length) return true;
+      const low = text[i + 1];
+      if (!(low >= '\uDC00' && low <= '\uDFFF')) return true;
       i += 1;
-    } else if (code >= 0xdc00 && code <= 0xdfff) {
+    } else if (unit >= '\uDC00' && unit <= '\uDFFF') {
       return true;
     }
   }
   return false;
 }
 
-/// `Object.prototype`'s own property names — `['constructor', '__proto__']` — **read PER CALL from THIS
-/// realm's own prototype. They are the KEY SET the (e)-half of the plain-object test compares against.**
+/// **THE ECMASCRIPT STANDARD `Object.prototype` MEMBER SET — A FIXED, REALM-INDEPENDENT LIST, SPELLED HERE
+/// AND NOT READ FROM ANY PROTOTYPE.**
+///
+/// **⟶ `contract.md §1`'s clause of 2026-10-24 (`docs/defects.md` · `DEF-2026-10-24-C`), items `(1)(c)`,
+/// `(2)` and `(3)`, ARE THIS LIST'S WHOLE AUTHORITY.** Item `(1)(c)` makes the plain-object limb a
+/// CARRYING test against the standard `Object.prototype` member set, item `(2)` makes the array limb the
+/// same test against the standard `Array.prototype` set with an `Object.prototype`-SHAPED prototype above it,
+/// and item `(3)` is why the sets are SPELLED rather than read: **an INJECTED own member on EITHER realm's
+/// prototype must leave a lawful value's verdict unchanged, and a set derived from a live prototype would
+/// carry the injected name and then DEMAND it of the other realm's values** — the realm-agreement failure
+/// `DEF-2026-10-24-C` measured. **THE CENSUS THE TEST READS OFF THE VALUE'S OWN PROTOTYPE IS STILL READ PER
+/// CALL (`plainProtoNames`, `arrayProtoNames`, `arrayProtoSymbols` below); what is fixed here is only the
+/// STANDARD half of the reference set, which is a fact about ECMAScript and not about any realm's state.**
+/// **`Object.prototype` carries no own SYMBOL member**, so item `(1)(c)`'s symbol half is empty for the
+/// object limb and no symbol is compared there.
+const OBJECT_PROTO_STANDARD_NAMES = [
+  'constructor',
+  '__defineGetter__',
+  '__defineSetter__',
+  'hasOwnProperty',
+  '__lookupGetter__',
+  '__lookupSetter__',
+  'isPrototypeOf',
+  'propertyIsEnumerable',
+  'toString',
+  'valueOf',
+  '__proto__',
+  'toLocaleString',
+];
+
+/// **THE ECMASCRIPT STANDARD `Array.prototype` NAME SET AND SYMBOL-DESCRIPTION SET — a fixed,
+/// realm-independent pair of lists, for the reason `OBJECT_PROTO_STANDARD_NAMES` states** (`contract.md §1`'s
+/// clause of 2026-10-24, items `(2)` and `(3)`). **The symbols are compared BY DESCRIPTION and never by
+/// identity** — `Symbol.iterator` in another realm is a DIFFERENT symbol value, and a cross-realm array must
+/// be ADMITTED (`docs/specs/storeroom-js/crossing.md §1.2` row `5`).
+const ARRAY_PROTO_STANDARD_NAMES = [
+  'length',
+  'constructor',
+  'at',
+  'concat',
+  'copyWithin',
+  'fill',
+  'find',
+  'findIndex',
+  'findLast',
+  'findLastIndex',
+  'lastIndexOf',
+  'pop',
+  'push',
+  'reverse',
+  'shift',
+  'unshift',
+  'slice',
+  'sort',
+  'splice',
+  'includes',
+  'indexOf',
+  'join',
+  'keys',
+  'entries',
+  'values',
+  'forEach',
+  'filter',
+  'flat',
+  'flatMap',
+  'map',
+  'every',
+  'some',
+  'reduce',
+  'reduceRight',
+  'toReversed',
+  'toSorted',
+  'toSpliced',
+  'with',
+  'toLocaleString',
+  'toString',
+];
+const ARRAY_PROTO_STANDARD_SYMBOL_DESCRIPTIONS = ['Symbol.iterator', 'Symbol.unscopables'];
+
+/// `Object.prototype`'s own property names — **read PER CALL from THIS realm's own prototype. They are the
+/// LIVE HALF of the reference set the plain-object test compares against.**
 ///
 /// **⟶ READ PER CALL, NOT ONCE AT LOAD: THE LOAD-TIME CACHE WAS A FAIL-CLOSED DoS.** `C-11` of the gate-4
 /// adversarial pass measured it: the sets stood as module-level `const`s taken at load, so a LATER own
@@ -703,23 +849,181 @@ function hasLoneSurrogate(text) {
 /// `cfg` comparing against a key set the realm no longer has — `arrayClass` and `protoClass` then answered
 /// `'class'`, the walk refused `[]` and `{}` alike, and the refusal was reached at `on`'s own step 1. **THE
 /// SETS ARE FACTS ABOUT THE PROTOTYPES AS THEY ARE AT THIS CALL**, so they are read where they are used;
-/// the comparison is unchanged in every other respect (by NAME and by SYMBOL DESCRIPTION, never by a
-/// symbol's identity — `§1.2` row 5, `§1.3` row 13).
-function plainProtoNames() {
-  return new Set(Object.getOwnPropertyNames(Object.prototype));
+/// the reading is unchanged in every other respect (by NAME and by SYMBOL DESCRIPTION, never by a symbol's
+/// identity — `§1.2` row 5, `§1.3` row 13).
+///
+/// **⟶ AND `C-11` STANDS UNMOVED BY `contract.md §1`'s CLAUSE OF 2026-10-24: THE PER-CALL READ IS KEPT AND
+/// ONLY THE EQUALITY AGAINST IT IS REMOVED** (item `(4)`). The reference set is `referenceSet(...)` below —
+/// the standard list INTERSECTED with this per-call reading — so the equality test cannot be reconstructed
+/// here, a caller-side mutation leaves no stale set behind, and (item `(3)`) it cannot move a verdict either.
+///
+/// **⟶ AND NO CENSUS IS HANDED TO `new Set(...)` ANY MORE — `contract.md §2.1`'s clause of 2026-10-24 on
+/// `F7-1`, items `(1c)(ii)`, `(2b)`'s rows `1`, `2`, `8` and `11`, and `(10a)` (`S2`).** The static is lawful
+/// and its RESULT'S ITERATION is not: `new Set(census)` consumes the census array through
+/// `Array.prototype[Symbol.iterator]`, so a FORGED iterator emptied or filled the set and a prototype that
+/// owns nothing then passed the carrying test (`Object.create(Object.create(null))` CROSSED as a plain
+/// object, item `(1f)(ii)`'s first measured state). **THE FORM IS ITEM `(1c)(i)`'S: THE CENSUS ARRAY ITSELF,
+/// KEPT AND READ BY INDEX** — no `Set`, no iterator, no `for … of` over a result.
+///
+/// **⟶ AND THE READ IS CHARGED ITS OWN LENGTH FROM 2026-10-24** (`contract.md §2.1`'s clause of this date on
+/// `F7-2`, item `(4c)(iii)`: *"one own-NAME census read — `1 + the length of the list it returns`"*, and item
+/// `(4e)`: the allowance is threaded into this reader and it answers the WITH branch's conservative answer
+/// where the spend is refused). `null` is that answer — a census the caller may not pay for is not a census
+/// this reader may compare against, so `isStandardObjectPrototype` answers `false` (the class answer) and the
+/// guard keeps walking instead of exempting a link on a read it could not charge.
+function plainProtoNames(allowance) {
+  const names = Object.getOwnPropertyNames(Object.prototype);
+  if (!spendGuardRead(allowance, 1 + names.length)) return null;
+  return names;
 }
 
 /// `Array.prototype`'s own property names and its own symbols' descriptions, **read PER CALL from THIS
-/// realm's own prototype**. **They are the KEY SET the ARRAY half of the class decision compares against**,
-/// and the comparison is by NAME and by SYMBOL DESCRIPTION — never by a symbol's identity, because
-/// `Symbol.iterator` in another realm is a DIFFERENT symbol value, and a cross-realm array must be ACCEPTED
-/// (`§1.2` row 5, `§1.3` row 13). **See `plainProtoNames` above for why these are not cached (`C-11`).**
-function arrayProtoNames() {
-  return new Set(Object.getOwnPropertyNames(Array.prototype));
+/// realm's own prototype**. **They are the LIVE HALF of the reference set the ARRAY half of the class
+/// decision compares against**, and the comparison is by NAME and by SYMBOL DESCRIPTION — never by a
+/// symbol's identity, because `Symbol.iterator` in another realm is a DIFFERENT symbol value, and a
+/// cross-realm array must be ACCEPTED (`§1.2` row 5, `§1.3` row 13). **See `plainProtoNames` above for why
+/// these are not cached (`C-11`) and for why the per-call read survives the clause of 2026-10-24.**
+/// **And for the reason `plainProtoNames` above spells: the census array is READ BY INDEX and never handed to
+/// `new Set(...)` (`F7-1`, items `(2b)` row `2` and `(10a)`).**
+function arrayProtoNames(allowance) {
+  const names = Object.getOwnPropertyNames(Array.prototype);
+  if (!spendGuardRead(allowance, 1 + names.length)) return null;
+  return names;
 }
 
-function arrayProtoSymbols() {
-  return new Set(Object.getOwnPropertySymbols(Array.prototype).map((s) => s.description));
+/// **⟶ AND THIS READ TAKES NO METHOD FROM A MUTABLE PROTOTYPE: `Array.prototype.map` IS GONE FROM IT.**
+/// `contract.md §1`'s clause of 2026-10-24 on `F-RA-3`, item `(3)`, declares a DELETION in the CALLER's realm
+/// admission-preserving — the deleted name leaves the reference set's live half and with it the requirement —
+/// and the as-built read spelled `Object.getOwnPropertySymbols(Array.prototype).map((s) => s.description)`,
+/// **so `delete Array.prototype.map` in this realm made the CENSUS READ ITSELF throw and `arrayClass`'s guarded
+/// `try` turned that `TypeError` into `'class'`: a caller's deletion became a REFUSAL of its own array, the
+/// one direction item `(3)` forbids.** The read is now a plain indexed loop over an ordinary array
+/// (`Object.getOwnPropertySymbols`'s own result, read by index, so no iterator and no method of a live
+/// prototype is consulted), and the census is the same census.
+///
+/// **⟶ AND THE DESCRIPTION READ IS ITSELF MEMBER-FREE FROM 2026-10-24** (`contract.md §2.1`'s clause of this
+/// date on `F7-1`, item `(2b)`'s rows `3`, `4` and `12`, and `(10a)`): `symbols[i].description` is
+/// `Symbol.prototype.description`'s ACCESSOR taken off a MUTABLE PROTOTYPE, so a caller's getter answered for
+/// every symbol and the ARRAY LIMB'S class was decided by it — the measured state `(1f)(ii)` names at row `(e)`,
+/// where a genuine array on a one-symbol array-shaped prototype CROSSED. **THE FORM IS A SPEC CONVERSION ON A
+/// SYMBOL PRIMITIVE** (`String(sym)`'s `SymbolDescriptiveString`, the same lawful form item `(2b)`'s row `27`
+/// records for `String(number)`), **and the description is spelled back by a local index loop** — the string's
+/// own exotic index reads (`(1c)(v)`) and `+=` (`(1c)(i)`), never `slice`, never a method of a prototype.
+function symbolDescription(symbol) {
+  const spelled = String(symbol);
+  let description = '';
+  for (let i = 7; i < spelled.length - 1; i += 1) description += spelled[i];
+  return description;
+}
+
+/// **⟶ AND THE RESULT IS AN ARRAY, NOT A `Set`** (`F7-1`, items `(2b)` row `4` and `(10a)`): a `Set`'s
+/// membership is `Set.prototype.has` and its construction consumes its argument through an ITERATOR, and both
+/// are mutable-prototype members by item `(1d)(iv)`. The census is read by index wherever it is compared.
+function arrayProtoSymbols(allowance) {
+  const symbols = Object.getOwnPropertySymbols(Array.prototype);
+  const descriptions = [];
+  for (let i = 0; i < symbols.length; i += 1) descriptions[descriptions.length] = symbolDescription(symbols[i]);
+  // THE OWN-SYMBOL CENSUS READ IS `1 + length` TOO (item `(4c)(iv)`); `null` is the conservative answer.
+  if (!spendGuardRead(allowance, 1 + symbols.length)) return null;
+  return descriptions;
+}
+
+/// **THE REFERENCE SET — `contract.md §1`'s clause of 2026-10-24, item `(4)`: THE STANDARD SET INTERSECTED
+/// WITH THIS REALM'S LIVE CENSUS READ AT THIS CALL.**
+///
+/// **THE INTERSECTION IS NOT A CONVENIENCE: IT IS ITEM `(3)`'S DECLARED SAFETY IN THE ONE DIRECTION THAT IS
+/// NOT FROZEN.** An ADDED member is not in the standard list, so the intersection cannot see it and the
+/// verdict cannot move (item `(3)`); a DELETED standard member is dropped from the live half, so the
+/// intersection only ever REMOVES a requirement and a deletion can never turn an admission into a refusal —
+/// `C-11`'s fail-closed DoS in the other direction, equally forbidden (item `(4)`'s closing sentence).
+///
+/// **⟶ AND THE SET IS A LIST — `contract.md §2.1`'s clause of 2026-10-24 on `F7-1`, item `(2b)`'s row `5` and
+/// item `(1c)(vi)`, WHICH SPELLS THE REPLACEMENT: *"A MEMBERSHIP TEST WRITTEN AS A LOCAL LOOP"*.** A `Set`'s
+/// construction consumes an argument through an iterator and its membership is `Set.prototype.has`; both are
+/// mutable-prototype members by item `(1d)(iv)`, and the measured states `(1f)(ii)` names at rows `(c)` and
+/// `(d)` are exactly this membership answering a caller's forged `has`/`add`. The intersection is the same
+/// intersection: a local loop, a spelled `===`, and an index append.
+function referenceSet(standardMembers, liveCensus, allowance) {
+  // **⟶ AND THE ALLOWANCE IS THREADED IN HERE TOO** (item `(4e)`): a census the caller could not pay for is
+  // not a reference set, so the intersection answers `null` and its caller answers its branch's conservative
+  // answer. The memberships themselves are spelled `===` comparisons over lists already charged their length
+  // (item `(4c)(viii)`: a spelled relational comparison is `0`).
+  if (liveCensus === null) return null;
+  const reference = [];
+  for (let i = 0; i < standardMembers.length; i += 1) {
+    const member = standardMembers[i];
+    for (let j = 0; j < liveCensus.length; j += 1) {
+      if (liveCensus[j] === member) {
+        reference[reference.length] = member;
+        break;
+      }
+    }
+  }
+  return reference;
+}
+
+/// **`§1`'s `(1)(b)` AND `(1)(c)` — A PROTOTYPE THAT IS TERMINAL AND CARRIES THE STANDARD `Object.prototype`
+/// MEMBER SET**, which is what `contract.md §1`'s clause of 2026-10-24 calls an *"`Object.prototype`-SHAPED
+/// prototype"* in item `(2)`.
+///
+/// **(b) THAT PROTOTYPE IS TERMINAL: `[[GetPrototypeOf]](proto)` is `null`** — it stands one link from the
+/// value and ends the chain. **This condition, and no census comparison, is what refuses a CLASS INSTANCE**
+/// (row `14`): a class's prototype's own prototype is an `Object.prototype` and is therefore not `null`.
+/// **(c) THAT PROTOTYPE CARRIES THE STANDARD SET**, by `referenceSet` above: every member of the reference set
+/// is an own member of the prototype, **and any FURTHER own member it carries is IRRELEVANT — it neither
+/// admits nor refuses** (item `(1)(c)`'s own closing words). **No COUNT is compared anywhere here**, which is
+/// the two equality tests the clause removed at `:741`–`:742` and `:779`–`:781`.
+///
+/// The guarded `try` stands where the shipped ones stood: a prototype whose own reads THROW (a `Proxy` used
+/// as a prototype, a revoked one) answers `false` — the class answer — and nothing escapes this frame.
+/// **⟶ AND EVERY READ IT TAKES IS CHARGED TO THE ONE PER-CALL ALLOWANCE FROM 2026-10-24**
+/// (`contract.md §2.1`'s clause of this date on `F7-2`, items `(4a)`, `(4c)` and `(4e)`): the link's
+/// `getPrototypeOf` read is `1`, the own-name census read it takes is `1 + its length`, and the live
+/// `plainProtoNames` census is the same figure — **the three terms item `(4a)` names as the ones no charge
+/// reached.** Where a spend is refused this predicate answers `false`, i.e. **"not a standard shape"**: the
+/// conservative direction, since the class answer is `'class'` and the render guard keeps walking instead of
+/// exempting a link whose census it could not pay for.
+function isStandardObjectPrototype(proto, allowance) {
+  if (proto === null) return false;
+  // **⟶ `contract.md §2`'s clause of 2026-10-24 on `F-RA-12`, item `(6)(a)`: A PROTOTYPE LINK THAT IS A
+  // `Proxy` — INCLUDING A REVOKED ONE — IS `false`, WITH NO TRAP RUN AND BEFORE ANY CENSUS READ OF IT.** A
+  // trap that RETURNS a shape is not answered by the `catch` below (a `catch` cannot un-run a trap that
+  // returns), so a LYING `ownKeys`/`getPrototypeOf` handler turned a subclass-shaped prototype into an
+  // admission: `Object.create(lyingProxy)` crossed as a plain object. `util.types.isProxy` reads no member
+  // and invokes no handler, and a shape the package may not read is not a shape the value carries. **THE
+  // GROUND IS `§1`'s OWN** — this guard covers `protoClass`'s whole census path, `arrayClass`'s chain link
+  // and `isLanguageStandardPrototype`'s `above` read, so no limb and no conversion test reads a proxy link.
+  if (types.isProxy(proto)) return false;
+  let names;
+  try {
+    if (!spendGuardRead(allowance, 1)) return false; // ONE `getPrototypeOf` CALL — item `(4c)(ii)`
+    if (Object.getPrototypeOf(proto) !== null) return false; // (b) TERMINAL
+    // **⟶ AND THE CENSUS IS KEPT AS AN ARRAY AND COMPARED BY INDEX** (`contract.md §2.1`'s clause of
+    // 2026-10-24 on `F7-1`, items `(1c)(ii)`, `(2b)`'s row `6` and `(10a)`): `new Set(...)` consumed the
+    // read through `Array.prototype[Symbol.iterator]` and its `has` was `Set.prototype.has`, so a forged
+    // iterator or a forged `has` decided the CLASS — `Object.create(Object.create(null))` crossed and
+    // `[1]` on a one-symbol array-shaped prototype crossed with it. The read, the reference set and the
+    // carrying test below are all local loops on ordinary arrays now.
+    names = Object.getOwnPropertyNames(proto); // (c) the value's prototype's own census
+  } catch {
+    return false;
+  }
+  // THE OWN-NAME CENSUS READ, CHARGED `1 + the length of the list it returns` (item `(4c)(iii)`).
+  if (!spendGuardRead(allowance, 1 + names.length)) return false;
+  const reference = referenceSet(OBJECT_PROTO_STANDARD_NAMES, plainProtoNames(allowance), allowance);
+  if (reference === null) return false;
+  for (let i = 0; i < reference.length; i += 1) {
+    const name = reference[i];
+    let carried = false;
+    for (let j = 0; j < names.length; j += 1) {
+      if (names[j] === name) {
+        carried = true;
+        break;
+      }
+    }
+    if (!carried) return false;
+  }
+  return true;
 }
 
 /// `crossing.md §1.4` item 4: **THE PLAIN-OBJECT TEST**, items (a)–(g) — **STRUCTURAL AND REALM-AGNOSTIC.**
@@ -728,26 +1032,41 @@ function arrayProtoSymbols() {
 /// object from ANY realm (`vm`, a worker, `structuredClone`) is therefore ACCEPTED** — its prototype is
 /// that realm's own `Object.prototype`, whose own names are this realm's own two — **while a CLASS INSTANCE
 /// is refused, because a class's prototype carries its own `constructor`** (`DD-7`, `DD-35`).
+///
+/// **⟶ AMENDED 2026-10-24 (`DEF-2026-10-24-C`; `contract.md §1`'s clause of that date, items `(1)`, `(3)`,
+/// `(5)`, `(6)`): THE PREDICATE IS `§1`'s OBJECT LIMB, TAKEN STRUCTURALLY — THE VALUE CARRIES A PROTOTYPE,
+/// THAT PROTOTYPE IS TERMINAL, AND THAT PROTOTYPE CARRIES THE STANDARD `Object.prototype` MEMBER SET.**
+/// The block above stands byte-for-byte and is read THROUGH this clause. **THE TWO EQUALITY TESTS THE CLAUSE
+/// REMOVES ARE GONE FROM THIS BODY — `names.length !== plain.size` and `if (!plain.has(name)) return 'class'`
+/// — because a COUNT and a NAME-NOT-IN-THE-SET compared the value's prototype's own census against THIS
+/// realm's live prototype and so REFUSED a lawful foreign-realm plain object the moment either realm's
+/// `Object.prototype` gained one own member.** What stands in their place is `isStandardObjectPrototype`
+/// above: terminality (`(1)(b)`, which is what refuses a class instance and needs no census read at all) and
+/// a CARRYING test against the standard set (`(1)(c)`, in which an EXTRA own member on either realm's
+/// prototype is irrelevant). **A LAWYER'S NOTE ON WHAT DID NOT MOVE: the `'null'` answer and the identity
+/// comparison below STAY.** The `'null'` answer is `§3`'s `p` classification for a prototype-less object —
+/// admitted, and unmoved by this clause — and `proto === Object.prototype ? 'plain' : 'foreign'` LABELS an
+/// admitted value's classification and decides NO admission (`§1`'s item `(5)`); a verdict that turned on it
+/// would be the removed test under another name.
 function protoClass(value) {
   const proto = Object.getPrototypeOf(value);
   if (proto === null) return 'null';
-  let names;
-  try {
-    names = Object.getOwnPropertyNames(proto);
-  } catch {
-    return 'class';
-  }
-  const plain = plainProtoNames(); // `C-11`: the realm's own set, read at THIS call
-  if (names.length !== plain.size) return 'class';
-  for (const name of names) if (!plain.has(name)) return 'class';
-  return proto === Object.prototype ? 'plain' : 'foreign';
+  return isStandardObjectPrototype(proto) ? (proto === Object.prototype ? 'plain' : 'foreign') : 'class';
 }
 
 /// `crossing.md §1.4` item 4 (c), (d) and item 1: an own ACCESSOR, or an own `Symbol`-keyed property,
 /// REFUSES THE WHOLE VALUE — *"any other answer would DROP A MEMBER SILENTLY"* (`DD-8`).
+///
+/// **⟶ AND THE SCAN IS A LOCAL INDEX LOOP FROM 2026-10-24** (`contract.md §2.1`'s clause of this date on
+/// `F7-1`, items `(1c)(i)`, `(2b)`'s rows `7` and `16`, and `(10a)`): the as-built read walked
+/// `Object.getOwnPropertyNames(value)` with `for … of`, i.e. through `Array.prototype[Symbol.iterator]`, so a
+/// caller's forged iterator **left row `15`'s accessor untested** while the census still had entries to read.
+/// The census is the same census and the two descriptors read are the same two; only the consumption form
+/// moved.
 function accessorOrSymbolArm(value) {
-  for (const name of Object.getOwnPropertyNames(value)) {
-    const descriptor = Object.getOwnPropertyDescriptor(value, name);
+  const names = Object.getOwnPropertyNames(value);
+  for (let i = 0; i < names.length; i += 1) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, names[i]);
     if (descriptor.get || descriptor.set) return { k: 'P' };
   }
   return Object.getOwnPropertySymbols(value).length > 0 ? { k: 'y' } : null;
@@ -763,22 +1082,97 @@ function accessorOrSymbolArm(value) {
 /// (`class V extends Array {}`, whose prototype carries its own `constructor` and little else) is refused
 /// BY ITS CLASS.** (`JS-2`: `Array.isArray` may not SHORT-CIRCUIT this test — it is a predicate about the
 /// exotic array-ness of the object and says NOTHING about which class the object belongs to.)
-function arrayClass(value) {
+///
+/// **⟶ AMENDED 2026-10-24 (`DEF-2026-10-24-C`; `contract.md §1`'s clause of that date, item `(2)`): THE
+/// ARRAY LIMB IS `§1`'s THREE CONDITIONS, AND ITS CHAIN HAS ONE MORE LINK THAN THE OBJECT'S — so the test
+/// is stated ON THE CHAIN and never on this realm's `Array.prototype` by identity.** (a) the value carries
+/// a prototype; (b) that prototype carries the standard `Array.prototype` NAME set AND the standard
+/// `Array.prototype` SYMBOL-DESCRIPTION set — compared by description and never by a symbol's identity; and
+/// (c) **that prototype's own prototype is an `Object.prototype`-SHAPED prototype, i.e. one satisfying
+/// `§1`'s `(1)(b)` and `(1)(c)` (`isStandardObjectPrototype` above)**. **The standard chain is therefore
+/// `value → Array.prototype → Object.prototype → null` in EVERY realm**, which is why a `vm` array, a
+/// worker's array and a `structuredClone`d array are admitted by the same rule as this realm's own — and why
+/// a class extending `Array` is refused: its prototype's own prototype is an `Array.prototype` and NOT an
+/// `Object.prototype`-shaped one, so the chain check alone answers `'class'` before any census is compared.
+/// **THE TWO EQUALITY TESTS THE CLAUSE REMOVES ARE GONE — `names.length !== arrayNames.size ||
+/// symbols.length !== arraySymbols.size` and the two `if (!set.has(...)) return 'class'` loops — and the
+/// per-call census reads and the guarded `try` stand exactly where they stood** (item `(5)`). **`Array.isArray`
+/// alone may not stand as the admission test and no `instanceof` test is taken** (`JS-2`, unmoved); the
+/// identity comparison in the final `return` LABELS the `p` classification and decides no admission.
+/// **⟶ AND ITS READS ARE CHARGED TO THE ONE PER-CALL ALLOWANCE WHERE A CALLER CARRIES ONE** (`contract.md
+/// §2.1`'s clause of 2026-10-24 on `F7-2`, item `(4e)`): its `getPrototypeOf` reads, its own-name and
+/// own-symbol census reads and the two live reference censuses are the same figures
+/// `isStandardObjectPrototype` charges. **A REFUSED SPEND ANSWERS `'class'`** — the limb's own class answer,
+/// which is the WITH branch's conservative direction for a class decision — and a caller that carries no
+/// allowance (the walk's own admission test, `isAdmittedArray`, `constraintAddress`) is charged nothing.
+function arrayClass(value, allowance) {
   const proto = Object.getPrototypeOf(value);
   if (proto === null) return 'null';
+  // **⟶ `contract.md §2`'s clause of 2026-10-24 on `F-RA-12`, item `(6)(b)`: THE ARRAY LIMB ANSWERS
+  // `'class'` FOR A `Proxy` PROTOTYPE LINK — INCLUDING A REVOKED ONE — BEFORE ITS GUARDED `try` AND
+  // THEREFORE BEFORE EVERY CENSUS READ BELOW.** The limb answers `'class'` and not a boolean, so the guard
+  // is spelled here as well as in `isStandardObjectPrototype` above; `util.types.isProxy` reads no member,
+  // runs no trap and throws for no revoked link.
+  if (types.isProxy(proto)) return 'class';
   let names;
   let symbols;
+  let above;
   try {
+    // `C-11`: the value's prototype's own census is read at THIS call, never from a load-time constant.
+    // **⟶ AND IT IS AN ARRAY, READ BY INDEX, WITH A MEMBERSHIP LOOP AND NOT A `Set`** (`contract.md §2.1`'s
+    // clause of 2026-10-24 on `F7-1`, items `(1c)(ii)`, `(1c)(vi)`, `(2b)`'s rows `8`, `11` and `12`, and
+    // `(10a)`): `new Set(...)` consumed each read through `Array.prototype[Symbol.iterator]` and each
+    // comparison was `Set.prototype.has`, so a forged iterator or a forged `has` answered the array limb for
+    // the caller — the measured state `(1f)(ii)` row `(c)`'s `[1]`, and row `(e)`'s genuine array.
     names = Object.getOwnPropertyNames(proto);
-    symbols = Object.getOwnPropertySymbols(proto);
+    // **⟶ AND NO METHOD IS TAKEN FROM A MUTABLE PROTOTYPE HERE EITHER** — the as-built read spelled
+    // `.map((symbol) => symbol.description)`, so `delete Array.prototype.map` in the CALLER's realm threw inside
+    // this guarded frame and the catch below answered `'class'` for the caller's own lawful array
+    // (`contract.md §1`'s clause of 2026-10-24 on `F-RA-3`, item `(3)`: a caller-side deletion cannot turn an
+    // admission into a refusal). The loop reads the census by index, and the description is a spec conversion
+    // on the symbol primitive (`symbolDescription` above), never `Symbol.prototype.description`; the guarded
+    // `try` still stands for a prototype whose own reads THROW (a `Proxy` used as a prototype, a revoked one).
+    const ownSymbols = Object.getOwnPropertySymbols(proto);
+    symbols = [];
+    for (let i = 0; i < ownSymbols.length; i += 1) symbols[symbols.length] = symbolDescription(ownSymbols[i]);
+    above = Object.getPrototypeOf(proto); // (c) the chain's next link: `Array.prototype → Object.prototype`
   } catch {
     return 'class';
   }
-  const arrayNames = arrayProtoNames(); // `C-11`: the realm's own sets, read at THIS call
-  const arraySymbols = arrayProtoSymbols();
-  if (names.length !== arrayNames.size || symbols.length !== arraySymbols.size) return 'class';
-  for (const name of names) if (!arrayNames.has(name)) return 'class';
-  for (const symbol of symbols) if (!arraySymbols.has(symbol.description)) return 'class';
+  // THE THREE READS JUST TAKEN, EACH AT ITEM `(4c)`'S OWN FIGURE: two own censuses at `1 + length` and the
+  // one `getPrototypeOf` call at `1`. A refused spend answers the limb's own class answer.
+  if (!spendGuardRead(allowance, 1 + names.length)) return 'class';
+  if (!spendGuardRead(allowance, 1 + symbols.length)) return 'class';
+  if (!spendGuardRead(allowance, 1)) return 'class';
+  if (!isStandardObjectPrototype(above, allowance)) return 'class';
+  const liveNames = arrayProtoNames(allowance);
+  if (liveNames === null) return 'class';
+  const arrayNames = referenceSet(ARRAY_PROTO_STANDARD_NAMES, liveNames, allowance);
+  const liveSymbols = arrayProtoSymbols(allowance);
+  if (liveSymbols === null) return 'class';
+  const arraySymbols = referenceSet(ARRAY_PROTO_STANDARD_SYMBOL_DESCRIPTIONS, liveSymbols, allowance);
+  for (let i = 0; i < arrayNames.length; i += 1) {
+    const name = arrayNames[i];
+    let carried = false;
+    for (let j = 0; j < names.length; j += 1) {
+      if (names[j] === name) {
+        carried = true;
+        break;
+      }
+    }
+    if (!carried) return 'class';
+  }
+  for (let i = 0; i < arraySymbols.length; i += 1) {
+    const description = arraySymbols[i];
+    let carried = false;
+    for (let j = 0; j < symbols.length; j += 1) {
+      if (symbols[j] === description) {
+        carried = true;
+        break;
+      }
+    }
+    if (!carried) return 'class';
+  }
   return proto === Array.prototype ? 'plain' : 'foreign';
 }
 
@@ -842,7 +1236,20 @@ function targetSpelling(value) {
     // reads the class with `util.types.isProxy` alone, invoking nothing, so the target half is still the
     // class the value HAS — no trap runs on this path either, and the same refusal is reachable `on` and
     // `read` alike.
-    if (typeof value === 'object' && value !== null && types.isProxy(value)) return classSpelling(value);
+    // **⟶ AMENDED 2026-10-24 (`contract.md §2.1`'s clause of this date on `F5-3`, items `(3a)`–`(3d)`; the owed
+    // byte is `implementation-plan.md §2` step `4`'s arm `(ix)`): THE GUARD READS "OR CALLABLE".** The block
+    // above stands byte-for-byte and is read THROUGH this clause; its universal is what the one test below now
+    // makes true. **THE STATE IT CLOSES:** the shipped test guarded a `Proxy` only when `typeof value ===
+    // 'object'`, so a CALLABLE `Proxy` — `typeof 'function'` — fell past it to `String(value)`, whose
+    // `ToPrimitive` read `Symbol.toPrimitive` and then `toString` THROUGH THE `get` TRAP at every carrier slot
+    // that renders its argument. **THE FORM IS THE SIBLING ARM'S OWN** (`valueTargetSpelling`'s test
+    // below): object **or** function, then `types.isProxy`, then the class spelling — the `Proxy` class is ONE
+    // class and the renderer's `typeof` split is not a fact about it. Nothing else at this renderer moves: the
+    // `bigint` limb, `String(value)`, the `try` and the `catch` all stand, and no identity is compared and no
+    // prototype is frozen (`C-11` is untouched).
+    if ((typeof value === 'object' || typeof value === 'function') && value !== null && types.isProxy(value)) {
+      return classSpelling(value);
+    }
     return String(value);
   } catch {
     return classSpelling(value);
@@ -888,22 +1295,457 @@ function targetSpelling(value) {
 /// `/`**, which is the spelling the item declares for a whole address.
 const VALUE_ARGUMENT_POSITION = "the write's value argument";
 
+/// **⟶ AMENDED 2026-10-24 (`contract.md §2.1`'s clause of this date on `F5-4`, items `(4a)`–`(4e)`; the owed
+/// byte is `implementation-plan.md §2` step `4`'s arm `(x)`): THE POSITION SPELLING INVOKES NOTHING TAKEN FROM A
+/// MUTABLE PROTOTYPE.** The block above stands byte-for-byte and is read THROUGH this clause; **the three
+/// segment renderings, the `/` separator, the empty key's `''` and the `member … of …` wrapper are UNMOVED.**
+/// **THE STATE THIS CLOSES:** the shipped limb built the segment list with `path.map(...)` and joined it with
+/// `.join('/')` — `Array.prototype.map` and `Array.prototype.join` taken from a MUTABLE PROTOTYPE — so a
+/// caller's override RAN ON EVERY MEMBER-POSITION REFUSAL and its return value became the POSITION, which is
+/// the package's own diagnostic datum and not a rendering of the value at all (`LIVE-F18`'s second count; the
+/// file's own prohibition restated at `:1136`–`:1137` for `Object.prototype.hasOwnProperty`).
+///
+/// **THE FORM IS A LOCAL INDEX LOOP AND A LOCAL JOIN — `+=` INTO A `let` STRING.** No `map`, no `join`, no
+/// `forEach`, no `reduce`, and no array or string METHOD taken from a prototype: the same form `Object.hasOwn`
+/// already takes over `hasOwnProperty` at the walk.
 function valuePosition(path) {
   if (path.length === 0) return VALUE_ARGUMENT_POSITION;
-  const spelled = path
-    .map((segment) => {
-      if (typeof segment === 'number') return String(segment);
+  let spelled = '';
+  for (let i = 0; i < path.length; i += 1) {
+    const segment = path[i];
+    let rendered;
+    if (typeof segment === 'number') {
+      rendered = String(segment);
+    } else if (hasLoneSurrogate(segment)) {
       // **A KEY THE MESSAGE MAY NOT CARRY IS NAMED BY ITS CLASS.** A member KEY holding a lone surrogate is
       // the one position this pass refuses whose own spelling cannot cross into the message at all: the
       // code unit has no `String` form a Rust `String` can carry, so the alternatives are a REPAIR (`§1.8`
       // forbids it, `A76`: *"do not attempt to fix"*) or a message that is not a string. **The position is
       // therefore spelled `'<key: a string carrying a lone surrogate>'`, which names the class the key HAS
       // and no byte of it** — the same reading `boundaryReject`'s target half takes at the segment position.
-      if (hasLoneSurrogate(segment)) return "'<key: a string carrying a lone surrogate>'";
-      return `'${segment}'`;
-    })
-    .join('/');
+      rendered = "'<key: a string carrying a lone surrogate>'";
+    } else {
+      rendered = `'${segment}'`;
+    }
+    spelled += i === 0 ? rendered : `/${rendered}`;
+  }
   return `member ${spelled} of ${VALUE_ARGUMENT_POSITION}`;
+}
+
+/// **A CONVERSION MEMBER ON THE REFUSED VALUE** — `Symbol.toPrimitive`, `toString` or `valueOf`, OWN on the
+/// value **or reached through a prototype the value supplies** — **read WITHOUT invoking any of them**
+/// (`getOwnPropertyDescriptor` reads a descriptor and never calls a getter, so no user code runs here either).
+///
+/// **⟶ `contract.md §2.1`'s clause of 2026-10-24 (`docs/defects.md` · `DEF-2026-10-24-D`), items `(1)` and
+/// `(4)`, ARE ITS AUTHORITY: `String(value)` INVOKES THE REFUSED VALUE'S CONVERSION MEMBER, AND A GUARDED
+/// `catch` CANNOT UN-RUN A TRAP THAT RETURNS.** Item `(4)` re-derives **row `3`'s arm and row `8`'s DEPTH
+/// arm conditionally**: each keeps the refused value's own spelling *"read WITHOUT invoking an own
+/// `Symbol.toPrimitive`, `toString` or `valueOf` member of the refused value"*, and **where the refused value
+/// carries such a member the arm answers the CLASS SPELLING — `'a function'` at row `3`, `'a value over the
+/// walk ceiling'` at row `8`'s depth arm**. Item `(1)` states the rule generally (*"NO USER CODE RUNS ON A
+/// REFUSAL PATH"*) and **says which members it means: *"whether that member is OWN on the value or reached
+/// through a prototype the value supplies (a class's own `toString` method is reached exactly that way)"* —
+/// so the own-descriptor read this test was filed as is ONE HALF of item `(1)`, and the chain is the
+/// other.** A value whose `toString` stands on a custom prototype or on a class's own prototype runs that
+/// trap through `String(value)` exactly as an own member does, and a guarded `catch` is as unable to un-run
+/// it.
+///
+/// **THOSE TWO ARE THE ONLY ARMS THIS TEST CAN REACH WITH AN OBJECT OR A FUNCTION.** Every other rendering
+/// arm carries a primitive (`null` · `undefined` · a `string` · a `boolean`-free `number` · a `bigint` · a
+/// `symbol`) or the class spelling's own string, the `Proxy` arm answers `classSpelling` before this test is
+/// consulted (**a `Proxy`'s descriptor read would run its `getOwnPropertyDescriptor` trap, which is why the
+/// guard stands ABOVE this call**), and the six arms item `(2)` re-derives answer their row's class spelling
+/// without rendering the value at all (`fault.subject`).
+///
+/// **⟶ AND THE CHAIN WALK STOPS AT THE LANGUAGE'S OWN PROTOTYPES, WHICH IS WHAT KEEPS THE TWO SANCTIONED
+/// RENDERINGS OF ITEM `(4)`'s WITHOUT BRANCH.** An ordinary `{}` reaching `Object.prototype.toString`, an
+/// array reaching `Array.prototype.toString` and a function reaching the standard `Function.prototype.toString`
+/// machinery supply **no member the caller wrote**, so `'[object Object]'`, `'1,2'` and a function's own
+/// source text stay the subject at the BASE of both conditional arms — item `(4)`'s own words for row `3` are
+/// *"read through the standard `Function.prototype.toString` machinery (`String(fn)`'s answer for a function
+/// that carries no conversion member of its own)"*, and a fix that answered the class spelling for an
+/// ordinary value would be an OVER-REFUSAL the law does not declare. **The stop is STRUCTURAL, from the link
+/// and from nothing else** (`isLanguageStandardPrototype` below), so a foreign realm's `Object.prototype`,
+/// `Array.prototype` and `Function.prototype` are recognised on the same terms as this realm's, and a class's
+/// own `toString` — one link above a class's prototype, which is not standard-shaped — is still found.
+const CONVERSION_MEMBER_KEYS = [Symbol.toPrimitive, 'toString', 'valueOf'];
+
+/// **ONE LINK'S OWN CONVERSION MEMBER, ASKED BY DESCRIPTOR AND NOTHING ELSE.** No getter is invoked (a
+/// descriptor read does not call one), no `hasOwnProperty` is taken from a mutable prototype, no `Reflect.get`
+/// is spelled on an accessor, and neither `in` nor `for…in` is used (each would reach the CHAIN, which this
+/// walk takes itself so that every link can be classified before it is asked).
+/// **⟶ AND THE KEY LIST IS CONSUMED BY INDEX, NOT THROUGH THE ITERATOR PROTOCOL** (`contract.md §2.1`'s
+/// clause of 2026-10-24 on `F7-1`, items `(1c)(i)`, `(2b)`'s row `33` and `(10b)`): the array of well-known
+/// symbol VALUES is lawful (`(1d)(iii)` — a value read off the `Symbol` binding is not a prototype member),
+/// but `for … of` over it takes `Array.prototype[Symbol.iterator]`, and a caller's forged iterator could stop
+/// the search before the caller's own `toString` was asked.
+/// **⟶ AND EACH OF THE THREE DESCRIPTOR READS IS CHARGED `1`** (`contract.md §2.1`'s clause of 2026-10-24 on
+/// `F7-2`, item `(4c)(i)`, and item `(4e)`'s threading): where the spend is refused the answer is `true` —
+/// "a conversion member stands here" — which is the WITH branch's conservative answer (the class spelling),
+/// so an unpayable read never renders a value.
+function ownsConversionMember(link, allowance) {
+  for (let i = 0; i < CONVERSION_MEMBER_KEYS.length; i += 1) {
+    if (!spendGuardRead(allowance, 1)) return true;
+    if (Object.getOwnPropertyDescriptor(link, CONVERSION_MEMBER_KEYS[i]) !== undefined) return true;
+  }
+  return false;
+}
+
+/// **A PROTOTYPE THE LANGUAGE ITSELF SUPPLIES**, recognised STRUCTURALLY so that no realm's identity and no
+/// prototype census equality is compared: an `Object.prototype`-shaped prototype (`§1`'s `(1)(b)` and
+/// `(1)(c)` — `isStandardObjectPrototype` above), an exotic array standing one link above such a prototype
+/// (any realm's `Array.prototype` IS an array, and `§1`'s `(2)` states its chain), or a callable standing one
+/// link above such a prototype (any realm's `Function.prototype` IS a function). **Its own conversion members
+/// are ECMAScript's machinery and not the caller's code**, so the walk above it STOPS there.
+/// **⟶ AND BOTH ITS SHAPE JUDGEMENTS AND ITS ONE `getPrototypeOf` READ ARE CHARGED TO THE ONE ALLOWANCE**
+/// (`contract.md §2.1`'s clause of 2026-10-24 on `F7-2`, item `(4e)`): every read that decides whether the
+/// walk STOPS here is a read of the budget, so no exemption is granted on reads the caller could not pay for.
+/// Where the spend is refused the answer is `false` — **NOT exempted** — which keeps the conversion search
+/// going (the conservative direction: the WITH branch, the class spelling).
+function isLanguageStandardPrototype(link, allowance) {
+  if (isStandardObjectPrototype(link, allowance)) return true;
+  if (!Array.isArray(link) && typeof link !== 'function') return false;
+  if (!spendGuardRead(allowance, 1)) return false; // ONE `getPrototypeOf` CALL — item `(4c)(ii)`
+  const above = Object.getPrototypeOf(link);
+  return above !== null && isStandardObjectPrototype(above, allowance);
+}
+
+/// **THE VALUE'S CONVERSION MEMBER, ANYWHERE THE CALLER SUPPLIED IT** — own on the value, or owned by any
+/// prototype its chain reaches before the language's own. **A `Proxy` LINK IS NOT ASKED ANYTHING**: a
+/// descriptor read on one runs its `getOwnPropertyDescriptor` trap, so a chain carrying one answers `true`,
+/// which costs the arm its class spelling and runs no handler (`C-1`'s form, at this limb).
+///
+/// **ITS NAME MOVES WITH THE LAW** — the shipped `carriesOwnConversionMember` read own descriptors only, and
+/// that read is the first test below, not the whole of it.
+///
+/// **⟶ AND `contract.md §2.1`'s clause of 2026-10-24 ON `F-RA-13`, ITEM `(1a)`, ADDS ONE KEY TO THE LINK
+/// WALK: AN **ADDED** `Symbol.toPrimitive` ON A SHAPE-STANDARD PROTOTYPE IS A CONVERSION PATH THE ARM MAY NOT
+/// TAKE, AND IT IS SEPARATED FROM AN INTRINSIC BY ONE OWN-DESCRIPTOR READ OF THAT KEY PER LINK, TAKEN BEFORE
+/// THE EXEMPTION STOPS THE WALK.** The exemption's carrying test asks NAMES only and no realm's
+/// `Object.prototype`, `Array.prototype` or `Function.prototype` carries an own `Symbol.toPrimitive`, so an
+/// ADDED one left the shape test TRUE, the stop at the language's own prototype exempted the link, and
+/// `String(value)` reached it — ToPrimitive's `@@toPrimitive` lookup being a `[[Get]]` that traverses the
+/// chain. **THIS IS NOT THE REJECTED THREE-KEY ORDERING SWAP** (that clause's item `(6)`): the swap asks all
+/// three keys of every shape-standard link and would withdraw `'[object Object]'`, `'1,2'` and a function's
+/// source text; THIS ASKS ONE KEY and answers "does not carry" for every intrinsic prototype, so item `(2)`'s
+/// three sanctioned renderings stand. **THE WALK CONTINUES PAST THE STOP FOR THIS KEY ALONE** — the
+/// rendering traverses the WHOLE chain for `@@toPrimitive`, so a member added to a link ABOVE a
+/// language-standard one is reached by the rendering just the same — while the `toString`/`valueOf` search
+/// still ends at the language's own machinery, which is item `(7)`'s reading of *"own"* for the one key.
+///
+/// **⟶ AMENDED 2026-10-24 (`contract.md §2.1`'s clause of this date on `F6-1`, items `(1a)`, `(1c)`, `(1d)`
+/// and `(1f)`): EVERY LINK THIS WALK ENTERS IS CHARGED TO THE ONE PER-CALL POSITION BUDGET.** The block above
+/// stands byte-for-byte and is read THROUGH this clause; **every descriptor read, the shape test, the
+/// exemption's stop, the `Proxy` answer and the guarded `catch` stand unmoved.** The shipped walk was
+/// one-argument and walked its chain link by link to `null` WITH NO CHARGE ANYWHERE, so an element set
+/// multiplying chain traversals re-scaled the very cost the per-call budget was ruled to close (item `(1b)`).
+/// **THE SPEND IS ONE POSITION PER LINK, TAKEN ON ENTRY AND BEFORE THE FIRST READ OF THAT LINK** — through
+/// `spendGuardPosition` below, the one figure `NODE_CEILING` and NO SECOND CEILING — and where the spend is
+/// refused this reader answers `true`, i.e. **"caller code is reachable"**, so the arm takes its class
+/// spelling and nothing is rendered (the WITH branch's conservative answer, un-re-deciding the guard's one
+/// conjunction). **THE ALLOWANCE IS THE CALLER'S AND IS NEVER OPENED HERE:** it is the fresh per-call `budget`
+/// `renderGuardTrips` creates, threaded in by that entry, so no census, chain length or memo is captured and
+/// `C-11` is untouched.
+///
+/// **⟶ AND EVERY READ THIS WALK TAKES IS CHARGED THE SAME WAY FROM 2026-10-24** (`contract.md §2.1`'s clause
+/// of this date on `F7-2`, items `(4c)` and `(4e)`): one link entered is `1` (already charged on entry), its
+/// `@@toPrimitive` descriptor read is `1`, each descriptor read of `ownsConversionMember` is `1`, every
+/// `getPrototypeOf` call — the value's own and the loop's — is `1`, and the shape judgement's census reads are
+/// `1 + length`. Where a spend is refused every branch answers `true`, **"caller code is reachable"**, which
+/// is the WITH branch's conservative answer and the arm's class spelling.
+function carriesConversionMember(value, allowance) {
+  if (value === null || (typeof value !== 'object' && typeof value !== 'function')) return false;
+  try {
+    if (types.isProxy(value)) return true;
+    if (ownsConversionMember(value, allowance)) return true;
+    if (!spendGuardRead(allowance, 1)) return true; // the `getPrototypeOf` read below — item `(4c)(ii)`
+    let link = Object.getPrototypeOf(value);
+    let aboveTheExemption = false;
+    while (link !== null) {
+      // ONE POSITION PER LINK ENTERED (item `(1c)`), charged BEFORE the read that reached the link, so no
+      // chain can be entered unpaid and exhaustion answers "caller code is reachable".
+      if (!spendGuardPosition(allowance, 1)) return true;
+      if (types.isProxy(link)) return true;
+      // ITEM `(1a)`'S READ — ONE KEY, OWN, BY DESCRIPTOR (so no getter is called), BEFORE THE STOP.
+      if (!spendGuardRead(allowance, 1)) return true; // ONE descriptor read — item `(4c)(i)`
+      if (Object.getOwnPropertyDescriptor(link, Symbol.toPrimitive) !== undefined) return true;
+      if (!aboveTheExemption) {
+        if (isLanguageStandardPrototype(link, allowance)) {
+          // the language's own machinery: the `toString`/`valueOf` search ends here, the `@@toPrimitive`
+          // read above does not
+          aboveTheExemption = true;
+        } else if (ownsConversionMember(link, allowance)) {
+          return true;
+        }
+      }
+      if (!spendGuardRead(allowance, 1)) return true; // the loop's `getPrototypeOf` — item `(4c)(ii)`
+      link = Object.getPrototypeOf(link);
+    }
+    return false;
+  } catch {
+    // **A CHAIN THAT CANNOT BE READ ANSWERS `true`** — the arm takes its class spelling, the rendering is not
+    // attempted, and the guarded `catch` that stands beside this call in `valueTargetSpelling` is not needed.
+    return true;
+  }
+}
+
+/// **⟶ `contract.md §2.1`'s clause of 2026-10-24 ON `F-RA-13`, ITEM `(1b)`: AN OWN OR ADDED
+/// `Symbol.toStringTag` MEMBER IS THE RENDER GUARD'S SECOND TEST.** `Object.prototype.toString` reads
+/// `@@toStringTag` off the refused value — a `[[Get]]` that traverses the chain — so an own `@@toStringTag`
+/// ACCESSOR is INVOKED at row `8`'s depth arm (a value the walk refused on ENTRY, above the shape arm that
+/// would have refused an own accessor) and an ADDED one on a shape-standard prototype is reached the same
+/// way. **THE READ IS TAKEN FOR THE KEY AND NOT MERELY FOR THE ACCESSOR BIT, DELIBERATELY**: a DATA
+/// `@@toStringTag` member would move the SUBJECT (`String({ [Symbol.toStringTag]: 'X' })` is `'[object X]'`),
+/// and a subject that depends on a caller's data is not the declared form — the accessor case is the no-run
+/// case and the data case is the determinism case, and ONE descriptor read answers both. **NO ADMISSION
+/// MOVES**: a value carrying an own `Symbol`-keyed member is refused at its own position as row `5` already,
+/// and at row `8`'s depth arm it is refused as row `8` regardless. **NO REALM'S INTRINSIC PROTOTYPE CARRIES
+/// AN OWN `@@toStringTag`**, so the read answers "absent" for every intrinsic chain and item `(2)`'s
+/// renderings stand.
+///
+/// **⟶ AND THIS WALK IS CHARGED THE SAME WAY** (`contract.md §2.1`'s clause of 2026-10-24 on `F6-1`, items
+/// `(1c)`, `(1d)` and `(1f)`): **ONE POSITION PER LINK ENTERED, SPENT ON ENTRY AND BEFORE THE FIRST READ OF
+/// THAT LINK**, from the SAME per-call allowance `carriesConversionMember` above spends — so the two walks an
+/// element costs are both paid from the one figure, and where a spend is refused this reader answers `true`
+/// (the WITH branch, the class spelling). The descriptor reads, the `Proxy` answer and the guarded `catch`
+/// stand unmoved.
+function carriesTagMember(value, allowance) {
+  if (value === null || (typeof value !== 'object' && typeof value !== 'function')) return false;
+  try {
+    if (types.isProxy(value)) return true; // a descriptor read on a `Proxy` would run a trap
+    // **⟶ AND EVERY READ IS CHARGED, AS THE SIBLING WALK'S ARE** (`contract.md §2.1`'s clause of 2026-10-24 on
+    // `F7-2`, items `(4c)` and `(4e)`): each `@@toStringTag` descriptor read is `1` and each `getPrototypeOf`
+    // call is `1`; a refused spend answers `true` (the WITH branch, the class spelling).
+    if (!spendGuardRead(allowance, 1)) return true; // ONE descriptor read — item `(4c)(i)`
+    if (Object.getOwnPropertyDescriptor(value, Symbol.toStringTag) !== undefined) return true;
+    if (!spendGuardRead(allowance, 1)) return true; // the value's `getPrototypeOf` — item `(4c)(ii)`
+    let link = Object.getPrototypeOf(value);
+    while (link !== null) {
+      // ONE POSITION PER LINK ENTERED (item `(1c)`), before the read that reached the link.
+      if (!spendGuardPosition(allowance, 1)) return true;
+      if (types.isProxy(link)) return true;
+      if (!spendGuardRead(allowance, 1)) return true; // ONE descriptor read — item `(4c)(i)`
+      if (Object.getOwnPropertyDescriptor(link, Symbol.toStringTag) !== undefined) return true;
+      if (!spendGuardRead(allowance, 1)) return true; // the loop's `getPrototypeOf` — item `(4c)(ii)`
+      link = Object.getPrototypeOf(link);
+    }
+    return false;
+  } catch {
+    return true;
+  }
+}
+
+/// **⟶ `contract.md §2.1`'s clause of 2026-10-24 ON `F-RA-13`, ITEM `(1c)`: THE ARRAY-ELEMENT LIMB.** At row
+/// `8`'s DEPTH arm the refused value may be an ARRAY, and `Array.prototype.toString` calls `join`, which takes
+/// each element by `[[Get]]` and CONVERTS it — **so the elements' conversion members run, and the walk never
+/// classified those elements, the element loop lying BELOW the arm.** **EVERY OWN INDEX IS READ BY
+/// DESCRIPTOR**, so an own ACCESSOR at an index answers the class spelling and ITS GETTER NEVER RUNS, and
+/// **EVERY DATA ELEMENT IS SUBJECTED TO THE SAME RENDER GUARD** the refused value itself is put to — an
+/// element's `ToString` is a rendering as the value's `String` is, so one guard governs both and a test that
+/// asked only `carriesConversionMember` would leave an added `Symbol.toPrimitive` on a standard prototype
+/// running for an OBJECT element. **WHERE EVERY ELEMENT IS A PRIMITIVE** — or an object whose conversion and
+/// tag members sit only on an intrinsic prototype — no guard is tripped and the sanctioned `'1,2'` renders.
+/// **⟶ AMENDED 2026-10-24 (`contract.md §2.1`'s clause of that date on `F-RA-20`, items `(b)`, `(c)` and
+/// `(d)`): THE REPEAT TEST IS THE CURRENT PATH AND NOT A VISITED SET.** The block above stands byte-for-byte
+/// and is read THROUGH this clause; **the descriptor reads, the accessor answer, the element guard and the
+/// `try` all stand unmoved.** The second parameter is a PATH — the list of arrays the walk is CURRENTLY
+/// reading, extended by `[...path, value]` (the file's own idiom at the ancestor stack's `[...ancestors,
+/// value]`) — so `seen.has` becomes a membership test on that path and `seen.add` becomes the append. **A
+/// CYCLE STILL TRIPS** — a self-containing array is ON the path when its own element is read, so the
+/// membership test answers at the repeat and the arm reaches its class spelling DETERMINISTICALLY rather
+/// than through a stack-overflow `catch` — **while an ALIAS DOES NOT**: a sub-value the same parent holds
+/// twice is on no path when either occurrence is read, and rendering it twice runs the same code twice and
+/// reaches no member the first read did not (item `(b)`: an alias is neither a cycle nor caller code, and
+/// `§4`'s clause on `F-RA-4` already declares the walk's *"ancestor stack and never a visited set"*).
+///
+/// **⟶ AMENDED 2026-10-24 (`contract.md §2.1`'s clause of this date on `F5-1` and `F5-2`, items `(1b)`, `(1c)`,
+/// `(1d)`, `(1f)` and `(2)`; the owed byte is `implementation-plan.md §2` step `4`'s arm `(viii)`): THE GUARD'S
+/// WORK IS BOUNDED PER CALL.** The block above stands byte-for-byte and is read THROUGH this clause; **the
+/// descriptor reads, the accessor answer, the `Proxy` answer, the non-array answer, the hole's `continue` and the
+/// guarded `catch` all stand unmoved.** **THE COST IT CLOSES, WITH BOTH WITNESSES:** the path test alone walks a
+/// shared sub-value ONCE PER POSITION IT OCCUPIES, so `let v = [1]; for (i < 40) v = [v, v];` costs `~2^40`
+/// visits (measured at this tree: depth `16` = `174` ms, depth `20` = `2,578` ms, depth `24` = `40,945` ms, and
+/// depth `40` did not answer inside `7` seconds); and the element limb scanned the WHOLE `length`, so
+/// `new Array(4294967295)` cost `~4.29×10^9` descriptor reads (also killed at `7` seconds). **Neither ceiling of
+/// `§4` counted either, because the refused subtree is never walked.**
+///
+/// **THE THREE LIMBS, EACH AS ITEM `(1b)` STATES IT:**
+///   (i) **THE TRIP IS THE PATH TEST, TAKEN FIRST** — an ancestor on the current path trips (a cycle), a value
+///       off it does not (an alias).
+///   (ii) **THE COST IS A PER-CALL MEMO CONSULTED ONLY AFTER THE PATH TEST** — a repeat answers `false` (the
+///       answer its first occurrence gave, which is the only answer a still-scanning frame can have produced)
+///       and ITS OWN POSITION COUNT IS CHARGED, so an aliased DAG is counted per position and the memo cannot
+///       be used to evade the budget. **The memo is a COST device and never a trip decision** (item `(1b)`).
+///   (iii) **A PER-CALL POSITION BUDGET OF `NODE_CEILING` — `1,000,000` — AND THE CLASS SPELLING WHEN IT IS
+///       SPENT** (item `(1d)`: the crossing's own figure, no third ceiling minted). Positions are counted `§8`
+///       row `8`'s way — one per position the walk would visit, an alias counted per position — and **the
+///       element limb's descriptor reads spend the SAME budget**, so no `length` the walk would never have
+///       walked is ever scanned (item `(2)(b)`). **ON EXHAUSTION THE GUARD ANSWERS "CALLER CODE IS REACHABLE"**
+///       — the WITH branch — so the arm answers its class spelling and renders nothing.
+///
+/// **A HOLE IS NOT A TRIP AND IS NOT MADE ONE** (item `(1f)`): `'1,,3'`'s declared rendering survives because a
+/// missing descriptor still `continue`s; only the budget bounds the sparse limb. **AND THE BUDGET IS FRESH PER
+/// CALL** — created at `renderGuardTrips`'s own entry, never per element and never module-level, so no census is
+/// cached across calls and `C-11`'s no-frozen-prototype-fact rule is untouched.
+///
+/// **⟶ AND NOTHING THIS LIMB DOES IS TAKEN FROM A MUTABLE PROTOTYPE** (`contract.md §2.1`'s clause of
+/// 2026-10-24 on `F7-1`, items `(1c)`, `(2b)`'s rows `18`, `24` and `26`, and `(10b)`: *"`Array.prototype.includes
+/// = () => false` currently misses a **cycle** and the walk dies in a raw host `RangeError`"*). **Three sites,
+/// one class:**
+///   * **THE PATH TEST IS A LOCAL LOOP** (`(1c)(vi)`'s spelled `===`), not `path.includes(value)` — a forged
+///     `includes` answering `false` un-detected the cycle, the recursion re-entered the ancestor and the host
+///     stopped the process instead of the arm answering its class spelling;
+///   * **THE PATH EXTENSION IS A LOCAL INDEX LOOP**, not `[...path, value]` — an array spread consumes the
+///     path through `Array.prototype[Symbol.iterator]`;
+///   * **THE MEMO IS A PAIR LIST READ BY INDEX**, not a `Map` — `Map.prototype.get` was the repeat's whole
+///     cost decision (item `(2b)`'s rows `23` and `24`; the measured states are the battery's row `(d)`).
+function arrayElementsReachCallerCode(value, path, allowance) {
+  if (value === null || typeof value !== 'object') return false;
+  try {
+    if (types.isProxy(value)) return true;
+    if (!Array.isArray(value)) return false;
+    // AN ANCESTOR ON THE CURRENT PATH IS A CYCLE, NOT AN ALIAS — asked by a local loop over the datum's own
+    // indices, never by `Array.prototype.includes`.
+    //
+    // **⟶ AND THE SCAN IS CHARGED `1` PER ENTRY THE PATH CARRIES, BEFORE IT IS TAKEN** (`contract.md §2.1`'s
+    // clause of 2026-10-24 on `F8-3`, items `(3c)`'s term `(ix)` and `(3d)`): the path test performs one spelled
+    // `===` per entry and it is CALLER-SCALED — a shared sub-value walks it once per position it occupies — so
+    // an uncharged scan was a caller-set price for a sanctioned rendering. **The spend answers "caller code is
+    // reachable" where it is refused**, exactly as the limb's other spends do (`:1618` · `:1638`).
+    if (!spendGuardRead(allowance, path.length)) return true;
+    let onPath = false;
+    for (let i = 0; i < path.length; i += 1) {
+      if (path[i] === value) {
+        onPath = true;
+        break;
+      }
+    }
+    if (onPath) return true;
+    // (iii) THE ARRAY'S OWN POSITION, SPENT BEFORE ANY READ.
+    if (!spendGuardPosition(allowance, 1)) return true;
+    // (ii) THE MEMO, CONSULTED ONLY AFTER THE PATH TEST, AND THE REPEAT'S OWN COUNT IS CHARGED.
+    //
+    // **⟶ AND THE CONSULTATION IS CHARGED `1 + memo.length`, BEFORE ITS SCAN** (`contract.md §2.1`'s clause of
+    // 2026-10-24 on `F8-3`, items `(3c)`'s term `(viii)` and `(3d)`): the scan performs one spelled `===` per
+    // RECORDED ENTRY and `memo` grows by one entry per DISTINCT leaf, so `~125,000` distinct leaves were
+    // `1 + 2 + … + 125,000 ≈ 7.8×10⁹` UNCHARGED identity comparisons inside ONE `1,000,000`-unit call — the
+    // guard was bounded in positions and unbounded in reads. **CHARGED, the budget exhausts near the `1,400`th
+    // distinct leaf and the arm answers its class spelling without taking the scan; `NODE_CEILING` stays the
+    // ONE per-call figure, created once per `renderGuardTrips` call, and no second ceiling is minted.**
+    const memo = allowance.memo;
+    if (!spendGuardRead(allowance, 1 + memo.length)) return true;
+    let recorded = null;
+    for (let i = 0; i < memo.length; i += 1) {
+      if (memo[i].value === value) {
+        recorded = memo[i];
+        break;
+      }
+    }
+    if (recorded !== null) {
+      if (!spendGuardPosition(allowance, recorded.positions)) return true;
+      return recorded.answer;
+    }
+    const positionsBefore = allowance.positions;
+    // **⟶ AND THE COPY IS THE PATH'S SECOND CHARGED LIMB: `1` PER ENTRY IT CARRIES** (`contract.md §2.1`'s
+    // clause of 2026-10-24 on `F8-3`, items `(3c)`'s term `(ix)` and `(3d)`): `extendedPath` copies one entry per
+    // path entry and that loop was charged nothing. **BOTH limbs are charged** — charging only the copy would
+    // leave the caller-scaled TEST at `0`, which is the loop the finding measures.
+    if (!spendGuardRead(allowance, path.length)) return true;
+    const next = extendedPath(path, value);
+    const length = value.length; // an exotic array's own data property: no getter is reached here
+    for (let i = 0; i < length; i += 1) {
+      // THE DESCRIPTOR READ THIS LIMB PERFORMS IS ONE POSITION OF THE ONE BUDGET (item `(2)(b)`), so a
+      // `length` no walk would have walked spends itself out instead of being scanned.
+      if (!spendGuardPosition(allowance, 1)) return true;
+      const descriptor = Object.getOwnPropertyDescriptor(value, i);
+      if (descriptor === undefined) continue; // a hole: `join` converts nothing there
+      if (descriptor.get !== undefined || descriptor.set !== undefined) return true;
+      if (renderGuardTrips(descriptor.value, next, allowance)) return true;
+    }
+    memo[memo.length] = { value, answer: false, positions: positionsBefore - allowance.positions };
+    return false;
+  } catch {
+    return true;
+  }
+}
+
+/// **ONE MORE SEGMENT ON A PATH, BUILT BY A LOCAL INDEX LOOP** — items `(1c)(i)` and `(1c)(v)`: the copy reads
+/// the path's own indices and writes the extension's own index, so no array spread and no iterator is reached.
+function extendedPath(path, segment) {
+  const next = [];
+  for (let i = 0; i < path.length; i += 1) next[i] = path[i];
+  next[path.length] = segment;
+  return next;
+}
+
+/// **ONE SPEND AGAINST THE PER-CALL POSITION BUDGET** — answers `true` where the spend is covered and `false`
+/// where it would overdraw, so the caller that receives `false` answers "caller code is reachable" and the arm
+/// takes its class spelling (item `(1d)`). **THE FIGURE IS `NODE_CEILING` AND NO SECOND CONSTANT IS MINTED**
+/// (`contract.md §2.1`'s clause of 2026-10-24 on `F5-1`, item `(1d)`); the allowance itself is created once per
+/// call of `renderGuardTrips` below.
+function spendGuardPosition(allowance, positions) {
+  if (positions > allowance.positions) {
+    allowance.positions = 0;
+    return false;
+  }
+  allowance.positions -= positions;
+  return true;
+}
+
+/// **⟶ ONE READ SPENT AGAINST THE SAME ONE PER-CALL ALLOWANCE — `contract.md §2.1`'s clause of 2026-10-24 on
+/// `F7-2`, items `(4c)`, `(4e)` and `(10e)`, item `(4c)`'s unit being EXHAUSTIVE**, AND RE-DERIVED TO ITS
+/// **ELEVEN** TERMS BY THIS SECTION'S CLAUSE OF `2026-10-24` ON `F8-3`, ITEM `(3c)` (arm `(xvii)` widened,
+/// cell `JC-TC-67`), EACH WITH THE SITE THAT TAKES IT: **(i)** one `Object.getOwnPropertyDescriptor` call is
+/// `1`; **(ii)** one `Object.getPrototypeOf` call is `1`; **(iii)** an own-NAME census read is
+/// `1 + the length of the list it returns`; **(iv)** an own-SYMBOL census read is `1 + the length of the list
+/// it returns`; **(v)** an element index read is `1`, charged where it is taken through `spendGuardPosition`;
+/// **(vi)** a link entered is `1`, charged by the chain loops' own spends; **(vii)** a memo HIT is the
+/// repeat's recorded count; **(viii) a MEMO CONSULTATION is `1 + memo.length`** — charged before its scan at
+/// `arrayElementsReachCallerCode`, because the scan performs one spelled `===` per recorded entry and the memo
+/// grows by one entry per distinct leaf; **(ix) THE PATH IS `1` PER ENTRY IT CARRIES, CHARGED AT BOTH LIMBS —
+/// THE TEST'S SCAN AND THE COPY** (`extendedPath`'s call site), the scan being charged because it is the
+/// caller-scaled loop the finding measures; **(x)** an allocation and a `typeof` are `0`; and **(xi) AN
+/// IDENTITY COMPARE AND A SPELLED RELATIONAL COMPARISON ARE `0` ONLY WHERE THEY ARE NOT ONE OF TERMS `(viii)`
+/// AND `(ix)`.** **NO SECOND FIGURE IS MINTED** — `NODE_CEILING` (`1,000,000`) stays the one per-call
+/// budget, created once per `renderGuardTrips` call — and **exhaustion is NOT a trip decision**: a caller that
+/// receives `false` answers the WITH branch's conservative answer (item `(1d)`), exactly as
+/// `spendGuardPosition` already rules. **A CALLER THAT CARRIES NO ALLOWANCE IS THE WALK, WHICH COUNTS NODES**
+/// (`encodeValue`'s own ceiling), so the charge is skipped there and no admission moves.
+function spendGuardRead(allowance, reads) {
+  if (allowance === null || allowance === undefined) return true;
+  return spendGuardPosition(allowance, reads);
+}
+
+/// **THE RENDER GUARD'S THREE TESTS, AS `contract.md §2.1`'s clause of 2026-10-24 ON `F-RA-13`, ITEM `(6)`,
+/// STATES THEM: the WITH branch is taken where they do not all answer "no caller code"** — `(1a)`'s
+/// `Symbol.toPrimitive` descriptor read (inside `carriesConversionMember` above), `(1b)`'s
+/// `Symbol.toStringTag` descriptor read, and `(1c)`'s element reads. Every one of the three is a READ of a
+/// descriptor or a per-call walk, so `C-11`'s no-frozen-prototype-fact rule is untouched: no identity is
+/// captured, no census is cached and no intrinsic is compared.
+///
+/// **⟶ AND ITS ENTRY IS WHERE THE ONE ALLOWANCE IS OPENED** (`contract.md §2.1`'s clause of 2026-10-24 on
+/// `F5-1`, item `(1b)(iii)`): a FRESH `NODE_CEILING` position budget and a FRESH empty memo per call — the
+/// carrier slot reaches that entry through the guard call below, and the value arm through
+/// `valueTargetSpelling` — so no allowance is shared between calls and none stands at module level. **An
+/// `allowance` is threaded in only by the recursion inside `arrayElementsReachCallerCode`, which passes its
+/// own call's allowance down.**
+///
+/// **⟶ AND FROM 2026-10-24 THE SAME `budget` IS HANDED TO ALL THREE TEST CALLS, THE TWO CHAIN WALKS
+/// INCLUDED** (`contract.md §2.1`'s clause of this date on `F6-1`, items `(1c)` and `(1d)`): every read the
+/// guard performs is charged to the one per-call allowance — the array's own position, each index the element
+/// limb reads, and every link each chain walk enters, per element and for the refused value itself — so no
+/// call site is left uncharged and no chain can be entered unpaid. **THE FIGURE STAYS `NODE_CEILING` AND NO
+/// SECOND CEILING IS MINTED**, the allowance stays fresh per call, and exhaustion answers "caller code is
+/// reachable" at each limb (the WITH branch, the class spelling).
+function renderGuardTrips(value, path = [], allowance = null) {
+  // **⟶ AND THE MEMO IS A PAIR LIST, NOT A `Map`** (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`,
+  // items `(2b)`'s rows `23` and `24` and `(10c)`): `Map.prototype.get`/`set` are mutable-prototype members
+  // by item `(1d)(iv)`, and the battery's row `(d)` measures the two answers they gave — a forged `get`
+  // answering a recorded "no caller code" and a no-op `set` — each of which decided a rendered subject.
+  const budget = allowance === null ? { positions: NODE_CEILING, memo: [] } : allowance;
+  return carriesConversionMember(value, budget)
+    || carriesTagMember(value, budget)
+    || arrayElementsReachCallerCode(value, path, budget);
 }
 
 /// **THE FAILING TARGET AT A VALUE POSITION, RENDERED AS THE STORE'S GENERATOR RENDERS IT** —
@@ -911,7 +1753,23 @@ function valuePosition(path) {
 /// symbol's own value carries the caller's DESCRIPTION, and the item's own example prints the CLASS's
 /// canonical token `Symbol()`, which is the spelling this arm carries. Every other target is printed as its
 /// own value, guarded exactly as `targetSpelling` guards its read.
-function valueTargetSpelling(value) {
+///
+/// **⟶ AMENDED 2026-10-24 (`DEF-2026-10-24-D`; `contract.md §2.1`'s clause of that date, items `(1)`,
+/// `(4)` and `(6)`): `String(value)` IS WITHDRAWN AS A SUBJECT SOURCE AT EVERY ARM WHOSE SUBJECT IS THE
+/// REFUSED VALUE'S OWN RENDERING AND THE VALUE CARRIES A CONVERSION MEMBER.** The block above stands
+/// byte-for-byte and is read THROUGH this clause; **its four named substitutions are UNMOVED** — a
+/// `bigint`'s `` n ``, a `symbol`'s `Symbol()`, a `Proxy`'s class spelling and a lone-surrogate string's class
+/// spelling — and item `(6)` reads them byte-identical. **WHAT MOVES IS ONE TEST, INSERTED AFTER THE PROXY
+/// GUARD AND BEFORE `String(value)`:** a `Symbol.toPrimitive`/`toString`/`valueOf` member the refused value
+/// carries answers the ROW'S OWN CLASS SPELLING, which the walk hands in as `rowClass` (`fault.found`), and no
+/// conversion member is invoked. **THE GUARDED `catch` BELOW STANDS AS THE FALLBACK FOR A RENDERING THAT
+/// THROWS** (item `(4)`'s closing sentence, and item `(5)` item `(e)`'s list of its answers). **AND THE
+/// MEMBER IS SOUGHT WHERE ITEM `(1)` SAYS IT STANDS — *"whether that member is OWN on the value or reached
+/// through a prototype the value supplies"* — so `carriesConversionMember` above walks the chain and stops at
+/// the language's own prototypes**, which is what keeps this arm's WITHOUT branch (`'[object Object]'`, a
+/// function's source text, `'1,2'`) reachable for a value whose only conversion member is
+/// `Object.prototype.toString` or the standard `Function.prototype.toString` machinery.
+function valueTargetSpelling(value, rowClass) {
   try {
     if (typeof value === 'bigint') return `${value}n`;
     if (typeof value === 'symbol') return 'Symbol()';
@@ -930,6 +1788,26 @@ function valueTargetSpelling(value) {
     // all, so printing it would REQUIRE the repair `§1.8` forbids (`A76`: *"do not attempt to fix"*). **The
     // class half is mandatory (item 6 (b)); the byte half is the one datum no clause requires here.**
     if (typeof value === 'string' && hasLoneSurrogate(value)) return 'a string carrying a lone surrogate';
+    // **`§2.1`'s clause of 2026-10-24, item `(4)` — NO CONVERSION MEMBER OF THE REFUSED VALUE IS INVOKED.**
+    // Where the value carries one — OWN, or reached through a prototype it supplies (item `(1)`'s own
+    // parenthesis) — the arm answers the row's own class spelling (`'a function'` at row `3`, `'a value over
+    // the walk ceiling'` at row `8`'s depth arm), which is the string the walk recorded as the class — so
+    // `String(value)` below never runs for such a value and the trap is not merely caught, it is not reached.
+    // **⟶ AND THE TEST IS THE RENDER GUARD'S THREE TESTS, NOT ONE OF THEM** (`contract.md §2.1`'s clause of
+    // 2026-10-24 on `F-RA-13`, item `(6)`): item `(1a)`'s added-`Symbol.toPrimitive` read, item `(1b)`'s
+    // `Symbol.toStringTag` descriptor read and item `(1c)`'s array-element reads each answer "caller code is
+    // reachable" here, and where any does, this arm answers the row's class spelling and renders nothing.
+    // **⟶ AND WHERE NO ROW CLASS IS SUPPLIED THE ANSWER IS THE VALUE'S OWN CLASS SPELLING**
+    // (`contract.md §2.1`'s clause of 2026-10-24 on `F-RA-18`, items `(c)` and `(e)`): **AT A CARRIER POSITION
+    // THE SUBJECT IS THAT POSITION'S OWN DECLARED DESCRIPTOR, NEVER `undefined`.** The VALUE arm hands the
+    // row's own class in from the walk's record (`:1381`), and the ONE-ARGUMENT carrier call at `:2334`
+    // supplies none because a CARRIER refusal declares no row class — `§2`'s seventeen rows are the WALK's —
+    // so an address carrying a conversion or tag member rendered the eleven characters `'undefined'` where
+    // the caller's own rendering stood. **The fallback is `classSpelling(value)`, exactly the byte the
+    // guarded `catch` below already answers for a rendering that throws**, so this arm has ONE fallback rather
+    // than two and no call site can print garbage. Nothing else moves: the two substitutions above, the Proxy
+    // guard, `String(value)` below, the `catch` and the value arm's two-argument call all stand unmoved.
+    if (renderGuardTrips(value)) return rowClass === undefined ? classSpelling(value) : rowClass;
     return String(value);
   } catch {
     // The rendering THREW (a `valueOf`/`Symbol.toPrimitive`/`Proxy` trap): the CLASS spelling is the
@@ -963,10 +1841,21 @@ function valueTargetSpelling(value) {
 /// `[A2 docs/decisions.md · `A148` (Q3); docs/specs/storeroom-native/contract.md §8.1 — its 2026-10-23
 /// amendment, rank `17`, *"the store never receives those values on the JavaScript route"*; A1
 /// bindings/js/index.mjs:2439 · :2454 | requirement]`
+/// **⟶ AMENDED 2026-10-24 (`DEF-2026-10-24-D`; `contract.md §2.1`'s clause of that date, items `(1)`–`(3)`
+/// and `(7)`): THE SUBJECT IS THE WALK'S OWN RECORD WHEN THE ARM DECLARED ONE, AND THE REFUSED VALUE IS NOT
+/// RENDERED AT THE SIX ARMS THAT CLAUSE RE-DERIVES.** The block above stands byte-for-byte and is read THROUGH
+/// this clause; **PART ONE's fixed bytes, the generator's single quoting, PART TWO and the status are
+/// unmoved.** **`fault.subject` IS THE WALK'S DECLARED SUBJECT AND IS `null` AT EVERY ARM THAT RENDERS ITS
+/// TARGET**: where the walk set it — rows `5`, `11`, `13`, `14`, `15` and `16`, item `(2)` — PART ONE opens on
+/// the CLASS SPELLING that row's own row carries, so at those six arms the subject and PART TWO's class are the
+/// SAME STRING and the message names the row's class twice (item `(3)`: the declared form, and not a defect).
+/// **THE TARGETS THE WALK HANDS (`fault.value`) ARE UNMOVED AT ALL SIX — the containing value at rows `5` and
+/// `15`, the repeated ancestor at `11`, the instance at `13` and `14`, the array at `16` — only the RENDERING
+/// of them is withdrawn** (item `(2)`), and `valueTargetSpelling` is the rendering for every other arm.
 function valueReject(fault) {
   boundaryReject(
     'ValueRefusedAtBoundary', // A148 Q3's rank-17 member, carried and never minted (`DD-40`)
-    valueTargetSpelling(fault.value),
+    fault.subject === null ? valueTargetSpelling(fault.value, fault.found) : fault.subject,
     `the value at ${valuePosition(fault.path)} is ${fault.found}`,
   );
 }
@@ -1068,13 +1957,45 @@ const NODE_CEILING = 1_000_000;
 /// message from the record at the ONE site where the store answered `ValueNotAdmitted` for a value the walk
 /// refused** (`§1.8`'s dated clause 1: the value-position refusal is *"PRODUCED AT THE WALK"*, and `CF-3`
 /// clause 1 is its message's route). Nothing here coerces, and nothing here repairs.
-function refusedValue(fault, value, failedClass, path, marker) {
+///
+/// **⟶ AND THE RECORD CARRIES THE ARM'S OWN PART ONE SUBJECT WHERE THE ARM DECLARES ONE —
+/// `contract.md §2.1`'s clause of 2026-10-24, item `(2)` (`DEF-2026-10-24-D`).** `subject` is `null` at every
+/// arm whose PART ONE is the failing target's own rendering — the walk then leaves the rendering to
+/// `valueTargetSpelling` at answer time, exactly as it always did — and it is the ROW'S CLASS SPELLING at the
+/// six arms item `(2)` re-derives in place (rows `5`, `11`, `13`, `14`, `15`, `16`), where **the refused value
+/// is NOT rendered and no member, element join or empty spelling can reach the message** (item `(3)`). **The
+/// TARGET the walk hands in `value` is unmoved at those six too** — the target and its rendering are two
+/// different facts and only the second is withdrawn (item `(2)`).
+function refusedValue(fault, value, failedClass, path, marker, subject = null) {
   if (fault.found === null) {
     fault.found = failedClass;
     fault.value = value;
     fault.path = path;
+    fault.subject = subject;
   }
   return marker;
+}
+
+/// **ONE OF THE SIX ARMS WHOSE PART ONE SUBJECT IS THE ROW'S OWN CLASS SPELLING** — the same record as
+/// `refusedValue` above with the row's class handed to it as the subject, so the arm states in one word that
+/// it renders nothing (`contract.md §2.1`'s clause of 2026-10-24, items `(2)` and `(3)`). **THE CLASS AND THE
+/// SUBJECT ARE THE SAME STRING AT THESE SIX, AND THAT IS THE DECLARED FORM** — e.g.
+/// `'a sparse array' is not a value …, the value at the write's value argument is a sparse array`.
+function refusedAsClass(fault, value, failedClass, path, marker) {
+  return refusedValue(fault, value, failedClass, path, marker, failedClass);
+}
+
+/// **A CANONICAL ARRAY INDEX, AS `§2` ROW `17`'S PREDICATE SPELLS IT** — `String(i)` for an integer `i` with
+/// `0 ≤ i ≤ length − 1`, and nothing else (`contract.md §2`'s clause of 2026-10-24 on `F-RA-5`, item `(3)`).
+/// **THE `String(i) === key` HALF IS THE POINT AND NOT A FORMALITY**: `'01'`, `'1.0'`, `'1e0'`, `'-0'`, `' 1'`
+/// and `'0x1'` all convert to a number INSIDE the range, and none of them is the canonical spelling of the
+/// index it would otherwise be taken for — so the key's own spelling is compared with the index's. No member
+/// is read, no user code runs, and `length` is the exotic array's own data property (the value is a genuine
+/// array by the time this test is taken).
+function isCanonicalArrayIndex(key, length) {
+  const index = Number(key);
+  if (!Number.isInteger(index) || index < 0 || index > length - 1) return false;
+  return String(index) === key;
 }
 
 function encodeValue(value, ancestors, depth, path, fault) {
@@ -1149,7 +2070,17 @@ function encodeValue(value, ancestors, depth, path, fault) {
   if (kind === 'boolean') return value;
   // THE CLASS TEST PRECEDES THE NUMERIC ARM (`JS-6`): `bigint` is refused here, as its own outside class,
   // and is NEVER converted through the numeric arm (`Number(10n)` is the shipped `JS-6` substitution).
-  if (kind === 'bigint') return refusedValue(fault, value, 'a bigint', path, { k: 'g', v: value.toString() });
+  if (kind === 'bigint') {
+    // **⟶ AND THE SPELLING IS A SPEC CONVERSION ON THE PRIMITIVE, NOT `BigInt.prototype.toString`**
+    // (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`, items `(1c)`, `(2b)`'s row `37` and `(10c)`): the
+    // as-built `value.toString()` was a method taken off a MUTABLE PROTOTYPE, and the battery's row `(i)`
+    // measures the answer it gave — a caller's `BigInt.prototype.toString` returned a marker that crossed as
+    // the carrier's own value. `String(10n)` is `'10'` — the language's `ToString` for a BigInt appends NO
+    // suffix — and the `'10n'` spelling the contract's row `6` subject carries is `valueTargetSpelling`'s own
+    // `` `${value}n` `` substitution and a DIFFERENT BYTE from the conversion named here; the conversion reads
+    // no member. No second figure and no second rendering is minted.
+    return refusedValue(fault, value, 'a bigint', path, { k: 'g', v: String(value) });
+  }
   if (kind === 'number') {
     if (!Number.isFinite(value)) {
       return refusedValue(fault, value, 'a non-finite number', path, { k: 'F', v: value }); // `§1.2` row 11
@@ -1162,42 +2093,114 @@ function encodeValue(value, ancestors, depth, path, fault) {
   // `§1.4` item 4 (g), `DD-34` — and NO trap is invoked: `util.types.isProxy` reads no member.
   if (types.isProxy(value)) return refusedValue(fault, value, 'a Proxy', path, { k: 'P' });
   // `§1.4` item 6: the ancestor stack, never a `WeakSet` — which is what ADMITS an acyclic diamond.
-  if (ancestors.includes(value)) {
-    return refusedValue(fault, value, 'a value that contains itself', path, { k: 'c' }); // `§1.2` row 12
+  // **⟶ AND THE STACK IS READ BY INDEX, NOT BY `Array.prototype.includes`** (`contract.md §2.1`'s clause of
+  // 2026-10-24 on `F7-1`, items `(1c)(vi)`, `(2b)`'s rows `18` and `29`, and `(10b)`): the as-built membership
+  // was a member of a mutable prototype, and the battery's row `(b)` measures both of its forgeries — an
+  // `includes` answering `true` refused an ACYCLIC value at the root and one answering `false` missed the
+  // CYCLE, so the walk re-entered the ancestor and the host stopped it. **THE MEMBERSHIP IS A LOCAL LOOP AND
+  // THE STACK'S EXTENSION IS A LOCAL INDEX LOOP** — no method and no iterator of a mutable prototype decides
+  // row `11`.
+  let onAncestorPath = false;
+  for (let i = 0; i < ancestors.length; i += 1) {
+    if (ancestors[i] === value) {
+      onAncestorPath = true;
+      break;
+    }
   }
-  const next = [...ancestors, value];
+  if (onAncestorPath) {
+    // ⟶ `contract.md §2.1`'s clause of 2026-10-24, item `(2)`: row `11`'s subject is its own CLASS SPELLING
+    // — the repeated ancestor is NOT rendered (`DEF-2026-10-24-D`).
+    return refusedAsClass(fault, value, 'a value that contains itself', path, { k: 'c' }); // `§1.2` row 12
+  }
+  const next = extendedPath(ancestors, value);
   if (Array.isArray(value)) {
     // **THE CLASS DECISION COMES FIRST, ON THE VALUE AS IT IS** (`A76`, `JS-2`): `Array.isArray` is TRUE
     // for a class extending `Array`, so it may not stand alone as the admission test. **A class extending
     // `Array` is refused under ITS OWN declared class — `§1.2` row 5's `ValueNotAdmitted`
     // (`NonPlainCollection`) — and NEVER through the array shape test.**
     if (arrayClass(value) === 'class') {
-      return refusedValue(fault, value, 'a class extending Array', path, { k: 'P' });
+      // ⟶ `contract.md §2.1`'s clause of 2026-10-24, item `(2)`: row `13`'s subject is its own CLASS SPELLING
+      // — the instance is NOT rendered, so the empty subject this arm once answered is retired.
+      return refusedAsClass(fault, value, 'a class extending Array', path, { k: 'P' });
     }
     for (let i = 0; i < value.length; i += 1) {
       // `§1.4` item 2: a hole refuses the WHOLE value (`DD-8`), and its class is the array's own hole arm.
-      if (!(i in value)) return refusedValue(fault, value, 'a sparse array', path, { k: 'H' });
+      // ⟶ `contract.md §2.1`'s clause of 2026-10-24, item `(2)`: row `16`'s subject is its own CLASS SPELLING
+      // — the array is NOT rendered, so `'1,,3'` is retired.
+      // **⟶ AND `contract.md §2`'s clause of 2026-10-24 on `F-RA-11` RE-DERIVES THE HOLE ITSELF: A HOLE IS AN
+      // INDEX BELOW `length` WITH NO **OWN** PROPERTY** (its item `(1)`), so the test is `Object.hasOwn` and
+      // NOT `in`. `in` is `[[HasProperty]]`, which walks the prototype chain, so
+      // `Array.prototype[0] = 'x'; const a = new Array(2); a[1] = 'y'` passed this scan and the crossing
+      // admitted `['x', 'y']` — **an element REPLACED at the boundary, one the caller's array never owned** —
+      // while an inherited ACCESSOR at an index was then READ by the element loop's `[[Get]]`, running caller
+      // code on an admission path (its items `(3)`, `(4)` and `(5)`). **`Object.hasOwn` and never
+      // `Object.prototype.hasOwnProperty`, which is a method taken from a mutable prototype** (item `(6)`,
+      // the file's own idiom at `:2144` · `:2179` · `:2261` and the rule stated at `:2240`). **A
+      // prototype-carried index is therefore never read** — the element loop below reaches only indices this
+      // scan has proved OWN — and an OWN accessor at an index is refused as row `15` three lines below.
+      if (!Object.hasOwn(value, i)) return refusedAsClass(fault, value, 'a sparse array', path, { k: 'H' });
     }
     const refusal = accessorOrSymbolArm(value);
-    if (refusal !== null) return refusedValue(fault, value, shapeArmClass(refusal), path, refusal);
+    // ⟶ `contract.md §2.1`'s clause of 2026-10-24, item `(2)`: rows `5`/`15`'s subject is the CLASS SPELLING —
+    // the containing ARRAY is NOT rendered, so the empty subject an empty array answered is retired.
+    if (refusal !== null) return refusedAsClass(fault, value, shapeArmClass(refusal), path, refusal);
+    // **⟶ ROW `17` — `an array carrying a non-index own member` — IS DECIDED HERE AND NOWHERE ELSE**
+    // (`contract.md §2`'s clause of 2026-10-24 on the gate-11 finding `F-RA-5`, items `(3)`, `(5)`, `(6)` and
+    // `(8)`). The as-built walk read an array BY INDEX ALONE, so `const a = [1]; a.foo = 3` crossed as `[1]`
+    // and **the member was DROPPED SILENTLY** — the one answer `§2`'s own ground (*"None is coerced, repaired,
+    // dropped, or replaced"*) forbids, and the answer rows `15` and `5` had already refused twice for a member
+    // with no JSON spelling. **THE PREDICATE IS ITEM `(3)`'S, EXACTLY: every string in `Object.keys(value)` is
+    // a canonical index in `0…length − 1`** — own ENUMERABLE string keys only, so `length` itself (an own
+    // non-enumerable data member) is not a member of this test and an own NON-ENUMERABLE member other than it
+    // is outside the tree by the rule that puts an object's non-enumerable members outside it, while an
+    // element whose own index property happens to be non-enumerable is still carried, because the element walk
+    // below reads by INDEX. **THE POSITION IS THE ARRAY'S OWN** (item `(5)`) and **THE SUBJECT IS THE ROW'S
+    // CLASS SPELLING**, so the message names the class twice and the extra member is never reached.
+    // **THE ORDER IS ITEM `(6)`'S**: row `13` above, then row `16`, then rows `15`/`5`, then THIS ROW, then
+    // the element walk — so a subclass, a sparse array and a Symbol-carrying array each keep answering their
+    // own row, and a refused element costs no visit because this test precedes the loop. **AND A
+    // `Proxy`-SHAPED PROTOTYPE IS NO LONGER PART OF THAT LIST**, because `contract.md §2`'s clause of
+    // 2026-10-24 on `F-RA-12` item `(4)` declares this comment's old half false for a LYING trap: a `Proxy`
+    // prototype link is answered as `'class'` with no trap run, so such a value answers row `13` above and
+    // never reaches here. **THE MEMBER IS NEVER CARRIED**: the row refuses its PRESENCE, not its value
+    // (item `(3)`'s last sentence).
+    // **⟶ AND THE KEY CENSUS IS CONSUMED BY INDEX, NOT THROUGH THE ITERATION PROTOCOL** (`contract.md §2.1`'s
+    // clause of 2026-10-24 on `F7-1`, items `(1c)(ii)`, `(2b)`'s row `17` and `(10b)`: *"`Object.keys`'s
+    // iteration is row `17`'s **only** gate"*) — `Object.keys`'s CALL is lawful and its result's `for … of` is
+    // not, so a caller's forged iterator decided whether row `17` saw the non-index member at all.
+    const indexKeys = Object.keys(value);
+    for (let at = 0; at < indexKeys.length; at += 1) {
+      if (!isCanonicalArrayIndex(indexKeys[at], value.length)) {
+        return refusedAsClass(fault, value, 'an array carrying a non-index own member', path, { k: 'c' });
+      }
+    }
     const members = [];
     for (let i = 0; i < value.length; i += 1) {
       // **AN ARRAY MEMBER'S INDEX IS A DECLARED POSITION** (`§2.5` item 6 (b): *"the MEMBER POSITION for a
       // member inside a value the walk reached"*), and it is carried BARE, as item 6 (a) spells an integer
       // segment. Every index is present and is a data property by the two rules above, so the read below is
       // the read `for … of` performed.
-      members.push(encodeValue(value[i], next, depth + 1, [...path, i], fault));
+      members[members.length] = encodeValue(value[i], next, depth + 1, extendedPath(path, i), fault);
       if (fault.found !== null) break;
     }
     return members;
   }
   const proto = protoClass(value);
   // `§1.4` item 4 (f): a prototype-carrying object is REFUSED — never read through its chain (`JS-5`).
-  if (proto === 'class') return refusedValue(fault, value, classSpelling(value), path, { k: 'P' });
+  // ⟶ `contract.md §2.1`'s clause of 2026-10-24, item `(2)`: row `14`'s subject is its own CLASS SPELLING —
+  // the value is NOT rendered and its class's own `toString` is not reached.
+  if (proto === 'class') return refusedAsClass(fault, value, classSpelling(value), path, { k: 'P' });
+  // ⟶ `contract.md §2.1`'s clause of 2026-10-24, item `(2)`: rows `5`/`15`'s subject is the CLASS SPELLING —
+  // the containing OBJECT is NOT rendered, so `'[object Object]'` is retired.
   const refusal = accessorOrSymbolArm(value);
-  if (refusal !== null) return refusedValue(fault, value, shapeArmClass(refusal), path, refusal);
+  if (refusal !== null) return refusedAsClass(fault, value, shapeArmClass(refusal), path, refusal);
   const members = [];
-  for (const name of Object.keys(value)) {
+  // **⟶ AND OBJECT KEYS' ITERATION IS A LOCAL INDEX LOOP** (`contract.md §2.1`'s clause of 2026-10-24 on
+  // `F7-1`, items `(1c)(ii)` and `(2b)`'s row `17`): `Object.keys` is an `Object` static and lawful; consuming
+  // its result with `for … of` is `Array.prototype[Symbol.iterator]` and is not.
+  const memberNames = Object.keys(value);
+  for (let at = 0; at < memberNames.length; at += 1) {
+    const name = memberNames[at];
     // `§1.2` row 7 / `§1.4` item 3: an `{a: undefined}` member is SEEN and REFUSED, and **the key is NEVER
     // dropped** — the member is walked, its own position is carried, and the walk records the fault THERE.
     // **THE READ IS AN OWN-PROPERTY READ** (`A76`, `JS-5`): `Object.keys` yields the OWN enumerable string
@@ -1216,15 +2219,30 @@ function encodeValue(value, ancestors, depth, path, fault) {
       // is a REPAIR of it, which `§1.8` forbids — so the failing target is named by the VALUE argument the
       // member was reached under, and the member's own POSITION (the key path, whose spelling
       // `valuePosition` takes from the same key) carries the rest.
-      return refusedValue(fault, VALUE_ARGUMENT_POSITION, 'a string carrying a lone surrogate', [...path, name], { k: 'c' });
+      return refusedValue(fault, VALUE_ARGUMENT_POSITION, 'a string carrying a lone surrogate', extendedPath(path, name), { k: 'c' });
     }
-    members.push([name, encodeValue(value[name], next, depth + 1, [...path, name], fault)]);
+    members[members.length] = [name, encodeValue(value[name], next, depth + 1, extendedPath(path, name), fault)];
     if (fault.found !== null) break;
   }
   // **THE BARE PLAIN OBJECT** (`contract.md §3`, `§5`; `A148` Q4): the members are data and the shape is
-  // the object's own, so no `k`, no `m`, no `p`, no `acc` and no `proxy` is carried. `Object.fromEntries`
-  // defines OWN data properties, so a member genuinely named `__proto__` stays a member.
-  return Object.fromEntries(members);
+  // the object's own, so no `k`, no `m`, no `p`, no `acc` and no `proxy` is carried.
+  // **⟶ AND THE MEMBERS ARE DEFINED OWN DATA PROPERTIES BY A LOCAL LOOP, NOT BY `Object.fromEntries`**
+  // (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`, items `(1c)(ii)` and `(2b)`'s row `20`): the CALL is
+  // lawful and its ARGUMENT'S ITERATION is not — `fromEntries` consumed the members through
+  // `Array.prototype[Symbol.iterator]`, so a forged iterator could drop or reorder a crossed member. **The
+  // defined form is the one `Object.fromEntries` took all along** — an own data property per member, per the
+  // gate-4 `ADV-12` rule that a member genuinely named `__proto__` must stay a member and not become the
+  // returned object's prototype (`Object.defineProperty` defines; `[[Set]]` would not).
+  const plain = {};
+  for (let at = 0; at < members.length; at += 1) {
+    Object.defineProperty(plain, members[at][0], {
+      value: members[at][1],
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
+  }
+  return plain;
 }
 
 /// `crossing.md §1.3`'s `Segment`: a string or a non-negative integer is admitted, and EVERY outside class
@@ -1520,7 +2538,13 @@ function encodeAddress(address, addressArgumentPosition, addressValuePosition) {
         // SAME datum at both layers and not a second spelling of it.
         refuseOutsideSegment(segment, i, address.slice(0, i), addressArgumentPosition);
       }
-      segments.push(encoded);
+      // **⟶ AND THE CARRIER'S SEGMENT LIST IS EXTENDED BY INDEX TOO** (`contract.md §2.1`'s clause of
+      // 2026-10-24 on `F7-1`, item `(1b)`, and the battery's row `(g)`): the as-built `segments.push` was
+      // `Array.prototype.push` taken off a MUTABLE PROTOTYPE on the ADMISSION path, so a caller's no-op `push`
+      // emptied this list and the whole write crossed to the REGISTER instead of the address the caller
+      // spelled — an admitted drive whose crossed member moved. The list, its order and the shape it is
+      // handed in are unmoved.
+      segments[segments.length] = encoded;
     }
     return { k: 'L', s: segments }; // rows 1–3, 13
   }
@@ -1650,7 +2674,14 @@ function encodeTier(tier, supplied, foldsUndefined, addressArgumentPosition) {
   if (types.isProxy(tier)) return { k: 'O' }; // row 6: an object, and no trap is invoked
   if (Array.isArray(tier)) {
     if (arrayClass(tier) === 'class') return { k: 'O' }; // row 6: a class extending `Array` is an object
-    return { k: 'S', i: tier.map(encodeTierSetItem) };
+    // **⟶ AND THE TIER SET IS ENCODED BY A LOCAL INDEX LOOP, NOT BY `Array.prototype.map`** (`contract.md §2.1`'s
+    // clause of 2026-10-24 on `F8-2`, items `(2a)`, `(2b)` and `(2c)`, and item `(2b)`'s row `61`; arm `(xix)`,
+    // cell `JC-TC-65`): `delete Array.prototype.map` threw a RAW HOST `TypeError` out of a LAWFUL store verb, and
+    // a forged `map` silently dropped tier items from a verb that then succeeded — a crossed member decided by a
+    // prototype. The loop carries one encoded item per item, in the caller's own order.
+    const items = [];
+    for (let i = 0; i < tier.length; i += 1) items[items.length] = encodeTierSetItem(tier[i]);
+    return { k: 'S', i: items };
   }
   if (typeof tier === 'number') return { k: 'D', v: tier };
   if (typeof tier === 'boolean') return { k: 'B', v: tier };
@@ -1771,7 +2802,15 @@ function encodeListeners(listeners) {
   if (types.isProxy(listeners)) return { bad: 'non-array' }; // row 3: not the array's shape (`DD-34`)
   if (!Array.isArray(listeners)) return { bad: 'non-array' };
   if (arrayClass(listeners) === 'class') return { bad: 'non-array' }; // `JS-2`: a class extending `Array`
-  return listeners.map((entry, position) => {
+  // **⟶ AND THE LIST IS WALKED BY A LOCAL INDEX LOOP, NOT BY `Array.prototype.map`** (`contract.md §2.1`'s
+  // clause of 2026-10-24 on `F8-2`, items `(2a)`, `(2b)` and `(2c)`, and item `(2b)`'s row `62`; arm `(xix)`,
+  // cell `JC-TC-65`): a caller-side `delete Array.prototype.map` made EVERY `storeCreate` throw a RAW HOST
+  // `TypeError` before it returned — the direction `F-RA-3`'s item `(3)` forbids — and a forged `map` decided
+  // which entries the construction's declared seeding saw. The loop answers one encoded entry per element, at
+  // that element's own position.
+  const encoded = [];
+  for (let position = 0; position < listeners.length; position += 1) {
+    const entry = listeners[position];
     if (!isPlainObjectValue(entry)) {
       boundaryReject(
         'AddressMalformed',
@@ -1781,12 +2820,17 @@ function encodeListeners(listeners) {
     }
     const keys = Object.keys(entry); // the OWN enumerable string keys, and nothing inherited
     if (keys.length !== 2 || !Object.hasOwn(entry, 'address') || !Object.hasOwn(entry, 'handle')) {
-      return { bad: 'entry' };
+      encoded[encoded.length] = { bad: 'entry' };
+      continue;
     }
     const handle = entry.handle;
-    if (typeof handle !== 'string' || handle === '') return { bad: 'handle' };
-    return { address: encodeAddress(entry.address), handle };
-  });
+    if (typeof handle !== 'string' || handle === '') {
+      encoded[encoded.length] = { bad: 'handle' };
+      continue;
+    }
+    encoded[encoded.length] = { address: encodeAddress(entry.address), handle };
+  }
+  return encoded;
 }
 
 /// **⟶ ADDED 2026-10-15 (`parameter-semantics.md §2.21`; `surface.md §2.1`'s `cfg` block dated 2026-10-15;
@@ -1805,7 +2849,16 @@ function encodeConstraints(constraints) {
   if (types.isProxy(constraints)) return { bad: 'non-array' }; // `DD-34`'s class order, taken first
   if (!Array.isArray(constraints)) return { bad: 'non-array' };
   if (arrayClass(constraints) === 'class') return { bad: 'non-array' };
-  return constraints.map((entry, position) => constraintEntry(entry, position));
+  // **⟶ AND THE FOURTH KEY'S OWN WALK IS A LOCAL INDEX LOOP, NOT `Array.prototype.map`** (`contract.md §2.1`'s
+  // clause of 2026-10-24 on `F8-2`, items `(2a)`, `(2b)` and `(2c)`, and item `(2b)`'s row `63`; arm `(xix)`,
+  // cell `JC-TC-65`): a forged `map` registered nothing while the construction returned an instance, and the
+  // deletion threw a RAW HOST `TypeError` out of the same construction. Each element is encoded at its own
+  // position and the list crosses WHOLE.
+  const encoded = [];
+  for (let position = 0; position < constraints.length; position += 1) {
+    encoded[encoded.length] = constraintEntry(constraints[position], position);
+  }
+  return encoded;
 }
 
 /// ONE `constraints[]` ELEMENT: the closed `{ address, id }` pair, or the element's own `<SEGMENT>`
@@ -1848,10 +2901,10 @@ function constraintAddress(address) {
     }
     const segment = address[i];
     if (typeof segment === 'string' && !hasLoneSurrogate(segment)) {
-      segments.push(segment);
+      segments[segments.length] = segment;
     } else if (typeof segment === 'number' && Number.isInteger(segment) && segment >= 0
       && Number.isSafeInteger(segment)) {
-      segments.push(segment);
+      segments[segments.length] = segment;
     } else {
       return `${spellConstraintAddress(segments)} and ${classSpelling(segment)} at position ${i}`;
     }
@@ -1861,10 +2914,22 @@ function constraintAddress(address) {
 
 /// `§8.2`'s whole-address spelling: **a string key SINGLE-QUOTED (`'a'`) and an integer index BARE (`0`),
 /// JOINED BY `/`** — the same spelling the store's own generator prints at its `<SEGMENT>` slot.
+///
+/// **⟶ AND NOTHING HERE IS TAKEN FROM A MUTABLE PROTOTYPE FROM 2026-10-24** (`contract.md §2.1`'s clause of
+/// this date on `F7-1`, items `(2b)`'s row `39` and `(10d)`): the as-built spelling built an array with
+/// `Array.prototype.map` and joined it with `Array.prototype.join`, so a caller's override RAN on every
+/// `ConstraintListInvalid` rendering and ITS RETURN VALUE BECAME THE `<SEGMENT>` SLOT of the store's own
+/// diagnostic — the battery's row `(k)` measures the marker in the message. **The form is item `(1c)(i)`'s
+/// local loop and the same `+=` join `valuePosition` takes**; the bytes, the quoting, the bare integer and the
+/// `/` separator are unmoved.
 function spellConstraintAddress(segments) {
-  return segments
-    .map((segment) => (typeof segment === 'string' ? `'${segment}'` : String(segment)))
-    .join('/');
+  let spelled = '';
+  for (let i = 0; i < segments.length; i += 1) {
+    const segment = segments[i];
+    const rendered = typeof segment === 'string' ? `'${segment}'` : String(segment);
+    spelled += i === 0 ? rendered : `/${rendered}`;
+  }
+  return spelled;
 }
 
 /// `surface.md §2.1` / `DD-36`: the as-filed *"`cfg` carries the store's THREE declared keys and no
@@ -1917,7 +2982,16 @@ function decodeValue(encoded) {
   // **THE COPY-OUT IS THE SAME BARE TREE** (`contract.md §5`; `A148` Q4/Q5): the native writer already
   // builds fresh plain objects and dense arrays, so this frame only normalizes `-0` and keeps the tree fresh.
   if (typeof encoded === 'number') return Object.is(encoded, -0) ? 0 : encoded;
-  if (Array.isArray(encoded)) return encoded.map(decodeValue);
+  // **⟶ AND THE COPY-OUT'S OWN ARRAY ARM TAKES NO METHOD FROM A MUTABLE PROTOTYPE** (`contract.md §1`'s clause
+  // of 2026-10-24 on `F-RA-3`, item `(3)`): the as-built `.map` read `Array.prototype.map` off the array's own
+  // chain, so `delete Array.prototype.map` in the caller's realm threw a raw `TypeError` out of a read the
+  // crossing had already ADMITTED — an admission converted into a failure by the caller's own deletion. The
+  // walk is by INDEX, so the fresh tree is the same fresh tree.
+  if (Array.isArray(encoded)) {
+    const elements = [];
+    for (let i = 0; i < encoded.length; i += 1) elements[elements.length] = decodeValue(encoded[i]);
+    return elements;
+  }
   if (encoded !== null && typeof encoded === 'object') {
     // **⟶ AN OWN DATA PROPERTY IS DEFINED, NEVER SET — CLOSED 2026-10-23 BY THE GATE-4 ADVERSARIAL BATTERY
     // (`json-crossing-gate4-adversarial.test.mjs`'s `ADV-12`).** `out[name] = member` runs `[[Set]]`, whose
@@ -1925,10 +2999,24 @@ function decodeValue(encoded) {
     // became the returned object's PROTOTYPE instead of an own member (and an attacker-supplied member could
     // shadow the returned object's methods). **`Object.fromEntries` defines OWN data properties**, so the
     // bare tree the contract declares crosses back member for member (`contract.md §5`; `A76`: *"do not
-    // attempt to fix"*).
-    const members = [];
-    for (const [name, member] of Object.entries(encoded)) members.push([name, decodeValue(member)]);
-    return Object.fromEntries(members);
+    // attempt to fix"*). **⟶ AND FROM 2026-10-24 THE MEMBERS ARE DEFINED BY A LOCAL LOOP** (`contract.md
+    // §2.1`'s clause of this date on `F7-1`, items `(1c)(ii)` and `(2b)`'s rows `21` and `22`):
+    // `Object.entries`'s pair iteration and `fromEntries`'s argument iteration are both
+    // `Array.prototype[Symbol.iterator]` — a member of a MUTABLE PROTOTYPE on the COPY-OUT path — so the key
+    // census is read by `Object.keys` and consumed by index, the member is read by its own key, and each is
+    // defined as `fromEntries` defined it.
+    const names = Object.keys(encoded);
+    const plain = {};
+    for (let i = 0; i < names.length; i += 1) {
+      const name = names[i];
+      Object.defineProperty(plain, name, {
+        value: decodeValue(encoded[name]),
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
+    }
+    return plain;
   }
   return encoded;
 }
@@ -1947,8 +3035,16 @@ function decodeSegment(segment) {
   return segment;
 }
 
+/// **⟶ AND NO METHOD IS TAKEN FROM A MUTABLE PROTOTYPE HERE EITHER** (`contract.md §1`'s clause of 2026-10-24
+/// on `F-RA-3`, item `(3)`: a caller-side DELETION cannot turn an admission into a refusal). The reply's own
+/// segment array is decoded by INDEX: the as-built `.map` read `Array.prototype.map` off the array's chain, so
+/// `delete Array.prototype.map` in the caller's realm made THIS read throw a raw `TypeError` out of a write the
+/// walk had already ADMITTED — the admission converted into a failure at the package's own frame, which is
+/// `§2.5` item 5 (e)'s forbidden raw host error as well as item `(3)`'s forbidden conversion.
 function decodeSegments(segments) {
-  return segments.map(decodeSegment);
+  const decoded = [];
+  for (let i = 0; i < segments.length; i += 1) decoded[decoded.length] = decodeSegment(segments[i]);
+  return decoded;
 }
 
 function decodeBaseState(encoded) {
@@ -2036,19 +3132,37 @@ const STORE_RETIREMENT = new FinalizationRegistry((retire) => {
 /// **WHAT CROSSES IN ITS PLACE IS THE STORE'S OWN PAIR LIST, MEMBER FOR MEMBER, WITH NO TRANSFORM**
 /// (`contract.md §2.4` item 1; `trigger-and-pair.md §2` item 2): the addon's emitter has already built
 /// `{handle, address}` and this layer CARRIES it, because there is nothing left to translate.
+///
+/// **⟶ AND THE REPLY'S RECORD COPY IS A LOCAL INDEX LOOP AND AN INDEX WRITE, NOT AN ITERATION AND AN APPEND**
+/// (`contract.md §2.1`'s clause of 2026-10-24 on `F8-1`, items `(1a)`, `(1b)` and `(1c)`, and item `(2b)`'s
+/// row `55`; arm `(xviii)`, cell `JC-TC-64`): the as-built set was copied by `for (const element of triggered)`
+/// — `Array.prototype[Symbol.iterator]` — and appended with `out.push(…)` — `Array.prototype.push`. **A forged
+/// iterator yielding one `undefined` made `element.handle` throw a RAW HOST `TypeError` out of a `write` the
+/// walk ADMITTED and the store ALREADY WROTE**, and a caller's `push` answering `0` without copying emptied
+/// the record's trigger set so the listener never fired — a delivery decided by a prototype the caller owns.
+/// Both reads are now item `(1c)(i)`'s index loop and item `(1c)(v)`'s index write on this function's own
+/// array, and the record's declared bytes, its order and its pair shape are unmoved.
 function crossTriggered(state, triggered) {
   if (!Array.isArray(triggered)) return [];
   const out = [];
-  for (const element of triggered) {
-    out.push({ handle: element.handle, address: decodeSegments(element.address) });
+  for (let i = 0; i < triggered.length; i += 1) {
+    const element = triggered[i];
+    out[out.length] = { handle: element.handle, address: decodeSegments(element.address) };
   }
   return out;
 }
 
 /// **THE HANDLES A TRIGGER SET NAMES, in its own order** — how a caller-side read of the set as a SET is
 /// spelled, and how the delivery's dedupe key is read (`contract.md §2.4` item 6).
+///
+/// **⟶ AND THE TRANSFORM IS A LOCAL INDEX LOOP, NOT `Array.prototype.map`** (`contract.md §2.1`'s clause of
+/// 2026-10-24 on `F8-1`, items `(1c)(i)` and `(2b)`'s row `56`; arm `(xviii)`, cell `JC-TC-64`): `delete
+/// Array.prototype.map` threw a RAW HOST `TypeError` out of an admitted `write`, and a forged `map` decided
+/// which handles the delivery saw. The loop answers the same list in the set's own order.
 function handlesOf(triggered) {
-  return triggered.map((element) => element.handle);
+  const handles = [];
+  for (let i = 0; i < triggered.length; i += 1) handles[handles.length] = triggered[i].handle;
+  return handles;
 }
 
 /// **THE STATE A VERB'S FIRST ARGUMENT NAMES** (`surface.md §2.2`'s signatures: every verb takes the
@@ -2416,14 +3530,31 @@ export function storeCreate(cfg) {
       const args = arguments.length >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
       // `PAR-JS-6`: a SUPPLIED `undefined` at this position is PRESENT and takes the row's own
       // `AddressMalformed`; the NO-ARGUMENT call is the one that folds to the ABSENT row.
-      args.push(encodeTier(tier, arguments.length >= 2, false, 'first argument'));
-      return decodeValue(carryRefusal(() => entryOf().read.call(this, ...args), args));
+      // **⟶ AND THE ARGUMENT LIST IS EXTENDED BY INDEX, NOT BY `Array.prototype.push`** (`contract.md §2.1`'s
+      // clause of 2026-10-24 on `F7-1`, item `(1b)`, and the battery's row `(g)`): the as-built `args.push`
+      // was a member of a MUTABLE PROTOTYPE read by every verb, and a caller's `push` answering `0` without
+      // copying EMPTIED the carrier list before any verb was reached — so an admitted write answered
+      // `AddressMalformed: 'tier' requires a tier argument`. `args[args.length] = …` is item `(1c)(v)`'s own
+      // index write on a local array.
+      args[args.length] = encodeTier(tier, arguments.length >= 2, false, 'first argument');
+      // **⟶ AND THE ENTRY IS INVOKED BY `Reflect.apply`, NEVER BY AN ARGUMENT SPREAD** (`contract.md §2.1`'s
+      // clause of 2026-10-24 on `F8-1` and `F8-2`, items `(1b)`, `(1c)` and `(1d)`'s boundary; the cells
+      // `JC-TC-64`, `JC-TC-65` and `JC-TC-66`): `…args` reads the local list through
+      // `Array.prototype[Symbol.iterator]` BEFORE any verb is reached, so a forged iterator handed `undefined`
+      // at every position and an admitted `write` was refused `AddressMalformed` (*"'tier' requires a tier
+      // argument"*) — the argument list was the caller's answer. **`Reflect.apply` reads the list BY INDEX**
+      // (`CreateListFromArrayLike`: the array's own `length` and its own indices), which is item `(1c)(v)`'s own
+      // form, and `Reflect` is a GLOBAL BINDING whose `apply` is its own DATA property — not a prototype member,
+      // which is exactly where item `(1d)`'s boundary stops a sweep. No position, no arity fold and no
+      // absent-versus-`undefined` answer moves: the entry receives the same list it always received.
+      return decodeValue(carryRefusal(() => Reflect.apply(entryOf().read, this, args), args));
     },
     /** `docs/specs/storeroom-js/surface.md §2.2` / `docs/specs/storeroom-js/surface.md §2.9` item 2: `readLiteral` narrows the read to a leaf and answers `ReadTargetIsBranch`. */
     readLiteral(address, tier) {
       const args = arguments.length >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
-      args.push(encodeTier(tier, arguments.length >= 2, false, 'first argument'));
-      return decodeValue(carryRefusal(() => entryOf().readLiteral.call(this, ...args), args));
+      args[args.length] = encodeTier(tier, arguments.length >= 2, false, 'first argument');
+      // THE ENTRY IS INVOKED BY `Reflect.apply`, NOT BY A SPREAD — see `read`'s clause of 2026-10-24 above.
+      return decodeValue(carryRefusal(() => Reflect.apply(entryOf().readLiteral, this, args), args));
     },
     write(address, tier, value, commit) {
       // **⟶ THE RECEIVER IS CHECKED HERE, BEFORE EITHER ROUTE IS CHOSEN — `write` IS THE ONE MEMBER WITH TWO
@@ -2485,14 +3616,18 @@ export function storeCreate(cfg) {
       // `AddressArg` rows drive exactly this), **and a route to the kernel can never be a route AROUND the
       // boundary's own class tests.** **NOTHING IS DECIDED TWICE: the encoders are total over the positions and
       // their answers are the store's own, so the kernel receives the same values the bare path always built.**
-      const fault = { found: null, value: undefined, path: [], nodes: 0 };
+      // ⟶ `subject` is `contract.md §2.1`'s clause of 2026-10-24, item `(2)`'s slot: `null` means "render the
+      // failing target" and any string means "the arm declared its own PART ONE subject" (`DEF-2026-10-24-D`).
+      const fault = { found: null, value: undefined, path: [], subject: null, nodes: 0 };
       const args = arguments.length >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
       // `PAR-JS-7`: `write`'s tier is REQUIRED — an ABSENT position and a SUPPLIED `undefined` both answer
       // `AddressMalformed`, and neither folds.
-      args.push(encodeTier(tier, arguments.length >= 2, false, 'first argument'));
+      args[args.length] = encodeTier(tier, arguments.length >= 2, false, 'first argument');
       // THE WALK'S OWN FAULT RECORD — see `refusedValue`: the walk CLASSIFIES and RECORDS, and the record is
       // read at the one site where the store answered `ValueNotAdmitted` for a value the walk refused.
-      args.push(encodeValue(value, [], 0, [], fault));
+      // **⟶ AND THIS EXTENSION IS THE SAME INDEX WRITE** (`F7-1`, item `(1b)`): a no-op `push` dropped the
+      // VALUE position too, so the admitted drive lost its crossed member and not merely its tier.
+      args[args.length] = encodeValue(value, [], 0, [], fault);
       // **THE VALUE REFUSAL IS ANSWERED BEFORE ANY VERB** (`parameter-semantics.md §3`): the carrier positions
       // above have already answered in their own order, so this keeps `write(undefined, 'mem', null)` on the
       // carrier row and never lets a refused tree reach the store.
@@ -2507,11 +3642,14 @@ export function storeCreate(cfg) {
         // member's own body** (`§3`), which is where `P-SAS-8` drives it. **THE FIVE POSITIONS ARE THE VERB'S
         // OWN AND THE FIRST ARGUMENT IS THE STORE OBJECT THE PACKAGE RETURNED** (`receiver-and-refusal.md
         // §1`): no instance position stands among them (`export-set-and-dispatch.md §4`).
-        // **THE ENTRY'S OWN POSITIONS ARE SPREAD FROM THE ENCODED ARRAY BUILT ABOVE** — the SAME values both
-        // routes carry, so the entry receives exactly what the kernel leg receives and **nothing is decided
-        // twice** (`§2.5` item 5 (a)-(c)). **A POSITION THE CALL DID NOT SUPPLY IS HANDED AS THE RUNTIME'S
-        // OWN `undefined`**, which is this boundary's declared protocol for a short call.
-        answer = entryOf().write.call(this, ...args);
+        // **THE ENTRY'S OWN POSITIONS ARE THE ENCODED ARRAY BUILT ABOVE, APPLIED BY INDEX** — the SAME values
+        // both routes carry, so the entry receives exactly what the kernel leg receives and **nothing is
+        // decided twice** (`§2.5` item 5 (a)-(c)). **A POSITION THE CALL DID NOT SUPPLY IS HANDED AS THE
+        // RUNTIME'S OWN `undefined`**, which is this boundary's declared protocol for a short call. **AND THE
+        // LIST IS APPLIED AND NOT SPREAD** (`Reflect.apply` — see the `read` member's clause of 2026-10-24):
+        // a spread consumes the encoded array through `Array.prototype[Symbol.iterator]` BEFORE the store is
+        // ever reached, so a forged iterator dropped the tier and refused an admitted write.
+        answer = Reflect.apply(entryOf().write, this, args);
       } catch (refusal) {
         // **⟶ AND THE RELEASE AN ABANDONED ADOPTION ONCE NEEDED IS GONE WITH THE MACHINERY, 2026-10-18.** The
         // catch this replaces released *"the adoption it was taken for"* — an identity `settle` had put in
@@ -2522,9 +3660,21 @@ export function storeCreate(cfg) {
         writeRefusal(refusal, fault);
         throw refusal;
       }
+      const watched = [];
+      // **⟶ AND THE WATCH SET IS DECODED BY INDEX, NOT BY `.map`** (`contract.md §1`'s clause of 2026-10-24 on
+      // `F-RA-3`, item `(3)`; and `§2.5` item 5 (e), a rejection is never a raw host error): a caller-side
+      // `delete Array.prototype.map` reached this read through the reply array's own chain and threw a raw
+      // `TypeError` out of a write the walk had ADMITTED.
+      // **⟶ AND THE APPEND IS AN INDEX WRITE, NOT `Array.prototype.push`** (`contract.md §2.1`'s clause of
+      // 2026-10-24 on `F8-1`, items `(1c)(i)` and `(2b)`'s row `57`; arm `(xviii)`, cell `JC-TC-64`): the loop
+      // enclosing it was already the lawful form and the append was not, so a no-op `push` silently emptied
+      // the record's watch set while the write itself stayed admitted and durable.
+      for (let i = 0; i < answer.watched.length; i += 1) {
+        watched[watched.length] = decodeSegments(answer.watched[i]);
+      }
       const record = {
         op: decodeJournalOp(answer.op),
-        watched: answer.watched.map(decodeSegments),
+        watched,
         triggered: crossTriggered(state, answer.triggered),
       };
       // **AND THE RECORD IS LEFT IN THE SLOT THE KERNEL'S STORE LEG READS** (`state.leg`; `docs/specs/storeroom-js/surface.md §2.12` item 1's
@@ -2570,8 +3720,9 @@ export function storeCreate(cfg) {
         const args = arguments.length >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
         // `delete`'s tier is read as a VALUE and not by an arity fold: an ABSENT position is the whole-target
         // removal, and a supplied `undefined` answers row 4's `AddressMalformed` (`crossing.md §1.3`).
-        args.push(encodeTier(tier, arguments.length >= 2, false, 'first argument'));
-        const answer = carryRefusal(() => entryOf().delete.call(this, ...args), args);
+        args[args.length] = encodeTier(tier, arguments.length >= 2, false, 'first argument');
+        // THE ENTRY IS INVOKED BY `Reflect.apply`, NOT BY A SPREAD — see `read`'s clause of 2026-10-24 above.
+        const answer = carryRefusal(() => Reflect.apply(entryOf().delete, this, args), args);
         const receipt = {
           address: decodeSegments(answer.address),
           tiers: answer.tiers,
@@ -2587,7 +3738,8 @@ export function storeCreate(cfg) {
     /// `PAR-JS-9`: `{opId, undoneOps, restoredTo}` — the constraint pattern's reverse step (`docs/specs/storeroom-js/contract.md §2.6`).
     rollback(opId) {
       const args = arguments.length >= 1 ? [encodeOpId(opId)] : [];
-      const answer = carryRefusal(() => entryOf().rollback.call(this, ...args), args);
+      // THE ENTRY IS INVOKED BY `Reflect.apply`, NOT BY A SPREAD — see `read`'s clause of 2026-10-24 above.
+      const answer = carryRefusal(() => Reflect.apply(entryOf().rollback, this, args), args);
       return {
         opId: answer.opId,
         undoneOps: answer.undoneOps,
@@ -2819,7 +3971,17 @@ export function storeCreate(cfg) {
       // suppressed the read-model delete is DROPPED**, because the re-add below writes the same pair identity
       // back through `K-1` and `carryConstraint` (`P: docs/pending.md · (O-3)` item (iv)'s obligation; `(AA-2)`;
       // `contract.md §2.6` item 2).
-      constraintsKernel().remove(instance, { address: held.addresses, id: held.id });
+      // **⟶ AMENDED 2026-10-22 (`DEF-2026-10-20-F` landed; the architect's ruling) — `K-6` IS CALLED WHERE A
+      // REGISTRATION STANDS, AND A DISABLED PAIR STANDS NONE.** **The disable arm is `remove`-only now, so a pair
+      // whose `entry.enabled` is `false` has NO kernel row for `K-6` to find — and `K-6` REFUSES `KC-2` (*"no
+      // constraint pair answers to …"*) rather than answering a no-op** (`contract.md §4` `F-12`). **So this
+      // overwrite arm purges the pair's OLD registration only where the pair was ENABLED and stands one**
+      // (`withdrawStanding` below, which states the rule once for every held-pair purge site). **NOTHING IS LEFT
+      // UNPURGED BY THE GUARD:** where the pair is disabled there is nothing to withdraw, and the ADD below lands
+      // the supplied element under the same identity either way — `K-1`'s own idempotence arm answers a row that
+      // survives a refused registration's wake (`kernel-surface.md §2.1` item 1; `CC-7`). **A DISABLED PAIR IS
+      // STILL A HELD PAIR, so this arm is still the overwrite arm and still answers the pair's own identity.**
+      withdrawStanding(instance, held);
       // **STEP 3 — ADD.** The supplied element is installed under **THE SAME IDENTITY**, because the identity now
       // lives in the STORE and is returned with the pair, so the mechanism's change does not move the observable
       // (`(O-3)` item (iv)'s obligation; `(AA-2)`; `contract.md §2.6` item 2).
@@ -2876,22 +4038,52 @@ export function storeCreate(cfg) {
       const entry = site.state.constraints.get(constraintPairKey(site.addresses, site.id));
       if (entry === undefined) constraintUncarried(verb, pair);
       if (entry.enabled !== true) {
-        // **⟶ AND THE TOGGLE IS A PURGE-THEN-ADD TOO, BECAUSE IT REACHES THE SAME `K-1`.** **THE RULING, AT ITS
-        // OWN SITE: *"it is the same rule for `constraintOn`/`constraintOff`, which reach the same `K-1`: their
-        // re-registration is a purge-then-add too, and `constraintParked` is the new element added"*** —
-        // *"THE PROPOSAL MUST STATE THAT A TOGGLE AT A PAIR PURGES THE PAIR'S OLD STORE ENTRIES, because that is
-        // what `no exceptions` means at this site"* (`P: docs/pending.md · (O-3)` item (v), verbatim;
-        // `contract.md §2.3` item 7; `constraint-sites.md §1` rows 2–3).
+        // **⟶ AND THIS ARM ADDS — `entry.fn`, THE ELEMENT THE ENTRY CARRIED, WHICH IS BEING ENABLED.** **THE
+        // RULING'S CLAUSE, AT ITS OWN SITE: *"THE PROPOSAL MUST STATE THAT A TOGGLE AT A PAIR PURGES THE PAIR'S
+        // OLD STORE ENTRIES, because that is what `no exceptions` means at this site"*** (`P: docs/pending.md ·
+        // (O-3)` item (v), verbatim; `contract.md §2.3` item 7; `constraint-sites.md §1` rows 2–3).
         //
-        // **THE CHECK PRECEDES IT, AS AT EVERY HELD-PAIR SITE** (`constraintSite` has already run: the pair's
-        // shape, the id, the addresses' domain and the element's class), **and a refusal therefore purges
-        // nothing.** **AND THE IDENTITY STANDS THROUGH THE CYCLE — `constraintOff` is a TOGGLE and not a
+        // **⟶ AMENDED 2026-10-22 (`DEF-2026-10-20-F` landed; the architect's ruling) — THE QUOTED *"it is the
+        // same rule for `constraintOn`/`constraintOff`, which reach the same `K-1`: their re-registration is a
+        // purge-then-add too, and `constraintParked` is the new element added"* IS NOT TO BE READ AS A RULE ABOUT
+        // BOTH ARMS, AND THIS SITE NO LONGER READS IT AS ONE.** **`(O-3)` item (v)'s SUBJECT is *"a constraint
+        // written to an existing handle"* — the OVERWRITE/WRITE path, where a body genuinely REPLACES a body.**
+        // **THE ENABLE ARM WRITES A BODY AND THUS LEGITIMATELY ADDS ONE — `entry.fn`, because the pair is
+        // ENABLED; THE DISABLE ARM WRITES NOTHING, SO IT PURGES ONLY (`remove`) AND ADDS NOTHING** (ground 4;
+        // `constraintOff`'s own amended note below). **Item (v)'s shared-route observation is a fact about
+        // REACHABILITY — both arms DO reach `K-1` — and not an instruction to add on both.** **AND THE RULED
+        // ASYMMETRY AT `§4.1`: this arm brackets at entry (`:4034`) and is table `1`, while `constraintOff`
+        // brackets nowhere and is table `2`, so an identical nested `listen` here JOINS an extant commit and
+        // there OPENED one from zero — which is why only the disable arm's copy was the defect.** **`constraintParked`
+        // IS NOT ADDED BY EITHER TOGGLE: it remains the element a *disabled* pair's registry record carries for
+        // ENUMERATION purposes, at `restoreHeldPair`'s refusal wake (`:5597`).**
+        //
+        // **⟶ AND THE PURGE THIS ARM USED TO TAKE IS GONE WITH THE DISABLE ARM'S REGISTRATION — A CONSEQUENCE THE
+        // RULING DID NOT NAME AND THAT IS RECORDED HERE RATHER THAN DISCOVERED LATER.** The `remove` that stood
+        // below was `K-6` against the pair's OWN standing row — **the very row the disable arm's `register` used
+        // to leave behind. With the register half removed, a DISABLED pair stands NO kernel row at all** (ground
+        // 3: `remove` is already the complete act), **so `K-6` refuses `KC-2` — *"no constraint pair answers to
+        // …"* — and a re-enable would throw where `surface.md §2.12` item 3's clause 5 declares a toggle. THE
+        // PURGE-THEN-ADD SPANS THE TWO HALVES NOW AND NOT ONE ARM:** `constraintOff` purges (its `remove`), and
+        // `constraintOn` adds (`entry.fn` through `K-1`), **which is literally *"the old handle's entries are
+        // purged before the new one is added"* (`(O-3)` item (i))**. **NOTHING IS UNPURGED BY ITS ABSENCE:** a
+        // pair reaching this arm stands no store-side listener, since the only act that could have left one is
+        // the disable, which no longer performs it. **AND WHERE ONE DOES STAND — the declared residue of a
+        // REFUSED registration, which `restoreHeldPair` below writes back — `K-1`'s own idempotence arm is what
+        // answers it** (`kernel-surface.md §2.1` item 1; `CC-7`: *"a second registration under the SAME pair
+        // keeps the replaced registration's PLACE and replaces only its function"*), **so the pair is re-added
+        // under its own identity either way.**
+        //
+        // **THE CHECK PRECEDES ALL OF IT, AS AT EVERY HELD-PAIR SITE** (`constraintSite` has already run: the
+        // pair's shape, the id, the addresses' domain and the element's class), **and a refusal therefore
+        // changes nothing.** **AND THE IDENTITY STANDS THROUGH THE CYCLE — the toggle is a TOGGLE and not a
         // removal** (`constraint-identity.md §3` item 3; `contract.md §5.6`'s `S-ID` family; `IF-5`).
-        constraintsKernel().remove(instance, { address: entry.addresses, id: entry.id });
-        // **⟶ AND THE TOGGLE'S REFUSAL HAS THE SAME WAKE AS THE OVERWRITE ARM'S, FOR THE SAME REASON: IT REACHES
-        // THE SAME `K-6` AND THE SAME `K-1`** (`docs/specs/storeroom-held-listener-identity/contract.md §2.3` item 7; `constraint-sites.md §1` rows 2–3), **so a refused
-        // re-registration has already purged the pair's own row and its read model, and both are put back before
-        // the refusal crosses** (`restoreHeldPair` above; `constraint-sites.md §4` item 2; `§2.1` item 1).
+        // **⟶ AND THE REFUSAL WAKE BELOW IS THIS ARM'S AND STAYS: THIS ARM DOES RE-REGISTER A BODY THROUGH
+        // `K-1`, so a registration-time refusal is reachable here and its residue is the declared one**
+        // (`docs/specs/storeroom-held-listener-identity/contract.md §2.3` item 7; `constraint-sites.md §1` rows
+        // 2–3; `§4` item 2; `§2.1` item 1). **⟶ AND IT IS REACHABLE ON THIS ARM AND ON NO ARM OF `constraintOff`**
+        // (`DEF-2026-10-20-F` consequence (i): a `remove`-only arm cannot refuse a re-registration, so the disable
+        // arm's `try`/`catch` went with its loop — `:4113` onwards).
         try {
           for (const address of entry.addresses) {
             constraintsKernel().register(instance, address, entry.id, entry.fn);
@@ -2901,12 +4093,15 @@ export function storeCreate(cfg) {
           registrationCrossing(refusal);
         }
         entry.enabled = true;
-        // **⟶ AND STEP 3 IS THE RE-ADD: THE SAME PAIR IDENTITY IS WRITTEN BACK** (`P: docs/pending.md · (O-3)`
+        // **⟶ AND THE PAIR'S STATE ROW STANDS UNDER THE SAME PAIR IDENTITY** (`P: docs/pending.md · (O-3)`
         // item (iv)'s obligation; `(AA-2)`: *"Move the identity into the store"*, preserved *"equal to itself on
-        // a second `addConstraint` at the SAME pair"*). **THE TOGGLE IS NOT A REMOVAL, so the row it purged is
-        // restored UNDER THE SAME IDENTITY and the enumeration is unmoved** (`constraint-identity.md §3` item 3;
+        // a second `addConstraint` at the SAME pair"*). **THE TOGGLE IS NOT A REMOVAL, so the pair is carried
+        // UNDER THE SAME IDENTITY and the enumeration is unmoved** (`constraint-identity.md §3` item 3;
         // `§5` `IF-5`; `removal-members.md §3` item 3): *"`constraintOff` is a TOGGLE and not a removal: a
         // disabled pair is STILL CARRIED and STILL ENUMERATED"*.
+        // **⟶ AMENDED 2026-10-22 (same ruling): this row is not written back *after a purge* — this arm purges
+        // nothing now** (see the note above). The pair's record stands as it stood, which is what ``(AA-2)``'s
+        // *"equal to itself"* asks for at a re-enable, and the enumeration it feeds is unmoved either way.
         site.state.constraints.set(constraintPairKey(entry.addresses, entry.id), entry);
       }
       return undefined;
@@ -2921,37 +4116,57 @@ export function storeCreate(cfg) {
       const entry = site.state.constraints.get(constraintPairKey(site.addresses, site.id));
       if (entry === undefined) constraintUncarried(verb, pair);
       if (entry.enabled !== false) {
-        // **⟶ AND THE TOGGLE IS A PURGE-THEN-ADD TOO, BECAUSE IT REACHES THE SAME `K-1`.** **THE RULING, AT ITS
-        // OWN SITE: *"it is the same rule for `constraintOn`/`constraintOff`, which reach the same `K-1`: their
-        // re-registration is a purge-then-add too, and `constraintParked` is the new element added"*** —
-        // *"THE PROPOSAL MUST STATE THAT A TOGGLE AT A PAIR PURGES THE PAIR'S OLD STORE ENTRIES, because that is
-        // what `no exceptions` means at this site"* (`P: docs/pending.md · (O-3)` item (v), verbatim;
-        // `contract.md §2.3` item 7; `constraint-sites.md §1` rows 2–3).
-        //
         // **THE CHECK PRECEDES IT, AS AT EVERY HELD-PAIR SITE** (`constraintSite` has already run: the pair's
         // shape, the id, the addresses' domain and the element's class), **and a refusal therefore purges
         // nothing.** **AND THE IDENTITY STANDS THROUGH THE CYCLE — `constraintOff` is a TOGGLE and not a
         // removal** (`constraint-identity.md §3` item 3; `contract.md §5.6`'s `S-ID` family; `IF-5`).
+        //
+        // **⟶ AMENDED 2026-10-22 (`DEF-2026-10-20-F` landed; the architect's ruling at the store/kernel code
+        // review) — THE DISABLE ARM PURGES ONLY (`remove`), AND ADDS NOTHING.** This block read *"THE TOGGLE IS A
+        // PURGE-THEN-ADD TOO"*, on the ground that `(O-3)` item (v) applies *"the same rule for
+        // `constraintOn`/`constraintOff`, which reach the same `K-1`"*. **THAT READING IS SUPERSEDED BY THE
+        // RULING, WHICH IS VERBATIM: *"Remove the register half, `constraintOff` removes the constraint."***
+        // **`(O-3)` item (v)'s SUBJECT is *"a constraint written to an existing handle"* — the OVERWRITE/WRITE
+        // path, where a body genuinely REPLACES a body — AND THE DISABLE ARM WRITES NOTHING**, so it has nothing
+        // to add; item (v)'s shared-route observation is a fact about REACHABILITY and not an instruction to add
+        // on both arms (`DEF-2026-10-20-F` ground 4; `docs/defects.md`).
+        //
+        // **SO THE RULED FORM IS ONE ACT: `remove` (`K-6`), WHICH IS ALREADY THE COMPLETE ACT** (ground 3;
+        // `contract.md §2.9` items 2–3). **THE PAIR'S IDENTITY AND ITS ENUMERATION SURVIVE THROUGH
+        // `entry.enabled = false` AND THE STATE ROW BELOW — NOT THROUGH A STORE-SIDE LISTENER.** **THE DELETED
+        // `register` LOOP WAS A DEFECT AND NOT A MANDATED BEHAVIOUR, ON THE RULING'S OWN MEASUREMENT:**
+        // `constraintParked` is a fresh `() => true` (`:5514`), so the arm stood a body that PASSES ALWAYS in
+        // the store's address slot for a disabled pair — **the mask is a passing function rather than an absent
+        // one** — and `K-1` calls `store.listen(home, set)` UNCONDITIONALLY (`constraint-kernel.mjs:561`), **so a
+        // table-`1` BRACKETING act happened inside a table-`2` verb's window**, falsifying
+        // `finalizer-and-teardown.md §4.1` table `2`'s *"disabling cannot fire — nothing runs"* at the mechanism
+        // level (grounds 1–2). **THE ASYMMETRY THAT MADE IT BITE:** `constraintOn` brackets at entry (`:4034`),
+        // so its identical nested `listen` FINDS AN EXTANT COMMIT AND JOINS IT, while `constraintOff` takes none
+        // and the same call OPENED FROM ZERO. **THE WITNESS IS `addon-adoption.test.mjs`'s COUNT WALK OVER ALL
+        // THIRTEEN VERBS** (`test-cases.md` `F-8`), which is GREEN after this note and was RED before it.
+        //
+        // **AND `DEF-2026-10-20-F`'S CONSEQUENCE (i) IS SETTLED HERE — THE `try`/`catch` GOES WITH THE LOOP, it
+        // is not kept as declared silence.** `restoreHeldPair`'s refusal wake is UNREACHABLE on this arm, because
+        // **a `remove`-only arm cannot refuse a re-registration**; a `catch` left standing over an act the arm no
+        // longer performs would claim to guard a body nothing can reach. **The one act that remains opens no
+        // commit and reaches no `K-1`**, so there is no residue for a wake to put back. **`constraintParked`
+        // REMAINS (`:5514`) AS THE ELEMENT A *DISABLED* PAIR'S REGISTRY RECORD CARRIES FOR ENUMERATION PURPOSES
+        // — its one remaining registration site is `restoreHeldPair`'s refusal wake (`:5597`) — AND IT IS NO
+        // LONGER REGISTERED AS A STORE LISTENER BY THIS ARM, NOR BY ANY SUCCESSFUL DISABLE.**
         constraintsKernel().remove(instance, { address: entry.addresses, id: entry.id });
-        // **⟶ AND THE TOGGLE'S REFUSAL HAS THE SAME WAKE AS THE OVERWRITE ARM'S, FOR THE SAME REASON: IT REACHES
-        // THE SAME `K-6` AND THE SAME `K-1`** (`docs/specs/storeroom-held-listener-identity/contract.md §2.3` item 7; `constraint-sites.md §1` rows 2–3), **so a refused
-        // re-registration has already purged the pair's own row and its read model, and both are put back before
-        // the refusal crosses** (`restoreHeldPair` above; `constraint-sites.md §4` item 2; `§2.1` item 1).
-        try {
-          for (const address of entry.addresses) {
-            constraintsKernel().register(instance, address, entry.id, constraintParked);
-          }
-        } catch (refusal) {
-          restoreHeldPair(site.state, instance, entry);
-          registrationCrossing(refusal);
-        }
         entry.enabled = false;
-        // **⟶ AND STEP 3 IS THE RE-ADD: THE SAME PAIR IDENTITY IS WRITTEN BACK** (`P: docs/pending.md · (O-3)`
-        // item (iv)'s obligation; `(AA-2)`: *"Move the identity into the store"*, preserved *"equal to itself on
-        // a second `addConstraint` at the SAME pair"*). **THE TOGGLE IS NOT A REMOVAL, so the row it purged is
-        // restored UNDER THE SAME IDENTITY and the enumeration is unmoved** (`constraint-identity.md §3` item 3;
-        // `§5` `IF-5`; `removal-members.md §3` item 3): *"`constraintOff` is a TOGGLE and not a removal: a
-        // disabled pair is STILL CARRIED and STILL ENUMERATED"*.
+        // **⟶ AND THE PAIR'S STATE ROW IS WRITTEN BACK UNDER THE SAME PAIR IDENTITY** (`P: docs/pending.md ·
+        // (O-3)` item (iv)'s obligation; `(AA-2)`: *"Move the identity into the store"*, preserved *"equal to
+        // itself on a second `addConstraint` at the SAME pair"*). **THE TOGGLE IS NOT A REMOVAL, so the row
+        // `K-6`'s `FORGET_PAIR` took is restored UNDER THE SAME IDENTITY and the enumeration is unmoved**
+        // (`constraint-identity.md §3` item 3; `§5` `IF-5`; `removal-members.md §3` item 3): *"`constraintOff` is
+        // a TOGGLE and not a removal: a disabled pair is STILL CARRIED and STILL ENUMERATED"*.
+        // **⟶ AMENDED 2026-10-22 (`DEF-2026-10-20-F` consequence (ii), same ruling): THIS WRITE-BACK IS THE
+        // WHOLE OF WHAT IS RESTORED, AND IT IS A *REGISTRY* RESTORATION AND NOT A RE-ADD OF A BODY.** **What a
+        // disabled pair must retain is its IDENTITY and its ENUMERATION — a registry fact — and this row beside
+        // `entry.enabled = false` above satisfies exactly that** (ground 3). **`enumerateConstraints` does not
+        // consult `enabled` at all**, so the pair keeps appearing in `constraints()` with no store-side listener
+        // anywhere (`:5653`; `surface.md §2.12` item 3 clause 5).
         site.state.constraints.set(constraintPairKey(entry.addresses, entry.id), entry);
       }
       return undefined;
@@ -3020,10 +4235,16 @@ export function storeCreate(cfg) {
     /// *"removeConstraint REMOVES EVERYTHING — THE PAIR, ALL N ADDRESS ROWS, THE KERNEL'S REGISTRATION, AND THE
     /// STORE-SIDE HOME ENTRY"*).
     ///
-    /// **IT IS A THIRD AND STRONGER OPERATION**: neither `constraintOff` (a TOGGLE re-registering a parked stub
-    /// and keeping the pair carried) nor the kernel's `withdrawRegistration` (which leaves the store's home entry
-    /// standing). **AND IT IS THE ONE ACT THAT DELETES AN IDENTITY** (`contract.md §2.6` item 3; `P: docs/pending.md
-    /// · (AA-2)`, closing sentence).
+    /// **IT IS A THIRD AND STRONGER OPERATION**: neither `constraintOff` (a TOGGLE that PURGES ONLY and keeps the
+    /// pair CARRIED and ENUMERATED through its state row and `entry.enabled = false`) nor the kernel's
+    /// `withdrawRegistration` (which leaves the store's home entry standing). **AND IT IS THE ONE ACT THAT DELETES
+    /// AN IDENTITY** (`contract.md §2.6` item 3; `P: docs/pending.md · (AA-2)`, closing sentence).
+    /// **⟶ AMENDED 2026-10-22 (`DEF-2026-10-20-F` landed; the architect's ruling): the parenthetical above read
+    /// *"a TOGGLE re-registering a parked stub and keeping the pair carried"*. THAT IS SUPERSEDED — the disable
+    /// arm registers NOTHING** (a `remove`-only arm; `constraintOff`'s own amended note). **The DISTINCTION this
+    /// clause draws is unmoved: `constraintOff` keeps the pair's IDENTITY and its ENUMERATION and `removeConstraint`
+    /// DELETES them, and what the disable arm no longer does is stand a `constraintParked` body in the store's
+    /// address slot — which was never what made the pair carried.**
     ///
     /// **THE ORDER OF THE FOUR REMOVALS IS THIS CONTRACT'S DECLARED `HL-DD-4`** (`removal-members.md §4` item 2):
     /// **(1) VALIDATE the pair and the call's class; (2) WITHDRAW the store's home entries the pair's addresses
@@ -3110,7 +4331,19 @@ export function storeCreate(cfg) {
       // **THE CHAIN IS `removeConstraint → K-6 → removeListener → the store's purge`, AND IT HAS NO CYCLE**
       // (`contract.md §2.9` item 6; `remove-member.md §6` item 1). **`K-6`'S STORE-SIDE REFUSAL CROSSES
       // UNCONVERTED** (`contract.md §4` `F-13`), so this frame converts nothing.
-      constraintsKernel().remove(instance, { address: entry.addresses, id: entry.id });
+      // **⟶ AMENDED 2026-10-22 (`DEF-2026-10-20-F` landed; the architect's ruling) — THE WITHDRAWAL IS REACHED
+      // WHERE A REGISTRATION STANDS, AND IT IS THIS ACT'S OWN TWO FACTS THAT MAKE THAT THE WHOLE OF THE DECLARED
+      // ANSWER.** **A DISABLED PAIR IS STILL CARRIED and this member is *"THE ONE ACT THAT DELETES AN
+      // IDENTITY"*** (`contract.md §2.6` item 3; `docs/specs/storeroom-js/surface.md §2.12` item 3 clause 5:
+      // *"the toggle is NOT a removal"*) — **so it MUST still succeed at a pair the disable left standing, and
+      // `K-6` CANNOT BE ITS ROUTE THERE: the disable arm purges only, so no kernel row survives it to be found,
+      // and `K-6` refuses `KC-2` for a pair it holds no row for** (`contract.md §4` `F-12`). **THE PURGE IS
+      // THEREFORE GUARDED BY THE PAIR'S OWN POLARITY** (`withdrawStanding` below: `enabled === true` is exactly
+      // *"a registration stands to be withdrawn"*), **and steps 3–4 — the address rows and the JS entry, its
+      // IDENTITY included — are taken exactly as declared**: with no row there is nothing for step 3 to delete,
+      // and step 4 deletes the entry and its identity either way. **A DISABLED PAIR'S REMOVAL IS THEREFORE A
+      // COMPLETE REMOVAL, and `removeConstraint` keeps its declared answer at every pair it can name.**
+      withdrawStanding(instance, entry);
       // ── STEP 4: THE JS ENTRY, ITS IDENTITY INCLUDED. ─────────────────────────────────────────────────────
       state.constraints.delete(constraintPairKey(entry.addresses, entry.id));
       return undefined;
@@ -3294,15 +4527,36 @@ export function storeCreate(cfg) {
     // **AND THE ORDER IS THE CALLER'S OWN**: the handles are taken in the order `listeners[]` first names them,
     // and each handle's addresses in the order the array names them — an order NO clause asserts and none is
     // claimed here (`DD-22`: a drive compares sets, never sequences).
-    const byHandle = new Map();
-    for (const entry of cfg.listeners) {
+    // **⟶ AND THE ACCUMULATION IS MADE OF LOCAL ARRAYS READ BY INDEX FROM 2026-10-24** (`contract.md §2.1`'s
+    // clause of this date on `F8-2`, items `(2a)`, `(2b)` and `(2c)`, and item `(2b)`'s row `64`; arm `(xix)`,
+    // cell `JC-TC-65`): the as-built seeding used `new Map()` — lawful to ALLOCATE by item `(1d)(iv)`, and its
+    // `get`/`set` were not — `for (const entry of cfg.listeners)` and `for (const [handle, set] of byHandle)`,
+    // whose pair destructuring is a third iterator, and `set.push(entry.address)`. **A skipping iterator made the
+    // construction's DECLARED SEEDING silently register nothing while `storeCreate` returned an instance whose
+    // mirror was empty, and a no-op `get`/`set`/`push` did the same with a success report.** The order is the one
+    // the comment above declares and no clause asserts: the handles in the order `listeners[]` first names them,
+    // and each handle's addresses in the order the array names them.
+    const handles = [];
+    const addressSets = [];
+    for (let i = 0; i < cfg.listeners.length; i += 1) {
+      const entry = cfg.listeners[i];
       if (!isLawfulListenerElement(entry)) continue;
-      const set = byHandle.get(entry.handle);
-      if (set === undefined) byHandle.set(entry.handle, [entry.address]);
-      else set.push(entry.address);
+      let at = -1;
+      for (let h = 0; h < handles.length; h += 1) {
+        if (handles[h] === entry.handle) {
+          at = h;
+          break;
+        }
+      }
+      if (at === -1) {
+        handles[handles.length] = entry.handle;
+        addressSets[addressSets.length] = [entry.address];
+      } else {
+        addressSets[at][addressSets[at].length] = entry.address;
+      }
     }
-    for (const [handle, set] of byHandle) {
-      instance.listen(handle, set);
+    for (let h = 0; h < handles.length; h += 1) {
+      instance.listen(handles[h], addressSets[h]);
     }
   }
   // **⟶ THE SEAM IS INSTALLED ON THE OBJECT THIS FACTORY RETURNS, ONCE** (`finalizer-and-teardown.md
@@ -3444,20 +4698,45 @@ function deliver(state, triggered, triggeringAddress) {
   // `DD-22`). **THE CONSEQUENCE, SPELLED: the binding address in `triggered` is INFORMATIONAL DATA about the
   // trigger set and NOT a per-invocation fact; the invocation's ONE argument remains the TRIGGERING address**
   // (`PAR-JS-12`; `AB-3`: *"A body cannot tell which binding matched, and that is declared."*).
-  const matched = new Set();
+  //
+  // **⟶ AND THE WHOLE DELIVERY IS MEMBER-FREE FROM 2026-10-24** (`contract.md §2.1`'s clause of this date on
+  // `F8-1`, items `(1a)`, `(1b)` and `(1c)`, and item `(2b)`'s rows `58`, `59` and `60`; arm `(xviii)`, cell
+  // `JC-TC-64`): the as-built dedupe was a `Set` — lawful to ALLOCATE by item `(1d)(iv)`, and its `has`/`add`
+  // and the `for (const item of triggered)` around them were not — the recipients list was appended with
+  // `Array.prototype.push`, and the invocation loop read each pair array through
+  // `Array.prototype[Symbol.iterator]` by destructuring. **A forged `has`/`add` duplicated or dropped every
+  // invocation, a forged iterator yielded no recipient at all, and a no-op `push` emptied the list: the
+  // delivery was the caller's answer with no refusal and no counter.** The dedupe is now item `(1c)(vi)`'s
+  // membership loop over a local handle list, the append is item `(1c)(v)`'s index write, and the invocation
+  // loop is item `(1c)(i)`'s index loop reading each pair by index — the SAME identities, at the SAME first
+  // occurrence, in an order no clause asserts (`DD-22`).
+  const matched = [];
   const recipients = [];
-  for (const item of triggered) {
-    if (matched.has(item.handle)) continue; // ONE invocation per DISTINCT HANDLE — never one per element
-    matched.add(item.handle);
+  for (let i = 0; i < triggered.length; i += 1) {
+    const item = triggered[i];
+    let seen = false;
+    for (let m = 0; m < matched.length; m += 1) {
+      if (matched[m] === item.handle) {
+        seen = true;
+        break;
+      }
+    }
+    if (seen) continue; // ONE invocation per DISTINCT HANDLE — never one per element
+    matched[matched.length] = item.handle;
     // **THE `off` MEMBER IS READ HERE AND ONLY HERE — the snapshot the architect's A2 ruling fixes**
     // (`P: docs/pending.md · P-5`'s A2 timing, verbatim: *"Check on/off at the time of decision whether to
     // add the function to the recipients list, not at runtime."*; `identity-and-domain.md §4` item 2):
     // **an entry that is absent or `off` is SKIPPED THERE, and the recipients list carries the FUNCTION**,
     // so the invocation loop below performs the call unconditionally and consults the flag no second time.
     const entry = state.registry.get(item.handle);
-    recipients.push([item.handle, entry === undefined || entry.off === true ? undefined : entry.fn]);
+    recipients[recipients.length] = [
+      item.handle,
+      entry === undefined || entry.off === true ? undefined : entry.fn,
+    ];
   }
-  for (const [handle, listener] of recipients) {
+  for (let r = 0; r < recipients.length; r += 1) {
+    const pair = recipients[r];
+    const listener = pair[1];
     // `docs/specs/storeroom-js/surface.md §2.4` rule 1: a reserved entry invokes nothing and reports nothing — no code, no warning, no log.
     if (typeof listener === 'function') {
       // `crossing.md §1.1` clause 2's deep copy OUT, at the invocation: **each invocation is handed a FRESH
@@ -4220,8 +5499,47 @@ function registrationCrossing(refusal) {
 /// `true` is the only pass value). **THE ELEMENT IS PARKED AND NEVER WITHDRAWN**: `constraintOn` re-registers
 /// `entry.fn`, so *"it is the element the entry carried at that pair — never a second constraint and never a
 /// re-registration"* (`docs/specs/storeroom-js/surface.md §2.12` item 3's `constraintOn` row).
+///
+/// **⟶ AMENDED 2026-10-22 (`DEF-2026-10-20-F` landed; the architect's ruling): THIS FUNCTION'S ONE REMAINING
+/// REGISTRATION SITE IS `restoreHeldPair`'S REFUSAL WAKE (below), AND `constraintOff` NO LONGER REGISTERS IT.**
+/// **The disable arm is `remove`-only** (`remove` is `K-6`, which is already the complete act), because standing a
+/// passing body in the store's address slot for a DISABLED pair falsifies `finalizer-and-teardown.md §4.1`
+/// table `2`'s *"disabling cannot fire — nothing runs"* at the mechanism level **and reaches `K-1`'s unconditional
+/// `store.listen` — a table-`1` bracketing act inside a table-`2` verb's window.** **IT REMAINS THE ELEMENT A
+/// *DISABLED* PAIR'S REGISTRY RECORD CARRIES FOR ENUMERATION PURPOSES** (`docs/specs/storeroom-js/surface.md
+/// §2.12` item 3 clause 5: *"the toggle is NOT a removal"*), **which is why the wake below still needs it: a
+/// refused re-registration must put the pair's registry standing back exactly as it stood, and for a disabled
+/// pair that standing's element IS this one** — **it is simply no longer a store listener any successful
+/// `constraintOff` installs.**
 function constraintParked() {
   return true;
+}
+
+/// **⟶ ADDED 2026-10-22 (`DEF-2026-10-20-F` landed; the architect's ruling) — THE HELD PAIR'S PURGE, TAKEN
+/// WHERE A REGISTRATION STANDS TO BE PURGED, AND THE RULE STATED ONCE FOR EVERY SITE THAT TAKES IT.**
+///
+/// **THE RULING'S CONSEQUENCE, WHICH IT DID NOT NAME AND WHICH THIS FUNCTION IS WHAT RECORDS: `constraintOff`'s
+/// disable arm PURGES ONLY (`remove`) and registers NOTHING, so after it a pair stands NO KERNEL ROW AT ALL.**
+/// **`K-6` is not a no-op at such a pair — it REFUSES `KC-2`, *"no constraint pair answers to …"*** (`contract.md
+/// §4` `F-12`), **so every held-pair site that purges unconditionally would now THROW where a clause declares a
+/// success:** `addConstraint`'s overwrite arm at a DISABLED pair (a held pair, and the arm is the OVERWRITE arm
+/// either way) and `removeConstraint` at a DISABLED pair (*"THE ONE ACT THAT DELETES AN IDENTITY"*, which must
+/// still delete one). **MEASURED BOTH WAYS, not assumed: both threw `KC-2` with the purge left unconditional,
+/// and both answer as declared with this guard.**
+///
+/// **THE PREDICATE IS THE ENTRY'S OWN `enabled` MEMBER AND IT IS EXACT:** `carryConstraint` writes `enabled:
+/// true` only where the registration STOOD (its own clause: *"THE ENTRY'S OWN RECORD IS WRITTEN ONLY WHERE THE
+/// REGISTRATION STOOD"*), the enable arm sets it `true` after its own `K-1`, and the disable arm sets it `false`
+/// precisely where it has purged the row away. **So `enabled === true` ⟺ the pair stands a registration, and
+/// `enabled === false` ⟺ there is nothing for `K-6` to withdraw.** **NOTHING IS LEFT UNPURGED:** where a row does
+/// survive a disable — the declared residue of a REFUSED registration, which `restoreHeldPair` writes back —
+/// `K-1`'s own idempotence arm replaces its function and keeps its place (`kernel-surface.md §2.1` item 1;
+/// `CC-7`), so the ADD lands as declared whether or not a row stands. **THE OTHER TWO SITES ARE SAID AT THEIR OWN
+/// BYTES:** `addConstraint`'s overwrite arm and `removeConstraint` above, and `constraintOn`'s enable arm, which
+/// purges nothing because the arm is reached only at a pair that already stands none.
+function withdrawStanding(instance, held) {
+  if (held.enabled !== true) return;
+  constraintsKernel().remove(instance, { address: held.addresses, id: held.id });
 }
 
 /// **⟶ ADDED — THE PAIR'S REGISTRY STANDING, PUT BACK AFTER A REFUSED RE-REGISTRATION.** **THIS IS THE WAKE
@@ -4247,12 +5565,24 @@ function constraintParked() {
 /// **ALL THREE OF THOSE ARE FUNCTIONS OF THESE TWO ROWS**, so both are written back here.
 ///
 /// **THE ELEMENT PUT BACK IS THE ONE THE PAIR ACTUALLY STOOD UNDER AND NO OTHER** — `entry.fn` where the pair
-/// was enabled and `constraintParked` where it was disabled, which is exactly the element the toggle itself
-/// re-registers (`docs/specs/storeroom-js/surface.md §2.12` item 3; `constraint-sites.md §1` row 2: *"`entry.fn` (the element the entry
+/// was enabled and `constraintParked` where it was disabled (`docs/specs/storeroom-js/surface.md §2.12` item 3;
+/// `constraint-sites.md §1` row 2: *"`entry.fn` (the element the entry
 /// carried)"*). **AND ITS OWN `K-1` CANNOT REFUSE**: the element is the one the pair was ADMITTED under, and
 /// every kernel write re-evaluates a standing pair and refuses on violation without landing it, so a state
 /// the pair's own element rejects is not a state a standing pair is ever left in (`kernel-surface.md §2.3`
 /// item 1; `docs/specs/storeroom-native/contract.md §7.3` (b) state 1).
+///
+/// **⟶ AMENDED 2026-10-22 (`DEF-2026-10-20-F` landed; the architect's ruling): THE SENTENCE THAT STOOD HERE —
+/// *"which is exactly the element the toggle itself re-registers"* — IS SUPERSEDED AND IS NOT RESTATED.**
+/// **The disable arm PURGES ONLY (`remove`) and re-registers NOTHING**, so `constraintParked` is NOT what
+/// `constraintOff` installs; **it is what THIS WAKE installs, and only here.** **The ground is unchanged and is
+/// why the distinction still matters at this site: a pair's REGISTRY standing and its STORE standing are two
+/// facts, and a refused re-registration must put the registry one back for a pair of EITHER polarity** — for a
+/// disabled pair that standing's element is this parked body, **carried for ENUMERATION, not as a store listener
+/// any successful disable installs** (`docs/specs/storeroom-js/surface.md §2.12` item 3 clause 5).
+/// **AND THIS WAKE'S REACH IS NOW NARROWER BY ONE CALLER:** it is reached from `addConstraint`'s overwrite arm and
+/// from `constraintOn`'s enable arm and from NO arm of `constraintOff`, whose `try`/`catch` went with its loop
+/// (`DEF-2026-10-20-F` consequence (i)).
 function restoreHeldPair(state, instance, held) {
   // THE READ-MODEL ROW FIRST: it is the one `K-6`'s `FORGET_PAIR` deleted, and it is unobtainable from the
   // kernel (`docs/specs/storeroom-held-listener-identity/contract.md §2.9` item 3).
@@ -4260,6 +5590,10 @@ function restoreHeldPair(state, instance, held) {
   // AND THE KERNEL'S OWN ROW BESIDE IT, AT EVERY ADDRESS THE PAIR STOOD AT, UNDER ITS OWN IDENTITY — the
   // same act `constraintOn` performs, so the pair is carried and enumerated exactly as it was (`docs/specs/storeroom-held-listener-identity/contract.md §2.6`
   // item 4; `constraint-identity.md §3` item 3).
+  // **⟶ AMENDED 2026-10-22 (same ruling): this ternary's DISABLED branch is this function's alone now.** It is the
+  // one place `constraintParked` is registered; `constraintOff`'s arm no longer reaches a `register` at all, so a
+  // disable's own residue never travels through this wake and `restoreHeldPair` is called with a pair whose
+  // polarity the CALLER's refusal left as it stood (`entry.fn` enabled, `constraintParked` disabled).
   const standing = held.enabled === true ? held.fn : constraintParked;
   for (const address of held.addresses) {
     constraintsKernel().register(instance, address, held.id, standing);
@@ -4320,6 +5654,12 @@ function constraintUncarried(verb, pair) {
 ///   whose `entry.enabled` is `false` is STILL CARRIED and is enumerated — **the read does not consult
 ///   `enabled` at all**, and it returns no `enabled` member either (a third member is a value no clause
 ///   declares).
+///   **⟶ AMENDED 2026-10-22 (`DEF-2026-10-20-F` landed; the architect's ruling): THIS EXCLUSION IS NOW THE WHOLE
+///   OF WHAT A DISABLE LEAVES BEHIND, AND IT IS SATISFIED BY THE STATE ROW AND `entry.enabled = false` ALONE.**
+///   **The disable arm purges only (`remove`) and registers nothing, so NO STORE-SIDE LISTENER carries a disabled
+///   pair** — its CARRIAGE and its ENUMERATION are a REGISTRY fact, read off `state.constraints`, exactly as this
+///   exclusion says. **This member is the cell of the ruling's consequence (ii), and it is unmoved by the fix:
+///   `a126-constraint-methods.test.mjs`'s toggle cells assert precisely this appearance.**
 ///
 /// **AND THE TWO EXCLUSIONS ITEM 7 DECLARES ARE STRUCTURES AND NOT TESTS TAKEN HERE**: (i) a well-formed
 /// `cfg.constraints` element that carried no function never reached `carryConstraint` (`storeCreate`'s batch
@@ -4525,7 +5865,19 @@ function constraintCrossing(refusal) {
   // THROUGH THE KERNEL'S OWN LEG** (`constraint-kernel.mjs`'s `attempt.throwState` carries the store's code
   // at the repair arm): its `status` and `message` cross VERBATIM and `log` is attached BESIDE them —
   // *"nothing is converted, and a member is added"* (`docs/specs/storeroom-js/surface.md §2.5` item 10 (ii)).
-  if (typeof status !== 'string' || KC_TOKENS.includes(status) === false) {
+  // **⟶ AND THE TOKEN MEMBERSHIP IS A LOCAL LOOP** (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`,
+  // item `(2b)`'s row `54` and item `(3d)`'s ownership split): `KC_TOKENS.includes` is
+  // `Array.prototype.includes` on a REFUSAL path, so a caller's override could decide which arm a kernel
+  // refusal crosses by. The token list is a local array of strings and the membership is item `(1c)(vi)`'s
+  // spelled comparison.
+  let kernelToken = false;
+  for (let i = 0; i < KC_TOKENS.length; i += 1) {
+    if (KC_TOKENS[i] === status) {
+      kernelToken = true;
+      break;
+    }
+  }
+  if (typeof status !== 'string' || kernelToken === false) {
     throw {
       status: refusal.status,
       message: refusal.message,

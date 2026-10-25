@@ -39,6 +39,8 @@
 | `V-19` | `K-6 remove(store, pair)` — the kernel's rows and the store's entries gone | `contract.md §3` `S-19`; `remove-member.md §4` item 1 | `P-HL-8`'s `S-K6-ANSWER` |
 | `V-20` | a second `K-2` at a HELD address refused `KC-7`; at a DESCENDANT address admitted | `contract.md §3` `S-20`; `kernel-selection.md §4` item 2 | `P-HL-4`'s — (`S-K6` family's sibling); see `P-HL-2`'s `S-PURGE-ORDER` |
 
+**⟶ AMENDED 2026-10-25 (`DEF-2026-10-20-F` landed; the architect's ruling; `RCA-8(g)` — every row above stands BYTE-FOR-BYTE and is read THROUGH this clause; this view declares nothing the contract does not already carry, so this clause RE-DERIVES `V-11` FROM `contract.md §3` `S-11`'s dated clause and mints nothing).** **`V-11`'S CASE IS RE-DERIVED AND ITS PINS ARE UNMOVED: `constraintOff` then `constraintOn` is a TWO-ARM CYCLE AND NOT TWO PURGE-THEN-ADDS — the disable arm PURGES ONLY (`bindings/js/index.mjs:4156`) and the enable arm ADDS ONLY (`:4089`), so the purge-then-add SPANS THE TWO HALVES; each call answers `undefined`; `constraints()` is unmoved at each end and between them; a disabled pair STANDS NO KERNEL ROW and still appears in the enumeration; and the carried identity is `===` before and after** (`contract.md §3` `S-11`'s dated clause; `constraint-sites.md §1`'s dated clause, rows `2`–`3`; `removal-members.md §3` item 3's dated clause). **`V-10`'S AND `V-18`'S ROWS ARE UNMOVED AND ARE NOT TO BE READ INTO `V-11`: `V-10` drives the OVERWRITE arm's purge-then-add (`:3984`, `:3993-3996`), and `V-18` drives a purged pair whose `kernel.pairs` row STANDS — where a DISABLED pair's does not.**
+
 ---
 
 ## §3. The FAIL states

@@ -209,3 +209,20 @@ typecheck/node_modules/
 
 # Ephemeral npm cache used by the instrument passes (never a deliverable)
 scratch/npmcache/
+
+# The 2026-10-25 DEF-2026-10-20-F landing's measurement byproducts (never deliverables).
+# `scratch/def-f-live/` is the assembled-toggle drive that produced
+# `docs/specs/storeroom-held-listener-identity-live-report.md`; `scratch/def-f-probe/` is the
+# five-consequence probe and the in-memory route bridge that proved the walk cell's `commitFile`
+# row was the only thing left red. Same rule as the entries above: a scratch is never a source,
+# and `docs/pending.md`'s `G-14` pointer plus `docs/defects.md`'s closure name the drive, so a
+# `git add -A` in a later pass must not sweep them in.
+scratch/def-f-live/
+scratch/def-f-probe/
+
+# The `U-STOREROOM-JSON-CROSSING` gate-11 rounds' measurement byproducts (never deliverables).
+# `scratch/jcx-impl/` and `scratch/jcx-s17/` hold the implementation probes and the §17 live
+# re-drive's staging; their RESULTS live in the committed specs, test cells and live report.
+scratch/jcx-impl/
+scratch/jcx-s17/
+
