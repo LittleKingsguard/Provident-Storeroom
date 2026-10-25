@@ -52,12 +52,58 @@
 /// FRAME'S PROVENANCE TEST MOVES: every store refusal this package crosses — the eight verbs, the
 /// construction, the `16`-code set — keeps its `status` and its `message` member for member and byte for
 /// byte, and the ONE member this date adds is `log`.**
+/// **⟶ AND THE TWO MEMBERS IT CARRIES ARE READ AS THE HANDED VALUE'S *OWN* DATA PROPERTIES AND OFF NO CHAIN
+/// — `D-35`'s FIRST NAMED PARAMETER-ACCESS HOLE, CLOSED 2026-10-25.** The form was once built by reading
+/// `refusal.status` and `refusal.message` with an ORDINARY MEMBER READ, which is a `[[Get]]` and walks the
+/// property chain. **The failure that costs is measured:** with an own `status`/`message` installed on
+/// `Object.prototype` — by a caller, inside their own realm, breaking nothing of their own — a refusal whose
+/// own two members were missing (the native half's own dropped-`status` state, `facade.rs`'s
+/// `throw_refusal`) crossed here as **THREE OWN KEYS CARRYING THE PROTOTYPE'S STRINGS**: a status outside the
+/// closed seventeen and a message the package did not generate. **THE READING IS THE WHOLE OF THE DEFECT:
+/// the package had built ITS form out of data it read back off a supplied object through a mutable
+/// prototype.**
+///
+/// **THE CURE IS THE PRINCIPLE AND NOT A NARROWER CHAIN WALK: THE FORM IS BUILT FROM THE STORE'S OWN
+/// `status` AND `message` — the two bytes the crate's `Refusal` put on the value this function was handed —
+/// AND FROM NOTHING THE CHAIN CAN ANSWER.** [`ownMember`] performs `[[GetOwnProperty]]`, which consults no
+/// prototype at all, so a key reached only through a chain is ABSENT here and the provenance test above
+/// answers exactly as it does for a value that carries no such member: **the value is thrown AS ITSELF and
+/// neither a status nor a message is minted for it.** **NOTHING ELSE MOVES:** a genuine store refusal still
+/// crosses byte-for-byte (its own bytes are the core's own bytes), the third member is still attached
+/// beside them, and the shape of the thrown form — a fresh plain object literal with exactly
+/// `{status, message, log}` — is unmoved (`D-35`; `surface.md §2.5` items 1–2; the `F8-2` class).
 export function fail(refusal, log) {
-  if (refusal === null || typeof refusal !== 'object'
-    || typeof refusal.status !== 'string' || typeof refusal.message !== 'string') {
+  if (refusal === null || typeof refusal !== 'object') {
     throw refusal;
   }
+  const status = ownMember(refusal, 'status');
+  const message = ownMember(refusal, 'message');
+  if (typeof status !== 'string' || typeof message !== 'string') {
+    throw refusal;
+  }
+  // **THE PARAMETER IS REBOUND TO THE OWN-ONLY PROJECTION THE TWO LINES ABOVE ALREADY TOOK, AND THAT IS THE
+  // WHOLE OF THE CURE AT THIS SITE**: `status` and `message` ARE the own data property values — no chain was
+  // consulted to read them — so the throw below builds this frame's one plain form out of the store's own two
+  // bytes and can no longer be answered by a prototype. **THE THROW'S OWN BYTES ARE UNMOVED** (`NG-PUB-F`'s
+  // control is cut on that line, and a control is re-cut by its owner rather than by this pass): its two
+  // member reads are the projection's own members, so nothing it evaluates reaches a chain.
+  refusal = { status, message };
   throw { status: refusal.status, message: refusal.message, log: refusalLog(log) };
+}
+
+/// **ONE MEMBER OF A HANDED VALUE, READ AS AN OWN DATA PROPERTY OR NOT AT ALL** — `[[GetOwnProperty]]`'s
+/// answer, taken through `Object.getOwnPropertyDescriptor`, **which consults no prototype chain**.
+///
+/// **THE DESCRIPTOR'S OWN `value` IS READ BY `Object.hasOwn` AND NOT BY A MEMBER READ**: an ACCESSOR
+/// descriptor carries no `value` at all, so an ordinary read would answer whatever the chain holds under that
+/// name — the very hole this helper exists to close, reintroduced one level down. **A DESCRIPTOR WITHOUT AN
+/// OWN `value` THEREFORE ANSWERS `undefined`, which is the absent answer**, and the caller's provenance test
+/// refuses it exactly as it refuses a missing member. The member's `string` class and not its descriptor is
+/// what `fail` tests beside it.
+function ownMember(value, name) {
+  const descriptor = Object.getOwnPropertyDescriptor(value, name);
+  if (descriptor === undefined || !Object.hasOwn(descriptor, 'value')) return undefined;
+  return descriptor.value;
 }
 
 /// **THE ONE PLACE A REFUSAL'S `log` MEMBER IS DECIDED** — `surface.md §2.5` item 4's flat reading, taken
