@@ -1,0 +1,625 @@
+{
+  "modules": [
+    {
+      "id": "store-core",
+      "name": "The register",
+      "owns": ["src/store.rs", "src/lib.rs"],
+      "responsibility": "Hold the register, walk addresses, and perform the verbs — tiers and purge, the journal and rollback, the listener home, the file image and its boot, and construction.",
+      "endpoints": [
+        {
+          "name": "storeCreate",
+          "input": "&StoreConfig — the closed three-member record: filePath, journalLength, listeners",
+          "output": "Result<Store, StoreError>; every argument validated before any filesystem act"
+        },
+        {
+          "name": "storeCreateWithConstraints",
+          "input": "&StoreConfig together with &ConstraintsArg — the application's own ordered pair list",
+          "output": "Result<Store, StoreError>; ConstraintListInvalid with no instance when the list is refused"
+        },
+        {
+          "name": "findAddress / read / readLiteral",
+          "input": "AddressArg and TierArg — readers take absent, one token, or an any-match set",
+          "output": "Result<StoreValue | &NodeRef, StoreError>; a branch refuses readLiteral"
+        },
+        {
+          "name": "write",
+          "input": "AddressArg, TierArg (exactly one token), StoreValue",
+          "output": "Result<WriteResult, StoreError> — {op, watched, triggered}; no file I/O on any arm"
+        },
+        {
+          "name": "delete",
+          "input": "AddressArg, TierArg (exactly one token)",
+          "output": "Result<DeleteReceipt, StoreError> — {address, tiers, triggered}; no file I/O at any tier scope"
+        },
+        {
+          "name": "rollback",
+          "input": "OpIdArg — the op id the caller was given",
+          "output": "Result<RollbackResult, StoreError> — {opId, undoneOps, restoredTo}; all-or-nothing over the subtree"
+        },
+        {
+          "name": "listen / unlisten / remove_listener",
+          "input": "&ListenerHandle, and for listen the address SET &[Vec<Segment>]",
+          "output": "Result<(), StoreError>; the handle is caller-spelled and never minted"
+        },
+        {
+          "name": "commit_file",
+          "input": "the op id the settled record carries",
+          "output": "Result<(), StoreError> — the file-tier save, reached as the terminal arm's own act (src/store.rs:1343, inside impl Store)"
+        }
+      ],
+      "interactions": ["store-value", "store-args", "store-records", "store-fail-set", "binding-crossing", "store-battery"]
+    },
+    {
+      "id": "store-value",
+      "name": "The store's value domain and its JSON image",
+      "owns": ["src/value.rs", "src/json.rs"],
+      "responsibility": "Declare the admitted value taxonomy and convert it to and from the canonical JSON text the file tier stores.",
+      "endpoints": [
+        {
+          "name": "the admitted value domain (StoreValue)",
+          "input": "a value offered to store-core — str, bool, num, object, array",
+          "output": "the in-domain StoreValue, with every outside class (Null, Undefined, Function, Symbol, BigInt, NonFinite, Cyclic, NonPlainCollection) spellable so its refusal is reachable"
+        },
+        {
+          "name": "value -> canonical JSON text",
+          "input": "StoreValue",
+          "output": "bytes whose number spelling is the shortest decimal that parses back to the same f64"
+        },
+        {
+          "name": "JSON text -> value",
+          "input": "the file image's bytes at boot",
+          "output": "StoreValue; any finite JSON number spelling a parser admits is accepted"
+        }
+      ],
+      "interactions": ["store-core", "binding-crossing", "store-battery"]
+    },
+    {
+      "id": "store-args",
+      "name": "The argument carriers",
+      "owns": ["src/args.rs"],
+      "responsibility": "Carry every declared parameter as a permissive Rust type whose outside-value arms make each refusal reachable, and fold it to the in-domain argument or the refusal.",
+      "endpoints": [
+        {
+          "name": "address_segments",
+          "input": "&AddressArg — List, Absent, Null, Undefined, Str",
+          "output": "Result<Vec<Segment>, StoreError>"
+        },
+        {
+          "name": "the tier and op-id folds",
+          "input": "&TierArg (Absent / Token / Set / outside arms) and &OpIdArg",
+          "output": "the per-verb arity answer, or the store's own refusal"
+        },
+        {
+          "name": "the construction folds",
+          "input": "&FilePathArg, &JournalLengthArg, &ListenersArg, &ConstraintsArg",
+          "output": "the closed StoreConfig together with the validated listener and constraint lists, or ConstructionArgumentMissing / ConstraintListInvalid"
+        }
+      ],
+      "interactions": ["store-core", "store-fail-set", "binding-crossing", "store-battery"]
+    },
+    {
+      "id": "store-records",
+      "name": "The record shapes",
+      "owns": ["src/records.rs"],
+      "responsibility": "Declare the shapes the verbs, the resolver and the listener surface return, including the tier token and the listener identity.",
+      "endpoints": [
+        {
+          "name": "the verb records",
+          "input": "the settled op, the watched addresses and the triggered pairs",
+          "output": "WriteResult {op, watched, triggered}, DeleteReceipt {address, tiers, triggered}, RollbackResult {opId, undoneOps, restoredTo}"
+        },
+        {
+          "name": "the journal shapes",
+          "input": "an operation and the compacted base state",
+          "output": "JournalOp and BaseState, as read by a caller and by a boot"
+        },
+        {
+          "name": "the identity and resolver shapes",
+          "input": "a handle, a binding address, a walked node",
+          "output": "ListenerHandle, Listener, ListenerTrigger {handle, address}, ChildAnchor, NodeRef, and the tier token"
+        }
+      ],
+      "interactions": ["store-core", "binding-crossing", "store-battery"]
+    },
+    {
+      "id": "store-fail-set",
+      "name": "The closed fail set",
+      "owns": ["src/error.rs"],
+      "responsibility": "Hold the sixteen statuses as one closed set and generate every message from the code and the failing trigger's arguments.",
+      "endpoints": [
+        {
+          "name": "the refusal's construction",
+          "input": "a status plus the MessageArgs of the failing trigger",
+          "output": "StoreError {status, message}, with the message generated and never hand-authored at a call site"
+        },
+        {
+          "name": "CODES / storeErrorMessage",
+          "input": "nothing, or a status",
+          "output": "the closed sixteen-member set (as a [&'static str; 16]) and the generated message for one member; read by the declaration and by the entry, never minted there"
+        }
+      ],
+      "interactions": ["store-core", "store-args", "binding-crossing", "js-surface", "js-declaration", "store-battery"]
+    },
+    {
+      "id": "binding-crossing",
+      "name": "The pure-Rust conversion core",
+      "owns": ["bindings/js/src/crossing.rs"],
+      "responsibility": "Model a JS value, admit or refuse it per class, convert in both directions, and hold the per-instance Instance over the store — with no Node-API type at any depth.",
+      "endpoints": [
+        {
+          "name": "Instance::create / create_with_constraints",
+          "input": "&JsConfig, and for the second &JsConstraintsArg",
+          "output": "Result<Instance, Refusal>"
+        },
+        {
+          "name": "the verb dispatchers",
+          "input": "the Js* carriers — read, read_literal, write, delete, rollback, listen, unlisten, remove_listener, register, commit_file",
+          "output": "Result<JsValue | JsWriteResult | JsDeleteReceipt | JsRollbackResult, Refusal>"
+        },
+        {
+          "name": "to_store_value / from_store_value",
+          "input": "&JsValue on the way in; &StoreValue on the way out",
+          "output": "Result<StoreValue, Refusal>, and a JsValue on the way out"
+        },
+        {
+          "name": "Refusal / registration_refusal",
+          "input": "the failing target, its position and the class that failed",
+          "output": "Refusal {status, message} — the addon's one failure form"
+        }
+      ],
+      "interactions": ["store-core", "store-args", "store-value", "store-records", "store-fail-set", "binding-codec", "binding-battery"]
+    },
+    {
+      "id": "binding-codec",
+      "name": "The wire's codec",
+      "owns": ["bindings/js/src/codec.rs"],
+      "responsibility": "Convert the Node-API carrier to the core's model and the core's answer back to a Node-API value, over the decided tree.",
+      "endpoints": [
+        {
+          "name": "the inbound conversions",
+          "input": "a JsVal from a #[napi] parameter — cfg, an address, an address set, a tier, an op id, a handle, a value, a constraint list, a named member",
+          "output": "the core's carrier model (JsConfig, JsAddressArg, JsTierArg, JsValue, …)"
+        },
+        {
+          "name": "the outbound conversions",
+          "input": "the core's answer — a JsValue, segments, a write result, a delete receipt, a rollback result",
+          "output": "a JsVal the runtime hands the entry (set_member, undefined_value, to_js_value, to_js_segments, to_js_write_result, to_js_delete_receipt, to_js_rollback_result)"
+        }
+      ],
+      "interactions": ["binding-crossing", "binding-facade", "binding-battery"]
+    },
+    {
+      "id": "binding-facade",
+      "name": "The Node-API export facade",
+      "owns": ["bindings/js/src/facade.rs", "bindings/js/src/lib.rs", "bindings/js/build.rs"],
+      "responsibility": "Publish the addon's exported entry functions, each thin over the core, and declare the crate's link and version-stamp treatment.",
+      "endpoints": [
+        {
+          "name": "storeCreate",
+          "input": "Env and the caller's cfg as a JsVal",
+          "output": "NapiRet — the addon instance, or the store's thrown {status, message}"
+        },
+        {
+          "name": "the nine verb entries",
+          "input": "the #[napi] parameters of read, readLiteral, write, delete, rollback, listen, unlisten, removeListener, commitFile",
+          "output": "the converted answer as a JsVal, or the refusal"
+        },
+        {
+          "name": "register",
+          "input": "Env, the store receiver, a handle and a listener slot",
+          "output": "the registration's answer or its refusal"
+        },
+        {
+          "name": "version / errorMessage",
+          "input": "nothing, or a status with its arguments",
+          "output": "the version string (the build's own stamp) and the generated message"
+        }
+      ],
+      "interactions": ["binding-crossing", "binding-codec", "store-core", "delivery", "js-resolution", "binding-battery"]
+    },
+    {
+      "id": "js-resolution",
+      "name": "The addon's resolution ladder",
+      "owns": ["bindings/js/index.mjs#L79-L617"],
+      "responsibility": "Name the platform packages, read the version stamp, run the three ordered rungs, and answer the one declared absent-addon refusal.",
+      "endpoints": [
+        {
+          "name": "loadAddon",
+          "input": "the entry's own module context — the platform and arch, and the addon's module-relative path",
+          "output": "the addon namespace from rung one or rung two, or the recorded miss set that becomes the absent-addon refusal"
+        },
+        {
+          "name": "platformNameFor / platformNameForRuntime",
+          "input": "a platform and an arch",
+          "output": "the scoped platform package name (@auspicion/provident-storeroom-js-…) or null"
+        },
+        {
+          "name": "packageVersion",
+          "input": "nothing — the entry's own context",
+          "output": "the version string the ladder compares at rung one"
+        }
+      ],
+      "interactions": ["js-surface", "binding-facade", "delivery", "js-battery", "greens-harness"]
+    },
+    {
+      "id": "js-surface",
+      "name": "The entry and its members",
+      "owns": ["bindings/js/index.mjs#L1-L78", "bindings/js/index.mjs#L618-L746", "bindings/js/index.mjs#L3425-L4593"],
+      "responsibility": "Publish the module's one export, define the instance's fourteen members, admit each call's arguments at its site, and render the single failure form.",
+      "endpoints": [
+        {
+          "name": "storeCreate",
+          "input": "cfg — journalLength and listeners required, filePath and constraints optional, a fifth key ignored",
+          "output": "the StoreInstance with fourteen own members, none of them data; or one thrown plain object {status, message[, log]}"
+        },
+        {
+          "name": "the fourteen members' admission",
+          "input": "the caller's arguments at each member's own positions — address, tier, value, commit, handle, addresses, listener, pair, constraint, opId",
+          "output": "the dispatched store call, or the boundary's refusal carrying a store status that was never minted here"
+        },
+        {
+          "name": "the failure form",
+          "input": "a status from the store's closed set, the failing subject and its declared position",
+          "output": "the thrown plain object — never an Error subclass, never a rejection, never {ok:false}"
+        }
+      ],
+      "interactions": ["js-resolution", "js-crossing", "js-registry-delivery", "js-constraints", "js-declaration", "store-fail-set", "js-battery", "greens-harness"]
+    },
+    {
+      "id": "js-crossing",
+      "name": "The JS-side walk",
+      "owns": ["bindings/js/index.mjs#L747-L3070"],
+      "responsibility": "Decide each value's class, guard the walk's ceilings and caller-code arms, and encode arguments in and decode answers out.",
+      "endpoints": [
+        {
+          "name": "encodeValue",
+          "input": "a JS value and its value position (the depth-and-node ceilings are the walk's own)",
+          "output": "the decided tree, or a boundary refusal naming the class that failed and its position"
+        },
+        {
+          "name": "encodeAddress",
+          "input": "an address argument at its declared position",
+          "output": "the segment list or the refusal — a sparse array, an outside value and a dotted string all refuse"
+        },
+        {
+          "name": "encodeTier",
+          "input": "a tier argument and the verb's own arity",
+          "output": "the tier carrier — absent, one token, or an any-match set — or the refusal"
+        },
+        {
+          "name": "encodeConfig / encodeListeners / encodeConstraints",
+          "input": "the construction's cfg and its two optional lists",
+          "output": "the four-key carrier set, or the refusal"
+        },
+        {
+          "name": "decodeValue / decodeJournalOp",
+          "input": "the addon's answer",
+          "output": "fresh JS data no other side can reach — no proxy, no live view, no getter"
+        }
+      ],
+      "interactions": ["js-surface", "binding-facade", "store-fail-set", "js-battery", "greens-harness"]
+    },
+    {
+      "id": "js-registry-delivery",
+      "name": "The registry and the delivery path",
+      "owns": [
+        "bindings/js/index.mjs#L88-L200",
+        "bindings/js/index.mjs#L201-L331",
+        "bindings/js/index.mjs#L3072-L3424",
+        "bindings/js/index.mjs#L4594-L5200"
+      ],
+      "responsibility": "Hold the package's per-instance state, the handle and its registry, deliver the triggered set to the caller's functions, and perform the terminal arm's file-tier save.",
+      "endpoints": [
+        {
+          "name": "stateOf / entryOf",
+          "input": "the instance object",
+          "output": "the package's own per-instance state, held behind a weak map and never a member"
+        },
+        {
+          "name": "registerOn",
+          "input": "a handle and the caller's function",
+          "output": "undefined — one handle one function, a second registration replacing the first"
+        },
+        {
+          "name": "deliver",
+          "input": "the triggered set the store returned and the triggering address",
+          "output": "void — each registered function invoked with the triggering address as its one argument; an unregistered handle fires nothing silently"
+        },
+        {
+          "name": "terminalArm",
+          "input": "the record the kernel settled on its passing arm",
+          "output": "the store's commitFile act on a file-tier write's passing arm alone, before any listener body runs"
+        },
+        {
+          "name": "installAttemptSeam",
+          "input": "the instance at construction",
+          "output": "the attempt accounting the kernel and the entry share under symbol keys"
+        },
+        {
+          "name": "commitFile / carryRefusal",
+          "input": "an op id, or a call and its arguments",
+          "output": "the addon's commit answer, or the refusal carried unchanged"
+        }
+      ],
+      "interactions": ["js-surface", "js-crossing", "js-constraints", "constraint-kernel", "binding-facade", "js-battery", "greens-harness"]
+    },
+    {
+      "id": "js-constraints",
+      "name": "The constraint members' glue",
+      "owns": ["bindings/js/index.mjs#L5202-L5903"],
+      "responsibility": "Carry the five constraint members and the write path's constraint evaluation, and reach the kernel lazily without importing it at load.",
+      "endpoints": [
+        {
+          "name": "addConstraint",
+          "input": "a pair {address, id} and the constraint function",
+          "output": "a ConstraintIdentity; an overwrite at a held pair throws nothing for it"
+        },
+        {
+          "name": "constraintOn / constraintOff",
+          "input": "a pair and the constraint identity",
+          "output": "void — idempotent; a toggle at a pair the store does not carry throws; disabling is not a removal"
+        },
+        {
+          "name": "removeConstraint",
+          "input": "a pair",
+          "output": "void — the one act that deletes an identity"
+        },
+        {
+          "name": "constraints",
+          "input": "nothing",
+          "output": "ConstraintPair[] — {address, id} only: no function, no identity, no order, no enabled flag"
+        },
+        {
+          "name": "constraintWrite",
+          "input": "an address, a tier and a value on the write path",
+          "output": "the evaluated pair set before the durable save, or the refusal"
+        },
+        {
+          "name": "constraintsKernel",
+          "input": "nothing — a lazy require_ of the kernel's checkout home",
+          "output": "the kernel namespace, loaded on first constraint use and never at entry load"
+        }
+      ],
+      "interactions": ["js-surface", "js-registry-delivery", "constraint-kernel", "js-battery", "greens-harness"]
+    },
+    {
+      "id": "constraint-kernel",
+      "name": "The constraint kernel",
+      "owns": ["bindings/js/src/constraint-kernel.mjs"],
+      "responsibility": "Evaluate a write against registered pairs, compose and repair an attempt, and answer the attempt's log and report.",
+      "endpoints": [
+        {
+          "name": "register",
+          "input": "a store, an address, an id and a constraint function",
+          "output": "the registered pair's kernel-side entry"
+        },
+        {
+          "name": "commit",
+          "input": "a store, an address, a tier and a value",
+          "output": "the commit record the caller then runs as an attempt"
+        },
+        {
+          "name": "runAttempt",
+          "input": "a store and a commit record",
+          "output": "the attempt's answer — its verdict, its composed repairs and the operations it undid"
+        },
+        {
+          "name": "log",
+          "input": "a store and an attempt reference",
+          "output": "the attempt's LogEntry list — six members, the kernel's own records, carried verbatim"
+        },
+        {
+          "name": "report",
+          "input": "a store and an attempt reference",
+          "output": "the attempt's report"
+        },
+        {
+          "name": "remove",
+          "input": "a store and a pair",
+          "output": "void — the kernel-side withdrawal of a registration"
+        }
+      ],
+      "interactions": ["js-constraints", "js-registry-delivery", "js-battery", "greens-harness"]
+    },
+    {
+      "id": "js-declaration",
+      "name": "The published declaration",
+      "owns": ["bindings/js/index.d.ts"],
+      "responsibility": "Declare the whole published surface — the config, the statuses, the records and the fourteen members — as the hand-authored index.d.ts.",
+      "endpoints": [
+        {
+          "name": "storeCreate / StoreInstance",
+          "input": "the runtime surface the entry publishes",
+          "output": "the declared surface a consumer's type checker reads: one export and fourteen own members"
+        },
+        {
+          "name": "StoreStatus and the record interfaces",
+          "input": "the store's closed fail set and the record shapes the verbs return",
+          "output": "the sixteen statuses plus the open escape arm (string & {}), and the record, config, pair and identity interfaces"
+        }
+      ],
+      "interactions": ["js-surface", "store-fail-set", "js-battery", "delivery"]
+    },
+    {
+      "id": "delivery",
+      "name": "What ships and how it is built",
+      "owns": [
+        "bindings/js/package.json",
+        "bindings/js/README.md",
+        "bindings/js/Cargo.toml",
+        "Cargo.toml",
+        "bindings/js/platforms/linux-x64/package.json",
+        "bindings/js/platforms/linux-arm64/package.json",
+        "bindings/js/platforms/darwin-x64/package.json",
+        "bindings/js/platforms/darwin-arm64/package.json",
+        "bindings/js/platforms/win32-x64/package.json",
+        "bindings/js/platforms/linux-x64/README.md",
+        "bindings/js/platforms/linux-arm64/README.md",
+        "bindings/js/platforms/darwin-x64/README.md",
+        "bindings/js/platforms/darwin-arm64/README.md",
+        "bindings/js/platforms/win32-x64/README.md",
+        ".github/workflows/publish.yml",
+        "scripts/publish.sh"
+      ],
+      "responsibility": "Own the package manifest, the five per-platform packages, both crate manifests, the shipped README and the release pipeline.",
+      "endpoints": [
+        {
+          "name": "the package's resolution surface",
+          "input": "a consumer's `import { storeCreate } from 'provident-storeroom'`",
+          "output": "one exports arm — \".\" to ./index.mjs with ./index.d.ts as its types; no wildcard, no deep import, no CJS arm"
+        },
+        {
+          "name": "the files allowlist",
+          "input": "the shipped set the manifest names",
+          "output": "exactly four entries: index.mjs, README.md, index.d.ts, src/constraint-kernel.mjs; no LICENSE row, no build path, no .node entry"
+        },
+        {
+          "name": "the release pipeline",
+          "input": "a workflow run at the pinned version",
+          "output": "provident-storeroom@0.5.0 plus the five @auspicion platform packages, each pinned exactly at 0.5.0 as an optionalDependency"
+        }
+      ],
+      "interactions": ["js-surface", "js-declaration", "binding-facade", "js-resolution", "js-battery", "greens-harness"]
+    },
+    {
+      "id": "store-battery",
+      "name": "The store-side battery",
+      "owns": [
+        "tests/construction.rs",
+        "tests/construction_access_probe.rs",
+        "tests/e2e_json_round_trip.rs",
+        "tests/e2e_listener_firing.rs",
+        "tests/fail_codes.rs",
+        "tests/gate4_red_set_fix.rs",
+        "tests/journal_and_rollback.rs",
+        "tests/properties.rs",
+        "tests/read_and_delete.rs",
+        "tests/record_shapes.rs",
+        "tests/tiers_and_purge.rs",
+        "tests/walk_and_resolver.rs",
+        "tests/watched_addresses.rs",
+        "tests/write_arms.rs",
+        "tests/support/mod.rs"
+      ],
+      "responsibility": "Drive the native crate's declared behaviour through its own integration battery.",
+      "endpoints": [
+        {
+          "name": "cargo test (the store crate)",
+          "input": "the crate at src/, built in its declared offline form",
+          "output": "a per-file pass/red row set over construction, the walk, the arms, the tiers, the journal, the listener firing and the fail codes — the store's own measured green"
+        }
+      ],
+      "interactions": ["store-core", "store-value", "store-args", "store-records", "store-fail-set"]
+    },
+    {
+      "id": "binding-battery",
+      "name": "The binding crate's battery",
+      "owns": [
+        "bindings/js/tests/addon_adoption.rs",
+        "bindings/js/tests/crossing_carriers.rs",
+        "bindings/js/tests/crossing_copy.rs",
+        "bindings/js/tests/crossing_values.rs",
+        "bindings/js/tests/register_layer.rs",
+        "bindings/js/tests/surface_verbs.rs",
+        "bindings/js/tests/support/mod.rs"
+      ],
+      "responsibility": "Drive the conversion core's per-class table in Rust, with no Node runtime present.",
+      "endpoints": [
+        {
+          "name": "cargo test --manifest-path bindings/js/Cargo.toml",
+          "input": "the binding crate's rlib half",
+          "output": "the crossing's per-class rows, the copy discipline and the registration layer, measured without a Node runtime"
+        }
+      ],
+      "interactions": ["binding-crossing", "binding-codec", "binding-facade"]
+    },
+    {
+      "id": "js-battery",
+      "name": "The JS battery",
+      "owns": [
+        "bindings/js/test/addon-adoption.test.mjs",
+        "bindings/js/test/addon-adoption-support.mjs",
+        "bindings/js/test/addon-surface.test.mjs",
+        "bindings/js/test/addon-surface-properties.test.mjs",
+        "bindings/js/test/addon-surface-support.mjs",
+        "bindings/js/test/a126-constraint-methods.test.mjs",
+        "bindings/js/test/a127-surface.test.mjs",
+        "bindings/js/test/constraint-kernel.test.mjs",
+        "bindings/js/test/constraint-kernel-deltamodel.test.mjs",
+        "bindings/js/test/constraint-kernel-deliverymodel.test.mjs",
+        "bindings/js/test/constraint-kernel-helpers.mjs",
+        "bindings/js/test/constraint-kernel-layers.test.mjs",
+        "bindings/js/test/constraint-kernel-negatives.test.mjs",
+        "bindings/js/test/constraint-kernel-properties.test.mjs",
+        "bindings/js/test/constraint-kernel-repairop.test.mjs",
+        "bindings/js/test/constraint-kernel-rollback.test.mjs",
+        "bindings/js/test/constraint-kernel-states.test.mjs",
+        "bindings/js/test/constraints-publication.test.mjs",
+        "bindings/js/test/convenience.test.mjs",
+        "bindings/js/test/file-tier-save.test.mjs",
+        "bindings/js/test/file-tier-save-properties.test.mjs",
+        "bindings/js/test/held-listener-identity-gate4-regressions.test.mjs",
+        "bindings/js/test/held-listener-identity-helpers.mjs",
+        "bindings/js/test/held-listener-identity-kernel.test.mjs",
+        "bindings/js/test/held-listener-identity-properties.test.mjs",
+        "bindings/js/test/held-listener-identity-refusal-restore.test.mjs",
+        "bindings/js/test/held-listener-identity-surface.test.mjs",
+        "bindings/js/test/json-crossing.test.mjs",
+        "bindings/js/test/json-crossing-blinded.test.mjs",
+        "bindings/js/test/json-crossing-gate4-adversarial.test.mjs",
+        "bindings/js/test/negative-generators.test.mjs",
+        "bindings/js/test/ordering.test.mjs",
+        "bindings/js/test/package-entry.test.mjs",
+        "bindings/js/test/publish.test.mjs",
+        "bindings/js/test/publish-generators.test.mjs",
+        "bindings/js/test/register.test.mjs",
+        "bindings/js/test/registry.test.mjs",
+        "bindings/js/test/round-trip.test.mjs",
+        "bindings/js/test/surface.test.mjs",
+        "bindings/js/test/version-stamp.test.mjs",
+        "bindings/js/test/version-stamp-r2.test.mjs",
+        "bindings/js/test/REMEASURE-2026-10-18.md"
+      ],
+      "responsibility": "Drive the assembled package through the entry: surface, kernel, listeners, codec, properties, publication.",
+      "endpoints": [
+        {
+          "name": "node --test bindings/js/test/*.test.mjs",
+          "input": "the assembled package, reached as a consumer reaches it (import { storeCreate } from 'provident-storeroom'), and the kernel at its checkout home",
+          "output": "a per-file pass/red row set over the surface, the kernel, the held listener identity, the JSON crossing, the file-tier save, the publication and the version stamp"
+        }
+      ],
+      "interactions": ["js-surface", "js-crossing", "js-registry-delivery", "js-constraints", "constraint-kernel", "js-resolution", "js-declaration", "delivery"]
+    },
+    {
+      "id": "greens-harness",
+      "name": "The greens runners",
+      "owns": [
+        "bindings/js/greens/greens.mjs",
+        "bindings/js/greens/live-drive.mjs",
+        "bindings/js/greens/blind-constraints-v2.mjs",
+        "bindings/js/greens/held-listener-identity-greens.mjs",
+        "bindings/js/greens/json-acceptance-set-greens.mjs",
+        "bindings/js/greens/json-acceptance-set-live.mjs",
+        "bindings/js/greens/json-crossing-live.mjs",
+        "bindings/js/greens/json-crossing-live-s17.mjs",
+        "bindings/js/greens/consumer-fix/scenarios.mjs",
+        "bindings/js/greens/file-tier-save/scenarios.mjs",
+        "bindings/js/greens/file-tier-save/file-tier-save-greens.md"
+      ],
+      "responsibility": "Drive the assembled package as a caller from outside, per wave, and report each green with its layer.",
+      "endpoints": [
+        {
+          "name": "npm run greens",
+          "input": "the built artefact and the entry, in a real Node process, at a real caller-spelled filePath",
+          "output": "greens.mjs, live-drive.mjs and file-tier-save/scenarios.mjs each reporting their cells with the LAYER label"
+        },
+        {
+          "name": "the per-wave live drivers",
+          "input": "the blind sets authored from the documentation alone",
+          "output": "cell-by-cell observations for the constraints, the held listener identity, the JSON crossing and the JSON acceptance set, each read as a finding and never as a pass"
+        }
+      ],
+      "interactions": ["js-surface", "js-registry-delivery", "js-constraints", "constraint-kernel", "js-resolution", "delivery"]
+    }
+  ]
+}

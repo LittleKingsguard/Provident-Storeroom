@@ -50,7 +50,10 @@ concrete shape is more specific than the sentence:
 - **The claimed realm is Node ESM and nothing else.** Node CJS, Electron `main`/`preload`/`renderer`, the
   browser, `worker_threads` and IPC are each **unclaimed** by the package; the Electron story is a *guide*,
   not a declared realm (`docs/specs/storeroom-js/package.md §1`).
-- **Licence of record is `AGPL-3.0`,** carried into every artefact at assembly time (`LICENSE`).
+- **Licence of record:** `LICENSE` is `AGPL-3.0` and travels with every published artefact at assembly time.
+  **Three spellings stand in the tree and they are not identical:** the root `Cargo.toml` says
+  `GPL-3.0-or-later`, `bindings/js/Cargo.toml` says `AGPL-3.0-or-later`, and `bindings/js/package.json` says
+  `AGPL-3.0`. A reader should not assume the root crate's spelling is a typo without the architect saying so.
 - **Runtime floor is `engines: { "node": ">=18.0.0" }`** — a pinned domain, not a provisional figure, and far
   below what the artefact actually needs, because the addon's Node-API surface is ABI-stable and the facade
   stays low in it (`docs/specs/storeroom-publish/release.md §1.1` item 3, `parameter-semantics.md §2.6`).
@@ -67,12 +70,16 @@ concrete shape is more specific than the sentence:
 | unit | files | size | what it is |
 |---|---|---|---|
 | `src/` | `lib.rs` 41 · `store.rs` 2,472 · `error.rs` 795 · `args.rs` 329 · `value.rs` 330 · `records.rs` 268 · `json.rs` 203 | 252 KB | the native store crate |
-| `bindings/js/src/` | `index.mjs` **5,903** · `constraint-kernel.mjs` 2,203 · `crossing.rs` 1,178 · `facade.rs` 1,105 · `codec.rs` 966 · `lib.rs` 90 | — | entry, kernel, crossing, facade, codec |
-| `bindings/js/` | `index.d.ts` 788 · `package.json` · `build.rs` · `README.md` | — | declaration and the shipped package surface |
+| `bindings/js/` (package root) | **`index.mjs` 5,903** · `index.d.ts` 788 · `package.json` · `build.rs` · `README.md` · `.gitignore` | 458 KB for the entry | the shipped package: the entry, the declaration, the manifest |
+| `bindings/js/src/` | `constraint-kernel.mjs` 2,203 · `crossing.rs` 1,178 · `facade.rs` 1,105 · `codec.rs` 966 · `lib.rs` 90 | — | the addon crate's Rust and the constraint kernel |
+| `bindings/js/platforms/` | 5 platform packages × (`package.json` + `README.md`) | — | the per-platform binary carriers |
 | `tests/` | 15 Rust integration files | 1.1 MB | store-side battery |
-| `bindings/js/test/` | 30+ `*.test.mjs` | — | JS battery: surface, kernel, listeners, codec, properties |
-| `bindings/js/greens/` | `greens.mjs`, `live-drive.mjs`, per-wave scenario drivers | — | the project's own greens runners |
-| root manifests | `Cargo.toml`, `package.json`, `tsconfig.typecheck*.json` | — | private instrument harness; **not** a publishable package |
+| `bindings/js/test/` | 42 `*.test.mjs` | — | JS battery: surface, kernel, listeners, codec, properties |
+| `bindings/js/tests/` | 7 Rust files | — | the binding crate's own battery |
+| `bindings/js/greens/` | 11 drivers — `greens.mjs`, `live-drive.mjs`, per-wave scenario drivers | — | the project's own greens runners |
+| `typecheck/`, `tsconfig.*.json` | a consumer-shaped fixture plus two `tsc` projects | — | the type-check harness |
+| root manifests | `Cargo.toml`, `package.json`, `Cargo.lock`, `package-lock.json`, `scripts/publish.sh` | — | private instrument harness; **not** a publishable package |
+| `scratch/` | **477 tracked files** | — | probes, byproducts, logs and one-off drivers — **tracked in git**, and excluded from ownership by the project's convention that *a scratch is never a source*, not by an ignore rule |
 
 **Three facts about this tree that the ownership plan must respect:**
 
@@ -174,7 +181,10 @@ record's `op`. **A `delete` performs no file I/O at any tier scope and a `rollba
 a durable version deleted in memory **stands again after a re-boot** — that re-boot is the store's declared
 boot, not a defect. On a save that fails, the file tier rolls the write back in the journal automatically and
 the caller receives `FileCommitFailed` after that rollback. `write-and-read.md §3.2`, `§4.3`, `§6.4` item 8,
-`§7.2` item 5, `docs/specs/storeroom-native/seams-and-lifecycle.md §7.2`.
+`§7.2` item 5, `docs/specs/storeroom-native/seams-and-lifecycle.md §7.2`. **ONE PART OF THAT CLAUSE IS `OWED` A
+CHECK: the guides describe the save as performed by an instance member named `settle`, and `settle` is no longer
+a declared member** (`index.d.ts`, `StoreInstance`), so the arm's present carrier is unverified here even though
+the *rule* — the save lands on the passing arm and only there — is the declared one.
 
 **UC-7 · Undo, bounded by the journal.** `rollback` is **not a single-op undo**: its scope is every operation
 touching the same subtree, and its answer's `undoneOps` is a report of reversals **performed**, newest first.
@@ -250,12 +260,20 @@ registry*, and a green on one layer does not retire a red on another.
 
 **These are live on this branch and are not the strata model's to resolve:**
 
-- **The `A112` ordering gate is RED.** The surface is required to run triggered constraints first and other
-  listeners only once every constraint has passed; measured against the demo, the listener ran **inside** the
-  write window and was delivered exactly where the model requires zero. `docs/next-steps.md` `N7` carries the
-  two-way carrier decision (open, and the architect's) — `CommitRecord.pending` versus a store-surface signal.
-- **The constraint kernel does not ship.** It exists and is green in the checkout, and `bindings/js/package.json`'s
-  `files` still has three entries; *"`src/**` reaches no consumer today"*.
+- **The `A112` ordering question is UNVERIFIED on this branch, and it was RED when the tracker last spoke.**
+  The law is: the surface runs the triggered constraints first and the other listeners only once every
+  constraint has passed. The archived tracker (`docs/next-steps.md` `N7`, now at
+  `archive/pre-strata-docs-2026-10-24/`) measured it **red** on 2026-10-15 — the listener ran inside the write
+  window and was delivered exactly where the model requires zero — and carried a two-way carrier decision that
+  was the architect's to take: `CommitRecord.pending` versus a store-surface signal. **This pass did not
+  re-measure it.** All that is verified here is that the entry does call the kernel: `index.mjs` reaches
+  `kernel.commit(instance, address, tier, value)` and then `kernel.runAttempt(instance, record)`. **Whether
+  delivery now follows the pass is `OWED` a measurement, not a claim either way.**
+- **The constraint kernel DOES ship — corrected, and the archived tracker says otherwise.** `bindings/js/package.json`'s
+  `files` carries **four** entries — `index.mjs`, `README.md`, `index.d.ts`, `src/constraint-kernel.mjs` — so
+  the *"`src/**` reaches no consumer today"* limitation the tracker recorded is superseded. **And the kernel's
+  export set is SIX** (`register` · `commit` · `runAttempt` · `log` · `report` · `remove`), where the tracker
+  pinned *"exactly five"*; that pin is superseded by the sixth member.
 - **`LIVE / INSTALL` is OPEN and the `APP` layer is `NONE`.** No store has ever been loaded inside an Electron
   app, and the five platform names are declarations copied into several files that only a registry install
   falsifies.
