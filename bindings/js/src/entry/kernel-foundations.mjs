@@ -292,10 +292,31 @@ export function sameAddress(left, right) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// THE KERNEL'S OWN CALLER-SIDE STATE. ONE `WeakMap` KEYED BY THE INSTANCE THE CALLER PASSED, so
-// two stores never share a registry and this module retains no store of its own.
+// THE KERNEL'S OWN CALLER-SIDE STATE — **THE INSTANCE OWNS IT, IN A SLOT ON THE INSTANCE ITSELF**, so
+// two stores never share a registry, this module retains no store of its own, and NOTHING STANDS AT
+// MODULE LEVEL TO BE KEYED BY ONE.
 // ---------------------------------------------------------------------------------------------
-const KERNELS = new WeakMap();
+// **⟶ THE MODULE-LEVEL `WeakMap` THAT STOOD HERE IS DELETED.** `kernel-surface.md §1` item 5 declares the
+// kernel *"imports no store package, **holds no instance handle**, keeps no store member and **carries no
+// module-level store**"* — and a `WeakMap` keyed by the store is a MODULE-LEVEL STORE keyed by it, weak or
+// not. **AND `D-30` HAD ALREADY REMOVED THE MAP'S ONLY WORK**: with the attempt records moved INTO the
+// record `kernelFor(store)` creates, the map held a record that is the instance's own and answered nothing
+// the instance could not answer itself, so after that move it was PURE INDIRECTION — a module-level table
+// standing between a store and its own kernel.
+//
+// **THE SLOT IS A SYMBOL-KEYED OWN PROPERTY ON THE STORE, AND IT IS THE SPELLING CONVENTION THIS FILE
+// ALREADY USES** for `TERMINAL_ARM`, `FORGET_PAIR` and `STORE_INDEX`: a `Symbol.for` key, so the key can be
+// spelled on the side that reads it without that side holding this module's reference. **IT IS DEFINED WITH
+// `Object.defineProperty` AND `enumerable: false`, SO THE PRODUCT'S DECLARED FOURTEEN OWN MEMBERS ARE
+// UNMOVED**: `Object.keys` and `Object.getOwnPropertyNames` both read past a symbol key (`A117` (D6);
+// `surface.md §2.11` clause 9), the precedent `STORE_INDEX` and the two record marks already stand on, so
+// no member-counting cell can see the slot.
+//
+// **AND IT IS READABLE FROM THE STORE ALONE** — not from a closure only the entry holds, and not through a
+// second argument — which is what the six items require: `K-1`–`K-6` take the caller's own store first BY
+// DECLARATION, so something must go from the store to its record, and the batteries and the package's own
+// `constraints.mjs` reach those items through the barrel HOLDING ONLY A STORE OBJECT.
+const KERNEL_SLOT = Symbol.for('provident-storeroom.kernel');
 
 // **⟶ THE ATTEMPT RECORDS ARE THE INSTANCE'S OWN, AND THE MODULE-LEVEL `LIVE`/`CLOSED` MAPS AND THE
 // MODULE-LEVEL `ATTEMPTS` COUNTER THAT STOOD HERE ARE GONE** (`D-30`, verbatim: *"Make it instance-scoped -
@@ -311,8 +332,22 @@ const KERNELS = new WeakMap();
 // first. **AND THE SCOPE'S OLD COST IS THE ONE `D-30` NAMES**: with one module-level map, a live attempt in
 // one instance held its address against a `K-2` in EVERY OTHER, only an address ever being compared.
 
+/**
+ * **THE ACCESSOR IS UNMOVED AND ITS BACKING STORE IS THE INSTANCE** — the six items keep taking the caller's
+ * own store first, and every `kernelFor(store)` call site in the four part modules keeps calling this one
+ * function: only the accessor's BACKING STORE changes, so no caller moves, no import moves and the barrel
+ * (`src/constraint-kernel.mjs`) is not touched.
+ *
+ * **CREATE-ON-MISS IS PRESERVED AND IT LIVES IN THE `undefined` ARM BELOW**: a store carrying no slot yet
+ * gets the default record here, so a read on a FRESH store answers an EMPTY kernel and is then refused
+ * `KC-2` by the reader that found nothing in it — never a different answer and never a throw. **A read that
+ * silently became a different answer on a fresh store would be a behaviour change, and the arm below is the
+ * one place that cannot happen**: the slot is defined IN THE SAME ACT that creates the record, so no
+ * observation can see a record that is not the instance's own, and a store that already carries one is never
+ * given a second.
+ */
 export function kernelFor(store) {
-  let kernel = KERNELS.get(store);
+  let kernel = store[KERNEL_SLOT];
   if (kernel === undefined) {
     kernel = {
       // **THE REGISTRATION REGISTRY, KEYED BY THE PAIR — `(address, id)` — AND UNIQUE OVER THAT TUPLE**
@@ -357,7 +392,18 @@ export function kernelFor(store) {
       attempts: 0,
       store,
     };
-    KERNELS.set(store, kernel);
+    // **THE SLOT IS DEFINED AND THE RECORD IS PUBLISHED IN THE SAME ACT** (`Object.defineProperty`, exactly as
+    // `STORE_INDEX` is defined on this same object in `index.mjs`), so there is no instant at which a store
+    // carries a record nobody can read or a record that is not its own. **`enumerable: false` IS THE WHOLE OF
+    // THE FOURTEEN-MEMBER GUARDRAIL**: `Object.keys` and `Object.getOwnPropertyNames` read past it, while
+    // `Object.getOwnPropertySymbols` and a direct `store[KERNEL_SLOT]` read reach it — which is the ONE
+    // observable this slot exists for, and it is the store's own, not a table's.
+    Object.defineProperty(store, KERNEL_SLOT, {
+      value: kernel,
+      enumerable: false,
+      writable: false,
+      configurable: false,
+    });
   }
   return kernel;
 }
