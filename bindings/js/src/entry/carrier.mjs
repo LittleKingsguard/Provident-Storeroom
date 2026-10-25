@@ -1,6 +1,7 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `6a`, `D-33`'s seam at `L2799`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
 import { types } from 'node:util';
 import { boundaryReject } from './artefact.mjs';
+import { appendOwn } from './refusal.mjs';
 import { NODE_CEILING, VALUE_ARGUMENT_POSITION, accessorOrSymbolArm, arrayClass, classSpelling, extendedPath, hasLoneSurrogate, protoClass, shapeArmClass, targetSpelling } from './class-decision.mjs';
 
 // ---------------------------------------------------------------------------------------------
@@ -342,7 +343,7 @@ export function encodeValue(value, ancestors, depth, path, fault) {
       // member inside a value the walk reached"*), and it is carried BARE, as item 6 (a) spells an integer
       // segment. Every index is present and is a data property by the two rules above, so the read below is
       // the read `for … of` performed.
-      members[members.length] = encodeValue(value[i], next, depth + 1, extendedPath(path, i), fault);
+      appendOwn(members, encodeValue(value[i], next, depth + 1, extendedPath(path, i), fault));
       if (fault.found !== null) break;
     }
     return members;
@@ -383,7 +384,7 @@ export function encodeValue(value, ancestors, depth, path, fault) {
       // `valuePosition` takes from the same key) carries the rest.
       return refusedValue(fault, VALUE_ARGUMENT_POSITION, 'a string carrying a lone surrogate', extendedPath(path, name), { k: 'c' });
     }
-    members[members.length] = [name, encodeValue(value[name], next, depth + 1, extendedPath(path, name), fault)];
+    appendOwn(members, [name, encodeValue(value[name], next, depth + 1, extendedPath(path, name), fault)]);
     if (fault.found !== null) break;
   }
   // **THE BARE PLAIN OBJECT** (`contract.md §3`, `§5`; `A148` Q4): the members are data and the shape is
@@ -706,7 +707,7 @@ export function encodeAddress(address, addressArgumentPosition, addressValuePosi
       // emptied this list and the whole write crossed to the REGISTER instead of the address the caller
       // spelled — an admitted drive whose crossed member moved. The list, its order and the shape it is
       // handed in are unmoved.
-      segments[segments.length] = encoded;
+      appendOwn(segments, encoded);
     }
     return { k: 'L', s: segments }; // rows 1–3, 13
   }
@@ -842,7 +843,7 @@ export function encodeTier(tier, supplied, foldsUndefined, addressArgumentPositi
     // a forged `map` silently dropped tier items from a verb that then succeeded — a crossed member decided by a
     // prototype. The loop carries one encoded item per item, in the caller's own order.
     const items = [];
-    for (let i = 0; i < tier.length; i += 1) items[items.length] = encodeTierSetItem(tier[i]);
+    for (let i = 0; i < tier.length; i += 1) appendOwn(items, encodeTierSetItem(tier[i]));
     return { k: 'S', i: items };
   }
   if (typeof tier === 'number') return { k: 'D', v: tier };

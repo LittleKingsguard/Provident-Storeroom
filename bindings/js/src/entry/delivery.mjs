@@ -1,6 +1,6 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `7`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
 import { types } from 'node:util';
-import { fail } from './refusal.mjs';
+import { appendOwn, fail } from './refusal.mjs';
 import { withAddon, boundaryReject } from './artefact.mjs';
 import { arrayClass, classSpelling, hasLoneSurrogate, isPlainObjectValue, targetSpelling } from './class-decision.mjs';
 import { encodeAddress, encodeOpId, handleWire, inDomainHandle } from './carrier.mjs';
@@ -154,17 +154,17 @@ export function deliver(state, triggered, triggeringAddress) {
       }
     }
     if (seen) continue; // ONE invocation per DISTINCT HANDLE — never one per element
-    matched[matched.length] = item.handle;
+    appendOwn(matched, item.handle);
     // **THE `off` MEMBER IS READ HERE AND ONLY HERE — the snapshot the architect's A2 ruling fixes**
     // (`P: docs/pending.md · P-5`'s A2 timing, verbatim: *"Check on/off at the time of decision whether to
     // add the function to the recipients list, not at runtime."*; `identity-and-domain.md §4` item 2):
     // **an entry that is absent or `off` is SKIPPED THERE, and the recipients list carries the FUNCTION**,
     // so the invocation loop below performs the call unconditionally and consults the flag no second time.
     const entry = state.registry.get(item.handle);
-    recipients[recipients.length] = [
+    appendOwn(recipients, [
       item.handle,
       entry === undefined || entry.off === true ? undefined : entry.fn,
-    ];
+    ]);
   }
   for (let r = 0; r < recipients.length; r += 1) {
     const pair = recipients[r];
@@ -317,7 +317,7 @@ export function registerOn(state, handle, listener) {
     entryOf().listen.call(state.receiver, handleWire(handle), standing.map((address) => encodeAddress(address, 'first argument', 'first argument')));
     state.home = state.home.filter((row) => row.handle !== handle);
     for (const address of standing) {
-      state.home.push({ key: homeAddressKey(address), address: address.slice(), handle });
+      appendOwn(state.home, { key: homeAddressKey(address), address: address.slice(), handle });
     }
   }
   // **⟶ THE REGISTRATION PATH DOES NOT STOP ADDRESSING A STORE; IT RESOLVES ONE A DIFFERENT WAY**
@@ -424,7 +424,7 @@ export function listenerStandingAt(state, handle) {
 export function constraintOverwrittenByListen(state, handle, addresses) {
   if (state.constraints.size === 0) return null;
   const actKeys = [];
-  for (let i = 0; i < addresses.length; i += 1) actKeys[i] = homeAddressKey(addresses[i]);
+  for (let i = 0; i < addresses.length; i += 1) appendOwn(actKeys, homeAddressKey(addresses[i]));
   for (const entry of state.constraints.values()) {
     if (entry.enabled !== true) continue;
     // IS THIS THE PAIR'S OWN RE-LISTING? the handle is its word and the set covers every address it stands at.

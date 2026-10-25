@@ -1,6 +1,7 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `6b`, `D-33`'s seam at `L2799`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
 import { types } from 'node:util';
 import { boundaryReject } from './artefact.mjs';
+import { appendOwn } from './refusal.mjs';
 import { arrayClass, classSpelling, hasLoneSurrogate, isAdmittedArray, isLawfulListenerElement, isPlainObjectValue, valueTargetSpelling } from './class-decision.mjs';
 import { encodeAddress, encodeFilePath, encodeJournalLength } from './carrier.mjs';
 
@@ -28,15 +29,15 @@ function encodeListeners(listeners) {
     }
     const keys = Object.keys(entry); // the OWN enumerable string keys, and nothing inherited
     if (keys.length !== 2 || !Object.hasOwn(entry, 'address') || !Object.hasOwn(entry, 'handle')) {
-      encoded[encoded.length] = { bad: 'entry' };
+      appendOwn(encoded, { bad: 'entry' });
       continue;
     }
     const handle = entry.handle;
     if (typeof handle !== 'string' || handle === '') {
-      encoded[encoded.length] = { bad: 'handle' };
+      appendOwn(encoded, { bad: 'handle' });
       continue;
     }
-    encoded[encoded.length] = { address: encodeAddress(entry.address), handle };
+    appendOwn(encoded, { address: encodeAddress(entry.address), handle });
   }
   return encoded;
 }
@@ -70,9 +71,9 @@ function encodeConstraints(constraints) {
     // function cannot cross into Rust at any depth**, so `ConstraintEntry::Pair { address, id }` stays two
     // fields and the crossing carries the PAIR. **THE PACKAGE ARMS THE SUBSTANCE** — `constraintEntry` below
     // FORWARDS it and the construction's own batch walk captures it; the crossing is this one projection.
-    encoded[encoded.length] = element.bad === undefined
+    appendOwn(encoded, element.bad === undefined
       ? { address: element.address, id: element.id }
-      : element;
+      : element);
   }
   return encoded;
 }
@@ -127,10 +128,10 @@ export function constraintAddress(address) {
     }
     const segment = address[i];
     if (typeof segment === 'string' && !hasLoneSurrogate(segment)) {
-      segments[segments.length] = segment;
+      appendOwn(segments, segment);
     } else if (typeof segment === 'number' && Number.isInteger(segment) && segment >= 0
       && Number.isSafeInteger(segment)) {
-      segments[segments.length] = segment;
+      appendOwn(segments, segment);
     } else {
       return `${spellConstraintAddress(segments)} and ${classSpelling(segment)} at position ${i}`;
     }
@@ -253,8 +254,8 @@ export function admittedConstraintBatch(cfg) {
     for (let i = 0; i < cfg.listeners.length; i += 1) {
       const entry = cfg.listeners[i];
       if (!isLawfulListenerElement(entry)) continue;
-      adoptedHandles[adoptedHandles.length] = entry.handle;
-      adoptedAddresses[adoptedAddresses.length] = entry.address;
+      appendOwn(adoptedHandles, entry.handle);
+      appendOwn(adoptedAddresses, entry.address);
     }
   }
   // ── THE WITHIN-BATCH NAMES, AS TWO PARALLEL LOCAL ARRAYS READ BY INDEX ────────────────────────────────
@@ -313,13 +314,13 @@ export function admittedConstraintBatch(cfg) {
         ['constraints'],
       );
     }
-    namedHandles[namedHandles.length] = element.id;
-    namedPositions[namedPositions.length] = position;
-    admitted[admitted.length] = {
+    appendOwn(namedHandles, element.id);
+    appendOwn(namedPositions, position);
+    appendOwn(admitted, {
       addresses: [element.address.s],
       id: element.id,
       constraint: element.constraint,
-    };
+    });
   }
   return admitted;
 }
@@ -339,7 +340,7 @@ export function decodeValue(encoded) {
   // walk is by INDEX, so the fresh tree is the same fresh tree.
   if (Array.isArray(encoded)) {
     const elements = [];
-    for (let i = 0; i < encoded.length; i += 1) elements[elements.length] = decodeValue(encoded[i]);
+    for (let i = 0; i < encoded.length; i += 1) appendOwn(elements, decodeValue(encoded[i]));
     return elements;
   }
   if (encoded !== null && typeof encoded === 'object') {
@@ -393,7 +394,7 @@ function decodeSegment(segment) {
 /// `§2.5` item 5 (e)'s forbidden raw host error as well as item `(3)`'s forbidden conversion.
 export function decodeSegments(segments) {
   const decoded = [];
-  for (let i = 0; i < segments.length; i += 1) decoded[decoded.length] = decodeSegment(segments[i]);
+  for (let i = 0; i < segments.length; i += 1) appendOwn(decoded, decodeSegment(segments[i]));
   return decoded;
 }
 

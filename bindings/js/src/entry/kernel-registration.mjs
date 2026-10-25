@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9b`) — the registration act, its evaluation, and the registry's removal: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KERNEL_REFUSAL, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, landedOp, pairsAtAddress } from './kernel-foundations.mjs';
+import { KC, KERNEL_REFUSAL, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsAtAddress } from './kernel-foundations.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-1` `register(store, address, id, constraint) -> Handle`
 // ---------------------------------------------------------------------------------------------
@@ -363,7 +363,7 @@ function registrationAttempt(kernel, store, pair) {
   // SYNTHETIC attempt, and of no other). **THE PAIR ENTERS `ran` BEFORE THE REPAIR RUNS**, which is that
   // arm's own ordering and is what makes the repeat arms reachable at the re-run below.
   append(attempt, 'constraint-check', pair.id, null, `the evaluation of ${pair.id}`);
-  attempt.ran.push(key);
+  appendOwn(attempt.ran, key);
   append(attempt, 'repair-run', pair.id, null, 'the pair\'s repair was attempted at registration');
 
   let result;
@@ -388,8 +388,8 @@ function registrationAttempt(kernel, store, pair) {
     return registrationRefusal(address, pair.id, attempt.log);
   }
 
-  attempt.ops.push(produced);
-  attempt.appliedRepairs.push(key);
+  appendOwn(attempt.ops, produced);
+  appendOwn(attempt.appliedRepairs, key);
   const entry = attempt.log[attempt.log.length - 1];
   entry.opId = produced.opId;
   entry.message = `the repair ${pair.id} landed ${produced.opId}`;

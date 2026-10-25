@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9e`) — the terminal act, the reference's spellings and the record readers: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, STORE_FLOOR_CODES, refuse, kernelFor, append } from './kernel-foundations.mjs';
+import { KC, STORE_FLOOR_CODES, refuse, kernelFor, append, appendOwn } from './kernel-foundations.mjs';
 /**
  * The attempt reference a READER was handed — THE `AttemptRef` RECORD OR ITS `id` STRING AND NOTHING
  * ELSE (`attempt-lifecycle.md §2.4` item 1: "`K-4`/`K-5` accept either the `AttemptRef` record or its
@@ -183,7 +183,7 @@ function composeRollback(kernel, attempt) {
   const callList = [];
   for (const op of attempt.ops) {
     if (attempt.checkpoint !== null && op.opId === attempt.checkpoint) break;
-    callList.push(op);
+    appendOwn(callList, op);
   }
   callList.reverse();
   // THE REVERSALS EARLIER RETURNED CALLS PERFORMED — the store's own reports, the only member item 5's
@@ -240,7 +240,7 @@ function composeRollback(kernel, attempt) {
       floor = { opId: op.opId, code: answer };
     }
     const undoneOps = record !== null && Array.isArray(record.undoneOps) ? record.undoneOps : [];
-    attempt.rollback.push({
+    appendOwn(attempt.rollback, {
       opId: op.opId,
       answer,
       failed,
@@ -253,11 +253,11 @@ function composeRollback(kernel, attempt) {
       checkpoint: attempt.checkpoint,
     });
     for (const undone of undoneOps) {
-      if (!performed.includes(undone)) performed.push(undone);
+      if (!performed.includes(undone)) appendOwn(performed, undone);
       // THE STEPS THAT ARE ALREADY — RECORDED BY THE MEMBER'S OWN NAMES, WHICH IS THE PREDICATE'S ONE
       // SOURCE (`item 5 (a)`, unmoved): an op this member names is one this composition has performed.
       for (let at = i + 1; at < callList.length; at += 1) {
-        if (callList[at].opId === undone && !recorded.includes(at)) recorded.push(at);
+        if (callList[at].opId === undone && !recorded.includes(at)) appendOwn(recorded, at);
       }
     }
     // AND THE WALK STOPS AT THE FAILING CALL: a call that met either floor code is the composition's

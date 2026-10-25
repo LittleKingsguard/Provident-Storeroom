@@ -363,11 +363,33 @@ export function kernelFor(store) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// THE LAWFUL APPEND — ADDED 2026-10-25 ON THE BLIND PASS'S `F8-2` WRITE VECTOR, AND IT IS A LOCAL COPY ON
+// PURPOSE: THIS MODULE'S OWN HEADER DECLARES AN EMPTY IMPORT FOOTPRINT (`§1` item 1; `A110`), so the kernel
+// may not reach the entry's `appendOwn` (`./refusal.mjs`) and defines the same one form here instead.
+//
+// `attempt.log.push(…)` WAS `Array.prototype.push`, WHICH PERFORMS `[[Set]]` AND THEREFORE WALKS THE
+// PROTOTYPE CHAIN: with an own getter-only accessor at `Array.prototype[0]` a caller's lawful `write` threw
+// the raw host `TypeError` *"Cannot set property 0 of [object Array] which has only a getter"* at this frame
+// (`append`, below), out of a call the walk had ADMITTED. `Object.defineProperty` DEFINES the own data
+// property push would have defined on a clean prototype — same `writable`/`enumerable`/`configurable` flags,
+// same element, same order, same `length` — and consults no chain.
+// ---------------------------------------------------------------------------------------------
+export function appendOwn(list, value) {
+  Object.defineProperty(list, list.length, {
+    value,
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
+  return list;
+}
+
+// ---------------------------------------------------------------------------------------------
 // THE MESSAGE LOG (`kernel-surface.md §2.5` item 1; `PAR-C-4`). SIX MEMBERS, `seq` ASCENDING FROM
 // `1`, ONE KIND PER ENTRY: `constraint-check` | `repair-run` | `commit` | `outcome`.
 // ---------------------------------------------------------------------------------------------
 export function append(attempt, kind, id, opId, message, state) {
-  attempt.log.push({
+  appendOwn(attempt.log, {
     seq: attempt.log.length + 1,
     kind,
     id: id === undefined ? null : id,
@@ -497,7 +519,7 @@ export function pairsAtAddress(kernel, address) {
   for (const [key, pair] of kernel.pairs) {
     for (const standing of pair.addresses) {
       if (sameAddress(standing, address)) {
-        out.push(key);
+        appendOwn(out, key);
         break;
       }
     }

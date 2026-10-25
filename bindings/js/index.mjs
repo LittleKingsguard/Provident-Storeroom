@@ -82,7 +82,7 @@ import { dirname as dirOf, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { types } from 'node:util';
 
-import { fail } from './src/entry/refusal.mjs';
+import { appendOwn, fail } from './src/entry/refusal.mjs';
 import { withAddon, boundaryReject, adoptModuleContext } from './src/entry/artefact.mjs';
 import { VALUE_ARGUMENT_POSITION, accessorOrSymbolArm, arrayClass, classSpelling, extendedPath, hasLoneSurrogate, inDomainAddress, isAdmittedArray, isLawfulListenerElement, isPlainObjectValue, protoClass, shapeArmClass, targetSpelling, valueReject, valueTargetSpelling } from './src/entry/class-decision.mjs';
 import { encodeAddress, encodeFilePath, encodeJournalLength, encodeOpId, encodeTier, encodeValue, handleWire, inDomainHandle } from './src/entry/carrier.mjs';
@@ -257,9 +257,11 @@ export function storeCreate(cfg) {
       // clause of 2026-10-24 on `F7-1`, item `(1b)`, and the battery's row `(g)`): the as-built `args.push`
       // was a member of a MUTABLE PROTOTYPE read by every verb, and a caller's `push` answering `0` without
       // copying EMPTIED the carrier list before any verb was reached — so an admitted write answered
-      // `AddressMalformed: 'tier' requires a tier argument`. `args[args.length] = …` is item `(1c)(v)`'s own
-      // index write on a local array.
-      args[args.length] = encodeTier(tier, arguments.length >= 2, false, 'first argument');
+      // `AddressMalformed: 'tier' requires a tier argument`. **⟶ AND THE APPEND IS AN OWN-PROPERTY DEFINE AND
+      // NOT AN INDEX WRITE, 2026-10-25:** `args[args.length] = …` performs `[[Set]]`, which WALKS THE CHAIN, so
+      // a caller's getter-only accessor at `Array.prototype[0]` turned this lawful verb's first append into a raw
+      // host `TypeError` (`F8-2`'s write vector). `appendOwn` (`src/entry/refusal.mjs`) defines the own property.
+      appendOwn(args, encodeTier(tier, arguments.length >= 2, false, 'first argument'));
       // **⟶ AND THE ENTRY IS INVOKED BY `Reflect.apply`, NEVER BY AN ARGUMENT SPREAD** (`contract.md §2.1`'s
       // clause of 2026-10-24 on `F8-1` and `F8-2`, items `(1b)`, `(1c)` and `(1d)`'s boundary; the cells
       // `JC-TC-64`, `JC-TC-65` and `JC-TC-66`): `…args` reads the local list through
@@ -275,7 +277,7 @@ export function storeCreate(cfg) {
     /** `docs/specs/storeroom-js/surface.md §2.2` / `docs/specs/storeroom-js/surface.md §2.9` item 2: `readLiteral` narrows the read to a leaf and answers `ReadTargetIsBranch`. */
     readLiteral(address, tier) {
       const args = arguments.length >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
-      args[args.length] = encodeTier(tier, arguments.length >= 2, false, 'first argument');
+      appendOwn(args, encodeTier(tier, arguments.length >= 2, false, 'first argument'));
       // THE ENTRY IS INVOKED BY `Reflect.apply`, NOT BY A SPREAD — see `read`'s clause of 2026-10-24 above.
       return decodeValue(carryRefusal(() => Reflect.apply(entryOf().readLiteral, this, args), args));
     },
@@ -345,12 +347,12 @@ export function storeCreate(cfg) {
       const args = arguments.length >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
       // `PAR-JS-7`: `write`'s tier is REQUIRED — an ABSENT position and a SUPPLIED `undefined` both answer
       // `AddressMalformed`, and neither folds.
-      args[args.length] = encodeTier(tier, arguments.length >= 2, false, 'first argument');
+      appendOwn(args, encodeTier(tier, arguments.length >= 2, false, 'first argument'));
       // THE WALK'S OWN FAULT RECORD — see `refusedValue`: the walk CLASSIFIES and RECORDS, and the record is
       // read at the one site where the store answered `ValueNotAdmitted` for a value the walk refused.
       // **⟶ AND THIS EXTENSION IS THE SAME INDEX WRITE** (`F7-1`, item `(1b)`): a no-op `push` dropped the
       // VALUE position too, so the admitted drive lost its crossed member and not merely its tier.
-      args[args.length] = encodeValue(value, [], 0, [], fault);
+      appendOwn(args, encodeValue(value, [], 0, [], fault));
       // **THE VALUE REFUSAL IS ANSWERED BEFORE ANY VERB** (`parameter-semantics.md §3`): the carrier positions
       // above have already answered in their own order, so this keeps `write(undefined, 'mem', null)` on the
       // carrier row and never lets a refused tree reach the store.
@@ -393,7 +395,7 @@ export function storeCreate(cfg) {
       // enclosing it was already the lawful form and the append was not, so a no-op `push` silently emptied
       // the record's watch set while the write itself stayed admitted and durable.
       for (let i = 0; i < answer.watched.length; i += 1) {
-        watched[watched.length] = decodeSegments(answer.watched[i]);
+        appendOwn(watched, decodeSegments(answer.watched[i]));
       }
       const record = {
         op: decodeJournalOp(answer.op),
@@ -443,7 +445,7 @@ export function storeCreate(cfg) {
         const args = arguments.length >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
         // `delete`'s tier is read as a VALUE and not by an arity fold: an ABSENT position is the whole-target
         // removal, and a supplied `undefined` answers row 4's `AddressMalformed` (`crossing.md §1.3`).
-        args[args.length] = encodeTier(tier, arguments.length >= 2, false, 'first argument');
+        appendOwn(args, encodeTier(tier, arguments.length >= 2, false, 'first argument'));
         // THE ENTRY IS INVOKED BY `Reflect.apply`, NOT BY A SPREAD — see `read`'s clause of 2026-10-24 above.
         const answer = carryRefusal(() => Reflect.apply(entryOf().delete, this, args), args);
         const receipt = {
@@ -575,7 +577,7 @@ export function storeCreate(cfg) {
       // the whole set and never a delta).
       const encoded = [];
       for (let i = 0; i < addresses.length; i += 1) {
-        encoded.push(encodeAddress(addresses[i], 'second argument', 'second argument'));
+        appendOwn(encoded, encodeAddress(addresses[i], 'second argument', 'second argument'));
       }
       carryRefusal(() => entryOf().listen.call(this, handleWire(handle), encoded), [handleWire(handle)]);
       // ── THE PACKAGE'S OWN HOME MIRROR ────────────────────────────────────────────────────────────────────
@@ -587,7 +589,7 @@ export function storeCreate(cfg) {
       // N addresses answer N rows for ONE handle (`listen-verb.md §6` item 4 (iv)).
       state.home = state.home.filter((row) => row.handle !== handle);
       for (let i = 0; i < addresses.length; i += 1) {
-        state.home.push({ key: homeAddressKey(addresses[i]), address: addresses[i].slice(), handle });
+        appendOwn(state.home, { key: homeAddressKey(addresses[i]), address: addresses[i].slice(), handle });
       }
       // ── THE ENTRY'S FIRST STATE: RESERVED ────────────────────────────────────────────────────────────────
       // ***"`listen` WRITES THE ENTRY WITH `off` SET — the reservation"*** (`P: docs/pending.md · P-5`, the
@@ -607,7 +609,7 @@ export function storeCreate(cfg) {
       // the registry row's set is the fresh list this loop builds.
       const standingSet = [];
       for (let i = 0; i < addresses.length; i += 1) {
-        standingSet[standingSet.length] = addresses[i].slice();
+        appendOwn(standingSet, addresses[i].slice());
       }
       state.registry.set(handle, {
         fn: undefined,
@@ -1134,14 +1136,14 @@ export function storeCreate(cfg) {
           if (each === null || typeof each === 'string') {
             constraintRefuse(`${ARGUMENT_POSITION_FIRST} of \`removeConstraint\``, pair);
           }
-          addresses.push(each.s);
+          appendOwn(addresses, each.s);
         }
       } else {
         const each = constraintAddress(pair.address);
         if (typeof each === 'string') {
           constraintRefuse(`${ARGUMENT_POSITION_FIRST} of \`removeConstraint\``, pair);
         }
-        addresses.push(each.s);
+        appendOwn(addresses, each.s);
       }
       if (!Object.hasOwn(pair, 'id')
         || pair.id === undefined
@@ -1378,10 +1380,10 @@ export function storeCreate(cfg) {
         }
       }
       if (at === -1) {
-        handles[handles.length] = entry.handle;
-        addressSets[addressSets.length] = [entry.address];
+        appendOwn(handles, entry.handle);
+        appendOwn(addressSets, [entry.address]);
       } else {
-        addressSets[at][addressSets[at].length] = entry.address;
+        appendOwn(addressSets[at], entry.address);
       }
     }
     for (let h = 0; h < handles.length; h += 1) {

@@ -1,6 +1,6 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `8`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
 import { types } from 'node:util';
-import { refusalLog } from './refusal.mjs';
+import { appendOwn, refusalLog } from './refusal.mjs';
 import { withAddon, require_ } from './artefact.mjs';
 import { classSpelling, isAdmittedArray, isPlainObjectValue } from './class-decision.mjs';
 import { constraintAddress } from './frame.mjs';
@@ -93,7 +93,7 @@ export function constraintPairKey(addresses, id) {
 export function addressSetKey(addresses) {
   const spells = [];
   for (const address of addresses) {
-    spells.push(homeAddressKey(address));
+    appendOwn(spells, homeAddressKey(address));
   }
   spells.sort();
   return spells.join('\u0001');
@@ -117,7 +117,7 @@ export function addressSetKey(addresses) {
 /// both. **MEMBERSHIP IS `homeAddressKey`'S INJECTIVE SPELLING** — the key `addressSetKey` and the mirror already
 /// decide set equality with, so `['a', 1]` and `['a', '1']` are two addresses here exactly as they are there
 /// (`contract.md §2.6` item 6's `HL-DD-3`; `AB-6`). **NO MEMBER OF A MUTABLE PROTOTYPE IS TAKEN**: the loop is by
-/// index, the list is built by index assignment and nothing is `map`ped, `pushed`, spread or iterated
+/// index, the list is built by an own-property append (`appendOwn`) and nothing is `map`ped, `pushed`, spread or iterated
 /// (`contract.md §2.1` `F8-2`; the same shape `encodeConstraints`' walk and `carryConstraint`'s own loop take).
 export function unionAddressSets(standing, supplied) {
   const merged = [];
@@ -132,8 +132,8 @@ export function unionAddressSets(standing, supplied) {
         if (keys[k] === key) carried = true;
       }
       if (carried === false) {
-        merged[merged.length] = address;
-        keys[keys.length] = key;
+        appendOwn(merged, address);
+        appendOwn(keys, key);
       }
     }
   }
@@ -254,14 +254,14 @@ export function constraintSite(state, verb, supplied, pair, constraint) {
       if (each === null || typeof each === 'string') {
         constraintRefuse(`pair at the ${ARGUMENT_POSITION_FIRST} of \`${verb}\``, pair);
       }
-      addresses.push(each.s);
+      appendOwn(addresses, each.s);
     }
   } else {
     const encoded = constraintAddress(pair.address);
     if (typeof encoded === 'string') {
       constraintRefuse(`pair at the ${ARGUMENT_POSITION_FIRST} of \`${verb}\``, pair);
     }
-    addresses.push(encoded.s);
+    appendOwn(addresses, encoded.s);
   }
   if (!Object.hasOwn(pair, 'id')
     || pair.id === undefined
@@ -571,7 +571,7 @@ export function enumerateConstraints(state) {
     // **THE `address` MEMBER IS THE PAIR'S OWN SET** (`contract.md §2.6` item 5; `PAR-HL-13`): one row per
     // `state.constraints` VALUE, unchanged in count, with its `address` member's type moved
     // (`P: docs/pending.md · P-7`'s answer clause, item (1)) — a FRESH array of FRESH segment arrays.
-    pairs.push({ address: entry.addresses.map((address) => address.slice()), id: entry.id });
+    appendOwn(pairs, { address: entry.addresses.map((address) => address.slice()), id: entry.id });
   }
   return pairs;
 }

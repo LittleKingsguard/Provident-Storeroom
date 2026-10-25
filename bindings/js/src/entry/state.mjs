@@ -1,5 +1,5 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `4`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
-import { fail } from './refusal.mjs';
+import { appendOwn, fail } from './refusal.mjs';
 import { withAddon, boundaryReject } from './artefact.mjs';
 import { classSpelling, targetSpelling, valueReject } from './class-decision.mjs';
 import { encodeOpId } from './carrier.mjs';
@@ -153,7 +153,7 @@ export function openCommit(store) {
   // copy and the notification are LOCAL INDEX LOOPS** (item `(1c)(i)`): no spread, no iterator.
   const observers = index.observers;
   const copied = [];
-  for (let i = 0; i < observers.length; i += 1) copied[i] = observers[i];
+  for (let i = 0; i < observers.length; i += 1) appendOwn(copied, observers[i]);
   for (let i = 0; i < copied.length; i += 1) copied[i]();
   return true;
 }
@@ -202,11 +202,11 @@ export function installAttemptSeam(instance) {
             break;
           }
         }
-        if (!known) observers[observers.length] = observer;
+        if (!known) appendOwn(observers, observer);
         return () => {
           const kept = [];
           for (let i = 0; i < observers.length; i += 1) {
-            if (observers[i] !== observer) kept[kept.length] = observers[i];
+            if (observers[i] !== observer) appendOwn(kept, observers[i]);
           }
           index.observers = kept;
         };
@@ -294,14 +294,16 @@ export const STORE_RETIREMENT = new FinalizationRegistry((retire) => {
 /// iterator yielding one `undefined` made `element.handle` throw a RAW HOST `TypeError` out of a `write` the
 /// walk ADMITTED and the store ALREADY WROTE**, and a caller's `push` answering `0` without copying emptied
 /// the record's trigger set so the listener never fired — a delivery decided by a prototype the caller owns.
-/// Both reads are now item `(1c)(i)`'s index loop and item `(1c)(v)`'s index write on this function's own
-/// array, and the record's declared bytes, its order and its pair shape are unmoved.
+/// Both reads are now item `(1c)(i)`'s index loop and an OWN-PROPERTY APPEND on this function's own array
+/// (`appendOwn`: `[[Set]]` walks the chain and a getter-only `Array.prototype` index turned the append into a
+/// raw host `TypeError`, the `F8-2` write vector this clause's own form had left), and the record's declared
+/// bytes, its order and its pair shape are unmoved.
 export function crossTriggered(state, triggered) {
   if (!Array.isArray(triggered)) return [];
   const out = [];
   for (let i = 0; i < triggered.length; i += 1) {
     const element = triggered[i];
-    out[out.length] = { handle: element.handle, address: decodeSegments(element.address) };
+    appendOwn(out, { handle: element.handle, address: decodeSegments(element.address) });
   }
   return out;
 }
@@ -315,7 +317,7 @@ export function crossTriggered(state, triggered) {
 /// which handles the delivery saw. The loop answers the same list in the set's own order.
 function handlesOf(triggered) {
   const handles = [];
-  for (let i = 0; i < triggered.length; i += 1) handles[handles.length] = triggered[i].handle;
+  for (let i = 0; i < triggered.length; i += 1) appendOwn(handles, triggered[i].handle);
   return handles;
 }
 
@@ -590,10 +592,10 @@ export function homeAddressKey(address) {
     // is the one predicate that admits an address here): a string segment is `s<length>:<bytes>` and an
     // index segment is `n<length>:<digits>` — the length prefix is what makes the join injective.
     if (typeof segment === 'string') {
-      parts.push(`s${segment.length}:${segment}`);
+      appendOwn(parts, `s${segment.length}:${segment}`);
     } else {
       const digits = String(segment);
-      parts.push(`n${digits.length}:${digits}`);
+      appendOwn(parts, `n${digits.length}:${digits}`);
     }
   }
   return parts.join('\u0000');

@@ -1,6 +1,7 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `5`; the split is `D-33`'s) — bytes moved from `bindings/js/index.mjs`; no logic changed.
 import { types } from 'node:util';
 import { boundaryReject } from './artefact.mjs';
+import { appendOwn } from './refusal.mjs';
 
 // ⟶ CARVED UP 2026-10-24 (`D-2`/`D-33`): `inDomainAddress` and `isLawfulListenerElement`, with the doc blocks that
 // explain them, are taken out of the delivery part, where `index.mjs:5078`–`:5112` held them: the config frame's own
@@ -215,7 +216,7 @@ function symbolDescription(symbol) {
 function arrayProtoSymbols(allowance) {
   const symbols = Object.getOwnPropertySymbols(Array.prototype);
   const descriptions = [];
-  for (let i = 0; i < symbols.length; i += 1) descriptions[descriptions.length] = symbolDescription(symbols[i]);
+  for (let i = 0; i < symbols.length; i += 1) appendOwn(descriptions, symbolDescription(symbols[i]));
   // THE OWN-SYMBOL CENSUS READ IS `1 + length` TOO (item `(4c)(iv)`); `null` is the conservative answer.
   if (!spendGuardRead(allowance, 1 + symbols.length)) return null;
   return descriptions;
@@ -235,7 +236,16 @@ function arrayProtoSymbols(allowance) {
 /// construction consumes an argument through an iterator and its membership is `Set.prototype.has`; both are
 /// mutable-prototype members by item `(1d)(iv)`, and the measured states `(1f)(ii)` names at rows `(c)` and
 /// `(d)` are exactly this membership answering a caller's forged `has`/`add`. The intersection is the same
-/// intersection: a local loop, a spelled `===`, and an index append.
+/// intersection: a local loop, a spelled `===`, and an own-property append (`appendOwn`, `refusal.mjs`).
+///
+/// **⟶ AND THE APPEND WAS THE REPORTED SITE OF THE `F8-2` CLASS'S WRITE VECTOR — LANDED 2026-10-25.** The
+/// as-built append was `reference[reference.length] = member`, an INDEX WRITE that performs `[[Set]]`; with an
+/// own getter-only accessor at `Array.prototype[0]` (a mutation a caller owns and `C-11` forbids this package
+/// to freeze away) the FIRST append answered `false` and this strict frame raised the raw host `TypeError`
+/// *"Cannot set property 0 of [object Array] which has only a getter"* — out of `storeCreate` and out of
+/// `write`, before any verdict, with no user code run. **`appendOwn` defines the own property instead, so the
+/// reference set is built by a form no mutable prototype decides**; its members, its order and its length are
+/// the ones the index loop built, and no admission, refusal, spelling or position moves.
 function referenceSet(standardMembers, liveCensus, allowance) {
   // **⟶ AND THE ALLOWANCE IS THREADED IN HERE TOO** (item `(4e)`): a census the caller could not pay for is
   // not a reference set, so the intersection answers `null` and its caller answers its branch's conservative
@@ -247,7 +257,7 @@ function referenceSet(standardMembers, liveCensus, allowance) {
     const member = standardMembers[i];
     for (let j = 0; j < liveCensus.length; j += 1) {
       if (liveCensus[j] === member) {
-        reference[reference.length] = member;
+        appendOwn(reference, member);
         break;
       }
     }
@@ -427,7 +437,7 @@ export function arrayClass(value, allowance) {
     // `try` still stands for a prototype whose own reads THROW (a `Proxy` used as a prototype, a revoked one).
     const ownSymbols = Object.getOwnPropertySymbols(proto);
     symbols = [];
-    for (let i = 0; i < ownSymbols.length; i += 1) symbols[symbols.length] = symbolDescription(ownSymbols[i]);
+    for (let i = 0; i < ownSymbols.length; i += 1) appendOwn(symbols, symbolDescription(ownSymbols[i]));
     above = Object.getPrototypeOf(proto); // (c) the chain's next link: `Array.prototype → Object.prototype`
   } catch {
     return 'class';
@@ -955,7 +965,7 @@ function arrayElementsReachCallerCode(value, path, allowance) {
       if (descriptor.get !== undefined || descriptor.set !== undefined) return true;
       if (renderGuardTrips(descriptor.value, next, allowance)) return true;
     }
-    memo[memo.length] = { value, answer: false, positions: positionsBefore - allowance.positions };
+    appendOwn(memo, { value, answer: false, positions: positionsBefore - allowance.positions });
     return false;
   } catch {
     return true;
@@ -966,8 +976,8 @@ function arrayElementsReachCallerCode(value, path, allowance) {
 /// the path's own indices and writes the extension's own index, so no array spread and no iterator is reached.
 export function extendedPath(path, segment) {
   const next = [];
-  for (let i = 0; i < path.length; i += 1) next[i] = path[i];
-  next[path.length] = segment;
+  for (let i = 0; i < path.length; i += 1) appendOwn(next, path[i]);
+  appendOwn(next, segment);
   return next;
 }
 

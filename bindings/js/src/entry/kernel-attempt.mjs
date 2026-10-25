@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9d`) — the pass: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, refuse, isKernelRefusal, pairSpelling, sameAddress, kernelFor, append, withdraw, landedOp, landedOpDefect, pairsAtAddress } from './kernel-foundations.mjs';
+import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, refuse, isKernelRefusal, pairSpelling, sameAddress, kernelFor, append, appendOwn, withdraw, landedOp, landedOpDefect, pairsAtAddress } from './kernel-foundations.mjs';
 import { commitAttemptIdOf, terminal, close } from './kernel-terminal.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-3` `runAttempt(store, commit) -> AttemptReport`
@@ -306,7 +306,7 @@ function evaluate(kernel, attempt, landing) {
       // `KC-6` iff in `ran` AND OUT of `appliedRepairs` — whether or not a repair is registered for the
       // pair, and NEVER off a repair-run COUNT.
       const ran = attempt.ran.includes(key);
-      if (!ran) attempt.ran.push(key);
+      if (!ran) appendOwn(attempt.ran, key);
       if (outcome === true) continue;
       if (repair === null) {
         // ARMS (c), (e) AND (f) — THE PAIR'S FIRST-EVALUATION ARM AND ITS TWO REPEAT ARMS, taken
@@ -452,8 +452,8 @@ function evaluate(kernel, attempt, landing) {
       // returns to the evaluation through THAT OP's OWN ATOMIC LANDING EVALUATION and the re-run.
       entry.opId = produced.opId;
       entry.message = `the repair ${pair.id} landed ${produced.opId}`;
-      attempt.ops.push(produced);
-      attempt.appliedRepairs.push(key);
+      appendOwn(attempt.ops, produced);
+      appendOwn(attempt.appliedRepairs, key);
       // THE LAYER (a) DELIVERY OF THIS RUN'S OWN HANDLES, ONE PER EVALUATED PAIR (`kernel-surface.md
       // §2.1` item 2; `§2.2` item 2): every handle this attempt's write returned that stands for a pair
       // THIS RUN evaluated has now been checked off as it passed — it was invoked in the kernel's own

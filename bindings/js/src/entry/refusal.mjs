@@ -80,3 +80,36 @@ export function refusalLog(log) {
   return Array.isArray(log) ? log : [];
 }
 
+/// **⟶ AND AN ARRAY THE PACKAGE BUILDS IS EXTENDED BY *DEFINING AN OWN PROPERTY*, NEVER BY `[[Set]]` — ADDED
+/// 2026-10-25 ON THE BLIND PASS'S FINDING, THE WRITE VECTOR OF THE CLASS `F8-2` NAMED.**
+///
+/// **THE HAZARD THE INDEX LOOP LEFT BEHIND, STATED AS THE LANGUAGE STATES IT.** `list[list.length] = value`,
+/// `list[i] = value` and `Array.prototype.push` all perform `[[Set]]`, and `[[Set]]` WALKS THE PROTOTYPE CHAIN.
+/// Where `Array.prototype` carries an own ACCESSOR at that index with no setter — a getter-only member, which
+/// a caller may install and which `C-11` forbids the package to freeze away — `[[Set]]` answers `false` and
+/// this package's strict frames raise the RAW HOST `TypeError` *"Cannot set property 0 of [object Array] which
+/// has only a getter"*: **out of a LAWFUL call, before any verdict, with `reads === 0` — no user code run and
+/// no store verb reached.** The measured states: `storeCreate(lawfulCfg)` threw inside the addon load's own
+/// `tried` list, `write(…)` threw inside the argument carrier's, and both were reported as the defect the
+/// earlier `F8-2` sweep's *index loop* replacement had created.
+///
+/// **THE FORM IS THE LANGUAGE'S OWN AND IT INTRODUCES NO THIRD RULE: an array LITERAL, `Array.of(…)` and
+/// `Object.defineProperty` DEFINE own properties and never consult the chain** — item `(1c)(ii)` already
+/// names `Object.defineProperty` as a lawful static, so this helper reaches nothing a governed path does not
+/// already use. **The own data property it defines is byte-for-byte the one `[[Set]]` would have defined on a
+/// clean prototype:** `writable`, `enumerable` and `configurable` all `true`, which is what an array element
+/// always is.
+///
+/// **NOTHING ELSE MOVES:** the list, its order, its `length` (an array's exotic own data property answers the
+/// append index) and every element it carries are the ones it carried before; the return value is the list, so
+/// a call site reads as the append it replaced.
+export function appendOwn(list, value) {
+  Object.defineProperty(list, list.length, {
+    value,
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
+  return list;
+}
+

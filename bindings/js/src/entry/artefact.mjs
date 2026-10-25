@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname as dirOf, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fail } from './refusal.mjs';
+import { appendOwn, fail } from './refusal.mjs';
 
 // **THE ENTRY'S OWN MODULE CONTEXT, HANDED IN AND NOT RE-DERIVED HERE** (`docs/L1/module-map.md` `I-29`):
 // `require_`, `ADDON_PATH` and the manifest path are all derived from `index.mjs`'s own `import.meta.url`, because
@@ -132,6 +132,27 @@ let addonArm = null;
 // never attempted, so its subject is rung two's path ALONE.
 let rungOneName = null;
 let tried = [];
+// **⟶ AND THIS LIST'S APPEND IS ITS OWN MEMBER — ADDED 2026-10-25 ON THE `F8-2` CLASS'S WRITE VECTOR, AND ITS
+// TWO CALL SITES ARE UNMOVED BYTE-FOR-BYTE ON PURPOSE.**
+// **THE DEFECT:** `tried.push(path)` was `Array.prototype.push`, which performs `[[Set]]` and WALKS THE
+// PROTOTYPE CHAIN. With a caller's own getter-only accessor at `Array.prototype[0]` — a mutation a caller owns
+// and `C-11` forbids this package to freeze away — the first append threw the raw host `TypeError` *"Cannot
+// set property 0 of [object Array] which has only a getter"* out of a LAWFUL `storeCreate`, before the artefact
+// was even looked for, with `reads === 0`: no verdict, no user code and no declared form. **THE FIX:** the
+// append is given to THIS list as an OWN data member that DEFINES the own property (`appendOwn`), so the append
+// takes no member from a mutable prototype and consults no chain; the member is `push` because that is what the
+// call sites spell.
+// **AND WHY THE CALL SITES KEEP THEIR BYTES RATHER THAN READING `appendOwn(tried, path)` DIRECTLY:**
+// `tests/e2e/staged-install/publish-generators.test.mjs`'s `NG-PUB-A` control anchors the rung-one success arm
+// by those very bytes (`:734`) and its own message declares that a moved site must be RE-CUT — an act that
+// belongs to the test writer and that this pass may not take. So the form is moved to the member, and the two
+// sites stand where they stood.
+Object.defineProperty(tried, 'push', {
+  value: (path) => appendOwn(tried, path),
+  writable: true,
+  enumerable: false,
+  configurable: true,
+});
 // **THE RUNG WHOSE LOAD STANDS, WHERE ONE DID** (`docs/specs/storeroom-publish/contract.md §1.5` item 3: the version read applies at rung one
 // alone, so the rung is remembered rather than inferred from a path's spelling).
 let loadedFrom = null;
