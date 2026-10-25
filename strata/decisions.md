@@ -1857,3 +1857,57 @@ are one string and an identity collision names the same entry an address collisi
 **AND ONE CONSEQUENCE FOR THE DECLARATION'S OWN TEXT.** `surface-deltas.md` was committed with five arms; **it is owed
 `B-6`'s row and the pair-key restatement.** **The implementer implements `B-6` from this ruling and reports its exact
 shape**; L1 adds the row when it next touches the file.
+
+---
+
+### `D-30` — the attempt registry is INSTANCE-SCOPED: a new store is a new stack
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the `KC-7` defect
+L0 confirmed at the code.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Make it instance-scoped - Creating a new store should create a new stack
+
+**WHAT IT SETTLES.** **The live and closed attempt records belong to the STORE INSTANCE, not to the module.** The
+defect L0 verified: `KERNELS` is a `WeakMap` keyed by the store (`constraint-kernel.mjs:297`) **while `LIVE` and
+`CLOSED` are MODULE-LEVEL `Map`s (`:302`–`:303`)**, and `attemptHeldAt` (`:1387`) iterates `LIVE.values()` with
+**no store filter — only an address comparison** — so **a live attempt in one instance refuses a `K-2`, and the
+entry's `write`, at that address in a DIFFERENT, FRESH instance.** **That defeats `A137`'s own ruling** (*"it can get
+that by creating multiple stores"*: *"the registries and the journals are independent and a constraint on one store
+does not refuse a write to the same address on another"*) **and every other registration structure in that file is
+already instance-scoped.**
+
+**AND IT IS CONSISTENT WITH THE DECLARED ID RULE RATHER THAN A DEPARTURE FROM IT.** The attempt's `id` is *"unique
+within the kernel instance"* — **a per-instance counter and a per-instance map are the same statement.** The
+module-level counter over-satisfied uniqueness while the module-level map broke scoping; both move together.
+
+**WHAT IT DOES NOT DO.** **It changes no behaviour other than that scope**: the `KC-7` refusal stands, a second `K-2`
+at a held address **within one instance** is still refused, and no arm, message or record member moves.
+
+---
+
+### `D-31` — an UNTESTABLE behaviour's cell is REMOVED
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the second defect
+L0 reported (`B-6`'s address dimension is blind on the kernel's own route).
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> If it's not testable behavior remove the test
+
+**WHAT IT SETTLES.** **When a cell asserts a behaviour that no declared surface can expose, the CELL goes — it is
+neither rewritten nor carried as a permanent red.** **The removal is recorded with what it asserted and why nothing
+can observe it**, so the absence is legible rather than a gap.
+
+**★ AND THE BOUNDARY IS THE WHOLE OF THE RULING, because this must not become a licence to delete reds.**
+
+| the state | what it is | the disposition |
+|---|---|---|
+| **UNTESTABLE** | the behaviour cannot be observed through **any declared surface** — no getter, no record member, no thrown form, no return: **there is no lawful instrument** | **REMOVE the cell**, and record what it asserted |
+| **OBSERVABLE BUT WRONG** | the behaviour is reachable and the code does it wrong — `LIVE-4.8`/`FTS-05.1`'s `file`-tier save, for instance | **KEEP IT RED** and the code owes the fix (`R-3`'s standing rule, `D-17`'s rewrite-or-retire) |
+| **HARD** | observable, but the cell is awkward or expensive to write | **REWRITE it.** Difficulty is not untestability |
+
+**WHAT IT DOES NOT SETTLE.** **Which cells are untestable** — that is the test layer's determination, cell by cell,
+with the instrument named and its absence argued. **And `D-31` does not reach a cell whose subject is gone** — that
+is `D-17`'s DISCARD class; **`D-31` is for a subject that EXISTS and cannot be SEEN.**
