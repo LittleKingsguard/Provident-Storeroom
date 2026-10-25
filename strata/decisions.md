@@ -662,3 +662,107 @@ tracker leg, its own record cell and its own layer statement**, and two spec dir
 **The spec corpus is unowned, so who performs those amendments remains the open question the route pass put to
 the architect — this clause is the thing they must amend.** And its finding list also carries **"a rewritten
 existing test file"**, which a re-spelling pass must be reconciled against rather than ignored.
+
+---
+
+### `D-8` — `LICENSE` reading **(iii)**: the row is lawful only if evidence requires it
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, choosing among the
+three readings `D-4`'s correction put to him.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> License - iii
+
+**WHAT IT SETTLES.** **The `LICENSE` row is not refused by rule any more, and it is not granted by rule either:**
+`delivery` adds it **only if an e2e/install scenario shows a consumer or a scanner needs the row**, and otherwise
+it stays out. **That is `D-4`'s criterion applied to the one manifest row that was still rule-bound** — the shape
+follows evidence, and no fixed manifest rule replaces the one `D-4` lifted.
+
+**WHAT THIS DOES TO `JSG-12.18`.** Its `LICENSE` subject asserted an **unconditional** refusal. **An
+unconditional refusal no longer exists, so that assertion has no subject** — it is owed **retirement or
+re-derivation as evidence-conditional by its owner**, and which of the two is a test-layer declaration, not L0's.
+**Its exact-set equality is obsolete separately (`D-3`'s correction), so the cell owes two edits, not one**, and a
+pass that makes only the equality edit leaves an assertion standing on a rule that is gone.
+
+**WHAT STANDS, UNMOVED.** The **carriage mechanism** — the assembly step lands the licence byte-for-byte into all
+six tarballs, and the manifest's three names against the tarball's four paths *"is the mechanism rather than a
+defect"*. `PUB-DD-11` (*not a fifth declaration site*) and `PUB-DD-12`/`DD-43` (**no persisting `LICENSE` byte under
+`bindings/js/`**; the pack-time transient copy lawful). **And the fact that makes the choice cheap: the row changes
+no byte of the tarball — it is purely declarative.**
+
+---
+
+### `D-9` — `F3`: make the change — and the label is per-run, which makes this structural
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect: *"F3 - Make change"*.
+
+**WHAT IT SETTLES.** **The `O3` cells are to be labelled `assembled`, and the `O4` cells keep `ENVELOPE/PURE`** —
+on the ground `D-6` established: an `O3` cell stages a package tree and a platform package and **must not lean on
+rung two**, while an `O4` cell is the *"package layer, in-process"* that `§2.1` item 2 says rung two carries.
+
+**★ AND THE STRUCTURAL FINDING L0 MET WHILE PREPARING IT — THE LABEL CANNOT BE CHANGED FOR FIVE CELLS IN PLACE.**
+**The layer is declared PER RUN, not per cell:** each runner carries one `const LAYER`
+(`greens.mjs:70`, `held-listener-identity-greens.mjs:20`, `json-acceptance-set-greens.mjs:58`,
+`json-acceptance-set-live.mjs:54`), and **`greens.mjs` states the coupling in its own words** — *"`const LAYER` AND
+`const APP_LAYER` ABOVE, THE HEAD COMMENT AND THE PRINT ARE BYTE-IDENTICAL: a cell of
+`bindings/js/test/register.test.mjs` reads them, and a change there would manufacture a false green."*
+**So relabelling a subset requires one of exactly two structural moves: (a) per-cell layer labels, or (b) the `O3`
+cells separated into their own run carrying its own label.** **Neither is drawn here; L1 declares which.** The
+consequence of missing this is the one the code warns about: a half-relabelled run that still prints one label
+manufactures a false green in `register.test.mjs`.
+
+**THE SITES ANY PLAN MUST NAME, ALL FOUR ASSERTED RATHER THAN DISPLAYED.** `greens.mjs`'s constant and its two
+asserting cells `JSG-12.15`/`JSG-12.16`; `register.test.mjs`'s extraction from `greens.mjs` by path;
+`package-entry.test.mjs:345`'s pin against `DD-20`; and `json-acceptance-set-live.mjs:54`'s own glossed label.
+
+**AND THE VOCABULARY'S DEFINITIONAL HOME IS NOW ARCHIVED.** The publish contract cites
+`docs/specs/storeroom-js/acceptance.md §4.2` as *"the sibling LAYER label, cited and never re-labelled"* — and
+**that file is at `archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/acceptance.md`** after this
+branch's archival pass, because the keep-set was one `contract.md` per module. **So the relabel's documentary
+home sits outside the kept corpus**, and a pass must cite the archived path rather than pretend the citation
+resolves.
+
+**WHAT IT DOES NOT SETTLE.** Which structural move (a) or (b); whether the four `O3` *greens* runners are split
+from `greens.mjs` or labelled per cell; whether the publish-side vocabulary must move with the JS-side label; and
+**no file move is ordered.**
+
+**AND THE PLACEMENT, RECORDED BECAUSE IT GOVERNS WHEN THIS CAN LAND.** `bindings/js/test/` and
+`bindings/js/greens/` are **present-state paths that no strata role may write** — the preset's test roles write
+`tests/e2e/`, `tests/integration/<module>/` and `tests/unit/<module>/` (`D-5`). **So the relabel lands with the
+migration wave, in the battery's new home, and not before** — editing the batteries in place would be L0 doing
+implementation outside the model, which is the one thing the wall exists to prevent.
+
+---
+
+### `D-10` — `F4` is in scope, for the local-environment-compatible import
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect: *"F4 - In scope for
+the local-env-compatible import"*.
+
+**WHAT IT SETTLES.** **The installed-layer battery is in scope, and it is driven by a LOCALLY PACKED tarball** —
+the `LIVE/INSTALL` instrument's own *"packed or released tarball"* arm (`§4.2` item 1), in a directory with no
+repository in its ancestry and no `build/Release` beside the entry, with one real Node process. **A registry
+release is not required, and nothing here authorises one.**
+
+**WHY THIS IS THE RIGHT ARM, RECORDED BECAUSE IT CLOSES A GAP `F4` DESCRIBED WRONGLY AT FIRST.** L0 called the
+situation a circularity — shape determined by installed evidence, but nothing installable before it is shaped.
+**It is not a circularity: the declared instrument already accepts `npm pack` output, so the shape can be
+determined before any release.** `F4`'s gap was a **missing battery**, not a missing ruling — and `D-4`'s evidence
+base is now available: **a packed-tarball install is the instrument that falsifies the allowlist, which is exactly
+what the lifted count no longer constrains by rule.**
+
+**WHAT IT BECOMES IN THE STRATIFICATION.** It is **`O3`'s strongest cell set** — surface-facing/install, staged,
+name-resolved — and under `D-7` it **carries `O3`'s own import/install helpers and consumes no `O4` helper.** It
+is the one battery that reaches **rung one**, so the five platform names are falsified there and nowhere else
+today.
+
+**WHAT IT MUST NOT CLAIM — both already priced, and neither is optional.** **`PUB-DD-13`:** a **local tarball's
+digest is NOT the released artefact's tie** — a consumer verifying against it meets a mismatch on a correct
+package, so the battery takes **shape** evidence and mints **no digest figure**. **`PUB-DD-14`:** it is **not**
+*"a consumer has loaded this package"* — that universal negative is unfalsifiable by this topology, and
+`LIVE/INSTALL` drives a clean directory and one Node process, **not an application**. **And `APP` stays `NONE`**: an
+installed green is not an `APP`-green.
+
+**WHAT IT DOES NOT SETTLE.** Its cells, their count, its own label string, its helpers' contents, and its command —
+**L1 declares all of it.** And it orders no build: the battery is declared before it runs, like every unit here.
