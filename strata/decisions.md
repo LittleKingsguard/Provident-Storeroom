@@ -992,3 +992,30 @@ are files inside `js-constraints` and every new edge is intra-module, so no inte
 `126 → 133` after the entry cut** (the pass corrected `entry-subdivision.md`'s `134`, which had counted part 1 as
 new) **and `138` after both cuts.** **The allowlist by reachability becomes 16 rows** — the barrel, the five kernel
 parts, the entry's own file, and the entry's parts.
+
+---
+
+### `D-16` — the stale red cell is fixed in the wave, and the wave's executor is named
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect: *"Fix in the wave"*.
+
+**WHAT IT SETTLES.** **`blind-constraints-v2.mjs:1139`'s five-name census is corrected inside the wave**, not
+carried as a red. **So the wave's green is unambiguous: it starts from a known red and ends with none.**
+
+**WHICH STAGE, STATED BECAUSE THE WAVE HAS TWO.** The wave is **(1) the kernel cut** — five parts plus a barrel,
+source only — and **(2) the entry cut with the four drives' re-staging**, which `D-14` couples. **The red cell
+censuses the kernel's NAMESPACE, so it belongs to the stage that touches that namespace: stage 1.** But its file
+is a **test**, and no strata role may write `bindings/js/greens/` — the preset's test roles write `tests/e2e/`,
+`tests/integration/<module>/` and `tests/unit/<module>/` (`D-5`), and the greens are still at their present-state
+path. **So the fix lands AT THE MOMENT THE BATTERY REACHES A PATH A TEST ROLE MAY WRITE — with the migration —
+and not in stage 1.** Both readings are the architect's instruction honoured; the second is the only one the
+model's own walls permit, and saying so is preferable to inventing a role.
+
+**THE EXECUTOR QUESTION, ANSWERED AND RECORDED AS A MODEL FINDING.** **The strata preset has no role for a
+mechanical refactor of existing, working code.** `role_l4_implementer`'s persona is *"you receive pseudocode,
+signatures, guardrail notes and the exact command that must go green"* and *"your write scope is the source files
+of your module only"* — which fits a pure move exactly. **`role_l2_integration` and `role_l3_designer` design
+SURFACES and SIGNATURES, and a move designs neither: the cut lines, the DAG, the barrel and the six exports are
+already declared at L1, and L2/L3 would be re-deriving an existing surface.** **So stage 1 is delegated to L4
+directly, on the declared design, with the command it must keep green** — and this deviation is stated rather than
+hidden, because the first real test of this workflow on this project is worth recording as such.
