@@ -2297,3 +2297,37 @@ preset's scopes without contradicting a language rule, and it is what this rulin
 **WHAT IT DOES NOT DECIDE.** **Whether to take that restructure at all** — the architect lifted the requirement; L0
 proposes the tests package as the shape that serves `D-5`'s goal, and **the next pass stops rather than accept a red
 Rust battery.**
+
+---
+
+### FINDING — there is a SEVENTH leg, it is RED, and L0's verification was incomplete
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the workspace pass refused to land a
+red member and measured why; **L0 confirmed it at the command.** **This is L0's own error of coverage.**
+
+**WHAT IS TRUE.** **`cargo test --manifest-path bindings/js/Cargo.toml` exits `101`.** **`surface_verbs.rs` does not
+compile (19 errors), `crossing_carriers.rs` does not compile (4), `register_layer.rs` fails one test, and
+`crossing_values.rs` fails two** — and **four of the seven are unbuildable because `listen` now takes `(handle,
+addresses)`** (`D-22`/`D-29` made the caller spell the handle, so the Rust-facing signature is `&JsHandleArg,
+&JsAddressArg`) **while the Rust battery still drives the one-argument form.** `WriteResult.triggered` is
+`Vec<JsListenerTrigger>` where `support::js_set_equal` takes `&[JsHandle]`, so the carriers file fails on types as
+well as arity.
+
+**AND IT IS A DECLARED CI LEG, NOT A DORMANT DIRECTORY:** `.github/workflows/publish.yml:171` runs
+`cargo test --manifest-path bindings/js/Cargo.toml --no-fail-fast`, and line `174` builds it for every target.
+
+**★ SO L0'S "ALL FOUR LEGS GREEN" WAS SIX LEGS, AND THE SEVENTH WAS RED THE WHOLE TIME.** **The root
+`cargo test --offline` tests the STORE only — 415 tests — and the binding's battery is a SEPARATE COMMAND that no
+pass in this session ran.** **Every report of this branch's health since the surface landed has been true of the six
+legs measured and silent about a leg that was failing.** **That is the same defect the whole session has been
+finding in others' work — a verification that names what it measured and does not name what it left out — and it is
+recorded here at its own size rather than folded into a passing summary.**
+
+**THE CAUSE IS THE SAME ONE THE JS BATTERY HAD.** The seven surface rulings changed the published shape and **the
+batteries were re-derived against it — the JS ones.** **The binding crate's Rust battery drives the same surface
+through `crossing` and was not re-derived, because it is reached by a command the session never ran.**
+
+**AND IT BLOCKS THE WORKSPACE.** The workspace pass measured the restructure, derived it fully (members, the tests
+package, `mod support` resolution per group, `default-members = [".", "tests"]`, the `-p storeroom-native` scoping
+that keeps `--offline` honest), **and refused to put a red member inside the root command's path.** **It was right:
+the Rust batteries must be re-derived BEFORE they move.**
