@@ -300,34 +300,40 @@ test("listener · index.d.ts `register` (rulings `D-25`/`D-29`) · a listener re
   assert.deepEqual(fired, []);
 });
 
-test("listener · the cross-kind refusal's FORM · index.d.ts (rulings `D-25`/`D-29`) declares the surface's one form `{status, message, log}` with the store's `AddressMalformed`; held-listener contract.md §4 `F-9` and §2.3 item 9 declare a package-side `TypeError` with the `status` member ABSENT — the cell records BOTH readings", () => {
-  // THE TWO DECLARED READINGS, EACH AT ITS OWN BYTES, NEITHER CHOSEN SILENTLY:
+test("listener · the cross-kind refusal's FORM · index.d.ts (rulings `D-25`/`D-29`) declares the surface's ONE form `{status, message, log}` with the store's `AddressMalformed`, and held-listener contract.md §2.3 item 9 / §4 `F-9`'s `TypeError` reading is SUPERSEDED at both sites on 2026-10-25 — the cell now asserts the ONE declared form", () => {
+  // THE TWO DECLARED READINGS, EACH AT ITS OWN BYTES, AND THE ONE THAT GOVERNS:
   //  (i) `index.d.ts`'s `register` — "the cross-kind rule's register-side direction, in the surface's
   //      OWN thrown form `{status, message, log}` with the store's `AddressMalformed` — NOT the
   //      `TypeError` this member's conflict arm carried while a reserved `constraint@` prefix existed to
-  //      be exempted"; and, at the add route, "The rejection is the surface's one thrown form
-  //      `{status, message, log}` with the store's `AddressMalformed`".
-  //  (ii) `docs/specs/storeroom-held-listener-identity/contract.md §2.3` item 9 — "THE CONFLICT'S STATUS IS
-  //      A PACKAGE-SIDE `TypeError` WITH NO `status` MEMBER — NO NEW CODE, NO CLOSED-SET WIDENING", whose
-  //      `§4` row `F-9` reads "THROWN `TypeError`, `status` ABSENT, the package's own message naming BOTH
-  //      sides".
+  //      be exempted … so NO STATE MOVES"; and, at the add route, "The rejection is the surface's one
+  //      thrown form `{status, message, log}` with the store's `AddressMalformed`", its `message` "naming
+  //      BOTH SIDES and carrying the shared rule sentence *"a listener and a constraint do not share
+  //      one"*".
+  //  (ii) `docs/specs/storeroom-held-listener-identity/contract.md §2.3` item 9's AS-FILED text — "THE
+  //      CONFLICT'S STATUS IS A PACKAGE-SIDE `TypeError` WITH NO `status` MEMBER — NO NEW CODE, NO
+  //      CLOSED-SET WIDENING" — whose `§4` row `F-9` read "THROWN `TypeError`, `status` ABSENT".
   //
-  // A THIRD FORM IS A FINDING and this cell fails on it. Which of the two the build answers is the
-  // pass's RESULT TO REPORT, not a value this cell may assume.
+  // THIS CELL WAS RED IN THE PASS THAT MET IT AND IS GREEN NOW, AND IT IS GREEN BECAUSE THE DOCUMENT
+  // MOVED: reading (ii) was corrected on 2026-10-25 by a PURE INSERTION at `§2.3` item 9 and by a second
+  // one at `§4` `F-9`, both naming the superseded `TypeError` reading and both reading the state through
+  // `D-25`/`D-29` and index.d.ts's `register` clause. Its own ground is printed at those clauses: the
+  // item had borrowed rule (ii)'s form — the three constraint methods' class test on an OUTSIDE VALUE —
+  // for a rule between TWO KINDS, which rule (ii) does not govern. `AddressMalformed` is rank `1` of the
+  // store's own closed set, so the item's own "NO NEW CODE, NO CLOSED-SET WIDENING" stands whole and is
+  // better satisfied. The build was not changed and no byte of it was read.
   const instance = make();
   instance.addConstraint({ address: ['y'], id: 'cross-form-id' }, () => true);
   const caught = catchIt(() => instance.register('cross-form-id', () => {}));
 
-  const surfaceForm =
-    caught.status === 'AddressMalformed' &&
-    typeof caught.message === 'string' &&
-    Array.isArray(caught.log);
-  const classTestForm = caught instanceof TypeError && !('status' in caught);
-
-  assert.ok(
-    surfaceForm || classTestForm,
-    `the cross-kind refusal is neither declared reading: ${Object.prototype.toString.call(caught)} / ${String(caught && caught.status)}`,
-  );
+  // THE ONE DECLARED FORM: the surface's flat three-member shape, the store's own `AddressMalformed`,
+  // and `log: []` (the failure's cause has no attempt at all — `surface.md §2.5` item 4's enumeration
+  // names the registration site's refusal among the `[]` arms).
+  assert.deepEqual(Object.keys(caught).sort(), ['log', 'message', 'status']);
+  assert.equal(caught.status, 'AddressMalformed');
+  assert.equal(typeof caught.message, 'string');
+  assert.deepEqual(caught.log, []);
+  // AND THE MESSAGE NAMES BOTH SIDES AND CARRIES THE SHARED RULE SENTENCE.
+  assert.equal(caught.message.includes('a listener and a constraint do not share one'), true);
 });
 
 // ---------------------------------------------------------------------------------------------

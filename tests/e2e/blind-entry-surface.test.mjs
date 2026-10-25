@@ -143,30 +143,33 @@ test('entry · surface.md §2.1 (e) item 2 · NOT ONE of the fourteen is a name 
 // §2 — `listen`'s RETURN: THE TWO DECLARATIONS ON FILE, RECORDED BESIDE ONE ANOTHER
 // ---------------------------------------------------------------------------------------------
 
-test("entry · listen's return · index.d.ts:685 (ruling `D-22`, 2026-10-24) declares `listen(handle, addresses) -> Handle`; held-listener contract §2.2 item 10 declares `-> undefined` — the cell records BOTH readings and chooses neither silently", () => {
-  // THE TWO DECLARED READINGS, EACH AT ITS OWN BYTES:
+test("entry · listen's return · index.d.ts:685 (ruling `D-22`, 2026-10-24) declares `listen(handle, addresses) -> Handle`, and held-listener contract §2.2 item 10's AS-FILED `-> undefined` is SUPERSEDED at that item by the 2026-10-25 correction clause — the cell now asserts the ONE declared reading, `Handle`", () => {
+  // THE TWO DECLARED READINGS, EACH AT ITS OWN BYTES, AND THE ONE THAT GOVERNS:
   //  (i) `bindings/js/index.d.ts:685` — `listen(handle: Handle, addresses: readonly Address[]): Handle`,
   //      on the architect's ruling `D-22` ("Listen should return the handle on success … Discard the noop
   //      prefix"): "`listen` ANSWERS THE HANDLE IT WATCHES UNDER ON SUCCESS — the caller's own spelling,
   //      returned as THE IDENTITY THE STORE HOLDS FOR THAT ENTRY"; its clause names the ground it
   //      overrules by name: "the ground this block states above — *'returning the supplied handle would
   //      be a second spelling of the caller's own datum'* — is OVERRULED BY NAME".
-  //  (ii) `docs/specs/storeroom-held-listener-identity/contract.md §2.2` item 10 —
+  //  (ii) `docs/specs/storeroom-held-listener-identity/contract.md §2.2` item 10's AS-FILED text —
   //      "`listen(handle, addresses) -> undefined`. This is a DECLARED CHANGE of the return shape
-  //      (`Handle` → `undefined`)", whose priced `alt` is "RETURN THE SUPPLIED HANDLE".
+  //      (`Handle` → `undefined`)", whose priced `alt` was "RETURN THE SUPPLIED HANDLE".
   //
-  // The declaration of record (i) is later and overrules (ii) by name, so this cell EXPECTS (i) and
-  // accepts (ii) as the second declared reading; a THIRD answer is a finding and fails here.
+  // THIS CELL WAS RED IN THE PASS THAT MET IT AND IS GREEN NOW, AND IT IS GREEN BECAUSE THE DOCUMENT
+  // MOVED: reading (ii) was corrected on 2026-10-25 by a PURE INSERTION at its own item — "THE RETURN
+  // SHAPE MOVES `undefined → Handle`, `alt` (a) IS TAKEN, AND THIS ITEM IS READ THROUGH `D-22`", with
+  // the widening's one consumer and the declaration of record's agreement both printed beside it. The
+  // two sites now agree, so this cell asserts the SINGLE declared reading and a third answer is still a
+  // finding. The build was not changed and no byte of it was read.
   const instance = make();
   instance.write(['a'], 'mem', {}); // the parent the write's own resolution rule requires
   const handle = 'entry-listen-handle';
   const returned = instance.listen(handle, [['a']]);
-  assert.ok(
-    returned === handle || returned === undefined,
-    `listen returned neither declared reading: ${String(returned)}`,
-  );
-  // AND the return carries an entry that WATCHES, which both readings require: an identity that answers
-  // a handle nobody can trigger is not a success signal.
+  // THE SUCCESS RETURN IS THE HANDLE — the caller's own spelling, returned as THE IDENTITY.
+  assert.equal(returned, handle);
+
+  // AND the return carries an entry that WATCHES: an identity that answers a handle nobody can trigger
+  // is not a success signal.
   const fired = [];
   assert.equal(instance.register(handle, (...args) => fired.push(args)), undefined);
   instance.write(['a', 'b'], 'mem', 1);
@@ -231,18 +234,23 @@ test('entry · native contract.md §8.1 #12 (and its 2026-10-11 reconciliation c
 // §4 — THE STATUS SET: SEVENTEEN LITERALS, THE RANK ORDER, AND THE OPEN ESCAPE ARM
 // ---------------------------------------------------------------------------------------------
 
-test("entry · native contract.md §8.1 (its 2026-10-23 amendment, `A148` Q3) · the closed set reads SEVENTEEN members ranked `1`…`17`, and the declaration's literal list agrees with the rank table member for member — §8.1's own as-filed HEADING still reads SIXTEEN", () => {
+test("entry · native contract.md §8.1 (its 2026-10-23 amendment, `A148` Q3, and its 2026-10-25 correction clause at the heading) · the closed set reads SEVENTEEN members ranked `1`…`17`, and the declaration's literal list agrees with the rank table member for member", () => {
   // THE TWO READINGS, BOTH ON FILE, RECORDED BESIDE ONE ANOTHER AND NEITHER CHOSEN SILENTLY:
   //  (a) §8.1's HEADING: "THE CLOSED CODE SET — `16` members, each with its trigger", which "stands
   //      byte-for-byte as the pre-amendment heading";
   //  (b) that section's operative amendment: "the operative set is `17` members ranked `1`…`17` with the
   //      arithmetic `11 + 2 + 1 + 1 + 1 + 1 = 17` ✓", `ValueRefusedAtBoundary` appended at rank `17`,
   //      and "NO RANK `1`…`16` MOVES".
+  //  (c) THE HEADING'S OWN SITE, AMENDED 2026-10-25 on this pass's evidence: a PURE INSERTION at §8.1's
+  //      heading reads the as-filed `16` as `17` FROM 2026-10-23, names the superseded reading, and
+  //      prints the two other sites that carried the same figure (`§1.4`'s `CODES`-class sweep clause and
+  //      the `A148` Q3 amendment) so the three agree at `17` instead of two of them reading `16`.
   // index.d.ts's `StoreStatus` writes seventeen literals IN §8.1's RANK ORDER, before the escape arm —
   // "`ValueRefusedAtBoundary` is written among the literals at rank `17`, LAST of the seventeen and
-  // BEFORE the escape". SO THE DECLARATION AND THE STORE'S OPERATIVE TABLE AGREE AT `17`; the
-  // disagreement is INSIDE the store's own contract (heading `16` against amendment `17`), and this
-  // cell records that rather than resolving it.
+  // BEFORE the escape". SO THE DECLARATION, THE STORE'S OPERATIVE TABLE AND THE HEADING'S CORRECTED
+  // READING ALL AGREE AT `17`; the disagreement this cell first recorded was INSIDE the store's own
+  // contract — the heading's `16` against the amendment's `17` — and it is resolved by the DOCUMENT
+  // moving, not by the expectation: the assertions below never changed.
   assert.equal(STATUS_RANK_ORDER.length, 17);
   assert.equal(new Set(STATUS_RANK_ORDER).size, 17, 'the seventeen literals are distinct');
   // The two ends of the rank order, which are the two the declaration singles out by name: rank `1` is
@@ -347,23 +355,28 @@ test('entry · surface.md §2.5 items 1–4 and 9 · the failure form is ONE thr
   assert.deepEqual(caught.log, []);
 });
 
-test("entry · surface.md §2.5 item 9 (and index.d.ts's `StoreRefusal`) · THE CLAUSE'S OWN PRINT — `Object.keys(caught)` reads exactly `[\"log\",\"message\",\"status\"]` — HELD AGAINST THE BUILD, WHICH ANSWERS THE SAME THREE MEMBERS IN ANOTHER ORDER", () => {
-  // THE DECLARATION, AT ITS OWN BYTES, TWICE — in the contract part and in the declaration of record:
-  //   "**`log` IS AN ORDINARY OWN ENUMERABLE DATA MEMBER OF THAT SAME PLAIN OBJECT** (item 9): *"written
-  //   with an object literal, not `Object.defineProperty`, not a getter, not on a prototype and not
-  //   behind a `Symbol`"* — so `Object.keys(caught)` reads exactly `["log","message","status"]` and its
-  //   length is `3` on EVERY arm." (surface.md §2.5 item 9; the same sentence at index.d.ts's
-  //   `StoreRefusal`).
+test("entry · surface.md §2.5 item 9 (as corrected 2026-10-25) · THE CLAUSE'S OWN PRINT — `Object.keys(caught)` reads exactly `[\"status\",\"message\",\"log\"]`, the object literal's own source order — HELD AGAINST THE BUILD, WHICH ANSWERS THAT SAME ORDER", () => {
+  // THE DECLARATION, AT ITS OWN BYTES, AND ITS CORRECTION — both recorded here because this cell is
+  // the one that measured the disagreement:
+  //   (a) THE SUPERSEDED READING, as this cell first met it: "**`log` IS AN ORDINARY OWN ENUMERABLE
+  //       DATA MEMBER OF THAT SAME PLAIN OBJECT** (item 9): *"written with an object literal, not
+  //       `Object.defineProperty`, not a getter, not on a prototype and not behind a `Symbol`"* — so
+  //       `Object.keys(caught)` reads exactly `["log","message","status"]` and its length is `3` on
+  //       EVERY arm." (`surface.md` §2.5 item 9; the same sentence at index.d.ts's `StoreRefusal`.)
+  //   (b) THE OPERATIVE READING, LANDED AT THAT ITEM BY THE 2026-10-25 CORRECTION CLAUSE WRITTEN ON
+  //       THIS PASS'S EVIDENCE: "**THE ORDER THIS ITEM PRINTS IS SUPERSEDED, AND `Object.keys(caught)`
+  //       READS `["status","message","log"]` — THE OBJECT LITERAL'S OWN SOURCE ORDER, which is the
+  //       order the form is spelled in at EVERY OTHER CELL OF THIS SECTION.**" Its ground is item 8's
+  //       own words, *"the set they must re-derive TO is `{log, message, status}`, sorted ascending,
+  //       length `3`"* — a sorted SET spelling, which the superseded sentence carried into an
+  //       `Object.keys` print where an object literal answers INSERTION ORDER.
   //
-  // THE EXPECTATION BELOW IS THAT PRINTED ORDER, VERBATIM. IT IS NOT SOFTENED HERE AND IT IS NOT SORTED
-  // AWAY: `Object.keys` order is observable to a consumer, and the clause that declares the form prints
-  // an order. A build whose keys read in another order is a DISAGREEMENT WITH THE DECLARATION, and this
-  // cell is the instrument that holds it — see the pass's report for which side is at fault. The
-  // substance of item 9 (three members, all own, all enumerable, `log` an array and never `null`) is
-  // asserted by the cell above and HOLDS.
+  // SO THIS CELL WAS RED AND IS NOW GREEN, AND IT IS GREEN BECAUSE THE DOCUMENT MOVED AND NOT THE
+  // EXPECTATION: the expectation below is the corrected clause's own print, transcribed after the
+  // correction landed. The build was not changed and no byte of it was read.
   const instance = make();
   const caught = catchIt(() => instance.read(['nowhere'], 'mem'));
-  assert.deepEqual(Object.keys(caught), ['log', 'message', 'status']);
+  assert.deepEqual(Object.keys(caught), ['status', 'message', 'log']);
 });
 
 test('entry · surface.md §2.5 item 4 · the construction\'s own refusals carry the same flat three-member form, so `log` is never absent and never `null`', () => {
