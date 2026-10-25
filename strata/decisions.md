@@ -2331,3 +2331,42 @@ through `crossing` and was not re-derived, because it is reached by a command th
 package, `mod support` resolution per group, `default-members = [".", "tests"]`, the `-p storeroom-native` scoping
 that keeps `--offline` honest), **and refused to put a red member inside the root command's path.** **It was right:
 the Rust batteries must be re-derived BEFORE they move.**
+
+---
+
+### FINDING — the relocation is measured, sound, and blocked on FOUR decisions, three of them the architect's
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the relocation pass, which measured
+the shape in a scratch workspace and stopped rather than change a declared property. **L0's tree is clean and green.**
+
+**THE SHAPE IS SOUND AND MEASURED.** A tests-only package with no `src/lib.rs` is lawful; `[workspace] members =
+[".", "tests"]` beside a root package is accepted; `#[path = "../support/mod.rs"]` resolves as derived; **`cargo test`
+at the workspace root runs both packages.** Baselines before: **store 415** (14 targets), **binding 235** (6 targets).
+
+**★ A — THE TWO NAMED LEGS STOP MEANING WHAT THEY MEAN, AND THAT IS THE REAL COST.** **After the move: root
+`cargo test --offline` = 650 (415 + 235), not 415; `cargo test --manifest-path bindings/js/Cargo.toml` = 0, because
+the binding's only test targets were the six files that leave; and `-p storeroom-native` = 0, because the battery now
+lives in `storeroom-tests`.** **Nothing vanishes — but two commands this project's own verification names would name
+nothing.** **`default-members = [".", "tests"]` is exactly WHY the root command covers both, so the design's virtue
+is the verification's contradiction.** **The question is the architect's: what are the legs after the move?**
+**L0's proposal: the store's leg becomes `cargo test -p storeroom-native` (415, unchanged meaning), the binding's
+becomes `cargo test -p storeroom-tests` (235), and the root's plain `cargo test` is declared as the both-of-them
+command.** That is a leg-naming decision, not a mechanism.
+
+**★ B — THE `-p` SCOPING TURNS AN EXECUTED CELL RED, AND THE CELL IS PINNING A DECLARED COMMAND.**
+`tests/e2e/addon-adoption.test.mjs:1972`–`1977` asserts **`storeHalf === ['cargo build --offline --release']`**
+exactly, and `command-sites-and-residue.md §3` declares that half **"THE STORE'S AND UNMOVED — it does not appear in
+the site table at all"**. **So adding `-p storeroom-native` breaks a declared command spelling, measured: `npm test`
+goes 851 · 1.** **Architect's: amend the pinned command, or keep the spelling and accept that an `--offline` root
+build would pull the binding's registry crates.**
+
+**★ C — THE LOCK IS `DD-27`'s PRICED ALTERNATIVE.** The root `Cargo.lock` is **tracked**; under one workspace lock the
+next commit **pins the binding's 38 registry crates**, and `DD-27`'s alt cell says *"a committed `Cargo.lock` …
+available with a bounded amendment"*, while `bindings/js/.gitignore:6` goes dead. **Untracking breaks `--locked` on a
+fresh clone, which `preflight_pkgs` depends on.** **Both branches change a declared property → architect.**
+
+**D — TWO RELEASE PATHS DIE AND THEY ARE OUTSIDE THE PASS'S SCOPE.** `scripts/publish.sh:193`–`194` copies
+`bindings/js/target/release/…`, and **a member's target dir is the workspace root**, so the path goes stale and its
+`|| true` **silently stages the old `.node`**. `.github/workflows/publish.yml:171` runs the binding command that now
+runs **0 tests and exits 0** — **a declared CI leg gone silently vacuous** — and `:188` builds from the same stale
+path. **These are the release's, and they are the reason a relocation cannot be called done until they move too.**
