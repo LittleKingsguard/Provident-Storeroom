@@ -347,24 +347,38 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
         row.strategy("S-CEIL", 10, |attempt| {
             let rng = &mut Rng::for_attempt(attempt);
             // **THE ROW'S TEXT NOW MATCHES THE ARM THE CLAUSE DECLARES** (`crossing.md §1.4` item 5's dated
-            // clause of 2026-10-11, closing gate 4's `JS-8`): **the depth-`64`/node-`1,000,000` refusal is
-            // *"the PACKAGE'S OWN WALK'S — the refusal is PRODUCED at the package's boundary (§1.7's step
-            // three), BEFORE any verb is called and BEFORE any addon call is reached"*** — so **THIS RUST CELL
-            // MEASURES THE CONVERSION CORE'S ARM AND NOT THE PACKAGE'S WALK'S, and the clause names it as an
-            // arm this property *"must NOT be confused with"*** (*"(ii) A STORE-SIDE CEILING IS NOT AN ARM OF
-            // THIS ROW AT ALL"*). **The package's own walk's arm is driven — through the claimed ESM entry —
-            // by `NG-JS-D` in `bindings/js/test/negative-generators.test.mjs`; this line keeps the core's
-            // bound total, and says so rather than reporting a stronger claim than the bytes support.**
-            // `DD-10`: the core refuses a value whose nesting depth EXCEEDS 64. The size half of the ceiling
-            // (`1,000,000` visited nodes) is driven in `crossing_values.rs`, where the corpus can afford it.
-            let depth = 62 + rng.below(5); // 62, 63, 64, 65, 66
+            // clause of 2026-10-11, closing gate 4's `JS-8`): **the depth refusal is *"the PACKAGE'S OWN WALK'S
+            // — the refusal is PRODUCED at the package's boundary (§1.7's step three), BEFORE any verb is called
+            // and BEFORE any addon call is reached"*** — so **THIS RUST CELL MEASURES THE CONVERSION CORE'S ARM
+            // AND NOT THE PACKAGE'S WALK'S, and the clause names it as an arm this property *"must NOT be
+            // confused with"*** (*"(ii) A STORE-SIDE CEILING IS NOT AN ARM OF THIS ROW AT ALL"*). **The
+            // package's own walk's arm is driven — through the claimed ESM entry — by `NG-JS-D` in
+            // `bindings/js/test/negative-generators.test.mjs`; this line keeps the core's bound total, and says
+            // so rather than reporting a stronger claim than the bytes support.**
+            //
+            // **⟶ RE-DERIVED 2026-10-25: THE FIGURE THIS LINE DREW WAS `62 + rng.below(5)` AGAINST
+            // `depth <= 64`, AND BOTH NUMBERS ARE PRE-`A149`.** **The core's ACTUAL bound is `128`, measured at
+            // the bytes** (`bindings/js/src/crossing.rs:665`: `if depth > 128 || visited > 1_000_000`), and
+            // `A149` item `4` keeps it — *"the crate's `128` and `1,000,000` remain the CONVERSION's own
+            // bounds"* — while the OPERATIVE admission ceiling (`126`) is the JS encoder's and is enforced
+            // before this core is reached. **SO THE LINE WAS BROKEN, AND IT WAS THE CELL AND NOT THE CODE:** at
+            // `62…66` every draw was BELOW the core's bound, so every draw of `65` or `66` asserted a refusal
+            // the core never performs and the ledger stopped at `S-CEIL failed 5 time(s)`.
+            //
+            // **THE STRADDLE IS AT THE CORE'S OWN BOUND NOW** — `126…130`, so three draws are admitted and two
+            // are refused, and the line still measures the arm rather than asserting one side of it. **THE `10`
+            // ATTEMPTS, THE ROW'S TOTAL `100` AND THE CRATE'S `395`/`400` ARE ALL UNMOVED.**
+            //
+            // **AND THE SIZE HALF OF THE CEILING (`1,000,000` visited nodes) stays in `crossing_values.rs`,
+            // where the corpus can afford it.**
+            let depth = 126 + rng.below(5); // 126, 127, 128, 129, 130
             let mut value = JsValue::Num(1.0);
             for _ in 0..depth {
                 value = object_of(vec![(JsKey::Key("n".into()), value)]);
             }
             let mut inst = mem_instance();
             let admitted = write_at(&mut inst, &[key("deep")], &value).is_ok();
-            admitted == (depth <= 64)
+            admitted == (depth <= 128)
         });
         row.strategy("S-CYCLE", 20, |attempt| {
             let rng = &mut Rng::for_attempt(attempt);
@@ -431,7 +445,11 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
                 && err.status == err.status.trim()
         });
         row.strategy("S-FAILSET", 30, |attempt| {
-            // One drive per member, `15` + `1` converse (no drive produces a code outside the set).
+            // ONE DRIVE PER DRAWN MEMBER, and the draw is over the whole `17`-member array — **⟶ `A148` (Q3):
+            // the operative census is `17` and *"no drive that counts this array may assert `15` OR
+            // `16`"***, so the seventeenth member's own drive is its declared one (the crossing answers the
+            // STORE's `ValueNotAdmitted` where the package would have minted `ValueRefusedAtBoundary`;
+            // `support::fail_code_drive`).
             let rng = &mut Rng::for_attempt(attempt);
             let codes = all_fail_codes();
             let code = codes[rng.below(codes.len())];

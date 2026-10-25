@@ -817,8 +817,9 @@ fn listeners_arg_1_one_entry_is_admitted() {
     assert_eq!(w.triggered.len(), 1, "the registered handle fires");
 }
 
-/// The duplicate state: **`2` entries in ⇒ `2` entries in the store's home**, and the store's own set
-/// semantics return the token ONCE where it minted it (`S-COUNT`; `P-SM-5`'s `S-REG-DUP`).
+/// The duplicate state: **`2` entries in ⇒ `2` entries in the store's home**, and the record's `triggered`
+/// carries **one PAIR per entry** (`contract.md §2.4` item 1; `PAR-HL-38`: the pair *"REPLACES the bare handle
+/// list rather than supplementing it"*), so the two members are two DISTINCT pairs.
 #[test]
 fn listeners_arg_1_a_duplicate_address_with_two_different_handles_keeps_both_entries() {
     let mut inst = create(&cfg_mem_with(vec![handle("l1"), handle("l2")]))
@@ -830,8 +831,12 @@ fn listeners_arg_1_a_duplicate_address_with_two_different_handles_keeps_both_ent
         "both entries are KEPT, each with its own handle"
     );
     assert!(
-        !js_set_equal(&w.triggered, &w.triggered[0..1]),
-        "the two handles are two distinct members"
+        !js_trigger_set_equal(&w.triggered, &w.triggered[0..1]),
+        "the two entries are two distinct pairs and not one pair twice"
+    );
+    assert!(
+        js_trigger_set_equal(&w.triggered, &[trigger(&[key("a")], "l1"), trigger(&[key("a")], "l2")]),
+        "the pairs are the two the construction ADOPTED, each at its own address"
     );
 }
 
@@ -927,15 +932,18 @@ fn listener_handle_1_a_blank_token_is_refused_at_the_construction() {
     assert_refusal_is_the_single_form(&err, "AddressMalformed");
 }
 
-/// `ListenerHandle` row 2 (**OUTPUT**): *"the package's opaque JS value wrapping a token the store
-/// returned"*, and **a bare `string` passed to `unlisten` is an unknown handle → a no-op SUCCESS**.
+/// `ListenerHandle` row 2 (**OUTPUT**): *"the package's opaque JS value"* — **and under `D-22`/`D-29` the
+/// spelling is the CALLER's own string, handed back as the record's pair member** (`contract.md §2.4` item 1) —
+/// and **a bare `string` passed to `unlisten` is an unknown handle → a no-op SUCCESS** (`§2.3` item 4).
 #[test]
 fn listener_handle_2_unlisten_over_a_bare_string_is_a_no_op_success() {
     let mut inst = create(&cfg_mem_with(vec![handle("l1")])).expect("an instance");
-    // A registration of the package's own mint, at a second address, for the "removes nothing" half.
-    let minted = inst
-        .listen(&JsAddressArg::List(vec![key("b")]))
-        .expect("a mint");
+    // A registration of the caller's own spelling, at a second address, for the "removes nothing" half.
+    inst.listen(
+        &JsHandleArg::Opaque(js_handle("l2")),
+        &[JsAddressArg::List(vec![key("b")])],
+    )
+    .expect("a registration");
     // A bare string is NOT the opaque form: the answer is a no-op success, and NO OTHER registration is
     // removed — the `b` registration still fires.
     inst.unlisten(&JsHandleArg::Bare("listener-1".to_string()))
@@ -944,7 +952,7 @@ fn listener_handle_2_unlisten_over_a_bare_string_is_a_no_op_success() {
         .expect("a blank token is the same no-op success");
     let w = write_at(&mut inst, &[key("b")], &JsValue::Num(2.0)).expect("a mem-tier write");
     assert!(
-        js_set_equal(&w.triggered, std::slice::from_ref(&minted)),
+        js_trigger_set_equal(&w.triggered, &[trigger(&[key("b")], "l2")]),
         "the no-op removed nothing: the `b` registration stands"
     );
 }

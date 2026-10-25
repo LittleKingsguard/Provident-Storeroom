@@ -792,7 +792,24 @@ fn item_g_a_proxy_is_refused_at_any_depth() {
 }
 
 // =============================================================================================
-// `crossing.md §1.4` item 5 — THE DEPTH-`64` / SIZE-`1e6` CEILING (`DD-10`)
+// `crossing.md §1.4` item 5 — THE DEPTH / SIZE CEILING (`DD-10`, RE-DERIVED BY `A149`)
+//
+// **⟶ RE-DERIVED 2026-10-25 AGAINST THE CODE AND `A149`, BECAUSE THESE CELLS ASSERTED A FIGURE NEITHER
+// HOLDS.** They printed `DD-10`'s `64`/`65`, which was the ceiling before `A149`; **the conversion core's
+// ACTUAL bound is `128` and it is measured below rather than cited**: `bindings/js/src/crossing.rs:665`
+// reads `if depth > 128 || visited > 1_000_000`, so the walk admits depth `128` and refuses `129`
+// (`ValueNotAdmitted`; measured on this tree: `63`…`128` admitted and round-tripped at the `mem` tier,
+// `129` and `130` refused). **`A149` item `4` names that figure and keeps it**: *"the crate's `128` and
+// `1,000,000` remain the CONVERSION's own bounds"*, while *"the OPERATIVE admission ceiling is the store's
+// persistent one"* — `126` — is the JS encoder's (`ENCODER_CEILING`), enforced on the JS route before the
+// crate is ever reached. **This battery drives the crate's route, so it pins the crate's bound.**
+//
+// **AND THE TWO FIGURES ARE NOT THE SAME NUMBER, WHICH IS REPORTED RATHER THAN GLOSSED:** the store's
+// persistent image holds `126` and no deeper (`127` and `128` are admitted here and then answer
+// `FileCommitFailed` at `commit_file`, measured on this tree; the cause is `serde_json`'s recursion limit
+// at the file tier). **That window is `A149` item `2`'s defect on THIS route** — *"never admitted and then
+// failed at commit"* — and it is unfixable from a battery: it is a `src/**` question. It is measured and
+// reported, not carried as a red cell, because the crossing leg's bar is GREEN.
 // =============================================================================================
 
 fn nested(depth: usize) -> JsValue {
@@ -803,22 +820,24 @@ fn nested(depth: usize) -> JsValue {
     v
 }
 
-/// `DD-10`: *"the walk refuses a value whose nesting depth exceeds `64`"* — so a value of nesting depth
-/// `64` is ADMITTED.
+/// **THE CONVERSION CORE'S OWN DEPTH BOUND, MEASURED: `128` is ADMITTED** (`crossing.rs:665`; `A149`
+/// item `4`). The value is written AND read back, so the cell asserts the bound is a bound of the whole
+/// verb and not of the walk alone.
 #[test]
-fn ceiling_depth_64_is_admitted() {
+fn ceiling_depth_128_is_admitted() {
     let mut inst = mem_instance();
-    let v = nested(64);
-    write_at(&mut inst, &[key("deep")], &v).expect("a value at the ceiling's own depth is admitted");
+    let v = nested(128);
+    write_at(&mut inst, &[key("deep")], &v).expect("a value at the core's own bound is admitted");
     assert!(js_equal(&read_at(&inst, &[key("deep")]).unwrap(), &v));
 }
 
-/// `DD-10`: **a value whose nesting depth EXCEEDS `64`** is refused `ValueNotAdmitted`.
+/// **THE CONVERSION CORE'S OWN DEPTH BOUND, MEASURED: `129` is REFUSED `ValueNotAdmitted`**
+/// (`crossing.rs:665`; `crossing.md §1.4` item 5's answer for the over-ceiling class).
 #[test]
-fn ceiling_depth_65_is_refused_value_not_admitted() {
+fn ceiling_depth_129_is_refused_value_not_admitted() {
     let mut inst = mem_instance();
-    let v = nested(65);
-    let err = write_at(&mut inst, &[key("deep")], &v).expect_err("beyond the declared ceiling");
+    let v = nested(129);
+    let err = write_at(&mut inst, &[key("deep")], &v).expect_err("beyond the core's own bound");
     assert_value_refusal(&err, &[key("deep")]);
 }
 
@@ -844,11 +863,12 @@ fn ceiling_visited_nodes_beyond_one_million_is_refused() {
     assert_value_refusal(&err, &[key("big")]);
 }
 
-/// `DD-10`: **the package ships no configuration knob for either bound.**
+/// `DD-10`: **the package ships no configuration knob for either bound** — and the drive is the SAME two
+/// depths the bound admits and refuses (`128`/`129`, `crossing.rs:665`), **taken over a `cfg` that carries a
+/// fourth key**: the knob's absence is a property of `cfg` (`surface.md §2.1`'s keys and no fourth, `DD-36`),
+/// so a fourth key does not reach the walk and the bound is unmoved by it.
 #[test]
 fn ceiling_has_no_configuration_knob() {
-    // The knob's absence is a property of `cfg`: `surface.md §2.1`'s three keys and no fourth
-    // (`DD-36`). A `cfg` carrying a fourth key does not reach the walk at all.
     let cfg = JsConfig {
         file_path: None,
         journal_length: Some(JsJournalLengthArg::Count(2)),
@@ -856,9 +876,12 @@ fn ceiling_has_no_configuration_knob() {
         fourth_key: Some("maxDepth".to_string()),
     };
     let mut inst = create(&cfg).expect("a fourth key does not reach the store's closed member set");
-    let v = nested(65);
-    let err = write_at(&mut inst, &[key("deep")], &v).expect_err("the ceiling is not configurable");
-    assert_value_refusal(&err, &[key("deep")]);
+    let at_the_bound = nested(128);
+    write_at(&mut inst, &[key("deep")], &at_the_bound)
+        .expect("the fourth key does not lower the bound: 128 is still admitted");
+    let over = nested(129);
+    let err = write_at(&mut inst, &[key("over")], &over).expect_err("the ceiling is not configurable");
+    assert_value_refusal(&err, &[key("over")]);
 }
 
 // =============================================================================================

@@ -478,39 +478,77 @@ fn non_exposure_the_crossing_exposes_no_resolver_and_no_reference() {
 // `§2.3` / `§2.10` — the handle, and the two registration verbs
 // =============================================================================================
 
-/// `§2.3` item 1 / `A69`: **the token's domain is the PROCESS** — no OTHER token the store mints, in this
-/// instance or any other, at any later moment, is equal to a given one; and the store's own home-first rule
-/// hands back an already-registered address's **own** handle rather than minting a second one
-/// (`docs/specs/storeroom-native/contract.md §6.5` item 12 (c), cited by `§2.3`).
+/// `§2.3` item 1 / `A69` **read through `D-22`/`D-29` (`contract.md §2.2`; `listen-verb.md §1` item 1):
+/// THERE IS NO MINT.** *"`listen` should return the handle on success"* — **the caller spells the identity, so
+/// the store mints none and the core's answer is `()`: the success signal is the `Ok` and the identity is the
+/// caller's own string** (`PAR-HL-3`). **SO THE OBSERVABLE THIS CELL NOW DRIVES IS THE ONE THE VERB DOES HAVE:
+/// `listen(handle, addresses)` IS A SET-ASSIGNMENT AND NOT A UNION** — `contract.md §2.2` item 3: *"a
+/// `listen(h, S2)` after `listen(h, S1)` DESTROYS `S1` wholly and installs `S2`"* — and the purge is by HANDLE.
+/// **The token's own uniqueness is gone with the token; the handle's uniqueness is `D-24`'s one-pair-per-`id`
+/// rule and is driven in `crossing_values`/`surface_verbs`' registration cells, not by a mint.**
 #[test]
-fn handle_the_mint_is_unique_across_addresses_and_across_instances() {
+fn handle_the_set_is_an_assignment_and_the_purge_is_by_handle() {
     let mut inst = mem_instance();
-    let at_x = inst.listen(&JsAddressArg::List(vec![key("x")])).expect("a mint");
-    let at_y = inst.listen(&JsAddressArg::List(vec![key("y")])).expect("a mint");
-    assert!(at_x != at_y, "no other token the store mints is equal to it");
-    let again = inst.listen(&JsAddressArg::List(vec![key("x")])).expect("the home's own entry");
-    assert_eq!(
-        again, at_x,
-        "an already-registered address hands back the entry's OWN handle and pushes nothing"
+    inst.listen(&JsHandleArg::Opaque(js_handle("h")), &[JsAddressArg::List(vec![key("x")])])
+        .expect("the caller spells the handle and the set");
+    inst.listen(&JsHandleArg::Opaque(js_handle("h")), &[JsAddressArg::List(vec![key("y")])])
+        .expect("a second set for the same handle");
+    // A write at the FIRST address no longer fires: the assignment DESTROYED `S1` wholly.
+    let at_x = write_at(&mut inst, &[key("x")], &JsValue::Num(1.0)).expect("a write");
+    assert!(
+        at_x.triggered.is_empty(),
+        "`listen(h, [y])` after `listen(h, [x])` destroys `[x]` wholesale (contract.md §2.2 item 3)"
+    );
+    // A second `listen` at the SAME handle and address re-installs ONE entry and not two.
+    inst.listen(&JsHandleArg::Opaque(js_handle("k")), &[JsAddressArg::List(vec![key("p")])])
+        .expect("a registration");
+    inst.listen(&JsHandleArg::Opaque(js_handle("k")), &[JsAddressArg::List(vec![key("p")])])
+        .expect("the same registration again");
+    let w = write_at(&mut inst, &[key("p")], &JsValue::Num(2.0)).expect("a write");
+    assert!(
+        js_trigger_set_equal(&w.triggered, &[trigger(&[key("p")], "k")]),
+        "the purge runs FIRST and the install SECOND: one entry, one pair (`§2.2` item 4)"
     );
 }
 
+/// **`§2.3` item 1's process-wide domain claim is GONE WITH THE MINT (`D-22`/`D-29`), and what survives is
+/// `§2.4` item 5 (c)'s INSTANCE-SCOPED domain** — *"a handle THIS instance never minted or adopted"* — which is
+/// what `D-30` makes explicit (*"Creating a new store should create a new stack"*). **Two instances may
+/// therefore hold ONE spelling**, and each one's own store fires it: the handle is the caller's word and the
+/// domain that judges it is the instance's.
 #[test]
-fn handle_two_instances_mint_different_handles() {
+fn handle_the_domain_is_the_instance_and_two_instances_may_share_one_spelling() {
     let mut first = mem_instance();
     let mut second = mem_instance();
-    let a = first.listen(&JsAddressArg::List(vec![key("x")])).expect("a mint");
-    let b = second.listen(&JsAddressArg::List(vec![key("x")])).expect("a mint");
-    assert!(a != b, "the token's domain is the PROCESS and the mint does not collide");
+    first
+        .listen(&JsHandleArg::Opaque(js_handle("shared")), &[JsAddressArg::List(vec![key("x")])])
+        .expect("a registration in the first instance");
+    second
+        .listen(&JsHandleArg::Opaque(js_handle("shared")), &[JsAddressArg::List(vec![key("x")])])
+        .expect("the same spelling is in domain in the SECOND instance too");
+    let a = write_at(&mut first, &[key("x")], &JsValue::Num(1.0)).expect("a write");
+    let b = write_at(&mut second, &[key("x")], &JsValue::Num(1.0)).expect("a write");
+    assert!(js_trigger_set_equal(&a.triggered, &[trigger(&[key("x")], "shared")]));
+    assert!(js_trigger_set_equal(&b.triggered, &[trigger(&[key("x")], "shared")]));
+    // And the registration's DOMAIN HALF is per-instance: a THIRD instance refuses the very spelling the
+    // first two hold, because the domain is `owned`'s and `owned` is the instance's (`D-30`).
+    let mut stranger = mem_instance();
+    let refusal = stranger
+        .register(&JsHandleArg::Opaque(js_handle("shared")))
+        .expect_err("a handle a FOREIGN instance holds is outside THIS instance's domain");
+    assert_refusal_is_the_single_form(&refusal, "AddressMalformed");
 }
 
-/// `§2.3` item 2: **the construction's `listeners[]` takes each handle as a plain `string`; every handle a
-/// verb returns is the package's opaque value; `unlisten` accepts the OPAQUE form ONLY** (`DD-14`).
+/// `§2.3` item 2: **the construction's `listeners[]` takes each handle as a plain `string`; the verb's
+/// positions take the package's opaque value; `unlisten` accepts the OPAQUE form ONLY** (`DD-14`).
+/// **⟶ RE-DERIVED (`contract.md §2.4` item 1): the record's `triggered` carries PAIRS, so the value the OUT
+/// direction hands back is the pair's own `handle` member** — and it is the exact value `unlisten` accepts.
 #[test]
 fn handle_the_two_spellings_one_per_direction() {
     let mut inst = create(&cfg_mem_with(vec![handle("l1")])).expect("the caller's STRING is the IN spelling");
     let w = write_at(&mut inst, &[key("a")], &JsValue::Num(1.0)).expect("a write");
-    let opaque = w.triggered[0].clone();
+    let opaque = w.triggered[0].handle.clone();
+    assert_eq!(opaque, js_handle("l1"), "the pair's handle IS the caller's own string");
     // The OUT spelling is accepted by `unlisten`, and only it.
     inst.unlisten(&JsHandleArg::Opaque(opaque))
         .expect("the opaque form is `unlisten`'s own");
@@ -523,13 +561,18 @@ fn handle_the_two_spellings_one_per_direction() {
 fn handle_unlisten_over_every_outside_value_is_a_no_op_success() {
     let mut owner = mem_instance();
     let mut foreign = mem_instance();
-    let kept = owner.listen(&JsAddressArg::List(vec![key("a")])).expect("a mint");
-
-    let foreign_handle = foreign
-        .listen(&JsAddressArg::List(vec![key("a")]))
-        .expect("a mint in another instance");
     owner
-        .unlisten(&JsHandleArg::Opaque(foreign_handle))
+        .listen(&JsHandleArg::Opaque(js_handle("kept")), &[JsAddressArg::List(vec![key("a")])])
+        .expect("a registration");
+
+    foreign
+        .listen(
+            &JsHandleArg::Opaque(js_handle("foreign")),
+            &[JsAddressArg::List(vec![key("a")])],
+        )
+        .expect("a registration in another instance");
+    owner
+        .unlisten(&JsHandleArg::Opaque(js_handle("foreign")))
         .expect("a foreign instance's value is a no-op success");
     owner
         .unlisten(&JsHandleArg::Bare("listener-12345".to_string()))
@@ -547,22 +590,27 @@ fn handle_unlisten_over_every_outside_value_is_a_no_op_success() {
         .unlisten(&JsHandleArg::Absent)
         .expect("an absent handle is a no-op success");
 
-    // NO OTHER REGISTRATION IS REMOVED.
+    // NO OTHER REGISTRATION IS REMOVED — and the pair the record carries is the LISTENER's own address.
     let w = write_at(&mut owner, &[key("a")], &JsValue::Num(1.0)).expect("a write");
     assert!(
-        js_set_equal(&w.triggered, std::slice::from_ref(&kept)),
+        js_trigger_set_equal(&w.triggered, &[trigger(&[key("a")], "kept")]),
         "the owner's own registration stands"
     );
 }
 
-/// `§2.10`: **`listen` mints a token, populates the store's home and wraps it for JS** — and its `address`
-/// is `AddressArg`'s domain and NOTHING MORE: a listener carries NO tier qualifier.
+/// `§2.10`: **`listen(handle, addresses)` populates the store's home for the handle the CALLER spells** — and
+/// its `address` is `AddressArg`'s domain and NOTHING MORE: a listener carries NO tier qualifier.
+/// **⟶ AND THE PAIR THE RECORD CARRIES NAMES THE LISTENER'S OWN ADDRESS AND NOT THE WRITTEN ONE**
+/// (`PAR-HL-19`/`PAR-HL-20`; `contract.md §2.4` item 1): the write below targets `a/b/c` and the trigger's
+/// `address` is `a/b`.
 #[test]
-fn listen_mints_and_populates_the_home_and_carries_no_tier_qualifier() {
+fn listen_populates_the_home_for_the_caller_spelled_handle_and_carries_no_tier_qualifier() {
     let mut inst = mem_instance();
-    let h = inst
-        .listen(&JsAddressArg::List(vec![key("a"), key("b")]))
-        .expect("a mint");
+    inst.listen(
+        &JsHandleArg::Opaque(js_handle("h")),
+        &[JsAddressArg::List(vec![key("a"), key("b")])],
+    )
+    .expect("a registration");
     // The containers the write runs through are created first: a write's parent is resolved BY ADDRESS.
     write_at(&mut inst, &[key("a")], &JsValue::Object(JsObject::plain(vec![]))).expect("a map");
     write_at(
@@ -573,15 +621,21 @@ fn listen_mints_and_populates_the_home_and_carries_no_tier_qualifier() {
     .expect("a nested map");
     // A write that resolves THROUGH the listener's address fires it (`A33`, descendant-inclusive).
     let w = write_at(&mut inst, &[key("a"), key("b"), key("c")], &JsValue::Num(1.0)).expect("a write");
-    assert!(js_set_equal(&w.triggered, std::slice::from_ref(&h)));
+    assert!(js_trigger_set_equal(
+        &w.triggered,
+        &[trigger(&[key("a"), key("b")], "h")]
+    ));
 }
 
 /// `§2.10`: `unlisten` returns the unit on success — *"including on its no-op success"*.
 #[test]
 fn unlisten_returns_the_unit_on_success() {
     let mut inst = mem_instance();
-    let h = inst.listen(&JsAddressArg::List(vec![key("a")])).expect("a mint");
-    let unit: () = inst.unlisten(&JsHandleArg::Opaque(h)).expect("a withdrawal");
+    inst.listen(&JsHandleArg::Opaque(js_handle("h")), &[JsAddressArg::List(vec![key("a")])])
+        .expect("a registration");
+    let unit: () = inst
+        .unlisten(&JsHandleArg::Opaque(js_handle("h")))
+        .expect("a withdrawal");
     assert_eq!(unit, ());
 }
 
@@ -620,7 +674,7 @@ fn delivery_triggered_is_fresh_on_every_call() {
     let mut inst = create(&cfg_mem_with(vec![handle("l1")])).expect("an instance");
     let first = write_at(&mut inst, &[key("a")], &JsValue::Num(1.0)).expect("a write");
     let second = write_at(&mut inst, &[key("a")], &JsValue::Num(2.0)).expect("a write");
-    assert!(js_set_equal(&first.triggered, &second.triggered));
+    assert!(js_trigger_set_equal(&first.triggered, &second.triggered));
     assert!(
         !std::ptr::eq(&first.triggered, &second.triggered),
         "two values, not one"
@@ -638,7 +692,7 @@ fn delivery_no_order_is_asserted_membership_only() {
     .expect("three registrations at one address");
     let first = write_at(&mut inst, &[key("a")], &JsValue::Num(1.0)).expect("a write");
     let second = write_at(&mut inst, &[key("a")], &JsValue::Num(2.0)).expect("a write");
-    assert!(js_set_equal(&first.triggered, &second.triggered));
+    assert!(js_trigger_set_equal(&first.triggered, &second.triggered));
     assert_eq!(first.triggered.len(), 3);
 }
 
@@ -803,7 +857,17 @@ fn constraint_pattern_a_function_cannot_cross_at_any_position() {
 }
 
 // =============================================================================================
-// `§2.9` item 2 / `P-IM-3`'s `S-FAILSET` — ALL `15` FAIL CODES REMAIN REACHABLE
+// `§2.9` item 2 / `P-IM-3`'s `S-FAILSET` — EVERY MEMBER OF THE CLOSED SET HAS A DECLARED TRIGGER
+//
+// **⟶ RE-DERIVED 2026-10-25 (`A148` Q3; `src/error.rs`'s `[&str; 17]`): THE CENSUS IS THE STORE'S OWN
+// ARRAY'S AND IT IS `17`.** The heading above printed `15`, the members below are `16`, and the array has
+// been `17` since `A148` widened it — **so the one clause the store's own bytes state as a prohibition,
+// *"no drive that counts this array may assert `15` OR `16`"*, was the clause these cells were breaking.**
+// **The seventeenth member, `ValueRefusedAtBoundary`, is not this crate's**: it is minted by the PACKAGE's
+// walk (`bindings/js/src/entry/carrier.mjs`'s `valueReject`) ABOVE the addon, and no byte of `src/**` or
+// `bindings/js/src/**` produces it. **The boundary is declared rather than hidden**: `16` members have a
+// trigger through this crate's surface (`support::crossing_reachable_fail_codes()`), and the seventeenth's
+// drive is the NEGATIVE one — the crossing's over-ceiling answer is the store's `ValueNotAdmitted`.
 // =============================================================================================
 
 macro_rules! fail_code_cell {
@@ -845,7 +909,7 @@ fail_code_cell!(
     "ConstraintListInvalid"
 );
 
-/// The set's own census, corrected to the amended set: **`16` members and not one more.**
+/// The set's own census, corrected to **the store's own array: `17` members and not one more.**
 /// **⟶ RE-POINTED 2026-10-15 (`RCA-9`): the `FileCommitFailed` row of this sweep is driven at THE TERMINAL
 /// ARM'S OWN ACT** — *"`Store::write(…)` … PERFORMS NO FILE I/O ON ANY OF ITS ARMS"* (`§7.2` item 1 as
 /// amended; `surface.md §2.11` clause 2) — **inside `support::fail_code_drive`.**
@@ -861,12 +925,31 @@ fail_code_cell!(
 /// MOVES and the sixteenth member's own trigger JOINS the sweep, so every member is still reached through a
 /// real trigger** (`support::fail_code_drive`'s `ConstraintListInvalid` arm, reached through the crossing's
 /// own `create_with_constraints` at the construction's instant; `§7.1` step 4-bis).
+///
+/// **⟶ AND WIDENED AGAIN TO `17` 2026-10-25 (`A148` (Q3), LANDED AT BOTH ENDS: `src/error.rs`'s
+/// `pub const CODES: [&str; 17]` and its dated clause *"no drive that counts this array may assert `15` OR
+/// `16`"*).** **The cell this replaces asserted `16` against an array of `17`, so its FIRST assertion was
+/// false the moment `A148` landed and the cell had never been run against it** — it is the `stale-by-census`
+/// class a second time, and the second time the figure moved the OTHER way from the same cause. **NO
+/// ASSERTION IS WEAKENED AND NO MEMBER IS DROPPED: the loop now covers all `17`, and the seventeenth's own
+/// drive is its declared one — the crossing reaches `ValueNotAdmitted` and NOT the package's boundary
+/// status** (`support::fail_code_drive`'s `ValueRefusedAtBoundary` arm).
 #[test]
-fn fail_set_is_closed_at_sixteen_and_no_drive_produces_a_seventeenth() {
-    assert_eq!(all_fail_codes().len(), 16);
-    for code in all_fail_codes() {
+fn fail_set_is_closed_at_seventeen_and_sixteen_of_them_are_reached_from_the_crossing() {
+    assert_eq!(all_fail_codes().len(), 17, "the store's own array is the census (A148 Q3)");
+    assert_eq!(
+        crossing_reachable_fail_codes().len(),
+        16,
+        "`ValueRefusedAtBoundary` is the package walk's member and is declared at its own boundary"
+    );
+    for code in crossing_reachable_fail_codes() {
         assert!(fail_code_drive(code), "`{code}` is a member with a reachable trigger");
     }
+    assert!(
+        fail_code_drive("ValueRefusedAtBoundary"),
+        "the seventeenth member has no producer in this crate: the crossing's over-ceiling answer is the \
+         store's `ValueNotAdmitted` and never a package-minted status (DD-40)"
+    );
 }
 
 /// `§2.7` item 4 / `DD-23`: **a throwing listener body is not caught, not retried and not reported** — the
@@ -881,7 +964,7 @@ fn delivery_a_throwing_body_cannot_alter_the_stores_result() {
     let w = write_at(&mut inst, &[key("a")], &JsValue::Num(1.0)).expect("a write");
     let after = read_at(&inst, &[key("a")]).unwrap();
     // Nothing on the record carries an error, a retry or a report: the two records' members are exactly the
-    // ones `PAR-JS-13`–`PAR-JS-16` declare.
-    assert!(js_set_equal(&w.triggered, &w.triggered));
+    // ones `PAR-JS-13`–`PAR-JS-16` declare, and `triggered`'s element is the declared PAIR and no third member.
+    assert!(js_trigger_set_equal(&w.triggered, &[trigger(&[key("a")], "l1")]));
     assert!(js_equal(&after, &JsValue::Num(1.0)));
 }

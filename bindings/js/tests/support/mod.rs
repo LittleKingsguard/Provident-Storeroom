@@ -42,8 +42,8 @@ pub use storeroom_js_binding::crossing::{
     to_journal_length_arg, to_listeners_arg, to_op_id_arg, to_segment, to_tier_arg, to_tier_set_item,
     to_store_value, Instance, JsAddressArg, JsBaseState, JsConfig, JsConstraintEntry, JsConstraintsArg,
     JsDeleteReceipt, JsFilePathArg, JsHandle, JsHandleArg, JsJournalLengthArg, JsJournalOp, JsKey,
-    JsListenerEntry, JsListenersArg, JsNonArray, JsObject, JsOpIdArg, JsProto, JsRollbackResult,
-    JsSegment, JsTierArg, JsTierSetItem, JsValue, JsWriteResult, Refusal,
+    JsListenerEntry, JsListenerTrigger, JsListenersArg, JsNonArray, JsObject, JsOpIdArg, JsProto,
+    JsRollbackResult, JsSegment, JsTierArg, JsTierSetItem, JsValue, JsWriteResult, Refusal,
 };
 
 pub use storeroom_native::{
@@ -503,6 +503,34 @@ pub fn js_set_equal(a: &[JsHandle], b: &[JsHandle]) -> bool {
     a.len() == b.len() && a.iter().all(|x| b.iter().any(|y| x == y))
 }
 
+/// **⟶ THE HANDLE THE CALLER SPELLED, CROSSED AS THE CORE'S OWN CARRIER — and there is no other route to
+/// one** (`D-22`/`D-29`: *"the handle IS the `id`"*; `contract.md §2.1` item 1). `JsHandle`'s one public
+/// construction is `wrap(&ListenerHandle)` and the store's `ListenerHandle` is a plain string, so the caller's
+/// own word and the core's carrier are one value compared by string equality — nothing is minted anywhere.
+pub fn js_handle(spelled: &str) -> JsHandle {
+    JsHandle::wrap(&ListenerHandle::from(spelled))
+}
+
+/// **THE TRIGGER'S CROSSED PAIR — `{handle, address}`** (`contract.md §2.4` item 1; `PAR-HL-19`/`PAR-HL-20`:
+/// *"the two members are the declared two and no third"*). **`address` IS THE LISTENER'S OWN ADDRESS** — the
+/// address it was bound at — **and NOT the address the write targeted**, so a drive that spells the pair is
+/// asserting both members and not the handle alone.
+pub fn trigger(address: &[JsSegment], spelled: &str) -> JsListenerTrigger {
+    JsListenerTrigger {
+        handle: js_handle(spelled),
+        address: address.to_vec(),
+    }
+}
+
+/// **⟶ `WriteResult.triggered` / `DeleteReceipt.triggered` ARE PAIRS, NOT BARE HANDLES**
+/// (`contract.md §2.4` item 1; `PAR-HL-38`: the pair *"REPLACES the bare handle list rather than supplementing
+/// it"*). **So the record's own set relation is over `JsListenerTrigger` and not over `JsHandle`**, and this is
+/// the relation every `triggered` drive compares with: set equality, never a sequence (`DD-22`), over the whole
+/// pair — a drive that compared handles alone would leave the pair's second member unasserted.
+pub fn js_trigger_set_equal(a: &[JsListenerTrigger], b: &[JsListenerTrigger]) -> bool {
+    a.len() == b.len() && a.iter().all(|x| b.contains(x))
+}
+
 /// `crossing.md §1.3`'s `AddressArg` row 2/3: a segment is a `string` key or a non-negative integer index.
 pub fn key(s: &str) -> JsSegment {
     JsSegment::Key(s.to_string())
@@ -545,8 +573,8 @@ pub fn store_str(s: &str) -> StoreValue {
 }
 
 
-/// `surface.md §2.9` item 2 / `P-IM-3`'s `S-FAILSET`: **all `16` fail codes remain reachable from the
-/// crossing** — *"the walk's `9` address codes on the address verbs, the value taxonomy's
+/// `surface.md §2.9` item 2 / `P-IM-3`'s `S-FAILSET`: **every member of the store's closed set has a
+/// declared trigger** — *"the walk's `9` address codes on the address verbs, the value taxonomy's
 /// `ValueNotAdmitted`, the two construction members, `JournalOpUnknown`, `RollbackCompacted`,
 /// `ReadTargetIsBranch` and `ContainerKindConflict` — and no code is left without a JS-reachable
 /// trigger."* Each drive below reaches its code THROUGH the crossing's own surface (never through the
@@ -557,6 +585,17 @@ pub fn store_str(s: &str) -> StoreValue {
 /// `parameter-semantics.md §2.21`'s, added the same date), **so the sweep's own sentence — *"all `15` fail
 /// codes remain reachable from the crossing"* — was a figure the amendment had already replaced**, and the
 /// sixteenth member's drive joins the match below.
+///
+/// **⟶ AND THE OPERATIVE CENSUS MOVES TO `17` 2026-10-23 (`A148` Q3; `src/error.rs`'s `[&str; 17]` and its
+/// dated clause: *"a set of `15` or `17` FAILS it"* read through the amendment, *"no drive that counts this
+/// array may assert `15` OR `16`"*).** **The seventeenth member is `ValueRefusedAtBoundary`, at rank `17`,
+/// and it is NOT this crate's:** the store's array carries it and the store's own generator
+/// (`src/error.rs:295`) can render its message, **but no byte of `src/**` and no byte of
+/// `bindings/js/src/**` PRODUCES it** — its one producer is the PACKAGE's own walk above this addon
+/// (`bindings/js/src/entry/carrier.mjs`'s `valueReject`, driven by the JS battery's `NG-JS-D`). **So the
+/// seventeenth arm below is the NEGATIVE drive**, and it is a real assertion rather than a placeholder: it
+/// measures that the crossing's own over-ceiling answer is the STORE's `ValueNotAdmitted` and not this
+/// member, which is exactly what the ceiling cells on the other side of it assert.
 pub fn fail_code_drive(code: &'static str) -> bool {
     let produced = |r: Result<(), Refusal>| r.err().map(|e| e.status);
     match code {
@@ -753,20 +792,59 @@ pub fn fail_code_drive(code: &'static str) -> bool {
                 Ok(_) => false,
             }
         }
-        other => panic!("`{other}` is not a member of the store's closed 16-member set"),
+        // **⟶ ADDED 2026-10-25 (`A148` Q3; `src/error.rs`'s `[&str; 17]`; rank `17`): THE SEVENTEENTH
+        // MEMBER, WHICH HAS NO PRODUCER IN THIS CRATE.** **THE DRIVE IS THE NEGATIVE ONE AND IT IS NOT A
+        // PLACEHOLDER** — the crossing's own over-ceiling answer is the STORE's `ValueNotAdmitted` (`the value
+        // taxonomy's own member`, reached through the same arm the ceiling cells use), **so this arm asserts
+        // that the core does NOT mint the package's boundary status**: were it to, this arm returns `false` and
+        // both the `S-FAILSET` line and the census below go red. The depth is the core's own bound plus one
+        // (`crossing.rs:665`: `depth > 128`), so the drive is the same one `crossing_values.rs` drives positively.
+        "ValueRefusedAtBoundary" => {
+            let mut deep = JsValue::Num(1.0);
+            for _ in 0..129 {
+                deep = JsValue::Object(JsObject::plain(vec![(JsKey::Key("n".into()), deep)]));
+            }
+            let mut inst = mem_instance();
+            write_at(&mut inst, &[key("over")], &deep)
+                .err()
+                .map(|e| e.status)
+                .as_deref()
+                == Some("ValueNotAdmitted")
+        }
+        other => panic!("`{other}` is not a member of the store's closed 17-member set"),
     }
 }
 
-/// The closed set itself, printed with its terms: `16` members, and this unit mints no seventeenth.
+/// The closed set itself, printed with its terms: **the store's own `17` members, and this unit mints no
+/// eighteenth** (`A148` (Q3): *"the OPERATIVE CENSUS IS `17`, RANKED `1`…`17`"*; `src/error.rs`'s
+/// `pub const CODES: [&str; 17]`).
 ///
 /// **⟶ WIDENED 2026-10-15 (`DEF-2026-10-15-Y`): the as-filed *"`15` members, and this unit mints no
 /// sixteenth"* printed a superseded figure.** The figure is `CODES.len()`'s and not this comment's, and the
 /// crate's own array is the implementation's to widen (`§8.1`'s amended heading; `§7.2` item 5 ADDED
 /// 2026-10-15; `parameter-semantics.md §2.21`). **THE SWEEP'S ASSERTION IS NOT WEAKENED BY THE WIDENING: it
-/// is `all_fail_codes().len() == 16` and every member must still have a reachable trigger**
-/// (`surface_verbs.rs`'s `fail_set_is_closed_at_sixteen_and_no_drive_produces_a_seventeenth`).
+/// is `all_fail_codes().len() == 17` and every member must still have a declared trigger**
+/// (`surface_verbs.rs`'s `fail_set_is_closed_at_seventeen_and_sixteen_of_them_are_reached_from_the_crossing`).
+///
+/// **⟶ AND THE CENSUS IS `17` 2026-10-25 (`A148` (Q3) LANDED IN BOTH PLACES): the array this function
+/// returns was already `17` and the cells that counted it still printed `16`**, so *"no drive that counts
+/// this array may assert `15` OR `16`"* is the clause that was being broken. **The `16`-member figure those
+/// cells print is now split where the code splits it**: `crossing_reachable_fail_codes()` is the members
+/// THIS crate's surface reaches, and the seventeenth is the package walk's.
 pub fn all_fail_codes() -> Vec<&'static str> {
     CODES.to_vec()
+}
+
+/// **THE MEMBERS OF THE CLOSED SET WHOSE TRIGGER IS REACHABLE THROUGH THIS CRATE'S OWN SURFACE** — `16` of
+/// `17` (`A148` (Q3)'s rank `17`, `ValueRefusedAtBoundary`). **The seventeenth's producer is the PACKAGE's
+/// walk, above this addon** (`bindings/js/src/entry/carrier.mjs`'s `valueReject`), **and it is driven by the
+/// JS battery's `NG-JS-D` — not skipped, declared at its own boundary.** This is the boundary the census cell
+/// in `surface_verbs.rs` states so that no member is counted twice or dropped.
+pub fn crossing_reachable_fail_codes() -> Vec<&'static str> {
+    all_fail_codes()
+        .into_iter()
+        .filter(|code| *code != "ValueRefusedAtBoundary")
+        .collect()
 }
 
 #[cfg(test)]
@@ -791,6 +869,16 @@ mod tests {
         assert!(!js_equal(
             &JsValue::Array(vec![JsValue::Num(1.0), JsValue::Num(2.0)]),
             &JsValue::Array(vec![JsValue::Num(2.0), JsValue::Num(1.0)]),
+        ));
+        // The record's own relation is over the crossed PAIR (`contract.md §2.4` item 1): set equality over
+        // the whole pair, so the pair's `address` member is asserted and not only its handle.
+        assert!(js_trigger_set_equal(
+            &[trigger(&[key("a")], "l1"), trigger(&[key("b")], "l2")],
+            &[trigger(&[key("b")], "l2"), trigger(&[key("a")], "l1")],
+        ));
+        assert!(!js_trigger_set_equal(
+            &[trigger(&[key("a")], "l1")],
+            &[trigger(&[key("b")], "l1")],
         ));
     }
 }
