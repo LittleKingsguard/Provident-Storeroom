@@ -1405,3 +1405,53 @@ a deliberate door, which makes the four cells REWRITE (they are testing the app'
 and the undeliverable-acceptance a HAZARD worth a defect row** — the narrowest honest repair being to exempt **only
 the kernel's own call**, not every kernel-prefixed handle. **That is a code change in `js-registry-delivery`'s
 subject, not a battery change, and it is the architect's to order or refuse.**
+
+---
+
+### FINDING — the `constraint@` handle is not a declared design; it is a seam the caller-spelled-handle move created
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, asked by the architect why the
+kernel creates that handle at all. **A finding, not a ruling — and it is the root `Q2` was standing on.**
+
+**WHAT THE DECLARED DESIGN SAYS, at `kernel-surface.md` (archived: `archive/pre-strata-docs-2026-10-24/docs/specs/
+storeroom-constraints/kernel-surface.md`).**
+
+1. **THE HANDLE IS *ADOPTED*, "NEVER MINTED BY THE KERNEL".** *"A second `register` at an address the store already
+   holds returns the SAME handle, because the store's `listen` is idempotent at the address level and returns the
+   existing entry's handle."*
+2. **ITS ONE DECLARED PURPOSE IS SET MEMBERSHIP, not the kernel's own work:** *"the entry appears in the store's
+   `triggered`/`watched` handle set for exactly the operations its address is a PREFIX of … WHATEVER CALLER'S
+   OPERATION IT IS."*
+3. **AND THE KERNEL NEVER NEEDS IT AGAIN:** *"the kernel **ADOPTS the handle the store returned at `K-1` and never
+   consults it again**, so an entry the APP removes through `unlisten` stops appearing in later returned sets
+   **while the registry pair keeps being evaluated** — this unit declares NO arm for that state."*
+   **L0 verified the evaluation half at the code:** `evaluate` reads `pairsAtAddress(kernel, attempt.address)` — the
+   kernel's **own** registry at the attempt's address — and the code's comment cites `attempt-lifecycle.md §2.4`
+   item 5 (iv) for it: *"the kernel evaluates the pairs it registered at the attempt's own address … and NOT the
+   union of the store's prefix-selected addresses."* **So the handle is not in the kernel's path at all.**
+
+**★ AND THE API IT WAS DECLARED AGAINST NO LONGER EXISTS. `listen` is now `listen(handle, addresses) => void`** —
+arity `2`, **the caller spells the handle**, and it **returns `void`** (`index.d.ts:596`). **Adoption is therefore
+IMPOSSIBLE: there is no returned handle to adopt.** **So the kernel does the only thing left to it — it spells one —
+and `noopHandleFor(address)` is that spelling: `constraint@` + `JSON.stringify(address)`**
+(`constraint-kernel.mjs:1001`), armed at `store.listen(home, set)` and `store.register(home, noopListener)`
+(`:565`–`566`).
+
+**SO THE ANSWER TO "WHY DOES IT CREATE THE `constraint@` HANDLE" HAS TWO HALVES, AND ONLY THE FIRST IS A DESIGN.**
+
+- **THE NEED THAT IS REAL:** the pair must occupy a **store-side home entry** so it appears in the caller-visible
+  `triggered`/`watched` sets, and so the two-layer delivery can be stated over one set. **That need survives any
+  signature.**
+- **THE MINTING THAT IS NOT:** the *spelling* — a prefix in the same string namespace application handles live in —
+  exists **only because `listen` stopped returning a handle.** **It is a seam, not a decision**, and **`Q2`'s
+  hazard is downstream of it**: because the kernel's handles and an app's handles share one namespace, the entry's
+  *"a listener and a constraint do not share one"* refusal had to be **exempted for the whole `constraint@` prefix**
+  to let the kernel arm its noop — **and that blanket exemption is the door an app caller walks through to get an
+  accepted-but-never-delivered registration.**
+
+**AND ONE MORE STALE CELL THIS ADDS TO THE DETERMINATION.** `FTS-12.4` (in
+`greens/file-tier-save/file-tier-save-greens.md`) asserts **`store.listen(addr) === kernel.register(store, addr, id,
+fn)`** — the **adoption** observable, by reference equality. **`listen` returns `void`, so that assertion is not
+stale about a figure; it is unsatisfiable by the API.** **It belongs to the REWRITE class with a subject that has
+moved, and its clause's own sentence (*"adopted, never minted"*) is a documentary statement the code has
+contradicted since the caller-spelled-handle move.**
