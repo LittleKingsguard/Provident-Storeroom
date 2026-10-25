@@ -310,7 +310,7 @@ console.log(`layer          LIVE / ASSEMBLED PACKAGE (real artifact, real proces
   const filePath = path.join(dir, 'state.json');
   const cfg = { filePath, journalLength: 4, listeners: [] };
   const A_ = ns.storeCreate(cfg);
-  start(sc, `a caller writes V at ['durable'] at the file tier THROUGH THE TERMINAL ARM (\`K-2\` + \`K-3\`, \`surface.md §2.11\` clause 2) over '${filePath}', writes a mem-tier value beside it, then constructs a FRESH instance over the SAME cfg`);
+  start(sc, `a caller writes V at ['durable'] at the file tier THROUGH THE TERMINAL ARM (\`K-2\` + \`K-3\`, \`surface.md §2.11\` clause 2) over '${filePath}', drives a BARE \`file\`-tier write at ['bare-not-saved'] with NO kernel attempt over it (\`DD-28\`), writes a mem-tier value beside it, then constructs a FRESH instance over the SAME cfg`);
   // ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): **STALE GREENS DOC**,
   // `RCA-8(g)`. The as-filed drive issued the `file`-tier write AT THE VERB and expected the file to carry it,
   // which CONTRADICTS `docs/specs/storeroom-js/surface.md §2.11` clause 1 — the sentence that killed item 8's
@@ -327,19 +327,31 @@ console.log(`layer          LIVE / ASSEMBLED PACKAGE (real artifact, real proces
   // terminal-arm step and nothing else — STANDS WHOLE and is asserted unchanged**; only the route by which the
   // write now reaches its delivery has moved, and no clause makes the file save that route's business.
   const wBare = thrown(() => A_.write(['bare-not-saved'], 'file', 'BARE'));
-  // ⟶ **RULING: LEAVE THIS CELL RED. IT IS RIGHT AND THE CODE IS THE DEFECT (class (b)).** 2026-10-25.
-  // The expectation below is the declaration of record: `surface.md §2.11` clause 1 (*"the verb performs NO FILE
-  // I/O on any of its arms"*) and clause 2 (the save is the TERMINAL ARM's first act). Measured on this tree
-  // (2026-10-25): **the `file`-tier WRITE VERB ITSELF WRITES THE FILE** — `write(['a'],'file',{n:1})` leaves the
-  // image at 13 bytes before any `K-2`/`K-3` call — so the boot resolves the address and this cell reports RED.
-  // **`R-3`'s disposition of it is already recorded and is not re-opened here**: *"`LIVE-4.8`, `FTS-05.1` and
-  // `FTS-05.2` are RIGHT and stay KEEP-AND-RED; the code owes the fix."* **A rewrite to either side would be
-  // the test layer blessing a sign the architect has not chosen**, so the cell keeps its expectation and its
-  // red, and it is reported as a defect against the code (`Q3`, `REMEASURE-2026-10-18.md`, `R-3`).
-  A(`${sc}.8`, 'surface.md §2.11 clause 1 ("the verb performs NO FILE I/O on any of its arms"), read with §2.12 item 1\'s amended clause of 2026-10-18 (the write enters `K-2` at EVERY address, so the no-save reading is the ARM\'s and not the route\'s)',
-    'the write VERB performs NO file commit: the write succeeds and the address does NOT resolve after a fresh boot — the save being §2.11 clause 2\'s terminal-arm act, which this call does not reach',
-    !wBare.threw && (() => { const bb = thrown(() => ns.storeCreate(cfg).read(['bare-not-saved'])); return bb.threw && statusOf(bb) === 'AddressNotFound'; })(),
-    wBare.threw ? `threw ${statusOf(wBare)}` : 'the write answered; its boot resolve is asserted above');
+  // ⟶ **RE-DERIVED 2026-10-25 (`D-32`, `role_l1_test_writer`): `DD-28` GOVERNS — THE BARE `file`-TIER WRITE
+  // PERSISTS, AND THE CELL RE-DERIVES TO THAT READING.** `strata/decisions.md`'s `D-32` settles the contradiction
+  // `R-5` recorded between `docs/specs/storeroom-native/contract.md`'s `DD-28` and `surface.md §2.11` clause 1:
+  // **`DD-28` is law — *"`file`-TIER DURABILITY IS PRODUCED BY A SUCCESSFUL `file`-TIER `write` ONLY"* — so
+  // `write(addr, 'file', v)` COMMITS with NO kernel attempt and NO terminal arm in the path, and a fresh
+  // `storeCreate` over the same `filePath` RESOLVES the address.** `surface.md §2.11` clause 1 is read THROUGH that
+  // ruling: *"the write verb performs no file I/O OF ITS OWN beyond the store's declared write"* — the clause still
+  // governs the PACKAGE's layer (no second write path, no scratch copy, no package-authored image) and it no
+  // longer denies the store's own declared act. **Clause 2 is UNTOUCHED and still binds**: the terminal arm
+  // performs `commit_file` as its first act on the passing arm, and that is the KERNEL path's save of a whole
+  // attempt (`LIVE-4.9` below, reached through `kernelSaveFileLive`) — a different save of a different scope, and
+  // this cell drives NO kernel attempt at all. **THE CELL'S SUBJECT IS THE BARE WRITE'S OWN ACT, READ FROM THE
+  // CONTRACT THAT GOVERNS IT** (`D-17`): the write succeeds, and its own save is what a fresh construction answers
+  // with. **The `R-3`-era block that stood here ("leave this cell red; the code owes the fix") is withdrawn by
+  // `D-32`**, and the 2026-10-17/2026-10-18 notes above are kept as the dated record of the reading that ruling
+  // supersedes.
+  const bareBoot = wBare.threw ? null : thrown(() => ns.storeCreate(cfg).read(['bare-not-saved']));
+  A(`${sc}.8`, 'docs/specs/storeroom-native/contract.md `DD-28` ("`file`-TIER DURABILITY IS PRODUCED BY A SUCCESSFUL `file`-TIER `write` ONLY"), read with `surface.md` §2.11 clause 1 as `strata/decisions.md` `D-32` re-reads it (the write verb performs no file I/O OF ITS OWN beyond the store\'s declared write)',
+    'the bare `file`-tier write PERSISTS: the write succeeds with NO kernel attempt driven over it, and a FRESH `storeCreate` over the same `filePath` RESOLVES the address carrying the written value',
+    !wBare.threw && bareBoot !== null && !bareBoot.threw && rel(bareBoot.value, 'BARE'),
+    wBare.threw
+      ? `threw ${statusOf(wBare)}`
+      : (bareBoot.threw
+        ? `the write answered opId ${String(wBare.value?.op?.opId)}; its fresh boot answered ${statusOf(bareBoot)}`
+        : `the write answered opId ${String(wBare.value?.op?.opId)}; a FRESH construction over ${filePath} resolved ['bare-not-saved'] to ${JSON.stringify(bareBoot.value)}`));
   const saved = kernelSaveFileLive(A_, ['durable'], V);
   A(`${sc}.9`, 'surface.md §2.11 clause 2 (`K-2` `commit` + `K-3` `runAttempt`; kernel-surface.md §2.1 items 2-3)',
     'the file-tier save on the TERMINAL ARM succeeds (no throw), so the state the boot below re-loads is the arm\'s own act',

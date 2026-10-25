@@ -445,33 +445,42 @@ scenario('FTS-04', 'the failing save: rollback first, message second, the pre-im
 
 // =============================================================== FTS-05 =====
 scenario('FTS-05', 'the save\'s arm table is closed and total (bare write, mem tier, file tier, a closed record)',
-  'surface.md §2.11 clause 2; contract.md §7.2 item 5; §2.11 clause 1 (the failing arm unmoved)', () => {
+  'surface.md §2.11 clause 2 (the terminal arm\'s save, untouched and still binding); storeroom-native/contract.md `DD-28` (a `file`-tier write\'s own save, with `surface.md §2.11` clause 1 read through `strata/decisions.md` `D-32`); contract.md §7.2 item 5', () => {
     // (a) a file-tier write at an address no constraint pair holds, with NO kernel pass driven over it
-    // ── **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): "bare caller-made" IS RETIRED AS A CLASS** (`§2.4` item
-    // 9 (e) is `SUPERSEDED-WHOLE` on `RCA-9`: *"EVERY WRITE, WITH OR WITHOUT A SUPPLIED `commit`, OPENS OR JOINS
-    // A COMMIT AND PROCEEDS THROUGH THE FLOW, SO NO WRITE IS A `BARE CALLER-MADE WRITE`"*; and `§2.12` item 1's
-    // clause of 2026-10-18 removes the gate so the four-position call enters `K-2` at EVERY address). **THE
-    // CELL'S SUBJECT IS UNMOVED AND IS THE ONE THE FROZEN CLAUSE DECIDES: `§2.11` clause 2 puts the `file`-tier
-    // save on the TERMINAL ARM of a PASSING attempt and on no other act — so a write whose attempt was never run
-    // through `K-3` performs no save and leaves the construction's zero-byte image.** The route the write now
-    // takes to its delivery is NOT this cell's subject and no clause makes the save that route's business.
+    // ── **⟶ RE-DERIVED 2026-10-25 (`D-32`, `role_l1_test_writer`): THE BARE `file`-TIER WRITE PERFORMS THE SAVE,
+    // AND THE CELL'S SUBJECT MOVES WITH THE RULING.** `strata/decisions.md`'s `D-32` settles the contradiction
+    // `R-5` recorded between `docs/specs/storeroom-native/contract.md`'s `DD-28` and `surface.md §2.11` clause 1:
+    // **`DD-28` GOVERNS — *"`file`-TIER DURABILITY IS PRODUCED BY A SUCCESSFUL `file`-TIER `write` ONLY"* — so a
+    // bare `file`-tier `write` COMMITS with no kernel attempt and no terminal arm in the path**, and clause 1 is
+    // read through it as *"the write verb performs no file I/O OF ITS OWN beyond the store's declared write"*.
+    // **Clause 2 is UNTOUCHED and still binds**: it is the KERNEL path's save of a whole attempt — the negative
+    // control `FTS-05.2` (a `mem`-tier record saves nothing) and the positive `FTS-05.3` beside it — and this cell
+    // drives NO kernel pass at all. **THE OBSERVABLE IS READ FROM THE CODE AND NOT FROM A DOCUMENT (`D-17`): the
+    // construction's own image, the write's own result, and the image the write leaves.** The `R-3`-era block that
+    // stood here ("this cell stays red; the code is the defect") is withdrawn by `D-32`, and the 2026-10-18 note it
+    // replaced is kept as the dated record of the reading that ruling supersedes.
     const d1 = tmp(); const P1 = path.join(d1, 'a.json');
     const s1 = PKG.storeCreate({ filePath: P1, journalLength: 8, listeners: [] });
+    const pre1 = bytes(P1);
     const w1 = tryCall(() => s1.write(['a'], 'file', 1));
-    // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-    // **⟶ RULING: THIS CELL STAYS RED AND IT IS RIGHT — THE CODE IS THE DEFECT (class (b)).** 2026-10-25.
-    // Measured on this tree: `s.write(['a'],'file',1)` leaves the image carrying `{"a":1}` BEFORE any `K-2`/`K-3`
-    // call, so the `file`-tier WRITE VERB ITSELF performs the save that `surface.md §2.11` clause 2 puts on the
-    // TERMINAL ARM alone (clause 1: *"the verb performs NO FILE I/O on any of its arms"*). **`R-3`'s disposition is
-    // already recorded and is not re-opened here**: *"`LIVE-4.8`, `FTS-05.1` and `FTS-05.2` are RIGHT and stay
-    // KEEP-AND-RED; the code owes the fix"* — the 2026-10-18 SPEC-CONFLICT (`REMEASURE-2026-10-18.md`) is the
-    // architect's to close and **a rewrite to either side would bless a sign he has not chosen.** So the cell keeps
-    // its expectation, its drive and its red, and it is REPORTED rather than weakened.
-    // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-    cell('FTS-05.1', 'surface.md §2.11 clause 2 (the act is the terminal arm\'s, and there is no second arm of it), read with §2.12 item 1\'s amended clause of 2026-10-18',
-      'a file-tier write whose attempt is never run through `K-3` performs NO save: the verb returns its own result and the file keeps the construction\'s zero-byte image',
-      () => C(w1.ok && !!w1.v.op && (bytes(P1) || Buffer.from('')).length === 0, `write=${w1.ok ? JSON.stringify(w1.v.op.opId) : describe(w1.v)} image=${imgStr(bytes(P1))}`));
-    cell('FTS-05.2', 'surface.md §2.11 clause 2 (a record whose own op is not a file-tier write\'s performs no save)',
+    cell('FTS-05.1', 'docs/specs/storeroom-native/contract.md `DD-28` ("`file`-TIER DURABILITY IS PRODUCED BY A SUCCESSFUL `file`-TIER `write` ONLY"), read with `surface.md` §2.11 clause 1 as `strata/decisions.md` `D-32` re-reads it (the write verb performs no file I/O OF ITS OWN beyond the store\'s declared write)',
+      'a `file`-tier write whose attempt is never run through `K-3` still PERSISTS: the verb returns its own result and its own save moves the construction\'s zero-byte image to the image carrying the written value',
+      () => {
+        const image = bytes(P1);
+        const parsed = tryCall(() => (image && image.length ? JSON.parse(image.toString('utf8')) : null));
+        return C(w1.ok && !!w1.v.op && (pre1 || Buffer.from('')).length === 0 && parsed.ok && !!parsed.v && parsed.v.a === 1,
+          `pre=${imgStr(pre1)} write=${w1.ok ? JSON.stringify(w1.v.op.opId) : describe(w1.v)} image=${imgStr(image)} parsed=${parsed.ok ? JSON.stringify(parsed.v) : describe(parsed.v)}`);
+      });
+    // ── **⟶ ADJUDICATED 2026-10-25 (`D-32`, `role_l1_test_writer`): THIS CELL IS NOT A BARE-WRITE CELL AND THE
+    // RULING MOVES NOTHING IN IT.** `D-32` names `FTS-05.2` in the family `R-5` filed, and **ITS OWN BYTES SETTLE
+    // THE QUESTION**: the drive below goes through `K-2` + `K-3`, so its subject is the TERMINAL ARM's save and its
+    // TIER SCOPE — *a record whose own op is not a `file`-tier write's performs no save* — which `D-32` leaves
+    // **UNTOUCHED AND STILL BINDING** (clause 2, now the KERNEL path's save of a whole attempt, before any
+    // delivered body). **IT ASSERTS NO ABSENCE AT THE BARE WRITE**, so the native reading of `DD-28` neither
+    // contradicts it nor weakens it: the code already answers the declared observable, the cell PASSES, and it is
+    // the negative control `FTS-05.3` is read beside. **No expectation is re-spelled; only its citation now names
+    // the ruling that adjudicated the family it was filed in.**
+    cell('FTS-05.2', 'surface.md §2.11 clause 2 (a record whose own op is not a file-tier write\'s performs no save), read through `strata/decisions.md` `D-32` (clause 2 is untouched and still binds; this cell\'s subject is the terminal arm\'s tier scope, not the bare write\'s)',
       'a mem-tier write driven through commit and runAttempt performs no save and still delivers its listener',
       () => {
         const d = tmp(); const P = path.join(d, 'm.json');
