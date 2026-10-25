@@ -24,6 +24,33 @@
 // not yet answered whether `D-9` reaches them. **Nothing was repaired to fit**: the sentence above is read
 // through this note (`Q5`).
 //
+// **⟶ SUPERSEDED 2026-10-25, BY THE ANSWER `Q14` WAS OWED AND BY NOTHING ELSE — the sentence immediately
+// above is kept as its pass's record and is read through THIS note.** **`Q14`: *"yes — `publish` and
+// `publish-generators` are `O3` cells, so `D-9` reaches them"* (`strata/decisions.md`, the correction to
+// `D-9`).** **So the label half is RE-DERIVED HERE, and the two edits are `D-9`'s own:**
+//
+//   1. **THE FIGURE'S LABEL IS READ OFF RUN A'S CARRIER, NOT TYPED.** `P-PUB-8`'s figure row takes
+//      `LAYER`/`APP_LAYER` from `staged-install-support.mjs` — the label's one home for this run (`D-7`,
+//      `D-9`) — so the value is `LIVE / ASSEMBLED PACKAGE` with `APP` `NONE`, and it can drift from no
+//      second spelling in this file.
+//   2. **THE CROSS-READ OF `tests/e2e/greens.mjs` IS DISPOSED, NOT DELETED AND NOT REPLACED BY A SECOND
+//      HOME.** The bytes that stood there required this figure's `layer` to equal the GREENS HARNESS's own
+//      `const LAYER` — an `O4` run that `D-9`'s correction **leaves at `ENVELOPE/PURE`**, because each
+//      `O4` run keeps whatever label it already declares. **A figure of run A that took an `O4` run's label
+//      would report a layer FALSE of how this file drives**, which is the void `{site, layer}` pair
+//      `acceptance.md §2.3` refuses; the `O4` run's constant is asserted where it stands
+//      (`register.test.mjs`'s two extraction cells, `JSG-12.15`/`JSG-12.16`), and `D-9`'s correction is
+//      what keeps it standing there.
+//
+// **AND THE VOCABULARY IS CITED, NEVER MINTED** (`contract.md §4.2` item `3`: *"the sibling unit's layer
+// vocabulary is CITED AND NEVER EDITED"*). **The label's definitional home is
+// `archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/acceptance.md §4.2`** — archived by this
+// branch's keep-set, so the citation is written at the path that resolves rather than at the one that does
+// not — **and the spelling `LIVE / ASSEMBLED PACKAGE` is the tree's own, already printed by
+// `tests/e2e/live-drive.mjs:1549`.** **Nothing here re-labels the vocabulary: this file changes WHICH LABEL
+// ITS FIGURE REPORTS, inside the declared set.** **And `PUB-DD-24`'s own `ENVELOPE/PURE` clause — quoted at
+// `:15` above — still stands as the spec corpus's text, read through this note (`D-9`; `D-11`).**
+//
 // **EVERY DRIVE BELOW IS WRITTEN FROM THE CONTRACT ALONE AND CARRIES THE CLAUSE IT DRIVES IN A COMMENT.**
 // One block per register row (`contract.md §5.1`–`§5.8`), each block printing its row id, its strategy id(s)
 // and its verdict; `un-run` is a FAILURE (`contract.md §5.0`).
@@ -81,7 +108,12 @@ import {
 // name through its `exports` map. **THE RUN'S LABEL CARRIER (`LAYER`) IS NOT CONSUMED HERE**: this file's two
 // label literals are `F14`/`Q14`, which `D-9` does NOT name, so they are left byte-identical and reported
 // rather than re-derived by preference.
-import { stageAndReach } from './staged-install-support.mjs';
+// **⟶ SUPERSEDED 2026-10-25: `Q14` IS ANSWERED AND THE CARRIER IS CONSUMED.** *"yes — `publish` and
+// `publish-generators` are `O3` cells, so `D-9` reaches them"* (`strata/decisions.md`), so the sentence above
+// is this pass's record read through this note: **`LAYER`/`APP_LAYER` are imported below and `P-PUB-8`'s
+// figure reports them** — the label's one home for run A, which is exactly `D-9`'s structural move (b). The
+// import/install MECHANISM is still the helper's alone; nothing of `O4`'s is consumed (`D-7`).
+import { APP_LAYER, LAYER, RUN_RELATIVE_PATH, stageAndReach } from './staged-install-support.mjs';
 
 // ---------------------------------------------------------------------------------------------
 // the contract's own constants, at the contract's own bytes
@@ -4468,14 +4500,40 @@ cell('P-PUB-8', 'S-LAYER every figure this unit reports carries its SITE and its
   // set, printed with its SITE and its LAYER BEFORE ANY IMPLEMENTATION, and every figure the unit reports
   // carries both. **NO `APP`-GREEN IS CLAIMED FROM ANY NODE GREEN OR ANY `cargo` LEG** (`§4.5` item 3).
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
+  // **THE FIGURE'S LABEL IS READ OFF RUN A'S CARRIER AND NOT TYPED** (`D-9`'s structural move (b); the `Q14`
+  // answer of 2026-10-25: *"yes — `publish` and `publish-generators` are `O3` cells, so `D-9` reaches
+  // them"*). `LAYER`/`APP_LAYER` are imported from `staged-install-support.mjs` — the label's ONE home for
+  // this run (`D-7`, `D-9`), so no value is spelled a second time inside this file.
   const figure = {
     value: 'the red set\'s reported failing set',
     site: join('tests', 'e2e', 'staged-install', 'publish.test.mjs'),
-    layer: 'ENVELOPE/PURE',
-    app: 'NONE',
+    layer: LAYER,
+    app: APP_LAYER,
   };
-  assert.equal(figure.layer, 'ENVELOPE/PURE', '`acceptance.md §5.2` row 1: this unit\'s red set is `ENVELOPE/PURE`');
-  assert.equal(figure.app, 'NONE', '`acceptance.md §5.3` item 1: a node-suite green is never `APP`-green');
+  // ---- (1) THE LABEL'S TWO HOMES AGREE, AND BOTH ARE CODE ----
+  const carrierBytes = readFileSync(new URL('./staged-install-support.mjs', import.meta.url), 'utf8');
+  const carrierLayer = /^export const LAYER = '([^']*)';$/m.exec(carrierBytes);
+  const carrierApp = /^export const APP_LAYER = '([^']*)';$/m.exec(carrierBytes);
+  assert.ok(carrierLayer !== null && carrierApp !== null,
+    'run A\'s carrier declares both labels as constants of its own — `export const LAYER` and '
+    + '`export const APP_LAYER` — the label\'s single home (`D-9`)');
+  assert.equal(LAYER, carrierLayer[1],
+    'the label this figure reports IS the label its carrier declares, read at the carrier\'s OWN BYTES: an '
+    + 'import that resolved to another constant, or a carrier whose bytes stopped declaring it, is caught here');
+  assert.equal(APP_LAYER, carrierApp[1],
+    'and the `app` this figure reports IS the carrier\'s own `APP_LAYER`, read the same way');
+  // ---- (2) THE VOCABULARY IS CITED, NEVER MINTED ----
+  // The declared set's spelling and its definitional home: `docs/specs/storeroom-js/acceptance.md §4.2`
+  // (`ENVELOPE/PURE`, and the assembled/`APP` layer's `NONE`), ARCHIVED by this branch's keep-set at
+  // `archive/pre-strata-docs-2026-10-24/…` — cited at the path that RESOLVES — plus `LIVE / ASSEMBLED
+  // PACKAGE` as the tree already prints it (`tests/e2e/live-drive.mjs:1549`) and `LIVE/INSTALL` as
+  // `docs/specs/storeroom-publish/contract.md §4.2` item `3` mints it. **No spelling below is new.**
+  const DECLARED_LAYERS = ['ENVELOPE/PURE', 'LIVE / ASSEMBLED PACKAGE', 'LIVE/INSTALL'];
+  assert.ok(DECLARED_LAYERS.includes(LAYER),
+    `the label ${JSON.stringify(LAYER)} is a MEMBER of the declared set and not a spelling minted here`);
+  assert.equal(figure.app, 'NONE',
+    '`acceptance.md §4.2` item 2: the assembled/`APP` layer for every unit of this project is `NONE`, and '
+    + 'a node-suite green is never `APP`-green (`§4.2` item 3)');
   assert.ok(existsSync(join(REPO_ROOT, figure.site)), 'the figure\'s SITE is this file, at `PUB-DD-24`\'s path');
   assert.equal(manifest.name !== undefined, true, 'the figure\'s site is a real home');
   // an install-time figure is NOT this layer\'s, and `LIVE/INSTALL` may not be reported at gates 1–4
@@ -4484,19 +4542,58 @@ cell('P-PUB-8', 'S-LAYER every figure this unit reports carries its SITE and its
   // `assert.ok(/CANNOT RUN BEFORE THE RELEASE ACT/.test(readFileSync(docs/specs/storeroom-publish/acceptance.md)))`
   // and its *"NOT AN `APP` FIGURE"* sibling — **a document on a path this branch's archival MOVED, so the
   // cell was RED with `ENOENT`, and a clause's prose is carried by no observable behaviour** (`D-31`'s
-  // UNTESTABLE arm). **WHAT SURVIVES IS THE FIGURE'S OWN LABEL, WHICH IS A CODE FACT WITH ITS OWN HOMES**:
-  // the greens harness declares `LAYER`/`APP_LAYER` as constants, and this cell reads them so the figure
-  // below cannot drift from the instrument that prints it.
-  const greensBytes = readFileSync(join(REPO_ROOT, 'tests', 'e2e', 'greens.mjs'), 'utf8');
-  const layerConst = /^const LAYER = '([^']*)';$/m.exec(greensBytes);
-  const appLayerConst = /^const APP_LAYER = '([^']*)';$/m.exec(greensBytes);
-  assert.ok(layerConst !== null && appLayerConst !== null,
-    'the greens harness declares both labels as constants of its own — `const LAYER` and `const APP_LAYER`');
-  assert.equal(layerConst[1], figure.layer,
-    'the figure\'s `layer` IS the harness\'s own declared `LAYER`, so the label this unit reports is the '
-    + 'label its instrument prints — RE-DERIVED 2026-10-24 (`D-17`)');
-  assert.equal(appLayerConst[1], figure.app,
-    'and the figure\'s `app` IS the harness\'s own declared `APP_LAYER`: a NODE green is never an `APP`-green');
+  // UNTESTABLE arm). **WHAT SURVIVES IS THE FIGURE'S OWN LABEL, WHICH IS A CODE FACT WITH ITS OWN HOMES.**
+  //
+  // **⟶ AND THE CROSS-READ OF `tests/e2e/greens.mjs` IS DISPOSED, 2026-10-25 — A DISPOSITION, NOT A
+  // DELETION AND NOT A SECOND HOME.** Those bytes required THIS figure's `layer` to equal the GREENS
+  // HARNESS's own `const LAYER`, and that reading was true only while this cell reported `ENVELOPE/PURE`.
+  // **`greens.mjs` is an `O4` run, and `D-9`'s CORRECTION LEAVES THE `O4` SET ALONE — `ENVELOPE/PURE` where
+  // it says so, `LIVE / ASSEMBLED PACKAGE` where `live-drive.mjs` says so — so a figure of run A that took
+  // that constant would report a layer FALSE of how this file drives, which is the VOID `{site, layer}` pair
+  // `acceptance.md §2.3` refuses.** The `O4` run's constant is asserted where it stands and by cells that
+  // are `O4`'s own (`register.test.mjs`'s two extraction cells, `JSG-12.15`/`JSG-12.16`); `D-9`'s correction
+  // is what keeps it standing there and this cell is not a second reader of it.
+  // ---- (3) THE `{site, layer}` PAIR IS AN INSTRUMENT THAT CAN FAIL, NOT A LITERAL COMPARED TO ITSELF ----
+  /** **THE PAIR RULE, ANSWERED RATHER THAN ASSERTED** (`acceptance.md §2.3`: *"a figure reported without its
+   *  site and its layer is VOID"*; `P-PUB-8`'s `S-LAYER`). It takes a figure and answers WHY the pair is
+   *  void — or `null` when it holds. **It is driven TWICE below, once on the real figure and once on a
+   *  deliberately WRONG one, so the relabel itself is falsifiable**: a pass that downgraded this figure's
+   *  label, or claimed `LIVE/INSTALL` here, or an `APP`-green, fails on the control rather than passing over
+   *  a constant (`RCA-12`'s class — the defect `register.test.mjs`'s `S-LAYER` was corrected out of). */
+  const pairVerdict = (row) => {
+    const site = String(row.site).split(sep).join('/');
+    if (!existsSync(join(REPO_ROOT, row.site))) {
+      return `the figure's SITE ${JSON.stringify(row.site)} is not a real home`;
+    }
+    if (!DECLARED_LAYERS.includes(row.layer)) {
+      return `the figure's LAYER ${JSON.stringify(row.layer)} is not a member of the declared set`;
+    }
+    if (row.app !== 'NONE') {
+      return `the figure's APP layer is ${JSON.stringify(row.app)} where every node figure of this unit is NONE`;
+    }
+    if (site.startsWith(RUN_RELATIVE_PATH) && row.layer !== LAYER) {
+      return `a figure standing in run A (\`${RUN_RELATIVE_PATH}\`) reports ${JSON.stringify(row.layer)} where `
+        + `the run drives at ${JSON.stringify(LAYER)} — a wrong pair is void`;
+    }
+    if (!site.startsWith(RUN_RELATIVE_PATH) && row.layer === LAYER) {
+      return `a figure standing OUTSIDE run A reports run A's label ${JSON.stringify(LAYER)} — a wrong pair is void`;
+    }
+    return null;
+  };
+  assert.equal(pairVerdict(figure), null,
+    `the figure's {site, layer} pair HOLDS: ${JSON.stringify(figure.site)} at ${JSON.stringify(figure.layer)}`);
+  // **THE THREE CONTROLS, EACH REQUIRED TO BE REJECTED — this is the falsifier of the relabel and of the
+  // must-not-claim list at once.** Each is a scratch ROW, never a file: nothing is written.
+  const controls = [
+    ['a DOWNGRADED pair — an `O4` label at a run-A site', { ...figure, layer: 'ENVELOPE/PURE' }],
+    ['an INSTALL-layer figure at a node site', { ...figure, layer: 'LIVE/INSTALL' }],
+    ['an `APP`-green claimed from a node figure', { ...figure, app: 'GREEN' }],
+  ];
+  for (const [what, row] of controls) {
+    assert.ok(pairVerdict(row) !== null,
+      `THE PAIR INSTRUMENT MUST SEE ${what}: it answered null, so this cell would pass over a pair it `
+      + 'exists to void');
+  }
 });
 
 cell('P-PUB-8', 'S-LAYER no released-bytes digest is claimed by this pass', async () => {

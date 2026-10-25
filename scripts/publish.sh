@@ -185,17 +185,17 @@ if [ "$MODE" != "tag" ]; then
   # The declared dependency property, checked rather than assumed (`§4`; defined at the foot of this file).
   preflight_pkgs
 
-  # The JS artefact + the node suite. NOTE: there is NO `npm test` in this
-  # repository — neither manifest carries a `scripts` key. The trio's real
-  # commands are the cargo ones plus the glob-form node invocation below.
-  # The DIRECTORY form of --test FAILS under Node v24 and is not a defect.
+  # The JS artefact + the node suite. The suite's site is the ROOT MANIFEST's own
+  # `test` script — `node --test "tests/**/*.test.mjs"` — the one spelling of the
+  # command this repository uses: the release leg asks the project rather than
+  # keeping a second copy. (`bindings/js/test/*.test.mjs` was the pre-move home.)
   if cargo build --release --manifest-path bindings/js/Cargo.toml >/dev/null 2>&1; then
     cp -f bindings/js/target/release/libstoreroom_js_binding.so \
           bindings/js/build/Release/storeroom_js_binding.node 2>/dev/null || true
     ok "JS artefact built and staged"
   else refuse "the JS artefact build FAILED"; fi
-  if node --test bindings/js/test/*.test.mjs >/tmp/pub-node.log 2>&1; then
-    ok "node --test (glob form): $(grep -E '^. (pass|fail) ' /tmp/pub-node.log | tr -d '\n')"
+  if npm test >/tmp/pub-node.log 2>&1; then
+    ok "npm test (the manifest's own battery): $(grep -E '^. (pass|fail) ' /tmp/pub-node.log | tr -d '\n')"
   else refuse "the node suite FAILED — see /tmp/pub-node.log"; fi
 fi
 

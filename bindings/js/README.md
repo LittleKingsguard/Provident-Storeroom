@@ -219,7 +219,7 @@ distribution.md §2.2`; `PUB-DD-1`, `PUB-DD-2`):
 
 ```sh
 cargo test  --manifest-path bindings/js/Cargo.toml --no-fail-fast   # the sibling crate's Rust tests
-node --test bindings/js/test/*.test.mjs                                       # this package's JS tests
+npm test   # THE REPOSITORY'S JS BATTERY — a REPOSITORY instruction, NOT a consumer one; see the note below
 ```
 
 **AND THE ORDER IS A DECLARED STEP, NOT A CONVENIENCE: THE JS LEG RUNS ONLY AFTER THE ADDON IS BUILT**
@@ -234,9 +234,23 @@ route — `JS -> facade -> core -> store` — is what they exercise, and that ro
 cargo build --release --manifest-path bindings/js/Cargo.toml
 mkdir -p bindings/js/build/Release
 cp bindings/js/target/release/libstoreroom_js_binding.so bindings/js/build/Release/storeroom_js_binding.node
-# 2. THE JS LEG, AFTER IT:
-node --test bindings/js/test/*.test.mjs
+# 2. THE JS LEG, AFTER IT — the repository's own battery, from the REPOSITORY ROOT:
+npm test
 ```
+
+**AND THE JS COMMAND ABOVE IS A *REPOSITORY* INSTRUCTION, NOT A CONSUMER ONE — SAID PLAINLY BECAUSE THIS
+FILE SHIPS INSIDE THE PACKAGE** (it is in the allowlist, `docs/specs/storeroom-publish/contract.md §2.1`
+item 1). **`npm test` is the repository root manifest's own `test` script — `node --test
+"tests/**/*.test.mjs"`, taken at the repository root — and THE ROOT MANIFEST IS NOT SHIPPED**: a consumer's
+install carries `package.json` · `index.mjs` · `index.d.ts` · `README.md`, the entry's own modules and the
+licence copy the release's assembly step lands, and **carries NO `tests/` directory at all**, so a consumer
+cannot run this command and is promised nothing by it. **A consumer's own tests are the consumer's**; the
+commands in this section are for a CHECKOUT of this repository. **AND THE COMMAND THAT STOOD HERE IS NAMED SO
+ITS ABSENCE IS LEGIBLE RATHER THAN DISCOVERED: `node --test bindings/js/test/*.test.mjs` was this package's
+own JS leg until the batteries were stratified into `tests/e2e/`, `tests/integration/` and `tests/unit/`, and
+`bindings/js/test/` NO LONGER EXISTS — measured on this tree, the dead command exits `0` having run NOTHING
+(`tests 0 · pass 0 · fail 0`), which is a VACUOUS GREEN rather than even a red, so a reader who kept it would
+believe this package had been tested.**
 
 **THERE IS NO FALLBACK AND NO JS-SIDE STORE** (`A75`): an addon that is ABSENT or FAILS TO LOAD is a
 **DECLARED FAILURE** — `storeCreate` answers the single failure form

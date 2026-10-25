@@ -1062,7 +1062,7 @@ const K6 = (store, pair) => kernel.remove(store, pair);
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 console.log('');
 console.log('── THE FIGURE CENSUS ────────────────────────────────────────────────────────────────');
-console.log(`SITE:  node bindings/js/greens/held-listener-identity-greens.mjs   (cwd: ${process.cwd()})`);
+console.log(`SITE:  node tests/e2e/held-listener-identity-greens.mjs   (cwd: ${process.cwd()})`);
 console.log(`ENTRY (the package's claimed ESM entry): ${new URL('../../bindings/js/index.mjs', import.meta.url).pathname}`);
 console.log(`ENTRY 2 (the kernel module's declared checkout home): ${new URL('../../bindings/js/src/constraint-kernel.mjs', import.meta.url).pathname}` +
   (kernel === null ? `  — DID NOT RESOLVE: ${KERNEL_ERROR}` : ''));

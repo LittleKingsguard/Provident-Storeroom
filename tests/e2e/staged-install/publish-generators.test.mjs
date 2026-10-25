@@ -46,6 +46,9 @@ import { moduleFiles, stageModuleTree } from '../module-set.mjs';
 import {
   BARREL_RELATIVE_PATH, HUB_RELATIVE_PATH, describeClosure, measurePackedClosure,
 } from '../pack-reachability.mjs';
+// **RUN A'S OWN HELPER** (`D-7`): this file takes RUN A'S LABEL from the run's single carrier and nothing
+// else from it — the import/install mechanism is not this file's subject, and no `O4` helper is consumed.
+import { LAYER as RUN_LAYER } from './staged-install-support.mjs';
 
 // ---------------------------------------------------------------------------------------------
 // the contract's own constants, at the contract's own bytes (the red set's, read again here)
@@ -1417,19 +1420,40 @@ function assertPackedSetIsClosedUnderImport(files) {
 // than the one it replaces: the as-filed absence held for every tree carrying no tag, including one whose
 // manifest named a version no tag could ever carry. **AND NO TAG FIGURE IN THIS BLOCK IS OPERATIVE** (`DEF-2026-10-13-C`): every tag figure the coupling asserts is read at RUN TIME by `assertTagCoupling` below — which names no version of its own — and the dated `v0.1.1` above is THAT pass's own reading, kept as its record rather than re-cut at a figure this tree no longer carries.
 
+// **⟶ RE-DERIVED 2026-10-25 (`D-9`'s structural move (b); `Q14` ANSWERED: *"yes — `publish` and
+// `publish-generators` are `O3` cells, so `D-9` reaches them"*).** The two rows' `layer` is no longer a
+// literal typed here: it is RUN A's label, READ from the run's own carrier (`staged-install-support.mjs`,
+// `D-7`/`D-9`), so the pair these rows report moves with the carrier's one home rather than with a second
+// spelling. **The `app` column stays `NONE`** — a node-suite figure is never an `APP`-green.
 const FIGURE_ROWS = [
-  { value: 'the red set\'s reported failing set', site: 'tests/e2e/staged-install/publish.test.mjs', layer: 'ENVELOPE/PURE', app: 'NONE' },
-  { value: 'the negative generators\' measured controls', site: 'tests/e2e/staged-install/publish-generators.test.mjs', layer: 'ENVELOPE/PURE', app: 'NONE' },
+  { value: 'the red set\'s reported failing set', site: 'tests/e2e/staged-install/publish.test.mjs', layer: RUN_LAYER, app: 'NONE' },
+  { value: 'the negative generators\' measured controls', site: 'tests/e2e/staged-install/publish-generators.test.mjs', layer: RUN_LAYER, app: 'NONE' },
 ];
+// The declared set's spellings, CITED and never minted: `docs/specs/storeroom-js/acceptance.md §4.2` for
+// `ENVELOPE/PURE` and the assembled/`APP` layer's `NONE` (archived at
+// `archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/acceptance.md`), `LIVE / ASSEMBLED PACKAGE` as
+// the tree already prints it (`tests/e2e/live-drive.mjs:1549`) and `LIVE/INSTALL` as
+// `docs/specs/storeroom-publish/contract.md §4.2` item `3` declares it. **No spelling here is new.**
 const LAYERS = new Set(['ENVELOPE/PURE', 'LIVE / ASSEMBLED PACKAGE', 'LIVE/INSTALL']);
+/** This run's own directory, as a figure's `site` carries it — the prefix every row of THIS run stands under. */
+const RUN_A_PREFIX = 'tests/e2e/staged-install/';
 
 function assertFigureRow(row, { root = REPO_ROOT } = {}) {
   assert.ok(LAYERS.has(row.layer) || /^LIVE/.test(row.layer),
     `a figure's LAYER is one of the declared layers; got ${JSON.stringify(row.layer)}`);
   assert.equal(row.app, 'NONE', 'acceptance.md §5.3 item 1: a node-suite figure is never `APP`-green');
   assert.ok(existsSync(join(root, row.site)), `the figure's SITE is a real home: ${row.site}`);
-  assert.equal(row.layer, 'ENVELOPE/PURE',
-    `the figure's LAYER must match the layer its SITE runs at; a wrong pair is void (acceptance.md §2.3)`);
+  // **THE PAIR IS ASSERTED AGAINST THE LAYER THE SITE'S RUN DECLARES, NOT AGAINST A LITERAL.** Every row of
+  // this generator stands in RUN A, so its layer IS run A's carrier's — and a row that reported another
+  // run's label (or a site outside this run) is the wrong pair `acceptance.md §2.3` voids.
+  assert.equal(String(row.site).split(sep).join('/').startsWith(RUN_A_PREFIX), true,
+    `a figure of this run names a SITE inside it (\`${RUN_A_PREFIX}\`); got ${JSON.stringify(row.site)}`);
+  assert.equal(row.layer, RUN_LAYER,
+    `the figure's LAYER must match the layer its SITE runs at — run A's carrier declares `
+    + `${JSON.stringify(RUN_LAYER)}; a wrong pair is void (acceptance.md §2.3)`);
+  assert.equal(RUN_LAYER !== 'ENVELOPE/PURE', true,
+    'and the pair instrument is not vacuous: this run\'s label is the ASSEMBLED one (`D-9`), so the '
+    + 'downgraded pair the control below mutates to is a REAL wrong pair rather than the right one');
 }
 
 /** Resolve `refs/tags/v<version>` in a REAL repository, and report the tag list. */
@@ -1567,10 +1591,16 @@ generator('NG-PUB-J', 'the version equals a resolved tag, and every figure row\'
         'a history the tag is not part of'], { timeout: 30000 });
       assertTagCoupling(repo, { version, label: 'the unreachable-tag control' });
     },
+    // **⟶ RE-DERIVED 2026-10-25 (`D-9`; `Q14` ANSWERED): THE WRONG PAIR IS NOW THE `O4` LABEL AT A RUN-A
+    // SITE — and this control's literal is DELIBERATELY WRONG, stated here so a sweep does not "fix" it.**
+    // Before the relabel the wrong pair was `LIVE / ASSEMBLED PACKAGE` at a site that ran at
+    // `ENVELOPE/PURE`; `D-9` moved this run's rows to the assembled label, so the pair that is void is now
+    // the downgraded one — which is the shape a pass that skipped the relabel would leave behind, and the
+    // reason this control is the relabel's own falsifier.
     'control-a-wrong-site-layer-pair': () =>
-      assertFigureRow({ value: 'a figure row', site: 'tests/e2e/staged-install/publish.test.mjs', layer: 'LIVE / ASSEMBLED PACKAGE', app: 'NONE' }),
+      assertFigureRow({ value: 'a figure row', site: 'tests/e2e/staged-install/publish.test.mjs', layer: 'ENVELOPE/PURE', app: 'NONE' }),
     'control-a-figure-row-with-no-site': () =>
-      assertFigureRow({ value: 'a figure row', site: 'tests/e2e/staged-install/not-a-file.mjs', layer: 'ENVELOPE/PURE', app: 'NONE' }),
+      assertFigureRow({ value: 'a figure row', site: 'tests/e2e/staged-install/not-a-file.mjs', layer: RUN_LAYER, app: 'NONE' }),
   };
   for (const [name, control] of Object.entries(controls)) {
     const result = measureAgainst('NG-PUB-J', name, control);

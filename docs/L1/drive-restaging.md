@@ -57,12 +57,22 @@ re-stages the tree but leaves the anchors pointed at `index.mjs` fails at the an
 
 **THE WAVE'S FILE SET, BY PATH.**
 
-**Source — created (12 new files):**
+**Source — created (13 new files):**
 
-- `bindings/js/src/entry/refusal.mjs`, `artefact.mjs`, `state.mjs`, `class-decision.mjs`, `walk.mjs`, `delivery.mjs`,
-  `constraints.mjs` — the entry's seven parts (`docs/L1/entry-subdivision.md` §1 parts 2–8).
+- `bindings/js/src/entry/refusal.mjs`, `artefact.mjs`, `state.mjs`, `class-decision.mjs`, `carrier.mjs`, `frame.mjs`,
+  `delivery.mjs`, `constraints.mjs` — the entry's eight parts (`docs/L1/entry-subdivision.md` §1 parts 2–8, part 6
+  taken as two under `D-33`).
 - `bindings/js/src/entry/kernel-foundations.mjs`, `kernel-registration.mjs`, `kernel-commit.mjs`, `kernel-attempt.mjs`,
   `kernel-terminal.mjs` — the kernel's five parts (`docs/L1/kernel-subdivision.md` §1 parts 9a–9e).
+
+**⟶ THE TARGET SET THIS FILE WAS DECLARED AGAINST IS SUPERSEDED AND IS READ THROUGH HERE, 2026-10-25 (`D-33`,
+`strata/decisions.md`, 2026-10-24):** entry part 6 (`the walk`, 1,337 lines) **splits at `L2799` into `927 + 410`** —
+`carrier.mjs` and `frame.mjs` — **so the target set is THIRTEEN paths (8 entry + 5 kernel), plus the barrel by explicit
+path, and no longer twelve.** `D-33`'s own words: *"the entry becomes NINE parts and the subdivision's target set
+becomes thirteen paths plus the barrel, not twelve."* **`D-14`'s enumeration is restated accordingly and the four
+drives are re-staged against thirteen**; the `twelve`/`12`/`14` figures standing elsewhere in this file are the
+superseded reading **and are corrected in place beside this clause**, so the arithmetic below stays checkable rather
+than silently short by one.
 
 **Source — changed in place (2):**
 
@@ -95,8 +105,8 @@ the two anchors); `greens-harness` (one of the two cells); `delivery` (the manif
 
 **The directory:** `bindings/js/src/entry/` — **one directory, no recursion**, extension **`.mjs`** only. Evaluated as
 `readdirSync(join(PKG_DIR, 'src', 'entry'))`, filtered on the `.mjs` suffix, **sorted** so that two staging calls in
-one process produce the same order, and each hit asserted to be a regular file. **Twelve matches after the wave**: the
-seven entry parts and the five kernel parts.
+one process produce the same order, and each hit asserted to be a regular file. **Thirteen matches after the wave**:
+the eight entry parts and the five kernel parts (`D-33`; §1's clause — twelve was the pre-split count).
 
 **Why non-recursive, and why one directory.** `D-14`'s ground for choosing a glob at all is that *"`src/entry/` is a
 **closed set by construction**, so a glob is stable"* — and a closed set by construction is exactly what a
@@ -117,7 +127,7 @@ the explicit path would have had to carry five more files, which no single path 
 
 **A zero match is a thrown failure in the parent process, before any child is spawned, and its message names the
 directory it globbed.** `D-14`: *"an empty match must be a **loud** failure, not a silently smaller tree."* The
-declaration is stronger than a non-empty check, in three steps, because a *degraded* match (eleven of twelve) is as
+declaration is stronger than a non-empty check, in three steps, because a *degraded* match (twelve of thirteen) is as
 dangerous as an empty one and much quieter:
 
 1. **Zero match throws**, naming the absolute directory and the rule (`src/entry/*.mjs`).
@@ -132,16 +142,16 @@ dangerous as an empty one and much quieter:
 
 ### §2.3 The staged tree, with its arithmetic
 
-Every one of the four trees becomes the same 14-file `.mjs` set plus the drive's own fixtures:
+Every one of the four trees becomes the same 15-file `.mjs` set plus the drive's own fixtures:
 
 | what | how it is staged | count |
 |---|---|---|
 | the entry | **written by the drive** — the shipped bytes, or the drive's mutant (§3.1, §3.2) | 1 |
-| the parts | **the glob** of `src/entry/*.mjs` | 12 |
+| the parts | **the glob** of `src/entry/*.mjs` | 13 |
 | the barrel | **the explicit path** `src/constraint-kernel.mjs` | 1 |
 | the drive's own fixtures | `package.json` (with `exports`), `preload.cjs`, `driver.mjs`, the platform artefact stub / rung-two candidate | per drive, unchanged |
 
-**1 + 12 + 1 = 14 `.mjs` files**, and the barrel stands on the entry's **load path** — the entry's constraint glue
+**1 + 13 + 1 = 15 `.mjs` files**, and the barrel stands on the entry's **load path** — the entry's constraint glue
 imports it as a namespace (`entry-subdivision.md` §4.2). Nothing of the repository is written, renamed or removed: each
 drive stages under the OS temporary area and sweeps on exit, exactly as it does today
 (`publish.test.mjs:404`–`:405`, `publish-generators.test.mjs:190`–`:192`, `version-stamp.test.mjs:574`–`:575`,
@@ -160,7 +170,7 @@ artefact under `node_modules/<name>` (`:721`), a rung-two candidate or decoy (`:
 `execFileSync` subprocess with `cwd` = the tree and `NODE_PATH` = its `node_modules` (`:744`–`:763`). **The driver
 imports the entry BY PATH INSIDE THE TREE** (`await import(process.argv[2])`, `:466`).
 
-**Re-staged:** the tree gains the glob's twelve parts and the barrel (§2.3). The entry copy at `:711` stays a byte
+**Re-staged:** the tree gains the glob's thirteen parts and the barrel (§2.3). The entry copy at `:711` stays a byte
 write, because it is the **lever's** site (§3.1.1).
 
 **Its claim becomes:** *"a tree carrying the entry **and everything the entry requires** loads, runs the three ordered
@@ -222,7 +232,7 @@ rather than by a guess** (`:364`–`:388`): `null` = the shipped entry's bytes; 
 control's tree is recorded so a control can be attributed to the drive that ran it (`:391`–`:397`).
 **It spells no package name of its own**, so it has nothing to re-spell (stratification §2.6.1).
 
-**Re-staged:** the tree gains the glob's twelve parts and the barrel (§2.3). **The lever gains one dimension** — which
+**Re-staged:** the tree gains the glob's thirteen parts and the barrel (§2.3). **The lever gains one dimension** — which
 **file** the bytes are staged as — because its controls are cut by `.replace()` on the shipped entry text exactly as
 `publish`'s are (`:652`, `:746`, `:795`, `:846`, `:889`, `:944`, `:972`, `:997`, `:1053` are nine control cuts), and
 after the entry's cut each cut's anchor lives in the part that carries it. **The F-14 repair's assertion carries over
@@ -243,7 +253,7 @@ stage.
 `node_modules/<the host's platform name>/` carrying a candidate `index.js` (`:666`–`:682`). Its subjects are the
 stamp's homes and the pre-publish guard (`P-PUB-9`/`P-PUB-10`).
 
-**Re-staged:** the tree gains the glob's twelve parts and the barrel (§2.3), staged **beside the entry**, so the
+**Re-staged:** the tree gains the glob's thirteen parts and the barrel (§2.3), staged **beside the entry**, so the
 `require` resolution the comment at `:657` protects is untouched: the parts are relative imports from the entry's own
 directory and the driver's `require` is still the file-relative one it is today.
 
@@ -253,7 +263,7 @@ main package ships `index.mjs` and no `.node` at all, so the five leg-subjects a
 (`release.md §1.4a` item `6`). **The cut falsifies the first half of the quoted clause's subject and leaves its ground
 intact:**
 
-- **"ships `index.mjs`"** — after the wave the main package ships `index.mjs`, **seven entry parts, five kernel parts
+- **"ships `index.mjs`"** — after the wave the main package ships `index.mjs`, **eight entry parts, five kernel parts
   and the barrel**, and no `.node` (`kernel-subdivision.md` §6: 16 allowlist rows by reachability). **The clause is
   contract text and stands as text, read through `D-13`/`D-14` on this project's own ANNOTATE-BESIDE convention
   (`D-3`'s precedent) — no role in this workflow amends it.**
@@ -279,7 +289,7 @@ intact:**
 directory (`:1572`). **A bare specifier resolved from a file under the copy resolves to the copy through the copy's
 own `package.json`**, so the absent-addon state is measured at the copy's own entry and never at the repository's.
 
-**Re-staged:** the copy gains the glob's twelve parts and the barrel (§2.3), copied to the same relative layout
+**Re-staged:** the copy gains the glob's thirteen parts and the barrel (§2.3), copied to the same relative layout
 (`src/entry/*.mjs` and `src/constraint-kernel.mjs`), so the copy's entry loads exactly as the repository's does.
 
 **Its claim becomes:** *"a copy of the package — **whose own entry, parts and barrel are the copy's** — resolves a bare
@@ -332,7 +342,7 @@ subject would be read as one another** — the same class the publish drive reco
 |---|---|---|---|
 | `publish` | *a tree carrying `index.mjs` alone loads and reaches the rungs* | *a tree carrying the entry **and everything it requires** loads, runs the three rungs, and answers the absent-addon and wrong-version arms — and each of the two injected faults fails the instrument* | the tree's completeness: an assertion at staging, not a hope |
 | `publish-generators` | same | *the same tree drives `NG-PUB-A`…`J`, and each control's mutated bytes reach a drive and walk* | same, plus **which part file** a control's bytes are staged as |
-| `version-stamp` | same, and **written down** at `:1457`–`:1458` | *the main package ships no `.node` at all, so the five leg-subjects are the whole guard set; after `D-13` it ships `index.mjs`, its twelve part files and the barrel* | the quoted clause's `index.mjs` half is restated **as a reading**; its `.node`-free half is untouched, and **the cell's assertions do not move** |
+| `version-stamp` | same, and **written down** at `:1457`–`:1458` | *the main package ships no `.node` at all, so the five leg-subjects are the whole guard set; after `D-13` it ships `index.mjs`, its thirteen part files and the barrel* | the quoted clause's `index.mjs` half is restated **as a reading**; its `.node`-free half is untouched, and **the cell's assertions do not move** |
 | `negative-generators` | same, and it is the copy arm's whole premise | *a copy whose own entry, parts and barrel are the copy's resolves a bare specifier from under itself and answers the declared absent-addon refusal* | the copy's contents; **the embedded specifier stays a bare name** (`:1550`) |
 
 ---
@@ -356,7 +366,7 @@ and `docs/L1/entry-subdivision.md` §1/§4.2, `docs/L1/test-stratification.md`/`
 
 **Concluded, not measured:**
 
-1. **That the glob returns twelve matches.** Arithmetic on the two declared cuts (7 + 5), not a `readdir` — the
+1. **That the glob returns thirteen matches.** Arithmetic on the two declared cuts (8 + 5), not a `readdir` — the
    directory does not exist.
 2. **That the closure check is sufficient.** It reads *relative literal specifiers* out of staged bytes; a specifier
    built by concatenation or carried in a template (as `negative-generators`' own child driver carries a bare name)
@@ -371,13 +381,13 @@ and `docs/L1/entry-subdivision.md` §1/§4.2, `docs/L1/test-stratification.md`/`
 **Not verified:** whether a stale fixture's `JSON.parse` failure is reported by `node --test` with the child's stdout
 attached (the wave's rule 3 of §3.4.1 makes that moot, and rule 2 makes it visible either way); the behaviour of
 `execFileSync`'s `stderr` on a non-zero child exit at the exact site `:1572` uses; and **the tracked status of the
-twelve new part paths** — the maps' target counts are arithmetic this branch cannot confirm without a shell.
+thirteen new part paths** — the maps' target counts are arithmetic this branch cannot confirm without a shell.
 
 ---
 
 ## §6 · Questions for the architect
 
-**Q1 — is a twelfth-of-twelve closure check within `D-14`'s mechanism, or is it a second mechanism?** `D-14` fixes
+**Q1 — is a thirteenth-of-thirteen closure check within `D-14`'s mechanism, or is it a second mechanism?** `D-14` fixes
 *"a glob … paired with an explicit kernel path"*; this file adds a **closure check over the staged bytes** as the way
 an empty or degraded match becomes loud (§2.2). **L0's reading, marked as inference:** the closure check is not a third
 *staging* mechanism — it stages nothing — it is the **loud-failure rule `D-14` requires** (*"an empty match must be a

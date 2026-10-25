@@ -3,6 +3,26 @@
 // Authored from docs/specs/storeroom-publish/**, docs/specs/storeroom-js/package.md §6.1 and
 // docs/decisions.md A90–A96 ONLY. No implementation file was read to author this runner.
 // Each scenario prints RESULT <id> PASS|FAIL|SOURCE-PINNED|UNRUNNABLE with its exit code.
+// LAYER: LIVE / ASSEMBLED PACKAGE   APP LAYER: NONE
+//
+// **⟶ THE LAYER LINE ABOVE IS ADDED 2026-10-25 BY `D-9`'s STRUCTURAL MOVE (b) — run B of
+// `docs/L1/test-stratification.md §2.7.2`, the `O3` runner that keeps its own file, its own exit rule and its
+// own label (`strata/decisions.md` `D-9`, read through its correction: the `O4` set is LEFT UNTOUCHED and only
+// the `O3` cells move).** **AND IT IS DECLARED AND NOT YET EVIDENCED, WHICH IS SAID IN THOSE WORDS SO THE LABEL
+// MANUFACTURES NO GREEN — measured, not asserted: NO CELL OF THIS RUN REACHES THE PACKAGE THE WAY THE LABEL
+// DESCRIBES.** The runner's imports are Node builtins alone; it reads the repository's own bytes (the
+// manifest, the workflow, the crate, `git tag --list`), it reads the checkout's `.node` DIRECTLY at
+// `bindings/js/build/Release/` (rung two, in place — never through the package's entry, and never through a
+// staged or installed tree), its five `SOURCE-PINNED` details are marked as such at their own rows, and **its
+// one ENTRY-LEVEL subject is `UNRUNNABLE`** — `CF-11`, whose printed reason is that *"no published platform
+// package exists to install"* and that `index.mjs` stood behind the implementation wall when this pass wrote
+// it. **So no green of this run is evidence for this label.** `D-9` assigns it ON ROUTE (an `O3` cell:
+// publish-readiness by purpose, `D-6`), and `O3`'s staged tree is the first instrument that could give it a
+// subject (the open question `Q12` — the test layer's, and not answered here). **The vocabulary is CITED AND
+// NEVER MINTED** — `docs/specs/storeroom-js/acceptance.md §4.2`, archived at
+// `archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/acceptance.md`, for `ENVELOPE/PURE` and for the
+// assembled/`APP` layer's `NONE`, and `LIVE / ASSEMBLED PACKAGE` as the tree already prints it
+// (`tests/e2e/live-drive.mjs:1549`). **`APP` STAYS `NONE`: no cell of this run may claim an `APP`-green.**
 import { readFileSync, writeFileSync, mkdtempSync, existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
@@ -17,6 +37,18 @@ const ART = join(ROOT, 'bindings/js/build/Release/storeroom_js_binding.node');
 const WF = join(ROOT, '.github/workflows/publish.yml');
 const CRATE = join(ROOT, 'bindings/js/Cargo.toml');
 const manifest = () => JSON.parse(readFileSync(M, 'utf8'));
+
+/** **RUN B'S LABEL, AT ITS ONE HOME IN THIS FILE** (`D-9`; `test-stratification.md §2.7.2` run B) — the label
+ *  the run PRINTS and the one a figure of this run would carry. **Declared, not yet evidenced**: see the head. */
+const LAYER = 'LIVE / ASSEMBLED PACKAGE';
+/** `docs/specs/storeroom-js/acceptance.md §4.2` item 2: there is no assembled application to be green. */
+const APP_LAYER = 'NONE';
+/** The label line, printed BEFORE any scenario so a run's layer is legible rather than inferred from this file. */
+const labelLine = () => console.log(`LAYER: ${LAYER}   APP LAYER: ${APP_LAYER}   (DECLARED, NOT YET EVIDENCED: `
+  + 'no cell of this run reaches the package through its entry or a staged/installed tree — `CF-11` is '
+  + 'UNRUNNABLE for that reason and the runner\'s imports are Node builtins alone — so no green of this run '
+  + 'is evidence for this label, and none is claimed as one)');
+labelLine();
 
 // **EVERY SELECTOR IN THIS RUNNER IS COUNTED, AND UNIQUENESS IS PART OF THE VERDICT** (`S5`'s sibling
 // finding, applied to this runner): `lines.findIndex(pred)` is a FIRST MATCH and not a count, so a

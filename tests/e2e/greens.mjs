@@ -1894,7 +1894,7 @@ if (RETIRED.length === 0) console.log('  none');
 for (const line of RETIRED) console.log(`  ${line}`);
 console.log('');
 console.log('── THE RUN ─────────────────────────────────────────────────────────────────────────');
-console.log(`SITE:  node bindings/js/greens/greens.mjs   (cwd: ${process.cwd()})`);
+console.log(`SITE:  node tests/e2e/greens.mjs   (cwd: ${process.cwd()})`);
 console.log(`ENTRY: ${new URL('../../bindings/js/index.mjs', import.meta.url).pathname}`);
 console.log(`ENTRY 2 (JSG-16.1 only): ${new URL('../../bindings/js/src/constraint-kernel.mjs', import.meta.url).pathname}`);
 console.log(`LAYER: ${LAYER}   APP LAYER: ${APP_LAYER}   (no APP-green is claimed)`);
