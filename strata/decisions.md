@@ -2033,3 +2033,29 @@ function whose signature and consumers `D-30` then changed.**
 **THE CORRECT RESPONSE IS THE ONE `D-13` ITSELF NAMES AS ITS PRECONDITION:** *"its cut must be declared against a
 MEASUREMENT of that file, not guessed from its length."* **The declarations are re-issued against HEAD; no code
 moves until they are.** **The L4 pass was right to stop, and it is recorded as having been right.**
+
+---
+
+### `D-33` — take the entry's clean seam, and the subdivision executes in two stages
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect: *"Split"*.
+
+**WHAT IT SETTLES.** **Entry part 6 (`the walk`, 1,337 lines) SPLITS at `L2799` into `927 + 410`** — the seam the
+re-measurement found clean — **so the entry becomes NINE parts and the subdivision's target set becomes thirteen
+paths plus the barrel, not twelve.** **`D-14`'s enumeration is restated accordingly, and the four drives' re-staging
+is declared against thirteen.** **Part 5 keeps its size**: its natural seam is a **measured cycle**, so splitting it
+would need a code change and not a move.
+**The split serves `D-2`'s own ground.** Part 6 was the second-largest at **1,337**; `927 + 410` puts every entry
+part under 1,000 **except part 1 at 1,400, which is irreducible by a pure move** (1,310 is `storeCreate` with
+fourteen members closing over one local state).
+
+**AND THE EXECUTION IS STAGED, BECAUSE THE MODEL'S OWN WALL SPLITS IT.**
+
+1. **STAGE 1 — THE KERNEL CUT (L4, source only).** Five parts under `src/entry/kernel-*.mjs` plus a re-export barrel
+   at the old path. **Independently verifiable and verifiable to GREEN**: the barrel keeps the path every importer
+   uses, and `index.mjs` is untouched — **so all four legs must stay green and any red is the pass's own.**
+2. **STAGE 2 — THE ENTRY CUT (L4, source only) THEN THE FOUR DRIVES RE-STAGED (test writer).** **These two are
+   COUPLED and the tree is transiently RED between them**: once `index.mjs` imports parts, the drives' staged trees —
+   which carry `index.mjs` alone — cannot load (`D-14`), and **`role_l4_implementer` may not edit tests.** **So stage
+   2's source move lands with four known load failures, and the very next pass repairs them.** **That transient red
+   is DECLARED here rather than discovered**, and the two passes must land back to back.
