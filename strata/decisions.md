@@ -862,3 +862,41 @@ is L1's and L2's to declare; the permission this ruling gives is to pack and ins
 **WHAT IT DOES NOT SETTLE.** Whether the battery packs **all five** platform artefacts or **the host's alone**;
 whether a **registry-named** install is also driven to show the pinned-dependency route; the platform artefact's
 own cells; and how the local install is isolated from the repository ancestry `§4.2` item 1 requires absent.
+
+---
+
+### `D-13` — the kernel is cut too, and `bindings/js/src/entry/` is the parts' home
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, answering the
+subdivision declaration's first two questions.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> 1. Kernel can be cut
+> 2. That works
+
+**WHAT IT SETTLES.**
+
+- **`bindings/js/src/constraint-kernel.mjs` (2,203 lines) IS TO BE CUT**, on `D-2`'s own ground: **it is longer
+  than every one of the eight entry parts**, so leaving it whole would reproduce in miniature the problem `D-2`
+  exists to fix. **The entry's cut and the kernel's cut are one readability decision, not two.**
+- **`bindings/js/src/entry/` is the parts' home** — confirmed, so the entry's parts ship **inside `src/`** rather
+  than at the package root or a sibling `parts/`. **That is also the reachability fact the allowlist inherits:**
+  with the parts under `src/`, a published tarball must carry `src/entry/**`, which is the third time this branch
+  has found the allowlist to be a consequence of the code rather than a declaration (`D-3`, `D-4`).
+
+**WHAT IT DOES NOT SETTLE — and the first is a precondition rather than a detail.**
+
+- **The kernel's cut lines.** The subdivision pass **did not measure the kernel's internal graph** and said so;
+  **its cut must be declared against a measurement of that file, not guessed from its length.** A kernel cut
+  declared from the outside would be exactly the kind of invented boundary `D-2` was told not to draw.
+- **Whether the kernel's parts live under `src/entry/`** (the entry's home) **or their own directory** — the
+  kernel is not part of the entry's I/O surface, so "the parts' home" answers the entry's question and not
+  necessarily the kernel's.
+- **The module and endpoint arithmetic after both cuts.** Whether a kernel part becomes its own module or stays
+  internal to `js-constraints` moves the counts the map now holds at 19 modules / 61 endpoints.
+- **It orders no code move**, like `D-1` and `D-2`.
+
+**FACT THAT MAKES THE KERNEL CUT CHEAP, MEASURED ON THIS BRANCH:** `constraint-kernel.mjs` has **zero imports**
+(`D-2`'s pass measured it, and L0 re-measured it here). **It is internally self-contained, so its parts can be cut
+without creating an import cycle among them** — the one hazard a cut of a 2,203-line file most often meets.
