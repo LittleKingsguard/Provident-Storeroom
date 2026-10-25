@@ -296,12 +296,19 @@ function sameAddress(left, right) {
 // ---------------------------------------------------------------------------------------------
 const KERNELS = new WeakMap();
 
-// THE ATTEMPT RECORDS ARE THE KERNEL'S OWN CALLER-SIDE SHAPE AND ARE KEYED BY THE `AttemptRef`, NOT BY
-// THE INSTANCE: a reader answers "from the record and not from the store instance"
-// (`ck_surface_K4_the_readers_answer_from_the_record_and_not_from_the_store_instance`; `§2.1` item 4).
-const LIVE = new Map();
-const CLOSED = new Map();
-let ATTEMPTS = 0;
+// **⟶ THE ATTEMPT RECORDS ARE THE INSTANCE'S OWN, AND THE MODULE-LEVEL `LIVE`/`CLOSED` MAPS AND THE
+// MODULE-LEVEL `ATTEMPTS` COUNTER THAT STOOD HERE ARE GONE** (`D-30`, verbatim: *"Make it instance-scoped -
+// Creating a new store should create a new stack."*; read with `A137`: *"the registries and the journals are
+// independent and a constraint on one store does not refuse a write to the same address on another"*).
+// **THEY STAND IN THE RECORD `kernelFor(store)` CREATES, BESIDE `pairs` AND `handles`, AND ARE KEYED BY THE
+// `AttemptRef`'s `id` WITHIN THAT INSTANCE** — `attempt-lifecycle.md §2.4` item 1's own scope: the `id` is
+// *"unique within the kernel instance"*, which is exactly what the counter counts and what the two maps hold.
+// The bytes that stood here declared the records *"KEYED BY THE `AttemptRef`, NOT BY THE INSTANCE"* and are
+// read THROUGH this clause (`DEF-2026-10-02`: no whole-file rewrite): the readers still answer "from the
+// record and not from the store instance" (`ck_surface_K4_the_readers_answer_from_the_record_and_not_from_
+// the_store_instance`; `§2.1` item 4), the record being THE INSTANCE'S and `K-4`/`K-5` taking the instance
+// first. **AND THE SCOPE'S OLD COST IS THE ONE `D-30` NAMES**: with one module-level map, a live attempt in
+// one instance held its address against a `K-2` in EVERY OTHER, only an address ever being compared.
 
 function kernelFor(store) {
   let kernel = KERNELS.get(store);
@@ -339,6 +346,14 @@ function kernelFor(store) {
       // **AND THE INSTANCE IS RECORDED BESIDE THE STATE SO A KERNEL-SIDE ACT CAN REACH THE APP'S OWN PUBLISHED
       // MEMBERS WITHOUT A SECOND POSITION BEING THREADED THROUGH** (`contract.md §2.9` item 2: `K-6` calls
       // `removeListener`, and this is how the kernel holds the instance it acts on).
+      // **THE INSTANCE'S OWN ATTEMPT STATE — THE LIVE RECORDS, THE CLOSED RECORDS AND THE COUNTER THE ATTEMPT
+      // `id` IS MINTED FROM** (`D-30`'s clause above). **`live` IS ALSO WHAT `KC-7`'s HOLD READS**: an attempt
+      // is placed here the instant the store's write verb returns and is removed by its own terminal act
+      // (`release`), so THIS map's membership IS the hold and no second structure is taken
+      // (`attempt-lifecycle.md §2.4` item 8 (ii) (g); `contract.md §2.8` item 7).
+      live: new Map(),
+      closed: new Map(),
+      attempts: 0,
       store,
     };
     KERNELS.set(store, kernel);
@@ -786,9 +801,9 @@ function registrationAttempt(kernel, store, pair) {
   // be a different identity"*: a string key compares by VALUE, so the identity the attempt carries and the
   // identity the next `K-1` answers are the same key whether or not a row stands.
   const key = row === null ? pair.id : row.key;
-  ATTEMPTS += 1;
+  kernel.attempts += 1;
   const attempt = {
-    ref: { id: `attempt-${ATTEMPTS}` },
+    ref: { id: `attempt-${kernel.attempts}` },
     store,
     address: address.slice(),
     tier: null,
@@ -826,7 +841,7 @@ function registrationAttempt(kernel, store, pair) {
     // **THE BODY'S THROWABLE IS NOT CONVERTED INTO A STORE FORM AND IS NOT REACHED BY THE CALLER HERE**: it
     // is caught so the attempt can close and the registration can be refused in the declared form; a drive
     // that expected the body's own value out of `addConstraint` has read a route no clause declares.
-    closeRegistrationAttempt(attempt);
+    closeRegistrationAttempt(kernel, attempt);
     return registrationRefusal(address, pair.id, attempt.log);
   }
 
@@ -835,7 +850,7 @@ function registrationAttempt(kernel, store, pair) {
   if (produced === null) {
     // ARM (d) — THE REPAIR PRODUCED NO OP: `{ok: false, message}`, an outside-form return, or an
     // `ok === true` return whose `op` is absent, `undefined` or not the one it landed.
-    closeRegistrationAttempt(attempt);
+    closeRegistrationAttempt(kernel, attempt);
     return registrationRefusal(address, pair.id, attempt.log);
   }
 
@@ -850,12 +865,12 @@ function registrationAttempt(kernel, store, pair) {
   // (`kernel-surface.md §2.3` item 1), in first-registration order, against THAT op.
   const failed = registrationRerun(kernel, attempt, produced);
   if (failed !== null) {
-    closeRegistrationAttempt(attempt);
+    closeRegistrationAttempt(kernel, attempt);
     return registrationRefusal(address, pair.id, attempt.log);
   }
   // THE PASSING ARM: `PASSED` → `CLOSED` and the registration STANDS. **NO LOG CROSSES**, and the repair's
   // edit STANDS in the store — the side effect the architect's trust clause licenses (`3-bis` (f)).
-  closeRegistrationAttempt(attempt, 'passed');
+  closeRegistrationAttempt(kernel, attempt, 'passed');
   return null;
 }
 
@@ -938,7 +953,7 @@ function registrationRefusal(address, id, log) {
 /// rollback** — the repair's edit STANDS on the passing arm (`3-bis` (f)), and a failed repair's own state
 /// is left where the store's own verb left it (`3-bis` (d): the store's state is left where the composition
 /// restored it, which for an attempt with no rollback composed is the state the verb produced).
-function closeRegistrationAttempt(attempt, outcome = 'failed') {
+function closeRegistrationAttempt(kernel, attempt, outcome = 'failed') {
   attempt.status = 'closed';
   const report = {
     attempt: attempt.ref,
@@ -948,8 +963,11 @@ function closeRegistrationAttempt(attempt, outcome = 'failed') {
     rollback: [],
   };
   attempt.report = report;
-  CLOSED.set(attempt.ref.id, report);
-  LIVE.delete(attempt.ref.id);
+  // **THE TWO RECORDS ARE THE ATTEMPT'S OWN INSTANCE'S** (`D-30`): the caller's `store` is the one this
+  // synthetic attempt was opened against, and its kernel is IN HAND ONE FRAME ABOVE, so no second position
+  // and no second lookup is taken.
+  kernel.closed.set(attempt.ref.id, report);
+  kernel.live.delete(attempt.ref.id);
   return report;
 }
 
@@ -992,7 +1010,10 @@ export function commit(store, address, tier, value) {
   // `contract.md §2.8` item 7: a second `K-2` at a HELD address is refused BEFORE the write verb is reached,
   // and a `K-2` at a DESCENDANT address is ADMITTED because the hold is taken at the call's OWN address.
   // **AND A DRIVE ASSERTS THE REFUSAL AND NOT THE MAP IT CAME FROM** (`contract.md §8` item 12).
-  if (held && attemptHeldAt(address)) {
+  // **⟶ AND THE SCAN IS THE INSTANCE'S OWN** (`D-30`): it reads THIS store's kernel's live attempts, so a live
+  // attempt in ONE instance refuses no `K-2` in ANOTHER at the same address (`A137`), while a second `K-2` at a
+  // HELD address WITHIN the instance is refused exactly as it stood. **THE ADDRESS COMPARISON ITSELF IS UNMOVED.**
+  if (held && attemptHeldAt(kernel, address)) {
     refuse(KC.attemptOpen,
       `a constraint attempt is already open at ${JSON.stringify(address)}; it is disposed of by its own `
       + 'K-3 and by no other act',
@@ -1007,7 +1028,8 @@ export function commit(store, address, tier, value) {
   // head's `kernel.held.has(token)` refusal reads, and the map's values are only ever `has`ed and
   // `delete`d (`release`). `KC-7`'s `K-2` half is refused ONLY at the address that already holds the
   // live attempt: a nested `K-2` at a DESCENDANT address meets no hold of its own and is ADMITTED.
-  // ── (the hold is the LIVE map's own membership from here on: no second structure is taken) ──────────
+  // ── (the hold is THIS INSTANCE's live-attempt map's own membership from here on: no second structure is
+  // taken, and the map is `kernel.live` — `D-30`'s per-store record, not a module-level one) ───────────
 
   // THE STORE'S OWN VERB CHOOSES WHICH REFUSAL ANSWERS. An out-of-domain `tier` and an absent
   // `value` are THE STORE'S own code on THE STORE'S own channel, and the kernel mints no `KC-2` for
@@ -1015,9 +1037,9 @@ export function commit(store, address, tier, value) {
   // ATTEMPT WAS OPENED, SO THE ADDRESS IS LEFT UNHELD: the hold taken above is released and the store's
   // own throwable reaches the caller UNCHANGED AND UNCONVERTED (`fail-surface.md §1.2` item 2) — a
   // refused write leaves no hold behind (`ck_surface_K2_an_out_of_domain_tier_is_the_store_s_own_code_on_the_store_s_own_channel`).
-  ATTEMPTS += 1;
+  kernel.attempts += 1;
   const attempt = {
-    ref: { id: `attempt-${ATTEMPTS}` },
+    ref: { id: `attempt-${kernel.attempts}` },
     store,
     address: address.slice(),
     tier,
@@ -1095,7 +1117,7 @@ export function commit(store, address, tier, value) {
 
   attempt.write = written;
   attempt.ops = [written.op];
-  LIVE.set(attempt.ref.id, attempt);
+  kernel.live.set(attempt.ref.id, attempt);
 
   // **THE MEMBERS THE WRITE'S OWN RETURN CARRIES, READ OFF IT VERBATIM** (`A112`; `§2.2` item 2): the
   // record above was built with the four members the seam's own adoption is keyed by — the identity alone
@@ -1133,7 +1155,7 @@ export function commit(store, address, tier, value) {
 export function runAttempt(store, commitRecord) {
   const kernel = kernelFor(store);
   const id = commitAttemptIdOf(commitRecord);
-  const attempt = LIVE.get(id);
+  const attempt = kernel.live.get(id);
   if (attempt === undefined) {
     // A CLOSED or UNKNOWN attempt is KC-2 — and NEVER KC-7, whose `K-3` site is the RE-ENTRANT call
     // for a LIVE attempt (`fail-surface.md §2`'s KC-2 row; `kernel-surface.md §2.3` item 3).
@@ -1383,9 +1405,14 @@ function pairsAtAddress(kernel, address) {
  * **AND THE ANSWER IS THE DECLARED REFUSAL'S SUBJECT AND NOTHING ELSE**: a second `K-2` at the SAME address is
  * refused `KC-7`; one at a DESCENDANT address meets no attempt of its own and is ADMITTED
  * (`kernel-surface.md §2.1` item 2's hold clause; `contract.md §2.8` item 7).
+ *
+ * **⟶ AND THE SCAN IS SCOPED TO ONE KERNEL INSTANCE** (`D-30`; `A137`): it takes the kernel the caller's own
+ * store answers and iterates THAT kernel's live attempts. **THE ITERATION IS OTHERWISE UNMOVED** — the same
+ * `values()` walk, the same structural `sameAddress` comparison, the same first-match `true` — so the only
+ * thing that changes is WHICH records are scanned.
  */
-function attemptHeldAt(address) {
-  for (const attempt of LIVE.values()) {
+function attemptHeldAt(kernel, address) {
+  for (const attempt of kernel.live.values()) {
     if (sameAddress(attempt.address, address)) return true;
   }
   return false;
@@ -1845,7 +1872,7 @@ function terminal(kernel, attempt, status, message) {
     log: attempt.log,
     rollback: attempt.rollback.slice(),
   };
-  CLOSED.set(attempt.ref.id, attempt.report);
+  kernel.closed.set(attempt.ref.id, attempt.report);
   release(kernel, attempt);
 }
 
@@ -1857,10 +1884,11 @@ function terminal(kernel, attempt, status, message) {
  * and NOT this map's.
  */
 function release(kernel, attempt) {
-  // **⟶ `kernel.held.delete` IS GONE** (`P: docs/pending.md · M-3` item (v), verbatim): **the hold is the LIVE
-  // map's own membership now**, so removing the live attempt record IS the release, and the address is left
-  // FREE for a fresh `K-2` (`attempt-lifecycle.md §2.4` item 3's terminal-arm clause).
-  LIVE.delete(attempt.ref.id);
+  // **⟶ `kernel.held.delete` IS GONE** (`P: docs/pending.md · M-3` item (v), verbatim): **the hold is the live
+  // attempt map's own membership now**, so removing the live attempt record IS the release, and the address is
+  // left FREE for a fresh `K-2` (`attempt-lifecycle.md §2.4` item 3's terminal-arm clause). **AND THE MAP IS
+  // THE INSTANCE'S OWN** (`D-30`): `kernel.live`, the record `kernelFor(store)` created.
+  kernel.live.delete(attempt.ref.id);
 }
 
 /** The success arm's own bookkeeping, shared with `terminal`'s removal rule. */
@@ -1874,7 +1902,7 @@ function close(kernel, attempt, outcome) {
     rollback: [],
   };
   attempt.report = report;
-  CLOSED.set(attempt.ref.id, report);
+  kernel.closed.set(attempt.ref.id, report);
   release(kernel, attempt);
   return report;
 }
@@ -2036,10 +2064,14 @@ function baseState(store, address) {
 // `K-4` `log(store, attempt) -> LogEntry[]` — the attempt's own log, OPEN or CLOSED alike.
 // ---------------------------------------------------------------------------------------------
 export function log(store, reference) {
+  // **THE READS ARE THE INSTANCE'S OWN** (`D-30`): the reference names an attempt the kernel instance the
+  // caller's `store` answers MINTED, and this is the kernel that holds its records — the reader answers "from
+  // the record and not from the store instance" (`§2.1` item 4) still, the record being the instance's.
+  const kernel = kernelFor(store);
   const id = attemptIdOf(reference);
-  const live = LIVE.get(id);
+  const live = kernel.live.get(id);
   if (live !== undefined) return live.log;
-  const closed = CLOSED.get(id);
+  const closed = kernel.closed.get(id);
   if (closed !== undefined) return closed.log;
   refuse(KC.arg, `no constraint attempt answers to ${id}`, []);
 }
@@ -2048,8 +2080,11 @@ export function log(store, reference) {
 // `K-5` `report(store, attempt) -> AttemptReport`
 // ---------------------------------------------------------------------------------------------
 export function report(store, reference) {
+  // **AND `K-5`'S READS ARE THE SAME INSTANCE'S** (`D-30`), taken the one way every item on this surface
+  // takes the instance: through `kernelFor`.
+  const kernel = kernelFor(store);
   const id = attemptIdOf(reference);
-  const live = LIVE.get(id);
+  const live = kernel.live.get(id);
   if (live !== undefined) {
     // `K-5` OVER AN ATTEMPT THAT IS STILL OPEN IS `KC-7` — "which is how a drive reads that the attempt
     // IS live" (`kernel-surface.md §2.1` item 5; `fail-surface.md §2`'s `KC-7` row). THIS IS THE MEMBER
@@ -2057,7 +2092,7 @@ export function report(store, reference) {
     // open record is refused whether the attempt is mid-run or has not yet begun.
     refuse(KC.attemptOpen, `the constraint attempt ${id} is still open`, []);
   }
-  const closed = CLOSED.get(id);
+  const closed = kernel.closed.get(id);
   if (closed !== undefined) return closed;
   // AN UNKNOWN REFERENCE IS KC-2 AND NEVER KC-7 (`kernel-surface.md §2.1` item 5).
   refuse(KC.arg, `no constraint attempt answers to ${id}`, []);
