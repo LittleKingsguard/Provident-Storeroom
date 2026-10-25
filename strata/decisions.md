@@ -900,3 +900,40 @@ subdivision declaration's first two questions.
 **FACT THAT MAKES THE KERNEL CUT CHEAP, MEASURED ON THIS BRANCH:** `constraint-kernel.mjs` has **zero imports**
 (`D-2`'s pass measured it, and L0 re-measured it here). **It is internally self-contained, so its parts can be cut
 without creating an import cycle among them** — the one hazard a cut of a 2,203-line file most often meets.
+
+---
+
+### `D-14` — the four drives re-stage by GLOB plus an explicit kernel path
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, choosing among the
+three re-staging mechanisms L0 put to him.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> 3
+
+**WHAT IT SETTLES.**
+
+- **The re-staging mechanism is the GLOB of the parts directory, paired with an EXPLICIT KERNEL PATH.** No
+  hand-maintained part list is written into any drive: `src/entry/` is a **closed set by construction**, so a glob
+  is stable, **and the kernel's path is named explicitly because a glob cannot express it.**
+- **The four drives stop claiming an entry-only tree.** `publish`, `publish-generators`, `version-stamp` and
+  `negative-generators` each stage **the part set** instead of `index.mjs` alone, so **the claim that a tree
+  carrying the entry by itself still loads retires with `D-1`'s lazy seam** — it is not repaired, it is withdrawn.
+- **It is the option that does not re-introduce a list**, which was the ground: `D-3` and `D-4` removed a
+  hand-maintained manifest rule from this project, and a hand-listed part set would have put one back one
+  directory over.
+
+**WHAT IT DOES NOT SETTLE.**
+
+- **The glob's exact form** — which directory it walks, whether it is recursive, and what a drive does if it
+  matches nothing (an empty match must be a **loud** failure, not a silently smaller tree).
+- **The explicit kernel path after the kernel's cut**, which `D-13` left unmeasured: the path named today
+  (`src/constraint-kernel.mjs`) is the path of a file the cut is about to change.
+- **Whether the kernel's parts belong under `src/entry/`** — if they do, the glob covers them and the explicit
+  path is belt-and-braces; **if they do not, the explicit path is load-bearing** (`D-14`'s pairing).
+- **How `publish`'s fault-injection arms stay orthogonal.** That drive writes a **deliberately faulty** entry
+  source, and its subjects are the absent-addon and wrong-version arms. **A globbed part set must not let a shape
+  fault and an injected fault be read as one another** — a finding to declare, not to discover at the assertion.
+- **It orders no code move.** The cut and these four drives land as one wave (`D-14`'s own ordering fact), and no
+  wave is opened by this ruling.
