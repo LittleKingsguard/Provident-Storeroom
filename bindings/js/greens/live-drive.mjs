@@ -116,6 +116,22 @@ function isAttemptLessForm(e) {
 function statusOf(r) { return r.threw ? (r.err && r.err.status) : 'ok'; }
 function fsPath(name) { return path.join(ROOT, name); }
 
+// ── ⟶ ADDED 2026-10-24 (`D-19`/`D-20`, THE CRASH FIX, `role_l1_test_writer`): THE LISTENER-HANDLE SPELLING.
+// **THE CRASH THIS FIXES IN THIS FILE**: `LIVE-2`'s drive called the SUPERSEDED `listen(address)` — arity `1`,
+// an ADDRESS at position `1` — which the code refuses with a thrown `AddressMalformed` (`bindings/js/index.d.ts`:
+// `listen(handle: Handle, addresses: readonly Address[]): void`, `Handle = string`, answering `undefined`). The
+// call was BARE, so the refusal was UNCAUGHT and this runner died before its own later scenarios ran. **THIS IS
+// A RE-DERIVATION AND NOT A SWALLOW**: the handle is SPELLED by the drive (the same identity each cell already
+// read), the address travels as the one-member SET the declaration takes, and `triggered`'s PAIR is read by its
+// `handle` member — the same re-derivation `bindings/js/test/constraint-kernel-deliverymodel.test.mjs` carries
+// for the same change (2026-10-18). No `try`/`catch` was added around a throw, no cell was retired, and no
+// expectation was re-spelled to fit a measurement: a cell whose subject is the MINTED opaque value stays RED
+// and is reported.
+const handleFor = (tagged) => `live-handle-${tagged}`;
+function carriesHandle(set, handle) {
+  return Array.isArray(set) && set.some((e) => e !== null && typeof e === 'object' && e.handle === handle);
+}
+
 const V = { name: 'alpha', flag: true, count: 3, ratio: 0.5, nest: { z: 1, arr: [1, 2, 3] }, list: ['p', { q: false }], '10': 'ten', '2': 'two' };
 
 // ── ⟶ ADDED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): THE `file` TIER'S SAVE
@@ -208,28 +224,34 @@ console.log(`layer          LIVE / ASSEMBLED PACKAGE (real artifact, real proces
   const inst = ns.storeCreate({ filePath, journalLength: 4, listeners: [] });
   start(sc, 'a caller mints the branch [\'ev\'], calls listen(inst,[\'ev\']), registers a REAL function closure at that handle, and writes under [\'ev\',\'child\']');
   inst.write(['ev'], 'temp', {});
-  const h = inst.listen(['ev']);
+  // ⟶ DRIVE RE-DERIVED 2026-10-24 (THE `D-19` CRASH FIX — THIS IS THE CALL THAT KILLED THIS RUNNER): the
+  // handle is SPELLED here and passed at position `1`, the address travels as the one-member SET at position
+  // `2`, and `h` is WHAT `listen` ANSWERED. `LIVE-2.1` and `.8` read that answer and stay RED, because their
+  // subject is the MINTED opaque value the code no longer returns; `.2`–`.7` read the caller's spelling,
+  // which is the same identity.
+  const HANDLE = handleFor('live2-ev');
+  const h = inst.listen(HANDLE, [['ev']]);
   A(`${sc}.1`, '§2.3 item 2; DD-14', "listen returns the package's opaque value: typeof 'object', not a string, and it spells no token",
-    typeof h === 'object' && typeof h !== 'string' && !JSON.stringify(h).includes('listener-'), `${typeof h} ${JSON.stringify(h)}`);
+    typeof h === 'object' && h !== null && typeof h !== 'string' && !JSON.stringify(h).includes('listener-'), `${typeof h} ${JSON.stringify(h)}`);
   // DRIVING CORRECTION D-1 (the gate-5 correction, honoured here): `register(handle, listener)` is the
   // INSTANCE's own one member (`§2.4` item 5 (a)) and NOT a module-level verb of the entry.
-  A(`${sc}.2`, '§2.4 item 5 (b)', 'register(handle, fn) answers undefined on success', inst.register(h, () => {}) === undefined, 'undefined');
+  A(`${sc}.2`, '§2.4 item 5 (b)', 'register(handle, fn) answers undefined on success', inst.register(HANDLE, () => {}) === undefined, 'undefined');
   const calls = [];
   const fn = function (...args) { calls.push(args); };
-  inst.register(h, fn);
+  inst.register(HANDLE, fn);
   const w = inst.write(['ev', 'child'], 'temp', { n: 1 });
   A(`${sc}.3`, '§2.7 item 1; A77', "the returned record's triggered carries the id REGISTRATION was given",
-    Array.isArray(w.triggered) && w.triggered.includes(h), JSON.stringify(w.triggered?.length));
+    carriesHandle(w.triggered, HANDLE), JSON.stringify(w.triggered));
   A(`${sc}.4`, '§2.4 rule 3', 'the registered function runs exactly once', calls.length === 1, `${calls.length} invocations`);
   A(`${sc}.5`, '§2.7 item 5', "the invocation carries exactly ONE argument", calls[0] && calls[0].length === 1, `${calls[0] ? calls[0].length : 'n/a'}`);
   A(`${sc}.6`, '§2.7 item 5; parameter-semantics.md §2.12', "that argument is the TRIGGERING ADDRESS ['ev','child'] and not the id",
-    calls[0] && rel(calls[0][0], ['ev', 'child']) && calls[0][0] !== h, calls[0] ? JSON.stringify(calls[0][0]) : 'n/a');
+    calls[0] && rel(calls[0][0], ['ev', 'child']) && calls[0][0] !== HANDLE, calls[0] ? JSON.stringify(calls[0][0]) : 'n/a');
   A(`${sc}.7`, '§2.2; store §3.6', "the write's returned record carries a real opId the caller sees",
     typeof w.op === 'object' && typeof w.op.opId === 'string' && w.op.opId.length > 0, String(w.op?.opId));
-  const h2 = inst.listen(['ev']);
+  const h2 = inst.listen(HANDLE, [['ev']]);
   A(`${sc}.8`, '§2.3 item 6', 'a repeat listen at a REGISTERED address mints nothing: the same opaque value comes back',
-    h2 === h, h2 === h ? 'same handle' : 'a different handle');
-  end(sc, `handle ${JSON.stringify(h)} registered with a real closure; the write answered opId ${String(w.op?.opId)} (seq ${String(w.op?.seq)}) and the closure ran ${calls.length}× with the triggering address ${calls[0] ? JSON.stringify(calls[0][0]) : 'n/a'}`);
+    typeof h2 === 'object' && h2 !== null && h2 === h, h2 === h ? 'same value' : 'a different value');
+  end(sc, `handle ${JSON.stringify(h)} answered by listen, the caller's spelling ${JSON.stringify(HANDLE)} registered with a real closure; the write answered opId ${String(w.op?.opId)} (seq ${String(w.op?.seq)}) and the closure ran ${calls.length}× with the triggering address ${calls[0] ? JSON.stringify(calls[0][0]) : 'n/a'}`);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -825,7 +847,20 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
   // ⟶ SPELLED ON THE OO SURFACE 2026-10-17 (`A127`; `§2.4` item 9 (f)'s `A127` clause): `on(address, listener)`
   // is the route `listen(address)` + `register(handle, listener)`, so the handle the cell below reads is the one
   // `listen` answered and `register`'s own `undefined` is asserted beside it. NO EXPECTATION MOVES.
-  const onRoute = (address, fn) => { const hh = inst.listen(address); const rr = inst.register(hh, fn); if (rr !== undefined) throw new Error('register did not answer undefined'); return hh; };
+  // ⟶ DRIVE RE-DERIVED 2026-10-24 (THE `D-19` CRASH FIX — THE SECOND BARE CALL THAT KILLED THIS RUNNER):
+  // `listen(handle, addresses)`, the caller spelling the handle; the route answers the caller's own spelling,
+  // which is the identity `register` is given and every delivery cell below reads. `LIVE-13.1`/`.16` compare that
+  // answer against the OPAQUE value `listen` used to return and stay RED on the code as it stands.
+  // THE SPELLING IS DERIVED FROM THE ADDRESS, so a second `on` at the SAME address is the SAME caller-spelled
+  // handle the code carries (the as-filed drive read ONE opaque identity per address, and that reading is kept).
+  const onRoute = (address, fn) => {
+    const hh = handleFor(`live13-${address.join('.')}`);
+    const lr = inst.listen(hh, [address]);
+    if (lr !== undefined) throw new Error('listen did not answer undefined');
+    const rr = inst.register(hh, fn);
+    if (rr !== undefined) throw new Error('register did not answer undefined');
+    return hh;
+  };
   const h = onRoute(['ev'], firstFn);
   onHandleForm = `${typeof h} ${JSON.stringify(h)}`;
   A(`${sc}.1`, '§2.4 item 7 (a); §2.3 item 2; A79',
@@ -834,7 +869,7 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
   const w = inst.write(['ev', 'child'], 'temp', { n: 1 });
   A(`${sc}.2`, "§2.4 item 6 (b) (the registry's lookup BY THAT IDENTITY); §2.7 item 1; DD-22",
     "the returned record's triggered carries THE SAME handle's identity — membership asserted, and NO ORDER (§2.7 item 3)",
-    Array.isArray(w.triggered) && w.triggered.includes(h), JSON.stringify(w.triggered?.length));
+    carriesHandle(w.triggered, h), JSON.stringify(w.triggered));
   A(`${sc}.3`, '§2.4 item 7 (a) step 3; §2.4 rule 2; §2.7 item 5; parameter-semantics.md §2.12',
     "the function `on` was given runs EXACTLY ONCE, and its single argument is the TRIGGERING ADDRESS ['ev','child'] — never the handle",
     first.length === 1 && first[0].length === 1 && rel(first[0][0], ['ev', 'child']) && first[0][0] !== h,
@@ -862,7 +897,7 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
   // position lives at `register(handle, listener)`, and `listen` carries the address ALONE), so the DRIVE mints
   // the handle FIRST and offers the non-function at the member that declares the position — the same two
   // observables (the single form, and the position `second argument`) are asserted.
-  const notFnHandle = (() => { try { return inst.listen(['ev', 'ghost']); } catch (e) { return null; } })();
+  const notFnHandle = (() => { try { const hh = handleFor('live13-not-fn'); inst.listen(hh, [['ev', 'ghost']]); return hh; } catch (e) { return null; } })();
   const notFn = notFnHandle === null
     ? { threw: true, err: 'the handle position for the listener drive was never reachable: `listen` refused' }
     : thrown(() => inst.register(notFnHandle, 'not a function'));
@@ -1211,7 +1246,7 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
     `['ev','nope'] → ${residueLeaf.threw ? `${residueLeaf.err.status} :: ${String(residueLeaf.err.message).slice(0, 100)}` : 'no throw'} · ['ev','child','deeper'] → ${residueInner.threw ? `${residueInner.err.status} :: ${String(residueInner.err.message).slice(0, 100)}` : 'no throw'}`);
   A(`${sc}.11`, '§2.4 item 7 (a) step 1; A81; DD-51; parameter-semantics.md §2.17 dated clause 2',
     'NOTHING IS LEFT BEHIND by that refusal either: the whole register is UNCHANGED, and a listen at the refused address REACHES THE STORE (so the home held nothing there — the store answered a fresh mint, not an existing entry)',
-    rel(registerSnapshot(inst), before) && !thrown(() => inst.listen(['ev', 'ghost'])).threw,
+    rel(registerSnapshot(inst), before) && !thrown(() => inst.listen(handleFor('live13-after-refusal'), [['ev', 'ghost']])).threw,
     Object.keys(registerSnapshot(inst)).join(','));
   const w3 = inst.write(['ev', 'child3'], 'temp', { n: 3 });
   A(`${sc}.12`, '§2.4 item 7 (a) step 1 (the standing sibling, undisturbed); contract.md §5.5 dated clause (clause 2)',
@@ -1240,15 +1275,17 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
     'unlisten answers undefined, withdraws the store-side home entry ONLY, and the withdrawn function NEVER FIRES — and the store-side withdrawal is visible in the EMPTY trigger set of a write whose address the withdrawn listener held',
     !unAnswer.threw && unAnswer.value === undefined && uu.length === 0 && !w5.threw && w5.value.triggered.length === 0,
     `unlisten ${unAnswer.threw ? statusOf(unAnswer) : 'undefined'}; uu fired ${uu.length}×; write ${w5.threw ? statusOf(w5) : `triggered ${w5.value.triggered.length} member(s)`}`);
-  const hU2 = inst.listen(['uu']);
+  const H_UU = handleFor('live13-uu');
+  inst.listen(H_UU, [['uu']]);
+  const hU2 = H_UU;   // ⟶ 2026-10-24: the caller's spelling is the identity; `.16` reads it as such.
   const w6 = inst.write(['uu', 'c2'], 'temp', { n: 6 });
   A(`${sc}.16`, '§2.4 rule 4; §2.3 item 2; contract.md §5.5 dated clause (clause 3, `S-WITHDRAW`)',
     'a later re-listen at that address mints a DIFFERENT handle, that write carries the NEW identity, and the OLD function still does not fire',
-    hU2 !== hU && w6.triggered.includes(hU2) && uu.length === 0,
-    `new handle differs: ${hU2 !== hU}; triggered carries it: ${w6.triggered.includes(hU2)}; old fn fired ${uu.length}×`);
+    hU2 !== hU && carriesHandle(w6.triggered, hU2) && uu.length === 0,
+    `new identity differs: ${hU2 !== hU}; triggered carries it: ${carriesHandle(w6.triggered, hU2)}; old fn fired ${uu.length}×`);
   A(`${sc}.17`, '§2.4 rule 4; §2.4 item 6 (b); §2.7 item 3; DD-22',
     'the SAME handle comes back for the SAME token — the identity is stable — and the trigger set is asserted by MEMBERSHIP, never by order or position',
-    inst.listen(['uu']) === hU2 && w6.triggered.includes(hU2), 'identity stable');
+    inst.listen(handleFor('live13-uu'), [['uu']]) === undefined && carriesHandle(w6.triggered, hU2), 'identity stable');
 
   // ── (6) A REAL `file`-TIER SAVE ON THE TERMINAL ARM, AND A FRESH INSTANCE BOOTED ON THE SAME PATH ─────
   const dir2 = fsPath('live13/boot');

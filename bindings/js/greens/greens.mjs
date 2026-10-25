@@ -182,6 +182,32 @@ const logIsEmpty = (v) => Array.isArray(v) && v.length === 0;        // item 4's
 function statusOf(r) { return r.threw ? (r.err && typeof r.err === 'object' ? r.err.status : undefined) : '<no throw>'; }
 function msgOf(r) { return r.threw && r.err && typeof r.err === 'object' ? r.err.message : undefined; }
 
+// ── ⟶ ADDED 2026-10-24 (`D-19`/`D-20`, THE CRASH FIX, `role_l1_test_writer`): THE LISTENER-HANDLE SPELLING,
+// RE-DERIVED AT ITS DRIVES TO THE CODE'S CURRENT SHAPE — AND THE PAIR READ THAT GOES BESIDE IT.
+//
+// **THE CRASH THIS PASS FIXES, STATED AT ITS CAUSE.** Every listener drive in this run called the SUPERSEDED
+// `listen(address)` — arity `1`, an ADDRESS at position `1` — and the code now refuses that call with a thrown
+// `AddressMalformed`, because the handle MOVED INTO position `1` and the addresses into position `2`
+// (`bindings/js/index.d.ts`: `listen(handle: Handle, addresses: readonly Address[]): void`, `Handle = string`,
+// `listen` answering `undefined`). `JSG-08.1`'s drive was a BARE call, so the refusal was UNCAUGHT and the
+// process died before `live-drive.mjs` and `file-tier-save/scenarios.mjs` ran at all.
+//
+// **WHY THIS IS A RE-DERIVATION AND NOT A SWALLOW** (`D-17`). No `try`/`catch` was wrapped around a throw and no
+// cell was retired or softened: the handle is now SPELLED by the drive (the same identity each cell already
+// read), the address is passed as the ONE-MEMBER SET the declaration takes, and `triggered`'s element — a PAIR
+// `{handle, address}` in the code as it stands — is read by its `handle` member, which is the same identity the
+// as-filed `triggered.includes(handle)` meant. `bindings/js/test/constraint-kernel-deliverymodel.test.mjs`
+// carries the same re-derivation for the same change (2026-10-18), and this file follows it rather than
+// inventing a second convention. **CELLS WHOSE SUBJECT IS THE *MINTED* OPAQUE HANDLE HAVE NO SUBJECT ANY MORE**
+// — nothing is minted, `listen` answers `undefined` — and they are LEFT RED AND REPORTED, never made green by a
+// vacuous comparison: each carries the type precondition its own words already presupposed.
+const listenSpelling = (tagged) => `greens-handle-${tagged}`;
+function carriesHandle(set, handle) {
+  return Array.isArray(set) && set.some((e) => e !== null && typeof e === 'object' && e.handle === handle);
+}
+const distinctHandles = (set) => [...new Set((Array.isArray(set) ? set : [])
+  .map((e) => (e !== null && typeof e === 'object' ? e.handle : e)))];
+
 // ── the scratch area (OUTSIDE the repository's tracked tree) ─────────────────────────────────────────────
 const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'sr-js-greens-'));
 function cfgFor(name, extra = {}) {
@@ -338,14 +364,21 @@ function kernelSaveFile(store, address, value) {
   const fnOn = () => {};
   const wOn = thrown(() => i1.write(['surf-on'], 'temp', {}));
   const wLs = thrown(() => i1.write(['surf-ls'], 'temp', {}));
-  const rOn = wOn.threw ? { threw: true, err: wOn.err } : thrown(() => { const h = i1.listen(['surf-on']); return i1.register(h, fnOn) === undefined ? h : { bad: 'register did not answer undefined' }; });
-  const rLs = wLs.threw ? { threw: true, err: wLs.err } : thrown(() => i1.listen(['surf-ls']));
+  // ⟶ DRIVE RE-DERIVED 2026-10-24 (THE `D-19` CRASH FIX): `listen(handle, addresses)` — the caller spells the
+  // handle and the call answers `undefined`, so `onH`/`lsH` below are WHAT `listen` ANSWERED and `H_ON`/`H_LS`
+  // are the CALLER'S OWN spelling. NO EXPECTATION MOVES: `.16` still asserts the opaque-return half it always
+  // asserted, and reads it off what the code actually returns.
+  const H_ON = listenSpelling('g01-surf-on');
+  const H_LS = listenSpelling('g01-surf-ls');
+  const rOn = wOn.threw ? { threw: true, err: wOn.err } : thrown(() => { const h = i1.listen(H_ON, [['surf-on']]); return i1.register(H_ON, fnOn) === undefined ? h : { bad: 'register did not answer undefined' }; });
+  const rLs = wLs.threw ? { threw: true, err: wLs.err } : thrown(() => i1.listen(H_LS, [['surf-ls']]));
   const onH = rOn.threw ? undefined : rOn.value;
   const lsH = rLs.threw ? undefined : rLs.value;
   A('JSG-01.16', '§2.4 item 9 (f)\'s `A127` clause (the route is `listen` + `register`); §2.3 dated clause 1; §2.3 item 2', "the combined route `listen(address)` then `register(handle, listener)` answers the package's OPAQUE handle from `listen` — a non-null object, neither a function nor an array — and it is the SAME output spelling the bare `listen` returns, with `register` answering `undefined`: the two-spelling rule gains NO third", !rOn.threw && onH !== null && typeof onH === 'object' && !Array.isArray(onH) && !rLs.threw && lsH !== null && typeof lsH === 'object' && !Array.isArray(lsH), rOn.threw ? `the combined route threw ${fmt(rOn.err)}` : `register:${fmt(onH)} listen:${rLs.threw ? `listen threw ${fmt(rLs.err)}` : fmt(lsH)}`);
-  const rOff = lsH === undefined
-    ? { threw: true, err: 'the withdrawal\'s handle position was never reachable: `listen`\'s handle was never reachable' }
-    : thrown(() => i1.unlisten(lsH));
+  // ⟶ DRIVE RE-DERIVED 2026-10-24 (THE `D-19` CRASH FIX): the withdrawal is driven over THE CALLER'S OWN
+  // HANDLE — which is the in-domain handle the code carries — instead of over an object `listen` no longer
+  // returns. The cell's subject (a withdrawal answering `undefined`) is unchanged.
+  const rOff = thrown(() => i1.unlisten(H_LS));
   A('JSG-01.17', '§2.4 item 9 (f)\'s `A127` clause (the withdrawal is `unlisten`); parameter-semantics.md §2.8 dated clause', 'unlisten(handle) returns undefined on every success, driven over the in-domain handle `listen` returned', !rOff.threw && rOff.value === undefined, rOff.threw ? `threw ${fmt(rOff.err)}` : fmt(rOff.value));
 }
 
@@ -728,28 +761,35 @@ function membersOf(r, want) { return r.members.join(',') === want; }
   // A listener binds to an ADDRESS, and a write that fails its walk fires NOTHING, so the addressed branch
   // is minted before the listener is registered there (a DRIVING step, named in the run's record).
   i8.write(['ev'], 'temp', {});
-  const h1 = i8.listen(['ev']);
+  // ⟶ DRIVE RE-DERIVED 2026-10-24 (THE `D-19` CRASH FIX — THIS IS THE CALL THAT KILLED THE RUN): the handle is
+  // SPELLED by the drive and passed at position `1`, the address travels as the one-member SET position `2`
+  // takes, and `h1` is WHAT `listen` ANSWERED. `.1`–`.3` read that answer and stay RED on the code as it now
+  // stands, because nothing is minted and the answer is `undefined` — their subject is gone and they are
+  // reported rather than retired. `.4`–`.22` read the handle the CALLER spelled, which is the same identity.
+  const H1 = listenSpelling('g08-ev');
+  const h1 = i8.listen(H1, [['ev']]);
   A('JSG-08.1', '§2.3 item 2; DD-14', "listen returns an opaque JS value and NOT a string", typeof h1 === 'object' && h1 !== null && typeof h1 !== 'string', `${typeof h1} ${fmt(h1)}`);
-  A('JSG-08.2', '§2.3 item 2; DD-28', 'the token is PRIVATE: no own enumerable member carries it', Object.keys(h1).length === 0, Object.keys(h1).join(',') || 'none');
+  A('JSG-08.2', '§2.3 item 2; DD-28', 'the token is PRIVATE: no own enumerable member carries it', typeof h1 === 'object' && h1 !== null && Object.keys(h1).length === 0, `${fmt(h1)} keys=${typeof h1 === 'object' && h1 !== null ? Object.keys(h1).join(',') || 'none' : 'n/a'}`);
   const spelled = `${String(h1)}|${(() => { try { return JSON.stringify(h1); } catch { return ''; } })()}`;
-  A('JSG-08.3', '§2.3 item 3 (ii); DD-28', 'neither String() nor JSON.stringify() spells a token (no listener- fragment)', !spelled.includes('listener-'), spelled.slice(0, 120));
+  A('JSG-08.3', '§2.3 item 3 (ii); DD-28', 'neither String() nor JSON.stringify() spells a token (no listener- fragment)', typeof h1 === 'object' && h1 !== null && !spelled.includes('listener-'), spelled.slice(0, 120));
   const calls = [];
   const fn = (...args) => { calls.push(args); };
-  const reg1 = thrown(() => i8.register(h1, fn));
+  const reg1 = thrown(() => i8.register(H1, fn));
   A('JSG-08.4', '§2.4 item 5 (b)', 'register(handle, listener) returns undefined on success', !reg1.threw && reg1.value === undefined, reg1.threw ? `threw ${fmt(reg1.err)}` : fmt(reg1.value));
   const w1 = thrown(() => i8.write(['ev', 'child'], 'temp', 5));
   const trig1 = w1.threw ? [] : w1.value?.triggered;
-  A('JSG-08.5', '§2.7 item 1; §2.4 item 6 (a); A77', "the record's triggered carries the id REGISTRATION was given (h1)", Array.isArray(trig1) && trig1.includes(h1), fmt(trig1));
+  A('JSG-08.5', '§2.7 item 1; §2.4 item 6 (a); A77', "the record's triggered carries the id REGISTRATION was given (the caller's handle)", carriesHandle(trig1, H1), fmt(trig1));
   A('JSG-08.6', '§2.4 rule 3 and item 6 (b)', 'the registered function is invoked exactly ONCE for that write', calls.length === 1, `calls=${calls.length}`);
   const arg1 = calls[0];
   A('JSG-08.7', '§2.7 item 5', "the invocation's arguments.length is exactly 1", !!arg1 && arg1.length === 1, arg1 ? `${arg1.length}` : 'not invoked');
   A('JSG-08.8', '§2.7 item 5; parameter-semantics.md §2.12 dated producer clause', "the single argument is the TRIGGERING ADDRESS ['ev','child'], index-equal",
     !!arg1 && rel(arg1[0], ['ev', 'child']), arg1 ? fmt(arg1[0]) : 'not invoked');
-  A('JSG-08.9', 'surface.md §2.4 item 6 (d); parameter-semantics.md §2.15 dated clause', 'the argument is NOT the id that selected the function', !!arg1 && arg1[0] !== h1, arg1 ? `same=${arg1[0] === h1}` : 'not invoked');
+  A('JSG-08.9', 'surface.md §2.4 item 6 (d); parameter-semantics.md §2.15 dated clause', 'the argument is NOT the id that selected the function', !!arg1 && arg1[0] !== H1, arg1 ? `same=${arg1[0] === H1}` : 'not invoked');
   const w2 = thrown(() => i8.write(['ev', 'child2'], 'temp', 6));
   A('JSG-08.10', '§2.3 item 5; store §6.5 item 3', 'the prefix test is descendant-inclusive: a write at a DESCENDANT address triggers the listener bound at ["ev"]',
-    !w2.threw && Array.isArray(w2.value?.triggered) && w2.value.triggered.includes(h1), w2.threw ? `threw ${fmt(w2.err)}` : fmt(w2.value?.triggered));
-  const h2 = i8.listen(['no']);
+    !w2.threw && carriesHandle(w2.value?.triggered, H1), w2.threw ? `threw ${fmt(w2.err)}` : fmt(w2.value?.triggered));
+  const H2 = listenSpelling('g08-no');
+  i8.listen(H2, [['no']]);
   i8.write(['no'], 'temp', {});
   const before = calls.length;
   const logged = [];
@@ -760,41 +800,47 @@ function membersOf(r, want) { return r.members.join(',') === want; }
   try { w3 = thrown(() => i8.write(['no', 'x'], 'temp', 4)); } finally {
     console.log = orig.log; console.warn = orig.warn; console.error = orig.error; console.info = orig.info; console.debug = orig.debug;
   }
-  A('JSG-08.11', 'store §6.5 item 10 (c)', "an id the package holds no function for is still returned in triggered", !w3.threw && Array.isArray(w3.value?.triggered) && w3.value.triggered.includes(h2), w3.threw ? `threw ${fmt(w3.err)}` : fmt(w3.value?.triggered));
+  A('JSG-08.11', 'store §6.5 item 10 (c)', "an id the package holds no function for is still returned in triggered", !w3.threw && carriesHandle(w3.value?.triggered, H2), w3.threw ? `threw ${fmt(w3.err)}` : fmt(w3.value?.triggered));
   A('JSG-08.12', '§2.4 rule 1; surface.md §2.4 item 6 (c)', 'an unregistered handle invokes NOTHING: the call count is unchanged', calls.length === before, `calls ${before} -> ${calls.length}`);
   A('JSG-08.13', '§2.4 rule 1; surface.md §2.4 item 6 (c)', 'and reports NOTHING: no console output of any level', logged.length === 0, fmt(logged.map((l) => l[0])));
   A('JSG-08.14', 'surface.md §2.4 item 6 (c)', 'and the write neither throws nor answers a code: the silence is an assertable observable', !w3.threw, w3.threw ? `threw ${fmt(w3.err)}` : 'no throw');
-  const un1 = thrown(() => i8.unlisten(h1));
+  const un1 = thrown(() => i8.unlisten(H1));
   A('JSG-08.15', '§2.10', 'unlisten returns undefined', !un1.threw && un1.value === undefined, un1.threw ? `threw ${fmt(un1.err)}` : fmt(un1.value));
   const afterUn = calls.length;
   const w4 = thrown(() => i8.write(['ev', 'child3'], 'temp', 3));
-  A('JSG-08.16', '§2.4 rule 4; §2.3 item 6', "after unlisten the store-side home entry is gone: the record's triggered no longer contains h1",
-    !w4.threw && Array.isArray(w4.value?.triggered) && !w4.value.triggered.includes(h1), w4.threw ? `threw ${fmt(w4.err)}` : fmt(w4.value?.triggered));
+  A('JSG-08.16', '§2.4 rule 4; §2.3 item 6', "after unlisten the store-side home entry is gone: the record's triggered no longer contains the caller's handle",
+    !w4.threw && !carriesHandle(w4.value?.triggered, H1), w4.threw ? `threw ${fmt(w4.err)}` : fmt(w4.value?.triggered));
   A('JSG-08.17', '§2.4 rule 4; DD-15', 'and the function never fires again: the call count is unchanged', calls.length === afterUn, `calls ${afterUn} -> ${calls.length}`);
   i8.write(['keep'], 'temp', {});
-  const ka = i8.listen(['keep']);
-  const kb = i8.listen(['keep']);
+  // ⟶ THE TWO REPEAT-LISTEN CELLS (`.18`, `.20`) READ WHAT `listen` ANSWERS, WHICH IS `undefined` NOW: their
+  // subject is the MINTED opaque handle and it is gone. THEY STAY RED — and each carries the object
+  // precondition its own words state ("the SAME opaque value", "MINTS A FRESH handle"), so neither can pass on
+  // `undefined === undefined`.
+  const H_KEEP = listenSpelling('g08-keep');
+  const ka = i8.listen(H_KEEP, [['keep']]);
+  const kb = i8.listen(H_KEEP, [['keep']]);
   A('JSG-08.18', '§2.3 item 6 (the STILL-REGISTERED arm); surface.md §2.3 dated pointer', 'a repeat listen at an ALREADY-REGISTERED address mints nothing and returns the SAME opaque value',
-    ka === kb, `same=${ka === kb}`);
+    typeof ka === 'object' && ka !== null && ka === kb, `same=${ka === kb} ka=${fmt(ka)}`);
   const w5 = thrown(() => i8.write(['keep', 'x'], 'temp', 2));
-  const distinct5 = w5.threw ? [] : [...new Set(w5.value.triggered)];
+  const distinct5 = w5.threw ? [] : distinctHandles(w5.value.triggered);
   A('JSG-08.19', 'store §6.5 item 2; §2.4 rule 3', "the record's DISTINCT-handle set for that address has ONE member", distinct5.length === 1, `${distinct5.length} distinct of [${fmt(w5.value?.triggered)}]`);
   i8.write(['wit'], 'temp', {});
-  const wa = i8.listen(['wit']);
-  i8.unlisten(wa);
-  const wb = i8.listen(['wit']);
+  const H_WIT = listenSpelling('g08-wit');
+  const wa = i8.listen(H_WIT, [['wit']]);
+  i8.unlisten(H_WIT);
+  const wb = i8.listen(H_WIT, [['wit']]);
   A('JSG-08.20', '§2.3 item 6 (the WITHDRAWN arm)', 'after the withdrawal removed that address\'s home entry, a later listen MINTS A FRESH handle (a !== b)',
-    wa !== wb, `same=${wa === wb}`);
+    typeof wa === 'object' && wa !== null && typeof wb === 'object' && wb !== null && wa !== wb, `same=${wa === wb} a=${fmt(wa)} b=${fmt(wb)}`);
   const dupCfg = { ...mk('g08dup'), listeners: [{ address: ['dup'], handle: 'tok' }, { address: ['dup'], handle: 'tok' }] };
   const iDup = thrown(() => ns.storeCreate(dupCfg));
   if (!iDup.threw) iDup.value.write(['dup'], 'temp', {});
-  const hDup = iDup.threw ? null : thrown(() => iDup.value.listen(['dup']));
+  const hDup = iDup.threw ? null : thrown(() => iDup.value.listen('tok', [['dup']]));
   const dupCalls = [];
-  if (!iDup.threw && !hDup.threw) iDup.value.register(hDup.value, () => { dupCalls.push(1); });
+  if (!iDup.threw && !hDup.threw) iDup.value.register('tok', () => { dupCalls.push(1); });
   const wDup = (!iDup.threw && !hDup.threw) ? thrown(() => iDup.value.write(['dup', 'x'], 'temp', 1)) : { threw: true };
   A('JSG-08.21', '§2.4 rule 3; store DD-42 caller-spelled clause', 'two construction entries at ONE address carrying the SAME caller-spelled token fire the registry ONCE (one invocation per DISTINCT handle)',
     !wDup.threw && dupCalls.length === 1, wDup.threw ? `threw ${fmt(wDup.err)}` : `invocations=${dupCalls.length}`);
-  const dupDistinct = wDup.threw ? [] : [...new Set(wDup.value.triggered)];
+  const dupDistinct = wDup.threw ? [] : distinctHandles(wDup.value.triggered);
   A('JSG-08.22', 'parameter-semantics.md §2.15; §2.7 item 3', "that record's DISTINCT-handle set has ONE member (a SET, never a sequence)", dupDistinct.length === 1, `${dupDistinct.length} distinct of [${fmt(wDup.value?.triggered)}]`);
 }
 
@@ -804,12 +850,16 @@ function membersOf(r, want) { return r.members.join(',') === want; }
 {
   const i9 = ns.storeCreate(mk('g09'));
   i9.write(['site'], 'temp', {});
-  const hIn = i9.listen(['site']);
+  // ⟶ DRIVE RE-DERIVED 2026-10-24 (THE `D-19` CRASH FIX): the handle is the caller's spelling, passed at
+  // position `1`, and the address travels as the one-member SET. The in-domain handle the cells below register
+  // at is therefore `H_IN`. NO EXPECTATION MOVES: every cell still drives `register` and reads its answer.
+  const H_IN = listenSpelling('g09-site');
+  i9.listen(H_IN, [['site']]);
   const f1c = [], f2c = [];
   const f1 = () => { f1c.push(1); }, f2 = () => { f2c.push(1); };
-  const r1 = thrown(() => i9.register(hIn, f1));
+  const r1 = thrown(() => i9.register(H_IN, f1));
   A('JSG-09.1', '§2.4 item 5 (b)', 'register(handle, listener) returns undefined for an in-domain pair', !r1.threw && r1.value === undefined, r1.threw ? `threw ${fmt(r1.err)}` : fmt(r1.value));
-  const r2 = thrown(() => i9.register(hIn, f2));
+  const r2 = thrown(() => i9.register(H_IN, f2));
   A('JSG-09.2', '§2.4 item 5 (b) & rule 2', 'a RE-registration returns undefined (a success on every success, including a replacement)', !r2.threw && r2.value === undefined, r2.threw ? `threw ${fmt(r2.err)}` : fmt(r2.value));
   const w9 = thrown(() => i9.write(['site', 'x'], 'temp', 1));
   A('JSG-09.3', '§2.4 rule 2', 'the replacement took effect: f2 fired and f1 did NOT', !w9.threw && f2c.length === 1 && f1c.length === 0, `f1=${f1c.length} f2=${f2c.length}`);
@@ -831,7 +881,7 @@ function membersOf(r, want) { return r.members.join(',') === want; }
   A('JSG-09.7', '§2.4 item 5 (d)', 'a fabricated non-opaque value at the handle position answers the same form and the same status', statusOf(fab) === 'AddressMalformed', String(statusOf(fab)));
   const nul = thrown(() => i9.register(null, f1));
   A('JSG-09.8', '§2.4 item 5 (d)', 'null at the handle position answers the same form and the same status', statusOf(nul) === 'AddressMalformed', String(statusOf(nul)));
-  const noListener = thrown(() => i9.register(hIn));
+  const noListener = thrown(() => i9.register(H_IN));
   A('JSG-09.9', '§2.4 item 5 (c)-(d)', 'an ABSENT listener position is refused: listener must be a function', statusOf(noListener) === 'AddressMalformed', String(statusOf(noListener)));
   const nothing = thrown(() => i9.register());
   A('JSG-09.10', '§2.4 item 5 (d)', 'both positions absent answers the same form and status', statusOf(nothing) === 'AddressMalformed', String(statusOf(nothing)));
@@ -1355,9 +1405,15 @@ const g10 = { all: [] };
   const bareCalls = [];
   let bareWriteReturned = false;
   thrown(() => i15.write(['bare-a'], 'temp', {}));
-  const hBareA = i15.listen(['bare-a']);
-  const hBareK = i15.listen(['bare-a', 'k']);
-  const hBareOff = i15.listen(['bare-off']);
+  // ⟶ DRIVE RE-DERIVED 2026-10-24 (THE `D-19` CRASH FIX): three caller-spelled handles, each passed at
+  // position `1` with its address as the one-member SET at position `2`, and `register` at the same spelling.
+  // The cells below read INVOCATION COUNTS, so their subject is untouched and they measure the same behaviour.
+  const H_BARE_A = listenSpelling('g15-bare-a');
+  const H_BARE_K = listenSpelling('g15-bare-a-k');
+  const H_BARE_OFF = listenSpelling('g15-bare-off');
+  i15.listen(H_BARE_A, [['bare-a']]);
+  i15.listen(H_BARE_K, [['bare-a', 'k']]);
+  i15.listen(H_BARE_OFF, [['bare-off']]);
   const WRITTEN_BARE = ['bare-a', 'k'];
   const bareBody = (tag) => (addr) => {
     // THE BODY'S OWN FINDING, THE ONE OBSERVABLE ITEM 2 NAMES: the store call has COMPLETED (the address the
@@ -1366,9 +1422,9 @@ const g10 = { all: [] };
     const rr = thrown(() => i15.read(WRITTEN_BARE));
     bareCalls.push(`${tag}:verb-returned=${bareWriteReturned}:read=${rr.threw ? `threw ${String(statusOf(rr))}` : fmt(rr.value)}:arg=${Array.isArray(addr) ? `[${addr.map(fmt).join(',')}]` : fmt(addr)}`);
   };
-  i15.register(hBareA, bareBody('a'));
-  i15.register(hBareK, bareBody('k'));
-  i15.register(hBareOff, bareBody('off'));
+  i15.register(H_BARE_A, bareBody('a'));
+  i15.register(H_BARE_K, bareBody('k'));
+  i15.register(H_BARE_OFF, bareBody('off'));
   const wBare = thrown(() => { const r = i15.write(WRITTEN_BARE, 'temp', 1); bareWriteReturned = true; return r; });
   // RE-AIMED 2026-10-15 — `§2.7` item 2 AS RE-SPELLED measures this instant from THE STORE CALL's completion
   // and the record's copy-out and NOT from the package verb's return; the pre-re-spelling cell asserted the
@@ -1379,7 +1435,7 @@ const g10 = { all: [] };
     'a write at an address carrying NO pair STILL DELIVERS ITS LISTENERS — the removed gate does not bypass the kernel and the uniform path does not lose the delivery: each of the two bodies of the returned set ran with the written value ALREADY READABLE (the store call complete) and with the package\'s verb NOT yet returned, which is the window §2.7\'s 2026-10-18 clause declares — no body of the returned handles ran at an instant that clause does not declare',
     !wBare.threw && bareCalls.length === 2
       && bareCalls.every((c) => c.includes('verb-returned=false') && c.includes(`read=${fmt(1)}`)),
-    `${bareCalls.join(' | ') || 'no invocation'} (returned handles: ${[fmt(hBareA), fmt(hBareK)]})`);
+    `${bareCalls.join(' | ') || 'no invocation'} (caller-spelled handles: ${[fmt(H_BARE_A), fmt(H_BARE_K)]})`);
   const bareBefore = bareCalls.length;
   const wBare2 = thrown(() => i15.write(['bare-a', 'k'], 'temp', 2));
   A('JSG-15.2', '§2.7\'s clause of 2026-10-18, item `1` ("THE DELIVERY OF THAT WRITE\'S TRIGGERED HANDLES IS THE PASS\'S TERMINAL ARM\'s") read with item `7` (a) ("each ONCE, with the triggering address as its single argument") and §2.12 item 1\'s amended clause of the same date, item `2` (ii)',
@@ -1389,14 +1445,16 @@ const g10 = { all: [] };
   const failedCalls = [];
   const discarded = {};
   thrown(() => i15f.write(['bare-cc'], 'mem', {}));
-  const hDiscard = i15f.listen(['bare-cc']);
-  i15f.register(hDiscard, () => { failedCalls.push('kind-conflict'); });
+  const H_DISCARD = listenSpelling('g15-bare-cc');
+  i15f.listen(H_DISCARD, [['bare-cc']]);
+  i15f.register(H_DISCARD, () => { failedCalls.push('kind-conflict'); });
   discarded.w = thrown(() => i15f.write(['bare-cc'], 'mem', [1]));   // kind-conflict: it must not fire
   const i15g = ns.storeCreate(mk('g15g'));
   const earlyCalls = [];
   thrown(() => i15g.write(['bare-lf'], 'temp', 1));
-  const hEarly = i15g.listen(['bare-lf', 'down']);
-  i15g.register(hEarly, () => { earlyCalls.push(1); });
+  const H_EARLY = listenSpelling('g15-bare-lf-down');
+  i15g.listen(H_EARLY, [['bare-lf', 'down']]);
+  i15g.register(H_EARLY, () => { earlyCalls.push(1); });
   const wEarly = thrown(() => i15g.write(['bare-lf', 'down'], 'temp', 2));   // no event fires
   A('JSG-15.3', '§2.7 item 6 (the discard: "not delivered, and not left pending for a later deliverer"); §2.7 item 7 (d) ("A BODY OF THAT FAILED WRITE\'S OWN TRIGGERED SET THAT RAN … IS A FAILURE"); §2.4 item 9 (d); store §8.1 #7 (F-4)',
     'a write that does not succeed delivers ZERO to a body registered at its address — on the kind-conflict failure and on the failure that resolves no event at all — and no body of either write ran',
@@ -1448,11 +1506,15 @@ const RULED_FIRING = [];   // the printed record of the ruled observable: one li
     const rK1 = thrown(() => K1(i16, ADOPTED, 'pair-of-jsg-16', () => true));   // `true` IS `ConstraintOutcome`'s PASS arm — the ONLY pass value (`kernel-surface.md §2.3` item 1)
     hPair = rK1.threw ? null : rK1.value; K_ERR = rK1.threw ? rK1.err : KERNEL_ERROR;
   } else { K_ERR = KERNEL_ERROR; }
-  // ⟶ SPELLED ON THE OO SURFACE 2026-10-17 (`A127`; `§2.4` item 9 (f)'s `A127` clause): `on(__, fn)` is the
-  // route `listen(__)` + `register(handle, fn)`, so `rOnSame`/`rOnPrefix` each carry the HANDLE `listen`
-  // answered and the `undefined` `register` must answer — the same two observables `on`'s return carried.
+  // ⟶ DRIVE RE-DERIVED 2026-10-24 (THE `D-19` CRASH FIX): `listen(handle, addresses)` — the caller spells the
+  // handle at position `1` and the address travels as the one-member SET at position `2`; the route answers the
+  // caller's own spelling, which is the identity `register` is given and the identity the delivery cells read.
+  // `JSG-16.2`'s own comparison against K-1's handle is left as filed and is reported below: it read the OPAQUE
+  // value `listen` used to answer, which the code no longer returns.
   const onRoute = (addr, fn) => {
-    const h = i16.listen(addr);
+    const h = listenSpelling(`g16-${addr.join('.')}`);
+    const l = i16.listen(h, [addr]);
+    if (l !== undefined) return { bad: 'listen did not answer undefined' };
     const r = i16.register(h, fn);
     if (r !== undefined) return { bad: 'register did not answer undefined' };
     return h;

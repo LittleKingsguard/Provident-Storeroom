@@ -1250,3 +1250,55 @@ rewrite a single pass can do honestly** — and `D-17`'s own standard says a cel
 rewriting is harder. **A determination the architect can read is worth more than a rewrite nobody classified.**
 **And the crash comes first inside the stage, because until it is fixed two thirds of the greens leg cannot be
 measured at all, so the determination would be made blind on those two runners.**
+
+---
+
+### FINDING — the batteries are stale in SIX declared ways, and the published declaration is missing a status
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the test-writer review `D-19`
+commissioned, **validated by L0 by re-running both legs and by reading the kept contract.**
+
+**THE CRASH IS FIXED. VERIFIED BY L0, NOT TAKEN ON TRUST.** `greens.mjs` died on an **unguarded** superseded call
+(`:731`, `i8.listen(['ev'])` — the old one-argument form) that sat outside the file's own `thrown()` helper, and the
+same defect killed `live-drive.mjs` at `LIVE-2` and one `scenarios.mjs` scenario. **All three runners now complete**
+(L0 measured: `greens.mjs` **48 FAIL** over all 16 scenarios; `live-drive.mjs` **13 FAIL** over 13/13;
+`scenarios.mjs` reaches `CLEANUP`). **No `try/catch` was added and no cell was retired by the fix.**
+
+**AND THE CRASH WAS HIDING RED, WHICH IS WHY THE COUNT WENT UP.** 40 FAIL before, 48 after — **because the run used
+to die at `JSG-08` and ten scenarios never executed.** **`npm run greens` still exits `1`**: the script chains its
+three runners with `&&` and each exits `1` on honest reds, so runner 2 and 3 are reachable only by direct
+invocation until the REWRITEs land (`Q5`, and it belongs to the battery/greens module under `D-11`).
+
+**`npm test` RE-MEASURED BY L0: `841` tests, `830` pass, `10` fail, `1` skipped.** **The agent's correction of
+L0's own count is accepted:** L0's "21" was `✖`-mark counting, which double-lists failures in the summary; **the true
+red set is nine cells plus one whole file**, and **`version-stamp-r2.test.mjs` dies at IMPORT on three
+`readFileSync` calls, so its eleven cells never run at all** — a dying file is not eleven red cells and not a green.
+
+**★ `Q4` IS ANSWERED BY THE KEPT CORPUS, AND IT IS A DEFECT RATHER THAN A QUESTION.** `docs/specs/storeroom-native/
+contract.md` was **amended 2026-10-23** (`A148` Q3, folded into `U-STOREROOM-JSON-CROSSING`): **the closed set widens
+`16 → 17` with `ValueRefusedAtBoundary` at rank `17`, and no rank `1`…`16` moves** — *"the operative set is `17`
+members ranked `1`…`17`"*, the spelling moves to `[&'static str; 17]`. **The store implements seventeen
+(`src/error.rs`'s `CODES` = 17, measured). But `bindings/js/index.d.ts` declares SIXTEEN — and the greens' census
+cells assert sixteen.** **So the published type declaration omits a status the store emits and the contract
+declares.** The `(string & {})` escape arm means a consumer is not mis-typed fatally, but **every census claim in
+the declaration and in the batteries is false as written**, and this project's own discipline is that the
+declaration declares the closed set. **That is a code artifact (`delivery`'s and `js-declaration`'s subject) and not
+a battery question, and this branch's brief said "sixteen" too — corrected below.**
+
+**THE SIX MOVED FIGURES BEHIND THE 81 REWRITES, EACH A WAVE THE BATTERY MISSED.** **own members `12 → 14`**;
+**the `listen` signature** (`listen(address)` → `listen(handle, addresses)`, with `on`/`off` merged away);
+**`ValueNotAdmitted` → `ValueRefusedAtBoundary` and the set `16 → 17`**; **the walk ceiling `65 → 126`**;
+**the addon's exports `5 → 13`**; **the kernel's exports `5 → 6`**. **A battery written against a surface that
+moved six times and was never re-derived does not verify the code — it verifies a memory of it.**
+
+**THE DETERMINATION, ACCEPTED AS `D-19` REQUIRED.** **KEEP `43` groups (≥`1,244` cells) · REWRITE `25` groups
+(≥`101` cells) · DISCARD/REPLACE `6` groups (`12` cells) · unclassified `2` cells.** Record:
+`bindings/js/test/REVIEW-2026-10-24.md`. **The two unclassified cells and the four open behaviour questions
+(`Q1`–`Q3`, and the undeliverable-register question) are put to the architect.**
+
+**AND ONE FINDING THAT IS WORSE THAN A FALSE GREEN: CELL EVAPORATION.** Behind `json-acceptance-set-live.mjs`'s
+`readDoc` helper (`catch → return ''`), **a guard `return`s before one cell ever runs, one records
+`AMENDMENT-PENDING` and one records `GAP` — and both scenarios still print `PASS` and exit `0`.** **A runner that
+exits zero while its cells never executed is a broken instrument in the one direction a red cannot be.** (`Q7`:
+`blind-constraints-v2.mjs` exits `0` with **21** FAIL for the same reason — a reporting runner whose exit code does
+not carry its red.)

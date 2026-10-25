@@ -888,8 +888,15 @@ scenario('FTS-11', 'the join: a repair\'s write is a new entry in the same commi
         return { ok: true, op: w.ok ? w.v.op : undefined };
       } };
     }));
-    const hListen = s.listen(['c']);
-    s.register(hListen, () => { fired++; });
+    // ⟶ DRIVE RE-DERIVED 2026-10-24 (THE `D-19` CRASH FIX): `listen(handle, addresses)` — the handle is the
+    // CALLER'S spelling and the address travels as the one-member SET. The as-filed call was `listen(['c'])`,
+    // which the code refuses (`AddressMalformed`), and the refusal was reported as `FTS-11.x0` — a scenario
+    // throwing OUTSIDE a cell, so none of this scenario's cells could run. **RE-DERIVATION, NOT A SWALLOW**: no
+    // `try`/`catch` was added, the cells below keep their subjects, and `triggered`'s pair is read by its
+    // `handle` member where a cell reads it.
+    const HANDLE_C = 'fts-handle-c';
+    s.listen(HANDLE_C, [['c']]);
+    s.register(HANDLE_C, () => { fired++; });
     const rec = K.commit(s, ['c'], 'file', 99);
     const out = tryCall(() => K.runAttempt(s, rec));
     if (out.ok) for (const e of out.v.log) logKinds.push(e.kind);
@@ -1012,8 +1019,8 @@ scenario('FTS-12', 'the censuses clause 7 leaves unmoved',
     observed('FTS-12.4', 'surface.md §2.1 item 1 (an app\'s own `listen` and the kernel\'s `register` at one address return the same adopted handle)',
       'the two handles\' identity at one address', () => {
         const h1 = K.register(s, ['x'], 'cx', () => true);
-        const h2 = s.listen(['x']);
-        return `kernel.register === PKG.listen ? ${h1 === h2}`;
+        const h2 = s.listen('fts-handle-x', [['x']]);   // ⟶ 2026-10-24: the caller spells the handle
+        return `kernel.register === PKG.listen ? ${h1 === h2} (PKG.listen answered ${JSON.stringify(h2)})`;
       });
   });
 
