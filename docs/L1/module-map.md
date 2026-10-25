@@ -29,6 +29,25 @@ this map's path inventory cannot carry** — a battery that does not exist yet o
 ownership boundary. **The map's figures are therefore unmoved: 19 modules, 61 endpoints, 105 + 1 + 20 = 126
 paths**, and §2.4 carries the pointer that says where the cut now lives.
 
+**REVISION AT `D-2` AND `D-1` — THE ENTRY'S SUBDIVISION IS NOW DECLARED, AND THIS MAP STILL OWNS THE TREE AS IT
+STANDS.** `D-2` (*"Index.mjs is already too long and should be subdivided anyway for readability"*) closes §6 Q2's
+second half and leaves the first half — *are the five declared regions the right cuts?* — to L1. **The answer is
+declared in `docs/L1/entry-subdivision.md`**: **nine parts, eight of them cut out of this file, each owned by
+exactly one module, with the constraint kernel as the ninth.** **This map's `owns` lists are NOT rewritten to the
+target**, on the map's own honesty ground: the eight part paths do not exist on this branch, and a map that listed
+them as owned would assert something false about the tree. **What this revision therefore does is:**
+(1) annotates each of the five co-owned regions at §2.3 with the part it is declared to become;
+(2) rewrites **§5.1** so the co-ownership has both its present state and its declared end;
+(3) adds **§3.1**, four *declared-target* interaction rows (`I-29`…`I-32`) that no tree measurement backs, marked as
+targets and numbered so that nothing is left implicit;
+(4) corrects one measured figure at **§4 E6** (seven `constraintsKernel()` call sites, not six) and one at **§2.3**
+(the `js-resolution` region overlaps `js-registry-delivery`'s);
+(5) **moves one endpoint** — the failure form, `js-surface` → `js-resolution` — in the target only, leaving the
+tree's endpoint count at **61** and the module count at **19**;
+(6) records the target arithmetic at **FIGURES**: 8 new paths, 126 → 134, and the co-owned path → 0.
+**Nothing in this revision is a work order.** `D-1`, `D-2` and `D-3` each order no code move; the wave that lands
+the cut is not open, and this map draws no code.
+
 **MEASUREMENT LIMIT — READ BEFORE TRUSTING THE COUNTS.** The first pass over this map had no shell. Its
 inventory was built from the file tools' glob enumeration of the workspace (a complete 11,930-path listing of
 everything under the repository root, filtered against the project's own `.gitignore` rules), **not** from
@@ -86,6 +105,15 @@ whether it is tracked**, so whether the tracked denominator is now 127 is owed a
 as measured). The 477 tracked files under `scratch/` are **outside** this denominator by convention, not by rule
 (§5.4); the whole tracked tree is **603 = 477 + 126**.
 
+**⟶ THE `D-2` REVISION ADDS NO FIGURE TO THAT DENOMINATOR AND DECLARES ONE BESIDE IT, MARKED AS TARGET AND AS
+ARITHMETIC.** The map's counts stand as **19 modules · 61 endpoints · 105 owned + 1 co-owned + 20 unowned = 126**,
+because the tree has not moved. **The declared target** (`docs/L1/entry-subdivision.md`) is **the same 19 modules and
+the same 61 endpoints, with 8 new paths** — `bindings/js/src/entry/{refusal,artefact,state,class-decision,walk,
+delivery,constraints}.mjs` — so the target arithmetic is **114 owned + 0 co-owned + 20 unowned = 134**, and the
+co-owned path of §5.1 becomes `js-surface`'s alone. **The 134 is arithmetic on the measured 126 (which a supervisor
+shell pass reconciled to `git ls-files`) and is owed its own `git ls-files` check**; if `strata/decisions.md` proves
+tracked, which §5.3 marks unverified, the figure is 135. **No path, module or endpoint in the 126 moves today.**
+
 ---
 
 ## §1 · The modules
@@ -121,6 +149,15 @@ that every consumer-facing relation keeps its key and `D-1`'s own citations keep
 `constraint-kernel` key is dropped from every module's list (§3, `modules.json`). The
 fourteen-member instance and the single failure form are unmoved by `D-1` and are still stated at row 10 and
 §4 E1.
+
+**⟶ ROWS 9–13 ARE THE FIVE MODULES THE `D-2` CUT RE-HOMES, AND NO ROW IS ADDED OR REMOVED BY IT.** The
+subdivision (`docs/L1/entry-subdivision.md`) turns the five co-owned regions into **nine single-owned parts across
+the same five modules**: `js-surface` 1 file, `js-resolution` 2, `js-crossing` 2, `js-registry-delivery` 2,
+`js-constraints` 2 — so **19 modules stand**, and the responsibility lines above stay as written **with one
+declared change marked at `modules.json` and at §2.3**: *"render the single failure form"* moves from row 10
+(`js-surface`) to row 9 (`js-resolution`), because the form's file must sit below the artefact gate that throws
+through it. **That is the only responsibility that moves**, and it moves *within* JS — it does not touch `A75`'s
+three JS-resident things (the registry, the opaque handle, the single failure form), all of which stay in JS.
 
 ---
 
@@ -167,6 +204,46 @@ Node-API symbols link, and it emits the version stamp that the facade's `addon_v
 | `js-constraints` | `bindings/js/index.mjs` — **region** `L5202–L5903`; and `bindings/js/src/constraint-kernel.mjs` (2,203) |
 | `js-declaration` | `bindings/js/index.d.ts` (788) |
 | `delivery` | `bindings/js/package.json`, `bindings/js/README.md`, `bindings/js/Cargo.toml`, `Cargo.toml`, `bindings/js/platforms/{linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64}/package.json` (5), the same five `README.md` (5), `.github/workflows/publish.yml`, `scripts/publish.sh` |
+
+**⟶ THE REGIONS ABOVE ARE AUDITED AT `D-2`, AND THE CUT IS DECLARED IN `docs/L1/entry-subdivision.md` §1–§2.**
+`D-2` says in as many words that the five regions *"are the ones the current file implies, and nothing in `D-2`
+blesses them as the cuts to take."* **The audit found three things and the declaration acts on all three:**
+
+1. **The regions overlap.** `js-resolution`'s `L79–L617` contains `js-registry-delivery`'s `L88–L200` **and**
+   `L201–L331` — two modules claim the same bytes today. **Measured**, not supposed: both rows are in the table
+   above. The cut removes the overlap by giving the symbol-key block and the attempt seam to one part (§2 of the
+   subdivision declaration, part 4).
+2. **`js-surface`'s "failure form" region `L618–L746` is three subjects, not one.** `fail` + `refusalLog`
+   (`L565–L645`) depend on nothing; `withAddon` + `spellDottedContainer` + `boundaryReject` (`L646–L716`) are the
+   artefact meeting's own and throw through the form; `L717–L746` is the walk's class-decision banner. The cut
+   splits them — **on legibility, and the declaration says so rather than manufacturing a cycle: keeping the region
+   whole closes none** (declaration §3.2 case 1), but it would make the package's most-imported function unfindable
+   and put the gate's private mutable state (`let addon`, `addonArm`, `tried`, …) in scope of every refusal
+   consumer. **Once the form is its own file, owning it from `js-surface` DOES close a module cycle** (declaration
+   §3.2 case 4: part 3 imports part 2 and part 1 imports part 3), and that is why its carrier module changes.
+3. **`js-crossing`'s `L747–L3070` splits at the banner the file itself drew** (`L1871→L1872`, *"THE CROSSING MODEL,
+   ENCODED FOR THE CORE"*), because the class decisions are consumed by the encoders and produce nothing the class
+   half reads.
+
+**THE MAPPING, REGION BY REGION — a declared target, with no path on disk today except the two the file already
+has:**
+
+| module | present region | declared part (§1 of the subdivision) | target path |
+|---|---|---|---|
+| `js-surface` | `L1–L78`, `L618–L746`, `L3425–L4593` | **part 1**: `L1–L87`, `L3406–L4577`, `L5901–L5903` | `bindings/js/index.mjs` (**unchanged**) |
+| `js-surface` → `js-resolution` | `L618–L645` (the failure form) | **part 2** | `bindings/js/src/entry/refusal.mjs` |
+| `js-resolution` | `L79–L617`, **minus the two blocks below** | **part 3**: `L301–L564`, `L646–L716` | `bindings/js/src/entry/artefact.mjs` |
+| `js-registry-delivery` | `L88–L200`, `L201–L331`, `L3072–L3424` | **part 4**: those two blocks + `L3067–L3405` + `homeAddressKey` (`L4780–L4796`, moved down) | `bindings/js/src/entry/state.mjs` |
+| `js-crossing` | `L747–L3070` | **parts 5 and 6**: `L717–L1871` / `L1872–L3066` | `…/class-decision.mjs` · `…/walk.mjs` |
+| `js-registry-delivery` | `L4594–L5200` | **part 7**: `L4578–L5186` minus `homeAddressKey` | `bindings/js/src/entry/delivery.mjs` |
+| `js-constraints` | `L5202–L5903` | **part 8**: `L5187–L5900` (the module-namespace statement `L5901–L5903` travels to part 1) | `bindings/js/src/entry/constraints.mjs` |
+| `js-constraints` | `src/constraint-kernel.mjs` | **part 9**: the whole file, unchanged | `bindings/js/src/constraint-kernel.mjs` (**unchanged**) |
+
+**So of the five declared regions: three are kept with their boundaries moved by a few lines (constraints,
+registry-delivery's delivery half, surface's member region), one is split in two (crossing), and one is re-cut into
+three (resolution ↔ surface ↔ the failure form).** The module count does not move: the cut frees **regions**, not
+modules — which is the same thing `D-1` did when it folded two file-owners into one module. §5.1 states the
+consequence for the co-owned path.
 
 **`js-constraints` owns both paths, and the line between them is internal to it.** At `e2fcbef` this table gave
 `bindings/js/src/constraint-kernel.mjs` to its own module **14**; under `D-1` the kernel is tightly integrated,
@@ -268,7 +345,7 @@ consumer → provident-storeroom entry (index.mjs) → addon artefact (.node, fa
 | I-23 | `delivery` | every published module | the `files` allowlist **carries four entries in the tree today** — `index.mjs`, `README.md`, `index.d.ts`, `src/constraint-kernel.mjs` — and `D-1` rules the **fourth has no subject**, so the intended shipped set is three entries plus one the ruling leaves standing in the manifest; the `exports` map publishes `"."` only; five `optionalDependencies` pinned exactly. **⟶ THE COUNT'S BINDING FORCE IS RETIRED AT `D-3`** (*"Obsolete the constraint on 'exactly four'"*): the four entries **stand as a fact of the tree and no longer as a rule**, and the allowlist is now a consequence of **reachability** — what the entry requires by path must ship — with the `exports` arm and the five exact pins untouched by it. **⟶ ANNOTATED BY THE SUPERVISOR, on the same ground as §2.3's annotation: propagation of a ruling already given, not a boundary redrawn.** **⟶ AND THE WHOLE COUNT FAMILY IS LIFTED AT `D-4`** (*"The strict count is lifted, the delivery module and the e2e/blind scenario testing will determine the required publish shape"*): **no declared arity and no declared exclusivity binds this allowlist**, `§2.1` item 1's *"NOTHING ELSE"* retiring with item 6's four. **The shape is now decided EMPIRICALLY — `delivery` together with the e2e/blind scenarios (`js-battery`, `greens-harness`) determine it** — so this row's four names are **a fact of the tree and nothing more**, and a pass that restores a hand-maintained allowlist inside a specification has re-created the constraint `D-4` lifted. **The prohibitions are unmoved:** no `.node`, no `build/Release`, no `postinstall` route, and the tracked-tree walk are functional and security rules, not shape rules. | declared, not called |
 | I-24 | `store-battery` | `store-core`, `store-value`, `store-args`, `store-records`, `store-fail-set` | the crate's own integration battery | test drive |
 | I-25 | `binding-battery` | `binding-crossing` | the per-class table driven with no Node runtime | test drive |
-| I-26 | `js-battery` | `js-surface`, `js-crossing`, `js-registry-delivery`, `js-constraints`, `delivery`, `js-resolution` | `node --test` through the entry (`import { storeCreate } from 'provident-storeroom'`) and, for the kernel's cells, `../src/constraint-kernel.mjs` — a fact of the tree; `D-1`'s consequence is that those cells reach a file internal to one module, not a peer module's published export. **`D-1-ter` names why that reach is lazy, and it bears on this row:** the entry must load where nothing is staged beside it, because **the publish and negative drives assemble trees carrying `index.mjs` alone** — so a wave dissolving the lazy reach would have to touch those drive fixtures. No unit is open and this row orders no such wave. | test drive |
+| I-26 | `js-battery` | `js-surface`, `js-crossing`, `js-registry-delivery`, `js-constraints`, `delivery`, `js-resolution` | `node --test` through the entry (`import { storeCreate } from 'provident-storeroom'`) and, for the kernel's cells, `../src/constraint-kernel.mjs` — a fact of the tree; `D-1`'s consequence is that those cells reach a file internal to one module, not a peer module's published export. **`D-1-ter` names why that reach is lazy, and it bears on this row:** the entry must load where nothing is staged beside it, because **the publish and negative drives assemble trees carrying `index.mjs` alone** — so a wave dissolving the lazy reach would have to touch those drive fixtures. No unit is open and this row orders no such wave. **⟶ AND AT `D-2` THE REACH'S PATH IS DECLARED UNCHANGED: the kernel stays at `bindings/js/src/constraint-kernel.mjs`, so no cell re-points because of the subdivision** (`docs/L1/entry-subdivision.md` §4.1; 21 non-`scratch/` files reach that path in code today — 11 under `bindings/js/test/`, 9 under `bindings/js/greens/`, and `index.mjs:5227`; 27 name it in all). **What the subdivision does change for this row is the DRIVES' STAGING, not their reach:** once the entry statically imports eight parts, a tree carrying `index.mjs` alone cannot load, so the publish, publish-generators, version-stamp and negative-generators copy arms must stage the part set (`D-1-ter`'s *"they must either stage the integrated set or drop their kernel-only limbs"*, now generalised: the kernel was one file and the part set is eight). §4.2 of the subdivision declaration lists every drive and which one is unaffected. | test drive |
 | I-27 | `greens-harness` | the assembled package (all JS modules) | the entry and the built `.node` as a caller would reach them, per wave | live drive |
 | I-28 | `js-declaration` | nothing at runtime | it declares the same surface the entry publishes; no module imports it | declaration |
 
@@ -287,8 +364,37 @@ only ever returns the triggered handle set (`A57`, brief §5 item 5). And the co
 external import**. The sentence that stood here at `e2fcbef` — I-11's lazy `require_` keeps the entry's
 zero-dependency rule intact *"while the kernel still ships in the package's `files` allowlist"* — is
 **superseded**: the mechanism is a strict requirement, so there is nothing to defer and nothing separate to
-ship, and the fourth allowlist entry's subject is gone (I-23). The `require_` is still in the tree and `D-1`
-orders no code move; what changes is that its two ends are one module's ends.
+ship, and the fourth allowlist entry's *published-module* subject is gone (I-23). The `require_` is still in the
+tree and `D-1` orders no code move; what changes is that its two ends are one module's ends.
+**⟶ AND THE LAST CLAUSE IS COMPLETED AT `D-2`, IN BOTH DIRECTIONS, BECAUSE HALF OF IT WOULD MISLEAD ALONE:**
+the *lazy reach* is declared to retire with the subdivision (no tree carrying `index.mjs` alone can load once the
+entry imports its parts — declaration §4.2), while **the fourth allowlist ROW survives on a different ground** —
+reachability, because the entry then requires the kernel as a file like any other part (declaration §5; I-23's
+annotation). `D-1`'s *"no subject"* was about the **published-module** reading, and `D-2` does not restore the
+module, only the required file.
+
+### §3.1 The four interactions the subdivision declares — **TARGET, not tree**
+
+**These rows describe edges that do not exist in the tree and will once `D-2`'s cut lands**
+(`docs/L1/entry-subdivision.md` §3, §6.2). **They are numbered and tabulated here rather than left implicit, which
+is the one thing this map owes a cut that crosses part boundaries**: §6.2 of the declaration says every part-boundary
+edge that crosses a *module* line is declared as an interaction, and every edge that stays inside one module is the
+part DAG's own business (declaration §3.1). **The tree's figure remains 27; these four are marked `target` and no
+reader may count them as measured.**
+
+| # | from | to | over what surface | status |
+|---|---|---|---|---|
+| `I-29` | `js-surface` (part 1, `index.mjs`) | `js-resolution` (part 3, `artefact.mjs`) | **the entry's module context** — `ADDON_PATH` (`index.mjs:85–86`), the `createRequire` base (`:85`, used at `:441` and `:491`) and the manifest path (`:359`), all derived from **`index.mjs`'s own `import.meta.url`** and handed in. A part deriving them from its own URL would search `bindings/js/src/entry/` for the artefact, the manifest and the platform packages | target |
+| `I-30` | `js-crossing` (parts 5, 6) | `js-resolution` (part 3) | `boundaryReject` — the walk's own `A76` rejection, rendered through the artefact's generator, at eleven sites (`:1856` in the class decisions and ten in the encoders) | target |
+| `I-31` | `js-registry-delivery` (part 4) | `js-resolution` (parts 2, 3) | `fail` in `carryRefusal`/`writeRefusal`, `boundaryReject` in `stateOf`, `withAddon` in `entryOf` | target |
+| `I-32` | `js-constraints` (part 8) | `js-resolution` (parts 2, 3) | `refusalLog` in `registrationCrossing`/`constraintCrossing`, `withAddon` in `registrationCrossing` | target |
+
+**All four point the same way, and that is the DAG's shape rather than a coincidence:** the parts `js-resolution`
+owns are the ones that need nothing above them (the form depends on nothing; the artefact meeting depends only on
+the form), so the module that owns them is the **bottom** of the JS stack and every other JS module sits above it.
+**The one direction that is deliberately absent is `js-resolution → js-surface`** — the module-level cycle §3.2
+case 4 of the declaration refuses, and the reason the failure form's *module* changes: the form is its own file, and
+that file must be owned below the gate that throws through it.
 
 ---
 
@@ -400,6 +506,25 @@ says otherwise: `constraintsKernel()` is called at `L3995`, `L4089`, `L4156`, `L
 `A112` question:** whether delivery follows the constraint pass is still `OWED` a measurement (brief §6, §7
 below), and this map takes no position on it.
 
+**⟶ CORRECTED AT THE `D-2` REVISION: THE CALL-SITE FIGURE IS SEVEN, NOT SIX.** A grep for `constraintsKernel()`
+returns **seven call sites** — the six above **plus `L5720`** (`const constraint = constraintsKernel();` at the head
+of `constraintWrite`) — and one definition (`L5226`). **The sentence above and `strata/brief.md` §6 both print six,
+because both name the member-side and glue-side sites and miss the one inside the write path's own function.** The
+seven split **3 in the surface's region (`:3995`, `:4089`, `:4156`) and 4 in the constraint glue (`:5426`, `:5542`,
+`:5599`, `:5720`)**, which is the fact the subdivision's part DAG turns on: **two parts reach the kernel, and the
+declaration says so instead of routing one through the other** (`docs/L1/entry-subdivision.md` §3.1).
+
+**AND THE KERNEL'S STATUS CHANGES AT `D-2` WITHOUT ITS PATH OR ITS FILE MOVING.** Under the declared cut the kernel
+is **the ninth part of the subdivided entry** — statically imported by the constraint glue and, at three member
+sites, by the entry itself — so the lazy `require_` and the `let KERNEL = null` cache have **no remaining subject**
+(declaration §4.2 shows why a tree carrying `index.mjs` alone cannot load at all once the entry imports its parts,
+which is what the laziness existed to prevent). **Its six exports stay exactly where they are (`L486`, `L1008`,
+`L1158`, `L2063`, `L2075`, `L2111`) and stop being anything but module-level names its siblings import:** they were
+never a published set — `exports` publishes `"."` only — and after the cut not even a tarball carries the file for a
+caller to reach. **The kernel keeps an empty import footprint** (`kernel-surface.md §1` item 1; declaration §4.4),
+so the doubled `Symbol.for` spellings are **mechanism, not duplication**, and a tidying pass that collapses them
+would break the clause that keeps this module dependency-free.
+
 ---
 
 ## §5 · Paths not owned by exactly one module
@@ -417,7 +542,7 @@ files are outside that 126 altogether, and §5.4 is why.
 
 | path | why it is not owned once |
 |---|---|
-| `bindings/js/index.mjs` | 5,903 lines carrying five plainly distinct responsibilities (resolution, failure form, walk/codec, registry/delivery, constraints). §2.3 declares the regions and which module owns each. **The co-ownership is the present state of the tree:** it is one file today, and the five regions *are* the ownership declaration — a declaration the file has yet to be separated to satisfy. **The separation is now sanctioned by the architect** (`D-2`: *"Index.mjs is already too long and should be subdivided anyway for readability"*), and it is owed as **legibility work on its own ground** — not as a consequence of `D-1`, and owed even had the kernel question never arisen; the two rulings compose by landing the tight integration *inside* a subdivided entry. **This map still does not draw the cut** — how many parts, where the boundaries fall and what they are called are L1's to declare and an implementation wave's to land (§6 Q2, first half, stays open). **What stood here at the `D-1` revision:** *"the physical file cannot be owned by exactly one module until the regions are separable"* together with **"this map does not order the separation"** — the first clause stands as the tree's state, and the **second is superseded by `D-2`**, which orders the separation for readability and orders no pass, no unit and no code move today. The arithmetic is unmoved: still one co-owned path, still five owning modules. |
+| `bindings/js/index.mjs` | 5,903 lines carrying five plainly distinct responsibilities (resolution, failure form, walk/codec, registry/delivery, constraints). §2.3 declares the regions and which module owns each. **The co-ownership is the present state of the tree:** it is one file today, and the five regions *are* the ownership declaration — a declaration the file has yet to be separated to satisfy. **The separation is sanctioned by the architect** (`D-2`: *"Index.mjs is already too long and should be subdivided anyway for readability"*), and it is owed as **legibility work on its own ground** — not as a consequence of `D-1`, and owed even had the kernel question never arisen; the two rulings compose by landing the tight integration *inside* a subdivided entry. **⟶ SUPERSEDED AT `D-2`'s DECLARATION: THE CUT IS NOW DRAWN.** *"This map still does not draw the cut … §6 Q2's first half stays open"* was true of the `D-1` revision and is no longer: **`docs/L1/entry-subdivision.md` §1–§2 draws it — nine parts, eight of them out of this file, each owned by exactly one module** — and §2.3's target table maps every present region to its part. **What is NOT superseded is this row's present-state claim:** the tree is one file today, no code has moved, and the arithmetic stands at **one co-owned path, five owning modules**. **What the declaration changes is the END of the co-ownership, marked as target:** `index.mjs` becomes `js-surface`'s alone and the eight part paths — seven new files plus the kernel — become single-owned, so the *target* is **zero co-owned paths** and **114 owned + 0 + 20 = 134** (FIGURES). **The second clause that stood here at the `D-1` revision — *"this map does not order the separation"* — is superseded by `D-2`; the clause this revision adds is that the declaration orders nothing either**: it draws the target and no wave is open. |
 
 ### §5.2 Generated, vendored or built — present on disk, excluded by the project's own rules
 
@@ -492,9 +617,7 @@ symbol-key block at `L88–L200`, where `FORGET_PAIR` and `KERNEL_REFUSAL` are w
 read while the block itself is declared under `js-registry-delivery`; **(b)** the failure form at `L618–L746`,
 owned by `js-surface` but called from inside `js-crossing`'s encoders; **(c)** the 1,169-line `storeCreate` at
 `L3425–L4593`, which both defines the fourteen members and constructs the instance state, so the surface and
-the registry cannot be separated without a code change. **No cut is drawn here** — how many parts, where the
-boundaries fall and what they are named remain L1's to declare and an implementation wave's to land, and `D-2`
-orders no pass.
+the registry cannot be separated without a code change. **⟶ ANSWERED AT `D-2`'s DECLARATION, AND THE QUESTION KEEPS ITS WORDING SO A READER SEES WHAT WAS ASKED.** *"No cut is drawn here"* was the `D-1` revision's sentence; **`docs/L1/entry-subdivision.md` now draws it**, and it answers the three specific points this question raised: **(a)** the symbol-key block goes to **part 4** (`src/entry/state.mjs`, owned by `js-registry-delivery`) together with the attempt seam, and `js-resolution`'s overlapping claim on `L88–L331` is withdrawn (§2.3); **(b)** the failure form is **split** — `fail`/`refusalLog` to **part 2** (`src/entry/refusal.mjs`) and `withAddon`/`spellDottedContainer`/`boundaryReject` to **part 3** (`src/entry/artefact.mjs`), both under `js-resolution` — **on legibility, not on a cycle** (keeping the region whole closes none; declaration §3.2 case 1), while the *ownership* consequence follows hard: once the form is its own file it cannot be owned by `js-surface` without closing a module cycle (case 4) — and **one endpoint moves with it**; **(c)** `storeCreate` **stays whole** in `index.mjs` as part 1: the surface and the registry are not separated *inside* the member body, and the entry reaches the state part through `stateOf`/`installAttemptSeam`/`openCommit`/`closeCommit` instead. **A fourth finding the question did not have:** `homeAddressKey` (`L4780–L4796`) moves down from the delivery region to the state part, because the constraint glue's `addressSetKey` uses it and the alternative edge reads *the pass depends on the terminal arm*. **No pass is ordered by any of this** (`D-2` orders none) and the map's own figure stays 1 co-owned path until a wave lands.
 
 **Q3 — batteries as modules, or tests owned by the module they drive?** This map declares four harness
 modules (`store-battery`, `binding-battery`, `js-battery`, `greens-harness`) because each battery is a real,
@@ -523,6 +646,24 @@ the brief lists it as its own layer. But it declares shapes no runtime member of
 `AttemptRef`, `CommitRecord`, `LogEntry`) and it is the surface the type check measures — should the
 declaration be owned by `js-surface` as *the surface's own declaration*, or stay a peer so that a divergence
 between the two is visible as an interaction rather than hidden inside one module?
+
+**Q6 — is the constraint kernel to be subdivided as well?** The declared cut leaves
+`bindings/js/src/constraint-kernel.mjs` at **2,203 lines** — larger than every part but one — and `D-2`'s ground
+(*"already too long and should be subdivided anyway for readability"*) reaches it on its face. Its own seams are
+visible: the foundations (`KC`, the pair keying, `kernelFor`, the log appenders), the `K-1`/`K-6` registration and
+withdrawal machinery, the `K-2`/`K-3` attempt engine, and the `K-4`/`K-5` readers. **`docs/L1/entry-subdivision.md`
+§9 Q1 declines to draw that cut and says why** — the candidate halves share the foundations and the pair rows, and
+a cut drawn from a declaration-site survey would be a guess dressed as a boundary. **Put to the architect: is the
+kernel one part because `kernel-surface.md §1`'s five items are one subject, or is it to be cut by a pass that reads
+it?**
+
+**Q7 — where do the entry's parts live?** The declared paths are `bindings/js/src/entry/*.mjs`
+(`docs/L1/entry-subdivision.md` §9 Q2 sets out the alternatives and their costs). `bindings/js/src/` today holds the
+addon crate's **Rust** and exactly one `.mjs` (the kernel); a sibling `bindings/js/parts/` is unambiguous but puts
+the kernel one directory away from its own family, and the package root keeps `import.meta.url`-derived facts
+trivially right at the cost of nine `.mjs` files beside `index.mjs`. **The choice is a tree convention and it is the
+architect's in the same sense the battery's paths were (`D-5`), so it is asked rather than taken:** this map records
+`src/entry/` as the declared target and **no path exists on disk under it**.
 
 ---
 
@@ -579,11 +720,57 @@ map and the tree — recorded so no reader inherits a stale figure:
    `kernel.commit` / `kernel.runAttempt` at `L5723` / `L5729`. Recorded because the sentence this revision
    replaced asserted the opposite, and `D-1` does not depend on either reading (§4 E6).
 
+**⟶ READ AT THE BYTES BY THE `D-2` REVISION, AND RECORDED HERE BECAUSE EACH ONE MOVED A FIGURE OR A BOUNDARY.**
+The revision surveyed the two source files by structure — **148 top-level declaration sites in `index.mjs` and 62
+in `constraint-kernel.mjs`**, each with its line number — found the region rules (26 in the entry, 22 in the kernel),
+read thirteen boundary zones (`index.mjs` L1–110, L298–342, L548–760, L1830–1900, L1940–2010, L2960–3080,
+L3380–3449, L4550–4609, L4762–4831, L4995–5114, L5140–5340, L5405–5524, L5834–5903; the kernel's L1–100, L168–197,
+L374–423, L1000–1013), read `bindings/js/package.json` whole, and grepped the reach and consumer sets it needed.
+**It did not read either file end to end and ran nothing.**
+
+7. **`constraintsKernel()` has SEVEN call sites, not six** (§4 E6's correction): the six this map already printed
+   plus **`L5720`**, at the head of `constraintWrite` — which is why the map's own §4 E6 and `strata/brief.md` §6
+   were both short by one.
+8. **The `js-resolution` region and two `js-registry-delivery` regions OVERLAP**: `L79–L617` contains `L88–L200`
+   **and** `L201–L331`. Two modules claimed the same 244 bytes of the file. Recorded at §2.3 and removed by the
+   declared cut (part 4).
+9. **Four files carry the four-entry `files` array, at five sites** — `publish.test.mjs:2284` and `:2516`,
+   `publish-generators.test.mjs:1273`, `constraints-publication.test.mjs:1199`, `greens.mjs:1205` — where `D-3`'s
+   correction names **two asserted cells** (`P-PUB-7`, `JSG-12.18`). **Whether the other three are assertions or
+   generator inputs is the test layer's to say**; this map records the population only, and records it because
+   under the declared cut every one of those five sites sees a manifest whose rows change meaning
+   (`docs/L1/entry-subdivision.md` §5).
+10. **Twenty-one non-`scratch/` files REACH `bindings/js/src/constraint-kernel.mjs` in code** — 11 under
+    `bindings/js/test/`, 9 under `bindings/js/greens/`, and `index.mjs:5227` — and **27 name it in all**, the other
+    six mentioning it only in a comment (measured by grep, counted by file; ~90 further sites live under `scratch/`,
+    which §5.4 puts outside ownership by convention). **This is the fact that decided the kernel's path does not
+    move in the cut** (`docs/L1/entry-subdivision.md` §4.1).
+11. **Five `Symbol.for` keys are declared on BOTH sides** — `index.mjs` `:108`, `:126`, `:139`, `:166`, `:183`,
+    `:5840` and the kernel's `:97`, `:113`, `:135`, `:138`, `:148`, with a sixth spelled inline in the kernel at
+    `:2192`. **That duplication is the declared mechanism** (`kernel-surface.md §1` item 1's empty import
+    footprint), not an oversight, and the cut must not collapse it (§4 E6).
+12. **`carriesConstraintAt` (`index.mjs:5688`) has no live call site** — grep for `carriesConstraintAt(` returns
+    its declaration alone, while `:3579` records that the gate it named was removed when the entry→kernel edge
+    became unconditional. It travels with the constraint part unchanged; its disposition is no decision of this
+    map's.
+
+**WHAT WOULD FALSIFY THE DECLARED CUT — the map's share of it.** The declaration carries its own list
+(`docs/L1/entry-subdivision.md` §8); the four that bear on *ownership* rather than on code layout are: **a part
+that cannot be read without a sibling's comments** (then two parts are one and the boundary is false); **any
+part-boundary edge pointing upward in the declaration's §3.1 DAG** — a cycle, and the first symptom would be a
+`ReferenceError` at import; **a battery cell that must change for a reason other than a path** (then the cut moved
+more than lines, and the stratification's own reaches are the evidence); and **an installed tarball from the packed
+battery that fails on a missing part** — which would mean the `files` consequence was declared right and landed
+wrong, and is exactly the falsifier `D-10`/`D-12` built that battery for.
+
 **Not verified:** the tracked status of this map's owned entries **path by path** — a supervisor-run shell
 pass settled the aggregate (603 tracked, 477 of them under `scratch/`, 126 outside it), the `#[napi]` figure
 and the two root lock files, but it did not walk §2's ownership table line by line; **whether
 `strata/decisions.md` is tracked, which this revision could not check** (it had no shell either), so whether the
-tracked denominator is now 127 rather than 126 is owed a check and FIGURES keeps the 126 as measured; whether
-the five platform package names resolve on any registry (`LIVE / INSTALL` is OPEN, brief §6); the A112 ordering
-gate's state (the brief carries it as RED; this map takes no position); and the tier-eviction reading, which the
-brief itself declines to settle.
+tracked denominator is now 127 rather than 126 is owed a check and FIGURES keeps the 126 as measured; **the target
+denominator of 134** (FIGURES: arithmetic on the 126, owed its own `git ls-files` check after the wave); **the
+completeness of the declared part DAG** — its edges were found by grep for named calls, so an aliased,
+destructured, computed or `Reflect.apply`-reached call across a part boundary would be invisible to it; and the
+three items above that were already open: whether the five platform package names resolve on any registry
+(`LIVE / INSTALL` is OPEN, brief §6), the A112 ordering gate's state (the brief carries it as RED; this map takes
+no position), and the tier-eviction reading, which the brief itself declines to settle.

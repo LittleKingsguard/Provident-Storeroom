@@ -221,11 +221,11 @@
       "id": "js-resolution",
       "name": "The addon's resolution ladder",
       "owns": ["bindings/js/index.mjs#L79-L617"],
-      "responsibility": "Name the platform packages, read the version stamp, run the three ordered rungs, and answer the one declared absent-addon refusal.",
+      "responsibility": "Name the platform packages, read the version stamp, run the three ordered rungs, answer the one declared absent-addon refusal, and (DECLARED TARGET at strata/decisions.md D-2 — docs/L1/entry-subdivision.md §1 parts 2 and 3, not yet landed) render the package's single failure form and its artefact-backed boundary rejection, which the map gave to js-surface until the subdivision put the form in a file of its own below the gate that throws through it — owning that file from js-surface would close a module cycle, declaration §3.2 case 4.",
       "endpoints": [
         {
           "name": "loadAddon",
-          "input": "the entry's own module context — the platform and arch, and the addon's module-relative path",
+          "input": "the entry's own module context — the platform and arch, and the addon's module-relative path. TODAY THE ENTRY DERIVES THREE FACTS FROM ITS OWN import.meta.url: ADDON_PATH (index.mjs:85-86), the createRequire base (:85, used at :441 and :491) and the manifest path (:359). Under the declared subdivision (docs/L1/entry-subdivision.md §2, I-29) they are handed to src/entry/artefact.mjs from index.mjs, because a part deriving them from its own URL would relocate rung two, rung one and the version read into bindings/js/src/entry/",
           "output": "the addon namespace from rung one or rung two, or the recorded miss set that becomes the absent-addon refusal"
         },
         {
@@ -237,15 +237,20 @@
           "name": "packageVersion",
           "input": "nothing — the entry's own context",
           "output": "the version string the ladder compares at rung one"
+        },
+        {
+          "name": "the failure form",
+          "input": "a status from the store's closed set, the failing subject and its declared position — plus, at the boundary arm, the failing segment's own container prefix (DECLARED TARGET: the carrier is bindings/js/src/entry/refusal.mjs (L565-L645 of index.mjs today) and bindings/js/src/entry/artefact.mjs (L646-L716 today); the endpoint moves here from js-surface at the D-2 cut, and the tree's total stays 61 because it is a move and not an addition)",
+          "output": "the thrown plain object {status, message, log} — never an Error subclass, never a rejection, never {ok:false}; the generator authors the message and no status is minted"
         }
       ],
-      "interactions": ["js-surface", "binding-facade", "delivery", "js-battery", "greens-harness"]
+      "interactions": ["js-surface", "js-crossing", "js-registry-delivery", "js-constraints", "binding-facade", "delivery", "js-battery", "greens-harness"]
     },
     {
       "id": "js-surface",
       "name": "The entry and its members",
       "owns": ["bindings/js/index.mjs#L1-L78", "bindings/js/index.mjs#L618-L746", "bindings/js/index.mjs#L3425-L4593"],
-      "responsibility": "Publish the module's one export, define the instance's fourteen members, admit each call's arguments at its site, and render the single failure form.",
+      "responsibility": "Publish the module's one export, define the instance's fourteen members, admit each call's arguments at its site, and render the single failure form. AT strata/decisions.md D-2 (docs/L1/entry-subdivision.md §1 part 1, not yet landed) the file becomes this module's alone — the header, the module context, storeCreate and the module-namespace statement — and the failure form is re-homed to js-resolution, because the form is its own file and must be owned below the artefact gate that throws through it (declaration §3.2 case 4). The tree's regions and the tree's endpoint total are unmoved until that wave lands.",
       "endpoints": [
         {
           "name": "storeCreate",
@@ -256,11 +261,6 @@
           "name": "the fourteen members' admission",
           "input": "the caller's arguments at each member's own positions — address, tier, value, commit, handle, addresses, listener, pair, constraint, opId",
           "output": "the dispatched store call, or the boundary's refusal carrying a store status that was never minted here"
-        },
-        {
-          "name": "the failure form",
-          "input": "a status from the store's closed set, the failing subject and its declared position",
-          "output": "the thrown plain object — never an Error subclass, never a rejection, never {ok:false}"
         }
       ],
       "interactions": ["js-resolution", "js-crossing", "js-registry-delivery", "js-constraints", "js-declaration", "store-fail-set", "js-battery", "greens-harness"]
@@ -269,7 +269,7 @@
       "id": "js-crossing",
       "name": "The JS-side walk",
       "owns": ["bindings/js/index.mjs#L747-L3070"],
-      "responsibility": "Decide each value's class, guard the walk's ceilings and caller-code arms, and encode arguments in and decode answers out.",
+      "responsibility": "Decide each value's class, guard the walk's ceilings and caller-code arms, and encode arguments in and decode answers out. AT strata/decisions.md D-2 (docs/L1/entry-subdivision.md §1 parts 5 and 6, not yet landed) this module's one region becomes two files — bindings/js/src/entry/class-decision.mjs (the class predicates, the walk's first-fault record and valueReject) and bindings/js/src/entry/walk.mjs (the encoders and decoders) — split at the banner the file itself drew at index.mjs L1871-L1872, because the class half is consumed by the encoder half and produces nothing the class half reads.",
       "endpoints": [
         {
           "name": "encodeValue",
@@ -297,7 +297,7 @@
           "output": "fresh JS data no other side can reach — no proxy, no live view, no getter"
         }
       ],
-      "interactions": ["js-surface", "binding-facade", "store-fail-set", "js-battery", "greens-harness"]
+      "interactions": ["js-surface", "js-resolution", "binding-facade", "store-fail-set", "js-battery", "greens-harness"]
     },
     {
       "id": "js-registry-delivery",
@@ -308,7 +308,7 @@
         "bindings/js/index.mjs#L3072-L3424",
         "bindings/js/index.mjs#L4594-L5200"
       ],
-      "responsibility": "Hold the package's per-instance state, the handle and its registry, deliver the triggered set to the caller's functions, and perform the terminal arm's file-tier save.",
+      "responsibility": "Hold the package's per-instance state, the handle and its registry, deliver the triggered set to the caller's functions, and perform the terminal arm's file-tier save. AT strata/decisions.md D-2 (docs/L1/entry-subdivision.md §1 parts 4 and 7, not yet landed) its four regions become two files — bindings/js/src/entry/state.mjs (the seven well-known Symbol.for keys of index.mjs L88-L300 plus STORE_INDEX, the attempt seam, INSTANCES/stateOf/entryOf/carryRefusal, and homeAddressKey moved down from the delivery region because the constraint glue's addressSetKey uses it) and bindings/js/src/entry/delivery.mjs (commitPositionRefusal, deliver, registerOn, constraintAtAnyAddress, terminalArm) — because the symbol block the map gave this module overlapped js-resolution's claimed region L79-L617.",
       "endpoints": [
         {
           "name": "stateOf / entryOf",
@@ -341,13 +341,13 @@
           "output": "the addon's commit answer, or the refusal carried unchanged"
         }
       ],
-      "interactions": ["js-surface", "js-crossing", "js-constraints", "binding-facade", "js-battery", "greens-harness"]
+      "interactions": ["js-surface", "js-resolution", "js-crossing", "js-constraints", "binding-facade", "js-battery", "greens-harness"]
     },
     {
       "id": "js-constraints",
       "name": "The constraint members and the integrated kernel",
       "owns": ["bindings/js/index.mjs#L5202-L5903", "bindings/js/src/constraint-kernel.mjs"],
-      "responsibility": "Carry the five constraint members and the write path's constraint evaluation, and evaluate a write against registered pairs — composing and repairing the attempt and answering its log and report — as one integrated mechanism rather than an external import (strata/decisions.md D-1).",
+      "responsibility": "Carry the five constraint members and the write path's constraint evaluation, and evaluate a write against registered pairs — composing and repairing the attempt and answering its log and report — as one integrated mechanism rather than an external import (strata/decisions.md D-1). AT strata/decisions.md D-2 (docs/L1/entry-subdivision.md §1 parts 8 and 9, not yet landed) its two paths become the constraint glue at bindings/js/src/entry/constraints.mjs and the kernel as the ninth part of the subdivided entry at its UNCHANGED path bindings/js/src/constraint-kernel.mjs: the lazy require_ at index.mjs:5227 and the let KERNEL cache retire (a tree carrying index.mjs alone can no longer load at all, so the laziness has no remaining subject), the kernel's six export sites stay where they are as module-level names its siblings import, and the kernel keeps an empty import footprint (kernel-surface.md §1 item 1) — so the doubled Symbol.for keys stay doubled by design.",
       "endpoints": [
         {
           "name": "addConstraint",
@@ -375,7 +375,7 @@
           "output": "the evaluated pair set before the durable save, or the refusal"
         }
       ],
-      "interactions": ["js-surface", "js-registry-delivery", "js-battery", "greens-harness"]
+      "interactions": ["js-surface", "js-resolution", "js-registry-delivery", "js-battery", "greens-harness"]
     },
     {
       "id": "js-declaration",
@@ -427,7 +427,7 @@
         {
           "name": "the files allowlist",
           "input": "the shipped set the manifest names",
-          "output": "four entries in the tree today — index.mjs, README.md, index.d.ts, src/constraint-kernel.mjs — and NOTHING BINDS THAT COUNT: read through strata/decisions.md D-3 (the 'exactly four' constraint is OBSOLETE), D-4 (the strict count is lifted; the shape is determined empirically by delivery together with the e2e/blind scenario testing) and D-8 (the LICENSE row is lawful ONLY IF EVIDENCE REQUIRES IT — neither refused nor granted by rule). What remains binding is the FUNCTION: whatever the entry requires by path must ship. The prohibitions are unmoved: no build path, no .node entry, no postinstall route. The four names are a FACT OF THE TREE and not a rule (docs/L1/module-map.md I-23, E4)"
+          "output": "four entries in the tree today — index.mjs, README.md, index.d.ts, src/constraint-kernel.mjs — and NOTHING BINDS THAT COUNT: read through strata/decisions.md D-3 (the 'exactly four' constraint is OBSOLETE), D-4 (the strict count is lifted; the shape is determined empirically by delivery together with the e2e/blind scenario testing) and D-8 (the LICENSE row is lawful ONLY IF EVIDENCE REQUIRES IT — neither refused nor granted by rule). What remains binding is the FUNCTION: whatever the entry requires by path must ship. The prohibitions are unmoved: no build path, no .node entry, no postinstall route. The four names are a FACT OF THE TREE and not a rule (docs/L1/module-map.md I-23, E4). ⟶ AND THE DECLARED SUBDIVISION CHANGES WHAT THE ENTRY REQUIRES, WITHOUT CHANGING THE RULE: once the entry statically imports seven new part files (bindings/js/src/entry/{refusal,artefact,state,class-decision,walk,delivery,constraints}.mjs, docs/L1/entry-subdivision.md §5), reachability puts ELEVEN rows in the allowlist and src/constraint-kernel.mjs changes ground — from 'the separately reachable fourth entry' (whose subject strata/decisions.md D-1 said was gone) to 'a file the entry requires like every other part', so D-1's prediction is read through D-2 and the row SURVIVES on reachability. Whether a directory row may replace the seven is not decided by any ruling (D-3 licenses no glob) and is delivery's with the installed battery's evidence (D-10/D-12) — no allowlist question goes to the architect (D-4)"
         },
         {
           "name": "the release pipeline",
@@ -541,7 +541,7 @@
         {
           "name": "node --test bindings/js/test/*.test.mjs",
           "input": "the assembled package, reached as a consumer reaches it (import { storeCreate } from 'provident-storeroom'), and the kernel at its checkout home",
-          "output": "a per-file pass/red row set over the surface, the kernel, the held listener identity, the JSON crossing, the file-tier save, the publication and the version stamp"
+          "output": "a per-file pass/red row set over the surface, the kernel, the held listener identity, the JSON crossing, the file-tier save, the publication and the version stamp. UNDER THE DECLARED SUBDIVISION (docs/L1/entry-subdivision.md §4.1, §4.2) THE KERNEL'S REACH DOES NOT MOVE — the path bindings/js/src/constraint-kernel.mjs is unchanged, so no cell re-points because of the cut — while the four drives that assemble an index.mjs-alone tree (publish, publish-generators, version-stamp, negative-generators' copy arm) must STAGE THE PART SET, because a tree carrying index.mjs alone cannot load once the entry statically imports its parts (D-1-ter's 'they must either stage the integrated set or drop their kernel-only limbs', generalised from one file to eight)"
         }
       ],
       "interactions": ["js-surface", "js-crossing", "js-registry-delivery", "js-constraints", "js-resolution", "js-declaration", "delivery"]
