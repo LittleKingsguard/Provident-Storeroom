@@ -1197,3 +1197,56 @@ verified by the leg it most needs, and can be verified by the one it needs least
 cells are **one class**: cells whose expectation no longer comes from the code. **`D-17`'s rewrite-or-retire work
 is therefore 21 + 40 and not 12**, and the greens' crash means **two of that leg's three runners have never been
 measured on this tree at all** — so the 40 is a floor, not a total.
+
+---
+
+### `D-19` — the batteries are the test writers' to review, and L0 grants the transitional scope
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the executor
+question L0 put to him after the baseline ledger.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Fix crash. Have test writers review existing suites and determine which they can keep, rewrite for new code shape,
+> or discard/replace entirely
+
+**WHAT IT SETTLES.**
+
+- **The crash is FIXED, not worked around.** `greens.mjs`'s uncaught `AddressMalformed` — the one that kills the
+  run before `live-drive.mjs` and `file-tier-save/scenarios.mjs` execute — is repaired in the same pass as the
+  review, so both of the leg's unmeasured runners become measurable.
+- **The disposition of every existing cell is a TEST-WRITER determination, in three classes:** **KEEP** (still
+  true of the current code), **REWRITE** (true of the code as it now stands), **DISCARD/REPLACE** (its subject is
+  gone). **L0 does not class a single cell.**
+- **★ AND IT ANSWERS THE EXECUTOR QUESTION L0 LEFT OPEN, ON THE ONLY SIDE THE MODEL PERMITS.** L0 granted no
+  exception and the architect has not overridden `D-5` (the preset's scopes are kept): **the work goes to the
+  strata test writers**, and **the review is a read-and-determine act they may perform on the present-state paths
+  wherever those paths sit.** **An edit is still confined to a scope a role may write** — so **L0 records a
+  transitional scope grant for this pass only: `bindings/js/test/` and `bindings/js/greens/` are the paths this
+  pass may write, because the batteries have no strata home until the migration and the crash cannot be fixed
+  from inside a directory that does not exist yet.** **The grant is L0's, it is time-boxed to this pass, and it is
+  recorded here so that no later pass inherits it by silence.**
+
+**WHAT IT DOES NOT SETTLE.** **How many cells land in each class** — that is the determination itself. **And
+whether a REWRITE's new expectation comes from a declared surface, an observable behaviour or a property** — the
+test writer's declaration, under `D-17`'s one standing constraint: **it may not come from opening a document.**
+
+---
+
+### `D-20` — the battery work is staged: crash and determination first, execution second
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, reading `D-19`'s two verbs.
+
+**WHAT IT ORDERS.** **`D-19` names two acts and L0 stages them:**
+
+1. **THIS PASS:** **the crash fix and the determination** — every existing JS cell classified KEEP / REWRITE /
+   DISCARD-REPLACE **with the evidence for its class**, and **the record written where this project already keeps
+   such records** (a review document beside the battery, matching `REMEASURE-2026-10-18.md`'s precedent).
+2. **THE NEXT PASS:** **execution** — the REWRITE and DISCARD-REPLACE classes performed, and the legs re-run
+   against the ledger.
+
+**WHY STAGE RATHER THAN ONE PASS.** **53 JS battery files and at least 61 failing cells is not a review and a
+rewrite a single pass can do honestly** — and `D-17`'s own standard says a cell is not retired merely because
+rewriting is harder. **A determination the architect can read is worth more than a rewrite nobody classified.**
+**And the crash comes first inside the stage, because until it is fixed two thirds of the greens leg cannot be
+measured at all, so the determination would be made blind on those two runners.**
