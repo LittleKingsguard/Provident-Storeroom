@@ -2370,3 +2370,32 @@ fresh clone, which `preflight_pkgs` depends on.** **Both branches change a decla
 `|| true` **silently stages the old `.node`**. `.github/workflows/publish.yml:171` runs the binding command that now
 runs **0 tests and exits 0** — **a declared CI leg gone silently vacuous** — and `:188` builds from the same stale
 path. **These are the release's, and they are the reason a relocation cannot be called done until they move too.**
+
+---
+
+### FINDING — the blind instrument runs in NO leg, and no examiner role ran in this session
+
+**DATE:** 2026-10-25. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect's question, answered
+from the tree. **L0's own coverage finding, and the third of its kind.**
+
+**THREE BLIND/ADVERSARIAL INSTRUMENTS EXIST, AND TWO OF THEM RUN.**
+
+| instrument | in a leg? | state |
+|---|---|---|
+| `tests/e2e/json-crossing-blinded.test.mjs` | **yes** — `npm test`'s glob | **passing** |
+| `tests/e2e/json-crossing-gate4-adversarial.test.mjs` | **yes** — same glob | **passing** |
+| **`tests/e2e/blind-constraints-v2.mjs`** | **NO LEG RUNS IT** | **RED: exit 1 · FAIL 25 · NONRUN 17 · NOT-DRIVABLE-BLIND 10** |
+
+**WHY IT IS IN NO LEG, NAMED PRECISELY:** `npm test` globs **`*.test.mjs`** and this file is `.mjs`; `npm run greens`
+chains **three named runners** and this is not one of them; `npm run test:e2e` runs **the installed battery alone**.
+**So the largest blind instrument in the project is invoked only when somebody remembers to, and it has been red since
+the surface rulings landed** — its 25 FAIL and 17 NONRUN measured at HEAD.
+
+**★ AND THE PROCESS GAP IS WORSE THAN THE INSTRUMENT GAP: NO EXAMINER ROLE RAN IN THIS SESSION.** The strata preset
+gives **`role_l1_examiner`, `role_l2_examiner` and `role_l3_examiner`** a procedure (`strata/examiner.md`) whose first
+duty is *"validate the battery before the code, then diagnose."* **Not one of them was used.** Every validation this
+session was either **L0's own shell check** or **a test writer re-deriving a battery the rulings had moved** — and
+**the two are not the same act: a writer re-derives against a shape, an examiner asks whether the battery could have
+CAUGHT the defect.** **That question was asked by nobody, and this branch found nine defects — several of which a
+battery existed for and did not catch.** **A green battery validated by its own author is the weakest evidence this
+model has, and it is the evidence most of this session rested on.**
