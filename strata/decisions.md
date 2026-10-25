@@ -240,3 +240,71 @@ mid-way); **its closing question does not, and is withdrawn here by name.**
 
 **WHAT THIS ENTRY CHANGES BELOW ME: nothing.** No map revision, no module, no endpoint, no boundary — and that
 no-change is itself the answer: when the integration wave is opened, `delivery` already owns its part of it.
+
+---
+
+### `D-3` — the "exactly four" constraint on the `files` allowlist is OBSOLETE
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, in session.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Obsolete the constraint on 'exactly four'
+
+**WHAT "OBSOLETE" IS TAKEN TO MEAN, STATED SO IT IS NOT OVER- OR UNDER-READ:** the project **no longer holds
+itself to a declared count** on the package's `files` allowlist. The count is not replaced by another count —
+**the constraint is retired**, and what remains binding is the *function* the allowlist serves: **whatever the
+entry requires by path must ship in the tarball.**
+
+**WHAT IS OBSOLETED, BY NAME.** Two artifacts encode the retired constraint, and they are **not the same kind of
+thing**, so they do not retire the same way:
+
+1. **`docs/specs/storeroom-publish/contract.md` `§2.1` item `6`** — the clause that landed 2026-10-16 and
+   declares *"exactly FOUR entries, the fourth being the constraint kernel's own module"* (`A122`, `A121`).
+   **It stands as text and is read through this ruling**, which is this project's own supersession convention
+   (`RCA-8(d)` ANNOTATE-BESIDE). **No role in this workflow owns the spec corpus** — the nine kept contracts are
+   declared inputs, deliberately unowned (map §5.3: *"a module that owned its contract could amend what it is
+   measured against"*) — **so this file, the authority log, is what supersedes it. The clause is not rewritten,
+   and no pass is ordered to rewrite it.**
+2. **`bindings/js/test/publish.test.mjs`, cell `P-PUB-7`** — whose `assert.deepEqual` compares the allowlist
+   against the sorted four-name array. **That equality *is* the count constraint; it cannot be narrowed, only
+   removed or replaced.** **A test cannot be superseded by a ruling — it passes or it fails** — so this cell is
+   **owed a change by its owner (`js-battery`)**, and until that change lands it **encodes an obsolete
+   constraint** and would fail the moment the fourth entry is honestly retired.
+
+**AND THE RULE THAT DOES NOT RETIRE WITH IT, NAMED BECAUSE IT LIVES IN THE SAME CELL.** `P-PUB-7` asserts four
+further things beside the equality, and **none of them is a count constraint**: `build/Release` leaves `files`;
+**no `.node` is published**; no `postinstall` build-on-install route (`PUB-DD-1`); and a tracked-tree walk for a
+shipped binary. **They stand, and any change to that cell must keep them** — a pass that deletes the equality and
+takes the prohibitions with it has destroyed the load-bearing half of the cell.
+
+**AND ONE ANCESTOR CLAUSE THIS RULING LEAVES STRANDED, RECORDED RATHER THAN RESOLVED.** `§2.1` **item `1`** is
+the earlier and stricter rule — *"the allowlist is `index.mjs` · `README.md` · `index.d.ts` and **NOTHING
+ELSE**"* — and `P-PUB-7`'s own comment records that item `6` was landed as **item 1's operative reading**. **With
+item `6` obsoleted, item `1` has no operative successor in that family, and whether "NOTHING ELSE" retires with
+the count or survives as a separate prohibition is a question this ruling does not answer.** It is put to the
+architect below rather than decided here.
+
+**WHAT IT SETTLES.**
+
+- **The allowlist stops being an independently declared surface with an arity.** It becomes a **consequence of
+  reachability**: the entry requires `./src/constraint-kernel.mjs` by path **today**, so that path must ship
+  **today**; when it requires nothing by path, nothing is owed. **The count follows the code; the code no longer
+  follows the count.**
+- **The spec gate `D-1-quater` described is gone.** `delivery` no longer needs a contract amendment to change the
+  allowlist. **The only remaining pin is mechanical** — do not publish a tarball in which an entry-required
+  file is absent, because its first constraint act fails — **and that is a consequence of the code, not a rule
+  about arity.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+- **It orders no code move.** `D-1` and `D-2` still order none, and this ruling removes a constraint rather than
+  scheduling the removal of the entry it constrained. **Retiring the fourth entry before the code stops
+  requiring the file publishes a tarball that breaks at the first constraint act** (`D-1-ter`).
+- **It does not decide what `P-PUB-7` should assert instead, or whether it should assert anything.** Reachability
+  rather than arity is the obvious candidate and **L0 does not write it and must not invent it** — the assertion
+  is the test layer's to declare, and the cell's four surviving assertions are its floor.
+- **It does not address a glob, a wildcard, or a directory entry in the allowlist.** Whether those are lawful is
+  a separate question, and **nothing here licenses one.**
+- **It moves no module, no endpoint and no boundary.** The map's I-23 statement of the tree stays true — the
+  manifest carries four entries today — and only its *binding force* is retired; the map carries the pointer.
