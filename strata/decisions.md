@@ -2059,3 +2059,39 @@ fourteen members closing over one local state).
    which carry `index.mjs` alone — cannot load (`D-14`), and **`role_l4_implementer` may not edit tests.** **So stage
    2's source move lands with four known load failures, and the very next pass repairs them.** **That transient red
    is DECLARED here rather than discovered**, and the two passes must land back to back.
+
+---
+
+### FINDING — the kernel cut is implementable and byte-verified, and ONE PATH-PINNED TEST blocks it
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the second L4 pass, which built the
+cut, verified it, and stopped rather than edit a test. **L0 confirmed the tree was restored and the blocker is real.**
+
+**WHAT THE PASS PROVED BEFORE STOPPING.** The five parts were built and **their bodies are byte-identical to
+`git show HEAD:…constraint-kernel.mjs`** — only 24 lines differ, each by an added `export ` prefix that the siblings'
+imports cannot resolve without. **Line counts land exactly on the declaration: `528 · 642 · 154 · 567 · 322`; the
+declaration census `24/11/1/7/9 = 52` holds; the DAG was built with no edge the declaration did not have; and there
+are ZERO temporal-dead-zone sites**, because all 52 top-level lines are declarations with no top-level executable
+statement and every cross-part use sits inside a function body. **A pure move, demonstrated rather than asserted.**
+
+**AND WITH THE CUT IN PLACE, THREE LEGS STAY GREEN AND ONE DOES NOT: `npm test` falls to 846 pass / 4 fail.**
+**The four are `JC-TC-63`, `-64`, `-65`, `-66`, and the cause is a single predicate:**
+`bindings/js/test/json-crossing.test.mjs:3941` declares
+**`CROSSING_KERNEL_FILE_SUFFIX = '/bindings/js/src/constraint-kernel.mjs'`** and `:4003` classifies a take by
+**the file its own stack frame names** — `frame.file.endsWith(CROSSING_KERNEL_FILE_SUFFIX)`. **After the cut, a
+kernel frame names `src/entry/kernel-*.mjs`, so takes that were `ROUTED_KERNEL` become `UNATTRIBUTED`, which is a
+violation by that cell's own design.** The failures name the parts: `kernel-foundations.mjs:179 inDomainAddress`,
+`kernel-foundations.mjs:371 append`, `kernel-attempt.mjs:256 evaluate`, `kernel-attempt.mjs:525 releasePending`.
+
+**★ THE GENERAL LESSON, WHICH IS THE REASON THIS IS A FINDING AND NOT A NUISANCE: A TEST THAT IDENTIFIES A MODULE BY
+ITS FILE PATH IS A COUPLING ON THAT FILE'S PARTITION.** **It is invisible while the file is whole**, which is why
+nothing in the declaration or the map saw it — and **it is the class of coupling a subdivision is most likely to
+meet, because a partition is exactly what a path identity cannot survive.** **The repair is a predicate that
+recognises the module's identity by its HOME rather than by one file**: the barrel's own path **or** the parts'
+directory pattern, so it is **correct before the cut and after it** — which means it can land FIRST, with the tree
+green throughout.
+
+**AND ONE STALE CLAIM THE RE-ISSUED DECLARATION INHERITED, RECORDED FOR L1 TO FIX.** `kernel-subdivision.md §4.2`
+still says `blind-constraints-v2.mjs:1139` **pins five kernel names and is red**. **At HEAD that cell is at `:1251`
+and it is GREEN on six** — the battery's re-derivation moved it. **A declaration that inherits a claim without
+re-measuring it is how the last stale declaration happened; this one is small and is named rather than repeated.**
