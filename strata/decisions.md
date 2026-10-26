@@ -2835,3 +2835,42 @@ where a consumer reads it — the same act as `D-38`'s fail-state expansion.
 **TERMS: arm declared (`1` = failing repair ⇒ rollback ⇒ pre-attempt state), defect confirmed (`1` = `DEF-M`, the
 composition stops at `op-2`), cells owed (`1` = the DEF-M cell re-derived to the declared outcome), declaration owed
 (`1`).**
+
+---
+
+### `D-40`'s IMPLEMENTATION FINDING — the floor law, and TWENTY-TWO cells that encode the arm `D-40` overrules
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the implementer's stop, which refused a wrong write scope and
+measured instead of guessing.
+
+**1 · THE SITE IS `kernel-terminal.mjs:178–269` (`composeRollback`), NOT `kernel-attempt.mjs`.** Its only store call is
+`:232`, `attempt.store.rollback(op.opId)`. **The brief named the wrong file; the implementer found the right one and
+stopped rather than editing blind.** *(L0's error, recorded.)*
+
+**2 · THE FLOOR LAW, WHICH IS THE REAL PRODUCT OF THIS PASS.** **The store's rollback scope is TEMPORALLY FLOORED at
+the named op's own `seq` and ALL-OR-NOTHING at the compacted mark** (`src/store.rs:2374–2430`). Call `1` over `op-3`
+reverses `op-3` and marks it compacted; call `2` over `op-2` then finds that compacted `op-3` in its candidate set →
+`RollbackCompacted`, **undoes nothing**. **So a NEWEST-FIRST PER-OP WALK CAN NEVER REACH THE FLOOR ONCE A REPAIR OP
+EXISTS.** **The cure is ONE CALL over the attempt's first op, which sweeps both.**
+
+**3 · AND IT WAS MEASURED, THEN REVERTED.** With that single floor call: **failing arm `read` `9 → 5`** (exactly what
+`D-40` requires), the comparison arm `5` unmoved, the passing arm's `op.after.value` still `9` against `read` `1`, and
+the outcome's message moving from *"…`RollbackCompacted` at `op-2`"* to *"the repaired value is refused by the second
+pair"* with `KC-8 → KC-3`.
+
+**4 · ★ THE COST, AND IT IS A SYSTEMIC FINDING RATHER THAN A SIDE EFFECT.** **That fix reddens EIGHTEEN cells, because
+they were RE-DERIVED ON 2026-10-25 TO ASSERT `KC-8`** — the very arm this ruling overrules — and `blind-constraints-
+v2.mjs`'s `E2E-C-5` cells `1`, `4`, `6` and `9` assert `KC-8` too, which would redden `npm run greens`. **So TWENTY-TWO
+cells across two files encode the outcome the architect has now ruled wrong.** **They are not stale by accident: a
+2026-10-25 pass re-derived them to the observed behaviour and recorded that re-derivation as a correction.** **That is
+the failure mode of re-deriving from the code instead of from a ruling, and it is the exact thing the blind set exists
+to resist — the blind cells were authored from the clause and are the reason `DEF-M` could be filed at all.**
+
+**5 · THE RETURNED-`op` HALF IS A SECOND CAUSE.** `index.mjs:419–427` builds the **store-leg record** and
+`constraints.mjs:663–678` returns it, **discarding `runAttempt`'s report** — so the record describes the store leg and
+not the attempt. **The fix is the one `DEF-M`'s own (f) already names: the passing arm must RETURN the report it
+already builds.** No forgery of the op's `after` is admissible, and the implementer said so.
+
+**WHAT THIS PASS DID NOT DO, AND WHY.** **The fix needs one behavioural change plus a RE-DERIVATION OF TWENTY-TWO
+CELLS from the overruled arm to the declared one** — **a test-writer's act, not an implementer's, and not a one-file
+edit.** **The tree is byte-identical to `HEAD`; nothing half-done ships.**
