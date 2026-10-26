@@ -76,13 +76,22 @@ pub(crate) mod codec;
 // hand. `#[napi]` does not work that way: the derive emits its own `ctor`-registered collector and its own
 // `napi_register_module_v1`, so the five names are collected from the annotated functions themselves and
 // the ordering the initialiser array was engineering is the library's business rather than this crate's.
-// **Measured after the deletion, not assumed: the rebuilt artefact still exports exactly the five, and a
-// live `require` of it still answers all of them** (`binding-crate-and-abi.md §4`).
+// **⟶ RE-MEASURED AND RE-STATED 2026-10-26: THE REBUILT ARTEFACT EXPORTS THIRTEEN, AND `call` IS NOT ONE
+// OF THEM.** A live `require` of it answers all thirteen (`binding-crate-and-abi.md §4`), and the set is
+// **the `4` STANDING ENTRIES PLUS THE `9` PER-VERB ENTRIES** — `storeCreate` · `register` · `version` ·
+// `errorMessage` · `read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` ·
+// `removeListener` · `commitFile` (`4 + 9 = 13` ✓). **`call` IS ABSENT**: the package's `addon.call(...)`
+// dispatcher was DELETED at `export-set-and-dispatch.md §2` — *"`call` IS DELETED … the split is precisely
+// its replacement"* — and the nine per-verb entries are what replaced it. **THE `5` THIS PARAGRAPH AND THE
+// ONE ABOVE IT PRINTED WAS TRUE WHEN EACH WAS WRITTEN** (`A145`'s adoption, 2026-10-21, landed `#[napi]` over
+// a hand-built table of five) **AND WAS NEVER RE-DERIVED WHEN THE ADDON-SURFACE SPLIT RE-CUT THE BOUNDARY
+// `5 → 13`**; the kept row of record is `docs/specs/storeroom-addon-surface/contract.md`'s `P-SAS-1`
+// (*"the addon's export set is exactly the thirteen declared names — `4` standing plus `9` per-verb — and
+// `call` is absent"*), and the addon's own battery asserts the retired entry absent by its exact symbol.
 //
-// **THE FIVE ENTRY FUNCTIONS KEEP THEIR NAMES AND ARITIES** — `version` · `errorMessage` · `storeCreate` ·
-// `call` · `register` — and their annotations stand at their own declarations in `facade.rs`. **A name no
-// annotation registers is not exported**, which is what makes `P-ADA-6`'s symbol read a check of the
-// artefact rather than of a list.
+// **THE THIRTEEN KEEP THEIR NAMES AND ARITIES**, and their annotations stand at their own declarations in
+// `facade.rs`. **A name no annotation registers is not exported**, which is what makes `P-ADA-6`'s symbol
+// read a check of the artefact rather than of a list.
 //
 // **`napi_register_module_v1` REMAINS, AND IT IS THE LIBRARY'S** (`binding-crate-and-abi.md §4` item 1):
 // it is the unavoidable runtime registration symbol, now emitted by `napi-derive` in place of the

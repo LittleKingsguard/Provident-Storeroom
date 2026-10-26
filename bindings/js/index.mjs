@@ -1199,8 +1199,10 @@ export function storeCreate(cfg) {
     ///
     /// **⟶ AND THE CHANNEL THAT MEMBER WAS IS REPLACED BY A SYMBOL-KEYED PROPERTY, NOT BY A NAMED MEMBER**
     /// (`TERMINAL_ARM` above): the kernel still reaches this entry at its terminal arm, and **the product's
-    /// declared twelve own members are UNMOVED** because a symbol key is invisible to `Object.keys` and to
-    /// `Object.getOwnPropertyNames` — the precedent `A117` (D6) declares and `docs/specs/storeroom-js/surface.md §2.11` clause 9 prints
+    /// declared fourteen own members are UNMOVED** (`⟶ CORRECTED 2026-10-26`: this line printed `twelve`, the
+    /// figure the `12 → 14` move of the held-listener-identity unit superseded on 2026-10-19; the operative
+    /// figure is `index.d.ts`'s `StoreInstance` and `surface.md §2.4` item 9 (f)) because a symbol key is
+    /// invisible to `Object.keys` and to `Object.getOwnPropertyNames` — the precedent `A117` (D6) declares and `docs/specs/storeroom-js/surface.md §2.11` clause 9 prints
     /// (*"a symbol-keyed own property is invisible to both"*). **IT IS NOT A MEMBER OF THE PRODUCT IN THE
     /// SENSE `docs/specs/storeroom-js/surface.md §2.4` item 9 (f) COUNTS**, and no cell that counts members can see it.
     [TERMINAL_ARM](record) {
@@ -1228,10 +1230,14 @@ export function storeCreate(cfg) {
   //      the row the addon's own `instance_of` reads: element `0` of the receiver, read as a number. **A
   //      NON-ENUMERABLE OWN PROPERTY IS THE FORM CHOSEN BECAUSE IT IS INVISIBLE TO `Object.keys` AND TO
   //      `Object.getOwnPropertyNames`** — the same precedent `A117` (D6) declares for the symbol-keyed
-  //      channels above — **so the product's declared member set is UNMOVED at twelve** (`surface.md §2.4`
-  //      item 9 (f)) and no member-counting cell can see it. **AND IT IS THE ROW A CLONED STORE OBJECT
-  //      CARRIES TOO**, because `Object.assign`/spread copy own enumerable properties only: a clone carries
-  //      NO index and therefore resolves NO store, which is the SAME one observable the detached call gets.
+  //      channels above — **so the product's declared member set is UNMOVED at fourteen** (`surface.md §2.4`
+  //      item 9 (f); `⟶ CORRECTED 2026-10-26`: this line printed `twelve`, superseded by the held-listener-
+  //      identity unit's `12 → 14` move of 2026-10-19) and no member-counting cell can see it. **AND A CLONED
+  //      STORE OBJECT DOES NOT CARRY THE ROW** (`⟶ CORRECTED 2026-10-26`: this clause opened *"AND IT IS THE
+  //      ROW A CLONED STORE OBJECT CARRIES TOO"*, which contradicted its own ground and its own conclusion),
+  //      because `Object.assign`/spread copy own ENUMERABLE properties only and this row is published at
+  //      `enumerable: false`: **a clone carries NO index and therefore resolves NO store**, which is the SAME
+  //      one observable the detached call gets.
   //
   //   2. **A `FinalizationRegistry` REGISTERED ON THE STORE OBJECT, WHOSE CALLBACK RETIRES EXACTLY THAT
   //      OBJECT'S OWN ROW.** `§6`: *"the retirement removes EXACTLY ONE ENTRY — the freed instance's own —

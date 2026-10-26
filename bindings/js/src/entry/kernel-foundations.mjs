@@ -491,8 +491,23 @@ export function withdraw(attempt, entry) {
  * stand ABOVE the ordinal of the op this repair was invoked for CANNOT be an op this repair
  * landed — it landed at or before it. The member is read CALLER-SIDE, off the return's own value and
  * off the attempt's own record and off nothing else: the kernel reaches no journal and loads no
- * second route. Where either ordinal is not a number the ground is not applied, and the membership
- * ground above stands alone.
+ * second route.
+ *
+ * **⟶ AND THE ORDINAL GROUND IS DECISIVE WHERE THE FLOOR IS KNOWN, WHICH IT WAS NOT BEFORE 2026-10-26**
+ * (`parameter-semantics.md §2.8`'s `observable` cell — *"a `{ok: true}` repair with NO `op`, or with
+ * an `op` that is not the one it landed, whose declared answer is the kernel's `KC-4`"*; `§2.7`'s
+ * *"a return carrying any other identity has carried no op at all"*). Measured before this date: a
+ * repair returning `{ok: true, op: {opId: 'not-the-op-it-landed'}}` — an object carrying an `opId` and
+ * NO ordinal — was CREDITED, its identity joined `attempt.ops`, and the FAILING arm's per-op
+ * rollback then met the store's own `JournalOpUnknown` at it, answering `KC-8`: a state the clause
+ * gives to the composition's floor and to nothing of the repair's. **THE COMPARISON THE CLAUSE ORDERS
+ * IS SUPPLIED BY THIS GROUND AND NEEDS NO SECOND CARRIER**: `returnValue.op`'s one declared value is
+ * THE STORE'S OWN OP VALUE, and every op the store's own `write` answers with carries `seq`, so a
+ * return whose `op` carries no ordinal has nothing to stand above the floor with and CANNOT be shown
+ * to be an op this repair landed. It is therefore `null` here — arm `(d)`, `KC-4` — exactly as an op
+ * that landed at or before the invocation is. **WHERE THE FLOOR IS NOT KNOWN** (`invokedFor` `null`,
+ * which is the registration instant's own call) **and WHERE THE INVOKED-FOR OP ITSELF CARRIES NO
+ * ORDINAL, the ground is not applied and the membership ground stands alone, exactly as it did.**
  */
 export function landedOp(attempt, returned, invokedFor) {
   if (!('op' in returned)) return null;
@@ -505,7 +520,11 @@ export function landedOp(attempt, returned, invokedFor) {
   const floor = invokedFor !== null && invokedFor !== undefined && typeof invokedFor.seq === 'number'
     ? invokedFor.seq
     : null;
-  if (floor !== null && typeof candidate.seq === 'number' && candidate.seq <= floor) return null;
+  // THE ORDINAL GROUND, DECISIVE WHERE THE FLOOR IS KNOWN (⟶ 2026-10-26): a candidate carrying NO
+  // ordinal cannot stand above the op this repair was invoked for, so it is no op this repair landed
+  // and this function answers `null` — arm `(d)`, `KC-4`. A candidate carrying one must stand strictly
+  // above the floor. Nothing else is read.
+  if (floor !== null && (typeof candidate.seq !== 'number' || candidate.seq <= floor)) return null;
   return candidate;
 }
 
