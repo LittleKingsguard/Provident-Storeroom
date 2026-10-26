@@ -1,0 +1,736 @@
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// THE DOWNSTREAM CLAIMS — six rows a consumer filed against the published package, each pinned with a cell
+//
+// **WHAT THIS FILE IS FOR.** An adjacent consumer's handoff (`../Provident-Electron/docs/HANDOFF.md`) catalogues
+// open rows against `provident-storeroom@1.0.0`. This pass does not read that document to decide what is TRUE:
+// each cell drives the BUILT ARTIFACT through its declared entry point — `storeCreate` from `bindings/js/index.mjs`
+// and the product's own declared members — and compares what the artifact does against what the DECLARATION
+// requires. **The expectation is a literal here and the citation is a comment (`D-17`: no `docs/**` path is
+// opened at runtime).**
+//
+// **THE RULE THIS PASS IS RUN UNDER, AND THE REASON A RED HERE IS THE DELIVERABLE.** A cell that asserts the
+// DECLARED behaviour goes RED where a downstream claim holds. **A red is the finding, not a broken cell: no cell
+// below is weakened to make it green, and no byte of `src/**` or `bindings/js/**` is written by this pass.** Where
+// a claim's premise is not what the declaration says, the cell says so at its own assertion message.
+//
+// **SIX ROWS, EACH AT ITS OWN CLAUSE HOME:**
+//   M · the repair arm's outcome after a FAILING repair — `docs/specs/storeroom-constraints/parameter-semantics.md`
+//       §2.8 (`PAR-C-8`, the repair's closed two-arm return) read with `composition-and-states.md` §2.6 item 2
+//       (the composition's declared order: the repaired ops reversed first, the attempt's first write's op LAST)
+//       and item 8 (iii) (the `checkpoint` arm); the write record's `op` member at
+//       `docs/specs/storeroom-js/surface.md` §2.2.
+//   S · a constraint body that THROWS — the body paths are named at
+//       `docs/specs/storeroom-constraints/contract.md` §5.3 (`P-IM-3`'s `S7` scope) and §5.4 (`P-SM-4`), which
+//       declare that the caller holds the BODY'S OWN THROWABLE and NOT a form of the kernel's shape; the
+//       general clause a value that crosses this surface must satisfy is `docs/specs/storeroom-js/surface.md`
+//       §2.5 items 1–4: ONE thrown plain object, `{status, message, log}`, never an `Error` subclass.
+//   N · registration refusing a WELL-FORMED pair whose body answers non-`true` —
+//       `docs/specs/storeroom-js/surface.md` §2.12 item 3 (the ADD route's three-state answer, state (ii) and
+//       the `A135` (3) mark's state (β)) and item 4 (the one `TypeError`, its `status` ABSENT, at every outside
+//       value); the shape code is the store's `ConstraintListInvalid`, `docs/specs/storeroom-native/contract.md`
+//       §8.1–§8.2.
+//   Q · a log entry's message losing a column — `docs/specs/storeroom-js/surface.md` §2.5 item 3 (`log` carries
+//       the attempt's own entries VERBATIM) and `docs/specs/storeroom-constraints/kernel-surface.md` §2.5 item 1
+//       (the entry's SIX members, `seq` · `kind` · `id` · `message` · `opId` · `state`, a CLOSED set).
+//   R · `constraints()` ordering — `docs/specs/storeroom-js/surface.md` §2.4 item 9 (f)'s `constraints` clause,
+//       item 6, whose *"the order is not declared"* is SUPERSEDED by `strata/decisions.md` § `D-39` (2026-10-26,
+//       the architect, verbatim: *"add deterministic ordering"*): the declared order is REGISTRATION SEQUENCE.
+//   F · the `filePath` probe at 1.0.0 — `docs/specs/storeroom-js/contract.md` §1.3's `FilePathArg` rows 4–6 (an
+//       absent parent, a directory and an existing-but-not-writable path each answer `FilePathUnreachable` with
+//       NO INSTANCE RETURNED) read with `docs/specs/storeroom-js/surface.md` §2.8.
+//
+// **D-21.** A cell that cannot run says so at its own `t.skip(...)` with the reason; no cell below prints a
+// verdict it did not take. **D-35 / D-36.** No cell here is a client-scope hardening cell: receiver detection,
+// `Array.prototype` vandalism and the crossing's prototype boundary are other files' subjects and are not driven.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+import assert from 'node:assert/strict';
+import { closeSync, existsSync, mkdtempSync, openSync, rmSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { test } from 'node:test';
+
+import { storeCreate } from '../../bindings/js/index.mjs';
+
+// ---------------------------------------------------------------------------------------------
+// THE DECLARED LITERALS THIS FILE ASSERTS AGAINST — and the clauses they rest on
+// ---------------------------------------------------------------------------------------------
+
+/** `surface.md §2.5` items 3–4: the ONE crossed form's member set, sorted ascending. */
+const REFUSAL_MEMBERS = ['log', 'message', 'status'];
+
+/** `kernel-surface.md §2.5` item 1: the log entry's SIX members and its CLOSED four-kind set. */
+const LOG_MEMBERS = ['seq', 'kind', 'id', 'message', 'opId', 'state'];
+const LOG_KINDS = ['constraint-check', 'repair-run', 'commit', 'outcome'];
+
+/** The three values `DEF-M`'s drive must keep apart: the seed, the value the constraint REFUSES, and the value
+ *  its repair writes. Three distinct sentinels, so the store's terminal reading names exactly one of them. */
+const SEED = 5;
+const REFUSED = 9;
+const REPAIRED = 1;
+
+const make = () => storeCreate({ journalLength: 8, listeners: [] });
+
+/** Run `fn`; answer the thrown value as a value. Every drive below is synchronous, so this is total. */
+function attempt(fn) {
+  try {
+    return { ok: true, value: fn() };
+  } catch (caught) {
+    return { ok: false, caught };
+  }
+}
+
+/** The shape facts a refusal is read off — never its text, except where a clause declares a subject. */
+function shapeOf(value) {
+  if (value === null || typeof value !== 'object') {
+    return { kind: typeof value, isPlain: false, keys: null, proto: null, hasLog: false, hasStatus: false };
+  }
+  const proto = Object.getPrototypeOf(value);
+  return {
+    kind: Array.isArray(value) ? 'array' : 'object',
+    isPlain: proto === Object.prototype,
+    keys: Object.keys(value).sort(),
+    proto: proto !== null && proto.constructor !== undefined ? proto.constructor.name : null,
+    hasLog: Object.hasOwn(value, 'log'),
+    hasStatus: Object.hasOwn(value, 'status'),
+  };
+}
+
+/** The address a `constraints()` element spells, folded to one string so a comparison names the element. */
+function pairKey(pair) {
+  const address = Array.isArray(pair.address)
+    ? pair.address.map((each) => (Array.isArray(each) ? each.join('/') : String(each))).join('&')
+    : String(pair.address);
+  return `${address}#${String(pair.id)}`;
+}
+
+/** The entry's own address rendering — `['a']` prints as `a`, the kernel's own `pairSpelling` join. */
+function addressSpelling(address) {
+  return Array.isArray(address) ? address.map((segment) => String(segment)).join('/') : String(address);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// DEF-M — the repair arm's outcome after a FAILING repair
+//
+// **THE CLAIM, IN THREE PARTS, EACH DRIVEN BELOW:** (1) a write whose constraint refuses one value and supplies
+// a repair ends, when the write FAILS, with the store holding the value the constraint REFUSED — the repair
+// discarded; (2) a SUCCESSFUL repaired write returns an `op` whose `after` reads the REFUSING value while the
+// store holds the repaired one; (3) the comparison arm: a repair that DECLINES (no edit lands) is the arm on
+// which the store returns to its pre-write state.
+//
+// **THE DECLARED READING, AND WHERE IT RUNS OUT — SAID PLAINLY BECAUSE IT IS THE FINDING.** The composition's
+// call order IS declared (`composition-and-states.md` §2.6 item 2: *"the repaired ops first, in REVERSE of the
+// order they were created, and the attempt's first write's op LAST"*, read with item 8 (iii): where no landing
+// left a valid state the `checkpoint` is `null` and the call list is the WHOLE list). **So the declared TARGET
+// of a failed attempt is the state that stood before the attempt's first write — the last state every
+// registered constraint approved.** **NO CLAUSE OF EITHER UNIT NAMES THE FAILING-REPAIR ARM'S TERMINAL STORE
+// STATE AS AN OUTCOME**: `parameter-semantics.md` §2.8 declares the repair's closed two-arm RETURN and says
+// nothing of the store, and `composition-and-states.md` §2.6 declares the ORDER and the floor, not the value
+// left standing. **THE CELL ASSERTS THE DECLARED TARGET AND RECORDS THE OTHER TWO READINGS BESIDE IT** — which
+// is why a red here names an undeclared arm and not only a wrong value.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+test('DEF-M · a repaired write that FAILS leaves the store holding the REFUSED value, and a repaired write that PASSES reports an `op.after` the store does not hold', () => {
+  // ── THE THREE ARMS ARE ALL DRIVEN BEFORE ANY ASSERTION, so the cell reports every reading it took and a red
+  // cannot hide the arm behind it. Each arm gets its own store, seeded at `SEED`, with pair `c1` refusing
+  // `REFUSED` and supplying the arm's repair. The repair writes `REPAIRED` AT THE SAME ADDRESS through the
+  // context the kernel hands it (`rc`, the repair's one argument — `kernel-surface.md §2.3` item 2: the repair is
+  // passed the commit it is part of, and `write`'s fourth position takes it).
+  const repairedWrite = (store) => (rc) => {
+    const landed = store.write(rc.address, rc.tier, REPAIRED, rc);
+    return { ok: true, op: landed.op };
+  };
+
+  // (1) THE FAILING ARM. Pair `c2` refuses `REPAIRED` and registers NO repair, which is what makes the write
+  // fail AFTER the repair's edit has landed: arm (c) of `attempt-lifecycle.md §2.4` item 4 at the re-run.
+  const failing = make();
+  failing.write(['a'], 'mem', SEED);
+  failing.addConstraint({ address: ['a'], id: 'c1' }, (context) => (context.value === REFUSED
+    ? { message: 'the value must not be the refused one', repair: repairedWrite(failing) }
+    : true));
+  failing.addConstraint({ address: ['a'], id: 'c2' }, (context) => (context.value === REPAIRED
+    ? { message: 'the repaired value is refused by the second pair' }
+    : true));
+  const failed = attempt(() => failing.write(['a'], 'mem', REFUSED));
+  const afterFailure = failing.read(['a']);
+  const failureLog = failed.caught !== null && typeof failed.caught === 'object' && Array.isArray(failed.caught.log)
+    ? failed.caught.log
+    : [];
+  const outcomeEntry = failureLog.find((entry) => entry.kind === 'outcome');
+  const repairEntry = failureLog.find((entry) => entry.kind === 'repair-run');
+
+  // (2) THE DECLINING-REPAIR COMPARISON. The same shape with a repair that returns `{ok: false, message}`
+  // (`§2.8`'s second arm): NO edit lands, so the composition has the write's op alone to reverse. This arm is
+  // driven so the red on (1) is attributed to the LANDED-THEN-REVERSED repair op and not to "repairs and
+  // failures in general".
+  const declining = make();
+  declining.write(['a'], 'mem', SEED);
+  declining.addConstraint({ address: ['a'], id: 'c1' }, (context) => (context.value === REFUSED
+    ? { message: 'the value must not be the refused one', repair: () => ({ ok: false, message: 'declined' }) }
+    : true));
+  const declined = attempt(() => declining.write(['a'], 'mem', REFUSED));
+  const afterDecline = declining.read(['a']);
+
+  // (3) THE PASSING ARM. The repair lands and RESOLVES the violation (arm (g)), so the write succeeds. The
+  // returned record's `op` is the op the write landed (`§2.2`'s three-member write record); the store's state
+  // after the repair is the repair's own edit.
+  const passing = make();
+  passing.write(['a'], 'mem', SEED);
+  passing.addConstraint({ address: ['a'], id: 'c1' }, (context) => (context.value === REFUSED
+    ? { message: 'the value must not be the refused one', repair: repairedWrite(passing) }
+    : true));
+  const passed = attempt(() => passing.write(['a'], 'mem', REFUSED));
+  const handedBack = passing.read(['a']);
+  const reportedAfter = passed.ok
+    && passed.value.op !== null && typeof passed.value.op === 'object'
+    && passed.value.op.after !== null && typeof passed.value.op.after === 'object'
+    ? passed.value.op.after.value
+    : undefined;
+
+  // ── THE DRIVE IS COHERENT, OR THE CELL SAYS SO INSTEAD OF REPORTING A VERDICT. ──────────────
+  assert.deepEqual(
+    [failed.ok, declined.ok, passed.ok],
+    [false, false, true],
+    `the drive's own three arms must answer FAIL, FAIL, PASS (arm (c) at the re-run; arm (d); arm (g)). THE `
+      + `DRIVE OBSERVED failed.ok=${failed.ok}, declined.ok=${declined.ok}, passed.ok=${passed.ok}; the values `
+      + `caught were ${JSON.stringify([failed.caught, declined.caught, passed.caught].map(shapeOf))}`);
+  // And every refusal that crossed is the DECLARED form — `§2.5`'s one thrown plain object, three members.
+  for (const [label, refused] of [['the failing arm', failed], ['the declining arm', declined]]) {
+    assert.deepEqual(shapeOf(refused.caught).keys, REFUSAL_MEMBERS,
+      `a failure crosses this surface as exactly ${JSON.stringify(REFUSAL_MEMBERS)}; ${label} caught `
+        + `${JSON.stringify(shapeOf(refused.caught))}`);
+  }
+
+  // ── THE FINDINGS, EACH REPORTED WITH BOTH READINGS, SO NO RED HIDES THE ARM BESIDE IT. ──────
+  const findings = [];
+  // **THE COMPOSITION'S DECLARED TARGET** (`composition-and-states.md` §2.6 item 2 with item 8 (iii)): the seed
+  // was a state every registered constraint approved and no landing of this attempt left one, so the call list
+  // is the WHOLE list in item 2's order and the store must be back at the seed once the calls have run.
+  if (afterFailure !== SEED) {
+    findings.push({
+      claim: 'DEF-M (1) — a FAILING repaired write leaves the store at the state that stood before it',
+      declaredBy: 'composition-and-states.md §2.6 item 2 with item 8 (iii) (the composition\'s order and the '
+        + 'whole-list arm); no clause names this arm\'s terminal store state as a value',
+      seed: SEED,
+      refused: REFUSED,
+      repaired: REPAIRED,
+      observed: afterFailure,
+      repairEntry: repairEntry === undefined ? null : repairEntry.message,
+      outcomeState: outcomeEntry === undefined ? null : outcomeEntry.state,
+    });
+  }
+  // **THE WRITE RECORD'S OWN `after`** — the handoff's `(g)` reading: the record the caller receives must
+  // describe the store the caller then reads. `§2.2` declares the record's `op` as the op the write landed and
+  // says NOTHING of a repair that lands after it.
+  if (reportedAfter !== handedBack) {
+    findings.push({
+      claim: 'DEF-M (2) — a PASSING repaired write\'s returned `op.after` equals what `read` hands back',
+      declaredBy: 'docs/specs/storeroom-js/surface.md §2.2 (the write record\'s `op`), which names no repair arm',
+      reportedAfter,
+      storeHolds: handedBack,
+    });
+  }
+  assert.deepEqual(findings, [],
+    `DEF-M's claim is CONFIRMED at ${findings.length} of its arms — every reading the drive took is printed `
+      + `here, and the comparison arm (a repair that never lands) is reported beside them: `
+      + `${JSON.stringify({
+        findings,
+        comparison: { arm: 'a repair that returns {ok: false}', seed: SEED, observed: afterDecline },
+        passingArm: { reportedAfter, storeHolds: handedBack },
+      })}`);
+  // And the store really does hold the repaired value on the passing arm, so the red above cannot be read as a
+  // store that failed to apply the repair.
+  assert.equal(handedBack, REPAIRED,
+    `the passing repair's own edit must stand; the store reads ${JSON.stringify(handedBack)}`);
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// DEF-S — a constraint body that THROWS
+//
+// **THE CLAIM.** A body's throw crosses as the caller's own raw value — a raw `Error` with NO `log`, and a
+// thrown STRING escaping as a string — so the one form a consumer switches on is absent exactly where the
+// caller's own code failed.
+//
+// **IS THE ARM SILENT, OR DECLARED?** It is NAMED, and the naming is what makes the claim a finding rather than
+// a gap: `docs/specs/storeroom-constraints/contract.md` §5.3's `S7` scope and §5.4's `S7` read the two body paths
+// as reaching the caller as *"the BODY'S OWN THROWABLE"* and explicitly NOT as a form of the kernel's shape.
+// **WHAT THAT LEAVES OPPOSED IS THE GENERAL CLAUSE THIS CELL ASSERTS:** `docs/specs/storeroom-js/surface.md`
+// §2.5 items 1–4 declare ONE form for a failure that crosses THIS surface — a THROWN plain object of exactly
+// `{status, message, log}`, never an `Error` subclass, never a `Promise` rejection — and §2.12 item 1's fail arm
+// *"the caller receives the refusal"* is read through it. **A value that crosses to a caller is therefore owed
+// that form, whatever layer named the path**, and the cell asserts the general clause.
+//
+// **THE DRIVE'S TWO SHAPES PER THROWABLE.** A body that throws UNCONDITIONALLY throws at REGISTRATION (the ADD
+// route evaluates the body once — `§2.12` item 3's states (i)–(β)), so the raw value crosses from
+// `addConstraint` and no write is reachable. A body that PASSES at registration and throws when the written
+// value arrives lets the WRITE be driven. Both instants are driven and both are asserted against the one form.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+test('DEF-S · a constraint body\'s throw crosses raw — an `Error` with no `log`, and a thrown string as a string — at the write AND at registration', () => {
+  const cases = [
+    { label: 'an `Error`', throwable: () => { throw new Error('boom'); } },
+    { label: 'the string \'boom\'', throwable: () => { throw 'boom'; } },
+  ];
+  const observed = [];
+
+  for (const one of cases) {
+    // ── THE WRITE. The body passes at the registration instant and throws when it is handed `REFUSED`.
+    const store = make();
+    store.write(['a'], 'mem', SEED);
+    const registered = attempt(() => store.addConstraint({ address: ['a'], id: 'c1' }, (context) => {
+      if (context.value === REFUSED) one.throwable();
+      return true;
+    }));
+
+    const driven = attempt(() => store.write(['a'], 'mem', REFUSED));
+    const shape = shapeOf(driven.caught);
+    observed.push({
+      instant: 'write',
+      label: one.label,
+      registrationPassed: registered.ok,
+      writeFailed: driven.ok === false,
+      kind: shape.kind,
+      proto: shape.proto,
+      keys: shape.keys,
+      log: shape.hasLog,
+      status: shape.hasStatus,
+      value: typeof driven.caught === 'string' ? driven.caught : String(driven.caught),
+    });
+  }
+
+  // ── THE REGISTRATION INSTANT. The same throwable from an unconditionally-throwing body.
+  for (const one of cases) {
+    const store = make();
+    store.write(['a'], 'mem', SEED);
+    const registered = attempt(() => store.addConstraint({ address: ['a'], id: 'c1' }, one.throwable));
+    const shape = shapeOf(registered.caught);
+    observed.push({
+      instant: 'registration',
+      label: one.label,
+      refused: registered.ok === false,
+      entryAfter: store.constraints().map(pairKey),
+      kind: shape.kind,
+      proto: shape.proto,
+      keys: shape.keys,
+      log: shape.hasLog,
+      status: shape.hasStatus,
+    });
+  }
+
+  // **THE DRIVE IS COHERENT, OR THE CELL SAYS SO INSTEAD OF REPORTING A VERDICT.**
+  assert.equal(observed.length, 4,
+    `the drive must reach four instants (two throwables × the write and the registration); it reached `
+      + `${observed.length}: ${JSON.stringify(observed)}`);
+  for (const one of observed.filter((each) => each.instant === 'write')) {
+    assert.deepEqual([one.registrationPassed, one.writeFailed], [true, true],
+      `the body must PASS at registration and the WRITE must then fail (${one.label}); the drive observed `
+        + `${JSON.stringify(one)}`);
+  }
+  for (const one of observed.filter((each) => each.instant === 'registration')) {
+    assert.equal(one.refused, true,
+      `an unconditionally throwing body must be refused at registration (${one.label}): ${JSON.stringify(one)}`);
+  }
+
+  // **THE FINDING, AT BOTH INSTANTS — the general clause, at both halves of it.** `§2.5` item 3: THROWN, never
+  // returned; item 4: a plain object whose prototype is the caller realm's `Object.prototype`, whose members are
+  // exactly the three, with `log` PRESENT on EVERY arm.
+  const offenders = observed.filter((one) => !(
+    one.keys !== null
+    && one.keys.length === REFUSAL_MEMBERS.length
+    && one.keys.every((key, index) => key === REFUSAL_MEMBERS[index])
+    && one.proto === 'Object'
+    && one.log === true
+  ));
+  assert.deepEqual(offenders, [],
+    `a value thrown by a caller's own constraint body must cross as exactly `
+      + `${JSON.stringify(REFUSAL_MEMBERS)}, a plain object of the caller realm, with \`log\` present `
+      + `(\`surface.md §2.5\` items 1–4 — the ONE form a value that crosses this surface is owed, and the `
+      + `general clause the kernel unit's \`S7\` body-path scope leaves standing). THE DRIVE OBSERVED `
+      + `${offenders.length} of 4 crossing values outside that form: ${JSON.stringify(offenders)}. THE WHOLE `
+      + `SWEEP: ${JSON.stringify(observed)}.`);
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// DEF-N — registration refusing a WELL-FORMED pair whose body answers non-`true`, with a SHAPE code
+//
+// **THE CLAIM.** `addConstraint(pair, fn)` evaluates the body once at registration and, on a non-`true` answer,
+// refuses a pair whose SHAPE is valid with the code that means the SHAPE is invalid (`ConstraintListInvalid`);
+// and a re-enable at `constraintOn` can be refused the same way.
+//
+// **THE DECLARATION, READ ONE ARM AT A TIME — BECAUSE THE CLAIM IS ABOUT WHICH ARM ANSWERS, NOT WHETHER ONE DOES.**
+// `docs/specs/storeroom-js/surface.md` §2.12 item 3's re-derived list declares the ADD route's answer in three
+// states: **(i)** the state PASSES the body → the pair's opaque identity; **(ii)** the state VIOLATES it and no
+// repair stands → *"the call THROWS the store's own `{status, message}`, `status` being
+// `ConstraintListInvalid`"*; **(β)** a repair stands and fails → the same throw. **Item 4 declares the OTHER
+// refusal: the JS `TypeError` with its `status` member ABSENT, at every outside value of `pair` or `constraint`.**
+// **THE CONFLICT THE CELL PUTS ON THE RECORD IS THEREFORE DECLARED ON BOTH SIDES: the code `ConstraintListInvalid`
+// is the STORE's malformed-ENTRY code (`docs/specs/storeroom-native/contract.md` §8.1–§8.2, whose generated sentence
+// is *"… is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the
+// address is a segment array"*), and a pair that is `{address: ['a'], id: 'c1'}` IS all three of those.**
+//
+// **EVERY REFUSAL ARM THE CODE CAN REACH, ENUMERATED FROM THE CODE AND NOT FROM A DOCUMENT** (this list is a
+// comment, `D-17`; it is the list the declaration's own arm count is checked against):
+//   `a.addConstraint(pair, constraint)` — FIVE arms:
+//     (1) `src/entry/constraints.mjs`'s `constraintDetached` — a detached call: `{status: 'AddressMalformed',
+//         message, log: []}`, a plain object. **NO CLAUSE OF `§2.12` DECLARES THIS ARM**; it landed 2026-10-26 on
+//         the architect's *"Run the fix by rejecting the detached functions."*
+//     (2) `constraintArity` — fewer than two positions: `TypeError`, `status` ABSENT, `log: []`.
+//     (3) `constraintRefuse` — `pair` not a plain object / no own `address` / `address` outside the segment-array
+//         domain / `id` absent, not a string or empty / `constraint` not a function: `TypeError`, `status` ABSENT.
+//     (4) `boundaryReject('AddressMalformed', …)` — the `id` equals a live LISTENER's handle (the `D-25` "vice
+//         versa" arm): `{status: 'AddressMalformed', message, log}`.
+//     (5) `registrationCrossing` — the registration evaluation refused (states (ii)/(β)): `{status:
+//         'ConstraintListInvalid', message, log}`. **This is the arm the claim names.**
+//   `a.constraintOn(pair, constraint)` — FIVE arms: (1), (2), (3) above; (4) `constraintUncarried` — a well-formed
+//     pair the entry does not carry: `TypeError`, `status` ABSENT (`§2.12` item 3's second answer); and (5)
+//     `registrationCrossing` in the enable arm's re-register loop — `{status: 'ConstraintListInvalid', …}`.
+//   **SO THE DECLARATION'S CLAIMED SET (`§2.12` items 3 and 4: ONE `TypeError` with no `status`, plus the
+//   `ConstraintListInvalid` throw at states (ii)/(β)) is TWO FORMS AND THE CODE REACHES THREE, the detached
+//   `AddressMalformed` arm being undeclared at `§2.12`.** The arm the claim is about is declared at `§2.12`
+//   item 3 — **and what is undeclared is WHY a well-formed pair answers a SHAPE code, which the code's own
+//   registration refusal admits in its doc block.**
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+test('DEF-N · a WELL-FORMED pair whose body answers non-`true` is refused with the SHAPE code `ConstraintListInvalid`, at `addConstraint` AND at a re-enable', () => {
+  // ── EVERY ARM IS DRIVEN BEFORE ANY ASSERTION, so the cell reports all of them and a red cannot hide the arm
+  // beside it. The four arms a drive can reach without touching the receiver question are: the ADD route at a
+  // FRESH pair, the two toggles at a pair the entry does not carry, and the ENABLE route at a CARRIED pair.
+  const added = make();
+  added.write(['a'], 'mem', SEED);
+  const refusedAdd = attempt(() => added.addConstraint({ address: ['a'], id: 'c1' }, () => false));
+  const entryAfterRefusedAdd = added.constraints().map(pairKey);
+  const offAtUncarried = attempt(() => added.constraintOff({ address: ['a'], id: 'c1' }, () => false));
+  const onAtUncarried = attempt(() => added.constraintOn({ address: ['a'], id: 'c1' }, () => false));
+
+  // The enable route at a pair that REGISTERED while the store passed it, was disabled, and is re-enabled with
+  // the store's state moved to a value its own body refuses: the enable arm re-registers the entry's own function
+  // through `K-1`, and `K-1` evaluates it at registration.
+  const toggled = make();
+  toggled.write(['a'], 'mem', SEED);
+  const add = attempt(() => toggled.addConstraint({ address: ['a'], id: 'c1' },
+    (context) => (context.value === REFUSED ? { message: 'the value must not be the refused one' } : true)));
+  toggled.constraintOff({ address: ['a'], id: 'c1' }, () => true);
+  toggled.write(['a'], 'mem', REFUSED); // the disabled pair is not evaluated
+  const reEnabled = attempt(() => toggled.constraintOn({ address: ['a'], id: 'c1' }, () => true));
+  const entryAfterRefusedEnable = toggled.constraints().map(pairKey);
+
+  // ── THE DRIVE IS COHERENT, OR THE CELL SAYS SO INSTEAD OF REPORTING A VERDICT. ──────────────
+  assert.deepEqual([refusedAdd.ok, offAtUncarried.ok, onAtUncarried.ok, add.ok, reEnabled.ok],
+    [false, false, false, true, false],
+    `the drive's own arms must answer REFUSED, REFUSED, REFUSED, ACCEPTED, REFUSED. THE DRIVE OBSERVED `
+      + `${JSON.stringify({
+        addAtFreshPair: refusedAdd.ok,
+        constraintOffAtUncarried: offAtUncarried.ok,
+        constraintOnAtUncarried: onAtUncarried.ok,
+        registrationBeforeTheToggle: add.ok,
+        reEnable: reEnabled.ok,
+      })}`);
+  // Neither refused registration wrote a record (`§2.12` item 7 (ii), the enumeration's two exclusions), and the
+  // refused re-enable left the pair's carriage as it stood (the enable arm's `restoreHeldPair` wake).
+  assert.deepEqual(entryAfterRefusedAdd, [],
+    `a refused registration must not appear in the enumeration; the entry carries `
+      + `${JSON.stringify(entryAfterRefusedAdd)}`);
+  assert.deepEqual(entryAfterRefusedEnable, ['a#c1'],
+    `a refused re-enable must not change the entry's carriage; the enumeration reads `
+      + `${JSON.stringify(entryAfterRefusedEnable)}`);
+
+  // ── THE FINDING: A SHAPE CODE ON A WELL-FORMED PAIR. ────────────────────────────────────────
+  // **A pair whose SHAPE is valid must never be refused with the code that names the SHAPE.** `ConstrainListInvalid`
+  // is the STORE's malformed-ENTRY code (`docs/specs/storeroom-native/contract.md` §8.1–§8.2: *"… is not a valid
+  // constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment
+  // array"*), and `{address: ['a'], id: 'c1'}` IS an address that is a segment array and an id that is a string.
+  const shapeCoded = [
+    { arm: 'addConstraint at a fresh well-formed pair', refused: refusedAdd },
+    { arm: 'constraintOn at a re-enabled, well-formed, CARRIED pair', refused: reEnabled },
+  ].filter(({ refused }) => refused.caught !== null && typeof refused.caught === 'object'
+    && refused.caught.status === 'ConstraintListInvalid')
+    .map(({ arm, refused }) => ({ arm, status: refused.caught.status, message: refused.caught.message,
+      keys: shapeOf(refused.caught).keys }));
+  assert.deepEqual(shapeCoded, [],
+    `no pair whose SHAPE is valid may be refused with the MALFORMED-ENTRY code \`ConstraintListInvalid\` `
+      + `(\`docs/specs/storeroom-js/surface.md\` §2.12 item 3 declares the ADD route's states (ii)/(β) as that `
+      + `throw, and item 4 declares the ONE \`TypeError\` as the refusal of an outside value — so the arm is `
+      + `declared and the CONFLICT it creates with the store's own §8.2 row is the finding). THE DRIVE OBSERVED `
+      + `${shapeCoded.length} well-formed pair(s) refused with the shape code: ${JSON.stringify(shapeCoded)}.`);
+  // ── AND THE TOGGLES' DECLARED REFUSAL IS THE ONE `TypeError`, ITS `status` ABSENT. ───────────
+  for (const [label, refused] of [
+    ['constraintOff at a pair the entry does not carry', offAtUncarried],
+    ['constraintOn at a pair the entry does not carry', onAtUncarried],
+  ]) {
+    const shape = shapeOf(refused.caught);
+    assert.deepEqual([shape.hasStatus, shape.proto], [false, 'TypeError'],
+      `\`${label}\` throws the ONE \`TypeError\` with its \`status\` member ABSENT (\`§2.12\` item 3's second `
+        + `answer, item 4). THE DRIVE OBSERVED ${JSON.stringify(shape)}.`);
+  }
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// DEF-Q — a log entry's message losing a column it still carries
+//
+// **THE CLAIM.** The `KC-3` log entry's message ends `... at undefined` while its `address` column is populated.
+//
+// **THE GENERAL RULE THIS CELL ASSERTS, AND WHY IT IS NOT A `KC-3` CELL.** `docs/specs/storeroom-js/surface.md`
+// §2.5 item 3 carries the attempt's own `log` VERBATIM, and `docs/specs/storeroom-constraints/kernel-surface.md`
+// §2.5 item 1 closes the entry's SIX members (`seq` · `kind` · `id` · `message` · `opId` · `state`). **So, for
+// EVERY entry the attempt can produce: a message may not print `undefined` for a column the entry itself
+// carries, and where the entry carries an `address` member that is SET, the message must render it.** The sweep
+// runs over every kind the drive reaches — `constraint-check`, `repair-run`, `outcome`. (`commit` is not
+// reachable: a SUCCESSFUL write's returned record carries `op`, `watched` and `triggered` and NO `log` member,
+// so the success arm's `commit` entry is reached by no client call — recorded here so the omission is a finding
+// and not a gap.)
+//
+// **AND THE CLAIM'S OWN PREMISE IS CORRECTED AT THE OBSERVATION, NOT ADOPTED:** the declared entry carries NO
+// `address` member at all. The column the message loses is the ADDRESS SLOT of the sentence the kernel composes
+// for the entry, and the drive records which member made it `undefined`.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+test('DEF-Q · no log entry\'s message prints `undefined` for a column the entry carries — swept over every kind the drive reaches', () => {
+  const entries = [];
+  const sweep = (label, log) => {
+    assert.ok(Array.isArray(log), `the refusal's \`log\` must be an array on every arm (\`§2.5\` item 4); ${label} `
+      + `carried ${JSON.stringify(log)}`);
+    for (const entry of log) entries.push({ refusal: label, entry });
+  };
+
+  // (1) THE `KC-3` REFUSAL. A body that answers a value OUTSIDE the three declared outcome arms
+  // (`PAR-C-5`) — the arm whose own sentence the kernel composes, and the one the claim names.
+  const unrecognized = make();
+  unrecognized.write(['a'], 'mem', SEED);
+  unrecognized.addConstraint({ address: ['a'], id: 'c1' },
+    (context) => (context.value === REFUSED ? false : true));
+  const unrecognizedFailure = attempt(() => unrecognized.write(['a'], 'mem', REFUSED));
+  assert.equal(unrecognizedFailure.ok, false,
+    'a body answering a value outside the three arms must fail the write');
+  sweep('an unrecognized answer (KC-3)', unrecognizedFailure.caught.log);
+
+  // (2) A `constraint-check` PASSING entry and a `repair-run` entry, plus a second `outcome`: the repair lands
+  // and resolves, so the write passes and NO log crosses (the success record carries none) — then the same
+  // attempt's entries are read off a refusal that DOES cross, by making the repaired value violate a second
+  // pair. This reaches the three kinds in one refusal.
+  const repaired = make();
+  repaired.write(['a'], 'mem', SEED);
+  repaired.addConstraint({ address: ['a'], id: 'c1' }, (context) => (context.value === REFUSED
+    ? {
+        message: 'the value must not be the refused one',
+        repair: (rc) => {
+          const landed = repaired.write(rc.address, rc.tier, REPAIRED, rc);
+          return { ok: true, op: landed.op };
+        },
+      }
+    : true));
+  repaired.addConstraint({ address: ['a'], id: 'c2' },
+    (context) => (context.value === REPAIRED ? { message: 'the repaired value is refused' } : true));
+  const repairedFailure = attempt(() => repaired.write(['a'], 'mem', REFUSED));
+  assert.equal(repairedFailure.ok, false, 'the second pair must fail the repaired write');
+  sweep('a landed repair whose re-run fails', repairedFailure.caught.log);
+
+  // The sweep must have reached all three kinds, or it is not the sweep this cell claims.
+  const kinds = [...new Set(entries.map(({ entry }) => entry.kind))].sort();
+  assert.deepEqual(kinds, ['constraint-check', 'outcome', 'repair-run'],
+    `the sweep must reach every kind a client call can produce — \`constraint-check\`, \`repair-run\`, `
+      + `\`outcome\`, the three of \`kernel-surface.md §2.5\` item 1's CLOSED four minus the unreachable `
+      + `\`commit\`. THE DRIVE REACHED ${JSON.stringify(kinds)}.`);
+
+  const offenders = [];
+  for (const { refusal, entry } of entries) {
+    // Every entry carries the SIX declared members and no seventh (`kernel-surface.md §2.5` item 1, CLOSED).
+    assert.deepEqual(Object.keys(entry).sort(), [...LOG_MEMBERS].sort(),
+      `a log entry carries exactly ${JSON.stringify(LOG_MEMBERS)}; the drive read `
+        + `${JSON.stringify(Object.keys(entry))} from ${refusal}`);
+    assert.equal(LOG_KINDS.includes(entry.kind), true,
+      `\`kind\` is one of ${JSON.stringify(LOG_KINDS)}; the drive read ${JSON.stringify(entry.kind)}`);
+    // **THE GENERAL RULE, FIRST HALF: no `undefined` in a message.** A column the entry carries may not be
+    // rendered as an absent value.
+    if (entry.message.includes('undefined')) offenders.push({ refusal, entry });
+    // **THE GENERAL RULE, SECOND HALF: an `address` member that is SET is rendered.** The declared entry has no
+    // such member; the branch is kept so the rule is the one asserted and not the shape one build happens to
+    // have.
+    if (Object.hasOwn(entry, 'address') && entry.address !== undefined && entry.address !== null) {
+      assert.equal(entry.message.includes(addressSpelling(entry.address)), true,
+        `an entry whose \`address\` column is set must render it in its message: the entry reads `
+          + `${JSON.stringify(entry)}, whose message is ${JSON.stringify(entry.message)}`);
+    }
+  }
+  assert.deepEqual(offenders, [],
+    `no log entry's message may print \`undefined\` for a column the entry itself carries. THE DRIVE FOUND `
+      + `${offenders.length} offender(s): ${JSON.stringify(offenders.map(({ refusal, entry }) => ({
+        refusal,
+        kind: entry.kind,
+        id: entry.id,
+        opId: entry.opId,
+        message: entry.message,
+      })))}`);
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// DEF-R — `constraints()` ordering — the architect has ORDERED the change
+//
+// **THE RULING.** `strata/decisions.md` § `D-39` (2026-10-26), verbatim: *"add deterministic ordering"*; and the
+// same row's operative sentence: *"`constraints()` must emit in a DECLARED, deterministic order — registration
+// sequence, which is the order the pairs were registered and the one a consumer can reason about … the order
+// becomes part of what the method promises."* **THE DECLARED ORDER IS THEREFORE REGISTRATION SEQUENCE.**
+// **THE DECLARATION THE RULING SUPERSEDES IS NAMED SO THE RED IS NOT MISTAKEN FOR A MISSING CLAUSE:**
+// `docs/specs/storeroom-js/surface.md` §2.4 item 9 (f)'s `constraints` clause, item 6, currently reads *"THE ORDER
+// OF THE RETURNED ARRAY IS NOT DECLARED, and this clause mints no order"* — **that exclusion is superseded by
+// `D-39`, and this cell asserts the ruling. THE CELL IS RED UNTIL THE IMPLEMENTATION LANDS; it is not weakened,
+// and no ordering is asserted anywhere else in this file.**
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+test('DEF-R · five `constraints()` snapshots across a pass, a refusal, a toggle and a `rollback` are element-wise equal and in registration sequence', () => {
+  const store = make();
+  store.write(['a'], 'mem', SEED);
+  const registered = [];
+  const register = (address, id, body) => {
+    store.addConstraint({ address, id }, body);
+    registered.push(`${address.join('/')}#${id}`);
+  };
+
+  // Four registrations, deliberately NOT in address order, so an address sort cannot pass for the declared order.
+  // **THE FOURTH PAIR IS THE REFUSING ONE, SO THE REFUSAL ACT ADDS NO MEMBER**: the claim's own observation is
+  // that *"membership is identical and the ORDER moves"*, so membership is held constant across the five acts
+  // and the only thing that can move is the sequence.
+  register(['b'], 'c-b', () => true);
+  register(['a'], 'c-a', () => true);
+  register(['c'], 'c-c', () => true);
+  register(['a'], 'c-r', (context) => (context.value === SEED + 2 ? { message: 'refused' } : true));
+  const snapshots = [];
+  snapshots.push({ act: 'after the registrations', list: store.constraints() });
+
+  // a PASS
+  store.write(['a'], 'mem', SEED + 1);
+  snapshots.push({ act: 'after a passing write', list: store.constraints() });
+
+  // a REFUSAL — by the fourth pair, so the entry's membership is unmoved by this act
+  const refused = attempt(() => store.write(['a'], 'mem', SEED + 2));
+  assert.equal(refused.ok, false, 'the fourth pair must refuse the write, or there is no refusal in the sweep');
+  snapshots.push({ act: 'after a refusal', list: store.constraints() });
+
+  // a TOGGLE
+  store.constraintOff({ address: ['b'], id: 'c-b' }, () => true);
+  store.constraintOn({ address: ['b'], id: 'c-b' }, () => true);
+  snapshots.push({ act: 'after a constraintOff/constraintOn toggle', list: store.constraints() });
+
+  // a ROLLBACK
+  const written = store.write(['a'], 'mem', SEED + 3);
+  store.rollback(written.op.opId);
+  snapshots.push({ act: 'after a rollback', list: store.constraints() });
+
+  const observed = snapshots.map(({ act, list }) => ({ act, elements: list.map(pairKey) }));
+  const first = observed[0].elements;
+  // **THE ASSERTION.** Element-wise equality across the five snapshots, in registration sequence.
+  for (let index = 1; index < observed.length; index += 1) {
+    assert.deepEqual(observed[index].elements, first,
+      `\`constraints()\` must answer the SAME elements in the SAME order on every call across a pass, a `
+        + `refusal, a toggle and a rollback (\`strata/decisions.md\` § \`D-39\`: *"add deterministic ordering"*). `
+        + `THE FIVE SNAPSHOTS OBSERVED: ${JSON.stringify(observed)}; snapshot ${index} (`
+        + `${JSON.stringify(observed[index].act)}) reads ${JSON.stringify(observed[index].elements)} where `
+        + `snapshot 0 reads ${JSON.stringify(first)}.`);
+  }
+  // **AND THE ORDER IS THE REGISTRATION SEQUENCE** — the pairs' own order of registration, not an address sort.
+  assert.deepEqual(first, registered,
+    `the emitted order must equal the pairs' REGISTRATION SEQUENCE (\`D-39\`). THE DRIVE REGISTERED `
+      + `${JSON.stringify(registered)} and the first snapshot reads ${JSON.stringify(first)}.`);
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// F · the `filePath` probe at 1.0.0 — the 0.1.x row never re-measured
+//
+// **THE CLAIM.** `storeCreate` with a `filePath` whose parent the process cannot write (`/usr/bin/…`,
+// root-owned `0755`) must refuse AT CONSTRUCTION with `FilePathUnreachable`, and leave NO FILE BEHIND.
+// **THE DECLARED ANSWER** is `docs/specs/storeroom-js/contract.md` §1.3's `FilePathArg` rows 4–6 — an absent
+// parent, a directory, and an existing-but-not-writable path each answer `FilePathUnreachable` with NO INSTANCE
+// RETURNED — read with `docs/specs/storeroom-js/surface.md` §2.8 (the two file-behaviour readings).
+//
+// **THE SKIP IS DECLARED AND LOUD.** The probe is only a measurement where `/usr/bin` is genuinely unwritable
+// for this process: `D-21` requires a cell that did not run to say so, so the cell asks for uid `1000` AND a
+// write test, and `t.skip` names which condition failed.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+test('F · a `filePath` whose parent the process cannot write is refused AT CONSTRUCTION with `FilePathUnreachable` and leaves no file behind', (t) => {
+  const probe = '/usr/bin/psr012-probe.json';
+  const parentIsUnwritable = (() => {
+    try {
+      const probeInParent = join('/usr/bin', `.psr-write-test-${process.pid}`);
+      // The store's own instrument is an EXCLUSIVE CREATE (`create_new`), which is the question asked here: may
+      // this process create a file in this parent at all?
+      const fd = openSync(probeInParent, 'wx');
+      closeSync(fd);
+      rmSync(probeInParent, { force: true });
+      return false;
+    } catch {
+      return true;
+    }
+  })();
+
+  if (process.getuid === undefined || process.getuid() !== 1000) {
+    t.skip(`the root-owned-\`0755\` probe is measured on uid 1000; this process is uid `
+      + `${process.getuid === undefined ? 'unknown (not POSIX)' : process.getuid()}`);
+    return;
+  }
+  if (parentIsUnwritable === false) {
+    t.skip(`/usr/bin is WRITABLE for this process, so the parent the probe needs is not the parent it names; `
+      + `no claim is measured`);
+    return;
+  }
+
+  let scratch = null;
+  try {
+    // ── THE PROBE. ──────────────────────────────────────────────────────────────────────────
+    const behindBefore = existsSync(probe);
+    assert.equal(behindBefore, false,
+      `the probe path must not exist before the drive, or "no file behind" measures nothing; `
+        + `${JSON.stringify(probe)} already existed`);
+    const driven = attempt(() => storeCreate({ journalLength: 8, listeners: [], filePath: probe }));
+    assert.equal(driven.ok, false,
+      `a \`filePath\` in a parent this process cannot write must be refused AT CONSTRUCTION `
+        + `(\`docs/specs/storeroom-js/contract.md §1.3\`'s \`FilePathArg\` rows 4–6: no instance returned). THE `
+        + `DRIVE OBSERVED an instance ${JSON.stringify(Object.keys(driven.value || {}))}`);
+    assert.equal(driven.caught.status, 'FilePathUnreachable',
+      `the refusal's status is \`FilePathUnreachable\`; the drive read `
+        + `${JSON.stringify(driven.caught.status)} and message ${JSON.stringify(driven.caught.message)}`);
+    assert.equal(existsSync(probe), false,
+      `a refused construction must leave NO FILE BEHIND; the drive found ${JSON.stringify(probe)} behind ` +
+      `the refused construction`);
+
+    // ── THE THREE CONTROLS. ──────────────────────────────────────────────────────────────────
+    scratch = mkdtempSync(join(tmpdir(), 'psr-downstream-file-'));
+    const controls = [
+      { label: 'an absent parent', filePath: join(scratch, 'absent-parent', 'x.json'), constructs: false },
+      { label: 'a directory', filePath: scratch, constructs: false },
+      { label: 'a writable parent and an absent file', filePath: join(scratch, 'ok.json'), constructs: true },
+    ];
+    for (const control of controls) {
+      const existedBefore = existsSync(control.filePath);
+      const answered = attempt(() => storeCreate({ journalLength: 8, listeners: [], filePath: control.filePath }));
+      assert.equal(answered.ok, control.constructs,
+        `${control.label} must ${control.constructs ? 'CONSTRUCT' : 'be REFUSED'} `
+          + `(\`docs/specs/storeroom-js/contract.md §1.3\`'s \`FilePathArg\` rows 4–6); the drive `
+          + `${answered.ok ? 'constructed an instance' : `caught ${JSON.stringify(answered.caught.status)}`}`);
+      if (control.constructs === false) {
+        assert.equal(answered.caught.status, 'FilePathUnreachable',
+          `${control.label} must answer \`FilePathUnreachable\`; the drive read `
+            + `${JSON.stringify(answered.caught.status)}`);
+        // **"NO FILE BEHIND" IS A CLAIM ABOUT WHAT THE REFUSAL CREATED, NOT ABOUT PATHS THAT STOOD ALREADY** —
+        // so the assertion is that the refusal left the path exactly as it found it (`false → false`, and a
+        // directory that was a directory stays one).
+        assert.equal(existsSync(control.filePath), existedBefore,
+          `${control.label} must leave the path exactly as it found it (before the call it `
+            + `${existedBefore ? 'stood' : 'did not stand'}); the drive found it `
+            + `${existsSync(control.filePath) ? 'present' : 'absent'} afterwards: `
+            + `${JSON.stringify(control.filePath)}`);
+      } else {
+        // THE HANDOFF'S OWN SUPERSEDED ASSERTION IS RECORDED, NOT ADOPTED: construction at a writable parent
+        // CREATES the file (zero-length) — `storeCreate`'s probe is an exclusive create. The control asserts only
+        // what the declaration requires (an instance), and prints what it found.
+        assert.equal(existsSync(control.filePath), true,
+          `the writable-parent control is expected to CREATE its file; the drive found none`);
+        assert.equal(statSync(control.filePath).size, 0,
+          `the file the construction creates is zero-length; the drive measured `
+            + `${statSync(control.filePath).size}`);
+      }
+    }
+  } finally {
+    if (scratch !== null) rmSync(scratch, { recursive: true, force: true });
+    rmSync(probe, { force: true });
+  }
+});
