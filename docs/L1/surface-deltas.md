@@ -202,6 +202,18 @@ very union.
 code"* and must use an existing set member; **`strata/brief.md` §5 item 4 and `D-1` item 'the failure set is closed
 by the store and open by declaration'** are the standing rule. §2 therefore assigns existing members only.
 
+**⟶ AND THIS DELTA IS CLOSED, 2026-10-25 — THE DECLARATION MOVED AND NOTHING ELSE DID.** `RCA-8(g)`
+ANNOTATE-BESIDE: **every byte above stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause is a PURE
+INSERTION — it moves no arm, no member, no code and no cell.** **`bindings/js/index.d.ts`'s `StoreStatus` now carries
+ALL SEVENTEEN literals**, `ValueRefusedAtBoundary` written at rank `17`, **LAST of the seventeen and before**
+`(string & {})` (`index.d.ts:292`–`:310`), so **the delta §1.5 measures — *"the declaration is one behind"* — has no
+subject from this date**; and the block's **five prose sites the section enumerated (item 3) are re-spelled
+read-through** inside the declaration's own 2026-10-24 amendment, so the declaration is one file whose figures and
+whose literals now agree. **The section's own reasoning stands whole and is worth keeping for the next widening:**
+the escape arm is **reinforced, not weakened**, by a set that has moved a third time — and **the arm's runtime
+observable is NONE** (a type-level arm only; the store's `CODES` is closed at seventeen and the package mints no
+member), which is the reading `docs/L1/open-items-2026-10-25.md §2.1` closes as an `OWED`.
+
 ### 1.6 Three further declaration sentences the rulings falsify, found at the bytes
 
 These are **not** additions: they are sentences that are now false as written, and each is a delta the implementer

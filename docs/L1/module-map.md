@@ -665,6 +665,12 @@ const store = storeCreate(cfg);
   `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` · `addConstraint` ·
   `constraintOn` · `constraintOff` · `register` · `removeListener` · `removeConstraint` · `constraints`), and
   `StoreStatus` is sixteen spellings plus the open escape arm `(string & {})` (`index.d.ts:237–L254`).
+  **⟶ CORRECTED 2026-10-25 (this pass, at the bytes): THE FIGURE IS SEVENTEEN, AND THE ESCAPE ARM IS UNMOVED
+  BESIDE IT.** `bindings/js/index.d.ts:292`–`:310`'s `StoreStatus` writes **SEVENTEEN literals in rank order**
+  (`AddressMalformed` … `ConstraintListInvalid` at rank `16`, `ValueRefusedAtBoundary` at rank `17`) **before**
+  `(string & {})`, matching `src/error.rs`'s `CODES` (17) and `docs/specs/storeroom-native/contract.md §8.1`'s
+  2026-10-23 amendment (*"the operative set is `17` members ranked `1`…`17`"*). **The `sixteen` above is the
+  pre-amendment reading and is read through this sentence** (`RCA-8(g)`: no reading is deleted here).
 
 ### E2 · The addon artefact boundary
 
@@ -674,6 +680,13 @@ const store = storeCreate(cfg);
   `write` · `delete` · `rollback` · `listen` · `unlisten` · `removeListener` · `commitFile` · `register` ·
   `version` · `errorMessage` (`facade.rs`'s `#[napi]` sites, read by grep: lines 297, 513, 559, 606, 645, 679,
   714, 745, 780, 815, 911, 988, 1016).
+  **⟶ RE-MEASURED 2026-10-25 (this pass): THE COUNT STANDS AT THIRTEEN AND THE LINE LIST ABOVE IS STALE.**
+  The line-initial sites are now `:328` (`storeCreate`) · `:544` (`read`) · `:590` (`readLiteral`) · `:637`
+  (`write`) · `:676` (`delete`) · `:710` (`rollback`) · `:745` (`listen`) · `:776` (`unlisten`) · `:811`
+  (`removeListener`) · `:846` (`commitFile`) · `:942` (`register`) · `:1019` (`version`) · `:1047`
+  (`errorMessage`) — **4 bare `#[napi]` plus 9 `#[napi(js_name = …)]`, `4 + 9 = 13` ✓, and no `call`** — which is
+  the same measurement this bullet's own paragraph below records at its own date. **Only the byte addresses moved;
+  the thirteen does not.**
 - **The measurement behind the thirteen, stated exactly, because three greps give three numbers.** The figure
   counts **line-initial `#[napi` attribute sites only**: 4 bare `#[napi]` plus 9 `#[napi(js_name = …)]`. A
   `grep -c '#\[napi\]'` returns **24** and a looser grep **33**, because `facade.rs`'s own prose names the
@@ -684,6 +697,20 @@ const store = storeCreate(cfg);
   THEIR NAMES AND ARITIES — `version` · `errorMessage` · `storeCreate` · `call` · `register`"*. The bytes of
   `facade.rs` declare thirteen annotated entries and **no `call`**: the single `call` dispatcher the comment
   describes has been replaced by nine per-verb entries plus `commitFile`. Recorded, not resolved.
+
+  **⟶ RESOLVED 2026-10-25 — A STALE DECLARATION, NOT A CODE DIVERGENCE, AND THE CODE IS THE SIDE THAT IS RIGHT**
+  (`docs/L1/open-items-2026-10-25.md §1`, where the sites, their figures and their dispositions are enumerated one
+  by one). **One correction to this bullet's own attribution: `A150` (2026-10-25) did NOT retire `call`** — it is
+  the architect's *"Remove the register half, `constraintOff` removes the constraint"*, and nothing in it touches
+  the addon's export set. **The deletion's declared authority is the addon-surface unit's split**
+  (`export-set-and-dispatch.md §2`'s *"`call` IS DELETED"*, read with `docs/specs/storeroom-addon-surface/
+  contract.md`'s `P-SAS-1`: *"exactly the thirteen declared names — `4` standing plus `9` per-verb — and `call` is
+  absent"*). **So: the five was TRUE WHEN EACH SITE PRINTED IT and was never re-derived when the split re-cut the
+  boundary to thirteen.** The archived `package.md §1.3` item 4 does not move (archived, gitignored, no role
+  writes it); `docs/specs/storeroom-js/surface.md`'s counter-pass print and `docs/specs/storeroom-js/contract.md`'s
+  two prints take an annotate-beside clause each (landed by this pass); and **`bindings/js/src/lib.rs`'s closing
+  comment is a SOURCE comment this map cannot edit — its exact replacement is printed at
+  `docs/L1/open-items-2026-10-25.md §1`, site 3.** **No behaviour byte, no manifest row and no boundary moves.**
 
 ### E3 · The store file boundary
 
@@ -1134,3 +1161,16 @@ enforces; **whether `kernel-surface.md §1` item 1 forbids five relative imports
 the three items above that were already open: whether the five platform package names resolve on any registry
 (`LIVE / INSTALL` is OPEN, brief §6), the A112 ordering gate's state (the brief carries it as RED; this map takes
 no position), and the tier-eviction reading, which the brief itself declines to settle.
+
+**⟶ AND THE CLOSING RECORD FOR THIS BRANCH'S NAMED-AND-UNCLOSED LIST, 2026-10-25:**
+**`docs/L1/open-items-2026-10-25.md`** — the addon's export set (5 vs 13) and what moves; the **five `OWED`s** each
+answered with a clause or deferred with its one question; the **four declaration-versus-build disagreements** as one
+table with their state; the exact comment edit `bindings/js/index.mjs:1233` is owed; **`strata/brief.md`'s
+superseded figures, re-measured at each file's own last line — the brief is OUTSIDE this pass's write scope and
+needs its owner's hand**; and the one question this pass puts to the architect (the `KC-4` carrier). **This map is
+unmoved by it in every figure it declares: 19 modules / 61 endpoints.**
+**AND ONE ARITHMETIC CONSEQUENCE THIS PASS OWES RATHER THAN ABSORBS: `open-items-2026-10-25.md` is this corpus's
+NINTH declaration file, so `modules.json`'s *"the eight declaration files of this corpus"* row and the ownership
+denominator it sits in (`156` tracked, `29` unowned) are both one short from this date** — **a `git ls-files`-class
+check, owed like the tracked-count checks already listed above as Not verified, and NOT re-derived by arithmetic
+here.**

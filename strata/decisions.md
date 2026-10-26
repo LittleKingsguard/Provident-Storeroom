@@ -2546,3 +2546,98 @@ targeted mutation each. **The one exception is the family that has no cell: the 
 **WHAT IT DOES NOT SETTLE.** **The frozen-store TypeError's FORM** — accepted as client-scope breakage, but a raw host
 `TypeError` where a lawful call used to answer is still worth a note, not a fix. **And the boundary audit itself** —
 which sites assume rather than validate is a measurement, not a ruling.
+
+---
+
+### FINDING — the declaration pass: the twelve blind instances' named-and-unclosed list, closed or deferred
+
+**DATE:** 2026-10-25. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the `strata` L1 declaration pass
+(`docs/L1/**`, this file, and `docs/specs/**` by `RCA-8(g)` annotate-beside only). **A RECORD AND NOT A RULING:** no
+entry below decides anything; the one decision lives at the closing paragraph and is put to the architect.
+
+**ITS LIMIT, STATED FIRST BECAUSE EVERY FIGURE BELOW CARRIES IT.** **This pass's OWN session had NO SHELL**: every
+number it prints was read from a file at its own last line with a file-reading tool, and no count of its §1–§4 is a
+transcript of a run. **THE LEGS WERE RUN BY DELEGATED READ-ONLY PROBES**, which executed them in this same tree after
+every edit, made no edit, no commit and no branch change, and returned their raw output: **`npm test` `1053 · 1051 ·
+1 · 1` exit `1` — the one fail being the held disagreement, `tests/e2e/blind-constraints-unit.test.mjs:172`'s
+*"`KC-8` !== `KC-4`"`, which STAYS RED**; **store `415` exit `0`**; **battery `235` exit `0`**; **plain `cargo test`
+`650` exit `0`** (`415 + 235 = 650` ✓); **`greens` exit `0`** (`AUTHORED 100 · EXECUTED 100 · PASS 100 · FAIL 0`, ten
+runners, `APP` `NONE`); **`test:e2e` exit `0`** (`14 PASS · 0 FAIL · 1 LAYER-LIMIT` of fifteen cells, `APP` `NONE`);
+**`typecheck` exit `0`**. **AND BOTH JSON FILES PARSED** (`docs/L1/modules.json`, `docs/L1/test-stratification.json` —
+`JSON.parse` `OK`, neither edited, 19 modules / 61 endpoints unmoved). **The working tree carries DOCUMENTATION ALONE**
+— five modified files and one untracked addition, **no source, no test, no manifest byte**.
+
+**1 · THE ADDON'S EXPORT SET: THIRTEEN, NO `call`; A STALE DECLARATION AND NOT A CODE DIVERGENCE.** `bindings/js/src/
+facade.rs` declares **thirteen line-initial `#[napi]` sites** — `4` bare (`storeCreate` · `register` · `version` ·
+`errorMessage`) plus `9` per-verb (`read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` ·
+`removeListener` · `commitFile`), `4 + 9 = 13` ✓ — **and no `call`.** The kept row of record already says so:
+`docs/specs/storeroom-addon-surface/contract.md`'s `P-SAS-1` (*"exactly the thirteen declared names … and `call` is
+absent"*). **So the `5` is TRUE WHEN EACH SITE PRINTED IT and was never re-derived when the addon-surface split
+re-cut the boundary.** **The sites: the archived `package.md §1.3` item 4 does not move** (archived, gitignored, no
+role writes it; it is read through `P-SAS-1`); **`surface.md`'s 2026-10-16 counter-pass print and `docs/specs/
+storeroom-js/contract.md`'s two prints take an annotate-beside clause each** (landed by this pass); **`bindings/js/
+src/lib.rs`'s closing comment is a source comment** whose exact replacement is printed at `docs/L1/
+open-items-2026-10-25.md §1` and owed to whoever next edits that file — **no behaviour byte moves with it.** **AND ONE
+RECORD THAT IS SIMPLY WRONG, NAMED HERE BECAUSE THE BRIEF REPEATED IT: `A150` DID NOT RETIRE `call`.** `A150`
+(2026-10-25) is *"Remove the register half, `constraintOff` removes the constraint"*; **the `call` deletion's
+authority is the addon-surface split** (`export-set-and-dispatch.md §2`, *"`call` IS DELETED"*). **Two citations in
+`tests/integration/binding-crossing/addon_adoption.rs` (`:84`, `:129`–`:131`) mis-attribute it to `A150`** and are
+owed a re-point by the test's owner.
+
+**2 · THE FIVE `OWED`s: FOUR ANSWERED, ONE ANSWERED WITH A NAMED RESIDUE.** **(a) The escape arm's runtime
+observable — NONE, and none is owed:** the arm is type-level (`index.d.ts:292`–`:310`), the store's `CODES` is
+closed at seventeen, the package mints no member, and `surface.md §2.12` item 3 forbids a cell naming a token on the
+kernel-produced arm. **(b) The symbol-keyed question — the rule does not reach a symbol-keyed own property as a
+declared census** (`Object.getOwnPropertyNames`; `A117` (D6)'s *"invisible to both"* at `surface.md §2.11` clause 9)
+**and no symbol slot carries register state**, so `D-35`'s client-scope classification leaves nothing owed; **the
+literal reading would make `cdd2467`'s slot a violation and `D-35` refused exactly that, so no cell may assert it.**
+**(c) The reload arm's message — the refusal cannot name the deletion**, because a deleted handle and a never-
+registered one are ONE row of `§2.1` item 5's table, the entry is removed WHOLE, and nothing retains what the removal
+destroys; the message names the position and the class (`A134`; `§2.1` item 6). **(d) `removeConstraint`'s
+uncarried-pair form — the constraint methods' `TypeError` with `status` ABSENT and a verbose message**, because
+`PAR-HL-16`'s outside cell puts *"a well-formed pair the entry does not carry"* in that row (`surface.md:1063` rule
+(ii); `§2.7` item 6; the build agrees at `index.mjs:1155`–`:1163`) — **with one residue DEFERRED: the `TypeError` is
+thrown carrying `log` and no clause declares that member set** (owner `role_spec_writer`). **(e) The empty-address
+receipt's array identity — a FRESH array on every arm including `[]`**, because `§4.4`'s `DeleteReceipt` declares
+*"the store returns a fresh array"* unconditionally and the crossing is a deep copy in both directions.
+
+**3 · THE FOUR DECLARATION-VERSUS-BUILD DISAGREEMENTS: THREE CLOSED BY A DOCUMENT, ONE OPEN AGAINST THE CODE.**
+**CLOSED** — `§8.1`'s `16` heading (`17`; the heading's own 2026-10-25 insertion, which also corrected its *"one
+other site"* census to five); `surface.md §2.5` item 9's `Object.keys` order (`["status","message","log"]`, the
+literal's own source order; item 9's 2026-10-25 clause and the two downstream prints it had left stale); `publish
+contract.md §2.1` item 1's three-entry allowlist (five rows, `5 = 3 + 2` ✓). **OPEN** — **the `KC-4`/`KC-8` repair
+arm**: `PAR-C-8`'s `observable` cell and `§7.3` (b) `3-bis` (d) declare that a repair returning `{ok: true, op}`
+whose `op` is **not the one it landed** has carried no op and fires arm `(d)` with `KC-4`; **the kernel credits it
+and the attempt fails `KC-8`** through the per-op rollback meeting `JournalOpUnknown`. **The red cell
+`tests/e2e/blind-constraints-unit.test.mjs:172` is the one fail in the leg and MUST STAY RED.** **WHAT A FIX WOULD
+REQUIRE, AND WHY IT IS A DESIGN DECISION AND NOT A DECLARATION ONE:** *"not the one it landed"* is a comparison
+against **the ops the repair's own invocation landed**, and **no such carrier exists** — `A110` deleted every route by
+which the kernel could learn it, so `landedOp` (`bindings/js/src/entry/kernel-foundations.mjs:497`–`:510`) has only
+two provable grounds (an identity the attempt already holds; a `seq` above the invoked-for op's). A fix therefore
+needs **a per-invocation landed-op record (which re-opens `A110`), or a repair `op` domain that carries the store's
+`seq` (a declared shape move), or a narrowed clause (a withdrawn arm)** — **the answer `KC-4` is already declared;
+what is undeclared is the instrument that makes it observable.**
+
+**4 · THE TWO STALE RECORDS A REVIEW LEFT.** **`bindings/js/index.mjs:1233`** opens *"**AND IT IS THE ROW A CLONED
+STORE OBJECT CARRIES TOO**"* before its own correct half (*"a clone carries NO index and therefore resolves NO
+store"*), and `:1261` was corrected last pass while this one was not; **it should read *"AND A CLONED STORE OBJECT
+DOES NOT CARRY THE ROW"*** — the exact edit, and the adjacent stale *twelve*-member figures at `:1202` and `:1231`,
+are printed at `docs/L1/open-items-2026-10-25.md §4.1`; **this pass has no source scope.** **`strata/brief.md`** is
+**outside this pass's write scope**, and **it carries figures the branch has moved past** — re-measured at each
+file's own last line: **`index.mjs` 1,409 → 1,417**; the entry parts **`refusal.mjs` 82 → 161 · `artefact.mjs` 355 →
+376 · `state.mjs` 600 → 602 · `class-decision.mjs` 1,204 → 1,214 · `carrier.mjs` 960 → 986 · `frame.mjs` 416 → 417 ·
+`kernel-foundations.mjs` 529 → 597**; **`codec.rs` 966 → 1,030 · `facade.rs` 1,105 → 1,136**; and **`tests/` 83 files
+→ 104**, its `e2e/` row **44 → 65** with the breakdown **23/11/6/1/3 → 42/11/8/1/3**. **Every other figure it prints
+was checked and stands** (the `src/` seven, `index.d.ts` 891, the ten unmoved part sizes, `crossing.rs` 1,216, the
+barrel 4, thirteen entry files, five `files` rows, `0.5.0`, 14 members, 17 statuses, 126 / 1,000,000, and the three
+Rust legs). **The brief is the file every L1 reads, so the correction is owed to its owner rather than absorbed.**
+
+**THE LEDGER.** **§1 CLOSED** (a stale declaration; one mis-citation named for its owner) · **§2 CLOSED** (four
+answered, one answered with a residue that has an owner) · **§3 CLOSED/THE ONE OPEN IS THE ARCHITECT'S** (three
+documents moved; the code does not) · **§4 CLOSED AS A MEASUREMENT, OWED AS AN EDIT** (`index.mjs`'s comment to its
+file's owner; `brief.md` to its own). **THE FULL RECORD — sites, figures, clauses and the two ledger tables — is
+`docs/L1/open-items-2026-10-25.md`.**
+
+**PUT TO THE ARCHITECT, IN ONE SENTENCE:** **does the kernel get a DECLARED CARRIER for the ops a repair landed — a
+per-invocation landed-op record, or a repair `op` whose domain carries the store's `seq` — or is `PAR-C-8`'s *"not
+the one it landed"* arm NARROWED to the identities a caller-side record can prove?**

@@ -107,6 +107,15 @@ re-measured is better named as retired than reprinted.
 | root manifests | `Cargo.toml` (**now a `[workspace]`**: `members = [".", "bindings/js", "tests"]`, `default-members = [".", "tests"]`) · `tests/Cargo.toml` · `package.json` · `Cargo.lock` (**one workspace lock, 41 packages: 3 members + 38 registry**) · `package-lock.json` · `scripts/publish.sh` | private instrument harness; **not** a publishable package |
 | `scratch/` | **477 tracked files** | probes, byproducts, logs and one-off drivers — **tracked in git**, and excluded from ownership by the project's convention that *a scratch is never a source*, not by an ignore rule |
 
+**⟶ MEASURED 2026-10-25, SUPERSEDING THE FIGURES ABOVE — this branch has moved under every one of them and the
+inventory is read through this clause.** `index.mjs` **1,417** (not 1,409) · `refusal` **161** · `artefact` **376** ·
+`state` **602** · `class-decision` **1,214** · `carrier` **986** · `frame` **417** · `kernel-foundations` **597** ·
+`codec.rs` **1,030** · `facade.rs` **1,136** · **`tests/` 104 files** (not 83), of which **`e2e/` 65** — 42 tests,
+11 runners, 8 blind instances' worth of cells, 1 record, 3 helpers — **`integration/` 11 · `unit/` 8 · 1 manifest ·
+3 records**. **The thirteen entry parts, the eighteen packed members, the eleven blind instances, the workspace and
+the seventeen statuses stand as the table states them.** **A reader who needs a figure for a decision should measure
+it; this clause exists so the table's numbers are not mistaken for current ones.**
+
 **Three facts about this tree that the ownership plan must respect:**
 
 1. **`bindings/js/index.mjs` is a 1,409-line HUB, not the entry whole** (it was **one 5,903-line file**). The
