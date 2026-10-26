@@ -229,13 +229,32 @@ const NOT_REACHED = [
 // missed (site 11, *"a DECLARED LEG and not a copy"*) was a document's claim about a leg that no shipped
 // byte carries; `ada_the_stores_commands_keep_offline_and_the_asymmetry_is_the_ruling` below still drives
 // the two-leg asymmetry itself, at the root manifest's own `build` script.
+// **⟶ RE-DERIVED 2026-10-25 (`D-17`'s OWN DEFECT CLASS, SECOND OCCURRENCE — AND THIS ONE WAS RED): SITE 10
+// NAMED A LINE NUMBER, AND A LINE NUMBER IS AN ADDRESS IN A FILE THAT MAY BE EDITED.** It read
+// `scripts/publish.sh:192`. The `PKGS` preflight's insertion into `§4` moved that command **46 lines down the
+// same file**, and the cell went red **against an artefact that was byte-for-byte the one it pins** — a red
+// that is a fact about the file's LAYOUT and not about its BEHAVIOUR, reddening the moment the script is
+// edited legitimately. **SO THIS ROW CARRIES `find` AND NOT `anchors`**: its line is LOCATED in the script's
+// own text. **THE LOCATOR IS THE COMMAND'S IDENTITY — `cargo build` OF THIS CRATE — AND NOT
+// `--manifest-path`, WHICH IS THE FLAG THE ROW SAYS MUST STAY**; keying the selector on the flag it asserts
+// would make that assertion read its own selector, which is the `[NEGATIVE]` at
+// `command-sites-and-residue.md:39` exactly. **AND THE ROW'S PROPERTY IS ASSERTED IN FULL AND NOT MERELY
+// LOCATED**: the build is read at its command body (below, unchanged — `--manifest-path` present,
+// `--offline` absent), and the stage that carries its output to the rung-two path the package loads is
+// resolved beside it, in the same `if`'s body. **NO ASSERTION IS WEAKENED: see
+// `ada_the_named_sites_lose_offline_and_keep_manifest_path`'s site-10 block.**
 const OFFLINE_SITES_THAT_MOVE = [
   { id: 5, file: 'package.json', anchors: [11], halves: 'second', subject: "the `build` script's SECOND half" },
   { id: 6, file: 'bindings/js/README.md', anchors: [188, 234], twice: true, subject: 'the build form, twice' },
   { id: 7, file: 'bindings/js/README.md', anchors: [221], subject: 'the test form' },
   { id: 8, file: '.github/workflows/publish.yml', anchors: [171], subject: 'the test leg' },
   { id: 9, file: '.github/workflows/publish.yml', anchors: [174], subject: 'the build leg' },
-  { id: 10, file: 'scripts/publish.sh', anchors: [192], subject: 'the artefact build' },
+  {
+    id: 10,
+    file: 'scripts/publish.sh',
+    find: /^ *if cargo build\b.*\bbindings\/js\/Cargo\.toml/,
+    subject: 'the artefact build and its stage to `bindings/js/build/Release`',
+  },
 ];
 
 function textAt(path) {
@@ -2074,13 +2093,26 @@ function commandsAt(source, line, half) {
   return halves;
 }
 
+/** **A SITE THAT DOES NOT NAME AN ADDRESS MUST BE ABLE TO FIND ITS LINE** (`D-17`: a cell's expectation comes
+ *  from CODE, and a line NUMBER is an address that rots under a lawful edit). Returns EVERY 1-based line of
+ *  `source` matching `pattern`, so that a site found twice is read twice and a site found nowhere yields `[]`
+ *  — **and `[]` is not a pass: the vacuous-pass assertion below turns it into the finding the clause
+ *  demands.** */
+function linesMatching(source, pattern) {
+  const found = [];
+  source.split('\n').forEach((line, i) => { if (pattern.test(line)) found.push(i + 1); });
+  return found;
+}
+
 test('ada_the_named_sites_lose_offline_and_keep_manifest_path', () => {
   const rows = [];
   for (const site of OFFLINE_SITES_THAT_MOVE) {
     const source = textAt(join(REPO_ROOT, site.file));
     // **EVERY OCCURRENCE IS READ OFF THE COMMAND AND NOT OFF THE FLAG**, and the count is the site's own
-    // (`§2`'s table; sites `6` and `11` each carry two line anchors).
-    const lines = site.twice ? site.anchors : [site.anchors[0]];
+    // (`§2`'s table; sites `6` and `11` each carry two line anchors). **A SITE CARRYING `find` LOCATES ITS
+    // OWN LINE** — site `10` names no address, so it is read wherever its command stands today.
+    const lines = site.find ? linesMatching(source, site.find)
+      : (site.twice ? site.anchors : [site.anchors[0]]);
     const moved = lines
       .flatMap((line) => commandsAt(source, line, site.halves).map((command) => ({ line, command })));
     rows.push({ ...site, occurrences: moved });
@@ -2132,6 +2164,48 @@ test('ada_the_named_sites_lose_offline_and_keep_manifest_path', () => {
     + 'bare root build would pull the binding\'s registry crates under `--offline`) — and it KEEPS '
     + '`--offline` and carries no `--manifest-path`, and it does not appear in the site table at all. A '
     + 'reader that treated the script as one occurrence merged a moving command with a standing one');
+
+  // **⟶ AND SITE 10'S PROPERTY IS READ IN FULL — THE BUILD *AND* THE STAGE IT FEEDS** (`D-17`: the row now
+  // locates its line by its command, so what the ROW PINS must be what the cell ASSERTS, and not an address).
+  // The loop above has already read the build's command body (`--manifest-path` present, `--offline` absent);
+  // these three assertions read the half a line number could never carry: **the built library is STAGED to
+  // the rung-two path the package loads**, after that build and inside its own `if`. **This is where the
+  // silent-loss shape lives** — a stage that never ran printed `ok "JS artefact built and staged"` over a
+  // stale `.node`, and a release then shipped bytes nobody built.
+  const site10 = rows.find((r) => r.id === 10);
+  assert.equal(site10.occurrences.length, 1,
+    'site 10 is ONE command — the binding crate\'s artefact build — and this cell LOCATES it by the command '
+    + `itself and never by a line number. Commands found: ${site10.occurrences.length} `
+    + `(${site10.occurrences.map((o) => o.line).join(',') || 'no line'})`);
+  const publishSource = textAt(PUBLISH_SH);
+  const buildLine = site10.occurrences[0].line;
+  const buildText = publishSource.split('\n')[buildLine - 1];
+  assert.equal(buildText.includes('bindings/js/Cargo.toml'), true,
+    `site 10: the located command must be the building of THIS crate's manifest. Line ${buildLine} reads: `
+    + `\`${buildText}\``);
+  // The stage is read AS ONE STATEMENT across its `\`-continued lines, and at the PATH IT WRITES: the built
+  // library to the rung-two directory this file loads as `ADDON_ARTEFACT`.
+  const STAGE_THE_ARTEFACT = new RegExp('cp\\s+-f\\s+target/release/libstoreroom_js_binding\\.so[\\s\\\\]+'
+    + 'bindings/js/build/Release/storeroom_js_binding\\.node');
+  const stageAt = publishSource.search(STAGE_THE_ARTEFACT);
+  assert.notEqual(stageAt, -1,
+    'site 10: `scripts/publish.sh` must STAGE the built library to the rung-two path the package loads — '
+    + '`cp -f target/release/libstoreroom_js_binding.so bindings/js/build/Release/storeroom_js_binding.node`, '
+    + 'which is this file\'s own `ADDON_ARTEFACT` under the repo root. A build with no stage leaves the '
+    + 'artefact the suite runs against untouched, and the release ships bytes nobody built');
+  const stageLine = publishSource.slice(0, stageAt).split('\n').length;
+  assert.equal(stageLine > buildLine, true,
+    `site 10: the stage must FOLLOW the build it stages — the build stands at line ${buildLine} and the `
+    + `stage at ${stageLine}. A stage above the build stages the PREVIOUS build's bytes`);
+  const betweenBuildAndStage = publishSource.split('\n').slice(buildLine, stageLine - 1).join('\n');
+  // **THE BUILD'S `if` MUST STILL BE OPEN AT THE STAGE.** Its closing `fi` does not always stand alone:
+  // `publish.sh` closes it on the `else` arm's own line (`  else refuse "the JS artefact build FAILED"; fi`),
+  // so an `else`/`elif`/`fi` of that `if` is the thing forbidden between them — measured, a bare-`fi` test
+  // passed a stage lifted out of the block, which is why this reads the three tokens.
+  assert.equal(/^\s*(?:fi|else|elif)\b/m.test(betweenBuildAndStage), false,
+    'site 10: the stage must stand INSIDE the build\'s own `if` block — a stage past that block\'s `else`/`fi` '
+    + 'runs after a build that FAILED, and the build\'s refusal is then printed beside an `ok` over a stale '
+    + `artefact. Lines read between them:\n${betweenBuildAndStage}`);
 });
 
 test('ada_the_stores_commands_keep_offline_and_the_asymmetry_is_the_ruling', () => {

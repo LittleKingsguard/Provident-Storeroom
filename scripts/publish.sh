@@ -63,6 +63,15 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO"
 
+# The registry mirror this project keeps in-tree at `.cargo-home/` (gitignored, `.gitignore:177`) is
+# where the `--offline` legs can resolve every dependency. Cargo otherwise reads `~/.cargo`, which
+# carries no `napi`, and `--offline` then refuses a tree that is in fact fully resolved. Point
+# `CARGO_HOME` at the mirror ONLY where that directory exists: on a CI runner or an ordinary
+# developer's machine there is none, nothing here changes, and `--offline` keeps its present meaning.
+if [ -d "$REPO/.cargo-home" ]; then
+  export CARGO_HOME="$REPO/.cargo-home"
+fi
+
 # The eleven cells, by path. 1 (main `version`) + 5 (pins) + 5 (platforms) = 11.
 MAIN_MANIFEST="bindings/js/package.json"
 PLATFORM_DIR="bindings/js/platforms"
@@ -117,6 +126,43 @@ say "mode: $MODE${TARGET:+  target: $TARGET}"
 say "PREFLIGHT"
 FAILED=0
 refuse() { bad "$*"; FAILED=1; }
+
+# **THE `PKGS` PREFLIGHT — REWRITTEN, NOT BYPASSED** (`command-sites-and-residue.md §4`). Its subject
+# changed: the old form counted `[[package]]` rows and refused unless the count was `1`, which proved "no
+# smuggled dependency" only while nothing in the tree had one — and the binding crate now adopts a registry
+# library, so a count of `1` would refuse the very tree this unit builds. **THE REPLACEMENT PROVES THE SAME
+# PROPERTY: each lock's package set EXACTLY MATCHES its manifests' declarations** — nothing in a lock that
+# no manifest requires, nothing required that a lock omits. `cargo metadata --locked` is cargo's own
+# exact-set check and catches a STALE lock (measured: a lock omitting a required package is refused by
+# `--locked` and silently rewritten without it); its `packages` array is the resolved reachable set, read
+# from the resolver's own JSON. **It passes the tree this unit built: `1 = 1` and `28 = 28`.**
+preflight_pkgs() {
+  fail=""
+  # **⟶ RE-DERIVED 2026-10-25 (`D-34`, `D-5`, `★ C`): THERE IS ONE LOCK NOW, AND THIS LOOP READ TWO.**
+  # It iterated `Cargo.toml bindings/js/Cargo.toml`, each with "its own" lock beside it; a workspace member
+  # has no lock of its own, so the second iteration now refuses whether or not that file exists (absent:
+  # *"has no lock"*; present and stale: *"omits … that the manifests require"* — measured, the old crate lock
+  # carried `40` packages and the workspace resolver requires `41`). **`cargo metadata --locked` at the
+  # workspace root resolves EVERY member**, so the one exact-set check below covers all three manifests —
+  # the property is the same and its subject has moved, which is the whole of `★ C`.
+  for m in Cargo.toml; do
+    [ -f "$m" ] || continue
+    l="$(dirname "$m")/Cargo.lock"
+    [ -f "$l" ] || { fail="$fail $m has no lock;"; continue; }
+    cargo metadata --format-version 1 --locked --manifest-path "$m" >/dev/null 2>&1 \
+      || { fail="$fail $l DISAGREES with $m (--locked refuses it);"; continue; }
+    have=$(cargo metadata --format-version 1 --locked --manifest-path "$m" 2>/dev/null \
+      | python3 -c 'import json,sys; print("\n".join(sorted({p["name"] for p in json.load(sys.stdin)["packages"]})))' 2>/dev/null)
+    [ -n "$have" ] || { fail="$fail $m could not be resolved;"; continue; }
+    got=$(awk -F'"' '/^name *=/ { print $2 }' "$l" | sort -u)
+    s1=$(comm -13 <(printf '%s\n' "$have") <(printf '%s\n' "$got"))
+    s2=$(comm -23 <(printf '%s\n' "$have") <(printf '%s\n' "$got"))
+    [ -n "$s1" ] && fail="$fail $l carries [$(printf '%s' "$s1" | tr '\n' ' ')] that no manifest requires;"
+    [ -n "$s2" ] && fail="$fail $l omits [$(printf '%s' "$s2" | tr '\n' ' ')] that the manifests require;"
+  done
+  [ -z "$fail" ] && ok "each lock's package set exactly matches its manifests' declarations" \
+                 || refuse "the lock/manifest sets DISAGREE:$fail"
+}
 
 
 
@@ -182,7 +228,7 @@ if [ "$MODE" != "tag" ]; then
   if cargo build --offline --release >/dev/null 2>&1; then ok "cargo build --offline clean"
   else refuse "cargo build --offline FAILED"; fi
 
-  # The declared dependency property, checked rather than assumed (`§4`; defined at the foot of this file).
+  # The declared dependency property, checked rather than assumed (`§4`; defined above, beside `refuse`).
   preflight_pkgs
 
   # The JS artefact + the node suite. The suite's site is the ROOT MANIFEST's own
@@ -208,16 +254,56 @@ if [ "$MODE" != "tag" ]; then
   else refuse "the node suite FAILED — see /tmp/pub-node.log"; fi
 fi
 
-# 5. The target version, when one is named.
+# 5. The target version, when one is named — READ ON WHICHEVER SIDE OF THE RELEASE ACT THIS RUN STANDS ON.
+#
+#    **THE SAME FACT, TWO TRUE READINGS, AND THE READING IS `$MODE`'s.** A version's tag has one lifetime: it
+#    does NOT exist before the release and it DOES exist after it. `--bump`/`--tag` name a version ABOUT TO BE
+#    CUT, so its tag must not exist — locally or on the origin. `--verify` reads a version ALREADY RELEASED,
+#    so its tag MUST exist — on BOTH — and the manifest must still equal it, which is the honest spelling of
+#    *"the code has not moved since"*. **ONE UNCONDITIONAL READING CANNOT BE TRUE OF BOTH:** the old form
+#    refused *"the tag already exists"* for `--verify` — a check NO RELEASED VERSION CAN EVER PASS, so the
+#    post-release mode was unsatisfiable by construction — and then printed
+#    `ok v… is unclaimed locally and remotely` from a line that was not the `else` of anything.
+#    **SO EVERY `ok` BELOW IS THE `else` OF THE SAME `if` AS ITS `refuse`** — one check, two outcomes, never
+#    one check's refusal printed beside another check's claim.
 if [ -n "$TARGET" ]; then
   [[ "$TARGET" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || refuse "'$TARGET' is not X.Y.Z"
-  if git rev-parse -q --verify "refs/tags/v$TARGET" >/dev/null; then
-    refuse "tag v$TARGET already exists locally"
+  # The tag is looked up ONCE, locally and on the origin, and **AN ASK THAT FAILED IS NOT AN ANSWER** (`D-21`):
+  # a `ls-remote` that could not reach the origin must refuse rather than read as "the tag is not there".
+  LOCAL_HAS=0; REMOTE_OK=1; REMOTE_LS=""
+  if git rev-parse -q --verify "refs/tags/v$TARGET" >/dev/null 2>&1; then LOCAL_HAS=1; fi
+  if ! REMOTE_LS="$(git ls-remote --tags origin "refs/tags/v$TARGET" 2>/dev/null)"; then REMOTE_OK=0; fi
+  if [ "$MODE" = "verify" ]; then
+    # ---- `--verify`: a released version's tag MUST exist, on both sides, and the manifest must equal it ----
+    if [ "$LOCAL_HAS" -eq 1 ]; then
+      ok "tag v$TARGET exists locally — this run reads a version that WAS released, and a released version carries its tag"
+    else
+      refuse "tag v$TARGET does NOT exist locally — '--verify' is a POST-RELEASE reading: a version that was released MUST carry its tag here"
+    fi
+    if [ "$REMOTE_OK" -ne 1 ]; then
+      refuse "the origin could not be asked about tag v$TARGET — 'no answer' is not 'absent'"
+    elif printf '%s\n' "$REMOTE_LS" | grep -q "refs/tags/v$TARGET$"; then
+      ok "tag v$TARGET exists on origin — the pushed tag is what fired the release workflow"
+    else
+      refuse "tag v$TARGET does NOT exist on origin — a version cannot have been released from a tag the origin has never seen"
+    fi
+    if [ "$MANIFEST_V" = "$TARGET" ]; then
+      ok "the manifest reads $TARGET, the version this run verifies — the code has not moved since its release"
+    else
+      refuse "the manifest reads $MANIFEST_V, not '$TARGET' — '--verify' reads a RELEASED version, and a tree that no longer carries it cannot be verified as that release"
+    fi
+  else
+    # ---- `--bump` / `--tag`: the version is ABOUT TO BE CUT, so the tag must NOT exist yet ----
+    if [ "$LOCAL_HAS" -eq 1 ]; then
+      refuse "tag v$TARGET already exists locally"
+    elif [ "$REMOTE_OK" -ne 1 ]; then
+      refuse "the origin could not be asked about tag v$TARGET — 'no answer' is not 'unclaimed'"
+    elif printf '%s\n' "$REMOTE_LS" | grep -q "refs/tags/v$TARGET$"; then
+      refuse "tag v$TARGET already exists on origin — a version is cut once"
+    else
+      ok "v$TARGET is unclaimed locally and remotely"
+    fi
   fi
-  if git ls-remote --tags origin "v$TARGET" 2>/dev/null | grep -q "v$TARGET"; then
-    refuse "tag v$TARGET already exists on origin — a version is cut once"
-  fi
-  ok "v$TARGET is unclaimed locally and remotely"
 fi
 
 [ "$FAILED" -eq 0 ] || { echo; bad "PREFLIGHT REFUSED. Nothing was changed."; exit 1; }
@@ -387,40 +473,3 @@ if [ "$MODE" = "verify" ]; then
   warn "    (contract.md §6, figure 13). Read it from the registry, not from here."
   exit 0
 fi
-
-# **THE `PKGS` PREFLIGHT — REWRITTEN, NOT BYPASSED** (`command-sites-and-residue.md §4`). Its subject
-# changed: the old form counted `[[package]]` rows and refused unless the count was `1`, which proved "no
-# smuggled dependency" only while nothing in the tree had one — and the binding crate now adopts a registry
-# library, so a count of `1` would refuse the very tree this unit builds. **THE REPLACEMENT PROVES THE SAME
-# PROPERTY: each lock's package set EXACTLY MATCHES its manifests' declarations** — nothing in a lock that
-# no manifest requires, nothing required that a lock omits. `cargo metadata --locked` is cargo's own
-# exact-set check and catches a STALE lock (measured: a lock omitting a required package is refused by
-# `--locked` and silently rewritten without it); its `packages` array is the resolved reachable set, read
-# from the resolver's own JSON. **It passes the tree this unit built: `1 = 1` and `28 = 28`.**
-preflight_pkgs() {
-  fail=""
-  # **⟶ RE-DERIVED 2026-10-25 (`D-34`, `D-5`, `★ C`): THERE IS ONE LOCK NOW, AND THIS LOOP READ TWO.**
-  # It iterated `Cargo.toml bindings/js/Cargo.toml`, each with "its own" lock beside it; a workspace member
-  # has no lock of its own, so the second iteration now refuses whether or not that file exists (absent:
-  # *"has no lock"*; present and stale: *"omits … that the manifests require"* — measured, the old crate lock
-  # carried `40` packages and the workspace resolver requires `41`). **`cargo metadata --locked` at the
-  # workspace root resolves EVERY member**, so the one exact-set check below covers all three manifests —
-  # the property is the same and its subject has moved, which is the whole of `★ C`.
-  for m in Cargo.toml; do
-    [ -f "$m" ] || continue
-    l="$(dirname "$m")/Cargo.lock"
-    [ -f "$l" ] || { fail="$fail $m has no lock;"; continue; }
-    cargo metadata --format-version 1 --locked --manifest-path "$m" >/dev/null 2>&1 \
-      || { fail="$fail $l DISAGREES with $m (--locked refuses it);"; continue; }
-    have=$(cargo metadata --format-version 1 --locked --manifest-path "$m" 2>/dev/null \
-      | python3 -c 'import json,sys; print("\n".join(sorted({p["name"] for p in json.load(sys.stdin)["packages"]})))' 2>/dev/null)
-    [ -n "$have" ] || { fail="$fail $m could not be resolved;"; continue; }
-    got=$(awk -F'"' '/^name *=/ { print $2 }' "$l" | sort -u)
-    s1=$(comm -13 <(printf '%s\n' "$have") <(printf '%s\n' "$got"))
-    s2=$(comm -23 <(printf '%s\n' "$have") <(printf '%s\n' "$got"))
-    [ -n "$s1" ] && fail="$fail $l carries [$(printf '%s' "$s1" | tr '\n' ' ')] that no manifest requires;"
-    [ -n "$s2" ] && fail="$fail $l omits [$(printf '%s' "$s2" | tr '\n' ' ')] that the manifests require;"
-  done
-  [ -z "$fail" ] && ok "each lock's package set exactly matches its manifests' declarations" \
-                 || refuse "the lock/manifest sets DISAGREE:$fail"
-}
