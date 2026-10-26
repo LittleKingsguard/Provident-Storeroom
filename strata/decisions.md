@@ -2724,3 +2724,50 @@ question should be asked about.**
 
 **TERMS: `R14` WITHDRAWN (`1`), `UK-5` DISCHARGED BY THE INSTANCE (`1`), the package's obligations unchanged (`0`),
 the multi-store retention cost named and still undeclared (`1`).**
+
+---
+
+### `D-38` — three downstream demands ACCEPTED: the union is lawful, the reversal is judged, the refusal gets a status
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on the handoff's `DEF-P`, `DEF-W`, `DEF-H`.
+
+**THE RULINGS, VERBATIM:**
+
+> **`DEF-P`:** Accept a one-to-many handler/constraint addressing at package surface
+> **`DEF-W`:** Assert the constraints on rollback
+> **`DEF-H`:** Expand the returned fail-state list to include the refusal
+
+**`DEF-P` — DECLARATIVE, and the code already agrees.** `index.d.ts` currently says *"the pair-local reuse of
+one `id` at two addresses is NO LONGER LAWFUL"* and that the creation act takes *"a single address"* — **while the
+runtime accepts the pair and unions its addresses.** **The architect's ruling settles it on the code's side: one id
+at N addresses is LAWFUL, at every act.** **The declaration moves; no behaviour changes.** **And the coverage gap this
+exposes is mine: `constraint-address-extension.test.mjs` drives the TWO-CALL union, never the single-call
+multi-address pair the handoff filed** — **that cell is owed.**
+
+**`DEF-W` — BEHAVIOURAL, and the check belongs at the TERMINAL STATE.** `index.mjs:486` passes the reversal
+straight to the addon entry (`Reflect.apply(entryOf().rollback, this, args)`), so no constraint is consulted.
+**A reversal must now be judged** — **at the state it leaves, never per unwinding step** (a per-step check is
+unsound: an unwinding composition passes through intermediate states no constraint would approve — the handoff's own
+`(f)` says this and it is right). **A reversal whose terminal state violates a registered constraint FAILS and says
+so**; the declared arm and its status are owed by the same act as `DEF-H` below.
+
+**`DEF-H` — the failure list GROWS.** A constraint refusal crosses today as **`FileCommitFailed`** — the store's own
+SAVE code — with the kernel's `KC` token demoted to `log[].state`. **The architect rules the returned fail-state list
+EXPANDS to carry the refusal.** **Read narrowly, and this reading is why the entry is written down: ONE status for
+the refusal, not one per `KC` token** — the token continues to ride `log[].state` where it already does, and the
+status stops lying about which layer failed. **Consequences, all of them real and none of them free:**
+- **THE CLOSED SET MOVES `17 → 18`.** `src/error.rs`'s `CODES`, `index.d.ts`'s `StoreStatus`, the store contract's
+  rank table and `A148`'s amendment all move together, **and the status-census cell — which derives both sides from
+  `CODES` and the union — is the instrument that will catch any half-move.**
+- **IT IS A BREAKING CHANGE TO A CLOSED UNION**: an exhaustive consumer's switch gains a member.
+- **AND IT PAIRS WITH `DEF-W`**: a refused reversal needs a status too, and it must be a status a save path cannot
+  mint, for the same reason.
+
+**VERSION CONSEQUENCE, NAMED SO IT IS NOT DISCOVERED AT TAG TIME.** **`DEF-W` and `DEF-H` change shipped behaviour
+and a closed union; `DEF-P` does not.** **The three cannot ship as `1.0.1`.** **The next release is at least `1.1.0`,
+and `DEF-H`'s union expansion makes `2.0.0` the honest semver** — the architect decides which, and `D-36`/`D-35`'s
+client-scope rulings do not reach it.
+
+**TERMS: accepted (`3`), declarative-only (`1` = `DEF-P`), behavioural (`2` = `DEF-W` + `DEF-H`), owed cells (`2` =
+the single-call multi-address pair, the refused-reversal arm), version consequence (`1` = at least `1.1.0`,
+`2.0.0` if the union's expansion is read as breaking).**
