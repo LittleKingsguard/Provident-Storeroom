@@ -122,6 +122,12 @@ use storeroom_js_binding::crossing::{self, Instance, JsAddressArg, JsConfig, JsF
 // this re-cut** — which is exactly why all eight cells passed at three stores with `§5`'s shift unreachable.
 // =================================================================================================
 
+/// ⟶ **CORRECTED 2026-10-26, AND IT GOVERNS THE THREE PRINTS THAT FOLLOW (`:125`, `:131`, `:249`): THE ADDON
+/// DECLARES THIRTEEN, NOT FIVE.** `facade.rs` carries **thirteen** line-initial `#[napi]` sites — `4` bare
+/// (`storeCreate` · `register` · `version` · `errorMessage`) + `9` per-verb — **and `call` is not one of them**,
+/// the deletion's authority being `export-set-and-dispatch.md §2` (`P-SAS-1`), **not `A150`**. **The three "five"s
+/// below were true when each was filed and are kept as filed; the assertions in this file were re-derived to the
+/// thirteen and stand.**
 /// **THE ENTRY'S DECLARED NAME** (`binding-crate-and-abi.md §2`): the five entry functions *"KEEP THEIR NAMES
 /// AND ARITIES"*, and this is the construction's.
 const STORE_CREATE: &str = "storeCreate";
