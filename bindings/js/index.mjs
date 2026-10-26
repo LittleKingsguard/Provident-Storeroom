@@ -94,6 +94,25 @@ const require_ = createRequire(import.meta.url);
 const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node');
 
 adoptModuleContext(import.meta.url, require_, ADDON_PATH);
+
+// ---------------------------------------------------------------------------------------------
+// **THE ONE COPY OF A CALLER-SUPPLIED ADDRESS'S SEGMENTS — `D-35`'s READ HALF, CLOSED 2026-10-26.**
+// `listen(handle, addresses)` hands the SET, and each member of it is THE CALLER'S OWN ARRAY, so the two
+// `addresses[i].slice()` sites below took `Array.prototype.slice` OFF A MUTABLE PROTOTYPE at the moment of
+// the call: a caller who deleted `slice` turned a LAWFUL `listen` into the raw host `TypeError`
+// *"addresses[i].slice is not a function"* — a raw host object out of a lawful call, which `surface.md §2.5`
+// item 5 (e) files as a FINDING — and one who forged it made the package's own home mirror record an address
+// the store never received, MEASURED as a wrong value out of a lawful `addConstraint` + `constraints()`.
+// **THE FORM IS THE CONTRACT'S OWN** (`docs/specs/storeroom-json-crossing/contract.md §2.1` item `(1c)(i)` and
+// item `(1)`(c)): a local index loop over the array's own exotic `length` and its own indices, appending by
+// `appendOwn` — the same helper every other append on this file's paths already takes. **NO ANSWER MOVES**: the
+// same segments in the same order, in a FRESH array, exactly as the `slice` produced.
+function copySegments(address) {
+  const copy = [];
+  for (let i = 0; i < address.length; i += 1) appendOwn(copy, address[i]);
+  return copy;
+}
+
 // ---------------------------------------------------------------------------------------------
 // THE SURFACE — `surface.md §2.9` item 1: the EIGHT verbs, and NOTHING else. `findAddress` is NOT exposed
 // (`A63`), no `exists` verb exists (`docs/specs/storeroom-js/surface.md §2.9` item 3) and no release verb is declared (`A74`).
@@ -589,7 +608,10 @@ export function storeCreate(cfg) {
       // N addresses answer N rows for ONE handle (`listen-verb.md §6` item 4 (iv)).
       state.home = state.home.filter((row) => row.handle !== handle);
       for (let i = 0; i < addresses.length; i += 1) {
-        appendOwn(state.home, { key: homeAddressKey(addresses[i]), address: addresses[i].slice(), handle });
+        // **⟶ AND THE MIRROR'S COPY IS `copySegments`, NOT `addresses[i].slice()`** (`D-35`'s read half,
+        // 2026-10-26 — see the function's own clause above; the caller's array is the receiver either way and
+        // the answer is the same fresh segment list).
+        appendOwn(state.home, { key: homeAddressKey(addresses[i]), address: copySegments(addresses[i]), handle });
       }
       // ── THE ENTRY'S FIRST STATE: RESERVED ────────────────────────────────────────────────────────────────
       // ***"`listen` WRITES THE ENTRY WITH `off` SET — the reservation"*** (`P: docs/pending.md · P-5`, the
@@ -609,7 +631,9 @@ export function storeCreate(cfg) {
       // the registry row's set is the fresh list this loop builds.
       const standingSet = [];
       for (let i = 0; i < addresses.length; i += 1) {
-        appendOwn(standingSet, addresses[i].slice());
+        // **⟶ THE REGISTRY ROW'S SET TAKES THE SAME `copySegments`** (`D-35`'s read half, 2026-10-26): the
+        // element is the caller's address array, so its `slice` was a mutable prototype's member.
+        appendOwn(standingSet, copySegments(addresses[i]));
       }
       state.registry.set(handle, {
         fn: undefined,

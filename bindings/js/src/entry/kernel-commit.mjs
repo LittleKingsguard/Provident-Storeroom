@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9c`) — the commit act: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, refuse, inDomainAddress, kernelFor, attemptHeldAt } from './kernel-foundations.mjs';
+import { KC, refuse, inDomainAddress, kernelFor, attemptHeldAt, appendOwn } from './kernel-foundations.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-2` `commit(store, address, tier, value) -> CommitRecord`
 // ---------------------------------------------------------------------------------------------
@@ -43,10 +43,20 @@ export function commit(store, address, tier, value) {
   // own throwable reaches the caller UNCHANGED AND UNCONVERTED (`fail-surface.md §1.2` item 2) — a
   // refused write leaves no hold behind (`ck_surface_K2_an_out_of_domain_tier_is_the_store_s_own_code_on_the_store_s_own_channel`).
   kernel.attempts += 1;
+  // **⟶ AND THE ATTEMPT'S ADDRESS IS A LOCAL INDEX COPY OF THE CALLER'S ARRAY, NOT `address.slice()` —
+  // `D-35`'s READ HALF, CLOSED 2026-10-26.** `commit`'s `address` IS THE CALLER'S OWN POSITION (`write` hands
+  // the raw argument to `constraintWrite`, which hands it here), and `address.slice()` takes
+  // `Array.prototype.slice` OFF A MUTABLE PROTOTYPE at the moment of the call: a deleted `slice` threw the raw
+  // host `TypeError` *"address.slice is not a function"* out of a LAWFUL `write`, and a forged one decided the
+  // address every later kernel act compares — the hold, the pass's evaluated set and the report's spelling.
+  // **THE FORM IS THE CONTRACT'S OWN** (`contract.md §2.1` item `(1c)(i)`: a local index loop, appending by
+  // `appendOwn`), and NO ANSWER MOVES: the same segments, the same order, a FRESH array as before.
+  const addressCopy = [];
+  for (let i = 0; i < address.length; i += 1) appendOwn(addressCopy, address[i]);
   const attempt = {
     ref: { id: `attempt-${kernel.attempts}` },
     store,
-    address: address.slice(),
+    address: addressCopy,
     tier,
     value,
     commit,

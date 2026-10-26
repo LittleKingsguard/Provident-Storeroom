@@ -709,7 +709,15 @@ export function encodeAddress(address, addressArgumentPosition, addressValuePosi
   if (Array.isArray(address)) {
     if (arrayClass(address) === 'class') return { k: 'C' }; // row 11: a class extending `Array`
     for (let i = 0; i < address.length; i += 1) {
-      if (!(i in address)) return { k: 'S' }; // row 14 (`DD-8`)
+      // **⟶ AND THE HOLE SCAN IS `Object.hasOwn`, NOT `i in address` — `D-35`'s READ HALF, CLOSED
+      // 2026-10-26.** `in` is a `[[HasProperty]]` and WALKS THE PROTOTYPE CHAIN, so a caller's own member at
+      // `Array.prototype[1]` answered "present" for an index the caller's array does not carry: MEASURED, a
+      // one-member array grown to `length 2` under `Array.prototype[1] = 'b'` was read as the DENSE address
+      // `['a', 'b']` and answered the store's `AddressNotFound` — a prototype deciding which address was
+      // admitted, where row `14` (`DD-8`) declares the sparse refusal `AddressMalformed`. **THE FORM IS THE
+      // ONE THE WALK ALREADY TAKES** (`contract.md §2.1` item `(1c)(ii)`: `Object.hasOwn`, a static, and never
+      // `in`), and no lawful address moves: a dense array's own indices answer `true` exactly as `in` did.
+      if (!Object.hasOwn(address, i)) return { k: 'S' }; // row 14 (`DD-8`)
     }
     const segments = [];
     for (let i = 0; i < address.length; i += 1) {
@@ -724,7 +732,15 @@ export function encodeAddress(address, addressArgumentPosition, addressValuePosi
         // store's own `malformed_segment` names at its `L-1` arm (the store's walk pushes each in-domain
         // segment into its own container before it tests the next), so the refusal's container is the
         // SAME datum at both layers and not a second spelling of it.
-        refuseOutsideSegment(segment, i, address.slice(0, i), addressArgumentPosition);
+        // **⟶ AND IT IS BUILT BY INDEX, NOT BY `address.slice(0, i)` — `D-35`'s READ HALF, 2026-10-26.**
+        // `slice` is `Array.prototype.slice` taken off a mutable prototype on the REFUSAL path: a caller who
+        // deleted it turned a declared refusal into a raw host `TypeError` out of a lawful call, which
+        // `surface.md §2.5` item 5 (e) files as a FINDING. **The loop starts at the segments already passed
+        // the sparse scan above, so it sees no hole** — the prefix is the same segments, in the same order, as
+        // a fresh list (`contract.md §2.1` item `(1c)(i)` + item `(1)`(c)).
+        const prefix = [];
+        for (let at = 0; at < i; at += 1) appendOwn(prefix, address[at]);
+        refuseOutsideSegment(segment, i, prefix, addressArgumentPosition);
       }
       // **⟶ AND THE CARRIER'S SEGMENT LIST IS EXTENDED BY INDEX TOO** (`contract.md §2.1`'s clause of
       // 2026-10-24 on `F7-1`, item `(1b)`, and the battery's row `(g)`): the as-built `segments.push` was

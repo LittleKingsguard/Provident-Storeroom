@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9d`) — the pass: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, refuse, isKernelRefusal, pairSpelling, sameAddress, kernelFor, append, appendOwn, withdraw, landedOp, landedOpDefect, pairsAtAddress } from './kernel-foundations.mjs';
+import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, refuse, isKernelRefusal, pairSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress } from './kernel-foundations.mjs';
 import { commitAttemptIdOf, terminal, close } from './kernel-terminal.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-3` `runAttempt(store, commit) -> AttemptReport`
@@ -284,15 +284,24 @@ function evaluate(kernel, attempt, landing) {
 
       // THE CONSTRAINT'S OWN OUTCOME — A CLOSED THREE-ARM SET (`PAR-C-5`). A value outside the three
       // arms is read as the `{message}` arm and never as an arm of its own.
+      // **⟶ AND ITS TWO MEMBERS ARE READ AS THE OUTCOME'S OWN — `D-35`'s READ HALF, CLOSED 2026-10-26.**
+      // `outcome` IS THE CALLER'S CONSTRAINT RETURN. `'message' in outcome` and `outcome.message` were a
+      // `[[HasProperty]]` and a `[[Get]]`, each walking the chain, so a prototype decided the sentence the
+      // refusal carried — measured: a body returning `Object.create({ message: '…' })` made the write refuse
+      // `FileCommitFailed` with THE INHERITED STRING as its message and as the log entry's text. **`ownMember`
+      // is `[[GetOwnProperty]]`**, so an inherited member is absent here and the arm answers this unit's own
+      // `unrecognized` sentence, exactly as it answers a return outside the three arms.
       let text;
       let repair = null;
       if (outcome === true) {
         text = `the constraint ${pair.id} passed at ${JSON.stringify(attempt.address)}`;
-      } else if (outcome !== null && typeof outcome === 'object' && 'message' in outcome) {
-        text = typeof outcome.message === 'string' && outcome.message.length > 0
-          ? outcome.message
+      } else if (outcome !== null && typeof outcome === 'object' && Object.hasOwn(outcome, 'message')) {
+        const outcomeMessage = ownMember(outcome, 'message');
+        text = typeof outcomeMessage === 'string' && outcomeMessage.length > 0
+          ? outcomeMessage
           : unrecognized(pair);
-        if ('repair' in outcome && typeof outcome.repair === 'function') repair = outcome.repair;
+        const outcomeRepair = ownMember(outcome, 'repair');
+        if (typeof outcomeRepair === 'function') repair = outcomeRepair;
       } else {
         text = unrecognized(pair);
       }
@@ -407,12 +416,20 @@ function evaluate(kernel, attempt, landing) {
         // AND NEVER A MEMBER'S PRESENCE** (`KERNEL_REFUSAL` above): a value this kernel built is marked, and
         // everything unmarked that carries a store code IS a store code, whatever members the surface has
         // attached to it on its way back. A `KC` token is still never a store code on either spelling.
+        // **⟶ AND THAT CODE IS READ OFF THE THROWABLE'S OWN MEMBERS — `D-35`'s READ HALF, CLOSED
+        // 2026-10-26.** `body` IS THE CALLER'S OWN THROWABLE (a repair body's throw). `body.status` was a
+        // `[[Get]]` that walked the chain, so a prototype's `status` was read as a STORE CODE — measured: a
+        // body throwing `Object.create({ status: 'WriteParentNotLink' })` made the write refuse
+        // `WriteParentNotLink`, a store member the caller's prototype minted. **`ownMember` is
+        // `[[GetOwnProperty]]`**, so the store code is read off the throwable's own bytes and an inherited one
+        // is no code this kernel read: the throw crosses unconverted, exactly as an unmarked body's does.
+        const bodyStatus = body !== null && typeof body === 'object' ? ownMember(body, 'status') : undefined;
         const storeCode = body !== null && typeof body === 'object'
           && isKernelRefusal(body) === false
-          && typeof body.status === 'string'
-          && body.status.length > 0
-          && !KC_TOKENS.includes(body.status)
-          ? body.status
+          && typeof bodyStatus === 'string'
+          && bodyStatus.length > 0
+          && !KC_TOKENS.includes(bodyStatus)
+          ? bodyStatus
           : null;
         if (storeCode !== null) {
           entry.message = `the repair ${pair.id} was attempted and the store refused its own edit — the `
@@ -435,14 +452,25 @@ function evaluate(kernel, attempt, landing) {
       // THE OP THE REPAIR ACTUALLY LANDED HAS CARRIED NO OP AND IS THE APP'S OWN DEFECT: it is read as
       // a repair that produced no op, so it fails `KC-4` whether or not the pair's repair had been
       // recorded as applied (`§2.7`'s home; `§2.8`'s outside values; `A: docs/decisions.md` · `A110`).
-      const ok = result !== null && typeof result === 'object' && result.ok === true;
+      // **⟶ AND ITS `ok` AND `message` ARE THE RETURN'S OWN MEMBERS TOO — `D-35`'s READ HALF, 2026-10-26.**
+      // `result` IS THE CALLER'S REPAIR RETURN. `result.ok` and `result.message` were chain reads, and the
+      // measured consequence is the worst one in this file: a repair returning
+      // `Object.create({ ok: true, op: <a real op> })` was CREDITED — its edit ADMITTED and its pair recorded
+      // as applied — on two members standing on `Object.prototype`. **`ownMember` is `[[GetOwnProperty]]`**, so
+      // an inherited `ok` is not an `ok` this kernel read: the return carries no op, the attempt takes arm
+      // `(d)` and fails `KC-4`, which is the clause's own answer for *"a return carrying any other identity"*.
+      const okMember = result !== null && typeof result === 'object' ? ownMember(result, 'ok') : undefined;
+      const ok = okMember === true;
       const produced = ok ? landedOp(attempt, result, op) : null;
       if (produced === null) {
+        const messageMember = result !== null && typeof result === 'object'
+          ? ownMember(result, 'message')
+          : undefined;
         const carried = ok
           ? landedOpDefect(attempt, pair, result)
-          : result !== null && typeof result === 'object' && result.ok === false
-            && typeof result.message === 'string' && result.message.length > 0
-            ? result.message
+          : okMember === false
+            && typeof messageMember === 'string' && messageMember.length > 0
+            ? messageMember
             : `the repair ${pair.id} produced no op at ${JSON.stringify(attempt.address)}`;
         entry.message = carried;
         return { terminal: { status: KC.repairFailed, message: carried }, rerun: false };

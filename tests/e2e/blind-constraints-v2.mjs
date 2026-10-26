@@ -314,9 +314,27 @@ scenario(() => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// E2E-C-2 — a two-op failing attempt: the unrepaired violation fails it and the composition rolls both ops back
+// E2E-C-2 — a two-op failing attempt: the unrepaired violation fails it, the composition reverses the repaired
+// op, and its SECOND same-address call meets the floor — so the attempt's own first write STANDS
+//
+// **⟶ THE TITLE IS CORRECTED 2026-10-26 AND NOT ONE CELL MOVES (the examiner's fourth finding,
+// `strata/decisions.md:2442`: *"`E2E-C-2`'s own title names an unreachable behaviour — a successful rollback
+// marks the entry `compacted`, so the second same-address call meets `M-6` and never the arm its title
+// claims."*).** **THE AS-FILED TITLE READ *"… and the composition rolls both ops back", AND THE CODE CANNOT DO
+// IT: both ops stand at `['a']`, so the repair's op is reversed by the FIRST call and its own reversal leaves
+// that entry `compacted`; the second call — over the attempt's own first write — then meets `M-6`'s
+// candidate-set floor and answers `RollbackCompacted`, which item 5 (b) makes `KC-8`
+// (`write-and-read.md §6.4` item 1's `M-5`/`M-6`; `composition-and-states.md §2.6` item 6 (a), THE FLOOR
+// GOVERNS).** **SO THE SUBJECT MOVED AND THE TITLE WAS WRONG — THE DRIVE IS NOT: this row's own cells 4, 7 and 8
+// already assert the reached behaviour (`KC-8` naming `RollbackCompacted`, the call list with one call per
+// still-owed op, and the attempt's first write NOT undone) and were re-derived in place on 2026-10-25. THE DRIVE
+// REACHES ITS SUBJECT AND EVERY ASSERTION STANDS AS FILED; only the sentence here and the `group()` title below
+// move.** **AND THE ARCHIVED SCENARIO'S OWN HEADING CARRIES THE SAME STALE SENTENCE**
+// (`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-constraints/e2e-scenarios.md:151`), which is that
+// document's owner's to re-derive rather than this file's to absorb silently (`RCA-8(g)`: a clause that
+// prescribes an unreachable behaviour is a defect).
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-group('E2E-C-2', 'a two-op failing attempt: the unrepaired violation fails it and the composition rolls both ops back');
+group('E2E-C-2', 'a two-op failing attempt: the unrepaired violation fails it, the composition reverses the repaired op, and its second same-address call meets the floor so the attempt\'s first write stands');
 scenario(() => {
   const store = newStore();
   let opRepair = null;

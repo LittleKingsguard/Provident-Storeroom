@@ -175,7 +175,16 @@ export function isKernelRefusal(value) {
 // ---------------------------------------------------------------------------------------------
 export function inDomainAddress(address) {
   if (!Array.isArray(address)) return false;
-  for (const segment of address) {
+  // **⟶ AND THE WALK IS A LOCAL INDEX LOOP AND NOT `for … of` — `D-35`'s READ HALF, CLOSED 2026-10-26.**
+  // `K-2`'s `address` IS THE CALLER'S OWN ARRAY (`write` hands the raw position here through
+  // `constraintWrite`), and `for … of` takes `Array.prototype[Symbol.iterator]` OFF A MUTABLE PROTOTYPE at the
+  // moment of the call: a deleted iterator threw the raw host `TypeError` *"address is not iterable"* out of a
+  // LAWFUL `write`, and a forged one decided which segments the domain test saw — a caller's function standing
+  // where the store's own domain verdict belongs. **THE FORM IS THE CONTRACT'S OWN** — item `(1c)(i)`'s local
+  // index loop over the array's own exotic `length` and its own indices — and NO ANSWER MOVES: the same
+  // segments, the same order, the same `false` at the same member.
+  for (let i = 0; i < address.length; i += 1) {
+    const segment = address[i];
     if (typeof segment === 'string') continue;
     if (typeof segment === 'number' && Number.isInteger(segment) && segment >= 0) continue;
     return false;
@@ -431,6 +440,28 @@ export function appendOwn(list, value) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// THE LAWFUL MEMBER READ — ADDED 2026-10-26 ON `D-35`'S READ HALF, AND IT IS A LOCAL COPY ON THE SAME
+// GROUND THE APPEND ABOVE IS: THIS MODULE'S OWN HEADER DECLARES AN EMPTY IMPORT FOOTPRINT (`§1` item 1;
+// `A110`), so the kernel may not reach the entry's `ownMember` (`./refusal.mjs`) and defines the same
+// `[[GetOwnProperty]]` read here instead. No second form is minted: the two helpers are the same bytes.
+//
+// **THE HAZARD A MEMBER READ LEAVES BEHIND, STATED AS THE LANGUAGE STATES IT.** `value[name]` is a
+// `[[Get]]` and `name in value` is a `[[HasProperty]]`; BOTH WALK THE PROTOTYPE CHAIN. The values this
+// module reads them off are THE CALLER'S OWN RETURNS AND THROWS — a constraint's outcome, a repair's
+// return, a repair's body's throwable — so a member carried only by a prototype decided a kernel verdict
+// (measured: an inherited `message` became the refusal's message, an inherited `{ok, op}` was CREDITED as
+// the repair's landed op, and an inherited `status` was read as a store code).
+//
+// **THE FORM IS THE DESCRIPTOR'S OWN** — `Object.getOwnPropertyDescriptor`, which consults no prototype —
+// and the descriptor's `value` is taken only where it IS one, so an ACCESSOR is not run and answers
+// `undefined` here exactly as an absent member does. No user code runs on any path this helper serves.
+export function ownMember(value, name) {
+  const descriptor = Object.getOwnPropertyDescriptor(value, name);
+  if (descriptor === undefined || !Object.hasOwn(descriptor, 'value')) return undefined;
+  return descriptor.value;
+}
+
+// ---------------------------------------------------------------------------------------------
 // THE MESSAGE LOG (`kernel-surface.md §2.5` item 1; `PAR-C-4`). SIX MEMBERS, `seq` ASCENDING FROM
 // `1`, ONE KIND PER ENTRY: `constraint-check` | `repair-run` | `commit` | `outcome`.
 // ---------------------------------------------------------------------------------------------
@@ -510,12 +541,20 @@ export function withdraw(attempt, entry) {
  * ORDINAL, the ground is not applied and the membership ground stands alone, exactly as it did.**
  */
 export function landedOp(attempt, returned, invokedFor) {
-  if (!('op' in returned)) return null;
-  const candidate = returned.op;
+  // **⟶ AND EVERY MEMBER BELOW IS READ AS THE RETURN'S OWN — `D-35`'s READ HALF, CLOSED 2026-10-26.**
+  // `returned` IS THE CALLER'S REPAIR RETURN. `'op' in returned` walked the chain and `returned.op` walked it
+  // again, so a prototype's `op` was CREDITED as the op the repair landed — measured: a repair returning
+  // `Object.create({ ok: true, op: <a real op> })` had its write ADMITTED, because the two members the credit
+  // reads stood on `Object.prototype` and on nothing the return carried. **`ownMember` is
+  // `[[GetOwnProperty]]`**: an inherited or accessor-carried `op` is ABSENT here, which is this function's
+  // declared `null` — *"a return carrying any other identity has carried no op at all"*.
+  const candidate = ownMember(returned, 'op');
+  if (candidate === undefined) return null;
   if (candidate === null || typeof candidate !== 'object') return null;
-  if (typeof candidate.opId !== 'string' || candidate.opId.length === 0) return null;
+  const candidateOpId = ownMember(candidate, 'opId');
+  if (typeof candidateOpId !== 'string' || candidateOpId.length === 0) return null;
   for (const held of attempt.ops) {
-    if (held !== null && typeof held === 'object' && held.opId === candidate.opId) return null;
+    if (held !== null && typeof held === 'object' && held.opId === candidateOpId) return null;
   }
   const floor = invokedFor !== null && invokedFor !== undefined && typeof invokedFor.seq === 'number'
     ? invokedFor.seq
@@ -524,7 +563,8 @@ export function landedOp(attempt, returned, invokedFor) {
   // ordinal cannot stand above the op this repair was invoked for, so it is no op this repair landed
   // and this function answers `null` — arm `(d)`, `KC-4`. A candidate carrying one must stand strictly
   // above the floor. Nothing else is read.
-  if (floor !== null && (typeof candidate.seq !== 'number' || candidate.seq <= floor)) return null;
+  const candidateSeq = ownMember(candidate, 'seq');
+  if (floor !== null && (typeof candidateSeq !== 'number' || candidateSeq <= floor)) return null;
   return candidate;
 }
 
@@ -536,18 +576,26 @@ export function landedOp(attempt, returned, invokedFor) {
  */
 export function landedOpDefect(attempt, pair, returned) {
   const where = JSON.stringify(attempt.address);
-  if (!('op' in returned) || returned.op === undefined) {
+  // **⟶ THE MEMBER IS READ AS THE RETURN'S OWN HERE TOO** (`D-35`'s read half): the arm that names *"carried no
+  // op"* and the arm that spells the op must agree with `landedOp`'s own answer, and a chain read would let a
+  // prototype decide which of the two sentences the caller is handed.
+  const member = ownMember(returned, 'op');
+  if (member === undefined) {
     return `the repair ${pair.id} returned \`ok: true\` and carried no op at ${where}`;
   }
   return `the repair ${pair.id} returned \`ok: true\` and named the unrecognized or unlanded op `
-    + `${opSpelling(returned.op)} at ${where}`;
+    + `${opSpelling(member)} at ${where}`;
 }
 
 /** One returned `op` member's identity, spelled for the kernel's own sentence: an `opId` where the
  *  member carried one, and the member's own class where it carried no op at all. */
 function opSpelling(value) {
-  if (value !== null && typeof value === 'object' && typeof value.opId === 'string') {
-    return JSON.stringify(value.opId);
+  // **⟶ `opId` IS THE CALLER'S RETURN'S OWN MEMBER** (`D-35`'s read half, 2026-10-26): this spelling is the
+  // one place the sentence's identity is taken, so it is taken own-only — an inherited `opId` is no identity
+  // this kernel read, and it must not become one in the message either.
+  const opId = ownMember(value, 'opId');
+  if (value !== null && typeof value === 'object' && typeof opId === 'string') {
+    return JSON.stringify(opId);
   }
   if (typeof value === 'string') return JSON.stringify(value);
   if (value === null) return 'null';
