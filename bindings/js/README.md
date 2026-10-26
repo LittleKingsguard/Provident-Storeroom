@@ -187,7 +187,7 @@ building it is a step of a checkout rather than of an install:
 ```sh
 cargo build --release --manifest-path bindings/js/Cargo.toml
 mkdir -p bindings/js/build/Release
-cp bindings/js/target/release/libstoreroom_js_binding.so bindings/js/build/Release/storeroom_js_binding.node
+cp target/release/libstoreroom_js_binding.so bindings/js/build/Release/storeroom_js_binding.node
 ```
 
 **No binary is ever committed** (`package.md §3.2`): `build/` and `target/` are ignored, and the artefacts
@@ -218,8 +218,8 @@ distribution.md §2.2`; `PUB-DD-1`, `PUB-DD-2`):
 ## Tests
 
 ```sh
-cargo test  --manifest-path bindings/js/Cargo.toml --no-fail-fast   # the sibling crate's Rust tests
-node --test bindings/js/test/*.test.mjs                                       # this package's JS tests
+cargo test  --manifest-path tests/Cargo.toml -p storeroom-tests --no-fail-fast   # THE BATTERY'S LEG — this crate's six Rust targets, 235 cells
+npm test   # THE REPOSITORY'S JS BATTERY — a REPOSITORY instruction, NOT a consumer one; see the note below
 ```
 
 **AND THE ORDER IS A DECLARED STEP, NOT A CONVENIENCE: THE JS LEG RUNS ONLY AFTER THE ADDON IS BUILT**
@@ -233,10 +233,47 @@ route — `JS -> facade -> core -> store` — is what they exercise, and that ro
 # 1. THE BUILD STEP, AT THE REPOSITORY ROOT, BEFORE ANY JS CELL RUNS:
 cargo build --release --manifest-path bindings/js/Cargo.toml
 mkdir -p bindings/js/build/Release
-cp bindings/js/target/release/libstoreroom_js_binding.so bindings/js/build/Release/storeroom_js_binding.node
-# 2. THE JS LEG, AFTER IT:
-node --test bindings/js/test/*.test.mjs
+cp target/release/libstoreroom_js_binding.so bindings/js/build/Release/storeroom_js_binding.node
+# 2. THE JS LEG, AFTER IT — the repository's own battery, from the REPOSITORY ROOT:
+npm test
 ```
+
+**AND THE THREE RUST LEGS, EACH WITH THE COUNT IT CARRIES** (`D-34`: one workspace at the repository root,
+`members = [".", "bindings/js", "tests"]`, `default-members = [".", "tests"]`; and the architect's `★ A`:
+**THE LEGS ARE PACKAGE-SCOPED**). **THE THREE, AT THE REPOSITORY ROOT:**
+
+```sh
+cargo test --offline -p storeroom-native   # THE STORE'S LEG — 415 cells, 0 fail
+cargo test -p storeroom-tests              # THE BATTERY'S LEG — 235 cells, 0 fail
+cargo test                                 # BOTH OF THEM — 650 cells, 0 fail
+```
+
+**AND THE THIRD COMMAND IS NOT A FOURTH LEG: a bare `cargo test` runs `default-members = [".", "tests"]`, so
+it is EXACTLY the store's `415` plus the battery's `235` — `415 + 235 = 650` ✓ — in one run.** The two `-p`
+forms are what measures one crate's own red/green; the bare form is what a release runbook reaches for.
+**`-p` IS NOT DECORATION ON THE BUILD SIDE EITHER:** the store's leg keeps `--offline`, and a workspace-root
+`cargo build --offline` would pull this crate's `napi` crates and `--offline` would refuse them — which is
+why the root manifest's `build` script names the store by package as well.
+
+**AND WHAT NO LONGER RUNS ANYTHING IS NAMED HERE RATHER THAN LEFT TO BE DISCOVERED: `cargo test
+--manifest-path bindings/js/Cargo.toml` USED to be this crate's Rust leg and NOW EXITS `0` HAVING RUN
+NOTHING** (`tests 0 · pass 0 · fail 0`), because this crate's six test targets LEAVE `bindings/js/tests/` with
+the stratification's move and a member carries no test targets of its own. **The leg is the battery's
+command above, which reaches the same six targets through the package that hosts them.**
+
+**AND THE JS COMMAND ABOVE IS A *REPOSITORY* INSTRUCTION, NOT A CONSUMER ONE — SAID PLAINLY BECAUSE THIS
+FILE SHIPS INSIDE THE PACKAGE** (it is in the allowlist, `docs/specs/storeroom-publish/contract.md §2.1`
+item 1). **`npm test` is the repository root manifest's own `test` script — `node --test
+"tests/**/*.test.mjs"`, taken at the repository root — and THE ROOT MANIFEST IS NOT SHIPPED**: a consumer's
+install carries `package.json` · `index.mjs` · `index.d.ts` · `README.md`, the entry's own modules and the
+licence copy the release's assembly step lands, and **carries NO `tests/` directory at all**, so a consumer
+cannot run this command and is promised nothing by it. **A consumer's own tests are the consumer's**; the
+commands in this section are for a CHECKOUT of this repository. **AND THE COMMAND THAT STOOD HERE IS NAMED SO
+ITS ABSENCE IS LEGIBLE RATHER THAN DISCOVERED: `node --test bindings/js/test/*.test.mjs` was this package's
+own JS leg until the batteries were stratified into `tests/e2e/`, `tests/integration/` and `tests/unit/`, and
+`bindings/js/test/` NO LONGER EXISTS — measured on this tree, the dead command exits `0` having run NOTHING
+(`tests 0 · pass 0 · fail 0`), which is a VACUOUS GREEN rather than even a red, so a reader who kept it would
+believe this package had been tested.**
 
 **THERE IS NO FALLBACK AND NO JS-SIDE STORE** (`A75`): an addon that is ABSENT or FAILS TO LOAD is a
 **DECLARED FAILURE** — `storeCreate` answers the single failure form
@@ -248,6 +285,29 @@ through the addon's `errorMessage` where the artefact loaded far enough to carry
 reproduced BYTE-FOR-BYTE from the generator's own clause (`src/error.rs`'s `FilePathUnreachable` arm) where
 the generator is the thing that failed to load. **A consumer that runs the JS cells without step 1 sees that
 failure and not a silently degraded run.** **The Rust leg needs no addon at all**: the conversion core is the
-crate's `rlib` half, so `cargo test --manifest-path bindings/js/Cargo.toml` is drivable with no Node runtime
-present (`package.md §4.1` item 3, `§4.5` item 7).
+crate's `rlib` half, so `cargo test --manifest-path tests/Cargo.toml -p storeroom-tests` is drivable with no
+Node runtime present (`package.md §4.1` item 3, `§4.5` item 7).
+
+---
+
+**⟶ CORRECTED 2026-10-25 (`D-34`, `strata/decisions.md`; `RCA-8(d)` ANNOTATE-BESIDE: the superseded figure is
+named once, here, and the clause stands at the file's end so that no line of the shipped text above it moves).**
+
+**1. THE `cp` SOURCE IN THE `Building the addon` BLOCK, ABOVE, WAS `bindings/js/target/release/libstoreroom_js_binding.so`
+AND IS `target/release/libstoreroom_js_binding.so`.** `D-34` made this crate a **member of the one workspace at the
+repository root** (`members = [".", "bindings/js", "tests"]`), and **a member's target directory IS the workspace
+root's**, so `bindings/js/target/` is no longer produced by any command this repository runs. **Nothing else in
+that block moved**: the `cargo build` above it, the `mkdir -p` between them and the destination are the same
+bytes. **The `Tests` section's step 1 already read `cp target/release/…` and did not need the correction** — the
+two homes of the build form disagreed until this clause; they agree now.
+
+**2. ONE SENTENCE ABOVE IS STALE AND IS LEFT AS TEXT BECAUSE ITS CORRECTION IS `delivery`'s, NOT THIS PASS's.**
+The uncovered-target bullet reads *"this package's allowlist, whose whole content is `index.mjs` · `README.md` ·
+`index.d.ts`"*. **The allowlist carries FIVE rows today** — those three plus **`src/entry/`** (the entry's
+thirteen parts) and **`src/constraint-kernel.mjs`** (the barrel), measured at `bindings/js/package.json` — because
+the entry now imports its parts by path and a tarball carrying the hub alone cannot load (`D-13`, `D-14`). **The
+sentence's SUBJECT survives**: the Rust store crate's own `src/**` is still outside the allowlist and an
+uncovered consumer still needs a Rust toolchain. **Its parenthetical figure does not**, and it is named here
+rather than edited, because the shipped manifest's own description is `delivery`'s declaration and a documentation
+pass does not amend a manifest's prose in the manifest's own voice.
 

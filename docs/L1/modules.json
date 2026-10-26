@@ -1,0 +1,700 @@
+{
+  "modules": [
+    {
+      "id": "store-core",
+      "name": "The register",
+      "owns": ["src/store.rs", "src/lib.rs"],
+      "responsibility": "Hold the register, walk addresses, and perform the verbs — tiers and purge, the journal and rollback, the listener home, the file image and its boot, and construction.",
+      "endpoints": [
+        {
+          "name": "storeCreate",
+          "input": "&StoreConfig — the closed three-member record: filePath, journalLength, listeners",
+          "output": "Result<Store, StoreError>; every argument validated before any filesystem act"
+        },
+        {
+          "name": "storeCreateWithConstraints",
+          "input": "&StoreConfig together with &ConstraintsArg — the application's own ordered pair list",
+          "output": "Result<Store, StoreError>; ConstraintListInvalid with no instance when the list is refused"
+        },
+        {
+          "name": "findAddress / read / readLiteral",
+          "input": "AddressArg and TierArg — readers take absent, one token, or an any-match set",
+          "output": "Result<StoreValue | &NodeRef, StoreError>; a branch refuses readLiteral"
+        },
+        {
+          "name": "write",
+          "input": "AddressArg, TierArg (exactly one token), StoreValue",
+          "output": "Result<WriteResult, StoreError> — {op, watched, triggered}; no file I/O on any arm"
+        },
+        {
+          "name": "delete",
+          "input": "AddressArg, TierArg (exactly one token)",
+          "output": "Result<DeleteReceipt, StoreError> — {address, tiers, triggered}; no file I/O at any tier scope"
+        },
+        {
+          "name": "rollback",
+          "input": "OpIdArg — the op id the caller was given",
+          "output": "Result<RollbackResult, StoreError> — {opId, undoneOps, restoredTo}; all-or-nothing over the subtree"
+        },
+        {
+          "name": "listen / unlisten / remove_listener",
+          "input": "&ListenerHandle, and for listen the address SET &[Vec<Segment>]",
+          "output": "Result<(), StoreError>; the handle is caller-spelled and never minted"
+        },
+        {
+          "name": "commit_file",
+          "input": "the op id the settled record carries",
+          "output": "Result<(), StoreError> — the file-tier save, reached as the terminal arm's own act (src/store.rs:1343, inside impl Store)"
+        }
+      ],
+      "interactions": ["store-value", "store-args", "store-records", "store-fail-set", "binding-crossing", "store-battery"]
+    },
+    {
+      "id": "store-value",
+      "name": "The store's value domain and its JSON image",
+      "owns": ["src/value.rs", "src/json.rs"],
+      "responsibility": "Declare the admitted value taxonomy and convert it to and from the canonical JSON text the file tier stores.",
+      "endpoints": [
+        {
+          "name": "the admitted value domain (StoreValue)",
+          "input": "a value offered to store-core — str, bool, num, object, array",
+          "output": "the in-domain StoreValue, with every outside class (Null, Undefined, Function, Symbol, BigInt, NonFinite, Cyclic, NonPlainCollection) spellable so its refusal is reachable"
+        },
+        {
+          "name": "value -> canonical JSON text",
+          "input": "StoreValue",
+          "output": "bytes whose number spelling is the shortest decimal that parses back to the same f64"
+        },
+        {
+          "name": "JSON text -> value",
+          "input": "the file image's bytes at boot",
+          "output": "StoreValue; any finite JSON number spelling a parser admits is accepted"
+        }
+      ],
+      "interactions": ["store-core", "binding-crossing", "store-battery"]
+    },
+    {
+      "id": "store-args",
+      "name": "The argument carriers",
+      "owns": ["src/args.rs"],
+      "responsibility": "Carry every declared parameter as a permissive Rust type whose outside-value arms make each refusal reachable, and fold it to the in-domain argument or the refusal.",
+      "endpoints": [
+        {
+          "name": "address_segments",
+          "input": "&AddressArg — List, Absent, Null, Undefined, Str",
+          "output": "Result<Vec<Segment>, StoreError>"
+        },
+        {
+          "name": "the tier and op-id folds",
+          "input": "&TierArg (Absent / Token / Set / outside arms) and &OpIdArg",
+          "output": "the per-verb arity answer, or the store's own refusal"
+        },
+        {
+          "name": "the construction folds",
+          "input": "&FilePathArg, &JournalLengthArg, &ListenersArg, &ConstraintsArg",
+          "output": "the closed StoreConfig together with the validated listener and constraint lists, or ConstructionArgumentMissing / ConstraintListInvalid"
+        }
+      ],
+      "interactions": ["store-core", "store-fail-set", "binding-crossing", "store-battery"]
+    },
+    {
+      "id": "store-records",
+      "name": "The record shapes",
+      "owns": ["src/records.rs"],
+      "responsibility": "Declare the shapes the verbs, the resolver and the listener surface return, including the tier token and the listener identity.",
+      "endpoints": [
+        {
+          "name": "the verb records",
+          "input": "the settled op, the watched addresses and the triggered pairs",
+          "output": "WriteResult {op, watched, triggered}, DeleteReceipt {address, tiers, triggered}, RollbackResult {opId, undoneOps, restoredTo}"
+        },
+        {
+          "name": "the journal shapes",
+          "input": "an operation and the compacted base state",
+          "output": "JournalOp and BaseState, as read by a caller and by a boot"
+        },
+        {
+          "name": "the identity and resolver shapes",
+          "input": "a handle, a binding address, a walked node",
+          "output": "ListenerHandle, Listener, ListenerTrigger {handle, address}, ChildAnchor, NodeRef, and the tier token"
+        }
+      ],
+      "interactions": ["store-core", "binding-crossing", "store-battery"]
+    },
+    {
+      "id": "store-fail-set",
+      "name": "The closed fail set",
+      "owns": ["src/error.rs"],
+      "responsibility": "Hold the SEVENTEEN statuses as one closed set and generate every message from the code and the failing trigger's arguments.",
+      "endpoints": [
+        {
+          "name": "the refusal's construction",
+          "input": "a status plus the MessageArgs of the failing trigger",
+          "output": "StoreError {status, message}, with the message generated and never hand-authored at a call site"
+        },
+        {
+          "name": "CODES / storeErrorMessage",
+          "input": "nothing, or a status",
+          "output": "the closed SEVENTEEN-member set (as a [&'static str; 17]) and the generated message for one member; read by the declaration and by the entry, never minted there"
+        }
+      ],
+      "interactions": ["store-core", "store-args", "binding-crossing", "js-surface", "js-declaration", "store-battery"]
+    },
+    {
+      "id": "binding-crossing",
+      "name": "The pure-Rust conversion core",
+      "owns": ["bindings/js/src/crossing.rs"],
+      "responsibility": "Model a JS value, admit or refuse it per class, convert in both directions, and hold the per-instance Instance over the store — with no Node-API type at any depth.",
+      "endpoints": [
+        {
+          "name": "Instance::create / create_with_constraints",
+          "input": "&JsConfig, and for the second &JsConstraintsArg",
+          "output": "Result<Instance, Refusal>"
+        },
+        {
+          "name": "the verb dispatchers",
+          "input": "the Js* carriers — read, read_literal, write, delete, rollback, listen, unlisten, remove_listener, register, commit_file",
+          "output": "Result<JsValue | JsWriteResult | JsDeleteReceipt | JsRollbackResult, Refusal>"
+        },
+        {
+          "name": "to_store_value / from_store_value",
+          "input": "&JsValue on the way in; &StoreValue on the way out",
+          "output": "Result<StoreValue, Refusal>, and a JsValue on the way out"
+        },
+        {
+          "name": "Refusal / registration_refusal",
+          "input": "the failing target, its position and the class that failed",
+          "output": "Refusal {status, message} — the addon's one failure form"
+        }
+      ],
+      "interactions": ["store-core", "store-args", "store-value", "store-records", "store-fail-set", "binding-codec", "binding-battery"]
+    },
+    {
+      "id": "binding-codec",
+      "name": "The wire's codec",
+      "owns": ["bindings/js/src/codec.rs"],
+      "responsibility": "Convert the Node-API carrier to the core's model and the core's answer back to a Node-API value, over the decided tree.",
+      "endpoints": [
+        {
+          "name": "the inbound conversions",
+          "input": "a JsVal from a #[napi] parameter — cfg, an address, an address set, a tier, an op id, a handle, a value, a constraint list, a named member",
+          "output": "the core's carrier model (JsConfig, JsAddressArg, JsTierArg, JsValue, …)"
+        },
+        {
+          "name": "the outbound conversions",
+          "input": "the core's answer — a JsValue, segments, a write result, a delete receipt, a rollback result",
+          "output": "a JsVal the runtime hands the entry (set_member, undefined_value, to_js_value, to_js_segments, to_js_write_result, to_js_delete_receipt, to_js_rollback_result)"
+        }
+      ],
+      "interactions": ["binding-crossing", "binding-facade", "binding-battery"]
+    },
+    {
+      "id": "binding-facade",
+      "name": "The Node-API export facade",
+      "owns": ["bindings/js/src/facade.rs", "bindings/js/src/lib.rs", "bindings/js/build.rs"],
+      "responsibility": "Publish the addon's exported entry functions, each thin over the core, and declare the crate's link and version-stamp treatment.",
+      "endpoints": [
+        {
+          "name": "storeCreate",
+          "input": "Env and the caller's cfg as a JsVal",
+          "output": "NapiRet — the addon instance, or the store's thrown {status, message}"
+        },
+        {
+          "name": "the nine verb entries",
+          "input": "the #[napi] parameters of read, readLiteral, write, delete, rollback, listen, unlisten, removeListener, commitFile",
+          "output": "the converted answer as a JsVal, or the refusal"
+        },
+        {
+          "name": "register",
+          "input": "Env, the store receiver, a handle and a listener slot",
+          "output": "the registration's answer or its refusal"
+        },
+        {
+          "name": "version / errorMessage",
+          "input": "nothing, or a status with its arguments",
+          "output": "the version string (the build's own stamp) and the generated message"
+        }
+      ],
+      "interactions": ["binding-crossing", "binding-codec", "store-core", "delivery", "js-resolution", "binding-battery"]
+    },
+    {
+      "id": "js-resolution",
+      "name": "The addon's resolution ladder",
+      "owns": ["bindings/js/src/entry/refusal.mjs", "bindings/js/src/entry/artefact.mjs"],
+      "owns_note": "⟶ RE-DERIVED TO THE TREE, 2026-10-25. The region `bindings/js/index.mjs#L79-L617` this module owned is now TWO FILES, both landed by the wave `D-33` staged: `bindings/js/src/entry/refusal.mjs` (82 lines — `fail` and `refusalLog`, the failure form's own file) and `bindings/js/src/entry/artefact.mjs` (355 — the platform and version table, the resolution ladder, `withAddon`, `spellDottedContainer`, `boundaryReject`, and the module context the hub hands in through `adoptModuleContext`). No line region of `index.mjs` is owned here any more: that file is 1,409 lines and is `js-surface`'s whole. THIS IS WHY THE FAILURE-FORM ENDPOINT IS IN THIS MODULE'S ENDPOINT LIST AND NO LONGER IN `js-surface`'s: the form moved owner, it was not added, so the total stays 61.",
+      "responsibility": "Name the platform packages, read the version stamp, run the three ordered rungs, answer the one declared absent-addon refusal, and (DECLARED TARGET at strata/decisions.md D-2 — docs/L1/entry-subdivision.md §1 parts 2 and 3 — ⟶ LANDED 2026-10-25 ON MEASUREMENT, so 'not yet landed' IS SUPERSEDED: the two parts are bindings/js/src/entry/refusal.mjs and bindings/js/src/entry/artefact.mjs on disk, and this module owns both) render the package's single failure form and its artefact-backed boundary rejection, which the map gave to js-surface until the subdivision put the form in a file of its own below the gate that throws through it — owning that file from js-surface would close a module cycle, declaration §3.2 case 4.",
+      "endpoints": [
+        {
+          "name": "loadAddon",
+          "input": "the entry's own module context — the platform and arch, and the addon's module-relative path. TODAY THE ENTRY DERIVES THREE FACTS FROM ITS OWN import.meta.url: ADDON_PATH (index.mjs:85-86), the createRequire base (:85, used at :441 and :491) and the manifest path (:359). Under the declared subdivision (docs/L1/entry-subdivision.md §2, I-29) they are handed to src/entry/artefact.mjs from index.mjs, because a part deriving them from its own URL would relocate rung two, rung one and the version read into bindings/js/src/entry/",
+          "output": "the addon namespace from rung one or rung two, or the recorded miss set that becomes the absent-addon refusal"
+        },
+        {
+          "name": "platformNameFor / platformNameForRuntime",
+          "input": "a platform and an arch",
+          "output": "the scoped platform package name (@auspicion/provident-storeroom-js-…) or null"
+        },
+        {
+          "name": "packageVersion",
+          "input": "nothing — the entry's own context",
+          "output": "the version string the ladder compares at rung one"
+        },
+        {
+          "name": "the failure form",
+          "input": "a status from the store's closed set, the failing subject and its declared position — plus, at the boundary arm, the failing segment's own container prefix (DECLARED TARGET: the carrier is bindings/js/src/entry/refusal.mjs (L565-L645 of index.mjs today) and bindings/js/src/entry/artefact.mjs (L646-L716 today); the endpoint moves here from js-surface at the D-2 cut, and the tree's total stays 61 because it is a move and not an addition)",
+          "output": "the thrown plain object {status, message, log} — never an Error subclass, never a rejection, never {ok:false}; the generator authors the message and no status is minted"
+        }
+      ],
+      "interactions": ["js-surface", "js-crossing", "js-registry-delivery", "js-constraints", "binding-facade", "delivery", "js-battery", "greens-harness"]
+    },
+    {
+      "id": "js-surface",
+      "name": "The entry and its members",
+      "owns": ["bindings/js/index.mjs"],
+      "owns_note": "⟶ RE-DERIVED TO THE TREE, 2026-10-25. The three declared regions are ONE PATH. `bindings/js/index.mjs` is the HUB — 1,409 lines where this map printed 5,903 and the re-issued declaration measured 6,350 — carrying the module's one `export`, the file header and route statement, `storeCreate` and the fourteen members, and the eight static imports of `./src/entry/`. It is owned here WHOLE, which ends the one co-ownership this map carried (`docs/L1/module-map.md` §5.1): no path is co-owned any more. THE FAILURE FORM IS NOT PART OF IT: `fail`, `refusalLog`, `withAddon`, `spellDottedContainer` and `boundaryReject` are `src/entry/refusal.mjs` and `src/entry/artefact.mjs` under `js-resolution`, because a form in a file of its own owned from here would close a module cycle (`docs/L1/entry-subdivision.md` §3.2 case 4) — so the responsibility sentence's `render the single failure form` clause is past state and its endpoint is recorded there.",
+      "responsibility": "Publish the module's one export, define the instance's fourteen members, admit each call's arguments at its site, and render the single failure form. AT strata/decisions.md D-2 (docs/L1/entry-subdivision.md §1 part 1, not yet landed) the file becomes this module's alone — the header, the module context, storeCreate and the module-namespace statement — and the failure form is re-homed to js-resolution, because the form is its own file and must be owned below the artefact gate that throws through it (declaration §3.2 case 4). The tree's regions and the tree's endpoint total are unmoved until that wave lands. ⟶ AND THE WAVE LANDED 2026-10-25, WHICH SUPERSEDES THE 'not yet landed' PHRASE AND THE FUTURE TENSE AROUND IT: bindings/js/index.mjs is 1,409 lines of HUB owned here WHOLE (measured at the file's own last line), the endpoint total is unmoved at 61 because the form's endpoint MOVED and was not added, and the first sentence's 'render the single failure form' clause is past state with them — this module renders nothing, it throws through the form it imports from src/entry/refusal.mjs. See owns_note.",
+      "endpoints": [
+        {
+          "name": "storeCreate",
+          "input": "cfg — journalLength and listeners required, filePath and constraints optional, a fifth key ignored",
+          "output": "the StoreInstance with fourteen own members, none of them data; or one thrown plain object {status, message[, log]}"
+        },
+        {
+          "name": "the fourteen members' admission",
+          "input": "the caller's arguments at each member's own positions — address, tier, value, commit, handle, addresses, listener, pair, constraint, opId",
+          "output": "the dispatched store call, or the boundary's refusal carrying a store status that was never minted here"
+        }
+      ],
+      "interactions": ["js-resolution", "js-crossing", "js-registry-delivery", "js-constraints", "js-declaration", "store-fail-set", "js-battery", "greens-harness"]
+    },
+    {
+      "id": "js-crossing",
+      "name": "The JS-side walk",
+      "owns": [
+        "bindings/js/src/entry/class-decision.mjs",
+        "bindings/js/src/entry/carrier.mjs",
+        "bindings/js/src/entry/frame.mjs"
+      ],
+      "owns_note": "⟶ RE-DERIVED TO THE TREE, 2026-10-25. The region `bindings/js/index.mjs#L747-L3070` is THREE files: `src/entry/class-decision.mjs` (1,204 — the class predicates, the walk's first-fault record and the `A76` rejection sites), `src/entry/carrier.mjs` (960 — the carrier tree's encoders and decoders) and `src/entry/frame.mjs` (416 — the construction's frame and its answers). **`walk.mjs`, the name the declaration gave part 6, IS NOT A PATH ON DISK**: `D-33` split part 6 at `index.mjs:2799` — the seam the re-measurement found clean, 927 + 410 — and the two halves landed as `carrier.mjs` and `frame.mjs`, with the edge `frame → carrier`. A reader who goes looking for `walk.mjs` is looking for a target that the wave renamed by landing it in two.",
+      "responsibility": "Decide each value's class, guard the walk's ceilings and caller-code arms, and encode arguments in and decode answers out. AT strata/decisions.md D-2 (docs/L1/entry-subdivision.md §1 parts 5 and 6, not yet landed) this module's one region becomes two files — bindings/js/src/entry/class-decision.mjs (the class predicates, the walk's first-fault record and valueReject) and bindings/js/src/entry/walk.mjs (the encoders and decoders) — split at the banner the file itself drew at index.mjs L1871-L1872, because the class half is consumed by the encoder half and produces nothing the class half reads. ⟶ SUPERSEDED 2026-10-25 ON MEASUREMENT, AND THE CUT LANDED AS THREE FILES AND NOT TWO: walk.mjs IS NOT A PATH ON DISK. D-33 split part 6 at index.mjs:2799 and the halves are bindings/js/src/entry/carrier.mjs (960 — the carrier tree's encoders and decoders) and bindings/js/src/entry/frame.mjs (416 — the construction's frame and its answers), so this module owns class-decision.mjs, carrier.mjs and frame.mjs; the 'not yet landed' phrase and the name walk.mjs are the superseded reading (owns_note).",
+      "endpoints": [
+        {
+          "name": "encodeValue",
+          "input": "a JS value and its value position (the depth-and-node ceilings are the walk's own)",
+          "output": "the decided tree, or a boundary refusal naming the class that failed and its position"
+        },
+        {
+          "name": "encodeAddress",
+          "input": "an address argument at its declared position",
+          "output": "the segment list or the refusal — a sparse array, an outside value and a dotted string all refuse"
+        },
+        {
+          "name": "encodeTier",
+          "input": "a tier argument and the verb's own arity",
+          "output": "the tier carrier — absent, one token, or an any-match set — or the refusal"
+        },
+        {
+          "name": "encodeConfig / encodeListeners / encodeConstraints",
+          "input": "the construction's cfg and its two optional lists",
+          "output": "the four-key carrier set, or the refusal"
+        },
+        {
+          "name": "decodeValue / decodeJournalOp",
+          "input": "the addon's answer",
+          "output": "fresh JS data no other side can reach — no proxy, no live view, no getter"
+        }
+      ],
+      "interactions": ["js-surface", "js-resolution", "binding-facade", "store-fail-set", "js-battery", "greens-harness"]
+    },
+    {
+      "id": "js-registry-delivery",
+      "name": "The registry and the delivery path",
+      "owns": [
+        "bindings/js/src/entry/state.mjs",
+        "bindings/js/src/entry/delivery.mjs"
+      ],
+      "owns_note": "⟶ RE-DERIVED TO THE TREE, 2026-10-25. The four regions are TWO files: `src/entry/state.mjs` (600 — the symbol-key block, the attempt seam, `INSTANCES`/`stateOf`/`entryOf`/`carryRefusal`, and `homeAddressKey` moved down from the delivery region because the constraint glue's `addressSetKey` reads it) and `src/entry/delivery.mjs` (639 — `commitPositionRefusal`, `deliver`, `registerOn`, `constraintAtAnyAddress`, `terminalArm`). THE OVERLAP IS GONE WITH THE REGION SYNTAX: the map's §2.3 audit found this module's `L88-L200` and `L201-L331` sitting INSIDE `js-resolution`'s `L79-L617`, so two modules claimed the same bytes; no path is claimed twice now, and no path here is a range.",
+      "responsibility": "Hold the package's per-instance state, the handle and its registry, deliver the triggered set to the caller's functions, and perform the terminal arm's file-tier save. AT strata/decisions.md D-2 (docs/L1/entry-subdivision.md §1 parts 4 and 7 — ⟶ LANDED 2026-10-25, so 'not yet landed' is superseded: bindings/js/src/entry/state.mjs and bindings/js/src/entry/delivery.mjs are the two files on disk, and the regions named below are past state) its four regions become two files — bindings/js/src/entry/state.mjs (the seven well-known Symbol.for keys of index.mjs L88-L300 plus STORE_INDEX, the attempt seam, INSTANCES/stateOf/entryOf/carryRefusal, and homeAddressKey moved down from the delivery region because the constraint glue's addressSetKey uses it) and bindings/js/src/entry/delivery.mjs (commitPositionRefusal, deliver, registerOn, constraintAtAnyAddress, terminalArm) — because the symbol block the map gave this module overlapped js-resolution's claimed region L79-L617.",
+      "endpoints": [
+        {
+          "name": "stateOf / entryOf",
+          "input": "the instance object",
+          "output": "the package's own per-instance state, held behind a weak map and never a member"
+        },
+        {
+          "name": "registerOn",
+          "input": "a handle and the caller's function",
+          "output": "undefined — one handle one function, a second registration replacing the first"
+        },
+        {
+          "name": "deliver",
+          "input": "the triggered set the store returned and the triggering address",
+          "output": "void — each registered function invoked with the triggering address as its one argument; an unregistered handle fires nothing silently"
+        },
+        {
+          "name": "terminalArm",
+          "input": "the record the kernel settled on its passing arm",
+          "output": "the store's commitFile act on a file-tier write's passing arm alone, before any listener body runs"
+        },
+        {
+          "name": "installAttemptSeam",
+          "input": "the instance at construction",
+          "output": "the attempt accounting the kernel and the entry share under symbol keys"
+        },
+        {
+          "name": "commitFile / carryRefusal",
+          "input": "an op id, or a call and its arguments",
+          "output": "the addon's commit answer, or the refusal carried unchanged"
+        }
+      ],
+      "interactions": ["js-surface", "js-resolution", "js-crossing", "js-constraints", "binding-facade", "js-battery", "greens-harness"]
+    },
+    {
+      "id": "js-constraints",
+      "name": "The constraint members and the integrated kernel",
+      "owns": [
+        "bindings/js/src/entry/constraints.mjs",
+        "bindings/js/src/constraint-kernel.mjs",
+        "bindings/js/src/entry/kernel-foundations.mjs",
+        "bindings/js/src/entry/kernel-registration.mjs",
+        "bindings/js/src/entry/kernel-commit.mjs",
+        "bindings/js/src/entry/kernel-attempt.mjs",
+        "bindings/js/src/entry/kernel-terminal.mjs"
+      ],
+      "owns_note": "⟶ RE-DERIVED TO THE TREE, 2026-10-25. The two paths are SEVEN, all inside this one module's ownership and none of them a module: the entry's constraint glue `src/entry/constraints.mjs` (795), the kernel's five parts `src/entry/kernel-{foundations,registration,commit,attempt,terminal}.mjs` (529 · 644 · 156 · 570 · 324), and the barrel `src/constraint-kernel.mjs`, reduced to FOUR LINES — six names in four re-export specifiers — where this map printed 2,203. The kernel's cut is `D-13`'s and it mints no module, no endpoint and no interaction row: every edge it creates is intra-module (`docs/L1/kernel-subdivision.md` §3.1), which is the structural difference between it and the entry's cut. The barrel still carries exactly six enumerable names and no seventh — no `default` — which is the half of the two greens cells' subjects that was ever real.",
+      "responsibility": "Carry the five constraint members and the write path's constraint evaluation, and evaluate a write against registered pairs — composing and repairing the attempt and answering its log and report — as one integrated mechanism rather than an external import (strata/decisions.md D-1). AT strata/decisions.md D-2 (docs/L1/entry-subdivision.md §1 parts 8 and 9 — ⟶ LANDED 2026-10-25, so 'not yet landed' is superseded: the glue is bindings/js/src/entry/constraints.mjs and the five parts named below stand on disk under bindings/js/src/entry/, with the barrel at its unchanged path) its two paths become the constraint glue at bindings/js/src/entry/constraints.mjs and the kernel as the ninth part of the subdivided entry at its UNCHANGED path bindings/js/src/constraint-kernel.mjs: the lazy require_ at index.mjs:5227 and the let KERNEL cache retire (a tree carrying index.mjs alone can no longer load at all, so the laziness has no remaining subject), the kernel's six export sites stay where they are as module-level names its siblings import, and the kernel keeps an empty import footprint (kernel-surface.md §1 item 1) — so the doubled Symbol.for keys stay doubled by design. ⟶ AND AT strata/decisions.md D-13 THE KERNEL IS CUT, WHICH SUPERSEDES THE 'SIX EXPORT SITES STAY WHERE THEY ARE' HALF OF THAT SENTENCE WHILE KEEPING ITS 'MODULE-LEVEL NAMES' HALF: docs/L1/kernel-subdivision.md declares FIVE PARTS under bindings/js/src/entry/ — kernel-foundations.mjs (the closed tokens, the five Symbol.for keys, the one refusal form, the pair key and row scans, the structural address comparison, KERNELS/LIVE/CLOSED/ATTEMPTS and kernelFor, the log appenders, the repair's own op reading, pairsAtAddress/attemptHeldAt, attemptIdOf/commitAttemptIdOf), kernel-registration.mjs (K-1 register plus its registration-time evaluation, and K-6 remove), kernel-commit.mjs (K-2), kernel-attempt.mjs (K-3 and the pass), kernel-terminal.mjs (the terminal act, the per-op rollback composition and K-4 log / K-5 report) — with the kernel's own path reduced to a SIX-NAME RE-EXPORT BARREL. So the six export SITES move to four files and the six module-level NAMES stay reachable at the unchanged path, which is a named correction of the sentence above: re-exported rather than re-pointed because 21 non-scratch/ files reach that path in four import forms and two of them use it as an IDENTITY (json-crossing.test.mjs:3936, :4140), because two greens cells census the module namespace by exact string (blind-constraints-v2.mjs:1139 pins the five pre-K-6 names, held-listener-identity-greens.mjs:909 compares a sorted key list to an unsorted declared one — both false on this tree today and neither fixed or worsened by the cut), and because re-pointing 21 files would be a test edit for a reason other than a path. The barrel exports EXACTLY six enumerable names and no seventh (kernel-subdivision.md §3.3 item 4). The module count and the endpoint count are UNMOVED by this: the five parts are files inside this module's ownership, not five modules (D-1 dissolved the glue-to-kernel boundary), the six exports were dissolved as endpoints at D-1, and every edge the kernel's cut creates is inside this module, so no interaction row is added either (module-map.md §3.2).",
+      "endpoints": [
+        {
+          "name": "addConstraint",
+          "input": "a pair {address, id} and the constraint function",
+          "output": "a ConstraintIdentity; an overwrite at a held pair throws nothing for it"
+        },
+        {
+          "name": "constraintOn / constraintOff",
+          "input": "a pair and the constraint identity",
+          "output": "void — idempotent; a toggle at a pair the store does not carry throws; disabling is not a removal"
+        },
+        {
+          "name": "removeConstraint",
+          "input": "a pair",
+          "output": "void — the one act that deletes an identity"
+        },
+        {
+          "name": "constraints",
+          "input": "nothing",
+          "output": "ConstraintPair[] — {address, id} only: no function, no identity, no order, no enabled flag"
+        },
+        {
+          "name": "constraintWrite",
+          "input": "an address, a tier and a value on the write path",
+          "output": "the evaluated pair set before the durable save, or the refusal"
+        }
+      ],
+      "interactions": ["js-surface", "js-resolution", "js-registry-delivery", "js-battery", "greens-harness"]
+    },
+    {
+      "id": "js-declaration",
+      "name": "The published declaration",
+      "owns": ["bindings/js/index.d.ts"],
+      "responsibility": "Declare the whole published surface — the config, the statuses, the records and the fourteen members — as the hand-authored index.d.ts.",
+      "endpoints": [
+        {
+          "name": "storeCreate / StoreInstance",
+          "input": "the runtime surface the entry publishes",
+          "output": "the declared surface a consumer's type checker reads: one export and fourteen own members"
+        },
+        {
+          "name": "StoreStatus and the record interfaces",
+          "input": "the store's closed fail set and the record shapes the verbs return",
+          "output": "the SEVENTEEN statuses plus the open escape arm (string & {}), and the record, config, pair and identity interfaces"
+        }
+      ],
+      "interactions": ["js-surface", "store-fail-set", "js-battery", "delivery"]
+    },
+    {
+      "id": "delivery",
+      "name": "What ships and how it is built",
+      "owns": [
+        "bindings/js/package.json",
+        "bindings/js/README.md",
+        "bindings/js/Cargo.toml",
+        "Cargo.toml",
+        "bindings/js/platforms/linux-x64/package.json",
+        "bindings/js/platforms/linux-arm64/package.json",
+        "bindings/js/platforms/darwin-x64/package.json",
+        "bindings/js/platforms/darwin-arm64/package.json",
+        "bindings/js/platforms/win32-x64/package.json",
+        "bindings/js/platforms/linux-x64/README.md",
+        "bindings/js/platforms/linux-arm64/README.md",
+        "bindings/js/platforms/darwin-x64/README.md",
+        "bindings/js/platforms/darwin-arm64/README.md",
+        "bindings/js/platforms/win32-x64/README.md",
+        ".github/workflows/publish.yml",
+        "scripts/publish.sh",
+        "tests/Cargo.toml"
+      ],
+      "owns_note": "⟶ ONE PATH ADDED TO THE TREE, 2026-10-25: `tests/Cargo.toml`, the manifest of the third workspace member `tests` (package `storeroom-tests`) that hosts the Rust batteries — `D-34` put it at the repository root and a manifest is this module's kind of artifact, which the map's §2.3 row already said and this twin had not. The two now agree. Its `files` reading is unchanged in kind: the allowlist is a FACT OF THE TREE plus REACHABILITY, never a declared arity (`D-3`, `D-4`, `D-8`), and the tree now carries five rows (index.mjs · README.md · index.d.ts · src/entry/ · src/constraint-kernel.mjs).",
+      "responsibility": "Own the package manifest, the five per-platform packages, both crate manifests, the shipped README and the release pipeline. ⟶ CORRECTED 2026-10-25: THE CRATE MANIFESTS ARE THREE, NOT TWO — Cargo.toml (the workspace root), bindings/js/Cargo.toml and tests/Cargo.toml (the third member storeroom-tests, which D-34 put at the repository root); all three are in this module's `owns` array and in the tree, and 'both crate manifests' above is the superseded reading.",
+      "endpoints": [
+        {
+          "name": "the package's resolution surface",
+          "input": "a consumer's `import { storeCreate } from 'provident-storeroom'`",
+          "output": "one exports arm — \".\" to ./index.mjs with ./index.d.ts as its types; no wildcard, no deep import, no CJS arm"
+        },
+        {
+          "name": "the files allowlist",
+          "input": "the shipped set the manifest names",
+          "output": "four entries in the tree today — index.mjs, README.md, index.d.ts, src/constraint-kernel.mjs — ⟶ CORRECTED 2026-10-25 ON MEASUREMENT: THE TREE CARRIES FIVE ROWS, re-read at bindings/js/package.json's own `files` array — index.mjs, README.md, index.d.ts, src/entry/, src/constraint-kernel.mjs — because the hub imports the thirteen files the directory row carries, so reachability (D-4) put it there and no declared arity did; 'four entries' above is the superseded reading (docs/L1/module-map.md §4 E4 and I-23 carry the same correction at their own sites) — and NOTHING BINDS THAT COUNT: read through strata/decisions.md D-3 (the 'exactly four' constraint is OBSOLETE), D-4 (the strict count is lifted; the shape is determined empirically by delivery together with the e2e/blind scenario testing) and D-8 (the LICENSE row is lawful ONLY IF EVIDENCE REQUIRES IT — neither refused nor granted by rule). What remains binding is the FUNCTION: whatever the entry requires by path must ship. The prohibitions are unmoved: no build path, no .node entry, no postinstall route. The four names are a FACT OF THE TREE and not a rule (docs/L1/module-map.md I-23, E4). ⟶ AND THE DECLARED SUBDIVISION CHANGES WHAT THE ENTRY REQUIRES, WITHOUT CHANGING THE RULE: once the entry statically imports seven new part files (bindings/js/src/entry/{refusal,artefact,state,class-decision,walk,delivery,constraints}.mjs, docs/L1/entry-subdivision.md §5), reachability puts ELEVEN rows in the allowlist and src/constraint-kernel.mjs changes ground — from 'the separately reachable fourth entry' (whose subject strata/decisions.md D-1 said was gone) to 'a file the entry requires like every other part', so D-1's prediction is read through D-2 and the row SURVIVES on reachability. Whether a directory row may replace the seven is not decided by any ruling (D-3 licenses no glob) and is delivery's with the installed battery's evidence (D-10/D-12) — no allowlist question goes to the architect (D-4). ⟶ AND THE KERNEL'S CUT AT strata/decisions.md D-13 CHANGES THE REACHABILITY SET AGAIN, WITHOUT DECIDING THE ROWS: with five kernel parts (bindings/js/src/entry/kernel-{foundations,registration,commit,attempt,terminal}.mjs) and the kernel's own path reduced to a six-name re-export barrel, the entry's module graph loads 7 entry parts + 5 kernel parts + the barrel + index.mjs, so reachability puts SIXTEEN rows in the allowlist (4 + 12) as ARITHMETIC on a manifest read here and NOT as a measured publish, and src/constraint-kernel.mjs's ground changes a third time — from 'the separately reachable fourth entry' (D-1's dissolved subject) to 'a file the entry requires like every other part' (D-2) to 'the re-export shell the entry requires, and the only file of the family that is not a part'. D-13 states the consequence in its own words: 'with the parts under src/, a published tarball must carry src/entry/**'. Whether a directory row may replace the twelve is still NOT decided — D-3 licenses no glob, a wildcard or a directory entry — and remains delivery's with the installed battery's evidence (D-10/D-12). The ordering is D-1-ter's and it stands: the code integrates first, the allowlist follows it, and no release may be cut in between, because a tarball cut mid-wave fails at the FIRST CONSTRAINT ACT (and after the cut, at IMPORT, which names the missing file)."
+        },
+        {
+          "name": "the release pipeline",
+          "input": "a workflow run at the pinned version",
+          "output": "provident-storeroom@0.5.0 plus the five @auspicion platform packages, each pinned exactly at 0.5.0 as an optionalDependency"
+        }
+      ],
+      "interactions": ["js-surface", "js-declaration", "binding-facade", "js-resolution", "js-battery", "greens-harness"]
+    },
+    {
+      "id": "store-battery",
+      "name": "The store-side battery",
+      "owns": [
+        "tests/integration/store-core/construction.rs",
+        "tests/integration/store-core/construction_access_probe.rs",
+        "tests/integration/store-core/e2e_json_round_trip.rs",
+        "tests/integration/store-core/e2e_listener_firing.rs",
+        "tests/integration/store-core/journal_and_rollback.rs",
+        "tests/integration/store-core/properties.rs",
+        "tests/integration/store-core/read_and_delete.rs",
+        "tests/integration/store-core/record_shapes.rs",
+        "tests/integration/store-core/tiers_and_purge.rs",
+        "tests/integration/store-core/walk_and_resolver.rs",
+        "tests/integration/store-core/watched_addresses.rs",
+        "tests/integration/store-core/write_arms.rs",
+        "tests/integration/store-fail-set/fail_codes.rs",
+        "tests/integration/store-args/gate4_red_set_fix.rs",
+        "tests/integration/support/mod.rs"
+      ],
+      "owns_note": "⟶ RE-DERIVED TO THE TREE, 2026-10-25. The fifteen files this module owned at `tests/` are these fifteen at the preset's `integration` scope: twelve under `tests/integration/store-core/`, `fail_codes.rs` under `tests/integration/store-fail-set/` (it drives `store-fail-set`), `gate4_red_set_fix.rs` under `tests/integration/store-args/` (the carriers' refusal reachability), and the crate's one scaffolding `support/mod.rs` under `tests/integration/support/`. **`tests/` holds no `.rs` file at its top level any more.** The count is unmoved — 15 → 15 — and the module id, responsibility and endpoint are unchanged (`D-5`: the preset's scopes are kept and the tree adapts).",
+      "responsibility": "Drive the native crate's declared behaviour through its own integration battery.",
+      "endpoints": [
+        {
+          "name": "cargo test --offline -p storeroom-native",
+          "input": "the crate at src/, built in its declared offline form",
+          "output": "a per-file pass/red row set over construction, the walk, the arms, the tiers, the journal, the listener firing and the fail codes — the store's own measured green"
+        }
+      ],
+      "interactions": ["store-core", "store-value", "store-args", "store-records", "store-fail-set"]
+    },
+    {
+      "id": "binding-battery",
+      "name": "The binding crate's battery",
+      "owns": [
+        "tests/integration/binding-crossing/addon_adoption.rs",
+        "tests/integration/binding-crossing/crossing_copy.rs",
+        "tests/integration/binding-crossing/register_layer.rs",
+        "tests/integration/binding-crossing/surface_verbs.rs",
+        "tests/integration/binding-crossing/support/mod.rs",
+        "tests/unit/binding-crossing/crossing_carriers.rs",
+        "tests/unit/binding-crossing/crossing_values.rs"
+      ],
+      "owns_note": "⟶ RE-DERIVED TO THE TREE, 2026-10-25. The seven files this module owned at `bindings/js/tests/` are these seven, and **they are targets of the THIRD package `storeroom-tests` (`tests/Cargo.toml`), not of the binding crate**: `D-34` lifted the separate-crate requirement, and a Cargo package's integration tests must live inside their own package — which is why `tests/integration/binding-crossing/` at the repository root needed a member to host it. Four integration targets plus one `support/mod.rs`, and the two per-class unit targets `crossing_carriers.rs` and `crossing_values.rs`. Count unmoved: 7 → 7. The module id, responsibility and endpoint are unchanged, but the endpoint's COMMAND is not: `cargo test --manifest-path bindings/js/Cargo.toml` now runs nothing, and the leg is `cargo test -p storeroom-tests` (235).",
+      "responsibility": "Drive the conversion core's per-class table in Rust, with no Node runtime present.",
+      "endpoints": [
+        {
+          "name": "cargo test -p storeroom-tests",
+          "input": "the binding crate's rlib half",
+          "output": "the crossing's per-class rows, the copy discipline and the registration layer, measured without a Node runtime"
+        }
+      ],
+      "interactions": ["binding-crossing", "binding-codec", "binding-facade"]
+    },
+    {
+      "id": "js-battery",
+      "name": "The JS battery",
+      "owns": [
+        "tests/e2e/addon-adoption.test.mjs",
+        "tests/e2e/addon-adoption-support.mjs",
+        "tests/e2e/addon-surface.test.mjs",
+        "tests/e2e/addon-surface-properties.test.mjs",
+        "tests/e2e/addon-surface-support.mjs",
+        "tests/e2e/convenience.test.mjs",
+        "tests/e2e/constraints-publication.test.mjs",
+        "tests/e2e/file-tier-save.test.mjs",
+        "tests/e2e/file-tier-save-properties.test.mjs",
+        "tests/e2e/held-listener-identity-properties.test.mjs",
+        "tests/e2e/held-listener-identity-surface.test.mjs",
+        "tests/e2e/json-crossing.test.mjs",
+        "tests/e2e/json-crossing-blinded.test.mjs",
+        "tests/e2e/json-crossing-gate4-adversarial.test.mjs",
+        "tests/e2e/module-set.mjs",
+        "tests/e2e/negative-generators.test.mjs",
+        "tests/e2e/ordering.test.mjs",
+        "tests/e2e/pack-reachability.mjs",
+        "tests/e2e/register.test.mjs",
+        "tests/e2e/registry.test.mjs",
+        "tests/e2e/round-trip.test.mjs",
+        "tests/e2e/staged-install/package-entry.test.mjs",
+        "tests/e2e/staged-install/publish.test.mjs",
+        "tests/e2e/staged-install/publish-generators.test.mjs",
+        "tests/e2e/staged-install/staged-install-support.mjs",
+        "tests/e2e/staged-install/version-stamp.test.mjs",
+        "tests/e2e/surface.test.mjs",
+        "tests/e2e/version-stamp-r2.test.mjs",
+        "tests/e2e/REMEASURE-2026-10-18.md",
+        "tests/e2e/REVIEW-2026-10-24.md",
+        "tests/integration/js-constraints/constraint-kernel-deltamodel.test.mjs",
+        "tests/integration/js-constraints/constraint-kernel-deliverymodel.test.mjs",
+        "tests/integration/js-constraints/constraint-kernel-helpers.mjs",
+        "tests/integration/js-constraints/constraint-kernel-layers.test.mjs",
+        "tests/integration/js-constraints/constraint-kernel-negatives.test.mjs",
+        "tests/integration/js-constraints/constraint-kernel-properties.test.mjs",
+        "tests/integration/js-constraints/constraint-kernel-repairop.test.mjs",
+        "tests/integration/js-constraints/constraint-kernel-rollback.test.mjs",
+        "tests/integration/js-constraints/constraint-kernel-states.test.mjs",
+        "tests/integration/js-constraints/held-listener-identity-gate4-regressions.test.mjs",
+        "tests/integration/js-constraints/held-listener-identity-helpers.mjs",
+        "tests/integration/js-constraints/held-listener-identity-kernel.test.mjs",
+        "tests/integration/js-constraints/held-listener-identity-refusal-restore.test.mjs",
+        "tests/unit/js-constraints/a126-constraint-methods.test.mjs",
+        "tests/unit/js-constraints/constraint-kernel.test.mjs",
+        "tests/unit/js-surface/a127-surface.test.mjs"
+      ],
+      "owns_note": "⟶ RE-DERIVED TO THE TREE, 2026-10-25. The 42 files that stood at `bindings/js/test/` are 46 paths here: **37 `*.test.mjs`** (23 under `tests/e2e/`, 11 under `tests/integration/js-constraints/`, 3 under `tests/unit/js-{surface,constraints}/`) — the file count of tests is unmoved — plus the four shared helpers and the two records, PLUS THE THREE HELPERS THE MIGRATION CREATED and only this module's cells consume: `tests/e2e/module-set.mjs` and `tests/e2e/pack-reachability.mjs` (route-neutral byte instruments, read by addon-surface, addon-surface-properties, negative-generators, constraints-publication, publish, publish-generators and version-stamp — `pack-reachability.mjs` also by run A's helper — and by NO greens runner: `live-drive.mjs:135` records that it duplicates `module-set.mjs` on purpose so a runner stays standalone) and `tests/e2e/staged-install/staged-install-support.mjs` (run A's import/install helper and its label carrier, `D-7`'s own). **So 37 tests + 4 helpers + 2 records + 3 migration helpers = 46.** The three helpers are the reason this module's figure GROWS while its number of tests does not; `REVIEW-2026-10-24.md` joins `REMEASURE-2026-10-18.md` as the second record, on that record's own declared precedent ('it sits beside the battery it judges'). This module's cells span three scopes and its ownership does not: ownership is one module's, consumption is not, which is the map's existing convention for `constraint-kernel-helpers.mjs` (12 consumers across all three scopes).",
+      "responsibility": "Drive the assembled package through the entry: surface, kernel, listeners, codec, properties, publication.",
+      "endpoints": [
+        {
+          "name": "node --test \"tests/**/*.test.mjs\"",
+          "input": "the assembled package, reached as a consumer reaches it (import { storeCreate } from 'provident-storeroom'), and the kernel at its checkout home",
+          "output": "a per-file pass/red row set over the surface, the kernel, the held listener identity, the JSON crossing, the file-tier save, the publication and the version stamp. UNDER THE DECLARED SUBDIVISION (docs/L1/entry-subdivision.md §4.1, §4.2) THE KERNEL'S REACH DOES NOT MOVE — the path bindings/js/src/constraint-kernel.mjs is unchanged, so no cell re-points because of the cut — while the four drives that assemble an index.mjs-alone tree (publish, publish-generators, version-stamp, negative-generators' copy arm) must STAGE THE PART SET, because a tree carrying index.mjs alone cannot load once the entry statically imports its parts (D-1-ter's 'they must either stage the integrated set or drop their kernel-only limbs', generalised from one file to eight). ⟶ AND AT strata/decisions.md D-14 THE MECHANISM IS FIXED AND DECLARED CONCRETELY IN docs/L1/drive-restaging.md: GLOB PLUS EXPLICIT KERNEL PATH. The glob is ONE DIRECTORY, NON-RECURSIVE, bindings/js/src/entry/*.mjs — twelve matches after both cuts (seven entry parts + five kernel parts) — and A ZERO MATCH THROWS IN THE PARENT, naming the directory, before any subprocess is spawned; a degraded match is caught the same way by a CLOSURE CHECK over the staged bytes (every relative specifier a staged file carries must resolve to a path in the staged set, or the importer and the missing target are named). The explicit path is bindings/js/src/constraint-kernel.mjs, which no glob matches and which is therefore LOAD-BEARING — that is D-14's pairing exactly ('the kernel's path is named explicitly because a glob cannot express it'), and it is also the path the entry's constraint glue imports, so the barrel stands on the entry's load path. Every staged tree is 1 + 12 + 1 = 14 .mjs files (the entry written by the drive, the glob's twelve, the barrel) plus the drive's own package.json/preload/driver/platform fixtures. ⟶ AND THE STAGING HAS LANDED 2026-10-25, WHICH SUPERSEDES THE FUTURE TENSE ABOVE ('must STAGE THE PART SET' is past state, and the D-14 mechanism this string declares is the mechanism on disk): `stageModuleTree` in `tests/e2e/module-set.mjs` is the glob, the loud zero-match throw and the closure check, called at `tests/e2e/staged-install/publish.test.mjs:776`, `tests/e2e/staged-install/publish-generators.test.mjs:443`, `tests/e2e/staged-install/version-stamp.test.mjs:664` and `tests/e2e/negative-generators.test.mjs:1559`. TWO FIGURES IN THE SENTENCES ABOVE ARE SUPERSEDED WITH IT: the glob matches THIRTEEN `.mjs` files, not twelve — measured, `bindings/js/src/entry/` holds the entry's eight parts and the kernel's five — and a staged tree is therefore 1 + 13 + 1 = 15 `.mjs` files, not 14; the twelve was the pre-`D-33` count (seven entry parts + five kernel parts) and `D-33` split part 6 at `index.mjs:2799`, so `carrier.mjs` and `frame.mjs` stand where `walk.mjs` was declared (`docs/L1/drive-restaging.md` §1 and §2.1 correct the same count at their own sites). THE ENTRY-ONLY-TREE CLAIM IS WITHDRAWN, NOT REPAIRED (D-14): publish and publish-generators lose the unstated premise that their tree loads and gain a parent-side assertion of it; version-stamp's quoted sentence 'the main package ships index.mjs and no .node at all' (version-stamp.test.mjs:1457-1458, citing release.md §1.4a item 6) survives on its .node-free half — the five platform legs are still the whole guard set — and its index.mjs half is restated as a reading, with the cell's own assertions unmoved; negative-generators' copy arm stages the part set and keeps its embedded specifier a BARE NAME at :1550, where the name is the assertion (test-stratification §2.6.1 call 3). publish's fault injection stays orthogonal to a shape fault on four rules (drive-restaging §3.1.1), the load-bearing one being that a shape fault dies in the PARENT at staging while an injected fault dies in the CHILD as report.arm/report.error; and the two anchors it cuts its mutants at MOVE WITH THE ENTRY'S CUT — MUTATION_SITE is index.mjs:481 inside loadAddon (part 3) and FAIL_SITE is index.mjs:623 inside fail (part 2) — so entrySource becomes a per-file byte override."
+        }
+      ],
+      "interactions": ["js-surface", "js-crossing", "js-registry-delivery", "js-constraints", "js-resolution", "js-declaration", "delivery"]
+    },
+    {
+      "id": "greens-harness",
+      "name": "The greens runners",
+      "owns": [
+        "tests/e2e/greens.mjs",
+        "tests/e2e/live-drive.mjs",
+        "tests/e2e/blind-constraints-v2.mjs",
+        "tests/e2e/held-listener-identity-greens.mjs",
+        "tests/e2e/json-acceptance-set-greens.mjs",
+        "tests/e2e/json-acceptance-set-live.mjs",
+        "tests/e2e/json-crossing-live.mjs",
+        "tests/e2e/json-crossing-live-s17.mjs",
+        "tests/e2e/consumer-fix/scenarios.mjs",
+        "tests/e2e/file-tier-save/scenarios.mjs",
+        "tests/e2e/file-tier-save/file-tier-save-greens.md",
+        "tests/e2e/installed/live-install.mjs",
+        "tests/e2e/installed/install-support.mjs",
+        "tests/e2e/installed/license-row-evidence.json"
+      ],
+      "owns_note": "⟶ RE-DERIVED TO THE TREE, 2026-10-25. The eleven files this module owned at `bindings/js/greens/` are eleven of these fourteen — the ten runners plus `file-tier-save/file-tier-save-greens.md`, the blind set its runner drives cell for cell — and **THE INSTALLED BATTERY IS THE OTHER THREE**: `tests/e2e/installed/live-install.mjs` (the `LIVE/INSTALL` runner, its own exit rule and its own label, which is why it is a runner and not a `node --test` file), `tests/e2e/installed/install-support.mjs` (`D-7`'s own helper — it consumes NO `O4` helper, and its own head records that `pack-reachability.mjs` is not consumed here) and `tests/e2e/installed/license-row-evidence.json` (the record `D-8`'s conditional reads, `INSTALL-12`'s home). **The map's §2.4 said the installed battery owns no present-state path and so appeared in no module's `owns`; it is a path now, and a battery that reports each green with its layer is this module's kind** (`D-10`, `D-12`). Eleven + three = 14.",
+      "responsibility": "Drive the assembled package as a caller from outside, per wave, and report each green with its layer.",
+      "endpoints": [
+        {
+          "name": "npm run greens",
+          "input": "the built artefact and the entry, in a real Node process, at a real caller-spelled filePath",
+          "output": "greens.mjs, live-drive.mjs and file-tier-save/scenarios.mjs each reporting their cells with the LAYER label"
+        },
+        {
+          "name": "the per-wave live drivers",
+          "input": "the blind sets authored from the documentation alone",
+          "output": "cell-by-cell observations for the constraints, the held listener identity, the JSON crossing and the JSON acceptance set, each read as a finding and never as a pass. ⟶ TWO OF THESE CELLS CENSUS THE KERNEL'S MODULE NAMESPACE BY EXACT STRING, WHICH IS WHY strata/decisions.md D-13's RE-EXPORT BARREL MUST REPRODUCE EXACTLY SIX NAMES: ⟶ BOTH CITATIONS THAT FOLLOWED HERE WERE CORRECTED AT THIS SITE ON 2026-10-25, AND THE SUPERSEDED READING IS NAMED RATHER THAN REPLACED SILENTLY (it ran: 'blind-constraints-v2.mjs:1139 asserts KERNEL_EXPORTS === commit,log,register,report,runAttempt — the FIVE, from before K-6, so it is RED ON THIS TREE TODAY — and held-listener-identity-greens.mjs:909 (cell HLI-13.1) compares Object.keys(kernel).sort() … against KERNEL_ITEMS.join(',') with KERNEL_ITEMS declared UNSORTED at :163, so that comparison is also RED TODAY for an ordering reason'). THE TREE, MEASURED: the SURFACE cell's six-name assertion stands at tests/e2e/blind-constraints-v2.mjs:1251 — the cell opens at :1249 — and asserts KERNEL_EXPORTS === 'commit,log,register,remove,report,runAttempt'; it is GREEN on six, re-derived by the battery's own execution pass. And HLI-13.1 stands at tests/e2e/held-listener-identity-greens.mjs:951 and is GREEN, because the greens file declares its OWN KERNEL_ITEMS at :31, SORTED and six-long, which shadows the helper's unsorted :163 constant that earlier reading attributed to it (strata/decisions.md D-15); its second half, 'no seventh name is reachable', is the half the barrel must keep true. Neither cell was ever the cut's to fix and neither is red now: both were green BEFORE the wave, which is why the cut neither fixed nor worsened them (docs/L1/kernel-subdivision.md §4.2), and what remains this module's to keep true is the half that was ever real — no seventh name is reachable, which the four-line re-export barrel at bindings/js/src/constraint-kernel.mjs reproduces (six module-level names in four specifiers, no default). Note also that the two shared helpers disagree about the kernel's extent today — constraint-kernel-helpers.mjs:48 declares five names, held-listener-identity-helpers.mjs:163 declares six."
+        }
+      ],
+      "interactions": ["js-surface", "js-registry-delivery", "js-constraints", "js-resolution", "delivery"]
+    }
+  ],
+  "path_revision": {
+    "date": "2026-10-25",
+    "scope": "RE-DERIVED TO THE TREE. This key exists because the map's machine-readable twin was still describing a tree that had moved: 43 stale paths in `owns` (the four battery modules' lists and the five entry-owning JS modules' line regions) and one path the map had already given an owner but this twin had not. EVERY PATH IN EVERY `owns` ARRAY ABOVE WAS CHECKED AGAINST THE TREE ON 2026-10-25 and is a present location; no `owns` entry is a line range any more, and no path is owned twice. No module id, no interaction list, no endpoint count and no key name was changed.",
+    "module_count": {
+      "figure": 19,
+      "was": 19,
+      "moved": false,
+      "reason": "A PART IS A FILE, NOT AN OWNERSHIP UNIT. The entry cut turned `index.mjs` into a hub plus eight parts and the kernel into a barrel plus five parts, but every one of the nine entry files lands inside a module this map already declared (js-surface 1, js-resolution 2, js-crossing 3, js-registry-delivery 2, js-constraints 1) and all five kernel parts land inside `js-constraints`, which `D-1` had already ruled one integrated ownership. A module per part would be 34 modules over 34 files and would re-create the very boundaries `D-1` dissolved. What a cut frees is REGIONS, not modules — the same thing `D-1` did when it folded two file-owners into one."
+    },
+    "endpoint_count": {
+      "figure": 61,
+      "was": 61,
+      "moved": false,
+      "reason": "No part is an I/O surface any other module reaches. The six kernel exports were dissolved as endpoints at `D-1` and the barrel re-exports six NAMES, not six endpoints; every edge either cut creates is intra-module (module-map.md §3.2). ONE endpoint MOVED OWNER and none was added or withdrawn: the single failure form, whose move the map's §2.3 declared as a target, is now `src/entry/refusal.mjs` + `src/entry/artefact.mjs` and stands in `js-resolution`'s list alone — so the figure still reconciles module by module: store-core 8 · store-value 3 · store-args 3 · store-records 3 · store-fail-set 2 · binding-crossing 4 · binding-codec 2 · binding-facade 4 · js-resolution 4 · js-surface 2 · js-crossing 5 · js-registry-delivery 6 · js-constraints 5 · js-declaration 2 · delivery 3 · store-battery 1 · binding-battery 1 · js-battery 1 · greens-harness 2 = 61."
+    },
+    "ownership_arithmetic_against_156": {
+      "denominator": 156,
+      "denominator_source": "`git ls-files | grep -v '^scratch/'`, measured by L0 and printed in docs/L1/module-map.md's head revision block. IT SUPERSEDES THE MAP'S 147, which was arithmetic on measured deltas and not a measurement.",
+      "owned": 127,
+      "co_owned": 0,
+      "unowned": 29,
+      "total": 156,
+      "owned_terms_by_module": {
+        "store-core": 2, "store-value": 2, "store-args": 1, "store-records": 1, "store-fail-set": 1,
+        "binding-crossing": 1, "binding-codec": 1, "binding-facade": 3,
+        "js-surface": 1, "js-resolution": 2, "js-crossing": 3, "js-registry-delivery": 2, "js-constraints": 7, "js-declaration": 1,
+        "delivery": 17, "store-battery": 15, "binding-battery": 7, "js-battery": 46, "greens-harness": 14,
+        "sum": 127
+      },
+      "co_owned_terms": "0. `bindings/js/index.mjs` stops being the one co-owned path and becomes `js-surface`'s alone; no other path is claimed by two modules — the §2.3 overlap between `js-resolution`'s L79-L617 and `js-registry-delivery`'s L88-L200/L201-L331 is gone with the region syntax.",
+      "unowned_terms": {
+        "docs/specs/** — the nine kept contracts": 9,
+        "docs/L1/** — the eight declaration files of this corpus (module-map.md, modules.json, test-stratification.md, test-stratification.json, entry-subdivision.md, kernel-subdivision.md, drive-restaging.md, surface-deltas.md)": 8,
+        "root, unowned — package.json, package-lock.json, Cargo.lock, tsconfig.typecheck.json, tsconfig.typecheck.nodenext.json, README.md, LICENSE, .gitignore": 8,
+        "bindings/js/.gitignore": 1,
+        "typecheck/consumer-fixture.ts": 1,
+        "strata/brief.md and strata/decisions.md": 2,
+        "sum": 29
+      },
+      "by_tree": {
+        "src/": 7, "tests/": 83, "bindings/js/ (root)": 7, "bindings/js/src/": 18, "bindings/js/platforms/": 10,
+        "docs/specs/": 9, "docs/L1/": 8, "typecheck/": 1, ".github/workflows/": 1, "scripts/": 1, "strata/": 2, "root": 9,
+        "sum": 156
+      },
+      "the_nine_that_the_147_missed": "147 = 126 + 13 (the new files under `bindings/js/src/entry/`) + 8 (the battery tree's net) was ARITHMETIC ON THE MAP'S 126, and the 126's own tree-by-tree list itemises NO `docs/L1` path — so `docs/L1` stood outside that denominator when it was struck (it held two files then), while `strata/decisions.md` was recorded as unverified. The nine are therefore `docs/L1`'s 8 present files plus `strata/decisions.md`'s 1, AND ALL NINE ARE UNOWNED. That is why the owned column the map printed for 147 (127) is still 127: only the unowned column moves, 20 → 29.",
+      "how_verified": "BY ENUMERATION, NOT BY git. Every path above was listed with the file tools on 2026-10-25 and the twelve tree totals close at 156. THIS PASS HAD NO SHELL: it could not run `git ls-files`, and it cannot distinguish a tracked path from an untracked-but-not-ignored one, so the agreement of its own 156 with L0's measured 156 is CORROBORATION and not the same measurement. `scratch/`'s tracked files stay outside the denominator by the project's convention, never by an ignore rule (module-map.md §5.4)."
+    },
+    "battery_owns_reconciled": {
+      "store-battery": 15, "binding-battery": 7, "js-battery": 46, "greens-harness": 14, "delivery_tests_Cargo_toml": 1,
+      "sum": 83,
+      "tests_present_population": 83,
+      "note": "The four battery modules plus `delivery`'s single `tests/Cargo.toml` PARTITION `tests/` exactly — 15 + 7 + 46 + 14 + 1 = 83 — with no path owned twice and none unowned. The scopes reconcile to the declaration's own census: tests/e2e/ 44, tests/integration/ 33, tests/unit/ 5, tests/Cargo.toml 1."
+    },
+    "entry_owns_reconciled": {
+      "hub": "bindings/js/index.mjs → js-surface, whole",
+      "barrel": "bindings/js/src/constraint-kernel.mjs → js-constraints, at its unchanged path",
+      "entry_directory_files": 13,
+      "entry_parts_by_module": {
+        "js-resolution": ["refusal.mjs", "artefact.mjs"],
+        "js-crossing": ["class-decision.mjs", "carrier.mjs", "frame.mjs"],
+        "js-registry-delivery": ["state.mjs", "delivery.mjs"],
+        "js-constraints": ["constraints.mjs", "kernel-foundations.mjs", "kernel-registration.mjs", "kernel-commit.mjs", "kernel-attempt.mjs", "kernel-terminal.mjs"]
+      },
+      "note": "13 files = 8 entry parts (refusal 82 · artefact 355 · state 600 · class-decision 1,204 · carrier 960 · frame 416 · delivery 639 · constraints 795) + 5 kernel parts (foundations 529 · registration 644 · commit 156 · attempt 570 · terminal 324), each owned by exactly one module. THE DIRECTORY HOLDS NO FOURTEENTH FILE: `walk.mjs` is NOT on disk — `D-33`'s split of part 6 landed as `carrier.mjs` and `frame.mjs`."
+    },
+    "what_moved_and_what_did_not": {
+      "moved": [
+        "the four battery modules' `owns` arrays: 75 pre-move paths → 83 present paths, 8 of them created by the migration",
+        "the five entry-owning JS modules' `owns` arrays: 5 line-regions over one file → 15 present paths, 13 of them created by the two cuts",
+        "`delivery`'s `owns`: + `tests/Cargo.toml` (the map's §2.3 row already gave it this owner; this twin had not)",
+        "three battery endpoint NAMES that spelled commands the move invalidated: `cargo test (the store crate)` → `cargo test --offline -p storeroom-native`; `cargo test --manifest-path bindings/js/Cargo.toml` → `cargo test -p storeroom-tests`; `node --test bindings/js/test/*.test.mjs` → `node --test \"tests/**/*.test.mjs\"`",
+        "the co-owned column, 1 → 0"
+      ],
+      "did_not": [
+        "the module count (19), the module ids, and every module's name",
+        "the endpoint count (61) and every endpoint but the failure form's owner",
+        "every interaction list and every responsibility line's subject",
+        "no path was invented and no path was renamed out of the tree's own names"
+      ]
+    },
+    "prose_divergences_after_this_edit": [],
+    "prose_divergences_resolved_2026_10_25": [
+      "`js-surface` — `responsibility`: the 'not yet landed' D-2 parenthetical is now read through a dated clause naming the landed wave, `bindings/js/index.mjs` as a 1,409-line HUB owned whole, the 61-endpoint total, and 'render the single failure form' as past state (that form is `src/entry/refusal.mjs` + `src/entry/artefact.mjs`, `js-resolution`'s). Nothing was deleted; the stale wording stands beside its correction.",
+      "`js-resolution`, `js-crossing` and `js-registry-delivery` — `responsibility`: each 'not yet landed' parenthetical now carries '⟶ LANDED 2026-10-25' with the present paths named (`refusal.mjs` + `artefact.mjs`; `class-decision.mjs` + `carrier.mjs` + `frame.mjs`; `state.mjs` + `delivery.mjs`). `js-crossing`'s string also names `walk.mjs` as NOT A PATH ON DISK, superseded by `carrier.mjs` and `frame.mjs` under `D-33`'s split at `index.mjs:2799`.",
+      "`js-constraints` — `responsibility`: the same 'not yet landed' parenthetical (parts 8 and 9) carries the same dated landing clause. Its string was not on this list but carried the same defect, so it is resolved with the rest rather than left as a fifth.",
+      "`js-battery` — endpoint `output`: 'must STAGE THE PART SET' now carries a dated clause showing the staging LANDED (`stageModuleTree` in `tests/e2e/module-set.mjs`, with its four call sites given), and the two stale figures are named with it — the glob matches 13 `.mjs` files, not 12, and a staged tree is 1 + 13 + 1 = 15, not 14.",
+      "`greens-harness` — second endpoint: the blind cell's red five-name citation is replaced by the MEASURED reading (`tests/e2e/blind-constraints-v2.mjs:1251`, the cell opening at `:1249`, GREEN on six) and `HLI-13.1`'s by its measured one (`tests/e2e/held-listener-identity-greens.mjs:951`, GREEN per `D-15`), with the superseded wording quoted beside the correction rather than dropped.",
+      "`delivery` — the `files`-allowlist endpoint and the `responsibility`: 'four entries in the tree today' now carries the measured FIVE rows (`index.mjs` · `README.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs`, by reachability, `D-4`), and 'both crate manifests' the measured THREE (`Cargo.toml` · `bindings/js/Cargo.toml` · `tests/Cargo.toml`, `D-34`).",
+      "THE PROSE TWIN'S REMAINING GAP IS CLOSED BY THE SAME PASS, not carried: `docs/L1/module-map.md`'s FIGURES now print `156` with its terms and its owned/co-owned/unowned split; §2.3 and §2.4's captions name the hub plus thirteen parts and the `tests/**` split (`44` e2e · `33` integration · `5` unit · `tests/Cargo.toml`); and §5.1's co-ownership is stated as ended."
+    ]
+  }
+}

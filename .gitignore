@@ -161,11 +161,19 @@ vite.config.ts.timestamp-*
 # of it in -- the same defect the `archive/` and backup-tree rules below exist to prevent, and the reason
 # the rule is written HERE beside the other Rust build output rather than at the top of the file.
 #
-# NOTHING HERE IS OWED TO A FRESH CLONE: `Cargo.lock` STAYS UNCOMMITTED by decision
-# (`binding-crate-and-abi.md §1` — pinning a consumer's transitive versions is a consuming-application
-# decision), so a cold build FETCHES (`command-sites-and-residue.md §2`: the binding crate's commands fetch;
-# the store's carry `--offline`). An ignored registry is therefore consistent with the declared model rather
-# than a cache a consumer needs.
+# NOTHING HERE IS OWED TO A FRESH CLONE: the vendored registry is a CACHE and never a source of record.
+# ⟶ CORRECTED 2026-10-25 (`D-34`, `strata/decisions.md`; `RCA-8(d)` ANNOTATE-BESIDE): THE SENTENCE THAT STOOD
+# HERE READ *"`Cargo.lock` STAYS UNCOMMITTED by decision (`binding-crate-and-abi.md §1` — pinning a consumer's
+# transitive versions is a consuming-application decision)"*, AND IT WAS NEVER THE RULE THIS REPOSITORY
+# FOLLOWS. `git ls-files` has always carried `./Cargo.lock`, and since `D-34` made the root manifest a
+# workspace (`members = [".", "bindings/js", "tests"]`) the ONE lock at `./Cargo.lock` is the workspace's own
+# and is COMMITTED: 3 member packages plus 38 registry packages, 41 in all. The sibling crate's own
+# `bindings/js/Cargo.lock` is DELETED and its `/Cargo.lock` ignore line is gone, because a workspace member has
+# no lock of its own (`bindings/js/.gitignore`'s dated clause records that). A cold build still FETCHES what
+# the lock names (`command-sites-and-residue.md §2`: the binding crate's commands fetch; the store's carry
+# `--offline`), so THIS entry's own conclusion is unmoved — an ignored registry is consistent with the declared
+# model rather than a cache a consumer needs. What is corrected is the LOCK's status, not the rule about the
+# registry.
 .cargo-home/
 
 # Archival (the process rule: archive/ is GITIGNORED)

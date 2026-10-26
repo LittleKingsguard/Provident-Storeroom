@@ -43,7 +43,10 @@
 
 use std::cell::RefCell;
 
-use ::napi::bindgen_prelude::{JsObjectValue as _, Object};
+// **⟶ AND `Property` JOINS THE LIST WITH `D-35`'S CURE, BECAUSE [`throw_refusal`] NOW BUILDS THE
+// `status` AND `message` IT DEFINES WITH `napi_define_properties` AND NO LONGER WITH `[[Set]]`** — the same lawful form `codec.rs`'s copy OUT
+// already uses for every member it defines. Its ONE reader is that frame.
+use ::napi::bindgen_prelude::{JsObjectValue as _, Object, Property};
 /// **THE RECEIVER EXTRACTOR — `receiver-and-refusal.md §1`'s *"the Node-API `this` receiver"*, AT ITS ONE
 /// USE.** `This<T>` is the library's own binding for the callback's `this`
 /// (`napi-3.14.2/src/bindgen_runtime/js_values/class.rs:16`), and `napi-derive` injects it from `cb.this()`
@@ -157,9 +160,23 @@ pub(crate) type NapiRet<'e> = Result<JsVal<'e>, ::napi::Error>;
 /// the `Error` this form forbids. **`napi::Error` IS USED ON NO REFUSAL PATH**: both members are read
 /// off the core's own `Refusal` and the object is built at this frame.
 ///
-/// **THE OBJECT IS A JS PLAIN OBJECT AND NOT A RUST STRUCT CROSSING**: `Object::new` + `Object::set` write
-/// them, so the value the runtime throws has `Object.prototype` for its prototype and exactly
-/// the keys this function set.
+/// **THE OBJECT IS A JS PLAIN OBJECT AND NOT A RUST STRUCT CROSSING**: `Object::new` defines the object, so
+/// the value the runtime throws has `Object.prototype` for its prototype and exactly the two keys this
+/// function defined.
+///
+/// **⟶ AND ITS `status` AND `message` ARE *DEFINED* OWN DATA PROPERTIES, NEVER *SET* — `D-35`'s SECOND NAMED
+/// PARAMETER-ACCESS HOLE, CLOSED ON THE CODEC'S OWN PRECEDENT.** `Object::set` reaches `napi_set_property`,
+/// whose `[[Set]]` step WALKS THE PROTOTYPE CHAIN: under a caller-installed own `status` on
+/// `Object.prototype` that is non-writable or carries no setter, the write answers `false` and **THE OWN
+/// MEMBER IS DROPPED** — measured on the artefact before this cure, with a non-writable
+/// `Object.prototype.status`: the thrown refusal's own members were `own=["message"]`,
+/// `hasOwnStatus=false`, and `refusal.status` answered the caller's prototype string. **The boundary had
+/// produced a refusal carrying neither of the members the form declares, out of a value the caller can
+/// reach without breaking anything of their own.** **THE CURE IS THE ONE [`crate::codec`] TOOK FOR ITS OWN
+/// MEMBERS** (`napi_define_properties`, which performs `DefineOwnProperty` and consults no chain), and
+/// **nothing else about the form moves**: `Property`'s default attributes are
+/// writable/enumerable/configurable, exactly what `set` produced on a fresh object, so the thrown value is
+/// the same three-member form with the same bytes (`D-35`; `failure-form.md §1`; the `F8-2` class).
 fn throw_refusal(env: &Env, refusal: &Refusal) {
     let mut object = match Object::new(env) {
         Ok(object) => object,
@@ -167,10 +184,24 @@ fn throw_refusal(env: &Env, refusal: &Refusal) {
         // second shape to fall back to, so the value that IS there crosses as itself.
         Err(_) => return,
     };
-    if object.set("status", refusal.status.clone()).is_err() {
-        return;
+    // **THE `status` AND `message` THE CORE'S `Refusal` OWNS, EACH DEFINED FROM THE CORE'S OWN BYTES** — never read
+    // back off the object this frame is constructing and off no caller's object (`D-35`'s own principle).
+    let mut properties: Vec<Property> = Vec::with_capacity(2);
+    for (name, value) in [
+        ("status", refusal.status.clone()),
+        ("message", refusal.message.clone()),
+    ] {
+        let property = Property::new()
+            .with_name(env, name)
+            .and_then(|property| property.with_napi_value(env, value));
+        match property {
+            Ok(property) => properties.push(property),
+            // A member that cannot be minted leaves no half-built form behind, exactly as the `set` arm it
+            // replaces did: the environment is already failing and there is no second shape to fall to.
+            Err(_) => return,
+        }
     }
-    if object.set("message", refusal.message.clone()).is_err() {
+    if object.define_properties(&properties).is_err() {
         return;
     }
     // **THE RAW-VALUE ESCAPE HATCH** (`PAR-ADA-4`): the declared value is thrown and no `Error` is minted.

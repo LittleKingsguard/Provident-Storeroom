@@ -35,3 +35,99 @@ serde_json = { version = "1", features = ["float_roundtrip"] }
 [lib]
 name = "storeroom_native"
 path = "src/lib.rs"
+
+# =====================================================================================================
+# THE WORKSPACE — AND IT IS THE ONE ROOT THE THREE PACKAGES SHARE
+# =====================================================================================================
+#
+# **BEFORE THIS, THE ROOT MANIFEST CARRIED NO `[workspace]` AND THE SIBLING CRATE DECLARED NONE**
+# (`package.md §4.1` item 2: *"It is NOT a workspace member"*). `D-34` **LIFTED THAT REQUIREMENT AND NOT THE
+# CRATE'S DESIGN**: `bindings/js` stays its own package with `crate-type = ["cdylib", "rlib"]` and ONE path
+# dependency on the store — it is a MEMBER now, which is a statement about the tree and not about the crate.
+#
+# **THE THREE MEMBERS AND THE TWO DEFAULTS.** `.` is the store (`storeroom-native`), `bindings/js` is the
+# sibling crate (`storeroom-js-binding`), and `tests` is the non-published battery package
+# (`storeroom-tests`) that hosts the binding crate's six targets. `default-members` is `[".", "tests"]` —
+# the two packages that carry Rust cells — so that a bare `cargo test` at this root runs BOTH of them and
+# neither is left un-run by a default that named the store's package alone.
+#
+# **AND THE THREE DECLARED LEGS FOLLOW FROM THAT, EACH PACKAGE-SCOPED:**
+#   * `cargo test --offline -p storeroom-native` — THE STORE'S LEG, `415` cells;
+#   * `cargo test -p storeroom-tests`            — THE BATTERY'S LEG, `235` cells;
+#   * `cargo test`                                — THE BOTH-OF-THEM COMMAND, `650` cells.
+# The same three are declared in the repository's two live homes for a leg, the root `package.json`'s
+# `scripts` and `bindings/js/README.md`'s `Tests` section. **`-p` IS NOT DECORATION ON THE BUILD SIDE**: a
+# workspace-root `cargo build --offline` would pull the sibling crate's `napi` crates and `--offline` would
+# refuse them, which is why the root manifest's `scripts.build` names the store by package.
+#
+# **THE FOURTEEN TARGETS DECLARED BELOW ARE THE STORE'S OWN, AND THEY STAY WITH THE STORE'S PACKAGE ON
+# PURPOSE.** `docs/L1/test-stratification.json` moves their FILES to `tests/integration/**`, and a target
+# under an extra directory level is invisible to cargo's test auto-discovery (`tests/*.rs` and
+# `tests/*/main.rs` only) — so each one is named here, by name and path. The SIX files that remain are the
+# sibling crate's, and they are named at `tests/Cargo.toml`, where the package that hosts them lives.
+# **`14 + 6 = 20` targets, and the split is what keeps `-p storeroom-native` naming `415` cells and
+# `-p storeroom-tests` naming `235` instead of both naming the same `650` or one naming nothing.**
+[workspace]
+members = [".", "bindings/js", "tests"]
+default-members = [".", "tests"]
+
+# ---- `tests/integration/store-core/` — 12 — the store's own suite, driver `store-core` ---------------
+[[test]]
+name = "construction"
+path = "tests/integration/store-core/construction.rs"
+
+[[test]]
+name = "construction_access_probe"
+path = "tests/integration/store-core/construction_access_probe.rs"
+
+[[test]]
+name = "write_arms"
+path = "tests/integration/store-core/write_arms.rs"
+
+[[test]]
+name = "read_and_delete"
+path = "tests/integration/store-core/read_and_delete.rs"
+
+[[test]]
+name = "tiers_and_purge"
+path = "tests/integration/store-core/tiers_and_purge.rs"
+
+[[test]]
+name = "journal_and_rollback"
+path = "tests/integration/store-core/journal_and_rollback.rs"
+
+[[test]]
+name = "walk_and_resolver"
+path = "tests/integration/store-core/walk_and_resolver.rs"
+
+[[test]]
+name = "watched_addresses"
+path = "tests/integration/store-core/watched_addresses.rs"
+
+[[test]]
+name = "record_shapes"
+path = "tests/integration/store-core/record_shapes.rs"
+
+# The two names below claim `e2e` and are NOT e2e: they run in-process under `cargo test` with no artefact
+# and no entry. The names are the declaration's (question `Q2`) and are kept byte for byte.
+[[test]]
+name = "e2e_json_round_trip"
+path = "tests/integration/store-core/e2e_json_round_trip.rs"
+
+[[test]]
+name = "e2e_listener_firing"
+path = "tests/integration/store-core/e2e_listener_firing.rs"
+
+[[test]]
+name = "properties"
+path = "tests/integration/store-core/properties.rs"
+
+# ---- `tests/integration/store-fail-set/` — 1 — one drive per member of the closed set -----------------
+[[test]]
+name = "fail_codes"
+path = "tests/integration/store-fail-set/fail_codes.rs"
+
+# ---- `tests/integration/store-args/` — 1 — the carriers' refusal reachability --------------------------
+[[test]]
+name = "gate4_red_set_fix"
+path = "tests/integration/store-args/gate4_red_set_fix.rs"

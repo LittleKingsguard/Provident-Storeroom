@@ -105,7 +105,16 @@ const config: StoreConfig = {
   journalLength: 64,
   listeners: [],
   filePath: '/tmp/store-fixture.json',
-  constraints: [{ address: ['k'], id: 'c1' }],
+  // THE ELEMENT IS THREE MEMBERS AND ITS `constraint` IS REQUIRED (`D-26`): the pair is the
+  // element's ADDRESSING and the function is its SUBSTANCE. The function is captured
+  // JS-side and never crosses; the package arms it at construction.
+  constraints: [
+    {
+      address: ['k'],
+      id: 'c1',
+      constraint: (context: unknown): unknown => context !== undefined,
+    },
+  ],
 };
 
 // ===========================================================================
@@ -170,11 +179,12 @@ const restoredValue: unknown = restoredTo.value;
 
 // `listen(handle, addresses)` — TWO positions, the second a SET
 // (`contract.md §2.2` item 1; `listen-verb.md §2.2` item 1: the arity moves
-// `1 → 2`), and IT ANSWERS `void` (`contract.md §2.2` item 10: the caller
-// supplied the identity, so there is no datum to return). THE CALLER SPELLS
-// THE HANDLE — `Handle` is a `string` (`contract.md §2.1` item 1).
+// `1 → 2`), and IT ANSWERS THE HANDLE IT WATCHES UNDER ON SUCCESS (`D-22`:
+// the return moves `void → Handle`, a success signal that CARRIES the
+// identity; failure stays the one thrown form). THE CALLER SPELLS THE
+// HANDLE — `Handle` is a `string` (`contract.md §2.1` item 1).
 const handle: Handle = 'listener-a';
-const listened: void = store.listen(handle, [address]);
+const listened: Handle = store.listen(handle, [address]);
 const withdrawn: void = store.unlisten(handle);
 
 // ---- the constraint triple: pair first, constraint second ---------------

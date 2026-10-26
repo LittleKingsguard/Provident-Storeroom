@@ -589,8 +589,21 @@ pub fn to_config(cfg: &JsConfig) -> StoreConfig {
 // THE WALK AND THE COPY — `crossing.md §1.4` items 1–7, `§1.1` clauses 1–4.
 // =================================================================================================
 
-/// `crossing.md §1.4` item 5 / `DD-10`: the depth-`64` / node-`1,000,000` ceiling, measured over the walk's
+/// `crossing.md §1.4` item 5 / `DD-10`: the depth-`126` / node-`1,000,000` ceiling, measured over the walk's
 /// own VISITED NODES and nesting depth.
+///
+/// **⟶ AMENDED 2026-10-25 (`A149` items `1`–`2`; `RCA-8(d)` ANNOTATE-BESIDE): THE FIGURE THIS HEADING PRINTED
+/// WAS `64`, AND `64` IS THE SUPERSEDED READING — NAMED HERE ONCE AND NOT REWRITTEN AWAY.** `DD-10`'s clause
+/// was authored at depth `64` / node `1,000,000`; the depth half moved twice after it, and the operative
+/// figure is stated in this block and carried by the guard of `to_store_value`. **WHAT IS OPERATIVE FROM THIS
+/// DATE: `126`, AND IT WAS MEASURED RATHER THAN TAKEN FROM A NEIGHBOURING CONSTANT** — at the bytes, `126` is
+/// the deepest value the conversion admits (the guard below reads `depth > 126`), the deepest `commit_file`
+/// writes, and the deepest a fresh boot reads back; `127` and `128` were ADMITTED by a `depth > 128` guard and
+/// then LOST at the commit (the file tier's re-decode, `serde_json`'s recursion limit at `src/json.rs`'s
+/// `decode`), which is exactly the window `A149` items `1`–`2` close: **a value is never admitted and then
+/// failed at commit.** The node half is unmoved at `1,000,000`.
+/// `[A2 the crossing contract's §1.4 item 5 with its `A149` clause | the operative depth ceiling; A1
+/// `bindings/js/src/crossing.rs` | this file's own guard, cited by symbol | numeric claim]`
 ///
 /// **⟶ THE VISITED COUNT AND THE ROOT, RECONCILED 2026-10-11 (`DEF-18`'s second defect; the RCA
 /// `docs/specs/storeroom-js-rca-scaling.md §1`/`§6` item 2 measured it):** the clause's own words — *"whose
@@ -607,9 +620,17 @@ pub fn to_config(cfg: &JsConfig) -> StoreConfig {
 ///
 /// **THE DEPTH HALF IS UNTOUCHED AND IS NOT THE OFF-BY-ONE:** `depth` is the number of levels the walk
 /// DESCENDED, so the root is depth `0` and an `n`-deep chain `{a:{a:…}}` is depth `n` — which is the
-/// figure the clause's *"admits a value of depth `64` and REFUSES a value of depth `65`"* is measured
-/// against, and which the sibling crate's own `ceiling_depth_64_is_admitted` /
-/// `ceiling_depth_65_is_refused_value_not_admitted` cells pin.
+/// figure the clause's *"admits a value of depth `126` and REFUSES a value of depth `127`"* is measured
+/// against, and which the sibling crate's own `ceiling_depth_126_is_admitted` /
+/// `ceiling_depth_127_is_refused_value_not_admitted` cells pin.
+///
+/// **⟶ THE TWO FIGURES AND THE TWO CELL NAMES IN THE PARAGRAPH ABOVE WERE `64` / `65` AND
+/// `ceiling_depth_64_is_admitted` / `ceiling_depth_65_is_refused_value_not_admitted` UNTIL 2026-10-25
+/// (`A149` item `1`; `RCA-8(d)` ANNOTATE-BESIDE): the superseded reading is named here once and stands as
+/// history rather than being rewritten away.** **WHAT DID NOT MOVE IS THE REASONING, WHICH IS WHY THIS IS A
+/// RE-DERIVATION AND NOT A RELAXATION:** the root enters at depth `0`, an `n`-deep chain measures `n`, the
+/// bound is INCLUSIVE at its own figure, and one past it is the depth class — the clause's off-by-one
+/// discipline is unmoved and only the number it is read at changed.
 fn measure(v: &JsValue) -> (usize, usize) {
     fn walk(v: &JsValue, depth: usize, visited: &mut usize, max_depth: &mut usize) {
         if depth > *max_depth {
@@ -660,9 +681,26 @@ fn is_plain(o: &JsObject) -> bool {
 /// minted here**: the ceiling returns the value as an OUTSIDE class, and the store's own taxonomy check
 /// then answers with its own `ValueNotAdmitted` and its own generated message at the failing target's
 /// address (`§2.5` items 1–2, `DD-40`) — exactly the refusal the same value would draw one class deeper.
+///
+/// **⟶ THE QUOTED CLAUSE'S `64` IS THE SUPERSEDED FIGURE, NAMED RATHER THAN EDITED AWAY, 2026-10-25
+/// (`A149` item `1`; `RCA-8(d)` ANNOTATE-BESIDE).** The quotation stands verbatim as the clause was authored
+/// — **and it is READ THROUGH the guard below, which is the operative bound and reads `126`.** The clause's
+/// own `A149` clause is the authority for that reading, and it is the reason the figure moved at all: *"the
+/// operative admission ceiling is the store's persistent one and not the conversion's own bound, because a
+/// value the file tier cannot commit must never be admitted in the first place"* — **so this arm now refuses
+/// at `127` and beyond, and a value it admits COMMITS.** `A149` item `4`'s sentence that *"the crate's `128`
+/// … remain[s] the CONVERSION's own bound"* is superseded HERE by measurement: `128` was a bound the commit
+/// could not honour.
 pub fn to_store_value(v: &JsValue) -> Result<StoreValue, Refusal> {
     let (depth, visited) = measure(v);
-    if depth > 128 || visited > 1_000_000 {
+    if depth > 126 || visited > 1_000_000 {
+        // **⟶ `128` WAS THE FIGURE THIS GUARD READ UNTIL 2026-10-25, AND IT IS NAMED HERE ONCE
+        // (`A149` items `1`–`2`; `RCA-8(d)` ANNOTATE-BESIDE).** It was measured, not argued: a `file`-tier
+        // write of depth `127` or `128` was ADMITTED here, `commit_file` answered `FileCommitFailed`
+        // (`serde_json`'s recursion limit at the file tier's re-decode), the store file stayed `0` bytes and a
+        // fresh boot answered `AddressNotFound` — **a value admitted and then lost, which `A149` item `2`
+        // forbids.** `126` is the deepest depth that clears all three acts (admitted · committed · re-booted),
+        // so the guard now reads the figure the commit can honour and nothing deeper is admitted.
         // The walk reads no further: the two bounds are what the package ships and there is NO
         // configuration knob for either (`DD-10`).
         return Ok(StoreValue::Cyclic);
