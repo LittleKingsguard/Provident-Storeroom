@@ -396,7 +396,32 @@ export function encodeValue(value, ancestors, depth, path, fault) {
   // defined form is the one `Object.fromEntries` took all along** — an own data property per member, per the
   // gate-4 `ADV-12` rule that a member genuinely named `__proto__` must stay a member and not become the
   // returned object's prototype (`Object.defineProperty` defines; `[[Set]]` would not).
-  const plain = {};
+  //
+  // **⟶ AND THE NODE IS A `null`-PROTOTYPE NODE FROM 2026-10-25 — THE CROSSING'S FORM AND NOT ONE OF ITS
+  // DECISIONS** (`RCA-8(g)`; the architect's ruling, verbatim: *"Cast into JSON in the JS side of the
+  // interface."*). **Everything above this line CLASSIFIES; this line SHAPES what crosses, and the two are
+  // different facts.** **THE DEFECT IT CLOSES, AS MEASURED:** a `{}` carries this realm's `Object.prototype`,
+  // and `codec.rs`'s `value_of` TAKES the value it is handed as JSON — its `serde-json` cast walks the
+  // property-NAME enumeration the runtime offers, **WHICH INCLUDES THE PROTOTYPE CHAIN** — so with an
+  // enumerable `Object.prototype.injected` a lawful `write(['v'], 'mem', { a: 1 })` read back
+  // `{"a":1,"injected":"P"}`, and the same member appeared at EVERY NESTING DEPTH
+  // (`{"a":1,"b":{"c":2,"injected":"P"},"d":[{"e":3,"injected":"P"}]}`), each node's prototype being the one
+  // thing this crossing left a caller's realm to decide. **A member the walk never admitted crossed into Rust
+  // and the store's record carried it.** **`Object.create(null)` CARRIES NO PROTOTYPE AT ALL, SO THE CAST HAS
+  // NOTHING BEYOND THE OWN MEMBERS THIS LOOP DEFINED** — the members, their names, their ORDER, the class
+  // decisions above, both ceilings and both refusal codes are unmoved, and **`codec.rs` KEEPS ITS SIMPLE CAST
+  // AND IS NOT TOUCHED**: the ruling put the form on this side of the boundary.
+  // **THE CLASS IS THE CONTRACT'S AND IS NOT RE-DECIDED HERE:** a `null`-prototype object is an ADMITTED value
+  // — `contract.md §1`'s clause of 2026-10-24, item `(1)`'s own parenthesis: *"A `null`-prototype object is not
+  // this limb; it carries no prototype at all, and it is admitted through `§3`'s `p` classification `null`"* —
+  // which is what `protoClass`'s `'null'` answer already meant at this walk (`class-decision.mjs`), so a
+  // caller's `Object.create(null)` value was admitted before this clause and is admitted after it. **NO MEMBER
+  // IS ADDED, DROPPED OR REORDERED**: the own data properties below are the ones `Object.fromEntries`'s defined
+  // form has always written, and the object's prototype is not a member.
+  // `[A2 docs/specs/storeroom-json-crossing/contract.md §1 — its 2026-10-24 clause, item `(1)`; A1
+  // bindings/js/src/codec.rs · `value_of` | the cast that reads the chain, named and left in its own module |
+  // requirement]`
+  const plain = Object.create(null);
   for (let at = 0; at < members.length; at += 1) {
     Object.defineProperty(plain, members[at][0], {
       value: members[at][1],

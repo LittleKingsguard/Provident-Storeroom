@@ -31,17 +31,30 @@
 //         → own=["message"], hasOwnStatus=false — the `facade.rs:170/173` hole; the OWN members are this
 //           cell's red state, and they are red for the reason `D-35` gives and not for a cell's preference
 //
-// **ONE ARM IS AUDITED AND NOT ASSERTED, AND THIS CELL SAYS SO (`D-21`).** The VALUE position is the one place
-// the crate is handed a whole JS tree rather than a carrier object: `codec.rs`'s `value_of` casts it with the
-// library's `serde_json::Value` conversion, whose object walk takes the runtime's property-name enumeration —
-// **which INCLUDES THE PROTOTYPE CHAIN** (measured on the artefact, driven directly here:
-// `write(…, Object.create({a:1}), …)` is ADMITTED and reads back `{"a":1}`; driven through the public surface
-// with an ENUMERABLE `Object.prototype.injected`, a lawful `write(['v'],'mem',{a:1})` reads back
-// `{"a":1,"injected":"P"}`). **That is a boundary assumption and NOT a `D-35` parameter-access hole of the
-// surface's own form, and its cure is a SHAPE DECISION** — an own-member-only JSON read in the codec, or a
-// null-prototype wire node in the encoder — **so it is REPORTED by the pass that wrote this cell and left
-// unasserted rather than frozen into a green cell or silently weakened.** Its drive is kept below as a
-// diagnostic so the state is visible in the run and a later pass can see it change.
+// **⟶ THE VALUE POSITION WAS THE ONE ARM AUDITED AND NOT ASSERTED (`D-21`), AND IT IS NOW ASSERTED — ITS CURE
+// LANDED ON THE JS SIDE, 2026-10-25 (`RCA-8(g)`; the architect's ruling, verbatim: *"Cast into JSON in the JS
+// side of the interface."*).** The VALUE position is the one place the crate is handed a whole JS tree rather
+// than a carrier object: `codec.rs`'s `value_of` casts it with the library's `serde_json::Value` conversion,
+// whose object walk takes the runtime's property-name enumeration — **which INCLUDES THE PROTOTYPE CHAIN.**
+// **THE MEASURED STATE, BEFORE THE CURE** (driven on the artefact and through the public surface, both with an
+// ENUMERABLE `Object.prototype.injected`): a lawful `write(['v'],'mem',{a:1})` read back
+// `{"a":1,"injected":"P"}` at the root and at EVERY NESTING DEPTH, and `write(…, Object.create({a:1}), …)` driven
+// at the artefact directly is ADMITTED and reads back `{"a":1}`. **THE RULING PUT THE CURE ON THE CARRIER'S
+// SIDE AND NOT IN THE CODEC**: the carrier now hands the boundary a WIRE value whose objects are
+// `Object.create(null)` nodes carrying exactly the admitted own members, built by DEFINING them — so the
+// codec's cast keeps its simple form and has no prototype to read. `codec.rs` is untouched by the cure and the
+// drive below still shows, as a REPORTED residual and not an assertion, that a value driven into the artefact
+// with the caller's own prototype still crosses with what the chain carries.
+//
+// **THE CLASS DECISION IS UNMOVED BY THE FORM CHANGE, AND THE TWO ANSWERS ARE NAMED BECAUSE THEY DIFFER.**
+// A caller object with a prototype that carries an enumerable member is ADMITTED and crosses with that member
+// ABSENT (it was never an own member, so the walk never read it — `contract.md §1`'s clause of 2026-10-24, item
+// `(3)`, mutation-independence), while `Object.create({a:1})` is REFUSED as row `14`, `a class instance or
+// another prototype-carrying non-plain object`, because its prototype's own prototype is an `Object.prototype`
+// and so the link is not TERMINAL (`§1` item `(1)(b)`; the bullet list's *"any other prototype-carrying object
+// … refuse the whole value"*). **A `null`-prototype WIRE NODE is not that class and is not a new admission**:
+// `§1` item `(1)`'s own parenthesis admits it — *"A `null`-prototype object is not this limb; it carries no
+// prototype at all, and it is admitted through `§3`'s `p` classification `null`"*.
 //
 // **WHAT THE RULING LEAVES ALONE, AND THEREFORE WHAT THIS CELL DOES NOT TOUCH.** A frozen store, an
 // `Object.getOwnPropertySymbols(store)` read of the kernel record, and a getter planted on `Object.prototype`
@@ -56,6 +69,11 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 import { storeCreate } from '../../bindings/js/index.mjs';
+// **THE CARRIER'S VALUE PATH, IMPORTED SO THE CROSSING'S FORM IS READ AT ITS PRODUCER** — `encodeValue` is the
+// only producer of the value position's wire tree (`bindings/js/index.mjs` hands the artefact the array it
+// returns, and nothing else mints a value node). This is the tree's own producer read directly, as
+// `prototype-refusal-form.test.mjs` reads `refusal.mjs`'s `fail`; no second surface is invented here.
+import { encodeValue } from '../../bindings/js/src/entry/carrier.mjs';
 
 /** The artefact the entry resolves for rung two — derived from the package root, as `index.mjs` derives it. */
 const ADDON_ARTEFACT = fileURLToPath(new URL('../../bindings/js/build/Release/storeroom_js_binding.node', import.meta.url));
@@ -237,15 +255,20 @@ test('D-35 §2 (the Rust boundary) · a supplied value whose prototype is hostil
         `(${shapeName}) the value crosses as the tree it is and reads back exactly; got `
         + `${JSON.stringify(answered.value)}`);
 
-      // ── (6) THE AUDITED ARM — REPORTED, NOT ASSERTED (`D-21`): the VALUE position's class. The codec casts the
-      // tree with the library's JSON conversion, whose enumeration INCLUDES THE PROTOTYPE CHAIN, so a
-      // prototype-carrying value is admitted here rather than refused by a carrier. Its cure is a shape
-      // decision (`codec.rs`'s `value_of` reading own members only, or a null-prototype wire node in the
-      // encoder), and this pass reports it rather than freezing either answer into this cell.
+      // ── (6) THE RESIDUAL ARM — REPORTED, NOT ASSERTED (`D-21`), AND IT IS NOW THE **DIRECT-ARTEFACT** ARM
+      // ONLY. The codec casts the tree with the library's JSON conversion, whose enumeration INCLUDES THE
+      // PROTOTYPE CHAIN, so a caller value driven STRAIGHT INTO THE ARTEFACT still crosses with whatever its
+      // chain carries. **THE PRODUCT'S ROUTE IS CLOSED** — the carrier's walk now hands the boundary
+      // `Object.create(null)` wire nodes (the cell below asserts it, at every depth), and a value the walk
+      // refuses never reaches the artefact at all — so what stands here is the unpublished channel this cell
+      // drives, and it is reported rather than frozen: the ruling put the cure on the carrier's side and left
+      // the codec's cast in its simple form, and this drive is the state that remains.
       const audited = drive(() => addon().write.call(store, addressWire(['audited']), T, Object.create({ a: 1 }), ABSENT_OP));
-      t.diagnostic(`D-35 §2 audited arm (${shapeName}): a prototype-carrying value at the VALUE position is `
+      t.diagnostic(`D-35 §2 residual arm (${shapeName}): a prototype-carrying value driven STRAIGHT INTO the `
+        + `artefact at the VALUE position is `
         + `${audited.threw ? `refused as ${JSON.stringify(audited.status)}` : 'ADMITTED'} — reported, not `
-        + 'asserted: the carrier validates no class here and the cure is a shape decision');
+        + 'asserted: the product\'s route through the carrier refuses it, and the carrier\'s wire form is '
+        + 'asserted by the crossing-form cell below');
     } finally {
       restoreRealm();
     }
@@ -259,4 +282,186 @@ test('D-35 §2 (the Rust boundary) · a supplied value whose prototype is hostil
     'a prototype-carrying value supplied to the PUBLIC write is refused by the package\'s own walk');
   assert.equal(fromTheSurface.status, 'ValueRefusedAtBoundary',
     'and the refusal is the declared one: `ValueRefusedAtBoundary`, the class the crossing does not admit');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────────────
+// THE CROSSING FORM OF AN ADMITTED VALUE — `D-35`'s `§2` SECOND DEFENCE MEASURED AT THE WIRE, AND THE CELL
+// THE RULING'S CURE OWES: *"Cast into JSON in the JS side of the interface."*
+// ─────────────────────────────────────────────────────────────────────────────────────────────────────
+
+/// **EVERY OBJECT NODE OF A WIRE TREE, WITH ITS PROTOTYPE** — the census the crossing-form arm reads.
+/// An ARRAY is a node of the array class and is walked by index: the carrier keeps the `appendOwn` route for
+/// arrays, unchanged (`§1`'s array limb). Every OTHER object node of an admitted tree must carry no prototype at
+/// all, because `codec.rs`'s `value_of` takes the value it is handed as JSON and walks the enumeration the
+/// runtime offers — **INCLUDING THE PROTOTYPE CHAIN.** The walk is a local index loop over `Object.keys`'s
+/// result, per this file's own rule.
+function wireObjectNodes(value, at = '$', out = []) {
+  if (value === null || typeof value !== 'object') return out;
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i += 1) wireObjectNodes(value[i], `${at}[${i}]`, out);
+    return out;
+  }
+  out.push({ at, proto: Object.getPrototypeOf(value) });
+  const names = Object.keys(value);
+  for (let i = 0; i < names.length; i += 1) wireObjectNodes(value[names[i]], `${at}.${names[i]}`, out);
+  return out;
+}
+
+/// **EVERY OWN MEMBER NAME AT EVERY DEPTH OF A READ-BACK**, so an arm can assert that a prototype-carried
+/// member appears NOWHERE in what the store answered — and not merely at the root.
+function ownNamesAtEveryDepth(value, out = []) {
+  if (value === null || typeof value !== 'object') return out;
+  const names = Object.keys(value);
+  for (let i = 0; i < names.length; i += 1) {
+    out.push(names[i]);
+    ownNamesAtEveryDepth(value[names[i]], out);
+  }
+  return out;
+}
+
+test('D-35 §2 (the Rust boundary) · THE VALUE POSITION CROSSES AS A WIRE FORM THE CARRIER OWNS — `Object.create(null)` object nodes carrying exactly the admitted own members, built by DEFINING them — so no admitted value gains a prototype-carried member at ANY depth, while the class decisions, the ceilings and the refusal codes stand unmoved', (t) => {
+  const store = storeCreate({ journalLength: 8, listeners: [] });
+  const T = tierWire('mem');
+  const HOSTILE_MEMBER = 'injected';
+  const HOSTILE_VALUE = 'P';
+  /** ONE ENUMERABLE OWN MEMBER ON `Object.prototype` — **the shape the measured defect needed**, and the shape
+   * `contract.md §1`'s clause of 2026-10-24, item `(3)`, says the class decision may not see. */
+  const installEnumerablePrototypeMember = () => {
+    Object.defineProperty(Object.prototype, HOSTILE_MEMBER, {
+      value: HOSTILE_VALUE, writable: true, enumerable: true, configurable: true,
+    });
+  };
+  const restoreEnumerablePrototypeMember = () => { delete Object.prototype[HOSTILE_MEMBER]; };
+
+  // ── THE LAWFUL ROUND-TRIP CONTROL, TAKEN FIRST AND ON A CLEAN REALM, so every hostile arm below is read
+  // against the package's own answer and this cell mints no spelling of its own. **THE STORE'S CANONICAL
+  // SPELLING SORTS AN OBJECT'S OWN MEMBER NAMES** (`{ b: 2, a: 1 }` reads back `{"a":1,"b":2}`), so each expected
+  // string below is written in that canonical order and the values are written in it too.
+  const PLAIN = { a: 1 };
+  const NESTED = { a: 1, b: { c: 2 }, d: [{ e: 3 }, [4, { f: 5 }]] };
+  const ARRAY_OF_OBJECTS = [{ a: 1 }, { b: 2 }];
+  const NESTED_SPELLING = '{"a":1,"b":{"c":2},"d":[{"e":3},[4,{"f":5}]]}';
+  for (const [label, address, value, want] of [
+    ['a plain object', ['round-plain'], PLAIN, '{"a":1}'],
+    ['a nested object', ['round-nested'], NESTED, NESTED_SPELLING],
+    ['an array of objects', ['round-array'], ARRAY_OF_OBJECTS, '[{"a":1},{"b":2}]'],
+  ]) {
+    store.write(address, 'mem', value);
+    const back = store.read(address, 'mem');
+    assert.equal(JSON.stringify(back), want,
+      `the clean-realm control: ${label} reads back exactly what was written, in the store's canonical `
+      + `spelling; got ${JSON.stringify(back)}`);
+  }
+  // AND THE ARRAY WHOSE HOLES ARE REFUSED KEEPS ITS DECLARED REFUSAL — an index below `length` with no OWN
+  // property is a hole (`§2` row `16`), refused at the walk before any store verb, under the one code.
+  const holes = drive(() => store.write(['round-holes'], 'mem', [1, , 3]));
+  assert.equal(holes.threw, true,
+    'an array carrying a hole is refused exactly as it was before the crossing\'s form moved; got '
+    + `${JSON.stringify(holes)}`);
+  assert.equal(holes.status, 'ValueRefusedAtBoundary', 'and its status is the declared one');
+  assert.ok(String(holes.message).includes('a sparse array'),
+    `and its class is row 16's own spelling; got ${JSON.stringify(holes.message)}`);
+
+  installEnumerablePrototypeMember();
+  try {
+    // ── (1) A CALLER OBJECT WHOSE PROTOTYPE CARRIES AN ENUMERABLE MEMBER CROSSES WITH THAT MEMBER ABSENT.
+    // The walk reads `Object.keys(value)` — OWN enumerable string keys — so `injected` was never a member of the
+    // tree; the wire node's `null` prototype is what stops the codec's cast from finding it on the way in.
+    store.write(['carried-plain'], 'mem', PLAIN);
+    const carriedPlain = store.read(['carried-plain'], 'mem');
+    t.diagnostic(`D-35 §2 crossing form: with an enumerable \`Object.prototype.${HOSTILE_MEMBER}\` = `
+      + `${JSON.stringify(HOSTILE_VALUE)} installed, \`write(['carried-plain'],'mem',{a:1})\` read back `
+      + `${JSON.stringify(carriedPlain)}; own names at every depth: `
+      + `${JSON.stringify(ownNamesAtEveryDepth(carriedPlain))}`);
+    assert.equal(JSON.stringify(carriedPlain), '{"a":1}',
+      'a caller object whose prototype carries an enumerable member crosses with that member ABSENT — the wire '
+      + `form's objects carry no prototype to read; got ${JSON.stringify(carriedPlain)}`);
+    assert.deepEqual(ownNamesAtEveryDepth(carriedPlain), ['a'],
+      'and no inherited member is an own member of the answer, at any depth');
+
+    // ── (2) THE SAME AT EVERY NESTING DEPTH: an object inside an object, and an object inside an ARRAY.
+    store.write(['carried-nested'], 'mem', NESTED);
+    const carriedNested = store.read(['carried-nested'], 'mem');
+    assert.equal(JSON.stringify(carriedNested), NESTED_SPELLING,
+      'a nested admitted value crosses as the tree it is, at every depth — measured before the cure as '
+      + `{"a":1,"b":{"c":2,"injected":"P"},"d":[{"e":3,"injected":"P"},[4,{"f":5,"injected":"P"}]],"injected":"P"}; `
+      + `got ${JSON.stringify(carriedNested)}`);
+    const carriedNames = ownNamesAtEveryDepth(carriedNested);
+    for (let i = 0; i < carriedNames.length; i += 1) {
+      assert.notEqual(carriedNames[i], HOSTILE_MEMBER,
+        `no admitted value gains a prototype-carried member at any nesting depth: \`${HOSTILE_MEMBER}\` was `
+        + `read back at depth ${i} of ${JSON.stringify(carriedNames)}`);
+    }
+    store.write(['carried-array'], 'mem', ARRAY_OF_OBJECTS);
+    const carriedArray = store.read(['carried-array'], 'mem');
+    assert.equal(JSON.stringify(carriedArray), '[{"a":1},{"b":2}]',
+      'an array of objects crosses unchanged — the carrier\'s `appendOwn` route is untouched by this form — and '
+      + `its elements gain nothing from the chain; got ${JSON.stringify(carriedArray)}`);
+
+    // ── (3) AND THE WRITE'S OWN RECORD CARRIES THE SAME ANSWER: the crossing's value is the one the record's
+    // `after.value` holds, so the hostile member cannot appear there either.
+    const recorded = store.write(['carried-record'], 'mem', PLAIN);
+    assert.equal(JSON.stringify(recorded.op.after.value), '{"a":1}',
+      'the write record\'s own crossed value carries the admitted members and nothing from the chain; got '
+      + `${JSON.stringify(recorded.op.after.value)}`);
+
+    // ── (4) THE FORM ITSELF, READ AT THE CARRIER: every OBJECT node of `encodeValue`'s tree has a `null`
+    // prototype, carries exactly the admitted own members in the declared member order, and the tree it builds
+    // is the tree the artefact admits — driven straight into the artefact below, which is exactly `codec.rs`'s
+    // cast reading it.
+    const fault = { found: null, value: undefined, path: [], subject: null, nodes: 0 };
+    const wire = encodeValue(NESTED, [], 0, [], fault);
+    assert.equal(fault.found, null,
+      'the carrier ADMITS the lawful tree, so the form below is the form of an ADMITTED crossing');
+    const nodes = wireObjectNodes(wire);
+    t.diagnostic(`D-35 §2 crossing form: \`encodeValue\`'s object nodes — `
+      + `${nodes.map((node) => `${node.at}:${node.proto === null ? 'null-prototype' : 'PROTOTYPE-CARRYING'}`).join(' ')}`);
+    for (let i = 0; i < nodes.length; i += 1) {
+      assert.equal(nodes[i].proto, null,
+        `every object node of the wire value carries NO prototype (\`Object.create(null)\`), so the codec's cast `
+        + `has nothing but own members to read; node ${nodes[i].at} carries one`);
+    }
+    assert.deepEqual(Object.keys(wire), ['a', 'b', 'd'],
+      'and the node carries exactly the admitted own members, in the declared member order');
+    assert.equal(Object.hasOwn(wire, HOSTILE_MEMBER), false,
+      'and the hostile member is not an own member of the node, so no cast can reach it');
+    const wireWrote = drive(() => addon().write.call(store, addressWire(['wire-form']), T, wire, ABSENT_OP));
+    assert.equal(wireWrote.threw, false,
+      `the wire value is ADMITTED by the artefact's own cast; got ${JSON.stringify(wireWrote)}`);
+    const wireBack = drive(() => addon().read.call(store, addressWire(['wire-form']), T));
+    assert.equal(wireBack.threw, false, 'and it is read back');
+    assert.equal(JSON.stringify(wireBack.value), NESTED_SPELLING,
+      'the carrier\'s own wire value crosses as exactly the tree it holds — no member added by the chain; got '
+      + `${JSON.stringify(wireBack.value)}`);
+
+    // ── (5) `Object.create({a:1})` AT THE VALUE POSITION: **THE DECLARED REFUSAL, AND NEVER THE INHERITED
+    // MEMBER.** The contract decides the class and this cell cites it: `§1`'s object limb requires the value's
+    // prototype to be TERMINAL — `[[GetPrototypeOf]]([[GetPrototypeOf]](value))` is `null`, `§1`'s clause of
+    // 2026-10-24, item `(1)(b)` — and `Object.create({a:1})`'s prototype is `{a:1}`, whose own prototype is an
+    // `Object.prototype`; the bullet list's own words are *"any other prototype-carrying object … refuse the
+    // whole value (`§2`)"*, and the row is `14`, `a class instance or another prototype-carrying non-plain
+    // object`. **IT IS REFUSED HERE, BEFORE ANY STORE VERB, SO NO INHERITED MEMBER CROSSES AT ALL** — the
+    // alternative reading, own-members-only admission, is the one `§1`'s limb does not support.
+    const inherited = drive(() => store.write(['inherited'], 'mem', Object.create(PLAIN)));
+    t.diagnostic(`D-35 §2 crossing form: \`Object.create({a:1})\` at the value position answers `
+      + `${inherited.threw ? `${JSON.stringify(inherited.status)} — ${JSON.stringify(inherited.message)}` : 'ADMISSION'}`);
+    assert.equal(inherited.threw, true,
+      '`Object.create({a:1})` at the value position is REFUSED by the carrier\'s own walk; got '
+      + `${JSON.stringify(inherited)}`);
+    assert.equal(inherited.status, 'ValueRefusedAtBoundary',
+      'and the refusal is the declared one, `ValueRefusedAtBoundary`, not an admission and never `{"a":1}`');
+    assert.ok(String(inherited.message).includes('a class instance or another prototype-carrying non-plain object'),
+      `and its class is row 14's own spelling; got ${JSON.stringify(inherited.message)}`);
+    const neverCrossed = drive(() => store.read(['inherited'], 'mem'));
+    assert.equal(neverCrossed.threw, true,
+      'nothing crossed: the address that refused write would have made does not exist');
+    assert.equal(neverCrossed.status, 'AddressNotFound',
+      'and the store\'s own answer for it is `AddressNotFound`, i.e. the inherited member never became a value');
+  } finally {
+    restoreEnumerablePrototypeMember();
+  }
+  assert.equal(Object.hasOwn(Object.prototype, HOSTILE_MEMBER), false,
+    'the drive must restore the realm: the enumerable member is no longer an own member of `Object.prototype`');
+  assert.equal(HOSTILE_MEMBER in {}, false,
+    'and the restore is proved a second way: no member is carried by the chain');
 });
