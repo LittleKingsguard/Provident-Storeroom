@@ -29,11 +29,15 @@ are declared in the kept contracts, not in the guides:
 - **The published package is `0.5.0`** (`bindings/js/package.json`), and the closed failure set is **SEVENTEEN**
   statuses — `ValueRefusedAtBoundary` at rank `17`, appended by the native contract's 2026-10-23 amendment
   (`A148` Q3; `docs/specs/storeroom-native/contract.md` §8.1, *"the operative set is `17` members ranked `1`…`17`"*)
-  — plus the open escape arm `(string & {})`. **★ AND THE DECLARATION IS BEHIND IT: `bindings/js/index.d.ts`
-  declares SIXTEEN, and `src/error.rs`'s `CODES` carries seventeen.** So the published type file omits a status the
-  store emits and the contract declares; the escape arm keeps a consumer from being mis-typed fatally, but **every
-  census claim in that file is false as written** and this is a defect for `delivery`/`js-declaration`, not a
-  battery question. **This brief said "sixteen" until the batteries' review measured it — corrected here.**
+  — plus the open escape arm `(string & {})`. **★ AND THE DECLARATION AGREES: `bindings/js/index.d.ts`'s
+  `StoreStatus` carries ALL SEVENTEEN literals, `ValueRefusedAtBoundary` written at rank `17` LAST of them and before
+  the escape arm, and `src/error.rs`'s `CODES` carries seventeen.** **⟶ CORRECTED 2026-10-25 (`strata` L1 e2e pass,
+  `role_test_writer`): this line read *"the declaration is behind it: `bindings/js/index.d.ts` declares SIXTEEN …
+  every census claim in that file is `false` as written"*, and THAT READING IS WITHDRAWN BY NAME — the declaration
+  was widened by the same 2026-10-23 amendment that widened the store, so the published type file omits no status
+  the store emits and its census claims read seventeen; there is no `delivery`/`js-declaration` defect here.**
+  **The escape arm still keeps a consumer from being mis-typed on a set the store may widen again, which is its own
+  declared ground and not a defect.**
 
 **THE RULE THIS BRIEF APPLIES:** where the guides and the tree disagree, the tree wins and the kept contract
 part is cited; where neither decides a question, this file says **`OWED`** rather than choosing.
@@ -261,8 +265,11 @@ never treats an unknown `status` as success (`docs/specs/storeroom-native/seams-
 `§8.2`; `index.d.ts`). **⟶ CORRECTED 2026-10-25: this line read *"sixteen"*, which was the figure before the
 native contract's 2026-10-23 amendment (`A148` Q3) ranked `ValueRefusedAtBoundary` at `17`** — the amendment
 that this file's own head records, so the two halves of one file disagreed and this half was the stale one. **The
-store implements seventeen** (`src/error.rs`'s `CODES`), and **`bindings/js/index.d.ts` still declares sixteen** —
-that gap is a code defect this brief names at its head and it is unaffected by this correction.
+store implements seventeen** (`src/error.rs`'s `CODES`), **and `bindings/js/index.d.ts` declares seventeen too** —
+**⟶ CORRECTED 2026-10-25 (`strata` L1 e2e pass, `role_test_writer`): this clause read *"`bindings/js/index.d.ts` still
+declares sixteen"* and named a gap *"this brief names at its head"*; BOTH HALVES ARE WITHDRAWN AT THIS LINE — the
+declaration's `StoreStatus` carries the seventeenth literal at rank `17`, so there is no gap for a later section of
+this file to name, and this brief's head was corrected in the same pass.**
 
 **UC-11 · Run it under Electron.** The store is a native addon and runs **in the main process only**; the
 renderer reaches it through a small, closed, data-only preload bridge and never through `nodeIntegration`.

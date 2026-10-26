@@ -1258,11 +1258,17 @@ export function storeCreate(cfg) {
   //
   // **AND IT IS `Symbol.for` RATHER THAN AN IDENTITY SYMBOL BECAUSE THE TWO SIDES NEVER SHARE AN OBJECT**:
   // this file writes the key and the Rust layer reads it, and a registered symbol is the only spelling both
-  // can name without one holding the other's reference. **A CLONED STORE OBJECT STILL CARRIES IT** (a
-  // symbol-keyed own property survives `Object.assign` and spread), **so a clone resolves the SAME store —
-  // which is `receiver-and-refusal.md §5`'s *"a deliberately re-bound receiver is still a receiver"* read at
-  // its carrier: the receiver names the store and rebinding is unsupported breaking behaviour the package
-  // owes no guard for.**
+  // can name without one holding the other's reference. **⟶ CORRECTED 2026-10-25 (`strata` L1 e2e pass,
+  // `role_test_writer`): this sentence read *"a cloned store object STILL CARRIES IT (a symbol-keyed own
+  // property survives `Object.assign` and spread), so a clone resolves the SAME store"* — AND IT IS FALSE OF
+  // BOTH HALVES. The row is published by the `Object.defineProperty` below at `enumerable: false`, and
+  // `Object.assign` and object spread copy OWN ENUMERABLE properties ONLY: SO A CLONE CARRIES NO INDEX AND
+  // NO SLOT, AND A CLONE RESOLVES NO STORE.** **That is the SAME one observable a detached call gets, which
+  // is what item 1 of this block already declares above (`:1233`).** **The reading this sentence cited
+  // (`receiver-and-refusal.md §5` — *"a deliberately re-bound receiver is still a receiver"*) governs a
+  // RE-BOUND receiver that still carries the row, and it never governed a CLONE, which carries nothing to
+  // re-bind: the receiver names the store and rebinding is unsupported breaking behaviour the package owes
+  // no guard for.**
   Object.defineProperty(instance, STORE_INDEX, { value: id, enumerable: false, writable: false, configurable: false });
   state.receiver = instance;
   // **THE ROW IS REGISTERED FOR RETIREMENT IN THE SAME ACT THAT PUBLISHES IT**, so a store cannot be
