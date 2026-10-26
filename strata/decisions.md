@@ -2641,3 +2641,43 @@ file's owner; `brief.md` to its own). **THE FULL RECORD — sites, figures, clau
 **PUT TO THE ARCHITECT, IN ONE SENTENCE:** **does the kernel get a DECLARED CARRIER for the ops a repair landed — a
 per-invocation landed-op record, or a repair `op` whose domain carries the store's `seq` — or is `PAR-C-8`'s *"not
 the one it landed"* arm NARROWED to the identities a caller-side record can prove?**
+
+---
+
+### `D-36` — the client is presumed not to vandalize `Array.prototype`; the crate-minted reads are NOT debts
+
+**DATE:** 2026-10-26. **BRANCH:** `main` (post-merge). **SOURCE:** the architect, closing the last question `D-35` left.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Presume the client isn't going to vandalize Array.prototype
+
+**WHAT IT SETTLES.** **The ~8 sites that read arrays THE CRATE MINTED with prototype methods are not debts and are
+not fixed.** `written.triggered.slice()` (`kernel-commit.mjs:144`), `attempt.write.triggered.map/includes`
+(`kernel-terminal.mjs:82–83`), `record.pending.slice()` (`delivery.mjs:547`, `kernel-attempt.mjs:390`,
+`kernel-registration.mjs:290`) and `record.pending.filter` (`kernel-attempt.mjs:560`) **keep their present form.**
+**The premise is the realm's: the client will not delete or redefine `Array.prototype`'s members.**
+
+**AND THE LINE IS NOW EXACT, WHICH IS WHAT THE PASS NEEDED.** **`D-35`'s parameter-access class is closed as
+implemented**: a value **the caller supplied** is read by own-property forms, built by `appendOwn`, crossed as
+**null-prototype wire nodes**, and refused by the six arms; **a value the package itself minted is read with the realm's
+prototype methods**, which is ordinary JavaScript. **The distinction is provenance after all — but only because the
+premise makes the chain trustworthy for the package's own data.**
+
+**WHAT IT DOES NOT REOPEN, EACH NAMED SO THE RULING IS NOT READ WIDER THAN IT IS.**
+- **The VERDICT-level mutation-independence stands** (`storeroom-json-crossing/contract.md`'s 2026-10-24 amendment,
+  items 1–8): **pollution of this or a foreign realm's `Object.prototype`/`Array.prototype` must not change the
+  admit/refuse verdict for a lawful value.** That clause is about a **caller's** value and it is unchanged.
+- **The `F8-2` write-half work stands** (`appendOwn` at ~70 sites, `napi_define_properties` in the codec, the
+  null-prototype wire nodes): it is what makes a **supplied** value safe.
+- **The Rust-boundary work stands** (`D-35`'s second half): the carriers validate, the cast now receives
+  null-prototype nodes, and `fail()` no longer rebuilds a refusal out of a caller's chain.
+
+**THE ONE RESIDUAL IT ACCEPTS, STATED SO IT IS NOT DISCOVERED.** **A client who deletes or redefines
+`Array.prototype.slice` gets a raw host `TypeError` out of a lawful `write`** — measured — **and that is accepted
+behaviour rather than a defect**, because the premise is that the realm's builtins are intact. **`written.triggered`
+is the most exposed of those sites and the one to name if the premise ever moves.**
+
+**STATE OF THE DEBT LIST: EMPTY.** The five known debts were closed before this ruling (the read-side audit's 16
+caller-supplied sites, `removeConstraint`'s declared member set, `errorMessage` measured sound, `E2E-C-2`'s title, and
+the one skip explained), and **this ruling closes the sixth question rather than leaving it open.**
