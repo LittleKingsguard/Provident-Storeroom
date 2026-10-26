@@ -994,6 +994,32 @@ copy).
 
 ### §12.2 Detaching or rebinding a store member
 
+**⟶ CORRECTED 2026-10-26, AND THIS IS THE ONE ENTRY OF THIS CHAPTER WHOSE READING NO LONGER BINDS AT THE
+DETACHMENT HALF: a detached call is now REFUSED. THE AS-FILED TEXT BELOW STANDS BYTE FOR BYTE AND IS READ
+THROUGH THIS CLAUSE — `RCA-8(g)` ANNOTATE-BESIDE — so a client who quoted it is not left with a silent
+reversal.**
+
+**WHAT REPLACED IT, MEASURED ON THE FIXED TREE:** **every one of the fourteen members that CAN refuse a
+detached call now refuses it in the ONE plain form** — `{status: 'AddressMalformed', message: "the receiver
+position is not the store object this addon's storeCreate returned", log: []}` — **and moves no state**.
+**The twelve that carry the receiver arm answer those exact bytes**: the seven store-reaching verbs (`read`,
+`readLiteral`, `write`, `delete`, `rollback`, `listen`, `unlisten`), the four constraint members
+(`addConstraint`, `removeConstraint`, `constraintOn`, `constraintOff`, which until this date ANSWERED — two
+of them editing the store's pair registry — or threw the constraint methods' `TypeError`) and
+`removeListener`. **`register` keeps its own domain refusal** (the handle-domain arm, `AddressMalformed`, its
+own message) where the handle is not one the instance holds, **which is the arm the ruling keeps rather than
+replaces**; a detached `register` whose handle the entry DOES hold still answers and still moves that entry,
+because that member's re-install path hands the entry's own published receiver rather than the call's.
+**`constraints()` still answers a detached read** — its arity is `0`, its own clause declares it *"THROWS
+NOTHING"* (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f)), and it performs no store call and changes
+no node, so the state half of the promise holds at it and the refusal half has nothing to refuse.
+
+**WHY IT IS NO LONGER OUT OF SCOPE:** the architect *"Run the fix by rejecting the detached functions."*
+**The detached call is not defended because your realm is yours — it is refused because the ANSWER it was
+giving was a state edit against a store the call had already lost: `constraints()` read what a detached
+`addConstraint` had carried, and a bound write at that address evaluated a function nobody had lawfully
+registered. A refusal is what the seven verbs had always answered; the four outliers were the defect.**
+
 **WHAT BREAKS:** **`const { read } = store; read(['x'])` resolves NO receiver.** **Measured 2026-10-26:** the seven
 store-reaching verbs (`read`, `readLiteral`, `write`, `delete`, `rollback`, `listen`, `unlisten`) answer the one
 declared refusal — `{status: 'AddressMalformed', message: "the receiver position is not the store object this
@@ -1009,6 +1035,11 @@ defends parameter access and the Rust boundary, not the mutability of its own pr
 **always call a member on the receiver — never destructure one, never pass one as a callback, and never assign to
 one.** **And do not rely on the detachment being detected:** for three of the fourteen it is not detected at all,
 and for two more the answer is the constraint methods' `TypeError` rather than the one form.
+**⟶ AND THE REBOUND HALF IS UNMOVED AND IS STILL OUT OF SCOPE** (`D-35`, `D-36`): `store.read = fn` still succeeds,
+still answers your own function, and the package still raises nothing — **rebinding is client scope and is not
+detected, before this correction and after it.** **The detachment half is what moved: do not rely on a detached
+call being DETECTED as a call at all — it is refused before it reads or edits anything, which is the answer that
+keeps `constraints()` and the store's own home entry exactly as they stood.**
 
 ### §12.3 Freezing or sealing a store
 

@@ -1,10 +1,10 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `8`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
 import { types } from 'node:util';
-import { appendOwn, refusalLog } from './refusal.mjs';
+import { appendOwn, fail, refusalLog } from './refusal.mjs';
 import { withAddon, require_ } from './artefact.mjs';
 import { classSpelling, isAdmittedArray, isPlainObjectValue } from './class-decision.mjs';
 import { constraintAddress } from './frame.mjs';
-import { homeAddressKey } from './state.mjs';
+import { homeAddressKey, isStoreReceiver } from './state.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 // THE POST-CREATION CONSTRAINT SET — `surface.md §2.12` items 1–5, `A126` (2026-10-16), AND ITS TWO ROUTES
@@ -206,6 +206,55 @@ export function withEmptyLog(error) {
     configurable: true,
   });
   return error;
+}
+
+/// **THE ONE MESSAGE THE RECEIVER ARM CARRIES, SPELLED HERE ONCE** — the addon's `not_a_receiver`
+/// (`bindings/js/src/facade.rs`), whose bytes the seven store-reaching verbs' detached calls already answer
+/// with, and which the four constraint members now answer with BYTE FOR BYTE.
+///
+/// **IT IS A SECOND SPELLING OF A SENTENCE THE RUST HALF ALREADY CARRIES, AND THE REASON IS NAMED RATHER
+/// THAN LEFT TO THE READER:** the seven verbs get this refusal for free — they hand the call's own `this` to
+/// their own entry and the facade answers `not_a_receiver` before any store act — while **the four
+/// constraint members reach NO addon entry at all** (the artefact's export set is the nine verbs and no
+/// constraint verb exists, `export-set-and-dispatch.md §1`), so there is no entry to hand a receiver to. **A
+/// call on a bad receiver cannot be answered by the facade without reaching a store verb the member does not
+/// own**, and no store act may be reached on a refused call, so the form is built on this side by the one
+/// function every other refusal on this surface is built by (`fail`).
+const RECEIVER_POSITION_MESSAGE = 'the receiver position is not the store object this addon\'s storeCreate returned';
+
+/// **⟶ ADDED 2026-10-26 ON THE ARCHITECT'S RULING (*"Run the fix by rejecting the detached functions."*): THE
+/// RECEIVER GUARD THE SEVEN STORE-REACHING VERBS ALREADY TAKE, TAKEN BY THE FOUR CONSTRAINT MEMBERS — FIRST,
+/// BEFORE ANY READ OR EDIT.**
+///
+/// **THE DEFECT IT CLOSES, MEASURED BEFORE IT EXISTED** (`docs/guides/package-use.md §12.2`): **one
+/// lawful-but-detached call was answered THREE DIFFERENT WAYS ACROSS THIS PACKAGE'S OWN SURFACE.** The seven
+/// store-reaching verbs answered the one receiver refusal; **detached `addConstraint` ANSWERED and edited
+/// this instance's real pair registry** — which `constraints()` then read — **detached `removeConstraint`
+/// deleted a standing pair**; and **the detached toggles threw the constraint methods' `TypeError`** — an
+/// `Error`, `status` absent, which is neither the surface's one form nor a store code. **So the arm that was
+/// missing was not a style question: a call with no receiver moved STATE.**
+///
+/// **WHICH FORM, AND WHY IT IS THE SEVEN'S AND NOT A CONSTRAINT CLAUSE'S.** No constraint clause names a
+/// receiver arm to take: `docs/specs/storeroom-constraints/contract.md` carries no receiver clause at all
+/// (its failure channel is the `KC` channel, `§5.3`, whose subject is a PASS's refusal and never a call's
+/// shape), `docs/specs/storeroom-js/surface.md §2.6` is MOVED OUT with a one-line pointer, and `§2.7` is
+/// listener delivery. **SO THE SEVEN'S FORM GOVERNS ITSELF**: `status` the store's `AddressMalformed`, the
+/// one message above, and `log: []` — the third member `§2.5` item 4 declares on every arm whose cause has no
+/// attempt at all.
+///
+/// **THE INSTANT IS THE WHOLE OF THE ATOMICITY**: this test is taken as the member's FIRST act, **before its
+/// position tests, before `openCommit`, before any read of `state.constraints` and before any `K-1`/`K-6`**, so
+/// a refused call cannot carry, overwrite, toggle, purge or delete anything and `constraints()` reads exactly
+/// what it read before. **THE TEST ITSELF TOUCHES NO STORE**: `isStoreReceiver` is an identity read against
+/// this package's own `INSTANCES` row and the published `state.receiver` (`receiver-and-refusal.md §3`'s one
+/// arm), and it mints no token, appends no journal entry and reaches no kernel.
+///
+/// **AND THE ONE READING IT DOES NOT TAKE IS DECLARED WITH IT** (`D-35`/`D-36` stand): a REBOUND member —
+/// `store.addConstraint = fn` — is the client's own function and is not detected here or anywhere else; this
+/// guard refuses a call whose receiver names no live store, and the object model is not hardened by it.
+export function constraintDetached(receiver) {
+  if (isStoreReceiver(receiver)) return;
+  fail({ status: 'AddressMalformed', message: RECEIVER_POSITION_MESSAGE });
 }
 
 /// **A POSITION BELOW THE DECLARED ONE — `docs/specs/storeroom-js/surface.md §2.12` item 4 AND `§2.4` item 9 (f)'s RULE (ii): a SHORT ARITY

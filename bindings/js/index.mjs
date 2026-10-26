@@ -89,7 +89,7 @@ import { encodeAddress, encodeFilePath, encodeJournalLength, encodeOpId, encodeT
 import { admittedConstraintBatch, constraintAddress, decodeBaseState, decodeJournalOp, decodeSegments, decodeValue, encodeConfig, spellConstraintAddress } from './src/entry/frame.mjs';
 import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, carryRefusal, closeCommit, crossTriggered, entryOf, homeAddressKey, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
 import { commitPositionRefusal, constraintOverwrittenByListen, deliver, listenerStandingAt, registerOn, terminalArm } from './src/entry/delivery.mjs';
-import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintWrite, constraintsKernel, enumerateConstraints, registrationCrossing, restoreHeldPair, unionAddressSets, withEmptyLog, withdrawStanding } from './src/entry/constraints.mjs';
+import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintWrite, constraintsKernel, enumerateConstraints, registrationCrossing, restoreHeldPair, unionAddressSets, withEmptyLog, withdrawStanding } from './src/entry/constraints.mjs';
 const require_ = createRequire(import.meta.url);
 const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node');
 
@@ -743,6 +743,17 @@ export function storeCreate(cfg) {
      * THE IDENTITY AND NOT THE ENTRY RECORD (`PAR-JS-25`'s opacity, `carryConstraint` above).
      */
     addConstraint(pair, constraint) {
+      // ═════════════════════════════════════════════════════════════════════════════════════════════════
+      // **⟶ THE RECEIVER IS CONSULTED FIRST — BEFORE ANY READ, BEFORE ANY EDIT, AND BEFORE THE COMMIT
+      // BRACKET.** This member reached every one of its arms off this factory's closure and never asked
+      // whether the CALL had a receiver, so a detached `addConstraint` ANSWERED and edited the real pair
+      // registry (measured 2026-10-26; `docs/guides/package-use.md §12.2`). **THE GUARD IS THE SEVEN
+      // STORE-REACHING VERBS' OWN, ITS FORM IS THEIRS BYTE FOR BYTE, and `constraintDetached` states both
+      // and why no constraint clause names a different arm** (`src/entry/constraints.mjs`; the architect's
+      // ruling: *"Run the fix by rejecting the detached functions."*). **NO STATE MOVES ON A REFUSED CALL:
+      // no `openCommit`, no `constraintSite`, no registry read, no `K-1`, no store act.**
+      // ═════════════════════════════════════════════════════════════════════════════════════════════════
+      constraintDetached(this);
       // **⟶ `§4.1`: `addConstraint` OPENS ONE.**
       const opened = openCommit(instance);
       try {
@@ -888,6 +899,12 @@ export function storeCreate(cfg) {
      *     THE ENTRY DOES NOT CARRY takes `constraintUncarried`'s (`A126`).
      */
     constraintOn(pair, constraint) {
+      // **⟶ THE RECEIVER, FIRST AND BEFORE ANY READ OR EDIT** — the guard `addConstraint` now takes, taken
+      // here for the same reason and in the same form (`constraintDetached`, `src/entry/constraints.mjs`).
+      // **A DETACHED TOGGLE THREW THE CONSTRAINT METHODS' `TypeError` BEFORE THIS LINE EXISTED**, which is
+      // neither the surface's one form nor a store code; it now refuses in the seven's one plain form and
+      // moves nothing — no `openCommit`, no pair read, no `K-1`.
+      constraintDetached(this);
       // **⟶ `§4.1`: `constraintOn` OPENS ONE — ENABLING.**
       const opened = openCommit(instance);
       try {
@@ -969,6 +986,11 @@ export function storeCreate(cfg) {
     },
     /// `surface.md §2.12` item 2 (a): **`a.constraintOff(pair, constraint) -> undefined`** — the DISABLE half.
     constraintOff(pair, constraint) {
+      // **⟶ THE RECEIVER, FIRST AND BEFORE ANY READ OR EDIT** — `constraintOn`'s guard beside it, and the
+      // reason is the same one: this member reached `K-6` off this factory's closure, so a detached call
+      // would purge the pair's store-side entry. **IT REFUSES IN THE SEVEN'S ONE PLAIN FORM AND MOVES
+      // NOTHING** (`constraintDetached`, `src/entry/constraints.mjs`).
+      constraintDetached(this);
       const verb = 'constraintOff';
       const site = constraintSite(state, verb, arguments.length, pair, constraint);
       const entry = site.state.constraints.get(constraintPairKey(site.addresses, site.id));
@@ -1117,6 +1139,15 @@ export function storeCreate(cfg) {
     /// remove member's own thrown form with a verbose message (`contract.md §2.7` item 5; `removal-members.md §5`
     /// row 1).
     removeConstraint(pair) {
+      // ═════════════════════════════════════════════════════════════════════════════════════════════════
+      // **⟶ THE RECEIVER IS CONSULTED FIRST — A DETACHED `removeConstraint` DELETED A STANDING PAIR BEFORE
+      // THIS LINE EXISTED** (measured 2026-10-26; `docs/guides/package-use.md §12.2): the pair's row left
+      // `state.constraints`, its store-side entry was purged through `K-6`, and the call answered
+      // `undefined`. **THE GUARD IS THE SEVEN STORE-REACHING VERBS' OWN AND ITS FORM IS THEIRS BYTE FOR BYTE**
+      // (`constraintDetached`, `src/entry/constraints.mjs`) — **and it is taken BEFORE step 1's position
+      // tests, which is what makes the atomicity of a refused call its POSITION and not its care.**
+      // ═════════════════════════════════════════════════════════════════════════════════════════════════
+      constraintDetached(this);
       // ── STEP 1: VALIDATE. ────────────────────────────────────────────────────────────────────────────────
       // **⟶ THIS BLOCK IS `removeConstraint`'S OWN, AND THE SENTENCE BELOW IS A CONTINUATION OF ITS SUBJECT:
       // ONE POSITION, THE PAIR — ITS `address` READ AT THE TWO DECLARED SPELLINGS AND AT NO THIRD** (`contract.md
