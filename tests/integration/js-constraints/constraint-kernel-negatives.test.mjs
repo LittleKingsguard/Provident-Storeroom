@@ -818,7 +818,16 @@ test('ck_p_neg_20_a_throwing_body_over_a_compacted_base_leaves_the_one_outcome_e
     }, message: 'y is violated by the committed value' };
     return true;
   }));
-  register(store, address, 'x', passAtRegistration(() => { throw fromTheBody; }));
+  register(store, address, 'x', passAtRegistration((ctx) => {
+    // **⟶ RE-DERIVED 2026-10-26 (`D-40`, 2026-10-26): THE COMPACTED BASE IS LEFT BY THE CALLER'S OWN ACT
+    // INSIDE THE PASS.** `D-40`'s composition is ONE call over the attempt's first op, so the two-call
+    // producer of a compacted residue is gone; the body below reaches the store's own `rollback` verb over
+    // the op its landing left (`ctx.op`) BEFORE it throws, which puts that compacted entry inside the
+    // attempt's floor call's own temporally bounded candidate set — the genuine, in-scope floor arm `M-6`
+    // names. The BODY'S OWN THROWABLE still reaches the caller unchanged.
+    if (ctx.op !== null && ctx.value === 'y-fixed') store.rollback(ctx.op.opId);
+    throw fromTheBody;
+  }));
   const record = commit(store, address, 'mem', 'v');
   const r = capture(() => runAttempt(store, record));
   assert.equal(r.threw, true, 'the attempt ends at the body\'s throw');
@@ -844,6 +853,23 @@ test('ck_p_neg_20_a_throwing_body_over_a_compacted_base_leaves_the_one_outcome_e
     + JSON.stringify(outcomes[0].message) + ' (`§2.6` item 6 (a); `kernel-surface.md §2.5` item 1\'s '
     + 'message table, the `outcome` row)');
   assert.equal(outcomes[0].id, null, 'and the entry names no constraint: its `id` is `null`');
+  assert.equal(failed[0].opId, closed.ops[0].opId,
+    'AND THE FAILING CALL IS THE ATTEMPT\'S ONE FLOOR CALL, ADDRESSED AT ITS FIRST OP (`D-40`, '
+    + '2026-10-26) — read ' + `${JSON.stringify(failed[0].opId)} against ${JSON.stringify(closed.ops[0].opId)}`);
+  // **AND THE FLOOR STATE BESIDE THE TOKEN**: `M-6` restores NOTHING where it is met, so the store answers
+  // what the caller's own reversal left — the value the attempt's own commit landed.
+  let n20Floor;
+  try {
+    n20Floor = { present: true, value: store.read(address) };
+  } catch (refused) {
+    n20Floor = { present: false, code: refused.status };
+  }
+  assert.equal(n20Floor.present, true,
+    'AND THE STORE ANSWERS WHAT THE FLOOR LEFT AND NOT A RESTORED STATE (`§2.6` item 6 (c): "NOTHING IS '
+    + 'RESTORED") — read ' + JSON.stringify(n20Floor));
+  assert.equal(n20Floor.value, 'v',
+    'the value the attempt\'s own commit landed, which the caller\'s own reversal restored and the floor '
+    + 'then left standing — read ' + JSON.stringify(n20Floor.value));
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════

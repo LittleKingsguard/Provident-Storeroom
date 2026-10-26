@@ -132,139 +132,82 @@ export function close(kernel, attempt, outcome) {
 }
 
 /**
- * `composition-and-states.md §2.6` ITEM 2, ITEM 5 (a) AND ITEM 8 (iii) — THE PER-OP ROLLBACK COMPOSITION.
+ * `composition-and-states.md §2.6` ITEM 2, ITEM 5 (a) AND ITEM 8 (iii) — THE PER-OP ROLLBACK COMPOSITION,
+ * TAKEN AS **ONE CALL**.
  *
- * THE CALL LIST IS ITEM 2'S OWN ON BOTH ARMS — `A111`'s RE-SPELLING, WHICH SUPERSEDES BY NAME THE
- * SINGLE-OP READING OF ITEM 8 (iii)'S *"THE ATTEMPT'S FIRST OP ALONE"* SENTENCE — AND THE KERNEL ISSUES
- * ONE CALL PER STILL-OWED OP: THE NUMBER OF CALLS ISSUED IS THE NUMBER OF STEPS RECORDED (item 5 (a)
- * (i), item 3).
+ * **⟶ ONE CALL OVER THE ATTEMPT'S FIRST OP, AND THE WALK IS GONE — `D-40` (2026-10-26), `strata/decisions.md`
+ * · *"A failing repair triggers a rollback like a constraint rejection."* AND ITS IMPLEMENTATION FINDING'S
+ * FLOOR LAW IS THE REASON THE WALK COULD NOT STAND.** **The store's own scope is TEMPORALLY FLOORED at the
+ * named op's `seq` and ALL-OR-NOTHING at the compacted mark** (`src/store.rs`'s `rollback`: a candidate set of
+ * every entry in the addressed subtree at or after the named op's `seq`, then *"the floor is all-or-nothing
+ * and undoes NOTHING"* where ANY candidate is compacted — `M-5` item 1's amendment (a) (ii); `M-6`). **SO A
+ * NEWEST-FIRST WALK CAN NEVER REACH THE FLOOR ONCE A REPAIR OP EXISTS:** the first call over the repair's op
+ * reverses it AND MARKS IT COMPACTED, and the second call — over the write's op, whose candidate set now
+ * CONTAINS that compacted entry — is answered `RollbackCompacted` and **undoes nothing**. The measured arm:
+ * seed `5`, refused `9`, repair `1`, and the store left holding `9`, the value the constraint REFUSED.
+ * **THE ONE CALL OVER THE ATTEMPT'S FIRST OP SWEEPS THE WHOLE ATTEMPT IN ONE STORE ACT** — every op of the
+ * attempt stands at or after that op's `seq` — so the attempt's floor is reached, exactly as a plain
+ * constraint rejection reaches it with its own single-op composition. **THIS IS ALSO ITEM 2'S OWN LAST CALL**
+ * (the repaired ops in reverse of their creation, *"and the attempt's first write's op LAST"*): the walk's
+ * last entry is the call that is now the only one, and the calls before it were the ones the floor law had
+ * already made unsound. **NO ARM'S OUTCOME IS RE-SHAPED BY THE REDUCTION:** a plain rejection still leaves
+ * the pre-attempt state, a repair answering `{ok: false}` still leaves it, and a PASSING repaired write still
+ * lands its repaired value and composes nothing.
  *
- * (1) THE ORDER (item 2, declared by the kernel and by nothing store-side): **the repaired ops
- *     first, in REVERSE of the order they were created, and the attempt's first write's op LAST** —
- *     "so the composition is `ops` minus its first entry, reversed, then that first entry last, and the
- *     order is TOTAL over `ops`". SO THE CALL LIST'S FIRST CALL IS THE LIST'S LAST ENTRY — THE ATTEMPT'S
- *     OWN FIRST OP. AND WHERE THE `checkpoint` MEMBER NAMES AN OP THE LIST IS FIXED AT COMPOSITION TIME
- *     AS `ops` UP TO AND EXCLUDING THAT OP, REVERSED; THE STOP OP IS NEVER PASSED, because no call is
- *     issued over the `checkpoint` op or over anything at or before it (item 4's reach/stop clause,
- *     item 5 (b)) — and the `checkpoint` op is not a member of the list, not an op the walk re-shapes it
- *     against.
+ * **THE `checkpoint` MEMBER MOVES NO CALL.** Item 1's filter fixes the call list as `ops` up to and excluding
+ * the `checkpoint` op, and the list's LAST entry is the attempt's first op whenever the list is non-empty —
+ * so the ONE call this composition issues is the one the list's own tail named. **A LIST WHOSE FIRST OP IS THE
+ * `checkpoint` OP IS EMPTY AND OWES NO CALL**: an attempt whose first landing left the last valid state has
+ * nothing older than that landing to reverse, and no call is issued.
  *
- * (2) AN OP AN EARLIER RETURNED CALL'S OWN `undoneOps` MEMBER ALREADY REPORTS UNDONE IS NOT A STILL-OWED
- *     OP: the kernel ISSUES NO CALL over it and records NO step for it (item 5 (a)'s skip clause and its
- *     `VF-10` bullet, whose worked case is the live run's own `E2E-C-2.7`, where the second call over an
- *     op the first call had already reversed was answered `RollbackCompacted` and left the address's
- *     entry standing). THE PREDICATE IS THE STORE'S OWN MEMBER AND NEVER AN INFERENCE ABOUT WHAT A LATER
- *     CALL WOULD DO, and `performed` holds it: the `opId`s EARLIER RETURNED CALLS REPEATED — a THROWING
- *     call undoes nothing (`undoneOps: []`), so it can never put an op on that list. THE STEP COUNT IS
- *     THEREFORE THE CALLS ISSUED AND MAY RUN BELOW THE LIST'S SIZE.
+ * **THE STEP IS THE STORE'S OWN REPORT** (`§2.6` item 3): `answer` is THE LITERAL `'ok'` where the call
+ * RETURNED and THE STORE'S OWN CODE where it THREW; `undoneOps` is the store's own report of the reversals it
+ * performed, and `[]` on the throwing arm, where nothing was undone; `restoredTo` is the store's
+ * `RollbackResult.restoredTo` on the returning arm and, on the throwing arm, THE STATE THE NAMED OP'S OWN
+ * SUBTREE STOOD AT read through the store's own `read` verb — a TWO-MEMBER `BaseState` on BOTH arms; and
+ * `checkpoint` is the attempt's ONE value. **THE COMPOSITION THEREFORE RECORDS ONE STEP WHERE IT ISSUED ONE
+ * CALL**, and the report's `rollback` carries the rollback that actually happened.
  *
- * SO THE WALK NEVER STOPS SHORT OF AN OP IT STILL OWES: `failed` is THAT CALL'S OWN ANSWER (`true` iff
- * it threw), a `true` step carries no claim that the walk stopped, and an op the walk never reached
- * carries no step at all because no call was issued over it.
- *
- * THE ONE MEMBER THE STORE'S OWN REPORT IS READ FOR BESIDE THE SKIP IS THE FLOOR (`item 5 (b)`): an op
- * the composition STILL OWES — one whose `opId` stands in NO earlier step's `undoneOps` member — whose
- * call fails either floor code is `KC-8`. `KC-8` is answered in the attempt's ONE `outcome` entry,
- * naming the store's own code, and the composition STOPS at that failing call: no call is issued over an
- * op after it (item 6 (a); `fail-surface.md §2`'s `KC-8` row).
- *
- * EACH STEP'S MEMBERS ARE THE STORE'S OWN (`§2.6` item 3): `answer` is THE LITERAL `'ok'` where the call
- * RETURNED and THE STORE'S OWN CODE where it THREW; `undoneOps` is the store's own report of the
- * reversals it performed, and `[]` on the throwing arm, where nothing was undone; `restoredTo` is the
- * store's `RollbackResult.restoredTo` on the returning arm and, on the throwing arm, THE STATE THE NAMED
- * OP'S OWN SUBTREE STOOD AT read through the store's own `read` verb — a TWO-MEMBER `BaseState` on BOTH
- * arms; and `checkpoint` is the attempt's ONE value, on every step of the attempt.
+ * **THE FLOOR (`item 5 (b)`) IS STILL THE STORE'S OWN CODE AND STILL `KC-8`**: a call that throws either floor
+ * code is the arm's answer, named in the attempt's ONE `outcome` entry, and nothing is restored (item 6 (a);
+ * `fail-surface.md §2`'s `KC-8` row). **THE ARM IS UNMOVED AND IS NO LONGER A CONSEQUENCE OF THE WALK'S ORDER
+ * — it is the store's answer to the attempt's own floor call.**
  */
 function composeRollback(kernel, attempt) {
-  // (1) THE CALL LIST, FIXED WHEN THE COMPOSITION BEGINS AND IN ITEM 2'S OWN ORDER ON BOTH ARMS: `ops`
-  // up to and excluding the `checkpoint` op where the member NAMES one (so the stop op is no member of
-  // the list at all), REVERSED — the repaired ops in reverse of their creation and THE FIRST WRITE'S OP
-  // LAST. Where the member is `null` the list is the whole of `ops` under that same order.
-  const callList = [];
-  for (const op of attempt.ops) {
-    if (attempt.checkpoint !== null && op.opId === attempt.checkpoint) break;
-    appendOwn(callList, op);
+  // THE CALL: the attempt's own first op, which every later op of the attempt stands at or after. An attempt
+  // with no op at all owes no call, and nor does one whose `checkpoint` op IS its first op — item 1's filter
+  // leaves that list empty and the composition records no step for it.
+  if (attempt.ops.length === 0) return null;
+  const first = attempt.ops[0];
+  if (attempt.checkpoint !== null && first.opId === attempt.checkpoint) return null;
+  let answer = 'ok';
+  let failed = false;
+  let record = null;
+  try {
+    record = attempt.store.rollback(first.opId);
+  } catch (thrown) {
+    failed = true;
+    answer = thrown !== null && typeof thrown === 'object' && typeof thrown.status === 'string'
+      ? thrown.status
+      : 'the call threw';
   }
-  callList.reverse();
-  // THE REVERSALS EARLIER RETURNED CALLS PERFORMED — the store's own reports, the only member item 5's
-  // "still owes" predicate (and item 5 (a)'s skip) is decided by.
-  //
-  // ⟶ AND THE PREDICATE IS THE MEMBER ALONE, READ AGAINST THE SET IT NAMES — CORRECTED 2026-10-17, AT THE
-  // TEMPORAL-STOP AMENDMENT, AND THE CORRECTION IS NAMED WITH WHAT IT WAS AND WHAT IT IS BECAUSE THIS IS
-  // THE ONE KERNEL EDIT THE AMENDMENT OWES. **WHAT IT WAS:** the guard below was
-  // `!performed.includes(op.opId)`, which is the same reading ONLY WHILE THE STORE'S PER-OP REACH WAS
-  // TOTAL OVER THE WHOLE ADDRESSED SUBTREE — under that reach an op's ABSENCE from every earlier
-  // `undoneOps` member proved a call still owed it, because a call's `undoneOps` was the whole of what lay
-  // under its own op. **WHAT IT IS:** under the amended scope an entry `E` is in scope iff `op.address` is
-  // a prefix of `E.address` **AND** `E.seq` >= the named op's own `seq` (`A: docs/specs/storeroom-native/
-  // write-and-read.md §6.4` item 1's `M-5` amendment and item 3's `M-7` amendment, both 2026-10-16;
-  // `A: docs/decisions.md` · the architect's rulings *"Add temporal stop to the rollback."* and
-  // *"Overshoot is a defect."*), so the store's own walk **STOPS AT THE NAMED OP** — this composition
-  // passes ops in reverse creation order, so an op it has already passed is OLDER than every op a later
-  // call names, is IN THE ADDRESSED SUBTREE AND OUT OF SCOPE, and the store does NOT report it undone by
-  // that later call. The skip's premise is therefore void exactly there, and a still-owed op whose `opId`
-  // stands in no earlier `undoneOps` member **GETS ITS OWN CALL.**
-  //
-  // **THE RULE ABOVE THIS LINE IS UNCHANGED AND SO IS ITS OBSERVABLE — WHICH IS WHAT THE AMENDED CLAUSE
-  // DECLARES AT ITS OWN SITE** (`composition-and-states.md §2.6` item 5 (a)'s 2026-10-16 mark: *"a call's
-  // totality is TOTAL OVER THE TEMPORALLY BOUNDED SET and never over the whole addressed subtree"*, and
-  // *"the kernel still reads only the returned `undoneOps` member and still reasons about no mark"*): the
-  // kernel derives NOTHING from a cross-call premise below. The guard reads the step index `i` instead of
-  // `op.opId` for the ONE reason the two differ and this file's own work loop needs them to: a composition
-  // may in principle receive one `opId` twice (every arm this unit drives holds unique ids), and step `i`
-  // is the step a call over the `i`-th member ISSUED — the op's own id is what the store was NAMED, never
-  // which member it was. **NO CLAUSE MOVES WITH IT: the step count stays the calls ISSUED, `failed` stays
-  // that call's own answer, no mark is consulted and the walk still stops at the failing call.**
-  const performed = [];
-  const recorded = [];
-  let floor = null;
-  for (let i = 0; i < callList.length; i += 1) {
-    const op = callList[i];
-    // (2) THE SKIP: an op an earlier returned call's own `undoneOps` already reports undone is not still
-    // owed, so NO call is issued over it and no step stands for it (item 5 (a)) — and under the amended
-    // scope that is the WHOLE of it: absence from the member is evidence of nothing beyond the store's own
-    // performed set, so an op the member does not name GETS ITS OWN CALL.
-    if (recorded.includes(i)) continue;
-    let answer = 'ok';
-    let failed = false;
-    let record = null;
-    try {
-      record = attempt.store.rollback(op.opId);
-    } catch (thrown) {
-      failed = true;
-      answer = thrown !== null && typeof thrown === 'object' && typeof thrown.status === 'string'
-        ? thrown.status
-        : 'the call threw';
-    }
-    if (failed && floor === null && STORE_FLOOR_CODES.includes(answer)) {
-      floor = { opId: op.opId, code: answer };
-    }
-    const undoneOps = record !== null && Array.isArray(record.undoneOps) ? record.undoneOps : [];
-    appendOwn(attempt.rollback, {
-      opId: op.opId,
-      answer,
-      failed,
-      undoneOps,
-      // THE THROWING ARM CANNOT READ A RETURNED `RollbackResult`: the state stands at the NAMED OP's own
-      // subtree, read at the store's own verb (item 3).
-      restoredTo: record !== null && record.restoredTo !== undefined && record.restoredTo !== null
-        ? record.restoredTo
-        : baseState(attempt.store, op.address),
-      checkpoint: attempt.checkpoint,
-    });
-    for (const undone of undoneOps) {
-      if (!performed.includes(undone)) appendOwn(performed, undone);
-      // THE STEPS THAT ARE ALREADY — RECORDED BY THE MEMBER'S OWN NAMES, WHICH IS THE PREDICATE'S ONE
-      // SOURCE (`item 5 (a)`, unmoved): an op this member names is one this composition has performed.
-      for (let at = i + 1; at < callList.length; at += 1) {
-        if (callList[at].opId === undone && !recorded.includes(at)) appendOwn(recorded, at);
-      }
-    }
-    // AND THE WALK STOPS AT THE FAILING CALL: a call that met either floor code is the composition's
-    // LAST — "the walk STOPS at the failing call" (`§2.6` item 6 (a); `fail-surface.md §2`'s `KC-8`
-    // row), so no call is issued over an op after it and none of those ops carries a step.
-    if (floor !== null) break;
-  }
+  // THE FLOOR, TAKEN OFF THE STORE'S OWN CODE AND OFF NOTHING ELSE (`§2.6` item 5 (b)).
+  const floor = failed && STORE_FLOOR_CODES.includes(answer)
+    ? { opId: first.opId, code: answer }
+    : null;
+  const undoneOps = record !== null && Array.isArray(record.undoneOps) ? record.undoneOps : [];
+  appendOwn(attempt.rollback, {
+    opId: first.opId,
+    answer,
+    failed,
+    undoneOps,
+    // THE THROWING ARM CANNOT READ A RETURNED `RollbackResult`: the state stands at the NAMED OP's own
+    // subtree, read at the store's own verb (item 3).
+    restoredTo: record !== null && record.restoredTo !== undefined && record.restoredTo !== null
+      ? record.restoredTo
+      : baseState(attempt.store, first.address),
+    checkpoint: attempt.checkpoint,
+  });
   return floor;
 }
 

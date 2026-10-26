@@ -659,12 +659,28 @@ test('ck_prop_P_SM_6_an_applied_repair_never_runs_twice_within_one_attempt', asy
       // token, because the composition MEETS it (`§2.6` item 6 (a): "THE FLOOR GOVERNS — this clause's
       // rule is applied to EVERY path on which the attempt's own composition meets the floor"), the
       // amended `M-5` leaving a compacted residue the next call meets.
-      assert.equal(r.thrown.status, KC[8],
+      // ── **⟶ RE-DERIVED 2026-10-26 TO THE RULING AND NOT TO THE BYTES — `strata/decisions.md` · `D-40`
+      // (2026-10-26), VERBATIM: *"A failing repair triggers a rollback like a constraint rejection."* THE
+      // DIRECTION THIS EXPECTATION MOVED: `KC-5` → `KC-8` on 2026-10-16 (the two-call walk met the floor), and
+      // `KC-8` → `KC-5` here, `D-40`'s ONE call over the attempt's first op having performed the reversal.**
+      assert.equal(r.thrown.status, KC[5],
         'the pair repeated AND its own repair had already been recorded as applied — limb (i) — and the '
-        + 'carrier reads the floor the composition met (`§2.6` item 6 (a)): read '
-        + `${JSON.stringify(r.thrown.status)}`);
-      assert.equal(entries(r.thrown.log, 'outcome')[0].state, KC[8],
+        + 'carrier reads that limb\'s own token, the composition\'s one floor call having performed the '
+        + 'reversal (`D-40`, 2026-10-26): read ' + `${JSON.stringify(r.thrown.status)}`);
+      assert.equal(entries(r.thrown.log, 'outcome')[0].state, KC[5],
         'and the outcome entry carries the SAME token by identity (`fail-surface.md §1.1` item 1 (c))');
+      // **AND THE FLOOR STATE BESIDE THE TOKEN**: the attempt leaves its fresh address exactly as it found
+      // it — the store's own absence (`D-40`, 2026-10-26).
+      let limbFloor;
+      try {
+        limbFloor = { present: true, value: store.read(address) };
+      } catch (refused) {
+        limbFloor = { present: false, code: refused.status };
+      }
+      assert.equal(limbFloor.present, false,
+        'AND THE STORE ANSWERS THE STATE THAT STOOD BEFORE THE ATTEMPT — read ' + JSON.stringify(limbFloor));
+      assert.equal(limbFloor.code, 'AddressNotFound',
+        'and names that absence with its own code (`§2.6` item 8 (iii)) — read ' + JSON.stringify(limbFloor.code));
       assert.equal(entries(r.thrown.log, 'repair-run').filter((e) => e.id === 'c1').length, 1,
         'NO REPAIR EVER RUNS TWICE IN ONE ATTEMPT: c1\'s own count is exactly 1 and NEVER 2');
       assert.equal(secondRepairRuns, 0,
@@ -723,17 +739,32 @@ test('ck_prop_P_SM_6_the_two_repeat_limbs_are_distinguishable_by_the_pair_s_own_
       // `appliedRepairs`: the `(f)` limb, whose `observable` is the pair's own `constraint-check` count
       // of `2` and never `3` (`composition-and-states.md §2.7`'s fail-state list; `fail-surface.md §2`'s
       // `KC-6` row).
-      assert.equal(r.thrown.status, 'KC-8',
+      // ── **⟶ RE-DERIVED 2026-10-26 (`D-40`, 2026-10-26): `KC-6` IS THE LIMB'S OWN TOKEN AGAIN**, the
+      // composition's ONE call over the attempt's first op having performed the reversal instead of meeting
+      // the floor. The 2026-10-16 pass had moved this window `KC-6` → `KC-8` off the build.
+      assert.equal(r.thrown.status, 'KC-6',
         'a pair in ran whose repair is NOT recorded as applied decides limb (ii) — and the carrier reads '
-        + 'the floor the composition met (`§2.6` item 6 (a)): read ' + JSON.stringify(r.thrown.status));
+        + 'that limb\'s own token (`D-40`, 2026-10-26): read ' + JSON.stringify(r.thrown.status));
       assert.equal(entries(r.thrown.log, 'constraint-check').filter((e) => e.id === 'x').length, 2,
         'and the pair\'s OWN check count is 2 and never 3 — the limb\'s own printed observation');
       assert.equal(entries(r.thrown.log, 'outcome').length, 1,
         'the terminal record carries ONE outcome entry');
-      assert.equal(entries(r.thrown.log, 'outcome')[0].state, 'KC-8',
+      assert.equal(entries(r.thrown.log, 'outcome')[0].state, 'KC-6',
         'the outcome entry carries the same token the form\'s status does (§1.1 item 3)');
       assert.equal(entries(r.thrown.log, 'repair-run').filter((e) => e.id === 'x').length, 0,
         'and its own repair-run count is 0, which is the limb\'s own observation');
+      // **AND THE FLOOR STATE BESIDE THE TOKEN**: this fresh address is left exactly as the attempt found it.
+      let limbFloor2;
+      try {
+        limbFloor2 = { present: true, value: store.read(address) };
+      } catch (refused) {
+        limbFloor2 = { present: false, code: refused.status };
+      }
+      assert.equal(limbFloor2.present, false,
+        'AND THE STORE ANSWERS THE STATE THAT STOOD BEFORE THE ATTEMPT (`D-40`, 2026-10-26) — read '
+        + JSON.stringify(limbFloor2));
+      assert.equal(limbFloor2.code, 'AddressNotFound',
+        'and names that absence with its own code (`§2.6` item 8 (iii)) — read ' + JSON.stringify(limbFloor2.code));
     }),
   });
   assert.deepEqual(result.failures, [],
@@ -1301,11 +1332,28 @@ test('ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op', asyn
         }));
         const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
         assert.equal(r.threw, true, 'a repeat is a failure arm of the closed table');
-        assert.equal(r.thrown.status, 'KC-8',
+        // ── **⟶ RE-DERIVED 2026-10-26 TO THE RULING AND NOT TO THE BYTES — `strata/decisions.md` · `D-40`
+        // (2026-10-26), VERBATIM: *"A failing repair triggers a rollback like a constraint rejection."* THE
+        // DIRECTION THIS EXPECTATION MOVED: `KC-5` → `KC-8` on 2026-10-16 (the two-call walk met the floor), and
+        // `KC-8` → `KC-5` here, `D-40`'s ONE call over the attempt's first op having performed the reversal.**
+        assert.equal(r.thrown.status, 'KC-5',
           'limb (e): the repeated pair\'s repair HAD RUN, so the pair stands in `ran` AND in '
           + '`appliedRepairs` — that is the LIMB this row reads, asserted at the pair\'s own count below — '
-          + 'while the CARRIER reads the floor the composition met (`§2.6` item 6 (a)): read '
+          + 'and the CARRIER reads that limb\'s own token (`D-40`, 2026-10-26): read '
           + JSON.stringify(r.thrown.status));
+        // **AND THE FLOOR STATE BESIDE THE TOKEN**: the attempt leaves its fresh address as it found it.
+        let armFloor;
+        try {
+          armFloor = { present: true, value: store.read(address) };
+        } catch (refused) {
+          armFloor = { present: false, code: refused.status };
+        }
+        assert.equal(armFloor.present, false,
+          'AND THE STORE ANSWERS THE STATE THAT STOOD BEFORE THE ATTEMPT (`D-40`, 2026-10-26) — read '
+          + JSON.stringify(armFloor));
+        assert.equal(armFloor.code, 'AddressNotFound',
+          'and names that absence with its own code (`§2.6` item 8 (iii)) — read '
+          + JSON.stringify(armFloor.code));
         assert.equal(x, 2, 'the pair was evaluated twice: its first evaluation and the repeat');
         assert.equal(repairRunsFor(r.thrown.log, 'x').length, 1,
           'and its repair ran ONCE and never twice — arm (e)\'s own count for that pair');
@@ -1330,11 +1378,27 @@ test('ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op', asyn
       }));
       const r = capture(() => runAttempt(store, commit(store, address, 'mem', 'v')));
       assert.equal(r.threw, true, 'the re-run fails the attempt');
-      assert.equal(r.thrown.status, 'KC-8',
+      // ── **⟶ RE-DERIVED 2026-10-26 (`D-40`, 2026-10-26): `KC-6` IS THE LIMB'S OWN TOKEN AGAIN**, the
+      // composition's ONE call over the attempt's first op having performed the reversal instead of meeting
+      // the floor. The 2026-10-16 pass had moved this window `KC-6` → `KC-8` off the build.
+      assert.equal(r.thrown.status, 'KC-6',
         'limb (f): `x` is in `ran` and NOT in `appliedRepairs` — that is the LIMB this row reads, '
-        + 'asserted at its own count below — while the CARRIER reads the floor the composition met '
-        + '(`§2.6` item 6 (a)): read ' + JSON.stringify(r.thrown.status));
+        + 'asserted at its own count below — and the CARRIER reads that limb\'s own token (`D-40`, '
+        + '2026-10-26): read ' + JSON.stringify(r.thrown.status));
       assert.equal(repairRunsFor(r.thrown.log, 'x').length, 0, 'and no repair of its own ever ran');
+      // **AND THE FLOOR STATE BESIDE THE TOKEN**: the attempt leaves its fresh address as it found it.
+      let limbFFloor;
+      try {
+        limbFFloor = { present: true, value: store.read(address) };
+      } catch (refused) {
+        limbFFloor = { present: false, code: refused.status };
+      }
+      assert.equal(limbFFloor.present, false,
+        'AND THE STORE ANSWERS THE STATE THAT STOOD BEFORE THE ATTEMPT (`D-40`, 2026-10-26) — read '
+        + JSON.stringify(limbFFloor));
+      assert.equal(limbFFloor.code, 'AddressNotFound',
+        'and names that absence with its own code (`§2.6` item 8 (iii)) — read '
+        + JSON.stringify(limbFFloor.code));
       assert.deepEqual(checkIds(r.thrown.log), ['x', 'y', 'x'],
         'so its own entry count under its own key is TWO and never three — `S-SECOND-VIOLATION`\'s own '
         + 'count, read at this arm');
@@ -1494,9 +1558,25 @@ test('ck_prop_P_SM_6_no_repair_budget_or_retry_count_is_the_attempt_s_bound', as
       // GOVERNS — this clause's rule is applied to EVERY path on which the attempt's own composition meets
       // the floor"). **The two repeat limbs' own tokens are no longer reachable through `status` wherever
       // the floor is met; they are read at the pair's own state, which is what this row's count does.**
-      assert.equal(r.thrown.status, 'KC-8',
-        'the bound is the FIRST REPEAT, and the carrier reads the floor the composition met — read '
-        + JSON.stringify(r.thrown.status) + '; `§2.6` item 5 (b) and item 6 (a)');
+      // ── **⟶ RE-DERIVED 2026-10-26 (`D-40`, 2026-10-26): THE CARRIER READS THE REPEAT LIMB'S OWN TOKEN.**
+      // The 2026-10-16 pass read `KC-8` here because its walk met the floor; `D-40`'s ONE call over the
+      // attempt's first op performs the reversal, so `KC-5` — the pair's own repair having run and landed —
+      // is the declared outcome. **The bound this row pins is still the FIRST REPEAT**, read at the count.
+      assert.equal(r.thrown.status, 'KC-5',
+        'the bound is the FIRST REPEAT, and the carrier reads the repeat limb\'s own token (`D-40`, '
+        + '2026-10-26) — read ' + JSON.stringify(r.thrown.status) + '; `§2.6` item 5 (b) and item 6 (a)');
+      // **AND THE FLOOR STATE BESIDE THE TOKEN**: the attempt leaves its fresh address exactly as it found it.
+      let budgetFloor;
+      try {
+        budgetFloor = { present: true, value: store.read(address) };
+      } catch (refused) {
+        budgetFloor = { present: false, code: refused.status };
+      }
+      assert.equal(budgetFloor.present, false,
+        'AND THE STORE ANSWERS THE STATE THAT STOOD BEFORE THE ATTEMPT (`D-40`, 2026-10-26) — read '
+        + JSON.stringify(budgetFloor));
+      assert.equal(budgetFloor.code, 'AddressNotFound',
+        'and names that absence with its own code (`§2.6` item 8 (iii)) — read ' + JSON.stringify(budgetFloor.code));
       assert.equal(x, 2,
         'and the closing pair was evaluated TWICE and never a third time: no budget, no retry count '
         + 'and no progress measure decided it (`§5.6`, `S-NO-BUDGET`)');

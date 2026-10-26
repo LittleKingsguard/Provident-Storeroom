@@ -130,7 +130,15 @@ function addressSpelling(address) {
 // is why a red here names an undeclared arm and not only a wrong value.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('DEF-M · a repaired write that FAILS leaves the store holding the REFUSED value, and a repaired write that PASSES reports an `op.after` the store does not hold', () => {
+// ── **⟶ RE-DERIVED 2026-10-26 TO THE RULING AND NOT TO THE BYTES — `strata/decisions.md` · `D-40`
+// (2026-10-26), the architect, VERBATIM: *"A failing repair triggers a rollback like a constraint
+// rejection."* THE TITLE MOVED WITH THE ARM, AND THE DIRECTION IS THE POINT: it used to name the DEFECT this
+// cell confirmed — *"leaves the store holding the REFUSED value"* and *"reports an `op.after` the store does
+// not hold"* — and it now names the DECLARED behaviour the ruling requires: a failed attempt leaves the
+// store exactly as it found it, and the record a passing repaired write returns describes the store the
+// caller then reads. **THE CELL IS THE SAME DRIVE and it still fails on either arm**; what changed is the
+// direction its expectation was derived in.
+test('DEF-M · under `D-40` (2026-10-26) a repaired write that FAILS leaves the store exactly as it found it, and a repaired write that PASSES reports the `op.after` that `read` then hands back', (t) => {
   // ── THE THREE ARMS ARE ALL DRIVEN BEFORE ANY ASSERTION, so the cell reports every reading it took and a red
   // cannot hide the arm behind it. Each arm gets its own store, seeded at `SEED`, with pair `c1` refusing
   // `REFUSED` and supplying the arm's repair. The repair writes `REPAIRED` AT THE SAME ADDRESS through the
@@ -209,8 +217,9 @@ test('DEF-M · a repaired write that FAILS leaves the store holding the REFUSED 
   if (afterFailure !== SEED) {
     findings.push({
       claim: 'DEF-M (1) — a FAILING repaired write leaves the store at the state that stood before it',
-      declaredBy: 'composition-and-states.md §2.6 item 2 with item 8 (iii) (the composition\'s order and the '
-        + 'whole-list arm); no clause names this arm\'s terminal store state as a value',
+      declaredBy: 'strata/decisions.md · D-40 (2026-10-26): "A failing repair triggers a rollback like a '
+        + 'constraint rejection" — a failed attempt leaves the store exactly as it found it, whether the '
+        + 'constraint refused outright or its repair failed on the re-run',
       seed: SEED,
       refused: REFUSED,
       repaired: REPAIRED,
@@ -225,11 +234,21 @@ test('DEF-M · a repaired write that FAILS leaves the store holding the REFUSED 
   if (reportedAfter !== handedBack) {
     findings.push({
       claim: 'DEF-M (2) — a PASSING repaired write\'s returned `op.after` equals what `read` hands back',
-      declaredBy: 'docs/specs/storeroom-js/surface.md §2.2 (the write record\'s `op`), which names no repair arm',
+      declaredBy: 'strata/decisions.md · D-40 (2026-10-26) with docs/specs/storeroom-js/surface.md §2.2 (the '
+        + 'write record\'s `op`): the record must DESCRIBE THE STORE the caller then reads',
       reportedAfter,
       storeHolds: handedBack,
     });
   }
+  // ── **THE FOUR READINGS THIS CELL PINS, PRINTED ON THE PASSING ARM AS WELL AS THE FAILING ONE** (`D-21`:
+  // a cell owes what it read, and this pass must be able to show the values it re-derived against).
+  t.diagnostic(`DEF-M · D-40 (2026-10-26) · failing arm read(['a']) = ${JSON.stringify(afterFailure)} `
+    + `(the seed was ${JSON.stringify(SEED)}; the refused value was ${JSON.stringify(REFUSED)}; the repair `
+    + `wrote ${JSON.stringify(REPAIRED)}; outcome.state = ${JSON.stringify(outcomeEntry === undefined ? null : outcomeEntry.state)})`);
+  t.diagnostic(`DEF-M · D-40 (2026-10-26) · comparison arm (repair returning {ok: false}) read(['a']) = `
+    + `${JSON.stringify(afterDecline)} (the seed was ${JSON.stringify(SEED)})`);
+  t.diagnostic(`DEF-M · D-40 (2026-10-26) · passing arm reportedAfter = ${JSON.stringify(reportedAfter)}, `
+    + `storeHolds = ${JSON.stringify(handedBack)}, equal = ${JSON.stringify(reportedAfter === handedBack)}`);
   assert.deepEqual(findings, [],
     `DEF-M's claim is CONFIRMED at ${findings.length} of its arms — every reading the drive took is printed `
       + `here, and the comparison arm (a repair that never lands) is reported beside them: `

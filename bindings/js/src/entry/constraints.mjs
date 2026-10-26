@@ -669,12 +669,33 @@ export function constraintWrite(state, instance, address, tier, value) {
     constraintCrossing(refusal);
   }
   const answer = state.leg;
+  let report;
   try {
-    kernel.runAttempt(instance, record);
+    report = kernel.runAttempt(instance, record);
   } catch (refusal) {
     constraintCrossing(refusal);
   }
-  return answer;
+  // **⟶ THE PASSING ARM RETURNS THE REPORT THE ATTEMPT ITSELF BUILT — `D-40`'S SECOND HALF (`DEF-M` (2)),
+  // 2026-10-26.** **WHAT IT WAS:** `return answer` returned the **STORE LEG'S** record — the one `index.mjs`
+  // builds from the store's first reply at this verb — and DISCARDED the report `runAttempt` had just
+  // answered with. On a write whose value a constraint REFUSED and whose repair then landed, the store's
+  // reply at the leg describes the op that landed the REFUSED value, while the store afterwards holds the
+  // REPAIRED one: measured, `op.after.value` read `9` against a `read` of `1`. **WHAT IT IS:** the returned
+  // record's `op` is the attempt report's OWN LAST OP — the store's journal op whose landing left the state
+  // the store stands at when this verb returns — so the record DESCRIBES THE STORE and is never overwritten
+  // to match it. **A write with no repair is unchanged: the report's last op IS the store leg's own op.**
+  // **NO MEMBER IS FORGED, NO MEMBER IS ADDED, AND THE RECORD KEEPS ITS DECLARED THREE**
+  // (`docs/specs/storeroom-js/surface.md §2.2`): `op` from the report, `watched` and `triggered` from the
+  // store leg's own answer, unchanged.
+  const landed = report !== null && typeof report === 'object' && Array.isArray(report.ops)
+    && report.ops.length > 0
+    ? report.ops[report.ops.length - 1]
+    : answer.op;
+  return {
+    op: landed,
+    watched: answer.watched,
+    triggered: answer.triggered,
+  };
 }
 
 /// **THE FAIL ARM'S CROSSING — `A120` (2): THE ENTRY CARRIES THE KERNEL'S TOKEN, THE THROW KEEPS THE

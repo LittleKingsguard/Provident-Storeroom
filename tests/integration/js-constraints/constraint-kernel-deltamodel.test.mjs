@@ -482,10 +482,28 @@ test('ck_neg_dm_02_pass_exits_at_repair_unevaluated_handle', async () => {
   // "THE FLOOR GOVERNS — this clause's rule is applied to EVERY path on which the attempt's own
   // composition meets the floor", and "the attempt has ONE `outcome` ENTRY, ITS `state` IS THIS ITEM'S
   // `KC-8` ... and NO SECOND ENTRY IS APPENDED".**
-  assert.equal(outcome.thrown.status, KC[8],
+  // ── **⟶ RE-DERIVED 2026-10-26 TO THE RULING AND NOT TO THE BYTES — `strata/decisions.md` · `D-40`
+  // (2026-10-26), VERBATIM: *"A failing repair triggers a rollback like a constraint rejection."* THE
+  // DIRECTION THIS EXPECTATION MOVED: `KC-3` → `KC-8` on 2026-10-16 (the two-call walk met the floor), and
+  // `KC-8` → `KC-3` here, because `D-40`'s composition is ONE call over the attempt's first op: the floor is
+  // NOT met, and the caller's token is the arm the pass itself exited on — arm (c).**
+  assert.equal(outcome.thrown.status, KC[3],
     'the pass exits at arm (c) — asserted at the check list below, which is unmoved — and the CARRIER '
-    + 'reads the floor the composition met (`§2.6` item 6 (a)): read '
-    + JSON.stringify(outcome.thrown.status));
+    + 'reads that arm\'s own token, the composition\'s one floor call having performed the reversal '
+    + '(`D-40`, 2026-10-26): read ' + JSON.stringify(outcome.thrown.status));
+  // **AND THE FLOOR STATE BESIDE THE TOKEN**: the attempt leaves its own address exactly as it found it.
+  let dm02Floor;
+  try {
+    dm02Floor = { present: true, value: store.read(own) };
+  } catch (refused) {
+    dm02Floor = { present: false, code: refused.status };
+  }
+  assert.equal(dm02Floor.present, false,
+    'AND THE STORE ANSWERS THE STATE THAT STOOD BEFORE THE ATTEMPT (`D-40`, 2026-10-26: *"a failed attempt '
+    + 'leaves the store exactly as it found it"*) — nothing stood at this address before the attempt, so '
+    + 'the store\'s own `AddressNotFound` is the answer — read ' + JSON.stringify(dm02Floor));
+  assert.equal(dm02Floor.code, 'AddressNotFound',
+    'and names that absence with its own code (`§2.6` item 8 (iii)) — read ' + JSON.stringify(dm02Floor.code));
   assert.deepEqual(checkIds(outcome.thrown.log), ['p1', 'p1', 'p2'],
     'THE PASS EXITED TWICE AND REACHED `p2` ONLY ON ITS SECOND EVALUATION: `p1` was evaluated once on the '
     + 'committed op, its repair landed, and the pass returned to `EVALUATING` over that op\'s landing, '

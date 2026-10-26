@@ -398,10 +398,22 @@ scenario(() => {
   // pair stands on is still arm `(f)` (`x` IN `ran`, NOT IN `appliedRepairs`); what the thrown form's `status`
   // now names is the floor the composition met, not the arm's own label (`composition-and-states.md §2.6`
   // item 6 (a): *"THE FLOOR GOVERNS"*).
-  cell(4, "status is the kernel's own KC-8 (the floor the composition meets on its second call), and never KC-6 — the arm `(f)` state is still what the pair's own readings carry",
-    `${C.fs11} item 1; ${C.fs2} (the KC-8 row); ${C.cs26} item 6 (a) (THE FLOOR GOVERNS) and item 5 (b); constraint-kernel-rollback.test.mjs:336–350`,
-    f.status === 'KC-8' && typeof f.message === 'string' && f.message.length > 0
-      && f.message.includes('RollbackCompacted'), `status=${f.status} message=${JSON.stringify(f.message)}`);
+  // ── **⟶ RE-DERIVED 2026-10-26 TO THE RULING AND NOT TO THE BYTES — `strata/decisions.md` · `D-40`
+  // (2026-10-26), the architect, VERBATIM: *"A failing repair triggers a rollback like a constraint
+  // rejection."* THE DIRECTION THIS EXPECTATION MOVED, STATED SO A READER CAN SEE IT: the 2026-10-25 pass
+  // re-derived this cell `KC-6` → `KC-8` off the build, whose composition walked NEWEST-FIRST and met
+  // `M-6`'s compacted residue on its second call. **`D-40` overrules that arm**: the composition is ONE call
+  // over the attempt's FIRST op, which sweeps the whole attempt in one store act, so the FLOOR IS NOT MET
+  // here and the caller's token is the arm the pair's own state decides — `KC-6`, `(f)`. **AND THE CELL NOW
+  // PINS THE BEHAVIOUR THE RULING IS ABOUT BESIDE THE TOKEN**: the attempt's own floor call is the state
+  // that stood before its first write, so the caller's own earlier `7` at `['a']` STANDS and both of the
+  // attempt's ops are undone.**
+  cell(4, "status is the kernel's own KC-6 — the arm (['a'],'x') stands on, `x` IN ran and OUT of appliedRepairs — and never the floor's KC-8; and the store answers the attempt's floor, the caller's own earlier `7` standing at ['a'] with both of the attempt's ops undone (D-40, 2026-10-26)",
+    `${C.fs11} item 1; ${C.fs2} (the KC-6 row); ${C.cs26} item 6 (a) and item 5 (b); strata/decisions.md · D-40 (2026-10-26)`,
+    f.status === 'KC-6' && typeof f.message === 'string' && f.message.length > 0
+      && !f.message.includes('RollbackCompacted')
+      && readVal(store, ['a']) === 7,
+    `status=${f.status} message=${JSON.stringify(f.message)} read(['a'])=${readOr(store, ['a'])} (the caller's own earlier write at ['a'] was 7); the floor state the ruling is about is the caller's value, standing because ONE call over the attempt's first op swept exactly the attempt`);
   cell(5, "the thrown form carries the message log, and its outcome entry's state is the SAME token",
     `${C.fs11} item 1 (c); ${C.ks25} item 1`,
     Array.isArray(f.log) && outcomeOf(f.log)?.state === f.status,
@@ -439,21 +451,30 @@ scenario(() => {
   // **THE CELL'S SUBJECT IS KEPT AND ITS EXPECTATION MOVED TO THE CODE FACT:** the read answers where the
   // store's own reach left the address — the attempt's own first write stands (the floor stopped the walk
   // before its call), and no step's `undoneOps` names an op the attempt did not create.
-  cell(8, "THE STANDING LIMIT (A111 read with `M-5`'s 2026-10-16 amendment): every call reverses only entries at or after ITS named op's own seq, so no step's `undoneOps` names an op this attempt never created — the caller's own earlier write is below every call's floor and is swept by NONE of them — and the read answers where the composition's own performed calls left the address (the attempt's first write's own `after`), never the caller's earlier value",
-    `${C.cs26} item 8 (iii) (the withdrawal, the limit and A111); contract.md §5.7 (P-TP-7); docs/specs/storeroom-native/write-and-read.md §6.4 items 1/3/4 (M-5/M-7/M-8)`,
+  // ── **⟶ RE-DERIVED 2026-10-26 (`D-40`, 2026-10-26) — THE STORE ARM IS THE ONE THE RULING DECLARES, AND
+  // ITS TWO DIRECTIONS ARE BOTH CHECKED.** The 2026-10-25 pass read this cell as *"the attempt's own first
+  // write was NOT undone (the walk stopped at the floor) and the store answers that write's own `after`"* —
+  // `1`. **`D-40` declares the opposite: a failed attempt leaves the store exactly as it found it.** With ONE
+  // call over the attempt's first op, BOTH of the attempt's ops are undone (its `undoneOps` names each), and
+  // the value that stands at `['a']` is the caller's own earlier `7` — swept by NO call, its `seq` lying BELOW
+  // the floor call's own (`M-5` (a) (ii)), which is the standing limit the as-filed cell named.
+  cell(8, "D-40 (2026-10-26): a failed attempt leaves the store exactly as it found it — the composition's ONE call over the attempt's first op reports BOTH of the attempt's ops undone, no step names the caller's own earlier op (its `seq` lies below the floor call's own, `M-5` (a) (ii)), and the read answers the caller's own earlier `7` at ['a']",
+    `${C.cs26} item 8 (iii) (the withdrawal, the limit and A111); contract.md §5.7 (P-TP-7); docs/specs/storeroom-native/write-and-read.md §6.4 items 1/3/4 (M-5/M-7/M-8); strata/decisions.md · D-40 (2026-10-26)`,
     (() => {
       const v = readVal(store, ['a']);
       const union = new Set(st.flatMap((s) => s.undoneOps ?? []));
       const earlierOp = earlier.op.opId;
       const attemptFirst = rr.ops[0];
+      const attemptRepair = rr.ops[1];
       // (i) no call's temporal set reached the caller's earlier op — the amendment's own claim;
-      // (ii) the attempt's own first write is NOT reported undone (the floor stopped the walk before its call);
-      // (iii) the store's own answer IS the state that first write's own `after` records.
+      // (ii) the attempt's own ops ARE reported undone — the attempt's floor is reached, one call;
+      // (iii) the store's own answer IS the caller's earlier value, exactly as the attempt found it.
       return union.has(earlierOp) === false
-        && union.has(attemptFirst.opId) === false
-        && JSON.stringify(v) === JSON.stringify(attemptFirst.after.value);
+        && union.has(attemptFirst.opId) === true
+        && attemptRepair !== undefined && union.has(attemptRepair.opId) === true
+        && v === 7;
     })(),
-    `read after failure = ${readOr(store, ['a'])} (the caller's earlier write at ['a'] was ${JSON.stringify(7)}, op ${earlier.op.opId}); report ops=${JSON.stringify(rr.ops.map((o) => o.opId))} first write's after=${JSON.stringify(rr.ops[0]?.after)}; undone union=${JSON.stringify([...new Set(st.flatMap((s) => s.undoneOps ?? []))])} — THE STANDING LIMIT READ OFF THE STORE'S OWN ANSWER: the earlier op ${earlier.op.opId} is named by no step's undoneOps and the attempt's own first write ${rr.ops[0]?.opId} was not undone either (the walk stopped at the floor), so the address stands where the store's own reach left it`);
+    `read after failure = ${readOr(store, ['a'])} (the caller's earlier write at ['a'] was ${JSON.stringify(7)}, op ${earlier.op.opId}); report ops=${JSON.stringify(rr.ops.map((o) => o.opId))}; undone union=${JSON.stringify([...new Set(st.flatMap((s) => s.undoneOps ?? []))])} — THE ATTEMPT'S FLOOR READ OFF THE STORE'S OWN ANSWER (D-40, 2026-10-26): the earlier op ${earlier.op.opId} is named by no step's undoneOps, the attempt's own ops ${JSON.stringify([rr.ops[0]?.opId, rr.ops[1]?.opId])} BOTH are, and the address answers the caller's own 7 — the attempt left it exactly as it found it`);
   // ── **⟶ RE-DERIVED 2026-10-25: THE OBLIGATION NOW HAS AN OBSERVABLE, AND THE CELL READS IT INSTEAD OF
   // ASSERTING ABSENCE.** The as-filed cell could only report that the pairs had run `0` times when `K-2`
   // returned — because no write of the window was ever checked at a landing (the fixture's own setup write was
@@ -589,22 +610,25 @@ scenario(() => {
   }));
   const cA = commit(sA, ['a'], 'mem', 1);
   const fA = tryCall(() => runAttempt(sA, cA)).err ?? {};
-  // ── **⟶ RE-DERIVED 2026-10-25 — THE TOKEN MOVES `KC-6` → `KC-8` ON ALL FOUR CELLS OF THIS ROW (`.1`, `.4`,
-  // `.6`, `.9`), AND EVERY CELL'S SUBJECT IS KEPT.** **The cause is the one `constraint-kernel-rollback.test.mjs`
-  // :336–350 and `constraint-kernel-states.test.mjs:523`/`:471` and
-  // `constraint-kernel-properties.test.mjs:656–670` re-derived in place:** a two-op failing attempt at ONE
-  // address now MEETS THE FLOOR on its composition's second call — the amended `M-5` no longer sweeps the
-  // attempt's first op with the repair's call, that call's own reversal leaves the `compacted` residue, and the
-  // next call's temporally bounded candidate set includes it (`M-6` → `RollbackCompacted` → `KC-8`,
-  // `composition-and-states.md §2.6` item 5 (b) and item 6 (a) *"THE FLOOR GOVERNS"*). **THE LIMB IS STILL READ
-  // OFF THE PAIR'S OWN STATE** (`ran` membership + `appliedRepairs` membership) — the token is the carrier's,
-  // not the limb's — and each cell below still reads its limb's own discriminator (the repeated pair's repair-run
-  // count, its own check count) beside the token.
-  cell(1, "arm (f): the pair (['a'],'c1') is IN ran and NOT IN appliedRepairs, so the repeat is limb (f) — and the THROWN FORM'S CARRIER reads the floor the composition met: KC-8, never KC-6",
-    `${C.al24} item 4 arm (f); ${C.fs2}'s KC-6 row ("is NOT IN appliedRepairs ... NO repair is registered for it"); ${C.cs26} item 6 (a) (THE FLOOR GOVERNS) and item 5 (b); constraint-kernel-rollback.test.mjs:336–350`,
-    fA.status === 'KC-8' && fA.message.includes('RollbackCompacted')
-      && (fA.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'c1').length === 0,
-    `status=${fA.status} message=${JSON.stringify(fA.message)} c1 repair-runs=${(fA.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'c1').length}`);
+  // ── **⟶ RE-DERIVED 2026-10-26 TO THE RULING AND NOT TO THE BYTES — `strata/decisions.md` · `D-40`
+  // (2026-10-26), the architect, VERBATIM: *"A failing repair triggers a rollback like a constraint
+  // rejection."* THE DIRECTION THESE FOUR EXPECTATIONS MOVED, STATED SO A READER CAN SEE IT: the 2026-10-25
+  // pass moved all four cells `KC-6`/`KC-5` → `KC-8` by reading the build, whose composition walked
+  // NEWEST-FIRST and met `M-6`'s compacted residue on its SECOND call. **`D-40` overrules that arm**: the
+  // composition issues ONE call over the attempt's FIRST op, which sweeps the whole attempt in one store act,
+  // so **THE FLOOR IS NOT MET on any window of this row and the caller's token is the arm the repeated pair's
+  // own state decides** — `KC-6` where it is IN `ran` and OUT of `appliedRepairs` (`.1`, `.4`), `KC-5` where it
+  // is IN both (`.6`). **AND EACH CELL NOW PINS THE BEHAVIOUR THE RULING IS ABOUT BESIDE ITS TOKEN**: the
+  // attempt's ONE call is its floor, so the store answers the state that stood before the attempt — at these
+  // fresh addresses, the store's own `AddressNotFound`. **THE LIMB IS STILL READ OFF THE PAIR'S OWN STATE**
+  // (`ran` membership + `appliedRepairs` membership) and each cell still reads its limb's own discriminator
+  // (the repeated pair's repair-run count, its own check count) beside the token.
+  cell(1, "arm (f): the pair (['a'],'c1') is IN ran and NOT IN appliedRepairs, so the repeat is limb (f) and the THROWN FORM'S CARRIER reads that limb's own KC-6 — while the store answers the attempt's floor, the address it wrote to standing nowhere (D-40, 2026-10-26)",
+    `${C.al24} item 4 arm (f); ${C.fs2}'s KC-6 row ("is NOT IN appliedRepairs ... NO repair is registered for it"); ${C.cs26} item 5 (b) and item 6 (a); strata/decisions.md · D-40 (2026-10-26)`,
+    fA.status === 'KC-6' && !fA.message.includes('RollbackCompacted')
+      && (fA.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'c1').length === 0
+      && String(readVal(sA, ['a'])).includes('AddressNotFound'),
+    `status=${fA.status} message=${JSON.stringify(fA.message)} c1 repair-runs=${(fA.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'c1').length} read(['a'])=${readOr(sA, ['a'])}`);
   cell(2, "the repeated pair's repair-run count is 0 and the repair that DID run belongs to (['a'],'c2') — the two limbs are disjoint on appliedRepairs",
     `${C.al24} item 4 (the disjointness rule); ${C.fs2}'s KC-5 row`,
     (fA.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'c1').length === 0
@@ -626,11 +650,12 @@ scenario(() => {
   }));
   const cB = commit(sB, ['a'], 'mem', 1);
   const fB = tryCall(() => runAttempt(sB, cB)).err ?? {};
-  cell(4, "the second window drives the SAME limb and the same carrier token: KC-8, with (['a'],'cQ') in ran and out of appliedRepairs",
-    `${C.al24} item 4 arm (f); e2e-scenarios.md E2E-C-5 cell 5 ((β)/() half); ${C.cs26} item 6 (a)`,
-    fB.status === 'KC-8' && qRuns === 2
-      && (fB.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'cQ').length === 0,
-    `status=${fB.status} message=${JSON.stringify(fB.message)} cQ-fn-runs=${qRuns} cQ repair-runs=${(fB.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'cQ').length}`);
+  cell(4, "the second window drives the SAME limb and the same carrier token: KC-6, with (['a'],'cQ') in ran and out of appliedRepairs — and the same floor state, the address the attempt wrote to standing nowhere (D-40, 2026-10-26)",
+    `${C.al24} item 4 arm (f); e2e-scenarios.md E2E-C-5 cell 5 ((β)/() half); ${C.cs26} item 5 (b); strata/decisions.md · D-40 (2026-10-26)`,
+    fB.status === 'KC-6' && qRuns === 2
+      && (fB.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'cQ').length === 0
+      && String(readVal(sB, ['a'])).includes('AddressNotFound'),
+    `status=${fB.status} message=${JSON.stringify(fB.message)} cQ-fn-runs=${qRuns} cQ repair-runs=${(fB.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'cQ').length} read(['a'])=${readOr(sB, ['a'])}`);
   cell(5, "the two windows are DISJOINT on the two predicates and not one limb in two spellings: both read the pair IN ran and NOT IN appliedRepairs, and neither invoked a repair for the repeated pair",
     `${C.al24} item 4's disjointness rule`,
     (fB.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'cQ').length === 0
@@ -654,11 +679,12 @@ scenario(() => {
   register(sG, ['a'], 'C3', () => true);
   const cG = commit(sG, ['a'], 'mem', 99);
   const fG = tryCall(() => runAttempt(sG, cG)).err ?? {};
-  cell(6, "arm (e): the repeated pair (['a'],'C1') IS IN appliedRepairs, and the thrown form's CARRIER reads the floor the composition met: KC-8, never KC-5 — with the outcome entry carrying that same token",
-    `${C.al24} item 4 arm (e); ${C.fs2}'s KC-5 row ("IS IN appliedRepairs before it"); ${C.cs26} item 6 (a) (THE FLOOR GOVERNS); constraint-kernel-states.test.mjs:523 (the same KC-5 to KC-8 move, re-derived in place)`,
-    fG.status === 'KC-8' && outcomeOf(fG.log)?.state === fG.status
-      && (fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length === 1,
-    `status=${fG.status} outcome.state=${outcomeOf(fG.log)?.state} C1 repair-runs=${(fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length} kinds=[${kinds(fG.log)}]`);
+  cell(6, "arm (e): the repeated pair (['a'],'C1') IS IN appliedRepairs, and the thrown form's CARRIER reads that limb's own KC-5 — with the outcome entry carrying that same token, and the store answering the attempt's floor (the address it wrote to standing nowhere) (D-40, 2026-10-26)",
+    `${C.al24} item 4 arm (e); ${C.fs2}'s KC-5 row ("IS IN appliedRepairs before it"); ${C.cs26} item 5 (b); strata/decisions.md · D-40 (2026-10-26)`,
+    fG.status === 'KC-5' && outcomeOf(fG.log)?.state === fG.status
+      && (fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length === 1
+      && String(readVal(sG, ['a'])).includes('AddressNotFound'),
+    `status=${fG.status} outcome.state=${outcomeOf(fG.log)?.state} C1 repair-runs=${(fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length} read(['a'])=${readOr(sG, ['a'])} kinds=[${kinds(fG.log)}]`);
   cell(7, "no repair runs a second time: the repeated pair's repair-run count is exactly 1 and never 2",
     `${C.fs2}'s KC-5 row (its observable); e2e-scenarios.md E2E-C-5 cell 5`,
     (fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length === 1 && c1runs === 2,
@@ -667,22 +693,21 @@ scenario(() => {
     `${C.ks21} item 3 (RD-9); ${C.ps215}`,
     (() => { const again = tryCall(() => runAttempt(sG, cG)); return !again.ok && again.err?.status === 'KC-2'; })(),
     `second K-3 = ${status(tryCall(() => runAttempt(sG, cG)))}`);
-  // ── **⟶ RE-DERIVED 2026-10-25: THE TWO LIMBS ARE STILL DISJOINT ON `appliedRepairs`, AND THE TOKEN IS NO
-  // LONGER WHAT DISCRIMINATES THEM.** Both windows now end `KC-8` (the floor governs the carrier on both
-  // paths — cells 1 and 6), so the as-filed `fA.status === 'KC-6' && fG.status === 'KC-5'` asserted a
-  // distinction the build no longer expresses in `status`. **THE DISCRIMINATOR MOVED TO THE MEMBER THE CLAUSE
-  // NAMES: the repeated pair's OWN REPAIR-RUN COUNT — `0` where its repair never ran (limb `(f)`), `1` where it
-  // had (limb `(e)`)** — exactly the reading
-  // `ck_prop_P_SM_6_the_two_repeat_limbs_are_distinguishable_by_the_pair_s_own_state` carries
-  // (`constraint-kernel-properties.test.mjs:681–730`: *"the pair's own repair-run count is 0, which is the
-  // limb's own observation"*). The cell asserts BOTH: the tokens are one (the floor's), and the limbs are
-  // disjoint by the pair's own state.
-  cell(9, "the two limbs are DISJOINT on appliedRepairs alone and not on registration: the same address reaches the SAME carrier token (KC-8, the floor's) on both paths, and the pair's OWN repair-run count discriminates them — 0 where its repair never ran, 1 where it had",
-    `${C.al24} item 4 (the disjointness rule, registration-keyed reading withdrawn by name); ${C.fs2} — the two rows; constraint-kernel-properties.test.mjs:681-730 (the same discriminator, re-derived in place)`,
-    fA.status === 'KC-8' && fG.status === 'KC-8'
+  // ── **⟶ RE-DERIVED 2026-10-26 (`D-40`, 2026-10-26): THE TWO LIMBS ARE DISJOINT ON `appliedRepairs` AND THE
+  // CALLER'S TOKEN EXPRESSES IT AGAIN — `KC-6` against `KC-5` — BECAUSE NO WINDOW OF THIS ROW MEETS THE FLOOR
+  // ANY MORE.** The 2026-10-25 pass had to move the discriminator to the pair's own repair-run count because
+  // both windows ended `KC-8`; with ONE call over the attempt's first op the floor is not met, and **the limb
+  // is readable at BOTH the carrier's token and the pair's own state** — which is what `attempt-lifecycle.md
+  // §2.4` item 4's closing clause declares and what `fail-surface.md §2`'s two rows read. The cell asserts BOTH,
+  // so a build that collapsed the two limbs into one token still fails here.
+  cell(9, "the two limbs are DISJOINT on appliedRepairs alone and not on registration — the carrier reads KC-6 on the window whose pair is OUT of appliedRepairs and KC-5 on the window whose pair is IN it — and the pair's OWN repair-run count discriminates them the same way: 0 where its repair never ran, 1 where it had; both windows answer the same floor state, their address standing nowhere (D-40, 2026-10-26)",
+    `${C.al24} item 4 (the disjointness rule, registration-keyed reading withdrawn by name); ${C.fs2} — the two rows; ${C.cs26} item 5 (b); strata/decisions.md · D-40 (2026-10-26)`,
+    fA.status === 'KC-6' && fG.status === 'KC-5'
       && (fA.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'c1').length === 0
-      && (fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length === 1,
-    `limb tokens: (alpha)=${fA.status} (gamma)=${fG.status} — ONE token, because the floor governs both compositions; the limb discriminator: alpha's repeated pair c1 repair-runs=${(fA.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'c1').length}, gamma's repeated pair C1 repair-runs=${(fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length}`);
+      && (fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length === 1
+      && String(readVal(sA, ['a'])).includes('AddressNotFound')
+      && String(readVal(sG, ['a'])).includes('AddressNotFound'),
+    `limb tokens: (alpha)=${fA.status} (gamma)=${fG.status} — TWO tokens, the limb's own, because no window of this row meets the floor; the limb discriminator: alpha's repeated pair c1 repair-runs=${(fA.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'c1').length}, gamma's repeated pair C1 repair-runs=${(fG.log ?? []).filter((e) => e.kind === 'repair-run' && e.id === 'C1').length}; floors: read(alpha ['a'])=${readOr(sA, ['a'])}, read(gamma ['a'])=${readOr(sG, ['a'])}`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -893,23 +918,31 @@ scenario(() => {
   const floor = pkg.storeCreate({ filePath: path.join(TMP, `floor${(storeSeq += 1)}.json`), journalLength: 2, listeners: [] });
   for (let i = 0; i < 6; i += 1) floor.write(['a'], 'mem', i);
   let floorRepairOp = null, floorRepairRuns = 0;
-  // ── **⟶ THE FIXTURE'S OWN FAULT, DIAGNOSED AND FIXED 2026-10-25 — AND THE DOC SAYS WHERE THE REPAIR MUST
-  // WRITE.** The as-filed repair wrote at `['b']`, and a composition whose two ops stand at DIFFERENT addresses
-  // never meets the floor: the first call reverses its own op and the second call's temporal set (entries at or
-  // after ITS named op's `seq`) does not include it, so both calls answer `ok` and the attempt ends `KC-3`. The
-  // doc's own start point is explicit — *"`K-1` `register(['a'], 'x', cx)` where `cx`'s repair issues a write at
-  // `['a']`"* — and at ONE address the amended `M-5` leaves the reversed op in the next call's temporal set
-  // (`M-6` → `RollbackCompacted` → `KC-8`). **THE PRE-ATTEMPT WRITES ARE KEPT AS THE DOCUMENTED START POINT** —
-  // they do compress the journal — but they are BELOW every call's `seq` floor and are therefore not the
-  // producer of the floor the composition meets; the code fact is named in cell 1's observation.
+  // ── **⟶ RE-DERIVED 2026-10-26 TO THE RULING AND NOT TO THE BYTES — `strata/decisions.md` · `D-40`
+  // (2026-10-26), VERBATIM: *"A failing repair triggers a rollback like a constraint rejection."*** **THE
+  // DIRECTION THIS ROW'S FIXTURE MOVED, STATED SO A READER CAN SEE IT:** the 2026-10-25 pass reached the floor
+  // through a TWO-CALL walk — the first call over the repair's op left it `compacted` and the SECOND call's
+  // temporally bounded candidate set included it. **`D-40`'s composition issues ONE call, over the attempt's
+  // FIRST op, so that producer is gone; the compacted entry must now stand inside THAT ONE call's own
+  // candidate set.** The drive below therefore compacts the repair's landing BY THE CALLER'S OWN ACT, inside the
+  // pass: the pair `y`'s body calls the store's own `rollback` verb over the op the repair landed (`ctx.op`) —
+  // an ordinary three-position verb of the surface this driver already drives — and the attempt then fails
+  // (its `checkpoint` is `null` address-wide). **THE FLOOR IS MET BY THE ATTEMPT'S OWN FLOOR CALL, all-or-nothing
+  // and NOTHING is restored**, which is the state `M-6` declares and this row reads.
+  // **THE PRE-ATTEMPT WRITES ARE KEPT AS THE DOCUMENTED START POINT** — they compress the journal — but they
+  // stand BELOW every call's `seq` floor and are not the producer of this floor; the store's own answer is
+  // named in each cell's observation.
   register(floor, ['a'], 'x', (ctx) => (ctx.value <= 2 ? true : {
     repair: (rc) => { floorRepairRuns += 1; const w = floor.write(['a'], 'mem', 1, rc); floorRepairOp = w.op?.opId; return { ok: true, message: 'clamped', op: w.op }; },
     message: 'x is too large',
   }));
-  // the attempt's OWN address holds no valid state at every landing: the compacted pair at ['a'] is
-  // registered LAST, but the re-run over the repair's own op violates it — so the attempt fails (its
-  // `checkpoint` is null address-wide) and the composition runs over the attempt's own call list.
-  register(floor, ['a'], 'y', (ctx) => (ctx.value === 0 ? true : { message: 'y unrepaired' }));
+  // the attempt's OWN address holds no valid state at every landing, so the composition runs over the
+  // attempt's own floor call. AND THE CALLER'S OWN ACT IS TAKEN HERE: the body that violates at the re-run
+  // reverses the op that landing left (`M-9`'s compacted residue), so the attempt's ONE call meets it.
+  register(floor, ['a'], 'y', (ctx) => {
+    if (ctx.op !== null && ctx.value === 1) floor.rollback(ctx.op.opId);
+    return ctx.value === 0 ? true : { message: 'y unrepaired' };
+  });
   const cF = commit(floor, ['a'], 'mem', 9);
   const runF = tryCall(() => runAttempt(floor, cF));
   const fF = runF.err ?? {};
@@ -918,12 +951,13 @@ scenario(() => {
   const declaredF = declaredCallList(rF.ops, stF[0]?.checkpoint ?? null);
   const outcomeF = outcomeOf(fF.log);
 
-  cell(1, "the floor is met BY THE COMPOSITION'S OWN ACT on a still-owed op — the repair's own write lands at the ATTEMPT'S OWN ADDRESS, so the composition's second call's temporally bounded candidate set includes the op the first call already reversed — the store answers RollbackCompacted, the kernel reports KC-8, and NOTHING is restored",
-    `${C.cs26} item 5 (b) and item 8 (iv) (the floor's precedence) and item 6 (a) (THE FLOOR GOVERNS); ${C.fs2} (KC-8); ${C.ps217}`,
-    fF.status === 'KC-8' && outcomeF?.state === 'KC-8' && stF.length > 0
-      && stF[stF.length - 1].failed === true && stF[stF.length - 1].answer === 'RollbackCompacted',
-    `status=${fF.status} repairRuns=${floorRepairRuns} repairOp=${floorRepairOp} commitOp=${cF.op.opId} steps=${JSON.stringify(stF)} — THE FIXTURE'S FACT, MEASURED: the six pre-attempt writes compress the journal (journalLength: 2) but stand BELOW every call's own seq floor (M-5's amendment), so they are NOT the producer of this floor; the floor arrives when the repair writes at ['a'] and the first call's own reversal leaves the compacted residue the second call's candidate set includes (M-9/M-6)`);
-  cell(2, "the failing call's step carries the store's own code as its `answer`, its `undoneOps` is an EMPTY list (the floor is ALL-OR-NOTHING and never partial), its `restoredTo` is the state the addressed subtree stood at, and THE WALK STOPS AT IT — every step after the failing one is absent, so the `rollback` member's LAST element is that failing call's step",
+  cell(1, "the floor is met BY THE ATTEMPT'S OWN FLOOR CALL — the composition's ONE call over the attempt's first op meets the compacted entry the caller's own reversal left inside its temporally bounded candidate set — the store answers RollbackCompacted, the kernel reports KC-8, and NOTHING is restored: the address answers the value its own commit landed (D-40, 2026-10-26)",
+    `${C.cs26} item 5 (b) and item 8 (iv) (the floor's precedence) and item 6 (a) (THE FLOOR GOVERNS); ${C.fs2} (KC-8); ${C.ps217}; strata/decisions.md · D-40 (2026-10-26)`,
+    fF.status === 'KC-8' && outcomeF?.state === 'KC-8' && stF.length === 1
+      && stF[0].failed === true && stF[0].answer === 'RollbackCompacted'
+      && readVal(floor, ['a']) === 9,
+    `status=${fF.status} repairRuns=${floorRepairRuns} repairOp=${floorRepairOp} commitOp=${cF.op.opId} steps=${JSON.stringify(stF)} read(['a'])=${readOr(floor, ['a'])} (the value the attempt's own commit landed was 9) — THE FIXTURE'S FACT, MEASURED: the six pre-attempt writes compress the journal (journalLength: 2) but stand BELOW every call's own seq floor (M-5's amendment), so they are NOT the producer of this floor; the floor arrives when the caller's own reversal of the repair's landing (the body of y) leaves the compacted residue the attempt's ONE floor call's candidate set includes (M-9/M-6), and M-6 undoes NOTHING`);
+  cell(2, "the failing call's step carries the store's own code as its `answer`, its `undoneOps` is an EMPTY list (the floor is ALL-OR-NOTHING and never partial), its `restoredTo` is the state the addressed subtree stood at, and THE COMPOSITION IS THAT ONE CALL — the `rollback` member holds exactly the failing step (D-40, 2026-10-26)",
     `${C.fs2}'s KC-8 row; ${C.ps217}; storeroom-native/write-and-read.md §6.4 items 2 (M-6) and 5`,
     stF.every(stepShape) && (() => {
       const last = stF[stF.length - 1];
@@ -932,7 +966,7 @@ scenario(() => {
         && stF.slice(0, -1).every((s) => s.failed === false && s.answer === 'ok');
     })(),
     `steps=${JSON.stringify(stF)}`);
-  cell(3, 'the attempt has ONE `outcome` entry, it carries KC-8, and the floor appends NO second one',
+  cell(3, 'the attempt has ONE `outcome` entry, it carries KC-8, the floor appends NO second one, and the failing step is the attempt\'s only call its store report names',
     `${C.cs26} item 6 (a); ${C.fs2}'s KC-8 row; attempt-lifecycle.md §2.4 item 8 (ii)`,
     (fF.log ?? []).filter((e) => e.kind === 'outcome').length === 1
       && outcomeOf(fF.log)?.state === 'KC-8' && stF[stF.length - 1].failed === true,
@@ -961,11 +995,21 @@ scenario(() => {
       && new Set(st2.map((s) => s.opId)).size === st2.length
       && st2.every((s) => declared2.includes(s.opId)) && st2.length <= declared2.length,
     `steps=${JSON.stringify(st2.map((s) => s.opId))} declaredList=${JSON.stringify(declared2)} status=${f2.status}`);
-  cell(6, "the union of the steps' undoneOps is the reach the composition actually had, and no wider: it names every op the attempt OWED — the ones it performed AND the ones an earlier call's own undoneOps already reported undone (item 5 (a)'s skip and its member-based test)",
-    `${C.ps217} observable; ${C.cs26} item 5 (a)`,
+  // ── **⟶ RE-DERIVED 2026-10-26 (`D-40`, 2026-10-26): THE UNION IS STILL "THE REACH AND NO WIDER", AND THE
+  // REACH IS NOW ONE CALL'S OWN SPATIAL-TEMPORALLY BOUNDED SET.** With ONE call over the attempt's first op,
+  // the reach is the addressed subtree at or after that op's `seq`: both ops standing AT `['a']` are named, and
+  // **an op the repair landed at a DIFFERENT address (`['b']` here) is in NO candidate set of that call** — it
+  // is named by no step and its value STANDS, which is the measured residual this row now reports rather than
+  // asserts away (the attempt's address is restored, the beside address is not reached).
+  cell(6, "the union of the steps' undoneOps is the reach the composition actually had, and no wider: it names every op of the attempt that stands in the floor call's own spatial-temporally bounded set (both ops at ['a']), names NO op outside it (the op the repair landed at ['b'] is in no step's undoneOps and in no step's opId), and reports a call that performed nothing only where `failed` is true",
+    `${C.ps217} observable; ${C.cs26} item 5 (a); strata/decisions.md · D-40 (2026-10-26)`,
     (() => {
       const union = new Set(st2.flatMap((s) => s.undoneOps ?? []));
-      return declared2.every((id) => union.has(id) || st2.some((s) => s.opId === id))
+      const performed = new Set(st2.map((s) => s.opId));
+      const own = rr2.ops.filter((o) => JSON.stringify(o.address) === JSON.stringify(['a'])).map((o) => o.opId);
+      const beside = rr2.ops.filter((o) => JSON.stringify(o.address) !== JSON.stringify(['a'])).map((o) => o.opId);
+      return own.every((id) => union.has(id) || performed.has(id))
+        && beside.every((id) => !union.has(id) && !performed.has(id))
         && st2.every((s) => (s.undoneOps ?? []).length > 0 || s.failed === true);
     })(),
     `union=${JSON.stringify([...new Set(st2.flatMap((s) => s.undoneOps ?? []))])} declaredList=${JSON.stringify(declared2)} ops=${JSON.stringify(rr2.ops.map((o) => o.opId))}`);
