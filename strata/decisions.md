@@ -2681,3 +2681,46 @@ is the most exposed of those sites and the one to name if the premise ever moves
 **STATE OF THE DEBT LIST: EMPTY.** The five known debts were closed before this ruling (the read-side audit's 16
 caller-supplied sites, `removeConstraint`'s declared member set, `errorMessage` measured sound, `E2E-C-2`'s title, and
 the one skip explained), and **this ruling closes the sixth question rather than leaving it open.**
+
+---
+
+### `D-37` — `R14` IS DISCHARGED: the per-graph split is the MULTIPLE STORES
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on the downstream handoff's `R14` /
+`UK-5` contradiction.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Close the R14 demand, it is addressed by the multiple stores.
+
+**WHAT `R14` ASKED, AND WHY IT IS WITHDRAWN.** The downstream catalogue files *"no per-graph / `secure` split at
+all"* as a **question**, against its own binding `UK-5` — *"two registers, one per graph; a generic pass never
+observes a `secure` commit and vice versa"*. **The question assumed the package's unit of isolation is the
+REGISTER. It is the INSTANCE.**
+
+- **A graph IS a store instance.** `storeCreate` is the one factory; each call builds an instance with **its own**
+  constraint registry and **its own** attempt records. **Two graphs = two instances**, and *"a generic pass never
+  observes a `secure` commit"* holds **by construction** — there is no shared structure to leak through.
+- **And the isolation is STRONGER than a register split.** A split inside one store would be a discipline the
+  package would have to enforce internally; separate instances share **nothing** — the per-instance kernel
+  (`D-30`), the instance owning it (`D-46`), and a receiver guard that **refuses a foreign `this`** on twelve of
+  the fourteen members. **No clause of this package has ever owed a graph, a scope or a `secure` register, and
+  none is owed.**
+- **So `'secure'` as a tier stays `OutOfDomainTier`, and that is CORRECT** rather than an absence: **`secure` is
+  not a tier of this store; it is another store.** The consumer's `secureLoad`/`secureRead`/`secureWrite`/
+  `secureListen`/`secureConstrain` are its own verbs over **its** secure instance, and none of them names a
+  package verb.
+
+**WHAT THE DOWNSTREAM SIDE MUST DO, AND IT IS NOTHING THE PACKAGE SHIPS.** Two `storeCreate` calls, one per graph;
+the right instance passed to each verb (**the receiver guard now enforces this** — a detached call is refused and
+moves no state); the `'secure-gated'` refusal at the consumer's own `K-GATE` (**that gate is the consumer's
+`F3`/`R-5`, never this package's**); and the `secure*` spellings in the consumer's own vocabulary.
+
+**THE ONE HONEST COST, NAMED BECAUSE IT INTERACTS WITH `R16`/`DEF-J`.** **N graphs now means N store instances, so
+the resident set multiplies by the graph count** — and this package **declares no resident bound on any long-lived
+structure** (`R16`, still a question, and `DEF-J`'s closed-attempt map has no deletion site). **Isolation by instance
+buys the split at the price of one full retention set per graph**, and **that is the number the consumer's `R16`
+question should be asked about.**
+
+**TERMS: `R14` WITHDRAWN (`1`), `UK-5` DISCHARGED BY THE INSTANCE (`1`), the package's obligations unchanged (`0`),
+the multi-store retention cost named and still undeclared (`1`).**
