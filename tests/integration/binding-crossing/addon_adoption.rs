@@ -81,13 +81,17 @@
 //!
 //! ─────────────────────────────────────────────────────────────────────────────────────────────────────
 //! **⟶ RE-DERIVED 2026-10-25: THE ARTEFACT'S ABSENCE IS NOW A REPORTED STATE, AND THE ENTRY CHECK IS EXACT**
-//! (`A150`'s deleted `call`; `RCA-8(d)` ANNOTATE-BESIDE). **THE SENTENCE ABOVE THAT CALLED THESE CELLS
+//! (the `call` deletion's own authority, `export-set-and-dispatch.md §2`, read with `P-SAS-1`; **⟶ RE-POINTED
+//! 2026-10-26** — this line cited `A150`, and `A150` (2026-10-25) is *"Remove the register half,
+//! `constraintOff` removes the constraint"* and touches no export set; `RCA-8(d)` ANNOTATE-BESIDE). **THE
+//! SENTENCE ABOVE THAT CALLED THESE CELLS
 //! PERMANENTLY RED WAS WRONG IN BOTH DIRECTIONS, AND BOTH ARE NAMED HERE RATHER THAN SMOOTHED AWAY:**
 //! **they passed green** — on this machine only, because `build/Release/storeroom_js_binding.node` happens to
 //! exist and **is gitignored**, while *nothing in this repository produces it* (`cargo test` and `npm run
 //! build` write the library into `target/`); on a clean tree all eight artefact-driving cells **panicked**.
 //! **And the check that let a green stand was a substring read** — `haystack.contains("call")` was satisfied
-//! `106` times by `napi_call_function` and never by an export, so the entry `A150` deleted could not fail it.
+//! `106` times by `napi_call_function` and never by an export, so the entry the split deleted could not fail
+//! it.
 //! **WHAT IS OPERATIVE FROM THIS DATE:** an absent artefact is a **loud SKIP that claims no verdict**
 //! (`artefact_or_skip`), a present-but-wrong one is a **hard failure**, and every entry is read as a **complete
 //! registration symbol** (`exports`) with `call` asserted **absent** under the same matcher.
@@ -127,14 +131,17 @@ const STORE_CREATE: &str = "storeCreate";
 /// and a check written against the five would pass while a link symbol was missing"*).
 ///
 /// **⟶ THIS SET WAS FIVE AND CARRIED `call` UNTIL 2026-10-25, WHICH THE SOURCE NO LONGER EXPORTS**
-/// (`A150` deleted the package's `addon.call(...)` dispatcher and re-cut that route to the live per-verb
-/// entries — `export-set-and-dispatch.md §2`; `RCA-8(d)` ANNOTATE-BESIDE names the superseded reading rather
-/// than rewriting it away). **The retired name is not deleted from this file's record: it moves to
+/// (the addon-surface split deleted the package's `addon.call(...)` dispatcher and re-cut that route to the
+/// live per-verb entries — `export-set-and-dispatch.md §2`; `RCA-8(d)` ANNOTATE-BESIDE names the superseded
+/// reading rather than rewriting it away). **⟶ RE-POINTED 2026-10-26**: this citation read `A150`, and `A150`
+/// (2026-10-25) is the architect's *"Remove the register half, `constraintOff` removes the constraint"* —
+/// nothing in it touches the addon's export set, so it is the wrong authority for this deletion. **The retired name is not deleted from this file's record: it moves to
 /// `RETIRED_ENTRY` below and is MEASURED there under the SAME exact matcher, so the deletion is an
 /// observation and not a hole.** The four that stand are the four the source's `#[napi]` entries declare.
 const ENTRY_NAMES: [&str; 4] = ["version", "errorMessage", "storeCreate", "register"];
 
-/// **THE ENTRY `A150` DELETED, HELD HERE SO A DELETED NAME CANNOT HIDE BEHIND A SUBSTRING.**
+/// **THE ENTRY THE SPLIT DELETED (`export-set-and-dispatch.md §2`; ⟶ RE-POINTED 2026-10-26 from `A150`,
+/// which did not make this deletion), HELD HERE SO A DELETED NAME CANNOT HIDE BEHIND A SUBSTRING.**
 ///
 /// Measured at the artefact (`build/Release/storeroom_js_binding.node`, this tree, 2026-10-25): the bare
 /// name `call` occurs **`106` times as a raw substring** — every one of them inside `napi_call_function`,
@@ -194,7 +201,7 @@ fn artefact_or_skip(cell: &str) -> Option<Vec<u8>> {
                  tree ({e}). Nothing in this repository produces that path — `cargo test` and `npm run \
                  build` emit the library into `target/` — so this state is reported as its own state and \
                  must be read as the ABSENCE OF A VERDICT. A cell that reported `ok` here would be a \
-                 vacuous green: the failure `A150` deleted an entry behind is exactly that shape.\n",
+                 vacuous green: the failure the deleted `call` entry stood behind is exactly that shape.\n",
                 absolute.display()
             );
             use std::io::Write;
@@ -240,8 +247,8 @@ fn exports(bytes: &[u8], name: &str) -> bool {
 /// **THE ENTRY, REACHED THE WAY THE RUNTIME REACHES IT: BY ITS NAME, OUT OF THE ADDON'S OWN EXPORT SET.**
 ///
 /// The five entry names are read as complete registration symbols — the superset claim of `§4` and
-/// `§3-bis`'s *"KEEP THEIR NAMES AND ARITIES"* — and the entry `A150` deleted is asserted ABSENT under the
-/// same matcher. **A cell that cannot reach the entry FAILS AND SAYS WHY** (present-but-wrong), **and a tree
+/// `§3-bis`'s *"KEEP THEIR NAMES AND ARITIES"* — and the entry the split deleted (`export-set-and-dispatch.md
+/// §2`; ⟶ RE-POINTED 2026-10-26 from `A150`) is asserted ABSENT under the same matcher. **A cell that cannot reach the entry FAILS AND SAYS WHY** (present-but-wrong), **and a tree
 /// with no artefact at all gets the loud skip of `artefact_or_skip` instead of a panic.**
 ///
 /// **NO HOOK NAME IS SPELLED AND THE REGISTRATION SYMBOL IS *NOT* A HOOK NAME**: it is the Node-API
@@ -269,8 +276,10 @@ fn reach_store_create() -> Option<()> {
 
     assert!(
         !exports(&bytes, RETIRED_ENTRY),
-        "the entry `{RETIRED_ENTRY}` is BACK in the artefact's export set. `A150` deleted the package's \
-         `{RETIRED_ENTRY}` dispatcher and re-cut that route to the per-verb entries, so this cell's set was \
+        "the entry `{RETIRED_ENTRY}` is BACK in the artefact's export set. The addon-surface split deleted \
+         the package's `{RETIRED_ENTRY}` dispatcher (`export-set-and-dispatch.md §2`; the citation here read \
+         `A150` until 2026-10-26 and `A150` did not make this deletion) and re-cut that route to the per-verb \
+         entries, so this cell's set was \
          re-derived to the four the source declares: a returning `{RETIRED_ENTRY}` means the boundary's \
          shape changed again and this cell must be re-derived by its owner — it may not drift green. (This \
          assertion is the one the old substring check could not make: `{RETIRED_ENTRY}` occurs 106 times as a \
