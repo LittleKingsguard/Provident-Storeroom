@@ -34,7 +34,9 @@
 //     export, `storeCreate`, `11 → 1` ✓ — and `bindings/js/index.d.ts` (the same clause at the published
 //     types: one `export function`, the `StoreStatus` union with its explicit `(string | {})` escape)
 //   · the artefacts' own manifests — `bindings/js/package.json` and `bindings/js/platforms/*/package.json`
-//     — read as PUBLISHED FACTS (`D-7`), which is where the version figure `0.5.0` below is taken from
+//     — read as PUBLISHED FACTS (`D-7`), which is where the version figure `VERSION` below is read from
+//     **AT RUNTIME AND NOT RESTATED HERE**: a version literal written into a cell is a hand-maintained
+//     census, and it rots on the bump that moves the eleven sites it is supposed to track
 //
 // NO CELL OPENS A `docs/**` PATH AT RUNTIME (`D-17`). No byte of `bindings/js/index.mjs`,
 // `bindings/js/src/**` or `src/**` was read while authoring this file, and EVERY RUNTIME READ IS OF THE
@@ -98,8 +100,15 @@ const REFUSED_NAME_SHAPES = [
  *  UNSCOPED (`A82`) and gains no project token and no scope. */
 const MAIN_NAME = 'provident-storeroom';
 /** `bindings/js/package.json` — the released figure, read as a published fact (`D-7`); `§3.2` item 2 makes
- *  it ONE figure read eleven times. */
-const VERSION = '0.5.0';
+ *  it ONE figure read eleven times. **DERIVED FROM THE MANIFEST AT RUNTIME RATHER THAN FROZEN AS A LITERAL**
+ *  (the reason the header gives at the manifests' own row): the eleven cells move TOGETHER on a bump, and a
+ *  literal here would have to be found and moved by hand — a second home for a value the manifest carries
+ *  once, and the same defect class as a hand-maintained census. **NO CONJUNCT IS WEAKENED**: every cell below
+ *  still compares the PACKED artefact's own fields against this figure by exact equality, so a tarball
+ *  assembled from another version is still caught; what the reader no longer does is CLAIM which version the
+ *  release is, and that claim is the tag's — `staged-install/publish.test.mjs`'s `declaredReleaseVersion`
+ *  reads it at the built artefact's own `version()`, which is the shipped byte that carries it. */
+const VERSION = JSON.parse(readFileSync(join(PACKAGE_DIR, 'package.json'), 'utf8')).version;
 const LICENCE = 'AGPL-3.0';
 /** `package.md §1.4` item 1 / `distribution.md §3.2` field 7: the floor is a DECLARATION, the same floor on
  *  every artefact. */
@@ -505,7 +514,7 @@ test('installed · contract.md §1.3 item 4 + §0.3 `PUB-DD-10` · every pin is 
   }
 });
 
-test('installed · contract.md §3.2 item 2 (the coupling rule, ONE figure read eleven times) · the main package\'s `version` IS the five pins\' value and IS `0.5.0`, so no cell of the eleven moved alone', () => {
+test(`installed · contract.md §3.2 item 2 (the coupling rule, ONE figure read eleven times) · the main package's \`version\` IS the five pins' value and IS \`${VERSION}\`, so no cell of the eleven moved alone`, () => {
   // DECLARED: "**THE FIVE ARTEFACTS' COUPLING RULE IS THIS UNIT'S OWN AND IT IS ONE RULE: the five platform
   // artefacts' `version` equals the MAIN package's `version`, the main package's `optionalDependencies` pins
   // the five at EXACTLY that version**" (`§3.2` item 2; `PUB-DD-10`; `P-PUB-8`), with `10` of the eleven
@@ -1072,7 +1081,7 @@ test('installed · distribution.md §4.2 item 1 · the platform artefact is INST
   assert.ok(report.platform.resolved.endsWith(sep + 'storeroom_js_binding.node'));
 });
 
-test('installed · distribution.md §6.1 fields 1, 5, 6, 9, 11, 12 + contract.md §2.3 item 1 site (i) · the MAIN package\'s identity is exactly as declared: UNSCOPED `provident-storeroom`, `0.5.0`, ESM, `AGPL-3.0`, the `>=18.0.0` floor, `types` at `index.d.ts`, and a PUBLIC publish configuration', () => {
+test(`installed · distribution.md §6.1 fields 1, 5, 6, 9, 11, 12 + contract.md §2.3 item 1 site (i) · the MAIN package's identity is exactly as declared: UNSCOPED \`provident-storeroom\`, \`${VERSION}\`, ESM, \`AGPL-3.0\`, the \`>=18.0.0\` floor, \`types\` at \`index.d.ts\`, and a PUBLIC publish configuration`, () => {
   // DECLARED, field by field (`distribution.md §6.1`): field `1` "`provident-storeroom` — the MAIN package's
   // identity, UNSCOPED, as the architect's ruling names it" (`A82`); field `5` "`AGPL-3.0`"; field `6` the
   // floor; field `9` "`index.d.ts`"; field `11` "`{ \"access\": \"public\" }`"; field `12` "`\"module\"`".
