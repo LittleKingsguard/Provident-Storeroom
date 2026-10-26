@@ -2804,3 +2804,34 @@ toggle and a `rollback` must be element-wise equal.
 
 **TERMS: closed as not-a-defect (`2` = `DEF-V`, `R16`), accepted and owed (`1` = `DEF-R`'s ordering + its cell),
 behaviour moved (`1`), cells owed (`1`).**
+
+---
+
+### `D-40` — A FAILING REPAIR ROLLS BACK LIKE A CONSTRAINT REJECTION
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on `DEF-M`'s verified arm.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> A failing repair triggers a rollback like a constraint rejection
+
+**WHAT IT DECLARES, AND IT SETTLES THE ARM THAT WAS UNDECLARED.** **The failing-repair arm is NOT a new outcome —
+it is a ROLLBACK, and the SAME rollback a plain constraint rejection performs.** **And a plain rejection leaves the
+PRE-ATTEMPT state**: the measured comparison arm — a repair returning `{ok: false}` — leaves the seeded `5`, and that
+is the declared answer. **So a failing repair must leave `5` too.**
+
+**AND THE MEASURED BEHAVIOUR CONTRADICTS IT.** Seed `5`, refused `9`, repair `1`: the repair lands as `op-3`, the
+re-run refuses `1`, the write fails — **and `read(['a'])` answers `9`, the REJECTED value**, with the outcome's
+message reading *"…met the store's own `RollbackCompacted` at `op-2`"*. **The composition rolled back to `op-2` —
+the caller's own write — and left the rejected value standing.** **`DEF-M` is therefore a DEFECT against this
+ruling, not an open question**: the rollback must reach the **attempt's floor**, not one op above it.
+
+**WHAT THIS FIXES, IN ONE SENTENCE A READER CAN CARRY:** **a failed attempt leaves the store exactly as it found it,
+whether the constraint refused outright or its repair failed on the re-run.**
+
+**AND THE DECLARATION OWES THE SENTENCE.** The arm was undeclared; it is now declared, and the record must say so
+where a consumer reads it — the same act as `D-38`'s fail-state expansion.
+
+**TERMS: arm declared (`1` = failing repair ⇒ rollback ⇒ pre-attempt state), defect confirmed (`1` = `DEF-M`, the
+composition stops at `op-2`), cells owed (`1` = the DEF-M cell re-derived to the declared outcome), declaration owed
+(`1`).**
