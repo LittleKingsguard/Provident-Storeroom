@@ -2771,3 +2771,36 @@ client-scope rulings do not reach it.
 **TERMS: accepted (`3`), declarative-only (`1` = `DEF-P`), behavioural (`2` = `DEF-W` + `DEF-H`), owed cells (`2` =
 the single-call multi-address pair, the refused-reversal arm), version consequence (`1` = at least `1.1.0`,
 `2.0.0` if the union's expansion is read as breaking).**
+
+---
+
+### `D-39` — `DEF-V` is NOT a defect, `R16` is NOT a defect, `DEF-R` owes a deterministic order
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on three of the handoff's rows.
+
+**THE RULINGS, VERBATIM:**
+
+> **`DEF-V`:** refusal is correct, specific error code/message is a 'could have'
+> **`DEF-R`:** add deterministic ordering
+> **`R-16`:** Not a defect, constraints are lifetime-limited by the store instance
+
+**`DEF-V` — CLOSED, NOT A DEFECT.** `write(h, ['a'], undefined, 1)` refuses, and **the refusal is correct**: a
+supplied `undefined` tier is out of domain. **The status naming the address rather than the tier, and the message's
+specificity, are a COULD-HAVE** — a refinement a consumer would like, **not a failure of the promise.** **No cell is
+owed; no behaviour moves.** *(The handoff's own `(g)` asked that the status "never be an address code"; the architect
+has ruled that ask away, and the ruling is the authority.)*
+
+**`R16` — CLOSED, NOT A DEFECT.** **The bound IS declared, by the model rather than by a figure: a constraint's
+lifetime is the STORE INSTANCE's lifetime.** A store owns its registry and its attempt records (`D-30`), it owns the
+kernel that holds them (`D-46`), and **when the instance is released they go with it — there is nothing else to
+declare.** **`DEF-J`'s "no deletion site" is therefore not a leak**: the deletion site is the instance's own
+collection. **No bound, cap or eviction arm is owed, and `R16` asks a question the model has already answered.**
+
+**`DEF-R` — ACCEPTED, and it is a BEHAVIOURAL change.** `constraints()` must emit in a **DECLARED, deterministic
+order** — registration sequence, which is the order the pairs were registered and the one a consumer can reason
+about. **The declaration currently says "no order" among its four exclusions; that exclusion is superseded and the
+order becomes part of what the method promises.** **The cell is owed**: five snapshots across a pass, a refusal, a
+toggle and a `rollback` must be element-wise equal.
+
+**TERMS: closed as not-a-defect (`2` = `DEF-V`, `R16`), accepted and owed (`1` = `DEF-R`'s ordering + its cell),
+behaviour moved (`1`), cells owed (`1`).**
