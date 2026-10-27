@@ -2874,3 +2874,55 @@ already builds.** No forgery of the op's `after` is admissible, and the implemen
 **WHAT THIS PASS DID NOT DO, AND WHY.** **The fix needs one behavioural change plus a RE-DERIVATION OF TWENTY-TWO
 CELLS from the overruled arm to the declared one** — **a test-writer's act, not an implementer's, and not a one-file
 edit.** **The tree is byte-identical to `HEAD`; nothing half-done ships.**
+
+---
+
+### `D-41` — THE DOWNSTREAM'S REVIEW OF `1.0.1`: my semver defence was wrong, and the restoration destroys data
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the adjacent consumer's regenerated handoff (47,194 bytes, ten
+ranked rows) against the published `1.0.1`. **Two of its findings are mine, and one is a data-integrity defect L0
+introduced while closing `DEF-W`.**
+
+**1 · ★ THE VERSION IS THE HEADLINE AND L0 DEFENDED THE PATCH AGAINST ITS OWN RECORDED CONCLUSION.**
+`D-38` says, in my words: *"The three cannot ship as `1.0.1`. The next release is at least `1.1.0`, and `DEF-H`'s union
+expansion makes `2.0.0` the honest semver."* **When the architect chose `1.0.1`, L0 wrote a justification into the
+prep brief — that `StoreStatus`'s open escape arm `(string & {})` makes an added member non-breaking — and that
+argument is TRUE OF THE UNION AND OF NOTHING ELSE.** **Four behaviour changes shipped under a patch:** the emitted
+vocabulary **17 → 20**; **a stored value moved `9 → 5`**; **a constraint-refused write's status changed**; and
+**`rollback` went from total to partial — it now THROWS, where the `1.0.0` declaration promised a record and no
+failure.** **The escape arm cannot reach any of the last three: a type-level arm does not cover a behaviour.** **The
+consumer's consequence is concrete and correct: pin `<1.0.1` until the four are declared breaking.** **This is a semver
+breach, it is on the release that is already published, and the remedy is a version-policy statement plus a release
+note that names the four — not a silent patch.**
+
+**2 · ★ THE COMPENSATING RESTORE DESTROYS DATA, WHICH IS WORSE THAN THE DEFECT IT CLOSES.** `restoreReversal` **clears
+every tier and rewrites the captured standing at `mem`** — so **a `file`-tier value is destroyed by a REFUSAL that then
+tells the consumer every address *"stands again at its pre-reversal state"*.** **And when the terminal value is absent
+the restore cannot succeed while the message still claims *"the reversal was UNDONE"* — measured by the consumer at
+`200` of `200` across `200` pairs.** **A refusal must not move data, and a message must not claim a restoration that
+did not happen.** **This is the worst thing on the branch: `DEF-W`'s cure introduced a data-integrity class, and the
+`F8-2`/`D-40` pattern repeats — a fix that closed one arm opened another.**
+
+**3 · THE CONSERVATIVE DIRECTION IS THE PERMISSIVE ONE, AND TWO COMMIT SUBJECTS CLAIMED THE WINDOW CLOSED.**
+`D-40`'s conjunction makes a reversal **inside an open commit unjudged**, so **its violating effect stands** — while the
+identical call one frame out is refused **and restored**. **Zero judgement invocations inside a listener or constraint
+body.** **The declaration says this** (`§2.6` item 1, at rest only); **the commit subjects did not.** **Whether to judge
+inside a commit is a RULING, not a fix**: judging there invokes bodies mid-attempt, which is the danger `D-40` exists
+to avoid — **so the trade is real and L0 does not choose it.**
+
+**4 · AND THREE SMALLER MINE.** **A body that throws at the judgement refuses with `log: []` and NO UNDO.** **A
+fabricated `seq: 1`** in the refused-reversal log entry. **The shipped guide names itself one version behind.**
+
+**5 · THREE WITHDRAWALS ARRIVE FROM THE CONSUMER'S SIDE, AND TWO RECORD L0 SHOULD NOT HAVE FILED.** **`DEF-R` never
+reproduced at either version** — five snapshots, a batch construction and a removal/re-add all in registration order,
+byte-identically in both — **so it is withdrawn as UNPROVEN, even though `1.0.1` minted a registration sequence
+anyway**. **`DEF-T`'s two spellings did not reproduce**; what stands is **four spellings across the fourteen members**,
+so the row is re-scoped to the observation. **`DEF-V` drops to a diagnostic wish** by the ruling already given.
+**Their own withdrawal — the retention demand — is pinned so no later pass re-files it.**
+
+**6 · `DEF-U` IS DECLARED-ONLY AND THEY SAY SO RATHER THAN DRESSING IT UP:** *"the release record says green, but no
+test ships in the tarball, so it can't be measured from the artifact."* **Correct — and it is the same reason the
+package's suite cannot be the evidence for a consumer.**
+
+**OWED, AND NOTHING ELSE: the two `STOREROOM-*` rows need re-measurement at `1.0.1`** — both read, both labelled not
+re-measured, each naming its own owed measurement.
