@@ -298,9 +298,9 @@ test('DIRECT-PASS RESTART (3) · THE TERMINAL WRITE ARM IS UNCHANGED by the move
     `with ONE log entry — the refusal's own, not the report's copy: ${JSON.stringify(log)}`);
   assert.equal(log[0].id, 'restart-write',
     `naming the pair: ${JSON.stringify(log[0].id)}`);
-  assert.equal(Object.hasOwn(log[0], 'seq'), false,
-    `and carrying no \`seq\` — no attempt log stands at the judgement's own instant (\`D-41\` item \`4\`): `
-      + `${JSON.stringify(log[0])}`);
+  assert.equal(log[0].seq, 1,
+    `and carrying the \`seq\` of the one-entry list it stands in — the declared ordinal rule, never an ordinal `
+      + `read off a log that is not there (\`D-48\` · \`DEF-AI\`): ${JSON.stringify(log[0])}`);
   assert.deepEqual(asked, [LANDED, THIRD, SEED],
     `the pair is asked at REGISTRATION, by the PASS and by the RESTART — the SAME three asks arm (1)'s direct `
       + `drive made: ${JSON.stringify(asked)}`);

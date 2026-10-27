@@ -87,6 +87,7 @@ import { withAddon, boundaryReject, adoptModuleContext } from './src/entry/artef
 import { VALUE_ARGUMENT_POSITION, accessorOrSymbolArm, arrayClass, classSpelling, extendedPath, hasLoneSurrogate, inDomainAddress, isAdmittedArray, isLawfulListenerElement, isPlainObjectValue, protoClass, shapeArmClass, targetSpelling, valueReject, valueTargetSpelling } from './src/entry/class-decision.mjs';
 import { encodeAddress, encodeFilePath, encodeJournalLength, encodeOpId, encodeTier, encodeValue, handleWire, inDomainHandle } from './src/entry/carrier.mjs';
 import { admittedConstraintBatch, constraintAddress, decodeBaseState, decodeJournalOp, decodeSegments, decodeValue, encodeConfig, spellConstraintAddress } from './src/entry/frame.mjs';
+import { addressSpelling } from './src/entry/kernel-foundations.mjs';
 import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, carryRefusal, closeCommit, crossTriggered, entryOf, homeAddressKey, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
 import { commitPositionRefusal, constraintOverwrittenByListen, deliver, listenerStandingAt, registerOn, terminalArm } from './src/entry/delivery.mjs';
 import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintWrite, constraintsKernel, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, withdrawStanding } from './src/entry/constraints.mjs';
@@ -631,8 +632,8 @@ export function storeCreate(cfg) {
       if (overwritten !== null) {
         boundaryReject(
           'AddressMalformed',
-          spellConstraintAddress(overwritten.address),
-          `the listener '${handle}' cannot be installed at ${JSON.stringify(overwritten.address)}: the constraint `
+          addressSpelling(overwritten.address),
+          `the listener '${handle}' cannot be installed at ${addressSpelling(overwritten.address)}: the constraint `
             + `'${overwritten.id}' stands there, and a listener and a constraint do not share one`,
         );
       }
@@ -821,9 +822,9 @@ export function storeCreate(cfg) {
       if (collided !== null) {
         boundaryReject(
           'AddressMalformed',
-          spellConstraintAddress(collided.address),
+          addressSpelling(collided.address),
           `the listener '${site.id}' cannot share its handle with the constraint '${site.id}' at `
-            + `${JSON.stringify(collided.address)}: a listener and a constraint do not share one`,
+            + `${addressSpelling(collided.address)}: a listener and a constraint do not share one`,
         );
       }
       const held = site.state.constraints.get(constraintPairKey(site.addresses, site.id));

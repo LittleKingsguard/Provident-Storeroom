@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9c`) — the commit act: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, refuse, inDomainAddress, kernelFor, attemptHeldAt, appendOwn } from './kernel-foundations.mjs';
+import { KC, refuse, inDomainAddress, kernelFor, attemptHeldAt, appendOwn, addressSpelling } from './kernel-foundations.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-2` `commit(store, address, tier, value) -> CommitRecord`
 // ---------------------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ export function commit(store, address, tier, value) {
   // HELD address WITHIN the instance is refused exactly as it stood. **THE ADDRESS COMPARISON ITSELF IS UNMOVED.**
   if (held && attemptHeldAt(kernel, address)) {
     refuse(KC.attemptOpen,
-      `a constraint attempt is already open at ${JSON.stringify(address)}; it is disposed of by its own `
+      `a constraint attempt is already open at ${addressSpelling(address)}; it is disposed of by its own `
       + 'K-3 and by no other act',
       []);
   }

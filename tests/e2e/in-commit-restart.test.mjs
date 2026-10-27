@@ -46,9 +46,11 @@ import { RESTART_LIMIT } from '../../bindings/js/src/entry/constraints.mjs';
 
 /** `surface.md §2.5` items 3–4: the ONE crossed form's member set, sorted ascending. */
 const REFUSAL_MEMBERS = ['log', 'message', 'status'];
-/** `contract.md §2.6` item 4 as corrected by `D-41` item `4`: the no-attempt refusal's entry carries FIVE
- *  members and NO `seq` — no attempt log stands to supply one. */
-const NO_ATTEMPT_LOG_MEMBERS = ['kind', 'id', 'message', 'opId', 'state'];
+/** `contract.md §2.6` item 4 as corrected by `D-41` item `4` and RE-DERIVED 2026-10-28 (`D-48` · `DEF-AI`): the
+ *  no-attempt refusal's entry carries the kernel's DECLARED SIX, `seq` included — its ordinal is its own place
+ *  in the one-entry list it stands in (`kernel-surface.md §2.5` item 1's ordinal rule), never a number read off
+ *  a log that is not there. */
+const NO_ATTEMPT_LOG_MEMBERS = ['seq', 'kind', 'id', 'message', 'opId', 'state'];
 /** The set's rank-`20` member (`src/error.rs`'s `CODES`, `[&str; 20]`), the ONE status both arms of a
  *  constraint refusal cross with (`DEF-H`; `D-38`). */
 const PASS_REFUSED = 'ConstraintPassRefused';
@@ -140,8 +142,11 @@ test('IN-COMMIT RESTART (1) · a violating `rollback` issued from a LISTENER BOD
   assert.equal(log[0].id, 'r1',
     `the entry NAMES the pair that refused the state the reversal left: ${JSON.stringify(log[0])}`);
   assert.deepEqual(Object.keys(log[0]).sort(), NO_ATTEMPT_LOG_MEMBERS.slice().sort(),
-    `the entry carries ${JSON.stringify(NO_ATTEMPT_LOG_MEMBERS)} and no \`seq\` (\`D-41\` item \`4\`): `
-      + `${JSON.stringify(Object.keys(log[0]))}`);
+    `the entry carries the kernel's declared ${JSON.stringify(NO_ATTEMPT_LOG_MEMBERS)}, \`seq\` included `
+      + `(\`D-48\` · \`DEF-AI\`): ${JSON.stringify(Object.keys(log[0]))}`);
+  assert.equal(log[0].seq, 1,
+    `the entry's \`seq\` is the ordinal of the one-entry list it stands in `
+      + `(\`kernel-surface.md §2.5\` item 1): ${JSON.stringify(log[0].seq)}`);
   assert.equal(log[0].opId, target.op.opId,
     `the entry's \`opId\` is the store's own echo of the id the reversal named: `
       + `${JSON.stringify(log[0].opId)} against ${JSON.stringify(target.op.opId)}`);

@@ -5,6 +5,7 @@ import { withAddon, boundaryReject } from './artefact.mjs';
 import { arrayClass, classSpelling, hasLoneSurrogate, isPlainObjectValue, targetSpelling } from './class-decision.mjs';
 import { encodeAddress, encodeOpId, handleWire, inDomainHandle } from './carrier.mjs';
 import { decodeSegments, spellConstraintAddress } from './frame.mjs';
+import { addressSpelling } from './kernel-foundations.mjs';
 import { entryOf, carryRefusal, commitFile, homeAddressKey, externalCall, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM } from './state.mjs';
 
 /// `PAR-JS-13`: the returned record is `{op, watched, triggered}` — fresh on every call, never a view.
@@ -305,8 +306,8 @@ export function registerOn(state, handle, listener) {
   if (conflicted !== null) {
     boundaryReject(
       'AddressMalformed',
-      spellConstraintAddress(conflicted.address),
-      `the listener '${handle}' cannot be registered at ${JSON.stringify(conflicted.address)}: the constraint `
+      addressSpelling(conflicted.address),
+      `the listener '${handle}' cannot be registered at ${addressSpelling(conflicted.address)}: the constraint `
         + `'${conflicted.id}' stands at that address, and a listener and a constraint do not share one`,
     );
   }

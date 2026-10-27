@@ -1917,7 +1917,7 @@ function undoSpelling(undo) {
   for (let index = 0; index < undo.failed.length; index += 1) {
     const one = undo.failed[index];
     named += index === 0 ? '' : '; ';
-    named += `${JSON.stringify(one.address)} could not be restored and stands `
+    named += `${addressSpelling(one.address)} could not be restored and stands `
       + `${standingDescription(one.standing, one.tiers)} where it stood `
       + `${capturedDescription(one)} before the reversal`;
   }
@@ -2147,21 +2147,36 @@ function reversalRefusal(one, after, said, reversalId, undo, thrown, unsettled =
   let spelled;
   if (unsettled === true) {
     spelled = `the constraint ${one.entry.id} could not be asked a state that would settle at `
-      + `${JSON.stringify(one.address)}: the value there is ${standingSpelling(after)} — the check was `
+      + `${addressSpelling(one.address)}: the value there is ${standingSpelling(after)} — the check was `
       + `restarted ${RESTART_LIMIT} times and a pair body acted inside the check at every restart, so the `
       + `restart budget is spent and the check does not pass — ${undoSpelling(undo)}`;
   } else if (thrown === null) {
     spelled = `the constraint ${one.entry.id} refused the state the reversal left at `
-      + `${JSON.stringify(one.address)}: the value there is ${standingSpelling(after)}`
+      + `${addressSpelling(one.address)}: the value there is ${standingSpelling(after)}`
       + (said === null ? '' : ` — ${said}`)
       + ` — ${undoSpelling(undo)}`;
   } else {
     spelled = `the constraint ${one.entry.id} THREW at the judgement of the state the reversal left at `
-      + `${JSON.stringify(one.address)}: the value there is ${standingSpelling(after)}`
+      + `${addressSpelling(one.address)}: the value there is ${standingSpelling(after)}`
       + ` — ${undoSpelling(undo)}`;
   }
   const entry = {
+    // **⟶ AND THE `seq` STANDS, 2026-10-28 — `DEF-AI`: THE ENTRY'S DECLARED SHAPE IS THE KERNEL'S CLOSED SIX
+    // AND THIS ONE CARRIED FIVE.** The 2026-10-27 clause below withdrew the `1` as FABRICATED, on the reading
+    // that `seq` is *"the ordinal within an ATTEMPT's own log"* and that no attempt stands at a reversal's
+    // judgement. **THE READING IS RIGHT ABOUT THE ATTEMPT AND WRONG ABOUT THE MEMBER.** `seq`'s DECLARED
+    // DOMAIN is *"the append ordinal, strictly increasing from `1` in array order"*
+    // (`docs/specs/storeroom-constraints/kernel-surface.md §2.5` item 1), and the array this entry stands in is
+    // THIS REFUSAL'S OWN ONE-ENTRY LIST: its first element's ordinal is `1` BY THAT RULE, not by invention —
+    // the same arithmetic the kernel's own `append` performs (`log.length + 1`, read off the list the entry
+    // stands in). **AND THE TWO COPIES OF THIS VERY ENTRY ALREADY DISAGREED**: `carryRestartRefusal` re-appends
+    // it into the attempt's log through `append`, where it carries `seq` `1`, while the list that crosses to
+    // the caller carried none — one entry, two shapes, which is this branch's `DEF-AI` class exactly. **`log`
+    // IS DECLARED `LogEntry[]`** (`bindings/js/index.d.ts`), so a consumer typing it read `undefined` where
+    // `number` is declared. **THE DECLARATION IS NOT WEAKENED TO MATCH THE ENTRY: THE ENTRY CARRIES THE
+    // MEMBER.** No other member, no second entry and no sentence moves.
     kind: 'constraint-check',
+    seq: 1,
     id: one.entry.id,
     // **⟶ AND THE ENTRY SAYS WHAT THE ACT DID, 2026-10-26 (`DEF-W`'s `(a)`) and 2026-10-27 (`D-41` item `2`)** —
     // the refusal's own record, beside the state it refused, so a consumer that catches it knows whether the

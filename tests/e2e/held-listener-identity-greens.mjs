@@ -871,9 +871,17 @@ const K6 = (store, pair) => kernel.remove(store, pair);
     typeof m === 'string' && m.length > 0, fmt(String(m).slice(0, 100)));
   // ⟶ RE-DERIVED 2026-10-25 with the drive: the two sides are now the HANDLE (`'k1'`) and the STANDING
   // CONSTRAINT's `id` and ADDRESS, and `surface-deltas.md` §2.5 item 2 requires the text to name both.
-  A('HLI-11.9', 'constraint-sites.md §5 item 5 (iii) ("the message names BOTH SIDES") read with `docs/L1/surface-deltas.md` §2.5 item 2',
-    "the message names both sides — the handle the caller tried to register and the constraint (its `id` AND its address) that stands there",
-    typeof m === 'string' && m.includes('k1') && m.includes('["c"]'), fmt(String(m).slice(0, 160)));
+  // ⟶ **RE-DERIVED AGAIN 2026-10-28 (`strata/decisions.md` · `D-48` · `DEF-AB`): THE ADDRESS IS NAMED IN THE
+  // KERNEL'S ONE DECLARED RENDERING — THE SEGMENTS JOINED BY `/` (`pairSpelling`'s, now `addressSpelling`'s) —
+  // AND NO LONGER AS A `JSON.stringify` ARRAY.** The as-filed expectation read `m.includes('["c"]')`, which
+  // pinned the SECOND spelling of one address: the same message's structural `<SEGMENT>` slot prints it
+  // `'c'` while the clause printed `["c"]`. **The cell's subject — *"the message names BOTH SIDES"* — is
+  // UNMOVED and the clause is unmoved; what moves is WHICH rendering satisfies it**, and the JSON-array
+  // spelling is now asserted ABSENT so the divergence cannot come back at this site.
+  A('HLI-11.9', 'constraint-sites.md §5 item 5 (iii) ("the message names BOTH SIDES") read with `docs/L1/surface-deltas.md` §2.5 item 2 and `D-48` · `DEF-AB` (one address, one rendering)',
+    "the message names both sides — the handle the caller tried to register and the constraint (its `id` AND its address, in the kernel's ONE rendering, the segments joined by `/`) — and never a JSON-array spelling",
+    typeof m === 'string' && m.includes('k1') && m.includes(' at c:') && m.includes('["c"]') === false,
+    fmt(String(m).slice(0, 160)));
   const cons = thrown(() => i.constraints());
   A('HLI-11.10', 'constraint-sites.md §5 item 1 (the seat is BEFORE `state.registry.set`, so "a refusal leaves the registry untouched")',
     "the refusal changed nothing: the pair is still carried by the enumeration",

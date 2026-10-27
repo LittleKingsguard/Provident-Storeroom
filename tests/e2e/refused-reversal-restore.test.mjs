@@ -426,9 +426,10 @@ test('D-41 · the ABSENT cases: an address absent before the reversal is ABSENT 
       + `${JSON.stringify(cannotMessage)}`);
   assert.equal(/NOT undone/i.test(cannotMessage), false,
     `it carries no negative claim beside a restoral that happened: THE DRIVE READ ${JSON.stringify(cannotMessage)}`);
-  assert.equal(Object.hasOwn(cannotLog[0], 'seq'), false,
-    `the entry carries NO \`seq\`: no attempt log stands at a reversal's judgement, so no ordinal is minted `
-      + `(\`D-41\` item \`4\`). THE DRIVE READ ${JSON.stringify(Object.keys(cannotLog[0]))}`);
+  assert.equal(cannotLog[0].seq, 1,
+    `the entry carries the \`seq\` of the one-entry list it stands in — the declared ordinal rule, never an `
+      + `ordinal read off a log that is not there (\`D-48\` · \`DEF-AI\`). THE DRIVE READ `
+      + `${JSON.stringify(Object.keys(cannotLog[0]))}`);
 
   // ── THE READINGS, PRINTED ON EVERY ARM (`D-21`: a cell owes what it read). ───────────────────
   t.diagnostic(`D-41 · ARM A (absent BEFORE the reversal, reached by a structured ancestor write): before `

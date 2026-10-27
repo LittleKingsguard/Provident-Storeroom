@@ -2,6 +2,7 @@
 import { types } from 'node:util';
 import { boundaryReject } from './artefact.mjs';
 import { appendOwn } from './refusal.mjs';
+import { addressSpelling } from './kernel-foundations.mjs';
 import { arrayClass, classSpelling, hasLoneSurrogate, isAdmittedArray, isLawfulListenerElement, isPlainObjectValue, valueTargetSpelling } from './class-decision.mjs';
 import { encodeAddress, encodeFilePath, encodeJournalLength } from './carrier.mjs';
 
@@ -309,7 +310,7 @@ export function admittedConstraintBatch(cfg) {
         'ConstraintListInvalid',
         segment,
         `the batch element at position ${position} names the handle '${element.id}', and this construction `
-          + `adopts a listener under that handle at ${JSON.stringify(adoptedAddresses[adoptedAt])}: a listener `
+          + `adopts a listener under that handle at ${addressSpelling(adoptedAddresses[adoptedAt])}: a listener `
           + 'and a constraint do not share one',
         ['constraints'],
       );

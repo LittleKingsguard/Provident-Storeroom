@@ -73,18 +73,20 @@ const LOG_MEMBERS = ['seq', 'kind', 'id', 'message', 'opId', 'state'];
 const LOG_KINDS = ['constraint-check', 'repair-run', 'commit', 'outcome'];
 
 /**
- * **⟶ AND THE NO-ATTEMPT REVERSAL REFUSAL'S ENTRY CARRIES FIVE MEMBERS AND NO `seq` — ADDED 2026-10-27
- * (`strata/decisions.md` · `D-41` item `4`; `contract.md §2.6` item `4`'s clause of 2026-10-26 read through
- * this clause).** That clause declared the entry *"`seq` `1`"*, and **that `1` was FABRICATED: the kernel's
- * `seq` is the ordinal WITHIN AN ATTEMPT'S OWN LOG (`kernel-foundations.mjs`'s `append`, `attempt.log.length +
- * 1`) and NO ATTEMPT STANDS AT A REVERSAL'S JUDGEMENT**, so there is no log whose ordinal it could be and no
- * member of any record here it could be read from. The order of this pass was *"use the seq the record
- * actually has, or omit the member; do not mint one"*, and the correction is the omission: **the honest form
- * of a record whose ordinal is unknown is an ABSENT member, never a number invented for it.** The other five
- * members are unmoved, and this list is asserted INSTEAD of `LOG_MEMBERS` at this arm — with `seq`'s ABSENCE
- * asserted beside it, so the correction is pinned rather than merely permitted.
+ * **⟶ THE NO-ATTEMPT REVERSAL REFUSAL'S ENTRY CARRIES THE DECLARED SIX, `seq` INCLUDED — RE-DERIVED
+ * 2026-10-28 (`strata/decisions.md` · `D-48` · `DEF-AI`).** A 2026-10-27 pass withdrew `seq` `1` from this
+ * arm as FABRICATED, reading `seq` as *"the ordinal WITHIN AN ATTEMPT'S OWN LOG"* — true of where the number
+ * came from before, **and wrong about the MEMBER**: `seq`'s declared domain is *"the append ordinal, strictly
+ * increasing from `1` in array order"* (`docs/specs/storeroom-constraints/kernel-surface.md §2.5` item 1), and
+ * the array this entry stands in is this refusal's OWN one-entry list, whose first element's ordinal is `1`
+ * BY THAT RULE — the same arithmetic `append` performs on the list it stands in. **The two copies of the very
+ * same entry disagreed on the member** (`carryRestartRefusal` re-appends it into the attempt's log through
+ * `append`, where it carries `seq` `1`), and `log` is declared `LogEntry[]`
+ * (`bindings/js/index.d.ts`), so the crossing handed a consumer `undefined` where `number` is declared.
+ * **THE DECLARATION IS NOT WEAKENED TO MATCH THE ENTRY — THE ENTRY NOW CARRIES THE MEMBER**, and this list is
+ * the kernel's own declared six.
  */
-const NO_ATTEMPT_LOG_MEMBERS = ['kind', 'id', 'message', 'opId', 'state'];
+const NO_ATTEMPT_LOG_MEMBERS = ['seq', 'kind', 'id', 'message', 'opId', 'state'];
 
 /** The three values `DEF-M`'s drive must keep apart: the seed, the value the constraint REFUSES, and the value
  *  its repair writes. Three distinct sentinels, so the store's terminal reading names exactly one of them. */
@@ -810,19 +812,19 @@ test('DEF-W · under `D-38` (2026-10-26) a `rollback` whose TERMINAL state a reg
   // ── AND THE `log` NAMES THE CONSTRAINT AND THE STATE IT REFUSED. ─────────────────────────────
   // `kernel-surface.md §2.5` item 1: the entry's CLOSED four-kind set — the same entry shape every other log
   // this surface carries has, so a consumer reads this `log` with the reader it already has — **AND AT THIS
-  // NO-ATTEMPT ARM FIVE MEMBERS AND NO `seq`** (`NO_ATTEMPT_LOG_MEMBERS` above, `D-41` item `4`: the `seq` the
-  // earlier clause minted has no record behind it).
+  // NO-ATTEMPT ARM THE DECLARED SIX, `seq` INCLUDED** (`NO_ATTEMPT_LOG_MEMBERS` above, re-derived 2026-10-28
+  // on `D-48` · `DEF-AI`: the ordinal is the entry's own place in the one-entry list it stands in).
   assert.ok(refusedLog.length > 0,
     `the refusal's \`log\` names the constraint and the state it refused, so it is not empty here: the drive `
       + `read ${JSON.stringify(refusedLog)}`);
   for (const entry of refusedLog) {
     assert.deepEqual(Object.keys(entry).sort(), [...NO_ATTEMPT_LOG_MEMBERS].sort(),
       `the no-attempt refusal's entry carries exactly ${JSON.stringify(NO_ATTEMPT_LOG_MEMBERS)} `
-        + `(\`kernel-surface.md §2.5\` item 1 read through \`D-41\` item \`4\`); the drive `
+        + `(\`kernel-surface.md §2.5\` item 1, read through \`D-48\` · \`DEF-AI\`); the drive `
         + `read ${JSON.stringify(Object.keys(entry))} from ${JSON.stringify(entry)}`);
-    assert.equal(Object.hasOwn(entry, 'seq'), false,
-      `the entry carries NO \`seq\`: no attempt log stands at a reversal's judgement, so there is no ordinal to `
-        + `read one from and none is minted (\`D-41\` item \`4\`); the drive read `
+    assert.equal(entry.seq, 1,
+      `the entry's \`seq\` is its place in the one-entry list it stands in — \`1\` by the declared ordinal `
+        + `rule, and never a number read off a log that is not there (\`D-48\` · \`DEF-AI\`); the drive read `
         + `${JSON.stringify(entry.seq)} under a \`seq\` member`);
     assert.equal(LOG_KINDS.includes(entry.kind), true,
       `\`kind\` is one of ${JSON.stringify(LOG_KINDS)}; the drive read ${JSON.stringify(entry.kind)}`);
@@ -1324,11 +1326,15 @@ test('DEF-W (3) · the discriminator is the CONJUNCTION: a reversal at a LISTENE
     `the refusal's entry NAMES the pair that refused the state the reversal left: `
       + `${JSON.stringify(controlLog[0])}`);
   assert.deepEqual(Object.keys(controlLog[0]).sort(), NO_ATTEMPT_LOG_MEMBERS.slice().sort(),
-    `the refusal's entry carries ${JSON.stringify(NO_ATTEMPT_LOG_MEMBERS)} and no sixth member — no \`seq\`, `
-      + `which no attempt log stands to supply (\`D-41\` item \`4\`): `
+    `the refusal's entry carries ${JSON.stringify(NO_ATTEMPT_LOG_MEMBERS)} and no seventh member — \`seq\` `
+      + `included, its place in this one-entry list (\`D-48\` · \`DEF-AI\`): `
       + `${JSON.stringify(Object.keys(controlLog[0]))}`);
-  assert.equal(Object.hasOwn(controlLog[0], 'seq'), false,
-    `and \`seq\` is ABSENT rather than minted: the drive read ${JSON.stringify(controlLog[0].seq)} under it`);
+  assert.equal(controlLog[0].seq, 1,
+    `the entry's \`seq\` is the ordinal of the list it stands in (\`kernel-surface.md §2.5\` item 1): `
+      + `${JSON.stringify(controlLog[0].seq)}`);
+  assert.equal(controlLog[0].seq, 1,
+    `and \`seq\` is the entry's own place in the one-entry list it stands in rather than a number read off a log `
+      + `that is not there: the drive read ${JSON.stringify(controlLog[0].seq)} under it`);
   assert.equal(controlStanding, W_SECOND,
     `the refusal undid the reversal it refused (\`DEF-W\`'s \`(a)\`): the store stands again at `
       + `${JSON.stringify(W_SECOND)} where the drive read ${JSON.stringify(controlStanding)}`);
@@ -1456,4 +1462,123 @@ test('F · a `filePath` whose parent the process cannot write is refused AT CONS
     if (scratch !== null) rmSync(scratch, { recursive: true, force: true });
     rmSync(probe, { force: true });
   }
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// DEF-AB · ONE ADDRESS, ONE RENDERING — `strata/decisions.md` · `D-48`'s `DEF-AB` row
+//
+// **THE ROW, AS THE DOWNSTREAM FILED IT: *"one address printed two ways."*** **THE DEFECT CLASS `DEF-Q` WAS
+// FILED UNDER, AT ANOTHER SITE** — and the `DEF-Q` cell above fixes one of its limbs (a message may not print
+// `undefined` for a column its entry carries); this cell fixes the other.
+//
+// **THE MEASUREMENT, BEFORE THE FIX, TAKEN FROM ONE ATTEMPT'S OWN LOG.** The drive below makes a pair whose
+// repair lands and whose re-run then refuses — the `KC-5` arm — so ONE log carries both sentences. On the tree
+// before this pass those two sentences read:
+//
+//   [constraint-check]  the constraint x passed at ["a"]
+//   [repair-run]        the repair x landed op-3
+//   [constraint-check]  one is not admitted either
+//   [outcome]           the pair a#x violated a re-run and its repair had already been applied
+//
+// **`["a"]` AND `a#x` ARE ONE ADDRESS, PRINTED TWO WAYS, IN ONE RECORD.** The kernel declares the rendering
+// ONCE — `pairSpelling` (`bindings/js/src/entry/kernel-foundations.mjs`), whose own sentence spells the
+// address's segments joined by `/` off `pair.addresses[0]` — and every other sentence in that file reached for
+// `JSON.stringify(address)`, which is `["a"]`. **SO THE CELL ASSERTS THE DECLARED RENDERING AND NOT A FIGURE:**
+// no log entry's message may spell an address as a JSON array, and where a message prints a pair token the
+// token's `#id` half must agree with the entry's own `id` column.
+//
+// **`D-21`.** The cell prints every sentence it read, before and after, and it says so at its own diagnostic.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+test('DEF-AB · one address is rendered ONE way: no log entry message spells an address as a JSON array, and a pair token printed in a message agrees with its entry\'s own `id` column', (t) => {
+  // ── THE DRIVE — a repair lands, the re-run refuses, and BOTH sentences stand in ONE log. ──────────────
+  const store = storeCreate({ journalLength: 8, listeners: [] });
+  store.write(['a'], 'mem', SEED);
+  // A SECOND PAIR AT THE SAME ADDRESS THAT ALWAYS PASSES — so the log carries the *"passed at <address>"*
+  // sentence beside the repeat arm's pair token. ONE address, TWO messages, and that is the row.
+  store.addConstraint({ address: ['a'], id: 'y' }, (context) => (context.tier === null ? true : true));
+  store.addConstraint({ address: ['a'], id: 'x' }, (context) => {
+    if (context.tier === null) return true;
+    if (context.value === SEED) return true;
+    if (context.value === REFUSED) {
+      return {
+        message: 'nine is not admitted',
+        repair: (repairContext) => ({
+          ok: true,
+          message: 'repaired',
+          op: store.write(['a'], 'mem', REPAIRED, repairContext).op,
+        }),
+      };
+    }
+    // AN OUTSIDE VALUE ON THE RE-RUN'S OWN ASK — the `{message}` arm's sibling, whose sentence is the one
+    // that prints the ADDRESS: `… outside the three declared outcome arms at a`.
+    return undefined;
+  });
+  const refused = attempt(() => store.write(['a'], 'mem', REFUSED));
+  assert.equal(refused.ok, false,
+    `the drive must reach the refusal arm or there is nothing to read: the write answered `
+      + `${JSON.stringify(refused.ok ? refused.value : refused.caught.status)}`);
+  const log = Array.isArray(refused.caught.log) ? refused.caught.log : [];
+  assert.ok(log.length > 0,
+    `the refusal must carry a log, or the drive did not reach the pass: ${JSON.stringify(log)}`);
+
+  // ── THE ONE DECLARED RENDERING, SPELLED HERE FROM THE DECLARATION AND NOT FROM THE IMPLEMENTATION. ────
+  // `pairSpelling`: the address's segments joined by `/`, then `#`, then the id. On this drive the attempt's
+  // address is the one-segment `['a']`, so the declared rendering of it is `a` and of the pair is `a#x`.
+  const declaredAddress = 'a';
+  const declaredToken = 'a#x';
+
+  // ── THE CELL: EVERY MESSAGE, AT ITS OWN TWO FACTS. ───────────────────────────────────────────────────
+  const printed = [];
+  for (const entry of log) {
+    const message = typeof entry.message === 'string' ? entry.message : '';
+    printed.push(`[${entry.kind}] ${message}`);
+    // (i) NO MESSAGE SPELLS AN ADDRESS AS A JSON ARRAY — the second rendering the row was filed against.
+    assert.equal(/\["/.test(message), false,
+      `no log entry's message may spell an address through \`JSON.stringify\`, which prints \`["a"]\`: the `
+        + `kernel declares ONE rendering, the segments joined by \`/\` (\`DEF-AB\`). THE ENTRY READ `
+        + `${JSON.stringify(entry)}`);
+    assert.equal(message.includes('["a"]'), false,
+      `and the drive's own address is the one that was double-spelled: ${JSON.stringify(message)}`);
+    // (ii) MESSAGE/COLUMN AGREEMENT — a pair token the sentence prints must agree with the entry's `id`.
+    const token = /(?:^|[^A-Za-z0-9_/])([A-Za-z0-9_/]+)#([A-Za-z0-9_-]+)/.exec(message);
+    if (token !== null) {
+      assert.equal(token[1], declaredAddress,
+        `a pair token printed in a message spells the attempt's own address as the declared rendering: the `
+          + `entry read ${JSON.stringify(token[1])} against ${JSON.stringify(declaredAddress)}`);
+      // THE COLUMN AGREEMENT IS ASSERTED WHERE THE ENTRY CARRIES THE COLUMN (`constraint-check` and
+      // `repair-run` carry the pair's bare `id`); the `outcome` and `commit` kinds declare `id` `null`
+      // (`kernel-surface.md §2.5` item 1's kind table), so their sentences name the pair the log's own
+      // `constraint-check` entry names — which is the second half of the same agreement.
+      const named = log.map((one) => one.id).filter((id) => typeof id === 'string');
+      if (typeof entry.id === 'string') {
+        assert.equal(token[2], entry.id,
+          `its \`#id\` half AGREES WITH THE ENTRY'S OWN \`id\` COLUMN — one entry, one pair, one id: the `
+            + `message read ${JSON.stringify(token[2])} against the entry's id ${JSON.stringify(entry.id)}`);
+      } else {
+        assert.equal(named.includes(token[2]), true,
+          `an entry whose \`id\` column is \`null\` by declaration (kind ${JSON.stringify(entry.kind)}) names `
+            + `the pair its log's own \`constraint-check\` entry carries: the message read `
+            + `${JSON.stringify(token[2])} against the log's ids ${JSON.stringify(named)}`);
+      }
+    }
+    // (iii) THE ENTRY'S OWN COLUMNS ARE UNMOVED BY THE RENDERING.
+    assert.deepEqual(Object.keys(entry).sort(), LOG_MEMBERS.slice().sort(),
+      `the entry keeps the kernel's declared six members: ${JSON.stringify(Object.keys(entry))}`);
+  }
+  // (iv) THE RENDERING REALLY APPEARS, so this cell is not green on an empty sweep: the pair token the
+  // declaration fixes is printed by the repeat arm's sentence, and the address is printed by a sibling's.
+  const messages = log.map((entry) => (typeof entry.message === 'string' ? entry.message : ''));
+  assert.equal(messages.some((one) => one.includes(declaredToken)), true,
+    `the drive must print the declared pair token somewhere in the log, or the sweep proves nothing: `
+      + `${JSON.stringify(messages)}`);
+  assert.equal(messages.some((one) => one.includes(` at ${declaredAddress}`)), true,
+    `and the drive must print the declared ADDRESS rendering in a sibling sentence — the two sentences the `
+      + `row was filed against: ${JSON.stringify(messages)}`);
+
+  t.diagnostic(`DEF-AB · D-48 (2026-10-28) · ONE ADDRESS, TWO RENDERINGS, RETIRED — the refusal's log, read `
+    + `entry by entry: ${JSON.stringify(printed)}. BEFORE this pass the same drive printed `
+    + `\`the constraint x passed at ["a"]\` beside \`the pair a#x violated a re-run …\`; AFTER it every message `
+    + `spells the address the ONE declared way (\`${declaredAddress}\`) and the pair token (\`${declaredToken}\`) `
+    + `agrees with its entry's own \`id\` column (${JSON.stringify(log.map((entry) => entry.id))})`);
 });

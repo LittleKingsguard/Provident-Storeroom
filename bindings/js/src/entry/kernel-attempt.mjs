@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9d`) — the pass: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, refuse, isKernelRefusal, pairSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress, externalCall } from './kernel-foundations.mjs';
+import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress, externalCall } from './kernel-foundations.mjs';
 import { commitAttemptIdOf, terminal, close } from './kernel-terminal.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-3` `runAttempt(store, commit) -> AttemptReport`
@@ -144,7 +144,7 @@ function passInCommitScope(store, commitRecord) {
   if (attempt.status === 'running') {
     // THE RE-ENTRANT `K-3`, refused by the SAME `KC-7` member a live address answers with.
     refuse(KC.attemptOpen,
-      `the constraint attempt at ${JSON.stringify(attempt.address)} is already running`, []);
+      `the constraint attempt at ${addressSpelling(attempt.address)} is already running`, []);
   }
 
   attempt.status = 'running';
@@ -242,7 +242,7 @@ function passInCommitScope(store, commitRecord) {
     terminal(kernel, attempt, KC.violated,
       typeof saveFailure.message === 'string'
         ? saveFailure.message
-        : `the attempt's own save at ${JSON.stringify(attempt.address)} failed`);
+        : `the attempt's own save at ${addressSpelling(attempt.address)} failed`);
     throw saveFailure;
   }
   // **THE `commit` ENTRY: THE ATTEMPT'S SUCCESS ARM, APPENDED ONCE, ON THIS ARM ALONE**
@@ -258,7 +258,7 @@ function passInCommitScope(store, commitRecord) {
   // before this line and reach this attempt's log by no act (`§2.7` item 6), the record this attempt's
   // report carries being the same list this line closes.
   append(attempt, 'commit', null, attempt.ops[attempt.ops.length - 1].opId,
-    `every constraint registered at ${JSON.stringify(attempt.address)} passed; the commit stands`);
+    `every constraint registered at ${addressSpelling(attempt.address)} passed; the commit stands`);
   return closed;
 }
 
@@ -423,7 +423,7 @@ function evaluate(kernel, attempt, landing) {
       let text;
       let repair = null;
       if (outcome === true) {
-        text = `the constraint ${pair.id} passed at ${JSON.stringify(attempt.address)}`;
+        text = `the constraint ${pair.id} passed at ${addressSpelling(attempt.address)}`;
       } else if (outcome !== null && typeof outcome === 'object' && Object.hasOwn(outcome, 'message')) {
         const outcomeMessage = ownMember(outcome, 'message');
         text = typeof outcomeMessage === 'string' && outcomeMessage.length > 0
@@ -612,7 +612,7 @@ function evaluate(kernel, attempt, landing) {
           : okMember === false
             && typeof messageMember === 'string' && messageMember.length > 0
             ? messageMember
-            : `the repair ${pair.id} produced no op at ${JSON.stringify(attempt.address)}`;
+            : `the repair ${pair.id} produced no op at ${addressSpelling(attempt.address)}`;
         entry.message = carried;
         return { terminal: { status: KC.repairFailed, message: carried }, rerun: false };
       }
@@ -757,6 +757,6 @@ function publishCheckedOff(attempt) {
  *  read off a member the row really holds, and no member of the sentence moves. */
 function unrecognized(pair) {
   return `the constraint ${pair.id} returned a value outside the three declared outcome arms at `
-    + `${JSON.stringify(pair.addresses[0])}`;
+    + `${addressSpelling(pair.addresses[0])}`;
 }
 

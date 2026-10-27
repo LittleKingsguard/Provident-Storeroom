@@ -316,8 +316,32 @@ export function inDomainId(id) {
  * being the tuple.
  */
 export function pairSpelling(pair, address) {
-  return `${(address === undefined ? pair.addresses[0] : address).map((segment) => String(segment)).join('/')}`
-    + `#${pair.id}`;
+  return `${addressSpelling(address === undefined ? pair.addresses[0] : address)}#${pair.id}`;
+}
+
+/**
+ * **THE ADDRESS, SPELLED FOR THE KERNEL'S OWN SENTENCES — ONE RENDERING, DECLARED ONCE, AND THIS IS IT.**
+ *
+ * **`D-48`'s `DEF-AB` ROW IS THE MEASUREMENT THIS FUNCTION CLOSES: THE SAME ADDRESS WAS PRINTED TWO WAYS
+ * ACROSS TWO MESSAGES OF ONE RECORD.** `pairSpelling` above spells an address's segments joined by `/`
+ * (`a/b#x`); every other sentence the kernel built spelled the very same address through
+ * `JSON.stringify(address)` — `["a"]` — so one attempt's log carried *"the constraint `x` passed at
+ * `["a"]`"* beside *"the pair `a#x` violated a re-run …"*. **THE `DEF-Q` DEFECT CLASS AT ANOTHER SITE**, and
+ * the rendering that fixes it is the one `pairSpelling` already carried: **the address's segments joined by
+ * `/`, and never a JSON array.** There is now ONE spelling, ONE home, and both readers take it here.
+ *
+ * **IT TAKES THE SEGMENTS AS THE REGISTRY ROW AND THE JOURNAL OP CARRY THEM** — strings and non-negative
+ * integers — and renders a segment through `String` alone, exactly as `pairSpelling` always has: **no
+ * quoting, no bracketing and no second escaping rule is introduced, and no member of any sentence moves.**
+ * A local index loop is used, so no `Array.prototype.map`/`join` is read off a mutable prototype on a refusal
+ * path (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`).
+ */
+export function addressSpelling(address) {
+  let spelled = '';
+  for (let position = 0; position < address.length; position += 1) {
+    spelled += position === 0 ? `${String(address[position])}` : `/${String(address[position])}`;
+  }
+  return spelled;
 }
 
 /// **⟶ DELETED 2026-10-24 (`D-29`): `pairRowCarrying` HAD NO SUBJECT LEFT.** Its doc read: *"THE ROW A PAIR
@@ -703,7 +727,7 @@ export function landedOp(attempt, returned, invokedFor) {
  * — and never the attempt's address alone.
  */
 export function landedOpDefect(attempt, pair, returned) {
-  const where = JSON.stringify(attempt.address);
+  const where = addressSpelling(attempt.address);
   // **⟶ THE MEMBER IS READ AS THE RETURN'S OWN HERE TOO** (`D-35`'s read half): the arm that names *"carried no
   // op"* and the arm that spells the op must agree with `landedOp`'s own answer, and a chain read would let a
   // prototype decide which of the two sentences the caller is handed.
