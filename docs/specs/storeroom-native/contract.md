@@ -3819,6 +3819,33 @@ exactly.
    its own words). It re-states what the journal already records, so when it returns the journal and the
    observable state agree again; the bytes at `cfg.filePath` are still the ones the last successful `file`-tier
    save left.
+   **⟶ AMENDED 2026-10-27 — THE ARCHITECT'S RULING, VERBATIM: *"Update file after a restore that touches
+   file-tier nodes."*** **THE ITEM'S HEADING PHRASE *"AND PERFORMS NO FILE I/O"* AND ITS LAST TWO SENTENCES ARE
+   SUPERSEDED, AND THE ITEM IS READ THROUGH THIS CLAUSE** (`RCA-8(d)` ANNOTATE-BESIDE: the item's own bytes stand
+   above and this clause is the operative statement of the act's file behaviour; **`IT APPENDS NO ENTRY,
+   COMPACTS NOTHING AND DELIVERS NO TRIGGER` STAND BYTE-FOR-BYTE AND UNMOVED**). **WHAT THE SUPERSEDED
+   SENTENCES GOT WRONG, STATED AS THE MEASUREMENT:**
+   the restore re-states what the journal records, and **where that state moves a version standing at
+   `Tier::File` the bytes at `cfg.filePath` describe the PRE-restore state — and `§7.2` item 6's boot READS
+   THEM** — so a second instance over the same path answered a state the journal no longer described. **A SAVE
+   IS AN EFFECT AND NOT AN OP**, which is why the no-entry half does not move: `rollback` and `restoreMark`
+   append nothing, and the save appends nothing either. **THE ACT NOW SAVES EXACTLY WHERE A `file`-TIER NODE
+   MOVED, AND NOT OTHERWISE.** **THE DETECTION, DECLARED SO IT IS NOT A GUESS:** the `file` tier's projection —
+   each register key's version standing at `Tier::File`, assembled at that tier, which is exactly the image the
+   `file`-tier save encodes (`M-12`) and the boot loads — is taken BEFORE the replay and again after it;
+   **EQUAL PROJECTIONS MEAN NO VERSION AT `Tier::File` MOVED, so no byte is touched and a restore that changes
+   nothing file-tier keeps the no-file-I/O property.** **THE SAVE IS THE STORE'S OWN AND NOT A SECOND
+   IMPLEMENTATION**: it is the same serialization, image verification and sibling-and-rename commit a
+   `file`-tier write's save performs (`§7.2` items 2–3; `DD-2`), not a second writer. **AND A SAVE THAT CANNOT
+   LAND IS REPORTED, NOT SWALLOWED, AFTER THE REPLAY HAS STOOD**: the caller learns that **the in-memory state
+   was restored and the bytes were not** — the act answers `FileCommitFailed` (`§8.1` #15 — the set's one save
+   code, whose trigger is widened from a `file`-tier WRITE's failure path to the save act) with its generated
+   message naming the path, **the replay is NOT undone**, and `read` at every address the restore moved answers
+   the restored state. **SO THE BYTES AT `cfg.filePath` ARE THE BYTES OF THE LAST SUCCESSFUL SAVE, WHOSE
+   PRODUCERS ARE NOW A `file`-tier `write`'s commit AND A RESTORE THAT MOVED A `file`-TIER NODE** — the
+   consequence `DD-28` prints for a `delete` and a `rollback` is untouched: **neither of those two verbs
+   commits the file, and a re-boot still re-reads the last save's bytes after them.** `[T: the restore's file
+   behaviour, decided by the architect's ruling of 2026-10-27 | CONTRACT]`
 6. **ITS REACH IS THE STORE'S OWN RECORD AND NOT A CALLER'S LIST.** No address is named, no pair is read and no
    constraint is consulted: **the mark restore is a compensating act and not a consumer write**, so it opens no
    commit, invokes no pair body and is not itself a store change to be judged.

@@ -945,6 +945,24 @@ const BODY_THREW_STATUS = 'ConstraintBodyThrew';
 /// by save failures only.
 const CONSTRAINT_PASS_REFUSED = 'ConstraintPassRefused';
 
+/// **THE SET'S FIFTEENTH MEMBER, SPELLED ONCE — AND THE ONE THING THE RESTORE'S SAVE CAN ANSWER** (`src/error.rs`'s
+/// `CODES`, `[&str; 20]`, rank `15`; `§8.1` #15 and `§8.2`'s row). **IT IS READ HERE TO CLASSIFY THE STORE'S ANSWER
+/// AND IS NEVER MINTED HERE** (`DD-40`): `restoreMark` answers it when the restore's own save cannot land, and
+/// **that arm is NOT a refused mark** — the store's replay has already run, so the in-memory state IS the restored
+/// state and only the bytes at the path were not updated (`src/store.rs`'s `restoreMark`, 2026-10-27).
+const FILE_COMMIT_FAILED = 'FileCommitFailed';
+
+/// **WHETHER THE STORE'S ANSWER TO THE MARK IS ITS SAVE'S FAILURE RATHER THAN A REFUSED MARK** — the two arms
+/// `restoreMark` can answer with an error, told apart by the status they carry and by nothing else. **A REFUSED
+/// MARK** (`JournalOpUnknown`, `AddressMalformed`) leaves the store at the state it held, so nothing may be
+/// counted as restored; **A FAILED SAVE** (`FileCommitFailed`) leaves the restore's state STANDING in memory and
+/// only the file behind it stale. The answer is the refusal record itself on the save arm and `null` otherwise.
+function saveRefused(refused) {
+  if (refused === null || typeof refused !== 'object') return null;
+  const status = ownDataMember(refused, 'status');
+  return status === FILE_COMMIT_FAILED ? refused : null;
+}
+
 /// **WHETHER THE HANDED VALUE CARRIES THE KERNEL'S BODY-THROW MARK, AND WHAT THE MARK CARRIES** — the mark's
 /// presence is the identity and the record under it is the two slots the generator's sentence needs. **A
 /// NON-OBJECT IS `null`** without a member read, and **a value the kernel never caught from a body is `null`**
@@ -1416,6 +1434,15 @@ export function judgeReversal(instance, watched, reversalId) {
 /// declared form (`JournalOpUnknown`) for a mark its journal no longer holds, and the state it holds at that
 /// instant is the state it keeps. The refusal is carried into the message `undoSpelling` builds, so a consumer
 /// is told the store refused and is never told a restoration happened that did not.
+///
+/// **⟶ AND A FAILED SAVE IS A SECOND, DIFFERENT ANSWER — 2026-10-27, THE FILE-SAVE RULING.** `restoreMark` now
+/// answers `FileCommitFailed` when the restore's own save cannot land, **and that answer does not mean the mark
+/// was refused**: the store's replay already ran, so the in-memory state IS the restored state and only the
+/// bytes at the store's file path were not updated. **So the two are classified apart (`saveRefused`) and the
+/// save's arm does NOT narrow the address verification**: every address the restore moved is counted exactly as
+/// on the passing arm, **and the file's own half is counted beside them** (`unsaved`), which is the one datum
+/// `undoSpelling` needs to say *"the memory was restored and the bytes were not"*. **NO BYTE IS WRITTEN HERE AND
+/// NO SECOND SAVE IS ATTEMPTED** — the store's answer is the whole report.
 function restoreReversal(instance, moved) {
   const addon_ = withAddon();
   // THE ONE ACT: the store returns its own state to the state its journal's head describes. NO POSITION IS
@@ -1427,6 +1454,15 @@ function restoreReversal(instance, moved) {
   } catch (why) {
     refused = why;
   }
+  // **THE STORE'S ANSWER IS CLASSIFIED BEFORE ANY ADDRESS IS COUNTED — 2026-10-27, THE FILE-SAVE RULING.** A
+  // REFUSED MARK leaves the store as it was, so no address may be claimed restored. **A FAILED SAVE does not**:
+  // the store's replay already ran and the restored state STANDS, so every address is verified and counted
+  // exactly as it is on the passing arm, and the file's own half is recorded beside the count (`unsaved`) for
+  // the ONE sentence that names it. **THIS IS THE VERIFICATION EXTENDED TO THE FILE**: the restore already
+  // counts the addresses it put back; the count is not narrowed by a failure that did not affect them, and the
+  // bytes are reported as the thing that did fail.
+  const unsaved = saveRefused(refused);
+  const stateRestored = refused === null || unsaved !== null;
   let restored = 0;
   const failed = [];
   // ONE VERIFICATION PER ADDRESS: two pairs over one address (or one pair naming it twice) must not be counted
@@ -1441,7 +1477,7 @@ function restoreReversal(instance, moved) {
     // **THE ADDRESS IS READ AGAIN, AGAINST THE CAPTURE** — the cross-tier standing and every tier with its own
     // value — and it counts as restored ONLY where both equal what the watch took before the reversal.
     const verdict = standingVerdict(instance, one);
-    if (refused === null && verdict.exact === true) {
+    if (stateRestored && verdict.exact === true) {
       restored += 1;
       continue;
     }
@@ -1456,7 +1492,7 @@ function restoreReversal(instance, moved) {
       tiers: verdict.tiers,
     });
   }
-  return { restored, total: measured.length, failed, refused };
+  return { restored, total: measured.length, failed, refused, unsaved };
 }
 
 /// **WHETHER A LOCAL LIST OF SPELLINGS ALREADY HOLDS ONE** — a local index loop and not `Array.prototype.includes`.
@@ -1499,12 +1535,31 @@ function standingVerdict(instance, one) {
 /// IT MOVED STANDS AGAIN EXACTLY AS IT STOOD** (`restoreReversal`'s verdict); where it cannot, **it names each
 /// address that could not be restored and says what stands there INSTEAD and what it was owed** (`D-41` item `2`:
 /// *"a message must not claim a restoration that did not happen"*). `DEF-Q`: no column prints `undefined`.
+///
+/// **⟶ AND THE TWO ARMS THE STORE CAN ANSWER WITH ARE NAMED SEPARATELY, 2026-10-27 (THE FILE-SAVE RULING).**
+/// **A REFUSED MARK** means the store holds what it held, and the sentence says exactly that. **A FAILED SAVE
+/// does not mean that**: the store's replay ran, every address the restore moved IS restored in memory, and the
+/// one thing that failed is the write of the bytes at the store's file path. **So the sentence opens by saying
+/// BOTH — the in-memory state was restored and the bytes were not updated — carries the store's own
+/// `FileCommitFailed` and its generated message (`DD-52`: never a second source), and then makes the ordinary
+/// claim the verification supports.** A consumer that reads only the first clause of this sentence therefore
+/// learns the two facts the failure owes it, in the order that matters.
 function undoSpelling(undo) {
   // **⟶ AND WHERE THE STORE ITSELF REFUSED THE MARK, THE SENTENCE OPENS WITH THAT** (2026-10-27): the act is the
   // store's own (`restoreReversal`), so a refusal it answered is the FIRST thing a consumer must hear — its
   // status and its own generated message (`DD-52`) — and it is never spoken for by a claim about the state.
   let refusal = '';
-  if (undo.refused !== null && undo.refused !== undefined) {
+  if (undo.unsaved !== null && undo.unsaved !== undefined) {
+    // THE SAVE'S ARM: read as own data members and off no chain (`D-35`'s read half), exactly as the refused
+    // mark's status and sentence are read below.
+    const carried = typeof undo.unsaved === 'object';
+    const status = carried === true ? ownDataMember(undo.unsaved, 'status') : undefined;
+    const said = carried === true ? ownDataMember(undo.unsaved, 'message') : undefined;
+    refusal = 'the store restored its own state to the journal mark IN MEMORY and its FILE WAS NOT UPDATED ('
+      + `${JSON.stringify(typeof status === 'string' ? status : 'a refusal')}: `
+      + `${typeof said === 'string' ? said : ''}) — the bytes at the store's file path still describe the state `
+      + 'that stood before the reversal; ';
+  } else if (undo.refused !== null && undo.refused !== undefined) {
     // READ AS OWN DATA MEMBERS AND OFF NO CHAIN (`D-35`'s read half): the store's own plain refusal carries
     // `{status, message}` and nothing else, and a thrown value that is not an object is named as itself.
     const carried = typeof undo.refused === 'object';

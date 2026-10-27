@@ -2583,9 +2583,31 @@ impl Store {
     /// code, the one the rollback already answers for an op id it does not hold) — **with the store's state
     /// UNCHANGED**: the mark is resolved before the replay begins, so nothing is half-replayed.
     ///
-    /// **IT APPENDS NO ENTRY, DELIVERS NO TRIGGER AND PERFORMS NO FILE I/O** — it re-states what the journal
-    /// already records, so the journal and the observable state agree again when it returns, and the bytes at
-    /// `cfg.filePath` are the ones the last successful `file`-tier save left (`§7.2` item 1).
+    /// **IT APPENDS NO ENTRY AND DELIVERS NO TRIGGER** — it re-states what the journal already records, so
+    /// the journal and the observable state agree again when it returns. **A SAVE IS AN EFFECT AND NOT AN OP:
+    /// the entry the act would append is the one thing it never appends.**
+    ///
+    /// **⟶ AMENDED 2026-10-27 — THE ARCHITECT'S RULING: *"Update file after a restore that touches
+    /// file-tier nodes."*** **THE SENTENCE THIS CLAUSE REPLACES READ *"AND PERFORMS NO FILE I/O"*, AND ITS
+    /// REASON WAS THE DEFECT.** A restore that re-states a `file`-tier version moves the state the file
+    /// describes; with no save the bytes at `cfg.filePath` kept describing the PRE-restore state, **and a
+    /// re-boot READS THEM** — so the state a refusal had just declared restored was lost at the next
+    /// instance (`§7.2` item 6's boot). **The act now saves EXACTLY WHERE A `file`-TIER NODE MOVED, and not
+    /// otherwise**: the detection is not a guess about which op ran, it is the store's own `file_snapshot` —
+    /// every register key's version standing at `Tier::File`, assembled at that tier, which is precisely the
+    /// image `write_file` encodes and the boot loads — taken BEFORE the replay and again after it. **EQUAL
+    /// SNAPSHOTS MEAN NO `file`-TIER VERSION MOVED, so no byte is touched and a restore that changes nothing
+    /// file-tier keeps the no-file-I/O property.** **THE SAVE IS THE STORE'S OWN AND NOT A SECOND
+    /// IMPLEMENTATION**: it is `write_file`, the one serialization-and-atomic-rename a `file`-tier write's
+    /// save performs (`commit_file` is the RECORD-KEYED wrapper around it — entry lookup, tier test, `saved`
+    /// marker, `§7.2` item 3's rollback — and the restore appends no record for that wrapper to key on).
+    ///
+    /// **AND A FAILED SAVE IS REPORTED, NOT SWALLOWED, AFTER THE STATE IS RESTORED.** The replay has already
+    /// happened when the save is attempted, and it is NOT rolled back: the caller learns that the in-memory
+    /// state was restored **and** that the bytes were not — the store answers `FileCommitFailed` (the set's
+    /// one save code, `§8.1` #15, whose trigger reaches the save act) with the failing path in its generated
+    /// message, while `read` at every address the restore moved answers the restored state. **What the file
+    /// still holds is the state that stood before the restore, and that is stated rather than papered.**
     pub fn restoreMark(&mut self, mark: OpIdArg) -> Result<(), StoreError> {
         // THE MARK IS RESOLVED FIRST, AND THAT IS WHAT MAKES THE ACT ALL-OR-NOTHING.
         let up_to: Option<usize> = match &mark {
@@ -2601,6 +2623,15 @@ impl Store {
                     .ok_or_else(|| journal_op_unknown(&named))?;
                 Some(index)
             }
+        };
+        // **THE `file` TIER'S PROJECTION BEFORE THE REPLAY** — the detection's first half, read off the versions
+        // themselves and not off a guess about which operation ran. A path-less instance has no `file` tier at
+        // all (`§1.6`: the register's tier is fixed at `mem`), so there is nothing to compare and nothing to
+        // save. `None` therefore means "this store cannot own a file-tier node", never "unknown".
+        let file_before = if self.file_path.is_empty() {
+            None
+        } else {
+            Some(self.file_snapshot())
         };
         // THE REPLAY, FROM THE STATE THE RECORD STANDS BEFORE ITS FIRST ENTRY — the booted image where the store
         // loaded one and the empty register where it did not (`Store::born`), never the empty register on
@@ -2627,6 +2658,24 @@ impl Store {
                 // just rebuilt the arena), so the one job the recorded home still has — an address whose parent
                 // no longer resolves — keeps naming the pair this replay actually wrote.
                 self.journal[index].home = Some(home);
+            }
+        }
+        // **THE SAVE, AND ONLY WHERE A `file`-TIER NODE ACTUALLY MOVED — THE RULING OF 2026-10-27.** The two
+        // snapshots are the same reading taken at the two ends of one replay, so their equality is the exact
+        // statement "the image the file carries is the image the restore leaves": no version at `Tier::File`
+        // was added, removed or re-valued, and touching the path would be file I/O the act does not owe.
+        if let Some(before) = file_before {
+            if self.file_snapshot() != before {
+                // **THE SUBJECT IS THE MARK'S OWN ADDRESS** — the operation whose state this mark names — the
+                // same convention `commit_file` takes from the record it saves; the image written is the whole
+                // register (`§7.2` `M-12`), so the address is the failure's subject and not a write target.
+                let subject = up_to
+                    .map(|index| self.journal[index].op.address.clone())
+                    .unwrap_or_default();
+                // **THE STORE'S ONE SAVE PATH**, not a second one: `write_file` is what a `file`-tier write's
+                // save performs. **A FAILURE IS PROPAGATED AND THE RESTORED STATE STANDS** — the replay is not
+                // undone, so the caller is told that the memory was restored and the bytes were not.
+                self.write_file(&subject)?;
             }
         }
         Ok(())

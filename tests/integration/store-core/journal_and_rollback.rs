@@ -1353,3 +1353,291 @@ fn s6_6_the_register_s_own_operation_is_replayed() {
     );
 }
 
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+// §6.6 — THE RESTORE'S OWN SAVE (the architect's ruling of 2026-10-27)
+//
+// **THE RULING, VERBATIM: *"Update file after a restore that touches file-tier nodes."*** `restoreMark`
+// re-states a recorded state; where that state moves a version standing at `Tier::File`, the bytes at
+// `cfg.filePath` were left describing the PRE-restore state — **and `§7.2` item 6's boot READS THEM** — so a
+// second instance over the same path answered a state the journal no longer described. The three cells below
+// pin the three arms the ruling owes: **the save happens where a file-tier version moved and the re-boot reads
+// the restored state**; **it does not happen where none moved, and the path's bytes AND the path's identity are
+// untouched**; **and where the save cannot land the caller hears that the memory was restored and the bytes
+// were not, with the state standing.**
+//
+// **THE DETECTION THE FIRST TWO CELLS MEASURE IS THE STORE'S OWN, NOT A GUESS ABOUT WHICH OP RAN**: the
+// `file` tier's image — every register key's version standing at `Tier::File`, assembled at that tier, exactly
+// the image `write_file` encodes and the boot loads — is taken before the replay and again after it. Equal
+// images mean no file-tier version moved. **THE CELLS USE THE STORE'S OWN OPS AS THE REVERSALS' SUBJECTS**
+// (there is no constraint kernel in this binary, so the `file`-tier node a reversal moves is driven directly):
+// a `delete` that removed a `file` version changes the in-memory image WITHOUT committing (`DD-28`), and a
+// reversal of an earlier write in a SIBLING subtree then moves a `file`-tier node while the head still
+// describes the deleted state.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+
+/// **A RESTORE THAT MOVES A `file`-TIER NODE WRITES THE STORE'S OWN FILE, AND A FRESH BOOT READS THE RESTORED
+/// STATE.** The drive holds a `file` value at `b` and one at `a`, deletes `a` (a delete commits nothing,
+/// `DD-28`), so the bytes at the path still carry `a` while the memory does not; a reversal of the `b` write
+/// removes `b` from the `file` tier; and the head mark then re-states the state the delete left. **WITHOUT THE
+/// SAVE the bytes keep carrying `a`, and the second construction reads a state the journal no longer
+/// describes.** The cell also pins that the save appends NO entry: the next write's `seq` is the journal's own
+/// ordinal, unmoved.
+#[test]
+fn s6_6_a_restore_that_moves_a_file_tier_node_writes_the_store_s_own_file() {
+    let path = fresh_path("s6-6-save-and-reboot");
+    let mut store = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.1: the construction returns an instance at a reachable path",
+    );
+    // THE PRE-STATE: two `file`-tier values, each committed by the terminal arm's own act, then `a` deleted.
+    let b = ok(
+        store.write(AddressArg::List(key(&["b"])), w_file(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &b.op.opId),
+        "§7.2 item 2 as amended: the terminal arm's own act puts `b` in the file",
+    );
+    let a = ok(
+        store.write(AddressArg::List(key(&["a"])), w_file(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &a.op.opId),
+        "§7.2 item 2 as amended: and `a` beside it",
+    );
+    ok(
+        store.delete(AddressArg::List(key(&["a"])), none()),
+        "§4.3: a delete removes the version in memory and commits NOTHING (DD-28)",
+    );
+    assert_eq!(
+        std::fs::read_to_string(&path).expect("§7.2 item 2: the committed image"),
+        "{\"a\":1,\"b\":1}",
+        "DD-28: the delete performed no file I/O, so the bytes still describe the PRE-delete state"
+    );
+    assert!(
+        store
+            .read(AddressArg::List(key(&["a"])), TierArg::Absent)
+            .is_err(),
+        "§4.3: and the memory does not stand `a`"
+    );
+    // THE REVERSAL THAT MOVES A `file`-TIER NODE: `b`'s write is undone, and no other entry stands in its
+    // subtree, so `b` leaves the `file` tier while the delete at `['a']` is not touched.
+    ok(store.rollback(OpIdArg::Id(b.op.opId.clone())), "§6.3");
+    assert!(
+        store
+            .read(AddressArg::List(key(&["b"])), TierArg::Absent)
+            .is_err(),
+        "§6.3: the reversal removed the `file`-tier version of `b`"
+    );
+    // THE RESTORE: the head still describes the state the delete left (`rollback` appends no entry, `M-9`).
+    ok(store.restoreMark(OpIdArg::Absent), "§6.6: the head mark");
+    // (1) THE MEMORY IS THE RESTORED STATE.
+    assert_eq!(
+        read_at(&store, &key(&["b"])),
+        v_num(1.0),
+        "§6.6: `b` is back at the state the record describes"
+    );
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["a"])), TierArg::Absent),
+            "§6.6: the head describes the post-delete state",
+        ),
+        "AddressNotFound",
+        "§4.3: so `a` is absent in memory",
+    );
+    // (2) **THE FINDING: THE FILE WAS UPDATED TO THE RESTORED STATE.**
+    assert_eq!(
+        std::fs::read_to_string(&path).expect("§7.2 item 2: the file the restore's save wrote"),
+        "{\"b\":1}",
+        "THE RULING OF 2026-10-27: a restore that moves a `file`-tier node saves the restored image through \
+         the store's own write_file — the bytes carry the RESTORED state, not the pre-restore one"
+    );
+    // (3) THE RE-BOOT — A SECOND INSTANCE OVER THE SAME PATH READS THE RESTORED STATE AND NOT THE STALE ONE.
+    let fresh = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.2 item 6: the boot loads the file's content",
+    );
+    assert_eq!(
+        read_at(&fresh, &key(&["b"])),
+        v_num(1.0),
+        "§7.2 item 6: THE FINDING — the fresh boot reads the restored state"
+    );
+    assert_code(
+        &failure(
+            fresh.read(AddressArg::List(key(&["a"])), TierArg::Absent),
+            "§4.2: the same address the first instance holds absent",
+        ),
+        "AddressNotFound",
+        "§4.2: the fresh boot does NOT read the pre-restore `a`, which the un-saved bytes carried",
+    );
+    // (4) A SAVE IS AN EFFECT AND NOT AN OP: the journal's ordinal did not move.
+    let next = ok(
+        store.write(AddressArg::List(key(&["c"])), w_mem(), v_num(9.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(
+        next.op.seq, 4,
+        "§6.6: the restore appended NO entry — three operations landed and the next write is the fourth"
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+/// **A RESTORE THAT MOVES NO `file`-TIER NODE TOUCHES NO BYTE — the no-file-I/O property, ASSERTED.** The
+/// drive holds a committed `file` value at `b` and moves only `mem` versions at `a`, so the two `file` images
+/// are equal and the save must not run. **THE BYTES ARE COMPARED AND SO IS THE PATH'S IDENTITY**: the commit
+/// is a sibling write plus a rename (`§7.2` `M-12`/`DD-2`), so a save that ran — even one writing identical
+/// bytes — replaces the inode and moves the mtime. Both standing still is the no-I/O property measured rather
+/// than promised.
+#[test]
+fn s6_6_a_restore_that_moves_no_file_tier_node_performs_no_file_io() {
+    let path = fresh_path("s6-6-no-file-io");
+    let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1");
+    let kept = ok(
+        store.write(AddressArg::List(key(&["b"])), w_file(), v_str("durable")),
+        "§3.4 W-3",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &kept.op.opId),
+        "§7.2 item 2 as amended",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3 at `mem`",
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    let bytes_before = std::fs::read(&path).expect("§7.2 item 2: the committed bytes");
+    let meta_before = std::fs::metadata(&path).expect("§7.2 item 2: the path's identity");
+    // THE REVERSAL MOVES ONE `mem` VERSION AND NOTHING AT `file`.
+    ok(store.rollback(OpIdArg::Id(second.op.opId.clone())), "§6.3");
+    assert_eq!(
+        read_tier(&store, &key(&["a"]), Tier::Mem),
+        v_num(1.0),
+        "§6.3: the reversal restored the `mem` version"
+    );
+    // THE RESTORE RE-STATES THE HEAD — again one `mem` version, and the `file` image is unmoved.
+    ok(store.restoreMark(OpIdArg::Absent), "§6.6: the head mark");
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_num(2.0),
+        "§6.6: the restored `mem` state stands"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["b"])),
+        v_str("durable"),
+        "§6.6: and the `file`-tier value is the one it was"
+    );
+    let bytes_after = std::fs::read(&path).expect("§7.2 item 2: the bytes after the restore");
+    let meta_after =
+        std::fs::metadata(&path).expect("§7.2 item 2: the path's identity after the restore");
+    assert_eq!(
+        bytes_before, bytes_after,
+        "THE FINDING: no `file`-tier version moved, so the restore performed NO file I/O — the bytes are \
+         byte-identical before and after"
+    );
+    assert_eq!(
+        meta_before.len(),
+        meta_after.len(),
+        "§7.2 item 2: the length is unmoved"
+    );
+    assert_eq!(
+        meta_before.modified().ok(),
+        meta_after.modified().ok(),
+        "§7.2 item 2: the modification time is unmoved — a save that ran would have renamed a new sibling over \
+         the path"
+    );
+    // THE SAME STATEMENT AT THE PATH'S IDENTITY, WHERE THE PLATFORM EXPOSES IT: the rename would replace the
+    // inode, so one inode before and after is proof the path was not written rather than an identical rewrite.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        assert_eq!(
+            meta_before.ino(),
+            meta_after.ino(),
+            "§7.2 item 2: the inode is unmoved — the file was NOT replaced by a sibling-and-rename commit"
+        );
+        assert_eq!(
+            (meta_before.mtime(), meta_before.mtime_nsec()),
+            (meta_after.mtime(), meta_after.mtime_nsec()),
+            "§7.2 item 2: the timestamp is unmoved to the nanosecond"
+        );
+    }
+    let _ = std::fs::remove_file(&path);
+}
+
+/// **A SAVE THAT FAILS IS REPORTED AFTER THE STATE IS RESTORED — the memory is restored and the bytes are
+/// not.** The path's directory is removed between the committed writes and the restore, so the store's own
+/// save cannot land: the act answers `FileCommitFailed` (the set's one save code, `§8.1` #15, whose generated
+/// message names the path), **the replay is NOT undone** — `read` answers the restored state — **and no byte
+/// is written**, which is stated rather than papered.
+#[test]
+fn s6_6_a_restore_whose_save_cannot_land_reports_the_restored_memory_and_the_unwritten_bytes() {
+    let dir = std::path::PathBuf::from(fresh_path("s6-6-save-fail-dir"));
+    std::fs::create_dir_all(&dir).expect("the drive's own directory");
+    let path = dir.join("store.json").to_string_lossy().into_owned();
+    let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1");
+    let b = ok(
+        store.write(AddressArg::List(key(&["b"])), w_file(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &b.op.opId),
+        "§7.2 item 2",
+    );
+    let a = ok(
+        store.write(AddressArg::List(key(&["a"])), w_file(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &a.op.opId),
+        "§7.2 item 2",
+    );
+    ok(
+        store.delete(AddressArg::List(key(&["a"])), none()),
+        "§4.3: the delete commits nothing",
+    );
+    // THE REVERSAL THAT MOVES A `file`-TIER NODE.
+    ok(store.rollback(OpIdArg::Id(b.op.opId.clone())), "§6.3");
+    // THE SAVE'S TARGET BECOMES UNREACHABLE — the directory the path stands in is gone.
+    std::fs::remove_dir_all(&dir).expect("the drive's own directory is removable");
+    let refused = failure(
+        store.restoreMark(OpIdArg::Absent),
+        "§6.6: the restore's save cannot land and the act reports it",
+    );
+    assert_code(
+        &refused,
+        "FileCommitFailed",
+        "§8.1 #15: the set's one save code, whose trigger reaches the save act",
+    );
+    assert!(
+        refused.message.contains(&path),
+        "§8.2: the generated message names the failing path — got {}",
+        refused.message
+    );
+    // **THE MEMORY IS THE RESTORED STATE — THE FAILURE IS THE FILE'S AND NOT THE REPLAY'S.**
+    assert_eq!(
+        read_at(&store, &key(&["b"])),
+        v_num(1.0),
+        "§6.6: the caller learns the IN-MEMORY state was restored — the replay is not undone by a save failure"
+    );
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["a"])), TierArg::Absent),
+            "§6.6: the head describes the post-delete state",
+        ),
+        "AddressNotFound",
+        "§4.3: and `a` is absent, exactly as the restored state has it",
+    );
+    // **AND THE BYTES WERE NOT WRITTEN.** The path's directory is gone, so there is no image at the path: the
+    // failure is that the file was NOT updated, and the cell says so instead of implying one.
+    assert_eq!(
+        std::path::Path::new(&path).exists(),
+        false,
+        "§7.2 item 2: a failed save leaves no image at the path — the bytes still describe the state that stood \
+         BEFORE the restore, and here that image is gone with its directory"
+    );
+}
