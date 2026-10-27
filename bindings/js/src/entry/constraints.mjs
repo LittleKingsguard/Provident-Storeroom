@@ -324,6 +324,40 @@ export function constraintSite(state, verb, supplied, pair, constraint) {
   return { state, addresses, id: pair.id };
 }
 
+/// **⟶ ADDED 2026-10-26 — THE PAIR'S REGISTRATION SEQUENCE, THE ONE KEY `constraints()` EMITS BY
+/// (`strata/decisions.md` · `D-39`, 2026-10-26, verbatim: *"add deterministic ordering"*, and the same row's
+/// operative sentence: *"`constraints()` must emit in a DECLARED, deterministic order — registration
+/// sequence, which is the order the pairs were registered and the one a consumer can reason about … the
+/// order becomes part of what the method promises"*).**
+///
+/// **THE COLLECTION AND THE INSTABILITY, MEASURED.** `enumerateConstraints` rebuilds its answer from
+/// `state.constraints`, a `Map` keyed by the pair's `id`; **`Map` iteration is INSERTION order, and an
+/// insertion order is not a registration order once a row is deleted and put back** (`Map.prototype.set`
+/// on a standing key keeps its place — `set` on a key the map no longer holds appends). **AND ONE DECLARED
+/// ACT DOES EXACTLY THAT**: `constraintOff` calls the kernel's `remove`, whose `FORGET_PAIR` channel deletes
+/// the pair's read-model row (`index.mjs`'s `[FORGET_PAIR]`; `docs/specs/storeroom-held-listener-identity/
+/// contract.md §2.7` item 8), and the disable arm then writes THE SAME ENTRY RECORD back — so a toggled
+/// pair moved to the END of the enumeration while its membership was unmoved. **Measured before this
+/// change: `b#c-b, a#c-a, c#c-c, a#c-r` became `a#c-a, c#c-c, a#c-r, b#c-b` after one
+/// `constraintOff`/`constraintOn` pair, and no `constraints()` call in between saw a different set.**
+///
+/// **THE KEY IS MINTED ONCE, WHEN THE PAIR IS FIRST REGISTERED, AND IT NEVER MOVES AFTERWARDS.** Each entry
+/// record carries `registrationSeq`, written by `carryConstraint` at the one act that makes a pair a pair;
+/// **every later write to the same record — the overwrite arm's extension, the toggle, `restoreHeldPair`'s
+/// wake — writes OTHER members and leaves this one exactly as it stood**, so a pair that did not move
+/// re-registers nowhere. **IT IS A MONOTONE ORDINAL, NOT AN INDEX INTO THE LIVE MAP** (`max + 1`, so a
+/// removal followed by a fresh registration still lands after every standing pair), **and it is NOT an
+/// address sort and NOT an id sort** — both of which `D-39` does not say and a consumer cannot predict.
+/// **NO MEMBER CROSSES**: the ordinal is the entry record's own, `PAR-JS-25`'s opaque identity is untouched,
+/// and `enumerateConstraints` still answers exactly `{ address, id }` per row.
+export function registrationSequence(state) {
+  let highest = 0;
+  for (const entry of state.constraints.values()) {
+    if (entry.registrationSeq > highest) highest = entry.registrationSeq;
+  }
+  return highest + 1;
+}
+
 /// **THE ONE ACT THAT MAKES A PAIR A PAIR THE ENTRY CARRIES** (`docs/specs/storeroom-js/surface.md §2.12` item 1's preamble clause (a)–(b)):
 /// `K-1` AT THE INSTANCE — the key at its own positions and the caller's function at the fourth, which is
 /// the SAME call `storeCreate`'s batch registration makes — and THE ENTRY'S OWN RECORD BESIDE IT, whose
@@ -386,6 +420,9 @@ export function carryConstraint(state, instance, addresses, id, constraint) {
     fn: constraint,
     enabled: true,
     identity: Object.create(null),
+    // **⟶ THE PAIR'S REGISTRATION SEQUENCE, MINTED HERE AND NOWHERE ELSE** (`D-39`; `registrationSequence`
+    // above, which states the rule and the measured instability it closes).
+    registrationSeq: registrationSequence(state),
   };
   state.constraints.set(constraintPairKey(addresses, id), entry);
   return entry;
@@ -575,7 +612,8 @@ export function constraintUncarried(verb, pair) {
 ///
 /// **THE SOURCE IS THE ENTRY'S OWN `state.constraints`, AND ITS SHAPE IS ALREADY THE ANSWER'S**: a per-instance
 /// `Map` keyed by `constraintPairKey(address, id)` whose every value is the record `carryConstraint` writes —
-/// `{ address, addressKey, id, fn, enabled, identity }`. So the read is a CARRIAGE READ and no kernel item is
+/// `{ addresses, addressKey, id, fn, enabled, identity, registrationSeq }` (`registrationSeq` added 2026-10-26
+/// for `D-39`'s declared order). So the read is a CARRIAGE READ and no kernel item is
 /// touched or minted: `K-1`–`K-5` stand exactly as printed, the kernel's extent stays FIVE and no `K-6` is
 /// proposed (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f), item 8). **NO KERNEL MODULE IS EVEN LOADED HERE** — `constraintsKernel()` is
 /// not called, so a product that never carried and never asked for a constraint still reads `[]` on a tree
@@ -594,6 +632,14 @@ export function constraintUncarried(verb, pair) {
 ///   and nothing else — **this function does NOT sort, and deliberately does not** — so a drive compares the
 ///   pairs as a SET and never as a sequence (`DD-22`; `docs/specs/storeroom-js/surface.md §2.7` item 3). No registration order, address order or
 ///   `seq`-like ordinal is minted here, and none is asserted of it.
+///   **⟶ SUPERSEDED 2026-10-26 BY `strata/decisions.md` · `D-39` (the architect, verbatim: *"add deterministic
+///   ordering"*), AND THE BYTES ABOVE STAND AS THE READING THEY CARRIED** (`DEF-2026-10-02`: no whole-file
+///   rewrite). **The declared order is REGISTRATION SEQUENCE** — *"the order the pairs were registered and the
+///   one a consumer can reason about"* — **so this function DOES order, by the one key the entry record mints
+///   at registration (`registrationSeq` above), and it sorts by neither address nor id.** The `surface.md §2.4`
+///   item 6 exclusion this bullet quotes is the clause `D-39` supersedes; **the exclusion it supersedes is the
+///   ORDER one alone — exclusion (1) (no function crosses), (2) (no identity crosses) and (4) (a disabled pair
+///   appears) stand exactly as printed.**
 /// * **(4) A DISABLED PAIR DOES APPEAR** (item 5): `constraintOff` is a TOGGLE and NOT A REMOVAL, so a pair
 ///   whose `entry.enabled` is `false` is STILL CARRIED and is enumerated — **the read does not consult
 ///   `enabled` at all**, and it returns no `enabled` member either (a third member is a value no clause
@@ -612,8 +658,21 @@ export function constraintUncarried(verb, pair) {
 /// cannot appear either. **THE SAME TWO MEMBERS ON EVERY ELEMENT AND NO THIRD**, and the `[]` arm is this
 /// member's declared value where the entry carries no pair at all (`PAR-JS-27`'s `domain` cell).
 export function enumerateConstraints(state) {
-  const pairs = [];
+  // **⟶ THE ORDER IS THE PAIR'S REGISTRATION SEQUENCE — `D-39` (2026-10-26)** (`registrationSequence` above
+  // states the rule, its ground and the measured instability it closes). **THE RECORDS ARE COLLECTED FIRST
+  // AND ORDERED BY THE KEY THEY CARRY**, because the `Map`'s own insertion order is not the registration
+  // order once a declared act has deleted a row and written the same record back (`constraintOff`'s
+  // `FORGET_PAIR` purge and its re-`set`): **a toggle therefore re-orders NO pair, and a sort by address or
+  // by id — neither of which `D-39` says — is not taken.** No record's key is written here; the read only
+  // reads it.
+  const carried = [];
   for (const entry of state.constraints.values()) {
+    appendOwn(carried, entry);
+  }
+  carried.sort((left, right) => left.registrationSeq - right.registrationSeq);
+  const pairs = [];
+  for (let index = 0; index < carried.length; index += 1) {
+    const entry = carried[index];
     // A FRESH PLAIN OBJECT PER CALL AND A FRESH SEGMENT ARRAY WITHIN IT (`slice`): a caller that mutates a
     // returned element, or an element's `address`, changes nothing the next call returns — and nothing of the
     // entry's own record either, the two members being copies of the pair's own data.

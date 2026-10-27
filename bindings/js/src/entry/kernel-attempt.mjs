@@ -590,9 +590,32 @@ function publishCheckedOff(attempt) {
   return attempt;
 }
 
-/** `PAR-C-5`'s outside value, read as the `{message}` arm with the KERNEL's own generated sentence. */
+/** `PAR-C-5`'s outside value, read as the `{message}` arm with the KERNEL's own generated sentence.
+ *
+ *  **⟶ CORRECTED 2026-10-26 ON THE DOWNSTREAM `DEF-Q` ROW: THE SENTENCE'S ADDRESS SLOT IS READ OFF THE MEMBER
+ *  THE REGISTRY ROW ACTUALLY CARRIES.**
+ *
+ *  **THE DEFECT, MEASURED AT BOTH ENTRIES THIS SENTENCE REACHES.** The bytes this return replaced were
+ *  ``+ `${JSON.stringify(pair.address)}` ``, and **the kernel's registry row carries NO `address` member at
+ *  all** — `kernel.pairs`' value is `{ addresses, id, constraint }` (`kernelFor` above; `contract.md §2.6`
+ *  item 4's *"one pair, N registry rows"*), while `address` is the member the CALLER's registration pair and
+ *  the `constraints()` ELEMENT spell. **So the slot read `undefined`**, and the sentence reached the caller
+ *  twice through `evaluate` — once on the `constraint-check` entry the pass was writing (`check.message`) and
+ *  once in the `outcome` entry `terminal` appends carrying that same text — as
+ *  *"… outside the three declared outcome arms at undefined"*, **a member the entry no longer prints while the
+ *  pair still carries it.**
+ *
+ *  **WHICH RENDERING, AND WHERE THE DECLARATION FIXES IT.** The row's address member is the SET
+ *  (`addresses` — `contract.md §2.6` item 5: *"`address`: THE ADDRESS SET the pair was created with — and, at
+ *  the REGISTRATION act, a single address"*), and **this sentence's slot is ONE address and not the set**:
+ *  the kernel declares that reading once, at `pairSpelling` (`kernel-foundations.mjs`), whose own sentence
+ *  spells *"the address's segments joined by `/`"* off **`pair.addresses[0]`** — the pair's first address —
+ *  and never off the whole set. **AND EVERY SIBLING `at <address>` SENTENCE IN THIS FILE IS THE SINGLE-ADDRESS
+ *  SHAPE**: `JSON.stringify(attempt.address)` at the `passed`, `produced no op`, `save` and `commit` arms.
+ *  **SO THE SET FORM `[["a"]]` IS NOT THIS SLOT'S RENDERING AND `["a"]` IS** — the same one-address rendering,
+ *  read off a member the row really holds, and no member of the sentence moves. */
 function unrecognized(pair) {
   return `the constraint ${pair.id} returned a value outside the three declared outcome arms at `
-    + `${JSON.stringify(pair.address)}`;
+    + `${JSON.stringify(pair.addresses[0])}`;
 }
 
