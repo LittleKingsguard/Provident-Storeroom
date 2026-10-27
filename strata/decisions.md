@@ -3102,3 +3102,36 @@ own).**
 **WHAT A LATER PASS MUST NOT DO.** **Do not revert the registration sequence on the ground that `DEF-R` was withdrawn.** **The withdrawal retires the FILING; it does not retire the RULING, the declaration, or the cells.** **If the ordering is ever removed, it is removed by a ruling, and the cells go red first.**
 
 **TERMS: the filing withdrawn (`1`), the ruling intact (`1`), the guarantee declared and asserted (`1`), the revert forbidden without a ruling (`1`).**
+
+---
+
+### `D-48` — THE DOWNSTREAM'S `1.1.0` REVIEW: seven behaviour rows, no numbers, and the lesson they wrote as a rule
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the adjacent consumer's review of the published `1.1.0`.
+
+**THEIR FRAMING, QUOTED BECAUSE IT IS THE FINDING:** *"What the open set rests on now is behaviour only, and none of it
+depends on a number."* **After six review rounds in which the failures were counts, vocabularies and stale figures,
+the open set has crossed into behaviour** — **and a behaviour cannot be fixed by re-deriving a declaration.**
+
+**THE SEVEN, AND L0'S READ OF EACH.**
+
+| id | their one line | L0's read |
+|---|---|---|
+| **`DEF-AE`** | a write that reports refusal while its own value lands | **the most severe: a refusal that does not prevent the write.** A data-integrity row, not a diagnostics one. |
+| **`DEF-X`** | five hosts that still don't judge a reversal | **the judgement is exercised on the one host this checkout builds** — the other four platform tarballs are `LAYER-LIMIT` and carry no `.node`. **A coverage gap, and it is theirs to close only by building each target.** |
+| **`DEF-AH`** | the restart request that a second act silently discards | **this is the two windows `D-43` item 2 declared a KNOWN FAIL-STATE** — **they now file it as a defect.** **The ruling said reload-or-regenerate; the consumer says a silently discarded request is not a state, it is a loss.** **A ruling question, not a fix.** |
+| **`DEF-AI`** | a log entry missing a field its own declaration requires | **a declaration and an entry disagreeing** — the class this branch has closed nine times. **Fixable.** |
+| **`DEF-AC`** | a guide denying its own tarball | **the shipped `README.guide.md` contradicts what the tarball carries** — the drift class, now inside the document rather than beside it. **Fixable.** |
+| **`DEF-AD`** | cost with no demand | **an observation carrying no ask** — **their own rule says a preference is an observation with a cost, and only a clause makes it a defect.** **No action, and the row says so.** |
+| **`DEF-AB`** | one address printed two ways | **two spellings of the same rendering** — the defect class `DEF-Q` was filed under, at another site. **Fixable.** |
+
+**AND THE LESSON THEY WROTE AS A RULE RATHER THAN A RESOLUTION** — *"the fourth [withdrawal] was my own framing rather
+than the package's arithmetic … now written as a rule instead of a resolution"*: **a preference is an observation with a
+cost attached; it becomes a defect only when it breaks a clause the consumer's contract requires.** **That rule is
+better than any of the seven rows, and it is the first thing in six review rounds that applies to BOTH sides of the
+boundary** — **it is exactly what this branch learned from the other direction when it re-derived twenty-two cells
+toward the code instead of toward a ruling.**
+
+**TERMS: behaviour-only open set (`7`), severe and unambiguous (`1` = `DEF-AE`), declaration disagreements fixable
+(`2` = `DEF-AI`, `DEF-AB`), document drift (`1` = `DEF-AC`), coverage the consumer must build (`1` = `DEF-X`), a ruling
+question (`1` = `DEF-AH`), and an observation with no ask (`1` = `DEF-AD`, actioned by doing nothing).**
