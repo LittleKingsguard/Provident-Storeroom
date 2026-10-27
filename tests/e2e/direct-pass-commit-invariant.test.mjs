@@ -24,11 +24,16 @@
 //   (2) THE BODY'S ACTION INSIDE THAT PASS — a constraint body that issues a violating `rollback` while a
 //       directly driven pass evaluates it. **The window it runs in is `open` `1` / `live` `1`** (`D-44`'s
 //       precondition holds at the action too), the reversal still ANSWERS its record (`D-40`'s gate: the step is
-//       not judged as a step), and the check is then asked whether `D-42`'s restart fires. **MEASURED: it does
-//       NOT** — a directly driven pass has no `constraintWrite` frame above it to consume the request, so the
-//       request dies with its window (`constraints.mjs`'s epoch rule) and the following outermost write clears it
-//       at its own entry rather than judging the state the reversal left. **That is this arm's declared answer
-//       and it is printed, not dressed up** (`D-21`).
+//       not judged as a step), **AND THE RESTART NOW FIRES.** **RE-DERIVED 2026-10-27**: the arm this cell read
+//       before that date was *"the check is NOT restarted — the request dies with its window, because no
+//       `constraintWrite` frame stands above a directly driven pass to consume it"*, and the consumer is no
+//       longer a property of that call site: **the pass's own commit scope drains what its pass recorded**
+//       (`kernel-attempt.mjs`'s `runAttempt` → `state.mjs`'s `restart-drain` channel → `constraints.mjs`'s
+//       `drainRestartRequests`). **So the pair IS asked at the state the reversal left, and the REPORT — the
+//       five-member `AttemptReport` `K-3` answers and `K-5` reads back — says the restarted check refused:
+//       `outcome` `'failed'`, and one `constraint-check` entry in `log` naming the pair, the state it refused and
+//       the undoing.** `K-3` does not throw: the pass it was asked to run passed, and the refusal is a later
+//       check's — the write's own path is where that refusal is thrown (`constraintWrite`).
 //   (3) A STORE WITHOUT THE SEAM — the channel removed from a real store, and a foreign object handed as one:
 //       **both REFUSED with the kernel's `KC-2`, with the pass NOT run, the attempt still open and the count
 //       still `0`** — never a pass evaluated outside a commit. The pair used here REFUSES the value that stands,
@@ -49,7 +54,7 @@ import { test } from 'node:test';
 import { storeCreate } from '../../bindings/js/index.mjs';
 // **THE KERNEL'S OWN TWO CALLS, REACHED AS A DIRECT DRIVE REACHES THEM** (`tests/e2e/blind-constraints-unit.test.mjs`
 // drives the same two names the same way).
-import { commit as kernelCommit, runAttempt as kernelRunAttempt } from '../../bindings/js/src/constraint-kernel.mjs';
+import { commit as kernelCommit, report as kernelReport, runAttempt as kernelRunAttempt } from '../../bindings/js/src/constraint-kernel.mjs';
 import { kernelFor } from '../../bindings/js/src/entry/kernel-foundations.mjs';
 import { openCommits } from '../../bindings/js/src/entry/state.mjs';
 
@@ -196,7 +201,7 @@ test('D-44 (1) · THE DIRECT-PASS WINDOW: a pass driven by hand through `K-2`/`K
 // (2) THE BODY'S ACTION INSIDE THAT PASS — judged, or restarted?
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('D-44 (2) · THE BODY\'S ACTION INSIDE THAT PASS: a constraint body\'s violating `rollback` in a directly driven pass runs with ONE OPEN COMMIT and ONE OPEN ATTEMPT, still answers its record (`D-40`\'s gate), and the check is NOT restarted — the request dies with its window, which this cell PRINTS (`D-21`)', (t) => {
+test('D-44 (2) · THE BODY\'S ACTION INSIDE THAT PASS: a constraint body\'s violating `rollback` in a directly driven pass runs with ONE OPEN COMMIT and ONE OPEN ATTEMPT, still answers its record (`D-40`\'s gate), and the RESTART FIRES — the pair is asked at the state the reversal left and the REPORT carries the restarted check\'s refusal', (t) => {
   const store = make();
   store.write(['a'], 'mem', SEED);
   // **THE REVERSAL'S TARGET** — the op whose undoing leaves `SEED` standing, the state this pair refuses.
@@ -228,9 +233,15 @@ test('D-44 (2) · THE BODY\'S ACTION INSIDE THAT PASS: a constraint body\'s viol
   const passFacts = facts.slice();
   const passAsks = asked.slice();
   const standing = store.read(['a']);
-  // **THE WINDOW THAT WOULD CONSUME THE REQUEST IF ANY DID**: the next OUTERMOST write, at rest, whose check path
-  // is the one `constraintWrite` frame that owns the restart (`restartInvalidatedCheck`).
+  const report = run.ok === true ? run.value : null;
+  // **THE REPORT A DRIVER THAT IS NOT THE ENTRY CAN REACH — `K-5` over the attempt the record names.**
+  const restated = report === null ? null : attempt(() => kernelReport(store, report.attempt));
+  const log = report !== null && Array.isArray(report.log) ? report.log : [];
+  const lastEntry = log.length === 0 ? null : log[log.length - 1];
+  // **THE NEXT OUTERMOST WRITE**: it must now find NOTHING owed to it — the request was consumed by the pass
+  // that raised it — and it asks the pair at ITS OWN value only.
   const following = attempt(() => store.write(['a'], 'mem', LATER));
+  const afterFollow = asked.slice();
 
   // ── THE DRIVE IS COHERENT, OR THE CELL SAYS SO INSTEAD OF REPORTING A VERDICT. ──────────────
   assert.equal(registered.ok, true,
@@ -247,40 +258,72 @@ test('D-44 (2) · THE BODY\'S ACTION INSIDE THAT PASS: a constraint body\'s viol
     `a lawful reversal answers \`{opId, undoneOps, restoredTo}\` and no new member (\`PAR-JS-9\`): the drive read `
       + `${JSON.stringify(Object.keys(inner.value))}`);
   assert.equal(run.ok, true,
-    `the directly driven pass must complete — no judgement is taken inside it: the run caught `
-      + `${JSON.stringify(shapeOf(run.caught))}`);
-  assert.equal(following.ok, true,
-    `the write that follows must complete: it caught ${JSON.stringify(shapeOf(following.caught))}`);
+    `\`K-3\` must ANSWER A REPORT — the pass it was asked to run passed, so the kernel does not throw for a `
+      + `later check's refusal: the run caught ${JSON.stringify(shapeOf(run.caught))}`);
+  assert.equal(restated.ok, true,
+    `and the attempt's report must be readable at \`K-5\` by a driver that is not the entry: the read caught `
+      + `${JSON.stringify(shapeOf(restated.caught))}`);
 
   // ── THE WINDOW THE ACTION RAN IN: `D-44`'S PRECONDITION, AT THE ACTION ITSELF. ────────────────
   assert.deepEqual(passFacts, [{ open: 1, live: 1 }],
     `the body's action runs in ONE OPEN COMMIT and ONE OPEN ATTEMPT — the pass's own scope (\`D-44\`) — and NOT `
       + `in the \`open=0\`/\`live=1\` window this ruling closed: the drive recorded ${JSON.stringify(passFacts)}`);
 
-  // ── THE DECLARED ANSWER, PRINTED: NEITHER JUDGED AT ITS INSTANT NOR RESTARTED. ───────────────
-  assert.equal(standing, SEED,
-    `the reversal's own effect STANDS — it was asked as a STEP and no judgement refused it — so the store reads `
-      + `${JSON.stringify(standing)} where the pass's own op carried ${JSON.stringify(THIRD)}`);
-  assert.deepEqual(passAsks, [LANDED, THIRD],
-    `the pair is asked at REGISTRATION (${LANDED}) and by the PASS (${THIRD}) and by nothing else: the directly `
-      + `driven pass's own asks were ${JSON.stringify(passAsks)}`);
-  assert.equal(asked.includes(SEED), false,
-    `**AND THE RESTART DOES NOT FIRE.** \`D-42\`'s restart is consumed by the write's check path `
-      + `(\`constraintWrite\`'s \`restartInvalidatedCheck\`), and a DIRECTLY DRIVEN pass has no such frame above it: `
-      + `so the request the body raised dies with its window (\`constraints.mjs\`'s epoch rule — the next `
-      + `OUTERMOST write clears it at its own entry rather than consuming it). THE PAIR WAS ASKED AT `
-      + `${JSON.stringify(asked)} — the reversal's state ${JSON.stringify(SEED)} is NOT among them, and a restart `
-      + `would have asked it there and REFUSED it`);
+  // ── THE FINDING: THE RESTART FIRES, AND THE REPORT CARRIES ITS REFUSAL. ──────────────────────
+  assert.deepEqual(passAsks, [LANDED, THIRD, SEED],
+    `**THE PAIR IS ASKED AT THE STATE THE ACTION LEFT.** Its asks are REGISTRATION (${LANDED}), the PASS `
+      + `(${THIRD}) and — from the drain the pass's own commit scope performs — the RESTART (${SEED}). THE `
+      + `DRIVE'S ASKS WERE ${JSON.stringify(passAsks)}; a \`${JSON.stringify(SEED)}\` missing from them is the `
+      + `request dying with its window`);
+  assert.equal(report.outcome, 'failed',
+    `**THE REPORT SAYS THE RESTARTED CHECK REFUSED** — \`outcome\` is the attempt's answer and the state its `
+      + `pass approved does not stand, so the answer is \`'failed'\` and never a third arm. THE DRIVE READ `
+      + `${JSON.stringify(report.outcome)}`);
+  assert.deepEqual(Object.keys(report).sort(), ['attempt', 'log', 'ops', 'outcome', 'rollback'],
+    `**AND IT KEEPS ITS FIVE READABLE MEMBERS** — the refusal travels beside them, not among them: the drive `
+      + `read ${JSON.stringify(Object.keys(report))}`);
+  assert.equal(restated.value === report, true,
+    `and \`K-5\` answers THE SAME REPORT OBJECT \`K-3\` answered, so a driver reading the record afterwards learns `
+      + `the same arm (the closed record is that one object, not a copy)`);
+  assert.equal(log.length, 3,
+    `the log carries the pass's \`constraint-check\`, its \`commit\`, and the restarted check's ONE entry: `
+      + `${JSON.stringify(log.map((entry) => entry.kind))}`);
+  assert.deepEqual(log.map((entry) => entry.seq), [1, 2, 3],
+    `and the entries keep the log's own ordinals, the appended one included (\`kernel-surface.md §2.5\` item 1): `
+      + `${JSON.stringify(log.map((entry) => entry.seq))}`);
+  assert.equal(lastEntry.kind, 'constraint-check',
+    `**THE LOG ENTRY** — the refusal's own entry, of the kernel's own kind set: ${JSON.stringify(lastEntry)}`);
+  assert.equal(lastEntry.id, 'ra',
+    `and it NAMES the pair that refused the state the reversal left: ${JSON.stringify(lastEntry.id)}`);
+  assert.equal(/UNDONE/.test(lastEntry.message), true,
+    `and it says the reversal was UNDONE, so a driver knows the store is back where it started: `
+      + `${JSON.stringify(lastEntry.message)}`);
+  assert.equal(/budget is spent/.test(lastEntry.message), false,
+    `and it is a PAIR's refusal rather than a spent budget: ${JSON.stringify(lastEntry.message)}`);
+  assert.equal(lastEntry.opId, target.value.op.opId,
+    `the entry's \`opId\` is the store's own echo of the id the reversal named: `
+      + `${JSON.stringify(lastEntry.opId)} against ${JSON.stringify(target.value.op.opId)}`);
+  assert.equal(standing, THIRD,
+    `**AND THE VIOLATING EFFECT DOES NOT STAND**: the refusal's own compensating act restores what the `
+      + `reversal moved, so the store stands at the journal's head — the pass's own op ${JSON.stringify(THIRD)} — `
+      + `and NOT at ${JSON.stringify(SEED)}, the state the reversal left. THE DRIVE READ `
+      + `${JSON.stringify(standing)}`);
+  assert.equal(following.ok, true,
+    `and the write that follows is lawful — nothing owed to it survived: it caught `
+      + `${JSON.stringify(shapeOf(following.caught))}`);
+  assert.deepEqual(afterFollow, [LANDED, THIRD, SEED, LATER],
+    `and it asks the pair at ITS OWN VALUE (${LATER}) and at nothing else: a surviving request would have been `
+      + `consumed there and asked it at ${JSON.stringify(SEED)} again. THE DRIVE'S ASKS WERE `
+      + `${JSON.stringify(afterFollow)}`);
 
-  t.diagnostic(`D-44 (2) · 2026-10-27 · THE BODY'S ACTION INSIDE A DIRECTLY DRIVEN PASS: window `
+  t.diagnostic(`D-44 (2) · RE-DERIVED 2026-10-27 · THE BODY'S ACTION INSIDE A DIRECTLY DRIVEN PASS: window `
     + `${JSON.stringify(passFacts[0])} ⇒ the reversal ANSWERED its record ${JSON.stringify(inner.value)} (a STEP: `
-    + `not judged at its instant); the pass completed and the store stands at ${JSON.stringify(standing)} — the `
-    + `reversal's effect, unjudged; the pair was asked at ${JSON.stringify(passAsks)} by the pass and at `
-    + `${JSON.stringify(asked)} across the whole drive, and NEVER at ${JSON.stringify(SEED)} ⇒ **NOT `
-    + `RESTARTED**: the request dies with its window, because no \`constraintWrite\` frame stands above a directly `
-    + `driven pass to consume it (the following write cleared it at its own entry and asked the pair at its own `
-    + `value). The PRECONDITION \`D-44\` rules on — a commit open for the check — HOLDS at the action: \`open\` `
-    + `\`1\`.`);
+    + `not judged at its instant); the pair was asked at ${JSON.stringify(passAsks)} — the third ask is THE `
+    + `RESTART'S, at ${JSON.stringify(SEED)}, taken by the pass's own commit scope; the report says `
+    + `\`outcome\` ${JSON.stringify(report.outcome)} and carries its entry '${lastEntry.id}': `
+    + `${JSON.stringify(lastEntry.message)}; the store stands at ${JSON.stringify(standing)} — the reversal `
+    + `UNDONE; the following write asked at ${JSON.stringify(afterFollow)} and found nothing owed. **RESTARTED**: `
+    + `the consumer is the scope the check owns, not a caller's frame.`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

@@ -147,7 +147,45 @@ const ATTEMPT_OPENED = Symbol.for('provident-storeroom.attempt-opened');
 /// unmoved, no census of a `CommitRecord` moves and no kernel item is minted (`kernel-surface.md §1` item 2).
 const COMMIT_SCOPE = Symbol.for('provident-storeroom.commit-scope');
 
-/** The per-store index: `{ open, observers }`, keyed by the store instance and by nothing else. */
+/// **⟶ ADDED 2026-10-27 — `D-42`'s RESTART CONSUMER, AND IT NOW SITS WHERE THE SCOPE IS OWNED.**
+///
+/// **THE FINDING THIS CLOSES, SAID AS THE LAST PASS MEASURED IT** (`docs/specs/storeroom-js/contract.md §2.6`'s
+/// `D-44` annotate-beside, item `4`): *"a reversal issued INSIDE a directly driven pass is still neither judged
+/// nor restarted … the restart's consumer is the write's check path (`constraintWrite`'s
+/// `restartInvalidatedCheck`) and a directly driven pass has no such frame above it, so the request the body
+/// raises dies with its window."* **`D-44` gave every check an open commit and stopped there**; the request a
+/// check's own body raises was still consumed by ONE call site (`constraintWrite`), which is a property of a
+/// caller and not of the check. **So the consumption moves to the frame that owns the scope — `runAttempt` —
+/// and the store reaches its consumer by a fifth `Symbol.for` channel on this same seam.**
+///
+/// **THE CHANNEL IS THE SAME DEVICE AS THE SCOPE ABOVE**: installed once by `installAttemptSeam`, invisible to
+/// `Object.keys` and `Object.getOwnPropertyNames` (`A117` (D6)), no member added to any record and none to the
+/// product, and no kernel item minted (`kernel-surface.md §1` item 2: `K-1`–`K-5` and no sixth name). **Its one
+/// argument is the closed `AttemptReport` the pass answered with**, and its answer is the report the kernel
+/// returns: the consumer may leave it untouched (no request stood, or the restarted check passed) or answer it
+/// amended (the restarted check refused). **ITS IMPLEMENTATION IS THE ENTRY'S AND IT IS INJECTED HERE**
+/// (`installRestartConsumer` below): this module may not import `constraints.mjs` — `constraints.mjs` imports
+/// this one, and `kernel-attempt.mjs` imports neither — so the restart machinery stays in its own file and only
+/// the CHANNEL is declared on the seam.
+///
+/// **AND IT RUNS INSIDE THE PASS'S OWN SCOPE**: `runAttempt` calls it after its pass and before the scope is
+/// released, so the restarted check is a check with a commit open — `D-44`'s invariant reaches the restart
+/// itself, which it could not while the consumer was a frame outside the scope.
+const RESTART_DRAIN = Symbol.for('provident-storeroom.restart-drain');
+
+/// **THE RESTART'S ONE IMPLEMENTATION, INJECTED BY THE FILE THAT OWNS IT** — `constraints.mjs` calls
+/// `installRestartConsumer(drainRestartRequests)` at its own module scope. **A NULL SLOT IS A STORE WITH NO
+/// RESTART MACHINERY AND ITS PASS ANSWERS ITS REPORT UNCHANGED** — a request can only be raised by a pair, a
+/// pair is only carried by `constraints.mjs`, and a tree that never loads that file has no request to consume.
+let RESTART_CONSUMER = null;
+export function installRestartConsumer(consumer) {
+  RESTART_CONSUMER = consumer;
+}
+
+/** The per-store index: `{ open, observers, windows, windowSeq }`, keyed by the store instance and by nothing
+ *  else. **`windows` IS THE STACK OF OPEN WINDOW IDENTITIES** — one number per commit this store opened, the
+ *  top being the window in flight — and it exists so a restart request can name the window that raised it
+ *  (`D-42`'s *"a request belongs to the act that raised it"*, made a measurement instead of an inference). */
 const ATTEMPT_INDEX = new WeakMap();
 
 function attemptIndex(store) {
@@ -162,7 +200,7 @@ function attemptIndex(store) {
     // refusal.** The list preserves the Set's own two facts — insertion order and uniqueness — and the copy
     // is taken before any notification, so an observer that removes itself mid-notification still moves
     // nothing.
-    index = { open: 0, observers: [] };
+    index = { open: 0, observers: [], windows: [], windowSeq: 0 };
     ATTEMPT_INDEX.set(store, index);
   }
   return index;
@@ -189,12 +227,36 @@ export function openCommits(store) {
   return attemptIndex(store).open;
 }
 
+/// **⟶ ADDED 2026-10-27 — THE WINDOW IN FLIGHT, AS THE PLAIN ACCESSOR BESIDE THE COUNT ABOVE.**
+///
+/// **IT ANSWERS THE IDENTITY OF THE COMMIT THE STORE HAS OPEN, AND `0` WHERE NONE IS** — a number minted once
+/// per commit that OPENS (`windowSeq`, strictly increasing and never reused) and held on a stack so that a
+/// nested verb's JOIN answers the enclosing window's identity and not a second one. **IT IS READ BY EXACTLY
+/// ONE ACT AND FOR EXACTLY ONE FACT**: `constraints.mjs`'s `reversalWatch` stamps the restart request an
+/// in-commit action raises with the window that raised it, and `drainRestartRequests` consumes a request only
+/// where that stamp equals the window the draining pass runs in. **SO *"A REQUEST BELONGS TO THE ACT THAT
+/// RAISED IT"* — `D-42`'s own sentence — IS MEASURED RATHER THAN ASSUMED**, and the two declared windows that
+/// have no check to run (`D-42`'s `delete` delivery, and the pass a hand drives) no longer need a counting
+/// frame to tell them apart from the write the check belongs to.
+///
+/// **IT IS A PURE READ** in `§4.2` item 1's sense — no state, no code, no journal entry and no file — and it
+/// creates its index on miss exactly as `openCommits` does, so it cannot answer `undefined` on any path.
+export function currentWindow(store) {
+  const windows = attemptIndex(store).windows;
+  return windows.length === 0 ? 0 : windows[windows.length - 1];
+}
+
 /** **THE INCREMENT MOMENT** (`PAR-ADA-15`): the opening of a commit. It is taken iff THIS call opens one —
  *  a call that finds the count already above zero has joined an extant commit and opens nothing. */
 export function openCommit(store) {
   const index = attemptIndex(store);
   if (index.open > 0) return false;
   index.open += 1;
+  // **AND THE WINDOW'S OWN IDENTITY IS MINTED WITH THE OPENING AND STOOD ON THE STACK** (`currentWindow`
+  // above): a commit that JOINS answers an id already held, so the nesting `§4.1` keeps exact in the count is
+  // kept exact in the identity too, and no window id is ever reused.
+  index.windowSeq += 1;
+  appendOwn(index.windows, index.windowSeq);
   // **THE OBSERVER SEAM IS READ AT THE INSTANT OF THE OPENING** (`§4.2` item 2), one call per opening — and
   // the iteration is a copy, so an observer that unsubscribes itself mid-notification moves nothing. **The
   // copy and the notification are LOCAL INDEX LOOPS** (item `(1c)(i)`): no spread, no iterator.
@@ -211,6 +273,12 @@ export function closeCommit(store, opened) {
   if (!opened) return;
   const index = attemptIndex(store);
   index.open -= 1;
+  // **AND THE WINDOW THE OPENING STOOD ON GOES WITH IT**, by a local index loop rather than through a mutable
+  // prototype's `slice`/`pop` (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`/`F8-2`). A joining call
+  // opened nothing and releases nothing, so the enclosing window's identity stands.
+  const kept = [];
+  for (let i = 0; i + 1 < index.windows.length; i += 1) appendOwn(kept, index.windows[i]);
+  index.windows = kept;
 }
 
 /// **THE TWO CHANNELS, INSTALLED ONCE ON THE OBJECT `storeCreate` RETURNS** (`§4.2` item 4: *"`storeCreate`
@@ -277,6 +345,22 @@ export function installAttemptSeam(instance) {
           closeCommit(instance, opened);
         }
       },
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  // **⟶ AND THE RESTART'S CONSUMER, BY THE SAME ONE-INSTALLATION RULE, 2026-10-27.** `runAttempt` calls it
+  // AFTER its pass and INSIDE the scope above, handing THE REPORT THE PASS ANSWERED WITH; the answer is the
+  // report the kernel returns, amended where the restarted check refused (`constraints.mjs`'s
+  // `carryRestartRefusal`) and untouched where none refused. **A STORE WITH NO INJECTED CONSUMER ANSWERS ITS
+  // REPORT UNCHANGED** — the restart machinery is the entry's and its absence is a tree that never loaded it,
+  // which is also a tree that carries no pair and so can have raised no request.
+  if (typeof instance[RESTART_DRAIN] !== 'function') {
+    Object.defineProperty(instance, RESTART_DRAIN, {
+      value: (report) => (typeof RESTART_CONSUMER === 'function'
+        ? RESTART_CONSUMER(instance, report)
+        : report),
       writable: true,
       enumerable: false,
       configurable: true,

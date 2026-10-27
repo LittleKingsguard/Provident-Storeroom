@@ -20,6 +20,23 @@ import { commitAttemptIdOf, terminal, close } from './kernel-terminal.mjs';
 /// ninth token is minted, `fail-surface.md §2`).
 const COMMIT_SCOPE = Symbol.for('provident-storeroom.commit-scope');
 
+/// **⟶ `D-42`'s RESTART CONSUMER, REACHED ON THE SAME SEAM AND INSIDE THE SAME SCOPE — 2026-10-27.**
+///
+/// **`D-44`'s OWN TERMS DECLARED THIS OWED AND ITS IMPLEMENTATION DID NOT DELIVER IT**: *"If every check has a
+/// commit, every request has a consumer, and the consumer stops being a property of one call site."* **The
+/// request was still consumed by `constraintWrite`'s frame**, so a constraint body's `rollback` inside a pass
+/// driven straight through `K-2`/`K-3` — the window `D-44` itself emptied — raised a request no frame above it
+/// would ever consume, and the pair the reversal invalidated was never asked at the state the action left.
+///
+/// **THE REQUEST IS A STORE-SIDE FACT, SO ITS CONSUMER IS THE STORE'S OWN COMMIT SCOPE — ONE MECHANISM, NOT
+/// TWO.** `runAttempt` is, since `D-44`, THE universal caller of a pass (every check runs inside its scope), so
+/// it is the one frame every driver reaches; after its pass it asks the store to drain what the pass recorded,
+/// **inside the scope it already owns** — so the restarted check is itself a check with a commit open.
+/// **THE CHANNEL IS A `Symbol.for` KEY** (`state.mjs` installs it; this module spells it and imports nothing of
+/// the entry — `kernel-surface.md §1` item 1's empty import footprint), **and NO KERNEL ITEM IS MINTED**
+/// (`§1` item 2: `K-1`–`K-5` and no sixth name).
+const RESTART_DRAIN = Symbol.for('provident-storeroom.restart-drain');
+
 export function runAttempt(store, commitRecord) {
   // THE SEAM, READ BEFORE ANY STATE MOVES: **a store this package did not build carries no such channel, so it
   // is not this package's store and no pass of this kernel may run against it.** The refusal is thrown BEFORE
@@ -32,7 +49,29 @@ export function runAttempt(store, commitRecord) {
         + 'open commit a constraint could be checked in',
       []);
   }
-  return scope(() => passInCommitScope(store, commitRecord));
+  // **THE PASS, ITS WHOLE TERMINAL ACT AND THE RESTART, ALL TAKEN INSIDE THE ONE COMMIT WINDOW** — and the
+  // drain is reached ONLY where the pass answered a report: a failing pass throws out of the thunk below, so
+  // `D-42` item `2`'s *"the restart runs on the passing arm of the terminal call alone"* is now the shape of
+  // this function rather than a `catch` in a caller.
+  return scope(() => {
+    const report = passInCommitScope(store, commitRecord);
+    return drainRestart(store, report);
+  });
+}
+
+/// **THE DRAIN, TAKEN INSIDE THE SCOPE THE PASS JUST ENDED IN.** It hands the store **the report the pass
+/// answered with** and answers the report the kernel returns: unchanged where no request stood or the
+/// restarted check passed, and amended — `outcome` `'failed'` and the refusal's entry in the log — where the
+/// restarted check refused. **THE REFUSAL IS NOT THROWN OUT OF HERE**: it is a later check's, not this pass's,
+/// and a driver that is not the entry (a direct `K-3`) learns it from the report. `constraintWrite` — the
+/// entry — is the frame that refuses on the write's path, with the very value the report carries.
+///
+/// **A STORE THAT CARRIES NO DRAIN CHANNEL ANSWERS ITS REPORT UNCHANGED**, which is also a store no pass of
+/// this package could have raised a request on: the channel is installed by the same seam the scope above is.
+function drainRestart(store, report) {
+  const drain = store !== null && typeof store === 'object' ? store[RESTART_DRAIN] : undefined;
+  if (typeof drain !== 'function') return report;
+  return drain(report);
 }
 
 /// **THE PASS AND ITS WHOLE TERMINAL ACT, TAKEN INSIDE THE COMMIT WINDOW `D-44` REQUIRES.** The scope covers

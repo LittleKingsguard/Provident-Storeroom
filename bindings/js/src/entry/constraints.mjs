@@ -4,14 +4,22 @@ import { appendOwn, fail, refusalLog } from './refusal.mjs';
 import { withAddon, require_ } from './artefact.mjs';
 import { classSpelling, isAdmittedArray, isPlainObjectValue } from './class-decision.mjs';
 import { constraintAddress } from './frame.mjs';
-import { homeAddressKey, isStoreReceiver, openCommits } from './state.mjs';
+import { currentWindow, homeAddressKey, installRestartConsumer, isStoreReceiver, openCommits } from './state.mjs';
 // **THE KERNEL'S OWN RECORD, FOR ONE FIELD AND ONE ONLY** (`D-46`/`D-30`): `kernelFor(store)` answers the
 // instance's kernel record — the same accessor every kernel act takes the instance through — and
 // `reversalAtRest` below reads that record's own `live` map for the count of OPEN ATTEMPTS. `kernel-foundations`
 // carries NO import of its own (`kernel-surface.md §1` item 1's empty-footprint clause), so this reach adds no
 // load path, no addon call and no store act; it is a FIELD READ of state the instance already owns, taken the
 // way the kernel's four part modules take it.
-import { kernelFor } from './kernel-foundations.mjs';
+//
+// **⟶ AND `append` FROM 2026-10-27 — THE ONE ORDINAL MINTING SITE, TAKEN FOR THE REPORT'S OWN COPY OF THE
+// RESTARTED CHECK'S ENTRY (`carryRestartRefusal`).** The entry that reaches a driver through the closed
+// report is IN THE ATTEMPT'S LOG, whose entries carry `seq` ascending from `1` (`kernel-surface.md §2.5` item
+// 1; `assertLogEntry`'s own member set). The copy is therefore minted by the kernel's own append — the same
+// function the pass appends with — rather than pushed here with a member set of its own; the REFUSAL's own
+// list keeps its five members and no `seq`, because no attempt stands at the judgement that built it
+// (`D-41` item 4). Two records, two honest forms, one append.
+import { append, kernelFor } from './kernel-foundations.mjs';
 // **⟶ AND THE CARRIERS, ADDED 2026-10-26 FOR THE REFUSAL'S OWN UNDOING (`DEF-W`'s `(a)`).** The
 // compensating act below reaches the store's own verb at its entry, with the SAME carrier forms every member
 // hands it (`carrier.mjs` is the boundary's one encoder for the three positions and imports nothing of this
@@ -749,69 +757,71 @@ function carriesConstraintAt(state, address) {
  */
 export function constraintWrite(state, instance, address, tier, value) {
   const kernel = constraintsKernel();
-  // **⟶ THE EPOCH, `D-42` (2026-10-27): THE OUTERMOST CHECK CLEARS A REQUEST ITS WINDOW DID NOT RAISE.**
-  // A request belongs to the act that raised it, so a request left behind by a window whose check never ran —
-  // a `delete`'s delivery, a pass driven straight through `K-2`/`K-3` — is dropped HERE rather than consumed
-  // by an unrelated later write. **A NESTED WRITE CLEARS NOTHING** (`CHECK_DEPTH > 0`): a listener body's own
-  // write reaches this frame inside the delivery that raised the request, so the request is still in hand when
-  // the check that follows it runs.
-  if (CHECK_DEPTH === 0) clearStaleRestart(instance);
-  CHECK_DEPTH += 1;
+  // **⟶ THE EPOCH RULE'S FRAME IS GONE WITH THE CONSUMER IT GUARDED, 2026-10-27 — `D-42`'s REQUEST NOW NAMES
+  // THE WINDOW THAT RAISED IT (`state.mjs`'s `currentWindow`), AND `runAttempt`'s drain COMPARES THE TWO
+  // IDENTITIES.** The bytes that stood here were `if (CHECK_DEPTH === 0) clearStaleRestart(instance);` and
+  // `CHECK_DEPTH += 1;`, with a matching clear at the failing arm and a decrement in the `finally`: a stack
+  // depth in THIS frame standing in for *"a request belongs to the act that raised it"* (`D-42` item `3`).
+  // **THEY ARE DELETED, NOT MOVED** — the fact they approximated is now the store's own (a commit identity,
+  // minted with the opening and answered by every joining call), so there is no counting frame to be found in
+  // the wrong place and none to be bypassed by a driver that never reaches this member. **ONE MECHANISM, NOT
+  // TWO.**
+  let record;
   try {
-    let record;
-    try {
-      record = kernel.commit(instance, address, tier, value);
-    } catch (refusal) {
-      constraintCrossing(refusal);
-    }
-    const answer = state.leg;
-    let report;
-    try {
-      report = kernel.runAttempt(instance, record);
-    } catch (refusal) {
-      // **A FAILING ATTEMPT IS THE TERMINAL CALL'S OWN REFUSAL, AND ITS FLOOR HAS ALREADY PUT THE STORE BACK
-      // TO THE STATE IT FOUND** (`D-40`) — so the restart does not run over a floor-restored state (the
-      // compensation's own act, the store's `restoreMark`, re-states the journal's head, which on this arm is
-      // the entry the floor just undid; running it here would re-state the value the attempt's floor restored
-      // AWAY FROM). The request dies with the arm — **AND ONLY THE OUTERMOST CHECK CLEARS IT**: a FAILING
-      // NESTED write (a listener body's own write) reaching this frame inside a delivery still leaves the
-      // request the delivery raised for the check that follows it, because that check is the outer frame's.
-      if (CHECK_DEPTH === 1) clearStaleRestart(instance);
-      constraintCrossing(refusal);
-    }
-    // **⟶ THE RESTART, AT THE ONE PLACE THE CHECK RUNS AND AFTER THE WINDOW THAT HELD THE ACTION HAS
-    // FINISHED — `D-42` (2026-10-27).** The attempt's own terminal arm returned (its pass, its save and its
-    // delivery all ran, so a listener body's `rollback` and a constraint body's `rollback` have both been
-    // taken), and the check the action invalidated is re-run from its beginning against the state the action
-    // left (`restartInvalidatedCheck`): a pair the state now violates REFUSES, and the refusal crosses out of
-    // this frame as the terminal call's own — the same plain form, the same rank-`20` status, and the store
-    // restored by that refusal's compensating act. **A WRITE WHOSE WINDOW HELD ONLY LAWFUL ACTIONS REACHES
-    // THIS LINE AND RETURNS ITS RECORD UNCHANGED.**
-    restartInvalidatedCheck(instance);
-    // **⟶ THE PASSING ARM RETURNS THE REPORT THE ATTEMPT ITSELF BUILT — `D-40`'S SECOND HALF (`DEF-M` (2)),
-    // 2026-10-26.** **WHAT IT WAS:** `return answer` returned the **STORE LEG'S** record — the one `index.mjs`
-    // builds from the store's first reply at this verb — and DISCARDED the report `runAttempt` had just
-    // answered with. On a write whose value a constraint REFUSED and whose repair then landed, the store's
-    // reply at the leg describes the op that landed the REFUSED value, while the store afterwards holds the
-    // REPAIRED one: measured, `op.after.value` read `9` against a `read` of `1`. **WHAT IT IS:** the returned
-    // record's `op` is the attempt report's OWN LAST OP — the store's journal op whose landing left the state
-    // the store stands at when this verb returns — so the record DESCRIBES THE STORE and is never overwritten
-    // to match it. **A write with no repair is unchanged: the report's last op IS the store leg's own op.**
-    // **NO MEMBER IS FORGED, NO MEMBER IS ADDED, AND THE RECORD KEEPS ITS DECLARED THREE**
-    // (`docs/specs/storeroom-js/surface.md §2.2`): `op` from the report, `watched` and `triggered` from the
-    // store leg's own answer, unchanged.
-    const landed = report !== null && typeof report === 'object' && Array.isArray(report.ops)
-      && report.ops.length > 0
-      ? report.ops[report.ops.length - 1]
-      : answer.op;
-    return {
-      op: landed,
-      watched: answer.watched,
-      triggered: answer.triggered,
-    };
-  } finally {
-    CHECK_DEPTH -= 1;
+    record = kernel.commit(instance, address, tier, value);
+  } catch (refusal) {
+    constraintCrossing(refusal);
   }
+  const answer = state.leg;
+  let report;
+  try {
+    report = kernel.runAttempt(instance, record);
+  } catch (refusal) {
+    // **A FAILING ATTEMPT IS THE TERMINAL CALL'S OWN REFUSAL, AND ITS FLOOR HAS ALREADY PUT THE STORE BACK
+    // TO THE STATE IT FOUND** (`D-40`) — and the restart does not run over a floor-restored state, **NOW BY
+    // CONSTRUCTION RATHER THAN BY THIS FRAME'S CARE**: `runAttempt`'s drain is reached only where its pass
+    // answered a report, and a failing pass throws before the drain (the passing arm alone, `D-42` item
+    // `2`'s own reading, taken structurally). A request the failing pass's bodies raised stands with that
+    // pass's window identity and dies at the next pass's drain — **A FAILING NESTED WRITE's request is in the
+    // ENCLOSING window, so the delivery's outer pass still consumes it, exactly as the old outer-frame clear
+    // left it in hand.**
+    constraintCrossing(refusal);
+  }
+  // **⟶ AND THE RESTART'S REFUSAL, WHERE THE RESTARTED CHECK REFUSED — `D-42` (2026-10-27), REACHED THROUGH
+  // THE REPORT SINCE 2026-10-27.** The attempt's own terminal arm returned (its pass, its save and its
+  // delivery all ran, so a listener body's `rollback` and a constraint body's `rollback` have both been
+  // taken), and `runAttempt` — INSIDE ITS OWN COMMIT SCOPE — drained the request and re-ran the check from
+  // its beginning (`drainRestartRequests`). **WHAT THIS FRAME DOES NOW IS REFUSE, AND IT REFUSES WITH THE
+  // VERY VALUE THE RESTARTED CHECK BUILT** — carried on the report under the symbol both sides spell, and
+  // thrown here as itself: the same plain `{status, message, log}`, the same rank-`20` status, one log entry,
+  // and the store already restored by that refusal's own compensating act. **NOTHING IS RE-RENDERED AND NO
+  // SENTENCE IS AUTHORED HERE** (`DD-52`). **A WRITE WHOSE WINDOW HELD ONLY LAWFUL ACTIONS FINDS NO CARRIED
+  // REFUSAL AND RETURNS ITS RECORD UNCHANGED.**
+  const restarted = report !== null && typeof report === 'object' ? report[RESTART_REFUSAL] : undefined;
+  if (restarted !== undefined) {
+    constraintCrossing(restarted);
+  }
+  // **⟶ THE PASSING ARM RETURNS THE REPORT THE ATTEMPT ITSELF BUILT — `D-40`'S SECOND HALF (`DEF-M` (2)),
+  // 2026-10-26.** **WHAT IT WAS:** `return answer` returned the **STORE LEG'S** record — the one `index.mjs`
+  // builds from the store's first reply at this verb — and DISCARDED the report `runAttempt` had just
+  // answered with. On a write whose value a constraint REFUSED and whose repair then landed, the store's
+  // reply at the leg describes the op that landed the REFUSED value, while the store afterwards holds the
+  // REPAIRED one: measured, `op.after.value` read `9` against a `read` of `1`. **WHAT IT IS:** the returned
+  // record's `op` is the attempt report's OWN LAST OP — the store's journal op whose landing left the state
+  // the store stands at when this verb returns — so the record DESCRIBES THE STORE and is never overwritten
+  // to match it. **A write with no repair is unchanged: the report's last op IS the store leg's own op.**
+  // **NO MEMBER IS FORGED, NO MEMBER IS ADDED, AND THE RECORD KEEPS ITS DECLARED THREE**
+  // (`docs/specs/storeroom-js/surface.md §2.2`): `op` from the report, `watched` and `triggered` from the
+  // store leg's own answer, unchanged.
+  const landed = report !== null && typeof report === 'object' && Array.isArray(report.ops)
+    && report.ops.length > 0
+    ? report.ops[report.ops.length - 1]
+    : answer.op;
+  return {
+    op: landed,
+    watched: answer.watched,
+    triggered: answer.triggered,
+  };
 }
 
 /// **THE FAIL ARM'S CROSSING — `A120` (2): THE ENTRY CARRIES THE KERNEL'S TOKEN, THE THROW KEEPS THE
@@ -1246,11 +1256,19 @@ function constraintCrossing(refusal) {
 /// (`kernel-attempt.mjs`'s `runAttempt`, through the `commit-scope` channel `state.mjs` installs) — **and
 /// `reversalAtRest` IS UNMOVED**: both conjuncts stand, the restart is not a third conjunct, and a reversal
 /// inside a directly driven pass is still a STEP (the `live` conjunct decides it now, where before either
-/// conjunct would have). **WHAT THIS FILE STILL DOES NOT DO FOR THAT PASS IS CONSUME ITS REQUEST**: the
-/// restart's only consumer is `constraintWrite`'s `restartInvalidatedCheck`, and a directly driven pass has no
-/// such frame above it, so a body's request dies with its window through the epoch rule (`clearStaleRestart`).
-/// **THE INVARIANT IS THE PRECONDITION OF THE CHECK (`open` `≥` `1`), AND IT IS ENFORCED AT THE CHECK; THE
-/// RESTART'S CONSUMER IS A SECOND, SEPARATE CARRIER AND IS NOT CLAIMED HERE.**
+/// conjunct would have).
+///
+/// **⟶ AND THE PARAGRAPH JUST ABOVE IS SUPERSEDED ON ONE SENTENCE, 2026-10-27 — THIS FILE DOES NOW CONSUME THAT
+/// PASS'S REQUEST, AND IT DOES SO WHERE THE SCOPE IS OWNED.** The bytes that stood here read *"WHAT THIS FILE
+/// STILL DOES NOT DO FOR THAT PASS IS CONSUME ITS REQUEST: the restart's only consumer is `constraintWrite`'s
+/// `restartInvalidatedCheck`, and a directly driven pass has no such frame above it, so a body's request dies
+/// with its window through the epoch rule (`clearStaleRestart`)"*, and **`clearStaleRestart` and the
+/// `CHECK_DEPTH` frame that guarded it are DELETED with that sentence** (`drainRestartRequests` below; the
+/// request now names the window that raised it, `currentWindow` in `state.mjs`). **`D-44`'s declared consequence
+/// is delivered rather than restated** — *"If every check has a commit, every request has a consumer, and the
+/// consumer stops being a property of one call site"* — **and `reversalAtRest` is STILL UNMOVED**: the
+/// conjunction keeps both conjuncts, the restart is not a third conjunct, and the invariant stays the
+/// PRECONDITION of the check (`open` `≥` `1`), enforced at the check.
 /// **SO THE DISCRIMINATOR ANSWERS *AT REST* IFF BOTH ARE ZERO**, which matches the clause's words and its
 /// reason at once, **AND IT STILL CANNOT FAIL**: the open-commit count is taken through `state.mjs`'s
 /// exported `openCommits(store)` — a PLAIN ACCESSOR over the same index the channel reads, NOT the channel
@@ -1305,7 +1323,8 @@ function reversalAtRest(instance) {
 // **TERMINATION, AND WHAT BOUNDS IT.** A restart asks pair bodies, and a pair body MAY ACT (it is the
 // caller's code): an action raised while a restart is running raises a NEW request, which the same loop
 // consumes — so a body that acts on every ask would otherwise restart the check for ever. **THE LOOP IS
-// BOUNDED AT `RESTART_LIMIT` RESTARTS PER TERMINAL ACT** (`restartInvalidatedCheck`), and the budget is
+// BOUNDED AT `RESTART_LIMIT` RESTARTS PER PASS SCOPE** (`drainRestartRequests`; the frame moved from the
+// terminal call to the check's own scope on 2026-10-27, and the figure and the never-reset rule did not), and the budget is
 // SPENT, not reset, by a request raised inside a restart. **A CHECK THAT WILL NOT SETTLE IS A CHECK THAT DOES
 // NOT PASS** (`D-41` item `4`'s own direction: *"a reversal nobody could judge is a reversal nobody could
 // approve"*), so the arm past the budget refuses — the same plain form, the same rank-`20` status, the same
@@ -1316,24 +1335,35 @@ function reversalAtRest(instance) {
 /// **THE PER-INSTANCE RESTART RECORD, AND IT IS THE INSTANCE'S OWN** (`D-30`; `D-46`): a `WeakMap` keyed by
 /// the store object, so a second store is a second record, the record dies with its store, and **NO MEMBER IS
 /// ADDED TO THE PRODUCT, TO A RECORD OR TO THE KERNEL** (`A117` (D6)'s four-member guardrail is untouched).
-/// **`pending` is the request** — `{ watched, reversalId }` — `watched` the check's own beginning captured
-/// BEFORE the action ran (`reversalWatch`), `reversalId` the store's own echo of the id the reversal named
-/// (attached by `judgeReversal` in the same frame, one line after the action).
+///
+/// **`pending` IS THE REQUEST** — `{ watched, reversalId, window }`:
+///   * `watched` the check's own beginning captured BEFORE the action ran (`reversalWatch`);
+///   * `reversalId` the store's own echo of the id the reversal named (attached by `judgeReversal` in the same
+///     frame, one line after the action);
+///   * **⟶ `window` the IDENTITY OF THE COMMIT THE ACTION WAS TAKEN IN** (`state.mjs`'s `currentWindow`, minted
+///     with the opening and answered by every joining call), **ADDED 2026-10-27 — AND IT IS WHAT RETIRES THE
+///     COUNTING FRAME.** `D-42`'s own sentence is *"a request belongs to the act that raised it"*; while the
+///     only consumer was `constraintWrite` that fact had to be approximated by a stack depth in that frame
+///     (`CHECK_DEPTH`, whose one read cleared a request at the outermost write). **The store already knows
+///     which commit is open** — it opened it — so the request now NAMES that commit and the consumer compares
+///     the two identities. A request raised in a window whose check never ran (a `delete`'s delivery is the one
+///     the declaration names) therefore dies at the next pass's drain **by identity and not by inference**, and
+///     a request raised earlier in the SAME window (a listener body's, consumed by a nested write's own drain or
+///     by the enclosing pass's) still belongs to that window and is still consumed.
 const RESTARTS = new WeakMap();
 
-/// **HOW MANY RESTARTS ONE TERMINAL ACT MAY TAKE** — the bound `restartInvalidatedCheck` spends. Three is the
-/// declared figure: two fewer than any arm of this package's own batteries drives, and enough that a lawful
+/// **HOW MANY RESTARTS ONE PASS'S COMMIT SCOPE MAY TAKE** — the bound `drainRestartRequests` spends. Three is
+/// the declared figure: two fewer than any arm of this package's own batteries drives, and enough that a lawful
 /// in-commit action's single restart never meets it.
+///
+/// **⟶ AND WHAT IT NOW COUNTS IS *RESTARTS PER SCOPE*, NOT PER WRITE, 2026-10-27.** The figure and the
+/// spend-and-never-reset rule are unmoved (`D-42` item `3`); **what moved with the consumer is the frame the
+/// count belongs to**: one drain is one pass's scope — the pass the kernel ran, direct or production — and a
+/// request raised INSIDE a restart is consumed by that same drain and spends that same budget. **A NESTED
+/// pass (a listener body's own write) is a scope of its own and has its own budget**, exactly as the nested
+/// `constraintWrite` frame had its own before the move; the count was never shared across nesting levels and is
+/// not now.
 export const RESTART_LIMIT = 3;
-
-/// **THE NUMBER OF `constraintWrite` FRAMES ON THE STACK, AND ITS ONE READ IS THE EPOCH RULE.** A request
-/// belongs to the act that raised it: the OUTERMOST check clears any request standing before it opens its own
-/// (`CHECK_DEPTH === 0`), so **a request raised in a window whose check never ran — a `delete`'s delivery, a
-/// pass driven straight through `K-2`/`K-3` — dies with that window and is never attributed to a later,
-/// unrelated write**; a NESTED write (a listener body's own write) reaches this file with `CHECK_DEPTH > 0`
-/// and clears nothing, so a request raised earlier in the SAME delivery is still consumed by the check that
-/// follows it.
-let CHECK_DEPTH = 0;
 
 /// **THE RESTART RECORD, CREATED ON THE FIRST ACTION AND NEVER ON A LAWFUL WRITE'S PATH**: the read is a
 /// `WeakMap.get` and the creation happens only in `reversalWatch`'s in-flight arm.
@@ -1346,41 +1376,70 @@ function restartRecord(instance) {
   return record;
 }
 
-/// **THE EPOCH'S CLEARING HALF** — the outermost check's first act, and it touches nothing when no request
-/// stands (the overwhelming majority of writes: `RESTARTS` holds no record for a store that never acted
-/// inside a window, so the `get` answers `undefined` and the function returns).
-function clearStaleRestart(instance) {
-  const record = RESTARTS.get(instance);
-  if (record === undefined) return;
-  record.pending = null;
-}
-
-/// **THE RESTART ITSELF — THE CHECK THE ACTION INVALIDATED, RE-RUN FROM ITS BEGINNING.** It is reached at the
-/// ONE place the check runs after the window that held the action has finished: `constraintWrite`, after the
-/// attempt's terminal arm returned (and on the passing arm ALONE — a failing attempt's floor has already put
-/// the store back to the state it found, and re-running the check over a floor-restored state would judge
-/// nothing the action left).
+/// **⟶ THE RESTART ITSELF, MOVED 2026-10-27 TO WHERE THE COMMIT SCOPE IS OWNED — `runAttempt`'s drain.**
 ///
-/// **EACH ROUND CONSUMES ONE REQUEST AND ASKS EVERY ENABLED PAIR THE WATCH CARRIED, IN ORDER, AT THE STATE
-/// THE ACTION LEFT** (`judgeReversal`: the `moved` test, the first-violating-pair rule and the refusal's
-/// restoring compensation are that function's own and are not re-implemented here). **A VIOLATION THROWS THE
-/// DECLARED REFUSAL OUT OF THIS FUNCTION AND OUT OF THE TERMINAL CALL'S `write` MEMBER** — the same plain
-/// form, the same status, the same restored store as the at-rest control — and the run ends with it.
-/// **A LAWFUL STATE THROWS NOTHING**: the round asks and passes, and a write whose window held only lawful
-/// actions returns its own record unchanged.
+/// **WHAT IT WAS, AND THE FINDING THAT MOVED IT.** It was `restartInvalidatedCheck(instance)`, called by
+/// `constraintWrite` after the write's terminal call, and its own header said so: *"it is reached at the ONE
+/// place the check runs after the window that held the action has finished: `constraintWrite`."* **`D-44` then
+/// made every check run inside a commit scope and named the consequence it could not yet deliver** — *"If every
+/// check has a commit, every request has a consumer, and the consumer stops being a property of one call
+/// site"* — **and the window it left is measured at `tests/e2e/direct-pass-commit-invariant.test.mjs`: a pass
+/// driven straight through `K-2`/`K-3` has no `constraintWrite` frame above it**, so a constraint body's
+/// violating `rollback` inside it was neither judged at its instant nor restarted, and the pair was never asked
+/// at the state the action left.
 ///
-/// **THE BOUND, IN ONE SENTENCE: rounds are counted, not reset, so the loop runs at most `RESTART_LIMIT + 1`
-/// times however many actions a body raises inside it; the arm past the budget refuses with the same form and
-/// the same status and restores what the request's own watch recorded as owed.** `request.watched` empty is a
-/// check with no pair to ask: it consumes its request and returns, so an empty watch can neither loop nor
-/// exhaust the budget.
-function restartInvalidatedCheck(instance) {
+/// **SO THE CONSUMER IS NOW THE PASS'S OWN SCOPE.** `kernel-attempt.mjs`'s `runAttempt` runs its pass inside
+/// `state.mjs`'s commit scope and then calls the store's `restart-drain` channel **inside that same scope**,
+/// handing the report the pass answered with; this function is the implementation that channel is given
+/// (`installRestartConsumer` below). **ONE MECHANISM, NOT TWO**: there is no second consumer, no counting frame
+/// and no call site to be bypassed — the pass that asks the pairs is the frame that consumes what its own
+/// bodies raised, whichever driver called it.
+///
+/// **EACH ROUND CONSUMES ONE REQUEST OF THIS WINDOW AND ASKS EVERY ENABLED PAIR THE WATCH CARRIED, IN ORDER,
+/// AT THE STATE THE ACTION LEFT** (`judgeReversal`: the `moved` test, the first-violating-pair rule and the
+/// refusal's restoring compensation are that function's own and are not re-implemented here). **THE ROUND IS
+/// THE RE-RUN**: the attempt's own pass is untouched and not re-entered (`D-42`: *"NOT A RE-ENTRY INTO THE
+/// ATTEMPT"*); what restarts is the check the action invalidated, from its first pair, at the state the action
+/// left.
+///
+/// **A VIOLATION IS CARRIED INTO THE REPORT AND NOT THROWN OUT OF THE KERNEL** (`carryRestartRefusal` below):
+/// `runAttempt` answers a report whose `outcome` is `'failed'` and whose log holds the refusal's entry, and
+/// `constraintWrite` — the entry — is the frame that refuses on the write's path. **THAT IS THE ONE FORM BOTH
+/// DRIVERS CAN READ**: a write meets the same plain `{status, message, log}` it met before (the carried refusal,
+/// byte for byte), and a bare `K-3` meets a REPORT that says the restarted pass refused — it never throws,
+/// because the pass it was asked to run passed and the refusal is a later check's.
+///
+/// **A LAWFUL STATE REFUSES NOTHING**: the round asks and passes, the request is consumed, and the report
+/// stands exactly as the pass built it (`outcome` `'passed'`), so a write whose window held only lawful actions
+/// returns its own record unchanged.
+///
+/// **THE BOUND, IN ONE SENTENCE: rounds are counted per pass scope and not reset, so the loop runs at most
+/// `RESTART_LIMIT` restarted rounds however many actions a body raises inside it; the arm past the budget
+/// carries the same form and the same status and restores what the request's own watch recorded as owed.**
+/// A request whose watch is empty is a check with no pair to ask: it consumes its request and returns, so an
+/// empty watch can neither loop nor exhaust the budget.
+export function drainRestartRequests(instance, report) {
   const record = RESTARTS.get(instance);
-  if (record === undefined) return;
+  if (record === undefined) return report;
+  // THE WINDOW THE DRAINING PASS RUNS IN — the pass's own scope is open above this call (`D-44`), so a request
+  // raised by a body of that pass carries this same identity and one raised in an earlier window does not.
+  const window = currentWindow(instance);
   let rounds = 0;
   for (;;) {
     const request = record.pending;
-    if (request === null) return;
+    if (request === null) return report;
+    // **A REQUEST BELONGS TO THE ACT THAT RAISED IT — MEASURED** (`D-42` item `3`'s closing sentence): a request
+    // standing from a window this pass did not open has no consumer HERE, and it is dropped rather than
+    // attributed to an unrelated check. **IT DIES WITH ITS WINDOW, AND THAT IS THE DECLARED FAIL-STATE**
+    // (`D-43` item `2`: the file reloads or the client regenerates the store). **TWO WINDOWS HOLD A COMMIT AND
+    // RUN NO PASS, AND THEY ARE NAMED RATHER THAN LEFT TO A MEASUREMENT**: a `delete`'s listener delivery (a
+    // delete consults no constraint, `D-1-bis`) and a REGISTRATION's own evaluation (`addConstraint`/
+    // `register`, whose body is asked at an instant no attempt of the pass kind stands at — `context.attempt`
+    // is `null` there). A request raised by a body inside either one has no consumer and dies here.
+    if (request.window !== window) {
+      record.pending = null;
+      return report;
+    }
     record.pending = null;
     if (request.watched.length === 0) continue;
     rounds += 1;
@@ -1390,18 +1449,74 @@ function restartInvalidatedCheck(instance) {
       const one = request.watched[0];
       const after = standingAt(instance, one.address);
       const undo = restoreReversal(instance, request.watched);
-      throw reversalRefusal(one, after, null, request.reversalId, undo, null, true);
+      return carryRestartRefusal(report,
+        reversalRefusal(one, after, null, request.reversalId, undo, null, true));
     }
     try {
       judgeReversal(instance, request.watched, request.reversalId);
     } catch (refused) {
       // THE REFUSAL IS THE OUTCOME: the store was restored by its own compensation inside `judgeReversal`, and
-      // a request raised by the refusal's own bodies stands for nobody — the terminal call is already refusing.
+      // a request raised by the refusal's own bodies stands for nobody — the restarted check is over, so the
+      // drain neither asks again nor spends a further round.
       record.pending = null;
-      throw refused;
+      return carryRestartRefusal(report, refused);
     }
   }
 }
+
+/// **⟶ THE REFUSAL'S ONE CARRIER TO WHICHEVER DRIVER ASKED — ADDED 2026-10-27.**
+///
+/// **THE REPORT IS AMENDED IN TWO PLAIN MEMBERS AND CARRIES THE REFUSAL WHOLE UNDER A THIRD, SYMBOL-KEYED
+/// ONE:**
+///   * **`report.outcome` BECOMES `'failed'`** — the attempt's answer is the restarted check's. The pass it
+///     ran DID pass, and the state that pass approved does not stand: the action taken inside its window was
+///     reversed and the check that state was re-judged by refused it, so the store is back at the journal's
+///     head and not at the pass's own op. **THE TWO-ARM MEMBER KEEPS ITS TWO ARMS** (`'passed'`/`'failed'`,
+///     `attempt-lifecycle.md §2.4` item 3's terminal-arm clause): no third value is minted;
+///   * **THE REFUSAL'S OWN LOG ENTRY IS APPENDED TO THE ATTEMPT'S LOG** — one `constraint-check` entry naming
+///     the pair that refused the state the action left and saying what the refusal's compensating act did
+///     (`undoSpelling`). **IT ENTERS THROUGH THE KERNEL'S OWN `append`**, so it carries the log's six declared
+///     members and the log's own ordinal: the entry the driver reads in `report.log` is a log entry of the
+///     attempt's log and not a record of another kind. **THE REFUSAL'S OWN LIST KEEPS ITS FIVE MEMBERS AND NO
+///     `seq`** — that list is the judgement's and no attempt log stands at its own instant (`D-41` item `4`) —
+///     so the copy is the report's and the original is the refusal's, each honest in its own record;
+///   * **AND THE REFUSAL ITSELF TRAVELS UNDER `RESTART_REFUSAL`** so that `constraintWrite` re-throws THE VERY
+///     VALUE the restarted check built — same `status`, same `message`, same `log` — with nothing re-rendered
+///     and no second spelling of the store's sentence (`DD-52`).
+///
+/// **NO MEMBER IS ADDED TO THE REPORT'S READABLE SHAPE**: it keeps its five (`attempt`, `outcome`, `ops`,
+/// `log`, `rollback`), the symbol key is invisible to `Object.keys` and to `Object.getOwnPropertyNames`
+/// (`A117` (D6)), and `K-5` answers the same list a `K-3` answered because it is the same object.
+const RESTART_REFUSAL = Symbol.for('provident-storeroom.restart-refusal');
+
+/// **THE AMENDMENT ITSELF — the one site that writes the report a restarted check refused.**
+function carryRestartRefusal(report, refusal) {
+  report.outcome = 'failed';
+  const carried = refusal !== null && typeof refusal === 'object' && Array.isArray(refusal.log)
+    ? refusal.log
+    : [];
+  // THE APPEND IS THE KERNEL'S OWN (`append`): a local holder carrying the report's own list, so the ordinal
+  // is `log.length + 1` exactly as every other entry of this log was minted, and no `Array.prototype.push` is
+  // read on this path (`contract.md §2.1`'s clause of 2026-10-24 on `F8-2`).
+  const log = { log: report.log };
+  for (let index = 0; index < carried.length; index += 1) {
+    const entry = carried[index];
+    append(log, entry.kind, entry.id, entry.opId, entry.message, entry.state);
+  }
+  Object.defineProperty(report, RESTART_REFUSAL, {
+    value: refusal,
+    writable: false,
+    enumerable: false,
+    configurable: true,
+  });
+  return report;
+}
+
+// **⟶ AND THE CHANNEL IS GIVEN ITS IMPLEMENTATION HERE, AT THIS FILE'S OWN MODULE SCOPE.** `state.mjs` owns
+// the seam and may not import this file (`constraints.mjs` imports IT, and the kernel imports neither), so the
+// consumer is injected rather than imported: one registration, one consumer, and the kernel reaches it by the
+// `Symbol.for('provident-storeroom.restart-drain')` channel `installAttemptSeam` installs on every store.
+installRestartConsumer(drainRestartRequests);
 
 /// **THE WATCH — THE PRE-REVERSAL STANDING OF EVERY ENABLED PAIR'S EVERY ADDRESS**, taken before the addon's
 /// `rollback` entry is called. **IT IS A LIST OF `{entry, address, before, beforeTier, beforeTiers}` AND
@@ -1438,16 +1553,23 @@ export function reversalWatch(state, instance) {
   // below stood as *"the watch answers `[]` there, so no read is taken and no body is invoked"*, and the
   // SECOND HALF of that sentence is now WITHDRAWN BY NAME: **no body is invoked here (the action is not judged
   // at its instant — the step is still not judged as a step), while the WATCH IS TAKEN and the check is
-  // RESTARTED where the check runs** (`restartInvalidatedCheck`). **THE READS ARE THE SAME READS THE AT-REST
+  // RESTARTED where the check runs** (`drainRestartRequests`). **THE READS ARE THE SAME READS THE AT-REST
   // JUDGEMENT TAKES AND THEY ARE THE RESTART'S DEBT RECORD**: what stood at each enabled pair's address before
   // the action ran — the state the refusal's compensating act owes back, and the baseline its verification
   // reads. **A REVERSAL INSIDE AN OPEN COMMIT OR AN OPEN ATTEMPT IS STILL NOT A TERMINAL STATE** and
   // `reversalAtRest` is UNCHANGED (the conjunction keeps both conjuncts; the restart is not a third conjunct):
   // what moves is only what happens to the request after the window closes.
+  //
+  // **⟶ AND FROM 2026-10-27 THE REQUEST NAMES THE WINDOW IT WAS RAISED IN** (`currentWindow`, `state.mjs`): the
+  // identity of the commit open at this instant, minted with the opening. **THAT STAMP IS THE WHOLE OF THE
+  // EPOCH RULE NOW** — the consumer (`drainRestartRequests`) compares it against the window the draining pass
+  // runs in, so *"a request belongs to the act that raised it"* (`D-42` item `3`) is MEASURED at this line and
+  // checked at that one, and the `CHECK_DEPTH` frame that once approximated it is deleted with its clears.
   if (reversalAtRest(instance) === false) {
     restartRecord(instance).pending = {
       watched: watchStanding(state, instance),
       reversalId: null,
+      window: currentWindow(instance),
     };
     return watched;
   }
