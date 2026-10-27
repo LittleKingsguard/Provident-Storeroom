@@ -60,8 +60,11 @@ test('hli_regression_a_refused_constraintOn_leaves_the_standing_pair_exactly_as_
   const refused = capture(() => inst.constraintOn(pair, () => {}));
   assert.equal(refused.threw, true,
     'THE RE-REGISTRATION REFUSES (`§4` `F-10`; `constraint-sites.md §4` item 1)');
-  assert.equal(refused.thrown.status, 'ConstraintListInvalid',
-    'with the store\'s own `ConstraintListInvalid` — read ' + JSON.stringify(refused.thrown.status)
+  // **⟶ RE-DERIVED 2026-10-26 (`DEF-N`; the architect, verbatim: *"Expand the returned error set for both
+  // S/N"*): the registration VERDICT has its own member — `ConstraintRefusedAtRegistration`, rank `19` — and
+  // the SHAPE code `ConstraintListInvalid` is reserved to a malformed ENTRY, which this pair is not.**
+  assert.equal(refused.thrown.status, 'ConstraintRefusedAtRegistration',
+    'with the store\'s own `ConstraintRefusedAtRegistration` — read ' + JSON.stringify(refused.thrown.status)
     + ' (`§4` `F-10`)');
 
   // (i) THE REGISTRY IS EXACTLY AS IT STOOD — `§2.1` item 1, verbatim.
@@ -100,7 +103,9 @@ test('hli_regression_a_refused_addConstraint_at_a_held_pair_leaves_the_standing_
 
   const refused = capture(() => inst.addConstraint(pair, () => ({ message: 'no' })));
   assert.equal(refused.threw, true, 'THE SECOND ADD REFUSES (`§4` `F-10`)');
-  assert.equal(refused.thrown.status, 'ConstraintListInvalid', 'with the store\'s `ConstraintListInvalid`');
+  assert.equal(refused.thrown.status, 'ConstraintRefusedAtRegistration',
+    'with the store\'s `ConstraintRefusedAtRegistration` (`DEF-N`, 2026-10-26 — the verdict arm, never the '
+    + 'shape code)');
 
   assert.equal(inst.constraints().filter((p) => p.id === pair.id).length, 1,
     'A REFUSED REGISTRATION LEAVES THE REGISTRY EXACTLY AS IT STOOD (`§2.1` item 1, verbatim) — read '

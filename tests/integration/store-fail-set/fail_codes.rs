@@ -711,12 +711,30 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
     let mut distinct = CLOSED_CODES.to_vec();
     distinct.sort();
     distinct.dedup();
+    // **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set
+    // for both S/N"*): THE SET CARRIES NINETEEN MEMBERS, RANKED `1`…`19`, AND THE TERMS ARE
+    // `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓ — the six terms this drive printed stand exactly as filed and
+    // the two appended terms are the body-throw arm (rank `18`) and the registration-verdict arm (rank `19`).
+    // NO RANK OF `1`…`17` MOVES.**
     assert_eq!(
         distinct.len(),
-        17,
-        "§8.1: the set carries 17 members, ranked 1…17 (`11 + 2 + 1 + 1 + 1 + 1 = 17` ✓ — the as-filed \
-         `11 + 2 + 1 + 1 = 15` counted the amended heading's own members one short; AMENDED 2026-10-15, \
-         `DEF-2026-10-15-Y`; WIDENED 2026-10-23 by `A148` Q3 with `ValueRefusedAtBoundary` at rank 17)"
+        19,
+        "§8.1: the set carries 19 members, ranked 1…19 (`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓ — the \
+         as-filed `11 + 2 + 1 + 1 = 15` counted the amended heading's own members one short; AMENDED \
+         2026-10-15, `DEF-2026-10-15-Y`; WIDENED 2026-10-23 by `A148` Q3 with `ValueRefusedAtBoundary` at \
+         rank 17; WIDENED 2026-10-26 on the ruling for `DEF-S`/`DEF-N` with `ConstraintBodyThrew` at 18 and \
+         `ConstraintRefusedAtRegistration` at 19)"
+    );
+    assert!(
+        distinct.contains(&"ConstraintBodyThrew"),
+        "§8.1 #18: `DEF-S`'s member — a constraint BODY's throw, converted at the package's crossing into \
+         the one failure form — is IN the closed set (2026-10-26)"
+    );
+    assert!(
+        distinct.contains(&"ConstraintRefusedAtRegistration"),
+        "§8.1 #19: `DEF-N`'s member — the REGISTRATION VERDICT for a well-formed pair whose body answered \
+         non-`true` — is IN the closed set, and the SHAPE code `ConstraintListInvalid` is NOT reused for it \
+         (2026-10-26)"
     );
     assert!(
         distinct.contains(&"FilePathUnreachable"),
@@ -756,14 +774,18 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
         "FileCommitFailed",
         "ConstraintListInvalid",
         "ValueRefusedAtBoundary",
+        // ⟶ APPENDED 2026-10-26 (`DEF-S`, `DEF-N`; the ruling on the downstream claims).
+        "ConstraintBodyThrew",
+        "ConstraintRefusedAtRegistration",
     ];
     assert_eq!(
         CLOSED_CODES.to_vec(),
         expected_ranks.to_vec(),
         "§8.1's own rank order: `FilePathUnreachable` at `13`, `ValueNotAdmitted` at `14`, \
-         `FileCommitFailed` at `15`, `ConstraintListInvalid` at `16`, and `ValueRefusedAtBoundary` LAST \
-         at `17` — no existing rank moves (AMENDED 2026-10-15, `DEF-2026-10-15-Y`; WIDENED 2026-10-23, \
-         `A148` Q3)"
+         `FileCommitFailed` at `15`, `ConstraintListInvalid` at `16`, `ValueRefusedAtBoundary` at `17`, \
+         `ConstraintBodyThrew` at `18` and `ConstraintRefusedAtRegistration` LAST at `19` — no existing \
+         rank moves (AMENDED 2026-10-15, `DEF-2026-10-15-Y`; WIDENED 2026-10-23, `A148` Q3; WIDENED \
+         2026-10-26, the `DEF-S`/`DEF-N` ruling)"
     );
 }
 

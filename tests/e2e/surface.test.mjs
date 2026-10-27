@@ -48,6 +48,12 @@ const THE_SIXTEEN = [
   'FileCommitFailed',
   'ConstraintListInvalid',
   'ValueRefusedAtBoundary',
+  // ⟶ APPENDED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for both
+  // S/N"*): the set's ranks `18` and `19`. The array is a census over the CLOSED SET, so it moves with the
+  // ruling — `ConstraintBodyThrew` (a constraint BODY's throw, converted at the crossing) and
+  // `ConstraintRefusedAtRegistration` (the REGISTRATION VERDICT) — and no rank of `1`…`17` moves.
+  'ConstraintBodyThrew',
+  'ConstraintRefusedAtRegistration',
 ];
 
 function mem(listeners = []) {

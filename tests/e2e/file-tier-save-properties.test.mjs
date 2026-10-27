@@ -301,6 +301,12 @@ const DECLARED_CLOSED_SET = [
   ['FileCommitFailed', 'could not be committed to'],
   ['ConstraintListInvalid', 'is not a valid constraint entry in'],
   ['ValueRefusedAtBoundary', 'is not a value the JavaScript crossing admits'],
+  // **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
+  // both S/N"*): THE SET'S RANKS `18` AND `19` ARE ADDED TO THIS CENSUS, EACH WITH THE CLAUSE ITS OWN `§8.2`
+  // ROW PRINTS. The array is a census over the set, so the set's growth is what it must carry — and each new
+  // row is asserted below to answer ITS OWN sentence rather than the outside-the-set one.**
+  ['ConstraintBodyThrew', 'was refused by a constraint body that threw'],
+  ['ConstraintRefusedAtRegistration', 'was refused by its own constraint at registration in'],
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1001,8 +1007,13 @@ test('fts_prop_P_TP_8_S_CENSUS_the_set_the_keys_and_the_rows_are_single_valued',
       assert.equal(answered.length, DECLARED_CLOSED_SET.length,
         'P-TP-8: and the addon\'s OWN census is the closed set\'s size — a set of `15` fails here, because '
         + 'the sixteenth member\'s round trip answers the outside-set sentence');
-      assert.equal(DECLARED_CLOSED_SET.length, 17,
-        'P-TP-8: §8.1\'s own terms sum it: `11 + 2 + 1 + 1 + 1 + 1 = 17` ✓ (the amended heading)');
+      // **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; *"Expand the returned error set for both S/N"*): the
+      // terms are `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓ — the six the amended heading sums stand, and the
+      // two appended terms are the body-throw arm (rank `18`) and the registration-verdict arm (rank `19`).**
+      assert.equal(DECLARED_CLOSED_SET.length, 19,
+        'P-TP-8: §8.1\'s own terms sum it: `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓ (the amended heading, read '
+        + 'through the 2026-10-26 ruling that appends `ConstraintBodyThrew` at `18` and '
+        + '`ConstraintRefusedAtRegistration` at `19`)');
     }),
   });
   assertHeld(result);

@@ -492,7 +492,10 @@ pub fn assert_code(e: &StoreError, expected: &str, clause: &str) {
 /// same rank order, so a crate printing `16` or `18` is the violation and not this census**
 /// (`src/error.rs`'s `CODES`; `contract.md`'s `P-TP-8` row as amended 2026-10-23, which re-spells the list
 /// to `[&'static str; 17]`).
-pub const CLOSED_CODES: [&str; 17] = [
+/// **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
+/// both S/N"*): `[&str; 19]`, the two appended terms being `ConstraintBodyThrew` at rank `18` and
+/// `ConstraintRefusedAtRegistration` at rank `19`, with NO RANK OF `1`…`17` MOVING.**
+pub const CLOSED_CODES: [&str; 19] = [
     "AddressMalformed",
     "AddressNotFound",
     "LeafHasNoDownstream",
@@ -510,6 +513,9 @@ pub const CLOSED_CODES: [&str; 17] = [
     "FileCommitFailed",
     "ConstraintListInvalid",
     "ValueRefusedAtBoundary",
+    // ⟶ APPENDED 2026-10-26 (`DEF-S`, `DEF-N`; the ruling on the downstream claims).
+    "ConstraintBodyThrew",
+    "ConstraintRefusedAtRegistration",
 ];
 
 /// The read's convenience form: an unqualified read (`§2.3`'s zero-tier arm).

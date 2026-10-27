@@ -96,6 +96,12 @@ export const STORE_CODES = [
   'WriteParentNotLink', 'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing',
   'FilePathUnreachable', 'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
   'ValueRefusedAtBoundary',
+  // ⟶ APPENDED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for both
+  // S/N"*): the set's ranks `18` and `19`, so this list stays a census of the CLOSED SET — `ConstraintBodyThrew`
+  // (a constraint BODY's throw, converted at the crossing from a value the kernel marked) and
+  // `ConstraintRefusedAtRegistration` (the REGISTRATION VERDICT) — and no rank of `1`…`17` moves.
+  'ConstraintBodyThrew',
+  'ConstraintRefusedAtRegistration',
 ];
 
 /** One counter shared by every drive so the ids and addresses of two drives never collide. */

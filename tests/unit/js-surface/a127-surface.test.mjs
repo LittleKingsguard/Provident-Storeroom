@@ -97,8 +97,12 @@ const THE_TEN = [
 // WITHDRAWN BY NAME** (`§2.7` item 1). **The constant's NAME is kept so no citing cell is renamed by a figure; the
 // LIST and the COUNT move** — as they moved `13 → 12` for `settle` and `12 → 13` before that.
 const THE_FOURTEEN = [...THE_TEN, 'register', 'constraints', 'removeListener', 'removeConstraint'];
-// The store's closed set, at its amended size of `16` (`docs/specs/storeroom-native/contract.md §8.1`, read at
-// `surface.md §2.5` item 1 and at `test-cases.md` row 37's `16`).
+// The store's closed set. **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the
+// returned error set for both S/N"*): NINETEEN members ranked `1`…`19`, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓,
+// the two appended terms being `ConstraintBodyThrew` at `18` and `ConstraintRefusedAtRegistration` at `19`.**
+// The identifier keeps its as-filed spelling so no citation of it drifts; the membership test it feeds must
+// carry the whole set, or a lawful member reads as outside it (`docs/specs/storeroom-native/contract.md §8.1`,
+// read at `surface.md §2.5` item 1).
 const THE_SIXTEEN = [
   'AddressMalformed',
   'AddressNotFound',
@@ -117,6 +121,9 @@ const THE_SIXTEEN = [
   'FileCommitFailed',
   'ConstraintListInvalid',
   'ValueRefusedAtBoundary',
+  // ⟶ APPENDED 2026-10-26 (`DEF-S`, `DEF-N`).
+  'ConstraintBodyThrew',
+  'ConstraintRefusedAtRegistration',
 ];
 
 /** A `mem`-register store — `cfg.filePath` ABSENT is IN DOMAIN (`PAR-JS-2`, `surface.md §2.1`). */

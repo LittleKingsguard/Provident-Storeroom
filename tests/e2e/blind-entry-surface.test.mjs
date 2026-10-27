@@ -1,7 +1,7 @@
 // tests/e2e/blind-entry-surface.test.mjs
 //
 // BLIND INSTRUMENT — THE ENTRY SURFACE: the one module name, the fourteen own members, `listen`'s
-// return, `StoreConfig`'s four declared keys, the seventeen-member status set and its open escape arm,
+// return, `StoreConfig`'s four declared keys, the nineteen-member status set and its open escape arm,
 // the single failure form's shape, and what the instance must NOT have.
 //
 // PROVENANCE. Every expectation in this file is authored from the DECLARED SURFACE and from nothing else:
@@ -71,6 +71,14 @@ const STATUS_RANK_ORDER = [
   'FileCommitFailed', // 15
   'ConstraintListInvalid', // 16
   'ValueRefusedAtBoundary', // 17
+  // ⟶ **APPENDED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
+  // both S/N"*): RANK `18` — a constraint BODY's throw, which the crossing converts into the one failure
+  // form from a value the KERNEL marked as a body's own — and RANK `19` — the REGISTRATION VERDICT for a
+  // WELL-FORMED pair whose body answered non-`true`, which may never be the shape code.** The array is this
+  // blind file's copy of the DECLARED set and it moves with the ruling; it is not a copy of whatever the
+  // declaration now happens to print.
+  'ConstraintBodyThrew', // 18
+  'ConstraintRefusedAtRegistration', // 19
 ];
 
 // The store's four declared `cfg` keys, and the two of them the declaration marks OPTIONAL.
@@ -231,10 +239,13 @@ test('entry · native contract.md §8.1 #12 (and its 2026-10-11 reconciliation c
 });
 
 // ---------------------------------------------------------------------------------------------
-// §4 — THE STATUS SET: SEVENTEEN LITERALS, THE RANK ORDER, AND THE OPEN ESCAPE ARM
+// §4 — THE STATUS SET: NINETEEN LITERALS, THE RANK ORDER, AND THE OPEN ESCAPE ARM
 // ---------------------------------------------------------------------------------------------
 
-test("entry · native contract.md §8.1 (its 2026-10-23 amendment, `A148` Q3, and its 2026-10-25 correction clause at the heading) · the closed set reads SEVENTEEN members ranked `1`…`17`, and the declaration's literal list agrees with the rank table member for member", () => {
+// **⟶ THE TITLE MOVES WITH THE COUNT, 2026-10-26 (`DEF-S`/`DEF-N`; *"Expand the returned error set for both
+// S/N"*): the declared set is NINETEEN, ranked `1`…`19`, and the cell's reads below are re-derived toward the
+// ruling rather than toward the declaration's current bytes.**
+test("entry · native contract.md §8.1 (its 2026-10-23 amendment, `A148` Q3, its 2026-10-25 correction clause at the heading, and its 2026-10-26 amendment) · the closed set reads NINETEEN members ranked `1`…`19`, and the declaration's literal list agrees with the rank table member for member", () => {
   // THE TWO READINGS, BOTH ON FILE, RECORDED BESIDE ONE ANOTHER AND NEITHER CHOSEN SILENTLY:
   //  (a) §8.1's HEADING: "THE CLOSED CODE SET — `16` members, each with its trigger", which "stands
   //      byte-for-byte as the pre-amendment heading";
@@ -245,19 +256,22 @@ test("entry · native contract.md §8.1 (its 2026-10-23 amendment, `A148` Q3, an
   //      heading reads the as-filed `16` as `17` FROM 2026-10-23, names the superseded reading, and
   //      prints the two other sites that carried the same figure (`§1.4`'s `CODES`-class sweep clause and
   //      the `A148` Q3 amendment) so the three agree at `17` instead of two of them reading `16`.
-  // index.d.ts's `StoreStatus` writes seventeen literals IN §8.1's RANK ORDER, before the escape arm —
-  // "`ValueRefusedAtBoundary` is written among the literals at rank `17`, LAST of the seventeen and
-  // BEFORE the escape". SO THE DECLARATION, THE STORE'S OPERATIVE TABLE AND THE HEADING'S CORRECTED
-  // READING ALL AGREE AT `17`; the disagreement this cell first recorded was INSIDE the store's own
-  // contract — the heading's `16` against the amendment's `17` — and it is resolved by the DOCUMENT
-  // moving, not by the expectation: the assertions below never changed.
-  assert.equal(STATUS_RANK_ORDER.length, 17);
-  assert.equal(new Set(STATUS_RANK_ORDER).size, 17, 'the seventeen literals are distinct');
+  // **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
+  // both S/N"*): THE OPERATIVE SET IS NINETEEN, RANKED `1`…`19`, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓. NO
+  // RANK OF `1`…`17` MOVES, `ConstraintListInvalid` keeps rank `16` and its own malformed-entry trigger, and
+  // the two appended terms are the body-throw arm (`18`) and the registration-verdict arm (`19`).** The
+  // disagreement this cell first recorded (the heading's `16` against the amendment's `17`) is resolved by the
+  // DOCUMENT moving, not by the expectation — and the same rule governs this re-derivation: the figures move
+  // because a RULING moved the set, and no assertion below is weakened.
+  assert.equal(STATUS_RANK_ORDER.length, 19);
+  assert.equal(new Set(STATUS_RANK_ORDER).size, 19, 'the nineteen literals are distinct');
   // The two ends of the rank order, which are the two the declaration singles out by name: rank `1` is
   // the construction's own argument code and rank `17` is the crossing's boundary code.
   assert.equal(STATUS_RANK_ORDER[0], 'AddressMalformed');
   assert.equal(STATUS_RANK_ORDER[15], 'ConstraintListInvalid'); // rank 16
   assert.equal(STATUS_RANK_ORDER[16], 'ValueRefusedAtBoundary'); // rank 17
+  assert.equal(STATUS_RANK_ORDER[17], 'ConstraintBodyThrew'); // rank 18
+  assert.equal(STATUS_RANK_ORDER[18], 'ConstraintRefusedAtRegistration'); // rank 19
   // `ValueNotAdmitted` KEEPS rank 14 and is not a rename of rank 17 — "a pass that reads rank `17` as a
   // RENAME of rank `14` has destroyed a member".
   assert.equal(STATUS_RANK_ORDER[13], 'ValueNotAdmitted');
@@ -294,7 +308,7 @@ test("entry · index.d.ts's `(string & {})` escape arm · the form's `status` is
   // AND THE REASON IS RECORDED HERE SO NO DRIVE ASSERTS A MEMBER THIS DIRECTORY DOES NOT DECLARE … on
   // the constraint-check sub-arm A DRIVE MAY NAME NONE, AND A CELL THAT NAMES ONE IS CLAIMING A VALUE
   // NO CLAUSE OF THIS DIRECTORY DECLARES" (surface.md §2.12 item 3). So: a string, and no membership
-  // claim either way — a value outside the seventeen is exactly what the escape arm exists for.
+  // claim either way — a value outside the nineteen is exactly what the escape arm exists for.
   let refuse = false;
   const instance = make({
     constraints: [{ address: ['esc'], id: 'esc-1', constraint: () => !refuse }],

@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9d`) — the pass: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, refuse, isKernelRefusal, pairSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress } from './kernel-foundations.mjs';
+import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, refuse, isKernelRefusal, pairSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress } from './kernel-foundations.mjs';
 import { commitAttemptIdOf, terminal, close } from './kernel-terminal.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-3` `runAttempt(store, commit) -> AttemptReport`
@@ -274,12 +274,18 @@ function evaluate(kernel, attempt, landing) {
       try {
         outcome = pair.constraint(context);
       } catch (body) {
-        // A body that threw returned nothing, so no `constraint-check` entry stands; the attempt is
-        // closed and the BODY'S OWN THROWABLE reaches the caller unchanged and unconverted, carrying
-        // no kernel state token at all (`PAR-C-6`; `NX-2`; `composition-and-states.md §2.7` item 13).
+        // A body that threw returned nothing, so no `constraint-check` entry stands and the attempt is
+        // closed (`PAR-C-6`; `NX-2`; `composition-and-states.md §2.7` item 13).
         withdraw(attempt, check);
         terminal(kernel, attempt, null, `the constraint ${pair.id} threw; the attempt is closed`);
-        throw body;
+        // **⟶ AND THE VALUE IS MARKED HERE, BY THE FRAME THAT CAUGHT IT FROM THE BODY — `DEF-S`, 2026-10-26,
+        // on the architect's ruling *"Expand the returned error set for both S/N"*.** The mark is what the
+        // entry's `constraintCrossing` converts on, and an UNMARKED value still crosses as itself
+        // (`DEF-A`'s protection, unmoved). **THE MARK CARRIES THE ATTEMPT'S OWN LOG, TAKEN HERE — BEFORE THE
+        // ATTEMPT IS DISPOSED OF — AND THE ADDRESS THE BODY WAS EVALUATED AT** (`markBodyThrow`'s clause,
+        // `kernel-foundations.mjs`). The throwable's own identity is unmoved at THIS layer: a kernel-level
+        // caller still meets the very value the body threw.
+        throw markBodyThrow(body, attempt.address, attempt.log);
       }
 
       // THE CONSTRAINT'S OWN OUTCOME — A CLOSED THREE-ARM SET (`PAR-C-5`). A value outside the three

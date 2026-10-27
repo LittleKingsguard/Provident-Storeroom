@@ -1400,9 +1400,17 @@ test('hli_prop_P_HL_8_a_refused_registrations_withdrawal_is_the_published_route_
       const refused = capture(() => store.addConstraint({ address: [pairAddress], id }, () => ({ message: 'no' })));
       assert.equal(refused.threw, true,
         'THE REFUSED REGISTRATION THROWS (`§4` `F-10`; `§2.3` item 6) — mode ' + mode);
-      assert.equal(refused.thrown.status, 'ConstraintListInvalid',
-        'with the store\'s own `ConstraintListInvalid` — read ' + JSON.stringify(refused.thrown.status)
-        + ' (`§4` `F-10`; `constraint-sites.md §4` item 1)');
+      // **⟶ RE-DERIVED 2026-10-26 TO THE ARCHITECT'S RULING AND NOT TO THE BYTES (`DEF-N`, verbatim:
+      // *"Expand the returned error set for both S/N"*): A WELL-FORMED PAIR WHOSE BODY ANSWERED NON-`true` IS
+      // REFUSED WITH THE REGISTRATION VERDICT'S OWN MEMBER — `ConstraintRefusedAtRegistration`, the set's rank
+      // `19` — AND NEVER WITH THE SHAPE CODE `ConstraintListInvalid`, which names a malformed ENTRY (the
+      // address that is not a segment array, the absent or non-string `id`) and keeps its own trigger. THE
+      // PAIR DRIVEN HERE IS `{ address: [[label, 'dpair']], id }` — a segment array and a string — so its SHAPE
+      // is valid and the shape code would be naming a shape that is fine.** The observables this cell reads
+      // (the registry unmoved, the pair's row gone, the caller's own entry whole and firing) are unmoved.
+      assert.equal(refused.thrown.status, 'ConstraintRefusedAtRegistration',
+        'with the store\'s own registration-verdict member, `ConstraintRefusedAtRegistration` — read '
+        + JSON.stringify(refused.thrown.status) + ' (`DEF-N`, 2026-10-26; `§4` `F-10` read through that ruling)');
 
       // (ii) THE REGISTRY IS EXACTLY AS IT STOOD — `§2.1` item 1, verbatim.
       assert.equal(store.constraints().filter((p) => p.id === id).length, mode === 1 ? 1 : 0,

@@ -1037,12 +1037,17 @@ test('register_js_side_three_rows_are_executed_with_strategy_ids_and_verdicts', 
   // `rollback` with no attempt live, the construction's `cfg`-side refusal, and `register`'s `TypeError` —
   // so the empty array is asserted as the DECLARED VALUE and not as an absence (`parameter-semantics.md
   // §2.26`). **The four arms, their statuses and the no-mint limb are UNMOVED.**
+  // **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
+  // both S/N"*): THE CENSUS IS NINETEEN MEMBERS, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓, the two appended
+  // terms being `ConstraintBodyThrew` at rank `18` and `ConstraintRefusedAtRegistration` at rank `19`. No rank
+  // of `1`…`17` moves, and each of the four arms below is unmoved.** The identifier keeps its as-filed
+  // spelling so no citation of it drifts; the FIGURE it carries is the ruling's.
   const THE_SIXTEEN = [
     'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
     'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
     'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
     'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
-  'ValueRefusedAtBoundary',
+  'ValueRefusedAtBoundary', 'ConstraintBodyThrew', 'ConstraintRefusedAtRegistration',
   ];
   const formSites = [
     ['a VERB', () => mem().read(['gone'])],

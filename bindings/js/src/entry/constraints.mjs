@@ -142,7 +142,10 @@ export function unionAddressSets(standing, supplied) {
 
 /// **THE ONE REFUSAL `docs/specs/storeroom-js/surface.md §2.12` ITEM 4 DECLARES, TAKEN BEFORE ANY ACT AND LEAVING NOTHING CHANGED** — a JS
 /// `TypeError`, its `status` member ABSENT, no `message` member of this unit's own, **the store's closed
-/// `16`-member set neither minted nor widened, and the store reached by no call this refusal makes.**
+/// set neither minted nor widened, and the store reached by no call this refusal makes.** **⟶ AND THE SET'S
+/// FIGURE IS `19` FROM 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set
+/// for both S/N"*): the `16` this clause printed is the figure of its own date, and THIS REFUSAL STILL MINTS
+/// NOTHING — a `TypeError` carries no `status` at all.**
 ///
 /// **⟶ AND THE `TypeError` CARRIES `log: []` FROM 2026-10-16, AND THIS IS THE ONE PLACE THE FLAT RULING AND
 /// `A127`'S TWO REFUSAL RULES MEET — SO THE RECONCILIATION IS STATED RATHER THAN LEFT TO THE READER**
@@ -452,6 +455,19 @@ export function carryConstraint(state, instance, addresses, id, constraint) {
 /// throwing constraint or repair body *"untouched and unconverted"*, and it carries no mark, so it is
 /// re-thrown by the one line above the render.
 export function registrationCrossing(refusal) {
+  // **⟶ AND THE MARKED BODY-THROW ARM STANDS FIRST, 2026-10-26 (`DEF-S`; the architect's ruling, verbatim:
+  // *"Expand the returned error set for both S/N"*).** **THE CONVERSION IS THE WHOLE POINT AND THE
+  // DISCRIMINATOR IS THE MARK:** the kernel sets [`CONSTRAINT_BODY_THREW_ENTRY`] on a value IT caught from a
+  // caller's CONSTRAINT body (`kernel-foundations.mjs`'s `markBodyThrow`), and this frame converts ONLY a
+  // marked value — into this surface's one failure form, carrying a `status`, a `message` and a `log`.
+  // **AN UNMARKED THROW STILL CROSSES AS ITSELF, two lines below, and that is `DEF-A`'s protection standing
+  // whole**: a caller's shaped `{status, message}` forged by any means other than a body the kernel caught
+  // is the caller's own value and is answered as it was thrown.
+  const carried = bodyThrowCarried(refusal);
+  if (carried !== null) {
+    const converted = bodyThrowRefusal(carried);
+    if (converted !== null) throw converted;
+  }
   if (isKernelBuiltRefusal(refusal) === false) throw refusal;
   const addon_ = withAddon();
   // THE SLOTS THE KERNEL HANDS BACK ARE THE `§8.2` ROW'S OWN, and the generator's own three-argument call
@@ -465,9 +481,10 @@ export function registrationCrossing(refusal) {
   if (usable === false) throw refusal;
   const generated = addon_.errorMessage(refusal.status, refusal.segment, refusal.container);
   // **THE FORM IS THIS SURFACE'S ONE FORM** (`docs/specs/storeroom-js/surface.md §2.5` items 3–4, whose `log` is PRESENT and never absent):
-  // `{status, message, log}`, the `status` the STORE's `ConstraintListInvalid`, the `message` the STORE'S
-  // OWN GENERATED SENTENCE, and the `log` the synthetic attempt's log where a repair was attempted and `[]`
-  // where none was. **NO `KC` TOKEN CROSSES** (`A120` (2); `docs/specs/storeroom-js/surface.md §2.12` item 3 item 2): the synthetic attempt's
+  // `{status, message, log}`, the `status` the STORE's own member the kernel composed — `ConstraintRefusedAtRegistration`
+  // from 2026-10-26 (`DEF-N`: the REGISTRATION VERDICT, and NOT the shape code `ConstraintListInvalid`, which
+  // keeps its own trigger and its own sentence) — the `message` the STORE'S OWN GENERATED SENTENCE, and the
+  // `log` the synthetic attempt's log where a repair was attempted and `[]` where none was. **NO `KC` TOKEN CROSSES** (`A120` (2); `docs/specs/storeroom-js/surface.md §2.12` item 3 item 2): the synthetic attempt's
   // terminal token stays in the kernel and reaches no caller.
   throw {
     status: refusal.status,
@@ -871,7 +888,72 @@ function isKernelBuiltRefusal(value) {
   return value !== null && typeof value === 'object' && value[KERNEL_REFUSAL] === true;
 }
 
+/// **⟶ ADDED 2026-10-26 — THE BODY-THROW MARK, SPELLED ON THIS SIDE TOO (`DEF-S`; the architect's ruling,
+/// verbatim: *"Expand the returned error set for both S/N"*).**
+///
+/// **THE SAME `Symbol.for` KEY THE KERNEL WRITES, AND WHY A MARK IS THE WHOLE OF THE FIX.** `DEF-A` closed the
+/// hole where a caller's shaped `{status, message}` was answered as the package's refusal, and it closed it by
+/// IDENTITY and not by shape. **A constraint BODY is the caller's own code, so its throw is the caller's own
+/// value — and converting it must not become a laundering route for a forged refusal.** The kernel therefore
+/// marks what IT caught from a body (`kernel-foundations.mjs`'s `markBodyThrow`) and this entry converts a
+/// marked value only; **everything unmarked is still thrown as itself, `caught === thrown` included.**
+///
+/// **IT IS A SYMBOL, NOT A KERNEL FUNCTION**, for the reason `KERNEL_REFUSAL` above states: `kernel-surface.md
+/// §1` item 2 closes the kernel's export set at the five `K-1`–`K-5` items — *"no sixth name"* — so the fact
+/// travels on the VALUE under a key both sides spell. **AND NOTHING OF THE CALLER'S OWN FORM IS READ THROUGH
+/// IT:** the mark carries the pair's address spelling and the attempt's log, and the form below is BUILT here
+/// out of the generator's own sentence.
+const CONSTRAINT_BODY_THREW_ENTRY = Symbol.for('provident-storeroom.constraint-body-threw');
+
+/// **THE SET'S EIGHTEENTH MEMBER, SPELLED ONCE** (`src/error.rs`'s `CODES`, `[&str; 19]`, rank `18`; `§8.1`
+/// #18 and `§8.2`'s row of 2026-10-26). **THE STATUS IS A MEMBER OF THE STORE'S CLOSED SET AND IS NEVER
+/// MINTED HERE** (`DD-40`).
+const BODY_THREW_STATUS = 'ConstraintBodyThrew';
+
+/// **WHETHER THE HANDED VALUE CARRIES THE KERNEL'S BODY-THROW MARK, AND WHAT THE MARK CARRIES** — the mark's
+/// presence is the identity and the record under it is the two slots the generator's sentence needs. **A
+/// NON-OBJECT IS `null`** without a member read, and **a value the kernel never caught from a body is `null`**
+/// whatever members it carries.
+function bodyThrowCarried(value) {
+  if (value === null || typeof value !== 'object') return null;
+  const carried = value[CONSTRAINT_BODY_THREW_ENTRY];
+  if (carried === null || typeof carried !== 'object') return null;
+  return carried;
+}
+
+/// **THE ONE FAILURE FORM FOR A BODY'S THROW** — `{status, message, log}`, `§2.5` items 3–4's form at this arm
+/// too: the `status` the set's rank-`18` member, the `message` the STORE'S OWN GENERATED sentence (reached
+/// through the generator this package already holds, `addon_.errorMessage` — `DD-52` forbids a second source),
+/// and the `log` the attempt's own list where the mark carries one and `[]` where it carries none.
+///
+/// **A TREE THAT CARRIES NO USABLE GENERATOR ANSWERS `null`**, and both crossings then re-throw the marked
+/// value AS ITSELF — the same safe direction `registrationCrossing` takes for a kernel refusal, and no
+/// sentence is authored here.
+function bodyThrowRefusal(carried) {
+  const addon_ = withAddon();
+  if (typeof addon_.errorMessage !== 'function') return null;
+  const subject = typeof carried.address === 'string' ? carried.address : '';
+  const generated = addon_.errorMessage(BODY_THREW_STATUS, subject);
+  if (typeof generated !== 'string' || generated.length === 0) return null;
+  return {
+    status: BODY_THREW_STATUS,
+    message: generated,
+    log: refusalLog(carried.log),
+  };
+}
+
 function constraintCrossing(refusal) {
+  // **⟶ AND THE MARKED BODY-THROW ARM STANDS FIRST HERE TOO, 2026-10-26 (`DEF-S`), for the reason
+  // `registrationCrossing` states at its own bytes.** A body that threw at a LANDING reaches this frame
+  // through `constraintWrite`'s catch around `kernel.runAttempt`; the mark carries the attempt's own log,
+  // taken by the frame that caught it BEFORE the attempt was disposed of (`§2.5` item 10 (iii)'s timing
+  // trap), so the converted form's `log` is that attempt's list VERBATIM. **A FORGED OBJECT CARRYING
+  // `{status, message}` AND NO MARK STILL CROSSES AS ITSELF, BELOW.**
+  const carried = bodyThrowCarried(refusal);
+  if (carried !== null) {
+    const converted = bodyThrowRefusal(carried);
+    if (converted !== null) throw converted;
+  }
   const isObject = refusal !== null && typeof refusal === 'object';
   const status = isObject ? refusal.status : undefined;
   // **THE CALLER'S OWN VALUE CROSSES AS ITSELF, FIRST AND UNCONDITIONALLY.** The test is IDENTITY against

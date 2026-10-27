@@ -8,8 +8,12 @@
 //! **EVERY RULE IS CITED AT ITS OWN CLAUSE**, and the refusal's ONE form is `§4.5` item 4: a `Refusal`
 //! carrying EXACTLY `{status, message}` and not one member beside them. **NO CODE IS MINTED HERE**: an
 //! outside carrier variant is carried onto the store's own argument type as a VALUE and the STORE produces
-//! the code (`DD-1`, `crossing.md §1.3`'s closing clause), so the store's closed `16`-member set stays the
-//! only producer of a status (`DD-40`).
+//! the code (`DD-1`, `crossing.md §1.3`'s closing clause), so the store's closed set stays the
+//! only producer of a status (`DD-40`). **⟶ AND ITS FIGURE IS `19` FROM 2026-10-26 (`DEF-S`/`DEF-N`; the
+//! architect, verbatim: *"Expand the returned error set for both S/N"*): the `16` this line printed is the
+//! figure of its own date, and no byte of this file mints either appended member — the body-throw arm is the
+//! kernel's mark plus the entry's conversion and the registration verdict is the kernel's, both above this
+//! crate** (`src/error.rs`'s `CODES`, `[&str; 19]`).
 
 use std::collections::BTreeMap;
 

@@ -113,6 +113,18 @@ const CLOSED_SET = [
   // code the package answers falls outside the store's closed set; the array is the DECLARATION OF RECORD read
   // into code, and the run's observed list is printed beside it so the two can be compared.
   'ValueRefusedAtBoundary',
+  // ⟶ **WIDENED AGAIN 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set
+  // for both S/N"*): RANKS `18` AND `19`.** The store's own array is `[&str; 19]` with
+  // `ConstraintBodyThrew` at `18` (a constraint BODY's throw, converted at the package's crossing from a
+  // value the KERNEL marked) and `ConstraintRefusedAtRegistration` at `19` (the REGISTRATION VERDICT for a
+  // WELL-FORMED pair whose body answered non-`true`) — **APPENDED, NO RANK OF `1`…`17` MOVING and
+  // `ConstraintListInvalid` keeping rank `16` and its own malformed-entry trigger.** The census this array
+  // feeds is `JSG-10.19`'s, and it was re-derived TOWARD THE RULING and not toward the array's own new
+  // length: `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓. **It must carry the two new members because `JSG-10.19`
+  // asserts that NO code the package answers falls outside the set, and the package now answers both of
+  // them.**
+  'ConstraintBodyThrew',
+  'ConstraintRefusedAtRegistration',
 ];
 const INTERNAL_FIVE = ['version', 'errorMessage', 'storeCreate', 'call', 'register'];
 const PLACEHOLDER_TOKENS = ['<SEGMENT>', '<CONTAINER>', '<mismatch clause>', '<available clause>',
@@ -1122,7 +1134,7 @@ const g10 = { all: [] };
   // answers may fall outside the store's closed set, and the package mints none* — and the census it reads moves
   // `16 → 17` with rank `17`'s member (`CLOSED_SET`, widened above). The figure was `index.d.ts`'s defect while the
   // declaration named sixteen; the `D-26` wave closed it, so the array and the declaration now agree.
-  A('JSG-10.19', "§2.5 item 1; DD-40; store §8.1's 2026-10-23 amendment (`A148` Q3: the operative set is `17` members ranked `1`…`17`, `ValueRefusedAtBoundary` at rank `17`), read with `bindings/js/index.d.ts`'s `StoreStatus` as amended 2026-10-24 — CENSUS WIDENED 2026-10-16 and AGAIN 2026-10-25", "every status is a member of the store's closed 17-member set — no code outside the set and none minted by the package",
+  A('JSG-10.19', "§2.5 item 1; DD-40; store §8.1's 2026-10-23 amendment (`A148` Q3: the operative set is `17` members ranked `1`…`17`, `ValueRefusedAtBoundary` at rank `17`) READ THROUGH the 2026-10-26 ruling on `DEF-S`/`DEF-N` (which appends `ConstraintBodyThrew` at rank `18` and `ConstraintRefusedAtRegistration` at rank `19`), read with `bindings/js/index.d.ts`'s `StoreStatus` as amended 2026-10-26 — CENSUS WIDENED 2026-10-16, 2026-10-25 and 2026-10-26", "every status is a member of the store's closed 19-member set — no code outside the set and none minted by the package",
     outside.length === 0, `outside=[${outside.join(',')}] observed=[${codes.join(',')}] declared=[${CLOSED_SET.join(',')}]`);
   const msgs10 = g10.all.map((x) => msgOf(x.r));
   const withPlaceholder = msgs10.filter((m) => typeof m !== 'string' || m.length === 0 || PLACEHOLDER_TOKENS.some((t) => m.includes(t)));
@@ -1130,7 +1142,7 @@ const g10 = { all: [] };
     withPlaceholder.length === 0, fmt(withPlaceholder));
   REDERIVED.push(`JSG-10.16 :: the terminal arm's save, at the failing path -> ${statusOf(wFC)} :: ${fmt(msgOf(wFC))}`);
   REDERIVED.push(`JSG-10.17 :: read(['fc']) after that failure -> ${statusOf(rFC)}`);
-  REDERIVED.push(`JSG-10.18/.19/.20 :: ${g10.all.length} driven failures ; did-not-throw=${thrownSet.length} ; outside-the-17=[${outside.join(',') || 'none'}] ; empty-or-placeholder messages=${withPlaceholder.length}`);
+  REDERIVED.push(`JSG-10.18/.19/.20 :: ${g10.all.length} driven failures ; did-not-throw=${thrownSet.length} ; outside-the-19=[${outside.join(',') || 'none'}] ; empty-or-placeholder messages=${withPlaceholder.length}`);
   const i21 = ns.storeCreate(mk('g10w21'));
   thrown(() => i21.write(['window'], 'mem', {}));
   const r21 = thrown(() => i21.read(['window', 'empty']));

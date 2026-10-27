@@ -1390,25 +1390,47 @@ test('fts_S_ARG5_the_refusal_is_the_arity_gates_by_the_count_alone', async () =>
 // §10.9 ROW 8 — `P-TP-8` · STRATEGY `S-CENSUS` — THE ALGEBRA CLOSED, NO EXISTING MEMBER MOVING
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
-/** `contract.md §8.1`'s CLOSED SET at its amended heading and rows, ranks `1`…`16` in order. */
+/** `contract.md §8.1`'s CLOSED SET at its amended heading and rows, ranks `1`…`19` in order.
+ *
+ *  **⟶ RE-DERIVED 2026-10-26 TO THE ARCHITECT'S RULING AND NOT TO THE BYTES** (`DEF-S` and `DEF-N`; the
+ *  architect, verbatim: *"Expand the returned error set for both S/N"*). **THE SET IS NINETEEN MEMBERS RANKED
+ *  `1`…`19`: ranks `1`…`17` stand EXACTLY as they were — no rank moves and `ConstraintListInvalid` keeps rank
+ *  `16` — and the two appended terms are `ConstraintBodyThrew` at rank `18` (a constraint BODY's throw, which
+ *  the crossing converts in the one failure form) and `ConstraintRefusedAtRegistration` at rank `19` (a
+ *  REGISTRATION VERDICT, so a WELL-FORMED pair is never refused with the SHAPE code).** The count this array
+ *  carries had to move with the ruling: a census that kept `17` would be asserting the superseded set. */
 const STORE_CLOSED_SET = [
   'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch',
   'WriteParentNotLink', 'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing',
   'FilePathUnreachable', 'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
   'ValueRefusedAtBoundary',
+  // ⟶ APPENDED 2026-10-26 (`DEF-S`, `DEF-N`; the architect's ruling on the downstream claims).
+  'ConstraintBodyThrew', 'ConstraintRefusedAtRegistration',
 ];
 
 test('fts_S_CENSUS_the_sixteenth_member_is_reachable_and_the_terms_of_the_algebra_stand', () => {
   // THE TERMS, READ OFF THE TABLE'S OWN ROWS AND NOT ASSERTED AS A TOTAL ALONE: `11` (§8.1 #1–#11) `+ 2`
   // (the construction group #12/#13) `+ 1` (#14) `+ 1` (#15) `+ 1` (#16) `= 16` ✓.
-  assert.equal(STORE_CLOSED_SET.length, 17, 'S-CENSUS: the closed set is SEVENTEEN members. FAIL-STATE: "a set '
-    + 'of `15` or `17`" (`contract.md §8.1`, amended heading; `implementation-plan.md §10.9` row 8)');
-  assert.equal(11 + 2 + 1 + 1 + 1 + 1, 17, 'S-CENSUS: and its own terms sum it');
+  // **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
+  // both S/N"*): THE OPERATIVE SET IS NINETEEN, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓ — the six terms this
+  // cell printed stand exactly as filed and the two appended terms are the body-throw arm (rank `18`) and the
+  // registration-verdict arm (rank `19`). NO RANK OF `1`…`17` MOVES.** The superseded figures (`15`, `16`,
+  // `17`) are the figures of their own dated clauses and are read through this one.
+  assert.equal(STORE_CLOSED_SET.length, 19, 'S-CENSUS: the closed set is NINETEEN members. FAIL-STATE: "a set '
+    + 'of `15` or `17`" (`contract.md §8.1`, amended heading; `implementation-plan.md §10.9` row 8), read from '
+    + '2026-10-26 through the ruling that appends ranks `18` and `19`');
+  assert.equal(11 + 2 + 1 + 1 + 1 + 1 + 1 + 1, 19, 'S-CENSUS: and its own terms sum it');
   assert.deepEqual(STORE_CLOSED_SET.slice(11, 13), ['ConstructionArgumentMissing', 'FilePathUnreachable'],
     'S-CENSUS: the construction group\'s TWO members hold ranks 12 and 13');
   assert.equal(STORE_CLOSED_SET[15], 'ConstraintListInvalid',
-    'S-CENSUS: the new member is the LAST, at rank 16, after `FileCommitFailed` (`proposal-review.md §22.2`)');
+    'S-CENSUS: rank `16` is `ConstraintListInvalid`, after `FileCommitFailed` (`proposal-review.md §22.2`) — '
+    + 'and from 2026-10-26 it is NO LONGER the last: `ConstraintBodyThrew` and '
+    + '`ConstraintRefusedAtRegistration` are appended at `18` and `19` (`DEF-S`/`DEF-N`)');
+  assert.deepEqual(STORE_CLOSED_SET.slice(17), ['ConstraintBodyThrew', 'ConstraintRefusedAtRegistration'],
+    'S-CENSUS: THE TWO APPENDED TERMS ARE THE RULING\'S OWN ARMS — the body-throw arm at `18` and the '
+    + 'registration-verdict arm at `19` (`DEF-S`, `DEF-N`; *"Expand the returned error set for both S/N"*), '
+    + 'and neither takes `ConstraintListInvalid`\'s rank, which keeps its own trigger');
 
   // AND THE NEW MEMBER IS REACHABLE THROUGH A TRIGGER THE SPEC DECLARES: the create-side validation failure.
   const { cfg } = cfgFor({ constraints: [{ address: 'a', id: 'c' }] });
@@ -1524,19 +1546,25 @@ test('fts_S_CENSUS_no_rank_moves_and_no_second_register', async () => {
   assert.equal(Number(codesRow[1]), codes.length,
     'S-CENSUS: the array\'s declared arity IS the number of members it carries — a set whose length and '
     + 'whose literal disagree is a set that prints two counts');
-  assert.equal(codes.length, 17,
-    'S-CENSUS: THE OPERATIVE SET IS SEVENTEEN (`contract.md §8.1`\'s 2026-10-23 amendment, `A148` Q3: '
-    + `"the operative set is \`17\` members ranked \`1\`…\`17\`"); read ${JSON.stringify(codes)}`);
+  // **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect's ruling, verbatim: *"Expand the returned error
+  // set for both S/N"*): THE OPERATIVE SET IS NINETEEN AND THE TWO APPENDED TERMS ARE THE BODY-THROW ARM AT
+  // RANK `18` AND THE REGISTRATION-VERDICT ARM AT RANK `19`.** `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓, and
+  // **NO RANK OF `1`…`17` MOVES** — `ValueRefusedAtBoundary` keeps rank `17` and `ConstraintListInvalid`
+  // keeps rank `16` with its own malformed-entry trigger.
+  assert.equal(codes.length, 19,
+    'S-CENSUS: THE OPERATIVE SET IS NINETEEN (`contract.md §8.1`\'s 2026-10-23 amendment, `A148` Q3, read '
+    + 'through the 2026-10-26 ruling that appends ranks `18` and `19` — *"Expand the returned error set for '
+    + `both S/N"*); read ${JSON.stringify(codes)}`);
   assert.deepEqual(codes, [
     'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
     'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch',
     'WriteParentNotLink', 'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing',
     'FilePathUnreachable', 'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
-    'ValueRefusedAtBoundary',
-  ], 'S-CENSUS: NO RANK OF `1`…`16` MOVED AND THE SEVENTEENTH IS APPENDED LAST — '
-    + '`ValueRefusedAtBoundary` at rank `17`, `11 + 2 + 1 + 1 + 1 + 1 = 17` ✓, and `ValueNotAdmitted` '
-    + 'STAYS at rank `14` and is NOT a rename of it (a pass that reads rank `17` as a rename of rank `14` '
-    + 'has destroyed a member)');
+    'ValueRefusedAtBoundary', 'ConstraintBodyThrew', 'ConstraintRefusedAtRegistration',
+  ], 'S-CENSUS: NO RANK OF `1`…`17` MOVED AND THE TWO NEW TERMS ARE APPENDED LAST — '
+    + '`ValueRefusedAtBoundary` at rank `17`, `ConstraintBodyThrew` at `18` and '
+    + '`ConstraintRefusedAtRegistration` at `19`, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓ (`DEF-S`/`DEF-N`, '
+    + '2026-10-26), and `ValueNotAdmitted` STAYS at rank `14` and is NOT a rename of any of them');
   assert.equal(new Set(codes).size, codes.length, 'S-CENSUS: every rank is distinct — the set is a set');
 
   assert.equal(typeof (await kernel()).register, 'function', 'S-CENSUS: no second register exists');

@@ -934,13 +934,24 @@ fail_code_cell!(
 /// ASSERTION IS WEAKENED AND NO MEMBER IS DROPPED: the loop now covers all `17`, and the seventeenth's own
 /// drive is its declared one — the crossing reaches `ValueNotAdmitted` and NOT the package's boundary
 /// status** (`support::fail_code_drive`'s `ValueRefusedAtBoundary` arm).
+// **⟶ RE-DERIVED 2026-10-26, TITLE AND FIGURES TOGETHER (`DEF-S`/`DEF-N`; the architect, verbatim:
+// *"Expand the returned error set for both S/N"*).** **THE SET IS `19`, THE MEMBERS THIS CRATE REACHES ARE
+// `16`, AND THE THREE THE PACKAGE OWNS ARE `ValueRefusedAtBoundary` (rank `17`, the boundary walk),
+// `ConstraintBodyThrew` (rank `18`, the kernel's body-throw mark and the entry's conversion) and
+// `ConstraintRefusedAtRegistration` (rank `19`, the kernel's registration verdict).** The cell is the SAME
+// read — the store's own array, the reachable members, and one negative drive per package-owned member — and
+// the three figures are the ruling's, not whatever the code now prints. **NO ASSERTION IS WEAKENED: every
+// reachable member is still driven through a real trigger, and each package-owned member still has its
+// negative drive.**
 #[test]
-fn fail_set_is_closed_at_seventeen_and_sixteen_of_them_are_reached_from_the_crossing() {
-    assert_eq!(all_fail_codes().len(), 17, "the store's own array is the census (A148 Q3)");
+fn fail_set_is_closed_at_nineteen_and_sixteen_of_them_are_reached_from_the_crossing() {
+    assert_eq!(all_fail_codes().len(), 19, "the store's own array is the census (A148 Q3, read through \
+         the 2026-10-26 ruling: *Expand the returned error set for both S/N*)");
     assert_eq!(
         crossing_reachable_fail_codes().len(),
         16,
-        "`ValueRefusedAtBoundary` is the package walk's member and is declared at its own boundary"
+        "the three members the package owns (`ValueRefusedAtBoundary`, `ConstraintBodyThrew` and \
+         `ConstraintRefusedAtRegistration`) are each declared at their own boundary"
     );
     for code in crossing_reachable_fail_codes() {
         assert!(fail_code_drive(code), "`{code}` is a member with a reachable trigger");
@@ -949,6 +960,17 @@ fn fail_set_is_closed_at_seventeen_and_sixteen_of_them_are_reached_from_the_cros
         fail_code_drive("ValueRefusedAtBoundary"),
         "the seventeenth member has no producer in this crate: the crossing's over-ceiling answer is the \
          store's `ValueNotAdmitted` and never a package-minted status (DD-40)"
+    );
+    assert!(
+        fail_code_drive("ConstraintBodyThrew"),
+        "the eighteenth member (`DEF-S`) has no producer in this crate: a constraint BODY is the caller's own \
+         function, invoked by the package's kernel, so no byte of `src/**` mints it"
+    );
+    assert!(
+        fail_code_drive("ConstraintRefusedAtRegistration"),
+        "the nineteenth member (`DEF-N`) has no producer in this crate: the registration VERDICT is composed \
+         by the kernel for a WELL-FORMED pair whose body answered non-`true`, while what this crate answers \
+         for a malformed element is the shape member `ConstraintListInvalid`, unmoved"
     );
 }
 

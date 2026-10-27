@@ -645,7 +645,19 @@ failing trigger's arguments and never hand-authored at a call site
 (`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-native/seams-and-lifecycle.md §8.2`, archived);
 **`index.d.ts` carries both, verbatim from the store.**
 
-### §8.1 The set is SEVENTEEN and open by design
+### §8.1 The set is NINETEEN and open by design
+
+**⟶ RE-DERIVED 2026-10-26 TO THE ARCHITECT'S RULING AND NOT TO THE BYTES** (`DEF-S` and `DEF-N`; the architect,
+verbatim: *"Expand the returned error set for both S/N"*). **`StoreStatus` carries NINETEEN members, plus the open
+escape arm `(string & {})`** — ranks `1`…`17` stand exactly as the paragraph below prints them, and the two
+appended terms are `ConstraintBodyThrew` at rank `18` (a constraint BODY's throw, which the package's crossing
+converts into the one failure form from a value the KERNEL marked as a body's own) and
+`ConstraintRefusedAtRegistration` at rank `19` (the REGISTRATION VERDICT: a well-formed pair whose body answered
+non-`true` at registration or at a re-enable). **`ConstraintListInvalid` stays at rank `16` and names the SHAPE
+arm alone — a malformed entry — so a pair that is `{address: ['a'], id: 'c1'}` is never refused with it.** The
+algebra reads `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓. The paragraph and the table below are the 2026-10-23
+reading and stand as their own date's (the guide's figures move with the set's own membership, which is the
+`§8.1` rule the same paragraph states two sentences later).
 
 **`StoreStatus` carries SEVENTEEN members, plus an open escape arm `(string & {})`**
 (`bindings/js/index.d.ts`, the `StoreStatus` declaration; `docs/specs/storeroom-native/contract.md §8.1`'s
@@ -659,12 +671,15 @@ BEFORE the escape arm**, and `ConstraintListInvalid` stands at rank `16`. **The 
 | 1–11 | `AddressMalformed` · `AddressNotFound` · `LeafHasNoDownstream` · `TierNotFound` · `OutOfDomainTier` · `ParentAnchorMonotonicityViolation` · `ContainerKindConflict` · `ReadTargetIsBranch` · `WriteParentNotLink` · `JournalOpUnknown` · `RollbackCompacted` |
 | 12–16 | `ConstructionArgumentMissing` · `FilePathUnreachable` · `ValueNotAdmitted` · `FileCommitFailed` · `ConstraintListInvalid` |
 | 17 | `ValueRefusedAtBoundary` |
+| 18–19 | `ConstraintBodyThrew` · `ConstraintRefusedAtRegistration` (`DEF-S`, `DEF-N`, 2026-10-26) |
 | escape | `(string & {})` |
 
 **THE ESCAPE ARM IS LOAD-BEARING RATHER THAN LOOSENESS.** The store's set has already moved three times — fourteen
 to fifteen, fifteen to sixteen, and sixteen to seventeen — and an immutably-enumerated union would mis-type a LAWFUL
 refusal the moment the set moves again; **the arm is what keeps a member the store has added typeable in an
-installed `0.5.0`** (`index.d.ts`, `StoreStatus`; `PUB-DD-3`). **So: do
+installed `0.5.0`** (`index.d.ts`, `StoreStatus`; `PUB-DD-3`). **It has just done so: the 2026-10-26 ruling
+added `ConstraintBodyThrew` and `ConstraintRefusedAtRegistration` at ranks `18` and `19`, and an installed copy
+whose union stopped at `17` would mistype both.** **So: do
 not `switch` on these without a `default`, and NEVER treat an unknown `status` as success.** The set is the
 store's to close; **the package mints no member, widens no set and renames none.**
 

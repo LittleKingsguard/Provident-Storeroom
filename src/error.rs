@@ -55,7 +55,30 @@ pub struct StoreError {
 /// printing `17` being the operative set and not a failure, and no drive that counts this array may assert
 /// `15` OR `16`. THE ARRAY REMAINS THE SET'S OWN CENSUS AND NOT A SECOND STATEMENT OF IT, and
 /// [`storeErrorMessage`] still resolves its clause by lookup in it (`§8.2`).
-pub const CODES: [&str; 17] = [
+///
+/// **⟶ AND AMENDED 2026-10-26, BY THE ARCHITECT'S RULING ON THE DOWNSTREAM CLAIMS `DEF-S` AND `DEF-N`,
+/// VERBATIM: *"Expand the returned error set for both S/N"*.** **THE OPERATIVE CENSUS IS `19`, RANKED
+/// `1`…`19`, AND THE TWO APPENDED TERMS ARE `ConstraintBodyThrew` AT RANK `18` AND
+/// `ConstraintRefusedAtRegistration` AT RANK `19`** — `DEF-S`'s arm (a constraint BODY's throw, which the
+/// package converts at its crossing into this surface's one failure form) and `DEF-N`'s arm (a
+/// REGISTRATION VERDICT: a well-formed pair whose body answered non-`true` at registration or at the
+/// re-enable, which may not be answered by the SHAPE code `ConstraintListInvalid` — that member keeps its
+/// own trigger, the malformed entry, and does not move). **THE CLAUSES ABOVE STAND BYTE-FOR-BYTE AND ARE
+/// READ THROUGH THIS ONE:** their `17`s are the figures of their own dates. **THE OPERATIVE ARITHMETIC IS
+/// `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓ — the six terms they sum stand exactly as filed and the two
+/// appended terms stand last — NO RANK OF `1`…`17` MOVES**, and the array on the `pub const` below is
+/// `[&str; 19]`. **THE NAMING FOLLOWS THE TABLE'S OWN DECLARED CONVENTION** (`§8.1`'s minting clause of
+/// 2026-10-15, item 2: *the UPPER-camel `code` column names the SUBJECT AND THE ONE THING WRONG WITH IT*):
+/// rank `18`'s subject is the CONSTRAINT BODY and its defect is that it THREW (the family `FileCommitFailed`
+/// already carries, subject plus a past-tense verb); rank `19`'s subject is the CONSTRAINT REFUSED and its
+/// place is REGISTRATION, in the shape `ValueRefusedAtBoundary` (rank `17`) already spells. **NO WORD IS
+/// MINTED THAT THE SET DOES NOT ALREADY CARRY.** **AND NO DRIVE THAT COUNTS THIS ARRAY MAY ASSERT `15`,
+/// `16`, `17` OR `18`.** The array remains the set's own census and not a second statement of it, and
+/// [`storeErrorMessage`] still resolves its clause by lookup in it (`§8.2`): both new members carry their
+/// own clause in the generator below, so `errorMessage('ConstraintBodyThrew', …)` and
+/// `errorMessage('ConstraintRefusedAtRegistration', …)` answer a declared sentence and never the
+/// outside-the-set sentence.
+pub const CODES: [&str; 19] = [
     "AddressMalformed",
     "AddressNotFound",
     "LeafHasNoDownstream",
@@ -73,6 +96,8 @@ pub const CODES: [&str; 17] = [
     "FileCommitFailed",
     "ConstraintListInvalid",
     "ValueRefusedAtBoundary",
+    "ConstraintBodyThrew",
+    "ConstraintRefusedAtRegistration",
 ];
 
 /// `§8.2`: the generator's `args` record — five OPTIONAL members, each present only when the trigger
@@ -294,6 +319,27 @@ pub(crate) fn build(m: &Msg) -> String {
         // target's spelling, and appends its own class-and-position clause beside the generated text.
         "ValueRefusedAtBoundary" => format!(
             "{} is not a value the JavaScript crossing admits, the crossing carries strings, booleans, finite numbers, plain objects and arrays",
+            m.subject
+        ),
+        // `§8.1` #18 and `§8.2`'s row of the same date — **`DEF-S`, and the architect's ruling of
+        // 2026-10-26: *"Expand the returned error set for both S/N"*.** The trigger is a caller's own
+        // constraint BODY that threw; the kernel marks the value it caught and the package's crossing
+        // converts a MARKED value (and only a marked one) into this surface's one failure form. The two
+        // slots are the pair's own address spelling (`<SEGMENT>`) — the place the body was evaluated — and
+        // the sentence declares what crossed, not what the body threw, because the body's own throwable is
+        // the caller's and is never rendered as though this package had authored it.
+        "ConstraintBodyThrew" => format!(
+            "{} was refused by a constraint body that threw, a constraint body's throwable crosses as this refusal",
+            m.subject
+        ),
+        // `§8.1` #19 and `§8.2`'s row of the same date — **`DEF-N`'s arm, on the same ruling: the
+        // REGISTRATION VERDICT.** The trigger is a WELL-FORMED pair whose body answered non-`true` at the
+        // registration (or at the re-enable, which re-registers the entry's own element), and the sentence
+        // says so in the shape row's own two-part form: `<SEGMENT>` the pair's address spelling,
+        // `<CONTAINER>` the pair's own list name `constraints`. **IT DOES NOT NAME THE ENTRY'S SHAPE**, which
+        // is #16's subject and is valid here.
+        "ConstraintRefusedAtRegistration" => format!(
+            "{} was refused by its own constraint at registration in '{container}', a registered constraint must answer true for the state its pair is registered at",
             m.subject
         ),
         other => format!("{} is a failure of the code {other}, no clause is declared here", m.subject),

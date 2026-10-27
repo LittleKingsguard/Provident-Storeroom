@@ -110,9 +110,15 @@ const FOURTEEN = [
   'removeConstraint',
 ];
 
-/** The store's closed set as the declaration enumerates it: SEVENTEEN literals ranked `1`…`17`, with
- *  `ValueRefusedAtBoundary` appended LAST and the `(string & {})` escape arm after them. */
-const SEVENTEEN = [
+/** The store's closed set as the declaration enumerates it: NINETEEN literals ranked `1`…`19`, with
+ *  `ValueRefusedAtBoundary` at `17`, `ConstraintBodyThrew` at `18` and `ConstraintRefusedAtRegistration` at
+ *  `19` appended last, and the `(string & {})` escape arm after them.
+ *
+ *  **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
+ *  both S/N"*).** The array's name, its figure and the cell's title move together, because a blind census
+ *  that kept `17` would be asserting the superseded set: **no rank of `1`…`17` moves, and the two appended
+ *  terms are the body-throw arm and the registration-verdict arm.** */
+const NINETEEN = [
   'AddressMalformed',
   'AddressNotFound',
   'LeafHasNoDownstream',
@@ -130,6 +136,9 @@ const SEVENTEEN = [
   'FileCommitFailed',
   'ConstraintListInvalid',
   'ValueRefusedAtBoundary',
+  // ⟶ APPENDED 2026-10-26 (`DEF-S`, `DEF-N`; the architect's ruling on the downstream claims).
+  'ConstraintBodyThrew',
+  'ConstraintRefusedAtRegistration',
 ];
 
 // ---------------------------------------------------------------------------------------------
@@ -289,9 +298,12 @@ test('entry-module · index.d.ts `Handle` and `Listener` · the handle is a `str
   assert.equal(/Listener = \(address: Address\)/.test(DECLARATION), true);
 });
 
-test('entry-module · index.d.ts `StoreStatus` · THE CLOSED SET READS SEVENTEEN LITERALS RANKED `1`…`17`, the seventeenth being `ValueRefusedAtBoundary`, and the `(string & {})` ESCAPE ARM STANDS AFTER THEM', () => {
-  assert.deepEqual(statusLiterals(), SEVENTEEN);
-  assert.equal(SEVENTEEN.length, 17);
+// **⟶ THE TITLE MOVES WITH THE COUNT, 2026-10-26** (`DEF-S`/`DEF-N`; *"Expand the returned error set for both
+// S/N"*): the set the declaration publishes is `19`; the cells below are the same reads and their
+// expectations are the ruling's.
+test('entry-module · index.d.ts `StoreStatus` · THE CLOSED SET READS NINETEEN LITERALS RANKED `1`…`19`, the last two being `ConstraintBodyThrew` and `ConstraintRefusedAtRegistration`, and the `(string & {})` ESCAPE ARM STANDS AFTER THEM', () => {
+  assert.deepEqual(statusLiterals(), NINETEEN);
+  assert.equal(NINETEEN.length, 19);
   assert.match(DECLARATION, /\| \(string & \{\}\);/);
 });
 

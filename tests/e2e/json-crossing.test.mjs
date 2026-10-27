@@ -555,10 +555,18 @@ test('JC-TC-47 no fifth dependency entry is admitted', () => {
   assert.ok(cargoDependencies().length <= 4, 'no fifth direct dependency');
 });
 
-test('JC-TC-48 the store set is 17 with ValueRefusedAtBoundary at rank 17', () => {
+// **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
+// both S/N"*): THE SET IS NINETEEN, AND THE TITLE MOVES WITH IT.** `ValueRefusedAtBoundary` keeps rank `17`
+// and is no longer last; the two appended terms are `ConstraintBodyThrew` at rank `18` and
+// `ConstraintRefusedAtRegistration` at rank `19`. **THE CELL IS THE SAME READ** — the store's own array, its
+// declared length and two named members — and only the figure moves, because a cell that kept `17` would be
+// asserting the superseded census and not the ruling's.
+test('JC-TC-48 the store set is 19 with ValueRefusedAtBoundary at rank 17, ConstraintBodyThrew at 18 and ConstraintRefusedAtRegistration at 19', () => {
   const text = readFileSync(new URL('../../src/error.rs', import.meta.url), 'utf8');
-  assert.match(text, /CODES:\s*\[&str;\s*17\]/);
+  assert.match(text, /CODES:\s*\[&str;\s*19\]/);
   assert.ok(text.includes('ValueRefusedAtBoundary'));
+  assert.ok(text.includes('ConstraintBodyThrew'));
+  assert.ok(text.includes('ConstraintRefusedAtRegistration'));
 });
 
 // ── THE SEVENTEENTH CLASS ─────────────────────────────────────────────────────────────────────────────

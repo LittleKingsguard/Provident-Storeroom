@@ -822,13 +822,47 @@ pub fn fail_code_drive(code: &'static str) -> bool {
                 .as_deref()
                 == Some("ValueNotAdmitted")
         }
-        other => panic!("`{other}` is not a member of the store's closed 17-member set"),
+        // **⟶ ADDED 2026-10-26 (`DEF-S`; the architect, verbatim: *"Expand the returned error set for both
+        // S/N"*): THE SET'S RANK-`18` MEMBER, WHICH HAS NO PRODUCER IN THIS CRATE EITHER.** A constraint
+        // BODY is the caller's own JS function, invoked by the PACKAGE's kernel (`bindings/js/src/entry/`);
+        // the addon never sees a body and never mints this member. **THE DRIVE IS THE NEGATIVE ONE AND IT IS
+        // NOT A PLACEHOLDER**: a WELL-FORMED `{ address, id }` pair crosses at the construction with no body
+        // attached, so the construction STANDS and NO CODE is produced — were this crate to answer the
+        // body-throw member for a pair it never evaluated, the arm returns `false` and the `S-FAILSET` line and
+        // the census below go red.
+        "ConstraintBodyThrew" => {
+            let cfg = cfg_mem();
+            let constraints = JsConstraintsArg::List(vec![JsConstraintEntry::Pair {
+                address: JsAddressArg::List(vec![key("a")]),
+                id: "c1".to_string(),
+            }]);
+            match create_with_constraints(&cfg, Some(&constraints)) {
+                Ok(_) => true,
+                Err(e) => e.status != "ConstraintBodyThrew",
+            }
+        }
+        // **⟶ ADDED 2026-10-26 (`DEF-N`, the same ruling): THE SET'S RANK-`19` MEMBER — THE REGISTRATION
+        // VERDICT — AND ITS PRODUCER IS THE KERNEL'S, ABOVE THIS CRATE.** What this crate does answer for the
+        // adjacent state is the SHAPE member, `ConstraintListInvalid`, for a list whose ELEMENT is outside
+        // `{ address, id }` (`§8.1` #16; `§8.2`); **a WELL-FORMED pair whose body answered non-`true` is the
+        // KERNEL's arm and never this crate's**, so the drive asserts the core does not mint the verdict
+        // member for a malformed one.
+        "ConstraintRefusedAtRegistration" => {
+            let cfg = cfg_mem();
+            let constraints = JsConstraintsArg::List(vec![JsConstraintEntry::Invalid("'a'".to_string())]);
+            match create_with_constraints(&cfg, Some(&constraints)) {
+                Err(e) => e.status != "ConstraintRefusedAtRegistration",
+                Ok(_) => false,
+            }
+        }
+        other => panic!("`{other}` is not a member of the store's closed 19-member set"),
     }
 }
 
-/// The closed set itself, printed with its terms: **the store's own `17` members, and this unit mints no
-/// eighteenth** (`A148` (Q3): *"the OPERATIVE CENSUS IS `17`, RANKED `1`…`17`"*; `src/error.rs`'s
-/// `pub const CODES: [&str; 17]`).
+/// The closed set itself, printed with its terms: **the store's own `19` members, and this unit mints no
+/// twentieth** (`A148` (Q3): *"the OPERATIVE CENSUS IS `17`, RANKED `1`…`17`"*, read THROUGH the architect's
+/// ruling of 2026-10-26 — *"Expand the returned error set for both S/N"* — which appends ranks `18` and `19`;
+/// `src/error.rs`'s `pub const CODES: [&str; 19]`).
 ///
 /// **⟶ WIDENED 2026-10-15 (`DEF-2026-10-15-Y`): the as-filed *"`15` members, and this unit mints no
 /// sixteenth"* printed a superseded figure.** The figure is `CODES.len()`'s and not this comment's, and the
@@ -847,14 +881,23 @@ pub fn all_fail_codes() -> Vec<&'static str> {
 }
 
 /// **THE MEMBERS OF THE CLOSED SET WHOSE TRIGGER IS REACHABLE THROUGH THIS CRATE'S OWN SURFACE** — `16` of
-/// `17` (`A148` (Q3)'s rank `17`, `ValueRefusedAtBoundary`). **The seventeenth's producer is the PACKAGE's
-/// walk, above this addon** (`bindings/js/src/entry/carrier.mjs`'s `valueReject`), **and it is driven by the
-/// JS battery's `NG-JS-D` — not skipped, declared at its own boundary.** This is the boundary the census cell
-/// in `surface_verbs.rs` states so that no member is counted twice or dropped.
+/// `19` (`A148` (Q3)'s rank `17`, `ValueRefusedAtBoundary`, PLUS the two arms the 2026-10-26 ruling appended).
+/// **Those three members' producers stand ABOVE this addon** — the boundary walk
+/// (`bindings/js/src/entry/carrier.mjs`'s `valueReject`, driven by the JS battery's `NG-JS-D`), the kernel's
+/// body-throw mark and the entry's conversion (`DEF-S`), and the kernel's registration verdict (`DEF-N`) —
+/// **and each is driven at ITS OWN boundary, not skipped.** This is the boundary the census cell in
+/// `surface_verbs.rs` states so that no member is counted twice or dropped.
+///
+/// **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
+/// both S/N"*): the filter carries THREE spells, the reachable count stands at `16`, and the census is `19`.**
 pub fn crossing_reachable_fail_codes() -> Vec<&'static str> {
     all_fail_codes()
         .into_iter()
-        .filter(|code| *code != "ValueRefusedAtBoundary")
+        .filter(|code| {
+            *code != "ValueRefusedAtBoundary"
+                && *code != "ConstraintBodyThrew"
+                && *code != "ConstraintRefusedAtRegistration"
+        })
         .collect()
 }
 

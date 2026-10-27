@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9b`) — the registration act, its evaluation, and the registry's removal: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KERNEL_REFUSAL, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsAtAddress } from './kernel-foundations.mjs';
+import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsAtAddress } from './kernel-foundations.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-1` `register(store, address, id, constraint) -> Handle`
 // ---------------------------------------------------------------------------------------------
@@ -216,7 +216,18 @@ function withdrawRegistration(kernel, address, id, fresh, home) {
  * invocation below is NOT wrapped — a throwing body reaches the caller as the very value it threw.
  */
 function registrationEvaluation(kernel, store, address, id, constraint) {
-  const outcome = constraint(registrationContext(store, address, null));
+  // **⟶ AMENDED 2026-10-26 (`DEF-S`; the architect's ruling, verbatim: *"Expand the returned error set for
+  // both S/N"*): THE BODY'S THROW IS MARKED AT THE FRAME THAT CAUGHT IT, and no attempt stands at this
+  // instant (`null`), so the mark carries the `[]` its clause declares. **THE THROWABLE'S IDENTITY IS
+  // UNMOVED HERE** — a kernel-level caller still meets the very value the body threw — while the entry's
+  // `registrationCrossing` converts A MARKED VALUE ONLY into this surface's one failure form, and an
+  // unmarked throw is still the caller's own (`markBodyThrow`, `kernel-foundations.mjs`).
+  let outcome;
+  try {
+    outcome = constraint(registrationContext(store, address, null));
+  } catch (body) {
+    throw markBodyThrow(body, address, null);
+  }
   // THE OUTCOME IS `PAR-C-5`'S CLOSED THREE-ARM SET, read as the landing pass reads it: `true` is the pass
   // arm; an object carrying `message` is the violation arm (its `repair`, where present, the repair the
   // caller registered); a value outside the three arms is READ AS the `{message}` arm (`VA-11`) and never as
@@ -432,13 +443,21 @@ function registrationRerun(kernel, attempt, produced) {
   for (const key of list) {
     const pair = kernel.pairs.get(key);
     if (pair === undefined) continue;
-    const outcome = pair.constraint({
-      address: attempt.address.slice(),
-      tier: produced.tier === undefined ? null : produced.tier,
-      value: produced.after === undefined ? undefined : produced.after.value,
-      attempt: attempt.ref,
-      op: produced,
-    });
+    let outcome;
+    try {
+      outcome = pair.constraint({
+        address: attempt.address.slice(),
+        tier: produced.tier === undefined ? null : produced.tier,
+        value: produced.after === undefined ? undefined : produced.after.value,
+        attempt: attempt.ref,
+        op: produced,
+      });
+    } catch (body) {
+      // **⟶ ADDED 2026-10-26 (`DEF-S`, the same ruling): a body thrown at the synthetic attempt's re-run is
+      // marked at this frame too — the mark carries the attempt's own log and address, and the entry's
+      // crossing converts a marked value only** (`markBodyThrow`, `kernel-foundations.mjs`).
+      throw markBodyThrow(body, attempt.address, attempt.log);
+    }
     if (outcome === true) continue;
     attempt.terminalArm = attempt.appliedRepairs.includes(key) ? 'KC-5' : 'KC-6';
     return attempt.terminalArm;
@@ -447,8 +466,21 @@ function registrationRerun(kernel, attempt, produced) {
 }
 
 /**
- * **THE REFUSAL THE REGISTRATION ANSWERS — `ConstraintListInvalid` WITH ITS `§8.2`-GENERATED MESSAGE —
- * COMPOSED HERE AS A CODE AND ITS SLOTS, AND RENDERED BY THE SURFACE.**
+ * **THE REFUSAL THE REGISTRATION ANSWERS — `ConstraintRefusedAtRegistration` WITH ITS `§8.2`-GENERATED
+ * MESSAGE — COMPOSED HERE AS A CODE AND ITS SLOTS, AND RENDERED BY THE SURFACE.**
+ *
+ * **⟶ AND THE CODE MOVES FROM `ConstraintListInvalid` TO THE SET'S NINETEENTH MEMBER, 2026-10-26 — `DEF-N`,
+ * ON THE ARCHITECT'S RULING, VERBATIM: *"Expand the returned error set for both S/N"*.** **THE DEFECT THE
+ * MOVE CLOSES, MEASURED: a pair that is `{address: ['a'], id: 'c1'}` — an address that is a segment array and
+ * an id that is a string — was refused with `'a' is not a valid constraint entry in 'constraints', a
+ * constraint entry is an address and an id, and the address is a segment array`, and `ConstraintListInvalid`
+ * is the STORE's malformed-ENTRY code (`docs/specs/storeroom-native/contract.md §8.1` #16 and `§8.2`'s row).
+ * SO THE SHAPE CODE NAMED A SHAPE THAT IS FINE.** **THE SET GREW BY ONE ARM AND `ConstraintListInvalid`
+ * KEEPS ITS OWN TRIGGER — the malformed element at create or at load — AND ITS OWN SENTENCE, unmoved**
+ * (`§8.1` #16; `§8.2`). **THE VERDICT IS THE ARM: the registration evaluation answered non-`true` and the
+ * body stands against the store's current state** — states (ii) and (β) of
+ * `docs/specs/storeroom-js/surface.md §2.12` item 3, at the ADD route and at `constraintOn`'s re-enable
+ * alike, since the enable arm re-registers the entry's own element through this same `K-1`.
  *
  * **⟶ THIS IS THE ROUTE THE ARCHITECT SETTLED, AND IT IS NOT A MESSAGE FROM A SECOND SOURCE.** `DD-52`
  * forbids a code's message being produced from a second source, and `§8.2`'s one row declares the slots
@@ -458,12 +490,13 @@ function registrationRerun(kernel, attempt, produced) {
  * (`<KEYLIST>`, the row's third slot, is the added pair's members present; no slot of it is asserted here,
  * `§8.2` clause 3 declaring that the sentence the slots make is asserted by NO clause of that contract.)
  *
- * **THE FIXED PHRASE *"is not a valid constraint entry in"* IS RENDERED VERBATIM AND IS NOT RE-AUTHORED** —
- * `§8.2`'s clause 3 of 2026-10-16, which names the honest consequence: at this instant the sentence's SHAPE
- * reports an entry that failed its own validity check while the state is a well-formed pair whose FUNCTION
- * DID NOT PASS. **A HAND-AUTHORED REGISTRATION MESSAGE IS A FAIL OF `P-TP-9` AND NONE STANDS HERE**: not a
- * byte of the text is written in this module, and the sentence is produced by the store's own generator at
- * the surface's existing `errorMessage` path.
+ * **THE FIXED PHRASE *"is not a valid constraint entry in"* IS THE SHAPE ROW'S AND IS NOT RENDERED HERE FROM
+ * 2026-10-26 ON** — it stands at `§8.2`'s `ConstraintListInvalid` row, unmoved, and it describes an entry
+ * that failed its own validity check; **a WELL-FORMED pair whose FUNCTION DID NOT PASS is the other arm and
+ * takes its own row** (`§8.2`'s `ConstraintRefusedAtRegistration` row, whose fixed phrase reads *"was
+ * refused by its own constraint at registration in"*). **A HAND-AUTHORED REGISTRATION MESSAGE IS A FAIL OF
+ * `P-TP-9` AND NONE STANDS HERE**: not a byte of either text is written in this module, and the sentence is
+ * produced by the store's own generator at the surface's existing `errorMessage` path.
  *
  * **THE VALUE CARRIES THIS MODULE'S OWN MARK** (`KERNEL_REFUSAL`) so the surface can tell it from a
  * caller's throw, and the mark is set HERE — in the frame that BUILT the value — and never by a test over
@@ -472,7 +505,7 @@ function registrationRerun(kernel, attempt, produced) {
  */
 function registrationRefusal(address, id, log) {
   return {
-    status: 'ConstraintListInvalid',
+    status: 'ConstraintRefusedAtRegistration',
     segment: address.map((segment) => String(segment)).join('/'),
     container: 'constraints',
     id,

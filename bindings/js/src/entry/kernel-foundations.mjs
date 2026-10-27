@@ -156,6 +156,67 @@ export function refuse(status, message, log) {
   };
 }
 
+/**
+ * **⟶ ADDED 2026-10-26 ON THE ARCHITECT'S RULING (`DEF-S`, VERBATIM: *"Expand the returned error set for both
+ * S/N"*) — THE MARK THIS KERNEL SETS ON A VALUE **IT** CAUGHT FROM A CONSTRAINT BODY.**
+ *
+ * **WHY A MARK IS THE WHOLE OF THE FIX, AND NOT A SHAPE TEST AT THE CROSSING.** The entry's
+ * `registrationCrossing` and `constraintCrossing` re-throw an UNMARKED value as itself, and that is
+ * `DEF-A`'s protection: *a caller's shaped `{status, message}` must never be answered as the package's
+ * refusal.* **So the crossing cannot tell a body's own throw from a FORGED object by looking at members — the
+ * forged object carries every member the body's `Error` does not — and the only thing that can tell them
+ * apart is WHO CAUGHT IT.** That is this function: it is called from the three frames that invoke a
+ * caller-authored CONSTRAINT BODY (`register`'s registration evaluation, its synthetic attempt's re-run, and
+ * a landing's pass), and from nowhere else. **A REPAIR BODY'S THROW IS NOT MARKED**: `fail-surface.md §1.1`
+ * item 5's *"untouched and unconverted"* arm for it is unmoved by this pass, and the kernel-level cells that
+ * pin it (`ck_states` / `ck_neg_10` / `ck_p_neg_17`'s arm 2) keep their identity assertion whole.
+ *
+ * **THE IDIOM IS `DEF-A`'S OWN: a `Symbol.for` key both sides spell** (`KERNEL_REFUSAL` above;
+ * `SETTLED_ON_THE_PASSING_ARM`; `SAVE_FAILED_AT_THE_TERMINAL_ARM`), so the entry imports no kernel and the
+ * kernel imports no entry, and `Object.keys` on the thrown value is unmoved — the mark is invisible to every
+ * census of the member set. **WHAT THE VALUE UNDER THE KEY IS, AND WHY BOTH FACTS TRAVEL ON ONE KEY:** it is
+ * a null-prototype record `{ address, log }` — the pair's own address spelling (the `<SEGMENT>` slot the
+ * `§8.2` clause prints) and the log AS IT STOOD WHEN THE BODY THREW (`§2.5` item 4's timing trap, taken
+ * before the attempt is disposed of). **THE MARK'S PRESENCE IS THE IDENTITY; THE TWO MEMBERS ARE THE
+ * CROSSING'S SLOTS.** A mark that carried no slots would force the entry to author a sentence it holds no
+ * subject for, which `DD-52` forbids.
+ *
+ * **AN OBJECT KEEPS ITS OWN IDENTITY AND IS MARKED IN PLACE** — `caught === thrown` still holds for it at
+ * this layer, which is what the kernel-level cells assert. **A PRIMITIVE CANNOT CARRY A MEMBER**, so it
+ * crosses as this frame's own carrier `{ value: thrown, [CONSTRAINT_BODY_THREW]: … }` (and so does a value
+ * whose mark cannot be set — a frozen or sealed object, or a `Proxy` whose `defineProperty` trap refuses):
+ * the carrier is the kernel's value, the mark is on it, and the entry reads the mark and never the `value`
+ * member. **NO MEMBER OF THE CALLER'S OWN FORM IS FORGED, RENAMED OR DROPPED.**
+ */
+export const CONSTRAINT_BODY_THREW = Symbol.for('provident-storeroom.constraint-body-threw');
+
+/// **THE MARK'S ONE WRITER** — called only from the frames that invoke a caller-authored CONSTRAINT body.
+/// `address` is the pair's own address (the place the body was evaluated) and `log` the attempt's log where
+/// one stands at the instant of the throw, `[]` where none does (a registration opens no attempt before its
+/// body returns).
+export function markBodyThrow(thrown, address, log) {
+  const carried = Object.create(null);
+  carried.address = address.map((segment) => String(segment)).join('/');
+  carried.log = Array.isArray(log) ? log : [];
+  const isObject = thrown !== null && (typeof thrown === 'object' || typeof thrown === 'function');
+  if (isObject === false) return { value: thrown, [CONSTRAINT_BODY_THREW]: carried };
+  try {
+    // **THE MARK IS A SYMBOL-KEYED OWN MEMBER, DEFINED AND NOT ASSIGNED**: `[[Set]]` walks the chain and a
+    // caller's prototype could divert it, exactly as `appendOwn`'s clause reads (`refusal.mjs`).
+    Object.defineProperty(thrown, CONSTRAINT_BODY_THREW, {
+      value: carried,
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+    return thrown;
+  } catch {
+    // A FROZEN, SEALED OR TRAP-REFUSING VALUE CANNOT CARRY THE MARK, so the mark travels on this frame's own
+    // carrier and the caller's value travels beside it under `value`.
+    return { value: thrown, [CONSTRAINT_BODY_THREW]: carried };
+  }
+}
+
 /// **WHETHER A VALUE IS A REFUSAL THIS KERNEL BUILT** — the entry's crossing and this kernel's own repair
 /// arm both ask this and nothing else.
 ///

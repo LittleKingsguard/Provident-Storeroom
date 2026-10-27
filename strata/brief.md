@@ -107,6 +107,8 @@ re-measured is better named as retired than reprinted.
 | root manifests | `Cargo.toml` (**now a `[workspace]`**: `members = [".", "bindings/js", "tests"]`, `default-members = [".", "tests"]`) · `tests/Cargo.toml` · `package.json` · `Cargo.lock` (**one workspace lock, 41 packages: 3 members + 38 registry**) · `package-lock.json` · `scripts/publish.sh` | private instrument harness; **not** a publishable package |
 | `scratch/` | **477 tracked files** | probes, byproducts, logs and one-off drivers — **tracked in git**, and excluded from ownership by the project's convention that *a scratch is never a source*, not by an ignore rule |
 
+**⟶ AND THE STATUS SET IS NINETEEN, NOT SEVENTEEN (2026-10-26, `D-38` + the S/N ruling): rank `18` `ConstraintBodyThrew` and rank `19` `ConstraintRefusedAtRegistration` were appended after `ValueRefusedAtBoundary`; ranks `1`…`17` did not move and `ConstraintListInvalid` keeps `16`. Every figure below that says *seventeen* is read through this sentence.**
+
 **⟶ MEASURED 2026-10-25, SUPERSEDING THE FIGURES ABOVE — this branch has moved under every one of them and the
 inventory is read through this clause.** `index.mjs` **1,417** (not 1,409) · `refusal` **161** · `artefact` **376** ·
 `state` **602** · `class-decision` **1,214** · `carrier` **986** · `frame` **417** · `kernel-foundations` **597** ·

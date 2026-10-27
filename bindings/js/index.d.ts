@@ -288,6 +288,17 @@ export interface StoreConfig {
  * statement about THAT READ while its FIGURE moves to `17`. **`ValueNotAdmitted` STAYS AT RANK `14` AND IS
  * NOT REMOVED** — it remains the store's own answer on the native route — **so a pass that reads rank `17`
  * as a RENAME of rank `14` has destroyed a member** (`DEF-2026-10-02`: no whole-file rewrite).
+ *
+ * **⟶ AND AMENDED AGAIN 2026-10-26, BY THE ARCHITECT'S RULING ON THE DOWNSTREAM CLAIMS `DEF-S` AND `DEF-N`,
+ * VERBATIM: *"Expand the returned error set for both S/N"*.** **THE SET IS NINETEEN, RANKED `1`…`19`, AND THE
+ * TWO APPENDED TERMS ARE `ConstraintBodyThrew` AT RANK `18` AND `ConstraintRefusedAtRegistration` AT RANK
+ * `19`** — the same two members, in the same rank order, that `src/error.rs`'s `CODES` now carries last;
+ * **NO RANK OF `1`…`17` MOVES, the algebra reads `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓, and the escape arm
+ * `(string & {})` still stands EXACTLY ONCE, after the members.** **THE FIGURES ABOVE ARE READ THROUGH THIS
+ * CLAUSE**: every *"seventeen"* and every *"`17`"* in them is the figure of its own date. **`ConstraintListInvalid`
+ * KEEPS rank `16` AND ITS OWN TRIGGER** — the malformed entry — because `DEF-N`'s arm is a WELL-FORMED pair
+ * refused by its own body's verdict, which that member's generated sentence names as a shape failure and
+ * which is therefore the wrong code for it.
  */
 export type StoreStatus =
   | 'AddressMalformed'
@@ -307,6 +318,8 @@ export type StoreStatus =
   | 'FileCommitFailed'
   | 'ConstraintListInvalid'
   | 'ValueRefusedAtBoundary'
+  | 'ConstraintBodyThrew'
+  | 'ConstraintRefusedAtRegistration'
   | (string & {});
 
 /**
