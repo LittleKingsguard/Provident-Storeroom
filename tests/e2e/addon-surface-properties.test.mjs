@@ -242,6 +242,9 @@ function declaredArgumentsFor(name) {
     // **⟶ ADDED 2026-10-27: THE JOURNAL MARK RESTORE'S ONE POSITION** — the mark, in the same carrier shape
     // `rollback` is driven with, so this entry is read at its declared arity and at ±1 like every other.
     case 'restoreMark': return ['an-op-id'];
+    // **⟶ AND THE JOURNAL MARK READ, ADDED 2026-10-27: NO POSITION AT ALL.** It reads the store's own record and
+    // names a position; there is nothing for a caller to supply (`PER_VERB_ELEVENTH`, arity `0`).
+    case 'journalMark': return [];
     default: return null;
   }
 }
@@ -273,8 +276,9 @@ test('sas_prop_P_SAS_1_S_EXPORT_SET_the_keyset_is_exactly_the_thirteen_and_call_
       // (a) THE SET, ASSERTED AT EQUALITY OVER THE WHOLE KEY SET — the strategy's own words.
       assert.deepEqual([...addonKeySet()].sort(), DECLARED_SURFACE_NAMES_SORTED,
         `attempt ${i}: P-SAS-1 — the addon's export set is exactly the declared names, and `
-        + '`export-set-and-dispatch.md §1` is the set: `4` STANDING plus `9` PER-VERB plus the ONE the journal '
-        + 'mark restore adds beside them, `4 + 9 + 1 = 14 ✓` (amended 2026-10-27, annotate-beside)');
+        + '`export-set-and-dispatch.md §1` is the set: `4` STANDING plus `9` PER-VERB plus the journal mark '
+        + 'restore and the journal mark read that stand beside them, `4 + 9 + 1 + 1 = 15 ✓` (amended '
+        + '2026-10-27 and again 2026-10-27, annotate-beside)');
       // (b) EACH DECLARED NAME, DRAWN FROM THE SEED, IS PRESENT.
       const declared = choose(DECLARED_SURFACE_NAMES_SORTED);
       assert.equal(addonKeySet().includes(declared), true,

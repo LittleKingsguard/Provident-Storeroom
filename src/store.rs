@@ -2561,6 +2561,44 @@ impl Store {
     // §6.6 — THE JOURNAL MARK RESTORE: the state the journal's own record describes
     // -----------------------------------------------------------------------------------------------
 
+    /// **`journalMark() → Option<String>` — THE JOURNAL'S LAST VALID MARK, AND THE STORE IS THE ONE THAT SAYS
+    /// WHICH ENTRIES ARE VALID.** It answers **the op id of the last entry the journal holds**, or **`None`
+    /// where the journal holds no entry at all** — the state the store was born with (`Store::born`), which the
+    /// mark restore reaches through [`Store::restoreFloor`] and which no op id can name. **IT IS A PURE READ**:
+    /// it appends nothing, compacts nothing, replays nothing, delivers nothing and touches no file. **Its one
+    /// caller is the package's `openCommit` (`bindings/js/src/entry/state.mjs`), which caches the answer on the
+    /// window it opens** — so the mark a later compensating act restores is the journal's position AT THAT
+    /// INSTANT and not whatever the journal holds when the act finally runs.
+    ///
+    /// **WHAT "VALID" MEANS HERE, MEASURED RATHER THAN ASSUMED — THE TWO STATES A MARK CAN BE IN:**
+    ///   * **AN ENTRY A FAILED `file`-SAVE REMOVED IS GONE, AND IT IS NOT A MARK.** `commit_file`'s failing arm
+    ///     takes the entry it just reverted out of the journal (`self.journal.remove(index)`), and it restores
+    ///     that entry's pre-state and un-marks what its append compacted in the same act — so the record no
+    ///     longer describes the operation at all, and `restoreMark` answers `JournalOpUnknown` (`M-11`) for its
+    ///     id. **The read therefore answers PRESENT entries only, and PRESENCE is the whole membership test**:
+    ///     an id the journal no longer holds is not a state the store can re-state.
+    ///   * **A COMPACTED ENTRY IS STILL A MARK.** `journalLength` bounds the rollback by MARKING entries
+    ///     `compacted` (`§6.1` item 5) and never removes one, and the replay reads every entry it holds — so a
+    ///     mark behind the compression window still replays and is still valid
+    ///     (`s6_6_a_mark_outside_the_window_is_still_replayable` measures exactly that). **The read does not
+    ///     filter on `compacted`, and it must not.**
+    ///   **AND EVERY PRESENT ENTRY IS REPLAYABLE, WHICH IS WHY PRESENCE IS THE TEST RATHER THAN A SECOND
+    ///   PREDICATE**: each `write`/`delete` records its own `after` as a per-version, per-tier snapshot
+    ///   (`Entry::after`), and the replay re-derives every home from the born floor forward, so the state a
+    ///   present entry names is a state the journal reproduces. **A reversal does not erase the entries it
+    ///   reverses** (`M-9`/`M-6` mark them and nothing removes them), so a mark a reversal passes through is
+    ///   still a valid mark — which is what makes the pre-reversal position nameable at all.
+    ///
+    /// **THE LAST VALID MARK IS THEREFORE THE HEAD, AND ITS NAME IS THE POINT.** The head was always reachable
+    /// by supplying NO position to `restoreMark`; what the surface could not do was NAME it as a value and
+    /// therefore CACHE it. This read names it, in the store's own terms, so a caller can hold the position it
+    /// opened at instead of re-reading the head when the act finally runs.
+    pub fn journalMark(&self) -> Option<String> {
+        // THE HEAD IS THE LAST ENTRY THE JOURNAL HOLDS. `None` is the born state, not an error: the record
+        // describes no operation, so the state it describes is the floor the replay begins at.
+        self.journal.last().map(|entry| entry.op.opId.clone())
+    }
+
     /// **`restoreMark(mark?) → void` — THE STORE RETURNS ITS OWN STATE TO A JOURNAL MARK.** *"The state it
     /// held at a given journal position"*, reached **by replaying its own journal** and not by any capture a
     /// caller took: the journal records every operation's ADDRESS and, since this method's pass, its BEFORE
@@ -2571,6 +2609,19 @@ impl Store {
     /// unchanged, because **`rollback` appends no entry** (`M-9`): the journal's head still describes the
     /// state that stood BEFORE the reversal, which is exactly the state a refused reversal owes back. An op
     /// id names the state that stood **immediately after that operation landed**.
+    ///
+    /// **⟶ AND THE SENTENCE ABOVE IS READ THROUGH ITS MARK, 2026-10-27 (`RCA-8(g)` ANNOTATE-BESIDE: the bytes
+    /// above stand and this clause is the operative statement of what a refused reversal restores). THE
+    /// REASONING *"a reversal appends no journal entry, so the head describes the state that stood before the
+    /// action"* IS TRUE OF A REVERSAL TAKEN AT REST AND FALSE OF ONE TAKEN INSIDE A WRITE'S COMMIT**: in the
+    /// restart arm the enclosing write's own op stands at the head when the listener's reversal runs, so the
+    /// head describes the write's LANDING and not the pre-attempt state — measured, `9` becoming `7`, the
+    /// refusal's own value standing (`DEF-AE`). **SO THE HEAD IS NOT THE MARK A REFUSED REVERSAL OWES BACK**:
+    /// the mark it owes is the journal's last valid position **AT THE MOMENT ITS COMMIT OPENED**, which is what
+    /// [`Store::journalMark`] answers and what the package caches on the window (`bindings/js/src/entry/
+    /// state.mjs`). **This method's ABSENT arm still names the head** — it is the declared spelling, `§6.6`
+    /// item 1, and nothing about it moves; what moves is the package's own choice of position, which is stated
+    /// at `docs/specs/storeroom-js/contract.md §2.6`'s clause of this date.
     ///
     /// **THE REPLAY IS ABSOLUTE AND NOT RELATIVE, AND THAT IS THE MEASURED REQUIREMENT.** A backward walk
     /// from the CURRENT state is not safe here: after a reversal the journal's head is AHEAD of the state,
@@ -2638,6 +2689,32 @@ impl Store {
                 Some(index)
             }
         };
+        self.replayMark(up_to)
+    }
+
+    /// **⟶ ADDED 2026-10-27 — `restoreFloor() → void`: THE STORE RETURNS ITS OWN STATE TO THE STATE IT WAS
+    /// BORN WITH, AND IT IS THE MARK'S FLOOR NAMED AS A MARK.** It is the replay of `§6.6` with **NO ENTRY
+    /// APPLIED**: the booted `file`-tier image where one was loaded and the empty register where none was
+    /// (`Store::born`, `§6.6` item 2). **`restoreMark` HAS NO SPELLING FOR THIS STATE ONCE THE JOURNAL IS
+    /// NON-EMPTY** — its ABSENT arm names the HEAD, and a caller that opened on an empty journal and later asks
+    /// for "the state that stood then" is asking for a position BEFORE the journal's first entry, which an op
+    /// id cannot name (an op id names the state immediately AFTER an operation). **So the floor gets a spelling
+    /// of its own**, and it is this method: the act the mark restore performs at position `None`, carried
+    /// through the same replay and the same save (a floor that moves a `file`-tier node saves, exactly as an
+    /// op-id mark does — item 5's clause).
+    ///
+    /// **IT APPENDS NOTHING, COMPACTS NOTHING, DELIVERS NO TRIGGER AND READS NO CONSTRAINT** — the same three
+    /// negatives `restoreMark` carries, for the same reason: a state the record already describes is being
+    /// re-stated, and the born state is the record's own floor (`Store::born`), not a caller's list.
+    pub fn restoreFloor(&mut self) -> Result<(), StoreError> {
+        self.replayMark(None)
+    }
+
+    /// **THE REPLAY ITSELF, AT ONE POSITION, AND IT IS THE ONE BODY `restoreMark` AND `restoreFloor` SHARE** —
+    /// so the mark's two spellings (an op id, and the floor) cannot drift apart on the replay, the save or the
+    /// answers. `up_to = Some(index)` applies the journal's entries `0..=index`; `up_to = None` applies NONE of
+    /// them and answers the born state.
+    fn replayMark(&mut self, up_to: Option<usize>) -> Result<(), StoreError> {
         // **THE `file` TIER'S PROJECTION BEFORE THE REPLAY** — the detection's first half, read off the versions
         // themselves and not off a guess about which operation ran. A path-less instance has no `file` tier at
         // all (`§1.6`: the register's tier is fixed at `mem`), so there is nothing to compare and nothing to

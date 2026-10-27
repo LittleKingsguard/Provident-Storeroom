@@ -4,7 +4,7 @@ import { appendOwn, fail, refusalLog } from './refusal.mjs';
 import { withAddon, require_ } from './artefact.mjs';
 import { classSpelling, isAdmittedArray, isPlainObjectValue } from './class-decision.mjs';
 import { constraintAddress } from './frame.mjs';
-import { currentWindow, homeAddressKey, installRestartConsumer, isStoreReceiver, openCommits } from './state.mjs';
+import { currentWindow, homeAddressKey, installRestartConsumer, isStoreReceiver, openCommits, closeCommit, openCommit, windowMark } from './state.mjs';
 // **THE KERNEL'S OWN RECORD, FOR ONE FIELD AND ONE ONLY** (`D-46`/`D-30`): `kernelFor(store)` answers the
 // instance's kernel record — the same accessor every kernel act takes the instance through — and
 // `reversalAtRest` below reads that record's own `live` map for the count of OPEN ATTEMPTS. `kernel-foundations`
@@ -1691,46 +1691,63 @@ export function judgeReversal(instance, watched, reversalId) {
     }
     return undefined;
   }
-  // THE MOVED SET IS TAKEN FIRST, ONCE: the judgement's subject is the CHANGE the reversal made and nothing
-  // wider, and the same list is what a refusal has to put back — with the tier capture the watch took, so a
-  // restore knows WHERE each value stood and not merely what it was.
-  const moved = [];
-  for (let index = 0; index < watched.length; index += 1) {
-    const one = watched[index];
-    // THE ADDRESS IS READ AGAIN, AT THE STATE THE REVERSAL LEFT. **A STANDING THIS REVERSAL DID NOT MOVE IS
-    // NOT A STANDING IT LEFT**, so the pair is not asked and cannot refuse the reversal for a state the
-    // reversal found.
-    const after = standingAt(instance, one.address);
-    if (sameStanding(one.before, after) === true) continue;
-    appendOwn(moved, {
-      entry: one.entry,
-      address: one.address,
-      before: one.before,
-      beforeTier: one.beforeTier,
-      beforeTiers: one.beforeTiers,
-      after,
-    });
-  }
-  for (let index = 0; index < moved.length; index += 1) {
-    const one = moved[index];
-    // **THE BODY'S THROW IS THE JUDGEMENT'S OWN CATCH AND NOT A PROPAGATING VALUE** — `reversalOutcome` converts
-    // a body's throwable to the surface's rank-`18` form and re-throws anything unmarked as itself, and BOTH
-    // arrive here: the reversal has run, so a judgement that cannot complete restores and refuses (below).
-    let outcome;
-    try {
-      outcome = reversalOutcome(instance, one.entry, one.address, one.after);
-    } catch (thrown) {
-      const undo = restoreReversal(instance, moved);
-      throw reversalRefusal(one, one.after, null, reversalId, undo, thrown);
+  // **⟶ AND THE AT-REST JUDGEMENT RUNS INSIDE A COMMIT, 2026-10-27 — `D-44`'s INVARIANT AND `DEF-AE`'S CACHE.**
+  // `D-44`: *"There should be no state where a constraint is being checked without an open commit. Any action that
+  // would cause a constraint check should open a commit before beginning."* **THE AT-REST JUDGEMENT WAS THE ONE
+  // CHECK THAT RAN OUTSIDE ONE** — `reversalWatch` had already decided `reversalAtRest` on the count this call
+  // found (`open` `0`, `live` `0`), so the discriminator's reading is unmoved by the opening that follows it —
+  // **and the window it opens is what carries the mark the restore owes back** (`state.mjs`'s `openCommit` caches
+  // the journal's last valid position at the opening; `windowMark` answers it). **A REVERSAL APPENDS NO ENTRY**, so
+  // the mark taken here is still the PRE-REVERSAL state — which is why the at-rest control restores exactly what
+  // it restored before. **ON THE RESTART ARM THIS CALL JOINS** the pass's window (the drain runs inside the pass's
+  // own scope, `kernel-attempt.mjs`) and re-caches nothing, so the mark in flight stays the OUTERMOST opening's:
+  // the position the attempt found. **THE `finally` RELEASES THE WINDOW ON EVERY ARM, INCLUDING THE THROWING ONE**,
+  // because a refusal that leaves a commit standing is the count this package's own cells measure.
+  const opened = openCommit(instance);
+  try {
+    // THE MOVED SET IS TAKEN FIRST, ONCE: the judgement's subject is the CHANGE the reversal made and nothing
+    // wider, and the same list is what a refusal has to put back — with the tier capture the watch took, so a
+    // restore knows WHERE each value stood and not merely what it was.
+    const moved = [];
+    for (let index = 0; index < watched.length; index += 1) {
+      const one = watched[index];
+      // THE ADDRESS IS READ AGAIN, AT THE STATE THE REVERSAL LEFT. **A STANDING THIS REVERSAL DID NOT MOVE IS
+      // NOT A STANDING IT LEFT**, so the pair is not asked and cannot refuse the reversal for a state the
+      // reversal found.
+      const after = standingAt(instance, one.address);
+      if (sameStanding(one.before, after) === true) continue;
+      appendOwn(moved, {
+        entry: one.entry,
+        address: one.address,
+        before: one.before,
+        beforeTier: one.beforeTier,
+        beforeTiers: one.beforeTiers,
+        after,
+      });
     }
-    if (outcome === true) continue;
-    // **THE FIRST VIOLATING PAIR DECIDES AND THE SECOND IS NOT EVALUATED** (`attempt-lifecycle.md §2.4` item 5
-    // (ii)–(iii), at the reversal's own instant) — and BEFORE the refusal is built, EVERY address the reversal
-    // moved is put back, so the store the consumer meets holds no state this refusal refused.
-    const undo = restoreReversal(instance, moved);
-    throw reversalRefusal(one, one.after, reversalSaid(outcome), reversalId, undo, null);
+    for (let index = 0; index < moved.length; index += 1) {
+      const one = moved[index];
+      // **THE BODY'S THROW IS THE JUDGEMENT'S OWN CATCH AND NOT A PROPAGATING VALUE** — `reversalOutcome` converts
+      // a body's throwable to the surface's rank-`18` form and re-throws anything unmarked as itself, and BOTH
+      // arrive here: the reversal has run, so a judgement that cannot complete restores and refuses (below).
+      let outcome;
+      try {
+        outcome = reversalOutcome(instance, one.entry, one.address, one.after);
+      } catch (thrown) {
+        const undo = restoreReversal(instance, moved);
+        throw reversalRefusal(one, one.after, null, reversalId, undo, thrown);
+      }
+      if (outcome === true) continue;
+      // **THE FIRST VIOLATING PAIR DECIDES AND THE SECOND IS NOT EVALUATED** (`attempt-lifecycle.md §2.4` item 5
+      // (ii)–(iii), at the reversal's own instant) — and BEFORE the refusal is built, EVERY address the reversal
+      // moved is put back, so the store the consumer meets holds no state this refusal refused.
+      const undo = restoreReversal(instance, moved);
+      throw reversalRefusal(one, one.after, reversalSaid(outcome), reversalId, undo, null);
+    }
+    return undefined;
+  } finally {
+    closeCommit(instance, opened);
   }
-  return undefined;
 }
 
 /// **THE REFUSAL'S OWN UNDOING — THE STORE RETURNS ITS OWN STATE TO ITS JOURNAL MARK, AND THE WATCH SAYS WHAT
@@ -1756,6 +1773,34 @@ export function judgeReversal(instance, watched, reversalId) {
 /// stood BEFORE it — the state this act owes back. The call therefore passes NO position at all, which the
 /// boundary's own codec folds to the carrier's ABSENT arm (`crossing.md §1.3`): the store's own spelling for
 /// *"the head"*.
+///
+/// **⟶ AND THE TWO PARAGRAPHS ABOVE ARE READ THROUGH THEIR MARK, 2026-10-27 — THE ARCHITECT'S RULING, VERBATIM:
+/// *"Cache the restoreMark when opening a commit, based on the last valid state/op of the journal."*** `RCA-8(g)`
+/// ANNOTATE-BESIDE: **every byte above stands and this clause is the operative statement of WHICH mark the act
+/// names.** **THE HEAD IS NO LONGER TRUSTED, AND THE REASON IS THE MEASUREMENT `DEF-AE` FILED:** *"a reversal
+/// appends no journal entry, so the head describes the state that stood before the action"* is TRUE OF A REVERSAL
+/// TAKEN AT REST and FALSE OF ONE TAKEN INSIDE A WRITE'S COMMIT — **in the restart arm the enclosing write's own op
+/// stands at the head when the listener's reversal runs**, so the head described the WRITE'S LANDING and the
+/// compensation restored the refusal's own value: **the store stood at `7` where the attempt found `9`, and the
+/// write that reported the refusal had landed its value.** **SO THE ACT NAMES THE MARK ITS COMMIT CACHED AT ITS
+/// OPENING** — `state.mjs`'s `openCommit` reads the store's own `journalMark` (`src/store.rs`: the last VALID
+/// mark, which is the head at that instant and is named as a VALUE) and stands it on the window; `windowMark`
+/// answers it here, and the store's `restoreMark` replays to it. **THE INSTANT IS THE WHOLE FIX**: the opening
+/// precedes anything the commit lands, so the cached position is the state the attempt FOUND — the pre-attempt
+/// state, which is what a failed attempt owes back. **A JOIN RE-CACHES NOTHING** (`D-45`/`D-46` decide which
+/// openings are outermost: a repair's write and a pass's scope join, so they take the outermost mark and not a
+/// later one), and **a callback's own commit is its own opening with its own cache** (a listener body's call names
+/// nothing and opens, so the mark it restores to is where ITS window opened). **THE MARK IS OPAQUE HERE**: the
+/// store answered a carrier — `{k:'s', v:<op id>}`, or `{k:'F'}` for the FLOOR, the state the store was born with
+/// when the journal held no entry at the opening — and this act hands the very same carrier back. **NEITHER THE
+/// PACKAGE NOR THIS FUNCTION COMPOSES A POSITION.**
+///
+/// **AND A WINDOW WITH NO CACHE IS A WINDOW THAT NEVER OPENED: THIS ACT REFUSES RATHER THAN FALLING BACK TO THE
+/// HEAD** — the head is the value this ruling exists to stop trusting, and a silent fall-back would restore it
+/// while a consumer was told the reversal was undone. **THE REFUSAL IS THE ACT'S, NOT THE CALL'S**: no store verb
+/// is invoked, no status is minted (`DD-40`), every address the reversal moved is reported as NOT restored with
+/// what stands there instead, and the log entry says the window carried no cached mark — so the crossed form, its
+/// `status` and its member set are unmoved and the consumer is never told a restoration happened that did not.
 ///
 /// **WHAT THE CAPTURE SURVIVES AS, AND WHY IT IS NOT A FALLBACK.** `reversalWatch`'s per-tier capture is still
 /// taken, and it is the ONLY record of **what was owed** — it is the DEBT'S RECORD and the VERIFICATION
@@ -1786,14 +1831,25 @@ export function judgeReversal(instance, watched, reversalId) {
 /// NO SECOND SAVE IS ATTEMPTED** — the store's answer is the whole report.
 function restoreReversal(instance, moved) {
   const addon_ = withAddon();
-  // THE ONE ACT: the store returns its own state to the state its journal's head describes. NO POSITION IS
-  // SUPPLIED — the boundary's codec folds an unsupplied position to the carrier's ABSENT arm, which is the
-  // store's own spelling for the head (`rollback`'s own absent-position rule, `crossing.md §1.3`).
+  // **THE ONE ACT: THE STORE RETURNS ITS OWN STATE TO THE MARK ITS COMMIT CACHED AT ITS OPENING** (`windowMark`,
+  // `state.mjs`) — NOT to the journal's head, which is the write's own landing on the restart arm. **THE CARRIER
+  // IS THE STORE'S OWN ANSWER, HANDED BACK VERBATIM**: `{k:'s', v:<op id>}` names an entry and `{k:'F'}` names the
+  // FLOOR (the state the store was born with, where the journal held no entry when the commit opened). **NOTHING
+  // IS COMPOSED HERE**, so the mark has one spelling and it lives at the store's edge.
   let refused = null;
-  try {
-    Reflect.apply(addon_.restoreMark, instance, []);
-  } catch (why) {
-    refused = why;
+  let cacheless = false;
+  const mark = windowMark(instance);
+  if (mark === undefined) {
+    // **A WINDOW WITH NO CACHE IS A WINDOW THAT NEVER OPENED, AND THIS REFUSES RATHER THAN FALLING BACK TO THE
+    // HEAD.** No store verb is invoked, so the store holds the state it held — and the count below claims NO
+    // address restored, so the sentence that reaches the consumer says the reversal was not undone.
+    cacheless = true;
+  } else {
+    try {
+      Reflect.apply(addon_.restoreMark, instance, [mark]);
+    } catch (why) {
+      refused = why;
+    }
   }
   // **THE STORE'S ANSWER IS CLASSIFIED BEFORE ANY ADDRESS IS COUNTED — 2026-10-27, THE FILE-SAVE RULING.** A
   // REFUSED MARK leaves the store as it was, so no address may be claimed restored. **A FAILED SAVE does not**:
@@ -1801,9 +1857,10 @@ function restoreReversal(instance, moved) {
   // exactly as it is on the passing arm, and the file's own half is recorded beside the count (`unsaved`) for
   // the ONE sentence that names it. **THIS IS THE VERIFICATION EXTENDED TO THE FILE**: the restore already
   // counts the addresses it put back; the count is not narrowed by a failure that did not affect them, and the
-  // bytes are reported as the thing that did fail.
+  // bytes are reported as the thing that did fail. **AND THE CACHELESS ARM IS A THIRD, WHICH NEVER RESTORES**:
+  // no mark was supplied, so no address may be counted.
   const unsaved = saveRefused(refused);
-  const stateRestored = refused === null || unsaved !== null;
+  const stateRestored = cacheless === false && (refused === null || unsaved !== null);
   let restored = 0;
   const failed = [];
   // ONE VERIFICATION PER ADDRESS: two pairs over one address (or one pair naming it twice) must not be counted
@@ -1833,7 +1890,7 @@ function restoreReversal(instance, moved) {
       tiers: verdict.tiers,
     });
   }
-  return { restored, total: measured.length, failed, refused, unsaved };
+  return { restored, total: measured.length, failed, refused, unsaved, cacheless };
 }
 
 /// **WHETHER A LOCAL LIST OF SPELLINGS ALREADY HOLDS ONE** — a local index loop and not `Array.prototype.includes`.
@@ -1890,7 +1947,14 @@ function undoSpelling(undo) {
   // store's own (`restoreReversal`), so a refusal it answered is the FIRST thing a consumer must hear — its
   // status and its own generated message (`DD-52`) — and it is never spoken for by a claim about the state.
   let refusal = '';
-  if (undo.unsaved !== null && undo.unsaved !== undefined) {
+  if (undo.cacheless === true) {
+    // **⟶ AND THE CACHELESS ARM OPENS THE SENTENCE, 2026-10-27** (`restoreReversal` above): **a window with no
+    // cached journal mark is a window that never opened, and the act refused rather than falling back to the
+    // head.** No status is named — no store verb was reached and none refused — and the one fact a consumer must
+    // hear is that nothing was restored, which is what the count below then spells address by address.
+    refusal = 'the commit window this reversal ran in carries NO CACHED JOURNAL MARK, so the store was NOT asked '
+      + 'to restore it and holds the state the reversal left; ';
+  } else if (undo.unsaved !== null && undo.unsaved !== undefined) {
     // THE SAVE'S ARM: read as own data members and off no chain (`D-35`'s read half), exactly as the refused
     // mark's status and sentence are read below.
     const carried = typeof undo.unsaved === 'object';

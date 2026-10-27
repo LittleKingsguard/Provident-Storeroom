@@ -526,7 +526,27 @@ impl<'e> Codec<'e> {
                 Some(n) => JsOpIdArg::Number(n),
                 None => JsOpIdArg::Number(f64::NAN),
             },
+            // **⟶ AND THE MARK'S FLOOR ROW, ADDED 2026-10-27 — THE ONE TAG THE PACKAGE NEVER SPELLS ITSELF**
+            // (`{k:'F'}`, `crossing.rs`'s `JsOpIdArg::Floor`). **IT ROUND-TRIPS**: the addon's `journalMark`
+            // entry answers it where the journal holds no entry (`to_js_mark` below), the window cache keeps
+            // that same carrier, and `restoreMark` reads it here as the restore's floor. **NO OTHER VERB GIVES
+            // IT A MEANING** — `rollback` folds it to the op-id carrier's own malformed row (`to_op_id_arg`),
+            // so the mark's domain moves by exactly this one row and `PAR-10`'s op-id domain does not move.
+            "F" => JsOpIdArg::Floor,
             _ => JsOpIdArg::Absent,
+        }
+    }
+
+    /// **⟶ ADDED 2026-10-27 — THE MARK, WRITTEN AS THE CARRIER THE RESTORE READS BACK.** `journalMark`'s answer
+    /// is a MARK and not a bare string, so the package can hold the store's own spelling and hand it back
+    /// unchanged: `Some(id)` is `OpIdArg`'s string row (`{k:'s', v:id}`), and `None` — the journal holds no
+    /// entry, the state the store was born with — is the FLOOR row (`{k:'F'}`, `op_id_of` above). **THE FLOOR
+    /// IS A POSITION AND NOT AN OP ID**, which is why it is a row of its own: no op id can name a state BEFORE
+    /// the journal's first entry, and the package must not have to spell that fact itself.
+    pub(crate) fn to_js_mark(self, mark: Option<&str>) -> JsVal<'static> {
+        match mark {
+            Some(id) => self.object(vec![("k", self.string_value("s")), ("v", self.string_value(id))]),
+            None => self.object(vec![("k", self.string_value("F"))]),
         }
     }
 

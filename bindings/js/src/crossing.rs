@@ -238,6 +238,15 @@ pub enum JsOpIdArg {
     Null,
     Undefined,
     Number(f64),
+    /// **⟶ THE MARK'S FLOOR — ADDED 2026-10-27, AND IT IS NOT AN OP ID.** The journal's own read
+    /// ([`Instance::journal_mark`]) answers the last valid entry as a mark CARRIER, and where the journal holds
+    /// NO entry it answers this row: **the state the store was born with, which no op id can name** (an op id
+    /// names the state immediately AFTER an operation). **IT IS A DOMAIN EXTENSION OF THE MARK ALONE**: no
+    /// other verb reads it — `rollback` and every carrier row beside this one keep their declared domains
+    /// (`PAR-10`) — and the package never spells it itself: the carrier the store answered is the carrier the
+    /// restore hands back (`bindings/js/src/entry/state.mjs`'s window cache → `constraints.mjs`'s
+    /// `restoreReversal`), so there is ONE spelling of the floor and it is this one.
+    Floor,
 }
 
 /// `crossing.md §1.3`'s `FilePathArg` table, `6` rows.
@@ -463,6 +472,13 @@ pub fn to_op_id_arg(o: &JsOpIdArg) -> OpIdArg {
         JsOpIdArg::Null => OpIdArg::Null,
         JsOpIdArg::Undefined => OpIdArg::Undefined,
         JsOpIdArg::Number(n) => OpIdArg::NonString(*n as i64),
+        // **⟶ THE MARK'S FLOOR IS NOT AN OP ID, SO IT ANSWERS THE OP-ID CARRIER'S OWN MALFORMED ROW HERE**
+        // (`PAR-10`: *"a non-empty string, and nothing else"*). **THE MARK RESTORE IS THE ONE VERB THAT READS
+        // IT** and it intercepts the row before this function is reached ([`Instance::restore_mark`]), so this
+        // arm is never a position the restore has to interpret: it is what every OTHER op-id position
+        // (`rollback`) answers when a caller hands it a mark's floor — the store's own `AddressMalformed` and
+        // no state change, which is exactly what `OpIdArg::Null` already answers for this carrier.
+        JsOpIdArg::Floor => OpIdArg::Null,
     }
 }
 
@@ -1118,14 +1134,35 @@ impl Instance {
         })
     }
 
+    /// **⟶ ADDED 2026-10-27 — `journalMark() → Option<String>`: THE JOURNAL'S LAST VALID MARK, WHICH THE
+    /// ADDON'S NEW ENTRY HANDS ACROSS AND THE PACKAGE CACHES ON THE WINDOW IT OPENS.** It is the store's own
+    /// [`storeroom_native::Store::journalMark`] and nothing else: **the op id of the last entry the journal
+    /// holds, or `None` for the state the store was born with.** **IT OPENS NO COMMIT, REPLAYS NOTHING AND
+    /// TOUCHES NO FILE** — it is a read of the store's own record, so the window that takes it is not moved by
+    /// it. **ITS ANSWER IS A MARK CARRIER AND NOT A BARE STRING** (`crossing.rs`'s `{k:'s', v}` row, and the
+    /// `Floor` row where there is no entry): the cache is the store's answer handed back to the restore
+    /// verbatim, so the mark's spelling lives at the store's edge and nowhere in the package.
+    pub fn journal_mark(&self) -> Option<String> {
+        self.store.journalMark()
+    }
+
     /// **⟶ ADDED 2026-10-27 WITH THE JOURNAL MARK RESTORE, AND IT IS THE ONE-LINE CARRIER `rollback` ABOVE IS:**
     /// the addon's `restoreMark` entry (`facade.rs`) reaches the store through this instance exactly as every
     /// other per-verb entry does, so the mark's carrier (`JsOpIdArg`, whose ABSENT arm is the journal's HEAD)
     /// crosses here and the store's own `restoreMark` answers. **IT ANSWERS `()`** — the state is read back
     /// through `read`, which is the ONE route to state (`surface.md §2.4` item 9), and no record is shaped
     /// for a verb whose whole product is the state the journal already records.
+    ///
+    /// **⟶ AND THE MARK'S FLOOR CROSSES HERE TOO, 2026-10-27 — `JsOpIdArg::Floor` IS THE ONE ROW THAT IS A
+    /// POSITION AND NOT AN OP ID.** It is the carrier [`Instance::journal_mark`] answers when the journal holds
+    /// no entry, and the restore's floor is the store's own `restoreFloor` (the born state, `§6.6`). **EVERY
+    /// OTHER ROW IS THE STORE'S OP-ID CARRIER, UNCHANGED** — an op id, the ABSENT head, and `PAR-10`'s
+    /// malformed rows — so the restore's declared domain moves by exactly one mark and no other verb's does.
     pub fn restore_mark(&mut self, mark: &JsOpIdArg) -> Result<(), Refusal> {
-        self.store.restoreMark(to_op_id_arg(mark)).map_err(refusal)
+        match mark {
+            JsOpIdArg::Floor => self.store.restoreFloor().map_err(refusal),
+            other => self.store.restoreMark(to_op_id_arg(other)).map_err(refusal),
+        }
     }
 
     /// **⟶ `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`): `listen(handle, addresses)` — THE CALLER

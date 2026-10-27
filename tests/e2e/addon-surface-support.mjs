@@ -86,8 +86,29 @@ export const PER_VERB_TENTH = [
   { name: 'restoreMark', arity: 1, clause: 'src/store.rs §6.6 — the journal mark restore, beside `rollback`' },
 ];
 
-/** **THE FOURTEEN, AS ONE SET** — `4 + 9 + 1 = 14 ✓` (`§1`'s own `[CENSUS]`, read with `PER_VERB_TENTH`). */
-export const DECLARED_SURFACE = [...STANDING_FOUR, ...PER_VERB_NINE, ...PER_VERB_TENTH];
+/**
+ * **⟶ THE ELEVENTH ENTRY, ADDED 2026-10-27 — AND IT IS NEITHER ONE OF THE NINE NOR THE TENTH.**
+ *
+ * `journalMark()` is the JOURNAL'S LAST VALID MARK, read from the store's own record (`src/store.rs`'s
+ * `journalMark`) and cached at the commit's opening (`bindings/js/src/entry/state.mjs`'s `openCommit`), so a
+ * refused reversal restores the position its commit FOUND rather than the journal's head (`DEF-AE`'s fix).
+ * **It adds no member to the product's fourteen** — the package reaches it at the boundary's own entry, from
+ * the commit opening, and by nothing else. **SO THE SET IS `4` STANDING + `9` PER-VERB + `1` BESIDE THEM + `1`
+ * MORE BESIDE THEM = `15`,** and the row keeps its own group for the same reason the tenth did: the census must
+ * still say which entries the split declared and which arrived after it.
+ *
+ * **ITS ARITY IS `0`** — it reads the store's own journal and names a position, so there is nothing for a caller
+ * to supply — **and its answer is a MARK CARRIER** (`{k:'s', v:<op id>}`, or `{k:'F'}` for the FLOOR where the
+ * journal holds no entry), the very carrier the restore hands back.
+ */
+export const PER_VERB_ELEVENTH = [
+  { name: 'journalMark', arity: 0, clause: 'src/store.rs §6.6 — the journal\'s last valid mark, read at the commit opening' },
+];
+
+/** **THE FIFTEEN, AS ONE SET** — `4 + 9 + 1 + 1 = 15 ✓` (`§1`'s own `[CENSUS]`, read with `PER_VERB_TENTH` and
+ *  `PER_VERB_ELEVENTH`). **THE PRODUCT'S FOURTEEN ARE UNMOVED**: every one of the fourteen keeps its name and
+ *  its arity, and the fifteenth is an ADDON entry the product never carries. */
+export const DECLARED_SURFACE = [...STANDING_FOUR, ...PER_VERB_NINE, ...PER_VERB_TENTH, ...PER_VERB_ELEVENTH];
 
 /** The thirteen NAMES, sorted — the form `S-EXPORT-SET` asserts against, *"assert equality with the declared
  *  set, sorted"* (`contract.md §5`, `P-SAS-1`). */

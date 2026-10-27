@@ -290,10 +290,13 @@ export function externalCall(store, run) {
   return run();
 }
 
-/** The per-store index: `{ open, observers, windows, windowSeq }`, keyed by the store instance and by nothing
- *  else. **`windows` IS THE STACK OF OPEN WINDOW IDENTITIES** — one number per commit this store opened, the
+/** The per-store index: `{ open, observers, windows, marks, windowSeq }`, keyed by the store instance and by
+ *  nothing else. **`windows` IS THE STACK OF OPEN WINDOW IDENTITIES** — one number per commit this store opened, the
  *  top being the window in flight — and it exists so a restart request can name the window that raised it
- *  (`D-42`'s *"a request belongs to the act that raised it"*, made a measurement instead of an inference). */
+ *  (`D-42`'s *"a request belongs to the act that raised it"*, made a measurement instead of an inference).
+ *  **`marks` IS THE STACK BESIDE IT AND IT IS THE SAME ONE STACK READ AS THE JOURNAL MARK** — one entry per commit
+ *  that OPENED, pushed and popped in lockstep with `windows` (`openCommit`/`closeCommit`), so `windowMark` answers
+ *  the outermost opening's mark and a join neither pushes nor pops. */
 const ATTEMPT_INDEX = new WeakMap();
 
 function attemptIndex(store) {
@@ -308,7 +311,7 @@ function attemptIndex(store) {
     // refusal.** The list preserves the Set's own two facts — insertion order and uniqueness — and the copy
     // is taken before any notification, so an observer that removes itself mid-notification still moves
     // nothing.
-    index = { open: 0, observers: [], windows: [], externalAt: [], windowSeq: 0 };
+    index = { open: 0, observers: [], windows: [], marks: [], externalAt: [], windowSeq: 0 };
     ATTEMPT_INDEX.set(store, index);
   }
   return index;
@@ -354,6 +357,54 @@ export function currentWindow(store) {
   return windows.length === 0 ? 0 : windows[windows.length - 1];
 }
 
+/// **⟶ ADDED 2026-10-27 — THE MARK THE WINDOW IN FLIGHT CACHED AT ITS OPENING, AND `undefined` WHERE NO COMMIT
+/// IS OPEN.**
+///
+/// **THE RULING IT CARRIES, THE ARCHITECT, VERBATIM: *"Cache the restoreMark when opening a commit, based on the
+/// last valid state/op of the journal."*** **THE DEFECT IT CLOSES IS `DEF-AE`'s AND IT IS A DATA-INTEGRITY ONE:**
+/// the refused reversal's restore named **the journal's HEAD**, on the reasoning that *"a reversal appends no
+/// journal entry, so that head describes the state that stood BEFORE the action"* — **a reasoning that fails on
+/// exactly one arm**. In the restart arm the ENCLOSING WRITE'S OWN OP STANDS AT THE HEAD when the listener's
+/// reversal runs, so the compensation restored **the write's landing, not the pre-attempt state**: a write that
+/// reported refusal left its own value standing (`9 → 7`).
+///
+/// **SO THE MARK IS TAKEN WHERE IT IS TRUE AND NOT WHERE IT IS NEEDED.** Every commit that OPENS reads the store's
+/// last valid mark (`withAddon().journalMark`, the store's own `journalMark`) and stands it on the window beside
+/// the window's identity. **THE INSTANT IS THE WHOLE POINT**: at an outermost opening nothing of the attempt has
+/// landed yet, so the mark names the state the commit FOUND. A JOIN IS THE SAME ACT AND RE-CACHES NOTHING — a join
+/// appends no window and no mark, so the cache in flight stays the outermost opening's — which is what makes a
+/// repair's write (a join, `D-46`) and a pass's scope (a join on the production path, `D-44`) read the attempt's
+/// own position rather than a later one. **A CALLBACK'S OWN COMMIT IS ITS OWN OPENING WITH ITS OWN CACHE**
+/// (`D-45`/`D-46`: a listener body's call names nothing and opens), so the mark a listener's own attempt restores
+/// to is where ITS window opened.
+///
+/// **A WINDOW WITH NO CACHE IS A WINDOW THAT NEVER OPENED, AND `undefined` IS ITS SPELLING.** The store answers
+/// `{k:'s', v:<op id>}` where the journal holds an entry and `{k:'F'}` where it holds none (the FLOOR — the state
+/// the store was born with); `undefined` means the read could not answer at all (a store whose artefact could not
+/// be reached), and the refused-reversal restore REFUSES rather than falling back to the head
+/// (`constraints.mjs`'s `restoreReversal` states that arm). **THE MARK IS OPAQUE HERE**: this file caches the
+/// store's own carrier and never composes a position of its own.
+export function windowMark(store) {
+  const index = attemptIndex(store);
+  if (index.windows.length === 0) return undefined;
+  return index.marks[index.marks.length - 1];
+}
+
+/// **THE MARK THE OPENING TAKES** — the store's own read, once per commit that OPENS and never per join. **IT IS
+/// TAKEN THROUGH THE ENTRY THE ADDON PUBLISHES** (`journalMark`), bound to the store object exactly as every other
+/// addon call is (`commitFile` above is the same form). **A READ THAT THROWS IS A WINDOW WITH NO CACHE AND NOT A
+/// REFUSED CALL**: the opening is not the act the consumer asked for, and refusing the consumer's verb because the
+/// journal read failed would answer a form the verb does not declare — so the arm answers `undefined`, the window
+/// stands without a cache, and the one consumer that needs the mark refuses its own restore instead.
+function journalMarkAtOpening(store) {
+  try {
+    const addon_ = withAddon();
+    return Reflect.apply(addon_.journalMark, store, []);
+  } catch (unanswered) {
+    return undefined;
+  }
+}
+
 /** **THE INCREMENT MOMENT** (`PAR-ADA-15`): the opening of a commit. It is taken iff THIS call opens one —
  *  a call that finds the count already above zero has joined an extant commit and opens nothing.
  *
@@ -396,6 +447,14 @@ export function openCommit(store, commit) {
   // kept exact in the identity too, and no window id is ever reused.
   index.windowSeq += 1;
   appendOwn(index.windows, index.windowSeq);
+  // **⟶ AND THE MARK THE OPENING TAKES, 2026-10-27 — THE ARCHITECT'S RULING: *"Cache the restoreMark when opening
+  // a commit, based on the last valid state/op of the journal."*** **THE CACHE IS TAKEN HERE AND ONLY HERE**: this
+  // is the arm that OPENS (a join returned above and takes nothing), so the store's read names the journal's
+  // position at the instant the commit was entered — before anything the commit will land has landed. **IT IS
+  // TAKEN BEFORE THE OBSERVERS FIRE** (the notification below is part of the opening, and an observer that acts
+  // would open its own commit; this window's mark is the one that stood when the window itself opened). It is
+  // pushed in lockstep with `windows` so the two stacks are one stack, and `closeCommit` releases it with it.
+  appendOwn(index.marks, journalMarkAtOpening(store));
   // **AND THE DEPTH FALLBACK'S OWN RECORD IS STOOD BESIDE IT**: the depth this commit was opened at, in lockstep
   // with `windows`, so the next unnamed call can tell the package's own continuation from a callback's act.
   appendOwn(index.externalAt, EXTERNAL_DEPTH);
@@ -419,15 +478,20 @@ export function closeCommit(store, opened) {
   // prototype's `slice`/`pop` (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`/`F8-2`). A joining call
   // opened nothing and releases nothing, so the enclosing window's identity stands. **AND THE DEPTH STOOD BESIDE
   // IT GOES WITH IT, IN THE SAME LOOP AND AT THE SAME INSTANT**: the two stacks are one stack read two ways, so a
-  // commit's depth can never be left standing for a commit that has closed.
+  // commit's depth can never be left standing for a commit that has closed. **AND THE MARK THE OPENING CACHED
+  // GOES WITH IT IN THAT SAME LOOP** — `windows`, `externalAt` and `marks` are one stack read three ways, so no
+  // closed window's journal position can be answered to a later act.
   const kept = [];
   const keptAt = [];
+  const keptMark = [];
   for (let i = 0; i + 1 < index.windows.length; i += 1) {
     appendOwn(kept, index.windows[i]);
     appendOwn(keptAt, index.externalAt[i]);
+    appendOwn(keptMark, index.marks[i]);
   }
   index.windows = kept;
   index.externalAt = keptAt;
+  index.marks = keptMark;
 }
 
 /// **THE TWO CHANNELS, INSTALLED ONCE ON THE OBJECT `storeCreate` RETURNS** (`§4.2` item 4: *"`storeCreate`

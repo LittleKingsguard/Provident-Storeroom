@@ -159,10 +159,20 @@ test('IN-COMMIT RESTART (1) · a violating `rollback` issued from a LISTENER BOD
     `the pair is asked at REGISTRATION (${LANDED}), by the write's PASS (${THIRD}) and — from \`D-42\` — by `
       + `the RESTART, at the state the reversal left (${SEED}). THE DRIVE WAS ASKED AT `
       + `${JSON.stringify(asked)}`);
-  assert.equal(standing, THIRD,
-    `the violating effect does not stand: the refusal's own compensation restores the pre-reversal state, and `
-      + `a reversal appends no journal entry, so that state is the journal's head — the drive read `
-      + `${JSON.stringify(standing)} where ${JSON.stringify(SEED)} would be the violating effect standing`);
+  // **⟶ RE-DERIVED 2026-10-27 (`DEF-AE`'s FIX; THE ARCHITECT'S RULING: *"Cache the restoreMark when opening a
+  // commit, based on the last valid state/op of the journal."*).** **THE ASSERTION ABOVE READ `${THIRD}` — THE
+  // WRITE'S OWN LANDING — AND THAT WAS THE DEFECT, NOT THE EXPECTATION.** The compensation used to name the
+  // journal's HEAD on the reasoning that *"a reversal appends no journal entry"*; **in THIS arm the enclosing
+  // write's own op stood at the head when the listener's reversal ran**, so the head described the write's
+  // LANDING. **THE MARK THE RESTORE OWES IS THE ONE ITS COMMIT CACHED AT ITS OPENING — taken before anything the
+  // commit lands — so the store stands where the ATTEMPT FOUND IT: `${LANDED}`, the value the pair was registered
+  // at, and never `${THIRD}`, the refusal's own value.** `RCA-8(g)` ANNOTATE-BESIDE: this cell's subject is
+  // unchanged (the refusal refuses AND restores) and only the state it restores TO moves.
+  assert.equal(standing, LANDED,
+    `**THE STORE STANDS WHERE THE ATTEMPT FOUND IT** — the refusal's own compensation restores the mark the `
+      + `write's commit cached at its OPENING (${LANDED}), and NOT the journal's head, which is the write's own `
+      + `landing (${THIRD}). THE DRIVE READ ${JSON.stringify(standing)} where ${JSON.stringify(SEED)} would be the `
+      + `violating effect standing and ${JSON.stringify(THIRD)} the refusal's own value`);
 
   t.diagnostic(`IN-COMMIT RESTART (1) · D-42 (2026-10-27) · LISTENER ARM: window ${JSON.stringify(facts[0])} `
     + `⇒ the reversal ANSWERED its record ${JSON.stringify(inner.value)} (not judged as a step), the check `
@@ -219,9 +229,12 @@ test('IN-COMMIT RESTART (2) · a violating `rollback` issued from a CONSTRAINT B
   assert.deepEqual(asked, [LANDED, THIRD, SEED],
     `the pair is asked at REGISTRATION, by the PASS and — from \`D-42\` — by the RESTART at the state the `
       + `reversal left. THE DRIVE WAS ASKED AT ${JSON.stringify(asked)}`);
-  assert.equal(standing, THIRD,
-    `the violating effect does not stand: the store is restored to the pre-reversal state — the drive read `
-      + `${JSON.stringify(standing)}`);
+  // **⟶ RE-DERIVED 2026-10-27 BY THE SAME RULING AS ARM (1)** (`DEF-AE`'s fix): the mark is the one the commit
+  // cached at its opening, so the body arm stands at the pre-attempt state `${LANDED}` and never at the write's
+  // own landing `${THIRD}`.
+  assert.equal(standing, LANDED,
+    `**THE STORE STANDS WHERE THE ATTEMPT FOUND IT** (${LANDED}) — the mark the commit cached at its opening, not `
+      + `the journal's head (${THIRD}, the write's landing): the drive read ${JSON.stringify(standing)}`);
 
   t.diagnostic(`IN-COMMIT RESTART (2) · D-42 (2026-10-27) · BODY ARM: window ${JSON.stringify(facts[0])} ⇒ `
     + `the reversal ANSWERED ${JSON.stringify(inner.value)}; the pair was asked at ${JSON.stringify(asked)} `

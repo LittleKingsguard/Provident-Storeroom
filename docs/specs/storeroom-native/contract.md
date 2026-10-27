@@ -3869,6 +3869,41 @@ own mechanism — the store reaches a state by journaling; `§6.1` item 5, `§6.
 `§3.4`'s monotonic clause, `§7.2` items 1 and 3, `§8.1`'s `JournalOpUnknown`, `parameter-semantics.md §2.10` |
 CONTRACT + one DECLARED-DEFAULT (item 4's empty-journal arm)]`
 
+7. **⟶ ADDED 2026-10-27 — THE MARK IS NAMED: `journalMark() → OpId | FLOOR`, AND THE STORE SAYS WHICH ENTRIES ARE
+   VALID MARKS.** The architect's ruling, verbatim: *"Cache the restoreMark when opening a commit, based on the
+   last valid state/op of the journal."* **THE HEAD WAS ALWAYS REACHABLE — BY SUPPLYING NO POSITION — BUT IT WAS
+   NEVER NAMEABLE AS A VALUE, AND THEREFORE NEVER CACHEABLE.** The surface could only ask the store for *"the
+   head, now"*, so a compensating act that ran later restored a LATER position; **`journalMark` is the same
+   position named at the instant it stands.** It answers **the op id of the last entry the journal holds**, or
+   **the FLOOR** where the journal holds none, and it is a PURE READ — no entry, no compaction, no replay, no
+   trigger and no file. **WHAT "VALID" MEANS IS DECIDED HERE AND MEASURED IN BOTH DIRECTIONS:**
+   * **AN ENTRY A FAILED `file`-SAVE REMOVED IS GONE AND IS NOT A MARK.** `commit_file`'s failing arm removes the
+     entry it just reverted (`§7.2` item 3), so the read answers the entry BEFORE it and `restoreMark` refuses
+     the removed id with `JournalOpUnknown` (`M-11`) — `s6_6_bis_an_entry_a_failed_file_save_removed_is_not_a_mark`;
+   * **A COMPACTED ENTRY IS STILL A MARK.** `journalLength` MARKS entries `compacted` (`§6.1` item 5) and removes
+     none, and the replay reads every entry the journal holds — so the last valid mark after a reversal is still
+     the head and still replays (`s6_6_bis_the_last_valid_mark_is_the_head_and_a_compacted_entry_is_still_a_mark`,
+     beside `s6_6_a_mark_outside_the_window_is_still_replayable`).
+   **AND EVERY PRESENT ENTRY IS REPLAYABLE**, which is why PRESENCE is the membership test rather than a second
+   predicate: each operation records its own `after` per version and per tier (item 2) and the replay re-derives
+   every home from the floor forward. **A reversal never erases the entries it reverses** (`M-9`/`M-6` mark and
+   remove nothing), so the pre-reversal position stays nameable — which is the whole reason a refused reversal
+   can owe that state back from its own record.
+8. **⟶ AND THE MARK HAS A FLOOR, BECAUSE A POSITION BEFORE THE FIRST ENTRY IS NOT AN OP ID: `restoreFloor() →
+   void`.** An op id names the state immediately AFTER an operation, and `restoreMark`'s ABSENT arm names the
+   HEAD (`M-9`) — so **a commit that opened on an EMPTY journal has no spelling for "the state that stood then"
+   once the attempt's own op is in the record.** `restoreFloor` is that spelling: **the replay of item 2 with NO
+   ENTRY APPLIED**, which is exactly `Store::born` — **the booted `file`-tier image where one was loaded and the
+   empty register where none was** (`§7.2` item 6 journals no entry for a boot). It shares the restore's one
+   replay body, so the floor and an op-id mark cannot drift apart on the replay, the save or the answers, and a
+   floor that moves a `file`-tier node saves exactly as item 5 declares
+   (`s6_6_bis_the_floor_is_the_state_before_the_first_entry_including_the_booted_image`).
+   **THE MARK'S TWO SPELLINGS THEREFORE ARE `OpId` AND `FLOOR`, AND BOTH CROSS AS ONE CARRIER** — an op-id row
+   and a floor row (`crossing.md §1.3`'s mark rows) — **so a caller hands back what the read answered and never
+   composes a position of its own.**
+`[T: the mark's read and its floor, decided by the architect's ruling of 2026-10-27 that a commit caches the
+mark at its opening; the validity predicate is MEASURED in the two §6.6-bis cells and not assumed | CONTRACT]`
+
 
 ---
 

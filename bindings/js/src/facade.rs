@@ -367,6 +367,14 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 // (`src/entry/constraints.mjs`) and by nothing else. The NINE are unmoved, name for name and arity for
 // arity; the set this file declares is `9 + 1 = 10` PER-VERB and `4 + 10 = 14` IN ALL.
 //
+// **⟶ AND AN ELEVENTH STANDS BESIDE THE TEN, ADDED 2026-10-27 (`journalMark`), AND THE SAME RULE GOVERNS IT:
+// IT IS NOT ONE OF THE NINE, NOT ONE OF THE TEN, AND NOT A MEMBER OF THE PRODUCT'S FOURTEEN.** It is the
+// store's own journal read — the last VALID mark of the record (`src/store.rs`'s `journalMark`) — and its one
+// caller is the package's own commit opening (`state.mjs`'s `openCommit`), which caches the mark on the window
+// it opens so a later compensating act restores the position the commit found. **THE SET THIS FILE DECLARES IS
+// THEREFORE `9 + 2 = 11` PER-VERB AND `4 + 11 = 15` IN ALL**, and **NO NAME THE NINE OR THE TENTH CARRY MOVES**:
+// every one of the fourteen keeps its name and its arity, and the eleventh is declared in its own group.
+//
 // **THE DISPATCHER'S STRING INDIRECTION GOES** (`contract.md §2` item 2; `§3`): `call(instance, verb, args)`
 // matched the verb as a JS string across nine arms and showed as its own frame with the verb as DATA. **THE
 // SPLIT IS PRECISELY ITS REPLACEMENT, SO `call` DOES NOT SURVIVE** (`export-set-and-dispatch.md §2`), and
@@ -383,10 +391,12 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 // **THE ARITIES ARE THE CLAUSE'S OWN TABLE, COUNTED FROM THE VERB'S OWN POSITIONS** (`§1`; `§4`), and they
 // were corrected here: the five- and three-position readings this cell carried were the PRE-REMOVAL ones and
 // included the instance position, which is gone. The live table is
-// `read`(2) · `readLiteral`(2) · `write`(4) · `delete`(2) · `rollback`(1) · `restoreMark`(1) · `listen`(2) ·
-// `unlisten`(1) · `removeListener`(1) · `commitFile`(1) — and each equals its entry's declared `#[napi]`
-// parameter count below, the receiver excluded because it is not a declared parameter. **`restoreMark`'s one
-// position is the journal MARK** (`OpIdArg`: an op id, or the ABSENT carrier for the journal's head).
+// `read`(2) · `readLiteral`(2) · `write`(4) · `delete`(2) · `rollback`(1) · `restoreMark`(1) · `journalMark`(0) ·
+// `listen`(2) · `unlisten`(1) · `removeListener`(1) · `commitFile`(1) — and each equals its entry's declared
+// `#[napi]` parameter count below, the receiver excluded because it is not a declared parameter. **`restoreMark`'s
+// one position is the journal MARK** (`OpIdArg`: an op id, or the ABSENT carrier for the journal's head), **and
+// `journalMark`'s ZERO positions are the whole of it** — it reads the store's own record and names the mark that
+// position takes, so there is nothing for a caller to supply.
 //
 // **`commit` IS NOT AN ENTRY AND NEVER WAS AN ARM**: it is `write`'s FOURTH POSITION, whose class test the
 // package takes before this frame is entered (`§2`; `commitPositionRefusal`). **`constraints` IS NOT AN
@@ -766,6 +776,17 @@ fn verb_rollback(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) -> 
 /// refused-reversal restore names, and it is named by ABSENCE and not by a token**: a reversal appends no entry
 /// (`src/store.rs`'s `rollback`), so the head is still the pre-reversal state after the reversal ran.
 ///
+/// **⟶ AND FROM 2026-10-27 THE REFUSED-REVERSAL RESTORE SUPPLIES A MARK AND NO LONGER THE HEAD.** The paragraph
+/// above is the reason the HEAD was trusted and **the reason fails on one arm**: in the restart arm the
+/// enclosing write's own op stands at the head when the listener's reversal runs, so the head describes the
+/// write's LANDING and the refusal's own value stands (`DEF-AE`, measured `9 → 7`). **The mark the restore owes
+/// is the journal's position AT THE MOMENT ITS COMMIT OPENED** — what [`verb_journal_mark`] names and the
+/// package caches on the window (`state.mjs`'s `openCommit`) — so this entry receives a carrier and no longer a
+/// position the package left empty. **WHAT DOES NOT MOVE:** an ABSENT position still answers the head, the
+/// answer is still `undefined`, the form is still the store's one, and the mark's domain moves by exactly ONE
+/// row — the FLOOR (`{k:'F'}`, `crossing.rs`'s `JsOpIdArg::Floor`), which the journal read answers when the
+/// record holds no entry and which restores the state the store was born with.
+///
 /// **WHAT IT DOES NOT DO, AT THIS BOUNDARY.** It opens no commit, evaluates no pair, delivers no listener and
 /// appends no journal entry — the store's own method states each — so the package's judgement is not re-entered
 /// and `D-40`'s no-per-op-walk is untouched.
@@ -785,6 +806,49 @@ fn verb_restoreMark(env: Env, receiver: This<Object<'_>>, mark_pos: JsVal<'_>) -
         let mark = codec.op_id(&mark_pos);
         store.restore_mark(&mark)?;
         Ok(codec.undefined_value())
+    });
+    answer_or_throw(env, answer)
+}
+
+/// **⟶ `journalMark() → a MARK CARRIER` — ADDED 2026-10-27: THE JOURNAL'S LAST VALID MARK, AND IT IS THE ELEVENTH
+/// ENTRY STANDING BESIDE THE TEN (NOT ONE OF THE NINE, NOT A MEMBER OF THE PRODUCT'S FOURTEEN).**
+///
+/// **THE RULING IT SERVES, THE ARCHITECT, VERBATIM: *"Cache the restoreMark when opening a commit, based on the
+/// last valid state/op of the journal."*** The mark a refused reversal must restore is **the journal's position
+/// at the moment its commit opened**, and until this entry the surface could not NAME that position — the head was
+/// reachable only by supplying no position at all, which is the same value at a later instant and therefore a
+/// different state. **So the store names it: the op id of the last entry its journal HOLDS, or the FLOOR where the
+/// journal holds none** (`src/store.rs`'s `journalMark` states what "valid" means and measures it: an entry a
+/// failed `file`-save removed is gone and is not a mark; a compacted entry is still present and still replays and
+/// IS one).
+///
+/// **WHAT IT ANSWERS, AND WHY THE ANSWER IS A CARRIER AND NOT A BARE STRING.** It answers the mark in the very
+/// carrier [`verb_restoreMark`] reads: `{k:'s', v:<op id>}` for an entry, `{k:'F'}` for the floor. **The package
+/// holds the store's answer unchanged and hands it back verbatim** (`state.mjs`'s window cache →
+/// `constraints.mjs`'s `restoreReversal`), so the mark's spelling lives here and nowhere else and the package
+/// never composes a position of its own. **THE FLOOR IS A POSITION AND NOT AN OP ID** — no op id names the state
+/// BEFORE the journal's first entry — which is why it has a row of its own.
+///
+/// **ITS ZERO POSITIONS ARE THE WHOLE OF IT, AND IT IS A PURE READ.** It opens no commit, replays nothing, appends
+/// nothing, compacts nothing, delivers no trigger and touches no file (the store's own method states each), and
+/// its one caller is the package's commit opening — so the read costs one store call per outermost opening and no
+/// consumer's call is moved by it.
+#[napi(js_name = "journalMark")]
+fn verb_journal_mark(env: Env, receiver: This<Object<'_>>) -> NapiRet<'static> {
+    let store_index = match store_index_of(&env, &receiver) {
+        Ok(store_index) => store_index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        // A PURE READ, SO THE TABLE IS BORROWED AND NOT BORROWED MUTABLY: this frame answers the store's own
+        // record and moves nothing.
+        let instances = instances.borrow();
+        let store = instances.get(store_index).ok_or(no_instance_at(store_index))?;
+        Ok(codec.to_js_mark(store.journal_mark().as_deref()))
     });
     answer_or_throw(env, answer)
 }

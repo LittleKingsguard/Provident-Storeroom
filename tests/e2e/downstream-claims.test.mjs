@@ -1042,9 +1042,17 @@ test('DEF-W (2) · a reversal performed INSIDE an open attempt is a STEP and is 
   assert.deepEqual(asked, [REFUSED, W_STEP_THIRD, SEED],
     `the pair is asked at REGISTRATION (${REFUSED}), by the PASS (${W_STEP_THIRD}) and — from \`D-42\` — by the `
       + `RESTART at the state the reversal left (${SEED}). THE DRIVE WAS ASKED AT ${JSON.stringify(asked)}`);
-  assert.equal(stepStanding, W_STEP_THIRD,
-    `the violating effect does not stand: the refusal's own compensation restores the pre-reversal standing, `
-      + `and a reversal appends no journal entry, so that standing is the journal's head — the drive read `
+  // **⟶ RE-DERIVED 2026-10-27 (`DEF-AE`'s FIX; THE ARCHITECT'S RULING: *"Cache the restoreMark when opening a
+  // commit, based on the last valid state/op of the journal."*).** **THE ASSERTION ABOVE READ `${W_STEP_THIRD}` —
+  // THE WRITE'S OWN LANDING — AND THAT WAS THE DEFECT THIS ROW IS FILED ABOUT.** The compensation used to name
+  // the journal's HEAD, and in this arm the enclosing write's own op stood at the head when the body's reversal
+  // ran; **the mark the restore owes is the one its commit cached at its opening**, taken before the value
+  // landed — so the store stands where the ATTEMPT FOUND IT, `${REFUSED}`. `RCA-8(g)` ANNOTATE-BESIDE: the
+  // cell's subject (the step is not judged, the terminal write refuses, the refusal restores) is unchanged; only
+  // the state restored to moves.
+  assert.equal(stepStanding, REFUSED,
+    `**THE STORE STANDS WHERE THE ATTEMPT FOUND IT** (${REFUSED}) — the mark the write's commit cached at its `
+      + `opening, and NOT the journal's head (${W_STEP_THIRD}, the write's own landing): the drive read `
       + `${JSON.stringify(stepStanding)} where ${JSON.stringify(SEED)} would be the violating effect standing`);
 
   // ── AND THE CONTROL'S SHAPE: THE REFUSAL UNDOES THE REVERSAL IT REFUSED (`DEF-W`'s `(a)`, discharged

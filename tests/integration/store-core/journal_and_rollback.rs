@@ -1913,3 +1913,251 @@ fn path_debug(path: &[Segment]) -> String {
     format!("/{}", parts.join("/"))
 }
 
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// §6.6-bis — THE JOURNAL'S LAST VALID MARK (`Store::journalMark`) AND THE MARK'S FLOOR
+// (`Store::restoreFloor`)
+//
+// **WHY THE STORE ANSWERS THIS AND WHAT "VALID" MEANS, MEASURED IN THE THREE CELLS BELOW.** The package caches
+// this read at the commit's opening (`bindings/js/src/entry/state.mjs`'s `openCommit`), on the architect's
+// ruling *"Cache the restoreMark when opening a commit, based on the last valid state/op of the journal"*, so
+// that a refused reversal restores the position its commit FOUND rather than the journal's head (`DEF-AE`).
+// **THE VALIDITY PREDICATE IS MEMBERSHIP, AND THE TWO STATES A MARK CAN BE IN ARE BOTH DRIVEN HERE:**
+//   * **AN ENTRY A FAILED `file`-SAVE REMOVED IS GONE AND IS NOT A MARK** — `commit_file`'s failing arm removes
+//     the entry it just reverted, so `journalMark` answers the entry BEFORE it and `restoreMark` refuses its id
+//     with `JournalOpUnknown` (`M-11`);
+//   * **A COMPACTED ENTRY IS STILL A MARK** — `rollback` marks and never removes (`M-9`/`M-6`), and the replay
+//     reads every entry the journal holds, so the head after a reversal is still a valid, replayable mark.
+// **AND THE FLOOR IS A POSITION NO OP ID CAN NAME**: the state the store was BORN with — the empty register on
+// a pathless store, and the BOOTED `file`-tier image where one was loaded (`§7.2` item 6 journals no entry for
+// a boot). `restoreMark`'s ABSENT arm names the HEAD, so a caller that opened on an empty journal has no
+// spelling for *"the state that stood then"* once the journal is non-empty; `restoreFloor` is that spelling.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+/// **THE LAST VALID MARK IS THE HEAD, A REVERSAL DOES NOT MOVE IT, AND A COMPACTED ENTRY STILL REPLAYS.**
+///
+/// Drives: `§6.6` items 1 and 4; `§6.4` `M-9`/`M-6`; the empty-journal row of `§6.6` item 4.
+#[test]
+fn s6_6_bis_the_last_valid_mark_is_the_head_and_a_compacted_entry_is_still_a_mark() {
+    let mut store = new_mem_store();
+    // (1) A FRESH STORE'S JOURNAL HOLDS NOTHING: the mark is the floor and no op id stands.
+    assert_eq!(
+        store.journalMark(),
+        None,
+        "§6.6-bis: an empty journal names no operation, so its last valid mark is the FLOOR"
+    );
+    ok(
+        store.restoreFloor(),
+        "§6.6-bis: the floor on an empty record is the born state",
+    );
+    // (2) EVERY APPEND MOVES THE MARK TO ITS OWN OP.
+    let first = ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(
+        store.journalMark(),
+        Some(first.op.opId.clone()),
+        "§6.6-bis: the last valid mark is the journal's head — the first write's own op"
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    assert_eq!(
+        store.journalMark(),
+        Some(second.op.opId.clone()),
+        "§6.6-bis: and the second write's"
+    );
+    // (3) **A REVERSAL COMPACTS AND DOES NOT REMOVE: the mark is unmoved and it still replays.** This is the
+    // half of the predicate that is NOT membership-removal — `M-6`'s compacted floor refuses the ROLLBACK, and
+    // it must not make the entry invalid as a MARK.
+    ok(
+        store.rollback(OpIdArg::Id(second.op.opId.clone())),
+        "§6.3",
+    );
+    assert_eq!(
+        store.journalMark(),
+        Some(second.op.opId.clone()),
+        "§6.6-bis: compaction is a mark and not an erasure, so a reversed entry stays the head"
+    );
+    ok(
+        store.restoreMark(OpIdArg::Id(second.op.opId.clone())),
+        "§6.6: a compacted mark replays (measured here, not assumed)",
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_num(2.0),
+        "§6.6: the state immediately AFTER the second write is what its mark names"
+    );
+}
+
+/// **AN ENTRY A FAILED `file`-SAVE REMOVED IS GONE AND IS NOT A MARK.**
+///
+/// The save's failure is forced the only way a Rust drive can force it without a second store: **the path the
+/// store's own commit writes to is REPLACED BY A NON-EMPTY DIRECTORY**, so the sibling-and-rename cannot land
+/// and the terminal arm's failure path runs exactly as it runs on a real `EACCES`/`EROFS`.
+///
+/// Drives: `§7.2` item 3; `§8.1` #15; `§6.4` `M-11`; `§6.6` item 4's removed-entry clause.
+#[test]
+fn s6_6_bis_an_entry_a_failed_file_save_removed_is_not_a_mark() {
+    let path = fresh_path("s6-6-bis-removed");
+    let mut store = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.1: the construction returns an instance at a reachable path",
+    );
+    let first = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(
+        store.journalMark(),
+        Some(first.op.opId.clone()),
+        "§6.6-bis: the first write is the mark"
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["b"])), w_file(), v_num(2.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(
+        store.journalMark(),
+        Some(second.op.opId.clone()),
+        "§6.6-bis: the file-tier write is the mark until its save runs"
+    );
+    // THE SAVE'S FAILURE IS FORCED: the path becomes a NON-EMPTY DIRECTORY, so no rename can reach it.
+    std::fs::remove_file(&path).expect("§7.2 item 3: the committed image stood at the path");
+    std::fs::create_dir(&path).expect("§7.2 item 3: the path is free for the forced failure");
+    std::fs::write(std::path::Path::new(&path).join("blocker"), b"x")
+        .expect("§7.2 item 3: the directory is non-empty, so a rename over it must fail");
+    let refused = failure(
+        commit_at_the_terminal_arm(&mut store, &second.op.opId),
+        "§8.1 #15: the terminal arm's own save",
+    );
+    assert_code(&refused, "FileCommitFailed", "§8.1 #15");
+    // **THE FINDING: the entry is GONE, so the mark falls back to the entry BEFORE it.**
+    assert_eq!(
+        store.journalMark(),
+        Some(first.op.opId.clone()),
+        "§6.6-bis: an entry a failed file-save removed is NOT a mark — the read answers the entry before it"
+    );
+    let unknown = failure(
+        store.restoreMark(OpIdArg::Id(second.op.opId.clone())),
+        "§6.4 M-11",
+    );
+    assert_code(
+        &unknown,
+        "JournalOpUnknown",
+        "§6.6 item 4: a mark the journal no longer holds is refused, and the store keeps its state",
+    );
+    // AND THE REMOVAL ROLLED ITS OWN STATE BACK: `b` does not stand, `a` does.
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["b"])), TierArg::Absent),
+            "§7.2 item 3: the failure arm restores the entry's pre-state",
+        ),
+        "AddressNotFound",
+        "§7.2 item 3",
+    );
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_num(1.0),
+        "§7.2 item 3: the entry before the removed one is untouched"
+    );
+    // AND THE MARK THAT STANDS STILL REPLAYS.
+    ok(
+        store.restoreMark(OpIdArg::Id(first.op.opId.clone())),
+        "§6.6",
+    );
+    assert_eq!(read_at(&store, &key(&["a"])), v_num(1.0));
+    std::fs::remove_dir_all(&path).expect("the drive cleans the forced-failure directory");
+}
+
+/// **THE FLOOR IS THE STATE BEFORE THE FIRST ENTRY, AND IT IS NOT THE EMPTY REGISTER ON ASSUMPTION** — the
+/// pathless store is born empty and a BOOTED store is born WITH its image (`Store::born`, `§6.6` item 2).
+///
+/// Drives: `§6.6` item 2's floor clause; `§7.2` item 6.
+#[test]
+fn s6_6_bis_the_floor_is_the_state_before_the_first_entry_including_the_booted_image() {
+    // (A) A PATHLESS STORE IS BORN EMPTY: the floor is the register with nothing in it, and the HEAD is a
+    // different state — which is what makes the floor a position of its own.
+    let mut store = new_mem_store();
+    let first = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["b"])), w_mem(), v_num(2.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(read_at(&store, &key(&["b"])), v_num(2.0));
+    ok(store.restoreFloor(), "§6.6-bis: the floor");
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["a"])), TierArg::Absent),
+            "§6.6-bis: the floor is BEFORE the first entry",
+        ),
+        "AddressNotFound",
+        "§6.6-bis: the born state of a pathless store holds nothing",
+    );
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["b"])), TierArg::Absent),
+            "§6.6-bis: and nothing beside it",
+        ),
+        "AddressNotFound",
+        "§6.6-bis",
+    );
+    // AND THE RECORD IS UNMOVED: the floor appends nothing, so the head mark still replays both writes — which
+    // is the contrast that makes the floor a POSITION and not an erasure.
+    assert_eq!(
+        store.journalMark(),
+        Some(second.op.opId.clone()),
+        "§6.6-bis: the floor appends nothing, so the last valid mark is unmoved"
+    );
+    ok(store.restoreMark(OpIdArg::Absent), "§6.6: the head mark");
+    assert_eq!(
+        read_at(&store, &key(&["b"])),
+        v_num(2.0),
+        "§6.6: the head is AHEAD of the floor, and it re-states both writes"
+    );
+    assert_eq!(read_at(&store, &key(&["a"])), v_num(1.0));
+    let _ = first;
+    // (B) A BOOTED STORE IS BORN WITH ITS IMAGE, AND THE FLOOR IS THAT IMAGE — never the empty register.
+    let path = fresh_path("s6-6-bis-floor-boot");
+    let mut origin = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.1: the construction returns an instance at a reachable path",
+    );
+    let seeded = ok(
+        origin.write(AddressArg::List(key(&["k"])), w_file(), v_num(7.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut origin, &seeded.op.opId),
+        "§7.2 item 2: the terminal arm's own act puts the image in the file",
+    );
+    let mut booted = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.2 item 6: the boot loads the image and journals no entry for it",
+    );
+    assert_eq!(
+        read_tier(&booted, &key(&["k"]), Tier::File),
+        v_num(7.0),
+        "§7.2 item 6: the boot stood the image"
+    );
+    let written = ok(
+        booted.write(AddressArg::List(key(&["k"])), w_file(), v_num(9.0)),
+        "§3.4 W-1",
+    );
+    assert_eq!(
+        booted.journalMark(),
+        Some(written.op.opId.clone()),
+        "§6.6-bis: the one entry the booted store appended is the mark"
+    );
+    ok(booted.restoreFloor(), "§6.6-bis: the floor");
+    assert_eq!(
+        read_tier(&booted, &key(&["k"]), Tier::File),
+        v_num(7.0),
+        "§6.6-bis: the floor is the BOOTED image — an empty-register floor would have deleted the loaded key"
+    );
+}

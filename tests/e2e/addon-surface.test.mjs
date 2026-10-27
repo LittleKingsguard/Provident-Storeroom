@@ -64,7 +64,7 @@ import { runInNewContext } from 'node:vm';
 
 import { storeCreate } from '../../bindings/js/index.mjs';
 import {
-  DECLARED_SURFACE, DECLARED_SURFACE_NAMES_SORTED, STANDING_FOUR, PER_VERB_NINE, PER_VERB_TENTH,
+  DECLARED_SURFACE, DECLARED_SURFACE_NAMES_SORTED, STANDING_FOUR, PER_VERB_NINE, PER_VERB_TENTH, PER_VERB_ELEVENTH,
   THE_THREE_THAT_ARE_NOT_ENTRIES, THE_FROZEN_FIVE, OPEN_OWED,
   ADDON_ARTEFACT, PACKAGE_ENTRY, PKG_DIR, DELETED_WRAPPER_NAMES,
   OWED_STRUCTURE_TOKENS, OWED1_TOKEN_ASSERTION_SHAPES,
@@ -123,9 +123,13 @@ test('sas_d1_s_export_set_the_artefacts_own_keyset_is_exactly_the_thirteen_decla
   // **⟶ AND ONE STANDS BESIDE THE NINE, 2026-10-27** (`PER_VERB_TENTH`): the journal mark restore, which is
   // not one of the dispatcher's arms and adds no member to the product's fourteen.
   assert.equal(PER_VERB_TENTH.length, 1, 'the journal mark restore, declared beside the nine');
-  assert.equal(STANDING_FOUR.length + PER_VERB_NINE.length + PER_VERB_TENTH.length, 14,
-    '`4 + 9 + 1 = 14 ✓` (§1\'s own `[CENSUS]`, read with the tenth row)');
-  assert.equal(DECLARED_SURFACE.length, 14, 'and the tables are one set of fourteen, each name accounted for');
+  // **⟶ AND AN ELEVENTH STANDS BESIDE THE TENTH, 2026-10-27** (`PER_VERB_ELEVENTH`): the journal's last valid
+  // mark, read at the commit opening and cached on the window. **IT IS NEITHER ONE OF THE NINE NOR THE TENTH,
+  // IT IS NOT ONE OF THE PRODUCT'S FOURTEEN, AND EVERY ONE OF THE FOURTEEN KEEPS ITS NAME AND ITS ARITY.**
+  assert.equal(PER_VERB_ELEVENTH.length, 1, 'the journal mark read, declared beside the nine and the tenth');
+  assert.equal(STANDING_FOUR.length + PER_VERB_NINE.length + PER_VERB_TENTH.length + PER_VERB_ELEVENTH.length, 15,
+    '`4 + 9 + 1 + 1 = 15 ✓` (§1\'s own `[CENSUS]`, read with the tenth and eleventh rows)');
+  assert.equal(DECLARED_SURFACE.length, 15, 'and the tables are one set of fifteen, each name accounted for');
 });
 
 test('sas_d1_s_export_set_call_is_absent_because_the_split_is_precisely_its_replacement', () => {
@@ -232,6 +236,9 @@ function declaredArgumentsFor(name) {
     // **⟶ ADDED 2026-10-27: THE JOURNAL MARK RESTORE'S ONE POSITION.** It is driven with the same carrier
     // shape `rollback` is driven with, so the entry is read at its declared arity and at ±1 like the rest.
     case 'restoreMark': return ['an-op-id'];
+    // **⟶ AND THE JOURNAL MARK READ, ADDED 2026-10-27: NO POSITION AT ALL.** The store reads its own record
+    // and names a position; there is nothing for a caller to supply (`PER_VERB_ELEVENTH`, arity `0`).
+    case 'journalMark': return [];
     default: return null;
   }
 }
@@ -284,7 +291,7 @@ const DECLARED_OPTIONAL_TAIL = new Set(['read', 'readLiteral', 'write', 'delete'
  *  very bound the file states at its `-1` limb: "THE LIMB RUNS ONLY WHERE SHRINKING THE ARGUMENT LIST
  *  REALLY DROPS A POSITION."** A zero-position entry has no position to drop and none to add. */
 const DECLARED_ARITY_RANGE = Object.freeze({ errorMessage: Object.freeze([2, 3]) });
-const DECLARED_ARITY_ZERO = Object.freeze(['version']);
+const DECLARED_ARITY_ZERO = Object.freeze(['version', 'journalMark']);
 /** `Object.freeze` on a plain literal, deliberately: the file's own `OWED-2` scan forbids a cell naming a
  *  TABLE TYPE (`OWED_STRUCTURE_TOKENS`), and a `Map`/`Set` would be read as one. **THE DECLARATION THESE
  *  CARRY IS A SPEC FIGURE AND NOT A STRUCTURE** — `export-set-and-dispatch.md §1`'s `2`–`3` row and its

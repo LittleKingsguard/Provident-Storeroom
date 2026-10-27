@@ -304,8 +304,15 @@ test('DIRECT-PASS RESTART (3) · THE TERMINAL WRITE ARM IS UNCHANGED by the move
   assert.deepEqual(asked, [LANDED, THIRD, SEED],
     `the pair is asked at REGISTRATION, by the PASS and by the RESTART — the SAME three asks arm (1)'s direct `
       + `drive made: ${JSON.stringify(asked)}`);
-  assert.equal(standing, THIRD,
-    `and the refusal's compensation restores the pre-reversal state, the journal's head: the drive read `
+  // **⟶ RE-DERIVED 2026-10-27 (`DEF-AE`'s FIX; THE ARCHITECT'S RULING: *"Cache the restoreMark when opening a
+  // commit, based on the last valid state/op of the journal."*).** **THE ASSERTION ABOVE READ `${THIRD}` — THE
+  // WRITE'S OWN LANDING — AND THAT WAS THE DEFECT.** This arm reaches the write through the PRODUCT's member, so
+  // its commit opens at the member's first act (before the value lands) and the mark it caches is the state the
+  // attempt FOUND: `${LANDED}`. `RCA-8(g)` ANNOTATE-BESIDE: the cell's subject — the terminal write refuses AND
+  // restores, in ONE form and ONE log entry — is unchanged; only the state restored to moves.
+  assert.equal(standing, LANDED,
+    `**THE STORE STANDS WHERE THE ATTEMPT FOUND IT** — the mark the write's commit cached at its opening `
+      + `(${LANDED}), and not the journal's head, which is the write's own landing (${THIRD}): the drive read `
       + `${JSON.stringify(standing)}`);
 
   t.diagnostic(`DIRECT-PASS RESTART (3) · 2026-10-27 · THE TERMINAL WRITE ARM: pair asked at `
