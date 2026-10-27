@@ -685,6 +685,16 @@ export interface StoreInstance {
    * call `a.rollback(w.op.opId)`, whose id is the string `write` returned, is a correct call.
    */
   rollback(opId: string): RollbackRecord;
+
+  /**
+   * **⟶ AND IT THROWS: `1.1.0`'S DECLARATION, ADDED BESIDE THE SIGNATURE RATHER THAN IN IT.** **`rollback` was
+   * TOTAL at `1.0.1` — it answered a `RollbackRecord` and could not fail. It is PARTIAL now**: **a reversal the
+   * registered constraints do not admit REFUSES**, throwing the one plain form `{status, message, log}` with
+   * `status: 'ConstraintPassRefused'`, **and the store is restored to the state it stood at before the reversal**
+   * (`D-38`, `D-40`, `D-41`). **A TypeScript signature has no `throws` clause, so this is the honest place to say
+   * it**: *the return type describes what a call returns when it returns, and the throw is part of the contract.*
+   * **A lawful reversal is unchanged** — same record, same members, no `log`. **Callers on `1.0.1` must handle it.**
+   */
   /**
    * Begin watching the addresses the caller names under the caller's own handle.
    *

@@ -1273,6 +1273,21 @@ that a read-back's prototype is or is not a particular object.** **What IS decla
 tree sharing no mutable member with the store or with another crossing**, which is the guarantee worth relying on
 (`json-crossing/contract.md §5`, item (3)(c)).
 
+### §12.6b The two known fail-states, and how you leave them
+
+**⟶ ADDED `1.1.0` — THIS IS THE ONE PART OF THE PROMISE A CONSUMER READING ONLY `node_modules` HAD NOWHERE TO FIND, AND IT SHIPS HERE BECAUSE THIS DOCUMENT SHIPS.**
+
+**Two windows in the constraint machinery are known and are NOT defects. Each is a state you can leave.**
+
+1. **A `delete`'s listener delivery.** A listener invoked by a delete's delivery runs **no constraint pass** — there is no attempt for a pass to run over. **A `rollback` issued from inside it is unjudged, and its effect stands.**
+2. **A registration's own evaluation.** `addConstraint`'s and `constraintRegister`'s evaluation of a supplied body runs **no pass** for the same reason — **an action raised there is unjudged and its effect stands.**
+
+**THE FIRST EXIT — RELOAD THE FILE.** Since `1.1.0`, **a restore that moved a version standing at the `file` tier SAVES the restored image**, so **the file records the state the store was restored to, and a fresh boot over that path returns to judged bytes.**
+
+**THE SECOND EXIT — REGENERATE THE STORE.** Construct a new instance and replay your writes; **a judged state by construction.**
+
+**Neither window is new and neither is a defect**: both are places **a pass does not begin**, not places a judgement was skipped mid-flight. **And every pass that DOES run drains its own restart request** — so the fail-state is bounded by the two acts that run none.
+
 ### §12.7 A skip is not a green, and your own throws are not refusals
 
 **WHAT BREAKS:** **a `skipped` cell is a cell that DID NOT RUN** — *"a skip is not a green"*, in the authority

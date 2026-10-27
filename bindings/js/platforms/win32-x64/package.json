@@ -1,6 +1,6 @@
 {
   "name": "@auspicion/provident-storeroom-js-win32-x64-msvc",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "os": [
     "win32"
   ],
