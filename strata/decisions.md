@@ -3007,3 +3007,39 @@ from** — **a seam a driver can bypass is not an invariant.**
 **TERMS: the invariant (`1` = check ⇒ open commit), the cases it empties (`3` = the descendant window, the direct-pass
 window, the restart-consumer dependence), the enforcement point owed (`1` = at the check, with a seam the kernel may
 use), and `D-43`'s two implementations unchanged and owed (`2`).**
+
+---
+
+### `D-45` — AN EXTERNAL CALLBACK'S CALL OPENS A NEW COMMIT; the join rule conflated internal nesting with external re-entry
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on `D-43` item 1.
+
+**THE ARCHITECT, VERBATIM:**
+
+> For 43, how is a listener supposed to be able to reuse the outer verb's commit? The listener is an externally-passed
+> function and should be making calls at the package surface. It should be opening a new commit by default of entering
+> at the surface
+
+**AND THE QUESTION IS THE ARGUMENT: THERE IS NO LAW THAT MAKES A LISTENER *ABLE* TO REUSE IT.** `state.mjs`'s rule —
+*"COMMIT JOINS IT RATHER THAN OPENING A SECOND, which is what keeps the count exact under nesting"* — **was written to
+keep a single act's machinery from double-counting itself.** **It conflates two different things:**
+
+1. **INTERNAL NESTING** — the package's own machinery inside its own verb (a check inside a write, a save inside a
+   commit). **One act, one commit; joining is right**, and the count stays exact.
+2. **EXTERNAL RE-ENTRY** — **a caller's own function that the package invoked** (a listener body, a constraint body)
+   **calling a verb.** **That is a DIFFERENT ACT BY A DIFFERENT AUTHOR, entering the package surface from outside**,
+   and **it has no claim on the outer verb's commit at all.** **The outer commit is the outer act's; the callback is
+   not the outer act's code.**
+
+**SO THE RULE BECOMES:** **a call entering the surface from an externally-supplied function OPENS A NEW COMMIT by
+default** — **because that is what "entering at the package surface" MEANS** — **and only the package's own internal
+continuation joins.** **The discriminator is AUTHORSHIP, not depth.**
+
+**WHAT IT CLOSES, AND IT IS `D-42`'s DESCENDANT WINDOW AT ITS ROOT.** With the listener's call owning its own commit,
+**its check has a window, its pass runs, the ancestor pair is asked by the listener's own attempt**, and **the restart's
+request has a consumer that is the listener's own scope.** **Three fixes that had been reaching for the ancestor
+become unnecessary**, because the callback was never inside the outer act to begin with.
+
+**TERMS: authorship replaces depth (`1` = the discriminator), the join rule narrowed (`1`), the descendant window
+closed at its root (`1`), the external-entry marker and its sites owed (`2` = the marker's implementation, the cells
+that prove a callback's commit is its own).**
