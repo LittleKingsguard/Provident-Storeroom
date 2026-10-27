@@ -30,6 +30,32 @@ pins, `§8.1`'s *"an installed `0.5.0`"*, and `§11`'s manifest table.** **AND T
 IS UNMOVED: no `npm install` was run against the registry, so a registry-installed `1.0.0` is described here from
 the manifest and from measurements on this checkout, and is still not witnessed.**
 
+**⟶ AND THE FIGURE THAT CORRECTION CARRIES IS ITSELF ONE RELEASE BEHIND, 2026-10-27 — THE VERSION THIS GUIDE
+DESCRIBES IS `1.0.1`, AND EVERY `1.0.0` THIS GUIDE PRINTS READS `1.0.1` FROM HERE ON.** `RCA-8(g)`
+ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE and is read THROUGH this clause — so do its reading of
+`0.5.0` and its reading of `1.0.0`; each was true of the tree it was read on and each is one release behind the
+shipped tree from this date.** **THE MANIFEST AT ITS OWN BYTES: `bindings/js/package.json`'s `version` is
+`"1.0.1"`, and all five `optionalDependencies` pins are `1.0.1` with it** — the six figures move together and never
+singly (§0 item 1; `PUB-DD-10`) — **and the tags the tree carries are `v1.0.0` and `v1.0.1`, with `main` sixteen
+commits past `v1.0.1` and no version bump in any of them** (`git describe` at this date reads `v1.0.1-16-gdf3ef88`;
+`D-41` item `1`'s semver ruling names the next release `1.1.0`, and that release has not been cut). **SO THE SITES
+ARE RE-READ, NOT RE-SPELLED:** §2.2's five exact pins, §8.1's *"an installed `0.5.0`"* — itself already corrected to
+`1.0.0` — and §11's manifest table all read `1.0.1`; **every `0.5.0` this guide prints is the figure of its writing
+date and reads `1.0.1` from here on.** **AND THE ONE THING NO PASS WITNESSED IS STILL UNMOVED: no `npm install` was
+run against the registry, so a registry-installed `1.0.1` is described here from the manifest and from
+measurements on a locally packed, installed artefact, and is still not witnessed as a registry download.**
+
+**AND ONE THING A READER OF THE INSTALLED PACKAGE SHOULD KNOW BEFORE THE CITATIONS: WHEN THIS DOCUMENT IS AT
+`node_modules/provident-storeroom/README.guide.md`, IT IS THIS GUIDE.** **Its ONE authored home is
+`docs/guides/package-use.md` in the repository, and the release's assembly stages it byte-for-byte at the packaging
+root as `README.guide.md`, beside `README.md`, where the manifest's `files` row ships it** (`PUB-DD-11`;
+`docs/specs/storeroom-publish/contract.md §2.3` item `3`; `scripts/publish.sh`'s guide stage). **The paths this guide
+cites — `bindings/js/…`, `docs/specs/…`, `tests/…` — are the CHECKOUT's, and they do not travel in the tarball; a
+consumer reading from `node_modules` has this guide's text and the package's own shipped bytes (`index.mjs`,
+`index.d.ts`, `README.md`, `src/`), and every declaration a citation names is answered first by those bytes.** **So
+nothing here is addressed to a checkout reader alone: the installed tree carries this text unaltered, and a clause
+that names a repository path says where its authority lives, not where you must stand to use it.**
+
 **Every figure carries one of four marks, and the four are not the same thing:**
 
 | the mark | what it means |
@@ -155,6 +181,13 @@ THROUGH this one). **THE READING IT TEACHES IS UNMOVED AND IS THE POINT: five EX
 range, all six figures moving together (§0 item 1; `PUB-DD-10`).** **`1.0.0` is the package's own version (§0 and
 §11), so the main `version` and the five pins are one figure and a consumer who reads a `0.5.0` anywhere in a
 manifest has the wrong package.**
+
+**⟶ AND THE FIGURE MOVES AGAIN, 2026-10-27: each of the five is pinned to `1.0.1`, not `1.0.0`**
+(`bindings/js/package.json`, read at its own bytes; §0's correction of this date; `RCA-8(g)` ANNOTATE-BESIDE — the
+two clauses above stand and are read THROUGH this one). **THE READING THEY TEACH IS UNMOVED AND IS THE POINT: five
+EXACT pins, no caret, no tilde and no range, all six figures moving together (§0 item 1; `PUB-DD-10`) — so `1.0.1`
+is the package's own version and the five pins' one figure, and a consumer who reads anything else in a manifest
+has the wrong package.**
 
 ### §2.3 The three rungs
 
@@ -756,6 +789,11 @@ BYTE and is read THROUGH this clause). **(i) *"The store implements seventeen (`
 NINETEEN**: `src/error.rs`'s `CODES` is `[&str; 19]`, ranks `18` and `19` being the two this set's 2026-10-26 ruling
 appended — **so the declaration of record and the crate agree at nineteen, which is the row above.** **(ii)
 *"installed `0.5.0`"* READS `1.0.0`** (`bindings/js/package.json`, read at its own bytes; §0's correction clause).
+
+**⟶ AND THAT CORRECTED FIGURE IS ITSELF ONE RELEASE BEHIND, 2026-10-27: *"installed `0.5.0`"* READS `1.0.1`**
+(`bindings/js/package.json` at its own bytes; §0's correction of this date; `RCA-8(g)` ANNOTATE-BESIDE — the
+sentence above stands and is read THROUGH this one). **THE SENTENCE'S OWN POINT IS UNMOVED: the escape arm is what
+keeps a member the set has since gained typeable in an installed copy, and the set is the store's to close.**
 **(iii) THE SET HAS NOW MOVED FOUR TIMES, NOT THREE**: fourteen to fifteen, fifteen to sixteen, sixteen to
 seventeen, **and seventeen to nineteen** — **the escape arm's argument is strengthened rather than weakened by the
 fourth move, which is exactly the arm's own evidence.** **NO TABLE ROW, NO RANK AND NO TRIGGER MOVES, and the two
@@ -875,6 +913,21 @@ defect** (`DD-28`; `native/contract.md §7.2` item 6; `write-and-read.md §4.3`'
 
 **What this means for you, in one line: durability is a property of `file`-tier WRITES. If you delete something
 durable and the process then restarts, expect it back — and delete it again after the boot, or write over it.**
+
+**⟶ AND THE SENTENCE ABOUT THE BYTES IS ONE PRODUCER SHORT, 2026-10-27 — A REFUSED REVERSAL'S RESTORE NOW WRITES
+THEM WHERE IT MOVED A `file`-TIER NODE (`bd0fd8c`).** `RCA-8(g)` ANNOTATE-BESIDE: **the section above stands
+BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause is a PURE INSERTION and moves no verb, no tier, no status
+and no record.** **WHAT MOVED: the restore a REFUSED `rollback` performs — the compensating act that puts the state
+back before the reversal — takes the `file` tier's projection before it and again after it, and where a version
+standing at `Tier::File` moved it SAVES the restored image with the store's one writer.** **SO THE BYTES AT
+`filePath` ARE THE LAST SUCCESSFUL SAVE'S, whose producers are a `file`-tier `write`'s commit AND a restore that moved
+a file-tier node** — and **`and no other state` stands whole: the boot reads the register image at the file tier and
+nothing else** (`native/contract.md §6.6` item `5`'s clause of 2026-10-27, the declaration's one home; `DD-28`'s
+amended cell). **WHAT DOES NOT MOVE, SAID SO THE READING IS NOT TAKEN WIDER THAN IT IS:** **a `delete` still performs
+no file I/O and a SUCCESSFUL `rollback` still performs none either**, so the paragraph above holds for both — the
+removed version still stands again after the re-boot; **the save is the REFUSED arm's alone, it appends no journal
+entry (a save is an effect and not an op), and a save that cannot land is reported (`FileCommitFailed`, the
+in-memory state restored and the bytes not updated) rather than swallowed.**
 
 ### §9.4 When the save itself fails
 
@@ -1015,6 +1068,24 @@ contract.**
 `RCA-8(g)` ANNOTATE-BESIDE — the table above stands as the reading of its own date and is read THROUGH this
 clause). **`name`, `type`, `license`, `engines`, `exports` and `files` are UNMOVED and were re-read at the same
 bytes; the five `files` rows are still a fact of this tree and not a rule (the ★ paragraph below).**
+
+**⟶ AND THE TWO FIGURES THAT CLAUSE CORRECTS MOVE AGAIN, 2026-10-27: `version` is `1.0.1` and each of the five
+`optionalDependencies` is pinned to `1.0.1`** (`bindings/js/package.json`, read at its own bytes; §0's correction of
+this date; `RCA-8(g)` ANNOTATE-BESIDE — the table and the correction above stand and are read THROUGH this clause).
+**AND THE `files` ROW'S OWN FIGURE IS RE-READ AT ITS OWN SITE IN THE CLAUSE BELOW: it reads SIX rows, the sixth
+being the consumer guide's landed copy, `README.guide.md`.**
+
+**⟶ AND THE FIVE FIGURES THIS GUIDE PRINTS ABOUT THE SHIPPED TREE ARE RE-MEASURED AT IT ON ONE DATE, 2026-10-27, SO
+THE GUIDE IS NOT LEFT ONE TREE BEHIND ANY OF THEM.** `RCA-8(g)` ANNOTATE-BESIDE: **every table row, every ★
+paragraph and every figure above stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause adds no rule and
+moves no figure — it records, at one date, the reading of each figure the guide states about the shipped tree, and
+each is the figure its own clause already prints.** **THE FIVE, EACH WITH ITS MEASUREMENT:**
+1. **THE STATUS SET IS TWENTY** — `src/error.rs`'s `CODES` is `[&str; 20]`, ranks `1`…`20`, and the declaration of record (`index.d.ts`, `StoreStatus`) agrees with the crate at twenty (§8.1's heading, its table's `20` row and its dated clauses).
+2. **THE PACKED MEMBER SET IS NINETEEN BARE AND TWENTY ASSEMBLED** — measured with `npm pack --json` at `bindings/js`: the BARE tarball carries `19` paths (`1` `package.json` + `4` root files — `README.guide.md` among them + `13` entry modules + `1` kernel: `1 + 4 + 13 + 1 = 19` ✓), and the ASSEMBLED tarball — the same stage with the release's `LICENSE` copy — carries `20`, the nineteen plus the licence (the ★ re-read clause (ii) below; the installed battery's `INSTALL-01` prints `members=20` on every run).
+3. **THE ALLOWLIST IS SIX ROWS** — `bindings/js/package.json`'s `files` reads `index.mjs` · `README.md` · `README.guide.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` (`6 = 4 + 2` ✓) — **and `README.guide.md` is THIS document's landed copy** (§0's clause on the landing; the ★ re-read clause (i) below).
+4. **THE INSTANCE CARRIES FOURTEEN OWN MEMBERS** — measured on an instance built in memory from the shipped artefact: `Object.keys` and `Object.getOwnPropertyNames` are both the same fourteen-name list, and `read`'s own descriptor reads `writable: true, enumerable: true, configurable: true` (§3's table; §3.1).
+5. **THE DEPTH CEILING IS `126`** — the crossing's guard reads `depth > 126` (`bindings/js/src/crossing.rs`), so a value of depth `126` is admitted and one of depth `127` is refused; the node ceiling stands at `1,000,000` beside it (`json-crossing/contract.md §4`'s clause; §10.4).
+**NO FIGURE MOVES BY THIS CLAUSE, AND THE ONE THING IT ADDS IS THE DATE ON WHICH ALL FIVE WERE READ AT THE SAME TREE.**
 
 **★ THE `exports` MAP HAS ONE ARM, AND THAT IS A PROMISE ABOUT WHAT IS REACHABLE:** **the addon is NOT reachable
 as a subpath and neither is the constraint kernel.** **There is no wildcard export, no deep import to the addon

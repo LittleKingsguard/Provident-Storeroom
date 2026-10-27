@@ -499,11 +499,46 @@ export function kernelFor(store) {
 // ONE for its whole length. **A STORE THAT CARRIES NO SUCH CHANNEL ANSWERS THE INVOCATION UNMARKED** (the
 // `state.mjs` fallback, byte for byte): a store this package never installed the seam on, whose call then joins
 // as it joined before `D-45` — the conservative side, and never a commit the mark did not ask for.
+//
+// **⟶ AMENDED 2026-10-27 — THE COMMIT A CALL NAMES DECIDES, AND AUTHORSHIP IS ONLY THE FALLBACK WHERE NONE CAN BE
+// NAMED (`D-46`).** **The clause above — *"A CALL ENTERING THE SURFACE FROM AN EXTERNALLY-SUPPLIED FUNCTION OPENS
+// A NEW COMMIT BY DEFAULT, AND ONLY THE PACKAGE'S OWN INTERNAL CONTINUATION JOINS"* — stands BYTE-FOR-BYTE and is
+// read THROUGH this one**, which states the operative rule and names the one sentence of that clause the shipped
+// tree no longer implements. **THE ARCHITECT, VERBATIM: *"A listener should be operating at the surface and opening a
+// new commit"* · *"A constraint's repair needs to stay as part of the same commit so that it can be tracked as
+// part of the commit process"* · *"The original way of maintaining this was to accept an optional parameter on
+// entry for the commit id, so that a constraint can identify which open commit it is repairing"***
+// (`strata/decisions.md` · `D-46`). **SO: A CALL THAT NAMES A COMMIT ON ITS OWN ENTRY JOINS THAT COMMIT, AND A
+// CALL THAT NAMES NONE OPENS A NEW ONE.** **THE POSITION IS `write`'s FOURTH**, whose domain is a RECORD (an object
+// carrying an own, present `pending`) and never an id token; **and where the package itself invokes caller code,
+// the name is the one that invocation was handed** (`state.mjs`'s `EXTERNAL_COMMIT`): **the kernel names the
+// attempt's commit when it invokes a REPAIR, and names nothing when it invokes a listener body or a constraint
+// body.** **AUTHORSHIP — THE MARK THIS BLOCK DECLARES — IS THE FALLBACK OF THE FALLBACK: it decides ONLY where
+// neither position stands** (`state.mjs`'s `openCommit` reads the entry's name first, the invocation's name
+// second, and the depth mark only where neither exists).
+//
+// **AND THE SITES SENTENCE ABOVE IS CORRECTED AT ITS REPAIR-BODY HALF, BY NAME.** The two frames that invoke a
+// REPAIR body — `kernel-attempt.mjs`'s arm (b) and `kernel-registration.mjs`'s state 3 — **NO LONGER CALL THIS
+// MODULE'S `externalCall`**: each reaches the same `Symbol.for` channel at its SECOND position with the attempt's
+// commit named (that file's own local `repairInCommit`, the same key spelled again), because **A REPAIR IS NOT AN
+// ACT AT THE SURFACE CLAIMING A COMMIT OF ITS OWN — IT IS PART OF THE ATTEMPT BEING TRACKED**, so the write its
+// body makes must join the attempt's window and the attempt's record must describe the repair it performed. **THE
+// THREE FRAMES THAT INVOKE A CALLER-AUTHORED CONSTRAINT BODY STILL CALL `externalCall`, WHICH NAMES NOTHING AND
+// IS THEREFORE THE OPENS ARM** (`registrationEvaluation`, `registrationRerun`, and `kernel-attempt.mjs`'s
+// `evaluate`), **and *"IT MARKS NOTHING ELSE"* STANDS**: what moved is the answer this module's one call site
+// gives, not the set of frames it is reached from. **A STORE THAT CARRIES NO SUCH CHANNEL STILL ANSWERS THE
+// INVOCATION UNMARKED** — `run()` at this frame, and a repair's own write then opening its own commit — which is
+// the rule's absent arm and never a commit nobody named.
 // ---------------------------------------------------------------------------------------------
 const EXTERNAL_CALL = Symbol.for('provident-storeroom.external-call');
 
 /// **THE INVOCATION OF A CALLER-SUPPLIED FUNCTION, THROUGH THE CHANNEL** — one argument, the thunk that makes
-/// the call; the answer is the invocation's own and a throwable crosses unchanged.
+/// the call; the answer is the invocation's own and a throwable crosses unchanged. **AND IT NAMES NO COMMIT, ON
+/// PURPOSE: A CALL THROUGH THIS HELPER IS `D-46`'S ABSENT ARM.** A caller-authored constraint body is handed a
+/// context carrying no commit (`kernel-surface.md §2.3` item 1) and a listener body is handed the triggering
+/// address and nothing else, so neither has a name to supply and the call opens its own commit. **A REPAIR is
+/// the one invocation that DOES have a name, and it is made by the invoking file's own channel call at the second
+/// position — never here** (`D-46` item 2; the amendment beside this block above).
 export function externalCall(store, run) {
   const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
   if (typeof channel === 'function') return channel(run);

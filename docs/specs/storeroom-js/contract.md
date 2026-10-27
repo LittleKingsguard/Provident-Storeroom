@@ -1047,6 +1047,13 @@ citations** (`archive/gate3/storeroom-js-red-set.md` §5 item 4)
 docs/specs/storeroom-native/contract.md §3.1.1 — the arity table's own `null`/`undefined` column;
 `DD-46` | declared parameter semantics]`).
 
+**⟶ ADDED 2026-10-27 — THE CONSUMER'S ROW `STOREROOM-FILE-PROBE-FALSE-PASS` IS RE-MEASURED AT THE SHIPPED TREE, AND THE CONSTRUCTION REFUSES AN UNWRITABLE PARENT WITH `FilePathUnreachable`, LEAVING NO FILE BEHIND.** `RCA-8(d)` ANNOTATE-BESIDE: **every table and every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; THIS clause is a PURE INSERTION beside them and mints no row, moves no cell of either table, strikes no rule and re-decides no ruling.** **`D-41`'s closing line names the two `STOREROOM-*` rows the adjacent consumer filed and records that both were read and never re-measured; this is the second of the two, and its subject is `FilePathArg` rows 4–6 read with the construction's promise that a failing construction *"leaves nothing behind."*** **THE INSTRUMENT, NAMED SO THE READING IS FALSIFIABLE: the checkout's own build (`npm run build`, which builds the crate and stages the artefact), then the installed battery's own staging and packing — the main package's stage with the release's `LICENSE` copy, the host platform package's stage with the built `.node`, `npm pack` of both, `npm install <main tarball> --offline` and `npm install <platform tarball> --no-save` in a clean temporary directory whose ancestry names no repository — then `storeCreate` FROM THE INSTALLED ENTRY in one real Node process.** **THE READING, ONE LINE PER ARM (host `linux`/`x64`, uid `1000`, date 2026-10-27):**
+- **THE ROW'S SUBJECT — a `filePath` whose PARENT the process cannot write (mode `0555`): `storeCreate` threw `FilePathUnreachable`, returned NO INSTANCE, and LEFT NO FILE BEHIND — the parent directory held ZERO entries after the call.**
+- **CONTROL (a) — an absent parent: `FilePathUnreachable`, no instance, no file.**
+- **CONTROL (b) — a path that IS a directory: `FilePathUnreachable`, no instance, and no file created at or beside it.**
+- **CONTROL (c) — a writable parent with an absent file: the construction SUCCEEDED and returned an instance; the store's own exclusive create left the file AT THE PATH, ZERO-LENGTH (an empty file and no byte), and a `mem`-tier `write` on that instance answered `op-1`.**
+**SO THE PROBE IS NO LONGER A FALSE PASS: the parent's write access is decided by the construction's own act — step 4b's `create_new`, whose `EACCES` is the refusal — and not by a mode-bit predicate that a `0555` parent passes** (the two arms and the withdrawal of the mode-bit instrument are declared at `docs/specs/storeroom-native/contract.md §10.4` part 1 and `§7.1` step 3's clauses; `DD-45`'s amended clause). **AND ONE READING A CONSUMER COMPARING AGAINST AN OLDER TREE SHOULD EXPECT TO HAVE MOVED: control (c) leaves a ZERO-LENGTH FILE at the path, because the construction now creates its own file exclusively as the last act of its argument validation** (`§7.1` step 4b; `§10.4` parts 2–3; `DD-28`'s amended cell's *"an EMPTY FILE AND NO BYTE"*) — **the `0.1.2`-era reading *"a writable parent with an absent file constructs and creates nothing"* is that tree's, and the current construction's own declared act is the empty file.** **NO STATUS IS MINTED, NO MEMBER MOVES AND NO CELL OF THIS UNIT'S SUITE IS REACHED BY THIS CLAUSE: it RECORDS the re-measurement `D-41` owed, at the tree it was owed on** (`docs/specs/storeroom-native/contract.md §7.1` steps 3–4b and `§8.1` #13; `docs/specs/storeroom-js/contract.md §2.8`; the consumer's row `STOREROOM-FILE-PROBE-FALSE-PASS` at `archive/pre-strata-docs-2026-10-24/docs/handoffs/2026-10-12-consumer-verification-of-storeroom-0.1.2.md` §3 and §5 item 5 | state or fail-state declaration).
+
 ### §1.4 The walk's own rules — the per-class decisions, the plain-object test, the ceiling and the guard
 
 **The whole of this subsection is carried at `docs/specs/storeroom-js/crossing.md §3`, cited by path from
@@ -1867,6 +1874,17 @@ move them out of itself, and it does not re-emit them a second time either). **W
 6. **WHAT THIS CLAUSE DOES NOT CLAIM, STATED SO IT IS NOT LEFT TO A MEASUREMENT.** **A repair and its attempt now share ONE commit and therefore one window identity**, so the epoch rule's *"a request belongs to the act that raised it"* no longer separates a repair's own nested pass from the pass that invoked it: a restart request the attempt's pass raised may be drained by a pass a repair's write opens inside the same window. **That is `D-46`'s own reading — one commit, one act — and it is named here rather than discovered**, and no clause of this section requires the two to be separable. **AND A CALLER OUTSIDE ANY OPEN COMMIT CAN NEVER NAME ONE** (there is none open to hold a record for), so the fourth position is a **nested** act's discriminator and never a top-level caller's: a top-level `write` always opens.
 `[T: `D-46` at section §2.6 — the commit a call names is the discriminator (`write`'s fourth position, measured as a RECORD and never an id token), a repair joins the attempt's commit by the kernel's name at its two frames, a listener and a constraint body open because they have none to supply, the authorship marker surviving only as the unnamed fallback with the nested `constraintOn`→`listen` case that keeps it, the cells and the three reverts, and the one window the change merges | state declaration]`
 
+**⟶ ADDED 2026-10-27 — `D-43` ITEM `2`'S KNOWN FAIL-STATE IS DECLARED HERE WITH BOTH WINDOWS AND BOTH EXITS, BECAUSE THE CLAUSES ABOVE NAME THE WINDOWS AND LEAVE THE EXIT TO A FOOTNOTE.** `RCA-8(g)` ANNOTATE-BESIDE: **every byte above — the `DEF-W` clause and its annotate-besides, the `D-42`-consumer clause, the `D-45` clause and the `D-46` clause, with all their stamps — stands BYTE-FOR-BYTE and is read THROUGH this one; THIS clause is a PURE INSERTION beside them and moves no position, no arity, no verb, no member of the thrown form, no rank, no register row, no store byte and no member of any record.** **THE RULING, THE ARCHITECT, VERBATIM: *"Known fail-state, file reloads/client regenerates store to return to valid state"*** (`strata/decisions.md` · `D-43` item `2`).
+
+1. **THE TWO WINDOWS, NAMED AS THE DECLARATION NAMES THEM.** **(i) A `delete`'s listener delivery** — the delivery runs with an open commit (**the clause above holds it at one commit, and since `D-45` that commit is the listener call's own**) and **runs NO PASS**: a `delete` consults no constraint (`D-1-bis`), so a `rollback` a listener body issues inside it is a step whose check never runs, and the restart request it raises dies with that window. **(ii) A REGISTRATION'S OWN EVALUATION** — `addConstraint` and `register` ask a pair's body inside the registering verb's own commit window, at an instant at which no `K-2`/`K-3` attempt stands (`context.attempt` is `null` there), so that window likewise holds a commit and **runs NO PASS**: a `rollback` a registration body issues is a step whose request dies the same way. **NEITHER WINDOW IS NEW, NEITHER IS A DEFECT, AND NEITHER IS AN UNREACHED CASE OF THE RESTART** — the restart's consumer is the pass's own commit scope (`D-44`, `D-42`), and a window with no pass has nothing to consume what its bodies raise. **WHAT IS TRUE OF BOTH, SAID BEFORE THE EXIT: the reversal's own effect STANDS in the live instance** — the store does not put it back on this arm, and no later write is asked at the state it left — **so the absence of a refusal there is NOT an approval and must not be read as one.**
+
+2. **THE FIRST EXIT — RELOAD THE FILE.** **Construct a fresh instance over the same `cfg.filePath`.** The boot reads the bytes at the path and nothing else (`§2.8` item `1`; `§7.2` item `6`'s boot, declared at the store), **and since `bd0fd8c` a restore that moved a version standing at `Tier::File` SAVES the restored image — so THE FILE RECORDS THE RESTORED STATE, AND A RELOAD RETURNS TO JUDGED BYTES RATHER THAN TO BYTES DESCRIBING AN UNJUDGED STATE.** **WHAT THE EXIT DOES NOT CARRY, STATED SO IT IS NOT ASSUMED:** the boot reads the last successful save and no other state — no journal, no registration, no `mem` or `temp` version — and a reversal that moved only `mem`/`temp` nodes does not save, so a reload does not carry it. **`D-43` item `2`'s exit is the store's own declared boot semantics, not a general undo** (`DD-28`; `§2.8`; `docs/specs/storeroom-native/contract.md §6.6` item `5`'s clause of 2026-10-27).
+
+3. **THE SECOND EXIT — REGENERATE THE STORE.** **Discard the instance and construct the store again from the same configuration** — a `mem` register with no `filePath`, or a `file` register over the same path, which is exit `1` as well. **The new instance is a judged state by construction**: it opens with no attempt, no open commit and no window carried over from the discarded instance, so a constraint asked of it is asked at a state no unjudged step produced. **THE CONSUMER'S OBLIGATION IS THE SAME ON BOTH EXITS, AND IT IS THE POINT OF THE RULING: the recovery is the consumer's act; the package neither performs it nor pretends to** — **a known fail-state with a documented exit is a specification, an unreachable window with no exit is a defect** (`D-43` item `2`'s own sentence).
+
+4. **THE CELLS THAT STAND BESIDE THIS DECLARATION, NAMED SO THE DECLARATION IS NOT A CLAIM ABOUT AN UNDRIVEN WINDOW.** `tests/e2e/direct-pass-restart.test.mjs`'s arm `(5)` drives window `(i)` — the delete's listener runs at `open` `1`/`live` `0`, reverses inside it, no check runs, the request is stamped with that window, and the following write ANSWERS with the pair asked at the state the write left and never at the stale window's state — and it names window `(ii)` as the second such window in its own diagnostic. **The registration window was measured at the pass that named it (the clauses above), and neither arm prints a refusal where none ran.**
+`[T: `D-43` item 2's known fail-state — both windows (a delete's listener delivery, a registration's own evaluation), both exits (the file reload, which now returns to judged bytes because a restore that moves a file-tier node saves, and the store's regeneration), the effect that stands in the live instance, and the cell that measures the first window; the store's file half at `docs/specs/storeroom-native/contract.md §6.6` item 5's clause of 2026-10-27 and `§7.2` item 6 | state or fail-state declaration]`
+
 
 ### §2.7 Listener delivery — the window, the order and a throwing body
 
@@ -1934,6 +1952,28 @@ re-homing clause of 2026-10-11 — this document's twin of this clause | require
    compensating file write and no re-commit**, and **a `file`-tier write that fails answers
    `FileCommitFailed` AFTER the store's own automatic journal rollback has run**
    (`[A3 docs/specs/storeroom-native/contract.md §7.2 items 3–6 | state or fail-state declaration]`).
+
+**⟶ AND TWO FIGURES OF THOSE TWO READINGS ARE SUPERSEDED AT THEIR OWN SITES, 2026-10-27 — A RESTORE THAT MOVES A
+`file`-TIER NODE NOW SAVES (`bd0fd8c`).** `RCA-8(d)` ANNOTATE-BESIDE: **items `1` and `2` above stand
+BYTE-FOR-BYTE and are read THROUGH this clause; THIS clause is a PURE INSERTION beside them and moves no verb, no
+tier, no code, no member, no record and no count.** **ITEM `1`'s *"`file`-tier durability is produced by a
+successful `file`-tier `write` ONLY"* READS *"produced by a successful `file`-tier save, whose producers are a
+`file`-tier `write`'s commit AND a restore that moved a version standing at `Tier::File`"*; and ITEM `2`'s *"The
+package performs no compensating file write and no re-commit"* READS *"the package performs no compensating file
+write for a `delete` and none for a `rollback`'s ordinary arm; the ONE compensating write it performs is the
+REFUSED reversal's restore, and only where that restore moved a file-tier node"*.** **WHAT DOES NOT MOVE, SAID SO
+THE READING IS NOT TAKEN WIDER THAN IT IS:** **a `delete` performs no file I/O and a successful `rollback`
+performs none either**, so a JS caller that deletes a `file`-tier version and then constructs a FRESH instance over
+an equal `cfg.filePath` **still sees the removed version STAND AGAIN** — the re-boot is the store's own declared
+boot and not a defect (`DD-28`; `§7.2` item `6`); **a plain `rollback` still commits nothing**; and **a `rollback`
+that REFUSES restores, and where the restore moved a file-tier node it saves the restored image — the one act of
+the store that writes bytes without a `write`, and it writes the state the journal records, so a reload returns to
+judged bytes rather than to bytes describing an unjudged state.** **A SAVE IS AN EFFECT AND NOT AN OP**: the
+restore appends no journal entry, compacts nothing and delivers no trigger, and a save that cannot land is
+reported (`FileCommitFailed`, the in-memory state restored and the bytes not updated) rather than swallowed.
+**THE DECLARATION'S ONE HOME IS THE STORE'S** — `docs/specs/storeroom-native/contract.md §6.6` item `5`'s clause of
+the same date — **and the fail-state the refusal's restore belongs to is declared at `§2.6`'s `D-43` item `2`
+clause above** (`bd0fd8c`; `DD-28`'s amended cell | state or fail-state declaration).
 
 ### §2.9 `findAddress` IS NOT EXPOSED — the non-exposure clause, and its consequence
 
@@ -2223,6 +2263,33 @@ bytes and no other state.** **The package neither refuses the second instance no
 hazard is declared here and in the package's own documentation**
 (`[A3 docs/specs/storeroom-native/contract.md §7.2 item 5–6 and §5.7's `P-TP-7` row — **THE STORE UNIT'S OWN `P-TP-7`, SPELLED WITH ITS PATH HERE AND REACHED BY NO RENAMING** | state or fail-state
 declaration]`).
+
+**⟶ AMENDED 2026-10-27 — THE BYTES AT `cfg.filePath` ARE THE LAST SUCCESSFUL SAVE'S, AND A RESTORE THAT MOVES A
+`file`-TIER NODE IS NOW ONE OF THE SAVE'S PRODUCERS (`bd0fd8c`).** `RCA-8(d)` ANNOTATE-BESIDE: **the hazard clause
+above — *"a fresh boot over an equal path re-loads the LAST SUCCESSFUL `file` WRITE's bytes and no other state"* —
+stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause is a PURE INSERTION beside it and moves no arm,
+no refusal, no rank, no member, no record and no count.** **THE ARCHITECT'S RULING, VERBATIM: *"Update file after a
+restore that touches file-tier nodes."*** (`strata/decisions.md`; the act is `bd0fd8c`'s). **WHAT MOVED, IN ONE
+SENTENCE: the mark restore — the compensating act a REFUSED reversal performs — no longer performs no file I/O.**
+It takes the `file` tier's projection (each register key's version standing at `Tier::File`, assembled at that
+tier) BEFORE the replay and again AFTER it; **equal projections mean no version at `Tier::File` moved, so no byte
+is touched and a restore that changes nothing file-tier keeps the old reading whole**, while a different one means
+the restore SAVES, with the same serialization, image verification and sibling-and-rename commit a `file`-tier
+write's save performs — **the store's one writer and never a second one** (`DD-2`). **A SAVE IS AN EFFECT AND NOT
+AN OP**: the restore still appends no journal entry, compacts nothing and delivers no trigger, and a save that
+cannot land is REPORTED after the replay has stood (`FileCommitFailed`, the in-memory state restored and the bytes
+not updated) rather than swallowed. **SO THE CLAUSE'S SUBJECT IS UNMOVED AND ONE FIGURE OF IT MOVES: *"the LAST
+SUCCESSFUL `file` WRITE's bytes"* READS *"the last successful SAVE's bytes, whose producers are a `file`-tier
+`write`'s commit AND a restore that moved a version standing at `Tier::File`"*; *"and no other state"* STAND WHOLE
+— the boot still reads the register image at the file tier and NOTHING ELSE (no journal, no registration, no `mem`
+or `temp` version) — and a `delete` and a successful (unrefused) `rollback` still commit NOTHING, so `DD-28`'s and
+`§2.8` item `1`'s readings stand for those two verbs.** **THE DECLARATION'S ONE HOME IS THE STORE'S:
+`docs/specs/storeroom-native/contract.md §6.6` item `5`'s clause of the same date**, which carries the detection,
+the save's identity and the failed save's report; **this clause declares only what moves on this side, and what
+moves is the sentence a JS caller reads about the bytes.** **AND THE HAZARD ITSELF IS NOT WIDENED: two instances
+over one `cfg.filePath` still clobber each other, and the second still boots whatever bytes the first last saved**
+(`[A3 docs/specs/storeroom-native/contract.md §6.6 item 5's clause of 2026-10-27 and §7.2 items 2–5; `DD-28`'s
+amended cell; `bd0fd8c` | state or fail-state declaration]`).
 
 ---
 
