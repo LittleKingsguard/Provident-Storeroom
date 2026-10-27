@@ -89,7 +89,7 @@ import { encodeAddress, encodeFilePath, encodeJournalLength, encodeOpId, encodeT
 import { admittedConstraintBatch, constraintAddress, decodeBaseState, decodeJournalOp, decodeSegments, decodeValue, encodeConfig, spellConstraintAddress } from './src/entry/frame.mjs';
 import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, carryRefusal, closeCommit, crossTriggered, entryOf, homeAddressKey, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
 import { commitPositionRefusal, constraintOverwrittenByListen, deliver, listenerStandingAt, registerOn, terminalArm } from './src/entry/delivery.mjs';
-import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintWrite, constraintsKernel, enumerateConstraints, registrationCrossing, restoreHeldPair, unionAddressSets, withEmptyLog, withdrawStanding } from './src/entry/constraints.mjs';
+import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintWrite, constraintsKernel, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, withdrawStanding } from './src/entry/constraints.mjs';
 const require_ = createRequire(import.meta.url);
 const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node');
 
@@ -480,10 +480,35 @@ export function storeCreate(cfg) {
       }
     },
     /// `PAR-JS-9`: `{opId, undoneOps, restoredTo}` — the constraint pattern's reverse step (`docs/specs/storeroom-js/contract.md §2.6`).
+    ///
+    /// **⟶ AND THE REVERSAL IS JUDGED FROM 2026-10-26 — `DEF-W` OF `strata/decisions.md` · `D-38`, THE
+    /// ARCHITECT, VERBATIM: *"Assert the constraints on rollback"*** (`docs/specs/storeroom-js/contract.md §2.6`'s
+    /// clause of this date is the declaration; `surface.md §2.12`'s clause (D) and `package-use.md §5.4` name
+    /// the same member). **THE TWO CALLS BELOW ARE THE WHOLE OF IT AND NEITHER IS A WALK:**
+    ///   * **`reversalWatch` TAKES THE PRE-REVERSAL STANDING** of every enabled pair's every address BEFORE
+    ///     the addon's entry is reached, and it answers `[]` where the entry carries no pair — so a store that
+    ///     registered no constraint reaches no read at all and this member is byte-for-byte what it was;
+    ///   * **`judgeReversal` ASKS THE STATE THE REVERSAL LEFT** (`D-38`: the TERMINAL state, never a per-step
+    ///     check — an unwinding composition passes through intermediate states no constraint would approve)
+    ///     and throws the surface's one plain form, `{status: 'ConstraintPassRefused', message, log}` at the
+    ///     set's rank `20`, where a pair the reversal TOUCHED refuses that state.
+    /// **A LAWFUL REVERSAL IS UNCHANGED — same record, same three members, no throw** — **and `D-40`'s floor
+    /// law is not re-walked: this member still performs ONE store call, and the judgement is a judgement of
+    /// the state that call left and not a sequence of per-op approvals.** **THE SHAPE IS `(a)` AND IT WAS
+    /// MEASURED: the refusal comes AFTER the reversal and the reversal's effect STANDS**, because `(b)` —
+    /// computing the terminal state without applying it — is not computable from the thirteen names the
+    /// artefact publishes (there is no journal read and no candidate-set query among them) and a JS guess at
+    /// the store's temporally floored, all-or-nothing rollback scope (`src/store.rs:2374–2430`) is the one
+    /// thing this pass refused to write.
     rollback(opId) {
       const args = arguments.length >= 1 ? [encodeOpId(opId)] : [];
+      // THE WATCH COMES FIRST, ON THIS SIDE OF THE STORE CALL: the standing it takes is the one the reversal
+      // is about to move, and it is what makes "the address the reversal touched" MEASURED.
+      const watched = reversalWatch(state, instance);
       // THE ENTRY IS INVOKED BY `Reflect.apply`, NOT BY A SPREAD — see `read`'s clause of 2026-10-24 above.
       const answer = carryRefusal(() => Reflect.apply(entryOf().rollback, this, args), args);
+      // AND THE JUDGEMENT AFTER IT, keyed to the store's own echo of the id the reversal named.
+      judgeReversal(instance, watched, answer.opId);
       return {
         opId: answer.opId,
         undoneOps: answer.undoneOps,

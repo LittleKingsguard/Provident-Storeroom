@@ -652,6 +652,188 @@ test('DEF-R · five `constraints()` snapshots across a pass, a refusal, a toggle
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// DEF-W — THE REVERSAL IS JUDGED, at the state it leaves and never per unwinding step
+//
+// **THE RULING.** `strata/decisions.md` · `D-38` (2026-10-26), the architect, VERBATIM: *"Assert the
+// constraints on rollback"*. **THE DECLARATION IS `docs/specs/storeroom-js/contract.md §2.6`'s clause of the
+// same date** (`surface.md §2.12`'s clause (D) and `docs/guides/package-use.md §5.4` name the same member and
+// the same rank): a reversal is judged AT THE TERMINAL STATE IT LEAVES — *"a per-step check is unsound: an
+// unwinding composition passes through intermediate states no constraint would approve"*; a `rollback` whose
+// terminal state violates a registered constraint FAILS, carrying the set's rank-`20` member
+// `ConstraintPassRefused` in this surface's ONE plain form `{status, message, log}`; **and a LAWFUL reversal
+// is unchanged — same record, same `undoneOps`, same `restoredTo`, no status and no throw.**
+//
+// **THE SEAM THIS CELL IS THE FIRST TO DRIVE, AND THE CELL THAT WOULD CATCH ITS ABSENCE.**
+// `bindings/js/index.mjs`'s `rollback` member passed the reversal straight to the addon's entry
+// (`Reflect.apply(entryOf().rollback, this, args)`) and consulted no constraint at all: **the declaration is
+// `D-38`'s second owed cell — the refused-reversal arm — and this row is that cell.**
+//
+// **THE TWO ARMS, BOTH DRIVEN BEFORE ANY ASSERTION, SO A RED CANNOT HIDE THE ARM BESIDE IT:**
+//   (1) REFUSED — the seed `SEED` is written, a second value `SECOND` is written and its `opId` KEPT, a pair is
+//       registered over `['a']` that the FIRST value violates (it passes at registration, which evaluates
+//       against the state then standing, `SECOND`), and the reversal of the second write is asked for. **The
+//       terminal state is `SEED`, so the call must NOT answer a bare success object;**
+//   (2) LAWFUL — the same shape with a pair that admits every value this reversal can leave: **the call answers
+//       its success record and no `log`, byte for byte what it answered before `DEF-W` landed.**
+//
+// **AND THE ARM THIS ROW PINS FOR THE RECORD — SHAPE `(a)`, THE ONE THE PASS MEASURED AND CHOSE.** The refusal
+// is answered AFTER the reversal has run and **the reversal's effect STANDS** (the store then reads `SEED`).
+// `(b)` — computing the terminal state WITHOUT applying it — is not computable from what the artefact
+// publishes: its thirteen names carry no journal read and no candidate-set query, and the store's rollback
+// scope is temporally floored at the named op's own `seq` and all-or-nothing at the compacted mark
+// (`src/store.rs:2374–2430`), so a JS guess at it would be a second implementation of the store's own rule.
+// **THE STORE-STANDS-AT-`SEED` READING IS THEREFORE AN ASSERTION HERE AND NOT AN OMISSION.**
+//
+// **THE OTHER THIRTEEN MEMBERS ARE NOT THIS CELL'S SUBJECT AND NO MEMBER BUT `rollback` MOVES.** The cells that
+// would catch a change to any of them are named where they live, and they are the census and the sweeps:
+//   * `tests/e2e/blind-entry-surface.test.mjs`'s `entry · contract.md §2.4 item 9 (the fourteen) · the instance
+//     carries EXACTLY fourteen own members, by name` — the product's member set, member for member;
+//   * `tests/unit/js-constraints/a126-constraint-methods.test.mjs`'s `FOURTEEN_MEMBERS` assertions — the same
+//     set read again before every refusal cell in that file;
+//   * `tests/e2e/receiver-detachment.test.mjs`'s `receiver_detachment_every_member_refuses_a_detached_call_in_the_one_plain_form`
+//     and `receiver_detachment_the_whole_detached_sweep_moves_no_state` — **the detached sweep**, member by
+//     member, with its bound control;
+//   * `tests/e2e/addon-surface.test.mjs` — `P-SAS-1`/`V-1` and the arity/`F-3` drives over the artefact's
+//     THIRTEEN declared names, so the addon's own export set is read on every run;
+//   * `tests/e2e/addon-adoption.test.mjs`'s `ada_pada5_s_commit_open_the_walk_covers_thirteen_calls_five_bracketing_and_eight_not`
+//     — the commit-opening walk over every call of the surface that can open one, which is where a member the
+//     judgement had made open a commit would redden.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+test('DEF-W · under `D-38` (2026-10-26) a `rollback` whose TERMINAL state a registered constraint refuses answers the one plain form with `status` `ConstraintPassRefused` and a `log` naming the constraint, while a lawful reversal answers its unchanged success record', (t) => {
+  // **THE TWO VALUES THIS ROW KEEPS APART** — `W_FIRST` is the value that STANDS before the second write and is
+  // what the reversal RESTORES (so it is the state the refusing pair rejects), and `W_SECOND` is what the second
+  // write lands (so it is the state that pair must ADMIT at its own registration evaluation). They are this
+  // file's own `SEED` and `REFUSED` sentinels under names this row can read.
+  const W_FIRST = SEED;
+  const W_SECOND = REFUSED;
+  // ── (1) THE REFUSED ARM. The seed, then the second value whose `opId` is the reversal's argument, then the
+  // pair. **THE PAIR IS REGISTERED AFTER THE W_SECOND WRITE AND PASSES AT REGISTRATION** — `K-1` evaluates the
+  // body once, against the store's standing then (`surface.md §2.12` item 3's states (i)–(β)), which is
+  // `W_SECOND` — and it is the state the reversal RESTORES that it refuses.
+  const refusing = make();
+  refusing.write(['a'], 'mem', W_FIRST);
+  const second = refusing.write(['a'], 'mem', W_SECOND);
+  const refusingPair = attempt(() => refusing.addConstraint({ address: ['a'], id: 'w1' },
+    (context) => (context.value === W_SECOND
+      ? true
+      : { message: 'this pair admits the second value alone' })));
+  const refused = attempt(() => refusing.rollback(second.op.opId));
+  // **WHAT THE STORE STANDS AT AFTERWARDS IS SHAPE `(a)`'s OWN READING** — the reversal ran, the judgement
+  // refused the state it left, and the reversal's effect was NOT undone by the refusal.
+  const refusedStanding = refusing.read(['a']);
+  const refusedShape = shapeOf(refused.caught);
+  const refusedLog = refused.caught !== null && typeof refused.caught === 'object' && Array.isArray(refused.caught.log)
+    ? refused.caught.log
+    : [];
+
+  // ── (2) THE LAWFUL ARM. The same seed and the same second write, with a pair that admits everything this
+  // reversal can leave: the terminal state satisfies every registered pair, so the record is the declared one.
+  const lawfulStore = make();
+  lawfulStore.write(['a'], 'mem', W_FIRST);
+  const lawfulSecond = lawfulStore.write(['a'], 'mem', W_SECOND);
+  const lawfulPair = attempt(() => lawfulStore.addConstraint({ address: ['a'], id: 'w2' },
+    (context) => (typeof context.value === 'number' && context.value >= W_FIRST
+      ? true
+      : { message: 'this pair admits no value below the seed' })));
+  const lawful = attempt(() => lawfulStore.rollback(lawfulSecond.op.opId));
+  const lawfulStanding = lawfulStore.read(['a']);
+  const lawfulKeys = lawful.ok ? Object.keys(lawful.value).sort() : null;
+
+  // ── THE DRIVE IS COHERENT, OR THE CELL SAYS SO INSTEAD OF REPORTING A VERDICT. ──────────────
+  assert.deepEqual([refusingPair.ok, lawfulPair.ok], [true, true],
+    `both pairs must REGISTER (the body passes against the state standing at registration, \`W_SECOND\`), or the `
+      + `two arms are not the arms this cell claims. THE DRIVE OBSERVED refusingPair=${JSON.stringify(shapeOf(refusingPair.caught))} `
+      + `lawfulPair=${JSON.stringify(shapeOf(lawfulPair.caught))}`);
+  assert.deepEqual([refused.ok, lawful.ok], [false, true],
+    `the drive's own arms must answer REFUSED, ANSWERED. THE DRIVE OBSERVED refused.ok=${refused.ok} `
+      + `(caught ${JSON.stringify(refusedShape)}) and lawful.ok=${lawful.ok} `
+      + `(caught ${JSON.stringify(shapeOf(lawful.caught))})`);
+
+  // ── THE FINDING, AT THE FORM AND AT THE STATUS. ──────────────────────────────────────────────
+  // `§2.5` items 3–4: a THROWN plain object of exactly `{status, message, log}`, `log` present on every arm.
+  assert.deepEqual(refusedShape.keys, REFUSAL_MEMBERS,
+    `a refused reversal crosses this surface as exactly ${JSON.stringify(REFUSAL_MEMBERS)} — the ONE plain form `
+      + `(\`docs/specs/storeroom-js/surface.md §2.5\` items 3–4). THE DRIVE CAUGHT ${JSON.stringify(refusedShape)}`);
+  assert.equal(refused.caught.status, 'ConstraintPassRefused',
+    `a refused reversal's \`status\` is the set's rank-\`20\` member \`ConstraintPassRefused\` (\`strata/decisions.md\` · `
+      + `\`D-38\`; \`contract.md §2.6\`'s clause of 2026-10-26; \`src/error.rs\`'s \`CODES\`, \`[&str; 20]\`). THE DRIVE `
+      + `READ ${JSON.stringify(refused.caught.status)} and message ${JSON.stringify(refused.caught.message)}`);
+  // **AND THE REFUSAL IS NOT THE SAVE'S, AND CARRIES NO `KC` TOKEN** (`A120` (2): the token stays in the
+  // kernel; `FileCommitFailed` is the SAVE's code alone — `D-38`'s `DEF-H` reading).
+  assert.equal(refused.caught.status === 'FileCommitFailed' || refused.caught.status === 'ConstraintListInvalid',
+    false,
+    `a refused reversal is not the save's code and not the registration's: the drive read `
+      + `${JSON.stringify(refused.caught.status)}`);
+  assert.equal(JSON.stringify(refused.caught).includes('KC-'), false,
+    `no \`KC\` spelling crosses this surface (\`A120\` (2)): the token stays in the kernel and the status names `
+      + `the layer that refused. THE DRIVE CAUGHT ${JSON.stringify(refused.caught)}`);
+
+  // ── AND THE `log` NAMES THE CONSTRAINT AND THE STATE IT REFUSED. ─────────────────────────────
+  // `kernel-surface.md §2.5` item 1: the entry's SIX members and its CLOSED four-kind set — the same entry
+  // shape every other log this surface carries has, so a consumer reads this `log` with the reader it
+  // already has.
+  assert.ok(refusedLog.length > 0,
+    `the refusal's \`log\` names the constraint and the state it refused, so it is not empty here: the drive `
+      + `read ${JSON.stringify(refusedLog)}`);
+  for (const entry of refusedLog) {
+    assert.deepEqual(Object.keys(entry).sort(), [...LOG_MEMBERS].sort(),
+      `a log entry carries exactly ${JSON.stringify(LOG_MEMBERS)} (\`kernel-surface.md §2.5\` item 1); the drive `
+        + `read ${JSON.stringify(Object.keys(entry))} from ${JSON.stringify(entry)}`);
+    assert.equal(LOG_KINDS.includes(entry.kind), true,
+      `\`kind\` is one of ${JSON.stringify(LOG_KINDS)}; the drive read ${JSON.stringify(entry.kind)}`);
+  }
+  const naming = refusedLog.filter((entry) => entry.id === 'w1'
+    && entry.message.includes('w1')
+    && entry.message.includes(JSON.stringify(W_FIRST)));
+  assert.equal(naming.length, refusedLog.length,
+    `every entry of the refusal's \`log\` NAMES THE CONSTRAINT (\`id\` \`w1\`) AND THE STATE IT REFUSED `
+      + `(${JSON.stringify(W_FIRST)}, the value the reversal restored). THE DRIVE READ ${JSON.stringify(refusedLog)}`);
+  // **THE `message` IS THE STORE'S OWN GENERATED SENTENCE, AT THE PAIR'S `<SEGMENT>` SLOT, AND THIS CELL
+  // ASSERTS THE SLOT AND NOT THE WORDING** (`§8.2`'s row for the rank-`20` member; `DD-52` forbids the package
+  // authoring a second one). The address it prints is the one the reversal's judgement found the refusal at.
+  assert.equal(typeof refused.caught.message === 'string'
+    && refused.caught.message.length > 0
+    && refused.caught.message.includes("'a'"), true,
+    `the refusal's \`message\` is the store's generated sentence and renders the pair's own \`<SEGMENT>\` slot `
+      + `(\`§8.2\`; \`DD-52\`). THE DRIVE READ ${JSON.stringify(refused.caught.message)}`);
+
+  // ── THE LAWFUL SIDE: THE RECORD IS UNCHANGED, MEMBER FOR MEMBER, AND CARRIES NO `log`. ───────
+  assert.deepEqual(lawfulKeys, ['opId', 'restoredTo', 'undoneOps'],
+    `a LAWFUL reversal answers its declared record and NO new member (\`PAR-JS-9\`: \`{opId, undoneOps, `
+      + `restoredTo}\`; \`D-38\`: *"a lawful reversal is unchanged"*). THE DRIVE READ ${JSON.stringify(lawfulKeys)}`);
+  assert.equal(lawful.value.opId, lawfulSecond.op.opId,
+    `the record's \`opId\` echoes the id the reversal named: the drive read `
+      + `${JSON.stringify(lawful.value.opId)} against ${JSON.stringify(lawfulSecond.op.opId)}`);
+  assert.deepEqual([...lawful.value.undoneOps], [lawfulSecond.op.opId],
+    `\`undoneOps\` is the LIST of the ids the reversal undid; the drive read `
+      + `${JSON.stringify(lawful.value.undoneOps)}`);
+  assert.deepEqual(lawful.value.restoredTo, { present: true, value: W_FIRST },
+    `\`restoredTo\` is the base state the address now stands at — the seed the reversal restored: `
+      + `${JSON.stringify(lawful.value.restoredTo)}`);
+  assert.equal(Object.hasOwn(lawful.value, 'log'), false,
+    'a lawful reversal carries NO log: the judgement adds nothing to a record it did not refuse');
+  assert.equal(lawfulStanding, W_FIRST,
+    `and the store stands where the lawful reversal left it; the drive read ${JSON.stringify(lawfulStanding)}`);
+
+  // ── SHAPE `(a)`, ASSERTED RATHER THAN ASSUMED: THE REFUSAL COMES AFTER THE REVERSAL AND ITS EFFECT STANDS.
+  assert.equal(refusedStanding, W_FIRST,
+    `THE REFUSED ARM'S STORE STATE — shape \`(a)\` of this pass's own two: the reversal RAN, the judgement `
+      + `refused the state it left, and the reversal's effect was not rolled forward again. THE DRIVE READ `
+      + `${JSON.stringify(refusedStanding)} where the reversal's terminal state is ${JSON.stringify(W_FIRST)}`);
+
+  // ── THE READINGS, PRINTED ON BOTH ARMS (`D-21`: a cell owes what it read). ───────────────────
+  t.diagnostic(`DEF-W · D-38 (2026-10-26) · REFUSED reversal: rolled back op ${JSON.stringify(second.op.opId)} `
+    + `to ${JSON.stringify(W_FIRST)} against pair 'w1'; status = ${JSON.stringify(refused.caught.status)}; `
+    + `message = ${JSON.stringify(refused.caught.message)}; log = ${JSON.stringify(refusedLog)}; `
+    + `store stands at ${JSON.stringify(refusedStanding)} (shape (a): the reversal's effect STANDS)`);
+  t.diagnostic(`DEF-W · D-38 (2026-10-26) · LAWFUL reversal: rolled back op `
+    + `${JSON.stringify(lawfulSecond.op.opId)} to ${JSON.stringify(W_FIRST)} against pair 'w2'; `
+    + `record = ${JSON.stringify(lawful.value)}; keys = ${JSON.stringify(lawfulKeys)}; `
+    + `store stands at ${JSON.stringify(lawfulStanding)}`);
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 // F · the `filePath` probe at 1.0.0 — the 0.1.x row never re-measured
 //
 // **THE CLAIM.** `storeCreate` with a `filePath` whose parent the process cannot write (`/usr/bin/…`,

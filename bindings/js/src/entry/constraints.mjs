@@ -1030,3 +1030,331 @@ function constraintCrossing(refusal) {
   };
 }
 
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+// **⟶ ADDED 2026-10-26 — THE REVERSAL'S JUDGEMENT: `DEF-W` OF `strata/decisions.md` · `D-38`, THE
+// ARCHITECT, VERBATIM: *"Assert the constraints on rollback"*.**
+//
+// **THE SEAM THIS FILE LANDS, AND WHY IT IS HERE RATHER THAN IN `index.mjs`.** `index.mjs`'s `rollback`
+// member passes the reversal straight to the addon entry; **the pairs, their functions and the read model
+// live here** (`state.constraints`, `carryConstraint`'s own record), so the judgement's two halves are this
+// file's and that member gains two calls: the WATCH taken before the reversal and the JUDGEMENT taken after
+// it. **NO OTHER MEMBER OF `index.mjs` MOVES AND NO OTHER FILE IS TOUCHED.**
+//
+// **THE LAW, AT THE INSTANT IT IS JUDGED AT: after the reversal, every registered pair whose address the
+// reversal TOUCHED must hold at the state the reversal LEFT.** `docs/specs/storeroom-js/contract.md §2.6`'s
+// clause of this date: *"A REVERSAL IS JUDGED AT THE TERMINAL STATE IT LEAVES, AND NEVER PER UNWINDING
+// STEP"* — **a per-step check is unsound because an unwinding composition passes through intermediate states
+// no constraint would approve** — and item 2 of the same clause forbids the other direction too: **this is ONE
+// judgement of ONE state, it adds no walk, and `D-40`'s floor law (`composeRollback`'s one call at the
+// attempt's first op) is not re-walked by it.**
+//
+// **AND THE SHAPE CHOSEN IS `(a)` OF THE PASS'S OWN TWO, MEASURED AND NOT ASSUMED: THE REFUSAL COMES AFTER
+// THE REVERSAL AND THE REVERSAL'S EFFECT STANDS.** Shape `(b)` — computing the terminal state WITHOUT
+// applying it — was measured against the artefact's own export set and is **NOT COMPUTABLE**: the addon
+// publishes thirteen names (`read`, `readLiteral`, `write`, `delete`, `rollback`, `listen`, `unlisten`,
+// `removeListener`, `commitFile`, `register`, `storeCreate`, `errorMessage`, `version`) and **no journal read,
+// no op listing and no candidate-set query among them**, while the store's rollback scope is TEMPORALLY
+// FLOORED at the named op's own `seq` and ALL-OR-NOTHING at the compacted mark (`src/store.rs:2374–2430`,
+// `D-40`'s implementation finding, item 2). **So which ops the floor call would undo, and what their
+// `before` values are, is not derivable from what the addon and the store expose** — a JS guess at that
+// candidate set would be a second implementation of the store's own rule, and a guessed terminal state that
+// DISAGREES with the store is worse than a late refusal. **THE JUDGEMENT THEREFORE READS THE STORE IT IS
+// STANDING ON.**
+//
+// **THE WATCH IS WHAT MAKES "TOUCHED" MEASURED RATHER THAN GUESSED.** Before the addon is called, this file
+// reads the store's standing at EVERY enabled pair's every address; after it, it reads the same addresses
+// again and **an address the reversal did not move is not judged** — which is what keeps a pair the reversal
+// never reached (a disabled pair, a pair at an untouched address, a pair whose constraint the store is
+// already standing outside) from refusing a reversal that has nothing to do with it. **A PAIR WHOSE ELEMENT
+// DOES NOT STAND A REGISTRATION IS NOT EVALUATED** (`enabled !== true`): the disable arm PURGES the store's
+// row and registers nothing (`DEF-2026-10-20-F`; `withdrawStanding` above), and the declaration that governs
+// it says *"disabling cannot fire — nothing runs"* — so a reversal is not the act that wakes it.
+//
+// **THE EVALUATION'S CONTEXT IS THE REGISTRATION INSTANT'S OWN FIVE MEMBERS** (`kernel-surface.md §2.3` item
+// 1's clause of 2026-10-17, `registrationContext` in `kernel-registration.mjs`): `address` the pair's own,
+// `tier` ABSENT spelled `null`, `value` THE STORE'S CURRENT VALUE **READ AND NOT LANDED**, `attempt` `null`
+// (no attempt stands at a reversal's judgement) and `op` `null` (the reversal is not a landing). **The
+// `value` is taken by the store's own `read` at the pair's address with the tier argument OMITTED — the very
+// `readCurrent` route the registration instant takes — and an `AddressNotFound` answers `undefined`**, that
+// clause's own absence arm, rather than a code in a `Value` slot.
+//
+// **THE OUTCOME ARMS ARE `PAR-C-5`'S CLOSED THREE, read as the pass reads them**: `true` is the pass arm; any
+// other return is the violation arm (`a body that answers a value outside the three arms is READ AS the
+// `{message}` arm and never as an arm of its own`). **AND THE FIRST VIOLATING PAIR DECIDES AND THE SECOND IS
+// NOT EVALUATED** (`attempt-lifecycle.md §2.4` item 5 (ii)–(iii)): the pairs are walked in `D-39`'s
+// REGISTRATION SEQUENCE — the order `constraints()` promises — so which pair is "first" is a declared order
+// and not a `Map`'s insertion accident.
+//
+// **THE REFUSAL'S FORM IS THE SURFACE'S ONE, AND ITS `status` IS THE SET'S RANK-`20` MEMBER** — the same
+// `CONSTRAINT_PASS_REFUSED` this file's `constraintCrossing` selects for a `KC`-tokened write refusal
+// (`DEF-H`), because `D-38` says ONE member serves both arms: *"a refused reversal is a refusal"*. **THE
+// MESSAGE IS THE STORE'S OWN GENERATED SENTENCE** (`addon_.errorMessage`, whose `§8.2` clause for this code of
+// 2026-10-26 is *"… was refused by a constraint pass, the state this act would leave is not one the
+// registered constraints admit"*) — `DD-52` forbids a code's message from a second source, so none is
+// authored here — **and the `log` is ONE `constraint-check` entry of the kernel's own six members**
+// (`kernel-surface.md §2.5` item 1: `seq` · `kind` · `id` · `message` · `opId` · `state`) **naming the
+// constraint that refused and the state it refused.** **NO `KC` TOKEN CROSSES** (`A120` (2);
+// `docs/specs/storeroom-js/surface.md §2.12` item 3 item 2): `state` is `null` and the sentence is where the
+// state is named.
+//
+// **A LAWFUL REVERSAL IS UNCHANGED, MEMBER FOR MEMBER** — same `{opId, undoneOps, restoredTo}`, no throw, no
+// log and no new member — and **a tree carrying no pair at all reaches no read and no body** (`constraints()`
+// answering `[]` is the same fact read the other way).
+
+/// **WHETHER THE STORE OWNS NO OPEN COMMIT — THE ONE INSTANT A REVERSAL'S TERMINAL STATE IS THE STATE THAT
+/// WILL STAND** (`finalizer-and-teardown.md §4.2` item 1's declared seam: `store[ATTEMPT_COUNT]()` answers
+/// *"the number of OPEN COMMITS for THAT store, a non-negative INTEGER"*, and it is *"a pure READ"*).
+///
+/// **THIS GATE IS `D-38`'S OWN REASONING AND NOT A CONVENIENCE.** The ruling judges a reversal AT THE STATE IT
+/// LEAVES and refuses a per-step check because *"an unwinding composition passes through intermediate states no
+/// constraint would approve"*. **A reversal performed INSIDE an open commit is exactly such a step**: the
+/// window that is open will move the state again before the client sees anything — the kernel's own failing
+/// attempt reverses at its floor (`kernel-terminal.mjs`'s `composeRollback`, `D-40`'s ONE call), a repair's
+/// landing writes again, a pass continues — so the state such a reversal leaves is NOT the state that stands,
+/// and judging it would (i) judge an intermediate state, (ii) invoke a caller's constraint body a second time
+/// in the middle of the attempt that is already evaluating it, and (iii) break the arm `D-40` declares, whose
+/// failing attempt is DEFINED to leave *"the store exactly as it found it"* — a state a registered constraint
+/// has already approved, or the attempt would not have started from it.
+///
+/// **SO THE JUDGEMENT IS THE AT-REST REVERSAL'S**: a caller's `rollback` at the surface, where the store owns
+/// no open commit and the state the reversal leaves is the state the caller then reads. **THE COUNT IS SPENT
+/// WITHOUT TOUCHING ANYTHING** (`§4.2` item 1: no state, no code, no journal entry, no file), and **a product
+/// that answers no such channel is judged** — the seam is declared on every instance `storeCreate` returns, and
+/// an absent one is a finding at its own site rather than a silent skip here.
+const ATTEMPT_COUNT = Symbol.for('provident-storeroom.attempt-count');
+
+function reversalAtRest(instance) {
+  const reader = instance[ATTEMPT_COUNT];
+  if (typeof reader !== 'function') return true;
+  try {
+    return reader() === 0;
+  } catch {
+    return true;
+  }
+}
+
+/// **THE WATCH — THE PRE-REVERSAL STANDING OF EVERY ENABLED PAIR'S EVERY ADDRESS**, taken before the addon's
+/// `rollback` entry is called. **IT IS A LIST OF `{entry, address, before}` AND NOTHING ELSE**: the entry is
+/// the pair's own record (so the judgement needs no second lookup and no registry read after the reversal),
+/// the address is the pair's own segment array (never a copy, never mutated here) and `before` is what the
+/// store stood at when the reversal was asked for.
+///
+/// **IT IS EMPTY WHERE THE ENTRY CARRIES NO PAIR**, so the whole judgement — and every read it would take —
+/// is skipped for the overwhelming majority of `rollback` calls, and a store that never registered a
+/// constraint answers exactly what it answered before `DEF-W` landed.
+export function reversalWatch(state, instance) {
+  const watched = [];
+  if (state.constraints.size === 0) return watched;
+  // A REVERSAL INSIDE AN OPEN COMMIT IS A STEP AND NOT A TERMINAL STATE — see `reversalAtRest` above, which
+  // states the ground. The watch answers `[]` there, so no read is taken and no body is invoked.
+  if (reversalAtRest(instance) === false) return watched;
+  // **THE WALK IS `D-39`'S DECLARED ORDER** — the record's own `registrationSeq`, collected and ordered
+  // exactly as `enumerateConstraints` collects and orders its answer — so the pair the judgement reaches
+  // FIRST is the pair `constraints()` names first, and not whichever pair a toggle happened to move.
+  const carried = [];
+  for (const entry of state.constraints.values()) {
+    appendOwn(carried, entry);
+  }
+  carried.sort((left, right) => left.registrationSeq - right.registrationSeq);
+  for (let index = 0; index < carried.length; index += 1) {
+    const entry = carried[index];
+    // THE PAIR'S ELEMENT MUST STAND A REGISTRATION FOR IT TO BE ASKED ANYTHING (`withdrawStanding`'s own
+    // predicate, and its own ground: a disabled pair's registry standing is a CARRIAGE fact, not a listener).
+    if (entry.enabled !== true) continue;
+    for (let position = 0; position < entry.addresses.length; position += 1) {
+      const address = entry.addresses[position];
+      appendOwn(watched, { entry, address, before: standingAt(instance, address) });
+    }
+  }
+  return watched;
+}
+
+/// **THE JUDGEMENT — THE TERMINAL STATE, ASKED OF EVERY PAIR THE REVERSAL TOUCHED, ONCE.** It answers
+/// `undefined` on the lawful arm (**and the caller's record then crosses unchanged**) and THROWS the surface's
+/// one plain form on the refusing arm. `reversalId` is the store's own echo of the id the reversal named
+/// (`answer.opId` at the member), carried as the refusal's log entry's `opId` so the record names the act.
+export function judgeReversal(instance, watched, reversalId) {
+  for (let index = 0; index < watched.length; index += 1) {
+    const one = watched[index];
+    // THE ADDRESS IS READ AGAIN, AT THE STATE THE REVERSAL LEFT. **A STANDING THIS REVERSAL DID NOT MOVE IS
+    // NOT A STANDING IT LEFT**, so the pair is not asked and cannot refuse the reversal for a state the
+    // reversal found: the judgement's subject is the CHANGE the reversal made and nothing wider.
+    const after = standingAt(instance, one.address);
+    if (sameStanding(one.before, after) === true) continue;
+    const outcome = reversalOutcome(one.entry, one.address, after);
+    if (outcome === true) continue;
+    // **THE FIRST VIOLATING PAIR DECIDES AND THE SECOND IS NOT EVALUATED** (`attempt-lifecycle.md §2.4` item 5
+    // (ii)–(iii), at the reversal's own instant).
+    throw reversalRefusal(one, after, reversalSaid(outcome), reversalId);
+  }
+  return undefined;
+}
+
+/// **THE STORE'S STANDING AT ONE ADDRESS, READ AND NOT LANDED** — the kernel's own `readCurrent`
+/// (`kernel-registration.mjs`), member for member: **the zero-tier call on the product's own `read` member**
+/// (the ONE route rule `contract.md §2.9` item 2 declares: a package-side reader reaches a store verb the way
+/// a caller does), and **`undefined` where that read refuses** — `AddressNotFound` being the state a fresh
+/// pair is registered at and no code being put in a value slot (`DD-12`).
+function standingAt(instance, address) {
+  try {
+    return instance.read(address);
+  } catch (refused) {
+    return undefined;
+  }
+}
+
+/// **WHETHER TWO STANDINGS ARE THE SAME STATE** — the comparison the word "touched" is decided by. **IT IS
+/// STRUCTURAL AND IT IS TAKEN ON THE STORE'S OWN DECODED VALUES**, which the crossing admits as JSON values
+/// (`docs/specs/storeroom-json-crossing/`): `Object.is` for the primitives, then `length` and index for the
+/// arrays and **own keys, by `[[GetOwnProperty]]` and never by a chain read** (`D-35`'s read half) for the
+/// objects. A state that differs only in key ORDER is the SAME state, which is what the store's own JSON
+/// values mean; a value at a DIFFERENT DEPTH is a different state.
+function sameStanding(left, right) {
+  if (Object.is(left, right) === true) return true;
+  if (left === null || right === null) return false;
+  if (typeof left !== 'object' || typeof right !== 'object') return false;
+  const leftIsArray = Array.isArray(left);
+  if (leftIsArray !== Array.isArray(right)) return false;
+  if (leftIsArray === true) {
+    if (left.length !== right.length) return false;
+    for (let index = 0; index < left.length; index += 1) {
+      if (sameStanding(left[index], right[index]) === false) return false;
+    }
+    return true;
+  }
+  const keys = Object.keys(left);
+  if (keys.length !== Object.keys(right).length) return false;
+  for (let index = 0; index < keys.length; index += 1) {
+    const key = keys[index];
+    if (Object.hasOwn(right, key) === false) return false;
+    if (sameStanding(ownDataMember(left, key), ownDataMember(right, key)) === false) return false;
+  }
+  return true;
+}
+
+/// **ONE MEMBER OF A VALUE, READ AS AN OWN DATA PROPERTY OR NOT AT ALL** — `[[GetOwnProperty]]`'s answer, the
+/// same read `refusal.mjs`'s `ownMember` takes and for the same reason (`D-35`'s read half): a `[[Get]]` walks
+/// the chain, and this package builds no verdict out of a prototype it does not own.
+function ownDataMember(value, name) {
+  const descriptor = Object.getOwnPropertyDescriptor(value, name);
+  if (descriptor === undefined || !Object.hasOwn(descriptor, 'value')) return undefined;
+  return descriptor.value;
+}
+
+/// **THE ONE EVALUATION A REVERSAL TAKES OF ONE PAIR** — the five-member `AttemptContext` at its registration
+/// instant's spellings (`kernel-surface.md §2.3` item 1's clause of 2026-10-17), built at one site:
+/// `address` the pair's own FRESH copy (`slice`, the registration context's own form), `tier` and `op` `null`,
+/// `attempt` `null` and `value` THE STATE THE REVERSAL LEFT.
+///
+/// **A BODY THAT THROWS IS THE SURFACE'S RANK-`18` `ConstraintBodyThrew`, NOT A RAW HOST ERROR** (`DEF-S`'s
+/// ruling, `D-38`; `src/error.rs`'s `[&str; 20]` rank `18`): the mark the kernel sets at its own three frames
+/// (`markBodyThrow`) is spelled on this side under the same `Symbol.for` key — so the value crosses through
+/// `bodyThrowRefusal` and this surface's ONE form, with `log: []` (no attempt stands at a reversal's
+/// judgement). **WHERE THE TREE CARRIES NO USABLE GENERATOR THE BODY'S OWN VALUE CROSSES AS ITSELF**, which is
+/// the safe direction `registrationCrossing` already takes and the one `fail-surface.md §1.1` item 5 declares
+/// for a body's throwable.
+function reversalOutcome(entry, address, value) {
+  const context = {
+    address: address.slice(),
+    tier: null,
+    value,
+    attempt: null,
+    op: null,
+  };
+  try {
+    return entry.fn(context);
+  } catch (body) {
+    const carried = Object.create(null);
+    // THE TWO SLOTS THE KERNEL'S OWN MARK CARRIES (`kernel-foundations.mjs`'s `markBodyThrow`): the pair's
+    // address spelling joined by `/`, and the log as it stood when the body threw — `[]` here, because no
+    // attempt stands at a reversal's judgement.
+    carried.address = addressSpelling(address);
+    carried.log = [];
+    const converted = bodyThrowRefusal(carried);
+    throw converted === null ? body : converted;
+  }
+}
+
+/// **THE VIOLATION'S OWN SENTENCE WHERE THE BODY SUPPLIED ONE** — the `{message}` arm's text, read as the
+/// pass reads it (own member, `D-35`), and `null` for every return outside the three arms, whose own sentence
+/// this arm does not invent (`the constraint that refused` is named by the log entry's `id` regardless).
+function reversalSaid(outcome) {
+  if (outcome === null || typeof outcome !== 'object') return null;
+  const said = ownDataMember(outcome, 'message');
+  return typeof said === 'string' && said.length > 0 ? said : null;
+}
+
+/// **THE REFUSAL ITSELF — THE SURFACE'S ONE PLAIN FORM** (`surface.md §2.5` items 1–4 and item 9: a THROWN
+/// plain object literal of exactly `{status, message, log}`). **THE `status` IS THE SET'S RANK-`20` MEMBER**
+/// (`CONSTRAINT_PASS_REFUSED` above; `src/error.rs`'s `[&str; 20]`), **THE `message` IS THE STORE'S OWN
+/// GENERATED SENTENCE** at the pair's own `<SEGMENT>` slot (`addon_.errorMessage` — `DD-52` forbids a second
+/// source, so nothing is authored here; the fixed sentence below is reached only on a tree whose generator is
+/// unusable, which is the same arm `constraintCrossing` answers with a fixed sentence), **and THE `log` IS ONE
+/// `constraint-check` ENTRY OF THE KERNEL'S SIX MEMBERS NAMING THE CONSTRAINT AND THE STATE IT REFUSED.**
+///
+/// **THE ENTRY IS BUILT HERE AND NOT BY THE KERNEL, AND THE ODD MEMBER IS SAID PLAINLY: no attempt stands at
+/// a reversal's judgement**, so there is no attempt log to carry verbatim (`§2.5` item 3's `log` is *"the
+/// attempt's own message log"*). **The six members, their `constraint-check` kind and their `seq` ordinal are
+/// the kernel's own shape** (`kernel-surface.md §2.5` item 1, whose kind set is CLOSED and whose `state` is
+/// `null` on the three non-`outcome` kinds), so the entry is a log entry a consumer can already read and no
+/// SEVENTH member is minted.
+function reversalRefusal(one, after, said, reversalId) {
+  const addon_ = withAddon();
+  // **THE `<SEGMENT>` SLOT IS THE ADDRESS SPELLING THE KERNEL'S OWN REGISTRATION REFUSAL HANDS THE SAME
+  // GENERATOR** (`kernel-registration.mjs`'s `registrationRefusal`: the segments joined by `/`, BARE — the
+  // generator's own `build` is what prints a string segment single-quoted, so a pre-quoted spelling here
+  // would print `''a''`). One spelling, one home, and no second quoting rule.
+  const subject = addressSpelling(one.address);
+  let message = '';
+  if (typeof addon_.errorMessage === 'function') {
+    const generated = addon_.errorMessage(CONSTRAINT_PASS_REFUSED, subject, 'constraints');
+    if (typeof generated === 'string') message = generated;
+  }
+  if (message === '') {
+    message = 'the reversal was refused by a constraint pass, the state it would leave is not one the '
+      + 'registered constraints admit';
+  }
+  const entry = {
+    seq: 1,
+    kind: 'constraint-check',
+    id: one.entry.id,
+    message: `the constraint ${one.entry.id} refused the state the reversal left at `
+      + `${JSON.stringify(one.address)}: the value there is ${standingSpelling(after)}`
+      + (said === null ? '' : ` — ${said}`),
+    // **THE STORE'S OWN ECHO OF THE ID THE REVERSAL NAMED, OR `null`** — the entry's sixth member is always
+    // present and of the kernel's own domain (`kernel-surface.md §2.5` item 1: a `string | null`), never absent.
+    opId: typeof reversalId === 'string' ? reversalId : null,
+    state: null,
+  };
+  const log = [];
+  appendOwn(log, entry);
+  return { status: CONSTRAINT_PASS_REFUSED, message, log: refusalLog(log) };
+}
+
+/// **THE ADDRESS'S OWN `<SEGMENT>` SPELLING, JOINED BY `/` AND BARE** — the kernel's own
+/// (`kernel-registration.mjs`'s `registrationRefusal`, `markBodyThrow`'s `carried.address`), taken by a local
+/// index loop so no `Array.prototype.map`/`join` is read off a mutable prototype on a refusal path
+/// (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`). A string segment is printed as itself: the
+/// generator's `build` is the one place a segment is single-quoted.
+function addressSpelling(address) {
+  let spelled = '';
+  for (let position = 0; position < address.length; position += 1) {
+    spelled += position === 0 ? `${String(address[position])}` : `/${String(address[position])}`;
+  }
+  return spelled;
+}
+
+/// **THE STATE A LOG ENTRY PRINTS, SPELLED SO NO `undefined` REACHES A SENTENCE** (`DEF-Q`'s general rule:
+/// a message may not print `undefined` for a column the entry carries). A value the crossing admits is a JSON
+/// value and spells as itself; an address holding nothing says so; and a value this judgement cannot spell at
+/// all says THAT rather than throwing out of a refusal path.
+function standingSpelling(value) {
+  if (value === undefined) return 'no value (the reversal left nothing at that address)';
+  try {
+    const spelled = JSON.stringify(value);
+    return typeof spelled === 'string' ? spelled : 'a value this judgement cannot spell';
+  } catch {
+    return 'a value this judgement cannot spell';
+  }
+}
