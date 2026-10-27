@@ -690,6 +690,38 @@ filter nothing on one.** **There is no read-side enforcement arm, none is declar
 writes and on nothing else** — and **reads consult no constraint's verdict, filter nothing on one, and refuse
 nothing because of one.**
 
+### §7.6 ★ `context.value` is what the write verb returned — read anything else yourself
+
+**★ THE ONE SENTENCE TO CARRY AWAY: `context.value` is the value the write verb returned; a constraint that
+cares about another location reads it.** (`D-50`, the architect, verbatim: *"If a constraint needs to look for
+the data at a given location, it can read()"*.)
+
+**AND THE CASE THAT MAKES IT MATTER IS A REPAIR THAT LANDS SOMEWHERE ELSE.** A constraint that refuses `2` at
+its own address `['a']` returns a repair that writes `11` at a *different* address `['b']`. **The repair's op is
+the attempt's last op, so the re-run hands your body the value that op landed — `11` — while the address your
+pair judges still stands at `2`.** **That is not a machinery defect: it is the value the write verb returned, and
+the package cannot be wrong about a value it was told to hand over — it can only be wrong about what it stored.**
+**If your constraint cares about the state at any other location — the address it judges, the address its repair
+landed at, or anywhere else — IT READS THAT LOCATION.** The body is your code, it closes over the store handle
+you already hold, and `store.read(address)` is a published verb. **Measured 2026-10-28**
+(`tests/e2e/discard-witness.mjs`, the `W8` cell): the re-run handed the pair `11` while its own address read
+`2`; **the same body with `store.read(['b'])` refused on what it read** — the write failed and the store was
+restored — **and the same body without the read passed, answering its record with its own value still standing at
+its address.** **The read is the whole difference.**
+
+**★ AND THE CONSEQUENCE A READER GETS WRONG, IN `D-50`'S OWN WORDS: *"a constraint that reads inside its body is
+caller code entering the surface, so by `D-45` that read opens its own commit"* — **⟶ MEASURED 2026-10-28, AND THAT CLAUSE IS WRONG: A READ BRACKETS NO COMMIT AT ALL.** `read`, `readLiteral` and `constraints` are the surface's **NON-BRACKETING** calls — the count during a constraint body's read is the attempt's own and is left undisturbed, `attempt-opened` does not fire for it, and the same `attempt` is in force. **So the accurate consequence is the shorter one: a read inside a body runs INSIDE the attempt's window, opens nothing, and disturbs nothing.** (The `D-45` quote above is kept as the reading of its own date; this sentence governs.) — AND A READ RUNS NO CHECK, SO
+NOTHING IS JUDGED BY IT.** **No constraint is asked on the value it returns, no pass runs, and the value you
+read back is never a verdict.** **AND THE COUNT'S OWN RULE IS WHERE THE ACT'S SHAPE IS VISIBLE — MEASURED
+2026-10-28 AT THE `W8` CELL, ON BOTH SIDES OF THE READ: `read`, `readLiteral` and `constraints` are the surface's
+NON-BRACKETING calls — no commit is bracketed for them — so the count during your read is the attempt's own
+(`open` `1`, `live` `1`) and it is left undisturbed (`open` `1`, the same attempt).** **THE DECLARED SENTENCE IS
+THE AUTHORSHIP — the read is not the write's act — and the count shows what that authorship costs: nothing is
+opened and nothing is judged for it.** **So the load-bearing half for you is the authorship and the absence of a
+check: your read is your own act at the surface, it carries no judgement, and it neither re-asks a constraint nor
+re-runs the pass. A read is data, never a verdict — if you want a state judged, read it and judge it in your
+body.**
+
 ---
 
 ## §8 · Refusals

@@ -3205,3 +3205,23 @@ surface**, so by `D-45` **that read opens its own commit** — **and a read runs
 
 **TERMS: the finding closed as not-a-defect (`1`), `context.value` unmoved (`1`), the responsibility named (`1`), the
 consequence to declare (`1` = the read's own commit), the two real defects of the family distinguished (`2`).**
+
+---
+
+### `D-50`'S CONSEQUENCE IS CORRECTED BY MEASUREMENT — a read brackets no commit
+
+**DATE:** 2026-10-28. **SOURCE:** the pass that proved `D-50`'s pattern, which measured the consequence and found L0's
+sentence wrong.
+
+**L0 WROTE**, in `D-50`: *"A constraint that reads inside its body is caller code entering the surface, so by `D-45`
+that read opens its own commit."* **Measured: a read brackets NO commit.** **`read`, `readLiteral` and `constraints` are
+the surface's NON-BRACKETING calls** — the count during a constraint body's read **is the attempt's own**, it is **left
+undisturbed**, `attempt-opened` **does not fire for it**, and **the same `attempt` is in force.**
+
+**SO THE ACCURATE CONSEQUENCE IS THE SHORTER ONE: a read inside a constraint body runs INSIDE the attempt's window,
+opens nothing and disturbs nothing.** **`D-45`'s rule is about CALLS THAT OPEN** — a write, a delete, a reversal —
+**and a read is not one of them, so the rule never applied to it.** **L0 applied a general sentence to a call it did
+not cover, which is the same error as reading a figure from the wrong table.**
+
+**AND IT WAS CAUGHT BY THE PASS THAT WAS IMPLEMENTING IT**, before the sentence could travel any further than one guide
+revision — which is the difference between a ruling written with its measurement beside it and one written ahead of it.
