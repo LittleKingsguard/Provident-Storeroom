@@ -2954,3 +2954,24 @@ invoked mid-unwind either**, because the restart is a fresh pass and not a judge
 
 **TERMS: semver answered (`1` = minor, the four declared), the window closed by restart (`1`), the step still unjudged
 (`1`, `D-40`'s gate stands), a restart cell and its cost measurement owed (`2`).**
+
+---
+
+### `D-43` — a listener's write is its OWN COMMIT; a delete is journaled and reversible; and the residue is a KNOWN FAIL-STATE with a defined exit
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on `D-42`'s four remaining windows.
+
+**THE RULINGS, VERBATIM:**
+
+> **1.** listener should trigger its own commit, because it's entering at the package surface
+> **2.** Known fail-state, file reloads/client regenerates store to return to valid state
+> **3.** Delete should be journaled and reversible
+> **4.** (a question — answered below, not a ruling)
+
+**1 · A LISTENER'S WRITE TRIGGERS ITS OWN COMMIT, AND THAT IS WHY IT NEEDS NO SPECIAL WINDOW.** **A listener body's write **IS** a write entering at the package surface** — so it gets **its own commit, its own attempt and its own constraint check**, exactly as a caller's write does. **That closes the descendant window by construction**: the ancestor pair is asked **by the listener's own pass**, not by the outer write's, and the restart machinery is not asked to reach upward at all. **The outer commit does not absorb it and the inner one does not hide inside it.**
+
+**2 · THE RESIDUE IS A KNOWN FAIL-STATE WITH A DEFINED EXIT.** Where a window genuinely cannot be judged, **the answer is not a further reach into the machinery — it is a fail-state a consumer can leave: the FILE RELOADS, or the CLIENT REGENERATES THE STORE, and the state is valid again.** **So those windows are DECLARED, with their exit, rather than pursued.** **A known fail-state with a documented recovery is a specification; an unreachable window with no exit is a defect.** **And it is only honest because the file now records the restored state (`bd0fd8c`) — a reload returns to bytes that describe a judged state.**
+
+**3 · A DELETE IS JOURNALED AND REVERSIBLE.** A delete **is a mutation and must be in the journal with an identity a reversal accepts** — the earlier measurement was that **delete op ids are not exposed** (`del` answers `{address, tiers, triggered}`), **so a delete could not be named and therefore could not be reversed.** **It is journaled now, and reversible**, which is what makes the kernel's unwinding able to reach a delete's effect at all.
+
+**TERMS: closed by construction (`1` = the descendant window, via a listener's own commit), declared with its exit (`1` = the known fail-state), built (`1` = the journaled, reversible delete), answered rather than ruled (`1` = the `K-2`/`K-3` question).**
