@@ -465,6 +465,26 @@ export interface DeleteRecord {
   readonly tiers: readonly Tier[];
   /** **THE TRIGGER'S PAIRS** (`contract.md §2.4` item 1; `PAR-HL-38`; `A43` — a delete fires its own set). */
   readonly triggered: readonly TriggerPair[];
+  /**
+   * **THE OP THE `delete` LANDED — THE STORE'S OWN JOURNAL RECORD, `null` WHERE THE ACT REMOVED NOTHING**
+   * (`strata/decisions.md` · `D-43` item 3, the architect, verbatim: *"Delete should be journaled and
+   * reversible"*).
+   *
+   * **IT IS THE MEMBER `WriteRecord` CARRIES, AT THE SAME NAME AND THE SAME TYPE** (`WriteRecord.op` above,
+   * the store's own eight-member `JournalOp`), so a caller has **one spelling for "the op this act landed"**
+   * and one route to reversing it: `store.rollback(record.op.opId)` restores every version the delete
+   * removed, **at its own tier**, exactly as a write's reversal restores what the write replaced.
+   *
+   * **THE MEASURED FACT THIS MEMBER EXISTS FOR.** The delete was already journaled — the store appended one
+   * entry carrying the address, the per-tier before-state and an op id, and `rollback` already accepted that
+   * id — but the record carried no identity, so **the act could not be NAMED, and an act that cannot be
+   * named cannot be reversed**: that is why the kernel's unwinding could not reach a delete's effect at all.
+   *
+   * **AND `null` IS THE `D-3` ARM, SAID PLAINLY.** A delete that removes no version is a **success** with
+   * `tiers: []` (`§4.4` arm `D-3`; `native contract.md §6.5` item 11 adds `triggered: []`) and appends no
+   * journal entry, so there is no op to carry: **nothing is named because nothing was destroyed.**
+   */
+  readonly op: JournalOp | null;
 }
 
 /**

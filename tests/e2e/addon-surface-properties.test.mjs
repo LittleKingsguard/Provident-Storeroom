@@ -454,8 +454,13 @@ test('sas_prop_P_SAS_3_S_PARITY_both_shapes_answer_the_same_record_member_for_me
       // (c) AND THE OPERATION RECORD'S OWN MEMBER SET, READ AT BOTH STORES — a member appearing on one route
       // alone is exactly *"a record member moved"*.
       const receipt = second.delete([segment], tier);
-      assert.deepEqual(Object.keys(receipt).sort(), ['address', 'tiers', 'triggered'],
-        `attempt ${i}: the delete receipt's members are `+ '`{address, tiers, triggered}` (`surface.md §2.2`) '
+      // **⟶ `D-43` ITEM 3 (`strata/decisions.md`): THE DELETE RECORD CARRIES `op` BESIDE ITS THREE DECLARED
+      // MEMBERS** — the member `write`'s record carries at the same name, so a delete is a NAMED act a
+      // reversal can reach. **THE ROW'S SUBJECT IS UNMOVED**: the member set is the SAME SET ON BOTH SIDES of
+      // the parity, which is what "a record member moved" refuses; the set it is compared against moved with
+      // the declaration and with nothing else (`index.d.ts` `DeleteRecord`).
+      assert.deepEqual(Object.keys(receipt).sort(), ['address', 'op', 'tiers', 'triggered'],
+        `attempt ${i}: the delete receipt's members are `+ '`{address, tiers, triggered, op}` (`surface.md §2.2`) '
         + 'and are unmoved');
       assert.deepEqual(Object.keys(byFirst.op).sort(),
         ['address', 'after', 'before', 'compacted', 'kind', 'opId', 'seq', 'tier'],
@@ -902,8 +907,11 @@ test('sas_prop_P_SAS_7_S_UNWRAP_PARITY_the_same_call_answers_the_same_thing_and_
       const written = layout.write([key], 'mem', 2);
       assert.deepEqual(Object.keys(written).sort(), ['op', 'triggered', 'watched'],
         `attempt ${i}: \`write\` answers \`{op, watched, triggered}\` — "a changed return shape"`);
-      assert.deepEqual(Object.keys(layout.delete([key], 'mem')).sort(), ['address', 'tiers', 'triggered'],
-        `attempt ${i}: \`delete\` answers \`{address, tiers, triggered}\``);
+      // **⟶ `D-43` ITEM 3: `op` STANDS BESIDE THE THREE** — the member `write`'s record carries, at the
+      // same name; the row's property is that the declared shape is the observed one, and the declared shape
+      // gained ONE member on the architect's ruling (`index.d.ts` `DeleteRecord`).
+      assert.deepEqual(Object.keys(layout.delete([key], 'mem')).sort(), ['address', 'op', 'tiers', 'triggered'],
+        `attempt ${i}: \`delete\` answers \`{address, tiers, triggered, op}\``);
       layout.write([key], 'mem', 3);
       assert.deepEqual(Object.keys(layout.rollback(written.op.opId)).sort(), ['opId', 'restoredTo', 'undoneOps'],
         `attempt ${i}: \`rollback\` answers \`{opId, undoneOps, restoredTo}\``);

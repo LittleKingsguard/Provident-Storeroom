@@ -901,12 +901,19 @@ pub struct JsWriteResult {
 
 /// `PAR-JS-16`: `{address, tiers, triggered}` — `address` VERBATIM and `tiers` in the store's canonical
 /// order (`file` · `mem` · `temp`).
+///
+/// **⟶ AMENDED 2026-10-27 (`D-43` item 3): THE CARRIER CARRIES THE DELETE'S `op`.** It is the SAME
+/// `JsJournalOp` the write's record carries at the SAME member name, so one spelling reads *"the op this act
+/// landed"* on both records. **`None` exactly where the store's own `DeleteReceipt::op` is `None`** — the
+/// `D-3` arm that removed nothing and appended no entry — and the codec crosses that arm as `null`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct JsDeleteReceipt {
     pub address: Vec<JsSegment>,
     pub tiers: Vec<String>,
     /// **⟶ THE PAIRS** (`contract.md §2.4` item 1; `PAR-HL-38`; `A43` — a delete fires its own set).
     pub triggered: Vec<JsListenerTrigger>,
+    /// **⟶ ADDED 2026-10-27 (`D-43` item 3): THE DELETE'S OWN JOURNAL OP**, the id `rollback` takes.
+    pub op: Option<JsJournalOp>,
 }
 
 /// `PAR-JS-13` / `PAR-JS-9`: `{opId, undoneOps, restoredTo}`.
@@ -1095,6 +1102,8 @@ impl Instance {
                 .map(|t| storeroom_native::tier_token(*t).to_string())
                 .collect(),
             triggered: triggers(&receipt.triggered),
+            // `D-43` item 3: the delete's identity crosses member for member, exactly as the write's does.
+            op: receipt.op.as_ref().map(journal_op),
         })
     }
 

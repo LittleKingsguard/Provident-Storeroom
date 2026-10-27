@@ -175,9 +175,19 @@ cfg = {
 a.read(address, tier?)        -> JS value          // the assembled value, a leaf's literal, or the whole register
 a.readLiteral(address, tier?)  -> JS value          // the SAME read, narrowed: the target must be a leaf
 a.write(address, tier, value, commit?) -> { op, watched, triggered }
-a.delete(address, tier?)       -> { address, tiers, triggered }
 a.rollback(opId)               -> { opId, undoneOps, restoredTo }
 ```
+
+**⟶ AND THE BLOCK ABOVE IS READ THROUGH THIS CLAUSE, 2026-10-27 (`D-43` ITEM 3; `strata/decisions.md`, the
+architect, verbatim: *"Delete should be journaled and reversible"*): `a.delete(address, tier?)` ANSWERS
+**`{ address, tiers, triggered, op }`** — `op` being the store's own eight-member `JournalOp`, THE MEMBER
+`a.write`'s record carries at the same NAME and the same TYPE — **`null` exactly where the delete removed
+nothing** (`D-3`: a SUCCESS with `tiers: []` that journals no entry and therefore names no op).** **THE
+REASON, AND IT IS THE RULING'S OWN MEASURED OBSTACLE:** a delete was journaled and `rollback` accepted its id
+already, **but the record carried no identity, so the act could not be NAMED and could not be reversed, which
+is why the kernel's unwinding could not reach a delete's effect at all.** **Nothing else of the block moves:
+the five verbs are five, each synchronous and answering a fresh value, and the fourteen declared instance
+members and the closed status set are untouched — this is a RECORD's shape.**
 
 **⟶ `RCA-8(g)` RE-SPELLED 2026-10-16 — THE `instance` FIRST POSITION IS DROPPED AND THE RECEIVER IS THE STORE.** **THE AS-FILED BLOCK ABOVE — the five lines `read(instance, address, tier?)` · `readLiteral(instance, address, tier?)` · `write(instance, address, tier, value, commit?)` · `delete(instance, address, tier?)` · `rollback(instance, opId)`, each with an `instance` FIRST POSITION — HAS LEFT THIS FILE and stands at `docs/specs/storeroom-js/backup/RCA-A127-2026-10-16-superseded.md §19`, whose source path and `§` are named there; NO BYTE OF IT IS RE-EMITTED HERE.** **The `a` of each line above is the object `storeCreate(cfg)` returned — THE RECEIVER, and not a position — and the operative declarations are `§2.1` (e) item 3 and `§2.4` item 9 (f)'s clause of this date, which carries the ten methods' arity, positions, answer and refusal in one table** (`RCA-8(g)`; `docs/decisions.md` · `A127`, 2026-10-16).
 **EVERY ONE OF THE FIVE IS SYNCHRONOUS AND RETURNS A FRESH JS VALUE** (`§1.1`'s deep copy out) — **⟶ AND *"THE FIVE"* IS SUPERSEDED AND IS READ THROUGH AT THIS SENTENCE'S OWN BYTES, 2026-10-16 (`RCA-8(g)`; `role_proofreader`, gate 7): the four address verbs and `rollback` are FIVE *METHODS* OF THE PRODUCT, and the product's declared member set is TWELVE own members, `10 + 1 + 1 = 12` ✓, at `docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s `A127` clause of that date — so the sentence's subject is five of twelve and not the whole surface; its CLAIMS (synchronous, a fresh value each) STAND WHOLE** **⟶ AND THE FIGURE THAT MARK PRINTS IS SUPERSEDED IN ITS TURN, 2026-10-17 (`RCA-8(g)`: the sentence and its mark stand BYTE-FOR-BYTE above and THIS clause is their mark at itself): the product's declared member set is THIRTEEN own members, `10 + 1 + 1 + 1 = 13` ✓, at `§2.4` item 9 (f)'s `constraints` clause of that date — so the sentence's subject is FIVE OF THIRTEEN, and its CLAIMS STAND WHOLE** — **THE PACKAGE
@@ -1052,7 +1062,7 @@ added for `settle`"* — AND IS READ THROUGH THIS CLAUSE, AND THROUGH `§2.4` it
 | `a.read(address, tier?)` | `1` or `2` | `address` — `PAR-JS-5`; `tier` — `PAR-JS-6`, ZERO TO MANY, one token or an array | the assembled JS value, a leaf's literal, or the whole register (`§2.2`) | the store's own thrown `{status, message}` — `§2.5`'s single form |
 | `a.readLiteral(address, tier?)` | `1` or `2` | as `read` | the SAME read narrowed: the target must be a leaf | the store's own thrown `{status, message}` |
 | `a.write(address, tier, value, commit?)` | `3` or `4` | `address`; `tier` REQUIRED and SINGULAR; `value` — `PAR-JS-10`; `commit` — `PAR-JS-20`, declared LAST | `{ op, watched, triggered }` (`§2.2`) | the store's own form; a `commit` outside `§2.4` item 9 (g)'s class test is refused there |
-| `a.delete(address, tier?)` | `1` or `2` | `address`; `tier` OPTIONAL and EXACTLY ONE when present — `PAR-JS-11` | `{ address, tiers, triggered }` | the store's own thrown `{status, message}` |
+| `a.delete(address, tier?)` | `1` or `2` | `address`; `tier` OPTIONAL and EXACTLY ONE when present — `PAR-JS-11` | `{ address, tiers, triggered, op }` — **⟶ `op` ADDED 2026-10-27 (`D-43` item 3): the store's own journal op, `null` on the `D-3` arm that removed nothing; the same member `a.write` carries** | the store's own thrown `{status, message}` |
 | `a.rollback(opId)` | `1` | `opId` — `PAR-JS-9` | `{ opId, undoneOps, restoredTo }` | the store's own thrown `{status, message}` |
 | `a.listen(address)` | `1` | `address`, `AddressArg`'s domain and NOTHING MORE — a listener carries no tier qualifier (`§2.10`) | the package's opaque handle for the store's home entry | the store's own thrown form, as `§2.10` declares it |
 | `a.unlisten(handle)` | `1` | `handle`, the OPAQUE form ONLY (`§2.3` item 2) | `undefined`, INCLUDING on its no-op success for any value outside the domain (`§2.3` item 4) | the store's own form, on a malformed argument's shape only |

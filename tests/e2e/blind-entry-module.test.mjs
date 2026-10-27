@@ -329,9 +329,13 @@ test('entry-module · index.d.ts `StoreRefusal` and `LogEntry` · the failure fo
   assert.match(DECLARATION, /readonly kind: 'constraint-check' \| 'repair-run' \| 'commit' \| 'outcome';/);
 });
 
-test('entry-module · index.d.ts `WriteRecord` · `DeleteRecord` · `RollbackRecord` · the three verb records a consumer reads: three members each, and `undoneOps` is the LIST of the ids the reversal undid', () => {
+test('entry-module · index.d.ts `WriteRecord` · `DeleteRecord` · `RollbackRecord` · the three verb records a consumer reads: three members on the write and the reversal, FOUR on the delete — its `op` beside the three — and `undoneOps` is the LIST of the ids the reversal undid', () => {
   assert.deepEqual(membersOf('WriteRecord').map((m) => m.name), ['op', 'watched', 'triggered']);
-  assert.deepEqual(membersOf('DeleteRecord').map((m) => m.name), ['address', 'tiers', 'triggered']);
+  // ⟶ **`D-43` ITEM 3 (`strata/decisions.md`, verbatim: *"Delete should be journaled and reversible"*): THE
+  // DELETE RECORD GAINS `op`, THE MEMBER `WriteRecord` CARRIES AT THE SAME NAME** — one spelling for "the op
+  // this act landed", so `rollback(record.op.opId)` reverses the delete. The fourteen instance members and
+  // the closed status set are unmoved; this is a RECORD's shape.
+  assert.deepEqual(membersOf('DeleteRecord').map((m) => m.name), ['address', 'tiers', 'triggered', 'op']);
   assert.deepEqual(membersOf('RollbackRecord').map((m) => m.name), ['opId', 'undoneOps', 'restoredTo']);
   assert.match(DECLARATION, /readonly undoneOps: readonly string\[\];/);
 });

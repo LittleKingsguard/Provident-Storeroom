@@ -196,13 +196,18 @@ test('verbs · index.d.ts `WriteRecord` · a `write` answers EXACTLY THREE membe
   assert.ok(Array.isArray(record.triggered), '`triggered` is not an array');
 });
 
-test('verbs · index.d.ts `DeleteRecord` and native contract.md §4.4 (`DeleteReceipt`) · a `delete` answers EXACTLY THREE members — `address` VERBATIM, `tiers` in the store\'s canonical order, and `triggered` — and a delete that removes NOTHING is a SUCCESS with `tiers: []`', () => {
-  // DECLARED: `DeleteRecord` `{ address, tiers, triggered }`, read with the store's `DeleteReceipt`
-  // ("a record with exactly two members"): "`address`: the address the caller passed, VERBATIM — the
-  // same array's segments, in order; the store returns a fresh array", and "`tiers`: the tiers whose
-  // versions were removed, **in §5.1's canonical order; `[]` when nothing was removed**". And
-  // §4.4's arm `D-3`: "the target resolves, but holds **no** version at the named tier … **removes
-  // nothing**, and is a **success** | **`[]`**".
+test('verbs · index.d.ts `DeleteRecord` and native contract.md §4.4 (`DeleteReceipt`) · a `delete` answers FOUR members — `address` VERBATIM, `tiers` in the store\'s canonical order, `triggered`, and `op` (the op it landed, `null` where it removed nothing) — and a delete that removes NOTHING is a SUCCESS with `tiers: []`', () => {
+  // DECLARED: `DeleteRecord` `{ address, tiers, triggered, op }`, read with the store's `DeleteReceipt`:
+  // "`address`: the address the caller passed, VERBATIM — the same array's segments, in order; the store
+  // returns a fresh array", and "`tiers`: the tiers whose versions were removed, **in §5.1's canonical
+  // order; `[]` when nothing was removed**". And §4.4's arm `D-3`: "the target resolves, but holds **no**
+  // version at the named tier … **removes nothing**, and is a **success** | **`[]`**".
+  //
+  // ⟶ **`op` IS THE FOURTH MEMBER FROM 2026-10-27** (`strata/decisions.md` · `D-43` item 3, verbatim: *"Delete
+  // should be journaled and reversible"*): **the member `WriteRecord` carries at the same name and the same
+  // type** — the store's own eight-member `JournalOp` — so the act can be NAMED and `rollback(op.opId)`
+  // reverses it. **`null` is the `D-3` arm**, which removed nothing and appended no entry: nothing is named
+  // because nothing was destroyed.
   const directory = mkdtempSync(join(tmpdir(), 'sr-blind-del-'));
   const instance = make({ filePath: join(directory, 'store.json') });
 
@@ -213,7 +218,13 @@ test('verbs · index.d.ts `DeleteRecord` and native contract.md §4.4 (`DeleteRe
   instance.write(['d'], 'mem', 1);
 
   const receipt = instance.delete(['d'], 'mem');
-  assert.deepEqual(Object.keys(receipt).sort(), ['address', 'tiers', 'triggered']);
+  assert.deepEqual(Object.keys(receipt).sort(), ['address', 'op', 'tiers', 'triggered']);
+  // THE IDENTITY IS THE RECORD'S OWN MEMBER — the op the delete landed, of the DELETE's kind, at the
+  // address the delete named, carrying an id a reversal takes (`index.d.ts` `DeleteRecord.op`).
+  assert.equal(typeof receipt.op, 'object');
+  assert.equal(receipt.op.kind, 'delete');
+  assert.deepEqual(receipt.op.address, ['d']);
+  assert.equal(receipt.op.opId.length > 0, true, 'the op id is a non-empty string');
   // THE ADDRESS IS THE CALLER'S OWN ARRAY, VERBATIM — a fresh array, the same segments, in order.
   assert.deepEqual(receipt.address, ['d']);
   assert.equal(Array.isArray(receipt.address), true);
@@ -224,6 +235,9 @@ test('verbs · index.d.ts `DeleteRecord` and native contract.md §4.4 (`DeleteRe
   // nothing — a SUCCESS that removed nothing, and `[]` is its declared `tiers` value.
   const nothing = instance.delete(['d'], 'mem');
   assert.deepEqual(nothing.tiers, []);
+  // AND ON THAT ARM THE RECORD NAMES NO OP: the act removed nothing, so no entry was appended and the
+  // declared `null` is the truth rather than an id no reversal could find (`D-43` item 3).
+  assert.equal(nothing.op, null);
 
   // ARM `D-2`: tier ABSENT removes EVERY version, and the receipt prints them in the store's own
   // canonical order (`§5.1`: `file`, `mem`, `temp`).

@@ -834,6 +834,19 @@ impl<'e> Codec<'e> {
         make_undefined(&self.env)
     }
 
+    /// **THE RUNTIME'S OWN `null` — ADDED 2026-10-27 WITH `D-43` ITEM 3**, for the ONE member whose absence is
+    /// a DECLARED VALUE and not a missing position: the `D-3` delete arm's `op`, which names no journal entry
+    /// because the act removed nothing (`DeleteRecord.op` is `JournalOp | null`). **It is reached through the
+    /// library's own `napi_get_null`**, on `make_undefined`'s own grounds — never a hand-built value, and
+    /// never `undefined`, which is a *supplied* value at a declared position (`DD-46`).
+    fn null_value(self) -> JsVal<'static> {
+        let mut raw: sys::napi_value = std::ptr::null_mut();
+        unsafe {
+            sys::napi_get_null(self.env.raw(), &mut raw);
+        }
+        unsafe { JsVal::from_raw_unchecked(self.env.raw(), raw) }
+    }
+
     /// **THE COPY OUT** (`crossing.md §1.1` clause 2): a store value converted into FRESH JS-owned data,
     /// at `crossing.md §1.2`'s own classes — so the JS side holds no reference into store-owned data.
     pub(crate) fn to_js_value(self, v: &JsValue) -> JsVal<'static> {
@@ -955,6 +968,13 @@ impl<'e> Codec<'e> {
     }
 
     pub(crate) fn to_js_delete_receipt(self, r: &JsDeleteReceipt) -> JsVal<'static> {
+        // **⟶ `D-43` ITEM 3: THE RECORD CARRIES THE DELETE'S OWN `op`, AT THE MEMBER NAME THE WRITE'S RECORD
+        // USES** (`WriteRecord.op`, crossed by `to_js_journal_op` above). **The `D-3` arm that removed nothing
+        // appended no entry and names no op, and it crosses as `null`** — the store's `Option` said so first.
+        let op = match &r.op {
+            Some(op) => self.to_js_journal_op(op),
+            None => self.null_value(),
+        };
         self.object(vec![
             ("address", self.to_js_segments(&r.address)),
             (
@@ -962,6 +982,7 @@ impl<'e> Codec<'e> {
                 self.array(r.tiers.iter().map(|t| self.string_value(t)).collect()),
             ),
             ("triggered", self.to_js_trigger_pairs(&r.triggered)),
+            ("op", op),
         ])
     }
 

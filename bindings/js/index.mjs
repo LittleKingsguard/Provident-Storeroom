@@ -465,6 +465,11 @@ export function storeCreate(cfg) {
     /// and the in-domain no-op arm a SUCCESS returning `tiers: []`. **Its declared NAME is `delete`, and it is
     /// published under that name ALONE** (`package.md §1.3` item 3): `deleteOp` is a reserved-word workaround
     /// for the declaration and never a member of the package's namespace.
+    ///
+    /// **⟶ AND IT CARRIES THE DELETE'S OWN `op` FROM 2026-10-27** (`D-43` item 3; `index.d.ts`
+    /// `DeleteRecord.op`): the member `write`'s record carries, at the same name, so `rollback(record.op.opId)`
+    /// reverses the delete. `null` is the `D-3` arm that removed nothing — it appended no entry, so it names
+    /// no op — and it crosses unchanged rather than folding to `undefined` (`crossing.md §1.3`).
     delete(address, tier) {
       // **⟶ `§4.1`: `delete` OPENS ONE.**
       const opened = openCommit(instance);
@@ -479,6 +484,7 @@ export function storeCreate(cfg) {
           address: decodeSegments(answer.address),
           tiers: answer.tiers,
           triggered: crossTriggered(state, answer.triggered),
+          op: answer.op === null ? null : decodeJournalOp(answer.op),
         };
         // `A43`: a delete FIRES its own triggered set, on the same window as a write (`docs/specs/storeroom-js/surface.md §2.7` item 2).
         deliver(state, receipt.triggered, answer.triggeringAddress);

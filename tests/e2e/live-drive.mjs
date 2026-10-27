@@ -359,8 +359,15 @@ console.log(`layer          LIVE / ASSEMBLED PACKAGE (real artifact, real proces
   A(`${sc}.6`, 'store §5.3 item 2; A11', 'the less persistent write IS the shadowing one and the unqualified read selects it',
     inst.read(['store1']) === 2, String(inst.read(['store1'])));
   const d = inst.delete(['store1'], 'temp');
-  A(`${sc}.7`, 'store §4.4 D-1; §4.3', "the delete receipt names exactly ['temp'] and its own member set is {address, tiers, triggered}",
-    Array.isArray(d.tiers) && d.tiers.join(',') === 'temp' && Object.keys(d).sort().join(',') === 'address,tiers,triggered', `tiers=${JSON.stringify(d.tiers)}`);
+  // **⟶ `op` JOINED THE RECEIPT'S MEMBER SET ON 2026-10-27** (`D-43` item 3; `strata/decisions.md`, verbatim:
+  // *"Delete should be journaled and reversible"*): the member `write`'s record carries at the same name, so
+  // a delete is NAMED and `rollback(d.op.opId)` reverses it. **The scenario's subject is unmoved** — the
+  // receipt still names exactly `['temp']`, which is what `§4.4` `D-1` is asserted for.
+  A(`${sc}.7`, 'store §4.4 D-1; §4.3; `D-43` item 3 (the receipt carries its own `op`)',
+    "the delete receipt names exactly ['temp'], its own member set is {address, tiers, triggered, op}, and its `op` is the delete's own",
+    Array.isArray(d.tiers) && d.tiers.join(',') === 'temp' && Object.keys(d).sort().join(',') === 'address,op,tiers,triggered'
+      && d.op !== null && d.op.kind === 'delete' && d.op.opId === d.op.opId && typeof d.op.opId === 'string',
+    `tiers=${JSON.stringify(d.tiers)} members=${Object.keys(d).sort().join(',')} op=${JSON.stringify(d.op && d.op.opId)}`);
   A(`${sc}.8`, 'store §4.2 R-4', 'the file version STANDS after the temp version is removed', rel(inst.read(['store1']), V), 'relation');
   end(sc, `['store1'] holds the file version V again after the temp shadow was deleted (receipt tiers ${JSON.stringify(d.tiers)}); the journal advanced to seq ${String(w2.op?.seq)}`);
 }

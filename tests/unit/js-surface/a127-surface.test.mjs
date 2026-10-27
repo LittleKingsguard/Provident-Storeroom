@@ -322,7 +322,10 @@ test('a127_delete_returns_the_receipt_with_the_address_verbatim', () => {
   const a = mem();
   a.write(['a'], 'mem', 1);
   const r = a.delete(['a']);
-  assert.deepEqual(Object.keys(r).sort(), ['address', 'tiers', 'triggered'], 'the receipt is `{address, tiers, triggered}`');
+  // ⟶ `op` IS THE FOURTH MEMBER FROM 2026-10-27 (`D-43` item 3; `index.d.ts` `DeleteRecord`): the member
+  // `write`'s record carries at the same name, so the delete this call lands is NAMED and reversible. **The
+  // cell's own subject is unmoved**: `address` still crosses VERBATIM and `tiers` is still an array.
+  assert.deepEqual(Object.keys(r).sort(), ['address', 'op', 'tiers', 'triggered'], 'the receipt is `{address, tiers, triggered, op}`');
   assert.deepEqual(r.address, ['a'], '`address` crosses VERBATIM');
   assert.ok(Array.isArray(r.tiers), '`tiers` crosses as an array');
 });

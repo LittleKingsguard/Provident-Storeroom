@@ -1300,8 +1300,14 @@ test('sas_d7_s_unwrap_parity_the_four_address_verbs_and_rollback_keep_their_decl
     + '`{ op, watched, triggered }` and `export-set-and-dispatch.md §3`\'s table puts "any verb\'s answer, '
     + 'refusal or arity" on the DOES-NOT-MOVE side');
   const removed = layout.delete(['p'], 'mem');
-  assert.deepEqual(Object.keys(removed).sort(), ['address', 'tiers', 'triggered'],
-    'P-SAS-7 — `delete` returns `{ address, tiers, triggered }`, unmoved by the unwrap');
+  // **⟶ `D-43` ITEM 3 (`strata/decisions.md`): `op` STANDS BESIDE THE THREE** — the member `write`'s record
+  // carries at the same name, and the reason a delete is now a NAMED act a reversal can reach. The row's
+  // property is unmoved: the shape is the DECLARED one before and after the unwrap, and the declaration
+  // gained this ONE member on the architect's ruling (`index.d.ts` `DeleteRecord`).
+  assert.deepEqual(Object.keys(removed).sort(), ['address', 'op', 'tiers', 'triggered'],
+    'P-SAS-7 — `delete` returns `{ address, tiers, triggered, op }`, unmoved by the unwrap');
+  assert.equal(removed.op.kind, 'delete',
+    'D-43 item 3 — and the record names the DELETE\'s own journal op, not a write\'s');
   layout.write(['q'], 'mem', 2);
   const undone = layout.rollback(written.op.opId);
   assert.deepEqual(Object.keys(undone).sort(), ['opId', 'restoredTo', 'undoneOps'],

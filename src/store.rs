@@ -1577,9 +1577,10 @@ impl Store {
     }
 
     /// **THE WHOLE REGISTER'S STATE, IN THE SAME PER-VERSION SHAPE** — what an operation at the EMPTY address
-    /// leaves and what a mark restore needs to reproduce it (`§6.6`). The empty address names no single pair
-    /// (`pair_home` answers `None` for it), so its paths are ABSOLUTE from the register and its top-level
-    /// entries carry `under: None` exactly as an operation's own node does.
+    /// leaves **and, since 2026-10-27 (`D-43` item 3), what such an operation REMOVED**: the delete's
+    /// pre-state at the empty address, without which its entry could not be reversed. The empty address names
+    /// no single pair, so its paths are ABSOLUTE from the register and its top-level entries carry
+    /// `under: None` exactly as an operation's own node does.
     fn capture_register(&self) -> Vec<Captured> {
         let mut captured = Vec::new();
         for key in self.keys_at(self.register) {
@@ -1624,29 +1625,6 @@ impl Store {
                 self.capture_below(child, child_path.clone(), tier, captured);
             }
         }
-    }
-
-    /// The pair an operation's address names, where it names one. The EMPTY address names no single pair:
-    /// its pre-state is the whole register, whose pairs the capture walks from the register itself.
-    fn pair_home(&self, address: &[Segment]) -> Option<PairHome> {
-        let (last, parents) = address.split_last()?;
-        // The link the keyed pair stands on: the PARENT link and the key, whether or not the key holds an
-        // anchor — a rollback restores into the state the entry stood in, so an absent pair still has a home.
-        let parent_link = if parents.is_empty() {
-            self.register
-        } else {
-            self.link_of(self.walk(parents, &TierSel::All).ok()?.0)?
-        };
-        let link = self
-            .refs_at(parent_link, last)
-            .into_iter()
-            .next()
-            .and_then(|reference| self.link_of(reference))
-            .unwrap_or(parent_link);
-        Some(PairHome {
-            link,
-            key: last.clone(),
-        })
     }
 
     /// The restore the rollback and the `file` tier's automatic rollback run (`§6.4`, `§7.2` item 3). It
@@ -2251,6 +2229,14 @@ impl Store {
 
     /// `§4.3`: `delete(address, tier?) → DeleteReceipt`. Its scope is the tier it names — or every tier
     /// when it names none — and a delete that removes nothing is a SUCCESS (`DD-9`).
+    ///
+    /// **⟶ `D-43` ITEM 3 (`strata/decisions.md`): THE DELETE IS JOURNALED AND REVERSIBLE, AND THIS VERB NOW
+    /// ANSWERS THE OP THAT NAMES IT.** The journaling was already here — one entry, its address, its
+    /// per-tier BEFORE-state and an op id from `next_op_id` — and `rollback` already accepted that id and
+    /// put every removed version back at its own tier. **What was missing was the identity: the receipt did
+    /// not carry the op, so no caller could name the act and the kernel's unwinding could not reach it.**
+    /// `DeleteReceipt::op` is the member that carries it, on `D-3`'s nothing-removed arm `None` because that
+    /// arm appends no entry.
     pub fn delete(
         &mut self,
         address: AddressArg,
@@ -2285,10 +2271,20 @@ impl Store {
                 ));
             }
         }
-        let home = self.pair_home(&segments);
+        // **⟶ CORRECTED 2026-10-27 (`D-43` item 3): THE PRE-STATE IS CAPTURED AT THE PAIR THE WRITE CAPTURES
+        // AT — THE PARENT CONTAINER'S LINK AND THE TARGET'S OWN KEY** (`PairHome { link, key }`, the same
+        // convention `write` uses at its own capture and `home_of_address` derives at a reversal). **The
+        // `pair_home` call this replaces resolved the LINK of the first version standing at the key, so for a
+        // STRUCTURED target it captured the versions of a node that holds none — measured: the entry held an
+        // EMPTY before-state, and a reversal of a structured delete restored nothing at all** (a scalar
+        // target was unaffected, the literal version having no link of its own, which is why the arm looked
+        // healthy). **An entry whose before-state is empty cannot be reversed, and that is the whole of
+        // `D-43` item 3's first clause.** An operation at the EMPTY address removes the whole register, so
+        // its pre-state is the register's own capture.
+        let home = key.clone().map(|key| PairHome { link, key });
         let captured = match &home {
             Some(home) => self.capture(home),
-            None => Vec::new(),
+            None => self.capture_register(),
         };
         let before = self.state_from_captured(&segments, &captured);
         let mut removed: Vec<usize> = Vec::new();
@@ -2316,6 +2312,9 @@ impl Store {
                 address: segments,
                 tiers: Vec::new(),
                 triggered: Vec::new(),
+                // `D-3`: nothing was removed, so NO entry was appended and there is no op to name —
+                // `§6.1` item 1 journals one entry per operation that changed the register.
+                op: None,
             });
         }
         let mut tiers: Vec<Tier> = Vec::new();
@@ -2370,7 +2369,11 @@ impl Store {
             }),
             None => self.capture_register(),
         };
-        self.append(op, captured, after_state, home, uncompacted);
+        // **⟶ ADDED 2026-10-27 (`D-43` item 3): THE APPENDED OP IS RETURNED ON THE RECEIPT.** `append`
+        // answers the entry it stored — `seq` included — so the record carries the id `rollback` looks up in
+        // `self.journal`, and the delete becomes a NAMED act a caller can reverse. **Measured before this
+        // line: the entry was there and `rollback` accepted its id; the id simply never reached the caller.**
+        let op = self.append(op, captured, after_state, home, uncompacted);
         // **`§6.5` item 11 / `§5.8` (b): THE DELETE IS THE SECOND TRIGGER EVENT** (`A43`) — the receipt
         // carries the handles of the listeners the trigger fired, selected by the SAME prefix rule.
         let triggered = self.triggered_for(&segments);
@@ -2378,6 +2381,7 @@ impl Store {
             address: segments,
             tiers,
             triggered,
+            op: Some(op),
         })
     }
 
@@ -2525,8 +2529,18 @@ impl Store {
                 // reported as undone) rather than reach into an arena that no longer holds it.
                 None => entry_home.filter(|home| home.link < self.links.len()),
             };
+            // **⟶ AND AN OPERATION AT THE EMPTY ADDRESS IS REVERSIBLE FROM 2026-10-27 (`D-43` item 3): its
+            // pre-state is the WHOLE REGISTER's capture (`capture_register`), and `apply_register` re-states
+            // exactly that.** The arm answered `false` — the `§6.3` residue for an address that names no pair
+            // — which left a whole-register delete unreachable to every reversal. **The guard keeps the one
+            // state that must stay a residue: an entry whose capture is EMPTY has no before-state to put
+            // back, and re-stating nothing over the standing register would destroy state no op removed.**
             let restored = match home {
                 Some(home) => self.restore(&home, &captured),
+                None if entry_address.is_empty() && !captured.is_empty() => {
+                    self.apply_register(&captured);
+                    true
+                }
                 None => false,
             };
             // `§6.3`: `undoneOps` is *"the opIds the rollback undid"* — so an entry whose pre-state could
@@ -2719,9 +2733,13 @@ impl Store {
     }
 
     /// **THE PAIR AN ADDRESS NAMES, IN THE WRITE'S OWN CONVENTION** — the PARENT container's link and the
-    /// address's last segment, which is the pair `restore`/`rebuild` clear and re-mint at. (`pair_home` is the
-    /// ENTRY's convention and is left exactly as it stands: an entry's home is recorded when it is appended,
-    /// and the replay re-derives rather than trusts it.)
+    /// address's last segment, which is the pair `restore`/`rebuild` clear and re-mint at.
+    ///
+    /// **⟶ THE `pair_home` FUNCTION THIS CLAUSE ONCE CONTRASTED ITSELF WITH IS DELETED, 2026-10-27 (`D-43`
+    /// item 3).** It resolved the LINK OF THE FIRST VERSION standing at the key rather than the parent
+    /// container's link, and it was the delete's capture home: for a STRUCTURED target it captured a node
+    /// that holds no versions, so the entry held an EMPTY before-state and a reversal restored nothing.
+    /// **The delete captures at this convention now — one convention, and the one every reversal derives.**
     fn home_of_address(&self, address: &[Segment]) -> Option<PairHome> {
         let (last, parents) = address.split_last()?;
         let parent = if parents.is_empty() {

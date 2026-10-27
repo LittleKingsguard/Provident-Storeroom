@@ -1641,3 +1641,275 @@ fn s6_6_a_restore_whose_save_cannot_land_reports_the_restored_memory_and_the_unw
          BEFORE the restore, and here that image is gone with its directory"
     );
 }
+
+
+// =================================================================================================
+// `D-43` ITEM 3 (`strata/decisions.md`, the architect, verbatim: *"Delete should be journaled and
+// reversible"*) — THE DELETE'S IDENTITY IS ON ITS RECORD AND THE ACT IS REVERSIBLE.
+//
+// THE MEASUREMENT THESE CELLS STAND ON, taken before the member was added: the delete WAS already
+// journaled — one entry, its address, its per-tier before-state, an op id — and `rollback` ALREADY
+// accepted that id and put every removed version back at its own tier. What was missing was the
+// IDENTITY: `DeleteReceipt` carried `{address, tiers, triggered}` and no op, so the act could not be
+// NAMED and therefore could not be reversed. These cells read the id OFF THE RETURNED RECORD and
+// nowhere else — a Rust drive cannot reach the journal at all, which is the point: the record is the
+// caller's one route to the act's identity.
+// =================================================================================================
+
+/// `D-43` item 3 · **A DELETE IS REVERSIBLE, AND THE REVERSAL RESTORES EVERY VALUE AT ITS OWN TIER.**
+///
+/// Two versions are written at one address — `file` first, because a `mem` write purges only the `temp`
+/// version while a `file` write purges what stands at or below it (`§5.4`) — the delete removes both, and
+/// the reversal is named by `receipt.op.opId`, THE IDENTITY THE RECORD CARRIES. **The per-tier restoration
+/// is printed per address and per tier**, so the cell's own observable is legible and not merely asserted.
+///
+/// Drives: `D-43` item 3; `§6.1` item 1; `§6.3` (`rollback`'s `undoneOps`); `§6.4` (`M-5`'s reach).
+#[test]
+fn d43_3_a_delete_is_reversible_and_restores_each_value_at_its_own_tier() {
+    let mut store = new_store();
+    let address = key(&["d43"]);
+    ok(
+        store.write(AddressArg::List(address.clone()), w_file(), v_str("file-value")),
+        "§3.4 W-3",
+    );
+    ok(
+        store.write(AddressArg::List(address.clone()), w_mem(), v_str("mem-value")),
+        "§3.4 W-5",
+    );
+    let receipt = ok(
+        store.delete(AddressArg::List(address.clone()), none()),
+        "D-43 item 3: an unqualified delete removes every version",
+    );
+    assert_eq!(
+        receipt.tiers,
+        vec![Tier::File, Tier::Mem],
+        "§4.4 D-2 / §5.1: both tiers removed, in the canonical order"
+    );
+    // **THE IDENTITY IS THE RECORD'S OWN MEMBER — THE ONE `WriteRecord` CARRIES UNDER THE SAME NAME.**
+    let op = receipt
+        .op
+        .clone()
+        .expect("D-43 item 3: a delete that removed versions names its op on the record it returns");
+    assert_eq!(
+        op.kind,
+        JournalOpKind::Delete,
+        "§6.2: the op the record carries is the DELETE's own, not a write's"
+    );
+    assert_eq!(op.address, address, "§6.2: the op's address is the delete's");
+    assert_eq!(
+        op.tier, None,
+        "§6.2: an unqualified delete's op names no single tier — the record's `tiers` names the set"
+    );
+    assert_eq!(
+        op.before.present, true,
+        "§6.2: the op's before-state is what the delete removed, recorded per tier by the entry"
+    );
+    assert_eq!(
+        op.after.present, false,
+        "§6.2: and its after-state is the absence the delete left"
+    );
+    assert!(
+        !op.opId.is_empty(),
+        "`PAR-JS-9`: the op id is a non-empty string a reversal takes"
+    );
+    // NOTHING ANSWERS BEFORE THE REVERSAL — at either tier.
+    assert_eq!(
+        versions_at(&store, &address),
+        Vec::<Tier>::new(),
+        "§4.3: the delete removed every version"
+    );
+
+    let reversed = ok(
+        store.rollback(OpIdArg::Id(op.opId.clone())),
+        "D-43 item 3: `rollback` takes the id the delete's record carried",
+    );
+    assert_eq!(
+        reversed.undoneOps,
+        vec![op.opId.clone()],
+        "§6.3: the reversal undid exactly the op the record named"
+    );
+    assert_eq!(
+        reversed.restoredTo.present,
+        true,
+        "§6.3: and the addressed subtree now stands at a present state"
+    );
+
+    // **THE PER-ADDRESS, PER-TIER RESTORATION, PRINTED** — the cell's own observable, legible off the run.
+    println!("D-43 item 3 · rollback({}) — the delete reversed, per address and per tier:", op.opId);
+    for tier in canonical_tiers() {
+        let standing = versions_at(&store, &address).contains(&tier);
+        let value = if standing {
+            format!("{:?}", read_tier(&store, &address, tier))
+        } else {
+            "<no version at this tier>".to_string()
+        };
+        println!("  [{}] @ {} = {}", "/d43", tier_token(tier), value);
+    }
+
+    assert_eq!(
+        versions_at(&store, &address),
+        vec![Tier::File, Tier::Mem],
+        "D-43 item 3: THE VALUES AND THEIR TIERS — both versions stand again, each at its OWN tier"
+    );
+    assert_eq!(
+        read_tier(&store, &address, Tier::File),
+        v_str("file-value"),
+        "D-43 item 3: the `file` version's value, at the `file` tier"
+    );
+    assert_eq!(
+        read_tier(&store, &address, Tier::Mem),
+        v_str("mem-value"),
+        "D-43 item 3: the `mem` version's value, at the `mem` tier"
+    );
+}
+
+/// `D-43` item 3 · **THE IDENTITY THE RECORD CARRIES IS THE ONE THE JOURNAL HOLDS — and the subtree the
+/// delete destroyed comes back whole, at each version's own tier.**
+///
+/// The delete targets a NESTED address whose versions stand at two tiers and whose `mem` version carries a
+/// descendant of its own, so the reversal has to reach the whole captured subtree and not one pair. **The
+/// id is read off `receipt.op` and no other route to the journal exists in this cell** — a Rust drive
+/// cannot open `Store`'s journal, so a passing reversal is itself the proof that the record's identity is
+/// the entry's.
+///
+/// Drives: `D-43` item 3; `§6.2` property 1 (the transitive capture); `§6.3`–`§6.4`.
+#[test]
+fn d43_3_the_identity_is_the_one_the_record_carries_and_the_subtree_comes_back_whole() {
+    let mut store = new_store();
+    ok(
+        store.write(
+            AddressArg::List(key(&["root"])),
+            w_file(),
+            v_obj(&[("a", v_str("file-a")), ("b", v_str("file-b"))]),
+        ),
+        "§3.4 W-4",
+    );
+    ok(
+        store.write(
+            AddressArg::List(key(&["root"])),
+            w_mem(),
+            v_obj(&[("a", v_str("mem-a"))]),
+        ),
+        "§3.4 W-5",
+    );
+    let receipt = ok(
+        store.delete(AddressArg::List(key(&["root"])), none()),
+        "D-43 item 3",
+    );
+    assert_eq!(
+        receipt.tiers,
+        vec![Tier::File, Tier::Mem],
+        "§4.4 D-2: both versions of the target were removed"
+    );
+    let op = receipt.op.clone().expect("D-43 item 3: the record carries the delete's op");
+    assert_eq!(
+        op.seq > 0,
+        true,
+        "§6.2: the op is the appended entry's own — its `seq` is the append ordinal, which only the journal \
+         assigns, so the record carries the STORED op and not a fresh one"
+    );
+
+    let reversed = ok(
+        store.rollback(OpIdArg::Id(op.opId.clone())),
+        "D-43 item 3: the record's identity is accepted by the reversal",
+    );
+    assert_eq!(
+        reversed.undoneOps,
+        vec![op.opId.clone()],
+        "§6.3: exactly the delete's entry was undone — named by the id the RECORD carried"
+    );
+    println!(
+        "D-43 item 3 · identity from the record: rollback({}) → undoneOps {:?}",
+        op.opId, reversed.undoneOps
+    );
+    println!("D-43 item 3 · per address and per tier, after the reversal:");
+    for (path, tiers) in [
+        (key(&["root"]), vec![Tier::File, Tier::Mem]),
+        // `root/a` held a version under the `file` version and another under the `mem` one — the mixed-depth
+        // shadow `§6.2` property 1's transitive capture exists for, back at BOTH its tiers.
+        (key(&["root", "a"]), vec![Tier::File, Tier::Mem]),
+        (key(&["root", "b"]), vec![Tier::File]),
+    ] {
+        for tier in canonical_tiers() {
+            let value = if versions_at(&store, &path).contains(&tier) {
+                format!("{:?}", read_tier(&store, &path, tier))
+            } else {
+                "<no version at this tier>".to_string()
+            };
+            println!("  [{}] @ {} = {}", path_debug(&path), tier_token(tier), value);
+        }
+        assert_eq!(
+            versions_at(&store, &path),
+            tiers,
+            "D-43 item 3: every version the delete destroyed is back AT ITS OWN TIER"
+        );
+    }
+    assert_eq!(
+        read_tier(&store, &key(&["root", "a"]), Tier::File),
+        v_str("file-a"),
+        "§6.2 property 1: the `file` version's descendant came back with it"
+    );
+    assert_eq!(
+        read_tier(&store, &key(&["root", "a"]), Tier::Mem),
+        v_str("mem-a"),
+        "§6.2 property 1: and so did the `mem` version's, at the `mem` tier"
+    );
+}
+
+/// `D-43` item 3 · **A REVERSED DELETE IS REFUSED ON A SECOND REVERSAL — `RollbackCompacted`, the SAME rule
+/// every compacted op answers, and not a new one.**
+///
+/// `§6.3`'s floor: the reversal marks the entries it undid `compacted`, so a second walk finds a compacted
+/// entry in its scope and undoes NOTHING (`M-6`). **A delete's op is now nameable and it is not therefore
+/// re-reversible**: the id is a name, and the name obeys the same one-reversal rule the write's op does.
+///
+/// Drives: `D-43` item 3; `§6.3`–`§6.4` `M-6`; `§8.1` #10.
+#[test]
+fn d43_3_a_reversed_delete_is_refused_on_a_second_reversal() {
+    let mut store = new_store();
+    ok(
+        store.write(AddressArg::List(key(&["once"])), w_file(), v_str("kept")),
+        "§3.4 W-3",
+    );
+    let receipt = ok(
+        store.delete(AddressArg::List(key(&["once"])), none()),
+        "D-43 item 3",
+    );
+    let op = receipt.op.clone().expect("D-43 item 3: the record carries the delete's op");
+    ok(
+        store.rollback(OpIdArg::Id(op.opId.clone())),
+        "§6.3: the first reversal is total over its scope",
+    );
+    let second = failure(
+        store.rollback(OpIdArg::Id(op.opId.clone())),
+        "§6.3 M-6: a compacted entry in the scope refuses the whole walk",
+    );
+    println!(
+        "D-43 item 3 · second reversal of the delete's op {} → {}",
+        op.opId, second.status
+    );
+    assert_code(
+        &second,
+        "RollbackCompacted",
+        "§6.3 M-6 / §8.1 #10: the same rule a write's reversed op answers, and not a new one",
+    );
+    // **AND THE REFUSAL CHANGED NOTHING**: the restoration the first reversal landed still stands.
+    assert_eq!(
+        read_tier(&store, &key(&["once"]), Tier::File),
+        v_str("kept"),
+        "§6.3: `M-6`'s floor undoes NOTHING — the restored state is untouched by the refused walk"
+    );
+}
+
+/// The one spelling the printed table above needs for a segment path — the address as the caller spelled it.
+fn path_debug(path: &[Segment]) -> String {
+    let parts: Vec<String> = path
+        .iter()
+        .map(|segment| match segment {
+            Segment::Key(k) => k.clone(),
+            other => format!("{other:?}"),
+        })
+        .collect();
+    format!("/{}", parts.join("/"))
+}
+

@@ -549,9 +549,14 @@ const K6 = (store, pair) => kernel.remove(store, pair);
     'NO `triggeredAddresses` array exists on the record',
     !w.threw && !('triggeredAddresses' in w.value), w.threw ? fmt(statusOf(w)) : fmt(ownNames(w.value)));
   const d = thrown(() => i.delete(['a', 'b', 'c'], 'temp'));
-  A('HLI-07.6', 'contract.md §2.4 item 1 (`DeleteReceipt.triggered` moves with it)',
-    "the delete receipt's own members are exactly `['address','tiers','triggered']`",
-    !d.threw && ownNames(d.value).join(',') === 'address,tiers,triggered',
+  // ⟶ **`op` JOINED THE RECEIPT'S MEMBER SET ON 2026-10-27** (`D-43` item 3; `strata/decisions.md`, the
+  // architect, verbatim: *"Delete should be journaled and reversible"*) — the member `write`'s record carries
+  // at the same name, `null` on the `D-3` arm that removed nothing. **THE CLAUSE THIS ASSERTION DERIVES FROM
+  // IS UNMOVED AND SO IS THE ROW'S SUBJECT**: `DeleteReceipt.triggered` still moves with `WriteResult`'s
+  // pair list (HLI-07.7 below), and the member set is the declared one — which gained this ONE member.
+  A('HLI-07.6', 'contract.md §2.4 item 1 (`DeleteReceipt.triggered` moves with it); `D-43` item 3 (`op` joins the record)',
+    "the delete receipt's own members are exactly `['address','op','tiers','triggered']` (as `ownNames` sorts them)",
+    !d.threw && ownNames(d.value).join(',') === 'address,op,tiers,triggered',
     d.threw ? fmt(statusOf(d)) : fmt(ownNames(d.value)));
   A('HLI-07.7', 'contract.md §2.4 item 1; trigger-and-pair.md §2 item 1',
     "the delete receipt's `triggered` is a pair list too",

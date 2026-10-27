@@ -2338,6 +2338,21 @@ DeleteReceipt {
 }
 ```
 
+**⟶ AMENDED 2026-10-27 (`D-43` ITEM 3; `strata/decisions.md`, the architect, verbatim: *"Delete should be
+journaled and reversible"*): THE RECEIPT GAINS A FOURTH MEMBER, `op`, AND THE BLOCK ABOVE IS READ THROUGH
+THIS CLAUSE.** **`DeleteReceipt { address, tiers, triggered, op }`, where `op: Option<JournalOp>` — the store's
+OWN eight-member journal record, the SAME type and the SAME member name `WriteResult.op` carries** (`§6.2`;
+`write-and-read.md §3.6`), so a caller has one spelling for *"the op this act landed"*. **WHAT WAS MEASURED
+BEFORE IT MOVED, AND WHY THE MEMBER IS THE WHOLE OF THE FIX:** the delete WAS already appended to the journal
+— one entry, its address, its per-tier before-state and an op id — and `rollback` ALREADY accepted that id and
+put every removed version back at its own tier; **what was missing was EXPOSURE, so the act could not be
+NAMED, and an act that cannot be named cannot be reversed** (`D-43` item 3's own measured obstacle). **AND
+`op` IS `None` EXACTLY ON `D-3`'S ARM** — the target held no version at the named tier, the delete removed
+nothing, it is a SUCCESS with `tiers: []` and `triggered: []`, and **no entry is appended (`§6.1` item 1), so
+there is no identity to carry: nothing is named because nothing was destroyed.** **NO ARM, NO CODE AND NO
+CENSUS MOVES: `D-1`/`D-2`/`D-3`/`D-4`/`D-5` stand, the `4 + 1 = 5` delete census stands, and this is the
+record's SHAPE gaining one member and not the verb's surface.**
+
 **AND THE DELETE'S EFFECT ON A `VEC`'S SURVIVING INDEX KEYS — THE STATE `D-1`'s AND `D-2`'s ARMS WERE
 SILENT ON, AND WHAT THE DELETE DOES INSTEAD** (`DD-30`; **the state the gate-4 adversarial pass's `H-2`
 exposed and the implementer's own fix declared**; `[T + `DD-30` | DECLARED-DEFAULT]`): **a delete of an

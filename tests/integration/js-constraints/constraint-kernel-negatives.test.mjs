@@ -36,8 +36,9 @@
 //        `kernel-surface.md §2.1` item 3's `RD-9` clause (READING WRITTEN, printed below).
 //   `P-NEG-20` a constraint body that throws over a COMPACTED base: the ONE `outcome` entry carries
 //        `KC-8` — `composition-and-states.md §2.6` item 6 (a)'s ruling.
-//   `P-NEG-22` a DELETE-shaped repair reaches arm `(d)`/`KC-4` — `parameter-semantics.md §2.7`'s
-//        `observable` cell (READING WRITTEN, printed below).
+//   `P-NEG-22` a DELETE-shaped repair THAT RETURNS NO OP reaches arm `(d)`/`KC-4` — `parameter-semantics.md`
+//        §2.7's one carrier (`PAR-C-7`; `A110`), RE-DERIVED 2026-10-27 because `D-43` item 3 put `op` on the
+//        delete's own record (the shape this cell asserts inverted with it; the arm did not).
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -873,36 +874,44 @@ test('ck_p_neg_20_a_throwing_body_over_a_compacted_base_leaves_the_one_outcome_e
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
-// `P-NEG-22` — A DELETE-SHAPED REPAIR REACHES ARM `(d)`: THE DELETE RECORD CARRIES NO OP
+// `P-NEG-22` — A DELETE-SHAPED REPAIR WHOSE *RETURN* CARRIES NO OP REACHES ARM `(d)`: THE SEAM'S ONE
+// CARRIER IS THE REPAIR'S OWN RETURN, AND IT IS NOT THE STORE'S DELETE RECORD
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 
 /**
- * THE CLAUSE (`parameter-semantics.md §2.7`'s `observable` cell, the seam's ONE home, read with
- * `§2.8`'s): **"a repair whose `delete` REMOVED VERSIONS and whose attempt arm is STILL `KC-4`, because
- * the `DeleteReceipt` carries no op member; a repair whose `delete` REMOVED NOTHING, which returns NO op
- * and fails `KC-4`"** — and the shape's own sentence: **`op` IS "the store's own `write` return's value",
- * the ONE carrier, so a repair whose edit landed by the store's own `delete` has NO op to carry and its
- * return has carried none at all** (`attempt-lifecycle.md §2.4` item 4's arm `(d)`: *"the kernel credits
- * no op, the attempt takes arm `(d)` and fails `KC-4`"*). **A `write` that lands an UNCHANGED value DOES
- * return an op and is credited; a `delete` does not, on either arm** (`§2.7`'s own two arms; `RC-1`).
+ * THE CLAUSE, RE-DERIVED 2026-10-27, BECAUSE THE ONE IT WAS WRITTEN AGAINST HAS MOVED.
  *
- * ▸ THE READING THIS CELL IS WRITTEN AGAINST, NAMED BECAUSE THE HEADLINE THIS GENERATOR WAS TASKED WITH
- * (`"the arm is NOT (d)/KC-4 ONCE the spec writer names the delete route's op carrier"`) IS CONDITIONAL
- * ON A RULING THAT IS NOT ON DISK — no `DR-9` row stands anywhere in `docs/` — WHILE THE CLAUSE AS
- * PRINTED RULES THE DELETE ROUTE BY NAME AND IN THE OPPOSITE DIRECTION: **STILL `KC-4`**. So this cell is
- * written THE PRINTED WAY, asserting that arm `(d)` IS REACHED, and it INVERTS to the task's other
- * wording on the day a ruling names a delete op carrier.
+ * ▸ WHAT THE CELL ASSERTED BEFORE THIS PASS, AND WHAT MOVED IT. `parameter-semantics.md §2.7`'s
+ * `observable` cell read *"a repair whose `delete` REMOVED VERSIONS and whose attempt arm is STILL
+ * `KC-4`, because the `DeleteReceipt` carries no op member"* — and that ground is **GONE**: the
+ * architect's ruling `D-43` item 3 (`strata/decisions.md`, verbatim: *"Delete should be journaled and
+ * reversible"*) puts `op` on the delete's record, the member `write`'s record carries at the same name,
+ * so a delete IS nameable and its record DOES carry an identity. **This cell's own head said it
+ * "INVERTS to the task's other wording on the day a ruling names a delete op carrier" — that day is
+ * this one, and what inverts is the SHAPE it asserts, not the arm.** (Measured, and printed below: the
+ * delete's record carries `op` with `kind: "delete"`, its before-state `{present: true, value: "two"}`
+ * and a `seq` above the attempt's own.)
+ *
+ * ▸ WHAT THE CLAUSE STILL SAYS, AND WHY THE ARM IS UNMOVED. **THE KERNEL'S ONE CARRIER IS THE REPAIR'S
+ * OWN RETURN** — `kernel-foundations.mjs`'s `landedOp`: *"THE KERNEL READS THE OP THE REPAIR LANDED OFF
+ * THE REPAIR'S OWN RETURN AND NOWHERE ELSE … the op it APPENDS to the attempt's `ops` IS
+ * `returnValue.op`"* (`PAR-C-7`; `A110`). **A repair that edits by `delete` and returns `{ok: true}` —
+ * carrying no `op` of its own — has carried no identity, so the kernel credits nothing, arm `(d)` is
+ * taken and `KC-4` answers.** That is exactly what this drive does, and the ruling changes it not at
+ * all: **what the ruling changes is that such a repair CAN now carry the op it landed
+ * (`return {ok: true, op: store.delete(address).op}`) and be credited.**
  *
  * STATES ENUMERATED FIRST: (1) versions standing at the attempt's address before the attempt; (2) the
  * repair's own `delete`, WHICH LANDS — its record naming the tier the removed versions stood on;
- * (3) the delete's record — THREE members, `{address, tiers, triggered}`, and NO `op` member;
- * (4) the arm — `(d)`, `KC-4`, one `repair-run` entry and one `outcome` entry; (5) the report's `ops` —
+ * (3) the delete's record — FOUR members, `{address, tiers, triggered, op}`, its `op` the delete's own;
+ * (4) the repair's RETURN — `{ok: true, message}` and NO `op`, which is the seam's one carrier absent;
+ * (5) the arm — `(d)`, `KC-4`, one `repair-run` entry and one `outcome` entry; (6) the report's `ops` —
  * the attempt's own first write alone.
  *
- * FAIL STATES: a delete-shaped repair CREDITED with an op (the reading a delete op carrier would land);
- * an arm other than `(d)`; a `repair-run` entry omitted; an op credited off a record that carries none.
+ * FAIL STATES: an arm other than `(d)`; a `repair-run` entry omitted; a delete record that does NOT
+ * carry the op it landed (`D-43` item 3); an op credited off a return that carries none.
  */
-test('ck_p_neg_22_a_delete_shaped_repair_reaches_arm_d_KC4_because_the_delete_record_carries_no_op', async () => {
+test('ck_p_neg_22_a_delete_shaped_repair_whose_return_carries_no_op_reaches_arm_d_KC4', async () => {
   const { register, commit, runAttempt, report } = await kernel();
   const store = makeStore({ journalLength: 16 });
   const address = [tag('n22')];
@@ -931,21 +940,27 @@ test('ck_p_neg_22_a_delete_shaped_repair_reaches_arm_d_KC4_because_the_delete_re
   assert.equal(removed !== null, true,
     'the repair\'s own `delete` RETURNED — a delete at an address that holds no versions is the store\'s '
     + 'own refusal, so a returned record IS the removal having landed');
-  assert.deepEqual(Object.keys(removed).sort(), ['address', 'tiers', 'triggered'],
-    'and THE PIVOT OF THIS CELL: the store\'s own delete record is those THREE members — read '
-    + JSON.stringify(Object.keys(removed).sort()) + ' (`A: bindings/js/index.d.ts`: `DeleteRecord`)');
-  assert.equal('op' in removed, false,
-    'A DELETE NEVER RETURNS AN OP ON EITHER ARM — the `DeleteReceipt` carries no op member (`RC-1`) — so a '
-    + 'repair whose edit landed by the store\'s own `delete` has no op it can name, the seam\'s ONE '
-    + 'carrier being "the store\'s own `write` return\'s value" (`parameter-semantics.md §2.7`)');
+  assert.deepEqual(Object.keys(removed).sort(), ['address', 'op', 'tiers', 'triggered'],
+    'and THE PIVOT OF THIS CELL MOVED WITH THE RULING: the store\'s own delete record carries FOUR members '
+    + '— `op` beside the three — read ' + JSON.stringify(Object.keys(removed).sort())
+    + ' (`A: bindings/js/index.d.ts`: `DeleteRecord`; `strata/decisions.md` · `D-43` item 3)');
+  assert.equal(removed.op === null || typeof removed.op !== 'object', false,
+    'A DELETE NOW RETURNS THE OP IT LANDED (`D-43` item 3: *"Delete should be journaled and reversible"*) '
+    + '— so the identity a reversal takes is IN THE CALLER\'S HAND — read ' + JSON.stringify(removed.op));
+  assert.equal(removed.op.kind, 'delete',
+    'and it is the DELETE\'s own journal op, not a write\'s — read ' + JSON.stringify(removed.op.kind));
+  assert.equal(typeof removed.op.seq, 'number',
+    'carrying the journal\'s own append ordinal, which is the ground `landedOp` compares a repair\'s '
+    + 'returned op against (`parameter-semantics.md §2.7`; `§2.8`)');
   assert.deepEqual(removed.tiers, ['mem'],
     'and the record names the tier the removed versions stood on — read ' + JSON.stringify(removed.tiers));
   assert.equal(r.threw, true, 'so the attempt fails');
   assertKernelForm(r.thrown, 'P-NEG-22');
   assert.equal(r.thrown.status, KC[4],
-    'AND THE ARM IS `(d)`: "a repair whose `delete` REMOVED VERSIONS ... its attempt arm is STILL `KC-4`, '
-    + 'because the `DeleteReceipt` carries no op member" — read ' + JSON.stringify(r.thrown.status)
-    + ' (`parameter-semantics.md §2.7`\'s `observable` cell)');
+    'AND THE ARM IS `(d)` FOR THE REASON THAT SURVIVES THE RULING: **the repair RETURNED `{ok: true}` and '
+    + 'no `op`**, and the kernel credits `returnValue.op` and nothing else (`PAR-C-7`; `A110`) — so a repair '
+    + 'whose edit landed by `delete` is credited exactly when it carries `removed.op` home, and here it '
+    + 'carried none — read ' + JSON.stringify(r.thrown.status) + ' (`parameter-semantics.md §2.7`)');
   const closed = report(store, record.attempt);
   assertAttemptReport(closed, 'P-NEG-22 closed record');
   assert.equal(closed.ops.length, 1,

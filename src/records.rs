@@ -180,6 +180,22 @@ pub struct JournalOp {
 /// `address` · `tiers` · `triggered`**: the addresses the delete named (`address` VERBATIM, `tiers` the
 /// tiers whose versions were removed) **beside the HANDLES
 /// of the listeners the trigger fired** (`write-and-read.md §6.5` item 11; `A43`).
+///
+/// **⟶ AMENDED 2026-10-27 BY THE ARCHITECT'S RULING `D-43` ITEM 3 (`strata/decisions.md`): THE RECEIPT
+/// CARRIES THE DELETE'S OWN JOURNAL OP, AND THAT IS WHAT MAKES A DELETE NAMEABLE AND THEREFORE
+/// REVERSIBLE.** The ruling verbatim: *"Delete should be journaled and reversible"*. **MEASURED BEFORE THIS
+/// MEMBER WAS ADDED: the delete WAS already appended to the journal, with its address, its per-tier
+/// BEFORE-state and an op id, and `rollback` accepted that id and restored every removed version at its own
+/// tier — so what was missing was the IDENTITY alone. `delete` answered `{address, tiers, triggered}` and a
+/// caller could not name the op it had just caused** (the measured obstacle `D-43` item 3 states). **So
+/// `op` is the FOURTH member and it is the store's own `journal op`, spelled exactly as `WriteResult.op`
+/// is** — one spelling for *"the op this act landed"*, on both records.
+///
+/// **AND IT IS `Option` BECAUSE ONE ARM GENUINELY HAS NO OP.** A delete that removes nothing (`D-3`: a
+/// SUCCESS carrying `tiers: []`, `§6.5` item 11's `triggered: []`) **appends NO journal entry** — the
+/// journal holds one entry per operation **that changed the register** — so there is no op for the store to
+/// name: `None` is that arm, and it is the truth rather than a minted id for an op no reversal could find.
+/// **Every arm that removed a version carries `Some(op)`, and that op is the one the journal holds.**
 #[derive(Clone, Debug, PartialEq)]
 pub struct DeleteReceipt {
     pub address: Vec<Segment>,
@@ -189,6 +205,12 @@ pub struct DeleteReceipt {
     /// `{handle, address}` (`contract.md §2.4` item 1; `PAR-HL-38`), and `A43` is what makes a delete's
     /// receipt carry the same member a write's record does.**
     pub triggered: Vec<ListenerTrigger>,
+    /// **⟶ ADDED 2026-10-27 (`D-43` item 3): THE DELETE'S IDENTITY — the store's own journal op, the value
+    /// `rollback` accepts and reverses.** `Some` exactly when the delete removed at least one version and
+    /// its entry was appended; `None` on the `D-3` arm that removed nothing and journaled nothing. **Named
+    /// `op` because `WriteResult.op` is that name** (`write-and-read.md §3.6`), so a caller has ONE spelling
+    /// for *"the op this act landed"*.
+    pub op: Option<JournalOp>,
 }
 
 /// `§6.3`: the rollback's result — **exactly THREE members: `opId` · `undoneOps` · `restoredTo`** (**⟶
