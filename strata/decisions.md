@@ -3135,3 +3135,38 @@ toward the code instead of toward a ruling.**
 **TERMS: behaviour-only open set (`7`), severe and unambiguous (`1` = `DEF-AE`), declaration disagreements fixable
 (`2` = `DEF-AI`, `DEF-AB`), document drift (`1` = `DEF-AC`), coverage the consumer must build (`1` = `DEF-X`), a ruling
 question (`1` = `DEF-AH`), and an observation with no ask (`1` = `DEF-AD`, actioned by doing nothing).**
+
+---
+
+### `D-49` — THE DISCARD IS MADE OBSERVABLE, and the use case that says why
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, answering `D-48`'s open question (`DEF-AH`).
+
+**THE RULING, VERBATIM:**
+
+> Make discard observable
+> Example use case: window.tabs reads as object. When window.tabs.landingPage is removed, listener should fire on
+> window.tabs to check that exactly one tab is active
+
+**THE RULING IS THE SECOND OF `D-48`'s THREE, AND THE EXAMPLE IS WHY IT MATTERS.** `DEF-AH` was a **visibility** defect
+wearing a behaviour defect's clothes: the two windows **run no pass**, so there is no verdict to skip — **but a caller
+could not learn that a request had been discarded.** **A fail-state is honest only if the consumer learns it happened.**
+
+**AND THE USE CASE IS THE SHARPEST ARGUMENT ANY REVIEW HAS MADE ON THIS BRANCH.** **`window.tabs` is a tree; a delete at
+`window.tabs.landingPage` must FIRE the listener standing at `window.tabs`, so the listener can check that exactly one
+tab is active.** **That check IS the invariant the caller cares about, and it is exactly the kind of act the
+`delete`-delivery window throws away.** **An invariant a caller registers to defend its own tree cannot be silently
+unchecked** — **not because the package owes a verdict, but because the caller cannot see that it did not get one.**
+
+**TWO THINGS THE PASS MUST SETTLE, IN THIS ORDER.**
+
+1. **THE USE CASE'S FOUNDATION FIRST: does a delete at a DESCENDANT fire a listener at its ANCESTOR?** **The triggered
+   set's membership rule is the address prefix** — **measure it** rather than assuming: **if the ancestor listener does
+   not fire, that is a defect ahead of the discard**, and it is the one the caller would file next.
+2. **THEN THE WITNESS.** **A request a window discards must be visible to the caller of the act whose window it was** —
+   **on that act's own answer**, not in a document and not on the next unrelated call. **Which member, on which record,
+   is the pass's call, declared and justified.**
+
+**TERMS: the visibility ruling (`1`), the use case as its ground (`1`), the ancestor-fires measurement owed and FIRST
+(`1`), the witness owed (`1`), the declaration owed (`1`), and the behaviour unchanged (`0` — these windows still run no
+pass, `D-43` item 2 stands on its fail-state and both exits).**
