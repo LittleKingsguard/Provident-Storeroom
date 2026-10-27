@@ -801,6 +801,17 @@ export interface StoreInstance {
    * 3. **NO ORDER IS PROMISED** (item 6): the returned array's order is **UNDECLARED** and a consumer compares
    *    the pairs **as a SET and never as a sequence** (`DD-22`; `§2.7` item 3). **Nothing in this declaration
    *    may be read as a registration order, an address order or a `seq`-like ordinal.**
+   *    **⟶ AND THIS EXCLUSION IS RETIRED, 2026-10-26 (`strata/decisions.md` `D-39`, whose ruling is VERBATIM
+   *    *"add deterministic ordering"*; its own record reads: *"`constraints()` must emit in a DECLARED,
+   *    deterministic order — registration sequence … The declaration currently says "no order" among its four
+   *    exclusions; that exclusion is superseded"*):** **`constraints()` EMITS IN REGISTRATION SEQUENCE — THE
+   *    ORDER THE PAIRS WERE REGISTERED — DETERMINISTICALLY AND STABLY ACROSS EVERY CALL AND EVERY INTERVENING
+   *    ACT; THE ORDER IS PART OF WHAT THE METHOD PROMISES.** **The bytes above stand as the reading this
+   *    exclusion was filed at and are read THROUGH this clause (`RCA-8(g)` ANNOTATE-BESIDE; `DEF-2026-10-02`:
+   *    no whole-file rewrite): a consumer MAY now compare the returned array element by element, and the
+   *    registration order it reads is the order its own `addConstraint` calls and its `cfg.constraints`
+   *    elements stood in.** **NO OTHER EXCLUSION MOVES — items 1, 2 and 4 stand WHOLE — and the member still
+   *    answers a FRESH array of FRESH two-member objects on every call.**
    * 4. **A DISABLED PAIR DOES APPEAR** (item 5): `constraintOff` is a TOGGLE and NOT A REMOVAL, so a pair it
    *    disabled is STILL REGISTERED and still enumerated — **and therefore there is NO `enabled` member on an
    *    element and NO way to read a pair's state off this return**; the state is read at the toggles' own
@@ -871,6 +882,15 @@ export interface ConstraintPair {
    * §6`'s pair table: *"and, at the REGISTRATION act, a single address"*); on the READ and at the REMOVAL it
    * is the pair's own SET (`P: docs/pending.md · P-7`'s answer clause: *"1. (one id, N addresses)"*;
    * `contract.md §2.6` item 5; `PAR-HL-13`).
+   *
+   * **⟶ AND THE CREATION-ACT HALF IS CORRECTED, 2026-10-26 (`strata/decisions.md` `D-38`, verbatim: *"Accept a
+   * one-to-many handler/constraint addressing at package surface"*, whose ruling reads *"one id at N addresses
+   * is LAWFUL, at every act"*).** **THE CREATION ACT TAKES AN ADDRESS OR A SET OF ADDRESSES (`Address |
+   * readonly Address[]` — the type this member already carries), and the single-address reading above is the
+   * SUPERSEDED one, read THROUGH this clause (`RCA-8(g)` ANNOTATE-BESIDE; `DEF-2026-10-02`: no whole-file
+   * rewrite).** **THE RUNTIME ALREADY ACCEPTS THE PAIR AND UNIONS ITS ADDRESSES**: one call at
+   * `{ address: [['a'], ['b']], id: 'c1' }` registers ONE pair at BOTH addresses, and this member's own read
+   * answers that one pair carrying both members.
    */
   readonly address: Address | readonly Address[];
   /**
@@ -880,6 +900,20 @@ export interface ConstraintPair {
    * CLAUSE: the pair-local reuse of one `id` at two addresses is NO LONGER LAWFUL**, because a handle is
    * INSTANCE-SCOPED and a repeated handle is REJECTED in one supplied list (`cfg.constraints`, `D-27`) and an
    * OVERWRITE at the add route (`D-24`). **THE SHAPE IS UNCHANGED — NO FIELD IS ADDED** (`D-24` item 1).
+   *
+   * **⟶ AND THE "NO LONGER LAWFUL" HALF OF THAT SENTENCE IS SUPERSEDED, 2026-10-26 (`strata/decisions.md`
+   * `D-38`: *"one id at N addresses is LAWFUL, at every act"*; `D-38`'s own record names the superseded reading
+   * at its own bytes — *"`index.d.ts` currently says 'the pair-local reuse of one `id` at two addresses is NO
+   * LONGER LAWFUL'"* — and rules that *"the declaration moves; no behaviour changes"*).** **WHAT A TYPED
+   * CONSUMER NEEDS, IN ONE RULE: ONE `id` NAMES ONE PAIR, A SECOND ADDRESS JOINS IT, AND THE `constraint`
+   * IS THE MEMBER AN ADD OVERWRITES.** **So `addConstraint({ address: [['a'], ['b']], id: 'c1' }, f)` answers ONE
+   * pair standing at BOTH addresses under ONE identity; a later add at that same `id` naming a further address
+   * EXTENDS that one pair's address set (the runtime unions the sets, `D-38`'s two-call arm) and REPLACES `f` —
+   * the `id` never becomes a second pair, and the `constraint` is the only member an add overwrites.** **THE
+   * TWO RULES THIS DOES NOT MOVE ARE DIFFERENT RULES FOR DIFFERENT ACTS AND BOTH STAND: within ONE supplied
+   * batch list a repeated `id` is REJECTED (`cfg.constraints`, `D-27`), and a pair whose `id` equals a LIVE
+   * listener's handle is REJECTED in both directions (`D-25`).** **AND THE SHAPE IS STILL UNCHANGED — NO FIELD
+   * IS ADDED** (`D-24` item 1).
    */
   readonly id: string;
 }

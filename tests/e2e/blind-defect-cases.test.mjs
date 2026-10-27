@@ -8,8 +8,11 @@
 //   DEF-M  strata/decisions.md `D-40` (arm declared: a failing repair ⇒ rollback ⇒
 //          pre-attempt state) + `D-40`'s IMPLEMENTATION FINDING §5 (the returned op)
 //   DEF-S  docs/specs/storeroom-js/surface.md §2.12 item 3 (B) (rank `18`) and the
-//          `DEF-A` clause inside it; docs/specs/storeroom-native/contract.md §8.1 row 18
-//          and §8.2's appended row; bindings/js/index.d.ts `StoreStatus`
+//          `DEF-A` clause inside it AS CORRECTED by the exception carved beside it on
+//          2026-10-26 (a constraint body's throw is the package's to convert; the identity
+//          promise holds for every value that does not come from a constraint body);
+//          docs/specs/storeroom-native/contract.md §8.1 row 18 and the carve clause beside
+//          it, with §8.2's appended row; bindings/js/index.d.ts `StoreStatus`
 //   DEF-N  docs/specs/storeroom-js/surface.md §2.12 item 3 (A) (rank `19`) and item 3 (C)
 //          (items (i), (ii), (iii)); native/contract.md §8.1 row 19 and §8.2's appended row
 //   DEF-Q  native/contract.md §8.2's `MessageArgs` rule and property (c); surface.md §2.5
@@ -296,18 +299,39 @@ test('def_s_a_constraint_bodys_throw_at_registration_crosses_as_the_one_plain_fo
   );
 });
 
-// DEF-A's clause, inside surface.md §2.12 item 3 (B), verbatim: "THE MARK IS THE WHOLE OF
-// `DEF-A`'S PROTECTION AND IT IS NOT WEAKENED … an UNMARKED throw still crosses AS ITSELF — a
-// caller's forged `{status, message}` is the caller's own value and is answered as it was
-// thrown, `caught === thrown`."
-test('def_s_a_callers_forged_object_is_not_answered_as_a_package_refusal', () => {
-  // THE THREE OBSERVATIONS ARE ALL TAKEN FIRST AND ASSERTED LAST, so a cell that reddens still
-  // reports every arm it drove (`D-21`: a cell that did not run says so).
-  const forgedAtRegistration = { status: 'ConstraintBodyThrew', message: 'the caller forged this refusal', log: [] };
-  const forgedAtWrite = { status: 'ConstraintBodyThrew', message: 'the caller forged this one too', log: [] };
-  const forgedFromListener = { status: 'ConstraintBodyThrew', message: 'a listener forged this', log: [] };
+// DEF-A — THE IDENTITY PROMISE **AND THE EXCEPTION CARVED BESIDE IT**. surface.md §2.12 item 3 (B)
+// carried the promise as an unqualified sentence ("THE MARK IS THE WHOLE OF `DEF-A`'S PROTECTION AND IT IS
+// NOT WEAKENED … an UNMARKED throw still crosses AS ITSELF — a caller's forged `{status, message}` is the
+// caller's own value and is answered as it was thrown, `caught === thrown`"), and native/contract.md §8.1
+// row `18` carried the same promise ("a forged `{status, message}` is never answered as this member").
+//
+// A BLIND INSTANCE MEASURED THE CASE THE SENTENCE DID NOT NAME: a forged shape thrown from the caller's OWN
+// CONSTRAINT BODY is answered `ConstraintBodyThrew` at BOTH instants, because the kernel marks every value
+// it catches from a constraint body — so THE CLAUSE WAS INCOMPLETE AND THE CONVERSION WAS WORKING AS
+// DESIGNED. THE EXCEPTION WAS CARVED AT 2026-10-26 in BOTH places (surface.md §2.12 item 3 (B)'s carve
+// clause, and the carve clause beside native/contract.md §8.1's row `18`), and THIS CELL READS THE CORRECTED
+// CLAUSE, VERBATIM:
+//
+//   "A VALUE THROWN BY THE CALLER'S OWN CONSTRAINT BODY IS THE PACKAGE'S TO CONVERT … AND THE `DEF-A`
+//    IDENTITY PROMISE HOLDS FOR EVERY VALUE THAT DOES NOT COME FROM A CONSTRAINT BODY."
+//
+// BOTH HALVES ARE ASSERTED AND NEITHER IS WEAKENED: the CONVERTED arm at the two instants a constraint body
+// is invoked, and — on the two producers the carved clause names as still holding ABSOLUTELY — the IDENTITY
+// arm, `caught === thrown`, the caller's own object back: a value crossing the general registration act
+// UNMARKED, and a LISTENER body's throw (`docs/specs/storeroom-js/surface.md §2.7` item 4: "NOT CAUGHT, NOT
+// RETRIED AND NOT REPORTED"). The pair together is the protection: a cell that kept only the converted arm
+// would launder a forgery, and a cell that kept only the identity arm would deny the conversion.
+test('def_s_a_forged_object_crosses_as_itself_only_where_no_constraint_body_threw_it', () => {
+  // THE FOUR OBSERVATIONS ARE ALL TAKEN FIRST AND ASSERTED LAST, so a cell that reddens still reports every
+  // arm it drove (`D-21`: a cell that did not run says so). EACH ARM THROWS ITS OWN OBJECT: the kernel's mark
+  // is an own member OF THE THROWN VALUE, so a value reused across arms would arrive at the second arm
+  // already marked — that is the conversion's own mechanism and not a fixture detail.
+  const forgedAtRegistration = { status: 'ValueNotAdmitted', message: 'the caller forged this refusal', log: [] };
+  const forgedAtWrite = { status: 'ValueNotAdmitted', message: 'the caller forged this one too', log: [] };
+  const forgedUnmarked = { status: 'ValueNotAdmitted', message: 'the caller forged this past no body', log: [] };
+  const forgedFromListener = { status: 'ValueNotAdmitted', message: 'a listener forged this', log: [] };
 
-  // (1) the REGISTRATION instant.
+  // (1) THE CONVERTED ARM AT THE REGISTRATION INSTANT — the caller's own CONSTRAINT body.
   const storeA = storeCreate({ journalLength: 16, listeners: [] });
   let seenAtRegistration = null;
   try {
@@ -318,7 +342,7 @@ test('def_s_a_callers_forged_object_is_not_answered_as_a_package_refusal', () =>
     seenAtRegistration = caught;
   }
 
-  // (2) the WRITE instant — the clause names "either instant the body is invoked".
+  // (2) THE CONVERTED ARM AT THE WRITE INSTANT — the clause names "either instant the body is invoked".
   const storeB = storeCreate({ journalLength: 16, listeners: [] });
   storeB.write(['a'], 'mem', 5);
   storeB.addConstraint({ address: ['a'], id: 'c2' }, (context) => {
@@ -331,39 +355,116 @@ test('def_s_a_callers_forged_object_is_not_answered_as_a_package_refusal', () =>
   } catch (caught) {
     seenAtWrite = caught;
   }
+  const valueAfterRefusedWrite = storeB.read(['a']);
 
-  // (3) THE CONTROL THAT SEPARATES THE TWO READINGS OF THE CLAUSE'S SENTENCE, so this finding is
-  // exact rather than blanket: an UNMARKED throw exists only where the kernel never caught the
-  // value, and a LISTENER body's throw is "NOT CAUGHT, NOT RETRIED AND NOT REPORTED"
-  // (docs/specs/storeroom-js/surface.md §2.7 item 4).
+  // (3) THE IDENTITY ARM WHERE NO CONSTRAINT BODY THREW — a value crossing the general registration act
+  // UNMARKED. The caller's own `Proxy` trap on the pair's own `address` throws the forged shape while
+  // `addConstraint` walks that position: no kernel frame catches it from a body, so nothing marks it and
+  // nothing converts it — the carved clause's second sentence, measured.
   const storeC = storeCreate({ journalLength: 16, listeners: [] });
-  storeC.listen('h1', [['a']]);
-  storeC.register('h1', () => {
+  storeC.write(['a'], 'mem', 5);
+  let seenUnmarked = null;
+  try {
+    storeC.addConstraint(
+      {
+        address: new Proxy(['a'], {
+          get() {
+            throw forgedUnmarked;
+          },
+        }),
+        id: 'c3',
+      },
+      () => true,
+    );
+  } catch (caught) {
+    seenUnmarked = caught;
+  }
+  const pairsAfterUnmarked = storeC.constraints();
+
+  // (4) THE IDENTITY ARM FROM A LISTENER BODY — the second producer the carved clause names.
+  const storeD = storeCreate({ journalLength: 16, listeners: [] });
+  storeD.listen('h1', [['a']]);
+  storeD.register('h1', () => {
     throw forgedFromListener;
   });
   let seenFromListener = null;
   try {
-    storeC.write(['a'], 'mem', 1);
+    storeD.write(['a'], 'mem', 1);
   } catch (caught) {
     seenFromListener = caught;
   }
 
+  // ── THE CONVERTED HALF: a constraint body's throw is the package's to convert ────────────────────────
+  assertOnePlainForm(seenAtRegistration, 'DEF-A the converted registration arm');
   assert.equal(
-    seenAtRegistration,
-    forgedAtRegistration,
-    'DEF-S / DEF-A: surface.md §2.12 item 3 (B) and native/contract.md §8.1 row 18 ("a forged `{status, message}` is never answered as this member") — the caller\'s own forged object must cross AS ITSELF at the REGISTRATION instant; observed ' +
-      JSON.stringify(seenAtRegistration && { status: seenAtRegistration.status, message: seenAtRegistration.message }),
+    seenAtRegistration.status,
+    'ConstraintBodyThrew',
+    `DEF-A: surface.md §2.12 item 3 (B)'s carve clause and native/contract.md §8.1 row 18's — "a value thrown by the caller's own CONSTRAINT body is the package's to convert"; the set's rank 18 member is the answer and the forged status "ValueNotAdmitted" is NEVER the answer; observed ${JSON.stringify(seenAtRegistration && { status: seenAtRegistration.status, message: seenAtRegistration.message })}`,
+  );
+  assert.notEqual(
+    seenAtRegistration.status,
+    forgedAtRegistration.status,
+    "DEF-A: the caller's forged `status` is not the answer at the registration instant — the conversion mints the set's rank 18 member and reads nothing of the caller's form",
   );
   assert.equal(
-    seenAtWrite,
-    forgedAtWrite,
-    'DEF-S / DEF-A: the same identity rule at the WRITE instant; observed ' +
-      JSON.stringify(seenAtWrite && { status: seenAtWrite.status, message: seenAtWrite.message }),
+    seenAtRegistration.message,
+    RANK_18_SENTENCE,
+    `DEF-A: native/contract.md §8.2's appended rank-18 row — the answer's message is the STORE'S GENERATED sentence and never the caller's forged text; message read ${JSON.stringify(seenAtRegistration && seenAtRegistration.message)}`,
+  );
+  assert.notEqual(
+    seenAtRegistration,
+    forgedAtRegistration,
+    "DEF-A: the converted arm is NOT the caller's own object — a constraint body's throw is answered as this refusal and not as itself",
+  );
+  assert.deepEqual(
+    seenAtRegistration.log,
+    [],
+    'DEF-A / surface.md §2.12 (B): `[]` where no attempt exists, which is the registration instant (§2.5 item 4)',
+  );
+  assert.deepEqual(storeA.constraints(), [], 'DEF-A: a registration its own body threw at carries no pair; the refusal leaves the entry exactly as it stood');
+  assert.deepEqual(
+    Object.keys(forgedAtRegistration),
+    FORM_KEYS,
+    "DEF-A: the kernel's mark is a SYMBOL-keyed, non-enumerable own member, so the caller's own form still reads its three members — no member of it is forged, renamed or dropped",
+  );
+
+  assertOnePlainForm(seenAtWrite, 'DEF-A the converted write arm');
+  assert.equal(
+    seenAtWrite.status,
+    'ConstraintBodyThrew',
+    `DEF-A: the same rank 18 member at the WRITE instant — the other instant the body is invoked; observed ${JSON.stringify(seenAtWrite && seenAtWrite.status)}`,
+  );
+  assert.notEqual(seenAtWrite.status, forgedAtWrite.status, 'DEF-A: the forged status is not the answer at the write instant either');
+  assert.equal(
+    seenAtWrite.message,
+    RANK_18_SENTENCE,
+    `DEF-A: the same generated sentence at the write instant; message read ${JSON.stringify(seenAtWrite && seenAtWrite.message)}`,
+  );
+  assert.notEqual(seenAtWrite, forgedAtWrite, "DEF-A: and the converted arm is not the caller's own object here either");
+  assert.ok(
+    seenAtWrite.log.length > 0,
+    "DEF-A / surface.md §2.12 (B): the write's refusal carries the attempt's own entries where an attempt stands",
+  );
+  sweepLog(seenAtWrite.log, 'DEF-A the converted write arm');
+  assert.equal(valueAfterRefusedWrite, 5, "DEF-A: the converted refusal moves no state — the seeded 5 still stands at ['a']");
+
+  // ── THE IDENTITY HALF: `caught === thrown`, the caller's own object back ─────────────────────────────
+  assert.equal(
+    seenUnmarked,
+    forgedUnmarked,
+    `DEF-A / surface.md §2.12 item 3 (B)'s carve clause — "THE \`DEF-A\` IDENTITY PROMISE HOLDS FOR EVERY VALUE THAT DOES NOT COME FROM A CONSTRAINT BODY": a value crossing the general registration act UNMARKED is answered AS ITSELF, identity preserved; observed ` +
+      JSON.stringify(seenUnmarked && { status: seenUnmarked.status, message: seenUnmarked.message }),
+  );
+  assert.deepEqual(
+    pairsAfterUnmarked,
+    [],
+    'DEF-A: and the unmarked arm moves no state — no pair was carried by the refused registration',
   );
   assert.equal(
     seenFromListener,
     forgedFromListener,
-    'DEF-S / DEF-A control: §2.7 item 4 — a listener body\'s throw is not caught, so an UNMARKED throw does cross as itself',
+    "DEF-A / control: surface.md §2.7 item 4 — a listener body's throw is NOT CAUGHT, NOT RETRIED AND NOT REPORTED, so nothing marks it and it crosses AS ITSELF; observed " +
+      JSON.stringify(seenFromListener && { status: seenFromListener.status, message: seenFromListener.message }),
   );
 });
 

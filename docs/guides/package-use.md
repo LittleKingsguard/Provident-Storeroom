@@ -21,6 +21,15 @@ WAS DRIVEN AGAINST A PUBLISHED TARBALL:** every behavioural claim below is eithe
 measurement taken on this repository's checkout and named as one. **No `npm install` was run by the pass that
 wrote this file against the registry, so a registry-installed `0.5.0` is described here and not witnessed.**
 
+**⟶ CORRECTED 2026-10-26 — THE VERSION THIS GUIDE DESCRIBES IS `1.0.0`, NOT `0.5.0`, AND THE SENTENCE ABOVE STANDS
+BYTE-FOR-BYTE AS THE READING OF THE DAY THIS FILE WAS WRITTEN AND IS READ THROUGH THIS CLAUSE** (`RCA-8(g)`
+ANNOTATE-BESIDE; `DEF-2026-10-02`: no whole-file rewrite). **`bindings/js/package.json`'s `version` field read at its
+own bytes this date is `"version": "1.0.0"`, and all five `optionalDependencies` pins are `1.0.0` with it** — **so
+every `0.5.0` this guide prints is the figure of its writing date and reads `1.0.0` from here on: `§2.2`'s five exact
+pins, `§8.1`'s *"an installed `0.5.0`"*, and `§11`'s manifest table.** **AND THE ONE THING THIS PASS DID NOT WITNESS
+IS UNMOVED: no `npm install` was run against the registry, so a registry-installed `1.0.0` is described here from
+the manifest and from measurements on this checkout, and is still not witnessed.**
+
 **Every figure carries one of four marks, and the four are not the same thing:**
 
 | the mark | what it means |
@@ -139,6 +148,13 @@ names are a closed set of five and are never built by concatenating tokens** (`P
 YOU SHOULD NOT "RELAX" THEM:** npm's dedupe could otherwise satisfy the loader with a differently-versioned copy
 hoisted into your tree, and the exact pins are what closes that window (`PUB-DD-10`'s `alt` cell, which prices a
 range and refuses it).
+
+**⟶ AND THE FIGURE IS CORRECTED AT THIS DATE: each of the five is pinned to `1.0.0`, not `0.5.0`** (`bindings/js/
+package.json`, read at its own bytes 2026-10-26; `RCA-8(g)` ANNOTATE-BESIDE — the sentence above stands and is read
+THROUGH this one). **THE READING IT TEACHES IS UNMOVED AND IS THE POINT: five EXACT pins, no caret, no tilde and no
+range, all six figures moving together (§0 item 1; `PUB-DD-10`).** **`1.0.0` is the package's own version (§0 and
+§11), so the main `version` and the five pins are one figure and a consumer who reads a `0.5.0` anywhere in a
+manifest has the wrong package.**
 
 ### §2.3 The three rungs
 
@@ -596,6 +612,17 @@ the pair, its N address rows, the kernel's registration and the store's home ent
 **The read takes no argument, makes no store call, appends no journal entry and changes no node**
 (`index.d.ts`).
 
+**⟶ AND EXCLUSION 3 ABOVE IS RETIRED, 2026-10-26, ON `D-39`'S `DEF-R` RULING — VERBATIM *"add deterministic
+ordering"* — WHICH RULES THAT *"that exclusion is superseded and the order becomes part of what the method
+promises"*** (`strata/decisions.md`; `RCA-8(g)` ANNOTATE-BESIDE — the four exclusions above stand BYTE-FOR-BYTE and
+are read THROUGH this clause). **`constraints()` EMITS IN REGISTRATION SEQUENCE — THE ORDER THE PAIRS WERE
+REGISTERED — DETERMINISTICALLY AND STABLY ACROSS EVERY CALL AND EVERY INTERVENING ACT; THE ORDER IS PART OF WHAT
+THE METHOD PROMISES.** **So you MAY now compare the returned array element by element, and the sequence you read
+is the sequence your own calls stood in: a pair from `cfg.constraints` in its list position, then each
+`addConstraint` in the order you made it; a pass, a refusal, a toggle and a `rollback` move none of it.** **THE
+OTHER THREE EXCLUSIONS STAND UNCHANGED: no function, no opaque identity, and a disabled pair still appears with no
+`enabled` member beside it.**
+
 ### §7.5 ★ Reads check NO constraint
 
 **The constraint mechanism is unconditional on the WRITE/COMMIT path, over the triggered handle set — and
@@ -687,6 +714,17 @@ store's to close; **the package mints no member, widens no set and renames none.
 value's class **before any store verb is called** and answers this member with the failing target's spelling
 (§10). **`ValueNotAdmitted` stays at rank `14` and is the STORE's own answer on the native route — a pass that
 reads rank `17` as a rename of rank `14` has destroyed a member.**
+
+**⟶ AND THREE FIGURES OF THIS SECTION ARE CORRECTED AT THIS DATE, EACH AT ITS OWN SITE, SO THE NINETEEN ABOVE IS
+NOT LEFT DISAGREEING WITH ITS OWN NEIGHBOURS** (`RCA-8(g)` ANNOTATE-BESIDE: every sentence above stands BYTE-FOR-
+BYTE and is read THROUGH this clause). **(i) *"The store implements seventeen (`src/error.rs`'s `CODES`)"* READS
+NINETEEN**: `src/error.rs`'s `CODES` is `[&str; 19]`, ranks `18` and `19` being the two this set's 2026-10-26 ruling
+appended — **so the declaration of record and the crate agree at nineteen, which is the row above.** **(ii)
+*"installed `0.5.0`"* READS `1.0.0`** (`bindings/js/package.json`, read at its own bytes; §0's correction clause).
+**(iii) THE SET HAS NOW MOVED FOUR TIMES, NOT THREE**: fourteen to fifteen, fifteen to sixteen, sixteen to
+seventeen, **and seventeen to nineteen** — **the escape arm's argument is strengthened rather than weakened by the
+fourth move, which is exactly the arm's own evidence.** **NO TABLE ROW, NO RANK AND NO TRIGGER MOVES, and the two
+appended members are the ones the table's `18–19` row already prints.**
 
 ### §8.2 The two states that share `FilePathUnreachable`, and what each means for you
 
@@ -935,6 +973,12 @@ contract.**
 | `optionalDependencies` | **five names, each pinned exactly to `0.5.0`** (§2.2) |
 | `files` | **five rows**: `index.mjs` · `README.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` |
 
+**⟶ AND TWO OF THOSE ROWS ARE CORRECTED AT THIS DATE: `version` is `1.0.0` and each of the five
+`optionalDependencies` is pinned to `1.0.0`** (`bindings/js/package.json`, read at its own bytes 2026-10-26;
+`RCA-8(g)` ANNOTATE-BESIDE — the table above stands as the reading of its own date and is read THROUGH this
+clause). **`name`, `type`, `license`, `engines`, `exports` and `files` are UNMOVED and were re-read at the same
+bytes; the five `files` rows are still a fact of this tree and not a rule (the ★ paragraph below).**
+
 **★ THE `exports` MAP HAS ONE ARM, AND THAT IS A PROMISE ABOUT WHAT IS REACHABLE:** **the addon is NOT reachable
 as a subpath and neither is the constraint kernel.** **There is no wildcard export, no deep import to the addon
 and no CJS arm** (`bindings/js/README.md`; `docs/specs/storeroom-publish/contract.md §1.3`;
@@ -1056,6 +1100,15 @@ detected, before this correction and after it.** **The detachment half is what m
 call being DETECTED as a call at all — it is refused before it reads or edits anything, which is the answer that
 keeps `constraints()` and the store's own home entry exactly as they stood.**
 
+**⟶ AND WHAT IS TRUE AFTER THE DETACHED-CALL REJECTION, IN ONE QUOTABLE LINE — THE ENTRY'S OWN SUMMARY, ADDED
+BECAUSE THE AS-FILED TEXT BESIDE IT STILL READS AS THE OLD WORLD** (`RCA-8(g)` ANNOTATE-BESIDE; nothing above is
+withdrawn): **DETACHING IS REFUSED; REBINDING IS THE CLIENT'S OWN FUNCTION AND IS STILL UNDETECTED.** **Detaching —
+`const { read } = store; read(['x'])` — answers `{status: 'AddressMalformed', message: "the receiver position is not
+the store object this addon's storeCreate returned", log: []}` at every member that can refuse it, and moves no
+state; `register` keeps its own domain refusal and `constraints()` answers, because it takes no argument, makes no
+store call and changes no node.** **Rebinding — `store.read = fn` — succeeds, answers YOUR function, and is still
+undetected: it is client scope by `D-35`, and it is the half of this entry that remains OUT OF SCOPE.**
+
 ### §12.3 Freezing or sealing a store
 
 **WHAT BREAKS:** `Object.freeze(store)` **before** the store's first kernel act, then a lawful `write` or
@@ -1066,6 +1119,12 @@ classifies it as client-scope breakage, not a defect — **the ruling declines t
 *"a raw host `TypeError` where a lawful call used to answer is still worth a note, not a fix."* **WHAT TO DO
 INSTEAD:** **do not freeze or seal a store.** If you need an immutable handle, wrap it — a plain object holding
 the instance and closing over it, never the instance itself.
+
+**⟶ AND THE SET SIZE THIS ENTRY PRINTS IS CORRECTED AT THIS DATE: it is NINETEEN, not seventeen** (§8.1; the algebra
+`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓; `RCA-8(g)` ANNOTATE-BESIDE — the sentence above stands and is read THROUGH
+this one). **THE ENTRY'S OWN POINT IS UNMOVED AND IS SHARPER AT NINETEEN: a raw host `TypeError` carries NO `status`
+member at all, so it is not any member of the closed set, whatever the set's size — and a consumer who reads a
+caught value by its `status` will find none here (§8.3).**
 
 ### §12.4 Reaching the kernel record on the store
 
