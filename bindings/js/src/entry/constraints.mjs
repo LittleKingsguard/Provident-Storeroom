@@ -749,40 +749,69 @@ function carriesConstraintAt(state, address) {
  */
 export function constraintWrite(state, instance, address, tier, value) {
   const kernel = constraintsKernel();
-  let record;
+  // **⟶ THE EPOCH, `D-42` (2026-10-27): THE OUTERMOST CHECK CLEARS A REQUEST ITS WINDOW DID NOT RAISE.**
+  // A request belongs to the act that raised it, so a request left behind by a window whose check never ran —
+  // a `delete`'s delivery, a pass driven straight through `K-2`/`K-3` — is dropped HERE rather than consumed
+  // by an unrelated later write. **A NESTED WRITE CLEARS NOTHING** (`CHECK_DEPTH > 0`): a listener body's own
+  // write reaches this frame inside the delivery that raised the request, so the request is still in hand when
+  // the check that follows it runs.
+  if (CHECK_DEPTH === 0) clearStaleRestart(instance);
+  CHECK_DEPTH += 1;
   try {
-    record = kernel.commit(instance, address, tier, value);
-  } catch (refusal) {
-    constraintCrossing(refusal);
+    let record;
+    try {
+      record = kernel.commit(instance, address, tier, value);
+    } catch (refusal) {
+      constraintCrossing(refusal);
+    }
+    const answer = state.leg;
+    let report;
+    try {
+      report = kernel.runAttempt(instance, record);
+    } catch (refusal) {
+      // **A FAILING ATTEMPT IS THE TERMINAL CALL'S OWN REFUSAL, AND ITS FLOOR HAS ALREADY PUT THE STORE BACK
+      // TO THE STATE IT FOUND** (`D-40`) — so the restart does not run over a floor-restored state (the
+      // compensation's own act, the store's `restoreMark`, re-states the journal's head, which on this arm is
+      // the entry the floor just undid; running it here would re-state the value the attempt's floor restored
+      // AWAY FROM). The request dies with the arm — **AND ONLY THE OUTERMOST CHECK CLEARS IT**: a FAILING
+      // NESTED write (a listener body's own write) reaching this frame inside a delivery still leaves the
+      // request the delivery raised for the check that follows it, because that check is the outer frame's.
+      if (CHECK_DEPTH === 1) clearStaleRestart(instance);
+      constraintCrossing(refusal);
+    }
+    // **⟶ THE RESTART, AT THE ONE PLACE THE CHECK RUNS AND AFTER THE WINDOW THAT HELD THE ACTION HAS
+    // FINISHED — `D-42` (2026-10-27).** The attempt's own terminal arm returned (its pass, its save and its
+    // delivery all ran, so a listener body's `rollback` and a constraint body's `rollback` have both been
+    // taken), and the check the action invalidated is re-run from its beginning against the state the action
+    // left (`restartInvalidatedCheck`): a pair the state now violates REFUSES, and the refusal crosses out of
+    // this frame as the terminal call's own — the same plain form, the same rank-`20` status, and the store
+    // restored by that refusal's compensating act. **A WRITE WHOSE WINDOW HELD ONLY LAWFUL ACTIONS REACHES
+    // THIS LINE AND RETURNS ITS RECORD UNCHANGED.**
+    restartInvalidatedCheck(instance);
+    // **⟶ THE PASSING ARM RETURNS THE REPORT THE ATTEMPT ITSELF BUILT — `D-40`'S SECOND HALF (`DEF-M` (2)),
+    // 2026-10-26.** **WHAT IT WAS:** `return answer` returned the **STORE LEG'S** record — the one `index.mjs`
+    // builds from the store's first reply at this verb — and DISCARDED the report `runAttempt` had just
+    // answered with. On a write whose value a constraint REFUSED and whose repair then landed, the store's
+    // reply at the leg describes the op that landed the REFUSED value, while the store afterwards holds the
+    // REPAIRED one: measured, `op.after.value` read `9` against a `read` of `1`. **WHAT IT IS:** the returned
+    // record's `op` is the attempt report's OWN LAST OP — the store's journal op whose landing left the state
+    // the store stands at when this verb returns — so the record DESCRIBES THE STORE and is never overwritten
+    // to match it. **A write with no repair is unchanged: the report's last op IS the store leg's own op.**
+    // **NO MEMBER IS FORGED, NO MEMBER IS ADDED, AND THE RECORD KEEPS ITS DECLARED THREE**
+    // (`docs/specs/storeroom-js/surface.md §2.2`): `op` from the report, `watched` and `triggered` from the
+    // store leg's own answer, unchanged.
+    const landed = report !== null && typeof report === 'object' && Array.isArray(report.ops)
+      && report.ops.length > 0
+      ? report.ops[report.ops.length - 1]
+      : answer.op;
+    return {
+      op: landed,
+      watched: answer.watched,
+      triggered: answer.triggered,
+    };
+  } finally {
+    CHECK_DEPTH -= 1;
   }
-  const answer = state.leg;
-  let report;
-  try {
-    report = kernel.runAttempt(instance, record);
-  } catch (refusal) {
-    constraintCrossing(refusal);
-  }
-  // **⟶ THE PASSING ARM RETURNS THE REPORT THE ATTEMPT ITSELF BUILT — `D-40`'S SECOND HALF (`DEF-M` (2)),
-  // 2026-10-26.** **WHAT IT WAS:** `return answer` returned the **STORE LEG'S** record — the one `index.mjs`
-  // builds from the store's first reply at this verb — and DISCARDED the report `runAttempt` had just
-  // answered with. On a write whose value a constraint REFUSED and whose repair then landed, the store's
-  // reply at the leg describes the op that landed the REFUSED value, while the store afterwards holds the
-  // REPAIRED one: measured, `op.after.value` read `9` against a `read` of `1`. **WHAT IT IS:** the returned
-  // record's `op` is the attempt report's OWN LAST OP — the store's journal op whose landing left the state
-  // the store stands at when this verb returns — so the record DESCRIBES THE STORE and is never overwritten
-  // to match it. **A write with no repair is unchanged: the report's last op IS the store leg's own op.**
-  // **NO MEMBER IS FORGED, NO MEMBER IS ADDED, AND THE RECORD KEEPS ITS DECLARED THREE**
-  // (`docs/specs/storeroom-js/surface.md §2.2`): `op` from the report, `watched` and `triggered` from the
-  // store leg's own answer, unchanged.
-  const landed = report !== null && typeof report === 'object' && Array.isArray(report.ops)
-    && report.ops.length > 0
-    ? report.ops[report.ops.length - 1]
-    : answer.op;
-  return {
-    op: landed,
-    watched: answer.watched,
-    triggered: answer.triggered,
-  };
 }
 
 /// **THE FAIL ARM'S CROSSING — `A120` (2): THE ENTRY CARRIES THE KERNEL'S TOKEN, THE THROW KEEPS THE
@@ -1225,6 +1254,140 @@ function reversalAtRest(instance) {
   return openCommits(instance) === 0 && kernelFor(instance).live.size === 0;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+// **⟶ ADDED 2026-10-27 — `D-42`: AN ACTION INSIDE AN OPEN COMMIT RESTARTS THE CONSTRAINT CHECK**
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+//
+// **THE RULING IS THE ARCHITECT'S, VERBATIM: *"Actions inside of an open commit start the constraint check
+// over again."*** (`strata/decisions.md` · `D-42`). **THE WINDOW IT CLOSES, AS THE DOWNSTREAM MEASURED IT:** a
+// reversal issued INSIDE an open commit — from a listener body, from a constraint body — was UNJUDGED (the
+// conjunction above), **so its violating effect STOOD** — *"zero judgement invocations inside a body, while
+// the identical call one frame out is refused and restored"* (`D-41` item `3`), **the conservative direction
+// turned out to be the permissive one.**
+//
+// **THE ANSWER IS NEITHER TO JUDGE THE STEP NOR TO LEAVE IT.** **Judging the reversal at its own instant is
+// what the conjunction refuses and `D-38` refuses by name** (a per-step check of an intermediate state,
+// invoking bodies mid-attempt). **So the action is RECORDED and the check it invalidated IS RESTARTED — from
+// its beginning — at the one place the check runs and once the window that held it has finished:**
+//   * **NOT A PER-STEP JUDGEMENT**: the `rollback` call itself still answers its declared record
+//     (`{opId, undoneOps, restoredTo}`, `PAR-JS-9`), no body is invoked at its instant, and the reversal is
+//     never judged *as a step*;
+//   * **NOT A RE-ENTRY INTO THE ATTEMPT**: the attempt's own pass is untouched; what restarts is the check
+//     the action invalidated — the reversal's judgement — and it runs as a FRESH pass over EVERY enabled pair
+//     from the first, against the state the action left (`judgeReversal` over the watch below);
+//   * **NOT MID-UNWIND**: the kernel's own unwinding (`kernel-terminal.mjs`'s `composeRollback`) reaches the
+//     addon's `rollback` entry DIRECTLY and never this member, so it raises no restart and invokes no body
+//     inside the composition. **A RESTART IS ONLY EVER RAISED BY A CONSUMER'S OWN `rollback` MEMBER CALL.**
+//
+// **THE CHECK'S OWN BEGINNING IS THE WATCH'S WALK** (`watchStanding` below): every enabled pair's every
+// address, in `D-39`'s registration order — the same first address and the same first pair the at-rest
+// judgement begins at. **THE RESTART THEREFORE ASKS THE SAME CHECK THE AT-REST CONTROL ASKS, at the state
+// the action left**, which is why its outcome is the declared one member for member: the one plain form
+// (`{status, message, log}`), the set's rank-`20` member `ConstraintPassRefused`, and **the store restored by
+// the refusal's own compensating act** (`restoreReversal` → the store's `restoreMark`, the journal's head —
+// and a reversal appends no journal entry, so that head describes the state that stood BEFORE the action).
+//
+// **TERMINATION, AND WHAT BOUNDS IT.** A restart asks pair bodies, and a pair body MAY ACT (it is the
+// caller's code): an action raised while a restart is running raises a NEW request, which the same loop
+// consumes — so a body that acts on every ask would otherwise restart the check for ever. **THE LOOP IS
+// BOUNDED AT `RESTART_LIMIT` RESTARTS PER TERMINAL ACT** (`restartInvalidatedCheck`), and the budget is
+// SPENT, not reset, by a request raised inside a restart. **A CHECK THAT WILL NOT SETTLE IS A CHECK THAT DOES
+// NOT PASS** (`D-41` item `4`'s own direction: *"a reversal nobody could judge is a reversal nobody could
+// approve"*), so the arm past the budget refuses — the same plain form, the same rank-`20` status, the same
+// compensating restore — and its one log entry says the budget was spent. **THE MEASURED COUNT IS THE
+// CELL'S**: `tests/e2e/in-commit-restart.test.mjs` drives a pair that acts on every ask and reads the ask
+// count the bound produces.
+
+/// **THE PER-INSTANCE RESTART RECORD, AND IT IS THE INSTANCE'S OWN** (`D-30`; `D-46`): a `WeakMap` keyed by
+/// the store object, so a second store is a second record, the record dies with its store, and **NO MEMBER IS
+/// ADDED TO THE PRODUCT, TO A RECORD OR TO THE KERNEL** (`A117` (D6)'s four-member guardrail is untouched).
+/// **`pending` is the request** — `{ watched, reversalId }` — `watched` the check's own beginning captured
+/// BEFORE the action ran (`reversalWatch`), `reversalId` the store's own echo of the id the reversal named
+/// (attached by `judgeReversal` in the same frame, one line after the action).
+const RESTARTS = new WeakMap();
+
+/// **HOW MANY RESTARTS ONE TERMINAL ACT MAY TAKE** — the bound `restartInvalidatedCheck` spends. Three is the
+/// declared figure: two fewer than any arm of this package's own batteries drives, and enough that a lawful
+/// in-commit action's single restart never meets it.
+export const RESTART_LIMIT = 3;
+
+/// **THE NUMBER OF `constraintWrite` FRAMES ON THE STACK, AND ITS ONE READ IS THE EPOCH RULE.** A request
+/// belongs to the act that raised it: the OUTERMOST check clears any request standing before it opens its own
+/// (`CHECK_DEPTH === 0`), so **a request raised in a window whose check never ran — a `delete`'s delivery, a
+/// pass driven straight through `K-2`/`K-3` — dies with that window and is never attributed to a later,
+/// unrelated write**; a NESTED write (a listener body's own write) reaches this file with `CHECK_DEPTH > 0`
+/// and clears nothing, so a request raised earlier in the SAME delivery is still consumed by the check that
+/// follows it.
+let CHECK_DEPTH = 0;
+
+/// **THE RESTART RECORD, CREATED ON THE FIRST ACTION AND NEVER ON A LAWFUL WRITE'S PATH**: the read is a
+/// `WeakMap.get` and the creation happens only in `reversalWatch`'s in-flight arm.
+function restartRecord(instance) {
+  let record = RESTARTS.get(instance);
+  if (record === undefined) {
+    record = { pending: null };
+    RESTARTS.set(instance, record);
+  }
+  return record;
+}
+
+/// **THE EPOCH'S CLEARING HALF** — the outermost check's first act, and it touches nothing when no request
+/// stands (the overwhelming majority of writes: `RESTARTS` holds no record for a store that never acted
+/// inside a window, so the `get` answers `undefined` and the function returns).
+function clearStaleRestart(instance) {
+  const record = RESTARTS.get(instance);
+  if (record === undefined) return;
+  record.pending = null;
+}
+
+/// **THE RESTART ITSELF — THE CHECK THE ACTION INVALIDATED, RE-RUN FROM ITS BEGINNING.** It is reached at the
+/// ONE place the check runs after the window that held the action has finished: `constraintWrite`, after the
+/// attempt's terminal arm returned (and on the passing arm ALONE — a failing attempt's floor has already put
+/// the store back to the state it found, and re-running the check over a floor-restored state would judge
+/// nothing the action left).
+///
+/// **EACH ROUND CONSUMES ONE REQUEST AND ASKS EVERY ENABLED PAIR THE WATCH CARRIED, IN ORDER, AT THE STATE
+/// THE ACTION LEFT** (`judgeReversal`: the `moved` test, the first-violating-pair rule and the refusal's
+/// restoring compensation are that function's own and are not re-implemented here). **A VIOLATION THROWS THE
+/// DECLARED REFUSAL OUT OF THIS FUNCTION AND OUT OF THE TERMINAL CALL'S `write` MEMBER** — the same plain
+/// form, the same status, the same restored store as the at-rest control — and the run ends with it.
+/// **A LAWFUL STATE THROWS NOTHING**: the round asks and passes, and a write whose window held only lawful
+/// actions returns its own record unchanged.
+///
+/// **THE BOUND, IN ONE SENTENCE: rounds are counted, not reset, so the loop runs at most `RESTART_LIMIT + 1`
+/// times however many actions a body raises inside it; the arm past the budget refuses with the same form and
+/// the same status and restores what the request's own watch recorded as owed.** `request.watched` empty is a
+/// check with no pair to ask: it consumes its request and returns, so an empty watch can neither loop nor
+/// exhaust the budget.
+function restartInvalidatedCheck(instance) {
+  const record = RESTARTS.get(instance);
+  if (record === undefined) return;
+  let rounds = 0;
+  for (;;) {
+    const request = record.pending;
+    if (request === null) return;
+    record.pending = null;
+    if (request.watched.length === 0) continue;
+    rounds += 1;
+    if (rounds > RESTART_LIMIT) {
+      // THE CHECK DID NOT SETTLE: THE SAME FORM, THE SAME STATUS, THE SAME COMPENSATION (`D-41` item `4`'s
+      // direction), and the log entry says the budget was spent rather than that a pair refused.
+      const one = request.watched[0];
+      const after = standingAt(instance, one.address);
+      const undo = restoreReversal(instance, request.watched);
+      throw reversalRefusal(one, after, null, request.reversalId, undo, null, true);
+    }
+    try {
+      judgeReversal(instance, request.watched, request.reversalId);
+    } catch (refused) {
+      // THE REFUSAL IS THE OUTCOME: the store was restored by its own compensation inside `judgeReversal`, and
+      // a request raised by the refusal's own bodies stands for nobody — the terminal call is already refusing.
+      record.pending = null;
+      throw refused;
+    }
+  }
+}
+
 /// **THE WATCH — THE PRE-REVERSAL STANDING OF EVERY ENABLED PAIR'S EVERY ADDRESS**, taken before the addon's
 /// `rollback` entry is called. **IT IS A LIST OF `{entry, address, before, beforeTier, beforeTiers}` AND
 /// NOTHING ELSE**: the entry is the pair's own record (so the judgement needs no second lookup and no registry
@@ -1256,13 +1419,42 @@ function reversalAtRest(instance) {
 export function reversalWatch(state, instance) {
   const watched = [];
   if (state.constraints.size === 0) return watched;
-  // A REVERSAL INSIDE AN OPEN COMMIT **OR** AN OPEN ATTEMPT IS A STEP AND NOT A TERMINAL STATE — see
-  // `reversalAtRest` above (the conjunction of 2026-10-26), which states the ground. The watch answers `[]`
-  // there, so no read is taken and no body is invoked.
-  if (reversalAtRest(instance) === false) return watched;
-  // **THE WALK IS `D-39`'S DECLARED ORDER** — the record's own `registrationSeq`, collected and ordered
-  // exactly as `enumerateConstraints` collects and orders its answer — so the pair the judgement reaches
-  // FIRST is the pair `constraints()` names first, and not whichever pair a toggle happened to move.
+  // **⟶ AND A REVERSAL INSIDE AN OPEN COMMIT IS NO LONGER LEFT UNJUDGED — `D-42`, 2026-10-27.** The bytes
+  // below stood as *"the watch answers `[]` there, so no read is taken and no body is invoked"*, and the
+  // SECOND HALF of that sentence is now WITHDRAWN BY NAME: **no body is invoked here (the action is not judged
+  // at its instant — the step is still not judged as a step), while the WATCH IS TAKEN and the check is
+  // RESTARTED where the check runs** (`restartInvalidatedCheck`). **THE READS ARE THE SAME READS THE AT-REST
+  // JUDGEMENT TAKES AND THEY ARE THE RESTART'S DEBT RECORD**: what stood at each enabled pair's address before
+  // the action ran — the state the refusal's compensating act owes back, and the baseline its verification
+  // reads. **A REVERSAL INSIDE AN OPEN COMMIT OR AN OPEN ATTEMPT IS STILL NOT A TERMINAL STATE** and
+  // `reversalAtRest` is UNCHANGED (the conjunction keeps both conjuncts; the restart is not a third conjunct):
+  // what moves is only what happens to the request after the window closes.
+  if (reversalAtRest(instance) === false) {
+    restartRecord(instance).pending = {
+      watched: watchStanding(state, instance),
+      reversalId: null,
+    };
+    return watched;
+  }
+  // **AND AN AT-REST CALL PROVES THE PREVIOUS WINDOW HAS ENDED**: a request still standing there belongs to a
+  // window whose check never ran (a `delete`'s delivery is the one the declaration names), and the act that
+  // raised it is over — so it dies here rather than being attributed to this reversal.
+  const record = RESTARTS.get(instance);
+  if (record !== undefined) record.pending = null;
+  return watchStanding(state, instance);
+}
+
+/// **THE CHECK'S OWN BEGINNING — THE WATCH'S WALK, TAKEN AS ONE FUNCTION SO THE AT-REST JUDGEMENT AND THE
+/// RESTART BEGIN AT THE SAME FIRST PAIR.**
+///
+/// **THE WALK IS `D-39`'S DECLARED ORDER** — the record's own `registrationSeq`, collected and ordered exactly
+/// as `enumerateConstraints` collects and orders its answer — so the pair the judgement reaches FIRST is the
+/// pair `constraints()` names first, and not whichever pair a toggle happened to move. **A PAIR WHOSE ELEMENT
+/// DOES NOT STAND A REGISTRATION IS NOT EVEN CAPTURED** (`withdrawStanding`'s own predicate, and its own
+/// ground: a disabled pair's registry standing is a CARRIAGE fact, not a listener) — so the restart asks
+/// nothing on a disabled pair's address and the budget cannot be spent on one.
+function watchStanding(state, instance) {
+  const watched = [];
   const carried = [];
   for (const entry of state.constraints.values()) {
     appendOwn(carried, entry);
@@ -1270,8 +1462,6 @@ export function reversalWatch(state, instance) {
   carried.sort((left, right) => left.registrationSeq - right.registrationSeq);
   for (let index = 0; index < carried.length; index += 1) {
     const entry = carried[index];
-    // THE PAIR'S ELEMENT MUST STAND A REGISTRATION FOR IT TO BE ASKED ANYTHING (`withdrawStanding`'s own
-    // predicate, and its own ground: a disabled pair's registry standing is a CARRIAGE fact, not a listener).
     if (entry.enabled !== true) continue;
     for (let position = 0; position < entry.addresses.length; position += 1) {
       const address = entry.addresses[position];
@@ -1350,6 +1540,20 @@ function captureStanding(instance, address) {
 /// actually happened: a body threw), while the treatment — restore, one log entry naming the pair, one plain
 /// form — is the violation's.
 export function judgeReversal(instance, watched, reversalId) {
+  // **⟶ AND THE IN-FLIGHT ARM IS THE REQUEST'S OTHER HALF, `D-42` (2026-10-27).** `reversalWatch` answers
+  // `[]` for an action taken inside an open window — no body is invoked at the reversal's instant and the step
+  // is still not judged as a step — **and this frame is where the store's own echo of the id the reversal
+  // named reaches the request the watch raised**: the id is the refusal's `opId` when the restart refuses, so
+  // the declared log entry names the act, exactly as the at-rest control's does. **NO ASK AND NO READ IS TAKEN
+  // HERE** — the restart is not this frame's, and an empty watch with no request standing (the at-rest arm of a
+  // store whose every pair is disabled) is a judgement over nothing and answers `undefined` as it always did.
+  if (watched.length === 0) {
+    const record = RESTARTS.get(instance);
+    if (record !== undefined && record.pending !== null && record.pending.reversalId === null) {
+      record.pending.reversalId = typeof reversalId === 'string' ? reversalId : null;
+    }
+    return undefined;
+  }
   // THE MOVED SET IS TAKEN FIRST, ONCE: the judgement's subject is the CHANGE the reversal made and nothing
   // wider, and the same list is what a refusal has to put back — with the tier capture the watch took, so a
   // restore knows WHERE each value stood and not merely what it was.
@@ -1769,13 +1973,18 @@ function reversalSaid(outcome) {
 /// **WHERE THE THROWN VALUE IS NOT THE KERNEL'S MARKED FORM** (a body's raw throwable on a tree with no usable
 /// generator), the same rank-`18` refusal is built here — the restoration and the pair's name cross regardless
 /// of the body's own value's class, which is the difference between a compensating act and a conversion.
-function reversalRefusal(one, after, said, reversalId, undo, thrown) {
+function reversalRefusal(one, after, said, reversalId, undo, thrown, unsettled = false) {
   const addon_ = withAddon();
   // **THE `<SEGMENT>` SLOT IS THE ADDRESS SPELLING THE KERNEL'S OWN REGISTRATION REFUSAL HANDS THE SAME
   // GENERATOR** (`kernel-registration.mjs`'s `registrationRefusal`: the segments joined by `/`, BARE — the
   // generator's own `build` is what prints a string segment single-quoted, so a pre-quoted spelling here
   // would print `''a''`). One spelling, one home, and no second quoting rule.
   const subject = addressSpelling(one.address);
+  // **⟶ AND THE UNQUIET ARM KEEPS THE SAME CROSSED STATUS, `D-42` (2026-10-27).** A restart that spends its
+  // budget has not been JUDGED — it could not settle — and **a check that will not settle is a check that does
+  // not pass** (`D-41` item `4`'s own direction), so the status is the set's rank-`20` member for a refused
+  // pass, exactly the one the at-rest control crosses with. **ONLY THE LOG ENTRY'S SENTENCE DIFFERS**, so that
+  // no consumer is told a pair refused a state it never got to judge.
   const status = thrown === null ? CONSTRAINT_PASS_REFUSED : BODY_THREW_STATUS;
   let message = '';
   if (typeof addon_.errorMessage === 'function') {
@@ -1788,6 +1997,25 @@ function reversalRefusal(one, after, said, reversalId, undo, thrown) {
         + 'constraints admit'
       : 'the reversal was refused by a constraint body that threw, the state it would leave could not be judged';
   }
+  // **THE LOG ENTRY'S SENTENCE, AT ITS THREE ARMS** — a pair that refused the state the reversal (or the
+  // in-commit action) left, a body that threw at the judgement of it, and — from `D-42` — **the restart's own
+  // budget spent**. The third arm is the one the restart's exhaustion reaches and it names no refusing pair.
+  let spelled;
+  if (unsettled === true) {
+    spelled = `the constraint ${one.entry.id} could not be asked a state that would settle at `
+      + `${JSON.stringify(one.address)}: the value there is ${standingSpelling(after)} — the check was `
+      + `restarted ${RESTART_LIMIT} times and a pair body acted inside the check at every restart, so the `
+      + `restart budget is spent and the check does not pass — ${undoSpelling(undo)}`;
+  } else if (thrown === null) {
+    spelled = `the constraint ${one.entry.id} refused the state the reversal left at `
+      + `${JSON.stringify(one.address)}: the value there is ${standingSpelling(after)}`
+      + (said === null ? '' : ` — ${said}`)
+      + ` — ${undoSpelling(undo)}`;
+  } else {
+    spelled = `the constraint ${one.entry.id} THREW at the judgement of the state the reversal left at `
+      + `${JSON.stringify(one.address)}: the value there is ${standingSpelling(after)}`
+      + ` — ${undoSpelling(undo)}`;
+  }
   const entry = {
     kind: 'constraint-check',
     id: one.entry.id,
@@ -1796,14 +2024,7 @@ function reversalRefusal(one, after, said, reversalId, undo, thrown) {
     // store stands again where the reversal found it (and is told plainly, and by address, where it does not).
     // ONE ENTRY, FIVE MEMBERS: the sentence is this entry's, and no second log entry and no sixth member is
     // minted.
-    message: thrown === null
-      ? `the constraint ${one.entry.id} refused the state the reversal left at `
-        + `${JSON.stringify(one.address)}: the value there is ${standingSpelling(after)}`
-        + (said === null ? '' : ` — ${said}`)
-        + ` — ${undoSpelling(undo)}`
-      : `the constraint ${one.entry.id} THREW at the judgement of the state the reversal left at `
-        + `${JSON.stringify(one.address)}: the value there is ${standingSpelling(after)}`
-        + ` — ${undoSpelling(undo)}`,
+    message: spelled,
     // **THE STORE'S OWN ECHO OF THE ID THE REVERSAL NAMED, OR `null`** — the entry's fifth member is always
     // present and of the kernel's own domain (`kernel-surface.md §2.5` item 1: a `string | null`), never absent.
     opId: typeof reversalId === 'string' ? reversalId : null,

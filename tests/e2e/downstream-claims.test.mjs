@@ -926,9 +926,24 @@ test('DEF-W · under `D-38` (2026-10-26) a `rollback` whose TERMINAL state a reg
 // **THE CONTROL IS WHAT MAKES ARM (1) A FINDING AND NOT A VACUOUS GREEN**: it proves the pair really does
 // refuse the exact state the step's reversal left, so arm (1)'s success record can only be explained by the
 // discriminator declining to judge a step.
+//
+// **⟶ AND ARM (1)'S OUTCOME IS RE-DERIVED 2026-10-27 — `strata/decisions.md` · `D-42`, THE ARCHITECT, VERBATIM:
+// *"Actions inside of an open commit start the constraint check over again."*** `RCA-8(g)` ANNOTATE-BESIDE:
+// **every byte above stands BYTE-FOR-BYTE and is read THROUGH this paragraph; the sentences above that say what
+// ARM (1) ANSWERS are SUPERSEDED and are not restated.** **THE MEASURED DEFECT THAT MOVED IT** (`D-41` item
+// `3`): this cell's green WAS the window being unjudged — *"zero judgement invocations inside a body, while the
+// identical call one frame out is refused and restored"* — **so the conservative direction was the permissive
+// one, and the in-commit reversal's violating effect STOOD.** **WHAT ARM (1) ANSWERS NOW, MEMBER FOR MEMBER:**
+// the `rollback` call ITSELF still answers its declared record — the step is STILL not judged as a step,
+// `D-40`'s gate stands and `reversalAtRest` keeps both conjuncts — **and THE TERMINAL CALL, the write that held
+// the window, REFUSES**: the check the body's reversal invalidated is RESTARTED from its beginning at the state
+// the reversal left, the pair is asked THERE, refuses, and the refusal crosses in the declared form
+// `{status, message, log}` with the set's rank-`20` `ConstraintPassRefused` and the store restored to its
+// pre-reversal standing. **THE CONTROL'S ARM IS UNTOUCHED.** **ITS MEASURED REACH IS THIS CELL AND
+// `tests/e2e/in-commit-restart.test.mjs`'s five arms, the body arm among them.**
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('DEF-W (2) · a reversal performed INSIDE an open attempt is an UNWINDING STEP and is not judged — the `rollback` a constraint body issues answers its unchanged record, where the same reversal at rest is refused', (t) => {
+test('DEF-W (2) · a reversal performed INSIDE an open attempt is a STEP and is still not judged AS A STEP — the `rollback` a constraint body issues answers its unchanged record — while `D-42` RESTARTS the check: the pair is asked at the state the reversal left and the TERMINAL WRITE refuses `ConstraintPassRefused`, where the same reversal at rest is refused as it always was', (t) => {
   // The step arm's third value, distinct from the seed and the second value so the store's reading names one.
   const W_STEP_THIRD = 7;
 
@@ -955,6 +970,12 @@ test('DEF-W (2) · a reversal performed INSIDE an open attempt is an UNWINDING S
   }));
   const stepWrite = attempt(() => step.write(['a'], 'mem', W_STEP_THIRD));
   const stepStanding = step.read(['a']);
+  // **THE TERMINAL CALL'S REFUSAL** — read as a list so both the form and the entry that names the pair are
+  // asserted (`D-42`: the restart's refusal is the at-rest refusal's own form, member for member).
+  const stepWriteLog = stepWrite.ok === false && stepWrite.caught !== null
+    && typeof stepWrite.caught === 'object' && Array.isArray(stepWrite.caught.log)
+    ? stepWrite.caught.log
+    : [];
 
   // ── (2) THE AT-REST CONTROL ARM. The same shape with the reversal asked at the surface, where no attempt is
   // open: the pair admits `REFUSED` (the state standing at registration) and refuses `SEED` (the state the
@@ -978,9 +999,6 @@ test('DEF-W (2) · a reversal performed INSIDE an open attempt is an UNWINDING S
     `both pairs must REGISTER (each passes against the state standing when it registered), or the two arms are `
       + `not the arms this cell claims: stepPair=${JSON.stringify(shapeOf(stepPair.caught))} `
       + `restPair=${JSON.stringify(shapeOf(restPair.caught))}`);
-  assert.equal(stepWrite.ok, true,
-    `the step arm's pass must complete, so the reversal it issued is the reversal this cell reads: the write `
-      + `caught ${JSON.stringify(shapeOf(stepWrite.caught))}`);
   assert.equal(inner.length, 1,
     `the body must have issued exactly ONE reversal inside the open attempt; the drive recorded ${inner.length}`);
   assert.deepEqual([restRollback.ok, restRollback.caught.status], [false, 'ConstraintPassRefused'],
@@ -988,30 +1006,44 @@ test('DEF-W (2) · a reversal performed INSIDE an open attempt is an UNWINDING S
       + `the discriminator's step arm: the control answered ok=${restRollback.ok} `
       + `caught=${JSON.stringify(shapeOf(restRollback.caught))}`);
 
-  // ── THE FINDING: THE STEP WAS NOT JUDGED. ────────────────────────────────────────────────────
-  // The reversal's own answer is the declared record (`PAR-JS-9`) and NOT the one plain form: a judged step
-  // throws `ConstraintPassRefused` out of this call, and the body's frame would have caught it here.
+  // ── THE STEP IS STILL NOT JUDGED AS A STEP — `D-40`'s gate stands (`D-42`). ──────────────────
+  // The reversal's own answer is the declared record (`PAR-JS-9`) and NOT the one plain form: the action is not
+  // judged AT ITS INSTANT, so nothing is thrown out of the body's frame and no body is invoked there.
   assert.equal(inner[0].ok, true,
-    `a reversal performed INSIDE an open attempt is an UNWINDING STEP and must NOT be judged (\`D-38\`'s `
-      + `own reasoning: the state it leaves is not the state that stands), so the body's \`rollback\` call `
-      + `answers its record. THE DRIVE CAUGHT ${JSON.stringify(shapeOf(inner[0].caught))} — a judgement was `
-      + `taken at ${JSON.stringify(stepStanding)} during an open attempt`);
+    `a reversal performed INSIDE an open attempt is an UNWINDING STEP and must NOT be judged AT ITS INSTANT `
+      + `(\`D-38\`'s own reasoning: the state it leaves is not the state that stands; \`D-42\` keeps that gate), `
+      + `so the body's \`rollback\` call answers its record. THE DRIVE CAUGHT `
+      + `${JSON.stringify(shapeOf(inner[0].caught))}`);
   assert.deepEqual(Object.keys(inner[0].value).sort(), ['opId', 'restoredTo', 'undoneOps'],
     `a lawful reversal answers \`{opId, undoneOps, restoredTo}\` and no new member (\`PAR-JS-9\`); the drive read `
       + `${JSON.stringify(Object.keys(inner[0].value))}`);
   assert.deepEqual(inner[0].value.restoredTo, { present: true, value: SEED },
     `the step's reversal ran and restored the seed: ${JSON.stringify(inner[0].value.restoredTo)}`);
-  // **AND NO BODY WAS INVOKED BY A JUDGEMENT**: the pair is asked at registration and by the pass, and the
-  // judgement's ask — the only ask that could arrive at the seed — never happened.
-  assert.equal(asked.includes(SEED), false,
-    `the judgement invokes the pair at the state a reversal leaves, so no ask may carry the seed here. THE DRIVE `
-      + `WAS ASKED AT ${JSON.stringify(asked)}`);
-  assert.equal(asked.length, 2,
-    `the pair is asked TWICE and no more — once at registration, once by the pass; a third ask is a judgement's. `
-      + `THE DRIVE WAS ASKED AT ${JSON.stringify(asked)}`);
-  assert.equal(stepStanding, SEED,
-    `the step's reversal took effect and nothing judged it afterwards: the store stands at `
-      + `${JSON.stringify(stepStanding)}`);
+
+  // ── AND THE FINDING THAT REPLACED THE OLD ONE: THE CHECK RESTARTED AND THE TERMINAL WRITE REFUSED ──
+  // **`D-42` (2026-10-27): the check the action invalidated is RE-RUN FROM ITS BEGINNING at the state the
+  // action left, and the terminal call — the write that held the window — refuses in the declared form.**
+  assert.equal(stepWrite.ok, false,
+    `the violating effect must NOT stand: the terminal write refuses (\`D-42\`). THE DRIVE'S WRITE ANSWERED ok `
+      + `while the store stood at ${JSON.stringify(stepStanding)}`);
+  assert.deepEqual(Object.keys(stepWrite.caught).sort(), REFUSAL_MEMBERS,
+    `the restart's refusal crosses this surface as ${JSON.stringify(REFUSAL_MEMBERS)} — ONE thrown plain object `
+      + `(\`docs/specs/storeroom-js/surface.md §2.5\` items 3–4): the drive caught `
+      + `${JSON.stringify(shapeOf(stepWrite.caught))}`);
+  assert.equal(stepWrite.caught.status, 'ConstraintPassRefused',
+    `the crossed status is the set's rank-\`20\` member, the SAME one the at-rest control crosses with: the `
+      + `drive read ${JSON.stringify(stepWrite.caught.status)}`);
+  assert.equal(stepWriteLog.some((entry) => entry.id === 'w3'), true,
+    `the restart's \`log\` NAMES the pair that refused the state the reversal left: `
+      + `${JSON.stringify(stepWriteLog)}`);
+  // **AND THE PAIR WAS ASKED AT THE STATE THE REVERSAL LEFT — the restart's own ask, which the old arm forbade.**
+  assert.deepEqual(asked, [REFUSED, W_STEP_THIRD, SEED],
+    `the pair is asked at REGISTRATION (${REFUSED}), by the PASS (${W_STEP_THIRD}) and — from \`D-42\` — by the `
+      + `RESTART at the state the reversal left (${SEED}). THE DRIVE WAS ASKED AT ${JSON.stringify(asked)}`);
+  assert.equal(stepStanding, W_STEP_THIRD,
+    `the violating effect does not stand: the refusal's own compensation restores the pre-reversal standing, `
+      + `and a reversal appends no journal entry, so that standing is the journal's head — the drive read `
+      + `${JSON.stringify(stepStanding)} where ${JSON.stringify(SEED)} would be the violating effect standing`);
 
   // ── AND THE CONTROL'S SHAPE: THE REFUSAL UNDOES THE REVERSAL IT REFUSED (`DEF-W`'s `(a)`, discharged
   // 2026-10-26): the pre-reversal standing is back, and the log says so.
@@ -1030,15 +1062,16 @@ test('DEF-W (2) · a reversal performed INSIDE an open attempt is an UNWINDING S
       + `started: ${JSON.stringify(restLog.map((entry) => entry.message))}`);
 
   // ── THE READINGS, PRINTED ON BOTH ARMS (`D-21`: a cell owes what it read). ───────────────────
-  t.diagnostic(`DEF-W (2) · D-38/D-40 (2026-10-26) · STEP arm: the pair 'w3' issued `
+  t.diagnostic(`DEF-W (2) · D-38/D-40/D-42 (2026-10-26, 2026-10-27) · STEP arm: the pair 'w3' issued `
     + `rollback(${JSON.stringify(stepSecond.op.opId)}) from INSIDE an open attempt and the call ANSWERED `
-    + `${JSON.stringify(inner[0].value)} — not judged; the pair was asked at `
-    + `${JSON.stringify(asked)} (a judgement's ask would carry ${JSON.stringify(SEED)}); the store stands at `
-    + `${JSON.stringify(stepStanding)}`);
+    + `${JSON.stringify(inner[0].value)} — not judged as a step; the pair was asked at `
+    + `${JSON.stringify(asked)} (the third ask is the RESTART's, at ${JSON.stringify(SEED)}); the TERMINAL WRITE `
+    + `refused ${JSON.stringify(stepWrite.caught.status)} with log ${JSON.stringify(stepWriteLog)}; the store `
+    + `stands at ${JSON.stringify(stepStanding)} — the pre-reversal standing, restored`);
   t.diagnostic(`DEF-W (2) · D-38 (2026-10-26) · AT-REST control: the SAME reversal at the surface was REFUSED `
     + `with status ${JSON.stringify(restRollback.caught.status)}, log ${JSON.stringify(restLog)}; the store `
-    + `stands at ${JSON.stringify(restStanding)} — the PRE-REVERSAL standing, restored by the refusal — so arm `
-    + `(1) is green because the step is a step, and not because the pair would have admitted it`);
+    + `stands at ${JSON.stringify(restStanding)} — the PRE-REVERSAL standing, restored by the refusal — so the `
+    + `two arms refuse the SAME state and only the window differs`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1082,9 +1115,26 @@ test('DEF-W (2) · a reversal performed INSIDE an open attempt is an UNWINDING S
 // **THE CONTROL IS WHAT MAKES THE CELLS NON-VACUOUS**: the same pair at the surface, at rest, refuses the very
 // state a reversal leaves — so arms (A)'s and (B)'s success records can only be explained by the discriminator
 // declining to judge a window in flight, and not by a pair that would have admitted it.
+//
+// **⟶ AND ARM (A)'S READING MOVED 2026-10-27 — `strata/decisions.md` · `D-42`, THE ARCHITECT, VERBATIM:
+// *"Actions inside of an open commit start the constraint check over again."*** `RCA-8(g)` ANNOTATE-BESIDE:
+// **every byte above stands BYTE-FOR-BYTE and is read THROUGH this paragraph; the sentences above that say what
+// arm (A) ANSWERS are SUPERSEDED and are not restated.** **THE WINDOW ITSELF IS UNMOVED AND THE DISCRIMINATOR
+// IS UNMOVED** (`reversalAtRest` keeps both conjuncts; the restart is not a third conjunct): `open` `1` /
+// `live` `0` is STILL not at rest, so **the reversal is still not judged AT ITS INSTANT** and its call still
+// answers its unchanged record. **WHAT MOVES IS WHAT HAPPENS TO THE REQUEST AFTER THE WINDOW CLOSES**: the
+// terminal write's check RESTARTS from its beginning against the state the reversal left, so **the pair IS
+// asked at `W_FIRST` — by the restart, at the terminal call's own end, and not by a judgement taken inside the
+// body's frame.** **ARM (A)'S PAIR ADMITS EVERY VALUE, so the restart PASSES and no refusal is produced: this
+// is the LAWFUL in-commit arm, and `tests/e2e/in-commit-restart.test.mjs` (3) drives it beside the two
+// violating arms.** **ARM (B) IS UNMOVED IN OUTCOME AND ITS GROUND IS NOW SAID EXACTLY** (`CONTRACT`, item 3 of
+// `contract.md §2.6`'s annotate-beside of this date): a pass driven straight through `K-2`/`K-3` holds **no open
+// commit**, so the ruling's own words do not reach it — it is the conjunction's second conjunct, it answers its
+// record, and the request its body raises dies with its window (`constraints.mjs`'s epoch rule). **ARM (C) IS
+// UNTOUCHED.**
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('DEF-W (3) · the discriminator is the CONJUNCTION: a reversal at a LISTENER-DELIVERY instant (open commit 1, live 0) is NOT judged, a reversal inside a KERNEL-DRIVEN pass (open commit 0, live 1) is NOT judged — both windows are in flight — and a TERMINAL reversal (open 0, live 0) IS judged with `ConstraintPassRefused`', (t) => {
+test('DEF-W (3) · the discriminator is the CONJUNCTION: a reversal at a LISTENER-DELIVERY instant (open commit 1, live 0) is NOT judged AT ITS INSTANT — `D-42` restarts the check at the terminal call, which asks the pair at the state the reversal left and passes — a reversal inside a KERNEL-DRIVEN pass (open commit 0, live 1) is NOT judged, and a TERMINAL reversal (open 0, live 0) IS judged with `ConstraintPassRefused`', (t) => {
   const W_FIRST = SEED;      // 5 — the state the reversal restores, and the state a judgement's ask carries
   const W_SECOND = REFUSED;  // 9 — the value the reversal's op landed
   const W_THIRD = 7;         // 7 — arm (A)'s write, and arm (B)'s pass value
@@ -1186,17 +1236,17 @@ test('DEF-W (3) · the discriminator is the CONJUNCTION: a reversal at a LISTENE
       + `${JSON.stringify(shapeOf(passRollback.caught))}`);
 
   // ── THE DECLARED ANSWER, AT ALL THREE WINDOWS. ──────────────────────────────────────────────
-  // (A) OPEN COMMIT 1, LIVE 0 ⇒ NOT AT REST ⇒ NOT JUDGED. **THIS IS THE HALF THAT FLIPS**: under the `live`-only
-  // form this instant was read as at rest and the judgement was taken, invoking the pair at the state the
-  // reversal left (`W_FIRST`) — inside the caller's own verb window, which `§2.6` item 1 forbids.
-  assert.deepEqual(deliveryAsked, [W_SECOND, W_THIRD],
-    `arm (A)'s pair must be asked TWICE and no more — at registration (${W_SECOND}) and by the write's pass `
-      + `(${W_THIRD}); A THIRD ask would be a judgement's, AT THE STATE THE REVERSAL LEFT (${W_FIRST}), taken `
-      + `INSIDE the caller's own verb window. THE DRIVE WAS ASKED AT ${JSON.stringify(deliveryAsked)}`);
-  assert.equal(deliveryAsked.includes(W_FIRST), false,
-    `the judgement is not taken at this instant, so the pair is never asked at the state the reversal left `
-      + `(${W_FIRST}) — that ask is the judgement's own and nothing else produces it. THE DRIVE WAS ASKED AT `
-      + `${JSON.stringify(deliveryAsked)}`);
+  // (A) OPEN COMMIT 1, LIVE 0 ⇒ NOT AT REST ⇒ NOT JUDGED AT ITS INSTANT, **AND THE CHECK RESTARTS AT THE
+  // TERMINAL CALL (`D-42`)** — the pair IS asked at the state the reversal left, by the restart, at the end of
+  // the write; and because this pair admits every value the restart PASSES and the write ANSWERS.
+  assert.deepEqual(deliveryAsked, [W_SECOND, W_THIRD, W_FIRST],
+    `arm (A)'s pair is asked at REGISTRATION (${W_SECOND}), by the write's PASS (${W_THIRD}) and — from `
+      + `\`D-42\` — by the RESTART at the state the reversal left (${W_FIRST}), at the terminal call's own end. `
+      + `THE DRIVE WAS ASKED AT ${JSON.stringify(deliveryAsked)}`);
+  assert.equal(deliveryWrite.ok, true,
+    `and the restart is not a blanket fail: this pair admits every value, so the restart PASSES and the write `
+      + `answers. The write caught ${JSON.stringify(shapeOf(deliveryWrite.caught))} and the store stands at `
+      + `${JSON.stringify(deliveryStanding)}`);
   assert.deepEqual(Object.keys(deliveryRollback.value).sort(), ['opId', 'restoredTo', 'undoneOps'],
     `a reversal answered as a STEP answers its declared record (PAR-JS-9) and no new member: the drive read `
       + `${JSON.stringify(Object.keys(deliveryRollback.value))}`);
@@ -1241,14 +1291,16 @@ test('DEF-W (3) · the discriminator is the CONJUNCTION: a reversal at a LISTENE
       + `${JSON.stringify(W_SECOND)} where the drive read ${JSON.stringify(controlStanding)}`);
 
   // ── THE READINGS, PRINTED ON EVERY ARM (`D-21`: a cell owes what it read). ───────────────────
-  t.diagnostic(`DEF-W (3) · D-38 (2026-10-26) · ARM A (listener delivery, inside the write's window): open=`
-    + `${deliveryFacts[0].open} (open commit) live=${deliveryFacts[0].live} (open attempt) ⇒ NOT AT REST ⇒ NOT `
-    + `judged; pair asked at ${JSON.stringify(deliveryAsked)} — the judgement's ask at ${JSON.stringify(W_FIRST)} `
-    + `never happened; record = ${JSON.stringify(deliveryRollback.value)}; store stands at `
-    + `${JSON.stringify(deliveryStanding)} — THE HALF THAT FLIPS: the live-only form judged this instant`);
+  t.diagnostic(`DEF-W (3) · D-38/D-42 (2026-10-26, 2026-10-27) · ARM A (listener delivery, inside the write's `
+    + `window): open=${deliveryFacts[0].open} (open commit) live=${deliveryFacts[0].live} (open attempt) ⇒ NOT `
+    + `AT REST ⇒ not judged AT ITS INSTANT; pair asked at ${JSON.stringify(deliveryAsked)} — the third ask is `
+    + `THE RESTART'S, at ${JSON.stringify(W_FIRST)}, at the terminal call's own end; record = `
+    + `${JSON.stringify(deliveryRollback.value)}; store stands at ${JSON.stringify(deliveryStanding)} — the `
+    + `restart asked and PASSED, so no refusal was produced (the lawful in-commit arm)`);
   t.diagnostic(`DEF-W (3) · D-38 (2026-10-26) · ARM B (kernel-driven pass): open=${passFacts[0].open} `
     + `(open commit) live=${passFacts[0].live} (open attempt) ⇒ NOT AT REST ⇒ not judged (the attempt is the `
-    + `ground here, the commit count is 0); pair asked at ${JSON.stringify(passAsked)}; record = `
+    + `ground here, the commit count is 0, so D-42's window is not open and the request dies with it); pair `
+    + `asked at ${JSON.stringify(passAsked)}; record = `
     + `${JSON.stringify(passRollback.value)}; store stands at ${JSON.stringify(passStanding)}`);
   t.diagnostic(`DEF-W (3) · D-38 (2026-10-26) · ARM C (terminal reversal): open=${controlFacts[0].open} `
     + `(open commit) live=${controlFacts[0].live} (open attempt) ⇒ AT REST ⇒ JUDGED; status `
