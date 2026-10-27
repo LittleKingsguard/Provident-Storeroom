@@ -36,16 +36,24 @@
 //   (W7) **AND THE BEHAVIOUR UNCHANGED**: these two windows still run **no pass** — the pair is asked by the
 //        registration alone, by no pass in either window — so a request still does not get judged, refused or
 //        restored. **The witness reports; it does not run the check.**
+//   (W8) **`D-50`, THE RULING THAT CLOSES THE FINDING THIS PASS MADE**: *"If a constraint needs to look for the
+//        data at a given location, it can read()"*. **A repair lands at a BESIDE address, the re-run hands the
+//        pair the value that op returned, and the pair's own address still stands at the violation.** **The same
+//        body WITH a read of the location it cares about refuses on what it read (and the write fails, the store
+//        restored); the same body WITHOUT the read passes — the read is the whole difference.** And the read's
+//        own window is printed: it runs with the attempt's own commit open and leaves that attempt undisturbed.
 //
 // **D-21.** Every cell prints the readings it took; a cell that cannot reach its arm asserts the drive's coherence
 // FIRST and says so instead of reporting a verdict; a cell that never ran is counted in `AUTHORED`/`EXECUTED` and
 // the run EXITS NON-ZERO.
 // **D-17.** The expectations are literals here and the citations are comments — no `docs/**` path is opened at
-// runtime. **The instruments are the declaration's own**: `openCommits` (`state.mjs`'s in-flight verb windows) and
-// the store's own registers read through its published verbs.
+// runtime. **The instruments are the declaration's own**: `openCommits` (`state.mjs`'s in-flight verb windows),
+// the kernel record's `live` map (`kernelFor(store).live`) and the `attempt-opened` channel
+// (`Symbol.for('provident-storeroom.attempt-opened')`).
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 import { storeCreate } from '../../bindings/js/index.mjs';
+import { kernelFor } from '../../bindings/js/src/entry/kernel-foundations.mjs';
 import { openCommits } from '../../bindings/js/src/entry/state.mjs';
 
 const LAYER = 'ENVELOPE/PURE';
@@ -57,6 +65,9 @@ const PASS_REFUSED = 'ConstraintPassRefused';
 const RECEIPT_ENUMERABLE = ['address', 'op', 'tiers', 'triggered'];
 /** `surface.md §2.5` items 3–4: the one crossed form's own three members, sorted. */
 const REFUSAL_MEMBERS = ['log', 'message', 'status'];
+/** **THE COUNT'S OWN OBSERVER** (`§4.2` item 2: *"`observer` is a FUNCTION called once per commit that OPENS
+ *  for that store"*) — the same `Symbol.for` key `state.mjs` installs and this drive reads. */
+const ATTEMPT_OPENED = Symbol.for('provident-storeroom.attempt-opened');
 
 // ── the run's own bookkeeping ─────────────────────────────────────────────────────────────────────────
 let authored = 0, executed = 0, pass = 0, fail = 0;
@@ -98,6 +109,10 @@ const statusesIn = (v) => (v === null || typeof v !== 'object' ? [] : Object.key
 
 /** THE USE CASE'S TREE, AT ONE ADDRESS: `window.tabs` reads as an object with exactly one ACTIVE tab. */
 const tabsSeed = () => ({ tabs: { landingPage: { active: true }, settings: { active: false } } });
+
+/** THE WINDOW A CALL SEES, read off the discriminator's OWN two sources (`§4.1`/`§4.2`): the open-commit count
+ *  and the kernel record's live-attempt count. */
+const windowOf = (store) => ({ open: openCommits(store), live: kernelFor(store).live.size });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
 // (W1) THE FOUNDATION, FIRST: DOES A DESCENDANT DELETE FIRE THE ANCESTOR LISTENER?
@@ -420,6 +435,152 @@ console.log('\n── W7 · BEHAVIOUR UNCHANGED — no pass runs in either windo
   console.log('        (`record.discarded`); in a registration\'s window it is still silent, because its answer is an');
   console.log('        opaque identity with no member a witness could stand on. The recovery is unchanged and is still');
   console.log('        the consumer\'s: reload the file, or regenerate the store (`D-43` item 2, both exits).');
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// (W8) `D-50` — THE FINDING THIS PASS MADE, AND THE RULING THAT CLOSES IT
+//
+// **THE RULING** (`strata/decisions.md` · `D-50`, 2026-10-28, the architect, verbatim): *"If a constraint needs
+// to look for the data at a given location, it can read()"*.
+//
+// **THE MEASURED FINDING IT CLOSES, DRIVEN HERE:** `c1` refuses `2` at its own address `['a']`; its repair lands
+// `11` at a BESIDE address `['b']`; the re-run hands `c1` the value that repair's op returned — `11` — and the
+// address `c1` judges still stands at `2`. **NOT A MACHINERY DEFECT: A CALLER NOT ASKING.** *"A package cannot be
+// wrong about a value it was told to hand over; it can only be wrong about what it stored."*
+//
+// **THE TWO ARMS, AND THE READ IS THE WHOLE DIFFERENCE.** The pair's law here is about the location its repair
+// lands at: `['b']` must be left at its seed, and a repair that lands `11` there is a state the pair refuses.
+//   (a) WITH THE READ — the body calls `store.read(['b'])` to decide; on the re-run it reads `11` and REFUSES on
+//       what it read, so the write fails (`ConstraintPassRefused`, the pair's own `KC-5` repeat) and the store is
+//       restored.
+//   (b) THE CONTROL, THE SAME BODY WITHOUT THE READ — it judges nothing but the value it was handed, passes at
+//       `11`, and the write ANSWERS ITS RECORD with its own value still standing at `['a']` — the finding.
+//
+// **AND THE READ'S OWN WINDOW, PRINTED BECAUSE IT IS THE PART A READER GETS WRONG:** the read is run with the
+// attempt's own commit open and the attempt LIVE (`open` `1`, `live` `1`), and the count and the attempt are the
+// SAME after it returns. **A `read` is one of the surface's NON-BRACKETING calls — `read`, `readLiteral` and
+// `constraints` open no commit — so the read's own act has no second count to show: what is measured and
+// asserted is that it neither opens nor disturbs the attempt's own window, and that it runs NO CHECK — no other
+// constraint is asked by it, and no verdict comes back from it.**
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+console.log('\n── W8 · `D-50` — a repair that lands elsewhere, and the read that sees it ───────────');
+{
+  const SEED_A = 5;      // the pair's own address `['a']`, admitted
+  const VIOLATION = 2;   // the value the pair refuses at `['a']`
+  const SEED_B = 0;      // the location the repair lands at, as the pair demands it
+  const REPAIR = 11;     // the value the repair lands at `['b']` — a BESIDE address
+  const windowIs = (readings) => readings !== null
+    && JSON.stringify({ open: readings.open, live: readings.live }) === JSON.stringify({ open: 1, live: 1 });
+
+  /**
+   * `readsTheLocation` is the ONE thing the two arms differ in: the same body with `store.read(['b'])` as its
+   * decision, or the same body without the read.
+   */
+  function crossAddressDrive(readsTheLocation) {
+    const store = make();
+    store.write(['a'], 'mem', SEED_A);
+    store.write(['b'], 'mem', SEED_B);
+    const asks = [];
+    const registered = attempt(() => store.addConstraint({ address: ['a'], id: 'c1' }, (context) => {
+      if (context.value === VIOLATION) {
+        asks.push({ kind: 'refuse', attempt: context.attempt === null ? null : context.attempt.id, value: context.value });
+        return {
+          message: 'c1 refuses 2 at its own address',
+          repair: () => {
+            const landed = store.write(['b'], 'mem', REPAIR);
+            return { ok: true, op: landed.op };
+          },
+        };
+      }
+      if (!readsTheLocation) {
+        asks.push({ kind: 'judge-context', attempt: context.attempt === null ? null : context.attempt.id, value: context.value });
+        return true;
+      }
+      const before = windowOf(store);
+      const read = store.read(['b']);
+      const after = windowOf(store);
+      asks.push({
+        kind: 'judge-read',
+        attempt: context.attempt === null ? null : context.attempt.id,
+        value: context.value,
+        read,
+        before,
+        after,
+      });
+      return read === SEED_B ? true : { message: `c1 refuses what it read at ['b']: ${JSON.stringify(read)}` };
+    }));
+    let openings = 0;
+    const stop = store[ATTEMPT_OPENED](() => { openings += 1; });
+    const written = attempt(() => store.write(['a'], 'mem', VIOLATION));
+    stop();
+    return {
+      store,
+      registered,
+      asks,
+      written,
+      openings,
+      standingA: attempt(() => store.read(['a'])),
+      standingB: attempt(() => store.read(['b'])),
+      rest: windowOf(store),
+    };
+  }
+
+  const readArm = crossAddressDrive(true);
+  const control = crossAddressDrive(false);
+  const readRan = readArm.asks.find((ask) => ask.kind === 'judge-read' && ask.attempt !== null) ?? null;
+  const firstAsk = readArm.asks.find((ask) => ask.kind === 'refuse') ?? null;
+  const controlRan = control.asks.find((ask) => ask.kind === 'judge-context' && ask.attempt !== null) ?? null;
+  const readLog = readArm.written.ok === false && Array.isArray(readArm.written.caught.log)
+    ? readArm.written.caught.log
+    : [];
+  const readRefusal = readLog.filter((entry) => entry.kind === 'constraint-check').map((entry) => entry.message);
+  const theRefusal = readLog.filter((entry) => entry.kind === 'constraint-check' && typeof entry.message === 'string'
+    && entry.message.includes('refuses what it read'));
+
+  P('the value the context handed the pair at the re-run', readRan === null ? '<not reached>' : readRan.value);
+  P('the value the body\'s own `read([\'b\'])` returned', readRan === null ? '<not reached>' : readRan.read);
+  P('the window during the read / after it', readRan === null ? '<not reached>' : [readRan.before, readRan.after]);
+  P('the attempt the read ran under (and the first ask\'s)', readRan === null ? '<not reached>'
+    : [readRan.attempt, firstAsk === null ? null : firstAsk.attempt]);
+  P('the write\'s answer (WITH the read)', readArm.written.ok ? 'answered its record'
+    : `${readArm.written.caught.status} · ${JSON.stringify(readRefusal)}`);
+  P('the store after the refused write (`[\'a\']`, `[\'b\']`)',
+    [readArm.standingA.ok ? readArm.standingA.value : '<threw>',
+      readArm.standingB.ok ? readArm.standingB.value : '<threw>']);
+  P('the control: the same body WITHOUT the read — what the context handed it', controlRan === null ? '<not reached>' : controlRan.value);
+  P('the control\'s write', control.written.ok ? 'ANSWERED ITS RECORD' : `${control.written.caught.status}`);
+  P('the control\'s store after (`[\'a\']`, `[\'b\']`) — the finding',
+    [control.standingA.ok ? control.standingA.value : '<threw>',
+      control.standingB.ok ? control.standingB.value : '<threw>']);
+  P('`attempt-opened` for the whole write · WITH the read / without it', [readArm.openings, control.openings]);
+  A('DW-08.1', '`D-50` (verbatim: *"If a constraint needs to look for the data at a given location, it can read()"*; `context.value` is the value the write verb returned — `S-WINDOW`, unmoved); `D-45` (a callback\'s call enters at the surface); `D-1-bis` (a read consults no constraint)',
+    'A REPAIR THAT LANDS ELSEWHERE IS SEEN BY A READ AND ONLY BY A READ: the re-run hands the pair `11` (the value the write verb returned) while `[\'a\']` still stands at `2`; the same body WITH `read([\'b\'])` refuses on what it read (`11`) and the write fails with the pair\'s own repeat, the store restored; the same body WITHOUT the read passes and the write answers its record with its own value still standing — and the read itself ran under the attempt\'s own window (`1`/`1`) and left it exactly as it found it',
+    readArm.registered.ok === true
+      && readArm.written.ok === false && readArm.written.caught.status === PASS_REFUSED
+      && readRan !== null && readRan.value === REPAIR && readRan.read === REPAIR
+      && windowIs(readRan.before) && windowIs(readRan.after)
+      && readRan.attempt !== null && firstAsk !== null && readRan.attempt === firstAsk.attempt
+      && theRefusal.length === 1
+      && readArm.standingA.ok && readArm.standingA.value === SEED_A
+      && readArm.standingB.ok && readArm.standingB.value === SEED_B
+      && readArm.rest.open === 0 && readArm.rest.live === 0
+      && readArm.openings === 1
+      && control.registered.ok === true && control.written.ok === true
+      && controlRan !== null && controlRan.value === REPAIR
+      && control.standingA.ok && control.standingA.value === VIOLATION
+      && control.standingB.ok && control.standingB.value === REPAIR
+      && control.openings === 1,
+    `read arm: registered ${readArm.registered.ok} · re-run context ${readRan === null ? '<not reached>' : readRan.value} · read ${readRan === null ? '<not reached>' : readRan.read} · window ${readRan === null ? '<not reached>' : `${readRan.before.open}/${readRan.before.live}->${readRan.after.open}/${readRan.after.live}`} · write ${readArm.written.ok ? 'ANSWERED' : readArm.written.caught.status} · `
+      + `standings a=${readArm.standingA.ok ? readArm.standingA.value : '<threw>'} b=${readArm.standingB.ok ? readArm.standingB.value : '<threw>'} · openings ${readArm.openings} || `
+      + `control: re-run context ${controlRan === null ? '<not reached>' : controlRan.value} · write ${control.written.ok ? 'ANSWERED' : control.written.caught.status} · `
+      + `standings a=${control.standingA.ok ? control.standingA.value : '<threw>'} b=${control.standingB.ok ? control.standingB.value : '<threw>'} · openings ${control.openings}`);
+  console.log('');
+  console.log('        THE SENTENCE TO CARRY AWAY (`D-50`): `context.value` IS THE VALUE THE WRITE VERB RETURNED;');
+  console.log('        A CONSTRAINT THAT CARES ABOUT ANOTHER LOCATION READS IT. And the consequence a reader gets');
+  console.log('        wrong: a read inside a body is caller code entering the surface (`D-45`) and it runs NO');
+  console.log('        CHECK — nothing is judged by it: no other constraint is asked on the value it returns, and');
+  console.log('        that value is never a verdict. A read is a NON-BRACKETING call, so it opens no commit of its');
+  console.log('        own and moves no count; it neither repeats nor replaces the pass the write already ran.');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
