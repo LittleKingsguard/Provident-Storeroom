@@ -79,6 +79,12 @@ const STATUS_RANK_ORDER = [
   // declaration now happens to print.
   'ConstraintBodyThrew', // 18
   'ConstraintRefusedAtRegistration', // 19
+  // ⟶ **APPENDED 2026-10-26 (`DEF-H`/`DEF-W`; the architect, verbatim: *"Expand the returned fail-state list
+  // to include the refusal"* and *"Assert the constraints on rollback"*): RANK `20`** — the ONE status a
+  // CONSTRAINT REFUSAL answers with, at a write's attempt and at a reversal whose terminal state a registered
+  // constraint refuses. **This blind file's copy of the DECLARED set moves with the ruling; it is not a copy of
+  // whatever the declaration now happens to print.**
+  'ConstraintPassRefused', // 20
 ];
 
 // The store's four declared `cfg` keys, and the two of them the declaration marks OPTIONAL.
@@ -245,7 +251,11 @@ test('entry · native contract.md §8.1 #12 (and its 2026-10-11 reconciliation c
 // **⟶ THE TITLE MOVES WITH THE COUNT, 2026-10-26 (`DEF-S`/`DEF-N`; *"Expand the returned error set for both
 // S/N"*): the declared set is NINETEEN, ranked `1`…`19`, and the cell's reads below are re-derived toward the
 // ruling rather than toward the declaration's current bytes.**
-test("entry · native contract.md §8.1 (its 2026-10-23 amendment, `A148` Q3, its 2026-10-25 correction clause at the heading, and its 2026-10-26 amendment) · the closed set reads NINETEEN members ranked `1`…`19`, and the declaration's literal list agrees with the rank table member for member", () => {
+// **⟶ AND IT MOVES AGAIN WITH THE NEXT COUNT, 2026-10-26 (`DEF-H`/`DEF-W`; the architect, verbatim: *"Expand
+// the returned fail-state list to include the refusal"* and *"Assert the constraints on rollback"*): the
+// declared set is TWENTY, ranked `1`…`20`, with `ConstraintPassRefused` appended last and NO RANK OF `1`…`19`
+// MOVING. The same rule governs this re-derivation: a RULING moved the set and no assertion is weakened.**
+test("entry · native contract.md §8.1 (its 2026-10-23 amendment, `A148` Q3, its 2026-10-25 correction clause at the heading, and its two 2026-10-26 amendments) · the closed set reads TWENTY members ranked `1`…`20`, and the declaration's literal list agrees with the rank table member for member", () => {
   // THE TWO READINGS, BOTH ON FILE, RECORDED BESIDE ONE ANOTHER AND NEITHER CHOSEN SILENTLY:
   //  (a) §8.1's HEADING: "THE CLOSED CODE SET — `16` members, each with its trigger", which "stands
   //      byte-for-byte as the pre-amendment heading";
@@ -263,8 +273,8 @@ test("entry · native contract.md §8.1 (its 2026-10-23 amendment, `A148` Q3, it
   // disagreement this cell first recorded (the heading's `16` against the amendment's `17`) is resolved by the
   // DOCUMENT moving, not by the expectation — and the same rule governs this re-derivation: the figures move
   // because a RULING moved the set, and no assertion below is weakened.
-  assert.equal(STATUS_RANK_ORDER.length, 19);
-  assert.equal(new Set(STATUS_RANK_ORDER).size, 19, 'the nineteen literals are distinct');
+  assert.equal(STATUS_RANK_ORDER.length, 20);
+  assert.equal(new Set(STATUS_RANK_ORDER).size, 20, 'the twenty literals are distinct');
   // The two ends of the rank order, which are the two the declaration singles out by name: rank `1` is
   // the construction's own argument code and rank `17` is the crossing's boundary code.
   assert.equal(STATUS_RANK_ORDER[0], 'AddressMalformed');
@@ -272,6 +282,7 @@ test("entry · native contract.md §8.1 (its 2026-10-23 amendment, `A148` Q3, it
   assert.equal(STATUS_RANK_ORDER[16], 'ValueRefusedAtBoundary'); // rank 17
   assert.equal(STATUS_RANK_ORDER[17], 'ConstraintBodyThrew'); // rank 18
   assert.equal(STATUS_RANK_ORDER[18], 'ConstraintRefusedAtRegistration'); // rank 19
+  assert.equal(STATUS_RANK_ORDER[19], 'ConstraintPassRefused'); // rank 20 — the refusal's one member
   // `ValueNotAdmitted` KEEPS rank 14 and is not a rename of rank 17 — "a pass that reads rank `17` as a
   // RENAME of rank `14` has destroyed a member".
   assert.equal(STATUS_RANK_ORDER[13], 'ValueNotAdmitted');

@@ -855,14 +855,37 @@ pub fn fail_code_drive(code: &'static str) -> bool {
                 Ok(_) => false,
             }
         }
-        other => panic!("`{other}` is not a member of the store's closed 19-member set"),
+        // **⟶ ADDED 2026-10-26 (`DEF-H`, on the architect's ruling, verbatim: *"Expand the returned fail-state
+        // list to include the refusal"*): THE SET'S RANK-`20` MEMBER, `ConstraintPassRefused`, WHICH HAS NO
+        // PRODUCER IN THIS CRATE AND NEVER WILL.** The constraint pass — the kernel's evaluation of the
+        // registered pairs over a write's attempt — runs in the PACKAGE
+        // (`bindings/js/src/entry/kernel-attempt.mjs`), and the `KC`-tokened refusal it reports is converted at
+        // the package's crossing (`constraints.mjs`'s `constraintCrossing`) into this member. **THE DRIVE IS
+        // THE NEGATIVE ONE AND IT IS NOT A PLACEHOLDER**: a WELL-FORMED `{ address, id }` pair crosses at the
+        // construction with no body attached, the construction STANDS and NO CODE is produced — were this crate
+        // to mint the pass's refusal for a pair it never evaluated, this arm returns `false` and the
+        // `S-FAILSET` line and the census below go red.
+        "ConstraintPassRefused" => {
+            let cfg = cfg_mem();
+            let constraints = JsConstraintsArg::List(vec![JsConstraintEntry::Pair {
+                address: JsAddressArg::List(vec![key("a")]),
+                id: "c1".to_string(),
+            }]);
+            match create_with_constraints(&cfg, Some(&constraints)) {
+                Ok(_) => true,
+                Err(e) => e.status != "ConstraintPassRefused",
+            }
+        }
+        other => panic!("`{other}` is not a member of the store's closed 20-member set"),
     }
 }
 
-/// The closed set itself, printed with its terms: **the store's own `19` members, and this unit mints no
-/// twentieth** (`A148` (Q3): *"the OPERATIVE CENSUS IS `17`, RANKED `1`…`17`"*, read THROUGH the architect's
-/// ruling of 2026-10-26 — *"Expand the returned error set for both S/N"* — which appends ranks `18` and `19`;
-/// `src/error.rs`'s `pub const CODES: [&str; 19]`).
+/// The closed set itself, printed with its terms: **the store's own `20` members, and this unit mints no
+/// twenty-first** (`A148` (Q3): *"the OPERATIVE CENSUS IS `17`, RANKED `1`…`17`"*, read THROUGH the architect's
+/// ruling of 2026-10-26 — *"Expand the returned error set for both S/N"* — which appends ranks `18` and `19`,
+/// and THROUGH the ruling of the same date on `DEF-H`/`DEF-W` — *"Expand the returned fail-state list to
+/// include the refusal"*, *"Assert the constraints on rollback"* — which appends rank `20`,
+/// `ConstraintPassRefused`; `src/error.rs`'s `pub const CODES: [&str; 20]`).
 ///
 /// **⟶ WIDENED 2026-10-15 (`DEF-2026-10-15-Y`): the as-filed *"`15` members, and this unit mints no
 /// sixteenth"* printed a superseded figure.** The figure is `CODES.len()`'s and not this comment's, and the
@@ -890,6 +913,13 @@ pub fn all_fail_codes() -> Vec<&'static str> {
 ///
 /// **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
 /// both S/N"*): the filter carries THREE spells, the reachable count stands at `16`, and the census is `19`.**
+///
+/// **⟶ AND RE-DERIVED AGAIN 2026-10-26 (`DEF-H`/`DEF-W`; the architect, verbatim: *"Expand the returned
+/// fail-state list to include the refusal"* and *"Assert the constraints on rollback"*): the filter carries a
+/// FOURTH spell, the reachable count still stands at `16`, and the census is `20`.** `ConstraintPassRefused`
+/// (rank `20`) joins the three members whose producer stands ABOVE this addon — the constraint pass is the
+/// package's kernel's and its crossing selects this member — **so `16` of `20` are reached here and the four
+/// above the boundary are each driven at their own. NOTHING IS DROPPED AND NOTHING IS COUNTED TWICE.**
 pub fn crossing_reachable_fail_codes() -> Vec<&'static str> {
     all_fail_codes()
         .into_iter()
@@ -897,6 +927,7 @@ pub fn crossing_reachable_fail_codes() -> Vec<&'static str> {
             *code != "ValueRefusedAtBoundary"
                 && *code != "ConstraintBodyThrew"
                 && *code != "ConstraintRefusedAtRegistration"
+                && *code != "ConstraintPassRefused"
         })
         .collect()
 }

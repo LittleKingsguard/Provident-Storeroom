@@ -943,15 +943,27 @@ fail_code_cell!(
 // the three figures are the ruling's, not whatever the code now prints. **NO ASSERTION IS WEAKENED: every
 // reachable member is still driven through a real trigger, and each package-owned member still has its
 // negative drive.**
+//
+// **⟶ AND RE-DERIVED AGAIN 2026-10-26, TITLE AND FIGURES TOGETHER (`DEF-H`/`DEF-W`; the architect,
+// verbatim: *"Expand the returned fail-state list to include the refusal"* and *"Assert the constraints on
+// rollback"*).** **THE SET IS `20` AND THE MEMBERS THIS CRATE REACHES STAND AT `16`.** The rank-`20` member
+// `ConstraintPassRefused` joins the three the package owns — the constraint PASS is the package's kernel's
+// and its crossing selects this member, at the write's attempt (`DEF-H`) and at a reversal whose terminal
+// state a registered constraint refuses (`DEF-W`) — **so the reachable count is unmoved at `16` and the
+// package-owned arms are four.** The cell is still the SAME read and **NO ASSERTION IS WEAKENED**: every
+// reachable member is still driven through a real trigger, and each package-owned member still has its
+// negative drive.
 #[test]
-fn fail_set_is_closed_at_nineteen_and_sixteen_of_them_are_reached_from_the_crossing() {
-    assert_eq!(all_fail_codes().len(), 19, "the store's own array is the census (A148 Q3, read through \
-         the 2026-10-26 ruling: *Expand the returned error set for both S/N*)");
+fn fail_set_is_closed_at_twenty_and_sixteen_of_them_are_reached_from_the_crossing() {
+    assert_eq!(all_fail_codes().len(), 20, "the store's own array is the census (A148 Q3, read through \
+         the 2026-10-26 rulings: *Expand the returned error set for both S/N* and *Expand the returned \
+         fail-state list to include the refusal*)");
     assert_eq!(
         crossing_reachable_fail_codes().len(),
         16,
-        "the three members the package owns (`ValueRefusedAtBoundary`, `ConstraintBodyThrew` and \
-         `ConstraintRefusedAtRegistration`) are each declared at their own boundary"
+        "the four members the package owns (`ValueRefusedAtBoundary`, `ConstraintBodyThrew`, \
+         `ConstraintRefusedAtRegistration` and `ConstraintPassRefused`) are each declared at their own \
+         boundary"
     );
     for code in crossing_reachable_fail_codes() {
         assert!(fail_code_drive(code), "`{code}` is a member with a reachable trigger");
@@ -971,6 +983,12 @@ fn fail_set_is_closed_at_nineteen_and_sixteen_of_them_are_reached_from_the_cross
         "the nineteenth member (`DEF-N`) has no producer in this crate: the registration VERDICT is composed \
          by the kernel for a WELL-FORMED pair whose body answered non-`true`, while what this crate answers \
          for a malformed element is the shape member `ConstraintListInvalid`, unmoved"
+    );
+    assert!(
+        fail_code_drive("ConstraintPassRefused"),
+        "the twentieth member (`DEF-H`/`DEF-W`) has no producer in this crate either: the constraint PASS is \
+         the package kernel's own, and its refusal is converted at the package's crossing into this member; \
+         a well-formed pair crossing here with no body attached CONSTRUCTS and produces no code"
     );
 }
 

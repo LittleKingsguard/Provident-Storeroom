@@ -878,13 +878,21 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
 // =============================================================== FTS-10 =====
 scenario('FTS-10', 'the sixteenth member\'s own clause and its template row; the generator\'s census over the closed set',
   'contract.md §8.1 #16; §8.2 (the generator rule, the template table, completeness); package.md §1.3 item 4 (the addon\'s five exports)', () => {
-    const set16 = ['AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
+    // **⟶ RE-DERIVED 2026-10-26, TITLE AND FIGURES TOGETHER, AND THE CENSUS NOW FOLLOWS THE RULINGS RATHER THAN ITS
+    // OWN `16`: `DEF-S`/`DEF-N` appended ranks `18` and `19` and `DEF-H`/`DEF-W` appended rank `20`.** The set is
+    // the store's own at `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓, `ConstraintListInvalid` keeps rank `16` and
+    // `FileCommitFailed` keeps `15` as the SAVE's code alone. **The cell's subject — the closed set this artifact
+    // drives against, printed with its ranks — is unmoved; only the superseded figures move.**
+    const setClosed = ['AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
       'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
       'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
-      'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid'];
-    cell('FTS-10.1', 'contract.md §8.1 (the set is closed at 16 members) + §2.2 clause 7',
-      'the closed set this artifact drives against is the sixteen named ranks, #16 last',
-      () => C(set16.length === 16 && set16[15] === 'ConstraintListInvalid', `set=${set16.length} members, #16=${JSON.stringify(set16[15])}`));
+      'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid', 'ValueRefusedAtBoundary',
+      'ConstraintBodyThrew', 'ConstraintRefusedAtRegistration', 'ConstraintPassRefused'];
+    cell('FTS-10.1', 'contract.md §8.1 (the set is closed at 20 members) + §2.2 clause 7',
+      'the closed set this artifact drives against is the twenty named ranks, `ConstraintListInvalid` at 16 and `ConstraintPassRefused` last',
+      () => C(setClosed.length === 20 && setClosed[15] === 'ConstraintListInvalid'
+        && setClosed[19] === 'ConstraintPassRefused',
+      `set=${setClosed.length} members, #16=${JSON.stringify(setClosed[15])}, #20=${JSON.stringify(setClosed[19])}`));
     // ── **⟶ RE-DERIVED 2026-10-25: THE ADDON'S EXPORT SET IS THIRTEEN, AND THE EXPECTATION NOW COMES FROM THE
     // ARTEFACT'S OWN BYTES — WHICH IS WHAT THE CELL ALWAYS READ.** The as-filed figure was `package.md §1.3`
     // item 4's *"exactly five names"*; measured on the built artefact, `Object.keys(ADDON)` reads **thirteen**:
@@ -899,16 +907,19 @@ scenario('FTS-10', 'the sixteenth member\'s own clause and its template row; the
         const keys = Object.keys(ADDON).sort();
         return C(JSON.stringify(keys) === JSON.stringify(['commitFile', 'delete', 'errorMessage', 'listen', 'read', 'readLiteral', 'register', 'removeListener', 'rollback', 'storeCreate', 'unlisten', 'version', 'write']), `addon exports=${JSON.stringify(keys)}`);
       });
+    // **⟶ RE-DERIVED 2026-10-26 WITH THE SET (title and figure together): TWENTY codes, not sixteen** — and the
+    // appended rank-`20` row is driven here by the same loop, so `§8.2`'s completeness is asserted over the set the
+    // declaration now carries rather than over a superseded one (`DEF-S`/`DEF-N`; `DEF-H`/`DEF-W`).
     cell('FTS-10.3', 'contract.md §8.2 (completeness: every code of §8.1 generates a non-empty, placeholder-free message)',
-      'every one of the sixteen codes renders its row through the generator reachable from JS',
+      'every one of the twenty codes renders its row through the generator reachable from JS',
       () => {
         const bad = [];
-        for (const c of set16) {
+        for (const c of setClosed) {
           const r = tryCall(() => ADDON.errorMessage(c, 'a'));
           const m = r.ok ? r.v : null;
           if (!r.ok || typeof m !== 'string' || m.length === 0 || PLACEHOLDER.test(m) || m.includes('outside the closed set')) bad.push([c, r.ok ? m : describe(r.v)]);
         }
-        return C(bad.length === 0, bad.length === 0 ? 'all sixteen codes rendered' : `unrendered: ${JSON.stringify(bad)}`);
+        return C(bad.length === 0, bad.length === 0 ? 'all twenty codes rendered' : `unrendered: ${JSON.stringify(bad)}`);
       });
     cell('FTS-10.4', 'contract.md §8.2 (the control: the generator\'s own outside-the-set answer)',
       'a name outside the closed set does NOT render a row but answers the generator\'s outside-the-set sentence, so §FTS-10.3 is discriminating',

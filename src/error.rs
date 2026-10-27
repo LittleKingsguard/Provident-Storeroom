@@ -78,7 +78,39 @@ pub struct StoreError {
 /// own clause in the generator below, so `errorMessage('ConstraintBodyThrew', …)` and
 /// `errorMessage('ConstraintRefusedAtRegistration', …)` answer a declared sentence and never the
 /// outside-the-set sentence.
-pub const CODES: [&str; 19] = [
+///
+/// **⟶ AND AMENDED 2026-10-26 BY THE ARCHITECT'S RULING ON THE DOWNSTREAM CLAIMS `DEF-H` AND `DEF-W`,
+/// VERBATIM: *"Expand the returned fail-state list to include the refusal"* and *"Assert the constraints on
+/// rollback"* (`strata/decisions.md` · `D-38`, whose `DEF-H` and `DEF-W` rows carry both sentences).** **THE
+/// OPERATIVE CENSUS IS `20`, RANKED `1`…`20`, AND THE APPENDED TERM IS `ConstraintPassRefused` AT RANK
+/// `20`** — the ONE member a **constraint refusal** answers with, at two arms and one status: the
+/// `KC`-tokened refusal of a write's attempt (`DEF-H`'s arm, which crossed as `FileCommitFailed` until this
+/// date) and a REVERSAL whose terminal state a registered constraint refuses (`DEF-W`'s arm, which consulted
+/// no constraint at all until this date). **THE CLAUSES ABOVE STAND BYTE-FOR-BYTE AND ARE READ THROUGH THIS
+/// ONE:** their `19`s are the figures of their own dates. **THE OPERATIVE ARITHMETIC IS
+/// `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓ — the eight terms they sum stand exactly as filed and the
+/// appended term stands last — NO RANK OF `1`…`19` MOVES**, and the array on the `pub const` below is
+/// `[&str; 20]`.
+///
+/// **THE NAMING FOLLOWS THE SAME DECLARED CONVENTION** (`§8.1`'s minting clause of 2026-10-15, item 2: *the
+/// UPPER-camel `code` column names the SUBJECT AND THE ONE THING WRONG WITH IT*): rank `20`'s subject is the
+/// CONSTRAINT PASS — the layer that refused — and its defect is that the pass REFUSED, so the status stops
+/// naming the layer the failure did not happen at (`FileCommitFailed` is the SAVE's code and must be produced
+/// by save failures only, which is `D-38`'s own `DEF-H` reading, *"the status stops lying about which layer
+/// failed"*). **IT SPELLS NO `KC` TOKEN AND IT IS ONE MEMBER FOR ALL EIGHT** (`D-38`: *"ONE status for the
+/// refusal, not one per `KC` token"*): the token continues to ride `log[].state` where it already does. **AND
+/// IT IS NOT A SAVE PATH'S TO MINT** — `D-38` requires that a refused reversal's status be one *"a save path
+/// cannot mint"*, which is why the member is the pass's and not the commit's.
+///
+/// **THE STORE NEVER MINTS IT AND THE PACKAGE'S CROSSING DOES**, exactly as rank `17`'s member arrives on the
+/// JavaScript route: `src/store.rs` has no trigger for it, `bindings/js/src/entry/constraints.mjs`'s
+/// `constraintCrossing` and its reversal arm select it, and no word is authored there — the status is a
+/// member of THIS set and is carried, never minted, by the package (`DD-40`). **AND NO DRIVE THAT COUNTS THIS
+/// ARRAY MAY ASSERT `15`, `16`, `17`, `18` OR `19`.** The array remains the set's own census and not a second
+/// statement of it, and [`storeErrorMessage`] still resolves its clause by lookup in it (`§8.2`): the appended
+/// member carries its own clause in the generator below, so `errorMessage('ConstraintPassRefused', …)` answers
+/// a declared sentence and never the outside-the-set sentence.
+pub const CODES: [&str; 20] = [
     "AddressMalformed",
     "AddressNotFound",
     "LeafHasNoDownstream",
@@ -98,6 +130,7 @@ pub const CODES: [&str; 19] = [
     "ValueRefusedAtBoundary",
     "ConstraintBodyThrew",
     "ConstraintRefusedAtRegistration",
+    "ConstraintPassRefused",
 ];
 
 /// `§8.2`: the generator's `args` record — five OPTIONAL members, each present only when the trigger
@@ -340,6 +373,18 @@ pub(crate) fn build(m: &Msg) -> String {
         // is #16's subject and is valid here.
         "ConstraintRefusedAtRegistration" => format!(
             "{} was refused by its own constraint at registration in '{container}', a registered constraint must answer true for the state its pair is registered at",
+            m.subject
+        ),
+        // `§8.1` #20 and `§8.2`'s row of 2026-10-26 — **`DEF-H` and `DEF-W`, on the architect's ruling:
+        // *"Expand the returned fail-state list to include the refusal"* and *"Assert the constraints on
+        // rollback"***. The subject is the CONSTRAINT PASS and its defect is that the pass refused; the two
+        // arms are a write's attempt (its `KC` token riding `log[].state`) and a REVERSAL judged at the state
+        // it leaves. **THE SENTENCE IS ARM-NEUTRAL ON PURPOSE**, so one member serves both and neither arm
+        // has to read a place the other does not have. **THE STORE MINTS NOTHING HERE**; the package's
+        // crossing selects this member (`bindings/js/src/entry/constraints.mjs`) and the token, where one
+        // exists, stays on the attempt's `outcome` entry (`D-38`).
+        "ConstraintPassRefused" => format!(
+            "{} was refused by a constraint pass, the state this act would leave is not one the registered constraints admit",
             m.subject
         ),
         other => format!("{} is a failure of the code {other}, no clause is declared here", m.subject),

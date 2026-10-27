@@ -561,12 +561,20 @@ test('JC-TC-47 no fifth dependency entry is admitted', () => {
 // `ConstraintRefusedAtRegistration` at rank `19`. **THE CELL IS THE SAME READ** — the store's own array, its
 // declared length and two named members — and only the figure moves, because a cell that kept `17` would be
 // asserting the superseded census and not the ruling's.
-test('JC-TC-48 the store set is 19 with ValueRefusedAtBoundary at rank 17, ConstraintBodyThrew at 18 and ConstraintRefusedAtRegistration at 19', () => {
+//
+// **⟶ AND RE-DERIVED AGAIN 2026-10-26 (`DEF-H`/`DEF-W`; the architect, verbatim: *"Expand the returned
+// fail-state list to include the refusal"* and *"Assert the constraints on rollback"*): THE SET IS TWENTY, AND
+// THE TITLE MOVES WITH IT AGAIN.** The appended term is `ConstraintPassRefused` at rank `20` — the ONE member
+// a CONSTRAINT REFUSAL answers with (a write's attempt, and a reversal whose terminal state a registered
+// constraint refuses) — and **NO RANK OF `1`…`19` MOVES**, `FileCommitFailed` keeping rank `15` as the SAVE's
+// code alone. **THE CELL IS STILL THE SAME READ** and only the figure and one named member move.
+test('JC-TC-48 the store set is 20 with ValueRefusedAtBoundary at rank 17, ConstraintBodyThrew at 18, ConstraintRefusedAtRegistration at 19 and ConstraintPassRefused at 20', () => {
   const text = readFileSync(new URL('../../src/error.rs', import.meta.url), 'utf8');
-  assert.match(text, /CODES:\s*\[&str;\s*19\]/);
+  assert.match(text, /CODES:\s*\[&str;\s*20\]/);
   assert.ok(text.includes('ValueRefusedAtBoundary'));
   assert.ok(text.includes('ConstraintBodyThrew'));
   assert.ok(text.includes('ConstraintRefusedAtRegistration'));
+  assert.ok(text.includes('ConstraintPassRefused'));
 });
 
 // ── THE SEVENTEENTH CLASS ─────────────────────────────────────────────────────────────────────────────

@@ -102,6 +102,11 @@ export const STORE_CODES = [
   // `ConstraintRefusedAtRegistration` (the REGISTRATION VERDICT) — and no rank of `1`…`17` moves.
   'ConstraintBodyThrew',
   'ConstraintRefusedAtRegistration',
+  // ⟶ APPENDED 2026-10-26 (`DEF-H`/`DEF-W`; the architect, verbatim: *"Expand the returned fail-state list to
+  // include the refusal"* and *"Assert the constraints on rollback"*): the set's rank `20`,
+  // `ConstraintPassRefused` — THE ONE MEMBER A CONSTRAINT REFUSAL ANSWERS WITH, at the write's attempt and at
+  // a reversal whose terminal state a registered constraint refuses — and NO RANK OF `1`…`19` MOVES.
+  'ConstraintPassRefused',
 ];
 
 /** One counter shared by every drive so the ids and addresses of two drives never collide. */

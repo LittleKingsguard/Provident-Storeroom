@@ -952,6 +952,29 @@ test('cp_write_path_the_failing_arm_reports_the_declared_three_member_form_and_d
   assert.equal(body.runs >= 1, true, 'PREMISE: the element was evaluated inside the call and refused');
   assert.equal(r.threw, true,
     'the failing arm reports the failure to the package surface\'s caller (`§2.12` item 1\'s fail arm)');
+  // **⟶ ADDED 2026-10-26 — `DEF-H`, AND THE ARCHITECT'S RULING VERBATIM: *"Expand the returned fail-state
+  // list to include the refusal"*** (`strata/decisions.md` · `D-38`). **THE REFUSAL'S `status` IS THE SET'S
+  // RANK-`20` MEMBER `ConstraintPassRefused`, NOT THE SAVE'S `FileCommitFailed`.** **THE DEFECT THIS CLOSES,
+  // MEASURED: the crossing carried `FileCommitFailed` — the store's `file`-tier SAVE code — for a constraint
+  // that refused the value BEFORE any save was attempted**, so a caller branching on `status` was told the
+  // wrong layer failed; the code's own ground for it (*"no caller-side status can carry a `KC` token"*) is
+  // FALSIFIED by the set's own expansion (`§2.12`'s clause (D) of this date). **THE TOKEN IS UNMOVED AND IS
+  // READ WHERE IT ALREADY RIDES: `log[].state` on the attempt's `outcome` entry** — which is what `D-38`'s
+  // *"the token continues to ride `log[].state`"* requires, and this cell asserts both halves so a pass that
+  // put the token back into `status` would redden here rather than pass silently.
+  assert.equal(r.thrown.status, 'ConstraintPassRefused',
+    'DEF-H: a constraint-refused write answers the set\'s rank-`20` member — ONE status for the refusal and '
+    + 'NOT one per `KC` token (`D-38`), and NOT the save\'s `FileCommitFailed`, which rank `15` keeps for a '
+    + `failing \`file\`-tier save alone; status read ${JSON.stringify(r.thrown.status)}`);
+  const outcomeEntry = r.thrown.log.filter((entry) => entry.kind === 'outcome');
+  assert.equal(outcomeEntry.length, 1,
+    'DEF-H: and the refusal carries the attempt\'s own entries, with EXACTLY ONE `outcome` entry — the list '
+    + `is \`log[].state\`'s home (\`D-38\`), and it is the SAME list the failure crossed with; read `
+    + `${JSON.stringify(r.thrown.log.map((entry) => [entry.kind, entry.state]))}`);
+  assert.equal(/^KC-[1-8]$/.test(String(outcomeEntry[0].state)), true,
+    'DEF-H: the `KC` token rides the `outcome` entry\'s `state` and NOT the thrown `status` — '
+    + `"the token continues to ride \`log[].state\` where it already does" (\`D-38\`); read `
+    + `${JSON.stringify(outcomeEntry[0].state)}`);
   // **⟶ RE-DERIVED 2026-10-16: BOTH LIMBS THIS CELL ONCE CARRIED ARE SUPERSEDED AT THEIR OWN SITES.**
   // The as-filed cell read `Object.keys(...)` against `['message','status']` AND asserted
   // `'log' in thrown === false`. **THE FIRST IS ITEM 4'S (`surface.md §2.5`: *"the three-member member set

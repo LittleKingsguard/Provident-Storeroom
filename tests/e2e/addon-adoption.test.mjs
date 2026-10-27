@@ -245,8 +245,27 @@ const NOT_REACHED = [
 // `ada_the_named_sites_lose_offline_and_keep_manifest_path`'s site-10 block.**
 const OFFLINE_SITES_THAT_MOVE = [
   { id: 5, file: 'package.json', anchors: [11], halves: 'second', subject: "the `build` script's SECOND half" },
-  { id: 6, file: 'bindings/js/README.md', anchors: [188, 234], twice: true, subject: 'the build form, twice' },
-  { id: 7, file: 'bindings/js/README.md', anchors: [221], subject: 'the test form' },
+  // **⟶ RE-DERIVED 2026-10-26: SITES `6` AND `7` CARRY `find` AND NOT `anchors`, FOR THE REASON SITE `10`
+  // ALREADY CARRIES IT — A LINE NUMBER IS AN ADDRESS IN A FILE THAT MAY BE EDITED** (`D-17`'s own defect class,
+  // whose first occurrence at site `10` is recorded above). **The shipped README was REWRITTEN this date to the
+  // surface the module actually publishes, and its build form and test form MOVED DOWN THE SAME FILE without a
+  // byte of either command changing.** The cell's subject — *the build form, twice*, and *the test form* — and
+  // every property it asserts (`--manifest-path` present, `--offline` absent, at every occurrence) are UNMOVED;
+  // **what moves is the ADDRESS, from two line numbers to the commands themselves**, exactly as site `10`'s
+  // was. **NO ASSERTION IS WEAKENED AND NO OCCURRENCE IS DROPPED: the locator returns EVERY line carrying the
+  // command, so the duplicated build form is still read TWICE and is now read twice BY CONSTRUCTION.**
+  {
+    id: 6,
+    file: 'bindings/js/README.md',
+    find: /^ *cargo build --release --manifest-path bindings\/js\/Cargo\.toml$/,
+    subject: 'the build form, twice',
+  },
+  {
+    id: 7,
+    file: 'bindings/js/README.md',
+    find: /^ *cargo test +--manifest-path tests\/Cargo\.toml/,
+    subject: 'the test form',
+  },
   { id: 8, file: '.github/workflows/publish.yml', anchors: [171], subject: 'the test leg' },
   { id: 9, file: '.github/workflows/publish.yml', anchors: [174], subject: 'the build leg' },
   {

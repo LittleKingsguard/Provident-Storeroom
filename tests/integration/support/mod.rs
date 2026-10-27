@@ -495,7 +495,10 @@ pub fn assert_code(e: &StoreError, expected: &str, clause: &str) {
 /// **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
 /// both S/N"*): `[&str; 19]`, the two appended terms being `ConstraintBodyThrew` at rank `18` and
 /// `ConstraintRefusedAtRegistration` at rank `19`, with NO RANK OF `1`…`17` MOVING.**
-pub const CLOSED_CODES: [&str; 19] = [
+/// **⟶ AND RE-DERIVED AGAIN 2026-10-26 (`DEF-H`/`DEF-W`; the architect, verbatim: *"Expand the returned
+/// fail-state list to include the refusal"* and *"Assert the constraints on rollback"*): `[&str; 20]`, the
+/// appended term being `ConstraintPassRefused` at rank `20`, with NO RANK OF `1`…`19` MOVING.**
+pub const CLOSED_CODES: [&str; 20] = [
     "AddressMalformed",
     "AddressNotFound",
     "LeafHasNoDownstream",
@@ -516,6 +519,8 @@ pub const CLOSED_CODES: [&str; 19] = [
     // ⟶ APPENDED 2026-10-26 (`DEF-S`, `DEF-N`; the ruling on the downstream claims).
     "ConstraintBodyThrew",
     "ConstraintRefusedAtRegistration",
+    // ⟶ APPENDED 2026-10-26 (`DEF-H`, `DEF-W`; the ruling on the refusal and the reversal).
+    "ConstraintPassRefused",
 ];
 
 /// The read's convenience form: an unqualified read (`§2.3`'s zero-tier arm).

@@ -1048,6 +1048,8 @@ test('register_js_side_three_rows_are_executed_with_strategy_ids_and_verdicts', 
     'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
     'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
   'ValueRefusedAtBoundary', 'ConstraintBodyThrew', 'ConstraintRefusedAtRegistration',
+  // ⟶ APPENDED 2026-10-26 (`DEF-H`, `DEF-W`): rank `20`, the ONE status a CONSTRAINT REFUSAL answers with.
+  'ConstraintPassRefused',
   ];
   const formSites = [
     ['a VERB', () => mem().read(['gone'])],

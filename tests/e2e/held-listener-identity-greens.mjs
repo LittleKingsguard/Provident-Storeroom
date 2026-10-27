@@ -33,11 +33,17 @@ const KERNEL_ITEMS = ['commit', 'log', 'register', 'remove', 'report', 'runAttem
 const KC_SET = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8'];
 // surface.md §2.5 item 4 / item 9: the crossed failure form, three members, `log` on every arm.
 const FORM_MEMBERS = 'log,message,status';
-// store contract §8.1's closed 16-member set, at its canonical rank order.
+// **⟶ RE-DERIVED 2026-10-26: store contract §8.1's closed set at its canonical rank order, and the figure is
+// TWENTY, not the sixteen this line printed** — `A148` Q3 appended rank `17`, the `DEF-S`/`DEF-N` ruling
+// appended `18` and `19`, and the `DEF-H`/`DEF-W` ruling appended rank `20` (`ConstraintPassRefused`, the ONE
+// status a CONSTRAINT REFUSAL answers with), with `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓ and NO RANK OF
+// `1`…`19` MOVING. **A membership test read off a superseded census answers `false` for a lawful member — the
+// drift this constant exists to prevent — and the count's own title moves with it.**
 const CLOSED_SET = ['AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
   'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
-  'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid'];
+  'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid', 'ValueRefusedAtBoundary',
+  'ConstraintBodyThrew', 'ConstraintRefusedAtRegistration', 'ConstraintPassRefused'];
 const PLACEHOLDER_TOKENS = ['<SEGMENT>', '<CONTAINER>', '<mismatch clause>', '<available clause>',
   '<CONTAINERSEGMENT>', '<KEYLIST>', '<TIERLIST>', '<DOMAINLIST>', '<arguments>', '<argument-name>', '<TRAITS>'];
 

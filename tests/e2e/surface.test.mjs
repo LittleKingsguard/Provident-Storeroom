@@ -54,6 +54,10 @@ const THE_SIXTEEN = [
   // `ConstraintRefusedAtRegistration` (the REGISTRATION VERDICT) — and no rank of `1`…`17` moves.
   'ConstraintBodyThrew',
   'ConstraintRefusedAtRegistration',
+  // ⟶ APPENDED 2026-10-26 (`DEF-H`/`DEF-W`; the architect, verbatim: *"Expand the returned fail-state list to
+  // include the refusal"* and *"Assert the constraints on rollback"*): rank `20`, the ONE status a CONSTRAINT
+  // REFUSAL answers with, and no rank of `1`…`19` moves.
+  'ConstraintPassRefused',
 ];
 
 function mem(listeners = []) {

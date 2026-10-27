@@ -38,8 +38,16 @@ export function commitPositionRefusal(commit) {
       if (Object.hasOwn(commit, 'pending') && pending !== undefined) return null;
     }
   }
+  // **⟶ THE ORDINAL IS CORRECTED 2026-10-26, AND IT IS A SHIPPED DIAGNOSTIC: THIS SENTENCE READ *"the write's
+  // fifth argument"* FOR A PARAMETER THAT STANDS AT THE FOURTH POSITION.** The FIVE was the count of the
+  // MODULE-era spelling `write(instance, address, tier, value, commit?)`, whose dropped leading `instance`
+  // position (`A127`'s receiver rule) made the commit the FOURTH of the method: `write(address, tier, value,
+  // commit?)` (`bindings/js/index.d.ts`, the `write` member's own clause: *"the commit, at the FOURTH
+  // position of the METHOD, which is the position the `instance`-leading spelling made FIVE (`A124`)"*).
+  // **THE CLASS TEST, ITS ANSWER, ITS INSTANT AND ITS FORM ARE UNMOVED — the word is the whole of the
+  // change, and a caller who reads the message is now told which position to look at.**
   return new TypeError(
-    `the write's fifth argument is ${classSpelling(commit)}, and the commit position takes an object `
+    `the write's fourth argument is ${classSpelling(commit)}, and the commit position takes an object `
     + 'carrying a `pending` member',
   );
 }

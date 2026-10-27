@@ -96,6 +96,9 @@ const CLOSED_SET = [
   'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
   'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
   'ValueRefusedAtBoundary',
+  // ⟶ **WIDENED 2026-10-26 (`DEF-S`, `DEF-N`, then `DEF-H`, `DEF-W`)**: ranks `18`, `19` and `20`, carried and
+  // never minted (`§0.1` item 7); the set is the store's own at `20` ✓ and no assertion is weakened.
+  'ConstraintBodyThrew', 'ConstraintRefusedAtRegistration', 'ConstraintPassRefused',
 ];
 const ARM_STATUS = 'FilePathUnreachable';
 const GEN_TAIL = 'is not reachable at construction, the path must exist or the application must be able to write it';

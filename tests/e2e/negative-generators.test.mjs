@@ -146,6 +146,13 @@ const THE_CLOSED_STATUS_SET = [
   'FileCommitFailed',
   'ConstraintListInvalid',
   'ValueRefusedAtBoundary',
+  // ⟶ APPENDED 2026-10-26 (`DEF-S`, `DEF-N`): ranks `18` and `19`.
+  'ConstraintBodyThrew',
+  'ConstraintRefusedAtRegistration',
+  // ⟶ APPENDED 2026-10-26 (`DEF-H`, `DEF-W`): rank `20` — the ONE status a CONSTRAINT REFUSAL answers with,
+  // at a write's attempt and at a reversal whose terminal state a registered constraint refuses. No rank of
+  // `1`…`19` moves and `FileCommitFailed` keeps `15` as the SAVE's code alone.
+  'ConstraintPassRefused',
 ];
 
 // =============================================================================================

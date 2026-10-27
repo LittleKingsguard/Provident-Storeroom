@@ -125,6 +125,14 @@ const CLOSED_SET = [
   // them.**
   'ConstraintBodyThrew',
   'ConstraintRefusedAtRegistration',
+  // ⟶ **WIDENED AGAIN 2026-10-26 (`DEF-H`/`DEF-W`; the architect, verbatim: *"Expand the returned fail-state
+  // list to include the refusal"* and *"Assert the constraints on rollback"*): RANK `20`,
+  // `ConstraintPassRefused`** — THE ONE STATUS A CONSTRAINT REFUSAL ANSWERS WITH, at the write's attempt and at
+  // a reversal whose terminal state a registered constraint refuses — **APPENDED, NO RANK OF `1`…`19` MOVING**
+  // (`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓). The census this array feeds is `JSG-10.19`'s, which asserts
+  // that no code the package answers falls outside the set — **and the package now answers this one, so a
+  // census that kept `19` would report a lawful status as a finding.**
+  'ConstraintPassRefused',
 ];
 const INTERNAL_FIVE = ['version', 'errorMessage', 'storeCreate', 'call', 'register'];
 const PLACEHOLDER_TOKENS = ['<SEGMENT>', '<CONTAINER>', '<mismatch clause>', '<available clause>',

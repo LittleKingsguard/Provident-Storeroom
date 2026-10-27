@@ -796,6 +796,21 @@ export function constraintWrite(state, instance, address, tier, value) {
 ///   them — the attempt's log where this write's own attempt holds one, and `[]` where it does not (a `K-2`
 ///   the store refused opened no attempt, so there is no attempt at all — `docs/specs/storeroom-js/surface.md §2.5` item 4).
 ///
+/// **⟶ AMENDED 2026-10-26 — `DEF-H`: THE `KC`-TOKEN ARM'S `status` IS THE SET'S RANK-`20` MEMBER
+/// `ConstraintPassRefused`, NOT THE STORE'S SAVE CODE.** **THE RULING IS THE ARCHITECT'S, VERBATIM: *"Expand
+/// the returned fail-state list to include the refusal"*** (`strata/decisions.md` · `D-38`), **and it
+/// falsifies the reason this block has given since 2026-10-16:** *"no caller-side status can carry a `KC`
+/// token"* was TRUE while the set's last member was a store trigger; it is FALSE now that the set carries
+/// members the PACKAGE selects (rank `17`'s boundary refusal, ranks `18`/`19`'s, and this one). **THE TOKEN
+/// STILL DOES NOT ENTER `status`** — it continues to ride the attempt's own `outcome` entry's `state` in the
+/// `log`, which is `D-38`'s own reading: *"the token continues to ride `log[].state` where it already does,
+/// and the status stops lying about which layer failed"*. **`FileCommitFailed` STAYS THE SAVE'S CODE AND IS
+/// PRODUCED BY SAVE FAILURES ONLY** (`D-38`'s `DEF-H` reading of its own `(g)`), **and ONE member serves every
+/// `KC` token rather than one member per token** — *"ONE status for the refusal, not one per `KC` token"*.
+/// **THE CLAUSES ABOVE STAND BYTE-FOR-BYTE AND ARE READ THROUGH THIS ONE; the store verb's own arm below is
+/// UNMOVED, the message the kernel composed is UNMOVED, and the `log` is UNMOVED.** **NO OTHER ARM OF THIS
+/// FILE CHANGES ITS STATUS, MESSAGE OR LOG ON THIS DATE.**
+///
 /// **AND THE TIMING TRAP IS HONOURED, WHICH IS THE WHOLE OF ITEM 10 (iii): `log` IS TAKEN BEFORE THE
 /// ATTEMPT IS DISPOSED OF, NOT AFTER.** The kernel's terminal act has already run when this frame is
 /// reached (its `refuse` was thrown WITH the log in hand, `constraint-kernel.mjs`'s `refuse`), so the list
@@ -828,7 +843,7 @@ export function constraintWrite(state, instance, address, tier, value) {
 /// module-private `WeakSet`** — `kernelRefusals` above — **and this frame asks whether the handed value IS
 /// ONE OF THOSE VALUES, never whether it LOOKS LIKE one.** A caller cannot forge membership of a set it
 /// cannot reach, so:
-/// * a `KC`-token value the kernel built → **the kernel's arm**, and `FileCommitFailed` crossings below;
+/// * a `KC`-token value the kernel built → **the kernel's arm**, and the rank-`20` crossing below;
 /// * a store verb's own refusal (built by the addon, carrying the store's code) → the store's arm below;
 /// * **EVERYTHING ELSE IS THE CALLER'S AND CROSSES AS ITSELF** — a forged three-member object, a forged
 ///   two-member object, a `TypeError`, a bare string, `undefined` — `caught === thrown` on all of them.
@@ -905,10 +920,19 @@ function isKernelBuiltRefusal(value) {
 /// out of the generator's own sentence.
 const CONSTRAINT_BODY_THREW_ENTRY = Symbol.for('provident-storeroom.constraint-body-threw');
 
-/// **THE SET'S EIGHTEENTH MEMBER, SPELLED ONCE** (`src/error.rs`'s `CODES`, `[&str; 19]`, rank `18`; `§8.1`
+/// **THE SET'S EIGHTEENTH MEMBER, SPELLED ONCE** (`src/error.rs`'s `CODES`, `[&str; 20]`, rank `18`; `§8.1`
 /// #18 and `§8.2`'s row of 2026-10-26). **THE STATUS IS A MEMBER OF THE STORE'S CLOSED SET AND IS NEVER
 /// MINTED HERE** (`DD-40`).
 const BODY_THREW_STATUS = 'ConstraintBodyThrew';
+
+/// **THE SET'S TWENTIETH MEMBER, SPELLED ONCE** (`src/error.rs`'s `CODES`, `[&str; 20]`, rank `20`; `§8.1` #20
+/// and `§8.2`'s row of 2026-10-26). **THE ONE STATUS A CONSTRAINT REFUSAL ANSWERS WITH, AT BOTH OF ITS ARMS** —
+/// a `KC`-tokened refusal of a write's attempt (`DEF-H`) and a reversal whose terminal state a registered
+/// constraint refuses (`DEF-W`) — **and it is ONE member for all eight tokens** (`D-38`: *"ONE status for the
+/// refusal, not one per `KC` token"*). **IT IS SELECTED HERE AND MINTED NOWHERE** (`DD-40`): the token
+/// continues to ride the attempt's `outcome` entry's `state`, and `FileCommitFailed` is the SAVE's code, minted
+/// by save failures only.
+const CONSTRAINT_PASS_REFUSED = 'ConstraintPassRefused';
 
 /// **WHETHER THE HANDED VALUE CARRIES THE KERNEL'S BODY-THROW MARK, AND WHAT THE MARK CARRIES** — the mark's
 /// presence is the identity and the record under it is the two slots the generator's sentence needs. **A
@@ -991,12 +1015,14 @@ function constraintCrossing(refusal) {
     };
   }
   // **THE KERNEL'S OWN `KC` REFUSAL.** Its `{status, message, log}` is the KERNEL'S OWN three-member form
-  // (`docs/specs/storeroom-constraints/fail-surface.md §1.1`), and it crosses with the STORE's
-  // `FileCommitFailed` in `status` because no caller-side status can carry a `KC` token and a
-  // constraint-refused write is a commit that did not stand: **the kernel token does NOT enter `status`, and
-  // the `log` it carries is the attempt's, VERBATIM.**
+  // (`docs/specs/storeroom-constraints/fail-surface.md §1.1`), and **⟶ FROM 2026-10-26 IT CROSSES WITH THE
+  // SET'S RANK-`20` MEMBER IN `status`, NOT WITH THE STORE'S `FileCommitFailed`** (`DEF-H`; the architect,
+  // verbatim: *"Expand the returned fail-state list to include the refusal"*; `strata/decisions.md` · `D-38`).
+  // **THE TOKEN STILL DOES NOT ENTER `status`** — it is on the attempt's own `outcome` entry's `state` in the
+  // `log`, which is `D-38`'s reading — **AND `FileCommitFailed` IS NOW THE SAVE'S CODE ALONE, minted by save
+  // failures only.** The message is the kernel's own, UNMOVED; the `log` is the attempt's, VERBATIM.
   throw {
-    status: 'FileCommitFailed',
+    status: CONSTRAINT_PASS_REFUSED,
     message: typeof refusal.message === 'string'
       ? refusal.message
       : 'the write was refused by a constraint of this attempt',

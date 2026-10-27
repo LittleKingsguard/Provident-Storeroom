@@ -214,6 +214,12 @@ const CLOSED_SET = [
   'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
   'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
   'ValueRefusedAtBoundary',
+  // ⟶ **WIDENED 2026-10-26 (`DEF-S`, `DEF-N`, then `DEF-H`, `DEF-W`)**: ranks `18`, `19` and `20`. This list is
+  // carried and never minted (`§0.1` item 7), and the cell that reads it asserts that EVERY member is
+  // DISCOVERABLE in the published type — so a census that stopped at `17` would silently stop checking three
+  // lawful members. **No assertion is weakened: the set is the store's own, at `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1
+  // + 1 = 20` ✓.**
+  'ConstraintBodyThrew', 'ConstraintRefusedAtRegistration', 'ConstraintPassRefused',
 ];
 // `§1.4` item 1 — the arm's status, carried VERBATIM, and the ONE member this unit's arm may carry.
 const ARM_STATUS = 'FilePathUnreachable';

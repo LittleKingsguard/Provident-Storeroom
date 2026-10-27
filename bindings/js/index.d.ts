@@ -299,6 +299,19 @@ export interface StoreConfig {
  * KEEPS rank `16` AND ITS OWN TRIGGER** — the malformed entry — because `DEF-N`'s arm is a WELL-FORMED pair
  * refused by its own body's verdict, which that member's generated sentence names as a shape failure and
  * which is therefore the wrong code for it.
+ *
+ * **⟶ AND AMENDED AGAIN 2026-10-26, BY THE ARCHITECT'S RULING ON THE DOWNSTREAM CLAIMS `DEF-H` AND `DEF-W`,
+ * VERBATIM: *"Expand the returned fail-state list to include the refusal"* and *"Assert the constraints on
+ * rollback"*** (`strata/decisions.md` · `D-38`). **THE SET IS TWENTY, RANKED `1`…`20`, AND THE APPENDED TERM
+ * IS `ConstraintPassRefused` AT RANK `20`** — **the ONE member a CONSTRAINT REFUSAL answers with**, *"ONE
+ * status for the refusal, not one per `KC` token"*, whose token continues to ride the attempt's own
+ * `outcome` entry's `state` inside the failure's `log`. **NO RANK OF `1`…`19` MOVES, the algebra reads
+ * `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓, and the escape arm `(string & {})` still stands EXACTLY
+ * ONCE, after the members.** **`FileCommitFailed` KEEPS RANK `15` AND IS NOW THE SAVE'S CODE ALONE** — *"a
+ * constraint-refused write is a commit that did not stand"* was the ground for reusing it and `D-38`
+ * falsifies it — **so `write`'s and `rollback`'s refusal paths may no longer answer it and the `file` tier's
+ * own failing save still does.** **IT IS THE MEMBER THIS DECLARATION PUBLISHES FOR THE REFUSAL, WHICH IS WHAT
+ * MAKES THE UNION HONEST ABOUT WHICH LAYER FAILED RATHER THAN A WIDENING FOR ITS OWN SAKE.**
  */
 export type StoreStatus =
   | 'AddressMalformed'
@@ -320,6 +333,7 @@ export type StoreStatus =
   | 'ValueRefusedAtBoundary'
   | 'ConstraintBodyThrew'
   | 'ConstraintRefusedAtRegistration'
+  | 'ConstraintPassRefused'
   | (string & {});
 
 /**

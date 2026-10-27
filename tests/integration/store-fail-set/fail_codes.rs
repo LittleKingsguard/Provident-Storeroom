@@ -716,14 +716,18 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
     // `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓ — the six terms this drive printed stand exactly as filed and
     // the two appended terms are the body-throw arm (rank `18`) and the registration-verdict arm (rank `19`).
     // NO RANK OF `1`…`17` MOVES.**
+    // **⟶ AND RE-DERIVED AGAIN 2026-10-26 (`DEF-H`/`DEF-W`; the architect, verbatim: *"Expand the returned
+    // fail-state list to include the refusal"* and *"Assert the constraints on rollback"*): THE SET CARRIES
+    // TWENTY MEMBERS, RANKED `1`…`20`, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓, the appended term being
+    // the constraint PASS's refusal at rank `20`. NO RANK OF `1`…`19` MOVES.**
     assert_eq!(
         distinct.len(),
-        19,
-        "§8.1: the set carries 19 members, ranked 1…19 (`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓ — the \
+        20,
+        "§8.1: the set carries 20 members, ranked 1…20 (`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓ — the \
          as-filed `11 + 2 + 1 + 1 = 15` counted the amended heading's own members one short; AMENDED \
          2026-10-15, `DEF-2026-10-15-Y`; WIDENED 2026-10-23 by `A148` Q3 with `ValueRefusedAtBoundary` at \
-         rank 17; WIDENED 2026-10-26 on the ruling for `DEF-S`/`DEF-N` with `ConstraintBodyThrew` at 18 and \
-         `ConstraintRefusedAtRegistration` at 19)"
+         rank 17; WIDENED 2026-10-26 on the rulings for `DEF-S`/`DEF-N` with `ConstraintBodyThrew` at 18 and \
+         `ConstraintRefusedAtRegistration` at 19, and for `DEF-H`/`DEF-W` with `ConstraintPassRefused` at 20)"
     );
     assert!(
         distinct.contains(&"ConstraintBodyThrew"),
@@ -756,6 +760,12 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
         "§8.1 #17: THE SEVENTEENTH MEMBER IS IN THE CLOSED SET — the package's own boundary refusal for \
          the sixteen classes outside the crossing's admitted tree (`A148` Q3; 2026-10-23)"
     );
+    assert!(
+        distinct.contains(&"ConstraintPassRefused"),
+        "§8.1 #20: `DEF-H`'s and `DEF-W`'s member — the ONE status a CONSTRAINT REFUSAL answers with, at a \
+         write's attempt and at a reversal whose terminal state a registered constraint refuses — is IN the \
+         closed set, and the SAVE's code `FileCommitFailed` (rank 15) is never it (2026-10-26)"
+    );
     let expected_ranks = [
         "AddressMalformed",
         "AddressNotFound",
@@ -777,15 +787,18 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
         // ⟶ APPENDED 2026-10-26 (`DEF-S`, `DEF-N`; the ruling on the downstream claims).
         "ConstraintBodyThrew",
         "ConstraintRefusedAtRegistration",
+        // ⟶ APPENDED 2026-10-26 (`DEF-H`, `DEF-W`; the ruling on the refusal and the reversal).
+        "ConstraintPassRefused",
     ];
     assert_eq!(
         CLOSED_CODES.to_vec(),
         expected_ranks.to_vec(),
         "§8.1's own rank order: `FilePathUnreachable` at `13`, `ValueNotAdmitted` at `14`, \
          `FileCommitFailed` at `15`, `ConstraintListInvalid` at `16`, `ValueRefusedAtBoundary` at `17`, \
-         `ConstraintBodyThrew` at `18` and `ConstraintRefusedAtRegistration` LAST at `19` — no existing \
-         rank moves (AMENDED 2026-10-15, `DEF-2026-10-15-Y`; WIDENED 2026-10-23, `A148` Q3; WIDENED \
-         2026-10-26, the `DEF-S`/`DEF-N` ruling)"
+         `ConstraintBodyThrew` at `18`, `ConstraintRefusedAtRegistration` at `19` and \
+         `ConstraintPassRefused` LAST at `20` — no existing rank moves (AMENDED 2026-10-15, \
+         `DEF-2026-10-15-Y`; WIDENED 2026-10-23, `A148` Q3; WIDENED 2026-10-26, the `DEF-S`/`DEF-N` and \
+         `DEF-H`/`DEF-W` rulings)"
     );
 }
 

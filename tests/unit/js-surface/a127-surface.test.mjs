@@ -124,6 +124,9 @@ const THE_SIXTEEN = [
   // ⟶ APPENDED 2026-10-26 (`DEF-S`, `DEF-N`).
   'ConstraintBodyThrew',
   'ConstraintRefusedAtRegistration',
+  // ⟶ APPENDED 2026-10-26 (`DEF-H`, `DEF-W`; *"Expand the returned fail-state list to include the refusal"*,
+  // *"Assert the constraints on rollback"*): rank `20`, the ONE status a CONSTRAINT REFUSAL answers with.
+  'ConstraintPassRefused',
 ];
 
 /** A `mem`-register store — `cfg.filePath` ABSENT is IN DOMAIN (`PAR-JS-2`, `surface.md §2.1`). */

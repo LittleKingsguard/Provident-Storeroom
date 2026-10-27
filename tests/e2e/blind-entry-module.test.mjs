@@ -110,15 +110,22 @@ const FOURTEEN = [
   'removeConstraint',
 ];
 
-/** The store's closed set as the declaration enumerates it: NINETEEN literals ranked `1`…`19`, with
- *  `ValueRefusedAtBoundary` at `17`, `ConstraintBodyThrew` at `18` and `ConstraintRefusedAtRegistration` at
- *  `19` appended last, and the `(string & {})` escape arm after them.
+/** The store's closed set as the declaration enumerates it: TWENTY literals ranked `1`…`20`, with
+ *  `ValueRefusedAtBoundary` at `17`, `ConstraintBodyThrew` at `18`, `ConstraintRefusedAtRegistration` at
+ *  `19` and `ConstraintPassRefused` at `20` appended last, and the `(string & {})` escape arm after them.
  *
  *  **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
  *  both S/N"*).** The array's name, its figure and the cell's title move together, because a blind census
  *  that kept `17` would be asserting the superseded set: **no rank of `1`…`17` moves, and the two appended
- *  terms are the body-throw arm and the registration-verdict arm.** */
-const NINETEEN = [
+ *  terms are the body-throw arm and the registration-verdict arm.**
+ *
+ *  **⟶ AND RE-DERIVED AGAIN 2026-10-26 (`DEF-H`/`DEF-W`; the architect, verbatim: *"Expand the returned
+ *  fail-state list to include the refusal"* and *"Assert the constraints on rollback"*).** The name, the
+ *  figure and the title move together again, for the same reason: the appended term is `ConstraintPassRefused`
+ *  at rank `20` — the ONE member a CONSTRAINT REFUSAL answers with, at the write's attempt (`DEF-H`) and at a
+ *  reversal whose terminal state a registered constraint refuses (`DEF-W`) — **no rank of `1`…`19` moves, and
+ *  `FileCommitFailed` keeps rank `15` as the SAVE's code.** */
+const TWENTY = [
   'AddressMalformed',
   'AddressNotFound',
   'LeafHasNoDownstream',
@@ -139,6 +146,8 @@ const NINETEEN = [
   // ⟶ APPENDED 2026-10-26 (`DEF-S`, `DEF-N`; the architect's ruling on the downstream claims).
   'ConstraintBodyThrew',
   'ConstraintRefusedAtRegistration',
+  // ⟶ APPENDED 2026-10-26 (`DEF-H`, `DEF-W`; the ruling on the refusal and on the reversal).
+  'ConstraintPassRefused',
 ];
 
 // ---------------------------------------------------------------------------------------------
@@ -300,10 +309,11 @@ test('entry-module · index.d.ts `Handle` and `Listener` · the handle is a `str
 
 // **⟶ THE TITLE MOVES WITH THE COUNT, 2026-10-26** (`DEF-S`/`DEF-N`; *"Expand the returned error set for both
 // S/N"*): the set the declaration publishes is `19`; the cells below are the same reads and their
-// expectations are the ruling's.
-test('entry-module · index.d.ts `StoreStatus` · THE CLOSED SET READS NINETEEN LITERALS RANKED `1`…`19`, the last two being `ConstraintBodyThrew` and `ConstraintRefusedAtRegistration`, and the `(string & {})` ESCAPE ARM STANDS AFTER THEM', () => {
-  assert.deepEqual(statusLiterals(), NINETEEN);
-  assert.equal(NINETEEN.length, 19);
+// expectations are the ruling's. **AND IT MOVES AGAIN WITH THE NEXT COUNT** (`DEF-H`/`DEF-W`; *"Expand the
+// returned fail-state list to include the refusal"*): the declaration publishes `20`.
+test('entry-module · index.d.ts `StoreStatus` · THE CLOSED SET READS TWENTY LITERALS RANKED `1`…`20`, the last three being `ConstraintBodyThrew`, `ConstraintRefusedAtRegistration` and `ConstraintPassRefused`, and the `(string & {})` ESCAPE ARM STANDS AFTER THEM', () => {
+  assert.deepEqual(statusLiterals(), TWENTY);
+  assert.equal(TWENTY.length, 20);
   assert.match(DECLARATION, /\| \(string & \{\}\);/);
 });
 

@@ -383,6 +383,19 @@ state the addressed subtree now stands at, `{ present, value }`.**
   is ONE predicate with TWO grounds** — compressed into the base state, or undone by a rollback — **and the record
   carries no member to tell them apart** (`write-and-read.md §6.4` `M-9`).
 
+**★ A REVERSAL IS ALSO JUDGED BY YOUR CONSTRAINTS — AT THE STATE IT LEAVES, AND THAT ARM IS DECLARED BUT NOT
+YET CARRIED, WHICH THIS GUIDE SAYS PLAINLY RATHER THAN LETTING YOU DISCOVER IT.** **The ruling** (`D-38`,
+verbatim: *"Assert the constraints on rollback"*) **makes a `rollback` whose TERMINAL state violates a registered
+constraint FAIL, answering `{status: 'ConstraintPassRefused', message, log}` at rank `20` — the same member a
+constraint-refused `write` answers (`§8.1`).** **IT IS JUDGED AT THE TERMINAL STATE AND NEVER PER UNWINDING
+STEP**, because a per-step check is unsound: a reversal passes through intermediate states no constraint would
+approve, and only the state you are left standing in is a state a constraint can be asked about. **A LAWFUL
+REVERSAL IS UNCHANGED** — same `{opId, undoneOps, restoredTo}`, no status and no throw. **MEASURED 2026-10-26:
+the shipped `rollback` still consults no constraint** — a refusal registered over the address a reversal
+restores is not evaluated, and the reversal succeeds — **so treat this paragraph as the ruling's declaration
+and NOT as today's behaviour**; the arm's carrier is owed at the `rollback` member and is the only part of this
+guide's constraint story that is not yet observable.
+
 ---
 
 ## §6 · Watching for changes: the listener surface
@@ -672,7 +685,21 @@ failing trigger's arguments and never hand-authored at a call site
 (`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-native/seams-and-lifecycle.md §8.2`, archived);
 **`index.d.ts` carries both, verbatim from the store.**
 
-### §8.1 The set is NINETEEN and open by design
+### §8.1 The set is TWENTY and open by design
+
+**⟶ RE-DERIVED AGAIN 2026-10-26 — THE SET IS TWENTY, ON THE ARCHITECT'S TWO RULINGS, VERBATIM: *"Expand the
+returned fail-state list to include the refusal"* and *"Assert the constraints on rollback"*.** **`StoreStatus`
+carries TWENTY members, plus the open escape arm `(string & {})`** — ranks `1`…`19` stand exactly as the two
+paragraphs below print them, and **the appended term is `ConstraintPassRefused` at rank `20`: THE ONE STATUS A
+CONSTRAINT REFUSAL ANSWERS WITH.** **Two arms and one member:** a `write` whose registered constraint refuses it
+(`{status: 'ConstraintPassRefused', message, log}`, with the kernel's own token still riding the attempt's
+`log[].state` — `KC-3`, `KC-5`, `KC-6`, `KC-8` as the case is), **and** a `rollback` whose terminal state a
+registered constraint refuses (`§5.4`). **`FileCommitFailed` KEEPS rank `15` AND IS NOW THE **SAVE'S** CODE
+ALONE** — it is produced by a failing `file`-tier save and by nothing else — **so a constraint refusal never
+answers it again**, and the status stops naming a layer that did not fail. The algebra reads
+`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓. **Every paragraph and every table row below is the reading of its
+own date and is read THROUGH this clause** (the guide's figures move with the set's own membership, which is
+this section's own rule).
 
 **⟶ RE-DERIVED 2026-10-26 TO THE ARCHITECT'S RULING AND NOT TO THE BYTES** (`DEF-S` and `DEF-N`; the architect,
 verbatim: *"Expand the returned error set for both S/N"*). **`StoreStatus` carries NINETEEN members, plus the open
@@ -699,6 +726,7 @@ BEFORE the escape arm**, and `ConstraintListInvalid` stands at rank `16`. **The 
 | 12–16 | `ConstructionArgumentMissing` · `FilePathUnreachable` · `ValueNotAdmitted` · `FileCommitFailed` · `ConstraintListInvalid` |
 | 17 | `ValueRefusedAtBoundary` |
 | 18–19 | `ConstraintBodyThrew` · `ConstraintRefusedAtRegistration` (`DEF-S`, `DEF-N`, 2026-10-26) |
+| 20 | `ConstraintPassRefused` (`DEF-H`, `DEF-W`, 2026-10-26) — a constraint's refusal of a `write`, and of a `rollback` whose terminal state it refuses |
 | escape | `(string & {})` |
 
 **THE ESCAPE ARM IS LOAD-BEARING RATHER THAN LOOSENESS.** The store's set has already moved three times — fourteen

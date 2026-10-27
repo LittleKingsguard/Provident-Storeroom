@@ -30,18 +30,25 @@
 import assert from 'node:assert/strict';
 import { storeCreate } from '../../../bindings/js/index.mjs';
 
-/// **The store's closed NINETEEN-member set, read and never minted** (`constraint-sites.md §6 item 1`).
+/// **The store's closed TWENTY-member set, read and never minted** (`constraint-sites.md §6 item 1`).
 ///
 /// **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
 /// both S/N"*): `19` members, ranks `1`…`19`, the two appended terms being `ConstraintBodyThrew` at `18` and
 /// `ConstraintRefusedAtRegistration` at `19`, with NO RANK OF `1`…`17` MOVING.** A membership test read off a
 /// stale census would answer `false` for a lawful member — the drift this constant exists to prevent.
+///
+/// **⟶ AND RE-DERIVED AGAIN 2026-10-26 (`DEF-H`/`DEF-W`; the architect, verbatim: *"Expand the returned
+/// fail-state list to include the refusal"* and *"Assert the constraints on rollback"*): `20` members, ranks
+/// `1`…`20`, the appended term being `ConstraintPassRefused` at `20`, with NO RANK OF `1`…`19` MOVING.** The
+/// title above moves with the count, and the reason is the same one: a drive that read the old census would
+/// answer `false` for the member a constraint refusal now answers with.
 export const STORE_CODES = [
   'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch',
   'WriteParentNotLink', 'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing',
   'FilePathUnreachable', 'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
   'ValueRefusedAtBoundary', 'ConstraintBodyThrew', 'ConstraintRefusedAtRegistration',
+  'ConstraintPassRefused',
 ];
 
 /** The eight kernel `KC` tokens — read so a drive can assert a store code is NEVER one of them. */
