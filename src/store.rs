@@ -555,6 +555,16 @@ impl Home {
 #[derive(Clone)]
 struct Captured {
     path: Vec<Segment>,
+    /// **⟶ ADDED 2026-10-27 (THE JOURNAL MARK RESTORE, `§6.6`): THE TIER OF THE VERSION THIS ONE HANGS
+    /// UNDER** — `None` at the operation's OWN node (`path` empty, so there is no enclosing version), and
+    /// `Some(tier)` for every entry beneath it, naming the enclosing version whose node holds the pair.
+    /// **WITHOUT IT A PER-PATH CAPTURE CANNOT SAY WHICH VERSION OF THE PARENT HOLDS THE CHILD**, so a
+    /// subtree standing at DIFFERENT tiers at DIFFERENT depths — a MIXED-DEPTH SHADOW — could only be put
+    /// back under whichever parent version the rebuild happened to pick, and the versions under the others
+    /// were dropped. The restore was measured against exactly that shape (`D-41` item `2`'s *"a shadow
+    /// standing at DIFFERENT tiers at different depths of one branch"*, which the per-tier capture could not
+    /// reach) and this field is what makes it reachable.
+    under: Option<Tier>,
     tier: Tier,
     value: StoreValue,
 }
@@ -573,6 +583,14 @@ struct PairHome {
 struct Entry {
     op: JournalOp,
     captured: Vec<Captured>,
+    /// **⟶ ADDED 2026-10-27 (THE JOURNAL MARK RESTORE, `§6.6`): THE STATE THE OPERATION LEFT** — the same
+    /// per-version, per-tier shape as `captured`, taken the instant the mutation landed. **MEASURED BEFORE IT
+    /// WAS ADDED: the journal held each op's full BEFORE and only a READ-VIEW of its after** (`op.after` is a
+    /// `BaseState` — `present` and the value a `read` answers, which COLLAPSES a shadow's versions into one
+    /// value and says nothing about the versions beneath the addressed node), **so no replay could reproduce
+    /// a state that a `write` could not itself have produced.** With this half the journal records what
+    /// `§6.6` requires of it: every operation's address, its before AND its after, both replayable.
+    after: Vec<Captured>,
     /// The pair the entry's pre-state is measured from, recorded at append time.
     home: Option<PairHome>,
     /// The opIds the journal held COMPACTED at the moment this entry was appended: the marks the entry's
@@ -611,6 +629,13 @@ pub struct Store {
     /// the moment of compression, replacing every compressed entry as the walk's floor.** It begins as the
     /// empty register's read (`{}`) and is re-taken whenever an append compresses an entry.
     base_state: StoreValue,
+    /// **⟶ ADDED 2026-10-27 (THE JOURNAL MARK RESTORE, `§6.6`): THE STATE THE STORE HELD BEFORE ITS FIRST
+    /// JOURNALED OPERATION** — the replay's FLOOR, captured once at construction. **IT IS NOT ALWAYS THE EMPTY
+    /// REGISTER**: a store constructed over an EXISTING FILE boots that image into the `file` tier (`§7.2`
+    /// item 6) and journals NO entry for it, so an empty-register floor would make the replay DROP every
+    /// boot-loaded key. Captured with the same per-version shape the entries carry (`capture_register`), so a
+    /// booted shadow's versions survive the floor as well.
+    born: Vec<Captured>,
 }
 
 /// `§7.1` — **THE CONSTRUCTION, IN THE AMENDMENT'S OWN ORDERED SEQUENCE** (`A49`–`A56`; `§7.1`'s amended
@@ -754,6 +779,10 @@ pub fn storeCreateWithConstraints(
             }
         }
     }
+    // **THE REPLAY'S FLOOR, TAKEN HERE BECAUSE THIS IS THE ONE INSTANT IT IS DEFINED** (`§6.6`): the state the
+    // store holds before any operation it will journal — the booted image where one was loaded, the empty
+    // register where none was. A `file`-tier boot journals nothing (`§7.2` item 6), so nothing else records it.
+    store.born = store.capture_register();
     Ok(store)
 }
 
@@ -856,14 +885,17 @@ fn path_is_reachable(path: &str) -> bool {
 }
 
 impl Store {
-    fn empty(file_path: String, journal_length: usize, register_tier: Tier, home: Home) -> Store {
-        Store {
-            nodes: vec![Node::Branch(0)],
-            links: vec![Link {
+    /// **THE EMPTY REGISTER'S THREE ARENAS, IN ONE PLACE** — the graph a store begins with and the graph a
+    /// mark restore's replay begins from (`§6.6`: the replay starts at the state the journal's record stands
+    /// BEFORE its first entry, which is this one). One constructor for both, so the two can never drift.
+    fn fresh_register(register_tier: Tier) -> (Vec<Node>, Vec<Link>, Vec<NodeRef>) {
+        (
+            vec![Node::Branch(0)],
+            vec![Link {
                 children: Children::map(),
                 is_register: true,
             }],
-            refs: vec![NodeRef {
+            vec![NodeRef {
                 // `§1.6` item 4 (a)/(c)/(d): the register's parent anchor's address IS the empty set and its
                 // own reference carries the register's OWN identity marker (the EMPTY segment marker) and THE
                 // REGISTER'S OWN CONDITIONAL TIER — `file` where the path was provided and passed, `mem`
@@ -882,6 +914,15 @@ impl Store {
                 },
                 node: 0,
             }],
+        )
+    }
+
+    fn empty(file_path: String, journal_length: usize, register_tier: Tier, home: Home) -> Store {
+        let (nodes, links, refs) = Store::fresh_register(register_tier);
+        Store {
+            nodes,
+            links,
+            refs,
             register: 0,
             register_ref: 0,
             journal: Vec::new(),
@@ -890,6 +931,7 @@ impl Store {
             file_path,
             journal_length,
             base_state: StoreValue::Object(BTreeMap::new()),
+            born: Vec::new(),
         }
     }
 
@@ -1522,14 +1564,66 @@ impl Store {
     fn capture(&self, home: &PairHome) -> Vec<Captured> {
         let mut captured = Vec::new();
         for reference in self.refs_at(home.link, &home.key) {
+            let tier = self.refs[reference].anchor.tier;
             captured.push(Captured {
                 path: Vec::new(),
-                tier: self.refs[reference].anchor.tier,
+                under: None,
+                tier,
                 value: self.assemble_all(reference),
             });
-            self.capture_below(reference, Vec::new(), &mut captured);
+            self.capture_below(reference, Vec::new(), tier, &mut captured);
         }
         captured
+    }
+
+    /// **THE WHOLE REGISTER'S STATE, IN THE SAME PER-VERSION SHAPE** — what an operation at the EMPTY address
+    /// leaves and what a mark restore needs to reproduce it (`§6.6`). The empty address names no single pair
+    /// (`pair_home` answers `None` for it), so its paths are ABSOLUTE from the register and its top-level
+    /// entries carry `under: None` exactly as an operation's own node does.
+    fn capture_register(&self) -> Vec<Captured> {
+        let mut captured = Vec::new();
+        for key in self.keys_at(self.register) {
+            for reference in self.refs_at(self.register, &key) {
+                let tier = self.refs[reference].anchor.tier;
+                captured.push(Captured {
+                    path: vec![key.clone()],
+                    under: None,
+                    tier,
+                    value: self.assemble_all(reference),
+                });
+                self.capture_below(reference, vec![key.clone()], tier, &mut captured);
+            }
+        }
+        captured
+    }
+
+    /// Every version standing BELOW one anchor, at every key/index path, with the value that version's
+    /// own subtree reads as at that moment. `under` is the tier of the enclosing version whose node holds
+    /// this level's pairs — the association the restore rebuilds on (`Captured::under`).
+    fn capture_below(
+        &self,
+        reference: usize,
+        path: Vec<Segment>,
+        under: Tier,
+        captured: &mut Vec<Captured>,
+    ) {
+        let Some(link) = self.link_of(reference) else {
+            return;
+        };
+        for key in self.keys_at(link) {
+            let mut child_path = path.clone();
+            child_path.push(key.clone());
+            for child in self.refs_at(link, &key) {
+                let tier = self.refs[child].anchor.tier;
+                captured.push(Captured {
+                    path: child_path.clone(),
+                    under: Some(under),
+                    tier,
+                    value: self.assemble_all(child),
+                });
+                self.capture_below(child, child_path.clone(), tier, captured);
+            }
+        }
     }
 
     /// The pair an operation's address names, where it names one. The EMPTY address names no single pair:
@@ -1555,26 +1649,6 @@ impl Store {
         })
     }
 
-    /// Every version standing BELOW one anchor, at every key/index path, with the value that version's
-    /// own subtree reads as at that moment.
-    fn capture_below(&self, reference: usize, path: Vec<Segment>, captured: &mut Vec<Captured>) {
-        let Some(link) = self.link_of(reference) else {
-            return;
-        };
-        for key in self.keys_at(link) {
-            let mut child_path = path.clone();
-            child_path.push(key.clone());
-            for child in self.refs_at(link, &key) {
-                captured.push(Captured {
-                    path: child_path.clone(),
-                    tier: self.refs[child].anchor.tier,
-                    value: self.assemble_all(child),
-                });
-                self.capture_below(child, child_path.clone(), captured);
-            }
-        }
-    }
-
     /// The restore the rollback and the `file` tier's automatic rollback run (`§6.4`, `§7.2` item 3). It
     /// re-mints EVERY captured version at its OWN tier — the addressed node's own version set AND every
     /// version beneath it — so the subtree comes back whole and `§3.5`'s *"byte-identical to its state
@@ -1595,9 +1669,19 @@ impl Store {
     }
 
     /// Rebuild the pair a level walks, and — beneath it — every captured path, each at its OWN tier. Each
-    /// level clears every pair it walks and its own pair, THEN writes its version set and recurses into the
-    /// child pair the write just created — so each descendant version is written on the link its own
-    /// ancestor version actually holds, never on a link the rebuilt tree has left behind.
+    /// level clears the pair it walks, THEN writes its own version set and recurses into the child pairs
+    /// those versions hold — so each descendant version is written on the node of the PARENT VERSION it hung
+    /// under, never on a node the rebuilt tree has left behind.
+    ///
+    /// **⟶ CORRECTED 2026-10-27 WITH THE MARK RESTORE (`§6.6`), AND THE DEFECT IT CORRECTS WAS MEASURED.**
+    /// The child-level lookup stood as `refs_at(base, &last)` — the ENCLOSING CONTAINER's own pairs — so a
+    /// captured child version was only ever found when its key also stood at that same container, which for
+    /// a nested path is never. **A subtree whose nodes stood at DIFFERENT tiers at DIFFERENT depths therefore
+    /// came back FLATTENED**, with every version that hung below the addressed node's own tier dropped; the
+    /// same clause's `mint` masked it for the ordinary case, because a structured `mint` installs the whole
+    /// assembled tree at one tier. **The lookup is now the PARENT VERSION's node** (`Captured::under`, the
+    /// association the capture records), so each child version is written on the node of the version it
+    /// actually hung under.
     fn rebuild(
         &mut self,
         base: usize,
@@ -1606,7 +1690,6 @@ impl Store {
         own: &[Captured],
         captured: &[Captured],
     ) {
-        let children: Vec<Vec<Segment>> = child_paths(captured, &walked);
         // Clear the pair before writing it: every version's node is minted fresh, so no version from the
         // operation's own attempt may stand beside them.
         let doomed = self.refs_at(base, &key);
@@ -1614,52 +1697,51 @@ impl Store {
         for entry in ordered_one_anchor(own) {
             self.mint(base, key.clone(), entry.tier, &entry.value);
         }
-        // The child pairs THIS level's own version set has just created: each path's own key, on the link
-        // the version that holds it stands for.
-        let mut levels: Vec<(Vec<Segment>, Segment, usize)> = Vec::new();
-        for path in &children {
+        // The child pairs DIRECTLY below this level, each once.
+        let mut children: Vec<Vec<Segment>> = child_paths(captured, &walked);
+        children.retain(|path| path.len() == walked.len() + 1);
+        for path in children {
             let last = path.last().cloned().expect("a child path is not empty");
-            let Some(anchor) = self
-                .refs_at(base, &last)
-                .into_iter()
-                .min_by_key(|reference| self.refs[*reference].anchor.tier.rank())
-            else {
-                continue;
-            };
-            if self.link_of(anchor).is_none() && path.len() > walked.len() {
-                // A literal version whose own descendants still stand below it: its children hang from the
-                // link its own anchor stands on, so the anchor is replaced by a link the recursion can use
-                // (`§3.3` item 1: the new node is added UNLESS the resolved node was a leaf).
-                let tier = self.refs[anchor].anchor.tier;
-                let doomed = vec![anchor];
-                self.remove_refs(base, &doomed, false);
-                let replacement = self.mint(
-                    base,
-                    last.clone(),
-                    tier,
-                    &StoreValue::Object(BTreeMap::new()),
-                );
-                levels.push((path.clone(), last, replacement));
-                continue;
+            // The versions of THIS level each of the child's own versions hangs under, in the store's
+            // canonical tier order — one recursion per enclosing version, so a child version is written on
+            // the node of the parent version that held it and on no other.
+            let mut unders: Vec<Tier> = Vec::new();
+            for entry in captured.iter().filter(|entry| entry.path == path) {
+                if let Some(under) = entry.under {
+                    if !unders.contains(&under) {
+                        unders.push(under);
+                    }
+                }
             }
-            levels.push((path.clone(), last, anchor));
-        }
-        // Then each child path's own version set, on the link its own version stands for.
-        for (path, last, anchor) in levels {
-            let own: Vec<Captured> = captured
-                .iter()
-                .filter(|entry| entry.path == path)
-                .cloned()
-                .collect();
-            let Some(link) = self.link_of(anchor) else {
-                continue;
-            };
-            let doomed = self.refs_at(link, &last);
-            self.remove_refs(link, &doomed, false);
-            for entry in ordered_one_anchor(&own) {
-                self.mint(link, last.clone(), entry.tier, &entry.value);
+            unders.sort_by_key(|tier| std::cmp::Reverse(tier.rank()));
+            for under in unders {
+                let Some(mut anchor) = self.pair_at(base, &key, under) else {
+                    // No version of this level stood at that tier: the capture and the level it was taken
+                    // at disagree, which no self-consistent journal can produce.
+                    debug_assert!(false, "a captured child hangs under a version that does not stand");
+                    continue;
+                };
+                if self.link_of(anchor).is_none() {
+                    // A LITERAL version with descendants still standing below it: its children hang from
+                    // the link its own anchor stands on, so the anchor is replaced by an empty branch at
+                    // its own tier and the recursion writes them there (`§3.3` item 1: the new node is
+                    // added UNLESS the resolved node was a leaf).
+                    self.remove_refs(base, &[anchor], false);
+                    anchor = self.mint(base, key.clone(), under, &StoreValue::Object(BTreeMap::new()));
+                }
+                let Some(link) = self.link_of(anchor) else {
+                    continue;
+                };
+                let own_here: Vec<Captured> = captured
+                    .iter()
+                    .filter(|entry| entry.path == path && entry.under == Some(under))
+                    .cloned()
+                    .collect();
+                if own_here.is_empty() {
+                    continue;
+                }
+                self.rebuild(link, path.clone(), last.clone(), &own_here, captured);
             }
-            self.rebuild(link, path, last, &own, captured);
         }
     }
 
@@ -1756,6 +1838,7 @@ impl Store {
         &mut self,
         mut op: JournalOp,
         captured: Vec<Captured>,
+        after: Vec<Captured>,
         home: Option<PairHome>,
         compacted: Vec<String>,
     ) -> JournalOp {
@@ -1765,6 +1848,7 @@ impl Store {
         self.journal.push(Entry {
             op,
             captured,
+            after,
             home,
             compacted,
             saved: false,
@@ -2138,9 +2222,15 @@ impl Store {
             seq: 0,
             compacted: false,
         };
+        // **`§6.6`: THE STATE THIS WRITE LEFT, TAKEN THE INSTANT IT LANDED** — the other half of the entry's
+        // record, on the same pair the write installed at, so the journal can be replayed FORWARD as well as
+        // back. Without it the journal held only the op's `after` READ VIEW, which collapses a shadow's
+        // versions into the one value a read answers (`Entry::after`).
+        let after_state = self.capture(&home);
         let op = self.append(
             op,
             captured.clone(),
+            after_state,
             Some(home.clone()),
             compacted_before.clone(),
         );
@@ -2270,7 +2360,17 @@ impl Store {
             .filter(|entry| !entry.op.compacted)
             .map(|entry| entry.op.opId.clone())
             .collect();
-        self.append(op, captured, home, uncompacted);
+        // **`§6.6`: THE STATE THIS DELETE LEFT.** The addressed pair is named by the PARENT link the delete
+        // resolved and by its own key — the convention `rebuild` restores on — and an operation at the EMPTY
+        // address names no pair at all, so its after-state is the whole register's (`capture_register`).
+        let after_state = match &key {
+            Some(key) => self.capture(&PairHome {
+                link,
+                key: key.clone(),
+            }),
+            None => self.capture_register(),
+        };
+        self.append(op, captured, after_state, home, uncompacted);
         // **`§6.5` item 11 / `§5.8` (b): THE DELETE IS THE SECOND TRIGGER EVENT** (`A43`) — the receipt
         // carries the handles of the listeners the trigger fired, selected by the SAME prefix rule.
         let triggered = self.triggered_for(&segments);
@@ -2400,15 +2500,32 @@ impl Store {
         }
         let mut undone = Vec::new();
         for candidate in scope.iter().rev() {
-            let (captured, entry_id, entry_home) = {
+            let (captured, entry_id, entry_home, entry_address) = {
                 let entry = &self.journal[*candidate];
                 (
                     entry.captured.clone(),
                     entry.op.opId.clone(),
                     entry.home.clone(),
+                    entry.op.address.clone(),
                 )
             };
-            let restored = match entry_home {
+            // **⟶ THE PAIR IS RE-DERIVED FROM THE ADDRESS, AND THE RECORDED HOME IS THE FALLBACK — 2026-10-27.**
+            // An entry's `home` is an ARENA INDEX (`links`/`refs`), and `§6.6`'s mark restore REBUILDS the
+            // graph, so every index recorded before it is stale: the pair the reversal must rebuild is the one
+            // the address names in the graph THAT STANDS, and `home_of_address` derives exactly that (the same
+            // derivation the write itself used). **The recorded home keeps its one remaining job**: an address
+            // whose PARENT no longer resolves has no derivable pair, and the entry's own record is then the only
+            // home there is — which is also the case an operation at the EMPTY address has (`None`, `restored`
+            // `false`, `§6.3`'s own residue).
+            let home = match self.home_of_address(&entry_address) {
+                Some(derived) => Some(derived),
+                // THE RECORDED HOME IS AN ARENA INDEX, so it is read only where it still names a link of the
+                // graph that stands: an index the `§6.6` replay left behind names nothing, and `restore` must
+                // answer the declared residue (`§6.3`: an entry whose pre-state could not be put back is NOT
+                // reported as undone) rather than reach into an arena that no longer holds it.
+                None => entry_home.filter(|home| home.link < self.links.len()),
+            };
+            let restored = match home {
                 Some(home) => self.restore(&home, &captured),
                 None => false,
             };
@@ -2423,6 +2540,149 @@ impl Store {
             opId: op_id,
             undoneOps: undone,
             restoredTo: self.state_now(&address),
+        })
+    }
+
+    // -----------------------------------------------------------------------------------------------
+    // §6.6 — THE JOURNAL MARK RESTORE: the state the journal's own record describes
+    // -----------------------------------------------------------------------------------------------
+
+    /// **`restoreMark(mark?) → void` — THE STORE RETURNS ITS OWN STATE TO A JOURNAL MARK.** *"The state it
+    /// held at a given journal position"*, reached **by replaying its own journal** and not by any capture a
+    /// caller took: the journal records every operation's ADDRESS and, since this method's pass, its BEFORE
+    /// (`Entry::captured`) **and its AFTER** (`Entry::after`) as full per-version, per-tier snapshots.
+    ///
+    /// **THE MARK IS AN OP ID, OR THE HEAD WHEN THE POSITION IS ABSENT.** `OpIdArg::Absent` names the HEAD —
+    /// the state the journal's most RECENT entry describes — and that is the mark a reversal leaves
+    /// unchanged, because **`rollback` appends no entry** (`M-9`): the journal's head still describes the
+    /// state that stood BEFORE the reversal, which is exactly the state a refused reversal owes back. An op
+    /// id names the state that stood **immediately after that operation landed**.
+    ///
+    /// **THE REPLAY IS ABSOLUTE AND NOT RELATIVE, AND THAT IS THE MEASURED REQUIREMENT.** A backward walk
+    /// from the CURRENT state is not safe here: after a reversal the journal's head is AHEAD of the state,
+    /// and re-reversing an entry whose subtree a later-reversed ancestor overwrote does not compose — the
+    /// same walk from a rolled-back state lands somewhere the journal never described. **So the replay
+    /// re-derives the state from the journal's own record**: the empty register, then each entry at or before
+    /// the mark in its own appended order, applying THE STATE THAT ENTRY LEFT (`Entry::after`) to the pair its
+    /// address names — the home re-derived against the graph as it stands at that instant
+    /// (`home_of_address`), never the link recorded when the entry was appended.
+    ///
+    /// **THE STATE IS DEFINED DIRECTLY AND THE WRITE RULES ARE NOT RE-APPLIED** — a deliberate bypass and the
+    /// whole reason this primitive can reach states a `write` cannot: `restore`/`rebuild` mint each recorded
+    /// version at ITS OWN tier with NO PURGE and NO MONOTONICITY TEST, so a shadow comes back with every tier
+    /// it stood at, and a version whose tier OUTRANKS its parent's — which `§3.4`'s monotonic clause refuses
+    /// to WRITE — is restored, because here nothing is being written: a state the journal recorded is being
+    /// re-stated. The precedent is the store's own `restore`, which the rollback has always rebuilt on.
+    ///
+    /// **WHAT THE MARK'S WINDOW IS, DECLARED.** `journalLength` bounds the ROLLBACK's floor by MARKING entries
+    /// `compacted` (`§6.1` item 5) — it never removes one — so **a compacted mark is still replayable and this
+    /// primitive does not refuse it**: compaction is a mark and not an erasure, and the replay reproduces the
+    /// whole chain from the register. What CAN leave the journal is the entry a failed `file`-tier commit
+    /// takes with it (`commit_file`'s `§7.2` item 3 path removes the entry it just reverted), and **a mark the
+    /// journal no longer holds is REFUSED in the store's own declared form — `JournalOpUnknown`** (`M-11`'s
+    /// code, the one the rollback already answers for an op id it does not hold) — **with the store's state
+    /// UNCHANGED**: the mark is resolved before the replay begins, so nothing is half-replayed.
+    ///
+    /// **IT APPENDS NO ENTRY, DELIVERS NO TRIGGER AND PERFORMS NO FILE I/O** — it re-states what the journal
+    /// already records, so the journal and the observable state agree again when it returns, and the bytes at
+    /// `cfg.filePath` are the ones the last successful `file`-tier save left (`§7.2` item 1).
+    pub fn restoreMark(&mut self, mark: OpIdArg) -> Result<(), StoreError> {
+        // THE MARK IS RESOLVED FIRST, AND THAT IS WHAT MAKES THE ACT ALL-OR-NOTHING.
+        let up_to: Option<usize> = match &mark {
+            // THE HEAD: the last entry the journal holds. An EMPTY journal describes no operation at all, so
+            // the state it describes is the empty register the store began with — `None` below.
+            OpIdArg::Absent => self.journal.len().checked_sub(1),
+            _ => {
+                let named = op_id(&mark)?;
+                let index = self
+                    .journal
+                    .iter()
+                    .position(|entry| entry.op.opId == named)
+                    .ok_or_else(|| journal_op_unknown(&named))?;
+                Some(index)
+            }
+        };
+        // THE REPLAY, FROM THE STATE THE RECORD STANDS BEFORE ITS FIRST ENTRY — the booted image where the store
+        // loaded one and the empty register where it did not (`Store::born`), never the empty register on
+        // assumption. Each entry's address then names the pair it set, and an operation at the EMPTY address is
+        // applied at the register's own root.
+        let born = self.born.clone();
+        self.apply_register(&born);
+        if let Some(up_to) = up_to {
+            for index in 0..=up_to {
+                let address = self.journal[index].op.address.clone();
+                let after = self.journal[index].after.clone();
+                if address.is_empty() {
+                    self.apply_register(&after);
+                    continue;
+                }
+                let home = self.home_of_address(&address).ok_or_else(|| {
+                    // A journal whose own entries cannot be resolved is not a state this primitive may
+                    // guess at: it refuses in the store's own address form and stops.
+                    debug_assert!(false, "a journaled address does not resolve during its own replay");
+                    address_not_found(&address[address.len() - 1], &address[..address.len() - 1], &[], false)
+                })?;
+                self.restore(&home, &after);
+                // **AND THE ENTRY'S OWN HOME IS RE-RECORDED** (`PairHome` is an ARENA INDEX and the replay has
+                // just rebuilt the arena), so the one job the recorded home still has — an address whose parent
+                // no longer resolves — keeps naming the pair this replay actually wrote.
+                self.journal[index].home = Some(home);
+            }
+        }
+        Ok(())
+    }
+
+    /// **THE GRAPH THE REPLAY BEGINS FROM** — `Store::empty`'s three arenas and nothing else: the register's
+    /// node, its link and its own reference, with the tier the register was constructed at. The journal, the
+    /// home map, the file path and the sequence counter are NOT touched (`§6.6`).
+    fn reset_register(&mut self) {
+        let register_tier = self.refs[self.register_ref].anchor.tier;
+        let (nodes, links, refs) = Store::fresh_register(register_tier);
+        self.nodes = nodes;
+        self.links = links;
+        self.refs = refs;
+        self.register = 0;
+        self.register_ref = 0;
+    }
+
+    /// **THE WHOLE REGISTER, RE-STATED FROM ONE CAPTURE OF IT** — what an operation at the EMPTY address left
+    /// (`capture_register`). The register's top-level pairs are rebuilt one key at a time, each by the same
+    /// `rebuild` the pair-level restore uses, so a version standing only at `temp` and a shadow standing at
+    /// two tiers are both reproduced (`§6.6`).
+    fn apply_register(&mut self, captured: &[Captured]) {
+        self.reset_register();
+        let mut keys: Vec<Segment> = Vec::new();
+        for entry in captured {
+            if let Some(first) = entry.path.first() {
+                if !keys.contains(first) {
+                    keys.push(first.clone());
+                }
+            }
+        }
+        for key in keys {
+            let own: Vec<Captured> = captured
+                .iter()
+                .filter(|entry| entry.path.len() == 1 && entry.path[0] == key)
+                .cloned()
+                .collect();
+            self.rebuild(self.register, vec![key.clone()], key, &own, captured);
+        }
+    }
+
+    /// **THE PAIR AN ADDRESS NAMES, IN THE WRITE'S OWN CONVENTION** — the PARENT container's link and the
+    /// address's last segment, which is the pair `restore`/`rebuild` clear and re-mint at. (`pair_home` is the
+    /// ENTRY's convention and is left exactly as it stands: an entry's home is recorded when it is appended,
+    /// and the replay re-derives rather than trusts it.)
+    fn home_of_address(&self, address: &[Segment]) -> Option<PairHome> {
+        let (last, parents) = address.split_last()?;
+        let parent = if parents.is_empty() {
+            self.register_ref
+        } else {
+            self.walk(parents, &TierSel::All).ok()?.0
+        };
+        Some(PairHome {
+            link: self.link_of(parent)?,
+            key: last.clone(),
         })
     }
 }

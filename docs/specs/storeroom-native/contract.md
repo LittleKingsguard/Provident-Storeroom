@@ -3766,6 +3766,67 @@ item at its own line; A3 docs/specs/storeroom-native/contract.md §0.4 · §3.6 
 parameter-semantics.md §2.13 — the four cells that dispose of the remainder; `DD-37`; `DD-42`; §0.1 item 10
 — the shadow-home rule that forbids a second addressable home for one rule | OBSERVATION]`
 
+### §6.6 The journal mark restore — `restoreMark(mark?)`, the store's state re-stated from its own record
+
+**`restoreMark(mark?) → void`.** **⟶ ADDED 2026-10-27 BY THE ARCHITECT'S RULING: A REFUSED REVERSAL IS RESTORED BY
+THE STORE FROM ITS OWN JOURNAL, AND NOT BY ANY CAPTURE A CALLER TOOK.** The ruling was taken over the
+alternative — exposing a journal read — because **the store already knows how to reach a state by journaling**:
+`§6.3`'s `rollback` locates the named op in the journal, reads the entry's address and reverses from there. The
+caller-side alternative reconstructed the state PER ADDRESS, PER TIER, FROM WHAT A READ DRAWS, and it therefore
+(a) could not rebuild a shadow *inside* a subtree, (b) could not cross the monotonicity clause (`§3.4`: a `file`
+version cannot be written under a parent standing at `mem`), and (c) rewrote by hand what the store replays
+exactly.
+
+1. **THE MARK IS AN OP ID, OR THE HEAD WHEN NO POSITION IS SUPPLIED.** `mark` is the store's own `OpIdArg`
+   (`parameter-semantics.md §2.10`, `PAR-10`): `Id` names the state **immediately after that operation landed**,
+   and the ABSENT carrier names **the HEAD — the state the journal's most RECENT entry describes.** **THE HEAD IS
+   THE MARK A REVERSAL LEAVES UNCHANGED**, because a rollback appends no entry (`§6.4` `M-9`): after the reversal
+   ran, the journal's head still describes the state that stood BEFORE it, which is the state a refused reversal
+   owes back. **The answer is `()`** — there is no record to shape, and the state is read back through `read`,
+   the one route to state.
+2. **THE REPLAY IS ABSOLUTE, AND THAT IS THE MEASURED REQUIREMENT.** A backward walk from the CURRENT state is not
+   safe: after a reversal the journal's head is AHEAD of the state, and re-reversing an entry whose subtree a
+   later-reversed ancestor overwrote does not compose. **So the state is re-derived from the record**: THE STATE THE STORE WAS BORN WITH — the booted `file`-tier
+   image where one was loaded, the empty register where none was (`§7.2` item 6 journals no entry for a boot, so
+   nothing else records it) — **then every entry at or before the mark IN ITS OWN APPENDED ORDER, applying the
+   state THAT ENTRY LEFT to the pair its address names**, the home RE-DERIVED against the graph as it stands at
+   that instant. **The floor is captured once at construction (`Store::born`) and not assumed**: an
+   empty-register floor would delete every boot-loaded key, which is the same class of loss this clause exists to
+   remove.
+   **THE JOURNAL THEREFORE RECORDS EACH OPERATION'S AFTER AS IT RECORDS ITS BEFORE** (`§6.2` item 1's two state
+   halves are the `op`'s declared VIEW; the restore reads the entry's per-version, per-tier snapshots of both
+   sides), and **this is what `§6.4`'s walk-back never needed and the restore cannot do without**: a `BaseState`
+   is `present` plus the value a read answers, which collapses a shadow's versions into one value and says
+   nothing about the versions beneath the addressed node. **A mark restore from the after-VIEW alone would be a
+   state no `write` could produce, which is the defect this clause's per-version half closes.**
+3. **THE STATE IS DEFINED DIRECTLY; THE WRITE RULES ARE NOT RE-APPLIED.** The replay MINTS each recorded version
+   at ITS OWN tier, with **NO PURGE and NO MONOTONICITY TEST**, exactly as the rollback's own restore has always
+   done (`§6.4` item 5's *"re-mints every captured version at its own tier"*). **This is the deliberate bypass and
+   the whole reason the primitive reaches states a `write` cannot**: a shadow comes back with every tier it stood
+   at, and a version whose tier OUTRANKS its parent's — which `§3.4`'s monotonic clause REFUSES to write — is
+   restored, because nothing is being written: a state the journal recorded is being RE-STATED.
+4. **THE MARK'S WINDOW, DECLARED RATHER THAN GUESSED.** `journalLength` bounds the ROLLBACK's floor by MARKING
+   entries `compacted` (`§6.1` item 5); **it removes none of them**, so **a compacted mark is still replayable and
+   `restoreMark` does not refuse it** — compaction is a mark and not an erasure, and the replay reproduces the
+   chain from the register. **What CAN leave the journal is an entry a failed `file`-tier commit takes with it
+   (`§7.2` item 3)**, and **a mark the journal no longer holds is REFUSED in the store's own declared form —
+   `JournalOpUnknown`** (`§8.1`, `M-11`'s code) — **with the store's state UNCHANGED**: the mark is resolved
+   before the replay begins, so nothing is half-replayed. **THE ARGUMENT'S TWO MALFORMED ARMS ARE `PAR-10`'s own**
+   (a blank id, a non-string, `null`, `undefined`), answering `AddressMalformed`. **An ABSENT position against an
+   EMPTY journal is not a refusal**: the record describes no operation at all, so the state it describes is the
+   state the store was born with (`Store::born`: the booted image, or the empty register).
+5. **IT APPENDS NO ENTRY, COMPACTS NOTHING, DELIVERS NO TRIGGER AND PERFORMS NO FILE I/O** (`§7.2` item 1 read at
+   its own words). It re-states what the journal already records, so when it returns the journal and the
+   observable state agree again; the bytes at `cfg.filePath` are still the ones the last successful `file`-tier
+   save left.
+6. **ITS REACH IS THE STORE'S OWN RECORD AND NOT A CALLER'S LIST.** No address is named, no pair is read and no
+   constraint is consulted: **the mark restore is a compensating act and not a consumer write**, so it opens no
+   commit, invokes no pair body and is not itself a store change to be judged.
+`[T: the ruling is the architect's (2026-10-27), taken over exposing a journal read, and its ground is `§6.3`'s
+own mechanism — the store reaches a state by journaling; `§6.1` item 5, `§6.2` item 1, `§6.4` items 5 and `M-9`,
+`§3.4`'s monotonic clause, `§7.2` items 1 and 3, `§8.1`'s `JournalOpUnknown`, `parameter-semantics.md §2.10` |
+CONTRACT + one DECLARED-DEFAULT (item 4's empty-journal arm)]`
+
 
 ---
 

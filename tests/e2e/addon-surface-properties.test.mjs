@@ -239,6 +239,9 @@ function declaredArgumentsFor(name) {
     case 'unlisten': return ['a-handle', undefined];
     case 'removeListener': return ['a-handle', undefined];
     case 'commitFile': return ['an-op-id', undefined];
+    // **⟶ ADDED 2026-10-27: THE JOURNAL MARK RESTORE'S ONE POSITION** — the mark, in the same carrier shape
+    // `rollback` is driven with, so this entry is read at its declared arity and at ±1 like every other.
+    case 'restoreMark': return ['an-op-id'];
     default: return null;
   }
 }
@@ -269,8 +272,9 @@ test('sas_prop_P_SAS_1_S_EXPORT_SET_the_keyset_is_exactly_the_thirteen_and_call_
     body: (rng, i) => attempt(rng, ({ pick: choose }) => {
       // (a) THE SET, ASSERTED AT EQUALITY OVER THE WHOLE KEY SET — the strategy's own words.
       assert.deepEqual([...addonKeySet()].sort(), DECLARED_SURFACE_NAMES_SORTED,
-        `attempt ${i}: P-SAS-1 — the addon's export set is exactly the thirteen declared names, and `
-        + '`export-set-and-dispatch.md §1` is the set: `4` STANDING plus `9` PER-VERB, `4 + 9 = 13 ✓`');
+        `attempt ${i}: P-SAS-1 — the addon's export set is exactly the declared names, and `
+        + '`export-set-and-dispatch.md §1` is the set: `4` STANDING plus `9` PER-VERB plus the ONE the journal '
+        + 'mark restore adds beside them, `4 + 9 + 1 = 14 ✓` (amended 2026-10-27, annotate-beside)');
       // (b) EACH DECLARED NAME, DRAWN FROM THE SEED, IS PRESENT.
       const declared = choose(DECLARED_SURFACE_NAMES_SORTED);
       assert.equal(addonKeySet().includes(declared), true,
@@ -284,7 +288,7 @@ test('sas_prop_P_SAS_1_S_EXPORT_SET_the_keyset_is_exactly_the_thirteen_and_call_
       // reproducible, and the assertion is the equality of (a) read at its complement.
       const undeclared = addonKeySet().filter((name) => !DECLARED_SURFACE_NAMES_SORTED.includes(name));
       assert.deepEqual(undeclared, [],
-        `attempt ${i}: P-SAS-1's failure list names "an undeclared name" — nothing beyond §1's thirteen: `
+        `attempt ${i}: P-SAS-1's failure list names "an undeclared name" — nothing beyond the declared set: `
         + JSON.stringify(undeclared));
       assert.equal(choose([0, 1]) >= 0, true, `attempt ${i}: the draw is consumed`);
     }),

@@ -64,7 +64,7 @@ import { runInNewContext } from 'node:vm';
 
 import { storeCreate } from '../../bindings/js/index.mjs';
 import {
-  DECLARED_SURFACE, DECLARED_SURFACE_NAMES_SORTED, STANDING_FOUR, PER_VERB_NINE,
+  DECLARED_SURFACE, DECLARED_SURFACE_NAMES_SORTED, STANDING_FOUR, PER_VERB_NINE, PER_VERB_TENTH,
   THE_THREE_THAT_ARE_NOT_ENTRIES, THE_FROZEN_FIVE, OPEN_OWED,
   ADDON_ARTEFACT, PACKAGE_ENTRY, PKG_DIR, DELETED_WRAPPER_NAMES,
   OWED_STRUCTURE_TOKENS, OWED1_TOKEN_ASSERTION_SHAPES,
@@ -120,8 +120,12 @@ test('sas_d1_s_export_set_the_artefacts_own_keyset_is_exactly_the_thirteen_decla
   // `§1`'s own arithmetic, asserted against the two tables the clause prints rather than against a literal.
   assert.equal(STANDING_FOUR.length, 4, '§1: `4` STANDING — `version`, `errorMessage`, `storeCreate`, `register`');
   assert.equal(PER_VERB_NINE.length, 9, '§1: `9` PER-VERB, one per dispatcher arm');
-  assert.equal(STANDING_FOUR.length + PER_VERB_NINE.length, 13, '`4 + 9 = 13 ✓` (§1\'s own `[CENSUS]`)');
-  assert.equal(DECLARED_SURFACE.length, 13, 'and the two tables are one set of thirteen and not two of seven');
+  // **⟶ AND ONE STANDS BESIDE THE NINE, 2026-10-27** (`PER_VERB_TENTH`): the journal mark restore, which is
+  // not one of the dispatcher's arms and adds no member to the product's fourteen.
+  assert.equal(PER_VERB_TENTH.length, 1, 'the journal mark restore, declared beside the nine');
+  assert.equal(STANDING_FOUR.length + PER_VERB_NINE.length + PER_VERB_TENTH.length, 14,
+    '`4 + 9 + 1 = 14 ✓` (§1\'s own `[CENSUS]`, read with the tenth row)');
+  assert.equal(DECLARED_SURFACE.length, 14, 'and the tables are one set of fourteen, each name accounted for');
 });
 
 test('sas_d1_s_export_set_call_is_absent_because_the_split_is_precisely_its_replacement', () => {
@@ -225,6 +229,9 @@ function declaredArgumentsFor(name) {
     case 'unlisten': return ['a-handle', undefined];
     case 'removeListener': return ['a-handle', undefined];
     case 'commitFile': return ['an-op-id', undefined];
+    // **⟶ ADDED 2026-10-27: THE JOURNAL MARK RESTORE'S ONE POSITION.** It is driven with the same carrier
+    // shape `rollback` is driven with, so the entry is read at its declared arity and at ±1 like the rest.
+    case 'restoreMark': return ['an-op-id'];
     default: return null;
   }
 }
@@ -260,7 +267,7 @@ function declaredArgumentsFor(name) {
  *  **A LIST SHORTER THAN THE DECLARED ARITY IS NOT NECESSARILY WRONG** — a declared OPTIONAL trailing
  *  position may simply be absent (`surface.md §2.2` clause 4's `write` worked example) — **so the `-1` limb
  *  is read against the row's own declared optionality and never against a blanket expectation.** */
-const DECLARED_OPTIONAL_TAIL = new Set(['read', 'readLiteral', 'write', 'delete', 'rollback', 'unlisten', 'removeListener', 'commitFile']);
+const DECLARED_OPTIONAL_TAIL = new Set(['read', 'readLiteral', 'write', 'delete', 'rollback', 'restoreMark', 'unlisten', 'removeListener', 'commitFile']);
 
 /** **AND ONE STANDING ENTRY DECLARES A RANGE RATHER THAN A POINT — `errorMessage`'s `2`–`3`**
  *  (`export-set-and-dispatch.md §1`: *"`errorMessage` | `2`–`3` | the one message renderer the package

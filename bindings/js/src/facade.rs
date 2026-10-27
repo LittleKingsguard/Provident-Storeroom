@@ -361,6 +361,12 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 // =================================================================================================
 // THE NINE PER-VERB ENTRIES — `U-STOREROOM-ADDON-SURFACE`, `export-set-and-dispatch.md §1`
 //
+// **⟶ AND A TENTH STANDS BESIDE THEM 2026-10-27 (`restoreMark`), WHICH IS NOT ONE OF THE NINE AND IS NOT A
+// MEMBER OF THE FOURTEEN.** It joins `rollback` as the journal's second consumer — the store's
+// `restoreMark(mark?)` — and it is reached by the package's own refusal path
+// (`src/entry/constraints.mjs`) and by nothing else. The NINE are unmoved, name for name and arity for
+// arity; the set this file declares is `9 + 1 = 10` PER-VERB and `4 + 10 = 14` IN ALL.
+//
 // **THE DISPATCHER'S STRING INDIRECTION GOES** (`contract.md §2` item 2; `§3`): `call(instance, verb, args)`
 // matched the verb as a JS string across nine arms and showed as its own frame with the verb as DATA. **THE
 // SPLIT IS PRECISELY ITS REPLACEMENT, SO `call` DOES NOT SURVIVE** (`export-set-and-dispatch.md §2`), and
@@ -377,9 +383,10 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 // **THE ARITIES ARE THE CLAUSE'S OWN TABLE, COUNTED FROM THE VERB'S OWN POSITIONS** (`§1`; `§4`), and they
 // were corrected here: the five- and three-position readings this cell carried were the PRE-REMOVAL ones and
 // included the instance position, which is gone. The live table is
-// `read`(2) · `readLiteral`(2) · `write`(4) · `delete`(2) · `rollback`(1) · `listen`(2) ·
+// `read`(2) · `readLiteral`(2) · `write`(4) · `delete`(2) · `rollback`(1) · `restoreMark`(1) · `listen`(2) ·
 // `unlisten`(1) · `removeListener`(1) · `commitFile`(1) — and each equals its entry's declared `#[napi]`
-// parameter count below, the receiver excluded because it is not a declared parameter.
+// parameter count below, the receiver excluded because it is not a declared parameter. **`restoreMark`'s one
+// position is the journal MARK** (`OpIdArg`: an op id, or the ABSENT carrier for the journal's head).
 //
 // **`commit` IS NOT AN ENTRY AND NEVER WAS AN ARM**: it is `write`'s FOURTH POSITION, whose class test the
 // package takes before this frame is entered (`§2`; `commitPositionRefusal`). **`constraints` IS NOT AN
@@ -733,6 +740,51 @@ fn verb_rollback(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) -> 
         let op_id = codec.op_id(&op_id_pos);
         let result = store.rollback(&op_id)?;
         Ok(codec.to_js_rollback_result(&result))
+    });
+    answer_or_throw(env, answer)
+}
+
+/// **`restoreMark(mark?) → undefined` — THE JOURNAL'S SECOND CONSUMER, AND THE ONLY ENTRY THAT REACHES NO
+/// MEMBER OF THE FOURTEEN.**
+///
+/// **WHAT IT JOINS.** It stands BESIDE `rollback`, the store's other journal verb, and it IS the store's own
+/// `restoreMark` (`src/store.rs`) and nothing else: the entry hands the mark across, the store replays its own
+/// journal to the state that mark describes, and the entry answers `undefined` on the `listen`/`unlisten`
+/// precedent — **there is no member to return and no record to shape**, because the state is read back through
+/// `read` (the ONE route to state, `§2.4` item 9) and is never carried out of this frame.
+///
+/// **IT IS AN ADDON VERB AND NOT A MEMBER.** The product's instance carries its FOURTEEN declared members and
+/// this one is not among them: `index.mjs` reaches it exactly as it reaches `rollback` — `Reflect.apply` on the
+/// addon's own entry, bound to the instance — from `constraints.mjs`'s refusal path, and no subpath publishes
+/// it and no member exposes it. **THE ADDON'S OWN EXPORT SET IS THEREFORE FOURTEEN NAMES — the four standing
+/// plus the nine per-verb entries this file declared plus THIS ONE** — and the cells that read that set are
+/// amended where they stand (`tests/e2e/addon-surface.test.mjs`, `addon-adoption.test.mjs`).
+///
+/// **THE POSITION.** `mark` is the store's own `OpIdArg`: an op id names the state that stood immediately
+/// after that operation landed, and **a position the caller supplies NO value for is the ABSENT carrier, which
+/// the store reads as THE HEAD** — the state the journal's most recent entry describes. **That is the mark the
+/// refused-reversal restore names, and it is named by ABSENCE and not by a token**: a reversal appends no entry
+/// (`src/store.rs`'s `rollback`), so the head is still the pre-reversal state after the reversal ran.
+///
+/// **WHAT IT DOES NOT DO, AT THIS BOUNDARY.** It opens no commit, evaluates no pair, delivers no listener and
+/// appends no journal entry — the store's own method states each — so the package's judgement is not re-entered
+/// and `D-40`'s no-per-op-walk is untouched.
+#[napi(js_name = "restoreMark")]
+fn verb_restoreMark(env: Env, receiver: This<Object<'_>>, mark_pos: JsVal<'_>) -> NapiRet<'static> {
+    let store_index = match store_index_of(&env, &receiver) {
+        Ok(store_index) => store_index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
+        let mark = codec.op_id(&mark_pos);
+        store.restore_mark(&mark)?;
+        Ok(codec.undefined_value())
     });
     answer_or_throw(env, answer)
 }

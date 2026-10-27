@@ -53,6 +53,8 @@
 
 4. **THE EXPORT SET MOVES `5 → 13`, AND THE COUNT IS CLOSED.** `4` surviving standing exports (`version` · `errorMessage` · `storeCreate` · `register`) plus `9` per-verb entries = `13`. **`call` is deleted — it was the dispatcher.** **`removeListener` gets its own entry**; it is a live arm the prior filing omitted. **`commit` is neither an export nor an arm**: it is `write`'s fourth *position*.
 
+   **⟶ AND IT MOVES `13 → 14` ON 2026-10-27, READ THROUGH §2 ITEM 1'S ANNOTATE-BESIDE:** the journal mark restore (`restoreMark`) joins the set **beside** the nine and is not one of them; the count is still CLOSED, now at `4 + 9 + 1 = 14`.
+
 ---
 
 ## §2. THE EXPORT SPLIT
@@ -60,6 +62,8 @@
 **Clauses and the per-name table: `export-set-and-dispatch.md`.**
 
 1. **ONE ENTRY PER VERB, EACH NAMED FOR ITS VERB.** The dispatcher's nine arms become nine entries: `read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` · `removeListener` · `commitFile`. **Each takes the verb's own arguments and nothing else.**
+
+   **⟶ AND A TENTH ENTRY STANDS BESIDE THE NINE, ADDED 2026-10-27: `restoreMark(mark?) → undefined`.** **It is NOT one of the dispatcher's arms and it adds NO member to the product's fourteen**; it is the JOURNAL MARK RESTORE the architect's ruling added beside `rollback` — the store's own `restoreMark` (`docs/specs/storeroom-native/contract.md §6.6`), reached by the package's refusal path (`bindings/js/src/entry/constraints.mjs`) exactly as `rollback` is reached, and by nothing else. **THE EXPORT SET MOVES `13 → 14` — `4` STANDING + `9` PER-VERB + `1` BESIDE THEM — and no name the nine carry moves.** **ITS ONE POSITION IS THE MARK** (`OpIdArg`: an op id, or — by the caller supplying no position at all — the carrier's ABSENT arm, which the store reads as the journal's HEAD), and **its answer is `undefined`** on the `listen`/`unlisten` precedent: there is no datum to return, and the state is read back through `read`. **It opens no commit, evaluates no pair and delivers no listener**, so the package's judgement is not re-entered and `D-40`'s no-per-op-walk is untouched. **THE CENSUS READ:** `4 + 9 + 1 = 14 ✓`, and the cells that read the artefact's key set (`tests/e2e/addon-surface.test.mjs` · `tests/e2e/addon-surface-properties.test.mjs` · `tests/e2e/file-tier-save/scenarios.mjs` `FTS-10.2`) are amended where they stand, each by annotate-beside.
 
 2. **THE DISPATCHER'S STRING INDIRECTION GOES.** Today a verb arrives as a JS string and is matched across nine arms; nothing shows as a debugger frame. After the split, the verb is the frame's name.
 

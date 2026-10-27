@@ -1109,6 +1109,16 @@ impl Instance {
         })
     }
 
+    /// **⟶ ADDED 2026-10-27 WITH THE JOURNAL MARK RESTORE, AND IT IS THE ONE-LINE CARRIER `rollback` ABOVE IS:**
+    /// the addon's `restoreMark` entry (`facade.rs`) reaches the store through this instance exactly as every
+    /// other per-verb entry does, so the mark's carrier (`JsOpIdArg`, whose ABSENT arm is the journal's HEAD)
+    /// crosses here and the store's own `restoreMark` answers. **IT ANSWERS `()`** — the state is read back
+    /// through `read`, which is the ONE route to state (`surface.md §2.4` item 9), and no record is shaped
+    /// for a verb whose whole product is the state the journal already records.
+    pub fn restore_mark(&mut self, mark: &JsOpIdArg) -> Result<(), Refusal> {
+        self.store.restoreMark(to_op_id_arg(mark)).map_err(refusal)
+    }
+
     /// **⟶ `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`): `listen(handle, addresses)` — THE CALLER
     /// SUPPLIES THE IDENTITY AND THE SET** (`contract.md §2.2`; `listen-verb.md §1` item 1).
     /// **NOTHING IS MINTED, NOTHING IS WRAPPED AND THE ANSWER IS `()`**: the caller supplied the identity, so

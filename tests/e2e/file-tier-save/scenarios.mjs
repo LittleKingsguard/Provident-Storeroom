@@ -893,19 +893,19 @@ scenario('FTS-10', 'the sixteenth member\'s own clause and its template row; the
       () => C(setClosed.length === 20 && setClosed[15] === 'ConstraintListInvalid'
         && setClosed[19] === 'ConstraintPassRefused',
       `set=${setClosed.length} members, #16=${JSON.stringify(setClosed[15])}, #20=${JSON.stringify(setClosed[19])}`));
-    // ── **⟶ RE-DERIVED 2026-10-25: THE ADDON'S EXPORT SET IS THIRTEEN, AND THE EXPECTATION NOW COMES FROM THE
-    // ARTEFACT'S OWN BYTES — WHICH IS WHAT THE CELL ALWAYS READ.** The as-filed figure was `package.md §1.3`
-    // item 4's *"exactly five names"*; measured on the built artefact, `Object.keys(ADDON)` reads **thirteen**:
-    // `commitFile, delete, errorMessage, listen, read, readLiteral, register, removeListener, rollback,
-    // storeCreate, unlisten, version, write`. **The review's §3.2 row 19 classes this REWRITE and says it plainly:**
-    // *"Rests on: the code's own addon export set — a property the cell already reads; only the figure moves."* The
-    // cell's subject (the addon's own export set IS the declared one, by set equality, and `errorMessage` is among
-    // them) is kept whole, and the drive is unchanged.
-    cell('FTS-10.2', 'the built artefact\'s own export set (`bindings/js/build/Release/storeroom_js_binding.node`, read live), superseding `package.md §1.3` item 4\'s five-name figure — the review\'s §3.2 row 19',
-      'the addon\'s own exports are the thirteen the artefact carries — `commitFile`, `delete`, `errorMessage`, `listen`, `read`, `readLiteral`, `register`, `removeListener`, `rollback`, `storeCreate`, `unlisten`, `version`, `write` — by SET EQUALITY, `errorMessage` among them',
+    // ── **⟶ RE-DERIVED 2026-10-27: THE ADDON'S EXPORT SET IS FOURTEEN, AND THE FIGURE MOVES FOR THE ONE ENTRY
+    // THE JOURNAL MARK RESTORE ADDS.** The set read thirteen from 2026-10-25 (`package.md §1.3` item 4's
+    // *"exactly five names"* was the superseded as-filed figure, and the review's §3.2 row 19 classes the
+    // correction as a REWRITE because it *"rests on: the code's own addon export set — a property the cell
+    // already reads"*); `restoreMark` joins it beside `rollback` — **the journal's second consumer, an ADDON
+    // verb and NOT a member of the product's fourteen** — and every other name is unmoved, `errorMessage` among
+    // them. The cell's subject (the addon's own export set IS the declared one, by set equality) is kept whole
+    // and the drive is unchanged.
+    cell('FTS-10.2', 'the built artefact\'s own export set (`bindings/js/build/Release/storeroom_js_binding.node`, read live), superseding `package.md §1.3` item 4\'s five-name figure — the review\'s §3.2 row 19, re-read 2026-10-27',
+      'the addon\'s own exports are the fourteen the artefact carries — `commitFile`, `delete`, `errorMessage`, `listen`, `read`, `readLiteral`, `register`, `removeListener`, `restoreMark`, `rollback`, `storeCreate`, `unlisten`, `version`, `write` — by SET EQUALITY, `errorMessage` among them',
       () => {
         const keys = Object.keys(ADDON).sort();
-        return C(JSON.stringify(keys) === JSON.stringify(['commitFile', 'delete', 'errorMessage', 'listen', 'read', 'readLiteral', 'register', 'removeListener', 'rollback', 'storeCreate', 'unlisten', 'version', 'write']), `addon exports=${JSON.stringify(keys)}`);
+        return C(JSON.stringify(keys) === JSON.stringify(['commitFile', 'delete', 'errorMessage', 'listen', 'read', 'readLiteral', 'register', 'removeListener', 'restoreMark', 'rollback', 'storeCreate', 'unlisten', 'version', 'write']), `addon exports=${JSON.stringify(keys)}`);
       });
     // **⟶ RE-DERIVED 2026-10-26 WITH THE SET (title and figure together): TWENTY codes, not sixteen** — and the
     // appended rank-`20` row is driven here by the same loop, so `§8.2`'s completeness is asserted over the set the

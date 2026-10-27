@@ -67,8 +67,27 @@ export const PER_VERB_NINE = [
   { name: 'commitFile', arity: 2, clause: 'export-set-and-dispatch.md §1 — "the file-tier save"' },
 ];
 
-/** **THE THIRTEEN, AS ONE SET** — `9 + 4 = 13 ✓` (`§1`'s own `[CENSUS]`). */
-export const DECLARED_SURFACE = [...STANDING_FOUR, ...PER_VERB_NINE];
+/**
+ * **⟶ THE TENTH PER-VERB ENTRY, ADDED 2026-10-27 — AND IT IS NOT ONE OF THE NINE.**
+ *
+ * `§1`'s nine are the nine arms the deleted dispatcher matched, one per arm. `restoreMark` is NOT one of
+ * them: it is the JOURNAL MARK RESTORE the architect's ruling added beside `rollback` (`src/store.rs`'s
+ * `restoreMark`, `bindings/js/src/facade.rs`'s entry of the same name), it has no dispatcher arm behind it,
+ * and **it adds no member to the product's fourteen** — the package reaches it exactly as it reaches
+ * `rollback`, at the boundary's own entry, from `src/entry/constraints.mjs`'s refusal path. **SO THE SET IS
+ * `4` STANDING + `9` PER-VERB + `1` BESIDE THEM = `14`,** and the row is declared in its own group rather
+ * than folded into the nine so the census can still say which entries the split declared and which one
+ * arrived after it.
+ *
+ * **ITS ARITY IS `1` AND THE POSITION IS THE JOURNAL MARK** (`OpIdArg`: an op id, or — by the caller
+ * supplying NO position — the carrier's ABSENT arm, which the store reads as the journal's HEAD).
+ */
+export const PER_VERB_TENTH = [
+  { name: 'restoreMark', arity: 1, clause: 'src/store.rs §6.6 — the journal mark restore, beside `rollback`' },
+];
+
+/** **THE FOURTEEN, AS ONE SET** — `4 + 9 + 1 = 14 ✓` (`§1`'s own `[CENSUS]`, read with `PER_VERB_TENTH`). */
+export const DECLARED_SURFACE = [...STANDING_FOUR, ...PER_VERB_NINE, ...PER_VERB_TENTH];
 
 /** The thirteen NAMES, sorted — the form `S-EXPORT-SET` asserts against, *"assert equality with the declared
  *  set, sorted"* (`contract.md §5`, `P-SAS-1`). */
