@@ -72,6 +72,20 @@ const REFUSAL_MEMBERS = ['log', 'message', 'status'];
 const LOG_MEMBERS = ['seq', 'kind', 'id', 'message', 'opId', 'state'];
 const LOG_KINDS = ['constraint-check', 'repair-run', 'commit', 'outcome'];
 
+/**
+ * **⟶ AND THE NO-ATTEMPT REVERSAL REFUSAL'S ENTRY CARRIES FIVE MEMBERS AND NO `seq` — ADDED 2026-10-27
+ * (`strata/decisions.md` · `D-41` item `4`; `contract.md §2.6` item `4`'s clause of 2026-10-26 read through
+ * this clause).** That clause declared the entry *"`seq` `1`"*, and **that `1` was FABRICATED: the kernel's
+ * `seq` is the ordinal WITHIN AN ATTEMPT'S OWN LOG (`kernel-foundations.mjs`'s `append`, `attempt.log.length +
+ * 1`) and NO ATTEMPT STANDS AT A REVERSAL'S JUDGEMENT**, so there is no log whose ordinal it could be and no
+ * member of any record here it could be read from. The order of this pass was *"use the seq the record
+ * actually has, or omit the member; do not mint one"*, and the correction is the omission: **the honest form
+ * of a record whose ordinal is unknown is an ABSENT member, never a number invented for it.** The other five
+ * members are unmoved, and this list is asserted INSTEAD of `LOG_MEMBERS` at this arm — with `seq`'s ABSENCE
+ * asserted beside it, so the correction is pinned rather than merely permitted.
+ */
+const NO_ATTEMPT_LOG_MEMBERS = ['kind', 'id', 'message', 'opId', 'state'];
+
 /** The three values `DEF-M`'s drive must keep apart: the seed, the value the constraint REFUSES, and the value
  *  its repair writes. Three distinct sentinels, so the store's terminal reading names exactly one of them. */
 const SEED = 5;
@@ -794,16 +808,22 @@ test('DEF-W · under `D-38` (2026-10-26) a `rollback` whose TERMINAL state a reg
       + `the layer that refused. THE DRIVE CAUGHT ${JSON.stringify(refused.caught)}`);
 
   // ── AND THE `log` NAMES THE CONSTRAINT AND THE STATE IT REFUSED. ─────────────────────────────
-  // `kernel-surface.md §2.5` item 1: the entry's SIX members and its CLOSED four-kind set — the same entry
-  // shape every other log this surface carries has, so a consumer reads this `log` with the reader it
-  // already has.
+  // `kernel-surface.md §2.5` item 1: the entry's CLOSED four-kind set — the same entry shape every other log
+  // this surface carries has, so a consumer reads this `log` with the reader it already has — **AND AT THIS
+  // NO-ATTEMPT ARM FIVE MEMBERS AND NO `seq`** (`NO_ATTEMPT_LOG_MEMBERS` above, `D-41` item `4`: the `seq` the
+  // earlier clause minted has no record behind it).
   assert.ok(refusedLog.length > 0,
     `the refusal's \`log\` names the constraint and the state it refused, so it is not empty here: the drive `
       + `read ${JSON.stringify(refusedLog)}`);
   for (const entry of refusedLog) {
-    assert.deepEqual(Object.keys(entry).sort(), [...LOG_MEMBERS].sort(),
-      `a log entry carries exactly ${JSON.stringify(LOG_MEMBERS)} (\`kernel-surface.md §2.5\` item 1); the drive `
+    assert.deepEqual(Object.keys(entry).sort(), [...NO_ATTEMPT_LOG_MEMBERS].sort(),
+      `the no-attempt refusal's entry carries exactly ${JSON.stringify(NO_ATTEMPT_LOG_MEMBERS)} `
+        + `(\`kernel-surface.md §2.5\` item 1 read through \`D-41\` item \`4\`); the drive `
         + `read ${JSON.stringify(Object.keys(entry))} from ${JSON.stringify(entry)}`);
+    assert.equal(Object.hasOwn(entry, 'seq'), false,
+      `the entry carries NO \`seq\`: no attempt log stands at a reversal's judgement, so there is no ordinal to `
+        + `read one from and none is minted (\`D-41\` item \`4\`); the drive read `
+        + `${JSON.stringify(entry.seq)} under a \`seq\` member`);
     assert.equal(LOG_KINDS.includes(entry.kind), true,
       `\`kind\` is one of ${JSON.stringify(LOG_KINDS)}; the drive read ${JSON.stringify(entry.kind)}`);
   }
@@ -1205,14 +1225,17 @@ test('DEF-W (3) · the discriminator is the CONJUNCTION: a reversal at a LISTENE
     `the no-attempt refusal's \`log\` is ONE entry (\`contract.md §2.6\` item 4): the control read `
       + `${JSON.stringify(controlLog)}`);
   assert.equal(controlLog[0].kind, 'constraint-check',
-    `the refusal's entry is a \`constraint-check\` of the kernel's own six members: `
+    `the refusal's entry is a \`constraint-check\` of the kernel's own kind set: `
       + `${JSON.stringify(controlLog[0])}`);
   assert.equal(controlLog[0].id, 'wc',
     `the refusal's entry NAMES the pair that refused the state the reversal left: `
       + `${JSON.stringify(controlLog[0])}`);
-  assert.deepEqual(Object.keys(controlLog[0]).sort(), LOG_MEMBERS.slice().sort(),
-    `the refusal's entry carries the kernel's SIX members and no seventh: `
+  assert.deepEqual(Object.keys(controlLog[0]).sort(), NO_ATTEMPT_LOG_MEMBERS.slice().sort(),
+    `the refusal's entry carries ${JSON.stringify(NO_ATTEMPT_LOG_MEMBERS)} and no sixth member — no \`seq\`, `
+      + `which no attempt log stands to supply (\`D-41\` item \`4\`): `
       + `${JSON.stringify(Object.keys(controlLog[0]))}`);
+  assert.equal(Object.hasOwn(controlLog[0], 'seq'), false,
+    `and \`seq\` is ABSENT rather than minted: the drive read ${JSON.stringify(controlLog[0].seq)} under it`);
   assert.equal(controlStanding, W_SECOND,
     `the refusal undid the reversal it refused (\`DEF-W\`'s \`(a)\`): the store stands again at `
       + `${JSON.stringify(W_SECOND)} where the drive read ${JSON.stringify(controlStanding)}`);

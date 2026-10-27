@@ -1209,10 +1209,29 @@ function reversalAtRest(instance) {
 }
 
 /// **THE WATCH — THE PRE-REVERSAL STANDING OF EVERY ENABLED PAIR'S EVERY ADDRESS**, taken before the addon's
-/// `rollback` entry is called. **IT IS A LIST OF `{entry, address, before}` AND NOTHING ELSE**: the entry is
-/// the pair's own record (so the judgement needs no second lookup and no registry read after the reversal),
-/// the address is the pair's own segment array (never a copy, never mutated here) and `before` is what the
-/// store stood at when the reversal was asked for.
+/// `rollback` entry is called. **IT IS A LIST OF `{entry, address, before, beforeTier, beforeTiers}` AND
+/// NOTHING ELSE**: the entry is the pair's own record (so the judgement needs no second lookup and no registry
+/// read after the reversal), the address is the pair's own segment array (never a copy, never mutated here)
+/// and the standing is what the store held when the reversal was asked for.
+///
+/// **⟶ AND THE WATCH CAPTURES THE TIER AND NOT ONLY THE VALUE, 2026-10-27 — `D-41` ITEM `2`, MEASURED.** The
+/// list this clause declares was `{entry, address, before}` and `before` was the CROSS-TIER read alone, so the
+/// restore could not know **where** the value stood and put everything back at `mem` (`restoreReversal` below
+/// states what that cost). **THE TIERS ARE THREE AND RANKED `file` > `mem` > `temp`** (`src/records.rs`'s
+/// `Tier`), **the zero-tier `read` answers the LOWEST-tier version present at each key** (`src/store.rs`'s
+/// `select_member`), **and the tier argument narrows that same read to one tier** (`src/args.rs`'s
+/// `read_tier_sel`) — so the watch takes the standing the judgement reads
+/// AND one narrowed read per tier:
+///   * **`before`** is the same cross-tier standing it always was (the judgement's subject and the "touched"
+///     test are unchanged, `sameStanding`);
+///   * **`beforeTiers`** is every tier at which the address STOOD, captured in the store's canonical
+///     `file` · `mem` · `temp` order, each with the value that tier answers — **the exact state a restore has
+///     to put back**, one write per tier, and the only way a value at `file` survives;
+///   * **`beforeTier`** is the tier the cross-tier read drew from (the lowest-rank standing tier), or `null`
+///     where the address stood at no tier at all — *"where the value stood"*, spelled once for the message.
+/// **THE ABSENT ARM IS THE ZERO-READ'S OWN**: where the cross-tier read refuses, the address stands at no
+/// tier, so `before` is `undefined`, `beforeTiers` is `[]` and `beforeTier` is `null` — the state the restore
+/// must return the address to by REMOVING what the reversal left there.
 ///
 /// **IT IS EMPTY WHERE THE ENTRY CARRIES NO PAIR**, so the whole judgement — and every read it would take —
 /// is skipped for the overwhelming majority of `rollback` calls, and a store that never registered a
@@ -1239,10 +1258,51 @@ export function reversalWatch(state, instance) {
     if (entry.enabled !== true) continue;
     for (let position = 0; position < entry.addresses.length; position += 1) {
       const address = entry.addresses[position];
-      appendOwn(watched, { entry, address, before: standingAt(instance, address) });
+      const captured = captureStanding(instance, address);
+      appendOwn(watched, {
+        entry,
+        address,
+        before: captured.before,
+        beforeTier: captured.beforeTier,
+        beforeTiers: captured.tiers,
+      });
     }
   }
   return watched;
+}
+
+/// **THE THREE TIER TOKENS, IN THE CANONICAL ORDER A RESTORE MUST WRITE THEM** — `file` · `mem` · `temp`
+/// (`src/records.rs`'s `canonical_tiers`, rank DESCENDING). **THE ORDER IS NOT COSMETIC: a write purges every
+/// version at `rank ≤ rank(write tier)` at the addressed key** (`src/store.rs`'s `W-6`, the `doomed` filter),
+/// **so writing the captured tiers from the most persistent to the least reconstructs a shadow exactly** —
+/// `file`, then `mem`, then `temp`: each write purges only what it outranks and therefore cannot destroy a tier
+/// already put back.
+const STANDING_TIERS = ['file', 'mem', 'temp'];
+
+/// **WHAT STOOD AT ONE ADDRESS, CAPTURED BEFORE THE REVERSAL** — the cross-tier standing the judgement reads
+/// (and the "touched" test compares), the tier that standing was drawn from, and every tier at which the
+/// address stood with the value that tier answers. **AN ADDRESS THAT STANDS AT NO TIER IS THE ZERO-READ'S OWN
+/// ABSENCE**: the cross-tier `read` refuses, no narrowed read is taken, and `tiers` is `[]` — the ONE state the
+/// restore returns the address to by removal rather than by a write.
+function captureStanding(instance, address) {
+  const before = standingAt(instance, address);
+  const tiers = [];
+  // THE NARROWED READS ARE TAKEN ONLY WHERE SOMETHING STANDS: the zero-tier read cannot succeed at an address
+  // that holds an anchor at no tier, so absence is decided once and costs no further read.
+  if (before !== undefined) {
+    for (let index = 0; index < STANDING_TIERS.length; index += 1) {
+      const tier = STANDING_TIERS[index];
+      const stood = standingAtTier(instance, address, tier);
+      if (stood.stood === true) appendOwn(tiers, { tier, value: stood.value });
+    }
+  }
+  return {
+    before,
+    // THE TIER THE CROSS-TIER READ DREW FROM — the lowest-rank standing tier, which is the LAST entry of
+    // `tiers` because `STANDING_TIERS` is rank-descending — and `null` where the address stood at no tier.
+    beforeTier: tiers.length === 0 ? null : tiers[tiers.length - 1].tier,
+    tiers,
+  };
 }
 
 /// **THE JUDGEMENT — THE TERMINAL STATE, ASKED OF EVERY PAIR THE REVERSAL TOUCHED, ONCE.** It answers
@@ -1262,9 +1322,20 @@ export function reversalWatch(state, instance) {
 /// **AND THE RESTORE IS NOT JUDGED AND RECURSES INTO NOTHING** (`restoreReversal` below states both): it is a
 /// COMPENSATING ACT and not a consumer write, it reaches the store verb at its entry — no `K-2`, no pass, no
 /// listener delivery and no second `rollback` — and every address it touches is one the watch already read.
+///
+/// **⟶ AND A JUDGEMENT THAT CANNOT COMPLETE FAILS CLOSED, 2026-10-27 — `D-41` ITEM `4`, MEASURED.** A pair body
+/// that THREW at this judgement used to propagate out of this function **with the reversal's effect STANDING and
+/// the refusal's `log` `[]`**: the reversal had already happened, so the store was left at the very state nobody
+/// could judge and the consumer was told nothing about it. **A reversal nobody could judge is a reversal nobody
+/// could approve**, so the throwing arm is treated as the violating arm: **every address the reversal moved is
+/// restored, and the call refuses with a log that NAMES THE THROWING PAIR** — the same treatment a violation
+/// gets. The crossed code stays the body's own rank-`18` member (`ConstraintBodyThrew`, the code that says what
+/// actually happened: a body threw), while the treatment — restore, one log entry naming the pair, one plain
+/// form — is the violation's.
 export function judgeReversal(instance, watched, reversalId) {
   // THE MOVED SET IS TAKEN FIRST, ONCE: the judgement's subject is the CHANGE the reversal made and nothing
-  // wider, and the same list is what a refusal has to put back.
+  // wider, and the same list is what a refusal has to put back — with the tier capture the watch took, so a
+  // restore knows WHERE each value stood and not merely what it was.
   const moved = [];
   for (let index = 0; index < watched.length; index += 1) {
     const one = watched[index];
@@ -1273,17 +1344,33 @@ export function judgeReversal(instance, watched, reversalId) {
     // reversal found.
     const after = standingAt(instance, one.address);
     if (sameStanding(one.before, after) === true) continue;
-    appendOwn(moved, { entry: one.entry, address: one.address, before: one.before, after });
+    appendOwn(moved, {
+      entry: one.entry,
+      address: one.address,
+      before: one.before,
+      beforeTier: one.beforeTier,
+      beforeTiers: one.beforeTiers,
+      after,
+    });
   }
   for (let index = 0; index < moved.length; index += 1) {
     const one = moved[index];
-    const outcome = reversalOutcome(one.entry, one.address, one.after);
+    // **THE BODY'S THROW IS THE JUDGEMENT'S OWN CATCH AND NOT A PROPAGATING VALUE** — `reversalOutcome` converts
+    // a body's throwable to the surface's rank-`18` form and re-throws anything unmarked as itself, and BOTH
+    // arrive here: the reversal has run, so a judgement that cannot complete restores and refuses (below).
+    let outcome;
+    try {
+      outcome = reversalOutcome(one.entry, one.address, one.after);
+    } catch (thrown) {
+      const undo = restoreReversal(instance, moved);
+      throw reversalRefusal(one, one.after, null, reversalId, undo, thrown);
+    }
     if (outcome === true) continue;
     // **THE FIRST VIOLATING PAIR DECIDES AND THE SECOND IS NOT EVALUATED** (`attempt-lifecycle.md §2.4` item 5
     // (ii)–(iii), at the reversal's own instant) — and BEFORE the refusal is built, EVERY address the reversal
     // moved is put back, so the store the consumer meets holds no state this refusal refused.
     const undo = restoreReversal(instance, moved);
-    throw reversalRefusal(one, one.after, reversalSaid(outcome), reversalId, undo);
+    throw reversalRefusal(one, one.after, reversalSaid(outcome), reversalId, undo, null);
   }
   return undefined;
 }
@@ -1299,60 +1386,241 @@ export function judgeReversal(instance, watched, reversalId) {
 ///
 /// **AND WHY IT CANNOT RECURSE INTO THE MEMBER.** `judgeReversal` is reached from `index.mjs`'s `rollback`
 /// member; the restore never calls that member, the addon's `rollback`, or any package member — only the two
-/// store verbs at the entry — so the judgement's ONE pass over the pairs stays one pass and `D-40`'s floor law
+/// store verbs at its entry — so the judgement's ONE pass over the pairs stays one pass and `D-40`'s floor law
 /// is not re-walked.
 ///
-/// **THE ADDRESS IS CLEARED ON EVERY TIER FIRST, THEN SET AT `mem` WHEN A VALUE STOOD THERE.** The watch's
-/// `before` is the CROSS-TIER standing (the same `read` the judgement read), so the address must stand exactly
-/// there and at no tier the reversal left something at; the value is then written at the canonical middle tier.
-/// **THE RECORD OF WHAT IT DID IS RETURNED AND CARRIED INTO THE REFUSAL'S LOG** — a consumer is told the
-/// reversal was undone, and told so plainly where a restore could not be taken.
+/// **⟶ SUPERSEDED IN PART 2026-10-27 (`D-41` ITEM `2`; ANNOTATE-BESIDE): THE CLAUSE THAT STOOD HERE READ *"THE
+/// ADDRESS IS CLEARED ON EVERY TIER FIRST, THEN SET AT `mem` WHEN A VALUE STOOD THERE"* AND THAT IS THE DEFECT
+/// THIS PASS MEASURED. EVERY BYTE ABOVE THIS PARAGRAPH STANDS AND IS READ THROUGH IT.**
+///
+/// **WHAT WAS MEASURED, AND WHY IT WAS THE WORST THING ON THE BRANCH.** `delete(address)` with no tier removes
+/// EVERY tier at the address (`src/args.rs`'s `delete_tier`, `None` = every tier), and the value was then written
+/// at `mem` — so **a pre-reversal `file`-tier value was DESTROYED by a refusal that then said every address
+/// *"stands again at its pre-reversal state"***. Two measured states, both from `tests/e2e/downstream-claims`'
+/// neighbours at this date: a shadow (`file` `"durable"` + `mem` `"second"`, the cross-tier read answering
+/// `"second"`) came back as `mem` `"second"` ALONE — the file value gone, the message claiming the reversal
+/// undone — and where the terminal standing was ABSENT the first `delete` refused `AddressNotFound` (a delete at
+/// a key holding no anchor is that code, `src/store.rs`), so **the captured value was never written at all** while
+/// the refusal still carried a sentence about the reversal.
+///
+/// **THE SEMANTICS THIS FUNCTION NOW TAKES, AND EACH LIMB IS THE MEASURED ONE:**
+///   1. **THE RESTORE PUTS BACK EXACTLY WHAT STOOD — the same value at the same tier.** The watch captured
+///      `beforeTiers`, every tier at which the address stood with that tier's own value; each is written back at
+///      ITS OWN tier, **most persistent first** (`STANDING_TIERS`), because a write purges the versions it
+///      outranks and that order is what reconstructs a shadow instead of flattening it.
+///   2. **IT DOES NOT CLEAR A TIER IT CANNOT REPOPULATE.** A tier that stood before is only ever WRITTEN, never
+///      cleared; the only tiers this act removes are the ones that stand NOW and did not stand before — the
+///      reversal's own additions — and where one of those cannot be removed the address is reported, not
+///      silently left.
+///   3. **WHERE THE PRE-REVERSAL STATE WAS ABSENT, IT REMOVES WHAT THE REVERSAL LEFT.** `beforeTiers` empty
+///      means the address stood at no tier; the address is cleared of every tier and **`AddressNotFound` here is
+///      the state the address is owed, not a failure** — the reversal left nothing to remove.
+///   4. **AND THE ACT IS VERIFIED, NOT ASSUMED.** After acting, the address is read again — the cross-tier
+///      standing and each tier — and it counts as restored ONLY where the standing equals the captured one and
+///      the tier set with its per-tier values equals the captured set. **A RESTORE THAT CANNOT BE TAKEN, OR
+///      THAT DID NOT TAKE, IS NAMED IN THE REFUSAL'S LOG** (`undoSpelling` below), so the message never claims a
+///      restoration that did not happen.
+///
+/// **WHAT IT STILL CANNOT PUT BACK, SAID HERE RATHER THAN LEFT TO A MESSAGE.** The capture is PER TIER and not
+/// per tier-per-descendant: a shadow that stands at DIFFERENT tiers at different depths of one branch is captured
+/// as the tier-readings of the branch, so a mixed-depth shadow is flattened to the branch's own tier readings
+/// (the same value at the same tier AT THE ADDRESS, not at every node beneath it). And a write outranks nothing
+/// its parent does not allow (`src/store.rs`'s monotonicity clause), so an address whose PARENT the reversal
+/// moved to a lower tier cannot have a higher tier put back; that address is reported as not restored.
+/// **THE RESTORE ALSO PERFORMS NO FILE I/O**: `delete` and `write` reach the store's in-memory tiers only
+/// (`contract.md §7.2` item 1), exactly as the reversal it compensates does, so the on-disk bytes are the ones
+/// the last successful `file`-tier save left.
 function restoreReversal(instance, moved) {
   const addon_ = withAddon();
   let restored = 0;
   const failed = [];
+  // ONE ACT PER ADDRESS: two pairs over one address (or one pair naming it twice) must not be restored twice,
+  // so the addresses already acted on are remembered — by a local loop, never by `Array.prototype.includes` on
+  // a refusal path (`contract.md §2.1`'s clause on `F8-2` and item `(2b)`'s row `54`).
+  const acted = [];
   for (let index = 0; index < moved.length; index += 1) {
     const one = moved[index];
+    const key = homeAddressKey(one.address);
+    if (hasOwnSpelling(acted, key) === true) continue;
+    appendOwn(acted, key);
+    let refused = null;
     try {
-      // EVERY TIER AT THE ADDRESS, REMOVED — the receipt is not read and nothing is delivered (`triggered` is
-      // the store's own answer and this act performs no invocation; `surface.md §2.7`).
+      restoreOneStanding(instance, addon_, one);
+    } catch (why) {
+      refused = why;
+    }
+    const verdict = standingVerdict(instance, one);
+    if (refused === null && verdict.exact === true) {
+      restored += 1;
+      continue;
+    }
+    // A RESTORE THAT COULD NOT BE TAKEN, OR THAT DID NOT TAKE, IS NOT SWALLOWED: the address is named in the
+    // refusal's log together with what stands there instead, so the consumer is never told the store was put
+    // back when it was not.
+    appendOwn(failed, {
+      address: one.address,
+      before: one.before,
+      beforeTier: one.beforeTier,
+      beforeTiers: one.beforeTiers,
+      standing: verdict.value,
+      tiers: verdict.tiers,
+    });
+  }
+  return { restored, total: acted.length, failed };
+}
+
+/// **THE ACTS ONE ADDRESS'S RESTORE TAKES — EXACTLY WHAT STOOD, AT THE TIER IT STOOD AT.**
+///
+/// **THE ABSENT ARM REMOVES** (no tier named: every tier at the address, `src/args.rs`'s `delete_tier`), and
+/// `AddressNotFound` is answered as the state owed rather than as a failure — a delete at a key holding no
+/// anchor is that code (`src/store.rs`), and it is exactly the state an address that stood at no tier is owed.
+///
+/// **THE PRESENT ARM WRITES, MOST PERSISTENT TIER FIRST**, then removes any tier that stands now and did not
+/// stand before. Each write is the boundary's own carrier (`encodeValue`), and the tier is the exact token the
+/// watch captured — **no `mem` default is fabricated anywhere on this path.** The receipt is not read and
+/// nothing is delivered: `delete`/`write` reached at this entry deliver no listener (`surface.md §2.7`).
+function restoreOneStanding(instance, addon_, one) {
+  // THE ABSENT ARM: one `delete` naming no tier — every tier at the address (`src/args.rs`'s `delete_tier`,
+  // `None` = every tier) — and `AddressNotFound` is the state owed where the reversal left nothing to remove.
+  if (one.beforeTiers.length === 0) {
+    try {
       Reflect.apply(addon_.delete, instance, [
         encodeAddress(one.address, undefined, 'first argument'),
         encodeTier(undefined, false, false, 'first argument'),
       ]);
-      if (one.before !== undefined) {
-        const fault = { found: null, value: undefined, path: [], subject: null, nodes: 0 };
-        const carried = encodeValue(one.before, [], 0, [], fault);
-        if (fault.found !== null) throw fault.found;
-        Reflect.apply(addon_.write, instance, [
-          encodeAddress(one.address, undefined, 'first argument'),
-          encodeTier('mem', true, false, 'first argument'),
-          carried,
-        ]);
-      }
-      restored += 1;
-    } catch (refused) {
-      // A RESTORE THAT COULD NOT BE TAKEN IS NOT SWALLOWED: the address is named in the refusal's log, so the
-      // consumer is never told the store was put back when it was not.
-      appendOwn(failed, one.address);
+    } catch (why) {
+      if (isAddressNotFound(why) === false) throw why;
+    }
+    return;
+  }
+  for (let index = 0; index < one.beforeTiers.length; index += 1) {
+    const stood = one.beforeTiers[index];
+    const fault = { found: null, value: undefined, path: [], subject: null, nodes: 0 };
+    const carried = encodeValue(stood.value, [], 0, [], fault);
+    if (fault.found !== null) throw fault.found;
+    Reflect.apply(addon_.write, instance, [
+      encodeAddress(one.address, undefined, 'first argument'),
+      encodeTier(stood.tier, true, false, 'first argument'),
+      carried,
+    ]);
+  }
+  // THE REVERSAL'S OWN ADDITIONS: a tier that stands now and stood at no tier before is cleared BY NAME, so no
+  // tier that stood before is ever cleared by this loop.
+  for (let index = 0; index < STANDING_TIERS.length; index += 1) {
+    const tier = STANDING_TIERS[index];
+    if (capturedTier(one.beforeTiers, tier) === true) continue;
+    if (standingAtTier(instance, one.address, tier).stood === false) continue;
+    Reflect.apply(addon_.delete, instance, [
+      encodeAddress(one.address, undefined, 'first argument'),
+      encodeTier(tier, true, false, 'first argument'),
+    ]);
+  }
+}
+
+/// **WHETHER A CAPTURED LIST STOOD AT ONE TIER** — a local index loop, for the reason `restoreReversal` states.
+function capturedTier(tiers, tier) {
+  for (let index = 0; index < tiers.length; index += 1) {
+    if (tiers[index].tier === tier) return true;
+  }
+  return false;
+}
+
+/// **WHETHER A LOCAL LIST OF SPELLINGS ALREADY HOLDS ONE** — a local index loop and not `Array.prototype.includes`.
+function hasOwnSpelling(spellings, spelling) {
+  for (let index = 0; index < spellings.length; index += 1) {
+    if (spellings[index] === spelling) return true;
+  }
+  return false;
+}
+
+/// **WHETHER A THROWN VALUE IS THE STORE'S `AddressNotFound`** — read as an OWN data member and off no chain
+/// (`D-35`'s read half; the value is the store's own plain refusal on a lawful path).
+function isAddressNotFound(value) {
+  return value !== null && typeof value === 'object' && ownDataMember(value, 'status') === 'AddressNotFound';
+}
+
+/// **THE ADDRESS AS IT STANDS NOW, MEASURED AGAINST WHAT THE WATCH CAPTURED** — the check that turns "the
+/// restore ran" into "the restore LOOKED": the cross-tier standing, every tier that stands with its value, and
+/// `exact` only where the standing equals the captured one AND the tier set with its per-tier values equals the
+/// captured set. **A capture of no tier requires ABSENCE** (`value === undefined`), which is the state an
+/// address that stood at no tier is owed.
+function standingVerdict(instance, one) {
+  const value = standingAt(instance, one.address);
+  const tiers = [];
+  for (let index = 0; index < STANDING_TIERS.length; index += 1) {
+    const tier = STANDING_TIERS[index];
+    const stood = standingAtTier(instance, one.address, tier);
+    if (stood.stood === true) appendOwn(tiers, { tier, value: stood.value });
+  }
+  if (one.beforeTiers.length === 0) {
+    return { exact: value === undefined && tiers.length === 0, value, tiers };
+  }
+  if (sameStanding(value, one.before) === false) return { exact: false, value, tiers };
+  if (tiers.length !== one.beforeTiers.length) return { exact: false, value, tiers };
+  for (let index = 0; index < tiers.length; index += 1) {
+    if (tiers[index].tier !== one.beforeTiers[index].tier) return { exact: false, value, tiers };
+    if (sameStanding(tiers[index].value, one.beforeTiers[index].value) === false) {
+      return { exact: false, value, tiers };
     }
   }
-  return { restored, total: moved.length, failed };
+  return { exact: true, value, tiers };
 }
 
 /// **THE SENTENCE THE LOG CARRIES ABOUT THE UNDOING** — the refusal's own record of the compensating act, read
-/// at the ONE site that builds the log entry. It names the act and, where a restore could not be taken, the
-/// addresses still standing at the state the judgement refused (`DEF-Q`: no column prints `undefined`).
+/// at the ONE site that builds the log entry. **IT MAY CLAIM *"THE REVERSAL WAS UNDONE"* ONLY WHERE EVERY ADDRESS
+/// IT MOVED STANDS AGAIN EXACTLY AS IT STOOD** (`restoreReversal`'s verdict); where it cannot, **it names each
+/// address that could not be restored and says what stands there INSTEAD and what it was owed** (`D-41` item `2`:
+/// *"a message must not claim a restoration that did not happen"*). `DEF-Q`: no column prints `undefined`.
 function undoSpelling(undo) {
   if (undo.failed.length === 0) {
-    return 'the reversal was UNDONE: every address it moved stands again at its pre-reversal state';
+    return 'the reversal was UNDONE: every address it moved stands again exactly as it stood before the '
+      + 'reversal — the same value at the same tier, or absent where it was absent';
   }
   let named = '';
   for (let index = 0; index < undo.failed.length; index += 1) {
-    named += index === 0 ? addressSpelling(undo.failed[index]) : `, ${addressSpelling(undo.failed[index])}`;
+    const one = undo.failed[index];
+    named += index === 0 ? '' : '; ';
+    named += `${JSON.stringify(one.address)} could not be restored and stands `
+      + `${standingDescription(one.standing, one.tiers)} where it stood `
+      + `${capturedDescription(one)} before the reversal`;
   }
-  return `the reversal was NOT undone at every address it moved: ${named} stand at the state this `
-    + 'judgement refused';
+  const moved = undo.total === 1 ? 'address' : 'addresses';
+  const still = undo.restored === 1 ? 'stands' : 'stand';
+  return `the reversal was NOT undone at every address it moved (${undo.restored} of the ${undo.total} `
+    + `${moved} it moved ${still} again): ${named}`;
+}
+
+/// **A STANDING AS A SENTENCE — WHAT VALUE, AT WHICH TIER, OR ABSENCE** (`DEF-Q`: no column prints `undefined`).
+function standingDescription(value, tiers) {
+  if (tiers.length === 0) {
+    return value === undefined
+      ? 'at no value and no tier (absent)'
+      : `at the value ${standingSpelling(value)} and at no tier this act can name`;
+  }
+  let spelled = 'at ';
+  for (let index = 0; index < tiers.length; index += 1) {
+    spelled += index === 0 ? '' : ' and ';
+    spelled += `tier \`${tiers[index].tier}\` holding ${standingSpelling(tiers[index].value)}`;
+  }
+  return spelled;
+}
+
+/// **THE CAPTURED STANDING AS THE SAME SENTENCE — what the address was owed**, tier by tier with each tier's own
+/// value (so a shadow's two versions are both named and neither is spoken for the other). **AND WHERE IT STOOD
+/// AT MORE THAN ONE TIER, THE TIER THE CROSS-TIER READ DREW FROM IS NAMED BESIDE THEM** — the watch's
+/// `beforeTier`, which is what the consumer's own `read` would have answered at that instant.
+function capturedDescription(one) {
+  const tiers = one.beforeTiers;
+  if (tiers.length === 0) return 'at no value and no tier (absent)';
+  let spelled = 'at ';
+  for (let index = 0; index < tiers.length; index += 1) {
+    spelled += index === 0 ? '' : ' and ';
+    spelled += `tier \`${tiers[index].tier}\` holding ${standingSpelling(tiers[index].value)}`;
+  }
+  if (tiers.length > 1) {
+    spelled += ` (the cross-tier read answered tier \`${one.beforeTier}\`)`;
+  }
+  return spelled;
 }
 
 
@@ -1366,6 +1634,22 @@ function standingAt(instance, address) {
     return instance.read(address);
   } catch (refused) {
     return undefined;
+  }
+}
+
+/// **THE STORE'S STANDING AT ONE ADDRESS NARROWED TO ONE TIER — THE SAME ROUTE, ONE ARGUMENT FURTHER** (the
+/// `read` member's declared tier position, `a.read(address, tier?)`; `src/args.rs`'s `read_tier_sel` admits ONE
+/// token and answers that tier's version). **`stood: false` is the tier's own absence** — `TierNotFound` where
+/// the key holds no version at that tier, `AddressNotFound` where it holds none at all — and **`stood: true` with
+/// the value is what that tier answers**, which is the capture a tier-exact restore writes back.
+///
+/// **AND THE REFUSAL'S OWN CODE IS NOT READ HERE**: a tier probe asks one question — does this tier stand? — and
+/// every refusal to it answers the same thing, so no code is put in a value slot on this path (`DD-12`).
+function standingAtTier(instance, address, tier) {
+  try {
+    return { stood: true, value: instance.read(address, tier) };
+  } catch (refused) {
+    return { stood: false, value: undefined };
   }
 }
 
@@ -1415,10 +1699,18 @@ function ownDataMember(value, name) {
 /// **A BODY THAT THROWS IS THE SURFACE'S RANK-`18` `ConstraintBodyThrew`, NOT A RAW HOST ERROR** (`DEF-S`'s
 /// ruling, `D-38`; `src/error.rs`'s `[&str; 20]` rank `18`): the mark the kernel sets at its own three frames
 /// (`markBodyThrow`) is spelled on this side under the same `Symbol.for` key — so the value crosses through
-/// `bodyThrowRefusal` and this surface's ONE form, with `log: []` (no attempt stands at a reversal's
-/// judgement). **WHERE THE TREE CARRIES NO USABLE GENERATOR THE BODY'S OWN VALUE CROSSES AS ITSELF**, which is
-/// the safe direction `registrationCrossing` already takes and the one `fail-surface.md §1.1` item 5 declares
-/// for a body's throwable.
+/// `bodyThrowRefusal` and this surface's ONE form. **WHERE THE TREE CARRIES NO USABLE GENERATOR THE BODY'S OWN
+/// VALUE CROSSES AS ITSELF**, which is the safe direction `registrationCrossing` already takes and the one
+/// `fail-surface.md §1.1` item 5 declares for a body's throwable.
+///
+/// **⟶ AND THE THROWN VALUE NO LONGER ESCAPES THE JUDGEMENT UNCOMPENSATED, 2026-10-27 (`D-41` item `4`;
+/// ANNOTATE-BESIDE).** The clause above read *"with `log: []` (no attempt stands at a reversal's judgement)"*,
+/// and the throw then propagated out of `judgeReversal` **with the reversal's effect standing and `log` `[]`** —
+/// measured: the store held the state nobody could judge and the consumer was told nothing had been undone. **The
+/// conversion here is unchanged and is the CATCHER'S**: `judgeReversal` catches what this function throws (the
+/// converted rank-`18` form, or the body's own value where no generator stands), restores, and refuses with a log
+/// that names this pair — so the empty log this clause named as the arm's fact is superseded by the judgement's
+/// own arm, and no byte of the conversion moves.
 function reversalOutcome(entry, address, value) {
   const context = {
     address: address.slice(),
@@ -1456,50 +1748,77 @@ function reversalSaid(outcome) {
 /// GENERATED SENTENCE** at the pair's own `<SEGMENT>` slot (`addon_.errorMessage` — `DD-52` forbids a second
 /// source, so nothing is authored here; the fixed sentence below is reached only on a tree whose generator is
 /// unusable, which is the same arm `constraintCrossing` answers with a fixed sentence), **and THE `log` IS ONE
-/// `constraint-check` ENTRY OF THE KERNEL'S SIX MEMBERS NAMING THE CONSTRAINT AND THE STATE IT REFUSED.**
+/// `constraint-check` ENTRY NAMING THE CONSTRAINT AND THE STATE IT REFUSED.**
 ///
 /// **THE ENTRY IS BUILT HERE AND NOT BY THE KERNEL, AND THE ODD MEMBER IS SAID PLAINLY: no attempt stands at
 /// a reversal's judgement**, so there is no attempt log to carry verbatim (`§2.5` item 3's `log` is *"the
-/// attempt's own message log"*). **The six members, their `constraint-check` kind and their `seq` ordinal are
-/// the kernel's own shape** (`kernel-surface.md §2.5` item 1, whose kind set is CLOSED and whose `state` is
-/// `null` on the three non-`outcome` kinds), so the entry is a log entry a consumer can already read and no
-/// SEVENTH member is minted.
-function reversalRefusal(one, after, said, reversalId, undo) {
+/// attempt's own message log"*).
+///
+/// **⟶ AND THE ENTRY CARRIES FIVE MEMBERS AND NOT SIX, 2026-10-27 — `D-41` ITEM `4`, ANNOTATE-BESIDE.** The
+/// clause above read *"The six members, their `constraint-check` kind and their `seq` ordinal are the kernel's
+/// own shape"* and the entry minted `seq: 1`; **THAT `1` WAS FABRICATED AND HAS NO RECORD BEHIND IT.** The
+/// kernel's `seq` is the ORDINAL WITHIN AN ATTEMPT'S OWN LOG (`kernel-foundations.mjs`'s `append`:
+/// `attempt.log.length + 1`, withdrawn entries renumbered) — **and no attempt stands at a reversal's judgement,
+/// so there is no log whose ordinal this is and no member of any record here that it could be read from.**
+/// `contract.md §2.6` item 4's clause of 2026-10-26 declared the `1`; **this pass does not mint it.** The entry
+/// therefore carries the other five members — `kind` · `id` · `message` · `opId` · `state` — and **no `seq` at
+/// all**: the honest form of a record whose ordinal is unknown is an absent member, never a number invented for
+/// it (`D-21`: a member that did not stand says so).
+///
+/// **AND IT HAS A SECOND ARM — THE JUDGEMENT THAT COULD NOT COMPLETE (`D-41` item `4`).** Where `thrown` is the
+/// value a pair's body threw at this judgement, the entry is the same five-member `constraint-check` naming the
+/// same pair, the state the reversal left and the undoing, **and the crossed `status` is the set's rank-`18`
+/// member `ConstraintBodyThrew` with the store's own sentence for it** — the code says what happened (a body
+/// threw), while the treatment is the violation arm's: the reversal was restored and the pair is named.
+/// **WHERE THE THROWN VALUE IS NOT THE KERNEL'S MARKED FORM** (a body's raw throwable on a tree with no usable
+/// generator), the same rank-`18` refusal is built here — the restoration and the pair's name cross regardless
+/// of the body's own value's class, which is the difference between a compensating act and a conversion.
+function reversalRefusal(one, after, said, reversalId, undo, thrown) {
   const addon_ = withAddon();
   // **THE `<SEGMENT>` SLOT IS THE ADDRESS SPELLING THE KERNEL'S OWN REGISTRATION REFUSAL HANDS THE SAME
   // GENERATOR** (`kernel-registration.mjs`'s `registrationRefusal`: the segments joined by `/`, BARE — the
   // generator's own `build` is what prints a string segment single-quoted, so a pre-quoted spelling here
   // would print `''a''`). One spelling, one home, and no second quoting rule.
   const subject = addressSpelling(one.address);
+  const status = thrown === null ? CONSTRAINT_PASS_REFUSED : BODY_THREW_STATUS;
   let message = '';
   if (typeof addon_.errorMessage === 'function') {
-    const generated = addon_.errorMessage(CONSTRAINT_PASS_REFUSED, subject, 'constraints');
-    if (typeof generated === 'string') message = generated;
+    const generated = addon_.errorMessage(status, subject, 'constraints');
+    if (typeof generated === 'string' && generated.length > 0) message = generated;
   }
   if (message === '') {
-    message = 'the reversal was refused by a constraint pass, the state it would leave is not one the '
-      + 'registered constraints admit';
+    message = thrown === null
+      ? 'the reversal was refused by a constraint pass, the state it would leave is not one the registered '
+        + 'constraints admit'
+      : 'the reversal was refused by a constraint body that threw, the state it would leave could not be judged';
   }
   const entry = {
-    seq: 1,
     kind: 'constraint-check',
     id: one.entry.id,
-    // **⟶ AND THE ENTRY SAYS THE REVERSAL WAS UNDONE, 2026-10-26 (`DEF-W`'s `(a)`)** — the refusal's own
-    // record, beside the state it refused, so a consumer that catches it knows the store stands again where the
-    // reversal found it (and is told plainly where a restore could not be taken). ONE ENTRY, SIX MEMBERS: the
-    // sentence is this entry's, and no second log entry and no seventh member is minted.
-    message: `the constraint ${one.entry.id} refused the state the reversal left at `
-      + `${JSON.stringify(one.address)}: the value there is ${standingSpelling(after)}`
-      + (said === null ? '' : ` — ${said}`)
-      + ` — ${undoSpelling(undo)}`,
-    // **THE STORE'S OWN ECHO OF THE ID THE REVERSAL NAMED, OR `null`** — the entry's sixth member is always
+    // **⟶ AND THE ENTRY SAYS WHAT THE ACT DID, 2026-10-26 (`DEF-W`'s `(a)`) and 2026-10-27 (`D-41` item `2`)** —
+    // the refusal's own record, beside the state it refused, so a consumer that catches it knows whether the
+    // store stands again where the reversal found it (and is told plainly, and by address, where it does not).
+    // ONE ENTRY, FIVE MEMBERS: the sentence is this entry's, and no second log entry and no sixth member is
+    // minted.
+    message: thrown === null
+      ? `the constraint ${one.entry.id} refused the state the reversal left at `
+        + `${JSON.stringify(one.address)}: the value there is ${standingSpelling(after)}`
+        + (said === null ? '' : ` — ${said}`)
+        + ` — ${undoSpelling(undo)}`
+      : `the constraint ${one.entry.id} THREW at the judgement of the state the reversal left at `
+        + `${JSON.stringify(one.address)}: the value there is ${standingSpelling(after)}`
+        + ` — ${undoSpelling(undo)}`,
+    // **THE STORE'S OWN ECHO OF THE ID THE REVERSAL NAMED, OR `null`** — the entry's fifth member is always
     // present and of the kernel's own domain (`kernel-surface.md §2.5` item 1: a `string | null`), never absent.
     opId: typeof reversalId === 'string' ? reversalId : null,
     state: null,
   };
   const log = [];
   appendOwn(log, entry);
-  return { status: CONSTRAINT_PASS_REFUSED, message, log: refusalLog(log) };
+  // **THE CROSSED `status` IS THE ARM'S OWN AND IS NEVER MINTED** (`DD-40`): rank `20` where a pair refused the
+  // state the reversal left, rank `18` where a pair's body threw at the judgement of it (`D-41` item `4`). The
+  // sentence beside it was generated for that same code — one source for each (`DD-52`).
+  return { status, message, log: refusalLog(log) };
 }
 
 /// **THE ADDRESS'S OWN `<SEGMENT>` SPELLING, JOINED BY `/` AND BARE** — the kernel's own
