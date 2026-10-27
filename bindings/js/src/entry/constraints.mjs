@@ -4,10 +4,10 @@ import { appendOwn, fail, refusalLog } from './refusal.mjs';
 import { withAddon, require_ } from './artefact.mjs';
 import { classSpelling, isAdmittedArray, isPlainObjectValue } from './class-decision.mjs';
 import { constraintAddress } from './frame.mjs';
-import { homeAddressKey, isStoreReceiver } from './state.mjs';
+import { homeAddressKey, isStoreReceiver, openCommits } from './state.mjs';
 // **THE KERNEL'S OWN RECORD, FOR ONE FIELD AND ONE ONLY** (`D-46`/`D-30`): `kernelFor(store)` answers the
 // instance's kernel record — the same accessor every kernel act takes the instance through — and
-// `reversalAtRest` below reads that record's own `live` map for the count of OPEN attempts. `kernel-foundations`
+// `reversalAtRest` below reads that record's own `live` map for the count of OPEN ATTEMPTS. `kernel-foundations`
 // carries NO import of its own (`kernel-surface.md §1` item 1's empty-footprint clause), so this reach adds no
 // load path, no addon call and no store act; it is a FIELD READ of state the instance already owns, taken the
 // way the kernel's four part modules take it.
@@ -1119,8 +1119,14 @@ function constraintCrossing(refusal) {
 // log and no new member — and **a tree carrying no pair at all reaches no read and no body** (`constraints()`
 // answering `[]` is the same fact read the other way).
 
-/// **WHETHER THE STORE OWNS NO OPEN ATTEMPT — THE ONE INSTANT A REVERSAL'S TERMINAL STATE IS THE STATE THAT
-/// WILL STAND.**
+/// **WHETHER THE STORE IS AT REST — NO OPEN COMMIT AND NO OPEN ATTEMPT — THE ONE INSTANT A REVERSAL'S
+/// TERMINAL STATE IS THE STATE THAT WILL STAND.**
+///
+/// **⟶ SUPERSEDED IN PART 2026-10-26 (`ANNOTATE-BESIDE`): THE CLAUSE BELOW NAMED *ONE* MEASUREMENT AND THE
+/// DISCRIMINATOR NOW TAKES TWO — see *"THE CONJUNCTION"* at the foot of this clause, which is where the
+/// correction stands. EVERY BYTE BETWEEN HERE AND THERE STANDS AS THE READING OF ITS OWN DATE and is read
+/// THROUGH that paragraph: no sentence below is withdrawn, and the paragraph it is corrected by is the one
+/// added.**
 ///
 /// **THIS GATE IS `D-38`'S OWN REASONING AND NOT A CONVENIENCE.** The ruling judges a reversal AT THE STATE IT
 /// LEAVES and refuses a per-step check because *"an unwinding composition passes through intermediate states no
@@ -1161,13 +1167,45 @@ function constraintCrossing(refusal) {
 /// populated by `carryConstraint` alone, whose one act is `kernel.register` — which calls `kernelFor` — so a
 /// tree that carries a pair carries the record the count is read off; and `kernelFor`'s create-on-miss arm
 /// answers the default empty record on any store the slot is not yet defined on.
+///
+/// **⟶ THE CONJUNCTION, 2026-10-26 — *"AT REST" = NO OPEN COMMIT AND NO LIVE ATTEMPT, AND THIS PARAGRAPH IS
+/// THE CORRECTION THE ONE ABOVE IS READ THROUGH.** The paragraph above re-sourced the count onto
+/// `kernelFor(instance).live.size` and called that map *"THE count of open attempts"* — which it is — and
+/// then read it as *the* at-rest test, **WHICH LOOSENED THE CLAUSE WHILE MAKING THE DISCRIMINATOR
+/// UNFAILABLE.** The two structures it could have read measure DIFFERENT THINGS, and the clause's own words
+/// name the first of them:
+///   * **AN OPEN COMMIT IS A SCOPE** — `state.mjs`'s channel answers `attemptIndex(instance).open`, a DEPTH
+///     COUNTER over the store's in-flight verb windows: a verb that finds an extant commit JOINS it rather
+///     than opening a second, which is what keeps the count exact under nesting, and an observer fires once
+///     per commit that OPENS. It is the structure `§2.6` item 1 means by *"where the store owns no open
+///     commit"*, and the surface's own acts hold it open while they run (`listener delivery` inside a
+///     `write`'s window is the measured instance).
+///   * **A LIVE ATTEMPT IS A RECORD** — `kernel.live`, `live.set` at `K-2`, `live.delete` at `release`,
+///     carrying the pair evaluations, the log, the ops and the `KC` tokens. It is the structure the kernel's
+///     own `K-2`/`K-3` route leaves live.
+/// **THEY DIVERGE IN BOTH DIRECTIONS, AND EACH DIRECTION IS A WINDOW THIS FILE MUST NOT JUDGE IN**: a
+/// listener body inside the caller's `write` sees **open commit `1`, live `0`**; a kernel-driven `K-2`/`K-3`
+/// pass sees **open commit `0`, live `1`**. **So reading `live` alone JUDGED INSIDE THE CALLER'S OWN VERB
+/// WINDOW — the very thing `§2.6` item 1 forbids** — and the ground is the CLAUSE'S REASON and not a
+/// measurement of convenience: judging a step *"would invoke bodies mid-attempt and break `D-40`'s 'leaves
+/// the store exactly as it found it'"* (`§2.6` item 1). A verb window is in flight whatever its attempt map
+/// says, and its state is not the state that stands.
+/// **SO THE DISCRIMINATOR ANSWERS *AT REST* IFF BOTH ARE ZERO**, which matches the clause's words and its
+/// reason at once, **AND IT STILL CANNOT FAIL**: the open-commit count is taken through `state.mjs`'s
+/// exported `openCommits(store)` — a PLAIN ACCESSOR over the same index the channel reads, NOT the channel
+/// itself — so there is no callable on the product to lose, and it creates its index on miss exactly as
+/// `kernelFor` creates its record, so it cannot answer `undefined`. **NO `typeof` GUARD, NO `try`/`catch` AND
+/// NO FALLBACK BRANCH STANDS IN THIS DISCRIMINATOR**: both readings below are numbers on every path, and a
+/// lawful call cannot quietly answer "a step" for a reversal that stands at rest. **THE SEMANTICS ARE
+/// UNCHANGED**: at rest ⇒ judge; otherwise ⇒ the watch answers `[]`, no address is read and no body is
+/// invoked.
 function reversalAtRest(instance) {
-  // **THE COUNT IS THE RECORD'S OWN, AND `0` IS THE ONLY AT-REST ANSWER.** `kernel.live` is the instance's
-  // map of open attempts (`D-30`; `kernel.live.set` at `K-2`, `kernel.live.delete` at `release`), so its own
-  // `size` — the same own-`size` read this file already takes of `state.constraints` — IS "how many attempts
-  // this instance owns open", and a `Map`'s `size` is a number on every arm: the measurement has no failure
-  // mode to guard and no fallback to choose, so the fallback that could skip a judgement is gone.
-  return kernelFor(instance).live.size === 0;
+  // **TWO MEASUREMENTS, BOTH MUST BE ZERO, AND EITHER ONE IN FLIGHT IS A STEP.** `openCommits` is the
+  // store's own in-flight verb windows (`state.mjs`, create-on-miss — never `undefined`) and
+  // `kernelFor(instance).live.size` is the record's own map of open attempts (`D-30`, own `size`). No
+  // failure mode exists on either read, so there is nothing to guard and no branch that can skip a
+  // judgement.
+  return openCommits(instance) === 0 && kernelFor(instance).live.size === 0;
 }
 
 /// **THE WATCH — THE PRE-REVERSAL STANDING OF EVERY ENABLED PAIR'S EVERY ADDRESS**, taken before the addon's
@@ -1182,8 +1220,9 @@ function reversalAtRest(instance) {
 export function reversalWatch(state, instance) {
   const watched = [];
   if (state.constraints.size === 0) return watched;
-  // A REVERSAL INSIDE AN OPEN COMMIT IS A STEP AND NOT A TERMINAL STATE — see `reversalAtRest` above, which
-  // states the ground. The watch answers `[]` there, so no read is taken and no body is invoked.
+  // A REVERSAL INSIDE AN OPEN COMMIT **OR** AN OPEN ATTEMPT IS A STEP AND NOT A TERMINAL STATE — see
+  // `reversalAtRest` above (the conjunction of 2026-10-26), which states the ground. The watch answers `[]`
+  // there, so no read is taken and no body is invoked.
   if (reversalAtRest(instance) === false) return watched;
   // **THE WALK IS `D-39`'S DECLARED ORDER** — the record's own `registrationSeq`, collected and ordered
   // exactly as `enumerateConstraints` collects and orders its answer — so the pair the judgement reaches

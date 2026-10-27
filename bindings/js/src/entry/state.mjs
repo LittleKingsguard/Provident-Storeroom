@@ -142,6 +142,27 @@ function attemptIndex(store) {
   return index;
 }
 
+/// **⟶ ADDED 2026-10-26 — THE PLAIN ACCESSOR FOR THE SAME FACT, SO A DISCRIMINATOR CAN READ IT WITHOUT THE
+/// CHANNEL.** The count this index holds is `§4.1`'s and `§4.2` item 1's, and its declared reader has always
+/// been the symbol channel `installAttemptSeam` installs on the instance. **A CHANNEL IS A CALLABLE ON THE
+/// PRODUCT, AND A CALLER CAN LOSE IT**: it is absent on a store this module never installed it on, it is
+/// `writable`/`configurable` by declaration, and the read is therefore a site where a `typeof` guard and a
+/// `catch` had to answer *something* — and both answered the CONSERVATIVE side, which for a reversal's
+/// judgement is a MISSED judgement rather than a wrong one.
+///
+/// **THIS ACCESSOR HAS NO SUCH ARM AND NEEDS NONE**: it is a module export, so no product byte can remove
+/// it, and it answers `attemptIndex(store).open` — an index this function CREATES ON MISS (the `undefined`
+/// arm above defines it and publishes it in the same act), whose `open` is a number on every path. **IT
+/// CANNOT ANSWER `undefined`, so no caller of it carries a branch for that answer.** **AND IT IS A PURE READ**
+/// in the sense `§4.2` item 1 declares: no state, no code, no journal entry, no file.
+///
+/// **IT IS THE SAME ONE INDEX THE CHANNEL READS** (`attemptIndex` above): a second count is not minted, the
+/// increment and decrement moments stay `openCommit`/`closeCommit` alone, and the channel keeps answering
+/// exactly what it answered before.
+export function openCommits(store) {
+  return attemptIndex(store).open;
+}
+
 /** **THE INCREMENT MOMENT** (`PAR-ADA-15`): the opening of a commit. It is taken iff THIS call opens one —
  *  a call that finds the count already above zero has joined an extant commit and opens nothing. */
 export function openCommit(store) {
