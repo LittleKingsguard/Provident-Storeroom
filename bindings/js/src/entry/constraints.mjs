@@ -1125,12 +1125,17 @@ function constraintCrossing(refusal) {
 const ATTEMPT_COUNT = Symbol.for('provident-storeroom.attempt-count');
 
 function reversalAtRest(instance) {
+  // **⟶ THE FALLBACK MOVED TO THE CONSERVATIVE SIDE 2026-10-26.** It answered `true` — JUDGE — when the channel
+  // was absent or threw, and judging during an open commit is the one thing `contract.md §2.6` item 1 forbids,
+  // for the reason it gives: the judgement invokes constraint bodies mid-attempt and breaks `D-40`'s
+  // *"a failed attempt leaves the store as it found it"*. **A measurement that did not happen cannot license the
+  // unsafe branch** (`D-21`): an absent or throwing count means NOT AT REST, so the reversal is a step.
   const reader = instance[ATTEMPT_COUNT];
-  if (typeof reader !== 'function') return true;
+  if (typeof reader !== 'function') return false;
   try {
     return reader() === 0;
   } catch {
-    return true;
+    return false;
   }
 }
 

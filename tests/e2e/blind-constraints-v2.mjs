@@ -1001,8 +1001,8 @@ scenario(() => {
   // **an op the repair landed at a DIFFERENT address (`['b']` here) is in NO candidate set of that call** — it
   // is named by no step and its value STANDS, which is the measured residual this row now reports rather than
   // asserts away (the attempt's address is restored, the beside address is not reached).
-  cell(6, "the union of the steps' undoneOps is the reach the composition actually had, and no wider: it names every op of the attempt that stands in the floor call's own spatial-temporally bounded set (both ops at ['a']), names NO op outside it (the op the repair landed at ['b'] is in no step's undoneOps and in no step's opId), and reports a call that performed nothing only where `failed` is true",
-    `${C.ps217} observable; ${C.cs26} item 5 (a); strata/decisions.md · D-40 (2026-10-26)`,
+  cell(6, "the union of the steps' undoneOps is the reach the composition actually had, and no wider — the floor call restores the address the attempt wrote and an address a repair landed at beside it is NOT restored, the spatial scope declared at storeroom-js/contract.md §2.6's clause of 2026-10-26 (item 5) and no longer taken on D-40's unscoped sentence: it names every op of the attempt that stands in the floor call's own spatial-temporally bounded set (both ops at ['a']), names NO op outside it (the op the repair landed at ['b'] is in no step's undoneOps and in no step's opId), and reports a call that performed nothing only where `failed` is true",
+    `${C.ps217} observable; ${C.cs26} item 5 (a); storeroom-js/contract.md §2.6's clause of 2026-10-26, item 5 (D-40's spatial scope: the floor call restores the address the attempt wrote; an address a repair landed at beside it is not restored)`,
     (() => {
       const union = new Set(st2.flatMap((s) => s.undoneOps ?? []));
       const performed = new Set(st2.map((s) => s.opId));
