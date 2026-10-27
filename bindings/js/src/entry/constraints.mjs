@@ -5,6 +5,13 @@ import { withAddon, require_ } from './artefact.mjs';
 import { classSpelling, isAdmittedArray, isPlainObjectValue } from './class-decision.mjs';
 import { constraintAddress } from './frame.mjs';
 import { homeAddressKey, isStoreReceiver } from './state.mjs';
+// **THE KERNEL'S OWN RECORD, FOR ONE FIELD AND ONE ONLY** (`D-46`/`D-30`): `kernelFor(store)` answers the
+// instance's kernel record — the same accessor every kernel act takes the instance through — and
+// `reversalAtRest` below reads that record's own `live` map for the count of OPEN attempts. `kernel-foundations`
+// carries NO import of its own (`kernel-surface.md §1` item 1's empty-footprint clause), so this reach adds no
+// load path, no addon call and no store act; it is a FIELD READ of state the instance already owns, taken the
+// way the kernel's four part modules take it.
+import { kernelFor } from './kernel-foundations.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 // THE POST-CREATION CONSTRAINT SET — `surface.md §2.12` items 1–5, `A126` (2026-10-16), AND ITS TWO ROUTES
@@ -1102,9 +1109,8 @@ function constraintCrossing(refusal) {
 // log and no new member — and **a tree carrying no pair at all reaches no read and no body** (`constraints()`
 // answering `[]` is the same fact read the other way).
 
-/// **WHETHER THE STORE OWNS NO OPEN COMMIT — THE ONE INSTANT A REVERSAL'S TERMINAL STATE IS THE STATE THAT
-/// WILL STAND** (`finalizer-and-teardown.md §4.2` item 1's declared seam: `store[ATTEMPT_COUNT]()` answers
-/// *"the number of OPEN COMMITS for THAT store, a non-negative INTEGER"*, and it is *"a pure READ"*).
+/// **WHETHER THE STORE OWNS NO OPEN ATTEMPT — THE ONE INSTANT A REVERSAL'S TERMINAL STATE IS THE STATE THAT
+/// WILL STAND.**
 ///
 /// **THIS GATE IS `D-38`'S OWN REASONING AND NOT A CONVENIENCE.** The ruling judges a reversal AT THE STATE IT
 /// LEAVES and refuses a per-step check because *"an unwinding composition passes through intermediate states no
@@ -1118,25 +1124,40 @@ function constraintCrossing(refusal) {
 /// has already approved, or the attempt would not have started from it.
 ///
 /// **SO THE JUDGEMENT IS THE AT-REST REVERSAL'S**: a caller's `rollback` at the surface, where the store owns
-/// no open commit and the state the reversal leaves is the state the caller then reads. **THE COUNT IS SPENT
-/// WITHOUT TOUCHING ANYTHING** (`§4.2` item 1: no state, no code, no journal entry, no file), and **a product
-/// that answers no such channel is judged** — the seam is declared on every instance `storeCreate` returns, and
-/// an absent one is a finding at its own site rather than a silent skip here.
-const ATTEMPT_COUNT = Symbol.for('provident-storeroom.attempt-count');
-
+/// no open attempt and the state the reversal leaves is the state the caller then reads. **THE COUNT IS SPENT
+/// WITHOUT TOUCHING ANYTHING** (`finalizer-and-teardown.md §4.2` item 1's *"a pure READ"*: no state, no code,
+/// no journal entry, no file), and it is READ OFF A FIELD THIS FILE ALREADY HOLDS rather than called out to a
+/// product member that may be absent, forged or throwing.
+///
+/// **⟶ AND THE MEASUREMENT MOVED 2026-10-26: THE KERNEL'S OWN RECORD ANSWERS IT.** The bytes that stood here
+/// read the declared seam on the instance —
+/// `instance[Symbol.for('provident-storeroom.attempt-count')]()` (`finalizer-and-teardown.md §4.2` item 1,
+/// installed by `state.mjs`'s `installAttemptSeam`) — through a `typeof` guard and a `try`/`catch` that
+/// answered `false` (a STEP, unjudged) where the channel was absent or the read threw. **THAT IS A MEASUREMENT
+/// THAT CAN FAIL, ON A DISCRIMINATOR THAT MUST NOT FAIL**: its conservative fallback buys a MISSED judgement,
+/// and a TERMINAL reversal going unjudged is `DEF-W`'s promise silently not delivered — the silent skip is
+/// exactly the shape `D-21` forbids, and nothing said so. **THE PACKAGE HOLDS A BETTER SOURCE FOR THE SAME
+/// FACT, AND IT IS THE JUDGEMENT'S OWN AUTHORITY**: `D-46` makes the kernel the instance's own, `D-30` puts
+/// the attempt records in the record `kernelFor(store)` creates, and **`kernel.live` — that record's map of
+/// OPEN attempts, the hold `K-2` places an attempt in and the terminal act's `release` removes it from
+/// (`kernel-foundations.mjs`'s `kernelFor`, `kernel-terminal.mjs`'s `release`; `KC-7`'s hold) — IS the count of
+/// open attempts.** So the discriminator reads a FIELD, not a call: **no channel, no `typeof` guard and no
+/// `catch` remain**, and there is no branch that can quietly answer "a step" for a reversal that stands at
+/// rest.
+///
+/// **THE SEMANTICS ARE UNCHANGED, MEMBER FOR MEMBER**: `0` open attempts ⇒ AT REST ⇒ the watch is taken and the
+/// reversal is judged; ANY OTHER COUNT ⇒ a step ⇒ `reversalWatch` answers `[]`, no read is taken and no body
+/// is invoked. **AND NO LAWFUL CALL REACHES THIS POINT WITH NO KERNEL AT ALL**: `state.constraints` is
+/// populated by `carryConstraint` alone, whose one act is `kernel.register` — which calls `kernelFor` — so a
+/// tree that carries a pair carries the record the count is read off; and `kernelFor`'s create-on-miss arm
+/// answers the default empty record on any store the slot is not yet defined on.
 function reversalAtRest(instance) {
-  // **⟶ THE FALLBACK MOVED TO THE CONSERVATIVE SIDE 2026-10-26.** It answered `true` — JUDGE — when the channel
-  // was absent or threw, and judging during an open commit is the one thing `contract.md §2.6` item 1 forbids,
-  // for the reason it gives: the judgement invokes constraint bodies mid-attempt and breaks `D-40`'s
-  // *"a failed attempt leaves the store as it found it"*. **A measurement that did not happen cannot license the
-  // unsafe branch** (`D-21`): an absent or throwing count means NOT AT REST, so the reversal is a step.
-  const reader = instance[ATTEMPT_COUNT];
-  if (typeof reader !== 'function') return false;
-  try {
-    return reader() === 0;
-  } catch {
-    return false;
-  }
+  // **THE COUNT IS THE RECORD'S OWN, AND `0` IS THE ONLY AT-REST ANSWER.** `kernel.live` is the instance's
+  // map of open attempts (`D-30`; `kernel.live.set` at `K-2`, `kernel.live.delete` at `release`), so its own
+  // `size` — the same own-`size` read this file already takes of `state.constraints` — IS "how many attempts
+  // this instance owns open", and a `Map`'s `size` is a number on every arm: the measurement has no failure
+  // mode to guard and no fallback to choose, so the fallback that could skip a judgement is gone.
+  return kernelFor(instance).live.size === 0;
 }
 
 /// **THE WATCH — THE PRE-REVERSAL STANDING OF EVERY ENABLED PAIR'S EVERY ADDRESS**, taken before the addon's

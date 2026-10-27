@@ -834,6 +834,140 @@ test('DEF-W · under `D-38` (2026-10-26) a `rollback` whose TERMINAL state a reg
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// DEF-W (2) — THE OTHER HALF OF THE DISCRIMINATOR: a reversal INSIDE an open attempt is a STEP, and is not judged
+//
+// **WHY THIS CELL EXISTS.** `DEF-W` above proves the TERMINAL half — a reversal at rest is judged. It does not
+// prove the other half, and nothing else in the battery did: **a reversal performed INSIDE an open attempt must
+// NOT be judged**, because the state it leaves is not the state that stands (the open window moves it again:
+// the kernel's own failing-attempt floor call, a repair's landing, a continuing pass), because the judgement
+// would invoke the very constraint body the attempt is already evaluating, and because `D-40`'s *"a failed
+// attempt leaves the store exactly as it found it"* is the arm a careless judgement breaks. **The discriminator
+// is `reversalAtRest` (`bindings/js/src/entry/constraints.mjs`): `0` open attempts ⇒ judge, anything else ⇒ the
+// watch answers `[]`, no read is taken and no body is invoked.**
+//
+// **THE TWO ARMS ARE THE SAME STORE SHAPE AND THE SAME PAIR BODY, AND ONLY THE REVERSAL'S INSTANT DIFFERS:**
+//   (1) THE STEP — the pair's body, during a pass, calls `store.rollback(<an earlier op's id>)` itself. The
+//       attempt is OPEN at that instant, so the reversal is a step: **it must answer its unchanged success
+//       record**, and the body must never be asked again by a judgement (a judgement's ask would arrive with
+//       `context.value` at the post-reversal state, which this body REFUSES — so a judged step is caught twice
+//       over: the reversal call would throw `ConstraintPassRefused` and an extra invocation would be recorded);
+//   (2) THE AT-REST CONTROL — the same seed, the same second write, the same reversal, asked at the surface.
+//       No attempt is open, so the state it leaves is the state the caller then reads, and the pair that admits
+//       the SECOND value and refuses the FIRST must refuse it: **`ConstraintPassRefused` and its log.**
+// **THE CONTROL IS WHAT MAKES ARM (1) A FINDING AND NOT A VACUOUS GREEN**: it proves the pair really does
+// refuse the exact state the step's reversal left, so arm (1)'s success record can only be explained by the
+// discriminator declining to judge a step.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+test('DEF-W (2) · a reversal performed INSIDE an open attempt is an UNWINDING STEP and is not judged — the `rollback` a constraint body issues answers its unchanged record, where the same reversal at rest is refused', (t) => {
+  // The step arm's third value, distinct from the seed and the second value so the store's reading names one.
+  const W_STEP_THIRD = 7;
+
+  // ── (1) THE STEP ARM. Seed, then the second value whose op the reversal names, then a pair at `['a']` that
+  // ADMITS every value but the seed and, during a pass (an attempt is open — the context carries its reference),
+  // issues the reversal ONCE. **THE BODY REFUSES THE SEED**, so a judgement taken during the step would throw.
+  const step = make();
+  step.write(['a'], 'mem', SEED);
+  const stepSecond = step.write(['a'], 'mem', REFUSED);
+  const inner = [];
+  const asked = [];
+  let issued = 0;
+  const stepPair = attempt(() => step.addConstraint({ address: ['a'], id: 'w3' }, (context) => {
+    asked.push(context.value);
+    // THE JUDGEMENT'S ASK WOULD BE AT THE STATE THE REVERSAL LEFT — the seed — and is refused here.
+    if (context.value === SEED) return { message: 'this pair admits every value but the seed' };
+    // THE REVERSAL, ISSUED FROM INSIDE THE OPEN ATTEMPT, AND ONCE: `context.attempt` is non-null exactly where a
+    // pass is evaluating this pair (it is `null` at registration and at a reversal's judgement).
+    if (context.attempt !== null && issued === 0) {
+      issued += 1;
+      inner.push(attempt(() => step.rollback(stepSecond.op.opId)));
+    }
+    return true;
+  }));
+  const stepWrite = attempt(() => step.write(['a'], 'mem', W_STEP_THIRD));
+  const stepStanding = step.read(['a']);
+
+  // ── (2) THE AT-REST CONTROL ARM. The same shape with the reversal asked at the surface, where no attempt is
+  // open: the pair admits `REFUSED` (the state standing at registration) and refuses `SEED` (the state the
+  // reversal leaves), so the judgement must refuse it.
+  const rest = make();
+  rest.write(['a'], 'mem', SEED);
+  const restSecond = rest.write(['a'], 'mem', REFUSED);
+  const restPair = attempt(() => rest.addConstraint({ address: ['a'], id: 'w4' },
+    (context) => (context.value === SEED
+      ? { message: 'this pair admits every value but the seed' }
+      : true)));
+  const restRollback = attempt(() => rest.rollback(restSecond.op.opId));
+  const restStanding = rest.read(['a']);
+  const restLog = restRollback.ok === false && restRollback.caught !== null
+    && typeof restRollback.caught === 'object' && Array.isArray(restRollback.caught.log)
+    ? restRollback.caught.log
+    : [];
+
+  // ── THE DRIVE IS COHERENT, OR THE CELL SAYS SO INSTEAD OF REPORTING A VERDICT. ──────────────
+  assert.deepEqual([stepPair.ok, restPair.ok], [true, true],
+    `both pairs must REGISTER (each passes against the state standing when it registered), or the two arms are `
+      + `not the arms this cell claims: stepPair=${JSON.stringify(shapeOf(stepPair.caught))} `
+      + `restPair=${JSON.stringify(shapeOf(restPair.caught))}`);
+  assert.equal(stepWrite.ok, true,
+    `the step arm's pass must complete, so the reversal it issued is the reversal this cell reads: the write `
+      + `caught ${JSON.stringify(shapeOf(stepWrite.caught))}`);
+  assert.equal(inner.length, 1,
+    `the body must have issued exactly ONE reversal inside the open attempt; the drive recorded ${inner.length}`);
+  assert.deepEqual([restRollback.ok, restRollback.caught.status], [false, 'ConstraintPassRefused'],
+    `the AT-REST control's reversal must be REFUSED with \`ConstraintPassRefused\` (\`D-38\`), or arm (1) is not `
+      + `the discriminator's step arm: the control answered ok=${restRollback.ok} `
+      + `caught=${JSON.stringify(shapeOf(restRollback.caught))}`);
+
+  // ── THE FINDING: THE STEP WAS NOT JUDGED. ────────────────────────────────────────────────────
+  // The reversal's own answer is the declared record (`PAR-JS-9`) and NOT the one plain form: a judged step
+  // throws `ConstraintPassRefused` out of this call, and the body's frame would have caught it here.
+  assert.equal(inner[0].ok, true,
+    `a reversal performed INSIDE an open attempt is an UNWINDING STEP and must NOT be judged (\`D-38\`'s `
+      + `own reasoning: the state it leaves is not the state that stands), so the body's \`rollback\` call `
+      + `answers its record. THE DRIVE CAUGHT ${JSON.stringify(shapeOf(inner[0].caught))} — a judgement was `
+      + `taken at ${JSON.stringify(stepStanding)} during an open attempt`);
+  assert.deepEqual(Object.keys(inner[0].value).sort(), ['opId', 'restoredTo', 'undoneOps'],
+    `a lawful reversal answers \`{opId, undoneOps, restoredTo}\` and no new member (\`PAR-JS-9\`); the drive read `
+      + `${JSON.stringify(Object.keys(inner[0].value))}`);
+  assert.deepEqual(inner[0].value.restoredTo, { present: true, value: SEED },
+    `the step's reversal ran and restored the seed: ${JSON.stringify(inner[0].value.restoredTo)}`);
+  // **AND NO BODY WAS INVOKED BY A JUDGEMENT**: the pair is asked at registration and by the pass, and the
+  // judgement's ask — the only ask that could arrive at the seed — never happened.
+  assert.equal(asked.includes(SEED), false,
+    `the judgement invokes the pair at the state a reversal leaves, so no ask may carry the seed here. THE DRIVE `
+      + `WAS ASKED AT ${JSON.stringify(asked)}`);
+  assert.equal(asked.length, 2,
+    `the pair is asked TWICE and no more — once at registration, once by the pass; a third ask is a judgement's. `
+      + `THE DRIVE WAS ASKED AT ${JSON.stringify(asked)}`);
+  assert.equal(stepStanding, SEED,
+    `the step's reversal took effect and nothing judged it afterwards: the store stands at `
+      + `${JSON.stringify(stepStanding)}`);
+
+  // ── AND THE CONTROL'S SHAPE: THE REFUSAL RAN AFTER THE REVERSAL AND ITS EFFECT STANDS (`(a)`, as `DEF-W`).
+  assert.deepEqual(Object.keys(restRollback.caught).sort(), REFUSAL_MEMBERS,
+    `the control's refusal crosses this surface as ${JSON.stringify(REFUSAL_MEMBERS)}: the drive caught `
+      + `${JSON.stringify(shapeOf(restRollback.caught))}`);
+  assert.equal(restLog.some((entry) => entry.id === 'w4'), true,
+    `the control's \`log\` names the pair that refused (\`kernel-surface.md §2.5\` item 1): `
+      + `${JSON.stringify(restLog)}`);
+  assert.equal(restStanding, SEED,
+    `the control's reversal ran before the refusal and its effect stands: the store reads `
+      + `${JSON.stringify(restStanding)}`);
+
+  // ── THE READINGS, PRINTED ON BOTH ARMS (`D-21`: a cell owes what it read). ───────────────────
+  t.diagnostic(`DEF-W (2) · D-38/D-40 (2026-10-26) · STEP arm: the pair 'w3' issued `
+    + `rollback(${JSON.stringify(stepSecond.op.opId)}) from INSIDE an open attempt and the call ANSWERED `
+    + `${JSON.stringify(inner[0].value)} — not judged; the pair was asked at `
+    + `${JSON.stringify(asked)} (a judgement's ask would carry ${JSON.stringify(SEED)}); the store stands at `
+    + `${JSON.stringify(stepStanding)}`);
+  t.diagnostic(`DEF-W (2) · D-38 (2026-10-26) · AT-REST control: the SAME reversal at the surface was REFUSED `
+    + `with status ${JSON.stringify(restRollback.caught.status)}, log ${JSON.stringify(restLog)}; the store `
+    + `stands at ${JSON.stringify(restStanding)} — so arm (1) is green because the step is a step, and not `
+    + `because the pair would have admitted it`);
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 // F · the `filePath` probe at 1.0.0 — the 0.1.x row never re-measured
 //
 // **THE CLAIM.** `storeCreate` with a `filePath` whose parent the process cannot write (`/usr/bin/…`,
