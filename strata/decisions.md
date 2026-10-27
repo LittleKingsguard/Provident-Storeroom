@@ -3043,3 +3043,42 @@ become unnecessary**, because the callback was never inside the outer act to beg
 **TERMS: authorship replaces depth (`1` = the discriminator), the join rule narrowed (`1`), the descendant window
 closed at its root (`1`), the external-entry marker and its sites owed (`2` = the marker's implementation, the cells
 that prove a callback's commit is its own).**
+
+---
+
+### `D-46` — THE COMMIT ID IS THE DISCRIMINATOR: listeners open, repairs join, and the parameter says which
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, clarifying `D-45`.
+
+**THE ARCHITECT, VERBATIM:**
+
+> A listener should be operating at the surface and opening a new commit
+> A constraint's repair needs to stay as part of the same commit so that it can be tracked as part of the commit
+> process
+> The original way of maintaining this was to accept an optional parameter on entry for the commit id, so that a
+> constraint can identify which open commit it is repairing
+
+**IT REFINES `D-45` IN TWO DIRECTIONS, AND ONE OF THEM REVERSES PART OF IT.**
+
+1. **A LISTENER OPENS — `D-45` STANDS FOR IT.** A listener is externally-supplied code **operating at the surface**; its
+   call **opens a new commit**. **That half is right and stays.**
+2. **★ A REPAIR JOINS — AND `D-45` MARKED IT AS AN OWNER, WHICH IS WRONG.** **A repair is not a separate act at the
+   surface; it is PART OF THE ATTEMPT BEING TRACKED.** **It must stay inside the attempt's own commit**, or the
+   commit's record no longer describes the repair it performed. **So the repair bodies the last pass marked as owning a
+   commit are un-marked: they join.**
+3. **AND THE MECHANISM IS EXPLICIT RATHER THAN INFERRED.** *"The original way of maintaining this was to accept an
+   optional parameter on entry for the commit id, so that a constraint can identify which open commit it is
+   repairing."* **The discriminator is a COMMIT ID the caller passes on entry** — **not an authorship depth the package
+   infers.** **A call that supplies a commit id JOINS that commit; a call that supplies none OPENS a new one.** **The
+   entry already carries such a position** (`write`'s fourth parameter is `commit`), so the surface does not grow a
+   member — **it grows a rule about one it has.**
+
+**WHAT THIS BUYS THAT THE INFERENCE COULD NOT.** **Tracking**: a repair's ops belong to the commit that performed them,
+**by declaration rather than by depth coincidence**. **Legibility**: a caller who *wants* to join a commit says so, and
+one who does not opens its own — **the intent is in the call, where a reader can see it.** **And the marker stops
+having to be right about authorship, which was a guess the package made on the caller's behalf.**
+
+**TERMS: listener opens (`1`, unchanged), repair joins (`1`, reverses the last pass's marking for repair bodies),
+the commit id is the discriminator (`1`), the authorship marker's fate owed (`1` — it retires or survives as a
+fallback, and the pass must say which), the cells owed (`2` = a repair tracked inside its attempt, a listener in its
+own).**
