@@ -2049,12 +2049,12 @@ function ownDataMember(value, name) {
 /// that names this pair — so the empty log this clause named as the arm's fact is superseded by the judgement's
 /// own arm, and no byte of the conversion moves.
 ///
-/// **⟶ AND THE BODY IS INVOKED AS `D-45`'S EXTERNAL CALL, 2026-10-27.** A pair's constraint body is an
-/// EXTERNALLY-SUPPLIED FUNCTION — the same authorship `D-45` rules on at the listener's delivery and at the
-/// kernel's three evaluation frames — so **the instance is handed here and the invocation is marked**: a verb
-/// the body calls opens its own commit rather than joining the commit the reversal is being judged inside.
-/// **THE CONTEXT IS BUILT ABOVE THE MARK**, so the only bytes measured as external are the body's own, and the
-/// conversion below is this frame's and unchanged.
+/// **⟶ AND THE BODY IS INVOKED WITH NOTHING NAMED, 2026-10-27 (`D-45`, `D-46` item `1`).** A pair's constraint
+/// body is EXTERNALLY-SUPPLIED FUNCTION code entering the surface **and it has no commit to name** — its
+/// five-member context carries none (`kernel-surface.md §2.3` item 1) — so **a verb the body calls OPENS ITS OWN
+/// COMMIT** rather than joining the commit the reversal is being judged inside. **THE CONTEXT IS BUILT ABOVE THE
+/// INVOCATION**, so the store read the context owes is this frame's act and not the body's, and the conversion
+/// below is unchanged.
 function reversalOutcome(instance, entry, address, value) {
   const context = {
     address: address.slice(),

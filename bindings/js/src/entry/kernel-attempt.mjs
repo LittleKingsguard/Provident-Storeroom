@@ -37,6 +37,38 @@ const COMMIT_SCOPE = Symbol.for('provident-storeroom.commit-scope');
 /// (`§1` item 2: `K-1`–`K-5` and no sixth name).
 const RESTART_DRAIN = Symbol.for('provident-storeroom.restart-drain');
 
+/// **⟶ ADDED 2026-10-27 — `D-46`'s NAME ON AN INVOCATION'S OWN ENTRY, AND IT IS THIS PASS'S ONE USE OF THE
+/// SEAM'S SIXTH CHANNEL.** **THE RULING, THE ARCHITECT, VERBATIM: *"A constraint's repair needs to stay as part
+/// of the same commit so that it can be tracked as part of the commit process … The original way of maintaining
+/// this was to accept an optional parameter on entry for the commit id, so that a constraint can identify which
+/// open commit it is repairing"*** (`strata/decisions.md` · `D-46`). **SO THE KERNEL NAMES THE ATTEMPT'S COMMIT
+/// WHEN IT INVOKES A REPAIR**, and the write that repair body makes — at `write`'s THREE positions, supplying
+/// nothing — **JOINS the attempt's commit instead of opening a second one**: its op is the attempt's op, the
+/// attempt's log carries the `repair-run` entry naming it, and **`attempt-opened` fires no second time for it,
+/// because a repair is not a new act** (`tests/e2e/repair-in-commit.test.mjs` prints both).
+///
+/// **AND THE TWO HALVES `D-45` MARKED AS OWNERS ARE UN-MARKED HERE, BY NAME**: this file's arm (b) and
+/// `kernel-registration.mjs`'s state `3` invoked the repair body through the entry's `externalCall`, which names
+/// nothing and is therefore the OPENS arm; the body is now reached through the channel with the commit at its
+/// second position. **A REPAIR IS NOT EXTERNAL CODE CLAIMING A COMMIT OF ITS OWN — IT IS PART OF THE ATTEMPT
+/// BEING TRACKED**, which is the one thing `D-45`'s authorship rule had wrong (`D-46` item `2`).
+///
+/// **THE KEY IS A `Symbol.for` SPELLING AND NEITHER SIDE IMPORTS THE OTHER** (`kernel-surface.md §1` item 1's
+/// empty import footprint; the device `COMMIT_SCOPE` and `RESTART_DRAIN` are declared under above), **NO MEMBER
+/// IS ADDED TO ANY RECORD AND NONE TO THE PRODUCT** (`A117` (D6)), and **no kernel item is minted** (`§1`
+/// item 2: `K-1`–`K-6` and no seventh name). **A STORE THAT CARRIES NO SUCH CHANNEL ANSWERS THE INVOCATION WITH
+/// NOTHING NAMED**, so the repair's write opens its own commit — the rule's absent arm and the conservative
+/// side, never a commit nobody named.
+const EXTERNAL_CALL = Symbol.for('provident-storeroom.external-call');
+
+/// **THE INVOCATION OF A REPAIR BODY, WITH THE ATTEMPT'S COMMIT NAMED ON ITS ENTRY** — one call, its answer the
+/// body's own, and a throwable crosses unchanged.
+function repairInCommit(store, commit, run) {
+  const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
+  if (typeof channel === 'function') return channel(run, commit);
+  return run();
+}
+
 export function runAttempt(store, commitRecord) {
   // THE SEAM, READ BEFORE ANY STATE MOVES: **a store this package did not build carries no such channel, so it
   // is not this package's store and no pass of this kernel may run against it.** The refusal is thrown BEFORE
@@ -53,10 +85,16 @@ export function runAttempt(store, commitRecord) {
   // drain is reached ONLY where the pass answered a report: a failing pass throws out of the thunk below, so
   // `D-42` item `2`'s *"the restart runs on the passing arm of the terminal call alone"* is now the shape of
   // this function rather than a `catch` in a caller.
+  // **⟶ AND THE SCOPE IS HANDED THE PASS'S OWN COMMIT, 2026-10-27 (`D-46`): THE NAME IS THE RECORD `K-2` BUILT,
+  // so the pass's window JOINS the commit the attempt is tracked in** on the production path (the caller's
+  // `write` opened it and its kernel leg joined it) **and OPENS the one commit the pass owes** where nothing is
+  // open — a direct `K-2`/`K-3` drive, `D-44`'s window. **NO COUNT IS MINTED EITHER WAY**: the channel is
+  // `openCommit`/`closeCommit` composed, and the count moves only where this call's own opening is the one that
+  // took it.
   return scope(() => {
     const report = passInCommitScope(store, commitRecord);
     return drainRestart(store, report);
-  });
+  }, commitRecord);
 }
 
 /// **THE DRAIN, TAKEN INSIDE THE SCOPE THE PASS JUST ENDED IN.** It hands the store **the report the pass
@@ -349,13 +387,14 @@ function evaluate(kernel, attempt, landing) {
       const check = attempt.log[attempt.log.length - 1];
       let outcome;
       try {
-        // **⟶ AND THE BODY IS INVOKED AS `D-45`'S EXTERNAL CALL, 2026-10-27**: a constraint body is an
-        // EXTERNALLY-SUPPLIED FUNCTION, so the frame that invokes it marks the invocation — and a verb the body
-        // calls then OPENS ITS OWN COMMIT rather than joining the one this pass runs in
-        // (*"It should be opening a new commit by default of entering at the surface"*). **THE MARK IS THE
-        // INVOCATION'S ALONE**: it is armed before the call and disarmed after it, on the throwing arm too, and
-        // every kernel act of this pass runs at the depth the pass's own commit was opened at — so the nesting
-        // the count already kept exact is untouched and an ordinary write still opens ONE commit.
+        // **⟶ AND THE BODY IS INVOKED WITH NOTHING NAMED, 2026-10-27 (`D-45`, `D-46` item `1`).** A constraint
+        // body is EXTERNALLY-SUPPLIED FUNCTION code entering the surface, **and it has no commit in hand to
+        // name** — it is handed the five-member `AttemptContext` and no commit at all (`kernel-surface.md §2.3`
+        // item 1) — so **a verb it calls OPENS ITS OWN COMMIT** rather than joining the one this pass runs in:
+        // *"It should be opening a new commit by default of entering at the surface"*. **THE NAME IS AN
+        // INVOCATION'S AND NOTHING ELSE'S**: it is set before the call and restored after it, on the throwing arm
+        // too, and the kernel's own acts of this pass name the pass's commit through `COMMIT_SCOPE` — so an
+        // ordinary write still opens ONE commit and a callback's verb is still an act of its own.
         outcome = externalCall(attempt.store, () => pair.constraint(context));
       } catch (body) {
         // A body that threw returned nothing, so no `constraint-check` entry stands and the attempt is
@@ -479,13 +518,18 @@ function evaluate(kernel, attempt, landing) {
           pending: attempt.record === undefined ? [] : attempt.record.pending.slice(),
       };
       try {
-        // **⟶ AND THE REPAIR BODY IS INVOKED AS `D-45`'S EXTERNAL CALL, 2026-10-27.** A repair is an
-        // EXTERNALLY-SUPPLIED FUNCTION — *"Repair functions are returned by the constraint that they are
-        // triggered by. As externally-provided code, they should be using the package surface functions"*
-        // (the same ruling clause quoted above) — so the frame that invokes it marks the invocation, and a
-        // verb the repair calls OPENS ITS OWN COMMIT rather than joining the attempt's. **THE REPAIR'S CONTEXT
-        // IS BUILT OUTSIDE THE MARK**, so the only bytes measured as external are the body's own.
-        result = externalCall(attempt.store, () => repair(repairContext));
+        // **⟶ RE-DERIVED 2026-10-27 — THE REPAIR BODY NAMES THE ATTEMPT'S COMMIT AND IS NO LONGER MARKED AS AN
+        // OWNER OF ITS OWN (`D-46` item `2`).** `D-45` invoked it through the entry's `externalCall`, so the
+        // write it made OPENED a second commit and the commit's own record no longer described the repair it
+        // performed. **THE RULING, VERBATIM: *"A constraint's repair needs to stay as part of the same commit so
+        // that it can be tracked as part of the commit process"*** — **so `repairInCommit` above hands the
+        // channel THE ATTEMPT'S OWN RECORD as the invocation's name, and the repair's write JOINS the commit it
+        // is part of.** **THE REPAIR'S CONTEXT CARRIES THAT SAME COMMIT AT ITS `pending` MEMBER** — the vehicle
+        // `surface.md §2.11` clause 6 declares, *"so that they can make their own write call use that commit"* —
+        // so a repair that supplies it at `write`'s fourth position names the same commit by its own hand, and
+        // the two spellings cannot disagree: **the entry's position wins where it is supplied, and this name is
+        // the fallback where it is not** (`state.mjs`'s `openCommit`).
+        result = repairInCommit(attempt.store, attempt.record, () => repair(repairContext));
       } catch (body) {
         // THE REPAIR-RUN ENTRY IS APPENDED BEFORE THE THROW, and the attempt's outcome entry carries
         // `KC-4` (`ck_states_a_repair_body_that_throws_reaches_the_caller_unconverted`).

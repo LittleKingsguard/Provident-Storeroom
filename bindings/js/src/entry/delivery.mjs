@@ -183,16 +183,19 @@ export function deliver(state, triggered, triggeringAddress) {
       // dense address array** (`JS-19`), so one listener's mutation of its own argument cannot be observed
       // by the next — no shared object crosses into the caller's own functions.
       //
-      // **⟶ AND THE INVOCATION IS MARKED AS `D-45`'S EXTERNAL CALL, 2026-10-27 — THIS IS THE SITE THE RULING IS
-      // ABOUT.** **THE ARCHITECT, VERBATIM: *"how is a listener supposed to be able to reuse the outer verb's
-      // commit? The listener is an externally-passed function and should be making calls at the package
-      // surface. It should be opening a new commit by default of entering at the surface"*** (`strata/
-      // decisions.md` · `D-45`). **SO A CALL A LISTENER BODY MAKES AT THIS SURFACE OPENS ITS OWN COMMIT**: its
-      // check has a window of its own, the pairs standing over the addresses it writes to are asked by ITS
-      // pass, and the count rises by one for it and falls by one when it ends, **the outer verb's count
-      // unchanged across the call**. **THE MARK IS THE INVOCATION'S AND NOTHING ELSE'S** — it is armed here,
-      // disarmed when the body returns or throws, and the listener's own write then opens at that marked depth
-      // while every internal step of that write joins the commit it opened.
+      // **⟶ AND THE INVOCATION NAMES NO COMMIT, 2026-10-27 — THIS IS THE SITE BOTH RULINGS ARE ABOUT.** **THE
+      // ARCHITECT, VERBATIM: *"A listener should be operating at the surface and opening a new commit"*** and
+      // *"how is a listener supposed to be able to reuse the outer verb's commit? The listener is an
+      // externally-passed function and should be making calls at the package surface. It should be opening a new
+      // commit by default of entering at the surface"*** (`strata/decisions.md` · `D-46` item `1`; `D-45`).
+      // **AND IT IS NOT AN EXCEPTION TO `D-46`'S RULE BUT ITS ABSENT ARM: A LISTENER BODY HAS NO COMMIT TO
+      // NAME** — it is handed the triggering address and nothing else (`PAR-JS-12`), so `externalCall` hands the
+      // channel no commit and **a verb it calls at this surface OPENS ITS OWN**: its check has a window of its
+      // own, the pairs standing over the addresses it writes to are asked by ITS pass, and the count rises by one
+      // for it and falls by one when it ends, **the outer verb's count unchanged across the call**
+      // (`tests/e2e/external-commit.test.mjs` prints both figures). **NOTHING IS INFERRED FROM THE FRAME ANY
+      // MORE**: the name is set here, restored when the body returns or throws, and every internal step of the
+      // listener's own write names the commit that write opened.
       externalCall(state.receiver, () => listener(decodeSegments(address)));
     }
   }

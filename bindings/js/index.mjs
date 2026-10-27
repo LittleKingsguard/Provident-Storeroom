@@ -312,12 +312,20 @@ export function storeCreate(cfg) {
       // the receiver is known to be one. **NO TOKEN IS MINTED AND NO SECOND FORM IS BUILT** — the entry's own
       // refusal is what answers, reached by handing the receiver on.
       if (!isStoreReceiver(this)) return decodeValue(carryRefusal(() => entryOf().write.call(this), []));
-      // **⟶ `§4.1`: `write` OPENS ONE — AND A KERNEL-DRIVEN WRITE JOINS THE EXTANT RATHER THAN OPENING A
-      // SECOND.** The bracket is taken at this member's OWN opening, so the kernel's four-position leg and a
-      // listener body's nested write both find the count above zero and join it (`openCommit`). **THE
-      // DECREMENT IS ON THE FINAL RETURN TO THE CLIENT** (`closeCommit`), taken in a `finally` so the bracket
-      // is released on every arm — a count left standing after a return is on `§5`'s failure list.
-      const opened = openCommit(instance);
+      // **⟶ `§4.1`: `write` OPENS ONE — UNLESS THE CALL NAMES A COMMIT AT THIS METHOD'S FOURTH POSITION, WHICH
+      // IS THE DISCRIMINATOR `D-46` SETS: A CALL THAT SUPPLIES IT JOINS THE COMMIT IT NAMES, AND A CALL THAT
+      // SUPPLIES NONE OPENS A NEW ONE** (`strata/decisions.md` · `D-46`). **THE POSITION IS READ HERE AND
+      // NOWHERE ELSE**, because this member is the one place a call's own entry names a commit: the kernel's
+      // store leg is a FOUR-position call (`store.write(address, tier, value, record)`, `kernel-commit.mjs`) and
+      // therefore JOINS the commit the caller's three-position write opened, while a caller's plain write, a
+      // listener body's write and a constraint body's write all supply three positions and OPEN — the listener's
+      // being `D-43` item `1`'s *"its own commit"*, reached by declaration rather than by an authorship the
+      // package used to infer. **A SUPPLIED POSITION NAMES A COMMIT WHETHER OR NOT IT IS IN THE POSITION'S CLASS
+      // DOMAIN**: the class test below refuses an outside value before any store act, and a refused write
+      // releases the bracket in the `finally` below like every other arm.
+      // **THE DECREMENT IS ON THE FINAL RETURN TO THE CLIENT** (`closeCommit`), taken in a `finally` so the
+      // bracket is released on every arm — a count left standing after a return is on `§5`'s failure list.
+      const opened = openCommit(instance, arguments.length >= 4 ? commit : undefined);
       try {
       // **⟶ `docs/specs/storeroom-js/surface.md §2.12` ITEM 1, STAGE 1, AMENDED 2026-10-18 — THE ENTRY→KERNEL EDGE IS UNCONDITIONAL: EVERY
       // FOUR-POSITION WRITE ENTERS THE KERNEL'S `K-2`, AND THE `carriesConstraintAt` GATE THIS VERB ONCE TOOK

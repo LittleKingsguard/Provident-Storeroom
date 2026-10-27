@@ -109,7 +109,33 @@ export const FORGET_PAIR = Symbol.for('provident-storeroom.forget-pair');
 // COMMIT OPENS AND DECREMENTED ONCE ON THE FINAL RETURN TO THE CLIENT."* **A VERB THAT FINDS AN EXTANT
 // COMMIT JOINS IT RATHER THAN OPENING A SECOND**, which is what keeps the count exact under nesting.
 //
-// **⟶ AMENDED 2026-10-27 — THE JOIN RULE IS NARROWED TO AUTHORSHIP AND IS NO LONGER DEPTH'S (`D-45`).**
+// **⟶ AMENDED 2026-10-27, SECOND CLAUSE — THE DISCRIMINATOR IS THE COMMIT A CALL NAMES ON ENTRY AND IS NEITHER
+// DEPTH'S NOR AN AUTHORSHIP THE PACKAGE INFERS (`D-46`). THE CLAUSES ABOVE AND THE `D-45` ONE BELOW STAND
+// BYTE-FOR-BYTE AND ARE READ THROUGH THIS ONE.**
+//
+// **THE ARCHITECT, VERBATIM: *"A listener should be operating at the surface and opening a new commit"* · *"A
+// constraint's repair needs to stay as part of the same commit so that it can be tracked as part of the commit
+// process"* · *"The original way of maintaining this was to accept an optional parameter on entry for the commit
+// id, so that a constraint can identify which open commit it is repairing"*** (`strata/decisions.md` · `D-46`).
+//
+// **THE RULE, AS ONE SENTENCE: A CALL THAT NAMES A COMMIT ON ITS OWN ENTRY JOINS THAT COMMIT, AND A CALL THAT
+// NAMES NONE OPENS A NEW ONE.** **The position that carries the name is the `write` METHOD'S FOURTH** — the
+// commit, at the position `index.d.ts` declares (*"the commit, at the FOURTH position of the METHOD"*), which
+// takes a RECORD (an object carrying an own, present `pending`) and never an id token. **AND WHERE A CALL SITS
+// INSIDE AN INVOCATION THE PACKAGE ITSELF MADE OF CALLER CODE, THE NAME MAY COME FROM THE INVOCATION'S OWN
+// ENTRY** — see `EXTERNAL_COMMIT` below: **the kernel names the attempt's commit when it invokes a REPAIR, and
+// names nothing when it invokes a listener or a constraint body.** **A NAME IS NEVER INFERRED FROM A FRAME
+// COUNT, AN AUTHORSHIP MARK, A DEPTH OR A WINDOW, AND TWO NAMES CANNOT CONFLICT: THE ENTRY'S OWN POSITION WINS
+// AND THE INVOCATION'S IS ITS FALLBACK.**
+//
+// **WHY THE REPAIR JOINS AND THE LISTENER DOES NOT, IN THE ARCHITECT'S OWN TERMS.** A repair is **PART OF THE
+// ATTEMPT BEING TRACKED** — *"so that it can be tracked as part of the commit process"* — so its ops belong to
+// the attempt's commit and that commit's record describes the repair it performed; a listener body is
+// **externally-passed code operating at the surface**, so *"it's entering at the package surface"* and opens one
+// of its own (`D-43` item `1`, `D-45`), **and it has no commit in hand to name.** **THAT IS THE ONE CALLER THAT
+// CANNOT SUPPLY AN ID, AND IT IS THE RULE'S OWN ABSENT ARM RATHER THAN AN EXCEPTION TO IT.**
+//
+// **AMENDED 2026-10-27 — THE JOIN RULE IS NARROWED TO AUTHORSHIP AND IS NO LONGER DEPTH'S (`D-45`).**
 // The sentences above stand BYTE-FOR-BYTE and are read THROUGH this clause. **THE ARCHITECT, VERBATIM:
 // *"For 43, how is a listener supposed to be able to reuse the outer verb's commit? The listener is an
 // externally-passed function and should be making calls at the package surface. It should be opening a new
@@ -201,18 +227,33 @@ export function installRestartConsumer(consumer) {
   RESTART_CONSUMER = consumer;
 }
 
-/// **⟶ ADDED 2026-10-27 — `D-45`'s MARKER: THE SEAM'S SIXTH CHANNEL, AND IT MARKS AUTHORSHIP, NOT DEPTH.**
+/// **⟶ ADDED 2026-10-27 (`D-45`), RE-SPELLED 2026-10-27 (`D-46`) — THE SEAM'S SIXTH CHANNEL, AND IT CARRIES
+/// THE COMMIT AN INVOCATION OF CALLER CODE NAMES ON ITS OWN ENTRY.**
 ///
-/// **WHAT IT MARKS AND FOR HOW LONG.** It is armed for THE LIFETIME OF ONE INVOCATION of a caller-supplied
-/// function and for nothing else: the site that invokes such a function arms it BEFORE the call and disarms it
-/// AFTER, on the throwing arm too, so no state outlives the invocation. **IT IS A DEPTH AND NOT A BOOLEAN** so
-/// that an invocation the package makes from inside another invocation is measured as the deeper frame it is.
+/// **WHAT IT CARRIES NOW, AND WHAT IT NO LONGER CARRIES.** `D-45` armed it with **A DEPTH** — the number of
+/// caller-supplied frames in flight — and `openCommit` compared that depth against the depth the commit in
+/// flight was opened at. **`D-46` REPLACES THE DEPTH WITH THE COMMIT ITSELF**: the second position holds **the
+/// commit the invocation names**, or `undefined` where the invocation names none, and **`openCommit` reads it as
+/// the name a call supplies when its own entry position carries none.** **THE DEPTH IS DELETED, NOT KEPT BESIDE
+/// IT** — one discriminator, stated once: **a call that names a commit JOINS it; a call that names none OPENS
+/// one** (`openCommit` below).
 ///
-/// **WHAT READS IT: `openCommit` ALONE**, and the whole of its use is the join rule's narrowing above.
-/// **AND A VERB THAT OPENS A COMMIT DOES NOT INHERIT IT FOR ITS OWN INTERNAL CALLS** — the opening records the
-/// depth it was opened at and every internal call of that act runs at that same depth, so it joins and the
-/// count moves by nothing; **that is the measurement that keeps an ordinary write at ONE commit for its whole
-/// length** (`tests/e2e/external-commit.test.mjs` prints it).
+/// **WHICH INVOCATIONS NAME ONE, AND IT IS THE WHOLE OF `D-46`'s SECOND DIRECTION.** **A REPAIR NAMES THE
+/// ATTEMPT'S COMMIT** — *"A constraint's repair needs to stay as part of the same commit so that it can be
+/// tracked as part of the commit process"* — so the kernel hands the attempt's own record at the two frames that
+/// invoke a repair body (`kernel-attempt.mjs`'s arm (b) and `kernel-registration.mjs`'s state `3`), and the write
+/// a repair body makes **joins the attempt's commit by declaration**: its ops are the attempt's ops, its
+/// `repair-run` entry names the op it landed, and **no second commit opens for it** (`attempt-opened` stays at
+/// ONE for a write that repairs `tests/e2e/repair-in-commit.test.mjs` prints it). **A LISTENER BODY NAMES
+/// NOTHING, AND THAT IS NOT AN OMISSION: IT HAS NO COMMIT IN HAND TO NAME** — it is externally-passed code
+/// entering at the surface (`D-43` item `1`, `D-45`), so its call **OPENS ITS OWN** and the descendant window
+/// stays closed by construction (`tests/e2e/external-commit.test.mjs`, unchanged and green). **A CONSTRAINT
+/// BODY NAMES NOTHING EITHER**: it is invoked to be *asked*, not to act, so a verb it calls is a fresh act at the
+/// surface — the same reading `D-45` gave it.
+///
+/// **WHAT IT MARKS AND FOR HOW LONG**: one invocation of a caller-supplied function and nothing else. The site
+/// arms it BEFORE the call and restores the previous value AFTER, on the throwing arm too, so no name outlives
+/// the invocation and a nested invocation is measured by its own name and not its caller's.
 ///
 /// **WHY IT IS A `Symbol.for` CHANNEL ON THE PRODUCT AND NOT AN EXPORT THE KERNEL IMPORTS** (`A117` (D6), the
 /// family `TERMINAL_ARM`, `FORGET_PAIR`, `COMMIT_SCOPE` and `RESTART_DRAIN` are declared under): the kernel's
@@ -222,19 +263,27 @@ export function installRestartConsumer(consumer) {
 /// no census moves, and no kernel item is minted (`§1` item 2: `K-1`–`K-6` and no seventh name).
 const EXTERNAL_CALL = Symbol.for('provident-storeroom.external-call');
 
-/// **THE MARK ITSELF — the depth of caller-supplied frames in flight, for the process**, read by `openCommit`
-/// and moved by the channel below and by nothing else.
+/// **THE NAME ITSELF — the commit the invocation in flight was handed, for the process** (`undefined` where it
+/// was handed none), read by `openCommit` and moved by the channel below and by nothing else.
+let EXTERNAL_COMMIT = undefined;
+
+/// **AND THE MARK'S OWN SECOND FACT IS KEPT, AS `D-46`'s FALLBACK FOR THE CALLERS THAT CANNOT NAME ONE** — the
+/// depth of caller-supplied frames in flight, read at `openCommit`'s unnamed arm and moved by the same channel.
+/// **IT NO LONGER DECIDES ANY CALL THAT NAMES A COMMIT**: `D-45`'s rule is narrowed to the unnamed arm and is the
+/// whole of what answers there, which is what keeps the package's own continuation (`constraintOn`'s nested
+/// `listen`, a pass's scope) JOINING while a listener body's or a constraint body's verb — one frame deeper than
+/// the commit it finds — OPENS. **TWO FACTS, ONE RULE**: the name if the call has one, and authorship only where
+/// it has none (see `openCommit`).
 let EXTERNAL_DEPTH = 0;
 
-/// **THE ONE FORM THE ENTRY'S OWN SITES CALL**, and the SAME form the kernel spells at its own four sites
-/// (`kernel-foundations.mjs`'s copy, which is why this one is exported rather than inlined at each site): it
-/// hands the thunk to the channel the store carries and answers what the invocation answered; its throwable
-/// crosses unchanged, and the depth is restored on that arm too.
+/// **THE ONE FORM THE ENTRY'S OWN SITES CALL** — it hands the thunk to the channel the store carries **without a
+/// commit, because the entry's own two sites are a listener body's delivery and a reversal's judgement, and
+/// neither has one to name**, and answers what the invocation answered; its throwable crosses unchanged.
 ///
-/// **A STORE THAT CARRIES NO CHANNEL ANSWERS THE INVOCATION UNMARKED** — a store this package never installed
-/// the seam on, or a caller that read the symbol property away. That is the CONSERVATIVE side for this
-/// mechanism: the call then joins as it joined before `D-45`, which is the behaviour every tree without the
-/// seam already has, and it can never mint a commit the mark did not ask for.
+/// **A STORE THAT CARRIES NO CHANNEL ANSWERS THE INVOCATION WITH NOTHING NAMED** — a store this package never
+/// installed the seam on, or a caller that read the symbol property away. That is the CONSERVATIVE side for this
+/// mechanism: the call then opens its own commit, which is the rule's own absent arm, and it can never join a
+/// commit nobody named.
 export function externalCall(store, run) {
   const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
   if (typeof channel === 'function') return channel(run);
@@ -308,30 +357,48 @@ export function currentWindow(store) {
 /** **THE INCREMENT MOMENT** (`PAR-ADA-15`): the opening of a commit. It is taken iff THIS call opens one —
  *  a call that finds the count already above zero has joined an extant commit and opens nothing.
  *
- *  **⟶ AND FROM 2026-10-27 THE TEST IS AUTHORSHIP'S AND NOT THE COUNT'S** (`D-45`; the clause at this section's
- *  head): a call made from a caller-supplied function — `EXTERNAL_DEPTH` above the depth the commit in flight
- *  was opened at — OPENS, and the package's own continuation of that commit, which runs at that same depth,
- *  JOINS. **SO THE COUNT STILL MOVES BY EXACTLY ONE PER ACT**: an ordinary write's opening is the only one it
- *  takes, its kernel leg and its pass scope join inside it, and a listener body's write is a window of its
- *  own beside it (`open` rises by one for the callback and falls by one when the callback's call ends, the
- *  outer verb's count unchanged across it). */
-export function openCommit(store) {
+ *  **⟶ AND FROM 2026-10-27 THE TEST IS THE COMMIT THE CALL NAMES** (`D-46`; the clause at this section's head):
+ *  **A CALL THAT NAMES A COMMIT JOINS THAT COMMIT, AND A CALL THAT NAMES NONE OPENS A NEW ONE FROM A STORE AT
+ *  REST OR FROM A CALLER-SUPPLIED FUNCTION — while the package's own continuation, which can name nothing
+ *  either, JOINS the commit in flight.** `commit` IS THE ENTRY'S POSITION — `write`'s FOURTH, the one
+ *  `index.d.ts` declares *"the commit, at the FOURTH position of the METHOD"*, whose domain is a RECORD (an
+ *  object carrying an own, present `pending`) and never an id token. **AND WHERE A CALL SITS INSIDE AN
+ *  INVOCATION THE PACKAGE ITSELF MADE OF CALLER CODE, THE NAME IS THE ONE THAT INVOCATION WAS HANDED**
+ *  (`EXTERNAL_COMMIT` above): the kernel names the attempt's commit when it invokes a **repair** — *"so that it
+ *  can be tracked as part of the commit process"* — and names nothing when it invokes a listener body or a
+ *  constraint body. **ONE RULE AND TWO PLACES THE NAME MAY COME FROM; THE ENTRY'S OWN POSITION WINS, THE
+ *  INVOCATION'S IS ITS FALLBACK, AND THE AUTHORSHIP MARK BELOW IS THE FALLBACK OF THE FALLBACK — read only
+ *  where neither position stands.**
+ *
+ *  **SO THE COUNT STILL MOVES BY EXACTLY ONE PER ACT**: an ordinary write's opening is the only one it takes
+ *  (its kernel leg names the record and joins, its pass scope names it and joins, its repair names it and
+ *  joins), a listener body's own write names nothing and is a window of its own beside it (`open` rises by one
+ *  for the callback and falls by one when the callback's call ends, the outer verb's count unchanged across
+ *  it), and a constraint body's nested write does the same (`D-45`). **A JOIN CAN ONLY BE A JOIN OF A COMMIT
+ *  THAT IS OPEN** — where the count stands at zero there is nothing to join, so the call opens, which is what
+ *  keeps `D-44`'s direct `K-2`/`K-3` drive's pass inside a commit of its own. */
+export function openCommit(store, commit) {
   const index = attemptIndex(store);
-  const depth = EXTERNAL_DEPTH;
+  // THE COMMIT THIS CALL NAMES — the entry's own position first, the invocation's second (`EXTERNAL_COMMIT`).
+  const named = commit !== undefined ? commit : EXTERNAL_COMMIT;
   if (index.open > 0) {
-    // THE COMMIT IN FLIGHT'S OWN DEPTH — the stack holds one entry per commit that OPENED, in lockstep with
-    // `windows`, so the top of one is the top of the other.
+    // **A NAMED COMMIT IS JOINED** — `D-46`'s rule, and it stands FIRST and decides wherever a name exists.
+    if (named !== undefined) return false;
+    // **AND WHERE NO NAME STANDS, `D-45`'S MARK DECIDES, AND IT IS THE FALLBACK FOR EXACTLY THE CALLERS THAT
+    // CANNOT NAME A COMMIT**: the package's own continuation of the commit in flight runs at the depth that
+    // commit was opened at and JOINS; a call made from a caller-supplied function — one frame deeper — OPENS.
     const at = index.externalAt.length === 0 ? 0 : index.externalAt[index.externalAt.length - 1];
-    if (depth <= at) return false;
+    if (EXTERNAL_DEPTH <= at) return false;
   }
   index.open += 1;
   // **AND THE WINDOW'S OWN IDENTITY IS MINTED WITH THE OPENING AND STOOD ON THE STACK** (`currentWindow`
   // above): a commit that JOINS answers an id already held, so the nesting `§4.1` keeps exact in the count is
-  // kept exact in the identity too, and no window id is ever reused. **AND THE DEPTH IS STOOD BESIDE IT** —
-  // that is the whole of what makes the next nested call able to tell its author from the package's own.
+  // kept exact in the identity too, and no window id is ever reused.
   index.windowSeq += 1;
   appendOwn(index.windows, index.windowSeq);
-  appendOwn(index.externalAt, depth);
+  // **AND THE DEPTH FALLBACK'S OWN RECORD IS STOOD BESIDE IT**: the depth this commit was opened at, in lockstep
+  // with `windows`, so the next unnamed call can tell the package's own continuation from a callback's act.
+  appendOwn(index.externalAt, EXTERNAL_DEPTH);
   // **THE OBSERVER SEAM IS READ AT THE INSTANT OF THE OPENING** (`§4.2` item 2), one call per opening — and
   // the iteration is a copy, so an observer that unsubscribes itself mid-notification moves nothing. **The
   // copy and the notification are LOCAL INDEX LOOPS** (item `(1c)(i)`): no spread, no iterator.
@@ -350,9 +417,9 @@ export function closeCommit(store, opened) {
   index.open -= 1;
   // **AND THE WINDOW THE OPENING STOOD ON GOES WITH IT**, by a local index loop rather than through a mutable
   // prototype's `slice`/`pop` (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`/`F8-2`). A joining call
-  // opened nothing and releases nothing, so the enclosing window's identity stands. **AND THE DEPTH STOOD
-  // BESIDE IT GOES WITH IT, IN THE SAME LOOP AND AT THE SAME INSTANT** (`D-45`): the two stacks are one stack
-  // read two ways, so a commit's depth can never be left standing for a commit that has closed.
+  // opened nothing and releases nothing, so the enclosing window's identity stands. **AND THE DEPTH STOOD BESIDE
+  // IT GOES WITH IT, IN THE SAME LOOP AND AT THE SAME INSTANT**: the two stacks are one stack read two ways, so a
+  // commit's depth can never be left standing for a commit that has closed.
   const kept = [];
   const keptAt = [];
   for (let i = 0; i + 1 < index.windows.length; i += 1) {
@@ -416,11 +483,14 @@ export function installAttemptSeam(instance) {
   // **⟶ AND THE SCOPE, INSTALLED ONCE BY THE SAME RULE** (`§4.2` item 4: *"`storeCreate` installs each channel
   // once on the object it returns"*; `D-44`). **It is the two moments `openCommit`/`closeCommit` already own,
   // composed into one bracket and minting no third count**: this channel adds no index, no state and no
-  // increment — it only decides WHO opens.
+  // increment — it only decides WHO opens. **AND FROM 2026-10-27 IT TAKES THE PASS'S OWN COMMIT AT ITS SECOND
+  // POSITION** (`D-46`): `runAttempt` hands the record `K-2` built, so **the pass's scope NAMES the commit the
+  // attempt is tracked in and joins it** on the production path, **and on a direct `K-2`/`K-3` drive the name
+  // has nothing to join and the scope OPENS the one commit the pass owes** (`D-44`'s direct-pass window).
   if (typeof instance[COMMIT_SCOPE] !== 'function') {
     Object.defineProperty(instance, COMMIT_SCOPE, {
-      value: (run) => {
-        const opened = openCommit(instance);
+      value: (run, commit) => {
+        const opened = openCommit(instance, commit);
         try {
           return run();
         } finally {
@@ -432,20 +502,26 @@ export function installAttemptSeam(instance) {
       configurable: true,
     });
   }
-  // **⟶ AND `D-45`'S MARKER, INSTALLED ONCE BY THE SAME ONE-INSTALLATION RULE, 2026-10-27.** The channel takes
-  // ONE thunk — **the invocation of a caller-supplied function** — runs it with `EXTERNAL_DEPTH` one frame
-  // deeper, and answers what it answered; the depth is restored in a `finally`, so a body that throws leaves
-  // no frame standing and the next call's join rule reads the depth it found. **IT MARKS NOTHING BUT THE
-  // INVOCATION**: the arming and the disarming are this closure's whole body, so nothing the package does
-  // outside an invocation is ever measured as external.
+  // **⟶ AND THE INVOCATION'S OWN ENTRY, INSTALLED ONCE BY THE SAME ONE-INSTALLATION RULE, 2026-10-27 —
+  // `D-45`'s channel, carrying `D-46`'s name.** It takes ONE thunk — **the invocation of a caller-supplied
+  // function** — and, at its SECOND position, **the commit that invocation names** (absent where it names
+  // none), runs the thunk with `EXTERNAL_COMMIT` holding that name, and answers what the thunk answered. **THE
+  // NAME IS RESTORED IN A `finally`**, so a body that throws leaves no name standing and the next invocation
+  // reads the one it was handed; and **the arming and the restoring are this closure's whole body**, so nothing
+  // the package does outside an invocation is ever measured by a name. **A CALLER THAT SUPPLIES ONLY THE THUNK
+  // NAMES NOTHING** — which is the rule's own absent arm and not a second rule, and it is how the kernel's
+  // `externalCall` (`kernel-foundations.mjs`) and this module's own `externalCall` above reach the channel.
   if (typeof instance[EXTERNAL_CALL] !== 'function') {
     Object.defineProperty(instance, EXTERNAL_CALL, {
-      value: (run) => {
+      value: (run, commit) => {
+        const standing = EXTERNAL_COMMIT;
+        EXTERNAL_COMMIT = commit;
         EXTERNAL_DEPTH += 1;
         try {
           return run();
         } finally {
           EXTERNAL_DEPTH -= 1;
+          EXTERNAL_COMMIT = standing;
         }
       },
       writable: true,
