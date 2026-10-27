@@ -3170,3 +3170,38 @@ unchecked** — **not because the package owes a verdict, but because the caller
 **TERMS: the visibility ruling (`1`), the use case as its ground (`1`), the ancestor-fires measurement owed and FIRST
 (`1`), the witness owed (`1`), the declaration owed (`1`), and the behaviour unchanged (`0` — these windows still run no
 pass, `D-43` item 2 stands on its fail-state and both exits).**
+
+---
+
+### `D-50` — `context.value` STAYS AS DECLARED: a constraint that needs another location READS IT
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, closing `D-49`'s cross-address finding.
+
+**THE RULING, VERBATIM:**
+
+> If a constraint needs to look for the data at a given location, it can read()
+
+**WHAT IT CLOSES, AND IT WAS THE LAST PLACE A CONSTRAINT COULD PASS A CHECK IT SHOULD FAIL.** The measured finding was:
+**a repair that writes at a DIFFERENT address leaves the earlier constraint passing** — `c1` refuses `2` at its own
+address, its repair lands `11` elsewhere, and the re-run asks `c1` at `11` and passes while the address `c1` judges
+still stands at `2`. **L0 read that as machinery defeat. The architect rules it RESPONSIBILITY.**
+
+**`context.value` IS *THE VALUE THE WRITE VERB RETURNED* AND THAT IS CORRECT** (`S-WINDOW`'s declared reading, unmoved).
+**A constraint's job is to judge the value it is handed for the address it stands at.** **If it cares about another
+location, IT READS THAT LOCATION** — **the body is caller code and closes over the store handle the caller already
+holds.** **So the machinery owes the constraint one value and the constraint owes itself the rest.**
+
+**AND THE THREE-SESSION PATTERN THIS CLOSES IS WORTH NAMING.** Three times this branch found "address-scoped machinery
+defeated by a repair that landed elsewhere": **the floor call's beside address**, **the delete's wrong-home capture**,
+and **the re-check's value**. **The first two were defects and were fixed** — the store's own scope and its own journal
+decided them. **The third is not**, and the difference is precise: **the first two were the PACKAGE misreading its own
+record, and the third was the CALLER not asking.** **A package cannot be wrong about a value it was told to hand over;
+it can only be wrong about what it stored.**
+
+**CONSEQUENCE TO DECLARE, NOT TO INVENT.** **A constraint that reads inside its body is caller code entering the
+surface**, so by `D-45` **that read opens its own commit** — **and a read runs no check, so nothing is judged by it.**
+**That must be said where a consumer reads it**, because it is the one place where "a callback opens a commit" meets
+"a constraint evaluates a body", and a reader will otherwise assume the read joins the attempt.
+
+**TERMS: the finding closed as not-a-defect (`1`), `context.value` unmoved (`1`), the responsibility named (`1`), the
+consequence to declare (`1` = the read's own commit), the two real defects of the family distinguished (`2`).**
