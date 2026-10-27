@@ -329,13 +329,20 @@ test('entry-module · index.d.ts `StoreRefusal` and `LogEntry` · the failure fo
   assert.match(DECLARATION, /readonly kind: 'constraint-check' \| 'repair-run' \| 'commit' \| 'outcome';/);
 });
 
-test('entry-module · index.d.ts `WriteRecord` · `DeleteRecord` · `RollbackRecord` · the three verb records a consumer reads: three members on the write and the reversal, FOUR on the delete — its `op` beside the three — and `undoneOps` is the LIST of the ids the reversal undid', () => {
+test('entry-module · index.d.ts `WriteRecord` · `DeleteRecord` · `RollbackRecord` · the three verb records a consumer reads: three members on the write and the reversal, FIVE on the delete — its `op` beside the three and its `discarded` witness — and `undoneOps` is the LIST of the ids the reversal undid', () => {
   assert.deepEqual(membersOf('WriteRecord').map((m) => m.name), ['op', 'watched', 'triggered']);
   // ⟶ **`D-43` ITEM 3 (`strata/decisions.md`, verbatim: *"Delete should be journaled and reversible"*): THE
   // DELETE RECORD GAINS `op`, THE MEMBER `WriteRecord` CARRIES AT THE SAME NAME** — one spelling for "the op
   // this act landed", so `rollback(record.op.opId)` reverses the delete. The fourteen instance members and
   // the closed status set are unmoved; this is a RECORD's shape.
-  assert.deepEqual(membersOf('DeleteRecord').map((m) => m.name), ['address', 'tiers', 'triggered', 'op']);
+  //
+  // ⟶ **AND `D-49` (2026-10-28, verbatim: *"Make discard observable"*): THE RECORD GAINS `discarded`, THE WITNESS
+  // OF THE RESTART REQUESTS ITS OWN DELIVERY DISCARDED** — declared here because **a declared member is the whole
+  // of what a consumer reading `node_modules` can find**, and carried at runtime as a NON-ENUMERABLE own property
+  // so the record's ENUMERABLE four are the ones every census of a receipt reads (`index.d.ts`
+  // `DeleteRecord.discarded`). **THE ROW'S SUBJECT IS UNMOVED**: the declared member set is the one `index.d.ts`
+  // declares, and it gained this second member on that ruling.
+  assert.deepEqual(membersOf('DeleteRecord').map((m) => m.name), ['address', 'tiers', 'triggered', 'op', 'discarded']);
   assert.deepEqual(membersOf('RollbackRecord').map((m) => m.name), ['opId', 'undoneOps', 'restoredTo']);
   assert.match(DECLARATION, /readonly undoneOps: readonly string\[\];/);
 });

@@ -1290,6 +1290,34 @@ tree sharing no mutable member with the store or with another crossing**, which 
 
 **Neither window is new and neither is a defect**: both are places **a pass does not begin**, not places a judgement was skipped mid-flight. **And every pass that DOES run drains its own restart request** — so the fail-state is bounded by the two acts that run none.
 
+**⟶ ADDED 2026-10-28 — `D-49`: THE DISCARD IS NOW OBSERVABLE ON THE `delete`'S OWN ANSWER, AND THE OTHER
+WINDOW STILL CARRIES NOTHING. READ THIS BEFORE YOU RELY ON EITHER FAIL-STATE.**
+
+**THE USE CASE THAT MADE IT A DEFECT, IN YOUR TERMS.** Your `window.tabs` is one object; **a listener you
+installed at `window.tabs` DOES fire when you delete `window.tabs.landingPage`** — the triggered set's rule is the
+address prefix, and the invocation's one argument is the deleted address. That is exactly where you would check
+your own invariant — *"exactly one tab is active"* — **and that check IS the kind of act the delete-delivery
+window throws away**: if it fails and you raise a `rollback`, **the request dies with the window** (`DEF-AH`).
+
+- **WHAT YOU CAN NOW SEE.** **A `delete`'s record carries `discarded` beside its four members** — a list, `0` or
+  `1` long, of `{ opId, addresses }`: **`opId` is the id the reversal you raised named**, and **`addresses` are
+  the addresses the discarded check would have been asked at**. **`record.discarded.length === 0` means this
+  act's delivery discarded nothing.** **This is a WITNESS, not a repair** — the delete still answers everything
+  it answered, **throws nothing**, mints no new status, and the reversal's effect **still stands**; the
+  fail-state, the exits below and the behaviour of both windows are unchanged.
+- **READ IT BY ITS NAME, AND EXPECT IT NOT TO BE ENUMERABLE.** `record.discarded` works; **`Object.keys(record)`
+  still prints the four members you already know**, and **a spread or `Object.assign` copy of a receipt does not
+  carry the witness** — read `discarded` off the record itself.
+- **WHAT IT CANNOT SHOW, SAID PLAINLY.** **A registration's answer (`addConstraint`) is an opaque identity and
+  carries NO witness** — an action raised inside that evaluation is still unobservable, and no member was
+  invented for it. **And the machinery holds ONE pending request per instance**: a second in-flight action
+  overwrites the first, so the witness reports the **last** request a delivery raised, and earlier ones were
+  never recorded. **Neither limit is a defect; both are the declared shape.**
+
+**THE EXITS ARE STILL YOURS AND ARE UNCHANGED: reload the file, or regenerate the store.** What changed is that
+**the `delete` now tells you the discard happened** — *"a fail-state is honest only if the consumer learns it
+happened"* (`D-49`).
+
 ### §12.7 A skip is not a green, and your own throws are not refusals
 
 **WHAT BREAKS:** **a `skipped` cell is a cell that DID NOT RUN** — *"a skip is not a green"*, in the authority

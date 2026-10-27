@@ -1464,6 +1464,79 @@ export function drainRestartRequests(instance, report) {
   }
 }
 
+/// **⟶ ADDED 2026-10-28 — `D-49`: THE DISCARD'S WITNESS, AND IT IS READ BY THE ACT WHOSE WINDOW DISCARDED THE
+/// REQUEST.**
+///
+/// **THE RULING, THE ARCHITECT, VERBATIM: *"Make discard observable"*** (`strata/decisions.md` · `D-49`), and
+/// **`DEF-AH` is the defect it answers**: a restart request raised inside one of the two windows that run **no
+/// pass** — a `delete`'s listener delivery, and a registration's own evaluation — **died with its window and the
+/// caller could not learn that it did.** **The fail-state stands** (`D-43` item 2, both exits) — **what was
+/// missing was the WITNESS.**
+///
+/// **WHAT THIS FUNCTION IS, AND WHAT IT IS NOT.**
+///   * **IT RUNS NO PASS, NO BODY AND NO JUDGEMENT.** It reads the instance's own restart record — the record
+///     `reversalWatch` raised the request in — and answers a fresh copy of the two facts a consumer needs: the
+///     id the reversal named (`reversalId`, the store's own echo) and the addresses the discarded check would
+///     have been asked at (`the watch's addresses`, deduplicated by spelling and copied segment for segment).
+///     **THE STORE IS NOT TOUCHED, NO CODE IS MINTED, NO LOG ENTRY IS APPENDED AND NO MEMBER OF ANY RECORD IS
+///     MOVED** — the `D-49` bar: *"a witness is not a refusal: the act still answers what it answered, the
+///     discard is reported beside it, and nothing new is minted in the closed status set."*
+///   * **IT CONSUMES THE REQUEST IT REPORTS.** A request whose window is the caller's has no consumer that could
+///     ever run it (the window's act ran no pass, and a later pass compares the identity and drops it — the
+///     drain's own arm), so clearing the slot here moves no behaviour: it is the same clearing the drain would
+///     perform on a mismatched window and the at-rest watch performs on a new reversal. **IT ONLY EVER CLEARS A
+///     REQUEST OF THE WINDOW HANDED IN** — a request raised in another window is left exactly where it stands,
+///     so an enclosing act's own consumer is never robbed of it.
+///   * **IT IS NOT THE DRAIN.** `drainRestartRequests` is the consumer of a pass's own window and RUNS the
+///     restarted check; this function is the consumer of a window that has none and only REPORTS it. **Two
+///     consumers, two windows, and neither takes the other's request** (`D-44`: *"every request has a
+///     consumer"* — for the two passless windows the consumer is the caller's own record).
+///
+/// **THE BOUND, STATED SO THE WITNESS IS NOT READ AS MORE THAN IT IS.** The restart record holds **ONE** pending
+/// request (a second in-flight action overwrites the first — the record's own declared shape, UNMOVED by this
+/// pass), so the witness reports the LAST request the window raised and no list of earlier ones exists to report.
+/// **The registration window is the other named window and it has no such reader**: its answer is an identity, and
+/// the identity is opaque by declaration, so nothing this function could answer would reach it without a new
+/// surface — `D-49`'s own instruction is to say so rather than to invent one.
+export function witnessDiscardedReversal(instance, window) {
+  const record = RESTARTS.get(instance);
+  // NO ACTION WAS EVER TAKEN ON THIS INSTANCE, OR THE LAST ONE WAS ALREADY CONSUMED: nothing stands to report.
+  if (record === undefined || record.pending === null) return null;
+  const request = record.pending;
+  // **A REQUEST BELONGS TO THE ACT THAT RAISED IT** (`D-42` item 3, measured by the `window` stamp of
+  // 2026-10-27): a request standing from another window is that window's and is left where it stands.
+  if (request.window !== window) return null;
+  record.pending = null;
+  const addresses = [];
+  const spellings = [];
+  for (let index = 0; index < request.watched.length; index += 1) {
+    const address = request.watched[index].address;
+    const spelling = homeAddressKey(address);
+    let seen = false;
+    for (let known = 0; known < spellings.length; known += 1) {
+      if (spellings[known] === spelling) {
+        seen = true;
+        break;
+      }
+    }
+    // ONE ADDRESS ONCE: two pairs over one address (or one pair naming it twice) are one address the check owed,
+    // and the witness reports the subject and not the walk.
+    if (seen) continue;
+    appendOwn(spellings, spelling);
+    // **A FRESH SEGMENT LIST PER ADDRESS** (`crossing.md §1.1`'s copy-out discipline): the pair's own array is
+    // the registry's and is never handed to a caller.
+    const copy = [];
+    for (let segment = 0; segment < address.length; segment += 1) appendOwn(copy, address[segment]);
+    appendOwn(addresses, copy);
+  }
+  // THE STORE'S OWN ECHO OF THE ID THE REVERSAL NAMED — `null` where the reversal's call answered no id (the
+  // request stands and the act's answer did not reach the echo, which is a real arm a caller can see).
+  return {
+    opId: typeof request.reversalId === 'string' ? request.reversalId : null,
+    addresses,
+  };
+}
+
 /// **⟶ THE REFUSAL'S ONE CARRIER TO WHICHEVER DRIVER ASKED — ADDED 2026-10-27.**
 ///
 /// **THE REPORT IS AMENDED IN TWO PLAIN MEMBERS AND CARRIES THE REFUSAL WHOLE UNDER A THIRD, SYMBOL-KEYED

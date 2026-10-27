@@ -485,6 +485,41 @@ export interface DeleteRecord {
    * journal entry, so there is no op to carry: **nothing is named because nothing was destroyed.**
    */
   readonly op: JournalOp | null;
+  /**
+   * **THE DISCARD'S WITNESS — THE REVERSALS THIS ACT'S OWN DELIVERY RAISED AND THE PACKAGE THREW AWAY**
+   * (`strata/decisions.md` · `D-49`, the architect, verbatim: *"Make discard observable"*; `DEF-AH`).
+   *
+   * **WHY THIS MEMBER EXISTS.** A `delete`'s listener delivery **runs no constraint pass** — there is no attempt
+   * for one to run over — so a `rollback` a listener body issues inside it raises a **restart request with no
+   * consumer**, and the fail-state is honest only if the caller learns it happened (`D-43` item 2's fail-state
+   * and both exits stand; `D-49` owes the witness and nothing else). **A listener at `window.tabs` fires for a
+   * delete at `window.tabs.landingPage`** — the triggered set's membership rule is the address prefix — **and the
+   * check it runs there is exactly the act the window discards**; this member is where that caller reads it.
+   *
+   * **ITS SHAPE, AND IT IS A LIST SO THE MEMBER CAN CARRY ONE TODAY AND MORE WITHOUT A SECOND SPELLING.** The
+   * restart machinery holds **one** pending request per instance (a second in-flight action overwrites the
+   * first — a declared limit, not a claim of this member), so the array is **`0` or `1` long**:
+   *   * `opId` — **the store's own echo of the id the discarded reversal named**, or `null` where the reversal's
+   *     call answered no id;
+   *   * `addresses` — **the addresses the discarded check would have been asked at** (the watch's own addresses,
+   *     each a fresh segment list), so a caller can re-run its own check at exactly those addresses.
+   *
+   * **A WITNESS IS NOT A REFUSAL.** The `delete` still answers what it answered — this record's other members
+   * are unmoved, the act **throws nothing**, **no member of the closed status set is minted**, and the reversed
+   * effect **still stands** (the request is reported, not re-run). **AND THIS MEMBER IS A NON-ENUMERABLE OWN
+   * PROPERTY**: `Object.keys(record)` and every deep-equality over the record read the same four members they
+   * read before, while a caller reads the witness **by its name**. A spread or `Object.assign` copy of the record
+   * does not carry it — read the member off the record itself.
+   *
+   * **WHAT IT CANNOT CARRY, SAID HERE RATHER THAN LEFT TO BE DISCOVERED.** The other passless window — a
+   * registration's own evaluation (`addConstraint`) — answers an **opaque identity** and carries **no witness**:
+   * an identity is not a record and no member of it is declared, so the action raised there remains unobservable
+   * without a new surface (`D-49`'s own instruction: say so rather than invent a member).
+   */
+  readonly discarded: readonly {
+    readonly opId: string | null;
+    readonly addresses: readonly Address[];
+  }[];
 }
 
 /**

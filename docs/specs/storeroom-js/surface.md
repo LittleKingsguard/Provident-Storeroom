@@ -189,6 +189,45 @@ is why the kernel's unwinding could not reach a delete's effect at all.** **Noth
 the five verbs are five, each synchronous and answering a fresh value, and the fourteen declared instance
 members and the closed status set are untouched — this is a RECORD's shape.**
 
+**⟶ ADDED 2026-10-28 — `D-49`: THE DELETE'S RECORD CARRIES THE DISCARD'S WITNESS, BESIDE ITS FOUR
+(`strata/decisions.md` · `D-49`, the architect, verbatim: *"Make discard observable / Example use case:
+window.tabs reads as object. When window.tabs.landingPage is removed, listener should fire on window.tabs to
+check that exactly one tab is active"*; `DEF-AH`).**
+
+1. **WHAT IT DECLARES, AND AT WHICH TERMS.** **`D-49` ITEM 2: *"a request a window discards must be visible to
+   the caller of the act whose window it was — on that act's own answer, not in a document and not on the next
+   unrelated call."*** Two windows run **no pass** (`D-43` item 2): a `delete`'s listener delivery and a
+   registration's own evaluation. **A `delete`'s answer is a record and it survives the window, so the request
+   its own delivery raised is reported THERE** — `a.delete(address, tier?)` still answers
+   `{ address, tiers, triggered, op }` **and carries `discarded`, a FIFTH OWN MEMBER THAT IS NOT ENUMERABLE:
+   a fresh array, `0` or `1` long, of `{ opId, addresses }`.** **`opId`** is **the store's own echo of the id the
+   discarded reversal named** (`null` where the reversal's call answered no id); **`addresses`** is **the
+   addresses the discarded check would have been asked at** — the watch's own addresses, each a fresh segment
+   list. **`[]` is the member's answer where the delivery raised nothing: the member is PRESENT and EMPTY, never
+   absent.**
+2. **WHY IT IS NOT ENUMERABLE, AND WHAT THAT COSTS.** **THE RECORD'S DECLARED ENUMERABLE SHAPE IS THE FOUR
+   `{ address, tiers, triggered, op }`** and every census of it — `Object.keys`, every deep-equality over a
+   receipt, every cell that asserts the declared member set — **reads exactly what it read before**; a witness is
+   reported **BESIDE** the record and not by moving the record's own declared shape. **THE MEMBER IS DECLARED**
+   (`bindings/js/index.d.ts` `DeleteRecord.discarded`) **and is read BY ITS NAME**; **the cost is declared with
+   it: a spread or `Object.assign` COPY of a receipt does not carry the witness** — read it off the record.
+3. **A WITNESS IS NOT A REFUSAL, AND NOTHING IN THE FAIL-STATE MOVES.** **The act still answers what it
+   answered and THROWS NOTHING; no rank of the closed status set is minted, widened or re-spelled (`DD-40`); the
+   reversal's own EFFECT STILL STANDS; no pass runs, no body is invoked and no judgement is taken by the
+   reporting.** **`D-43` item 2's fail-state and both exits stand** — the file reloads, or the client regenerates
+   the store — **and the witness is the caller's means of learning that the fail-state happened at all.**
+4. **AND THE OTHER WINDOW CARRIES NOTHING, SAID RATHER THAN LEFT TO A READER.** **A registration's own
+   evaluation answers an opaque identity or throws (`PAR-JS-25`), and an identity declares NO member** — so the
+   action raised there is reported nowhere, and `D-49`'s own instruction is **to say so rather than to invent a
+   surface**: no member is minted on the identity, on `addConstraint`'s answer or on the product's fourteen.
+   **THE LIMIT OF THE DELETE'S WITNESS IS DECLARED WITH IT: the restart record holds ONE pending request (a
+   second in-flight action overwrites the first — that record's shape, UNMOVED here), so the witness reports the
+   LAST request the window raised and no earlier one exists to report.**
+
+(`[A2 strata/decisions.md · `D-49` (2026-10-28) and `D-43` item 2; A3 docs/specs/storeroom-js/surface.md §2.7
+item 2 (the delete's own post-verb delivery window); docs/specs/storeroom-js/contract.md §2.2 |
+declared return-field]`)
+
 **⟶ `RCA-8(g)` RE-SPELLED 2026-10-16 — THE `instance` FIRST POSITION IS DROPPED AND THE RECEIVER IS THE STORE.** **THE AS-FILED BLOCK ABOVE — the five lines `read(instance, address, tier?)` · `readLiteral(instance, address, tier?)` · `write(instance, address, tier, value, commit?)` · `delete(instance, address, tier?)` · `rollback(instance, opId)`, each with an `instance` FIRST POSITION — HAS LEFT THIS FILE and stands at `docs/specs/storeroom-js/backup/RCA-A127-2026-10-16-superseded.md §19`, whose source path and `§` are named there; NO BYTE OF IT IS RE-EMITTED HERE.** **The `a` of each line above is the object `storeCreate(cfg)` returned — THE RECEIVER, and not a position — and the operative declarations are `§2.1` (e) item 3 and `§2.4` item 9 (f)'s clause of this date, which carries the ten methods' arity, positions, answer and refusal in one table** (`RCA-8(g)`; `docs/decisions.md` · `A127`, 2026-10-16).
 **EVERY ONE OF THE FIVE IS SYNCHRONOUS AND RETURNS A FRESH JS VALUE** (`§1.1`'s deep copy out) — **⟶ AND *"THE FIVE"* IS SUPERSEDED AND IS READ THROUGH AT THIS SENTENCE'S OWN BYTES, 2026-10-16 (`RCA-8(g)`; `role_proofreader`, gate 7): the four address verbs and `rollback` are FIVE *METHODS* OF THE PRODUCT, and the product's declared member set is TWELVE own members, `10 + 1 + 1 = 12` ✓, at `docs/specs/storeroom-js/surface.md §2.4` item 9 (f)'s `A127` clause of that date — so the sentence's subject is five of twelve and not the whole surface; its CLAIMS (synchronous, a fresh value each) STAND WHOLE** **⟶ AND THE FIGURE THAT MARK PRINTS IS SUPERSEDED IN ITS TURN, 2026-10-17 (`RCA-8(g)`: the sentence and its mark stand BYTE-FOR-BYTE above and THIS clause is their mark at itself): the product's declared member set is THIRTEEN own members, `10 + 1 + 1 + 1 = 13` ✓, at `§2.4` item 9 (f)'s `constraints` clause of that date — so the sentence's subject is FIVE OF THIRTEEN, and its CLAIMS STAND WHOLE** — **THE PACKAGE
 PERFORMS NO ARITY CHECK, NO DEFAULTING AND NO VALIDATION OF ITS OWN** (`DD-46`): **a missing, an extra or a
@@ -1062,7 +1101,7 @@ added for `settle`"* — AND IS READ THROUGH THIS CLAUSE, AND THROUGH `§2.4` it
 | `a.read(address, tier?)` | `1` or `2` | `address` — `PAR-JS-5`; `tier` — `PAR-JS-6`, ZERO TO MANY, one token or an array | the assembled JS value, a leaf's literal, or the whole register (`§2.2`) | the store's own thrown `{status, message}` — `§2.5`'s single form |
 | `a.readLiteral(address, tier?)` | `1` or `2` | as `read` | the SAME read narrowed: the target must be a leaf | the store's own thrown `{status, message}` |
 | `a.write(address, tier, value, commit?)` | `3` or `4` | `address`; `tier` REQUIRED and SINGULAR; `value` — `PAR-JS-10`; `commit` — `PAR-JS-20`, declared LAST | `{ op, watched, triggered }` (`§2.2`) | the store's own form; a `commit` outside `§2.4` item 9 (g)'s class test is refused there |
-| `a.delete(address, tier?)` | `1` or `2` | `address`; `tier` OPTIONAL and EXACTLY ONE when present — `PAR-JS-11` | `{ address, tiers, triggered, op }` — **⟶ `op` ADDED 2026-10-27 (`D-43` item 3): the store's own journal op, `null` on the `D-3` arm that removed nothing; the same member `a.write` carries** | the store's own thrown `{status, message}` |
+| `a.delete(address, tier?)` | `1` or `2` | `address`; `tier` OPTIONAL and EXACTLY ONE when present — `PAR-JS-11` | `{ address, tiers, triggered, op }` — **⟶ `op` ADDED 2026-10-27 (`D-43` item 3): the store's own journal op, `null` on the `D-3` arm that removed nothing; the same member `a.write` carries** — **⟶ AND `discarded` ADDED 2026-10-28 (`D-49` item 2): a FIFTH OWN, NON-ENUMERABLE member, a `0`-or-`1`-long list of the restart requests THIS ACT'S DELIVERY DISCARDED (`{ opId, addresses }`); the enumerable four stand and the witness is read by its name (§2.2's `D-49` clause)** | the store's own thrown `{status, message}` |
 | `a.rollback(opId)` | `1` | `opId` — `PAR-JS-9` | `{ opId, undoneOps, restoredTo }` | the store's own thrown `{status, message}` |
 | `a.listen(address)` | `1` | `address`, `AddressArg`'s domain and NOTHING MORE — a listener carries no tier qualifier (`§2.10`) | the package's opaque handle for the store's home entry | the store's own thrown form, as `§2.10` declares it |
 | `a.unlisten(handle)` | `1` | `handle`, the OPAQUE form ONLY (`§2.3` item 2) | `undefined`, INCLUDING on its no-op success for any value outside the domain (`§2.3` item 4) | the store's own form, on a malformed argument's shape only |

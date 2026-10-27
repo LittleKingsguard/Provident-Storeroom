@@ -88,9 +88,9 @@ import { VALUE_ARGUMENT_POSITION, accessorOrSymbolArm, arrayClass, classSpelling
 import { encodeAddress, encodeFilePath, encodeJournalLength, encodeOpId, encodeTier, encodeValue, handleWire, inDomainHandle } from './src/entry/carrier.mjs';
 import { admittedConstraintBatch, constraintAddress, decodeBaseState, decodeJournalOp, decodeSegments, decodeValue, encodeConfig, spellConstraintAddress } from './src/entry/frame.mjs';
 import { addressSpelling } from './src/entry/kernel-foundations.mjs';
-import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, carryRefusal, closeCommit, crossTriggered, entryOf, homeAddressKey, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
+import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, carryRefusal, closeCommit, crossTriggered, currentWindow, entryOf, homeAddressKey, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
 import { commitPositionRefusal, constraintOverwrittenByListen, deliver, listenerStandingAt, registerOn, terminalArm } from './src/entry/delivery.mjs';
-import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintWrite, constraintsKernel, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, withdrawStanding } from './src/entry/constraints.mjs';
+import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintWrite, constraintsKernel, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, witnessDiscardedReversal, withdrawStanding } from './src/entry/constraints.mjs';
 const require_ = createRequire(import.meta.url);
 const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node');
 
@@ -471,9 +471,38 @@ export function storeCreate(cfg) {
     /// `DeleteRecord.op`): the member `write`'s record carries, at the same name, so `rollback(record.op.opId)`
     /// reverses the delete. `null` is the `D-3` arm that removed nothing — it appended no entry, so it names
     /// no op — and it crosses unchanged rather than folding to `undefined` (`crossing.md §1.3`).
+    ///
+    /// **⟶ AND IT CARRIES THE DISCARD'S WITNESS FROM 2026-10-28 — `D-49`, `strata/decisions.md`, THE ARCHITECT,
+    /// VERBATIM: *"Make discard observable"*** (`index.d.ts` `DeleteRecord.discarded`; the use case's own
+    /// foundation is the prefix rule the delivery already obeys: **a listener at `window.tabs` FIRES for a
+    /// delete at `window.tabs.landingPage`, and the check it runs there is exactly the kind of act the
+    /// `delete`-delivery window throws away**).
+    ///
+    /// **`delete` IS THE ONE ACT WHOSE DELIVERY RUNS NO PASS AND WHOSE ANSWER SURVIVES TO TELL** (`D-43` item
+    /// 2's other window is a registration, whose answer is an opaque identity and carries nothing). So the
+    /// request a listener body raises inside THIS window — a `rollback`, stamped with this commit's identity by
+    /// `reversalWatch` — is read at the end of the delivery and reported **BESIDE** the record's four members, by
+    /// the one rule `D-49` sets: **the act still answers what it answered, no status is minted, and the witness
+    /// is not a refusal.**
+    ///
+    /// **THE MEMBER IS A NON-ENUMERABLE OWN `data` PROPERTY, AND THE CHOICE IS DECLARED.** It is **visible to the
+    /// caller by its name** (`record.discarded`) and declared in `index.d.ts`, while the record's **enumerable
+    /// member set stays the four its declaration and its cells assert** — `Object.keys`, every deep-equality over
+    /// a receipt and every census of a record's members read exactly what they read before. **A witness added by
+    /// moving the record's own declared ENUMERABLE shape would make the cells that assert that set's readings
+    /// false to buy nothing a caller needs**; a `Symbol.for` key would be the family's other device (`A117` (D6))
+    /// but is not declarable as a member of `DeleteRecord`, and `D-49` asks for the member to be declared.
+    ///
+    /// **THE VALUE IS `[]` WHERE NOTHING WAS DISCARDED AND ONE `{ opId, addresses }` ENTRY WHERE A REQUEST WAS**
+    /// — the id the reversal named (the store's own echo) and the addresses the discarded check would have been
+    /// asked at. **NO PASS RUNS, NO BODY IS INVOKED, NO JUDGEMENT IS TAKEN AND THE BEHAVIOUR OF THE WINDOW IS
+    /// UNMOVED**: the request is consumed (reported) and its effect still stands.
     delete(address, tier) {
       // **⟶ `§4.1`: `delete` OPENS ONE.**
       const opened = openCommit(instance);
+      // **THE WINDOW THIS ACT OWNS, TAKEN AT ITS OPENING** — the identity `reversalWatch` stamps a request with,
+      // so that what the witness reads is the request THIS delivery raised and never another window's.
+      const window = currentWindow(instance);
       try {
         const args = arguments.length >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
         // `delete`'s tier is read as a VALUE and not by an arity fold: an ABSENT position is the whole-target
@@ -489,6 +518,18 @@ export function storeCreate(cfg) {
         };
         // `A43`: a delete FIRES its own triggered set, on the same window as a write (`docs/specs/storeroom-js/surface.md §2.7` item 2).
         deliver(state, receipt.triggered, answer.triggeringAddress);
+        // **⟶ `D-49`: THE WITNESS, READ AFTER THE DELIVERY AND REPORTED BESIDE THE RECORD** — the delivery is
+        // the only body-invoking instant this act has, so a request standing after it is one this window raised.
+        // **ONLY A DELETE THAT OPENED ITS OWN WINDOW REPORTS**: a call that joined an enclosing commit has no
+        // window of its own to witness, and any request under that identity belongs to the act that opened it
+        // (`witnessDiscardedReversal` clears a request of the window handed in and of no other).
+        const discarded = opened === true ? witnessDiscardedReversal(instance, window) : null;
+        Object.defineProperty(receipt, 'discarded', {
+          value: discarded === null ? [] : [discarded],
+          enumerable: false,
+          writable: false,
+          configurable: true,
+        });
         return receipt;
       } finally {
         closeCommit(instance, opened);

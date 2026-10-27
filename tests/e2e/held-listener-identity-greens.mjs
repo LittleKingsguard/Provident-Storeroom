@@ -554,9 +554,18 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   // at the same name, `null` on the `D-3` arm that removed nothing. **THE CLAUSE THIS ASSERTION DERIVES FROM
   // IS UNMOVED AND SO IS THE ROW'S SUBJECT**: `DeleteReceipt.triggered` still moves with `WriteResult`'s
   // pair list (HLI-07.7 below), and the member set is the declared one — which gained this ONE member.
-  A('HLI-07.6', 'contract.md §2.4 item 1 (`DeleteReceipt.triggered` moves with it); `D-43` item 3 (`op` joins the record)',
-    "the delete receipt's own members are exactly `['address','op','tiers','triggered']` (as `ownNames` sorts them)",
-    !d.threw && ownNames(d.value).join(',') === 'address,op,tiers,triggered',
+  //
+  // ⟶ **AND `discarded` JOINS IT ON 2026-10-28 (`D-49`; `strata/decisions.md`, the architect, verbatim: *"Make
+  // discard observable"*).** **THE MEMBER IS DECLARED IN `index.d.ts` `DeleteRecord.discarded` AND IS A
+  // NON-ENUMERABLE OWN DATA PROPERTY** — so `ownNames`, which reads `Object.getOwnPropertyNames` and sees
+  // non-enumerable string keys, now reads FIVE names while `Object.keys` and every deep-equality over a receipt
+  // still read the four (the cells that assert that enumerable set are unmoved and green). **THE ROW'S SUBJECT
+  // IS UNMOVED**: the receipt's own member set is the declared one, and it gained this one member on that
+  // ruling. **A DELETE THAT DISCARDED NOTHING CARRIES `discarded: []`** — this drive's delete raises no action,
+  // so its own witness list is EMPTY and the name is still an own member.
+  A('HLI-07.6', 'contract.md §2.4 item 1 (`DeleteReceipt.triggered` moves with it); `D-43` item 3 (`op` joins the record); `D-49` (`discarded` joins it)',
+    "the delete receipt's own members are exactly `['address','discarded','op','tiers','triggered']` (as `ownNames` sorts them)",
+    !d.threw && ownNames(d.value).join(',') === 'address,discarded,op,tiers,triggered',
     d.threw ? fmt(statusOf(d)) : fmt(ownNames(d.value)));
   A('HLI-07.7', 'contract.md §2.4 item 1; trigger-and-pair.md §2 item 1',
     "the delete receipt's `triggered` is a pair list too",
