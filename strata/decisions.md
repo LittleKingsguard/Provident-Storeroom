@@ -2975,3 +2975,35 @@ invoked mid-unwind either**, because the restart is a fresh pass and not a judge
 **3 · A DELETE IS JOURNALED AND REVERSIBLE.** A delete **is a mutation and must be in the journal with an identity a reversal accepts** — the earlier measurement was that **delete op ids are not exposed** (`del` answers `{address, tiers, triggered}`), **so a delete could not be named and therefore could not be reversed.** **It is journaled now, and reversible**, which is what makes the kernel's unwinding able to reach a delete's effect at all.
 
 **TERMS: closed by construction (`1` = the descendant window, via a listener's own commit), declared with its exit (`1` = the known fail-state), built (`1` = the journaled, reversible delete), answered rather than ruled (`1` = the `K-2`/`K-3` question).**
+
+---
+
+### `D-44` — NO CONSTRAINT CHECK WITHOUT AN OPEN COMMIT; an act that causes a check OPENS ONE FIRST
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on `D-43`'s item 4 and the window it left.
+
+**THE RULING, VERBATIM:**
+
+> There should be no state where a constraint is being checked without an open commit. Any action that would cause a
+> constraint check should open a commit before beginning
+
+**WHAT IT IS: AN INVARIANT, NOT A PATCH, AND IT EMPTIES THE CLASS RATHER THAN ITS CASES.** Every window left on this
+branch's list was a variant of one state — **a check running where no commit was open**:
+
+- **`D-42`'s window 1** (a listener body's write at a descendant): the listener's write is a write **entering at the
+  package surface** (`D-43` item 1) and must **open its own commit** — so its check has a window and the ancestor pair
+  is asked by the listener's own pass;
+- **`D-42`'s window 4** (a pass driven by hand, `open=0`/`live=1`): **that state must not exist.** **A pass opens a
+  commit before it begins**, wherever it was driven from, so **the restart's request always has a consumer** and the
+  stale-pass hazard — a body reversing mid-pass, leaving every later pair answered against a state the body replaced —
+  **cannot arise**;
+- **the restart's own contract** (`D-42`): its request is consumed by the write's check path. **If every check has a
+  commit, every request has a consumer**, and the consumer stops being a property of one call site.
+
+**SO THE INVARIANT REPLACES THE CASE LIST.** `open commit` becomes the **precondition of the check**, not a
+circumstance some call sites happen to satisfy. **And it is enforced where the check runs, not where it is called
+from** — **a seam a driver can bypass is not an invariant.**
+
+**TERMS: the invariant (`1` = check ⇒ open commit), the cases it empties (`3` = the descendant window, the direct-pass
+window, the restart-consumer dependence), the enforcement point owed (`1` = at the check, with a seam the kernel may
+use), and `D-43`'s two implementations unchanged and owed (`2`).**
