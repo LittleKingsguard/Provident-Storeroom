@@ -3082,3 +3082,23 @@ having to be right about authorship, which was a guess the package made on the c
 the commit id is the discriminator (`1`), the authorship marker's fate owed (`1` — it retires or survives as a
 fallback, and the pass must say which), the cells owed (`2` = a repair tracked inside its attempt, a listener in its
 own).**
+
+---
+
+### `D-47` — `DEF-R` OUTLIVED ITS FILING, AND THE RECORD MUST SAY SO
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the downstream's withdrawal, recorded so a later pass does not revert a guarantee.
+
+**THE DOWNSTREAM WITHDREW `DEF-R` AS UNPROVEN** — *"never reproduced at either version: five snapshots, a batch construction and a removal/re-add all in registration order, byte-identically in both."* **They are right about their measurement, and their filing was wrong.**
+
+**AND `D-39` BUILT IT ANYWAY.** `1.0.1` **mints a registration sequence** — monotone, kept through overwrite, toggle and restore — and `constraints()` **emits by it**, with the cell asserting five snapshots element-wise equal **and equal to registration order**.
+
+**SO THE BRANCH NOW GUARANTEES SOMETHING THE FILING NO LONGER ASKS FOR, AND THAT IS NOT A REASON TO REMOVE IT.** **Three grounds, each independent of the filing:**
+
+1. **`D-39` IS THE ARCHITECT'S RULING** — *"add deterministic ordering"* — **and it stands whether or not the consumer's observation reproduced.** **A ruling is not an observation with a citation.**
+2. **THE BEHAVIOUR WAS UNDECLARED, NOT ABSENT.** Before `D-39`, the contract said *"NO ORDER IS PROMISED"* and the reader rebuilt from a live collection **whose order a toggle perturbs** — **the order moved in this tree even where the consumer's drive did not move it.** **A consumer diffing snapshots could hit it; that no filed drive hit it is a fact about the drive.**
+3. **AND THE GUARANTEE IS CHEAP AND NOW EXACT**: a monotone key, already minted, already emitted by, already asserted.
+
+**WHAT A LATER PASS MUST NOT DO.** **Do not revert the registration sequence on the ground that `DEF-R` was withdrawn.** **The withdrawal retires the FILING; it does not retire the RULING, the declaration, or the cells.** **If the ordering is ever removed, it is removed by a ruling, and the cells go red first.**
+
+**TERMS: the filing withdrawn (`1`), the ruling intact (`1`), the guarantee declared and asserted (`1`), the revert forbidden without a ruling (`1`).**
