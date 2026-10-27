@@ -2741,6 +2741,20 @@ cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` 
     // contract-sourced home and not a silent hole.
     [join(HERE, 'publish-generators.test.mjs'),
       'the negative generators\' declaration MATCHER (`/["\']license["\']\\s*[:=]/i`) is an assertion instrument, not an authored declaration about the licence'],
+    // **⟶ ADDED 2026-10-26 BY THE GUIDE LANDING, AND EXCLUDED ON `PUB-DD-11`'S OWN READING RATHER THAN ON A
+    // CONVENIENCE: `bindings/js/README.guide.md` IS A TARBALL'S OWN COPY OF A DOCUMENT, NOT A DECLARATION
+    // SITE.** The consumer guide now travels with the package (the architect's ruling: the release's assembly
+    // stages `docs/guides/package-use.md` at the packaging root, byte-for-byte, and the manifest's `files` row
+    // ships it). **ITS ONE AUTHORED HOME IS THAT DOCUMENT — the canonical text — and this path is GENERATED
+    // from it**, so the copy is not "an authored statement about the licence at a new home": it is the guide's
+    // TEXT travelling with the artefact, which is exactly the distinction `PUB-DD-11` draws when it reads a
+    // tarball's licence copy as *"the licence's TEXT travelling with an artefact"* and not as a fifth
+    // declaration site (`distribution.md §4.2` item 3). **THE EXCLUSION IS NOT A HOLE, AND (b') BELOW ASSERTS
+    // IT**: the copy exists, it is the guide (its declared heading), and it carries no `"license":` KEY — the
+    // occurrence this sweep's third form sees is prose in a document, the same shape the two battery homes
+    // above are excluded for.
+    [join(PKG_DIR, 'README.guide.md'),
+      'the landed consumer guide is the GENERATED copy of `docs/guides/package-use.md` that the assembly stages; a tarball\'s copy of a document is the document\'s TEXT travelling with the artefact, not an authored declaration site (`PUB-DD-11`; `distribution.md §4.2` item 3)'],
   ]);
   const candidates = new Set([
     ...walk(PKG_DIR),
@@ -2779,6 +2793,19 @@ cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` 
         `the excluded home carries no \`"license":\` KEY — its occurrence is an assertion, not a site (${why})`);
     }
   }
+  // (b') AND THE GUIDE'S EXCLUSION IS A READING RATHER THAN A HOLE — the landed copy EXISTS, it IS the guide
+  // (its declared opening heading), and the only form this sweep could match at it is the documented-statement
+  // form, never the key-shaped declaration a manifest writes. **THE GUIDE'S ONE AUTHORED HOME IS
+  // `docs/guides/package-use.md` AND THIS PATH IS GENERATED FROM IT** (`D-17`: no cell here opens that
+  // document; the heading below is a citation and the reading is of the PACKAGE's own bytes).
+  const landedGuide = join(PKG_DIR, 'README.guide.md');
+  assert.equal(existsSync(landedGuide), true,
+    'the landed consumer guide exists at the packaging root — an exclusion for a path the tree does not carry would be a hole');
+  const landedGuideText = readFileSync(landedGuide, 'utf8');
+  assert.ok(landedGuideText.startsWith('# Using `provident-storeroom` — the installed package'),
+    'and the landed copy IS the consumer guide (its declared heading), not a second document');
+  assert.equal(/["']license["']\s*:/i.test(landedGuideText), false,
+    'and it carries no `"license":` KEY — the match this sweep sees at it is prose in a document, not a declaration shape');
   // (c) AND THE FIVE REQUIRED PER-ARTEFACT FIELDS ARE PRESENT — the sites excluded in (b) are REAL, so the
   // exclusion cannot be read as five missing declarations (`distribution.md §3.2` field 8; `§4.2` item 2).
   const platformManifests = readdirSync(join(PKG_DIR, 'platforms')).sort()

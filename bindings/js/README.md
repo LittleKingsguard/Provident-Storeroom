@@ -15,13 +15,19 @@ the SIX artefacts — this package and the five platform packages — carries a 
 copy is not a fifth declaration site** — four AUTHORED sites stay four, while six artefacts CARRY a notice.
 
 **★ AND THIS FILE IS THE SHIPPED HALF OF A TWO-PART STORY: the long-form consumer guide — every member, every
-refusal, every file-tier reading and the measured behaviour behind each — is `docs/guides/package-use.md` in
-this package's repository, followable from here at
-`https://github.com/LittleKingsguard/Provident-Storeroom/blob/main/docs/guides/package-use.md`.** **It is
-NOT packed into this tarball**, and this file says so rather than leaving you to look for it: the manifest's
-`files` allowlist is a consequence of REACHABILITY (see *The manifest* below), the guide lives outside the
-package root, and a row naming a path outside the root packs nothing (npm omits it silently, which is the one
-hazard worse than a missing document). **So the pointer is a URL and not a path under `node_modules`.**
+refusal, every file-tier reading and the measured behaviour behind each — **TRAVELS WITH THIS PACKAGE at
+`README.guide.md`, beside this file**, so an installed copy reads it at
+`node_modules/provident-storeroom/README.guide.md`.** **IT REACHES THE TARBALL BY THE RELEASE'S OWN ASSEMBLY
+STEP**: that step copies its one authored home, `docs/guides/package-use.md`, byte-for-byte to this package's
+root as `README.guide.md` — the same mechanism that lands the `LICENSE` copy, and not a `files` row pointing
+outside the package root (npm omits such a row SILENTLY, which is the one hazard worse than a missing
+document) — and the manifest's `files` allowlist names the landed copy, so the text ships. **THE CANONICAL
+TEXT IS `docs/guides/package-use.md` AND IS NEVER EDITED IN TWO PLACES: `README.guide.md` is a generated
+landing, and the release runbook's preflight (`scripts/publish.sh`) refuses when the two differ
+byte-for-byte.** The same guide is readable in this
+package's repository at
+`https://github.com/LittleKingsguard/Provident-Storeroom/blob/main/docs/guides/package-use.md`, which is where
+an edit belongs.
 
 ## The one entry
 
@@ -260,8 +266,10 @@ or measured anywhere on this load path.
 `D-4`): **whatever the entry requires by path must ship in the tarball**, and the release's shape is determined
 empirically by `delivery` together with the e2e/install instruments. **No declared arity and no declared
 exclusivity binds the allowlist** — a hand-maintained count in its place would re-create the constraint those
-rulings lifted. **The prohibitions are unmoved:** no `.node`, no `build/Release` path and no `postinstall`
-route in this package's own tarball, and no `LICENSE` row.
+rulings lifted. **ONE DOCUMENTATION ROW IS ADDITIVE AND DECLARED AS SUCH:** `README.guide.md` names no module and
+imports nothing, so it travels in the reachability rule's own declared non-code class (`README*` at the package
+root) and no limb of that rule moves for it. **The prohibitions are unmoved:** no `.node`, no `build/Release`
+path and no `postinstall` route in this package's own tarball, and no `LICENSE` row.
 
 ## Tests — a REPOSITORY instruction, not a consumer one
 

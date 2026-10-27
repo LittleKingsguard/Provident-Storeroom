@@ -174,18 +174,26 @@ test("package · `distribution.md §5` (`PUB-DD-3` · `PUB-DD-21` · `A127`) · 
 // §3 — THE ALLOWLIST AND ITS REACHABILITY
 // ---------------------------------------------------------------------------------------------
 
-test('package · `§2.1` item 1 (as corrected 2026-10-25) and `A89`(4) item `2` · the allowlist is FIVE entries, every one of them exists in the tracked tree, and NEITHER added entry is a binary — `build/Release` is in `files` at no key', () => {
+test('package · `§2.1` item 1 (as corrected 2026-10-25, read with the 2026-10-26 guide ruling) and `A89`(4) item `2` · the allowlist is SIX entries, every one of them exists in the tracked tree, and NEITHER added entry is a binary — `build/Release` is in `files` at no key', () => {
   // THE OPERATIVE FIGURE, with its superseded reading named: "**THE OPERATIVE ALLOWLIST IS FIVE
   // ENTRIES — `index.mjs` · `README.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs`**",
   // the superseded one being "`index.mjs` · `README.md` · `index.d.ts` and NOTHING ELSE"; and the
   // refused set: "a shipped binary from the publisher's machine; `build/Release` in `files`".
+  //
+  // **★ RE-DERIVED 2026-10-26 BY THE ARCHITECT'S GUIDE RULING — ONE ADDITIVE DOCUMENTATION ROW, NO LIMB
+  // LIFTED.** The consumer guide ships: the release's assembly stages `docs/guides/package-use.md` at the
+  // packaging root as `README.guide.md`, and the allowlist names the landed copy so the tarball carries it.
+  // **THE EQUALITY BELOW IS STILL AN EXACT EQUALITY AND EVERY CONJUNCT BESIDE IT IS UNMOVED** — every named
+  // path still has to exist in the tree (this cell now checks the landed guide the same way it checks the
+  // entry), the directory entry is still a directory, and the binary refusals are untouched. The row is
+  // admitted as DECLARED NON-CODE by the reachability rule's own class (`README*` at the package root).
   const files = manifest.files;
   assert.ok(Array.isArray(files));
   assert.deepEqual(
     [...files].sort(),
-    ['README.md', 'index.d.ts', 'index.mjs', 'src/constraint-kernel.mjs', 'src/entry/'].sort(),
+    ['README.md', 'README.guide.md', 'index.d.ts', 'index.mjs', 'src/constraint-kernel.mjs', 'src/entry/'].sort(),
   );
-  assert.equal(files.length, 5);
+  assert.equal(files.length, 6);
 
   // EVERY NAMED PATH EXISTS — a `files` entry naming an absent path packs GREEN and fails at the
   // consumer (`A89`(4) item `2`: "npm omits a missing `files` entry SILENTLY").

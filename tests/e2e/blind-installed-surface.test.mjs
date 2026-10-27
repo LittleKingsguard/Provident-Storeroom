@@ -17,8 +17,10 @@
 //     pins), §1.4 items 1–3 and 6 (the four states, the single declared arm, its subject, its form, and
 //     the two-arm authoring split with `RCA-8(g)`'s three members), §1.5 items 1–2 and 6 (the version read
 //     and the both-paths subject's separator, order and one-slot rendering), §2.1 item 1 with its
-//     2026-10-25 correction (the five-entry allowlist, the no-binary rule and the `A89`(4) reachability
-//     rule), §2.2 (the five artefacts and the no-committed-binary prohibition), §2.3 items 2–5 (the six
+//     2026-10-25 correction (the allowlist, the no-binary rule and the `A89`(4) reachability
+//     rule), read with the architect's 2026-10-26 ruling that the consumer guide ships (its
+//     documentation row is additive and admitted by the reachability rule's own non-code class),
+//     §2.2 (the five artefacts and the no-committed-binary prohibition), §2.3 items 2–5 (the six
 //     notices, the refused copy and the appendix's two lines), §2.4 item 2 (the types and the escape arm),
 //     §2.5 (the identity and the metadata, incl. the 2026-10-11 metadata reversal), §3.2 item 2 (the
 //     eleven version cells, one figure) and §5.7/§5.0a (the main package's own shape; the stamped
@@ -114,11 +116,17 @@ const LICENCE = 'AGPL-3.0';
  *  every artefact. */
 const ENGINES_NODE = '>=18.0.0';
 
-/** `contract.md §2.1` item 1 as CORRECTED 2026-10-25: the operative allowlist is FIVE entries, `5 = 3 + 2`
- *  ✓, and `src/entry/`'s count is the correction's own figure — *"a directory of thirteen modules"*. */
-const ALLOWLIST = ['index.mjs', 'README.md', 'index.d.ts', 'src/entry/', 'src/constraint-kernel.mjs'];
+/** `contract.md §2.1` item 1 as CORRECTED 2026-10-25, read with the architect's ruling of 2026-10-26 that
+ *  **THE CONSUMER GUIDE SHIPS**: the operative allowlist is SIX entries, `6 = 3 + 1 + 2` ✓ — the three named
+ *  root files, the landed `README.guide.md` the release's assembly stages, and `src/entry/` (a directory of
+ *  thirteen modules) plus `src/constraint-kernel.mjs`. **THE DOCUMENTATION ROW IS ADDITIVE AND DECLARED AS
+ *  SUCH**: it names no module and imports nothing, so the reachability rule admits it through its own declared
+ *  non-code class (`README*` at the package root), and no limb of that rule moves. */
+const ALLOWLIST = ['index.mjs', 'README.md', 'README.guide.md', 'index.d.ts', 'src/entry/', 'src/constraint-kernel.mjs'];
 const ENTRY_MODULE_COUNT = 13;
-const PACKED_FILE_COUNT = 18; // 1 package.json + 3 root files + 13 entry modules + 1 kernel = 18 ✓
+const PACKED_FILE_COUNT = 19; // 1 package.json + 4 root files + 13 entry modules + 1 kernel = 19 ✓
+/** The consumer guide's landed name at the packaging root — the assembly's stage target, beside `README.md`. */
+const GUIDE_MEMBER = 'README.guide.md';
 
 /** `contract.md §1.1` rung three / `§1.4` item 1 / `§1.5` item 6: **the ONE declared refusal's status and
  *  the generator's OWN clause**, at the subject slot the clause fixes. */
@@ -630,19 +638,26 @@ test('installed · surface.md §2.9 item 1 (`A127`) + package.md §1.3 item 3 ·
 //      `PUB-DD-1`, `§2.3`, `§2.4` item 2, `§5.7`)
 // =============================================================================================
 
-test('installed · contract.md §2.1 item 1 (CORRECTED 2026-10-25, `5 = 3 + 2` ✓) · the tarball carries the FIVE allowlist entries expanded and nothing beside them: `18` files, `13` of them the entry\'s own modules', () => {
+test('installed · contract.md §2.1 item 1 (CORRECTED 2026-10-25, read with the 2026-10-26 guide ruling: `6 = 3 + 1 + 2` ✓) · the tarball carries the SIX allowlist entries expanded and nothing beside them: `19` files, `13` of them the entry\'s own modules', () => {
   // DECLARED: "**THE OPERATIVE READING, AT THE SHIPPED BYTES: `bindings/js/package.json`'s `files` array
   // names `index.mjs`, `README.md`, `index.d.ts`, `src/entry/` and `src/constraint-kernel.mjs` — `5`
   // entries … `5 = 3 + 2` ✓, the `3` being the three the item above prints and the `2` the entry's own
   // internal modules**"; and "`src/entry/` a directory of thirteen modules; `src/constraint-kernel.mjs` a
   // file beside it" (`§2.1` item 1's 2026-10-25 clause, items (2) and (4)).
+  //
+  // **★ RE-DERIVED 2026-10-26 TOWARD THE ARCHITECT'S GUIDE RULING, BY ONE MEMBER AND NOT BY ONE LIMB.** The
+  // consumer guide ships: the release's assembly stages `docs/guides/package-use.md` at the packaging root as
+  // `README.guide.md`, the allowlist names the landed copy, and the packed set moves `18 → 19`. **The
+  // expansion rule, the count's arithmetic, the exact allowlist equality and the 13-module figure are
+  // UNMOVED**; what the guide adds is one DECLARED DOCUMENTATION ROW, admitted by the reachability rule's own
+  // declared non-code class (`README*` at the package root) and imported by nothing.
   const entries = site.bareEntries;
   assert.equal(entries.length, PACKED_FILE_COUNT, `the tarball carries ${entries.length} files and the declared expansion is ${PACKED_FILE_COUNT}`);
   assert.deepEqual(entryManifest(site.bareTarball).files, ALLOWLIST);
 
   const shaped = entries.filter((entry) => {
     if (entry === 'package.json') return false;
-    if (entry === 'index.mjs' || entry === 'README.md' || entry === 'index.d.ts') return false;
+    if (entry === 'index.mjs' || entry === 'README.md' || entry === 'README.guide.md' || entry === 'index.d.ts') return false;
     if (entry === 'src/constraint-kernel.mjs') return false;
     return !/^src\/entry\/[^/]+\.mjs$/.test(entry);
   });
@@ -650,6 +665,25 @@ test('installed · contract.md §2.1 item 1 (CORRECTED 2026-10-25, `5 = 3 + 2` �
 
   const entryModules = entries.filter((entry) => /^src\/entry\/[^/]+\.mjs$/.test(entry));
   assert.equal(entryModules.length, ENTRY_MODULE_COUNT, `the entry directory ships ${entryModules.length} modules and the declaration says ${ENTRY_MODULE_COUNT}`);
+
+  // ---- ★ THE GUIDE'S LANDING, ASSERTED AT THE TARBALL AND NOT AT ITS INTENTION ----
+  // THE OBSERVABLE: the packed member is the consumer guide's own text (its declared opening line), it is
+  // carried BY THE TARBALL rather than merely named by the manifest, the release's assembly changes no byte
+  // of it, and the install places it beside `README.md` where a consumer finds it. **NO CELL HERE OPENS
+  // `docs/**` (`D-17`)**: every reading below is of the packed bytes.
+  assert.ok(entries.includes(GUIDE_MEMBER), `the consumer guide ${GUIDE_MEMBER} is not in the tarball`);
+  const guideText = readEntry(site.bareTarball, GUIDE_MEMBER);
+  assert.ok(guideText.length > 0, `${GUIDE_MEMBER} travelled EMPTY`);
+  assert.ok(
+    guideText.startsWith('# Using `provident-storeroom` — the installed package'),
+    `${GUIDE_MEMBER} does not open with the consumer guide's own declared heading`,
+  );
+  assert.equal(readEntry(site.assembledTarball, GUIDE_MEMBER), guideText,
+    'the release\'s assembly step rewrote the guide — the staged copy is byte-for-byte the canonical text');
+  assert.ok(
+    existsSync(join(installedPackageRoot(site.absentDir), GUIDE_MEMBER)),
+    `${GUIDE_MEMBER} is packed but did not reach the installed tree`,
+  );
 });
 
 test('installed · contract.md §2.1 item 2 + §5.7 · NO BINARY SHIPS AT ANY KEY ON ANY TARGET: no `.node`, no `build/Release`, no `target/`, no `Cargo.toml`, no `build.rs` and no `.rs` byte is in the tarball', () => {
@@ -671,11 +705,13 @@ test('installed · contract.md §2.1 item 2 + §5.7 · NO BINARY SHIPS AT ANY KE
   assert.deepEqual(forbidden, [], 'a byte the no-binary rule refuses reached the main package');
 });
 
-test('installed · contract.md §2.1\'s carriage clause + distribution.md §2.1 item 5 · `LICENSE` IS NOT AN ALLOWLIST ROW: the manifest\'s `files` names five entries and a `LICENSE` row added to it would be a FINDING', () => {
+test('installed · contract.md §2.1\'s carriage clause + distribution.md §2.1 item 5 · `LICENSE` IS NOT AN ALLOWLIST ROW: the manifest\'s `files` names six entries and a `LICENSE` row added to it would be a FINDING', () => {
   // DECLARED: "**`LICENSE` IS NOT AN ALLOWLIST ENTRY** and is not a [fifth] member; the main package's
   // licence copy is landed by **THE RELEASE'S OWN ASSEMBLY STEP**" (`contract.md §2.1`'s carriage clause);
   // "**SO A `LICENSE` ROW ADDED TO THE MAIN PACKAGE'S `files` ARRAY IS A FINDING**, and the copy's absence
-  // from that array is not a missing notice" (`distribution.md §2.1` item 5).
+  // from that array is not a missing notice" (`distribution.md §2.1` item 5). **THE ALLOWLIST EQUALITY BELOW
+  // IS UNMOVED AS A CONJUNCT AND FOLLOWS THE DECLARED LIST; the 2026-10-26 guide row is the sixth entry and
+  // the licence row is still REFUSED, so the two carriage mechanisms are still not the same mechanism.**
   for (const tarball of [site.bareTarball, site.assembledTarball]) {
     const files = entryManifest(tarball).files;
     assert.deepEqual(files, ALLOWLIST);

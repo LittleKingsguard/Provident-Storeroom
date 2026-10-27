@@ -34,6 +34,7 @@
   "files": [
     "index.mjs",
     "README.md",
+    "README.guide.md",
     "index.d.ts",
     "src/entry/",
     "src/constraint-kernel.mjs"

@@ -51,8 +51,13 @@
 #    scripts/publish.sh --bump X.Y.Z        # writes the version and prose cells
 #    scripts/publish.sh --tag   X.Y.Z       # commits, tags, pushes the tag
 #    scripts/publish.sh --verify X.Y.Z      # post-publish checks, read-only
+#    scripts/publish.sh --pack  [DEST]      # THE ASSEMBLY'S PACKING PATH — a MEASUREMENT: assemble the main
+#                                           # package (licence copy + consumer guide), pack it into DEST
+#                                           # (default: a fresh temp dir), print the member set, then pack it
+#                                           # AGAIN with no assembly; publishes, tags, pushes and installs
+#                                           # nothing (release.md §4.1)
 #
-#  `--bump`, `--tag` and `--verify` each require `--yes` as well:
+#  `--bump`, `--tag`, `--verify` and `--pack` each require `--yes` as well:
 #
 #    scripts/publish.sh --bump X.Y.Z --yes
 #
@@ -87,6 +92,17 @@ PIN_NAMES=(
 CARRIER="docs/specs/storeroom-publish-proposal.md"
 CARRIER_PHRASE='the six manifests move to'
 
+# **THE CONSUMER GUIDE'S ONE AUTHORED HOME AND ITS LANDED COPY — THE INVARIANT, STATED HERE BECAUSE IT IS THE
+# WHOLE MECHANISM: `docs/guides/package-use.md` IS THE CANONICAL TEXT AND IS NEVER EDITED IN TWO PLACES.** The
+# assembly copies it BYTE-FOR-BYTE to the main package's own root as `README.guide.md`, where the manifest's
+# `files` row ships it — **THE SAME MECHANISM THAT LANDS `LICENSE`** (a file staged at the packaging root by the
+# release's assembly), and NOT a `files` row pointing outside the package root: measured 2026-10-26, npm packs
+# NOTHING for such a row and omits it SILENTLY, so `../docs/guides/package-use.md` in `files` would ship a
+# README that pointed at a document the tarball does not carry. `README.guide.md` is a GENERATED landing: an
+# edit belongs in the canonical file, and this script REFUSES when the two differ.
+GUIDE_CANONICAL="docs/guides/package-use.md"
+GUIDE_LANDED="bindings/js/README.guide.md"
+
 R='\033[0;31m'; G='\033[0;32m'; Y='\033[0;33m'; B='\033[0;34m'; N='\033[0m'
 say()  { printf "${B}==>${N} %s\n" "$*"; }
 ok()   { printf "${G} ok ${N} %s\n" "$*"; }
@@ -94,15 +110,37 @@ warn() { printf "${Y}  ! ${N} %s\n" "$*"; }
 bad()  { printf "${R}FAIL${N} %s\n" "$*"; }
 act()  { printf "\n${B}── ACT %s ──${N} %s ${Y}(actor: %s)${N}\n" "$1" "$2" "$3"; }
 
-DRY=1; MODE="dry-run"; TARGET=""; CONFIRM=0
+# THE ASSEMBLY'S GUIDE STAGE (`release.md §1.4` step 3's assembly half, applied to the document that is not
+# code): stage the canonical text at the packaging root, byte-for-byte. **IDEMPOTENT BY CONSTRUCTION** — the
+# landed copy is committed, so a clean release tree copies a file over itself and changes no byte; a DRIFTED
+# tree is REFUSED by the preflight below rather than silently repaired there.
+assemble_guide() {
+  [ -f "$GUIDE_CANONICAL" ] || {
+    bad "the canonical consumer guide '$GUIDE_CANONICAL' is absent — the guide has one authored home and this is it"
+    return 1
+  }
+  cp -f "$GUIDE_CANONICAL" "$GUIDE_LANDED" || {
+    bad "the consumer guide could not be staged to '$GUIDE_LANDED'"
+    return 1
+  }
+  if cmp -s "$GUIDE_CANONICAL" "$GUIDE_LANDED"; then
+    ok "the consumer guide staged BYTE-FOR-BYTE: $GUIDE_CANONICAL -> $GUIDE_LANDED ($(wc -c < "$GUIDE_LANDED" | tr -d ' ') bytes)"
+  else
+    bad "the staged consumer guide is not byte-for-byte its canonical text"
+    return 1
+  fi
+}
+
+DRY=1; MODE="dry-run"; TARGET=""; DEST=""; CONFIRM=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --check)  MODE="check";  DRY=1 ;;
     --bump)   MODE="bump";   DRY=0; TARGET="${2:-}"; shift ;;
     --tag)    MODE="tag";    DRY=0; TARGET="${2:-}"; shift ;;
     --verify) MODE="verify"; DRY=0; TARGET="${2:-}"; shift ;;
+    --pack)   MODE="pack";   DRY=0; DEST="${2:-}"; shift ;;
     --yes)    CONFIRM=1 ;;
-    -h|--help) sed -n '30,60p' "$0"; exit 0 ;;
+    -h|--help) sed -n '30,66p' "$0"; exit 0 ;;
     *) bad "unknown argument: $1"; exit 2 ;;
   esac
   shift
@@ -110,15 +148,113 @@ done
 
 if [ "$DRY" -eq 0 ] && [ "$CONFIRM" -ne 1 ]; then
   bad "mode '--$MODE' mutates the tree and requires '--yes'."
-  warn "Re-run as:  scripts/publish.sh --$MODE ${TARGET:-X.Y.Z} --yes"
+  if [ "$MODE" = "pack" ]; then
+    warn "Re-run as:  scripts/publish.sh --pack ${DEST:-<destination>} --yes"
+  else
+    warn "Re-run as:  scripts/publish.sh --$MODE ${TARGET:-X.Y.Z} --yes"
+  fi
   warn "And read §4.1 first: NO PASS PUBLISHES. This act is the architect's."
   exit 2
 fi
 
 # ------------------------------------------------------------------------------
 say "repository: $REPO"
-say "mode: $MODE${TARGET:+  target: $TARGET}"
+say "mode: $MODE${TARGET:+  target: $TARGET}${DEST:+  destination: $DEST}"
 [ "$DRY" -eq 1 ] && warn "DRY RUN — nothing below will be written."
+
+# ==============================================================================
+# THE ASSEMBLY'S PACKING PATH — A MEASUREMENT LEG, NOT THE RELEASE ACT
+# ==============================================================================
+#
+# `release.md §4.1` is this script's law: **NO PASS PUBLISHES, PACKS, TAGS, INSTALLS OR ATTESTS.** This leg is
+# the narrow estate that reading leaves open and it is NAMED SO IT CANNOT BE READ AS WIDER: **it assembles the
+# MAIN PACKAGE's content and packs it into a directory the caller names** — the bytes the release's own assembly
+# produces, so that a reader can SEE them — **and it publishes nothing, tags nothing, pushes nothing, installs
+# nothing and touches no registry.** A locally packed tarball is the instrument `D-10`/`D-12` already name; this
+# leg points that instrument at the ASSEMBLY rather than at an install.
+#
+# **WHY IT EXISTS AT ALL: THE GUIDE AND THE LICENCE ARE LANDED BY AN ASSEMBLY, AND AN ASSEMBLY THAT NOTHING
+# DRIVES IS A CLAIM.** `LICENSE` is carried by the same mechanism and was, until this leg, visible only in CI's
+# own steps; the guide's row makes the same demand one step earlier — a `files` row is only worth what the
+# packed bytes show — so the packing path is a first-class reading here and not a note.
+if [ "$MODE" = "pack" ]; then
+  echo
+  say "THE ASSEMBLY'S PACKING PATH — the main package, assembled and packed, into a directory it names"
+  DEST="${DEST:-$(mktemp -d "${TMPDIR:-/tmp}/storeroom-assembly-XXXXXX")}"
+  mkdir -p "$DEST"
+  say "destination: $DEST"
+
+  # THE ASSEMBLY'S OWN TWO PRECONDITIONS, opened the way the release's steps open them: the packaging root
+  # carries NO `LICENSE` byte (the copy is transient and never a tracked byte — `PUB-DD-12`), and the two
+  # sources are there to stage.
+  echo
+  [ ! -e bindings/js/LICENSE ] || {
+    bad "bindings/js/LICENSE already exists — the licence copy is TRANSIENT at the packaging root and no LICENSE byte persists there (PUB-DD-12)"
+    exit 1
+  }
+  [ -f LICENSE ] || { bad "the repository's LICENSE is absent"; exit 1; }
+  [ -f "$GUIDE_CANONICAL" ] || { bad "the canonical consumer guide '$GUIDE_CANONICAL' is absent"; exit 1; }
+
+  # `if: always()`-shaped: the licence copy never outlives this leg, whatever happens below.
+  cleanup_pack() { rm -f bindings/js/LICENSE; }
+  trap cleanup_pack EXIT
+
+  say "assembly, stage 1 of 2: the licence copy — byte-for-byte, at the packaging root"
+  cp LICENSE bindings/js/LICENSE
+  cmp -s LICENSE bindings/js/LICENSE || { bad "the licence copy is not byte-for-byte the repository's LICENSE"; exit 1; }
+  ok "licence staged"
+
+  say "assembly, stage 2 of 2: the consumer guide — byte-for-byte, from its one authored home"
+  assemble_guide || exit 1
+
+  # THE READBACK, PRINTED FROM THE ARCHIVE'S OWN REPORT, never re-spelled here.
+  readback() {
+    PACK_JSON="$1" LABEL="$2" node -e '
+const fs = require("node:fs");
+const raw = JSON.parse(fs.readFileSync(process.env.PACK_JSON, "utf8"));
+const entry = (Array.isArray(raw) ? raw : Object.values(raw))[0];
+const files = (entry.files || []).map((file) => file.path).sort();
+const guide = (entry.files || []).find((file) => file.path === "README.guide.md");
+const line = (label, value) => console.log("  " + label.padEnd(22) + " " + value);
+line("reading", process.env.LABEL);
+line("tarball", entry.filename);
+line("members", files.length);
+line("README.guide.md", guide ? "PRESENT, " + guide.size + " bytes, at the package root" : "ABSENT");
+line("LICENSE", files.includes("LICENSE") ? "PRESENT (the assembly copy)" : "ABSENT (no assembly)");
+line("member set", JSON.stringify(files));
+'
+  }
+
+  echo
+  say "packing, reading 1 of 2: THE ASSEMBLED CONTENT (what the release publishes)"
+  PACK_JSON="$DEST/.npm-pack-assembled.json"
+  if ! ( cd bindings/js && npm pack --json --pack-destination "$DEST" ) >"$PACK_JSON" 2>"$DEST/.npm-pack-assembled.err"; then
+    bad "npm pack FAILED — $(tail -1 "$DEST/.npm-pack-assembled.err" 2>/dev/null)"
+    exit 1
+  fi
+  readback "$PACK_JSON" "ASSEMBLED"
+
+  # THE SAME PACKAGE WITH **NO ASSEMBLY** — the reading a consumer of this repository's own commands gets, so
+  # the two are compared rather than assumed. The licence copy is removed first, exactly as the release's own
+  # `if: always()` step removes it.
+  rm -f bindings/js/LICENSE
+  echo
+  say "packing, reading 2 of 2: the SAME manifest with NO assembly (a bare \`npm pack\`)"
+  BARE_JSON="$DEST/.npm-pack-bare.json"
+  mkdir -p "$DEST/bare"
+  if ! ( cd bindings/js && npm pack --json --pack-destination "$DEST/bare" ) >"$BARE_JSON" 2>"$DEST/.npm-pack-bare.err"; then
+    bad "npm pack FAILED — $(tail -1 "$DEST/.npm-pack-bare.err" 2>/dev/null)"
+    exit 1
+  fi
+  readback "$BARE_JSON" "BARE PACK"
+
+  echo
+  warn "NOTHING WAS PUBLISHED, TAGGED, PUSHED OR INSTALLED. The licence copy is removed on exit; the guide's"
+  warn "landed copy is a TRACKED, generated file and this leg leaves it byte-for-byte the canonical text (the"
+  warn "release preflight REFUSES a drifted landing rather than repairing it). The tarballs and the two"
+  warn "reports stand in: $DEST"
+  exit 0
+fi
 
 # ==============================================================================
 # PREFLIGHT — every one of these is a refusal, not a warning.
@@ -254,7 +390,29 @@ if [ "$MODE" != "tag" ]; then
   else refuse "the node suite FAILED — see /tmp/pub-node.log"; fi
 fi
 
-# 5. The target version, when one is named — READ ON WHICHEVER SIDE OF THE RELEASE ACT THIS RUN STANDS ON.
+# 5. THE CONSUMER GUIDE'S LANDING — the assembly's own subject, verified at the tree the release packs.
+#
+#    **THE GUIDE REACHES THE TARBALL BY THE RELEASE'S ASSEMBLY STEP, AND THESE ARE THE THREE FACTS THAT MAKE
+#    THAT TRUE:** the canonical text is where the guide has its ONE authored home; the landed copy at the
+#    packaging root IS that text, byte-for-byte (a drift here is a SECOND PLACE the document was edited, which
+#    the ruling forbids); and the manifest's `files` row NAMES the landed copy, so npm ships it. **EVERY ONE IS
+#    A REFUSAL.** A missing row is not cosmetic: measured 2026-10-26, a `files` row naming an absent file is
+#    omitted by npm SILENTLY, so the tarball would publish green with a README that points at a guide it does
+#    not carry — the one hazard the ruling names. **THE STAGE ITSELF IS `assemble_guide`'s, above; this step
+#    VERIFIES rather than repairs, so a drifted tree is caught here instead of being silently overwritten.**
+if [ ! -f "$GUIDE_CANONICAL" ]; then
+  refuse "the canonical consumer guide '$GUIDE_CANONICAL' is absent — the guide's one authored home is missing"
+elif [ ! -f "$GUIDE_LANDED" ]; then
+  refuse "the landed consumer guide '$GUIDE_LANDED' is absent at the packaging root — the assembly's stage has no subject and the tarball would carry none"
+elif ! cmp -s "$GUIDE_CANONICAL" "$GUIDE_LANDED"; then
+  refuse "the landed consumer guide '$GUIDE_LANDED' has DRIFTED from '$GUIDE_CANONICAL' — the canonical text is never edited in two places; re-stage it with: scripts/publish.sh --pack --yes"
+elif ! grep -q '"README.guide.md"' "$MAIN_MANIFEST"; then
+  refuse "the main manifest's \`files\` allowlist does not name 'README.guide.md' — the landed copy would not ship, and npm omits a missing row SILENTLY"
+else
+  ok "the consumer guide is landed byte-for-byte at the packaging root ('$GUIDE_LANDED') and named by \`files\`"
+fi
+
+# 6. The target version, when one is named — READ ON WHICHEVER SIDE OF THE RELEASE ACT THIS RUN STANDS ON.
 #
 #    **THE SAME FACT, TWO TRUE READINGS, AND THE READING IS `$MODE`'s.** A version's tag has one lifetime: it
 #    does NOT exist before the release and it DOES exist after it. `--bump`/`--tag` name a version ABOUT TO BE
