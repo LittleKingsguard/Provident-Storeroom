@@ -2926,3 +2926,31 @@ package's suite cannot be the evidence for a consumer.**
 
 **OWED, AND NOTHING ELSE: the two `STOREROOM-*` rows need re-measurement at `1.0.1`** — both read, both labelled not
 re-measured, each naming its own owed measurement.
+
+---
+
+### `D-42` — the semver remedy is a MINOR, and an action inside an open commit RESTARTS the constraint check
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on `D-41`'s two open items.
+
+**THE RULINGS, VERBATIM:**
+
+> **Minor semver**
+> **Actions inside of an open commit start the constraint check over again**
+
+**1 · THE SEMVER BREACH IS ANSWERED BY A MINOR.** `1.0.1` shipped four behaviour changes under a patch — the
+vocabulary `17 → 20`, a stored value `9 → 5`, a constraint-refused write's status, and **`rollback` going from total to
+partial**. **The architect rules the remedy a MINOR: the next release is `1.1.0`**, and **the four are declared
+breaking in the record and the release note.** **So `1.0.1` stands as published with a disclosed breach, and `1.1.0`
+carries the declaration** — the consumer's *"pin `<1.0.1`"* is answered by naming the version that supersedes it, not by
+pretending the patch was one.
+
+**2 · AND THE UNJUDGED WINDOW IS CLOSED BY RESTARTING, NOT BY JUDGING THE STEP.** `D-40`'s gate makes a reversal
+**inside an open commit** unjudged, so **its violating effect stands** — the conservative direction being the permissive
+one, as the downstream measured. **The architect's answer is neither to judge the step nor to leave it: an action
+performed INSIDE an open commit STARTS THE CONSTRAINT CHECK OVER AGAIN.** **The check the action invalidated is re-run
+from its beginning against the state the action left** — so **no violating effect can stand unjudged**, and **no body is
+invoked mid-unwind either**, because the restart is a fresh pass and not a judgement of a partial composition.
+
+**TERMS: semver answered (`1` = minor, the four declared), the window closed by restart (`1`), the step still unjudged
+(`1`, `D-40`'s gate stands), a restart cell and its cost measurement owed (`2`).**
