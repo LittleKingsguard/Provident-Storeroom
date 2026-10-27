@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9d`) — the pass: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, refuse, isKernelRefusal, pairSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress } from './kernel-foundations.mjs';
+import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, refuse, isKernelRefusal, pairSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress, externalCall } from './kernel-foundations.mjs';
 import { commitAttemptIdOf, terminal, close } from './kernel-terminal.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-3` `runAttempt(store, commit) -> AttemptReport`
@@ -349,7 +349,14 @@ function evaluate(kernel, attempt, landing) {
       const check = attempt.log[attempt.log.length - 1];
       let outcome;
       try {
-        outcome = pair.constraint(context);
+        // **⟶ AND THE BODY IS INVOKED AS `D-45`'S EXTERNAL CALL, 2026-10-27**: a constraint body is an
+        // EXTERNALLY-SUPPLIED FUNCTION, so the frame that invokes it marks the invocation — and a verb the body
+        // calls then OPENS ITS OWN COMMIT rather than joining the one this pass runs in
+        // (*"It should be opening a new commit by default of entering at the surface"*). **THE MARK IS THE
+        // INVOCATION'S ALONE**: it is armed before the call and disarmed after it, on the throwing arm too, and
+        // every kernel act of this pass runs at the depth the pass's own commit was opened at — so the nesting
+        // the count already kept exact is untouched and an ordinary write still opens ONE commit.
+        outcome = externalCall(attempt.store, () => pair.constraint(context));
       } catch (body) {
         // A body that threw returned nothing, so no `constraint-check` entry stands and the attempt is
         // closed (`PAR-C-6`; `NX-2`; `composition-and-states.md §2.7` item 13).
@@ -444,13 +451,12 @@ function evaluate(kernel, attempt, landing) {
       append(attempt, 'repair-run', pair.id, op.opId, 'the pair\'s repair was attempted');
       const entry = attempt.log[attempt.log.length - 1];
       let result;
-      try {
-        result = repair({
-          address: attempt.address.slice(),
-          id: pair.id,
-          op,
-          tier: context.tier,
-          value: context.value,
+      const repairContext = {
+        address: attempt.address.slice(),
+        id: pair.id,
+        op,
+        tier: context.tier,
+        value: context.value,
           // **⟶ ADDED 2026-10-15 (`surface.md §2.11` clause 6; the architect's ruling of 2026-10-15;
           // `kernel-surface.md §2.3` item 2).** **THE REPAIR IS PASSED THE COMMIT IT IS PART OF**, and it is
           // passed THE ONE OBJECT THIS CALL HANDS IT — the context itself — *"so that they can make their
@@ -471,7 +477,15 @@ function evaluate(kernel, attempt, landing) {
           // THE DECLARED FIVE IS MOVED**: `address` · `id` · `op` · `tier` · `value` stand as `§2.3` item 2
           // prints them, and the commit is carried beside them.
           pending: attempt.record === undefined ? [] : attempt.record.pending.slice(),
-        });
+      };
+      try {
+        // **⟶ AND THE REPAIR BODY IS INVOKED AS `D-45`'S EXTERNAL CALL, 2026-10-27.** A repair is an
+        // EXTERNALLY-SUPPLIED FUNCTION — *"Repair functions are returned by the constraint that they are
+        // triggered by. As externally-provided code, they should be using the package surface functions"*
+        // (the same ruling clause quoted above) — so the frame that invokes it marks the invocation, and a
+        // verb the repair calls OPENS ITS OWN COMMIT rather than joining the attempt's. **THE REPAIR'S CONTEXT
+        // IS BUILT OUTSIDE THE MARK**, so the only bytes measured as external are the body's own.
+        result = externalCall(attempt.store, () => repair(repairContext));
       } catch (body) {
         // THE REPAIR-RUN ENTRY IS APPENDED BEFORE THE THROW, and the attempt's outcome entry carries
         // `KC-4` (`ck_states_a_repair_body_that_throws_reaches_the_caller_unconverted`).

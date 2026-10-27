@@ -19,7 +19,7 @@ import { currentWindow, homeAddressKey, installRestartConsumer, isStoreReceiver,
 // function the pass appends with — rather than pushed here with a member set of its own; the REFUSAL's own
 // list keeps its five members and no `seq`, because no attempt stands at the judgement that built it
 // (`D-41` item 4). Two records, two honest forms, one append.
-import { append, kernelFor } from './kernel-foundations.mjs';
+import { append, externalCall, kernelFor } from './kernel-foundations.mjs';
 // **⟶ AND THE CARRIERS, ADDED 2026-10-26 FOR THE REFUSAL'S OWN UNDOING (`DEF-W`'s `(a)`).** The
 // compensating act below reaches the store's own verb at its entry, with the SAME carrier forms every member
 // hands it (`carrier.mjs` is the boundary's one encoder for the three positions and imports nothing of this
@@ -1718,7 +1718,7 @@ export function judgeReversal(instance, watched, reversalId) {
     // arrive here: the reversal has run, so a judgement that cannot complete restores and refuses (below).
     let outcome;
     try {
-      outcome = reversalOutcome(one.entry, one.address, one.after);
+      outcome = reversalOutcome(instance, one.entry, one.address, one.after);
     } catch (thrown) {
       const undo = restoreReversal(instance, moved);
       throw reversalRefusal(one, one.after, null, reversalId, undo, thrown);
@@ -2048,7 +2048,14 @@ function ownDataMember(value, name) {
 /// converted rank-`18` form, or the body's own value where no generator stands), restores, and refuses with a log
 /// that names this pair — so the empty log this clause named as the arm's fact is superseded by the judgement's
 /// own arm, and no byte of the conversion moves.
-function reversalOutcome(entry, address, value) {
+///
+/// **⟶ AND THE BODY IS INVOKED AS `D-45`'S EXTERNAL CALL, 2026-10-27.** A pair's constraint body is an
+/// EXTERNALLY-SUPPLIED FUNCTION — the same authorship `D-45` rules on at the listener's delivery and at the
+/// kernel's three evaluation frames — so **the instance is handed here and the invocation is marked**: a verb
+/// the body calls opens its own commit rather than joining the commit the reversal is being judged inside.
+/// **THE CONTEXT IS BUILT ABOVE THE MARK**, so the only bytes measured as external are the body's own, and the
+/// conversion below is this frame's and unchanged.
+function reversalOutcome(instance, entry, address, value) {
   const context = {
     address: address.slice(),
     tier: null,
@@ -2057,7 +2064,7 @@ function reversalOutcome(entry, address, value) {
     op: null,
   };
   try {
-    return entry.fn(context);
+    return externalCall(instance, () => entry.fn(context));
   } catch (body) {
     const carried = Object.create(null);
     // THE TWO SLOTS THE KERNEL'S OWN MARK CARRIES (`kernel-foundations.mjs`'s `markBodyThrow`): the pair's

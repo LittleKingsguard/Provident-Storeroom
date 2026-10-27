@@ -479,6 +479,38 @@ export function kernelFor(store) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// ⟶ `D-45`'S MARKER, SPELLED ON THIS SIDE TOO — 2026-10-27
+//
+// **THE RULING IS THE ARCHITECT'S, VERBATIM: *"For 43, how is a listener supposed to be able to reuse the outer
+// verb's commit? The listener is an externally-passed function and should be making calls at the package
+// surface. It should be opening a new commit by default of entering at the surface"*** (`strata/decisions.md` ·
+// `D-45`). **SO A CALL ENTERING THE SURFACE FROM AN EXTERNALLY-SUPPLIED FUNCTION OPENS A NEW COMMIT BY DEFAULT,
+// AND ONLY THE PACKAGE'S OWN INTERNAL CONTINUATION JOINS.** The marker's implementation is `state.mjs`'s — the
+// depth, the per-window record and the join rule are that file's — and THIS module reaches it the way it reaches
+// every entry side: **a `Symbol.for` key, spelled on both sides, neither side importing the other**
+// (`kernel-surface.md §1` item 1's empty import footprint; `A110`; the same device `SETTLED_ON_THE_PASSING_ARM`,
+// `TERMINAL_ARM` and `COMMIT_SCOPE` cross this boundary by).
+//
+// **AND WHAT THIS MODULE OWES IT IS THE SITES: THE THREE FRAMES THAT INVOKE A CALLER-AUTHORED CONSTRAINT BODY**
+// (`registrationEvaluation`, `registrationRerun`, `kernel-attempt.mjs`'s `evaluate`) **AND THE ONE THAT INVOKES
+// A REPAIR BODY** (`kernel-attempt.mjs`'s arm (b) and `kernel-registration.mjs`'s state 3). **IT MARKS NOTHING
+// ELSE**: a store verb the kernel calls, a record it appends and a crossing it takes are the package's own acts
+// and run at the depth the enclosing commit was opened at, which is what keeps an ordinary write's count at
+// ONE for its whole length. **A STORE THAT CARRIES NO SUCH CHANNEL ANSWERS THE INVOCATION UNMARKED** (the
+// `state.mjs` fallback, byte for byte): a store this package never installed the seam on, whose call then joins
+// as it joined before `D-45` — the conservative side, and never a commit the mark did not ask for.
+// ---------------------------------------------------------------------------------------------
+const EXTERNAL_CALL = Symbol.for('provident-storeroom.external-call');
+
+/// **THE INVOCATION OF A CALLER-SUPPLIED FUNCTION, THROUGH THE CHANNEL** — one argument, the thunk that makes
+/// the call; the answer is the invocation's own and a throwable crosses unchanged.
+export function externalCall(store, run) {
+  const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
+  if (typeof channel === 'function') return channel(run);
+  return run();
+}
+
+// ---------------------------------------------------------------------------------------------
 // THE LAWFUL APPEND — ADDED 2026-10-25 ON THE BLIND PASS'S `F8-2` WRITE VECTOR, AND IT IS A LOCAL COPY ON
 // PURPOSE: THIS MODULE'S OWN HEADER DECLARES AN EMPTY IMPORT FOOTPRINT (`§1` item 1; `A110`), so the kernel
 // may not reach the entry's `appendOwn` (`./refusal.mjs`) and defines the same one form here instead.

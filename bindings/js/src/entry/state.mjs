@@ -109,6 +109,25 @@ export const FORGET_PAIR = Symbol.for('provident-storeroom.forget-pair');
 // COMMIT OPENS AND DECREMENTED ONCE ON THE FINAL RETURN TO THE CLIENT."* **A VERB THAT FINDS AN EXTANT
 // COMMIT JOINS IT RATHER THAN OPENING A SECOND**, which is what keeps the count exact under nesting.
 //
+// **⟶ AMENDED 2026-10-27 — THE JOIN RULE IS NARROWED TO AUTHORSHIP AND IS NO LONGER DEPTH'S (`D-45`).**
+// The sentences above stand BYTE-FOR-BYTE and are read THROUGH this clause. **THE ARCHITECT, VERBATIM:
+// *"For 43, how is a listener supposed to be able to reuse the outer verb's commit? The listener is an
+// externally-passed function and should be making calls at the package surface. It should be opening a new
+// commit by default of entering at the surface"*** (`strata/decisions.md` · `D-45`). **THE RULE ABOVE WAS
+// WRITTEN FOR ONE CASE — THE PACKAGE'S OWN MACHINERY INSIDE ITS OWN VERB — AND IT CONFLATED THAT WITH
+// EXTERNAL RE-ENTRY**: *"a listener body, a constraint body"* is **A DIFFERENT ACT BY A DIFFERENT AUTHOR,
+// entering the package surface from outside, and it has no claim on the outer verb's commit at all.**
+// **SO: A CALL ENTERING THE SURFACE FROM AN EXTERNALLY-SUPPLIED FUNCTION OPENS A NEW COMMIT BY DEFAULT, AND
+// ONLY THE PACKAGE'S OWN INTERNAL CONTINUATION JOINS. THE DISCRIMINATOR IS AUTHORSHIP, NOT DEPTH.**
+//
+// **HOW AUTHORSHIP IS MEASURED, AND IT IS THE SECOND THING THE COUNT NEEDS.** `EXTERNAL_DEPTH` below is the
+// number of caller-supplied frames the package is, at this instant, running INSIDE; every window the index
+// opens records the depth it was opened at (`attemptIndex(...).externalAt`, in lockstep with `windows`).
+// **`openCommit` JOINS IFF THE CURRENT DEPTH IS NOT GREATER THAN THE DEPTH OF THE COMMIT IN FLIGHT** — so the
+// package's own continuation of that commit, which runs at the same depth, joins; **a call made from a
+// caller's function, which runs one frame deeper, opens.** **NO COUNT IS MINTED AND NO SECOND INDEX EXISTS**:
+// the mark is a depth and a per-window number, both of them this file's own.
+//
 // **AND ITS READER IS THE SEAM `§4.2` DECLARES**, reached as two `Symbol.for` channels ON THE STORE
 // INSTANCE — **NOT module exports of `constraint-kernel.mjs`**, whose export set a standing assertion
 // closes at the six `K-1`–`K-6` items (`§4.2` item 3; `implementation-plan.md §2` step `4`). **THE ROUTE
@@ -182,6 +201,46 @@ export function installRestartConsumer(consumer) {
   RESTART_CONSUMER = consumer;
 }
 
+/// **⟶ ADDED 2026-10-27 — `D-45`'s MARKER: THE SEAM'S SIXTH CHANNEL, AND IT MARKS AUTHORSHIP, NOT DEPTH.**
+///
+/// **WHAT IT MARKS AND FOR HOW LONG.** It is armed for THE LIFETIME OF ONE INVOCATION of a caller-supplied
+/// function and for nothing else: the site that invokes such a function arms it BEFORE the call and disarms it
+/// AFTER, on the throwing arm too, so no state outlives the invocation. **IT IS A DEPTH AND NOT A BOOLEAN** so
+/// that an invocation the package makes from inside another invocation is measured as the deeper frame it is.
+///
+/// **WHAT READS IT: `openCommit` ALONE**, and the whole of its use is the join rule's narrowing above.
+/// **AND A VERB THAT OPENS A COMMIT DOES NOT INHERIT IT FOR ITS OWN INTERNAL CALLS** — the opening records the
+/// depth it was opened at and every internal call of that act runs at that same depth, so it joins and the
+/// count moves by nothing; **that is the measurement that keeps an ordinary write at ONE commit for its whole
+/// length** (`tests/e2e/external-commit.test.mjs` prints it).
+///
+/// **WHY IT IS A `Symbol.for` CHANNEL ON THE PRODUCT AND NOT AN EXPORT THE KERNEL IMPORTS** (`A117` (D6), the
+/// family `TERMINAL_ARM`, `FORGET_PAIR`, `COMMIT_SCOPE` and `RESTART_DRAIN` are declared under): the kernel's
+/// four part modules declare an EMPTY import footprint (`kernel-surface.md §1` item 1; `A110`) and cannot
+/// import this file, so **both sides spell the same key and neither side imports the other**. **IT IS INVISIBLE
+/// TO `Object.keys` AND TO `Object.getOwnPropertyNames`**, so the product's declared own members are unmoved,
+/// no census moves, and no kernel item is minted (`§1` item 2: `K-1`–`K-6` and no seventh name).
+const EXTERNAL_CALL = Symbol.for('provident-storeroom.external-call');
+
+/// **THE MARK ITSELF — the depth of caller-supplied frames in flight, for the process**, read by `openCommit`
+/// and moved by the channel below and by nothing else.
+let EXTERNAL_DEPTH = 0;
+
+/// **THE ONE FORM THE ENTRY'S OWN SITES CALL**, and the SAME form the kernel spells at its own four sites
+/// (`kernel-foundations.mjs`'s copy, which is why this one is exported rather than inlined at each site): it
+/// hands the thunk to the channel the store carries and answers what the invocation answered; its throwable
+/// crosses unchanged, and the depth is restored on that arm too.
+///
+/// **A STORE THAT CARRIES NO CHANNEL ANSWERS THE INVOCATION UNMARKED** — a store this package never installed
+/// the seam on, or a caller that read the symbol property away. That is the CONSERVATIVE side for this
+/// mechanism: the call then joins as it joined before `D-45`, which is the behaviour every tree without the
+/// seam already has, and it can never mint a commit the mark did not ask for.
+export function externalCall(store, run) {
+  const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
+  if (typeof channel === 'function') return channel(run);
+  return run();
+}
+
 /** The per-store index: `{ open, observers, windows, windowSeq }`, keyed by the store instance and by nothing
  *  else. **`windows` IS THE STACK OF OPEN WINDOW IDENTITIES** — one number per commit this store opened, the
  *  top being the window in flight — and it exists so a restart request can name the window that raised it
@@ -200,7 +259,7 @@ function attemptIndex(store) {
     // refusal.** The list preserves the Set's own two facts — insertion order and uniqueness — and the copy
     // is taken before any notification, so an observer that removes itself mid-notification still moves
     // nothing.
-    index = { open: 0, observers: [], windows: [], windowSeq: 0 };
+    index = { open: 0, observers: [], windows: [], externalAt: [], windowSeq: 0 };
     ATTEMPT_INDEX.set(store, index);
   }
   return index;
@@ -247,16 +306,32 @@ export function currentWindow(store) {
 }
 
 /** **THE INCREMENT MOMENT** (`PAR-ADA-15`): the opening of a commit. It is taken iff THIS call opens one —
- *  a call that finds the count already above zero has joined an extant commit and opens nothing. */
+ *  a call that finds the count already above zero has joined an extant commit and opens nothing.
+ *
+ *  **⟶ AND FROM 2026-10-27 THE TEST IS AUTHORSHIP'S AND NOT THE COUNT'S** (`D-45`; the clause at this section's
+ *  head): a call made from a caller-supplied function — `EXTERNAL_DEPTH` above the depth the commit in flight
+ *  was opened at — OPENS, and the package's own continuation of that commit, which runs at that same depth,
+ *  JOINS. **SO THE COUNT STILL MOVES BY EXACTLY ONE PER ACT**: an ordinary write's opening is the only one it
+ *  takes, its kernel leg and its pass scope join inside it, and a listener body's write is a window of its
+ *  own beside it (`open` rises by one for the callback and falls by one when the callback's call ends, the
+ *  outer verb's count unchanged across it). */
 export function openCommit(store) {
   const index = attemptIndex(store);
-  if (index.open > 0) return false;
+  const depth = EXTERNAL_DEPTH;
+  if (index.open > 0) {
+    // THE COMMIT IN FLIGHT'S OWN DEPTH — the stack holds one entry per commit that OPENED, in lockstep with
+    // `windows`, so the top of one is the top of the other.
+    const at = index.externalAt.length === 0 ? 0 : index.externalAt[index.externalAt.length - 1];
+    if (depth <= at) return false;
+  }
   index.open += 1;
   // **AND THE WINDOW'S OWN IDENTITY IS MINTED WITH THE OPENING AND STOOD ON THE STACK** (`currentWindow`
   // above): a commit that JOINS answers an id already held, so the nesting `§4.1` keeps exact in the count is
-  // kept exact in the identity too, and no window id is ever reused.
+  // kept exact in the identity too, and no window id is ever reused. **AND THE DEPTH IS STOOD BESIDE IT** —
+  // that is the whole of what makes the next nested call able to tell its author from the package's own.
   index.windowSeq += 1;
   appendOwn(index.windows, index.windowSeq);
+  appendOwn(index.externalAt, depth);
   // **THE OBSERVER SEAM IS READ AT THE INSTANT OF THE OPENING** (`§4.2` item 2), one call per opening — and
   // the iteration is a copy, so an observer that unsubscribes itself mid-notification moves nothing. **The
   // copy and the notification are LOCAL INDEX LOOPS** (item `(1c)(i)`): no spread, no iterator.
@@ -275,10 +350,17 @@ export function closeCommit(store, opened) {
   index.open -= 1;
   // **AND THE WINDOW THE OPENING STOOD ON GOES WITH IT**, by a local index loop rather than through a mutable
   // prototype's `slice`/`pop` (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`/`F8-2`). A joining call
-  // opened nothing and releases nothing, so the enclosing window's identity stands.
+  // opened nothing and releases nothing, so the enclosing window's identity stands. **AND THE DEPTH STOOD
+  // BESIDE IT GOES WITH IT, IN THE SAME LOOP AND AT THE SAME INSTANT** (`D-45`): the two stacks are one stack
+  // read two ways, so a commit's depth can never be left standing for a commit that has closed.
   const kept = [];
-  for (let i = 0; i + 1 < index.windows.length; i += 1) appendOwn(kept, index.windows[i]);
+  const keptAt = [];
+  for (let i = 0; i + 1 < index.windows.length; i += 1) {
+    appendOwn(kept, index.windows[i]);
+    appendOwn(keptAt, index.externalAt[i]);
+  }
   index.windows = kept;
+  index.externalAt = keptAt;
 }
 
 /// **THE TWO CHANNELS, INSTALLED ONCE ON THE OBJECT `storeCreate` RETURNS** (`§4.2` item 4: *"`storeCreate`
@@ -343,6 +425,27 @@ export function installAttemptSeam(instance) {
           return run();
         } finally {
           closeCommit(instance, opened);
+        }
+      },
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  // **⟶ AND `D-45`'S MARKER, INSTALLED ONCE BY THE SAME ONE-INSTALLATION RULE, 2026-10-27.** The channel takes
+  // ONE thunk — **the invocation of a caller-supplied function** — runs it with `EXTERNAL_DEPTH` one frame
+  // deeper, and answers what it answered; the depth is restored in a `finally`, so a body that throws leaves
+  // no frame standing and the next call's join rule reads the depth it found. **IT MARKS NOTHING BUT THE
+  // INVOCATION**: the arming and the disarming are this closure's whole body, so nothing the package does
+  // outside an invocation is ever measured as external.
+  if (typeof instance[EXTERNAL_CALL] !== 'function') {
+    Object.defineProperty(instance, EXTERNAL_CALL, {
+      value: (run) => {
+        EXTERNAL_DEPTH += 1;
+        try {
+          return run();
+        } finally {
+          EXTERNAL_DEPTH -= 1;
         }
       },
       writable: true,

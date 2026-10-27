@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9b`) — the registration act, its evaluation, and the registry's removal: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsAtAddress } from './kernel-foundations.mjs';
+import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsAtAddress, externalCall } from './kernel-foundations.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-1` `register(store, address, id, constraint) -> Handle`
 // ---------------------------------------------------------------------------------------------
@@ -223,8 +223,14 @@ function registrationEvaluation(kernel, store, address, id, constraint) {
   // `registrationCrossing` converts A MARKED VALUE ONLY into this surface's one failure form, and an
   // unmarked throw is still the caller's own (`markBodyThrow`, `kernel-foundations.mjs`).
   let outcome;
+  const context = registrationContext(store, address, null);
   try {
-    outcome = constraint(registrationContext(store, address, null));
+    // **⟶ AND THE BODY IS INVOKED AS `D-45`'S EXTERNAL CALL, 2026-10-27.** A constraint body is an
+    // EXTERNALLY-SUPPLIED FUNCTION, so this frame marks the invocation — **and the context is built ABOVE the
+    // mark**, so the only bytes measured as external are the body's own, and the store read the context owes
+    // is this verb's own act. A verb the body calls OPENS ITS OWN COMMIT rather than joining the registering
+    // verb's (*"It should be opening a new commit by default of entering at the surface"*).
+    outcome = externalCall(store, () => constraint(context));
   } catch (body) {
     throw markBodyThrow(body, address, null);
   }
@@ -378,8 +384,13 @@ function registrationAttempt(kernel, store, pair) {
   append(attempt, 'repair-run', pair.id, null, 'the pair\'s repair was attempted at registration');
 
   let result;
+  const repairContext = registrationRepairContext(store, address, pair.id, attempt.commit);
   try {
-    result = pair.repair(registrationRepairContext(store, address, pair.id, attempt.commit));
+    // **⟶ AND THE REPAIR BODY IS INVOKED AS `D-45`'S EXTERNAL CALL, 2026-10-27** — the same mark as the
+    // registration evaluation's above, for the same authorship reason, with the repair's context built
+    // OUTSIDE it. A verb the repair calls OPENS ITS OWN COMMIT; the synthetic attempt's own acts run at the
+    // depth this registration's commit was opened at and join it, unchanged.
+    result = externalCall(store, () => pair.repair(repairContext));
   } catch (body) {
     // A REPAIR WHOSE BODY THROWS IS A FAILED REPAIR AND THE REGISTRATION IS REFUSED — the caller's act is
     // the registration, so the refusal is this module's one form (`3-bis` (d); the `KC` boundary at (e)).
@@ -444,14 +455,18 @@ function registrationRerun(kernel, attempt, produced) {
     const pair = kernel.pairs.get(key);
     if (pair === undefined) continue;
     let outcome;
+    const context = {
+      address: attempt.address.slice(),
+      tier: produced.tier === undefined ? null : produced.tier,
+      value: produced.after === undefined ? undefined : produced.after.value,
+      attempt: attempt.ref,
+      op: produced,
+    };
     try {
-      outcome = pair.constraint({
-        address: attempt.address.slice(),
-        tier: produced.tier === undefined ? null : produced.tier,
-        value: produced.after === undefined ? undefined : produced.after.value,
-        attempt: attempt.ref,
-        op: produced,
-      });
+      // **⟶ AND THIS BODY IS INVOKED AS `D-45`'S EXTERNAL CALL TOO, 2026-10-27** — the re-run's frame is the
+      // third of the three that invoke a caller-authored constraint body, and it marks its invocation exactly
+      // as the registration evaluation and the landing's pass do. The context is built ABOVE the mark.
+      outcome = externalCall(attempt.store, () => pair.constraint(context));
     } catch (body) {
       // **⟶ ADDED 2026-10-26 (`DEF-S`, the same ruling): a body thrown at the synthetic attempt's re-run is
       // marked at this frame too — the mark carries the attempt's own log and address, and the entry's

@@ -183,9 +183,16 @@ test('D-44 (1) · THE DIRECT-PASS WINDOW: a pass driven by hand through `K-2`/`K
       + `nested write — so the pass's scope JOINED the write's commit and neither the pass nor the nested write `
       + `opened a second (\`§4.1\`: *"a verb that finds an extant commit JOINS it rather than opening a second, `
       + `which is what keeps the count exact under nesting"*). THE DRIVE READ ${JSON.stringify(nesting)}`);
-  assert.equal(productionOpenings, 1,
-    `and the \`attempt-opened\` channel fired ONCE across the whole production call — the write's own opening; `
-      + `the pass's scope and the nested write both joined it: the observer counted ${productionOpenings}`);
+  assert.equal(productionOpenings, 2,
+    `and the \`attempt-opened\` channel fired TWICE across the whole production call — THE WRITE'S OWN OPENING `
+      + `AND THE BODY'S NESTED WRITE'S OWN OPENING — while the pass's scope JOINED the write's commit and moved `
+      + `nothing. **⟶ RE-DERIVED 2026-10-27 BY \`D-45\`, ONE LIMB AND NO OTHER**: this assertion read \`1\` and its `
+      + `sentence read *"the pass's scope and the nested write both joined it"*; strata/decisions.md's D-45 `
+      + `rules that *"a call entering the surface from an externally-supplied function OPENS A NEW COMMIT by `
+      + `default"* and names the constraint body as that function, so the nested write is an opening of its own `
+      + `and the pass's scope is the only thing that joins. **THE INVARIANT THIS CELL EXISTS FOR IS UNMOVED**: `
+      + `the count during the pass is \`1\` at both asks (\`nesting\` above), the pass opens nothing, and the `
+      + `production call returns at \`0\`. The observer counted ${productionOpenings}`);
   assert.equal(afterProduction, 0,
     `and the production call returns with the count at zero: it read ${afterProduction}`);
 
