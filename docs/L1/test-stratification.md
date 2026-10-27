@@ -118,7 +118,7 @@ headers are the evidence, not my reading of their bodies.
 
 **THE BLIND INSTANCES, AND WHERE THEY LAND.** The preset's e2e battery is *"the battery that drives the built
 artifact through its declared entry points, **plus one blind instance per general-purpose surface**"*. This tree
-already carries **seven** self-declared blind instances, and all seven go to `tests/e2e/` — one per
+already carries **seven** self-declared blind instances (⟶ RE-COUNTED 2026-10-27 AT THE TREE: **THIRTEEN** — the twelve surface instances plus `blind-defect-cases.test.mjs`, the defect-cases instance. Measured: `tests/e2e/blind-*.test.mjs` = `address-verbs`, `cjs-interop`, `constraints-surface`, `constraints-unit`, `defect-cases`, `entry-module`, `entry-surface`, `installed-surface`, `kernel-surface`, `listener-surface`, `package-surface`, `removal-surface`, `value-crossing`; `blind-constraints-v2.mjs` is a shared instance module and not a `node --test` file, and `json-crossing-blinded.test.mjs` states its blindness in its name), and all seven go to `tests/e2e/` — one per
 general-purpose surface, each authored from `docs/specs/**` alone: **`greens.mjs`** (the package entry's member
 surface, `JSG`), **`blind-constraints-v2.mjs`** (the constraint kernel's caller-side surface, `E2E-C-*`),
 **`held-listener-identity-greens.mjs`** (the held-listener-identity surface), **`json-crossing-blinded.test.mjs`**
@@ -696,7 +696,7 @@ here.)*
 
 | id | subject |
 |---|---|
-| `INSTALL-01` | `npm pack` of `bindings/js` produces a tarball, and its **member set is read** (the installed shape's own bytes) |
+| `INSTALL-01` | `npm pack` of `bindings/js` produces a tarball, and its **member set is read** (the installed shape's own bytes) — **⟶ MEASURED 2026-10-27 AT `1.0.1`: `19` members BARE and `20` ASSEMBLED.** The difference is the assembly's one staged byte, `LICENSE` (`PUB-DD-11`'s carriage, the same mechanism that lands `README.guide.md`); `package.json` is counted by both, and `npm pack`'s `fileCount`/`entryCount` and the archive's own index agree. The five platform tarballs carry `3` members each on this host (`package.json`, `README.md`, `LICENSE`) and `4` for the one platform that was BUILT here (`+ storeroom_js_binding.node`, `linux-x64`); the other four are `LAYER-LIMIT` at `INSTALL-09` for exactly that reason |
 | `INSTALL-02` | **the allowlist falsifier:** every path the entry requires **by path** is present in the tarball's member set — **this is `D-3`/`D-4`'s successor to the retired count: reachability, not arity** |
 | `INSTALL-03` | `npm install <tarball>` **succeeds** in a clean directory whose ancestry names no repository |
 | `INSTALL-04` | the instrument's own topology: **no `build/Release` beside the entry**, none in the tarball, and no `.node` in the main package's member set (`PUB-DD`'s prohibitions, carried to the installed layer) |
@@ -784,7 +784,7 @@ the split is the point:
 
 ## §3 · The layer-preservation clause
 
-**The project's rule (`strata/brief.md` §5 item 8, `docs/guides/electron-integration.md`'s ladder): a green is
+**The project's rule (`strata/brief.md` §5 item 8, `docs/guides/electron-integration.md`'s ladder (⟶ **THE LOCATION IS STALE, MEASURED 2026-10-27: `docs/guides/` carries ONE tracked file, `docs/guides/package-use.md` — the consumer guide and the guide's one authored home (`scripts/publish.sh`'s `GUIDE_CANONICAL`, landed at the packaging root byte-for-byte as `bindings/js/README.guide.md`). No `electron-integration.md` exists in this tree**, so the ladder is cited here without a document to check it against; the RULE it states — a green is always reported with its layer — is the one the runners carry),): a green is
 always reported with its layer, the ladder is *envelope* → *loaded in dev* → *loaded in the packaged app* →
 *installed from the registry*, and a green on one layer does not retire a red on another.** The move changes no
 file's label **except where `D-9` orders one** (§2.7: the four `O3` rows move from `envelope` to `assembled`),

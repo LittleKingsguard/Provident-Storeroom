@@ -376,13 +376,67 @@ try {
   say('CF-09', 'FAIL', `workflow read failed: ${e.message}`, 'release.md §1.4a item 11(b)');
 }
 
-// ---- CF-10: the tag's version equals the manifest's ------------------------------
-// §-address: release.md §2.1 items 1-2, §2.5 item 4
+// ---- CF-10: the tags a repository carries, and the tag the coupling fixes ----------
+// §-address: release.md §2.1 items 1-3, §1.3 item 2, §2.5 items 2-4; parameter-semantics.md §4.5 (PAR-PUB-29)
+//
+// **⟶ RE-DERIVED 2026-10-27, AND THE AS-FILED RULE WAS DEMONSTRABLY WRONG — THIS IS THE `1.0.1` PREP'S OWN
+// FINDING, STATED WHERE THE CELL STANDS.** As filed the cell read `tag.length > 0 && tag.every((t) => t ===
+// `v${vs}`)`: ONE unconditional reading that **every tag the repository carries equals the CURRENT manifest
+// version**. **NO RELEASED VERSION CAN PASS IT AFTER THE FIRST**, and none can pass it BEFORE its own tag
+// either: `release.md §2.5`'s order is BINDING — (1) the carrier, (2) the eleven cells, (3) the tag — so the
+// lawful state between (2) and (3) is *"the manifests read `1.0.1`, `v1.0.1` does not exist yet"*, and the
+// as-filed cell answered FAIL on exactly that state (`TOTAL: 1 FAIL (CF-10)` at the `1.0.1` bump). A previous
+// release's tag being PRESENT is lawful — a repository with two releases necessarily carries two tags, and
+// `scripts/publish.sh`'s own tag mode warms that it *"will NOT delete a tag"*. **The one-reading defect is the
+// same one `publish.sh` §6 names and cures by mode: *"ONE UNCONDITIONAL READING CANNOT BE TRUE OF BOTH."**
+//
+// **THE RULE THAT REPLACES IT, AND IT IS A COUPLING READ AT EACH TAG AND AT EACH STATE, NOT AN ARITY:**
+//   (a) every tag the repository carries has the DECLARED FORM `v<major>.<minor>.<patch>` (`§2.1` item 1);
+//   (b) every tag's OWN commit carries the manifest that DECLARED that tag's version — `git show <tag>:<the
+//       main manifest>` — so a tag whose bytes never declared it is REFUSED (`PAR-PUB-18`; `PAR-PUB-29`'s
+//       *"a tag whose version differs from the six manifests' → REFUSED"* read at the tag's own commit);
+//   (c) the coupling's tag `v<manifest version>`: when it EXISTS it carries that version's manifest and its
+//       commit lies on this branch's history (the POST-release arm, `§1.3` item 2); when it is ABSENT the tree
+//       is the PRE-release state `§2.5` item 3 defines and no other tag may name the current version.
+// **NOTHING IS RELAXED AT THE CLAUSES THAT CAN BE TRUE**: (a) is unmoved, (b) is strictly stronger than the
+// list sweep it replaces (it reads a manifest at EVERY tag rather than comparing one string set), and (c)'s
+// present arm keeps the reachability reading whole. What is WITHDRAWN is an existence requirement that the
+// binding order makes unsatisfiable in the window it is measured in.
 try {
-  const tag = execFileSync('git', ['-C', ROOT, 'tag', '-l'], { encoding: 'utf8' }).trim().split('\n').filter(Boolean);
+  const ROOT_DIR = ROOT;
+  const tags = execFileSync('git', ['-C', ROOT_DIR, 'tag', '-l'], { encoding: 'utf8' })
+    .trim().split('\n').filter(Boolean);
   const vs = manifest().version;
-  const ok = tag.length > 0 && tag.every((t) => t === `v${vs}`);
-  say('CF-10', ok ? 'PASS' : 'FAIL', `tags=[${tag.join(', ')}] manifest version=${vs}`, 'release.md §2.1 · §2.5 item 4');
+  const FORM = /^v\d+\.\d+\.\d+$/;
+  const manifestRel = 'bindings/js/package.json';
+  const readAt = (tag) => JSON.parse(execFileSync('git', ['-C', ROOT_DIR, 'show', `${tag}:${manifestRel}`], { encoding: 'utf8' })).version;
+  const foreignForm = tags.filter((t) => !FORM.test(t));
+  const neverDeclared = [];
+  for (const t of tags.filter((x) => FORM.test(x))) {
+    let at = null;
+    try { at = readAt(t); } catch { at = null; }
+    if (at !== t.slice(1)) neverDeclared.push(`${t} carries a manifest at ${JSON.stringify(at)}`);
+  }
+  const present = tags.includes(`v${vs}`);
+  const squatters = tags.filter((t) => FORM.test(t) && t !== `v${vs}` && t.slice(1) === vs);
+  let reachable = null;
+  if (present) {
+    const named = execFileSync('git', ['-C', ROOT_DIR, 'rev-parse', '--verify', `refs/tags/v${vs}^{commit}`], { encoding: 'utf8' }).trim();
+    let onHead = false;
+    try { execFileSync('git', ['-C', ROOT_DIR, 'merge-base', '--is-ancestor', named, 'HEAD'], { timeout: 30000 }); onHead = true; } catch { onHead = false; }
+    const atTag = readAt(`v${vs}`);
+    reachable = { named, onHead, atTag };
+  }
+  const atTheTag = present
+    ? `POST-RELEASE: v${vs} at ${reachable.named}, on-history=${reachable.onHead}, its manifest declares ${reachable.atTag}`
+    : `PRE-RELEASE: no v${vs} yet — the state §2.5 items 2-3 puts the eleven cells in before the tag`;
+  const ok = foreignForm.length === 0 && neverDeclared.length === 0 && squatters.length === 0
+    && (present ? reachable.onHead === true && reachable.atTag === vs : true);
+  say('CF-10', ok ? 'PASS' : 'FAIL',
+    `tags=[${tags.join(', ')}] manifest version=${vs}; form violations=[${foreignForm.join(', ')}]; `
+    + `tags whose own commit never declared their version=[${neverDeclared.join(' | ')}]; `
+    + `tags squatting the current version=[${squatters.join(', ')}]; ${atTheTag}`,
+    'release.md §2.1 · §1.3 item 2 · §2.5 items 2-4');
 } catch (e) {
   say('CF-10', 'FAIL', `git unavailable: ${e.message}`, 'release.md §2.1');
 }

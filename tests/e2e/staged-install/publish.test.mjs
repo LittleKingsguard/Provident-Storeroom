@@ -1002,19 +1002,42 @@ function assertTagCoupling(repo, { version, label }) {
     `\`§2.1\` item 3 (${label}): NO PUBLICATION HAPPENS FROM AN UNTAGGED COMMIT`);
   const listed = repoTagList(repo);
   const resolution = resolveTagVersion(repo, version);
-  assert.equal(resolution.present, true,
-    `\`PAR-PUB-29\` / \`release.md §2.1\` item 2 (${label}): the manifest declares \`${version}\`, so `
-    + `\`v${version}\` IS the tag the coupling fixes, and it must EXIST in this repository. Its own `
-    + `\`git tag --list\` answers ${JSON.stringify(listed)}`);
-  assert.equal(resolution.listed, `v${version}`,
+  assert.equal(resolution.listed, resolution.present ? `v${version}` : '',
     `(${label}) the resolution's own return value is read rather than a boolean`);
+  // **⟶ RE-DERIVED 2026-10-27 (`1.0.1`'s prep), AND THE CLAUSE THAT STOOD HERE WAS DEMONSTRABLY WRONG.**
+  // As filed the loop below read `assert.equal(tag.slice(1), version)`: **EVERY tag the repository carries
+  // must equal the CURRENT manifest's version.** No repository can satisfy that after its SECOND release —
+  // a previous release's tag being present is lawful, and `scripts/publish.sh`'s own tag mode says it *"will
+  // NOT delete a tag"* — and the `present === true` assertion beside it is a POST-release reading that the
+  // binding order `release.md §2.5` (carrier, then the eleven cells, then the tag, *"NO STEP BELOW MAY BE
+  // TAKEN BEFORE ITS PREDECESSOR"*) makes UNSATISFIABLE in the window the cells are moved in. **MEASURED at
+  // the `1.0.1` bump: this cell reddened on `v1.0.1`'s absence alone, on a tree whose only lawful state was
+  // exactly that.** `publish.sh §6` records the same one-reading defect and cures it by mode: *"ONE
+  // UNCONDITIONAL READING CANNOT BE TRUE OF BOTH."* **WHAT REPLACES IT, AND NOTHING THAT CAN BE TRUE IS
+  // RELAXED:** (a) every tag has the declared FORM (unmoved); (b) EVERY tag's own commit carries the
+  // manifest that DECLARED that tag's version (`PAR-PUB-18`, read per tag — the coupling stated at the tag
+  // rather than against today's manifest); (c) the current version's tag, WHEN PRESENT, carries that version
+  // and a commit on THIS branch's history (the post-release arm, whole); (d) WHEN ABSENT the tree is the
+  // PRE-release state `§2.5` item 3 defines, and no other tag may name the current version.
   for (const tag of listed) {
     assert.ok(TAG_FORM.test(tag),
       `(${label}) \`§2.1\` item 1: every tag this repository carries has the declared form; got \`${tag}\``);
-    assert.equal(tag.slice(1), version,
-      `(${label}) \`§2.1\` item 2 / \`PAR-PUB-29\`: THE TAG'S VERSION AND THE MAIN MANIFEST'S \`version\` DIVERGE `
-      + `— \`${tag}\` carries \`${tag.slice(1)}\` where the manifest declares \`${version}\`. A tag whose version `
-      + 'differs from the six manifests\' is REFUSED, so this is a FINDING and not a relaxation');
+    const atThatTag = JSON.parse(execFileSync('git', ['-C', repo, 'show', `${tag}:${MAIN_MANIFEST_REL}`], {
+      encoding: 'utf8', timeout: 30000,
+    })).version;
+    assert.equal(atThatTag, tag.slice(1),
+      `(${label}) \`PAR-PUB-18\` / \`PAR-PUB-29\`: THE MANIFEST AT A TAG MUST DECLARE THAT TAG'S OWN VERSION `
+      + `— \`${tag}:${MAIN_MANIFEST_REL}\` declares \`${atThatTag}\` where the tag carries \`${tag.slice(1)}\`. `
+      + 'A tag whose bytes never declared its version is REFUSED, and this is the coupling read at the tag '
+      + 'rather than against today\'s manifest (which is what made the as-filed form unsatisfiable twice over)');
+  }
+  if (!resolution.present) {
+    for (const tag of listed) {
+      assert.notEqual(tag.slice(1), version,
+        `(${label}) \`§2.5\` items 2-3 (the PRE-release arm): \`v${version}\` is not cut yet, so no OTHER tag `
+        + `may carry the current version — \`${tag}\` names it, and a version is cut once`);
+    }
+    return { version, tags: listed, tag: null, commit: null, arm: 'PRE-RELEASE' };
   }
   const atTag = JSON.parse(execFileSync('git', ['-C', repo, 'show', `${resolution.listed}:${MAIN_MANIFEST_REL}`], {
     encoding: 'utf8', timeout: 30000,
@@ -1029,7 +1052,7 @@ function assertTagCoupling(repo, { version, label }) {
   assert.equal(onHeadHistory, true,
     `(${label}) \`release.md §1.3\` item 2: the tag's commit \`${named}\` must be REACHABLE — it must lie on `
     + 'THIS branch\'s own history — so the bytes the tag names are the bytes this tree carries');
-  return { version, tags: listed, tag: resolution.listed, commit: named };
+  return { version, tags: listed, tag: resolution.listed, commit: named, arm: 'POST-RELEASE' };
 }
 
 /**
@@ -3184,11 +3207,13 @@ cell('P-PUB-8', 'S-TAG no publish verb is declared by any tracked byte of the pa
   // a version no tag could ever carry satisfied it — while this reading FAILS on that tree AND on a tree whose
   // tag and manifest DIVERGE. **AND THE PRE-RELEASE STATE IS NOT LOST: it is driven BY NAME as a fail-state in
   // the first control below**, where a scratch repository carrying no tag fails this same instrument.
-  assert.equal(resolution.present, true,
-    `\`PAR-PUB-29\` / \`release.md §2.1\` item 2: the manifest declares \`${manifest.version}\`, so `
-    + `\`v${manifest.version}\` IS the tag the coupling fixes and it EXISTS in this repository — read from `
-    + `\`git tag --list\` rather than composed in this file. (\`git tag --list\`: ${JSON.stringify(resolution.listed)})`);
-  assert.equal(resolution.listed, `v${manifest.version}`,
+  // **⟶ RE-DERIVED 2026-10-27: THIS ASSERTED `resolution.present === true` UNCONDITIONALLY, AND THAT IS A
+  // POST-RELEASE READING OF A TREE THE BINDING ORDER PUTS BEFORE ITS TAG.** `release.md §2.5`'s order is
+  // (1) the carrier, (2) the eleven cells, (3) the tag, and *"NO STEP BELOW MAY BE TAKEN BEFORE ITS
+  // PREDECESSOR"* — so between (2) and (3) the lawful state IS *"the manifest declares `${manifest.version}`
+  // and its tag does not exist"*. The cell now reads WHICHEVER arm the tree stands in and asserts it by
+  // name (`assertTagCoupling` below drives both), so the pre-release arm is a READING and not a red.
+  assert.equal(resolution.listed, resolution.present ? `v${manifest.version}` : '',
     'and the resolution\'s own return value is read rather than a boolean');
   const coupling = assertTagCoupling(REPO_ROOT, { version: manifest.version, label: 'the shipped tree' });
   // ---------------------------------------------------------------------------------------------
@@ -3212,10 +3237,14 @@ cell('P-PUB-8', 'S-TAG no publish verb is declared by any tracked byte of the pa
   };
   const controlVerdict = (fn) => { try { fn(); return null; } catch (err) { return err; } };
   const controls = [
-    // **THE STATE THE AS-FILED READING ASSERTED — AND IT IS A FAIL-STATE OF THE COUPLING, NOT A PASS.** A
-    // repository carrying NO tag names no version at all, so nothing could be published from it (`§2.1` item 3).
-    ['no tag at all (the as-filed pre-release state)',
-      scratchRepo('untagged', { manifestVersion: manifest.version, tagName: null })],
+    // **⟶ RE-AIMED 2026-10-27: THE UNTAGGED REPOSITORY IS NO LONGER A FAIL-STATE, BECAUSE IT IS THE LAWFUL
+    // PRE-RELEASE STATE** (`§2.5` items 2-3 — the eleven cells move BEFORE the tag; measured, the `1.0.1`
+    // prep's own tree). **THE SLOT KEEPS ITS PURPOSE — ONE CONTROL THAT DISABLES A CLAUSE THE INSTRUMENT MUST
+    // BITE — and now disables a clause that can be TRUE of a real repository: A TAG WHOSE OWN COMMIT CARRIES
+    // A MANIFEST THAT NEVER DECLARED ITS VERSION** (here `v0.0.1` cut at a commit whose manifest reads the
+    // coupling's own version), which `PAR-PUB-18` REFUSES at the tag.
+    ['a tag whose own commit never declared its version',
+      scratchRepo('neverdeclared', { manifestVersion: manifest.version, tagName: 'v0.0.1' })],
     // **THE REQUIRED NON-VACUITY CONTROL: A TAG WHOSE VERSION DIFFERS FROM THE MANIFEST'S.** The tag's own name
     // IS the coupling's (`v${manifest.version}`), and the manifest AT that tag declares `9.9.9` — so the equality
     // the clause pins is broken by DIVERGENCE and by nothing else.
@@ -3254,8 +3283,13 @@ cell('P-PUB-8', 'S-TAG no publish verb is declared by any tracked byte of the pa
   // **THE CONTROLS' MEASURED RESULTS, PRINTED SO THE RECORD CAN CITE THEM RATHER THAN THIS CELL'S INTENTION.**
   console.log(`\n[P-PUB-8/S-TAG] THE TAG COUPLING (\`release.md §2.1\` items 1–3; \`PAR-PUB-29\`), MEASURED AGAINST `
     + 'THE SHIPPED INSTRUMENT:\n  '
-    + `${'the real tree'.padEnd(46)} → PASS (required): ${coupling.tag} at ${coupling.commit}, on this branch's `
-    + `own history, the manifest at the tag declaring ${coupling.version}\n  ` + measured.join('\n  '));
+    + `${'the real tree'.padEnd(46)} → PASS (required): ${coupling.arm} — `
+    + (coupling.tag === null
+      ? `no v${coupling.version} is cut yet, so the tree stands between §2.5's cells and its tag; `
+        + `the tags it carries each declare their own version: ${JSON.stringify(coupling.tags)}\n  `
+      : `${coupling.tag} at ${coupling.commit}, on this branch's own history, the manifest at the tag `
+        + `declaring ${coupling.version}\n  `)
+    + measured.join('\n  '));
 });
 
 cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the declared shapes, and the forbidden ones are absent', async () => {

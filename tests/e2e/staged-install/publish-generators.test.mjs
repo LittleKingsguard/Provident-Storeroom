@@ -1505,16 +1505,34 @@ function assertTagCoupling(repo, { version, label }) {
     `${label}: \`§2.1\` item 3 — NO PUBLICATION HAPPENS FROM AN UNTAGGED COMMIT`);
   const listed = repoTagList(repo);
   const resolution = resolveTagVersion(repo, version);
-  assert.equal(resolution.present, true,
-    `${label}: \`release.md §2.1\` item 2 / \`PAR-PUB-29\` — the manifest declares \`${version}\`, so `
-    + `\`v${version}\` IS the tag the coupling fixes and it must EXIST. \`git tag --list\`: ${JSON.stringify(listed)}`);
-  assert.equal(resolution.listed, `v${version}`, `${label}: the resolution's own return value is read`);
+  // **⟶ RE-DERIVED 2026-10-27 (`1.0.1`'s prep), FOR THE REASON STATED AT `publish.test.mjs`'s instrument and
+  // at `tests/e2e/consumer-fix/scenarios.mjs`'s `CF-10`: THE AS-FILED RULE REQUIRED EVERY TAG THE REPOSITORY
+  // CARRIES TO EQUAL THE CURRENT MANIFEST'S VERSION, WHICH NO REPOSITORY CAN SATISFY AFTER ITS SECOND
+  // RELEASE, AND IT REQUIRED THE CURRENT TAG TO EXIST, WHICH `release.md §2.5`'s BINDING ORDER MAKES FALSE IN
+  // THE WINDOW THE ELEVEN CELLS ARE MOVED IN.** The clauses that can be true are kept whole and one is
+  // strengthened — the coupling is now read AT EACH TAG (`PAR-PUB-18`: the manifest at a tag declares that
+  // tag's own version) rather than against today's manifest — and the current version's tag is read in
+  // whichever arm the tree stands in: PRESENT ⇒ its manifest agrees and its commit is on this branch's
+  // history; ABSENT ⇒ the lawful PRE-release state `§2.5` item 3 defines, with no other tag squatting it.
+  assert.equal(resolution.listed, resolution.present ? `v${version}` : '',
+    `${label}: the resolution's own return value is read`);
   for (const tag of listed) {
     assert.ok(TAG_FORM.test(tag), `${label}: every tag this repository carries has the declared form; got \`${tag}\``);
-    assert.equal(tag.slice(1), version,
-      `${label}: \`§2.1\` item 2 / \`PAR-PUB-29\` — THE TAG'S VERSION AND THE MAIN MANIFEST'S \`version\` DIVERGE: `
-      + `\`${tag}\` carries \`${tag.slice(1)}\` where the manifest declares \`${version}\`, and a tag whose version `
-      + 'differs from the six manifests\' is REFUSED');
+    const atThatTag = JSON.parse(execFileSync('git', ['-C', repo, 'show', `${tag}:${MAIN_MANIFEST_REL}`], {
+      encoding: 'utf8', timeout: 30000,
+    })).version;
+    assert.equal(atThatTag, tag.slice(1),
+      `${label}: \`PAR-PUB-18\` / \`PAR-PUB-29\` — THE MANIFEST AT A TAG MUST DECLARE THAT TAG'S OWN VERSION: `
+      + `\`${tag}\` carries \`${tag.slice(1)}\` and the manifest at its commit declares \`${atThatTag}\`, and a `
+      + 'tag whose bytes never declared its version is REFUSED');
+  }
+  if (!resolution.present) {
+    for (const tag of listed) {
+      assert.notEqual(tag.slice(1), version,
+        `${label}: \`§2.5\` items 2-3 (the PRE-release arm) — \`v${version}\` is not cut yet, so no other tag `
+        + `may carry the current version; \`${tag}\` names it`);
+    }
+    return { version, tags: listed, tag: null, commit: null, arm: 'PRE-RELEASE' };
   }
   const atTag = JSON.parse(execFileSync('git', ['-C', repo, 'show', `${resolution.listed}:${MAIN_MANIFEST_REL}`], {
     encoding: 'utf8', timeout: 30000,
@@ -1528,7 +1546,7 @@ function assertTagCoupling(repo, { version, label }) {
   assert.equal(onHeadHistory, true,
     `${label}: \`release.md §1.3\` item 2 — the tag's commit \`${named}\` must be REACHABLE, lying on THIS `
     + 'branch\'s own history, so the bytes the tag names are the bytes this tree carries');
-  return { version, tags: listed, tag: resolution.listed, commit: named };
+  return { version, tags: listed, tag: resolution.listed, commit: named, arm: 'POST-RELEASE' };
 }
 /** **ONE SCRATCH GIT REPOSITORY PER CONTROL, OUTSIDE THIS ONE** (`CONTROL_ROOT`), carrying the main manifest
  *  at `MAIN_MANIFEST_REL`'s own path, one commit, and the tag the caller names. */
@@ -1565,11 +1583,14 @@ generator('NG-PUB-J', 'the version equals a resolved tag, and every figure row\'
   assert.equal(shipped.verdict, 'PASS', `NG-PUB-J: THE PROPERTY DOES NOT HOLD AT THE SHIPPED BYTES — ${shipped.why}`);
   recordControl('SHIPPED-BYTES', 'PASS (required)');
   const controls = {
-    // **THE STATE THE AS-FILED READING ASSERTED, AND IT IS A FAIL-STATE OF THE COUPLING AND NOT A PASS**: a
-    // repository carrying NO tag names no version at all, so nothing could be published from it (`§2.1` item 3).
-    'control-no-tag-at-all': () => {
-      const repo = scratchTagRepo('untagged', { name: mainManifest.name, manifestVersion: version, tagName: null });
-      assertTagCoupling(repo, { version, label: 'the untagged control' });
+    // **⟶ RE-AIMED 2026-10-27: AN UNTAGGED REPOSITORY IS THE LAWFUL PRE-RELEASE STATE AND NOT A FAIL-STATE**
+    // (`§2.5` items 2-3; measured at the `1.0.1` bump). **THE SLOT KEEPS ONE CONTROL THAT DISABLES A CLAUSE
+    // THE INSTRUMENT MUST BITE, ON A STATE A REAL REPOSITORY CAN REACH: a tag cut at a commit whose manifest
+    // NEVER DECLARED that tag's version** (`v0.0.1` over a manifest reading the coupling's version), which
+    // `PAR-PUB-18` refuses at the tag itself.
+    'control-a-tag-whose-commit-never-declared-it': () => {
+      const repo = scratchTagRepo('neverdeclared', { name: mainManifest.name, manifestVersion: version, tagName: 'v0.0.1' });
+      assertTagCoupling(repo, { version, label: 'the never-declared control' });
     },
     // **THE REQUIRED NON-VACUITY CONTROL: A TAG WHOSE VERSION DIFFERS FROM THE MANIFEST'S.** The tag's own name
     // IS the coupling's (`v${version}`) and the manifest AT that tag declares `9.9.9` — so the equality the rule

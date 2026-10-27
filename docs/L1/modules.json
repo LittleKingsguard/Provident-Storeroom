@@ -125,7 +125,7 @@
       "id": "store-fail-set",
       "name": "The closed fail set",
       "owns": ["src/error.rs"],
-      "responsibility": "Hold the SEVENTEEN statuses as one closed set and generate every message from the code and the failing trigger's arguments.",
+      "responsibility": "Hold the SEVENTEEN statuses (⟶ SUPERSEDED 2026-10-27 — **TWENTY**, ranked `1`…`20`, `ConstraintPassRefused` appended last on `D-38`'s `DEF-H`/`DEF-W`; see this module's `CODES / storeErrorMessage` endpoint) as one closed set and generate every message from the code and the failing trigger's arguments.",
       "endpoints": [
         {
           "name": "the refusal's construction",
@@ -135,7 +135,7 @@
         {
           "name": "CODES / storeErrorMessage",
           "input": "nothing, or a status",
-          "output": "the closed SEVENTEEN-member set (as a [&'static str; 17]) and the generated message for one member; read by the declaration and by the entry, never minted there"
+          "output": "the closed SEVENTEEN-member set (as a [&'static str; 17] — ⟶ SUPERSEDED 2026-10-27: the operative set is **TWENTY** and the array is `[&str; 20]`, measured at `src/error.rs`) and the generated message for one member; read by the declaration and by the entry, never minted there"
         }
       ],
       "interactions": ["store-core", "store-args", "binding-crossing", "js-surface", "js-declaration", "store-battery"]
@@ -406,7 +406,7 @@
         {
           "name": "StoreStatus and the record interfaces",
           "input": "the store's closed fail set and the record shapes the verbs return",
-          "output": "the SEVENTEEN statuses plus the open escape arm (string & {}), and the record, config, pair and identity interfaces"
+          "output": "the SEVENTEEN statuses (⟶ SUPERSEDED 2026-10-27: **TWENTY**, `bindings/js/index.d.ts:316`–`:336`, `D-38` + `DEF-S`/`DEF-N`) plus the open escape arm (string & {}), and the record, config, pair and identity interfaces"
         }
       ],
       "interactions": ["js-surface", "store-fail-set", "js-battery", "delivery"]

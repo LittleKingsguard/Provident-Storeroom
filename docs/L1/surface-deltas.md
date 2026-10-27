@@ -59,7 +59,7 @@ ANNOTATE-BESIDE ground every prior revision of the map took (`D-3`'s own disposi
 
 **SEVEN EDITS, EACH WITH THE SITE IT REPLACES** — `listen`'s return (§1.1); the kernel-prefix language, whose
 declaration-side delta is **nil** (§1.2); the element's `constraint` member (§1.3); the uniqueness rule as a
-documented constraint on the `id` (§1.4); the union's seventeenth member and its five prose sites (§1.5); the three
+documented constraint on the `id` (§1.4); the union's seventeenth member and its five prose sites (§1.5) — **⟶ SUPERSEDED 2026-10-27: the union is TWENTY, and `ConstraintBodyThrew` `18` · `ConstraintRefusedAtRegistration` `19` · `ConstraintPassRefused` `20` are the three members that followed (`D-38`; `DEF-S`/`DEF-N`; `DEF-H`). `docs/L1/module-map.md` §4 E1 carries the clause and the sites**; the three
 further sentences the rulings falsify (§1.6); and `register`'s doc sentence at the end of §1.6. **`js-declaration`
 owns every one of them; no module may amend a declaration it does not own.**
 
@@ -183,6 +183,17 @@ very union.
      | (string & {});
    ```
 
+   **⟶ AND THIS ITEM'S READING IS SUPERSEDED THREE WIDENINGS LATER, 2026-10-27 (`D-38`; `DEF-S`/`DEF-N`;
+   `DEF-H`): THE LAST MEMBER IS `ConstraintPassRefused` AT RANK `20`, AND THE SHAPE ABOVE IS KEPT AS THE
+   RECORD OF ITS OWN DATE.** The rule the item states is the one that has held every time — *the appended
+   member sits LAST of the literals and immediately before the escape arm*, and no rank below moves — and it
+   has now been applied twice more: `ConstraintBodyThrew` `18` and `ConstraintRefusedAtRegistration` `19`
+   (`DEF-S`/`DEF-N`, *"Expand the returned error set for both S/N"*), then `ConstraintPassRefused` `20`
+   (`DEF-H`/`DEF-W`, *"Expand the returned fail-state list to include the refusal"*). **So the delta this
+   section draws is CLOSED, not withdrawn**, and the escape arm's ground is reinforced a fourth time —
+   which is also why a widened union is **PATCH-shaped**: `(string & {})` is open, so no typed consumer can
+   write an exhaustive switch for a new member to break.
+
 2. **`ValueNotAdmitted` STAYS AT RANK `14`** and is not removed: it remains the store's own answer on the native
    route (`§8.1` #14 and the 2026-10-23 amendment's own sentence, *"`ValueNotAdmitted` remains the store's own
    answer on the native route and keeps rank `14`"*). **A pass that reads rank 17 as a RENAME of rank 14 has
@@ -205,13 +216,13 @@ by the store and open by declaration'** are the standing rule. §2 therefore ass
 **⟶ AND THIS DELTA IS CLOSED, 2026-10-25 — THE DECLARATION MOVED AND NOTHING ELSE DID.** `RCA-8(g)`
 ANNOTATE-BESIDE: **every byte above stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause is a PURE
 INSERTION — it moves no arm, no member, no code and no cell.** **`bindings/js/index.d.ts`'s `StoreStatus` now carries
-ALL SEVENTEEN literals**, `ValueRefusedAtBoundary` written at rank `17`, **LAST of the seventeen and before**
+ALL SEVENTEEN literals**, `ValueRefusedAtBoundary` written at rank `17`, **LAST of the seventeen and before** — **⟶ SUPERSEDED 2026-10-27 (`D-38`; `DEF-S`/`DEF-N`; `DEF-H`): the block at `bindings/js/index.d.ts:316`–`:336` writes TWENTY literals in rank order, `ValueRefusedAtBoundary` now stands at `17` and is followed by `ConstraintBodyThrew` `18`, `ConstraintRefusedAtRegistration` `19` and `ConstraintPassRefused` `20`, all before**
 `(string & {})` (`index.d.ts:292`–`:310`), so **the delta §1.5 measures — *"the declaration is one behind"* — has no
 subject from this date**; and the block's **five prose sites the section enumerated (item 3) are re-spelled
 read-through** inside the declaration's own 2026-10-24 amendment, so the declaration is one file whose figures and
 whose literals now agree. **The section's own reasoning stands whole and is worth keeping for the next widening:**
 the escape arm is **reinforced, not weakened**, by a set that has moved a third time — and **the arm's runtime
-observable is NONE** (a type-level arm only; the store's `CODES` is closed at seventeen and the package mints no
+observable is NONE** (a type-level arm only; the store's `CODES` is closed at seventeen (⟶ 2026-10-27: **closed at TWENTY**) and the package mints no
 member), which is the reading `docs/L1/open-items-2026-10-25.md §2.1` closes as an `OWED`.
 
 ### 1.6 Three further declaration sentences the rulings falsify, found at the bytes
@@ -624,7 +635,7 @@ rather than hidden. **The residual itself is `Q-1` (§7)**, put to the architect
   count; `D-1-ter`'s ordering still forbids retiring the row before the code stops requiring the file, and this
   wave does **not** stop requiring it).
 - **`src/**` and `bindings/js/src/*.rs`** — **untouched.** `ConstraintEntry::Pair { address, id }` stays two fields
-  (`D-26` item 3), `CODES` already carries seventeen (`src/error.rs`), and no store arm gains a subject (`D-27`:
+  (`D-26` item 3), `CODES` already carries seventeen (⟶ RE-MEASURED 2026-10-27: **twenty**, `[&str; 20]`) (`src/error.rs`), and no store arm gains a subject (`D-27`:
   *"the store's own list validation keeps its subject … and gains no arm"*). **So `cargo test --offline` is a pure
   regression gate at this wave.**
 - **`docs/specs/**`, `strata/**`, `archive/**`** — **untouched**: a ruling supersedes by being recorded, not by a
@@ -659,7 +670,7 @@ marked as such rather than counted.
 | the batch refuses instead of dropping | *no declared cell measured* | a cell asserting the functionless element is admitted (the contract's own §2.12 item 3 (d) state, now unreachable) |
 | the kernel calls `listen(id, set)` and no `register` | `constraint-kernel.mjs:562`, `:565`–`:566` | a cell whose stub store asserts the `constraint@` spelling or a `register` call |
 | `register`'s cross-kind refusal is a plain object | `index.mjs:4918`–`:4926` | `register.test.mjs`'s `isRegistrationRefusal` **counts a `TypeError` as a FAILURE** (`index.d.ts:547`), so cells asserting the refusal goes green and cells asserting `instanceof TypeError` go red |
-| `StoreStatus` is seventeen | `index.d.ts:237`–`:254` | every census cell reading the set's arity — **`greens`' census cells assert sixteen** (`REVIEW-2026-10-24.md`'s `Q4` disposition), and the shipped-set figure is printed at ~13 sites |
+| `StoreStatus` is seventeen (⟶ 2026-10-27: **twenty**; the site below is the pre-widening block, `:237`–`:254`, and the block is at `:316`–`:336` today) | `index.d.ts:237`–`:254` | every census cell reading the set's arity — **`greens`' census cells assert sixteen** (`REVIEW-2026-10-24.md`'s `Q4` disposition), and the shipped-set figure is printed at ~13 sites |
 | `constraintPairKey`'s pair-local collision freedom is narrowed | see **`Q-2`** | **deliberately not declared** — no cell moves until `Q-2` is answered |
 
 ### 5.4 The reds that must remain attributable to something other than this change

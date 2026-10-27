@@ -1,6 +1,6 @@
 # L1 open items — 2026-10-25: every item this branch has named and not closed, closed or explicitly deferred
 
-**WHAT THIS FILE IS.** The closing record of a **declaration/record pass**: the twelve blind instances now cover
+**WHAT THIS FILE IS.** The closing record of a **declaration/record pass**: the twelve blind instances (⟶ RE-COUNTED 2026-10-27: **THIRTEEN** — the twelve surface instances plus `blind-defect-cases.test.mjs`, the defect-cases instance) now cover
 every general-purpose surface, and what remained was a short list of things recorded as open. **Nothing here is an
 implementation, a design or a new unit.** Each item is either **answered from the declared surface**, or
 **deferred with the one question that would settle it**, or **named as a record that is simply wrong**.
@@ -75,9 +75,9 @@ TYPE-level property with no runtime observable — no declared member enumerates
 force a status the store has not minted."*
 
 **THE CLAUSE THAT ANSWERS IT.** The escape arm's **only** declared duty is typeability: `StoreStatus` is the store's
-seventeen literals **plus `(string & {})`**, and *"an unknown status is still typed — the escape is load-bearing,
+seventeen literals **plus `(string & {})`** (⟶ RE-DERIVED 2026-10-27: **TWENTY literals**, `bindings/js/index.d.ts:316`–`:336` — the citation `:292`–`:310` here is the block's pre-widening site), and *"an unknown status is still typed — the escape is load-bearing,
 not a looseness … its absence would be a finding rather than a strictness"* (`bindings/js/index.d.ts:292`–`:310`).
-At runtime the set is **the store's and closed**: `src/error.rs`'s `CODES` carries seventeen, `docs/specs/
+At runtime the set is **the store's and closed**: `src/error.rs`'s `CODES` carries seventeen (⟶ RE-MEASURED 2026-10-27: **twenty**, `[&str; 20]`), `docs/specs/
 storeroom-native/contract.md §8.1` declares *"the operative set is `17` members ranked `1`…`17`"*, and the package
 **mints no member** (`strata/brief.md §5` item 4; `D-26` item 5's *"the package mints no code"*). And the surface's
 own clause forbids a cell naming a token on the kernel-produced arm: *"on the constraint-check sub-arm A DRIVE MAY
@@ -86,8 +86,8 @@ NAME NONE, AND A CELL THAT NAMES ONE IS CLAIMING A VALUE NO CLAUSE OF THIS DIREC
 
 **SO THE ARM'S RUNTIME OBSERVABLE IS: NONE.** A drive may assert (a) `typeof status === 'string'` on every arm and
 (b) **membership of the seventeen** where a store-produced code is named; it may assert **nothing** about a member
-outside the seventeen, in either direction. **The `OWED` closes with no work owed**, and the blind cell's reading is
-the operative one.
+outside the seventeen (⟶ **the twenty**), in either direction. **The `OWED` closes with no work owed**, and the blind cell's reading is
+the operative one. **⟶ RE-DERIVED 2026-10-27 (`D-38`; `DEF-S`/`DEF-N`; `DEF-H`): THE SET IS TWENTY, RANKED `1`…`20`** — `ConstraintBodyThrew` `18` and `ConstraintRefusedAtRegistration` `19` on the architect's *"Expand the returned error set for both S/N"* (`DEF-S`/`DEF-N`), `ConstraintPassRefused` `20` on *"Expand the returned fail-state list to include the refusal"* + *"Assert the constraints on rollback"* (`D-38`'s `DEF-H`/`DEF-W`), carried by `docs/specs/storeroom-native/contract.md §8.1`'s 2026-10-26 amendment (`:4118`) and by `CODES` (`[&str; 20]`). **Every `seventeen` in this subsection is the figure of its own date and is read THROUGH this clause; the READING the `OWED` closes on is UNMOVED** — the arm's runtime observable is still NONE, and (b)'s membership now reads *of the twenty*. **AND THE ESCAPE ARM IS WHAT MAKES THE WIDENING PATCH-SHAPED**: `(string & {})` is open, so no typed consumer can write an exhaustive switch and a widened union breaks none of them (`D-38`'s version consequence read beside the architect's `1.0.1`).
 
 ### 2.2 Whether *"no own property of the product is store data"* reaches SYMBOL-KEYED properties — **ANSWERED: it does not reach them as a declared census, and nothing is owed**
 
@@ -282,7 +282,7 @@ brief's own §2 note that its columns are re-measurable is what makes this a def
 | " | `codec.rs` **966** | **1,030** | |
 | " | `facade.rs` **1,105** | **1,136** | the file that gained the nine per-verb entries |
 | §2 table, `tests/` row | **83 files in three scopes** | **104** | `e2e/` **44 → 65**; `integration/` 33 ✓; `unit/` 5 ✓; `tests/Cargo.toml` 1 ✓ |
-| §2 table, `tests/` row, the `e2e/` breakdown | **23 `*.test.mjs`, 11 runners, 6 support modules, 1 evidence JSON, 3 documents** | **42 · 11 · 8 · 1 · 3** | the twelve blind instances plus `status-census`, `constraint-address-extension`, `instance-independence` and the four `prototype-*` cells; two support modules joined (`module-set`, `pack-reachability`) |
+| §2 table, `tests/` row, the `e2e/` breakdown | **23 `*.test.mjs`, 11 runners, 6 support modules, 1 evidence JSON, 3 documents** | **42 · 11 · 8 · 1 · 3** | the twelve blind instances (⟶ 2026-10-27: **thirteenth**, `blind-defect-cases.test.mjs`) plus `status-census`, `constraint-address-extension`, `instance-independence` and the four `prototype-*` cells; two support modules joined (`module-set`, `pack-reachability`) |
 
 **EVERY OTHER FIGURE THE BRIEF PRINTS WAS CHECKED AND STANDS**, and the ones a reader is most likely to doubt are
 named here so the check is not mistaken for a skim: `src/`'s seven line counts (`lib.rs` 41 · `store.rs` 2,472 ·
@@ -290,7 +290,7 @@ named here so the check is not mistaken for a skim: `src/`'s seven line counts (
 `delivery.mjs` 639 · `constraints.mjs` 795 · `kernel-registration.mjs` 644 · `kernel-commit.mjs` 156 ·
 `kernel-attempt.mjs` 570 · `kernel-terminal.mjs` 324 · `crossing.rs` 1,216 · `src/lib.rs` 90 · the barrel **4** ·
 `src/entry/` **13 files** · `files`' **FIVE** rows · `version` **0.5.0** · the member set **14** · the status set
-**17** · the depth ceiling **126** and the node ceiling **1,000,000** · the three Rust legs' `415` / `235` / `650` ·
+**17** — **⟶ RE-MEASURED 2026-10-27, and this is the pass's own table re-read, so every figure that moved is named in order:** `index.mjs` **1,509**; `refusal.mjs` **161**; `artefact.mjs` **376**; `state.mjs` **623**; `class-decision.mjs` **1,214**; `carrier.mjs` **1,002**; `frame.mjs` **417**; `delivery.mjs` **647**; `constraints.mjs` **1,530**; `kernel-foundations.mjs` **725**; `kernel-registration.mjs` **677**; `kernel-commit.mjs` **166**; `kernel-attempt.mjs` **627**; `kernel-terminal.mjs` **409**; the barrel **4** ✓; `src/entry/` **13 files** ✓; `files`' **SIX** rows (`README.guide.md` joined them); `version` **1.0.1**; the member set **14** ✓; the status set **TWENTY** (ranked `1`…`20`; `D-38` + `DEF-S`/`DEF-N` + `DEF-H`); the depth ceiling **126** and the node ceiling **1,000,000** (not re-measured by this pass); the two Rust legs **415** / **235** ✓ and `cargo test`'s **650** ✓ (re-run 2026-10-27, `0` failed); `bindings/js/Cargo.lock` **DELETED** ✓. · the depth ceiling **126** and the node ceiling **1,000,000** · the three Rust legs' `415` / `235` / `650` ·
 and `bindings/js/Cargo.lock`'s **DELETED**.
 
 ---
@@ -316,12 +316,12 @@ status:**
 
 | leg | command | result |
 |---|---|---|
-| `test` | `npm test` | **`1053` tests · `1051` pass · `1` fail · `1` skipped, exit `1`** — **the one fail is the HELD DISAGREEMENT and it stays red**: `tests/e2e/blind-constraints-unit.test.mjs:172` (*"`KC-8` !== `KC-4`"*, asserted at `:187`) |
+| `test` | `npm test` | **`1053` tests · `1051` pass · `1` fail · `1` skipped, exit `1`** — **the one fail is the HELD DISAGREEMENT and it stays red**: `tests/e2e/blind-constraints-unit.test.mjs:172` (*"`KC-8` !== `KC-4`"*, asserted at `:187`) — **⟶ RE-MEASURED 2026-10-27 AT THE `1.0.1` PREPARATION: `1081` tests · `1080` pass · `0` fail · `1` skipped, exit `0`. THE HELD DISAGREEMENT IS NO LONGER RED** — the `D-40`/`D-38` passes re-derived it and the suite is green at the bump; the one skip is the dispatcher-shape cell (*"the old dispatcher shape is absent after the split; the golden was captured before it"*) |
 | store | `cargo test --offline -p storeroom-native` | **`415` passed · `0` failed**, exit `0` |
 | battery | `cargo test -p storeroom-tests` | **`235` passed · `0` failed**, exit `0` |
 | both | `cargo test` | **`650` passed · `0` failed · `0` ignored** over `22` binaries, exit `0` (`415 + 235 = 650` ✓) |
-| greens | `npm run greens` | exit `0` — `AUTHORED 100 · EXECUTED 100 · PASS 100 · FAIL 0`, `10` discovered runners, every one exit `0`, layer `LIVE / ASSEMBLED PACKAGE`, `APP` `NONE` |
-| e2e | `npm run test:e2e` | exit `0` — `15` declared / `15` recorded: `14 PASS · 0 FAIL · 0 FINDING · 1 LAYER-LIMIT` (`INSTALL-09`, the four non-host platform names: driven, refused `EBADPLATFORM`, **never claimed green**), `APP` stays `NONE` |
+| greens | `npm run greens` | exit `0` — `AUTHORED 100 · EXECUTED 100 · PASS 100 · FAIL 0`, `10` discovered runners, every one exit `0` — **⟶ RE-RUN 2026-10-27: exit `0`, `CHAIN COMPLETE — 10 discovered runner(s), every one exit 0`, with the three batteries' own totals `AUTHORED 254 · PASS 254`, `175 · 175`, `100 · 100` and `0` FAIL anywhere (`CF-11` still `UNRUNNABLE` by declaration, `D-21`)**, layer `LIVE / ASSEMBLED PACKAGE`, `APP` `NONE` |
+| e2e | `npm run test:e2e` | exit `0` — `15` declared / `15` recorded: `14 PASS · 0 FAIL · 0 FINDING · 1 LAYER-LIMIT` — **⟶ RE-RUN 2026-10-27: unmoved, `15` declared / `15` recorded / `14 PASS` / `1 LAYER-LIMIT` (`INSTALL-09`), and `INSTALL-01` now reads the assembled `1.0.1` tarball's `20` members** (`INSTALL-09`, the four non-host platform names: driven, refused `EBADPLATFORM`, **never claimed green**), `APP` stays `NONE` |
 | typecheck | `npm run typecheck` | exit `0` — no `tsc` diagnostic |
 
 **AND THE TWO JSON FILES STILL PARSE, MEASURED RATHER THAN ASSUMED:** `docs/L1/modules.json` and
